@@ -304,3 +304,8 @@ A:	Suppose you want the audio from title 2, all chapters and you want the
 	The resampling is needed since DVD audio is usually sampled at 48
 	kHz. (tibit)
 ---
+Q:	How do I transfer my .avi .mpg .mov. asf .wmv etc. files to DVD so that
+	they playback on my stand-alone DVD player ?
+A:	A step by step howto can be found at
+	http://mightylegends.zapto.org/dvd/dvdauthor_howto.php (rickfharris)
+---
