@@ -37,6 +37,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_yuy2toyv12.la\
 			filter_skip.la\
 			filter_astat.la\
+			filter_detectsilence.la\
 			filter_lowpass.la\
 			filter_aclip.la\
 			filter_cut.la\
@@ -126,6 +127,9 @@ filter_slowmo_la_LDFLAGS =  -module -avoid-version
 
 filter_astat_la_SOURCES = filter_astat.c
 filter_astat_la_LDFLAGS =  -module -avoid-version 
+
+filter_detectsilence_la_SOURCES = filter_detectsilence.c
+filter_detectsilence_la_LDFLAGS =  -module -avoid-version 
 
 filter_lowpass_la_SOURCES = filter_lowpass.c
 filter_lowpass_la_LDFLAGS =  -module -avoid-version 
