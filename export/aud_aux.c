@@ -952,8 +952,10 @@ static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
     
     while (in_size >= mpa_bytes_pf) {
       
+      pthread_mutex_lock(&init_avcodec_lock);
       out_size = avcodec_encode_audio(&mpa_ctx, (unsigned char *)output, 
 				      OUTPUT_SIZE, (short *)in_buf);
+      pthread_mutex_unlock(&init_avcodec_lock);
       
       audio_write(output, out_size, avifile);
       

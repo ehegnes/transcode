@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-12-15 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/aud_aux.c:
+  Protect all calls to libavcodec with locks. This was basically
+  already done, but I have missed one.
+
 2003-12-11 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/fileinfo.c:
