@@ -93,6 +93,9 @@ typedef unsigned char boolean;
 #define idx1tag MAKEFOURCC('i','d','x','1')
 #define Tag00db MAKEFOURCC('0','0','d','b')
 #define Tag00dc MAKEFOURCC('0','0','d','c')
+#define Tag01db MAKEFOURCC('0','1','d','b')
+#define Tag01dc MAKEFOURCC('0','1','d','c')
+#define Tag00wb MAKEFOURCC('0','0','w','b')
 #define Tag01wb MAKEFOURCC('0','1','w','b')
 #define Tagwave MAKEFOURCC('f','m','t',' ')
 #define Tagdata MAKEFOURCC('d','a','t','a')
@@ -692,6 +695,7 @@ static boolean DumpChunk(int fd, off_t filepos, off_t filesize,
     break;
     
     case Tag01wb:
+    case Tag00wb:
 
       if(mode==1) {
 	xio_lseek(fd, datapos, SEEK_SET);
@@ -703,6 +707,8 @@ static boolean DumpChunk(int fd, off_t filepos, off_t filesize,
       
     case Tag00db:
     case Tag00dc:
+    case Tag01db:
+    case Tag01dc:
     case Tag00__:
 
       if(mode==0) {
