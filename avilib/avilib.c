@@ -2785,6 +2785,8 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
    // MULTIPLE RIFF CHUNKS (and no index)
    // *********************
    
+      long aud_chunks = 0;
+
       lseek(AVI->fdes, AVI->movi_start, SEEK_SET);
 
       AVI->n_idx = 0;
@@ -2825,8 +2827,9 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
             continue;
          }
 
-	 if (nai[0] >= AVI->total_frames) { // XXX: probably too much
+	 if (aud_chunks >= AVI->total_frames) { // XXX: probably too much
 	      AVI->track[j].audio_index = (audio_index_entry *) realloc(  AVI->track[j].audio_index, (2*nai[0]+1)*sizeof(audio_index_entry));
+	     aud_chunks += AVI->total_frames;
 	     
 	 }
 
@@ -2855,6 +2858,7 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 		AVI->track[j].audio_index[nai[j]].tot = tot[j];
 		tot[j] += AVI->track[j].audio_index[nai[j]].len;
 		nai[j]++;
+		aud_chunks++;
 
 		lseek(AVI->fdes,PAD_EVEN(n),SEEK_CUR);
 	 }
