@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-13 Tilmann Bitterberg <transcode at tibit.org>
+
+  * contrib/subrip/*:
+  Removed ancient version and only left a pointer to the current one
+  on sf.net. Suggested by Arne Driescher.
+
 2004-01-13 Frederic Briere <fbriere at fbriere.net>
 
   * import/tcxmlcheck.c:
