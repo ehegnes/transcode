@@ -360,6 +360,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 #else
 			int sum;
 			uint8_t  *m;
+			int w4 = w+4;
 			
 			// this isn't exacly the same output like the original
 			// but just because the original was buggy -- tibit
@@ -376,23 +377,26 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 				if (!(fmoving[x] = moving[x]) )
 				    continue;
 
-				m = _moving + (y-2)*(w+4) + (x-2);
-				sum = 0;
+				m = moving + x - 2*w4 -2;
+				sum = 1;
 
-				sum += m[0] + m[1] + m[2] + m[3] + m[4];
-				m += (w+4);
-				sum += m[0] + m[1] + m[2] + m[3] + m[4];
-				m += (w+4);
-				sum += m[0] + m[1] + m[2] + m[3] + m[4];
-				m += (w+4);
-				sum += m[0] + m[1] + m[2] + m[3] + m[4];
-				m += (w+4);
-				sum += m[0] + m[1] + m[2] + m[3] + m[4];
+				//sum += m[0] + m[1] + m[2] + m[3] + m[4];
+				//max sum is 25 or better 1<<25
+				sum <<= m[0]; sum <<= m[1]; sum <<= m[2]; sum <<= m[3]; sum <<= m[4];
+				m += w4;
+				sum <<= m[0]; sum <<= m[1]; sum <<= m[2]; sum <<= m[3]; sum <<= m[4];
+				m += w4;
+				sum <<= m[0]; sum <<= m[1]; sum <<= m[2]; sum <<= m[3]; sum <<= m[4];
+				m += w4;
+				sum <<= m[0]; sum <<= m[1]; sum <<= m[2]; sum <<= m[3]; sum <<= m[4];
+				m += w4;
+				sum <<= m[0]; sum <<= m[1]; sum <<= m[2]; sum <<= m[3]; sum <<= m[4];
 
-				fmoving[x] = (sum > 7);
+				// check if the only bit set has an index of 8 or greater (threshold is 7)
+				fmoving[x] = (sum > 128);
 			    }
-			    fmoving += (w+4);
-			    moving += (w+4);
+			    fmoving += w4;
+			    moving += w4;
 			}
 			// Dilate.
 			fmoving = _fmoving;
@@ -404,20 +408,21 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 				if (!(moving[x] = fmoving[x]) )
 				    continue;
 
-				m = _moving + (y-2)*(w+4) + (x-2);
+				m = moving + x - 2*w4 -2;
 
-				memset(m, 1, 5);
-				m += (w+4);
-				memset(m, 1, 5);
-				m += (w+4);
-				memset(m, 1, 5);
-				m += (w+4);
-				memset(m, 1, 5);
-				m += (w+4);
-				memset(m, 1, 5);
+				//memset(m, 1, 5);
+				*(unsigned int *)m = 0x01010101; m[4] = 1;
+				m += w4;
+				*(unsigned int *)m = 0x01010101; m[4] = 1;
+				m += w4;
+				*(unsigned int *)m = 0x01010101; m[4] = 1;
+				m += w4;
+				*(unsigned int *)m = 0x01010101; m[4] = 1;
+				m += w4;
+				*(unsigned int *)m = 0x01010101; m[4] = 1;
 			    }
-			    moving += (w+4);
-			    fmoving += (w+4);
+			    moving += w4;
+			    fmoving += w4;
 			}
 #endif
 		}
@@ -891,6 +896,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 ///////////////////////////////////////////////////////////////////////////
 
+  //if(ptr->tag & TC_PRE_S_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
   if(ptr->tag & TC_PRE_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 	  
 	  int U  = ptr->v_width*ptr->v_height;
@@ -902,6 +908,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 	  memset(mfd->movingY,  0, msize);
 	  memset(mfd->fmovingY, 0, msize);
+	  /*
+	  */
 
 
 	  smartyuv_core(ptr->video_buf, mfd->buf, mfd->prevFrame, 
@@ -917,6 +925,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	      memset(mfd->fmovingU, 0, msize);
 	      memset(mfd->movingV,  0, msize);
 	      memset(mfd->fmovingV, 0, msize);
+	      /*
+	      */
 
 	      smartyuv_core(ptr->video_buf+U, mfd->buf+U, mfd->prevFrame+U, 
 			  w2, h2, w2, w2,

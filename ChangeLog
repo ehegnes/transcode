@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-19 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/filter_smartyuv.c:
+  More speed optimizations rendering the filter source completely
+  unreadable.
+
 2003-08-19 Malanchini Marzio <marzio_malanchini at vodafone.it>
 
   * acinclude.m4 configure.in docs/export_pvm.txt docs/Makefile.am
