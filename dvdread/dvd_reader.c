@@ -16,6 +16,10 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include "../config.h"
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h> /* For the timing of dvdcss_title crack. */
@@ -26,10 +30,16 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
-#include <dlfcn.h>
 #include <dirent.h>
+#ifdef HAVE_DLFCN_H
+#include <dlfcn.h>
+#else
+# ifdef SYSTEM_DARWIN
+#  include "../libdldarwin/dlfcn.h"
+# endif
+#endif
 
-#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__bsdi__)
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__bsdi__) || defined(__APPLE__)
 #define SYS_BSD 1
 #endif
 

@@ -17,7 +17,7 @@ pkg_LTLIBRARIES = $(MOD)
 
 import_v4l_la_SOURCES = import_v4l.c common.c video.c audio.c frequencies.c
 import_v4l_la_LDFLAGS = -no-undefined -module -avoid-version 
-import_v4l_la_LIBADD = -L../../libioaux -lioaux
+import_v4l_la_LIBADD = -L../../libioaux -ltcioaux
  
 EXTRA_DIST = *.h
 

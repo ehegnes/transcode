@@ -37,8 +37,6 @@
 
 #include "ioaux.h"
 
-#include <getopt.h>
-
 #ifdef HAVE_IO_H
 #include <fcntl.h>
 #include <io.h>
@@ -186,12 +184,19 @@ void probe_ts(info_t *ipipe)
 	}
 
 
+	found = 0; doit = 1;
 	// read away syncword
-	if((i=p_read(ipipe->fd_in, (char *)&sync, 1)) != 1) {
+
+	while (!found && doit) {
+	    i = p_read(ipipe->fd_in, (char *)&sync, 1);
+	    if (sync == 0x47) found = 1;
+	    if (i == 0) doit = 0;
+	    size += i;
+	}
+	if(!doit) {
 	    fprintf(stderr, "(%s) end of stream\n", __FILE__);
 	    return;    
 	}
-	size += i;
     }
     printf("%s\n", (npid>0?"":"none"));
 

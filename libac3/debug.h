@@ -22,6 +22,12 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include "../config.h"
+#endif
+
+#ifndef SYSTEM_DARWIN
+
 int debug_is_on(void);
 
 #ifdef __GNUC__
@@ -32,6 +38,9 @@ int debug_is_on(void);
 		fprintf(stderr,format,## args);\
 	}\
 }
+#else
+#define dprintf(a,...)
+#endif
 #else
 #define dprintf(a,...)
 #endif

@@ -72,7 +72,7 @@ MOD_open
 
     if(param->flag == TC_VIDEO) {
       
-	if(verbose & TC_DEBUG)	printf("yuv start MOD_open video\n");
+	if(verbose_flag & TC_DEBUG)	printf("yuv start MOD_open video\n");
 	frm=0;
     param->fd = NULL;
     return(0);
@@ -92,17 +92,17 @@ MOD_decode {
 
   if(param->flag == TC_VIDEO) {
     
-   // if(verbose & TC_DEBUG) printf("(V) read yuv ");
+   // if(verbose_flag & TC_DEBUG) printf("(V) read yuv ");
 	sprintf(fname,"%s/%04d.yuv",vob->video_in_file,frm);	
 	 if (!(fd = fopen(fname,"rb"))){
-	 	if(verbose & TC_DEBUG)	fprintf(stderr,
+	 	if(verbose_flag & TC_DEBUG)	fprintf(stderr,
 							"warning: missing frame %d, searching next...",frm);
 			while (frm < MAXFRM){ 
 					frm++;
 					sprintf(fname,"%s/%04d.yuv",vob->video_in_file,frm);
 					fd=fopen(fname,"rb");
 		 			if(fd){
-				if(verbose & TC_DEBUG)	fprintf(stderr,"found %d \n",frm);
+				if(verbose_flag & TC_DEBUG)	fprintf(stderr,"found %d \n",frm);
 						 goto cont;
 					}
 			}

@@ -35,7 +35,9 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+build_triplet = @build@
 host_triplet = @host@
+target_triplet = @target@
 A52_CFLAGS = @A52_CFLAGS@
 A52_LIBS = @A52_LIBS@
 ACLOCAL = @ACLOCAL@
@@ -57,12 +59,14 @@ AVIFILE_LIBS = @AVIFILE_LIBS@
 AWK = @AWK@
 BIG_ENDIAN_FALSE = @BIG_ENDIAN_FALSE@
 BIG_ENDIAN_TRUE = @BIG_ENDIAN_TRUE@
+CAN_COMPILE_C_ALTIVEC_FALSE = @CAN_COMPILE_C_ALTIVEC_FALSE@
+CAN_COMPILE_C_ALTIVEC_TRUE = @CAN_COMPILE_C_ALTIVEC_TRUE@
 CC = @CC@
 CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
 
-CFLAGS = -D_REENTRANT -Wall -funroll-loops -ffast-math -finline-functions @SUPPORTINCL@ -I../export -I../import -I$(srcdir)/../export -I$(srcdir)/../import -export-dynamic -I../aclib -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@ --include $(top_srcdir)/src/transcode.h 
+CFLAGS = -D_REENTRANT -Wall -funroll-loops -ffast-math -finline-functions @DLDARWININCL@ @SUPPORTINCL@ -I../export -I../import -I$(srcdir)/../export -I$(srcdir)/../import -export-dynamic -I../aclib -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@ --include $(top_srcdir)/src/transcode.h 
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
@@ -71,6 +75,9 @@ CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DLDARWININCL = @DLDARWININCL@
+DLDARWINLIB = @DLDARWINLIB@
+DLDARWINOBJECTS = @DLDARWINOBJECTS@
 DLLDFLAGS = @DLLDFLAGS@
 DVDREAD_CFLAGS = @DVDREAD_CFLAGS@
 DVDREAD_LIBS = @DVDREAD_LIBS@
@@ -119,6 +126,8 @@ HAVE_LIBPOSTPROC_FALSE = @HAVE_LIBPOSTPROC_FALSE@
 HAVE_LIBPOSTPROC_TRUE = @HAVE_LIBPOSTPROC_TRUE@
 HAVE_LIBXML2_FALSE = @HAVE_LIBXML2_FALSE@
 HAVE_LIBXML2_TRUE = @HAVE_LIBXML2_TRUE@
+HAVE_LIBXPM_FALSE = @HAVE_LIBXPM_FALSE@
+HAVE_LIBXPM_TRUE = @HAVE_LIBXPM_TRUE@
 HAVE_LIBXVID_FALSE = @HAVE_LIBXVID_FALSE@
 HAVE_LIBXVID_TRUE = @HAVE_LIBXVID_TRUE@
 HAVE_LIBXV_FALSE = @HAVE_LIBXV_FALSE@
@@ -151,6 +160,8 @@ HAVE_X11_FALSE = @HAVE_X11_FALSE@
 HAVE_X11_TRUE = @HAVE_X11_TRUE@
 HAVE_X86CPU_FALSE = @HAVE_X86CPU_FALSE@
 HAVE_X86CPU_TRUE = @HAVE_X86CPU_TRUE@
+HAVE_XAW_SIMPLE_FALSE = @HAVE_XAW_SIMPLE_FALSE@
+HAVE_XAW_SIMPLE_TRUE = @HAVE_XAW_SIMPLE_TRUE@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -275,7 +286,11 @@ program_transform_name = @program_transform_name@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
+target = @target@
 target_alias = @target_alias@
+target_cpu = @target_cpu@
+target_os = @target_os@
+target_vendor = @target_vendor@
 x_includes = @x_includes@
 x_libraries = @x_libraries@
 
@@ -285,7 +300,7 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
 bin_PROGRAMS = transcode
 
-transcode_LDADD = @SUPPORTLIB@ -L../libioaux -lioaux -L../aclib -lac -lm 
+transcode_LDADD = @DLDARWINLIB@ @SUPPORTLIB@ -L../libioaux -ltcioaux -L../aclib -lac -lm 
 
 EXTRA_DIST = *.h
 

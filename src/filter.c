@@ -21,12 +21,22 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include "../config.h"
+#endif
+
 #include "framebuffer.h"
-#include <dlfcn.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#ifdef HAVE_DLFCN_H
+#include <dlfcn.h>
+#else
+# ifdef SYSTEM_DARWIN
+#  include "../libdldarwin/dlfcn.h"
+# endif
+#endif
 
 #include "filter.h"
 
@@ -96,7 +106,7 @@ void plugin_fix_id(void)
   
 
 int load_plugin(char *path) {
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined (__APPLE__)
   const
 #endif    
   char *error;

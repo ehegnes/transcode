@@ -231,6 +231,7 @@ void process_vframe(vob_t *vob)
     if(ptr==NULL) {
       if(verbose & TC_DEBUG) fprintf(stderr, "(%s) internal error (V|%d)\n", __FILE__, vbuffer_im_fill_ctr);
       
+      pthread_testcancel();
       continue;
       //goto invalid_vptr; // this shouldn't happen but is non-fatal
     }
@@ -355,6 +356,7 @@ void process_aframe(vob_t *vob)
     if(ptr==NULL) {
       if(verbose & TC_DEBUG) fprintf(stderr, "(%s) internal error (A|%d)\n", __FILE__, abuffer_im_fill_ctr);
       
+      pthread_testcancel();
       continue;
       //goto invalid_aptr; // this shouldn't happen but is non-fatal
     }

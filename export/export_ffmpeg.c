@@ -521,8 +521,12 @@ MOD_open
     if (is_mpeg1video) {
       char *buf = malloc (strlen (vob->video_out_file)+1+4);
 
-      sprintf(buf, "%s.m1v", vob->video_out_file);
-      mpeg1fd = fopen ( buf, "wb" );
+      if (strcmp(vob->video_out_file, "/dev/null") != 0) {
+	  sprintf(buf, "%s.m1v", vob->video_out_file);
+	  mpeg1fd = fopen ( buf, "wb" );
+      } else {
+	  mpeg1fd = fopen ( vob->video_out_file, "wb" );
+      }
 
       if (!mpeg1fd) {
 	fprintf(stderr, "Can not open |%s|\n", buf); 
@@ -608,8 +612,8 @@ MOD_encode
                                     lavc_venc_frame);
   
     if (out_size < 0) {
-      fprintf(stderr, "[%s] encoder error", MOD_NAME);
-      return TC_EXPORT_ERROR; 
+      fprintf(stderr, "[%s] encoder error: size (%d)\n", MOD_NAME, out_size);
+      //return TC_EXPORT_ERROR; 
     }
 
     //0.6.2: switch outfile on "r/R" and -J pv
@@ -626,9 +630,9 @@ MOD_encode
 	return TC_EXPORT_ERROR; 
       }
     } else { // mpeg1video
-      if ( fwrite (tmp_buffer, out_size, 1, mpeg1fd) <= 0) {
-	fprintf(stderr, "[%s] encoder error", MOD_NAME);
-	return TC_EXPORT_ERROR; 
+      if ( (out_size >0) && (fwrite (tmp_buffer, out_size, 1, mpeg1fd) <= 0) ) {
+	fprintf(stderr, "[%s] encoder error write failed size (%d)\n", MOD_NAME, out_size);
+	//return TC_EXPORT_ERROR; 
       }
     }
 

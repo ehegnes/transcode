@@ -171,9 +171,21 @@ int rtjpeg_aud_open(char *tplorg)
 
   // we have to search for a RTjjjjjjjj seekframe 
   while (pos > startpos && !foundit) {
+    char *p;
     lseek(rtjpeg_aud_file, pos, SEEK_SET);
     read(rtjpeg_aud_file, buffer, 32768);
-    needlepos = (char *)memmem(buffer, 32768, "RTjjjjjjjjjjjjjjjjjjjjjjjj", FRAMEHEADERSIZE);
+
+    // does that work -- tibit
+    needlepos = NULL;
+    p = buffer;
+    while (p-buffer < 32768) {
+	if ( memcmp (p, "RTjjjjjjjjjjjjjjjjjjjjjjjj", FRAMEHEADERSIZE) == 0) {
+	    needlepos = p;
+	    break;
+	}
+	p++;
+    }
+
     if (needlepos != NULL) {
       lseek(rtjpeg_aud_file, pos+(needlepos - buffer) + FRAMEHEADERSIZE, SEEK_SET);
       read(rtjpeg_aud_file, &frameheader, FRAMEHEADERSIZE);
@@ -290,10 +302,19 @@ int rtjpeg_aud_seekto_keyframe_before(int number)
     //fprintf(stderr, "curnum=%d  number=%d\n", curnum, number);
     foundit=0; // reset the flag
     while (pos > rtjpeg_aud_startpos && !foundit) {
+      char *p;
       lseek(rtjpeg_aud_file, pos, SEEK_SET);
       read(rtjpeg_aud_file, buffer, 32768);
       //fprintf(stderr, "check for needle\n");
-      needlepos = (char *)memmem(buffer, 32768, "RTjjjjjjjjjjjjjjjjjjjjjjjj", FRAMEHEADERSIZE);
+      needlepos = NULL;
+      p = buffer;
+      while (p-buffer < 32768) {
+	if ( memcmp (p, "RTjjjjjjjjjjjjjjjjjjjjjjjj", FRAMEHEADERSIZE) == 0) {
+	  needlepos = p;
+	  break;
+	}
+	p++;
+      }
       if (needlepos != NULL) {
         lseek(rtjpeg_aud_file, pos+(needlepos - buffer) + FRAMEHEADERSIZE, SEEK_SET);
         read(rtjpeg_aud_file, &frameheader, FRAMEHEADERSIZE);

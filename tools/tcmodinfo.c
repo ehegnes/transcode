@@ -24,6 +24,7 @@
 #ifdef HAVE_CONFIG_H
 #include "../config.h"
 #endif
+
 #include "../src/framebuffer.h"
 #include "../src/transcode.h"
 #include "../src/filter.h"
@@ -35,9 +36,16 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
-#include <dlfcn.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+
+#ifdef HAVE_DLFCN_H
+#include <dlfcn.h>
+#else
+# ifdef SYSTEM_DARWIN
+#  include "../libdldarwin/dlfcn.h"
+# endif
+#endif
 
 #define EXE "tcmodinfo"
 #define SIZE 8192 //Buffersize
@@ -82,7 +90,7 @@ void tc_error(char *string)
 
 
 int load_plugin(char *path, int id) {
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__APPLE__)
   const
 #endif    
   char *error;

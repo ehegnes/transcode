@@ -20,7 +20,17 @@
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
  *
  */
+#ifdef HAVE_CONFIG_H
+#include "../config.h"
+#endif
+
+#ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
+#else
+# ifdef SYSTEM_DARWIN
+#  include "../libdldarwin/dlfcn.h"
+# endif
+#endif
 
 #include "dl_loader.h"
 
@@ -36,6 +46,7 @@ void watch_export_module(char *s, int opt, transfer_t *para)
 void watch_import_module(char *s, int opt, transfer_t *para)
 {
     printf("module=%s [option=%02d, flag=%d]\n", s, opt, ((para==NULL)? -1:para->flag));
+    fflush(stdout);
 }
 
 int tcv_export(int opt, void *para1, void *para2)
@@ -116,7 +127,7 @@ int tca_import(int opt, void *para1, void *para2)
 
 void *load_module(char *mod_name, int mode)
 {
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined (__APPLE__)
   const
 #endif  
   char *error;
@@ -197,5 +208,8 @@ void *load_module(char *mod_name, int mode)
 
 void unload_module(void *handle)
 {
-  dlclose(handle);
+  if (dlclose(handle) != 0) {
+      perror("unloading module");
+  }
+  handle=NULL;
 }

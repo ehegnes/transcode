@@ -11,6 +11,7 @@ pkgdir=@MOD_PATH@
 pkg_LTLIBRARIES=import_lve.la
 
 import_lve_la_SOURCES = import_lve.c 
+import_lve_la_LIBADD  = -Llve/ -llve -Lffmpeg/ -lavcodec -Llibmpeg2 -lmpeg2 -Lliba52 -la52 -lstdc++
 import_lve_la_LDFLAGS = -no-undefined -module -avoid-version 
 
 

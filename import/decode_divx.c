@@ -23,7 +23,9 @@
  *
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include "../config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,7 +35,14 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <unistd.h>
+
+#ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
+#else
+# ifdef SYSTEM_DARWIN
+#  include "../libdldarwin/dlfcn.h"
+# endif
+#endif
 
 #include "transcode.h"
 #include "ioaux.h"

@@ -1,9 +1,15 @@
 --------------------------------------------
 transcode-0.6.4.HEAD
 
+- configure check for libXpm and Xaw
+
+- Very preleminary MacOS X support. Compiling and running still needs
+  some tweaking. Thansk to the great help from Håvard Dahle
+  <havardda AT orakel.ntnu.no>
+
 - changed ALTIVEC flags in libavcodec to '-maltivec -mabi=altivec'
 
-- Fixed a bug where ffmpeg crached when doing a two-pass encode
+- Fixed a bug where ffmpeg crashed when doing a two-pass encode
 
 - Fixed mmx code in yuvdenoise/deinterlacer
    -- Christoph Lampert <chl at math.uni-bonn.de>

@@ -25,7 +25,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <dlfcn.h>
 
 #include "transcode.h"
 #include "../ffmpeg/libavcodec/avcodec.h"

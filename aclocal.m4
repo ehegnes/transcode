@@ -771,7 +771,7 @@ dnl
 AC_DEFUN(AM_PATH_LVE,
 [
 
-AC_ARG_WITH(liblve-builddir,[  --with-liblve-builddir=PFX    path to MPlayer builddir  (optional)],
+AC_ARG_WITH(liblve-builddir,[  --with-liblve-builddir=PFX    path to lve builddir  (optional)],
 	  liblve_builddir="$withval",liblve_builddir="")
 
 EXTRA_LIBS="-lm"
@@ -782,18 +782,18 @@ if test x$liblve_builddir != "x" ; then
 
 	with_liblve_p="$liblve_builddir"
 
-	AC_CHECK_LIB(lve, pp_lveess,
+	AC_CHECK_LIB(lve, lr_init,
       [
 	LIBLVE_CFLAGS="-I$with_liblve_p/lve"
 	LIBLVE_LIBS="-L$with_liblve_p/lve -llve ${EXTRA_LIBS}" 
 	AC_DEFINE(HAVE_LIBLVE)
 	have_liblve=yes
-      ], have_liblve=no, )
+      ], have_liblve=no, $LIBLVE_CFLAGS $LIBLVE_LIBS)
 fi
 
 if test x$have_liblve != "xyes" ; then
 
-	AC_CHECK_LIB(lve, pp_lveess,
+	AC_CHECK_LIB(lve, lr_init,
       [
 	LIBLVE_CFLAGS=""
 	LIBLVE_LIBS="-llve ${EXTRA_LIBS}" 
@@ -804,7 +804,7 @@ fi
 
 if test x$have_liblve != "xyes" ; then
 
-	AC_CHECK_LIB(lve, pp_lveess,
+	AC_CHECK_LIB(lve, lr_init,
       [
 	LIBLVE_CFLAGS="-I/usr/local/include"
 	LIBLVE_LIBS="-L/usr/local/lib -llve ${EXTRA_LIBS}" 
@@ -1410,7 +1410,7 @@ AC_ARG_ENABLE(libfametest, [  --disable-libfametest   Do not try to compile and 
   fi
 
   AC_PATH_PROG(LIBFAME_CONFIG, libfame-config, no)
-  min_libfame_version=ifelse([$1], , 0.8.10, $1)
+  min_libfame_version=ifelse([$1], , 0.9.0, $1)
   AC_MSG_CHECKING(for libfame - version >= $min_libfame_version)
   no_libfame=""
   if test "$LIBFAME_CONFIG" = "no" ; then

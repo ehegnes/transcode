@@ -545,7 +545,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	if(aptr->attributes & TC_FRAME_IS_KEYFRAME) export_para.attributes |= TC_FRAME_IS_KEYFRAME;
 	
 	export_para.flag   = TC_VIDEO;
-	
+
 	if(tcv_export(TC_EXPORT_ENCODE, &export_para, vob)<0) {
 	  fprintf(stderr, "\nerror encoding video frame\n");
 	  exit_on_encoder_error=1;

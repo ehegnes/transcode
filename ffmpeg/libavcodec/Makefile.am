@@ -21,7 +21,7 @@ if ARCH_PPC
 FF_SRC_PPC = ppc/dsputil_ppc.c ppc/mpegvideo_ppc.c
 endif
 
-if HAVE_PPC_ALTIVEC
+if CAN_COMPILE_C_ALTIVEC
 FF_SRC_ALTIVEC = ppc/dsputil_altivec.c ppc/mpegvideo_altivec.c ppc/idct_altivec.c \
 		 ppc/fft_altivec.c ppc/gmc_altivec.c
 ALTIVEC=-maltivec -mabi=altivec

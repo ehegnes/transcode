@@ -511,7 +511,7 @@ extern int tc_decoder_delay;
 extern int tc_x_preview;
 extern int tc_y_preview;
 extern int tc_progress_meter;
-extern int tc_pthread_main;
+extern pthread_t tc_pthread_main;
 extern int tc_accel;
 extern int tc_avi_limit;
 extern int tc_frame_width_max;

@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 
   int ch;
 
-   while ((ch = getopt(argc, argv, "o:i:vBd:p:m:F:s:ND:Pc:")) != -1) {
+   while ((ch = getopt(argc, argv, "o:i:vBd:p:m:F:s:ND:Pc:h?")) != -1) {
       
 	switch (ch) {
 	  
@@ -193,6 +193,7 @@ int main(int argc, char **argv)
 	  break;
 	  
 	case '?':
+	case 'h':
 	default:
 	    usage();
 	}

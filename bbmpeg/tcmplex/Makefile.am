@@ -2,7 +2,7 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-CFLAGS = -O3 -funroll-loops -ffast-math -DLINUX @CFLAGS@
+CFLAGS = -O3 -funroll-loops -ffast-math @CFLAGS@
 INCLUDES = -Wall -I./ -I ../ -I../../ -I../../src -I$(srcdir)/.. -I$(srcdir)/../.. -I$(srcdir)/../../src
 
 #EXTRA_DIST = *.h 

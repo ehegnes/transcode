@@ -164,7 +164,7 @@ MOD_decode {
 
   if(param->flag == TC_VIDEO) {
     
-    if(verbose & TC_DEBUG) printf("(V) read\n");
+    if(verbose_flag & TC_DEBUG) printf("(V) read\n");
     
     if(p_read(vs, (char *) param->buffer, param->size)!=param->size) {
       return(TC_IMPORT_ERROR);
@@ -174,7 +174,7 @@ MOD_decode {
   
   if(param->flag == TC_AUDIO) {
 
-    if(verbose & TC_DEBUG) printf("(A) read\n");    
+    if(verbose_flag & TC_DEBUG) printf("(A) read\n");    
     
     if(p_read(as, (char *) param->buffer, param->size)!=param->size) {
       return(TC_IMPORT_ERROR);
