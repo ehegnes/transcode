@@ -49,6 +49,9 @@ static avi_t *avifile=NULL;
 
 static int format=0, bytes_per_sample=0;
 
+/* row pointer for yuv mode */
+static unsigned char **line[3];
+
 /* ------------------------------------------------------------ 
  *
  * init codec
@@ -103,7 +106,9 @@ MOD_open
       
     case CODEC_YUV:
       format=1;
-      bytes_per_sample=1;
+	line[0] = malloc(vob->ex_v_height*sizeof(char*));
+	line[1] = malloc(vob->ex_v_height*sizeof(char*)/2);
+	line[2] = malloc(vob->ex_v_height*sizeof(char*)/2);
       break;
       
     default:
@@ -145,7 +150,7 @@ void mjpeg_init_destination(j_compress_ptr cinfo) {
 }
 boolean mjpeg_empty_output_buffer(j_compress_ptr cinfo) {
   /* this should never occur! */
-  printf("empty_output_buffer was called!\n");
+  fprintf(stderr, "[%s] empty_output_buffer was called!\n", MOD_NAME);
   exit(1);
 }
 void mjpeg_term_destination(j_compress_ptr cinfo) {
@@ -155,10 +160,12 @@ void mjpeg_term_destination(j_compress_ptr cinfo) {
 MOD_encode
 {
   if(param->flag == TC_VIDEO) {
-    int j;
+    int i, j, k;
+    int width_yuv;
     JSAMPROW row_pointer[MAX_ROWS];
     int bwritten;
-
+    unsigned char *base[3];
+    
     /* create jpeg object */
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_compress(&cinfo);
@@ -178,16 +185,61 @@ MOD_encode
     dest.term_destination=mjpeg_term_destination;
     cinfo.dest=&dest;
 
-    /* let's go! */
-    jpeg_start_compress(&cinfo, TRUE);
-    for(j = 0; j < cinfo.image_height; j++)
-      row_pointer[j] = (char *)(param->buffer + (j * cinfo.image_width * bytes_per_sample));
+    switch (format) {
+    case 0: /* RGB */
+        /* let's go! */
+        jpeg_start_compress(&cinfo, TRUE);
+        for(j = 0; j < cinfo.image_height; j++)
+          row_pointer[j] = (char *)(param->buffer + (j * cinfo.image_width * bytes_per_sample));
+
+        bwritten=jpeg_write_scanlines(&cinfo,row_pointer,cinfo.image_height);
+        
+        if (bwritten != cinfo.image_height) {
+          fprintf(stderr, "[%s] only wrote %d!\n", MOD_NAME, bwritten);
+          return(TC_EXPORT_ERROR);
+        }
+        break;
     
-    bwritten=jpeg_write_scanlines(&cinfo,row_pointer,cinfo.image_height);
-    
-    if (bwritten != cinfo.image_height) {
-      printf("only wrote %d!\n", bwritten);
-      return(TC_EXPORT_ERROR);
+    case 1: /* YUV */
+        /* based on yuv code in export_jpg */ 
+        cinfo.raw_data_in = TRUE;
+        cinfo.jpeg_color_space = JCS_YCbCr;
+        cinfo.comp_info[0].h_samp_factor = 2;
+        cinfo.comp_info[0].v_samp_factor = 2;
+        cinfo.comp_info[1].h_samp_factor = 1;
+        cinfo.comp_info[1].v_samp_factor = 1;
+        cinfo.comp_info[2].h_samp_factor = 1;
+        cinfo.comp_info[2].v_samp_factor = 1; 
+        
+        jpeg_start_compress(&cinfo, TRUE);
+
+        width_yuv = cinfo.image_width>>1;
+
+        base[0] = param->buffer;
+        base[2] = param->buffer + cinfo.image_width*cinfo.image_height;
+        base[1] = param->buffer + cinfo.image_width*cinfo.image_height*5/4;
+
+        for (i = 0; i < cinfo.image_height; i += 2*DCTSIZE) {
+          for (j=0, k=0; j<2*DCTSIZE;j+=2, k++) {
+
+            line[0][j]   = base[0]; base[0] += cinfo.image_width;
+            line[0][j+1] = base[0]; base[0] += cinfo.image_width;
+            line[1][k]   = base[1]; base[1] += width_yuv;
+            line[2][k]   = base[2]; base[2] += width_yuv;
+          }
+
+          bwritten = jpeg_write_raw_data(&cinfo, line, 2*DCTSIZE);
+          if ( bwritten < 2*DCTSIZE) {
+            fprintf(stderr, "[%s] only wrote %i instead of %i", MOD_NAME, bwritten, 2*DCTSIZE);
+            return(TC_EXPORT_ERROR);
+          }
+        }
+        break;
+    default:
+        fprintf(stderr,"[%s] You should not be here! (Unsupported video in MOD_encode) \n",
+                MOD_NAME);
+        return(TC_EXPORT_ERROR);
+        break;
     }
 
     jpeg_finish_compress(&cinfo);

@@ -1,5 +1,9 @@
 transcode-0.13-pre2 EMS
 
+2004-09-03 Stefan Scheffler <stefanscheffler at gmx dot net>
+  * export/export_mjpeg.c:
+  - this should fix the yuv mode in export_mjpeg.
+
 2004-09-01 Stefan Scheffler <stefanscheffler at gmx dot net>
   * export/export_ac3.c export_lame.c export_mp1e.c export_mp2.c
   * export_mp2enc.c export_mpeg2enc.c export_ogg.c export_toolame.c
