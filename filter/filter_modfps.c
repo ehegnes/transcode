@@ -24,6 +24,8 @@
  */
 
 // ----------------- Changes 
+// 0.8 -> 0.9: marrq
+//		added fancy_clone and associated functions
 // 0.7 -> 0.8: Tilmann Bitterberg
 //		make mode=1 the default
 // 0.6 -> 0.7: marrq
@@ -44,16 +46,10 @@
 
 // ----------------- TODO
 //	feature:
-//	Be able to do something fancy when cloning.  I'm thinking of four things,
-// 	1. interpolate field of frame which was cloned with frame that
-//	   follows it (probably best for interlaced displays)
-//	2. evenly merge/average frames.
-//	3. weighted average, so more intence luminance is stronger seen (think
-//	   of phosphors on a TV
-//	4. temporal weighted average
+//	finish phosphor-merge for clones
 
 #define MOD_NAME    "filter_modfps.so"
-#define MOD_VERSION "v0.7 (2003-08-13)"
+#define MOD_VERSION "v0.9 (2003-08-14)"
 #define MOD_CAP     "plugin to modify framerate"
 #define MOD_AUTHOR  "Marrq"
 //#define DEBUG 1
@@ -90,6 +86,7 @@ static int show_results=0;
 
 static int mode=1;
 static double infps  = 29.97;
+static double outfps = 23.976;
 static int infrc  = 0;
 // default settings for NTSC 29.97 -> 23.976
 static int numSample=5;
@@ -101,6 +98,7 @@ static int frbufsize;
 static int frameIn = 0, frameOut = 0;
 static int *framesOK, *framesScore;
 static int scanrange = 0;
+static int clonetype = 0;
 
 static double frc_table[16] = {0,
 			       NTSC_FILM, 24, 25, NTSC_VIDEO, 30, 50, 
@@ -125,7 +123,160 @@ static void help_optstr()
     printf ("\tinfrc : original frc (overwrite infps) [%d]\n",infrc);
     printf ("\tbuffer : number of frames to buffer [%d]\n",numSample);
     printf ("\tsubsample : number of pixels to subsample when examining buffers [%d]\n",offset);
+    printf ("\tclonetype : when cloning and mode=1 do something special [%d]\n",clonetype);
+    printf ("\t\t     0 = none\n");
+    printf ("\t\t     1 = merge fields, cloned frame first(good for interlaced displays\n");
+    printf ("\t\t     2 = merge fields, cloned frame 2nd (good for interlaced displays\n");
+    printf ("\t\t     3 = evenly merge frame\n");
+    printf ("\t\t     4 = temporally merge frame\n");
+    printf ("\t\t     5 = pseudo-phosphor average (YUV only) (currently unimplemented)\n");
     printf ("\tverbose : 0 = not verbose, 1 is verbose [%d]\n",show_results);
+}
+
+static void clone_average(unsigned char *clone, unsigned char*next, vframe_list_t *ptr){
+  int i;
+
+  for(i=0;i<ptr->video_size;i++){
+    ptr->video_buf[i] = (unsigned char)( ((short int)clone[i] + (short int)next[i]) >> 1);
+  }
+}
+
+static void clone_temporal_average(unsigned char *clone, unsigned char*next, vframe_list_t *ptr, int tin, int tout){
+  // basic algorithm is to weight the pixels of a frame based
+  // on how close the blended frame should be if this frame was
+  // perfectly placed  since's we'll be merging the tin and the tin+1
+  // frame into the tout'th frame, we calculate the time that
+  // tout will be played at, and compare it to tin and tin+1
+  
+  // because the main body is buffering frames, when we're called, tin and tout might
+  // not be appropriate for when clones should be called (in otherwords, the
+  // buffering allows a small amount of AV slippage) ... what this means, is
+  // that sometimes to have things match up temporally best, we should just
+  // copy in the next frame  This tends to happen when outfps < 1.5*infps
+  
+  double weight1,weight2;
+  int i;
+  static int first=1;
+
+  weight1 = 1.0 - ( (double)tout/outfps*infps - (double)tin );
+  weight2 = 1.0 - ( (double)(tin+1) - (double)(tout)/outfps*infps );
+  // weight2 is also 1.0-weight1
+  
+  if (show_results){
+    printf("[%s] temporal_clone tin=%4d tout=%4d w1=%1.5f w2=%1.5f\n",MOD_NAME,tin,tout,weight1,weight2);
+  }
+
+  if (weight1 < 0.0){
+    if (show_results){
+      printf("[%s] temporal_clone: w1 is weak, copying next frame\n",MOD_NAME);
+    }
+    memcpy(ptr->video_buf,next,ptr->video_size);
+    return;
+  } // else
+  if (weight2 < 0.0){
+    // I think this case cannot happen
+    if (show_results){
+      printf("[%s] temporal_clone: w2 is weak, simple cloning of frame\n",MOD_NAME);
+    }
+    // no memcpy needed, as we're keeping the orig
+    return;
+  } // else
+  
+  if (weight1 > 1.0 || weight2 > 1.0){
+    fprintf(stderr, "[%s] clone_temporal_average: error: weights are out of range, w1=%f w2=%f\n", MOD_NAME,weight1,weight2);
+    return;
+  } // else 
+  
+  for(i=0; i<ptr->video_size; i++){
+    ptr->video_buf[i] = (unsigned char)( (double)(clone[i])*weight1 + (double)(next[i])*weight2);
+  }
+  first=0;
+}
+
+static void clone_interpolate(char *clone, char *next, vframe_list_t *ptr){
+  int i,width,height;
+  char *dest, *s1, *s2;
+
+  if (CODEC_RGB == ptr->v_codec){
+    // in RGB, the data is packed, three bytes per pixel
+    width = 3*ptr->v_width;
+  } else if (CODEC_YUY2 == ptr->v_codec){
+    // in YUY2, the data again is packed.
+    width = 2*ptr->v_width;
+  } else if (CODEC_YUV == ptr->v_codec){
+    // we'll handle the planar colours later
+    width = ptr->v_width;
+  }
+  height = ptr->v_height;
+  dest = ptr->video_buf;
+  s1 = clone;
+  s2 = next+width;
+  for(i=0;i<height;i++){
+    memcpy(dest,s1,width);
+    dest += width;
+    // check to make sure we don't have an odd number of rows;
+    if (++i < height){
+      memcpy(dest,s2,width);
+      dest += width;
+      s1 += width<<1;
+      s2 += width<<1;
+    }
+  }
+  if (CODEC_YUV == ptr->v_codec){
+    // here we handle the planar color part of the data
+    dest = ptr->video_buf + width*height;
+    s1 = ptr->video_buf+width*height;
+    s2 = ptr->video_buf+width*height+(width>>1);
+    // we'll save some shifting and recalc width;
+    width = width >>1;
+
+    // we don't have to divide the height by 2 because we've
+    // got two colors, we'll handle them in one sweep.
+    for(i=0;i<height;i++){
+      memcpy(dest,s1,width);
+      dest+=width;
+      // check to make sure we don't have an odd number of rows;
+      if(++i < height){
+        memcpy(dest,s2,width);
+	dest += width;
+	s1 += width<<1;
+	s2 += width<<1;
+      }
+    }
+  }
+}
+
+/******
+ * Clone takes in 2 buffers, the current vframe list (for height,width,codec,etc),
+ * and the frame number in the input and the output
+ * stream and will then do anything fancy needed
+ ******/
+static void fancy_clone(char* clone, char* next, vframe_list_t *ptr, int tin, int tout){
+  if ((ptr == NULL) || (clone == NULL) || (next == NULL) || (ptr->video_buf == NULL)){
+    fprintf(stderr,"[%s] Big error; we're about to dereference NULL\n",MOD_NAME);
+    return;
+  }
+  //printf("[%s] fancy_clone clonetype: %d tin=%4d tout=%4d\n",MOD_NAME,clonetype,tin,tout);
+  switch (clonetype){
+    case 0:
+      break;
+    case 1:
+      clone_interpolate(clone,next,ptr);
+      break;
+    case 2:
+      clone_interpolate(next,clone,ptr);
+      break;
+    case 3:
+      clone_average(clone,next,ptr);
+      break;
+    case 4:
+      clone_temporal_average(clone,next,ptr,tin,tout);
+      break;
+    default:
+      printf("[%s] Error, unimplemented clonetype\n",MOD_NAME);
+      break;
+  }
+  return;
 }
 
 static int memory_init(vframe_list_t * ptr){
@@ -145,7 +296,7 @@ static int memory_init(vframe_list_t * ptr){
 
   if (scanrange > ptr->video_size){
     // error, we'll overwalk boundaries later on
-    fprintf(stderr, "[%s] Error, video_size doesn't look to be big enough.\n");
+    fprintf(stderr, "[%s] Error, video_size doesn't look to be big enough (scan=%d video_size=%d).\n",MOD_NAME,scanrange,ptr->video_size);
     return -1;
   }
   
@@ -185,8 +336,6 @@ int tc_filter(vframe_list_t * ptr, char *options)
     static int cloneq = 0; // queue'd clones ;)
     static int outframes = 0;
 
-    static double outfps = 0.0;
-
     //----------------------------------
     //
     // filter init
@@ -215,6 +364,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	  optstr_get (options, "infrc", "%d", &infrc);
 	  optstr_get (options, "buffer", "%d", &numSample);
 	  optstr_get (options, "subsample", "%d", &offset);
+	  optstr_get (options, "clonetype", "%d", &clonetype);
 
 	}
 
@@ -267,6 +417,8 @@ int tc_filter(vframe_list_t * ptr, char *options)
       optstr_param(options,"examine", "How many frames to buffer", "%d", buf, "2", "25");
       sprintf(buf, "%d", offset);
       optstr_param(options, "subsample", "How many pixels to subsample", "%d", buf, "1", "256");
+      sprintf(buf, "%d", clonetype);
+      optstr_param(options, "clonetype", "How to clone frames", "%d", buf, "0", "16");
       sprintf(buf, "%d", verbose);
       optstr_param(options, "verbose", "run in verbose mode", "%d", buf, "0", "1");
       return 0;
@@ -357,6 +509,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	  if (show_results){
 	    printf("no slot needed for clones\n");
 	  }
+	  fancy_clone(frames[frameIn],frames[(frameIn+1)%frbufsize],ptr,framesin-numSample,outframes+cloneq+1);
 	  return 0;
 	} // else 
 	memcpy(frames[frameIn], ptr->video_buf, ptr->video_size);
