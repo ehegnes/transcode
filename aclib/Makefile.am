@@ -4,10 +4,6 @@ AUTOMAKE_OPTIONS = 1.3 foreign
 
 AM_CPPFLAGS = -DLINUX
 
-AM_CFLAGS = \
-	-funroll-loops \
-	-ffast-math
-
 noinst_LTLIBRARIES = libac.la
 
 if HAVE_ASM_NASM
@@ -37,8 +33,8 @@ EXTRA_DIST = \
 	actest.c \
 	make.sh
 
-ASM = @NASM@
-ASMFLAGS = @NASMFLAGS@
+ASM = $(NASM)
+ASMFLAGS = $(NASMFLAGS)
 
 # these nasm objects are OK for libraries in linux and BSD variants,
 # but libtool doesn't know that, so we fake it.
