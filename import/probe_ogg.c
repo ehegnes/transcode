@@ -23,20 +23,13 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <string.h>
-#include <fcntl.h>
+#include "ioaux.h"
+#include "tc.h"
+
 #include <errno.h>
-#include <sys/stat.h>
 #include <sys/mman.h>
 
-#include "config.h"
-#include "ioaux.h"
-
-#if (HAVE_OGG && HAVE_VORBIS) 
+#if (HAVE_OGG && HAVE_VORBIS)
 
 #include <ogg/ogg.h>
 #include <vorbis/codec.h>
@@ -50,8 +43,6 @@
 #define MAX_AUDIO_TRACKS 255
 #define MAX_VIDEO_TRACKS 255
 #define BLOCK_SIZE 4096
-
-#include "transcode.h"
 
 //#define  OGM_DEBUG
 
@@ -331,11 +322,14 @@ ogg_out:
     //close(fdin);
     return;
 }
-#else
+
+#else   // (HAVE_OGG && HAVE_VORBIS)
+
 void probe_ogg(info_t *ipipe)
 {
     fprintf(stderr, "No support for Ogg/Vorbis compiled in\n");
     ipipe->probe_info->codec=TC_CODEC_UNKNOWN;
     ipipe->probe_info->magic=TC_MAGIC_UNKNOWN;
 }
+
 #endif
