@@ -2,6 +2,7 @@
 
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
+	-fno-common \
 	-I$(top_srcdir)
 
 noinst_LIBRARIES = libsupport.a
