@@ -76,7 +76,7 @@ MOD_open
 		}
 	  } else {
 		if (snprintf(import_cmd_buf, MAX_BUF, "mplayer -benchmark -noframedrop -nosound -vo yuv4mpeg \"%s\" -osdlevel 0 > /dev/null 2>&1", vob->video_in_file ) < 0) {
-		  error("command buffer overflow");
+		  perror("command buffer overflow");
 		  unlink(videopipe);
           return(TC_IMPORT_ERROR);
 		}
