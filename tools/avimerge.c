@@ -117,8 +117,7 @@ int merger(avi_t *out, char *file)
 
 		  while (aud_ms[j] < vid_ms) {
 
-		      aud_bitrate = format==0x1?1:0;
-		      aud_bitrate = format==0x2000?1:0;
+		      aud_bitrate = (format==0x1||format==0x2000)?1:0;
 
 		      if( (bytes = AVI_read_audio_chunk(in, data)) < 0) {
 			  AVI_print_error("AVI audio read frame");
@@ -472,8 +471,7 @@ int main(int argc, char *argv[])
 	if (tc_format_ms_supported(format)) {
 	  while (aud_ms_w[j] < vid_ms) {
 
-	    mp3rate_i = format==0x1?1:0;
-	    mp3rate_i = format==0x2000?1:0;
+	    mp3rate_i = (format==0x1||format==0x2000)?1:0;
 
 	    if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
 	      AVI_print_error("AVI audio read frame");
@@ -543,8 +541,7 @@ int main(int argc, char *argv[])
 	if (tc_format_ms_supported(format)) {
 	  while (aud_ms < vid_ms) {
 
-	    mp3rate_i = format==0x1?1:0;
-	    mp3rate_i = format==0x2000?1:0;
+	    mp3rate_i = (format==0x1||format==0x2000)?1:0;
 
 	    if( (bytes = AVI_read_audio_chunk(avifile2, data)) < 0) {
 	      AVI_print_error("AVI audio read frame");
@@ -670,8 +667,7 @@ int main(int argc, char *argv[])
 	  if (tc_format_ms_supported(format)) {
 	    while (aud_ms_w[j] < vid_ms) {
 
-	      mp3rate_i = format==0x1?1:0;
-	      mp3rate_i = format==0x2000?1:0;
+	      mp3rate_i = (format==0x1||format==0x2000)?1:0;
 
 	      if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
 		AVI_print_error("AVI audio read frame");
@@ -875,8 +871,7 @@ merge_mp3:
 	if (tc_format_ms_supported(format)) {
 	  while (aud_ms_w[j] < vid_ms) {
 
-	    mp3rate_i = format==0x1?1:0;
-	    mp3rate_i = format==0x2000?1:0;
+	    mp3rate_i = (format==0x1||format==0x2000)?1:0;
 
 	    if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
 		AVI_print_error("AVI audio read frame");

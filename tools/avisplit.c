@@ -390,8 +390,7 @@ int main(int argc, char *argv[])
 		break;
 	    }
 
-	    aud_bitrate = format==0x1?1:0;
-	    aud_bitrate = format==0x2000?1:0;
+	    aud_bitrate = (format==0x1||format==0x2000)?1:0;
 
 	    if(AVI_write_audio(avifile2, data, bytes)<0) {
 	      AVI_print_error("AVI write audio frame");
@@ -622,8 +621,7 @@ int main(int argc, char *argv[])
 
 	    if (!didread) while (aud_ms[k] < vid_ms) {
 
-	      aud_bitrate = format==0x1?1:0;
-	      aud_bitrate = format==0x2000?1:0;
+	      aud_bitrate = (format==0x1||format==0x2000)?1:0;
 	      audio_bytes = AVI_read_audio_chunk( avifile1, audio_data );
 
 	      if (audio_bytes<=0) { 
@@ -727,8 +725,7 @@ int main(int argc, char *argv[])
 	    if (tc_format_ms_supported(format)) {
 	      while (aud_ms[k] < vid_ms) {
 
-		aud_bitrate = format==0x1?1:0;
-		aud_bitrate = format==0x2000?1:0;
+		aud_bitrate = (format==0x1||format==0x2000)?1:0;
 
 		if(  (audio_bytes = AVI_read_audio_chunk( avifile1, audio_data)) < 0 ) {
 		  AVI_print_error( "AVI audio read frame" );
