@@ -29,8 +29,9 @@
 */
 
 #define MOD_NAME    "filter_xharpen.so"
-#define MOD_VERSION "(1.0b2) (2002-03-16)"
+#define MOD_VERSION "(1.0b2) (2003-02-12)"
 #define MOD_CAP     "VirtualDub's XSharpen Filter"
+#define MOD_AUTHOR  "Donald Graft, Tilmann Bitterberg"
 
 #include <stdio.h>
 #include <string.h>
@@ -162,10 +163,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
     
 	if((vob = tc_get_vob())==NULL) return(-1);
     
-	if (vob->im_v_codec != CODEC_RGB) {
-		printf("[%s] Warning: Y'CbCr support seems to be borken.\n", MOD_NAME);
-	}
-
 	mfd = (MyFilterData *) malloc(sizeof(MyFilterData));
 
 	if (!mfd) {
@@ -176,7 +173,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	width  = vob->ex_v_width;
 
 	/* default values */
-	mfd->strength       = 255; /* 255 is too much */
+	mfd->strength       = 200; /* 255 is too much */
 	mfd->strengthInv    = 255 - mfd->strength;
 	mfd->threshold      = 255;
 	mfd->srcPitch       = 0;
@@ -227,16 +224,34 @@ int tc_filter(vframe_list_t *ptr, char *options)
   } /* TC_FILTER_INIT */
 	
 
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+    if (options) {
+	    char buf[256];
+	    optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYO", "1");
+	    sprintf (buf, "%d", mfd->strength);
+	    optstr_param (options, "strength", "How much  of the effect", "%d", buf, "0", "255");
+
+	    sprintf (buf, "%d", mfd->threshold);
+	    optstr_param (options, "threshold", 
+			  "How close a pixel must be to the brightest or dimmest pixel to be mapped", 
+			  "%d", buf, "0", "255");
+    }
+  }
+
+
   if(ptr->tag & TC_FILTER_CLOSE) {
 
 	if (mfd->convertFrameIn)
 		free (mfd->convertFrameIn);
+	mfd->convertFrameIn = NULL;
 
 	if (mfd->convertFrameOut) 
 		free (mfd->convertFrameOut);
+	mfd->convertFrameOut = NULL;
 
 	if (mfd)
 		free(mfd);
+	mfd = NULL;
 
 	return 0;
 
@@ -464,6 +479,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 			}
 			else
 			{
+				
+				int luma1, luma2;
 				R = (src[x] >> 16) & 0xff;
 				G = (src[x] >> 8) & 0xff;
 				B = src[x] & 0xff;
@@ -491,10 +508,10 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	const PixDim       width = ptr->v_width;
 	const PixDim       height = ptr->v_height;
 	char               *src, *dst;
+	char               *cr, *cb;
 	int                x, y;
-	signed char               p, min, max;
-	int        	luma, lumac, lumamax, lumamin;
-	int 		mindiff, maxdiff;
+	int        	   luma, lumac, lumamax, lumamin;
+	int 		   p, mindiff, maxdiff;
 	const int	   srcpitch = ptr->v_width;
 	const int	   dstpitch = ptr->v_width;
 
@@ -517,7 +534,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 	/* copy Cb and Cr */
 	memcpy (dst_buf+dstpitch*height, src_buf+srcpitch*height, width*height>>1);
-	//memset (dst_buf+dstpitch*height, 128, width*height>>1);
 
 	src	= src_buf;
 	dst	= dst_buf;
@@ -539,59 +555,59 @@ int tc_filter(vframe_list_t *ptr, char *options)
 		{
 			/* Find the brightest and dimmest pixels in the 3x3 window
 			   surrounding the current pixel. */
-			lumamax = -126;
-			lumamin = 126;
+			lumamax = -1000;
+			lumamin = 1000;
 
-			luma = (src - srcpitch)[x-1];
+			luma = (src - srcpitch)[x-1] &0xff;
 			if (luma > lumamax)
 				lumamax = luma;
 			if (luma < lumamin)
 				lumamin = luma;
 
-			luma = (src - srcpitch)[x];
+			luma = (src - srcpitch)[x] &0xff;
 			if (luma > lumamax)
 				lumamax = luma;
 			if (luma < lumamin)
 				lumamin = luma;
 
-			luma = (src - srcpitch)[x+1];
+			luma = (src - srcpitch)[x+1] &0xff;
 			if (luma > lumamax)
 				lumamax = luma;
 			if (luma < lumamin)
 				lumamin = luma;
 
-			luma = src[x-1];
+			luma = src[x-1] &0xff;
 			if (luma > lumamax)
 				lumamax = luma;
 			if (luma < lumamin)
 				lumamin = luma;
 
-			luma = src[x];
+			luma = src[x] &0xff;
 			lumac = luma;
 			if (luma > lumamax)
 				lumamax = luma;
 			if (luma < lumamin)
 				lumamin = luma;
 
-			luma = src[x+1];
+			luma = src[x+1] &0xff;
 			if (luma > lumamax)
 				lumamax = luma;
 			if (luma < lumamin)
 				lumamin = luma;
 
-			luma = (src + srcpitch)[x-1];
+			luma = (src + srcpitch)[x-1] &0xff;
 			if (luma > lumamax)
 				lumamax = luma;
 			if (luma < lumamin)
 				lumamin = luma;
 
-			luma = (src + srcpitch)[x];
+			luma = (src + srcpitch)[x] &0xff;
 			if (luma > lumamax)
 				lumamax = luma;
 			if (luma < lumamin)
 				lumamin = luma;
 
-			luma = (src + srcpitch)[x+1];
+			luma = (src + srcpitch)[x+1] &0xff;
 			if (luma > lumamax)
 				lumamax = luma;
 			if (luma < lumamin)
@@ -611,12 +627,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
 				if (mindiff > maxdiff)
 				{
 					if (maxdiff < mfd->threshold)
-						p = lumamax;
+						p = lumamax&0xff;
 				}
 				else
 				{
 					if (mindiff < mfd->threshold)
-						p = lumamin;
+						p = lumamin&0xff;
 				}
 			}
 			if (p == -1)
@@ -625,9 +641,13 @@ int tc_filter(vframe_list_t *ptr, char *options)
 			}
 			else
 			{
-				int p1 = mfd->strength * (int)p;
-				int p2 = mfd->strengthInv * (int)lumac;
-				dst[x] = (p1 + p2)/255;
+			        int t;
+				lumac = src[x] &0xff;
+				t = ((mfd->strength*p + mfd->strengthInv*lumac)/255) & 0xff;
+				if (t>240) t = 240;
+				if (t<16)  t = 16;
+				dst[x] = t&0xff;
+
 			}
 		}
 		src += srcpitch;
@@ -640,6 +660,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
      }
   }
-  return -1;
+  return 0;
 }
 
