@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_tc_video.so"
-#define MOD_VERSION "v0.1 (2002-08-13)"
+#define MOD_VERSION "v0.2 (2003-06-10)"
 #define MOD_CAP     "video 23.9 -> 29.9 telecide filter"
 
 #include <stdio.h>
@@ -42,6 +42,9 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
+
+// this variable is for external control from transcode. Not enabled right now
+// extern int tc_do_telecide;
 
 /*-------------------------------------------------
  *
@@ -132,7 +135,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   /* pass-through */
   if (ptr->id == 0)
-      return;
+      return 0;
   /* in:      T1 B1 | T2 B2 | T3 B3 | T4 B4 */
   /* out: T1 B1 | T2 B2 | T2 B3 | T3 B4 | T4 B4 */
   if(ptr->tag & TC_POST_S_PROCESS && ptr->tag & TC_VIDEO) {
@@ -141,37 +144,83 @@ int tc_filter(vframe_list_t *ptr, char *options)
     int height = vob->ex_v_height;
     int width  = vob->ex_v_width;
     int width2  = width/2;
+    int wh      = width*height;
+    int wh5     = width*height*5/4;
     int y;
+    char *Y1, *Cr1, Cb1;
+    char *Y2, *Cr2, Cb2;
+
+    /*
+    if (!tc_do_telecide) {
+	    memcpy (video_buf[0], ptr->video_buf, height*width*3/2);
+	    memcpy (video_buf[1], ptr->video_buf, height*width*3/2);
+	    return 0;
+    }
+    */
 
     switch (mod) {
       case 1:
 	/* nothing, pass frame through */
 	break;
       case 2:
+	Y1 = video_buf[0];
+	Cr1 = video_buf[0]+wh;
+
+	Y2 = ptr->video_buf;
+	Cr2 = ptr->video_buf+wh;
+
 	/* save top2 lines */
-	for (y=0; y<height-1; y+=2) 
-	  memcpy (video_buf[0]+y*width, ptr->video_buf+y*width, width);
-	for (y=width*height; y<height/2-1; y+=2) 
-	  memcpy (video_buf[0]+y*width, ptr->video_buf+y*width, width2);
-	for (y=width*height*5/4; y<height/2-1; y+=2) 
-	  memcpy (video_buf[0]+y*width, ptr->video_buf+y*width, width2);
+	for (y=0; y<(height+1)/2; y++) {
+	    memcpy (Y1, Y2, width);
+	    Y1 += width*2;
+	    Y2 += width*2;
+	}
+	/* color */
+	for (y=0; y<(height+1)/2; y++) {
+	    memcpy (Cr1, Cr2, width2);
+	    Cr1 += width;
+	    Cr2 += width;
+	}
+
 	break;
       case 3:
+	Y1 = video_buf[1];
+	Cr1 = video_buf[1]+wh;
+
+	Y2 = ptr->video_buf;
+	Cr2 = ptr->video_buf+wh;
+
 	/* save top3 lines */
-	for (y=0; y<height-1; y+=2) 
-	  memcpy (video_buf[1]+y*width, ptr->video_buf+y*width, width);
-	for (y=width*height; y<height/2-1; y+=2) 
-	  memcpy (video_buf[1]+y*width, ptr->video_buf+y*width, width2);
-	for (y=width*height*5/4; y<height/2-1; y+=2) 
-	  memcpy (video_buf[1]+y*width, ptr->video_buf+y*width, width2);
+	for (y=0; y<(height+1)/2; y++) {
+	    memcpy (Y1, Y2, width);
+	    Y1 += width*2;
+	    Y2 += width*2;
+	}
+	/* color */
+	for (y=0; y<(height+1)/2; y++) {
+	    memcpy (Cr1, Cr2, width2);
+	    Cr1 += width;
+	    Cr2 += width;
+	}
+
+	Y1 = ptr->video_buf;
+	Cr1 = ptr->video_buf+wh;
 	
+	Y2 = video_buf[0];
+	Cr2 = video_buf[0]+wh;
+
 	/* merge bot3 with top2 */
-	for (y=0; y<height-1; y+=2) 
-	  memcpy (ptr->video_buf+y*width, video_buf[0]+y*width, width);
-	for (y=width*height; y<height/2-1; y+=2) 
-	  memcpy (ptr->video_buf+y*width, video_buf[0]+y*width, width2);
-	for (y=width*height*5/4; y<height/2-1; y+=2) 
-	  memcpy (ptr->video_buf+y*width, video_buf[0]+y*width, width2);
+	for (y=0; y<(height+1)/2; y++) {
+	    memcpy (Y1, Y2, width);
+	    Y1 += width*2;
+	    Y2 += width*2;
+	}
+	/* color */
+	for (y=0; y<(height+1)/2; y++) {
+	    memcpy (Cr1, Cr2, width2);
+	    Cr1 += width;
+	    Cr2 += width;
+	}
 	break;
       case 0:
 	if (!(ptr->attributes & TC_FRAME_WAS_CLONED)) {
@@ -179,13 +228,26 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 	    /* save complete frame */
 	    memcpy (video_buf[0], ptr->video_buf, height*width*3/2);
+
 	    /* merge bot4 with top3 */
-	    for (y=0; y<height-1; y+=2) 
-		memcpy (ptr->video_buf+y*width, video_buf[1]+y*width, width);
-	    for (y=width*height; y<height/2-1; y+=2) 
-		memcpy (ptr->video_buf+y*width, video_buf[1]+y*width, width2);
-	    for (y=width*height*5/4; y<height/2-1; y+=2) 
-		memcpy (ptr->video_buf+y*width, video_buf[1]+y*width, width2);
+	    Y1 = ptr->video_buf;
+	    Cr1 = ptr->video_buf+wh;
+
+	    Y2 = video_buf[1];
+	    Cr2 = video_buf[1]+wh;
+
+	    for (y=0; y<(height+1)/2; y++) {
+		memcpy (Y1, Y2, width);
+		Y1 += width*2;
+		Y2 += width*2;
+	    }
+	    /* color */
+	    for (y=0; y<(height+1)/2; y++) {
+		memcpy (Cr1, Cr2, width2);
+		Cr1 += width;
+		Cr2 += width;
+	    }
+	    break;
 	} else {
 	    /* restore frame4 = frame 5 */
 	    // this is the cloned frame
@@ -196,6 +258,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   } 
   else if (vob->im_v_codec == CODEC_RGB) 
   {
+      // This is wrong
     int mod = ptr->id % 4;
     int height = vob->ex_v_height;
     int width  = vob->ex_v_width;
