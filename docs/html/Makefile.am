@@ -5,7 +5,6 @@ docsdir = \
 	$(datadir)/doc/transcode/html
 
 docs_DATA =  \
-	anim.html \
 	cluster_guide.txt \
 	core.html \
 	dv.html \
