@@ -1,4 +1,10 @@
 2004-12-15 Jacob Meuser <jakemsr at jakemsr dot com>
+  * configure.in
+  Define PTHREAD_CFLAGS.
+  Allow user to override both PTHREAD_CFLAGS and PTHREAD_LIBS by having
+  them set in the environment.
+
+2004-12-15 Jacob Meuser <jakemsr at jakemsr dot com>
   * acinclude.m4
   Check for bktr headers id dev/bktr/ before machine/, since that is
   the preferred location on newer FreeBSD releases.

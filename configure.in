@@ -154,38 +154,56 @@ esac
 dnl check for pthreads
 dnl
 case "$host" in
-  *-*-freebsd*|*-*-openbsd*)
-    pthread_cflags="-D_REENTRANT -D_THREAD_SAFE"
-    pthread_lib="-pthread"
+  *-*-freebsd*)
+    pthread_cflags="-pthread -D_REENTRANT -D_THREAD_SAFE"
+    pthread_libs="-pthread"
+    ;;
+  *-*-openbsd*)
+    pthread_cflags="-D_REENTRANT"
+    pthread_libs="-pthread"
     ;;
   *-*-bsdi*)
     pthread_cflags="-D_REENTRANT -D_THREAD_SAFE"
-    pthread_lib=""
+    pthread_libs=""
     ;;
   *)
     pthread_cflags="-D_REENTRANT"
-    pthread_lib="-lpthread"
+    pthread_libs="-lpthread"
     ;;
 esac
+# let user override
+if test -n "$PTHREAD_LIBS" ; then
+  pthread_libs="$PTHREAD_LIBS"
+fi
+if test -n "$PTHREAD_CFLAGS" ; then
+  pthread_cflags="$PTHREAD_CFLAGS"
+fi
 save_LIBS="$LIBS"
-LIBS="$LIBS $pthread_lib"
-AC_MSG_CHECKING(for pthreads in $pthread_lib)
+LIBS="$LIBS $pthread_libs"
+save_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS $pthread_cflags"
+AC_MSG_CHECKING(for pthreads in $pthread_libs)
 AC_TRY_LINK([
 #include <pthread.h>
 ],[
    pthread_attr_t type;
    pthread_attr_init(&type);
 ],
-  [use_pthreads=yes],
-  [use_pthreads=no]);
+  [use_pthreads="yes"],
+  [use_pthreads="no"]
+);
 LIBS="$save_LIBS"
+CFLAGS="$save_CFLAGS"
 AC_MSG_RESULT($use_pthreads)
 if test x"$use_pthreads" = x"yes" ; then
-  PTHREAD_LIBS="$pthread_lib"
+  PTHREAD_LIBS="$pthread_libs"
+  PTHREAD_CFLAGS="$pthread_cflags"
 else
   PTHREAD_LIBS=""
+  PTHREAD_CFLAGS=""
 fi
 AC_SUBST(PTHREAD_LIBS)
+AC_SUBST(PTHREAD_CFLAGS)
 
 dnl
 dnl Architecture specific instructions
