@@ -10,6 +10,7 @@ transcode-0.6.8
   - Bugfix for fast rescaler -X
   - Bugfix for the telecine filter
   - Bugfix for the text filter
+  - Bugfix for tcprobe with corrupted AVI files
   - No more zombies during PSU mode
   - Fix YUV encoding in image export modules
   - Greatly improved avisplit, avimerge and avisync
@@ -34,13 +35,52 @@ transcode-0.6.8
   - New utility aviindex; generates index of AVI file.
   - Experimental seeking/fast skipping support in AVI files with --nav_seek
   - Faster skipping. If a frame is skipped, it will bypass all transforms
+  - Big xml update. Improved documentation an more features
+  - Detection of theora codec in OGG/OGM files.
 
+2003-07-03 Bernhard Rosenkraenzer <bero at arklinux.org>
+
+  * src/probe.c import/probe_ogg.c acinclude.m4 configure.in:
+  Preliminary probing support for Theora <http://www.theora.org/>
+  coded video files. Native transcoding is not available yet so the
+  mplayer import module will be used which works fine.
+
+  * avilib/avilib.c:
+  Make avilib more robust when dealing with corrupt AVI files.
+
+2003-06-30 Marzio Malanchini <marzio_malanchini at vodafone.it>
+
+  * docs/import-xml.txt /import/import_xml.c import/ioxml.c
+  import/ioxml.h import/Makefile.am import/probe_xml.c
+  import/tcxmlcheck.c src/transcode.c docs/man/tcxmlcheck.1
+  docs/man/tcdecode.1 docs/man/transcode.1:
+  - change the evaluation order of audio parameter (priority: -p
+    audio.smil, <audio> tag and then <video> tag)
+  - review of syncronization time for ntsc and pal
+  - support for source with different height and width 
+  - adding target-height target-width and resize-filter
+  - document file rewritten (see docs/import-xml.txt)
 
 2003-06-30 Tilmann Bitterberg <transcode at tibit.org>
   
   * audio_trans.c decoder.c encoder.c filter.c frame_postprocess.c
   frame_preprocess.c frame_threads.c video_trans.c:
-  XXX: write me: faster skipping, no more internal routines
+  Skipped frames handling redesign. If a frame is skipped - either
+  by being out of range by -c or internal by a filter module - it
+  will bypass all transformations be that internal ones like
+  clipping and rescaling or external ones via filter plugins.
+  With -c, the frames are marked as skipped very early in the
+  decoder right when the frame arrives transcode-core.
+  The frame_threads routine does not skip frames anymore, it will
+  pass through all frames to the encoder. The encoder will honor the
+  TC_FRAME_IS_SKIPPED flag then and won't encode this frame. This
+  leads to significantly faster -c processing. The filter_cut should
+  be obsolete now.
+
+  * import_im:
+  Make the regex a little better. Following should work:
+    $ transcode -i [...] -y ppm -o snapshot-
+    $ transcode -i snapshot-000000.ppm [...]
   
 2003-06-27 Tilmann Bitterberg <transcode at tibit.org>
 
