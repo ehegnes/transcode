@@ -2,12 +2,51 @@
 transcode-0.6.10
 
   * Terse/less technical ChangeLog:
-  - Improved -y jpg; native YUV encoding (faster)
-  - Bugfix in core; thread race condition
-  - New commandline option: --niceness
+  - Bugfix for -J hqdn3d; option parsing was broken.
+  - Bugfix for -J mask; black out chroma in YUV mode, too
+  - Bugfix for -f/--export_fps; clean up this mess
+  - Bugfix for -t (split mode); update audio filename
+  - Bugfix for -x ogg; demuxing was broken (noone noticed?)
+  - Bugfix for -x raw with WAV files with a different header
+  - Bugfix for -y ffmpeg with cloned frames; image distortion
+  - Bugfix for -y ffmpeg with pass-through mode
+  - Bugfix for -y mpeg; flush all buffers at exit time
+  - Bugfix for -y ogg; use --resample if it is needed
+  - Bugfix for AVIlib; write correct PCM header
   - Bugfix for MacOSX in preview filter
+  - Bugfix for specfile, rpmbuild should now work again
+  - Bugfix for xvid2 credits mode
   - Bugfix in -x mplayer; respect -k
+  - Bugfix in AVIlib when reading the index file
+  - Bugfix in core; a frame might get post-processed twice
+  - Bugfix in core; thread race condition
+  - Bugfix(es) for MacOSX
+  - Docu: BIG manpage update; transcode(1) documents all filters
+  - Docu: Verbose documentation for modfps (README.filter.modfps)
+  - Docu: tcdecode(1) explains -A and -t option.
+  - Docu: xvid2 credits mode howto (README.xvid-credits)
+  - Improved --encode_fields; BACKWARD INCOMPATIBEL; takes argument.
+  - Improved -J compare; more robust code and multiple instances
+  - Improved -J fps;
+  - Improved -J modfps; more modes and mode=1 is default
+  - Improved -J pv; Grab a jpeg with 'j' in the window
+  - Improved -J resample; can run even when no conversion requested
+  - Improved -J smartyuv with MMX; doubles performance
+  - Improved -x ffmpeg; Support for YUV4:1:1 (needed for NTSC DVs)
+  - Improved -y jpg; native YUV encoding (faster)
+  - Improved -y mpeg2enc/yuv4mpeg; respect --encode_fields setting
+  - Improved -y xvid4; support for grayscale option; sync with xvid-cvs
+  - Improved audio core; support for ac3 and mp2 encoding
+  - Improved detection of MOV files
+  - New -x vnc; see ~transcode/pre/tc-vnc-tutorial.avi
+  - New cmdline option --config_dir; where -y xvid/ffmpeg search cfg files
+  - New commandline option: --niceness
+  - New meta module -y pvm (parallel virtual machine); see export_pvm.txt
   - New stream decoder lavc (ffmpeg based) used for OGM
+  - Packaging: making the symlink for -y xvid respects DESTDIR
+  - Support for FOURCC "MP43"
+  - Support for reading OpenDML (AVI 2.0) files
+
 
 2003-09-08 Tilmann Bitterberg <transcode at tibit.org>
 
