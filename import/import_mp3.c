@@ -29,7 +29,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_mp3.so"
-#define MOD_VERSION "v0.1.1 (2001-10-10)"
+#define MOD_VERSION "v0.1.2 (2003-03-27)"
 #define MOD_CODEC   "(audio) MPEG"
 
 #define MOD_PRE mp3
@@ -43,7 +43,9 @@ static FILE *fd;
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_PCM;
 
-static int codec, count=TC_PAD_AUD_FRAMES;
+static int codec;
+
+static int count=TC_PAD_AUD_FRAMES;
 
 
 /* ------------------------------------------------------------ 
@@ -59,6 +61,7 @@ MOD_open
     if(param->flag != TC_AUDIO) return(TC_IMPORT_ERROR);
     
     codec = vob->im_a_codec;
+    count = 0;
     
     switch(codec) {
 	
@@ -127,8 +130,9 @@ MOD_decode
   memset(param->buffer+ac_off, 0, ac_bytes);
 
   if (fread(param->buffer+ac_off, ac_bytes, 1, fd) !=1) {
-    --count;
-    if(count==0) return(TC_IMPORT_ERROR);
+    // not sure what this hack is for, probably can be removed
+    //--count; if(count<=0) return(TC_IMPORT_ERROR);
+    return(TC_IMPORT_ERROR);
   }
   
   return(0);
@@ -143,7 +147,15 @@ MOD_decode
 MOD_close
 {  
   
+  if(param->flag != TC_AUDIO) return(TC_IMPORT_ERROR);
+
+  
+  if(fd != NULL) pclose(fd);
   if(param->fd != NULL) pclose(param->fd);
+
+  fd        = NULL;
+  param->fd = NULL;
+ 
   
   return(0);
 }
