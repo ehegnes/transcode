@@ -36,12 +36,13 @@ static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID | TC_CAP_PCM;
 #include <sys/types.h>
 
 
-#define MAX_BUF 1024
-char import_cmd_buf[MAX_BUF];
+extern int errno;
+char import_cmd_buf[TC_BUF_MAX];
 
 static const char * videopipe = "./stream.yuv";
 static char audiopipe[40] = "/tmp/mplayer2transcode-audio.XXXXXX";
 static FILE *videopipefd = NULL;
+static FILE *audiopipefd = NULL;
 
 /* ------------------------------------------------------------
  *
@@ -51,6 +52,8 @@ static FILE *videopipefd = NULL;
 
 MOD_open
 {
+  int sret;
+
   /* check for mplayer */
   if (tc_test_program("mplayer") != 0) return (TC_EXPORT_ERROR);  
 
@@ -60,39 +63,40 @@ MOD_open
         perror("mkfifo video failed");
         return(TC_IMPORT_ERROR);
       }
-      if (vob->im_v_string) {
-		if (snprintf(import_cmd_buf, MAX_BUF, "mplayer -benchmark -noframedrop -nosound -vo yuv4mpeg %s \"%s\" -osdlevel 0 > /dev/null 2>&1", vob->im_v_string, vob->video_in_file ) < 0) {
-		  perror("command buffer overflow");
-		  unlink(videopipe);
-          return(TC_IMPORT_ERROR);
-		}
-	  } else {
-		if (snprintf(import_cmd_buf, MAX_BUF, "mplayer -benchmark -noframedrop -nosound -vo yuv4mpeg \"%s\" -osdlevel 0 > /dev/null 2>&1", vob->video_in_file ) < 0) {
-		  perror("command buffer overflow");
-		  unlink(videopipe);
-          return(TC_IMPORT_ERROR);
-		}
-	  }
+
+      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+                      "mplayer -benchmark -noframedrop -nosound -vo yuv4mpeg"
+                      " %s \"%s\" -osdlevel 0 > /dev/null 2>&1",
+                      ((vob->im_v_string) ? vob->im_v_string : ""),
+                      vob->video_in_file);
+      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno)) {
+	unlink(videopipe);
+        return(TC_IMPORT_ERROR);
+      }
+
       if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
 
       if ((videopipefd = popen(import_cmd_buf, "w")) == NULL) {
-        perror("mplayer could not be executed");
-		unlink(videopipe);
+        perror("popen videopipe failed");
+	unlink(videopipe);
         return(TC_IMPORT_ERROR);
       }
       
       if (vob->im_v_codec == CODEC_YUV) {
         rgbswap = !rgbswap;
-        if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i %s -x yv12 -t yuv4mpeg", videopipe)<0)) {
-          perror("command buffer overflow");
-		  unlink(videopipe);
+        sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+			"tcextract -i %s -x yv12 -t yuv4mpeg", videopipe);
+	if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno)) {
+	  unlink(videopipe);
           return(TC_IMPORT_ERROR);
         }
       } else {
-        if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i %s -x yv12 -t yuv4mpeg | tcdecode -x yv12 -g %dx%d",
-          videopipe, vob->im_v_width, vob->im_v_height)<0)) {
-          perror("command buffer overflow");
-		  unlink(videopipe);
+        sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+			"tcextract -i %s -x yv12 -t yuv4mpeg |"
+			" tcdecode -x yv12 -g %dx%d",
+                        videopipe, vob->im_v_width, vob->im_v_height);
+	if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno)) {
+	  unlink(videopipe);
           return(TC_IMPORT_ERROR);
         }
       }
@@ -105,43 +109,48 @@ MOD_open
       // popen
       if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
         perror("popen YUV stream");
-		unlink(videopipe);
+	unlink(videopipe);
         return(TC_IMPORT_ERROR);
       }
       
-      return 0;
+      return TC_IMPORT_OK;
       
     case TC_AUDIO:
       if (!mktemp(audiopipe)) {
-        perror("mktemp could not create a unique file name for the audio pipe");
+        perror("mktemp audiopipe failed");
         return(TC_IMPORT_ERROR);
       }
       if (mkfifo(audiopipe, 00660) == -1) {
         perror("mkfifo audio failed");
+	unlink(audiopipe);
         return(TC_IMPORT_ERROR);
       }
       
-      if (snprintf(import_cmd_buf, MAX_BUF, "mplayer -hardframedrop -vo null -ao pcm -nowaveheader -aofile %s %s \"%s\" > /dev/null 2>&1",
-          audiopipe, ((vob->im_a_string)?vob->im_a_string:""), vob->audio_in_file) < 0) {
-        perror("command buffer overflow");
-		unlink(audiopipe);
+      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+		      "mplayer -hardframedrop -vo null -ao pcm -nowaveheader"
+		      " -aofile %s %s \"%s\" > /dev/null 2>&1",
+		      audiopipe, ((vob->im_a_string) ? vob->im_a_string : ""),
+		      vob->audio_in_file);
+      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno)) {
+	unlink(audiopipe);
         return(TC_IMPORT_ERROR);
       }
+
       if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
 
-      if ((videopipefd = popen(import_cmd_buf, "w")) == NULL) {
-        perror("mplayer could not be executed");
-		unlink(audiopipe);
+      if ((audiopipefd = popen(import_cmd_buf, "w")) == NULL) {
+        perror("popen audiopipe failed");
+	unlink(audiopipe);
         return(TC_IMPORT_ERROR);
       }      
       
       if ((param->fd = fopen(audiopipe, "r")) == NULL) {
         perror("fopen audio stream");
-		unlink(audiopipe);
+	unlink(audiopipe);
         return(TC_IMPORT_ERROR);
       }
     
-      return 0;
+      return TC_IMPORT_OK;
   }
   
   return(TC_IMPORT_ERROR);
@@ -153,7 +162,7 @@ MOD_open
  *
  * ------------------------------------------------------------*/
 
-MOD_decode{return(0);}
+MOD_decode { return(TC_IMPORT_OK); }
 
 /* ------------------------------------------------------------ 
  *
@@ -168,11 +177,13 @@ MOD_close
       pclose(param->fd);
     if (videopipefd != NULL)
       pclose(videopipefd);
-	unlink(videopipe);
+    unlink(videopipe);
   } else {
     if (param->fd != NULL)
       fclose(param->fd);
-   unlink(audiopipe);
+    if (audiopipefd != NULL)
+      pclose(audiopipefd);
+    unlink(audiopipe);
   }
-  return(0);
+  return(TC_IMPORT_OK);
 }

@@ -1,3 +1,9 @@
+2005-03-06 Jacob Meuser <jakemsr at jakemsr dot com>
+  * import/import_mplayer.c
+  Code cleanup.  Fix incorrect check of snprintf return value.  Use
+  a separate stream pointer for the audio, so it can be cleaned
+  up properly.  Make error messages more concise and meaningful.
+
 2005-02-21 Andrew Church <achurch at achurch dot org>
   * aclib/average.c aclib/rescale.c
   Two very minor cleanups in the aclib assembly source:
