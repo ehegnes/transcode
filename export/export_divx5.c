@@ -285,7 +285,7 @@ MOD_init
     }
 
     if (vob->divxlogfile && *vob->divxlogfile) {
-	if ((logfile_mv = malloc (strlen(vob->divxlogfile)+4) == NULL) {
+	if ((logfile_mv = malloc (strlen(vob->divxlogfile)+4)) == NULL) {
             fprintf(stderr, "Cannot allocate memory for logfile_mv\n");
             return(TC_EXPORT_ERROR);
         }
