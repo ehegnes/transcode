@@ -1,14 +1,21 @@
-## Makefile.am -- Process this file with automake to produce Makefile.in
+# # Process this file with automake to produce Makefile.in.
 
-INCLUDES                	=  -I$(top_builddir) -I$(top_srcdir)
+AUTOMAKE_OPTIONS = 1.3 foreign
 
-noinst_LIBRARIES        	= libsupport.a
+INCLUDES = -I$(top_srcdir)
 
-libsupport_a_SOURCES		=
-EXTRA_libsupport_a_SOURCES	=  getopt.c getopt1.c
+noinst_LIBRARIES = libsupport.a
 
-libsupport_a_DEPENDENCIES	= @SUPPORTOBJECTS@
-libsupport_a_LIBADD		= @SUPPORTOBJECTS@
+libsupport_a_SOURCES =
+EXTRA_libsupport_a_SOURCES = \
+	getopt.c \
+	getopt1.c
 
-EXTRA_DIST 			= getopt.c getopt.h getopt1.c
+libsupport_a_DEPENDENCIES = @SUPPORT_OBJECTS@
+libsupport_a_LIBADD = @SUPPORT_OBJECTS@
+
+EXTRA_DIST = \
+	getopt.c \
+	getopt.h \
+	getopt1.c
 

@@ -1,11 +1,15 @@
+# # Process this file with automake to produce Makefile.in.
+
 AUTOMAKE_OPTIONS = 1.3 foreign
 
-INCLUDES = @LIBXML2_CFLAGS@ -D_REENTRANT
+AM_CPPFLAGS = \
+	-D_REENTRANT \
+	@LIBXML2_CFLAGS@
 
-AM_CFLAGS = -fPIC -DPIC
+noinst_LTLIBRARIES = libxio.la
 
-noinst_LIBRARIES = libxio.a
+libxio_la_SOURCES = libxio.c
 
-libxio_a_SOURCES = libxio.c
-
-EXTRA_DIST = static_xio.h xio.h
+EXTRA_DIST = \
+	static_xio.h \
+	xio.h

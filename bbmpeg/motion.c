@@ -800,10 +800,12 @@ int secondfield, int ipflag)
       }
     }
     if ((pict_type != I_TYPE) || (ipflag))
+    {
       if (pict_struct == FRAME_PICTURE)
         downsample_frame();
       else
         downsample_field(secondfield, ipflag);
+	 }
   }
   mblok = 0;
 
@@ -1683,7 +1685,8 @@ int *dmcp, int *vmcp)
 {
   int pref,ppred,delta_x,delta_y;
   int is,js,it,jt,ib,jb,it0,jt0,ib0,jb0;
-  int imins,jmins,imint,jmint,iminb,jminb,imindmv,jmindmv;
+  int imins = 0 ,jmins = 0, imint = 0, jmint = 0,iminb = 0,jminb = 0;
+  int imindmv = 0,jmindmv = 0;
   int vmc,local_dist;
 
   /* Calculate Dual Prime distortions for 9 delta candidates
@@ -1841,7 +1844,7 @@ int *dmcp, int *vmcp)
 {
   unsigned char *sameref, *oppref;
   int io0,jo0,io,jo,delta_x,delta_y,mvxs,mvys,mvxo0,mvyo0;
-  int imino,jmino,imindmv,jmindmv,vmc_dp,local_dist;
+  int imino = 0,jmino = 0,imindmv = 0,jmindmv = 0,vmc_dp,local_dist;
 
   /* Calculate Dual Prime distortions for 9 delta candidates */
   /* Note: only for P pictures! */
@@ -1950,7 +1953,7 @@ int *iminp, int *jminp)
 {
   int i,j,imin,jmin,ilow,ihigh,jlow,jhigh;
   int d,dmin;
-  int k,l,sxy, zx, zy, I0, J0;
+  int k,l,sxy, zx, zy, I0 = 0, J0 = 0;
 
   if (maxmotion > 7)
   {

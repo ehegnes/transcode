@@ -1,63 +1,89 @@
 # # Process this file with automake to produce Makefile.in.
-AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-# CFLAGS = -D_REENTRANT -Wall -funroll-loops -ffast-math -finline-functions @DLDARWININCL@ @SUPPORTINCL@ -I../libxio -I../export -I../import -I$(srcdir)/../export -I$(srcdir)/../import -export-dynamic -I../aclib -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@ @FFMPEG_LIBS_CFLAGS@
-CFLAGS = -D_REENTRANT -Wall -funroll-loops -ffast-math -finline-functions @DLDARWININCL@ @SUPPORTINCL@ -I../libxio -I../export -I../import -I$(srcdir)/../export -I$(srcdir)/../import -export-dynamic -I../aclib -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@
+AUTOMAKE_OPTIONS = 1.3 foreign
+
+AM_CPPFLAGS = \
+	-D_REENTRANT \
+	-DMOD_PATH=\"@MOD_PATH@\" \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/export \
+	-I$(top_srcdir)/import \
+	@XIO_CFLAGS@ \
+	@ACLIB_CFLAGS@ \
+	@FFMPEG_LIBS_CFLAGS@ \
+	@DLDARWININCL@ \
+	@SUPPORT_INCLUDES@
+
+AM_CFLAGS = \
+	-funroll-loops \
+	-ffast-math \
+	-finline-functions
+
+AM_LDFLAGS = -export-dynamic
 
 bin_PROGRAMS = transcode
 
 if SYSTEM_DARWIN
-transcode_LDFLAGS= -Xlinker -m
+transcode_LDFLAGS = -Xlinker -m
 endif
 
-transcode_LDADD= @DLDARWINLIB@ @SUPPORTLIB@ @TCIOAUX_LIBS@ -L../aclib -lac @AVILIB_LIBS@ -L../libvo -lvout @XIO_LIBS@ @LIBXML2_LIBS@ -lm 
+transcode_LDADD = \
+	@DLDARWINLIB@ \
+	@SUPPORT_LIBS@ \
+	@TCIOAUX_LIBS@ \
+	@ACLIB_LIBS@ \
+	@AVILIB_LIBS@ \
+	@LIBVO_LIBS@ \
+	@XIO_LIBS@ \
+	@LIBXML2_LIBS@ \
+	-lm
 
-EXTRA_DIST =  \
-   audio_trans.h \
-   counter.h \
-   decoder.h \
-   dl_loader.h \
-   encoder.h \
-   filter.h \
-   frame_threads.h \
-   framebuffer.h \
-   iodir.h \
-   optstr.h \
-   probe.h \
-   socket.h \
-   split.h \
-   tc_defaults.h \
-   transcode.h \
-   usage.h \
-   video_trans.h \
-   tc_functions.h \
-   tc_func_excl.h \
-   probe_export.h \
-   zoom.h
+EXTRA_DIST = \
+	audio_trans.h \
+	counter.h \
+	decoder.h \
+	dl_loader.h \
+	encoder.h \
+	filter.h \
+	frame_threads.h \
+	framebuffer.h \
+	iodir.h \
+	optstr.h \
+	probe.h \
+	socket.h \
+	split.h \
+	tc_defaults.h \
+	transcode.h \
+	usage.h \
+	video_trans.h \
+	tc_functions.h \
+	tc_func_excl.h \
+	probe_export.h \
+	zoom.h
 
-transcode_SOURCES =	transcode.c\
-			iodir.c\
-			decoder.c\
-			encoder.c\
-			dl_loader.c\
-			frame_threads.c\
-			video_buffer.c\
-			audio_buffer.c\
-			frame_preprocess.c\
-			frame_postprocess.c\
-			video_trans.c\
-			audio_trans.c\
-			video_rgb.c\
-			video_yuv.c\
-			video_yuv422.c\
-			filter.c\
-			counter.c\
-			zoom.c\
-			probe.c\
-			split.c\
-			callback.c\
-			socket.c\
-			optstr.c\
-			tc_functions.c\
-			info_server.c
+transcode_SOURCES = \
+	transcode.c \
+	iodir.c \
+	decoder.c \
+	encoder.c \
+	dl_loader.c \
+	frame_threads.c \
+	video_buffer.c \
+	audio_buffer.c \
+	frame_preprocess.c \
+	frame_postprocess.c \
+	video_trans.c \
+	audio_trans.c \
+	video_rgb.c \
+	video_yuv.c \
+	video_yuv422.c \
+	filter.c \
+	counter.c \
+	zoom.c \
+	probe.c \
+	split.c \
+	callback.c \
+	socket.c \
+	optstr.c \
+	tc_functions.c \
+	info_server.c

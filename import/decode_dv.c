@@ -47,6 +47,7 @@ static const int frame_size_625_50 = 12 * 150 * 80;
 
 static int verbose=TC_QUIET;
 
+#if 0 // not used, EMS
 static unsigned char *bufalloc(size_t size)
 {
    long buffer_align=getpagesize();
@@ -66,6 +67,7 @@ static unsigned char *bufalloc(size_t size)
 
    return buf + adjust;
 }
+#endif
 
 void yuy2toyv12(char *_y, char *_u, char *_v, char *input, int width, int height) 
 {

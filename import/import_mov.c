@@ -28,6 +28,7 @@
 #include <string.h>
 #include <quicktime.h>
 #include <colormodels.h>
+#include <lqt.h>
 #include "transcode.h"
 #include "magic.h"
 
@@ -279,7 +280,6 @@ MOD_decode
       }
     } else {
       /* decode frame */
-      int y;
       unsigned char *mem = param->buffer;
 
       int iy,sl;

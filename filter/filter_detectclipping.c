@@ -286,8 +286,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
     t = (mfd[ptr->filter_id]->y1+1)&(~1);
     l = (mfd[ptr->filter_id]->x1+1)&(~1);
-    b = ptr->v_height - (mfd[ptr->filter_id]->y2+1)&(~1);
-    r = ptr->v_width - (mfd[ptr->filter_id]->x2+1)&(~1);
+    b = ptr->v_height - ((mfd[ptr->filter_id]->y2+1)&(~1));
+    r = ptr->v_width - ((mfd[ptr->filter_id]->x2+1)&(~1));
 
     printf("[detectclipping#%d] valid area: X: %d..%d Y: %d..%d  -> %s %d,%d,%d,%d\n",
 	ptr->filter_id,

@@ -55,7 +55,7 @@
 int tc_filter(vframe_list_t *ptr, char *options)
 {
 
-  static int mycount=0, count=0;
+  static int mycount=0;
   static int ofps=25;
   vob_t *vob=NULL;
 

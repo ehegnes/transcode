@@ -269,7 +269,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     mfd->cur_delay = image->delay*vob->fps/100;
 
     if (verbose & TC_DEBUG)
-    printf("Nr: %d Delay: %d image->del %d|\n", mfd->nr_of_images,  
+    printf("Nr: %d Delay: %d image->del %lu|\n", mfd->nr_of_images,  
 	    mfd->cur_delay, image->delay );
 
     if (vob->im_v_codec == CODEC_YUV) {

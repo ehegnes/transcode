@@ -406,7 +406,7 @@ int tc_filter(vframe_list_t * vframe, char * options)
 		!(vframe->attributes & TC_FRAME_IS_SKIPPED))
 	{
 		int plane_index, coef[2];
-		int offset;
+		int offset = 0;
 		const dn3d_single_layout_t * lp;
 
 		for(plane_index = 0; plane_index < MAX_PLANES; plane_index++)

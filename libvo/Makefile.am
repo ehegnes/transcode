@@ -1,17 +1,19 @@
+# # Process this file with automake to produce Makefile.in.
+
 AUTOMAKE_OPTIONS = 1.3 foreign
 
-INCLUDES = -I$(top_srcdir)/libmpeg2
+AM_CPPFLAGS = @MPEG2CVS_CFLAGS@
 
-AM_CFLAGS = -fPIC -DPIC
+noinst_LTLIBRARIES = libvout.la
 
-noinst_LIBRARIES = libvout.a
-
-libvout_a_SOURCES = \
+libvout_la_SOURCES = \
 	cpu_accel.c \
 	mm_accel.h \
 	mmx.h \
-	rgb2yuv.c rgb2yuv.h \
-	video_out.c video_out.h \
+	rgb2yuv.c \
+	rgb2yuv.h \
+	video_out.c \
+	video_out.h \
 	video_out_internal.h \
 	video_out_ppm.c \
 	video_out_yuv.c \
@@ -19,4 +21,7 @@ libvout_a_SOURCES = \
 	yuv2rgb_mlib.c \
 	yuv2rgb_mmx.c
 
-EXTRA_DIST = COPYING AUTHORS README
+EXTRA_DIST = \
+	COPYING \
+	AUTHORS \
+	README

@@ -48,32 +48,29 @@ int movie_id;
 static double acr, acg, acb, acu, acv;
 static int use_emphasis2_for_anti_aliasing_flag;
 
+extern int add_objects(int);
+extern int execute(char *);
+
 /*
 subtitle 'filter',
 it adds objects as described in a file in .ppml format,
 */
 int tc_filter(vframe_list_t *pfl, char *options)
 {
-int a, c, i, j, xpo, xsh, yy, x;
-float fa;
-double da, db, dc;
+int a, i, x;
+double da, db;
 int pre = 0;
 int vid = 0;
 static FILE *pppm_file;
 static FILE *fptr;
 char temp[4096];
 static int frame_nr;
-char *cptr;
 static uint8_t *pfm, *opfm, *pfmend, *opfmend;
-static uint8_t *pptr, *opptr, *vptr, *mptr;
 static uint8_t *pline_start, *pline_end, *opline_start, *opline_end;
-static int sum_of_differences, min_sum_of_differences;
-static int x_shift, average_x_shift;
-static int stripe, stripe_line;
-static int start_time, start_time_average, time_correction;
+static int x_shift;
 char *running;
 char *token;
-static int y, u, v, y1, r, g, b;
+static int y, b;
 uint8_t *py, *pu, *pv;
 static int cr, cg, cb, cy, cu, cv;
 static int have_bottom_margin_flag;
@@ -335,7 +332,7 @@ if(pfl->tag & TC_FILTER_INIT)
 				}
 			sscanf(token, "color_depth=%d", &color_depth);
 			sscanf(token, "font=%d", &default_font);
-			sscanf(token, "font_factor=%f", &default_font_factor);
+			sscanf(token, "font_factor=%lf", &default_font_factor);
 			sscanf(token, "frame_offset=%d", &frame_offset);
 			sscanf(token, "movie_id=%d", &movie_id);
 
@@ -439,19 +436,20 @@ if(verbose & TC_STATS)
 	(pre)?"pre-process filter":"post-process filter");
 	} /* end if verbose and stats */
   
-//if( (pfl->tag & TC_POST_PROCESS) && (pfl->tag & TC_AUDIO) )
-//	{
-//	printf(\
-//	"WAS afl->audio_size=%d afl->audio_buf=%lu\n",\
-//	afl -> audio_size, afl -> audio_buf);		
+#if 0
+if( (pfl->tag & TC_POST_PROCESS) && (pfl->tag & TC_AUDIO) )
+{
+	printf(\
+	"WAS afl->audio_size=%d afl->audio_buf=%lu\n",\
+	afl -> audio_size, afl -> audio_buf);		
 
-//	for(i = 0; i < 16; i++)
-//		{
-//		printf("%02x ", afl -> audio_buf[i]);
-//		}
-//	printf("\n");
-
-//	}
+	for(i = 0; i < 16; i++)
+		{
+		printf("%02x ", afl -> audio_buf[i]);
+		}
+	printf("\n");
+	}
+#endif
 
 /* 
 default:
@@ -484,7 +482,7 @@ if(a)
 		"frame_nr=%d\n\
 		ImageData=%lu image_width=%d image_height=%d\n",\
 		frame_nr,\
-		ImageData, image_width, image_height);
+		(unsigned long)ImageData, image_width, image_height);
 		}
 
 	/*
@@ -495,10 +493,12 @@ if(a)
 	line_h_end = (double)image_width - (double)line_h_start;
 	window_bottom = image_height - (subtitle_v_factor * (double)image_height);
 
-//printf("WAS PROC h_factor=%.2f v_factor=%.2f\n\
-//line_h_start=%d line_h_end=%d window_bottom=%d\n",\
-//subtitle_h_factor, subtitle_v_factor,\
-//line_h_start, line_h_end, window_bottom);
+#if 0
+	printf("WAS PROC h_factor=%.2f v_factor=%.2f\n\
+	line_h_start=%d line_h_end=%d window_bottom=%d\n",\
+	subtitle_h_factor, subtitle_v_factor,\
+	line_h_start, line_h_end, window_bottom);
+#endif
 
 	if(de_stripe_flag)
 		{
@@ -1051,14 +1051,13 @@ double contrast, double transparency, font_desc_t *pfd, int espace)
 {
 int a;
 char *ptr;
-char temp[4096];
 
 if(debug_flag)
 	{
 	printf("subtitler(): add_text(): x=%d y=%d text=%s\n\
 	pa=%p u=%d v=%d contrast=%.2f transparency=%.2f\n\
 	font_desc_t=%lu espace=%d\n",\
-	x, y, pa, text, u, v, contrast, transparency, pfd, espace);
+	x, y, (const char *)pa, text, u, v, contrast, transparency, (unsigned long)pfd, espace);
 	} 
 
 ptr = text;
@@ -1100,7 +1099,7 @@ if(debug_flag)
 	printf("subtiter(): draw_char(): arg\n\
 	x=%d y=%d c=%d pa=%p u=%d v=%d contrast=%.2f transparency=%.2f\n\
 	pfd=%lu is_space=%d\n",\
-	x, y, c, pa, u, v, contrast, transparency, pfd, is_space);
+	x, y, c, pa, u, v, contrast, transparency, (unsigned long)pfd, is_space);
 	}
 
 draw_alpha(\
@@ -1126,23 +1125,21 @@ void draw_alpha(\
 	int u, int v, double contrast, double transparency, int is_space)
 {
 int a, b, c, x, y, sx, cd;
-char *ptr;
 uint8_t *py, *pu, *pv;
-uint8_t *ps, *psa;
 uint8_t *sc, *sa;
-double dmto, dmti, dmo, dmi, dco, dci, dp, ds;
-uint8_t uy, uu, uv, ur, ug, ub, ua, uc;
-int mu, mv, iu, iv;
+double dmto = 0, dmti = 0;
+uint8_t uy, ur, ug, ub, ua, uc;
+int iu, iv;
 int iy;
 unsigned char *dst;
 double dir, dig, dib, dor, dog, dob;
 double diy, diu, div, doy, dou, dov;
-double da, db, dc;
+double da, db;
 double opaqueness_p, opaqueness_e1, opaqueness_e2;
 double dmci;
-double dmti_p, dmti_e1, dmti_e2;
-double dmto_p, dmto_e1, dmto_e2;
-double dy, dblur, dblur_r, dblur_g, dblur_b;
+double dmti_p = 0, dmti_e1 = 0, dmti_e2 = 0;
+double dmto_p = 0, dmto_e1 = 0, dmto_e2 = 0;
+double dy, dblur;
 double dmulto, dmulti;
 
 
@@ -1153,12 +1150,12 @@ if(debug_flag)
 	src=%lu srca=%lu stride=%d u=%d v=%d\n\
 	contrast=%.2f transparency=%.2f is_space=%d\n",\
 	x0, y0, pa, w, h,\
-	src, srca, stride, u, v,\
+	(unsigned long)src, (unsigned long)srca, stride, u, v,\
 	contrast, transparency, is_space);
 
 	printf("vob->im_v_codec=%d\n", vob -> im_v_codec);
 	printf("image_width=%d image_height=%d\n", image_width, image_height);
-	printf("ImageData=%lu\n", ImageData);
+	printf("ImageData=%lu\n", (unsigned long)ImageData);
 	}
 
 /* all */
@@ -1409,9 +1406,11 @@ else if(vob->im_v_codec == CODEC_YUV)
 		for(x = 0; x < w; x++)
 			{
 
-//fprintf(stdout, "WAS imagewidth=%d image_height=%d\n", image_width, image_height);
-//fprintf(stdout, "WAS y=%d x=%d y0=%d x0=%d py=%p pu=%p pv=%p\n",\
-//y, x, y0, x0, py, pu, pv);
+#if 0
+	fprintf(stdout, "WAS imagewidth=%d image_height=%d\n", image_width, image_height);
+	fprintf(stdout, "WAS y=%d x=%d y0=%d x0=%d py=%p pu=%p pv=%p\n",\
+	y, x, y0, x0, py, pu, pv);
+#endif
 
 			/* clip right scroll */
 			if( (x + x0) > image_width - 1) continue;
@@ -1792,14 +1791,10 @@ else if(vob->im_v_codec == CODEC_YUV)
 
 int add_background(struct object *pa)
 {
-int a, b, c, x, y, sx, cd;
-char *ptr;
+int a, b, c, x, y, sx;
 uint8_t *py, *pu, *pv;
-uint8_t *ps, *psa;
-uint8_t *sc, *sa;
-double da, dc, dm, di, dci, dp, ds;
-uint8_t uy, ua, uc;
-int mu, mv, iu, iv;
+double da;
+int iu, iv;
 double dr, dg, db;
 int iy;
 double dmci, dmti, dmto;
@@ -2046,26 +2041,26 @@ return 1;
 } /* end function print_options */
 
 
-add_picture(struct object *pa)
+int add_picture(struct object *pa)
 {
 /*
 reads yuyv in pa -> data into the YUV 420 ImageData buffer.
 */
 uint8_t *py, *pu, *pv;
-int a, b, c, d, x, y;
+int a, b, c, x, y;
 char *ps;
 char ca;
 int u_time;
 int in_range;
-double da, dc, dd, dm, ds;
-int ck_flag;
+double dc, dd, dm, ds;
+int ck_flag = 0;
 int odd_line;
 
 if(debug_flag)
 	{
 	printf("subtitler(): add_picture(): arg pa=%lu\n\
 	pa->xsize=%.2f pa->ysize=%.2f pa->ck_color=%.2f\n",\
-	pa,\
+	(unsigned long)pa,\
 	pa -> xsize, pa -> ysize,\
 	pa -> chroma_key_color);
 	}
@@ -2278,7 +2273,7 @@ int set_main_movie_properties(struct object *pa)
 {
 if(debug_flag)
 	{
-	printf("set_main_movie_properties(): arg pa=%lu\n", pa);
+	printf("set_main_movie_properties(): arg pa=%lu\n", (unsigned long)pa);
 	}
 
 if(! pa) return 0;

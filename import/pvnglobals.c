@@ -205,7 +205,7 @@ int bufConvert(unsigned char *inbuf, unsigned long inbufsize,
   unsigned long i;
   int in_prec_bytes, out_prec_bytes;
   unsigned long l_temp;
-  long sl_temp;
+  long sl_temp = 0;
   float f_temp;
   double d_temp;
 

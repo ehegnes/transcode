@@ -183,25 +183,18 @@ char *ac_mmstr(int flag, int mode)
   if(mode==0) {
     if(cc & MM_SSE2) {
       return("sse2");
-      return;
     } else if(cc & MM_SSE) {
       return("sse");
-      return;
     } else if(cc & MM_3DNOW) {
       return("3dnow");
-      return;
     } else if(cc & MM_MMXEXT) {
       return("mmxext");
-      return;
     } else if(cc & MM_MMX) {
       return("mmx");
-      return;
     } else if(cc & MM_IA32ASM) {
       return("asm");
-      return;
     } else return("C");
   } 
-
 
   //return full capability list
   if(mode==1) {
@@ -213,4 +206,6 @@ char *ac_mmstr(int flag, int mode)
     if(cc & MM_IA32ASM) strcat(mmstr, "asm"); 
     return(mmstr);
   }
+
+  return("");
 }

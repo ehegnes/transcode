@@ -313,7 +313,7 @@ void decode_mov(decode_t *decode)
 		else
 		{
 			quicktime_close(p_qt_structure);
-			fprintf(stderr,"(%s) error: unknown format mode (0x%x) \n",__FILE__,decode->format);
+			fprintf(stderr,"(%s) error: unknown format mode (0x%x) \n",__FILE__, (unsigned int)decode->format);
 			import_exit(1);
 		}
 		quicktime_close(p_qt_structure);

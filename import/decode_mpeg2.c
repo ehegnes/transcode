@@ -42,6 +42,8 @@ extern vo_open_t vo_ppmpipe_open;
 extern vo_open_t vo_yuvpipe_open;
 extern vo_open_t vo_yuv_open;
 
+// extern vo_instance_t * vo_open(vo_open_t, int (*)(char *, int));
+
 extern void mpeg2_mc_info(uint32_t accel);
 extern void mpeg2_idct_info(uint32_t accel);
 

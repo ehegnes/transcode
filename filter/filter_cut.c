@@ -49,6 +49,7 @@
 #include "../libioaux/framecode.h"
 
 extern int max_frame_buffer;
+extern void tc_import_stop(void);
 
 
 /*-------------------------------------------------

@@ -1,9 +1,13 @@
+# # Process this file with automake to produce Makefile.in.
+
 AUTOMAKE_OPTIONS = 1.3 foreign
 
-noinst_LIBRARIES = libtcioaux.a
+noinst_LTLIBRARIES = libtcioaux.la
 
-libtcioaux_a_SOURCES = \
-	configs.c configs.h \
-	framecode.c framecode.h
+libtcioaux_la_SOURCES = \
+	configs.c \
+	configs.h \
+	framecode.c \
+	framecode.h
 
 EXTRA_DIST = framecode.l

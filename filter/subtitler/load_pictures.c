@@ -25,10 +25,9 @@ char *ppm_to_yuv_in_char(char *pathfilename, int *xsize, int *ysize)
 reads ppm file into buffer in yuyv format.
 */
 char *out_ptr;
-int size;
-int a, c, i, j;
+int c, i, j;
 int r, g, b;
-int width, height, maxval;
+int width = 0, height = 0, maxval = 0;
 double y, u, v;
 double cr, cg, cb, cu, cv;
 char temp[4096];
@@ -257,8 +256,8 @@ creates a .ppm format file from a YUYV character buffer.
 */
 int x, y;
 FILE *fptr;
-char *ps, *py, *pu, *pv;
-int cr, cg, cb, cy, cu, cv;
+char *py, *pu, *pv;
+int cr, cg, cb, cy, cu = 0, cv = 0;
 int r, g, b;
 int u_time;
 int odd_line;
@@ -269,7 +268,7 @@ if(debug_flag)
 	printf(\
 	"subtitler(): yuv_to_ppm(): arg data=%lu\n\
 	xsize=%d ysize=%d filename=%s\n",\
-	data, xsize, ysize, filename);
+	(unsigned long)data, xsize, ysize, filename);
 	}
 
 /* open ppm file */

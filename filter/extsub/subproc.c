@@ -102,6 +102,7 @@ static unsigned int read_nibble(unsigned char *data, unsigned int offset/*in nib
   }
 }
 
+#if 0 // UNUSED, EMS
 static void show_nibbles(unsigned char *data, unsigned int offset, unsigned int number, FILE *stream)
 {
   int n ;
@@ -110,6 +111,7 @@ static void show_nibbles(unsigned char *data, unsigned int offset, unsigned int 
     fprintf(stream, "%x", read_nibble(data, offset+n)) ;
   }
 }
+#endif
 /*
 static void display_ctrl_sequence(FILE *file, parsed_ctrl_sequence *seq)
 {

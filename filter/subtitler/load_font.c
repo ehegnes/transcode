@@ -195,7 +195,6 @@ unsigned char sor[1024];
 unsigned char sor2[1024];
 font_desc_t *desc;
 FILE *f;
-struct stat fstate;
 char section[64];
 int i, j;
 int chardb = 0;
@@ -419,9 +418,11 @@ while( fgets(sor, 1020, f) )
 				desc->start[chr] = start;
 				desc->width[chr] = end-start + 1;
 				desc->font[chr] = fontdb;
-				//printf("char %d '%c' start=%d width=%d\n",\
+#if 0
+				printf("char %d '%c' start=%d width=%d\n",
 				chr, chr, desc->start[chr], desc->width[chr]);
 				++chardb;
+#endif
 				}
 			continue;
 			}
@@ -635,7 +636,7 @@ FT_Library	library;
 FT_Face	face;
 FT_Error	error;
 FT_Glyph	*glyphs;
-FT_BitmapGlyph glyph;
+FT_BitmapGlyph glyph = 0;
 FILE	*f;
 int	const	load_flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;
 int		pen_x = 0, pen_xa;
@@ -783,7 +784,7 @@ int		glyphs_count = 0;
 #ifndef NEW_DESC
 	fprintf(f, "charspace %i\n", -2 * padding);
 #endif
-	fprintf(f, "height %i\n", (padding * 2) + f266ToInt(face->size->metrics.height));
+	fprintf(f, "height %lu\n", (padding * 2) + f266ToInt(face->size->metrics.height));
 #ifdef NEW_DESC
 	fprintf(f, "ascender %i\n",	f266CeilToInt(face->size->metrics.ascender));
 	fprintf(f, "descender %i\n",	f266FloorToInt(face->size->metrics.descender));
@@ -801,7 +802,6 @@ int		glyphs_count = 0;
 	FT_GlyphSlot	slot;
 	FT_ULong	character, code;
 	FT_UInt		glyph_index;
-	FT_BBox		bbox;
 
 	character = charset[i];
 	code = charcodes[i];
@@ -816,7 +816,7 @@ int		glyphs_count = 0;
 			if(debug_flag)
 				{
 				fprintf(stdout, "subtitler: render(): Glyph for char 0x%02x|U+%04X|%c not found.",\
-				code, character, code<' '|| code > 255 ? '.' : code);
+				(unsigned int)code, (unsigned int)character, (char)(code<' '|| code > 255 ? '.' : code));
 				}
 
 			continue;
@@ -827,7 +827,7 @@ int		glyphs_count = 0;
 	error = FT_Load_Glyph(face, glyph_index, load_flags);
 	if (error) {
 	    fprintf(stderr,\
-	"subtitler: render(): FT_Load_Glyph 0x%02x (char 0x%02x|U+%04X) failed.", glyph_index, code, character);
+	"subtitler: render(): FT_Load_Glyph 0x%02x (char 0x%02x|U+%04X) failed.", (unsigned int)glyph_index, (unsigned int)code, (unsigned int)character);
 	    continue;
 	}
 	slot = face->glyph;
@@ -836,17 +836,22 @@ int		glyphs_count = 0;
 	if (slot->format != ft_glyph_format_bitmap) {
 	    error = FT_Render_Glyph(slot, ft_render_mode_normal);
 	    if (error) {
-		fprintf(stderr, "subtitler: render(): FT_Render_Glyph 0x%04x (char 0x%02x|U+%04X) failed.", glyph_index, code, character);
+		fprintf(stderr, "subtitler: render(): FT_Render_Glyph 0x%04x (char 0x%02x|U+%04X) failed.", (unsigned int)glyph_index, (unsigned int)code, (unsigned int)character);
 		continue;
 	    }
 	}
 
 	// extract glyph image
-	error = FT_Get_Glyph(slot, (FT_Glyph*)&glyph);
-	if (error) {
-	    fprintf(stderr, "subtitler: render(): FT_Get_Glyph 0x%04x (char 0x%02x|U+%04X) failed.", glyph_index, code, character);
-	    continue;
-	}
+	{
+		void * tmp_glyph = (void *)glyph;
+
+	    error = FT_Get_Glyph(slot, (void *)&tmp_glyph);
+	    if (error) {
+	        fprintf(stderr, "subtitler: render(): FT_Get_Glyph 0x%04x (char 0x%02x|U+%04X) failed.", glyph_index, (unsigned int)code, (unsigned int)character);
+	        continue;
+	    }
+    }
+
 	glyphs[glyphs_count++] = (FT_Glyph)glyph;
 
 #ifdef NEW_DESC
@@ -880,10 +885,10 @@ int		glyphs_count = 0;
 	pen_xa = pen_x + f266ToInt(slot->advance.x) + 2*padding;
 
 	/* font.desc */
-	fprintf(f, "0x%04x %i %i;\tU+%04X|%c\n", unicode_desc ? character:code,
+	fprintf(f, "0x%04x %i %i;\tU+%04X|%c\n", (unsigned int)(unicode_desc ? character:code),
 		pen_x,						// bitmap start
 		pen_xa-1,					// bitmap end
-		character, code<' '||code>255 ? '.':code);
+		(unsigned int)character, (unsigned int)(code<' '||code>255 ? '.':code));
 #endif
 	pen_x = ALIGN(pen_xa);
     }
@@ -969,16 +974,8 @@ return 1;
 FT_ULong decode_char(char c)
 {
 FT_ULong o;
-char *inbuf = &c;
-char *outbuf = (char*)&o;
-//int inbytesleft = 1;
-//int outbytesleft = sizeof(FT_ULong);
-
 /* patch for AMD 64 by Tilmann Bitterberg */
-size_t inbytesleft = 1;
 size_t outbytesleft = sizeof(FT_ULong);
-
-size_t count = iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
 
 /* convert unicode BigEndian -> MachineEndian */
 o = be2me_32(o);
@@ -1118,7 +1115,7 @@ for (y = 0; y < height; ++y)
 // 1 pixel outline
 void outline1(unsigned char *s, unsigned char *t, int width, int height)
 {
-int x, y, mx, my;
+int x, y;
 
 for (x = 0; x<width; ++x, ++s, ++t) *t = *s;
 for (y = 1; y<height-1; ++y)
@@ -1303,11 +1300,8 @@ font_desc_t *make_font(\
 {
 font_desc_t *pfontd;
 char temp[4096];
-char temp2[4096];
 FILE *pptr;
 FILE *fptr;
-char *ptr;
-char *ptr2;
 
 //if(debug_flag)
 	{	

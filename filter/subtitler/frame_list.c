@@ -16,6 +16,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 #include "subtitler.h"
 
+extern int parse_frame_entry(struct frame *pa);
+
 int hash(s)/* form hash value for string s */
 char *s;
 {
@@ -33,7 +35,7 @@ return(hashval % FRAME_HASH_SIZE);
 char *strsave(char *s) /*save char array s somewhere*/
 {
 char *p;
-if(p = malloc( strlen(s) +  1) ) strcpy(p, s);
+if((p = malloc( strlen(s) +  1))) strcpy(p, s);
 return(p);
 }
 
@@ -124,7 +126,6 @@ int add_frame(\
 	int xsize, int ysize, int zsize, int id)
 {
 struct frame *pa;
-char *ptr;
 
 if(debug_flag)
 	{
@@ -135,7 +136,7 @@ if(debug_flag)
 	xsize=%d ysize=%d zsize=%d\n\
 	id=%d\n",\
 	name,\
-	data,\
+	(unsigned long)data,\
 	object_type,\
 	xsize, ysize, zsize,\
 	id);
@@ -206,8 +207,10 @@ if(debug_flag)
 sprintf(temp, "%d", frame_nr);
 for(pa = frametab[hash(temp)]; pa != 0; pa = pa -> nxtentr)
 	{
-//printf("WAS pa->type=%d pa->name=%s frame_nr=%d end_frame=%d\n",\
-//pa -> type, pa -> name, frame_nr, end_frame);
+#if 0
+	printf("WAS pa->type=%d pa->name=%s frame_nr=%d end_frame=%d\n",\
+	pa -> type, pa -> name, frame_nr, end_frame);
+#endif
 
 	if(pa -> type == FORMATTED_TEXT)
 		{

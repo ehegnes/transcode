@@ -80,9 +80,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   static vob_t *vob=NULL;
 
-  static int width, height;
-  static int size;
-  int w, h;
+  int w;
   
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
       char buf[128];
@@ -178,8 +176,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
     if (mfd->start <= ptr->id && ptr->id <= mfd->end && ptr->id%mfd->step == mfd->boolstep) {
 
-      for (w = 0; w < ptr->video_size; w++)  *p++ = 255 - *p;
-
+      for (w = 0; w < ptr->video_size; w++, p++)
+	     *p = 255 - *p;
     }
   }
   

@@ -40,6 +40,11 @@ double blur_radius;
 
 int subtitle_symbols;
 
+extern int add_background(struct object *pa);
+extern int add_picture(struct object *pa);
+extern int execute(char *);
+extern int swap_position(struct object *ptop, struct object *pbottom);
+
 struct object *lookup_object(char *name)
 {
 struct object *pa;
@@ -194,7 +199,6 @@ struct object *add_subtitle_object\
 	) 
 {
 struct object *pa;
-char *ptr;
 char name[TEMP_SIZE];
 
 if(debug_flag)
@@ -210,7 +214,7 @@ if(debug_flag)
 	start_frame_nr, end_frame_nr,\
 	type,\
 	xpos, ypos, zpos,\
-	data\
+	(unsigned long)data\
 	);
 
 	if(type == FORMATTED_TEXT) printf("type formatted text data=%s\n", data);
@@ -221,7 +225,7 @@ if(debug_flag)
 if(! data) return 0;
 
 /* Need unique entry for each object */
-sprintf(name, "%d %d %d %d %d %d",\
+sprintf(name, "%d %d %lf %lf %lf %d",\
 start_frame_nr, end_frame_nr, xpos, ypos, zpos, type);
 pa = install_object_at_end_of_list(name);
 if(! pa)
@@ -284,8 +288,7 @@ int add_objects(int current_frame_nr)
 int a, x, y;
 struct object *pa, *pdel, *pnext, *pprev;
 char temp[1024];
-double dx, dy, dd;
-int ix, iy;
+double dx = 0, dy, dd;
 char *pc;
 FILE *fptr;
 int width, height;
@@ -342,8 +345,8 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 			pa->xpos=%.2f pa->ypos=%.2f pa->type=%d pa->data=%lu\n\
 			pa->pfd=%lu\n",\
 			pa->name, pa->start_frame, pa->end_frame,\
-			pa->xpos, pa->ypos, pa->type, pa->data,\
-			pa -> pfd);
+			pa->xpos, pa->ypos, pa->type, (unsigned long)pa->data,\
+			(unsigned long)pa->pfd);
 
 			printf("pa->data=%s\n", pa -> data);
 			}
@@ -679,7 +682,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 			{
 			pa -> zpos = 65535;
 
-			sprintf(temp, "frame=%lu", current_frame_nr);
+			sprintf(temp, "frame=%d", current_frame_nr);
 			add_text( (int)pa -> xpos, (int)pa -> ypos, temp,\
 			pa, (int)pa -> u, (int)pa -> v,\
 			pa -> contrast, pa -> transparency, pa -> pfd,\
@@ -761,8 +764,10 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 			/* substract travelled distance */
 			pa -> distance -= dd;
 
-//printf("WAS GOTO x=%d y=%d dx=%.2f dy=%.2f dd=%.2f pa->distance=%.2f\n",\
-//(int)pa -> xpos, (int)pa -> ypos, dx, dy, dd, pa -> distance);
+#if 0
+	printf("WAS GOTO x=%d y=%d dx=%.2f dy=%.2f dd=%.2f pa->distance=%.2f\n",\
+	(int)pa -> xpos, (int)pa -> ypos, dx, dy, dd, pa -> distance);
+#endif
 
 			/* test if distance remaining */
 			if(pa -> distance < 0.0)
@@ -956,13 +961,13 @@ while(1)/* go through list again and again */
 		if(debug_flag)
 			{
 			fprintf(stdout, "sort_objects_by_zaxis(): sorting %s pa=%lu\n",\
-			pa -> name, pa);		
+			(const char *)pa->name, (unsigned long)pa);		
 			}	
 	
 		pb = pa -> prventr;
 		if(debug_flag)
 			{
-			fprintf(stdout, "sort_objects_by_zaxis(): pb=pa->prventr=%lu\n", pb);
+			fprintf(stdout, "sort_objects_by_zaxis(): pb=pa->prventr=%lu\n", (unsigned long)pb);
 			}
 		
 		if(pb)
@@ -978,8 +983,8 @@ while(1)/* go through list again and again */
 					fprintf(stdout,\
 					"AFTER SWAP pa->prventr=%lu pa->nxtentr=%lu\n\
 					pb->prventr=%lu pb-nxtentrr=%lu\n",\
-					pa -> prventr, pa -> nxtentr,\
-					pb -> prventr, pb -> nxtentr);		
+					(unsigned long)pa -> prventr, (unsigned long)pa -> nxtentr,\
+					(unsigned long)pb -> prventr, (unsigned long)pb -> nxtentr);		
 					}										
 				}/* end if strcmp < 0 */
 			}/* end if pb */
@@ -1006,7 +1011,7 @@ struct object *pabove;
 if(debug_flag)
 	{
 	fprintf(stdout,\
-	"swap_position(): swapping top=%lu bottom=%lu\n", ptop, pbottom);
+	"swap_position(): swapping top=%lu bottom=%lu\n", (unsigned long)ptop, (unsigned long)pbottom);
 	}
 
 /* argument check */
@@ -1018,7 +1023,7 @@ punder = pbottom -> prventr;/* could be zero if first entry */
 if(debug_flag)
 	{
 	fprintf(stdout,\
-	"swap_position(): punder=%lu\n", punder);
+	"swap_position(): punder=%lu\n", (unsigned long)punder);
 	}
 
 /* get the one above the top */
@@ -1026,7 +1031,7 @@ pabove = ptop -> nxtentr;/* could be zero if last entry */
 if(debug_flag)
 	{
 	fprintf(stdout,\
-	"swap_position(): pabove=%lu\n", pabove);
+	"swap_position(): pabove=%lu\n", (unsigned long)pabove);
 	}
 
 /* the next pointer in punder (or objecttab[0]) must now point to ptop */

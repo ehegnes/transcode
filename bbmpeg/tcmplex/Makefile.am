@@ -1,6 +1,8 @@
+# # Process this file with automake to produce Makefile.in.
+
 AUTOMAKE_OPTIONS = 1.3 foreign
 
-INCLUDES = -I$(top_srcdir)/bbmpeg
+INCLUDES = @BBMPEG_CFLAGS@
 
 bin_PROGRAMS = tcmplex
 
@@ -15,4 +17,6 @@ tcmplex_SOURCES = \
 	tcmplex.c \
 	timecode.c
 
-tcmplex_LDADD = -L$(top_builddir)/bbmpeg -lbbmpeg -lm
+tcmplex_LDADD = \
+	@BBMPEG_LIBS@ \
+	-lm

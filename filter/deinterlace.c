@@ -64,8 +64,8 @@ void deinterlace_bob_yuv_mmx(uint8_t *pdst, uint8_t *psrc,
 
   unsigned long long qwEdgeDetect;
   unsigned long long qwThreshold;
-  const unsigned long long Mask = 0xfefefefefefefefe;
-  const unsigned long long YMask = 0x00ff00ff00ff00ff;
+  const unsigned long long Mask = 0xfefefefefefefefeULL;
+  const unsigned long long YMask = 0x00ff00ff00ff00ffULL;
 
   qwEdgeDetect = EdgeDetect;
   qwEdgeDetect += (qwEdgeDetect << 48) + (qwEdgeDetect << 32) + (qwEdgeDetect << 16);

@@ -22,11 +22,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 int line_number;
 
-
 int load_ppml_file(char *pathfilename)
 {
 FILE *fptr;
-char temp[4096];
 
 if(debug_flag)
 	{
@@ -56,28 +54,28 @@ if(! read_in_ppml_file(fptr) )
 return 1;
 } /* end  function load_ppml_file */
 
+extern int readline_ppml(FILE *, char *);
+extern int set_end_frame(int, int);
 
-read_in_ppml_file(FILE *finptr)
+int read_in_ppml_file(FILE *finptr)
 {
-int a, b, c, i;
+int a;
 char temp[READSIZE];
 char arg0[1024];
 char arg1[1024];
 char arg2[1024];
 char arg3[1024];
 char *ptr;
-char *ptr1;
+char *ptr1 = 0;
 int object_type;
-int frame_divided_by_eight;
 int start_frame;
-int old_start_frame;
-char command_str[1024];
+int old_start_frame = 0;
 char *cptr;
 int xsize, ysize, zsize;
 int arguments, arguments_read;
 char subtitler_args[1024];
-int movie_number;
-int id;
+int movie_number = 0;
+int id = 0;
 char *thread_arg;
 FILE *fptr2;
 
@@ -98,7 +96,7 @@ while(1)
 //fprintf(stdout, "WAS readline_ppml temp=%s strlen(temp)=%d\n", temp, strlen(temp) );
 
 	if(debug_flag)
-		{
+	{
 		fprintf(stdout, "read_in_ppml_file(): line read=%s\n", temp);
 		}
 
@@ -380,15 +378,12 @@ return 1;
 
 void *movie_routine(char *helper_flags)
 {
-int a, b, c, i, j, k;
+int a, c, i, j, k;
 char temp[4096];
-FILE *exec_filefd;
 pid_t pid;
 char execv_args[51][1024];
 char *flip[51];/* this way I do not have to free anything */
 				/* arguments to ececlv are copied */
-FILE *info_filefd;
-char *ptr;
 char helper_program[512];
 int quote_flag;
 
@@ -508,9 +503,8 @@ else/* parent */
 	{	
 	}
 
-return;
+return(0);
 } /* end function movie_routine */
-
 
 int readline_ppml(FILE *file, char *contents)
 {

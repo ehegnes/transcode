@@ -666,8 +666,8 @@ AC_ARG_WITH(dv-libs,AC_HELP_STRING([--with-dv-libs=PFX],[prefix where local libd
 	  dv_libs="$withval", dv_libs="")
 
 
-EXTRA_LIBS="$LIBS $GLIB_LIBS -ldl -lm"
-DV_EXTRA_LIBS="$GLIB_LIBS -ldl -lm"
+EXTRA_LIBS="$LIBS $GLIB_LIBS -lm"
+DV_EXTRA_LIBS="$GLIB_LIBS -lm"
 
 if test x$with_dv = "x"yes ; then
 
@@ -734,40 +734,40 @@ AC_ARG_WITH(ffmpeg-libs-libs,AC_HELP_STRING([--with-ffmpeg-libs-libs=PFX],[prefi
 	  ffmpeg_libs_libs="$withval", ffmpeg_libs_libs="")
 
 if test x$ffmpeg_libs_includes != "x" ; then
-	with_ffmpeg_libs_i="$ffmpeg_libs_includes/include/ffmpeg"
+	with_ffmpeg_libs_i="$ffmpeg_libs_includes"
 else
 	with_ffmpeg_libs_i="/usr/include/ffmpeg"
 fi
 
 if test x$ffmpeg_libs_libs != x ; then
-	with_ffmpeg_libs_l="$ffmpeg_libs_libs/lib"
+	with_ffmpeg_libs_l="$ffmpeg_libs_libs"
 else
 	with_ffmpeg_libs_l="/usr${deflib}"
 fi
 
-AC_CHECK_HEADER($with_ffmpeg_libs_i/avcodec.h,
-		[if perl -ane 'if(/#define\s*LIBAVCODEC_BUILD/) { exit($F[2] >= 4718) ? 1 : 0 }' $with_ffmpeg_libs_i/avcodec.h
+AC_CHECK_FILE($with_ffmpeg_libs_i/avcodec.h,
+		[if test `sed -ne 's,#define[[:space:]]*LIBAVCODEC_BUILD[[:space:]]*\(.*\),\1,p' $with_ffmpeg_libs_i/avcodec.h` -lt 4718
 		then
-			echo "*** Transcode needs at least ffmpeg(-devel) build 4718 (0.4.9-pre1 or a cvs version after 20040801) ***"
-			exit -1
+			echo "*** Transcode needs at least ffmpeg(-devel) build 4718 (0.4.9-pre1 or a cvs version after 20040703) ***"
+			exit 1
 		fi],
 		[echo "*** Cannot find header file $with_ffmpeg_libs_i/avcodec.h from ffmpeg ***"
-		exit -1])
+		exit 1])
 
-FFMPEG_BUILD=$(perl -ane 'if(/#define\s+LIBAVCODEC_BUILD\s+/) { printf("%s\n", $F[2]); }' $with_ffmpeg_libs_i/avcodec.h)
-FFMPEG_VERSION=$(perl -ane 'if(/#define\s+FFMPEG_VERSION\s+/) { printf("%s\n", $F[2]); }' $with_ffmpeg_libs_i/avcodec.h)
-
+FFMPEG_BUILD=$(sed -ne 's,#define[[:space:]+]LIBAVCODEC_BUILD[[:space:]]*\(.*\),\1,p' $with_ffmpeg_libs_i/avcodec.h)
+FFMPEG_VERSION=$(sed -ne 's,#define[[:space:]+]FFMPEG_VERSION.*"\(.*\)",\1,p' $with_ffmpeg_libs_i/avcodec.h)
+  
 AC_SUBST(FFMPEG_BUILD)
 AC_SUBST(FFMPEG_VERSION)
 
 AC_CHECK_LIB(avcodec,
 		avcodec_thread_init,
 		[FFMPEG_LIBS_CFLAGS="-I$with_ffmpeg_libs_i"
-		 FFMPEG_LIBS_LIBS="-L$with_ffmpeg_libs_l -lavcodec"
+		 FFMPEG_LIBS_LIBS="-L$with_ffmpeg_libs_l -lavcodec $pthread_lib -lm -lz"
 		], 
 		[echo "*** Transcode depends on the FFmpeg libraries and headers (libavcodec) ***"
-		exit -1],
-		[-L$with_ffmpeg_libs_l])
+		exit 1],
+		[-lm -L$with_ffmpeg_libs_l])
 
 AC_SUBST(FFMPEG_LIBS_CFLAGS)
 AC_SUBST(FFMPEG_LIBS_LIBS)
@@ -789,8 +789,8 @@ AC_ARG_WITH(lzo-libs,AC_HELP_STRING([--with-lzo-libs=PFX],[prefix where local li
 	  lzo_libs="$withval", lzo_libs="")
 
 
-EXTRA_LIBS="$LIBS $GLIB_LIBS -ldl -lm"
-LZO_EXTRA_LIBS="$GLIB_LIBS -ldl -lm"
+EXTRA_LIBS="$LIBS $GLIB_LIBS -lm"
+LZO_EXTRA_LIBS="$GLIB_LIBS -lm"
 
 if test x$with_lzo = "x"yes ; then
 
@@ -1101,7 +1101,7 @@ AC_ARG_WITH(qt-includes,AC_HELP_STRING([--with-qt-includes=PFX],[prefix where lo
 AC_ARG_WITH(qt-libs,AC_HELP_STRING([--with-qt-libs=PFX],[prefix where local quicktime libs are installed (optional)]),
 	  qt_libs="$withval", qt_libs="")
 
-EXTRA_LIBS="$GLIB_LIBS -lpng -lz -lpthread -ldl -lm $DV_LIBS"
+EXTRA_LIBS="$GLIB_LIBS -lpng -lz $pthread_lib -lm $DV_LIBS"
 
 if test x$with_qt = "x"yes ; then
 
@@ -2141,3 +2141,61 @@ main ()
   AC_SUBST(GLIB_LIBS)
   rm -f conf.glibtest
 ])
+
+
+dnl PKG_CHECK_MODULES(GSTUFF, gtk+-2.0 >= 1.3 glib = 1.3.4, action-if, action-not)
+dnl defines GSTUFF_LIBS, GSTUFF_CFLAGS, see pkg-config man page
+dnl also defines GSTUFF_PKG_ERRORS on error
+AC_DEFUN([PKG_CHECK_MODULES], [
+  succeeded=no
+
+  if test -z "$PKG_CONFIG"; then
+    AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
+  fi
+
+  if test "$PKG_CONFIG" = "no" ; then
+     echo "*** The pkg-config script could not be found. Make sure it is"
+     echo "*** in your path, or set the PKG_CONFIG environment variable"
+     echo "*** to the full path to pkg-config."
+     echo "*** Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config."
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        AC_MSG_CHECKING(for $2)
+
+        if $PKG_CONFIG --exists "$2" ; then
+            AC_MSG_RESULT(yes)
+            succeeded=yes
+
+            AC_MSG_CHECKING($1_CFLAGS)
+            $1_CFLAGS=`$PKG_CONFIG --cflags "$2"`
+            AC_MSG_RESULT($$1_CFLAGS)
+
+            AC_MSG_CHECKING($1_LIBS)
+            $1_LIBS=`$PKG_CONFIG --libs "$2"`
+            AC_MSG_RESULT($$1_LIBS)
+        else
+            $1_CFLAGS=""
+            $1_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but 
+            ## do set a variable so people can do so.
+            $1_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$2"`
+            ifelse([$4], ,echo $$1_PKG_ERRORS,)
+        fi
+
+        AC_SUBST($1_CFLAGS)
+        AC_SUBST($1_LIBS)
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     ifelse([$3], , :, [$3])
+  else
+     ifelse([$4], , AC_MSG_ERROR([Library requirements ($2) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them.]), [$4])
+  fi
+])
+
+

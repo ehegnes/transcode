@@ -43,7 +43,7 @@ void probe_vnc(info_t *ipipe)
 {
     unsigned char buf[100];
     unsigned char matchingBuffer[100];
-    int index = 0, i, major, minor, authReqs;
+    int index = 0, major, minor, authReqs;
     int width, height;
 
     if(p_read(ipipe->fd_in, buf, sizeof(buf)) != sizeof(buf)) {

@@ -3,15 +3,33 @@
 AUTOMAKE_OPTIONS = 1.3 foreign dist-bzip2
 
 if HAVE_PVM3
-PVM3=pvm3
+PVM3 = pvm3
 endif
 
-SUBDIRS = . libxio docs contrib libdldarwin libsupport libioaux\
-	aclib avilib libac3 libvo libmpeg2\
-	libmp3lame libdvenc bbmpeg \
-	import export filter src tools $(PVM3)
+SUBDIRS = \
+	. \
+	libxio \
+	docs \
+	contrib \
+	libdldarwin \
+	libsupport \
+	libioaux \
+	aclib \
+	avilib \
+	libac3 \
+	libvo \
+	libmpeg2 \
+	libmp3lame \
+	libdvenc \
+	bbmpeg \
+	import \
+	export \
+	filter \
+	src \
+	tools \
+	$(PVM3)
 
-EXTRA_DIST=transcode.spec libtool
+EXTRA_DIST = transcode.spec libtool
 
 docsdir = $(datadir)/doc/transcode
 docs_DATA = ChangeLog

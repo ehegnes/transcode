@@ -5,11 +5,11 @@ int end_frame_nr;
 
 int parse_frame_entry(struct frame *pa)
 {
-int a, b, c, i, j, x, y, z;
+int a, c, i, j, x, y, z;
 char *token, *running;
-struct frame *pb;
-struct object *po;
-double da, db, dx, dy, dz;
+struct frame *pb = 0;
+struct object *po = 0;
+double da, dx, dy;
 double dgx, dgy, dgz;
 int frame_nr;
 char *cptr, *tptr;
@@ -17,11 +17,10 @@ int screen_lines;
 int line_height;
 char font_dir[4096];
 char font_name[4096];
-char temp[4096];
 font_desc_t *pfd;
 int temp_palette[16][3];
 int text_start, max_width, line_len;
-struct object *pf;
+struct object *pf = 0;
 struct object *pc;
 int bg_height, bg_width;
 
@@ -35,7 +34,7 @@ if(debug_flag)
 	pa -> name,\
 	pa -> type,\
 	pa -> end_frame,\
-	pa -> data);
+	(unsigned long)pa -> data);
 	}
 
 if(pa -> data[0] == '*')

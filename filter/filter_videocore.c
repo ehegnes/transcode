@@ -73,10 +73,12 @@ static MyFilterData *mfd = NULL;
  *
  *-------------------------------------------------*/
 
+#if 0 // unused, EMS
 static void help_optstr(void) 
 {
    printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
 }
+#endif
 
 int tc_filter(vframe_list_t *ptr, char *options)
 {

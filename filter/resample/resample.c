@@ -300,10 +300,7 @@ eff_t effp;
  * Return number of samples processed.
  */
 
-static int st_resample_flow(effp, ibuf, obuf, isamp, osamp)
-eff_t effp;
-LONG *ibuf, *obuf;
-LONG *isamp, *osamp;
+static int st_resample_flow(eff_t effp, LONG * ibuf, LONG * obuf, int * isamp, int * osamp)
 {
 	resample_t r = (resample_t) effp->priv;
 	LONG i, last, Nout, Nx, Nproc;
@@ -416,7 +413,7 @@ static int st_resample_drain(eff_t effp, LONG *obuf, LONG *osamp)
 	osamp_res = *osamp;
 	Obuf = obuf;
 	while (isamp_res>0 && osamp_res>0) {
-		LONG Isamp, Osamp;
+		int Isamp, Osamp;
 		Isamp = isamp_res;
 		Osamp = osamp_res;
 		rc = st_resample_flow(effp, NULL, Obuf, &Isamp, &Osamp);

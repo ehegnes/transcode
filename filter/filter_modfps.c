@@ -77,6 +77,9 @@
 #include "framebuffer.h"
 #include "optstr.h"
 
+// FIXME
+extern long int lrint(double x);
+
 static int show_results=0;
 
 /*-------------------------------------------------
@@ -297,7 +300,7 @@ static void clone_temporal_average(unsigned char *clone, unsigned char*next, vfr
 }
 
 static void clone_interpolate(char *clone, char *next, vframe_list_t *ptr){
-  int i,width,height;
+  int i,width = 0,height;
   char *dest, *s1, *s2;
 
   if (CODEC_RGB == ptr->v_codec){

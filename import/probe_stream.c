@@ -38,6 +38,7 @@
 static int verbose;
 
 static probe_info_t probe_info;
+void probe_pvn(info_t *ipipe);
 
 /* ------------------------------------------------------------ 
  *

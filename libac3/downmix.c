@@ -225,8 +225,6 @@ downmix_1f_0r_to_2ch(float *centre,sint_16 *s16_samples)
 
 void downmix(bsi_t* bsi, stream_samples_t samples,sint_16 *s16_samples)
 {
-    	int i;
-
 	if(bsi->acmod > 7)
 		dprintf("(downmix) invalid acmod number\n"); 
 

@@ -136,7 +136,6 @@ typedef struct {
 
 int aviidx1_to_mpidx1(char *in_file, FILE *out_fd)
 {
-    char head[10];
     char *data;
     FILE *in;
     int size=0, i;

@@ -104,12 +104,14 @@ count: 1-256
 stride: -32000 - 320000
 */
 
+#if 0 // unused, EMS
 static unsigned int get_prefetch_const (int blocksize_in_vectors, int block_count, int block_stride) 
 {
     return ((blocksize_in_vectors<<24)&0x1F000000) | 
 	   ((block_count<<16)&0x00FF0000)          |
 	    (block_stride&0xFFFF);
 }
+#endif
 
 static unsigned char *bufalloc(size_t size, char *location)
 {
@@ -405,7 +407,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	int			cubic = mfd->cubic;
 	static int 		counter=0;
 	const int		can_use_mmx = !(w%8); // width must a multiple of 8
-	const int		can_use_altivec = !(w%16); // width must a multiple of 16
+	// const int		can_use_altivec = !(w%16); // width must a multiple of 16
 
 
 	char * dst_buf;

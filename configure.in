@@ -85,14 +85,14 @@ AM_DISABLE_STATIC
 # Checks for support lib
 enable_supportlib="no"
 AC_CHECK_FUNCS(getopt_long_only,[],[enable_supportlib="yes" 
-   SUPPORTOBJECTS="$SUPPORTOBJECTS getopt.o getopt1.o" support_fct="$support_fct getopt"])
+   SUPPORT_OBJECTS="$SUPPORT_OBJECTS getopt.o getopt1.o" support_fct="$support_fct getopt"])
 AC_MSG_RESULT(checking whether support lib is needed... $enable_supportlib)
 if test X"$enable_supportlib" = Xyes; then
-   SUPPORTLIB="../libsupport/libsupport.a" 
-   SUPPORTINCL="-I../libsupport/"
-   AC_SUBST(SUPPORTOBJECTS)
-   AC_SUBST(SUPPORTLIB)
-   AC_SUBST(SUPPORTINCL)
+   SUPPORT_LIBS="\$(top_builddir)/libsupport/libsupport.a" 
+   SUPPORT_INCLUDES="-I\$(top_srcdir)/libsupport"
+   AC_SUBST(SUPPORT_OBJECTS)
+   AC_SUBST(SUPPORT_LIBS)
+   AC_SUBST(SUPPORT_INCLUDES)
    AC_MSG_RESULT(  building support lib for $support_fct)
 fi
 
@@ -281,7 +281,7 @@ if test "x${ac_cv_can_compile_sse2}" != "xno"; then
   can_compile_sse2=true
 fi
 
-
+save_CFLAGS="${CFLAGS}"
 
 case x"$host_cpu" in 
   xi?86*|xk6*)
@@ -396,7 +396,9 @@ if test "x${ac_cv_ld_altivec}" != "xno"; then
   LDFLAGS_save="${LDFLAGS_save} -framework vecLib"; LDFLAGS="${LDFLAGS_save}"
 fi
 esac
-  
+
+CFLAGS="${save_CFLAGS}"
+
 dnl ************************************************************************
 dnl Check that the GCC tool chain can generate 3DNow assmebly instructions
 dnl
@@ -453,7 +455,7 @@ if test x$have_x86cpu = xtrue ; then
  AC_MSG_CHECKING(for CMOV support)
  if test "$enable_cmov_extension" != "no" ; then
  case "$host" in
- *-*-freebsd*|*-*-openbsd*)
+ *-*-freebsd*|*-*-openbsd*|*-*-netbsd*)
   cpu_features=`grep -l CMOV /var/run/dmesg.boot`
   if test X"$cpu_features" = X"/var/run/dmesg.boot" ; then
     have_cmov=true
@@ -535,22 +537,26 @@ if test x"$GCC" = x"yes"; then
 
     dnl arch-specific flags
     case "$host_cpu" in
-    i?86-* | k?-*)
+    i?86* | k?-*)
 	AC_DEFINE([ARCH_X86], 1,[x86 architecture])
-dnl
-dnl FreeBSD (NetBSD? OpenBSD?) gives i386 anyway
-dnl
-    case "$host" in
-      *-*-freebsd*) OPT_FLAGS="$CFLAGS" ;;
-      *)
-	case "$host_cpu" in
-	i386-*) OPT_CFLAGS="$CFLAGS -mcpu=i386";;
-	i486-*) OPT_CFLAGS="$CFLAGS -mcpu=i486";;
-	i586-*) OPT_CFLAGS="$CFLAGS -mcpu=pentium";;
-	i686-*) OPT_CFLAGS="$CFLAGS -mcpu=pentiumpro";;
-	k6-*)   OPT_CFLAGS="$CFLAGS -mcpu=k6";;
-	esac ;;
-     esac
+      case "$host" in
+        *-*-freebsd*)
+          arch="i`grep ^CPU /var/run/dmesg.boot | uniq | sed -e 's,.*\(.86\)-class.*,\1,'`"
+          ;;
+        *-*-openbsd*|*-*-netbsd*)
+          arch="i`sysctl hw.model | sed -e 's,.*\(.86\)-class.*,\1,'`"
+          ;;
+        *)
+          arch="$host_cpu"
+          ;;
+      esac
+      case "$arch" in
+        i386*) OPT_CFLAGS="$CFLAGS -mcpu=i386";;
+        i486*) OPT_CFLAGS="$CFLAGS -mcpu=i486";;
+        i586*) OPT_CFLAGS="$CFLAGS -mcpu=pentium";;
+        i686*) OPT_CFLAGS="$CFLAGS -mcpu=pentiumpro";;
+        k6*)   OPT_CFLAGS="$CFLAGS -mcpu=k6";;
+      esac
 	AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS]);;
     sparc-*)
 	OPT_CFLAGS="$CFLAGS -mcpu=ultrasparc -mvis"
@@ -575,11 +581,17 @@ AC_LIBTOOL_DLOPEN
 AM_PROG_LIBTOOL
 dnl AC_CONFIG_SUBDIRS(libltdl)
 
+dnl always add -Wall
+if test x"$GCC" = x"yes"; then
+    OPT_CFLAGS="-Wall $CFLAGS"
+    AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
+fi
+
 AC_ARG_ENABLE([warnings],
     AC_HELP_STRING([--enable-warnings], [treat warnings as errors]))
 if test x"$enable_warnings" = x"yes" -a x"$GCC" = x"yes"; then
     dnl compiler warnings
-    OPT_CFLAGS="-Wall -Werror $CFLAGS"
+    OPT_CFLAGS="-Werror $CFLAGS"
     AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
 fi
 
@@ -929,10 +941,10 @@ AC_ARG_WITH(libfdr,[  --with-libfdr=DIR       base directory for libfdr],
 AC_ARG_WITH(libibp,[  --with-libibp=DIR    	  base directory for libibp],
             [CPPFLAGS="-I$with_libibp/include $CPPFLAGS",
 	     LIBIBP=yes,
-             IBP_LIBS1="-L$with_libibp/lib -libp -lpthread $IBP_LIBS1"],
-            [LIBS="-lpthread $IBP_LIBS1"
+             IBP_LIBS1="-L$with_libibp/lib -libp $pthread_lib $IBP_LIBS1"],
+            [LIBS="$pthread_lib $IBP_LIBS1"
              AC_CHECK_LIB(ibp,IBP_allocate,
-                          [IBP_LIBS1="-libp -lpthread $IBP_LIBS1"],
+                          [IBP_LIBS1="-libp $pthread_lib $IBP_LIBS1"],
                           AC_MSG_ERROR(unable to locate libibp))])
 
 AC_ARG_WITH(libexnode,[  --with-libexnode=DIR    base directory for libexnode],
@@ -998,26 +1010,24 @@ fi], [
    mjpegtools=yes]
 )
 
-if test "$mjpegtools" = "yes"; then
+if test x"$mjpegtools" = x"yes"; then
 
-AC_MSG_CHECKING([for YUV4MPEG support])
+  AC_MSG_CHECKING([for YUV4MPEG support])
 
-AC_SUBST([MJPEG_CFLAGS])
-AC_SUBST([MJPEG_LIBS])
-AC_CHECK_PROG([MJPEGTOOLSCONFIG],[mjpegtools-config],[yes])
-if test x"$MJPEGTOOLSCONFIG" = x"yes"
-then
-	AC_DEFINE([HAVE_MJPEGTOOLS], 1,[mjpegtools support])
-	AC_DEFINE([HAVE_MJPEG], 1, [Have mjpeg suppport])
-  	MJPEG_CFLAGS="`mjpegtools-config --cflags`"
-  	MJPEG_LIBS="`mjpegtools-config --libs`"
-	mjpeg_incs="`mjpegtools-config --prefix`/include/mjpegtools"
-	AC_CHECK_FILE($mjpeg_incs/yuv4mpeg.h, 
-	   [AC_DEFINE(HAVE_MJPEG_INC, 1, mjpeg include)])
+  AC_SUBST([MJPEG_CFLAGS])
+  AC_SUBST([MJPEG_LIBS])
+  PKG_CHECK_MODULES(MJPEG, mjpegtools)
+  AC_DEFINE([HAVE_MJPEGTOOLS], 1,[mjpegtools support])
+  AC_DEFINE([HAVE_MJPEG], 1, [Have mjpeg suppport])
+  mjpeg_incs="`pkg-config mjpegtools --variable=prefix`/include/mjpegtools"
+  AC_CHECK_FILE($mjpeg_incs/yuv4mpeg.h, 
+     [AC_DEFINE(HAVE_MJPEG_INC, 1, mjpeg include)])
 
   dnl
   dnl check if we have version >= Mar 31 2004
 
+  save_CFLAGS="$CFLAGS"
+  save_LIBS="$LIBS"
   CFLAGS="$CFLAGS $MJPEG_CFLAGS"
   LIBS="$LIBS $MJPEG_LIBS"
   AC_TRY_LINK([
@@ -1030,17 +1040,12 @@ then
   #endif],
   [y4m_write_frame_header(1, NULL, NULL)], 
     [AC_DEFINE(USE_NEW_MJPEGTOOLS_CODE, 1, using mjpegtools post Mar 31 2004)])
-  CFLAGS="$ac_save_CFLAGS"
-  LIBS="$ac_save_LIBS"
+  CFLAGS="$save_CFLAGS"
+  LIBS="$save_LIBS"
 
-else
-MJPEGTOOLSCONFIG=no
 fi
-else
-MJPEGTOOLSCONFIG=no
-fi
+AM_CONDITIONAL(HAVE_MJPEG, test x"$mjpegtools" = x"yes" )
 
-AM_CONDITIONAL(HAVE_MJPEG, test x"$MJPEGTOOLSCONFIG" = x"yes" )
 
 dnl ---------------------------------------------------------------------
 dnl X11 checks
@@ -1171,7 +1176,7 @@ dnl avilib
 dnl
 
 AVILIB_CFLAGS="-I\$(top_srcdir)/avilib"
-AVILIB_LIBS="-L\$(top_builddir)/avilib -lavi"
+AVILIB_LIBS="\$(top_builddir)/avilib/libavi.la"
 AC_SUBST(AVILIB_CFLAGS)
 AC_SUBST(AVILIB_LIBS)
 
@@ -1180,7 +1185,7 @@ dnl libioaux
 dnl
 
 TCIOAUX_CFLAGS="-I\$(top_srcdir)/libioaux"
-TCIOAUX_LIBS="-L\$(top_builddir)/libioaux -ltcioaux"
+TCIOAUX_LIBS="\$(top_builddir)/libioaux/libtcioaux.la"
 AC_SUBST(TCIOAUX_CFLAGS)
 AC_SUBST(TCIOAUX_LIBS)
 
@@ -1189,7 +1194,7 @@ dnl libac3
 dnl
 
 AC3_CFLAGS="-I\$(top_srcdir)/libac3"
-AC3_LIBS="-L\$(top_builddir)/libac3 -lac3_tc"
+AC3_LIBS="\$(top_builddir)/libac3/libac3_tc.la"
 AC_SUBST(AC3_CFLAGS)
 AC_SUBST(AC3_LIBS)
 
@@ -1198,9 +1203,45 @@ dnl libmpeg2
 dnl
 
 MPEG2CVS_CFLAGS="-I\$(top_srcdir)/libmpeg2"
-MPEG2CVS_LIBS="-L\$(top_builddir)/libmpeg2 -lmpeg2cvs"
+MPEG2CVS_LIBS="\$(top_builddir)/libmpeg2/libmpeg2cvs.la"
 AC_SUBST(MPEG2CVS_CFLAGS)
 AC_SUBST(MPEG2CVS_LIBS)
+
+dnl
+dnl libvo
+dnl
+
+LIBVO_CFLAGS="-I\$(top_srcdir)/libvo"
+LIBVO_LIBS="\$(top_builddir)/libvo/libvout.la"
+AC_SUBST(LIBVO_CFLAGS)
+AC_SUBST(LIBVO_LIBS)
+
+dnl
+dnl aclib
+dnl
+
+ACLIB_CFLAGS="-I\$(top_srcdir)/aclib"
+ACLIB_LIBS="\$(top_builddir)/aclib/libac.la"
+AC_SUBST(ACLIB_CFLAGS)
+AC_SUBST(ACLIB_LIBS)
+
+dnl
+dnl bbmpeg
+dnl
+
+BBMPEG_CFLAGS="-I\$(top_srcdir)/bbmpeg"
+BBMPEG_LIBS="\$(top_builddir)/bbmpeg/libbbmpeg.la"
+AC_SUBST(BBMPEG_CFLAGS)
+AC_SUBST(BBMPEG_LIBS)
+
+dnl
+dnl libdvenc
+dnl
+
+LIBDVENC_CFLAGS="-I\$(top_srcdir)/libdvenc"
+LIBDVENC_LIBS="\$(top_builddir)/libdvenc/libdvenc.la"
+AC_SUBST(LIBDVENC_CFLAGS)
+AC_SUBST(LIBDVENC_LIBS)
 
 dnl
 dnl libavcodec
@@ -1241,10 +1282,10 @@ if test $libxio = yes; then
 if test x"$have_ibp" = x"yes"
 then
 	XIO_CFLAGS="-DUSE_XIO -I\$(top_srcdir)/libxio"
-	XIO_LIBS="-L\$(top_builddir)/libxio -lxio $IBP_LIBS $LIBXML2_LIBS"
+	XIO_LIBS="\$(top_builddir)/libxio/libxio.la $IBP_LIBS $LIBXML2_LIBS"
 else
 	XIO_CFLAGS="-DUSE_XIO -I\$(top_srcdir)/libxio"
-	XIO_LIBS="-L\$(top_builddir)/libxio -lxio"
+	XIO_LIBS="\$(top_builddir)/libxio/libxio.la"
 fi
 else 
 XIO_CFLAGS="-I\$(top_srcdir)/libxio"

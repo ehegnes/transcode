@@ -59,7 +59,7 @@ static double critical_threshold=0.00005;
  *
  *-------------------------------------------------*/
 
-static int sq( int d ) { return d * d; }
+// static int sq( int d ) { return d * d; } // unused, EMS
 
 static int interlace_test(char *video_buf, int width, int height, int id, int verbose)
 {

@@ -32,6 +32,9 @@
 #include "mpeg2.h"
 #include "mpeg2_internal.h"
 
+// EMS
+int vo_setup (vo_instance_t * this, int width, int height);
+
 #ifdef HAVE_MEMALIGN
 /* some systems have memalign() but no declaration for it */
 void * memalign (size_t align, size_t size);

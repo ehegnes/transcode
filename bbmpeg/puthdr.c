@@ -204,7 +204,7 @@ int frame, int closed_gop)
  */
 int frametotc(int frame)
 {
-  int fps, pict, sec, minute, hour, tc, temp = frame;
+  int fps, pict, sec, minute, hour, tc;
 
   if ((video_pulldown_flag != PULLDOWN_32) &&
       (video_pulldown_flag != PULLDOWN_23))

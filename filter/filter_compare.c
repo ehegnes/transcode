@@ -116,14 +116,9 @@ static void help_optstr(void)
 
 int tc_filter(vframe_list_t *ptr, char *options)
 {
-	int w, h;
-	//PixelPacket *pixpat;
-	char *pattern_name;
-	char *results_name;
-
 	int instance = ptr->filter_id;
 	
-	Image *pattern, *resized, *orig;
+	Image *pattern, *resized, *orig = 0;
 	ImageInfo *image_info;
 	
 	PixelPacket *pixel_packet;
@@ -336,7 +331,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 					
 		if (compare[instance]->vob->im_v_codec == CODEC_RGB){
 			
-			int index,r,g,b,c,col;
+			int r,g,b,c;
 			double width_long;
 			
 			if (compare[instance]->pixel_mask != NULL)
@@ -384,7 +379,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
                         // FIXME: Doesn't works, I need to code all this part
 			// again
   			
-			int index,Y,Cr,Cb,c,col;
+			int Y,Cr,Cb,c;
 						
 			if (compare[instance]->pixel_mask != NULL)
 			{
@@ -427,6 +422,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 			
 		}
 	}
+
+	return(0);
 }
 // Proposal:
 // Tilmann Bitterberg Sat, 14 Jun 2003 00:29:06 +0200 (CEST)

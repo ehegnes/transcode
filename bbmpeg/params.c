@@ -57,16 +57,16 @@ typedef enum {
 
 static int vbvlim[4] = {597, 448, 112, 29};
 
-static int horzlim[4] = {9, 9, 8, 7};
-static int vertlim[4] = {5, 5, 5, 4};
+// static int horzlim[4] = {9, 9, 8, 7};
+// static int vertlim[4] = {5, 5, 5, 4};
 
-static int Ndefaults[MAXM] = {1, 12, 15, 16, 15, 12, 14, 16};
+// static int Ndefaults[MAXM] = {1, 12, 15, 16, 15, 12, 14, 16};
 
 static double ratetab[8]=
     {24000.0/1001.0,24.0,25.0,30000.0/1001.0,30.0,50.0,60000.0/1001.0,60.0};
 
-static int ratetab1[4] = {62668800, 47001600, 10368000, 3041280};
-static int bitratetab[4] = {80000000, 60000000, 14000000, 4000000};
+// static int ratetab1[4] = {62668800, 47001600, 10368000, 3041280};
+// static int bitratetab[4] = {80000000, 60000000, 14000000, 4000000};
 static int svcdrates[15] = {0, 2568000, 2552000, 2544000, 2536000, 2520000,
                                2504000, 2488000, 2472000, 2440000, 2408000,
                                2376000, 2344000, 2280000, 2216000};

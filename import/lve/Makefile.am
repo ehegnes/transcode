@@ -1,18 +1,27 @@
 # # Process this file with automake to produce Makefile.in.
 
 AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-INCLUDES = -Wall -I./ -I../ -I../../src -I$(srcdir)/.. -I$(srcdir)/../.. -I$(srcdir)/../../src
+INCLUDES = \
+	-I$(top_srcdir)/import \
+	-I$(top_srcdir)/src
  
-CFLAGS = -D_REENTRANT -funroll-loops -ffast-math -Wall -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@ 
+AM_CPPFLAGS = \
+	-DMOD_PATH=\"@MOD_PATH@\" \
+	-D_REENTRANT
 
-pkgdir=@MOD_PATH@
-pkg_LTLIBRARIES=import_lve.la
+AM_CFLAGS = \
+	-funroll-loops \
+	-ffast-math
 
-import_lve_la_SOURCES = import_lve.c 
-import_lve_la_LIBADD  = -Llve/ -llve -Lffmpeg/ -lavcodec -Llibmpeg2 -lmpeg2 -Lliba52 -la52 -lstdc++
-import_lve_la_LDFLAGS = -no-undefined -module -avoid-version 
+pkgdir = @MOD_PATH@
+pkg_LTLIBRARIES = import_lve.la
 
-
-
+import_lve_la_SOURCES = import_lve.c
+import_lve_la_LIBADD  = \
+	@LVE_LIBS@ \
+	@FFMPEG_LIB_LIBS@ \
+	@MPEG2CVS_LIBS@ \
+	@A52_LIBS@ \
+	-lstdc++
+import_lve_la_LDFLAGS = -no-undefined -module -avoid-version

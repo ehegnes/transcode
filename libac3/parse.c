@@ -152,7 +152,6 @@ int get_ac3_samplerate(char *buf)
 {
   int fscod, sampling_rate;
   uint_32 tmp = 0;
-  bsi_t bsi;
 
   tmp=get_ac3_header(buf);
   

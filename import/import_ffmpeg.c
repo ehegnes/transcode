@@ -27,6 +27,8 @@
 #include <string.h>
 
 #include "transcode.h"
+// FIXME
+#undef EMULATE_FAST_INT
 #include <avcodec.h>
 #include "yuv2rgb.h"
 #include "avilib.h"
@@ -489,7 +491,6 @@ MOD_decode {
   long       bytes_read = 0;
   int        got_picture, UVls, src, dst, row, col;
   char      *Ybuf, *Ubuf, *Vbuf;
-  int        retry;
   AVFrame  picture;
 
   if (param->flag == TC_VIDEO) {

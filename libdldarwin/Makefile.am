@@ -1,14 +1,18 @@
-## Makefile.am -- Process this file with automake to produce Makefile.in
+# # Process this file with automake to produce Makefile.in.
 
-INCLUDES                	=  -I$(top_builddir) -I$(top_srcdir)
+AUTOMAKE_OPTIONS = 1.3 foreign
 
-noinst_LIBRARIES        	= libdldarwin.a
+INCLUDES = -I$(top_srcdir)
 
-libdldarwin_a_SOURCES		=
-EXTRA_libdldarwin_a_SOURCES	=  dlfcn_simple.c
+noinst_LIBRARIES = libdldarwin.a
 
-libdldarwin_a_DEPENDENCIES	= @DLDARWINOBJECTS@
-libdldarwin_a_LIBADD		= @DLDARWINOBJECTS@
+libdldarwin_a_SOURCES =
+EXTRA_libdldarwin_a_SOURCES = dlfcn_simple.c
 
-EXTRA_DIST 			= dlfcn.h dlfcn_simple.c dummy.c
+libdldarwin_a_DEPENDENCIES = @DLDARWINOBJECTS@
+libdldarwin_a_LIBADD = @DLDARWINOBJECTS@
 
+EXTRA_DIST = \
+	dlfcn.h \
+	dlfcn_simple.c \
+	dummy.c

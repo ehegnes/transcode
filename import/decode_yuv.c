@@ -37,7 +37,8 @@ static FILE *out_file;
 static vo_open_t *output_open = vo_ppmpipe_open;
 extern void directdraw_rgb(vo_instance_t *output, char *yuv[3]);
 extern vo_open_t vo_ppmpipe_open;
-
+// extern int vo_setup (vo_instance_t *, int, int);
+// extern vo_instance_t * vo_open(vo_open_t, int (*)(char *, int));
 
 static int yuv_read_frame (int fd, char *yuv[3], int width, int height)
 {

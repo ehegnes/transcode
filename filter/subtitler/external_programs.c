@@ -1,5 +1,7 @@
 #include "subtitler.h"
 
+extern int execute(char *);
+
 char subtitles_dir[] = "";
 
 
@@ -11,7 +13,6 @@ double xshear, double yshear)
 {
 int a, x, y;
 char temp[1024];
-FILE *fptr;
 char *ptr;
 
 /*
@@ -23,7 +24,7 @@ if(debug_flag)
 	"change_picture_geometry(): data=%lu xsize=%d ysize=%d\n\
 	new_xsize=%.2f new_ysize=%.2f keep_aspect=%d\n\
 	zrotation=%.2f xshear=%.2f yshear=%.2f\n",\
-	data, xsize, ysize,\
+	(unsigned long)data, xsize, ysize,\
 	*new_xsize, *new_ysize, keep_aspect,\
 	zrotation,\
 	xshear, yshear);
@@ -83,7 +84,7 @@ else
 	home_dir, subtitles_dir);
 	}
 
-if(! execute(temp) ) return 0;
+if(!execute(temp) ) return 0;
 
 /* load temp .ppm file */
 sprintf(temp, "%s/%s/temp.ppm", home_dir, subtitles_dir);
@@ -92,8 +93,10 @@ ptr = ppm_to_yuv_in_char(temp, &x, &y);
 *new_xsize = (double)x;
 *new_ysize = (double)y;
 
-//printf("WAS RELOAD x=%d y=%d *new_xsize=%.2f *new_ysize=%.2f\n",\
-//x, y, *new_xsize, *new_ysize);
+#if 0
+	printf("WAS RELOAD x=%d y=%d *new_xsize=%.2f *new_ysize=%.2f\n",\
+	x, y, *new_xsize, *new_ysize);
+#endif
 
 return ptr;
 } /* end function change_picture_geometry */ 

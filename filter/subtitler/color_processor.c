@@ -3,7 +3,7 @@
 
 void adjust_color(int *u, int *v, double degrees, double saturation)
 {
-double da, db, du, dv;
+double du, dv;
 double dcolor, dsaturation;
 double dsine;
 double dsat;
@@ -82,10 +82,9 @@ return;
 int chroma_key(int u, int v, double color,\
 double color_window, double saturation)
 {
-double da, db, du, dv, ds;
+double da, du, dv, ds;
 double dcolor, dvector;
 double dsine;
-double dsat;
 
 if(debug_flag)
 	{

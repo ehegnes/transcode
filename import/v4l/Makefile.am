@@ -1,16 +1,17 @@
 # # Process this file with automake to produce Makefile.in.
 
 AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-INCLUDES = -I./ -I../../src -I../ -I../../ -Wall -I$(srcdir)/../../src -I$(srcdir)/.. -I$(srcdir)/../.. @TCIOAUX_CFLAGS@
+AM_CPPFLAGS = \
+	-D_REENTRANT \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/src -I$(top_srcdir)/import \
+	@TCIOAUX_CFLAGS@
 
-CFLAGS = -D_REENTRANT @CFLAGS@
-
-pkgdir=@MOD_PATH@
+pkgdir = @MOD_PATH@
 
 if HAVE_V4L
-MOD=import_v4l.la import_v4l2.la 
+MOD = import_v4l.la import_v4l2.la 
 endif
 
 pkg_LTLIBRARIES = $(MOD) 
@@ -22,5 +23,13 @@ import_v4l2_la_SOURCES = import_v4l2.c
 import_v4l2_la_LDFLAGS = -module -avoid-version 
  
  
-EXTRA_DIST = audio.h channels.h common.h counter.h frequencies.h vcr.h video.h videodev.h videodev2.h
-
+EXTRA_DIST = \
+	audio.h \
+	channels.h \
+	common.h \
+	counter.h \
+	frequencies.h \
+	vcr.h \
+	video.h \
+	videodev.h \
+	videodev2.h

@@ -34,7 +34,8 @@
 #include "avilib.h"
 #include "aud_aux.h"
 #include "vid_aux.h"
-// #include "../ffmpeg/libavcodec/avcodec.h"
+// FIXME
+#undef EMULATE_FAST_INT
 #include <avcodec.h>
 
 #if !defined(INFINITY) && defined(HUGE_VAL)

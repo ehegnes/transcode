@@ -44,8 +44,8 @@ int putpict(unsigned char *frame)
   int i, j, k, comp, cc;
   int mb_type;
   int PMV[2][2][2];
-  int prev_mquant, mquant;
-  int cbp, MBAinc;
+  int prev_mquant, mquant = 0;
+  int cbp, MBAinc = 0;
 
   if (constant_bitrate)
     rc_init_pict(frame); /* set up rate control */

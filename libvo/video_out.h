@@ -62,12 +62,12 @@ void vo_accel (uint32_t accel);
 /* return NULL terminated array of all drivers */
 vo_driver_t * vo_drivers (void);
 
-static vo_instance_t * vo_open (vo_open_t * open, void (*callback))
+static inline vo_instance_t * vo_open (vo_open_t * open, void (*callback))
 {
     return open (callback);
 }
 
-static int vo_setup (vo_instance_t * this, int width, int height)
+static inline int vo_setup (vo_instance_t * this, int width, int height)
 {
     return this->setup (this, width, height);
 }

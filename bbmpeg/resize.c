@@ -118,14 +118,14 @@ void bb_resize_frame(unsigned char *py_src,
   register unsigned char r1, r2;
   unsigned char *src;
   unsigned char *dst;
-  int i, j, pg_num;
+  int i, j;
 
   //=======
   //== Y ==
   //=======
   
   //-- draw top border --
-  if (blank = (*pu_dst != BLACK_C)) memset(py_dst, BLACK, BORDER_T_OFS);
+  if ((blank = (*pu_dst != BLACK_C))) memset(py_dst, BLACK, BORDER_T_OFS);
 
   //-- setup source-page and destination pointer --
   //-- with border and crop offsets.             --  

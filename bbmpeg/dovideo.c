@@ -638,7 +638,6 @@ static T_BBMPEG_CTX  ictx;
 
 T_BBMPEG_CTX *bb_start(char *fname, int enc_w, int enc_h, int sh_info)
 {
-  char         tmpStr[255];
   unsigned int byteCount;
 
   ictx.verbose      = sh_info;
@@ -1423,7 +1422,6 @@ int bb_stop(T_BBMPEG_CTX *ctx)
 int putMaxBitrate()
 {
   unsigned int byteCount, totalPatches, patchCount, percent;
-  unsigned int i, j;
   unsigned char patchVal[3];
   FILE *vidStream;
   struct stat statbuf;

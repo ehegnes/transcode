@@ -310,7 +310,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	int x, y, max;
 	int strength = mfd->strength, invstrength = 255 - strength;
 	int threshold = mfd->threshold;
-	const int	srcpitch = ptr->v_width*sizeof(Pixel32);
+	// const int	srcpitch = ptr->v_width*sizeof(Pixel32);
 	const int	dstpitch = ptr->v_width*sizeof(Pixel32);
 
 	if (vob->im_v_codec == CODEC_YUV) {

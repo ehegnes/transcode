@@ -39,6 +39,8 @@
 #include "transcode.h"
 #include "ioaux.h"
 
+// FIXME
+#undef EMULATE_FAST_INT
 #include <avcodec.h>
 #include "yuv2rgb.h"
 

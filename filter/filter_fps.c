@@ -136,7 +136,7 @@ tc_filter(vframe_list_t *ptr, char *options)
 			return -1;
 		if (verbose && options) printf("[%s] options=%s",
 			MOD_NAME, options);
-		if (verbose && !options) printf("[%s] no options");
+		if (verbose && !options) printf("[%s] no options", MOD_NAME);
 		if (verbose) printf(", converting from %g fps to %g fps,"
 			" %sprocessing\n", infps, outfps,
 			pre ? "pre" : "post");

@@ -59,7 +59,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   static vob_t *vob=NULL;
   static char *lines = NULL;
-  static int width, height, height_mod, codec;
+  static int width, height, codec;
   int h;
   static int evenfirst=0;
 

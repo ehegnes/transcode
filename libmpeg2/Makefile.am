@@ -1,12 +1,10 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 
-INCLUDES = -I$(top_srcdir)/libvo
+AM_CPPFLAGS = @LIBVO_CFLAGS@
 
-AM_CFLAGS = -fPIC -DPIC
+noinst_LTLIBRARIES = libmpeg2cvs.la
 
-noinst_LIBRARIES = libmpeg2cvs.a
-
-libmpeg2cvs_a_SOURCES = \
+libmpeg2cvs_la_SOURCES = \
 	attributes.h \
 	cpu_state.c \
 	decode.c \

@@ -35,6 +35,7 @@
 #include "aux_pes.h"
 
 
+#if 0 // EMS not used
 static int cmp_32_bits(char *buf, long x)
 {
   
@@ -50,6 +51,7 @@ static int cmp_32_bits(char *buf, long x)
   // OK found it
   return 1;
 }
+#endif
 
 static double frc_table[16] = {0,
 			       NTSC_FILM, 24, 25, NTSC_VIDEO, 30, 50, 
@@ -415,7 +417,7 @@ void make_timecode (double timestamp, Timecode_struc *pointer)
     according to MPEG-System
 *************************************************************************/
 
-void buffer_timecode_scr (Timecode_struc *pointer, unsigned char **buffer)
+static void buffer_timecode_scr (Timecode_struc *pointer, unsigned char **buffer)
 {
   
   unsigned char temp;
@@ -443,8 +445,8 @@ void buffer_timecode_scr (Timecode_struc *pointer, unsigned char **buffer)
 
 void scr_rewrite(char *buf, uint32_t pts)
 {
-
   Timecode_struc timecode;
+  unsigned char * ucbuf = (unsigned char *)buf;
   
   timecode.msb = 0;
   timecode.lsb = 0;
@@ -453,5 +455,5 @@ void scr_rewrite(char *buf, uint32_t pts)
   
   make_timecode((double) pts, &timecode);
   
-  buffer_timecode_scr(&timecode, (unsigned char**) &buf);
+  buffer_timecode_scr(&timecode, &ucbuf);
 }

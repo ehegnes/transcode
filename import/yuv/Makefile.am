@@ -1,17 +1,23 @@
 # # Process this file with automake to produce Makefile.in.
 
 AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-INCLUDES = -Wall -I./ -I../ -I../../src -I$(srcdir)/.. -I$(srcdir)/../.. -I$(srcdir)/../../src
- 
-CFLAGS = -D_REENTRANT -funroll-loops -ffast-math -Wall -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@ 
+INCLUDES = \
+	-I$(top_srcdir)/import \
+	-I$(top_srcdir)/src
 
-pkgdir=@MOD_PATH@
-pkg_LTLIBRARIES=import_yuv.la
+AM_CPPFLAGS = \
+	-DMOD_PATH=\"@MOD_PATH@\" \
+	-D_REENTRANT
 
-import_yuv_la_SOURCES = import_yuv.c 
-import_yuv_la_LDFLAGS = -no-undefined -module -avoid-version 
+AM_CFLAGS = \
+	-funroll-loops \
+	-ffast-math
+
+pkgdir = @MOD_PATH@
+pkg_LTLIBRARIES = import_yuv.la
+
+import_yuv_la_SOURCES = import_yuv.c
+import_yuv_la_LDFLAGS = -no-undefined -module -avoid-version
 
 EXTRA_DIST = Readme
-

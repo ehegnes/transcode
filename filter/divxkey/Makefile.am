@@ -1,23 +1,25 @@
 # # Process this file with automake to produce Makefile.in.
 
 AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-INCLUDES = -I./ -Wall -I../.. -I../../src/ -I$(srcdir)/../.. -I$(srcdir)/../../src
+INCLUDES = \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/filter \
+	-I$(top_srcdir)/src
 
 if BIG_ENDIAN
 BG = -DBIG_ENDIAN
 endif
 
-CFLAGS = -D_REENTRANT @CFLAGS@ $(BG)
+AM_CPPFLAGS = \
+	-D_REENTRANT \
+	$(BG)
 
-pkgdir=@MOD_PATH@
+pkgdir = @MOD_PATH@
 
-pkg_LTLIBRARIES = filter_divxkey.la 
+pkg_LTLIBRARIES = filter_divxkey.la
 
 filter_divxkey_la_SOURCES = filter_divxkey.c bitstream.c
-filter_divxkey_la_LDFLAGS =  -module -avoid-version 
+filter_divxkey_la_LDFLAGS = -module -avoid-version
 
 EXTRA_DIST = bitstream.h
-
-
