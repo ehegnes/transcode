@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-20 Erik Slagter <erik at oldconomy.com>
+
+  * import/v4l/import_v4l2.c:
+  Small fixes.
+
 2004-01-20 Andrew Church <achurch at achurch.org>
 
   * bbmpeg/mplex.h bbmpeg/tcmplex/{domplex.c inptstrm.c}:

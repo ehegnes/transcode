@@ -55,7 +55,7 @@
 #include "filter/mmx.h"
 
 #define MOD_NAME		"import_v4l2.so"
-#define MOD_VERSION		"v1.2.1 (2004-01-03)"
+#define MOD_VERSION		"v1.2.2 (2004-01-03)"
 #define MOD_CODEC		"(video) v4l2 | (audio) pcm"
 #define MOD_PRE			v4l2
 #include "import_def.h"
@@ -90,15 +90,19 @@
 	1.2.1	EMS added bttv driver to blacklist 'does not support cropping
 					info ioctl'
 			tibit added mmx version of yuy2_to_uyvy
-			      hacked in alternate fields (#if 0'ed) 
-				  fixed a typo (UYUV -> UYVY)
+					hacked in alternate fields (#if 0'ed) 
+					fixed a typo (UYUV -> UYVY)
+	1.2.2	EMS	fixed av sync mutex not yet grabbed problem with "busy" wait
+
 	TODO
 
 	- add more conversion schemes
 	- make conversion user-selectable
 	- use more mmx/sse/3dnow
 	- add (clean) alternate fields support to spit out
-	  50 fields per second.
+	  	50 fields per second.
+
+	vim: ts=4
 */
 
 #define module "[" MOD_NAME "]: "
@@ -542,7 +546,7 @@ static void v4l2_parse_options(const char * options_in)
 
 	if(!options || (!(option = malloc(strlen(options) * sizeof(char)))))
 	{
-		fprintf(stderr, module "cannot malloc - options not parsed\n");
+		fprintf(stderr, module "Cannot malloc - options not parsed\n");
 		return;
 	}
 
@@ -917,7 +921,7 @@ int	v4l2_video_get_frame(size_t size, char * data)
 
 	if(v4l2_video_sequence == 0)
 	{
-		for(dummy = 0; dummy < 5; dummy++)
+		for(dummy = 0; dummy < 4; dummy++)
 			if(!v4l2_video_grab_frame(0, 0))
 				return(1);
 
@@ -1093,15 +1097,15 @@ int v4l2_audio_init(const char * device, int rate, int bits, int channels)
 	if(v4l2_saa7134_audio)
 	{
 		if(verbose_flag & TC_INFO)
-			fprintf(stderr, module "audio input from saa7134 detected\n");
-
-		rate = 32000;
+			fprintf(stderr, module "Audio input from saa7134 detected, audio sample rate fixed at 32 Khz\n");
 	}
-
-	if(ioctl(v4l2_audio_fd, SOUND_PCM_WRITE_RATE, &rate) < 0)
+	else
 	{
-		perror(module "SOUND_PCM_WRITE_RATE");
-		return(1);
+		if(ioctl(v4l2_audio_fd, SOUND_PCM_WRITE_RATE, &rate) < 0)
+		{
+			perror(module "SOUND_PCM_WRITE_RATE");
+			return(1);
+		}
 	}
 
 	return(0);
@@ -1112,24 +1116,23 @@ int v4l2_audio_grab_frame(size_t size, char * buffer)
 	int left;
 	int offset;
 	int received;
-	int result, err;
+	int result;
 
 	if(v4l2_audio_sequence == 0) // wait for video to start
 	{
-		errno	= 0;
-		result	= pthread_mutex_trylock(&v4l2_av_start_mutex);
-		err		= errno;
-
-		if(!result)
+		for(;;)
 		{
-			fprintf(stderr, module "av start mutex not locked!\n");
-			return(1);
+			if((result = pthread_mutex_trylock(&v4l2_av_start_mutex)))
+				break;
+
+			fprintf(stderr, module "Waiting one second for av start mutex to be locked\n");
+			sleep(1);
 		}
 
-		if((result != EBUSY) && (err != EBUSY))
+		if(result != EBUSY) 
 		{
 			perror(module "av start mutex trylock");
-			fprintf(stderr, module "result = %d, error = %d\n", result, err);
+			fprintf(stderr, module "result = %d\n", result);
 			return(1);
 		}
 
@@ -1299,6 +1302,3 @@ MOD_close
 
 	return(0);
 }
-
-/* vim: ts=4
- */
