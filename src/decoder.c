@@ -99,6 +99,9 @@ void import_threads_cancel()
 
   int cc1, cc2;
 
+  if (tc_decoder_delay)
+      printf("(%s) sleeping for %d seconds to cool down\n", __FILE__, 2*tc_decoder_delay);
+
   // notify import threads, if not yet done, that task is done
   tc_import_stop();
 
