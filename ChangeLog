@@ -1,6 +1,16 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-05-05 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * filter/filter_smartyuv.c:
+  Fix cubic=1 interpolation. Pointed out by Mikhail Ramendik.
+
+2004-03-17 Shawn Holwegner <shawn at holwegner.com>
+
+  * avilib/avidump.c:
+  Fix missing )
+
 2004-03-17 Brian de Alwis <bsd at cs.ubc.ca>
 
   * import/probe_vnc.c:

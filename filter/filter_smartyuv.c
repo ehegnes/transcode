@@ -1209,10 +1209,12 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		movingminus += (w+PAD);
 		movingplus += (w+PAD);
 	    }
-	}
-	emms();
 
-	return;
+	    emms();
+	    return;
+	}
+
+	emms();
 
 	// Doing line interpolate. Thus, even lines are going through
 	// for moving and non-moving mode. Odd line pixels will be subject
