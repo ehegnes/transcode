@@ -29,7 +29,7 @@
 #include "vid_aux.h"
 
 #define MOD_NAME    "export_yuv4mpeg.so"
-#define MOD_VERSION "v0.1.5 (2003-01-09)"
+#define MOD_VERSION "v0.1.6 (2003-07-17)"
 #define MOD_CODEC   "(video) YUV4MPEG2 | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE yuv4mpeg
@@ -97,6 +97,17 @@ MOD_init
     return(TC_EXPORT_ERROR); 
 }
 
+void asrcode2asrratio(int asr, y4m_ratio_t *r)
+{
+    switch (asr) {
+    case 2: *r = y4m_dar_4_3; break;
+    case 3: *r = y4m_dar_16_9; break;
+    case 4: *r = y4m_dar_221_100; break;
+    case 1: r->n = 1; r->d = 1; break;
+    case 0: default: *r = y4m_sar_UNKNOWN; break;
+    }
+}
+
 /* ------------------------------------------------------------ 
  *
  * open outputfile
@@ -109,6 +120,8 @@ MOD_open
   int asr;
   char dar_tag[20];
   y4m_ratio_t framerate;  
+  y4m_ratio_t asr_rate;
+
 
   if(param->flag == TC_VIDEO) {
     
@@ -118,11 +131,12 @@ MOD_open
     framerate = (vob->im_frc==0) ? mpeg_conform_framerate(vob->fps):mpeg_framerate(vob->im_frc);
 
     asr = (vob->ex_asr<0) ? vob->im_asr:vob->ex_asr;
+    asrcode2asrratio(asr, &asr_rate);
 
     y4m_init_stream_info(&y4mstream);
     y4m_si_set_framerate(&y4mstream,framerate);
-    y4m_si_set_interlace(&y4mstream,Y4M_UNKNOWN );
-    y4m_si_set_sampleaspect(&y4mstream,y4m_sar_UNKNOWN);
+    y4m_si_set_interlace(&y4mstream,vob->encode_fields );
+    y4m_si_set_sampleaspect(&y4mstream,y4m_guess_sar(vob->ex_v_width, vob->ex_v_height, asr_rate));
     snprintf( dar_tag, 19, "XM2AR%03d", asr );
     y4m_xtag_add( y4m_si_xtags(&y4mstream), dar_tag );
     y4mstream.height = vob->ex_v_height;
