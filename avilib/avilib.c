@@ -53,8 +53,8 @@
 #define NR_IXNN_CHUNKS 32
 
 
-#define DEBUG_ODML
 #undef DEBUG_ODML
+#define DEBUG_ODML
 
 /* The following variable indicates the kind of error */
 
@@ -2219,10 +2219,10 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
          else if(strncasecmp(data,"movi",4) == 0)
          {
             AVI->movi_start = lseek(AVI->fdes,0,SEEK_CUR);
-            lseek(AVI->fdes,n,SEEK_CUR);
+            if (lseek(AVI->fdes,n,SEEK_CUR)<(off_t)-1) break;
          }
          else
-            lseek(AVI->fdes,n,SEEK_CUR);
+            if (lseek(AVI->fdes,n,SEEK_CUR)<(off_t)-1) break;
       }
       else if(strncasecmp(data,"idx1",4) == 0)
       {
@@ -2427,8 +2427,10 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 	       AVI->video_superindex->aIndex[j].dwDuration = str2ulong (a); a += 4;
 
 #ifdef DEBUG_ODML
-	       printf("[%d] 0x%llx 0x%lx %lu\n", j, (unsigned long long)AVI->video_superindex->aIndex[j].qwOffset,
-		     (unsigned int)AVI->video_superindex->aIndex[j].dwSize, AVI->video_superindex->aIndex[j].dwDuration);
+	       printf("[%d] 0x%llx 0x%lx %lu\n", j, 
+		       (unsigned long long)AVI->video_superindex->aIndex[j].qwOffset,
+		       (unsigned long)AVI->video_superindex->aIndex[j].dwSize, 
+		       (unsigned long)AVI->video_superindex->aIndex[j].dwDuration);
 #endif
 	    }
 
@@ -2436,11 +2438,11 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 #ifdef DEBUG_ODML
 	    printf("FOURCC \"%c%c%c%c\"\n", AVI->video_superindex->fcc[0], AVI->video_superindex->fcc[1], 
 		                            AVI->video_superindex->fcc[2], AVI->video_superindex->fcc[3]);
-	    printf("LEN \"%ld\"\n", AVI->video_superindex->dwSize);
+	    printf("LEN \"%ld\"\n", (long)AVI->video_superindex->dwSize);
 	    printf("wLongsPerEntry \"%d\"\n", AVI->video_superindex->wLongsPerEntry);
 	    printf("bIndexSubType \"%d\"\n", AVI->video_superindex->bIndexSubType);
 	    printf("bIndexType \"%d\"\n", AVI->video_superindex->bIndexType);
-	    printf("nEntriesInUse \"%ld\"\n", AVI->video_superindex->nEntriesInUse);
+	    printf("nEntriesInUse \"%ld\"\n", (long)AVI->video_superindex->nEntriesInUse);
 	    printf("dwChunkId \"%c%c%c%c\"\n", AVI->video_superindex->dwChunkId[0], AVI->video_superindex->dwChunkId[1], 
 		                               AVI->video_superindex->dwChunkId[2], AVI->video_superindex->dwChunkId[3]);
 	    printf("--\n");
@@ -2479,8 +2481,10 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 	       AVI->track[AVI->aptr].audio_superindex->aIndex[j].dwDuration = str2ulong (a); a += 4;
 
 #ifdef DEBUG_ODML
-	       printf("[%d] 0x%llx 0x%lx %lu\n", j, AVI->track[AVI->aptr].audio_superindex->aIndex[j].qwOffset,
-		     AVI->track[AVI->aptr].audio_superindex->aIndex[j].dwSize, AVI->track[AVI->aptr].audio_superindex->aIndex[j].dwDuration);
+	       printf("[%d] 0x%llx 0x%lx %lu\n", j, 
+		       (unsigned long long)AVI->track[AVI->aptr].audio_superindex->aIndex[j].qwOffset,
+		       (unsigned long)AVI->track[AVI->aptr].audio_superindex->aIndex[j].dwSize, 
+		       (unsigned long)AVI->track[AVI->aptr].audio_superindex->aIndex[j].dwDuration);
 #endif
 	    }
 
@@ -2489,11 +2493,11 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 		                            AVI->track[AVI->aptr].audio_superindex->fcc[1], 
 		                            AVI->track[AVI->aptr].audio_superindex->fcc[2], 
 					    AVI->track[AVI->aptr].audio_superindex->fcc[3]);
-	    printf("LEN \"%ld\"\n", AVI->track[AVI->aptr].audio_superindex->dwSize);
+	    printf("LEN \"%ld\"\n", (long)AVI->track[AVI->aptr].audio_superindex->dwSize);
 	    printf("wLongsPerEntry \"%d\"\n", AVI->track[AVI->aptr].audio_superindex->wLongsPerEntry);
 	    printf("bIndexSubType \"%d\"\n", AVI->track[AVI->aptr].audio_superindex->bIndexSubType);
 	    printf("bIndexType \"%d\"\n", AVI->track[AVI->aptr].audio_superindex->bIndexType);
-	    printf("nEntriesInUse \"%ld\"\n", AVI->track[AVI->aptr].audio_superindex->nEntriesInUse);
+	    printf("nEntriesInUse \"%ld\"\n", (long)AVI->track[AVI->aptr].audio_superindex->nEntriesInUse);
 	    printf("dwChunkId \"%c%c%c%c\"\n", AVI->track[AVI->aptr].audio_superindex->dwChunkId[0], 
 		                               AVI->track[AVI->aptr].audio_superindex->dwChunkId[1], 
 		                               AVI->track[AVI->aptr].audio_superindex->dwChunkId[2], 
