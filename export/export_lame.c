@@ -142,7 +142,7 @@ MOD_open
       break;
     }      
     
-    sprintf(ptr, "lame -x %s %s %d.%03d -m %c - \"%s.mp3\" 2>/dev/null %s", 
+    sprintf(ptr, "lame %s %s %d.%03d -m %c - \"%s.mp3\" 2>/dev/null %s", 
 	    swap_bytes, br, ofreq_int, ofreq_dec, chan, vob->audio_out_file, (vob->ex_a_string?vob->ex_a_string:""));
     
     fprintf (stderr,"[%s] cmd=%s\n", MOD_NAME, buf);
