@@ -57,7 +57,7 @@ MOD_open
   switch (param->flag) {
     case TC_VIDEO:
     
-      rgbswap = 1; // needed!
+      rgbswap = !rgbswap; // needed!
       
       if (mkfifo("stream.yuv", 00660) == -1) {
         perror("mkfifo(\"stream.yuv\") failed");
