@@ -3,11 +3,22 @@ transcode-0.6.8
 
 2003-06-11 Tilmann Bitterberg <transcode at tibit.org>
 
-  * import_v4l.c:
-  Typo
+  * src/decoder.c export/export_xvidcvs.c:
+  Added tested support for bframes. The special thing about bframes
+  is, the encoder will not output a frame because it first has to
+  fill its internal buffers. So transcode is not allowed to write
+  either a 0byte video frames (causes problems on some decoders) but
+  also should write no audio frame.
   
-  * extract_avi.c import_ogg.c magic.h probe_ogg.c probe.c:
-  Add support for the FOURCC "XVID".
+  * import_{vob,dvd}:
+  Fix MP2 decoding which I broke when adding support for broken MP3
+  streams.
+  
+  * import_v4l.c:
+  Typo/segfault. Pointed out by Aurelien Marchand.
+  
+  * import/{extract_avi.c import_ogg.c magic.h probe_ogg.c probe.c}:
+  Add probing/decoding support for the FOURCC "XVID".
 
 2003-06-10 Tilmann Bitterberg <transcode at tibit.org>
 

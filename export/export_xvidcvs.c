@@ -78,6 +78,9 @@
 #define MOD_PRE xvidcvs_ 
 #include "export_def.h"
 
+extern pthread_mutex_t delay_video_frames_lock;
+extern int video_frames_delay;
+
 /*****************************************************************************
  * Local data
  ****************************************************************************/
@@ -176,6 +179,7 @@ MOD_init
 		}
 
 		/* Load the codec */
+		//if(xvid2_init("/data/scr/comp/video/xvid/xvid_20030610/xvidcore/build/generic")<0) {
 		if(xvid2_init(vob->mod_path)<0) {
 			fprintf(stderr, "Failed to init XviD codec");
 			return(TC_EXPORT_ERROR); 
@@ -391,6 +395,7 @@ MOD_open
 MOD_encode
 {
 	int xerr;
+	static int fr=0;
 
 	XVID_ENC_FRAME xframe;
 	XVID_ENC_STATS xstats;
@@ -457,10 +462,29 @@ MOD_encode
 	 */
 	if(xframe.intra == 1) tc_outstream_rotate();
 
-	/* Write bitstream */
-	if(AVI_write_frame(avifile, buffer, xframe.length, xframe.intra == 1) < 0) {
+	if (verbose & TC_DEBUG) { // tibit
+	    fprintf(stderr, "[%s] Got frame #%04d type ", MOD_NAME, fr++);
+	    switch (xframe.intra) {
+		case 0: fprintf(stderr, "|%c|-frame", 'P'); break;
+		case 1: fprintf(stderr, "|%c|-frame", 'I'); break;
+		case 2: fprintf(stderr, "|%c|-frame", 'B'); break;
+		case 3: fprintf(stderr, "|%c|-frame", 'S'); break;
+		case 4: fprintf(stderr, "|%c|-frame", 'p'); break;
+		case 5: fprintf(stderr, "|%c|-frame", 's'); break;
+	    }
+	    fprintf(stderr, " len (%07d)\n", xframe.length);
+	}
+
+	if(xframe.intra == 5) { // skipped frame
+	    pthread_mutex_lock(&delay_video_frames_lock);
+	    video_frames_delay++;
+	    pthread_mutex_unlock(&delay_video_frames_lock);
+	} else {
+	    /* Write bitstream */
+	    if(AVI_write_frame(avifile, buffer, xframe.length, xframe.intra == 1) < 0) {
 		fprintf(stderr, "avi video write error");
 		return(TC_EXPORT_ERROR); 
+	    }
 	}
     
 	return(0);
