@@ -38,10 +38,12 @@ endif
 if HAVE_GCC2
 F_TOMSMOCOMP = 
 else
+if ARCH_X86
 if HAVE_MMX
 if HAVE_SSE
 if HAVE_3DNOW
 F_TOMSMOCOMP = tomsmocomp
+endif
 endif
 endif
 endif
