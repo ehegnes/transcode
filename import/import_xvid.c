@@ -59,6 +59,7 @@ static void *XviD_decore_handle=NULL;
 static void *handle=NULL;
 
 static int global_colorspace;
+static int done_seek=0;
 
 static int x_dim, y_dim;
 
@@ -156,11 +157,26 @@ MOD_open
 
   if(param->flag == TC_VIDEO) {
     
-    if(avifile==NULL) 
-      if(NULL == (avifile = AVI_open_input_file(vob->video_in_file,1))){
-	AVI_print_error("avi open error");
-	return(TC_IMPORT_ERROR); 
+    if(avifile==NULL)  {
+      if(vob->nav_seek_file) {
+	if(NULL == (avifile = AVI_open_input_indexfile(vob->video_in_file,0,vob->nav_seek_file))){
+	  AVI_print_error("avi open error");
+	  return(TC_IMPORT_ERROR); 
+	} 
+      } else {
+	if(NULL == (avifile = AVI_open_input_file(vob->video_in_file,1))){
+	  AVI_print_error("avi open error");
+	  return(TC_IMPORT_ERROR); 
+	} 
       }
+    }
+   
+    // vob->offset contains the last keyframe
+    if (!done_seek && vob->vob_offset>0) {
+	AVI_set_video_position(avifile, vob->vob_offset);
+	done_seek=1;
+    }
+
     
     codec_str = AVI_video_compressor(avifile);
     if(strlen(codec_str)==0) {
@@ -298,6 +314,7 @@ MOD_close
 
     //remove codec
     dlclose(handle);
+    done_seek=0;
 
     return(0);
   }

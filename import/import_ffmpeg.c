@@ -43,6 +43,7 @@ char import_cmd_buf[MAX_BUF];
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_VID;
+static int done_seek=0;
 
 struct ffmpeg_codec {
   int   id;
@@ -140,13 +141,26 @@ MOD_open {
 
   if (param->flag == TC_VIDEO) {
     
-    if (avifile == NULL) 
-      if ((avifile = AVI_open_input_file(vob->video_in_file, 1)) == NULL) {
-	AVI_print_error("avi open error");
-
-	return TC_IMPORT_ERROR;
+    if(avifile==NULL) {
+      if(vob->nav_seek_file) {
+	if(NULL == (avifile = AVI_open_input_indexfile(vob->video_in_file,0,vob->nav_seek_file))){
+	  AVI_print_error("avi open error");
+	  return(TC_IMPORT_ERROR); 
+	}
+      } else {
+	if(NULL == (avifile = AVI_open_input_file(vob->video_in_file,1))){
+	  AVI_print_error("avi open error");
+	  return(TC_IMPORT_ERROR); 
+	} 
       }
+    }
     
+    // vob->offset contains the last keyframe
+    if (!done_seek && vob->vob_offset>0) {
+	AVI_set_video_position(avifile, vob->vob_offset);
+	done_seek=1;
+    }
+
     //important parameter
 
     x_dim = AVI_video_width(avifile);
@@ -238,8 +252,9 @@ MOD_open {
     if(buffer == NULL) {
       perror("out of memory");
       return TC_IMPORT_ERROR;
-    } else
-      memset(buffer, 0, BUFFER_SIZE);  
+    }
+
+    memset(buffer, 0, BUFFER_SIZE);  
     
     param->fd = NULL;
 
@@ -414,11 +429,13 @@ MOD_close {
   if (param->flag == TC_VIDEO) {
 
     if(lavc_dec_context) {
+      avcodec_flush_buffers(lavc_dec_context);
       
       avcodec_close(lavc_dec_context);
       free(lavc_dec_context);
 
       lavc_dec_context = NULL;
+      done_seek=0;
 
     }
     

@@ -67,6 +67,7 @@ static int codec, frame_size=0;
 static unsigned long divx_version=DEC_OPT_FRAME;
 
 static int black_frames = 0;
+static int done_seek=0;
 
 
 static DEC_FRAME    *decFrame = NULL;
@@ -244,11 +245,35 @@ MOD_open
 
   if(param->flag == TC_VIDEO) {
     
+      /*
     if(avifile==NULL) 
       if(NULL == (avifile = AVI_open_input_file(vob->video_in_file,1))){
 	AVI_print_error("avi open error");
 	return(TC_IMPORT_ERROR); 
       }
+      */
+    
+    if(avifile==NULL)  {
+      if(vob->nav_seek_file) {
+	if(NULL == (avifile = AVI_open_input_indexfile(vob->video_in_file,0,vob->nav_seek_file))){
+	  AVI_print_error("avi open error");
+	  return(TC_IMPORT_ERROR); 
+	} 
+      } else {
+	if(NULL == (avifile = AVI_open_input_file(vob->video_in_file,1))){
+	  AVI_print_error("avi open error");
+	  return(TC_IMPORT_ERROR); 
+	} 
+      }
+    }
+    
+    // vob->offset contains the last keyframe
+    if (!done_seek && vob->vob_offset>0) {
+	//printf("starting decode from last key was (%d)\n", vob->vob_offset);
+	AVI_set_video_position(avifile, vob->vob_offset);
+	done_seek=1;
+    }
+
     
     //load the codec
     
@@ -628,6 +653,8 @@ MOD_close
 	if (decFrame) { free (decFrame);     decFrame=NULL; }
 	if (decInfo)  { free (decInfo);      decInfo=NULL;  }
 	if (avifile)  { AVI_close (avifile); avifile=NULL;  }
+
+	done_seek=0;
  
 	return(0);
     }

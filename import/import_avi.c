@@ -81,10 +81,17 @@ MOD_open
 
     // Otherwise proceed to open the file directly and decode here
     if(avifile1==NULL) {
-      if(NULL == (avifile1 = AVI_open_input_file(vob->audio_in_file,1))){
-	AVI_print_error("avi open error");
-	return(TC_IMPORT_ERROR); 
-      } 
+      if(vob->nav_seek_file) {
+	if(NULL == (avifile1 = AVI_open_input_indexfile(vob->audio_in_file,0,vob->nav_seek_file))){
+	  AVI_print_error("avi open error");
+	  return(TC_IMPORT_ERROR); 
+	} 
+      } else {
+	if(NULL == (avifile1 = AVI_open_input_file(vob->audio_in_file,1))){
+	  AVI_print_error("avi open error");
+	  return(TC_IMPORT_ERROR); 
+	} 
+      }
     }   
 
     //set selected for multi-audio AVI-files
@@ -99,6 +106,7 @@ MOD_open
     }
     
     bits   =  AVI_audio_bits(avifile1);
+    bits   =  (!bits)?16:bits;
     
     format =  AVI_audio_format(avifile1);
     bitrate=  AVI_audio_mp3rate(avifile1);
@@ -110,6 +118,8 @@ MOD_open
       fprintf(stderr, "error: invalid AVI audio format '0x%x' for PCM processing\n", format);
       return(TC_IMPORT_ERROR);
     }
+    // go to a specific byte for seeking
+    AVI_set_audio_position(avifile1, vob->vob_offset*vob->im_a_size);
 
     audio_codec=vob->im_a_codec;
     return(0);
@@ -120,11 +130,22 @@ MOD_open
     
     param->fd = NULL;
     
-    if(avifile2==NULL) 
-      if(NULL == (avifile2 = AVI_open_input_file(vob->video_in_file,1))){
-	AVI_print_error("avi open error");
-	return(TC_IMPORT_ERROR); 
+    if(avifile2==NULL) {
+      if(vob->nav_seek_file) {
+	if(NULL == (avifile2 = AVI_open_input_indexfile(vob->video_in_file,0,vob->nav_seek_file))){
+	  AVI_print_error("avi open error");
+	  return(TC_IMPORT_ERROR); 
+	} 
+      } else {
+	if(NULL == (avifile2 = AVI_open_input_file(vob->video_in_file,1))){
+	  AVI_print_error("avi open error");
+	  return(TC_IMPORT_ERROR); 
+	} 
       }
+    }
+
+    if (vob->vob_offset>0)
+	AVI_set_video_position(avifile2, vob->vob_offset);
     
     //read all video parameter from input file
     width  =  AVI_video_width(avifile2);

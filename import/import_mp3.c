@@ -46,6 +46,8 @@ static int capability_flag=TC_CAP_PCM;
 static int codec;
 
 static int count=TC_PAD_AUD_FRAMES;
+static int decoded_frames=0;
+static int offset=0;
 
 
 /* ------------------------------------------------------------ 
@@ -62,6 +64,7 @@ MOD_open
     
     codec = vob->im_a_codec;
     count = 0;
+    offset = vob->vob_offset;
     
     switch(codec) {
 	
@@ -133,13 +136,16 @@ MOD_decode
       
   }
   
-  memset(param->buffer+ac_off, 0, ac_bytes);
+  // this can be done a lot smarter in tcdecode and such.
+  do {
+      memset(param->buffer+ac_off, 0, ac_bytes);
 
-  if (fread(param->buffer+ac_off, ac_bytes, 1, fd) !=1) {
-    // not sure what this hack is for, probably can be removed
-    //--count; if(count<=0) return(TC_IMPORT_ERROR);
-    return(TC_IMPORT_ERROR);
-  }
+      if (fread(param->buffer+ac_off, ac_bytes, 1, fd) !=1) {
+	  // not sure what this hack is for, probably can be removed
+	  //--count; if(count<=0) return(TC_IMPORT_ERROR);
+	  return(TC_IMPORT_ERROR);
+      }
+  } while (decoded_frames++<offset);
   
   return(0);
 }
@@ -161,6 +167,7 @@ MOD_close
 
   fd        = NULL;
   param->fd = NULL;
+  decoded_frames = 0;
  
   
   return(0);

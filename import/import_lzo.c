@@ -56,6 +56,7 @@ static lzo_byte *out;
 static lzo_byte *wrkmem;
 static lzo_uint out_len;
 
+static int done_seek=0;
 
 /* ------------------------------------------------------------ 
  *
@@ -77,11 +78,25 @@ MOD_open
     
     param->fd = NULL;
     
-    if(avifile2==NULL) 
-      if(NULL == (avifile2 = AVI_open_input_file(vob->video_in_file,1))){
-	AVI_print_error("avi open error");
-	return(TC_IMPORT_ERROR); 
+    if(avifile2==NULL) {
+      if(vob->nav_seek_file) {
+	if(NULL == (avifile2 = AVI_open_input_indexfile(vob->video_in_file,0,vob->nav_seek_file))){
+	  AVI_print_error("avi open error");
+	  return(TC_IMPORT_ERROR); 
+	} 
+      } else {
+	if(NULL == (avifile2 = AVI_open_input_file(vob->video_in_file,1))){
+	  AVI_print_error("avi open error");
+	  return(TC_IMPORT_ERROR); 
+	}
       }
+    }
+    
+    // vob->offset contains the last keyframe
+    if (!done_seek && vob->vob_offset>0) {
+	AVI_set_video_position(avifile2, vob->vob_offset);
+	done_seek=1;
+    }
     
     //read all video parameter from input file
     width  =  AVI_video_width(avifile2);
@@ -230,6 +245,7 @@ MOD_close
       AVI_close(avifile2);
       avifile2=NULL;
     }
+    done_seek = 0;
     return(0);
   }
   
