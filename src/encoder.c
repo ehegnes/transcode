@@ -551,6 +551,9 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	  exit_on_encoder_error=1;
 	}
 
+	// maybe clone?
+	vptr->attributes = export_para.attributes;
+
 	pthread_mutex_lock(&vbuffer_ex_fill_lock);
 	--vbuffer_ex_fill_ctr;
 	pthread_mutex_unlock(&vbuffer_ex_fill_lock);
@@ -602,6 +605,9 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	  fprintf(stderr, "\nerror encoding audio frame\n");
 	  exit_on_encoder_error=1;
 	}
+
+	// maybe clone?
+	aptr->attributes = export_para.attributes;
 	
 	pthread_mutex_lock(&abuffer_ex_fill_lock);
 	--abuffer_ex_fill_ctr;
