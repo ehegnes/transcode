@@ -6,6 +6,9 @@ transcode-0.6.4.HEAD
 - Fixed mmx code in yuvdenoise/deinterlacer
    -- Christoph Lampert <chl at math.uni-bonn.de>
 
+- vob2divx renamed to V2divx and new version
+   -- Caron Dominique <domi at LPM.univ-montp2.fr>
+
 --------------------------------------------
 transcode-0.6.4.20030325
 
