@@ -7,7 +7,7 @@
     (typically, images from a dv camcorder with an unset white balance or
     wrongly forced to indoor or outdoor)
      
-    Copyright (C) 2003 Guillaume Cottenceau
+    Copyright (C) 2003 Guillaume Cottenceau <gc at mandrakesoft.com>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
