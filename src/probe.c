@@ -655,7 +655,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     vob->im_v_codec=CODEC_YUV;
 
     //overwrite pass-through selection!
-    vob->vmod_probed=std_module[_ffmpeg_];
+    if(!(preset & TC_VIDEO)) vob->vmod_probed=std_module[_ffmpeg_];
     preset |= TC_VIDEO;
     
     if(preset & TC_AUDIO) break;
@@ -701,7 +701,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     // if input is ogg, do not probe video
     if (probe_further_for_codec) {
 	//overwrite pass-through selection!
-	vob->vmod_probed=std_module[_ffmpeg_];
+	if (!(preset & TC_VIDEO)) vob->vmod_probed=std_module[_ffmpeg_];
 	preset |= TC_VIDEO;
 	if(preset & TC_AUDIO) break;
     }
