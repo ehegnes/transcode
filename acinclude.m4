@@ -1266,7 +1266,7 @@ fi
 
 
 dnl TC_PATH_PKG(pkg-name, def-enabled, var-name, pkgconfig-name, conf-script,
-dnl     lang, header, lib, symbol)
+dnl     header, lib, symbol)
 dnl Test for pkg-name, and define var-name_CFLAGS and var-name_LIBS
 dnl   and HAVE_var-name if found
 dnl
@@ -1275,10 +1275,9 @@ dnl 2 def-enabled   enabled by default, 'yes' or 'no'; required
 dnl 3 var-name      name stub for variables, preferably uppercase; required
 dnl 4 pkg-name      name of package, as used by pkg-config; optional
 dnl 5 conf-script   name of "-config" script; optional
-dnl 6 lang          language, 'C', or 'C++', or 'Fortran 77'; required
-dnl 7 header        a header file to check; optional
-dnl 8 lib           a library to check; optional
-dnl 9 symbol        a symbol from the library to check; required if lib given
+dnl 6 header        a header file to check; optional
+dnl 7 lib           a library to check; optional
+dnl 8 symbol        a symbol from the library to check; required if lib given
 
 AC_DEFUN([TC_PATH_PKG],
 [
@@ -1291,7 +1290,7 @@ AC_ARG_ENABLE($1,
     no)  ;;
     *) AC_MSG_ERROR(bad value ${enableval} for --enable-$1) ;;
   esac],
-  enable_$1=$2)
+  enable_$1="$2")
 AC_MSG_RESULT($enable_$1)
 
 AC_ARG_WITH($1-prefix,
@@ -1309,7 +1308,7 @@ AC_ARG_WITH($1-libs,
     [prefix where local $1 libs are installed (optional)]),
   w_$1_l="$withval", w_$1_l="")
 
-have_$1=no
+have_$1="no"
 
 if test x"$enable_$1" = x"yes" ; then
 
@@ -1322,7 +1321,7 @@ if test x"$enable_$1" = x"yes" ; then
   fi
   AC_MSG_RESULT($pkg_config_$1)
 
-  if test x"$5" != x"" ; then
+  if test x"$5" != x"no" ; then
     if test x"$w_$1_p" != x"" ; then
       if test -x $w_$1_p/bin/$5 ; then
         $1_config="$w_$1_p/bin/$5"
@@ -1366,21 +1365,17 @@ if test x"$enable_$1" = x"yes" ; then
     esac
   done
   $1_ii="$ipaths"
-  $1_ii=`echo $$1_ii | sed -e 's/  */ /g'`
+  $1_ii="`echo $$1_ii | sed -e 's/  */ /g'`"
   $3_EXTRA_CFLAGS="$$3_EXTRA_CFLAGS $xi"
-  $3_EXTRA_CFLAGS=`echo $$3_EXTRA_CFLAGS | sed -e 's/  */ /g'`
+  $3_EXTRA_CFLAGS="`echo $$3_EXTRA_CFLAGS | sed -e 's/  */ /g'`"
 
-  if test x"$7" != x"" ; then
-    AC_LANG_PUSH($6)
+  if test x"$6" != x"" ; then
     save_CPPFLAGS="$CPPFLAGS"
     CPPFLAGS="$CPPFLAGS $$1_ii"
-    AC_CHECK_HEADER([$7],
+    AC_CHECK_HEADER([$6],
       [$3_CFLAGS="$$1_ii"],
-      [AC_MSG_ERROR([$1 requested, but cannot compile $7])])
+      [AC_MSG_ERROR([$1 requested, but cannot compile $6])])
     CPPFLAGS="$save_CPPFLAGS"
-    AC_LANG_POP($6)
-  else
-    $3_CFLAGS="$$1_ii"
   fi
 
   # get and test the _LIBS
@@ -1412,31 +1407,27 @@ if test x"$enable_$1" = x"yes" ; then
   for l in $$1_ll ; do
     case $l in
       -L*) lpaths="$lpaths $l" ;;
-      -l*) test x"$l" != x"-l$8" && xlibs="$xlibs $l" ;;
+      -l*) test x"$l" != x"-l$7" && xlibs="$xlibs $l" ;;
         *) xlf="$xlf $l" ;;
     esac
   done
   $1_ll="$lpaths"
-  $1_ll=`echo $$1_ll | sed -e 's/  */ /g'`
+  $1_ll="`echo $$1_ll | sed -e 's/  */ /g'`"
   xl=""
   for i in $xlibs $xlf ; do
     echo " $$3_EXTRA_LIBS " | grep -vq " $i " && xl="$xl $i"
   done
   $3_EXTRA_LIBS="$$3_EXTRA_LIBS $xl"
-  $3_EXTRA_LIBS=`echo $$3_EXTRA_LIBS | sed -e 's/  */ /g'`
+  $3_EXTRA_LIBS="`echo $$3_EXTRA_LIBS | sed -e 's/  */ /g'`"
 
-  if test x"$8" != x"" ; then
-    AC_LANG_PUSH($6)
+  if test x"$7" != x"" ; then
     save_LDFLAGS="$LDFLAGS"
     LDFLAGS="$LDFLAGS $$1_ll"
-    AC_CHECK_LIB($8, $9,
-      [$3_LIBS="$$1_ll -l$8 $$3_EXTRA_LIBS"],
-      [AC_MSG_ERROR([$1 requested, but cannot link against lib$8])],
+    AC_CHECK_LIB([$7], [$8],
+      [$3_LIBS="$$1_ll -l$7 $$3_EXTRA_LIBS"],
+      [AC_MSG_ERROR([$1 requested, but cannot link against lib$7])],
       [$$3_EXTRA_LIBS])
     LDFLAGS="$save_LDFLAGS"
-    AC_LANG_POP($6)
-  else
-    [$3_LIBS="$$1_ll -l$8 $$3_EXTRA_LIBS"],
   fi
 
   # got here without error so all is well
