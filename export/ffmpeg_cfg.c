@@ -34,10 +34,8 @@ int lavc_param_vme = 4;
 //int lavc_param_vqmax = 31;
 int lavc_param_mb_qmin = 2;
 int lavc_param_mb_qmax = 31;
-#if LIBAVCODEC_BUILD > 4694
 int lavc_param_lmin = 2;
 int lavc_param_lmax = 31;
-#endif
 int lavc_param_vqdiff = 3;
 float lavc_param_vqcompress = 0.5;
 float lavc_param_vqblur = 0.5;
@@ -69,8 +67,6 @@ float lavc_param_rc_initial_cplx=0.0;
 int lavc_param_mpeg_quant=0;
 int lavc_param_fdct=0;
 int lavc_param_idct=0;
-char* lavc_param_aspect=NULL;
-int lavc_param_autoaspect=1; // FLAG
 float lavc_param_lumi_masking= 0.0;
 float lavc_param_dark_masking= 0.0;
 float lavc_param_temporal_cplx_masking= 0.0;
@@ -106,6 +102,7 @@ int lavc_param_cbp= 0;
 int lavc_param_mv0= 0;
 int lavc_param_noise_reduction= 0;
 int lavc_param_qp_rd= 0;
+int lavc_param_scan_offset = 0;
 
 //char *lavc_param_acodec = "mp2";
 //int lavc_param_atag = 0;
@@ -123,17 +120,15 @@ struct config lavcopts_conf[]={
     {"vratetol", &lavc_param_vrate_tolerance, CONF_TYPE_INT, CONF_RANGE, 4, 24000000, NULL},
     {"vhq", &lavc_param_mb_decision, CONF_TYPE_FLAG, 0, 0, 1, NULL},
     {"mbd", &lavc_param_mb_decision, CONF_TYPE_INT, CONF_RANGE, 0, 9, NULL},
-    {"v4mv", &lavc_param_v4mv, CONF_TYPE_FLAG, 0, 0, 1, NULL},
+    {"v4mv", &lavc_param_v4mv, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_4MV, 0},
     {"vme", &lavc_param_vme, CONF_TYPE_INT, CONF_RANGE, 0, 5, NULL},
 //    {"vqscale", &lavc_param_vqscale, CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
 //    {"vqmin", &lavc_param_vqmin, CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
 //    {"vqmax", &lavc_param_vqmax, CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
     {"mbqmin", &lavc_param_mb_qmin, CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
     {"mbqmax", &lavc_param_mb_qmax, CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
-#if LIBAVCODEC_BUILD > 4694
     {"lmin", &lavc_param_lmin, CONF_TYPE_FLOAT, CONF_RANGE, 0.01, 255.0, NULL},
     {"lmax", &lavc_param_lmax, CONF_TYPE_FLOAT, CONF_RANGE, 0.01, 255.0, NULL},
-#endif
     {"vqdiff", &lavc_param_vqdiff, CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
     {"vqcomp", &lavc_param_vqcompress, CONF_TYPE_FLOAT, CONF_RANGE, 0.0, 1.0, NULL},
     {"vqblur", &lavc_param_vqblur, CONF_TYPE_FLOAT, CONF_RANGE, 0.0, 1.0, NULL},
@@ -164,8 +159,6 @@ struct config lavcopts_conf[]={
     {"vrc_buf_aggressivity", &lavc_param_rc_buffer_aggressivity, CONF_TYPE_FLOAT, CONF_RANGE, 0.0, 99.0, NULL},
     {"vrc_init_cplx", &lavc_param_rc_initial_cplx, CONF_TYPE_FLOAT, CONF_RANGE, 0.0, 9999999.0, NULL},
     {"vfdct", &lavc_param_fdct, CONF_TYPE_INT, CONF_RANGE, 0, 10, NULL},
-    {"aspect", &lavc_param_aspect, CONF_TYPE_STRING, 0, 0, 0, NULL},
-    {"autoaspect", &lavc_param_autoaspect, CONF_TYPE_FLAG, 0, 0, 1, NULL},
     {"lumi_mask", &lavc_param_lumi_masking, CONF_TYPE_FLOAT, CONF_RANGE, -1.0, 1.0, NULL},
     {"tcplx_mask", &lavc_param_temporal_cplx_masking, CONF_TYPE_FLOAT, CONF_RANGE, -1.0, 1.0, NULL},
     {"scplx_mask", &lavc_param_spatial_cplx_masking, CONF_TYPE_FLOAT, CONF_RANGE, -1.0, 1.0, NULL},
@@ -202,6 +195,9 @@ struct config lavcopts_conf[]={
     {"mv0", &lavc_param_mv0, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_MV0, NULL},
     {"nr", &lavc_param_noise_reduction, CONF_TYPE_INT, CONF_RANGE, 0, 1000000, NULL},
     {"qprd", &lavc_param_qp_rd, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_QP_RD, NULL},
+#ifdef CODEC_FLAG_SVCD_SCAN_OFFSET
+	{"svcd_sof", &lavc_param_scan_offset, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_SVCD_SCAN_OFFSET, 0},
+#endif
     {NULL, NULL, 0, 0, 0, 0, NULL}
 };
 

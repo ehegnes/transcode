@@ -3,8 +3,23 @@ transcode-0.6.13
 
 2004-01-20 Erik Slagter <erik at oldconomy.com>
 
+  * export/{export_ffmpeg.c ffmpeg_cfg.c ffmpeg_cfg.h}:
+  Profile support for ffmpeg. For details see the changelog and the
+  manpage.
+
+  Notes: the desired profile is selected by using one of the "extra"
+  codecs "vcd", "svcd" or "dvd". This is done automatically when you
+  use the --export_profile option. The name may be followed by -pal,
+  -secam or -ntsc, to specify some default parameters like frame
+  rate, frame size and interlacing type.
+
+  Encoding video and audio to dvd with ffmpeg should need only 
+  "-y ffmpeg --export_profile dvd" on the command line.
+
+2004-01-20 Erik Slagter <erik at oldconomy.com>
+
   * import/v4l/import_v4l2.c:
-  Small fixes.
+  Small fixes and updates.
 
 2004-01-20 Andrew Church <achurch at achurch.org>
 

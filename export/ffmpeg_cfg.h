@@ -15,10 +15,8 @@ extern int lavc_param_vme;
 //extern int lavc_param_vqmax;
 extern int lavc_param_mb_qmin;
 extern int lavc_param_mb_qmax;
-#if LIBAVCODEC_BUILD > 4694
 extern int lavc_param_lmin;
 extern int lavc_param_lmax;
-#endif
 extern int lavc_param_vqdiff;
 extern float lavc_param_vqcompress;
 extern float lavc_param_vqblur;
@@ -50,8 +48,6 @@ extern float lavc_param_rc_initial_cplx;
 extern int lavc_param_mpeg_quant;
 extern int lavc_param_fdct;
 extern int lavc_param_idct;
-extern char* lavc_param_aspect;
-extern int lavc_param_autoaspect; // FLAG
 extern float lavc_param_lumi_masking;
 extern float lavc_param_dark_masking;
 extern float lavc_param_temporal_cplx_masking;
@@ -87,6 +83,7 @@ extern int lavc_param_cbp;
 extern int lavc_param_mv0;
 extern int lavc_param_noise_reduction;
 extern int lavc_param_qp_rd;
+extern int lavc_param_scan_offset;
 
 extern struct config lavcopts_conf[];
 
