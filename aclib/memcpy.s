@@ -55,20 +55,18 @@ align 16
 ac_memcpy_mmx:
 
 	push ebx
-	push ebp
 	push esi
 	push edi
 
-	mov edi, [esp+16+4]	; dest
-	mov esi, [esp+16+8]	; src
-	mov ecx, [esp+16+12]	; bytes
+	mov edi, [esp+12+4]	; dest
+	mov esi, [esp+12+8]	; src
+	mov ecx, [esp+12+12]	; bytes
 	mov edx, ecx
 
-	mov ebp, 64		; constant
+	mov eax, 64		; constant
 
-	mov eax, -64
-	and eax, ecx
-	jz near .lastcopy		; Just rep movs if <64 bytes
+	cmp ecx, eax
+	jb near .lastcopy		; Just rep movs if <64 bytes
 
 	; Align destination pointer to a multiple of 8 bytes
 	xor ecx, ecx
@@ -95,7 +93,7 @@ ac_memcpy_mmx:
 .loop1:
 	test eax, [esi-32]	; touch each cache line in reverse order
 	test eax, [esi-64]
-	sub esi, ebp
+	sub esi, eax
 	dec ebx
 	jnz .loop1
 	shr ecx, 6
@@ -116,8 +114,8 @@ ac_memcpy_mmx:
 	movq [edi+40], mm5
 	movq [edi+48], mm6
 	movq [edi+56], mm7
-	add esi, ebp
-	add edi, ebp
+	add esi, eax
+	add edi, eax
 	dec ecx
 	jnz .loop2
 	jmp .blockloop
@@ -139,7 +137,6 @@ ac_memcpy_mmx:
 	emms
 	pop edi
 	pop esi
-	pop ebp
 	pop ebx
 	mov eax, [esp+4]
 	ret
