@@ -1,6 +1,13 @@
 --------------------------------------------
 transcode-0.6.11
 
+2003-09-17 Tilmann Bitterberg <transcode at tibit.org>
+
+  * configure.in configure:
+  When ./configure'ed with --enable-maintainer-mode, transcode will
+  use the a lower optimization and will compile itself without
+  -fomit-frame-pointer which eases debugging.
+
 2003-09-15 Gregory Brauer <greg at wildbrain.com>
 
   * import/import_im.c:

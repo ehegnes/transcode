@@ -391,16 +391,25 @@ if test x"$GCC" = x"yes"; then
 
     dnl -Wall -Werror moved to the end to not disturb the configure script
 
+
     dnl -O3
     changequote(<<,>>)
     OPT_CFLAGS=`echo "$CFLAGS"|sed "s/-O[0-9]*//g;"`
     changequote([,])
     OPT_CFLAGS="$OPT_CFLAGS -O3"
+    if test x${USE_MAINTAINER_MODE} != xno; then
+       OPT_CFLAGS="$OPT_CFLAGS -O2"
+    else
+       OPT_CFLAGS="$OPT_CFLAGS -O3"
+    fi
     AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
 
     dnl -fomit-frame-pointer
-    OPT_CFLAGS="$CFLAGS -fomit-frame-pointer"
-    AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
+    if test x${USE_MAINTAINER_MODE} = xno; then
+       OPT_CFLAGS="$CFLAGS -fomit-frame-pointer"
+       AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
+    fi
+
 
     dnl arch-specific flags
     case "$host_cpu" in
