@@ -1122,7 +1122,7 @@ AM_CONDITIONAL(HAVE_FFMPEG, test x"$have_ffmpeg" = x"yes")
 dnl
 dnl libiconv
 dnl
-TC_PATH_PKG(libiconv, no, LIBICONV, libiconv, no,
+TC_PATH_PKG(libiconv, yes, LIBICONV, libiconv, no,
   [iconv.h], [], [])
 if test x"$have_libiconv" = x"yes" ; then
 
@@ -1144,8 +1144,22 @@ if test x"$have_libiconv" = x"yes" ; then
     LDFLAGS="$save_LDFLAGS"
   fi
 
+  # see if iconv_open is in (g)libc
+  have_libc_iconv="no"
+  if test x"$have_libiconv" = x"no" ; then
+    save_LDFLAGS="$LDFLAGS"
+    LDFLAGS="$LDFLAGS $libiconv_ll"
+    AC_CHECK_LIB(c, iconv_open,
+      [have_libiconv="yes" have_libc_iconv="yes"],
+      [have_libiconv="no"],
+      [$LIBICONV_EXTRA_LIBS])
+    LDFLAGS="$save_LDFLAGS"
+  fi
+
   if test x"$have_libiconv" = x"yes" ; then
-    LIBICONV_LIBS="$libiconv_ll -liconv $LIBICONV_EXTRA_LIBS"
+    if test x"$have_libc_iconv" != x"yes" ; then
+      LIBICONV_LIBS="$libiconv_ll -liconv $LIBICONV_EXTRA_LIBS"
+    fi
   else
     AC_MSG_ERROR([libiconv requested, but cannot link against libiconv])
   fi
