@@ -2476,7 +2476,7 @@ size_t AVI_write_wave_pcm_data( int fd, const void * data, size_t datalen )
 	inptr += buflen;
     }
 #else
-    totalwritten = avi_write(fd, data, datalen);
+    totalwritten = avi_write(fd, (char *)data, datalen);
     if( datalen != totalwritten )
     {
 	AVI_errno = AVI_ERR_WRITE;
