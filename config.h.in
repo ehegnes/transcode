@@ -115,7 +115,7 @@
 /* Have GTK support */
 #undef HAVE_GTK
 
-/* ipb and lors support */
+/* ibp and lors support */
 #undef HAVE_IBP
 
 /* Define to 1 if you have the <inttypes.h> header file. */
@@ -156,6 +156,9 @@
 
 /* Have libxv support */
 #undef HAVE_LIBXV
+
+/* Have libz support */
+#undef HAVE_LIBZ
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H

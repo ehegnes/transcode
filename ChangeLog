@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-02-03 Nicolas Boos <nicolas.boos at wanadoo.fr>
+
+  * configure.in:
+  More cleanup. Only compile in libxml into libxio when ibp is
+  really there.
+
 2004-02-03 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/magic.h:

@@ -21,7 +21,8 @@ INCLUDES = \
 	@OGG_CFLAGS@ \
 	@VORBIS_CFLAGS@ \
 	@THEORA_CFLAGS@ \
-	@LZO_CFLAGS@
+	@LZO_CFLAGS@ \
+	@AVCODEC_CFLAGS@
 
 if HAVE_QT
 MODQT = import_mov.la
@@ -222,7 +223,7 @@ tcdecode_SOURCES = tcdecode.c      \
 		   decode_lzo.c
 
 tcdecode_LDADD = \
-	-L../ffmpeg/libavcodec -ltcavcodec \
+	@AVCODEC_LIBS@ \
 	@LAME_LIBS@ \
 	@AC3_LIBS@ \
 	@MPEG2CVS_LIBS@ \
@@ -235,7 +236,7 @@ tcdecode_LDADD = \
 	@DLDARWINLIB@ \
 	@QT_LIBS@ \
 	@LZO_LIBS@ \
-	@XIO_LIBS@
+	@XIO_LIBS@ -lm
 
 
 # ----------------- #
@@ -243,7 +244,7 @@ tcdecode_LDADD = \
 # ----------------- #
 
 tcrequant_SOURCES = tcrequant.c
-tcrequant_LDADD = @XIO_LIBS@
+tcrequant_LDADD = @XIO_LIBS@ -lm
 
 
 # --------- #
@@ -260,7 +261,7 @@ tccat_SOURCES = tccat.c \
 		ioxml.c \
 		ts_reader.c
 
-tccat_LDADD = @AVILIB_LIBS@ @DVDREAD_LIBS@ @DV_LIBS@ @DLDARWINLIB@ @XIO_LIBS@
+tccat_LDADD = @AVILIB_LIBS@ @DVDREAD_LIBS@ @DV_LIBS@ @DLDARWINLIB@ @XIO_LIBS@ @LIBXML2_LIBS@ -lm
 
 
 # ----------- #
@@ -277,7 +278,7 @@ tcscan_SOURCES = tcscan.c \
 		 ac3scan.c \
 		 scan_dv.c
 
-tcscan_LDADD = @LAME_LIBS@ @AC3_LIBS@ @AVILIB_LIBS@ @DV_LIBS@ @XIO_LIBS@
+tcscan_LDADD = @LAME_LIBS@ @AC3_LIBS@ @AVILIB_LIBS@ @DV_LIBS@ @XIO_LIBS@ -lm
 
 
 # ------------- #
@@ -326,7 +327,8 @@ tcprobe_LDADD = \
 	@THEORA_LIBS@ \
 	@OGG_LIBS@ \
 	@DLDARWINLIB@ \
-	@XIO_LIBS@
+	@XIO_LIBS@ \
+	@LIBXML2_LIBS@ -lm
 
 
 # ----------------- #
@@ -358,7 +360,7 @@ tcextract_LDADD = \
 	@THEORA_LIBS@ \
 	@OGG_LIBS@ \
 	@VORBIS_LIBS@ \
-	@XIO_LIBS@
+	@XIO_LIBS@ -lm
 
 
 # ------------- #
@@ -385,7 +387,7 @@ tcdemux_LDADD = \
 	@DVDREAD_LIBS@ \
 	@DV_LIBS@ \
 	@DLDARWINLIB@ \
-	@XIO_LIBS@
+	@XIO_LIBS@ -lm
 
 # ------------------- #
 # T C X M L C H E C K #
@@ -398,7 +400,7 @@ tcxmlcheck_SOURCES = tcxmlcheck.c \
 		     fileinfo.c \
 		     scan_dv.c
 
-tcxmlcheck_LDADD =  @DV_LIBS@ @XIO_LIBS@
+tcxmlcheck_LDADD =  @DV_LIBS@ @XIO_LIBS@ @LIBXML2_LIBS@ -lm
 
 # ----------------- #
 # T C X P M 2 R G B #

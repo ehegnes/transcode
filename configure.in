@@ -808,6 +808,13 @@ AM_PATH_LZO(AC_DEFINE([HAVE_LZO], 1, [Have liblzo support]))
 AM_CONDITIONAL(HAVE_LZO, test x"$have_lzo" = "xyes")
 
 dnl
+dnl LIBZ support
+dnl
+
+AM_PATH_LIBZ(AC_DEFINE([HAVE_LIBZ], 1, [Have libz support]))
+AM_CONDITIONAL(HAVE_LIBZ, test x"$have_libz" = "xyes")
+
+dnl
 dnl A52 support
 dnl
 
@@ -845,21 +852,19 @@ dnl
 dnl libxml2 support
 dnl
 
-AC_MSG_CHECKING([for libxml2 support])
-
 AC_SUBST([LIBXML2_CFLAGS])
 AC_SUBST([LIBXML2_LIBS])
-AC_CHECK_PROG([LIBXML2CONFIG],[xml2-config],[yes])
-if test x"$LIBXML2CONFIG" = x"yes"
+AC_CHECK_PROG([have_libxml2],[xml2-config],[yes])
+if test x"$have_libxml2" = x"yes"
 then
        AC_DEFINE([HAVE_LIBXML2],1 ,[libxml2 support])
        LIBXML2_CFLAGS="`xml2-config --cflags`"
        LIBXML2_LIBS="`xml2-config --libs`"
 else
-LIBXML2CONFIG=no
+	have_libxml2=no
 fi
 
-AM_CONDITIONAL(HAVE_LIBXML2, test x"$LIBXML2CONFIG" = x"yes" )
+AM_CONDITIONAL(HAVE_LIBXML2, test x"$have_libxml2" = x"yes" )
 
 have_ibp=no
 dnl
@@ -872,7 +877,7 @@ AC_MSG_CHECKING(for use ibp and lors)
 AC_SUBST([IBP_LIBS])
 if test "x$enable_ibp" = "xyes"
 then
-if test x"$LIBXML2CONFIG" = x"yes"
+if test x"$have_libxml2" = x"yes"
 then
 AC_ARG_WITH(libfdr,[  --with-libfdr=DIR       base directory for libfdr],
             [CPPFLAGS="-I$with_libfdr/include $CPPFLAGS",
@@ -927,7 +932,7 @@ AC_ARG_WITH(liblors,[  --with-liblors=DIR      base directory for liblors],
 	     AC_CHECK_LIB(lors,lorsExnodeCreate,
                           [IBP_LIBS1="-llors $IBP_LIBS1"],
                           AC_MSG_ERROR(unable to locate liblors))])
-AC_DEFINE([HAVE_IBP],1 ,[ipb and lors support])
+AC_DEFINE([HAVE_IBP],1 ,[ibp and lors support])
 IBP_LIBS="$IBP_LIBS1"
 have_ibp=yes
 fi 
@@ -1133,11 +1138,31 @@ AC_SUBST(MPEG2CVS_CFLAGS)
 AC_SUBST(MPEG2CVS_LIBS)
 
 dnl
+dnl libavcodec
+dnl
+
+AVCODEC_CFLAGS="-I\$(top_srcdir)/ffmpeg/libavcodec"
+AVCODEC_LIBS="-L\$(top_builddir)/ffmpeg/libavcodec -ltcavcodec"
+if test x"$have_libz" = "xyes"; then
+  AVCODEC_CFLAGS="$AVCODEC_CFLAGS $LIBZ_CFLAGS";
+  AVCODEC_LIBS="$AVCODEC_LIBS $LIBZ_LIBS";
+fi
+AC_SUBST(AVCODEC_CFLAGS)
+AC_SUBST(AVCODEC_LIBS)
+
+
+dnl
 dnl libxio
 dnl
 
-XIO_CFLAGS="-I\$(top_srcdir)/libxio"
-XIO_LIBS="-L\$(top_builddir)/libxio -lxio $IBP_LIBS $LIBXML2_LIBS"
+if test x"$have_ibp" = x"yes"
+then
+	XIO_CFLAGS="-I\$(top_srcdir)/libxio"
+	XIO_LIBS="-L\$(top_builddir)/libxio -lxio $IBP_LIBS $LIBXML2_LIBS"
+else
+	XIO_CFLAGS="-I\$(top_srcdir)/libxio"
+	XIO_LIBS="-L\$(top_builddir)/libxio -lxio"
+fi
 AC_SUBST(XIO_CFLAGS)
 AC_SUBST(XIO_LIBS)
 
@@ -1247,7 +1272,7 @@ avifile API support                              $have_avifile
 ImageMagick dependent modules (>=5.4.3)          $have_magick
 libjpeg dependent modules | mmx accel            $have_libjpeg | $have_libjpegmmx
 liblzo dependent modules 			 $have_lzo
-libxml2 dependent modules                        $LIBXML2CONFIG
+libxml2 dependent modules                        $have_libxml2
 experimental v4l support                         $v4l
 experimental lve support                         $have_liblve
 libmpeg3 dependent modules                       $have_libmpeg3

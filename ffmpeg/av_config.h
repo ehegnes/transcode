@@ -56,7 +56,9 @@
 
 #define CONFIG_RISKY 1
 
+#ifdef HAVE_ZLIB
 #define CONFIG_ZLIB 1
+#endif
 #define SIMPLE_IDCT 1
 #define restrict __restrict__
 

@@ -56,6 +56,8 @@ ASFLAGS = @ASFLAGS@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
+AVCODEC_CFLAGS = @AVCODEC_CFLAGS@
+AVCODEC_LIBS = @AVCODEC_LIBS@
 AVIFILE_CFLAGS = @AVIFILE_CFLAGS@
 AVIFILE_CONFIG = @AVIFILE_CONFIG@
 AVIFILE_LIBS = @AVIFILE_LIBS@
@@ -147,6 +149,8 @@ HAVE_LIBXPM_FALSE = @HAVE_LIBXPM_FALSE@
 HAVE_LIBXPM_TRUE = @HAVE_LIBXPM_TRUE@
 HAVE_LIBXV_FALSE = @HAVE_LIBXV_FALSE@
 HAVE_LIBXV_TRUE = @HAVE_LIBXV_TRUE@
+HAVE_LIBZ_FALSE = @HAVE_LIBZ_FALSE@
+HAVE_LIBZ_TRUE = @HAVE_LIBZ_TRUE@
 HAVE_LZO_FALSE = @HAVE_LZO_FALSE@
 HAVE_LZO_TRUE = @HAVE_LZO_TRUE@
 HAVE_MAGICK_FALSE = @HAVE_MAGICK_FALSE@
@@ -204,9 +208,10 @@ LIBMPEG3_LIBS = @LIBMPEG3_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
-LIBXML2CONFIG = @LIBXML2CONFIG@
 LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
 LIBXML2_LIBS = @LIBXML2_LIBS@
+LIBZ_CFLAGS = @LIBZ_CFLAGS@
+LIBZ_LIBS = @LIBZ_LIBS@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 LZO_CFLAGS = @LZO_CFLAGS@
@@ -298,6 +303,7 @@ build_os = @build_os@
 build_vendor = @build_vendor@
 datadir = @datadir@
 exec_prefix = @exec_prefix@
+have_libxml2 = @have_libxml2@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
@@ -334,7 +340,7 @@ bin_PROGRAMS = transcode
 
 
 #AM_LDFLAGS=`ar t ../ffmpeg/libavcodec/libtcavcodec.a | sed -e '/^__/d' -e 's@^@../ffmpeg/libavcodec/@' | tr '\n' ' '` `ar t ../avilib/libavi.a | sed -e '/^__/d' -e 's@^@../avilib/@' | tr '\n' ' '`
-transcode_LDADD = @DLDARWINLIB@ @SUPPORTLIB@ @TCIOAUX_LIBS@ -L../aclib -lac -L../ffmpeg/libavcodec -ltcavcodec @AVILIB_LIBS@ -L../libvo -lvout -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@ -lm 
+transcode_LDADD = @DLDARWINLIB@ @SUPPORTLIB@ @TCIOAUX_LIBS@ -L../aclib -lac @AVCODEC_LIBS@ @AVILIB_LIBS@ -L../libvo -lvout @XIO_LIBS@ @LIBXML2_LIBS@ -lm 
 
 EXTRA_DIST = \
    audio_trans.h \

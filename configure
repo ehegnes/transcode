@@ -462,7 +462,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM AWK SET_MAKE am__leading_dot MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP EGREP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE LN_S CCAS CCASFLAGS ASFLAGS SYSTEM_DARWIN_TRUE SYSTEM_DARWIN_FALSE SUPPORTOBJECTS SUPPORTLIB SUPPORTINCL DLDARWINOBJECTS DLDARWINLIB DLDARWININCL DLLDFLAGS BIG_ENDIAN_TRUE BIG_ENDIAN_FALSE LIBOBJS ALLOCA GLIB_CONFIG GLIB_CFLAGS GLIB_LIBS HAVE_PPC_ALTIVEC_TRUE HAVE_PPC_ALTIVEC_FALSE HAVE_MMX_TRUE HAVE_MMX_FALSE HAVE_SSE_TRUE HAVE_SSE_FALSE NASM NASMFLAGS HAVE_ASM_MMX_TRUE HAVE_ASM_MMX_FALSE HAVE_ASM_3DNOW_TRUE HAVE_ASM_3DNOW_FALSE HAVE_ASM_NASM_TRUE HAVE_ASM_NASM_FALSE HAVE_X86CPU_TRUE HAVE_X86CPU_FALSE ARCH_X86_TRUE ARCH_X86_FALSE ARCH_PPC_TRUE ARCH_PPC_FALSE CAN_COMPILE_C_ALTIVEC_TRUE CAN_COMPILE_C_ALTIVEC_FALSE ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL LTLIBOBJS STATBUFFER NET_STREAM_TRUE NET_STREAM_FALSE NET_STREAM AVIFILE_CONFIG AVIFILE_CFLAGS AVIFILE_LIBS HAVE_AVIFILE_TRUE HAVE_AVIFILE_FALSE FT2_CONFIG FT2_CFLAGS FT2_LIBS HAVE_FREETYPE2_TRUE HAVE_FREETYPE2_FALSE HAVE_V4L_TRUE HAVE_V4L_FALSE LAME_3_89 LAME_CFLAGS LAME_LIBS HAVE_LAME_TRUE HAVE_LAME_FALSE LAME_3_89_TRUE LAME_3_89_FALSE OGG_CFLAGS OGG_LIBS HAVE_OGG_TRUE HAVE_OGG_FALSE VORBIS_CFLAGS VORBIS_LIBS HAVE_VORBIS_TRUE HAVE_VORBIS_FALSE THEORA_CFLAGS THEORA_LIBS HAVE_THEORA_TRUE HAVE_THEORA_FALSE DVDREAD_CFLAGS DVDREAD_LIBS HAVE_LIBDVDREAD_TRUE HAVE_LIBDVDREAD_FALSE XVID_DEFAULT LIBMPEG3_LIBS LIBMPEG3_CFLAGS HAVE_LIBMPEG3_TRUE HAVE_LIBMPEG3_FALSE LIBLVE_LIBS LIBLVE_CFLAGS HAVE_LIBLVE_TRUE HAVE_LIBLVE_FALSE PVM3_CFLAGS PVM3_LIB PVM3_PVMGS HAVE_PVM3_TRUE HAVE_PVM3_FALSE DV_LIBS DV_EXTRA_LIBS DV_CFLAGS HAVE_DV_TRUE HAVE_DV_FALSE QT_LIBS QT_CFLAGS HAVE_QT_TRUE HAVE_QT_FALSE OPENQT_LIBS OPENQT_CFLAGS HAVE_OPENQT_TRUE HAVE_OPENQT_FALSE LZO_LIBS LZO_EXTRA_LIBS LZO_CFLAGS HAVE_LZO_TRUE HAVE_LZO_FALSE A52_LIBS A52_CFLAGS HAVE_A52_TRUE HAVE_A52_FALSE USE_LIBA52_DECODER LIBXML2_CFLAGS LIBXML2_LIBS LIBXML2CONFIG HAVE_LIBXML2_TRUE HAVE_LIBXML2_FALSE IBP_LIBS HAVE_IBP_TRUE HAVE_IBP_FALSE MJPEG_CFLAGS MJPEG_LIBS MJPEGTOOLSCONFIG HAVE_MJPEG_TRUE HAVE_MJPEG_FALSE X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS x_includes x_libraries HAVE_X11_TRUE HAVE_X11_FALSE HAVE_LIBXV_TRUE HAVE_LIBXV_FALSE HAVE_XAW_SIMPLE_TRUE HAVE_XAW_SIMPLE_FALSE HAVE_LIBXPM_TRUE HAVE_LIBXPM_FALSE SDL_CONFIG SDL_CFLAGS SDL_LIBS HAVE_SDL_TRUE HAVE_SDL_FALSE HAVE_DIVX_DECORE_TRUE HAVE_DIVX_DECORE_FALSE HAVE_DIVX_ENCORE2_TRUE HAVE_DIVX_ENCORE2_FALSE GTK_CONFIG GTK_CFLAGS GTK_LIBS HAVE_GTK_TRUE HAVE_GTK_FALSE LIBFAME_CONFIG LIBFAME_CFLAGS LIBFAME_LIBS HAVE_LIBFAME_TRUE HAVE_LIBFAME_FALSE MAGICK_CONFIG MAGICK_CFLAGS MAGICK_LIBS HAVE_MAGICK_TRUE HAVE_MAGICK_FALSE LIBJPEG_CFLAGS LIBJPEG_LIBS HAVE_LIBJPEG_TRUE HAVE_LIBJPEG_FALSE AVILIB_CFLAGS AVILIB_LIBS TCIOAUX_CFLAGS TCIOAUX_LIBS AC3_CFLAGS AC3_LIBS MPEG2CVS_CFLAGS MPEG2CVS_LIBS XIO_CFLAGS XIO_LIBS MOD_PATH TRANSCODE_0_6_TRUE TRANSCODE_0_6_FALSE'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM AWK SET_MAKE am__leading_dot MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP EGREP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE LN_S CCAS CCASFLAGS ASFLAGS SYSTEM_DARWIN_TRUE SYSTEM_DARWIN_FALSE SUPPORTOBJECTS SUPPORTLIB SUPPORTINCL DLDARWINOBJECTS DLDARWINLIB DLDARWININCL DLLDFLAGS BIG_ENDIAN_TRUE BIG_ENDIAN_FALSE LIBOBJS ALLOCA GLIB_CONFIG GLIB_CFLAGS GLIB_LIBS HAVE_PPC_ALTIVEC_TRUE HAVE_PPC_ALTIVEC_FALSE HAVE_MMX_TRUE HAVE_MMX_FALSE HAVE_SSE_TRUE HAVE_SSE_FALSE NASM NASMFLAGS HAVE_ASM_MMX_TRUE HAVE_ASM_MMX_FALSE HAVE_ASM_3DNOW_TRUE HAVE_ASM_3DNOW_FALSE HAVE_ASM_NASM_TRUE HAVE_ASM_NASM_FALSE HAVE_X86CPU_TRUE HAVE_X86CPU_FALSE ARCH_X86_TRUE ARCH_X86_FALSE ARCH_PPC_TRUE ARCH_PPC_FALSE CAN_COMPILE_C_ALTIVEC_TRUE CAN_COMPILE_C_ALTIVEC_FALSE ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL LTLIBOBJS STATBUFFER NET_STREAM_TRUE NET_STREAM_FALSE NET_STREAM AVIFILE_CONFIG AVIFILE_CFLAGS AVIFILE_LIBS HAVE_AVIFILE_TRUE HAVE_AVIFILE_FALSE FT2_CONFIG FT2_CFLAGS FT2_LIBS HAVE_FREETYPE2_TRUE HAVE_FREETYPE2_FALSE HAVE_V4L_TRUE HAVE_V4L_FALSE LAME_3_89 LAME_CFLAGS LAME_LIBS HAVE_LAME_TRUE HAVE_LAME_FALSE LAME_3_89_TRUE LAME_3_89_FALSE OGG_CFLAGS OGG_LIBS HAVE_OGG_TRUE HAVE_OGG_FALSE VORBIS_CFLAGS VORBIS_LIBS HAVE_VORBIS_TRUE HAVE_VORBIS_FALSE THEORA_CFLAGS THEORA_LIBS HAVE_THEORA_TRUE HAVE_THEORA_FALSE DVDREAD_CFLAGS DVDREAD_LIBS HAVE_LIBDVDREAD_TRUE HAVE_LIBDVDREAD_FALSE XVID_DEFAULT LIBMPEG3_LIBS LIBMPEG3_CFLAGS HAVE_LIBMPEG3_TRUE HAVE_LIBMPEG3_FALSE LIBLVE_LIBS LIBLVE_CFLAGS HAVE_LIBLVE_TRUE HAVE_LIBLVE_FALSE PVM3_CFLAGS PVM3_LIB PVM3_PVMGS HAVE_PVM3_TRUE HAVE_PVM3_FALSE DV_LIBS DV_EXTRA_LIBS DV_CFLAGS HAVE_DV_TRUE HAVE_DV_FALSE QT_LIBS QT_CFLAGS HAVE_QT_TRUE HAVE_QT_FALSE OPENQT_LIBS OPENQT_CFLAGS HAVE_OPENQT_TRUE HAVE_OPENQT_FALSE LZO_LIBS LZO_EXTRA_LIBS LZO_CFLAGS HAVE_LZO_TRUE HAVE_LZO_FALSE LIBZ_LIBS LIBZ_CFLAGS HAVE_LIBZ_TRUE HAVE_LIBZ_FALSE A52_LIBS A52_CFLAGS HAVE_A52_TRUE HAVE_A52_FALSE USE_LIBA52_DECODER LIBXML2_CFLAGS LIBXML2_LIBS have_libxml2 HAVE_LIBXML2_TRUE HAVE_LIBXML2_FALSE IBP_LIBS HAVE_IBP_TRUE HAVE_IBP_FALSE MJPEG_CFLAGS MJPEG_LIBS MJPEGTOOLSCONFIG HAVE_MJPEG_TRUE HAVE_MJPEG_FALSE X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS x_includes x_libraries HAVE_X11_TRUE HAVE_X11_FALSE HAVE_LIBXV_TRUE HAVE_LIBXV_FALSE HAVE_XAW_SIMPLE_TRUE HAVE_XAW_SIMPLE_FALSE HAVE_LIBXPM_TRUE HAVE_LIBXPM_FALSE SDL_CONFIG SDL_CFLAGS SDL_LIBS HAVE_SDL_TRUE HAVE_SDL_FALSE HAVE_DIVX_DECORE_TRUE HAVE_DIVX_DECORE_FALSE HAVE_DIVX_ENCORE2_TRUE HAVE_DIVX_ENCORE2_FALSE GTK_CONFIG GTK_CFLAGS GTK_LIBS HAVE_GTK_TRUE HAVE_GTK_FALSE LIBFAME_CONFIG LIBFAME_CFLAGS LIBFAME_LIBS HAVE_LIBFAME_TRUE HAVE_LIBFAME_FALSE MAGICK_CONFIG MAGICK_CFLAGS MAGICK_LIBS HAVE_MAGICK_TRUE HAVE_MAGICK_FALSE LIBJPEG_CFLAGS LIBJPEG_LIBS HAVE_LIBJPEG_TRUE HAVE_LIBJPEG_FALSE AVILIB_CFLAGS AVILIB_LIBS TCIOAUX_CFLAGS TCIOAUX_LIBS AC3_CFLAGS AC3_LIBS MPEG2CVS_CFLAGS MPEG2CVS_LIBS AVCODEC_CFLAGS AVCODEC_LIBS XIO_CFLAGS XIO_LIBS MOD_PATH TRANSCODE_0_6_TRUE TRANSCODE_0_6_FALSE'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1138,6 +1138,12 @@ Optional Packages:
   --with-lzo-includes=PFX prefix where local liblzo includes are installed
                           (optional)
   --with-lzo-libs=PFX     prefix where local liblzo libs are installed
+                          (optional)
+  --with-libz             build libz dependent modules (yes)
+  --with-libz-includes=PFX
+                          prefix where local zlib includes are installed
+                          (optional)
+  --with-libz-libs=PFX    prefix where local zlib files are installed
                           (optional)
   --with-a52              build liba52 decoder module (yes)
   --with-a52-includes=PFX prefix where local liba52 includes are installed
@@ -9874,7 +9880,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 9877 "configure"' > conftest.$ac_ext
+  echo '#line 9883 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -10491,7 +10497,7 @@ fi
 
 
 # Provide some information about the compiler.
-echo "$as_me:10494:" \
+echo "$as_me:10500:" \
      "checking for Fortran 77 compiler version" >&5
 ac_compiler=`set X $ac_compile; echo $2`
 { (eval echo "$as_me:$LINENO: \"$ac_compiler --version </dev/null >&5\"") >&5
@@ -11496,11 +11502,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11499: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11505: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:11503: \$? = $ac_status" >&5
+   echo "$as_me:11509: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -11728,11 +11734,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11731: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11737: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:11735: \$? = $ac_status" >&5
+   echo "$as_me:11741: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -11795,11 +11801,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11798: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11804: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:11802: \$? = $ac_status" >&5
+   echo "$as_me:11808: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13814,7 +13820,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 13817 "configure"
+#line 13823 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -13912,7 +13918,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 13915 "configure"
+#line 13921 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -16044,11 +16050,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16047: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16053: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16051: \$? = $ac_status" >&5
+   echo "$as_me:16057: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -16111,11 +16117,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16114: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16120: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16118: \$? = $ac_status" >&5
+   echo "$as_me:16124: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -17361,7 +17367,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 17364 "configure"
+#line 17370 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -17459,7 +17465,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 17462 "configure"
+#line 17468 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -18281,11 +18287,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:18284: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:18290: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:18288: \$? = $ac_status" >&5
+   echo "$as_me:18294: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -18348,11 +18354,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:18351: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:18357: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:18355: \$? = $ac_status" >&5
+   echo "$as_me:18361: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -20295,11 +20301,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:20298: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:20304: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:20302: \$? = $ac_status" >&5
+   echo "$as_me:20308: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -20527,11 +20533,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:20530: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:20536: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:20534: \$? = $ac_status" >&5
+   echo "$as_me:20540: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -20594,11 +20600,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:20597: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:20603: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:20601: \$? = $ac_status" >&5
+   echo "$as_me:20607: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -22613,7 +22619,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 22616 "configure"
+#line 22622 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -22711,7 +22717,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 22714 "configure"
+#line 22720 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -24131,7 +24137,7 @@ _ACEOF
 
     case "$AVIFILE_CFLAGS" in
       */avifile*)
-      AVIFILE_CFLAGS=`echo $AVIFILE_CFLAGS | sed 's,/avifile\(-0-9\.0-9\)*$,,'`
+      AVIFILE_CFLAGS=`echo $AVIFILE_CFLAGS | sed 's,/avifile\(-[0-9]\.[0-9]\)*$,,'`
       ;;
     esac
 
@@ -27379,6 +27385,147 @@ fi
 
 
 
+# Check whether --with-libz or --without-libz was given.
+if test "${with_libz+set}" = set; then
+  withval="$with_libz"
+  case "${withval}" in
+  yes) ;;
+  no)  ;;
+  *) { { echo "$as_me:$LINENO: error: bad value ${withval} for --with-libz" >&5
+echo "$as_me: error: bad value ${withval} for --with-libz" >&2;}
+   { (exit 1); exit 1; }; } ;;
+esac
+else
+  with_libz=yes
+fi;
+
+
+# Check whether --with-libz-includes or --without-libz-includes was given.
+if test "${with_libz_includes+set}" = set; then
+  withval="$with_libz_includes"
+  libz_includes="$withval"
+else
+  libz_includes=""
+fi;
+
+
+# Check whether --with-libz-libs or --without-libz-libs was given.
+if test "${with_libz_libs+set}" = set; then
+  withval="$with_libz_libs"
+  libz_libs="$withval"
+else
+  libz_libs=""
+fi;
+
+
+if test x$with_libz = "x"yes ; then
+
+	if test x$libz_includes != "x" ; then
+	    with_libz_i="$libz_includes/include"
+        else
+	    with_libz_i="/usr/include"
+        fi
+
+        if test x$libz_libs != x ; then
+            with_libz_l="$libz_libs/lib"
+        else
+            with_libz_l="/usr${deflib}"
+        fi
+
+	echo "$as_me:$LINENO: checking for deflate in -lz" >&5
+echo $ECHO_N "checking for deflate in -lz... $ECHO_C" >&6
+if test "${ac_cv_lib_z_deflate+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lz -L$with_libz_l $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char deflate ();
+int
+main ()
+{
+deflate ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_z_deflate=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_z_deflate=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_z_deflate" >&5
+echo "${ECHO_T}$ac_cv_lib_z_deflate" >&6
+if test $ac_cv_lib_z_deflate = yes; then
+  LIBZ_CFLAGS="-I$with_libz_i"
+       LIBZ_LIBS="-L$with_libz_l -lz"
+       cat >>confdefs.h <<\_ACEOF
+#define HAVE_LIBZ 1
+_ACEOF
+ have_libz=yes
+else
+  have_libz=no
+fi
+
+
+	if test x"${LIBZ_CFLAGS}" = x"-I/usr/include"; then
+	  LIBZ_CFLAGS="";
+	fi;
+	if test x"${LIBZ_LIBS}" = x"-L/usr/lib -lz"; then
+	  LIBZ_LIBS="-lz";
+	fi;
+
+else
+    have_libz=no
+fi
+
+
+
+
+
+if test x"$have_libz" = "xyes"; then
+  HAVE_LIBZ_TRUE=
+  HAVE_LIBZ_FALSE='#'
+else
+  HAVE_LIBZ_TRUE='#'
+  HAVE_LIBZ_FALSE=
+fi
+
+
+
+
+
+
 # Check whether --with-a52 or --without-a52 was given.
 if test "${with_a52+set}" = set; then
   withval="$with_a52"
@@ -27552,20 +27699,17 @@ echo "${ECHO_T}yes" >&6
 fi
 
 
-echo "$as_me:$LINENO: checking for libxml2 support" >&5
-echo $ECHO_N "checking for libxml2 support... $ECHO_C" >&6
-
 
 
 # Extract the first word of "xml2-config", so it can be a program name with args.
 set dummy xml2-config; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_LIBXML2CONFIG+set}" = set; then
+if test "${ac_cv_prog_have_libxml2+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  if test -n "$LIBXML2CONFIG"; then
-  ac_cv_prog_LIBXML2CONFIG="$LIBXML2CONFIG" # Let the user override the test.
+  if test -n "$have_libxml2"; then
+  ac_cv_prog_have_libxml2="$have_libxml2" # Let the user override the test.
 else
 as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
@@ -27574,7 +27718,7 @@ do
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
   if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_LIBXML2CONFIG="yes"
+    ac_cv_prog_have_libxml2="yes"
     echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -27583,16 +27727,16 @@ done
 
 fi
 fi
-LIBXML2CONFIG=$ac_cv_prog_LIBXML2CONFIG
-if test -n "$LIBXML2CONFIG"; then
-  echo "$as_me:$LINENO: result: $LIBXML2CONFIG" >&5
-echo "${ECHO_T}$LIBXML2CONFIG" >&6
+have_libxml2=$ac_cv_prog_have_libxml2
+if test -n "$have_libxml2"; then
+  echo "$as_me:$LINENO: result: $have_libxml2" >&5
+echo "${ECHO_T}$have_libxml2" >&6
 else
   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
 fi
 
-if test x"$LIBXML2CONFIG" = x"yes"
+if test x"$have_libxml2" = x"yes"
 then
 
 cat >>confdefs.h <<\_ACEOF
@@ -27602,12 +27746,12 @@ _ACEOF
        LIBXML2_CFLAGS="`xml2-config --cflags`"
        LIBXML2_LIBS="`xml2-config --libs`"
 else
-LIBXML2CONFIG=no
+	have_libxml2=no
 fi
 
 
 
-if test x"$LIBXML2CONFIG" = x"yes" ; then
+if test x"$have_libxml2" = x"yes" ; then
   HAVE_LIBXML2_TRUE=
   HAVE_LIBXML2_FALSE='#'
 else
@@ -27630,7 +27774,7 @@ echo $ECHO_N "checking for use ibp and lors... $ECHO_C" >&6
 
 if test "x$enable_ibp" = "xyes"
 then
-if test x"$LIBXML2CONFIG" = x"yes"
+if test x"$have_libxml2" = x"yes"
 then
 
 # Check whether --with-libfdr or --without-libfdr was given.
@@ -31385,8 +31529,25 @@ MPEG2CVS_LIBS="-L\$(top_builddir)/libmpeg2 -lmpeg2cvs"
 
 
 
-XIO_CFLAGS="-I\$(top_srcdir)/libxio"
-XIO_LIBS="-L\$(top_builddir)/libxio -lxio $IBP_LIBS $LIBXML2_LIBS"
+AVCODEC_CFLAGS="-I\$(top_srcdir)/ffmpeg/libavcodec"
+AVCODEC_LIBS="-L\$(top_builddir)/ffmpeg/libavcodec -ltcavcodec"
+if test x"$have_libz" = "xyes"; then
+  AVCODEC_CFLAGS="$AVCODEC_CFLAGS $LIBZ_CFLAGS";
+  AVCODEC_LIBS="$AVCODEC_LIBS $LIBZ_LIBS";
+fi
+
+
+
+
+
+if test x"$have_ibp" = x"yes"
+then
+	XIO_CFLAGS="-I\$(top_srcdir)/libxio"
+	XIO_LIBS="-L\$(top_builddir)/libxio -lxio $IBP_LIBS $LIBXML2_LIBS"
+else
+	XIO_CFLAGS="-I\$(top_srcdir)/libxio"
+	XIO_LIBS="-L\$(top_builddir)/libxio -lxio"
+fi
 
 
 
@@ -31760,6 +31921,13 @@ if test -z "${HAVE_LZO_TRUE}" && test -z "${HAVE_LZO_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"HAVE_LZO\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"HAVE_LZO\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${HAVE_LIBZ_TRUE}" && test -z "${HAVE_LIBZ_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"HAVE_LIBZ\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"HAVE_LIBZ\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -32632,6 +32800,10 @@ s,@LZO_EXTRA_LIBS@,$LZO_EXTRA_LIBS,;t t
 s,@LZO_CFLAGS@,$LZO_CFLAGS,;t t
 s,@HAVE_LZO_TRUE@,$HAVE_LZO_TRUE,;t t
 s,@HAVE_LZO_FALSE@,$HAVE_LZO_FALSE,;t t
+s,@LIBZ_LIBS@,$LIBZ_LIBS,;t t
+s,@LIBZ_CFLAGS@,$LIBZ_CFLAGS,;t t
+s,@HAVE_LIBZ_TRUE@,$HAVE_LIBZ_TRUE,;t t
+s,@HAVE_LIBZ_FALSE@,$HAVE_LIBZ_FALSE,;t t
 s,@A52_LIBS@,$A52_LIBS,;t t
 s,@A52_CFLAGS@,$A52_CFLAGS,;t t
 s,@HAVE_A52_TRUE@,$HAVE_A52_TRUE,;t t
@@ -32639,7 +32811,7 @@ s,@HAVE_A52_FALSE@,$HAVE_A52_FALSE,;t t
 s,@USE_LIBA52_DECODER@,$USE_LIBA52_DECODER,;t t
 s,@LIBXML2_CFLAGS@,$LIBXML2_CFLAGS,;t t
 s,@LIBXML2_LIBS@,$LIBXML2_LIBS,;t t
-s,@LIBXML2CONFIG@,$LIBXML2CONFIG,;t t
+s,@have_libxml2@,$have_libxml2,;t t
 s,@HAVE_LIBXML2_TRUE@,$HAVE_LIBXML2_TRUE,;t t
 s,@HAVE_LIBXML2_FALSE@,$HAVE_LIBXML2_FALSE,;t t
 s,@IBP_LIBS@,$IBP_LIBS,;t t
@@ -32700,6 +32872,8 @@ s,@AC3_CFLAGS@,$AC3_CFLAGS,;t t
 s,@AC3_LIBS@,$AC3_LIBS,;t t
 s,@MPEG2CVS_CFLAGS@,$MPEG2CVS_CFLAGS,;t t
 s,@MPEG2CVS_LIBS@,$MPEG2CVS_LIBS,;t t
+s,@AVCODEC_CFLAGS@,$AVCODEC_CFLAGS,;t t
+s,@AVCODEC_LIBS@,$AVCODEC_LIBS,;t t
 s,@XIO_CFLAGS@,$XIO_CFLAGS,;t t
 s,@XIO_LIBS@,$XIO_LIBS,;t t
 s,@MOD_PATH@,$MOD_PATH,;t t
@@ -33364,7 +33538,7 @@ avifile API support                              $have_avifile
 ImageMagick dependent modules (>=5.4.3)          $have_magick
 libjpeg dependent modules | mmx accel            $have_libjpeg | $have_libjpegmmx
 liblzo dependent modules 			 $have_lzo
-libxml2 dependent modules                        $LIBXML2CONFIG
+libxml2 dependent modules                        $have_libxml2
 experimental v4l support                         $v4l
 experimental lve support                         $have_liblve
 libmpeg3 dependent modules                       $have_libmpeg3
@@ -33397,7 +33571,7 @@ avifile API support                              $have_avifile
 ImageMagick dependent modules (>=5.4.3)          $have_magick
 libjpeg dependent modules | mmx accel            $have_libjpeg | $have_libjpegmmx
 liblzo dependent modules 			 $have_lzo
-libxml2 dependent modules                        $LIBXML2CONFIG
+libxml2 dependent modules                        $have_libxml2
 experimental v4l support                         $v4l
 experimental lve support                         $have_liblve
 libmpeg3 dependent modules                       $have_libmpeg3

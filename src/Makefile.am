@@ -13,7 +13,7 @@ endif
 
 #AM_LDFLAGS=`ar t ../ffmpeg/libavcodec/libtcavcodec.a | sed -e '/^__/d' -e 's@^@../ffmpeg/libavcodec/@' | tr '\n' ' '` `ar t ../avilib/libavi.a | sed -e '/^__/d' -e 's@^@../avilib/@' | tr '\n' ' '`
 
-transcode_LDADD= @DLDARWINLIB@ @SUPPORTLIB@ @TCIOAUX_LIBS@ -L../aclib -lac -L../ffmpeg/libavcodec -ltcavcodec @AVILIB_LIBS@ -L../libvo -lvout -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@ -lm 
+transcode_LDADD= @DLDARWINLIB@ @SUPPORTLIB@ @TCIOAUX_LIBS@ -L../aclib -lac @AVCODEC_LIBS@ @AVILIB_LIBS@ -L../libvo -lvout @XIO_LIBS@ @LIBXML2_LIBS@ -lm 
 
 EXTRA_DIST =  \
    audio_trans.h \

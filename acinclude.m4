@@ -229,7 +229,7 @@ AC_ARG_WITH(avifile-exec-prefix,AC_HELP_STRING([--with-avifile-exec-prefix=PFX],
 
     case "$AVIFILE_CFLAGS" in
       */avifile*) 
-      AVIFILE_CFLAGS=`echo $AVIFILE_CFLAGS | sed 's,/avifile\(-[0-9]\.[0-9]\)*$,,'`
+      AVIFILE_CFLAGS=`echo $AVIFILE_CFLAGS | sed 's,/avifile\(-[[0-9]]\.[[0-9]]\)*$,,'`
       ;;
     esac
 
@@ -717,6 +717,58 @@ dnl
 dnl liblzo
 dnl 
 dnl 
+
+have_libz=no
+AC_DEFUN(AM_PATH_LIBZ,
+[
+
+AC_ARG_WITH(libz, AC_HELP_STRING([--with-libz],[build libz dependent modules (yes)]),[case "${withval}" in
+  yes) ;;
+  no)  ;;
+  *) AC_MSG_ERROR(bad value ${withval} for --with-libz) ;;
+esac], with_libz=yes)
+
+AC_ARG_WITH(libz-includes,AC_HELP_STRING([--with-libz-includes=PFX],[prefix where local zlib includes are installed (optional)]),
+	  libz_includes="$withval",libz_includes="")
+
+AC_ARG_WITH(libz-libs,AC_HELP_STRING([--with-libz-libs=PFX],[prefix where local zlib files are installed (optional)]),
+	  libz_libs="$withval", libz_libs="")
+
+
+if test x$with_libz = "x"yes ; then
+
+	if test x$libz_includes != "x" ; then
+	    with_libz_i="$libz_includes/include"
+        else
+	    with_libz_i="/usr/include"
+        fi
+
+        if test x$libz_libs != x ; then
+            with_libz_l="$libz_libs/lib"
+        else
+            with_libz_l="/usr${deflib}"
+        fi
+
+	AC_CHECK_LIB(z, deflate,
+      [LIBZ_CFLAGS="-I$with_libz_i"	
+       LIBZ_LIBS="-L$with_libz_l -lz"
+       AC_DEFINE(HAVE_LIBZ) have_libz=yes],have_libz=no, 
+	-L$with_libz_l)
+
+	if test x"${LIBZ_CFLAGS}" = x"-I/usr/include"; then
+	  LIBZ_CFLAGS="";
+	fi;
+	if test x"${LIBZ_LIBS}" = x"-L/usr/lib -lz"; then
+	  LIBZ_LIBS="-lz";
+	fi;
+
+else
+    have_libz=no
+fi
+AC_SUBST(LIBZ_LIBS)
+AC_SUBST(LIBZ_CFLAGS)
+])
+
 
 AC_DEFUN(AM_PATH_LZO,
 [
