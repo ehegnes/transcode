@@ -38,6 +38,41 @@
 #include "transcode.h"
 #include "framebuffer.h"
 
+static int
+parse_options(char *options, double *infps, double *outfps)
+{
+	char	*p, *q, *r;
+	size_t	len;
+	vob_t	*vob;
+
+	/* defaults from -f and --export_fps */
+	vob = tc_get_vob();
+	if (!vob) return -1;
+	*infps = vob->fps;
+	*outfps = vob->ex_fps;
+
+	if (!options || !*options) return 0;
+	if (!strcmp(options, "help")) {
+		printf("[%s] help\n", MOD_NAME);
+		printf("This filter converts the video frame rate,"
+			" by repeating or dropping frames.\n");
+		printf("options: <input fps>:<output fps>\n");
+		printf("example: -J fps=25:29.97 will convert"
+			" from PAL to NTSC\n");
+		return -1;
+	}
+	len = strlen(options);
+	p = alloca(len + 1);
+	memcpy(p, options, len);
+	q = memchr(p, ':', len);
+	if (!q) return -1;
+	*q++ = '\0';
+	*infps = strtod(p, &r);
+	if (r == p) return -1;
+	*outfps = strtod(q, &r);
+	if (r == q) return -1;
+}
+
 int
 tc_filter(vframe_list_t *ptr, char *options)
 {
@@ -45,41 +80,19 @@ tc_filter(vframe_list_t *ptr, char *options)
 	static unsigned long	framesin = 0, framesout = 0;
 
 	if(ptr->tag & TC_FILTER_INIT) {
-		char	*p, *q, *r;
-		size_t	len;
-	    
 		if (verbose) printf("[%s] %s %s\n",
 			MOD_NAME, MOD_VERSION, MOD_CAP);
-
-		/* parse options */
-		if (!strcmp(options, "help")) {
-			printf("[%s] help\n", MOD_NAME);
-			printf("This filter converts the video frame rate,"
-				" by repeating or dropping frames.\n");
-			printf("options: <input fps>:<output fps>\n");
-			printf("example: -J fps=25:29.97 will convert"
-				" from PAL to NTSC\n");
-			return -1;
-		}
-		len = strlen(options);
-		p = alloca(len + 1);
-		memcpy(p, options, len);
-		q = memchr(p, ':', len);
-		if (!q) return -1;
-		*q++ = '\0';
-		infps = strtod(p, &r);
-		if (r == p) return -1;
-		outfps = strtod(q, &r);
-		if (r == q) return -1;
-
-		if (verbose) printf(
+		if (parse_options(&options, &infps, &outfps) == -1) return -1;
+		if (verbose && options) printf(
 			"[%s] options=%s, converting from %g fps to %g fps\n",
 			MOD_NAME, options, infps, outfps);
-	    
+		if (verbose && !options) printf(
+			"[%s] no options, converting from %g fps to %g fps\n",
+			MOD_NAME, infps, outfps);
 		return 0;
 	}
 
-	if (infps > outfps && ptr->tag & TC_PRE_PROCESS
+	if (infps > outfps && ptr->tag & TC_PRE_S_PROCESS
 			&& ptr->tag & TC_VIDEO) {
 		if ((double)++framesin / infps > (double)framesout / outfps)
 			framesout++;

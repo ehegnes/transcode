@@ -7,6 +7,12 @@ transcode-0.6.10
   fixed docs installation (current spec file did not work on Red Hat
   9); minor cleanups.
 
+2003-08-08 Christopher Cramer <crayc at pyro.net>
+
+  * filter/filter_fps.c:
+  Use vob->fps and vob->ex_fps when no options are given.
+  Move frame dropping from TC_PRE_PROCESS to TC_PRE_S_PROCESS.
+
 2003-08-07 Tilmann Bitterberg <transcode at tibit.org>
 
   * export/export_xvid4.c:
