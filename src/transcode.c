@@ -2007,9 +2007,9 @@ int main(int argc, char *argv[]) {
     }
 #ifdef HAVE_LIBXML2
 #define TCXML_MAX_BUFF 1024
-    if (strstr(vob->vmod_probed_xml,"xml") != NULL)
+    if (vob->vmod_probed_xml && strstr(vob->vmod_probed_xml,"xml") != NULL)
     {
-	if (strstr(vob->video_in_file,"/dev/zero") ==NULL)
+	if (vob->video_in_file && strstr(vob->video_in_file,"/dev/zero") ==NULL)
 	{
 	      	p_tcxmlcheck_buffer=(char *)calloc(TCXML_MAX_BUFF,1);
 		if ((snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -i %s -S -B -V",vob->video_in_file))<0)
@@ -2046,9 +2046,9 @@ int main(int argc, char *argv[]) {
 		free(p_tcxmlcheck_buffer);
     	}
     }
-    if (strstr(vob->amod_probed_xml,"xml") != NULL)
+    if (vob->amod_probed_xml && strstr(vob->amod_probed_xml,"xml") != NULL)
     {
-	if (strstr(vob->audio_in_file,"/dev/zero") ==NULL)
+	if (vob->audio_in_file && strstr(vob->audio_in_file,"/dev/zero") ==NULL)
 	{
       		p_tcxmlcheck_buffer=(char *)calloc(TCXML_MAX_BUFF,1);
 		if ((snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -p %s -S -B -A",vob->audio_in_file))<0)
