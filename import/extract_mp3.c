@@ -296,7 +296,7 @@ int mp3scan(int infd, int outfd)
     ++i;
     ++k;
     
-    if(sync_word == 0xfffc || sync_word == 0xfffb ) break;
+    if(sync_word == 0xfffc || sync_word == 0xfffb || sync_word == 0xfffd) break;
     
     if(k>(1<<20)) {
       fprintf(stderr, "no MP3 sync byte found within 1024 kB of stream\n");
