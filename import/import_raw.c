@@ -125,13 +125,6 @@ MOD_open
 	
 	break;
 	
-      case CODEC_YUV:
-	
-	if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x yv12 -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose)<0)) {
-	  perror("cmd buffer overflow");
-	  return(TC_IMPORT_ERROR);
-	}
-	
       case CODEC_YUV422:
 	
 	if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x uyvy -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose)<0)) {
@@ -140,6 +133,17 @@ MOD_open
 	}
 	
 	break;
+
+      case CODEC_YUV:
+      default:
+	
+	if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x yv12 -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose)<0)) {
+	  perror("cmd buffer overflow");
+	  return(TC_IMPORT_ERROR);
+	}
+
+        break;
+	
       }
       
       // print out
