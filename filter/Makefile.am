@@ -37,10 +37,14 @@ ALTIVEC = -maltivec -mabi=altivec
 endif
 endif
 
+if HAVE_GCC2
+F_TOMSMOCOMP = 
+else
 if HAVE_ASM_MMX
 if HAVE_ASM_SSE
 if HAVE_ASM_3DNOW
 F_TOMSMOCOMP = tomsmocomp
+endif
 endif
 endif
 endif

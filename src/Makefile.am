@@ -36,6 +36,7 @@ transcode_LDADD = \
 	@LIBVO_LIBS@ \
 	@XIO_LIBS@ \
 	@LIBXML2_LIBS@ \
+	@PTHREAD_LIBS@ \
 	-lm
 
 EXTRA_DIST = \

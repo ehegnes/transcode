@@ -189,8 +189,9 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 	if(initialized==0)
 	{
 #ifdef LAME_3_89
+#if HAVE_LAME >= 392
 		int preset = 0;
-		
+#endif		
 		lgf=lame_init();
 		if(lgf<0)
 		{

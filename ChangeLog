@@ -1,6 +1,25 @@
 transcode-0.13-pre2 EMS
 
 2004-08-26 Erik Slagter <erik at oldconomy dot com>
+  * INSTALL:
+  Cleaned up.
+
+2004-08-26 Jacob Meuser <jakemsr at jakemsr dot com>
+  * acinclude.m4 configure.in export/aud_aux.c filter/Makefile.am
+  * src/Makefile.am INSTALL:
+  OK, here is the configure "cleanup".
+  Major changes:
+  - exit with error if support for requested package is not found
+  - very few optional packages enabled by default
+  - organized macros in acinclude to same order as called from configure.in
+  - tried to introduce some consistency, mostly cosmetic (indentation),
+  - some functional (use AC_CHECK_HEADER instead of AC_CHECK_FILE
+    to test for headers that are actually going to be compiled)
+  - changed macro names to make sure the version from acinclude.m4 is
+    used instead of possibly using macros from local aclocal library
+  - use pkg-config or <package>-config scripts where possible
+
+2004-08-26 Erik Slagter <erik at oldconomy dot com>
   * aclib/tcmemcpy.c:
   Engaged memcpy_mmx for tc_memcpy now it works.
 
