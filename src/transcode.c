@@ -3043,6 +3043,9 @@ int main(int argc, char *argv[]) {
     
     if(verbose & TC_DEBUG) printf("[%s] encoder delay = decode=%d encode=%d usec\n", PACKAGE, tc_buffer_delay_dec, tc_buffer_delay_enc);    
     
+    if (vob->ex_frc==0 && vob->im_frc) {
+      vob->ex_frc = vob->im_frc;
+    }
 
     if (socket_file) {
       if(pthread_create(&thread_socket, NULL, (void *) socket_thread, NULL)!=0)
