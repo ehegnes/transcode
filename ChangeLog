@@ -1,5 +1,11 @@
 transcode-0.13-pre2 EMS
 
+2004-08-15 Jacob Meuser <jakemsr at jakemsr dot com>
+  * filter/tomsmocomp/(tomsmocompfilter.h/tomsmocompfilter_3dnow.c/tomsmocompfilter_mmx.c
+  * tomsmocompfilter_sse.c:
+  This filter doesn't come close to bulding for me.  I don't think asm
+  templates work with gcc-2.*, see filter/pp/mangle.h
+
 2004-08-14 Matthias Hopf <Matthias.Hopf at informatik dot uni-stuttgart dot de>
   * filter/Makefile.am filter/tomsmocomp/filter_tomsmocomp.c
   * filter/filter_fieldanalysis.c:
