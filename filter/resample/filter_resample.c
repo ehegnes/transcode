@@ -35,6 +35,7 @@
 
 static char resample_buffer[RESAMPLE_BUFFER_SIZE];
 static int bytes_per_sample;
+static int error;
 
 /* -------------------------------------------------
  *
@@ -101,6 +102,11 @@ int tc_filter(aframe_list_t *ptr, char *options)
     
     if((int) (bytes_per_sample * vob->mp3frequency / vob->fps) > RESAMPLE_BUFFER_SIZE) return(1);
     
+    if (!vob->a_rate || !vob->mp3frequency) {
+	fprintf(stderr, "[%s] Invalid settings\n", MOD_NAME);
+	error = 1;
+	return -1;
+    }
     filter_resample_init(vob->a_rate, vob->mp3frequency);
     
     //this will force this resample filter to do the job, not
@@ -121,7 +127,8 @@ int tc_filter(aframe_list_t *ptr, char *options)
   
   if(ptr->tag & TC_FILTER_CLOSE) {
     
-    filter_resample_stop(resample_buffer);
+      if (!error)
+	  filter_resample_stop(resample_buffer);
     
     return(0);
   }
