@@ -28,7 +28,7 @@
 
 #define MOD_NAME    "filter_msharpen.so"
 #define MOD_VERSION "(1.0) (2003-07-17)"
-#define MOD_CAP     "VertualDub's MSharpen Filter"
+#define MOD_CAP     "VirtualDub's MSharpen Filter"
 #define MOD_AUTHOR  "Donald Graft, William Hawkins"
 
 #include <stdio.h>
