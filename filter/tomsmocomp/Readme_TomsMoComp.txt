@@ -39,6 +39,9 @@ set anywhere from 0 (a smarter Bob) to about 30 (too CPU intensive for everybody
 values are actually implemented (currently 0,1,3,5,9,11,13,15,19,21,max) but the nearest value
 will be used.  Values above 15 have not been well tested and should probably be avoided for now.
 
+(Note from Matthias Hopf <mat@mshopf.de>: It seems to be that all higher modes starting
+with '15' are somewhat broken and introduce dot noise.)
+
 TomsMoComp should run on all MMX machines or higher. It has also has some added code 
 for 3DNOW instructions for when it is running on a K6-II or higher and some SSEMMX 
 for P3 & Athlon.

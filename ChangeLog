@@ -1,3 +1,16 @@
+2005-01-25 Matthias Hopf <mhopf at suse dot de>
+  * filter/tomsmocomp/Readme_TomsMoComp.txt
+    filter/tomsmocomp/filter_tomsmocomp.c
+  First, all searcheffort >= 15 seem to be broken, even the
+  AviSynth filter adds quite a lot of dot noise begining with
+  searcheffort 15.  Lowered the default value to 11 and added
+  a comment to the readme.
+  Second, the v plane was not filtered at all for yuv input!
+  As there was no information about data struct layout, I had
+  to guess the meanings of several fields, and appearantly I
+  was wrong. I do not know whether the u plane was filtered
+  correctly, but I assume it was.
+
 2005-01-25 Andrew Church <achurch at achurch dot org>
   * src/transcode.c docs/man/transcode.1
   For the -E option, samplerate and bits per sample can now be

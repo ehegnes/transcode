@@ -168,7 +168,7 @@ int tc_filter (vframe_list_t *ptr, char *options)
 	    printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
     
 	/* default values */
-	tmc->SearchEffort   = 15;
+	tmc->SearchEffort   = 11;
 	tmc->UseStrangeBob  = 0;
 	tmc->TopFirst       = 1;
 
@@ -191,13 +191,13 @@ int tc_filter (vframe_list_t *ptr, char *options)
 	tmc->rowsize   = vob->im_v_width * 2;
 
 	if (options) {
-	    optstr_get (options, "TopFirst",       "%d",
+	    optstr_get (options, "topfirst",       "%d",
 			&tmc->TopFirst);
-	    optstr_get (options, "SearchEffort",   "%d",
+	    optstr_get (options, "searcheffort",   "%d",
 			&tmc->SearchEffort);
-	    optstr_get (options, "UseStrangeBob",  "%d",
+	    optstr_get (options, "usestrangebob",  "%d",
 			&tmc->UseStrangeBob);
-	    optstr_get (options, "CpuFlags",  "%x",
+	    optstr_get (options, "cpuflags",  "%x",
 			&tmc->cpuflags);
 
 	    if (optstr_get (options, "help", "") >= 0) {
@@ -206,7 +206,6 @@ int tc_filter (vframe_list_t *ptr, char *options)
 	}
 
 	/* frame memory */
-	assert (tmc->width*tmc->height * 2 <= tmc->size);
 	if (! (tmc->framePrev = calloc (1, tmc->size)) ||
 	    ! (tmc->frameIn   = calloc (1, tmc->size)) ||
 	    ! (tmc->frameOut  = calloc (1, tmc->size))) {
@@ -225,10 +224,10 @@ int tc_filter (vframe_list_t *ptr, char *options)
 	tmc->DSinfo.pMemcpy = tc_memcpy;
 	
 	if (verbose) {
-	    printf("[%s] TopFirst %s,  SearchEffort %d,  StrangeBob %s\n",
+	    printf("[%s] topfirst %s,  searcheffort %d,  usestrangebob %s\n",
 		   MOD_NAME, tmc->TopFirst ? "True":"False", tmc->SearchEffort,
 		   tmc->UseStrangeBob ? "True":"False");
-	    printf("[%s] CpuFlags%s%s%s%s\n", MOD_NAME,
+	    printf("[%s] cpuflags%s%s%s%s\n", MOD_NAME,
 		   tmc->cpuflags & MM_SSE ? " SSE":"",
 		   tmc->cpuflags & MM_3DNOW ? " 3DNOW":"",
 		   tmc->cpuflags & MM_MMX ? " MMX":"",
@@ -257,14 +256,14 @@ int tc_filter (vframe_list_t *ptr, char *options)
 	char buf[255];
 	optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION,
 			    MOD_AUTHORS, "VY4E", "1");
-	snprintf (buf, sizeof(buf), "%d", tmc->TopFirst);
-	optstr_param (options, "TopFirst", "Assume the top field should be displayed first" ,"%d", buf, "0", "1");
-	snprintf (buf, sizeof(buf), "%d", tmc->SearchEffort);
-	optstr_param (options, "SearchEffort", "CPU time used to find moved pixels" ,"%d", buf, "0", "30");
-	snprintf (buf, sizeof(buf), "%d", tmc->UseStrangeBob);
-	optstr_param (options, "UseStrangeBob", "?Unknown?" ,"%d", buf, "0", "1");
-	snprintf (buf, sizeof(buf), "%02x", tmc->cpuflags);
-	optstr_param (options, "CpuFlags", "Manual specification of CPU capabilities" ,"%x", buf, "00", "ff");
+	sprintf (buf, "%d", tmc->TopFirst);
+	optstr_param (options, "topfirst", "Assume the top field should be displayed first" ,"%d", buf, "0", "1");
+	sprintf (buf, "%d", tmc->SearchEffort);
+	optstr_param (options, "searcheffort", "CPU time used to find moved pixels" ,"%d", buf, "0", "30");
+	sprintf (buf, "%d", tmc->UseStrangeBob);
+	optstr_param (options, "usestrangebob", "?Unknown?" ,"%d", buf, "0", "1");
+	sprintf (buf, "%02x", tmc->cpuflags);
+	optstr_param (options, "cpuflags", "Manual specification of CPU capabilities" ,"%x", buf, "00", "ff");
     }
     
     //----------------------------------
@@ -275,8 +274,7 @@ int tc_filter (vframe_list_t *ptr, char *options)
     if ((ptr->tag & TC_PRE_S_PROCESS) && (ptr->tag & TC_VIDEO)) {
 
 	uint8_t *tmp;
-	assert (ptr->free == 0 || ptr->free == 1);
-	assert (ptr->video_buf_Y[!ptr->free] == ptr->video_buf);
+	uint8_t *vid_y = ptr->video_buf, *vid_u = vid_y + tmc->size/2, *vid_v = vid_u + tmc->size/8;
  
 	/* Convert / Copy to yuy2 */
 	switch (tmc->codec) {
@@ -284,10 +282,8 @@ int tc_filter (vframe_list_t *ptr, char *options)
 	    tc_memcpy (tmc->frameIn, ptr->video_buf, tmc->size);
 	    break;
 	case CODEC_YUV:
-	    yv12toyuy2 (ptr->video_buf_Y[!ptr->free],
-			ptr->video_buf_U[!ptr->free],
-			ptr->video_buf_V[!ptr->free], tmc->frameIn,
-			tmc->width, tmc->height);
+	    yv12toyuy2 (vid_y, vid_u, vid_v, tmc->frameIn,
+		        tmc->width, tmc->height);
 	    break;
 	case CODEC_YUV422:
 	    uyvytoyuy2 (ptr->video_buf, tmc->frameIn, tmc->width, tmc->height);
@@ -305,9 +301,7 @@ int tc_filter (vframe_list_t *ptr, char *options)
 		tc_memcpy (ptr->video_buf, tmc->frameOut, tmc->size);
 		break;
 	    case CODEC_YUV:
-		yuy2toyv12 (ptr->video_buf_Y[!ptr->free],
-			    ptr->video_buf_U[!ptr->free],
-			    ptr->video_buf_V[!ptr->free], tmc->frameOut,
+		yuy2toyv12 (vid_y, vid_u, vid_v, tmc->frameOut,
 			    tmc->width, tmc->height);
 		break;
 	    case CODEC_YUV422:
