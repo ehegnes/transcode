@@ -33,11 +33,10 @@ static int capability_flag = TC_CAP_PCM;
 #define MOD_PRE mp3
 #include "import_def.h"
 
-#include "xio.h"
+#include "libxio/xio.h"
 
 
-#define MAX_BUF 1024
-char import_cmd_buf[MAX_BUF];
+char import_cmd_buf[TC_BUF_MAX];
 
 static FILE *fd;
 
@@ -48,17 +47,17 @@ static int decoded_frames=0;
 static int offset=0;
 static int last_percent=0;
 
-static int scan(char *name) 
+static int scan(char *name)
 {
   struct stat fbuf;
-  
+
   if(xio_stat(name, &fbuf)) {
     fprintf(stderr, "(%s) invalid file \"%s\"\n", __FILE__, name);
-    exit(1);
+    return(-1);
   }
-  
+
   // file or directory?
-  
+
   if(S_ISDIR(fbuf.st_mode)) return(1);
   return(0);
 }
@@ -72,86 +71,94 @@ static int scan(char *name)
 MOD_open
 {
     int is_dir=0;
+    int sret;
 
     // audio only
     if(param->flag != TC_AUDIO) return(TC_IMPORT_ERROR);
 
-    if (scan(vob->audio_in_file)) {
+    sret = scan(vob->audio_in_file);
+    if (sret < 0)
+      return(TC_IMPORT_ERROR);
+    else
+      if (sret == 1)
 	is_dir = 1;
-    } else {
+      else
 	is_dir = 0;
-    }
-    
+
     codec = vob->im_a_codec;
     count = 0;
     offset = vob->vob_offset;
-    
+
+	// (offset && vob->nav_seek_file)?("-S %s"):""
+
     switch(codec) {
-	
-			// (offset && vob->nav_seek_file)?("-S %s"):""
+
     case CODEC_PCM:
-	
+
 	if (offset && vob->nav_seek_file) {
-	  if((snprintf(import_cmd_buf, MAX_BUF, 
-			"tcextract -a %d -i \"%s\" -x %s -d %d -f %s -C %d-%d | tcdecode -x %s -d %d -z %d", 
-			vob->a_track, vob->audio_in_file, 
-			(vob->fixme_a_codec==0x50?"mp2":"mp3"), vob->verbose, 
-			vob->nav_seek_file, offset, offset+1, 
-			(vob->fixme_a_codec==0x50?"mp2":"mp3"), vob->verbose,
-			vob->a_padrate)<0)) {
-	    perror("command buffer overflow");
+	  sret = snprintf(import_cmd_buf, TC_BUF_MAX, 
+	              "tcextract -a %d -i \"%s\" -x %s -d %d -f %s -C %d-%d |"
+                      " tcdecode -x %s -d %d -z %d", 
+		      vob->a_track, vob->audio_in_file, 
+		      (vob->fixme_a_codec==0x50 ? "mp2" : "mp3"), vob->verbose, 
+		      vob->nav_seek_file, offset, offset + 1, 
+		      (vob->fixme_a_codec==0x50 ? "mp2" : "mp3"), vob->verbose,
+		      vob->a_padrate);
+          if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
 	    return(TC_IMPORT_ERROR);
-	  }
+
 	} else {
 	  if (is_dir) {
-	    if((snprintf(import_cmd_buf, MAX_BUF, 
-			"tccat -a -i %s | tcextract -a %d -x %s -d %d | tcdecode -x %s -d %d -z %d", 
+	    sret = snprintf(import_cmd_buf, TC_BUF_MAX, 
+			"tccat -a -i %s | tcextract -a %d -x %s -d %d |"
+                        " tcdecode -x %s -d %d -z %d", 
 			vob->audio_in_file, vob->a_track,
-			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
+			(vob->fixme_a_codec==0x50 ? "mp2" : "mp3"),
 			vob->verbose, 
-			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
+			(vob->fixme_a_codec==0x50 ? "mp2" : "mp3"),
 			vob->verbose,
-			vob->a_padrate)<0)) {
-	      perror("command buffer overflow");
+			vob->a_padrate);
+	    if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))  
 	      return(TC_IMPORT_ERROR);
-	    }
+
 	  } else {
-	    if((snprintf(import_cmd_buf, MAX_BUF, 
-			"tcextract -a %d -i \"%s\" -x %s -d %d | tcdecode -x %s -d %d -z %d", 
+	    sret = snprintf(import_cmd_buf, TC_BUF_MAX, 
+			"tcextract -a %d -i \"%s\" -x %s -d %d |"
+                        " tcdecode -x %s -d %d -z %d", 
 			vob->a_track, vob->audio_in_file, 
 			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
 			vob->verbose, 
 			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
-			vob->verbose, vob->a_padrate)<0)) {
-	    perror("command buffer overflow");
-	    return(TC_IMPORT_ERROR);
-	    }
+			vob->verbose, vob->a_padrate);
+	    if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+	      return(TC_IMPORT_ERROR);
+
 	  }
 	}
-	
+
 	if(verbose_flag) printf("[%s] MP3->PCM\n", MOD_NAME);
-	
+
 	break;
-	
+
     default: 
 	fprintf(stderr, "invalid import codec request 0x%x\n", codec);
 	return(TC_IMPORT_ERROR);
-	
+
     }
-    
+
     // print out
     if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
-    
+
     // set to NULL if we handle read
     param->fd = NULL;
-    
+
     // popen
     if((fd = popen(import_cmd_buf, "r"))== NULL) {
 	perror("popen pcm stream");
 	return(TC_IMPORT_ERROR);
     }
-    
-    return(0);
+
+    return(TC_IMPORT_OK);
 }
 
 /* ------------------------------------------------------------ 
@@ -162,28 +169,27 @@ MOD_open
 
 MOD_decode
 {
-    
+
   int ac_bytes=0, ac_off=0; 
 
   // audio only
   if(param->flag != TC_AUDIO) return(TC_IMPORT_ERROR);
-  
+
   switch(codec) {
       
   case CODEC_PCM:
-    
+
     //default:
     ac_off   = 0;
     ac_bytes = param->size;
     break;
-    
-    
+
   default: 
     fprintf(stderr, "invalid import codec request 0x%x\n",codec);
       return(TC_IMPORT_ERROR);
-      
+
   }
-  
+
   // this can be done a lot smarter in tcextract
 #if 1
   do {
@@ -207,8 +213,8 @@ MOD_decode
 	  return(TC_IMPORT_ERROR);
       }
 #endif
-  
-  return(0);
+
+  return(TC_IMPORT_OK);
 }
 
 /* ------------------------------------------------------------ 
@@ -218,11 +224,10 @@ MOD_decode
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
-  
+{
+
   if(param->flag != TC_AUDIO) return(TC_IMPORT_ERROR);
 
-  
   if(fd != NULL) pclose(fd);
   if(param->fd != NULL) pclose(param->fd);
 
@@ -230,8 +235,6 @@ MOD_close
   param->fd = NULL;
   decoded_frames = 0;
   last_percent = 0;
- 
-  
-  return(0);
-}
 
+  return(TC_IMPORT_OK);
+}
