@@ -1,8 +1,14 @@
 ------------------------------------------
-Author and Maintainer of transcode (core):
+Original Author of transcode (core):
 ------------------------------------------
 	Thomas Östreich <ostreich@theorie.physik.uni-goettingen.de>
-	Tilmann Bitterberg <transcode@tibit.org> (current Maintainer)
+
+------------------------------------------
+Current and Previous Maintainers of transcode (core):
+------------------------------------------
+	Tilmann Bitterberg <transcode@tibit.org>
+	Erik Slagter <erik@oldconomy.com>
+	Jacob Meuser <jakemsr@jakemsr.com> (current)
 
 -------------------------------
 Contributors: (c.f. ChangeLog):
@@ -14,7 +20,7 @@ Contributors: (c.f. ChangeLog):
 		o inverse cropping
 		o tons of bug fixes
 		
-	Marek Blaszkowski <mb@intercon.pl>	
+	Marek Blaszkowski <mb@intercon.pl>
 		o import_yuv.c
 
 	Gregory Brauer <greg@wildbrain.com>
