@@ -117,9 +117,19 @@ typedef struct sync_info_s {
 #define TC_STYPE_FILE         0x00000001
 #define TC_STYPE_STDIN        0x00000002
 
-# define ERROR_END_OF_STREAM        1
-# define ERROR_INVALID_FRAME        2
-# define ERROR_INVALID_FRAME_SIZE   3
-# define ERROR_INVALID_HEADER       4
+#define ERROR_END_OF_STREAM        1
+#define ERROR_INVALID_FRAME        2
+#define ERROR_INVALID_FRAME_SIZE   3
+#define ERROR_INVALID_HEADER       4
 
-#endif
+#define TC_PROBE_PATH_INVALID	0
+#define TC_PROBE_PATH_ABSPATH	1
+#define TC_PROBE_PATH_RELDIR	2
+#define TC_PROBE_PATH_FILE	3
+#define TC_PROBE_PATH_NET	4
+#define TC_PROBE_PATH_BKTR	5
+#define TC_PROBE_PATH_SUNAU	6
+#define TC_PROBE_PATH_V4L_VIDEO	7
+#define TC_PROBE_PATH_V4L_AUDIO	8
+
+#endif   /* _IOAUX_H */
