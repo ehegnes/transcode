@@ -34,6 +34,8 @@
 
 unsigned char asfhdrguid[16]={0x30,0x26,0xB2,0x75,0x8E,0x66,0xCF,0x11,0xA6,0xD9,0x00,0xAA,0x00,0x62,0xCE,0x6C};
 
+unsigned char mxfmagic[]={0x06,0x0e,0x2b,0x34,0x02,0x05,0x01,0x01};
+
 unsigned char lavheader[14]="LAV Edit List\n";
 
 unsigned char zero_pad[4]={0,0,0,0};
@@ -493,6 +495,12 @@ long fileinfo(int fdes, int skip)
     goto exit;
   }
 
+  //MXF
+  if(memcmp(mxfmagic,buf,sizeof(mxfmagic))==0) {
+    id = TC_MAGIC_MXF;
+    goto exit;
+  }
+
   /* -------------------------------------------------------------------
    *
    * more tests
@@ -725,6 +733,12 @@ long streaminfo(int fdes)
     goto exit;
   }
 
+  //MXF
+  if(memcmp(mxfmagic,buf,sizeof(mxfmagic))==0) {
+    id = TC_MAGIC_MXF;
+    goto exit;
+  }
+
   /* -------------------------------------------------------------------
    *
    * exit
@@ -762,6 +776,7 @@ char *filetype(long magic)
   case TC_MAGIC_RMF:          return("Real Media");
   case TC_MAGIC_XML:          return("XML file, need to and analize the content");
   case TC_MAGIC_LAV:          return("LAV Edit List");
+  case TC_MAGIC_MXF:          return("The Material eXchange Format");
   case TC_MAGIC_OGG:          return("OGG Multimedia Container");
 
   case TC_MAGIC_RAW:          return("RAW stream");

@@ -46,6 +46,26 @@ transcode-0.6.11
 
 2003-10-17 Tilmann Bitterberg <transcode at tibit.org>
 
+  * import/{Makefile.am Makefile.in fileinfo.c magic.h
+  probe_stream.c tc.h extract_mxf.c}:
+  Very preliminary support for MXF the Material eXchange Format. Its
+  a file format already used in professional equipment. Quoting
+  http://www.snellwilcox.com/knowledgecenter/mxf_aaf.html:
+  The Material Exchange Format, MXF, is a File Format optimized for
+  the interchange of material for the content creation industries. MXF
+  is a wrapper format intended to encapsulate and accurately describe
+  one or more "clips" of Essence. These Essence "clips" may be
+  Pictures, Sound, Data or some combination of all of these.
+
+  An MXF File contains enough information to allow two applications to
+  interchange essence without any a-priori information. The MXF
+  metadata allows applications to know the duration of the file, what
+  essence codecs are required, what timeline complexity is involved
+  and other key points to allow interchange. The key to MXF is the
+  accurate description of the essence. 
+
+2003-10-17 Tilmann Bitterberg <transcode at tibit.org>
+
   * import/extract_ac3.c:
   Fix a segfault on MacOSX. The buffer was to large to be taken from
   the stack.

@@ -89,6 +89,7 @@
 #define TC_MAGIC_OGG                   0x00000024
 #define TC_MAGIC_AF6                   0x00000025
 #define TC_MAGIC_VNC                   0x00000026
+#define TC_MAGIC_MXF                   0x00000027
 
 #define TC_MAGIC_VOB                   0x000001ba
 #define TC_MAGIC_SOCKET                0xFF00FF00

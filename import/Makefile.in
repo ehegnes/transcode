@@ -503,10 +503,10 @@ tccat_LDADD = @DVDREAD_LIBS@ -L../avilib -lavi @DV_LIBS@  @LIBXML2_LIBS@ @DLDARW
 tcscan_SOURCES = tcscan.c fileinfo.c bitrate.c ioaux.c scan_pes.c aux_pes.c mpg123.c ac3scan.c scan_dv.c
 tcscan_LDADD = @LAME_LIBS@ $(AC3_LIB) -L../avilib -lavi @DV_LIBS@ -lm 
 
-tcprobe_SOURCES = tcprobe.c probe_stream.c fileinfo.c bitrate.c ioaux.c extract_avi.c scan_pes.c aux_pes.c mpg123.c ac3scan.c dvd_reader.c probe_dvd.c decode_dv.c extract_yuv.c probe_nuv.c probe_wav.c iodump.c probe_socket.c scan_dv.c probe_im.c probe_mov.c probe_xml.c ioxml.c probe_lav.c probe_ogg.c ts_reader.c probe_vnc.c
+tcprobe_SOURCES = tcprobe.c probe_stream.c fileinfo.c bitrate.c ioaux.c extract_avi.c scan_pes.c aux_pes.c mpg123.c ac3scan.c dvd_reader.c probe_dvd.c decode_dv.c extract_yuv.c probe_nuv.c probe_wav.c iodump.c probe_socket.c scan_dv.c probe_im.c probe_mov.c probe_xml.c ioxml.c probe_lav.c probe_ogg.c ts_reader.c probe_vnc.c extract_mxf.c
 tcprobe_LDADD = @LAME_LIBS@ -L../avilib -lavi $(AC3_LIB) @DVDREAD_LIBS@ @DV_LIBS@ @MAGICK_LIBS@ @QT_LIBS@ @LIBXML2_LIBS@ @VORBIS_LIBS@ @THEORA_LIBS@ @OGG_LIBS@ @DLDARWINLIB@ -lm
 
-tcextract_SOURCES = tcextract.c extract_ac3.c extract_mpeg2.c extract_pcm.c fileinfo.c extract_yuv.c extract_rgb.c extract_dv.c ioaux.c extract_mp3.c scan_dv.c aux_pes.c extract_ogm.c extract_lzo.c
+tcextract_SOURCES = tcextract.c extract_ac3.c extract_mpeg2.c extract_pcm.c fileinfo.c extract_yuv.c extract_rgb.c extract_dv.c ioaux.c extract_mp3.c scan_dv.c aux_pes.c extract_ogm.c extract_lzo.c extract_mxf.c
 tcextract_LDADD = $(AC3_LIB) $(MPEG2_LIB) -L../libvo -lvout -L../avilib -lavi @DV_LIBS@ @THEORA_LIBS@ @OGG_LIBS@ @VORBIS_LIBS@ -lm
 
 tcdemux_SOURCES = tcdemux.c fileinfo.c ioaux.c dvd_reader.c seqinfo.c demuxer.c aux_pes.c packets.c scan_pack.c scan_dv.c demux_pass.c
@@ -650,7 +650,7 @@ am_tcextract_OBJECTS = tcextract.$(OBJEXT) extract_ac3.$(OBJEXT) \
 	fileinfo.$(OBJEXT) extract_yuv.$(OBJEXT) extract_rgb.$(OBJEXT) \
 	extract_dv.$(OBJEXT) ioaux.$(OBJEXT) extract_mp3.$(OBJEXT) \
 	scan_dv.$(OBJEXT) aux_pes.$(OBJEXT) extract_ogm.$(OBJEXT) \
-	extract_lzo.$(OBJEXT)
+	extract_lzo.$(OBJEXT) extract_mxf.$(OBJEXT)
 tcextract_OBJECTS = $(am_tcextract_OBJECTS)
 tcextract_DEPENDENCIES =
 tcextract_LDFLAGS =
@@ -663,7 +663,7 @@ am_tcprobe_OBJECTS = tcprobe.$(OBJEXT) probe_stream.$(OBJEXT) \
 	probe_socket.$(OBJEXT) scan_dv.$(OBJEXT) probe_im.$(OBJEXT) \
 	probe_mov.$(OBJEXT) probe_xml.$(OBJEXT) ioxml.$(OBJEXT) \
 	probe_lav.$(OBJEXT) probe_ogg.$(OBJEXT) ts_reader.$(OBJEXT) \
-	probe_vnc.$(OBJEXT)
+	probe_vnc.$(OBJEXT) extract_mxf.$(OBJEXT)
 tcprobe_OBJECTS = $(am_tcprobe_OBJECTS)
 tcprobe_DEPENDENCIES =
 tcprobe_LDFLAGS =
@@ -712,6 +712,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/extract_lzo.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/extract_mp3.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/extract_mpeg2.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/extract_mxf.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/extract_ogm.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/extract_pcm.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/extract_rgb.Po \
@@ -989,6 +990,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/extract_lzo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/extract_mp3.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/extract_mpeg2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/extract_mxf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/extract_ogm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/extract_pcm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/extract_rgb.Po@am__quote@

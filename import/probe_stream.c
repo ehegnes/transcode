@@ -88,12 +88,18 @@ void tcprobe_thread(info_t *ipipe)
 
       break;
 
+    case TC_MAGIC_MXF:
+      probe_mxf(ipipe);
+
+      break;
+
     case TC_MAGIC_V4L_VIDEO:
 	ipipe->probe_info->magic = TC_MAGIC_V4L_VIDEO;
 	ipipe->probe_info->width  = 352;
 	ipipe->probe_info->height = 288;
 
 	break;
+
     case TC_MAGIC_V4L_AUDIO:
 	ipipe->probe_info->magic = TC_MAGIC_V4L_AUDIO;
 
