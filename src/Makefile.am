@@ -29,7 +29,6 @@ EXTRA_DIST =  \
    tc_defaults.h \
    transcode.h \
    usage.h \
-   video_buffer.h \
    video_trans.h \
    zoom.h
 
