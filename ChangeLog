@@ -1,5 +1,13 @@
 --------------------------------------------
-transcode-0.6.4.HEAD
+transcode-0.6.4 Tue Apr 29 16:34:20 CEST 2003
+
+2003-04-28 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/filter_text.c, docs/filter_text.txt: New filter filter_text.
+  It renders arbitrary text in the image. See documentation
+  /docs/filter_text.txt. The filter does both RGB and YUV, a sample is
+
+    $ transcode -J text=string="Hello World":fade=3:range=50-250
 
 2003-04-28 Thomas Oestreich <ostreich at Theorie.Physik.UNI-Goettingen.DE>
 
@@ -7,12 +15,12 @@ transcode-0.6.4.HEAD
   import/probe_stream.c, import/scan_pes.c: fix the
   detection/transcoding of some newer VDR streams
 
-2003-27 Tilmann Bitterberg <transcode at tibit.org>
+2003-04-27 Tilmann Bitterberg <transcode at tibit.org>
 
   * /*/Makefile.am: remove the -no-undefined switch when building
   export modules, this is needed for compiling on MacOS X. Added a
   dummy.c file in libdldarwin for `ar's who do not like creating empty
-  archives.
+  archives. Pointed out by Sarah Hay.
 
 2003-04-25 Tilmann Bitterberg <transcode at tibit.org>
 
