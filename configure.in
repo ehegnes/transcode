@@ -114,7 +114,7 @@ AC_FUNC_VPRINTF
 AC_FUNC_STAT
 AC_FUNC_STRCOLL
 AC_TYPE_SIGNAL
-AC_CHECK_FUNCS([ftruncate gettimeofday memset strerror strncasecmp stat malloc])
+AC_CHECK_FUNCS([ftruncate gettimeofday memset strerror strncasecmp stat])
 AC_CHECK_FUNCS([floor atexit getpagesize memmove mkfifo vsscanf strptime])
 
 dnl for libavcodec

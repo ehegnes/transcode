@@ -1129,8 +1129,7 @@ Optional Packages:
                           (optional)
   --with-x                use the X Window System
   --with-sdl-prefix=PFX   Prefix where SDL is installed (optional)
-  --with-sdl-exec-prefix=PFX
-                          Exec prefix where SDL is installed (optional)
+  --with-sdl-exec-prefix=PFX Exec prefix where SDL is installed (optional)
   --with-gtk-prefix=PFX   Prefix where GTK is installed (optional)
   --with-gtk-exec-prefix=PFX
                           Exec prefix where GTK is installed (optional)
@@ -7862,8 +7861,7 @@ _ACEOF
 
 
 
-
-for ac_func in ftruncate gettimeofday memset strerror strncasecmp stat malloc
+for ac_func in ftruncate gettimeofday memset strerror strncasecmp stat
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -10612,7 +10610,7 @@ test "x$enable_libtool_lock" != xno && enable_libtool_lock=yes
 case $host in
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 10615 "configure"' > conftest.$ac_ext
+  echo '#line 10613 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -11141,7 +11139,7 @@ chmod -w .
 save_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -o out/conftest2.$ac_objext"
 compiler_c_o=no
-if { (eval echo configure:11144: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
+if { (eval echo configure:11142: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
   # The compiler can only warn and ignore the option if not recognized
   # So say no if there are warnings
   if test -s out/conftest.err; then
@@ -12973,7 +12971,7 @@ else
     lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 12976 "configure"
+#line 12974 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -13071,7 +13069,7 @@ else
     lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 13074 "configure"
+#line 13072 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -18756,6 +18754,8 @@ fi;
      fi
   fi
 
+
+  PATH="$prefix/bin:$prefix/usr/bin:$PATH"
   # Extract the first word of "sdl-config", so it can be a program name with args.
 set dummy sdl-config; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
@@ -18949,6 +18949,11 @@ cat >>conftest.$ac_ext <<_ACEOF
 #include <stdio.h>
 #include "SDL.h"
 
+int main(int argc, char *argv[])
+{ return 0; }
+#undef  main
+#define main K_and_R_C_main
+
 int
 main ()
 {
@@ -18982,6 +18987,10 @@ else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
+ echo "*** The test program failed to compile or link. See the file config.log for the"
+          echo "*** exact error that occured. This usually means SDL was incorrectly installed"
+          echo "*** or that you have moved SDL since it was installed. In the latter case, you"
+          echo "*** may want to edit the sdl-config script: $SDL_CONFIG"
 fi
 rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
           CFLAGS="$ac_save_CFLAGS"

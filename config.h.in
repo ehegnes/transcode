@@ -148,7 +148,8 @@
 /* Have ImageMagick support */
 #undef HAVE_MAGICK
 
-/* Define to 1 if you have the `malloc' function. */
+/* Define to 1 if your system has a GNU libc compatible `malloc' function, and
+   to 0 otherwise. */
 #undef HAVE_MALLOC
 
 /* Define to 1 if you have the <malloc.h> header file. */
