@@ -215,7 +215,7 @@ int a52_decore(info_t *ipipe) {
     }
 
     // decode frame
-    if (!pass_through) {
+   if (!pass_through) {
     for(i=0; i<A52_BLOCKS; ++i) {
       
       a52_block(state);
@@ -234,13 +234,27 @@ int a52_decore(info_t *ipipe) {
 	  return(-1);
 	}
     } //end pcm data output
-    } else {
-      if((bytes_wrote=p_write(ipipe->fd_out, buf, bytes_read+HEADER_LEN)) < bytes_read+HEADER_LEN) {
+   } else {
+    // pass through
+    for(i=0; i<A52_BLOCKS; ++i) {
+      
+      a52_block(state);
+      
+      // output pcm data
+      
+      samples = a52_samples(state);
+      
+      pcm_size = 256 * sizeof (int16_t)*chans;
+      
+      //fprintf (stderr, "(%s@%d) write (%d) bytes\n", __FILE__, __LINE__, pcm_size);
+      (ipipe->a52_mode & TC_A52_DEMUX) ? float2s16((float *)samples, (int16_t *)&pcm_buf) : float2s16_2((float *)samples, (int16_t *)&pcm_buf);  
+    } //end pcm data output
+    if((bytes_wrote=p_write(ipipe->fd_out, buf, bytes_read+HEADER_LEN)) < bytes_read+HEADER_LEN) {
 	if(verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) write error (%d/%d)\n", 
 	    __FILE__, __LINE__, bytes_wrote, bytes_read+HEADER_LEN);
 	return(-1);
-      }
     }
+   }
     
   skip_frame:
     continue;
