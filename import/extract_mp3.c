@@ -269,12 +269,17 @@ int mp3scan(int infd, int outfd)
   unsigned long k=0;
 
 
-  char buffer[SIZE_PCM_FRAME];
+  char *buffer = malloc (SIZE_PCM_FRAME);
 
   uint16_t sync_word = 0;
 
   // need to find syncbyte:
   
+  if (!buffer) {
+      fprintf(stderr, "cannot malloc memory\n");
+      return 1;
+  }
+
   for(;;) {
     
     if (p_read(infd, &buffer[s], 1) !=1) {
@@ -293,6 +298,7 @@ int mp3scan(int infd, int outfd)
     
     if(k>(1<<20)) {
       fprintf(stderr, "no MP3 sync byte found within 1024 kB of stream\n");
+      free (buffer);
       return(1);
     }
   }
@@ -306,6 +312,7 @@ int mp3scan(int infd, int outfd)
   p_write(outfd, buffer, 2);
   p_readwrite(infd, outfd);
   
+  free (buffer);
   return(1);
 }
 
