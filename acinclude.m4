@@ -676,6 +676,8 @@ int main ()
   fi
   if test x"$have_pvm3" = x"yes" ; then
     AC_MSG_RESULT(yes)
+    dnl we need to also include the in-tree pvm3 headers
+    PVM3_CFLAGS="$PVM3_CFLAGS -I\$(top_srcdir)/pvm3"
     ifelse([$1], , :, [$1])
   else
     AC_MSG_RESULT(no)
