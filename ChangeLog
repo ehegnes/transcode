@@ -3,6 +3,11 @@ transcode-0.6.10
 
 2003-08-23 Tilmann Bitterberg <transcode at tibit.org>
 
+   * docs/man/tcdecode.1:
+   Add description of -A flags
+
+2003-08-23 Tilmann Bitterberg <transcode at tibit.org>
+
    * import/import_ffmpeg.c:
    enable support for color space YUV4:1:1p in -V and RGB modes.
    This should enable import_ffmpeg for "dvsd" AVI files.
