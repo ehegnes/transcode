@@ -39,7 +39,8 @@ typedef struct filter_s {
 
   void *handle;
 
-  char name[256];
+  char *name;
+  int namelen;
 
   int (*entry)(void *ptr, void *options);
   
