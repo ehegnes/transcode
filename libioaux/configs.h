@@ -206,7 +206,7 @@ struct config {
   void *dummy;
 };
 
-int module_read_config(char *section, char *prefix, char *module, struct config *conf);
+int module_read_config(char *section, char *prefix, char *module, struct config *conf, char *configdir);
 int module_read_values(CF_ROOT_TYPE *p_root, CF_SECTION_TYPE *p_section,
                        char *prefix, struct config *conf);
 int module_print_config(char *prefix, struct config *conf);
