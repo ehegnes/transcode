@@ -14,6 +14,7 @@ AC_DEFUN([AC_C_ATTRIBUTE_ALIGNED],
 	    [$ac_cv_c_attribute_aligned],[maximum supported data alignment])
     fi])
 
+
 dnl AC_TRY_CXXFLAGS (CXXFLAGS, [ACTION-IF-WORKS], [ACTION-IF-FAILS])
 dnl check if $CXX supports a given set of cflags
 AC_DEFUN([AC_TRY_CXXFLAGS],
@@ -46,40 +47,6 @@ AC_DEFUN([AC_TRY_CFLAGS],
     fi])
 
 
-dnl AC_CHECK_GENERATE_INTTYPES_H (INCLUDE-DIRECTORY)
-dnl generate a default inttypes.h if the header file does not exist already
-AC_DEFUN([AC_CHECK_GENERATE_INTTYPES],
-    [AC_CHECK_HEADER([inttypes.h],[],
-	[AC_COMPILE_CHECK_SIZEOF([char],[1])
-	AC_COMPILE_CHECK_SIZEOF([short],[2])
-	AC_COMPILE_CHECK_SIZEOF([int],[4])
-	AC_COMPILE_CHECK_SIZEOF([long long],[8])
-	cat >$1/inttypes.h << EOF
-#ifndef _INTTYPES_H
-#define _INTTYPES_H
-/* default inttypes.h for people who do not have it on their system */
-#if (!defined __int8_t_defined) && (!defined __BIT_TYPES_DEFINED__)
-#define __int8_t_defined
-typedef signed char int8_t;
-typedef signed short int16_t;
-typedef signed int int32_t;
-#ifdef ARCH_X86
-typedef signed long long int64_t;
-#endif
-#endif
-#if (!defined _LINUX_TYPES_H)
-typedef unsigned char uint8_t;
-typedef unsigned short uint16_t;
-typedef unsigned int uint32_t;
-#ifdef ARCH_X86
-typedef unsigned long long uint64_t;
-#endif
-#endif
-#endif
-EOF
-	])])
-
-
 dnl AC_COMPILE_CHECK_SIZEOF (TYPE SUPPOSED-SIZE)
 dnl abort if the given type does not have the supposed size
 AC_DEFUN([AC_COMPILE_CHECK_SIZEOF],
@@ -88,121 +55,6 @@ AC_DEFUN([AC_COMPILE_CHECK_SIZEOF],
 	[AC_MSG_ERROR([can not build a default inttypes.h])])
     AC_MSG_RESULT([yes])])
 
-
-dnl TC_PATH_FFMPEG_LIBS([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for libavcodec, and define FFMPEG_LIBS_LIBS, FFMPEG_LIBS_CFLAGS,
-dnl and FFMPEG_LIBS_EXTRALIBS
-dnl
-AC_DEFUN([TC_PATH_FFMPEG_LIBS],
-[
-AC_ARG_WITH(ffmpeg-libs-includes,
-  AC_HELP_STRING([--with-ffmpeg-libs-includes=PFX],
-    [prefix where ffmpeg libs includes are installed (optional)]),
-  ffmpeg_libs_includes="$withval", ffmpeg_libs_includes="")
-
-AC_ARG_WITH(ffmpeg-libs-libs,
-  AC_HELP_STRING([--with-ffmpeg-libs-libs=PFX],
-    [prefix where ffmpeg libs libraries files are installed (optional)]),
-  ffmpeg_libs_libs="$withval", ffmpeg_libs_libs="")
-
-AC_ARG_ENABLE(ffmpeg-libs-static,
-  AC_HELP_STRING([--enable-ffmpeg-libs-static],
-    [link binaries and modules statically to ffmpeg-libs WARNING: creates huge binaries WARNING: only tested on linux x86]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-ffmpeg-libs-static) ;;
-  esac],
-  [enable_ffmpeg_libs_static=no])
-
-if test x"$ffmpeg_libs_includes" != x"" ; then
-  with_ffmpeg_libs_i="$ffmpeg_libs_includes/include"
-else
-  with_ffmpeg_libs_i="/usr/include"
-fi
-if test x"$ffmpeg_libs_libs" != x"" ; then
-  with_ffmpeg_libs_l="$ffmpeg_libs_libs/lib"
-else
-  with_ffmpeg_libs_l="/usr${deflib}"
-fi
-
-FFMPEG_LIBS_EXTRALIBS="-lm -lz $PTHREAD_LIBS"
-
-save_CPPFLAGS="$CPPFLAGS"
-CPPFLAGS="$CPPFLAGS -I$with_ffmpeg_libs_i"
-AC_CHECK_HEADER([ffmpeg/avcodec.h],
-  [FFMPEG_LIBS_CFLAGS="-I$with_ffmpeg_libs_i"],
-  [AC_MSG_ERROR([FFmpeg (libavcodec) required, but cannot compile ffmpeg/avcodec.h])])
-
-AC_TRY_RUN([
-#include <stdio.h>
-#include <ffmpeg/avcodec.h>
-int
-main()
-{
-  if (LIBAVCODEC_BUILD < 4718)
-  {
-    printf("error: transcode needs at least ffmpeg build 4718");
-    printf("install ffmpeg 0.4.9-pre1 or newer, or a cvs version after 20040703");
-    return(1);
-  }
-  printf("VER=%s\n", FFMPEG_VERSION);
-  printf("BUILD=%d\n", LIBAVCODEC_BUILD);
-  return(0);
-}
-],
-    [FFMPEG_LIBS_VERSION="`./conftest$ac_exeext | sed -ne 's,VER=\(.*\),\1,p'`"
-      FFMPEG_LIBS_BUILD="`./conftest$ac_exeext | sed -ne 's,BUILD=\(.*\),\1,p'`"],
-    [AC_MSG_ERROR([FFmpeg (libavcodec) required, but cannot compile ffmpeg/avcodec.h])],
-    [echo $ac_n "cross compiling; assumed OK... $ac_c"
-      FFMPEG_LIBS_VERSION=""
-      FFMPEG_LIBS_BUILD=""])
-
-CPPFLAGS="$save_CPPFLAGS"
-
-AC_SUBST(FFMPEG_LIBS_VERSION)
-AC_SUBST(FFMPEG_LIBS_BUILD)
-
-have_ffmpeg_libs=no
-if test x"$enable_ffmpeg_libs_static" = x"no" ; then
-  save_LDFLAGS="$LDFLAGS"
-  LDFLAGS="$LDFLAGS -L$with_ffmpeg_libs_l"
-  AC_CHECK_LIB(avcodec, avcodec_thread_init,
-    [FFMPEG_LIBS_LIBS="-L$with_ffmpeg_libs_l -lavcodec $FFMPEG_LIBS_EXTRALIBS"],
-    [AC_MSG_ERROR([error transcode depends on the FFmpeg (libavcodec) libraries and headers])],
-    [$FFMPEG_LIBS_EXTRALIBS])
-  LDFLAGS="$save_LDFLAGS"
-  have_ffmpeg_libs=yes
-else
-  if test x"$deplibs_check_method" != x"pass_all" ; then
-    AC_MSG_ERROR([linking static archives into shared objects not supported on this platform]) 
-  fi
-  save_LIBS="$LIBS"
-  save_CPPFLAGS="$CPPFLAGS"
-  LIBS="$LIBS $with_ffmpeg_libs_l/libavcodec.a $FFMPEG_LIBS_EXTRALIBS"
-  CPPFLAGS="$CPPFLAGS -I$with_ffmpeg_libs_i"
-  AC_TRY_LINK([
-#include <ffmpeg/avcodec.h>
-],[
-AVCodecContext *ctx = (void *)0;
-avcodec_thread_init(ctx, 0);
-],
-    [FFMPEG_LIBS_LIBS="$with_ffmpeg_libs_l/libavcodec.a $FFMPEG_LIBS_EXTRALIBS"],
-    [AC_MSG_ERROR([cannot link statically with libavcodec])])
-  LIBS="$save_LIBS"
-  CPPFLAGS="$save_CPPFLAGS"
-  have_ffmpeg_libs=yes
-fi
-if test x"$have_ffmpeg_libs" = x"yes" ; then
-  ifelse([$1], , :, [$1])
-else
-  ifelse([$2], , :, [$2])
-fi
-
-AC_SUBST(FFMPEG_LIBS_CFLAGS)
-AC_SUBST(FFMPEG_LIBS_LIBS)
-AC_SUBST(FFMPEG_LIBS_EXTRALIBS)
-])
 
 
 # Configure paths for FreeType2
@@ -1374,7 +1226,7 @@ if test x"$enable_$1" = x"yes" ; then
   $3_EXTRA_CFLAGS="$$3_EXTRA_CFLAGS $xi"
   $3_EXTRA_CFLAGS="`echo $$3_EXTRA_CFLAGS | sed -e 's/  */ /g'`"
 
-  if test x"$6" != x"" ; then
+  if test x"$6" != x"none" ; then
     save_CPPFLAGS="$CPPFLAGS"
     CPPFLAGS="$CPPFLAGS $$1_ii"
     AC_CHECK_HEADER([$6],
@@ -1402,7 +1254,7 @@ if test x"$enable_$1" = x"yes" ; then
           $1_ll="-L$w_$1_p${deflib}"
           AC_MSG_RESULT(prefix)
         else
-          $1_ll="-L/usr/${deflib}"
+          $1_ll="-L/usr${deflib}"
           AC_MSG_RESULT(default)
         fi
       fi
@@ -1425,7 +1277,7 @@ if test x"$enable_$1" = x"yes" ; then
   $3_EXTRA_LIBS="$$3_EXTRA_LIBS $xl"
   $3_EXTRA_LIBS="`echo $$3_EXTRA_LIBS | sed -e 's/  */ /g'`"
 
-  if test x"$7" != x"" ; then
+  if test x"$7" != x"none" ; then
     save_LDFLAGS="$LDFLAGS"
     LDFLAGS="$LDFLAGS $$1_ll"
     AC_CHECK_LIB([$7], [$8],

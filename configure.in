@@ -631,8 +631,68 @@ AC_CHECK_LIB(m, sin,
 dnl
 dnl libavcodec
 dnl
-TC_PATH_FFMPEG_LIBS(AC_DEFINE([HAVE_FFMPEG_LIBS], 1, [Have ffmpeg avcodec library support]))
-AM_CONDITIONAL(HAVE_FFMPEG_LIBS, test x"$have_ffmpeg_libs" = x"yes")
+AC_ARG_ENABLE(ffmpeg-libs-static,
+  AC_HELP_STRING([--enable-ffmpeg-libs-static],
+    [link binaries and modules statically to ffmpeg-libs WARNING: creates huge binaries WARNING: only tested on linux x86]),
+  [case "${enableval}" in
+    yes) ;;
+    no)  ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-ffmpeg-libs-static) ;;
+  esac],
+  [enable_ffmpeg_libs_static=no])
+FFMPEG_LIBS_EXTRA_LIBS="$FFMPEG_LIBS_EXTRA_LIBS -lm -lz $PTHREAD_LIBS"
+TC_PATH_PKG(ffmpeg_libs, yes, FFMPEG_LIBS, ffmpeg_libs, no,
+  [ffmpeg/avcodec.h], avcodec, avcodec_thread_init)
+if test x"$have_ffmpeg_libs" = x"yes" ; then
+  save_CPPFLAGS="$CPPFLAGS"
+  CPPFLAGS="$CPPFLAGS $FFMPEG_LIBS_CFLAGS"
+  AC_TRY_RUN([
+#include <stdio.h>
+#include <ffmpeg/avcodec.h>
+int
+main()
+{
+  if (LIBAVCODEC_BUILD < 4718)
+  {
+    printf("error: transcode needs at least ffmpeg build 4718");
+    printf("install ffmpeg 0.4.9-pre1 or newer, or a cvs version after 20040703");
+    return(1);
+  }
+  printf("VER=%s\n", FFMPEG_VERSION);
+  printf("BUILD=%d\n", LIBAVCODEC_BUILD);
+  return(0);
+}
+],
+    [FFMPEG_LIBS_VERSION="`./conftest$ac_exeext | sed -ne 's,VER=\(.*\),\1,p'`"
+      FFMPEG_LIBS_BUILD="`./conftest$ac_exeext | sed -ne 's,BUILD=\(.*\),\1,p'`"],
+    [AC_MSG_ERROR([FFmpeg (libavcodec) required, but cannot compile ffmpeg/avcodec.h])],
+    [echo $ac_n "cross compiling; assumed OK... $ac_c"
+      FFMPEG_LIBS_VERSION=""
+      FFMPEG_LIBS_BUILD=""])
+  if test x"$enable_ffmpeg_libs_static" = x"yes" ; then
+    if test x"$deplibs_check_method" != x"pass_all" ; then
+      AC_MSG_ERROR([linking static archives into shared objects not supported on this platform]) 
+    fi
+    save_LIBS="$LIBS"
+    LIBS="$LIBS $w_ffmpeg_libs_l${deflib}/libavcodec.a $FFMPEG_LIBS_EXTRALIBS"
+    AC_TRY_LINK([
+#include <ffmpeg/avcodec.h>
+],[
+AVCodecContext *ctx = (void *)0;
+avcodec_thread_init(ctx, 0);
+],
+      [FFMPEG_LIBS_LIBS="$w_ffmpeg_libs_l${deflib}/libavcodec.a $FFMPEG_LIBS_EXTRALIBS"],
+      [AC_MSG_ERROR([cannot link statically with libavcodec])])
+    LIBS="$save_LIBS"
+  fi
+  CPPFLAGS="$save_CPPFLAGS"
+else
+  AC_MSG_ERROR(libavcodec required!)
+fi
+AC_SUBST(FFMPEG_LIBS_VERSION)
+AC_SUBST(FFMPEG_LIBS_BUILD)
+AC_SUBST(FFMPEG_LIBS_CFLAGS)
+AC_SUBST(FFMPEG_LIBS_LIBS)
 
 
 dnl
@@ -727,7 +787,7 @@ dnl
 dnl lame support
 dnl
 TC_PATH_PKG(lame, yes, LAME, lame, no,
-  [], mp3lame, lame_init)
+  none, mp3lame, lame_init)
 if test x"$have_lame" = x"yes" ; then
   lame_inc=no
   save_CPPFLAGS="$CPPFLAGS"
@@ -825,7 +885,7 @@ dnl libdvdread support
 dnl
 DVDREAD_EXTRA_LIBS="$DVDREAD_EXTRA_LIBS -lm"
 TC_PATH_PKG(libdvdread, yes, LIBDVDREAD, libdvdread, no,
-  [], dvdread, DVDOpen)
+  none, dvdread, DVDOpen)
 if test x"$have_libdvdread" = x"yes" ; then
   libdvdread_inc=no
   save_CPPFLAGS="$CPPFLAGS"
@@ -968,7 +1028,7 @@ dnl libmpeg3
 dnl
 LIBMPEG3_EXTRA_LIBS="$LIBMPEG3_EXTRA_LIBS $A52_LIBS -lm $PTHREAD_LIBS"
 TC_PATH_PKG(libmpeg3, no, LIBMPEG3, libmpeg3, no,
-  [], mpeg3, mpeg3_open)
+  none, mpeg3, mpeg3_open)
 if test x"$have_libmpeg3" = x"yes" ; then
   libmpeg3_inc=no
   save_CPPFLAGS="$CPPFLAGS"
@@ -1118,7 +1178,7 @@ dnl
 dnl libiconv
 dnl
 TC_PATH_PKG(libiconv, yes, LIBICONV, libiconv, no,
-  [iconv.h], [], [])
+  iconv.h, none, none)
 if test x"$have_libiconv" = x"yes" ; then
 
   save_LDFLAGS="$LDFLAGS"
@@ -1348,8 +1408,8 @@ support for network (sockets) streams            $enable_netstream
 DVD navigation support with libdvdread           $have_libdvdread
 experimental xio | support for IBP storage       $libxio | $have_ibp
 pvm3 support                                     $have_pvm3
-ffmpeg libs headers                              $with_ffmpeg_libs_i
-ffmpeg libs libraries                            $with_ffmpeg_libs_l
+ffmpeg libs headers                              $FFMPEG_LIBS_CFLAGS
+ffmpeg libs libraries                            $FFMPEG_LIBS_LIBS
 ffmpeg libs build                                $FFMPEG_LIBS_BUILD
 ffmpeg libs version                              $FFMPEG_LIBS_VERSION
 ffmpeg libs statically linked                    $enable_ffmpeg_libs_static
