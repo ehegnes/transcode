@@ -118,12 +118,12 @@ typedef signed __int64 int64_t;
 
 #include <inttypes.h>
 
-#ifdef HAVE_AV_CONFIG_H
-
 #ifndef int64_t_C
 #define int64_t_C(c)     (c ## LL)
 #define uint64_t_C(c)    (c ## ULL)
 #endif
+
+#ifdef HAVE_AV_CONFIG_H
 
 #ifdef USE_FASTMEMCPY
 #include "fastmemcpy.h"
@@ -138,13 +138,14 @@ typedef signed __int64 int64_t;
 
 /* unix */
 
-#    include <inttypes.h>
+#include <inttypes.h>
 
-#    ifdef HAVE_AV_CONFIG_H
-#        ifndef int64_t_C
-#            define int64_t_C(c)     (c ## LL)
-#            define uint64_t_C(c)    (c ## ULL)
-#        endif
+#ifndef int64_t_C
+#define int64_t_C(c)     (c ## LL)
+#define uint64_t_C(c)    (c ## ULL)
+#endif
+
+#ifdef HAVE_AV_CONFIG_H
 
 #        ifdef USE_FASTMEMCPY
 #            include "fastmemcpy.h"
@@ -1045,7 +1046,7 @@ static inline int ff_sqrt(int a)
  */
 static inline int ff_get_fourcc(const char *s){
     assert( strlen(s)==4 );
-    
+
     return (s[0]) + (s[1]<<8) + (s[2]<<16) + (s[3]<<24);
 }
 
@@ -1129,7 +1130,7 @@ if(256*256*256*64%(tcount+tskip_count)==0){\
 #define CHECKED_ALLOCZ(p, size)\
 {\
     p= av_mallocz(size);\
-    if(p==NULL){\
+    if(p==NULL && (size)!=0){\
         perror("malloc");\
         goto fail;\
     }\

@@ -15,14 +15,15 @@ extern "C" {
 
 #define LIBAVCODEC_VERSION_INT 0x000406
 #define LIBAVCODEC_VERSION     "0.4.6"
-#define LIBAVCODEC_BUILD       4669
-#define LIBAVCODEC_BUILD_STR   "4669"
+#define LIBAVCODEC_BUILD       4675
+#define LIBAVCODEC_BUILD_STR   "4675"
 
 #define LIBAVCODEC_IDENT	"FFmpeg" LIBAVCODEC_VERSION "b" LIBAVCODEC_BUILD_STR
 
 enum CodecID {
     CODEC_ID_NONE, 
     CODEC_ID_MPEG1VIDEO,
+    CODEC_ID_MPEG2VIDEO_XVMC,
     CODEC_ID_H263,
     CODEC_ID_RV10,
     CODEC_ID_MP2,
@@ -41,6 +42,7 @@ enum CodecID {
     CODEC_ID_WMV2,
     CODEC_ID_H263P,
     CODEC_ID_H263I,
+    CODEC_ID_FLV1,
     CODEC_ID_SVQ1,
     CODEC_ID_SVQ3,
     CODEC_ID_DVVIDEO,
@@ -59,6 +61,9 @@ enum CodecID {
     CODEC_ID_ASV1,
     CODEC_ID_FFV1,
     CODEC_ID_4XM,
+    CODEC_ID_VCR1,
+    CODEC_ID_CLJR,
+    CODEC_ID_MDEC,
 
     /* various pcm "codecs" */
     CODEC_ID_PCM_S16LE,
@@ -111,6 +116,8 @@ enum PixelFormat {
     PIX_FMT_YUVJ420P,  ///< Planar YUV 4:2:0 full scale (jpeg)
     PIX_FMT_YUVJ422P,  ///< Planar YUV 4:2:2 full scale (jpeg)
     PIX_FMT_YUVJ444P,  ///< Planar YUV 4:4:4 full scale (jpeg)
+    PIX_FMT_XVMC_MPEG2_MC,///< XVideo Motion Acceleration via common packet passing(xvmc_render.h)
+    PIX_FMT_XVMC_MPEG2_IDCT,
     PIX_FMT_NB,
 };
 
@@ -163,7 +170,6 @@ static const int Motion_Est_QTab[] = { ME_ZERO, ME_PHODS, ME_LOG,
    Note: note not everything is supported yet 
 */
 
-#define CODEC_FLAG_HQ     0x0001  ///< brute force MB-type decission mode (slow) 
 #define CODEC_FLAG_QSCALE 0x0002  ///< use fixed qscale 
 #define CODEC_FLAG_4MV    0x0004  ///< 4 MV per MB allowed 
 #define CODEC_FLAG_QPEL   0x0010  ///< use qpel MC 
@@ -182,7 +188,7 @@ static const int Motion_Est_QTab[] = { ME_ZERO, ME_PHODS, ME_LOG,
                                             of only at frame boundaries */
 #define CODEC_FLAG_NORMALIZE_AQP  0x00020000 ///< normalize adaptive quantization 
 #define CODEC_FLAG_INTERLACED_DCT 0x00040000 ///< use interlaced dct 
-#define CODEC_FLAG_LOW_DELAY      0x00080000 ///< force low delay / will fail on b frames 
+#define CODEC_FLAG_LOW_DELAY      0x00080000 ///< force low delay
 #define CODEC_FLAG_ALT_SCAN       0x00100000 ///< use alternate scan 
 #define CODEC_FLAG_TRELLIS_QUANT  0x00200000 ///< use trellis quantization 
 #define CODEC_FLAG_GLOBAL_HEADER  0x00400000 ///< place global headers in extradata instead of every keyframe 
@@ -450,7 +456,10 @@ typedef struct AVCodecContext {
 
     /**
      * pixel format, see PIX_FMT_xxx.
-     * - encoding: unused
+     * - encoding: FIXME: used by ffmpeg to decide whether an pix_fmt
+     *                    conversion is in order. This only works for
+     *                    codecs with one supported pix_fmt, we should
+     *                    do something for a generic case as well.
      * - decoding: set by lavc.
      */
     enum PixelFormat pix_fmt;
@@ -470,10 +479,14 @@ typedef struct AVCodecContext {
      * before
      * - encoding: unused
      * - decoding: set by user.
+     * @param height the height of the slice
+     * @param y the y position of the slice
+     * @param type 1->top field, 2->bottom field, 3->frame
+     * @param offset offset into the AVFrame.data from which the slice should be read
      */
     void (*draw_horiz_band)(struct AVCodecContext *s,
-                            uint8_t **src_ptr, int linesize,
-                            int y, int width, int height);
+                            AVFrame *src, int offset[4],
+                            int y, int type, int height);
 
     /* audio only */
     int sample_rate; ///< samples per sec 
@@ -599,7 +612,7 @@ typedef struct AVCodecContext {
     /**
      * fourcc (LSB first, so "ABCD" -> ('D'<<24) + ('C'<<16) + ('B'<<8) + 'A').
      * this is used to workaround some encoder bugs
-     * - encoding: unused
+     * - encoding: set by user, if not then the default based on codec_id will be used
      * - decoding: set by user, will be converted to upper case by lavc during init
      */
     unsigned int codec_tag;
@@ -668,6 +681,7 @@ typedef struct AVCodecContext {
     /**
      * called at the beginning of each frame to get a buffer for it.
      * if pic.reference is set then the frame will be read later by lavc
+     * width and height should be rounded up to the next multiple of 16
      * - encoding: unused
      * - decoding: set by lavc, user can override
      */
@@ -856,6 +870,7 @@ typedef struct AVCodecContext {
 #define FF_IDCT_ARM          7
 #define FF_IDCT_ALTIVEC      8
 #define FF_IDCT_SH4          9
+#define FF_IDCT_SIMPLEARM    10
 
     /**
      * slice count.
@@ -1144,6 +1159,48 @@ typedef struct AVCodecContext {
      * - decoding: unused
      */
     int context_model;
+    
+    /**
+     * slice flags
+     * - encoding: unused
+     * - decoding: set by user.
+     */
+    int slice_flags;
+#define SLICE_FLAG_CODED_ORDER    0x0001 ///< draw_horiz_band() is called in coded order instead of display
+#define SLICE_FLAG_ALLOW_FIELD    0x0002 ///< allow draw_horiz_band() with field slices (MPEG2 field pics)
+#define SLICE_FLAG_ALLOW_PLANE    0x0004 ///< allow draw_horiz_band() with 1 component at a time (SVQ1)
+
+    /**
+     * XVideo Motion Acceleration
+     * - encoding: forbidden
+     * - decoding: set by decoder
+     */
+    int xvmc_acceleration;
+    
+    /**
+     * macroblock decision mode
+     * - encoding: set by user.
+     * - decoding: unused
+     */
+    int mb_decision;
+#define FF_MB_DECISION_SIMPLE 0        ///< uses mb_cmp
+#define FF_MB_DECISION_BITS   1        ///< chooses the one which needs the fewest bits
+#define FF_MB_DECISION_RD     2        ///< rate distoration
+
+    /**
+     * custom intra quantization matrix
+     * - encoding: set by user, can be NULL
+     * - decoding: set by lavc
+     */
+    uint16_t *intra_matrix;
+
+    /**
+     * custom inter quantization matrix
+     * - encoding: set by user, can be NULL
+     * - decoding: set by lavc
+     */
+    uint16_t *inter_matrix;
+    
 } AVCodecContext;
 
 
@@ -1207,6 +1264,7 @@ typedef struct AVCodec {
     int capabilities;
     const AVOption *options;
     struct AVCodec *next;
+    void (*flush)(AVCodecContext *);
 } AVCodec;
 
 /**
@@ -1225,6 +1283,7 @@ extern AVCodec oggvorbis_encoder;
 extern AVCodec mpeg1video_encoder;
 extern AVCodec h263_encoder;
 extern AVCodec h263p_encoder;
+extern AVCodec flv_encoder;
 extern AVCodec rv10_encoder;
 extern AVCodec mjpeg_encoder;
 extern AVCodec ljpeg_encoder;
@@ -1237,7 +1296,9 @@ extern AVCodec wmv2_encoder;
 extern AVCodec huffyuv_encoder;
 extern AVCodec h264_encoder;
 extern AVCodec asv1_encoder;
+extern AVCodec vcr1_encoder;
 extern AVCodec ffv1_encoder;
+extern AVCodec mdec_encoder;
 
 extern AVCodec h263_decoder;
 extern AVCodec mpeg4_decoder;
@@ -1247,7 +1308,9 @@ extern AVCodec msmpeg4v3_decoder;
 extern AVCodec wmv1_decoder;
 extern AVCodec wmv2_decoder;
 extern AVCodec mpeg_decoder;
+extern AVCodec mpeg_xvmc_decoder;
 extern AVCodec h263i_decoder;
+extern AVCodec flv_decoder;
 extern AVCodec rv10_decoder;
 extern AVCodec svq1_decoder;
 extern AVCodec svq3_decoder;
@@ -1272,8 +1335,11 @@ extern AVCodec amr_nb_encoder;
 extern AVCodec aac_decoder;
 extern AVCodec mpeg4aac_decoder;
 extern AVCodec asv1_decoder;
+extern AVCodec vcr1_decoder;
+extern AVCodec cljr_decoder;
 extern AVCodec ffv1_decoder;
 extern AVCodec fourxm_decoder;
+extern AVCodec mdec_decoder;
 extern AVCodec ra_144_decoder;
 extern AVCodec ra_288_decoder;
 
@@ -1396,7 +1462,12 @@ int avcodec_default_get_buffer(AVCodecContext *s, AVFrame *pic);
 void avcodec_default_release_buffer(AVCodecContext *s, AVFrame *pic);
 void avcodec_default_free_buffers(AVCodecContext *s);
 
+/**
+ * opens / inits the AVCodecContext.
+ * not thread save!
+ */
 int avcodec_open(AVCodecContext *avctx, AVCodec *codec);
+
 int avcodec_decode_audio(AVCodecContext *avctx, int16_t *samples, 
                          int *frame_size_ptr,
                          uint8_t *buf, int buf_size);

@@ -220,6 +220,7 @@ void avcodec_default_release_buffer(AVCodecContext *s, AVFrame *pic){
     InternalBuffer *buf, *last, temp;
 
     assert(pic->type==FF_BUFFER_TYPE_INTERNAL);
+    assert(s->internal_buffer_count);
 
     for(i=0; i<s->internal_buffer_count; i++){ //just 3-5 checks so is not worth to optimize
         buf= &((InternalBuffer*)s->internal_buffer)[i];
@@ -489,7 +490,7 @@ void avcodec_string(char *buf, int buf_size, AVCodecContext *enc, int encode)
     case CODEC_TYPE_VIDEO:
         snprintf(buf, buf_size,
                  "Video: %s%s",
-                 codec_name, enc->flags & CODEC_FLAG_HQ ? " (hq)" : "");
+                 codec_name, enc->mb_decision ? " (hq)" : "");
         if (enc->codec_id == CODEC_ID_RAWVIDEO) {
             snprintf(buf + strlen(buf), buf_size - strlen(buf),
                      ", %s",
@@ -590,38 +591,13 @@ void avcodec_init(void)
     dsputil_static_init();
 }
 
-/* this can be called after seeking and before trying to decode the next keyframe */
+/**
+ * Flush buffers, should be called when seeking or when swicthing to a different stream.
+ */
 void avcodec_flush_buffers(AVCodecContext *avctx)
 {
-    int i;
-    MpegEncContext *s = avctx->priv_data;
-    
-    switch(avctx->codec_id){
-    case CODEC_ID_MPEG1VIDEO:
-    case CODEC_ID_H263:
-    case CODEC_ID_RV10:
-//    case CODEC_ID_MJPEG:
-//    case CODEC_ID_MJPEGB:
-    case CODEC_ID_MPEG4:
-    case CODEC_ID_MSMPEG4V1:
-    case CODEC_ID_MSMPEG4V2:
-    case CODEC_ID_MSMPEG4V3:
-    case CODEC_ID_WMV1:
-    case CODEC_ID_WMV2:
-    case CODEC_ID_H263P:
-    case CODEC_ID_H263I:
-    case CODEC_ID_SVQ1:
-        for(i=0; i<MAX_PICTURE_COUNT; i++){
-           if(s->picture[i].data[0] && (   s->picture[i].type == FF_BUFFER_TYPE_INTERNAL
-                                        || s->picture[i].type == FF_BUFFER_TYPE_USER))
-            avctx->release_buffer(avctx, (AVFrame*)&s->picture[i]);
-	}
-	s->last_picture_ptr = s->next_picture_ptr = NULL;
-        break;
-    default:
-        //FIXME
-        break;
-    }
+    if(avctx->codec->flush)
+        avctx->codec->flush(avctx);
 }
 
 void avcodec_default_free_buffers(AVCodecContext *s){

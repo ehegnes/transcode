@@ -54,6 +54,7 @@ void avcodec_register_all(void)
 #ifdef CONFIG_RISKY
     register_avcodec(&h263_encoder);
     register_avcodec(&h263p_encoder);
+    register_avcodec(&flv_encoder);
     register_avcodec(&rv10_encoder);
     register_avcodec(&mpeg4_encoder);
     register_avcodec(&msmpeg4v1_encoder);
@@ -82,6 +83,7 @@ void avcodec_register_all(void)
     register_avcodec(&wmv1_decoder);
     register_avcodec(&wmv2_decoder);
     register_avcodec(&h263i_decoder);
+    register_avcodec(&flv_decoder);
     register_avcodec(&rv10_decoder);
     register_avcodec(&svq1_decoder);
     register_avcodec(&svq3_decoder);
@@ -94,6 +96,9 @@ void avcodec_register_all(void)
 #endif
 #endif
     register_avcodec(&mpeg_decoder);
+#ifdef HAVE_XVMC
+    register_avcodec(&mpeg_xvmc_decoder);
+#endif
     register_avcodec(&dvvideo_decoder);
     register_avcodec(&dvaudio_decoder);
     register_avcodec(&mjpeg_decoder);
@@ -108,7 +113,10 @@ void avcodec_register_all(void)
     register_avcodec(&h264_decoder);
     register_avcodec(&vp3_decoder);
     register_avcodec(&asv1_decoder);
+    register_avcodec(&vcr1_decoder);
+    register_avcodec(&cljr_decoder);
     register_avcodec(&fourxm_decoder);
+    register_avcodec(&mdec_decoder);
 #ifdef CONFIG_AC3
     register_avcodec(&ac3_decoder);
 #endif

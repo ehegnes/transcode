@@ -96,6 +96,9 @@ int ff_h263_decode_init(AVCodecContext *avctx)
     case CODEC_ID_H263I:
         s->h263_intel = 1;
         break;
+    case CODEC_ID_FLV1:
+        s->h263_flv = 1;
+        break;
     default:
         return -1;
     }
@@ -205,12 +208,15 @@ static int decode_slice(MpegEncContext *s){
 //            s->mb_skiped = 0;
 //printf("%d %d %06X\n", ret, get_bits_count(&s->gb), show_bits(&s->gb, 24));
             ret= s->decode_mb(s, s->block);
-            
-            MPV_decode_mb(s, s->block);
+
+            if (s->pict_type!=B_TYPE)
+                ff_h263_update_motion_val(s);
 
             if(ret<0){
                 const int xy= s->mb_x + s->mb_y*s->mb_stride;
                 if(ret==SLICE_END){
+                    MPV_decode_mb(s, s->block);
+
 //printf("%d %d %d %06X\n", s->mb_x, s->mb_y, s->gb.size*8 - get_bits_count(&s->gb), show_bits(&s->gb, 24));
                     ff_er_add_slice(s, s->resync_mb_x, s->resync_mb_y, s->mb_x, s->mb_y, (AC_END|DC_END|MV_END)&part_mask);
 
@@ -232,6 +238,8 @@ static int decode_slice(MpegEncContext *s){
     
                 return -1;
             }
+
+            MPV_decode_mb(s, s->block);
         }
         
         ff_draw_horiz_band(s, s->mb_y*16, 16);
@@ -396,9 +404,17 @@ uint64_t time= rdtsc();
     s->flags= avctx->flags;
 
     *data_size = 0;
-   
-   /* no supplementary picture */
+
+    /* no supplementary picture */
     if (buf_size == 0) {
+        /* special case for last picture */
+        if (s->low_delay==0 && s->next_picture_ptr) {
+            *pict= *(AVFrame*)s->next_picture_ptr;
+            s->next_picture_ptr= NULL;
+
+            *data_size = sizeof(AVFrame);
+        }
+
         return 0;
     }
 
@@ -449,9 +465,20 @@ retry:
             s->low_delay=1;
     } else if (s->h263_intel) {
         ret = intel_h263_decode_picture_header(s);
+    } else if (s->h263_flv) {
+        ret = flv_h263_decode_picture_header(s);
     } else {
         ret = h263_decode_picture_header(s);
     }
+    
+    if(ret==FRAME_SKIPED) return get_consumed_bytes(s, buf_size);
+
+    /* skip if the header was thrashed */
+    if (ret < 0){
+        fprintf(stderr, "header damaged\n");
+        return -1;
+    }
+    
     avctx->has_b_frames= !s->low_delay;
 
     if(s->workaround_bugs&FF_BUG_AUTODETECT){
@@ -505,15 +532,22 @@ retry:
         if(s->lavc_build && s->lavc_build<4655)
             s->workaround_bugs|= FF_BUG_DIRECT_BLOCKSIZE;
 
+        if(s->lavc_build && s->lavc_build<4618){
+            s->workaround_bugs|= FF_BUG_EDGE;
+        }
+
         if(s->divx_version)
             s->workaround_bugs|= FF_BUG_DIRECT_BLOCKSIZE;
 //printf("padding_bug_score: %d\n", s->padding_bug_score);
         if(s->divx_version==501 && s->divx_build==20020416)
             s->padding_bug_score= 256*256*256*64;
 
-        if(s->divx_version>=500){
+        if(s->divx_version && s->divx_version<500){
             s->workaround_bugs|= FF_BUG_EDGE;
         }
+        
+        if(s->avctx->codec_tag == ff_get_fourcc("DIVX") && s->divx_version==0 && s->lavc_build==0 && s->xvid_build==0 && s->vo_type==0 && s->vol_control_parameters==0 && s->low_delay)
+            s->workaround_bugs|= FF_BUG_EDGE;
 
 #if 0
         if(s->divx_version==500)
@@ -579,13 +613,6 @@ retry:
 
     if((s->codec_id==CODEC_ID_H263 || s->codec_id==CODEC_ID_H263P))
         s->gob_index = ff_h263_get_gob_height(s);
-
-    if(ret==FRAME_SKIPED) return get_consumed_bytes(s, buf_size);
-    /* skip if the header was thrashed */
-    if (ret < 0){
-        fprintf(stderr, "header damaged\n");
-        return -1;
-    }
     
     // for hurry_up==5
     s->current_picture.pict_type= s->pict_type;
@@ -712,6 +739,7 @@ AVCodec mpeg4_decoder = {
     ff_h263_decode_frame,
     CODEC_CAP_DRAW_HORIZ_BAND | CODEC_CAP_DR1 | CODEC_CAP_TRUNCATED,
     .options = mpeg4_decoptions,
+    .flush= ff_mpeg_flush,
 };
 
 AVCodec h263_decoder = {
@@ -724,6 +752,7 @@ AVCodec h263_decoder = {
     ff_h263_decode_end,
     ff_h263_decode_frame,
     CODEC_CAP_DRAW_HORIZ_BAND | CODEC_CAP_DR1 | CODEC_CAP_TRUNCATED,
+    .flush= ff_mpeg_flush,
 };
 
 AVCodec msmpeg4v1_decoder = {
@@ -791,3 +820,14 @@ AVCodec h263i_decoder = {
     mpeg4_decoptions,
 };
 
+AVCodec flv_decoder = {
+    "flv",
+    CODEC_TYPE_VIDEO,
+    CODEC_ID_FLV1,
+    sizeof(MpegEncContext),
+    ff_h263_decode_init,
+    NULL,
+    ff_h263_decode_end,
+    ff_h263_decode_frame,
+    CODEC_CAP_DRAW_HORIZ_BAND | CODEC_CAP_DR1
+};

@@ -27,7 +27,7 @@ FF_SRC_ALTIVEC = ppc/dsputil_altivec.c ppc/mpegvideo_altivec.c ppc/idct_altivec.
 ALTIVEC=-maltivec -mabi=altivec
 endif
 
-AM_CFLAGS = -O3 -g -Wall -ffast-math $(ALTIVEC) $(X86) $(MMX) -DHAVE_AV_CONFIG_H -D_GNU_SOURCE --include=../av_config.h
+AM_CFLAGS = -O2 -g -Wall -ffast-math $(ALTIVEC) $(X86) $(MMX) -DHAVE_AV_CONFIG_H -D_GNU_SOURCE --include=../av_config.h
 
 noinst_LIBRARIES = libtcavcodec.a
 
@@ -38,10 +38,10 @@ libtcavcodec_a_SOURCES = \
       motion_est.c imgconvert.c imgresample.c \
       mpeg12.c mpegaudiodec.c pcm.c simple_idct.c \
       ratecontrol.c adpcm.c eval.c dv.c error_resilience.c \
-      fft.c mdct.c mace.c cyuv.c opts.c raw.c h264.c golomb.c \
+      fft.c mdct.c mace.c huffyuv.c cyuv.c opts.c raw.c h264.c golomb.c \
+      vp3.c asv1.c 4xm.c cabac.c ffv1.c ra144.c ra288.c vcr1.c \
       h263.c msmpeg4.c h263dec.c svq1.c rv10.c wmadec.c indeo3.c \
-      vp3.c asv1.c 4xm.c cabac.c ffv1.c ra144.c ra288.c \
-      huffyuv.c $(FF_SRC_MMX) $(FF_SRC_PPC) $(FF_SRC_ALTIVEC)
+      cljr.c $(FF_SRC_MMX) $(FF_SRC_PPC) $(FF_SRC_ALTIVEC)
 
 noinst_HEADERS =  \
   ac3.h \
@@ -66,6 +66,8 @@ noinst_HEADERS =  \
   mpegvideo.h \
   msmpeg4data.h \
   os_support.h \
+  ra144.h \
+  ra288.h \
   simple_idct.h \
   svq1_cb.h \
   svq1_vlc.h \
@@ -77,6 +79,7 @@ EXTRA_DIST = motion_est_template.c \
 	     wmv2.c \
 	     svq3.c \
 	     faad.c \
+	     mdec.c \
 	     amr.c
 
 SUBDIRS = . i386 ppc
