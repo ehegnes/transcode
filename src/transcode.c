@@ -295,7 +295,7 @@ void usage(int status)
   //processing
   printf(" -u m[,n]            use m framebuffer[,n threads] for AV processing [%d,%d]\n", TC_FRAME_BUFFER, TC_FRAME_THREADS);
   printf(" -A                  use AC3 as internal audio codec [off]\n");
-  printf(" -V                  use YV12/I420/YUV420 as internal video format [depricated, default]\n");
+  printf(" -V                  use YV12/I420/YUV420 as internal video format [deprecated, default]\n");
   printf(" --use_rgb           use RGB as internal video format [off]\n");
   printf("--uyvy               use UYVY/YUV422 as internal video format [off]\n");
   printf(" -J f1[,f2[,...]]    apply external filter plugins [off]\n");
@@ -1186,7 +1186,7 @@ int main(int argc, char *argv[]) {
 	  break;
 	  
 	case 'V': 
-	  fprintf(stderr, "*** WARNING: The option -V is depricated. ***\n"
+	  fprintf(stderr, "*** WARNING: The option -V is deprecated. ***\n"
 	      "*** Transcode internal frame handling is now in YV12 / YUV420 ***\n"
 	      "*** format by default because most codecs can only handle this format, ***\n"
 	      "*** otherwise leading to unnecessary time and quality wasting conversions. ***\n"
