@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_testframe.so"
-#define MOD_VERSION "v0.1.2 (2002-10-30)"
+#define MOD_VERSION "v0.1.3 (2003-09-04)"
 #define MOD_CAP     "generate stream of testframes"
 
 #include <stdio.h>
@@ -42,6 +42,7 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "optstr.h"
 
 static int mode=0;
 static vob_t *vob=NULL;
@@ -172,7 +173,13 @@ void generate_yuv_frame(char *buffer, int width, int height)
  *-------------------------------------------------*/
 
 
-// demo filter, it does nothing!
+static int is_optstr(char *options)
+{
+    if (strchr(options, 'm')) return 1;
+    if (strchr(options, 'h')) return 1;
+    if (strchr(options, '=')) return 1;
+    return 0;
+}
 
 int tc_filter(vframe_list_t *ptr, char *options)
 {
@@ -196,6 +203,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // (6) filter is last time with TC_FILTER_CLOSE flag set
 
 
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Thomas Oestreich", "VRYE", "1");
+      optstr_param (options, "mode",   "Choose the test pattern (0-4 interlaced, 5 colorfull)", "%d", "0", "0", "5");
+  }
+
   //----------------------------------
   //
   // filter init
@@ -213,9 +226,14 @@ int tc_filter(vframe_list_t *ptr, char *options)
     
     if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
 
-    if(options!=NULL) sscanf(options, "%d", &mode);
+    if (options) {
+	if (is_optstr(options)) {
+	    optstr_get(options, "mode", "%d", &mode);
+	} else 
+	    sscanf(options, "%d", &mode);
+    }
 
-    if(mode <0) return(-1);
+    if(mode <0) { fprintf(stderr, "[%s] Invalid mode\n", MOD_NAME); return(-1); }
     
     return(0);
   }

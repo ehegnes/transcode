@@ -126,7 +126,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	if(ptr->tag & TC_FILTER_GET_CONFIG) {
 		char buf[128];
 		optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION,
-				   MOD_AUTHOR, "VRYO", "1");
+				   MOD_AUTHOR, "VRYMO", "1");
 		
 		snprintf(buf, 128, "/dev/null");
 		optstr_param(options, "pattern", "Pattern image file path", "%s", buf);
