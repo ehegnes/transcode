@@ -36,22 +36,37 @@ is_osx=false
 case "x${target_os}" in
    xdarwin*)
     is_osx=true
-    CFLAGS_save="${CFLAGS} -no-cpp-precomp -D_INTL_REDIRECT_MACROS -Ddlsym=dlsym_prepend_underscore "; CFLAGS="${CFLAGS_save}"
+    CFLAGS_save="${CFLAGS} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"; CFLAGS="${CFLAGS_save}"
     CXXFLAGS_save="${CXXFLAGS} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"; CXXFLAGS="${CXXFLAGS_save}"
     OBJCFLAGS_save="${OBJCFLAGS} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"; OBJCFLAGS="${OBJCFLAGS_save}"
     #LDFLAGS_save="${LDFLAGS_save} -all_load"; LDFLAGS="${LDFLAGS_save}"
     AC_DEFINE([SYSTEM_DARWIN], 1, [Define if this is Darwin / MacOSX OS])
+
+    # Include Fink in compile and link if present
+    if test -d /sw; then
+        CFLAGS_save="${CFLAGS} -I/sw/include"; CFLAGS="${CFLAGS_save}"
+    	CXXFLAGS_save="${CXXFLAGS} -I/sw/include"; CXXFLAGS="${CXXFLAGS_save}"
+	OBJCFLAGS_save="${OBJCFLAGS} -I/sw/include"; OBJCFLAGS="${OBJCFLAGS_save}"
+	LDFLAGS_save="${LDFLAGS_save} -L/sw/lib"; LDFLAGS="${LDFLAGS_save}"
+    fi
     ;;
 esac
 
 AM_CONDITIONAL([SYSTEM_DARWIN], test x"$is_osx" = x"true")
  
-# functions
-AC_CHECK_FUNCS([strtol memalign])
-
 # Checks for libraries.
 AC_CHECK_LIB(dl, dlopen)
 AC_CHECK_FUNCS([dlopen])
+if test x$is_osx = xtrue; then
+   AC_CHECK_FUNCS(dlsym_prepend_underscore,
+	[CFLAGS_save="${CFLAGS} -Ddlsym=dlsym_prepend_underscore"
+	 CFLAGS="${CFLAGS_save}"],
+	AC_MSG_WARN([Function 'dlsym_prepend_underscore' not found.])
+	AC_MSG_WARN([Using function 'dlsym' directly instead.])
+	AC_MSG_WARN([This can be a problem if the installed dlsym])
+	AC_MSG_WARN([does not automatically prepend an underscore])
+	AC_MSG_WARN([to symbols.]))
+fi
 AM_DISABLE_STATIC
 
 # Checks for support lib
@@ -93,9 +108,7 @@ fi
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_DIRENT
-AC_CHECK_HEADERS([errno.h fcntl.h stdlib.h string.h sys/time.h unistd.h])
-AC_CHECK_HEADERS([limits.h inttypes.h])
-AC_CHECK_HEADERS([malloc.h])
+AC_CHECK_HEADERS([errno.h fcntl.h sys/time.h unistd.h limits.h inttypes.h malloc.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -114,8 +127,7 @@ AC_FUNC_VPRINTF
 AC_FUNC_STAT
 AC_FUNC_STRCOLL
 AC_TYPE_SIGNAL
-AC_CHECK_FUNCS([ftruncate gettimeofday memset strerror strncasecmp stat])
-AC_CHECK_FUNCS([floor atexit getpagesize memmove mkfifo vsscanf strptime])
+AC_CHECK_FUNCS([strtol memalign ftruncate gettimeofday memset strerror strncasecmp stat floor atexit getpagesize memmove mkfifo vsscanf strptime])
 
 dnl for libavcodec
 AC_CHECK_LIB(m, lrintf, AC_DEFINE([HAVE_LRINTF], 1, [define if you have the lrintf function]))

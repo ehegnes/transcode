@@ -1,199 +1,215 @@
 --------------------------------------------
 transcode-0.6.10
 
+  * Terse/less technical ChangeLog:
+  - Improved -y jpg; native YUV encoding (faster)
+  - Bugfix in core; thread race condition
+  - New commandline option: --niceness
+  - Bugfix for MacOSX in preview filter
+  - Bugfix in -x mplayer; respect -k
+  - New stream decoder lavc (ffmpeg based) used for OGM
+
+2003-09-03 Benjamin Riefenstahl <Benjamin.Riefenstahl at epost.de>
+
+  * configure.in:
+  Detect dlsym_prepend_underscore instead of hard-coding it (Mac OS X).
+
+  * configure.in, acinclude.m4:
+  Detect and use Fink packages (Mac OS X).
+
 2003-09-03 Tilmann Bitterberg <transcode at tibit.org>
 
-   * export/{export_xvid[234].c}:
-   Fixes for MacOSX (dlerror must be const) and verbose debugging
-   for export_xvid2
+  * export/{export_xvid[234].c}:
+  Fixes for MacOSX (dlerror must be const) and verbose debugging
+  for export_xvid2
 
 2003-09-03 Tilmann Bitterberg <transcode at tibit.org>
-  
-   * filter/extsub/filter_extsub.c tools/tcmodinfo:
-   Enable option string interface in the subtitle filter.
+
+  * filter/extsub/filter_extsub.c tools/tcmodinfo:
+  Enable option string interface in the subtitle filter.
 
 2003-09-03 Nicolas Laurent <nl at gnu.org>
-   
-   * export/aud_aux.c: 
-   Completely rewritten audio export core. There should be no user
-   visible changes.
+
+  * export/aud_aux.c: 
+  Completely rewritten audio export core. There should be no user
+  visible changes.
 
 2003-09-02 Tilmann Bitterberg <transcode at tibit.org>
 
-   * import/{Makefile.am Makefile.in fileinfo.c ioaux.c magic.h
-   probe_stream.c tc.h tcxpm2rgb.c import_vnc.c probe_vnc.c
-   src/probe.c}:
-   Enable support for VNC (Virtual Network Client) recordings. To
-   use this (IMHO pretty cool) feature, you need vncrec from
-   <http://www.sodan.org/~penny/vncrec/>
-   I have created a video tutorial about how to use this new module,
-   grab the clip from
-   <http://zebra.fh-weingarten.de/~transcode/pre/tc-vnc-tutorial.avi>
+  * import/{Makefile.am Makefile.in fileinfo.c ioaux.c magic.h
+  probe_stream.c tc.h tcxpm2rgb.c import_vnc.c probe_vnc.c
+  src/probe.c}:
+  Enable support for VNC (Virtual Network Client) recordings. To
+  use this (IMHO pretty cool) feature, you need vncrec from
+  <http://www.sodan.org/~penny/vncrec/>
+  I have created a video tutorial about how to use this new module,
+  grab the clip from
+  <http://zebra.fh-weingarten.de/~transcode/pre/tc-vnc-tutorial.avi>
 
 2003-09-02 Tilmann Bitterberg <transcode at tibit.org>
 
-   * avilib/avilib.c import/extract_pcm.c:
-   Small fixup for WAVE files with a slighly different header
-
-2003-08-31 Markus Linnala <maage at sauna.ton.tut.fi>
-  
-   * acinclude.m4:
-   Better check for theora.
+  * avilib/avilib.c import/extract_pcm.c:
+  Small fixup for WAVE files with a slighly different header
 
 2003-08-31 Markus Linnala <maage at sauna.ton.tut.fi>
 
-   * export/export_ogg.c:
-   Use oggenc --resample if ifreq is not ofreq (and if the resample
-   filter is not used).
+  * acinclude.m4:
+  Better check for theora.
 
-   * src/transcode.c:
-   Lowest oggenc quality accepted is -1 not 0.
+2003-08-31 Markus Linnala <maage at sauna.ton.tut.fi>
+
+  * export/export_ogg.c:
+  Use oggenc --resample if ifreq is not ofreq (and if the resample
+  filter is not used).
+
+  * src/transcode.c:
+  Lowest oggenc quality accepted is -1 not 0.
 
 2003-08-29 Tilmann Bitterberg <transcode at tibit.org>
 
-   * filter/filter_smartyuv.c:
-   More MMX code. Slighly faster Highq routine.
-   Highq processing is what eats most of the CPU time. If you
-   disable high quality processing with highq=0 the filter nearly
-   doubles its performance.
-   
+  * filter/filter_smartyuv.c:
+  More MMX code. Slighly faster Highq routine.
+  Highq processing is what eats most of the CPU time. If you
+  disable high quality processing with highq=0 the filter nearly
+  doubles its performance.
+
 2003-08-29 Antonio Beamud Montero <antonio.beamud at linkend.com>
 
-   * filter/filter_compare.c:
-   Support for multiple instances. Its now possible to use the
-   filter multiple times during a transcode run.
+  * filter/filter_compare.c:
+  Support for multiple instances. Its now possible to use the
+  filter multiple times during a transcode run.
 
 2003-08-29 marrq <marrq at ugcs.caltech.edu>
 
-   * INSTALL:
-   Info about how to get access to the CVS tree.
+  * INSTALL:
+  Info about how to get access to the CVS tree.
 
 2003-08-27 Tilmann Bitterberg <transcode at tibit.org>
 
-   * filter/filter_mask.c:
-   Fix YUV mode, make the filter clear out chroma, too. Helptext.
+  * filter/filter_mask.c:
+  Fix YUV mode, make the filter clear out chroma, too. Helptext.
 
 2003-08-27 Tilmann Bitterberg <transcode at tibit.org>
 
-   * filter/filter_smartyuv.c:
-   Added MMX assembly code and rewrote some of the other routines
+  * filter/filter_smartyuv.c:
+  Added MMX assembly code and rewrote some of the other routines
 
 2003-08-26 Antonio Beamud Montero <antonio.beamud at linkend.com>
 
-   * filter/filter_compare.c:
-   new debug messeages and make the code more robust
+  * filter/filter_compare.c:
+  new debug messeages and make the code more robust
 
 2003-08-25 Malanchini Marzio <marzio_malanchini at vodafone.it>
   
-   * docs/export_pvm.txt export/export_pvm.c
-   pvm3/{export_pvm_slave.c external_codec.c pvm_version.h
-   tcpvmexportd.c}:
-   support for export_mpeg encode.
+  * docs/export_pvm.txt export/export_pvm.c
+  pvm3/{export_pvm_slave.c external_codec.c pvm_version.h
+  tcpvmexportd.c}:
+  support for export_mpeg encode.
 
 2003-08-23 Tilmann Bitterberg <transcode at tibit.org>
   
-   * export/{export_ffmpeg.c export_xvid[234].c} src/transcode.c:
-   new commandline option --config_dir DIR. This tells the both
-   modules -yffmpeg and -yxvid4 to look for their configuration in
-   the given directory. Suggested by Joern Reder.
+  * export/{export_ffmpeg.c export_xvid[234].c} src/transcode.c:
+  new commandline option --config_dir DIR. This tells the both
+  modules -yffmpeg and -yxvid4 to look for their configuration in
+  the given directory. Suggested by Joern Reder.
 
 2003-08-23 Edouard Gomez <ed.gomez at free.fr>
 
-   * export/{export_xvid4.c xvid4.cfg xvid4.h}:
-   - Added greyscale option and help message.
-   - small xvid4.h upgrade.
-   - added more help messages to xvid4.cfg
+  * export/{export_xvid4.c xvid4.cfg xvid4.h}:
+  - Added greyscale option and help message.
+  - small xvid4.h upgrade.
+  - added more help messages to xvid4.cfg
    
 2003-08-23 Tilmann Bitterberg <transcode at tibit.org>
   
-   * import/import_ogg.c:
-   enable real ogg demuxing as it was broken for quite a while.
+  * import/import_ogg.c:
+  enable real ogg demuxing as it was broken for quite a while.
    
 2003-08-23 Christian Marillat <marillat at debian.org>
 
-   * export/Makefile.am export/Makefile.in:
-   When doing the symlink for export_xvid.so, respect DESTDIR
+  * export/Makefile.am export/Makefile.in:
+  When doing the symlink for export_xvid.so, respect DESTDIR
 
 2003-08-23 Tilmann Bitterberg <transcode at tibit.org>
 
-   * docs/man/tcdecode.1:
-   Add description of -A flags
+  * docs/man/tcdecode.1:
+  Add description of -A flags
 
 2003-08-23 Tilmann Bitterberg <transcode at tibit.org>
 
-   * import/import_ffmpeg.c:
-   enable support for color space YUV4:1:1p in -V and RGB modes.
-   This should enable import_ffmpeg for "dvsd" AVI files.
+  * import/import_ffmpeg.c:
+  enable support for color space YUV4:1:1p in -V and RGB modes.
+  This should enable import_ffmpeg for "dvsd" AVI files.
 
-   * src/transcode.c docs/man/transcode.1:
-   WARNING: this change breaks backward compatibility for
-   --encode_fields.
+  * src/transcode.c docs/man/transcode.1:
+  WARNING: this change breaks backward compatibility for
+  --encode_fields.
 
-   The transcode option --encode_fields now takes an argument
-   specifying the type of interlace.
+  The transcode option --encode_fields now takes an argument
+  specifying the type of interlace.
 
-   Valid arguments are:
-     p    progressive (default)
-     t    top-field first
-     b    bottom-field first
+  Valid arguments are:
+    p    progressive (default)
+    t    top-field first
+    b    bottom-field first
 
-   This affects the export_mpeg2enc und export_yuv4mpeg output
-   modules. If you don't specify --encode_fields, its assumed to be
-   progressive (ie not interlaced) output. Pointed out by Florin
-   Andrei.
+  This affects the export_mpeg2enc und export_yuv4mpeg output
+  modules. If you don't specify --encode_fields, its assumed to be
+  progressive (ie not interlaced) output. Pointed out by Florin
+  Andrei.
 
-   * export/export_mpeg2enc.c export/export_yuv4mpeg.c:
-   Don't write the XM2AR tag to the stream anymore as it is
-   obsolete. Write a correct SAR to the stream. Respect the
-   --encode_fields setting.
+  * export/export_mpeg2enc.c export/export_yuv4mpeg.c:
+  Don't write the XM2AR tag to the stream anymore as it is
+  obsolete. Write a correct SAR to the stream. Respect the
+  --encode_fields setting.
 
 2003-08-22 Tilmann Bitterberg <transcode at tibit.org>
 
-   * filter/resample/filter_resample.c:
-   If filter_resample is used although there is no conversion
-   requested (inrate == outrate) return an error. Useful for
-   scripts. Suggested by Nicolas Boos.
+  * filter/resample/filter_resample.c:
+  If filter_resample is used although there is no conversion
+  requested (inrate == outrate) return an error. Useful for
+  scripts. Suggested by Nicolas Boos.
 
 2003-08-20 Tilmann Bitterberg <transcode at tibit.org>
 
-   * export/export_mpeg.c:
-   Flush all buffers at exit. Pointed out by Marzio Malanchini.
+  * export/export_mpeg.c:
+  Flush all buffers at exit. Pointed out by Marzio Malanchini.
 
 2003-08-20 marrq <marrq at ugcs.caltech.edu>
    
-   * docs/README.filter.modfps:
-   New README file about -J modfps. Contains verbose information on
-   usage and workings of this much improved filter. If you plan
-   frame rate conversion this document contains very useful
-   information.
+  * docs/README.filter.modfps:
+  New README file about -J modfps. Contains verbose information on
+  usage and workings of this much improved filter. If you plan
+  frame rate conversion this document contains very useful
+  information.
 
-   * docs/framerate.txt:
-   Better categorize the filter modfps and correcting its
-   description.
+  * docs/framerate.txt:
+  Better categorize the filter modfps and correcting its
+  description.
 
 2003-08-20 Malanchini Marzio <marzio_malanchini at vodafone.it>
   
-   * docs/export_pvm.txt docs/man/tcpvmexportd.1 docs/pvm.cfg
-   export/export_pvm.c pvm3/export_pvm_slave.c
-   pvm3/export_pvm_slave.h pvm3/pvm_parser.c pvm3/pvm_parser.h
-   pvm3/pvm_version.h pvm3/tcpvmexportd.c:
+  * docs/export_pvm.txt docs/man/tcpvmexportd.1 docs/pvm.cfg
+  export/export_pvm.c pvm3/export_pvm_slave.c
+  pvm3/export_pvm_slave.h pvm3/pvm_parser.c pvm3/pvm_parser.h
+  pvm3/pvm_version.h pvm3/tcpvmexportd.c:
 
-   added BuildOnlyBatchMergeList=2 in [SystemMerger] section to
-   build only the intermediate system files and
-   BuildOnlyIntermediateFile in [SystemList] section (dvdauthor
-   don't like a merged file).
+  added BuildOnlyBatchMergeList=2 in [SystemMerger] section to
+  build only the intermediate system files and
+  BuildOnlyIntermediateFile in [SystemList] section (dvdauthor
+  don't like a merged file).
 
 2003-08-20 marrq <marrq at ugcs.caltech.edu>
    
-   * src/encoder.c:
-   Fix a bug where a frame gets (post)processed twice mostly
-   noteable in split mode (-t)
+  * src/encoder.c:
+  Fix a bug where a frame gets (post)processed twice mostly
+  noteable in split mode (-t)
 
 2003-08-19 Tilmann Bitterberg <transcode at tibit.org>
 
-   * export/tc_lzo.h import/decode_lzo.c import/extract_lzo.c
-   export/export_lzo.h:
-   unfinished lzo2 stuff to enable better streaming
+  * export/tc_lzo.h import/decode_lzo.c import/extract_lzo.c
+  export/export_lzo.h:
+  unfinished lzo2 stuff to enable better streaming
 
 2003-08-19 Tilmann Bitterberg <transcode at tibit.org>
 

@@ -307,6 +307,9 @@ AC_CHECK_FILE($with_lame_i/lame/lame.h, [AC_DEFINE(HAVE_LAME_INC, 1, [Have Lame 
 if test x"$lame_inc" != xyes; then 
 AC_CHECK_FILE(/usr/local/include/lame/lame.h, [AC_DEFINE([HAVE_LAME_INC], [Have Lame includes in separate path]) lame_inc=yes])
 fi
+if test x"$lame_inc" != xyes; then 
+AC_CHECK_FILE(/sw/include/lame/lame.h, [AC_DEFINE([HAVE_LAME_INC], [Have Lame includes in separate path]) lame_inc=yes])
+fi
 	AC_MSG_CHECKING([lame version])
 	ac_save_CFLAGS="$CFLAGS"
 	ac_save_LIBS="$LIBS"
@@ -415,6 +418,9 @@ AC_CHECK_FILE($with_ogg_i/ogg/ogg.h, [ogg_inc=yes])
 if test x"$ogg_inc" != xyes; then 
 AC_CHECK_FILE(/usr/local/include/ogg/ogg.h, [ogg_inc=yes])
 fi
+if test x"$ogg_inc" != xyes; then 
+AC_CHECK_FILE(/sw/include/ogg/ogg.h, [ogg_inc=yes])
+fi
 AC_SUBST(OGG_CFLAGS)
 AC_SUBST(OGG_LIBS)
 ])
@@ -467,6 +473,9 @@ fi
 AC_CHECK_FILE($with_vorbis_i/vorbis/codec.h, [vorbis_inc=yes])
 if test x"$vorbis_inc" != xyes; then 
 AC_CHECK_FILE(/usr/local/include/vorbis/codec.h, [vorbis_inc=yes])
+fi
+if test x"$vorbis_inc" != xyes; then 
+AC_CHECK_FILE(/sw/include/vorbis/codec.h, [vorbis_inc=yes])
 fi
 AC_SUBST(VORBIS_CFLAGS)
 AC_SUBST(VORBIS_LIBS)
@@ -521,6 +530,9 @@ AC_CHECK_FILE($with_theora_i/theora/theora.h, [theora_inc=yes])
 if test x"$theora_inc" != xyes; then 
 AC_CHECK_FILE(/usr/local/include/theora/theora.h, [theora_inc=yes])
 fi
+if test x"$theora_inc" != xyes; then 
+AC_CHECK_FILE(/sw/include/theora/codec.h, [theora_inc=yes])
+fi
 AC_SUBST(THEORA_CFLAGS)
 AC_SUBST(THEORA_LIBS)
 ])
@@ -573,6 +585,9 @@ if test x$with_dvdread = "x"yes ; then
 AC_CHECK_FILE($with_dvdread_i/dvdread/dvd_reader.h, [AC_DEFINE([HAVE_LIBDVDREAD_INC], 1, [Have Libdvdread includes in separate path]) dvdread_inc=yes])
 if test x"$dvdread_inc" != xyes; then 
 AC_CHECK_FILE(/usr/local/include/dvdread/dvd_reader.h, [AC_DEFINE([HAVE_LIBDVDREAD_INC], 1, [Have Libdvdread includes in separate path]) dvdread_inc=yes])
+fi
+if test x"$dvdread_inc" != xyes; then 
+AC_CHECK_FILE(/sw/include/dvdread/dvd_reader.h, [AC_DEFINE([HAVE_LIBDVDREAD_INC], 1, [Have Libdvdread includes in separate path]) dvdread_inc=yes])
 fi
 
 fi
