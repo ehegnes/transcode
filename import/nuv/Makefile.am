@@ -20,7 +20,7 @@ import_nuv_la_SOURCES = \
 	rtjpeg_aud_plugin.c \
 	rtjpeg_vid_plugin.c \
 	soxfuncs.c
-import_nuv_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_nuv_la_LDFLAGS = -module -avoid-version
 import_nuv_la_LIBADD = -lm
 
 EXTRA_DIST =  \
