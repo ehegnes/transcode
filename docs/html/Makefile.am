@@ -11,7 +11,6 @@ docs_DATA =  \
 	export_divx4.php \
 	export_divx5.php \
 	export_fame.php \
-	export_null.html \
 	export_ogg.php \
 	export_opendivx.php \
 	export_raw.html \
