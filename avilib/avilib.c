@@ -45,10 +45,10 @@ static char id_str[MAX_INFO_STRLEN];
  *                                                                 *
  *******************************************************************/
 
-static size_t avi_read(int fd, char *buf, size_t len)
+static ssize_t avi_read(int fd, char *buf, size_t len)
 {
-   size_t n = 0;
-   size_t r = 0;
+   ssize_t n = 0;
+   ssize_t r = 0;
 
    while (r < len) {
       n = read (fd, buf + r, len - r);
@@ -61,10 +61,10 @@ static size_t avi_read(int fd, char *buf, size_t len)
    return r;
 }
 
-static size_t avi_write (int fd, char *buf, size_t len)
+static ssize_t avi_write (int fd, char *buf, size_t len)
 {
-   size_t n = 0;
-   size_t r = 0;
+   ssize_t n = 0;
+   ssize_t r = 0;
 
    while (r < len) {
       n = write (fd, buf + r, len - r);
