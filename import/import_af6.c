@@ -29,13 +29,14 @@
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_PCM;
-  
+
 #define MOD_PRE af6
 #include "import_def.h"
 
 
-#define MAX_BUF 1024
-char import_cmd_buf[MAX_BUF];
+extern int errno;
+char import_cmd_buf[TC_BUF_MAX];
+
 static int codec;
 
 FILE *vfd, *afd;
@@ -48,67 +49,71 @@ FILE *vfd, *afd;
 
 MOD_open
 {
+    int sret;
 
     if(param->flag == TC_AUDIO) {
 
-      if((snprintf(import_cmd_buf, MAX_BUF, "tcdecode -i \"%s\" -x af6audio -y pcm -d %d", vob->audio_in_file, vob->verbose)<0)) {
-	perror("cmd buffer overflow");
-	return(TC_IMPORT_ERROR);
-      }
-      
+      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+                      "tcdecode -i \"%s\" -x af6audio -y pcm -d %d",
+                      vob->audio_in_file, vob->verbose);
+      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+	  return(TC_IMPORT_ERROR);
+
       // print out
       if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
-      
+
       param->fd = NULL;
-      
+
       // popen
       if((afd = popen(import_cmd_buf, "r"))== NULL) {
 	perror("popen audio stream");
 	return(TC_IMPORT_ERROR);
       }
-      
+
       return(0);
     }
-    
+
     if(param->flag == TC_VIDEO) {
 
       codec=vob->im_v_codec;
-      
+
       switch(codec) {
-	
+
       case CODEC_RGB:
-	
-	if((snprintf(import_cmd_buf, MAX_BUF, "tcdecode -i \"%s\" -x af6video -y rgb -d %d", vob->video_in_file, vob->verbose)<0)) {
-	  perror("cmd buffer overflow");
-	  return(TC_IMPORT_ERROR);
-	}
-	
+
+        sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+                        "tcdecode -i \"%s\" -x af6video -y rgb -d %d",
+                        vob->video_in_file, vob->verbose);
+        if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+	    return(TC_IMPORT_ERROR);
+
 	break;
-	
+
       case CODEC_YUV:
-	
-	if((snprintf(import_cmd_buf, MAX_BUF, "tcdecode -i \"%s\" -x af6video -y yv12 -d %d", vob->video_in_file, vob->verbose)<0)) {
-	  perror("cmd buffer overflow");
-	  return(TC_IMPORT_ERROR);
-	}
-	
+
+	sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+                        "tcdecode -i \"%s\" -x af6video -y yv12 -d %d",
+                        vob->video_in_file, vob->verbose);
+        if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+	    return(TC_IMPORT_ERROR);
+
 	break;
       }
-      
+
       // print out
       if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
-      
+
       param->fd = NULL;
-      
+
       // popen
       if((vfd = popen(import_cmd_buf, "r"))== NULL) {
 	perror("popen video stream");
 	return(TC_IMPORT_ERROR);
       }
-      
+
       return(0);
     }
-    
+
     return(TC_IMPORT_ERROR);
 }
 
@@ -120,50 +125,50 @@ MOD_open
  * ------------------------------------------------------------*/
 
 MOD_decode {
-  
+
   int k=0;
 
   int bytes=0;
 
   static int vsync=0, async=0;
-  
+
   if(param->flag == TC_VIDEO) {
-    
+
     if(vsync) goto read;
-    
+
     for(;;) {
 
       if (fread(param->buffer, 1, 1, vfd) !=1) {
 	return(TC_IMPORT_ERROR);
       }
-      
+
       if(param->buffer[0] != 'T') goto skip;
-      
+
       if (fread(param->buffer, 1, 1, vfd) !=1) {
 	return(TC_IMPORT_ERROR);
       }
-      
+
       if(param->buffer[0] != 'a') goto skip;
-      
+
       if (fread(param->buffer, 1, 1, vfd) !=1) {
 	return(TC_IMPORT_ERROR);
       }
-      
+
       if(param->buffer[0] != 'f') goto skip;
 
       if (fread(param->buffer, 1, 1, vfd) !=1) {
 	return(TC_IMPORT_ERROR);
       }
-      
+
       if(param->buffer[0] != '6') goto skip;
-      
+
       vsync=1;
       break;
-      
+
     skip:
-      
+
       ++k;
-      
+
       if(k>(1<<20)) {
 	fprintf(stderr, "no sync string found within 1024 kB of stream\n");
 	return(1);
@@ -174,47 +179,47 @@ MOD_decode {
 
     if (fread(param->buffer, param->size, 1, vfd) !=1) 
       return(TC_IMPORT_ERROR);
-    
+
     return(0);
   }
 
   if(param->flag == TC_AUDIO) {
-    
+
     if(async) goto read2;
-    
+
     for(;;) {
-      
+
       if (fread(param->buffer, 1, 1, afd) !=1) {
 	return(TC_IMPORT_ERROR);
       }
-      
+
       if(param->buffer[0] != 'T') goto skip2;
-      
+
       if (fread(param->buffer, 1, 1, afd) !=1) {
 	return(TC_IMPORT_ERROR);
       }
-      
+
       if(param->buffer[0] != 'a') goto skip2;
-      
+
       if (fread(param->buffer, 1, 1, afd) !=1) {
 	return(TC_IMPORT_ERROR);
       }
-      
+
       if(param->buffer[0] != 'f') goto skip2;
-      
+
       if (fread(param->buffer, 1, 1, afd) !=1) {
 	return(TC_IMPORT_ERROR);
       }
-      
+
       if(param->buffer[0] != '6') goto skip2;
-      
+
       async=1;
       break;
-      
+
     skip2:
-      
+
       ++k;
-      
+
       if(k>(1<<20)) {
 	fprintf(stderr, "no sync string found within 1024 kB of stream\n");
 	return(1);
@@ -222,15 +227,16 @@ MOD_decode {
     }
 
   read2:
-    
+
     if ((bytes=fread(param->buffer, param->size, 1, afd)) !=1) {
-      if(verbose_flag & TC_DEBUG) printf("[%s] audio read error %d/%d\n", MOD_NAME, bytes, param->size);
-      
+      if(verbose_flag & TC_DEBUG)
+        printf("[%s] audio read error %d/%d\n", MOD_NAME, bytes, param->size);
+
       return(TC_IMPORT_ERROR);
     }    
     return(0);
   }
-  
+
     return(TC_IMPORT_ERROR);
 }
 
@@ -249,5 +255,3 @@ MOD_close
 
   return(0);
 }
-
-
