@@ -57,7 +57,7 @@
 #else
 #define MOD_NAME    "export_mpeg.so"
 #endif
-#define MOD_VERSION "v1.2.2 (2003-07-24)"
+#define MOD_VERSION "v1.2.3 (2003-08-21)"
 #ifdef HAS_FFMPEG
 #define MOD_CODEC   "(video) MPEG 1/2 | (audio) MPEG 1 Layer II"
 #else
@@ -833,7 +833,7 @@ MOD_close
     
     if (bbmpeg_ctx == NULL) return (0);
     
-    if (bbmpeg_ctx->ret == ENCODE_RUN)
+    if (bbmpeg_ctx->ret != ENCODE_ERR)
     { 
       int i;
       for (i=0; i<page_buf_cnt; i++) 

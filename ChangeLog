@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-20 Tilmann Bitterberg <transcode at tibit.org>
+
+   * export/export_mpeg.c:
+   Flush all buffers at exit. Pointed out by Marzio Malanchini.
+
 2003-08-20 marrq <marrq at ugcs.caltech.edu>
    
    * docs/README.filter.modfps:
