@@ -27,9 +27,10 @@
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
+#include "vid_aux.h"
 
 #define MOD_NAME    "export_dv.so"
-#define MOD_VERSION "v0.2.1 (2002-11-14)"
+#define MOD_VERSION "v0.3 (2003-05-07)"
 #define MOD_CODEC   "(video) Digital Video | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE dv
@@ -44,9 +45,11 @@ static avi_t *avifile=NULL;
 
 static int frame_size=0, format=0;
 
+static int dv_yuy2_mode=0;
+
 #ifdef LIBDV_095
 static dv_encoder_t *encoder = NULL;
-static unsigned char *pixels[3];
+static unsigned char *pixels[3], *tmp_buf;
 #endif
 
 static unsigned char *bufalloc(size_t size)
@@ -87,6 +90,11 @@ MOD_init
     if(param->flag == TC_VIDEO) {
 
       target = bufalloc(TC_FRAME_DV_PAL);
+
+      if(vob->dv_yuy2_mode) {
+	tmp_buf = bufalloc(PAL_W*PAL_H*2); //max frame
+	dv_yuy2_mode=1;
+      }
 
 #ifdef LIBDV_095
       encoder = dv_encoder_new(FALSE, FALSE, FALSE);
@@ -185,17 +193,24 @@ MOD_encode
 
     
 #ifdef LIBDV_095
-    pixels[0] = (char *) param->buffer;
-    
-    if(encoder->isPAL) {
-      pixels[2]=(char *) param->buffer + PAL_W*PAL_H;
-      pixels[1]=(char *) param->buffer + (PAL_W*PAL_H*5)/4;
-    } else {
-      pixels[2]=(char *) param->buffer + NTSC_W*NTSC_H;
-      pixels[1]=(char *) param->buffer + (NTSC_W*NTSC_H*5)/4;
-    }
-    
+
+      pixels[0] = (char *) param->buffer;
+	
+      if(encoder->isPAL) {
+	pixels[2]=(char *) param->buffer + PAL_W*PAL_H;
+	pixels[1]=(char *) param->buffer + (PAL_W*PAL_H*5)/4;
+      } else {
+	pixels[2]=(char *) param->buffer + NTSC_W*NTSC_H;
+	pixels[1]=(char *) param->buffer + (NTSC_W*NTSC_H*5)/4;
+      }
+      
+      if(dv_yuy2_mode) {
+	yv12toyuy2(pixels[0], pixels[1], pixels[2], tmp_buf, PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
+	pixels[0]=tmp_buf;
+      }
+      
     dv_encode_full_frame(encoder, pixels, (format)?e_dv_color_yuv:e_dv_color_rgb, target);
+
     dv_encode_metadata(target, encoder->isPAL, encoder->is16x9, &now, 0);
     dv_encode_timecode(target, encoder->isPAL, 0);
 #else    

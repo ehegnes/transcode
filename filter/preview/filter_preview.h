@@ -29,7 +29,7 @@
 typedef struct dv_mmap_region_s {
   void   *map_start;  /* Start of mapped region (page aligned) */
   size_t  map_length; /* Size of mapped region */
-  guint8 *data_start; /* Data we asked for */
+  unsigned char *data_start; /* Data we asked for */
 } dv_mmap_region_t;
 
 typedef struct {

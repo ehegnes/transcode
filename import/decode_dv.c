@@ -100,6 +100,7 @@ void yuy2toyv12(char *_y, char *_u, char *_v, char *input, int width, int height
     }
 }
 
+
 /* ------------------------------------------------------------ 
  *
  * decoder thread
@@ -120,29 +121,29 @@ void decode_dv(info_t *ipipe)
 
   int error=0, dvinfo=0, quality=DV_QUALITY_BEST; 
 
-  unsigned char  *buf;
+  unsigned char  *buf, *source;
   unsigned char  *video[3];
 
   int16_t *audio_buffers[4], *audio;  
-  int      pitches[3];
+  uint16_t pitches[3];  //do not change to signed! (ThOe) libdv BUG! 
 
   verbose = ipipe->verbose;
 
   // Initialize DV decoder
 
 #ifdef LIBDV_095    
-    if((dv_decoder = dv_decoder_new(TRUE, FALSE, FALSE))==NULL) {
-	fprintf(stderr, "(%s) dv decoder init failed\n", __FILE__);
-	import_exit(1);
-    }
+  if((dv_decoder = dv_decoder_new(TRUE, FALSE, FALSE))==NULL) {
+    fprintf(stderr, "(%s) dv decoder init failed\n", __FILE__);
+    import_exit(1);
+  }
 #else
-    if((dv_decoder = dv_decoder_new())==NULL) {
-	fprintf(stderr, "(%s) dv decoder init failed\n", __FILE__);
-	import_exit(1);
-    }
-    dv_init();
+  if((dv_decoder = dv_decoder_new())==NULL) {
+    fprintf(stderr, "(%s) dv decoder init failed\n", __FILE__);
+    import_exit(1);
+  }
+  dv_init();
 #endif
-
+  
   quality = ipipe->quality;
  
   switch(quality) {
@@ -198,7 +199,6 @@ void decode_dv(info_t *ipipe)
   }  
 
   // frame decoding loop
-
   dv_decoder->prev_frame_decoded = 0;
 
   for (;;) {
@@ -216,7 +216,6 @@ void decode_dv(info_t *ipipe)
       } 
 
       // PAL or NTSC?
-
       if(dv_decoder->system==e_dv_system_none) {
 	  fprintf(stderr, "(%s) no valid PAL or NTSC video frame detected\n", __FILE__);
 	  import_exit(1);
@@ -229,10 +228,9 @@ void decode_dv(info_t *ipipe)
 	  if(verbose & TC_DEBUG)  fprintf(stderr, "(%s) end of stream\n", __FILE__);
 	  import_exit(1);
 	}
-      }
+      } else ipipe->dv_yuy2_mode=1;
 
       // print info:
-	
       if(!dvinfo && verbose && (ipipe->format != TC_CODEC_PCM)) {
 	fprintf(stderr, "(%s) %s video: %dx%d framesize=%d sampling=%d\n", __FILE__, ((dv_decoder->system==e_dv_system_625_50)?"PAL":"NTSC"), dv_decoder->width, dv_decoder->height, dv_decoder->frame_size, dv_decoder->sampling);
 	dvinfo=1;
@@ -256,30 +254,40 @@ void decode_dv(info_t *ipipe)
 	  goto error;
 	}
       }
-      
+
       if(ipipe->format == TC_CODEC_YV12) {
 	
 	switch(dv_decoder->sampling) {
 	  
+	case e_dv_sample_420:
 	case e_dv_sample_411:
 	case e_dv_sample_422:
-	case e_dv_sample_420:
+
+	  if(ipipe->dv_yuy2_mode==0) {	  
+
+	    pitches[0]  = dv_decoder->width;
+	    pitches[1]  = pitches[0]/2;
+	    pitches[2]  = pitches[0]/2;
+	    
+	    dv_decode_full_frame(dv_decoder, buf, e_dv_color_yuv, (unsigned char **) video, pitches);
 	  
-	  pitches[0]  = dv_decoder->width * 2;
-	  pitches[1]  = 0;
-	  pitches[2]  = 0;
-	  
-	  dv_decode_full_frame(dv_decoder, buf, e_dv_color_yuv, (unsigned char **) video, pitches);
-	  
-	  //downsample to YV12:
-	  
-	  memcpy(video[3], video[0], dv_decoder->width*dv_decoder->height*2);
-	  
-	  yuy2toyv12(video[0], video[2], video[1], video[3], dv_decoder->width, dv_decoder->height);
+	  } else {
+	    
+	    pitches[0]  = dv_decoder->width * 2;
+	    pitches[1]  = 0;
+	    pitches[2]  = 0;
+	    
+	    dv_decode_full_frame(dv_decoder, buf, e_dv_color_yuv, (unsigned char **) video, pitches);
+	    
+	    //downsample to YV12:	  
+	    yuy2toyv12(video[3], video[2], video[1], video[0], dv_decoder->width, dv_decoder->height);
+	  }
 	  
 	  break;
-
+	  
 	case e_dv_sample_none:
+	  
+	  if(verbose) fprintf(stderr, "(%s) invalid DV sample format\n", __FILE__);
 	  break;
 	}
 	
@@ -288,7 +296,9 @@ void decode_dv(info_t *ipipe)
 	bytes = dv_decoder->width * dv_decoder->height;
 	
 	// Y
-	if(p_write (ipipe->fd_out, video[0], bytes)!= bytes) {
+	source = (ipipe->dv_yuy2_mode==0) ? video[0]:video[3];
+	
+	if(p_write (ipipe->fd_out, source, bytes)!= bytes) {
 	  error=1;
 	  goto error;
 	}
@@ -311,7 +321,6 @@ void decode_dv(info_t *ipipe)
       if(ipipe->format == TC_CODEC_PCM) {
 	
 	// print info:
-	
 	if(!dvinfo && verbose) {
 	  fprintf(stderr, "(%s) audio: %d Hz, %d channels\n", __FILE__, dv_decoder->audio->frequency, dv_decoder->audio->num_channels);
 	  dvinfo=1;
@@ -330,9 +339,8 @@ void decode_dv(info_t *ipipe)
 	  } 
 	}
 	bytes = samples * channels * 2;
-	
+
 	// write out
-	
 	if(p_write (ipipe->fd_out, (char*) audio, bytes)!= bytes) {     
 	  error=1;
 	  goto error;

@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_cut.so"
-#define MOD_VERSION "v0.0.3 (2002-06-11)"
+#define MOD_VERSION "v0.1.0 (2003-05-03)"
 #define MOD_CAP     "encode only listed frames"
 
 #include <stdio.h>
@@ -30,7 +30,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define MAX_CUT 32
+// do the mod/step XXX
 
 /* -------------------------------------------------
  *
@@ -45,30 +45,10 @@
 #include "transcode.h"
 #include "framebuffer.h"
 
+#include "../libioaux/framecode.h"
+
 extern int max_frame_buffer;
 
-char *get_next_range(char *name, char *_string)
-{
-  char *res, *string;
-
-  int off=0;
-
-  if(_string[0]=='\0') return(NULL);
-
-  while(_string[off]==' ') ++off;
-
-  string = &_string[off];
-
-  if((res=strchr(string, ' '))==NULL) {
-    strcpy(name, string);
-    //return pointer to '\0'
-    return(string+strlen(string));
-  }
-  
-  memcpy(name, string, (int)(res-string));
-  
-  return(res+1);
-}
 
 /*-------------------------------------------------
  *
@@ -76,20 +56,21 @@ char *get_next_range(char *name, char *_string)
  *
  *-------------------------------------------------*/
 
-static int ia[MAX_CUT];
-static int ib[MAX_CUT];
-static int cut=0, status=0, stop=0;
 static int mod=0;
+
+static void help_optstr(void) 
+{
+    printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+    printf ("* Overview\n");
+    printf ("    extract frame regions\n");
+    printf ("* Options\n");
+    printf ("    'HH:MM:SS.f-HH:MM:SS.f/step apply filter [start-end] frames [0-oo/1]\n");
+}
 
 int tc_filter(vframe_list_t *ptr, char *options)
 {
-
-  int pre=0;
-  int i,n;
-
-  char buf[64];
-
-  char *offset;
+  static struct fc_time *list;
+  char separator[] = " ";
 
   vob_t *vob=NULL;
 
@@ -130,40 +111,16 @@ int tc_filter(vframe_list_t *ptr, char *options)
     if(verbose & TC_DEBUG) printf("[%s] options=%s\n", MOD_NAME, options);
 
     if(options == NULL) return(0);
-
-    offset=options;
-    if(offset[0]=='%') {
-       offset++;
-       mod=atoi(offset);
-       if(mod<=0) {
-	  printf("[%s] You must specify a positive number after %%!\n",
-		MOD_NAME);
-	  exit(1);
-       }
-       else {
-	  if(verbose) printf("[%s] encoding every %d frame.\n",
-		MOD_NAME, mod);
-       }
+    else if (optstr_lookup (options, "help")) {
+	help_optstr();
+	return (0);
+    } else {
+	if( parse_fc_time_string( options, vob->fps, separator, verbose, &list ) == -1 ) {
+	    help_optstr();
+	    return (-1);
+	}
     }
-    else {
-       if(verbose) printf("[%s] selecting frames ", MOD_NAME);
-       for (n=0; n<MAX_CUT; ++n) {
 
-	 memset(buf, 0, 64);
-
-	 if((offset=get_next_range(buf, offset))==NULL) break;
-	 
-	 i=sscanf(buf, "%d-%d", &ia[n], &ib[n]);
-	 
-	 if(i==2) {
-	   printf("%d-%d ", ia[n], ib[n]); 
-	   ++cut;    
-	 } else {
-	   if(i<0) break;
-	 }
-       }
-       printf("\n");
-    }
     return(0);
   }
 
@@ -188,38 +145,20 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // transcodes internal video/audio frame processing routines
   // or after and determines video/audio context
   
-  if(ptr->tag & TC_PRE_S_PROCESS) pre=1;
-  
-  if(pre==0) return(0);
+  if(ptr->tag & TC_PRE_S_PROCESS) {
 
-  if(mod) {
-     if(ptr->id % mod) {
-	ptr->attributes |= TC_FRAME_IS_SKIPPED;
-     }
-     return 0;
-  }
+      // fc_frame_in_time returns the step frequency
+      int ret = fc_frame_in_time(list, ptr->id);
 
-  status=0;
-  
-  for(n=0; n<cut; ++n) {
-      if(ptr->id >= ia[n] && ptr->id < ib[n]) {
-	  status=1;
-	  goto cont;
-      }
+
+      if (!(ret && !(ptr->id%ret)))
+	  ptr->attributes |= TC_FRAME_IS_SKIPPED;
+
+      // last cut region finished?
+      if (tail_fc_time(list)->etf+max_frame_buffer < ptr->id)
+	  tc_import_stop();
   }
   
-  // last cut region finished?
-
-  stop=0;
-  if (ptr->id>ib[cut-1]+max_frame_buffer)
-	  stop=1;
-
-  //call back
-  if(stop) tc_import_stop();
-
- cont: 
-  
-  if(status==0) ptr->attributes |= TC_FRAME_IS_SKIPPED;
 
   return(0);
 }

@@ -28,7 +28,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_dv.so"
-#define MOD_VERSION "v0.2.8 (2002-11-21)"
+#define MOD_VERSION "v0.3.0 (2003-05-05)"
 #define MOD_CODEC   "(video) DV | (audio) PCM"
 
 #define MOD_PRE dv
@@ -69,11 +69,16 @@ MOD_open
 {
 
   char cat_buf[1024];
+  char yuv_buf[16];
+
 
   if(param->flag == TC_VIDEO) {
 
     //directory mode?
     (scan(vob->video_in_file)) ? sprintf(cat_buf, "tccat") : ((vob->im_v_string) ? sprintf(cat_buf, "tcextract -x dv %s", vob->im_v_string):sprintf(cat_buf, "tcextract -x dv"));
+    
+    //yuy2 mode?
+    (vob->dv_yuy2_mode) ? sprintf(yuv_buf, "-y yv12 -Y") : sprintf(yuv_buf, "-y yv12");
     
     param->fd = NULL;
 
@@ -95,7 +100,7 @@ MOD_open
       
     case CODEC_YUV:
       
-      if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d | tcdecode -x dv -y yv12 -d %d -Q %d", cat_buf, vob->video_in_file, vob->verbose, vob->verbose, vob->quality)<0)) {
+      if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d | tcdecode -x dv %s -d %d -Q %d", cat_buf, vob->video_in_file, vob->verbose, yuv_buf, vob->verbose, vob->quality)<0)) {
 	perror("command buffer overflow");
 	return(TC_IMPORT_ERROR);
       }

@@ -141,7 +141,7 @@ typedef struct _vob_t {
   int quality;
 
   int af6_mode;
-
+  
   // audio stream parameter
 
   int a_stream_bitrate;     //source stream bitrate
@@ -189,6 +189,8 @@ typedef struct _vob_t {
   int im_v_codec;           // true frame buffer video codec
 
   int encode_fields;        // flag
+
+  int dv_yuy2_mode;            // DV decoding option (0.6.5, ThOe)
 
   // audio frame manipulation info
 
@@ -314,6 +316,8 @@ typedef struct _vob_t {
   char *ex_a_string;  // pass parameters to export audio modules
 
   int accel;
+
+  int video_frames_delay; // delay audio by N frames, (video is late)
   
 } vob_t;
 
@@ -373,7 +377,7 @@ typedef struct probe_info_s {
   int ext_attributes[4];  //reserved for MPEG
 
   int is_video;            //NTSC flag
-  
+
 } probe_info_t;
 
 /* -----------------------------------
@@ -436,6 +440,8 @@ typedef struct _info_t {
 
   double ac3_gain[3];
   long frame_limit[3];
+
+  int dv_yuy2_mode;
 
 } info_t;
 

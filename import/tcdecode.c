@@ -68,6 +68,7 @@ void usage(int status)
   fprintf(stderr,"\t -s c,f,r          audio gain for ac3 downmixing [1,1,1]\n");
   fprintf(stderr,"\t -A n              A52 decoder flag [0]\n");
   fprintf(stderr,"\t -C s,e            decode only from start to end ((V) frames/(A) bytes) [all]\n");
+  fprintf(stderr,"\t -Y                use libdv YUY2 decoder mode\n");
   fprintf(stderr,"\t -v                print version\n");
 
   exit(status);
@@ -103,7 +104,7 @@ int main(int argc, char *argv[])
     ipipe.frame_limit[0]=0; 
     ipipe.frame_limit[1]=LONG_MAX; 
 
-    while ((ch = getopt(argc, argv, "Q:d:x:i:a:g:vy:s:C:A:?h")) != -1) {
+    while ((ch = getopt(argc, argv, "Q:d:x:i:a:g:vy:s:YC:A:?h")) != -1) {
 	
 	switch (ch) {
 	    
@@ -153,6 +154,10 @@ int main(int argc, char *argv[])
 	case 'v': 
 	  version(EXE);
 	  exit(0);
+	  break;
+
+	case 'Y': 
+	  ipipe.dv_yuy2_mode=1;
 	  break;
 
 	case 's': 

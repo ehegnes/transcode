@@ -165,3 +165,39 @@ int tc_rgb2yuv_close()
 
     return(0);
 }
+
+
+void yv12toyuy2(char *_y, char *_u, char *_v, char *output, int width, int height) 
+{
+
+    int i,j;
+    char *y, *u, *v;
+
+    y = _y;
+    v = _v;
+    u = _u;
+    
+    for (i=0; i<height; i+=2) {
+
+      /* packed YUV 4:2:2 is Y[i] U[i] Y[i+1] V[i] */
+
+      for (j=0; j<width/2; j++) {
+	*(output++) = *(y++);
+	*(output++) = *(u++);
+	*(output++) = *(y++);
+	*(output++) = *(v++);
+      }
+      
+      //upsampling requires doubling chroma compoments (simple method)
+      
+      u-=width/2;
+      v-=width/2;
+      
+      for (j=0; j<width/2; j++) {
+	*(output++) = *(y++);
+	*(output++) = *(u++);
+	*(output++) = *(y++);
+	*(output++) = *(v++);
+      }
+    }      
+}

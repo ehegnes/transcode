@@ -602,14 +602,21 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	export_para.attributes = aptr->attributes;
 	export_para.flag   = TC_AUDIO;
 	
-	if(tca_export(TC_EXPORT_ENCODE, &export_para, vob)<0) {
-	  fprintf(stderr, "\nerror encoding audio frame\n");
-	  exit_on_encoder_error=1;
+	if (vob->video_frames_delay) {
+	    vob->video_frames_delay--;
+	    aptr->attributes |= TC_FRAME_IS_CLONED; 
+	    fprintf(stderr, "[%s] Delaying audio (%d)\n", __FILE__, vob->video_frames_delay);
+	} else {
+	    if(tca_export(TC_EXPORT_ENCODE, &export_para, vob)<0) {
+		fprintf(stderr, "\nerror encoding audio frame\n");
+		exit_on_encoder_error=1;
+	    }
+	
+	    // maybe clone?
+	    aptr->attributes = export_para.attributes;
+	
 	}
 
-	// maybe clone?
-	aptr->attributes = export_para.attributes;
-	
 	pthread_mutex_lock(&abuffer_ex_fill_lock);
 	--abuffer_ex_fill_ctr;
 	pthread_mutex_unlock(&abuffer_ex_fill_lock);

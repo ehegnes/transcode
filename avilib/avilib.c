@@ -880,7 +880,7 @@ static int avi_write_data(avi_t *AVI, char *data, unsigned long length, int audi
    sprintf(astr, "0%1dwb", AVI->aptr+1);
 
    if(audio)
-     n = avi_add_index_entry(AVI,astr,0x00,AVI->pos,length);
+     n = avi_add_index_entry(AVI,astr,0x10,AVI->pos,length);
    else
      n = avi_add_index_entry(AVI,"00db",((keyframe)?0x10:0x0),AVI->pos,length);
    

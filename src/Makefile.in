@@ -243,6 +243,8 @@ STRIP = @STRIP@
 SUPPORTINCL = @SUPPORTINCL@
 SUPPORTLIB = @SUPPORTLIB@
 SUPPORTOBJECTS = @SUPPORTOBJECTS@
+SYSTEM_DARWIN_FALSE = @SYSTEM_DARWIN_FALSE@
+SYSTEM_DARWIN_TRUE = @SYSTEM_DARWIN_TRUE@
 TRANSCODE_0_6_FALSE = @TRANSCODE_0_6_FALSE@
 TRANSCODE_0_6_TRUE = @TRANSCODE_0_6_TRUE@
 USE_LIBA52_DECODER = @USE_LIBA52_DECODER@
@@ -305,7 +307,9 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
 bin_PROGRAMS = transcode
 
-transcode_LDADD = @DLDARWINLIB@ @SUPPORTLIB@ -L../libioaux -ltcioaux -L../aclib -lac -lm 
+@SYSTEM_DARWIN_TRUE@transcode_LDFLAGS = -Xlinker -m
+
+transcode_LDADD = @DLDARWINLIB@ @SUPPORTLIB@ -L../libioaux -ltcioaux -L../aclib -lac -lm
 
 EXTRA_DIST = *.h
 
@@ -351,7 +355,6 @@ am_transcode_OBJECTS = transcode.$(OBJEXT) iodir.$(OBJEXT) \
 	socket.$(OBJEXT) optstr.$(OBJEXT) info_server.$(OBJEXT)
 transcode_OBJECTS = $(am_transcode_OBJECTS)
 transcode_DEPENDENCIES =
-transcode_LDFLAGS =
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/audio_buffer.Po \

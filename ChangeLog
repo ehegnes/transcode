@@ -1,4 +1,68 @@
 --------------------------------------------
+transcode-0.6.5.HEAD
+
+2003-05-08 Thomas Oestreich <ostreich at Theorie.Physik.UNI-Goettingen.DE>
+
+  * configure.in docs/man/tcdecode.1 docs/man/transcode.1
+  export/Makefile.am export/export_dv.c export/export_dvraw.c
+  export/vid_aux.* import/decode_dv.c import/import_dv.c
+  import/tcdecode.c src/transcode.*: Digital Video DV fixes/updates.
+  transcode is now able to adjust to libdv beeing compiled with option
+  "--with-pal-yuv=YV12". This the default behavior for PAL users.
+  Without this compiler option for libdv, transcode needs the new
+  "--dv_yuy2_mode" runtime option. Both modes YUV (-V) and RGB are fully
+  supported for de/encoding. Encoding to DV need a patched version (s.
+  below) for libdv since YV12 encoding has a bug. You will notice the
+  absence of chroma components. In addition, NTSC audio raw DV encoding
+  is also somewhat buggy. Encoding to AVI is fine, since the audio is
+  encoded in a separate track, wheras in raw DV the PCM audio is merged
+  into the video frame. The "libdv-0.99-transcode-patch" is provided on
+  the transcode homepage and fixes the YV12 bug and enables NTSC raw DV
+  encoding.  You do not need this patch for decoding. transcode compiles
+  fine without this patch, too. By the way, "-x af6" enables YUV only
+  decoding with "qdv.dll" and "-x ffmpeg" also has a DV decoder. Both
+  import modules however do not handle raw DV streams.
+
+2003-05-07 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/v4l/*: added support for webcams. Well at least for the 
+  for the quickcam. The device does not provide the video data in yv12
+  format, so you need to supply the input parameter "yuv422" to
+  import_v4l. The webcam also has no audio device. Example:
+
+   transcode -i /dev/video1 -p /dev/null -V -x v4l=yuv422,null
+   -y xvid -J pv -g 352x288 -o moo.avi -f 7
+
+  The patch was requested and tested by Todor T. Zviskov
+  <warder at warder.ath.cx>
+
+2003-05-05 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/preview/*: remove all gtk types like gint, gboolean since
+  they are not needed. Also remove referencies to popt.
+
+2003-05-05 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/transcode.c: Fix AC3 pass-through. transcode calculated a too
+  large audio buffer, resulting in the audio stream ending too early and
+  not transcoding the complete video.
+
+2003-05-02 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/export_mpeg2enc: added -I to the command line of mpeg2enc.
+  For progressive (i.e non-interlaced) input we will save a lot of
+  time setting `-I 0'. If the input to mpeg2enc is interlaced, it
+  should be set to `-I 1'. You can toggle the setting with the
+  transcode `--encode_fields' option. If the option is specified,
+  transcode will use `-I 1', the default is `-I 0'
+
+2003-03-06 Christian Limpach <chris at pin.lu>
+  
+  * avilib/avilib.c: Setting the keyframe flag for audio packets helps
+  when playing transcode generated AVI files on windows. If this
+  causes ill side-effects, please report.
+
+--------------------------------------------
 transcode-0.6.4 Wed Apr 30 09:34:42 CEST 2003
 
 2003-04-28 Tilmann Bitterberg <transcode at tibit.org>
@@ -57,7 +121,16 @@ transcode-0.6.4 Wed Apr 30 09:34:42 CEST 2003
   * export_mpeg2enc, export_mp2enc: Do not write to /dev/null.{m1v,m2v}
 
 --------------------------------------------
-transcode-0.6.4.20030408
+transcode-0.6.4.20030409
+
+- Changed export_{divx4,divx5,xvid,xvidcvs} to not write a too large AVI
+  file. When doing two-pass encodes, the first-pass file can grow very
+  large. Pointed out by Frederic Briere <fbriere AT fbriere.net>
+
+- Added a INSTALL file with compiling instructions and tipps. Manpage
+  updates.
+      	
+- Fix compiling without libxml and some warnings
 
 - Big import_xml update:
   - manage different file type in the same xml (only for dv and avi

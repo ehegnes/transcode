@@ -115,9 +115,6 @@ typedef struct {
 			arg_xv_port;
   char			*arg_aspect_string;
 
-#if HAVE_LIBPOPT
-  struct poptOption	option_table[DV_DISPLAY_NUM_OPTS+1];
-#endif // HAVE_LIBPOPT
 } dv_display_t;
 
 #ifdef __cplusplus

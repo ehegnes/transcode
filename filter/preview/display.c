@@ -42,10 +42,6 @@
 #include <sys/shm.h>
 #endif
 
-#if HAVE_LIBPOPT
-#include <popt.h>
-#endif
-
 #ifdef __FreeBSD__ /* We don't have on_exit() */
 dv_display_t 	*dv_dpy_on_exit_hack = NULL;
 #endif
@@ -78,49 +74,6 @@ static void dv_display_event (dv_display_t *dv_dpy);
 static int dv_display_Xv_init (dv_display_t *dv_dpy, char *w_name,
 				char   *i_name, int flags, int size);
 #endif 
-
-
-#if HAVE_LIBPOPT
-static void
-dv_display_popt_callback(poptContext con, enum poptCallbackReason reason, 
-			 const struct poptOption * opt,
-			 const char * arg, const void * data)
-{
-  dv_display_t *display = (dv_display_t *)data;
-
-  if((display->arg_display < 0) || (display->arg_display > 3)) {
-    dv_opt_usage(con, display->option_table, DV_DISPLAY_OPT_METHOD);
-  } /* if */
-
-  if (display->arg_aspect_string) {
-    if (strlen (display->arg_aspect_string) == 1) {
-      switch (display->arg_aspect_string[0]) {
-        case 'n':
-          display->arg_aspect_val |= XV_FORMAT_NORMAL;
-          break;
-        case 'w':
-          display->arg_aspect_val |= XV_FORMAT_WIDE;
-          break;
-        default:
-          dv_opt_usage(con, display->option_table, DV_DISPLAY_OPT_ASPECT);
-          break;
-      }
-    } else if (!strcmp ("normal", display->arg_aspect_string)) {
-      display->arg_aspect_val |= XV_FORMAT_NORMAL;
-    } else if (!strcmp ("wide", display->arg_aspect_string)) {
-      display->arg_aspect_val |= XV_FORMAT_WIDE;
-    } else {
-      dv_opt_usage(con, display->option_table, DV_DISPLAY_OPT_ASPECT);
-    }
-  }
-
-  if ((display->arg_size_val != 0) &&
-      ((display->arg_size_val < 10) || (display->arg_size_val > 100))) {
-    dv_opt_usage(con, display->option_table, DV_DISPLAY_OPT_SIZE);
-  } /* if */
-
-} /* dv_display_popt_callback */
-#endif /* HAVE_LIBPOPT */
 
 dv_display_t *
 dv_display_new(void) 

@@ -135,6 +135,7 @@ enum {
   TS_PID,
   AVI_LIMIT,
   SOCKET_FILE,
+  DV_YUY2_MODE,
 };
 
 int print_counter_interval = 1;
@@ -348,6 +349,8 @@ void usage(int status)
   printf("--accel type              enforce IA32 acceleration for type [autodetect]\n");
 #endif
   printf("--socket file             socket file for run-time control [no file]\n");
+  printf("--dv_yuy2_mode            libdv YUY2 mode (default is YV12) [off]\n");
+
   printf("\n");
 
   //help
@@ -694,6 +697,7 @@ int main(int argc, char *argv[]) {
       {"avi_limit", required_argument, NULL, AVI_LIMIT},
       {"ts_pid", required_argument, NULL, TS_PID},
       {"socket", required_argument, NULL, SOCKET_FILE},
+      {"dv_yuy2_mode", no_argument, NULL, DV_YUY2_MODE},
       {0,0,0,0}
     };
     
@@ -881,6 +885,10 @@ int main(int argc, char *argv[]) {
 
     vob->ts_pid1          = 0x0;
     vob->ts_pid2          = 0x0;
+
+    vob->video_frames_delay = 0;
+
+    vob->dv_yuy2_mode     = 0;
 
     // prepare for SIGINT to catch
     
@@ -1749,6 +1757,9 @@ int main(int argc, char *argv[]) {
 	  vob->encode_fields = TC_TRUE;
 	  break;
 
+	case DV_YUY2_MODE:
+	  vob->dv_yuy2_mode = TC_TRUE;
+	  break;
 
 	case TS_PID:
 

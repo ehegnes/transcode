@@ -3,7 +3,7 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-INCLUDES = -I./ -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ -I../encore2 -I$(srcdir)/../encore2 @LAME_CFLAGS@ -I../libac3 -I$(srcdir)/../libac3 @LIBPOSTPROC_CFLAGS@ @MAGICK_CFLAGS@ @FT2_CFLAGS@
+INCLUDES = -I./ -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ @LAME_CFLAGS@ -I../libac3 -I$(srcdir)/../libac3 @LIBPOSTPROC_CFLAGS@ @MAGICK_CFLAGS@ @FT2_CFLAGS@
 
 CFLAGS = -D_REENTRANT @CFLAGS@
 

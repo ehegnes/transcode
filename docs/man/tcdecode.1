@@ -1,4 +1,4 @@
-.TH tcdecode 1 "26th November 2002" "tcdecode(1)"
+.TH tcdecode 1 "7th May 2003" "tcdecode(1)"
 .SH NAME
 tcdecode \- read multimedia streams from medium, decode to raw format and print to standard output
 .SH SYNOPSIS
@@ -21,6 +21,8 @@ tcdecode \- read multimedia streams from medium, decode to raw format and print 
 ] [
 .B -y
 .I codec
+] [
+.B -Y
 ] [
 .B -Q
 .I mode
@@ -87,6 +89,9 @@ pcm	SIGNED LE 16bit PCM
 
 .IP "\fB-s\fP \fIc,f,r\fP"
 audio gain for AC3 downmixing [1.0,1.0,1.0]
+
+.IP "\fB-Y\fP" 
+decoded Digital Video (raw) YUV frame is in YUY2 (packet) format using libdv. Downsample frame to YV12. PAL users should compile libdv with --with-pal-yuv=YV12 to avoid this option [off]
 
 .IP "\fB-A\fP \fIflag\fP"
 audio flag for AC3/A52 decoder []. This flag determines the down-mixing configuration. Valid choices for \fIflag\fP are determined by the following bits set: TODO

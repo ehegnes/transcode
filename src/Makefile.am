@@ -6,7 +6,11 @@ CFLAGS = -D_REENTRANT -Wall -funroll-loops -ffast-math -finline-functions @DLDAR
 
 bin_PROGRAMS = transcode
 
-transcode_LDADD= @DLDARWINLIB@ @SUPPORTLIB@ -L../libioaux -ltcioaux -L../aclib -lac -lm 
+if SYSTEM_DARWIN
+transcode_LDFLAGS= -Xlinker -m
+endif
+
+transcode_LDADD= @DLDARWINLIB@ @SUPPORTLIB@ -L../libioaux -ltcioaux -L../aclib -lac -lm
 
 EXTRA_DIST = *.h
 

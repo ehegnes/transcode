@@ -80,6 +80,7 @@ int verbose  = 1;
 int rgbswap  = 0;
 int tc_accel = -1;    //acceleration code
 int flip = 0;
+int max_frame_buffer=0;
 
 void tc_error(char *string)
 {

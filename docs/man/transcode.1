@@ -1,4 +1,4 @@
-.TH transcode 1 "21 November 2002" "transcode(1)"
+.TH transcode 1 "7th May 2003" "transcode(1)"
 .SH NAME
 transcode \- LINUX video stream processing tool
 .SH SYNOPSIS
@@ -706,6 +706,9 @@ select only every \fIN\fPth frame to be exported [1]
 .TP
 .B \-\-encode_fields
 enable field based encoding (if supported) [off]
+.TP
+.B \-\-dv_yuy2_mode
+decoded Digital Video (raw) YUV frame is in YUY2 (packet) format using libdv. Downsample frame to YV12. PAL users should compile libdv with --with-pal-yuv=YV12 to avoid this option [off]
 .TP
 .B \-\-write_pid \fIfile\fP
 write pid of signal thread to \fIfile\fP [off]

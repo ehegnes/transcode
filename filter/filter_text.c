@@ -45,6 +45,7 @@
 
 // FreeType specific includes
 #include <ft2build.h>
+#ifdef FT_FREETYPE_H
 #include FT_FREETYPE_H
 
 #include "transcode.h"
@@ -557,3 +558,10 @@ int tc_filter(vframe_list_t *ptr, char *options)
   return(0);
 }
 
+#else
+int tc_filter(vframe_list_t *ptr, char *options)
+{
+    fprintf(stderr, "[%s] Your freetype installation is missing header files\n");
+    return -1;
+}
+#endif // FT_FREETYPE_H

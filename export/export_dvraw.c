@@ -25,13 +25,17 @@
 #include <stdlib.h>
 #include "../libdvenc/dvenc.h"
 #include "transcode.h"
+#include "vid_aux.h"
 
 #define MOD_NAME    "export_dvraw.so"
-#define MOD_VERSION "v0.1.3 (2002-12-19)"
+#define MOD_VERSION "v0.2 (2003-05-08)"
 #define MOD_CODEC   "(video) Digital Video | (audio) PCM"
 
 #define MOD_PRE dvraw
 #include "export_def.h"
+
+extern int _dv_raw_insert_audio(unsigned char * frame_buf, 
+                     dv_enc_audio_info_t * audio, int isPAL);
 
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
@@ -40,20 +44,20 @@ static int fd;
 
 static int16_t *audio_bufs[4];
 
-unsigned char *target;
-unsigned char vbuf[SIZE_RGB_FRAME];
+static uint8_t *target, *vbuf;
 
 #ifdef LIBDV_095
 static dv_encoder_t *encoder = NULL;
-static unsigned char *pixels[3];
+static uint8_t *pixels[3], *tmp_buf;
 #endif
 
 static int frame_size=0, format=0;
 static int pass_through=0;
 
 static int chans, rate;
+static int dv_yuy2_mode=0;
 
-dv_enc_audio_info_t audio;
+static dv_enc_audio_info_t audio;
 
 static unsigned char *bufalloc(size_t size)
 {
@@ -95,6 +99,29 @@ static int p_write (int fd, char *buf, size_t len)
    return r;
 }
 
+static void pcm_swap(char *buffer, int len)
+{
+  char *in, *out;
+
+  int n;
+
+  char tt;
+
+  in  = buffer;
+  out = buffer;
+
+  for(n=0; n<len; n=n+2) {
+
+    tt = *(in+1);
+    *(out+1) = *in;
+    *out = tt;
+    
+    in = in+2;
+    out = out+2;
+  }
+}
+
+
 /* ------------------------------------------------------------ 
  *
  * init codec
@@ -109,6 +136,12 @@ MOD_init
   if(param->flag == TC_VIDEO) {
     
     target = bufalloc(TC_FRAME_DV_PAL);
+    vbuf = bufalloc(SIZE_RGB_FRAME);
+
+    if(vob->dv_yuy2_mode) {
+      tmp_buf = bufalloc(PAL_W*PAL_H*2); //max frame
+      dv_yuy2_mode=1;
+    }
     
 #ifdef LIBDV_095
     encoder = dv_encoder_new(FALSE, FALSE, FALSE);
@@ -144,7 +177,6 @@ MOD_init
 
 MOD_open
 {
-  int format;
   
   if(param->flag == TC_VIDEO) {
     
@@ -160,10 +192,14 @@ MOD_open
       
     case CODEC_RGB:
       format=0;
+
+      if(verbose & TC_DEBUG) fprintf(stderr, "[%s] raw format is RGB\n", MOD_NAME);
       break;
       
     case CODEC_YUV:
       format=1;
+      
+      if(verbose & TC_DEBUG) fprintf(stderr, "[%s] raw format is YV12\n", MOD_NAME);
       break;
       
     case CODEC_RAW:
@@ -212,6 +248,8 @@ MOD_open
     audio.bytespersecond = rate * audio.bytealignment;
     audio.bytesperframe = audio.bytespersecond/(encoder->isPAL ? 25 : 30);
 
+    if(verbose & TC_DEBUG) fprintf(stderr, "[%s] audio: CH=%d, f=%d, balign=%d, bps=%d, bpf=%d\n", MOD_NAME, audio.channels, audio.frequency, audio.bytealignment, audio.bytespersecond, audio.bytesperframe);
+    
     return(0);
   }
   // invalid flag
@@ -226,6 +264,8 @@ MOD_open
 
 MOD_encode
 {
+  
+  int i, j, ch;
 
   if(param->flag == TC_VIDEO) { 
     
@@ -234,16 +274,22 @@ MOD_encode
     } else { 
       memcpy(vbuf, param->buffer, param->size);
     }
+    
+    if(verbose & TC_STATS) fprintf(stderr, "[%s] ---V---\n", MOD_NAME);
+
     return(0);
   }
   
   if(param->flag == TC_AUDIO) {
+    
+    if(verbose & TC_STATS) fprintf(stderr, "[%s] ---A---\n", MOD_NAME);
     
     time_t now = time(NULL);
     
     if(!pass_through) {
 
 #ifdef LIBDV_095
+
       pixels[0] = (char *) vbuf;
       
       if(encoder->isPAL) {
@@ -253,20 +299,42 @@ MOD_encode
 	pixels[2]=(char *) vbuf + NTSC_W*NTSC_H;
 	pixels[1]=(char *) vbuf + (NTSC_W*NTSC_H*5)/4;
       }
-
+      
+      if(dv_yuy2_mode) {	
+	yv12toyuy2(pixels[0], pixels[1], pixels[2], tmp_buf, PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
+	pixels[0]=tmp_buf;
+      }
+      
       dv_encode_full_frame(encoder, pixels, (format)?e_dv_color_yuv:e_dv_color_rgb, target);
+      
       dv_encode_metadata(target, encoder->isPAL, encoder->is16x9, &now, 0);
       dv_encode_timecode(target, encoder->isPAL, 0);
       
-      dv_encode_full_audio(encoder, audio_bufs, chans, rate, target);
+      pcm_swap(param->buffer, param->size);
+
+      // demux audio channels
+      //j=0;
+      //for(i=0; i <param->size/4 ; i++) {
+      //for(ch=0; ch < chans; ch++) {
+      //  audio_bufs[ch][i] = (int16_t) param->buffer[j];
+      //  ++j; 
+      //} 
+      //}
       
-      memcpy(audio.data, param->buffer, param->size);
-      dvenc_insert_audio(target, &audio, encoder->isPAL);
+      encoder->samples_this_frame=param->size;
+
+      //memcpy(audio.data, param->buffer, param->size);
+      //_dv_raw_insert_audio(target, &audio, encoder->isPAL);
+      
+      //FIXME: need to switch to "dv_encode_full_audio" only
+      audio_bufs[0] = param->buffer;
+      dv_encode_full_audio(encoder, audio_bufs, chans, rate, target);
+
 #else    
       //merge audio     
       dvenc_frame(vbuf, param->buffer, param->size, target);
 #endif
-    }
+    }//no pass-through
     
     //write raw DV frame
     
@@ -291,7 +359,7 @@ MOD_encode
 MOD_stop 
 {
   
-  //  int i;
+  int i;
   
   if(param->flag == TC_VIDEO) {
     
@@ -305,7 +373,7 @@ MOD_stop
   }
   
   if(param->flag == TC_AUDIO) {
-    //    for(i=0; i < 4; i++) free(audio_bufs[i]);
+    for(i=0; i < 4; i++) free(audio_bufs[i]);
     return(0);
   }  
   

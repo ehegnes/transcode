@@ -6,7 +6,7 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 AC3_LIB=-L../libac3 -lac3_tc
 AC3_INC=-I../libac3 -I$(srcdir)/../libac3
 
-INCLUDES = -I./ -I../ -I$(srcdir)/.. -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ -I../encore2 -I$(srcdir)/../encore2  @LAME_CFLAGS@ $(AC3_INC) @QT_CFLAGS@ -Wall @DV_CFLAGS@ -I../libvo -I$(srcdir)/../libvo @MJPEG_CFLAGS@ @LIBFAME_CFLAGS@ @MAGICK_CFLAGS@ @LIBJPEG_CFLAGS@ -I../libioaux -I$(srcdir)/../libioaux @LZO_CFLAGS@ 
+INCLUDES = -I./ -I../ -I$(srcdir)/.. -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ @LAME_CFLAGS@ $(AC3_INC) @QT_CFLAGS@ -Wall @DV_CFLAGS@ -I../libvo -I$(srcdir)/../libvo @MJPEG_CFLAGS@ @LIBFAME_CFLAGS@ @MAGICK_CFLAGS@ @LIBJPEG_CFLAGS@ -I../libioaux -I$(srcdir)/../libioaux @LZO_CFLAGS@ 
 
 CFLAGS = -D_REENTRANT @CFLAGS@
 
@@ -181,13 +181,13 @@ export_mov_la_SOURCES = export_mov.c
 export_mov_la_LDFLAGS =  -module -avoid-version 
 export_mov_la_LIBADD = @QT_LIBS@ -lm
 
-export_dvraw_la_SOURCES = export_dvraw.c 
+export_dvraw_la_SOURCES = export_dvraw.c vid_aux.c
 export_dvraw_la_LDFLAGS =  -module -avoid-version 
-export_dvraw_la_LIBADD = -L../libdvenc -ldvenc @DV_LIBS@ -lm
+export_dvraw_la_LIBADD = -L../libdvenc -ldvenc @DV_LIBS@ -L../libvo -lvout -lm
 
-export_dv_la_SOURCES = export_dv.c aud_aux.c
+export_dv_la_SOURCES = export_dv.c aud_aux.c vid_aux.c
 export_dv_la_LDFLAGS =  -module -avoid-version 
-export_dv_la_LIBADD = @LAME_LIBS@ -L../avilib -lavi -L../libdvenc -ldvenc @DV_LIBS@ $(AC3_LIB) -lm
+export_dv_la_LIBADD = @LAME_LIBS@ -L../avilib -lavi -L../libdvenc -ldvenc @DV_LIBS@ $(AC3_LIB)  -L../libvo -lvout -lm 
 
 export_yuv4mpeg_la_SOURCES = export_yuv4mpeg.c aud_aux.c vid_aux.c
 export_yuv4mpeg_la_LDFLAGS =  -module -avoid-version 

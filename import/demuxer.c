@@ -862,7 +862,7 @@ void tcdemux_thread(info_t *ipipe)
     }
 
     //summary
-    if(verbose & TC_DEBUG) fprintf(stderr, "%d/%d packets discarded\n", i, j);
+    if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (pid=%d) %d/%d packets discarded\n", __FILE__, getpid(), i, j);
     
     if(buffer!=NULL) free(buffer);
     
