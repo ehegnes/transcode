@@ -33,8 +33,8 @@ return(hashval % FRAME_HASH_SIZE);
 
 char *strsave(char *s) /*save char array s somewhere*/
 {
-char *p, *malloc();
-if(p = malloc( strlen(s) +  1) ) strcpy(p, s);
+char *p;
+if(p = (char *)malloc( strlen(s) +  1) ) strcpy(p, s);
 return(p);
 }
 
