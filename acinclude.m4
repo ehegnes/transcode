@@ -168,7 +168,7 @@ if test x"$enable_ffmpeg_libs_static" = x"no" ; then
   save_LDFLAGS="$LDFLAGS"
   LDFLAGS="$LDFLAGS -L$with_ffmpeg_libs_l"
   AC_CHECK_LIB(avcodec, avcodec_thread_init,
-    [FFMPEG_LIBS_LIBS="-L$with_ffmpeg_libs_l -lavcodec $FFMPEG_LIB_EXTRALIBS"],
+    [FFMPEG_LIBS_LIBS="-L$with_ffmpeg_libs_l -lavcodec $FFMPEG_LIBS_EXTRALIBS"],
     [AC_MSG_ERROR([error transcode depends on the FFmpeg (libavcodec) libraries and headers])],
     [$FFMPEG_LIBS_EXTRALIBS])
   LDFLAGS="$save_LDFLAGS"
@@ -178,8 +178,8 @@ else
     AC_MSG_ERROR([linking static archives into shared objects not supported on this platform]) 
   fi
   save_LIBS="$LIBS"
-  save_CPPFLAGS="CPPFLAGS"
-  LIBS="$LIBS $with_ffmpeg_libs_libs_l/libavcodec.a $FFMPEG_LIBS_EXTRALIBS"
+  save_CPPFLAGS="$CPPFLAGS"
+  LIBS="$LIBS $with_ffmpeg_libs_l/libavcodec.a $FFMPEG_LIBS_EXTRALIBS"
   CPPFLAGS="$CPPFLAGS -I$with_ffmpeg_libs_i"
   AC_TRY_LINK([
 #include <ffmpeg/avcodec.h>
