@@ -26,6 +26,22 @@ Generate a file in with information about the times, frame, etc the pattern
 defined in the image parameter is observed.
 <----------------------|
 
+---------------------->[ control.help ]
+The format of the command file is framenumber followed by at least one whitespace followed
+by the command followed by at least one whitespace followed by arguments for the command.
+Empty lines and lines starting with a `#' are ignored. The frame numbers must be sorted ascending.
+
+      # Example file
+      # At frame 10 load the smooth filter
+      10 load smooth
+      # reconfigure at 20
+      20 configure smooth=strength=0.9
+      99 disable smooth
+
+      
+
+<----------------------|
+
 ---------------------->[ cpaudio.help ]
 Copies audio from one channel to another
 <----------------------|
