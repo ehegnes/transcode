@@ -29,10 +29,26 @@
 // if flag is set, use the extensions provided by the user.
 // otherwise use the ones the export modules suggests.
 
-#define TC_PROBE_NO_EXPORT_VEXT   (1<<0)
-#define TC_PROBE_NO_EXPORT_AEXT   (1<<1)
-#define TC_PROBE_NO_EXPORT_VFMT   (1<<2)
-#define TC_PROBE_NO_EXPORT_AFMT   (1<<3)
+#define TC_PROBE_NO_EXPORT_VEXT      (1<< 0) // --ext X,..
+#define TC_PROBE_NO_EXPORT_AEXT      (1<< 1) // --ext ..,X
+#define TC_PROBE_NO_EXPORT_VFMT      (1<< 2) // unused
+#define TC_PROBE_NO_EXPORT_AFMT      (1<< 3) // unused
+#define TC_PROBE_NO_EXPORT_VBITRATE  (1<< 4) // -w
+#define TC_PROBE_NO_EXPORT_ABITRATE  (1<< 5) // -b
+#define TC_PROBE_NO_EXPORT_FIELDS    (1<< 6) // --encode_fields
+#define TC_PROBE_NO_EXPORT_VMODULE   (1<< 7) // -y X,..
+#define TC_PROBE_NO_EXPORT_AMODULE   (1<< 8) // -y ..,X
+#define TC_PROBE_NO_EXPORT_FRC       (1<< 9) // --export_fps ..,X
+#define TC_PROBE_NO_EXPORT_FPS       (1<<10) // --export_fps X,..
+#define TC_PROBE_NO_EXPORT_VCODEC    (1<<11) // -F
+#define TC_PROBE_NO_EXPORT_ACODEC    (1<<12) // -N
+#define TC_PROBE_NO_EXPORT_ARATE     (1<<13) // -E X,..,..
+#define TC_PROBE_NO_EXPORT_ABITS     (1<<14) // -E ..,X,..
+#define TC_PROBE_NO_EXPORT_ACHANS    (1<<15) // -E ..,..,X
+#define TC_PROBE_NO_EXPORT_VMAXRATE  (1<<16) // unused
+#define TC_PROBE_NO_EXPORT_VMINRATE  (1<<17) // unused
+#define TC_PROBE_NO_EXPORT_ASR       (1<<18) // --export_asr
+#define TC_PROBE_NO_EXPORT_PAR       (1<<19) // --export_par
 
 extern unsigned int probe_export_attributes;
 

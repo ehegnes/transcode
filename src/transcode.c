@@ -1222,6 +1222,13 @@ int main(int argc, char *argv[]) {
 	  if(n>2 && (vob->dm_chan < 0 || vob->dm_chan > 6)) tc_error("invalid parameter for option -E");
 	  
 	  if(n>1 && vob->dm_bits != 8 && vob->dm_bits != 16 && vob->dm_bits != 24) tc_error("invalid parameter for option -E");
+
+	  switch (n) {
+	    case 3: probe_export_attributes |= TC_PROBE_NO_EXPORT_ACHANS;
+	    case 2: probe_export_attributes |= TC_PROBE_NO_EXPORT_ABITS;
+	    case 1: probe_export_attributes |= TC_PROBE_NO_EXPORT_ARATE;
+	  }
+
 	  
 	  break;
 	  
@@ -1302,6 +1309,7 @@ int main(int argc, char *argv[]) {
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  
 	  n = sscanf(optarg,"%d,%d,%f,%d", &vob->mp3bitrate, &vob->a_vbr, &vob->mp3quality, &vob->mp3mode);
+	  probe_export_attributes |= TC_PROBE_NO_EXPORT_ABITRATE;
 
 	if(n<0 || vob->mp3bitrate < 0|| vob->a_vbr<0 || vob->mp3quality<-1.00001 || vob->mp3mode<0) 
 	  tc_error("invalid bitrate for option -b");
@@ -1348,6 +1356,7 @@ int main(int argc, char *argv[]) {
 	vob->ex_a_codec = strtol(optarg, endptr, 16);
 
 	if(vob->ex_a_codec < 0) tc_error("invalid parameter for option -N");
+	probe_export_attributes |= TC_PROBE_NO_EXPORT_ACODEC;
 
 	break;
 	
@@ -1370,6 +1379,7 @@ int main(int argc, char *argv[]) {
 
 	  vob->divxbitrate = (int)ratefact;
 	  vob->m2v_requant =      ratefact;
+	  probe_export_attributes |= TC_PROBE_NO_EXPORT_VBITRATE;
 	
 	  if(!vob->divxbitrate)
 	    tc_error("invalid bitrate parameter for option -w");
@@ -1499,12 +1509,14 @@ int main(int argc, char *argv[]) {
 	  ex_aud_mod = vbuf2;
 	  ex_vid_mod = vbuf2;
 	  no_v_out_codec=0;
+	  probe_export_attributes |= TC_PROBE_NO_EXPORT_AMODULE;
 	}
 	
 	if(n==2) {
 	  ex_aud_mod = abuf2;
 	  ex_vid_mod = vbuf2;
 	  no_v_out_codec=no_a_out_codec=0;
+	  probe_export_attributes |= (TC_PROBE_NO_EXPORT_AMODULE|TC_PROBE_NO_EXPORT_VMODULE);
 	}
 
 	if(strlen(ex_aud_mod)!=0 && strchr(ex_aud_mod,'=') && n==2) {
@@ -1751,6 +1763,7 @@ int main(int argc, char *argv[]) {
           vob->ex_v_fcc = optarg;
         }
 	break;
+	probe_export_attributes |= TC_PROBE_NO_EXPORT_VCODEC;
 	
       case 'o': 
 	
@@ -1864,6 +1877,8 @@ int main(int argc, char *argv[]) {
 	    vob->ex_asr=atoi(optarg);
 
 	    if(vob->ex_asr < 0) tc_error("invalid parameter for option --export_asr");
+
+	    probe_export_attributes |= TC_PROBE_NO_EXPORT_ASR;
 	    
 	    break;
 
@@ -1887,10 +1902,13 @@ int main(int argc, char *argv[]) {
 	    if(n==2) vob->ex_fps=MIN_FPS; //will be overwritten later
 
 	    if(vob->ex_fps < MIN_FPS || n < 0) tc_error("invalid parameter for option --export_fps");
+	    probe_export_attributes |= TC_PROBE_NO_EXPORT_FPS;
 	
 	    if(n==2) {
 	      if(vob->ex_frc < 0 || vob->ex_frc > 15) tc_error("invalid frame rate code for option --export_fps");
 	  
+	      probe_export_attributes |= TC_PROBE_NO_EXPORT_FRC;
+
 	      vob->ex_fps = frc_table[vob->ex_frc];
 	    }
 	
@@ -1902,6 +1920,7 @@ int main(int argc, char *argv[]) {
 	    vob->ex_frc=atoi(optarg);
 
 	    if(vob->ex_frc<0) tc_error("invalid parameter for option --export_frc");
+	    probe_export_attributes |= TC_PROBE_NO_EXPORT_FRC;
 	    
 	    break;
 	  
@@ -1983,7 +2002,7 @@ int main(int argc, char *argv[]) {
 
 	case ENCODE_FIELDS:
 	  if(optarg[0]=='-') {
-	    tc_error("option --encode_fields requires an argument (one of p, t or b)");
+	    tc_error("option --encode_fields requires an argument (one of p, t, b or u)");
 	  }
 	  switch (optarg[0]) {
 	    case 'p':
@@ -1992,10 +2011,13 @@ int main(int argc, char *argv[]) {
 	      vob->encode_fields = 1; break;
 	    case 'b':
 	      vob->encode_fields = 2; break;
+	    case 'u':
+	      vob->encode_fields = 3; break;
 	    default:
-	      tc_error("option --encode_fields argument must be one of p, t or b");
+	      tc_error("option --encode_fields argument must be one of p, t, b or u");
 	      break;
 	  }
+	  probe_export_attributes |= TC_PROBE_NO_EXPORT_FIELDS;
 	  
 	  break;
 
@@ -2286,6 +2308,8 @@ int main(int argc, char *argv[]) {
 	  } else {
 	    tc_error("invalid argument for --ex_par");
 	  }
+
+	  probe_export_attributes |= TC_PROBE_NO_EXPORT_PAR;
 	  break;
 
 	case EXTENSIONS:

@@ -1,5 +1,19 @@
 --------------------------------------------
-transcode-0.6.12
+transcode-0.6.13
+
+2004-01-10 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/transcode.c src/probe_export.h:
+  Added flags to check if the user set a particular parameter or if
+  transcode is allowed to set it.
+
+2004-01-10 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * configure.in:
+  Bump version number.
+
+--------------------------------------------
+transcode-0.6.12 Fri Jan  8 23:59:59 CET 2004
 
   * Terse/less technical ChangeLog:
   Changes:
@@ -85,7 +99,7 @@ transcode-0.6.12
 2004-01-07 Tilmann Bitterberg <transcode at tibit.org>
 
   * filter/subtitler/*:
-  Upgrade to 0.6.8.
+  Upgrade to 0.8.4.
 
 2004-01-06 Frederic Briere <fbriere at fbriere.net>
 
