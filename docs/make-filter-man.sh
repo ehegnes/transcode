@@ -24,6 +24,7 @@ filter_32detect.so
 filter_32drop.so
 filter_aclip.so
 filter_astat.so
+filter_clone.so
 filter_compare.so
 filter_control.so
 filter_cpaudio.so
@@ -31,18 +32,20 @@ filter_cshift.so
 filter_cut.so
 filter_decimate.so
 filter_denoise3d.so
-filter_detectsilence.so
 filter_detectclipping.so
+filter_detectsilence.so
 filter_dilyuvmmx.so
 filter_divxkey.so
 filter_dnr.so
 filter_doublefps.so
 filter_extsub.so
+filter_fieldanalysis.so
 filter_fields.so
 filter_fps.so
 filter_hqdn3d.so
 filter_invert.so
 filter_ivtc.so
+filter_levels.so
 filter_logo.so
 filter_logoaway.so
 filter_lowpass.so
@@ -63,10 +66,12 @@ filter_smartdeinter.so
 filter_smartyuv.so
 filter_smooth.so
 filter_subtitler.so
+filter_tc_audio.so
 filter_tc_video.so
 filter_test.so
 filter_testframe.so
 filter_text.so
+filter_tomsmocomp.so
 filter_unsharp.so
 filter_videocore.so
 filter_whitebalance.so
@@ -78,7 +83,7 @@ filter_yuy2toyv12.so
 
 text=""
 
-function get_help_to_filter() {
+get_help_to_filter() {
 
   name=$1
   
