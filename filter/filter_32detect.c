@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_32detect.so"
-#define MOD_VERSION "v0.2.2 (2003-01-24)"
+#define MOD_VERSION "v0.2.4 (2003-07-22)"
 #define MOD_CAP     "3:2 pulldown / interlace detection plugin"
 
 #include <stdio.h>
@@ -53,14 +53,17 @@
 
 #define COLOR_EQUAL  10
 #define COLOR_DIFF   30
-#define THRESHOLD    10 
+#define THRESHOLD     9 
 
-static int color_diff_threshold1[MAX_FILTER];//=COLOR_EQUAL;
-static int color_diff_threshold2[MAX_FILTER];//=COLOR_DIFF;
+static int color_diff_threshold1[MAX_FILTER];  //=COLOR_EQUAL;
+static int color_diff_threshold2[MAX_FILTER];  //=COLOR_DIFF;
+static int chroma_diff_threshold1[MAX_FILTER]; //=COLOR_EQUAL/2;
+static int chroma_diff_threshold2[MAX_FILTER]; //=COLOR_DIFF/2;
 
 static int force_mode=0;
-static int threshold[MAX_FILTER];//=THRESHOLD; 
-static int show_results[MAX_FILTER];//=0;
+static int threshold[MAX_FILTER];              //=THRESHOLD; 
+static int chroma_threshold[MAX_FILTER];       //=THRESHOLD/2; 
+static int show_results[MAX_FILTER];           //=0;
 
 static int pre[MAX_FILTER];// = 0;
 /*-------------------------------------------------
@@ -80,14 +83,17 @@ static void help_optstr(void)
 
    printf ("* Options\n");
    printf ("   'threshold' interlace detection threshold [%d]\n", THRESHOLD);
+   printf ("   'chromathres' interlace detection chroma threshold [%d]\n", THRESHOLD/2);
    printf ("   'equal' threshold for equal colors [%d]\n", COLOR_EQUAL);
+   printf ("   'chromaeq' threshold for equal chroma [%d]\n", COLOR_EQUAL/2);
    printf ("   'diff' threshold for different colors [%d]\n", COLOR_DIFF);
+   printf ("   'chromadi' threshold for different colors [%d]\n", COLOR_DIFF/2);
    printf ("   'force_mode' set internal force de-interlace flag with mode -I N [0]\n");
    printf ("   'pre' run as pre filter [1]\n");
    printf ("   'verbose' show results [off]\n");
 }
 
-static int interlace_test(char *video_buf, int width, int height, int id, int instance)
+static int interlace_test(char *video_buf, int width, int height, int id, int instance, int thres, int eq, int diff)
 {
 
     int j, n, off, block, cc_1, cc_2, cc, flag;
@@ -113,11 +119,11 @@ static int interlace_test(char *video_buf, int width, int height, int id, int in
 	    s3 = (video_buf[off+j+2*block] & 0xff);
 	    s4 = (video_buf[off+j+3*block] & 0xff);
 	    
-	    if((abs(s1 - s3) < color_diff_threshold1[instance]) &&
-	       (abs(s1 - s2) > color_diff_threshold2[instance])) ++cc_1;
+	    if((abs(s1 - s3) < eq) &&
+	       (abs(s1 - s2) > diff)) ++cc_1;
 	    
-	    if((abs(s2 - s4) < color_diff_threshold1[instance]) &&
-	       (abs(s2 - s3) > color_diff_threshold2[instance])) ++cc_2;
+	    if((abs(s2 - s4) < eq) &&
+	       (abs(s2 - s3) > diff)) ++cc_2;
 	    
 	    off +=2*block;
 	}
@@ -127,7 +133,7 @@ static int interlace_test(char *video_buf, int width, int height, int id, int in
     
     cc = (int)((cc_1 + cc_2)*1000.0/(width*height));
 	       
-    flag = (cc > threshold[instance]) ? 1:0;
+    flag = (cc > thres) ? 1:0;
     
 
     if(show_results[instance]) fprintf(stderr, "(%d) frame [%06d]: (1) = %5d | (2) = %5d | (3) = %3d | interlaced = %s\n", instance, id, cc_1, cc_2, cc, ((flag)?"yes":"no")); 
@@ -157,11 +163,20 @@ int tc_filter(vframe_list_t *ptr, char *options)
       sprintf(buf, "%d", THRESHOLD);
       optstr_param (options, "threshold", "Interlace detection threshold", "%d", buf, "0", "255");
 
+      sprintf(buf, "%d", THRESHOLD/2);
+      optstr_param (options, "chromathres", "Interlace detection chroma threshold", "%d", buf, "0", "255");
+
       sprintf(buf, "%d", COLOR_EQUAL);
       optstr_param (options, "equal", "threshold for equal colors", "%d", buf, "0", "255");
 
+      sprintf(buf, "%d", COLOR_EQUAL/2);
+      optstr_param (options, "chromaeq", "threshold for equal chroma", "%d", buf, "0", "255");
+
       sprintf(buf, "%d", COLOR_DIFF);
       optstr_param (options, "diff", "threshold for different colors", "%d", buf, "0", "255");
+
+      sprintf(buf, "%d", COLOR_DIFF/2);
+      optstr_param (options, "chromadi", "threshold for different chroma", "%d", buf, "0", "255");
 
       optstr_param (options, "force_mode", "set internal force de-interlace flag with mode -I N", 
 	      "%d", "0", "0", "5");
@@ -175,11 +190,14 @@ int tc_filter(vframe_list_t *ptr, char *options)
       
       if((vob = tc_get_vob())==NULL) return(-1);
 
-      color_diff_threshold1[instance] = COLOR_EQUAL;
-      color_diff_threshold2[instance] = COLOR_DIFF;
-      threshold[instance]             = THRESHOLD;
-      show_results[instance]          = 0;
-      pre[instance]                   = 1;
+      color_diff_threshold1[instance]  = COLOR_EQUAL;
+      chroma_diff_threshold1[instance] = COLOR_EQUAL/2;
+      color_diff_threshold2[instance]  = COLOR_DIFF;
+      chroma_diff_threshold2[instance] = COLOR_DIFF/2;
+      threshold[instance]              = THRESHOLD;
+      chroma_threshold[instance]       = THRESHOLD/2;
+      show_results[instance]           = 0;
+      pre[instance]                    = 1;
       
       // filter init ok.
       
@@ -192,9 +210,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	  if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
 	  
 	  optstr_get (options, "threshold", "%d",  &threshold[instance]);
+	  optstr_get (options, "chromathres", "%d",  &chroma_threshold[instance]);
 	  optstr_get (options, "force_mode", "%d",  &force_mode);
 	  optstr_get (options, "equal", "%d",  &color_diff_threshold1[instance]);
+	  optstr_get (options, "chromaeq", "%d",  &chroma_diff_threshold1[instance]);
 	  optstr_get (options, "diff", "%d",  &color_diff_threshold2[instance]);
+	  optstr_get (options, "chromadi", "%d",  &chroma_diff_threshold2[instance]);
 	  optstr_get (options, "pre", "%d",  &pre[instance]);
 
 	  if (optstr_get (options, "verbose", "") >= 0) {
@@ -242,9 +263,15 @@ int tc_filter(vframe_list_t *ptr, char *options)
     //if (ptr->tag & TC_POST_M_PROCESS) fprintf(stderr, "32#%d post (%d)\n", instance, ptr->id);
     
     if(vob->im_v_codec==CODEC_RGB) {
-	is_interlaced = interlace_test(ptr->video_buf, 3*ptr->v_width, ptr->v_height, ptr->id, instance); 
+	is_interlaced = interlace_test(ptr->video_buf, 3*ptr->v_width, ptr->v_height, ptr->id, instance, 
+		threshold[instance], color_diff_threshold1[instance], color_diff_threshold2[instance]); 
     } else {
-	is_interlaced = interlace_test(ptr->video_buf, ptr->v_width, ptr->v_height, ptr->id, instance);
+	is_interlaced += interlace_test(ptr->video_buf, ptr->v_width, ptr->v_height, ptr->id, instance,
+		threshold[instance], color_diff_threshold1[instance], color_diff_threshold2[instance]); 
+	is_interlaced += interlace_test(ptr->video_buf+ptr->v_width*ptr->v_height, ptr->v_width/2, ptr->v_height/2, ptr->id, instance,
+		chroma_threshold[instance], chroma_diff_threshold1[instance], chroma_diff_threshold2[instance]); 
+	is_interlaced += interlace_test(ptr->video_buf+ptr->v_width*ptr->v_height*5/4, ptr->v_width/2, ptr->v_height/2, ptr->id, instance,
+		chroma_threshold[instance], chroma_diff_threshold1[instance], chroma_diff_threshold2[instance]); 
     }
 
     //force de-interlacing?
