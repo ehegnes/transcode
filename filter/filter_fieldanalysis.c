@@ -498,7 +498,7 @@ int tc_filter (vframe_list_t *ptr, char *options)
 			"  'fieldanalysis' scans video for interlacing artifacts and\n"
 			"  detects progressive / interlaced / telecined video.\n"
 			"  It also determines the major field for interlaced video.\n"
-			"* Verbose Output:   [PtPb c t eteb]\n"
+			"* Verbose Output:   [PtPb c t stsb]\n"
 			"  Pt, Pb:   progressivediff succeeded, per field.\n"
 			"  pt, pb:   unknowndiff succeeded, progressivediff failed.\n"
 			"  c:        progressivechange succeeded.\n"
