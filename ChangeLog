@@ -1,6 +1,42 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-12-18 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/export_mp1e.c:
+  New export module. This drives the mp1e programme, a very fast
+  mpeg1 encoder. It can also be used to generate vcd compliant
+  streams. It can encode MP2 audio as well an writes out an MPEG
+  programm stream.
+
+  You can find the mp1e tool at:
+  http://freshmeat.net/projects/mp1e/
+  I used version 1.9.3 for testing.
+
+  Caveats: An intermediate wav file gets created to feed the audio
+  to mp1e so you need some temporary space. It is not possible to
+  use a pipe for this because of a limitation of mp1e. This wav file
+  can get quite large, depending on the number of frames you are
+  encoding.
+
+  Use '-F vcd' to turn on VCD mode. Examples:
+  With -Q you can control the motion compensation but I found the
+  video looked a lot worse when enabling that.
+
+  # generic MPEG1 with a bitrate of 6000
+  transcode -i test.vob -o foo.mpg -u 100 --print_status 60 \
+    -y mp1e -V -w 6000 -b 224
+
+  # VCD and pass -v to mp1e (verbose)
+  transcode -i test.vob -o foo.mpg -u 100 --progress_off \
+    -y mp1e -V -F vcd,'-v' -Z 352x288,fast -J resample -E 44100
+
+  * docs/export-mods.c docs/man/transcode.1:
+  Documentation about the mp1e module.
+
+  * src/transcode.c export/Makefile.am:
+  Set sensible defaults for mp1e export.
+
 2003-12-15 Tilmann Bitterberg <transcode at tibit.org>
 
   * export/aud_aux.c:

@@ -420,6 +420,7 @@ void usage(int status)
 //  printf("--more_help param   more help on named parameter\n");
   printf("\n");
   
+  if (vob) free(vob);
   exit(status);
   
 }
@@ -429,6 +430,7 @@ void short_usage(int status)
   version();
 
   printf("\'transcode -h | more\' shows a list of available command line options.\n");
+  if (vob) free(vob);
   exit(status);
   
 }
@@ -862,6 +864,7 @@ int main(int argc, char *argv[]) {
     vob->a_stream_bitrate = 0;
     vob->a_bits           = BITS;
     vob->a_chan           = CHANNELS;
+    vob->a_padrate        = 0;
     
     vob->dm_bits          = 0;
     vob->dm_chan          = 0;
@@ -3355,9 +3358,11 @@ int main(int argc, char *argv[]) {
       
       //audio format
       
-      if(ex_aud_mod && strlen(ex_aud_mod) != 0 && strcmp(ex_aud_mod, "mpeg")==0) vob->ex_a_codec=CODEC_MP2;
-      
-      if(ex_aud_mod && strlen(ex_aud_mod) != 0 && strcmp(ex_aud_mod, "mp2enc")==0) vob->ex_a_codec=CODEC_MP2;
+      if(ex_aud_mod && strlen(ex_aud_mod) != 0) {
+	if (strcmp(ex_aud_mod, "mpeg")==0) vob->ex_a_codec=CODEC_MP2;
+	if (strcmp(ex_aud_mod, "mp2enc")==0) vob->ex_a_codec=CODEC_MP2;
+	if (strcmp(ex_aud_mod, "mp1e")==0) vob->ex_a_codec=CODEC_MP2;
+      }
       
       // calc export bitrate
       switch (vob->ex_a_codec) {
@@ -4206,8 +4211,8 @@ int main(int argc, char *argv[]) {
       if(verbose & TC_INFO) { printf(" cancel signal |");fflush(stdout); }
       if (thread_signal) {
 	pthread_cancel(thread_signal);
-#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
         pthread_kill(thread_signal,SIGINT);
+#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
 #endif
 	pthread_join(thread_signal, &thread_status);
       }
@@ -4247,6 +4252,8 @@ int main(int argc, char *argv[]) {
     aframe_free();
     if(verbose & TC_DEBUG) fprintf(stderr, "[%s] buffer released\n", PACKAGE);
 #endif
+
+    if (vob) free(vob);
 
     //exit at last
     if (sig_int || sig_tstp)

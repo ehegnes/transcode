@@ -124,6 +124,13 @@ R: libquicktime
 S: o
 I: Interface to the quicktime library.
 
+M: export_mp1e.c
+D: (video) MPEG1 video | (audio) MPEG1-Layer
+C: none
+R: mp1e
+S: +
+I: Drives the mp1e binary and writes an mpeg1 file to disc. It can also encode vcd compliant streams. Note: it writes an intermediate wav file for audio due to a limitation of mp1e.
+
 M: export_mp2enc.c
 D: (audio) MPEG 1/2
 C: mjpegtools

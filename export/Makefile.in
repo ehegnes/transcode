@@ -359,6 +359,7 @@ pkg_LTLIBRARIES = export_null.la \
 		  export_ac3.la \
 		  export_wav.la \
 		  export_pcm.la \
+		  export_mp1e.la \
 		  $(MODS1) $(MODS2) $(MODS3) $(MODS4) $(MODS5) $(MODS6) $(MODS7) $(MODS8) $(MOD9) $(MODS10) export_ogg.la \
 		  export_toolame.la $(MODS11) $(MODS12) $(MODS13) $(MODS14) $(MODS15)
 
@@ -374,6 +375,10 @@ export_toolame_la_LDFLAGS = -module -avoid-version
 
 export_ac3_la_SOURCES = export_ac3.c
 export_ac3_la_LDFLAGS = -module -avoid-version 
+
+export_mp1e_la_SOURCES = export_mp1e.c vid_aux.c
+export_mp1e_la_LDFLAGS = -module -avoid-version 
+export_mp1e_la_LIBADD = -L../libvo -lvout -lm
 
 export_ogg_la_SOURCES = export_ogg.c
 export_ogg_la_LDFLAGS = -module -avoid-version 
@@ -572,6 +577,9 @@ export_mjpeg_la_OBJECTS = $(am_export_mjpeg_la_OBJECTS)
 export_mov_la_DEPENDENCIES =
 am_export_mov_la_OBJECTS = export_mov.lo
 export_mov_la_OBJECTS = $(am_export_mov_la_OBJECTS)
+export_mp1e_la_DEPENDENCIES =
+am_export_mp1e_la_OBJECTS = export_mp1e.lo vid_aux.lo
+export_mp1e_la_OBJECTS = $(am_export_mp1e_la_OBJECTS)
 export_mp2enc_la_DEPENDENCIES =
 am_export_mp2enc_la_OBJECTS = export_mp2enc.lo
 export_mp2enc_la_OBJECTS = $(am_export_mp2enc_la_OBJECTS)
@@ -642,6 +650,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/export_lzo.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/export_mjpeg.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/export_mov.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/export_mp1e.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/export_mp2enc.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/export_mpeg.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/export_mpeg2enc.Plo \
@@ -687,19 +696,19 @@ DIST_SOURCES = $(export_ac3_la_SOURCES) $(export_af6_la_SOURCES) \
 	$(export_ffmpeg_la_SOURCES) $(export_im_la_SOURCES) \
 	$(export_jpg_la_SOURCES) $(export_lame_la_SOURCES) \
 	$(export_lzo_la_SOURCES) $(export_mjpeg_la_SOURCES) \
-	$(export_mov_la_SOURCES) $(export_mp2enc_la_SOURCES) \
-	$(export_mpeg_la_SOURCES) $(export_mpeg2enc_la_SOURCES) \
-	$(export_net_la_SOURCES) $(export_null_la_SOURCES) \
-	$(export_ogg_la_SOURCES) $(export_pcm_la_SOURCES) \
-	$(export_ppm_la_SOURCES) $(export_pvm_la_SOURCES) \
-	$(export_raw_la_SOURCES) $(export_toolame_la_SOURCES) \
-	$(export_wav_la_SOURCES) $(export_xvid2_la_SOURCES) \
-	$(export_xvid3_la_SOURCES) $(export_xvid4_la_SOURCES) \
-	$(export_yuv4mpeg_la_SOURCES)
+	$(export_mov_la_SOURCES) $(export_mp1e_la_SOURCES) \
+	$(export_mp2enc_la_SOURCES) $(export_mpeg_la_SOURCES) \
+	$(export_mpeg2enc_la_SOURCES) $(export_net_la_SOURCES) \
+	$(export_null_la_SOURCES) $(export_ogg_la_SOURCES) \
+	$(export_pcm_la_SOURCES) $(export_ppm_la_SOURCES) \
+	$(export_pvm_la_SOURCES) $(export_raw_la_SOURCES) \
+	$(export_toolame_la_SOURCES) $(export_wav_la_SOURCES) \
+	$(export_xvid2_la_SOURCES) $(export_xvid3_la_SOURCES) \
+	$(export_xvid4_la_SOURCES) $(export_yuv4mpeg_la_SOURCES)
 DATA = $(pkg_DATA)
 
 DIST_COMMON = $(srcdir)/Makefile.in Makefile.am
-SOURCES = $(export_ac3_la_SOURCES) $(export_af6_la_SOURCES) $(export_debugppm_la_SOURCES) $(export_divx4_la_SOURCES) $(export_divx4raw_la_SOURCES) $(export_divx5_la_SOURCES) $(export_divx5raw_la_SOURCES) $(export_dv_la_SOURCES) $(export_dvraw_la_SOURCES) $(export_fame_la_SOURCES) $(export_ffmpeg_la_SOURCES) $(export_im_la_SOURCES) $(export_jpg_la_SOURCES) $(export_lame_la_SOURCES) $(export_lzo_la_SOURCES) $(export_mjpeg_la_SOURCES) $(export_mov_la_SOURCES) $(export_mp2enc_la_SOURCES) $(export_mpeg_la_SOURCES) $(export_mpeg2enc_la_SOURCES) $(export_net_la_SOURCES) $(export_null_la_SOURCES) $(export_ogg_la_SOURCES) $(export_pcm_la_SOURCES) $(export_ppm_la_SOURCES) $(export_pvm_la_SOURCES) $(export_raw_la_SOURCES) $(export_toolame_la_SOURCES) $(export_wav_la_SOURCES) $(export_xvid2_la_SOURCES) $(export_xvid3_la_SOURCES) $(export_xvid4_la_SOURCES) $(export_yuv4mpeg_la_SOURCES)
+SOURCES = $(export_ac3_la_SOURCES) $(export_af6_la_SOURCES) $(export_debugppm_la_SOURCES) $(export_divx4_la_SOURCES) $(export_divx4raw_la_SOURCES) $(export_divx5_la_SOURCES) $(export_divx5raw_la_SOURCES) $(export_dv_la_SOURCES) $(export_dvraw_la_SOURCES) $(export_fame_la_SOURCES) $(export_ffmpeg_la_SOURCES) $(export_im_la_SOURCES) $(export_jpg_la_SOURCES) $(export_lame_la_SOURCES) $(export_lzo_la_SOURCES) $(export_mjpeg_la_SOURCES) $(export_mov_la_SOURCES) $(export_mp1e_la_SOURCES) $(export_mp2enc_la_SOURCES) $(export_mpeg_la_SOURCES) $(export_mpeg2enc_la_SOURCES) $(export_net_la_SOURCES) $(export_null_la_SOURCES) $(export_ogg_la_SOURCES) $(export_pcm_la_SOURCES) $(export_ppm_la_SOURCES) $(export_pvm_la_SOURCES) $(export_raw_la_SOURCES) $(export_toolame_la_SOURCES) $(export_wav_la_SOURCES) $(export_xvid2_la_SOURCES) $(export_xvid3_la_SOURCES) $(export_xvid4_la_SOURCES) $(export_yuv4mpeg_la_SOURCES)
 
 all: all-am
 
@@ -772,6 +781,8 @@ export_mjpeg.la: $(export_mjpeg_la_OBJECTS) $(export_mjpeg_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkgdir) $(export_mjpeg_la_LDFLAGS) $(export_mjpeg_la_OBJECTS) $(export_mjpeg_la_LIBADD) $(LIBS)
 export_mov.la: $(export_mov_la_OBJECTS) $(export_mov_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(export_mov_la_LDFLAGS) $(export_mov_la_OBJECTS) $(export_mov_la_LIBADD) $(LIBS)
+export_mp1e.la: $(export_mp1e_la_OBJECTS) $(export_mp1e_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(export_mp1e_la_LDFLAGS) $(export_mp1e_la_OBJECTS) $(export_mp1e_la_LIBADD) $(LIBS)
 export_mp2enc.la: $(export_mp2enc_la_OBJECTS) $(export_mp2enc_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(export_mp2enc_la_LDFLAGS) $(export_mp2enc_la_OBJECTS) $(export_mp2enc_la_LIBADD) $(LIBS)
 export_mpeg.la: $(export_mpeg_la_OBJECTS) $(export_mpeg_la_DEPENDENCIES) 
@@ -831,6 +842,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_lzo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_mjpeg.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_mov.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_mp1e.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_mp2enc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_mpeg.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_mpeg2enc.Plo@am__quote@

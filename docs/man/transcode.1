@@ -98,6 +98,13 @@ The \-F parameter has different meanings for different export modules.
 -y \fImov\fP:
   The name of the quicktime codec. Example values are '-F mjpa' (default) '-F cvid' 
 
+-y \fImpeg2enc\fP:
+  Syntax: -F "<base-profile>[,<options_string>]"
+    <base-profile> can be one of
+      'mpeg1' = Generic MPEG1 (default)
+      'vcd' = Standard VCD
+    <options_string> will be passed down to mp1e untouched by transcode. Have a look at the manpage for mp1e.
+
 -y \fImpeg\fP:
   Syntax: -F "<base-profile>[,<resizer-mode>[,user-profile]]"
     <base-profile> can be one of
@@ -798,6 +805,15 @@ At run-time libquicktime must be present.
 Support for this module is fair.
 .RS 8
 Interface to the quicktime library.
+.RE
+.TP 4
+\fBmp1e\fP \- (video) MPEG1 video | (audio) MPEG1-Layer
+.br
+This module has no compile-time dependencies.
+At run-time mp1e must be present.
+Support for this module is good.
+.RS 8
+Drives the mp1e binary and writes an mpeg1 file to disc. It can also encode vcd compliant streams. Note: it writes an intermediate wav file for audio due to a limitation of mp1e.
 .RE
 .TP 4
 \fBmp2enc\fP \- (audio) MPEG 1/2

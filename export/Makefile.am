@@ -88,6 +88,7 @@ pkg_LTLIBRARIES = export_null.la \
 		  export_ac3.la \
 		  export_wav.la \
 		  export_pcm.la \
+		  export_mp1e.la \
 		  $(MODS1) $(MODS2) $(MODS3) $(MODS4) $(MODS5) $(MODS6) $(MODS7) $(MODS8) $(MOD9) $(MODS10) export_ogg.la \
 		  export_toolame.la $(MODS11) $(MODS12) $(MODS13) $(MODS14) $(MODS15)
 
@@ -102,6 +103,10 @@ export_toolame_la_LDFLAGS =  -module -avoid-version
 
 export_ac3_la_SOURCES = export_ac3.c
 export_ac3_la_LDFLAGS =  -module -avoid-version 
+
+export_mp1e_la_SOURCES = export_mp1e.c vid_aux.c
+export_mp1e_la_LDFLAGS =  -module -avoid-version 
+export_mp1e_la_LIBADD  = -L../libvo -lvout -lm
 
 export_ogg_la_SOURCES = export_ogg.c
 export_ogg_la_LDFLAGS =  -module -avoid-version 
