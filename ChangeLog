@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-30 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/import_divx.c:
+  Fix a compile error. Do not use new structures with old codec.
+  Pointed out by Edouard Gomez.
+
 2003-07-29 Christopher Cramer <crayc at asuka.halfassedprojects.com>
 
   * filter/filter_fps.c:

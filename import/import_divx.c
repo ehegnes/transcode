@@ -53,7 +53,7 @@
 #endif
 
 #define MOD_NAME    "import_divx.so"
-#define MOD_VERSION "v0.2.8 (2003-07-29)"
+#define MOD_VERSION "v0.2.9 (2003-07-30)"
 #define MOD_CODEC   "(video) DivX;-)/XviD/OpenDivX/DivX 4.xx/5.xx"
 #define MOD_PRE divx
 #include "import_def.h"
@@ -292,7 +292,7 @@ MOD_open
     }
 
 #if DECORE_VERSION >= 20020303
-#if DECORE_VERSION >= 20021112
+#  if DECORE_VERSION >= 20021112
     if ((decInit = malloc(sizeof(DEC_INIT)))==NULL) {
       perror("out of memory");
       return(TC_IMPORT_ERROR); 
@@ -312,7 +312,7 @@ MOD_open
       // no smoothing of the CPU load
       decInit->smooth_playback = 0;
       divx_version=DEC_OPT_FRAME;
-#else
+#  else
 
     if ((divx = malloc(sizeof(DEC_PARAM)))==NULL) {
       perror("out of memory");
@@ -336,7 +336,7 @@ MOD_open
 
       divx->build_number = 0;
       divx_version=DEC_OPT_FRAME;
-#endif
+#  endif
 #else
 
     if(strcasecmp(codec_str,"DIV3")==0) {
@@ -527,6 +527,7 @@ MOD_decode {
       //determine keyframe
       
 #if DECORE_VERSION >= 20020303
+#  if DECORE_VERSION >= 20021112
       switch (decInit->codec_version){
       case 311:
 	  if(param->size>4) cc=divx3_is_key((unsigned char *)param->buffer);
@@ -535,6 +536,16 @@ MOD_decode {
 	  cc=divx4_is_key((unsigned char *)param->buffer, (long) param->size);
 	  break;
       }
+#  else
+      switch (divx->codec_version){
+      case 311:
+	  if(param->size>4) cc=divx3_is_key((unsigned char *)param->buffer);
+	  break;
+      default:
+	  cc=divx4_is_key((unsigned char *)param->buffer, (long) param->size);
+	  break;
+      }
+#  endif
 #else
       switch(divx_version) {
       case DEC_OPT_FRAME:
