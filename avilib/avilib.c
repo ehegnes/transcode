@@ -2782,6 +2782,8 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 
       AVI->n_idx = 0;
 
+      fprintf(stderr, "[avilib] Reconstructing index...");
+
       // Number of frames; only one audio track supported
       nvi = AVI->video_frames = AVI->total_frames;
       nai[0] = AVI->track[0].audio_chunks = AVI->total_frames;
@@ -2797,7 +2799,6 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 	  }
       }   
 
-      fprintf(stderr, "[avilib] Reconstructing index...");
       nvi = 0;
       for(j=0; j<AVI->anum; ++j) nai[j] = tot[j] = 0;
 
@@ -2849,13 +2850,12 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 		nai[j]++;
 
 		lseek(AVI->fdes,PAD_EVEN(n),SEEK_CUR);
-	   }
-
-	 if (nvi < AVI->total_frames) {
-	     fprintf(stderr, "[avilib] Uh? Some frames seems missing (%ld/%d)\n", 
-		     nvi,  AVI->total_frames);
-	     break;
 	 }
+
+      }
+      if (nvi < AVI->total_frames) {
+	  fprintf(stderr, "[avilib] Uh? Some frames seems missing (%ld/%d)\n", 
+		  nvi,  AVI->total_frames);
       }
 
 
