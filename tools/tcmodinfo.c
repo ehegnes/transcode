@@ -205,7 +205,7 @@ int load_plugin(char *path, int id) {
 
   //replace "=" by "/0" in filter name
   
-  if(strlen(filter[id].name)==0) return(-1);
+  if(!filter[id].name) return(-1);
 
   filter[id].options=NULL;
 
@@ -440,6 +440,7 @@ int main(int argc, char *argv[])
   //fprintf(stderr, "Module is (%s/filter_%s) (%d)\n", modpath, filename, getpid());
 
   if (mod_type & TYPE_FI) {
+    filter[0].name = malloc(256);
     snprintf (filter[0].name, 256, "%s", filename);
 
     if (load_plugin ( (newmodpath?newmodpath:modpath), 0) == 0) {
