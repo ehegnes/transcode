@@ -64,7 +64,7 @@ typedef unsigned int uint32_t;
  * ----------------------------*/
 
 typedef enum {
-  NONE = 0,
+  PROF_NONE = 0,
   VCD,
   VCD_PAL,
   VCD_NTSC,

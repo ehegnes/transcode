@@ -1030,7 +1030,7 @@ int main(int argc, char *argv[]) {
 
     vob->dv_yuy2_mode     = 0;
     vob->hard_fps_flag    = 0;
-    vob->mpeg_profile     = NONE;
+    vob->mpeg_profile     = PROF_NONE;
 
     // prepare for SIGINT to catch
     
@@ -2775,7 +2775,7 @@ int main(int argc, char *argv[]) {
     // calc clip settings for encoding to mpeg (vcd,svcd,dvd)
     // --export_prof {vcd,vcd-pal,vcd-ntsc,svcd,svcd-pal,svcd-ntsc,dvd,dvd-pal,dvd-ntsc}
    
-    if (vob->mpeg_profile != NONE) {
+    if (vob->mpeg_profile != PROF_NONE) {
       typedef struct ratio_t { int t, b; } ratio_t;
       ratio_t asrs[] = { {1, 1}, {1, 1}, {4, 3}, {16, 9}, {221, 100} };
       ratio_t imasr = asrs[0];
