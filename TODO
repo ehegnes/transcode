@@ -1,10 +1,27 @@
+PROBLEMS/BUGS
+-------------------
+General/
+- clean up the YV12 vs I420 and RGB24 vs. BGR24 mess.
+
+filter/
+  filter_tc_video is broken for RGB mode
+
+tools/
+  The avi* utils have problems with some avifiles.
+
+
+
+
+
+
 WISHLIST for v0.6.X
 -------------------
+- handle soft-telecide/variable fps mpegs
 
 - threads scheduling priority changes
 	(postponed)
 - add full LFS 
-	(postponed)
+	(done)
 - DVD subtitle support, via filter plugin facility
 	(done - beta 0.6.0pre4)
 - openquicktime import/export modules
@@ -28,15 +45,3 @@ WISHLIST for v0.6.X
 	(done - beta 0.6.0pre1)
 - asynchronous AV import
 	(done - beta 0.6.0pre1)
-
-WISHLIST for v0.5.X
--------------------
-
-- more intelligent (automatic) audio/video synchronization for program streams
-	(done - maybe not intelligent, but some NTSC support)
-- SSE optimizations for video frame operation 
-	(not yet, but heavy optimizations for -B and -X)	
-- support for encrypted DVDs 	
-	(done)
-- source autodetection
-	(done)
