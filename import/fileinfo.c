@@ -371,6 +371,13 @@ long fileinfo(int fdes, int skip)
     id = TC_MAGIC_ID3;
     goto exit;
   }
+
+  // iTunes sets an ID3 header that way at the beginning. We search for an
+  // syncword first so it should just work.
+  if (buf[0] == 'I' && buf[1] == 'D' && buf[2] == '3' && buf[3] == 0x02) {
+    id = TC_MAGIC_MP3;
+    goto exit;
+  }
   
   /* -------------------------------------------------------------------
    *

@@ -329,18 +329,21 @@ int buf_probe_mp3(unsigned char *_buf, int len, pcm_t *pcm)
 
 void probe_mp3(info_t *ipipe)
 {
+    ssize_t ret=0;
 
     // need to find syncframe:
     
-    if(p_read(ipipe->fd_in, sbuffer, MAX_BUF) != MAX_BUF) {
-	ipipe->error=1;
-	return;
+    if((ret = p_read(ipipe->fd_in, sbuffer, MAX_BUF)) != MAX_BUF) {
+	if (!ret) {
+	    ipipe->error=1;
+	    return;
+	}
     }
     
     verbose_flag = ipipe->verbose;
 
     //for single MP3 stream only
-    if(buf_probe_mp3(sbuffer, MAX_BUF, &ipipe->probe_info->track[0])<0) {
+    if(buf_probe_mp3(sbuffer, ret, &ipipe->probe_info->track[0])<0) {
 	ipipe->error=1;
 	return;
     }
