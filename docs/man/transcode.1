@@ -2384,6 +2384,27 @@ same as -C/weight/bias
 .RE
 .RE
 .TP 4
+\fBwhitebalance\fP - \fBcorrect images with a broken white balance\fP
+\fBwhitebalance\fP was written by Guillaume Cottenceau. The version documented here is v0.1 (2003-10-01). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
+.IP
+.RS
+\(bu 
+.I level 
+= \fI%d\fP  [default \fI40\fP] 
+.RS 3
+Strength of filter (may also be negative for opposite effect)
+.RE
+\(bu 
+.I limit
+= \fI%s\fP  [default disabled] 
+.RS 3
+A string containing a series of frame numbers prepended by '-' to switch off or '+' to switch on (for example, -50+80-120 will disable from frame number 50 to number 80, then disable from 120 to the end)
+.RE
+.IP
+This filter allows correcting movies with a broken white balance (e.g.
+bluish movie, for example).
+.RE
+.TP 4
 \fBxharpen\fP - \fBVirtualDub's XSharpen Filter\fP
 \fBxharpen\fP was written by Donald Graft, Tilmann Bitterberg. The version documented here is (1.0b2) (2003-02-12). This is a video filter. It can handle RGB and YUV mode. It is a post-processing only filter.
 .IP

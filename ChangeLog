@@ -1,6 +1,20 @@
 --------------------------------------------
 transcode-0.6.11
 
+2003-10-02 Guillaume Cottenceau <gc at mandrakesoft.com>
+
+  * filter/{filter_whitebalance.c Makefile.am} docs/man/transcode.1:
+  New filter -J whitebalance. Correct images with a broken white
+  balance. This is useful mostly for DV type material which for eg.
+  had set an indoor whitebalance but actually are outdoor material.
+  A wrong whitebalance adds a blueish flavour to the image.
+
+  The filter takes 2 options
+  "level": Level of blue-to-yellow white balance shifting (can be
+           negative) [40] Valid from -1000 to +1000.
+  "limit": Limit to specified ranges (+fnumber toggles on, -fnumber
+           toggles off.
+
 2003-09-30 Tilmann Bitterberg <transcode at tibit.org>
 
   * configure.in:

@@ -233,6 +233,18 @@ increase the compression-ratio to be achieved by subsequent encoders.
       I have found that black line areas maintain color information.
       
       <p><p>
+
+  <li><FONT color=red><b>filter_whitebalance.so</b></font> (new in v0.6.11)<img align="top" src="new.png"><br>
+       <i>Author:</i> Guillaume Cottenceau<br>
+       <i>Usage:</i> -J whitebalance=&lt;options&gt;<br>
+       <ul>
+	  <li> 'level' Strength of filter (may also be negative for opposite effect) [40]
+	  <li> 'limit' A string containing a series of frame numbers prepended by '-' to switch off or '+' to switch on (for example, -50+80-120 will disable from frame number 50 to number 80, then disable from 120 to the end) [disabled]
+       </ul>
+       This filter allows correcting movies with a broken white balance (e.g.
+       bluish movie, for example).<br>
+      
+      <p><p>
       
   <li><FONT color=red><b>filter_xsharpen.so</b></font> (new in
        v0.6.0pre4)<img align="top" src="new.png"><br>

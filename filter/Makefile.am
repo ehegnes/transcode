@@ -65,6 +65,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_smartyuv.la\
 			filter_msharpen.la\
 			filter_fps.la\
+			filter_whitebalance.la\
 			$(F_PP) $(F_MMX) $(F_LOGO) $(F_TEXT)
 
 filter_null_la_SOURCES = filter_null.c
@@ -203,6 +204,10 @@ filter_fields_la_LDFLAGS =  -module -avoid-version
 
 filter_fps_la_SOURCES = filter_fps.c
 filter_fps_la_LDFLAGS = -module -avoid-version
+
+filter_whitebalance_la_SOURCES = filter_whitebalance.c
+filter_whitebalance_la_LDFLAGS = -module -avoid-version
+filter_whitebalance_la_LIBADD = -L../libvo -lvout ../export/vid_aux.lo -lm
 
 EXTRA_DIST =  parse_csv.awk filter_list.awk mmx.h
 
