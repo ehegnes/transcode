@@ -5,6 +5,7 @@ filter_logoaway documentation
 About this filter:
   This filter removes an image in a user specified area. An image can be a logo of a TV Station, the timestamp
   of a Camcorder or some ugly artifacts.
+  It's a <PRE> process filter.
 
 Requirements:
   transcode   - just as you guessed :-)
@@ -60,11 +61,17 @@ Configuration:                     (possible values)        [default]
                          information where to render and which pixels to use
                          for interpolation. This mode is slower than xy and
                          was made for logos with holes in it or other forms that
-                         are badly covered by a rectangle or circle.
+                         are badly covered by a rectangle.
 
 
     'border' Visible Border
               Works in every mode and gives you a dotted line around the remove area
+              
+      'dump' dumps the image between the given coordinates to the file dump[instance].png continously.
+             That means one image file is written for each filter instance and every frame this image is
+             overwritten with the current content.
+             This is useful for creating exact shape or alpha images.
+             (RGB only)
 
 
    'xweight' X-Y Weight            (0%-100%)                [50]
@@ -113,4 +120,4 @@ Examples:
 
 
 Author:
-  (c)2002/03 Thomas Wehrspann <thomas@wehrspann.de>
+  (c)2002-2004 Thomas Wehrspann <thomas@wehrspann.de>

@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-03-07 Thomas Wehrspann <thomas at wehrspann.de>
+
+  * filter_logoaway.{c,txt}:
+  Added a dump option to write the selection to a png file; only in
+  RGB mode. The filter is now a PRE filter. Updated documentation.
+
 2004-03-02 Erik Slagter <erik at oldconomy.com>
 
   * export/export_ffmpeg.c:

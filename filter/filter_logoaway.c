@@ -26,9 +26,7 @@
 
  /*
   * TODO:
-  *   -coordinates in RGB=YUV   - DONE
-  *   -shape mode               - DONE
-  *   -blur                     -
+  *   -blur                     - 
  */
 
 /*
@@ -59,10 +57,14 @@
  *
  * v0.4 (2003-09-03) Tilmann Bitterberg
  *    -add information for shape mode
+ *
+ * v0.5 (2004-03-07) Thomas Wehrspann <thomas@wehrspann.de>
+ *    -Changed filter to PRE process
+ *    -Added dump image function (RGB only)
  */
 
 #define MOD_NAME    "filter_logoaway.so"
-#define MOD_VERSION "v0.4 (2003-09-03)"
+#define MOD_VERSION "v0.5 (2004-03-07)"
 #define MOD_CAP     "remove an image from the video"
 #define MOD_AUTHOR  "Thomas Wehrspann <thomas@wehrspann.de>"
 
@@ -85,6 +87,7 @@
 #include "framebuffer.h"
 #include "filter.h"
 #include "optstr.h"
+#include "tc_func_excl.h"
 
 // transcode defines this as well as ImageMagick.
 #undef PACKAGE_NAME
@@ -115,6 +118,11 @@ typedef struct logoaway_data {
   Image         *image;
   ImageInfo     *image_info;
   PixelPacket   *pixel_packet;
+  
+  int           dump;
+  char          *dump_buf;
+  Image         *dumpimage;
+  ImageInfo     *dumpimage_info;
 } logoaway_data;
 
 static logoaway_data *data[MAX_FILTER];
@@ -130,6 +138,7 @@ static logoaway_data *data[MAX_FILTER];
  *********************************************************/
 static void help_optstr(void)
 {
+   printf ("%s", WHITE);
    printf ("[%s] (%s) help                                                            \n", MOD_NAME, MOD_CAP);
    printf ("* Overview                                                                \n");
    printf ("    This filter removes an image in a user specified area from the video. \n");
@@ -141,10 +150,12 @@ static void help_optstr(void)
    printf ("        'size' Size             (0-width x 0-height)          [10x10]     \n");
    printf ("        'mode' Filter Mode      (0=none,1=solid,2=xy,3=shape) [0]         \n");
    printf ("      'border' Visible Border                                             \n");
-   printf ("     'xweight' X-Y Weight       (0%%-100%%)                     [50]        \n");
+   printf ("        'dump' Dump filter area to file                                   \n");
+   printf ("     'xweight' X-Y Weight       (0%%-100%%)                   [50]        \n");
    printf ("        'fill' Solid Fill Color (RRGGBB)                      [000000]    \n");
    printf ("        'file' Image with alpha/shape information             []          \n");
    printf ("                                                                          \n");
+   printf ("%s", GRAY);
 }
 
 
@@ -181,6 +192,30 @@ void work_with_rgb_frame(char *buffer, int width, int height, int instance)
   int buf_off, packet_off, buf_off_xpos, buf_off_width, buf_off_ypos, buf_off_height;
   int alpha_hori, alpha_vert;
 
+  if(data[instance]->dump) { // DUMP
+    for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
+      for(col=data[instance]->xpos; col<data[instance]->width; ++col) {
+
+        packet_off = ((row-data[instance]->ypos)*(data[instance]->width-data[instance]->xpos)+(col-data[instance]->xpos)) * 3;
+        buf_off = ((height-row)*width+col) * 3;
+        
+        /* R */
+        data[instance]->dump_buf[packet_off +0] = buffer[buf_off +0];
+
+        /* G */
+        data[instance]->dump_buf[packet_off +1] = buffer[buf_off +1];
+
+        /* B */
+        data[instance]->dump_buf[packet_off +2] = buffer[buf_off +2];
+      }
+    }
+
+    data[instance]->dumpimage = ConstituteImage(data[instance]->width-data[instance]->xpos, data[instance]->height-data[instance]->ypos, "RGB", CharPixel, data[instance]->dump_buf, &data[instance]->exception_info);
+    sprintf (data[instance]->dumpimage->filename, "dump[%d].png", instance);
+
+    WriteImage(data[instance]->dumpimage_info, data[instance]->dumpimage);
+  }
+  
   switch(data[instance]->mode) {
 
   case 0: // NONE
@@ -589,6 +624,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
     sprintf (buf, "%d",  data[instance]->border);
     optstr_param (options, "border", "Visible Border",                      "",          buf);
 
+    sprintf (buf, "%d",  data[instance]->dump);
+    optstr_param (options, "dump", "Dump filterarea to file",               "",          buf);
+    
     sprintf (buf, "%d", data[instance]->xweight);
     optstr_param (options, "xweight","X-Y Weight(0%-100%)",                 "%d",        buf, "0", "100");
 
@@ -613,14 +651,17 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
     if((vob = tc_get_vob())==NULL) return(-1);
 
-    if((data[instance] = (logoaway_data *)malloc (sizeof(logoaway_data))) == NULL) return (-1);
+    if((data[instance] = (logoaway_data *)malloc (sizeof(logoaway_data))) == NULL) {
+      fprintf (stderr, "[%s:%d] ERROR: out of memory\n", __FILE__, __LINE__);
+      return (-1);
+    }
 
     data[instance]->start    = 0;
     data[instance]->end      = (unsigned int)-1;
-    data[instance]->xpos     = 0;
-    data[instance]->ypos     = 0;
-    data[instance]->width    = 10;
-    data[instance]->height   = 10;
+    data[instance]->xpos     = -1;
+    data[instance]->ypos     = -1;
+    data[instance]->width    = -1;
+    data[instance]->height   = -1;
     data[instance]->mode     = 0;
     data[instance]->border   = 0;
     data[instance]->xweight  = 50;
@@ -632,6 +673,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     data[instance]->ucolor   = 128;
     data[instance]->vcolor   = 128;
     data[instance]->alpha    = 0;
+    data[instance]->dump     = 0;
 
     // filter init ok.
 
@@ -655,6 +697,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
         data[instance]->vcolor = -(0.148 * data[instance]->rcolor) - (0.291 * data[instance]->gcolor) + (0.439 * data[instance]->bcolor) + 128;
       if (optstr_get (options,  "file",    "%[^:]",     &data[instance]->file) >= 0)
         data[instance]->alpha = 1;
+      if (optstr_get (options,  "dump",  "") >= 0)
+        data[instance]->dump = 1;
     }
 
     if(verbose) printf("[%s] instance(%d) options=%s\n", MOD_NAME, instance, options);
@@ -666,50 +710,62 @@ int tc_filter(vframe_list_t *ptr, char *options)
       printf ("         border = %d       \n", data[instance]->border);
       printf ("     x-y weight = %d:%d    \n", data[instance]->xweight, data[instance]->yweight);
       printf ("     fill color = %2X%2X%2X\n", data[instance]->rcolor, data[instance]->gcolor, data[instance]->bcolor);
-      printf ("           file = %s       \n", data[instance]->file);
+      if(data[instance]->alpha)
+        printf ("           file = %s       \n", data[instance]->file);
+      if(data[instance]->dump)
+        printf ("           dump = %d       \n", data[instance]->dump);
     }
 
-    if( (data[instance]->xpos > vob->ex_v_width) || (data[instance]->ypos > vob->ex_v_height) ) {
-      fprintf(stderr, "[%s] ERROR invalid position\n", MOD_NAME);
+    if( (data[instance]->xpos > vob->im_v_width) || (data[instance]->ypos > vob->im_v_height) || (data[instance]->xpos < 0) || (data[instance]->ypos < 0) )  {
+      fprintf(stderr, "[%s] ERROR: invalid position\n", MOD_NAME);
       return(-1);
     }
-    if( (data[instance]->width > vob->ex_v_width) || (data[instance]->height > vob->ex_v_height) ) {
-      fprintf(stderr, "[%s] ERROR invalid size\n", MOD_NAME);
+    if( (data[instance]->width > vob->im_v_width) || (data[instance]->height > vob->im_v_height) || (data[instance]->width-data[instance]->xpos < 0) || (data[instance]->height-data[instance]->ypos < 0) ) {
+      fprintf(stderr, "[%s] ERROR: invalid size\n", MOD_NAME);
       return(-1);
-    }
+    }    
     if( (data[instance]->xweight > 100) || (data[instance]->xweight < 0) ) {
-      fprintf(stderr, "[%s] ERROR invalid x weight\n", MOD_NAME);
+      fprintf(stderr, "[%s] ERROR: invalid x weight\n", MOD_NAME);
       return(-1);
     }
     if( (data[instance]->mode < 0) || (data[instance]->mode > 3) ) {
-      fprintf(stderr, "[%s] ERROR invalid mode\n", MOD_NAME);
+      fprintf(stderr, "[%s] ERROR: invalid mode\n", MOD_NAME);
       return(-1);
     }
     if( (data[instance]->mode == 3) && (data[instance]->alpha == 0) ) {
-      fprintf(stderr, "[%s] ERROR alpha/shape file needed for SHAPE-mode\n", MOD_NAME);
+      fprintf(stderr, "[%s] ERROR: alpha/shape file needed for SHAPE-mode\n", MOD_NAME);
       return(-1);
     }
 
-    if(data[instance]->alpha) {
+    if((data[instance]->alpha) || (data[instance]->dump)) {
       InitializeMagick("");
       GetExceptionInfo(&data[instance]->exception_info);
-      data[instance]->image_info = CloneImageInfo((ImageInfo *) NULL);
-
-      strcpy(data[instance]->image_info->filename, data[instance]->file);
-      data[instance]->image = ReadImage(data[instance]->image_info, &data[instance]->exception_info);
-      if (data[instance]->image == (Image *) NULL) {
-        fprintf(stderr, "[%s] ERROR: ", MOD_NAME);
-        MagickWarning (data[instance]->exception_info.severity, data[instance]->exception_info.reason, data[instance]->exception_info.description);
-        return(-1);
+      
+      if(data[instance]->alpha) {
+        data[instance]->image_info = CloneImageInfo((ImageInfo *) NULL);
+  
+        strcpy(data[instance]->image_info->filename, data[instance]->file);
+        data[instance]->image = ReadImage(data[instance]->image_info, &data[instance]->exception_info);
+        if (data[instance]->image == (Image *) NULL) {
+          fprintf(stderr, "[%s] ERROR: ", MOD_NAME);
+          MagickWarning (data[instance]->exception_info.severity, data[instance]->exception_info.reason, data[instance]->exception_info.description);
+          return(-1);
+        }
+  
+        if ((data[instance]->image->columns != (data[instance]->width-data[instance]->xpos)) || (data[instance]->image->rows != (data[instance]->height-data[instance]->ypos))) {
+          fprintf(stderr, "[%s] ERROR: \"%s\" has incorrect size\n", MOD_NAME, data[instance]->file);
+  
+          return(-1);
+        }
+  
+        data[instance]->pixel_packet = GetImagePixels(data[instance]->image, 0, 0, data[instance]->image->columns, data[instance]->image->rows);
       }
-
-      if ((data[instance]->image->columns != (data[instance]->width-data[instance]->xpos)) || (data[instance]->image->rows != (data[instance]->height-data[instance]->ypos))) {
-        fprintf(stderr, "[%s] ERROR \"%s\" has incorrect size\n", MOD_NAME, data[instance]->file);
-
-        return(-1);
-      }
-
-      data[instance]->pixel_packet = GetImagePixels(data[instance]->image, 0, 0, data[instance]->image->columns, data[instance]->image->rows);
+      if(data[instance]->dump) {
+        if((data[instance]->dump_buf = malloc ((data[instance]->width-data[instance]->xpos)*(data[instance]->height-data[instance]->ypos)*3)) == NULL) 
+          fprintf (stderr, "[%s:%d] ERROR: out of memory\n", __FILE__, __LINE__);
+      
+        data[instance]->dumpimage_info = CloneImageInfo((ImageInfo *) NULL);        
+      }      
     }
 
     return(0);
@@ -725,12 +781,19 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   if(ptr->tag & TC_FILTER_CLOSE) {
 
-    if (data[instance]->image) {
+    if (data[instance]->image != (Image *)NULL) {
       DestroyImage(data[instance]->image);
       DestroyImageInfo(data[instance]->image_info);
     }
+    if (data[instance]->dumpimage != (Image *)NULL) {
+      DestroyImage(data[instance]->dumpimage);
+      DestroyImageInfo(data[instance]->dumpimage_info);
+      DestroyConstitute();
+    }
+    DestroyExceptionInfo(&data[instance]->exception_info);
     DestroyMagick();
-
+    
+    if(data[instance]->dump_buf) free(data[instance]->dump_buf);
     if(data[instance]) free(data[instance]);
     data[instance] = NULL;
 
@@ -745,14 +808,14 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //----------------------------------
 
 
-  if(ptr->tag & TC_POST_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
+  if(ptr->tag & TC_PRE_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
     if (ptr->id < data[instance]->start || ptr->id > data[instance]->end) return (0);
 
     if(vob->im_v_codec==CODEC_RGB) {
-      work_with_rgb_frame(ptr->video_buf, vob->ex_v_width, vob->ex_v_height, instance);
+      work_with_rgb_frame(ptr->video_buf, vob->im_v_width, vob->im_v_height, instance);
     } else {
-      work_with_yuv_frame(ptr->video_buf, vob->ex_v_width, vob->ex_v_height, instance);
+      work_with_yuv_frame(ptr->video_buf, vob->im_v_width, vob->im_v_height, instance);
     }
   }
   return(0);
