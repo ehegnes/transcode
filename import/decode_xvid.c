@@ -41,7 +41,7 @@
 #include "transcode.h"
 #include "ioaux.h"
 
-#include "../export/xvidcvs.h"
+#include "../export/xvid3.h"
 
 #define MOD_NAME    "decode_xvid"
 
