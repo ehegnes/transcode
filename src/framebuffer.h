@@ -60,12 +60,15 @@ typedef struct vframe_list {
   int id;        // frame number
   int status;    // frame status
 
-    int attributes;    //this flag must be set to activate action for the following flags:
+  int attributes;    //this flag must be set to activate action for the following flags:
     
+  int thread_id;
+
+  struct vframe_list *next;
+  struct vframe_list *prev;
+
   int clone_flag;    // set to N if frame needs to be processed (encoded) N+1 times.
   int deinter_flag;  // set to N for internal de-interlacing with "-I N"
-
-  int thread_id;
 
     //frame physical parameter
 
@@ -75,9 +78,6 @@ typedef struct vframe_list {
   
   int video_size;
   
-  struct vframe_list *next;
-  struct vframe_list *prev;
-
   int plane_mode;
   
   //pointer to current buffer
@@ -127,6 +127,8 @@ extern vframe_list_t *vframe_list_tail;
 
 typedef struct aframe_list {
   
+    //frame accounting parameter
+
   int bufid;     // buffer id
   int tag;       // init, open, close, ...
 
@@ -137,9 +139,13 @@ typedef struct aframe_list {
   int id;        // frame number
   int status;    // frame status
 
+  int attributes;
+  
   int thread_id;
   
-  int attributes;
+  struct aframe_list *next;
+  struct aframe_list *prev;
+  
   
   int a_rate;
   int a_bits;
@@ -147,9 +153,6 @@ typedef struct aframe_list {
   
   int audio_size;
 
-  struct aframe_list *next;
-  struct aframe_list *prev;
-  
 #ifdef STATBUFFER
   char *audio_buf;
 #else
