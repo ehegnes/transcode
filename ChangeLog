@@ -11,6 +11,8 @@ transcode-0.6.8
   - Bugfix for the telecine filter
   - Bugfix for the text filter
   - Bugfix for tcprobe with corrupted AVI files
+  - Bugfix for -x auto,dvd and -x auto,ac3 with AC3 pass-through
+  - Bugfix for probing YUV4MPEG2 files
   - No more zombies during PSU mode
   - Fix YUV encoding in image export modules
   - Greatly improved avisplit, avimerge and avisync
@@ -37,6 +39,7 @@ transcode-0.6.8
   - Faster skipping. If a frame is skipped, it will bypass all transforms
   - Big xml update. Improved documentation an more features
   - Detection of theora codec in OGG/OGM files.
+  - Setting the video bitrate through -w for -y mpeg
 
 2003-07-03 Bernhard Rosenkraenzer <bero at arklinux.org>
 
@@ -44,6 +47,13 @@ transcode-0.6.8
   Preliminary probing support for Theora <http://www.theora.org/>
   coded video files. Native transcoding is not available yet so the
   mplayer import module will be used which works fine.
+
+  * bbmpeg/tcmplex/tcmplex.c bbmpeg/params.c bbmpeg/bbencode.h
+  export/export_mpeg.c src/transcode.h src/transcode.c
+  docs/man/transcode.1 docs/html/options.html:
+  Support different bitrates for MPEG-1/MPEG-2 encoding using export_mpeg.c
+  - writing DVDs at 1800 kbit/s is not acceptable most of the time.
+  It will now default to 6000 kbit/s for DVD.
 
   * avilib/avilib.c:
   Make avilib more robust when dealing with corrupt AVI files.
@@ -81,6 +91,13 @@ transcode-0.6.8
   Make the regex a little better. Following should work:
     $ transcode -i [...] -y ppm -o snapshot-
     $ transcode -i snapshot-000000.ppm [...]
+
+  * import/import_dvd.c import/import_ac3.c:
+  Small bugfix. We read too much ac3 data from the pipe when we have
+  read the header only earlier.
+
+  * import/extract_yuv.c:
+  The YUV4MPEG2 header was not read correctly.
   
 2003-06-27 Tilmann Bitterberg <transcode at tibit.org>
 
