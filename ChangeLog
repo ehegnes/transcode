@@ -1,6 +1,31 @@
 --------------------------------------------
 transcode-0.6.12
 
+2004-01-03 Erik Slagter <erik at oldconomy.com>
+
+  * import/v4l/import_v4l2.c:
+  - New approach to initial a/v sync. Audio (which appears to always start
+  first) is not read until the first video frame arrives. This is
+  necessary for SAA7134 based cards which start out-of-sync right away
+  without this. For SAA7134 based cards, the -D option to transcode should
+  no longer be necessary. I am not shure whether this effects other cards,
+  though. Please report.
+
+  - Added bttv to blacklist of drivers that do not support
+  ioctl(VIDIOC_CROPCAP).
+
+  - Added overrun guard. This is mainly interesting for SAA7134 owners.
+  The IC can only address six DMA buffers in full resolution, which make
+  overruns probable. Also on some boards (notably mine ;-)) DMA overruns
+  cause complete lockups. This option stops capturing when almost no DMA
+  buffers are left. Disable with "overrun_guard=0". Maybe disabling this
+  should be default behaviour on bttv cards.
+
+  - Added YUV422 (packed) -> YUV420 (planar) conversion, for those cards
+  that cannot capture in YUV420 (planar).
+
+  - Unused code clean up, a few cosmetics and typo's.
+
 2004-01-03 Edouard Gomez <ed.gomez at free.fr>
 
   * export/{export_xvid4.c xvid4.h xvid4.cfg}:

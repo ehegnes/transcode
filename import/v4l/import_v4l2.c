@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <pthread.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -52,7 +53,7 @@
 #include "aclib/ac.h"
 
 #define MOD_NAME		"import_v4l2.so"
-#define MOD_VERSION		"v1.0.3 (2003-11-23)"
+#define MOD_VERSION		"v1.2.1 (2004-01-03)"
 #define MOD_CODEC		"(video) v4l2 | (audio) pcm"
 #define MOD_PRE			v4l2
 #include "import_def.h"
@@ -72,9 +73,20 @@
 	1.0.3	EMS	changed "videodev2.h" back to <linux/videodev2.h>,
 				it doesn't work with linux 2.6.0, #defines are wrong.
 	        tibit   figure out if the system does have videodev2.h
-		        gcc-2.95 bugfix
-                tibit   check for struct v4l2_buffer
-
+					gcc-2.95 bugfix
+			tibit   check for struct v4l2_buffer
+	1.1.0	EMS	added dma overrun protection, use overrun_guard=0 to disable
+					this prevents from crashing the computer when all 
+					capture buffers are full while capturing, by stopping capturing
+					when > 75% of the buffers are filled.
+			EMS added YUV422 capture -> YUV420 transcode core conversion
+					for those whose cards' hardware downsampling to YUV420 conversion is broken
+	1.2.0	EMS added a trick to get a better a/v sync in the beginning:
+					don't start audio (which seems always to be started first)
+					until video is up and running using a mutex.
+					This means that must not use -D anymore.
+	1.2.1	EMS added bttv driver to blacklist 'does not support cropping
+					info ioctl'
 	TODO
 
 	- add more conversion schemes
@@ -117,11 +129,14 @@ static struct
 	size_t length;
 } * v4l2_buffers;
 
+static pthread_mutex_t	v4l2_av_start_mutex = PTHREAD_MUTEX_INITIALIZER;
 static v4l2_fmt_t		v4l2_fmt;
 static v4l2_resync_op	v4l2_video_resync_op = resync_none;
 
 static int	v4l2_saa7134_video = 0;
+static int	v4l2_bttv_video = 0;
 static int	v4l2_saa7134_audio = 0;
+static int	v4l2_overrun_guard = 1;
 static int 	v4l2_resync_margin_frames = 0;
 static int 	v4l2_resync_interval_frames = 0;
 static int 	v4l2_buffers_count;
@@ -144,13 +159,15 @@ static void v4l2_convert_rgb24_rgb(const char *, char *, size_t, int, int);
 static void v4l2_convert_bgr24_rgb(const char *, char *, size_t, int, int);
 static void v4l2_convert_uyvy_yuv422(const char *, char *, size_t, int, int);
 static void v4l2_convert_yuyv_yuv422(const char *, char *, size_t, int, int);
+static void v4l2_convert_yuyv_yuv420(const char *, char *, size_t, int, int);
 static void v4l2_convert_yvu420_yuv420(const char *, char *, size_t, int, int);
 static void v4l2_convert_yuv420_yuv420(const char *, char *, size_t, int, int);
 
 static v4l2_parameter_t v4l2_parameters[] =
 {
 	{ v4l2_param_int, "resync_margin",   0, { .integer = &v4l2_resync_margin_frames }},
-	{ v4l2_param_int, "resync_interval", 0, { .integer = &v4l2_resync_interval_frames }}
+	{ v4l2_param_int, "resync_interval", 0, { .integer = &v4l2_resync_interval_frames }},
+	{ v4l2_param_int, "overrun_guard",   0, { .integer = &v4l2_overrun_guard }}
 };
 
 static v4l2_format_convert_table_t v4l2_format_convert_table[] = 
@@ -163,6 +180,7 @@ static v4l2_format_convert_table_t v4l2_format_convert_table[] =
 
 	{ V4L2_PIX_FMT_YVU420, v4l2_fmt_yuv420planar, v4l2_convert_yvu420_yuv420, "YVU420 [planar] -> YUV420 [planar] (no conversion)" },
 	{ V4L2_PIX_FMT_YUV420, v4l2_fmt_yuv420planar, v4l2_convert_yuv420_yuv420, "YUV420 [planar] -> YUV420 [planar] (fast conversion)" },
+	{ V4L2_PIX_FMT_UYVY,   v4l2_fmt_yuv420planar, v4l2_convert_yuyv_yuv420,   "UYVY [packed] -> YUV420 [planar] (slow conversion) " },
 };
 
 /* ============================================================ 
@@ -220,6 +238,56 @@ static void v4l2_convert_yuyv_yuv422(const char * source, char * dest, size_t si
 		dest[offset + 1] = source[offset + 0];
 		dest[offset + 2] = source[offset + 3];
 		dest[offset + 3] = source[offset + 2];
+	}
+}
+
+static void v4l2_convert_yuyv_yuv420(const char * source, char * dest, size_t dest_size, int xsize, int ysize)
+{
+	int i, j, w2;
+	char * y, * u, * v;
+
+    w2 = xsize / 2;
+
+    // I420
+
+	y = dest;
+	v = dest + xsize * ysize;
+	u = dest + xsize * ysize * 5 / 4;
+
+	for(i = 0; i < ysize; i += 2)
+	{
+		for (j = 0; j < w2; j++)
+		{
+			/* UYVY.  The byte order is CbY'CrY' */
+
+			*u++ = *source++;
+			*y++ = *source++;
+			*v++ = *source++;
+			*y++ = *source++;
+		}
+
+		//downsampling
+
+		u -= w2;
+		v -= w2;
+
+		/* average every second line for U and V */
+
+		for(j = 0; j < w2; j++)
+		{
+			int un = *u & 0xff;
+			int vn = *v & 0xff;
+
+			un += *source++ & 0xff;
+			*u++ = un>>1;
+
+			*y++ = *source++;
+
+			vn += *source++ & 0xff;
+			*v++ = vn>>1;
+
+			*y++ = *source++;
+		}
 	}
 }
 
@@ -291,27 +359,6 @@ static void v4l2_save_frame(const char * source, size_t length)
 
 	v4l2_memcpy(v4l2_resync_previous_frame, source, length);
 }
-
-#if 0
-static void v4l2_framecopy(char * dest, const char * source, size_t length)
-{
-	switch(v4l2_fmt)
-	{
-		// swap u & v planes
-
-		case(v4l2_fmt_yuv420planar):
-		{
-			break;
-		}
-
-		case(v4l2_fmt_yuv422packed):
-		{
-			v4l2_memcpy(dest, source, length);
-			break;
-		}
-	}
-}
-#endif
 
 static int v4l2_video_grab_frame(char * dest, size_t length)
 {
@@ -463,7 +510,11 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 	struct v4l2_streamparm streamparm;
 	v4l2_std_id std;
 
-
+	if(pthread_mutex_trylock(&v4l2_av_start_mutex))
+	{
+		perror(module "lock av mutex");
+		return(1);
+	}
 
 #if defined(ARCH_X86) && defined(HAVE_ASM_NASM)
 	const char * memcpy_name = 0;
@@ -509,7 +560,7 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 		default:
 		{
 			fprintf(stderr, module "layout (%d) must be one of CODEC_RGB, CODEC_YUV or CODEC_YUV422\n", layout);
-			return(TC_IMPORT_ERROR);
+			return(1);
 		}
 	}
 
@@ -562,10 +613,17 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 		v4l2_saa7134_video = 1;
 	}
 
+	if(!strncmp(caps.driver, "bttv", 4))
+	{
+		if(verbose_flag & TC_INFO)
+			fprintf(stderr, module "video input from bttv driver detected\n");
+		v4l2_bttv_video = 1;
+	}
+
 	v4l2_width = width;
 	v4l2_height = height;
 
-	if(!v4l2_saa7134_video)
+	if(!v4l2_saa7134_video && !v4l2_bttv_video)
 	{
 		cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
@@ -616,13 +674,6 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 		}
 	}
 
-//typedef struct
-//{
-//	int			from;
-//	v4l2_fmt_t	to;
-//	int			(*convert)(const char *, char *, int xsize, int ysize);
-//} v4l2_format_convert_t;
-
 	for(ix = 0, fcp = v4l2_format_convert_table, found = 0; ix < (sizeof(v4l2_format_convert_table) / sizeof(*v4l2_format_convert_table)); ix++)
 	{
 		if(fcp[ix].to != v4l2_fmt)
@@ -632,7 +683,7 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 		format.type					= V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		format.fmt.pix.width		= width;
 		format.fmt.pix.height		= height;
-		format.fmt.pix.pixelformat = fcp[ix].from;
+		format.fmt.pix.pixelformat	= fcp[ix].from;
 
 		if(ioctl(v4l2_video_fd, VIDIOC_S_FMT, &format) < 0)
 			perror(module "VIDIOC_S_FMT: ");
@@ -664,7 +715,7 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 			v4l2_frame_rate = 25;
 		else
 		{
-			fprintf(stderr, module "unknown TV std, defaulting to 50 Hz\n");
+			fprintf(stderr, module "unknown TV std, defaulting to 50 Hz field rate\n");
 			v4l2_frame_rate = 25;
 		}
 
@@ -758,12 +809,36 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 int	v4l2_video_get_frame(size_t size, char * data)
 {
 	int buffers_filled = 0;
+	int dummy;
 
-	if(verbose_flag & TC_DEBUG)
+	if(v4l2_video_sequence == 0)
+	{
+		for(dummy = 0; dummy < 5; dummy++)
+			if(!v4l2_video_grab_frame(0, 0))
+				return(1);
+
+		if(pthread_mutex_unlock(&v4l2_av_start_mutex))
+		{
+			perror(module "unlock av start mutex by video read frame\n");
+			return(1);
+		}
+
+		sched_yield();
+	}
+
+	if(v4l2_overrun_guard)
 	{
 		buffers_filled = v4l2_video_count_buffers();
-		if(buffers_filled > (v4l2_buffers_count * 4 / 3))
-			fprintf(stderr, module "info: running out of capture buffers (%d left)\n", v4l2_buffers_count - buffers_filled);
+
+		if(buffers_filled > (v4l2_buffers_count * 3 / 4))
+		{
+			fprintf(stderr, module "ERROR: running out of capture buffers (%d left from %d total), stopping capture\n", v4l2_buffers_count - buffers_filled, v4l2_buffers_count);
+
+			if(ioctl(v4l2_video_fd, VIDIOC_STREAMOFF, &dummy) < 0)
+				perror(module "VIDIOC_STREAMOFF");
+
+			return(1);
+		}
 	}
 
 	switch(v4l2_video_resync_op)
@@ -826,8 +901,7 @@ int	v4l2_video_get_frame(size_t size, char * data)
 					v4l2_video_sequence,
 					v4l2_audio_sequence,
 					v4l2_video_cloned,
-					v4l2_video_dropped
-					/* , v4l2_video_missed */);
+					v4l2_video_dropped);
 		}
 	}
 
@@ -934,6 +1008,45 @@ int v4l2_audio_grab_frame(size_t size, char * buffer)
 	int left;
 	int offset;
 	int received;
+	int result, err;
+
+	if(v4l2_audio_sequence == 0) // wait for video to start
+	{
+		errno	= 0;
+		result	= pthread_mutex_trylock(&v4l2_av_start_mutex);
+		err		= errno;
+
+		if(!result)
+		{
+			fprintf(stderr, module "av start mutex not locked!\n");
+			return(1);
+		}
+
+		if((result != EBUSY) && (err != EBUSY))
+		{
+			perror(module "av start mutex trylock");
+			fprintf(stderr, module "result = %d, error = %d\n", result, err);
+			return(1);
+		}
+
+		if(pthread_mutex_lock(&v4l2_av_start_mutex))
+		{
+			perror(module "av mutex lock");
+			return(1);
+		}
+
+		if(pthread_mutex_unlock(&v4l2_av_start_mutex))
+		{
+			perror(module "av mutex unlock");
+			return(1);
+		}
+
+		if(pthread_mutex_destroy(&v4l2_av_start_mutex))
+		{
+			perror(module "av mutex destroy");
+			return(1);
+		}
+	}
 
 	for(left = size, offset = 0; left > 0;)
 	{
