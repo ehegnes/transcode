@@ -49,6 +49,7 @@ void usage(int status)
     printf("\t -a num                    select audio track number from input file [0]\n");
     printf("\t -A num                    select audio track number in output file [next]\n");
     printf("\t -b n                      handle vbr audio [autodetect]\n");
+    printf("\t -c                        drop video frames in case audio is missing [off]\n");
     printf("\t -f FILE                   read AVI comments from FILE [off]\n");
     printf("\t -x FILE                   read AVI index from FILE [off] (see aviindex(1))\n");
     exit(status);
@@ -59,6 +60,7 @@ static char *comfile = NULL;
 static char *indexfile = NULL;
 long sum_frames = 0;
 int is_vbr=1;
+int drop_video=0;
 
 
 int merger(avi_t *out, char *file)
@@ -73,6 +75,7 @@ int merger(avi_t *out, char *file)
     static double vid_ms;
     static double aud_ms[AVI_MAX_TRACKS];
     int have_printed=0;
+    int do_drop_video=0;
 
     if (!init) {
 	for (j=0; j<AVI_MAX_TRACKS; j++) 
@@ -99,6 +102,42 @@ int merger(avi_t *out, char *file)
     aud_tracks = AVI_audio_tracks(in);    
 
     for (n=0; n<frames; ++n) {
+
+      ++vid_chunks;
+      vid_ms = vid_chunks*1000.0/fps;
+
+      // audio
+      for(j=0; j<aud_tracks; ++j) {
+	  
+	  int ret;
+	  double old_ms = aud_ms[j];
+
+	  AVI_set_audio_track(in, j);
+	  AVI_set_audio_track(out, j);
+
+	  ret = sync_audio_video_avi2avi (vid_ms, &aud_ms[j], in, out);
+	  if (ret<0) {
+	      if (ret==-2) {
+		  if (aud_ms[j] == old_ms) {
+		      do_drop_video = 1;
+		      if (!have_printed) {
+			  fprintf(stderr, "No audiodata left for track %d->%d (%.2f=%.2f) %s ..\n", 
+			      AVI_get_audio_track(in), AVI_get_audio_track(out), 
+			      old_ms, aud_ms[j], (do_drop_video && drop_video)?"breaking (-c)":"continuing");
+			  have_printed++;
+		      }
+		  }
+	      } else {
+		  fprintf(stderr, "An error happend at frame %ld track %d\n", n, j);
+	      }
+	  }
+	  
+      }
+
+      if (do_drop_video && drop_video) {
+	  fprintf(stderr, "[avimerge] Dropping %ld frames\n", frames-n-1);
+	  goto out;
+      }
       
       // video
       bytes = AVI_read_frame(in, data, &key);
@@ -113,37 +152,10 @@ int merger(avi_t *out, char *file)
 	return(-1);
       }
 
-      ++vid_chunks;
-      vid_ms = vid_chunks*1000.0/fps;
-
-      for(j=0; j<aud_tracks; ++j) {
-	  
-	  int ret;
-	  double old_ms = aud_ms[j];
-
-	  AVI_set_audio_track(in, j);
-	  AVI_set_audio_track(out, j);
-
-	  ret = sync_audio_video_avi2avi (vid_ms, &aud_ms[j], in, out);
-	  if (ret<0) {
-	      if (ret==-2) {
-		  if (aud_ms[j] == old_ms) {
-		      if (!have_printed) {
-			  fprintf(stderr, "No audiodata left for track %d->%d (%.2f=%.2f) continuing ..\n", 
-			      AVI_get_audio_track(in), AVI_get_audio_track(out), 
-			      old_ms, aud_ms[j]);
-			  have_printed++;
-		      }
-		  }
-	      } else {
-		  fprintf(stderr, "An error happend at frame %ld track %d\n", n, j);
-	      }
-	  }
-	  
-      }
       // progress
       fprintf(stderr, "[%s] (%06ld-%06ld) (%.2f <-> %.2f)\r", file, sum_frames, sum_frames + n, vid_ms, aud_ms[0]);
     }
+out:
     fprintf(stderr, "\n");
     
     AVI_close(in);
@@ -189,7 +201,7 @@ int main(int argc, char *argv[])
   
   if(argc==1) usage(EXIT_FAILURE);
   
-  while ((ch = getopt(argc, argv, "A:a:b:i:o:p:f:x:?hv")) != -1) {
+  while ((ch = getopt(argc, argv, "A:a:b:ci:o:p:f:x:?hv")) != -1) {
     
     switch (ch) {
       
@@ -227,6 +239,12 @@ int main(int argc, char *argv[])
       
       break;
       
+    case 'c':
+      
+      drop_video = 1;
+      
+      break;
+      
     case 'o':
       
       if(optarg[0]=='-') usage(EXIT_FAILURE);
@@ -258,7 +276,7 @@ int main(int argc, char *argv[])
       
     case 'v':
       version();
-      exit(0);
+      exit(EXIT_SUCCESS);
     case 'h':
       usage(EXIT_SUCCESS);
     default:

@@ -1,18 +1,25 @@
 --------------------------------------------
 transcode-0.6.13
 
-2004-01-25 Dmitry Kasatkin <dmitry.kasatkin at nokia.com>
+2004-01-26 Tilmann Bitterberg <transcode at tibit.org>
+
+  * tools/avimerge.c docs/man/avimerge.1:
+  Add the feature to drop video frames if there is no audio which
+  goes with it. Useful when concatenating multiple AVI files into
+  one. Use the new -c option for this.
+
+2004-01-26 Dmitry Kasatkin <dmitry.kasatkin at nokia.com>
 
   * export/export_toolame.c:
   Let the sox command do not write a WAVE header since it causes a
   click.
 
-2004-01-25 Tilmann Bitterberg <transcode at tibit.org>
+2004-01-26 Tilmann Bitterberg <transcode at tibit.org>
 
    * filter/subtitler/*:
    Upgrade to version 0.8.5
 
-2004-01-25 Tilmann Bitterberg <transcode at tibit.org>
+2004-01-26 Tilmann Bitterberg <transcode at tibit.org>
 
   * tools/Makefile.am tools/aviindex.c:
   add xio lib to aviindex.
