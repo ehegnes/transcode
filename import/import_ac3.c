@@ -55,6 +55,7 @@ static int ac3_bytes_to_go=0;
 
 MOD_open
 {
+    int sret;
 
     // audio only
     if(param->flag != TC_AUDIO) return(TC_IMPORT_ERROR);
@@ -67,8 +68,17 @@ MOD_open
     case CODEC_AC3:
 	
 	// produce a clean sequence of AC3 frames
-	if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -a %d -i \"%s\" -x ac3 -d %d | tcextract -t raw -x ac3 -d %d", vob->a_track, vob->audio_in_file, vob->verbose, vob->verbose)<0)) {
-	    perror("command buffer overflow");
+	sret = snprintf(import_cmd_buf, MAX_BUF,
+		"tcextract -a %d -i \"%s\" -x ac3 -d %d |"
+		" tcextract -t raw -x ac3 -d %d",
+		vob->a_track, vob->audio_in_file, vob->verbose, vob->verbose);
+	if (sret < 0) {
+	    perror("snprintf");
+	    return(TC_IMPORT_ERROR);
+	}
+	if (sret >= MAX_BUF) {
+	    fprintf(stderr, "[%s] command too long, truncated %d chars",
+				MOD_NAME, (sret - MAX_BUF) + 1);
 	    return(TC_IMPORT_ERROR);
 	}
 	
@@ -79,9 +89,20 @@ MOD_open
     case CODEC_PCM:
 
 	if(vob->fixme_a_codec==CODEC_AC3) {
-	
-	    if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -a %d -i \"%s\" -x ac3 -d %d | tcdecode -x ac3 -d %d -s %f,%f,%f -A %d", vob->a_track, vob->audio_in_file, vob->verbose, vob->verbose, vob->ac3_gain[0], vob->ac3_gain[1], vob->ac3_gain[2], vob->a52_mode)<0)) {
-		perror("command buffer overflow");
+
+	    sret = snprintf(import_cmd_buf, MAX_BUF,
+			"tcextract -a %d -i \"%s\" -x ac3 -d %d |"
+			" tcdecode -x ac3 -d %d -s %f,%f,%f -A %d",
+			vob->a_track, vob->audio_in_file, vob->verbose,
+			vob->verbose, vob->ac3_gain[0], vob->ac3_gain[1],
+			vob->ac3_gain[2], vob->a52_mode);
+	    if (sret < 0) {
+		perror("snprintf");
+		return(TC_IMPORT_ERROR);
+	    }
+	    if (sret >= MAX_BUF) {
+		fprintf(stderr, "[%s] command too long, truncated %d chars",
+				MOD_NAME, (sret - MAX_BUF) + 1);
 		return(TC_IMPORT_ERROR);
 	    }
 	    
@@ -91,8 +112,18 @@ MOD_open
 
 	if(vob->fixme_a_codec==CODEC_A52) {
 	    
-	    if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -a %d -i \"%s\" -x a52 -d %d | tcdecode -x a52 -d %d -A %d", vob->a_track, vob->audio_in_file, vob->verbose, vob->verbose, vob->a52_mode)<0)) {
-		perror("command buffer overflow");
+	    sret = snprintf(import_cmd_buf, MAX_BUF,
+				"tcextract -a %d -i \"%s\" -x a52 -d %d |"
+				" tcdecode -x a52 -d %d -A %d",
+				vob->a_track, vob->audio_in_file,
+				vob->verbose, vob->verbose, vob->a52_mode);
+	    if (sret < 0) {
+		perror("snprintf");
+		return(TC_IMPORT_ERROR);
+	    }
+	    if (sret >= MAX_BUF) {
+		fprintf(stderr, "[%s] command too long, truncated %d chars",
+				MOD_NAME, (sret - MAX_BUF) + 1);
 		return(TC_IMPORT_ERROR);
 	    }
 	    
@@ -143,9 +174,11 @@ MOD_decode
       
       // determine frame size at the very beginning of the stream
       
-      if(pseudo_frame_size==0) {
+      if (pseudo_frame_size == 0) {
 	  
-	  if(ac3scan(fd, param->buffer, param->size, &ac_off, &ac_bytes, &pseudo_frame_size, &real_frame_size, verbose)!=0) return(TC_IMPORT_ERROR);
+	  if (ac3scan(fd, param->buffer, param->size, &ac_off, &ac_bytes,
+			&pseudo_frame_size, &real_frame_size, verbose) != 0)
+		return(TC_IMPORT_ERROR);
 	  
       } else { 
 	  ac_off = 0;
@@ -168,7 +201,10 @@ MOD_decode
       // return effective_frame_size as physical size of audio data
       param->size = effective_frame_size; 
 
-      if(verbose_flag & TC_STATS) fprintf(stderr,"[%s] pseudo=%d, real=%d, frames=%d, effective=%d\n", MOD_NAME, ac_bytes, real_frame_size, num_frames, effective_frame_size);
+      if (verbose_flag & TC_STATS)
+	  fprintf(stderr,"[%s] pseudo=%d, real=%d, frames=%d, effective=%d\n",
+			MOD_NAME, ac_bytes, real_frame_size, num_frames,
+			effective_frame_size);
 
       // adjust
       ac_bytes=effective_frame_size;
