@@ -29,7 +29,7 @@
 #include "magic.h"
 
 #define MOD_NAME    "import_ogg.so"
-#define MOD_VERSION "v0.0.1 (2003-03-30)"
+#define MOD_VERSION "v0.0.2 (2003-08-21)"
 #define MOD_CODEC   "(video) all | (audio) Ogg Vorbis"
 
 #define MOD_PRE ogg
@@ -58,6 +58,7 @@ MOD_open
 
 	char *codec;
 	char *color;
+	char *magic;
 
 	switch (vob->im_v_codec) {
 
@@ -83,26 +84,29 @@ MOD_open
 	    case TC_CODEC_DIVX4:
 	    case TC_CODEC_DIVX3:
 	    case TC_CODEC_XVID:
-		codec = "xvid";
+		codec = "divx4";
+		magic = "-t lavc";
 		break;
 
 	    case TC_CODEC_DV:
 		codec = "dv";
+		magic = "";
 		break;
 
 	    case TC_CODEC_RGB:
 	    case TC_CODEC_YV12:
 	    default:
 		codec = "raw";
+		magic = "";
 		break;
 
 	}
 
 	if((snprintf(import_cmd_buf, MAX_BUF, 
 			"tcextract -i \"%s\" -x raw -d %d | "
-			"tcdecode -g %dx%d -x %s -y %s -d %d",
+			"tcdecode %s -g %dx%d -x %s -y %s -d %d",
 			vob->video_in_file, vob->verbose, 
-			vob->im_v_width, vob->im_v_height, codec, color, vob->verbose)<0)) {
+			magic, vob->im_v_width, vob->im_v_height, codec, color, vob->verbose)<0)) {
 	    perror("command buffer overflow");
 	    return(TC_IMPORT_ERROR);
 	}

@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-23 Tilmann Bitterberg <transcode at tibit.org>
+  
+   * import/import_ogg.c:
+   enable real ogg demuxing as it was broken for quite a while.
+   
 2003-08-23 Christian Marillat <marillat at debian.org>
 
    * export/Makefile.am export/Makefile.in:
