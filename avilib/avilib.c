@@ -2829,7 +2829,7 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
             continue;
          }
 
-	 if (aud_chunks >= AVI->total_frames) { // XXX: probably too much
+	 if (aud_chunks - nai[j] -1 r<== 0) { // XXX: probably too much
 	      AVI->track[j].audio_index = (audio_index_entry *) realloc(  AVI->track[j].audio_index, (2*nai[0]+1)*sizeof(audio_index_entry));
 	     aud_chunks += AVI->total_frames;
 	     
