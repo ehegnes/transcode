@@ -387,12 +387,6 @@ static int avi_add_odml_index_entry(avi_t *AVI, unsigned char *tag, long flags, 
 	if (!AVI->video_superindex) {
 	    if (avi_init_super_index(AVI, "ix00", &AVI->video_superindex) < 0) return -1;
 
-	    AVI->video_superindex->nEntriesInUse++;
-	    if (AVI->video_superindex->nEntriesInUse > NR_IXNN_CHUNKS) {
-		fprintf (stderr, "Internal error in avilib - redefine NR_IXNN_CHUNKS");
-		return -1;
-	    }
-
 	    cur_std_idx = AVI->video_superindex->nEntriesInUse-1;
 
 	    if (avi_add_std_index (AVI, "ix00", "00db", AVI->video_superindex->stdindex[ cur_std_idx ]) < 0) 
@@ -444,13 +438,23 @@ static int avi_add_odml_index_entry(avi_t *AVI, unsigned char *tag, long flags, 
 
     //printf("ODML: towrite = 0x%llX = %lld\n", towrite, towrite);
 
-     //AVI->track[AVI->anum].audio_superindex->stdindex[AVI->track[AVI->anum].audio_superindex->nEntriesInUse-1]->aIndex[AVI->track[AVI->anum].audio_superindex->stdindex[AVI->track[AVI->anum].audio_superindex->nEntriesInUse-1]->nEntriesInUse].dwOffset = 0;
+    if (AVI->video_superindex && 
+	    (off_t)(AVI->pos+towrite) > (off_t)((off_t)NEW_RIFF_THRES*AVI->video_superindex->nEntriesInUse)) {
 
-    if (AVI->video_superindex && AVI->pos + towrite > NEW_RIFF_THRES*AVI->video_superindex->nEntriesInUse) {
+	fprintf(stderr, "Adding a new RIFF chunk: %d\n", AVI->video_superindex->nEntriesInUse);
 
 	// rotate ALL indices
 	AVI->video_superindex->nEntriesInUse++;
 	cur_std_idx = AVI->video_superindex->nEntriesInUse-1;
+
+	if (AVI->video_superindex->nEntriesInUse > NR_IXNN_CHUNKS) {
+	    fprintf (stderr, "Internal error in avilib - redefine NR_IXNN_CHUNKS\n");
+	    fprintf (stderr, "[avilib dump] cur_std_idx=%d NR_IXNN_CHUNKS=%d"
+		    "POS=%lld towrite=%lld\n",
+		    cur_std_idx,NR_IXNN_CHUNKS, AVI->pos, towrite);
+	    return -1;
+	}
+
 	if (avi_add_std_index (AVI, "ix00", "00db", AVI->video_superindex->stdindex[ cur_std_idx ]) < 0) 
 	    return -1;
 
