@@ -66,7 +66,7 @@
 #include "vbr.h"
 
 #define MOD_NAME    "export_divx5.so"
-#define MOD_VERSION "v0.1.6 (2003-06-10)"
+#define MOD_VERSION "v0.1.7 (2003-06-12)"
 #define MOD_CODEC   "(video) DivX 5.xx | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE divx5
@@ -295,23 +295,7 @@ MOD_init
 
     settings->quality = vob->divxquality;
 
-    switch(VbrMode) {
-     case 0:
-	 break;
-	 settings->vbr_mode = RCMODE_VBV_1PASS;
-     case 1:
-	 settings->vbr_mode = RCMODE_VBV_MULTIPASS_1ST;
-	 settings->mv_file = logfile_mv;
-	 settings->log_file_read = NULL;
-	 settings->log_file_write = vob->divxlogfile;
-	 break;
-     case 2:
-	 settings->vbr_mode = RCMODE_VBV_MULTIPASS_NTH;
-	 settings->mv_file = logfile_mv;
-	 settings->log_file_read = vob->divxlogfile;
-	 // segfaults if !NULL;
-	 settings->log_file_write = NULL;
-
+    if (VbrMode == 1 || VbrMode == 2){
 	 /* 
 	  * http://www.divx.com/support/divx/guide_mac.php
 	  *
@@ -352,6 +336,26 @@ MOD_init
 	 if (verbose & TC_DEBUG)
 	     printf("[%s] Using VBV Profile [%d] (%s)\n", MOD_NAME, vob->divx5_vbv_prof, 
 		     prof2name(vob->divx5_vbv_prof));
+
+    }
+
+    switch(VbrMode) {
+     case 0:
+	 break;
+	 settings->vbr_mode = RCMODE_VBV_1PASS;
+     case 1:
+	 settings->vbr_mode = RCMODE_VBV_MULTIPASS_1ST;
+	 settings->mv_file = logfile_mv;
+	 settings->log_file_read = NULL;
+	 settings->log_file_write = vob->divxlogfile;
+
+	 break;
+     case 2:
+	 settings->vbr_mode = RCMODE_VBV_MULTIPASS_NTH;
+	 settings->mv_file = logfile_mv;
+	 settings->log_file_read = vob->divxlogfile;
+	 // segfaults if !NULL;
+	 settings->log_file_write = NULL;
 
 	 break;
 
