@@ -403,10 +403,7 @@ LONG *isamp, *osamp;
 /*
  * Process tail of input samples.
  */
-static int st_resample_drain(effp, obuf, osamp)
-eff_t effp;
-LONG *obuf;
-LONG *osamp;
+static int st_resample_drain(eff_t effp, LONG *obuf, LONG *osamp)
 {
 	resample_t r = (resample_t) effp->priv;
 	LONG isamp_res, *Obuf, osamp_res;
@@ -895,7 +892,8 @@ int filter_resample_stop(char *stopo)
 //	short *wordp, *iword, *oword;
 //	LONG irbuf[MY_BUFSIZE/2];
 //	LONG ilbuf[MY_BUFSIZE/2];
-	int osamp, i;
+	LONG osamp;
+	int i;
 	
 	oword=(short *)stopo;
 	st_resample_drain(reffp, reffp->obuf, &osamp);
