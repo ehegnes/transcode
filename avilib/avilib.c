@@ -2219,10 +2219,10 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
          else if(strncasecmp(data,"movi",4) == 0)
          {
             AVI->movi_start = lseek(AVI->fdes,0,SEEK_CUR);
-            if (lseek(AVI->fdes,n,SEEK_CUR)<(off_t)-1) break;
+            if (lseek(AVI->fdes,n,SEEK_CUR)==(off_t)-1) break;
          }
          else
-            if (lseek(AVI->fdes,n,SEEK_CUR)<(off_t)-1) break;
+            if (lseek(AVI->fdes,n,SEEK_CUR)==(off_t)-1) break;
       }
       else if(strncasecmp(data,"idx1",4) == 0)
       {
@@ -2232,7 +2232,10 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
          AVI->n_idx = AVI->max_idx = n/16;
          AVI->idx = (unsigned  char((*)[16]) ) malloc(n);
          if(AVI->idx==0) ERR_EXIT(AVI_ERR_NO_MEM)
-         if(avi_read(AVI->fdes, (char *) AVI->idx, n) != n ) ERR_EXIT(AVI_ERR_READ)
+         if(avi_read(AVI->fdes, (char *) AVI->idx, n) != n ) {
+	     free ( AVI->idx); AVI->idx=NULL;
+	     AVI->n_idx = 0;
+	 }
       }
       else
          lseek(AVI->fdes,n,SEEK_CUR);
