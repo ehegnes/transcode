@@ -366,8 +366,27 @@ output file name, default is [/dev/null].
 .B \-p \fIfile\fP
 read audio stream from separate file [off].
 .TP
-.B \-q \fIlevel\fP
-verbosity (0=quiet,1=info,2=debug) [1].
+.B \-q \fIdebuglevel\fP
+
+QUIET         0
+
+INFO          1
+
+DEBUG         2
+
+STATS         4
+
+WATCH         8
+
+FLIST        16
+
+VIDCORE      32
+
+SYNC         64
+
+COUNTER     128
+
+PRIVATE     256
 .TP
 .B \-r \fIn\fP[,\fIm\fP]
 reduce video height/width by n[,m] [off].
