@@ -14,7 +14,7 @@ if HAVE_QT
 MODQT = import_mov.la
 endif
 
-CFLAGS = -D_REENTRANT -funroll-loops -ffast-math -Wall -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@  
+CFLAGS = -D_REENTRANT -funroll-loops -ffast-math -Wall -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@   -g
 
 if HAVE_LIBDVDREAD
 DVD_MOD=import_dvd.la
@@ -60,7 +60,7 @@ import_null_la_LDFLAGS = -no-undefined -module -avoid-version
 import_ogg_la_SOURCES = import_ogg.c
 import_ogg_la_LDFLAGS = -no-undefined -module -avoid-version 
 
-import_xml_la_SOURCES = import_xml.c ioxml.c
+import_xml_la_SOURCES = import_xml.c ioxml.c probe_xml.c
 import_xml_la_LDFLAGS = -no-undefined -module -avoid-version 
 import_xml_la_LIBADD = -lm @LIBXML2_LIBS@
 
@@ -154,7 +154,7 @@ import_dv_la_LDFLAGS = -no-undefined -module -avoid-version
 
 EXTRA_DIST = *.h
 
-bin_PROGRAMS = tcextract tcdecode tcscan tcdemux tccat tcprobe
+bin_PROGRAMS = tcextract tcdecode tcscan tcdemux tccat tcprobe tcxmlcheck
 
 tcdecode_SOURCES = tcdecode.c decode_ac3.c decode_mpeg2.c decode_yuv.c fileinfo.c ioaux.c decode_dv.c decode_mp3.c mpg123.c decode_a52.c decode_af6.c scan_dv.c decode_divx.c decode_xvid.c decode_ogg.c
 tcdecode_LDADD = @LAME_LIBS@ $(AC3_LIB) $(MPEG2_LIB) -L../libvo -lvout @DV_LIBS@ $(VORBISFILE) @VORBIS_LIBS@ @OGG_LIBS@ -lm
@@ -173,6 +173,9 @@ tcextract_LDADD = $(AC3_LIB) $(MPEG2_LIB) -L../libvo -lvout -L../avilib -lavi @D
 
 tcdemux_SOURCES = tcdemux.c fileinfo.c ioaux.c dvd_reader.c seqinfo.c demuxer.c aux_pes.c packets.c scan_pack.c scan_dv.c demux_pass.c
 tcdemux_LDADD = $(AC3_LIB) $(MPEG2_LIB) -L../libvo -lvout -L../avilib -lavi @DVDREAD_LIBS@ @DV_LIBS@ -lm
+
+tcxmlcheck_SOURCES = tcxmlcheck.c probe_xml.c ioxml.c ioaux.c fileinfo.c scan_dv.c
+tcxmlcheck_LDADD = @LIBXML2_LIBS@ @DV_LIBS@ -lm
 
 
 

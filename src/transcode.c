@@ -536,6 +536,8 @@ void safe_exit (void) {
 
 int main(int argc, char *argv[]) {
 
+    FILE *p_fd_tcxmlcheck;
+    char *p_tcxmlcheck_buffer;
     // v4l capture
     int chanid = -1;
     char station_id[TC_BUF_MIN];
@@ -2003,7 +2005,87 @@ int main(int argc, char *argv[]) {
 	       ((no_ain_codec==0)?im_aud_mod:vob->amod_probed));
       }
     }
-    
+#ifdef HAVE_LIBXML2
+#define TCXML_MAX_BUFF 1024
+    if (strstr(vob->vmod_probed_xml,"xml") != NULL)
+    {
+	if (strstr(vob->video_in_file,"/dev/zero") ==NULL)
+	{
+	      	p_tcxmlcheck_buffer=(char *)calloc(TCXML_MAX_BUFF,1);
+		if ((snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -i %s -S -B -V",vob->video_in_file))<0)
+		{
+		  perror("command buffer overflow");
+		  exit(1);
+		}
+    		if((p_fd_tcxmlcheck = popen(p_tcxmlcheck_buffer, "w"))== NULL)
+		{
+		  fprintf(stderr,"[%s] Error opening pipe\n",PACKAGE);
+		  exit(1);
+		}
+		if ((write(fileno(p_fd_tcxmlcheck),(char *)vob,sizeof(vob_t)))!=sizeof(vob_t))
+		{
+		  fprintf(stderr,"[%s] Error writing data to stdout\n",PACKAGE);
+		  exit(1);
+		}
+		memset(p_tcxmlcheck_buffer,'\0',1);
+		if ((snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -i %s -B -V",vob->video_in_file))<0)
+		{
+		  perror("command buffer overflow");
+		  exit(1);
+		}
+    		if((p_fd_tcxmlcheck = popen(p_tcxmlcheck_buffer, "r"))== NULL)
+		{
+		  fprintf(stderr,"[%s] Error opening pipe\n",PACKAGE);
+		  exit(1);
+		}
+		if ((read(fileno(p_fd_tcxmlcheck),(char *)vob,sizeof(vob_t)))!=sizeof(vob_t))
+		{
+		  fprintf(stderr,"[%s] Error reading data to stdout\n",PACKAGE);
+		  exit(1);
+		}
+		free(p_tcxmlcheck_buffer);
+    	}
+    }
+    if (strstr(vob->amod_probed_xml,"xml") != NULL)
+    {
+	if (strstr(vob->audio_in_file,"/dev/zero") ==NULL)
+	{
+      		p_tcxmlcheck_buffer=(char *)calloc(TCXML_MAX_BUFF,1);
+		if ((snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -p %s -S -B -A",vob->audio_in_file))<0)
+		{
+	  		perror("command buffer overflow");
+	  		exit(1);
+		}
+	    	if((p_fd_tcxmlcheck = popen(p_tcxmlcheck_buffer, "w"))== NULL)
+		{
+		  fprintf(stderr,"[%s] Error opening pipe\n",PACKAGE);
+		  exit(1);
+		}
+		if ((write(fileno(p_fd_tcxmlcheck),(char *)vob,sizeof(vob_t)))!=sizeof(vob_t))
+		{
+		  fprintf(stderr,"[%s] Error writing data to stdout\n",PACKAGE);
+		  exit(1);
+		}
+		memset(p_tcxmlcheck_buffer,'\0',1);
+		if ((snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -p %s -B -A",vob->audio_in_file))<0)
+		{
+		  perror("command buffer overflow");
+		  exit(1);
+		}
+    		if((p_fd_tcxmlcheck = popen(p_tcxmlcheck_buffer, "r"))== NULL)
+		{
+		  fprintf(stderr,"[%s] Error opening pipe\n",PACKAGE);
+		  exit(1);
+		}
+		if ((read(fileno(p_fd_tcxmlcheck),(char *)vob,sizeof(vob_t)))!=sizeof(vob_t))
+		{
+		  fprintf(stderr,"[%s] Error reading data to stdout\n",PACKAGE);
+		  exit(1);
+		}
+		free(p_tcxmlcheck_buffer);
+	}
+    }
+#endif 
     /* ------------------------------------------------------------ 
      *
      * (IV) autosplit stream for cluster processing

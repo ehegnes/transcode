@@ -21,6 +21,8 @@
  *
  */
 
+#ifndef	IOXML_H
+#define IOXML_H 
 #ifdef	HAVE_LIBXML2
 
 #include <libxml/xmlmemory.h>
@@ -50,16 +52,18 @@ typedef struct _audiovideo_t {
 				int				s_video_smpte;
 				int				s_audio_smpte;
                                 struct _audiovideo_t	        *p_next;
-				char				*p_a_module;
-				char				*p_v_module;
+				long				s_a_codec;
+				long				s_v_codec;
+				long				s_a_magic;
+				long				s_v_magic;
                         } audiovideo_t;
 
 void f_free_tree(audiovideo_t *p_node);
-void f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo);
-void f_complete_tree(audiovideo_t *p_audiovideo);
+int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo);
+int f_complete_tree(audiovideo_t *p_audiovideo);
 void f_delete_unused_node(xmlNodePtr p_node);
 int f_manage_input_xml(char *p_name,int s_type,audiovideo_t *p_audiovideo);
 audiovideo_limit_t f_det_time(char *p_options);
 
-
+#endif
 #endif

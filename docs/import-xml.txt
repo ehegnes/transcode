@@ -29,6 +29,14 @@ Below, i describe a sample of simple input file:
 			<param name="in-audio-module" value="dv"/>
 		</video>
 	</seq>
+	<seq>
+		<video src="/mnt/hd/avi/mare013.dv" clipBegin="10" clipEnd="60">
+			<param name="in-video-module" value="dv"/>
+			<param name="in-audio-module" value="dv"/>
+			<param name="in-video-codec" value="rgb"/>
+			<param name="in-audio-codec" value="pcm"/>
+		</video>
+	</seq>
 </smil>
 
 
@@ -36,9 +44,14 @@ The first 2 lines define the namespace
 Each sequences are include in <seq> tag and for instance is possible to define two tag <video> and <audio>: if <audio> tag isn't present then the module try to find audio track in the video file.
 Inside the audio e video it's possible to define two properties: clipBegin and clipEnd and the metric is conform to SMIL2 directive.
 In  each <audio> and <video> tag is possible to define <param> tag: this is
-useful to pass to override some autoprobe parameter: for instance
-in-audio-module and in-video-module are defined and only dv and avi are
-actually supported.
+useful to pass to override some autoprobe parameter:
+in-audio-module and in-video-module: define the module that will be used by the
+import_xml module; only dv and avi are actually supported.
+in-audio-codec and in-video-codec: define the codec that will be used by the
+import_xml module; only rgb yu12 e raw for video and pcm for audio are actually supported.
+It's possible to use in the same xml file different file type (i.e. avi e dv).
+There is a new program to check the the xml file tcxmlcheck: most of the
+options are used by transcode.
 
 From SMIL MediaClipping Module "....
 

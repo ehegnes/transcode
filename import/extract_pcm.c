@@ -345,7 +345,49 @@ void extract_pcm(info_t *ipipe)
 	  fprintf(stderr, "(%s) no file type specified, assuming %s\n", 
 		  __FILE__, filetype(TC_MAGIC_RAW));
 
-    error=p_readwrite(ipipe->fd_in, ipipe->fd_out);
+   	bytes=ipipe->frame_limit[1] - ipipe->frame_limit[0];
+   	//skip the first ipipe->frame_limit[0] bytes
+	if (ipipe->frame_limit[0]!=0)
+		if (fseek(ipipe->fd_in,ipipe->frame_limit[0],SEEK_SET) !=0)
+		{
+			error=1;
+			break;
+		}
+   	if (ipipe->frame_limit[1] ==LONG_MAX)
+   	{
+    		error=p_readwrite(ipipe->fd_in, ipipe->fd_out);
+	}
+	else
+   	{
+   		padding = bytes % MAX_BUF;
+   		frames = bytes / MAX_BUF;
+   		for (n=0; n<frames; ++n) 
+  		{
+      			if(p_read(ipipe->fd_in, audio, MAX_BUF)!= MAX_BUF) 
+      			{
+				error=1;
+				break;
+      			}
+			if(p_write(ipipe->fd_out, audio, MAX_BUF)!= MAX_BUF) 
+			{
+				error=1;
+				break;
+      			}
+    		}
+   		if (padding !=0)
+		{
+      			if(p_read(ipipe->fd_in, audio, padding)!= padding) 
+      			{
+				error=1;
+				break;
+      			}
+			if(p_write(ipipe->fd_out, audio, padding)!= padding) 
+			{
+				error=1;
+				break;
+      			}
+		}
+	}
       
       break;
   }

@@ -28,12 +28,14 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_xml.so"
-#define MOD_VERSION "v0.0.3 (2002-03-26)"
+#define MOD_VERSION "v0.0.4 (2003-04-03)"
 #define MOD_CODEC   "(video) * | (audio) *"
 
 #define MOD_PRE xml
 #include "import_def.h"
 #include "ioxml.h"
+#include "magic.h"
+#include "probe_xml.h"
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];
@@ -47,6 +49,7 @@ static int s_frame_audio_size=0;
 static  audiovideo_t    s_audio,*p_audio=NULL;
 static  audiovideo_t    s_video,*p_video=NULL;
 
+int binary_dump=1;		//force the use of binary dump to create the correct XML tree
 
 /* ------------------------------------------------------------ 
  *
@@ -56,12 +59,19 @@ static  audiovideo_t    s_video,*p_video=NULL;
 
 MOD_open
 {
+	info_t	s_info_dummy;
+	probe_info_t s_probe_dummy1,s_probe_dummy2;
+	long s_tot_dummy1,s_tot_dummy2;
+	int s_v_codec,s_a_codec;
+
 	if(param->flag == TC_VIDEO) 
 	{
 		param->fd = NULL;
                 if (p_video == NULL)
                 {
-                        if (f_manage_input_xml(vob->video_in_file,1,&s_video))  //create the XML tree
+			s_info_dummy.name=vob->video_in_file;	//init the video XML input file name
+			s_info_dummy.verbose=vob->verbose;	//init the video XML input file name
+                        if (f_build_xml_tree(&s_info_dummy,&s_video,&s_probe_dummy1,&s_probe_dummy2,&s_tot_dummy1,&s_tot_dummy2) == -1)	//create the XML tree
                         {
                                 (int)f_manage_input_xml(NULL,0,&s_video);
                                 fprintf(stderr,"\nerror: file %s has invalid format content. \n", vob->video_in_file);
@@ -74,10 +84,20 @@ MOD_open
                         fprintf(stderr,"\nerror: there isn't no file in  %s. \n", vob->video_in_file);
 			return(TC_IMPORT_ERROR);
 		}
-		if (strcasecmp(vob->vmod_probed,"dv") == 0)
+		if(p_video->s_v_codec == TC_CODEC_UNKNOWN) 
 		{
+			s_v_codec=vob->im_v_codec;
+		}
+		else
+		{
+			s_v_codec=p_video->s_v_codec;
+		}
+		switch(p_video->s_v_magic)
+		{
+		   case TC_MAGIC_DV_PAL:
+		   case TC_MAGIC_DV_NTSC:
 			capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_DV|TC_CAP_PCM;
-			switch(vob->im_v_codec) 
+			switch(s_v_codec) 
 			{
 				case CODEC_RGB:
 					s_frame_size = vob->im_v_size;
@@ -105,23 +125,30 @@ MOD_open
 					}
 				break;
 				default:
-					fprintf(stderr, "invalid import codec request 0x%x\n", vob->im_v_codec);
+					fprintf(stderr, "invalid import codec request 0x%x\n", s_v_codec);
 					return(TC_IMPORT_ERROR);
 			}
-		}
-		else if (strcasecmp(vob->vmod_probed,"avi") == 0)
-		{
+		   break;
+		   case TC_MAGIC_AVI:
 			capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_AUD|TC_CAP_VID;
 			s_frame_size=0;
-			if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x avi -C %ld-%ld",p_video->p_nome_video, vob->verbose,p_video->s_start_video,p_video->s_end_video)<0)) 
+			switch(s_v_codec) 
 			{
-				perror("command buffer overflow");
-				return(TC_IMPORT_ERROR);
+				case CODEC_RGB:
+				if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x avi -d %d -C %ld-%ld", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video)<0))
+				{
+					perror("command buffer overflow");
+					return(TC_IMPORT_ERROR);
+				}
+				break;
+				default:
+                       			fprintf(stderr,"[%s] error: video codec 0x%x not yet supported. \n", MOD_NAME,s_v_codec);
+					return(TC_IMPORT_ERROR);
+					;
 			}
-                }
-		else
-		{
-                        fprintf(stderr,"[%s] error: video codec %s not yet supported. \n", MOD_NAME,vob->vmod_probed);
+		  break;
+		  default:
+                       	fprintf(stderr,"[%s] error: video magic 0x%x not yet supported. \n", MOD_NAME,p_video->s_v_magic);
 			return(TC_IMPORT_ERROR);
 		}
 		if((s_fd_video = popen(import_cmd_buf, "r"))== NULL)
@@ -139,7 +166,9 @@ MOD_open
 		param->fd = NULL;
 		if (p_audio== NULL)
 		{
-			if (f_manage_input_xml(vob->audio_in_file,1,&s_audio))  //create the XML tree
+			s_info_dummy.name=vob->video_in_file;	//init the video XML input file name
+			s_info_dummy.verbose=vob->verbose;	//init the video XML input file name
+                        if (f_build_xml_tree(&s_info_dummy,&s_audio,&s_probe_dummy1,&s_probe_dummy2,&s_tot_dummy1,&s_tot_dummy2) == -1)	//create the XML tree
 			{
 				(int)f_manage_input_xml(NULL,0,&s_audio);
 				fprintf(stderr,"\nerror: file %s has invalid format content. \n", vob->audio_in_file);
@@ -160,27 +189,27 @@ MOD_open
 		{
 			s_frame_audio_size=(1.00 * vob->a_rate * vob->a_bits * vob->a_chan)/(29.97*8);
 		}
-		if (strcasecmp(vob->amod_probed,"dv") == 0)
+		switch(p_audio->s_a_magic)
 		{
+		   case TC_MAGIC_DV_PAL:
+		   case TC_MAGIC_DV_NTSC:
 			capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_DV|TC_CAP_PCM;
 			if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x dv -C %ld-%ld | tcdecode -x dv -y pcm -d %d -Q %d", p_audio->p_nome_audio, vob->verbose,s_frame_audio_size*p_audio->s_start_audio,s_frame_audio_size*p_audio->s_end_audio,vob->verbose,vob->quality)<0))
 			{
 				perror("command buffer overflow");
 				return(TC_IMPORT_ERROR);
 			}
-		}
-		else if (strcasecmp(vob->amod_probed,"avi") == 0)
-		{
+		   break;
+		   case TC_MAGIC_AVI:
 			capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_AUD|TC_CAP_VID;
 			if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x pcm -a %d -C %ld-%ld",p_audio->p_nome_audio, vob->verbose,vob->a_track,s_frame_audio_size*p_audio->s_start_audio,s_frame_audio_size*p_audio->s_end_audio)<0)) 
 			{
 				perror("command buffer overflow");
 				return(TC_IMPORT_ERROR);
 			}
-		}
-		else
-		{
-                        fprintf(stderr,"[%s] error: audio codec %s not yet supported. \n", MOD_NAME,vob->amod_probed);
+		   break;
+		   default:
+                        fprintf(stderr,"[%s] error: audio magic 0x%x not yet supported. \n", MOD_NAME,p_audio->s_a_magic);
 			return(TC_IMPORT_ERROR);
 		}
 		if((s_fd_audio = popen(import_cmd_buf, "r"))== NULL)
@@ -209,6 +238,7 @@ MOD_decode
 	int s_video_frame_size;
 	static int s_audio_frame_size_orig=0;
 	static int s_video_frame_size_orig=0;
+	int s_v_codec,s_a_codec;
 	
 	if(param->flag == TC_AUDIO) 
 	{
@@ -222,25 +252,25 @@ MOD_decode
                 {
                         if (p_audio != NULL)    // is there a file ?
                         {
-				if (strcasecmp(vob->amod_probed,"dv") == 0)
+				switch(p_audio->s_a_magic)
 				{
+				   case TC_MAGIC_DV_PAL:
+				   case TC_MAGIC_DV_NTSC:
 					if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x dv -C %ld-%ld | tcdecode -x dv -y pcm -d %d -Q %d", p_audio->p_nome_audio, vob->verbose,s_frame_audio_size*p_audio->s_start_audio,s_frame_audio_size*p_audio->s_end_audio,vob->verbose,vob->quality)<0))
                                         {
                                                 perror("command buffer overflow");
                                                 return(TC_IMPORT_ERROR);
                                         }
-				}
-				else if (strcasecmp(vob->amod_probed,"avi") == 0)
-				{
+				   break;
+				   case TC_MAGIC_AVI:
 					if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x pcm -a %d -C %ld-%ld",p_audio->p_nome_audio, vob->verbose,vob->a_track,s_frame_audio_size*p_audio->s_start_audio,s_frame_audio_size*p_audio->s_end_audio)<0)) 
 					{
 						perror("command buffer overflow");
 						return(TC_IMPORT_ERROR);
 					}
-                                }
-				else
-				{
-                        		fprintf(stderr,"[%s] error: audio codec %s not yet supported. \n", MOD_NAME,vob->amod_probed);
+				   break;
+				   default:
+                        		fprintf(stderr,"[%s] error: audio magic 0x%x not yet supported. \n", MOD_NAME,p_audio->s_a_magic);
 					return(TC_IMPORT_ERROR);
 				}
                                 if((s_fd_audio = popen(import_cmd_buf, "r"))== NULL)
@@ -277,9 +307,19 @@ MOD_decode
 		{
 			if (p_video !=NULL)	// is there a file ?
 			{
-				if (strcasecmp(vob->vmod_probed,"dv") == 0)
+				if(p_video->s_v_codec == TC_CODEC_UNKNOWN) 
 				{
-					switch(vob->im_v_codec) 
+				  	s_v_codec=vob->im_v_codec;
+				}
+				else
+				{
+				    	s_v_codec=p_video->s_v_codec;
+				}
+				switch(p_video->s_v_magic)
+				{
+		   		   case TC_MAGIC_DV_PAL:
+		   		   case TC_MAGIC_DV_NTSC:
+					switch(s_v_codec) 
 					{
 						case CODEC_RGB:
 							if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x dv -d %d -C %ld-%ld | tcdecode -x dv -y rgb -d %d -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video,vob->verbose, vob->quality)<0))
@@ -304,20 +344,27 @@ MOD_decode
 							}
 						break;
 						default:
-						break;
+							;;
 					}
-				}
-				else if (strcasecmp(vob->vmod_probed,"avi") == 0)
-				{
-					if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x avi -C %ld-%ld",p_video->p_nome_video, vob->verbose,p_video->s_start_video,p_video->s_end_video)<0))
+		   		   break;
+		   		   case TC_MAGIC_AVI:
+					switch(s_v_codec) 
 					{
-						perror("command buffer overflow");
-						return(TC_IMPORT_ERROR);
+						case CODEC_RGB:
+							if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x avi -d %d -C %ld-%ld", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video)<0))
+							{
+								perror("command buffer overflow");
+								return(TC_IMPORT_ERROR);
+							}
+						break;
+						default:
+                        				fprintf(stderr,"[%s] error: video codec 0x%x not yet supported. \n", MOD_NAME,s_v_codec);
+							return(TC_IMPORT_ERROR);
+							;
 					}
-				}
-				else
-				{
-                        		fprintf(stderr,"[%s] error: video codec %s not yet supported. \n", MOD_NAME,vob->vmod_probed);
+		   		   break;
+				   default:
+                        		fprintf(stderr,"[%s] error: video magic 0x%x not yet supported. \n", MOD_NAME,p_video->s_v_magic);
 					return(TC_IMPORT_ERROR);
 				}
                        		if((s_fd_video = popen(import_cmd_buf, "r"))== NULL)

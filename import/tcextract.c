@@ -366,7 +366,8 @@ int main(int argc, char *argv[])
 
     // AVI extraction
 
-    if(strcmp(magic, "avi")==0 || ipipe.magic==TC_MAGIC_AVI) {
+    //need to check if there isn't a codec from the input option (if we have a file with TC_MAGIC_AVI and we specify -x pcm we have pcm and rgb output)
+    if ((strcmp(magic, "avi")==0 || ipipe.magic==TC_MAGIC_AVI)&& (codec == NULL)) {
 	
 	ipipe.magic=TC_MAGIC_AVI;
 	extract_rgb(&ipipe);
