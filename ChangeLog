@@ -1,4 +1,14 @@
 2005-01-22 Jacob Meuser <jakemsr at jakemsr dot com>
+  * libvo/cpu_accel.c
+  update arch_accel() to handle ARCH_X86_64.  also add a test
+  for possible problems with SSE instructions.  taken from
+  mjpegtools' utils/cpu_accel.c.
+  * libmpeg2/cpu_state.c libmpeg2/decode.c libmpeg2/idct.c
+    libmpeg2/idct_mmx.c libmpeg2/motion_comp.c
+    libmpeg/motion_comp_mmx.c libvo/yuv2rgb.c
+  this code works on amd64.
+
+2005-01-22 Jacob Meuser <jakemsr at jakemsr dot com>
   * Makfefile.am configure.in libdvenc/* (removed) export/Makefile.am
     export/export_dv.c export/export_dvraw.c export/decode_dv.c
     export/scan_dv.c

@@ -111,7 +111,7 @@ static inline int parse_chunk (mpeg2dec_t * mpeg2dec, int code,
     switch (code) {
     case 0x00:	/* picture_start_code */
 	if (mpeg2_header_picture (picture, buffer)) {
-	    fprintf (stderr, "bad picture header\n");
+	    fprintf (stderr, "libmpeg2: bad picture header\n");
 	    exit (1);
 	}
 	mpeg2dec->drop_frame =
@@ -120,14 +120,14 @@ static inline int parse_chunk (mpeg2dec_t * mpeg2dec, int code,
 
     case 0xb3:	/* sequence_header_code */
 	if (mpeg2_header_sequence (picture, buffer)) {
-	    fprintf (stderr, "bad sequence header\n");
+	    fprintf (stderr, "libmpeg2: bad sequence header\n");
 	    exit (1);
 	}
 	if (mpeg2dec->is_sequence_needed) {
 	    mpeg2dec->is_sequence_needed = 0;
 	    if (vo_setup (mpeg2dec->output, picture->coded_picture_width,
 			  picture->coded_picture_height)) {
-		fprintf (stderr, "display setup failed\n");
+		fprintf (stderr, "libmpeg2: display setup failed\n");
 		exit (1);
 	    }
 	    picture->forward_reference_frame =
@@ -142,7 +142,7 @@ static inline int parse_chunk (mpeg2dec_t * mpeg2dec, int code,
 
     case 0xb5:	/* extension_start_code */
 	if (mpeg2_header_extension (picture, buffer)) {
-	    fprintf (stderr, "bad extension\n");
+	    fprintf (stderr, "libmpeg2: bad extension\n");
 	    exit (1);
 	}
 	break;
@@ -151,7 +151,7 @@ static inline int parse_chunk (mpeg2dec_t * mpeg2dec, int code,
       
       if (code >= 0xb9) {
 	if(!mpeg2_errinfo)  {
-	  fprintf (stderr, "stream not demultiplexed ?\n");
+	  fprintf (stderr, "libmpeg2: stream not demultiplexed ?\n");
 	  mpeg2_errinfo=1;
 	}
       }

@@ -22,82 +22,141 @@
 #include "config.h"
 
 #include <inttypes.h>
+#include <signal.h>
+#include <setjmp.h>
 
 #include "mm_accel.h"
 
-#ifdef ARCH_X86
-static uint32_t arch_accel (void)
-{
-    uint32_t eax, ebx, ecx, edx;
-    int AMD;
-    uint32_t caps;
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
 
-#if !defined(PIC) && !defined(__PIC__)
-#define cpuid(op,eax,ebx,ecx,edx)	\
-    __asm__ ("cpuid"			\
-	     : "=a" (eax),		\
-	       "=b" (ebx),		\
-	       "=c" (ecx),		\
-	       "=d" (edx)		\
-	     : "a" (op)			\
-	     : "cc")
-#else	/* PIC version : save ebx */
-#define cpuid(op,eax,ebx,ecx,edx)	\
-    __asm__ ("push %%ebx\n\t"		\
-	     "cpuid\n\t"		\
-	     "movl %%ebx,%1\n\t"	\
-	     "pop %%ebx"		\
-	     : "=a" (eax),		\
-	       "=r" (ebx),		\
-	       "=c" (ecx),		\
-	       "=d" (edx)		\
-	     : "a" (op)			\
-	     : "cc")
+  /*  Some miscelaneous stuff to allow checking whether SSE instructions cause
+   *  illegal instruction errors.
+   */
+
+static sigjmp_buf sigill_recover;
+
+static RETSIGTYPE sigillhandler(int sig)
+{
+    siglongjmp(sigill_recover, 1);
+}
+
+typedef RETSIGTYPE (*__sig_t)(int);
+
+static int testsseill()
+{
+    int illegal;
+#if defined(__CYGWIN__)
+    /*  SSE causes a crash on CYGWIN, apparently.
+     *  Perhaps the wrong signal is being caught or something along
+     *  those line ;-) or maybe SSE itself won't work...
+     */
+
+    illegal = 1;
+#else
+    __sig_t old_handler = signal( SIGILL, sigillhandler);
+    if (sigsetjmp(sigill_recover, 1) == 0) {
+        asm ("movups %xmm0, %xmm0");
+        illegal = 0;
+    } else
+        illegal = 1;
+
+    signal(SIGILL, old_handler);
 #endif
 
-    asm ("pushf\n\t"
-	     "pushf\n\t"
-	     "pop %0\n\t"
-	     "movl %0,%1\n\t"
-	     "xorl $0x200000,%0\n\t"
-	     "push %0\n\t"
-	     "popf\n\t"
-	     "pushf\n\t"
-	     "pop %0\n\t"
-	     "popf"
-	     : "=r" (eax),
-	       "=r" (ebx)
-	     :
-	     : "cc");
+    return illegal;
+}
 
-    if (eax == ebx)		/* no cpuid */
-	return 0;
+
+static uint32_t arch_accel (void)
+{
+    long eax, ebx, ecx, edx;
+    int32_t AMD;
+    int32_t caps;
+
+	/* Slightly weirdified cpuid that preserves the ebx and edi required
+	   by gcc for PIC offset table and frame pointer */
+
+#ifdef __LP64__
+#  define REG_b "rbx"
+#  define REG_S "rsi"
+#else
+#  define REG_b "ebx"
+#  define REG_S "esi"
+#endif
+	   
+#define cpuid(op,eax,ebx,ecx,edx)	\
+    asm ("push %%"REG_b"\n"		\
+	 "cpuid\n"			\
+	 "mov   %%"REG_b", %%"REG_S"\n" \
+	 "pop   %%"REG_b"\n"		\
+	 : "=a" (eax),			\
+	   "=S" (ebx),			\
+	   "=c" (ecx),			\
+	   "=d" (edx)			\
+	 : "a" (op)			\
+	 : "cc", "edi")
+
+    asm ("pushf\n\t"
+	 "pop %0\n\t"
+	 "mov %0,%1\n\t"
+	 "xor $0x200000,%0\n\t"
+	 "push %0\n\t"
+	 "popf\n\t"
+	 "pushf\n\t"
+	 "pop %0"
+         : "=a" (eax),
+	   "=c" (ecx)
+	 :
+	 : "cc");
+
+
+    if (eax == ecx)  /* no cpuid */
+        return 0;
 
     cpuid (0x00000000, eax, ebx, ecx, edx);
-    if (!eax)			/* vendor string only */
+    if (!eax)  /* vendor string only */
 	return 0;
 
     AMD = (ebx == 0x68747541) && (ecx == 0x444d4163) && (edx == 0x69746e65);
 
     cpuid (0x00000001, eax, ebx, ecx, edx);
-    if (! (edx & 0x00800000))	/* no MMX */
-	return 0;
+    if (! (edx & 0x00800000))  /* no MMX */
+        return 0;
 
     caps = MM_ACCEL_X86_MMX;
-    if (edx & 0x02000000)	/* SSE - identical to AMD MMX extensions */
-	caps = MM_ACCEL_X86_MMX | MM_ACCEL_X86_MMXEXT;
+
+    /* If SSE capable CPU has same MMX extensions as AMD
+       and then some. However, to use SSE O.S. must have signalled
+       it use of FXSAVE/FXRSTOR through CR4.OSFXSR and hence FXSR (bit 24)
+       here
+     */
+
+    if ((edx & 0x02000000))	
+        caps = MM_ACCEL_X86_MMX | MM_ACCEL_X86_MMXEXT;
+
+    if ((edx & 0x03000000) == 0x03000000 ) {
+
+        /* Check whether O.S. has SSE support... has to be done with
+           exception 'cos those Intel morons put the relevant bit
+           in a reg that is only accesible in ring 0... doh! 
+         */
+
+        if (!testsseill())
+            caps |= MM_ACCEL_X86_SSE;
+    }
 
     cpuid (0x80000000, eax, ebx, ecx, edx);
-    if (eax < 0x80000001)	/* no extended capabilities */
-	return caps;
+
+    if (eax < 0x80000001)  /* no extended capabilities */
+        return caps;
 
     cpuid (0x80000001, eax, ebx, ecx, edx);
 
     if (edx & 0x80000000)
-	caps |= MM_ACCEL_X86_3DNOW;
+        caps |= MM_ACCEL_X86_3DNOW;
 
-    if (AMD && (edx & 0x00400000))	/* AMD MMX extensions */
-	caps |= MM_ACCEL_X86_MMXEXT;
+    if (AMD && (edx & 0x00400000))  /* AMD MMX extensions */
+        caps |= MM_ACCEL_X86_MMXEXT;
 
     return caps;
 }
@@ -145,7 +204,7 @@ static uint32_t arch_accel (void)
 
 uint32_t mm_accel (void)
 {
-#if defined(ARCH_X86) || ( defined (ARCH_PPC) && defined (HAVE_PPC_ALTIVEC))
+#if defined(ARCH_X86) || defined(ARCH_X86_64) || (defined (ARCH_PPC) && defined (HAVE_PPC_ALTIVEC))
     static int got_accel = 0;
     static uint32_t accel;
 

@@ -256,16 +256,16 @@ static void mpeg2_idct_add_c (int16_t * block, uint8_t * dest, int stride)
 
 void mpeg2_idct_info (uint32_t mm_accel)
 {
-#ifdef ARCH_X86
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
     if (mm_accel & MM_ACCEL_X86_MMXEXT) {
-	fprintf (stderr, "Using MMXEXT for IDCT transform\n");
+	fprintf (stderr, "libmpeg2: using MMXEXT for IDCT transform\n");
     } else if (mm_accel & MM_ACCEL_X86_MMX) {
-	fprintf (stderr, "Using MMX for IDCT transform\n");
+	fprintf (stderr, "libmpeg2: using MMX for IDCT transform\n");
     } else
 #endif
 #ifdef ARCH_PPC
     if (mm_accel & MM_ACCEL_PPC_ALTIVEC) {
-	fprintf (stderr, "Using altivec for IDCT transform\n");
+	fprintf (stderr, "libmpeg2: using altivec for IDCT transform\n");
     } else
 #endif
 #ifdef LIBMPEG2_MLIB
@@ -275,19 +275,19 @@ void mpeg2_idct_info (uint32_t mm_accel)
 	env_var = getenv ("MLIB_NON_IEEE");
 
 	if (env_var == NULL) {
-	    fprintf (stderr, "Using mlib for IDCT transform\n");
+	    fprintf (stderr, "libmpeg2: using mlib for IDCT transform\n");
 	} else {
-	    fprintf (stderr, "Using non-IEEE mlib for IDCT transform\n");
+	    fprintf (stderr, "libmpeg2: using non-IEEE mlib for IDCT transform\n");
 	}
     } else
 #endif
-      fprintf (stderr, "No accelerated IDCT transform found\n");
+      fprintf (stderr, "libmpeg2: no accelerated IDCT transform found\n");
     
 }
 
 void mpeg2_idct_init (uint32_t mm_accel)
 {
-#ifdef ARCH_X86
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
     if (mm_accel & MM_ACCEL_X86_MMXEXT) {
 	mpeg2_idct_copy = mpeg2_idct_copy_mmxext;
 	mpeg2_idct_add = mpeg2_idct_add_mmxext;
