@@ -1558,6 +1558,7 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
   //  int auds_strf_seen = 0;
   int num_stream = 0;
   char data[256];
+  off_t oldpos=-1, newpos=-1;
   
   /* Read first 12 bytes and check that this is an AVI file */
 
@@ -1572,7 +1573,6 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 
    hdrl_data = 0;
 
-   off_t oldpos=-1, newpos=-1;
 
    while(1)
    {
