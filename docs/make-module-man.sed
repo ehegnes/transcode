@@ -10,7 +10,7 @@
 # 
 # start the work
 /^M: /{
-s/^M: export_\([^.]*\)\.cp*/.TP 4\
+s/^M: [ei][xm]port_\([^.]*\)\.cp*/.TP 4\
 \\fB\1\\fP/
 N
 s/\nD: / \\- /
@@ -22,7 +22,7 @@ s/$/\
 /none/s/.*/This module has no compile-time dependencies./
 /This/!{
   s/C: //
-  s/ [^(]/ and&/g
+  s/, / and /g
   s/^/At compile-time /
   s/$/ must be available./
   }
@@ -32,7 +32,7 @@ s/$/\
 /none/s/.*/This module has no run-time dependencies./
 /This/!{
   s/R: //
-  s/ [^(]/ and&/g
+  s/, / and /g
   s/^/At run-time /
   s/$/ must be present./
   }
@@ -49,5 +49,12 @@ s/S: +/Support for this module is good./
 s/I: /.RS 8\
 /
 s/$/\
+.br/
+}
+
+/^P: /{
+s/^P: /Supported processing formats: /
+s/$/\
 .RE/
 }
+

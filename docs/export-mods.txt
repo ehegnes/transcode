@@ -4,62 +4,71 @@ C=compile time dependend
 R=runtime dependend
 I=Info
 S=Status
+P=processing modes
 
 M: export_ac3.c
 D: (video) null | (audio) ac3
 C: none
 R: ffmpeg
 S: +
-I: Lets you encode audio (raw PCM) to AC3 via the ffmpeg binary.
+I: Encodes audio (raw PCM) to AC3 via the ffmpeg binary.
+P: audio - PCM, video - none
 
 M: export_af6.cpp
 D: (video) Win32 dll | (audio) MPEG/AC3/PCM
 C: libavifile
-R: libavifile win32codecs
+R: libavifile, win32codecs
 S: +
 I: Interface to the avifile library which allows the use of win32codec on the linux-x86 platform.
+P: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 
 M: export_debugppm.c
 D: (video) debugPPM/PGM | (audio) MPEG/AC3/PCM
-C: libmp3lame
+C: libmp3lame (only for MPEG audio layer III)
 R: none
 S: +
-I: Especially usefull when one want to try to find bugs in YUV mode. It encodes the three planes as seperate images. In RGB mode, the 3 color planes get encoded seperatly.
+I: Especially usefull when debugging in YUV mode. Encodes the three planes as separate images. In RGB mode, the 3 color planes get encoded separatly.
+P: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 
 M: export_divx4.c
 D: (video) DivX 4.xx | (audio) MPEG/AC3/PCM
-C: libmp3lame
+C: libmp3lame (only for MPEG audio layer III)
 R: divx4linux (old) libdivxencore.so
 S: o
 I: Encodes MPEG4 video using the closed-source binaries from divx.com to an AVI container.
+P: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 
 M: export_divx4raw.c
 D: (video) DivX 4.xx (ES) | (audio) MPEG/AC3/PCM
-C: libmp3lame
+C: libmp3lame (only for MPEG audio layer III)
 R: divx4linux (old) libdivxencore.so
 S: o
 I: Encodes MPEG4 video using the closed-source binaries from divx.com into no file container at all. It writes out the raw bitstream.
+P: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 
 M: export_divx5.c
 D: (video) DivX 5.xx | (audio) MPEG/AC3/PCM
-C: libmp3lame
-R: divx4linux (new) libdivxencore.so
+C: libmp3lame (only for MPEG audio layer III)
+R: divx4linux (new), libdivxencore.so
 S: +
 I: Encodes MPEG4 video using the closed-source binaries from divx.com to an AVI container.
+P: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 
 M: export_divx5raw.c
 D: (video) DivX 5.xx (ES) | (audio) MPEG/AC3/PCM
-C: libmp3lame
-R: divx4linux (new) libdivxencore.so
+C: libmp3lame (only for MPEG audio layer III)
+R: divx4linux (new), libdivxencore.so
 S: o
 I: Encodes MPEG4 video using the closed-source binaries from divx.com into no file container at all. It writes out the raw bitstream.
+P: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 
 M: export_dv.c
 D: (video) Digital Video | (audio) MPEG/AC3/PCM
-C: libdv libmp3lame
+C: libdv, libmp3lame (only for MPEG audio layer III)
 R: libdv
 S: +
 I: Encodes DV into an AVI container. DV is a codec developed by Sony and is often used in digital camcorders.
+P: audio - PCM AC3, video - RGB YUV
 
 M: export_dvraw.c
 D: (video) Digital Video | (audio) PCM
@@ -67,6 +76,7 @@ C: libdv
 R: libdv
 S: +
 I: Encodes DV into a DV file. DV is a codec developed by Sony and is often used in digital camcorders. A raw DV file can be played back into the camcorder.
+P: audio - PCM, video - RAW (pass-through) RGB YUV YUV422
 
 M: export_fame.c
 D: (video) MPEG-4 | (audio) MPEG/AC3/PCM
@@ -74,20 +84,23 @@ C: libfame
 R: none
 S: -
 I: Fame is yet another MPEG4 encoder. It encodes to a raw file.
+P: audio - RAW (pass-through) PCM AC3, video - YUV
 
 M: export_ffmpeg.c
 D: (video) * | (audio) MPEG/AC3/PCM
-C: libmp3lame
+C: libmp3lame (only for MPEG audio layer III)
 R: none
 S: +
 I: Encodes many different formats to both AVI and raw. Supported are mpeg1video, mpeg2video, mpeg4, mjpeg, h263, h263p, wmv1, wmv2, rv10, msmpeg4, msmpeg4v2, huffyuv and dvvideo.
+P: audio RAW (pass-through) PCM AC3, video - RGB YUV YUV422
 
 M: export_im.c
 D: (video) * | (audio) MPEG/AC3/PCM
 C: libImageMagick
 R: none
 S: +
-I: Encodes image sequences by using the ImageMagick library. ImageMagick is able to handle a lot of different image formats among are png, jpg, miff, tiff, etc. Use -F to select the desired format.
+I: Encodes image sequences by using the ImageMagick library. ImageMagick is able to handle a lot of different image formats such as png, jpg, miff, tiff, etc. Use -F to select the desired format.
+P: audio - RAW (pass-through) PCM, video - RGB YUV
 
 M: export_jpg.c
 D: (video) * | (audio) MPEG/AC3/PCM
@@ -95,27 +108,31 @@ C: libjpeg
 R: none
 S: +
 I: Encodes jpg image sequences using libjpeg. Faster than ImageMagick. Use -F to select the compression quality.
+P: audio - RAW (pass-through) PCM, video - RGB YUV
 
 M: export_lame.c
 D: (audio) MPEG 1/2
-C: libmp3lame
-R: lame sox
+C: libmp3lame (only for MPEG audio layer III)
+R: lame, sox
 S: +
 I: An audio-only encoder which drives the lame binary. The tool sox is used to do resampling if required. Encodes to a MP3 file.
+P: audio - PCM, video - none
 
 M: export_lzo.c
 D: (video) LZO real-time compression | (audio) MPEG/AC3/PCM
-C: liblzo libmp3lame
+C: liblzo, libmp3lame (only for MPEG audio layer III)
 R: none
 S: +
 I: Encodes video using a loss-less real-time LZO codec. This codec is a homegrown invention of transcode and is intended as an intermediate storage format. MPlayer can playback LZO-based AVI files as well.
+P: audio - RAW (pass-through) PCM AC3, video - RAW (pass-through) RGB YUV DV
 
 M: export_mjpeg.c
 D: (video) Motion JPEG | (audio) MPEG/AC3/PCM
-C: libmp3lame libjpeg
+C: libjpeg, libmp3lame (only for MPEG audio layer III)
 R: none
 S: -
 I: Encodes MJPEG based AVI files using a homegrown algorithm based on libjpeg. Using ffmpeg -F mjpeg for this task is a good idea.
+P: audio - PCM AC3, video - RGB YUV
 
 M: export_mov.c
 D: (video) * | (audio) *
@@ -123,6 +140,7 @@ C: libquicktime
 R: libquicktime
 S: o
 I: Interface to the quicktime library.
+P: audio - PCM, video - RAW (pass-through) RGB YUV YUV422 YUY2
 
 M: export_mp1e.c
 D: (video) MPEG1 video | (audio) MPEG1-Layer
@@ -130,13 +148,15 @@ C: none
 R: mp1e
 S: +
 I: Drives the mp1e binary and writes an mpeg1 file to disc. It can also encode vcd compliant streams. Note: it writes an intermediate wav file for audio due to a limitation of mp1e.
+P: audio - PCM, video - RGB YUV YUV422
 
 M: export_mp2.c
 D: (video) null | (audio) MPEG 1/2
 C: none
-R: ffmpeg sox
+R: ffmpeg, sox
 S: +
-I: This module lets you encode audio (raw PCM) to MPEG 1 Layer 2 audio aka mp2. Additionaly it can change the speed of the audio stream by a factor you can specify. See docs/export_mp2.txt.
+I: Encodes audio (raw PCM) to MPEG 1 Layer 2 audio aka mp2. Additionaly it can change the speed of the audio stream by a factor you can specify. See docs/export_mp2.txt.
+P: audio - PCM, video - none
 
 M: export_mp2enc.c
 D: (audio) MPEG 1/2
@@ -144,6 +164,7 @@ C: mjpegtools
 R: mp2enc
 S: +
 I: Drives the mp2enc binary and writes an MP2 (MPEG1-Layer2) file. Useful for when encoding to SVCD to be multiplexed with mplex after encoding.
+P: audio - PCM, video - none
 
 M: export_mpeg.c
 D: (video) MPEG 1/2 | (audio) MPEG 1 Layer II
@@ -151,6 +172,7 @@ C: nasm
 R: none
 S: +
 I: Interface to the bbmpeg library (included in transcode). It can encode generic mpeg1, VCD, SVCD, MPEG2 and DVD type video. Encoded video goes into a elementary file to be multiplexed with the corresponding audio file after encoding.
+P: audio - PCM, video - RGB YUV
 
 M: export_mpeg2enc.c
 D: (video) MPEG 1/2
@@ -158,6 +180,7 @@ C: mjpegtools
 R: mpeg2enc
 S: +
 I: Drives the mpeg2enc binary. mpeg2enc is a very feature rich MPEG encoder, have a look at its manpage. Encodes generic mpeg1, VCD, SVCD, MPEG2 and DVD type video.
+P: audio - none, video - RGB YUV
 
 M: export_net.c
 D: (video) RGB/YUV | (audio) PCM/AC3
@@ -165,6 +188,7 @@ C: net-support
 R: none
 S: +
 I: Transfers video data over a network between various transcodes. Useful if you have multiple systems connected via a fast network.
+P: audio - PCM AC3, video - RGB YUV
 
 M: export_null.c
 D: (video) null | (audio) null
@@ -172,6 +196,7 @@ C: none
 R: none
 S: +
 I: Data sink. Does nothing else than discarding data.
+P: audio - none, video - none
 
 M: export_ogg.c
 D: (video) null | (audio) ogg
@@ -179,6 +204,7 @@ C: none
 R: oggenc
 S: +
 I: Drives the oggenc binary. Encodes an Ogg/Vorbis file. Resamples.
+P: audio - PCM, video - none
 
 M: export_pcm.c
 D: (audio) PCM (non-interleaved)
@@ -186,6 +212,7 @@ C: none
 R: none
 S: +
 I: Writes each audio channel to a WAVE PCM file.
+P: audio - PCM, video - RAW (pass-through) RGB YUV
 
 M: export_ppm.c
 D: (video) PPM/PGM | (audio) MPEG/AC3/PCM
@@ -193,6 +220,7 @@ C: none
 R: none
 S: +
 I: Writes an image sequence of PGM or PPM files. PPM is an old format and there are several tools around to manipulate such files.
+P: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 
 M: export_pvm.c
 D: (video) * | (audio) *
@@ -200,6 +228,15 @@ C: libpvm3
 R: pvm
 S: +
 I: Meta module. It allows transcode to be used in a PVM cluster. See docs/export_pvm.txt
+P: audio - RAW (pass-through) PCM AC3, video - RAW (pass-through) RGB YUV DV YUV422 YUY2
+
+M: export_pvn.c
+D: (video) PVN | (audio) MPEG/AC3/PCM
+C: none
+R: pvm
+S: +
+I: Writes PVN video. See contrib/pnmpvn/pvnspecs.html
+P: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 
 M: export_raw.c
 D: (video) * | (audio) MPEG/AC3/PCM
@@ -207,13 +244,15 @@ C: none
 R: none
 S: +
 I: Can write uncompressed streams to an AVI file as well as raw mpeg2 files in pass-through mode.
+P: audio - RAW (pass-through) PCM AC3, video - RAW (pass-through) RGB YUV DV YUV422
 
 M: export_toolame.c
 D: (audio) MPEG 1/2
 C: none
-R: toolame sox
+R: toolame, sox
 S: +
 I: Drives the toolame binary to create MP2 audio tracks. Sox is used for resampling if requested.
+P: audio - PCM, video - none
 
 M: export_wav.c
 D: (audio) WAVE PCM
@@ -221,27 +260,31 @@ C: none
 R: none
 S: +
 I: Creates WAVE PCM files with interleaved audio for stereo.
+P: audio - PCM, video - RAW (pass-through) RGB YUV
 
 M: export_xvid2.c
 D: (video) XviD 0.9.x (aka API 2.1 series)  | (audio) MPEG/AC3/PCM
-C: libmp3lame
+C: libmp3lame (only for MPEG audio layer III)
 R: libxvidencore.so.2
 S: +
-I: Encodes MPEG4 video using the library available form xvid.org. Check out the library from xvidcvs using cvs -d :pserver:anonymous@cvs.xvid.org:/xvid co -rrelease-0_9_2 xvidcore. The output can either be an AVI file or a MPEG4 elementary stream (with -F raw).
+I: Encodes MPEG4 video using the library available from xvid.org. Check out the library from xvidcvs using cvs -d :pserver:anonymous@cvs.xvid.org:/xvid co -rrelease-0_9_2 xvidcore. The output can either be an AVI file or a MPEG4 elementary stream (with -F raw).
+P: audio - RAW (pass-through) PCM AC3, video - RGB YUV YUV422
 
 M: export_xvid3.c
 D: (video) XviD nonumber series (aka API 3.0)  | (audio) MPEG/AC3/PCM
-C: libmp3lame
+C: libmp3lame (only for MPEG audio layer III)
 R: libxvidcore.so.3
 S: +
-I: Encodes MPEG4 video using the library available form xvid.org. Check out the library from xvidcvs using cvs -d :pserver:anonymous@cvs.xvid.org:/xvid co -rHEAD xvidcore. The output can either be an AVI file or a MPEG4 elementary stream (with -F raw).
+I: Encodes MPEG4 video using the library available from xvid.org. Check out the library from xvidcvs using cvs -d :pserver:anonymous@cvs.xvid.org:/xvid co -rHEAD xvidcore. The output can either be an AVI file or a MPEG4 elementary stream (with -F raw).
+P: audio - RAW (pass-through) PCM AC3, video - RGB YUV YUV422
 
 M: export_xvid4.c
 D: (video) XviD 1.0.x series (aka API 4.0) | (audio) MPEG/AC3/PCM
-C: libmp3lame
+C: libmp3lame (only for MPEG audio layer III)
 R: libxvidcore.so.4
 S: +
-I: Encodes MPEG4 video using the library available form xvid.org. Check out the library from xvidcvs using cvs -d :pserver:anonymous@cvs.xvid.org:/xvid co -rdev-api-4 xvidcore. There is also a tool available to create configuration files for this xvid version at http://zebra.fh-weingarten.de/transcode/xvid4conf. The output can either be an AVI file or a MPEG4 elementary stream (with -F raw).
+I: Encodes MPEG4 video using the library available from xvid.org. Check out the library from xvidcvs using cvs -d :pserver:anonymous@cvs.xvid.org:/xvid co -rdev-api-4 xvidcore. There is also a tool available to create configuration files for this xvid version at http://zebra.fh-weingarten.de/transcode/xvid4conf. The output can either be an AVI file or a MPEG4 elementary stream (with -F raw).
+P: audio - RAW (pass-through) PCM AC3, video - RGB YUV YUV422
 
 M: export_yuv4mpeg.c
 D: (video) YUV4MPEG2 | (audio) MPEG/AC3/PCM
@@ -249,4 +292,4 @@ C: mjpegtools
 R: none
 S: +
 I: Writes the uncompressed raw YUV data in a YUV4MPEG format as used by the lav* and mjpeg* tools.
-
+P: audio - RAW (pass-through) PCM AC3, video - RGB YUV
