@@ -43,6 +43,77 @@ int verbose;
 
 static int demux_track=0xc0;
 
+static int aud_chunk_from_vid_frame (char *file, int vidframe, int audtrack, off_t *fpos)
+{
+    char buf[100];
+    off_t pos, npos=(off_t)0, rpos=(off_t)0;
+    int ret = -1;
+    int line=1;
+    FILE *f = fopen (file, "r");
+    int type, chtype, ch, chunk_nr=0;
+    double ms=0.0, vid_ms=0.0, aud_ms=0.0;
+
+    if (!vidframe) { if (f) fclose(f); return 0; }
+    if (!f) return -1;
+    if (audtrack<0 || audtrack>AVI_MAX_TRACKS-1) { if (f) fclose (f); return -1; }
+
+    fgets( buf, sizeof buf, f); // magic
+    fgets( buf, sizeof buf, f); // comment
+
+    pos = ftell(f);
+    
+    // find the line for vidframe and safe its timestamp
+    while (fgets( buf, sizeof buf, f)) 
+    {
+	// sloooow
+	sscanf (buf, "%*s %d %d %d %*d %*d %*d %lf", &type, &ch, &chtype, &ms);
+
+        if (type == 1 && chtype == vidframe) {
+	    vid_ms = ms;
+	    break;
+	}
+
+	
+	++line;
+    }
+    fprintf(stderr, "%d (%f): %s", line, vid_ms, buf);
+    fseek(f, pos, SEEK_SET);
+
+    line = 1;
+
+    // find the line where timestamp of audio is smaller than vid_ms
+    while (fgets( buf, sizeof buf, f)) 
+    {
+
+	sscanf (buf, "%*s %d %d %d %lld %*d %*d %lf", &type, &ch, &chtype, &pos, &ms);
+
+        if (type == (audtrack+2)) {
+	    if (ms <= vid_ms) {
+		aud_ms = ms;
+		pos = npos;
+		chunk_nr = chtype;
+		*fpos = rpos;
+	    } else {
+		break;
+	    }
+	}
+	npos = ftell(f);
+
+	
+	++line;
+    }
+    fseek(f, pos, SEEK_SET);
+    fgets( buf, sizeof buf, f);
+    ret = chunk_nr;
+
+
+    fprintf(stderr, "%d |%d| (%.2f): %s", line, chunk_nr, aud_ms, buf);
+
+    fclose (f);
+    return ret;
+}
+
+
 static void ps_loop (void)
 {
     static int mpeg1_skip_table[16] = {
@@ -259,7 +330,9 @@ void extract_mp3(info_t *ipipe)
 
     avi_t *avifile;
     
-    long frames, bytes, padding, n;
+    long frames, padding, n;
+    off_t bytes;
+    //off_t fpos; 
 
     verbose = ipipe->verbose;
   
@@ -302,13 +375,29 @@ void extract_mp3(info_t *ipipe)
 
       //set selected for multi-audio AVI-files
       AVI_set_audio_track(avifile, ipipe->track);
+
+#if 0
+      // seeking in VBR files does not work
+      padding = 0;
+      if (ipipe->frame_limit[0] && ipipe->nav_seek_file) {
+	  padding = aud_chunk_from_vid_frame (ipipe->nav_seek_file, ipipe->frame_limit[0], 0, &fpos);
+      }
+
+      fprintf (stderr, "(%s) IPIPE Frame limit (%ld-%ld) pad (%ld)\n", __FILE__, 
+	      ipipe->frame_limit[0], ipipe->frame_limit[1], padding);
+
     
       // get total audio size
-      bytes = AVI_audio_bytes(avifile);
+      bytes = (off_t)AVI_audio_bytes(avifile);
+      bytes -= fpos;
+      AVI_set_audio_position_index(avifile, padding);
+#endif
+
     
+      bytes = (off_t)AVI_audio_bytes(avifile);
       padding = bytes % MAX_BUF;
       frames = bytes / MAX_BUF;
-    
+
       for (n=0; n<frames; ++n) {
 	
 	if(AVI_read_audio(avifile, audio, MAX_BUF)<0) {
