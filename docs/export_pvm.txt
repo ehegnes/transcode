@@ -1,6 +1,6 @@
 Export_pvm Documentation 
 
-Last update 2003/08/21 Marzio Malanchini <marzio_malanchini@vodafone.it>
+Last update 2003/09/22 Marzio Malanchini <marzio_malanchini@vodafone.it>
 
 ---------------
 * Index
@@ -30,11 +30,27 @@ Video:
 	null	(built in)
 	mpeg2enc
 	mpeg
+	af6
+	divx4
+	divx5
+	ffmpeg
+	xvid
+	xvid2
+
 
 Audio:
 	null	(built in)
 	mp2enc
 	mpeg
+	af6
+	divx4
+	divx5
+	ffmpeg
+	xvid
+	xvid2
+
+
+Support for multipass (standard and built in)
 
 ---------------
 * Schema
@@ -94,9 +110,14 @@ the module give all the options
 [export_pvm.so]  -F configfile,[[nproc]:[maxproc]:[nfrxtask]]
 [export_pvm.so]  nproc,maxproc,nfrxtask override the parameter present in the config file
 [export_pvm.so]  List of known and supported codecs:
-[export_pvm.so]  Pvm config            Pvm Param
-[export_pvm.so]  ------------  -----------------------
-[export_pvm.so]   configfile    nproc:maxproc:nfrxtask
+[export_pvm.so]       Supported Modules
+[export_pvm.so]     --------------------
+[export_pvm.so]     null        af6
+[export_pvm.so]     mpeg2enc    mp2enc
+[export_pvm.so]     mpeg        divx5
+[export_pvm.so]     divx4       ffmpeg
+[export_pvm.so]     xvid        xvid2
+[export_pvm.so]     --------------------
 
 where
 
@@ -112,6 +133,7 @@ nproc,maxproc,nfrxtask override the parameter present in the config file.
 NumProcMaxForHost = 1
 MaxProcForCluster = 10
 NumElabFrameForTask = 100
+InternalMultipass=0
 (Host)
 Hostname = marzio
 NumProcMax = 2
@@ -161,6 +183,8 @@ Section [PvmHostCapability] define the cluster environment
 	MaxProcForCluster	max number of process for the cluster: if NumProcMaxForHost * number of host in cluster is > of MaxProcForCluster then MaxProcForCluster is used (this parameter override MaxProcForCluster in subsection (Host)). default 10
 
 	NumElabFrameForTask	number of frame for each running slave task. default 100	
+
+	InternalMultipass	if set to 1 internal multipass is used (multipass in one pass). default 0
 
 	Subsection (Host)
 		Hostname	the name of the host to use in cluster	(not yet implemented in v 0.0.1). default localhost
@@ -813,12 +837,22 @@ Cmd2
 3) Set 1-2 process for each CPU
 4) If the decode process never wait for a free task then you probably found the right configuration (add more slave host is useless: you need to speed up the decode process).
 5) If you plan to have a system file don't multiplex the merged audio and video, but run the built in system merge process (this remove an A/V sync problem).
-6) If you plan to have create a DVD with dvdauthor then set BuildOnlyBatchMergeList=2 in the [SystemMerger] section and pass to dvdauthor the system files generated (force BuildOnlyIntermediateFile=1 in the [SystemList] section). (with dvdauthor alpha 338 use this command dvdauthor -o mydir -c 0:00,x:yz mympeg.mpeg-000000 -c c 0:00,x:yz mympeg.mpeg-000001 ........ where x:yz is the value set in NumElabFrameForTask (e.g. NumElabFrameForTask=99 and PAL x:yz=3:24))
+6) If you plan to create a DVD with dvdauthor then set BuildOnlyBatchMergeList=2 in the [SystemMerger] section and pass to dvdauthor the system files generated (force BuildOnlyIntermediateFile=1 in the [SystemList] section). (with dvdauthor alpha 338 use this command dvdauthor -o mydir -c 0:00,x:yz mympeg.mpeg-000000 -c c 0:00,x:yz mympeg.mpeg-000001 ........ where x:yz is the value set in NumElabFrameForTask (e.g. NumElabFrameForTask=99 and PAL x:yz=3:24))
+7) If you enable the multipass option (-R 1,2) the video and audio log will be created in the output directory (option -o and -m).
+8) If you plan to create an avi with multipass, you can use the internal multipass (it takes less time then standard multipass option (set InternalMultipass=1))
+9) If you specify InternalMultipass=1 in cfg file and -R (1,2,3) in cmd line, -R option will be used.
 
 
 ---------------
 * Change log
 ---------------
+
+2003-09-22 * acinclude.m4 aclocal.m4 docs/export_pvm.txt docs/man/tcpvmexportd.1 export/export_ffmpeg.c export/export_pvm.c export/Makefile.am pvm3/export_pvm_slave.c pvm3/export_pvm_slave.h pvm3/external_codec.c pvm3/external_codec.h pvm3/Makefile.am pvm3/pvm_functions.c pvm3/pvm_functions.h pvm3/pvm_parser.c pvm3/pvm_parser.h pvm3/pvm_version.h pvm3/tcpvmexportd.c pvm3/vob_pack_unpack.c pvm3/vob_pack_unpack.h src/Makefile.am src/tc_func_excl.h src/tc_functions.c src/tc_functions.h src/transcode.c src/transcode.h
+
+- added support for ffmpeg,divx4,divx5,af6,xvid,xvid2 encode module.
+- added multipass and internal multipass support.
+- enable pvm3 by default.
+- bugfix.
 
 2003-08-21 * docs/export_pvm.txt export/export_pvm.c pvm3/external_codec.c pvm3/tcpvmexportd.c
 
@@ -837,11 +871,12 @@ Cmd2
 * To do
 ---------------
 
-- add support for A/V multithread option (-u).
+- add a really support for A/V multithread option (-u) (for instance is set to 1).
 - create a resource manager
 - retrieve encoded frame without nfs
 - balancing weight based 
 - extension to other codec
+- remove the nfs dependency
 - more....
 
 
@@ -850,5 +885,4 @@ Cmd2
 * Bugs
 ---------------
 
-- for instance don't change the default -u option of transcode (leave to 1 the n threads)
 - please send me an e-mail

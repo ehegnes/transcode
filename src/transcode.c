@@ -48,6 +48,8 @@
 
 #include "usage.h"
 
+#include "tc_func_excl.h"
+/* imported from tc_func_excl.h
 #define COL(x)  "\033[" #x ";1m"
 char *RED    = COL(31);
 char *GREEN  = COL(32);
@@ -55,6 +57,8 @@ char *YELLOW = COL(33);
 char *BLUE   = COL(34);
 char *WHITE  = COL(37);
 char *GRAY   =  "\033[0m";
+*/
+
 
 /* ------------------------------------------------------------ 
  *
@@ -98,6 +102,8 @@ sigset_t sigs_to_block;
 
 // for initializing libavcodec
 pthread_mutex_t init_avcodec_lock=PTHREAD_MUTEX_INITIALIZER;
+// for initializing export_pvm
+pthread_mutex_t s_channel_lock=PTHREAD_MUTEX_INITIALIZER;
 
 void socket_thread(); // socket.c
 
@@ -486,70 +492,8 @@ void signal_thread()
   }
 }
 
-void tc_error(char *fmt, ...)
-{
-  
-  va_list ap;
-
-  // munge format
-  int size = strlen(fmt)+2*strlen(RED)+2*strlen(GRAY)+strlen(PACKAGE)+strlen("[] critical: \n")+1;
-  char *a = malloc (size);
-
-  version();
-
-  snprintf(a, size, "[%s%s%s] %scritical%s: %s\n", RED, PACKAGE, GRAY, RED, GRAY, fmt);
-
-  va_start(ap, fmt);
-  vfprintf (stderr, a, ap);
-  va_end(ap);
-  free (a);
-  //abort
-  fflush(stdout);
-  exit(1);
-}
-
-void tc_warn(char *fmt, ...)
-{
-  
-  va_list ap;
-
-  // munge format
-  int size = strlen(fmt)+2*strlen(BLUE)+2*strlen(GRAY)+strlen(PACKAGE)+strlen("[]  warning: \n")+1;
-  char *a = malloc (size);
-
-  version();
-
-  snprintf(a, size, "[%s%s%s] %swarning%s : %s\n", RED, PACKAGE, GRAY, YELLOW, GRAY, fmt);
-
-  va_start(ap, fmt);
-  vfprintf (stderr, a, ap);
-  va_end(ap);
-  free (a);
-  fflush(stdout);
-}
-
-void tc_info(char *fmt, ...)
-{
-  
-  va_list ap;
-
-  // munge format
-  int size = strlen(fmt)+strlen(BLUE)+strlen(GRAY)+strlen(PACKAGE)+strlen("[] \n")+1;
-  char *a = malloc (size);
-
-  version();
-
-  snprintf(a, size, "[%s%s%s] %s\n", BLUE, PACKAGE, GRAY, fmt);
-
-  va_start(ap, fmt);
-  vfprintf (stderr, a, ap);
-  va_end(ap);
-  free (a);
-  fflush(stdout);
-}
-
 vob_t *tc_get_vob() {return(vob);}
-
+ 
 #define delta 0.05
 int tc_guess_frc(double fps)
 {
@@ -3394,7 +3338,6 @@ int main(int argc, char *argv[]) {
     if(tc_buffer_delay_enc==-1) //adjust core parameter 
       tc_buffer_delay_enc = (vob->pass_flag & TC_VIDEO || ex_vid_mod==NULL || strcmp(ex_vid_mod, "null")==0) ? TC_DELAY_MIN:TC_DELAY_MAX;
 
-    
     if(verbose & TC_DEBUG) printf("[%s] encoder delay = decode=%d encode=%d usec\n", PACKAGE, tc_buffer_delay_dec, tc_buffer_delay_enc);    
 
     if (socket_file) {

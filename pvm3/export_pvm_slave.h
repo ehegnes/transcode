@@ -36,4 +36,5 @@
 pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq);
 int f_copy_remove_func(char *p_option,char *p_file,int s_file_dest);
 int f_system_merge(pvm_config_env *p_pvm_conf);
+char *f_filenamelist(char *p_option,pvm_config_env *p_pvm_conf,int s_type,int s_seq);
 #endif

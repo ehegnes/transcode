@@ -59,6 +59,7 @@ typedef struct _pvm_config_env{
 				int 			s_max_proc;
 				int 			s_num_frame_task;
 				int			s_build_intermed_file;
+				int			s_internal_multipass;
 				char			*p_multiplex_cmd;
 				pvm_config_codec	s_audio_codec;
 				pvm_config_codec	s_video_codec;
@@ -67,6 +68,7 @@ typedef struct _pvm_config_env{
 				pvm_config_merger	s_audio_merger;
 				pvm_config_hosts	*p_pvm_hosts;
 				pvm_config_filelist	*p_add_list;
+				pvm_config_filelist	*p_add_loglist;
 				pvm_config_filelist	*p_rem_list;
 				pvm_config_filelist	s_sys_list;
 		} pvm_config_env;

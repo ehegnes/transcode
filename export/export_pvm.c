@@ -29,6 +29,8 @@
 #include <pvm_version.h>
 #include <pvm_interface.h>
 #include <pvm_parser.h>
+#include <external_codec.h>
+#include <vob_pack_unpack.h>
 
 #define MAX_BUF 1024
 
@@ -55,8 +57,9 @@ static pvm_func_t s_pvm_single_proc_audio,s_pvm_single_proc_video,s_pvm_fun_audi
 static pvm_config_env s_pvm_conf,*p_pvm_conf=NULL;
 
 static char *p_par1=NULL,*p_par2=NULL;
-static vob_t  s_my_vobt;
 
+
+extern pthread_mutex_t s_channel_lock;
 
 void adjust_ch(char *line, char ch)
 {
@@ -150,11 +153,7 @@ void f_help()
 	fprintf(stderr, "[%s]  -F configfile,[[nproc]:[maxproc]:[nfrxtask]]\n",MOD_NAME);
 	fprintf(stderr, "[%s]  nproc,maxproc,nfrxtask override the parameter present in the config file\n",MOD_NAME);
 	fprintf(stderr, "[%s]  List of known and supported codecs:\n",MOD_NAME);
-	fprintf(stderr, "[%s]     Video          Audio\n"
-			"[%s]  ----------      ----------\n",MOD_NAME,MOD_NAME);
-	fprintf(stderr, "[%s]     null            null\n",MOD_NAME);
-	fprintf(stderr, "[%s]   mpeg2enc         mp2enc \n",MOD_NAME);
-	fprintf(stderr, "[%s]     mpeg            mpeg  \n",MOD_NAME);
+	f_help_codec(MOD_NAME);
 }
 
 /* ------------------------------------------------------------ 
@@ -168,6 +167,7 @@ MOD_open
 	pvm_func_t *p_pvm_fun=NULL;
 	int s_null_module;
 
+	pthread_mutex_lock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 	if(param->flag == TC_VIDEO) 
 	{
 		s_null_module=s_null_video_module;
@@ -189,9 +189,11 @@ MOD_open
 			f_pvm_balancer("close",p_pvm_fun,0,param->flag);
 			(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 			s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+			pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 			return(TC_EXPORT_ERROR);
 		}
 	}
+	pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 	if (verbose_flag & TC_DEBUG)
 		fprintf(stderr, "[%s] exit MOD_OPEN Video\n",MOD_NAME);
 	return(0);
@@ -207,10 +209,11 @@ MOD_init
 {
 	char *p_file_to_open=NULL;
 	char *p_tmp=NULL;
-	char *p_argv[]={"-s",(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0};
-	char *p_argv_merger[]={"-s","-j",(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0};
-	char *p_argv_merger_sys[]={"-s","-j",(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0};
-	int s_cont,s_contj,s_contsys;
+	char *p_vob_buffer=NULL;
+	char *p_argv[]={"-s",(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0};
+	char *p_argv_merger[]={"-s","-j",(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0};
+	char *p_argv_merger_sys[]={"-s","-j",(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0,(char*)0};
+	int s_cont,s_contj,s_contsys,s_vob_buffer_size;
 	pvm_config_codec	*p_conf_codec;
 	pvm_func_t *p_pvm_fun=NULL;
 	pvm_func_t *p_pvm_single_proc=NULL;
@@ -220,6 +223,7 @@ MOD_init
 	char s_version[MAX_BUF];
 	static int s_msys=0;
 
+	pthread_mutex_lock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 	s_cont=1;
 	s_contj=2;
 	s_contsys=2;
@@ -228,7 +232,6 @@ MOD_init
 	if (s_init_check==0)
 	{
 		s_init_check++;		//do it only for the first time
-		memcpy(&s_my_vobt,vob,sizeof(vob_t));
 		memset((char *)&s_pvm_conf,'\0',sizeof(pvm_config_env));
 		p_pvm_conf=&s_pvm_conf;
 		if(vob->ex_v_fcc != NULL && strlen(vob->ex_v_fcc) != 0) 
@@ -238,12 +241,14 @@ MOD_init
 			if(!strcasecmp(p_par1,"list")) 
 			{
 				f_help();
+				pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 				return(TC_EXPORT_ERROR);
 			}
 			if ((p_pvm_conf=f_pvm_parser(p_par1,"open"))==NULL)
 			{
 				fprintf(stderr,"error checking %s\n",p_par1);
 				f_help();
+				pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 				return(TC_EXPORT_ERROR);
 			}
 			memcpy((char *)&s_pvm_conf,(char *)p_pvm_conf,sizeof(pvm_config_env));
@@ -252,6 +257,7 @@ MOD_init
 		else	//need at least the config file
 		{
 			f_help();
+			pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 			return(TC_EXPORT_ERROR);
 		}
 		if(vob->ex_a_fcc != NULL && strlen(vob->ex_a_fcc) != 0) 
@@ -346,36 +352,36 @@ MOD_init
 		p_argv_merger_sys[s_contsys++]="-x";
 		p_argv_merger_sys[s_contsys++]=p_pvm_conf->p_multiplex_cmd;
 	}
-	if ((!strcasecmp(p_conf_codec->p_codec, "mpeg2enc"))||(!strcasecmp(p_conf_codec->p_codec, "mp2enc"))||(!strcasecmp(p_conf_codec->p_codec, "mpeg")))
+	if (f_supported_export_module(p_conf_codec->p_codec))
 	{
 		p_argv[s_cont++]="-c";
 		p_argv[s_cont++]=p_conf_codec->p_codec; /*store the parameter*/
 		p_argv_merger[s_contj++]="-c";
 		p_argv_merger[s_contj++]=p_conf_codec->p_codec; /*store the parameter*/
 		p_argv_merger_sys[s_contsys++]="-c";
-		if ((!strcasecmp(p_pvm_conf->s_video_codec.p_codec, "mpeg2enc"))&&(!strcasecmp(p_pvm_conf->s_audio_codec.p_codec, "mp2enc")))
+		if ((p_argv_merger_sys[s_contsys++]=f_supported_system((pvm_config_codec *)&(p_pvm_conf->s_video_codec),(pvm_config_codec *)&(p_pvm_conf->s_audio_codec)))!=NULL)
 		{
 			if (p_pvm_conf->s_system_merger.p_hostname!=NULL)
 			{
-				p_argv_merger_sys[s_contsys++]="mpeg2enc-mp2enc"; /*store the parameter*/
-				s_sys_merger_started=0;	
-			}
+				if (vob->divxmultipass!=1)
+					s_sys_merger_started=0;
+				else			/*if multipass == 1 i don't need to start the system merger*/
+				{
+					s_contsys--;
+					p_argv_merger_sys[s_contsys]="unknown"; /*store the parameter*/
+					s_sys_merger_started=-1;	/*so the system merger never started*/
+				}
+			}	
 			else
-				s_sys_merger_started=-1;	/*so the system merger never started*/
-		}
-		else if ((!strcasecmp(p_pvm_conf->s_video_codec.p_codec, "mpeg"))&&(!strcasecmp(p_pvm_conf->s_audio_codec.p_codec, "mpeg")))
-		{
-			if (p_pvm_conf->s_system_merger.p_hostname!=NULL)
 			{
-				p_argv_merger_sys[s_contsys++]="mpeg-mpeg"; /*store the parameter*/
-				s_sys_merger_started=0;	
-			}
-			else
+				s_contsys--;
+				p_argv_merger_sys[s_contsys]="unknown"; /*store the parameter*/
 				s_sys_merger_started=-1;	/*so the system merger never started*/
+			}
 		}
 		else
 		{
-			p_argv_merger_sys[s_contsys++]="unknown"; /*store the parameter*/
+			p_argv_merger_sys[s_contsys-1]="unknown"; /*store the parameter*/
 			s_sys_merger_started=-1;	/*so the system merger never started*/
 		}
 		if (p_conf_codec->p_par1!=NULL)
@@ -419,6 +425,7 @@ MOD_init
 	{
 		fprintf(stderr, "[%s] error: unsupported %s codec\n",MOD_NAME,p_conf_codec->p_codec);
 		f_help();		/*unsupported codec parameter*/
+		pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 		return(TC_EXPORT_ERROR);
 	}
 	if ((!strcasecmp(p_pvm_conf->s_audio_codec.p_codec, "null"))||(!strcasecmp(p_pvm_conf->s_video_codec.p_codec, "null")))
@@ -433,6 +440,30 @@ MOD_init
 		p_pvm_conf->s_max_proc=(p_pvm_conf->s_max_proc<MIN_TOT_NPROC)?10:p_pvm_conf->s_max_proc;	
 		p_pvm_conf->s_num_frame_task=(p_pvm_conf->s_num_frame_task<MIN_FRAME)?100:p_pvm_conf->s_num_frame_task;
 
+		if ((vob->divxmultipass==0)&&(p_pvm_conf->s_internal_multipass))
+		{
+			p_argv[s_cont++]="-M";	/*use internale multipass only if -R option isn't set*/
+		}
+		else
+		{
+			p_argv_merger[s_contj++]="-p";
+			switch(vob->divxmultipass)
+			{
+				case 3:
+					p_argv_merger[s_contj++]="3";
+				break;
+				case 2:
+					p_argv_merger[s_contj++]="2";
+				break;
+				case 1:
+					p_argv_merger[s_contj++]="1";
+				break;
+				case 0:
+				default:
+					p_argv_merger[s_contj++]="0";
+				break;
+			}
+		}
 		p_argv[s_cont++]="-d";
 		p_argv_merger[s_contj++]="-d";
 		p_argv_merger_sys[s_contsys++]="-d";
@@ -471,7 +502,10 @@ MOD_init
 		if (p_handle==NULL)
 		{
 			if((p_handle=f_init_pvm_func("open",NULL))==NULL)
+			{
+				pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 				return(TC_EXPORT_ERROR);
+			}
 		}
 		p_argv[s_cont++]="-t";
 		p_argv_merger[s_contj++]="-t";
@@ -515,6 +549,7 @@ MOD_init
 		if (f_pvm_master_start_stop("open","tcpvmexportd",p_argv,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun)==NULL)
 		{
 			s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+			pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 			return(TC_EXPORT_ERROR);
 		}
 		memset((char *)&s_version,'\0',MAX_BUF);
@@ -523,11 +558,12 @@ MOD_init
 		{
 			(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 			s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+			pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 			return(TC_EXPORT_ERROR);
 		}
 		if (p_pvm_conf->s_system_merger.p_hostname!=NULL)
 		{
-			if (s_msys==0)
+			if ((s_sys_merger_started==0)&&(s_msys==0))
 			{
 				s_sys_merger_started=1;	/*execute only 1 time*/
 				s_msys=1;
@@ -535,6 +571,7 @@ MOD_init
 				{
 					(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 					s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+					pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 					return(TC_EXPORT_ERROR);
 				}
 				if (verbose_flag & TC_DEBUG)
@@ -545,6 +582,7 @@ MOD_init
 					f_pvm_stop_single_process(*p_merger_sys_tid);
 					(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 					s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+					pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 					return(TC_EXPORT_ERROR);
 				}
 			}
@@ -557,6 +595,7 @@ MOD_init
 				f_pvm_stop_single_process(*p_merger_sys_tid);
 			(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 			s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+			pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 			return(TC_EXPORT_ERROR);
 		}
 		if (verbose_flag & TC_DEBUG)
@@ -572,6 +611,7 @@ MOD_init
 				f_pvm_stop_single_process(*p_merger_sys_tid);
 			(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 			s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+			pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 			return(TC_EXPORT_ERROR);
 		}
 		if (verbose_flag & TC_DEBUG)
@@ -592,10 +632,34 @@ MOD_init
 				f_pvm_stop_single_process(*p_merger_sys_tid);
 			(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 			s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+			pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 			return(TC_EXPORT_ERROR);
 		}
 		/*initial send of the vob structures to the slave processes*/
-		if((f_pvm_multi_send(sizeof(vob_t),(char *)&s_my_vobt,PVM_EXP_OPT_INIT,p_pvm_fun))==-1)
+		p_vob_buffer=f_vob_pack("open",vob,&s_vob_buffer_size);
+		if (vob->divxmultipass==2)
+		{
+			if (verbose_flag & TC_DEBUG)
+				fprintf(stderr, "[%s] enter in preinit msg\n",MOD_NAME);
+			for(s_cont=0;s_cont<p_pvm_fun->s_nproc;s_cont=s_cont++)
+			{
+				if(f_pvm_send(sizeof(int),(char *)&s_cont,PVM_EXP_OPT_PREINIT,s_cont,p_pvm_fun)==-1)
+				{
+					f_pvm_stop_single_process(*p_merger_tid);
+					if (s_sys_merger_started==1)
+						s_sys_merger_started--;
+					else if (s_sys_merger_started==0)
+						f_pvm_stop_single_process(*p_merger_sys_tid);
+					(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
+					s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+					pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
+					return(TC_EXPORT_ERROR);
+				}
+			}
+			if (verbose_flag & TC_DEBUG)
+				fprintf(stderr, "[%s] exit from preinit msg\n",MOD_NAME);
+		}
+		if((f_pvm_multi_send(s_vob_buffer_size,p_vob_buffer,PVM_EXP_OPT_INIT,p_pvm_fun))==-1)
 		{
 			f_pvm_stop_single_process(*p_merger_tid);
 			if (s_sys_merger_started==1)
@@ -604,8 +668,10 @@ MOD_init
 				f_pvm_stop_single_process(*p_merger_sys_tid);
 			(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 			s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+			pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 			return(TC_EXPORT_ERROR);
 		}
+		(char *)f_vob_pack("close",NULL,&s_vob_buffer_size);
 		if(f_pvm_send(strlen(p_file_to_open),(char *)p_file_to_open,PVM_JOIN_OPT_INIT,p_pvm_single_proc->s_current_tid,p_pvm_single_proc)==-1)
 		{
 			f_pvm_stop_single_process(*p_merger_tid);
@@ -615,6 +681,7 @@ MOD_init
 				f_pvm_stop_single_process(*p_merger_sys_tid);
 			(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 			s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+			pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 			return(TC_EXPORT_ERROR);
 		}
 		if (s_msys==1)
@@ -628,10 +695,12 @@ MOD_init
 					f_pvm_stop_single_process(*p_merger_sys_tid);
 				(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 				s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+				pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 				return(TC_EXPORT_ERROR);
 			}
 		}
 	}
+	pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 	if (verbose_flag & TC_DEBUG)
 		fprintf(stderr, "[%s] exit from MOD_INIT \n",MOD_NAME);
 	return(0);
@@ -654,6 +723,7 @@ MOD_encode
 	int *p_merger_tid=0,*p_merger_sys_tid=0;
 	int s_null_module;
 
+	pthread_mutex_lock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 	p_merger_sys_tid=(int *)&s_merger_tid_system[0];
         if(param->flag == TC_VIDEO)
         {
@@ -686,6 +756,7 @@ MOD_encode
 			p_buffer=(char *)malloc(sizeof(transfer_t)+param->size);
 			f_pvm_balancer("open",p_pvm_fun,0,param->flag);
 		}
+		(int)f_pvm_set_send(s_seq);	/*set the seq number*/
 		memcpy(p_buffer,(char *)param,sizeof(transfer_t));
 		memcpy(p_buffer+sizeof(transfer_t),(char *)param->buffer,param->size);
 		if((s_seq=f_pvm_send((sizeof(transfer_t)+param->size),(char *)p_buffer,PVM_EXP_OPT_ENCODE,p_pvm_fun->s_current_tid,p_pvm_fun))==-1)
@@ -698,6 +769,7 @@ MOD_encode
 			f_pvm_balancer("close",p_pvm_fun,0,param->flag);
 			(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 			s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+			pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 			return(TC_EXPORT_ERROR);
 		}
 		if (verbose_flag & TC_DEBUG)
@@ -708,14 +780,14 @@ MOD_encode
 				fprintf(stderr,"[%s] Send %d audio sequence number\n",MOD_NAME,s_seq);
 		}
 		f_pvm_balancer("set-seq",p_pvm_fun,s_seq,param->flag); /*the tid in s_tid_pos now elab the seq*/
-		(int)f_pvm_set_send(s_seq);	/*set the same seq*/
 		if (s_cont<p_pvm_conf->s_num_frame_task)
 		{
 			s_cont++;
 		}
 		else
 		{
-			if(f_pvm_send(0,(char *)0,PVM_EXP_OPT_RESTART_ENCODE,p_pvm_fun->s_current_tid,p_pvm_fun)==-1)
+			(int)f_pvm_set_send(s_seq);	/*set the prev. seq number*/
+			if((s_seq=f_pvm_send(0,(char *)0,PVM_EXP_OPT_RESTART_ENCODE1,p_pvm_fun->s_current_tid,p_pvm_fun))==-1)
 			{
 				f_pvm_stop_single_process(*p_merger_tid);
 				if (s_sys_merger_started==1)
@@ -725,9 +797,23 @@ MOD_encode
 				f_pvm_balancer("close",p_pvm_fun,0,param->flag);
 				(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 				s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+				pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 				return(TC_EXPORT_ERROR);
 			}
 			f_pvm_balancer("first-free",p_pvm_fun,s_seq,param->flag);
+			if((s_seq=f_pvm_send(0,(char *)0,PVM_EXP_OPT_RESTART_ENCODE2,p_pvm_fun->s_current_tid,p_pvm_fun))==-1) /*automatic increment of seq*/
+			{
+				f_pvm_stop_single_process(*p_merger_tid);
+				if (s_sys_merger_started==1)
+					s_sys_merger_started--;
+				else if (s_sys_merger_started==0)
+					f_pvm_stop_single_process(*p_merger_sys_tid);
+				f_pvm_balancer("close",p_pvm_fun,0,param->flag);
+				(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
+				s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+				pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
+				return(TC_EXPORT_ERROR);
+			}
 			s_cont=0;
 		}
 		if(param->flag == TC_VIDEO)
@@ -743,6 +829,7 @@ MOD_encode
 			s_audio_cont=s_cont;
 		}
 	}
+	pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 	return(0);
 }
 
@@ -761,6 +848,7 @@ MOD_stop
 	static int s_msys=0;
 
 	p_merger_sys_tid=(int *)&s_merger_tid_system[0];
+	pthread_mutex_lock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
         if(param->flag == TC_VIDEO)
         {
 		s_null_module=s_null_video_module;
@@ -815,6 +903,7 @@ MOD_stop
 			s_merger_tid_audio[0]=-1;
 		}
 	}
+	pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 	return(0);
 }
 
@@ -835,6 +924,7 @@ MOD_close
 	static int s_msys=0;
 
 	p_merger_sys_tid=(int *)&s_merger_tid_system[0];
+	pthread_mutex_lock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
         if(param->flag == TC_VIDEO)
         {
 		s_null_module=s_null_video_module;
@@ -857,6 +947,19 @@ MOD_close
         }
 	if (!s_null_module)
 	{
+		if((s_seq=f_pvm_send(0,(char *)0,PVM_EXP_OPT_RESTART_ENCODE1,p_pvm_fun->s_current_tid,p_pvm_fun))==-1)	/*flush the buffer*/
+		{
+			f_pvm_stop_single_process(*p_merger_tid);
+			if (s_sys_merger_started==1)
+				s_sys_merger_started--;
+			else if (s_sys_merger_started==0)
+				f_pvm_stop_single_process(*p_merger_sys_tid);
+			f_pvm_balancer("close",p_pvm_fun,0,param->flag);
+			(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
+			s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+			pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
+			return(TC_EXPORT_ERROR);
+		}
 		if((f_pvm_multi_send(0,(char *)0,PVM_EXP_OPT_CLOSE,p_pvm_fun))==-1)
 		{
 			f_pvm_stop_single_process(*p_merger_tid);
@@ -867,6 +970,7 @@ MOD_close
 			f_pvm_balancer("close",p_pvm_fun,0,param->flag);
 			(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 			s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+			pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 			return(TC_EXPORT_ERROR);
 		}
 		if((s_seq=f_pvm_send(0,(char *)0,PVM_JOIN_OPT_RUN,0,p_pvm_single_proc))==-1) /*s_seq not really used*/
@@ -879,6 +983,7 @@ MOD_close
 			f_pvm_balancer("close",p_pvm_fun,0,param->flag);
 			(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 			s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+			pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 			return(TC_EXPORT_ERROR);
 		}
 		if (verbose_flag & TC_DEBUG)
@@ -901,6 +1006,7 @@ MOD_close
 			f_pvm_balancer("close",p_pvm_fun,0,param->flag);
 			(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 			s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+			pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 			return(TC_EXPORT_ERROR);
 		}
 		if (verbose_flag & TC_DEBUG)
@@ -917,6 +1023,7 @@ MOD_close
 				f_pvm_balancer("close",p_pvm_fun,0,param->flag);
 				(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 				s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+				pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 				return(TC_EXPORT_ERROR);
 			}
 		}
@@ -935,6 +1042,7 @@ MOD_close
 				f_pvm_balancer("close",p_pvm_fun,0,param->flag);
 				(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 				s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+				pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 				return(TC_EXPORT_ERROR);
 			}
 			if ((p_pvm_conf->s_system_merger.p_hostname!=NULL)&&(p_pvm_conf->s_system_merger.s_build_only_list!=1))	/*do it for 0 and 2*/
@@ -946,6 +1054,7 @@ MOD_close
 					f_pvm_balancer("close",p_pvm_fun,0,param->flag);
 					(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 					s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+					pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 					return(TC_EXPORT_ERROR);
 				}
 				if (verbose_flag & TC_DEBUG)
@@ -959,6 +1068,7 @@ MOD_close
 					f_pvm_balancer("close",p_pvm_fun,0,param->flag);
 					(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
 					s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
+					pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 					return(TC_EXPORT_ERROR);
 				}
 				if (verbose_flag & TC_DEBUG)
@@ -968,6 +1078,7 @@ MOD_close
 		if (s_sys_merger_started!=-1)
 			s_msys=1;
 	}
+	pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 	return(0);
 }
 

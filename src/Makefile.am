@@ -30,6 +30,8 @@ EXTRA_DIST =  \
    transcode.h \
    usage.h \
    video_trans.h \
+   tc_functions.h \
+   tc_func_excl.h \
    zoom.h
 
 transcode_SOURCES =	transcode.c\
@@ -54,6 +56,7 @@ transcode_SOURCES =	transcode.c\
 			callback.c\
 			socket.c\
 			optstr.c\
+			tc_functions.c\
 			info_server.c
 
 

@@ -40,6 +40,7 @@ case "x${target_os}" in
     CXXFLAGS_save="${CXXFLAGS} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"; CXXFLAGS="${CXXFLAGS_save}"
     OBJCFLAGS_save="${OBJCFLAGS} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"; OBJCFLAGS="${OBJCFLAGS_save}"
     #LDFLAGS_save="${LDFLAGS_save} -all_load"; LDFLAGS="${LDFLAGS_save}"
+
     AC_DEFINE([SYSTEM_DARWIN], 1, [Define if this is Darwin / MacOSX OS])
 
     # Include Fink in compile and link if present
@@ -1023,7 +1024,7 @@ static AV-frame buffering                        $statbuf
 support for network (sockets) streams            $net
 DVD navigation support with libdvdread           $have_dvdread
 link against local lame library (>=3.89) | ver   $lame89 | $lame_version
-experimental pvm3 support                        $have_pvm3
+pvm3 support					 $have_pvm3
 *-*-*-*-*-*-* Codec *-*-*-*-*-*-*
 nasm dependent modules (bbmpeg)                  $nasm
 mjpegtools dependent modules                     $MJPEGTOOLSCONFIG

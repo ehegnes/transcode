@@ -36,6 +36,7 @@
 #include <ac.h>
 #include <export_pvm_slave.h>
 #include <external_codec.h>
+#include <tc_func_excl.h>
 
 #define EXE "tcpvmexportd"
 
@@ -50,7 +51,6 @@
 #define SLAVE_MERGE_MODE	SLAVE_MODE|MERGER_MODE
 
 
-
 void *f_handle=NULL;	/*handle for dlopen/dlclose*/
 void *f_ext_handle=NULL;	/*handle for dlopen/dlclose of the external module*/
 int (*tc_export)(int,void *,void *);
@@ -62,12 +62,16 @@ char *p_request_func=NULL;
 char *p_hostname=NULL;
 int verbose=TC_QUIET;
 char *p_merge_cmd=NULL;
+int tc_avi_limit=AVI_FILE_LIMIT;	/*NEED TO CHECK*/
+char *tc_config_dir=NULL;	/*NEED TO CHECK*/
+int s_divxmultipass=0,s_internal_multipass=0;
 
 void version()
 {
   /* id string */
   fprintf(stderr, "%s (%s v%s) (C) 2001-2003 Thomas Östreich\n",EXE,PACKAGE,VERSION);
 }
+
 
 void usage(int status)
 {
@@ -77,7 +81,9 @@ void usage(int status)
 	fprintf(stderr,"\t -m             start %s in master mode [off]\n",EXE);
 	fprintf(stderr,"\t -j             start %s in merge mode [off]\n",EXE);
 	fprintf(stderr,"\t -L             create only the merge list [off]\n");
+	fprintf(stderr,"\t -p number      Multipass. [0]\n");
 	fprintf(stderr,"\t -C             Check the config or merge file [off]\n");
+	fprintf(stderr,"\t -M             Enable internal multipass [off]\n");
 	fprintf(stderr,"\t -c name        name of slave function req in slave mode [none]\n");
 	fprintf(stderr,"\t -x parameters  multiplex parameters [none]\n");
 	fprintf(stderr,"\t -t type        elab video or audio frame (video|audio|system|multisystem) [video]\n");
@@ -98,7 +104,40 @@ int f_init_func(char *p_option,char *p_mod)
 	char *p_modpath=MOD_PATH;
 	char s_module[MAX_BUF];
 
-	if(!strcasecmp(p_option,"open"))
+	if(!strcasecmp(p_option,"open-external"))
+	{
+		if (p_mod!=NULL)
+		{
+			memset((char *)&s_module,'\0',MAX_BUF);
+			sprintf(s_module, "%s/export_%s.so", p_modpath,p_mod);
+			f_ext_handle=dlopen(s_module, RTLD_GLOBAL|RTLD_LAZY);
+			if (!f_ext_handle) 
+			{
+				fputs (dlerror(), stderr);
+				dlclose(f_handle);
+				return(1);
+			}
+			tc_export = dlsym(f_ext_handle, "tc_export");   
+			if ((p_error = dlerror()) != NULL)  
+			{
+				fputs(p_error, stderr);
+				return(1);
+			}
+		}
+	}
+	else if(!strcasecmp(p_option,"close-external"))
+	{
+		if (f_ext_handle!=NULL)
+			dlclose(f_ext_handle);
+		f_ext_handle=NULL;
+		tc_export=NULL;
+	}
+	else if(!strcasecmp(p_option,"status-external"))
+	{
+		if(f_ext_handle!=NULL)
+			return(1);
+	}
+	else if(!strcasecmp(p_option,"open"))
 	{
 		if (p_mod!=NULL)
 		{
@@ -127,6 +166,8 @@ int f_init_func(char *p_option,char *p_mod)
 		if (f_ext_handle!=NULL)
 			dlclose(f_ext_handle);
 		(void *)f_init_pvm_func("close",f_handle);
+		f_ext_handle=NULL;
+		f_handle=NULL;
 	}
 	else
 	{
@@ -157,7 +198,7 @@ int main(int argc,char **argv)
 	}
 	p_hostname=(char *)s_hostname;
 
-	while ((s_cmd = getopt(argc, argv, "mCLsjx:c:1:2:3:t:f:d:vh")) != -1) 
+	while ((s_cmd = getopt(argc, argv, "mMCLsjx:c:1:2:3:t:f:d:p:vh")) != -1) 
 	{
 		switch (s_cmd) 
 		{
@@ -166,6 +207,12 @@ int main(int argc,char **argv)
 			  		usage(EXIT_FAILURE);
 		  		p_argv[s_cont++]="-c";
 		  		p_argv[s_cont++]=p_request_func=optarg;
+		  	break;
+			case 'M':
+				s_internal_multipass=1;
+		  	break;
+			case 'p':
+				s_divxmultipass=((atoi(optarg)<0)||(atoi(optarg)>3))?0:atoi(optarg);
 		  	break;
 			case 'd':
 				verbose=((atoi(optarg)<0)||(atoi(optarg)>2))?0:atoi(optarg);
@@ -285,27 +332,15 @@ int main(int argc,char **argv)
 		break;
 		case SLAVE_MODE:
 		case SLAVE_MERGE_MODE:
-			if(!strcasecmp(p_request_func,"mpeg2enc"))
-			{
-				if (f_init_func("open","mpeg2enc"))		/*init the pvm and mpeg2enc interface*/
-					exit(1);
-				f_pvm_skeduler(f_export_func);
-			}
-			else if(!strcasecmp(p_request_func,"mp2enc"))
-			{
-				if (f_init_func("open","mp2enc"))		/*init the pvm and mp2enc interface*/
-					exit(1);
-				f_pvm_skeduler(f_export_func);
-			}
-			else if(!strcasecmp(p_request_func,"mpeg"))
-			{
-				if (f_init_func("open","mpeg"))		/*init the pvm and mpeg interface*/
-					exit(1);
-				f_pvm_skeduler(f_export_func);
-			}
-			else if((!strcasecmp(p_request_func,"mpeg2enc-mp2enc"))||(!strcasecmp(p_request_func,"mpeg-mpeg")))
+			if((!strcasecmp(p_request_func,"mpeg2enc-mp2enc"))||(!strcasecmp(p_request_func,"mpeg-mpeg"))||(!strcasecmp(p_request_func,"avi-avi")))
 			{
 				if (f_init_func("open",NULL))		/*init the pvm interface*/
+					exit(1);
+				f_pvm_skeduler(f_export_func);
+			}
+			else
+			{
+				if (f_init_func("open",p_request_func))		
 					exit(1);
 				f_pvm_skeduler(f_export_func);
 			}

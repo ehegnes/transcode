@@ -58,7 +58,7 @@ pvm_config_env *f_pvm_parser(char *p_hostfile,char *p_option)
 	int s_tmp;
 	static pvm_config_env s_pvm_conf;
 	pvm_config_hosts	*p_pvm_conf_host=NULL,*p_tmp;
-	pvm_config_filelist	*p_pvm_conf_fileadd=NULL,*p_pvm_conf_filerem=NULL;
+	pvm_config_filelist	*p_pvm_conf_fileadd=NULL,*p_pvm_conf_filerem=NULL,*p_pvm_conf_file_loglist=NULL;
 	static char *p_localhost=".";	/*localhost*/
 	int s_check_func=0;
 	int s_list_type=0;
@@ -89,6 +89,8 @@ pvm_config_env *f_pvm_parser(char *p_hostfile,char *p_option)
 							s_pvm_conf.s_max_proc=atoi(p_key_value->value);
 						else if(!strcasecmp(p_key_value->key,"NumElabFrameForTask"))
 							s_pvm_conf.s_num_frame_task=atoi(p_key_value->value);
+						else if(!strcasecmp(p_key_value->key,"InternalMultipass"))
+							s_pvm_conf.s_internal_multipass=(atoi(p_key_value->value)==1)?1:0;
 						else
 						{
 							fprintf(stderr,"(%s) invalid section %s parameter %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
@@ -234,6 +236,30 @@ pvm_config_env *f_pvm_parser(char *p_hostfile,char *p_option)
 							fprintf(stderr,"(%s) invalid section %s parameter %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
 							return(f_pvm_parser(NULL,"close"));
 						}
+					}
+				}
+				else if ((!strcasecmp(p_section->name,"LogAudioList"))||(!strcasecmp(p_section->name,"LogVideoList")))
+				{
+					if (!strcasecmp(p_section->name,"LogVideoList"))
+						s_list_type=TC_VIDEO;
+					else
+						s_list_type=TC_AUDIO;
+					for (p_key_value=p_section->keyvalue;p_key_value!=NULL;p_key_value=p_key_value->next)
+					{
+						if (verbose & TC_DEBUG)	//debug
+							fprintf(stderr,"(%s) Section %s key %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
+						if (p_pvm_conf_file_loglist==NULL)
+						{
+							p_pvm_conf_file_loglist=(pvm_config_filelist *)calloc(sizeof(pvm_config_filelist),1);
+							s_pvm_conf.p_add_loglist=p_pvm_conf_file_loglist;
+						}
+						else
+						{
+							p_pvm_conf_file_loglist->p_next=(pvm_config_filelist *)calloc(sizeof(pvm_config_filelist),1);
+							p_pvm_conf_file_loglist=p_pvm_conf_file_loglist->p_next;
+						}
+						p_pvm_conf_file_loglist->p_filename=f_skip_space(p_key_value->value,NULL);
+						p_pvm_conf_file_loglist->s_type=s_list_type;
 					}
 				}
 				else if ((!strcasecmp(p_section->name,"AddVideoList"))||(!strcasecmp(p_section->name,"AddAudioList")))

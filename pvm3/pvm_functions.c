@@ -152,7 +152,8 @@ int f_pvm_nrecv_check(int *p_buff_size,char *p_buffer,int s_init_seq,int *s_rc)
 		pvm_upkint(&s_rc_int,1,1);		/*decode the function rc */
 		*s_rc=s_rc_int;			/*rc*/
 		pvm_upkint(&s_bs,1,1);	/*decode the size of the next message*/
-		pvm_upkbyte(p_buffer,s_bs,1);	/*decode the received buffer*/
+		if (s_bs!=0)
+			pvm_upkbyte(p_buffer,s_bs,1);	/*decode the received buffer*/
 		*p_buff_size=s_bs;
 		s_seq_rec++;				/*this is the response of my request*/
 		return(s_tmp);			/*return the seq number of the recv message*/
@@ -188,7 +189,8 @@ int f_pvm_recv_check(int *p_buff_size,char *p_buffer,int s_init_seq,int *s_rc)
 	pvm_upkint(&s_rc_int,1,1);		/*decode the function rc */
 	*s_rc=s_rc_int;			/*rc*/
 	pvm_upkint(&s_bs,1,1);	/*decode the size of the next message*/
-	pvm_upkbyte(p_buffer,s_bs,1);	/*decode the received buffer*/
+	if (s_bs!=0)
+		pvm_upkbyte(p_buffer,s_bs,1);	/*decode the received buffer*/
 	if (s_seq_rec==INT_MAX)
 		s_seq_rec=0;
 	else
@@ -218,6 +220,7 @@ void f_pvm_skeduler(pvm_res_func_t *(*f_my_elab_func)(int,char *,int,int))
 	static char *p_buffer=NULL;
 	pvm_res_func_t *p_result=NULL;
 	char s_hostname[MAX_BUF];
+	static int s_seq_preinit=-1;
 
 	s_father_tid=pvm_parent();
 	s_my_tid=pvm_mytid();
@@ -271,9 +274,18 @@ void f_pvm_skeduler(pvm_res_func_t *(*f_my_elab_func)(int,char *,int,int))
 				s_msg_type=PVM_MSG_WRKN;
 				s_rc=0;
 			}
+			else if ((s_msg_type==PVM_MSG_WORK)&&(s_option==PVM_EXP_OPT_PREINIT))		/*check the option of msg*/
+			{
+				memcpy((char *)&s_seq_preinit,p_buffer,s_size);
+				s_msg_type=PVM_MSG_WRKN;
+				s_rc=0;
+			}
 			else
 			{
-				p_result=(*f_my_elab_func)(s_option,p_buffer,s_size,s_rec_seq);
+				if ((s_seq_preinit!=-1)&&((s_option==PVM_EXP_OPT_OPEN)||(s_option==PVM_EXP_OPT_INIT)))
+					p_result=(*f_my_elab_func)(s_option,p_buffer,s_size,s_seq_preinit);
+				else
+					p_result=(*f_my_elab_func)(s_option,p_buffer,s_size,s_rec_seq);
 				s_rc=p_result->s_rc;
 				if (p_result->s_msg_type != s_msg_type)
 					s_msg_type=p_result->s_msg_type;	/*the type of msg can be change by the f_my_elab_func routine*/
@@ -349,17 +361,18 @@ void f_pvm_skeduler(pvm_res_func_t *(*f_my_elab_func)(int,char *,int,int))
 				case PVM_MSG_ENDTASK_VIDEO:
 				case PVM_MSG_ENDTASK_AUDIO:
 					pvm_initsend(PvmDataDefault);		/*initialize the send*/
-					s_cont=4;
+					s_cont=0;
 					pvm_pkint(&s_rec_seq,1,1);		/*send packet sequence*/
 					pvm_pkint(&(p_result->s_rc),1,1);		/*send the function rc*/
 					pvm_pkint(&s_cont,1,1);			/*data packet*/
-					pvm_pkbyte(p_result->p_result,p_result->s_ret_size,1);		/*not really used*/
+//					pvm_pkbyte(p_result->p_result,p_result->s_ret_size,1);		/*not really used*/
 					if (s_msg_type==PVM_MSG_ENDTASK_VIDEO)
 						pvm_send(s_father_tid,PVM_MSG_ENDTASK_VIDEO);	/*send the packet*/
 					else
 						pvm_send(s_father_tid,PVM_MSG_ENDTASK_AUDIO);	/*send the packet*/
-				/*don't close the case need*/
+				break;
 				case PVM_MSG_MERG_SEND:
+				case PVM_MSG_ADD_REM:
 					if (s_join==-1)
 					{
 						fprintf(stderr,"(%s) Merger not yet started\n",__FILE__);

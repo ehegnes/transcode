@@ -1,6 +1,38 @@
 --------------------------------------------
 transcode-0.6.11
 
+2003-09-25 Malanchini Marzio <marzio_malanchini at vodafone.it>
+
+  * acinclude.m4 aclocal.m4 docs/export_pvm.txt
+  docs/man/tcpvmexportd.1 export/export_ffmpeg.c
+  export/export_pvm.c export/Makefile.am pvm3/export_pvm_slave.c
+  pvm3/export_pvm_slave.h pvm3/external_codec.c
+  pvm3/external_codec.h pvm3/Makefile.am pvm3/pvm_functions.c
+  pvm3/pvm_functions.h pvm3/pvm_parser.c pvm3/pvm_parser.h
+  pvm3/pvm_version.h pvm3/tcpvmexportd.c pvm3/vob_pack_unpack.c
+  pvm3/vob_pack_unpack.h src/Makefile.am src/tc_func_excl.h
+  src/tc_functions.c src/tc_functions.h src/transcode.c
+  src/transcode.h:
+
+  - added support for ffmpeg,divx4,divx5,af6,xvid,xvid2 encode.
+  - added multipass and internal multipass support.
+  - enable pvm3 by default.
+  - bugfix.
+        
+  All external modules that used aud_aux.c are not reentrant (if
+  you try to do init-open-encode-close-stop for the second time
+  the "export_module" don't work correctly (core)) so i need to
+  reload the module (dlclose and dlopen).
+        
+  I need to move some function from transcode.c and transcode.h in
+  three new file (tc_functions.{ch} and tc_func_excl.h) because my
+  frontend (tcpvmexportd) needs to resolve at runtime these
+  functions: tc_error, tc_info, tc_warn
+        
+  The patch file fix a little bug in export_ffmpeg (MOD_close and
+  MOD_stop don't return 0 if all work).
+ 
+
 2003-09-17 Tilmann Bitterberg <transcode at tibit.org>
   
   * tools/{aud_scan.[ch] avimerge.c avisplit.c Makefile.*}:

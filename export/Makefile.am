@@ -203,7 +203,7 @@ export_mpeg_la_SOURCES = export_mpeg.c vid_aux.c
 export_mpeg_la_LDFLAGS =  -module -avoid-version 
 export_mpeg_la_LIBADD = -L../bbmpeg -lbbmpeg -L../ffmpeg/libavcodec/ -ltcavcodec -L../libvo -lvout -lm
 
-export_pvm_la_SOURCES = export_pvm.c ../pvm3/pvm_interface.c ../pvm3/pvm_parser.c
+export_pvm_la_SOURCES = export_pvm.c ../pvm3/pvm_interface.c ../pvm3/pvm_parser.c ../pvm3/external_codec.c ../pvm3/vob_pack_unpack.c
 export_pvm_la_LDFLAGS =  -module -avoid-version -L../libioaux -ltcioaux
 
 export_mjpeg_la_SOURCES = export_mjpeg.c vid_aux.c aud_aux.c 

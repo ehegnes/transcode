@@ -833,12 +833,14 @@ MOD_close
   if (vob->avifile_out!=NULL) {
     AVI_close(vob->avifile_out);
     vob->avifile_out=NULL;
+    return 0;
   }
   
   if (is_mpeg1video) {
     if (mpeg1fd) {
       fclose (mpeg1fd);
       mpeg1fd = NULL;
+      return 0;
     }
   }
 

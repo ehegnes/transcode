@@ -27,6 +27,75 @@
 
 #define MPEG2ENC_MP2ENC_PROG	"mplex"
 #define MPEG_MPEG_PROG		"tcmplex"
+#define AVI_AVI_PROG		"avimerge"
+
+
+static char *p_supported_modules[] = {
+				"null",
+				"af6", 
+				"mpeg2enc", 
+				"mp2enc", 
+				"mpeg", 
+				"divx5", 
+				"divx4", 
+				"ffmpeg",
+				"xvid",
+				"xvid2",
+//				"xvid3",
+//				"xvid4",
+				 NULL
+			};
+
+void f_help_codec (char *p_module)
+{
+	int s_cont;
+
+	fprintf(stderr, "[%s]       Supported Modules\n",p_module);
+	fprintf(stderr, "[%s]     --------------------\n",p_module);
+	for(s_cont=0;p_supported_modules[s_cont]!=NULL;s_cont++)
+	{
+		if (s_cont%2)
+			fprintf(stderr, "\t%s\n",p_supported_modules[s_cont]);
+		else
+			fprintf(stderr, "[%s]     %s",p_module,p_supported_modules[s_cont]);
+	}
+	if ((s_cont-1)%2)
+		fprintf(stderr, "[%s]     --------------------\n",p_module);
+	else
+		fprintf(stderr, "\n[%s]     --------------------\n",p_module);
+}
+
+char *f_supported_system(pvm_config_codec *p_v_codec,pvm_config_codec *p_a_codec)
+{
+	static char *p_buffer="mpeg1audio";
+
+	if ((!strcasecmp(p_v_codec->p_codec, "mpeg2enc"))&&(!strcasecmp(p_a_codec->p_codec, "mp2enc")))
+		return((char *)"mpeg2enc-mp2enc");
+	else if ((!strcasecmp(p_v_codec->p_codec, "mpeg"))&&(!strcasecmp(p_a_codec->p_codec, "mpeg")))
+		return((char *)"mpeg-mpeg");
+	else if ((!strcasecmp(p_v_codec->p_codec, "ffmpeg"))&&(!strcasecmp(p_a_codec->p_codec, "ffmpeg"))&&((!strcasecmp(p_v_codec->p_par1, "mpeg1video"))))
+	{
+		p_a_codec->p_par1=p_buffer;	/*this isn't defined but useful to known the type of the output stram*/	
+		return((char *)"mpeg-mpeg");
+	}
+	else
+		return((char *)"avi-avi");
+	return(NULL);	
+}
+
+int f_supported_export_module(char *p_codec)
+{
+	int s_cont;
+
+	for(s_cont=0;p_supported_modules[s_cont]!=NULL;s_cont++)
+	{
+		if (!strcasecmp(p_codec,p_supported_modules[s_cont]))
+		{
+			return(1);
+		}
+	}
+	return(0);
+}
 
 int f_multiplexer(char *p_codec,char *p_merge_cmd,char *p_video_filename,char *p_audio_filename,char *p_dest_file,int s_verbose)
 {
@@ -35,7 +104,10 @@ int f_multiplexer(char *p_codec,char *p_merge_cmd,char *p_video_filename,char *p
 	if(!strcasecmp(p_codec,"mpeg2enc-mp2enc"))
 	{
 		memset((char *)&s_buffer,'\0',2*MAX_BUF);
-		snprintf((char *)&s_buffer,2*MAX_BUF,"%s %s -o %s %s %s",MPEG2ENC_MP2ENC_PROG,p_merge_cmd,p_dest_file,p_video_filename,p_audio_filename);
+		if (p_merge_cmd!=NULL)
+			snprintf((char *)&s_buffer,2*MAX_BUF,"%s %s -o %s %s %s",MPEG2ENC_MP2ENC_PROG,p_merge_cmd,p_dest_file,p_video_filename,p_audio_filename);
+		else
+			snprintf((char *)&s_buffer,2*MAX_BUF,"%s -o %s %s %s",MPEG2ENC_MP2ENC_PROG,p_dest_file,p_video_filename,p_audio_filename);
 		if(s_verbose & TC_DEBUG)	
 			fprintf(stderr,"(%s) multiplex cmd: %s\n",__FILE__,(char *)&s_buffer);
 		(int)system((char *)&s_buffer);
@@ -44,7 +116,22 @@ int f_multiplexer(char *p_codec,char *p_merge_cmd,char *p_video_filename,char *p
 	else if(!strcasecmp(p_codec,"mpeg-mpeg"))
 	{
 		memset((char *)&s_buffer,'\0',2*MAX_BUF);
-		snprintf((char *)&s_buffer,2*MAX_BUF,"%s %s -o %s -i %s -p %s",MPEG_MPEG_PROG,p_merge_cmd,p_dest_file,p_video_filename,p_audio_filename);
+		if (p_merge_cmd!=NULL)
+			snprintf((char *)&s_buffer,2*MAX_BUF,"%s %s -o %s -i %s -p %s",MPEG_MPEG_PROG,p_merge_cmd,p_dest_file,p_video_filename,p_audio_filename);
+		else
+			snprintf((char *)&s_buffer,2*MAX_BUF,"%s -o %s -i %s -p %s",MPEG_MPEG_PROG,p_dest_file,p_video_filename,p_audio_filename);
+		if(s_verbose & TC_DEBUG)	
+			fprintf(stderr,"(%s) multiplex cmd: %s\n",__FILE__,(char *)&s_buffer);
+		(int)system((char *)&s_buffer);
+		return(0);
+	}
+	else if(!strcasecmp(p_codec,"avi-avi"))
+	{
+		memset((char *)&s_buffer,'\0',2*MAX_BUF);
+		if (p_merge_cmd!=NULL)
+			snprintf((char *)&s_buffer,2*MAX_BUF,"%s %s -o %s -i %s -p %s",AVI_AVI_PROG,p_merge_cmd,p_dest_file,p_video_filename,p_audio_filename);
+		else
+			snprintf((char *)&s_buffer,2*MAX_BUF,"%s -o %s -i %s -p %s",AVI_AVI_PROG,p_dest_file,p_video_filename,p_audio_filename);
 		if(s_verbose & TC_DEBUG)	
 			fprintf(stderr,"(%s) multiplex cmd: %s\n",__FILE__,(char *)&s_buffer);
 		(int)system((char *)&s_buffer);
@@ -57,7 +144,7 @@ int f_multiplexer(char *p_codec,char *p_merge_cmd,char *p_video_filename,char *p
 char *f_external_suffix(char *p_codec,char *p_param)
 {
 
-	static char *p_suffix[]={".m1v\0",".m2v\0",".mpa\0",".mpeg\0",NULL};
+	static char *p_suffix[]={".m1v\0",".m2v\0",".mpa\0",".mpeg\0","\0",NULL};
 	char s_var;
 	if (p_param!=NULL)
 	{
@@ -68,6 +155,14 @@ char *f_external_suffix(char *p_codec,char *p_param)
 		else if((!strcasecmp(p_codec,"mpeg2enc-mp2enc"))||(!strcasecmp(p_codec,"mpeg-mpeg")))
 		{
 			return(p_suffix[3]);
+		}
+		else if((!strcasecmp(p_codec,"ffmpeg"))&&((!strcasecmp(p_param,"mpeg1video"))))
+		{
+			return(p_suffix[0]);
+		}
+		else if((!strcasecmp(p_codec,"ffmpeg"))&&((!strcasecmp(p_param,"mpeg1audio"))))
+		{
+			return(p_suffix[4]);
 		}
 		else if(!strcasecmp(p_codec,"mpeg2enc"))
 		{
@@ -109,7 +204,8 @@ char *f_external_suffix(char *p_codec,char *p_param)
 			return(p_suffix[3]);
 		}
 		else
-			return(NULL);
+			return(p_suffix[4]);
 	}
-	return(NULL);
+	return(p_suffix[4]);
 }
+

@@ -54,6 +54,7 @@ typedef unsigned int uint32_t;
 #endif
 
 #include "tc_defaults.h"
+#include "tc_functions.h"
 
 /* ----------------------------
  *
@@ -480,9 +481,11 @@ typedef struct subtitle_header_s {
 void tc_progress(char *string);
 void tc_import_stop_nolock(void);
 void tc_export_stop_nolock(void);
+/* these function are in tc_functions.{ch}
 void tc_error(char *fmt, ...);
 void tc_info(char *fmt, ...);
 void tc_warn(char *fmt, ...);
+*/
 vob_t *tc_get_vob(void); 
 long tc_get_frames_encoded(void);
 long tc_get_frames_dropped(void);
