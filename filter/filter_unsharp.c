@@ -20,7 +20,7 @@
 #define MOD_NAME      "filter_unsharp.so"
 #define MOD_CAP       "unsharp mask & gaussian blur"
 #define MOD_AUTHOR    "Rémi Guyomarch"
-#define MOD_VERSION   "v1.0.0 (2003-06-05)"
+#define MOD_VERSION   "v1.0.1 (2003-10-27)"
 
 
 #include <stdio.h>
@@ -208,7 +208,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYO", "1");
 
-      optstr_param (options, "luma", "Luma and chroma (un)sharpness amount", "%f", "0.0", "-2.0", "2.0" );
+      optstr_param (options, "amount", "Luma and chroma (un)sharpness amount", "%f", "0.0", "-2.0", "2.0" );
       optstr_param (options, "matrix", "Luma and chroma search matrix size", "%dx%d", "0x0",
 	      "3", "63", "3", "63");
 
@@ -270,7 +270,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	optstr_get (options, "luma",           "%lf",   &mfd->lumaParam.amount);
 	optstr_get (options, "luma_matrix",    "%dx%d", &mfd->lumaParam.msizeX, &mfd->lumaParam.msizeY);
 	optstr_get (options, "chroma",         "%lf",   &mfd->chromaParam.amount);
-	optstr_get (options, "chroma_matrix",  "%dx%d", &mfd->chromaParam.msizeX, &mfd->chromaParam.msizeY);
 	optstr_get (options, "chroma_matrix",  "%dx%d", &mfd->chromaParam.msizeX, &mfd->chromaParam.msizeY);
 	optstr_get (options, "pre",            "%d",    &mfd->pre);
 
