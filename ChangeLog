@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-03-17 Brian de Alwis <bsd at cs.ubc.ca>
+
+  * import/probe_vnc.c:
+  Full-featured probing support for vnc files. No more guessing
+  where width and height might be.
+
 2004-03-13 James MacLean <macleajb at EDnet.NS.CA>
 
   * src/transcode.c:
