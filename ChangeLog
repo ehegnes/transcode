@@ -3,6 +3,9 @@ transcode-0.6.4.HEAD
 
 - changed ALTIVEC flags in libavcodec to '-maltivec -mabi=altivec'
 
+- Fixed mmx code in yuvdenoise/deinterlacer
+   -- Christoph Lampert <chl at math.uni-bonn.de>
+
 --------------------------------------------
 transcode-0.6.4.20030325
 
