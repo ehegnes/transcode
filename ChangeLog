@@ -29,6 +29,13 @@ transcode-0.6.8
   - New filter smartbob; deinterlacing for double-frame-rate output
   - New filter slowmo; poor man's slow-motion effect
   - New filter smartyuv; smartdeinter for YUV mode.
+  - Upgrade included libavcodec to 4669
+
+2003-06-25 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * export_ffmpeg.c ffmpeg_cfg.c ffmpeg_cfg.h ffmpeg/*:
+  Upgrade to ffmpeg-cvs-2003-06-24 4669 and modify export module to
+  understand all the new parameters.
 
 2003-06-23 Tilmann Bitterberg <transcode at tibit.org>
   
