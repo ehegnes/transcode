@@ -32,7 +32,7 @@
 #include "avilib.h"
 
 #define MOD_NAME    "import_ffmpeg.so"
-#define MOD_VERSION "v0.1.3 (2003-03-12)"
+#define MOD_VERSION "v0.1.3 (2003-04-08)"
 #define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
                     "): MS MPEG4v1-3/MPEG4/MJPEG"
 #define MOD_PRE ffmpeg
