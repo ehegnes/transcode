@@ -28,8 +28,17 @@
 #include <unistd.h>
 #include <string.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 #include <linux/types.h>
+
+#ifdef HAVE_LINUX_VIDEODEV2_H
 #include <linux/videodev2.h>
+#else
+#include "videodev2.h"
+#endif
+
 #include <sys/soundcard.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -58,6 +67,8 @@
 				try various (native) capture formats before giving up
 	1.0.3	EMS	changed "videodev2.h" back to <linux/videodev2.h>,
 				it doesn't work with linux 2.6.0, #defines are wrong.
+	        tibit   figure out if the system does have videodev2.h
+		        gcc-2.95 bugfix
 
 	TODO
 
@@ -445,6 +456,8 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 	struct v4l2_buffer buffer;
 	struct v4l2_capability caps;
 	struct v4l2_streamparm streamparm;
+	v4l2_std_id std;
+
 
 
 #if defined(ARCH_X86) && defined(HAVE_ASM_NASM)
@@ -632,8 +645,6 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 		fprintf(stderr, module "no usable pixel format supported by card\n");
 		return(1);
 	}
-
-	v4l2_std_id std;
 
 	if(ioctl(v4l2_video_fd, VIDIOC_G_STD, &std) < 0)
 	{
