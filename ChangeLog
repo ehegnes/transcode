@@ -1,6 +1,13 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-11 Tilmann Bitterberg <transcode at tibit.org>
+
+  * acinclude.m4 aclocal.m4 config.h.in configure export/af6_aux.cpp
+  export/export_af6.cpp import/af6_decore.cpp:
+  Enable support for new avifile versions. Pointed out by Rainer
+  Lay.
+
 2003-08-10 Christopher Cramer <crayc at pyro.net>
 
   * filter/filter_fps.c:

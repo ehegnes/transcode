@@ -45,6 +45,9 @@
 /* Have Avifile support */
 #undef HAVE_AVIFILE
 
+/* Define this if your avifile suffixes a version number */
+#undef HAVE_AVIFILE_INCLUDES
+
 /* Define if your CPU understands CMOV */
 #undef HAVE_CMOV
 

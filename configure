@@ -14151,11 +14151,26 @@ _ACEOF
     AVIFILE_LIBS=`$AVIFILE_CONFIG $avifileconf_args --libs`
 
 
-    case $AVIFILE_CFLAGS in
-      */avifile)
-      AVIFILE_CFLAGS=`echo $AVIFILE_CFLAGS | sed 's,/avifile$,,'` ;;
-      *) ;;
-      esac
+    have_avifile_includes=0
+    avifile_cflags_safe="$AVIFILE_CFLAGS"
+
+    case "$AVIFILE_CFLAGS" in
+      */avifile*)
+      AVIFILE_CFLAGS=`echo $AVIFILE_CFLAGS | sed 's,/avifile\(-0-9\.0-9\)*$,,'`
+      ;;
+    esac
+
+    case "$avifile_cflags_safe" in
+      */avifile-0.7*)
+      have_avifile_includes=7
+      ;;
+    esac
+
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_AVIFILE_INCLUDES $have_avifile_includes
+_ACEOF
+
     fi
   fi
 

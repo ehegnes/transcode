@@ -31,11 +31,19 @@
 #include <string.h>
 
 
-#include <avifile/videoencoder.h>
-#include <avifile/audioencoder.h>
-#include <avifile/avm_fourcc.h>
-#include <avifile/creators.h>
-#include <avifile/image.h>
+#if HAVE_AVIFILE_INCLUDES == 7
+#  include <avifile-0.7/videoencoder.h>
+#  include <avifile-0.7/audioencoder.h>
+#  include <avifile-0.7/avm_fourcc.h>
+#  include <avifile-0.7/creators.h>
+#  include <avifile-0.7/image.h>
+#elif HAVE_AVIFILE_INCLUDES == 0
+#  include <avifile/videoencoder.h>
+#  include <avifile/audioencoder.h>
+#  include <avifile/avm_fourcc.h>
+#  include <avifile/creators.h>
+#  include <avifile/image.h>
+#endif
 
 
 using namespace Creators;

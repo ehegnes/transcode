@@ -164,11 +164,22 @@ AC_ARG_WITH(avifile-exec-prefix,AC_HELP_STRING([--with-avifile-exec-prefix=PFX],
     dnl check if avifile-config --cflags ends with .*/avifile
     dnl and strip it if so.
 
-    case $AVIFILE_CFLAGS in
-      */avifile) 
-      AVIFILE_CFLAGS=`echo $AVIFILE_CFLAGS | sed 's,/avifile$,,'` ;;
-      *) ;;
-      esac
+    have_avifile_includes=0
+    avifile_cflags_safe="$AVIFILE_CFLAGS"
+
+    case "$AVIFILE_CFLAGS" in
+      */avifile*) 
+      AVIFILE_CFLAGS=`echo $AVIFILE_CFLAGS | sed 's,/avifile\(-[0-9]\.[0-9]\)*$,,'`
+      ;;
+    esac
+
+    case "$avifile_cflags_safe" in
+      */avifile-0.7*)
+      have_avifile_includes=7
+      ;;
+    esac
+
+    AC_DEFINE_UNQUOTED(HAVE_AVIFILE_INCLUDES, $have_avifile_includes, [Define this if your avifile suffixes a version number])
     fi
   fi	
 
