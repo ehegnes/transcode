@@ -35,13 +35,13 @@
 #  include <avifile-0.7/videoencoder.h>
 #  include <avifile-0.7/audioencoder.h>
 #  include <avifile-0.7/avm_fourcc.h>
-#  include <avifile-0.7/creators.h>
+#  include <avifile-0.7/avm_creators.h>
 #  include <avifile-0.7/image.h>
 #elif HAVE_AVIFILE_INCLUDES == 0
 #  include <avifile/videoencoder.h>
 #  include <avifile/audioencoder.h>
 #  include <avifile/avm_fourcc.h>
-#  include <avifile/creators.h>
+#  include <avifile/avm_creators.h>
 #  include <avifile/image.h>
 #endif
 
@@ -242,8 +242,7 @@ extern "C" {
 	//-- encode Image --
 	//------------------      
 	CImage imtarget((BitmapInfo*)&bh, (unsigned char *)param->buffer, false);
-	ve->EncodeFrame(&imtarget, buffer, &is_key_frame, 
-			(size_t *) &length, &lpckid);
+	ve->EncodeFrame(&imtarget, buffer, &is_key_frame, (uint_t *) &length, &lpckid);
 	
 	if(AVI_write_frame(avifile, (char *) buffer, length, is_key_frame)<0) {
 	  AVI_print_error("avi video write error");
