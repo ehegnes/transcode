@@ -1,5 +1,61 @@
 --------------------------------------------
-transcode-0.6.9
+transcode-0.6.9 Tue Aug  5 09:22:09 CEST 2003
+
+  * Terse/less technical ChangeLog:
+  - Add subtitle support to -x dvd
+  - Big endian fixes for wav audio handling
+  - Big xvid update, there are now 3 modules. Read the ChangeLog for this
+  - Bugfix for -z; thread issues caused image distortion
+  - Bugfix for libac3, can be compiled with -msse now
+  - Bugfix in -J text; transparency was broken.
+  - Bugfix in -y ogg; quoting related
+  - Bugfix in -x ogg; probing and decoding broken
+  - Bugfix: avimerge, -split and -sync were broken for PCM audio
+  - Docu: (Developer) internal architecture
+  - Docu: avisplit(1) explains what do about bad AVI sync.
+  - Docu: how to do framerate conversions with transcode
+  - Docu: transcode(1) explains the different meanings of -F
+  - Enable directory mode for pass-through AVI files with -y raw
+  - Filters can now take arguments at any length
+  - Fix sefault in tccat when called with no -i argument
+  - Improved -J 29to23; more accurate interpolation
+  - Improved -J 32detect; now searches chroma planes too
+  - Improved filter smartyuv; much faster now
+  - Improved filter cut; Make the filter aware of framerate changes
+  - Improved option --keep_asr; takes probed import asr into account
+  - Improved spec file
+  - Internal; New frame attribute TC_FRAME_IS_OUT_OF_RANGE
+  - Internal; config parser more generic
+  - Internal; really clone a frame
+  - MP2/MP3 synchword detection improved, better broken streams handling
+  - Native directory mode for -x auto,mp3
+  - Nearly bugfix when doing AC3-passthrough with multiple PSUs
+  - New command line option --export_fps N,frc
+  - New configure switch --with-default-xvid; creates a export_xvid symlink
+  - New contrib/mpipe.c; a simple tool for input data multiplexing
+  - New filter detectsilence; prints silence position in milliseconds
+  - New filter fps; convert framerate X to Y; similar to modfps
+  - New filter modfps; convert framerate X to framerate Y
+  - New filter msharpen; spatial sharpening
+  - New tool tcmp3cut which can cut mp3 streams at milliseconds positions
+  - No more Latin-1 characters -- Sorry Thomas Ö.
+  - Option -b now takes a 4th argument; lame encoding mode
+  - Re-enable detection of DIV3 keyframes with -x divx
+  - The linear blend deinterlace now also deinterlaces chroma
+  - Transcode now writes a correct AVI PCM header for windows players
+  - Variable framerate mpegs support
+  - Very much improved MacOSX support
+  - libtheora configure check update
+  - ./configure's lame detection improved
+  - print the correct PCM bitrate
+  - Nicer/correct printout for -r
+  - xml import moudle can read all af6 supported codecs
+
+
+2003-08-05 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/{ogmstreams.h probe_ogg.h}:
+  Fix ogm probing an a few mem leaks.
 
 2003-08-04 Benjamin Riefenstahl <Benjamin.Riefenstahl at epost.de>
 
@@ -460,7 +516,7 @@ transcode-0.6.9
 2003-07-18 Max Alekseyev <relf at os2.ru>
 
   * filter/filter_29to23.c:
-  Do more acurate linear interpolation, YUV support and cleanup
+  Do more accurate linear interpolation, YUV support and cleanup
 
 2003-07-17 Tilmann Bitterberg <transcode at tibit.org>
   

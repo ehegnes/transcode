@@ -320,6 +320,9 @@ void probe_ogg(info_t *ipipe)
 			"(bad header?)\n", __FILE__, nvtracks + natracks + 1);
 		    break;
 	    } /* switch type */
+	    free(inf);
+	    free(com);
+	    ogg_stream_clear(&sstate);
 	} /* beginning of page */
     } /* while (1) */
 ogg_out:
