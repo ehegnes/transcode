@@ -294,7 +294,7 @@ void usage(int status)
   printf("\n");
 
   //range control
-  printf(" -c f1-f2[,f3-f4]   encode only frames f1-f2[,f3-f4] [all frames]\n");
+  printf(" -c f1-f2[,f3-f4]   encode only f1-f2[,f3-f4] (frames or HH:MM:SS) [all]\n");
   printf(" -t n,base          split output to base%s.avi with n frames [off]\n", "%03d");
   printf("--dir_mode base     process directory contents to base-%s.avi [off]\n", "%03d");
   printf("--frame_interval N  select only every Nth frame to be exported [1]\n");
