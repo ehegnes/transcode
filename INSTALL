@@ -56,31 +56,36 @@ then:
   make
   make install
 
-If your libraries/packages are not installed in standard places, use the
-respective *--with-$$$-includes=* and *--with-$$$-libs=* options, where
-*$$$* is the package name.
-
 ------------------------------------------------------------------------
 *Configure options for transcode*
-
-For the options described below, the default value is in parenthesis
-after the option.
 
 Configure will not test for a package unless support is enabled. For
 example, configure will not look for SDL unless the option
 '--enable-sdl' is used. If a package distributes pkg-config information,
 or if a package distributes it's own -config script (like libquicktime's
 lqt-config), configure will use information from pkg-config or the
-package's script to find the package's includes and libraries.
-Otherwise, configure will look for each package's includes in
-/usr/include and each package's libraries in /usr/lib. The options
-dealing with file locations, such as '--with-a52-libs' can optionally be
-used to tell configure to look in other locations for includes and
-libraries. If these options are used, configure will use the paths given
-with those options, and will not use paths from pkg-config or a
-package's -config script. If configure is unable to find support for a
-mandatory or optionally enabled package, configure will terminate with
-an error and display a message about the error.
+package's script to find the package's headers and libraries.  Otherwise,
+configure will look in the default prefix, /usr.  This means that by
+default configure will look for the headers in /usr/include and the
+libraries in /usr/lib.
+
+The options dealing with file locations can be used to tell configure
+to look in other locations for headers and libraries. The prefix to
+search can be changed with the --with-$$$-prefix options. Specific
+directories for libraries and headers can be given with --with-$$$-libs
+and --with-$$$-includes, respectively. If the header and library
+specific options are used, configure will use the paths given with
+those options, and will not use paths from pkg-config or a package's
+-config script. NOTE: the --with-$$$-prefix option does not override
+pkg-config or -config information. configure will use the prefix to
+search for a package's -config script.
+
+If configure is unable to find support for a mandatory or optionally
+enabled package, configure will exit with an error and display a message
+about the error.
+
+For the options described below, the default value is in parenthesis
+after the option.
 
 General options:
 
@@ -107,12 +112,14 @@ Mandatory packages:
 
   FFmpeg (libavcodec) >= 0.9.1pre1  http://ffmpeg.sourceforge.net/
     related options:
-      --with-ffmpeg-libs-includes=PFX ()
-          prefix where ffmpeg libs includes are installed
-      --with-ffmpeg-libs-libs=PFX ()
-          prefix where ffmpeg libs libraries files are installed
-      --enable-ffmpeg-libs-static (disabled)
-          link binaries and modules statically to ffmpeg-libs
+      --with-libavcodec-prefix=PFX (/usr)
+          prefix where libavcodec is installed
+      --with-libavcodec-includes=DIR (/usr/include)
+          directory where libavcodec headers are installed
+      --with-libavcodec-libs=DIR (/usr/lib)
+          prefix where libavcodec libraries files are installed
+      --enable-libavcodec-static (disabled)
+          link binaries and modules statically to libavcodec
         WARNING: creates huge binaries
         WARNING: only tested on linux x86
 
@@ -138,7 +145,7 @@ OS dependent packages:
   sunau
     related options:
       --enable-sunau (disabled)
-          if enabled, builds sunau import modules, which imports raw PCM
+          if enabled, builds sunau import module, which imports raw PCM
           audio from hardware on *BSD using the audio(4) API.
     affected modues: import_sunau.so
 
@@ -147,80 +154,78 @@ Optional packages:
   FreeType2  http://freetype.sourceforge.net/
     related options:
       --enable-freetype2 (enabled)
-          if enabled, add FreeType2 support, which is used to render
-          text
-      --with-ft-prefix=PFX ()
-          Prefix where FreeType is installed
-      --with-ft-exec-prefix=PFX ()
-          Exec prefix where FreeType is installed
-      --disable-freetypetest (enabled)
-          Do not try to compile and run a test FreeType program
+          build with FreeType2 support for rendering text
+      --with-freetype2-prefix=PFX (/usr)
+          prefix where FreeType is installed
+      --with-freetype2-includes=DIR (/usr/include)
+          directory where FreeType headers are installed
+      --with-freetype2-libs=DIR (/usr/lib)
+          directory where FreeType libraries are installed
     affected modules: filter_text.so, filter_subtitler.so
 
   liba52  http://liba52.sourceforge.net/
     related options:
       --enable-a52 (disabled)
-          if enabled, builds liba52 audio decoder module
-      --with-a52-prefix=PFX ()
-          prefix where local liba52 is installed
-      --with-a52-includes=PFX ()
-          prefix where local liba52 includes are installed
-      --with-a52-libs=PFX ()
-          prefix where local liba52 libs are installed
+          build with liba52 support for AC3/A52 audio decoding
+      --with-a52-prefix=PFX (/usr)
+          prefix where liba52 is installed
+      --with-a52-includes=DIR (/usr/include)
+          directory where liba52 headers are installed
+      --with-a52-libs=DIR (/usr/lib)
+          directory where liba52 libraries are installed
       --enable-a52-default-decoder (disabled)
           if enabled, and --enable-a52 is also enabled, uses liba52 as
-          default audio decoder, otherwise, libac3 is used as the
-          default audio decoder
+          default A52/AC3 decoder, otherwise, the older libac3 that comes
+          with transcode is used as the default A52/AC3 decoder
     affected modules: a52_decore.so
 
-  mjpegtools  http://mjpeg.sourceforge.net
+  mjpegtools  http://mjpeg.sourceforge.net/
     related options:
       --enable-mjpegtools (disabled)
-          if enabled, builds mjpegtools dependent plugins
-      --with-mjpegtools-prefix=PFX ()
-          prefix where local mjpegtools is installed
-      --with-mjpegtools-includes=PFX ()
-          prefix where local mjpegtools includes are installed
-      --with-mjpegtools-libs=PFX ()
-          prefix where local mjpegtools libs are installed
+          build with mjpegtools support for YUV4MPEG video streams
+      --with-mjpegtools-prefix=PFX (/usr)
+          prefix where mjpegtools is installed
+      --with-mjpegtools-includes=DIR (/usr/include)
+          directory where mjpegtools headers are installed
+      --with-mjpegtools-libs=DIR (/usr/lib)
+          directory where mjpegtools libraries are installed
     affected modules: export_yuv4mpeg.so, export_mpeg2enc.so,
       export_mp2enc.so
 
   SDL  http://www.libsdl.org/
     related options:
       --enable-sdl (disabled)
-          if enabled, adds support for graphical display via SDL
-      --with-sdl-prefix=PFX ()
-          Prefix where SDL is installed
-      --with-sdl-exec-prefix=PFX ()
-          Exec prefix where SDL is installed
-      --disable-sdltest (enabled)
-          Do not try to compile and run a test SDL program
+          build with SDL support for video display
+      --with-sdl-prefix=PFX (/usr)
+          prefix where SDL is installed
+      --with-sdl-includes=DIR (/usr/include)
+          directory where SDL headers are installed
+      --with-sdl-libs=DIR (/usr/lib)
+          directory where SDL libraries are installed
     affected modules: filter_preview.so
 
   libfame  http://fame.sourceforge.net/
     related options:
       --enable-libfame (disabled)
-          if enabled, build libfame dependent module
-      --with-libfame-prefix=PFX ()
-          Prefix where libfame is installed
-      --with-libfame-exec-prefix=PFX ()
-          Exec prefix where libfame is installed
-      --disable-libfametest (enabled)
-          Do not try to compile and run a test libfame program
+          builds with libfame support for mpeg video encoding
+      --with-libfame-prefix=PFX (/usr)
+          prefix where libfame is installed
+      --with-libfame-includes=DIR (/usr/include)
+          directory where libfame headers are installed
+      --with-libfame-libs=DIR (/usr/lib)
+          directory where libfame libraries are installed
     affected modules: export_fame.so
 
   lame  http://www.mp3dev.org/
     related options:
       --enable-lame (enabled)
-          if enabled, transcode will use libmp3lame for
-          encoding MPEG audio layer III
-      --with-lame-prefix=PFX ()
-          prefix where local lame is installed
-      --with-lame-includes=PFX ()
-          prefix where local lame includes are installed
-      --with-lame-libs=PFX ()
-          prefix where local lame libs are installed
+          build with libmp3lame support for mpeg audio encoding
+      --with-lame-prefix=PFX (/usr)
+          prefix where lame is installed
+      --with-lame-includes=DIR (/usr/include)
+          directory where lame headers are installed
+      --with-lame-libs=DIR (/usr/lib)
+          directory where lame libraries are installed
     affected modules: export_af6.so, export_dv.so, export_raw.so,
       export_divx4.so, export_divx4raw.so, export_divx5.so,
       export_divx5raw.so, export_debugppm.so, export_ppm.so,
@@ -232,176 +237,188 @@ Optional packages:
   avifile  http://avifile.sourceforge.net/
     related options:
       --enable-avifile (disabled)
-          build avifile dependent modules
-      --with-avifile-prefix=PFX ()
-          prefix where local avifile is installed
-      --with-avifile-includes=PFX ()
-          prefix where local avifile includes are installed
-      --with-avifile-libs=PFX ()
-          prefix where local avifile libs are installed
+          build with avifile support for accessing win32 binary codecs
+      --with-avifile-prefix=PFX (/usr)
+          prefix where avifile is installed
+      --with-avifile-includes=DIR (/usr/include)
+          directory where avifile headers are installed
+      --with-avifile-libs=DIR (/usr/lib)
+          directory where avifile libraries are installed
     affected modules: export_af6.so, af6_decore.so
 
   ogg  http://www.xiph.org/ogg/
     related options:
       --enable-ogg (disabled)
-          if enabled, adds support for importing OGG audio
-      --with-ogg-prefix=PFX ()
-          prefix where local ogg is installed
-      --with-ogg-includes=PFX ()
-          prefix where local ogg includes are installed
-      --with-ogg-libs=PFX ()
-          prefix where local ogg libs are installed
+          build with support for importing OGG audio
+      --with-ogg-prefix=PFX (/usr)
+          prefix where ogg is installed
+      --with-ogg-includes=DIR (/usr/include)
+          directory where ogg headers are installed
+      --with-ogg-libs=DIR (/usr/lib)
+          directory where ogg libraries are installed
     affect modules: none
 
   vorbis  http://www.xiph.org/ogg/vorbis/
     related options:
       --enable-vorbis (disabled)
-          if enabled, adds support for importing Vorbis audio
-      --with-vorbis-prefix=PFX ()
-          prefix where local vorbis is installed
-      --with-vorbis-includes=PFX ()
-          prefix where local vorbis includes are installed
-      --with-vorbis-libs=PFX ()
-          prefix where local vorbis libs are installed
+          build with support for importing Vorbis audio
+      --with-vorbis-prefix=PFX (/usr)
+          prefix where vorbis is installed
+      --with-vorbis-includes=DIR (/usr/include)
+          directory where vorbis headers are installed
+      --with-vorbis-libs=DIR (/usr/lib)
+          directory where vorbis libraries are installed
       affected modules: none
 
   theora  http://www.theora.org/
     related options:
       --enable-theora (disabled)
-          if enabled, adds support for importing theora audio
-      --with-theora-prefix=PFX ()
-          prefix where local theora is installed
-      --with-theora-includes=PFX ()
-          prefix where local theora includes are installed
-      --with-theora-libs=PFX ()
-          prefix where local theora libs are installed
-      affected modules:
+          build with support for importing theora audio
+      --with-theora-prefix=PFX (/usr)
+          prefix where theora is installed
+      --with-theora-includes=DIR (/usr/include)
+          directory where theora headers are installed
+      --with-theora-libs=DIR (/usr/lib)
+          directory where theora libraries are installed
+      affected modules: none
 
   libdvdread  http://www.dtek.chalmers.se/groups/dvd/
     related options:
       --enable-libdvdread (enabled)
-          if enabled, adds support for reading DVDs
-      --with-libdvdread-prefix=PFX ()
-          prefix where local dvdread is installed
-      --with-libdvdread-includes=PFX ()
-          prefix where local dvdread includes are installed
-      --with-libdvdread-libs=PFX ()
-          prefix where local dvdread lib is installed
+          build with libdvdread support for reading DVDs
+      --with-libdvdread-prefix=PFX (/usr)
+          prefix where libdvdread is installed
+      --with-libdvdread-includes=DIR (/usr/include)
+          directory where libdvdread headers are installed
+      --with-libdvdread-libs=DIR (/usr/lib)
+          directory where libdvdread libraries are installed
     affected modules: import_dvd.so
 
   libmpeg3  http://heroinewarrior.com/libmpeg3.php3
     related options:
       --enable-libmpeg3 (disabled)
-          if enabled, builds libmpeg3 dependent module
-      --with-libmpeg3-prefix=PFX ()
-          prefix where local libmpeg3 is installed
-      --with-libmpeg3-includes=PFX ()
-          prefix where local libmpeg3 includes are installed
-      --with-libmpeg3-libs=PFX ()
-          prefix where local libmpeg3 libs are installed
+          build with libmpeg3 support for accessing mpeg1/2/4 files
+      --with-libmpeg3-prefix=PFX (/usr)
+          prefix where libmpeg3 is installed
+      --with-libmpeg3-includes=DIR (/usr/include)
+          directory where libmpeg3 headers are installed
+      --with-libmpeg3-libs=DIR (/usr/lib)
+          directory where libmpeg3 libraries are installed
     affected modules: import_mpeg3.so
 
   liblve >= 040322  http://lvempeg.sourceforge.net/
     related options:
       --enable-liblve (disabled)
-          if enabled, build liblve dependent module
-      --with-liblve-builddir=PFX ()
-          path to lve builddir
+          build with support for LVE edit lists
+      --with-liblve-prefix=PFX (/usr)
+          prefix where liblve is installed
+      --with-liblve-includes=DIR (/usr/include)
+          directory where liblve headers are installed
+      --with-liblve-libs=DIR (/usr/lib)
+          directory where liblve libraries are installed
     affected modules: import_lve.so
 
   PVM3  http://www.netlib.org/pvm3/
     related options:
       --enable-pvm3 (disabled)
-          if enabled, build and use pvm3 code
-      --with-pvm3-lib=PFX ()
-          prefix where local pvm3 libraries are installed
-      --with-pvm3-include=PFX ()
-          prefix where local pvm3 includes are installed
+          build with pvm3 support for parallelizing transcode
+      --with-pvm3-prefix=PFX (/usr)
+          prefix where pvm3 is installed
+      --with-pvm3-includes=DIR (/usr/include)
+          directory where pvm3 headers are installed
+      --with-pvm3-libs=DIR (/usr/lib)
+          directory where pvm3 libraries are installed
     affected modules: export_pvm.so
 
   libdv  http://libdv.sourceforge.net/
     related options:
       --enable-libdv (disabled)
-          if enabled, build libdv dependent modules
-      --with-libdv-prefix=PFX ()
-          prefix where local libdv is installed
-      --with-libdv-includes=PFX ()
-          prefix where local libdv includes are installed
-      --with-libdv-libs=PFX ()
-          prefix where local libdv libs are installed
+          build with libdv support for DV encoding and decoding
+      --with-libdv-prefix=PFX (/usr)
+          prefix where libdv is installed
+      --with-libdv-includes=DIR (/usr/include)
+          directory where libdv headers are installed
+      --with-libdv-libs=DIR (/usr/lib)
+          directory where libdv libraries are installed
     affected modules: export_dvraw.so, export_dv.so, filter_preview.so
 
   libquicktime  http://libquicktime.sourceforge.net/
     related options:
       --enable-libquicktime (disabled)
-          if enabled, build libquicktime dependent modules
-      --with-libquicktime-prefix=PFX ()
-          prefix where local libquicktime is installed
-      --with-libquicktime-includes=PFX ()
-          prefix where local libquicktime includes are installed
-      --with-libquicktime-libs=PFX ()
-          prefix where local libquicktime libs are installed
+          build with libquicktime support for reading and writing MOV files
+      --with-libquicktime-prefix=PFX (/usr)
+          prefix where libquicktime is installed
+      --with-libquicktime-includes=DIR (/usr/include)
+          directory where libquicktime headers are installed
+      --with-libquicktime-libs=DIR (/usr/lib)
+          directory where libquicktime libraries are installed
     affected modules: export_mov.so, import_mov.so
 
   lzo  http://www.oberhumer.com/opensource/lzo/
     related options:
       --enable-lzo (disabled)
-          if enabled, build liblzo dependent modules
-      --with-lzo-includes=PFX ()
-          prefix where local lzo is installed
-      --with-lzo-includes=PFX ()
-          prefix where local lzo includes are installed
-      --with-lzo-libs=PFX ()
-          prefix where local lzo libs are installed
+          build with liblzo support for compressing raw AVIs
+      --with-lzo-prefix=PFX (/usr)
+          prefix where lzo is installed
+      --with-lzo-includes=DIR (/usr/include)
+          directory where lzo headers are installed
+      --with-lzo-libs=DIR (/usr/lib)
+          directory where lzo libraries are installed
     affected modules: export_lzo.so, import_lzo.so
 
   libxml2  http://xmlsoft.org/
     related options:
       --enable-libxml2 (disabled)
-          if enabled, add libxml2 support
-      --with-libxml2-includes=PFX ()
-          prefix where local libxml2 is installed
-      --with-libxml2-includes=PFX ()
-          prefix where local libxml2 includes are installed
-      --with-libxml2-libs=PFX ()
-          prefix where local libxml2 libs are installed
+          build with libxml2 support for accessing XML content
+      --with-libxml2-prefix=PFX (/usr)
+          directory where libxml2 is installed
+      --with-libxml2-includes=DIR (/usr/include)
+          directory where libxml2 headers are installed
+      --with-libxml2-libs=DIR (/usr/lib)
+          directory where libxml2 libraries are installed
     affected modules: import_xml.so
 
   gtk  http://www.gtk.org/
     related options:
       --enable-gtk (disabled)
-          if enabled, adds support for graphical display via gtk
+          build with gtk support for graphical display
+      --with-gtk-prefix=PFX (/usr)
+          directory where gtk is installed
+      --with-gtk-includes=DIR (/usr/include)
+          directory where gtk headers are installed
+      --with-gtk-libs=DIR (/usr/lib)
+          directory where gtk libraries are installed
     affected modules: filter_preview.so
 
   ImageMagick  http://www.imagemagick.com/
     related options:
       --enable-imagemagick (disabled)
-          if enabled, build ImageMagick dependent modules
-      --with-imagemagick-includes=PFX ()
-          prefix where local imagemagick is installed
-      --with-imagemagick-includes=PFX ()
-          prefix where local imagemagick includes are installed
-      --with-imagemagick-libs=PFX ()
-          prefix where local imagemagick libs are installed
+          build with ImageMagick support for accessing various image types
+      --with-imagemagick-prefix=PFX (/usr)
+          prefix where imagemagick is installed
+      --with-imagemagick-includes=DIR (/usr/include)
+          directory where imagemagick headers are installed
+      --with-imagemagick-libs=DIR (/usr/lib)
+          directory where imagemagick libraries are installed
     affected modules: export_im.so, import_im.so, import_imlist.so,
       filter_logo.so, filter_logoaway.so, filter_compare.so
 
   libjpeg  http://www.ijg.org/
     related options:
       --enable-libjpeg (enabled)
-          if enabled, build libjpeg dependent modules
+          build with libjpeg support for accessing JPEG files
+      --with-libjpeg-prefix=PFX (/usr)
+          prefix where libjpeg is installed
+      --with-libjpeg-includes=DIR (/usr/include)
+          directory where libjpeg headers are installed
+      --with-libjpeg-libs=DIR (/usr/lib)
+          directory where libjpeg libraries are installed
     affected modules: export_mjpeg.so, export_jpg.so
-
-  FFMpeg (executable)  http://ffmpeg.sourceforge.net/
-    related options:
-      --enable-ffbin (disabled)
-          if enabled, build FFmpeg binary module
-    affected modules: import_ffbin.so
 
   LoRS/IBP  http://loci.cs.utk.edu/
     related options:
       --enable-ibp (disabled)
-          if enabled, build ibp support
+          build with ibp support for accessing files on depots
       --with-libfdr=DIR ()
           base directory for libfdr
       --with-libibp=DIR ()

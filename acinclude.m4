@@ -341,176 +341,6 @@ fi
 ])
 
 
-dnl TC_PATH_LVE([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for liblve and set LVE_CFLAGS and LVE_LIBS
-dnl
-AC_DEFUN([TC_PATH_LVE],
-[
-AC_MSG_CHECKING([whether liblve support is requested])
-AC_ARG_ENABLE(liblve,
-  AC_HELP_STRING([--enable-liblve],
-    [build liblve dependent module (no)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-liblve) ;;
-  esac],
-  enable_liblve=no)
-AC_MSG_RESULT($enable_liblve)
-
-AC_ARG_WITH(liblve-builddir,
-  AC_HELP_STRING([--with-liblve-builddir=PFX],
-    [path to lve builddir (optional)]),
-  liblve_builddir="$withval", liblve_builddir="")
-
-LVE_EXTRA_LIBS="$FFMPEG_LIBS_LIBS $A52_LIBS"
-have_liblve=no
-
-if test x"$enable_liblve" = x"yes" ; then
-
-  AC_LANG_PUSH([C++])
-
-  if test x"$liblve_builddir" != x"" ; then
-    with_liblve_p="$liblve_builddir"
-    save_LDFLAGS="$LDFLAGS"
-    LDFLAGS="$LDFLAGS -L$with_liblve_p/src"
-    AC_CHECK_LIB(lve, lr_init,
-      [LVE_CFLAGS="-I$with_liblve_p/src"
-        LVE_LIBS="-L$with_liblve_p/src -llve -L$with_liblve_p/ffmpeg/libavcodec -lavcodec -L$with_liblve_p/mpeg2dec/libmpeg2/.libs -lmpeg2"
-        have_liblve=yes],
-      [],
-      [-L$with_liblve_p/ffmpeg/libavcodec -lavcodec -L$with_liblve_p/mpeg2dec/libmpeg2/.libs -lmpeg2])
-    LDFLAGS="$save_LDFLAGS"
-  fi
-  if test x"$have_liblve" != x"yes" ; then
-    AC_CHECK_LIB(lve, lr_init,
-      [LVE_CFLAGS=""
-        LVE_LIBS="-llve $LVE_EXTRA_LIBS" 
-        have_liblve=yes],
-      [],
-      [$LVE_EXTRA_LIBS])
-  fi
-  if test x"$have_liblve" != x"yes" ; then
-    AC_MSG_ERROR([liblve support is requested, but cannot link against liblve])
-  fi
-
-  save_LDFLAGS="$LDFLAGS"
-  LDFLAGS="$LDFLAGS $LVE_LIBS"
-  save_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS $LVE_CFLAGS"
-  AC_TRY_COMPILE([#include <lve_read.h>],
-    [T_LVE_READ_CTX *lve_ctx = NULL;
-     lve_ctx = lr_init(NULL, 0);],
-    [],
-    [AC_MSG_ERROR([liblve support is requested, but cannot compile test code])])
-  CPPFLAGS="$save_CPPFLAGS"
-  LDFLAGS="$save_LDFLAGS"
-
-  AC_LANG_POP([C++])
-
-  if test x"$have_liblve" = x"yes" ; then
-    ifelse([$1], , :, [$1])
-  fi
-else
-  LVE_LIBS=""
-  LVE_CFLAGS=""
-fi
-AC_SUBST(LVE_LIBS)
-AC_SUBST(LVE_CFLAGS)
-])
-
-
-dnl TC_PATH_PVM3([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for libpvm3 and set PVM3_CFLAGS PVM3_LIB and PVM3_PVMGS
-dnl
-AC_DEFUN([TC_PATH_PVM3],
-[
-AC_MSG_CHECKING([whether pvm3 support is requested])
-AC_ARG_ENABLE(pvm3,
-  AC_HELP_STRING([--enable-pvm3],
-    [Enable pvm3 code (no)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-pvm3) ;;
-  esac],
-  enable_pvm3=no)
-AC_MSG_RESULT($enable_pvm3)
-
-AC_ARG_WITH(pvm3-lib,
-  AC_HELP_STRING([--with-pvm3-lib=PFX],
-    [prefix where local pvm3 libraries are installed]),
-  pvm3_lib="$withval", pvm3_lib="/usr${deflib}")
-
-AC_ARG_WITH(pvm3-include,
-  AC_HELP_STRING([--with-pvm3-include=PFX],
-    [prefix where local pvm3 includes are installed]),
-  pvm3_include="$withval", pvm3_include="/usr/include")
-
-have_pvm3=no
-
-if test x"$enable_pvm3" = x"yes" ; then
-  if test x"$pvm3_lib" != x"" ; then
-    AC_CHECK_FILE($pvm3_include/pvm3.h, [pvm3_inc=yes])
-    AC_CHECK_FILE($pvm3_lib/libpvm3.a, [pvm3_libs=yes])
-    AC_CHECK_FILE($pvm3_lib/libgpvm3.a, [pvm3_libs=yes])
-    AC_CHECK_FILE($pvm3_lib/pvmgs, [pvm3_libs=yes])
-    if test x"$pvm3_inc" != x"" ; then
-      if test x"$pvm3_libs" != x"" ; then
-        AC_MSG_CHECKING([for pvm3 version >= 3.4])
-        PVM3_CFLAGS="-I$pvm3_include"
-        PVM3_LIB="-L$pvm3_lib -lpvm3 -lgpvm3" 
-        PVM3_PVMGS="$pvm3_lib/pvmgs"
-        CFLAGS_OLD="$CFLAGS"
-        CFLAGS="$CFLAGS $PVM3_CFLAGS"
-        AC_TRY_RUN([
-#include <stdio.h>
-#include <pvm3.h>
-int main () 
-{
-  if ((PVM_MAJOR_VERSION ==3)&&(PVM_MINOR_VERSION<4))
-  {
-	printf("You need to upgrade pvm3 to version > 3.4\n");
-	return(1);
-  }
-  if (PVM_MAJOR_VERSION <3)
-  {
-	printf("You need to upgrade pvm3 to version > 3.4\n");
-	return(1);
-  }
-  return 0;
-}
-],
-          [have_pvm3=yes],
-          [],
-          [echo $ac_n "cross compiling; assumed OK... $ac_c"
-            have_pvm3=yes])
-        CFLAGS="$CFLAGS_OLD"
-      fi
-    fi
-  fi
-  if test x"$have_pvm3" = x"yes" ; then
-    AC_MSG_RESULT(yes)
-    dnl we need to also include the in-tree pvm3 headers
-    PVM3_CFLAGS="$PVM3_CFLAGS -I\$(top_srcdir)/pvm3"
-    ifelse([$1], , :, [$1])
-  else
-    AC_MSG_RESULT(no)
-    AC_MSG_ERROR([pvm3 is requested, but cannot link with libpvm3])
-    ifelse([$2], , :, [$2])
-  fi
-else
-  PVM3_CFLAGS=""
-  PVM3_LIB=""
-  PVM3_PVMGS=""
-  ifelse([$2], , :, [$2])
-fi
-AC_SUBST(PVM3_CFLAGS)
-AC_SUBST(PVM3_LIB)
-AC_SUBST(PVM3_PVMGS)
-])
-
-
 dnl TC_PATH_IBP([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for ibp libraries, and define IBP_LIBS
 dnl
@@ -617,574 +447,80 @@ AC_SUBST([IBP_LIBS])
 ])
 
 
-# Configure paths for SDL
-# Sam Lantinga 9/21/99
-# stolen from Manish Singh
-# stolen back from Frank Belew
-# stolen from Manish Singh
-# Shamelessly stolen from Owen Taylor
-# Small fix to avoid warnings from Daniel Caujolle-Bert
 
-dnl TC_PATH_SDL([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
-dnl Test for SDL, and define SDL_CFLAGS and SDL_LIBS
-dnl
-AC_DEFUN([TC_PATH_SDL],
-[
-AC_REQUIRE([AC_PROG_CC])
-AC_REQUIRE([AC_CANONICAL_HOST])
-
-AC_MSG_CHECKING([whether SDL support is requested])
-AC_ARG_ENABLE(sdl,
-  AC_HELP_STRING([--enable-sdl],
-    [build SDL dependent plugins (no)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-sdl) ;;
-  esac],
-  [enable_sdl=no])
-AC_MSG_RESULT($enable_sdl)
-
-AC_ARG_WITH(sdl-prefix,
-  AC_HELP_STRING([--with-sdl-prefix=PFX],
-    [Prefix where SDL is installed (optional)]),
-  sdl_prefix="$withval", sdl_prefix="")
-
-AC_ARG_WITH(sdl-exec-prefix,
-  AC_HELP_STRING([--with-sdl-exec-prefix=PFX],
-    [Exec prefix where SDL is installed (optional)]),
-  sdl_exec_prefix="$withval", sdl_exec_prefix="")
-
-AC_ARG_ENABLE(sdltest,
-  AC_HELP_STRING([--disable-sdltest],
-    [Do not try to compile and run a test SDL program]),
-  [],
-  enable_sdltest=yes)
-
-have_sdl=no
-
-if test x"$enable_sdl" = x"yes" ; then
-
-  dnl Get the cflags and libraries from the sdl-config script
-  AC_PATH_PROG(SDL_CONFIG, sdl-config, no)
-
-  if test x"$sdl_exec_prefix" != x"" ; then
-    sdl_args="$sdl_args --exec-prefix=$sdl_exec_prefix"
-    if test x"${SDL_CONFIG}" = x"no" ; then
-      SDL_CONFIG=$sdl_exec_prefix/bin/sdl-config
-    fi
-  fi
-  if test x"$sdl_prefix" != x"" ; then
-    sdl_args="$sdl_args --prefix=$sdl_prefix"
-    if test x"${SDL_CONFIG}" = x"no" ; then
-      SDL_CONFIG=$sdl_prefix/bin/sdl-config
-    fi
-  fi
-
-  min_sdl_version=ifelse([$1], ,0.11.0,$1)
-  AC_MSG_CHECKING(for SDL - version >= $min_sdl_version)
-  if test x"$SDL_CONFIG" != x"no" ; then
-    SDL_CFLAGS=`$SDL_CONFIG $sdlconf_args --cflags`
-    SDL_LIBS=`$SDL_CONFIG $sdlconf_args --libs`
-
-    sdl_major_version=`$SDL_CONFIG $sdl_args --version | \
-         sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
-    sdl_minor_version=`$SDL_CONFIG $sdl_args --version | \
-         sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
-    sdl_micro_version=`$SDL_CONFIG $sdl_config_args --version | \
-         sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
-    if test x"$enable_sdltest" = x"yes" ; then
-      ac_save_CFLAGS="$CFLAGS"
-      ac_save_LIBS="$LIBS"
-      CFLAGS="$CFLAGS $SDL_CFLAGS"
-      LIBS="$LIBS $SDL_LIBS"
-dnl
-dnl Now check if the installed SDL is sufficiently new. (Also sanity
-dnl checks the results of sdl-config to some extent
-dnl
-    rm -f conf.sdltest
-    AC_TRY_RUN([
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "SDL.h"
-
-char*
-my_strdup (char *str)
-{
-  char *new_str;
-  
-  if (str)
-    {
-      new_str = (char *)malloc ((strlen (str) + 1) * sizeof(char));
-      strcpy (new_str, str);
-    }
-  else
-    new_str = NULL;
-  
-  return new_str;
-}
-
-int main (int argc, char *argv[])
-{
-  int major, minor, micro;
-  char *tmp_version;
-
-  /* This hangs on some systems (?)
-  system ("touch conf.sdltest");
-  */
-  { FILE *fp = fopen("conf.sdltest", "a"); if ( fp ) fclose(fp); }
-
-  /* HP/UX 9 (%@#!) writes to sscanf strings */
-  tmp_version = my_strdup("$min_sdl_version");
-  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
-     printf("%s, bad version string\n", "$min_sdl_version");
-     exit(1);
-   }
-
-   if (($sdl_major_version > major) ||
-      (($sdl_major_version == major) && ($sdl_minor_version > minor)) ||
-      (($sdl_major_version == major) && ($sdl_minor_version == minor) && ($sdl_micro_version >= micro)))
-    {
-      return 0;
-    }
-  else
-    {
-      printf("\n*** 'sdl-config --version' returned %d.%d.%d, but the minimum version\n", $sdl_major_version, $sdl_minor_version, $sdl_micro_version);
-      printf("*** of SDL required is %d.%d.%d. If sdl-config is correct, then it is\n", major, minor, micro);
-      printf("*** best to upgrade to the required version.\n");
-      printf("*** If sdl-config was wrong, set the environment variable SDL_CONFIG\n");
-      printf("*** to point to the correct copy of sdl-config, and remove the file\n");
-      printf("*** config.cache before re-running configure\n");
-      return 1;
-    }
-}
-
-],
-        [have_sdl=yes],
-        [],
-        [echo $ac_n "cross compiling; assumed OK... $ac_c"
-          have_sdl=yes])
-      CFLAGS="$ac_save_CFLAGS"
-      LIBS="$ac_save_LIBS"
-    else
-      have_sdl=yes
-    fi
-  fi
-  if test x"$have_sdl" = x"yes" ; then
-    AC_MSG_RESULT(yes)
-    ifelse([$2], , :, [$2])     
-  else
-    AC_MSG_RESULT(no)
-    if test x"$SDL_CONFIG" = x"no" ; then
-      echo "*** The sdl-config script installed by SDL could not be found"
-      echo "*** If SDL was installed in PREFIX, make sure PREFIX/bin is in"
-      echo "*** your path, or set the SDL_CONFIG environment variable to the"
-      echo "*** full path to sdl-config."
-    else
-      if test -f conf.sdltest ; then
-        :
-      else
-        echo "*** Could not run SDL test program, checking why..."
-        CFLAGS="$CFLAGS $SDL_CFLAGS"
-        LIBS="$LIBS $SDL_LIBS"
-        AC_TRY_LINK([
-#include <stdio.h>
-#include "SDL.h"
-
-int main(int argc, char *argv[])
-{ return 0; }
-#undef  main
-#define main K_and_R_C_main
-],        [ return 0; ],
-          [ echo "*** The test program compiled, but did not run. This usually means"
-            echo "*** that the run-time linker is not finding SDL or finding the wrong"
-            echo "*** version of SDL. If it is not finding SDL, you'll need to set your"
-            echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
-            echo "*** to the installed location  Also, make sure you have run ldconfig if that"
-            echo "*** is required on your system"
-            echo "***"
-            echo "*** If you have an old version installed, it is best to remove it, although"
-            echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"],
-          [ echo "*** The test program failed to compile or link. See the file config.log for the"
-            echo "*** exact error that occured. This usually means SDL was incorrectly installed"
-            echo "*** or that you have moved SDL since it was installed. In the latter case, you"
-            echo "*** may want to edit the sdl-config script: $SDL_CONFIG" ])
-        CFLAGS="$ac_save_CFLAGS"
-        LIBS="$ac_save_LIBS"
-      fi
-    fi
-    SDL_CFLAGS=""
-    SDL_LIBS=""
-    ifelse([$3], , :, [$3])
-  fi
-else
-  SDL_CFLAGS=""
-  SDL_LIBS=""
-  ifelse([$3], , :, [$3])
-fi
-AC_SUBST(SDL_CFLAGS)
-AC_SUBST(SDL_LIBS)
-rm -f conf.sdltest
-])
-
-
-dnl TC_PATH_LIBFAME([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND [, MODULES]]]])
-dnl Test for libfame, and define LIBFAME_CFLAGS and LIBFAME_LIBS
-dnl Vivien Chappelier 2000-12-11
-dnl stolen from ORBit autoconf
-dnl
-AC_DEFUN([TC_PATH_LIBFAME],
-[
-AC_MSG_CHECKING([whether libfame support is requested])
-AC_ARG_ENABLE(libfame,
-  AC_HELP_STRING([--enable-libfame],
-    [build libfame dependent module (no)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-libfame) ;;
-  esac],
-  enable_libfame=no)
-AC_MSG_RESULT($enable_libfame)
-
-AC_ARG_WITH(libfame-prefix,
-  AC_HELP_STRING([--with-libfame-prefix=PFX],
-    [Prefix where libfame is installed (optional)]),
-  libfame_config_prefix="$withval", libfame_config_prefix="")
-
-AC_ARG_WITH(libfame-exec-prefix,
-  AC_HELP_STRING([--with-libfame-exec-prefix=PFX],
-    [Exec prefix where libfame is installed (optional)]),
-  libfame_config_exec_prefix="$withval", libfame_config_exec_prefix="")
-
-AC_ARG_ENABLE(libfametest,
-  AC_HELP_STRING([--disable-libfametest],
-    [Do not try to compile and run a test libfame program]),
-  [],
-  enable_libfametest=yes)
-
-have_libfame=no
-
-if test x"$enable_libfame" = x"yes" ; then
-
-  AC_PATH_PROG(LIBFAME_CONFIG, libfame-config, no)
-
-  if test x"$libfame_config_exec_prefix" != x"" ; then
-    libfame_config_args="$libfame_config_args --exec-prefix=$libfame_config_exec_prefix"
-    if test x"${LIBFAME_CONFIG}" = x"no" ; then
-      LIBFAME_CONFIG=$libfame_config_exec_prefix/bin/libfame-config
-    fi
-  fi
-  if test x"$libfame_config_prefix" != x"" ; then
-    libfame_config_args="$libfame_config_args --prefix=$libfame_config_prefix"
-    if test x"${LIBFAME_CONFIG}" = x"no" ; then
-      LIBFAME_CONFIG=$libfame_config_prefix/bin/libfame-config
-    fi
-  fi
-
-  min_libfame_version=ifelse([$1], , 0.9.0, $1)
-  AC_MSG_CHECKING(for libfame - version >= $min_libfame_version)
-  if test x"$LIBFAME_CONFIG" != x"no" ; then
-    LIBFAME_CFLAGS=`$LIBFAME_CONFIG $libfame_config_args --cflags`
-    LIBFAME_LIBS=`$LIBFAME_CONFIG $libfame_config_args --libs`
-    libfame_config_major_version=`$LIBFAME_CONFIG $libfame_config_args --version | \
-	   sed -e 's,[[^0-9.]],,g' -e 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
-    libfame_config_minor_version=`$LIBFAME_CONFIG $libfame_config_args --version | \
-	   sed -e 's,[[^0-9.]],,g' -e 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
-    libfame_config_micro_version=`$LIBFAME_CONFIG $libfame_config_args --version | \
-	   sed -e 's,[[^0-9.]],,g' -e 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
-    if test x"$enable_libfametest" = x"yes" ; then
-      ac_save_CFLAGS="$CFLAGS"
-      ac_save_LIBS="$LIBS"
-      CFLAGS="$CFLAGS $LIBFAME_CFLAGS"
-      LIBS="$LIBFAME_LIBS $LIBS"
-dnl
-dnl Now check if the installed LIBFAME is sufficiently new. (Also sanity
-dnl checks the results of libfame-config to some extent
-dnl
-      rm -f conf.libfametest
-      AC_TRY_RUN([
-#include <fame.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-int 
-main ()
-{
-  int major, minor, micro;
-  char *tmp_version;
-
-  system ("touch conf.libfametest");
-
-  /* HP/UX 9 (%@#!) writes to sscanf strings */
-  tmp_version = strdup("$min_libfame_version");
-  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
-     printf("%s, bad version string\n", "$min_libfame_version");
-     exit(1);
-   }
-
-  if ((libfame_major_version != $libfame_config_major_version) ||
-      (libfame_minor_version != $libfame_config_minor_version) ||
-      (libfame_micro_version != $libfame_config_micro_version))
-    {
-      printf("\n*** 'libfame-config --version' returned %d.%d.%d, but Libfame (%d.%d.%d)\n", 
-             $libfame_config_major_version, $libfame_config_minor_version, $libfame_config_micro_version,
-             libfame_major_version, libfame_minor_version, libfame_micro_version);
-      printf ("*** was found! If libfame-config was correct, then it is best\n");
-      printf ("*** to remove the old version of libfame. You may also be able to fix the error\n");
-      printf("*** by modifying your LD_LIBRARY_PATH enviroment variable, or by editing\n");
-      printf("*** /etc/ld.so.conf. Make sure you have run ldconfig if that is\n");
-      printf("*** required on your system.\n");
-      printf("*** If libfame-config was wrong, set the environment variable LIBFAME_CONFIG\n");
-      printf("*** to point to the correct copy of libfame-config, and remove the file config.cache\n");
-      printf("*** before re-running configure\n");
-    } 
-#if defined (LIBFAME_MAJOR_VERSION) && defined (LIBFAME_MINOR_VERSION) && defined (LIBFAME_MICRO_VERSION)
-  else if ((libfame_major_version != LIBFAME_MAJOR_VERSION) ||
-	   (libfame_minor_version != LIBFAME_MINOR_VERSION) ||
-           (libfame_micro_version != LIBFAME_MICRO_VERSION))
-    {
-      printf("*** libfame header files (version %d.%d.%d) do not match\n",
-	     LIBFAME_MAJOR_VERSION, LIBFAME_MINOR_VERSION, LIBFAME_MICRO_VERSION);
-      printf("*** library (version %d.%d.%d)\n",
-	     libfame_major_version, libfame_minor_version, libfame_micro_version);
-    }
-#endif /* defined (LIBFAME_MAJOR_VERSION) ... */
-  else
-    {
-      if ((libfame_major_version > major) ||
-        ((libfame_major_version == major) && (libfame_minor_version > minor)) ||
-        ((libfame_major_version == major) && (libfame_minor_version == minor) && (libfame_micro_version >= micro)))
-      {
-        return 0;
-       }
-     else
-      {
-        printf("\n*** An old version of libfame (%d.%d.%d) was found.\n",
-               libfame_major_version, libfame_minor_version, libfame_micro_version);
-        printf("*** You need a version of libfame newer than %d.%d.%d. The latest version of\n",
-	       major, minor, micro);
-        printf("*** libfame is always available from http://www-eleves.enst-bretagne.fr/~chappeli/fame\n");
-        printf("***\n");
-        printf("*** If you have already installed a sufficiently new version, this error\n");
-        printf("*** probably means that the wrong copy of the libfame-config shell script is\n");
-        printf("*** being found. The easiest way to fix this is to remove the old version\n");
-        printf("*** of libfame, but you can also set the LIBFAME_CONFIG environment to point to the\n");
-        printf("*** correct copy of libfame-config. (In this case, you will have to\n");
-        printf("*** modify your LD_LIBRARY_PATH enviroment variable, or edit /etc/ld.so.conf\n");
-        printf("*** so that the correct libraries are found at run-time))\n");
-      }
-    }
-  return 1;
-}
-],
-        [have_libfame=yes],
-        [],
-        [echo $ac_n "cross compiling; assumed OK... $ac_c"
-          have_libfame=yes])
-      CFLAGS="$ac_save_CFLAGS"
-      LIBS="$ac_save_LIBS"
-    else
-      have_libfame=yes
-    fi
-  fi
-  if test x"$have_libfame" = x"yes" ; then
-     AC_MSG_RESULT(yes)
-     ifelse([$2], , :, [$2])     
-  else
-    AC_MSG_RESULT(no)
-    if test x"$LIBFAME_CONFIG" = x"no" ; then
-      echo "*** The libfame-config script installed by libfame could not be found"
-      echo "*** If libfame was installed in PREFIX, make sure PREFIX/bin is in"
-      echo "*** your path, or set the LIBFAME_CONFIG environment variable to the"
-      echo "*** full path to libfame-config."
-    else
-      if test -f conf.libfametest ; then
-        :
-      else
-        echo "*** Could not run libfame test program, checking why..."
-        CFLAGS="$CFLAGS $LIBFAME_CFLAGS"
-        LIBS="$LIBS $LIBFAME_LIBS"
-        AC_TRY_LINK([
-#include <fame.h>
-#include <stdio.h>
-],
-[ return ((libfame_major_version) || (libfame_minor_version) || (libfame_micro_version)); ],
-        [ echo "*** The test program compiled, but did not run. This usually means"
-          echo "*** that the run-time linker is not finding libfame or finding the wrong"
-          echo "*** version of LIBFAME. If it is not finding libfame, you'll need to set your"
-          echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
-          echo "*** to the installed location  Also, make sure you have run ldconfig if that"
-          echo "*** is required on your system"
-	  echo "***"
-          echo "*** If you have an old version installed, it is best to remove it, although"
-          echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"
-          echo "***" ],
-        [ echo "*** The test program failed to compile or link. See the file config.log for the"
-          echo "*** exact error that occured. This usually means libfame was incorrectly installed"
-          echo "*** or that you have moved libfame since it was installed. In the latter case, you"
-          echo "*** may want to edit the libfame-config script: $LIBFAME_CONFIG" ])
-        CFLAGS="$ac_save_CFLAGS"
-        LIBS="$ac_save_LIBS"
-      fi
-    fi
-    LIBFAME_CFLAGS=""
-    LIBFAME_LIBS=""
-    ifelse([$3], , :, [$3])
-    AC_MSG_ERROR([libfame requested, but cannot link against libfame])
-  fi
-else
-  LIBFAME_CFLAGS=""
-  LIBFAME_LIBS=""
-  ifelse([$3], , :, [$3])
-fi
-AC_SUBST(LIBFAME_CFLAGS)
-AC_SUBST(LIBFAME_LIBS)
-rm -f conf.libfametest
-])
-
-
-dnl TC_PATH_LIBJPEG([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for libjpeg and set LIBJPEG_CFLAGS and LIBJPEG_LIBS
-dnl
-AC_DEFUN([TC_PATH_LIBJPEG],
-[
-AC_MSG_CHECKING([whether libjpeg support is requested])
-AC_ARG_ENABLE(libjpeg,
-  AC_HELP_STRING([--enable-libjpeg],
-    [build libjpeg dependent modules (yes)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-libjpeg) ;;
-  esac],
-  enable_libjpeg=yes)
-AC_MSG_RESULT($enable_libjpeg)
-
-have_libjpegmmx=no
-have_libjpeg=no
-if test x"$enable_libjpeg" = x"yes" ; then
-  AC_CHECK_LIB(jpeg-mmx, jpeg_CreateCompress,
-    [LIBJPEG_CFLAGS=""
-      LIBJPEG_LIBS="-ljpeg-mmx" 
-      have_libjpeg=yes have_libjpegmmx=yes])
-  if test x"$LIBJPEG_LIBS" = x"" ; then
-    AC_CHECK_LIB(jpeg, jpeg_CreateCompress,
-      [LIBJPEG_CFLAGS=""
-        LIBJPEG_LIBS="-ljpeg"
-        have_libjpeg=yes have_libjpegmmx=no])
-  fi
-  if test x"$have_libjpeg" = x"yes" ; then
-    ifelse([$1], , :, [$1])
-  else
-    AC_MSG_ERROR([libjpeg requested, but cannot link against libjpeg])
-    ifelse([$2], , :, [$2])
-  fi
-else
-  LIBJPEG_CFLAGS=""
-  LIBJPEG_LIBS=""
-  ifelse([$2], , :, [$2])
-fi
-AC_SUBST(LIBJPEG_CFLAGS)
-AC_SUBST(LIBJPEG_LIBS)
-])
-
-
-dnl TC_PATH_FFMPEG([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for ffmpeg binary
-dnl
-AC_DEFUN([TC_PATH_FFMPEG],
-[
-AC_MSG_CHECKING([whether FFmpeg binary suport is requested])
-AC_ARG_ENABLE(ffbin,
-  AC_HELP_STRING([--enable-ffbin],
-    [build ffbin module (no)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-ffbin) ;;
-  esac],
-  enable_ffbin=no)
-AC_MSG_RESULT($enable_ffbin)
-
-have_ffmpeg=no
-if test x"$enable_ffbin" = x"yes" ; then
-  AC_PATH_PROG(ffmpeg_bin, ffmpeg, no)
-  if test x"$ffmpeg_bin" != x"no" ; then
-    have_ffmpeg=yes
-    ifelse([$1], , :, [$1])
-  else
-    AC_MSG_ERROR([FFmpeg binary support requested, but ffmpeg cannot be found])
-    ifelse([$2], , :, [$2])
-  fi
-fi
-])
-
-
-dnl TC_PATH_PKG(pkg-name, def-enabled, var-name, pkgconfig-name, conf-script,
+dnl TC_PKG_CHECK(pkg-name, def-enabled, var-name, pkgconfig-name, conf-script,
 dnl     header, lib, symbol)
 dnl Test for pkg-name, and define var-name_CFLAGS and var-name_LIBS
 dnl   and HAVE_var-name if found
 dnl
-dnl 1 name          name of package; required
-dnl 2 def-enabled   enabled by default, 'yes' or 'no'; required
+dnl 1 name          name of package; required (pkg-config name if applicable)
+dnl 2 req-enable    enable  by default, 'required', 'yes' or 'no'; required
 dnl 3 var-name      name stub for variables, preferably uppercase; required
-dnl 4 pkg-name      name of package, as used by pkg-config; optional
-dnl 5 conf-script   name of "-config" script; optional
-dnl 6 header        a header file to check; optional
-dnl 7 lib           a library to check; optional
-dnl 8 symbol        a symbol from the library to check; required if lib given
+dnl 4 conf-script   name of "-config" script or 'no'
+dnl 5 header        header file to check or 'none'
+dnl 6 lib           library to check or 'none'
+dnl 7 symbol        symbol from the library to check or ''
+dnl 8 pkg           package (pkg-config name if applicable)
+dnl 9 url           homepage for the package
 
-AC_DEFUN([TC_PATH_PKG],
+AC_DEFUN([TC_PKG_CHECK],
 [
-AC_MSG_CHECKING([whether $1 support is requested])
-AC_ARG_ENABLE($1,
-  AC_HELP_STRING([--enable-$1],
-    [build with $1 support ($2)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-$1) ;;
-  esac],
-  enable_$1="$2")
-AC_MSG_RESULT($enable_$1)
+if test x"$2" != x"required" ; then
+  AC_MSG_CHECKING([whether $1 support is requested])
+  AC_ARG_ENABLE($1,
+    AC_HELP_STRING([--enable-$1],
+      [build with $1 support ($2)]),
+    [case "${enableval}" in
+      yes) ;;
+      no)  ;;
+      *) AC_MSG_ERROR(bad value ${enableval} for --enable-$1) ;;
+    esac],
+    enable_$1="$2")
+  AC_MSG_RESULT($enable_$1)
+else
+  enable_$1="yes"
+fi
 
 AC_ARG_WITH($1-prefix,
   AC_HELP_STRING([--with-$1-prefix=PFX],
-    [prefix where local $1 is installed (optional)]),
+    [prefix where $1 is installed (/usr)]),
   w_$1_p="$withval", w_$1_p="")
 
 AC_ARG_WITH($1-includes,
-  AC_HELP_STRING([--with-$1-includes=PFX],
-    [prefix where local $1 includes are installed (optional)]),
+  AC_HELP_STRING([--with-$1-includes=DIR],
+    [directory where $1 headers are installed (/usr/include)]),
   w_$1_i="$withval", w_$1_i="")
 
 AC_ARG_WITH($1-libs,
-  AC_HELP_STRING([--with-$1-libs=PFX],
-    [prefix where local $1 libs are installed (optional)]),
+  AC_HELP_STRING([--with-$1-libs=DIR],
+    [directory where $1 libararies are installed (/usr/lib)]),
   w_$1_l="$withval", w_$1_l="")
 
 have_$1="no"
+this_pkg_err="no"
 
 if test x"$enable_$1" = x"yes" ; then
+
+  dnl pkg-config
 
   pkg_config_$1="no"
   AC_MSG_CHECKING([for pkgconfig support for $1])
   if test x"$PKG_CONFIG" != x"no" ; then
-    if $PKG_CONFIG $4 --exists ; then
+    if $PKG_CONFIG $8 --exists ; then
       pkg_config_$1="yes"
     fi
   fi
   AC_MSG_RESULT($pkg_config_$1)
 
-  if test x"$5" != x"no" ; then
+  dnl *-config
+
+  if test x"$4" != x"no" ; then
     if test x"$w_$1_p" != x"" ; then
-      if test -x $w_$1_p/bin/$5 ; then
-        $1_config="$w_$1_p/bin/$5"
+      if test -x $w_$1_p/bin/$4 ; then
+        $1_config="$w_$1_p/bin/$4"
       fi
     fi
-    AC_PATH_PROG($1_config, $5, no)
+    AC_PATH_PROG($1_config, $4, no)
   else
     $1_config="no"
   fi
@@ -1193,11 +529,11 @@ if test x"$enable_$1" = x"yes" ; then
 
   AC_MSG_CHECKING([how to determine $3_CFLAGS])
   if test x"$w_$1_i" != x"" ; then
-    $1_ii="-I$w_$1_i/include"
+    $1_ii="-I$w_$1_i"
     AC_MSG_RESULT(user)
   else
     if test x"$pkg_config_$1" != x"no" ; then
-      $1_ii="`$PKG_CONFIG $4 --cflags`"
+      $1_ii="`$PKG_CONFIG $8 --cflags`"
       AC_MSG_RESULT(pkg-config)
     else
       if test x"$$1_config" != x"no" ; then
@@ -1226,12 +562,12 @@ if test x"$enable_$1" = x"yes" ; then
   $3_EXTRA_CFLAGS="$$3_EXTRA_CFLAGS $xi"
   $3_EXTRA_CFLAGS="`echo $$3_EXTRA_CFLAGS | sed -e 's/  */ /g'`"
 
-  if test x"$6" != x"none" ; then
+  if test x"$5" != x"none" ; then
     save_CPPFLAGS="$CPPFLAGS"
     CPPFLAGS="$CPPFLAGS $$1_ii"
-    AC_CHECK_HEADER([$6],
+    AC_CHECK_HEADER([$5],
       [$3_CFLAGS="$$1_ii"],
-      [AC_MSG_ERROR([$1 requested, but cannot compile $6])])
+      [TC_PKG_ERROR($1, $5, $2, $8, $9, [cannot compile $5])])
     CPPFLAGS="$save_CPPFLAGS"
   fi
 
@@ -1239,11 +575,11 @@ if test x"$enable_$1" = x"yes" ; then
 
   AC_MSG_CHECKING([how to determine $3_LIBS])
   if test x"$w_$1_l" != x"" ; then
-    $1_ll="-L$w_$1_l/lib"
+    $1_ll="-L$w_$1_l"
     AC_MSG_RESULT(user)
   else
     if test x"$pkg_config_$1" != x"no" ; then
-      $1_ll="`$PKG_CONFIG $4 --libs`"
+      $1_ll="`$PKG_CONFIG $8 --libs`"
       AC_MSG_RESULT(pkg-config)
     else
       if test x"$$1_config" != x"no" ; then
@@ -1264,7 +600,7 @@ if test x"$enable_$1" = x"yes" ; then
   for l in $$1_ll ; do
     case $l in
       -L*) lpaths="$lpaths $l" ;;
-      -l*) test x"$l" != x"-l$7" && xlibs="$xlibs $l" ;;
+      -l*) test x"$l" != x"-l$6" && xlibs="$xlibs $l" ;;
         *) xlf="$xlf $l" ;;
     esac
   done
@@ -1277,21 +613,109 @@ if test x"$enable_$1" = x"yes" ; then
   $3_EXTRA_LIBS="$$3_EXTRA_LIBS $xl"
   $3_EXTRA_LIBS="`echo $$3_EXTRA_LIBS | sed -e 's/  */ /g'`"
 
-  if test x"$7" != x"none" ; then
+  if test x"$6" != x"none" ; then
     save_LDFLAGS="$LDFLAGS"
     LDFLAGS="$LDFLAGS $$1_ll"
-    AC_CHECK_LIB([$7], [$8],
-      [$3_LIBS="$$1_ll -l$7 $$3_EXTRA_LIBS"],
-      [AC_MSG_ERROR([$1 requested, but cannot link against lib$7])],
+    AC_CHECK_LIB([$6], [$7],
+      [$3_LIBS="$$1_ll -l$6 $$3_EXTRA_LIBS"],
+      [TC_PKG_ERROR($1, lib$6, $2, $8, $9, [cannot link against lib$6])],
       [$$3_EXTRA_LIBS])
     LDFLAGS="$save_LDFLAGS"
   fi
 
-  # got here without error so all is well
-  have_$1="yes"
+  if test x"$this_pkg_err" = x"no" ; then
+    have_$1="yes"
+  fi
 
 else
   $3_CFLAGS=""
   $3_LIBS=""  
+fi
+])
+
+
+dnl TC_PKG_ERROR(name, object, req-enable, pkg, url, [error message])
+dnl
+AC_DEFUN([TC_PKG_ERROR],
+[
+tc_pkg_err="yes"
+this_pkg_err="yes"
+
+prob=""
+if test x"$3" = x"required" ; then
+  prob="requirement failed"
+else
+  prob="option '--enable-$1' failed"
+fi
+
+cat >> $tc_pkg_err_file <<EOF
+ERROR: $prob: $6
+$2 can be found in the following packages:
+  $4  $5
+
+EOF
+])
+
+
+dnl TC_PKG_INIT(rptfile, errfile)
+dnl
+AC_DEFUN([TC_PKG_INIT],
+[
+tc_pkg_err="no"
+tc_pkg_err_file="tc_pkg_err_file"
+tc_pkg_rpt_file="tc_pkg_rpt_file"
+
+if test x"$1" != x"" ; then
+  tc_pkg_rpt_file="$1"
+fi
+echo -n > $tc_pkg_rpt_file
+
+if test x"$2" != x"" ; then
+  tc_pkg_err_file="$2"
+fi
+echo -n > $tc_pkg_err_file
+])
+
+
+dnl TC_PKG_HAVE(pkg, PKG)
+dnl
+AC_DEFUN([TC_PKG_HAVE],
+[
+if test x"$have_$1" = x"yes" ; then
+  AC_DEFINE([HAVE_$2], 1, [have $1 support])
+fi
+AM_CONDITIONAL(HAVE_$2, test x"$have_$1" = x"yes")
+AC_SUBST($2_CFLAGS)
+AC_SUBST($2_LIBS)
+
+if test -w "$tc_pkg_rpt_file" ; then
+  printf "%-30s %s\n" "$1" "$have_$1" >> $tc_pkg_rpt_file
+else
+  AC_MSG_ERROR([tc_pkg_rpt_file missing!])
+fi
+])
+
+
+dnl TC_PKG_REPORT()
+dnl
+AC_DEFUN([TC_PKG_REPORT],
+[
+if test -r "$tc_pkg_rpt_file" ; then
+  cat $tc_pkg_rpt_file
+  echo ""
+else
+  AC_MSG_ERROR([tc_pkg_rpt_file missing!])
+fi
+
+if test x"$tc_pkg_err" = x"yes" ; then
+  if test -s "$tc_pkg_err_file" ; then
+    cat "$tc_pkg_err_file"
+  fi
+  echo ""
+  echo "Please see the INSTALL file in the top directory of the"
+  echo "transcode sources for more information about building"
+  echo "transcode with this configure script."
+  echo ""
+  exit 1
 fi
 ])

@@ -1,4 +1,24 @@
-2005-03-06 Jacob Meuser <jakemsr at jakemsr dot com>
+2005-03-14 Jacob Meuser <jakemsr at jakemsr dot com>
+  * INSTALL acinclude.m4 configure.in export/aud_aux.c
+    import/lve/Makefile.am
+  Rework the way optional 3rd party packages are found by configure.
+  Most notable change is that --with-$$$-libs=/foo now does not
+  add /lib to /foo, and --with-$$$-includes=/foo no longer adds
+  /include to /foo.  This should give the user more control, and
+  is more intuitive.
+  Also, configure does not stop immediately when a requested
+  package cannot be found.  It still exits with an error, but not
+  until the very end.  This way, the user can enable lots of
+  packages, and simply ignore the error if having support for
+  those packages is not really important.
+  The configure summary output has changed as well.
+  In the course of these changes, a couple macros had to be changed.
+  Instead of defining HAVE_LAME to a version, define HAVE_LAME
+  to 1 like the others, and use TC_LAME_VERSION to store the
+  lame version.  Also use LIBLVE_* instead of LVE_*.
+  INSTALL has been updated and slightly expanded.  READ IT!.
+
+2005-03-13 Jacob Meuser <jakemsr at jakemsr dot com>
   * acinclude.m4 configure.in export/Makefile.am filter/Makefile.am
     filter/subtitler/Makefile.am import/Makefile.am src/Makefile.am
   Use 'libavcodec' instead of 'ffmpeg_libs' when referring to
