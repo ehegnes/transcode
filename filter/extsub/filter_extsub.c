@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_extsub.so"
-#define MOD_VERSION "0.3.4 (2003-10-14)"
+#define MOD_VERSION "0.3.5 (2003-10-15)"
 #define MOD_CAP     "DVD subtitle overlay plugin"
 #define MOD_AUTHOR  "Thomas Oestreich"
 
@@ -471,6 +471,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	if (optstr_lookup (options, "help")) return (-1);
 	}
     }
+
+    if (vob->im_v_codec == CODEC_YUV)
+	vshift = -vshift;
     
     if(n>8) color_set_done=1;
     
