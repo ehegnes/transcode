@@ -749,6 +749,8 @@ static int vbr_init_2pass2(void *sstate)
 		       &quant, &keyframe, &frame_hbytes, &frame_bytes,
 		       &kblocks, &mblocks, &ublocks);
 
+		total_bytes += frame_bytes;		
+
 		/* Is the frame in the beginning credits */
 		if(util_frametype(state) == FRAME_TYPE_STARTING_CREDITS) {
 			credits1_bytes += frame_bytes;
@@ -771,8 +773,6 @@ static int vbr_init_2pass2(void *sstate)
 				state->keyframe_boost / 100;
 			state->keyframe_locations[c++] = state->cur_frame;
 		}
-
-		total_bytes += frame_bytes;		
 
 	}
 

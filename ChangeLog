@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-09 Kurt Huwig <transcode at huwig.de>
+
+  * docs/README.xvid-credits export/xvid_vbr.c:
+  Fix a bug related to calculation of total bytes encoded and wrote
+  a HOWTO about usage of the xvid[2] credits mode.
+
 2003-08-09 Lenz Grimmer <lenz at grimmer.com>
 
   * transcode.spec.in:

@@ -325,6 +325,7 @@ docs_DATA = \
                     README.sync \
                     README.vcd \
 		    README.Inverse.Telecine.txt \
+		    README.xvid-credits \
                     template.cfg.txt\
 		    filter-socket.txt\
 		    avi_comments.txt\
