@@ -55,6 +55,66 @@ typedef struct
    off_t tot;
 } audio_index_entry;
 
+
+// Index types
+
+
+#define AVI_INDEX_OF_INDEXES 0x00             // when each entry in aIndex
+                                              // array points to an index chunk
+#define AVI_INDEX_OF_CHUNKS  0x01             // when each entry in aIndex
+                                              // array points to a chunk in the file
+#define AVI_INDEX_IS_DATA    0x80             // when each entry is aIndex is
+                                              // really the data
+// bIndexSubtype codes for INDEX_OF_CHUNKS
+//
+#define AVI_INDEX_2FIELD     0x01             // when fields within frames
+                                              // are also indexed
+
+
+
+typedef struct _avisuperindex_entry {
+    unsigned long long qwOffset;           // absolute file offset
+    unsigned long dwSize;                  // size of index chunk at this offset
+    unsigned long dwDuration;              // time span in stream ticks
+} avisuperindex_entry;
+
+typedef struct _avistdindex_entry {
+    unsigned long dwOffset;                // qwBaseOffset + this is absolute file offset
+    unsigned long dwSize;                  // bit 31 is set if this is NOT a keyframe
+} avistdindex_entry;
+
+
+// Base Index Form 'indx'
+typedef struct _avisuperindex_chunk {
+    char           fcc[4];
+    unsigned long  dwSize;                 // size of this chunk
+    unsigned short wLongsPerEntry;         // size of each entry in aIndex array (must be 8 for us)
+    unsigned char  bIndexSubType;          // future use. must be 0
+    unsigned char  bIndexType;             // one of AVI_INDEX_* codes
+    unsigned long  nEntriesInUse;          // index of first unused member in aIndex array
+    char           dwChunkId[4];           // fcc of what is indexed
+    unsigned long  dwReserved[3];          // meaning differs for each index type/subtype.
+                                           // 0 if unused
+    avisuperindex_entry *aIndex;
+} avisuperindex_chunk;
+    
+// Standard index 
+typedef struct _avistdindex_chunk {
+    char           fcc[4];                 // ix##
+    unsigned long  dwSize;                 // size of this chunk
+    unsigned short wLongsPerEntry;         // must be sizeof(aIndex[0])/sizeof(DWORD)
+    unsigned char  bIndexSubType;          // must be 0
+    unsigned char  bIndexType;             // must be AVI_INDEX_OF_CHUNKS
+    unsigned long  nEntriesInUse;          //
+    char           dwChunkId[4];           // '##dc' or '##db' or '##wb' etc..
+    unsigned long long qwBaseOffset;       // all dwOffsets in aIndex array are relative to this
+    unsigned long  dwReserved3;            // must be 0
+    avistdindex_entry *aIndex;
+} avistdindex_chunk;
+    
+
+
+
 typedef struct track_s
 {
 
@@ -77,6 +137,7 @@ typedef struct track_s
     off_t  a_codecf_off;       /* absolut offset of audio codec information */ 
 
     audio_index_entry *audio_index;
+    avisuperindex_chunk *audio_superindex;
 
 } track_t;
 
@@ -109,7 +170,10 @@ typedef struct
   off_t  v_codecf_off;      /* absolut offset of video codec (strf) info */ 
   
   unsigned char (*idx)[16]; /* index entries (AVI idx1 tag) */
+
   video_index_entry *video_index;
+  avisuperindex_chunk *video_superindex;  /* index of indices */
+  int is_opendml;           /* set to 1 if this is an odml file with multiple index chunks */
   
   off_t  last_pos;          /* Position of last frame written */
   unsigned long last_len;          /* Length of last frame written */

@@ -1,6 +1,18 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-19 Tilmann Bitterberg <transcode at tibit.org>
+
+  * avilib/{avilib.c avilib.h}:
+  Enable support for reading OpenDML AVI files. I tested this with
+  files produced by VirtualDub and with a header of a DV file
+  produced by Adobe. Please report problems.
+
+2003-08-19 Tilmann Bitterberg <transcode at tibit.org>
+
+  * avilib/avilib.c:
+  fixup writing header of PCM tracks
+
 2003-08-15 Tilmann Bitterberg <transcode at tibit.org>
 
   * export/export_ffmpeg.c:
