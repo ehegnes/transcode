@@ -44,6 +44,7 @@ static char *std_module[] = {"null",
 			     "lav",
 			     "lzo",
 			     "ts",
+			     "vnc",
 			     "mplayer"
 };
 
@@ -64,6 +65,7 @@ enum _std_module {_null_,
 		  _lav_,
 		  _lzo_,
 		  _ts_,
+		  _vnc_,
 		  _theora_
 };
 
@@ -467,6 +469,11 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   case TC_MAGIC_PNG:
   case TC_MAGIC_GIF:
       vob->vmod_probed=std_module[_im_];
+      preset |= TC_VIDEO;
+      break;
+
+  case TC_MAGIC_VNC:
+      vob->vmod_probed=std_module[_vnc_];
       preset |= TC_VIDEO;
       break;
 
