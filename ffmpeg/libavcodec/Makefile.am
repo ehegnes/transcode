@@ -41,3 +41,5 @@ libavcodec_a_SOURCES = \
       huffyuv.c $(FF_SRC_MMX) $(FF_SRC_PPC) $(FF_SRC_ALTIVEC)
 
 noinst_HEADERS = *.h
+
+SUBDIRS = . i386 ppc

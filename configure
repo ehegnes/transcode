@@ -19375,7 +19375,7 @@ LDFLAGS=`echo $LDFLAGS | sed -e 's/  */ /g'`
 
 
 
-                                                                                                                                                                                                                                                                                                                                                                                                                          ac_config_files="$ac_config_files Makefile autotools/Makefile src/Makefile avilib/Makefile movlib/Makefile libioaux/Makefile libac3/Makefile dvdread/Makefile libvo/Makefile libmpeg2/Makefile libmp3lame/Makefile libdvenc/Makefile bbmpeg/Makefile bbmpeg/tcmplex/Makefile ffmpeg/Makefile ffmpeg/libavcodec/Makefile export/Makefile import/Makefile import/nuv/Makefile import/af6/Makefile import/net/Makefile import/v4l/Makefile import/lve/Makefile import/yuv/Makefile filter/Makefile filter/subtitler/Makefile filter/preview/Makefile filter/divxkey/Makefile filter/extsub/Makefile filter/resample/Makefile filter/test/Makefile filter/ivtc/Makefile filter/yuvdenoise/Makefile docs/Makefile docs/html/Makefile docs/man/Makefile contrib/Makefile tools/Makefile aclib/Makefile libsupport/Makefile transcode.spec"
+                                                                                                                                                                                                                                                                                                                                                                                                                                              ac_config_files="$ac_config_files Makefile autotools/Makefile src/Makefile avilib/Makefile movlib/Makefile libioaux/Makefile libac3/Makefile dvdread/Makefile libvo/Makefile libmpeg2/Makefile libmp3lame/Makefile libdvenc/Makefile bbmpeg/Makefile bbmpeg/tcmplex/Makefile ffmpeg/Makefile ffmpeg/libavcodec/Makefile ffmpeg/libavcodec/i386/Makefile ffmpeg/libavcodec/ppc/Makefile export/Makefile import/Makefile import/nuv/Makefile import/af6/Makefile import/net/Makefile import/v4l/Makefile import/lve/Makefile import/yuv/Makefile filter/Makefile filter/subtitler/Makefile filter/preview/Makefile filter/divxkey/Makefile filter/extsub/Makefile filter/resample/Makefile filter/test/Makefile filter/ivtc/Makefile filter/yuvdenoise/Makefile docs/Makefile docs/html/Makefile docs/man/Makefile contrib/Makefile tools/Makefile aclib/Makefile libsupport/Makefile transcode.spec"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -20227,6 +20227,8 @@ do
   "bbmpeg/tcmplex/Makefile" ) CONFIG_FILES="$CONFIG_FILES bbmpeg/tcmplex/Makefile" ;;
   "ffmpeg/Makefile" ) CONFIG_FILES="$CONFIG_FILES ffmpeg/Makefile" ;;
   "ffmpeg/libavcodec/Makefile" ) CONFIG_FILES="$CONFIG_FILES ffmpeg/libavcodec/Makefile" ;;
+  "ffmpeg/libavcodec/i386/Makefile" ) CONFIG_FILES="$CONFIG_FILES ffmpeg/libavcodec/i386/Makefile" ;;
+  "ffmpeg/libavcodec/ppc/Makefile" ) CONFIG_FILES="$CONFIG_FILES ffmpeg/libavcodec/ppc/Makefile" ;;
   "export/Makefile" ) CONFIG_FILES="$CONFIG_FILES export/Makefile" ;;
   "import/Makefile" ) CONFIG_FILES="$CONFIG_FILES import/Makefile" ;;
   "import/nuv/Makefile" ) CONFIG_FILES="$CONFIG_FILES import/nuv/Makefile" ;;

@@ -809,6 +809,8 @@ AC_OUTPUT([
            bbmpeg/tcmplex/Makefile
            ffmpeg/Makefile
            ffmpeg/libavcodec/Makefile
+           ffmpeg/libavcodec/i386/Makefile
+           ffmpeg/libavcodec/ppc/Makefile
            export/Makefile
            import/Makefile
            import/nuv/Makefile
