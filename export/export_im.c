@@ -29,7 +29,7 @@
 #include "yuv2rgb.h"
 
 #define MOD_NAME    "export_im.so"
-#define MOD_VERSION "v0.0.2 (2002-06-05)"
+#define MOD_VERSION "v0.0.3 (2003-06-05)"
 #define MOD_CODEC   "(video) *"
 
 #define MOD_PRE im
@@ -161,8 +161,9 @@ MOD_encode
     
     if(codec==CODEC_YUV) {
       yuv2rgb (tmp_buffer, 
-	       param->buffer, param->buffer+width*height, 
+	       param->buffer, 
 	       param->buffer+5*width*height/4, 
+	       param->buffer+width*height, 
 	       width, height, row_bytes, width, width/2);
       
       out_buffer = tmp_buffer;
