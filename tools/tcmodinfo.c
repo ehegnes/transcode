@@ -94,9 +94,19 @@ int (*TCA_export)(int opt, void *para1, void *para2);
 int (*TCV_import)(int opt, void *para1, void *para2);
 int (*TCA_import)(int opt, void *para1, void *para2);
 
-void tc_error(char *string)
+void tc_error(char *fmt, ...)
 {
-      fprintf(stderr, "critical error: %s - exit\n", string);
+      fprintf(stderr, "critical error: %s - exit\n", fmt);
+}
+
+void tc_warn(char *fmt, ...)
+{
+      fprintf(stderr, "critical error: %s - exit\n", fmt);
+}
+
+void tc_info(char *fmt, ...)
+{
+      fprintf(stderr, "critical error: %s - exit\n", fmt);
 }
 
 

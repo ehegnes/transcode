@@ -3,6 +3,12 @@ transcode-0.6.7
 
 2003-05-22 Tilmann Bitterberg <transcode at tibit.org>
 
+  * src/dl_loader.c src/encoder.c src/transcode.c src/transcode.h
+  tools/tcmodinfo.c:
+  Simple color support for runtime warnings and errors. If you don't
+  like it disable it with --color 0. If the output of transcode is
+  written to a pipe it will be automatically disabled.
+  
   * export/aud_aux.c:
   Fixes a bug when encoding to mp3 where lame returned immediatly with
   'lame encoding error -3'. Reported by marrq.

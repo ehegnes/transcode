@@ -144,15 +144,15 @@ void *load_module(char *mod_name, int mode)
     handle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
     
     if (!handle) {
-      fputs (dlerror(), stderr);
-      fprintf(stderr, "\n(%s) loading \"%s\" failed\n", __FILE__, module);
+      tc_warn(dlerror());
+      tc_warn("(%s) loading \"%s\" failed", __FILE__, module);
       return(NULL);
     }
     
     if(mode & TC_VIDEO) {
       TCV_export = dlsym(handle, "tc_export");   
       if ((error = dlerror()) != NULL)  {
-	fputs(error, stderr);
+	tc_warn(error);
 	return(NULL);
       }
     }
@@ -160,7 +160,7 @@ void *load_module(char *mod_name, int mode)
     if(mode & TC_AUDIO) {
       TCA_export = dlsym(handle, "tc_export");   
       if ((error = dlerror()) != NULL)  {
-	fputs(error, stderr);
+	tc_warn(error);
 	return(NULL);
       }
     }
@@ -179,14 +179,14 @@ void *load_module(char *mod_name, int mode)
     handle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
     
     if (!handle) {
-      fputs (dlerror(), stderr);
+      tc_warn (dlerror());
       return(NULL);
     }
     
     if(mode & TC_VIDEO) {
       TCV_import = dlsym(handle, "tc_import");   
       if ((error = dlerror()) != NULL)  {
-	fputs(error, stderr);
+	tc_warn(error);
 	return(NULL);
       }
     }
@@ -195,7 +195,7 @@ void *load_module(char *mod_name, int mode)
     if(mode & TC_AUDIO) {
       TCA_import = dlsym(handle, "tc_import");   
       if ((error = dlerror()) != NULL)  {
-	fputs(error, stderr);
+	tc_warn(error);
 	return(NULL);
       }
     }

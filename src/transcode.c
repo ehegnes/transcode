@@ -48,6 +48,14 @@
 
 #include "usage.h"
 
+#define COL(x)  "\033[" #x ";1m"
+char *RED    = COL(31);
+char *GREEN  = COL(32);
+char *YELLOW = COL(33);
+char *BLUE   = COL(34);
+char *WHITE  = COL(37);
+char *GRAY   =  "\033[0m";
+
 /* ------------------------------------------------------------ 
  *
  * default options
@@ -137,10 +145,12 @@ enum {
   SOCKET_FILE,
   DV_YUY2_MODE,
   LAME_PRESET,
+  COLOR_LEVEL,
 };
 
 int print_counter_interval = 1;
 int print_counter_cr = 0;
+int color_level = 0;
 
 //-------------------------------------------------------------
 // core parameter
@@ -346,6 +356,7 @@ void usage(int status)
   //internal flags
   printf("--print_status N[,use_cr] print status every N frames / use CR or NL [1,1]\n");
   printf("--progress_off            disable progress meter status line [off]\n");
+  printf("--color N                 level of color in transcodes output [1]\n");
   printf("--write_pid file          write pid of signal thread to \"file\" [off]\n");
 #ifdef ARCH_X86
   printf("--accel type              enforce IA32 acceleration for type [autodetect]\n");
@@ -385,8 +396,7 @@ int source_check(char *import_file)
 #endif
 
     if(import_file==NULL) { 
-      fprintf(stderr, "(%s) invalid filename \"%s\"\n", __FILE__, 
-	      import_file);
+      tc_warn("invalid filename \"%s\"", import_file);
       return(1);
     }
     
@@ -394,11 +404,9 @@ int source_check(char *import_file)
     
 #ifdef NET_STREAM    
     if((hp = gethostbyname(import_file)) != NULL) return(0);
-    fprintf(stderr, "(%s) invalid filename or host \"%s\"\n", __FILE__, 
-	    import_file);
+    tc_warn("invalid filename or host \"%s\"", import_file);
 #else
-    fprintf(stderr, "(%s) invalid filename \"%s\"\n", __FILE__, 
-	    import_file);
+    tc_warn("invalid filename \"%s\"", import_file);
 #endif
     return(1);
 }
@@ -449,14 +457,46 @@ void signal_thread()
   }
 }
 
-void tc_error(char *string)
+void tc_error(char *fmt, ...)
 {
-  version();
   
-  fprintf(stderr, "critical error: %s - exit\n", string);
+  va_list ap;
+
+  // munge format
+  int size = strlen(fmt)+2*strlen(RED)+2*strlen(GRAY)+strlen(PACKAGE)+strlen("[] critical: \n")+1;
+  char *a = malloc (size);
+
+  version();
+
+  snprintf(a, size, "[%s%s%s] %scritical%s: %s\n", RED, PACKAGE, GRAY, RED, GRAY, fmt);
+
+  va_start(ap, fmt);
+  vfprintf (stderr, a, ap);
+  va_end(ap);
+  free (a);
   //abort
   fflush(stdout);
   exit(1);
+}
+
+void tc_warn(char *fmt, ...)
+{
+  
+  va_list ap;
+
+  // munge format
+  int size = strlen(fmt)+2*strlen(BLUE)+2*strlen(GRAY)+strlen(PACKAGE)+strlen("[]  warning: \n")+1;
+  char *a = malloc (size);
+
+  version();
+
+  snprintf(a, size, "[%s%s%s] %swarning%s : %s\n", RED, PACKAGE, GRAY, YELLOW, GRAY, fmt);
+
+  va_start(ap, fmt);
+  vfprintf (stderr, a, ap);
+  va_end(ap);
+  free (a);
+  fflush(stdout);
 }
 
 vob_t *tc_get_vob() {return(vob);}
@@ -494,7 +534,7 @@ int transcoder(int mode, vob_t *vob)
       
       // load export modules and check capabilities
       if(export_init(vob, ex_aud_mod, ex_vid_mod)<0) {
-      	fprintf(stderr,"[%s] failed to init export modules\n", PACKAGE);
+      	tc_warn("failed to init export modules");
 	return(-1);
       }  
       
@@ -701,6 +741,8 @@ int main(int argc, char *argv[]) {
       {"socket", required_argument, NULL, SOCKET_FILE},
       {"dv_yuy2_mode", no_argument, NULL, DV_YUY2_MODE},
       {"lame_preset", required_argument, NULL, LAME_PRESET},
+      {"color", required_argument, NULL, COLOR_LEVEL},
+      {"colour", required_argument, NULL, COLOR_LEVEL},
       {0,0,0,0}
     };
     
@@ -712,6 +754,17 @@ int main(int argc, char *argv[]) {
       print_counter_cr = 1;
     } else {
       print_counter_cr = 0;
+    }
+
+    // don't do colors if writing to a file
+    if (isatty(STDOUT_FILENO)==0 || isatty(STDERR_FILENO)==0) {
+      color_level = 0;
+      RED    = "";
+      GREEN  = "";
+      YELLOW = "";
+      WHITE  = "";
+      GRAY   = "";
+      BLUE   = "";
     }
 
     //main thread id
@@ -932,8 +985,7 @@ int main(int argc, char *argv[]) {
 	      if(n<0 || n>3) tc_error("invalid parameter for option -T\n");
 	  }
 	  if(vob->dvd_chapter2!=-1 && vob->dvd_chapter2 < vob->dvd_chapter1) {
-	      fprintf(stderr, "invalid parameter for option -T\n");
-	      exit(1);
+	      tc_error("invalid parameter for option -T\n");
 	  }
 
 	  if(verbose & TC_DEBUG) fprintf(stderr, "T=%d title=%d ch1=%d ch2=%d angle=%d\n", n, vob->dvd_title, vob->dvd_chapter1, vob->dvd_chapter2, vob->dvd_angle);
@@ -1967,6 +2019,21 @@ int main(int argc, char *argv[]) {
 	  
 	  break;
 
+	case COLOR_LEVEL:
+	  if( ( n = sscanf( optarg, "%d", &color_level) ) == 0 )
+	    tc_error( "invalid parameter for option --color_level" );
+
+	  // --color
+	  if (isatty(STDOUT_FILENO)==0 || isatty(STDERR_FILENO)==0 || color_level == 0) {
+	    RED    = "";
+	    GREEN  = "";
+	    YELLOW = "";
+	    WHITE  = "";
+	    GRAY   = "";
+	    BLUE   = "";
+	  }
+	  
+	  break;
 	case PROGRESS_OFF:
 	  tc_progress_meter = TC_OFF;
 	  break;
@@ -1983,9 +2050,9 @@ int main(int argc, char *argv[]) {
 
 #if !defined (__APPLE__)
     if(optind < argc) {
-      fprintf(stderr, "warning: unused command line parameter detected (%d/%d)\n", optind, argc);
+      tc_warn("unused command line parameter detected (%d/%d)", optind, argc);
       
-      for(n=optind; n<argc; ++n) fprintf(stderr, "argc[%d]=%s (unused)\n", n, argv[n]);
+      for(n=optind; n<argc; ++n) tc_warn("argc[%d]=%s (unused)", n, argv[n]);
       
       if(optind==1) short_usage(EXIT_SUCCESS);
       
@@ -2028,7 +2095,10 @@ int main(int argc, char *argv[]) {
 
       if(verbose) {
 	
-	printf("[%s] %s %s (%s)\n", PACKAGE, "auto-probing source", ((video_in_file==NULL)? audio_in_file:video_in_file), ((preset_flag == TC_PROBE_ERROR)?"failed":"ok"));
+	printf("[%s] %s %s (%s%s%s)\n", PACKAGE, "auto-probing source", 
+	    ((video_in_file==NULL)? audio_in_file:video_in_file), 
+	    ((preset_flag == TC_PROBE_ERROR)?RED:GREEN),
+	    ((preset_flag == TC_PROBE_ERROR)?"failed":"ok"), GRAY);
 	
 	printf("[%s] V: %-16s | %s %s (V=%s|A=%s)\n", PACKAGE, "import format", codec2str(vob->codec_flag), mformat2str(vob->format_flag), 
 	       ((no_vin_codec==0)?im_vid_mod:vob->vmod_probed),
@@ -2152,7 +2222,7 @@ int main(int argc, char *argv[]) {
       int flag = 0;
       
       if(vob->vob_offset) {
-	fprintf(stderr, "-L and --nav_seek are incompatible.\n");
+	tc_warn("-L and --nav_seek are incompatible.");
       }
       
       if(NULL == (fp = fopen(nav_seek_file, "r"))) {
@@ -2251,7 +2321,7 @@ int main(int argc, char *argv[]) {
     // -x
     
     if(no_vin_codec && video_in_file!=NULL && vob->vmod_probed==NULL) 
-	fprintf(stderr, "[%s] no option -x found, option -i ignored, reading from \"/dev/zero\"\n", PACKAGE);
+	tc_warn("no option -x found, option -i ignored, reading from \"/dev/zero\"");
     
     
     //overwrite results of autoprobing if modules are provided
@@ -2701,7 +2771,7 @@ int main(int argc, char *argv[]) {
     // export frame size final check
 
     if(vob->ex_v_height < 0 || vob->ex_v_width < 0) {
-      fprintf(stderr, "invalid export frame combination %dx%d\n", vob->ex_v_width, vob->ex_v_height);
+      tc_warn("invalid export frame combination %dx%d", vob->ex_v_width, vob->ex_v_height);
       tc_error("invalid frame processing requested");
     }    
 
@@ -2747,7 +2817,7 @@ int main(int argc, char *argv[]) {
     } else {
       
       if(!vob->has_audio_track && vob->has_audio) {
-	fprintf(stderr, "[%s] requested audio track %d not found - using 'null' module\n", PACKAGE, vob->a_track);
+	tc_warn("requested audio track %d not found - using 'null' module", vob->a_track);
 	vob->fixme_a_codec=0;
       }
     }
@@ -2921,17 +2991,20 @@ int main(int argc, char *argv[]) {
       
       // -i
       
-      if(video_in_file==NULL) fprintf(stderr, "[%s] no option -i found, reading from \"%s\"\n", PACKAGE, vob->video_in_file);
+      if(video_in_file==NULL) tc_warn("[%s] no option -i found, reading from \"%s\"", vob->video_in_file);
       
       // -o
       
-      if(video_out_file == NULL && audio_out_file == NULL && core_mode == TC_MODE_DEFAULT) fprintf(stderr, "[%s] no option -o found, encoded frames send to \"%s\"\n", PACKAGE, vob->video_out_file);
+      if(video_out_file == NULL && audio_out_file == NULL && core_mode == TC_MODE_DEFAULT)
+	tc_warn("no option -o found, encoded frames send to \"%s\"", vob->video_out_file);
       
       // -y
       
-      if(core_mode == TC_MODE_DEFAULT && video_out_file != NULL && no_v_out_codec) fprintf(stderr, "[%s] no option -y found, option -o ignored, writing to \"/dev/null\"\n", PACKAGE);
+      if(core_mode == TC_MODE_DEFAULT && video_out_file != NULL && no_v_out_codec)
+	tc_warn("no option -y found, option -o ignored, writing to \"/dev/null\"");
       
-      if(core_mode == TC_MODE_AVI_SPLIT && no_v_out_codec) fprintf(stderr, "[%s] no option -y found, option -t ignored, writing to \"/dev/null\"\n", PACKAGE);
+      if(core_mode == TC_MODE_AVI_SPLIT && no_v_out_codec)
+	tc_warn("no option -y found, option -t ignored, writing to \"/dev/null\"");
     }
 
     if(ex_aud_mod && strlen(ex_aud_mod) != 0 && strcmp(ex_aud_mod, "net")==0) 
@@ -3199,7 +3272,7 @@ int main(int argc, char *argv[]) {
 	  // close output file
 	  if(!no_split) {
 	    if(encoder_close(&export_para)<0)
-	      fprintf(stderr, "failed to close encoder - non fatal\n"); 
+	      tc_warn("failed to close encoder - non fatal");
 	  } else printf("\n");
 	  
 	  //debugging code since PSU mode still alpha code
@@ -3229,7 +3302,7 @@ int main(int argc, char *argv[]) {
       // close output
       if(no_split) {
 	if(encoder_close(&export_para)<0)
-	  fprintf(stderr, "failed to close encoder - non fatal"); 
+	  tc_warn("failed to close encoder - non fatal");
       }
       
       encoder_stop(&export_para);
@@ -3254,7 +3327,7 @@ int main(int argc, char *argv[]) {
       dir_fcnt = 0;
       
       if((tc_open_directory(dir_name))<0) { 
-	fprintf(stderr, "(%s) unable to open directory \"%s\"\n", __FILE__, dir_name);
+	tc_error("unable to open directory \"%s\"", dir_name);
 	exit(1);
       }
       
@@ -3271,12 +3344,12 @@ int main(int argc, char *argv[]) {
       dir_fcnt=0;
       
       if((tc_open_directory(dir_name))<0) { 
-	fprintf(stderr, "(%s) unable to open directory \"%s\"\n", __FILE__, dir_name);
+	tc_error("unable to open directory \"%s\"", dir_name);
 	exit(1);
       }
       
       if((tc_sortbuf_directory(dir_name))<0) { 
-	fprintf(stderr, "(%s) unable to sort directory entries \"%s\"\n", __FILE__, dir_name);
+	tc_error("unable to sort directory entries \"%s\"", dir_name);
 	exit(1);
       }
       
@@ -3377,7 +3450,7 @@ int main(int argc, char *argv[]) {
 	// close output
 	if(!no_split) {
 	  if(encoder_close(&export_para)<0)
-	    fprintf(stderr, "failed to close encoder - non fatal"); 
+	    tc_warn("failed to close encoder - non fatal");
 	}
 
 	// cancel import threads
@@ -3402,7 +3475,7 @@ int main(int argc, char *argv[]) {
       // close output
       if(no_split) {
 	if(encoder_close(&export_para)<0)
-	  fprintf(stderr, "failed to close encoder - non fatal"); 
+	  tc_warn("failed to close encoder - non fatal"); 
       }
       
       encoder_stop(&export_para);
@@ -3485,7 +3558,7 @@ int main(int argc, char *argv[]) {
 
 	if(!no_split) {
 	  if(encoder_close(&export_para)<0)
-	    fprintf(stderr, "failed to close encoder - non fatal"); 
+	    tc_warn("failed to close encoder - non fatal"); 
 	}
 	
 	// cancel import threads
@@ -3508,7 +3581,7 @@ int main(int argc, char *argv[]) {
       
       if(no_split) {
 	if(encoder_close(&export_para)<0)
-	  fprintf(stderr, "failed to close encoder - non fatal"); 
+	  tc_warn("failed to close encoder - non fatal"); 
       }
       
       encoder_stop(&export_para);

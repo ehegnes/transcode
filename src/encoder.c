@@ -154,12 +154,12 @@ int export_init(vob_t *vob, char *a_mod, char *v_mod)
 
    // load export modules
    if((export_ahandle = load_module(((a_mod==NULL)? TC_DEFAULT_EXPORT_AUDIO: a_mod), TC_EXPORT+TC_AUDIO))==NULL) {
-     fprintf(stderr,"(%s) loading audio export module failed\n", __FILE__);
+     tc_warn("(%s) loading audio export module failed", __FILE__);
      return(-1);
    }
 
    if((export_vhandle = load_module(((v_mod==NULL)? TC_DEFAULT_EXPORT_VIDEO: v_mod), TC_EXPORT+TC_VIDEO))==NULL) {
-     fprintf(stderr,"(%s) loading video export module failed\n", __FILE__);
+     tc_warn("(%s) loading video export module failed", __FILE__);
      return(-1);
    }
 
@@ -190,14 +190,14 @@ int export_init(vob_t *vob, char *a_mod, char *v_mod)
     }
     
     if(!cc) {
-      fprintf(stderr, "(%s) audio codec not supported by export module\n", __FILE__); 
+      tc_warn("(%s) audio codec not supported by export module\n", __FILE__);
       return(-1);
     }
 
   } else { 
    
     if(vob->im_a_codec != CODEC_PCM) {
-      fprintf(stderr, "(%s) audio codec not supported by export module\n", __FILE__); 
+      tc_warn("(%s) audio codec not supported by export module\n", __FILE__); 
       return(-1);
     }
   }
@@ -230,14 +230,14 @@ int export_init(vob_t *vob, char *a_mod, char *v_mod)
     }
     
     if(!cc) {
-      fprintf(stderr, "(%s) video codec not supported by export module\n", __FILE__); 
+      tc_warn("(%s) video codec not supported by export module\n", __FILE__); 
       return(-1);
     }
 
   } else {
     
     if(vob->im_a_codec != CODEC_RGB) {
-      fprintf(stderr, "(%s) video codec not supported by export module\n", __FILE__); 
+      tc_warn("(%s) video codec not supported by export module\n", __FILE__); 
       return(-1);
     }
   }
@@ -281,13 +281,13 @@ int encoder_init(transfer_t *export_para, vob_t *vob)
   
   export_para->flag = TC_VIDEO;
   if((ret=tcv_export(TC_EXPORT_INIT, export_para, vob))==TC_EXPORT_ERROR) {
-    fprintf(stderr, "(%s) video export module error: init failed\n", __FILE__);
+    tc_warn("(%s) video export module error: init failed\n", __FILE__);
     return(-1);
   }
   
   export_para->flag = TC_AUDIO;
   if((ret=tca_export(TC_EXPORT_INIT, export_para, vob))==TC_EXPORT_ERROR) {
-    fprintf(stderr, "(%s) audio export module error: init failed\n", __FILE__);
+    tc_warn("(%s) audio export module error: init failed\n", __FILE__);
     return(-1);
   }
   
@@ -308,13 +308,13 @@ int encoder_open(transfer_t *export_para, vob_t *vob)
   
   export_para->flag = TC_VIDEO;	
   if((ret=tcv_export(TC_EXPORT_OPEN, export_para, vob))==TC_EXPORT_ERROR) {
-    fprintf(stderr, "(%s) video export module error: open failed\n", __FILE__);
+    tc_warn("(%s) video export module error: open failed\n", __FILE__);
     return(-1);
   }
   
   export_para->flag = TC_AUDIO;
   if((ret=tca_export(TC_EXPORT_OPEN, export_para, vob))==TC_EXPORT_ERROR) {
-    fprintf(stderr, "(%s) audio export module error: open failed\n", __FILE__);
+    tc_warn("(%s) audio export module error: open failed\n", __FILE__);
     return(-1);
   }
   
@@ -363,13 +363,13 @@ int encoder_stop(transfer_t *export_para)
 
   export_para->flag = TC_VIDEO;
   if((ret=tcv_export(TC_EXPORT_STOP, export_para, NULL))==TC_EXPORT_ERROR) {
-    fprintf(stderr, "(%s) video export module error: stop failed\n", __FILE__);
+    tc_warn("(%s) video export module error: stop failed\n", __FILE__);
     return(-1);
   }
   
   export_para->flag = TC_AUDIO;
   if((ret=tca_export(TC_EXPORT_STOP, export_para, NULL))==TC_EXPORT_ERROR) {
-    fprintf(stderr, "(%s) audio export module error: stop failed\n", __FILE__);
+    tc_warn("(%s) audio export module error: stop failed\n", __FILE__);
     return(-1);
   }
   
@@ -548,7 +548,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	export_para.flag   = TC_VIDEO;
 
 	if(tcv_export(TC_EXPORT_ENCODE, &export_para, vob)<0) {
-	  fprintf(stderr, "\nerror encoding video frame\n");
+	  tc_warn("error encoding video frame");
 	  exit_on_encoder_error=1;
 	}
 
@@ -608,7 +608,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	    fprintf(stderr, "[%s] Delaying audio (%d)\n", __FILE__, vob->video_frames_delay);
 	} else {
 	    if(tca_export(TC_EXPORT_ENCODE, &export_para, vob)<0) {
-		fprintf(stderr, "\nerror encoding audio frame\n");
+		tc_warn("error encoding audio frame\n");
 		exit_on_encoder_error=1;
 	    }
 	

@@ -37,6 +37,7 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <string.h>
+#include <stdarg.h>
 #include "../avilib/avilib.h"
 
 #include "../libioaux/framecode.h"
@@ -464,7 +465,9 @@ typedef struct subtitle_header_s {
 void tc_progress(char *string);
 void tc_import_stop_nolock(void);
 void tc_export_stop_nolock(void);
-void tc_error(char *string);
+void tc_error(char *fmt, ...);
+void tc_info(char *fmt, ...);
+void tc_warn(char *fmt, ...);
 vob_t *tc_get_vob(void); 
 long tc_get_frames_encoded(void);
 long tc_get_frames_dropped(void);
