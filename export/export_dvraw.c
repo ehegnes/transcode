@@ -282,9 +282,9 @@ MOD_encode
   
   if(param->flag == TC_AUDIO) {
     
-    if(verbose & TC_STATS) fprintf(stderr, "[%s] ---A---\n", MOD_NAME);
-    
     time_t now = time(NULL);
+
+    if(verbose & TC_STATS) fprintf(stderr, "[%s] ---A---\n", MOD_NAME);
     
     if(!pass_through) {
 
