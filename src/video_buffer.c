@@ -48,20 +48,20 @@ static unsigned char *bufalloc(int n, int id, size_t size)
 {
 
 #ifdef HAVE_GETPAGESIZE
-   long buffer_align=getpagesize();
+   unsigned long buffer_align=getpagesize();
 #else
-   long buffer_align=0;
+   unsigned long buffer_align=0;
 #endif
 
    char *buf = malloc(size + buffer_align);
 
-   long adjust;
+   unsigned long adjust;
 
    if (buf == NULL) {
        fprintf(stderr, "(%s) out of memory", __FILE__);
    }
    
-   adjust = buffer_align - ((long) buf) % buffer_align;
+   adjust = buffer_align - ((unsigned long) buf) % buffer_align;
 
    if (adjust == buffer_align)
       adjust = 0;
@@ -89,7 +89,8 @@ static int vid_buf_alloc(int ex_num)
     int n, num;
 
 
-    int frame_size_max = tc_frame_width_max * tc_frame_height_max * BPP/8;
+    int frame_size_max = (tc_frame_width_max + tc_frame_width_max%32) * 
+	                 (tc_frame_height_max+ tc_frame_height_max%32) * BPP/8;
 
     if(ex_num < 0) return(-1);
     

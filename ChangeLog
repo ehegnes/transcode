@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-31 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/video_buffer.c:
+  Malloc a little more than the calculated max framesize
+  
 2004-01-30 Tilmann Bitterberg <transcode at tibit.org>
   
   * export/{export_xvid4.c xvid4.cfg}:
