@@ -32,6 +32,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_yuy2toyv12.la\
 			filter_skip.la\
 			filter_astat.la\
+			filter_lowpass.la\
 			filter_aclip.la\
 			filter_cut.la\
 			filter_cshift.la\
@@ -86,6 +87,9 @@ filter_testframe_la_LDFLAGS = -no-undefined -module -avoid-version
 
 filter_astat_la_SOURCES = filter_astat.c
 filter_astat_la_LDFLAGS = -no-undefined -module -avoid-version 
+
+filter_lowpass_la_SOURCES = filter_lowpass.c
+filter_lowpass_la_LDFLAGS = -no-undefined -module -avoid-version 
 
 filter_aclip_la_SOURCES = filter_aclip.c
 filter_aclip_la_LDFLAGS = -no-undefined -module -avoid-version 

@@ -37,7 +37,9 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+build_triplet = @build@
 host_triplet = @host@
+target_triplet = @target@
 A52_CFLAGS = @A52_CFLAGS@
 A52_LIBS = @A52_LIBS@
 ACLOCAL = @ACLOCAL@
@@ -277,7 +279,11 @@ program_transform_name = @program_transform_name@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
+target = @target@
 target_alias = @target_alias@
+target_cpu = @target_cpu@
+target_os = @target_os@
+target_vendor = @target_vendor@
 x_includes = @x_includes@
 x_libraries = @x_libraries@
 
@@ -303,6 +309,7 @@ pkg_LTLIBRARIES = filter_null.la\
 			filter_yuy2toyv12.la\
 			filter_skip.la\
 			filter_astat.la\
+			filter_lowpass.la\
 			filter_aclip.la\
 			filter_cut.la\
 			filter_cshift.la\
@@ -358,6 +365,9 @@ filter_testframe_la_LDFLAGS = -no-undefined -module -avoid-version
 
 filter_astat_la_SOURCES = filter_astat.c
 filter_astat_la_LDFLAGS = -no-undefined -module -avoid-version 
+
+filter_lowpass_la_SOURCES = filter_lowpass.c
+filter_lowpass_la_LDFLAGS = -no-undefined -module -avoid-version 
 
 filter_aclip_la_SOURCES = filter_aclip.c
 filter_aclip_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -467,6 +477,9 @@ filter_logo_la_OBJECTS = $(am_filter_logo_la_OBJECTS)
 filter_logoaway_la_DEPENDENCIES =
 am_filter_logoaway_la_OBJECTS = filter_logoaway.lo
 filter_logoaway_la_OBJECTS = $(am_filter_logoaway_la_OBJECTS)
+filter_lowpass_la_LIBADD =
+am_filter_lowpass_la_OBJECTS = filter_lowpass.lo
+filter_lowpass_la_OBJECTS = $(am_filter_lowpass_la_OBJECTS)
 filter_mask_la_LIBADD =
 am_filter_mask_la_OBJECTS = filter_mask.lo
 filter_mask_la_OBJECTS = $(am_filter_mask_la_OBJECTS)
@@ -525,6 +538,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/filter_invert.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_logo.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_logoaway.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/filter_lowpass.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_mask.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_normalize.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_null.Plo \
@@ -552,13 +566,13 @@ DIST_SOURCES = $(filter_29to23_la_SOURCES) $(filter_32detect_la_SOURCES) \
 	$(filter_dilyuvmmx_la_SOURCES) $(filter_dnr_la_SOURCES) \
 	$(filter_fields_la_SOURCES) $(filter_invert_la_SOURCES) \
 	$(filter_logo_la_SOURCES) $(filter_logoaway_la_SOURCES) \
-	$(filter_mask_la_SOURCES) $(filter_normalize_la_SOURCES) \
-	$(filter_null_la_SOURCES) $(filter_pp_la_SOURCES) \
-	$(filter_skip_la_SOURCES) $(filter_smartdeinter_la_SOURCES) \
-	$(filter_smooth_la_SOURCES) $(filter_tc_audio_la_SOURCES) \
-	$(filter_tc_video_la_SOURCES) $(filter_testframe_la_SOURCES) \
-	$(filter_videocore_la_SOURCES) $(filter_xsharpen_la_SOURCES) \
-	$(filter_yuy2toyv12_la_SOURCES)
+	$(filter_lowpass_la_SOURCES) $(filter_mask_la_SOURCES) \
+	$(filter_normalize_la_SOURCES) $(filter_null_la_SOURCES) \
+	$(filter_pp_la_SOURCES) $(filter_skip_la_SOURCES) \
+	$(filter_smartdeinter_la_SOURCES) $(filter_smooth_la_SOURCES) \
+	$(filter_tc_audio_la_SOURCES) $(filter_tc_video_la_SOURCES) \
+	$(filter_testframe_la_SOURCES) $(filter_videocore_la_SOURCES) \
+	$(filter_xsharpen_la_SOURCES) $(filter_yuy2toyv12_la_SOURCES)
 
 RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 	ps-recursive install-info-recursive uninstall-info-recursive \
@@ -568,7 +582,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 DIST_COMMON = Makefile.am Makefile.in
 DIST_SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc preview \
 	subtitler
-SOURCES = $(filter_29to23_la_SOURCES) $(filter_32detect_la_SOURCES) $(filter_32drop_la_SOURCES) $(filter_aclip_la_SOURCES) $(filter_astat_la_SOURCES) $(filter_clone_la_SOURCES) $(filter_cshift_la_SOURCES) $(filter_cut_la_SOURCES) $(filter_dilyuvmmx_la_SOURCES) $(filter_dnr_la_SOURCES) $(filter_fields_la_SOURCES) $(filter_invert_la_SOURCES) $(filter_logo_la_SOURCES) $(filter_logoaway_la_SOURCES) $(filter_mask_la_SOURCES) $(filter_normalize_la_SOURCES) $(filter_null_la_SOURCES) $(filter_pp_la_SOURCES) $(filter_skip_la_SOURCES) $(filter_smartdeinter_la_SOURCES) $(filter_smooth_la_SOURCES) $(filter_tc_audio_la_SOURCES) $(filter_tc_video_la_SOURCES) $(filter_testframe_la_SOURCES) $(filter_videocore_la_SOURCES) $(filter_xsharpen_la_SOURCES) $(filter_yuy2toyv12_la_SOURCES)
+SOURCES = $(filter_29to23_la_SOURCES) $(filter_32detect_la_SOURCES) $(filter_32drop_la_SOURCES) $(filter_aclip_la_SOURCES) $(filter_astat_la_SOURCES) $(filter_clone_la_SOURCES) $(filter_cshift_la_SOURCES) $(filter_cut_la_SOURCES) $(filter_dilyuvmmx_la_SOURCES) $(filter_dnr_la_SOURCES) $(filter_fields_la_SOURCES) $(filter_invert_la_SOURCES) $(filter_logo_la_SOURCES) $(filter_logoaway_la_SOURCES) $(filter_lowpass_la_SOURCES) $(filter_mask_la_SOURCES) $(filter_normalize_la_SOURCES) $(filter_null_la_SOURCES) $(filter_pp_la_SOURCES) $(filter_skip_la_SOURCES) $(filter_smartdeinter_la_SOURCES) $(filter_smooth_la_SOURCES) $(filter_tc_audio_la_SOURCES) $(filter_tc_video_la_SOURCES) $(filter_testframe_la_SOURCES) $(filter_videocore_la_SOURCES) $(filter_xsharpen_la_SOURCES) $(filter_yuy2toyv12_la_SOURCES)
 
 all: all-recursive
 
@@ -635,6 +649,8 @@ filter_logo.la: $(filter_logo_la_OBJECTS) $(filter_logo_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkgdir) $(filter_logo_la_LDFLAGS) $(filter_logo_la_OBJECTS) $(filter_logo_la_LIBADD) $(LIBS)
 filter_logoaway.la: $(filter_logoaway_la_OBJECTS) $(filter_logoaway_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_logoaway_la_LDFLAGS) $(filter_logoaway_la_OBJECTS) $(filter_logoaway_la_LIBADD) $(LIBS)
+filter_lowpass.la: $(filter_lowpass_la_OBJECTS) $(filter_lowpass_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(filter_lowpass_la_LDFLAGS) $(filter_lowpass_la_OBJECTS) $(filter_lowpass_la_LIBADD) $(LIBS)
 filter_mask.la: $(filter_mask_la_OBJECTS) $(filter_mask_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_mask_la_LDFLAGS) $(filter_mask_la_OBJECTS) $(filter_mask_la_LIBADD) $(LIBS)
 filter_normalize.la: $(filter_normalize_la_OBJECTS) $(filter_normalize_la_DEPENDENCIES) 
@@ -703,6 +719,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_invert.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_logo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_logoaway.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_lowpass.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_mask.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_normalize.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_null.Plo@am__quote@
