@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
   int didread = 0;
 
   int aud_bitrate=0;
-  double aud_ms = 0.0;
+  double aud_ms[ AVI_MAX_TRACKS ];
 
   int vid_chunks=0;
   double vid_ms = 0.0;
@@ -235,6 +235,9 @@ int main(int argc, char *argv[])
   chan   =  AVI_audio_channels(avifile1);
   bits   =  AVI_audio_bits(avifile1);
 
+  for (k = 0; k<AVI_MAX_TRACKS; k++) 
+      aud_ms[k] = 0.0;
+
   switch (split_option) {
 
   case SPLIT_BY_SIZE:
@@ -285,7 +288,7 @@ int main(int argc, char *argv[])
       if(avifile2) {
 	vid_ms = vid_chunks*1000/fps;
 
-	fprintf(stderr, "[%s] (%06ld-%06d), size %4.1f MB. (V/A) (%.0lf/%.0lf)ms\r", out_file, i, n-1, ((double) AVI_bytes_written(avifile2))/MBYTE, vid_ms, aud_ms);
+	fprintf(stderr, "[%s] (%06ld-%06d), size %4.1f MB. (V/A) (%.0lf/%.0lf)ms\r", out_file, i, n-1, ((double) AVI_bytes_written(avifile2))/MBYTE, vid_ms, aud_ms [0]);
       }
 
       if (split_next == 0) {
@@ -301,7 +304,7 @@ int main(int argc, char *argv[])
       // need new output file
       if(!open) {
 
-        if(base == NULL || strlen(base)==0) {
+	  if(base == NULL || strlen(base)==0) {
           sprintf(out_file, "%s-%04d", in_file, j);
         } else {
           sprintf(out_file, "%s-%04d.avi", base, j);
@@ -354,7 +357,7 @@ int main(int argc, char *argv[])
         AVI_set_audio_track(avifile2, k);
 
 	if (format == 0x55) {
-	  while (aud_ms < vid_ms) {
+	  while (aud_ms[k] < vid_ms) {
 	    if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
 		AVI_print_error("AVI audio read frame");
 		break;
@@ -369,10 +372,10 @@ int main(int argc, char *argv[])
 
 	    if (tc_get_mp3_header(data, NULL, NULL, &aud_bitrate)<0) {
 	      fprintf(stderr, "Corrupt MP3 track (%d)?\n", k); 
-	      aud_ms = vid_ms;
+	      aud_ms[k] = vid_ms;
 	      break;
 	    } else {
-	      aud_ms += (bytes*8.0)/(aud_bitrate);
+	      aud_ms[k] += (bytes*8.0)/(aud_bitrate);
 
 	    }
 	  }
@@ -399,7 +402,7 @@ int main(int argc, char *argv[])
     size = AVI_bytes_written(avifile2);
     vid_ms = vid_chunks/fps;
 
-    fprintf(stderr, "[%s] (%06ld-%06d), size %4.1f MB. vid=%lf ms aud=%lf ms\n", out_file, i, n-1, ((double) AVI_bytes_written(avifile2))/MBYTE, vid_ms, aud_ms);
+    fprintf(stderr, "[%s] (%06ld-%06d), size %4.1f MB. vid=%lf ms aud=%lf ms\n", out_file, i, n-1, ((double) AVI_bytes_written(avifile2))/MBYTE, vid_ms, aud_ms[0]);
 
     if(avifile2 != NULL)
       AVI_close(avifile2);
