@@ -193,6 +193,9 @@ int main(int argc, char *argv[])
 	
 	if ((s_bin_dump) && (s_shmem))
 	{
+		if((s_shm = shmget(s_key, 0, 0600)) != -1)
+			shmctl(s_shm, IPC_RMID, NULL);
+
 		if((p_read(STDIN_FILENO, (char *) &s_vob, sizeof(vob_t))) != sizeof(vob_t))
 		{
 			fprintf(stderr,"(%s) Error reading data from stdin\n",EXE);
@@ -205,7 +208,7 @@ int main(int argc, char *argv[])
 		}
 		if ((p_vob=(vob_t *)shmat(s_shm,NULL,0)) == (vob_t *)-1)
 		{
-			shmctl( s_shm, IPC_RMID, p_vob );
+			shmctl( s_shm, IPC_RMID, NULL );
 			(int) shmdt(p_vob);
 			fprintf(stderr,"(%s) Cannot attach shared memory segment\n",EXE);
 			exit(1);
@@ -223,13 +226,13 @@ int main(int argc, char *argv[])
 		}
 		if ((p_vob=(vob_t *)shmat(s_shm,NULL,0)) == (vob_t *)-1)
 		{
-			shmctl( s_shm, IPC_RMID, p_vob );
+			shmctl( s_shm, IPC_RMID, NULL );
 			(int) shmdt(p_vob);
 			fprintf(stderr,"(%s) Cannot attach shared memory segment\n",EXE);
 			exit(1);
 		}
 		memcpy((char *)&s_vob,(char *) p_vob, sizeof(vob_t));
-		shmctl( s_shm, IPC_RMID, p_vob );
+		shmctl( s_shm, IPC_RMID, NULL );
 		(int) shmdt(p_vob);
 		p_video_tmp=s_vob.video_in_file;
 		p_audio_tmp=s_vob.audio_in_file;

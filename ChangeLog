@@ -1,6 +1,13 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-13 Frederic Briere <fbriere at fbriere.net>
+
+  * import/tcxmlcheck.c:
+   Make sure to flush whatever shm there is beforehand so that no
+   old shm segment got reused. Also fixed three instances of the
+   same warning you were getting with shmctl.
+
 2004-01-10 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/transcode.c src/probe_export.h:
