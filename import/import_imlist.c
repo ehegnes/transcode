@@ -31,10 +31,11 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <regex.h>
-#include <magick/api.h>
 
 #include "transcode.h"
+
+#include <regex.h>
+#include <magick/api.h>
 
 #define MOD_NAME    "import_imlist.so"
 #define MOD_VERSION "v0.0.1 (2002-02-26)"

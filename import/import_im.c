@@ -31,10 +31,12 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+
+#include "transcode.h"
+
 #include <regex.h>
 #include <magick/api.h>
 
-#include "transcode.h"
 
 #define MOD_NAME    "import_im.so"
 #define MOD_VERSION "v0.0.2 (2002-01-25)"
