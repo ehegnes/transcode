@@ -6,6 +6,7 @@ transcode-0.6.11
   * configure.in:
   Make the X11 dependent plugins really dependand on X11. Pointed
   out by Nicolas Boos.
+  Nicer printout for lame.
 
 2003-09-30 Tilmann Bitterberg <transcode at tibit.org>
 
