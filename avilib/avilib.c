@@ -1699,16 +1699,24 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
    {
       /* List tags are completly ignored */
 
+#ifdef DEBUG_ODML
+      printf("TAG %c%c%c%c\n", (hdrl_data+i)[0], (hdrl_data+i)[1], (hdrl_data+i)[2], (hdrl_data+i)[3]);
+#endif
+
       if(strncasecmp(hdrl_data+i,"LIST",4)==0) { i+= 12; continue; }
 
       n = str2ulong(hdrl_data+i+4);
       n = PAD_EVEN(n);
+
 
       /* Interpret the tag and its args */
 
       if(strncasecmp(hdrl_data+i,"strh",4)==0)
       {
          i += 8;
+#ifdef DEBUG_ODML
+	 printf("TAG   %c%c%c%c\n", (hdrl_data+i)[0], (hdrl_data+i)[1], (hdrl_data+i)[2], (hdrl_data+i)[3]);
+#endif
          if(strncasecmp(hdrl_data+i,"vids",4) == 0 && !vids_strh_seen)
          {
             memcpy(AVI->compressor,hdrl_data+i+4,4);
@@ -1747,12 +1755,18 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 	   AVI->track[AVI->aptr].a_codech_off = header_offset + i;
 	   
          }
+         else if (strncasecmp (hdrl_data+i,"iavs",4) ==0 && ! auds_strh_seen) {
+	     fprintf(stderr, "AVILIB: error - DV AVI Type 1 no supported\n");
+	     return (-1);
+	 }
          else
             lasttag = 0;
          num_stream++;
       }
       else if(strncasecmp(hdrl_data+i,"dmlh",4) == 0) {
+#ifdef DEBUG_ODML
 	 fprintf(stderr, "real number of frames %ld\n", str2ulong(hdrl_data+i+8));
+#endif
 	 i += 8;
       }
       else if(strncasecmp(hdrl_data+i,"strf",4)==0)
