@@ -29,29 +29,30 @@
 #include "xio.h"
 
 static int verbose_flag = TC_QUIET;
-static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_DV | TC_CAP_PCM | TC_CAP_VID | TC_CAP_YUV422;
+static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_DV |
+    TC_CAP_PCM | TC_CAP_VID | TC_CAP_YUV422;
 
 #define MOD_PRE dv
 #include "import_def.h"
 
 
-#define MAX_BUF 1024
-char import_cmd_buf[MAX_BUF];
+extern int errno;
+char import_cmd_buf[TC_BUF_MAX];
 
 static int frame_size=0;
 static FILE *fd=NULL;
 
-int scan(char *name) 
+int scan(char *name)
 {
   struct stat fbuf;
-  
+
   if(xio_stat(name, &fbuf)) {
     fprintf(stderr, "(%s) invalid file \"%s\"\n", __FILE__, name);
     exit(1);
   }
-  
+
   // file or directory?
-  
+
   if(S_ISDIR(fbuf.st_mode)) return(1);
   return(0);
 }
@@ -65,138 +66,152 @@ int scan(char *name)
 MOD_open
 {
 
-  char cat_buf[1024];
+  char cat_buf[TC_BUF_MAX];
   char yuv_buf[16];
-
+  int sret;
 
   if(param->flag == TC_VIDEO) {
 
     //directory mode?
-    (scan(vob->video_in_file)) ? snprintf(cat_buf, sizeof(cat_buf), "tccat") : ((vob->im_v_string) ? snprintf(cat_buf, sizeof(cat_buf), "tcextract -x dv %s", vob->im_v_string) : snprintf(cat_buf, sizeof(cat_buf), "tcextract -x dv"));
-    
+    (scan(vob->video_in_file)) ?
+        snprintf(cat_buf, TC_BUF_MAX, "tccat") :
+        ((vob->im_v_string) ?
+            snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv %s", vob->im_v_string) :
+            snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv"));
+
     //yuy2 mode?
-    (vob->dv_yuy2_mode) ? snprintf(yuv_buf, sizeof(yuv_buf), "-y yv12 -Y") : snprintf(yuv_buf, sizeof(yuv_buf), "-y yv12");
-    
+    (vob->dv_yuy2_mode) ?
+        snprintf(yuv_buf, 16, "-y yv12 -Y") :
+        snprintf(yuv_buf, 16, "-y yv12");
+
     param->fd = NULL;
 
     switch(vob->im_v_codec) {
-      
+
     case CODEC_RGB:
-      
-      if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d | tcdecode -x dv -y rgb -d %d -Q %d", cat_buf, vob->video_in_file, vob->verbose, vob->verbose, vob->quality)<0)) {
-	perror("command buffer overflow");
-	return(TC_IMPORT_ERROR);
-      }
-      
+
+      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+                      "%s -i \"%s\" -d %d | tcdecode -x dv -y rgb -d %d -Q %d",
+                      cat_buf, vob->video_in_file, vob->verbose, vob->verbose,
+                      vob->quality);
+      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+          return(TC_IMPORT_ERROR);
+
       // popen
       if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
 	return(TC_IMPORT_ERROR);
       }
-      
+
       break;
-      
+
     case CODEC_YUV:
-      
-      if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d | tcdecode -x dv %s -d %d -Q %d", cat_buf, vob->video_in_file, vob->verbose, yuv_buf, vob->verbose, vob->quality)<0)) {
-	perror("command buffer overflow");
+
+      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+                      "%s -i \"%s\" -d %d | tcdecode -x dv %s -d %d -Q %d",
+                      cat_buf, vob->video_in_file, vob->verbose, yuv_buf,
+                      vob->verbose, vob->quality);
+      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
 	return(TC_IMPORT_ERROR);
-      }
 
       // for reading
       frame_size = (vob->im_v_width * vob->im_v_height * 3)/2;
 
       param->fd = NULL;
-      
+
       // popen
       if((fd = popen(import_cmd_buf, "r"))== NULL) {
 	return(TC_IMPORT_ERROR);
       }
-      
+
       break;
 
     case CODEC_YUV422:
-      
-      if((snprintf(import_cmd_buf, MAX_BUF, 
+
+      sret = snprintf(import_cmd_buf, TC_BUF_MAX, 
 		      "%s -i \"%s\" -d %d "
 		      "| tcdecode -x dv -y yuy2 -d %d -Q %d", 
 		      cat_buf, vob->video_in_file, vob->verbose, 
-		      vob->verbose, vob->quality)<0)) {
-	perror("command buffer overflow");
+		      vob->verbose, vob->quality);
+      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
 	return(TC_IMPORT_ERROR);
-      }
 
       // for reading
       frame_size = vob->im_v_width * vob->im_v_height * 2;
 
       param->fd = NULL;
-      
+
       // popen
       if((fd = popen(import_cmd_buf, "r"))== NULL) {
 	return(TC_IMPORT_ERROR);
       }
-      
+
       break;
 
 
     case CODEC_RAW:
     case CODEC_RAW_YUV:
-      
-      if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d", cat_buf, vob->video_in_file, vob->verbose)<0)) {
-	perror("command buffer overflow");
+
+      sret = snprintf(import_cmd_buf, TC_BUF_MAX, "%s -i \"%s\" -d %d",
+                      cat_buf, vob->video_in_file, vob->verbose);
+      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
 	return(TC_IMPORT_ERROR);
-      }
 
       // for reading
       frame_size = (vob->im_v_height==PAL_H) ? TC_FRAME_DV_PAL:TC_FRAME_DV_NTSC;
 
       param->fd = NULL;
-      
+
       // popen
       if((fd = popen(import_cmd_buf, "r"))== NULL) {
 	return(TC_IMPORT_ERROR);
       }
-      
+
       break;
 
-      
-    default: 
+
+    default:
       fprintf(stderr, "invalid import codec request 0x%x\n", vob->im_v_codec);
       return(TC_IMPORT_ERROR);
-      
+
     }
 
     // print out
     if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
-    
+
     return(0);
   }
-  
+
   if(param->flag == TC_AUDIO) {
 
     //directory mode?
-    (scan(vob->audio_in_file)) ? snprintf(cat_buf, sizeof(cat_buf), "tccat") : ((vob->im_a_string) ? snprintf(cat_buf, sizeof(cat_buf), "tcextract -x dv %s", vob->im_a_string) : snprintf(cat_buf, sizeof(cat_buf), "tcextract -x dv"));
-    
-    if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d | tcdecode -x dv -y pcm -d %d", cat_buf, vob->audio_in_file, vob->verbose, vob->verbose)<0)) {
-      perror("command buffer overflow");
+    (scan(vob->audio_in_file)) ?
+        snprintf(cat_buf, TC_BUF_MAX, "tccat") :
+        ((vob->im_a_string) ?
+            snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv %s", vob->im_a_string) :
+            snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv"));
+
+    sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+                    "%s -i \"%s\" -d %d | tcdecode -x dv -y pcm -d %d",
+                    cat_buf, vob->audio_in_file, vob->verbose, vob->verbose);
+    if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
       return(TC_IMPORT_ERROR);
-    }
-    
+
     // print out
     if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
-    
+
     param->fd = NULL;
-    
+
     // popen
     if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
 	perror("popen PCM stream");
 	return(TC_IMPORT_ERROR);
     }
-    
+
     return(0);
   }
-  
+
   return(TC_IMPORT_ERROR);
-  
+
 }
 
 /* ------------------------------------------------------------ 
@@ -209,16 +224,16 @@ MOD_decode
 {
 
     if(param->flag == TC_AUDIO) return(0);
-    
+
     // video and YUV only
     if(param->flag == TC_VIDEO && frame_size==0) return(TC_IMPORT_ERROR);
-    
+
     // return true yuv frame size as physical size of video data
     param->size = frame_size; 
-    
+
     if (fread(param->buffer, frame_size, 1, fd) !=1) 
 	return(TC_IMPORT_ERROR);
-    
+
     return(0);
 }
 
@@ -230,22 +245,19 @@ MOD_decode
 
 
 MOD_close
-{  
+{
   if(param->fd != NULL) pclose(param->fd);
-  
+
   if(param->flag == TC_AUDIO) return(0);
-  
+
   if(param->flag == TC_VIDEO) {
-    
+
     if(fd) pclose(fd);
     fd=NULL;
-    
+
     return(0);
-    
+
   }
-  
+
   return(TC_IMPORT_ERROR);
 }
-
-
-
