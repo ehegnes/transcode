@@ -299,7 +299,7 @@ sse.rescale:								\n\
 # define EBX "%%ebx"
 # define ECX "%%ecx"
 # define EDX "%%edx"
-# define ESI "%%rsi"
+# define ESI "%%esi"
 # define EDI "%%edi"
 #endif
 
