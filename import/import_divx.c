@@ -53,7 +53,7 @@
 #endif
 
 #define MOD_NAME    "import_divx.so"
-#define MOD_VERSION "v0.2.7 (2003-05-29)"
+#define MOD_VERSION "v0.2.8 (2003-07-29)"
 #define MOD_CODEC   "(video) DivX;-)/XviD/OpenDivX/DivX 4.xx/5.xx"
 #define MOD_PRE divx
 #include "import_def.h"
@@ -66,7 +66,6 @@ static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
 static int codec, frame_size=0;
 static unsigned long divx_version=DEC_OPT_FRAME;
 
-static int black_frames = 0;
 static int done_seek=0;
 
 
@@ -503,15 +502,21 @@ MOD_decode {
     int key;
     
     long bytes_read=0;
-    static long old_bytes=0;
+    static char *working_frame = NULL;
+
+    if (!working_frame) {
+	working_frame = calloc(frame_size, 1);
+	if (!working_frame) {
+	  perror("out of memory");
+	  return(TC_IMPORT_ERROR);
+	}
+    }
 
     if(param->flag != TC_VIDEO) return(TC_IMPORT_ERROR);
     
     bytes_read = (pass_through) ? AVI_read_frame(avifile, param->buffer, &key):AVI_read_frame(avifile, buffer, &key);
     
     if(bytes_read<0) return(TC_IMPORT_ERROR); 
-
-    if (bytes_read>0) old_bytes = bytes_read;
 
     if(pass_through) {
       
@@ -545,32 +550,14 @@ MOD_decode {
 
     } else {
 
-      /*
-	Divx 3.11 encoded video sometimes have frames with zero
-	length data. These frames need to be cleared (eg filled
-	with black). The frame after the zero length frame 
-	sometimes needs to be cleared too, I don't know why but
-	it solves my problems... Works for me. (TM)
-       */
-
-      if(black_frames && verbose & TC_DEBUG) {
-	printf("bytes_read=(%ld)\n", bytes_read);
-      }
-
-      if (bytes_read == 0) {
-	black_frames = 2;
-      }
-
-      if(black_frames > 0) {
-	if(verbose & TC_DEBUG) printf("bytes_read=(%ld)\n", bytes_read);
-	bytes_read = old_bytes;
-
-	black_frames--;
-      }
+      /* on null frames the previous frame should be reused.
+         in, fact, divx seems to rely on the previous frame being
+         there every once in a while even on non-null frames.
+         go figure. */
 
       //need to decode the frame
       decFrame->bitstream = buffer;
-      decFrame->bmp = param->buffer;
+      decFrame->bmp = working_frame;
       decFrame->length = (int) bytes_read;
       decFrame->render_flag = 1;
       
@@ -590,6 +577,7 @@ MOD_decode {
 #endif
       
       param->size = frame_size;
+      memcpy(param->buffer, working_frame, frame_size);
     }
     
     //for preview/pass-through feature
@@ -597,7 +585,7 @@ MOD_decode {
     if(pass_through_decode) {
 
       decFrame->bitstream = param->buffer; //read only??
-      decFrame->bmp = param->buffer2; 
+      decFrame->bmp = working_frame; 
       decFrame->length = (int) bytes_read;
       decFrame->render_flag = 1;
       
@@ -616,6 +604,7 @@ MOD_decode {
 	  return(TC_IMPORT_ERROR); 
       }
 #endif
+      memcpy(param->buffer2, working_frame, frame_size);
     }
     
     return(0);

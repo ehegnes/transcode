@@ -14,6 +14,10 @@ transcode-0.6.9
   output frame rate. If --export_fps is specified, the supplied
   value will be taken for export.
 
+  * import/import_divx.c:
+  Again fixed empty frames problem with some divx3 and xvid files
+  by buffering every frame.
+
 2003-07-29 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/ac3scan.c:
