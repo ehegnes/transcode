@@ -38,7 +38,7 @@ libavcodec_a_SOURCES = \
       motion_est.c imgconvert.c imgresample.c \
       mpeg12.c mpegaudiodec.c pcm.c simple_idct.c \
       ratecontrol.c adpcm.c eval.c dv.c error_resilience.c \
-      h263.c msmpeg4.c h263dec.c svq1.c rv10.c wmadec.c
+      h263.c msmpeg4.c h263dec.c svq1.c rv10.c wmadec.c \
       fft.c mdct.c mace.c \
       huffyuv.c $(FF_SRC_MMX) $(FF_SRC_PPC) $(FF_SRC_ALTIVEC)
 

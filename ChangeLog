@@ -1,5 +1,25 @@
 --------------------------------------------
-transcode-0.6.4.HEAD
+transcode-0.6.4.20030325
+
+- again upgrade of libavcodec. Included version is now 4655. the same
+  one mplayer ships with -rc5. Also updated the export_ffmpeg module to
+  support all features of libavcodec. Configuration is still done
+  through a config file (./ffmpeg.cfg or ~/.ffmpeg.cfg). The syntax is
+  simple.
+
+  --- ~/.ffmpeg.cfg ----
+  [mpeg4]
+  vhq = 1 # this is the default
+  qpel = 1
+  trellis = 1
+
+  [mpeg1video]
+  --- ~/.ffmpeg.cfg ----
+
+  The [header] is the same string you pass in through -F and then the
+  options. To fill your config file real quickly, just enter 
+  `transcode -y ffmpeg -F mpeg4 -q2' and you'll see the list of all
+  supported options.
 
 - Read number of channels from an ac3 stream. This is mainly important
   when using -A -N 0x2000. Pointed out by Xavier <xizard at enib.fr>
