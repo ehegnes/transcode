@@ -459,7 +459,7 @@ export_ppm_la_SOURCES = export_ppm.c aud_aux.c
 export_ppm_la_LDFLAGS = -module -avoid-version 
 export_ppm_la_LIBADD = @LAME_LIBS@ $(AC3_LIB) -L../libvo -lvout -lm
 
-export_mov_la_SOURCES = export_mov.c 
+export_mov_la_SOURCES = export_mov.c vid_aux.c 
 export_mov_la_LDFLAGS = -module -avoid-version 
 export_mov_la_LIBADD = @QT_LIBS@ -lm
 
@@ -575,7 +575,7 @@ export_mjpeg_la_DEPENDENCIES =
 am_export_mjpeg_la_OBJECTS = export_mjpeg.lo vid_aux.lo aud_aux.lo
 export_mjpeg_la_OBJECTS = $(am_export_mjpeg_la_OBJECTS)
 export_mov_la_DEPENDENCIES =
-am_export_mov_la_OBJECTS = export_mov.lo
+am_export_mov_la_OBJECTS = export_mov.lo vid_aux.lo
 export_mov_la_OBJECTS = $(am_export_mov_la_OBJECTS)
 export_mp1e_la_DEPENDENCIES =
 am_export_mp1e_la_OBJECTS = export_mp1e.lo vid_aux.lo

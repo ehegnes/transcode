@@ -1,7 +1,20 @@
 --------------------------------------------
 transcode-0.6.13
 
-2004-01-19 Tilmann Bitterberg <transcode at tibit.org>
+2004-01-20 Stefan Scheffler <stefanscheffler at gmx.net>
+
+  * export/export_mov.c:
+  - a now really working yuv422 support
+  - video pass through support for divx, mjpeg, dv, raw rgb, yv12 and
+    yuv422(yuy2) files
+  - codec are now case insensitive and aliased to more common names
+  - a pretty codec and parameter list feature borrowed from
+    export_ffmpeg.c
+  - big extended parameter cleanup
+  - cleanups and a few more things here and there
+  - and most important, incremented version number and added my name :]
+
+2004-01-20 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/import_ffmpeg.c:
   Fix a segfault at closing time in pass-through mode. Pointed put
