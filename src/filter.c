@@ -70,7 +70,7 @@ int filter_next_free_id(void)
       break;
   }
   if (n >= MAX_FILTER) {
-    fprintf(stderr, "[%s] internal error - No more filter slots\n", PACKAGE); 
+    tc_error("internal error - No more filter slots"); 
     n = -1;
   }
 
@@ -170,8 +170,9 @@ int load_plugin(char *path) {
   filter[id].handle = dlopen(module, RTLD_NOW); 
 
   if (!filter[id].handle) {
-    fprintf(stderr, "[%s] loading filter module %s failed\n", PACKAGE, module); 
-    if ((error = dlerror()) != NULL) fputs(error, stderr);
+    error = dlerror();
+    tc_warn("loading filter module %s failed", module); 
+    tc_warn("%s", error); 
     return(-1);
 
   } else 
@@ -202,8 +203,7 @@ int filter_single_init(int id)
 
   ptr.filter_id = filter[id].id;
   if(filter[id].entry(&ptr, filter[id].options)<0) {
-    fprintf(stderr," (%s) filter plugin '%s' returned error - plugin skipped\n", 
-	            __FILE__, filter[id].name);
+    tc_warn("filter plugin '%s' returned error - plugin skipped", filter[id].name);
     filter[id].status=0;
   } else {
     filter[id].status=1;
@@ -230,8 +230,7 @@ char * filter_single_readconf(int id)
 
   ptr.filter_id = filter[id].id;
   if(filter[id].entry(&ptr, buffer)<0) {
-    fprintf(stderr," (%s) filter plugin '%s' returned error - plugin disabled\n", 
-	            __FILE__, filter[id].name);
+    tc_warn("filter plugin '%s' returned error - plugin skipped", filter[id].name);
     filter[id].status=0;
     return NULL;
   } else {
@@ -252,8 +251,7 @@ int filter_single_close(int id)
 
     ptr.filter_id = filter[id].id;
     if(filter[id].entry(&ptr, NULL)<0) 
-	   fprintf(stderr," (%s) filter plugin '%s' returned error - ignored\n", 
-			   __FILE__, filter[id].name);
+	tc_warn("filter plugin '%s' returned error - plugin skipped", filter[id].name);
     
     return(0);
 }
