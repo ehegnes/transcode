@@ -31,7 +31,7 @@
 
 
 #define MOD_NAME    "import_mplayer.so"
-#define MOD_VERSION "v0.0.4 (2002-11-21)"
+#define MOD_VERSION "v0.0.5 (2003-03-10)"
 #define MOD_CODEC   "(video) rendered by mplayer | (audio) rendered by mplayer"
 
 #define MOD_PRE mplayer
