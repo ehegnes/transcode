@@ -359,7 +359,7 @@ int main(int argc, char *argv[])
     
       format =  AVI_audio_format(avifile1);
       mp3rate=  AVI_audio_mp3rate(avifile1);
-      printf("TRACK %d MP3RATE %ld VBR %ld\n", j, mp3rate, AVI_get_audio_vbr(avifile1));
+      //printf("TRACK %d MP3RATE %ld VBR %ld\n", j, mp3rate, AVI_get_audio_vbr(avifile1));
       
       //set next track of output file
       AVI_set_audio_track(avifile, j);
@@ -391,7 +391,7 @@ int main(int argc, char *argv[])
   
   AVI_close(avifile);
   
-  printf("... done merging %d files in %s\n", cc, outfile);
+  printf("... done merging %d file(s) in %s\n", cc, outfile);
   
   // reopen file for video/audio info
   if(NULL == (avifile = AVI_open_input_file(outfile,1))) {
