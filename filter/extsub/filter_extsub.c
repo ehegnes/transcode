@@ -540,7 +540,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     void * status;
     
     pthread_cancel(thread1);
-#ifdef __APPLE__ // MacOSX: Broken pthreads
+#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
     pthread_cond_signal(&sframe_list_full_cv);
 #endif
     pthread_join(thread1, &status);

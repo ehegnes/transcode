@@ -169,7 +169,7 @@ void frame_threads_close()
     for(n=0; n<have_aframe_workers; ++n) pthread_cancel(afthread[n]);
     
     //wait for threads to terminate
-#ifdef __APPLE__ // MacOSX: Broken pthreads
+#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
     pthread_cond_broadcast(&abuffer_fill_cv);
 #endif
     for(n=0; n<have_aframe_workers; ++n) pthread_join(afthread[n], &status);
@@ -189,7 +189,7 @@ void frame_threads_close()
     for(n=0; n<have_vframe_workers; ++n) pthread_cancel(vfthread[n]);
 
     //wait for threads to terminate
-#ifdef __APPLE__ // MacOSX: Broken pthreads
+#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
     pthread_cond_broadcast(&vbuffer_fill_cv);
 #endif
     for(n=0; n<have_vframe_workers; ++n) pthread_join(vfthread[n], &status);
@@ -338,7 +338,7 @@ void process_vframe(vob_t *vob)
     
     while(vbuffer_im_fill_ctr==0) {
       pthread_cond_wait(&vbuffer_fill_cv, &vbuffer_im_fill_lock);
-#ifdef __APPLE__ // MacOSX: Broken pthreads
+#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
       pthread_testcancel();
 #endif
       
@@ -445,7 +445,7 @@ void process_aframe(vob_t *vob)
     
     while(abuffer_im_fill_ctr==0) {
       pthread_cond_wait(&abuffer_fill_cv, &abuffer_im_fill_lock);
-#ifdef __APPLE__ // MacOSX: Broken pthreads
+#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
       pthread_testcancel();
 #endif
       

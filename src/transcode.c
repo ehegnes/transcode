@@ -477,7 +477,7 @@ void signal_thread()
   for (;;) {
     
     sigwait(&sigs_to_block, &caught);
-#ifdef __APPLE__ // MacOSX: Broken pthreads
+#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
     pthread_testcancel();
 #endif
     
@@ -601,7 +601,7 @@ void safe_exit (void) {
 
     if (tc_signal_thread) {
        pthread_cancel(thread_signal);
-#ifdef __APPLE__ // MacOSX: Broken pthreads
+#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
        pthread_kill(thread_signal,SIGINT);
 #endif
        pthread_join(thread_signal, &thread_status);
@@ -4204,7 +4204,7 @@ int main(int argc, char *argv[]) {
       if(verbose & TC_INFO) { printf(" cancel signal |");fflush(stdout); }
       if (thread_signal) {
 	pthread_cancel(thread_signal);
-#ifdef __APPLE__ // MacOSX: Broken pthreads
+#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
         pthread_kill(thread_signal,SIGINT);
 #endif
 	pthread_join(thread_signal, &thread_status);

@@ -561,7 +561,7 @@ void subtitle_reader()
     
     while(sframe_fill_level(TC_BUFFER_FULL)) {
       pthread_cond_wait(&sframe_list_full_cv, &sframe_list_lock);
-#ifdef __APPLE__ // MacOSX: Broken pthreads
+#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
       pthread_testcancel();
 #endif
     }

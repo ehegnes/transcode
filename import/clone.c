@@ -130,7 +130,7 @@ int buffered_p_read(char *s)
     
     while(buffer_fill_ctr == 0) {
       pthread_cond_wait(&buffer_fill_cv, &buffer_fill_lock);
-#ifdef __APPLE__ // MacOSX: Broken pthreads
+#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
       pthread_testcancel();
 #endif
     }
@@ -279,7 +279,7 @@ void clone_close()
     // cancel the thread
     if (thread) {
       pthread_cancel(thread);
-#ifdef __APPLE__ // MacOSX: Broken pthreads
+#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
       pthread_cond_signal(&buffer_fill_cv);
 #endif
       pthread_join(thread, &status);

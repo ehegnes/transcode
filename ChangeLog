@@ -3,6 +3,15 @@ transcode-0.6.12
 
 2003-11-26 Tilmann Bitterberg <transcode at tibit.org>
 
+  * filter/extsub/subtitle_buffer.c  filter/extsub/filter_extsub.c
+  import/clone.c import/packets.c src/decoder.c src/frame_threads.c
+  src/transcode.c configure.in:
+  Introduced a new define BROKEN_PTHREADS which replaces the fixups
+  formerly only dependent on __APPLE__. This might cure the problems
+  with a 2.6 kernel.
+
+2003-11-26 Tilmann Bitterberg <transcode at tibit.org>
+
   * import/magic.h src/probe.c:
   Magic values for v4l2 import modules and the core probing
   architecture.

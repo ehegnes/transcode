@@ -397,7 +397,7 @@ void flush_buffer_thread()
 	
 	while(pack_fill_ctr==0) {
 	    pthread_cond_wait(&packet_pop_cv, &pack_ctr_lock);
-#ifdef __APPLE__ // MacOSX: Broken pthreads
+#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
 	    pthread_testcancel();
 #endif
 	}
@@ -462,7 +462,7 @@ int flush_buffer_write(int fd_out, char*buffer, int packet_size)
     
     while(pack_fill_ctr == FLUSH_BUFFER_MAX) {
       pthread_cond_wait(&packet_push_cv, &pack_ctr_lock);
-#ifdef __APPLE__ // MacOSX: Broken pthreads
+#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
       pthread_testcancel();
 #endif
     }
