@@ -774,7 +774,7 @@ char *filetype(long magic)
   case TC_MAGIC_PGM:          return("PGM image");
   case TC_MAGIC_SGI:          return("SGI image");
   case TC_MAGIC_RMF:          return("Real Media");
-  case TC_MAGIC_XML:          return("XML file, need to and analize the content");
+  case TC_MAGIC_XML:          return("XML file, need to analyze the content");
   case TC_MAGIC_LAV:          return("LAV Edit List");
   case TC_MAGIC_MXF:          return("The Material eXchange Format");
   case TC_MAGIC_OGG:          return("OGG Multimedia Container");
