@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
   int width, height, format, chan, bits;
 
   int be_quiet = 0;
-  FILE *status_fd = stdout;
+  FILE *status_fd = stderr;
 
   /* for null frame encoding */
   char nulls[32000];
@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
   double vid_ms = 0.0, shift_ms = 0.0, one_vid_ms = 0.0;
   double aud_ms [ AVI_MAX_TRACKS ];
   int aud_bitrate = 0;
+  int aud_chunks = 0;
 
   if(argc==1) usage(EXIT_FAILURE);
   
@@ -406,13 +407,14 @@ int main(int argc, char *argv[])
 	
 	if (format == 0x55 || format == 0x2000 || format == 0x2001) {
 	  for(i=0;i<shift;++i) {
-	      printf ("shift (%d) i (%d) n (%d)\n", shift, i, n);
+	      fprintf (stderr, "shift (%d) i (%d) n (%d) a (%d)\n", shift, i, n, aud_chunks);
 	    while (aud_ms[track_num] < vid_ms + one_vid_ms*i) {
 
+		aud_chunks++;
 		if( (bytes = AVI_read_audio_chunk(avifile1, data)) <= 0) {
-		    AVI_print_error("AVI 2 audio read frame");
-		    if (bytes == 0) continue;
 		    aud_ms[track_num] = vid_ms + one_vid_ms*i;
+		    if (bytes == 0) continue;
+		    AVI_print_error("AVI 2 audio read frame");
 		    break;
 		}      
 
@@ -446,9 +448,11 @@ int main(int argc, char *argv[])
 
 	    while (aud_ms[track_num] < vid_ms + shift_ms) {
 
+		aud_chunks++;
 		if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
-		    AVI_print_error("AVI 3 audio read frame");
 		    aud_ms[track_num] = vid_ms + shift_ms;
+		    //if (bytes == 0) continue;
+		    AVI_print_error("AVI 3 audio read frame");
 		    break;
 		}      
 
@@ -457,7 +461,12 @@ int main(int argc, char *argv[])
 		    return(-1);
 		} 
 
-		fprintf(status_fd, "V [%05d][%08.2lf] | A [%05d][%08.2lf] [%05ld]\n", n, vid_ms, n+shift, aud_ms[track_num], bytes);
+		fprintf(status_fd, "V [%05d][%08.2lf] | A [%05d][%08.2lf] [%05ld]\n", n, vid_ms, aud_chunks, aud_ms[track_num], bytes);
+
+		if (bytes == 0) {
+		    aud_ms[track_num] = vid_ms + shift_ms;
+		    continue;
+		}
 
 		if(n>=frames-2*shift) {
 	  
@@ -474,7 +483,6 @@ int main(int argc, char *argv[])
 		    ptr->status = BUFFER_READY;
 		}
 
-		if (bytes == 0) continue;
 
 		if ( tc_get_audio_header(data, bytes, format, NULL, NULL, &aud_bitrate)<0) {
 		    if (n == frames-1) continue;
