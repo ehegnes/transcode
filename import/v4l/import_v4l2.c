@@ -29,7 +29,7 @@
 #include <string.h>
 
 #include <linux/types.h>
-#include "videodev2.h"
+#include <linux/videodev2.h>
 #include <sys/soundcard.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -38,23 +38,62 @@
 #include "transcode.h"
 #include "aclib/ac.h"
 
-#define ts_mul 1000000UL
-#define ts_div 1UL
-
 #define MOD_NAME		"import_v4l2.so"
-#define MOD_VERSION		"v1.0.0 (2003-11-08)"
+#define MOD_VERSION		"v1.0.3 (2003-11-23)"
 #define MOD_CODEC		"(video) v4l2 | (audio) pcm"
 #define MOD_PRE			v4l2
 #include "import_def.h"
 
+/*
+	use se ts=4 for correct layout
+
+	Changelog
+
+	1.0.0	EMS first published version
+	1.0.1	EMS	added YUV422 and RGB support
+				disable timestamp stuff for now, doesn't work anyways
+					as long as tc core doesn't support it.
+				missing mute control is not an error.
+	1.0.2	EMS	changed parameter passing from -T to -x v4l2=a=x,b=y
+				try various (native) capture formats before giving up
+	1.0.3	EMS	changed "videodev2.h" back to <linux/videodev2.h>,
+				it doesn't work with linux 2.6.0, #defines are wrong.
+
+	TODO
+
+	- add more conversion schemes
+	- make conversion user-selectable
+	- use more mmx/sse/3dnow
+*/
+
 #define module "[" MOD_NAME "]: "
 
 typedef enum { resync_none, resync_clone, resync_drop } v4l2_resync_op;
+typedef enum { v4l2_fmt_rgb, v4l2_fmt_yuv422packed, v4l2_fmt_yuv420planar } v4l2_fmt_t;
+typedef enum { v4l2_param_int, v4l2_param_string, v4l2_param_fp } v4l2_param_type_t;
 
-static int verbose_flag = TC_QUIET;
-// disable RGB because of possible bug in saa7134 driver that crashes computer
-//static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM;
-static int capability_flag = TC_CAP_YUV | TC_CAP_PCM;
+typedef struct
+{
+	int				from;
+	v4l2_fmt_t		to;
+	void			(*convert)(const char *, char *, size_t size, int xsize, int ysize);
+	const char *	description;
+} v4l2_format_convert_table_t;
+
+typedef struct
+{
+	v4l2_param_type_t	type;
+	const char *		name;
+	size_t				length;
+	union {
+		char *		string;
+		int	*		integer;
+		double *	fp;
+	} value;
+} v4l2_parameter_t;
+
+static int verbose_flag		= TC_QUIET;
+static int capability_flag	= TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_PCM;
 
 static struct 
 {
@@ -62,34 +101,139 @@ static struct
 	size_t length;
 } * v4l2_buffers;
 
-static v4l2_resync_op v4l2_video_resync_op = resync_none;
-
-static int	v4l2_yuv = 1;
+static v4l2_fmt_t		v4l2_fmt;
+static v4l2_resync_op	v4l2_video_resync_op = resync_none;
 
 static int	v4l2_saa7134_video = 0;
 static int	v4l2_saa7134_audio = 0;
-
 static int 	v4l2_resync_margin_frames = 0;
-static int 	v4l2_resync_interval_frames = 5;
-static int 	v4l2_resync_framerate_base = ts_mul;
+static int 	v4l2_resync_interval_frames = 0;
+static int 	v4l2_buffers_count;
+static int 	v4l2_video_fd = -1;
+static int 	v4l2_audio_fd = -1;
+static int 	v4l2_video_sequence = 0;
+static int 	v4l2_audio_sequence = 0;
+static int	v4l2_video_cloned = 0;
+static int	v4l2_video_dropped = 0;
+static int	v4l2_frame_rate;
+static int	v4l2_width = 0;
+static int	v4l2_height = 0;
 
-static unsigned long long	v4l2_timestamp_start = 0;
-static unsigned long long	v4l2_timestamp_last = 0;
-
-static int 			v4l2_buffers_count;
-static int 			v4l2_video_fd = -1;
-static int 			v4l2_audio_fd = -1;
-static int 			v4l2_video_sequence = 0;
-static int 			v4l2_audio_sequence = 0;
-static int			v4l2_video_cloned = 0;
-static int			v4l2_video_dropped = 0;
-static int			v4l2_video_missed = 0;
-static char *	 	v4l2_resync_previous_frame = 0;
-
-static int			v4l2_frame_rate;
-static int			v4l2_frame_interval;
+static char * v4l2_resync_previous_frame = 0;
 
 static int	 		(*v4l2_memcpy)(char *, const char *, int) = (int (*)(char *, const char *, int))memcpy;
+static void			(*v4l2_format_convert)(const char *, char *, size_t, int, int) = 0;
+
+static void v4l2_convert_rgb24_rgb(const char *, char *, size_t, int, int);
+static void v4l2_convert_bgr24_rgb(const char *, char *, size_t, int, int);
+static void v4l2_convert_uyvy_yuv422(const char *, char *, size_t, int, int);
+static void v4l2_convert_yuyv_yuv422(const char *, char *, size_t, int, int);
+static void v4l2_convert_yvu420_yuv420(const char *, char *, size_t, int, int);
+static void v4l2_convert_yuv420_yuv420(const char *, char *, size_t, int, int);
+
+static v4l2_parameter_t v4l2_parameters[] =
+{
+	{ v4l2_param_int, "resync_margin",   0, { .integer = &v4l2_resync_margin_frames }},
+	{ v4l2_param_int, "resync_interval", 0, { .integer = &v4l2_resync_interval_frames }}
+};
+
+static v4l2_format_convert_table_t v4l2_format_convert_table[] = 
+{
+	{ V4L2_PIX_FMT_RGB24, v4l2_fmt_rgb, v4l2_convert_rgb24_rgb, "RGB24 [packed] -> RGB [packed] (no conversion)" },
+	{ V4L2_PIX_FMT_BGR24, v4l2_fmt_rgb, v4l2_convert_bgr24_rgb, "BGR24 [packed] -> RGB [packed] (slow conversion)" },
+
+	{ V4L2_PIX_FMT_UYVY, v4l2_fmt_yuv422packed, v4l2_convert_uyvy_yuv422, "UYUV [packed] -> YUV422 [packed] (no conversion)" },
+	{ V4L2_PIX_FMT_YUYV, v4l2_fmt_yuv422packed, v4l2_convert_yuyv_yuv422, "YUYV [packed] -> YUV422 [packed] (slow conversion) " },
+
+	{ V4L2_PIX_FMT_YVU420, v4l2_fmt_yuv420planar, v4l2_convert_yvu420_yuv420, "YVU420 [planar] -> YUV420 [planar] (no conversion)" },
+	{ V4L2_PIX_FMT_YUV420, v4l2_fmt_yuv420planar, v4l2_convert_yuv420_yuv420, "YUV420 [planar] -> YUV420 [planar] (fast conversion)" },
+};
+
+/* ============================================================ 
+ * CONVERSION ROUTINES
+ * ============================================================*/
+
+
+static void v4l2_convert_rgb24_rgb(const char * source, char * dest, size_t size, int xsize, int ysize)
+{
+	size_t mysize = xsize * ysize * 3;
+
+	if(mysize != size)
+		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", size, mysize);
+
+	v4l2_memcpy(dest, source,  mysize);
+}
+
+static void v4l2_convert_bgr24_rgb(const char * source, char * dest, size_t size, int xsize, int ysize)
+{
+	size_t mysize = xsize * ysize * 3;
+	int offset;
+
+	if(mysize != size)
+		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", size, mysize);
+
+	for(offset = 0; offset < mysize; offset += 3)
+	{
+		dest[offset + 0] = source[offset + 2];
+		dest[offset + 1] = source[offset + 1];
+		dest[offset + 2] = source[offset + 0];
+	}
+}
+
+static void v4l2_convert_uyvy_yuv422(const char * source, char * dest, size_t size, int xsize, int ysize)
+{
+	size_t mysize = xsize * ysize * 2;
+
+	if(mysize != size)
+		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", size, mysize);
+
+	v4l2_memcpy(dest, source, mysize);
+}
+
+static void v4l2_convert_yuyv_yuv422(const char * source, char * dest, size_t size, int xsize, int ysize)
+{
+	size_t mysize = xsize * ysize * 2;
+	int offset;
+
+	if(mysize != size)
+		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", size, mysize);
+
+	for(offset = 0; offset < mysize; offset += 4)
+	{
+		dest[offset + 0] = source[offset + 1];
+		dest[offset + 1] = source[offset + 0];
+		dest[offset + 2] = source[offset + 3];
+		dest[offset + 3] = source[offset + 2];
+	}
+}
+
+static void v4l2_convert_yvu420_yuv420(const char * source, char * dest, size_t size, int xsize, int ysize)
+{
+	size_t mysize = xsize * ysize * 3 / 2;
+
+	if(mysize != size)
+		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", size, mysize);
+
+	v4l2_memcpy(dest, source, mysize);
+}
+
+static void v4l2_convert_yuv420_yuv420(const char * source, char * dest, size_t size, int xsize, int ysize)
+{
+	size_t mysize = xsize * ysize * 3 / 2;
+	int yplane_size		= mysize * 4 / 6;
+	int uplane_size		= mysize * 1 / 6;
+
+	int yplane_offset	= 0;
+	int u1plane_offset	= yplane_size + 0;
+	int u2plane_offset	= yplane_size + uplane_size;
+
+	if(mysize != size)
+		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", size, mysize);
+
+	v4l2_memcpy(dest + yplane_offset,  source + yplane_offset,  yplane_size);
+	v4l2_memcpy(dest + u1plane_offset, source + u2plane_offset, uplane_size);
+	v4l2_memcpy(dest + u2plane_offset, source + u1plane_offset, uplane_size);
+}
 
 /* ============================================================ 
  * UTILS
@@ -108,10 +252,8 @@ static int v4l2_mute(int flag)
 	control.value = flag;
 
 	if(ioctl(v4l2_video_fd, VIDIOC_S_CTRL, &control) < 0)
-	{
-		perror(module "VIDIOC_S_CTRL");
-		return(0);
-	}
+		if(verbose_flag & TC_INFO)
+			perror(module "VIDIOC_S_CTRL");
 
 	return(1);
 }
@@ -134,30 +276,31 @@ static void v4l2_save_frame(const char * source, size_t length)
 	v4l2_memcpy(v4l2_resync_previous_frame, source, length);
 }
 
+#if 0
 static void v4l2_framecopy(char * dest, const char * source, size_t length)
 {
-	int yplane_size		= length * 4 / 6;
-	int uplane_size		= length * 1 / 6;
-
-	int yplane_offset	= 0;
-	int u1plane_offset	= yplane_size + 0;
-	int u2plane_offset	= yplane_size + uplane_size;
-
-	if(v4l2_yuv)
+	switch(v4l2_fmt)
 	{
-		v4l2_memcpy(dest + yplane_offset,  source + yplane_offset,  yplane_size);
-		v4l2_memcpy(dest + u1plane_offset, source + u2plane_offset, uplane_size);
-		v4l2_memcpy(dest + u2plane_offset, source + u1plane_offset, uplane_size);
+		// swap u & v planes
+
+		case(v4l2_fmt_yuv420planar):
+		{
+			break;
+		}
+
+		case(v4l2_fmt_yuv422packed):
+		{
+			v4l2_memcpy(dest, source, length);
+			break;
+		}
 	}
-	else
-		v4l2_memcpy(dest, source, length);
 }
+#endif
 
 static int v4l2_video_grab_frame(char * dest, size_t length)
 {
 	static struct v4l2_buffer buffer;
 	static int next_buffer_ix = 0;
-	unsigned long long ts_frame, ts_diff;
 	int ix;
 
 	// get buffer
@@ -180,28 +323,10 @@ static int v4l2_video_grab_frame(char * dest, size_t length)
 
 	next_buffer_ix = (ix + 1) % v4l2_buffers_count;
 
-	ts_frame = ((unsigned int)buffer.timestamp.tv_sec * ts_mul) + ((unsigned int)buffer.timestamp.tv_usec / ts_div);
-	ts_diff = ts_frame - v4l2_timestamp_last ;
-
-	if((v4l2_timestamp_last != 0) && (ts_frame != 0) && (ts_diff > (unsigned long long)v4l2_frame_interval))
-	{
-		ts_diff -= (unsigned long long)v4l2_frame_interval;
-
-		//fprintf(stderr, "diff = %llu, ts_diff = %llu, max = %llu\n", ts_frame - v4l2_timestamp_last, ts_diff, (unsigned long long)v4l2_frame_interval >> 2);
-
-		if(ts_diff > ((unsigned long long)v4l2_frame_interval >> 2))
-				v4l2_video_missed += (ts_diff / (unsigned long long)v4l2_frame_interval) + 1;
-
-			//fprintf(stderr, "\n" module "possibly missed video frame (frame delay > frame rate) (%llu ms / %llu frames)\n",
-					//ts_diff / (1000 * ts_div), ts_diff / (unsigned long long)v4l2_frame_interval);
-	}
-
-	v4l2_timestamp_last = ts_frame;
-
 	// copy frame
 
 	if(dest)
-		v4l2_framecopy(dest, v4l2_buffers[ix].start, length);
+		v4l2_format_convert(v4l2_buffers[ix].start, dest, length, v4l2_width, v4l2_height);
 
 	// enqueue buffer again
 
@@ -239,14 +364,80 @@ static int v4l2_video_count_buffers(void)
 	return(buffers_filled);
 }
 
+static void v4l2_parse_options(const char * options_in)
+{
+	int ix;
+	int first;
+	char * options;
+	char * options_ptr;
+	char * option;
+	char * result;
+	char * name;
+	char * value;
+	v4l2_parameter_t * pt;
+
+	if(!options_in)
+		return;
+
+	options = options_ptr = strdup(options_in);
+
+	if(!options || (!(option = malloc(strlen(options) * sizeof(char)))))
+	{
+		fprintf(stderr, module "cannot malloc - options not parsed\n");
+		return;
+	}
+
+	for(first = 1;; first = 0)
+	{
+		result = strtok_r(first ? options : 0, ":", &options_ptr);
+
+		if(!result)
+			break;
+		
+		name = result;
+		value = strchr(result, '=');
+
+		if(!value)
+			value = "1";
+		else
+			*value++ = '\0';
+
+		for(ix = 0; ix < (sizeof(v4l2_parameters) / sizeof(*v4l2_parameters)); ix++)
+		{
+			pt = &v4l2_parameters[ix];
+
+			if(!strcmp(pt->name, name))
+			{
+				switch(pt->type)
+				{
+					case(v4l2_param_int): *(pt->value.integer) = strtoul(value, 0, 10); break;
+					case(v4l2_param_fp): *(pt->value.fp) = strtod(value, 0); break;
+						case(v4l2_param_string):
+					{
+						strncpy(pt->value.string, value, pt->length);
+						pt->value.string[pt->length] = '\0';
+						break;
+					}
+				}
+
+				break;
+			}
+		}
+	}
+
+	free(options);
+}
+
 /* ============================================================ 
  * V4L2 CORE
  * ============================================================*/
 
-int v4l2_video_init(const char * device, int width, int height, int fps,
-		int resync_margin, int resync_interval)
+int v4l2_video_init(int layout, const char * device, int width, int height, int fps,
+		const char * options)
 {
-	int ix;
+	int ix, found;
+	v4l2_format_convert_table_t * fcp;
+
 	struct v4l2_cropcap cropcap;
 	struct v4l2_crop crop;
 	struct v4l2_format format;
@@ -254,12 +445,9 @@ int v4l2_video_init(const char * device, int width, int height, int fps,
 	struct v4l2_buffer buffer;
 	struct v4l2_capability caps;
 	struct v4l2_streamparm streamparm;
-	v4l2_std_id std;
-	struct timeval tv;
 
 
 #if defined(ARCH_X86) && defined(HAVE_ASM_NASM)
-
 	const char * memcpy_name = 0;
 
 	if(tc_accel & MM_SSE2)
@@ -287,7 +475,6 @@ int v4l2_video_init(const char * device, int width, int height, int fps,
 		else
 			fprintf(stderr, module "accelerated memcpy using: %s\n", memcpy_name);
 	}
-
 #else
 	if(verbose_flag & TC_INFO)
 	{
@@ -295,14 +482,30 @@ int v4l2_video_init(const char * device, int width, int height, int fps,
 	}
 #endif
 
-	v4l2_resync_margin_frames = resync_margin - 1;
-	v4l2_resync_interval_frames = resync_interval;
+	switch(layout)
+	{
+		case(CODEC_RGB): 	v4l2_fmt = v4l2_fmt_rgb;			break;
+		case(CODEC_YUV): 	v4l2_fmt = v4l2_fmt_yuv420planar;	break;
+		case(CODEC_YUV422): v4l2_fmt = v4l2_fmt_yuv422packed;	break;
+
+		default:
+		{
+			fprintf(stderr, module "layout (%d) must be one of CODEC_RGB, CODEC_YUV or CODEC_YUV422\n", layout);
+			return(TC_IMPORT_ERROR);
+		}
+	}
+
+	v4l2_parse_options(options);
 
 	if(verbose_flag & TC_INFO)
-		fprintf(stderr, module "resync %s, margin = %d frames, interval = %d frames, \n",
-					v4l2_resync_margin_frames != 0 ? "enabled" : "disabled",
+	{
+		if(v4l2_resync_margin_frames == 0 || v4l2_resync_interval_frames == 0)
+			fprintf(stderr, module "%s", "resync disabled\n");
+		else
+			fprintf(stderr, module "resync enabled, margin = %d frames, interval = %d frames, \n",
 					v4l2_resync_margin_frames,
 					v4l2_resync_interval_frames);
+	}
 
 	if((v4l2_video_fd = open(device, O_RDWR, 0)) < 0)
 	{
@@ -340,6 +543,9 @@ int v4l2_video_init(const char * device, int width, int height, int fps,
 			fprintf(stderr, module "video input from saa7134 driver detected\n");
 		v4l2_saa7134_video = 1;
 	}
+
+	v4l2_width = width;
+	v4l2_height = height;
 
 	if(!v4l2_saa7134_video)
 	{
@@ -392,18 +598,42 @@ int v4l2_video_init(const char * device, int width, int height, int fps,
 		}
 	}
 
-	memset(&format, 0, sizeof(format));
+//typedef struct
+//{
+//	int			from;
+//	v4l2_fmt_t	to;
+//	int			(*convert)(const char *, char *, int xsize, int ysize);
+//} v4l2_format_convert_t;
 
-	format.type					= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	format.fmt.pix.width		= width;
-	format.fmt.pix.height		= height;
-	format.fmt.pix.pixelformat	= v4l2_yuv ? V4L2_PIX_FMT_YUV420 : V4L2_PIX_FMT_BGR24;
-
-	if(ioctl(v4l2_video_fd, VIDIOC_S_FMT, &format) < 0)
+	for(ix = 0, fcp = v4l2_format_convert_table, found = 0; ix < (sizeof(v4l2_format_convert_table) / sizeof(*v4l2_format_convert_table)); ix++)
 	{
-		perror(module "VIDIOC_S_FMT: ");
+		if(fcp[ix].to != v4l2_fmt)
+			continue;
+
+		memset(&format, 0, sizeof(format));
+		format.type					= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		format.fmt.pix.width		= width;
+		format.fmt.pix.height		= height;
+		format.fmt.pix.pixelformat = fcp[ix].from;
+
+		if(ioctl(v4l2_video_fd, VIDIOC_S_FMT, &format) < 0)
+			perror(module "VIDIOC_S_FMT: ");
+		else
+		{
+			v4l2_format_convert = fcp[ix].convert;
+			fprintf(stderr, module "Pixel format conversion: %s\n", fcp[ix].description);
+			found = 1;
+			break;
+		}
+	}
+
+	if(!found)
+	{
+		fprintf(stderr, module "no usable pixel format supported by card\n");
 		return(1);
 	}
+
+	v4l2_std_id std;
 
 	if(ioctl(v4l2_video_fd, VIDIOC_G_STD, &std) < 0)
 	{
@@ -422,10 +652,8 @@ int v4l2_video_init(const char * device, int width, int height, int fps,
 			v4l2_frame_rate = 25;
 		}
 
-	v4l2_frame_interval = v4l2_resync_framerate_base / v4l2_frame_rate;
-
 	if(verbose_flag & TC_INFO)
-		fprintf(stderr, module "receiving %d frames / sec, frame interval = %G ms\n", v4l2_frame_rate, (double)v4l2_frame_interval / (ts_mul / 1000));
+		fprintf(stderr, module "receiving %d frames / sec\n", v4l2_frame_rate);
 
 	// get buffer data
 
@@ -508,17 +736,12 @@ int v4l2_video_init(const char * device, int width, int height, int fps,
 		return(1);
 	}
 
-	gettimeofday(&tv, 0);
-	v4l2_timestamp_start = ((unsigned long)tv.tv_sec * ts_mul) + ((unsigned long)tv.tv_usec / ts_div);
-
 	return(0);
 }
 
-int	v4l2_video_get_frame(size_t size, char * data, int * attributes)
+int	v4l2_video_get_frame(size_t size, char * data)
 {
 	int buffers_filled = 0;
-
-	*attributes |= TC_FRAME_IS_INTERLACED;
 
 	if(verbose_flag & TC_DEBUG)
 	{
@@ -582,13 +805,13 @@ int	v4l2_video_get_frame(size_t size, char * data, int * attributes)
 
 		if(v4l2_video_resync_op != resync_none && (verbose_flag & TC_INFO))
 		{
-			fprintf(stderr, "\n" module "OP: %s VS/AS: %d/%d C/D/M: %d/%d/%d\n",
+			fprintf(stderr, "\n" module "OP: %s VS/AS: %d/%d C/D: %d/%d\n",
 					v4l2_video_resync_op == resync_drop ? "drop" : "clone",
 					v4l2_video_sequence,
 					v4l2_audio_sequence,
 					v4l2_video_cloned,
-					v4l2_video_dropped,
-					v4l2_video_missed);
+					v4l2_video_dropped
+					/* , v4l2_video_missed */);
 		}
 	}
 
@@ -735,21 +958,11 @@ int v4l2_audio_grab_stop(void)
 
 	if(verbose_flag & TC_INFO)
 	{
-		struct timeval tv;
-		unsigned long long now;
-		gettimeofday(&tv, 0);
-		now = (unsigned long)(tv.tv_sec * ts_mul) + (unsigned long)(tv.tv_usec / ts_div);
-
-		fprintf(stderr, "\n" module "Totals: sequence V/A: %d/%d, frames C/D/M: %d/%d/%d\n",
+		fprintf(stderr, "\n" module "Totals: sequence V/A: %d/%d, frames C/D: %d/%d\n",
 				v4l2_video_sequence,
 				v4l2_audio_sequence,
 				v4l2_video_cloned,
-				v4l2_video_dropped,
-				v4l2_video_missed);
-
-		fprintf(stderr, module "        time spent recording: according to card: %G sec, according to host: %G sec\n",
-				(double)(v4l2_video_sequence * v4l2_frame_interval) / ts_mul,
-				(double)(now - v4l2_timestamp_start) / ts_mul);
+				v4l2_video_dropped);
 	}
 
 	return(0);
@@ -770,35 +983,8 @@ MOD_open
 		if(verbose_flag & TC_INFO)
 			fprintf(stderr, module "v4l2 video grabbing\n");
 
-		if(vob->im_v_codec == CODEC_RGB)
-		{
-			v4l2_yuv = 0;
-		}
-		else
-		{
-			if(vob->im_v_codec == CODEC_YUV)
-			{
-				if(!vob->im_v_string || !strcmp(vob->im_v_string, "yuv422"))
-				{
-					v4l2_yuv = 1;
-				}
-				else
-				{
-					fprintf(stderr, module "codec string != yuv422: %s\n", vob->im_v_string);
-					return(TC_IMPORT_ERROR);
-				}
-			}
-			else
-			{
-				fprintf(stderr, module "codec != CODEC_RGB && codec != CODEC_YUV\n");
-				fprintf(stderr, module "codec: %d\n", vob->im_v_codec);
-	
-				return(TC_IMPORT_ERROR);
-			}
-		}
-
-		if(v4l2_video_init(vob->video_in_file, vob->im_v_width, vob->im_v_height, vob->fps,
-					vob->dvd_title, vob->dvd_chapter1))
+		if(v4l2_video_init(vob->im_v_codec, vob->video_in_file, vob->im_v_width, vob->im_v_height, vob->fps,
+					vob->im_v_string))
 			return(TC_IMPORT_ERROR);
 
 		return(0);
@@ -831,7 +1017,7 @@ MOD_decode
 {
 	if(param->flag == TC_VIDEO)
 	{
-		if(v4l2_video_get_frame(param->size, param->buffer, &param->attributes))
+		if(v4l2_video_get_frame(param->size, param->buffer))
 		{
 			fprintf(stderr, module "error in grabbing video\n");
 			return(TC_IMPORT_ERROR);
