@@ -270,6 +270,7 @@ if test x"$use_mmx" = x"yes" ; then
           nasm_patch_version=`${NASM} -r | cut -d '.' -f 3 | cut -d ' ' -f 1`
           if test "$nasm_patch_version" -lt "34" ; then
             AC_MSG_RESULT([no])
+            AC_MSG_WARN(*** NASM Optimizations disabled....)
           else
             AC_MSG_RESULT([yes])
             AC_DEFINE([HAVE_ASM_NASM], 1, [have nasm])
