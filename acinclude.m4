@@ -764,20 +764,42 @@ AC_CHECK_FILE($with_ffmpeg_libs_i/avcodec.h,
 		[echo "*** Cannot find header file $with_ffmpeg_libs_i/avcodec.h from ffmpeg ***"
 		exit 1])
 
-FFMPEG_BUILD=$(sed -ne 's,#define[[:space:]+]LIBAVCODEC_BUILD[[:space:]]*\(.*\),\1,p' $with_ffmpeg_libs_i/avcodec.h)
-FFMPEG_VERSION=$(sed -ne 's,#define[[:space:]+]FFMPEG_VERSION.*"\(.*\)",\1,p' $with_ffmpeg_libs_i/avcodec.h)
+FFMPEG_LIBS_BUILD=$(sed -ne 's,#define[[:space:]+]LIBAVCODEC_BUILD[[:space:]]*\(.*\),\1,p' $with_ffmpeg_libs_i/avcodec.h)
+FFMPEG_LIBS_VERSION=$(sed -ne 's,#define[[:space:]+]FFMPEG_VERSION.*"\(.*\)",\1,p' $with_ffmpeg_libs_i/avcodec.h)
   
-AC_SUBST(FFMPEG_BUILD)
-AC_SUBST(FFMPEG_VERSION)
+AC_SUBST(FFMPEG_LIBS_BUILD)
+AC_SUBST(FFMPEG_LIBS_VERSION)
+
+FFMPEG_LIBS_CFLAGS="-I$with_ffmpeg_libs_i"
+FFMPEG_LIBS_EXTRALIBS="-lm -lz $pthread_lib"
+
+AC_ARG_ENABLE(ffmpeg-libs-static,
+		AC_HELP_STRING([--enable-ffmpeg-libs-static],[link binaries and modules statically to ffmpeg-libs (huge)]),
+		[
+			if test x"$enableval" = x'yes'
+			then
+				FFMPEG_LIBS_LD="static"
+			else
+				FFMPEG_LIBS_LD="shared"
+			fi
+		],
+		[
+			FFMPEG_LIBS_LD="shared"
+		])
+
+if test x"$FFMPEG_LIBS_LD" = x"shared"
+then
+	FFMPEG_LIBS_LIBS="-L$with_ffmpeg_libs_l -lavcodec $FFMPEG_LIBS_EXTRALIBS"
+else
+	FFMPEG_LIBS_LIBS="$with_ffmpeg_libs_l/libavcodec.a $FFMPEG_LIBS_EXTRALIBS"
+fi
 
 AC_CHECK_LIB(avcodec,
 		avcodec_thread_init,
-		[FFMPEG_LIBS_CFLAGS="-I$with_ffmpeg_libs_i"
-		 FFMPEG_LIBS_LIBS="-L$with_ffmpeg_libs_l -lavcodec $pthread_lib -lm -lz"
-		], 
-		[echo "*** Transcode depends on the FFmpeg libraries and headers (libavcodec) ***"
+		[HAVE_FFMPEG_LIBS_LIBS=1],
+		[echo "*** Transcode depends on the FFmpeg (libavcodec) libraries and headers ***"
 		exit 1],
-		[-lm -L$with_ffmpeg_libs_l])
+		[$FFMPEG_LIBS_EXTRALIBS])
 
 AC_CHECK_LIB(z,
 		gzopen,
@@ -797,6 +819,8 @@ AC_CHECK_LIB(m,
 
 AC_SUBST(FFMPEG_LIBS_CFLAGS)
 AC_SUBST(FFMPEG_LIBS_LIBS)
+AC_SUBST(FFMPEG_LIBS_EXTRALIBS)
+AC_SUBST(FFMPEG_LIBS_LD)
 ])
 
 AC_DEFUN([AM_PATH_LZO],

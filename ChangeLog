@@ -1,5 +1,12 @@
 transcode-0.13-pre2 EMS
 
+2004-08-17 Erik Slagter <erik at oldconomy dot com>
+  * acinclude.m4 configure.in:
+  Added --enable-ffmpeg-libs-static to configure to have
+  transcode + module statically linked to libavcodec.
+  This may help solving strange errors, but beware,
+  the modules will become huge.
+
 2004-08-16 Bryan Mayland <bmayland at leoninedev dot com>
   * aclib/ac.h:
   - added support for 3dnowext, sse3

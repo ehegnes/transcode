@@ -1250,15 +1250,6 @@ dnl
 AM_PATH_FFMPEG_LIBS(AC_DEFINE([HAVE_FFMPEG_LIBS], 1, [Have ffmpeg avcodec library support]))
 AM_CONDITIONAL(HAVE_FFMPEG_LIBS, test x"$have_ffmpeg_libs" = "xyes")
 
-dnl AVCODEC_CFLAGS="-I\$(top_srcdir)/ffmpeg/libavcodec"
-dnl AVCODEC_LIBS="-L\$(top_builddir)/ffmpeg/libavcodec -ltcavcodec"
-dnl if test x"$have_libz" = "xyes"; then
-dnl   AVCODEC_CFLAGS="$AVCODEC_CFLAGS $LIBZ_CFLAGS";
-dnl   AVCODEC_LIBS="$AVCODEC_LIBS $LIBZ_LIBS";
-dnl fi
-dnl AC_SUBST(AVCODEC_CFLAGS)
-dnl AC_SUBST(AVCODEC_LIBS)
-
 dnl
 dnl libxio if requested
 dnl
@@ -1411,8 +1402,9 @@ libfame video encoding plugin                    $have_libfame
 quicktime dependent modules                      $have_qt
 ffmpeg libs headers                              $with_ffmpeg_libs_i
 ffmpeg libs libraries                            $with_ffmpeg_libs_l
-ffmpeg libs build                                $FFMPEG_BUILD
-ffmpeg libs version                              $FFMPEG_VERSION
+ffmpeg libs build                                $FFMPEG_LIBS_BUILD
+ffmpeg libs version                              $FFMPEG_LIBS_VERSION
+ffmpeg to be linked                              $FFMPEG_LIBS_LD
 ffbin module                                     $have_ffmpeg
 *-*-*-*-*-*-* Filter *-*-*-*-*-*-*
 X11 dependent filter plugins                     $USE_X11
