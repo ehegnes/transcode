@@ -24,7 +24,7 @@
 
 #include "config.h"
 
-#ifdef ARCH_X86
+#ifdef HAVE_MMX
 
 #include <stdio.h>
 #include <stdlib.h>

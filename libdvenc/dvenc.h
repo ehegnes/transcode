@@ -69,7 +69,7 @@ extern int write_meta_data(unsigned char* encoded_data, int frame_counter,
 			   int isPAL, time_t *now);
 #endif
 
-#ifdef HAVE_X86CPU
+#ifdef HAVE_ASM_MMX
 #define	emms()			__asm__ __volatile__ ("emms")
 #endif
 

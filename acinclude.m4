@@ -385,7 +385,7 @@ AC_DEFUN([TC_CHECK_V4L],
 AC_MSG_CHECKING([whether v4l support is requested])
 AC_ARG_ENABLE(v4l,
   AC_HELP_STRING([--enable-v4l],
-    [enable experimental v4l support (no)]), 
+    [enable v4l/v4l2 support (no)]), 
   [case "${enableval}" in
     yes) ;;
     no)  ;;
@@ -2256,7 +2256,7 @@ AC_ARG_ENABLE(ffbin,
   enable_ffbin=no)
 AC_MSG_RESULT($enable_ffbin)
 
-have_ffmpeg=""
+have_ffmpeg=no
 if test x$enable_ffbin = "x"yes ; then
   AC_CHECK_PROG(have_ffmpeg,
 		  ffmpeg,

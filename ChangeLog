@@ -1,5 +1,14 @@
 transcode-0.13-pre2 EMS
 
+2004-08-30 Jacob Meuser <jakemsr at jakemsr dot com>
+  * acinclude.m4 configure.in libdvenc/dvenc.h libvo/yuv2rgb_mmx.c:
+  - display "no" when ffbin is not enabled
+  - use more reliable code for detecting if gcc2 is being used
+  - define HAVE_3DNOW when appropriate
+  - fix SSE detection test
+  - cleaned/reogranized/consistified the mmx/3dnow/sse/
+  sse2/altivec tests
+
 2004-08-27 Erik Slagter <erik at oldconomy dot com>
   * acinclude.m4:
   - added -lpthread to libmpeg3 test
