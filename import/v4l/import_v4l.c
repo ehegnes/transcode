@@ -30,7 +30,7 @@
 #include "vcr.h"
 
 #define MOD_NAME    "import_v4l.so"
-#define MOD_VERSION "v0.0.3 (2003-05-07)"
+#define MOD_VERSION "v0.0.4 (2003-05-15)"
 #define MOD_CODEC   "(video) v4l | (audio) PCM"
 
 #define MOD_PRE v4l
@@ -53,6 +53,8 @@ static double vframe_pts0=0, vframe_pts=0;
 static int audio_drop_frames=25;
 static int video_drop_frames=0;
 static int do_audio = 1;
+
+static int do_resync = 1;
 
 /* ------------------------------------------------------------ 
  *
@@ -84,6 +86,8 @@ MOD_open
 	do_audio = 0;
     }
 
+    if ((vob->video_in_file && strncmp(vob->vmod_probed, "/dev/video1", 11))) do_resync=0; //no resync stuff for webcams
+	
     switch(vob->im_v_codec) {
       
     case CODEC_RGB:
@@ -111,7 +115,7 @@ MOD_open
     }
     
     vframe_pts0 =  vframe_pts = v4l_counter_init();
-    if (do_audio)
+    if (do_audio) 
 	video_drop_frames = audio_drop_frames - (int) ((vframe_pts0-aframe_pts0)*vob->fps);
     if(verbose_flag) printf("[%s] dropping %d video frames for AV sync\n ", MOD_NAME, video_drop_frames);
     
@@ -146,22 +150,26 @@ MOD_decode{
   
   if(param->flag == TC_VIDEO) {
 
+    if(!do_resync) video_drop_frames=1;
+
     do {
-      
       video_grab_frame(param->buffer);
       if((verbose & TC_STATS) && vframe_cnt<MAX_DISPLAY_PTS) v4l_counter_print("VIDEO", vframe_cnt, vframe_pts0, &vframe_pts);
-
+      
       ++vframe_cnt;
       --video_drop_frames;
       
     } while(video_drop_frames>0);
+
+    video_drop_frames=1;
     
     return(0);
   }
   
   if(param->flag == TC_AUDIO) {
-    
 
+    if(!do_resync) audio_drop_frames=1;
+    
     do {
       
       audio_grab_frame(param->buffer, param->size);
@@ -169,9 +177,11 @@ MOD_decode{
 
       ++aframe_cnt;
       --audio_drop_frames;
-      
+
     } while(audio_drop_frames>0);
     
+    audio_drop_frames=1;
+
     return(0);
  }
  
@@ -199,7 +209,7 @@ MOD_close
   if(param->flag == TC_AUDIO) {
     
     // stop grabbing
-    audio_grab_close();
+    audio_grab_close(do_audio);
     
     return(0);
   }

@@ -90,29 +90,29 @@ int audio_grab_frame(char *buffer, int bytes)
 	perror("read /dev/dsp");
 	return(-1);
       }
-      return(0);
       
     } else {
       
-      if (blocksize != read(fd, buffer, blocksize)) {
+      if (blocksize != read(fd, buffer + offset, blocksize)) {
 	perror("read /dev/dsp");
 	return(-1);
-      } 
-      
-      offset += blocksize;
-      bytes_left -= blocksize;
+      }
     }
-  }
+
+    offset += blocksize;
+    bytes_left -= blocksize;
+
+  }//bytes_left>0     
   
   return(0);
 
 }
 
-void audio_grab_close()
+void audio_grab_close(do_audio)
 {
 
-  sound_startrec(0);
-
+  if(do_audio) sound_startrec(0);
+  
   // audio device
   close(fd);
 }

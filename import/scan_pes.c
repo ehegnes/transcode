@@ -346,6 +346,11 @@ void scan_pes(int verbose, FILE *in_file)
 	case 0xe2:	/* video */
 	case 0xe3:	/* video */
 	case 0xe4:	/* video */
+	case 0xe5:	/* video */
+	case 0xe6:	/* video */
+	case 0xe7:	/* video */
+	case 0xe8:	/* video */
+	case 0xe9:	/* video */
 
 	    id = buf[3] &  0xff;
 	    
@@ -643,6 +648,11 @@ void probe_pes(info_t *ipipe)
 	case 0xe2:	/* video */
 	case 0xe3:	/* video */
 	case 0xe4:	/* video */
+	case 0xe5:	/* video */
+	case 0xe6:	/* video */
+	case 0xe7:	/* video */
+	case 0xe8:	/* video */
+	case 0xe9:	/* video */
 
 	    id = buf[3] &  0xff;
 	    

@@ -84,7 +84,6 @@
 #define TC_MAGIC_M2V                   0x000001b3
 #define TC_MAGIC_PICEXT                0x000001b5
 #define TC_MAGIC_MPEG                  0x000001e0
-#define TC_MAGIC_MPEG_E4               0x000001e4
 #define TC_MAGIC_TS                    0x00000047
 #define TC_MAGIC_YUV4MPEG              0x00000300
 #define TC_MAGIC_DV_PAL                0x1f0700bf

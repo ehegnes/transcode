@@ -106,6 +106,11 @@ static void ps_loop (void)
 	case 0xe2:	/* video */
 	case 0xe3:	/* video */
 	case 0xe4:	/* video */
+	case 0xe5:	/* video */
+	case 0xe6:	/* video */
+	case 0xe7:	/* video */
+	case 0xe8:	/* video */
+	case 0xe9:	/* video */
 
 	  tmp2 = buf + 6 + (buf[4] << 8) + buf[5];
 	  if (tmp2 > end)

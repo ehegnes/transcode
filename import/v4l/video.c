@@ -47,6 +47,8 @@ static struct video_tuner	tuner;
 static int v4l_max_buffer=0;
 static int filter_yuv2toyv12 = -1;
 
+int do_audio=0;
+
 #define cf_get_named_key(x,y,z) cf_get_named_section_value_of_key(x,y,z)
 
 int video_grab_init(
@@ -57,7 +59,7 @@ int video_grab_init(
   int h,                 // image height
   int fmt,               // pixel format
   int verb,             // verbosity flag
-  int do_audio           // init audio or not?
+  int _do_audio         // init audio or not?
   )
 {
   int i, j, channel_has_tuner = 0;
@@ -73,7 +75,9 @@ int video_grab_init(
   unsigned long tfreq=0;
 
   int found_station=0;
-  
+
+  do_audio=_do_audio;
+
   snprintf( pNorm, TC_BUF_MIN - 1, "%s", "don't touch" );
 
   // open video device  
@@ -350,8 +354,10 @@ dont_touch:
       if (do_audio) {
 	// audio parameter
 	if (-1 == ioctl(fh,VIDIOCGAUDIO,&audio)) {
-	  perror("ioctl VIDIOCGAUDIO");
-	  return(-1);
+	  //perror("ioctl VIDIOCGAUDIO");
+	  //return(-1);
+	  if(verb) fprintf(stderr,"(%s) device has no audio channel\n", __FILE__);
+	  do_audio=0; //reset
 	}
 	
 	if(verb) printf("(%s) (audio-%s): ", __FILE__, audio.name);
