@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-12-26 Marcus Holland-Moritz <mhx-perl at gmx.net>
+
+  * import/{import_ac3.c import_vdrac3.c}:
+  Pass a52 flags to the ac3 decoder.
+
 2003-12-24 Tilmann Bitterberg <transcode at tibit.org>
   
   * contrib/tccomplete.source:
