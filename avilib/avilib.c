@@ -1438,14 +1438,12 @@ avi_t *AVI_open_fd(int fd, int getIndex)
 int avi_parse_index_from_file(avi_t *AVI, char *filename)
 {
     char data[100]; // line buffer
-    char tag[5];
     FILE *fd = NULL; // read from
     off_t pos, len, f_pos, tot_chunks[AVI_MAX_TRACKS];
     int key=0, type;
     int vid_chunks=0, aud_chunks[AVI_MAX_TRACKS];
-    long chunk, chunkptype, line_count=0;
-    double ms=0.0;
-    char c;
+    long line_count=0;
+    char *c, d;
     int i,j;
 
     for (i=0; i<AVI_MAX_TRACKS; i++) aud_chunks[i] = 0;
@@ -1468,12 +1466,12 @@ int avi_parse_index_from_file(avi_t *AVI, char *filename)
     fgets(data, 100, fd);
     f_pos = ftell(fd);
     while (fgets(data, 100, fd)) {
-	c = data[1];
-	if        (c == '0') {
+	d = data[1];
+	if        (d == '0') {
 	    vid_chunks++;
-	} else if (c == '1' || c == '2' || c == '3' || c == '4' ||
-		   c == '5' || c == '6' || c == '7' || c == '8'   ) {
-	    aud_chunks[c-'1']++;
+	} else if (d == '1' || d == '2' || d == '3' || d == '4' ||
+		   d == '5' || d == '6' || d == '7' || d == '8'   ) {
+	    aud_chunks[d-'1']++;
 	} else 
 	    continue;
 
@@ -1501,8 +1499,18 @@ int avi_parse_index_from_file(avi_t *AVI, char *filename)
     for(j=0; j<AVI->anum; ++j) aud_chunks[j] = tot_chunks[j] = 0;
 
     while (fgets(data, 100, fd)) {
-	sscanf(data, "%s %d %ld %ld %lld %lld %d %lf", 
-		tag, &type, &chunk, &chunkptype, &pos, &len, &key, &ms);
+	// this is very slow
+	// sscanf(data, "%*s %d %*d %*d %lld %lld %d %*f", &type,  &pos, &len, &key);
+	c     = strchr (data, ' ');
+	type  = strtol(c+1, &c, 10);
+	//ch    = strtol(c+1, &c, 10);
+	c = strchr(c+1, ' ');
+	//chtype= strtol(c+1, &c, 10);
+	c = strchr(c+1, ' ');
+	pos   = strtoll(c+1, &c, 10);
+	len   = strtol(c+1, &c, 10);
+	key   = strtol(c+1, &c, 10);
+	//ms    = strtod(c+1, NULL);
 	i = type-1;
 
 	switch (i) {
@@ -1523,7 +1531,6 @@ int avi_parse_index_from_file(avi_t *AVI, char *filename)
 		break;
 	    default:
 		continue;
-		break;
 	}
 
     }
