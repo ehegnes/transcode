@@ -13,8 +13,12 @@ void probe_vnc(info_t *ipipe)
 	ipipe->error=1;
 	return;
     }
-    ipipe->probe_info->width  = ( ((buf[45]<<8)&0xff00) | (buf[46]&0xff) ) & 0xffff;
-    ipipe->probe_info->height = ( ((buf[47]<<8)&0xff00) | (buf[48]&0xff) ) & 0xffff;
+    ipipe->probe_info->width  = ( ((buf[0x19]<<8)&0xff00) | (buf[0x1A]&0xff) ) & 0xffff;
+    ipipe->probe_info->height = ( ((buf[0x1B]<<8)&0xff00) | (buf[0x1C]&0xff) ) & 0xffff;
+    if (!ipipe->probe_info->width)
+	ipipe->probe_info->width  = ( ((buf[45]<<8)&0xff00) | (buf[46]&0xff) ) & 0xffff;
+    if (!ipipe->probe_info->height)
+	ipipe->probe_info->height = ( ((buf[47]<<8)&0xff00) | (buf[48]&0xff) ) & 0xffff;
     ipipe->probe_info->fps = 25.;
     ipipe->probe_info->frc = 3;
     ipipe->probe_info->codec = TC_CODEC_RGB;
