@@ -105,7 +105,10 @@ int audio_init(vob_t *vob, int debug)
 
     if(avi_aud_chan==1) aud_mono = 1;
 
-    if (strncmp(vob->amod_probed,"null", 4) == 0) {
+    if (vob->amod_probed && 
+	strlen(vob->amod_probed)>=4 && 
+	strncmp(vob->amod_probed,"null", 4) == 0) 
+    {
 	fprintf(stderr, "(%s) No amod probed, muting\n", __FILE__);
 	mute = 1;
 	return 0;

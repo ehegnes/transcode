@@ -3,15 +3,10 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-lib_LTLIBRARIES = libtcioaux.la
-
-INCLUDES = -I./
+noinst_LIBRARIES = libtcioaux.a
 
 CFLAGS=-O3 -funroll-loops -ffast-math -DLINUX -Wall @CFLAGS@
-libtcioaux_la_SOURCES = framecode.c configs.c
+libtcioaux_a_SOURCES = framecode.c configs.c
 
+noinst_HEADERS = *.h
 EXTRA_DIST = *.h *.l
-
-
-
-

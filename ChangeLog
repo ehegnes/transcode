@@ -1,7 +1,50 @@
 --------------------------------------------
 transcode-0.6.4.HEAD
 
-2003-04-10  Tilmann Bitterberg  <transcode at tibit.org>
+2003-04-28 Thomas Oestreich <ostreich at Theorie.Physik.UNI-Goettingen.DE>
+
+  * import/extract_mpeg2.c, import/fileinfo.c, import/magic.h,
+  import/probe_stream.c, import/scan_pes.c: fix the
+  detection/transcoding of some newer VDR streams
+
+2003-27 Tilmann Bitterberg <transcode at tibit.org>
+
+  * /*/Makefile.am: remove the -no-undefined switch when building
+  export modules, this is needed for compiling on MacOS X. Added a
+  dummy.c file in libdldarwin for `ar's who do not like creating empty
+  archives.
+
+2003-04-25 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/aud_aux.c: do not compare strings if one is NULL
+  
+2003-04-25 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * filter/ivtc/README.Inverse.Telecine: moved to 
+  README.Inverse.Telecine.txt
+
+2003-04-23 Jean Delvare <khali at linux-fr.org>
+
+  * import/tcprobe.c: show duration of a file (if available) in a
+  human-readable format (hh:mm:ss.mm)
+
+2003-04-23 Thanasis Tsiodras <ttsiod at softlab.ece.ntua.gr>
+  
+  * filter/ivtc/filter_{ivtc,decimate}: It reduces memory requirements
+  to 1/3 of the original, corrects a bug in the decimate filter and
+  it's a lot better commented than what it used to be.
+
+2003-04-18 Marzio malanchini <marzio_malanchini at vodafone.it>
+
+  * import/ioxml.c, docs/import-xml.txt: allow ioxml to handle the multiple
+  video and audio elements in the same seq statement
+
+2003-04-12 Tilmann Bitterberg  <transcode at tibit.org>
+
+  * src/callbacks.c: Do not try to rename /dev/null (pointed out by Dee
+    <dfisher at uptimedevices.com>)
+
+2003-04-10 Tilmann Bitterberg  <transcode at tibit.org>
 
   * export_mpeg2enc, export_mp2enc: Do not write to /dev/null.{m1v,m2v}
 
@@ -10,8 +53,8 @@ transcode-0.6.4.20030408
 
 - Big import_xml update:
   - manage different file type in the same xml (only for dv and avi
-    created with dvgrab/kino)                    
-  - add a program to check the consistence of xml file                                                           
+    created with dvgrab/kino)
+  - add a program to check the consistence of xml file
   - enable new parameters in the PARM option (see file import-xml.txt
     under docs directory )
    -- Marzio Malanchini <marzio_malanchini AT vodafone.it>

@@ -157,7 +157,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
       } else {
 
-	  char *p = ptr->video_buf + ptr->v_width*3;
+	  char *p = ptr->video_buf - ptr->v_width*3;
 	 // printf("WAS cloned\n");
 
 	  for (h = 1; h < ptr->v_height; h += 2) {

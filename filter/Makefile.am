@@ -3,7 +3,7 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-INCLUDES = -I./ -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ -I../encore2 -I$(srcdir)/../encore2 @LAME_CFLAGS@ -I../libac3 -I$(srcdir)/../libac3 @LIBPOSTPROC_CFLAGS@ @MAGICK_CFLAGS@
+INCLUDES = -I./ -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ -I../encore2 -I$(srcdir)/../encore2 @LAME_CFLAGS@ -I../libac3 -I$(srcdir)/../libac3 @LIBPOSTPROC_CFLAGS@ @MAGICK_CFLAGS@ @FT2_CFLAGS@
 
 CFLAGS = -D_REENTRANT @CFLAGS@
 
@@ -19,6 +19,10 @@ if HAVE_MMX
 F_MMX=filter_dilyuvmmx.la 
 else
 F_MMX=
+endif
+
+if HAVE_FREETYPE2
+F_TEXT=filter_text.la
 endif
 
 if HAVE_MAGICK
@@ -50,7 +54,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_tc_audio.la\
 			filter_29to23.la\
 			filter_smooth.la\
-			$(F_PP) $(F_MMX) $(F_LOGO)
+			$(F_PP) $(F_MMX) $(F_LOGO) $(F_TEXT)
 
 filter_null_la_SOURCES = filter_null.c
 filter_null_la_LDFLAGS =  -module -avoid-version 
@@ -60,6 +64,10 @@ filter_doublefps_la_LDFLAGS =  -module -avoid-version
 
 filter_clone_la_SOURCES = filter_clone.c
 filter_clone_la_LDFLAGS =  -module -avoid-version 
+
+filter_text_la_SOURCES = filter_text.c
+filter_text_la_LDFLAGS =  -module -avoid-version 
+filter_text_la_LIBADD  = @FT2_LIBS@
 
 filter_smooth_la_SOURCES = filter_smooth.c
 filter_smooth_la_LDFLAGS =  -module -avoid-version 

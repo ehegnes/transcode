@@ -12,6 +12,7 @@ docs_DATA = \
                     export_ffmpeg.txt \
                     filter_dnr.txt \
                     filter_logo.txt \
+                    filter_text.txt \
                     filter_logoaway.txt \
                     filter_yuvdenoise.txt \
                     import_nvrec.txt \
@@ -20,6 +21,7 @@ docs_DATA = \
                     README.rip \
                     README.sync \
                     README.vcd \
+		    README.Inverse.Telecine.txt \
                     template.cfg.txt\
 		    filter-socket.txt\
 		    filter-API.txt export-API.txt import-API.txt

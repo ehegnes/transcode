@@ -91,6 +91,9 @@ ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
+FT2_CFLAGS = @FT2_CFLAGS@
+FT2_CONFIG = @FT2_CONFIG@
+FT2_LIBS = @FT2_LIBS@
 GLIB_CFLAGS = @GLIB_CFLAGS@
 GLIB_CONFIG = @GLIB_CONFIG@
 GLIB_LIBS = @GLIB_LIBS@
@@ -109,6 +112,8 @@ HAVE_AVIFILE_FALSE = @HAVE_AVIFILE_FALSE@
 HAVE_AVIFILE_TRUE = @HAVE_AVIFILE_TRUE@
 HAVE_DV_FALSE = @HAVE_DV_FALSE@
 HAVE_DV_TRUE = @HAVE_DV_TRUE@
+HAVE_FREETYPE2_FALSE = @HAVE_FREETYPE2_FALSE@
+HAVE_FREETYPE2_TRUE = @HAVE_FREETYPE2_TRUE@
 HAVE_GTK_FALSE = @HAVE_GTK_FALSE@
 HAVE_GTK_TRUE = @HAVE_GTK_TRUE@
 HAVE_LAME_FALSE = @HAVE_LAME_FALSE@
@@ -316,9 +321,9 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 	all-recursive install-data-recursive install-exec-recursive \
 	installdirs-recursive install-recursive uninstall-recursive \
 	check-recursive installcheck-recursive
-DIST_COMMON = README AUTHORS COPYING ChangeLog Makefile.am Makefile.in \
-	TODO acinclude.m4 aclocal.m4 config.h.in configure configure.in \
-	transcode.spec.in
+DIST_COMMON = README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
+	Makefile.in TODO acinclude.m4 aclocal.m4 config.h.in configure \
+	configure.in transcode.spec.in
 DIST_SUBDIRS = $(SUBDIRS)
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive

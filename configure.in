@@ -1,13 +1,13 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT(transcode,0.6.4.20030409)
+AC_INIT(transcode,0.6.4)
 AC_CONFIG_AUX_DIR(autotools)
 AC_CONFIG_SRCDIR(src/transcode.c)
 
 dnl Detect the canonical host and target build environment
 AC_CANONICAL_SYSTEM
 
-AM_INIT_AUTOMAKE(transcode,0.6.4.20030409)
+AM_INIT_AUTOMAKE(transcode,0.6.4)
 AM_CONFIG_HEADER(config.h)
   
 AM_MAINTAINER_MODE
@@ -77,6 +77,9 @@ if test X"$ac_cv_lib_dl_dlopen" = Xno; then
       ;;
    esac
 fi
+
+DLDARWINOBJECTS="$DLDARWINOBJECTS dummy.o"
+AC_SUBST(DLDARWINOBJECTS)
 
 if test X"$enable_shared" = Xyes; then
   DLLDFLAGS=-export-dynamic
@@ -493,6 +496,16 @@ dnl
 
 AM_PATH_AVIFILE(AC_DEFINE([HAVE_AVIFILE], 1, [Have Avifile support]))
 AM_CONDITIONAL(HAVE_AVIFILE, test x"$have_avifile" = "xyes")
+
+dnl
+dnl freetype
+dnl
+
+have_freetype2=no
+AC_CHECK_FT2([],[have_freetype2=yes
+	      AC_DEFINE([HAVE_FREETYPE2], 1, [Define if you  have the freetype2 lib])
+	      ],[have_freetype2=no])
+AM_CONDITIONAL(HAVE_FREETYPE2,test x"$have_freetype2" = "xyes")
 
 dnl
 dnl v4l
@@ -935,6 +948,7 @@ quicktime dependent modules                      $have_qt
 *-*-*-*-*-*-* Filter *-*-*-*-*-*-*
 libpostproc dependent filter plugin      	 $have_libpostproc
 X11 dependent filter plugins                     $USE_X11
+freetype2 dependent filter (filter_text)         $have_freetype2
 ----------------------------------------------------------
 ])
 if test x"$have_x86cpu" = x"true"; then
