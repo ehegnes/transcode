@@ -26,7 +26,8 @@
 // ----------------- Changes 
 // 0.3 -> 0.4: Tilmann Bitterberg
 //             Fix a typo in the optstr_param printout and correct the filter
-//             flags
+//             flags.
+//             Fix a bug related to scanrange.
 
 #define MOD_NAME    "filter_modfps.so"
 #define MOD_VERSION "v0.4 (2003-07-31)"
@@ -50,6 +51,7 @@
 #endif
 #include <unistd.h>
 #include <inttypes.h>
+#include <math.h>
 
 #include "transcode.h"
 #include "framebuffer.h"
@@ -119,6 +121,13 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	if ((vob = tc_get_vob()) == NULL)
 	    return (-1);
 
+	// defaults
+	outfps = vob->ex_fps;
+	infps  = vob->fps;
+	infrc  = vob->im_frc;
+	if (infrc>0 && infrc < 16)
+	    infps = frc_table[infrc];
+
 	// filter init ok.
 	if (options != NULL) {
 	  if (optstr_lookup (options, "help")) {
@@ -136,20 +145,25 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	if (verbose)
 	    printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
 
-	  outfps = vob->fps;
 	  if (outfps > infps*2.0){
 	    fprintf(stderr, "[%s] Error, desired output fps can not be greater\n",MOD_NAME);
 	    fprintf(stderr, "[%s] than twice the input fps\n", MOD_NAME);
 	    return -1;
 	  }
-	if (infrc>0 && infrc < 16){
-	      infps = frc_table[infrc];
-	}
+
+	  if ( (outfps == infps) || (infrc && infrc == vob->ex_frc)) {
+	    fprintf(stderr, "[%s] No framerate conversion requested, exiting\n",MOD_NAME);
+	    return -1;
+	  }
+
 
 	if (mode == 0){
 	  return 0;
 	} // else
-	scanrange = ptr->video_size;
+
+	// can't do that here, its not valid. ptr->video_size will contain the
+	// maximum of the frame the filter may get. 
+	//scanrange = ptr->video_size;
 	{ // allocate buffers
 	  int i;
 	  frbufsize = numSample +1;
@@ -283,7 +297,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	      frameIn,t,score,t1,t2);
 #endif // DEBUG
 	  *score=0;
-	  for(i=0; i<scanrange; i+=offset){
+	  for(i=0; i<ptr->video_size; i+=offset){
 	    *score += abs(t2[i] - t1[i]);
 	  }
 #ifdef DEBUG
