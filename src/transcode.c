@@ -267,7 +267,7 @@ void usage(int status)
   printf("\n");
 
   //de-interlacing
-  printf(" -I mode           enable de-interlacing mode (1-3) [off]\n");
+  printf(" -I mode           enable de-interlacing mode (1-5) [off]\n");
   printf("\n");
 
   //video effects
