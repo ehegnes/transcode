@@ -2,6 +2,11 @@
 transcode-0.6.11
 
 2003-09-29 Tilmann Bitterberg <transcode at tibit.org>
+   
+   * import/clone.c src/decoder.c:
+   Fix a few compiler warnings
+
+2003-09-29 Tilmann Bitterberg <transcode at tibit.org>
 
   * configure.in ffmpeg/libavcodec/Makefile.am ffmpeg/av_config.h:
   Enable building of altivec specific parts of libavcodec. Only

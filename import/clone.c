@@ -169,7 +169,7 @@ int get_next_frame(char *buffer, int size)
   if((i=buffered_p_read((char *) &ptr)) != sizeof(sync_info_t)) {
       
       if(verbose & TC_DEBUG) {
-	  fprintf(stderr, "read error (%d/%d)\n", i, sizeof(sync_info_t));
+	  fprintf(stderr, "read error (%d/%ld)\n", i, sizeof(sync_info_t));
       }
       
       //no more frames?
@@ -363,7 +363,7 @@ void clone_read_thread()
 
 	if((j=p_read(sfd, (char *) ptr->sync_info, sizeof(sync_info_t))) != sizeof(sync_info_t)) {
 	    
-	    if(verbose & TC_DEBUG) fprintf(stderr, "(%s) p_read error (%d/%d)\n",  __FILE__, j, sizeof(sync_info_t));
+	    if(verbose & TC_DEBUG) fprintf(stderr, "(%s) p_read error (%d/%ld)\n",  __FILE__, j, sizeof(sync_info_t));
 	    pthread_mutex_lock(&buffer_fill_lock);
 	    clone_read_thread_flag=0;
 	    pthread_mutex_unlock(&buffer_fill_lock);

@@ -79,7 +79,7 @@ void tc_import_stop()
   frame_threads_notify(TC_VIDEO);
   frame_threads_notify(TC_AUDIO);
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) import stop requested by client=%ld (main=%ld) import status=%d\n", __FILE__, pthread_self(), tc_pthread_main, import_status());
+  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) import stop requested by client=%ld (main=%ld) import status=%d\n", __FILE__, (unsigned long)pthread_self(), (unsigned long)tc_pthread_main, import_status());
 
 }
 
@@ -114,7 +114,7 @@ void import_threads_cancel()
     
     if(cc2 == ESRCH) fprintf(stderr, "(%s) audio thread already terminated\n", __FILE__);  
     
-    fprintf(stderr, "(%s) A/V import canceled (%ld) (%ld)\n", __FILE__, pthread_self(), tc_pthread_main);
+    fprintf(stderr, "(%s) A/V import canceled (%ld) (%ld)\n", __FILE__, (unsigned long)pthread_self(), (unsigned long)tc_pthread_main);
     
   }
 
@@ -448,7 +448,7 @@ void vimport_thread(vob_t *vob)
 
   transfer_t import_para;
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) video thread id=%ld\n", __FILE__, pthread_self());
+  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) video thread id=%ld\n", __FILE__, (unsigned long)pthread_self());
 
   // bytes per video frame
   vbytes = vob->im_v_size;
@@ -628,7 +628,7 @@ void aimport_thread(vob_t *vob)
   transfer_t import_para;
 
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) audio thread id=%ld\n", __FILE__, pthread_self());
+  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) audio thread id=%ld\n", __FILE__, (unsigned long)pthread_self());
 
   // bytes per audio frame
   abytes = vob->im_a_size;
