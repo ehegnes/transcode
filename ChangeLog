@@ -1,3 +1,9 @@
+2005-01-28 Bauke Jan Douma <bjdouma at xs4all dot nl>
+  * src/transcode
+  Instead of hoping a thread sets a variable before it's used in
+  another thread, make sure the variable is set before being used
+  with the help of a mutex and pthread_cond_wait.
+
 2005-01-25 Doug Fregusson <dougf at fergusson dot cx>
   * filter/filter_text.c
   Place a HH:MM:SS.FRAME timestamp in each frame with the

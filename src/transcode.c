@@ -117,6 +117,8 @@ char *socket_file = NULL;
 char *plugins_string = NULL;
 char *tc_config_dir = NULL;
 pid_t writepid = 0;
+pthread_mutex_t writepid_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t writepid_cond = PTHREAD_COND_INITIALIZER;
 
 char *video_ext = ".avi";
 char *audio_ext = ".mp3";
@@ -475,7 +477,11 @@ void signal_thread()
   int caught;
   char *signame = NULL;
 
+  pthread_mutex_lock(&writepid_mutex);
   writepid = getpid();
+  if (writepid > 0)
+    pthread_cond_signal(&writepid_cond);
+  pthread_mutex_unlock(&writepid_mutex);
 
   /*
   sigemptyset(&sigs_to_block);
@@ -1050,6 +1056,12 @@ int main(int argc, char *argv[]) {
     if(pthread_create(&thread_signal, NULL, (void *) signal_thread, NULL)!=0)
       tc_error("failed to start signal handler thread");
     tc_signal_thread=1;
+
+    /* writepid is set in signal_thread */
+    pthread_mutex_lock(&writepid_mutex);
+    while (writepid == 0)
+      pthread_cond_wait(&writepid_cond, &writepid_mutex);
+    pthread_mutex_unlock(&writepid_mutex);
 
     // close all threads at exit
     atexit(safe_exit);
