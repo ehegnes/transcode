@@ -41,10 +41,11 @@
 #include "transcode.h"
 #include "avilib.h"
 
+/* Decoder API hasn't changed from API2 to API3, so we can use both */
 #include "../export/xvid3.h"
 
 #define MOD_NAME    "import_xvid.so"
-#define MOD_VERSION "v0.0.1 (2002-09-10)"
+#define MOD_VERSION "v0.0.2 (2003-11-10)"
 #define MOD_CODEC   "(video) XviD/OpenDivX/DivX 4.xx/5.xx"
 #define MOD_PRE xvid
 #include "import_def.h"
@@ -63,50 +64,72 @@ static int done_seek=0;
 
 static int x_dim, y_dim;
 
-#define MODULE1 "libxvidcore.so"
+#define XVID_SHARED_LIB_NAME "libxvidcore.so"
 
 static int xvid2_init(char *path) {
-#ifdef __FreeBSD__
-  const
+#if defined(__FreeBSD__) || defined(__APPLE__)
+	const
 #endif    
-  char *error;
-  
-  char module[TC_BUF_MAX];
+		char *error;
+	char modules[6][TC_BUF_MAX];
+	char *module;
+	int i;
+	
 
-  //XviD comes now as a single core-module 
+	/* First we build all lib names we will try to load
+	 *  - xvid3 decoders to have bframe support
+	 *  - then xvid2 decoders
+	 *  - bare soname as a fallback */
+	sprintf(modules[0], "%s/%s.%d", path, XVID_SHARED_LIB_NAME, 3);
+	sprintf(modules[1], "%s.%d", XVID_SHARED_LIB_NAME, 3);
+	sprintf(modules[2], "%s/%s.%d", path, XVID_SHARED_LIB_NAME, 2);
+	sprintf(modules[3], "%s.%d", XVID_SHARED_LIB_NAME, 2);
+	sprintf(modules[4], "%s/%s", path, XVID_SHARED_LIB_NAME);
+	sprintf(modules[5], "%s", XVID_SHARED_LIB_NAME);
 
-  sprintf(module, "%s/%s", path, MODULE1);
+	for(i=0; i<6; i++) {
+		module = modules[i];
 
-  // try transcode's module directory
-  handle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
+		if(verbose_flag & TC_DEBUG)
+			fprintf(stderr,	"[%s] Trying to load shared lib %s\n",
+				MOD_NAME, module);
 
-  if (!handle) {
-    //try the default:
-    handle = dlopen(MODULE1, RTLD_GLOBAL| RTLD_LAZY);
+		/* Try loading the shared lib */
+		handle = dlopen(modules[i], RTLD_GLOBAL| RTLD_LAZY);
 
-    //success?
-    if (!handle) {
-      fputs (dlerror(), stderr);
-      return(-1);
-    } else {  
-      if(verbose_flag & TC_DEBUG) 
-	fprintf(stderr, "loading external codec module %s\n", MODULE1); 
-    }
+		/* Test wether loading succeeded */
+		if(handle != NULL)
+			goto so_loaded;
+	}
 
-  } else {  
-    if(verbose_flag & TC_DEBUG) 
-      fprintf(stderr, "loading external codec module %s\n", module); 
-  }
+	/* None of the modules were available */
+	fprintf(stderr, dlerror());
+	return(-1);
 
-  XviD_decore = dlsym(handle, "xvid_decore");   	/* NEW XviD_API ! */
-  XviD_init = dlsym(handle, "xvid_init");   		/* NEW XviD_API ! */
+ so_loaded:
+	if(verbose_flag & TC_DEBUG)
+		fprintf(stderr,	"[%s] Using shared lib %s\n",
+			MOD_NAME, module);
 
-  if ((error = dlerror()) != NULL)  {
-    fputs(error, stderr);
-    return(-1);
-  }
+	/* Import the XviD init entry point */
+	XviD_init   = dlsym(handle, "xvid_init");
+    
+	/* Something went wrong */
+	if((error = dlerror()) != NULL)  {
+		fprintf(stderr, error);
+		return(-1);
+	}
 
-  return(0);
+	/* Import the XviD encoder entry point */
+	XviD_decore = dlsym(handle, "xvid_decore");
+
+	/* Something went wrong */
+	if((error = dlerror()) != NULL)  {
+		fprintf(stderr, error);
+		return(-1);
+	}
+
+	return(0);
 }
 
 static avi_t *avifile=NULL;

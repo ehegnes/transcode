@@ -1,6 +1,13 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-11-10 Edouard Gomez <ed.gomez at free.fr>
+  
+  * import/{decode_xvid.c import_xvid.c}:
+  This patch should fix problems when using the xvid import module.
+  It was still trying to load old sonames, now it try to load all
+  compatible sonames. Pointed out by Thomas Weber.
+
 2003-11-10 Tilmann Bitterberg <transcode at tibit.org>
 
   * acinclude.m4:

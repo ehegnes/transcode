@@ -65,18 +65,23 @@ static int xvid2_init(char *path) {
 	const
 #endif    
 		char *error;
-	char modules[4][TC_BUF_MAX];
+	char modules[6][TC_BUF_MAX];
 	char *module;
 	int i;
 	
 
-	/* First we build all lib names we will try to load */
-	sprintf(modules[0], "%s/%s.%d", path, XVID_SHARED_LIB_NAME, API_VERSION>>16);
-	sprintf(modules[1], "%s.%d", XVID_SHARED_LIB_NAME, API_VERSION>>16);
-	sprintf(modules[2], "%s/%s", path, XVID_SHARED_LIB_NAME);
-	sprintf(modules[3], "%s", XVID_SHARED_LIB_NAME);
+	/* First we build all lib names we will try to load
+	 *  - xvid3 decoders to have bframe support
+	 *  - then xvid2 decoders
+	 *  - bare soname as a fallback */
+	sprintf(modules[0], "%s/%s.%d", path, XVID_SHARED_LIB_NAME, 3);
+	sprintf(modules[1], "%s.%d", XVID_SHARED_LIB_NAME, 3);
+	sprintf(modules[2], "%s/%s.%d", path, XVID_SHARED_LIB_NAME, 2);
+	sprintf(modules[3], "%s.%d", XVID_SHARED_LIB_NAME, 2);
+	sprintf(modules[4], "%s/%s", path, XVID_SHARED_LIB_NAME);
+	sprintf(modules[5], "%s", XVID_SHARED_LIB_NAME);
 
-	for(i=0; i<4; i++) {
+	for(i=0; i<6; i++) {
 		module = modules[i];
 
 		if(verbose_flag & TC_DEBUG)
