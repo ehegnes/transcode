@@ -52,7 +52,7 @@ probe_bktr(info_t * ipipe)
     unsigned short status, fps;
 
     close(ipipe->fd_in);
-    ipipe->fd_in = open(ipipe->name, O_RDWR, 0);
+    ipipe->fd_in = open(ipipe->name, O_RDONLY, 0);
     if (ipipe->fd_in < 0) {
 	fprintf(stderr, "[probe_bktr] cannot (re)open device in RW mode\n");
 	perror("[probe_bktr] open bktr device");
