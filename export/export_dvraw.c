@@ -26,6 +26,7 @@
 #include "../libdvenc/dvenc.h"
 #include <transcode.h>
 #include "vid_aux.h"
+#include "optstr.h"
 
 #define MOD_NAME    "export_dvraw.so"
 #define MOD_VERSION "v0.4 (2003-10-14)"
@@ -242,6 +243,9 @@ MOD_open
     encoder->isPAL = (vob->ex_v_height==PAL_H);
     encoder->vlc_encode_passes = 3;
     encoder->static_qno = 0;
+    if (vob->ex_v_string != NULL)
+      if (optstr_get (vob->ex_v_string, "qno", "%d", &encoder->static_qno) == 1)
+        printf("[%s] using quantisation: %d\n", MOD_NAME, encoder->static_qno);
     encoder->force_dct = DV_DCT_AUTO;
 #else
     dvenc_set_parameter(format, vob->ex_v_height, vob->a_rate);

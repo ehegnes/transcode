@@ -1,5 +1,26 @@
 transcode-0.13-pre2 EMS
 
+2004-10-06 Peter Chiocchetti <pch14 at myzel dot net>
+  * export/export_dv.c docs/man/transcode.1:
+  when de-interlacing, esp. when capturing movies off pal -
+  which are likely not interlaced at all - you loose quality.
+  the bottleneck in dv encoding seems to be some quantisations,
+  that I dont understand /) rather found through testing ;)
+  from the libdv source:
+  *  -static_qno Default is 0 for dynamic quantisation.
+  *    Static qno tables can be used for quantisation on 2+ VLC
+  *    passes. 
+  *    There are only two static qno tables registered right now:
+  *      1 : for sharp DV pictures\n
+  *      2 : for somewhat noisy satelite television signal
+  change line 265 in export/export_dvraw.c to read
+  encoder->static_qno = 2;
+  and libdv will not try to be smart, but try to be fast.
+  the result is still superior to deinterlacing...
+  attached patch makes this a commandline configurable option:
+  its not especially robust (it depends on libdv checking bounds)
+  eg.  -y dvraw=2 to get a static_qno of 2
+
 2004-09-29 Peter Chiocchetti <pch14 at myzel dot net>
   * export_mp2enc.c:
   export profile support for mp2enc.
