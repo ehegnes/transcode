@@ -239,7 +239,7 @@ int export_init(vob_t *vob, char *a_mod, char *v_mod)
 
   } else {
     
-    if(vob->im_a_codec != CODEC_RGB) {
+    if(vob->im_v_codec != CODEC_RGB) {
       tc_warn("(%s) video codec not supported by export module\n", __FILE__); 
       return(-1);
     }
