@@ -128,7 +128,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
    * NewFrame[3] = (   OldFrame[3] + 3*OldFrame[4] ) / 4
    */
 
-  if( ptr->tag & TC_POST_S_PROCESS &&
+  if( ptr->tag & TC_PRE_S_PROCESS &&
      (vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_RGB) ) {
 
       int i;
