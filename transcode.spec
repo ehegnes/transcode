@@ -1,6 +1,6 @@
 # Note that this is NOT a relocatable package
 Name: transcode
-Version: 0.6.12
+Version: 0.6.13
 Release: 1
 Summary: A linux video stream processing utility
 URL: http://zebra.fh-weingarten.de/~transcode/
