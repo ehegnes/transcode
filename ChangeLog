@@ -29,6 +29,11 @@ transcode-0.6.7
   100% (reduced memmove usage). Thanks go to marrq for pointing it
   out and provided sample files to reproduce it.
 
+  * tcscan:
+  Added support for scanning MP3 files. tcscan will print the number
+  of MP3 chunks and the average bitrate of the file. It also
+  calculate the maximum AVI overhead.
+
   * configure.in:
   remove double check for malloc().
 
@@ -61,8 +66,9 @@ transcode-0.6.7
   * src/dl_loader.c src/encoder.c src/transcode.c src/transcode.h
   tools/tcmodinfo.c:
   Simple color support for runtime warnings and errors. If you don't
-  like it disable it with --color 0. If the output of transcode is
-  written to a pipe it will be automatically disabled.
+  like it disable it with --color 0 or --colour 0. If the output of
+  transcode is written to a pipe or file it will be automatically
+  disabled.
   
   * export/aud_aux.c:
   Fixes a bug when encoding to mp3 where lame returned immediatly with
