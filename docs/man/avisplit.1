@@ -1,4 +1,4 @@
-.TH avisplit 1 "16th January 2002" "avisplit(1)"
+.TH avisplit 1 "25th June 2003" "avisplit(1)"
 .SH NAME
 avisplit \- split AVI-files into chunks of a maximum size
 .SH SYNOPSIS
@@ -20,6 +20,10 @@ avisplit \- split AVI-files into chunks of a maximum size
 .I s1-s2[,s3-s4,..]
 .B -c
 .B -m
+.B -b
+.I num
+.B -f
+.I commentfile
 ]
 ] [
 .B -v
@@ -31,7 +35,7 @@ avisplit \- split AVI-files into chunks of a maximum size
 splits a single AVI-file into chunks of size \fIsize\fP.
 .br
 Each of the created chunks will be an independent file, i.e. it can
-be played without needing any other of the chunks. ???
+be played without needing any other of the chunk.
 .SH OPTIONS
 .TP
 \fB-i\fP \fIfile\fP
@@ -58,6 +62,14 @@ generating seperate files.
 .TP
 .B -m
 Together with \fB-t\fP. Force split at upper bondary instead of lower border.
+.TP
+\fB-b\fP \fInum\fP
+Specify if avisplit should write an VBR mp3 header into the AVI file. Default is
+1 because it does not hurt. \fInum\fP is either 1 or 0.
+.TP
+\fB-f\fP \fIcommentfile\fP
+Read AVI tombstone data for header comments from \fIcommentfile\fP. See
+/docs/avi_comments.txt for a sample.
 .TP
 .B -v
 Print only version information and exit.

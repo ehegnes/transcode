@@ -1,4 +1,4 @@
-.TH avimerge 1 "16th January 2002" "avimerge(1)"
+.TH avimerge 1 "25th June 2003" "avimerge(1)"
 .SH NAME
 avimerge \- merge several AVI-files into one
 .SH SYNOPSIS
@@ -13,6 +13,10 @@ avimerge \- merge several AVI-files into one
 .IB file
 .B -a
 .I num
+.B -b
+.I num
+.B -f
+.I commentfile
 ]
 .SH COPYRIGHT
 \fBavimerge\fP is Copyright (C) by Thomas Östreich.
@@ -29,7 +33,16 @@ Specify the name(s) of the input file(s) to merge into the output
 file.
 .TP
 \fB-p\fP \fIfile\fP
-Specify the name of the audio file to multiplex into the output file.
+Specify the name of the audio file to multiplex into the output file. The type
+of file can be either another AVI file or an MP3 or AC3 file.
+.TP
+\fB-b\fP \fInum\fP
+Specify if avisync should write an VBR mp3 header into the AVI file. Default is
+1 because it does not hurt. \fInum\fP is either 1 or 0.
+.TP
+\fB-f\fP \fIcommentfile\fP
+Read AVI tombstone data for header comments from \fIcommentfile\fP. See
+/docs/avi_comments.txt for a sample.
 .TP
 \fB-a\fP \fInum\fP
 Specify the number of the audio channel.
@@ -48,6 +61,11 @@ create audio-only AVI-files using
 .PP
 .B  transcode -i song.mp3 -x null,mp3 -g 0x0 -y raw -a 1 -o audio2.avi -u 50
 .PP
+The command
+.PP
+.B avimerge -o out.avi -i in.avi -p sound.mp3
+.PP
+merges the file sound.mp3 as an additional audio track into out.avi.
 .SH AUTHORS
 .B avimerge
 was written by Thomas Östreich
@@ -55,6 +73,7 @@ was written by Thomas Östreich
 <ostreich@theorie.physik.uni-goettingen.de> with contributions from
 many others.  See AUTHORS for details.
 .SH SEE ALSO
+.BR aviindex (1),
 .BR avifix (1),
 .BR avisplit (1),
 .BR tccat (1),

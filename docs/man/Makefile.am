@@ -11,6 +11,7 @@ man_MANS = 	transcode.1\
 		avisplit.1\
 		avimerge.1\
 		avifix.1\
+		aviindex.1\
 		avisync.1
 
 EXTRA_DIST = $(man_MANS) 
