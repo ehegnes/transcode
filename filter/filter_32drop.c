@@ -192,7 +192,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	if ((fnum - lfnum) == 2) {
 	    merge_frames(lastiframe, ptr->video_buf, ptr->v_width, ptr->v_height, ((vob->im_v_codec == CODEC_RGB) ? 3:1) ); 
 	} else {
-          memcpy(lastiframe, ptr->video_buf, ptr->v_width*ptr->v_height*3);
+          memcpy(lastiframe, ptr->video_buf, ptr->video_size);
 	  /* The use of the drop counter ensures syncronization even with
 	   * video-based sources.  */
 	  if (dcnt < 8) { 
@@ -204,11 +204,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	        * If there are more than 3 interlaced frames in a row, it's
 	        * probably video and we don't want to copy the last frame over */
 	       if (((fnum - lfnum) < 3) && fnum) 
-		   memcpy(ptr->video_buf, lastframe, ptr->v_width*ptr->v_height*3);
+		   memcpy(ptr->video_buf, lastframe, ptr->video_size);
 	   } 
 	}
     } else {
-        memcpy(lastframe, ptr->video_buf, ptr->v_width*ptr->v_height*3);
+        memcpy(lastframe, ptr->video_buf, ptr->video_size);
         lfnum = fnum; 
     }
     /* If we're dealing with a non-interlaced source, or close to it, it won't
