@@ -13,6 +13,7 @@ transcode-0.6.8
   - Bugfix for tcprobe with corrupted AVI files
   - Bugfix for -x auto,dvd and -x auto,ac3 with AC3 pass-through
   - Bugfix for probing YUV4MPEG2 files
+  - Bugfix for RH9/NPTL
   - No more zombies during PSU mode
   - Fix YUV encoding in image export modules
   - Greatly improved avisplit, avimerge and avisync
@@ -40,6 +41,23 @@ transcode-0.6.8
   - Big xml update. Improved documentation an more features
   - Detection of theora codec in OGG/OGM files.
   - Setting the video bitrate through -w for -y mpeg
+
+
+2003-07-04 Stefan Jones <cretin@gentoo.org>
+
+  * import/clone.c:
+  Make clone_close be able to be safely called at any time. (Fixes
+  an RH9/nptl bug).
+
+2003-07-04 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/tcextract.c:
+  Add -f option to pass in a nav_seek file.
+
+  * import/tcdecode.c:
+  Add a -y raw option to tcdecode telling tcdecode to decode the
+  audio (only works for AC3 currently) put to write out the
+  undecoded stream.
 
 2003-07-03 Bernhard Rosenkraenzer <bero at arklinux.org>
 
