@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_mask.so"
-#define MOD_VERSION "v0.2.1 (2003-01-21)"
+#define MOD_VERSION "v0.2.2 (2003-08-27)"
 #define MOD_CAP     "Filter through a rectangular Mask"
 #define MOD_AUTHOR  "Thomas Östreich, Chad Page"
 
@@ -30,7 +30,6 @@
 #include <stdlib.h>
 
 static char *buffer;
-
 
 /* -------------------------------------------------
  *
@@ -56,18 +55,21 @@ void ymask_yuv(unsigned char *buf, vob_t *vob, int top, int bottom)
 {
 	int i;
 	unsigned char *bufcr, *bufcb;
+	int w2 = vob->im_v_width / 2;
 
 	// printf("%d %d\n", top, bottom);
 
-	bufcr = &buf[vob->im_v_width * vob->im_v_height];
-	bufcb = &bufcr[(vob->im_v_width * vob->im_v_height) / 4];
+	bufcr = buf + vob->im_v_width * vob->im_v_height;
+	bufcb = buf + vob->im_v_width * vob->im_v_height * 5/ 4;
+
 
 	for (i = top; i <= bottom; i+=2) {
-		memset(&buf[i * vob->im_v_width], 0, vob->im_v_width); 
-		memset(&buf[(i + 1) * vob->im_v_width], 0, vob->im_v_width); 
-	//	memset(&bufcr[(i / 2) * (vob->im_v_width / 2)], 128, vob->im_v_width / 2); 
-	//	memset(&bufcb[(i / 2) * (vob->im_v_width / 2)], 128, vob->im_v_width / 2); 
+		memset(&buf[i * vob->im_v_width], 0x10, vob->im_v_width); 
+		memset(&buf[(i + 1) * vob->im_v_width], 0x10, vob->im_v_width); 
+	    	memset(&bufcr[(i / 2) * w2], 128, w2); 
+	    	memset(&bufcb[(i / 2) * w2], 128, w2); 
 	}
+
 }
 
 void ymask_rgb(unsigned char *buf, vob_t *vob, int top, int bottom)
@@ -85,10 +87,10 @@ void xmask_yuv(unsigned char *buf, vob_t *vob, int left, int right)
 	unsigned char *bufcr, *bufcb;
 	unsigned char *ptr, *ptrmax;
 
-	// printf("%d %d\n", top, bottom);
+	// printf("%d %d\n", left, right);
 
-	bufcr = &buf[vob->im_v_width * vob->im_v_height];
-	bufcb = &bufcr[(vob->im_v_width * vob->im_v_height) / 4];
+	bufcr = buf + vob->im_v_width * vob->im_v_height;
+	bufcb = buf + vob->im_v_width * vob->im_v_height * 5/ 4;
 
 	/* Y */
 
@@ -96,8 +98,28 @@ void xmask_yuv(unsigned char *buf, vob_t *vob, int left, int right)
 		ptr = &buf[i]; 
 		ptrmax = &buf[i + (vob->im_v_height * vob->im_v_width)]; 
 		while (ptr < ptrmax) {
-			*ptr = 0;
+			*ptr = 0x10;
 			ptr += vob->im_v_width;
+		}
+	}	
+
+	/* Cr */
+	for (i = left; i < right; i++) {
+		ptr = &bufcr[i/2]; 
+		ptrmax = &bufcr[i/2 + (vob->im_v_height/2 * vob->im_v_width/2)]; 
+		while (ptr < ptrmax) {
+			*ptr = 128;
+			ptr += vob->im_v_width/2;
+		}
+	}	
+
+	/* Cb */
+	for (i = left; i < right; i++) {
+		ptr = &bufcb[i/2]; 
+		ptrmax = &bufcb[i/2 + (vob->im_v_height/2 * vob->im_v_width/2)]; 
+		while (ptr < ptrmax) {
+			*ptr = 128;
+			ptr += vob->im_v_width/2;
 		}
 	}	
 }
@@ -115,7 +137,7 @@ void xmask_rgb(unsigned char *buf, vob_t *vob, int left, int right)
 
 
 // old or new syntax?
-int is_optstr (char *buf) {
+static int is_optstr (char *buf) {
     if (strchr(buf, '='))
 	return 1;
     if (strchr(buf, 't'))
@@ -123,6 +145,18 @@ int is_optstr (char *buf) {
     if (strchr(buf, 'h'))
 	return 1;
     return 0;
+}
+
+static void help_optstr()
+{
+   printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+   printf ("* Overview\n");
+   printf ("    This filter applies an rectangular mask to the video.\n");
+   printf ("    Everything outside the mask is set to black.\n");
+   printf ("* Options\n");
+   printf ("    lefttop : Upper left corner of the box\n");
+   printf ("   rightbot : Lower right corner of the box\n");
+
 }
 
 int tc_filter(vframe_list_t *ptr, char *options)
@@ -201,6 +235,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	} else {
            optstr_get (options, "lefttop", "%dx%d", &lc, &tc);
            optstr_get (options, "rightbot", "%dx%d", &rc, &bc);
+	   if (optstr_lookup(options, "help"))
+	       help_optstr();
 	}
     }
 

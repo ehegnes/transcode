@@ -3,6 +3,11 @@ transcode-0.6.10
 
 2003-08-27 Tilmann Bitterberg <transcode at tibit.org>
 
+   * filter/filter_mask.c:
+   Fix YUV mode, make the filter clear out chroma, too. Helptext.
+
+2003-08-27 Tilmann Bitterberg <transcode at tibit.org>
+
    * filter/filter_smartyuv.c:
    Added MMX assembly code and rewrote some of the other routines
 
