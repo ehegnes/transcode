@@ -32,7 +32,7 @@
 #include "clone.h"
 
 #define MOD_NAME    "import_dvd.so"
-#define MOD_VERSION "v0.3.12 (2002-10-01)"
+#define MOD_VERSION "v0.3.13 (2003-06-11)"
 #define MOD_CODEC   "(video) DVD | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE dvd
@@ -143,7 +143,7 @@ MOD_open
 	if(verbose_flag & TC_DEBUG && !a_re_entry) printf("[%s] A52->PCM\n", MOD_NAME);
       }
       
-      if(vob->fixme_a_codec==CODEC_MP3 || vob->fixme_a_codec==CODEC_MP2) {
+      if(vob->fixme_a_codec==CODEC_MP3) {
 	
 	if((snprintf(import_cmd_buf, MAX_BUF, "tccat -T %s -i \"%s\" -t dvd -d %d %s | tcdemux -a %d -x mp3 %s %s -d %d | tcextract -t vob -x mp3 -a %d -d %d | tcdecode -x mp3 -d %d", cha_buf, vob->audio_in_file, vob->verbose, cat_buf, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose, vob->verbose)<0)) {
 	  perror("command buffer overflow");
@@ -151,6 +151,16 @@ MOD_open
 	}
 	
 	if(verbose_flag & TC_DEBUG && !a_re_entry) printf("[%s] MP3->PCM\n", MOD_NAME);
+      }
+      
+      if(vob->fixme_a_codec==CODEC_MP2) {
+	
+	if((snprintf(import_cmd_buf, MAX_BUF, "tccat -T %s -i \"%s\" -t dvd -d %d %s | tcdemux -a %d -x mp3 %s %s -d %d | tcextract -t vob -x mp2 -a %d -d %d | tcdecode -x mp2 -d %d", cha_buf, vob->audio_in_file, vob->verbose, cat_buf, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose, vob->verbose)<0)) {
+	  perror("command buffer overflow");
+	  return(TC_IMPORT_ERROR);
+	}
+	
+	if(verbose_flag & TC_DEBUG && !a_re_entry) printf("[%s] MP2->PCM\n", MOD_NAME);
       }
       
       if(vob->fixme_a_codec==CODEC_PCM || vob->fixme_a_codec==CODEC_LPCM) {

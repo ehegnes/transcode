@@ -31,7 +31,7 @@
 #include "clone.h"
 
 #define MOD_NAME    "import_vob.so"
-#define MOD_VERSION "v0.5.7 (2002-10-01)"
+#define MOD_VERSION "v0.5.8 (2003-06-11)"
 #define MOD_CODEC   "(video) MPEG-2 | (audio) MPEG/AC3/PCM | (subtitle)"
 
 #define MOD_PRE vob
@@ -109,14 +109,24 @@ MOD_open
 	if(verbose_flag & TC_DEBUG) printf("[%s] A52->PCM\n", MOD_NAME);
       } 
       
-      if(vob->fixme_a_codec==CODEC_MP3 || vob->fixme_a_codec==CODEC_MP2) {
+      if(vob->fixme_a_codec==CODEC_MP3) {
 	
 	if((snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x mp3 %s %s -d %d | tcextract -t vob -a %d -x mp3 -d %d | tcdecode -x mp3 -d %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose, vob->verbose)<0)) {
 	  perror("command buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}
 	
-	if(verbose_flag & TC_DEBUG) printf("[%s] MPEG->PCM\n", MOD_NAME);
+	if(verbose_flag & TC_DEBUG) printf("[%s] MP3->PCM\n", MOD_NAME);
+      }
+
+      if(vob->fixme_a_codec==CODEC_MP2) {
+	
+	if((snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x mp3 %s %s -d %d | tcextract -t vob -a %d -x mp2 -d %d | tcdecode -x mp2 -d %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose, vob->verbose)<0)) {
+	  perror("command buffer overflow");
+	  return(TC_IMPORT_ERROR);
+	}
+	
+	if(verbose_flag & TC_DEBUG) printf("[%s] MP2->PCM\n", MOD_NAME);
       }
       
       if(vob->fixme_a_codec==CODEC_PCM || vob->fixme_a_codec==CODEC_LPCM) {
