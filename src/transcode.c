@@ -2811,7 +2811,7 @@ int main(int argc, char *argv[]) {
    
     if (vob->mpeg_profile != PROF_NONE) {
       typedef struct ratio_t { int t, b; } ratio_t;
-      ratio_t asrs[] = { {1, 1}, {1, 1}, {4, 3}, {16, 9}, {221, 100}, {250, 100} };
+      ratio_t asrs[] = { {1, 1}, {1, 1}, {4, 3}, {16, 9}, {221, 100}, {250, 100}, {125, 100}};
       ratio_t imasr = asrs[0];
       ratio_t exasr = asrs[0];
 
@@ -2871,19 +2871,19 @@ int main(int argc, char *argv[]) {
 
 	int i, mini=0;
 	ratio_t *r = &asrs[1];
-	double diffs[5];
+	double diffs[6];
 	double mindiff = 2.0;
 
 	memset (diffs, 0, sizeof(diffs));
 	
-	for (i=0; i<5; i++) {
+	for (i=0; i<6; i++) {
 	  diffs[i] = (double)(r->b*vob->im_v_width) / (double)(r->t*vob->im_v_height);
 	  r++;
 	}
 
 	// look for the diff which is closest to 1.0
 
-	for (i=0; i<5; i++) {
+	for (i=0; i<6; i++) {
 	  double a = fabs(1.0 - diffs[i]);
 	  if (a < mindiff) {
 	    mindiff = a;
