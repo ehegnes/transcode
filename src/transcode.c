@@ -1317,6 +1317,7 @@ int main(int argc, char *argv[]) {
 	if(vob->fps < MIN_FPS || n < 0) tc_error("invalid frame rate for option -f");
 	
 	preset_flag |= TC_PROBE_NO_FPS;
+	preset_flag |= TC_PROBE_NO_FRC;
 	
 	if(n==2) {
 	  if(vob->im_frc < 0 || vob->im_frc > 15) tc_error("invalid frame rate code for option -f");
@@ -3186,22 +3187,29 @@ int main(int argc, char *argv[]) {
     // -f and --export_fps/export_frc
     //
     // set import/export frc/fps
+    //printf("XXX: 1 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
     if (vob->im_frc == 0) 
       vob->im_frc = tc_guess_frc(vob->fps);
+    //printf("XXX: 2 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
 
     // ex_fps given, but not ex_frc
     if (vob->ex_frc == 0 && (vob->ex_fps != 0.0))
       vob->ex_frc = tc_guess_frc(vob->ex_fps);
+    //printf("XXX: 3 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
 
     if (vob->ex_frc == 0 && vob->im_frc != 0)
       vob->ex_frc = vob->im_frc;
+    //printf("XXX: 4 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
 
     // ex_frc always overwrites ex_fps
     if (vob->ex_frc > 0)
       vob->ex_fps  = frc_table[vob->ex_frc];
 
+    //printf("XXX: 4 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
+
     if (vob->im_frc == 0 && vob->ex_frc == 0 && vob->ex_fps == 0)
       vob->ex_fps = vob->fps;
+    //printf("XXX: 4 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
 
     if (vob->im_frc == -1) vob->im_frc = 0;
     if (vob->ex_frc == -1) vob->ex_frc = 0;
@@ -3507,6 +3515,7 @@ int main(int argc, char *argv[]) {
 	
 	// update vob structure
 	vob->video_out_file = buf;
+	vob->audio_out_file = buf;
 
 	// open output
 	if(encoder_open(&export_para, vob)<0) 
