@@ -1,12 +1,40 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-16 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/filter.c src/filter.h:
+  When passing large options strings into the filter core, it
+  segfaulted. Removed the hardcoded max length and changed to
+  dynamic allocation. Pointed out by Jason Bishop.
+
+  * acinclude.m4 aclocal.m4 configure:
+  Decrecment lame version when lame advertises to be an alpha or
+  beta version. Pointed out by Jason Bishop.
+
+2003-07-15 Andreas Kies <andikies at t-online.de>
+
+  * import/dvd_reader.c:
+  Implement a locking of the DVD device so that not both audio and
+  video import hammering on the DVD device at the same time.
+  
+2003-07-14 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * import/mpg123.c:
+  When searching for MP3/MP2 syncwords be more strict and double
+  check to sort out false positives. Pointed out by Sebastian
+  
 2003-07-13 Tilmann Bitterberg <transcode at tibit.org>
 
   * filter/filter_text.c:
   transparency was broken. Pointed out by Ralf Smolarek
 
-2003-07-09 Tilmann Bitterberg <transcode at tibit.org>
+2003-07-10 Tilmann Bitterberg <transcode at tibit.org>
+
+  * avilib/avilib.c:
+  Changed to write a different header for PCM files so that
+  windows player like to play the generated file. Pointed out by
+  Petr Holub.
 
   * docs/man/avisplit.1:
   Added a note how to handle files where avisplit produces bad A/V
