@@ -410,7 +410,7 @@ int f_complete_tree(audiovideo_t *p_audiovideo)
 		{
 			if ((s_video_codec!=TC_CODEC_UNKNOWN) && (p_audiovideo->s_v_codec != s_video_codec))
 			{
-				fprintf(stderr,"(%s) The file must contain the same video codec (found %s but % is already define)"__FILE__,p_audiovideo->s_v_codec,s_video_codec);
+				fprintf(stderr,"(%s) The file must contain the same video codec (found 0x%lx but 0x%x is already define)", __FILE__,p_audiovideo->s_v_codec,s_video_codec);
 				return(1);
 			}
 			s_video_codec=p_audiovideo->s_v_codec;	
@@ -419,7 +419,7 @@ int f_complete_tree(audiovideo_t *p_audiovideo)
 		{
 			if ((s_audio_codec!=TC_CODEC_UNKNOWN) && (p_audiovideo->s_a_codec != s_audio_codec))
 			{
-				fprintf(stderr,"(%s) The file must contain the same audio codec (found %s but % is already define)"__FILE__,p_audiovideo->s_a_codec,s_audio_codec);
+				fprintf(stderr,"(%s) The file must contain the same audio codec (found 0x%lx but 0x%x is already define)", __FILE__,p_audiovideo->s_a_codec,s_audio_codec);
 				return(1);
 			}
 			s_audio_codec=p_audiovideo->s_a_codec;	
