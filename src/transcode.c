@@ -332,6 +332,7 @@ void usage(int status)
 
   //multi-pass
   printf(" -w b[,k[,c]]        encoder bitrate[,keyframes[,crispness]] [%d,%d,%d]\n", VBITRATE, VKEYFRAMES, VCRISPNESS);
+  printf("--video_max_bitrate  maximum bitrate when encoding variable bitrate MPEG-2 streams [same as -w]\n");
   printf(" -R n[,f1[,f2]]      enable multi-pass encoding (0-3) [%d,divx4.log,pcm.log]\n", VMULTIPASS);
   printf(" -Q n[,m]            encoding[,decoding] quality (0=fastest-5=best) [%d,%d]\n", VQUALITY, VQUALITY);
   printf("--divx_quant min,max divx encoder min/max quantizer [%d,%d]\n", VMINQUANTIZER, VMAXQUANTIZER);
