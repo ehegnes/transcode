@@ -1,5 +1,15 @@
 transcode-0.13-pre2 EMS
 
+2004-09-10 Erik Slagter <erik at oldconomy dot com>
+  * INSTALL:
+  Some more installation hints [packages are default off,
+  optimisation].
+
+2004-09-10 Erik Slagter <erik at oldconomy dot com>
+  * src/decode.c:
+  Some cleanup, removed some duplicated code, made some error
+  messages slightly more informative (... codec not supported ...)
+
 2004-09-05 Jacob Meuser <jakemsr at jakemsr dot com>
   * Makefile.am acinclude.m4 configure.in docs/man/transcode.1 
   * export/Makefile.am export/aud_aux.c export/aud_aux.h

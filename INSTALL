@@ -21,9 +21,19 @@ you are on an x86 based platform. A recent version of lame is a good
 thing to have installed, too. Depending on what you want to do with
 transcode you may need additional packages installed.
 
-./configure --help 
-./configure
-make all
+Now do "./configure --help" to find out which packages transcode can use (see
+the --enable-$$$ and --with-$$$ flags). ONLY PACKAGES THAT ARE ENABLED
+EXPLICITELY USING CONFIGURE ARE ACTUALLY USED TO BUILD MODULES.
+
+If you have any optimisations your c compiler supports and you want to use,
+put them in the environment variable CFLAGS. Recommended for newbies:
+export CFLAGS="-O3". It pays off to study all the optimisation flags your
+c compiler offers and hand them to transcode. For instance,
+add "-march pentium4" if you're going to run transcode on pentium 4.
+
+Then do "./configure" with all the relevant --enable-$$ and --with-$$ options.
+
+make
 make install
 
 If your libraries/packages are not installed in standard places,
@@ -120,7 +130,7 @@ liba52
 
 mjpegtools
   related options:
-    --enable-mjpeg (disabled)
+    --enable-mjpeg-tools (disabled)
         if enabled, builds mjpegtools dependent plugins
   affected modules: export_yuv4mpeg.so, export_mpeg2enc.so,
     export_mp2enc.so

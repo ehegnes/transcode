@@ -193,115 +193,134 @@ void import_threads_create(vob_t *vob)
 //-------------------------------------------------------------------------
 
 int import_init(vob_t *vob, char *a_mod, char *v_mod)
-{  
-  
-  transfer_t import_para;
-  
-  memset(&import_para, 0, sizeof(transfer_t));
+{
+	transfer_t import_para;
+	memset(&import_para, 0, sizeof(transfer_t));
+	int cc;
 
-  // load audio import module
-  
-  if((import_ahandle=load_module(((a_mod==NULL)? TC_DEFAULT_IMPORT_AUDIO: a_mod), TC_IMPORT+TC_AUDIO))==NULL) {
-    fprintf(stderr, "(%s) loading audio import module failed\n", __FILE__);
-    return(-1);
-  }
+	// load audio import module
 
-  aimport_start();
-  
-  // load video import module
-  if((import_vhandle=load_module(((v_mod==NULL)? TC_DEFAULT_IMPORT_VIDEO: v_mod), TC_IMPORT+TC_VIDEO))==NULL) {
-    fprintf(stderr, "(%s) loading video import module failed\n", __FILE__);
-    return(-1);
-  }
-  
-  vimport_start();
+	if((import_ahandle=load_module(((a_mod==NULL)? TC_DEFAULT_IMPORT_AUDIO: a_mod), TC_IMPORT+TC_AUDIO))==NULL)
+	{
+		fprintf(stderr, "Loading audio import module failed\n");
+		fprintf(stderr, "Did you enable this module when you ran configure?\n");
+		return(-1);
+	}
 
-  // check import module capability, inherit verbosity flag
+	aimport_start();
 
-  import_para.flag = verbose;
-  tca_import(TC_IMPORT_NAME, &import_para, NULL); 
-  
-  if(import_para.flag != verbose) {
-    // module returned capability flag
-    
-    int cc=0;
-    
-    if(verbose & TC_DEBUG) 
-      fprintf(stderr, "(%s) audio capability flag 0x%x | 0x%x\n", __FILE__, import_para.flag, vob->im_a_codec);    
-    
-    switch (vob->im_a_codec) {
-      
-    case CODEC_PCM: 
-      cc=(import_para.flag & TC_CAP_PCM);
-      break;
-    case CODEC_AC3: 
-      cc=(import_para.flag & TC_CAP_AC3);
-      break;
-    case CODEC_RAW: 
-      cc=(import_para.flag & TC_CAP_AUD);
-      break;
-    default:
-      cc=0;
-    }
+	// load video import module
 
-    if(!cc) {
-      fprintf(stderr, "(%s) audio codec not supported by import module\n", __FILE__); 
-      return(-1);
-    }
-    
-  } else {
-    
-    if(vob->im_a_codec != CODEC_PCM) {
-      fprintf(stderr, "(%s) audio codec not supported by import module\n", __FILE__); 
-      return(-1);
-    }
-  }
+	if((import_vhandle=load_module(((v_mod==NULL)? TC_DEFAULT_IMPORT_VIDEO: v_mod), TC_IMPORT+TC_VIDEO))==NULL)
+	{
+		fprintf(stderr, "Loading video import module failed\n");
+		fprintf(stderr, "Did you enable this module when you ran configure?\n");
+		return(-1);
+	}
 
-  import_para.flag = verbose;
-  tcv_import(TC_IMPORT_NAME, &import_para, NULL);
-  
-  if(import_para.flag != verbose) {
-    // module returned capability flag
-    
-    int cc=0;
-    
-    if(verbose & TC_DEBUG) 
-      fprintf(stderr, "(%s) video capability flag 0x%x | 0x%x\n", __FILE__, import_para.flag, vob->im_v_codec);
-    
-    switch (vob->im_v_codec) {
-      
-    case CODEC_RGB: 
-      cc=(import_para.flag & TC_CAP_RGB);
-      break;
-    case CODEC_YUV: 
-      cc=(import_para.flag & TC_CAP_YUV);
-      break;
-    case CODEC_YUV422: 
-      cc=(import_para.flag & TC_CAP_YUV422);
-      break;
-    case CODEC_RAW_YUV: 
-    case CODEC_RAW: 
-      cc=(import_para.flag & TC_CAP_VID);
-      break;
-    default:
-      cc=0;
-    }
-    
-    if(!cc) {
-      fprintf(stderr, "(%s) video codec not supported by import module\n", __FILE__); 
-      return(-1);
-    }
-    
-  } else {
-    
-    if(vob->im_v_codec != CODEC_RGB) {
-      fprintf(stderr, "(%s) video codec not supported by import module\n", __FILE__); 
-      return(-1);
-    }
-  }
+	vimport_start();
 
-  return(0);
-  
+	// check import module capability, inherit verbosity flag
+
+	import_para.flag = verbose;
+	tca_import(TC_IMPORT_NAME, &import_para, NULL); 
+
+	if(import_para.flag != verbose)
+	{
+		// module returned capability flag
+		if(verbose & TC_DEBUG) 
+			fprintf(stderr, "Audio capability flag 0x%x | 0x%x\n", import_para.flag, vob->im_a_codec);
+
+		switch (vob->im_a_codec)
+		{
+			case CODEC_PCM: 
+			{
+				cc=(import_para.flag & TC_CAP_PCM);
+				break;
+			}
+	
+			case CODEC_AC3: 
+			{
+				cc=(import_para.flag & TC_CAP_AC3);
+				break;
+			}
+	
+			case CODEC_RAW: 
+			{
+				cc=(import_para.flag & TC_CAP_AUD);
+				break;
+			}
+	
+			default:
+			{
+				cc=0;
+			}
+		}
+	}
+	else
+		cc = vob->im_a_codec == CODEC_PCM;
+
+	
+	if(!cc)
+	{
+		fprintf(stderr, "Audio format not supported by import module\n"); 
+		return(-1);
+	}
+
+	import_para.flag = verbose;
+	tcv_import(TC_IMPORT_NAME, &import_para, NULL);
+
+	if(import_para.flag != verbose)
+	{
+		// module returned capability flag
+
+		if(verbose & TC_DEBUG) 
+			fprintf(stderr, "Video capability flag 0x%x | 0x%x\n", import_para.flag, vob->im_v_codec);
+
+		switch (vob->im_v_codec)
+		{
+			case CODEC_RGB: 
+			{
+				cc=(import_para.flag & TC_CAP_RGB);
+				break;
+			}
+
+			case CODEC_YUV: 
+			{
+				cc=(import_para.flag & TC_CAP_YUV);
+				break;
+			}
+
+			case CODEC_YUV422: 
+			{
+				cc=(import_para.flag & TC_CAP_YUV422);
+				break;
+			}
+
+			case CODEC_RAW_YUV: 
+			case CODEC_RAW: 
+			{
+				cc=(import_para.flag & TC_CAP_VID);
+				break;
+			}
+
+			default:
+			{
+				cc=0;
+			}
+		}
+	}
+	else
+		cc = vob->im_v_codec == CODEC_RGB;
+
+	if(!cc)
+	{
+		fprintf(stderr, "Video format not supported by import module\n"); 
+		fprintf(stderr, "Please try --use_uyvy and --use_rgb\n");
+		return(-1);
+	}
+
+	return(0);
 }
 
 //-------------------------------------------------------------------------
