@@ -66,7 +66,7 @@ extern "C" {
       IAviReadStream *vrs   = NULL;
       IAviReadFile   *vfile = NULL;
       unsigned int plane_size  = 0;
-      unsigned int buffer_size = 0;
+      ssize_t buffer_size = 0;
       int codec_error = 0;
       fourcc_t fcc = 0;
       int do_yuv = 0;
@@ -76,7 +76,7 @@ extern "C" {
       int lumi_first = 0;
       char *pack_buffer = 0;
       char *packY=0,*packU=0,*packV=0;
-      unsigned int pack_size = 0;
+      ssize_t pack_size = 0;
 
       /* create a new file reader */
       vfile = CreateIAviReadFile(ipipe->name);
@@ -372,7 +372,7 @@ extern "C" {
 		  __FILE__, samples, ret_samples);
 	
 	/* write audio */
-	if(p_write(ipipe->fd_out,buffer,ret_size)!=ret_size) {
+	if((unsigned int)p_write(ipipe->fd_out,buffer,ret_size)!=ret_size) {
 	  ipipe->error=1;
 	  break;
 	}
