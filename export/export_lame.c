@@ -30,7 +30,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "export_lame.so"
-#define MOD_VERSION "v0.0.2 (2003-01-09)"
+#define MOD_VERSION "v0.0.3 (2003-03-06)"
 #define MOD_CODEC   "(audio) MPEG 1/2"
 
 #define MOD_PRE lame
@@ -132,8 +132,8 @@ MOD_open
       break;
     }      
     
-    sprintf(ptr, "lame %s -s %d.%03d -m %c - \"%s.mp3\" 2>/dev/null", 
-	    br, ofreq_int, ofreq_dec, chan, vob->audio_out_file);
+    sprintf(ptr, "lame %s -s %d.%03d -m %c - \"%s.mp3\" 2>/dev/null %s", 
+	    br, ofreq_int, ofreq_dec, chan, vob->audio_out_file, (vob->ex_a_string?vob->ex_a_string:""));
     
     fprintf (stderr,"[%s] cmd=%s\n", MOD_NAME, buf);
     

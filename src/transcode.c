@@ -1327,6 +1327,28 @@ int main(int argc, char *argv[]) {
 	  ex_vid_mod = vbuf2;
 	  no_v_out_codec=no_a_out_codec=0;
 	}
+
+	if(strlen(ex_aud_mod)!=0 && strchr(ex_aud_mod,'=') && n==2) {
+	  char *t = strchr(optarg, ',');
+	  vob->ex_a_string=strchr(t, '=')+1;
+	  if (vob->ex_a_string[0] == '\0')
+	    tc_error("invalid option string for audio export module");
+
+	  t = strchr(ex_aud_mod, '=');
+	  *t = '\0'; 
+	}
+
+	if(strlen(ex_vid_mod)!=0 && strchr(ex_vid_mod,'=')) {
+	  char *t = strchr(ex_vid_mod, '=');
+	  *t = '\0'; // terminate export module
+
+	  vob->ex_v_string=strchr(optarg, '=')+1;
+	  if (vob->ex_v_string[0] == '\0' || vob->ex_v_string[0] == ',')
+	    tc_error("invalid option string for video export module");
+
+	  t = strchr(optarg, ',');
+	  if (t && *t) *t = '\0';
+	}
 	
 	if(n>2) tc_error("invalid parameter for option -y");
 	

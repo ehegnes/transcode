@@ -494,6 +494,10 @@ Module "yuv4mpeg": (video) YUV4MPEG2 | (audio) MPEG/AC3/PCM
 To see what your transcode has, do a  
 .br
 .B ls -1 $TRANSCODE_MOD_PATH/export*.so
+.IP
+It is possible to pass option strings to export modules like to filter modules.
+The syntax is
+.B  \-y vmod=options,amod=options
 .TP
 .B \-z
 flip video frame upside down [off].

@@ -310,6 +310,8 @@ typedef struct _vob_t {
 
   char *im_v_string;  // pass parameters to import video modules
   char *im_a_string;  // pass parameters to import audio modules
+  char *ex_v_string;  // pass parameters to export video modules
+  char *ex_a_string;  // pass parameters to export audio modules
 
   int accel;
   

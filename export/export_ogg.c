@@ -27,7 +27,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "export_ogg.so"
-#define MOD_VERSION "v0.0.2 (2002-07-21)"
+#define MOD_VERSION "v0.0.3 (2003-03-06)"
 #define MOD_CODEC   "(video) null | (audio) ogg"
 
 #define MOD_PRE ogg
@@ -71,19 +71,21 @@ MOD_open
 	    fprintf(stderr, "[%s] Writing audio to \"/dev/null\" (no -m option)\n", MOD_NAME);
 	}
 	if (vob->mp3bitrate == 0)
-	  result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -q %.2f -R %d -Q -o %s -",
+	  result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -q %.2f -R %d -Q -o %s %s -",
 		vob->a_bits,
 		vob->a_chan,
 		vob->mp3quality,
 		vob->a_rate,
-		vob->audio_out_file?vob->audio_out_file:"/dev/null");
+		vob->audio_out_file?vob->audio_out_file:"/dev/null",
+		(vob->ex_a_string?vob->ex_a_string:""));
 	else
-	  result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -b %d -R %d -Q -o %s -",
+	  result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -b %d -R %d -Q -o %s %s -",
 		vob->a_bits,
 		vob->a_chan,
 		vob->mp3bitrate,
 		vob->a_rate,
-		vob->audio_out_file?vob->audio_out_file:"/dev/null");
+		vob->audio_out_file?vob->audio_out_file:"/dev/null",
+		(vob->ex_a_string?vob->ex_a_string:""));
 	if (result < 0) {
 	    perror("command buffer overflow");
 	    return(TC_EXPORT_ERROR); 

@@ -33,7 +33,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "export_toolame.so"
-#define MOD_VERSION "v1.0.4 (2003-01-09)"
+#define MOD_VERSION "v1.0.5 (2003-02-06)"
 #define MOD_CODEC   "(audio) MPEG 1/2"
 
 #define MOD_PRE toolame
@@ -113,8 +113,8 @@ MOD_open
     ofreq_dec = ofreq-ofreq_int*1000;
 	    
     /* toolame command line */
-    sprintf(ptr, "toolame -s %d.%03d -b %d -m %c - \"%s.mp2\" 2>/dev/null", 
-	    ofreq_int, ofreq_dec, orate, chan, vob->audio_out_file);
+    sprintf(ptr, "toolame -s %d.%03d -b %d -m %c - \"%s.mp2\" 2>/dev/null %s", 
+	    ofreq_int, ofreq_dec, orate, chan, vob->audio_out_file, (vob->ex_a_string?vob->ex_a_string:""));
 	
     fprintf (stderr,"[%s] cmd=%s\n", MOD_NAME, buf);
     
