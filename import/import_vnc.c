@@ -12,7 +12,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_vnc.so"
-#define MOD_VERSION "v0.0.1 (2003-09-01)"
+#define MOD_VERSION "v0.0.2 (2003-11-29)"
 #define MOD_CODEC   "(video) VNC"
 
 #define MOD_PRE vnc
@@ -84,14 +84,16 @@ MOD_open
 		    a[n++] = vob->video_in_file;
 		    a[n++] = NULL;
 		    if (execvp (a[0], &a[0])<0) {
-			perror ("execvp vncrec. Is vncrec in your $PATH?");
+			perror ("execvp vncrec failed. Is vncrec in your $PATH?");
+			return (TC_IMPORT_ERROR);
 		    }
 		}
 		break;
 	    default:
 		break;
 	}
-	fprintf(stderr, "Main here\n");
+	//fprintf(stderr, "Main here\n");
+
 
 	return (TC_IMPORT_OK);
     }
@@ -113,11 +115,12 @@ MOD_decode
 	fd_set rfds;
 	struct timeval tv;
 	int n;
+	extern int tc_dvd_access_delay;
 
 	while (1) {
 
 	    // timeout to catch when vncrec died
-	    tv.tv_sec = 5;
+	    tv.tv_sec = tc_dvd_access_delay;
 	    tv.tv_usec = 0;
 
 	    fd = open(fifo, O_RDONLY | O_NONBLOCK);
