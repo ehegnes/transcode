@@ -769,6 +769,22 @@ AC_CHECK_LIB(avcodec,
 		exit 1],
 		[-lm -L$with_ffmpeg_libs_l])
 
+AC_CHECK_LIB(z,
+		gzopen,
+		[],
+		[echo "*** Transcode depends on libz(-devel) libraries and headers ***"
+		 exit 1
+		]
+		[])
+
+AC_CHECK_LIB(m,
+		_LIB_VERSION,
+		[],
+		[echo "*** Transcode depends on libm(-devel) (>= 2.0) libraries and headers ***"
+		 exit 1
+		]
+		[])
+
 AC_SUBST(FFMPEG_LIBS_CFLAGS)
 AC_SUBST(FFMPEG_LIBS_LIBS)
 ])

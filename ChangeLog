@@ -1,5 +1,11 @@
 transcode-0.13-pre2 EMS
 
+2004-08-14 Erik Slagter <erik at oldconomy dot com>
+  * acinclude.m4:
+  libavcodec needs -lz -lm
+  - added test for availability
+  - added these to FFMPEG_LIBS_LIBS
+
 2004-08-14 Stefan Scheffler <stefanscheffler at gmx dot net>
   * export/export.mov.c:
   The promised cleanup. It's quite large but the changes are mostly 

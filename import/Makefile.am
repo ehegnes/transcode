@@ -138,7 +138,7 @@ import_xvid_la_LDFLAGS = -module -avoid-version
 
 import_ffmpeg_la_SOURCES = import_ffmpeg.c 
 import_ffmpeg_la_LDFLAGS = -module -avoid-version 
-import_ffmpeg_la_LIBADD = @FFMPEG_LIBS_LIBS@ -lm
+import_ffmpeg_la_LIBADD = @FFMPEG_LIBS_LIBS@
 
 import_im_la_SOURCES = import_im.c
 import_im_la_LDFLAGS = -module -avoid-version 
@@ -296,8 +296,7 @@ tcdecode_LDADD = \
 	@QT_LIBS@ \
 	@LZO_LIBS@ \
 	@XIO_LIBS@ \
-	@ACLIB_LIBS@ \
-	-lm
+	@ACLIB_LIBS@
 
 tcdecode_CFLAGS = $(AM_CFLAGS)
 
