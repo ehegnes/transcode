@@ -40,7 +40,7 @@ void probe_lav(info_t *ipipe)
     FILE *f;
     char *param, *value, *ptr;
 
-    if (ipipe->seek_allowed) {
+    if (ipipe->seek_allowed>0) {
       // We're working on a file, so the filename should be in ipipe->name.
       // Do this the easy way.
       if((snprintf(cmd_buf, MAX_BUF, "lavinfo \"%s\"", ipipe->name)<0)) {
