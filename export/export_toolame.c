@@ -96,7 +96,7 @@ MOD_open
     ifreq = vob->a_rate;
     orate = vob->mp3bitrate;
     ochan = vob->dm_chan;
-    chan = (ochan==2) ? 'j':'m';
+    chan = (ochan==2) ? (vob->mp3mode==1 ? 's' : 'j') : 'm';
 
     /* default out freq */
     if(ofreq==0)

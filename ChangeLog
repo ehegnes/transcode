@@ -1,3 +1,8 @@
+2005-01-11 Andrew Church <achurch at achurch dot org>
+  * export/export_toolame.c
+  export_toolame was forcing joint stereo mode regardless of
+  the -b setting, this fixes it.
+
 2004-12-17 Jacob Meuser <jakemsr at jakemsr dot com>
   * configure.in filter/parse_cvs.awk (removed)
     filter/filter_list.awk (removed) filter/parse_csv.awk.in
