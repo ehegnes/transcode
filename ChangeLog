@@ -1,3 +1,9 @@
+2005-03-09 Andrew Church <achurch at achurch dot org>
+  * aclib/ac.h aclib/average.c aclib/cputest.c aclib/rescale.c
+    aclib/swap.c aclib/tcmemcpy.c src/transcode.c src/video_rgb.c
+    src/video_trans.c src/video_yuv.c src/video_yuv422.c
+  Optimized inline assembly routines for amd64.
+
 2005-03-06 Jacob Meuser <jakemsr at jakemsr dot com>
   * import/import_mplayer.c
   Code cleanup.  Fix incorrect check of snprintf return value.  Use

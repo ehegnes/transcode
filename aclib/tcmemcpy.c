@@ -299,13 +299,158 @@ CACHEBLOCK =		0x80						\n\
 
 /*************************************************************************/
 
+#ifdef ARCH_X86_64
+
+/* AMD64-optimized routine, using SSE2.  Derived from AMD64 optimization
+ * guide section 5.13: Appropriate Memory Copying Routines. */
+
+/* The block copying code--macroized because we use two versions of it
+ * depending on whether the source is 16-byte-aligned or not.  Pass either
+ * movdqa or movdqu (unquoted) for the parameter. */
+#define AMD64_BLOCK_MEMCPY(movdq) \
+"	# First prefetch (note that if we end on an odd number of cache	\n\
+	# lines, we skip prefetching the last one--faster that way than	\n\
+	# prefetching line by line or treating it as a special case)	\n\
+0:	mov %%ecx, %%edx	# EDX: temp counter (always <32 bits)	\n\
+	shr $6, %%edx		# Divide by cache line size (64 bytes)	\n\
+	cmp %%r8, %%rdx		# ... and cap at 128 (8192 bytes)	\n\
+	cmova %%r8, %%rdx						\n\
+	shl $3, %%edx		# EDX <- cache lines to copy * 8	\n\
+	mov %%edx, %%eax	# EAX <- cache lines to preload * 8	\n\
+				#        (also used as memory offset)	\n\
+1:	prefetchnta -64(%%rsi,%%rax,8)	# Preload cache lines in pairs	\n\
+	prefetchnta -128(%%rsi,%%rax,8)	# (going backwards)		\n\
+	sub $16, %%eax		# And loop				\n\
+	jg 1b								\n\
+									\n\
+	# Then copy, also in reverse order				\n\
+	mov %%edx, %%eax	# EAX <- cache lines to copy * 8	\n\
+2:	" #movdq " -16(%%rsi,%%rax,8), %%xmm0				\n\
+	movntdq %%xmm0, -16(%%rdi,%%rax,8)				\n\
+	sub $2, %%eax		# And loop				\n\
+	jg 2b								\n\
+									\n\
+	# Finally, update pointers and count, and loop			\n\
+	shl $3, %%edx		# EDX <- bytes copied			\n\
+	add %%rdx, %%rsi						\n\
+	add %%rdx, %%rdi						\n\
+	sub %%rdx, %%rcx						\n\
+	cmp $64, %%rcx		# At least one cache line left?		\n\
+	jae 0b			# Yup, loop				\n"
+
+void *ac_memcpy_amd64(void *dest, const void *src, size_t bytes)
+{
+    asm("\
+	push %%rdi		# Save destination for return value	\n\
+	cld			# MOVS* should ascend			\n\
+									\n\
+	cmp $64, %%rcx		# Skip block copy for small blocks	\n\
+	jb amd64.memcpy_last						\n\
+									\n\
+	mov $128, %%r8		# Constant used later			\n\
+									\n\
+	# First align destination address to a multiple of 16 bytes	\n\
+	mov $8, %%eax		# EAX <- (8-dest) & 7			\n\
+	sub %%edi, %%eax	# (we don't care about the top 32 bits)	\n\
+	and $0b111, %%eax	# ... which is the number of bytes to copy\n\
+	lea 0f(%%rip), %%rdx	# Use a computed jump--faster than a loop\n\
+	sub %%rax, %%rdx						\n\
+	jmp *%%rdx		# Execute 0-7 MOVSB's			\n\
+	movsb								\n\
+	movsb								\n\
+	movsb								\n\
+	movsb								\n\
+	movsb								\n\
+	movsb								\n\
+	movsb								\n\
+0:	sub %%rax, %%rcx	# Update count				\n\
+	test $0b1000, %%edi	# Is destination not 16-byte aligned?	\n\
+	je 1f								\n\
+	movsq			# Then move 8 bytes to align it		\n\
+	sub $8, %%rcx							\n\
+									\n\
+1:	cmp $0x38000, %%rcx	# Is this a large block? (0x38000 is an	\n\
+				# arbitrary value where prefetching and	\n\
+				# write combining seem to start becoming\n\
+				# faster)		\n\
+	jb amd64.memcpy_small_bp # Nope, use small copy (no prefetch/WC)\n\
+	test $0b1111, %%esi	# Is source also 16-byte aligned?	\n\
+				# (use ESI to save a REX prefix byte)	\n\
+	jnz amd64.memcpy_normal_bp  # Nope, use slow copy		\n\
+									\n\
+	.align 16							\n\
+amd64.memcpy_small_bp:		# Small block copy routine--no prefetch	\n\
+	mov %%ecx, %%edx	# EDX <- bytes to copy / 16		\n\
+	shr $4, %%edx		# (count known to fit in 32 bits)	\n\
+	mov %%edx, %%eax	# Leave remainder in ECX for later	\n\
+	shl $4, %%eax							\n\
+	sub %%eax, %%ecx						\n\
+0:	movdqu (%%rsi), %%xmm0	# Copy 16 bytes of data			\n\
+	movdqa %%xmm0, (%%rdi)						\n\
+	add $16, %%rsi		# Update pointers			\n\
+	add $16, %%rdi							\n\
+	dec %%edx		# And loop				\n\
+	jnz 0b								\n\
+	jmp amd64.memcpy_last	# Copy any remaining bytes		\n\
+									\n\
+	.align 16							\n\
+amd64.memcpy_fast_bp:		# Fast block prefetch loop		\n"
+AMD64_BLOCK_MEMCPY(movdqa)
+"	jmp amd64.memcpy_last	# Copy any remaining bytes		\n\
+									\n\
+	.align 16							\n\
+amd64.memcpy_normal_bp:		# Normal (unaligned) block prefetch loop\n"
+AMD64_BLOCK_MEMCPY(movdqu)
+"									\n\
+amd64.memcpy_last:							\n\
+	# Copy last <64 bytes, using the computed jump trick		\n\
+	mov %%ecx, %%eax	# EAX <- ECX>>3				\n\
+	shr $3, %%eax							\n\
+	lea 0f(%%rip), %%rdx						\n\
+	add %%eax, %%eax	# Watch out, MOVSQ is 2 bytes!		\n\
+	sub %%rax, %%rdx						\n\
+	jmp *%%rdx		# Execute 0-7 MOVSQ's			\n\
+	movsq								\n\
+	movsq								\n\
+	movsq								\n\
+	movsq								\n\
+	movsq								\n\
+	movsq								\n\
+	movsq								\n\
+0:	and $0b111, %%ecx	# ECX <- ECX & 7			\n\
+	lea 0f(%%rip), %%rdx						\n\
+	sub %%rcx, %%rdx						\n\
+	jmp *%%rdx		# Execute 0-7 MOVSB's			\n\
+	movsb								\n\
+	movsb								\n\
+	movsb								\n\
+	movsb								\n\
+	movsb								\n\
+	movsb								\n\
+	movsb								\n\
+									\n\
+	# All done!							\n\
+0:	emms			# Clean up after MMX instructions	\n\
+	sfence			# Flush the write buffer		\n\
+	pop %%rdi		# Restore destination (return value)	\n\
+    " : /* no outputs */
+      : "D" (dest), "S" (src), "c" (bytes)
+      : "%rax", "%rdx"
+    );
+    return dest;
+}
+
+#endif  /* ARCH_X86_64 */
+
+/*************************************************************************/
+
 void * (*tc_memcpy)(void *, const void *, size_t) = memcpy;
 
 void tc_memcpy_init(int verbose, int mmflags)
 {
 	const char * method = "libc";
 	
-#if defined(ARCH_X86)
+#if defined(ARCH_X86) | defined(ARCH_X86_64)
 	int accel = mmflags == -1 ? ac_mmflag() : mmflags;
 #endif
 
@@ -322,6 +467,14 @@ void tc_memcpy_init(int verbose, int mmflags)
 			method = "mmx";
 			tc_memcpy = ac_memcpy_mmx;
 		}
+	}
+#endif
+
+#ifdef ARCH_X86_64
+	if((accel & MM_CMOVE) && (accel & MM_SSE2))
+	{
+		method = "amd64";
+		tc_memcpy = ac_memcpy_amd64;
 	}
 #endif
 

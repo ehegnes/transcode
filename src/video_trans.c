@@ -104,6 +104,15 @@ void yuv_vert_resize_init(int width)
   }
   
 #endif
+
+#ifdef ARCH_X86_64
+  if(((width>>1) % 16) == 0) {
+    if(tc_accel & MM_SSE2) yuv_merge_8 = ac_rescale_sse2; 
+  }
+  if((width % 16) == 0) {
+    if(tc_accel & MM_SSE2) yuv_merge_16=ac_rescale_sse2; 
+  }
+#endif
   
   return;
 }
@@ -116,22 +125,24 @@ void yuv422_vert_resize_init()
   
 #if 0
 #ifdef ARCH_X86
-  
   if(tc_accel & MM_SSE2) {
     yuv422_merge=ac_rescale_sse2;
     return;
   }
-  
   if(tc_accel & MM_SSE) {
     yuv422_merge=ac_rescale_sse;
     return;
   }
-  
   if(tc_accel & MM_MMXEXT) {
     yuv422_merge=ac_rescale_mmxext;
     return;
   }
-  
+#endif
+#if ARCH_X86_64
+  if(tc_accel & MM_SSE2) {
+    yuv422_merge=ac_rescale_sse2;
+    return;
+  }
 #endif
 #endif // 0
   
@@ -146,22 +157,24 @@ void rgb_vert_resize_init()
   rgb_vert_resize_init_flag=1;
   
 #ifdef ARCH_X86
-  
   if(tc_accel & MM_SSE2) {
     rgb_merge=ac_rescale_sse2;
     return;
   }
-  
   if(tc_accel & MM_SSE) {
     rgb_merge=ac_rescale_sse;
     return;
   }
-  
   if(tc_accel & MM_MMXEXT) {
     rgb_merge=ac_rescale_mmxext;
     return;
   }
-  
+#endif
+#ifdef ARCH_X86_64
+  if(tc_accel & MM_SSE2) {
+    rgb_merge=ac_rescale_sse2;
+    return;
+  }
 #endif
   
   rgb_merge=rgb_merge_C;
@@ -171,7 +184,7 @@ void rgb_vert_resize_init()
 
 inline void clear_mmx()
 {
-#ifdef ARCH_X86
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
 #ifdef HAVE_MMX
   __asm __volatile ("emms;":::"memory");    
 #endif

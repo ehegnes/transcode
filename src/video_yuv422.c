@@ -1060,11 +1060,12 @@ void yuv422_deinterlace_linear(char *image, int width, int height)
   
 #if 0
 #ifdef ARCH_X86 
-  
   if(tc_accel & MM_MMX)  yuv422_average = ac_average_mmx;
   if(tc_accel & MM_SSE)  yuv422_average = ac_average_sse;
   if(tc_accel & MM_SSE2) yuv422_average = ac_average_sse2;
-  
+#endif
+#ifdef ARCH_X86_64
+  if(tc_accel & MM_SSE2) yuv422_average = ac_average_sse2;
 #endif
 #endif
 
@@ -1083,23 +1084,24 @@ void yuv422_deinterlace_linear_blend(char *image, char *tmp, int width, int heig
   
 #if 0
 #ifdef ARCH_X86 
-
   if(tc_accel & MM_MMX) {
     yuv422_average = ac_average_mmx;  
 //    memcpy_accel = ac_memcpy_mmx;
   }
-
   if(tc_accel & MM_SSE) {
     yuv422_average = ac_average_sse;
 //    memcpy_accel = ac_memcpy_sse;
   }
-
   if(tc_accel & MM_SSE2) {
     yuv422_average = ac_average_sse2;
 //    memcpy_accel = ac_memcpy_sse2;
   }
-
-  
+#endif
+#ifdef ARCH_X86_64
+  if(tc_accel & MM_SSE2) {
+    yuv422_average = ac_average_sse2;
+//    memcpy_accel = ac_memcpy_sse2;
+  }
 #endif
 #endif // 0
   

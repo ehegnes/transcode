@@ -25,9 +25,9 @@
 
 #include "ac.h"
 
-#ifdef ARCH_X86
-
 /*************************************************************************/
+
+#ifdef ARCH_X86
 
 int ac_rescale_mmxext(char *row1, char *row2, char *out, int bytes, 
 		      unsigned long weight1, unsigned long weight2)
@@ -281,14 +281,34 @@ sse.rescale:								\n\
     return 0;
 }
 
+#endif  /* ARCH_X86 */
+
 /*************************************************************************/
+
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
+
+#ifdef ARCH_X86_64
+# define EAX "%%rax"
+# define EBX "%%rbx"
+# define ECX "%%rcx"
+# define EDX "%%rdx"
+# define ESI "%%rsi"
+# define EDI "%%rdi"
+#else
+# define EAX "%%eax"
+# define EBX "%%ebx"
+# define ECX "%%ecx"
+# define EDX "%%edx"
+# define ESI "%%rsi"
+# define EDI "%%edi"
+#endif
 
 int ac_rescale_sse2(char *row1, char *row2, char *out, int bytes,
 		    unsigned long weight1, unsigned long weight2)
 {
     struct {
+	int bytes, pad;
 	char *row1, *row2, *out;
-	int bytes;
 	unsigned long weight1, weight2;
     } args;
     args.row1 = row1;
@@ -299,21 +319,29 @@ int ac_rescale_sse2(char *row1, char *row2, char *out, int bytes,
     args.weight2 = weight2;
 
     asm("\
-	push %%ebx							\n\
-									\n\
-	mov (%%esi), %%ebx	# row1					\n\
-	mov 4(%%esi), %%eax	# row2					\n\
-	mov 8(%%esi), %%edi	# out					\n\
-	mov 16(%%esi), %%ecx	# w1					\n\
-	mov 20(%%esi), %%edx	# w2					\n\
-									\n\
-	cmp %%edx, %%ecx						\n\
+	push "EBX"							\n\
+									\n"
+#ifdef ARCH_X86_64
+"	mov 8(%%rsi), %%rbx	# row1					\n\
+	mov 16(%%rsi), %%rax	# row2					\n\
+	mov 24(%%rsi), %%rdi	# out					\n\
+	mov 32(%%rsi), %%rcx	# w1					\n\
+	mov 40(%%rsi), %%rdx	# w2					\n"
+#else
+"	mov 8(%%esi), %%ebx	# row1					\n\
+	mov 12(%%esi), %%eax	# row2					\n\
+	mov 16(%%esi), %%edi	# out					\n\
+	mov 20(%%esi), %%ecx	# w1					\n\
+	mov 24(%%esi), %%edx	# w2					\n"
+#endif
+"									\n\
+	cmp "EDX", "ECX"						\n\
 	jl sse2.no_switch						\n\
 									\n\
-	mov %%eax, %%ecx						\n\
-	mov %%ebx, %%eax						\n\
-	mov %%ecx, %%ebx						\n\
-	mov %%edx, %%ecx						\n\
+	mov "EAX", "ECX"						\n\
+	mov "EBX", "EAX"						\n\
+	mov "ECX", "EBX"						\n\
+	mov "EDX", "ECX"						\n\
 									\n\
 sse2.no_switch:								\n\
 									\n\
@@ -331,18 +359,18 @@ sse2.no_switch:								\n\
 	psllq $64, %%xmm3						\n\
 	por %%xmm7, %%xmm3	# w1 w1 w1 w1 w1 w1 w1 w1		\n\
 									\n\
-	mov 12(%%esi), %%ecx	# bytes					\n\
+	mov ("ESI"), %%ecx	# bytes					\n\
 	shr $4, %%ecx		# /16					\n\
 									\n\
 	pxor %%xmm7, %%xmm7	# zero					\n\
 									\n\
 									\n\
 sse2.rescale:								\n\
-	prefetchnta (%%eax)						\n\
-	prefetchnta (%%ebx)						\n\
+	prefetchnta ("EAX")						\n\
+	prefetchnta ("EBX")						\n\
 									\n\
-	movdqa (%%ebx), %%xmm0	#  A					\n\
-	movdqa (%%eax), %%xmm4	#  B					\n\
+	movdqa ("EBX"), %%xmm0	#  A					\n\
+	movdqa ("EAX"), %%xmm4	#  B					\n\
 									\n\
 ### 0-3 (A-B)								\n\
 	movdqa %%xmm0, %%xmm2						\n\
@@ -393,25 +421,29 @@ sse2.rescale:								\n\
 									\n\
 	psubb %%xmm6, %%xmm5						\n\
 									\n\
-	movntdq %%xmm5, (%%edi)						\n\
+	movntdq %%xmm5, ("EDI")						\n\
 	## done								\n\
 									\n\
-	add $16, %%eax		# inc pointers				\n\
-	add $16, %%ebx							\n\
-	add $16, %%edi							\n\
+	add $16, "EAX"		# inc pointers				\n\
+	add $16, "EBX"							\n\
+	add $16, "EDI"							\n\
 									\n\
 	dec %%ecx							\n\
 	jg sse2.rescale							\n\
 									\n\
 	sfence								\n\
-	pop %%ebx							\n\
+	pop "EBX"							\n\
     " : /* no outputs */
       : "S" (&args)
+#ifdef ARCH_X86_64
+      : "%rax", "%rcx", "%rdx", "%rdi"
+#else
       : "%eax", "%ecx", "%edx", "%edi"
+#endif
     );
     return 0;
 }
 
-/*************************************************************************/
+#endif  /* ARCH_X86 || ARCH_X86_64 */
 
-#endif  /* ARCH_X86 */
+/*************************************************************************/

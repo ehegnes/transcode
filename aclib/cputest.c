@@ -46,7 +46,7 @@ static int mm_support(void)
     int rval = 0;
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
     int eax, ebx, ecx, edx;
-    int max_std_level, max_ext_level, std_caps=0, ext_caps=0;
+    int max_std_level, max_ext_level, std_caps=0, std_caps2=0, ext_caps=0;
     long a, c;
 
     char vendor[13] = "UnknownVndr";
@@ -87,13 +87,17 @@ static int mm_support(void)
     *(int *)&vendor[8] = ecx;
 
     if(max_std_level >= 1){
-        cpuid(1, eax, ebx, ecx, std_caps);
+        cpuid(1, eax, ebx, std_caps2, std_caps);
+	if (std_caps & (1<<15))
+	    rval |= MM_CMOVE;
         if (std_caps & (1<<23))
             rval |= MM_MMX;
         if (std_caps & (1<<25)) 
             rval |= MM_MMXEXT | MM_SSE;
         if (std_caps & (1<<26)) 
             rval |= MM_SSE2;
+	if (std_caps & (1<<0))
+	    rval |= MM_SSE3;
     }
 
     cpuid(0x80000000, max_ext_level, ebx, ecx, edx);
@@ -159,6 +163,9 @@ int ac_mmflag(void)
 #ifdef ARCH_X86
     mm_flag |= MM_IA32ASM;
 #endif
+#ifdef ARCH_X86_64
+    mm_flag |= MM_AMD64ASM;
+#endif
   }
   return(mm_flag);
 }
@@ -189,6 +196,9 @@ void ac_mmtest()
     return;
   } else if(cc & MM_MMX) {
     printf(" mmx\n");
+    return;
+  } else if(cc & MM_AMD64ASM) {
+    printf(" 64asm\n");
     return;
   } else if(cc & MM_IA32ASM) {
     printf(" 32asm\n");
@@ -223,7 +233,7 @@ char *ac_mmstr(int flag, int mode)
       return("mmxext");
     } else if(cc & MM_MMX) {
       return("mmx");
-    } else if(cc & MM_IA32ASM) {
+    } else if(cc & (MM_AMD64ASM|MM_IA32ASM)) {
       return("asm");
     } else return("C");
   } 
@@ -237,7 +247,7 @@ char *ac_mmstr(int flag, int mode)
     if(cc & MM_3DNOW) strcat(mmstr, "3dnow "); 
     if(cc & MM_MMXEXT) strcat(mmstr, "mmxext "); 
     if(cc & MM_MMX) strcat(mmstr, "mmx "); 
-    if(cc & MM_IA32ASM) strcat(mmstr, "asm ");
+    if(cc & (MM_AMD64ASM|MM_IA32ASM)) strcat(mmstr, "asm ");
     strcat(mmstr, "C");
     return(mmstr);
   }

@@ -1495,11 +1495,12 @@ void yuv_deinterlace_linear(char *image, int width, int height)
   yuv_average =  yuv_average_C;
   
 #ifdef ARCH_X86 
-
   if(tc_accel & MM_MMX)  yuv_average = ac_average_mmx;  
   if(tc_accel & MM_SSE)  yuv_average = ac_average_sse;
   if(tc_accel & MM_SSE2) yuv_average = ac_average_sse2;
-  
+#endif
+#ifdef ARCH_X86_64
+  if(tc_accel & MM_SSE2) yuv_average = ac_average_sse2;
 #endif
   
   //process only Y component
@@ -1517,23 +1518,24 @@ void yuv_deinterlace_linear_blend(char *image, char *tmp, int width, int height)
 //   memcpy_accel = memcpy_C; // EMS
   
 #ifdef ARCH_X86 
-
   if(tc_accel & MM_MMX) {
     yuv_average = ac_average_mmx;  
     // memcpy_accel = ac_memcpy_mmx; // EMS
   }
-
   if(tc_accel & MM_SSE) {
     yuv_average = ac_average_sse;
     // memcpy_accel = ac_memcpy_sse; // EMS
   }
-
   if(tc_accel & MM_SSE2) {
     yuv_average = ac_average_sse2;
     // memcpy_accel = ac_memcpy_sse2; // EMS
   }
-
-  
+#endif
+#ifdef ARCH_X86_64
+  if(tc_accel & MM_SSE2) {
+    yuv_average = ac_average_sse2;
+    // memcpy_accel = ac_memcpy_sse2; // EMS
+  }
 #endif
   
   //process only Y component

@@ -411,7 +411,7 @@ void usage(int status)
   printf("--write_pid file     write pid of signal thread to \"file\" [off]\n");
   printf("--nice N             set niceness to N [off]\n");
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
-  printf("--accel type         enforce IA32 acceleration for type [autodetect]\n");
+  printf("--accel type         enforce IA32/AMD64 acceleration for type [autodetect]\n");
 #endif
   printf("--socket file        socket file for run-time control [no file]\n");
   printf("--dv_yuy2_mode       libdv YUY2 mode (default is YV12) [off]\n");
@@ -2202,11 +2202,14 @@ int main(int argc, char *argv[]) {
 
 	  if(strncasecmp(accel, "C", 1)==0) tc_accel=MM_C;
 	  if(strncasecmp(accel, "ia32asm", 1)==0) tc_accel=MM_IA32ASM;
+	  if(strncasecmp(accel, "amd64asm", 1)==0) tc_accel=MM_AMD64ASM;
 	  if(strncasecmp(accel, "mmx", 3)==0) tc_accel=MM_MMX;
 	  if(strncasecmp(accel, "mmxext", 6)==0) tc_accel=MM_MMXEXT;
 	  if(strncasecmp(accel, "3dnow", 5)==0) tc_accel=MM_3DNOW;
+	  if(strncasecmp(accel, "3dnowext", 5)==0) tc_accel=MM_3DNOWEXT;
 	  if(strncasecmp(accel, "sse", 3)==0) tc_accel=MM_SSE;
 	  if(strncasecmp(accel, "sse2", 4)==0) tc_accel=MM_SSE2;
+	  if(strncasecmp(accel, "sse3", 4)==0) tc_accel=MM_SSE3;
 	  
 	  if(tc_accel==-1) usage(EXIT_FAILURE);
 
@@ -3887,7 +3890,7 @@ int main(int argc, char *argv[]) {
     // --accel
     if(tc_accel==-1) tc_accel = ac_mmflag();
 
-    if(verbose & TC_INFO) printf("[%s] V: IA32 accel mode  | %s (%s)\n", PACKAGE, ac_mmstr(tc_accel, 0), ac_mmstr(-1, 1));    
+    if(verbose & TC_INFO) printf("[%s] V: IA32/AMD64 accel | %s (%s)\n", PACKAGE, ac_mmstr(tc_accel, 0), ac_mmstr(-1, 1));
 #endif
 
     tc_memcpy_init(verbose & TC_INFO, tc_accel);

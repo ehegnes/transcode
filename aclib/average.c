@@ -25,9 +25,9 @@
 
 #include "ac.h"
 
-#ifdef ARCH_X86
-
 /*************************************************************************/
+
+#ifdef ARCH_X86
 
 #define INTER_8 "\
 	movq (%%eax), %%mm0						\n\
@@ -144,12 +144,26 @@ sse.exit:								\n\
     return 0;
 }
 
+#endif  /* ARCH_X86 */
+
 /*************************************************************************/
+
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
+
+#ifdef ARCH_X86_64
+# define EAX "%%rax"
+# define EDX "%%rdx"
+# define EDI "%%rdi"
+#else
+# define EAX "%%eax"
+# define EDX "%%edx"
+# define EDI "%%edi"
+#endif
 
 int ac_average_sse2(char *row1, char *row2, char *out, int bytes)
 {
     asm("\
-	push %%edi							\n\
+	push "EDI"							\n\
 	mov %%ecx, %%esi						\n\
 	shr $6, %%ecx		# /64					\n\
 	mov %%ecx, %%edi						\n\
@@ -157,35 +171,35 @@ int ac_average_sse2(char *row1, char *row2, char *out, int bytes)
 									\n\
 	sub %%edi, %%esi						\n\
 									\n\
-	pop %%edi		# out					\n\
+	pop "EDI"		# out					\n\
 									\n\
 sse2.64loop:								\n\
-	prefetchnta (%%eax)						\n\
-	prefetchnta (%%edx)						\n\
+	prefetchnta ("EAX")						\n\
+	prefetchnta ("EDX")						\n\
 									\n\
-	movdqa   (%%eax), %%xmm0					\n\
-	movdqa 16(%%eax), %%xmm1					\n\
-	movdqa 32(%%eax), %%xmm2					\n\
-	movdqa 48(%%eax), %%xmm3					\n\
+	movdqa   ("EAX"), %%xmm0					\n\
+	movdqa 16("EAX"), %%xmm1					\n\
+	movdqa 32("EAX"), %%xmm2					\n\
+	movdqa 48("EAX"), %%xmm3					\n\
 									\n\
-	movdqa   (%%edx), %%xmm4					\n\
-	movdqa 16(%%edx), %%xmm5					\n\
-	movdqa 32(%%edx), %%xmm6					\n\
-	movdqa 48(%%edx), %%xmm7					\n\
+	movdqa   ("EDX"), %%xmm4					\n\
+	movdqa 16("EDX"), %%xmm5					\n\
+	movdqa 32("EDX"), %%xmm6					\n\
+	movdqa 48("EDX"), %%xmm7					\n\
 									\n\
 	pavgb %%xmm4, %%xmm0						\n\
 	pavgb %%xmm5, %%xmm1						\n\
 	pavgb %%xmm6, %%xmm2						\n\
 	pavgb %%xmm7, %%xmm3						\n\
 									\n\
-	movntdq %%xmm0,   (%%edi)					\n\
-	movntdq %%xmm1, 16(%%edi)					\n\
-	movntdq %%xmm2, 32(%%edi)					\n\
-	movntdq %%xmm3, 48(%%edi)					\n\
+	movntdq %%xmm0,   ("EDI")					\n\
+	movntdq %%xmm1, 16("EDI")					\n\
+	movntdq %%xmm2, 32("EDI")					\n\
+	movntdq %%xmm3, 48("EDI")					\n\
 									\n\
-	add $64, %%eax							\n\
-	add $64, %%edx							\n\
-	add $64, %%edi							\n\
+	add $64, "EAX"							\n\
+	add $64, "EDX"							\n\
+	add $64, "EDI"							\n\
 	dec %%ecx							\n\
 	jg sse2.64loop							\n\
 									\n\
@@ -193,13 +207,13 @@ sse2.64loop:								\n\
 	jz sse2.exit							\n\
 									\n\
 sse2.8loop:								\n\
-	movq (%%eax), %%mm0						\n\
-	movq (%%edx), %%mm4						\n\
+	movq ("EAX"), %%mm0						\n\
+	movq ("EDX"), %%mm4						\n\
 	pavgb %%mm4, %%mm0						\n\
-	movntq %%mm0, (%%edi)						\n\
-	add $8, %%eax							\n\
-	add $8, %%edx							\n\
-	add $8, %%edi							\n\
+	movntq %%mm0, ("EDI")						\n\
+	add $8, "EAX"							\n\
+	add $8, "EDX"							\n\
+	add $8, "EDI"							\n\
 	dec %%esi							\n\
 	jg sse2.8loop							\n\
 									\n\
@@ -210,6 +224,6 @@ sse2.exit:								\n\
     return 0;
 }
 
-/*************************************************************************/
+#endif  /* ARCH_X86 || ARCH_X86_64 */
 
-#endif  /* ARCH_X86 */
+/*************************************************************************/
