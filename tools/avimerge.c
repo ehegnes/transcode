@@ -167,8 +167,6 @@ out:
 
 int main(int argc, char *argv[])
 {
-    
-  
   avi_t *avifile, *avifile1, *avifile2;
   
   char *outfile=NULL, *infile=NULL, *audfile=NULL;
@@ -197,7 +195,8 @@ int main(int argc, char *argv[])
   double aud_ms = 0.0, vid_ms = 0.0;
   double aud_ms_w[AVI_MAX_TRACKS];
 
-  
+  tc_memcpy_init(0, -1);
+
   if(argc==1) usage(EXIT_FAILURE);
   
   while ((ch = getopt(argc, argv, "A:a:b:ci:o:p:f:x:?hv")) != -1) {

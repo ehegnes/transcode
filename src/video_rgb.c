@@ -32,6 +32,8 @@
 #include "zoom.h"
 #include "aclib/ac.h"
 
+#include <transcode.h>
+
 #define BLACK_BYTE 0
 
 /* ------------------------------------------------------------ 
@@ -62,7 +64,7 @@ void rgb_rescale(char *image, int width, int height, int reduce_h, int reduce_w)
     {
       for (x = 0; x < n_width; x++)
 	{
-	  memcpy (out, in, 3);
+	  tc_memcpy (out, in, 3);
 	  
 	  out = out + 3; 
 	  in  = in + 3 * reduce_w;
@@ -90,9 +92,9 @@ void rgb_flip(char *image, int width, int height)
   for (y = height; y > height/2; y--)
     {
 
-      memcpy (rowbuffer, out, block);
-      memcpy (out, in, block);
-      memcpy (in, rowbuffer, block);
+      tc_memcpy (rowbuffer, out, block);
+      tc_memcpy (out, in, block);
+      tc_memcpy (in, rowbuffer, block);
       
       out = out + block; 
       in  = in - block;
@@ -117,7 +119,7 @@ void rgb_hclip(char *image, int width, int height, int cols)
 
     for (y = 0; y < height; y++) {
 
-      memcpy(out, in, block);
+      tc_memcpy(out, in, block);
 
       // advance to next row
 
@@ -178,7 +180,7 @@ void rgb_clip_left_right(char *image, int width, int height, int cols_left, int 
 
     for (y = 0; y < height; y++) {
 
-        memcpy(out, in, block);
+        tc_memcpy(out, in, block);
 
         // advance to next row
 
@@ -314,7 +316,7 @@ void rgb_vclip(char *image, int width, int height, int lines)
       
       for (y = 0; y < height - 2*lines ; y++) {
 	  
-	  memcpy(out, in, block);
+	  tc_memcpy(out, in, block);
 	  
 	  in  += block;
 	  out += block;
@@ -385,7 +387,7 @@ void rgb_clip_top_bottom(char *image, char *dest, int width, int height, int _li
   }
 
   //transfer
-  memcpy(out, in, bytes);
+  tc_memcpy(out, in, bytes);
 }
 
 
@@ -605,7 +607,7 @@ void rgb_vresize_8_up(char *image, char *tmp_image, int width, int height, int r
     out = tmp_image + m * row_bytes;
 
     if (in >= last_row){
-      memcpy(out,in,row_bytes);
+      tc_memcpy(out,in,row_bytes);
     } else {
       rgb_merge(in, in+row_bytes, out, row_bytes, vert_table_8_up[i].weight1,
       		vert_table_8_up[i].weight2);
@@ -613,7 +615,7 @@ void rgb_vresize_8_up(char *image, char *tmp_image, int width, int height, int r
     ++m;
   }
 
-  memcpy(image, tmp_image, n_height*width*3);
+  tc_memcpy(image, tmp_image, n_height*width*3);
   return;
 }
 
@@ -689,18 +691,19 @@ void rgb_hresize_8_up(char *image, char *tmp_image, int width, int height, int r
 	in  = image + incr *3;
 	out = tmp_image + m;
 	
-	(!((incr+1)%width)) ? (void)memcpy(out, in, 3):rgb_merge_C(in, in+3, out, 3, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
+	(!((incr+1)%width)) ? (void)tc_memcpy(out, in, 3):rgb_merge_C(in, in+3, out, 3, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
 
 	m+=3;
       }
     }      
     
-    memcpy(image, tmp_image, height*n_width*3);    
+    tc_memcpy(image, tmp_image, height*n_width*3);    
     return;
 }
 
 static int (*rgb_average) (char *row1, char *row2, char *out, int bytes);
-static int (*memcpy_accel) (char *dest, char *source, int bytes);
+// EMS
+// static int (*memcpy_accel) (char *dest, char *source, int bytes);
 
 inline static int memcpy_C(char *dest, char *source, int bytes)
 {
@@ -746,7 +749,9 @@ inline void rgb_deinterlace_linear_blend_core(char *image, char *tmp, int width,
   //(1)
   //copy frame to 2. internal frame buffer
 
-  memcpy_accel(tmp, image, block*height);
+  // EMS
+  // memcpy_accel(tmp, image, block*height);
+  tc_memcpy(tmp, image, block*height);
 
   //(2)
   //convert first field to full frame by simple interpolation
@@ -821,27 +826,27 @@ void rgb_deinterlace_linear_blend(char *image, char *tmp, int width, int height)
 
   //default ia32 C mode:
   rgb_average =  rgb_average_C;
-  memcpy_accel = memcpy_C;
+
+  // memcpy_accel = memcpy_C; // EMS
   
 #ifdef ARCH_X86 
 #ifdef HAVE_ASM_NASM
 
   if(tc_accel & MM_MMX) {
     rgb_average = ac_average_mmx;  
-    memcpy_accel = ac_memcpy_mmx;
+    // memcpy_accel = ac_memcpy_mmx; // EMS
   }
 
   if(tc_accel & MM_SSE) {
     rgb_average = ac_average_sse;
-    memcpy_accel = ac_memcpy_sse;
+    // memcpy_accel = ac_memcpy_sse; // EMS
   }
 
   if(tc_accel & MM_SSE2) {
     rgb_average = ac_average_sse2;
-    memcpy_accel = ac_memcpy_sse2;
+    // memcpy_accel = ac_memcpy_sse2; // EMS
   }
 
-  
 #endif
 #endif
   
@@ -970,7 +975,7 @@ void antialias(char *inrow, char *outrow, int pixels)
 	
     } else { //elseif not aliasing 
 	
-	memcpy(dest_ptr, src_ptr, bpp);
+	tc_memcpy(dest_ptr, src_ptr, bpp);
 	dest_ptr +=bpp;
 	src_ptr  +=bpp;
 	
@@ -1025,7 +1030,7 @@ void rgb_antialias(char *image, char *dest, int width, int height, int mode)
 	      *(out+(pixels+1)*3+2) = *(in+(pixels+1)*3+2); 
 	    } else 
 	      //copy untouched row
-	      memcpy(out, in, width*3);
+	      tc_memcpy(out, in, width*3);
 	}
 	
 	break;
@@ -1046,7 +1051,7 @@ void rgb_antialias(char *image, char *dest, int width, int height, int mode)
 	    *(out+(pixels+1)*3+2) = *(in+(pixels+1)*3+2);
 	    
 	    //copy untouched row
-	    memcpy(out+block, in+block, width*3);
+	    tc_memcpy(out+block, in+block, width*3);
 
 	    in  += block<<1;
 	    out += block<<1;
@@ -1081,8 +1086,8 @@ void rgb_antialias(char *image, char *dest, int width, int height, int mode)
     }
 
     //first and last row untouched
-    memcpy(dest, image, width*3);
-    memcpy(dest+(height-1)*width*3, image+(height-1)*width*3, width*3);
+    tc_memcpy(dest, image, width*3);
+    tc_memcpy(dest+(height-1)*width*3, image+(height-1)*width*3, width*3);
     
     return;
 }
@@ -1146,7 +1151,7 @@ void rgb_zoom(char *image, int width, int height, int new_width, int new_height)
   tbuf[id].dstImage.data++;
   zoom_image_process(tbuf[id].zoomer);
   
-  memcpy(image, tbuf[id].tmpBuffer, new_width*new_height*3);
+  tc_memcpy(image, tbuf[id].tmpBuffer, new_width*new_height*3);
 }
 
 static void rgb_zoom_done_DI(void)
@@ -1202,7 +1207,7 @@ void rgb_zoom_DI(char *image, int width, int height, int new_width, int new_heig
   tbuf_DI[id].dstImage.data++;
   zoom_image_process(tbuf_DI[id].zoomer);
   
-  memcpy(image, tbuf_DI[id].tmpBuffer, new_width*new_height*3);
+  tc_memcpy(image, tbuf_DI[id].tmpBuffer, new_width*new_height*3);
 }
 
 
@@ -1238,7 +1243,7 @@ void deinterlace_rgb_zoom(unsigned char *src, int width, int height)
     //move every second row
     for (i=0; i<height; i=i+2) {
 	
-	memcpy(out, in, block);
+	tc_memcpy(out, in, block);
 	in  += 2*block;
 	out += block;
     }
@@ -1265,7 +1270,7 @@ void deinterlace_rgb_nozoom(unsigned char *src, int width, int height)
     //move every second row
     for (i=0; i<height; i=i+2) {
 	
-	memcpy(out, in, block);
+	tc_memcpy(out, in, block);
 	in  += 2*block;
 	out += block;
     }
@@ -1286,7 +1291,7 @@ void merge_rgb_fields(unsigned char *src1, unsigned char *src2, int width, int h
     //move every second row
     for (i=0; i<height; i=i+2) {
 	
-	memcpy(out, in, block);
+	tc_memcpy(out, in, block);
 	in  += 2*block;
 	out += 2*block;
     }

@@ -122,6 +122,8 @@ int main(int argc, char *argv[])
 
   char separator[] = ",";
 
+  tc_memcpy_init(0, -1);
+
   if(argc==1) usage(EXIT_FAILURE);
   memset(byte_count_at_start, 0 , sizeof(long)*AVI_MAX_TRACKS);
   

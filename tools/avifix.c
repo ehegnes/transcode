@@ -29,6 +29,8 @@
 #include <fcntl.h>
 #include <string.h>
 
+#include "transcode.h"
+
 #include "config.h"
 #include "avilib.h"
 
@@ -54,10 +56,8 @@ void usage(int status)
     exit(status);
 }
 
-
 int main(int argc, char *argv[])
 {
-
   struct common_struct rtf;
   struct AVIStreamHeader ash, vsh;
 
@@ -80,6 +80,8 @@ int main(int argc, char *argv[])
   char codec[5];
 
   char *filename=NULL;
+
+  tc_memcpy_init(0, -1);
 
   if(argc==1) usage(EXIT_FAILURE);
   

@@ -48,6 +48,8 @@
  #include "rtjpeg_vid_plugin.h"
 #undef RTJPEG_INTERNAL
 
+#include <transcode.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -453,7 +455,7 @@ unsigned char *decode_vid_frame(struct rtframeheader *frameheader,unsigned char 
 
   // raw YUV420 (I420, YCrCb) uncompressed
   if (frameheader->frametype=='V' && frameheader->comptype == '0') {
-    memcpy(buf2, strm, (int)(rtjpeg_vid_video_width*rtjpeg_vid_video_height*1.5)); // save for 'L'
+    tc_memcpy(buf2, strm, (int)(rtjpeg_vid_video_width*rtjpeg_vid_video_height*1.5)); // save for 'L'
     return(buf2);
   }
  
@@ -690,8 +692,8 @@ unsigned char *rtjpeg_vid_get_frame(int fakenumber, int *timecode, int onlyvideo
           } else {
             //fprintf(stderr, "timecode shift=%d atc=%d vtc=%d\n", ashift, audiotimecode, 
             //                timecodes[rpos]);
-            memcpy(tmpaudio, audiobuffer, audiolen);
-            memcpy(audiobuffer, tmpaudio+ashift, audiolen);
+            tc_memcpy(tmpaudio, audiobuffer, audiolen);
+            tc_memcpy(audiobuffer, tmpaudio+ashift, audiolen);
             audiolen -= ashift;
           }
         }
@@ -706,9 +708,9 @@ unsigned char *rtjpeg_vid_get_frame(int fakenumber, int *timecode, int onlyvideo
           } else {
             //fprintf(stderr, "timecode shift=%d atc=%d vtc=%d\n", -ashift, audiotimecode, 
             //                timecodes[rpos]);
-            memcpy(tmpaudio, audiobuffer, audiolen);
+            tc_memcpy(tmpaudio, audiobuffer, audiolen);
             bzero(audiobuffer, ashift); // silence!
-            memcpy(audiobuffer+ashift, tmpaudio, audiolen);
+            tc_memcpy(audiobuffer+ashift, tmpaudio, audiolen);
             audiolen += ashift;
           }
         }
@@ -754,7 +756,7 @@ unsigned char *rtjpeg_vid_get_frame(int fakenumber, int *timecode, int onlyvideo
         ret = vbuffer[0]; // we don't decode video for exporting audio only
       }
       // now buffer it
-      memcpy(vbuffer[wpos], ret, (int)(rtjpeg_vid_video_width*rtjpeg_vid_video_height*1.5));
+      tc_memcpy(vbuffer[wpos], ret, (int)(rtjpeg_vid_video_width*rtjpeg_vid_video_height*1.5));
       timecodes[wpos] = frameheader.timecode;
       bufstat[wpos]=1;
       //lastwpos=wpos;
@@ -769,7 +771,7 @@ unsigned char *rtjpeg_vid_get_frame(int fakenumber, int *timecode, int onlyvideo
         memset(strm,   0, lastaudiolen);
       } 
       // now buffer it
-      memcpy(audiobuffer+audiolen, strm, frameheader.packetlength);
+      tc_memcpy(audiobuffer+audiolen, strm, frameheader.packetlength);
       audiotimecode = frameheader.timecode + rtjpeg_vid_audiodelay; // untested !!!! possible FIXME
       if (audiolen>0) {
         // now we take the new timecode and calculate the shift
@@ -792,8 +794,8 @@ unsigned char *rtjpeg_vid_get_frame(int fakenumber, int *timecode, int onlyvideo
     *alen = 0;
   } else {
     *alen = bytesperframe;
-    memcpy(tmpaudio, audiobuffer, audiolen);
-    memcpy(audiobuffer, tmpaudio+bytesperframe, audiolen);
+    tc_memcpy(tmpaudio, audiobuffer, audiolen);
+    tc_memcpy(audiobuffer, tmpaudio+bytesperframe, audiolen);
     audiolen -= bytesperframe;
     audiobytes += bytesperframe;
   }

@@ -27,6 +27,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <transcode.h>
+
 #include "dvenc.h"
 
 static int frame_counter = 0;
@@ -56,7 +58,7 @@ static int raw_store(unsigned char* encoded_data,
     }
   }
 
-  memcpy(dvenc_dvbuf, encoded_data, (isPAL) ? TC_FRAME_DV_PAL:TC_FRAME_DV_NTSC);
+  tc_memcpy(dvenc_dvbuf, encoded_data, (isPAL) ? TC_FRAME_DV_PAL:TC_FRAME_DV_NTSC);
   
   frame_counter++;
   return(0);

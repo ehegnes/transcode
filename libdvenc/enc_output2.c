@@ -31,6 +31,8 @@
 #include "enc_output2.h"
 #include "headers2.h"
 
+#include <transcode.h>
+
 static int dv_audio_unshuffle_60[5][9] = {
   { 0, 15, 30, 10, 25, 40,  5, 20, 35 },
   { 3, 18, 33, 13, 28, 43,  8, 23, 38 },
@@ -251,10 +253,10 @@ int dvenc_insert_audio(unsigned char * frame_buf,
 		}
 
 		/* Timestamp it! */
-		memcpy(p + 0*16*80, head_50, 5);
-		memcpy(p + 1*16*80, head_51, 5);
-		memcpy(p + 2*16*80, head_52, 5);
-		memcpy(p + 3*16*80, head_53, 5);
+		tc_memcpy(p + 0*16*80, head_50, 5);
+		tc_memcpy(p + 1*16*80, head_51, 5);
+		tc_memcpy(p + 2*16*80, head_52, 5);
+		tc_memcpy(p + 3*16*80, head_53, 5);
 
 		if (dif_seg >= dif_seg_max/2) {
 			p[2] |= 1;

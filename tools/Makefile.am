@@ -19,22 +19,22 @@ bin_PROGRAMS = \
 	tcmp3cut
 
 avisync_SOURCES = avisync.c buffer.c buffer.h aud_scan.c aud_scan.h
-avisync_LDADD = @AVILIB_LIBS@ @XIO_LIBS@
+avisync_LDADD = @AVILIB_LIBS@ @XIO_LIBS@ -L../aclib -lac
 
 avimerge_SOURCES = avimerge.c aud_scan.c aud_scan.h
-avimerge_LDADD = @AVILIB_LIBS@ @XIO_LIBS@
+avimerge_LDADD = @AVILIB_LIBS@ @XIO_LIBS@ -L../aclib -lac
 
 avifix_SOURCES = avifix.c aud_scan.c aud_scan.h
-avifix_LDADD = @AVILIB_LIBS@ @XIO_LIBS@
+avifix_LDADD = @AVILIB_LIBS@ @XIO_LIBS@ -L../aclib -lac
 
 aviindex_SOURCES = aviindex.c aud_scan.c aud_scan.h
-aviindex_LDADD = @AVILIB_LIBS@ @XIO_LIBS@
+aviindex_LDADD = @AVILIB_LIBS@ @XIO_LIBS@ -L../aclib -lac
 
 avisplit_SOURCES = avisplit.c aud_scan.c aud_scan.h
-avisplit_LDADD = @AVILIB_LIBS@ @TCIOAUX_LIBS@ @XIO_LIBS@
+avisplit_LDADD = @AVILIB_LIBS@ @TCIOAUX_LIBS@ @XIO_LIBS@ -L../aclib -lac
 
 tcmodinfo_SOURCES = tcmodinfo.c
-tcmodinfo_LDADD = @DLDARWINLIB@ -lm $(top_builddir)/src/optstr.o
+tcmodinfo_LDADD = @DLDARWINLIB@ -lm $(top_builddir)/src/optstr.o -L../aclib -lac
 tcmodinfo_LDFLAGS = -export-dynamic 
 
 tcmp3cut_SOURCES = tcmp3cut.c

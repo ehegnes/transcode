@@ -30,6 +30,8 @@
 
 #include "dvenc.h"
 
+#include <transcode.h>
+
 static dv_enc_audio_info_t *audio_info;
 
 static void (*audio_converter)(unsigned char* in_buf, unsigned char* out_buf,
@@ -61,7 +63,7 @@ static void convert_s16_le(unsigned char* in_buf, unsigned char* out_buf,
 static void convert_s16_be(unsigned char* in_buf, unsigned char* out_buf,
 			   int num_samples)
 {
-	memcpy(out_buf, in_buf, 2*num_samples);
+	tc_memcpy(out_buf, in_buf, 2*num_samples);
 }
 
 static void convert_u16_le(unsigned char* in_buf, unsigned char* out_buf,
@@ -111,7 +113,7 @@ int pcm_load(dv_enc_audio_info_t * audio_info, int isPAL)
 {
 	unsigned char data[DV_AUDIO_MAX_SAMPLES * 2 * 2];
 
-	memcpy(data, dvenc_abuf, audio_info->bytesperframe); 
+	tc_memcpy(data, dvenc_abuf, audio_info->bytesperframe); 
 	audio_converter(data, audio_info->data, 
 			audio_info->bytesperframe / 2);
 	return(0);

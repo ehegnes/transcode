@@ -21,6 +21,7 @@
  *
  */
 
+#include <transcode.h>
 #include "framebuffer.h"
 #include "video_trans.h"
 #include "aclib/ac.h"
@@ -1085,7 +1086,7 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
     if(!aa_table_flag) init_aa_table(vob->aa_weight, vob->aa_bias);
     
     //UV components unchanged
-    memcpy(ptr->video_buf_Y[ptr->free]+ptr->v_width*ptr->v_height, ptr->video_buf + ptr->v_width*ptr->v_height, ptr->v_width*ptr->v_height/2);
+    tc_memcpy(ptr->video_buf_Y[ptr->free]+ptr->v_width*ptr->v_height, ptr->video_buf + ptr->v_width*ptr->v_height, ptr->v_width*ptr->v_height/2);
     
     yuv_antialias(ptr->video_buf, ptr->video_buf_Y[ptr->free], ptr->v_width, ptr->v_height, vob->antialias);
     

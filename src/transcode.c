@@ -39,7 +39,6 @@
 #include "probe.h"
 #include "split.h"
 #include "iodir.h"
-#include "aclib/ac.h"
 #include "../libxio/xio.h"
 
 #ifdef HAVE_GETOPT_LONG_ONLY
@@ -201,7 +200,6 @@ int tc_x_preview         =  0;
 int tc_y_preview         =  0;
 int tc_progress_meter    =  1;
 int tc_accel             = -1;    //acceleration code
-void (*tc_memcpy)(void *, const void *, size_t) = memcpy;
 unsigned int tc_avi_limit = (unsigned int)-1;
 pid_t tc_probe_pid       = 0;
 int tc_frame_width_max   = 0;
@@ -3833,33 +3831,9 @@ int main(int argc, char *argv[]) {
     if(tc_accel==-1) tc_accel = ac_mmflag();
 
     if(verbose & TC_INFO) printf("[%s] V: IA32 accel mode  | %s (%s)\n", PACKAGE, ac_mmstr(tc_accel, 0), ac_mmstr(-1, 1));    
-
-    if((tc_accel && MM_MMXEXT) || (tc_accel & MM_SSE))
-    {
-        if(verbose & TC_INFO)
-	  fprintf(stderr, "[" PACKAGE "] found mmx2 or sse, using amdmmx accelerated memcpy\n");
-	tc_memcpy = ac_memcpy_amdmmx;
-    }
-    else
-    {
-        if(tc_accel && MM_MMXEXT)
-	{
-            if(verbose & TC_INFO)
-                fprintf(stderr, "[" PACKAGE "] found mmx, using mmx accelerated memcpy\n");
-            tc_memcpy = ac_memcpy_mmx;
-	}
-	else
-	{
-            if(verbose & TC_INFO)
-                fprintf(stderr, "[" PACKAGE "] no simd extension present, using default memcpy\n");
-            tc_memcpy = memcpy;
-	}
-    }
-#else
-    if(verbose & TC_INFO)
-        fprintf(stderr, "[" PACKAGE "] No X86 arch, using default memcpy\n");
-    tc_memcpy = memcpy;
 #endif
+
+    tc_memcpy_init(verbose & TC_INFO, tc_accel);
 
     // more checks with warnings
     

@@ -32,6 +32,8 @@
 
 #include "../../src/filter.h"
 
+#include <transcode.h>
+
 struct fgdevice fg;
 
 static int fh;
@@ -716,19 +718,19 @@ video_grab_frame (char *buffer)
   switch (fg.format) {
 
   case VIDEO_PALETTE_RGB24:
-    memcpy (buffer, p, fg.image_size);
+    tc_memcpy (buffer, p, fg.image_size);
 
     break;
 
   case VIDEO_PALETTE_YUV420P:
-    memcpy (buffer, p, fg.image_pixels);
-    memcpy (buffer + fg.image_pixels, p + (fg.image_pixels * 10 / 8), fg.image_pixels >> 2);
-    memcpy (buffer + (fg.image_pixels * 10 / 8), p + fg.image_pixels, fg.image_pixels >> 2);
+    tc_memcpy (buffer, p, fg.image_pixels);
+    tc_memcpy (buffer + fg.image_pixels, p + (fg.image_pixels * 10 / 8), fg.image_pixels >> 2);
+    tc_memcpy (buffer + (fg.image_pixels * 10 / 8), p + fg.image_pixels, fg.image_pixels >> 2);
 
     break;
 
   case VIDEO_PALETTE_YUV422:
-    memcpy (buffer, p, fg.image_size);
+    tc_memcpy (buffer, p, fg.image_size);
 
     break;
   }

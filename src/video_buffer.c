@@ -395,8 +395,8 @@ void vframe_copy_payload(vframe_list_t *dst, vframe_list_t *src)
     dst->free = src->free;
 
     // copy video data
-    memcpy(dst->video_buf, src->video_buf, dst->video_size);
-    memcpy(dst->video_buf2, src->video_buf2, dst->video_size);
+    tc_memcpy(dst->video_buf, src->video_buf, dst->video_size);
+    tc_memcpy(dst->video_buf2, src->video_buf2, dst->video_size);
 }
 
 /* ------------------------------------------------------------------ */

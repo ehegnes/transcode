@@ -28,6 +28,8 @@
 #include <signal.h>
 #include <string.h>
 
+#include <transcode.h>
+
 #include "dvenc.h"
 
 /* FIXME: Just guessed! */
@@ -73,7 +75,7 @@ static int ppm_load(const char* filename, int *isPAL)
 {
   
   *isPAL = (frame_height == DV_PAL_HEIGHT);
-  memcpy(readbuf, dvenc_vbuf, 3 * DV_WIDTH * frame_height);     
+  tc_memcpy(readbuf, dvenc_vbuf, 3 * DV_WIDTH * frame_height);     
   dv_enc_rgb_to_ycb(readbuf, frame_height, img_y, img_cr, img_cb);
   
   return (0);
@@ -279,7 +281,7 @@ static int pgm_load(const char* filename, int * isPAL)
   *isPAL = (frame_height == DV_PAL_HEIGHT);
     
   //Y
-  memcpy(readbuf, dvenc_vbuf, DV_WIDTH * frame_height);  
+  tc_memcpy(readbuf, dvenc_vbuf, DV_WIDTH * frame_height);  
   
   off1 = DV_WIDTH * frame_height;
   off2 = (DV_WIDTH * frame_height * 5)/4;
@@ -288,8 +290,8 @@ static int pgm_load(const char* filename, int * isPAL)
   
   //interleave Cb and Cr
   for (n=0; n<frame_height/2; ++n) {
-    memcpy(readbuf+off1+2*n*block, dvenc_vbuf+off2 + n*block, block); 
-    memcpy(readbuf+off1+(2*n+1)*block, dvenc_vbuf+off1 + n*block, block);
+    tc_memcpy(readbuf+off1+2*n*block, dvenc_vbuf+off2 + n*block, block); 
+    tc_memcpy(readbuf+off1+(2*n+1)*block, dvenc_vbuf+off1 + n*block, block);
   }
   
   return (0);
