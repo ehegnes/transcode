@@ -25,9 +25,9 @@ if CAN_COMPILE_C_ALTIVEC
 FF_SRC_ALTIVEC = ppc/dsputil_altivec.c ppc/mpegvideo_altivec.c ppc/idct_altivec.c \
 		 ppc/fft_altivec.c ppc/gmc_altivec.c
 if SYSTEM_DARWIN
-ALTIVEC_CFL=-faltivec
+ALTIVEC=-faltivec
 else
-ALTIVEC_CFL=-maltivec -mabi=altivec
+ALTIVEC=-maltivec -mabi=altivec
 endif
 endif
 
