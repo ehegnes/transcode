@@ -133,9 +133,9 @@ af6_decore_la_SOURCES = af6_decore.cpp ioaux.c
 af6_decore_la_LDFLAGS =  -module -avoid-version 
 af6_decore_la_LIBADD  =  @AVIFILE_LIBS@ -lstdc++ -lm
 
-import_mp3_la_SOURCES = import_mp3.c ioaux.c mpg123.c
+import_mp3_la_SOURCES = import_mp3.c ioaux.c
 import_mp3_la_LDFLAGS =  -module -avoid-version 
-import_mp3_la_LIBADD  = $(MP123_LIB) -lm
+import_mp3_la_LIBADD  = -lm
 
 import_lzo_la_SOURCES = import_lzo.c 
 import_lzo_la_LDFLAGS =  -module -avoid-version 

@@ -415,9 +415,9 @@ af6_decore_la_SOURCES = af6_decore.cpp ioaux.c
 af6_decore_la_LDFLAGS = -module -avoid-version 
 af6_decore_la_LIBADD = @AVIFILE_LIBS@ -lstdc++ -lm
 
-import_mp3_la_SOURCES = import_mp3.c ioaux.c mpg123.c
+import_mp3_la_SOURCES = import_mp3.c ioaux.c
 import_mp3_la_LDFLAGS = -module -avoid-version 
-import_mp3_la_LIBADD = $(MP123_LIB) -lm
+import_mp3_la_LIBADD = -lm
 
 import_lzo_la_SOURCES = import_lzo.c 
 import_lzo_la_LDFLAGS = -module -avoid-version 
@@ -529,9 +529,8 @@ import_lzo_la_OBJECTS = $(am_import_lzo_la_OBJECTS)
 import_mov_la_DEPENDENCIES =
 am_import_mov_la_OBJECTS = import_mov.lo
 import_mov_la_OBJECTS = $(am_import_mov_la_OBJECTS)
-@LAME_3_89_TRUE@import_mp3_la_DEPENDENCIES =
-@LAME_3_89_FALSE@import_mp3_la_DEPENDENCIES =
-am_import_mp3_la_OBJECTS = import_mp3.lo ioaux.lo mpg123.lo
+import_mp3_la_DEPENDENCIES =
+am_import_mp3_la_OBJECTS = import_mp3.lo ioaux.lo
 import_mp3_la_OBJECTS = $(am_import_mp3_la_OBJECTS)
 import_mpeg2_la_LIBADD =
 am_import_mpeg2_la_OBJECTS = import_mpeg2.lo
@@ -689,11 +688,10 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/ioaux.Plo ./$(DEPDIR)/ioaux.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/iodump.Po ./$(DEPDIR)/ioxml.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/ioxml.Po ./$(DEPDIR)/ivtc.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/mpg123.Plo ./$(DEPDIR)/mpg123.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/packets.Po ./$(DEPDIR)/probe_dvd.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/probe_im.Po ./$(DEPDIR)/probe_lav.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/probe_mov.Po ./$(DEPDIR)/probe_nuv.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/probe_ogg.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mpg123.Po ./$(DEPDIR)/packets.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/probe_dvd.Po ./$(DEPDIR)/probe_im.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/probe_lav.Po ./$(DEPDIR)/probe_mov.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/probe_nuv.Po ./$(DEPDIR)/probe_ogg.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/probe_socket.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/probe_stream.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/probe_wav.Po ./$(DEPDIR)/probe_xml.Plo \
@@ -957,7 +955,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ioxml.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ioxml.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ivtc.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mpg123.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mpg123.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/packets.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/probe_dvd.Po@am__quote@
