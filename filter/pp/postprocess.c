@@ -95,8 +95,12 @@ try to unroll inner for(x=0 ... loop to avoid these damn if(x ... checks
 #define memalign(a,b) malloc(b)
 #endif
 
+#ifndef MIN
 #define MIN(a,b) ((a) > (b) ? (b) : (a))
+#endif
+#ifndef MAX
 #define MAX(a,b) ((a) < (b) ? (b) : (a))
+#endif
 #define ABS(a) ((a) > 0 ? (a) : (-(a)))
 #define SIGN(a) ((a) > 0 ? 1 : -1)
 

@@ -148,8 +148,6 @@ int ac_mmflag(void)
   return(mm_flag);
 }
 
-static char mmstr[64]="";
-
 void ac_mmtest() 
 {
   int cc=ac_mmflag();
@@ -185,6 +183,7 @@ void ac_mmtest()
 
 char *ac_mmstr(int flag, int mode) 
 {
+  static char mmstr[64]="";
   int cc;
   
   if(flag==-1) 
@@ -192,7 +191,7 @@ char *ac_mmstr(int flag, int mode)
     cc=ac_mmflag();
   else
     cc=flag;
-  
+
   //return max supported mm extensions, or str for user provided flag
   if(mode==0) {
     if(cc & MM_SSE3) {
@@ -216,14 +215,15 @@ char *ac_mmstr(int flag, int mode)
 
   //return full capability list
   if(mode==1) {
-    if(cc & MM_SSE3) strcpy(mmstr, "sse3 ");
+    if(cc & MM_SSE3) strcat(mmstr, "sse3 ");
     if(cc & MM_SSE2) strcat(mmstr, "sse2 ");
     if(cc & MM_SSE) strcat(mmstr, "sse "); 
     if(cc & MM_3DNOWEXT) strcat(mmstr, "3dnowext "); 
     if(cc & MM_3DNOW) strcat(mmstr, "3dnow "); 
     if(cc & MM_MMXEXT) strcat(mmstr, "mmxext "); 
     if(cc & MM_MMX) strcat(mmstr, "mmx "); 
-    if(cc & MM_IA32ASM) strcat(mmstr, "asm"); 
+    if(cc & MM_IA32ASM) strcat(mmstr, "asm ");
+    strcat(mmstr, "C");
     return(mmstr);
   }
 
