@@ -40,7 +40,6 @@
 #include <stdarg.h>
 #include "../avilib/avilib.h"
 #include "../aclib/ac.h"
-
 #include "../libioaux/framecode.h"
 
 #ifdef NET_STREAM
@@ -76,8 +75,6 @@ typedef unsigned int uint32_t;
 #    define attribute_used
 #endif
 #endif
-
-#include "../libioaux/framecode.h"
 
 /* ----------------------------
  * 

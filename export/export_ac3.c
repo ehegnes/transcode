@@ -26,6 +26,7 @@
 #include <unistd.h>
 
 #include "transcode.h"
+#include "probe_export.h"
 
 #define MOD_NAME    "export_ac3.so"
 #define MOD_VERSION "v0.1 (2003-02-26)"
@@ -69,12 +70,24 @@ MOD_open
         char out_fname [PATH_MAX];
 
         strcpy(out_fname, vob->audio_out_file);
-        strcat(out_fname, ".ac3");
+
+	if(probe_export_attributes & TC_PROBE_NO_EXPORT_AEXT)
+	    strcat(out_fname, audio_ext);
+	else
+            strcat(out_fname, ".ac3");
 
 	if (vob->mp3bitrate == 0) {
-            fprintf (stderr, "[%s] Audio bitrate 0 is not valid, cannot cope.\n", MOD_NAME);
+            fprintf (stderr, "[%s] Please set the export audio bitrate\n", MOD_NAME);
             return(TC_EXPORT_ERROR);
         }
+
+	if (vob->mp3frequency == 0) {
+            fprintf (stderr, "[%s] Please set the export audio sample rate\n", MOD_NAME);
+            return(TC_EXPORT_ERROR);
+        }
+
+	fprintf(stderr, "[%s] *** This module is non-optimal ***\n", MOD_NAME);
+	fprintf(stderr, "[%s] *** Use -N 0x2000 instead of -y ...,ac3 (faster) ***\n", MOD_NAME);
 
         result = snprintf (buf, PATH_MAX,
                            "ffmpeg -y -f s%dle -ac %d -ar %d -i - -ab %d -acodec ac3 %s%s",
