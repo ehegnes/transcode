@@ -92,7 +92,7 @@ void do_deinterlace (tomsmocomp_t *tmc) {
 	pictHistPts[i] = &pictHist[i];
     tmc->DSinfo.PictureHistory = pictHistPts;
     assert (DS_HISTORY_SIZE >= 4);
-	/* ?!? check */
+
     if (tmc->TopFirst) {
 	/* !@#$ Do we start counting at 0 or 1?!? */
 	tmc->DSinfo.PictureHistory[0]->Flags = PICTURE_INTERLACED_ODD;
@@ -213,23 +213,7 @@ int tc_filter (vframe_list_t *ptr, char *options)
 	tmc->DSinfo.FieldHeight  = tmc->height / 2;
 	tmc->DSinfo.InputPitch   = 2* tmc->rowsize;
 
-// "cleaned up" by Erik Slagter
-
-#if 0
-	if (tmc->cpuflags & MM_SSE) {
-	    tmc->DSinfo.pMemcpy      = (MEMCPY_FUNC*) ac_memcpy_sse;
-	} else if (tmc->cpuflags & MM_MMX) {
-	    tmc->DSinfo.pMemcpy      = (MEMCPY_FUNC*) ac_memcpy_mmx;
-	} else if (tmc->cpuflags & MM_3DNOW) {
-	    tmc->DSinfo.pMemcpy      = memcpy; /* no ac_memcpy_3dnow so far */
-	} else {
-	    fprintf (stderr, "[%s] FAILURE: only implemented for MMX/3DNOW/SSE capable cpus!\n", MOD_NAME);
-	    return -1;
-	}
-	tmc->DSinfo.pMemcpy      = memcpy; /* at least _mmx is broken: last bytes don't get copied */
-#else
 	tmc->DSinfo.pMemcpy = tc_memcpy;
-#endif
 	
 	if (verbose) {
 	    printf("[%s] TopFirst %s,  SearchEffort %d,  StrangeBob %s\n",
@@ -297,8 +281,7 @@ int tc_filter (vframe_list_t *ptr, char *options)
 			tmc->width, tmc->height);
 	    break;
 	case CODEC_YUV422:
-	    uyvytoyuy2 (ptr->video_buf, tmc->frameIn,
-			tmc->width, tmc->height);
+	    uyvytoyuy2 (ptr->video_buf, tmc->frameIn, tmc->width, tmc->height);
 	    break;
 	}
 
@@ -310,8 +293,7 @@ int tc_filter (vframe_list_t *ptr, char *options)
 	    /* Now convert back */
 	    switch (tmc->codec) {
 	    case CODEC_YUY2:
-		tc_memcpy (ptr->video_buf, tmc->frameOut,
-			tmc->size);
+		tc_memcpy (ptr->video_buf, tmc->frameOut, tmc->size);
 		break;
 	    case CODEC_YUV:
 		yuy2toyv12 (ptr->video_buf_Y[!ptr->free],

@@ -1,5 +1,20 @@
 transcode-0.13-pre2 EMS
 
+2004-08-14 Matthias Hopf <Matthias.Hopf at informatik dot uni-stuttgart dot de>
+  * filter/Makefile.am filter/tomsmocomp/filter_tomsmocomp.c
+  * filter/filter_fieldanalysis.c:
+  I have another patch for you that adds a filter for detecting the field
+  type of potentially interlaced video. Some of its parameters may need a
+  little tweaking, and of course it cannot determine the field type on
+  static scenes. It also is not extremely fast, but it is fast enough for
+  me :-P .
+  
+  There has been the filter 32detect (which is an odd name as it only
+  detects interlaced video as well), but my analysis filter knows of
+  more different field types and seems to have more stable algorithms.
+  It also detects field shifted progressive video, though it currently
+  identifies too many frames as shifted-progressive for truly interlaced video.
+
 2004-08-14 Erik Slagter <erik at oldconomy dot com>
   * acinclude.m4 import/Makefile.am export/Makefile.am:
   libavcodec needs -lz -lm

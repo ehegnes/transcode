@@ -51,6 +51,7 @@ pkg_LTLIBRARIES = \
 	filter_null.la \
 	filter_invert.la \
 	filter_nored.la \
+	filter_fieldanalysis.la\
 	filter_32detect.la \
 	filter_32drop.la \
 	filter_yuy2toyv12.la \
@@ -173,6 +174,9 @@ filter_aclip_la_LDFLAGS = -module -avoid-version
 
 filter_videocore_la_SOURCES = filter_videocore.c
 filter_videocore_la_LDFLAGS = -module -avoid-version 
+
+filter_fieldanalysis_la_SOURCES = filter_fieldanalysis.c
+filter_fieldanalysis_la_LDFLAGS =  -module -avoid-version 
 
 filter_32detect_la_SOURCES = filter_32detect.c
 filter_32detect_la_LDFLAGS = -module -avoid-version 
