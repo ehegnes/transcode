@@ -22,7 +22,6 @@ docs_DATA =  \
 	export_opendivx.php \
 	export_raw.html \
 	export_xvid.php \
-	faq.html \
 	filter.html \
 	import_ac3.html \
 	import_avi.html \
