@@ -30,7 +30,7 @@ distributed encoding:
 (3) we need to decide, how many chunks we want to create for
     distributed encoding. This number should not be too high, in case 
     you prefer 2-pass encoding. Otherwise, it may depend on the nodes
-    in out cluster. Assume we want 8 chunks with approx.
+    in our cluster. Assume we want 8 chunks with approx.
     25k frames. 
 
     For each chunk, switch to a node and invoke transcode with your 
