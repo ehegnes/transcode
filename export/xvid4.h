@@ -1,25 +1,25 @@
 /*****************************************************************************
  *
- *	XVID MPEG-4 VIDEO CODEC
- *	- XviD Main header file -
+ * XVID MPEG-4 VIDEO CODEC
+ * - XviD Main header file -
  *
- *	Copyright(C) 2001-2003 Peter Ross <pross@xvid.org>
+ *  Copyright(C) 2001-2003 Peter Ross <pross@xvid.org>
  *
- *	This program is free software ; you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License as published by
- *	the Free Software Foundation ; either version 2 of the License, or
- *	(at your option) any later version.
+ *  This program is free software ; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation ; either version 2 of the License, or
+ *  (at your option) any later version.
  *
- *	This program is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY ; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *	GNU General Public License for more details.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY ; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
  *
- *	You should have received a copy of the GNU General Public License
- *	along with this program ; if not, write to the Free Software
- *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program ; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- * $Id: xvid4.h,v 1.2 2003-08-03 19:17:57 tibit Exp $
+ * $Id: xvid4.h,v 1.3 2003-08-23 22:36:40 tibit Exp $
  *
  ****************************************************************************/
 
@@ -73,7 +73,7 @@ extern "C" {
  * doesnt hurt but not increasing it could cause difficulty for decoders in the
  * future
  */
-#define XVID_BS_VERSION "0016"
+#define XVID_BS_VERSION "0017"
 
 
 /*****************************************************************************
@@ -188,7 +188,7 @@ typedef struct {
 /* XVID_GBL_INIT param1 */
 typedef struct {
 	int version;
-	int cpu_flags; /* [in:opt] zero = autodetect cpu; XVID_CPU_FORCE|{cpu features} = force cpu features */
+	unsigned int cpu_flags; /* [in:opt] zero = autodetect cpu; XVID_CPU_FORCE|{cpu features} = force cpu features */
 	int debug;     /* [in:opt] debug level */
 } xvid_gbl_init_t;
 
@@ -198,7 +198,7 @@ typedef struct {
 	int version;
 	int actual_version; /* [out] returns the actual xvidcore version */
 	const char * build; /* [out] if !null, points to description of this xvid core build */
-	int cpu_flags;      /* [out] detected cpu features */
+	unsigned int cpu_flags;      /* [out] detected cpu features */
 	int num_threads;    /* [out] detected number of cpus/threads */
 } xvid_gbl_info_t;
 

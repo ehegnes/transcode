@@ -1,6 +1,13 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-23 Edouard Gomez <ed.gomez at free.fr>
+
+   * export/{export_xvid4.c xvid4.cfg xvid4.h}:
+   - Added greyscale option and help message.
+   - small xvid4.h upgrade.
+   - added more help messages to xvid4.cfg
+   
 2003-08-23 Tilmann Bitterberg <transcode at tibit.org>
   
    * import/import_ogg.c:

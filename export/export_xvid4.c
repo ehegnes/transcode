@@ -150,6 +150,7 @@ typedef struct _xvid_transcode_module_t
 	int cfg_vhq;
 	int cfg_motion;
 	int cfg_stats;
+	int cfg_greyscale;
 
 	/* MPEG4 stream buffer */
 	int   stream_size;
@@ -639,6 +640,7 @@ static void read_config_file(xvid_transcode_module_t *mod)
 			{"hqacpred", &mod->cfg_hqacpred, CONF_TYPE_FLAG, 0, 0, 1, NULL},
 			{"frame_drop_ratio", &create->frame_drop_ratio, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
 			{"stats", &mod->cfg_stats, CONF_TYPE_FLAG, 0, 0, 1, NULL},
+			{"greyscale", &mod->cfg_greyscale, CONF_TYPE_FLAG, 0, 0, 1, NULL},
 
 			/* section [quantizer] */
 			{"quantizer", "Quantizer settings", CONF_TYPE_SECTION, 0, 0, 0, NULL},
@@ -734,6 +736,9 @@ static void dispatch_settings(xvid_transcode_module_t *mod)
 
 	if(mod->cfg_stats)
 		frame->vol_flags |= XVID_VOL_EXTRASTATS;
+
+	if(mod->cfg_greyscale)
+		frame->vop_flags |= XVID_VOP_GREYSCALE;
 
 	if(mod->cfg_intra_matrix_file) {
 		frame->quant_intra_matrix = (unsigned char*)read_matrix(mod->cfg_intra_matrix_file);
