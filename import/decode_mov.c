@@ -90,21 +90,18 @@ void decode_mov(decode_t *decode)
 		{
 			quicktime_close(p_qt_structure);
       			fprintf(stderr,"(%s) error: unsupported %d bit rate in quicktime !\n",__FILE__,s_bits);
-			decode->error=1;
 			import_exit(1);
 		}
 		if(s_channel > 2) 
 		{
 			quicktime_close(p_qt_structure);
       			fprintf(stderr,"(%s) error: too many audio tracks (%d) found in quicktime !\n",__FILE__,s_channel);
-			decode->error=1;
 			import_exit(1);
 		}
 		if(strlen(p_a_codec)==0) 
 		{
 			quicktime_close(p_qt_structure);
       			fprintf(stderr,"(%s) error: unsupported codec (empty!) in quicktime !\n",__FILE__);
-			decode->error=1;
 			import_exit(1);
 		}
 		if(quicktime_supported_audio(p_qt_structure, 0)!=0) 
@@ -125,7 +122,6 @@ void decode_mov(decode_t *decode)
 					{
 						quicktime_close(p_qt_structure);
 						fprintf(stderr,"(%s) error: reading quicktime audio frame\n",__FILE__);
-						decode->error=1;
 						import_exit(1);
 					}
 					p_write (decode->fd_out, p_buffer, s_buff_size);
@@ -225,7 +221,6 @@ void decode_mov(decode_t *decode)
 			{
 				quicktime_close(p_qt_structure);
 				fprintf(stderr,"(%s) error: can't allocate buffer\n",__FILE__);
-				decode->error=1;
 				import_exit(1);
 			}
 			s_qt_pos=quicktime_video_position(p_qt_structure,0);
@@ -237,7 +232,6 @@ void decode_mov(decode_t *decode)
 					free(p_buffer);
 					quicktime_close(p_qt_structure);
 					fprintf(stderr,"(%s) error: reading quicktime video frame\n",__FILE__);
-					decode->error=1;
 					import_exit(1);
       				}
 				p_write (decode->fd_out, p_buffer, s_buff_size);
@@ -249,7 +243,6 @@ void decode_mov(decode_t *decode)
 			{
 				quicktime_close(p_qt_structure);
 				fprintf(stderr,"(%s) error: quicktime video codec '%s' not supported for RGB\n",__FILE__,p_v_codec);
-				decode->error=1;
 				import_exit(1);
 			}
       			if ((p_raw_buffer = malloc(s_height*sizeof(char *))) ==NULL)
@@ -294,7 +287,6 @@ void decode_mov(decode_t *decode)
 			{
 				quicktime_close(p_qt_structure);
 				fprintf(stderr, "(%s) error: quicktime video codec '%s' not suitable for YUV!\n", __FILE__,p_v_codec);
-				decode->error=1;
 				import_exit(1);
 			}
 			s_buff_size=(3 * s_height * s_width)/2;
@@ -302,7 +294,6 @@ void decode_mov(decode_t *decode)
 			{
 				quicktime_close(p_qt_structure);
 				fprintf(stderr,"(%s) error: can't allocate rgb buffer\n",__FILE__);
-				decode->error=1;
 				import_exit(1);
 			}
 			s_qt_pos=quicktime_video_position(p_qt_structure,0);
@@ -314,7 +305,6 @@ void decode_mov(decode_t *decode)
 					free(p_buffer);
 					quicktime_close(p_qt_structure);
 					fprintf(stderr,"(%s) error: reading quicktime video frame\n",__FILE__);
-					decode->error=1;
 					import_exit(1);
       				}
 				p_write (decode->fd_out, p_buffer, s_buff_size);
@@ -324,7 +314,6 @@ void decode_mov(decode_t *decode)
 		{
 			quicktime_close(p_qt_structure);
 			fprintf(stderr,"(%s) error: unknown format mode (0x%x) \n",__FILE__,decode->format);
-			decode->error=1;
 			import_exit(1);
 		}
 		quicktime_close(p_qt_structure);
