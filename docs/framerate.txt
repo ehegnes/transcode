@@ -106,16 +106,17 @@ o ivtc+decimate
   five and drops one of which look similar.
   
 o modfps
-  This filter tries to reach the desired framerate by "stupid"
-  cloning and dropping of frames. By doing that, it can produce
-  nearly any framerate you might have ever imagined. The filter does
-  take options but they can be ommitted by giving correct arguments
-  to transcode. There is a second mode of operation, the buffer
-  mode. This mode will look better when dropping frames.
+  This filter tries to reach the desired framerate by cloning and
+  dropping of frames.  In its default mode it will buffer the last
+  5 frames, and drop the frame with the least difference with the
+  frame that follows it, or clone the frame with the most
+  difference.  Additionally, it can blend frames or mingle frame
+  fields when  cloning.  Additionally it has a fast mode, but results
+  look poor.
 
 o fps
-  This filter is basically the same as `modfps' its just doing its
-  work a slightly different way.
+  This filter is basically the same as the fast mode of `modfps' its
+  just doing its work a slightly different way.
 
 o tc_video
   This filter increases the framerate by doing telecine. It takes no

@@ -25,6 +25,7 @@ docs_DATA = \
                     README.vcd \
 		    README.Inverse.Telecine.txt \
 		    README.xvid-credits \
+                    README.filter.modfps \
                     template.cfg.txt\
 		    filter-socket.txt\
 		    avi_comments.txt\
