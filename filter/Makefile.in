@@ -335,7 +335,7 @@ x_libraries = @x_libraries@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-INCLUDES = -I./ -I../src -I$(srcdir)/../src @AVILIB_CFLAGS@ @AVIFILE_CFLAGS@ @LAME_CFLAGS@ -I../libac3 -I$(srcdir)/../libac3 @MAGICK_CFLAGS@ @FT2_CFLAGS@
+INCLUDES = -I./ -I../src -I$(srcdir)/../src @FT2_CFLAGS@ @AVILIB_CFLAGS@ @AVIFILE_CFLAGS@ @LAME_CFLAGS@ -I../libac3 -I$(srcdir)/../libac3 @MAGICK_CFLAGS@
 
 pkgdir = @MOD_PATH@
 
