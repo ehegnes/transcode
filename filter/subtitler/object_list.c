@@ -25,6 +25,21 @@ double subtitle_extra_character_space = EXTRA_CHAR_SPACE;
 double subtitle_font_factor;
 double subtitle_font;
 
+int subtitle_pattern = 0;
+int subtitle_background = 1;
+int subtitle_emphasis1 = 2;
+int subtitle_emphasis2 = 3;
+
+int subtitle_pattern_contrast = 0;
+int subtitle_background_contrast = 15;
+int subtitle_emphasis1_contrast = 15;
+int subtitle_emphasis2_contrast = 0;
+
+double outline_thickness;
+double blur_radius;
+
+int subtitle_symbols;
+
 struct object *lookup_object(char *name)
 {
 struct object *pa;
@@ -170,7 +185,7 @@ return(1);
 }/* end function delete_all_objects */
 
 
-int add_subtitle_object\
+struct object *add_subtitle_object\
 	(\
 	int start_frame_nr, int end_frame_nr,\
 	int type,\
@@ -203,13 +218,19 @@ if(debug_flag)
 	}
 
 /* argument check */
-if(! data) return(0);
+if(! data) return 0;
 
 /* Need unique entry for each object */
 sprintf(name, "%d %d %d %d %d %d",\
 start_frame_nr, end_frame_nr, xpos, ypos, zpos, type);
 pa = install_object_at_end_of_list(name);
-if(! pa) return(0);
+if(! pa)
+	{
+	fprintf(stderr, "subtitler: add_subtitle_object(): install_object_at_end_of_list %s failed\n",
+	name);
+
+	return 0;
+	}
 
 pa -> start_frame = start_frame_nr;
 pa -> end_frame = end_frame_nr;
@@ -233,8 +254,6 @@ if(! pa -> data)
 	}
 
 pa -> extra_character_space = extra_character_space;
-//pa -> font_factor = default_font_factor;
-//pa -> font = default_font;
 
 pa -> status = OBJECT_STATUS_NEW;
 
@@ -250,12 +269,13 @@ if(! sort_objects_by_zaxis() )
 
 	return 0;
 	}
+
 if(debug_flag)
 	{
-	fprintf(stderr, "subtitler(): add_subtitle_object() return OK\n");
+	fprintf(stderr, "subtitler(): add_subtitle_object() return OK pa=%p\n", pa);
 	}
 
-return(1);
+return pa;
 }/* end function add_subtitle_object */
 
 
@@ -352,7 +372,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 		if(pa -> type == FORMATTED_TEXT)
 			{
 			/* move params from control object to all subtitle objects */
-			/* U and V wil handle saturation too */
+			/* U and V will handle saturation too */
 			pa -> u = subtitle_u;
 			pa -> v = subtitle_v;
 
@@ -361,15 +381,35 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 			pa -> pfd = subtitle_pfd;
 			pa -> extra_character_space = subtitle_extra_character_space;
 
+			pa -> font_outline_thickness = outline_thickness;
+			pa -> font_blur_radius = blur_radius;
+
+			pa -> pattern = subtitle_pattern;
+			pa -> background = subtitle_background;
+			pa -> emphasis1 = subtitle_emphasis1;
+			pa -> emphasis2 = subtitle_emphasis2;
+
+			pa -> pattern_contrast = subtitle_pattern_contrast;
+			pa -> background_contrast = subtitle_background_contrast;
+			pa -> emphasis1_contrast = subtitle_emphasis1_contrast;
+			pa -> emphasis2_contrast = subtitle_emphasis2_contrast;
+
+			pa -> font_symbols = subtitle_symbols;
+
+			if(pa -> line_number == 0)
+				{
+				add_background(pa);
+				}
+
 			add_text((int)pa -> xpos, (int)pa -> ypos, pa -> data,\
-			(int) pa -> u, (int)pa -> v,\
+			pa, (int) pa -> u, (int)pa -> v,\
 			pa -> contrast, pa -> transparency, pa -> pfd,\
 			(int)pa -> extra_character_space);
 			}
 		else if(pa -> type == X_Y_Z_T_TEXT)
 			{
 			add_text( (int)pa -> xpos, (int)pa -> ypos, pa -> data,\
-			(int)pa -> u, (int)pa -> v,\
+			pa, (int)pa -> u, (int)pa -> v,\
 			pa -> contrast, pa -> transparency, pa -> pfd,\
 			(int)pa -> extra_character_space);
 			}
@@ -641,7 +681,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 
 			sprintf(temp, "frame=%lu", current_frame_nr);
 			add_text( (int)pa -> xpos, (int)pa -> ypos, temp,\
-			(int)pa -> u, (int)pa -> v,\
+			pa, (int)pa -> u, (int)pa -> v,\
 			pa -> contrast, pa -> transparency, pa -> pfd,\
 			(int)pa -> extra_character_space);
 			}
@@ -659,6 +699,21 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 			subtitle_pfd = pa -> pfd;
 
 			subtitle_extra_character_space = pa -> extra_character_space;
+
+			outline_thickness = pa -> font_outline_thickness;
+			blur_radius = pa -> font_blur_radius;
+
+			subtitle_pattern = pa -> pattern;
+			subtitle_background = pa -> background;
+			subtitle_emphasis1 = pa -> emphasis1;
+			subtitle_emphasis2 = pa -> emphasis2;
+
+			subtitle_pattern_contrast = pa -> pattern_contrast;
+			subtitle_background_contrast = pa -> background_contrast;
+			subtitle_emphasis1_contrast = pa -> emphasis1_contrast;
+			subtitle_emphasis2_contrast = pa -> emphasis2_contrast;
+
+			subtitle_symbols = pa -> font_symbols;
 
 			}
 
@@ -750,7 +805,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 		pa -> extra_character_space += pa -> dextra_character_space;
 		if(pa -> extra_character_space < 0.0)
 			{
-			pa -> extra_character_space = 0.0;
+//			pa -> extra_character_space = 0.0;
 			}
 		if(pa -> extra_character_space > image_width)
 			{

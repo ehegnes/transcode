@@ -104,18 +104,31 @@ struct object
 	double extra_character_space;
 	double dextra_character_space;
 
-//	int font;
-//	double font_factor;
-//	double dfont_factor;
+	int pattern;
+	int background;
+	int emphasis1;
+	int emphasis2;
+
+	int pattern_contrast;
+	int background_contrast;
+	int emphasis1_contrast;
+	int emphasis2_contrast;
 
 	char *font_dir;
 	char *font_name;
+	int font_symbols;
 	int font_size;
 	int font_iso_extension;
 	double font_outline_thickness;
 	double font_blur_radius;
 
 	font_desc_t *pfd;	
+
+	int line_number; // line number in multiline formatted text 
+	int bg_y_start;
+	int bg_y_end;
+	int bg_x_start;
+	int bg_x_end;
 
 	double u;
 	double du;

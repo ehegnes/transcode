@@ -1,5 +1,7 @@
+
+extern int rgb_to_yuv(int r, int g, int b, int *y, int *u, int *v);
 extern font_desc_t *add_font(\
-    char *name, int size, int iso_extension, double outline_thickness, double blur_radius);
+    char *name, int symbols, int size, int iso_extension, double outline_thickness, double blur_radius);
 //extern void paste_bitmap(FT_Bitmap *bitmap, int x, int y);
 extern void write_header(FILE *f);
 extern int write_bitmap(void *buffer, char type);
@@ -21,7 +23,7 @@ unsigned volume\
 extern unsigned gmatrix(unsigned *m, int r, int w, double const A); 
 extern int alpha(double outline_thickness, double blur_radius); 
 extern font_desc_t *make_font(\
-	char *font_name, int font_size, int iso_extention, double outline_thickness, double blur_radius);
+	char *font_name, int font_symbols, int font_size, int iso_extention, double outline_thickness, double blur_radius);
 extern int chroma_key(int u, int v, double color,\
 	double color_window, double saturation);
 extern int set_main_movie_properties(struct object *pa);
@@ -40,22 +42,18 @@ extern int get_h_pixels(int c, font_desc_t *pfd);
 extern char *p_reformat_text(char *text, int max_pixels, font_desc_t *pfd);
 extern int p_center_text(char *text, font_desc_t *pfd);
 extern int add_text(\
-	int x, int y, char *text, int u, int v,\
+	int x, int y, char *text, struct object *pa, int u, int v,\
 	double contrast, double transparency, font_desc_t *pfd,\
 	int extra_char_space);
 extern int draw_char(\
-	int x, int y, int c, int u, int v,\
-	double contrast, double transparency, font_desc_t *pfd);
+	int x, int y, int c, struct object *pa, int u, int v,\
+	double contrast, double transparency, font_desc_t *pfd, int is_space);
 extern void draw_alpha(\
 	int x0 ,int y0,\
+	struct object *pa,\
 	int w, int h,\
 	uint8_t *src, uint8_t *srca, int stride, int u, int v,\
-	double contrast, double transparency);
-extern void draw_alpha_rgb24(\
-	int w, int h,\
-	unsigned char* src, unsigned char *srca, int srcstride,\
-	unsigned char* dstbase, int dststride);
-extern int time_base_corrector(int y, uint8_t *pfm, int hsize, int vsize);
+	double contrast, double transparency, int is_space);
 extern int print_options();
 extern int hash(char *s);
 extern char *strsave(char *s);
@@ -81,7 +79,7 @@ extern int delete_object(char *name);
 extern int delete_all_objects();
 extern int set_object_status(int start_frame_nr, int status);
 extern int get_object_status(int start_frame_nr, int *status);
-extern int add_subtitle_object(\
+extern struct object *add_subtitle_object(\
 	int start_frame_nr, int end_frame_nr, int type,\
 	double xpos, double ypos, double zpos,\
 	char *data);

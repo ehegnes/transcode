@@ -1,9 +1,9 @@
 /*
- * Copyright (C) Thomas Östreich - June 2001
+ * Copyright (C) Jan Panteltje 2003
  *
  * This file is part of transcode, a linux video stream processing tool
  *
- * subtitle code by Jan Panteltje
+ * Transcode is copyright Thomas Oestreich
  * 
  * transcode is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@
 #define SUBTITLE_V_FACTOR	.042
 
 /* for this specfic default font */
-#define EXTRA_CHAR_SPACE	1 //l followed by t overlap in this font
+#define EXTRA_CHAR_SPACE	0
 
 /*
 for masking out areas in rotate and shear.
@@ -99,6 +99,7 @@ YUV_MASK is used to prevent picture areas to be cut out.
 int debug_flag;
 font_desc_t *vo_font;
 font_desc_t *subtitle_current_font_descriptor;
+int subtitle_current_spacing;
 uint8_t *ImageData;
 int image_width, image_height;
 int default_font;
@@ -132,13 +133,11 @@ int use_pre_processing_flag;
 
 char *subtitle_font_path;
 char *default_subtitle_font_name;
+int default_subtitle_symbols;
 int default_subtitle_font_size;
 int default_subtitle_iso_extention;
 double default_subtitle_radius;
 double default_subtitle_thickness;
-
-char *subtitle_font_name;
-
 
 /* for x11 stuff */
 int show_output_flag;
@@ -166,9 +165,15 @@ double subtitle_h_factor;
 double subtitle_v_factor;
 double extra_character_space;
 
+int rgb_palette[16][3]; // rgb
+int rgb_palette_valid_flag;
+
+int default_subtitle_font_symbols;
+
 /* this last, so proto knows about structure definitions etc. */
 #include "subtitler_proto.h"
 
-#define SUBTITLER_VERSION "-0.7"
+#define SUBTITLER_VERSION "-0.8.2"
 
 #endif /* _SUBTITLER_H_ */
+

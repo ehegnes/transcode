@@ -355,7 +355,7 @@ return 1;
 
 
 font_desc_t *add_font(\
-	char *name, int size, int iso_extension, double outline_thickness, double blur_radius)
+	char *name, int symbols, int size, int iso_extension, double outline_thickness, double blur_radius)
 {
 struct subtitle_fontname *ps;
 font_desc_t *pfd;
@@ -364,11 +364,11 @@ char temp[4096];
 //if(debug_flag)
 	{
 	fprintf(stdout,\
-	"add_font(): arg name=%s size=%d iso_extension=%d outline_thickness=%.2f blur_radius=%.2f\n",\
-	name, size, iso_extension, outline_thickness, blur_radius);
+	"add_font(): arg name=%s symbols=%d size=%d iso_extension=%d outline_thickness=%.2f blur_radius=%.2f\n",\
+	name, symbols, size, iso_extension, outline_thickness, blur_radius);
 	}
 
-sprintf(temp, "%s_%d_%d_%.2f_%.2f", name, size, iso_extension, outline_thickness, blur_radius);
+sprintf(temp, "%s_%d_%d_%d_%.2f_%.2f", name, symbols, size, iso_extension, outline_thickness, blur_radius);
 ps = lookup_subtitle_fontname(temp);
 if(ps) /* found in list */
 	{
@@ -383,7 +383,7 @@ else /* not in fontname_list */
 	/* if not there yet, create this font and add to list */
 
 	pfd = make_font(\
-		name, size, iso_extension, outline_thickness, blur_radius);
+		name, symbols, size, iso_extension, outline_thickness, blur_radius);
 	if(! pfd)
 		{
 		/* try the default font settings */
@@ -391,7 +391,8 @@ else /* not in fontname_list */
 		"subtitler(): add_font(): could not create requested font %s, trying default font\n", temp); 
 
 		pfd = make_font(\
-			default_subtitle_font_name, default_subtitle_font_size, default_subtitle_iso_extention,\
+			default_subtitle_font_name, default_subtitle_symbols,
+			default_subtitle_font_size, default_subtitle_iso_extention,\
 			default_subtitle_radius, default_subtitle_thickness);
 		if(! pfd)
 			{
@@ -400,8 +401,10 @@ else /* not in fontname_list */
 			return 0;
 			}
 
-		sprintf(temp, "%s_%d_%d_%.2f_%.2f",\
-			default_subtitle_font_name, default_subtitle_font_size,\
+		sprintf(temp, "%s_%d_%d_%d_%.2f_%.2f",\
+			default_subtitle_font_name,\
+			default_subtitle_symbols,\
+			default_subtitle_font_size,\
 			default_subtitle_iso_extention,\
 			default_subtitle_radius,\
 			default_subtitle_thickness);

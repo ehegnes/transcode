@@ -97,87 +97,122 @@ Perhaps I will add more functions later.
 
 
 The following commands on parameters are active in this version:
-command                 obj    default  function
+command     delta            obj    default  function
 
-xpos                    all         0   x position, 0 is left screen.
-ypos                    all         0   y position, 0 is top screen.
-zpos                    all         0   z position, 0 is main movie, positive is towards
-                                        you.
-heading                 all         0   direction according to compas, 0-360 degrees.
-speed                   all         0   pixels per frame.
-                                        Note: there is also both dpseed AND ddspeed.
-                                        Using ddspeed is pure acceleration!
-transp                  pic/text    0   transparency, range 0-100, 100 is invisible     
-slice                   pic         0   range 0-255, anything below slice level is not
-                                        drawn.
-sat                     pic/text  100   multiplier for current saturation in percent.      
-contr                   pic/text  100   multiplier for current contrast in percent.
-bright                  pic/text    0   range -128 to +128 value added to Y, clipping done.
-hue                     pic         0   color vector UV rotation, 0-360 degrees.
-hue_ldrift              pic         0   horizontal drift of hue (to be able to correct NTSC
-                                        pics and movies that are green on one- and red on
-                                        the other side. 
-                                        hue_ldrift will also be able work on the main movie.
-                                        see README.COLOR.PROCESSOR
-color                   text         0  0-360 degrees in color circle, PLEASE set contrast
-                                        to 70 % or so, to allow for saturated colors. 
-ck_color                pic          0  chroma key color (color vector) 0-360 degrees.
-ck_sat                  pic          0  chroma key minimum saturation level to activate,
-                                        0-100%.
-ck_window               pic          0  chroma key window (aperture) in degrees (0-360).
-xsize                   pic,movie    x  xsize, used to resize a picture,
-ysize                   pic,movie    y  ysize, used to resize a picture.		
-rsize                   pic,movie    -  this restores the original size, and sets the
-                                        size deltas to zero (works on x,y,z).   
-aspect                  pic,movie    0  setting this to any other value then zero will
-                                        force the resize functions to keep the aspect.
-center                  subtitles    1  zero or 1, 1 centers any subtitles (not loose
-                                        text objects).
-                                        Use center=x one frame before you add a
-                                        subtitle, and when no subtitle is on the screen.
-zrot                    pic,movies   0  0-360 degrees, rotates picture (top view).
-xshear                  pic,movies   0  0-90 degrees, shears (shifts) along xaxis.
-yshear                  pic,movies   0  0-90 degrees, shears (shifts) along yaxis.
-mask                    pic,movies   0  0-255 at this luminance nothing is drawn
-                                        this is internally used to cut edges ONLY in
-                                        zrotate, xshear, and yshear.
-                                        In that case the value 178 is used.
-                                        If not zero, this is always active, and can
-                                        be used for effects.
-vfactor                 subtitles .042  how much from the bottom the subtitles appear.
-                                        So for a 576 lines screen this would be
-                                        .042 x 576 = 24 lines.
-hfactor                 subtitles  .02  how much the horizontal left (and right-) margin
-                                        is.
-                                        So for a 720 pixels wide screen .02 x 720 = 14
-                                        pixels.
-font_dir                text   ~/.xste/fonts is the default.
-                                        For text objects and subtitles the directory
-                                        where the true type font (for example arial.ttf)
-                                         is located.
-                                        This allows on the fly changing of fonts.
-                                        See also 'outline' below.
-font_name               text arial.ttf  true type fontname   
-font_size               text        28  fontsize in pixels
-font_iso_extension      text        15  ISO extention, 15 has the Euro symbol,
-                                        man iso_8859_15 will tell you more.
-font_outline_thickness  text       1.0  The border around the characters,
-                                        (normally black), do NOt use zero!.
-font_blur_radius        text      0.01  Blurred border around characters,
-                                        do NOT use zero. 
-espace                  text         1  extra space between characters in pixels.
-                                        This can be used to make 'exploding' text for
-                                        example.
-xdest                    all      xpos  x destination, if speed is not zero, the object
-                                        will move towards this position and stop.
-                                        Use together with ydest.
-ydest                    all      ypos  y destination, if speed is not zero, the object
-                                        will move towards this position and stop.
-                                        Use together with xdest.
+xpos            *            all         0   x position, 0 is left screen.
+ypos            *            all         0   y position, 0 is top screen.
+zpos            *            all         0   z position, 0 is main movie, positive is towards
+                                             you.
+heading         *            all         0   direction according to compas, 0-360 degrees.
+speed           *            all         0   pixels per frame.
+                                             Note: there is also both dpseed AND ddspeed.
+                                             Using ddspeed is pure acceleration!
+transp          *            pic/text    0   transparency, range 0-100, 100 is invisible     
+slice           *            pic         0   range 0-255, anything below slice level is not
+                                             drawn.
+sat             *            pic/text  100   multiplier for current saturation in percent.      
+contr           *            pic/text  100   multiplier for current contrast in percent.
+bright          *            pic/text    0   range -128 to +128 value added to Y, clipping done.
+hue             *            pic         0   color vector UV rotation, 0-360 degrees.
+hue_ldrift      *            pic         0   horizontal drift of hue (to be able to correct NTSC
+                                             pics and movies that are green on one- and red on
+                                             the other side. 
+                                             hue_ldrift will also be able work on the main movie.
+                                             see README.COLOR.PROCESSOR
+color           *            text         0  0-360 degrees in color circle, PLEASE set contrast
+                                             to 70 % or so, to allow for saturated colors. 
+ck_color        *            pic          0  chroma key color (color vector) 0-360 degrees.
+ck_sat          *            pic          0  chroma key minimum saturation level to activate,
+                                             0-100%.
+ck_window       *            pic          0  chroma key window (aperture) in degrees (0-360).
+xsize           *            pic,movie    x  xsize, used to resize a picture,
+ysize           *            pic,movie    y  ysize, used to resize a picture.		
+rsize           *            pic,movie    -  this restores the original size, and sets the
+                                             size deltas to zero (works on x,y,z).   
+aspect                       pic,movie    0  setting this to any other value then zero will
+                                             force the resize functions to keep the aspect.
+center                       subtitles    1  zero or 1, 1 centers any subtitles (not loose
+                                             text objects).
+                                             Use center=x one frame before you add a
+                                             subtitle, and when no subtitle is on the screen.
+zrot            *            pic,movies   0  0-360 degrees, rotates picture (top view).
+xshear          *            pic,movies   0  0-90 degrees, shears (shifts) along xaxis.
+yshear          *            pic,movies   0  0-90 degrees, shears (shifts) along yaxis.
+mask                         pic,movies   0  0-255 at this luminance nothing is drawn
+                                             this is internally used to cut edges ONLY in
+                                             zrotate, xshear, and yshear.
+                                             In that case the value 178 is used.
+                                             If not zero, this is always active, and can
+                                             be used for effects.
+vfactor                      subtitles .042  how much from the bottom the subtitles appear.
+                                             So for a 576 lines screen this would be
+                                             .042 x 576 = 24 lines.
+hfactor                      subtitles  .02  how much the horizontal left (and right-) margin
+                                             is.
+                                             So for a 720 pixels wide screen .02 x 720 = 14
+                                            pixels.
+font_path                    text
+font_dir                     text   ~/.xste/fonts is the default.
+                                             For text objects and subtitles the directory
+                                             where the true type font (for example arial.ttf)
+                                             is located.
+                                             This allows on the fly changing of fonts.
+                                             See also 'outline' below.
+font_name                    text arial.ttf  true type fontname   
+font_size                    text        28  fontsize in pixels
+font_iso_extension           text        15  ISO extention, 15 has the Euro symbol,
+                                             man iso_8859_15 will tell you more.
+font_outline_thickness       text       1.0  The border around the characters,
+                                             (normally black), do NOt use zero!.
+font_blur_radius             text      0.01  Blurred border around characters,
+                                             do NOT use zero. 
+espace                       text         1  extra space between characters in pixels.
+                                             This can be used to make 'exploding' text for
+                                             example.
+xdest                         all      xpos  x destination, if speed is not zero, the object
+                                             will move towards this position and stop.
+                                             Use together with ydest.
+ydest                         all      ypos  y destination, if speed is not zero, the object
+                                             will move towards this position and stop.
+                                             Use together with xdest.
+/* new in -7.1 for DVD like subs (made with xste):
+palette                      text            16 x rgb palette (r0,g0,b0,r1,g1,b1,---r145,g15,b15).
+                                             if this isspecified, then text will be rendered.
+                                             using the folowing parameters (as in DVD):
+background                   text         0  number background in palette.
+pattern                      text         1  number character body color in palette (0-15)
+emphasis1                    text         2  number character outline in palette
+emphasis2                    text         3  number character outline2 (character-space) in palette.
 
-Almost all these commands also have their delta command, so xpos has dxpos.
-The deltas are added each frame.
+background_contrast          text         0  background printing area contrast (0-15), 15 is opaque.
+pattern_contrast             text        15  character body contrast.
+emphasis1_contrast           text        15  character outline1 (border around character) contrast.
+emphasis2_contrast           text         0  character outline2 (character-space) contrast.
+    
+*
+ Some of these commands also have their delta command, so xpos has dxpos.
+ The deltas are added each frame.
 
+Note:
+
+When using DVD colored subs, *subtitle transp=5- and dtransp will work,
+also contrats wil lwork, so you can fade a DVD type sub in and out too!
+
+Difference between contrast and transparency:
+If you insert an object, and increase transparency (max 100), it wil 'dissolve', you will
+look through it and see hat is behind it.
+If you decrease contrast (max 100, min 0) , it will become less bright, and finally black.
+You will NOT see what is behind it.
+Now to add some confusion, what is called 'contrast' in DVD subtitles is
+actually transparency!
+So a contrast of 0 for a DVD subtitle will show the background.
+A contrast of 15 will show the subtitle maximum.
+
+If you have overlapping lines between fonts, or irregular edges etc. try RGB mode in transcode.
+This is a lot slower, but better quality in some cases.
+In this version I completely rewrote the color routines for the subtitles,
+and added full RGB support.
+ 
 Reserved for future versions (but not yet implemented) are among others:
 zsize      pic  p       pixels
 xrot       pic  0       rotation 0-360 degrees

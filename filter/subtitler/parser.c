@@ -5,7 +5,7 @@ int end_frame_nr;
 
 int parse_frame_entry(struct frame *pa)
 {
-int a, b, c, i, x, y, z;
+int a, b, c, i, j, x, y, z;
 char *token, *running;
 struct frame *pb;
 struct object *po;
@@ -19,7 +19,12 @@ char font_dir[4096];
 char font_name[4096];
 char temp[4096];
 font_desc_t *pfd;
- 
+int temp_palette[16][3];
+int text_start, max_width, line_len;
+struct object *pf;
+struct object *pc;
+int bg_height, bg_width;
+
 if(debug_flag)
 	{
 	printf(\
@@ -130,13 +135,10 @@ if(pa -> data[0] == '*')
 				/* set some defaults */
 				po -> extra_character_space = extra_character_space; 
 
-//				po -> font_factor = default_font_factor;
-//				po -> font = default_font;
 				}
 
 			/* parse line */
 			sscanf(token, "de_stripe=%lf", &po -> de_stripe);
-			sscanf(token, "time_base_correct=%lf", &po -> time_base_correct);
 			sscanf(token, "show_output=%lf", &po -> show_output);
 
 			sscanf(token, "xpos=%lf", &po -> xpos);
@@ -340,10 +342,6 @@ if(pa -> data[0] == '*')
 			sscanf(token, "vfactor=%lf", &subtitle_v_factor);
 			
 			/* font related */
-//			sscanf(token, "font=%lf", &po -> font);
-
-//			a = sscanf(token, "outline=%lf", &po -> font_factor);
-//			sscanf(token, "doutline=%lf", &po -> dfont_factor);
 
 			font_dir[0] = 0;
 			a = sscanf(token, "font_dir=%s", font_dir);
@@ -359,6 +357,21 @@ if(pa -> data[0] == '*')
 					}
 				}
 
+			/* also allow font_path, for compatibility with xste-3.1 */
+			a = sscanf(token, "font_path=%s", font_dir);
+			if(a == 1)
+				{
+				po -> font_dir = strsave(font_dir);
+				if(! po -> font_dir)
+					{
+					fprintf(stderr,\
+					"subtitler: parse_frame_entry(): could not allocate space for font_dir, aborting\n");
+
+					exit(1);
+					}
+				}
+
+			font_name[0] = 0;
 			a = sscanf(token, "font_name=%s", font_name);
 			if(a == 1)
 				{	
@@ -379,9 +392,9 @@ if(pa -> data[0] == '*')
 
 			if(debug_flag)
 				{
-				printf("font_dir=%s font_name=%s\n\
+				printf("frame=%s font_dir=%s font_name=%s\n\
 				font_size=%d font_iso_extension=%d font_outline_thickness=%.2f font_blur_radius=%.2f\n",\
-				po -> font_dir, po -> font_name,\
+				pa -> name, po -> font_dir, po -> font_name,\
 				po -> font_size, po -> font_iso_extension,\
 				po -> font_outline_thickness, po -> font_blur_radius);
 				}
@@ -401,19 +414,21 @@ if(pa -> data[0] == '*')
 				Else the data would be erased when the object was no
            	    longer displayed.
 				*/
+				po -> font_symbols = default_subtitle_font_symbols;
 
 				/* read in font (also needed for frame counter) */
 
 				pfd = add_font(\
-					po -> font_name, po -> font_size, po -> font_iso_extension,\
+					po -> font_name, po -> font_symbols, po -> font_size, po -> font_iso_extension,\
 					po -> font_outline_thickness, po -> font_blur_radius);
 				if(! pfd)
 					{
 					fprintf(stderr,\
 					"subtitler(): parser.c: could not load font:\n\
-					font_dir=%s font_name=%s size=%d iso extension=%d\n\
+					font_dir=%s font_name=%s symbols=%d size=%d iso extension=%d\n\
 					outline_thickness=%.2f  blur_radius=%.2f, aborting\n",\
-					po -> font_dir, po -> font_name, po -> font_size, po -> font_iso_extension,\
+					po -> font_dir, po -> font_name, po -> font_symbols, po -> font_size,\
+					po -> font_iso_extension,\
 					po -> font_outline_thickness, po -> font_blur_radius );
 
 					/* return error */
@@ -428,10 +443,10 @@ if(pa -> data[0] == '*')
 				if(pb -> type == SUBTITLE_CONTROL)
 					{
 					/* set the global for subtitles to the current value */
-					subtitle_current_font_descriptor= pb -> pfd;
-
+					subtitle_current_font_descriptor = pb -> pfd;
+					subtitle_current_spacing = po -> extra_character_space; 
 					/*
-					every subtitle read from the ppm is formatted using
+					every subtitle read from the ppml file is formatted using
 					this setting, until a line with a subtitle reference
                		with a new value in read.
 					*/
@@ -439,9 +454,72 @@ if(pa -> data[0] == '*')
 				} /* end if font_dir specified */
 			/* end font related */
 
+
+			/* DVD like subs from xste palette, color from palette, and contrast */
+
+			a = sscanf(token,\
+"palette=%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,\
+ %d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",\
+			&temp_palette[0][0], &temp_palette[0][1], &temp_palette[0][2],\
+			&temp_palette[1][0], &temp_palette[1][1], &temp_palette[1][2],\
+			&temp_palette[2][0], &temp_palette[2][1], &temp_palette[2][2],\
+			&temp_palette[3][0], &temp_palette[3][1], &temp_palette[3][2],\
+			&temp_palette[4][0], &temp_palette[4][1], &temp_palette[4][2],\
+			&temp_palette[5][0], &temp_palette[5][1], &temp_palette[5][2],\
+			&temp_palette[6][0], &temp_palette[6][1], &temp_palette[6][2],\
+			&temp_palette[7][0], &temp_palette[7][1], &temp_palette[7][2],\
+			&temp_palette[8][0], &temp_palette[8][1], &temp_palette[8][2],\
+			&temp_palette[9][0], &temp_palette[9][1], &temp_palette[9][2],\
+			&temp_palette[10][0], &temp_palette[10][1], &temp_palette[10][2],\
+			&temp_palette[11][0], &temp_palette[11][1], &temp_palette[11][2],\
+			&temp_palette[12][0], &temp_palette[12][1], &temp_palette[12][2],\
+			&temp_palette[13][0], &temp_palette[13][1], &temp_palette[13][2],\
+			&temp_palette[14][0], &temp_palette[14][1], &temp_palette[14][2],\
+			&temp_palette[15][0], &temp_palette[15][1], &temp_palette[15][2]);
+
+			if(a == 48)
+				{
+				for(i = 0; i < 16; i++)
+					{	
+					for(j = 0; j < 3; j++)
+						{
+						rgb_palette[i][j] = temp_palette[i][j];
+
+						if(debug_flag)
+							{
+							fprintf(stdout, "rgb_palette[%d][%d]=%d\n", i, j, rgb_palette[i][j]);
+							}
+						}
+					}
+
+				rgb_palette_valid_flag = 1;
+				}
+			else if(a >= 1)
+				{
+				fprintf(stderr,\
+				"subtitler: parser.c frame %s only %d of 48 arguments found in palette, aborting.\n",\
+				pa -> name, a);
+
+				exit(1);
+				}
+
+			a = sscanf(token, "background_color=%d", &po -> background);
+			a = sscanf(token, "pattern_color=%d", &po -> pattern);
+
+			a = sscanf(token, "emphasis1_color=%d", &po -> emphasis1);
+			a = sscanf(token, "emphasis2_color=%d", &po -> emphasis2);
+			
+			a = sscanf(token, "background_contrast=%d", &po -> background_contrast);
+			a = sscanf(token, "pattern_contrast=%d", &po -> pattern_contrast);
+			a = sscanf(token, "emphasis1_contrast=%d", &po -> emphasis1_contrast);
+			a = sscanf(token, "emphasis2_contrast=%d", &po -> emphasis2_contrast);
+			
+			/* end palette, color from palette, and contrast */
+
 			/* some text releated */
 			sscanf(token, "espace=%lf", &po -> extra_character_space);
 			sscanf(token, "despace=%lf", &po -> dextra_character_space);
+
 			/* end font or text related */
 
 			/* some other commands */
@@ -495,6 +573,8 @@ if(pa -> type == FORMATTED_TEXT)
 		}
 
 	/* reformat text inserting (multiple) '/n' if too long */ 
+	extra_character_space = po -> extra_character_space;
+
 	tptr =\
 	p_reformat_text(\
 	pa -> data, line_h_end - line_h_start, subtitle_current_font_descriptor);
@@ -564,23 +644,42 @@ if(pa -> type == FORMATTED_TEXT)
 		window_bottom, window_top);
 		}
 
+	/*
+	to be able to draw a background' as in DVD like subs we need to calculate
+	an aquare area encompassing where the formatted text is.
+	*/
+	text_start = INT_MAX;
+	max_width = 0;
 	/* print lines of text on screen in right position */
 	for(i = 0; i < screen_lines; i++)
 		{
-		/* convert any special characters */
-
-/*
+		/* get text length */
+		line_len = 0;        
 		j = 0;
 		while(1)
 			{
 			c = screen_text[i][j];
-			character_lookup(c, &b);
-			screen_text[i][j] = b;
+
+			if(pa -> pfd == 0)
+				{
+				fprintf(stderr, "subtitler: before get_h_pixels():  pa=%p pa -> fd=%p, aborting\n",\
+				pa , pa -> pfd);
+
+				return 0;
+				}
+
+			line_len += get_h_pixels(c, subtitle_current_font_descriptor);
+
 			if(c == 0) break;
 			j++;
 			}
-*/
+
 		x = screen_start[i];
+
+		/* get size of bitmap as in bitmap.c */
+		if(x < text_start) text_start = x;
+		if(line_len > max_width) max_width = line_len;
+
 		y = window_top + (i * line_height);
 
 		if(debug_flag)
@@ -598,10 +697,41 @@ text=%s\n",\
 		z = 65534;
 
 		/* add the text to the structure list */
-		add_subtitle_object(\
+		pc = add_subtitle_object(\
 		frame_nr, end_frame_nr, pa -> type,\
 		x , y, z, screen_text[i]);
+
+		/*
+		remember the pointer for the first sub.
+		Later, when diplaying lines of a formatted sub, 
+		in line 0 we can make a background if DVD type subs requested.	
+		*/
+		pc -> line_number = i;
+		if(i == 0)
+			{
+			pf = pc; 
+			}		
 		} /* end for all screen_lines */
+
+	/* only the first line_number of a multiline sub has these parameters set! */
+
+	/* just like in submux-dvd we clip the area, so it looks exactly like DVD */
+
+	bg_height = screen_lines * line_height; // + 9;
+//	a = bg_height % 4;   
+//	if(a) bg_height += 4 - a;
+
+	bg_width = max_width; // + 6;
+//	a = bg_width % 8;
+//	if(a) bg_width += 8 - a;
+
+	pf -> bg_y_start = window_top;
+	pf -> bg_y_end = pf -> bg_y_start + bg_height;
+
+	/* we have text_start and max_width */
+	pf -> bg_x_start = text_start;
+	pf -> bg_x_end = pf -> bg_x_start + bg_width;
+
 	} /* end if object_type subtitle (=FORMATTED_TEXT) */
 
 return 1;

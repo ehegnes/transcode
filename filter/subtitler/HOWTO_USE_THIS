@@ -142,3 +142,9 @@ Linux xine can play the DivX, else to the windows disk or PC with it,
 and mediaplayer (install DivX4FullInstaller.exe or DivX4CodecInstaller.exe
 in windows so mediaplayer works on DivX (only tried win 98).
 
+
+0.8.1:
+specifying the word:
+anti_alias
+on the command line will process emphasis2 as anti alias.
+Set emphasis2 to grey and emphasis2 contrast to maximum (15) (You can use xste to generate this).  

@@ -189,8 +189,6 @@ return raw;
 } /* end function load_raw */
 
 
-//extern int sub_unicode;
-
 font_desc_t* read_font_desc(char* fname, float factor, int verbose)
 {
 unsigned char sor[1024];
@@ -219,7 +217,7 @@ memset(desc, 0, sizeof(font_desc_t) );
 f = fopen(fname, "r");
 if(!f)
 	{
-	printf("font: can't open file: %s\n", fname);
+	printf("read_font_desc(): font: can't open file: %s\n", fname);
 	return NULL;
 	}
 
@@ -227,10 +225,7 @@ strcpy(temp, fname);
 ptr = strstr(temp, "font.desc");
 if(! ptr)
 	{
-	printf(\
-	"subtitler(): read_font_descr(): no font.desc found in %s\n\
-	aborting\n",\
-	fname);
+	printf("subtitler: read_font_descr(): no font.desc found in %s aborting.\n", fname);
 
 	exit(1);
 	}
@@ -239,7 +234,7 @@ desc->fpath = strsave(temp);
 
 if(debug_flag)
 	{
-	printf("subtitler(): read_font_desc(): fname=%s path=%s\n",\
+	printf("subtitler: read_font_desc(): read_font_desc(): fname=%s path=%s\n",\
 	fname, desc->fpath);
 	}	
 
@@ -455,7 +450,7 @@ for(i = 0; i <= fontdb; i++)
 			printf("font: resampling alpha by factor %5.3f (%d) ",\
 			factor, f);
 			}
-		fflush(stdout);
+		fflush(stderr);
 		for(j = 0; j < size; j++)
 			{
 			int x = desc->pic_a[i]->bmp[j];	// alpha
@@ -508,9 +503,6 @@ if(debug_flag)
 	}
 return desc;
 } /* end function read_font_desc */
-
-
-
 
 
 
@@ -601,10 +593,8 @@ else
     header[31] = (width       ) & 0xFF;
     }
 
-header[10] = height>>8;	
-header[11] = (unsigned char)height;
-header[12] = colors>>8;
-header[13] = (unsigned char)(colors&0xff);
+header[10] = height>>8;	header[11] = (unsigned char)height;
+header[12] = colors>>8;	header[13] = (unsigned char)colors;
 
 for (i = 32; i<800; ++i) header[i] = (i - 32) / 3;
 
@@ -665,7 +655,8 @@ int		glyphs_count = 0;
     error = FT_New_Face(library, font_path, 0, &face);
     if (error)
 		{
-		fprintf(stderr, "subtitler: render(): New_Face failed. Maybe the font path `%s' is wrong.", font_path);
+		fprintf(stderr,\
+		"subtitler: render(): New_Face failed. Maybe the font path `%s' is wrong.", font_path);
 
 		return 0;
 		}
@@ -729,7 +720,8 @@ int		glyphs_count = 0;
 		jppem = face->available_sizes[i].height;
 	    }
 	}
-	fprintf(stderr, "subtitler: render(): Selected font is not scalable. Using ppem=%i.", face->available_sizes[j].height);
+	fprintf(stderr,\
+	"subtitler: render(): Selected font is not scalable. Using ppem=%i.", face->available_sizes[j].height);
 	error = FT_Set_Pixel_Sizes(face, face->available_sizes[j].width, face->available_sizes[j].height);
 	if (error) fprintf(stderr, "subtitler: render(): FT_Set_Pixel_Sizes failed.");
     }
@@ -757,7 +749,7 @@ int		glyphs_count = 0;
     f = fopen(name, append_mode ? "a":"w");
 	if(! f)
 		{
-		fprintf(stderr, "subtitler(): render(): could not open file %s for write\n", name);
+		fprintf(stderr, "xste(): render(): could not open file %s for write\n", name);
 
 		return 0;
 		}
@@ -787,7 +779,7 @@ int		glyphs_count = 0;
 #endif
 	fprintf(f, "spacewidth %i\n",	2 * padding + space_advance);
 #ifndef NEW_DESC
-	fprintf(f, "charspace %i\n", 0); // /* -2 * */  padding / 2);
+	fprintf(f, "charspace %i\n", 0); //-2 * padding); // /* -2 * */  padding / 2);
 #endif
 	fprintf(f, "height %i\n", (padding * 2) + f266ToInt(face->size->metrics.height));
 #ifdef NEW_DESC
@@ -821,7 +813,7 @@ int		glyphs_count = 0;
 			{
 			if(debug_flag)
 				{
-				fprintf(stderr, "subtitler: render(): Glyph for char 0x%02x|U+%04X|%c not found.",\
+				fprintf(stdout, "subtitler: render(): Glyph for char 0x%02x|U+%04X|%c not found.",\
 				code, character, code<' '|| code > 255 ? '.' : code);
 				}
 
@@ -832,7 +824,8 @@ int		glyphs_count = 0;
 	// load glyph
 	error = FT_Load_Glyph(face, glyph_index, load_flags);
 	if (error) {
-	    fprintf(stderr, "subtitler: render(): FT_Load_Glyph 0x%02x (char 0x%02x|U+%04X) failed.", glyph_index, code, character);
+	    fprintf(stderr,\
+	"subtitler: render(): FT_Load_Glyph 0x%02x (char 0x%02x|U+%04X) failed.", glyph_index, code, character);
 	    continue;
 	}
 	slot = face->glyph;
@@ -1243,14 +1236,14 @@ unsigned *g = (unsigned*)malloc(g_w * sizeof(unsigned));
 unsigned *om = (unsigned*)malloc(o_w * o_w * sizeof(unsigned));
 if (g == NULL || om == NULL)
 	{
-	fprintf(stderr, "xste: alpha(): malloc failed.");
+	fprintf(stderr, "subtitler: alpha(): malloc failed.");
 
 	return 0;
 	}
 
 if(blur_radius == 0)
 	{
-	fprintf(stdout, "alpha(): radius is zero, set subtitle fonts to default\n");
+	fprintf(stderr, "subtitler: alpha(): radius is zero, set subtitle fonts to default\n");
 
 	return 0;
 	}
@@ -1299,7 +1292,8 @@ return 1;
 
 
 font_desc_t *make_font(\
-	char *font_name, int font_size, int iso_extention, double outline_thickness, double blur_radius)
+	char *font_name, int font_symbols, int font_size, int iso_extention,\
+	double outline_thickness, double blur_radius)
 {
 font_desc_t *pfontd;
 char temp[4096];
@@ -1308,13 +1302,12 @@ FILE *pptr;
 FILE *fptr;
 char *ptr;
 char *ptr2;
-int default_subtitle_font;
-double default_subtitle_font_factor;
 
 //if(debug_flag)
 	{	
-	printf("make_font(): arg font_name=%s font_size=%d iso_extention=%d outline_thickness=%.2f blur_radius=%.2f\n",\
-	font_name, font_size, iso_extention, outline_thickness, blur_radius);
+	printf("make_font(): arg font_name=%s font_symbols=%d font_size=%d iso_extention=%d\n\
+	outline_thickness=%.2f blur_radius=%.2f\n",\
+	font_name, font_symbols, font_size, iso_extention, outline_thickness, blur_radius);
 	}
 
 /* argument check */
@@ -1324,7 +1317,7 @@ if(! iso_extention) return 0;
 
 /* pathfilename of true type font */
 if(font_path) free(font_path);
-sprintf(temp, "%s/%s", subtitle_font_path, font_name);
+sprintf(temp, "%s/.xste/fonts/%s", home_dir, font_name);
 font_path = strsave(temp);
 if(! font_path) return 0;
 
@@ -1332,64 +1325,19 @@ if(! font_path) return 0;
 fptr = fopen(font_path, "r");
 if(! fptr)
 	{
-	fprintf(stderr, "Cannot open file %s for read\n", font_path);
-	return 0;
+	fprintf(stderr, "subtitler: make_font(): cannot open file %s for read, aborting.\n", font_path);
 
-#ifdef OLD_CODE
-	/* ask for different font here ? */
-
-	/* start browser */
-	sprintf(temp, "%s/.xste/fonts", home_dir);
-
-	ptr = (char *)fl_show_fselector("SELECT A FONT FILE", temp, "*.ttf", "*.ttf");
-	if(! ptr) return 0;
-
-	/*
-	extract the fontname from the path-filename
-	example:
-	/root/.xste/fonts/arial.ttf
-	
-	find the last '/' and start from there
-	*/
-
-	ptr2 = strrchr(ptr, '/');
-	if(! ptr2)
-		{
-		fprintf(stderr, "Cannot parse pathfilename %s no last '/' found\n", ptr);
-	
-		return 0;
-		}
-
-	/* ptr2 = /arial.ttf */
-
-	if(font_name) free(font_name);
-	font_name = strsave(ptr2 + 1);
-	if(! font_name)
-		{
-		fprintf(stdout, "make_font(): could not re-allocate space for new font_name\n");
-		
-		return 0;
-		}
-
-	/* create new pathfilename */
-	if(font_path) free(font_path);
-	sprintf(temp, "%s/.xste/fonts/%s", home_dir, font_name);
-	font_path = strsave(temp);
-	if(! font_path) return 0;
-#endif /* OLD_CODE */
-
-	} /* end if font_path not valid (font_path is acytually pathfilename) */
-
-
+	exit(1);
+	} /* end if font_path not valid (font_path is actually pathfilename) */
 fclose(fptr);
 
 /* create font data directory */
-sprintf(temp, "mkdir %s/data 2> /dev/zero", subtitle_font_path);
+sprintf(temp, "mkdir %s/.subtitler 2> /dev/zero", home_dir);
 pptr = popen(temp, "w");
 pclose(pptr);
 
 /* directory where to put the temp files */
-sprintf(temp, "%s/data", subtitle_font_path);
+sprintf(temp, "%s/.subtitler", home_dir);
 outdir = strsave(temp);
 if(! outdir) return 0;
 
@@ -1424,62 +1372,19 @@ free(abuffer);
 
 /* reload the font ! */
 
-/* this selects some other symbols it seems */
-default_subtitle_font = 0;	// 1 = strange symbols like stars etc..
-
-/* this sets the font outline */
-default_subtitle_font_factor = 1; //10.75;	// outline, was .75
-
 /* read in font (also needed for frame counter) */
 sprintf(temp, "%s/font.desc", outdir);
 
-pfontd = read_font_desc(temp, default_subtitle_font_factor, 0);
+pfontd = read_font_desc(temp, 1, 0);
 if(! pfontd)
 	{
-	if(debug_flag)
-		{
-		printf("make_font(): Could not load font %s\n", temp);
-		}
-
-	fprintf(stderr, "Could not load font %s for read\n", temp);
+	fprintf(stderr, "subtitler: make_font(): could not load font %s for read, aborting.\n", temp);
 
 	return 0;
 	}
 
 pfontd -> outline_thickness = outline_thickness;
 pfontd -> blur_radius = blur_radius;
-
-strcpy(temp2, font_name);
-
-// arial.ttf
-ptr = strchr(temp2, '.');
-if(! ptr)
-	{
-	fprintf(stderr,\
-	"xste: make_font(): could not find '.' in font_name=%s\n",\
-	temp);
-
-	return 0;
-	}
-*ptr = 0;
-
-// arial
-sprintf(temp, "%s-%d-iso-8859-%d", temp2, font_size, iso_extention);
-
-/* create font directory and font files */
-sprintf(temp2, "mkdir %s/data/%s 2> /dev/zero", subtitle_font_path, temp);
-pptr = popen(temp2, "w");
-pclose(pptr);
-
-/* move font descriptor file to font dir */
-sprintf(temp2, "mv %s/font.desc %s/data/%s/", outdir, subtitle_font_path, temp);
-pptr = popen(temp2, "w");
-pclose(pptr);
-
-/* move raw files to font dir */
-sprintf(temp2, "mv %s/*.raw %s/data/%s/", outdir, subtitle_font_path, temp);
-pptr = popen(temp2, "w");
-pclose(pptr);
 
 return pfontd;
 } /* end function make_font */

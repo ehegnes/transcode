@@ -31,7 +31,7 @@
 
 ;this is comment 3
 
-; set the font path to the true type fonts, (where for exmaple arial.ttf is).
+; set the font path to the true type fonts, (where for example arial.ttf is).
 1 *subtitle font_dir=/root/.xste/fonts/
 
 1 *main show_output=1

@@ -26,7 +26,7 @@
 //#include "../../src/framebuffer.h"
 
 #define MOD_NAME    "filter_subtitler.so"
-#define MOD_VERSION "v0.7 (2003-10-18)"
+#define MOD_VERSION "v0.8.1 (2003/10/25)"
 #define MOD_CAP     "subtitle filter"
 
 /* for YUV to RGB in X11 */
@@ -40,11 +40,13 @@ int u_shift, v_shift;
 int slice_level;
 
 int add_objects_flag;
-int time_base_correct_flag;
 int help_flag;
 int de_stripe_flag;
 
 int movie_id;
+
+static double acr, acg, acb, acu, acv;
+static int use_emphasis2_for_anti_aliasing_flag;
 
 /*
 subtitle 'filter',
@@ -190,7 +192,6 @@ if(pfl->tag & TC_FILTER_INIT)
 	/* module settings */
 	add_objects_flag = 1;
 	de_stripe_flag = 0;
-	time_base_correct_flag = 0;
 	write_ppm_flag = 0;
 	show_output_flag = 0;
 	center_flag = 1;
@@ -228,14 +229,32 @@ if(pfl->tag & TC_FILTER_INIT)
 		exit(1);
 		}
 
+	default_subtitle_symbols = 0;
 	default_subtitle_font_size = 28;
 	default_subtitle_iso_extention = 15;
 	default_subtitle_radius = 1.0;
 	default_subtitle_thickness = 0.1;
-	
+
+	default_subtitle_font_symbols = 0;		
+
+	rgb_palette_valid_flag = 0;
+
+	/* color standard */
+
+	/* Y spec */
+	acr = 0.3;
+	acg = 0.59;
+	acb = 0.11;
+
+	/* U spec */
+	acu = .5 / (1.0 - acb);
+
+	/* V spec */
+	acv = .5 / (1.0 - acr);
+
+	use_emphasis2_for_anti_aliasing_flag = 0;
 
 	debug_flag = 0;
-
 
 	/* end defaults */
 	if(debug_flag)
@@ -318,6 +337,9 @@ if(pfl->tag & TC_FILTER_INIT)
 			sscanf(token, "font_factor=%f", &default_font_factor);
 			sscanf(token, "frame_offset=%d", &frame_offset);
 			sscanf(token, "movie_id=%d", &movie_id);
+
+			if(strcmp(token, "anti_alias") == 0) use_emphasis2_for_anti_aliasing_flag = 1;
+
 			if(strcmp(token, "use_pre_processing") == 0)
 				{
 				use_pre_processing_flag = 1;
@@ -351,12 +373,9 @@ if(pfl->tag & TC_FILTER_INIT)
 	if(add_objects_flag)
 		{
 		/* read in font (also needed for frame counter) */
-		sprintf(temp, "%s/font.desc", default_font_dir);
-//		vo_font = read_font_desc(temp, default_font_factor, 0);
-
-//		add_font(fontname, fontsize, iso_extension, outline_thickness, blur_radius);
+//		sprintf(temp, "%s/font.desc", default_font_dir);
 		sprintf(temp, "arial.ttf");
-		vo_font = add_font(temp, 28, 15, 1.0, 0.1);
+		vo_font = add_font(temp, default_subtitle_symbols, 28, 15, 1.0, 0.1);
 		if(! vo_font)
 			{
 			printf("subtitler(): Could not load font\n");
@@ -561,11 +580,6 @@ if(a)
 				opfm += 3;
 
 				} /* end for all x */
-
-			if(time_base_correct_flag)
-				{
-				time_base_corrector(y, pfm, pfl->v_width, pfl->v_height);
-				}
 
 			if(pfm >= pfmend - 3) break;
 
@@ -1029,7 +1043,9 @@ return 0;
 
 int add_text(\
 int x, int y,\
-char *text, int u, int v,\
+char *text,
+struct object *pa,\
+int u, int v,\
 double contrast, double transparency, font_desc_t *pfd, int espace)
 {
 int a;
@@ -1039,9 +1055,9 @@ char temp[4096];
 if(debug_flag)
 	{
 	printf("subtitler(): add_text(): x=%d y=%d text=%s\n\
-	u=%d v=%d contrast=%.2f transparency=%.2f\n\
+	pa=%p u=%d v=%d contrast=%.2f transparency=%.2f\n\
 	font_desc_t=%lu espace=%d\n",\
-	x, y, text, u, v, contrast, transparency, pfd, espace);
+	x, y, pa, text, u, v, contrast, transparency, pfd, espace);
 	} 
 
 ptr = text;
@@ -1053,16 +1069,18 @@ while(*ptr)
 
 	if(a == ' ')
 		{
+        /* want to print background only here, not '_' */
+        draw_char(x, y, a, pa, u, v, contrast, transparency, pfd, 1);
 		}
 	else
 		{
-		draw_char(x, y, a, u, v, contrast, transparency, pfd);
+		draw_char(x, y, a, pa, u, v, contrast, transparency, pfd, 0);
 		}
 
 	x += pfd->width[a] + pfd->charspace;
 
-	x += espace; //extra_character_space;
 
+	x += espace; //extra_character_space;
 	ptr++;
 	}
 
@@ -1070,68 +1088,30 @@ return 1;
 } /* end function add_text */
 
 
-int test_char_set(int frame)
-{
-int a, b, i, j, x, y;
-char temp[1024];
-int pos;
-char t[2];
-
-if(debug_flag)
-	{
-	printf("subtitler(): test_char_set(): arg frame=%d\n", frame);
-	} 
-
-a = 128;
-y = 100;
-for(i = 0; i < 16; i++)
-	{
-	if(a > 256) return 1;
-
-	sprintf(temp, "pos=%d", a);
-	add_text(0, y, temp, 0, 0, 0.0, 0.0, NULL, extra_character_space);
-
-	x = 200;
-	for(j = 0; j < 16; j++)
-		{
-		draw_char(x, y, a, 0, 0, 0.0, 0.0, NULL);
-
-		x += vo_font->width[a] + vo_font->charspace;
-
-		x += extra_character_space;
-
-		a++;
-		} /* end for j */
-
-	y += 33;
-	} /* end for i */
-
-return 1;
-} /* end function test_char_set */
-
-
 int draw_char(\
 int x, int y, int c,\
+struct object *pa,\
 int u, int v,\
-double contrast, double transparency, font_desc_t *pfd)
+double contrast, double transparency, font_desc_t *pfd, int is_space)
 {
 if(debug_flag)
 	{
 	printf("subtiter(): draw_char(): arg\n\
-	x=%d y=%d c=%d u=%d v=%d contrast=%.2f transparency=%.2f\n\
-	pfd=%lu",\
-	x, y, c, u, v, contrast, transparency, pfd);
+	x=%d y=%d c=%d pa=%p u=%d v=%d contrast=%.2f transparency=%.2f\n\
+	pfd=%lu is_space=%d\n",\
+	x, y, c, pa, u, v, contrast, transparency, pfd, is_space);
 	}
 
 draw_alpha(\
 	x,\
 	y,\
+	pa,\
 	pfd->width[c],\
-	pfd->pic_a[default_font]->h,\
-	pfd->pic_b[default_font]->bmp + pfd->start[c],\
-	pfd->pic_a[default_font]->bmp + pfd->start[c],\
-	pfd->pic_a[default_font]->w,\
-	u, v, contrast, transparency);
+	pfd->pic_a[pa -> font_symbols]->h,\
+	pfd->pic_b[pa -> font_symbols]->bmp + pfd->start[c],\
+	pfd->pic_a[pa -> font_symbols]->bmp + pfd->start[c],\
+	pfd->pic_a[pa -> font_symbols]->w,\
+	u, v, contrast, transparency, is_space);
 
 return 1;
 } /* end function draw_char */
@@ -1139,57 +1119,251 @@ return 1;
 
 void draw_alpha(\
 	int x0, int y0,\
+	struct object *pa,\
 	int w, int h,\
 	uint8_t *src, uint8_t *srca, int stride,\
-	int u, int v, double contrast, double transparency)
+	int u, int v, double contrast, double transparency, int is_space)
 {
 int a, b, c, x, y, sx, cd;
 char *ptr;
 uint8_t *py, *pu, *pv;
 uint8_t *ps, *psa;
 uint8_t *sc, *sa;
-double dc, dm, di, dci;
-uint8_t uy, ua, uc;
+double dmto, dmti, dmo, dmi, dco, dci, dp, ds;
+uint8_t uy, uu, uv, ur, ug, ub, ua, uc;
 int mu, mv, iu, iv;
+int iy;
+unsigned char *dst;
+double dir, dig, dib, dor, dog, dob;
+double diy, diu, div, doy, dou, dov;
+double da, db, dc;
+double opaqueness_p, opaqueness_e1, opaqueness_e2;
+double dmci;
+double dmti_p, dmti_e1, dmti_e2;
+double dmto_p, dmto_e1, dmto_e2;
+double dy, dblur, dblur_r, dblur_g, dblur_b;
+double dmulto, dmulti;
+
 
 if(debug_flag)
 	{
 	printf(\
-	"subtitler(): draw_alpha(): x0=%d y0=%d w=%d h=%d\n\
+	"subtitler(): draw_alpha(): x0=%d y0=%d pa=%p w=%d h=%d\n\
 	src=%lu srca=%lu stride=%d u=%d v=%d\n\
-	contrast=%.2f transparency=%.2f\n",\
-	x0, y0, w, h,\
+	contrast=%.2f transparency=%.2f is_space=%d\n",\
+	x0, y0, pa, w, h,\
 	src, srca, stride, u, v,\
-	contrast, transparency);
+	contrast, transparency, is_space);
 
 	printf("vob->im_v_codec=%d\n", vob -> im_v_codec);
 	printf("image_width=%d image_height=%d\n", image_width, image_height);
 	printf("ImageData=%lu\n", ImageData);
 	}
 
-/* calculate multiplier for transparency ouside loops */
-dm = transparency / 100.0; // main, 1 for 100 % transparent
-di = 1.0 - dm; // insert (text here) 0 for 100% transparent
+/* all */
+db = (1.0 - (double)pa -> transparency / 100.0);
+dmci = (pa -> contrast / 100.0);
 
-/*
-do not multiply color (saturation) with contrast,
-saturation could be done in adjust color, but done here for speed
-*/
-dci = di;
+if(rgb_palette_valid_flag)
+	{
+	/* pattern */
+	/* calculate 'visibility' insert */
+	da = (double) pa -> pattern_contrast / 15.0;
+	opaqueness_p = da * db;
 
-di *= (contrast / 100.0); // adjust contrast insert (text)
+	/* combine subtitler and DVD transparency */
+	dmto_p = 1.0 - opaqueness_p;
+	dmti_p = 1.0 - dmto_p;
+
+	dmti_p *= dmci;
+
+
+	/* emphasis1 */
+	/* calculate 'visibility' insert */
+	da = (double) pa -> emphasis1_contrast / 15.0;
+	opaqueness_e1 = da * db;
+
+	/* combine subtitler and DVD transparency */
+	dmto_e1 = 1.0 - opaqueness_e1;
+	dmti_e1 = 1.0 - dmto_e1;
+
+	dmti_e1 *= dmci;
+
+
+	/* emphasis2 */
+	/* calculate 'visibility' insert */
+	da = (double) pa -> emphasis2_contrast / 15.0;
+	opaqueness_e2 = da * db;
+
+	/* combine subtitler and DVD transparency */
+	dmto_e2 = 1.0 - opaqueness_e2;
+	dmti_e2 = 1.0 - dmto_e2;
+
+	dmti_e2 *= dmci;
+
+	} 
+else
+	{
+	/* calculate multiplier for transparency ouside loops */
+	dmti = db;
+	dmto = 1.0 - dmti;
+
+	dmti *= dmci;
+	}
+
+sc = src;
+sa = srca;
 
 if(vob->im_v_codec == CODEC_RGB)
 	{
-//	printf(\
-//	"subtitler ONLY works with YUV 420, please use -V option in transcode\n");
+	a = 3 * (image_height * image_width); // size of a picture
 
-//	exit(1);
+	for(y = 0; y < h; y++)
+		{
+		b = 3 * ( (y + y0) * image_width);
 
-	draw_alpha_rgb24(\
-		w, h, src, srca, stride,\
-		ImageData + 3 * (y0 * image_width + x0),\
-		3 * image_width);
+		for(x = 0; x < w; x++)
+			{
+			c = 3 * (image_width - (x + x0) );
+
+			dst = ImageData + a - (b + c);
+
+			/* clip right scroll */
+			if( (x + x0) > image_width) continue;
+
+			/* clip left scroll */
+			if( (x + x0 ) < 0) continue;
+
+			/* clip top scroll */
+			if( (y + y0) > image_height) continue;
+	
+			/* clip bottom scroll */
+			if( (y + y0) < 0) continue;
+
+			if(! rgb_palette_valid_flag)
+				{
+				if(sa[x] && !is_space)
+					{
+
+					/* get original */
+					dob = (double) dst[0];
+					dog = (double) dst[1];
+					dor = (double) dst[2];
+
+					/* get insert (character) original is BW */
+					diy = (double) (sa[x] >> 8) + sc[x];
+
+					/* transparency */
+					diy *= dmti;
+							
+					dob *= dmto;
+					dog *= dmto;
+					dor *= dmto;
+
+					if(sa[x])
+						{
+						dst[0] = (int) (dob + diy);			
+						dst[1] = (int) (dog + diy);			
+						dst[2] = (int) (dor + diy);			
+						}
+					else /* border */
+						{
+						dst[0] = (int) (dob);			
+						dst[1] = (int) (dog);			
+						dst[2] = (int) (dor);			
+						}			
+	
+					}
+				} /* end if ! rgb_palette_valid_flag */
+			else /* DVD like subs */
+				{
+				/* some temp vars */
+				ub = dst[0];
+				ug = dst[1];
+				ur = dst[2];
+
+				ua = sa[x];
+				uc = sc[x];
+
+				/* get original */
+				dob = (double)dst[0];
+				dog = (double)dst[1];
+				dor = (double)dst[2];
+
+				/* blur factor y * sa[x] */
+				dy = .3* dor + .59 * dog + .11 * dob;
+				dblur = (double) ( ((int)dy * ua) >> 8) + uc;
+				dblur /= 255.0;
+
+				if(sa[x] && !is_space)
+					{
+					if(sc[x] > 5)
+						{
+						dir = (double)rgb_palette[pa -> pattern][0];
+						dig = (double)rgb_palette[pa -> pattern][1];
+						dib = (double)rgb_palette[pa -> pattern][2];
+
+						dir *= dblur;
+						dig *= dblur;
+						dib *= dblur; 
+
+						/* transparency */
+						dir *= dmti_p;
+						dig *= dmti_p;
+						dib *= dmti_p;
+
+						dor *= dmto_p;
+						dog *= dmto_p;
+						dob *= dmto_p;
+
+						}
+					else /* emphasis1 */
+						{
+						dir = (double)rgb_palette[pa -> emphasis1][0];
+						dig = (double)rgb_palette[pa -> emphasis1][1];
+						dib = (double)rgb_palette[pa -> emphasis1][2];
+
+						/* transparency */
+						dir *= dmti_e1;
+						dig *= dmti_e1;
+						dib *= dmti_e1;
+
+						dor *= dmto_e1;
+						dog *= dmto_e1;
+						dob *= dmto_e1;
+
+						}
+					} /* end if sc[x] */
+				else /* emphasis2 */
+					{
+					/* get new part */
+					dir = (double)rgb_palette[pa -> emphasis2][0];
+					dig = (double)rgb_palette[pa -> emphasis2][1];
+					dib = (double)rgb_palette[pa -> emphasis2][2];
+
+					/* transparency */
+					dir *= dmti_e2;
+					dig *= dmti_e2;
+					dib *= dmti_e2;
+
+					dor *= dmto_e2;
+					dog *= dmto_e2;
+					dob *= dmto_e2;
+					}
+
+				/* combine old and new parts in output */
+				dst[0] = (int) (dob + dib);
+				dst[1] = (int) (dog + dig);
+				dst[2] = (int) (dor + dir);
+				} /* end if DVD like subs */
+
+			} /* end for all x */
+
+		sc += stride;
+		sa += stride;
+
+		} /* end for all y */
+
 	} /* end if RGB */
 else if(vob->im_v_codec == CODEC_YUV)
 	{
@@ -1212,9 +1386,6 @@ else if(vob->im_v_codec == CODEC_YUV)
 	pv = ImageData + image_width * image_height;
 	pu = ImageData + (image_width * image_height * 5) / 4;
 
-	sc = src;
-	sa = srca;
-
 	a = y0 * image_width;
 	b = image_width / 4;
 	c = image_width / 2;
@@ -1236,6 +1407,10 @@ else if(vob->im_v_codec == CODEC_YUV)
 		{
 		for(x = 0; x < w; x++)
 			{
+
+//fprintf(stdout, "WAS y=%d x=%d y0=%d x0=%d py=%p pu=%p pv=%p\n",\
+//y, x, y0, x0, py, pu, pv);
+
 			/* clip right scroll */
 			if( (x + x0) > image_width) continue;
 
@@ -1248,28 +1423,116 @@ else if(vob->im_v_codec == CODEC_YUV)
 			/* clip bottom scroll */
 			if( (y + y0) < 0) continue;
 
-			if(sa[x])
+			if(! rgb_palette_valid_flag)
 				{
-				/* some temp vars */
-				uy = py[x];
-				ua = sa[x];
-				uc = sc[x];
+				if(sa[x] && !is_space)
+					{
+					/* trailing shadow no */
+					sx = 1;
+					if( (x + x0) % 2) sx = 0; 
 
-				/* get decision factor before we change anything */
-				cd = ( (py[x] * sa[x]) >> 8) < 5;
+//					if(x  < (w - 4) ) sx = 1; // hack, looks better :-)
+//					else sx = 0;
 
-				/* calculate value insert (character) */
-				uy = ( (uy * ua) >> 8) + uc;
+					/* some temp vars */
+					uy = py[x];
+					ua = sa[x];
+					uc = sc[x];
 
-				/* attenuate insert (character) the opposite way */
-				uy *= di; // di is 0 for 100 % transparent
+					/* get decision factor before we change anything */
+//					cd = ( (py[x] * sa[x]) >> 8) < 5;
+					cd = ( (uy * ua) >> 8) < 5;
 
-				/* attenuate main */
-				py[x] *= dm; // dm is 1 for 100% transp
-							
-				/* add what is left of the insert (character) */
-				py[x] += uy;
+					/* get original */
+					doy = (double) py[x];
+					dou = (double) (pu[x / 2 + sx] - 128);
+					dov = (double) (pv[x / 2 + sx] - 128);
+
+					/* blur factor y * sa[x] */
+					dblur = (double) ( ((int)doy * ua) >> 8) + uc;
+					dblur /= 255.0;
+
+					/* calculate value insert (character) */
+					diy = (double) ( (uy * ua) >> 8) + uc;
+
+					/* transparency */
+					diy *= dmti;
+					doy *= dmto;
+
+					/* add what is left of the insert (character) */
+					py[x] = (int) (doy + diy);
 				
+					if(cd)
+						{
+						diu *= dblur;
+						div *= dblur;
+
+						/* change color too */
+						diu = u * dmti;
+						div = v * dmti;
+					
+						dou *= dmto;
+						dov *= dmto;
+
+						if(sc[x]) /* white part of char */
+							{						
+							/* set U vector */
+							pu[x / 2 + sx] = (int) (128.0 + dou + diu);
+
+							/* set V vector */
+							pv[x / 2 + sx] = (int) (128.0 + dov + div);
+							}
+						else /* keep border around character colorless */
+							{
+							/* set U vector */
+							pu[x / 2 + sx] = (int) (128.0 + dou); // + diu);
+
+							/* set V vector */
+							pv[x / 2 + sx] = (int) (128.0 + dov); // + div);
+							}
+
+						} /* end if sa[x] */
+					} /* end if cd */
+
+				} /* end if ! rgb_palette_valid_flag */
+			else 
+				{
+				/*
+				OK lets get this straight:
+				I do not understand character anti-aliasing, but looked at the variables with
+				printf().
+				Here I see that:
+				sa[x] > 0 for character space, it varies from 255 to 0
+				sc[x] > 0 for character body (pattern), it varies from 0 to 255;
+									
+				sa[x] seems to be the aliasing or blur? multiplier, and is used to attenuate
+                the original! Not my idea of anti alias, but OK.
+				sc[x] is the multiplier for the insert (character).
+
+				sa[x] is 1 within the body of a character.
+				sa[x] increases as you go from center character outwards (fade in background)
+				sa[x] is zero outside the character space.
+
+				
+				so:
+				sa[x] = 0 is not in character space.
+				sa[x] = 1 is character body
+				sa[x] > 1 is outline1				
+								
+
+				Variable names used:
+				dxxxxo for double (format) referring to original data
+				dxxxxi for double (format) referring to insert data
+
+				*/
+
+				/*
+				test for in character space, and something to print
+				These character sets seem to have '_' in place of a real space, so that is why is_space,
+				to prevent a '_' from appearing where a space is intended.
+				*/
+
+				/* some color trick */
 				sx = 1;
 				if( (x + x0) % 2) sx = 0; 
 
@@ -1277,38 +1540,235 @@ else if(vob->im_v_codec == CODEC_YUV)
 //				if(x  < (w - 4) ) sx = 1; // hack, looks better :-)
 //				else sx = 0;
 
-				if(cd)
+				if(sa[x] && !is_space)
 					{
-					/* some temp vars, integer so we can multiply */
-					mu = pu[x / 2 + sx] - 128;
-					mv = pv[x / 2 + sx] - 128;
 
-					/* adjust main color saturation */
-					mu *= dm;
-					mv *= dm;
+					/* get multiplier as double */
+					dmulto = (double) sa[x] / 256.0;
 
-					/* adjust insert (character) color saturation */
-					iu = u * dci;
-					iv = v * dci;
+					/* multiplier to range 0 to 1.0 */
+					dmulti = (double) sc[x] / 256.0;
 
-					if(sc[x]) /* white part of char */
+					if(use_emphasis2_for_anti_aliasing_flag)
 						{
+						/* multiplier to range 0 to 1.0 */
+						dmulti = (double) sc[x] / 256.0;
+						}
+					else
+						{
+						if(sc[x]) dmulti = 1.0;
+						else dmulti = 0.0;
+						}
+
+					/* test for character body */		
+					if(dmulti > .5)
+						{
+						/* get original */
+						doy = (double) py[x];
+						dou = (double) pu[x / 2 + sx] - 128;
+						dov = (double) pv[x / 2 + sx] - 128;
+
+						rgb_to_yuv(\
+						rgb_palette[pa -> pattern][0],\
+						rgb_palette[pa -> pattern][1],\
+						rgb_palette[pa -> pattern][2],\
+						&iy, &iu, &iv);
+
+						/*
+						better to multiply AFTER rgb_to_uuv(),
+						as strange values may happen for u and v if low values of rgb.
+						*/
+
+						/* NOTE: what we call 'contrast' in DVD is actually transparency */
+
+						/* insert to double */
+						diy = (double) iy;
+						diu = (double) iu;
+						div = (double) iv;
+
+						/* transparency */
+						diy *= dmti_p;
+/* u and v here for color change */
+						diu *= dmti_p;
+						div *= dmti_p;
+
+						doy *= dmto_p;
+						dou *= dmto_p;
+						dov *= dmto_p;
+
+						da = (doy * dmulto) + (diy * dmulti);
+						py[x] = (int) da;
+
 						/* set U vector */
-						pu[x / 2 + sx] = 128 + mu + iu;
+						da = (dou * dmulto) + (diu * dmulti);
+						pu[x / 2 + sx] = 128 + (int)da;
 
 						/* set V vector */
-						pv[x / 2 + sx] = 128 + mv + iv;
-						}
-					else /* shadow around char, no color */
+						da = (dov * dmulto) + (div * dmulti);
+						pv[x / 2 + sx] = 128 + (int)da;
+						} /* end if body */
+					else
 						{
-						/* set U vector */
-						pu[ (x / 2) + sx] = 128 + mu;
+						if(use_emphasis2_for_anti_aliasing_flag)
+							{
+							/* use outline2 for anti aliasing, set to grey 50 % */
+                            if( (dmulti > 0) && (dmulti < .5) ) 
+								{
+								/* get original */
+								doy = (double) py[x];
+								dou = (double) pu[x / 2 + sx] - 128;
+								dov = (double) pv[x / 2 + sx] - 128;
 
+								/* draw outline2 */
+								rgb_to_yuv(\
+								rgb_palette[pa -> emphasis2][0],\
+								rgb_palette[pa -> emphasis2][1],\
+								rgb_palette[pa -> emphasis2][2],\
+								&iy, &iu, &iv);
+
+								/* insert to double */
+								diy = (double) iy;
+								diu = (double) iu;
+								div = (double) iv;
+
+								/* transparency */
+								diy *= dmti_e2;
+								diu *= dmti_e2;
+								div *= dmti_e2;
+
+								doy *= dmto_e2;
+								dou *= dmto_e2;
+								dov *= dmto_e2;
+
+								/* add what is left of the insert (character) */
+								py[x] = (int) (doy + diy);
+
+								/* set U vector */
+								pu[x / 2 + sx] = 128 + (int) (dou + diu);
+	
+								/* set V vector */
+								pv[x / 2 + sx] = 128 + (int) (dov + div);
+								} /* end emphasis2 for anti-aliasing */
+							else
+								{
+								/* get original */
+								doy = (double) py[x];
+								dou = (double) pu[x / 2 + sx] - 128;
+								dov = (double) pv[x / 2 + sx] - 128;
+
+								rgb_to_yuv(\
+								rgb_palette[pa -> emphasis1][0],\
+								rgb_palette[pa -> emphasis1][1],\
+								rgb_palette[pa -> emphasis1][2],\
+								&iy, &iu, &iv);
+
+								/* insert to double */
+								diy = (double) iy;
+								diu = (double) iu;
+								div = (double) iv;
+
+								/* transparency */
+								diy *= dmti_e1;
+								diu *= dmti_e1;
+								div *= dmti_e1;
+
+								doy *= dmto_e1;
+								dou *= dmto_e1;
+								dov *= dmto_e1;
+
+								da = doy + diy;
+								py[x] = (int) da;
+
+								/* set U vector */
+								da = dou  + diu;
+								pu[x / 2 + sx] = 128 + (int)da;
+	
+								/* set V vector */
+								da = dov + div;
+								pv[x / 2 + sx] = 128 + (int)da;
+								} /* end emphasis1 */
+							} /* end if use_emphasis2_for_anti_aliasing_flag */
+						else /* outline1 */
+							{
+							/* get original */
+							doy = (double) py[x];
+							dou = (double) pu[x / 2 + sx] - 128;
+							dov = (double) pv[x / 2 + sx] - 128;
+
+							rgb_to_yuv(\
+							rgb_palette[pa -> emphasis1][0],\
+							rgb_palette[pa -> emphasis1][1],\
+							rgb_palette[pa -> emphasis1][2],\
+							&iy, &iu, &iv);
+
+							/* insert to double */
+							diy = (double) iy;
+							diu = (double) iu;
+							div = (double) iv;
+
+							/* transparency */
+							diy *= dmti_e1;
+							diu *= dmti_e1;
+							div *= dmti_e1;
+
+							doy *= dmto_e1;
+							dou *= dmto_e1;
+							dov *= dmto_e1;
+
+							da = doy + diy;
+							py[x] = (int) da;
+
+							/* set U vector */
+							da = dou  + diu;
+							pu[x / 2 + sx] = 128 + (int)da;
+
+							/* set V vector */
+							da = dov + div;
+							pv[x / 2 + sx] = 128 + (int)da;
+							} /* end no anti-alias */
+						} /* end dmulti < 0.5 */ 
+					} /* end if sa[x] && ! is_space */
+				else /* outline2 */
+					{
+					if(! use_emphasis2_for_anti_aliasing_flag ) /* use emphasis2 for  character space */
+						{
+						/* get original */
+						doy = (double) py[x];
+						dou = (double) pu[x / 2 + sx] - 128;
+						dov = (double) pv[x / 2 + sx] - 128;
+
+						/* draw outline2 */
+						rgb_to_yuv(\
+						rgb_palette[pa -> emphasis2][0],\
+						rgb_palette[pa -> emphasis2][1],\
+						rgb_palette[pa -> emphasis2][2],\
+						&iy, &iu, &iv);
+
+						/* insert to double */
+						diy = (double) iy;
+						diu = (double) iu;
+						div = (double) iv;
+
+						/* transparency */
+						diy *= dmti_e2;
+						diu *= dmti_e2;
+						div *= dmti_e2;
+
+						doy *= dmto_e2;
+						dou *= dmto_e2;
+						dov *= dmto_e2;
+
+						/* add what is left of the insert (character) */
+						py[x] = (int) (doy + diy);
+
+						/* set U vector */
+						pu[x / 2 + sx] = 128 + (int) (dou + diu);
+	
 						/* set V vector */
-						pv[ (x / 2) + sx] = 128 + mv;
-						}
-					} /* end if cd */
-				} /* end if sa[x] */
+						pv[x / 2 + sx] = 128 + (int) (dov + div);
+						} /* end if outline2 */
+					} /* end if ! use_emphasis2_for_anti_aliasing_flag */
+				} /* end if rgb_palette_valid_flag */
 			} /* end for all x */
 
 		sc += stride;
@@ -1328,185 +1788,220 @@ else if(vob->im_v_codec == CODEC_YUV)
 } /* end function draw_alpha */
 
 
-void draw_alpha_rgb24(\
-int w, int h,\
-unsigned char* src, unsigned char *srca, int srcstride,\
-unsigned char* dstbase, int dststride)
+int add_background(struct object *pa)
 {
-int y;
+int a, b, c, x, y, sx, cd;
+char *ptr;
+uint8_t *py, *pu, *pv;
+uint8_t *ps, *psa;
+uint8_t *sc, *sa;
+double da, dc, dm, di, dci, dp, ds;
+uint8_t uy, ua, uc;
+int mu, mv, iu, iv;
+double dr, dg, db;
+int iy;
+double dmci, dmti, dmto;
+double dir, dig, dib, diy, diu, div;
+double dor, dog, dob, doy, dou, dov;
+unsigned char *dst;
+int width, height;
+double opaqueness;
 
 if(debug_flag)
 	{
-	printf("subtitler(): draw_alpha_rgb24():\n");
+	fprintf(stdout, "add_background(): arg pa=%p\n", pa);
+
+	fprintf(stdout,\
+	"pa->line_number=%d pa->bg_y_start=%d pa->bg_y_end=%d pa->bg_x_start=%d pa->bg_x_end=%d\n",\
+	pa -> line_number, pa -> bg_y_start, pa -> bg_y_end, pa -> bg_x_start, pa -> bg_x_end);
+
+	fprintf(stdout,\
+	"pa->background=%d pa->background_contrast=%d\n",\
+	pa -> background, pa -> background_contrast);
+
+	fprintf(stdout,\
+	"pa->contrast=%.2f, pa->transparency=%.2f\n",\
+	pa -> contrast, pa -> transparency);
 	}
 
-for(y = 0; y < h; y++)
-	{
-	register unsigned char *dst = dstbase;
-	register int x;
+/* only background if palette specified */
+if(! rgb_palette_valid_flag) return 1;
 
-	/* clip top */
-//	if(y > image_height) continue;
+/* parameter check */
+if(pa -> bg_y_start < 0) return 0;
+if(pa -> bg_y_start >= image_height) return 0;
 
-	for(x = 0; x < w; x++)
-		{
-		/* clip right side */
-//		if(x > image_width) continue;
+if(pa -> bg_x_start < 0) return 0;
+if(pa -> bg_x_start >= image_width) return 0;
 
-#ifdef USE_COLOR
-		if(srca[x])
-			{
-			/* BGR */
-			dst[[0] = ((dst[0] * fg_blue) >> 8) + src[x];
-			dst[[1] = ((dst[1] * fg_green) >> 8) + src[x];
-			dst[[2] = ((dst[2] * fg_red) >> 8) + src[x];
-			}
-		else
-			{
-			dst[[0] = ((dst[0] * bg_blue) >> 8) + src[x];
-			dst[[1] = ((dst[1] * bg_green) >> 8) + src[x];
-			dst[[2] = ((dst[2] * bg_red) >> 8) + src[x];
-			}
-#else
-		if(srca[x])
-			{
-#ifdef FAST_OSD
-			dst[0] = dst[1] = dst[2] = src[x];
-#else
-			dst[0] = ((dst[0] * srca[x]) >> 8) + src[x];
-			dst[1] = ((dst[1] * srca[x]) >> 8) + src[x];
-			dst[2] = ((dst[2] * srca[x]) >> 8) + src[x];
-#endif /* ! FAST_OSD */
-			}
-#endif /* else ! USE_COLOR */
+if(pa -> bg_y_end <= pa -> bg_y_start) return 0;
+if(pa -> bg_y_end > image_height) return 0;
 
-		dst += 3; // 24bpp
-		} /* end for all x */
+if(pa -> bg_x_end <= pa -> bg_x_start) return 0;
+if(pa -> bg_x_end > image_width) return 0;
 
-	src += srcstride;
-	srca += srcstride;
-	dstbase -= dststride;
-	} /* end for all y */
+/* calculate 'visibility' insert */
+da = (double) pa -> background_contrast / 15.0; // DVD background request, 1.0 for 100 % opaque
+db = (1.0 - (double)pa -> transparency / 100.0); // subtitler background request, 1.0 for 100 % opaque
+opaqueness = da * db;
 
-return;
-} /* end function draw_alpha_rgb24 */
+/* combine subtitler and DVD transparency */
+dmto = 1.0 - opaqueness; // background, 1.0 for 100 % transparent
+dmti = 1.0 - dmto; // insert, 0.0 for 100 % transparent
 
-
-int time_base_corrector(int y, uint8_t *pfm, int hsize, int vsize)
-{
 /*
-corects timing errors in head switching Umatic
-This assumes a small black lead space, darker then the picture itself in
-each line.
+do not multiply color (saturation) with contrast,
+saturation could be done in adjust color, but done here for speed
 */
-int a, b, c, i;
-int shift;
-int shift_start;
-int pic_hstart;
-static double dstart_sum, dstart_average = 0.0;
-uint8_t *ppa, *ppb, *ppc, *ppd;
-int black_level;
-int pic_h_reference;
-static int count;
-	
-#define BLACK_LEVEL				10
-#define CORRECTION_RANGE		100
-#define PRE_HEAD_SWITCH_LINE	20
+dmci = (pa -> contrast / 100.0); // contrast insert, 1.0 for 100 % contrast
 
-/* BGR */
+dmti *= dmci; 
 
-//for(i = 0; i < hsize - 3; i += 3)
-//	{
-//  /* color lines before head switch red */
-//	if(y > PRE_HEAD_SWITCH_LINE) pfm[i + 2] = 255;
-//	}
-//return 1;
-
-black_level =\
-pfm[0] + pfm[1] + pfm[2] +\
-pfm[3] + pfm[4] + pfm[5] +\
-pfm[6] + pfm[7] + pfm[8] +\
-pfm[9] + pfm[10] + pfm[11] +\
-pfm[12] + pfm[13] + pfm[14];
-black_level /= 12;
-
-/* find start picture (end left margin) */
-for(i = 0; i < CORRECTION_RANGE; i += 3)
+if(vob->im_v_codec == CODEC_RGB)
 	{
-	if( (pfm[i] >  black_level + 3) &&\
-	(pfm[i + 1] >  black_level + 3) &&\
-	(pfm[i + 2] >  black_level + 3) )
+	a = 3 * (image_height * image_width); // size of a picture
+
+	for(y = pa -> bg_y_start; y < pa -> bg_y_end; y++)
 		{
-		pic_hstart = i;
-		break;
-		} /* end if start picture found (end left margin) */
-	} /* end for i */
+		b = 3 * (y * image_width);
 
-//printf("WAS black_level=%d y=%d pic_hstart=%d\n",\
-//black_level, y, pic_hstart);
-//return 1;
-
-/* average start for first lines */ 
-if(y > PRE_HEAD_SWITCH_LINE)
-	{
-	dstart_sum += pic_hstart;
-	count++;
-	dstart_average = dstart_sum / count;
-	}
-
-else if(y == PRE_HEAD_SWITCH_LINE)
-	{
-//printf("WAS dstart_sum=%.2f dstart_average=%.2f\n",\
-//dstart_sum, dstart_average);
-
-	/* this is the reference start (left margin) */
-	pic_h_reference = (int) dstart_average;
-
-	printf("time_base_corrector(): pic_h_reference=%d\n", pic_h_reference);
-
-	} /* end if last test line */
-
-/* only correct bottom where head switching is */
-else if(y < PRE_HEAD_SWITCH_LINE)
-	{
-	/* id start > pic_h_reference, to far to the right, move left shift */
-//	shift = pic_h_reference - pic_hstart;
-
-pic_h_reference = 30;
-
-	shift = pic_hstart - pic_h_reference;	
-
-	printf("time_base_corrector(): y=%d shift=%d\n", y, shift);
-
-	shift = abs(shift);
-//return 1;
-
-	if(pic_hstart < pic_h_reference)
-		{
-//printf("WAS copy down y=%d shift=%d\n", y, shift);
-		/* move left, copy down */
-		for(i = 0; i < hsize - shift - 3; i += 3)
+		for(x = pa -> bg_x_start; x < pa -> bg_x_end; x++)
 			{
-			pfm[i] = pfm[i + shift];
-			pfm[i + 1] = pfm[i + 1 + shift];
-			pfm[i + 2] = pfm[i + 2 + shift];
-			} /* end for i */
-		} /* end if move left */
-	else /* move right */
+			c = 3 * (image_width - x);
+
+			dst = ImageData + a - (b + c);
+
+			/* get original */
+			dob = (double)dst[0];
+			dog = (double)dst[1];
+			dor = (double)dst[2];
+
+			/* get new part */
+			dir = (double)rgb_palette[pa -> background][0];
+			dig = (double)rgb_palette[pa -> background][1];
+			dib = (double)rgb_palette[pa -> background][2];
+
+			/* transparency */
+			dir *= dmti;
+			dig *= dmti;
+			dib *= dmti;
+
+			dor *= dmto;
+			dog *= dmto;
+			dob *= dmto;
+
+			/* combine old and new parts in output */
+			dst[0] = (int) (dib + dob);
+			dst[1] = (int) (dig + dog);
+			dst[2] = (int) (dir + dor);
+
+			} /* end for all x */
+
+		} /* end for all y */
+
+	} /* end if RGB */
+else if(vob->im_v_codec == CODEC_YUV)
+	{
+	/* 
+	We seem to be in this format I420:
+    y = dest;
+    v = dest + width * height;
+    u = dest + width * height * 5 / 4;
+
+	Orientation of Y (*) relative to chroma U and V (o)
+	* o
+	o o
+	So, an array of 2x2 chroma pixels exists for each luminance pixel
+	The consequence of this is that there will be a color-less area
+	of one line on the right and on the bottom of each character.
+	Dropshadow :-)
+	*/
+
+	height = pa -> bg_y_end - pa -> bg_y_start;
+	width = pa -> bg_x_end - pa -> bg_x_start;
+
+	py = ImageData;
+	pv = ImageData + image_width * image_height;
+	pu = ImageData + (image_width * image_height * 5) / 4;
+
+	a = pa -> bg_y_start * image_width;
+	b = image_width / 4;
+	c = image_width / 2;
+
+	py += pa -> bg_x_start + a;
+	a /= 4;
+
+	pu += (pa -> bg_x_start / 2) + a;
+	pv += (pa -> bg_x_start / 2) + a;
+
+	/* on odd lines, need to go a quarter of a 'line' back */
+	if(pa -> bg_y_start % 2)
 		{
-//printf("WAS copy up y=%d shift=%d\n", y, shift);
-		/* copy up */
-		for(i = hsize - shift - 3; i > 0; i -= 3)
+		pu -= b;
+		pv -= b;				
+		}
+
+	for(y = 0; y < height; y++)
+		{
+		for(x = 0; x < width; x++)
 			{
-			pfm[i + 2 + shift] = pfm[i + 2];		
-			pfm[i + 1 + shift] = pfm[i + 1];		
-			pfm[i + shift] = pfm[i];		
-			} /* end for i */
-		} /* end if move right */
-	} /* end if lower part of picture */
+			sx = 1;
+			if( (x + pa -> bg_x_start) % 2) sx = 0; 
+
+			/* get old part */
+			doy = (double)py[x];
+			dou = (double)pu[x / 2 + sx] - 128;
+			dov = (double)pv[x / 2 + sx] - 128;
+
+			/* get new part */
+			dr = (double)rgb_palette[pa -> background][0];
+			dg = (double)rgb_palette[pa -> background][1];
+			db = (double)rgb_palette[pa -> background][2];
+
+			rgb_to_yuv(dr, dg, db, &iy, &iu, &iv);
+			/*
+			better to multiply AFTER rgb_to_uuv(),
+			as strange values may happen for u and v if low values of rgb.
+			*/
+
+			diy = (double)iy;
+			diu = (double)iu;
+			div = (double)iv;
+
+			/* transparency */
+			diy *= dmti;
+			diu *= dmti;
+			div *= dmti;
+
+			doy *= dmto;
+			dou *= dmto;
+			dov *= dmto;
+
+			/* add what is left of the insert (character) */
+			py[x] = (int) (doy + diy);
+
+			/* set U vector */
+			pu[x / 2 + sx] = 128 + (int) (dou + diu);
+
+			/* set V vector */
+			pv[x / 2 + sx] = 128 + (int) (dov + div);
+
+			} /* end for all x */
+
+		py += image_width;
+
+		if( (y + pa -> bg_y_start) % 2)
+			{
+			pu += c;
+			pv += c;
+			}
+
+		} /* end for all y */
+
+	} /* end if YUV */
 
 return 1;
-} /* end function time_base_corrector */
+} /* end function add_background */
 
 
 int print_options()
@@ -1794,9 +2289,43 @@ dhue_line_drift = pa -> hue_line_drift;
 u_shift = (int)pa -> u_shift;
 v_shift = (int)pa -> v_shift;
 de_stripe_flag = (int)pa -> de_stripe;
-time_base_correct_flag = (int)pa -> time_base_correct;
 show_output_flag = (int)pa -> show_output;
 
 return 1;
 } /* end function set_main_movie_properties */
+
+
+int rgb_to_yuv(int r, int g, int b, int *y, int *u, int *v)
+{
+double dr, dg, db, dy, du, dv;
+
+if(debug_flag)
+	{
+	fprintf(stdout, "rgb_to_yuv(): arg r=%d g=%d b=%d\n", r, g, b);
+	}
+
+dr = (double) r;
+dg = (double) g;
+db = (double) b;
+
+/* acy, acu, acv pre-calculated in init */
+/* convert to YUV */
+
+/* test yuv coding here */
+dy = acr * dr + acg * dg + acb * db;
+
+dy = (219.0 / 256.0) * dy + 16.5;  /* nominal range: 16..235 */
+
+du = acu * (db - dy);
+du = (224.0 / 256.0) * du; // + 128.5; /* 16..240 */
+
+dv = acv * (dr - dy);
+dv = (224.0 / 256.0) * dv; // + 128.5; /* 16..240 */
+
+*y = (int) dy;
+*u = (int) du;
+*v = (int) dv;
+
+return 1;
+} /* end function rgb_to_yuv */
 

@@ -249,6 +249,56 @@ font_blur_radius         double     blur.
 The default for font_dir is now ~~/.xste/fonts/
 
 
+-0.8:
+DVD like subs can be displayed, new ppml commands for this:
+palette                 text            16 x rgb palette (r0,g0,b0,r1,g1,b1,---r145,g15,b15).
+                                        if this isspecified, then text will be rendered.
+                                        using the folowing parameters (as in DVD):
+background              text            number background in palette.
+pattern                 text            number character body color in palette (0-15)
+emphasis1               text            number character outline in palette
+emphasis2               text            number character outline2 (character-space) in palette.
+
+background_contrast     text            background printing area contrast (0-15), 15 is opaque.
+pattern_contrast        text            character body contrast.
+emphasis1_contrast      text            character outline1 contrast.
+emphasis2_contrast      text            character outline2 (character-space) contrast.
+    
+font_path
+font_dir 
+are both recognized as the place where the true type fonts need to
+be (arial.ttf for example).
+You need to set this and the other font parameters for each object!
+
+extra character space set to zero by default (because of better font rendering).
+
+Temp files now in /tmp/subtitler/
+so no more huge disk usage with binary font images.
+
+Only YUV support for normal ppml and DVD type subs in ppml!
+
+Difference between contrast and transparency:
+If you insert an object, and increase transparency (max 100), it wil 'dissolve', you will
+look through it and see hat is behind it.
+If you decrease contrast (max 100, min 0) , it will become less bright, and finally black.
+You will NOT see what is behind it.
+Now to add some confusion, what is called 'contrast' in DVD subtitles is
+actually transparency!
+So a contrast of 0 for a DVD subtitle will show the background.
+A contrast of 15 will show the subtitle maximum.
+
+Some DVD color settings may give unwanted effects, experiment.
+Anti aliasing added for DVD subs.
+ 
+
+0.8.1:
+anti_alias command on command line will process emphasis2 as anti alias.
+(Use xste to generate this).
+Character spacing can be negative, so characters can be made to appear
+very close together.
+Reformatting for negative spacing values works. 
+
+
 -
 Talking about 'objects' title_list.c is now object_list.c
 Added a 'zaxis'.

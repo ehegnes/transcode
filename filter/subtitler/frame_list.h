@@ -31,13 +31,7 @@ struct frame *frametab[FRAME_HASH_SIZE];
 
 struct subtitle_fontname
 	{
-	char *name; /* this is the fontname, fontsize, iso extension, outline_thickness, blur_radius */
-
-//	char *fontname;
-//	int fontsize;
-//	int iso_extension;
-//	double outline_thickness;
-//	double blur_radius;   
+	char *name; /* this is the fontname, font_symbols, fontsize, iso extension, outline_thickness, blur_radius */
 
 	font_desc_t *pfd;
 
@@ -47,4 +41,4 @@ struct subtitle_fontname
 struct subtitle_fontname *subtitle_fontnametab[2];
 		 /* first element points to first entry, second element to last entry */
 
-#endif // _FRAME_LIST_H
+#endif /* _FRAME_LIST_H */
