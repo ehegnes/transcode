@@ -3011,7 +3011,7 @@ int main(int argc, char *argv[]) {
       
       // -i
       
-      if(video_in_file==NULL) tc_warn("[%s] no option -i found, reading from \"%s\"", vob->video_in_file);
+      if(video_in_file==NULL) tc_warn("no option -i found, reading from \"%s\"", vob->video_in_file);
       
       // -o
       
