@@ -137,7 +137,7 @@ static void help_optstr(void)
    printf ("    determined by the 'threshold' parameter. Strength 255 is the\n");
    printf ("    strongest sharpening.\n");
 
-   printf ("  * Threshold 'threshold' (0-255) [255]\n");
+   printf ("  * Threshold 'threshold' (0-255) [10]\n");
    printf ("    This parameter determines what is detected as edge detail and\n");
    printf ("    thus sharpened. To see what edge detail areas will be sharpened,\n");
    printf ("    use the 'mask' parameter.\n");
