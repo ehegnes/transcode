@@ -58,6 +58,7 @@ typedef struct _pvm_config_env{
 				int 			s_nproc;
 				int 			s_max_proc;
 				int 			s_num_frame_task;
+				int			s_build_intermed_file;
 				char			*p_multiplex_cmd;
 				pvm_config_codec	s_audio_codec;
 				pvm_config_codec	s_video_codec;

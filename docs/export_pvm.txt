@@ -182,6 +182,10 @@ Section [SystemMerger] define parameter for the system merger task
 	Hostname	the name of the host to use in cluster. default localhost
 
 	BuildOnlyBatchMergeList	create only the build list to merge and remove the temporary file and rebuild the final system file later (using tcpvmexportd -j -m -f file.cfg). default 1 (yes)
+		Value: 
+			0 create directly the system file
+			1 create only the merge file list
+			2 create the intermediate system files (with a progressive numeber)
 
 	MultiplexParams	the parameters to pass to multiplex program (mplex,tcmplex,avimerge): default none. (e.g. for mplex MultiplexParams="-f 8")
 
@@ -237,6 +241,7 @@ Codec = mpeg2enc
 Destination = /tmp/Becca-Giasson.mpeg
 Codec = mpeg2enc-mp2enc
 MultiplexParams = "-f 8"
+BuildOnlyIntermediateFile=0
 [AddAudioList]
 Destination = /tmp/Becca-Giasson.mpa
 Codec = mp2enc
@@ -275,6 +280,8 @@ Section [SystemList] define how to multiplex the produced file list
 	Codec		The name of the codec (for instance mpeg2enc-mp2enc)
 
 	MultiplexParams	The parameters to pass to multiplex program (e.g.  MultiplexParams = "-f 8")
+
+	BuildOnlyIntermediateFile	Build only intermediate files. default 0
 
 The command
 
@@ -507,6 +514,7 @@ and
 Destination = /dati/multimedia/VOB/Becca-Giasson.mpeg
 Codec = mpeg2enc-mp2enc
 MultiplexParams = "-f 8"
+BuildOnlyIntermediateFile=0
 [AddVideoList]
 Destination = /dati/multimedia/VOB/Becca-Giasson.m2v
 Codec = mpeg2enc
@@ -803,11 +811,16 @@ Cmd2
 3) Set 1-2 process for each CPU
 4) If the decode process never wait for a free task then you probably found the right configuration (add more slave host is useless: you need to speed up the decode process).
 5) If you plan to have a system file don't multiplex the merged audio and video, but run the built in system merge process (this remove an A/V sync problem).
+6) If you plan to have create a DVD with dvdauthor then set BuildOnlyBatchMergeList=2 in the [SystemMerger] section and pass to dvdauthor the system files generated (force BuildOnlyIntermediateFile=1 in the [SystemList] section)
 
 
 ---------------
 * Change log
 ---------------
+
+2003-08-20 * docs/export_pvm.txt docs/man/tcpvmexportd.1 docs/pvm.cfg export/export_pvm.c pvm3/export_pvm_slave.c pvm3/export_pvm_slave.h pvm3/pvm_parser.c pvm3/pvm_parser.h pvm3/pvm_version.h pvm3/tcpvmexportd.c
+
+- added BuildOnlyBatchMergeList=2 in [SystemMerger] section to build only the intermediate system files and BuildOnlyIntermediateFile in [SystemList] section (dvdauthor don't like a merged file).
 
 2003-08-12 * first release of export_pvm
 
@@ -818,6 +831,7 @@ Cmd2
 * To do
 ---------------
 
+- add support for A/V multithread option (-u).
 - create a resource manager
 - retrieve encoded frame without nfs
 - balancing weight based 
@@ -830,4 +844,5 @@ Cmd2
 * Bugs
 ---------------
 
+- for instance don't change the default -u option of transcode (leave to 1 the n threads)
 - please send me an e-mail

@@ -1,6 +1,18 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-20 Malanchini Marzio <marzio_malanchini at vodafone.it>
+  
+   * docs/export_pvm.txt docs/man/tcpvmexportd.1 docs/pvm.cfg
+   export/export_pvm.c pvm3/export_pvm_slave.c
+   pvm3/export_pvm_slave.h pvm3/pvm_parser.c pvm3/pvm_parser.h
+   pvm3/pvm_version.h pvm3/tcpvmexportd.c:
+
+   added BuildOnlyBatchMergeList=2 in [SystemMerger] section to
+   build only the intermediate system files and
+   BuildOnlyIntermediateFile in [SystemList] section (dvdauthor
+   don't like a merged file).
+
 2003-08-20 marrq <marrq at ugcs.caltech.edu>
    
    * src/encoder.c:

@@ -144,7 +144,7 @@ pvm_config_env *f_pvm_parser(char *p_hostfile,char *p_option)
 						if(!strcasecmp(p_key_value->key,"Hostname"))
 							s_pvm_conf.s_system_merger.p_hostname=f_skip_space(p_key_value->value,p_localhost);
 						else if(!strcasecmp(p_key_value->key,"BuildOnlyBatchMergeList"))
-							s_pvm_conf.s_system_merger.s_build_only_list=(atoi(p_key_value->value)>1||atoi(p_key_value->value)<0)?1:atoi(p_key_value->value);
+							s_pvm_conf.s_system_merger.s_build_only_list=(atoi(p_key_value->value)>2||atoi(p_key_value->value)<0)?1:atoi(p_key_value->value);
 						else if(!strcasecmp(p_key_value->key,"MultiplexParams"))
 							s_pvm_conf.p_multiplex_cmd=f_skip_space(p_key_value->value,NULL);
 						else
@@ -312,6 +312,13 @@ pvm_config_env *f_pvm_parser(char *p_hostfile,char *p_option)
 							s_pvm_conf.s_sys_list.p_destination=f_skip_space(p_key_value->value,NULL);
 						else if(!strcasecmp(p_key_value->key,"MultiplexParams"))
 							s_pvm_conf.p_multiplex_cmd=f_skip_space(p_key_value->value,NULL);
+						else if(!strcasecmp(p_key_value->key,"BuildOnlyIntermediateFile"))
+							s_pvm_conf.s_build_intermed_file=(atoi(p_key_value->value)<0||atoi(p_key_value->value)>1)?0:atoi(p_key_value->value);
+						else
+						{
+							fprintf(stderr,"(%s) invalid section %s parameter %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
+							return(f_pvm_parser(NULL,"close"));
+						}
 					}
 				}
 				else

@@ -80,7 +80,7 @@ void usage(int status)
 	fprintf(stderr,"\t -C             Check the config or merge file [off]\n");
 	fprintf(stderr,"\t -c name        name of slave function req in slave mode [none]\n");
 	fprintf(stderr,"\t -x parameters  multiplex parameters [none]\n");
-	fprintf(stderr,"\t -t type        elab video or audio frame (video|audio|system) [video]\n");
+	fprintf(stderr,"\t -t type        elab video or audio frame (video|audio|system|multisystem) [video]\n");
 	fprintf(stderr,"\t -f name        out file name [/tmp/my_file_name]\n");
 	fprintf(stderr,"\t -1 param       first parameter to pass to the slave function [null]\n");
 	fprintf(stderr,"\t -2 param       second parameter to pass to the slave function [null]\n");
@@ -198,6 +198,8 @@ int main(int argc,char **argv)
 					s_elab_type=TC_AUDIO;
 				else if(!strcasecmp(optarg,"system"))
 					s_elab_type=TC_VIDEO_AUDIO;
+				else if(!strcasecmp(optarg,"multisystem"))
+					s_elab_type=TC_MULTI_VIDEO_AUDIO;
 				else
 					usage(EXIT_FAILURE);
 		  	break;

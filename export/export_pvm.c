@@ -465,7 +465,10 @@ MOD_init
 		p_argv[s_cont++]="-t";
 		p_argv_merger[s_contj++]="-t";
 		p_argv_merger_sys[s_contsys++]="-t";
-		p_argv_merger_sys[s_contsys++]="system";
+		if (p_pvm_conf->s_system_merger.s_build_only_list==2)
+			p_argv_merger_sys[s_contsys++]="multisystem";
+		else
+			p_argv_merger_sys[s_contsys++]="system";
 		if (s_sys_merger_started==0)
 		{
 			memset((char *)&s_pvm_single_proc_system,'\0',sizeof(pvm_func_t));
@@ -923,7 +926,7 @@ MOD_close
 				s_init_check=(s_init_check==1)?(int)f_init_pvm_func("close",p_handle):s_init_check-1;
 				return(TC_EXPORT_ERROR);
 			}
-			if ((p_pvm_conf->s_system_merger.p_hostname!=NULL)&&(!(p_pvm_conf->s_system_merger.s_build_only_list)))
+			if ((p_pvm_conf->s_system_merger.p_hostname!=NULL)&&(p_pvm_conf->s_system_merger.s_build_only_list!=1))	/*do it for 0 and 2*/
 			{
 				if((s_seq=f_pvm_send(0,(char *)0,PVM_JOIN_OPT_RUN,0,&s_pvm_single_proc_system))==-1) /*s_seq not really used*/
 				{

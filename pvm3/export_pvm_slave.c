@@ -76,13 +76,16 @@ int f_system_merge(pvm_config_env *p_pvm_conf)
 {
 	pvm_config_filelist *p_video_list=NULL,*p_audio_list=NULL;
 	char s_buffer[MAX_BUF],*p_par=NULL;
-	int s_file_dest;
+	int s_file_dest=0,s_count=0;
 
-	if ((s_file_dest=creat(p_pvm_conf->s_sys_list.p_destination,S_IWUSR|S_IRUSR|S_IRGRP|S_IROTH))==-1)
+	if (p_pvm_conf->s_build_intermed_file==0)
 	{
-		fprintf(stderr,"(%s) can't create %s output file.\n",__FILE__,p_pvm_conf->s_sys_list.p_destination);
-		p_pvm_conf=f_pvm_parser(p_out_file_name,"close");
-		return(1);
+		if ((s_file_dest=creat(p_pvm_conf->s_sys_list.p_destination,S_IWUSR|S_IRUSR|S_IRGRP|S_IROTH))==-1)
+		{
+			fprintf(stderr,"(%s) can't create %s output file.\n",__FILE__,p_pvm_conf->s_sys_list.p_destination);
+			p_pvm_conf=f_pvm_parser(p_out_file_name,"close");
+			return(1);
+		}
 	}
 	for (p_video_list=p_pvm_conf->p_add_list;((p_video_list->s_type!=TC_AUDIO)&&(p_video_list!=NULL));p_video_list=p_video_list->p_next);
 	for (p_audio_list=p_pvm_conf->p_add_list;((p_audio_list->s_type!=TC_VIDEO)&&(p_audio_list!=NULL));p_audio_list=p_audio_list->p_next);
@@ -96,26 +99,32 @@ int f_system_merge(pvm_config_env *p_pvm_conf)
 		fprintf(stderr,"(%s) request a system merge without audio list inside %s .\n",__FILE__,p_out_file_name);
 		return(1);
 	}
-	memset((char *)&s_buffer,'\0',MAX_BUF);
-	snprintf((char *)&s_buffer,MAX_BUF,"%s-%d",p_pvm_conf->s_sys_list.p_destination,getpid());
 	p_par=strtok(p_pvm_conf->p_multiplex_cmd,"\"");
 	while ((p_video_list!=NULL)&&(p_audio_list!=NULL))
 	{
+		memset((char *)&s_buffer,'\0',MAX_BUF);
+		snprintf((char *)&s_buffer,MAX_BUF,"%s-%06d",p_pvm_conf->s_sys_list.p_destination,s_count++);
 		if (f_multiplexer(p_pvm_conf->s_sys_list.p_codec,p_par,p_video_list->p_filename,p_audio_list->p_filename,(char *)&s_buffer,verbose))
 		{
 			fprintf(stderr,"(%s) unsupported codec %s.\n",__FILE__,p_merge_cmd);
 			return(1);
 		}
-		if (verbose & TC_DEBUG)
-			fprintf(stderr,"(%s) multiplex audio %s and video %s into %s\n",__FILE__,p_audio_list->p_filename,p_video_list->p_filename,(char *)&s_buffer);
-		if(f_copy_remove_func("open",(char *)&s_buffer,s_file_dest))
-			return(1);
-		if (verbose & TC_DEBUG)
-			fprintf(stderr,"(%s) merge into %s and remove file %s\n",__FILE__,p_pvm_conf->s_sys_list.p_destination,(char *)&s_buffer);
+		remove(p_video_list->p_filename);
+		remove(p_audio_list->p_filename);
+		if (p_pvm_conf->s_build_intermed_file==0)
+		{
+			if (verbose & TC_DEBUG)
+				fprintf(stderr,"(%s) multiplex audio %s and video %s into %s\n",__FILE__,p_audio_list->p_filename,p_video_list->p_filename,(char *)&s_buffer);
+			if(f_copy_remove_func("open",(char *)&s_buffer,s_file_dest))
+				return(1);
+			if (verbose & TC_DEBUG)
+				fprintf(stderr,"(%s) merge into %s and remove file %s\n",__FILE__,p_pvm_conf->s_sys_list.p_destination,(char *)&s_buffer);
+		}
 		p_video_list=p_video_list->p_next;
 		p_audio_list=p_audio_list->p_next;
 	}
-	close(s_file_dest);
+	if (p_pvm_conf->s_build_intermed_file==0)
+		close(s_file_dest);
 	return(0);
 }
 
@@ -213,7 +222,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 		case PVM_JOIN_OPT_RUN:
 			if (verbose & TC_DEBUG)
 				fprintf(stderr,"(%s) enter in PVM_JOIN_OPT_RUN \n",__FILE__);
-			if (s_elab_type!=TC_VIDEO_AUDIO)	/*video and audio file*/
+			if ((s_elab_type==TC_VIDEO)||(s_elab_type==TC_AUDIO))	/*video and audio file*/
 			{
 				if ((s_file_dest=creat((char *)&s_filename,S_IWUSR|S_IRUSR|S_IRGRP|S_IROTH))==-1)
 				{
@@ -308,7 +317,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 					break;
 				}
 				memset((char *)&s_filename,'\0',2*MAX_BUF);
-				snprintf((char *)&s_filename,2*MAX_BUF,"[SystemList]\nDestination = %s%s\nCodec = %s\nMultiplexParams = %s\n",p_out_file_name,p_suffix,p_request_func,p_merge_cmd);
+				snprintf((char *)&s_filename,2*MAX_BUF,"[SystemList]\nDestination = %s%s\nCodec = %s\nMultiplexParams = %s\nBuildOnlyIntermediateFile = %d\n",p_out_file_name,p_suffix,p_request_func,p_merge_cmd,(s_elab_type==TC_VIDEO_AUDIO)?0:1);
 				write(s_file_dest,(char *)&s_filename,strlen(s_filename));
 			}
 			write(s_file_dest,p_buffer,s_size);

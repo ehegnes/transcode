@@ -30,7 +30,8 @@
 #include <pvm_functions.h>
 #include <pvm_parser.h>
 
-#define TC_VIDEO_AUDIO	0x10000000
+#define TC_VIDEO_AUDIO		0x01000000
+#define TC_MULTI_VIDEO_AUDIO	0x10000000
 
 pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq);
 int f_copy_remove_func(char *p_option,char *p_file,int s_file_dest);
