@@ -66,7 +66,7 @@ parenthesises), and your audio and video become out-of-sync, then you
 should try the force resync mode. Else happy capturing! ;-)
 
 5) You can enable and tune the resync mode using parameters to
-the v4l2 module (-x v4l2="<param>,<param>,etc").
+the v4l2 module (-x v4l2="<param>:<param>:etc").
 
 Possible parameters:
 
