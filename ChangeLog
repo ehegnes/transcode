@@ -1,5 +1,28 @@
 transcode-0.13-pre2 EMS
 
+2004-08-21 Erik Slagter <erik at oldconomy dot com>
+  * libvo/video_out_ppm.c:
+  "Fixed" RGB swapped/flipped images when reading
+  from mpeg. Probably breaks PPM output. Sigh...
+
+2004-08-21 Erik Slagter <erik at oldconomy dot com>
+  * libmpeg2/decode.c libvo/video_out.c:
+  Corrected prototype of memalign. Prototypes of libc
+  functions should __never__ be in a C program (and it
+  has been like this for ages, no excuse).
+  Added missing prototype for vo_setup.
+
+2004-08-21 Erik Slagter <erik at oldconomy dot com>
+  * configure.in:
+  Moved ffmpeg libs test before --enable-warning option
+  because test for sin in libm generates a warning -> wham.
+
+2004-08-21 Erik Slagter <erik at oldconomy dot com>
+  * filter/tomsmocomp/tomsmocompfilter.h:
+  Supplied a bunch of quasi-static variables with
+  attribute_used to prevent warnings
+  *&&$*#*$()(%$ included C code.
+
 2004-08-18 Erik Slagter <erik at oldconomy dot com>
   * export/export_ac3.c:
   Fixed zero length output file which is caused by lacking
