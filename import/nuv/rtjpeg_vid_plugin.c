@@ -106,11 +106,11 @@ int rtjpeg_vid_open(char *tplorg)
     regions[0].end   = -1;
   }
 
-  rtjpeg_vid_file=open(tplorg, O_RDONLY
-#ifndef __FreeBSD__
-				|O_LARGEFILE
+#if defined(__FreeBSD__) || defined(__APPLE__) 
+  rtjpeg_vid_file=open(tplorg, O_RDONLY);
+#else 
+  rtjpeg_vid_file=open(tplorg, O_RDONLY|O_LARGEFILE);
 #endif
-					    );
   
   if (rtjpeg_vid_file == -1) {
     fprintf(stderr, "File not found: %s\n", tplorg);
