@@ -27,14 +27,12 @@
 
 #include "transcode.h"
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_VID|TC_CAP_AUD;
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_RGB | TC_CAP_VID | TC_CAP_AUD;
 
 #define MOD_PRE imlist
 #include "import_def.h"
 
-#include <time.h>
-#include <sys/types.h>
 
 // transcode defines this as well as ImageMagick.
 #undef PACKAGE_NAME
@@ -45,9 +43,6 @@ static int capability_flag=TC_CAP_RGB|TC_CAP_VID|TC_CAP_AUD;
 #include <magick/api.h>
 
 
-#define MAX_BUF 1024
-char import_cmd_buf[MAX_BUF];
-
 int
     first_frame = 0,
     last_frame = 0,
@@ -57,6 +52,7 @@ int
 static FILE *fd; 
 static char buffer[PATH_MAX+2];
   
+
 /* ------------------------------------------------------------ 
  *
  * open stream
@@ -66,7 +62,7 @@ static char buffer[PATH_MAX+2];
 MOD_open
 {
   if(param->flag == TC_AUDIO) {
-      return(0);
+      return(TC_IMPORT_OK);
   }
   
   if(param->flag == TC_VIDEO) {
@@ -78,7 +74,7 @@ MOD_open
     // initialize ImageMagick
     InitializeMagick("");
 
-    return(0);
+    return(TC_IMPORT_OK);
   }
  
   return(TC_IMPORT_ERROR);
@@ -92,7 +88,6 @@ MOD_open
  * ------------------------------------------------------------*/
 
 MOD_decode {
-
 
     ExceptionInfo
         exception_info;
@@ -113,7 +108,7 @@ MOD_decode {
         column,
         row, n;
 
-    if(param->flag == TC_AUDIO) return(0);
+    if(param->flag == TC_AUDIO) return(TC_IMPORT_OK);
     
     // read a filename from the list
     if(fgets (buffer, PATH_MAX, fd)==NULL) return(TC_IMPORT_ERROR);    
@@ -131,9 +126,10 @@ MOD_decode {
 
     image=ReadImage(image_info, &exception_info);
     if (image == (Image *) NULL) {
-        MagickError(exception_info.severity,exception_info.reason,exception_info.description);
+        MagickError(exception_info.severity, exception_info.reason,
+                    exception_info.description);
 	// skipping
-	return 0;
+	return TC_IMPORT_OK;
     }
 
     /*
@@ -143,11 +139,14 @@ MOD_decode {
     for (row = 0; row < image->rows; row++) {
         for (column = 0; column < image->columns; column++) {
           param->buffer[(row * image->columns + column) * 3 + 0] =
-               pixel_packet[(image->rows - row - 1) * image->columns + column].blue;
+               pixel_packet[(image->rows - row - 1) * image->columns +
+                                                                 column].blue;
           param->buffer[(row * image->columns + column) * 3 + 1] =
-               pixel_packet[(image->rows - row - 1) * image->columns + column].green;
+               pixel_packet[(image->rows - row - 1) * image->columns +
+                                                                 column].green;
           param->buffer[(row * image->columns + column) * 3 + 2] =
-               pixel_packet[(image->rows - row - 1) * image->columns + column].red;
+               pixel_packet[(image->rows - row - 1) * image->columns +
+                                                                 column].red;
         }
     }
 
@@ -160,7 +159,7 @@ MOD_decode {
     DestroyImageInfo(image_info);
     DestroyExceptionInfo(&exception_info);
 
-    return(0);
+    return(TC_IMPORT_OK);
 }
 
 /* ------------------------------------------------------------ 
@@ -179,13 +178,10 @@ MOD_close
     // This is very necessary
     DestroyMagick();
 
-    
-    return(0);
+    return(TC_IMPORT_OK);
   }
   
-  if(param->flag == TC_AUDIO) return(0);
+  if(param->flag == TC_AUDIO) return(TC_IMPORT_OK);
  
   return(TC_IMPORT_ERROR);
 }
-
-
