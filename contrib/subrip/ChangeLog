@@ -1,0 +1,6 @@
+2002-10-14
+	- Progress report added
+	- Bug in -C option fixed
+2002-10-15
+	- Progress report now starts with first file 
+	  and outputs the full filename 
