@@ -1,5 +1,20 @@
 --------------------------------------------
-transcode-0.6.5.HEAD
+transcode-0.6.5.20030510 Sat May 10 09:31:34 CEST 2003
+
+2003-05-10 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/Makefile.am, ffmpeg/libavcodec/Makefile.am,
+  import/Makefile.am: renamed libavcodec which ships with transcode
+  to libtcavcodec to prevent linking to a system installed
+  libavcodec.so. It did not work anyway and resulted in a
+  headerfile<->library mismatch.
+  
+2003-05-09 Tilmann Bitterberg <transcode at tibit.org>
+
+  * docs/OPTIMIZERS: New file based on a suggestion by Christoph
+  Lampert. It contains information about filters and suggestions and
+  documentation for optimizing them. If you know SIMD and/or know
+  how to write efficient code then this document might be for you.
 
 2003-05-08 Thomas Oestreich <ostreich at Theorie.Physik.UNI-Goettingen.DE>
 
@@ -25,15 +40,22 @@ transcode-0.6.5.HEAD
 
 2003-05-07 Tilmann Bitterberg <transcode at tibit.org>
 
-  * import/v4l/*: added support for webcams. Well at least for the 
-  for the quickcam. The device does not provide the video data in yv12
+  * configure.in, src/Makefile.am: For MacOS X. Implemented a
+  ed(1) script to tweak ./libtool after ./configure. This is kind of
+  ugly but works for now. Added necessary linker flags at link time
+  of src/transcode.
+
+2003-05-07 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/v4l/*: added support for webcams. Well at least for the
+  quickcam. The device does not provide the video data in yv12
   format, so you need to supply the input parameter "yuv422" to
   import_v4l. The webcam also has no audio device. Example:
 
    transcode -i /dev/video1 -p /dev/null -V -x v4l=yuv422,null
    -y xvid -J pv -g 352x288 -o moo.avi -f 7
 
-  The patch was requested and tested by Todor T. Zviskov
+  The feature was requested and tested by Todor T. Zviskov
   <warder at warder.ath.cx>
 
 2003-05-05 Tilmann Bitterberg <transcode at tibit.org>

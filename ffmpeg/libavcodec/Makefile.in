@@ -324,9 +324,9 @@ INCLUDES = -I../../
 
 AM_CFLAGS = -O3 -g -Wall -ffast-math $(ALTIVEC) $(X86) $(MMX) -DHAVE_AV_CONFIG_H -D_GNU_SOURCE --include=../av_config.h
 
-noinst_LIBRARIES = libavcodec.a
+noinst_LIBRARIES = libtcavcodec.a
 
-libavcodec_a_SOURCES = \
+libtcavcodec_a_SOURCES = \
       common.c utils.c mem.c allcodecs.c \
       mpegvideo.c jrevdct.c jfdctfst.c jfdctint.c\
       mpegaudio.c ac3enc.c mjpeg.c resample.c dsputil.c \
@@ -351,9 +351,9 @@ CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 LIBRARIES = $(noinst_LIBRARIES)
 
-libavcodec_a_AR = $(AR) cru
-libavcodec_a_LIBADD =
-am__libavcodec_a_SOURCES_DIST = common.c utils.c mem.c allcodecs.c \
+libtcavcodec_a_AR = $(AR) cru
+libtcavcodec_a_LIBADD =
+am__libtcavcodec_a_SOURCES_DIST = common.c utils.c mem.c allcodecs.c \
 	mpegvideo.c jrevdct.c jfdctfst.c jfdctint.c mpegaudio.c \
 	ac3enc.c mjpeg.c resample.c dsputil.c motion_est.c imgconvert.c \
 	imgresample.c mpeg12.c mpegaudiodec.c pcm.c simple_idct.c \
@@ -375,20 +375,20 @@ am__libavcodec_a_SOURCES_DIST = common.c utils.c mem.c allcodecs.c \
 @CAN_COMPILE_C_ALTIVEC_TRUE@	idct_altivec.$(OBJEXT) \
 @CAN_COMPILE_C_ALTIVEC_TRUE@	fft_altivec.$(OBJEXT) \
 @CAN_COMPILE_C_ALTIVEC_TRUE@	gmc_altivec.$(OBJEXT)
-am_libavcodec_a_OBJECTS = common.$(OBJEXT) utils.$(OBJEXT) mem.$(OBJEXT) \
-	allcodecs.$(OBJEXT) mpegvideo.$(OBJEXT) jrevdct.$(OBJEXT) \
-	jfdctfst.$(OBJEXT) jfdctint.$(OBJEXT) mpegaudio.$(OBJEXT) \
-	ac3enc.$(OBJEXT) mjpeg.$(OBJEXT) resample.$(OBJEXT) \
-	dsputil.$(OBJEXT) motion_est.$(OBJEXT) imgconvert.$(OBJEXT) \
-	imgresample.$(OBJEXT) mpeg12.$(OBJEXT) mpegaudiodec.$(OBJEXT) \
-	pcm.$(OBJEXT) simple_idct.$(OBJEXT) ratecontrol.$(OBJEXT) \
-	adpcm.$(OBJEXT) eval.$(OBJEXT) dv.$(OBJEXT) \
-	error_resilience.$(OBJEXT) h263.$(OBJEXT) msmpeg4.$(OBJEXT) \
-	h263dec.$(OBJEXT) svq1.$(OBJEXT) rv10.$(OBJEXT) \
-	wmadec.$(OBJEXT) fft.$(OBJEXT) mdct.$(OBJEXT) mace.$(OBJEXT) \
-	huffyuv.$(OBJEXT) $(am__objects_1) $(am__objects_2) \
-	$(am__objects_3)
-libavcodec_a_OBJECTS = $(am_libavcodec_a_OBJECTS)
+am_libtcavcodec_a_OBJECTS = common.$(OBJEXT) utils.$(OBJEXT) \
+	mem.$(OBJEXT) allcodecs.$(OBJEXT) mpegvideo.$(OBJEXT) \
+	jrevdct.$(OBJEXT) jfdctfst.$(OBJEXT) jfdctint.$(OBJEXT) \
+	mpegaudio.$(OBJEXT) ac3enc.$(OBJEXT) mjpeg.$(OBJEXT) \
+	resample.$(OBJEXT) dsputil.$(OBJEXT) motion_est.$(OBJEXT) \
+	imgconvert.$(OBJEXT) imgresample.$(OBJEXT) mpeg12.$(OBJEXT) \
+	mpegaudiodec.$(OBJEXT) pcm.$(OBJEXT) simple_idct.$(OBJEXT) \
+	ratecontrol.$(OBJEXT) adpcm.$(OBJEXT) eval.$(OBJEXT) \
+	dv.$(OBJEXT) error_resilience.$(OBJEXT) h263.$(OBJEXT) \
+	msmpeg4.$(OBJEXT) h263dec.$(OBJEXT) svq1.$(OBJEXT) \
+	rv10.$(OBJEXT) wmadec.$(OBJEXT) fft.$(OBJEXT) mdct.$(OBJEXT) \
+	mace.$(OBJEXT) huffyuv.$(OBJEXT) $(am__objects_1) \
+	$(am__objects_2) $(am__objects_3)
+libtcavcodec_a_OBJECTS = $(am_libtcavcodec_a_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/ac3enc.Po ./$(DEPDIR)/adpcm.Po \
@@ -428,7 +428,7 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(am__libavcodec_a_SOURCES_DIST)
+DIST_SOURCES = $(am__libtcavcodec_a_SOURCES_DIST)
 HEADERS = $(noinst_HEADERS)
 
 
@@ -439,7 +439,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 	check-recursive installcheck-recursive
 DIST_COMMON = $(noinst_HEADERS) Makefile.am Makefile.in
 DIST_SUBDIRS = $(SUBDIRS)
-SOURCES = $(libavcodec_a_SOURCES)
+SOURCES = $(libtcavcodec_a_SOURCES)
 
 all: all-recursive
 
@@ -455,10 +455,10 @@ AR = ar
 
 clean-noinstLIBRARIES:
 	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
-libavcodec.a: $(libavcodec_a_OBJECTS) $(libavcodec_a_DEPENDENCIES) 
-	-rm -f libavcodec.a
-	$(libavcodec_a_AR) libavcodec.a $(libavcodec_a_OBJECTS) $(libavcodec_a_LIBADD)
-	$(RANLIB) libavcodec.a
+libtcavcodec.a: $(libtcavcodec_a_OBJECTS) $(libtcavcodec_a_DEPENDENCIES) 
+	-rm -f libtcavcodec.a
+	$(libtcavcodec_a_AR) libtcavcodec.a $(libtcavcodec_a_OBJECTS) $(libtcavcodec_a_LIBADD)
+	$(RANLIB) libtcavcodec.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core

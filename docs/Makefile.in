@@ -325,7 +325,8 @@ docs_DATA = \
 		    README.Inverse.Telecine.txt \
                     template.cfg.txt\
 		    filter-socket.txt\
-		    filter-API.txt export-API.txt import-API.txt
+		    filter-API.txt export-API.txt import-API.txt \
+		    OPTIMIZERS
 
 subdir = docs
 mkinstalldirs = $(SHELL) $(top_srcdir)/autotools/mkinstalldirs

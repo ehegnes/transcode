@@ -83,7 +83,7 @@ import_xvid_la_LIBADD  = -L../avilib -lavi
 
 import_ffmpeg_la_SOURCES = import_ffmpeg.c 
 import_ffmpeg_la_LDFLAGS =  -module -avoid-version 
-import_ffmpeg_la_LIBADD = -L../ffmpeg/libavcodec/ -lavcodec -L../avilib -lavi -L../libvo -lvout -lm
+import_ffmpeg_la_LIBADD = -L../ffmpeg/libavcodec/ -ltcavcodec -L../avilib -lavi -L../libvo -lvout -lm
 
 import_im_la_SOURCES = import_im.c
 import_im_la_LDFLAGS =  -module -avoid-version 

@@ -29,9 +29,9 @@ endif
 
 AM_CFLAGS = -O3 -g -Wall -ffast-math $(ALTIVEC) $(X86) $(MMX) -DHAVE_AV_CONFIG_H -D_GNU_SOURCE --include=../av_config.h
 
-noinst_LIBRARIES = libavcodec.a
+noinst_LIBRARIES = libtcavcodec.a
 
-libavcodec_a_SOURCES = \
+libtcavcodec_a_SOURCES = \
       common.c utils.c mem.c allcodecs.c \
       mpegvideo.c jrevdct.c jfdctfst.c jfdctint.c\
       mpegaudio.c ac3enc.c mjpeg.c resample.c dsputil.c \
