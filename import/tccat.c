@@ -317,7 +317,8 @@ int main(int argc, char *argv[])
 
   ipipe.vob_offset = vob_offset;
 
-  ipipe.name = name;
+  ipipe.name = malloc(strlen(name)+3);
+  strcpy(ipipe.name, name);
 
   ipipe.select = audio;
   
