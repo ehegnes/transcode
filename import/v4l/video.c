@@ -242,7 +242,7 @@ video_grab_init (char *device,  // device the video/audio comes from [/dev/video
               /*
                * get the freq table to use from the 'global' section.
                */
-              if (channel_has_tuner && strncmp (pSection->name, "global", strlen (pSection->name)) == 0)
+              if (strncmp (pSection->name, "global", strlen (pSection->name)) == 0)
                 if ((pTemp = cf_get_named_key (pRoot, pSection->name, "freqtab")) != NULL)
                   snprintf (pNorm, TC_BUF_MIN - 1, "%s", pTemp);
 
@@ -254,53 +254,11 @@ video_grab_init (char *device,  // device the video/audio comes from [/dev/video
                 /*
                  * is this section our channel?
                  */
-                if (station_id != NULL
-                    && (strncmp (station_id, pSection->name, strlen (station_id)) == 0
-                        || strncmp (station_id, pChannel, strlen (station_id)) == 0)) {
+                if (station_id != NULL &&
+                    (strcmp (station_id, pSection->name) == 0 || strcmp (station_id, pChannel) == 0)) {
 
-                  found_station = 1;
-                  snprintf (pStation, TC_BUF_MIN - 1, "%s", pSection->name);
-                  /*
-                   * get the fine tuning value from .xawtv
-                   */
                   if ((pTemp = cf_get_named_key (pRoot, pSection->name, "fine")) != NULL)
                     fine = atoi (pTemp);
-                  /*
-                   * get the brightness value from .xawtv
-                   */
-                  if ((pTemp = cf_get_named_key (pRoot, pSection->name, "bright")) != NULL) {
-                    bright = atoi (pTemp);
-                    if (strstr (pTemp, "%") != NULL) {
-                      bright *= 655.36f;
-                    }
-                  }
-                  /*
-                   * get the contrast value from .xawtv
-                   */
-                  if ((pTemp = cf_get_named_key (pRoot, pSection->name, "contrast")) != NULL) {
-                    contrast = atoi (pTemp);
-                    if (strstr (pTemp, "%") != NULL) {
-                      contrast *= 655.36f;
-                    }
-                  }
-                  /*
-                   * get the color value from .xawtv
-                   */
-                  if ((pTemp = cf_get_named_key (pRoot, pSection->name, "color")) != NULL) {
-                    color = atoi (pTemp);
-                    if (strstr (pTemp, "%") != NULL) {
-                      color *= 655.36f;
-                    }
-                  }
-                  /*
-                   * get the hue value from .xawtv
-                   */
-                  if ((pTemp = cf_get_named_key (pRoot, pSection->name, "hue")) != NULL) {
-                    hue = atoi (pTemp);
-                    if (strstr (pTemp, "%") != NULL) {
-                      hue *= 655.36f;
-                    }
-                  }
 
                   i = 0;
                   j = 1;
@@ -316,12 +274,7 @@ video_grab_init (char *device,  // device the video/audio comes from [/dev/video
                        */
                       while (pChanlist->name != NULL) {
                         if (!strcmp (pChannel, pChanlist->name)) {
-                          tfreq = (unsigned long) (pChanlist->freq * 16 / 1000 + fine);
-
-                          if (verb)
-                            printf ("(%s) \"%s\": using .xawtv from %s, freq=%dKHZ, fine = %d\n",
-                               __FILE__, pStation, pHome, pChanlist->freq, fine);
-
+                          tfreq = (unsigned long) ((pChanlist->freq * .016 + fine));
                           break;
                         }
                         pChanlist = chanlists[i].list + j++;
@@ -330,12 +283,59 @@ video_grab_init (char *device,  // device the video/audio comes from [/dev/video
                     }
                     channame = chanlist_names[++i];
                   }
-                  break;
+
+                  found_station = 1;
                 }
               }
+              else if ((pTemp = cf_get_named_key (pRoot, pSection->name, "freq")) != NULL) {
+                if (station_id != NULL && 
+                    (strcmp (station_id, pSection->name) == 0 || strcmp (station_id, pTemp) == 0)) {
+                  /*
+                   * xawtv freq is in MHz
+                   */
+                  tfreq = (unsigned long) (strtod (pTemp, NULL) * 16.0);
+                  found_station = 1;
+                }
+              }
+
+              if (found_station) {
+                snprintf (pStation, TC_BUF_MIN - 1, "%s", pSection->name);
+                if ((pTemp = cf_get_named_key (pRoot, pSection->name, "bright")) != NULL) {
+                  bright = atoi (pTemp);
+                  if (strstr (pTemp, "%") != NULL) {
+                    bright *= 655.36f;
+                  }
+                }
+                if ((pTemp = cf_get_named_key (pRoot, pSection->name, "contrast")) != NULL) {
+                  contrast = atoi (pTemp);
+                  if (strstr (pTemp, "%") != NULL) {
+                    contrast *= 655.36f;
+                  }
+                }
+                if ((pTemp = cf_get_named_key (pRoot, pSection->name, "color")) != NULL) {
+                  color = atoi (pTemp);
+                  if (strstr (pTemp, "%") != NULL) {
+                    color *= 655.36f;
+                  }
+                }
+                if ((pTemp = cf_get_named_key (pRoot, pSection->name, "hue")) != NULL) {
+                  hue = atoi (pTemp);
+                  if (strstr (pTemp, "%") != NULL) {
+                    hue *= 655.36f;
+                  }
+                }
+
+                if (verb)
+                  printf ("(%s) \"%s\": using .xawtv from %s, freq=%.2fMHZ\n",
+                          __FILE__, pStation, pHome, (float) tfreq / 16.0);
+                break;
+              }
             }
-          }
-          while ((pSection = cf_get_next_section (pRoot, pSection)) != NULL);
+          } while ((pSection = cf_get_next_section (pRoot, pSection)) != NULL);
+        }
+        if (channel_has_tuner && !found_station && station_id != NULL) {
+          fprintf (stderr, "(%s) : Cannot find channel/name %s in .xawtv from %s\n", __FILE__, station_id, pHome);
+          return -1;
         }
         CF_FREE_ROOT (pRoot);
 
