@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.11
 
+2003-10-06 Nicolas Boos <nicolas.boos at wanadoo.fr>
+
+  * filter/filter_hqdn3d.c:
+  Fix a typo and print the correct default values
+
 2003-10-06 Tilmann Bitterberg <transcode at tibit.org>
 
   * export/export_raw.c:

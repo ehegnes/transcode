@@ -151,7 +151,7 @@ static void help_optstr()
     printf ("           chroma : spatial chroma strength (%f)\n", PARAM2_DEFAULT);
     printf ("    luma_strength : temporal luma strength (%f)\n", PARAM3_DEFAULT);
     printf ("  chroma_strength : temporal chroma strength (%f)\n", 
-	    PARAM3_DEFAULT/PARAM2_DEFAULT*PARAM1_DEFAULT);
+	    PARAM3_DEFAULT*PARAM2_DEFAULT/PARAM1_DEFAULT);
     printf ("              pre : run as a pre filter (0)\n");
 }
 
@@ -182,7 +182,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
       snprintf(buf, 128, "%f", PARAM3_DEFAULT);
       optstr_param (options, "luma_strength", "temporal luma strength", "%f", buf, "0.0", "100.0" );
 
-      snprintf(buf, 128, "%f", PARAM3_DEFAULT/PARAM2_DEFAULT*PARAM1_DEFAULT);
+      snprintf(buf, 128, "%f", PARAM3_DEFAULT*PARAM2_DEFAULT/PARAM1_DEFAULT);
       optstr_param (options, "chroma_strength", "temporal chroma strength", "%f", buf, "0.0", "100.0" );
       snprintf(buf, 128, "%d", mfd[instance]->pre);
       optstr_param (options, "pre", "run as a pre filter", "%d", buf, "0", "1" );
@@ -275,7 +275,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
       
       if(verbose) {
 	  printf("[%s] %s %s #%d\n", MOD_NAME, MOD_VERSION, MOD_CAP, instance);
-	  printf("[%s] Settings luma=%.2f chroma=%.2f luma_strenth=%.2f chroma_strength=%.2f\n",
+	  printf("[%s] Settings luma=%.2f chroma=%.2f luma_strength=%.2f chroma_strength=%.2f\n",
 		  MOD_NAME, LumSpac, ChromSpac, LumTmp, ChromTmp);
       }
       return 0;
