@@ -71,7 +71,8 @@ MOD_open
 	    case 0:
 		{
 		    int n=0;
-		    char *a[6];
+		    char *a[16];
+		    char *c = vob->im_v_string;
 
 		    setenv("VNCREC_MOVIE_FRAMERATE", fps, 1);
 		    setenv("VNCREC_MOVIE_CMD", cmdbuf, 1);
@@ -82,6 +83,31 @@ MOD_open
 		    a[n++] = "vncrec";
 		    a[n++] = "-movie";
 		    a[n++] = vob->video_in_file;
+		    if ( vob->im_v_string) {
+			char *d = c;
+			while (1) {
+			    if (c && *c) { 
+				d = strchr (c, ' ');
+				if (d && *d) { *d = '\0';
+				    while (*c == ' ') c++;
+				    a[n++] = c;
+				    printf("XX |%s|\n", c);
+				    c = strchr(c, ' ');
+				} else {
+				    printf("XXXX |%s|\n", c);
+				    a[n++] = c;
+				    break;
+				}
+			    } else  {
+				d++;
+				while (*d == ' ') d++;
+				if (strchr(d, ' ')) *strchr(d, ' ') = '\0';
+				a[n++] = d;
+				printf("XXX |%s|\n", d);
+				break;
+			    }
+			}
+		    }
 		    a[n++] = NULL;
 		    if (execvp (a[0], &a[0])<0) {
 			perror ("execvp vncrec failed. Is vncrec in your $PATH?");
