@@ -100,7 +100,12 @@ int asciiRead(unsigned char *buf, unsigned int count, FILE *fp, unsigned int max
 int genFileName(const char *prefix, const char *suffix, char filename[MAX_FILENAME_LENGTH], unsigned int val, unsigned int digits)
 {
   /* PROBLEM IF log10(val) == an exact # */
+#if 0
   unsigned int i;
+#else
+  char *digits_buf;
+  char format_buf[10];
+#endif
   unsigned int used_digits;
   if (val > 0)
     used_digits = 1 + (unsigned int)floor(log10((double)val));
@@ -126,12 +131,24 @@ int genFileName(const char *prefix, const char *suffix, char filename[MAX_FILENA
 
   strcpy(filename, prefix);
 
+#if 0
   for (i=0; i < (digits-used_digits); i++)
   {
     strcat(filename, "0");
   }
 
   sprintf(&filename[strlen(filename)], "%d%s", val,suffix);
+#else
+  snprintf(format_buf, sizeof(format_buf), "%%0%dd", digits);
+  if ((digits_buf = malloc(digits + 1)) == NULL) {
+    fprintf(stderr, "Could not allocate memory for digits_buf\n");
+    return(ERROR);
+  }
+  snprintf(digits_buf, digits + 1, format_buf, val);
+  strcat(filename, digits_buf);
+  strcat(filename, suffix);
+  free(digits_buf);
+#endif
 
   return(OK);
 }
