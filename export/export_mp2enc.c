@@ -89,7 +89,7 @@ MOD_open
 
 	srate = (vob->mp3frequency != 0) ? vob->mp3frequency : vob->a_rate;
 	brate = vob->mp3bitrate;
-	chan = (vob->a_chan==2) ? "-s": "-m";
+	chan = (vob->a_chan>=2) ? "-s": "-m";
 	/* allow for forced stereo output */
 	if ((vob->a_chan == 1) && (vob->dm_chan == 2)){
 	  chan = "-s";
