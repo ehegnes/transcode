@@ -1,6 +1,13 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-06-09 Bryan Mayland <bmayland at leoninedev.com>
+
+  * src/transcode.c:
+  Allow negative bitrates to passed in via -w
+  This allows somehow to use to use xvids target filesize
+  calculation to take place.
+
 2004-06-08 Marcel J.E. Mol <marcel at mesa.nl>
 
   * import/v4l/video.c:

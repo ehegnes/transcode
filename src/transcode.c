@@ -1365,8 +1365,6 @@ int main(int argc, char *argv[]) {
 	{	
 	float ratefact = 1.0f;
 
-	if(optarg[0]=='-') usage(EXIT_FAILURE);
-	
 	n = sscanf(optarg,"%f,%d,%d", &ratefact, &vob->divxkeyframes, &vob->divxcrispness);
 
 	switch (n) {
@@ -3452,7 +3450,7 @@ int main(int argc, char *argv[]) {
     // For my tests, this corresponded roughly to a fixed quantizer of 4, 
     // which is not brilliant, but okay.
 
-    if(vob->divxbitrate && vob->divxmultipass != 3 && verbose & TC_INFO) {
+    if(vob->divxbitrate > 0 && vob->divxmultipass != 3 && verbose & TC_INFO) {
       double div = vob->ex_v_width * vob->ex_v_height * vob->fps;
       double bpp = vob->divxbitrate * 1000;
       char *judge;
