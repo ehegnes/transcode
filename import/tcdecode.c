@@ -75,7 +75,6 @@ void usage(int status)
   
 }
 
-
 /* ------------------------------------------------------------ 
  *
  * universal decode thread frontend 
@@ -95,7 +94,7 @@ int main(int argc, char *argv[])
     int width=0, height=0;
 
     int ch, done=0, quality=VQUALITY, a52_mode=0;
-    char *codec=NULL, *name=NULL, *format="rgb";
+    char *codec=NULL, *name=NULL, *format="rgb", *magic="none";
 
     //proper initialization
     memset(&ipipe, 0, sizeof(info_t));
@@ -104,7 +103,7 @@ int main(int argc, char *argv[])
     ipipe.frame_limit[0]=0; 
     ipipe.frame_limit[1]=LONG_MAX; 
 
-    while ((ch = getopt(argc, argv, "Q:d:x:i:a:g:vy:s:YC:A:?h")) != -1) {
+    while ((ch = getopt(argc, argv, "Q:t:d:x:i:a:g:vy:s:YC:A:?h")) != -1) {
 	
 	switch (ch) {
 	    
@@ -137,6 +136,12 @@ int main(int argc, char *argv[])
 	  
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  codec = optarg;
+	  break;
+
+	case 't': 
+	  
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+	  magic = optarg;
 	  break;
 
 	case 'y': 
@@ -260,6 +265,26 @@ int main(int argc, char *argv[])
      *
      * ------------------------------------------------------------*/
 
+    // FFMPEG can decode a lot
+    if(strcmp(magic, "ffmpeg")==0 || strcmp(magic, "lavc")) {
+	if(!strcmp(codec,"mpeg2")) ipipe.codec = TC_CODEC_MPEG2;
+	if(!strcmp(codec,"divx3")) ipipe.codec = TC_CODEC_DIVX3;
+	if(!strcmp(codec,"divx")) ipipe.codec = TC_CODEC_DIVX4;
+	if(!strcmp(codec,"mjpg")) ipipe.codec = TC_CODEC_MJPG;
+	if(!strcmp(codec,"rv10")) ipipe.codec = TC_CODEC_RV10;
+	if(!strcmp(codec,"svq1")) ipipe.codec = TC_CODEC_SVQ1;
+	if(!strcmp(codec,"svq3")) ipipe.codec = TC_CODEC_SVQ3;
+	if(!strcmp(codec,"vp3")) ipipe.codec = TC_CODEC_VP3;
+	if(!strcmp(codec,"4xm")) ipipe.codec = TC_CODEC_4XM;
+	if(!strcmp(codec,"wmv1")) ipipe.codec = TC_CODEC_WMV1;
+	if(!strcmp(codec,"wmv2")) ipipe.codec = TC_CODEC_WMV2;
+	if(!strcmp(codec,"hfyu")) ipipe.codec = TC_CODEC_HFYU;
+	if(!strcmp(codec,"indeo3")) ipipe.codec = TC_CODEC_INDEO3;
+	if(!strcmp(codec,"h263p")) ipipe.codec = TC_CODEC_H263P;
+	if(!strcmp(codec,"h263i")) ipipe.codec = TC_CODEC_H263I;
+
+	decode_lavc(&ipipe);
+    }
     
     // MPEG2
     if(strcmp(codec,"mpeg2")==0) { 
@@ -355,6 +380,7 @@ int main(int argc, char *argv[])
       done = 1;
     }
     
+#if 0
     // DivX Video
     if(strcmp(codec,"divx")==0) {
       
@@ -363,6 +389,7 @@ int main(int argc, char *argv[])
       decode_divx(&ipipe);
       done = 1;
     }
+#endif
     
     // DivX Video
     if(strcmp(codec,"xvid")==0) {

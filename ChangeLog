@@ -7,6 +7,22 @@ transcode-0.6.10
   Give a message to the user about an API mismatch when someone
   tries to use -y xvid4 with an old version of libxvidcore.
 
+  * import/magic.h:
+  Add a few more codecs for lavc.
+
+  * import/decode_divx.c:
+  Removed, it never worked.
+
+  * import/decode_lavc.c import/tcdecode.c:
+  stream decoder based on libavcodec. Basically this should enable
+  tcdecode to decode all formats libavcodec can decode. Use the -t
+  option to tell tcdecode you want "lavc" and then use -x for the
+  codec (tcextract -i sample.avi -x yv12 | tcdecode -g 512x384 -x
+  divx -y yv12).
+
+  * import/import_mplayer.c:
+  Make the module respect transcode's -k.
+
 2003-08-06 Benjamin Riefenstahl <Benjamin.Riefenstahl at epost.de>
 
   * filter/preview/display.c, filter/preview/pv.c:

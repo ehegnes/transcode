@@ -459,8 +459,8 @@ EXTRA_DIST = \
 
 bin_PROGRAMS = tcextract tcdecode tcscan tcdemux tccat tcprobe tcxmlcheck
 
-tcdecode_SOURCES = tcdecode.c decode_ac3.c decode_mpeg2.c decode_yuv.c fileinfo.c ioaux.c decode_dv.c decode_mp3.c mpg123.c decode_a52.c decode_af6.c scan_dv.c decode_divx.c decode_xvid.c decode_ogg.c decode_mov.c
-tcdecode_LDADD = @LAME_LIBS@ $(AC3_LIB) $(MPEG2_LIB) -L../libvo -lvout @DV_LIBS@ $(VORBISFILE) @THEORA_LIBS@ @VORBIS_LIBS@ @OGG_LIBS@ @DLDARWINLIB@ @QT_LIBS@ -lm
+tcdecode_SOURCES = tcdecode.c decode_ac3.c decode_mpeg2.c decode_yuv.c fileinfo.c ioaux.c decode_dv.c decode_mp3.c mpg123.c decode_a52.c decode_af6.c scan_dv.c decode_lavc.c decode_xvid.c decode_ogg.c decode_mov.c
+tcdecode_LDADD = -L../ffmpeg/libavcodec -ltcavcodec @LAME_LIBS@ $(AC3_LIB) $(MPEG2_LIB) -L../libvo -lvout @DV_LIBS@ $(VORBISFILE) @THEORA_LIBS@ @VORBIS_LIBS@ @OGG_LIBS@ @DLDARWINLIB@ @QT_LIBS@ -lm
 
 tccat_SOURCES = tccat.c dvd_reader.c fileinfo.c ioaux.c iodump.c scan_dv.c extract_avi.c ioxml.c ts_reader.c
 tccat_LDADD = @DVDREAD_LIBS@ -L../avilib -lavi @DV_LIBS@  @LIBXML2_LIBS@ @DLDARWINLIB@ -lm
@@ -589,7 +589,7 @@ am_tcdecode_OBJECTS = tcdecode.$(OBJEXT) decode_ac3.$(OBJEXT) \
 	decode_mpeg2.$(OBJEXT) decode_yuv.$(OBJEXT) fileinfo.$(OBJEXT) \
 	ioaux.$(OBJEXT) decode_dv.$(OBJEXT) decode_mp3.$(OBJEXT) \
 	mpg123.$(OBJEXT) decode_a52.$(OBJEXT) decode_af6.$(OBJEXT) \
-	scan_dv.$(OBJEXT) decode_divx.$(OBJEXT) decode_xvid.$(OBJEXT) \
+	scan_dv.$(OBJEXT) decode_lavc.$(OBJEXT) decode_xvid.$(OBJEXT) \
 	decode_ogg.$(OBJEXT) decode_mov.$(OBJEXT)
 tcdecode_OBJECTS = $(am_tcdecode_OBJECTS)
 @HAVE_OGG_TRUE@tcdecode_DEPENDENCIES =
@@ -642,8 +642,8 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/af6_decore.Plo ./$(DEPDIR)/aux_pes.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/bitrate.Po ./$(DEPDIR)/clone.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/decode_a52.Po ./$(DEPDIR)/decode_ac3.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/decode_af6.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/decode_divx.Po ./$(DEPDIR)/decode_dv.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/decode_af6.Po ./$(DEPDIR)/decode_dv.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/decode_lavc.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/decode_mov.Po ./$(DEPDIR)/decode_mp3.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/decode_mpeg2.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/decode_ogg.Po \
@@ -902,8 +902,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/decode_a52.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/decode_ac3.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/decode_af6.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/decode_divx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/decode_dv.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/decode_lavc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/decode_mov.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/decode_mp3.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/decode_mpeg2.Po@am__quote@

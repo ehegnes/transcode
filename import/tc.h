@@ -54,7 +54,7 @@ void tcprobe_thread(info_t *ipipe);
 void extract_avi(info_t *ipipe);
 void decode_af6(info_t *ipipe);
 
-void decode_divx(info_t *ipipe);
+void decode_lavc(info_t *ipipe);
 void decode_xvid(info_t *ipipe);
 void decode_mov(info_t *ipipe);
 
