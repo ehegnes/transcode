@@ -131,6 +131,7 @@
 #define TC_MAGIC_SGI                   0x000001DA
 #define TC_MAGIC_PNG                   0x89504e47
 #define TC_MAGIC_GIF                   0x00474946
+#define TC_MAGIC_PVN                   0x00005037
 #define TC_MAGIC_PPM                   0x00005036
 #define TC_MAGIC_PGM                   0x00005035
 #define TC_MAGIC_ID3                   0x49443303

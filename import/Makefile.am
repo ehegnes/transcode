@@ -74,7 +74,7 @@ pkg_LTLIBRARIES = import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la \
 		  $(IM_MOD) $(MODQT) af6_decore.la $(LIBXML2_MOD) \
 		  import_mplayer.la import_rawlist.la import_ogg.la \
 		  import_xvid.la import_ffmpeg.la $(LZO_MOD) import_vnc.la \
-		  import_fraps.la
+		  import_fraps.la import_pvn.la
 
 import_null_la_SOURCES = import_null.c
 import_null_la_LDFLAGS =  -module -avoid-version 
@@ -179,6 +179,9 @@ import_dv_la_LDFLAGS =  -module -avoid-version
 import_vnc_la_SOURCES = import_vnc.c 
 import_vnc_la_LDFLAGS =  -module -avoid-version 
 
+import_pvn_la_SOURCES = import_pvn.c pvn.c pvnglobals.c
+import_pvn_la_LDFLAGS =  -module -avoid-version 
+
 EXTRA_DIST =  \
    ac3scan.h \
    aux_pes.h \
@@ -200,7 +203,9 @@ EXTRA_DIST =  \
    seqinfo.h \
    putvlc.h \
    getvlc.h \
-   tc.h
+   tc.h \
+   pvn.h \
+   pvnglobals.h
 
 bin_PROGRAMS = tcextract tcdecode tcscan tcdemux tccat tcprobe tcxmlcheck tcxpm2rgb tcrequant
 
@@ -313,7 +318,10 @@ tcprobe_SOURCES = tcprobe.c \
 		  ts_reader.c \
 		  probe_vnc.c \
 		  extract_mxf.c \
-		  probe_v4l.c
+		  probe_v4l.c \
+		  probe_pvn.c \
+		  pvn.c \
+		  pvnglobals.c
 
 tcprobe_LDADD = \
 	@LAME_LIBS@ \

@@ -33,7 +33,7 @@ MODS5 =
 endif
 
 if HAVE_LAME
-MODS2 = export_raw.la export_divx4.la export_divx4raw.la export_divx5raw.la export_debugppm.la export_ppm.la export_divx5.la export_ffmpeg.la export_lame.la
+MODS2 = export_raw.la export_divx4.la export_divx4raw.la export_divx5raw.la export_debugppm.la export_ppm.la export_divx5.la export_ffmpeg.la export_lame.la export_pvn.la
 endif
 
 if HAVE_LIBFAME
@@ -218,6 +218,10 @@ export_mpeg2enc_la_LIBADD = @MJPEG_LIBS@ -L../libvo -lvout -lm
 export_im_la_SOURCES = export_im.c vid_aux.c
 export_im_la_LDFLAGS =  -module -avoid-version 
 export_im_la_LIBADD = @MAGICK_LIBS@ -L../libvo -lvout -lm 
+
+export_pvn_la_SOURCES = export_pvn.c aud_aux.c
+export_pvn_la_LDFLAGS =  -module -avoid-version 
+export_pvn_la_LIBADD = @LAME_LIBS@ @AC3_LIBS@ -L../libvo -lvout -lm
 
 pkg_DATA = export_af6.conf xvid2.cfg xvid3.cfg xvid4.cfg
 

@@ -260,6 +260,13 @@ long fileinfo(int fdes, int skip)
       goto exit;
   }
 
+  // PVN image
+
+  if (strncmp (buf, "PV", 2)==0) {
+      id = TC_MAGIC_PVN;
+      goto exit;
+  }
+
   // SGI image
   
   if (cmp_16_bits(buf, TC_MAGIC_SGI)) {
@@ -807,6 +814,7 @@ char *filetype(long magic)
   case TC_MAGIC_GIF:          return("GIF image");
   case TC_MAGIC_PPM:          return("PPM image");
   case TC_MAGIC_PGM:          return("PGM image");
+  case TC_MAGIC_PVN:          return("PVN video");
   case TC_MAGIC_SGI:          return("SGI image");
   case TC_MAGIC_RMF:          return("Real Media");
   case TC_MAGIC_XML:          return("XML file, need to analyze the content");

@@ -1,6 +1,13 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-07-21 Jacob (Jack) Gryn <jgryn at cs dot yorku dot ca>
+  * import/(Makefile.am Makefile.in fileinfo.c magic.h probe_stream.c)
+  * import/(probe_pvn.c pvn.c pvn.h import_pvn.c pvnglobals.c pvnglobals.h)
+  * export/(Makefile.am Makefile.in export_pvn.c)
+  New import, probe and export plugins for PVN file format
+  PVN specifications at http://www.cs.yorku.ca/~jgryn/research/pvnspecs.html
+
 2004-07-12 linux at troy.rollo.name
 
   * export/export_mpeg2enc.c:

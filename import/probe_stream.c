@@ -88,6 +88,11 @@ void tcprobe_thread(info_t *ipipe)
 
       break;
 
+    case TC_MAGIC_PVN:
+      probe_pvn(ipipe);
+
+      break;
+
     case TC_MAGIC_MXF:
       probe_mxf(ipipe);
 
