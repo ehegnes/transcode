@@ -119,7 +119,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   static vob_t *vob=NULL;
 
-  static int width, height;
+  static int width=0, height=0;
   static int size, codec;
   int w, h, i;
   int error;
@@ -132,12 +132,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
       return 0;
 
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
-      char buf[128];
+      char b[128];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYO", "1");
 
-      snprintf(buf, 128, "%u-%u/%d", mfd->start, mfd->end, mfd->step);
+      snprintf(b, 128, "%u-%u/%d", mfd->start, mfd->end, mfd->step);
       optstr_param (options, "range", "apply filter to [start-end]/step frames", 
-	      "%u-%u/%d", buf, "0", "oo", "0", "oo", "1", "oo");
+	      "%u-%u/%d", b, "0", "oo", "0", "oo", "1", "oo");
 
       optstr_param (options, "string", "text to display (no ':') [defaults to `date`]", 
 	      "%s", mfd->string);
@@ -145,17 +145,17 @@ int tc_filter(vframe_list_t *ptr, char *options)
       optstr_param (options, "font", "full path to font file [defaults to arial.ttf]", 
 	      "%s", mfd->font);
 
-      snprintf(buf, 128, "%d", mfd->points);
+      snprintf(b, 128, "%d", mfd->points);
       optstr_param (options, "points", "size of font (in points)", 
-	      "%d", buf, "1", "100");
+	      "%d", b, "1", "100");
 
-      snprintf(buf, 128, "%d", mfd->dpi);
+      snprintf(b, 128, "%d", mfd->dpi);
       optstr_param (options, "dpi", "resolution of font (in dpi)", 
-	      "%d", buf, "72", "300");
+	      "%d", b, "72", "300");
 
-      snprintf(buf, 128, "%d", mfd->fade);
+      snprintf(b, 128, "%d", mfd->fade);
       optstr_param (options, "fade", "fade in/out (0=off, 1=slow, 10=fast)", 
-	      "%d", buf, "0", "10");
+	      "%d", b, "0", "10");
 
       optstr_param (options, "pos", "Position (0-width x 0-height)",  
 	      "%dx%d", "0x0", "0", "width", "0", "height");
@@ -276,6 +276,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
       size = width*3/2;
 
     if((buf = (char *)malloc (height*size)) == NULL) return (-1);
+    memset (buf, 0, height*size);
 
     // init lib
     error = FT_Init_FreeType (&mfd->library);
@@ -500,10 +501,10 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 		    unsigned int c = q[h*width+w]&0xff;
 		    unsigned int d = p[h*width+w]&0xff;
-		    unsigned int e;
+		    unsigned int e = 0;
 		    
 		    // transparency
-		    if (mfd->transparent && c < 20) continue;
+		    if (mfd->transparent && (c < 20)) continue;
 
 		    // opacity
 		    e = ((MAX_OPACITY-mfd->opaque)*d + mfd->opaque*c)/MAX_OPACITY;

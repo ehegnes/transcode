@@ -213,6 +213,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     
     tbuf[instance] = (unsigned char *) malloc(SIZE_RGB_FRAME);
     if (strength[instance]> 0.9) strength[instance] = 0.9;
+    memset(tbuf[instance], 0, SIZE_RGB_FRAME);
 
     if (vob->im_v_codec == CODEC_RGB) {
 	if (verbose) fprintf(stderr, "[%s] only capable of YUV mode\n", MOD_NAME);
