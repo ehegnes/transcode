@@ -20,6 +20,7 @@
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
  *
  */
+// TODO: Simplify this code.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +30,7 @@
 #include "avilib.h"
 #include "../config.h"
 #include "transcode.h"
+#include "aud_scan.h"
 
 #define EXE "avimerge"
 
@@ -146,6 +148,15 @@ int main(int argc, char *argv[])
   int key;
   
   int aud_tracks;
+
+  // for mp3 audio
+  FILE *f=NULL;
+  int len, headlen, chan_i, rate_i, mp3rate_i;
+  unsigned long vid_chunks=0;
+  char head[4];
+  off_t pos;
+  double aud_ms = 0.0, vid_ms = 0.0;
+
   
   if(argc==1) usage(EXIT_FAILURE);
   
@@ -210,7 +221,7 @@ int main(int argc, char *argv[])
   }
   
   AVI_info(avifile1);
-  
+
   // safety checks
   
   if(strcmp(infile, outfile)==0) {
@@ -238,6 +249,7 @@ int main(int argc, char *argv[])
     AVI_print_error("AVI open");
     exit(1);
   }
+  
   
   // read video info;
   
@@ -313,6 +325,16 @@ int main(int argc, char *argv[])
   
   // open audio file read only
   if(NULL == (avifile2 = AVI_open_input_file(audfile,1))) {
+    int f=open(audfile, O_RDONLY);
+    char head[4];
+    if (f>0 && ( 4 == read(f, head, 4)) ) {
+      if (tc_decode_mp3_header(head) > 0) {
+	close(f);
+	goto merge_mp3;
+      }
+      close(f);
+    }
+    
     AVI_print_error("AVI open");
     exit(1);
   }
@@ -516,5 +538,230 @@ int main(int argc, char *argv[])
   AVI_close(avifile);
   
   return(0);
-  
+
+merge_mp3:
+
+  f = fopen(audfile,"rb");
+  if (!f) { perror ("fopen"); exit(1); }
+
+  len = fread(head, 4, 1, f);
+  headlen = tc_get_mp3_header(head, &chan_i, &rate_i, &mp3rate_i);
+
+  fseek(f, 0L, SEEK_SET);
+
+  //set next track
+  AVI_set_audio_track(avifile, aud_tracks);
+  AVI_set_audio(avifile, chan_i, rate_i, 16, 0x55, mp3rate_i);
+  AVI_set_audio_vbr(avifile, is_vbr);
+
+  AVI_seek_start(avifile1);
+  frames =  AVI_video_frames(avifile1);
+  offset = 0;
+
+  for (n=0; n<frames; ++n) {
+
+    // video
+    bytes = AVI_read_frame(avifile1, data, &key);
+
+    if(bytes < 0) {
+      AVI_print_error("AVI read video frame");
+      return(-1);
+    }
+
+    if(AVI_write_frame(avifile, data, bytes, key)<0) {
+      AVI_print_error("AVI write video frame");
+      return(-1);
+    }
+
+    vid_chunks++;
+    vid_ms = vid_chunks*1000.0/fps;
+
+    for(j=0; j<aud_tracks; ++j) {
+
+      AVI_set_audio_track(avifile1, j);
+      AVI_set_audio_track(avifile, j);
+
+      // audio
+      chan = AVI_audio_channels(avifile1);
+
+      if(chan) {
+	do {
+
+	  if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
+	    AVI_print_error("AVI audio read frame");
+	    return(-1);
+	  }
+
+
+	  if(AVI_write_audio(avifile, data, bytes)<0) {
+	    AVI_print_error("AVI write audio frame");
+	    return(-1);
+	  } 
+	} while (AVI_can_read_audio(avifile1));
+
+      }
+    }
+
+
+    // merge additional track
+
+    if(headlen>4) {
+      while (aud_ms < vid_ms) {
+	//printf("reading Audio Chunk ch(%ld) vms(%lf) ams(%lf)\n", vid_chunks, vid_ms, aud_ms);
+	pos = ftell(f);
+
+	len = fread (head, 4, 1, f);
+	if (len<=0) { //eof
+	  goto finish2;
+	}
+
+	if ( (headlen = tc_get_mp3_header(head, NULL, NULL, &mp3rate_i))<0) {
+	  fprintf(stderr, "Corrupt MP3 track (%d)?\n", aud_tracks); 
+	  aud_ms = vid_ms;
+	  goto finish2;
+	} else { // look in import/tcscan.c for explanation
+	  aud_ms += (headlen*8.0)/(mp3rate_i);
+	}
+
+	fseek (f, pos, SEEK_SET);
+
+	len = fread (data, headlen, 1, f);
+	if (len<=0) { //eof
+	  goto finish2;
+	}
+
+	AVI_set_audio_track(avifile, aud_tracks);
+
+	if(AVI_write_audio(avifile, data, headlen)<0) {
+	  AVI_print_error("AVI write audio frame");
+	  return(-1);
+	}
+
+      }
+    }
+
+    // progress
+    fprintf(stderr, "[%s] (%06ld-%06ld)\r", outfile, offset, offset + n);
+
+  }
+
+  fprintf(stderr,"\n");
+  offset = frames;
+ 
+  // more files?
+  while (optind < argc) {
+
+    printf ("file %02d %s\n", ++cc, argv[optind]);
+
+    if(NULL == ( avifile1 = AVI_open_input_file(argv[optind++],1))) {
+      AVI_print_error("AVI open");
+      goto finish;
+    }
+
+    AVI_seek_start(avifile1);
+    frames =  AVI_video_frames(avifile1);
+
+    for (n=0; n<frames; ++n) {
+
+      // video
+      bytes = AVI_read_frame(avifile1, data, &key);
+
+      if(bytes < 0) {
+	AVI_print_error("AVI read video frame");
+	return(-1);
+      }
+
+      if(AVI_write_frame(avifile, data, bytes, key)<0) {
+	AVI_print_error("AVI write video frame");
+	return(-1);
+      }
+
+      vid_chunks++;
+      vid_ms = vid_chunks*1000.0/fps;
+
+
+      for(j=0; j<aud_tracks; ++j) {
+
+	AVI_set_audio_track(avifile1, j);
+
+	// audio
+	chan = AVI_audio_channels(avifile1);
+
+	if(chan) {
+	  do {
+
+	    if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
+	      AVI_print_error("AVI audio read frame");
+	      return(-1);
+	    }
+
+	    AVI_set_audio_track(avifile, j);
+
+	    if(AVI_write_audio(avifile, data, bytes)<0) {
+	      AVI_print_error("AVI write audio frame");
+	      return(-1);
+	    }
+	  } while (AVI_can_read_audio(avifile1));
+
+	}
+      }
+
+      // merge additional track
+      // audio
+
+      if(headlen>4) {
+	while (aud_ms < vid_ms) {
+	  //printf("reading Audio Chunk ch(%ld) vms(%lf) ams(%lf)\n", vid_chunks, vid_ms, aud_ms);
+	  pos = ftell(f);
+
+	  len = fread (head, 4, 1, f);
+	  if (len<=0) { //eof
+	    goto finish2;
+	  }
+
+	  if ( (headlen = tc_get_mp3_header(head, NULL, NULL, &mp3rate_i))<0) {
+	    fprintf(stderr, "Corrupt MP3 track (%d)?\n", aud_tracks); 
+	    aud_ms = vid_ms;
+	    goto finish2;
+	  } else { // look in import/tcscan.c for explanation
+	    aud_ms += (headlen*8.0)/(mp3rate_i);
+	  }
+
+	  fseek (f, pos, SEEK_SET);
+
+	  len = fread (data, headlen, 1, f);
+	  if (len<=0) { //eof
+	    goto finish2;
+	  }
+
+	  AVI_set_audio_track(avifile, aud_tracks);
+
+	  if(AVI_write_audio(avifile, data, headlen)<0) {
+	    AVI_print_error("AVI write audio frame");
+	    return(-1);
+	  }
+
+	}
+      }
+
+
+      // progress
+      fprintf(stderr, "[%s] (%06ld-%06ld)\r", outfile, offset, offset + n);
+    }
+
+    fprintf(stderr, "\n");
+
+    offset += frames;
+    AVI_close(avifile1);
+  }
+
+  if (f) fclose(f);
+
+finish2:
+
+  printf("... done multiplexing in %s\n", outfile);
+
+  AVI_close(avifile);
+
+  return(0);
 }
