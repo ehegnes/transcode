@@ -12,7 +12,7 @@ CONFIGURE_ENV="CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib"
 rm -rf aclocal.m4 autotools autom4te.cache config.h.in configure libtool
 
 # generate configure and *.in
-env $AUTORECONF_ENV autoreconf -fi
+env $AUTORECONF_ENV autoreconf -f -i
 
 # create Makefiles/see if configure is sane
 env $CONFIGURE_ENV ./configure
