@@ -707,8 +707,16 @@ MOD_init {
 	    break;
 	case 0: // not set
 	default:
-	    lavc_venc_context->frame_rate      = (int)(vob->ex_fps*1000.0);
-	    lavc_venc_context->frame_rate_base = 1000;
+		if((vob->ex_fps > 29) && (vob->ex_fps < 30))
+		{
+	    	lavc_venc_context->frame_rate      = 30000;
+	    	lavc_venc_context->frame_rate_base = 1001;
+		}
+		else
+		{
+	    	lavc_venc_context->frame_rate      = (int)(vob->ex_fps*1000.0);
+	    	lavc_venc_context->frame_rate_base = 1000;
+		}
 	    break;
     }
 
@@ -1159,12 +1167,12 @@ MOD_init {
     //-- open codec --
     //----------------
     if (avcodec_open(lavc_venc_context, lavc_venc_codec) < 0) {
-      fprintf(stderr, "[%s] could not open FFMPEG/MPEG4 codec\n", MOD_NAME);
+      fprintf(stderr, "[%s] could not open FFMPEG codec\n", MOD_NAME);
       return TC_EXPORT_ERROR; 
     }
 
     if (lavc_venc_context->codec->encode == NULL) {
-      fprintf(stderr, "[%s] could not open FFMPEG/MPEG4 codec "
+      fprintf(stderr, "[%s] could not open FFMPEG codec "
               "(lavc_venc_context->codec->encode == NULL)\n", MOD_NAME);
       return TC_EXPORT_ERROR; 
     }
