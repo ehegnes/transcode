@@ -24,6 +24,8 @@
 #ifndef __iolib_h
 #define __iolib_h
 
+#ifdef USE_XIO
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -37,5 +39,16 @@ int xio_fstat(int fd, struct stat *buf);
 int xio_lstat(const char *filename, struct stat *buf);
 int xio_stat(const char *filename, struct stat *buf);
 int xio_rename(const char *oldpath, const char *newpath);
-
+#else
+#define xio_open open
+#define xio_read read
+#define xio_write write
+#define xio_ftruncate ftruncate
+#define xio_lseek lseek
+#define xio_close close
+#define xio_fstat fstat
+#define xio_lstat lstat
+#define xio_stat stat
+#define xio_rename rename
+#endif
 #endif

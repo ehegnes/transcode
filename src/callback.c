@@ -24,6 +24,8 @@
 #include "transcode.h"
 #include "encoder.h"
 
+#include <xio.h>
+
 //-----------------------------------------------------------------
 //
 // r,R - switch output file
