@@ -148,7 +148,7 @@ MOD_open
 			}
 		  break;
 		  default:
-                       	fprintf(stderr,"[%s] error: video magic 0x%x not yet supported. \n", MOD_NAME,p_video->s_v_magic);
+                       	fprintf(stderr,"[%s] error: video magic 0x%lx not yet supported. \n", MOD_NAME,p_video->s_v_magic);
 			return(TC_IMPORT_ERROR);
 		}
 		if((s_fd_video = popen(import_cmd_buf, "r"))== NULL)
@@ -209,7 +209,7 @@ MOD_open
 			}
 		   break;
 		   default:
-                        fprintf(stderr,"[%s] error: audio magic 0x%x not yet supported. \n", MOD_NAME,p_audio->s_a_magic);
+                        fprintf(stderr,"[%s] error: audio magic 0x%lx not yet supported. \n", MOD_NAME,p_audio->s_a_magic);
 			return(TC_IMPORT_ERROR);
 		}
 		if((s_fd_audio = popen(import_cmd_buf, "r"))== NULL)
@@ -270,7 +270,7 @@ MOD_decode
 					}
 				   break;
 				   default:
-                        		fprintf(stderr,"[%s] error: audio magic 0x%x not yet supported. \n", MOD_NAME,p_audio->s_a_magic);
+                        		fprintf(stderr,"[%s] error: audio magic 0x%lx not yet supported. \n", MOD_NAME,p_audio->s_a_magic);
 					return(TC_IMPORT_ERROR);
 				}
                                 if((s_fd_audio = popen(import_cmd_buf, "r"))== NULL)
@@ -364,7 +364,7 @@ MOD_decode
 					}
 		   		   break;
 				   default:
-                        		fprintf(stderr,"[%s] error: video magic 0x%x not yet supported. \n", MOD_NAME,p_video->s_v_magic);
+                        		fprintf(stderr,"[%s] error: video magic 0x%lx not yet supported. \n", MOD_NAME,p_video->s_v_magic);
 					return(TC_IMPORT_ERROR);
 				}
                        		if((s_fd_video = popen(import_cmd_buf, "r"))== NULL)
