@@ -3,6 +3,13 @@ transcode-0.6.13
 
 2004-03-01 Tilmann Bitterberg <transcode at tibit.org>
 
+  * configure.in:
+  For newer gccs (>=3.3.2) -fno-unit-at-atime is needed to not
+  remove "unused" variables from the objects. Thanks to Rainer Lay
+  and Andreas Jaeger for pointing out.
+
+2004-03-01 Tilmann Bitterberg <transcode at tibit.org>
+
   * src/zoom.c:
   optimized CLAMP routine
 
