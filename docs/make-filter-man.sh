@@ -95,7 +95,7 @@ do
     tcmodinfo -i $name 2>&1| sed -n '/^START/,/^END/p' | 
     sed '
 /START/{
-   N;
+   N
    /\nEND/d
    s/START\n//
    bread
@@ -105,12 +105,12 @@ beer
 
 :read
 {
-  h;
+  h
   #   name                  comment       version      author       flags
   s|"filter_\([^.]*\)\.so", "\([^"]*\)", "\([^"]*\)", "\([^"]*\)", "\([^"]*\)",.*$|.TP 4\
 \\fB\1\\fP - \\fB\2\\fP\
 \\fB\1\\fP was written by \4. The version documented here is \3. |
-  x;
+  x
 
   # extract flags
   s/"filter_[^.]*\.so", "[^"]*", "[^"]*", "[^"]*", "\([^"]*\)",.*$/\1/
@@ -142,8 +142,8 @@ beer
   s/ *$/\
 .IP\
 .RS/
-p;
-d;
+ p
+ d
 }
 
 :eer
