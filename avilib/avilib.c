@@ -2854,10 +2854,14 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
              (data[3]=='b' || data[3]=='B' || data[3]=='c' || data[3]=='C') ) {
 
 	     AVI->video_index[nvi].key = 0x0;
-	     AVI->video_index[nvi].pos = lseek(AVI->fdes,0,SEEK_CUR)+8;
+	     AVI->video_index[nvi].pos = lseek(AVI->fdes,0,SEEK_CUR);
 	     AVI->video_index[nvi].len = n;
-	     nvi++;
 
+	     /*
+	     fprintf(stderr, "Frame %ld pos %lld len %lld key %ld\n",
+		     nvi, AVI->video_index[nvi].pos,  AVI->video_index[nvi].len, (long)AVI->video_index[nvi].key);
+		     */
+	     nvi++;
 	     lseek(AVI->fdes,PAD_EVEN(n),SEEK_CUR);
 	 } 
 
@@ -2868,7 +2872,7 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 	     (data[3]=='b' || data[3]=='B') ) {
 
 
-		AVI->track[j].audio_index[nai[j]].pos = lseek(AVI->fdes,0,SEEK_CUR)+8;
+		AVI->track[j].audio_index[nai[j]].pos = lseek(AVI->fdes,0,SEEK_CUR);
 		AVI->track[j].audio_index[nai[j]].len = n;
 		AVI->track[j].audio_index[nai[j]].tot = tot[j];
 		tot[j] += AVI->track[j].audio_index[nai[j]].len;
@@ -2876,12 +2880,13 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 
 		lseek(AVI->fdes,PAD_EVEN(n),SEEK_CUR);
 	 }
-	 else 
+	 else {
             lseek(AVI->fdes,-4,SEEK_CUR);
+	 }
 
       }
       if (nvi < AVI->total_frames) {
-	  fprintf(stderr, "[avilib] Uh? Some frames seems missing (%ld/%d)\n", 
+	  fprintf(stderr, "\n[avilib] Uh? Some frames seems missing (%ld/%d)\n", 
 		  nvi,  AVI->total_frames);
       }
 
