@@ -43,7 +43,7 @@ static int capability_flag=TC_CAP_YUV|TC_CAP_RGB|TC_CAP_VID|TC_CAP_PCM;
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];
 
-static char videopipe[40] = "./stream.yuv";
+static const char * videopipe = "./stream.yuv";
 static char audiopipe[40] = "/tmp/mplayer2transcode-audio.XXXXXX";
 static FILE *videopipefd = NULL;
 
@@ -60,10 +60,6 @@ MOD_open
 
   switch (param->flag) {
     case TC_VIDEO:
-      if (!mktemp(videopipe)) {
-        perror("mktemp could not create a unique file name for the video pipe");
-        return(TC_IMPORT_ERROR);
-      }
       if (mkfifo(videopipe, 00660) == -1) {
         perror("mkfifo video failed");
         return(TC_IMPORT_ERROR);
