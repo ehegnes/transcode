@@ -376,7 +376,7 @@ import_xvid_la_LDFLAGS = -module -avoid-version
 
 import_ffmpeg_la_SOURCES = import_ffmpeg.c 
 import_ffmpeg_la_LDFLAGS = -module -avoid-version 
-import_ffmpeg_la_LIBADD = -L../libvo -lvout -lm
+import_ffmpeg_la_LIBADD = -lm
 
 import_im_la_SOURCES = import_im.c
 import_im_la_LDFLAGS = -module -avoid-version 

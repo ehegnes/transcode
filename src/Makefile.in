@@ -325,7 +325,7 @@ bin_PROGRAMS = transcode
 
 
 #AM_LDFLAGS=`ar t ../ffmpeg/libavcodec/libtcavcodec.a | sed -e '/^__/d' -e 's@^@../ffmpeg/libavcodec/@' | tr '\n' ' '` `ar t ../avilib/libavi.a | sed -e '/^__/d' -e 's@^@../avilib/@' | tr '\n' ' '`
-transcode_LDADD = @DLDARWINLIB@ @SUPPORTLIB@ -L../libioaux -ltcioaux -L../aclib -lac -L../ffmpeg/libavcodec -ltcavcodec -L../avilib -lavi -lm 
+transcode_LDADD = @DLDARWINLIB@ @SUPPORTLIB@ -L../libioaux -ltcioaux -L../aclib -lac -L../ffmpeg/libavcodec -ltcavcodec -L../avilib -lavi -L../libvo -lvout -lm 
 
 EXTRA_DIST = \
    audio_trans.h \

@@ -4103,5 +4103,14 @@ void dummy_libioaux(void) {
   module_read_config(NULL, NULL, NULL, NULL, NULL);
   append_fc_time( NULL, NULL);
 }
+
+#include "../libvo/yuv2rgb.h"
+void dummy_libvout(void) {
+        yuv2rgb_init(24, MODE_RGB);
+	yuv2rgb(NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0);
+
+
+
+}
 /* vim: sw=2
  */
