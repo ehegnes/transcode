@@ -1340,7 +1340,7 @@ int main(int argc, char *argv[]) {
 	  vob->divxbitrate = (int)ratefact;
 	  vob->m2v_requant =      ratefact;
 	
-	  if(vob->divxbitrate < 0)
+	  if(!vob->divxbitrate)
 	    tc_error("invalid bitrate parameter for option -w");
 	  
 	  break;
@@ -1348,9 +1348,9 @@ int main(int argc, char *argv[]) {
 	  tc_error("invalid divx parameter for option -w");
 	}
 	
+	}
 	break;
 
-	}
       case VIDEO_MAX_BITRATE:
 	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	n = sscanf(optarg, "%d", &vob->video_max_bitrate);
