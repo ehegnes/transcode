@@ -3149,7 +3149,7 @@ int main(int argc, char *argv[]) {
         tstart = tstart->next;
 	// see if we're using vob_offset
 	if ((tstart != NULL) && (tstart->vob_offset != 0)){
-	  printf("going here!!!!\n"); fflush(stdout);
+	  tc_decoder_delay=1;
 	  import_threads_cancel();
 	  import_close(vob);
 	  aframe_flush();
