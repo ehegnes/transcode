@@ -68,7 +68,7 @@ parse_options(char *options, int *pre, double *infps, double *outfps)
 			" or -f/--export_fps/--export_frc will be used.\n"
 			"If no pre or post options are given,"
 			" decreasing rates will preprocess and"
-			" increasing rates will postprocess.",
+			" increasing rates will postprocess.\n",
 			MOD_NAME);
 		return -1;
 	}
