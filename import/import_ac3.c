@@ -197,7 +197,7 @@ MOD_decode
       
   }
   
-  if (fread(param->buffer+ac_off, ac_bytes, 1, fd) !=1) 
+  if (fread(param->buffer+ac_off, ac_bytes-ac_off, 1, fd) !=1) 
       return(TC_IMPORT_ERROR);
   
   
