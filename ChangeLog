@@ -1,5 +1,15 @@
 --------------------------------------------
-transcode-0.6.7
+transcode-0.6.7 Thu May 29 18:50:46 CEST 2003
+
+2003-05-29 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/export_divx5.c import/import_divx.c:
+  Experimental support for decoding and encoding divx5.0.5. I used
+  divx4linux-20030428 for development and testing.
+  
+  * configure.in:
+  Add configure check for encore2.h/decore.h from divx4linux and use
+  these instead of ours.
 
 2003-05-28 Hendrik Scholz <hscholz at raisdorf.net>
   
