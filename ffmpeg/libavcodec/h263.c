@@ -588,7 +588,7 @@ void mpeg4_encode_mb(MpegEncContext * s,
                 s->f_count++;
                 break;
             default:
-                printf("unknown mb type\n");
+                fprintf(stderr, "unknown mb type\n");
                 return;
             }
 
@@ -2485,7 +2485,7 @@ static int mpeg4_decode_video_packet_header(MpegEncContext *s)
     }
 
     if(len!=ff_mpeg4_get_video_packet_prefix_length(s)){
-        printf("marker does not match f_code\n");
+        fprintf(stderr, "marker does not match f_code\n");
         return -1;
     }
     
@@ -2543,13 +2543,13 @@ static int mpeg4_decode_video_packet_header(MpegEncContext *s)
             if (s->pict_type != I_TYPE) {
                 int f_code = get_bits(&s->gb, 3);	/* fcode_for */
                 if(f_code==0){
-                    printf("Error, video packet header damaged (f_code=0)\n");
+                    fprintf(stderr, "Error, video packet header damaged (f_code=0)\n");
                 }
             }
             if (s->pict_type == B_TYPE) {
                 int b_code = get_bits(&s->gb, 3);
                 if(b_code==0){
-                    printf("Error, video packet header damaged (b_code=0)\n");
+                    fprintf(stderr,"Error, video packet header damaged (b_code=0)\n");
                 }
             }       
         }
@@ -3246,7 +3246,7 @@ int ff_h263_decode_mb(MpegEncContext *s,
             modb2= get_bits1(&s->gb);
             mb_type= get_vlc2(&s->gb, mb_type_b_vlc.table, MB_TYPE_B_VLC_BITS, 1);
             if(mb_type<0){
-                printf("illegal MB_type\n");
+                fprintf(stderr,"illegal MB_type\n");
                 return -1;
             }
             mb_type= mb_type_b_map[ mb_type ];
@@ -4359,7 +4359,7 @@ static int decode_vol_header(MpegEncContext *s, GetBitContext *gb){
     if ((s->vol_control_parameters=get_bits1(gb))) { /* vol control parameter */
         int chroma_format= get_bits(gb, 2);
         if(chroma_format!=1){
-            printf("illegal chroma format\n");
+            fprintf(stderr,"illegal chroma format\n");
         }
         s->low_delay= get_bits1(gb);
         if(get_bits1(gb)){ /* vbv parameters */
@@ -4382,9 +4382,9 @@ static int decode_vol_header(MpegEncContext *s, GetBitContext *gb){
     }
 
     s->shape = get_bits(gb, 2); /* vol shape */
-    if(s->shape != RECT_SHAPE) printf("only rectangular vol supported\n");
+    if(s->shape != RECT_SHAPE) fprintf(stderr,"only rectangular vol supported\n");
     if(s->shape == GRAY_SHAPE && vo_ver_id != 1){
-        printf("Gray shape not supported\n");
+        fprintf(stderr,"Gray shape not supported\n");
         skip_bits(gb, 4);  //video_object_layer_shape_extension
     }
 
@@ -4417,13 +4417,13 @@ static int decode_vol_header(MpegEncContext *s, GetBitContext *gb){
         
         s->progressive_sequence= get_bits1(gb)^1;
         if(!get_bits1(gb) && (s->avctx->debug & FF_DEBUG_PICT_INFO)) 
-            printf("OBMC not supported (very likely buggy encoder)\n");   /* OBMC Disable */
+            fprintf(stderr,"OBMC not supported (very likely buggy encoder)\n");   /* OBMC Disable */
         if (vo_ver_id == 1) {
             s->vol_sprite_usage = get_bits1(gb); /* vol_sprite_usage */
         } else {
             s->vol_sprite_usage = get_bits(gb, 2); /* vol_sprite_usage */
         }
-        if(s->vol_sprite_usage==STATIC_SPRITE) printf("Static Sprites not supported\n");
+        if(s->vol_sprite_usage==STATIC_SPRITE) fprintf(stderr,"Static Sprites not supported\n");
         if(s->vol_sprite_usage==STATIC_SPRITE || s->vol_sprite_usage==GMC_SPRITE){
             if(s->vol_sprite_usage==STATIC_SPRITE){
                 s->sprite_width = get_bits(gb, 13);
@@ -4445,8 +4445,8 @@ static int decode_vol_header(MpegEncContext *s, GetBitContext *gb){
         
         if (get_bits1(gb) == 1) {   /* not_8_bit */
             s->quant_precision = get_bits(gb, 4); /* quant_precision */
-            if(get_bits(gb, 4)!=8) printf("N-bit not supported\n"); /* bits_per_pixel */
-            if(s->quant_precision!=5) printf("quant precission %d\n", s->quant_precision);
+            if(get_bits(gb, 4)!=8) fprintf(stderr,"N-bit not supported\n"); /* bits_per_pixel */
+            if(s->quant_precision!=5) fprintf(stderr,"quant precission %d\n", s->quant_precision);
         } else {
             s->quant_precision = 5;
         }
@@ -4519,7 +4519,7 @@ static int decode_vol_header(MpegEncContext *s, GetBitContext *gb){
              s->quarter_sample= get_bits1(gb);
         else s->quarter_sample=0;
 
-        if(!get_bits1(gb)) printf("Complexity estimation not supported\n");
+        if(!get_bits1(gb)) fprintf(stderr,"Complexity estimation not supported\n");
 
         s->resync_marker= !get_bits1(gb); /* resync_marker_disabled */
 
@@ -4531,12 +4531,12 @@ static int decode_vol_header(MpegEncContext *s, GetBitContext *gb){
         if(vo_ver_id != 1) {
             s->new_pred= get_bits1(gb);
             if(s->new_pred){
-                printf("new pred not supported\n");
+                fprintf(stderr,"new pred not supported\n");
                 skip_bits(gb, 2); /* requested upstream message type */
                 skip_bits1(gb); /* newpred segment type */
             }
             s->reduced_res_vop= get_bits1(gb);
-            if(s->reduced_res_vop) printf("reduced resolution VOP not supported\n");
+            if(s->reduced_res_vop) fprintf(stderr,"reduced resolution VOP not supported\n");
         }
         else{
             s->new_pred=0;
@@ -4571,7 +4571,7 @@ static int decode_vol_header(MpegEncContext *s, GetBitContext *gb){
                
                 *gb= bak;
             }else
-                printf("scalability not supported\n");
+                fprintf(stderr,"scalability not supported\n");
             
             // bin shape stuff FIXME
         }
@@ -4607,11 +4607,11 @@ static int decode_user_data(MpegEncContext *s, GetBitContext *gb){
         s->divx_build= build;
         s->divx_packed= e==3 && last=='p';
         if(s->picture_number==0){
-            printf("This file was encoded with DivX%d Build%d", ver, build);
+            fprintf(stderr,"This file was encoded with DivX%d Build%d", ver, build);
             if(s->divx_packed)
-                printf("p\n");
+                fprintf(stderr,"p\n");
             else
-                printf("\n");
+                fprintf(stderr,"\n");
         }
     }
     
@@ -4629,7 +4629,7 @@ static int decode_user_data(MpegEncContext *s, GetBitContext *gb){
         s->ffmpeg_version= ver*256*256 + ver2*256 + ver3;
         s->lavc_build= build;
         if(s->picture_number==0)
-            printf("This file was encoded with libavcodec build %d\n", build);
+            fprintf(stderr,"This file was encoded with libavcodec build %d\n", build);
     }
     
     /* xvid detection */
@@ -4637,7 +4637,7 @@ static int decode_user_data(MpegEncContext *s, GetBitContext *gb){
     if(e==1){
         s->xvid_build= build;
         if(s->picture_number==0)
-            printf("This file was encoded with XviD build %d\n", build);
+            fprintf(stderr,"This file was encoded with XviD build %d\n", build);
     }
 
 //printf("User Data: %s\n", buf);
@@ -4649,7 +4649,7 @@ static int decode_vop_header(MpegEncContext *s, GetBitContext *gb){
 
     s->pict_type = get_bits(gb, 2) + I_TYPE;	/* pict type: I = 0 , P = 1 */
     if(s->pict_type==B_TYPE && s->low_delay && s->vol_control_parameters==0){
-        printf("low_delay flag set, but shouldnt, clearing it\n");
+        fprintf(stderr,"low_delay flag set, but shouldnt, clearing it\n");
         s->low_delay=0;
     }
  
@@ -4670,13 +4670,13 @@ static int decode_vop_header(MpegEncContext *s, GetBitContext *gb){
     check_marker(gb, "before time_increment");
     
     if(s->picture_number==0 && (show_bits(gb, s->time_increment_bits+1)&1)==0){
-        printf("hmm, seems the headers arnt complete, trying to guess time_increment_bits\n");
+        fprintf(stderr,"hmm, seems the headers arnt complete, trying to guess time_increment_bits\n");
         
 
         for(s->time_increment_bits=1 ;s->time_increment_bits<16; s->time_increment_bits++){
             if(show_bits(gb, s->time_increment_bits+1)&1) break;
         }
-        printf("my guess is %d bits ;)\n",s->time_increment_bits);
+        fprintf(stderr,"my guess is %d bits ;)\n",s->time_increment_bits);
     }
     
     time_increment= get_bits(gb, s->time_increment_bits);
@@ -4719,7 +4719,7 @@ static int decode_vop_header(MpegEncContext *s, GetBitContext *gb){
     
     /* vop coded */
     if (get_bits1(gb) != 1){
-        printf("vop not coded\n");
+        fprintf(stderr,"vop not coded\n");
         return FRAME_SKIPED;
     }
 //printf("time %d %d %d || %Ld %Ld %Ld\n", s->time_increment_bits, s->time_increment_resolution, s->time_base,
