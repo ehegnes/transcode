@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-11-26  Sven Goethel <sgoethel at jausoft.com>, Makira
+
+  * import/tcrequant.c:
+  Incorporate fixes made upstream. Better error resilience.
+
 2003-11-18 Peter Van Biesen <peter at vanbiesen.com>
   
   * import/dvd_reader.[ch] import/tccat.c:

@@ -1,6 +1,7 @@
 // Adapted into transcode by Tilmann Bitterberg
 // Code from libmpeg2 and mpeg2enc copyright by their respective owners
 // New code and modifications copyright Antoine Missout
+// Thanks to Sven Goethel for error resilience patches
 // Released under GPL license, see gnu.org
 
 // toggles:
@@ -14,6 +15,7 @@
 // #define USE_FD // use 2 lasts args for input/output paths
 
 #define REACT_DELAY (1024.0*128.0)
+#define MAX_ERRORS 0
 
 // notes:
 //
@@ -55,11 +57,11 @@
 
 // gcc
 #ifdef HAVE_BUILTIN_EXPECT
-#define likely(x) __builtin_expect ((x) != 0, 1)
-#define unlikely(x) __builtin_expect ((x) != 0, 0)
+	#define likely(x) __builtin_expect ((x) != 0, 1)
+	#define unlikely(x) __builtin_expect ((x) != 0, 0)
 #else
-#define likely(x) (x)
-#define unlikely(x) (x)
+	#define likely(x) (x)
+	#define unlikely(x) (x)
 #endif
 
 static int verbose = 0;
@@ -130,14 +132,19 @@ static uint64 cnt_b_i, cnt_b_ni;
 	static uint intra_vlc_format;
 	static uint alternate_scan;
 	
+	// error
+	static int validPicHeader;
+	static int validSeqHeader;
+	static int validExtHeader;
+	static int sliceError;
+
 	// slice or mb
-	// quantizer_scale_code
 	static uint quantizer_scale;
 	static uint new_quantizer_scale;
 	static uint last_coded_scale;
 	static int	 h_offset, v_offset;
 	
-	// mb
+	// rate
 	static double quant_corr;
 	
 	// block data
@@ -149,6 +156,14 @@ static uint64 cnt_b_i, cnt_b_ni;
 
 	static RunLevel block[6][65]; // terminated by level = 0, so we need 64+1
 // end mpeg2 state
+
+#ifndef NDEBUG
+	#define DEB(msg) fprintf (stderr, "%s:%d " msg, __FILE__, __LINE__)
+	#define DEBF(format, args...) fprintf (stderr, "%s:%d " format, __FILE__, __LINE__, args)
+#else
+	#define DEB(msg)
+	#define DEBF(format, args...)
+#endif
 
 #define LOG(msg) if (verbose > 1) fprintf (stderr, msg)
 #define LOGF(format, args...) if (verbose > 1) fprintf (stderr, format, args)
@@ -170,7 +185,7 @@ static uint64 cnt_b_i, cnt_b_ni;
 		{ \
 			assert(rbuf + MIN_READ < orbuf + BUF_SIZE); \
 			mloka1 = read(ifd, rbuf, MIN_READ); \
-			if (!mloka1) { RETURN } \
+			if (mloka1 <= 0) { RETURN } \
 			inbytecnt += mloka1; \
 			rbuf += mloka1; \
 		}
@@ -179,8 +194,9 @@ static uint64 cnt_b_i, cnt_b_ni;
 #ifdef STAT
 
 	#define RETURN \
+		assert(rbuf >= cbuf);\
 		mloka1 = rbuf - cbuf;\
-		COPY(mloka1);\
+		if (mloka1) { COPY(mloka1); }\
 		WRITE \
 		free(orbuf); \
 		free(owbuf); \
@@ -209,8 +225,9 @@ static uint64 cnt_b_i, cnt_b_ni;
 #else
 
 	#define RETURN \
+		assert(rbuf >= cbuf);\
 		mloka1 = rbuf - cbuf;\
-		COPY(mloka1);\
+		if (mloka1) { COPY(mloka1); }\
 		WRITE \
 		free(orbuf); \
 		free(owbuf); \
@@ -308,16 +325,18 @@ static inline void flush_read_buffer()
 	int i = inbitcnt & 0x7;
 	if (i)
 	{
-		//uint val = Show_Bits(i);
-		//putbits(val, i);
-		assert(((unsigned int)inbitbuf) >> (32 - i) == 0);
+		if (inbitbuf >> (32 - i))
+		{
+			DEBF("illegal inbitbuf: 0x%08X, %i, 0x%02X, %i\n", inbitbuf, inbitcnt, (inbitbuf >> (32 - i)), i);
+			sliceError++;
+		}
+
 		inbitbuf <<= i;
 		inbitcnt -= i;
 	}
 	SEEKR(-1 * (inbitcnt >> 3));
 	inbitcnt = 0;
 }
-
 
 static inline void flush_write_buffer()
 {
@@ -370,7 +389,15 @@ static int increment_quant(int quant)
 {
 	if (q_scale_type)
 	{
-		assert(quant >= 1 && quant <= 112);
+		//assert(quant >= 1 && quant <= 112);
+		if (quant < 1 || quant > 112)
+		{
+			DEBF("illegal quant: %d\n", quant);
+			if (quant > 112) quant = 112;
+			else if (quant < 1) quant = 1;
+			DEBF("illegal quant changed to : %d\n", quant);
+			sliceError++;
+		}
 		quant = map_non_linear_mquant[quant] + 1;
 		if (quant_corr < -60.0f) quant++;
 		if (quant > 31) quant = 31;
@@ -378,7 +405,16 @@ static int increment_quant(int quant)
 	}
 	else
 	{
-		assert(!(quant & 1));
+		// assert(!(quant & 1));
+		if ((quant & 1) || (quant < 2) || (quant > 62))
+		{
+			DEBF("illegal quant: %d\n", quant);
+			if (quant & 1) quant--;
+			if (quant > 62) quant = 62;
+			else if (quant < 2) quant = 2;
+			DEBF("illegal quant changed to : %d\n", quant);
+			sliceError++;
+		}
 		quant += 2;
 		if (quant_corr < -60.0f) quant += 2;
 		if (quant > 62) quant = 62;
@@ -436,14 +472,27 @@ static inline int isNotEmpty(RunLevel *blk)
 
 #include "putvlc.h"
 
-void putAC(int run, int signed_level, int vlcformat)
+// return != 0 if error
+int putAC(int run, int signed_level, int vlcformat)
 {
 	int level, len;
 	const VLCtable *ptab = NULL;
 	
 	level = (signed_level<0) ? -signed_level : signed_level; /* abs(signed_level) */
 	
-	assert(!(run<0 || run>63 || level==0 || level>2047));
+	// assert(!(run<0 || run>63 || level==0 || level>2047));
+	if(run<0 || run>63)
+	{
+		DEBF("illegal run: %d\n", run);
+		sliceError++;
+		return 1;
+	}
+	if(level==0 || level>2047)
+	{
+		DEBF("illegal level: %d\n", level);
+		sliceError++;
+		return 1;
+	}
 	
 	len = 0;
 	
@@ -471,25 +520,31 @@ void putAC(int run, int signed_level, int vlcformat)
 		putbits(run, 6); /* 6 bit code for run */
 		putbits(((uint)signed_level) & 0xFFF, 12);
 	}
+	
+	return 0;
 }
 
-
-static inline void putACfirst(int run, int val)
+// return != 0 if error
+static inline int putACfirst(int run, int val)
 {
-	if (run==0 && (val==1 || val==-1)) putbits(2|(val<0),2);
-	else putAC(run,val,0);
+	if (run==0 && (val==1 || val==-1))
+	{
+		putbits(2|(val<0),2);
+		return 0;
+	}
+	else return putAC(run,val,0);
 }
 
 void putnonintrablk(RunLevel *blk)
 {
 	assert(blk->level);
 	
-	putACfirst(blk->run, blk->level);
+	if (putACfirst(blk->run, blk->level)) return;
 	blk++;
 	
 	while(blk->level)
 	{
-		putAC(blk->run, blk->level, 0);
+		if (putAC(blk->run, blk->level, 0)) return;
 		blk++;
 	}
 	
@@ -622,6 +677,13 @@ static inline int get_quantizer_scale ()
 
     quantizer_scale_code = UBITS (bit_buf, 5);
 	DUMPBITS (bit_buf, bits, 5); 
+	
+	if (!quantizer_scale_code)
+    {
+		DEBF("illegal quant scale code: %d\n", quantizer_scale_code);
+		sliceError++;
+		quantizer_scale_code++;
+    }
 	
 	if (q_scale_type) return non_linear_quantizer_scale[quantizer_scale_code];
     else return quantizer_scale_code << 1;
@@ -803,7 +865,7 @@ static void get_intra_block_B14 ()
 			if (val >= tst)
 			{
 				val = (val ^ SBITS (bit_buf, 1)) - SBITS (bit_buf, 1);
-				putAC(i - li - 1, (val * q) / nq, 0);
+				if (putAC(i - li - 1, (val * q) / nq, 0)) break;
 				li = i;
 			}
 	
@@ -826,7 +888,7 @@ static void get_intra_block_B14 ()
 			val = SBITS (bit_buf, 12);
 			if (abs(val) >= tst)
 			{
-				putAC(i - li - 1, (val * q) / nq, 0);
+				if (putAC(i - li - 1, (val * q) / nq, 0)) break;
 				li = i;
 			}
 	
@@ -891,7 +953,7 @@ static void get_intra_block_B15 ()
 				if (val >= tst)
 				{
 					val = (val ^ SBITS (bit_buf, 1)) - SBITS (bit_buf, 1);
-					putAC(i - li - 1, (val * q) / nq, 1);
+					if (putAC(i - li - 1, (val * q) / nq, 1)) break;
 					li = i;
 				}
 		
@@ -909,7 +971,7 @@ static void get_intra_block_B15 ()
 				val = SBITS (bit_buf, 12);
 				if (abs(val) >= tst)
 				{
-					putAC(i - li - 1, (val * q) / nq, 1);
+					if (putAC(i - li - 1, (val * q) / nq, 1)) break;
 					li = i;
 				}
 		
@@ -1734,6 +1796,10 @@ int main (int argc, char *argv[])
 	    exit (1);
 	}
 	inbytecnt = outbytecnt = 0;
+
+	validPicHeader = 0;
+	validSeqHeader = 0;
+	validExtHeader = 0;
 	
 	if (fact_x < 1.0) fact_x = 1.0;
 	else if (fact_x > 900.0) fact_x = 900.0;
@@ -1769,7 +1835,16 @@ int main (int argc, char *argv[])
 		{
 			LOCK(4)
 			picture_coding_type = (cbuf[1] >> 3) & 0x7;
-			cbuf[1] |= 0x7; cbuf[2] = 0xFF; cbuf[3] |= 0xF8; // vbv_delay is now 0xFFFF
+			if (picture_coding_type < 1 || picture_coding_type > 3)
+			{
+				DEBF("illegal picture_coding_type: %i\n", picture_coding_type);
+				validPicHeader = 0;
+			}
+			else
+			{
+				validPicHeader = 1;
+				cbuf[1] |= 0x7; cbuf[2] = 0xFF; cbuf[3] |= 0xF8; // vbv_delay is now 0xFFFF
+			}
 			COPY(4)
 		}
 		else if (ID == 0xB3) // seq header
@@ -1777,6 +1852,15 @@ int main (int argc, char *argv[])
 			LOCK(8)
 			horizontal_size_value = (cbuf[0] << 4) | (cbuf[1] >> 4);
 			vertical_size_value = ((cbuf[1] & 0xF) << 8) | cbuf[2];
+			if (	horizontal_size_value > 720 || horizontal_size_value < 352
+				||  vertical_size_value > 576 || vertical_size_value < 480
+				|| (horizontal_size_value & 0xF) || (vertical_size_value & 0xF))
+			{
+				DEBF("illegal size, hori: %i verti: %i\n", horizontal_size_value, vertical_size_value);
+				validSeqHeader = 0;
+			}
+			else
+				validSeqHeader = 1;
 			COPY(8)
 		}
 		else if (ID == 0xB5) // extension
@@ -1798,6 +1882,19 @@ int main (int argc, char *argv[])
 				q_scale_type = (cbuf[3] >> 4) & 0x1;
 				intra_vlc_format = (cbuf[3] >> 3) & 0x1;
 				alternate_scan = (cbuf[3] >> 2) & 0x1;
+				
+				if (	(f_code[0][0] > 8 && f_code[0][0] < 14)
+					||  (f_code[0][1] > 8 && f_code[0][1] < 14)
+					||  (f_code[1][0] > 8 && f_code[1][0] < 14)
+					||  (f_code[1][1] > 8 && f_code[1][1] < 14)
+					||  picture_structure == 0)
+				{
+					DEBF("illegal ext, f_code[0][0]: %i f_code[0][1]: %i f_code[1][0]: %i f_code[1][1]: %i picture_structure:%i\n",
+							f_code[0][0], f_code[0][1], f_code[1][0], f_code[1][1], picture_structure);
+					validExtHeader = 0;
+				}
+				else
+					validExtHeader = 1;
 				COPY(5)
 			}
 			else
@@ -1810,10 +1907,12 @@ int main (int argc, char *argv[])
 			LOCK(4)
 			COPY(4)
 		}
-		else if ((ID >= 0x01) && (ID <= 0xAF)) // slice
+		else if ((ID >= 0x01) && (ID <= 0xAF) && validPicHeader && validSeqHeader && validExtHeader) // slice
 		{
 			uint8 *outTemp = wbuf, *inTemp = cbuf;
-		
+			
+			quant_corr = (((inbytecnt - (rbuf - cbuf)) / fact_x) - (outbytecnt + (wbuf - owbuf))) / REACT_DELAY;
+			
 			if 	(		((picture_coding_type == B_TYPE) && (quant_corr < 2.5f)) // don't recompress if we're in advance!
 					||	((picture_coding_type == P_TYPE) && (quant_corr < -2.5f))
 					||	((picture_coding_type == I_TYPE) && (quant_corr < -5.0f))
@@ -1831,6 +1930,9 @@ int main (int argc, char *argv[])
 					if ( (nsc[0] == 0) && (nsc[1] == 0) && (nsc[2] == 1) ) fsc = 1; // start code !
 					else nsc++; // continue search
 				}
+				
+				// init error
+				sliceError = 0;
 			
 				// init bit buffer
 				inbitbuf = 0; inbitcnt = 0;
@@ -1852,8 +1954,15 @@ int main (int argc, char *argv[])
 				(picture_coding_type == I_TYPE ? "I_TYPE" : (picture_coding_type == P_TYPE ? "P_TYPE" : "B_TYPE")),
 				ID,  cbuf - inTemp, wbuf - outTemp, (wbuf - outTemp) - (cbuf - inTemp), (float)(cbuf - inTemp) / (float)(wbuf - outTemp));*/
 				
-				if (wbuf - outTemp > cbuf - inTemp) // yes that might happen, rarely
+				if ((wbuf - outTemp > cbuf - inTemp) || (sliceError > MAX_ERRORS)) // yes that might happen, rarely
 				{
+#ifndef NDEBUG
+					if (sliceError > MAX_ERRORS)
+					{
+						DEBF("sliceError (%i) > MAX_ERRORS (%i)\n", sliceError, MAX_ERRORS);
+					}
+#endif
+				
 					/*LOGF("*** slice bigger than before !! (type: %s code: %i in : %i out : %i diff : %i)\n",
 					(picture_coding_type == I_TYPE ? "I_TYPE" : (picture_coding_type == P_TYPE ? "P_TYPE" : "B_TYPE")),
 					ID, cbuf - inTemp, wbuf - outTemp, (wbuf - outTemp) - (cbuf - inTemp));*/
@@ -1893,10 +2002,18 @@ int main (int argc, char *argv[])
 				}
 #endif
 			}
-
-			quant_corr = (((inbytecnt - (rbuf - cbuf)) / fact_x) - (outbytecnt + (wbuf - owbuf))) / REACT_DELAY;
-			if (wbuf - owbuf > MIN_WRITE) { WRITE }
 		}
+		
+#ifndef NDEBUG
+		if ((ID >= 0x01) && (ID <= 0xAF) && (!validPicHeader || !validSeqHeader || !validExtHeader))
+		{
+			if (!validPicHeader) DEBF("missing pic header (%02X)\n", ID);
+			if (!validSeqHeader) DEBF("missing seq header (%02X)\n", ID);
+			if (!validExtHeader) DEBF("missing ext header (%02X)\n", ID);
+		}
+#endif
+		
+		if (wbuf - owbuf > MIN_WRITE) { WRITE }
 	}
 
 	// keeps gcc happy
