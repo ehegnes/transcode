@@ -21,7 +21,7 @@
 */
 
 #define MOD_NAME    "filter_smartyuv.so"
-#define MOD_VERSION "0.0.2 (2003-08-04)"
+#define MOD_VERSION "0.1.0 (2003-08-27)"
 #define MOD_CAP     "Motion-adaptive deinterlacing"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
@@ -44,6 +44,19 @@
 #include "transcode.h"
 #include "framebuffer.h"
 #include "optstr.h"
+
+//#undef HAVE_MMX
+
+// mmx gives a speedup of about 2 fps
+
+#ifdef HAVE_MMX
+# include "mmx.h"
+#endif
+
+#ifndef HAVE_MMX
+# define emms() do{}while(0)
+#endif
+
 
 static vob_t *vob=NULL;
 
@@ -143,14 +156,13 @@ static void inline Blendline_c (uint8_t *dst, uint8_t *src, uint8_t *srcminus, u
 {
     int	x=0;
 
-    x = 0;
     do {
-	if (!(movingminus[x] | moving[x] | movingplus[x]) && !scenechange)
-	    dst[x] = src[x];
-	else
-	{
+	if (movingminus[x] | moving[x] | movingplus[x] | scenechange)
 	    /* Blend fields. */
 	    dst[x] = ((src[x]>>1) + (srcminus[x]>>2) + (srcplus[x]>>2)) & 0xff;
+	else
+	{
+	    dst[x] = src[x];
 	}
     } while(++x < w);
 }
@@ -186,6 +198,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	unsigned char		frMotion, fiMotion;
 	int			cubic = mfd->cubic;
 	static int 		counter=0;
+	const int		can_use_mmx = !(w%8); // width must a multiple of 8
 	int                     msize;
 
 
@@ -199,14 +212,82 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	/* Not much deinterlacing to do if there aren't at least 2 lines. */
 	if (h < 2) return;
 
+	/* Skip first and last lines, they'll get a free ride. */
+	src = src_buf + srcpitch;
+	srcminus = src - srcpitch;
+	srcplus = src + srcpitch;
+	moving = _moving + w+4;
+	prev = _prev + w;
+
 	if (mfd->diffmode == FRAME_ONLY || mfd->diffmode == FRAME_AND_FIELD)
 	{
-		/* Skip first and last lines, they'll get a free ride. */
-		src = src_buf + srcpitch;
-		srcminus = src - srcpitch;
-		prev = _prev + w;
-		moving = _moving + w+4;
 		if (mfd->diffmode == FRAME_ONLY) {
+
+#ifdef HAVE_MMX
+		  if (can_use_mmx) {
+
+		    uint64_t mask1 = 0x00FF00FF00FF00FFULL;
+
+		    uint64_t thres = (_threshold<<16) | (_threshold);
+		    thres = (thres << 32) | (thres);
+
+		    movq_m2r (mask1, mm6);
+		    movq_m2r (thres, mm5);        // thres -> mm6
+
+		    count = 0;
+		    for (y = 1; y < hminus1; y++)
+		    {
+			for (x=0; x<w; x+=4) {
+
+			    movd_m2r (*src, mm0);         // a b c d 0 0 0 0
+
+			    punpcklbw_r2r (mm0, mm0);     // a a b b c c d d
+			    pand_r2r (mm6, mm0);          // 0 a 0 b 0 c 0 d
+
+			    movd_m2r(*prev, mm1);         // e f g h 0 0 0 0
+
+			    punpcklbw_r2r (mm1, mm1);     // e e f f g g h h
+			    pand_r2r (mm6, mm1);          // 0 e 0 f 0 g 0 h
+
+			    psubsw_r2r(mm1, mm0);         // mm0 = mm0 - mm1; !!
+
+			    movq_r2r(mm0, mm3);
+
+			    // abs()
+			    psraw_i2r(15, mm3);
+			    pxor_r2r(mm3, mm0);
+			    psubw_r2r(mm3, mm0);
+
+			    // compare if greater than thres
+			    pcmpgtw_r2r(mm5, mm0);
+
+			    // norm
+			    psrlw_i2r(15, mm0);
+			    // pack to bytes
+			    packuswb_r2r(mm0, mm0);
+
+			    // write to moving
+			    movd_r2m(mm0, *moving);
+
+			    memcpy(prev, src, 4);
+
+			    src+=4;
+			    prev+=4;
+
+			    count += *moving++;
+			    count += *moving++;
+			    count += *moving++;
+			    count += *moving++;
+
+			}
+
+			moving += 4;
+		    }
+		    emms();
+
+		  }  else  // cannot use mmx
+#endif
+		  {
 		    count = 0;
 		    for (y = 1; y < hminus1; y++)
 		    {
@@ -229,8 +310,160 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 			srcminus += srcpitch;
 			moving += 4;
 		    }
+		  } // cannot use mmx
+
 		} else if (mfd->diffmode == FRAME_AND_FIELD) {
 
+#ifdef HAVE_MMX
+		  if (can_use_mmx) {
+
+		    uint64_t mask1 = 0x00FF00FF00FF00FFULL;
+
+		    uint64_t thres = (_threshold<<16) | (_threshold);
+		    thres = (thres << 32) | (thres);
+
+		    movq_m2r (mask1, mm6);
+		    movq_m2r (thres, mm5);        // thres -> mm6
+
+		    // ---------------------
+		    // create the motion map
+		    // ---------------------
+
+		    count = 0;
+		    for (y = 1; y < hminus1; y++)
+		    {
+			if (y & 1) { // odd lines
+
+			    for (x=0; x<w; x+=4) {
+
+				movd_m2r(*src, mm0);          // a b c d 0 0 0 0
+				movd_m2r(*srcminus, mm1); // e f g h 0 0 0 0
+				movd_m2r(*prev, mm2);
+
+				punpcklbw_r2r (mm0, mm0);     // a a b b c c d d
+				punpcklbw_r2r (mm1, mm1);     // e e f f g g h h
+				punpcklbw_r2r (mm2, mm2);
+				pand_r2r (mm6, mm0);          // 0 a 0 b 0 c 0 d
+				pand_r2r (mm6, mm1);          // 0 e 0 f 0 g 0 h
+				pand_r2r (mm6, mm2);
+
+				movq_r2r (mm0, mm7);          // save in mm7
+
+				psubsw_r2r(mm1, mm0);         // mm0 = mm0 - mm1; !!
+				psubsw_r2r(mm2, mm7);
+				movq_r2r(mm0, mm3);
+				movq_r2r(mm7, mm4);
+
+				// abs() ((mm0^(mm0>>15))-(mm0>>15))
+
+				psraw_i2r(15, mm3);
+				psraw_i2r(15, mm4);
+				pxor_r2r(mm3, mm0);
+				pxor_r2r(mm4, mm7);
+				psubw_r2r(mm3, mm0);
+				psubw_r2r(mm4, mm7);
+
+				pcmpgtw_r2r(mm5, mm0);     //compare if greater than thres
+				pcmpgtw_r2r(mm5, mm7);
+				psrlw_i2r(15, mm0);       // norm
+				psrlw_i2r(15, mm7);       // norm
+				packuswb_r2r(mm0, mm0);   // pack to bytes
+				packuswb_r2r(mm7, mm7);   // pack to bytes
+
+				// mm0: result first compare
+				// mm1-mm4: free
+				// mm5: threshold
+				// mm6: mask
+				// mm7: copy of src
+
+				pand_r2r(mm7, mm0);
+
+				// write to moving
+				movd_r2m(mm0, *moving);
+
+				memcpy(prev, src, 4);
+
+				src+=4;
+				prev+=4;
+				srcminus+=4;
+
+				count += *moving++;
+				count += *moving++;
+				count += *moving++;
+				count += *moving++;
+
+			    }
+
+			} else { // even lines
+
+			    for (x=0; x<w; x+=4) {
+				movd_m2r(*src, mm0);         // a b c d 0 0 0 0
+				movd_m2r(*(prev+w), mm1);    // e f g h 0 0 0 0
+				movd_m2r(*prev, mm2);
+
+				punpcklbw_r2r (mm0, mm0);     // a a b b c c d d
+				punpcklbw_r2r (mm1, mm1);     // e e f f g g h h
+				punpcklbw_r2r (mm2, mm2);
+				pand_r2r (mm6, mm0);          // 0 a 0 b 0 c 0 d
+				pand_r2r (mm6, mm1);          // 0 e 0 f 0 g 0 h
+				pand_r2r (mm6, mm2);
+
+				movq_r2r (mm0, mm7);          // save in mm7
+
+				psubsw_r2r(mm1, mm0);         // mm0 = mm0 - mm1; !!
+				psubsw_r2r(mm2, mm7);
+				movq_r2r(mm0, mm3);
+				movq_r2r(mm7, mm4);
+
+				// abs() ((mm0^(mm0>>15))-(mm0>>15))
+
+				psraw_i2r(15, mm3);
+				psraw_i2r(15, mm4);
+				pxor_r2r(mm3, mm0);
+				pxor_r2r(mm4, mm7);
+				psubw_r2r(mm3, mm0);
+				psubw_r2r(mm4, mm7);
+
+				pcmpgtw_r2r(mm5, mm0);     //compare if greater than thres
+				pcmpgtw_r2r(mm5, mm7);
+				psrlw_i2r(15, mm0);       // norm
+				psrlw_i2r(15, mm7);       // norm
+				packuswb_r2r(mm0, mm0);   // pack to bytes
+				packuswb_r2r(mm7, mm7);   // pack to bytes
+
+				// mm0: result first compare
+				// mm1-mm4: free
+				// mm5: threshold
+				// mm6: mask
+				// mm7: copy of src
+
+				pand_r2r(mm7, mm0);
+
+				// write to moving
+				movd_r2m(mm0, *moving);
+
+				memcpy(prev, src, 4);
+
+				src+=4;
+				prev+=4;
+
+				count += *moving++;
+				count += *moving++;
+				count += *moving++;
+				count += *moving++;
+
+			    }
+			    srcminus += srcpitch;
+
+			}
+			moving += 4;
+		    }
+
+		    emms();
+
+		  } else // cannot use mmx
+#endif
+		  {
 		    count = 0;
 		    for (y = 1; y < hminus1; y++)
 		    {
@@ -268,6 +501,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 			moving += 4;
 			srcminus += srcpitch;
 		    }
+		  }
 		}
 
 		/* Determine whether a scene change has occurred. */
@@ -285,83 +519,12 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		/* Perform a denoising of the motion map if enabled. */
 		if (!scenechange && mfd->highq)
 		{
-#if 0
-			int xlo, xhi, ylo, yhi;
-			int u, v;
-			int N = DENOISE_DIAMETER;
-			int Nover2 = N/2;
-			int sum;
-			unsigned char *m;
-
-			// Erode.
-			fmoving = _fmoving;
-			for (y = 0; y < h; y++)
-			{
-				for (x = 0; x < w; x++)
-				{
-					if (!((_moving + y * w)[x]))
-					{
-						fmoving[x] = 0;	
-						continue;
-					}
-					xlo = x - Nover2; if (xlo < 0) xlo = 0;
-					xhi = x + Nover2; if (xhi >= w) xhi = wminus1;
-					ylo = y - Nover2; if (ylo < 0) ylo = 0;
-					yhi = y + Nover2; if (yhi >= h) yhi = hminus1;
-					m = _moving + ylo * w;
-					sum = 0;
-					for (u = ylo; u <= yhi; u++)
-					{
-						for (v = xlo; v <= xhi; v++)
-						{
-							sum += m[v];
-						}
-						m += w;
-					}
-					if (sum > DENOISE_THRESH)
-						fmoving[x] = 1;
-					else
-						fmoving[x] = 0;
-				}
-				fmoving += w;
-			}
-			// Dilate.
-			N = 5;
-			Nover2 = N/2;
-			moving = _moving;
-			for (y = 0; y < h; y++)
-			{
-				for (x = 0; x < w; x++)
-				{
-					if (!((_fmoving + y * w)[x]))
-					{
-						moving[x] = 0;	
-						continue;
-					}
-					xlo = x - Nover2; if (xlo < 0) xlo = 0;
-					xhi = x + Nover2; if (xhi >= w) xhi = wminus1;
-					ylo = y - Nover2; if (ylo < 0) ylo = 0;
-					yhi = y + Nover2; if (yhi >= h) yhi = hminus1;
-					m = _moving + ylo * w;
-					for (u = ylo; u <= yhi; u++)
-					{
-						for (v = xlo; v <= xhi; v++)
-						{
-							m[v] = 1;
-						}
-						m += w;
-					}
-				}
-				moving += w;
-			}
-#else
 			int sum;
 			uint8_t  *m;
 			int w4 = w+4;
 			
 			// this isn't exacly the same output like the original
 			// but just because the original was buggy -- tibit
-
 
 			// Erode.
 			fmoving = _fmoving;
@@ -421,17 +584,12 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 			    moving += w4;
 			    fmoving += w4;
 			}
-#endif
 		}
 	}
-	else
-	{
+	if (mfd->diffmode == FIELD_ONLY) {
+
 		/* Field differencing only mode. */
 		T = _threshold * _threshold;
-		src = src_buf + srcpitch;
-		srcminus = src - srcpitch;
-		srcplus = src + srcpitch;
-		moving = _moving + w+4;
 		for (y = 1; y < hminus1; y++)
 		{
 			x = 0;
@@ -539,7 +697,10 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		}
 	}
 
+	// -----------------
 	// Render.
+	// -----------------
+
 	// The first line gets a free ride.
 	src = src_buf;
 	dst = dst_buf;
@@ -563,97 +724,57 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	/*
 	*/
 
-	for (y = 1; y < hminus1; y++)
+	if (mfd->motionOnly)
 	{
-		if (mfd->motionOnly)
+	    for (y = 1; y < hminus1; y++)
+	    {
+		if (mfd->Blend)
 		{
-			if (mfd->Blend)
-			{
-				x = 0;
-				do {
-					if (!(movingminus[x] | moving[x] | movingplus[x]) && !scenechange)
-						dst[x] = (clamp_f==clamp_Y)?BLACK_BYTE_Y:BLACK_BYTE_UV;
-					else
-					{	
-						/* Blend fields. */
-						dst[x] = (((src[x]&0xff)>>1) + ((srcminus[x]&0xff)>>2) + ((srcplus[x]&0xff)>>2))&0xff;
-					}
-				} while(++x < w);
-			}
+		    x = 0;
+		    do {
+			if (!(movingminus[x] | moving[x] | movingplus[x]) && !scenechange)
+			    dst[x] = (clamp_f==clamp_Y)?BLACK_BYTE_Y:BLACK_BYTE_UV;
 			else
-			{
-				x = 0;
-				do {
-					if (!(movingminus[x] | moving[x] | movingplus[x]) && !scenechange)
-						dst[x] = (clamp_f==clamp_Y)?BLACK_BYTE_Y:BLACK_BYTE_UV;
-					else if (y & 1)
-					{
-						if (cubic && (y > 2) && (y < hminus3))
-						{
-							rpp = (srcminusminus[x]) & 0xff;
-							rp =  (srcminus[x]) & 0xff;
-							rn =  (srcplus[x]) & 0xff;
-							rnn = (srcplusplus[x]) & 0xff;
-							R = (5 * (rp + rn) - (rpp + rnn)) >> 3;
-							/*
-							if (R>240) R = 240;
-							else if (R<16) R=16;
-							*/
-							dst[x] = clamp_f(R & 0xff)&0xff;
-						}
-						else
-						{
-							p1 = srcminus[x] &0xff;
-							p1 &= 0xfe;
-
-							p2 = srcplus[x] &0xff;
-							p2 &= 0xfe;
-							dst[x] = ((p1>>1) + (p2>>1)) &0xff;
-						}
-					}
-					else
-						dst[x] = src[x];
-				} while(++x < w);
+			{	
+			    /* Blend fields. */
+			    dst[x] = (((src[x]&0xff)>>1) + ((srcminus[x]&0xff)>>2) + ((srcplus[x]&0xff)>>2))&0xff;
 			}
+		    } while(++x < w);
 		}
-		else  /* Not motion only */
+		else
 		{
-			if (mfd->Blend)
+		    x = 0;
+		    do {
+			if (!(movingminus[x] | moving[x] | movingplus[x]) && !scenechange)
+			    dst[x] = (clamp_f==clamp_Y)?BLACK_BYTE_Y:BLACK_BYTE_UV;
+			else if (y & 1)
 			{
-			    Blendline_c (dst, src, srcminus, srcplus, moving, movingminus, movingplus, w, scenechange);
+			    if (cubic && (y > 2) && (y < hminus3))
+			    {
+				rpp = (srcminusminus[x]) & 0xff;
+				rp =  (srcminus[x]) & 0xff;
+				rn =  (srcplus[x]) & 0xff;
+				rnn = (srcplusplus[x]) & 0xff;
+				R = (5 * (rp + rn) - (rpp + rnn)) >> 3;
+				/*
+				   if (R>240) R = 240;
+				   else if (R<16) R=16;
+				   */
+				dst[x] = clamp_f(R & 0xff)&0xff;
+			    }
+			    else
+			    {
+				p1 = srcminus[x] &0xff;
+				p1 &= 0xfe;
+
+				p2 = srcplus[x] &0xff;
+				p2 &= 0xfe;
+				dst[x] = ((p1>>1) + (p2>>1)) &0xff;
+			    }
 			}
 			else
-			{
-				// Doing line interpolate. Thus, even lines are going through
-				// for moving and non-moving mode. Odd line pixels will be subject
-				// to the motion test.
-				if (y&1)
-				{
-					x = 0;
-					do {
-						if (!(movingminus[x] | moving[x] | movingplus[x]) && !scenechange)
-							dst[x] = src[x];
-						else
-						{
-							if (cubic && (y > 2) && (y < hminus3))
-							{
-								R = (5 * ((srcminus[x]&0xff) + (srcplus[x]&0xff)) 
-									- ((srcminusminus[x]&0xff) + (srcplusplus[x]&0xff))) >> 3;
-								dst[x] = clamp_f(R & 0xff)&0xff;
-							}
-							else
-							{
-								dst[x] = (((srcminus[x]&0xff)>>1) + ((srcplus[x]&0xff)>>1)) & 0xff;
-							}
-						}
-					} while(++x < w);
-				}
-				else
-				{
-					// Even line; pass it through.
-					memcpy(dst, src, w);
-				}
-			}
+			    dst[x] = src[x];
+		    } while(++x < w);
 		}
 		src = src + srcpitch;
 		srcminus = srcminus + srcpitch;
@@ -661,20 +782,205 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 
 		if (cubic)
 		{
-			srcminusminus = srcminusminus + srcpitch;
-			srcplusplus = srcplusplus + srcpitch;
+		    srcminusminus = srcminusminus + srcpitch;
+		    srcplusplus = srcplusplus + srcpitch;
 		}
 
 		dst = dst + dstpitch;
 		moving += (w+4);
 		movingminus += (w+4);
 		movingplus += (w+4);
+	    }
+	    // The last line gets a free ride.
+	    memcpy(dst, src, w);
+
+	    if (clamp_f == clamp_Y)
+		counter++;
+
+	    return;
+
 	}
+	
+	if (mfd->Blend)
+	{
+	    for (y = 1; y < hminus1; y++)
+	    {
+#ifdef HAVE_MMX
+	      if (can_use_mmx) {
+
+		uint64_t scmask = (scenechange<<24) | (scenechange<<16) | (scenechange<<8) | scenechange;
+		scmask = (scmask << 32) | scmask;
+
+		for (x=0; x<w; x+=8) {
+
+		    movq_m2r(scmask, mm0);          // has a scenechange happend?
+
+		    movq_m2r(src     [x], mm1);
+		    movq_m2r(srcminus[x], mm2);
+		    movq_m2r(srcplus [x], mm3);
+
+		    por_m2r(movingminus[x], mm0);   // motion detected?
+		    por_m2r(moving     [x], mm0);
+		    por_m2r(movingplus [x], mm0);
+
+		    movq_r2r(mm0, mm5);
+		    movq_r2r(mm1, mm6);
+
+		    punpcklbw_r2r (mm0, mm0);
+		    punpcklbw_r2r (mm1, mm1);
+		    punpckhbw_r2r (mm5, mm5);
+		    punpckhbw_r2r (mm6, mm6);
+
+		    psrlw_i2r(8, mm0); // same as & 0x00ff00ff00ff00ff
+		    psrlw_i2r(8, mm1);
+		    psrlw_i2r(8, mm5);
+		    psrlw_i2r(8, mm6);
+
+		    psllw_i2r(15, mm0); // make FF's
+		    psllw_i2r(15, mm5); // make FF's
+		    psraw_i2r(15, mm0);
+		    psraw_i2r(15, mm5);
+
+		    movq_r2r (mm1, mm7);
+
+		    pcmpeqw_r2r(mm4, mm4); // make all ff's
+		    psubw_r2r  (mm0, mm4);   // inverse mask
+		    pand_r2r   (mm4, mm1); 
+		    pand_r2r   (mm0, mm7); 
+		    psrlw_i2r  (1,   mm7);
+		    por_r2r    (mm7, mm1);
+
+		    movq_r2r (mm6, mm7);
+		    pcmpeqw_r2r(mm4, mm4); // make all ff's
+		    psubw_r2r  (mm5, mm4);   // inverse mask
+		    pand_r2r   (mm4, mm6); 
+		    pand_r2r   (mm5, mm7); 
+		    psrlw_i2r  (1,   mm7);
+		    por_r2r    (mm7, mm6);
+
+		    // mm0: mask, if 0 don't shift, if ff shift
+		    // mm1: complete src[0..4]
+		    // mm2: srcminus
+		    // mm3: srcplus
+		    // mm4: free
+		    // mm5: mask of moving+4.
+		    // mm6: src+4 complete
+		    // mm7: free
+
+		    // handle srcm(inus) and srcp(lus)
+		    movq_r2r (mm2, mm4);
+		    movq_r2r (mm3, mm7);
+
+		    punpcklbw_r2r (mm2, mm2);
+		    punpcklbw_r2r (mm3, mm3);
+		    punpckhbw_r2r (mm4, mm4);
+		    punpckhbw_r2r (mm7, mm7);
+
+		    psrlw_i2r(8, mm2);
+		    psrlw_i2r(8, mm3);
+		    psrlw_i2r(8, mm4);
+		    psrlw_i2r(8, mm7);
+
+		    pand_r2r (mm0, mm2);
+		    pand_r2r (mm5, mm4);
+		    pand_r2r (mm0, mm3);
+		    pand_r2r (mm5, mm7);
+
+		    psrlw_i2r(2,   mm2);  // srcm>>2
+		    psrlw_i2r(2,   mm4);  
+		    psrlw_i2r(2,   mm3);  // srcp>>2
+		    psrlw_i2r(2,   mm7);
+
+		    paddusw_r2r (mm2, mm1);   // src>>1 + srcn>>2 + srcp>>2
+		    paddusw_r2r (mm3, mm1);
+		    packuswb_r2r(mm1, mm1);   // pack to bytes
+
+		    paddusw_r2r (mm4, mm6);
+		    paddusw_r2r (mm7, mm6);
+		    packuswb_r2r(mm6, mm6);   // pack to bytes
+
+		    psrlq_i2r(32, mm1);
+		    psllq_i2r(32, mm6);
+
+		    por_r2r(mm6, mm1); // merge
+
+		    movq_r2m(mm1, dst[x]);
+
+		}
+	      } else // cannot use mmx
+#endif
+	      {
+		Blendline_c (dst, src, srcminus, srcplus, moving, movingminus, movingplus, w, scenechange);
+	      }
+
+		src +=  srcpitch;
+		srcminus += srcpitch;
+		srcplus += srcpitch;
+
+		dst += dstpitch;
+		moving += (w+4);
+		movingminus += (w+4);
+		movingplus += (w+4);
+	    }
+	}
+	emms();
+
+	return;
+
+	// Doing line interpolate. Thus, even lines are going through
+	// for moving and non-moving mode. Odd line pixels will be subject
+	// to the motion test.
+
+	for (y = 1; y < hminus1; y++)
+	{
+	    if (y&1)
+	    {
+		x = 0;
+		do {
+		    if (movingminus[x] | moving[x] | movingplus[x] | scenechange)
+			if (cubic & (y > 2) & (y < hminus3))
+			{
+			    R = (5 * ((srcminus[x] & 0xff) + (srcplus[x] & 0xff)) 
+				    - ((srcminusminus[x] & 0xff) + (srcplusplus[x] & 0xff))) >> 3;
+			    dst[x] = clamp_f(R & 0xff)&0xff;
+			}
+			else
+			{
+			    dst[x] = (((srcminus[x]&0xff) >> 1) + ((srcplus[x]&0xff) >> 1)) & 0xff;
+			}
+		    else
+		    {
+			dst[x] = src[x];
+		    }
+		} while(++x < w);
+	    }
+	    else
+	    {
+		// Even line; pass it through.
+		memcpy(dst, src, w);
+	    }
+	    src +=  srcpitch;
+	    srcminus += srcpitch;
+	    srcplus += srcpitch;
+
+	    if (cubic)
+	    {
+		srcminusminus += srcpitch;
+		srcplusplus += srcpitch;
+	    }
+
+	    dst += dstpitch;
+	    moving += (w+4);
+	    movingminus += (w+4);
+	    movingplus += (w+4);
+	}
+
 	// The last line gets a free ride.
 	memcpy(dst, src, w);
 	if (clamp_f == clamp_Y)
 	    counter++;
 
+	return;
 }
 
 int tc_filter(vframe_list_t *ptr, char *options)
@@ -813,22 +1119,30 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	// o  Motion map creation
 	//      orig: 26.283.387 Cycles
 	//       now:  8.991.686 Cycles
+	//       mmx:  5.062.952
 	// o  Erode+dilate
 	//      orig: 55.847.077
 	//       now: 21.764.997
 	// o  Blending
 	//      orig: 8.162.287
 	//       now: 5.384.433
+	//       mmx: 4.569.875
 	// o  Cubic interpolation
 	//      orig: 7.487.338
 	//       now: 6.684.908
+	//      more: 3.554.580
 	//
 	// Overall improvement in transcode:
-	// 16.88 -> 24.72 frames per second for the test clip.
+	// 11.57 -> 20.34 frames per second for the test clip.
 	//
 
 	// filter init ok.
-	if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+
+	if(verbose) printf("[%s] "
+#ifdef HAVE_MMX
+		"(MMX) "
+#endif
+		"%s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
 
 	return 0;
 

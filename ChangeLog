@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-27 Tilmann Bitterberg <transcode at tibit.org>
+
+   * filter/filter_smartyuv.c:
+   Added MMX assembly code and rewrote some of the other routines
+
 2003-08-26 Antonio Beamud Montero <antonio.beamud at linkend.com>
 
    * filter/filter_compare.c:
