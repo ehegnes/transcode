@@ -3,6 +3,8 @@ transcode-0.6.4.HEAD
 
 - changed ALTIVEC flags in libavcodec to '-maltivec -mabi=altivec'
 
+- Fixed a bug where ffmpeg crached when doing a two-pass encode
+
 - Fixed mmx code in yuvdenoise/deinterlacer
    -- Christoph Lampert <chl at math.uni-bonn.de>
 
