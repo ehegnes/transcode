@@ -6,14 +6,14 @@ AM_CPPFLAGS = \
 	-D_REENTRANT \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
-	@AVILIB_CFLAGS@ \
-	@AVIFILE_CFLAGS@ \
-	@LAME_CFLAGS@ \
-	@AC3_CFLAGS@ \
-	@IMAGEMAGICK_CFLAGS@ \
-	@FT2_CFLAGS@
+	$(AVILIB_CFLAGS) \
+	$(AVIFILE_CFLAGS) \
+	$(LAME_CFLAGS) \
+	$(AC3_CFLAGS) \
+	$(IMAGEMAGICK_CFLAGS) \
+	$(FT2_CFLAGS)
 
-pkgdir = @MOD_PATH@
+pkgdir = $(MOD_PATH)
 
 if HAVE_MMX
 F_MMX = filter_dilyuvmmx.la 
@@ -112,9 +112,9 @@ filter_32drop_la_LDFLAGS = -module -avoid-version
 filter_aclip_la_SOURCES = filter_aclip.c
 filter_aclip_la_LDFLAGS = -module -avoid-version 
 
-filter_ascii_la_SOURCES = filter_ascii.c
+filter_ascii_la_SOURCES = filter_ascii.c ../export/vid_aux.c
 filter_ascii_la_LDFLAGS = -module -avoid-version 
-filter_ascii_la_LIBADD = @LIBVO_LIBS@ ../export/vid_aux.lo 
+filter_ascii_la_LIBADD = $(LIBVO_LIBS)
 
 filter_astat_la_SOURCES = filter_astat.c
 filter_astat_la_LDFLAGS = -module -avoid-version 
@@ -150,12 +150,12 @@ filter_dnr_la_LIBADD = -lm
 filter_doublefps_la_SOURCES = filter_doublefps.c
 filter_doublefps_la_LDFLAGS = -module -avoid-version 
 
-filter_facemask_la_SOURCES = filter_facemask.c
+filter_facemask_la_SOURCES = filter_facemask.c ../export/vid_aux.c
 filter_facemask_la_LDFLAGS = -module -avoid-version 
-filter_facemask_la_LIBADD = @LIBVO_LIBS@ ../export/vid_aux.lo 
+filter_facemask_la_LIBADD = $(LIBVO_LIBS)
 
 filter_fieldanalysis_la_SOURCES = filter_fieldanalysis.c
-filter_fieldanalysis_la_LDFLAGS =  -module -avoid-version 
+filter_fieldanalysis_la_LDFLAGS = -module -avoid-version 
 
 filter_fields_la_SOURCES = filter_fields.c
 filter_fields_la_LDFLAGS = -module -avoid-version 
@@ -182,9 +182,9 @@ filter_modfps_la_SOURCES = filter_modfps.c
 filter_modfps_la_LDFLAGS = -module -avoid-version 
 filter_modfps_la_LIBADD = -lm
 
-filter_msharpen_la_SOURCES = filter_msharpen.c
+filter_msharpen_la_SOURCES = filter_msharpen.c ../export/vid_aux.c
 filter_msharpen_la_LDFLAGS = -module -avoid-version
-filter_msharpen_la_LIBADD = @LIBVO_LIBS@ ../export/vid_aux.lo
+filter_msharpen_la_LIBADD = $(LIBVO_LIBS)
 
 filter_nored_la_SOURCES = filter_nored.c
 filter_nored_la_LDFLAGS = -module -avoid-version 
@@ -202,13 +202,13 @@ filter_skip_la_LDFLAGS = -module -avoid-version
 filter_slowmo_la_SOURCES = filter_slowmo.c
 filter_slowmo_la_LDFLAGS = -module -avoid-version 
 
-filter_smartbob_la_SOURCES = filter_smartbob.c
+filter_smartbob_la_SOURCES = filter_smartbob.c ../export/vid_aux.c
 filter_smartbob_la_LDFLAGS = -module -avoid-version 
-filter_smartbob_la_LIBADD = @LIBVO_LIBS@ ../export/vid_aux.lo
+filter_smartbob_la_LIBADD = $(LIBVO_LIBS)
 
-filter_smartdeinter_la_SOURCES = filter_smartdeinter.c
+filter_smartdeinter_la_SOURCES = filter_smartdeinter.c ../export/vid_aux.c
 filter_smartdeinter_la_LDFLAGS = -module -avoid-version 
-filter_smartdeinter_la_LIBADD = @LIBVO_LIBS@ ../export/vid_aux.lo
+filter_smartdeinter_la_LIBADD = $(LIBVO_LIBS)
 
 filter_smartyuv_la_SOURCES = filter_smartyuv.c
 filter_smartyuv_la_LDFLAGS = -module -avoid-version 
@@ -231,12 +231,12 @@ filter_unsharp_la_LDFLAGS = -module -avoid-version
 filter_videocore_la_SOURCES = filter_videocore.c
 filter_videocore_la_LDFLAGS = -module -avoid-version 
 
-filter_whitebalance_la_SOURCES = filter_whitebalance.c
+filter_whitebalance_la_SOURCES = filter_whitebalance.c ../export/vid_aux.c
 filter_whitebalance_la_LDFLAGS = -module -avoid-version
-filter_whitebalance_la_LIBADD = @LIBVO_LIBS@ ../export/vid_aux.lo -lm
+filter_whitebalance_la_LIBADD = $(LIBVO_LIBS) -lm
 
 filter_xsharpen_la_SOURCES = filter_xsharpen.c
-filter_xsharpen_la_LDFLAGS = -module -avoid-version 
+filter_xsharpen_la_LDFLAGS = -module -avoid-version
 
 filter_yuy2toyv12_la_SOURCES = filter_yuy2toyv12.c
 filter_yuy2toyv12_la_LDFLAGS = -module -avoid-version 
@@ -244,17 +244,17 @@ filter_yuy2toyv12_la_LDFLAGS = -module -avoid-version
 
 # F_LOGO = filter_logo.la filter_logoaway.la filter_compare.la
 
-filter_logo_la_SOURCES = filter_logo.c
+filter_logo_la_SOURCES = filter_logo.c ../export/vid_aux.c
 filter_logo_la_LDFLAGS = -module -avoid-version
-filter_logo_la_LIBADD = @IMAGEMAGICK_LIBS@ @LIBVO_LIBS@ ../export/vid_aux.lo
+filter_logo_la_LIBADD = $(IMAGEMAGICK_LIBS) $(LIBVO_LIBS)
 
 filter_logoaway_la_SOURCES = filter_logoaway.c
 filter_logoaway_la_LDFLAGS = -module -avoid-version 
-filter_logoaway_la_LIBADD = @IMAGEMAGICK_LIBS@
+filter_logoaway_la_LIBADD = $(IMAGEMAGICK_LIBS)
 
-filter_compare_la_SOURCES = filter_compare.c
+filter_compare_la_SOURCES = filter_compare.c ../export/vid_aux.c
 filter_compare_la_LDFLAGS = -module -avoid-version
-filter_compare_la_LIBADD = @IMAGEMAGICK_LIBS@ @LIBVO_LIBS@ ../export/vid_aux.lo
+filter_compare_la_LIBADD = $(IMAGEMAGICK_LIBS) $(LIBVO_LIBS)
 
 
 # F_MMX = filter_dilyuvmmx.la 
@@ -267,7 +267,7 @@ filter_dilyuvmmx_la_LDFLAGS = -module -avoid-version
 
 filter_text_la_SOURCES = filter_text.c
 filter_text_la_LDFLAGS = -module -avoid-version 
-filter_text_la_LIBADD  = @FT2_LIBS@
+filter_text_la_LIBADD  = $(FT2_LIBS)
 
 
 EXTRA_DIST =  \
@@ -285,7 +285,6 @@ endif
 
 if HAVE_X11
 SUBDIRS = \
-	. \
 	pp \
 	divxkey \
 	extsub \
@@ -298,7 +297,6 @@ SUBDIRS = \
 	$(ADD2)
 else
 SUBDIRS = \
-	. \
 	pp \
 	divxkey \
 	extsub \
