@@ -2811,6 +2811,8 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
       nvi = 0;
       for(j=0; j<AVI->anum; ++j) nai[j] = tot[j] = 0;
 
+      aud_chunks = AVI->total_frames;
+
       while(1)
       {
          if( avi_read(AVI->fdes,data,8) != 8 ) break;
