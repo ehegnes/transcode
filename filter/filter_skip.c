@@ -1,7 +1,8 @@
-/*
- *  filter_skip.c
+/**
+ *  @file filter_skip.c Skip all listed frames
  *
- *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Thomas Östreich - June 2001,
+ *                Thomas Wehrspann - January 2005
  *
  *  This file is part of transcode, a linux video stream processing tool
  *      
@@ -21,23 +22,33 @@
  *
  */
 
+/*
+ * ChangeLog:
+ * v0.0.1 (2001-11-27)
+ *
+ * v0.2 (2005-01-05) Thomas Wehrspann
+ *    -Rewritten, based on filter_cut
+ *    -Documentation added
+ *    -New help function
+ *    -optstr_filter_desc now returns 
+ *     the right capability flags
+ */
+
 #define MOD_NAME    "filter_skip.so"
-#define MOD_VERSION "v0.0.1 (2001-11-27)"
+#define MOD_VERSION "v0.2 (2005-01-05)"
 #define MOD_CAP     "skip all listed frames"
+#define MOD_AUTHOR  "Thomas Östreich, Thomas Wehrspann"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define MAX_SKIP 32
-
 /* -------------------------------------------------
  *
  * mandatory include files
  *
  *-------------------------------------------------*/
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -46,113 +57,78 @@
 #include "framebuffer.h"
 #include "optstr.h"
 
-char *get_next_range(char *name, char *_string)
+#include "libioaux/framecode.h"
+
+
+/**
+ * Help text.
+ * This function prints out a small description of this filter and
+ * the command-line options when the "help" parameter is given
+ *********************************************************/
+static void help_optstr(void)
 {
-  char *res, *string;
-
-  int off=0;
-
-  if(_string[0]=='\0') return(NULL);
-
-  while(_string[off]==' ') ++off;
-
-  string = &_string[off];
-
-  if((res=strchr(string, ' '))==NULL) {
-    strcpy(name, string);
-    //return pointer to '\0'
-    return(string+strlen(string));
-  }
-  
-  tc_memcpy(name, string, (int)(res-string));
-  
-  return(res+1);
+  printf ("[%s] help : * Overview                                            \n", MOD_NAME);
+  printf ("[%s] help :     This filter skips all listed frames.              \n", MOD_NAME);
+  printf ("[%s] help :                                                       \n", MOD_NAME);
+  printf ("[%s] help : * Options                                             \n", MOD_NAME);
+  printf ("[%s] help :                     'help' Prints out this help text  \n", MOD_NAME);
+  printf ("[%s] help :     'start-end/step [...]' List of frame ranges to skip (start-end/step) [] \n", MOD_NAME);
 }
 
-/*-------------------------------------------------
- *
- * single function interface
- *
- *-------------------------------------------------*/
 
-static int ia[MAX_SKIP];
-static int ib[MAX_SKIP];
-static int cut=0, status=0;
-
+/**
+ * Main function of a filter.
+ * This is the single function interface to transcode. This is the only function needed for a filter plugin.
+ * @param ptr     frame accounting structure
+ * @param options command-line options of the filter
+ *
+ * @return 0, if everything went OK.
+ *********************************************************/
 int tc_filter(vframe_list_t *ptr, char *options)
 {
-
-  int pre=0;
-  int i,n;
-
-  char buf[64];
-
-  char *offset;
+  static struct fc_time *list;
+  static double avoffset=1.0;
+  char separator[] = " ";
 
   vob_t *vob=NULL;
 
-  // API explanation:
-  // ================
-  //
-  // (1) need more infos, than get pointer to transcode global 
-  //     information structure vob_t as defined in transcode.h.
-  //
-  // (2) 'tc_get_vob' and 'verbose' are exported by transcode.
-  //
-  // (3) filter is called first time with TC_FILTER_INIT flag set.
-  //
-  // (4) make sure to exit immediately if context (video/audio) or 
-  //     placement of call (pre/post) is not compatible with the filters 
-  //     intended purpose, since the filter is called 4 times per frame.
-  //
-  // (5) see framebuffer.h for a complete list of frame_list_t variables.
-  //
-  // (6) filter is last time with TC_FILTER_CLOSE flag set
-
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
-      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Thomas Oestreich", "VAE", "1");
-      optstr_param (options, "fstart1-fend1 [ fstart2-fend2 [ .. ] ]", "apply filter [start-end] frames", "%s", "");
+    optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VARY4E", "1");
+
+    optstr_param (options, "start-end/step [...]", "Skip frames", "%s", "");
       return 0;
   }
-
 
   //----------------------------------
   //
   // filter init
   //
   //----------------------------------
-
-
   if(ptr->tag & TC_FILTER_INIT) {
     
     if((vob = tc_get_vob())==NULL) return(-1);
     
     // filter init ok.
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
-    
+    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);    
     if(verbose & TC_DEBUG) printf("[%s] options=%s\n", MOD_NAME, options);
 
     if(options == NULL) return(0);
 
-    offset=options;
-    if(verbose) printf("[%s] skipping frames ", MOD_NAME);
-    for (n=0; n<MAX_SKIP; ++n) {
-
-      memset(buf, 0, 64);
-
-      if((offset=get_next_range(buf, offset))==NULL) break;
-      
-      i=sscanf(buf, "%d-%d", &ia[n], &ib[n]);
-      
-      if(i==2) {
-	printf("%d-%d ", ia[n], ib[n]); 
-	++cut;    
-      } else {
-	if(i<0) break;
+    // Parameter parsing
+    if(options == NULL) return(0);
+    else if (optstr_lookup (options, "help")) {
+      help_optstr();
+      return (0);
+    } else {
+      if( parse_fc_time_string( options, vob->fps, separator, verbose, &list ) == -1 ) {
+        help_optstr();
+        return (-1);
       }
     }
-    printf("\n"); 
+
+    avoffset = vob->fps/vob->ex_fps;
+
     return(0);
   }
 
@@ -161,38 +137,37 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // filter close
   //
   //----------------------------------
-
-  
   if(ptr->tag & TC_FILTER_CLOSE) {
     return(0);
   }
-  
+
   //----------------------------------
   //
   // filter frame routine
   //
   //----------------------------------
-
   // tag variable indicates, if we are called before
-  // transcodes internal video/audo frame processing routines
+  // transcodes internal video/audio frame processing routines
   // or after and determines video/audio context
-  
-  if(ptr->tag & TC_PRE_S_PROCESS) pre=1;
-  
-  if(pre==0) return(0);
+  if((ptr->tag & TC_PRE_S_PROCESS) && (ptr->tag & TC_VIDEO)) {
 
-  status=0;
-  
-  for(n=0; n<cut; ++n) {
-      if(ptr->id >= ia[n] && ptr->id < ib[n]) {
-	  status = 1;
-	  goto cont;
-      }
+      // fc_frame_in_time returns the step frequency
+      int ret = fc_frame_in_time(list, ptr->id);
+
+      if ((ret && !(ptr->id%ret)))
+        ptr->attributes |= TC_FRAME_IS_SKIPPED;
+
+  } else if ((ptr->tag & TC_PRE_S_PROCESS) && (ptr->tag & TC_AUDIO)){
+
+    int ret;
+    int tmp_id;
+
+    tmp_id = (int)((double)ptr->id*avoffset);
+    ret = fc_frame_in_time(list, tmp_id);
+    if ((ret && !(tmp_id%ret)))
+      ptr->attributes |= TC_FRAME_IS_SKIPPED;
+
   }
-
-  cont:
-  
-  if(status==1) ptr->attributes |= TC_FRAME_IS_SKIPPED;
   
   return(0);
 }

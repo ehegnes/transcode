@@ -1,3 +1,17 @@
+2005-01-20 Thomas Wehrspann <thomas at wehrspann dot de>
+  * filter/filter_null.c
+  Documentation added.
+  New help function.
+  optstr_filter_desc now returns the right capabilities.
+  * filter/filter_cut.c
+  Documentation added.
+  optstr_filter_desc now returns the right capabilities.
+  * filter/filter_skip.c
+  Rewritten, based on filter_cut.
+  Documentation added.
+  New help function.
+  optstr_filter_desc now returns the right capability flags.
+
 2005-01-13 Jacob Meuser <jakemsr at jakemsr dot com>
   * src/transcode.c aclib/cputest.c
     filter/subtitler/load_font.c
