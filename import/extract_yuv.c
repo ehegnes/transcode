@@ -72,11 +72,11 @@ static int yuv_readwrite_frame (int in_fd, int out_fd, char *buffer, int bytes)
 
 #define PARAM_LINE_MAX 256
 
-static int yuv_read_header (int fd_in, int *horizontal_size, int *vertical_size, int *frame_rate_code)
+static int yuv_read_header (int fd_in, int *horizontal_size, int *vertical_size, 
+	int *frame_rate_code, int *divisor, int *is_yuv4mpeg2, int *asr1, int *asr2)
 {
-    int n, nerr, offset;
+    int n, nerr;
     char param_line[PARAM_LINE_MAX];
-    char *scanfmt;
     
     for (n = 0; n < PARAM_LINE_MAX; n++) {
 	if ((nerr = read (fd_in, param_line + n, 1)) < 1) {
@@ -104,12 +104,17 @@ static int yuv_read_header (int fd_in, int *horizontal_size, int *vertical_size,
 	return -1;
     }
 
-    scanfmt = (param_line[8] == '2')? "W%d H%d F%d": "%d %d %d";
-    offset  = (param_line[8] == '2')? 10:9;
-
-    sscanf (param_line + offset, scanfmt, horizontal_size, vertical_size,
-	    frame_rate_code);
+    if (param_line[8] == '2'){ // YUV4MPEG2
+	*is_yuv4mpeg2 = 1;
+	sscanf (param_line + 10, "W%d H%d F%d:%d I%*c A%d:%d", horizontal_size, vertical_size,
+	    frame_rate_code, divisor, asr1, asr2);
     
+    } else { // YUV4MPEG
+	*is_yuv4mpeg2 = 0;
+	sscanf (param_line + 9, "%d %d %d", horizontal_size, vertical_size,
+	    frame_rate_code);
+    }
+
     nerr = 0;
     if (*horizontal_size <= 0) {
 	fprintf (stderr, "Horizontal size illegal\n");
@@ -117,6 +122,10 @@ static int yuv_read_header (int fd_in, int *horizontal_size, int *vertical_size,
     }
     if (*vertical_size <= 0) {
 	fprintf (stderr, "Vertical size illegal\n");
+	nerr++;
+    }
+    if (*frame_rate_code <= 0) {
+	fprintf (stderr, " Frame rate (code) illegal\n");
 	nerr++;
     }
     
@@ -143,7 +152,7 @@ void extract_yuv(info_t *ipipe)
   
   char *buffer;
   
-  int width, height, frc;    
+  int width=0, height=0, frc=0, div=0, is_yuv4mpeg2=0, asr1=0, asr2=0;
 
   long frames, bytes, n;
   
@@ -152,7 +161,7 @@ void extract_yuv(info_t *ipipe)
   case TC_MAGIC_YUV4MPEG:
     
     // read mjpeg tools header and dump it
-    if(yuv_read_header(ipipe->fd_in, &width, &height, &frc)<0) {
+    if(yuv_read_header(ipipe->fd_in, &width, &height, &frc, &div, &is_yuv4mpeg2, &asr1, &asr2)<0) {
       error=1;
       break;
     }
@@ -243,20 +252,75 @@ void extract_yuv(info_t *ipipe)
   import_exit(error);
 }
 
-float framerates[] = { 0, 23.976, 24.0, 25.0, 29.970, 30.0, 50.0, 59.940, 60.0 };
 
 void probe_yuv(info_t *ipipe)
 {
   
     //only YUV4MPEG supported
 
-    int code;
+    int code=0, div=0, is_yuv4mpeg2=0, asr1=0, asr2=0;
+    float framerates[] = { 0, 23.976, 24.0, 25.0, 29.970, 30.0, 50.0, 59.940, 60.0 };
 
-    yuv_read_header(ipipe->fd_in, &ipipe->probe_info->width, &ipipe->probe_info->height, &code);
+    yuv_read_header(ipipe->fd_in, &ipipe->probe_info->width, 
+	    &ipipe->probe_info->height, &code, &div, &is_yuv4mpeg2, &asr1, &asr2);
 
-    if(code>0 || code <=8) ipipe->probe_info->fps = framerates[code];
+    if (is_yuv4mpeg2) {
+	if (!div) { return; } // XXX
+
+	ipipe->probe_info->fps = (double)code/(double)div;
+
+	if (div == 1) {
+	    div  *= 1000;
+	    code *= 1000;
+	}
+
+	if      (code == 24000 && div == 1001)
+	    ipipe->probe_info->frc=1;
+	else if (code == 24000 && div == 1000)
+	    ipipe->probe_info->frc=2;
+	else if (code == 25000 && div == 1000)
+	    ipipe->probe_info->frc=3;
+	else if (code == 30000 && div == 1001)
+	    ipipe->probe_info->frc=4;
+	else if (code == 30000 && div == 1000)
+	    ipipe->probe_info->frc=5;
+	else if (code == 50000 && div == 1000)
+	    ipipe->probe_info->frc=6;
+	else if (code == 60000 && div == 1001)
+	    ipipe->probe_info->frc=7;
+	else if (code == 60000 && div == 1000)
+	    ipipe->probe_info->frc=8;
+	else if (code == 1000  && div == 1000)
+	    ipipe->probe_info->frc=9;
+	else if (code == 5000  && div == 1000)
+	    ipipe->probe_info->frc=10;
+	else if (code == 10000 && div == 1000)
+	    ipipe->probe_info->frc=11;
+	else if (code == 12000 && div == 1000)
+	    ipipe->probe_info->frc=12;
+	else if (code == 15000 && div == 1000)
+	    ipipe->probe_info->frc=13;
+	else 
+	    ipipe->probe_info->frc=0;
+
+	if (asr1>0 && asr2>0) {
+	    
+	    if      (asr1 == 1 && asr2 == 1)
+		ipipe->probe_info->asr = 1;
+	    else if (asr1 == 4 && asr2 == 3)
+		ipipe->probe_info->asr = 2;
+	    else if (asr1 == 16 && asr2 == 9)
+		ipipe->probe_info->asr = 3;
+	    else if ((double)asr1/(double)asr2 >= 2.21)
+		ipipe->probe_info->asr = 4;
+	}
+
+
+    } else {
+	if(code>0 || code <=8) ipipe->probe_info->fps = framerates[code];
+	ipipe->probe_info->frc=code;
+    }
  
-    ipipe->probe_info->frc=code;
     ipipe->probe_info->codec=TC_CODEC_YV12;
     ipipe->probe_info->magic=TC_MAGIC_YUV4MPEG;
 }
