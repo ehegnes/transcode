@@ -874,9 +874,12 @@ int filter_resample_init(int irate, int orate)
 int filter_resample_flow(char *flowi, int isamp, char *flowo)
 {
 	short *wordp, *iword, *oword;
-	LONG irbuf[MY_BUFSIZE/2];
-	LONG ilbuf[MY_BUFSIZE/2];
+	LONG *irbuf=NULL;
+	LONG *ilbuf=NULL;
 	int osamp, osampdef, i;
+
+	irbuf = malloc (MY_BUFSIZE/2);
+	ilbuf = malloc (MY_BUFSIZE/2);
 
 	iword=(short *)flowi;
 	oword=(short *)flowo;
@@ -896,6 +899,8 @@ int filter_resample_flow(char *flowi, int isamp, char *flowo)
 		wordp[i*2+1]=(int)(leffp->obuf[i]>>16);
 	}
 
+	free(irbuf);
+	free(ilbuf);
 	return(osamp);
 }
 
