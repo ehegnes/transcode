@@ -299,7 +299,7 @@ void seq_write(seq_list_t *ptr)
 
 /* ------------------------------------------------------------------ */
 
-void seq_update(seq_list_t *ptr, int end_pts, int pictures, int packets, int flag)
+void seq_update(seq_list_t *ptr, int end_pts, int pictures, int packets, int flag, int hard_fps)
 {
 
   int tmp;
@@ -340,6 +340,7 @@ void seq_update(seq_list_t *ptr, int end_pts, int pictures, int packets, int fla
 
   } else {
       
+      // first sequence
       ptr->tot_enc_pics = ptr->enc_pics;
       ptr->tot_dec_pics = ptr->seq_pics;
       ptr->tot_packet_ctr = ptr->packet_ctr;
@@ -347,7 +348,7 @@ void seq_update(seq_list_t *ptr, int end_pts, int pictures, int packets, int fla
   }
 
   // (5) total frames as requested by transcode
-  ftot_pts=(double) ptr->tot_pts/90000;
+  ftot_pts=(double) ptr->tot_pts/90000.;
   request_pics = (long) (fps * ftot_pts);
 
   // (6) drop or clone frames of this sequence?
@@ -377,6 +378,11 @@ void seq_update(seq_list_t *ptr, int end_pts, int pictures, int packets, int fla
 
   //3:2 pulldown?
 
+  // disable smooth dropping, pulldown, etc. This makes sense for variable
+  // framerates when the fps changes back and forth from 29.9 to 23.9 fps. The
+  // smooth dropping will work very badly then.
+ if (hard_fps == 0) {
+
   ptr->pulldown=0;
   
   if(adj == -3 && ptr->ptime == 45045 && ptr->seq_pics==15) ptr->pulldown = 1;
@@ -389,6 +395,7 @@ void seq_update(seq_list_t *ptr, int end_pts, int pictures, int packets, int fla
     if(adj==-1 || adj==1 || adj==2) adj=0;
     if(adj== 3) adj=1;
   }
+ }
   
  skip: 
 

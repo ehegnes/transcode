@@ -67,6 +67,7 @@ void tcdemux_thread(info_t *ipipe)
 
     int resync_seq1=0, resync_seq2=INT_MAX, seq_dump, seq_seek;
     int keep_seq = 0;
+    int hard_fps = 0;
 
     int has_pts_dts=0, demux_video=0, demux_audio=0;
 
@@ -177,6 +178,7 @@ void tcdemux_thread(info_t *ipipe)
     fps         = ipipe->fps;
     logfile     = ipipe->name;
     keep_seq    = ipipe->keep_seq;
+    hard_fps    = ipipe->hard_fps_flag;
     
     j=0;  //packet counter
     i=0;  //skipped packets counter
@@ -669,7 +671,7 @@ void tcdemux_thread(info_t *ipipe)
 	    zz=(flag_field_encoded==3)?(seq_picture_ctr-pack_picture_ctr):
 		(seq_picture_ctr-pack_picture_ctr)/2;
 
-	    if(sequence_ctr)  seq_update(ptr->prev, i_pts, zz, packet_ctr, flag_sync_active);
+	    if(sequence_ctr)  seq_update(ptr->prev, i_pts, zz, packet_ctr, flag_sync_active, hard_fps);
 	    
 	    //init sequence information structure for current sequence
 	    

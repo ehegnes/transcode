@@ -31,7 +31,7 @@
 #include "clone.h"
 
 #define MOD_NAME    "import_vob.so"
-#define MOD_VERSION "v0.5.8 (2003-06-11)"
+#define MOD_VERSION "v0.5.9 (2003-07-22)"
 #define MOD_CODEC   "(video) MPEG-2 | (audio) MPEG/AC3/PCM | (subtitle)"
 
 #define MOD_PRE vob
@@ -205,7 +205,8 @@ MOD_open
 	  printf("[%s] failed to create a temporary pipe\n", MOD_NAME);
 	  return(TC_IMPORT_ERROR);
 	} 
-	sprintf(dem_buf, "-M %d -f %f -P %s %s", vob->demuxer, vob->fps, logfile, ((vob->vob_chunk==0)? "": "-O"));
+	sprintf(dem_buf, "-M %d -f %f -P %s %s %s", vob->demuxer, vob->fps, logfile, ((vob->vob_chunk==0)? "": "-O"),
+		((vob->hard_fps_flag==1)?"-H":""));
       } else sprintf(dem_buf, "-M %d", vob->demuxer);
       
       //determine subtream id for sync adjustment

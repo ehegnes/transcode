@@ -78,6 +78,7 @@ void usage(int status)
   fprintf(stderr,"\t-f fps           frame rate [%.3f]\n", PAL_FPS);
   fprintf(stderr,"\t-d mode          verbosity mode\n");
   fprintf(stderr,"\t-A n[,m[...]]    pass-through packet payload id\n");
+  fprintf(stderr,"\t-H               sync hard to supplied fps (no smooth drop)\n");
   fprintf(stderr,"\t-v               print version\n");
 
   exit(status);
@@ -111,6 +112,7 @@ int main(int argc, char *argv[])
     char *magic="", *codec=NULL, *name=NULL;
 
     int keep_initial_seq=0;
+    int hard_fps_flag=0;
 
     char *logfile=SYNC_LOGFILE;
 
@@ -126,7 +128,7 @@ int main(int argc, char *argv[])
 
     for(n=0; n<5; ++n) pass[n]=0;
   
-    while ((ch = getopt(argc, argv, "A:a:d:x:i:vt:S:M:f:P:Ws:O?h")) != -1) {
+    while ((ch = getopt(argc, argv, "A:a:d:x:i:vt:S:M:f:P:WHs:O?h")) != -1) {
 	
       switch (ch) {
 	
@@ -191,6 +193,10 @@ int main(int argc, char *argv[])
       case 'W': 
 	demux_mode = TC_DEMUX_SEQ_LIST;
 	logfile=NULL;
+	break;
+
+      case 'H':
+	hard_fps_flag = 1;
 	break;
 	
       case 'x': 
@@ -344,6 +350,7 @@ int main(int argc, char *argv[])
     ipipe.subid = subid;
     ipipe.fps = fps;
 
+    ipipe.hard_fps_flag = hard_fps_flag;
     ipipe.track = a_track;
     ipipe.name  = logfile;
 
