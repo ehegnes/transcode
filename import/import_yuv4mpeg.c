@@ -49,30 +49,34 @@ char import_cmd_buf[MAX_BUF];
 
 MOD_open
 {
+	if(param->flag == TC_VIDEO)
+	{
+		switch(vob->im_v_codec)
+		{
+			case CODEC_RGB:
+			{
+				if(((unsigned)snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" | tcextract -x yv12 -t yuv4mpeg | tcdecode -x yv12 -g %dx%d", vob->video_in_file, vob->im_v_width, vob->im_v_height)>=MAX_BUF))
+				{
+					perror("cmd buffer overflow");
+					return(TC_IMPORT_ERROR);
+      			}
+
+      			break;
+			}
   
-  
-  if(param->flag == TC_VIDEO) {
-    
-    switch(vob->im_v_codec) {
-      
-    case CODEC_RGB:
-      
-      if(((unsigned)snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" | tcextract -x yv12 -t yuv4mpeg | tcdecode -x yv12 -g %dx%d", vob->video_in_file, vob->im_v_width, vob->im_v_height)>=MAX_BUF)) {
-	perror("cmd buffer overflow");
-	return(TC_IMPORT_ERROR);
-      }
-      
-      break;
-  
-    case CODEC_YUV:
-      
-      if(((unsigned) snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" | tcextract -x yv12 -t yuv4mpeg", vob->video_in_file)>=MAX_BUF)) {
-	perror("cmd buffer overflow");
-	return(TC_IMPORT_ERROR);
-      }
-      
-      break;
-    }
+			case CODEC_YUV:
+			{
+				rgbswap = !rgbswap;
+
+				if(((unsigned) snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" | tcextract -x yv12 -t yuv4mpeg", vob->video_in_file)>=MAX_BUF))
+				{
+					perror("cmd buffer overflow");
+					return(TC_IMPORT_ERROR);
+				}
+	
+      			break;
+			}
+		}
     
     // print out
     if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
@@ -88,9 +92,8 @@ MOD_open
     return(0);
   }
   
-  if(param->flag == TC_AUDIO) {
-    
-    
+  if(param->flag == TC_AUDIO)
+  {
     // need to check if audio and video file are identical, which is
     // not desired
       
