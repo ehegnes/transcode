@@ -9,6 +9,7 @@ transcode-0.6.8
   - Bugfix for v4l import module
   - Bugfix for fast rescaler -X
   - Bugfix for the telecine filter
+  - Bugfix for the text filter
   - No more zombies during PSU mode
   - Fix YUV encoding in image export modules
   - Greatly improved avisplit, avimerge and avisync
@@ -32,7 +33,34 @@ transcode-0.6.8
   - Upgrade included libavcodec to 4669
   - New utility aviindex; generates index of AVI file.
   - Experimental seeking/fast skipping support in AVI files with --nav_seek
+  - Faster skipping. If a frame is skipped, it will bypass all transforms
 
+
+2003-06-30 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * audio_trans.c decoder.c encoder.c filter.c frame_postprocess.c
+  frame_preprocess.c frame_threads.c video_trans.c:
+  XXX: write me: faster skipping, no more internal routines
+  
+2003-06-27 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/filter_text.c:
+  Small bugfix for YUV mode. Do not clamp but rescale from the range
+  from 0-255 to 16-240
+
+2003-06-26 Tilmann Bitterberg <transcode at tibit.org>
+
+  * tools/aviindex.c:
+  When reading the file in dumb mode, scan the file for correct
+  position entries in the idx1 chunk. Sometimes these entries are
+  relative to the start of the file, sometimes relative to start of
+  the "movi" chunk.
+
+  * src/transcode.c:
+  When doing pass-trough mode, we have to start "decoding" at a
+  keyframe position and its not possible to skip frames to the
+  position specified by -c.
+  
 2003-06-25 Tilmann Bitterberg <transcode at tibit.org>
   
   * tools/aviindex.c docs/man/aviindex.1:
@@ -4635,4 +4663,5 @@ transcode-0.2.1 Sun Jun 17 19:55:39 CEST 2001
 transcode-0.2.0 Thu Jun 14 00:05:04 CEST 2001
 
 - initial public release
-	
+
+vim: tw=68
