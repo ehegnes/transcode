@@ -93,9 +93,11 @@ int postprocess_yuv_frame(vob_t *vob, vframe_list_t *ptr)
    
   if(ptr->v_width != vob->ex_v_width || ptr->v_height != vob->ex_v_height) {
     
-    printf("(%s) width %d %d | height %d %d\n", __FILE__, 
+    printf("(%s) width (ptr)%d (vob)%d | height (ptr)%d (vob)%d\n", __FILE__, 
 	   ptr->v_width, vob->ex_v_width, 
 	   ptr->v_height, vob->ex_v_height);
+    printf("(%s) bufid %d tag 0x%x codec 0x%x id %d status %d attributes 0x%x\n", __FILE__, 
+	    ptr->bufid, ptr->tag, ptr->v_codec, ptr->id, ptr->status, ptr->attributes);
     
     tc_error("Oops, frame parameter mismatch detected"); 
   }
@@ -201,6 +203,8 @@ int postprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
 
   if (ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)
       return 0;
+
+ // printf("Doing post_clip for (%d)\n", ptr->id);
   
   // check if a frame data are in RGB colorspace
   
