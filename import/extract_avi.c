@@ -42,6 +42,7 @@
 
 void extract_avi(info_t *ipipe)
 {
+  // seek to vob_offset?
   AVI_dump(ipipe->name, ipipe->select);
 }
 
@@ -52,9 +53,16 @@ void probe_avi(info_t *ipipe)
     int j, tracks;
 
     // scan file
-    if(NULL == (avifile = AVI_open_fd(ipipe->fd_in,1))) {
-	AVI_print_error("AVI open");
-	return;
+    if (ipipe->nav_seek_file) {
+	if(NULL == (avifile = AVI_open_indexfd(ipipe->fd_in,0,ipipe->nav_seek_file))) {
+	    AVI_print_error("AVI open");
+	    return;
+	}
+    } else {
+	if(NULL == (avifile = AVI_open_fd(ipipe->fd_in,1))) {
+	    AVI_print_error("AVI open");
+	    return;
+	}
     }
 
     ipipe->probe_info->frames = AVI_video_frames(avifile);
