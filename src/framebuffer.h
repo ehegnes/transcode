@@ -110,6 +110,7 @@ typedef struct vframe_list {
 vframe_list_t *vframe_register(int id);
 void vframe_remove(vframe_list_t *ptr);
 vframe_list_t *vframe_retrieve();
+vframe_list_t *vframe_dup(vframe_list_t *f);
 vframe_list_t *vframe_retrieve_status(int old_status, int new_status);
 void vframe_set_status(vframe_list_t *ptr, int status);
 int vframe_alloc(int num);
@@ -164,6 +165,7 @@ typedef struct aframe_list {
 aframe_list_t *aframe_register(int id);
 void aframe_remove(aframe_list_t *ptr);
 aframe_list_t *aframe_retrieve();
+aframe_list_t *aframe_dup(aframe_list_t *f);
 aframe_list_t *aframe_retrieve_status(int old_status, int new_status);
 void aframe_set_status(aframe_list_t *ptr, int status);
 int aframe_alloc(int num);
