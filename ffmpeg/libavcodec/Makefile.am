@@ -24,7 +24,7 @@ endif
 if HAVE_PPC_ALTIVEC
 FF_SRC_ALTIVEC = ppc/dsputil_altivec.c ppc/mpegvideo_altivec.c ppc/idct_altivec.c \
 		 ppc/fft_altivec.c ppc/gmc_altivec.c
-ALTIVEC=-faltivec
+ALTIVEC=-maltivec -mabi=altivec
 endif
 
 AM_CFLAGS = -O3 -g -Wall -ffast-math $(ALTIVEC) $(X86) $(MMX) -DHAVE_AV_CONFIG_H -D_GNU_SOURCE --include=../av_config.h
