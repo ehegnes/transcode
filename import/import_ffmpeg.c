@@ -427,10 +427,10 @@ do_dv:
       
       switch (vob->im_v_codec) {
 	case CODEC_RGB:
-	  sprintf(yuv_buf, "rgb");
+	  snprintf(yuv_buf, sizeof(yuv_buf), "rgb");
 	  break;
 	case CODEC_YUV:
-	  sprintf(yuv_buf, "yv12");
+	  snprintf(yuv_buf, sizeof(yuv_buf), "yv12");
 	  break;
       }
 
