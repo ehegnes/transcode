@@ -686,7 +686,7 @@ void rgb_hresize_8_up(char *image, int width, int height, int resize)
 	in  = image + incr *3;
 	out = tmp_image + m;
 	
-	(!((incr+1)%width)) ? memcpy(out, in, 3):rgb_merge_C(in, in+3, out, 3, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
+	(!((incr+1)%width)) ? (void)memcpy(out, in, 3):rgb_merge_C(in, in+3, out, 3, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
 
 	m+=3;
       }
