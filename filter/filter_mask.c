@@ -49,14 +49,12 @@ void ymask_yuv(unsigned char *buf, vob_t *vob, int top, int bottom)
 	bufcr = buf + vob->im_v_width * vob->im_v_height;
 	bufcb = buf + vob->im_v_width * vob->im_v_height * 5/ 4;
 
-
 	for (i = top; i <= bottom; i+=2) {
 		memset(&buf[i * vob->im_v_width], 0x10, vob->im_v_width); 
 		memset(&buf[(i + 1) * vob->im_v_width], 0x10, vob->im_v_width); 
 	    	memset(&bufcr[(i / 2) * w2], 128, w2); 
 	    	memset(&bufcb[(i / 2) * w2], 128, w2); 
 	}
-
 }
 
 void ymask_yuv422(unsigned char *buf, vob_t *vob, int top, int bottom)
@@ -91,7 +89,6 @@ void xmask_yuv(unsigned char *buf, vob_t *vob, int left, int right)
 	bufcb = buf + vob->im_v_width * vob->im_v_height * 5/ 4;
 
 	/* Y */
-
 	for (i = left; i < right; i++) {
 		ptr = &buf[i]; 
 		ptrmax = &buf[i + (vob->im_v_height * vob->im_v_width)]; 
@@ -178,26 +175,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   int _rc, _bc;
 
-  // API explanation:
-  // ================
-  //
-  // (1) need more infos, than get pointer to transcode global 
-  //     information structure vob_t as defined in transcode.h.
-  //
-  // (2) 'tc_get_vob' and 'verbose' are exported by transcode.
-  //
-  // (3) filter is called first time with TC_FILTER_INIT flag set.
-  //
-  // (4) make sure to exit immediately if context (video/audio) or 
-  //     placement of call (pre/post) is not compatible with the filters 
-  //     intended purpose, since the filter is called 4 times per frame.
-  //
-  // (5) see framebuffer.h for a complete list of frame_list_t variables.
-  //
-  // (6) filter is last time with TC_FILTER_CLOSE flag set
-
-
-
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
       char buf[32];
 
@@ -211,12 +188,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
       return 0;
   }
+
   //----------------------------------
   //
   // filter init
   //
   //----------------------------------
-
 
   if(ptr->tag & TC_FILTER_INIT) {
     
@@ -259,7 +236,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // filter close
   //
   //----------------------------------
-
   
   if(ptr->tag & TC_FILTER_CLOSE) {
     
@@ -275,7 +251,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // filter frame routine
   //
   //----------------------------------
-  
   
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines

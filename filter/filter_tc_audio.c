@@ -47,31 +47,12 @@ int tc_filter(aframe_list_t *ptr, char *options)
   double fch;
   int leap_bytes1, leap_bytes2;
 
-  // API explanation:
-  // ================
-  //
-  // (1) need more infos, than get pointer to transcode global 
-  //     information structure vob_t as defined in transcode.h.
-  //
-  // (2) 'tc_get_vob' and 'verbose' are exported by transcode.
-  //
-  // (3) filter is called first time with TC_FILTER_INIT flag set.
-  //
-  // (4) make sure to exit immediately if context (video/audio) or 
-  //     placement of call (pre/post) is not compatible with the filters 
-  //     intended purpose, since the filter is called 4 times per frame.
-  //
-  // (5) see framebuffer.h for a complete list of frame_list_t variables.
-  //
-  // (6) filter is last time with TC_FILTER_CLOSE flag set
-
 
   //----------------------------------
   //
   // filter init
   //
   //----------------------------------
-
 
   if (ptr->tag & TC_VIDEO)
 	  return (0);
@@ -137,7 +118,6 @@ int tc_filter(aframe_list_t *ptr, char *options)
   //
   //----------------------------------
 
-  
   if(ptr->tag & TC_FILTER_CLOSE) {
     return(0);
   }

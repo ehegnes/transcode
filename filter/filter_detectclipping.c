@@ -124,7 +124,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //
   //----------------------------------
 
-
   if(ptr->tag & TC_FILTER_INIT) {
 
     if((vob = tc_get_vob())==NULL) return(-1);
@@ -188,12 +187,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	return -1;
     }
 
-
-
-
     // filter init ok.
     if (verbose) printf("[%s] %s %s #%d\n", MOD_NAME, MOD_VERSION, MOD_CAP, ptr->filter_id);
-
     
     return(0);
   }
@@ -204,7 +199,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //
   //----------------------------------
 
-  
   if(ptr->tag & TC_FILTER_CLOSE) {
 
     if (mfd[ptr->filter_id]) { 
@@ -221,7 +215,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // filter frame routine
   //
   //----------------------------------
-
     
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
@@ -267,7 +260,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	    break;
 	}
     }
-
 
     t = (mfd[ptr->filter_id]->y1+1)&(~1);
     l = (mfd[ptr->filter_id]->x1+1)&(~1);

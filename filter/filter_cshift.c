@@ -127,25 +127,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   static vob_t *vob=NULL;
 
-  // API explanation:
-  // ================
-  //
-  // (1) need more infos, than get pointer to transcode global 
-  //     information structure vob_t as defined in transcode.h.
-  //
-  // (2) 'tc_get_vob' and 'verbose' are exported by transcode.
-  //
-  // (3) filter is called first time with TC_FILTER_INIT flag set.
-  //
-  // (4) make sure to exit immediately if context (video/audio) or 
-  //     placement of call (pre/post) is not compatible with the filters 
-  //     intended purpose, since the filter is called 4 times per frame.
-  //
-  // (5) see framebuffer.h for a complete list of frame_list_t variables.
-  //
-  // (6) filter is last time with TC_FILTER_CLOSE flag set
-
-
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
       char buf[32];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYE", "1");
@@ -154,12 +135,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
       optstr_param (options, "shift", "Shift chroma(color) to the left", "%d", buf, "0", "width");
       return 0;
   }
+
   //----------------------------------
   //
   // filter init
   //
   //----------------------------------
-
 
   if(ptr->tag & TC_FILTER_INIT) {
     
@@ -190,7 +171,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // filter close
   //
   //----------------------------------
-
   
   if(ptr->tag & TC_FILTER_CLOSE) {
     
@@ -206,8 +186,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // filter frame routine
   //
   //----------------------------------
-  
-  
+    
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
