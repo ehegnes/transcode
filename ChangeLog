@@ -1,6 +1,14 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-06-09 Andrew Church <achurch at achurch.org>
+
+  * bbmpeg/tcmplex/multplex.c:
+  When given two audio streams, tcmplex stores the secondary one first
+  in the file; this confuses at least mplayer (I don't know how hardware
+  players would handle it) into using the "secondary" stream as default.
+  This patch puts the primary stream first instead.
+
 2004-06-09 Christopher Cramer <crayc at pyro.net>
 
   * filter/filter_fps.c:

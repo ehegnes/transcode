@@ -146,11 +146,13 @@ unsigned int    which_streams)
   double org_video_delay=0.0f, org_audio_delay=0.0f, org_audio1_delay=0.0f;
   int first_audio, first_audio1, k;
   char audio_restart_output, audio1_restart_output;
+  int want_audio1;
 
   output_sys_header = TRUE;
   audio_PSTD = TRUE;
   audio1_PSTD = TRUE;
   video_PSTD = TRUE;
+  want_audio1 = FALSE;
 
   istream_v = NULL;
   istream_a = NULL;
@@ -954,7 +956,7 @@ unsigned int    which_streams)
       /* CASE: Audio Buffer OK, Audio Data ready		*/
       /*	 Video Data will arrive on time			*/
       else
-        if ((audio_state || second_data_packet) && !audio1_state)
+        if ((audio_state || second_data_packet) && (!audio1_state || !want_audio1))
         {
           /* write out audio packet */
           if (!output_audio(&current_SCR, &SCR_audio_delay, aunits_info,
@@ -974,6 +976,7 @@ unsigned int    which_streams)
                         buffer_space(&audio_buffer),
                         buffer_space(&audio1_buffer));
           current_sector++;
+          want_audio1 = TRUE;
         }
 
         /* CASE: Audio1 Buffer OK, Audio1 Data ready		*/
@@ -981,6 +984,7 @@ unsigned int    which_streams)
         else
           if (audio1_state)
           {
+            want_audio1 = FALSE;
             /* write out audio packet */
             if (!output_audio(&current_SCR, &SCR_audio1_delay, aunits1_info,
                               istream_a1, &pack, &sys_header,
