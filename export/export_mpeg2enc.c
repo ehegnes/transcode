@@ -70,7 +70,7 @@ static int y4m_snprint_xtags(char *s, int maxn, y4m_xtag_list_t *xtags)
 {
   int i, room;
   
-  for (i = 0, room = maxn - 1; i < y4m_xtag_count(&xtags); i++) {
+  for (i = 0, room = maxn - 1; i < y4m_xtag_count(xtags); i++) {
     int n = snprintf(s, room + 1, " %s", y4m_xtag_get(&xtags, i));
     if ((n < 0) || (n > room)) return Y4M_ERR_HEADER;
     s += n;
