@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-23 Caron Dominique <caron at LPM.univ-montp2.fr>
+
+  * contrib/V2divx.pl:
+  Updated script. Can now encode NTSC vob files.
+
 2004-01-23 Stéphane Gourichon <gouri at free.fr>
 
   * export/export_ppm.c:
