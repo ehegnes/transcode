@@ -1,6 +1,9 @@
 --------------------------------------------
 transcode-0.6.4.HEAD
 
+- Read number of channels from an ac3 stream. This is mainly important
+  when using -A -N 0x2000. Pointed out by Xavier <xizard at enib.fr>
+
 - Added manpage explanation of de-interlacing algos -I1-5
    -- marrq <marrq at ugcs.caltech.edu>
 
@@ -26,6 +29,7 @@ transcode-0.6.4.HEAD
   by Moritz Bunkus and I took large code portions from him.
 
 - added Documentation for logoaway filter
+   -- Thomas Wehrspann <thomas at wehrspann.de>
 
 - Finished import_avi/export_raw fix for uncompressed RGB avifiles. They
   must be aligned on a 4 byte boundary.

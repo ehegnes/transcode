@@ -62,6 +62,8 @@ typedef struct ac3_frame_s
 void ac3_init(ac3_config_t *config);
 ac3_frame_t* ac3_decode_frame(int banner);
 
+//tibit
+int get_ac3_nfchans(char *buf);
 //ThOe
 int get_ac3_framesize(char *buf);
 int get_ac3_bitrate(char *buf);

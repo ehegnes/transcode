@@ -73,7 +73,7 @@ static int verbose_flag=TC_QUIET;
 int buf_probe_ac3(unsigned char *_buf, int len, pcm_t *pcm)
 {
 
-  int j=0, i=0, bitrate, fsize;
+  int j=0, i=0, bitrate, fsize, nfchans;
 
   char *buffer;
 
@@ -97,11 +97,12 @@ int buf_probe_ac3(unsigned char *_buf, int len, pcm_t *pcm)
   j = get_ac3_samplerate(&buffer[i+1]);
   bitrate = get_ac3_bitrate(&buffer[i+1]);  
   fsize = 2*get_ac3_framesize(&buffer[i+1]);
+  nfchans = get_ac3_nfchans(&buffer[i+1]);
   
   if(j<0 || bitrate <0) return(-1);
 
   pcm->samplerate = j;
-  pcm->chan = 2;
+  pcm->chan = (nfchans<=0?2:nfchans);
   pcm->bits = 16;
   pcm->format = CODEC_AC3;
   pcm->bitrate = bitrate;

@@ -116,6 +116,23 @@ int get_ac3_framesize(char *buf)
   return(frmsizecod_tbl[frmsizecod].frm_size[fscod]);
 }
 
+// tibit
+int get_ac3_nfchans(char *buf) 
+{
+  int acmod = 0;
+  uint_8 tmp = 0;
+
+  // skip syncinfo (size = 5bytes);
+  buf += 5;
+  // skip to acmod
+  buf += 1;
+  acmod = (*buf>>5)&0x7;
+
+  if (acmod < 0 || acmod > 7) return -1;
+
+  return(nfchans[acmod]);
+}
+
 
 int get_ac3_bitrate(char *buf) 
 {
@@ -138,6 +155,7 @@ int get_ac3_samplerate(char *buf)
 {
   int fscod, sampling_rate;
   uint_32 tmp = 0;
+  bsi_t bsi;
 
   tmp=get_ac3_header(buf);
   
@@ -154,7 +172,7 @@ int get_ac3_samplerate(char *buf)
     sampling_rate = 44100;
   else
     sampling_rate = 48000;
-  
+
   return(sampling_rate);
 }
 
