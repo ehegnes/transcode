@@ -331,6 +331,14 @@ void process_ogm(int fdin, int fdout)
       ogg_stream_packetout(&sstate, &pack);
 
       if ((pack.bytes >= 7) && ! strncmp(&pack.packet[1], "vorbis", 6)) {
+
+        stream = (stream_t *)malloc(sizeof(stream_t));
+        if (stream == NULL) {
+          fprintf(stderr, "malloc failed.\n");
+          exit(1);
+        }
+
+        memset(stream, 0, sizeof(stream_t));
         if (verbose > 0) {
           vorbis_info_init(&vi);
           vorbis_comment_init(&vc);
@@ -344,12 +352,6 @@ void process_ogm(int fdin, int fdout)
                     "but no Vorbis stream header found.\n", __FILE__,
                     nastreams + 1, numstreams + 1);
         }
-        stream = (stream_t *)malloc(sizeof(stream_t));
-        if (stream == NULL) {
-          fprintf(stderr, "malloc failed.\n");
-          exit(1);
-        }
-        memset(stream, 0, sizeof(stream_t));
         stream->serial = sno;
         stream->acodec = ACVORBIS;
         stream->sample_rate = -1;
