@@ -87,33 +87,6 @@ void flush_put_bits(PutBitContext *s)
 #endif
 }
 
-/* pad the end of the output stream with zeros */
-#ifndef ALT_BITSTREAM_WRITER
-void jflush_put_bits(PutBitContext *s)
-{
-    unsigned int b;
-    s->bit_buf<<= s->bit_left;
-    s->bit_buf |= ~1U >> (32 - s->bit_left); /* set all the unused bits to one */
-
-    while (s->bit_left < 32) {
-        b = s->bit_buf >> 24;
-        *s->buf_ptr++ = b;
-        if (b == 0xff)
-            *s->buf_ptr++ = 0;
-        s->bit_buf<<=8;
-        s->bit_left+=8;
-    }
-    s->bit_left=32;
-    s->bit_buf=0;
-}
-#else
-void jflush_put_bits(PutBitContext *s)
-{
-    int num= (  - s->index) & 7;
-    jput_bits(s, num,0xFF>>(8-num));
-}
-#endif
-
 void put_string(PutBitContext * pbc, char *s)
 {
     while(*s){
@@ -160,7 +133,7 @@ void align_get_bits(GetBitContext *s)
     if(n) skip_bits(s, n);
 }
 
-int check_marker(GetBitContext *s, char *msg)
+int check_marker(GetBitContext *s, const char *msg)
 {
     int bit= get_bits1(s);
     if(!bit) printf("Marker bit missing %s\n", msg);
@@ -174,7 +147,7 @@ int check_marker(GetBitContext *s, char *msg)
 
 #define GET_DATA(v, table, i, wrap, size) \
 {\
-    UINT8 *ptr = (UINT8 *)table + i * wrap;\
+    const UINT8 *ptr = (UINT8 *)table + i * wrap;\
     switch(size) {\
     case 1:\
         v = *(UINT8 *)ptr;\
@@ -352,4 +325,30 @@ void free_vlc(VLC *vlc)
 int ff_gcd(int a, int b){
     if(b) return ff_gcd(b, a%b);
     else  return a;
+}
+
+void ff_float2fraction(int *nom_arg, int *denom_arg, double f, int max){
+    double best_diff=1E10, diff;
+    int best_denom=1, best_nom=1;
+    int nom, denom, gcd;
+    
+    //brute force here, perhaps we should try continued fractions if we need large max ...
+    for(denom=1; denom<=max; denom++){
+        nom= (int)(f*denom + 0.5);
+        if(nom<=0 || nom>max) continue;
+        
+        diff= ABS( f - (double)nom / (double)denom );
+        if(diff < best_diff){
+            best_diff= diff;
+            best_nom= nom;
+            best_denom= denom;
+        }
+    }
+    
+    gcd= ff_gcd(best_nom, best_denom);
+    best_nom   /= gcd;
+    best_denom /= gcd;
+
+    *nom_arg= best_nom;
+    *denom_arg= best_denom;
 }

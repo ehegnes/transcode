@@ -131,10 +131,14 @@ static void mpeg1_encode_sequence_header(MpegEncContext *s)
 {
         unsigned int vbv_buffer_size;
         unsigned int fps, v;
-        int n;
+        int n, i;
         UINT64 time_code;
+        float best_aspect_error= 1E10;
+        float aspect_ratio= s->avctx->aspect_ratio;
         
-        if (s->picture_in_gop_number == 0) {
+        if(aspect_ratio==0.0) aspect_ratio= s->width / (float)s->height; //pixel aspect 1:1 (VGA)
+        
+        if (s->current_picture.key_frame) {
             /* mpeg1 header repeated every gop */
             put_header(s, SEQ_START_CODE);
             
@@ -154,7 +158,18 @@ static void mpeg1_encode_sequence_header(MpegEncContext *s)
  
             put_bits(&s->pb, 12, s->width);
             put_bits(&s->pb, 12, s->height);
-            put_bits(&s->pb, 4, 1); /* 1/1 aspect ratio */
+            
+            for(i=1; i<15; i++){
+                float error= mpeg1_aspect[i] - s->width/(s->height*aspect_ratio);
+                error= ABS(error);
+                
+                if(error < best_aspect_error){
+                    best_aspect_error= error;
+                    s->aspect_ratio_info= i;
+                }
+            }
+            
+            put_bits(&s->pb, 4, s->aspect_ratio_info);
             put_bits(&s->pb, 4, s->frame_rate_index);
             v = s->bit_rate / 400;
             if (v > 0x3ffff)
@@ -721,6 +736,7 @@ static int mpeg_decode_mb(MpegEncContext *s,
             s->mv[1][0][0] = s->last_mv[1][0][0];
             s->mv[1][0][1] = s->last_mv[1][0][1];
         }
+
         s->mb_skiped = 1;
         return 0;
     }
@@ -1359,7 +1375,6 @@ static int mpeg_decode_init(AVCodecContext *avctx)
     s->mpeg_enc_ctx.picture_number = 0;
     s->repeat_field = 0;
     s->mpeg_enc_ctx.codec_id= avctx->codec->id;
-    avctx->mbskip_table= s->mpeg_enc_ctx.mbskip_table;
     return 0;
 }
 
@@ -1402,6 +1417,7 @@ static int mpeg1_decode_picture(AVCodecContext *avctx,
     ref = get_bits(&s->gb, 10); /* temporal ref */
     s->pict_type = get_bits(&s->gb, 3);
     dprintf("pict_type=%d number=%d\n", s->pict_type, s->picture_number);
+
     skip_bits(&s->gb, 16);
     if (s->pict_type == P_TYPE || s->pict_type == B_TYPE) {
         s->full_pel[0] = get_bits1(&s->gb);
@@ -1419,6 +1435,9 @@ static int mpeg1_decode_picture(AVCodecContext *avctx,
         s->mpeg_f_code[1][0] = f_code;
         s->mpeg_f_code[1][1] = f_code;
     }
+    s->current_picture.pict_type= s->pict_type;
+    s->current_picture.key_frame= s->pict_type == I_TYPE;
+    
     s->y_dc_scale = 8;
     s->c_dc_scale = 8;
     s->first_slice = 1;
@@ -1428,8 +1447,9 @@ static int mpeg1_decode_picture(AVCodecContext *avctx,
 static void mpeg_decode_sequence_extension(MpegEncContext *s)
 {
     int horiz_size_ext, vert_size_ext;
-    int bit_rate_ext, vbv_buf_ext, low_delay;
+    int bit_rate_ext, vbv_buf_ext;
     int frame_rate_ext_n, frame_rate_ext_d;
+    float aspect;
 
     skip_bits(&s->gb, 8); /* profil and level */
     s->progressive_sequence = get_bits1(&s->gb); /* progressive_sequence */
@@ -1442,7 +1462,7 @@ static void mpeg_decode_sequence_extension(MpegEncContext *s)
     s->bit_rate = ((s->bit_rate / 400) | (bit_rate_ext << 12)) * 400;
     skip_bits1(&s->gb); /* marker */
     vbv_buf_ext = get_bits(&s->gb, 8);
-    low_delay = get_bits1(&s->gb);
+    s->low_delay = get_bits1(&s->gb);
     frame_rate_ext_n = get_bits(&s->gb, 2);
     frame_rate_ext_d = get_bits(&s->gb, 5);
     if (frame_rate_ext_d >= 1)
@@ -1450,6 +1470,10 @@ static void mpeg_decode_sequence_extension(MpegEncContext *s)
     dprintf("sequence extension\n");
     s->mpeg2 = 1;
     s->avctx->sub_id = 2; /* indicates mpeg2 found */
+
+    aspect= mpeg2_aspect[s->aspect_ratio_info];
+    if(aspect>0.0)      s->avctx->aspect_ratio= s->width/(aspect*s->height);
+    else if(aspect<0.0) s->avctx->aspect_ratio= -1.0/aspect;
 }
 
 static void mpeg_decode_quant_matrix_extension(MpegEncContext *s)
@@ -1559,9 +1583,20 @@ static void mpeg_decode_extension(AVCodecContext *avctx,
     }
 }
 
-/* return 1 if end of frame */
+#define DECODE_SLICE_FATAL_ERROR -2
+#define DECODE_SLICE_ERROR -1
+#define DECODE_SLICE_OK 0
+#define DECODE_SLICE_EOP 1
+
+/**
+ * decodes a slice.
+ * @return DECODE_SLICE_FATAL_ERROR if a non recoverable error occured<br>
+ *         DECODE_SLICE_ERROR if the slice is damaged<br>
+ *         DECODE_SLICE_OK if this slice is ok<br>
+ *         DECODE_SLICE_EOP if the end of the picture is reached
+ */
 static int mpeg_decode_slice(AVCodecContext *avctx, 
-                              AVPicture *pict,
+                              AVFrame *pict,
                               int start_code,
                               UINT8 *buf, int buf_size)
 {
@@ -1572,7 +1607,7 @@ static int mpeg_decode_slice(AVCodecContext *avctx,
     start_code = (start_code - 1) & 0xff;
     if (start_code >= s->mb_height){
         fprintf(stderr, "slice below image (%d >= %d)\n", start_code, s->mb_height);
-        return -1;
+        return DECODE_SLICE_ERROR;
     }
     s->last_dc[0] = 1 << (7 + s->intra_dc_precision);
     s->last_dc[1] = s->last_dc[0];
@@ -1581,7 +1616,17 @@ static int mpeg_decode_slice(AVCodecContext *avctx,
     /* start frame decoding */
     if (s->first_slice) {
         s->first_slice = 0;
-        MPV_frame_start(s, avctx);
+        if(MPV_frame_start(s, avctx) < 0)
+            return DECODE_SLICE_FATAL_ERROR;
+            
+        if(s->avctx->debug&FF_DEBUG_PICT_INFO){
+             printf("qp:%d fc:%d%d%d%d %s %s %s %s dc:%d pstruct:%d fdct:%d cmv:%d qtype:%d ivlc:%d rff:%d %s\n", 
+                 s->qscale, s->mpeg_f_code[0][0],s->mpeg_f_code[0][1],s->mpeg_f_code[1][0],s->mpeg_f_code[1][1],
+                 s->pict_type == I_TYPE ? "I" : (s->pict_type == P_TYPE ? "P" : (s->pict_type == B_TYPE ? "B" : "S")), 
+                 s->progressive_sequence ? "pro" :"", s->alternate_scan ? "alt" :"", s->top_field_first ? "top" :"", 
+                 s->intra_dc_precision, s->picture_structure, s->frame_pred_frame_dct, s->concealment_motion_vectors,
+                 s->q_scale_type, s->intra_vlc_format, s->repeat_first_field, s->chroma_420_type ? "420" :"");
+        }
     }
 
     init_get_bits(&s->gb, buf, buf_size);
@@ -1611,8 +1656,7 @@ static int mpeg_decode_slice(AVCodecContext *avctx,
     s->mb_incr= 1;
 
     for(;;) {
-        clear_blocks(s->block[0]);
-        emms_c();
+	s->dsp.clear_blocks(s->block[0]);
         
         ret = mpeg_decode_mb(s, s->block);
         dprintf("ret=%d\n", ret);
@@ -1622,30 +1666,7 @@ static int mpeg_decode_slice(AVCodecContext *avctx,
         MPV_decode_mb(s, s->block);
 
         if (++s->mb_x >= s->mb_width) {
-            if (    avctx->draw_horiz_band 
-                && (s->num_available_buffers>=1 || (!s->has_b_frames)) ) {
-                UINT8 *src_ptr[3];
-                int y, h, offset;
-                y = s->mb_y * 16;
-                h = s->height - y;
-                if (h > 16)
-                    h = 16;
-                if(s->pict_type==B_TYPE)
-                    offset = 0;
-                else
-                    offset = y * s->linesize;
-                if(s->pict_type==B_TYPE || (!s->has_b_frames)){
-                    src_ptr[0] = s->current_picture[0] + offset;
-                    src_ptr[1] = s->current_picture[1] + (offset >> 2);
-                    src_ptr[2] = s->current_picture[2] + (offset >> 2);
-                } else {
-                    src_ptr[0] = s->last_picture[0] + offset;
-                    src_ptr[1] = s->last_picture[1] + (offset >> 2);
-                    src_ptr[2] = s->last_picture[2] + (offset >> 2);
-                }
-                avctx->draw_horiz_band(avctx, src_ptr, s->linesize,
-                                   y, s->width, h);
-            }
+            ff_draw_horiz_band(s);
 
             s->mb_x = 0;
             s->mb_y++;
@@ -1674,7 +1695,7 @@ static int mpeg_decode_slice(AVCodecContext *avctx,
         }
         if(s->mb_y >= s->mb_height){
             fprintf(stderr, "slice too long\n");
-            return -1;
+            return DECODE_SLICE_ERROR;
         }
     }
 eos: //end of slice
@@ -1685,39 +1706,27 @@ eos: //end of slice
     if (/*s->mb_x == 0 &&*/
         s->mb_y == s->mb_height) {
         /* end of image */
-        UINT8 **picture;
+
+        if(s->mpeg2)
+            s->qscale >>=1;
 
         MPV_frame_end(s);
 
-        /* XXX: incorrect reported qscale for mpeg2 */
-        if (s->pict_type == B_TYPE) {
-            picture = s->current_picture;
-            avctx->quality = s->qscale;
+        if (s->pict_type == B_TYPE || s->low_delay) {
+            *pict= *(AVFrame*)&s->current_picture;
         } else {
+            s->picture_number++;
             /* latency of 1 frame for I and P frames */
             /* XXX: use another variable than picture_number */
-            if (s->picture_number == 0) {
-                picture = NULL;
+            if (s->last_picture.data[0] == NULL) {
+                return DECODE_SLICE_OK;
             } else {
-                picture = s->last_picture;
-                avctx->quality = s->last_qscale;
+                *pict= *(AVFrame*)&s->last_picture;
             }
-            s->last_qscale = s->qscale;
-            s->picture_number++;
         }
-        if (picture) {
-            pict->data[0] = picture[0];
-            pict->data[1] = picture[1];
-            pict->data[2] = picture[2];
-            pict->linesize[0] = s->linesize;
-            pict->linesize[1] = s->uvlinesize;
-            pict->linesize[2] = s->uvlinesize;
-            return 1;
-        } else {
-            return 0;
-        }
+        return DECODE_SLICE_EOP;
     } else {
-        return 0;
+        return DECODE_SLICE_OK;
     }
 }
 
@@ -1727,12 +1736,18 @@ static int mpeg1_decode_sequence(AVCodecContext *avctx,
     Mpeg1Context *s1 = avctx->priv_data;
     MpegEncContext *s = &s1->mpeg_enc_ctx;
     int width, height, i, v, j;
+    float aspect;
 
     init_get_bits(&s->gb, buf, buf_size);
 
     width = get_bits(&s->gb, 12);
     height = get_bits(&s->gb, 12);
-    skip_bits(&s->gb, 4);
+    s->aspect_ratio_info= get_bits(&s->gb, 4);
+    if(!s->mpeg2){
+        aspect= mpeg1_aspect[s->aspect_ratio_info];
+        if(aspect!=0.0) avctx->aspect_ratio= width/(aspect*height);
+    }
+
     s->frame_rate_index = get_bits(&s->gb, 4);
     if (s->frame_rate_index == 0)
         return -1;
@@ -1751,7 +1766,7 @@ static int mpeg1_decode_sequence(AVCodecContext *avctx,
         }
         s->width = width;
         s->height = height;
-        avctx->has_b_frames= s->has_b_frames = 1;
+        avctx->has_b_frames= 1;
         s->avctx = avctx;
         avctx->width = width;
         avctx->height = height;
@@ -1834,7 +1849,7 @@ static int mpeg_decode_frame(AVCodecContext *avctx,
     Mpeg1Context *s = avctx->priv_data;
     UINT8 *buf_end, *buf_ptr, *buf_start;
     int len, start_code_found, ret, code, start_code, input_size;
-    AVPicture *picture = data;
+    AVFrame *picture = data;
     MpegEncContext *s2 = &s->mpeg_enc_ctx;
             
     dprintf("fill_buffer\n");
@@ -1844,13 +1859,9 @@ static int mpeg_decode_frame(AVCodecContext *avctx,
     /* special case for last picture */
     if (buf_size == 0) {
         if (s2->picture_number > 0) {
-            picture->data[0] = s2->next_picture[0];
-            picture->data[1] = s2->next_picture[1];
-            picture->data[2] = s2->next_picture[2];
-            picture->linesize[0] = s2->linesize;
-            picture->linesize[1] = s2->uvlinesize;
-            picture->linesize[2] = s2->uvlinesize;
-            *data_size = sizeof(AVPicture);
+            *picture= *(AVFrame*)&s2->next_picture;
+
+            *data_size = sizeof(AVFrame);
         }
         return 0;
     }
@@ -1888,7 +1899,7 @@ static int mpeg_decode_frame(AVCodecContext *avctx,
         } else {
             memcpy(s->buf_ptr, buf_start, len);
             s->buf_ptr += len;
-            if(   (s2->flags&CODEC_FLAG_NOT_TRUNCATED) && (!start_code_found) 
+            if(   (!(s2->flags&CODEC_FLAG_TRUNCATED)) && (!start_code_found) 
                && s->buf_ptr+4<s->buffer+s->buffer_size){
                 start_code_found= 1;
                 code= 0x1FF;
@@ -1923,9 +1934,17 @@ static int mpeg_decode_frame(AVCodecContext *avctx,
                 default:
                     if (start_code >= SLICE_MIN_START_CODE &&
                         start_code <= SLICE_MAX_START_CODE) {
+                        
+                        /* skip b frames if we dont have reference frames */
+                        if(s2->last_picture.data[0]==NULL && s2->pict_type==B_TYPE) break;
+                        /* skip b frames if we are in a hurry */
+                        if(avctx->hurry_up && s2->pict_type==B_TYPE) break;
+                        /* skip everything if we are in a hurry>=5 */
+                        if(avctx->hurry_up>=5) break;
+
                         ret = mpeg_decode_slice(avctx, picture,
                                                 start_code, s->buffer, input_size);
-                        if (ret == 1) {
+                        if (ret == DECODE_SLICE_EOP) {
                             /* got a picture: exit */
                             /* first check if we must repeat the frame */
                             avctx->repeat_pict = 0;
@@ -1951,8 +1970,9 @@ static int mpeg_decode_frame(AVCodecContext *avctx,
                             }         
                             *data_size = sizeof(AVPicture);
                             goto the_end;
-                        }else if(ret==-1){
-                            printf("Error while decoding slice\n");
+                        }else if(ret<0){
+                            fprintf(stderr,"Error while decoding slice\n");
+			    if(ret==DECODE_SLICE_FATAL_ERROR) return -1;
                         }
                     }
                     break;
@@ -1982,5 +2002,5 @@ AVCodec mpeg_decoder = {
     NULL,
     mpeg_decode_end,
     mpeg_decode_frame,
-    CODEC_CAP_DRAW_HORIZ_BAND | CODEC_CAP_DR1,
+    CODEC_CAP_DRAW_HORIZ_BAND | CODEC_CAP_DR1 | CODEC_CAP_TRUNCATED,
 };

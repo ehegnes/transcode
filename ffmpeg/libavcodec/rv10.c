@@ -416,7 +416,8 @@ static int rv10_decode_packet(AVCodecContext *avctx,
     }
 
     if (s->mb_x == 0 && s->mb_y == 0) {
-        MPV_frame_start(s, avctx);
+        if(MPV_frame_start(s, avctx) < 0)
+            return -1;
     }
 
 #ifdef DEBUG
@@ -446,7 +447,7 @@ static int rv10_decode_packet(AVCodecContext *avctx,
         printf("**mb x=%d y=%d\n", s->mb_x, s->mb_y);
 #endif
         
-        clear_blocks(s->block[0]);
+	s->dsp.clear_blocks(s->block[0]);
         s->mv_dir = MV_DIR_FORWARD;
         s->mv_type = MV_TYPE_16X16; 
         if (ff_h263_decode_mb(s, s->block) == SLICE_ERROR) {
@@ -471,7 +472,7 @@ static int rv10_decode_frame(AVCodecContext *avctx,
 {
     MpegEncContext *s = avctx->priv_data;
     int i;
-    AVPicture *pict = data; 
+    AVFrame *pict = data; 
 
 #ifdef DEBUG
     printf("*****frame %d size=%d\n", avctx->frame_number, buf_size);
@@ -504,15 +505,9 @@ static int rv10_decode_frame(AVCodecContext *avctx,
     if(s->mb_y>=s->mb_height){
         MPV_frame_end(s);
         
-        pict->data[0] = s->current_picture[0];
-        pict->data[1] = s->current_picture[1];
-        pict->data[2] = s->current_picture[2];
-        pict->linesize[0] = s->linesize;
-        pict->linesize[1] = s->uvlinesize;
-        pict->linesize[2] = s->uvlinesize;
+        *pict= *(AVFrame*)&s->current_picture;
     
-        avctx->quality = s->qscale;
-        *data_size = sizeof(AVPicture);
+        *data_size = sizeof(AVFrame);
     }else{
         *data_size = 0;
     }

@@ -5,7 +5,10 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 INCLUDES = -I../../ 
 
 if HAVE_MMX
-FF_SRC_MMX = dsputil_mmx.c fdct_mmx.c idct_mmx.c mpegvideo_mmx.c simple_idct_mmx.c motion_est_mmx.c cputest.c
+FF_SRC_MMX = i386/fdct_mmx.c i386/cputest.c \
+	i386/dsputil_mmx.c i386/mpegvideo_mmx.c \
+	i386/idct_mmx.c i386/motion_est_mmx.c \
+	i386/simple_idct_mmx.c
 MMX = -DHAVE_MMX
 endif
 
@@ -14,12 +17,27 @@ if ARCH_X86
 X86=-DARCH_X86
 endif
 
-CFLAGS = -O3 -g -Wall -ffast-math $(X86) $(MMX) -DHAVE_AV_CONFIG_H -D_GNU_SOURCE --include=../av_config.h
+if ARCH_PPC
+FF_SRC_PPC = ppc/dsputil_ppc.c ppc/mpegvideo_ppc.c
+endif
+
+if HAVE_PPC_ALTIVEC
+FF_SRC_ALTIVEC = ppc/dsputil_altivec.c ppc/mpegvideo_altivec.c ppc/idct_altivec.c
+ALTIVEC=-faltivec
+endif
+
+AM_CFLAGS = -O3 -g -Wall -ffast-math $(ALTIVEC) $(X86) $(MMX) -DHAVE_AV_CONFIG_H -D_GNU_SOURCE --include=../av_config.h
 
 noinst_LIBRARIES = libavcodec.a
 
-libavcodec_a_SOURCES = ac3enc.c common.c mpegaudio.c utils.c jfdctfst.c dsputil.c mpeg12.c h263.c h263dec.c mpegvideo.c rv10.c mjpeg.c msmpeg4.c motion_est.c $(FF_SRC_MMX) jrevdct.c jfdctint.c fdctdata.c resample.c motion_est.c mpegaudiodec.c pcm.c simple_idct.c ratecontrol.c svq1.c mem.c allcodecs.c  error_resilience.c avcodec.c adpcm.c imgconvert.c imgresample.c eval.c dv.c
+libavcodec_a_SOURCES = \
+ common.c utils.c mem.c allcodecs.c \
+      mpegvideo.c h263.c jrevdct.c jfdctfst.c jfdctint.c\
+      mpegaudio.c ac3enc.c mjpeg.c resample.c dsputil.c \
+      motion_est.c imgconvert.c imgresample.c msmpeg4.c \
+      mpeg12.c h263dec.c svq1.c rv10.c mpegaudiodec.c pcm.c simple_idct.c \
+      ratecontrol.c adpcm.c eval.c dv.c error_resilience.c \
+      wmadec.c fft.c mdct.c mace.c \
+      huffyuv.c $(FF_SRC_MMX) $(FF_SRC_PPC) $(FF_SRC_ALTIVEC)
 
 noinst_HEADERS = *.h
-
-EXTRA_DIST = mpegvideo_mmx_template.c

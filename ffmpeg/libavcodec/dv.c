@@ -33,6 +33,7 @@ typedef struct DVVideoDecodeContext {
     int sampling_411; /* 0 = 420, 1 = 411 */
     int width, height;
     UINT8 *current_picture[3]; /* picture structure */
+    AVFrame picture;
     int linesize[3];
     DCTELEM block[5*6][64] __align8;
     UINT8 dv_zigzag[2][64];
@@ -114,6 +115,7 @@ static int dvvideo_decode_init(AVCodecContext *avctx)
     /* XXX: fix it */
     memset(&s2, 0, sizeof(MpegEncContext));
     s2.avctx = avctx;
+    dsputil_init(&s2.dsp, avctx->dsp_mask);
     if (DCT_common_init(&s2) < 0)
        return -1;
 
@@ -127,7 +129,7 @@ static int dvvideo_decode_init(AVCodecContext *avctx)
 
     /* XXX: do it only for constant case */
     dv_build_unquantize_tables(s);
-
+    
     return 0;
 }
 
@@ -494,10 +496,10 @@ static int dvvideo_decode_frame(AVCodecContext *avctx,
                                  UINT8 *buf, int buf_size)
 {
     DVVideoDecodeContext *s = avctx->priv_data;
-    int sct, dsf, apt, ds, nb_dif_segs, vs, size, width, height, i, packet_size;
+    int sct, dsf, apt, ds, nb_dif_segs, vs, width, height, i, packet_size;
+    unsigned size;
     UINT8 *buf_ptr;
     const UINT16 *mb_pos_ptr;
-    AVPicture *picture;
     
     /* parse id */
     init_get_bits(&s->gb, buf, buf_size);
@@ -531,10 +533,12 @@ static int dvvideo_decode_frame(AVCodecContext *avctx,
     /* init size */
     width = 720;
     if (dsf) {
+        avctx->frame_rate = 25 * FRAME_RATE_BASE;
         packet_size = PAL_FRAME_SIZE;
         height = 576;
         nb_dif_segs = 12;
     } else {
+        avctx->frame_rate = 30 * FRAME_RATE_BASE;
         packet_size = NTSC_FRAME_SIZE;
         height = 480;
         nb_dif_segs = 10;
@@ -546,29 +550,31 @@ static int dvvideo_decode_frame(AVCodecContext *avctx,
     /* XXX: is it correct to assume that 420 is always used in PAL
        mode ? */
     s->sampling_411 = !dsf;
-    if (s->sampling_411)
+    if (s->sampling_411) {
         mb_pos_ptr = dv_place_411;
-    else
+        avctx->pix_fmt = PIX_FMT_YUV411P;
+    } else {
         mb_pos_ptr = dv_place_420;
-
-    /* (re)alloc picture if needed */
-    if (s->width != width || s->height != height) {
-        for(i=0;i<3;i++)
-            av_freep(&s->current_picture[i]);
-        for(i=0;i<3;i++) {
-            size = width * height;
-            s->linesize[i] = width;
-            if (i >= 1) {
-                size >>= 2;
-                s->linesize[i] >>= s->sampling_411 ? 2 : 1;
-            }
-            s->current_picture[i] = av_malloc(size);
-            if (!s->current_picture[i])
-                return -1;
-        }
-        s->width = width;
-        s->height = height;
+        avctx->pix_fmt = PIX_FMT_YUV420P;
     }
+
+    avctx->width = width;
+    avctx->height = height;
+
+    s->picture.reference= 0;
+    if(avctx->get_buffer(avctx, &s->picture) < 0) {
+        fprintf(stderr, "get_buffer() failed\n");
+        return -1;
+    }
+
+    for(i=0;i<3;i++) {
+        s->current_picture[i] = s->picture.data[i];
+        s->linesize[i] = s->picture.linesize[i];
+        if (!s->current_picture[i])
+            return -1;
+    }
+    s->width = width;
+    s->height = height;
 
     /* for each DIF segment */
     buf_ptr = buf;
@@ -589,22 +595,11 @@ static int dvvideo_decode_frame(AVCodecContext *avctx,
     emms_c();
 
     /* return image */
-    avctx->width = width;
-    avctx->height = height;
-    if (s->sampling_411)
-        avctx->pix_fmt = PIX_FMT_YUV411P;
-    else
-        avctx->pix_fmt = PIX_FMT_YUV420P;
-    if (dsf)
-        avctx->frame_rate = 25 * FRAME_RATE_BASE;
-    else
-        avctx->frame_rate = 30 * FRAME_RATE_BASE;
-    *data_size = sizeof(AVPicture);
-    picture = data;
-    for(i=0;i<3;i++) {
-        picture->data[i] = s->current_picture[i];
-        picture->linesize[i] = s->linesize[i];
-    }
+    *data_size = sizeof(AVFrame);
+    *(AVFrame*)data= s->picture;
+    
+    avctx->release_buffer(avctx, &s->picture);
+    
     return packet_size;
 }
 
@@ -612,9 +607,15 @@ static int dvvideo_decode_end(AVCodecContext *avctx)
 {
     DVVideoDecodeContext *s = avctx->priv_data;
     int i;
+    
+    if(avctx->get_buffer == avcodec_default_get_buffer){
+        for(i=0; i<4; i++){
+            av_freep(&s->picture.base[i]);
+            s->picture.data[i]= NULL;
+        }
+        av_freep(&s->picture.opaque);
+    }
 
-    for(i=0;i<3;i++)
-        av_freep(&s->current_picture[i]);
     return 0;
 }
 
@@ -627,7 +628,7 @@ AVCodec dvvideo_decoder = {
     NULL,
     dvvideo_decode_end,
     dvvideo_decode_frame,
-    0,
+    CODEC_CAP_DR1,
     NULL
 };
 

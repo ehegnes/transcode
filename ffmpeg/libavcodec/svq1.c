@@ -591,7 +591,7 @@ static vlc_code_t svq1_inter_mean_table_5[292] = {
       }
 
 #define SVQ1_CALC_CODEBOOK_ENTRIES(cbook)\
-      codebook = (uint32_t *) cbook[level];\
+      codebook = (const uint32_t *) cbook[level];\
       bit_cache = get_bits (bitbuf, 4*stages);\
       /* calculate codebook entries for this vector */\
       for (j=0; j < stages; j++) {\
@@ -605,11 +605,11 @@ static int svq1_decode_block_intra (bit_buffer_t *bitbuf, uint8_t *pixels, int p
   vlc_code_t *vlc;
   uint8_t    *list[63];
   uint32_t   *dst;
-  uint32_t   *codebook;
+  const uint32_t *codebook;
   int	      entries[6];
   int	      i, j, m, n;
   int	      mean, stages;
-  int	      x, y, width, height, level;
+  unsigned    x, y, width, height, level;
   uint32_t    n1, n2, n3, n4;
 
   /* initialize list for breadth first processing of vectors */
@@ -681,7 +681,7 @@ static int svq1_decode_block_non_intra (bit_buffer_t *bitbuf, uint8_t *pixels, i
   vlc_code_t *vlc;
   uint8_t    *list[63];
   uint32_t   *dst;
-  uint32_t   *codebook;
+  const uint32_t *codebook;
   int	      entries[6];
   int	      i, j, m, n;
   int	      mean, stages;
@@ -804,7 +804,7 @@ static void svq1_skip_block (uint8_t *current, uint8_t *previous, int pitch, int
   }
 }
 
-static int svq1_motion_inter_block (bit_buffer_t *bitbuf,
+static int svq1_motion_inter_block (MpegEncContext *s, bit_buffer_t *bitbuf,
 			       uint8_t *current, uint8_t *previous, int pitch,
 			       svq1_pmv_t *motion, int x, int y) {
   uint8_t    *src;
@@ -839,12 +839,12 @@ static int svq1_motion_inter_block (bit_buffer_t *bitbuf,
   src = &previous[(x + (mv.x >> 1)) + (y + (mv.y >> 1))*pitch];
   dst = current;
 
-  put_pixels_tab[0][((mv.y & 1) << 1) | (mv.x & 1)](dst,src,pitch,16);
+  s->dsp.put_pixels_tab[0][((mv.y & 1) << 1) | (mv.x & 1)](dst,src,pitch,16);
 
   return 0;
 }
 
-static int svq1_motion_inter_4v_block (bit_buffer_t *bitbuf,
+static int svq1_motion_inter_4v_block (MpegEncContext *s, bit_buffer_t *bitbuf,
 				  uint8_t *current, uint8_t *previous, int pitch,
 				  svq1_pmv_t *motion,int x, int y) {
   uint8_t    *src;
@@ -906,7 +906,7 @@ static int svq1_motion_inter_4v_block (bit_buffer_t *bitbuf,
     src = &previous[(x + (pmv[i]->x >> 1)) + (y + (pmv[i]->y >> 1))*pitch];
     dst = current;
 
-    put_pixels_tab[1][((pmv[i]->y & 1) << 1) | (pmv[i]->x & 1)](dst,src,pitch,8);
+    s->dsp.put_pixels_tab[1][((pmv[i]->y & 1) << 1) | (pmv[i]->x & 1)](dst,src,pitch,8);
 
     /* select next block */
     if (i & 1) {
@@ -921,7 +921,7 @@ static int svq1_motion_inter_4v_block (bit_buffer_t *bitbuf,
   return 0;
 }
 
-static int svq1_decode_delta_block (bit_buffer_t *bitbuf,
+static int svq1_decode_delta_block (MpegEncContext *s, bit_buffer_t *bitbuf,
 			uint8_t *current, uint8_t *previous, int pitch,
 			svq1_pmv_t *motion, int x, int y) {
   uint32_t bit_cache;
@@ -951,7 +951,7 @@ static int svq1_decode_delta_block (bit_buffer_t *bitbuf,
     break;
 
   case SVQ1_BLOCK_INTER:
-    result = svq1_motion_inter_block (bitbuf, current, previous, pitch, motion, x, y);
+    result = svq1_motion_inter_block (s, bitbuf, current, previous, pitch, motion, x, y);
 
     if (result != 0)
     {
@@ -964,7 +964,7 @@ static int svq1_decode_delta_block (bit_buffer_t *bitbuf,
     break;
 
   case SVQ1_BLOCK_INTER_4V:
-    result = svq1_motion_inter_4v_block (bitbuf, current, previous, pitch, motion, x, y);
+    result = svq1_motion_inter_4v_block (s, bitbuf, current, previous, pitch, motion, x, y);
 
     if (result != 0)
     {
@@ -1063,7 +1063,7 @@ static int svq1_decode_frame(AVCodecContext *avctx,
   MpegEncContext *s=avctx->priv_data;
   uint8_t      *current, *previous;
   int		result, i, x, y, width, height;
-  AVPicture *pict = data; 
+  AVFrame *pict = data; 
 
   /* initialize bit buffer */
   init_get_bits(&s->gb,buf,buf_size);
@@ -1084,8 +1084,6 @@ static int svq1_decode_frame(AVCodecContext *avctx,
   }
 
   result = svq1_decode_frame_header (&s->gb, s);
-  
-  MPV_frame_start(s, avctx);
 
   if (result != 0)
   {
@@ -1096,6 +1094,9 @@ static int svq1_decode_frame(AVCodecContext *avctx,
   }
   
   if(avctx->hurry_up && s->pict_type==B_TYPE) return buf_size;
+
+  if(MPV_frame_start(s, avctx) < 0)
+      return -1;
 
   /* decode y, u and v components */
   for (i=0; i < 3; i++) {
@@ -1111,12 +1112,12 @@ static int svq1_decode_frame(AVCodecContext *avctx,
       linesize= s->uvlinesize;
     }
 
-    current  = s->current_picture[i];
+    current  = s->current_picture.data[i];
 
     if(s->pict_type==B_TYPE){
-        previous = s->next_picture[i];
+        previous = s->next_picture.data[i];
     }else{
-        previous = s->last_picture[i];
+        previous = s->last_picture.data[i];
     }
 
     if (s->pict_type == I_TYPE) {
@@ -1141,8 +1142,8 @@ static int svq1_decode_frame(AVCodecContext *avctx,
 
       for (y=0; y < height; y+=16) {
 	for (x=0; x < width; x+=16) {
-	  result = svq1_decode_delta_block (&s->gb, &current[x], previous,
-				       linesize, pmv, x, y);
+	  result = svq1_decode_delta_block (s, &s->gb, &current[x], previous,
+					    linesize, pmv, x, y);
 	  if (result != 0)
 	  {
 #ifdef DEBUG_SVQ1
@@ -1158,12 +1159,14 @@ static int svq1_decode_frame(AVCodecContext *avctx,
 	current += 16*linesize;
       }
     }
-
-    pict->data[i] = s->current_picture[i];
-    pict->linesize[i] = linesize;
   }
+  
+  *pict = *(AVFrame*)&s->current_picture;
 
-  *data_size=sizeof(AVPicture);
+
+  MPV_frame_end(s);
+  
+  *data_size=sizeof(AVFrame);
   return buf_size;
 }
 
@@ -1175,9 +1178,8 @@ static int svq1_decode_init(AVCodecContext *avctx)
     s->width = (avctx->width+3)&~3;
     s->height = (avctx->height+3)&~3;
     s->codec_id= avctx->codec->id;
-    avctx->mbskip_table= s->mbskip_table;
     avctx->pix_fmt = PIX_FMT_YUV410P;
-    avctx->has_b_frames= s->has_b_frames=1; // not true, but DP frames and these behave like unidirectional b frames
+    avctx->has_b_frames= 1; // not true, but DP frames and these behave like unidirectional b frames
     s->flags= avctx->flags;
     if (MPV_common_init(s) < 0) return -1;
     return 0;

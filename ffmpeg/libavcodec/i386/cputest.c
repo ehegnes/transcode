@@ -2,7 +2,7 @@
    and R. Fisher). Converted to C and improved by Fabrice Bellard */
 
 #include <stdlib.h>
-#include "dsputil.h"
+#include "../dsputil.h"
 
 /* ebx saving is necessary for PIC. gcc seems unable to see it alone */
 #define cpuid(index,eax,ebx,ecx,edx)\
@@ -77,6 +77,22 @@ int mm_support(void)
         if (edx & 0x00400000)
             rval |= MM_MMXEXT;
         return rval;
+    } else if (ebx == 0x746e6543 &&
+               edx == 0x48727561 &&
+               ecx == 0x736c7561) {  /*  "CentaurHauls" */
+        /* VIA C3 */
+        cpuid(0x80000000, eax, ebx, ecx, edx);
+        if ((unsigned)eax < 0x80000001)
+            goto inteltest;	
+	cpuid(0x80000001, eax, ebx, ecx, edx);
+	rval = 0;      
+	if( edx & ( 1 << 31) )
+	  rval |= MM_3DNOW;
+	if( edx & ( 1 << 23) )
+	  rval |= MM_MMX;
+	if( edx & ( 1 << 24) )
+	  rval |= MM_MMXEXT;
+	return rval;
     } else if (ebx == 0x69727943 &&
                edx == 0x736e4978 &&
                ecx == 0x64616574) {

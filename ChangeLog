@@ -4,6 +4,9 @@ transcode-0.6.4.HEAD
 - bug in yuv_merge_fields which is called when one uses the -M2 or -M4
   option
    -- marrq <marrq at ugcs.caltech.edu>
+
+- upgrade to ffmpeg-0.4.6 Build 4646
+
 --------------------------------------------
 transcode-0.6.4.20030311 Tue Mar 11 15:09:44 CET 2003
 

@@ -74,7 +74,7 @@ int frame_count = 0;
 
 #include "msmpeg4data.h"
 
-static int rl_length[2][NB_RL_TABLES][MAX_LEVEL+1][MAX_RUN+1][2];
+static UINT8 rl_length[NB_RL_TABLES][MAX_LEVEL+1][MAX_RUN+1][2];
 
 #ifdef STATS
 
@@ -234,8 +234,7 @@ void ff_msmpeg4_encode_init(MpegEncContext *s)
                 for(run=0; run<=MAX_RUN; run++){
                     int last;
                     for(last=0; last<2; last++){
-                        rl_length[0][i][level][run][last]= get_size_of_code(s, &rl_table[  i], last, run, level,0);
-                        rl_length[1][i][level][run][last]= get_size_of_code(s, &rl_table[  i], last, run, level,1);
+                        rl_length[i][level][run][last]= get_size_of_code(s, &rl_table[  i], last, run, level, 0);
                     }
                 }
             }
@@ -310,12 +309,12 @@ static void find_best_tables(MpegEncContext * s)
                     int intra_chroma_count= s->ac_stats[1][1][level][run][last];
                     
                     if(s->pict_type==I_TYPE){
-                        size       += intra_luma_count  *rl_length[1][i  ][level][run][last];
-                        chroma_size+= intra_chroma_count*rl_length[1][i+3][level][run][last];
+                        size       += intra_luma_count  *rl_length[i  ][level][run][last];
+                        chroma_size+= intra_chroma_count*rl_length[i+3][level][run][last];
                     }else{
-                        size+=        intra_luma_count  *rl_length[1][i  ][level][run][last]
-                                     +intra_chroma_count*rl_length[1][i+3][level][run][last]
-                                     +inter_count       *rl_length[0][i+3][level][run][last];
+                        size+=        intra_luma_count  *rl_length[i  ][level][run][last]
+                                     +intra_chroma_count*rl_length[i+3][level][run][last]
+                                     +inter_count       *rl_length[i+3][level][run][last];
                     }                   
                 }
                 if(last_size == size+chroma_size) break;
@@ -369,7 +368,8 @@ void msmpeg4_encode_picture_header(MpegEncContext * s, int picture_number)
     s->mv_table_index = 1; /* only if P frame */
     s->use_skip_mb_code = 1; /* only if P frame */
     s->per_mb_rl_table = 0;
-    s->inter_intra_pred= (s->width*s->height < 320*240 && s->bit_rate<=II_BITRATE && s->pict_type==P_TYPE);
+    if(s->msmpeg4_version==4)
+        s->inter_intra_pred= (s->width*s->height < 320*240 && s->bit_rate<=II_BITRATE && s->pict_type==P_TYPE);
 
     if (s->pict_type == I_TYPE) {
         s->no_rounding = 1;
@@ -425,7 +425,7 @@ void msmpeg4_encode_ext_header(MpegEncContext * s)
 {
         put_bits(&s->pb, 5, s->frame_rate / FRAME_RATE_BASE); //yes 29.97 -> 29
 
-        put_bits(&s->pb, 11, MIN(s->bit_rate/1024, 2047));
+        put_bits(&s->pb, 11, FFMIN(s->bit_rate/1024, 2047));
 
         if(s->msmpeg4_version<3)
             s->flipflop_rounding=0;
@@ -759,10 +759,10 @@ static inline int msmpeg4_pred_dc(MpegEncContext * s, int n,
             }else{
                 if(n<4){
                     wrap= s->linesize;
-                    dest= s->current_picture[0] + (((n>>1) + 2*s->mb_y) * 8*  wrap ) + ((n&1) + 2*s->mb_x) * 8;
+                    dest= s->current_picture.data[0] + (((n>>1) + 2*s->mb_y) * 8*  wrap ) + ((n&1) + 2*s->mb_x) * 8;
                 }else{
                     wrap= s->uvlinesize;
-                    dest= s->current_picture[n-3] + (s->mb_y * 8 * wrap) + s->mb_x * 8;
+                    dest= s->current_picture.data[n-3] + (s->mb_y * 8 * wrap) + s->mb_x * 8;
                 }
                 if(s->mb_x==0) a= (1024 + (scale>>1))/scale;
                 else           a= get_dc(dest-8, wrap, scale*8);
@@ -1168,6 +1168,8 @@ int ff_msmpeg4_decode_init(MpegEncContext *s)
         s->decode_mb= msmpeg4v34_decode_mb;
         break;
     }
+    
+    s->slice_height= s->mb_height; //to avoid 1/0 if the first frame isnt a keyframe
     
     return 0;
 }

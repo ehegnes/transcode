@@ -167,7 +167,6 @@ static void evalPrimary(Parser *p){
        
 static void evalPow(Parser *p){
     int neg= 0;
-
     if(p->s[0]=='+') p->s++;
        
     if(p->s[0]=='-'){ 
