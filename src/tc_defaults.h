@@ -52,15 +52,15 @@
 #define NTSC_H                  480
 
 //new max frame size:
-#define TC_MAX_V_FRAME_WIDTH     1920 //1024 //768
-#define TC_MAX_V_FRAME_HEIGHT    1088 //768  //576
+#define TC_MAX_V_FRAME_WIDTH     2500
+#define TC_MAX_V_FRAME_HEIGHT    2000
 
 // audio defaults
 #define RATE         48000
 #define BITS            16
 #define CHANNELS         2  
 
-#define SIZE_RGB_FRAME ((int) TC_MAX_V_FRAME_WIDTH*TC_MAX_V_FRAME_HEIGHT*BPP/8)
+#define SIZE_RGB_FRAME ((int) TC_MAX_V_FRAME_WIDTH*TC_MAX_V_FRAME_HEIGHT*(BPP/8))
 #define SIZE_PCM_FRAME ((int) (RATE/MIN_FPS) * BITS/8 * CHANNELS * 3)  
 
 #define TC_PAD_AUD_FRAMES 10
