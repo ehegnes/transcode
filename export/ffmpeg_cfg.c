@@ -82,6 +82,9 @@ int lavc_param_me_pre_cmp= 0;
 int lavc_param_me_cmp= 0;
 int lavc_param_me_sub_cmp= 0;
 int lavc_param_mb_cmp= 0;
+#ifdef FF_CMP_VSAD
+int lavc_param_ildct_cmp= FF_CMP_VSAD;
+#endif
 int lavc_param_pre_dia_size= 0;
 int lavc_param_dia_size= 0;
 int lavc_param_qpel= 0;
@@ -102,8 +105,14 @@ int lavc_param_cbp= 0;
 int lavc_param_mv0= 0;
 int lavc_param_noise_reduction= 0;
 int lavc_param_qp_rd= 0;
-int lavc_param_scan_offset = 0;
+int lavc_param_inter_threshold= 0;
+int lavc_param_sc_threshold= 0;
+int lavc_param_ss= 0;
+int lavc_param_top= -1;
+int lavc_param_alt= 0;
+int lavc_param_ilme= 0;
 
+int lavc_param_scan_offset = 0;
 //char *lavc_param_acodec = "mp2";
 //int lavc_param_atag = 0;
 //int lavc_param_abitrate = 224;
@@ -175,6 +184,9 @@ struct config lavcopts_conf[]={
     {"cmp", &lavc_param_me_cmp, CONF_TYPE_INT, CONF_RANGE, 0, 2000, NULL},
     {"subcmp", &lavc_param_me_sub_cmp, CONF_TYPE_INT, CONF_RANGE, 0, 2000, NULL},
     {"mbcmp", &lavc_param_mb_cmp, CONF_TYPE_INT, CONF_RANGE, 0, 2000, NULL},
+#ifdef FF_CMP_VSAD
+    {"ildctcmp", &lavc_param_ildct_cmp, CONF_TYPE_INT, CONF_RANGE, 0, 2000, NULL},
+#endif
     {"predia", &lavc_param_pre_dia_size, CONF_TYPE_INT, CONF_RANGE, -2000, 2000, NULL},
     {"dia", &lavc_param_dia_size, CONF_TYPE_INT, CONF_RANGE, -2000, 2000, NULL},
     {"qpel", &lavc_param_qpel, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_QPEL, NULL},
@@ -193,11 +205,27 @@ struct config lavcopts_conf[]={
     {"inter_matrix", &lavc_param_inter_matrix, CONF_TYPE_STRING, 0, 0, 0, NULL},
     {"cbp", &lavc_param_cbp, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_CBP_RD, NULL},
     {"mv0", &lavc_param_mv0, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_MV0, NULL},
+#ifdef CODEC_FLAG_QP_RD
     {"nr", &lavc_param_noise_reduction, CONF_TYPE_INT, CONF_RANGE, 0, 1000000, NULL},
-    {"qprd", &lavc_param_qp_rd, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_QP_RD, NULL},
-#ifdef CODEC_FLAG_SVCD_SCAN_OFFSET
-	{"svcd_sof", &lavc_param_scan_offset, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_SVCD_SCAN_OFFSET, 0},
 #endif
+#ifdef CODEC_FLAG_QP_RD
+    {"qprd", &lavc_param_qp_rd, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_QP_RD, NULL},
+#endif
+#ifdef CODEC_FLAG_H263P_SLICE_STRUCT
+    {"ss", &lavc_param_ss, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_SLICE_STRUCT, NULL},
+#endif
+#ifdef CODEC_FLAG_SVCD_SCAN_OFFSET
+    {"svcd_sof", &lavc_param_scan_offset, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_SVCD_SCAN_OFFSET, 0},
+#endif
+#ifdef CODEC_FLAG_ALT_SCAN
+    {"alt", &lavc_param_alt, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_ALT_SCAN, NULL},
+#endif
+#ifdef CODEC_FLAG_INTERLACED_ME
+    {"ilme", &lavc_param_ilme, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_INTERLACED_ME, NULL},
+#endif
+     {"inter_threshold", &lavc_param_inter_threshold, CONF_TYPE_INT, CONF_RANGE, -1000000, 1000000, NULL},
+     {"sc_threshold", &lavc_param_sc_threshold, CONF_TYPE_INT, CONF_RANGE, -1000000, 1000000, NULL},
+     {"top", &lavc_param_top, CONF_TYPE_INT, CONF_RANGE, -1, 1, NULL},
     {NULL, NULL, 0, 0, 0, 0, NULL}
 };
 

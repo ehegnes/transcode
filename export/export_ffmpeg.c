@@ -739,7 +739,9 @@ MOD_init {
     lavc_venc_context->inter_quant_bias   = lavc_param_pbias;
     lavc_venc_context->coder_type         = lavc_param_coder;
     lavc_venc_context->context_model      = lavc_param_context;
-    lavc_venc_context->noise_reduction= lavc_param_noise_reduction;
+    lavc_venc_context->scenechange_threshold= lavc_param_sc_threshold;
+    lavc_venc_context->noise_reduction    = lavc_param_noise_reduction;
+    lavc_venc_context->inter_threshold    = lavc_param_inter_threshold;
     if (lavc_param_intra_matrix)
     {
 	char *tmp;
@@ -967,6 +969,9 @@ MOD_init {
     lavc_venc_context->me_cmp     = lavc_param_me_cmp;
     lavc_venc_context->me_sub_cmp = lavc_param_me_sub_cmp;
     lavc_venc_context->mb_cmp     = lavc_param_mb_cmp;
+#ifdef FF_CMP_VSAD
+    lavc_venc_context->ildct_cmp   = lavc_param_ildct_cmp;
+#endif    
     lavc_venc_context->dia_size   = lavc_param_dia_size;
     lavc_venc_context->flags |= lavc_param_qpel;
     lavc_venc_context->flags |= lavc_param_trell;
@@ -978,6 +983,9 @@ MOD_init {
     lavc_venc_context->flags |= lavc_param_mv0;
     lavc_venc_context->flags |= lavc_param_qp_rd;
     lavc_venc_context->flags |= lavc_param_scan_offset;
+    lavc_venc_context->flags |= lavc_param_ss;
+    lavc_venc_context->flags |= lavc_param_alt;
+    lavc_venc_context->flags |= lavc_param_ilme;
 
     if (lavc_param_gray)
       lavc_venc_context->flags |= CODEC_FLAG_GRAY;

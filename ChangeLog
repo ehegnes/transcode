@@ -2,6 +2,11 @@
 transcode-0.6.13
 
 2004-02-02 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/{export_ffmpeg.c ffmpeg_cfg.[ch]} ffmpeg/libavcodec/*:
+  Upgrade to ffmpeg-cvs 4700
+
+2004-02-02 Tilmann Bitterberg <transcode at tibit.org>
   
   * src/zoom.c src/zoom.h:
   Put some emms() there before using double -- just in case

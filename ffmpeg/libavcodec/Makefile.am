@@ -48,7 +48,7 @@ libtcavcodec_a_SOURCES = \
       roqvideo.c dpcm.c interplayvideo.c xan.c rpza.c cinepak.c msrle.c \
       msvideo1.c vqavideo.c adx.c rational.c faandct.c 8bps.c \
       h263.c msmpeg4.c h263dec.c svq1.c rv10.c wmadec.c indeo3.c \
-      smc.c parser.c flicvideo.c truemotion1.c \
+      smc.c parser.c flicvideo.c truemotion1.c lcl.c vmdav.c \
       idcinvideo.c $(FF_SRC_MMX) $(FF_SRC_PPC) $(FF_SRC_ALTIVEC)
 
 noinst_HEADERS =  \
@@ -61,7 +61,6 @@ noinst_HEADERS =  \
   dsputil.h \
   dvdata.h \
   faandct.h \
-  fastmemcpy.h \
   golomb.h \
   h263data.h \
   h264data.h \

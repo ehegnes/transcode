@@ -362,7 +362,7 @@ libtcavcodec_a_SOURCES = \
       roqvideo.c dpcm.c interplayvideo.c xan.c rpza.c cinepak.c msrle.c \
       msvideo1.c vqavideo.c adx.c rational.c faandct.c 8bps.c \
       h263.c msmpeg4.c h263dec.c svq1.c rv10.c wmadec.c indeo3.c \
-      smc.c parser.c flicvideo.c truemotion1.c \
+      smc.c parser.c flicvideo.c truemotion1.c lcl.c vmdav.c \
       idcinvideo.c $(FF_SRC_MMX) $(FF_SRC_PPC) $(FF_SRC_ALTIVEC)
 
 
@@ -376,7 +376,6 @@ noinst_HEADERS = \
   dsputil.h \
   dvdata.h \
   faandct.h \
-  fastmemcpy.h \
   golomb.h \
   h263data.h \
   h264data.h \
@@ -429,8 +428,8 @@ am__libtcavcodec_a_SOURCES_DIST = common.c utils.c mem.c allcodecs.c \
 	roqvideo.c dpcm.c interplayvideo.c xan.c rpza.c cinepak.c \
 	msrle.c msvideo1.c vqavideo.c adx.c rational.c faandct.c 8bps.c \
 	h263.c msmpeg4.c h263dec.c svq1.c rv10.c wmadec.c indeo3.c \
-	smc.c parser.c flicvideo.c truemotion1.c idcinvideo.c \
-	i386/fdct_mmx.c i386/cputest.c i386/dsputil_mmx.c \
+	smc.c parser.c flicvideo.c truemotion1.c lcl.c vmdav.c \
+	idcinvideo.c i386/fdct_mmx.c i386/cputest.c i386/dsputil_mmx.c \
 	i386/mpegvideo_mmx.c i386/idct_mmx.c i386/motion_est_mmx.c \
 	i386/simple_idct_mmx.c i386/fft_sse.c ppc/dsputil_ppc.c \
 	ppc/mpegvideo_ppc.c ppc/dsputil_altivec.c \
@@ -469,8 +468,8 @@ am_libtcavcodec_a_OBJECTS = common.$(OBJEXT) utils.$(OBJEXT) \
 	msmpeg4.$(OBJEXT) h263dec.$(OBJEXT) svq1.$(OBJEXT) \
 	rv10.$(OBJEXT) wmadec.$(OBJEXT) indeo3.$(OBJEXT) smc.$(OBJEXT) \
 	parser.$(OBJEXT) flicvideo.$(OBJEXT) truemotion1.$(OBJEXT) \
-	idcinvideo.$(OBJEXT) $(am__objects_1) $(am__objects_2) \
-	$(am__objects_3)
+	lcl.$(OBJEXT) vmdav.$(OBJEXT) idcinvideo.$(OBJEXT) \
+	$(am__objects_1) $(am__objects_2) $(am__objects_3)
 libtcavcodec_a_OBJECTS = $(am_libtcavcodec_a_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
@@ -499,9 +498,10 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/imgresample.Po ./$(DEPDIR)/indeo3.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/interplayvideo.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/jfdctfst.Po ./$(DEPDIR)/jfdctint.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/jrevdct.Po ./$(DEPDIR)/mace.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mdct.Po ./$(DEPDIR)/mem.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mjpeg.Po ./$(DEPDIR)/motion_est.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/jrevdct.Po ./$(DEPDIR)/lcl.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mace.Po ./$(DEPDIR)/mdct.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mem.Po ./$(DEPDIR)/mjpeg.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/motion_est.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/motion_est_mmx.Po ./$(DEPDIR)/mpeg12.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mpegaudio.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mpegaudiodec.Po \
@@ -520,8 +520,9 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/simple_idct_mmx.Po ./$(DEPDIR)/smc.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/svq1.Po ./$(DEPDIR)/truemotion1.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/utils.Po ./$(DEPDIR)/vcr1.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/vp3.Po ./$(DEPDIR)/vqavideo.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/wmadec.Po ./$(DEPDIR)/xan.Po
+@AMDEP_TRUE@	./$(DEPDIR)/vmdav.Po ./$(DEPDIR)/vp3.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/vqavideo.Po ./$(DEPDIR)/wmadec.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/xan.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -610,6 +611,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jfdctfst.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jfdctint.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jrevdct.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lcl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mdct.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mem.Po@am__quote@
@@ -645,6 +647,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/truemotion1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vcr1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vmdav.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vp3.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vqavideo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wmadec.Po@am__quote@

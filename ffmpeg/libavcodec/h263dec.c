@@ -1,6 +1,7 @@
 /*
  * H.263 decoder
  * Copyright (c) 2001 Fabrice Bellard.
+ * Copyright (c) 2002-2004 Michael Niedermayer <michaelni@gmx.at>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -85,7 +86,6 @@ int ff_h263_decode_init(AVCodecContext *avctx)
         s->msmpeg4_version=5;
         break;
     case CODEC_ID_H263I:
-        s->h263_intel = 1;
         break;
     case CODEC_ID_FLV1:
         s->h263_flv = 1;
@@ -393,6 +393,7 @@ uint64_t time= rdtsc();
     printf("bytes=%x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
 #endif
     s->flags= avctx->flags;
+    s->flags2= avctx->flags2;
 
     *data_size = 0;
 
@@ -425,9 +426,10 @@ uint64_t time= rdtsc();
             return buf_size;
     }
 
+    
 retry:
     
-    if(s->bitstream_buffer_size && buf_size<20){ //divx 5.01+ frame reorder
+    if(s->bitstream_buffer_size && (s->divx_packed || buf_size<20)){ //divx 5.01+/xvid frame reorder
         init_get_bits(&s->gb, s->bitstream_buffer, s->bitstream_buffer_size*8);
     }else
         init_get_bits(&s->gb, buf, buf_size*8);
@@ -460,7 +462,7 @@ retry:
 
         if(s->flags& CODEC_FLAG_LOW_DELAY)
             s->low_delay=1;
-    } else if (s->h263_intel) {
+    } else if (s->codec_id == CODEC_ID_H263I) {
         ret = intel_h263_decode_picture_header(s);
     } else if (s->h263_flv) {
         ret = flv_h263_decode_picture_header(s);
@@ -678,21 +680,26 @@ retry:
     /* divx 5.01+ bistream reorder stuff */
     if(s->codec_id==CODEC_ID_MPEG4 && s->bitstream_buffer_size==0 && s->divx_packed){
         int current_pos= get_bits_count(&s->gb)>>3;
+        int startcode_found=0;
 
         if(   buf_size - current_pos > 5 
            && buf_size - current_pos < BITSTREAM_BUFFER_SIZE){
             int i;
-            int startcode_found=0;
             for(i=current_pos; i<buf_size-3; i++){
                 if(buf[i]==0 && buf[i+1]==0 && buf[i+2]==1 && buf[i+3]==0xB6){
                     startcode_found=1;
                     break;
                 }
             }
-            if(startcode_found){
-                memcpy(s->bitstream_buffer, buf + current_pos, buf_size - current_pos);
-                s->bitstream_buffer_size= buf_size - current_pos;
-            }
+        }
+        if(s->gb.buffer == s->bitstream_buffer && buf_size>20){ //xvid style
+            startcode_found=1;
+            current_pos=0;
+        }
+
+        if(startcode_found){
+            memcpy(s->bitstream_buffer, buf + current_pos, buf_size - current_pos);
+            s->bitstream_buffer_size= buf_size - current_pos;
         }
     }
 
@@ -704,10 +711,10 @@ assert(s->current_picture.pict_type == s->current_picture_ptr->pict_type);
 assert(s->current_picture.pict_type == s->pict_type);
     if(s->pict_type==B_TYPE || s->low_delay){
         *pict= *(AVFrame*)&s->current_picture;
-        ff_print_debug_info(s, s->current_picture_ptr);
+        ff_print_debug_info(s, pict);
     } else {
         *pict= *(AVFrame*)&s->last_picture;
-        ff_print_debug_info(s, s->last_picture_ptr);
+        ff_print_debug_info(s, pict);
     }
 
     /* Return the Picture timestamp as the frame number */
