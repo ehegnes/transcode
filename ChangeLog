@@ -1,6 +1,47 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-02-29 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/import_ffmpeg.c:
+  Fix DX50 behaviour with b-frames. libavcodec can not be fed with
+  frames the way we used to do it. Especially waiting for
+  got_picture was wrong. 
+  NOTE: decode_lavc.c is still broken (and not that easy to fix
+  since we don't know the frame length in a stream)
+
+2004-02-29 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/tcextract.c import/Makefile.am:
+  tcextract -t avi -x raw will now extract the raw video data
+
+2004-02-29 Tilmann Bitterberg <transcode at tibit.org>
+
+  * tools/aviindex.c docs/man/aviindex.1:
+  aviindex can now convert mplayer-generated index files to
+  transcode index files and the other way round. See the manpage of
+  aviindex for usage examples.
+
+  * tools/avimerge.c:
+  remove debug printout
+
+2004-02-29 Tilmann Bitterberg <transcode at tibit.org>
+
+  * avilib/avidump.c avilib/avilib.c:
+  There are avifiles which have the audio stream first and video
+  second. So add a few more stream tags.
+  Slightly change the way the index file is parsed.
+
+  * avilib/avilib.c:
+  Sometimes in odml indices there are completely empty index
+  entries. I have not the slightest idea of their purpose so I just
+  skip them completely.
+
+2004-02-29 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/filter_fps.c:
+  missing int i.
+
 2004-02-24 Tilmann Bitterberg <transcode at tibit.org>
 
   * export/export_def.h:

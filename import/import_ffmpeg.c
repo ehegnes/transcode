@@ -33,7 +33,7 @@
 #include "magic.h"
 
 #define MOD_NAME    "import_ffmpeg.so"
-#define MOD_VERSION "v0.1.10 (2003-12-30)"
+#define MOD_VERSION "v0.1.11 (2004-02-29)"
 #define MOD_CODEC   "(video)  " LIBAVCODEC_IDENT \
                     ": MS MPEG4v1-3/MPEG4/MJPEG"
 
@@ -333,7 +333,7 @@ do_avi:
     lavc_dec_context->error_resilience = 2;
     lavc_dec_context->error_concealment = 3;
     lavc_dec_context->workaround_bugs = FF_BUG_AUTODETECT;
-    lavc_dec_context->stream_codec_tag= (fourCC[0]<<24)|(fourCC[1]<<16)|(fourCC[2]<<8)|fourCC[0];
+    lavc_dec_context->codec_tag= (fourCC[0]<<24)|(fourCC[1]<<16)|(fourCC[2]<<8)|fourCC[3];
 
     // XXX: some codecs need extra data
     switch (codec->id)
@@ -495,13 +495,9 @@ MOD_decode {
   if (param->flag == TC_VIDEO) {
     bytes_read = AVI_read_frame(avifile, buffer, &key);
 
-    if (bytes_read < 0) {
-      return TC_IMPORT_ERROR;
-    }
+    if (bytes_read < 0) return TC_IMPORT_ERROR;
     
-    if (key) {
-      param->attributes |= TC_FRAME_IS_KEYFRAME;
-    }
+    if (key) param->attributes |= TC_FRAME_IS_KEYFRAME;
 
     // PASS_THROUGH MODE
 
@@ -543,8 +539,7 @@ MOD_decode {
     // decode frame
     // ------------
 
-    // safety counter
-    retry = 0;
+retry:
     do {
       pthread_mutex_lock(&init_avcodec_lock);
       len = avcodec_decode_video(lavc_dec_context, &picture, 
@@ -555,12 +550,24 @@ MOD_decode {
 	tc_warn ("[%s] frame decoding failed", MOD_NAME);
         return TC_IMPORT_ERROR;
       }
-    } while (!got_picture && ++retry<1000);
+      if (!got_picture) {
+	if (avifile->video_pos == 1) {
 
-    if (retry >= 1000) {
-      tc_warn("[%s] tried a 1000 times but could not decode frame", MOD_NAME);
-      return TC_IMPORT_ERROR;
-    }
+	  bytes_read = AVI_read_frame(avifile, buffer, &key);
+	  if (bytes_read < 0) return TC_IMPORT_ERROR;
+	  param->attributes &= ~TC_FRAME_IS_KEYFRAME;
+	  if (key) param->attributes |= TC_FRAME_IS_KEYFRAME;
+	  goto retry;
+
+	} else {
+
+	  // repeat last frame
+	  memcpy(param->buffer, frame, frame_size);
+	  param->size = frame_size;
+	  return 0;
+	}
+      }
+    } while (0);
 
     Ybuf = frame;
     Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
