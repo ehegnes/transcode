@@ -399,7 +399,30 @@ increase the compression-ratio to be achieved by subsequent encoders.
 		      and white columns.
 		</ul>
 		<p><p>
+	
+		<li><FONT color=red><b>filter_ivtc.so</b></font> (updated in v0.6.4)<img align="top" src="new.png"><br>
+		tries to reverse the process that creates NTSC footage (29,97 frames per second)
+		from film-based (24fps) content. <br>Read more in <a href="../README.Inverse.Telecine.txt">docs/README.Inverse.Telecine.txt</A> <br>
+		<i>Author:</i> Thanassis Tsiodras<br>
+		<i>Usage:</i> -J ivtc=&lt;options&gt;<br>
+		 <ul>
+		   <li>   'verbose'    show results [off]
+		 </ul>
+		 Example: transcode [...] -J ivtc,decimate
+		<p><p>		
 
+		<li><FONT color=red><b>filter_decimate.so</b></font> (updated in v0.6.4)<img align="top" src="new.png"><br>
+		tries to reverse the process that creates NTSC footage (29,97 frames per second)
+		from film-based (24fps) content. <br>Read more in <a href="../README.Inverse.Telecine.txt">docs/README.Inverse.Telecine.txt</A> <br>
+		<i>Author:</i> Thanassis Tsiodras<br>
+		<i>Usage:</i> -J decimate=&lt;options&gt;<br>
+		 <ul>
+		   <li>   'verbose'    show results [off]
+		 </ul>
+		 Example: transcode [...] -J ivtc,decimate
+		<p><p>		
+
+		
 	    <li><FONT color=red><b>filter_null.so</b></font><br>
 		filter plugin template for developers - does nothing.
 		<br><i>Usage:</i> -J null<br>
