@@ -24,11 +24,11 @@
 #include "ioaux.h"
 #include "tc.h"
 
-#ifdef HAVE_QT
+#ifdef HAVE_LIBQUICKTIME
 
 extern int binary_dump;
 
-#include <quicktime.h>
+#include <quicktime/quicktime.h>
 
 void probe_mov(info_t *ipipe)
 {

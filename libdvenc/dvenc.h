@@ -27,7 +27,7 @@
 
 #include "config.h"
 
-#ifdef HAVE_DV
+#ifdef HAVE_LIBDV
 #include <libdv/dv.h>
 #include <libdv/dv_types.h>
 
@@ -52,13 +52,13 @@ int dvenc_set_parameter(int codec, int format, int sample_rate);
 int dvenc_init();
 int dvenc_close();
 
-#ifdef HAVE_DV
+#ifdef HAVE_LIBDV
 int dvenc_insert_audio(unsigned char * frame_buf, dv_enc_audio_info_t * audio, int isPAL);
 #endif
 
 extern unsigned char *dvenc_dvbuf, *dvenc_abuf, *dvenc_vbuf;
 
-#ifdef HAVE_DV
+#ifdef HAVE_LIBDV
 void dvenc_init_input(dv_enc_input_filter_t *filter, int mode, int format);
 void dvenc_init_output(dv_enc_output_filter_t *filter);
 void dvenc_init_audio_input(dv_enc_audio_input_filter_t *filter, dv_enc_audio_info_t *audio_info);

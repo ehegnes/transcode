@@ -38,7 +38,7 @@ static int capability_flag=TC_CAP_YUV|TC_CAP_PCM|TC_CAP_AC3|TC_CAP_AUD|TC_CAP_RG
 #define MOD_PRE yuv4mpeg
 #include "export_def.h"
 
-#if defined(HAVE_MJPEG_INC)
+#if defined(HAVE_MJPEGTOOLS_INC)
 #include "yuv4mpeg.h"
 #include "mpegconsts.h"
 #else

@@ -10,7 +10,7 @@ AM_CPPFLAGS = \
 	@AVIFILE_CFLAGS@ \
 	@LAME_CFLAGS@ \
 	@AC3_CFLAGS@ \
-	@MAGICK_CFLAGS@ \
+	@IMAGEMAGICK_CFLAGS@ \
 	@FT2_CFLAGS@
 
 pkgdir = @MOD_PATH@
@@ -25,7 +25,7 @@ if HAVE_FREETYPE2
 F_TEXT = filter_text.la
 endif
 
-if HAVE_MAGICK
+if HAVE_IMAGEMAGICK
 F_LOGO = filter_logo.la filter_logoaway.la filter_compare.la
 endif
 
@@ -40,9 +40,9 @@ endif
 if HAVE_GCC2
 F_TOMSMOCOMP = 
 else
-if HAVE_ASM_MMX
-if HAVE_ASM_SSE
-if HAVE_ASM_3DNOW
+if HAVE_MMX
+if HAVE_SSE
+if HAVE_3DNOW
 F_TOMSMOCOMP = tomsmocomp
 endif
 endif
@@ -208,11 +208,11 @@ filter_normalize_la_LIBADD = -lm
 
 filter_compare_la_SOURCES = filter_compare.c
 filter_compare_la_LDFLAGS = -module -avoid-version
-filter_compare_la_LIBADD = @MAGICK_LIBS@ @LIBVO_LIBS@ ../export/vid_aux.lo
+filter_compare_la_LIBADD = @IMAGEMAGICK_LIBS@ @LIBVO_LIBS@ ../export/vid_aux.lo
 
 filter_logo_la_SOURCES = filter_logo.c
 filter_logo_la_LDFLAGS = -module -avoid-version
-filter_logo_la_LIBADD = @MAGICK_LIBS@ @LIBVO_LIBS@ ../export/vid_aux.lo
+filter_logo_la_LIBADD = @IMAGEMAGICK_LIBS@ @LIBVO_LIBS@ ../export/vid_aux.lo
 
 filter_xsharpen_la_SOURCES = filter_xsharpen.c
 filter_xsharpen_la_LDFLAGS = -module -avoid-version 
@@ -223,7 +223,7 @@ filter_msharpen_la_LIBADD = @LIBVO_LIBS@ ../export/vid_aux.lo
 
 filter_logoaway_la_SOURCES = filter_logoaway.c
 filter_logoaway_la_LDFLAGS = -module -avoid-version 
-filter_logoaway_la_LIBADD = @MAGICK_LIBS@
+filter_logoaway_la_LIBADD = @IMAGEMAGICK_LIBS@
 
 filter_invert_la_SOURCES = filter_invert.c
 filter_invert_la_LDFLAGS = -module -avoid-version 

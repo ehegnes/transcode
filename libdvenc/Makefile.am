@@ -2,11 +2,13 @@
 
 AUTOMAKE_OPTIONS = 1.3 foreign
 
-INCLUDES = -I$(top_srcdir)/src
+INCLUDES = \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/src
 
 AM_CPPFLAGS = \
 	-DLINUX \
-	@DV_CFLAGS@
+	@LIBDV_CFLAGS@
 
 AM_CFLAGS = \
 	-g \
@@ -17,13 +19,13 @@ noinst_LTLIBRARIES = libdvenc.la
 
 DVENC1 = dvenc.c
 
-if HAVE_DV
+if HAVE_LIBDV
 DVENC2 = \
 	enc_audio_input.c \
 	enc_input.c \
 	enc_output.c \
 	enc_output2.c
-if HAVE_X86CPU
+if ARCH_X86
 DVENC3 = \
 	rgbtoyuv.S \
 	encode_x86.S \

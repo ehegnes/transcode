@@ -24,7 +24,7 @@
 #include "ioaux.h"
 #include "tc.h"
 
-#ifdef HAVE_MAGICK
+#ifdef HAVE_IMAGEMAGICK
 
 // transcode defines this as well as ImageMagick.
 #undef PACKAGE_NAME

@@ -10,7 +10,7 @@ INCLUDES = \
 AM_CPPFLAGS = \
 	-D_REENTRANT \
 	-DMOD_PATH=\"@MOD_PATH@\" \
-	@DV_CFLAGS@ \
+	@LIBDV_CFLAGS@ \
 	$(X_CFLAGS) \
 	$(GTK_CFLAGS) \
 	$(SDL_CFLAGS)
@@ -34,7 +34,7 @@ LIBS = \
 
 pkgdir = @MOD_PATH@
 
-if HAVE_DV
+if HAVE_LIBDV
 MOD1 = filter_preview.la
 endif
 
@@ -48,7 +48,7 @@ filter_preview_la_LIBADD = \
 	-lXext \
 	-lX11 \
 	$(X_EXTRA_LIBS) \
-	@DV_LIBS@
+	@LIBDV_LIBS@
 
 filter_pv_la_SOURCES = filter_pv.c pv.c
 filter_pv_la_LDFLAGS = -module -avoid-version

@@ -103,9 +103,6 @@ void tc_info(char *fmt, ...)
   fflush(stdout);
 }
 
-#include "alloca.h"
-#define HAVE_ALLOCA 1
-
 #if defined(HAVE_ALLOCA)
 #define local_alloc(s) alloca(s)
 #define local_free(s) do { (void)0; } while(0)
@@ -123,7 +120,7 @@ int tc_test_program(char *name)
 	char *tmp_path;
 	char **strtokbuf;
 	char done;
-	int error;
+	int error = 0;
 
 	if(!name)
 	{

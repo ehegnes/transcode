@@ -26,9 +26,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <quicktime.h>
-#include <colormodels.h>
-#include <lqt.h>
+#include <quicktime/quicktime.h>
+#include <quicktime/colormodels.h>
+#include <quicktime/lqt.h>
 #include "transcode.h"
 #include "magic.h"
 

@@ -30,7 +30,7 @@
 #include "transcode.h"
 #include "vid_aux.h"
 
-#if defined(HAVE_MJPEG_INC)
+#if defined(HAVE_MJPEGTOOLS_INC)
 #include "yuv4mpeg.h"
 #include "mpegconsts.h"
 #else

@@ -30,7 +30,7 @@
 
 #include "config.h"
 
-#ifdef HAVE_DV
+#ifdef HAVE_LIBDV
 #include <libdv/dv.h>
 #endif
 
@@ -49,7 +49,7 @@ static const int frame_size_625_50 = 12 * 150 * 80;
 
 static int verbose=TC_QUIET;
 
-#ifdef HAVE_DV
+#ifdef HAVE_LIBDV
 static unsigned char *bufalloc(size_t size)
 {
    long buffer_align=getpagesize();
@@ -137,7 +137,7 @@ void yuy2touyvy(char *dest, char *src, int width, int height)
 void decode_dv(decode_t *decode)
 {
 
-#ifdef HAVE_DV
+#ifdef HAVE_LIBDV
 
   int i, j, bytes=0, ch, cc;
   int samples=0, channels=0;
@@ -396,7 +396,7 @@ void decode_dv(decode_t *decode)
 void probe_dv(info_t *ipipe)
 {
 
-#ifdef HAVE_DV
+#ifdef HAVE_LIBDV
 
   static dv_decoder_t *dv_decoder=NULL;
 

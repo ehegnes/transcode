@@ -95,9 +95,6 @@ dnl and FFMPEG_LIBS_EXTRALIBS
 dnl
 AC_DEFUN([TC_PATH_FFMPEG_LIBS],
 [
-have_ffmpeg_libs=no
-with_ffmpeg_libs=yes
-
 AC_ARG_WITH(ffmpeg-libs-includes,
   AC_HELP_STRING([--with-ffmpeg-libs-includes=PFX],
     [prefix where ffmpeg libs includes are installed (optional)]),
@@ -118,12 +115,12 @@ AC_ARG_ENABLE(ffmpeg-libs-static,
   esac],
   [enable_ffmpeg_libs_static=no])
 
-if test x$ffmpeg_libs_includes != x ; then
+if test x"$ffmpeg_libs_includes" != x"" ; then
   with_ffmpeg_libs_i="$ffmpeg_libs_includes/include/ffmpeg"
 else
   with_ffmpeg_libs_i="/usr/include/ffmpeg"
 fi
-if test x$ffmpeg_libs_libs != x ; then
+if test x"$ffmpeg_libs_libs" != x"" ; then
   with_ffmpeg_libs_l="$ffmpeg_libs_libs/lib"
 else
   with_ffmpeg_libs_l="/usr${deflib}"
@@ -133,7 +130,6 @@ FFMPEG_LIBS_EXTRALIBS="-lm -lz $PTHREAD_LIBS"
 
 save_CPPFLAGS="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS -I$with_ffmpeg_libs_i"
-
 AC_CHECK_HEADER([avcodec.h],
   [FFMPEG_LIBS_CFLAGS="-I$with_ffmpeg_libs_i"],
   [AC_MSG_ERROR([FFmpeg (libavcodec) required, but cannot compile avcodec.h])])
@@ -178,7 +174,7 @@ if test x"$enable_ffmpeg_libs_static" = x"no" ; then
   LDFLAGS="$save_LDFLAGS"
   have_ffmpeg_libs=yes
 else
-  if test x$deplibs_check_method != xpass_all ; then
+  if test x"$deplibs_check_method" != x"pass_all" ; then
     AC_MSG_ERROR([linking static archives into shared objects not supported on this platform]) 
   fi
   save_LIBS="$LIBS"
@@ -197,7 +193,7 @@ avcodec_thread_init(ctx, 0);
   CPPFLAGS="$save_CPPFLAGS"
   have_ffmpeg_libs=yes
 fi
-if test x$have_ffmpeg_libs = xyes ; then
+if test x"$have_ffmpeg_libs" = x"yes" ; then
   ifelse([$1], , :, [$1])
 else
   ifelse([$2], , :, [$2])
@@ -246,18 +242,18 @@ AC_ARG_ENABLE(fttest,
 
 have_freetype2=no
 
-if test x$enable_freetype2 = xyes; then
+if test x"$enable_freetype2" = x"yes" ; then
 
   AC_PATH_PROG(FT2_CONFIG, freetype-config, no)
-  if test x$ft_config_exec_prefix != x ; then
+  if test x"$ft_config_exec_prefix" != x"" ; then
     ft_config_args="$ft_config_args --exec-prefix=$ft_config_exec_prefix"
-    if test x${FT2_CONFIG} = xno ; then
+    if test x"${FT2_CONFIG}" = x"no" ; then
       FT2_CONFIG=$ft_config_exec_prefix/bin/freetype-config
     fi
   fi
-  if test x$ft_config_prefix != x ; then
+  if test x"$ft_config_prefix" != x"" ; then
     ft_config_args="$ft_config_args --prefix=$ft_config_prefix"
-    if test x${FT2_CONFIG} = xno ; then
+    if test x"${FT2_CONFIG}" = x"no" ; then
       FT2_CONFIG=$ft_config_prefix/bin/freetype-config
     fi
   fi
@@ -279,7 +275,7 @@ if test x$enable_freetype2 = xyes; then
          sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
     ft_min_micro_version=`echo $min_ft_version | \
          sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
-    if test x$enable_fttest = xyes ; then
+    if test x"$enable_fttest" = x"yes" ; then
       ft_config_is_lt=""
       if test $ft_config_major_version -lt $ft_min_major_version ; then
         ft_config_is_lt=yes
@@ -338,18 +334,18 @@ main()
       have_freetype2=yes
     fi
   fi                 # test "$FT2_CONFIG" = "no"
-  if test x$have_freetype2 = xyes ; then
+  if test x"$have_freetype2" = x"yes" ; then
     AC_MSG_RESULT(yes)
     ifelse([$2], , :, [$2])
   else
     AC_MSG_RESULT(no)
-    if test "$FT2_CONFIG" = "no" ; then
+    if test x"$FT2_CONFIG" = x"no" ; then
       echo "*** The freetype-config script installed by FreeType 2 could not be found."
       echo "*** If FreeType 2 was installed in PREFIX, make sure PREFIX/bin is in"
       echo "*** your path, or set the FT2_CONFIG environment variable to the"
       echo "*** full path to freetype-config."
     else
-      if test x$ft_config_is_lt = xyes ; then
+      if test x"$ft_config_is_lt" = x"yes" ; then
         echo "*** Your installed version of the FreeType 2 library is too old."
         echo "*** If you have different versions of FreeType 2, make sure that"
         echo "*** correct values for --with-ft-prefix or --with-ft-exec-prefix"
@@ -395,12 +391,12 @@ AC_ARG_ENABLE(v4l,
 AC_MSG_RESULT($enable_v4l)
 
 have_v4l=no
-if test x$enable_v4l = xyes ; then
+if test x"$enable_v4l" = x"yes" ; then
   AC_CHECK_HEADERS([linux/videodev.h], [v4l=yes], [v4l=no])
   AC_CHECK_HEADERS([linux/videodev2.h], [v4l2=yes], [v4l2=no],
     [#include <linux/types.h>])
 
-  if test x$v4l2 = xyes; then
+  if test x"$v4l2" = x"yes" ; then
     AC_MSG_CHECKING([for struct v4l2_buffer in videodev2.h])
     dnl (includes, function-body, [action-if-found], [action-if-not-found])
     AC_TRY_COMPILE([
@@ -415,539 +411,12 @@ buffer.memory = V4L2_MEMORY_MMAP
       [v4l2=no AC_MSG_RESULT([no])])
   fi
 
-  if test x$v4l = xyes -o x$v4l2 = xyes ; then
+  if test x"$v4l" = x"yes" -o x"$v4l2" = x"yes" ; then
     have_v4l=yes
   else
     AC_MSG_ERROR([v4l is requested, but cannot find headers])
   fi
 fi
-])
-
-
-dnl TC_PATH_AVIFILE([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for avifile, and define AVIFILE_CFLAGS, AVIFILE_LIBS
-dnl and HAVE_AVIFILE_INCLUDES
-dnl
-AC_DEFUN([TC_PATH_AVIFILE],
-[
-AC_MSG_CHECKING([whether avifile support is requested])
-AC_ARG_ENABLE(avifile,
-  AC_HELP_STRING([--enable-avifile],
-    [build avifile dependent modules (disabled)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-avifile) ;;
-  esac],
-  enable_avifile=no)
-AC_MSG_RESULT($enable_avifile)
-have_avifile=no
-if test x"$enable_avifile" = xyes; then
-  PKG_CHECK_MODULES(AVIFILE, avifile >= 0.7.25)
-  have_avifile=yes
-  ifelse([$1], , :, [$1])
-else
-  AVIFILE_CFLAGS=""
-  AVIFILE_LIBS=""
-  AC_SUBST(AVIFILE_CFLAGS)
-  AC_SUBST(AVIFILE_LIBS)
-  ifelse([$2], , :, [$2])
-fi
-if test x$AVIFILE_CFLAGS != x ; then
-  if echo $AVIFILE_CFLAGS | grep 'avifile-0\.7$' 2>&1 > /dev/null  ; then
-    have_avifile_includes=7
-  else
-    have_avifile_includes=0
-  fi
-  AC_DEFINE_UNQUOTED([HAVE_AVIFILE_INCLUDES], $have_avifile_includes,
-    [avifile includes direstory specifics])
-  fi
-])
-
-
-dnl TC_PATH_LAME([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for LAME, and define LAME_CFLAGS and LAME_LIBS
-dnl
-AC_DEFUN([TC_PATH_LAME],
-[
-AC_MSG_CHECKING([whether lame support is requested])
-AC_ARG_ENABLE(lame,
-  AC_HELP_STRING([--enable-lame],
-    [use installed lame library (enabled)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-lame) ;;
-  esac],
-  enable_lame=yes)
-AC_MSG_RESULT($enable_lame)
-
-AC_ARG_WITH(lame-includes,
-  AC_HELP_STRING([--with-lame-includes=PFX],
-    [prefix where local lame includes are installed (optional)]),
-  lame_includes="$withval", lame_includes="")
-
-AC_ARG_WITH(lame-libs,
-  AC_HELP_STRING([--with-lame-libs=PFX],
-    [prefix where local lame libs are installed (optional)]),
-  lame_libs="$withval", lame_libs="")
-
-LAME_EXTRA_LIBS="-lm"
-have_lame=no
-lame_version=0
-
-if test x$enable_lame = xyes ; then
-
-  if test x$lame_includes != "x" ; then
-    with_lame_i="$lame_includes/include"
-  else
-    with_lame_i="/usr/include"
-  fi
-  if test x$lame_libs != x ; then
-    with_lame_l="$lame_libs/lib"	
-  else
-    with_lame_l="/usr${deflib}"
-  fi
-
-  lame_inc=no
-  save_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS -I$with_lame_i"
-  AC_CHECK_HEADER([lame/lame.h],
-    [AC_DEFINE([HAVE_LAME_INC], [1],
-      [Have Lame includes in separate path]) lame_inc=yes])
-  if test x$lame_inc = xno ; then
-    AC_CHECK_HEADER([lame.h], lame_inc=yes)
-  fi
-  if test x$lame_inc = xno ; then
-    AC_MSG_ERROR([lame requested, but cannot compile lame.h])
-  else
-    LAME_CFLAGS="-I$with_lame_i"
-  fi
-  CPPFLAGS="$save_CPPFLAGS"
-
-  save_LDFLAGS="$LDFLAGS"
-  LDFLAGS="$LDFLAGS -L$with_lame_l"
-  AC_CHECK_LIB(mp3lame, lame_init,
-    [LAME_LIBS="-L$with_lame_l -lmp3lame $LAME_EXTRA_LIBS"],
-    [AC_MSG_ERROR([lame requested, but cannot link against libmp3lame])],
-    [$LAME_EXTRA_LIBS])
-  LDFLAGS="$save_LDFLAGS"
-
-  AC_MSG_CHECKING([lame version])
-  ac_save_CFLAGS="$CFLAGS"
-  ac_save_LIBS="$LIBS"
-  CFLAGS="$CFLAGS $LAME_CFLAGS"
-  LIBS="$LIBS $LAME_LIBS"
-  AC_TRY_RUN([
-#include <stdio.h>
-
-#ifdef HAVE_LAME_INC
-#include <lame/lame.h>
-#else
-#include <lame.h>
-#endif
-
-int main () {
-  lame_version_t lv;
-  get_lame_version_numerical(&lv);
-  if(lv.alpha || lv.beta) lv.minor--;
-  printf("%d%d\n", lv.major, lv.minor);
-  return 0;
-}
-],
-    [lame_version="`./conftest$ac_exeext`"],
-    [AC_MSG_ERROR([lame requested, but cannot compile and run a test program])],,
-    [echo $ac_n "cross compiling; assumed OK... $ac_c"])
-  CFLAGS="$ac_save_CFLAGS"
-  LIBS="$ac_save_LIBS"
-
-  if test $lame_version -lt 389 ; then
-    LAME_LIBS=""
-    LAME_CFLAGS=""
-    ifelse([$2], , :, [$2])
-    AC_MSG_ERROR([lame requested, but lame version < 3.89])
-  else
-    have_lame=yes
-    ifelse([$1], , :, [$1])
-  fi
-else
-  LAME_LIBS=""
-  LAME_CFLAGS=""
-  ifelse([$2], , :, [$2])
-fi
-AC_SUBST(LAME_CFLAGS)
-AC_SUBST(LAME_LIBS)
-])
-
-
-dnl TC_PATH_OGG([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for ogg, and define OGG_CFLAGS and OGG_LIBS
-dnl
-AC_DEFUN([TC_PATH_OGG],
-[
-AC_MSG_CHECKING([whether ogg support is requested])
-AC_ARG_ENABLE(ogg,
-  AC_HELP_STRING([--enable-ogg],
-    [build ogg dependent modules (enabled)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-ogg) ;;
-  esac],
-  enable_ogg=yes)
-AC_MSG_RESULT($enable_ogg)
-have_ogg=no
-if test x$enable_ogg = xyes; then
-  PKG_CHECK_MODULES(OGG, ogg)
-  have_ogg=yes
-  ifelse([$1], , :, [$1])
-else
-  OGG_CFLAGS=""
-  OGG_LIBS=""
-  AC_SUBST(OGG_CFLAGS)
-  AC_SUBST(OGG_LIBS)
-  ifelse([$2], , :, [$2])
-fi
-])
-
-
-dnl TC_PATH_VORBIS([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for vorbis, and define VORBIS_CFLAGS and VORBIS_LIBS
-dnl
-AC_DEFUN([TC_PATH_VORBIS],
-[
-AC_MSG_CHECKING([whether vorbis support is requested])
-AC_ARG_ENABLE(vorbis,
-  AC_HELP_STRING([--enable-vorbis],
-    [build vorbis dependent modules (yes)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-vorbis) ;;
-  esac],
-  enable_vorbis=yes)
-AC_MSG_RESULT($enable_vorbis)
-have_vorbis=no
-if test x"$enable_vorbis" = xyes; then
-  PKG_CHECK_MODULES(VORBIS, vorbis)
-  have_vorbis=yes
-  ifelse([$1], , :, [$1])
-else
-  VORBIS_CFLAGS=""
-  VORBIS_LIBS=""
-  AC_SUBST(VORBIS_CFLAGS)
-  AC_SUBST(VORBIS_LIBS)
-  ifelse([$2], , :, [$2])
-fi
-])
-
-
-dnl TC_PATH_THEORA([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for libtheora, and define THEORA_CFLAGS and THEORA_LIBS
-dnl
-AC_DEFUN([TC_PATH_THEORA],
-[
-AC_MSG_CHECKING([whether theora support is requested])
-AC_ARG_ENABLE(theora,
-  AC_HELP_STRING([--enable-theora],
-    [Compile in libtheora support (no)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-theora) ;;
-  esac],
-  enable_theora=no)
-AC_MSG_RESULT($enable_theora)
-
-AC_ARG_WITH(theora-includes,
-  AC_HELP_STRING([--with-theora-includes=PFX],
-    [prefix where local theora includes are installed (optional)]),
-  theora_includes="$withval", theora_includes="")
-
-AC_ARG_WITH(theora-libs,
-  AC_HELP_STRING([--with-theora-libs=PFX],
-    [prefix where local theora libs are installed (optional)]),
-  theora_libs="$withval", theora_libs="")
-
-THEORA_EXTRA_LIBS="-logg -lm"
-have_theora=no
-
-if test x$enable_theora = xyes ; then
-
-  if test x$theora_includes != x ; then
-    with_theora_i="$theora_includes/include"
-  else
-    with_theora_i="/usr/include"
-  fi
-  if test x$theora_libs != x ; then
-    with_theora_l="$theora_libs/lib"
-  else
-    with_theora_l="/usr${deflib}"
-  fi
-
-  save_LDFLAGS="$LDFLAGS"
-  LDFLAGS="$LDFLAGS -L$with_theora_l"
-  AC_CHECK_LIB(theora, theora_info_init,
-    [THEORA_LIBS="-L$with_theora_l -ltheora $THEORA_EXTRA_LIBS"],
-    [AC_MSG_ERROR([theora requested, but can't link against libtheora])],
-    [$THEORA_EXTRA_LIBS])
-  LDFLAGS="$save_LDFLAGS"
-
-  save_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS -I$with_theora_i"
-  AC_CHECK_HEADER([theora/theora.h],
-    [THEORA_CFLAGS="-I$with_theora_i"],
-    [AC_MSG_ERROR([theora requested, but can't compile theora/theora.h])])
-  CPPFLAGS="$save_CPPFLAGS"
-
-  have_theora=yes
-  ifelse([$1], , :, [$1])
-
-else
-  THEORA_LIBS=""
-  THEORA_CFLAGS=""
-  ifelse([$2], , :, [$2])
-fi
-AC_SUBST(THEORA_CFLAGS)
-AC_SUBST(THEORA_LIBS)
-])
-
-
-dnl TC_PATH_LIBDVDREAD([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for LIBDVDREAD, and define LIBDVDREAD_CFLAGS and LIBDVDREAD_LIBS
-dnl
-AC_DEFUN([TC_PATH_LIBDVDREAD],
-[
-AC_MSG_CHECKING([whether libdvdread support is requested])
-AC_ARG_ENABLE(dvdread,
-  AC_HELP_STRING([--enable-dvdread],
-    [use installed libdvdread library (yes)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-dvdread) ;;
-  esac],
-  enable_dvdread=yes)
-AC_MSG_RESULT($enable_dvdread)
-
-AC_ARG_WITH(dvdread-includes,
-  AC_HELP_STRING([--with-dvdread-includes=PFX],
-    [prefix where local dvdread includes are installed (optional)]),
-  dvdread_includes="$withval", dvdread_includes="")
-
-AC_ARG_WITH(dvdread-libs,
-  AC_HELP_STRING([--with-dvdread-libs=PFX],
-    [prefix where local dvdread lib is installed (optional)]),
-  dvdread_libs="$withval", dvdread_libs="")
-
-DVDREAD_EXTRA_LIBS="-lm"
-have_dvdread=no
-
-if test x$enable_dvdread = "x"yes ; then
-
-  if test x$dvdread_includes != x ; then
-    with_dvdread_i="$dvdread_includes/include"
-  else
-    with_dvdread_i="/usr/include"
-  fi
-  if test x$dvdread_libs != x ; then
-    with_dvdread_l="$dvdread_libs/lib"
-  else
-    with_dvdread_l="/usr${deflib}"
-  fi
-
-  save_LDFLAGS="$LDFLAGS"
-  LDFLAGS="$LDFLAGS -L$with_dvdread_l"
-  AC_CHECK_LIB(dvdread, DVDOpen,
-    [DVDREAD_LIBS="-L$with_dvdread_l -ldvdread $DVDREAD_EXTRA_LIBS"],
-    [AC_MSG_ERROR([libdvdread requested, but cannot link against libdvdread])],
-    [$DVDREAD_EXTRA_LIBS])
-  LDFLAGS="$save_LDFLAGS"
-
-  dvdread_inc=no
-  save_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS -I$with_dvdread_i"
-  AC_CHECK_HEADER([dvdread/dvd_reader.h],
-    [AC_DEFINE([HAVE_LIBDVDREAD_INC], [1],
-      [Have Libdvdread includes in separate path])
-    dvdread_inc=yes])
-  if test x$dvdread_inc = xno ; then
-    AC_CHECK_HEADER([dvd_reader.h],
-      [dvdread_inc=yes])
-  fi
-  CPPFLAGS="$save_CPPFLAGS"
-
-  if test x$dvdread_inc = xno ; then
-    AC_MSG_ERROR([libdvdread requested, but cannot compile dvd_reader.h])
-  else
-    DVDREAD_CFLAGS="-I$with_dvdread_i"
-  fi
-
-  have_dvdread=yes
-  ifelse([$1], , :, [$1])
-
-else
-  DVDREAD_LIBS=""
-  DVDREAD_CFLAGS=""
-  ifelse([$2], , :, [$2])
-fi
-AC_SUBST(DVDREAD_CFLAGS)
-AC_SUBST(DVDREAD_LIBS)
-])
-
-
-dnl this is never used
-dnl TC_PATH_LIBXVID([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for LIBXVID, and define LIBXVID_CFLAGS and LIBXVID_LIBS
-dnl
-AC_DEFUN([TC_PATH_LIBXVID],
-[
-AC_MSG_CHECKING([whether xvidcore support is requested])
-AC_ARG_ENABLE(xvidcore,
-  AC_HELP_STRING([--enable-xvidcore],
-    [use installed LIBXVID library (no)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-xvidcore) ;;
-  esac],
-  enable_xvidcore=no)
-AC_MSG_RESULT($enable_xvidcore)
-
-AC_ARG_WITH(xvidcore-includes,
-  AC_HELP_STRING([--with-xvidcore-includes=PFX],
-    [prefix where local xvidcore includes are installed (optional)]),
-  xvidcore_includes="$withval", xvidcore_includes="")
-
-AC_ARG_WITH(xvidcore-libs,
-  AC_HELP_STRING([--with-xvidcore-libs=PFX],
-    [prefix where local xvidcore lib is installed (optional)]),
-  xvidcore_libs="$withval", xvidcore_libs="")
-
-XVIDCORE_EXTRA_LIBS="-lm"
-have_xvidcore=no
-
-if test x$enable_xvidcore = xyes ; then
-
-  if test x$xvidcore_includes != x ; then
-    with_xvidcore_i="$xvidcore_includes/include"
-  else
-    with_xvidcore_i="/usr/include"
-  fi
-  if test x$xvidcore_libs != x ; then
-    with_xvidcore_l="$xvidcore_libs/lib"
-  else
-    with_xvidcore_l="/usr${deflib}"
-  fi
-
-  save_LDFLAGS="$LDFLAGS"
-  LDFLAGS="$LDFLAGS -L$with_xvidcore_l"
-  AC_CHECK_LIB(xvidcore, xvid_encore,
-    [XVIDCORE_LIBS="-L$with_xvidcore_l -lxvidcore $XVIDCORE_EXTRA_LIBS"],
-    [AC_MSG_ERROR([xvidcore requested, but could not link with libxvidcore])],
-    [$XVIDCORE_EXTRA_LIBS])
-  LDFLAGS="$save_LDFLAGS"
-
-  save_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS -I$with_xvidcore_i"
-  AC_CHECK_HEADER([xvid4.h],
-    [XVIDCORE_CFLAGS="-I$with_xvidcore_i"],
-    [AC_MSG_ERROR([xvidcore requested, but could not compile xvid4.h])])
-  CPPFLAGS="$save_CPPFLAGS"
-
-  have_xvidcore=yes
-  ifelse([$1], , :, [$1])
-
-else
-  XVIDCORE_LIBS=""
-  XVIDCORE_CFLAGS=""
-  ifelse([$2], , :, [$2])
-fi
-AC_SUBST(XVIDCORE_CFLAGS)
-AC_SUBST(XVIDCORE_LIBS)
-])
-
-
-dnl TC_PATH_LIBMPEG3([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for libmpeg3, and define LIBMPEG3_LIBS and LIBMPEG3_CFLAGS
-dnl
-AC_DEFUN([TC_PATH_LIBMPEG3],
-[
-AC_MSG_CHECKING([whether libmpeg3 support is requested])
-AC_ARG_ENABLE(libmpeg3,
-  AC_HELP_STRING([--enable-libmpeg3],
-    [build libmpeg3 dependent module (no)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-libmpeg3) ;;
-  esac],
-  enable_libmpeg3=no)
-AC_MSG_RESULT($enable_libmpeg3)
-
-AC_ARG_WITH(libmpeg3-includes,
-  AC_HELP_STRING([--with-libmpeg3-includes=PFX],
-    [prefix where local libmpeg3 includes are installed (optional)]),
-  libmpeg3_includes="$withval", libmpeg3_includes="")
-
-AC_ARG_WITH(libmpeg3-libs,
-  AC_HELP_STRING([--with-libmpeg3-libs=PFX],
-    [prefix where local libmpeg3 libs are installed (optional)]),
-  libmpeg3_libs="$withval", libmpeg3_libs="")
-
-LIBMPEG3_EXTRA_LIBS="-lm -lpthread $A52_LIBS"
-have_libmpeg3=no
-
-if test x$enable_libmpeg3 = "x"yes ; then
-
-  if test x$libmpeg3_includes != x ; then
-    with_libmpeg3_i="$libmpeg3_includes/include"
-  else
-    with_libmpeg3_i="/usr/include"
-  fi
-  if test x$libmpeg3_libs != x ; then
-    with_libmpeg3_l="$libmpeg3_libs/lib"
-  else
-    with_libmpeg3_l="/usr${deflib}"
-  fi
-
-  libmpeg3_inc=no
-  save_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS -I$with_libmpeg3_i"
-  AC_CHECK_HEADER([libmpeg3/libmpeg3.h],
-    [with_libmpeg3_i="$with_libmpeg3_i/libmpeg3"
-      libmpeg3_inc=yes])
-  if test x$libmpeg3_inc = xno ; then
-    AC_CHECK_HEADER([mpeg3/libmpeg3.h],
-      [with_libmpeg3_i="$with_libmpeg3_i/mpeg3"
-        libmpeg3_inc=yes])
-  fi
-  if test x$libmpeg3_inc = xno ; then
-    AC_CHECK_HEADER([libmpeg3.h],
-	  [with_libmpeg3_i="$with_libmpeg3_i"
-	     libmpeg3_inc=yes])
-  fi
-  if test x$libmpeg3_inc = xno ; then
-    AC_MSG_ERROR([libmpeg3 requested, but cannot compile libmpeg3.h])
-  fi
-  CPPFLAGS="$save_CPPFLAGS"
-
-  AC_CHECK_LIB(mpeg3, mpeg3_open,
-    [LIBMPEG3_CFLAGS="-I$with_libmpeg3_i"
-      LIBMPEG3_LIBS="-L$with_libmpeg3_l -lmpeg3 ${LIBMPEG3_EXTRA_LIBS}"],
-    [AC_MSG_ERROR([libmpeg3 requested, but cannot link against libmpeg3])],
-    [-L$with_libmpeg3_l -lmpeg3 ${LIBMPEG3_EXTRA_LIBS}])
-
-  have_libmpeg3=yes
-  ifelse([$1], , :, [$1])
-
-else
-  LIBMPEG3_CFLAGS=""
-  LIBMPEG3_LIBS=""
-  ifelse([$2], , :, [$2])
-fi
-AC_SUBST(LIBMPEG3_LIBS)
-AC_SUBST(LIBMPEG3_CFLAGS)
 ])
 
 
@@ -977,8 +446,8 @@ AC_ARG_WITH(libpostproc-builddir,
 POSTPROC_EXTRA_LIBS="-lm"
 have_libpostproc=no
 
-if test x$enable_libpostproc = xyes ; then
-  if test x$libpostproc_builddir != "x" ; then
+if test x"$enable_libpostproc" = x"yes" ; then
+  if test x"$libpostproc_builddir" != x"" ; then
     with_libpostproc_p="$libpostproc_builddir"
     save_LDFLAGS="$LDFLAGS"
     LDFLAGS="$LDFLAGS -L$with_libpostproc_p/lib"
@@ -990,13 +459,13 @@ if test x$enable_libpostproc = xyes ; then
       [$POSTPROC_EXTRA_LIBS])
     LDFLAGS="$save_LDFLAGS"
   fi
-  if test x$have_libpostproc != "xyes" ; then
+  if test x"$have_libpostproc" != x"yes" ; then
     AC_CHECK_LIB(postproc, pp_postprocess,
       [LIBPOSTPROC_CFLAGS=""
         LIBPOSTPROC_LIBS="-lpostproc $POSTPROC_EXTRA_LIBS"
         have_libpostproc=yes])
   fi
-  if test x$have_libpostproc = xyes ; then
+  if test x"$have_libpostproc" = x"yes" ; then
     ifelse([$1], , :, [$1])
   else
     AC_MSG_ERROR([libpostproc requested, but cannot link with libpostproc])
@@ -1036,8 +505,8 @@ AC_ARG_WITH(liblve-builddir,
 LVE_EXTRA_LIBS="-lstdc++ -lm"
 have_liblve=no
 
-if test x$enable_liblve = xyes ; then
-  if test x$liblve_builddir != x ; then
+if test x"$enable_liblve" = x"yes" ; then
+  if test x"$liblve_builddir" != x"" ; then
     with_liblve_p="$liblve_builddir"
     save_LDFLAGS="$LDFLAGS"
     LDFLAGS="$LDFLAGS -L$with_liblve_p/lve"
@@ -1049,7 +518,7 @@ if test x$enable_liblve = xyes ; then
       [-L$with_liblve_p/ffmpeg -lavcodec -L$with_liblve_p/libmpeg2/.libs -lmpeg2 -L$with_liblve_p/liba52 -la52 $LVE_EXTRA_LIBS])
     LDFLAGS="$save_LDFLAGS"
   fi
-  if test x$have_liblve != xyes ; then
+  if test x"$have_liblve" != x"yes" ; then
     AC_CHECK_LIB(lve, lr_init,
       [LVE_CFLAGS=""
         LVE_LIBS="-llve $LVE_EXTRA_LIBS" 
@@ -1057,7 +526,7 @@ if test x$enable_liblve = xyes ; then
       [],
       [$LVE_EXTRA_LIBS])
   fi
-  if test x$have_liblve = xyes ; then
+  if test x"$have_liblve" = x"yes" ; then
     ifelse([$1], , :, [$1])
   else
     AC_MSG_ERROR([liblve support is requested, but cannot link against liblve])
@@ -1101,14 +570,14 @@ AC_ARG_WITH(pvm3-include,
 
 have_pvm3=no
 
-if test x$enable_pvm3 = xyes ; then
-  if test x$pvm3_lib != x ; then
+if test x"$enable_pvm3" = x"yes" ; then
+  if test x"$pvm3_lib" != x"" ; then
     AC_CHECK_FILE($pvm3_include/pvm3.h, [pvm3_inc=yes])
     AC_CHECK_FILE($pvm3_lib/libpvm3.a, [pvm3_libs=yes])
     AC_CHECK_FILE($pvm3_lib/libgpvm3.a, [pvm3_libs=yes])
     AC_CHECK_FILE($pvm3_lib/pvmgs, [pvm3_libs=yes])
-    if test x$pvm3_inc != "x" ; then
-      if test x$pvm3_libs != "x" ; then
+    if test x"$pvm3_inc" != x"" ; then
+      if test x"$pvm3_libs" != x"" ; then
         AC_MSG_CHECKING([for pvm3 version >= 3.4])
         PVM3_CFLAGS="-I$pvm3_include"
         PVM3_LIB="-L$pvm3_lib -lpvm3 -lgpvm3" 
@@ -1141,7 +610,7 @@ int main ()
       fi
     fi
   fi
-  if test x$have_pvm3 = xyes ; then
+  if test x"$have_pvm3" = x"yes" ; then
     AC_MSG_RESULT(yes)
     ifelse([$1], , :, [$1])
   else
@@ -1158,378 +627,6 @@ fi
 AC_SUBST(PVM3_CFLAGS)
 AC_SUBST(PVM3_LIB)
 AC_SUBST(PVM3_PVMGS)
-])
-
-
-dnl TC_PATH_DV([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for libdv, and define DV_CFLAGS and DV_LIBS
-dnl
-AC_DEFUN([TC_PATH_DV],
-[
-AC_MSG_CHECKING([whether libdv support is requested])
-AC_ARG_ENABLE(dv,
-  AC_HELP_STRING([--enable-dv],
-    [build libdv dependent modules (no)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-dv) ;;
-  esac],
-  enable_dv=no)
-AC_MSG_RESULT($enable_dv)
-
-AC_ARG_WITH(dv-includes,
-  AC_HELP_STRING([--with-dv-includes=PFX],
-    [prefix where local libdv includes are installed (optional)]),
-  dv_includes="$withval", dv_includes="")
-
-AC_ARG_WITH(dv-libs,
-  AC_HELP_STRING([--with-dv-libs=PFX],
-    [prefix where local libdv libs are installed (optional)]),
-  dv_libs="$withval", dv_libs="")
-
-DV_EXTRA_LIBS="-lm"
-have_dv=no
-
-if test x$enable_dv = xyes ; then
-
-  if test -z "$PKG_CONFIG" ; then
-    AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
-  fi
-
-  if test "$PKG_CONFIG" != "no" ; then
-    if $PKG_CONFIG libdv --exists ; then
-      AC_MSG_CHECKING([DV_CFLAGS])
-      DV_CFLAGS="`$PKG_CONFIG libdv --cflags`"
-      AC_MSG_RESULT($DV_CFLAGS)
-      AC_MSG_CHECKING([DV_LIBS])
-      DV_LIBS="`$PKG_CONFIG libdv --libs`"
-      AC_MSG_RESULT($DV_LIBS)
-      if $PKG_CONFIG libdv --atleast-version 0.95 ; then
-        AC_DEFINE([LIBDV_095], [1], [Have libdv 0.95 or newer])
-      fi
-      if $PKG_CONFIG libdv --atleast-version 0.99 ; then
-        AC_DEFINE([LIBDV_099], [1], [Have libdv 0.99 or newer])
-      fi
-      if $PKG_CONFIG libdv --atleast-version 0.103 ; then
-        AC_DEFINE([LIBDV_0103], [1], [Have libdv 0.103 or newer])
-      fi
-      have_dv=yes
-    fi
-  fi
-
-  if test x$have_dv != xyes ; then
-
-    if test x$dv_includes != x ; then
-      with_dv_i="$dv_includes/include"
-    else
-      with_dv_i="/usr/include"
-    fi
-    if test x$dv_libs != x ; then
-      with_dv_l="$dv_libs/lib"
-    else
-      with_dv_l="/usr${deflib}"
-    fi
-
-    save_LDFLAGS="$LDFLAGS"
-    LDFLAGS="$LDFLAGS -L$with_dv_l"
-    AC_CHECK_LIB(dv, dv_init,
-      [DV_LIBS="-L$with_dv_l -ldv $DV_EXTRA_LIBS"],
-      [AC_MSG_ERROR([dv requested, but cannot link against libdv])],
-      [$DV_EXTRA_LIBS])
-    LDFLAGS="$save_LDFLAGS"
-
-    save_CPPFLAGS="$CPPFLAGS"
-    CPPFLAGS="$CPPFLAGS -I$with_dv_i"
-    AC_CHECK_HEADER([libdv/dv.h],
-      [DV_CFLAGS="-I$with_dv_i"],
-      [AC_MSG_ERROR([dv requested, but cannot compile libdv/dv.h])])
-    CPPFLAGS="$save_CPPFLAGS"
-
-    have_dv=yes
-
-    save_LDFLAGS="$LDFLAGS"
-    LDFLAGS="$LDFLAGS -L$with_dv_l"
-    save_CPPFLAGS="$CPPFLAGS"
-    CPPFLAGS="$CPPFLAGS -I$with_dv_i"
-
-    dnl check for version >= 0.95
-    AC_CHECK_LIB(dv, dv_encoder_new,
-      [AC_DEFINE([LIBDV_095], [1], [Have libdv 0.95 or newer])],
-      [], 
-      [$DV_EXTRA_LIBS])
-
-    dnl check for version >= 0.99
-    AC_CHECK_LIB(dv, calculate_samples,
-      [AC_DEFINE([LIBDV_099], [1], [Have libdv 0.99 or newer])],
-      [], 
-      [$DV_EXTRA_LIBS])
-
-    dnl check for version >= 0.103
-    AC_TRY_COMPILE([[#include <libdv/dv_types.h>
-        #include <stdio.h>]],
-      [[printf("header_size = %d\n", header_size);]],
-      [],
-      [AC_DEFINE([LIBDV_0103], [1], [Have libdv 0.103 or newer])])
-
-    LDFLAGS="$save_LDFLAGS"
-    CPPFLAGS="$save_CPPFLAGS"
-
-  fi
-  ifelse([$1], , :, [$1])
-
-else
-  DV_LIBS=""
-  DV_CFLAGS=""
-  ifelse([$2], , :, [$2])
-fi
-AC_SUBST(DV_LIBS)
-AC_SUBST(DV_CFLAGS)
-])
-
-
-dnl TC_PATH_QT([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for libquicktime and set QT_CFLAGS and QT_LIBS
-dnl
-AC_DEFUN([TC_PATH_QT],
-[
-AC_MSG_CHECKING([whether quicktime support is requested])
-AC_ARG_ENABLE(libquicktime,
-  AC_HELP_STRING([--enable-libquicktime],
-    [build libquicktime dependent module (no)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-libquicktime) ;;
-  esac],
-  enable_libquicktime=no)
-AC_MSG_RESULT($enable_libquicktime)
-
-AC_ARG_WITH(libquicktime-includes,
-  AC_HELP_STRING([--with-libquicktime-includes=PFX],
-    [prefix where local libquicktime includes are installed (optional)]),
-  libquicktime_includes="$withval", libquicktime_includes="")
-
-AC_ARG_WITH(libquicktime-libs,
-  AC_HELP_STRING([--with-libquicktime-libs=PFX],
-    [prefix where local libquicktime libs are installed (optional)]),
-  libquicktime_libs="$withval", libquicktime_libs="")
-
-QT_EXTRA_LIBS="-lpng -lz $PTHREAD_LIBS -lm $DV_LIBS"
-have_libquicktime=no
-
-if test x$enable_libquicktime = "x"yes ; then
-  AC_PATH_PROG(LQT_CONFIG, lqt-config, no)
-  if test x$LQT_CONFIG != xno ; then
-    AC_MSG_CHECKING([QT_CFLAGS])
-    QT_CFLAGS="`$LQT_CONFIG --cflags`"
-    AC_MSG_RESULT($QT_CFLAGS)
-    AC_MSG_CHECKING([QT_LIBS])
-    QT_LIBS="`$LQT_CONFIG --libs`"
-    AC_MSG_RESULT($QT_LIBS)
-    have_libquicktime=yes
-  else
-    if test x$libquicktime_includes != "x" ; then
-      with_libquicktime_i="$libquicktime_includes/include/quicktime"
-    else
-      with_libquicktime_i="/usr/include/quicktime"
-    fi
-    if test x$libquicktime_libs != x ; then
-      with_libquicktime_l="$libquicktime_libs/lib"
-    else
-      with_libquicktime_l="/usr${deflib}"
-    fi
-    save_LDFLAGS="$LDFLAGS"
-    LDFLAGS="$LDFLAGS -L$with_libquicktime_l"
-    AC_CHECK_LIB(quicktime, quicktime_open,
-      [QT_CFLAGS="-I$with_libquicktime_i $DV_CFLAGS"
-        QT_LIBS="-L$with_libquicktime_l -lquicktime $QT_EXTRA_LIBS"],
-      [AC_MSG_ERROR([libquicktime requested, but could not link with libquicktime])],
-      [$QT_EXTRA_LIBS])
-    LDFLAGS="$save_LDFLAGS"
-    have_libquicktime=yes
-  fi
-  ifelse([$1], , :, [$1])
-else
-  QT_CFLAGS=""
-  QT_LIBS=""
-  ifelse([$2], , :, [$2])
-fi
-AC_SUBST(QT_LIBS)
-AC_SUBST(QT_CFLAGS)
-])
-
-
-dnl TC_PATH_LZO([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for liblzo, and define LZO_LIBS, LZO_CFLAGS,
-dnl
-AC_DEFUN([TC_PATH_LZO],
-[
-AC_MSG_CHECKING([whether lzo support is requested])
-AC_ARG_ENABLE(lzo,
-  AC_HELP_STRING([--enable-lzo],
-    [build liblzo dependent modules (no)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-lzo) ;;
-  esac],
-  enable_lzo=no)
-AC_MSG_RESULT($enable_lzo)
-
-AC_ARG_WITH(lzo-includes,
-  AC_HELP_STRING([--with-lzo-includes=PFX],
-    [prefix where local liblzo includes are installed (optional)]),
-  lzo_includes="$withval", lzo_includes="")
-
-AC_ARG_WITH(lzo-libs,
-  AC_HELP_STRING([--with-lzo-libs=PFX],
-    [prefix where local liblzo libs are installed (optional)]),
-  lzo_libs="$withval", lzo_libs="")
-
-have_lzo=no
-
-if test x$enable_lzo = "x"yes ; then
-
-  if test x$lzo_includes != "x" ; then
-    with_lzo_i="$lzo_includes/include"
-  else
-    with_lzo_i="/usr/include"
-  fi
-  if test x$lzo_libs != x ; then
-    with_lzo_l="$lzo_libs/lib"
-  else
-    with_lzo_l="/usr${deflib}"
-  fi
-
-  save_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS -I$with_lzo_i"
-  AC_CHECK_HEADER([lzo1x.h],
-    [LZO_CFLAGS="-I$with_lzo_i"],
-    [AC_MSG_ERROR([lzo requested, but cannot compile lzo1x.h])])
-  CPPFLAGS="$save_CPPFLAGS"
-
-  save_LDFLAGS="$LDFLAGS"
-  LDFLAGS="$LDFLAGS -L$with_lzo_l"
-  AC_CHECK_LIB(lzo, lzo_version,
-    [LZO_LIBS="-L$with_lzo_l -llzo"],
-    [AC_MSG_ERROR([lzo requested, but cannot link against liblzo])])
-  LDFLAGS="$save_LDFLAGS"
-
-  have_lzo=yes
-  ifelse([$1], , :, [$1])
-
-else
-  LZO_LIBS=""
-  LZO_CFLAGS=""
-  ifelse([$2], , :, [$2])
-fi
-AC_SUBST(LZO_LIBS)
-AC_SUBST(LZO_CFLAGS)
-])
-
-
-dnl TC_PATH_A52([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for liba52, and define A52_LIBS and A52_CFLAGS
-dnl
-AC_DEFUN([TC_PATH_A52],
-[
-AC_MSG_CHECKING([whether liba52 support is requested])
-AC_ARG_ENABLE(a52,
-  AC_HELP_STRING([--enable-a52],
-    [build liba52 decoder module (yes)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-a52) ;;
-  esac],
-  enable_a52=yes)
-AC_MSG_RESULT($enable_a52)
-
-AC_ARG_WITH(a52-includes,
-  AC_HELP_STRING([--with-a52-includes=PFX],
-    [prefix where local liba52 includes are installed (optional)]),
-  a52_includes="$withval",a52_includes="")
-
-AC_ARG_WITH(a52-libs,
-  AC_HELP_STRING([--with-a52-libs=PFX],
-    [prefix where local liba52 libs are installed (optional)]),
-  a52_libs="$withval", a52_libs="")
-
-A52_EXTRA_LIBS="-lm"
-have_a52=no
-
-if test x$enable_a52 = "x"yes ; then
-
-  if test x$a52_includes != "x" ; then
-    with_a52_i="$a52_includes/include"
-  else
-    with_a52_i="/usr/include"
-  fi
-  if test x$a52_libs != x ; then
-    with_a52_l="$a52_libs/lib"
-  else
-    with_a52_l="/usr${deflib}"
-  fi
-
-  save_LDFLAGS="$LDFLAGS"
-  LDFLAGS="$LDFLAGS -L$with_a52_l"
-  AC_CHECK_LIB(a52, a52_init,
-    [A52_CFLAGS="-I$with_a52_i"
-      A52_LIBS="-L$with_a52_l -la52 $A52_EXTRA_LIBS"],
-    [AC_MSG_ERROR([liba52 requested, but cannot link against liba52])], 
-    [$A52_EXTRA_LIBS])
-  LDFLAGS="$save_LDFLAGS"
-
-  have_a52=yes
-  ifelse([$1], , :, [$1])
-
-else
-  A52_CFLAGS=""
-  A52_LIBS=""
-  ifelse([$2], , :, [$2])
-fi
-AC_SUBST(A52_LIBS)
-AC_SUBST(A52_CFLAGS)
-])
-
-
-dnl TC_PATH_LIBXML2([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for libxml2, and define LIBXML2_CFLAGS and LIBXML2_LIBS
-dnl
-AC_DEFUN([TC_PATH_LIBXML2],
-[
-AC_MSG_CHECKING([whether libxml2 support is requested])
-AC_ARG_ENABLE(libxml2,
-  AC_HELP_STRING([--enable-libxml2],
-    [enable libxml2 support (no)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-libxml2) ;;
-  esac],
-  enable_libxml2=no)
-AC_MSG_RESULT($enable_libxml2)
-
-have_libxml2=no
-
-if test x$enable_libxml2 = xyes ; then
-  AC_CHECK_PROG([have_libxml2_config],[xml2-config],[yes],[no])
-  if test x$have_libxml2_config = xyes ; then
-    LIBXML2_CFLAGS="`xml2-config --cflags`"
-    LIBXML2_LIBS="`xml2-config --libs`"
-    have_libxml2=yes
-  else
-    AC_MSG_ERROR([libxml2 support requested, but cannot find libxml2])
-  fi
-  ifelse([$1], , :, [$1])
-else
-  LIBXML2_CFLAGS=""
-  LIBXML2_LIBS=""
-  ifelse([$2], , :, [$2])
-fi
-AC_SUBST([LIBXML2_CFLAGS])
-AC_SUBST([LIBXML2_LIBS])
 ])
 
 
@@ -1551,7 +648,7 @@ AC_ARG_ENABLE(ibp,
 AC_MSG_RESULT($enable_ibp)
 
 have_ibp=no
-if test "x$enable_ibp" = "xyes" ; then
+if test x"$enable_ibp" = x"yes" ; then
   AC_MSG_CHECKING(for ibp and lors)
   if test x"$have_libxml2" = x"yes" ; then
     OLD_LIBS="$LIBS"
@@ -1626,7 +723,7 @@ if test "x$enable_ibp" = "xyes" ; then
     have_ibp=yes
   fi
   AC_MSG_RESULT($have_ibp)
-  if test x$have_ibp = xyes ; then
+  if test x"$have_ibp" = x"yes" ; then
     ifelse([$1], , :, [$1])
   else
     ifelse([$2], , :, [$2])
@@ -1636,61 +733,6 @@ else
   ifelse([$2], , :, [$2])
 fi
 AC_SUBST([IBP_LIBS])
-])
-
-
-dnl TC_PATH_MJPEG([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for mjpegtools, and define MJPEG_CFLAGS, MJPEG_LIBS and
-dnl possibly USE_NEW_MJPEGTOOLS_CODE
-dnl
-AC_DEFUN([TC_PATH_MJPEG],
-[
-AC_MSG_CHECKING([whether mjpegtools support is requested])
-AC_ARG_ENABLE(mjpegtools,
-  AC_HELP_STRING([--enable-mjpegtools],
-    [build mjpegtools dependent plugins (no)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-mjpegtools) ;;
-  esac],
-  [enable_mjpegtools=no])
-AC_MSG_RESULT($enable_mjpegtools)
-
-have_mjpegtools=no
-
-if test x$enable_mjpegtools = xyes ; then
-  PKG_CHECK_MODULES(MJPEG, mjpegtools)
-  have_mjpegtools=yes
-  ifelse([$1], , :, [$1])
-
-  mjpeg_incs="`pkg-config mjpegtools --variable=prefix`/include/mjpegtools"
-  AC_CHECK_FILE($mjpeg_incs/yuv4mpeg.h, 
-     [AC_DEFINE([HAVE_MJPEG_INC], [1],
-       [mjpegtools headers in separate path])])
-
-  dnl check if we have version >= Mar 31 2004
-  save_CFLAGS="$CFLAGS"
-  save_LIBS="$LIBS"
-  CFLAGS="$CFLAGS $MJPEG_CFLAGS"
-  LIBS="$LIBS $MJPEG_LIBS"
-  AC_TRY_LINK([
-#if defined(HAVE_MJPEG_INC)
-#include "yuv4mpeg.h"
-#include "mpegconsts.h"
-#else
-#include "mjpegtools/yuv4mpeg.h"
-#include "mjpegtools/mpegconsts.h"
-#endif
-],
-    [y4m_write_frame_header(1, NULL, NULL)], 
-    [AC_DEFINE([USE_NEW_MJPEGTOOLS_CODE], [1],
-      [using mjpegtools post Mar 31 2004])])
-  CFLAGS="$save_CFLAGS"
-  LIBS="$save_LIBS"
-else
-  ifelse([$2], , :, [$2])
-fi
 ])
 
 
@@ -1740,27 +782,27 @@ AC_ARG_ENABLE(sdltest,
 
 have_sdl=no
 
-if test x$enable_sdl = xyes ; then
+if test x"$enable_sdl" = x"yes" ; then
 
   dnl Get the cflags and libraries from the sdl-config script
   AC_PATH_PROG(SDL_CONFIG, sdl-config, no)
 
-  if test x$sdl_exec_prefix != x ; then
+  if test x"$sdl_exec_prefix" != x"" ; then
     sdl_args="$sdl_args --exec-prefix=$sdl_exec_prefix"
-    if test x${SDL_CONFIG} = xno ; then
+    if test x"${SDL_CONFIG}" = x"no" ; then
       SDL_CONFIG=$sdl_exec_prefix/bin/sdl-config
     fi
   fi
-  if test x$sdl_prefix != x ; then
+  if test x"$sdl_prefix" != x"" ; then
     sdl_args="$sdl_args --prefix=$sdl_prefix"
-    if test x${SDL_CONFIG} = xno ; then
+    if test x"${SDL_CONFIG}" = x"no" ; then
       SDL_CONFIG=$sdl_prefix/bin/sdl-config
     fi
   fi
 
   min_sdl_version=ifelse([$1], ,0.11.0,$1)
   AC_MSG_CHECKING(for SDL - version >= $min_sdl_version)
-  if test "$SDL_CONFIG" != "no" ; then
+  if test x"$SDL_CONFIG" != x"no" ; then
     SDL_CFLAGS=`$SDL_CONFIG $sdlconf_args --cflags`
     SDL_LIBS=`$SDL_CONFIG $sdlconf_args --libs`
 
@@ -1770,7 +812,7 @@ if test x$enable_sdl = xyes ; then
          sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
     sdl_micro_version=`$SDL_CONFIG $sdl_config_args --version | \
          sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
-    if test "x$enable_sdltest" = "xyes" ; then
+    if test x"$enable_sdltest" = x"yes" ; then
       ac_save_CFLAGS="$CFLAGS"
       ac_save_LIBS="$LIBS"
       CFLAGS="$CFLAGS $SDL_CFLAGS"
@@ -1848,12 +890,12 @@ int main (int argc, char *argv[])
       have_sdl=yes
     fi
   fi
-  if test x$have_sdl = xyes ; then
+  if test x"$have_sdl" = x"yes" ; then
     AC_MSG_RESULT(yes)
     ifelse([$2], , :, [$2])     
   else
     AC_MSG_RESULT(no)
-    if test "$SDL_CONFIG" = "no" ; then
+    if test x"$SDL_CONFIG" = x"no" ; then
       echo "*** The sdl-config script installed by SDL could not be found"
       echo "*** If SDL was installed in PREFIX, make sure PREFIX/bin is in"
       echo "*** your path, or set the SDL_CONFIG environment variable to the"
@@ -1923,7 +965,7 @@ AC_ARG_ENABLE(gtk,
   enable_gtk=no)
 AC_MSG_RESULT($enable_gtk)
 have_gtk=no
-if test x"$enable_gtk" = xyes; then
+if test x"$enable_gtk" = x"yes" ; then
   PKG_CHECK_MODULES(GTK, gtk+ >= 0.99.7)
   have_gtk=yes
   ifelse([$1], , :, [$1])
@@ -1974,19 +1016,19 @@ AC_ARG_ENABLE(libfametest,
 
 have_libfame=no
 
-if test x$enable_libfame = xyes ; then
+if test x"$enable_libfame" = x"yes" ; then
 
   AC_PATH_PROG(LIBFAME_CONFIG, libfame-config, no)
 
-  if test x$libfame_config_exec_prefix != x ; then
+  if test x"$libfame_config_exec_prefix" != x"" ; then
     libfame_config_args="$libfame_config_args --exec-prefix=$libfame_config_exec_prefix"
-    if test x${LIBFAME_CONFIG} = xno ; then
+    if test x"${LIBFAME_CONFIG}" = x"no" ; then
       LIBFAME_CONFIG=$libfame_config_exec_prefix/bin/libfame-config
     fi
   fi
-  if test x$libfame_config_prefix != x ; then
+  if test x"$libfame_config_prefix" != x"" ; then
     libfame_config_args="$libfame_config_args --prefix=$libfame_config_prefix"
-    if test x${LIBFAME_CONFIG} = xno ; then
+    if test x"${LIBFAME_CONFIG}" = x"no" ; then
       LIBFAME_CONFIG=$libfame_config_prefix/bin/libfame-config
     fi
   fi
@@ -2002,7 +1044,7 @@ if test x$enable_libfame = xyes ; then
 	   sed -e 's,[[^0-9.]],,g' -e 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
     libfame_config_micro_version=`$LIBFAME_CONFIG $libfame_config_args --version | \
 	   sed -e 's,[[^0-9.]],,g' -e 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
-    if test "x$enable_libfametest" = "xyes" ; then
+    if test x"$enable_libfametest" = x"yes" ; then
       ac_save_CFLAGS="$CFLAGS"
       ac_save_LIBS="$LIBS"
       CFLAGS="$CFLAGS $LIBFAME_CFLAGS"
@@ -2097,12 +1139,12 @@ main ()
       have_libfame=yes
     fi
   fi
-  if test x$have_libfame = xyes ; then
+  if test x"$have_libfame" = x"yes" ; then
      AC_MSG_RESULT(yes)
      ifelse([$2], , :, [$2])     
   else
     AC_MSG_RESULT(no)
-    if test "$LIBFAME_CONFIG" = "no" ; then
+    if test x"$LIBFAME_CONFIG" = x"no" ; then
       echo "*** The libfame-config script installed by libfame could not be found"
       echo "*** If libfame was installed in PREFIX, make sure PREFIX/bin is in"
       echo "*** your path, or set the LIBFAME_CONFIG environment variable to the"
@@ -2153,37 +1195,6 @@ rm -f conf.libfametest
 ])
 
 
-dnl TC_PATH_MAGICK([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for ImageMagick and set MAGICK_CFLAGS and MAGICK_LIBS
-dnl
-AC_DEFUN([TC_PATH_MAGICK],
-[
-AC_MSG_CHECKING([whether ImageMagick support is requested])
-AC_ARG_ENABLE(magick,
-  AC_HELP_STRING([--enable-magick],
-    [build ImageMagick dependent modules (no)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-magick) ;;
-  esac],
-  enable_magick=no)
-AC_MSG_RESULT($enable_magick)
-have_magick=no
-if test x"$enable_magick" = xyes; then
-  PKG_CHECK_MODULES(MAGICK, ImageMagick >= 5.4.3)
-  have_magick=yes
-  ifelse([$1], , :, [$1])
-else
-  MAGICK_CFLAGS=""
-  MAGICK_LIBS=""
-  AC_SUBST(MAGICK_CFLAGS)
-  AC_SUBST(MAGICK_LIBS)
-  ifelse([$2], , :, [$2])
-fi
-])
-
-
 dnl TC_PATH_LIBJPEG([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for libjpeg and set LIBJPEG_CFLAGS and LIBJPEG_LIBS
 dnl
@@ -2203,18 +1214,18 @@ AC_MSG_RESULT($enable_libjpeg)
 
 have_libjpegmmx=no
 have_libjpeg=no
-if test x"$enable_libjpeg" = xyes; then
+if test x"$enable_libjpeg" = x"yes" ; then
   AC_CHECK_LIB(jpeg-mmx, jpeg_CreateCompress,
     [LIBJPEG_CFLAGS=""
       LIBJPEG_LIBS="-ljpeg-mmx" 
       have_libjpeg=yes have_libjpegmmx=yes])
-  if test x$LIBJPEG_LIBS = x; then
+  if test x"$LIBJPEG_LIBS" = x"" ; then
     AC_CHECK_LIB(jpeg, jpeg_CreateCompress,
       [LIBJPEG_CFLAGS=""
         LIBJPEG_LIBS="-ljpeg"
         have_libjpeg=yes have_libjpegmmx=no])
   fi
-  if test x$have_libjpeg = xyes; then
+  if test x"$have_libjpeg" = x"yes" ; then
     ifelse([$1], , :, [$1])
   else
     AC_MSG_ERROR([libjpeg requested, but cannot link against libjpeg])
@@ -2248,12 +1259,9 @@ AC_ARG_ENABLE(ffbin,
 AC_MSG_RESULT($enable_ffbin)
 
 have_ffmpeg=no
-if test x$enable_ffbin = "x"yes ; then
-  AC_CHECK_PROG(have_ffmpeg_bin,
-		  ffmpeg,
-		  yes,
-		  no)
-  if test x$have_ffmpeg_bin = xyes ; then
+if test x"$enable_ffbin" = x"yes" ; then
+  AC_PATH_PROG(ffmpeg_bin, ffmpeg, no)
+  if test x"$ffmpeg_bin" != x"no" ; then
     have_ffmpeg=yes
     ifelse([$1], , :, [$1])
   else
@@ -2274,7 +1282,7 @@ AC_DEFUN([PKG_CHECK_MODULES], [
     AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
   fi
 
-  if test "$PKG_CONFIG" = "no" ; then
+  if test x"$PKG_CONFIG" = x"no" ; then
      echo "*** The pkg-config script could not be found. Make sure it is"
      echo "*** in your path, or set the PKG_CONFIG environment variable"
      echo "*** to the full path to pkg-config."
@@ -2312,7 +1320,7 @@ AC_DEFUN([PKG_CHECK_MODULES], [
      fi
   fi
 
-  if test $succeeded = yes; then
+  if test x"$succeeded" = x"yes" ; then
      ifelse([$3], , :, [$3])
   else
      ifelse([$4], , AC_MSG_ERROR([Library requirements ($2) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them.]), [$4])
@@ -2320,3 +1328,185 @@ AC_DEFUN([PKG_CHECK_MODULES], [
 ])
 
 
+dnl TC_PATH_PKG(pkg-name, def-enabled, var-name, pkgconfig-name, conf-script,
+dnl     lang, header, lib, symbol)
+dnl Test for pkg-name, and define var-name_CFLAGS and var-name_LIBS
+dnl   and HAVE_var-name if found
+dnl
+dnl 1 name          name of package; required
+dnl 2 def-enabled   enabled by default, 'yes' or 'no'; required
+dnl 3 var-name      name stub for variables, preferably uppercase; required
+dnl 4 pkg-name      name of package, as used by pkg-config; optional
+dnl 5 conf-script   name of "-config" script; optional
+dnl 6 lang          language, 'C', or 'C++', or 'Fortran 77'; required
+dnl 7 header        a header file to check; optional
+dnl 8 lib           a library to check; optional
+dnl 9 symbol        a symbol from the library to check; required if lib given
+
+AC_DEFUN([TC_PATH_PKG],
+[
+AC_MSG_CHECKING([whether $1 support is requested])
+AC_ARG_ENABLE($1,
+  AC_HELP_STRING([--enable-$1],
+    [build with $1 support ($2)]),
+  [case "${enableval}" in
+    yes) ;;
+    no)  ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-$1) ;;
+  esac],
+  enable_$1=$2)
+AC_MSG_RESULT($enable_$1)
+
+AC_ARG_WITH($1-prefix,
+  AC_HELP_STRING([--with-$1-prefix=PFX],
+    [prefix where local $1 is installed (optional)]),
+  w_$1_p="$withval", w_$1_p="")
+
+AC_ARG_WITH($1-includes,
+  AC_HELP_STRING([--with-$1-includes=PFX],
+    [prefix where local $1 includes are installed (optional)]),
+  w_$1_i="$withval", w_$1_i="")
+
+AC_ARG_WITH($1-libs,
+  AC_HELP_STRING([--with-$1-libs=PFX],
+    [prefix where local $1 libs are installed (optional)]),
+  w_$1_l="$withval", w_$1_l="")
+
+have_$1=no
+
+if test x"$enable_$1" = x"yes" ; then
+
+  pkg_config_$1="no"
+  AC_MSG_CHECKING([for pkgconfig support for $1])
+  if test x"$PKG_CONFIG" != x"no" ; then
+    if $PKG_CONFIG $4 --exists ; then
+      pkg_config_$1="yes"
+    fi
+  fi
+  AC_MSG_RESULT($pkg_config_$1)
+
+  if test x"$5" != x"" ; then
+    if test x"$w_$1_p" != x"" ; then
+      if test -x $w_$1_p/bin/$5 ; then
+        $1_config="$w_$1_p/bin/$5"
+      fi
+    fi
+    AC_PATH_PROG($1_config, $5, no)
+  else
+    $1_config="no"
+  fi
+
+  # get and test the _CFLAGS
+
+  AC_MSG_CHECKING([how to determine $3_CFLAGS])
+  if test x"$w_$1_i" != x"" ; then
+    $1_ii="-I$w_$1_i/include"
+    AC_MSG_RESULT(user)
+  else
+    if test x"$pkg_config_$1" != x"no" ; then
+      $1_ii="`$PKG_CONFIG $4 --cflags`"
+      AC_MSG_RESULT(pkg-config)
+    else
+      if test x"$$1_config" != x"no" ; then
+        $1_ii="`$$1_config --cflags`"
+        AC_MSG_RESULT($$1_config)
+      else
+        if test x"$w_$1_p" != x"" ; then
+          $1_ii="-I$w_$1_p/include"
+          AC_MSG_RESULT(prefix)
+        else
+          $1_ii="-I/usr/include"
+          AC_MSG_RESULT(default)
+        fi
+      fi
+    fi
+  fi
+  ipaths="" ; xi=""
+  for i in $$1_ii ; do
+    case $i in
+      -I*) ipaths="$ipaths $i" ;;
+        *) xi="$xi $i" ;;
+    esac
+  done
+  $1_ii="$ipaths"
+  $1_ii=`echo $$1_ii | sed -e 's/  */ /g'`
+  $3_EXTRA_CFLAGS="$$3_EXTRA_CFLAGS $xi"
+  $3_EXTRA_CFLAGS=`echo $$3_EXTRA_CFLAGS | sed -e 's/  */ /g'`
+
+  if test x"$7" != x"" ; then
+    AC_LANG_PUSH($6)
+    save_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS $$1_ii"
+    AC_CHECK_HEADER([$7],
+      [$3_CFLAGS="$$1_ii"],
+      [AC_MSG_ERROR([$1 requested, but cannot compile $7])])
+    CPPFLAGS="$save_CPPFLAGS"
+    AC_LANG_POP($6)
+  else
+    $3_CFLAGS="$$1_ii"
+  fi
+
+  # get and test the _LIBS
+
+  AC_MSG_CHECKING([how to determine $3_LIBS])
+  if test x"$w_$1_l" != x"" ; then
+    $1_ll="-L$w_$1_l/lib"
+    AC_MSG_RESULT(user)
+  else
+    if test x"$pkg_config_$1" != x"no" ; then
+      $1_ll="`$PKG_CONFIG $4 --libs`"
+      AC_MSG_RESULT(pkg-config)
+    else
+      if test x"$$1_config" != x"no" ; then
+        $1_ll="`$$1_config --libs`"
+        AC_MSG_RESULT($$1_config)
+      else
+        if test x"$w_$1_p" != x"" ; then
+          $1_ll="-L$w_$1_p${deflib}"
+          AC_MSG_RESULT(prefix)
+        else
+          $1_ll="-L/usr/${deflib}"
+          AC_MSG_RESULT(default)
+        fi
+      fi
+    fi
+  fi
+  lpaths="" ; xlibs="" ; xlf=""
+  for l in $$1_ll ; do
+    case $l in
+      -L*) lpaths="$lpaths $l" ;;
+      -l*) test x"$l" != x"-l$8" && xlibs="$xlibs $l" ;;
+        *) xlf="$xlf $l" ;;
+    esac
+  done
+  $1_ll="$lpaths"
+  $1_ll=`echo $$1_ll | sed -e 's/  */ /g'`
+  xl=""
+  for i in $xlibs $xlf ; do
+    echo " $$3_EXTRA_LIBS " | grep -vq " $i " && xl="$xl $i"
+  done
+  $3_EXTRA_LIBS="$$3_EXTRA_LIBS $xl"
+  $3_EXTRA_LIBS=`echo $$3_EXTRA_LIBS | sed -e 's/  */ /g'`
+
+  if test x"$8" != x"" ; then
+    AC_LANG_PUSH($6)
+    save_LDFLAGS="$LDFLAGS"
+    LDFLAGS="$LDFLAGS $$1_ll"
+    AC_CHECK_LIB($8, $9,
+      [$3_LIBS="$$1_ll -l$8 $$3_EXTRA_LIBS"],
+      [AC_MSG_ERROR([$1 requested, but cannot link against lib$8])],
+      [$$3_EXTRA_LIBS])
+    LDFLAGS="$save_LDFLAGS"
+    AC_LANG_POP($6)
+  else
+    [$3_LIBS="$$1_ll -l$8 $$3_EXTRA_LIBS"],
+  fi
+
+  # got here without error so all is well
+  have_$1="yes"
+
+else
+  $3_CFLAGS=""
+  $3_LIBS=""  
+fi
+])

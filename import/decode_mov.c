@@ -30,8 +30,8 @@
 
 #include "config.h"
 
-#ifdef HAVE_QT
-#include <quicktime.h>
+#ifdef HAVE_LIBQUICKTIME
+#include <quicktime/quicktime.h>
 #endif
 
 #include "transcode.h"
@@ -46,7 +46,7 @@
  * ------------------------------------------------------------*/
 
 
-#ifdef HAVE_QT
+#ifdef HAVE_LIBQUICKTIME
 void decode_mov(decode_t *decode)
 {
 

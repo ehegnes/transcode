@@ -5,28 +5,29 @@ AUTOMAKE_OPTIONS = 1.3 foreign
 AM_CPPFLAGS = \
   	-DMOD_PATH=\"@MOD_PATH@\" \
   	-D_REENTRANT \
+	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
   	@A52_CFLAGS@ \
 	@AC3_CFLAGS@ \
   	@AVILIB_CFLAGS@ \
   	@AVIFILE_CFLAGS@ \
-	@DV_CFLAGS@ \
-  	@DVDREAD_CFLAGS@ \
+	@LIBDV_CFLAGS@ \
+  	@LIBDVDREAD_CFLAGS@ \
 	@FFMPEG_LIBS_CFLAGS@ \
 	@LAME_CFLAGS@ \
 	@LIBMPEG3_CFLAGS@ \
 	@LIBXML2_CFLAGS@ \
 	@LIBVO_CFLAGS@ \
 	@LZO_CFLAGS@ \
-	@MAGICK_CFLAGS@ \
+	@IMAGEMAGICK_CFLAGS@ \
 	@MPEG2CVS_CFLAGS@ \
   	@OGG_CFLAGS@ \
-	@QT_CFLAGS@ \
+	@LIBQUICKTIME_CFLAGS@ \
   	@THEORA_CFLAGS@ \
 	@VORBIS_CFLAGS@ \
 	@XIO_CFLAGS@
 
-if HAVE_QT
+if HAVE_LIBQUICKTIME
 MODQT = import_mov.la
 endif
 
@@ -47,7 +48,7 @@ LZO_MOD = import_lzo.la
 endif
 
 if TRANSCODE_0_6
-if HAVE_MAGICK
+if HAVE_IMAGEMAGICK
 IM_MOD = import_im.la import_imlist.la
 endif
 endif
@@ -137,15 +138,15 @@ import_ffmpeg_la_LIBADD = @FFMPEG_LIBS_LIBS@
 
 import_im_la_SOURCES = import_im.c
 import_im_la_LDFLAGS = -module -avoid-version 
-import_im_la_LIBADD = @MAGICK_LIBS@ -lm 
+import_im_la_LIBADD = @IMAGEMAGICK_LIBS@ -lm 
 
 import_imlist_la_SOURCES = import_imlist.c
 import_imlist_la_LDFLAGS = -module -avoid-version 
-import_imlist_la_LIBADD = @MAGICK_LIBS@ -lm 
+import_imlist_la_LIBADD = @IMAGEMAGICK_LIBS@ -lm 
 
 import_mov_la_SOURCES = import_mov.c
 import_mov_la_LDFLAGS = -module -avoid-version 
-import_mov_la_LIBADD = @QT_LIBS@ -lm 
+import_mov_la_LIBADD = @LIBQUICKTIME_LIBS@ -lm 
 
 import_lav_la_SOURCES = import_lav.c
 import_lav_la_LDFLAGS = -module -avoid-version 
@@ -198,7 +199,7 @@ import_vob_la_LIBADD = @AC3_LIBS@
 
 import_dvd_la_SOURCES = import_dvd.c ac3scan.c dvd_reader.c clone.c ioaux.c frame_info.c ivtc.c
 import_dvd_la_LDFLAGS = -module -avoid-version
-import_dvd_la_LIBADD = @DVDREAD_LIBS@ @AC3_LIBS@
+import_dvd_la_LIBADD = @LIBDVDREAD_LIBS@ @AC3_LIBS@
 
 import_dv_la_SOURCES = import_dv.c
 import_dv_la_LDFLAGS = -module -avoid-version
@@ -282,13 +283,13 @@ tcdecode_LDADD = \
 	@AC3_LIBS@ \
 	@MPEG2CVS_LIBS@ \
 	@LIBVO_LIBS@ \
-	@DV_LIBS@ \
+	@LIBDV_LIBS@ \
 	$(VORBISFILE) \
 	@THEORA_LIBS@ \
 	@VORBIS_LIBS@ \
 	@OGG_LIBS@ \
 	@DLDARWINLIB@ \
-	@QT_LIBS@ \
+	@LIBQUICKTIME_LIBS@ \
 	@LZO_LIBS@ \
 	@XIO_LIBS@ \
 	@ACLIB_LIBS@
@@ -325,8 +326,8 @@ tccat_SOURCES = \
 
 tccat_LDADD = \
 	@AVILIB_LIBS@ \
-	@DVDREAD_LIBS@ \
-	@DV_LIBS@ \
+	@LIBDVDREAD_LIBS@ \
+	@LIBDV_LIBS@ \
 	@DLDARWINLIB@ \
 	@XIO_LIBS@ \
 	@LIBXML2_LIBS@ \
@@ -355,7 +356,7 @@ tcscan_LDADD = \
 	@LAME_LIBS@ \
 	@AC3_LIBS@ \
 	@AVILIB_LIBS@ \
-	@DV_LIBS@ \
+	@LIBDV_LIBS@ \
 	@XIO_LIBS@ \
 	@ACLIB_LIBS@ \
 	-lm
@@ -405,10 +406,10 @@ tcprobe_LDADD = \
 	@LAME_LIBS@ \
 	@AVILIB_LIBS@ \
 	@AC3_LIBS@ \
-	@DVDREAD_LIBS@ \
-	@DV_LIBS@ \
-	@MAGICK_LIBS@ \
-	@QT_LIBS@ \
+	@LIBDVDREAD_LIBS@ \
+	@LIBDV_LIBS@ \
+	@IMAGEMAGICK_LIBS@ \
+	@LIBQUICKTIME_LIBS@ \
 	@VORBIS_LIBS@ \
 	@THEORA_LIBS@ \
 	@OGG_LIBS@ \
@@ -448,7 +449,7 @@ tcextract_LDADD = \
 	@MPEG2CVS_LIBS@ \
 	@LIBVO_LIBS@ \
 	@AVILIB_LIBS@ \
-	@DV_LIBS@ \
+	@LIBDV_LIBS@ \
 	@THEORA_LIBS@ \
 	@OGG_LIBS@ \
 	@VORBIS_LIBS@ \
@@ -481,8 +482,8 @@ tcdemux_LDADD = \
 	@MPEG2CVS_LIBS@ \
 	@LIBVO_LIBS@ \
 	@AVILIB_LIBS@ \
-	@DVDREAD_LIBS@ \
-	@DV_LIBS@ \
+	@LIBDVDREAD_LIBS@ \
+	@LIBDV_LIBS@ \
 	@DLDARWINLIB@ \
 	@XIO_LIBS@ \
 	@ACLIB_LIBS@ \
@@ -505,7 +506,7 @@ tcxmlcheck_SOURCES = \
 	scan_dv.c
 
 tcxmlcheck_LDADD = \
-	@DV_LIBS@ \
+	@LIBDV_LIBS@ \
 	@XIO_LIBS@ \
 	@LIBXML2_LIBS@ \
 	@ACLIB_LIBS@ \

@@ -1,8 +1,8 @@
 *** How to compile ***
 
-Transcode compiles even if you have not all additional libs installed.
-You do not *need* to have a "yes" on every configure check. Transcode comes
-with some of the libraries included. That is libmpeg2 for decoding
+Transcode compiles even if you do not have all additional libs installed.
+You do not *need* to have a "yes" on every configure check. Transcode
+comes with some of the libraries included. That is libmpeg2 for decoding
 MPEG-2 files, libdvdread for reading DVDs, a library to read AVI files.
 
 You will need to have libavcodec (also known as ffmpeg libraries)
@@ -16,49 +16,51 @@ to tell transcode where they live. Very important: you _need_ both
 the header files _and_ libavcodec.so files. The libavcodec.a file
 won't do!
 
-Its recommended, that you have a recent nasm installed (>=0.98.35) if
+It is recommended, that you have a recent nasm installed (>=0.98.35) if
 you are on an x86 based platform. A recent version of lame is a good
 thing to have installed, too. Depending on what you want to do with
 transcode you may need additional packages installed.
 
-Now do "./configure --help" to find out which packages transcode can use (see
-the --enable-$$$ and --with-$$$ flags). ONLY PACKAGES THAT ARE ENABLED
-EXPLICITELY USING CONFIGURE ARE ACTUALLY USED TO BUILD MODULES.
+Now do "./configure --help" to find out which packages transcode can use
+(see the --enable-$$$ and --with-$$$ flags). ONLY PACKAGES THAT ARE
+ENABLED EXPLICITLY USING CONFIGURE ARE ACTUALLY USED TO BUILD MODULES.
 
-If you have any optimisations your c compiler supports and you want to use,
-put them in the environment variable CFLAGS. Recommended for newbies:
+If you have any optimisations your C compiler supports and you want to
+use, put them in the environment variable CFLAGS. Recommended for newbies:
 export CFLAGS="-O3". It pays off to study all the optimisation flags your
-c compiler offers and hand them to transcode. For instance,
-add "-march pentium4" if you're going to run transcode on pentium 4.
+C compiler offers and hand them to transcode. For instance, add
+"-march=pentium4" if you're going to run transcode on pentium 4.
 
-Then do "./configure" with all the relevant --enable-$$ and --with-$$ options.
+Then do "./configure" with all the relevant --enable-$$ and --with-$$
+options.
 
 make
 make install
 
-If your libraries/packages are not installed in standard places,
-use the respective --with-$$$-includes and --with-$$$-libs options,
-where $$$ is the package name.
+If your libraries/packages are not installed in standard places, use the
+respective --with-$$$-includes and --with-$$$-libs options, where $$$ is
+the package name.
 
 *** Configure options for transcode ***
 
 For the options described below, the default value is in parenthesis
 after the option.
 
-Configure will not test for a package unless support is enabled.
-For example, configure will not look for SDL unless the option
-'--enable-sdl' is used.  If a package distributes pkg-config
-information, or if a package distributes it's own -config script
-(like libquicktime's lqt-config), configure will use information
-from pkg-config or the package's script to find the package's
-includes and libraries.  Otherwise, configure will look for each
-package's includes in /usr/include and each package's libraries
-in /usr/lib.  The options dealing with file locations, such as
-'--with-a52-libs' can optionally be use to tell configure to look
-in other locations for includes and libraries.  If configure is
-unable to find support for a mandatory or optionally enabled
-package, configure will terminate with an error and display a
-message about the error.
+Configure will not test for a package unless support is enabled. For
+example, configure will not look for SDL unless the option '--enable-sdl'
+is used.  If a package distributes pkg-config information, or if a
+package distributes it's own -config script (like libquicktime's
+lqt-config), configure will use information from pkg-config or the
+package's script to find the package's includes and libraries.  Otherwise,
+configure will look for each package's includes in /usr/include and each
+package's libraries in /usr/lib.  The options dealing with file locations,
+such as '--with-a52-libs' can optionally be used to tell configure to look
+in other locations for includes and libraries.  If these options are used,
+configure will use the paths given with those options, and will not use
+paths from pkg-config or a package's -config script.  If configure is
+unable to find support for a mandatory or optionally enabled package,
+configure will terminate with an error and display a message about the
+error.
 
 General options:
 --enable-statbuffer (enabled)
@@ -116,8 +118,10 @@ FreeType2
 
 liba52
   related options:
-    --enable-a52 (enabled)
+    --enable-a52 (disabled)
         if enabled, builds liba52 audio decoder module
+    --with-a52-prefix=PFX ()
+        prefix where local liba52 is installed
     --with-a52-includes=PFX ()
         prefix where local liba52 includes are installed
     --with-a52-libs=PFX ()
@@ -130,8 +134,14 @@ liba52
 
 mjpegtools
   related options:
-    --enable-mjpeg-tools (disabled)
+    --enable-mjpegtools (disabled)
         if enabled, builds mjpegtools dependent plugins
+    --with-mjpegtools-prefix=PFX ()
+        prefix where local mjpegtools is installed
+    --with-mjpegtools-includes=PFX ()
+        prefix where local mjpegtools includes are installed
+    --with-mjpegtools-libs=PFX ()
+        prefix where local mjpegtools libs are installed
   affected modules: export_yuv4mpeg.so, export_mpeg2enc.so,
     export_mp2enc.so
 
@@ -165,6 +175,8 @@ lame
         if enabled, transcode will use the system lame, instead of
         building and using an older version of libmp3lame distributed
         with transcode
+    --with-lame-prefix=PFX ()
+        prefix where local lame is installed
     --with-lame-includes=PFX ()
         prefix where local lame includes are installed
     --with-lame-libs=PFX ()
@@ -181,24 +193,44 @@ avifile
   related options:
     --enable-avifile (disabled)
         build avifile dependent modules
+    --with-avifile-prefix=PFX ()
+        prefix where local avifile is installed
+    --with-avifile-includes=PFX ()
+        prefix where local avifile includes are installed
+    --with-avifile-libs=PFX ()
+        prefix where local avifile libs are installed
   affected modules: export_af6.so, af6_decore.so
 
 ogg
   related options:
-    --enable-ogg (enabled)
+    --enable-ogg (disabled)
         if enabled, adds support for importing OGG audio
+    --with-ogg-prefix=PFX ()
+        prefix where local ogg is installed
+    --with-ogg-includes=PFX ()
+        prefix where local ogg includes are installed
+    --with-ogg-libs=PFX ()
+        prefix where local ogg libs are installed
   affect modules:
 
 vorbis
   related options:
-    --enable-vorbis (enabled)
+    --enable-vorbis (disabled)
         if enabled, adds support for importing Vorbis audio
+    --with-vorbis-prefix=PFX ()
+        prefix where local vorbis is installed
+    --with-vorbis-includes=PFX ()
+        prefix where local vorbis includes are installed
+    --with-vorbis-libs=PFX ()
+        prefix where local vorbis libs are installed
     affected modules:
 
 theora
   related options:
     --enable-theora (disabled)
         if enabled, adds support for importing theora audio
+    --with-theora-prefix=PFX ()
+        prefix where local theora is installed
     --with-theora-includes=PFX ()
         prefix where local theora includes are installed
     --with-theora-libs=PFX ()
@@ -209,6 +241,8 @@ libdvdread
   related options:
     --enable-dvdread (enabled)
         if enabled, adds support for reading DVDs
+    --with-dvdread-prefix=PFX ()
+        prefix where local dvdread is installed
     --with-dvdread-includes=PFX ()
         prefix where local dvdread includes are installed
     --with-dvdread-libs=PFX ()
@@ -219,6 +253,8 @@ libmpeg3
   related options:
     --enable-libmpeg3 (disabled)
         if enabled, builds libmpeg3 dependent module
+    --with-libmpeg3-prefix=PFX ()
+        prefix where local libmpeg3 is installed
     --with-libmpeg3-includes=PFX ()
         prefix where local libmpeg3 includes are installed
     --with-libmpeg3-libs=PFX ()
@@ -245,11 +281,13 @@ PVM3
 
 libdv
   related options:
-    --enable-dv (disabled)
+    --enable-libdv (disabled)
         if enabled, build libdv dependent modules
-    --with-dv-includes=PFX ()
+    --with-libdv-prefix=PFX ()
+        prefix where local libdv is installed
+    --with-libdv-includes=PFX ()
         prefix where local libdv includes are installed
-    --with-dv-libs=PFX ()
+    --with-libdv-libs=PFX ()
         prefix where local libdv libs are installed
   affected modules: export_dvraw.so, export_dv.so
 
@@ -257,6 +295,8 @@ libquicktime
   related options:
     --enable-libquicktime (disabled)
         if enabled, build libquicktime dependent modules
+    --with-libquicktime-prefix=PFX ()
+        prefix where local libquicktime is installed
     --with-libquicktime-includes=PFX ()
         prefix where local libquicktime includes are installed
     --with-libquicktime-libs=PFX ()
@@ -268,15 +308,23 @@ lzo
     --enable-lzo (disabled)
         if enabled, build liblzo dependent modules
     --with-lzo-includes=PFX ()
-        prefix where local liblzo includes are installed
+        prefix where local lzo is installed
+    --with-lzo-includes=PFX ()
+        prefix where local lzo includes are installed
     --with-lzo-libs=PFX ()
-        prefix where local liblzo libs are installed
+        prefix where local lzo libs are installed
   affected modules: export_lzo.so, import_lzo.so
 
 libxml2
   related options:
     --enable-libxml2 (disabled)
         if enabled, add libxml2 support
+    --with-libxml2-includes=PFX ()
+        prefix where local libxml2 is installed
+    --with-libxml2-includes=PFX ()
+        prefix where local libxml2 includes are installed
+    --with-libxml2-libs=PFX ()
+        prefix where local libxml2 libs are installed
   affected modules: import_xml.so
 
 gtk
@@ -287,8 +335,14 @@ gtk
 
 ImageMagick
   related options:
-    --enable-magick (disabled)
+    --enable-imagemagick (disabled)
         if enabled, build ImageMagick dependent modules
+    --with-imagemagick-includes=PFX ()
+        prefix where local imagemagick is installed
+    --with-imagemagick-includes=PFX ()
+        prefix where local imagemagick includes are installed
+    --with-imagemagick-libs=PFX ()
+        prefix where local imagemagick libs are installed
   affected modules: export_im.so, import_im.so, import_imlist.so,
     filter_logo.so, filter_logoaway.so, filter_compare.so
 

@@ -9,17 +9,17 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \
 	@AC3_CFLAGS@ \
 	@AVILIB_CFLAGS@ \
-	@DV_CFLAGS@ \
+	@LIBDV_CFLAGS@ \
 	@FFMPEG_LIBS_CFLAGS@ \
 	@LIBVO_CFLAGS@ \
 	@TCIOAUX_CFLAGS@ \
 	@XIO_CFLAGS@ \
 	@AVIFILE_CFLAGS@ \
 	@LAME_CFLAGS@ \
-	@QT_CFLAGS@ \
-	@MJPEG_CFLAGS@ \
+	@LIBQUICKTIME_CFLAGS@ \
+	@MJPEGTOOLS_CFLAGS@ \
 	@LIBFAME_CFLAGS@ \
-	@MAGICK_CFLAGS@ \
+	@IMAGEMAGICK_CFLAGS@ \
 	@LIBJPEG_CFLAGS@ \
 	@LZO_CFLAGS@ \
 	@PVM3_CFLAGS@
@@ -34,7 +34,7 @@ if HAVE_AVIFILE
 MODS1 = export_af6.la
 endif 
 
-if HAVE_DV
+if HAVE_LIBDV
 MODS5 = export_dvraw.la export_dv.la 
 else
 MODS5 = 
@@ -57,11 +57,11 @@ if HAVE_LIBFAME
 MODS9 = export_fame.la 
 endif
 
-if HAVE_QT
+if HAVE_LIBQUICKTIME
 MODS3 = export_mov.la
 endif
 
-if HAVE_MJPEG
+if HAVE_MJPEGTOOLS
 MODS8 = \
 	export_yuv4mpeg.la \
 	export_mpeg2enc.la \
@@ -74,7 +74,7 @@ MODS4 = export_net.la
 endif
 endif
 
-if HAVE_MAGICK
+if HAVE_IMAGEMAGICK
 MODS10 = export_im.la
 endif
 
@@ -215,19 +215,19 @@ export_ppm_la_LIBADD = @LAME_LIBS@ @AC3_LIBS@ @FFMPEG_LIBS_LIBS@ @LIBVO_LIBS@
 
 export_mov_la_SOURCES = export_mov.c
 export_mov_la_LDFLAGS =  -module -avoid-version
-export_mov_la_LIBADD = @QT_LIBS@ -lm
+export_mov_la_LIBADD = @LIBQUICKTIME_LIBS@ -lm
 
 export_dvraw_la_SOURCES = export_dvraw.c vid_aux.c
 export_dvraw_la_LDFLAGS =  -module -avoid-version
-export_dvraw_la_LIBADD = @LIBDVENC_LIBS@ @DV_LIBS@ @LIBVO_LIBS@ -lm
+export_dvraw_la_LIBADD = @LIBDVENC_LIBS@ @LIBDV_LIBS@ @LIBVO_LIBS@ -lm
 
 export_dv_la_SOURCES = export_dv.c aud_aux.c vid_aux.c
 export_dv_la_LDFLAGS =  -module -avoid-version 
-export_dv_la_LIBADD = @LAME_LIBS@ @LIBDVENC_LIBS@ @DV_LIBS@ @AC3_LIBS@  @FFMPEG_LIBS_LIBS@ @LIBVO_LIBS@
+export_dv_la_LIBADD = @LAME_LIBS@ @LIBDVENC_LIBS@ @LIBDV_LIBS@ @AC3_LIBS@  @FFMPEG_LIBS_LIBS@ @LIBVO_LIBS@
 
 export_yuv4mpeg_la_SOURCES = export_yuv4mpeg.c aud_aux.c vid_aux.c
 export_yuv4mpeg_la_LDFLAGS =  -module -avoid-version
-export_yuv4mpeg_la_LIBADD = @LAME_LIBS@ @MJPEG_LIBS@ @LIBVO_LIBS@ @AC3_LIBS@ @FFMPEG_LIBS_LIBS@
+export_yuv4mpeg_la_LIBADD = @LAME_LIBS@ @MJPEGTOOLS_LIBS@ @LIBVO_LIBS@ @AC3_LIBS@ @FFMPEG_LIBS_LIBS@
 
 export_mpeg_la_SOURCES = export_mpeg.c vid_aux.c
 export_mpeg_la_LDFLAGS =  -module -avoid-version
@@ -242,11 +242,11 @@ export_mjpeg_la_LIBADD = @LIBJPEG_LIBS@ @LAME_LIBS@ @LIBVO_LIBS@ @AC3_LIBS@ @FFM
 
 export_mpeg2enc_la_SOURCES = export_mpeg2enc.c vid_aux.c
 export_mpeg2enc_la_LDFLAGS =  -module -avoid-version
-export_mpeg2enc_la_LIBADD = @MJPEG_LIBS@ @LIBVO_LIBS@ -lm
+export_mpeg2enc_la_LIBADD = @MJPEGTOOLS_LIBS@ @LIBVO_LIBS@ -lm
 
 export_im_la_SOURCES = export_im.c vid_aux.c
 export_im_la_LDFLAGS =  -module -avoid-version
-export_im_la_LIBADD = @MAGICK_LIBS@ @LIBVO_LIBS@ -lm
+export_im_la_LIBADD = @IMAGEMAGICK_LIBS@ @LIBVO_LIBS@ -lm
 
 export_pvn_la_SOURCES = export_pvn.c aud_aux.c
 export_pvn_la_LDFLAGS =  -module -avoid-version

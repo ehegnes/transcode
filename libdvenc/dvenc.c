@@ -23,9 +23,9 @@
 
 #include <stdio.h>
 #include "dvenc.h"
-#include "../src/transcode.h"
+#include "transcode.h"
 
-#ifdef HAVE_DV
+#ifdef HAVE_LIBDV
 
 static int force_dct = -1;
 

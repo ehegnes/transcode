@@ -31,7 +31,7 @@
 #include "config.h"
 #include "transcode.h"
 
-#ifdef HAVE_DV
+#ifdef HAVE_LIBDV
 #include <libdv/dv.h>
 #endif
 
@@ -39,7 +39,7 @@ int scan_header_dv(char *buf)
 {
     int cc=-1;
 
-#ifdef HAVE_DV
+#ifdef HAVE_LIBDV
     
     dv_decoder_t *dv_decoder=NULL;
 
