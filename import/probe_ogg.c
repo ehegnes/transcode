@@ -47,6 +47,8 @@
 #define MAX_VIDEO_TRACKS 255
 #define BLOCK_SIZE 4096
 
+//#define  OGM_DEBUG
+
 struct demux_t {
     int              serial;
     int              fd;
@@ -148,7 +150,7 @@ void probe_ogg(info_t *ipipe)
 				"packet - invalid vorbis stream ()\n");
 		    } else {
 #ifdef OGM_DEBUG
-			fprintf(stdout, "(%s) (a%d/%d) Vorbis audio; "
+			fprintf(stderr, "(%s) (a%d/%d) Vorbis audio; "
 				"rate: %ldHz, channels: %d, bitrate %3.2f kb/s\n", __FILE__,
 				natracks + 1, natracks + nvtracks + 1, inf->rate, 
 				inf->channels, (double)inf->bitrate_nominal/1000.0);
@@ -156,7 +158,7 @@ void probe_ogg(info_t *ipipe)
 
 			ipipe->probe_info->track[natracks].samplerate = inf->rate;
 			ipipe->probe_info->track[natracks].chan = inf->channels;
-			ipipe->probe_info->track[natracks].bits = inf->channels*8; /* XXX --tibit*/
+			ipipe->probe_info->track[natracks].bits = 0; /* XXX --tibit*/
 			ipipe->probe_info->track[natracks].format = TC_CODEC_VORBIS;
 			ipipe->probe_info->track[natracks].bitrate = (double)inf->bitrate_nominal/1000.0;
 
@@ -172,11 +174,11 @@ void probe_ogg(info_t *ipipe)
 		case DirectShow:
 		    if ((*(int32_t*)(pack.packet+96) == 0x05589f80) &&
 			    (pack.bytes >= 184)) {
-			fprintf(stdout, "(%s) (v%d/%d) Found old video header. Not " \
+			fprintf(stderr, "(%s) (v%d/%d) Found old video header. Not " \
 				"supported.\n", __FILE__, nvtracks + 1,
 				natracks + nvtracks + 1);
 		    } else if (*(int32_t*)pack.packet+96 == 0x05589F81) {
-			fprintf(stdout, "(%s) (a%d/%d) Found old audio header. Not " \
+			fprintf(stderr, "(%s) (a%d/%d) Found old audio header. Not " \
 				"supported.\n", __FILE__, natracks + 1,
 				natracks + nvtracks + 1);
 		    }
@@ -189,7 +191,7 @@ void probe_ogg(info_t *ipipe)
 			unsigned long codec;
 			codec = (sth->subtype[0] << 24) + 
 			    (sth->subtype[1] << 16) + (sth->subtype[2] << 8) + sth->subtype[3]; 
-			fprintf(stdout, "(%s) (v%d/%d) video; fps: %.3f width height: %dx%d " \
+			fprintf(stderr, "(%s) (v%d/%d) video; fps: %.3f width height: %dx%d " \
 				"codec: %p (%c%c%c%c)\n", __FILE__, nvtracks + 1,
 				natracks + nvtracks + 1,
 				(double)10000000 / (double)sth->time_unit,
@@ -242,9 +244,9 @@ void probe_ogg(info_t *ipipe)
 			char buf[5];
 			memcpy(buf, sth->subtype, 4);
 			buf[4] = 0;
-			codec = atoi(buf);
+			codec = strtoul(buf, NULL, 16);
 #ifdef OGM_DEBUG
-			fprintf(stdout, "(%s) (a%d/%d) codec: %d (0x%04x) (%s) bits per " \
+			fprintf(stderr, "(%s) (a%d/%d) codec: %d (0x%04x) (%s) bits per " \
 				"sample: %d channels: %hd  samples per second: %ld" \
 				, __FILE__, natracks + 1, natracks + nvtracks + 1,
 				codec, codec,
@@ -253,30 +255,33 @@ void probe_ogg(info_t *ipipe)
 				codec == 0x2000 ? "AC3" : "unknown",
 				sth->bits_per_sample, sth->sh.audio.channels,
 				(long)sth->samples_per_unit);
-			fprintf(stdout, " avgbytespersec: %hd blockalign: %d\n",
+			fprintf(stderr, " avgbytespersec: %hd blockalign: %d\n",
 				sth->sh.audio.avgbytespersec, sth->sh.audio.blockalign);
 #endif
 			idx = natracks;
 
 			ipipe->probe_info->track[natracks].samplerate = sth->samples_per_unit;
 			ipipe->probe_info->track[natracks].chan = sth->sh.audio.channels;
-			ipipe->probe_info->track[natracks].bits = sth->bits_per_sample;
+			ipipe->probe_info->track[natracks].bits = 
+			    (sth->bits_per_sample<4)?sth->bits_per_sample*8:sth->bits_per_sample;
 			ipipe->probe_info->track[natracks].format = codec;
 			ipipe->probe_info->track[natracks].bitrate = 0;
 
 			ipipe->probe_info->track[natracks].tid=natracks;
+
+
 			if(ipipe->probe_info->track[natracks].chan>0) ++ipipe->probe_info->num_tracks;
 
 			streams[idx].serial = sno;
 			memcpy(&streams[idx].state, &sstate, sizeof(sstate));
 			natracks++;
 		    } else {
-			fprintf(stdout, "(%s) (%d) found new header of unknown/" \
+			fprintf(stderr, "(%s) (%d) found new header of unknown/" \
 				"unsupported type\n", __FILE__, nvtracks + natracks + 1);
 		    }
 		    break;
 		case none:
-		    fprintf(stdout, "(%s) OGG stream %d is of an unknown type " \
+		    fprintf(stderr, "(%s) OGG stream %d is of an unknown type " \
 			"(bad header?)\n", __FILE__, nvtracks + natracks + 1);
 		    break;
 	    } /* switch type */

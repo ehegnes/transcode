@@ -399,7 +399,7 @@ MOD_decode {
        */
 
       if(black_frames) {
-	printf("bytes_read=(%d)\n", bytes_read);
+	printf("bytes_read=(%ld)\n", bytes_read);
       }
 
       if (bytes_read == 0) {
@@ -407,7 +407,7 @@ MOD_decode {
       }
 
       if(black_frames > 0) {
-	if(verbose & TC_DEBUG) printf("bytes_read=(%d)\n", bytes_read);
+	if(verbose & TC_DEBUG) printf("bytes_read=(%ld)\n", bytes_read);
 
 	codec=vob->im_v_codec;
     

@@ -217,6 +217,29 @@ int main(int argc, char *argv[])
 
     if(magic==NULL) magic="";
     
+    // OGM
+
+    if (ipipe.magic == TC_MAGIC_OGG) {
+
+	// dummy for video
+	if(strcmp(codec, "raw")==0) ipipe.codec = TC_CODEC_RGB;
+	if((strcmp(codec, "vorbis")==0) || (strcmp(codec, "ogg")==0)) {
+	    ipipe.codec = TC_CODEC_VORBIS;
+	    ipipe.select = TC_AUDIO;
+	}
+	if(strcmp(codec, "mp3")==0) {
+	    ipipe.codec = TC_CODEC_MP3;
+	    ipipe.select = TC_AUDIO;
+	}
+	if(strcmp(codec, "pcm")==0) {
+	    ipipe.codec = TC_CODEC_PCM;
+	    ipipe.select = TC_AUDIO;
+	}
+
+	extract_ogm(&ipipe);
+	done = 1;
+    }
+
     // MPEG2
     if(strcmp(codec,"mpeg2")==0) { 
       

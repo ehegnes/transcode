@@ -53,6 +53,9 @@ void tcprobe_thread(info_t *ipipe);
 void extract_avi(info_t *ipipe);
 void decode_af6(info_t *ipipe);
 
+void decode_divx(info_t *ipipe);
+void decode_xvid(info_t *ipipe);
+
 void probe_yuv(info_t *ipipe);
 void probe_nuv(info_t *ipipe);
 void probe_wav(info_t *ipipe);
@@ -66,6 +69,8 @@ void probe_mov(info_t *ipipe);
 void probe_xml(info_t *ipipe);
 void probe_lav(info_t *ipipe);
 void probe_ogg(info_t *ipipe);
+void extract_ogm(info_t *ipipe);
+void decode_ogg(info_t *ipipe);
 
 int scan_header_dv(char *buf);
 

@@ -39,7 +39,7 @@
 #define TC_CODEC_MPEG1                 0x00100000
 #define TC_CODEC_MPEG2                 0x00010000
 #define TC_CODEC_DV                    0x00001000
-#define TC_CODEC_MP3                   0x00000100
+#define TC_CODEC_MP3                   0x00000055
 #define TC_CODEC_NUV                   0x4e757070
 #define TC_CODEC_PS1                   0x00007001
 #define TC_CODEC_PS2                   0x00007002

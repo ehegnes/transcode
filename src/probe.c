@@ -142,6 +142,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   long a_magic=0;
 
   int track;
+  int probe_further_for_codec=1;
   
   probe_info_t  *pvob, *paob, *info;
 
@@ -410,9 +411,11 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     break;
 
   case TC_MAGIC_OGG:
-    vob->vmod_probed=std_module[_ogg_];
-    vob->amod_probed=std_module[_ogg_];
+    if(!(preset & TC_VIDEO)) vob->vmod_probed=std_module[_ogg_];
+    if(!(preset & TC_AUDIO)) vob->amod_probed=std_module[_ogg_];
     preset=(TC_AUDIO|TC_VIDEO);
+    probe_further_for_codec = 0;
+    break;
 
   case TC_MAGIC_DVD_NTSC:
 
@@ -634,11 +637,13 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   case TC_CODEC_DIVX3:
   case TC_CODEC_DIVX4:
 
-    //overwrite pass-through selection!
-    vob->vmod_probed=std_module[_divx_];
-    preset |= TC_VIDEO;
-    
-    if(preset & TC_AUDIO) break;
+    // if input is ogg, do not probe video
+    if (probe_further_for_codec) {
+	//overwrite pass-through selection!
+	vob->vmod_probed=std_module[_divx_];
+	preset |= TC_VIDEO;
+	if(preset & TC_AUDIO) break;
+    }
     
     //audio
     vob->amod_probed=get_audio_module(vob->fixme_a_codec, vob->has_audio);

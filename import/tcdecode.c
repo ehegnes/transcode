@@ -263,6 +263,15 @@ int main(int argc, char *argv[])
 
     
     
+    // OGG
+    if(strcmp(codec,"ogg")==0) {
+	
+	ipipe.codec = TC_CODEC_VORBIS;
+
+	decode_ogg(&ipipe);
+	done = 1;
+    }
+
     // AC3
     if(strcmp(codec,"ac3")==0) {
 	
@@ -328,6 +337,23 @@ int main(int argc, char *argv[])
       done = 1;
     }
     
+    // DivX Video
+    if(strcmp(codec,"divx")==0) {
+      
+      ipipe.select = TC_VIDEO;
+      
+      decode_divx(&ipipe);
+      done = 1;
+    }
+    
+    // DivX Video
+    if(strcmp(codec,"xvid")==0) {
+      
+      ipipe.select = TC_VIDEO;
+      
+      decode_xvid(&ipipe);
+      done = 1;
+    }
     
     if(!done) {
 	fprintf(stderr, "[%s] (pid=%d) unable to handle codec %s\n", EXE, getpid(), codec);

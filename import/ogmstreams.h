@@ -89,10 +89,13 @@ typedef struct ogm_stream_header
     // Audio specific
     ogm_stream_header_audio  audio;
   } sh;
+
+  int unknown;
 } ogm_stream_header;
 
 /// Some defines from OggDS
 #define OGM_PACKET_TYPE_HEADER       0x01
+#define OGM_PACKET_TYPE_COMMENT      0x03
 #define OGM_PACKET_TYPE_BITS         0x07
 #define OGM_PACKET_LEN_BITS01        0xc0
 #define OGM_PACKET_LEN_BITS2         0x02
