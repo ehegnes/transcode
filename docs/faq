@@ -251,3 +251,44 @@ A:	The best place to put these libraries is the transcode libdir
 	You do not need to put the transcode libdir into the dlloader config
 	file.
 ---
+Q:	I have VOB files from a DVD which transcode won\'t encode
+	correctly. At some point, there\'s a \"broken stream\" error,
+	and in the resulting AVI the picture exhibits some artifacts at
+	that point and the AV sync is gone from there on. The VOB files
+	can be played back perfectly without any problems with various
+	players, though.
+A:	First, concatenate the VOB files into a single file all.vob .
+	Next, use mencoder to generate an AVI file:
+	<pre>
+	mencoder all.vob -o all.avi -ovc copy -oac copy
+
+	</pre>
+	Then process the AVI file with transcode. If mencoder crashes
+	(as it did on my system), use
+	<pre>
+	mencoder all.vob -o all_noaudio.avi -ovc copy -nosound
+	
+	</pre>
+	which will give you an AVI without sound. Transcode this:
+	<pre>
+	transcode -i all_noaudio.avi -x mpeg2,null -y xvid,null \\
+	          -V -R 1 -o /dev/null --print_status 100
+	transcode -i all_noaudio.avi -x mpeg2,null -y xvid,null \\
+	          -V -R 2 -o transcoded_noaudio.avi --print_status 100
+
+	</pre>
+	Assuming that the \"broken\" AVI file transcode generated before
+	is called broken.avi, extract the audio with
+	<pre>
+	tcextract -i broken.avi -x mp3 -a 0 > all.mp3
+	
+	</pre>
+	and finally merge audio and video with
+
+	<pre>
+	avimerge -i all_noaudio.avi -p all.mp3 -o complete.avi
+
+	</pre>
+	This can probably be improved; I was happy enough that it
+	worked.  (meier)
+---
