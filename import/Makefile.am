@@ -92,6 +92,7 @@ import_ogg_la_LDFLAGS =  -module -avoid-version
 import_xml_la_SOURCES = import_xml.c ioxml.c probe_xml.c ../src/zoom.c
 import_xml_la_LDFLAGS =  -module -avoid-version 
 import_xml_la_LIBADD = -lm @LIBXML2_LIBS@
+import_xml_la_CFLAGS = $(AM_CFLAGS)   
 
 import_yuv4mpeg_la_SOURCES = import_yuv4mpeg.c
 import_yuv4mpeg_la_LDFLAGS =  -module -avoid-version 
@@ -101,6 +102,7 @@ import_mplayer_la_LDFLAGS = -module -avoid-version
 
 import_rawlist_la_SOURCES = import_rawlist.c ioaux.c
 import_rawlist_la_LDFLAGS = -module -avoid-version -lm
+import_rawlist_la_CFLAGS = $(AM_CFLAGS)
 
 import_divx_la_SOURCES = import_divx.c
 import_divx_la_LDFLAGS =  -module -avoid-version 
@@ -149,21 +151,26 @@ import_avi_la_LDFLAGS =  -module -avoid-version
 import_ac3_la_SOURCES = import_ac3.c ioaux.c ac3scan.c
 import_ac3_la_LDFLAGS =  -module -avoid-version 
 import_ac3_la_LIBADD  = @AC3_LIBS@ -lm
+import_ac3_la_CFLAGS = $(AM_CFLAGS)   
 
 import_vdrac3_la_SOURCES = import_vdrac3.c ioaux.c ac3scan.c
 import_vdrac3_la_LDFLAGS =  -module -avoid-version 
 import_vdrac3_la_LIBADD  = @AC3_LIBS@ -lm
+import_vdrac3_la_CFLAGS = $(AM_CFLAGS)   
 
 a52_decore_la_SOURCES = a52_decore.c ioaux.c
 a52_decore_la_LDFLAGS =  -module -avoid-version 
 a52_decore_la_LIBADD  = ${A52_LIBS} @XIO_LIBS@
+a52_decore_la_CFLAGS = $(AM_CFLAGS)   
 
 af6_decore_la_SOURCES = af6_decore.cpp ioaux.c
 af6_decore_la_LDFLAGS =  -module -avoid-version 
 af6_decore_la_LIBADD  =  @AVIFILE_LIBS@ -lstdc++ -lm
+af6_decore_la_CFLAGS = $(AM_CFLAGS)   
 
 import_mp3_la_SOURCES = import_mp3.c ioaux.c
 import_mp3_la_LDFLAGS =  -module -avoid-version 
+import_mp3_la_CFLAGS = $(AM_CFLAGS)   
 
 import_lzo_la_SOURCES = import_lzo.c 
 import_lzo_la_LDFLAGS =  -module -avoid-version 
@@ -172,10 +179,12 @@ import_lzo_la_LIBADD  = @LZO_LIBS@ -lm
 import_vob_la_SOURCES = import_vob.c ac3scan.c clone.c ioaux.c frame_info.c ivtc.c
 import_vob_la_LDFLAGS =	 -module -avoid-version 
 import_vob_la_LIBADD = @AC3_LIBS@ 
+import_vob_la_CFLAGS = $(AM_CFLAGS)   
 
 import_dvd_la_SOURCES = import_dvd.c ac3scan.c dvd_reader.c clone.c ioaux.c frame_info.c ivtc.c
 import_dvd_la_LDFLAGS =  -module -avoid-version 
 import_dvd_la_LIBADD =  @DVDREAD_LIBS@ @AC3_LIBS@ 
+import_dvd_la_CFLAGS = $(AM_CFLAGS)
 
 import_dv_la_SOURCES = import_dv.c 
 import_dv_la_LDFLAGS =  -module -avoid-version 
@@ -185,6 +194,7 @@ import_vnc_la_LDFLAGS =  -module -avoid-version
 
 import_pvn_la_SOURCES = import_pvn.c pvn.c pvnglobals.c
 import_pvn_la_LDFLAGS =  -module -avoid-version 
+import_pvn_la_CFLAGS = $(AM_CFLAGS)   
 
 import_ffbin_la_SOURCES = import_ffbin.c 
 import_ffbin_la_LDFLAGS =  -module -avoid-version 
@@ -252,6 +262,8 @@ tcdecode_LDADD = \
 	-L../aclib -lac \
 	-lm
 
+tcdecode_CFLAGS = $(AM_CFLAGS)
+
 # ----------------- #
 # T C R E Q U A N T #
 # ----------------- #
@@ -275,6 +287,7 @@ tccat_SOURCES = tccat.c \
 		ts_reader.c
 
 tccat_LDADD = @AVILIB_LIBS@ @DVDREAD_LIBS@ @DV_LIBS@ @DLDARWINLIB@ @XIO_LIBS@ @LIBXML2_LIBS@ -L../aclib -lac -lm
+tccat_CFLAGS = $(AM_CFLAGS)
 
 # ----------- #
 # T C S C A N #
@@ -291,7 +304,7 @@ tcscan_SOURCES = tcscan.c \
 		 scan_dv.c
 
 tcscan_LDADD = @LAME_LIBS@ @AC3_LIBS@ @AVILIB_LIBS@ @DV_LIBS@ @XIO_LIBS@ -L../aclib -lac -lm
-
+tcscan_CFLAGS = $(AM_CFLAGS)
 
 # ------------- #
 # T C P R O B E #
@@ -347,6 +360,7 @@ tcprobe_LDADD = \
 	-L../aclib -lac \
 	-lm
 
+tcprobe_CFLAGS = $(AM_CFLAGS)
 
 # ----------------- #
 # T C E X T R A C T #
@@ -382,6 +396,7 @@ tcextract_LDADD = \
 	-L../aclib -lac \
 	-lm
 
+tcextract_CFLAGS = $(AM_CFLAGS)
 
 # ------------- #
 # T C D E M U X #
@@ -411,6 +426,8 @@ tcdemux_LDADD = \
 	-L../aclib -lac \
 	-lm
 
+tcdemux_CFLAGS = $(AM_CFLAGS)
+
 # ------------------- #
 # T C X M L C H E C K #
 # ------------------- # 
@@ -423,6 +440,7 @@ tcxmlcheck_SOURCES = tcxmlcheck.c \
 		     scan_dv.c
 
 tcxmlcheck_LDADD =  @DV_LIBS@ @XIO_LIBS@ @LIBXML2_LIBS@ -L../aclib -lac -lm
+tcxmlcheck_CFLAGS = $(AM_CFLAGS)
 
 # ----------------- #
 # T C X P M 2 R G B #

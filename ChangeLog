@@ -1,5 +1,15 @@
 transcode-0.13-pre1 EMS
 
+2004-08-12 Erik Slagter <erik @ oldconomy dot com>
+  * autotools/*:
+  Using autoreconf, the autotools is no longer necessary,
+  removed from cvs.
+
+2004-08-12 Stefan Scheffler <stefanscheffler at gmx dot net>
+  * import/Makefile.am:
+  Fixes to make automake more happy and allow to use
+  autoreconf
+
 2004-08-12 Mikhail Ramendik <mr at ramendik dot ru>
   * import/Makefile.in import/import_ffbin2.c:
   Removed ffbin2 support on request.

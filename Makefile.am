@@ -6,7 +6,7 @@ if HAVE_PVM3
 PVM3=pvm3
 endif
 
-SUBDIRS = . libxio autotools docs contrib libdldarwin libsupport libioaux\
+SUBDIRS = . libxio docs contrib libdldarwin libsupport libioaux\
 	aclib avilib libac3 libvo libmpeg2\
 	libmp3lame libdvenc bbmpeg \
 	import export filter src tools $(PVM3)

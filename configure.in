@@ -1288,7 +1288,6 @@ dnl			ffmpeg/libavcodec/ppc/Makefile
 AC_OUTPUT([
            Makefile
 	   libxio/Makefile
-           autotools/Makefile
            src/Makefile
            avilib/Makefile
 	   libioaux/Makefile
