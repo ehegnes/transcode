@@ -62,6 +62,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_unsharp.la\
 			filter_smartbob.la\
 			filter_smartyuv.la\
+			filter_msharpen.la\
 			$(F_PP) $(F_MMX) $(F_LOGO) $(F_TEXT)
 
 filter_null_la_SOURCES = filter_null.c
@@ -169,6 +170,10 @@ filter_logo_la_LIBADD = @MAGICK_LIBS@ -L../libvo -lvout ../export/vid_aux.lo
 
 filter_xsharpen_la_SOURCES = filter_xsharpen.c
 filter_xsharpen_la_LDFLAGS =  -module -avoid-version 
+
+filter_msharpen_la_SOURCES = filter_msharpen.c
+filter_msharpen_la_LDFLAGS = -no-undefined -module -avoid-version
+filter_msharpen_la_LIBADD = -L../libvo -lvout ../export/vid_aux.lo
 
 filter_logoaway_la_SOURCES = filter_logoaway.c
 filter_logoaway_la_LDFLAGS =  -module -avoid-version 
