@@ -689,12 +689,15 @@ if test x$with_dv = "x"yes ; then
             with_dv_l="`$PKG_CONFIG --libs libdv`"
         fi
 
-	AC_CHECK_LIB(dv, dv_init,
-	  [DV_CFLAGS="$with_dv_i" DV_LIBS="$with_dv_l"
-	    AC_DEFINE([HAVE_DV], 1, [Have libdv]),
-	    have_dv=yes],
-	  have_dv=no,
-	  $with_dv_l)
+	AC_CHECK_LIB(dv,
+		[dv_init],
+		[
+			DV_CFLAGS="$with_dv_i" DV_LIBS="$with_dv_l"
+			AC_DEFINE([HAVE_DV], 1, [Have libdv]),
+			have_dv=yes
+		],
+		[have_dv=no],
+		[$with_dv_l])
 
 	dnl check for version >= 0.95
 	if $PKG_CONFIG libdv --atleast-version 0.95 ; then
@@ -975,7 +978,7 @@ if test x$with_libmpeg3 = "x"yes ; then
 	fi
 	if test x$with_libmpeg3_i = x ; then
 		echo "warning: never found libmpeg3.h"
-		with_libmpeg3_i = "/usr/include"
+		with_libmpeg3_i="/usr/include"
 	fi
 
 	if test x$libmpeg3_libs != x ; then
