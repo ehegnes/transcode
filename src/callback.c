@@ -45,13 +45,13 @@ void tc_pause(void)
     while (pause_flag) usleep(TC_DELAY_MIN);
 }
 
-void tc_outstream_rotate_request()
+void tc_outstream_rotate_request(void)
 {
   //set flag
   rotate_flag=1;
 }
 
-void tc_outstream_rotate()
+void tc_outstream_rotate(void)
 {
   
   char buf[TC_BUF_MAX];

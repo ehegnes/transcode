@@ -503,8 +503,10 @@ void tc_update_frames_cloned(long cc);
 void tc_set_force_exit(void);
 int tc_get_force_exit(void);
 
-void tc_outstream_rotate();
-void tc_outstream_rotate_request();
+void tc_outstream_rotate(void);
+void tc_outstream_rotate_request(void);
+void tc_pause(void);
+void tc_pause_request(void);
 
 void tc_adjust_frame_buffer(int height, int width);
 

@@ -50,7 +50,6 @@ extern char* socket_file; // transcode.c
 unsigned int tc_socket_msgchar = 0;
 char *tc_socket_submit_buf=NULL;
 static int socket_fd=-1;
-extern void tc_pause_request(void);
 
 pthread_mutex_t tc_socket_msg_lock=PTHREAD_MUTEX_INITIALIZER;
 
