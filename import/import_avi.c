@@ -235,7 +235,6 @@ MOD_decode
     case CODEC_RAW:
     
       bytes_read = AVI_audio_size(avifile1, aframe_count);
-      fprintf(stderr, "  XXX bytes_read = %ld|\n", bytes_read);
 
       if(bytes_read<0) {
 	if(verbose & TC_DEBUG) AVI_print_error("AVI audio size frame");
