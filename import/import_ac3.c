@@ -35,9 +35,8 @@ static int capability_flag = TC_CAP_PCM | TC_CAP_AC3;
 
 #include "ac3scan.h"
 
-
-#define MAX_BUF 1024
-char import_cmd_buf[MAX_BUF];
+extern int errno;
+char import_cmd_buf[TC_BUF_MAX];
 
 static FILE *fd;
 
@@ -45,7 +44,7 @@ static int codec, syncf=0;
 static int pseudo_frame_size=0, real_frame_size=0, effective_frame_size=0;
 static int ac3_bytes_to_go=0;
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open stream
  *
@@ -57,97 +56,75 @@ MOD_open
 
     // audio only
     if(param->flag != TC_AUDIO) return(TC_IMPORT_ERROR);
-    
+
     codec = vob->im_a_codec;
     syncf = vob->sync;
-    
+
     switch(codec) {
-	
+
     case CODEC_AC3:
-	
+
 	// produce a clean sequence of AC3 frames
-	sret = snprintf(import_cmd_buf, MAX_BUF,
+	sret = snprintf(import_cmd_buf, TC_BUF_MAX,
 		"tcextract -a %d -i \"%s\" -x ac3 -d %d |"
 		" tcextract -t raw -x ac3 -d %d",
 		vob->a_track, vob->audio_in_file, vob->verbose, vob->verbose);
-	if (sret < 0) {
-	    perror("snprintf");
+        if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
 	    return(TC_IMPORT_ERROR);
-	}
-	if (sret >= MAX_BUF) {
-	    fprintf(stderr, "[%s] command too long, truncated %d chars",
-				MOD_NAME, (sret - MAX_BUF) + 1);
-	    return(TC_IMPORT_ERROR);
-	}
-	
+
 	if(verbose_flag) printf("[%s] AC3->AC3\n", MOD_NAME);
-	
+
 	break;
-	
+
     case CODEC_PCM:
 
 	if(vob->fixme_a_codec==CODEC_AC3) {
 
-	    sret = snprintf(import_cmd_buf, MAX_BUF,
+	    sret = snprintf(import_cmd_buf, TC_BUF_MAX,
 			"tcextract -a %d -i \"%s\" -x ac3 -d %d |"
 			" tcdecode -x ac3 -d %d -s %f,%f,%f -A %d",
 			vob->a_track, vob->audio_in_file, vob->verbose,
 			vob->verbose, vob->ac3_gain[0], vob->ac3_gain[1],
 			vob->ac3_gain[2], vob->a52_mode);
-	    if (sret < 0) {
-		perror("snprintf");
-		return(TC_IMPORT_ERROR);
-	    }
-	    if (sret >= MAX_BUF) {
-		fprintf(stderr, "[%s] command too long, truncated %d chars",
-				MOD_NAME, (sret - MAX_BUF) + 1);
-		return(TC_IMPORT_ERROR);
-	    }
-	    
-	    if(verbose_flag) printf("[%s] AC3->PCM\n", MOD_NAME);
-	}	
+            if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+	        return(TC_IMPORT_ERROR);
 
+	    if(verbose_flag) printf("[%s] AC3->PCM\n", MOD_NAME);
+	}
 
 	if(vob->fixme_a_codec==CODEC_A52) {
-	    
-	    sret = snprintf(import_cmd_buf, MAX_BUF,
+
+	    sret = snprintf(import_cmd_buf, TC_BUF_MAX,
 				"tcextract -a %d -i \"%s\" -x a52 -d %d |"
 				" tcdecode -x a52 -d %d -A %d",
 				vob->a_track, vob->audio_in_file,
 				vob->verbose, vob->verbose, vob->a52_mode);
-	    if (sret < 0) {
-		perror("snprintf");
-		return(TC_IMPORT_ERROR);
-	    }
-	    if (sret >= MAX_BUF) {
-		fprintf(stderr, "[%s] command too long, truncated %d chars",
-				MOD_NAME, (sret - MAX_BUF) + 1);
-		return(TC_IMPORT_ERROR);
-	    }
-	    
+            if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+	        return(TC_IMPORT_ERROR);
+
 	    if(verbose_flag) printf("[%s] A52->PCM\n", MOD_NAME);
-	}	
+	}
 
 	break;
-	
-    default: 
+
+    default:
 	fprintf(stderr, "invalid import codec request 0x%x\n", codec);
 	return(TC_IMPORT_ERROR);
-	
+
     }
-    
+
     // print out
     if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
-    
+
     // set to NULL if we handle read
     param->fd = NULL;
-    
+
     // popen
     if((fd = popen(import_cmd_buf, "r"))== NULL) {
 	perror("popen pcm stream");
 	return(TC_IMPORT_ERROR);
     }
-    
+
     return(0);
 }
 
@@ -159,33 +136,33 @@ MOD_open
 
 MOD_decode
 {
-    
-  int ac_bytes=0, ac_off=0; 
+
+  int ac_bytes=0, ac_off=0;
   int num_frames;
 
   // audio only
   if(param->flag != TC_AUDIO) return(TC_IMPORT_ERROR);
-  
+
   switch(codec) {
-      
+
   case CODEC_AC3:
-      
+
       // determine frame size at the very beginning of the stream
-      
+
       if (pseudo_frame_size == 0) {
-	  
+
 	  if (ac3scan(fd, param->buffer, param->size, &ac_off, &ac_bytes,
 			&pseudo_frame_size, &real_frame_size, verbose) != 0)
 		return(TC_IMPORT_ERROR);
-	  
-      } else { 
+
+      } else {
 	  ac_off = 0;
 	  ac_bytes = pseudo_frame_size;
       }
-      
+
 
       // switch to entire frames:
-      // bytes_to_go is the difference between requested bytes and 
+      // bytes_to_go is the difference between requested bytes and
       // delivered bytes
       //
       // pseudo_frame_size = average bytes per audio frame
@@ -195,9 +172,9 @@ MOD_decode
 
       effective_frame_size = num_frames * real_frame_size;
       ac3_bytes_to_go = ac_bytes + ac3_bytes_to_go - effective_frame_size;
-      
+
       // return effective_frame_size as physical size of audio data
-      param->size = effective_frame_size; 
+      param->size = effective_frame_size;
 
       if (verbose_flag & TC_STATS)
 	  fprintf(stderr,"[%s] pseudo=%d, real=%d, frames=%d, effective=%d\n",
@@ -207,34 +184,31 @@ MOD_decode
       // adjust
       ac_bytes=effective_frame_size;
 
-      
       if(syncf>0) {
-	  //dump an ac3 frame, instead of a pcm frame 
+	  //dump an ac3 frame, instead of a pcm frame
 	  ac_bytes = real_frame_size-ac_off;
-	  param->size = real_frame_size; 
+	  param->size = real_frame_size;
 	  --syncf;
       }
-      
+
       break;
 
   case CODEC_PCM:
-    
+
     //default:
     ac_off   = 0;
     ac_bytes = param->size;
     break;
-    
-    
+
   default: 
     fprintf(stderr, "invalid import codec request 0x%x\n",codec);
       return(TC_IMPORT_ERROR);
-      
+
   }
-  
-  if (fread(param->buffer+ac_off, ac_bytes-ac_off, 1, fd) !=1) 
+
+  if (fread(param->buffer+ac_off, ac_bytes-ac_off, 1, fd) !=1)
       return(TC_IMPORT_ERROR);
-  
-  
+
   return(0);
 }
 
@@ -246,9 +220,7 @@ MOD_decode
 
 MOD_close
 {  
-  
   if(param->fd != NULL) pclose(param->fd);
-  
+
   return(0);
 }
-
