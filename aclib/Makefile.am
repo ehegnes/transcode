@@ -10,7 +10,7 @@ endif
 
 CFLAGS = -funroll-loops -ffast-math -DLINUX @CFLAGS@
 
-libac_a_SOURCES = cputest.c $(ASM_SRC)
+libac_a_SOURCES = tcmemcpy.c cputest.c $(ASM_SRC)
 
 EXTRA_DIST = \
   ac.h \

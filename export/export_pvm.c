@@ -37,8 +37,7 @@
 #define MIN_TOT_NPROC	1
 #define MIN_FRAME	10
 
-
-#include "transcode.h"
+#include <transcode.h>
 
 #define MOD_NAME    "export_pvm.so"
 #define MOD_VERSION  EXPORT_PVM_VERSION
@@ -252,7 +251,7 @@ MOD_init
 				pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 				return(TC_EXPORT_ERROR);
 			}
-			memcpy((char *)&s_pvm_conf,(char *)p_pvm_conf,sizeof(pvm_config_env));
+			tc_memcpy((char *)&s_pvm_conf,(char *)p_pvm_conf,sizeof(pvm_config_env));
 			p_pvm_conf=&s_pvm_conf;
 		}
 		else	//need at least the config file
@@ -758,8 +757,8 @@ MOD_encode
 			f_pvm_balancer("open",p_pvm_fun,0,param->flag);
 		}
 		(int)f_pvm_set_send(s_seq);	/*set the seq number*/
-		memcpy(p_buffer,(char *)param,sizeof(transfer_t));
-		memcpy(p_buffer+sizeof(transfer_t),(char *)param->buffer,param->size);
+		tc_memcpy(p_buffer,(char *)param,sizeof(transfer_t));
+		tc_memcpy(p_buffer+sizeof(transfer_t),(char *)param->buffer,param->size);
 		if((s_seq=f_pvm_send((sizeof(transfer_t)+param->size),(char *)p_buffer,PVM_EXP_OPT_ENCODE,p_pvm_fun->s_current_tid,p_pvm_fun))==-1)
 		{
 			f_pvm_stop_single_process(*p_merger_tid);

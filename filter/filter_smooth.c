@@ -65,7 +65,7 @@ void smooth_yuv(unsigned char *buf, int width, int height, int maxdiff,
 	tbufcr = &ltbuf[width * height];
 	tbufcb = &tbufcr[(width * height) / 4];
 
-	memcpy(ltbuf, buf, (width * height) * 3 / 2);
+	tc_memcpy(ltbuf, buf, (width * height) * 3 / 2);
 	
 	bufcr = &buf[width * height];
 	bufcb = &bufcr[(width * height) / 4];
@@ -100,7 +100,7 @@ void smooth_yuv(unsigned char *buf, int width, int height, int maxdiff,
 	
 	/* Second pass - vertical lines */
 	
-	memcpy(ltbuf, buf, (width * height) * 3 / 2);
+	tc_memcpy(ltbuf, buf, (width * height) * 3 / 2);
 	
 	for (y = 0; y < (height); y++) {
 		for (x = 0; x < width; x++) {

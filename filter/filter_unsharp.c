@@ -125,10 +125,10 @@ static void unsharp( uint8_t *dst, uint8_t *src, int dstStride, int srcStride, i
 	if( src == dst )
 	    return;
 	if( dstStride == srcStride ) 
-	    memcpy( dst, src, srcStride*height );
+	    tc_memcpy( dst, src, srcStride*height );
 	else
 	    for( y=0; y<height; y++, dst+=dstStride, src+=srcStride )
-		memcpy( dst, src, width );
+		tc_memcpy( dst, src, width );
 	return;
     }
 
@@ -363,7 +363,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
       int off = ptr->v_width * ptr->v_height;
       int h2  = ptr->v_height>>1, w2 = ptr->v_width>>1;
 
-      memcpy (buffer, ptr->video_buf, ptr->video_size);
+      tc_memcpy (buffer, ptr->video_buf, ptr->video_size);
 
       unsharp( ptr->video_buf, buffer, ptr->v_width, ptr->v_width, ptr->v_width,   ptr->v_height,   &mfd->lumaParam );
 

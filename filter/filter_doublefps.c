@@ -31,6 +31,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <transcode.h>
+
 /* -------------------------------------------------
  *
  * mandatory include files
@@ -172,21 +174,21 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 	  ptr->attributes |= TC_FRAME_IS_CLONED;
 
-	  memcpy (lines, ptr->video_buf, ptr->video_size);
+	  tc_memcpy (lines, ptr->video_buf, ptr->video_size);
 
 	  for (h = 0; h < height/2; h++) {
-	      memcpy (p, s, stride);
+	      tc_memcpy (p, s, stride);
 	      s += 2*stride;
 	      p +=   stride;
 	  }
 	  if (codec==CODEC_YUV) {
 	      for (h = 0; h < height/4; h++) {
-		  memcpy (p, s, stride/2);
+		  tc_memcpy (p, s, stride/2);
 		  s += 2*stride/2;
 		  p +=   stride/2;
 	      }
 	      for (h = 0; h < height/4; h++) {
-		  memcpy (p, s, stride/2);
+		  tc_memcpy (p, s, stride/2);
 		  s += 2*stride/2;
 		  p +=   stride/2;
 	      }
@@ -201,19 +203,19 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	 // printf("WAS cloned\n");
 
 	  for (h = 0; h < height/2; h++) {
-	      memcpy (p, s, stride);
+	      tc_memcpy (p, s, stride);
 	      s += 2*stride;
 	      p +=   stride;
 	  }
 
 	  if (codec==CODEC_YUV) {
 	      for (h = 0; h < height/4; h++) {
-		  memcpy (p, s, stride/2);
+		  tc_memcpy (p, s, stride/2);
 		  s += 2*stride/2;
 		  p +=   stride/2;
 	      }
 	      for (h = 0; h < height/4; h++) {
-		  memcpy (p, s, stride/2);
+		  tc_memcpy (p, s, stride/2);
 		  s += 2*stride/2;
 		  p +=   stride/2;
 	      }

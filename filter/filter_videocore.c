@@ -250,7 +250,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
        init_aa_table(vob->aa_weight, vob->aa_bias);
 
        //UV components unchanged
-       memcpy(ptr->video_buf_Y[ptr->free]+ptr->v_width*ptr->v_height, 
+       tc_memcpy(ptr->video_buf_Y[ptr->free]+ptr->v_width*ptr->v_height, 
 	      ptr->video_buf + ptr->v_width*ptr->v_height, 
 	      ptr->v_width*ptr->v_height/2);
     

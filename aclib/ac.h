@@ -44,16 +44,19 @@ typedef unsigned int uint32_t;
 #define MM_SSE     0x0010 //SSE functions 
 #define MM_SSE2    0x0020 //PIV SSE2 functions 
 
+extern void * (*tc_memcpy)(void *, const void *, size_t);
+extern void tc_memcpy_init(int verbose, int mmflags);
+
 extern int mm_flags;
 int ac_mmflag();
 void ac_mmtest();
 char *ac_mmstr(int flag, int mode);
 
 //ac_memcpy
-void * ac_memcpy_mmx(void *dest, const void *src, int bytes);
-void * ac_memcpy_sse(void *dest, const void *src, int bytes);
-void * ac_memcpy_sse2(void *dest, const void *src, int bytes);
-void * ac_memcpy_amdmmx(void *dest, const void *src, int bytes);
+void * ac_memcpy_mmx(void *dest, const void *src, size_t bytes);
+void * ac_memcpy_sse(void *dest, const void *src, size_t bytes);
+void * ac_memcpy_sse2(void *dest, const void *src, size_t bytes);
+void * ac_memcpy_amdmmx(void *dest, const void *src, size_t bytes);
 
 //average (simple average over 2 rows)
 int ac_average_mmx(char *row1, char *row2, char *out, int bytes);

@@ -82,12 +82,13 @@ try to unroll inner for(x=0 ... loop to avoid these damn if(x ... checks
 //#undef HAVE_MMX
 //#undef ARCH_X86
 //#define DEBUG_BRIGHTNESS
-#ifdef USE_FASTMEMCPY
-#include "../fastmemcpy.h"
-#endif
+
+#include <transcode.h>
 #include "mangle.h" //FIXME should be supressed
 #include "postprocess.h"
 #include "postprocess_internal.h"
+
+#include <transcode.h>
 
 
 #ifndef HAVE_MEMALIGN
@@ -700,7 +701,7 @@ pp_mode_t *pp_get_mode_by_name_and_quality(char *name, int quality)
 					break;
 				}
 				memmove(p + newlen, p, plen+1);
-				memcpy(p, replaceTable[2*i + 1], newlen);
+				tc_memcpy(p, replaceTable[2*i + 1], newlen);
 				filterNameOk=1;
 			}
 		}
@@ -978,16 +979,16 @@ for(y=0; y<mbHeight; y++){
 	}
 	else if(srcStride[1] == dstStride[1] && srcStride[2] == dstStride[2])
 	{
-		memcpy(dst[1], src[1], srcStride[1]*height);
-		memcpy(dst[2], src[2], srcStride[2]*height);
+		tc_memcpy(dst[1], src[1], srcStride[1]*height);
+		tc_memcpy(dst[2], src[2], srcStride[2]*height);
 	}
 	else
 	{
 		int y;
 		for(y=0; y<height; y++)
 		{
-			memcpy(&(dst[1][y*dstStride[1]]), &(src[1][y*srcStride[1]]), width);
-			memcpy(&(dst[2][y*dstStride[2]]), &(src[2][y*srcStride[2]]), width);
+			tc_memcpy(&(dst[1][y*dstStride[1]]), &(src[1][y*srcStride[1]]), width);
+			tc_memcpy(&(dst[2][y*dstStride[2]]), &(src[2][y*srcStride[2]]), width);
 		}
 	}
 }

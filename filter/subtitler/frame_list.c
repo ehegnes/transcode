@@ -16,7 +16,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 #include "subtitler.h"
 
-
 int hash(s)/* form hash value for string s */
 char *s;
 {
@@ -33,7 +32,7 @@ return(hashval % FRAME_HASH_SIZE);
 
 char *strsave(char *s) /*save char array s somewhere*/
 {
-char *p, *malloc();
+char *p;
 if(p = malloc( strlen(s) +  1) ) strcpy(p, s);
 return(p);
 }

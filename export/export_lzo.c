@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "transcode.h"
+#include <transcode.h>
 #include "avilib.h"
 #include "aud_aux.h"
 #include "../import/magic.h"
@@ -207,7 +207,7 @@ MOD_encode
     h.flags |= ((codec==CODEC_RGB)?TC_LZO_FORMAT_RGB24:TC_LZO_FORMAT_YV12);
 
     // XXX
-    memcpy (out, &h, sizeof(h));
+    tc_memcpy (out, &h, sizeof(h));
 #else
     r = lzo1x_1_compress(param->buffer, param->size, out, &out_len, wrkmem);
 #endif

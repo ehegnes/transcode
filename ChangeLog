@@ -1,7 +1,31 @@
 transcode-0.13-pre1 EMS
 
-2004-08-08 Erik Slagter <erik @ oldconomy dot com>
-  * *:
+2004-08-11 Stefan Scheffler <stefanscheffler at gmx dot net>
+  * acinclude.m4 configure.in:
+  - remove openquicktime stuff from the auto* files for now
+  It just confuses everyone.
+  I actually have half working versions of the im/export_modules on the 
+  harddrive, lying next to the computer, lying in pieces on my floor. :P
+  Don't know if it's actually worth to finish them. Openquicktime seems 
+  to, sadly, be a quite dead project.
+
+2004-08-11 Tuomas Jormola / Christian Marillat <marillat at free dot fr>
+  * filter/subtitler/frame_list.c:
+  I've received this patch from Tuomas Jormola to fix a build problem with
+  gcc 3.4 This patch change nothing when transcode is compiled with
+  gcc 3.3 (removed prototype for malloc(), EMS)
+
+2004-08-10 Erik Slagter <erik @ oldconomy dot com>
+  * **/*.c:
+  Walked through all modules' and tools' sources and
+    replaced memcpy by tc_memcpy
+  Added tc_memcpy_init to these main() functions
+  Added tc_memcpy and tc_memcpy_init to aclib/tcmemcpy.c / aclib.h
+    -> libac.a
+  Added -lac to all relevant executables
+
+2004-08-09 Erik Slagter <erik @ oldconomy dot com>
+  * **/*:
   Created branch for 0.6.13 release on andromeda.oldconomy.com
 
 2004-08-09 Stefan Scheffler <stefanscheffler at gmx dot net>

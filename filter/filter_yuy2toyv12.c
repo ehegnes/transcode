@@ -152,7 +152,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     
     yuy2toyv12(video_buffer, ptr->video_buf, ptr->v_width, ptr->v_height); 
     
-    memcpy(ptr->video_buf, video_buffer, bytes);
+    tc_memcpy(ptr->video_buf, video_buffer, bytes);
     
   }
   

@@ -357,8 +357,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	/* Fix up blur frame borders. */
 	srcp = src;
 	blurp = mfd->blur;
-	memcpy(blurp, srcp, bwidth);
-	memcpy(blurp + (height-1)*bwidth, srcp + (height-1)*pitch, bwidth);
+	tc_memcpy(blurp, srcp, bwidth);
+	tc_memcpy(blurp + (height-1)*bwidth, srcp + (height-1)*pitch, bwidth);
 	for (y = 0; y < height; y++)
 	{
 		*((unsigned int *)(&blurp[0])) = *((unsigned int *)(&srcp[0]));
@@ -489,8 +489,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	/* Fix up output frame borders. */
 	srcp = src;
 	dstp = dst;
-	memcpy(dstp, srcp, bwidth);
-	memcpy(dstp + (height-1)*pitch, srcp + (height-1)*pitch, bwidth);
+	tc_memcpy(dstp, srcp, bwidth);
+	tc_memcpy(dstp + (height-1)*pitch, srcp + (height-1)*pitch, bwidth);
 	for (y = 0; y < height; y++)
 	{
 		*((unsigned int *)(&dstp[0])) = *((unsigned int *)(&srcp[0]));

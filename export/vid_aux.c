@@ -23,6 +23,8 @@
 
 #include "vid_aux.h"
 
+#include <transcode.h>
+
 static int convert=0, convertY=0;
 static int x_dim=0, y_dim=0;
 static int x_dimY=0, y_dimY=0;
@@ -68,7 +70,7 @@ int tc_yuv2rgb_core(char *buffer)
 	    x_dimY*3 /*rgb_stride*/, x_dimY, x_dimY/2);
     
     //put it back
-    memcpy(buffer, rgb_outY, y_dim*x_dim*3);
+    tc_memcpy(buffer, rgb_outY, y_dim*x_dim*3);
     
     return(0);
     
@@ -127,7 +129,7 @@ int tc_rgb2yuv_core(char *buffer)
     if(cc!=0) return(-1);
     
     //put it back
-    memcpy(buffer, frame_buffer, (y_dim*x_dim*3)/2);
+    tc_memcpy(buffer, frame_buffer, (y_dim*x_dim*3)/2);
     
     return(0);
     
@@ -147,7 +149,7 @@ int tc_rgb2yuv_core_flip(char *buffer)
     if(cc!=0) return(-1);
     
     //put it back
-    memcpy(buffer, frame_buffer, (y_dim*x_dim*3)/2);
+    tc_memcpy(buffer, frame_buffer, (y_dim*x_dim*3)/2);
     
     return(0);
     

@@ -221,9 +221,6 @@
 /* Have Ogg support */
 #undef HAVE_OGG
 
-/* Have openquicktime support */
-#undef HAVE_OPENQT
-
 /* Define if \$CC groks AltiVec inline assembly. */
 #undef HAVE_PPC_ALTIVEC
 

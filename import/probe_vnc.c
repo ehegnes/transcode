@@ -5,6 +5,8 @@
 
 #include "ioaux.h"
 
+#include <transcode.h>
+
 /* Some VNC constants */
 #define VNCREC_MAGIC_STRING	"vncLog0.0"
 #define VNCREC_MAGIC_SIZE	(9)
@@ -51,7 +53,7 @@ void probe_vnc(info_t *ipipe)
     }
 
     /* Check VNCREC magic */
-    memcpy(matchingBuffer, &buf[index], VNCREC_MAGIC_SIZE);
+    tc_memcpy(matchingBuffer, &buf[index], VNCREC_MAGIC_SIZE);
     matchingBuffer[VNCREC_MAGIC_SIZE] = 0;
     if(strcmp(matchingBuffer, VNCREC_MAGIC_STRING)) { /* NOT EQUAL */
 	fprintf(stderr, "(%s) unsupported version of vncrec (\"%s\")\n",
@@ -63,7 +65,7 @@ void probe_vnc(info_t *ipipe)
 
 
     /* Ensure RFB protocol is valid */
-    memcpy(matchingBuffer, &buf[index], VNC_RFB_PROTO_VERSION_SIZE);
+    tc_memcpy(matchingBuffer, &buf[index], VNC_RFB_PROTO_VERSION_SIZE);
     matchingBuffer[VNC_RFB_PROTO_VERSION_SIZE] = 0;
     if(sscanf(matchingBuffer, VNC_RFB_PROTOCOL_SCANF_FORMAT, &major, &minor) != 2) {
 	fprintf(stderr, "(%s) unknown RFB protocol (\"%s\")\n", __FILE__,

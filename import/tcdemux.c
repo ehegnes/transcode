@@ -38,7 +38,6 @@
 #define MAX_BUF     1024
 
 void tcdemux_pass_through(info_t *ipipe, int *pass);
-
 static int verbose=TC_QUIET;
 
 /* ------------------------------------------------------------ 
@@ -122,6 +121,8 @@ int main(int argc, char *argv[])
     
     //defaults:
     int unit_seek=0, resync_seq1=0, resync_seq2=INT_MAX;
+
+	tc_memcpy_init(verbose & TC_INFO, -1);
 
     //proper initialization
     memset(&ipipe, 0, sizeof(info_t));

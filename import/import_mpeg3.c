@@ -290,7 +290,7 @@ MOD_decode
 		if (result) return TC_IMPORT_ERROR;
 	    }
 	} 
-	memcpy (param->buffer, 
+	tc_memcpy (param->buffer, 
 		(char *)prefetch_buffer + (framenum%FRAMES_TO_PREFETCH)*vob->im_a_size, 
 		vob->im_a_size);
 	framenum++;
@@ -310,7 +310,7 @@ MOD_decode
       param->size = block * height;
     
       for(i=0; i<height; ++i) 
-	memcpy(param->buffer+(i-1)*block,rowptr[height-i-1], block);
+	tc_memcpy(param->buffer+(i-1)*block,rowptr[height-i-1], block);
 
       break;
 
@@ -319,7 +319,7 @@ MOD_decode
       if(mpeg3_read_yuvframe(file, y_output, u_output, v_output, 0, 0, width, height, stream_id)) return(TC_IMPORT_ERROR);
 
       param->size = (width * height * 3)>>1;
-      memcpy(param->buffer, framebuffer,param->size);
+      tc_memcpy(param->buffer, framebuffer,param->size);
       break;
     }
     return(0);

@@ -324,7 +324,7 @@ MOD_decode {
       if (divx4_is_key((unsigned char *)param->buffer, (long) param->size))
 	  param->attributes |= TC_FRAME_IS_KEYFRAME;
       param->size = (int) bytes_read;
-      memcpy(param->buffer, buffer, bytes_read); 
+      tc_memcpy(param->buffer, buffer, bytes_read); 
 
       return(0);
     }

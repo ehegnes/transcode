@@ -30,6 +30,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <transcode.h>
+
 /* -------------------------------------------------
  *
  * mandatory include files
@@ -110,14 +112,14 @@ void merge_frames(unsigned char *f1, unsigned char *f2, int width, int height, i
 	/* In YUV, only merge the Y plane, since CrCb planes can't be discerned
 	 * due to the merger.  This lets us also reuse the code for RGB */
 	for (i = 0; i < height; i += 2) {
-		memcpy(&f2[i * width * pw], &f1[i * width * pw], width * pw); 
+		tc_memcpy(&f2[i * width * pw], &f1[i * width * pw], width * pw); 
 	}
 
 	/* If we're in YUV mode, the previous frame has the correct color data */
 	if (pw == 1) {
 		cbuf1 = &f1[height * width];
 		cbuf2 = &f2[height * width];
-		memcpy(cbuf2, cbuf1, (height * width / 2)); 
+		tc_memcpy(cbuf2, cbuf1, (height * width / 2)); 
 	}
 }
 
@@ -200,7 +202,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	if ((fnum - lfnum) == 2) {
 	    merge_frames(lastiframe, ptr->video_buf, ptr->v_width, ptr->v_height, ((vob->im_v_codec == CODEC_RGB) ? 3:1) ); 
 	} else {
-          memcpy(lastiframe, ptr->video_buf, ptr->video_size);
+          tc_memcpy(lastiframe, ptr->video_buf, ptr->video_size);
 	  /* The use of the drop counter ensures syncronization even with
 	   * video-based sources.  */
 	  if (dcnt < 8) { 
@@ -212,11 +214,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	        * If there are more than 3 interlaced frames in a row, it's
 	        * probably video and we don't want to copy the last frame over */
 	       if (((fnum - lfnum) < 3) && fnum) 
-		   memcpy(ptr->video_buf, lastframe, ptr->video_size);
+		   tc_memcpy(ptr->video_buf, lastframe, ptr->video_size);
 	   } 
 	}
     } else {
-        memcpy(lastframe, ptr->video_buf, ptr->video_size);
+        tc_memcpy(lastframe, ptr->video_buf, ptr->video_size);
         lfnum = fnum; 
     }
     /* If we're dealing with a non-interlaced source, or close to it, it won't

@@ -312,7 +312,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	  (ptr->tag & TC_POST_PROCESS && !mfd[instance]->pre)) &&
 	  !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
-      memcpy (buffer[instance], ptr->video_buf, ptr->video_size);
+      tc_memcpy (buffer[instance], ptr->video_buf, ptr->video_size);
 
       deNoise(buffer[instance],                                  ptr->video_buf,
 	      mfd[instance]->Line, &mfd[instance]->Frame[0], ptr->v_width, ptr->v_height,

@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../libdvenc/dvenc.h"
-#include "transcode.h"
+#include <transcode.h>
 #include "vid_aux.h"
 
 #define MOD_NAME    "export_dvraw.so"
@@ -293,9 +293,9 @@ MOD_encode
   if(param->flag == TC_VIDEO) { 
     
     if(pass_through) {
-      memcpy(target, param->buffer, frame_size);
+      tc_memcpy(target, param->buffer, frame_size);
     } else { 
-      memcpy(vbuf, param->buffer, param->size);
+      tc_memcpy(vbuf, param->buffer, param->size);
     }
     
     if(verbose & TC_STATS) fprintf(stderr, "[%s] ---V---\n", MOD_NAME);

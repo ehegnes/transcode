@@ -49,6 +49,8 @@
 	"paddb " #a ", " #b " \n\t"
 #endif
 
+#include <transcode.h>
+
 //FIXME? |255-0| = 1 (shouldnt be a problem ...)
 #ifdef HAVE_MMX
 /**
@@ -596,8 +598,8 @@ static inline void RENAME(doVertDefFilter)(uint8_t src[], int stride, PPContext 
 	const int l7= stride + l6;
 	const int l8= stride + l7;
 
-	memcpy(tmp, src+stride*7, 8);
-	memcpy(tmp+8, src+stride*8, 8);
+	tc_memcpy(tmp, src+stride*7, 8);
+	tc_memcpy(tmp+8, src+stride*8, 8);
 */
 	src+= stride*4;
 	asm volatile(
@@ -2696,7 +2698,7 @@ SCALED_CPY((%%eax, %4), (%%eax, %4, 2), (%%edx, %5), (%%edx, %5, 2))
 					);
 #else
 				for(i=0; i<8; i++)
-					memcpy(	&(dst[dstStride*i]),
+					tc_memcpy(	&(dst[dstStride*i]),
 						&(src[srcStride*i]), BLOCK_SIZE);
 #endif
 	}
@@ -2728,7 +2730,7 @@ SIMPLE_CPY((%%eax, %2), (%%eax, %2, 2), (%%edx, %3), (%%edx, %3, 2))
 					);
 #else
 				for(i=0; i<8; i++)
-					memcpy(	&(dst[dstStride*i]),
+					tc_memcpy(	&(dst[dstStride*i]),
 						&(src[srcStride*i]), BLOCK_SIZE);
 #endif
 	}
@@ -2755,7 +2757,7 @@ static inline void RENAME(duplicate)(uint8_t src[], int stride)
 	for(i=0; i<3; i++)
 	{
 		p-= stride;
-		memcpy(p, src, 8);
+		tc_memcpy(p, src, 8);
 	}
 #endif
 }
@@ -2948,13 +2950,13 @@ static void RENAME(postProcess)(uint8_t src[], int srcStride, uint8_t dst[], int
 			srcBlock+=8;
 		}
 		if(width==dstStride)
-			memcpy(dst, tempDst + 9*dstStride, copyAhead*dstStride);
+			tc_memcpy(dst, tempDst + 9*dstStride, copyAhead*dstStride);
 		else
 		{
 			int i;
 			for(i=0; i<copyAhead; i++)
 			{
-				memcpy(dst + i*dstStride, tempDst + (9+i)*dstStride, width);
+				tc_memcpy(dst + i*dstStride, tempDst + (9+i)*dstStride, width);
 			}
 		}
 	}
@@ -2979,19 +2981,19 @@ static void RENAME(postProcess)(uint8_t src[], int srcStride, uint8_t dst[], int
 			int i;
 			/* copy from line (copyAhead) to (copyAhead+7) of src, these will be copied with
 			   blockcopy to dst later */
-			memcpy(tempSrc + srcStride*copyAhead, srcBlock + srcStride*copyAhead,
+			tc_memcpy(tempSrc + srcStride*copyAhead, srcBlock + srcStride*copyAhead,
 				srcStride*MAX(height-y-copyAhead, 0) );
 
 			/* duplicate last line of src to fill the void upto line (copyAhead+7) */
 			for(i=MAX(height-y, 8); i<copyAhead+8; i++)
-				memcpy(tempSrc + srcStride*i, src + srcStride*(height-1), srcStride);
+				tc_memcpy(tempSrc + srcStride*i, src + srcStride*(height-1), srcStride);
 
 			/* copy up to (copyAhead+1) lines of dst (line -1 to (copyAhead-1))*/
-			memcpy(tempDst, dstBlock - dstStride, dstStride*MIN(height-y+1, copyAhead+1) );
+			tc_memcpy(tempDst, dstBlock - dstStride, dstStride*MIN(height-y+1, copyAhead+1) );
 
 			/* duplicate last line of dst to fill the void upto line (copyAhead) */
 			for(i=height-y+1; i<=copyAhead; i++)
-				memcpy(tempDst + dstStride*i, dst + dstStride*(height-1), dstStride);
+				tc_memcpy(tempDst + dstStride*i, dst + dstStride*(height-1), dstStride);
 
 			dstBlock= tempDst + dstStride;
 			srcBlock= tempSrc;
@@ -3184,13 +3186,13 @@ static void RENAME(postProcess)(uint8_t src[], int srcStride, uint8_t dst[], int
 		{
 			uint8_t *dstBlock= &(dst[y*dstStride]);
 			if(width==dstStride)
-				memcpy(dstBlock, tempDst + dstStride, dstStride*(height-y));
+				tc_memcpy(dstBlock, tempDst + dstStride, dstStride*(height-y));
 			else
 			{
 				int i;
 				for(i=0; i<height-y; i++)
 				{
-					memcpy(dstBlock + i*dstStride, tempDst + (i+1)*dstStride, width);
+					tc_memcpy(dstBlock + i*dstStride, tempDst + (i+1)*dstStride, width);
 				}
 			}
 		}

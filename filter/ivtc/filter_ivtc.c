@@ -58,7 +58,7 @@ void ivtc_copy_field (unsigned char *dest, unsigned char *src, vframe_list_t * p
     }
 
     for (y = 0; y < (ptr->v_height+1)/2; y++) {
-	memcpy(dest, src, ptr->v_width);
+	tc_memcpy(dest, src, ptr->v_width);
 	src  += ptr->v_width*2;
 	dest += ptr->v_width*2;
     }
@@ -69,7 +69,7 @@ void ivtc_copy_field (unsigned char *dest, unsigned char *src, vframe_list_t * p
     }
 
     for (y = 0; y < (ptr->v_height+1)/2; y++) {
-	memcpy(dest, src, ptr->v_width/2);
+	tc_memcpy(dest, src, ptr->v_width/2);
 	src  += ptr->v_width;
 	dest += ptr->v_width;
     }
@@ -170,7 +170,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 
     if ((ptr->tag & TC_PRE_S_PROCESS) && (ptr->tag & TC_VIDEO)) {
 
-	memcpy(	lastFrames[frameIn], 
+	tc_memcpy(	lastFrames[frameIn], 
 		ptr->video_buf, 
 		ptr->v_width*ptr->v_height*3);
 	if (show_results) 

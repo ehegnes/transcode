@@ -1158,60 +1158,6 @@ fi
 
 ])
 
-dnl 
-dnl openqt
-dnl 
-dnl 
-
-AC_DEFUN([AM_PATH_OPENQT],
-[
-
-AC_ARG_WITH(openqt, AC_HELP_STRING([--with-openqt],[build openquicktime dependent module (no)]),[case "${withval}" in
-  yes) ;;
-  no)  ;;
-  *) AC_MSG_ERROR(bad value ${withval} for --with-openqt) ;;
-esac], with_openqt=no)
-
-AC_ARG_WITH(openqt-includes,AC_HELP_STRING([--with-openqt-includes=PFX],[prefix where local openquicktime includes are installed (optional)]),
-	  openqt_includes="$withval",openqt_includes="")
-
-AC_ARG_WITH(openqt-libs,AC_HELP_STRING([--with-openqt-libs=PFX],[prefix where local openquicktime libs are installed (optional)]),
-	  openqt_libs="$withval", openqt_libs="")
-
-EXTRA_LIBS="-lpng -lz -lpthread $GLIB_LIBS -ldl -lm"
-
-if test x$with_openqt = "x"yes ; then
-
-	if test x$openqt_includes != "x" ; then
-	    with_openqt_i="$openqt_includes/include"
-        else
-	    with_openqt_i="/usr/include"
-        fi
-
-        if test x$openqt_libs != x ; then
-            with_openqt_l="$openqt_libs/lib"
-        else
-            with_openqt_l="/usr${deflib}"
-        fi
-
-     AC_CHECK_LIB(openquicktime, quicktime_init,
-      [
-OPENQT_CFLAGS="-I$with_openqt_i -I/usr/local/include $GLIB_CFLAGS "
-OPENQT_LIBS="-L$with_openqt_l -lopenquicktime ${EXTRA_LIBS}" 
-AC_DEFINE(HAVE_OPENQT) have_openqt=yes
-      ], have_openqt=no, 
-	-L$with_openqt_l -lopenquicktime ${EXTRA_LIBS})
-
-else
-    have_openqt=no
-fi
-
-AC_SUBST(OPENQT_LIBS)
-AC_SUBST(OPENQT_CFLAGS)
-])
-
-
-
 # Configure paths for GTK+
 # Owen Taylor     97-11-3
 

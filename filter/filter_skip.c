@@ -64,7 +64,7 @@ char *get_next_range(char *name, char *_string)
     return(string+strlen(string));
   }
   
-  memcpy(name, string, (int)(res-string));
+  tc_memcpy(name, string, (int)(res-string));
   
   return(res+1);
 }

@@ -230,7 +230,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   if(pre && vid) {
     
     //0.6.2 (secondaray buffer for pass-through mode)
-    (use_secondary_buffer) ? memcpy(dv_player->display->pixels[0], (char*) ptr->video_buf2, size) : memcpy(dv_player->display->pixels[0], (char*) ptr->video_buf, size); 
+    (use_secondary_buffer) ? tc_memcpy(dv_player->display->pixels[0], (char*) ptr->video_buf2, size) : tc_memcpy(dv_player->display->pixels[0], (char*) ptr->video_buf, size); 
     
     //display video frame
     dv_display_show(dv_player->display);

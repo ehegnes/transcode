@@ -50,6 +50,8 @@
 #include <math.h>
 #include <fcntl.h>
 
+#include <transcode.h>
+
 // useful constants
 #define I_TYPE 1
 #define P_TYPE 2
@@ -241,7 +243,7 @@ static uint64 cnt_b_i, cnt_b_ni;
 		assert(cbuf + x < orbuf + BUF_SIZE); \
 		assert(cbuf + x >= orbuf); \
 		assert(wbuf + x >= orbuf); \
-		memcpy(wbuf, cbuf, x);\
+		tc_memcpy(wbuf, cbuf, x);\
 		cbuf += x; \
 		wbuf += x;
 
@@ -1968,7 +1970,7 @@ int main (int argc, char *argv[])
 					ID, cbuf - inTemp, wbuf - outTemp, (wbuf - outTemp) - (cbuf - inTemp));*/
 				
 					// in this case, we'll just use the original slice !
-					memcpy(outTemp, inTemp, cbuf - inTemp);
+					tc_memcpy(outTemp, inTemp, cbuf - inTemp);
 					wbuf = outTemp + (cbuf - inTemp);
 					
 					// adjust outbytecnt

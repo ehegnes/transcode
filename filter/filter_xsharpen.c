@@ -523,15 +523,15 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	/* first */
 	src	= src_buf;
 	dst	= dst_buf;
-	memcpy (dst, src, width);
+	tc_memcpy (dst, src, width);
 
 	/* last */
 	src     = src_buf+srcpitch*(height-1);
 	dst     = dst_buf+dstpitch*(height-1);
-	memcpy (dst, src, width);
+	tc_memcpy (dst, src, width);
 
 	/* copy Cb and Cr */
-	memcpy (dst_buf+dstpitch*height, src_buf+srcpitch*height, width*height>>1);
+	tc_memcpy (dst_buf+dstpitch*height, src_buf+srcpitch*height, width*height>>1);
 
 	src	= src_buf;
 	dst	= dst_buf;
@@ -652,7 +652,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 		dst += dstpitch;
 	}
 
-	memcpy (ptr->video_buf, dst_buf, width*height*3/2);
+	tc_memcpy (ptr->video_buf, dst_buf, width*height*3/2);
 
 	return 0;
 

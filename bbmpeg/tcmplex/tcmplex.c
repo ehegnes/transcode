@@ -29,7 +29,6 @@
 #include "main.h"
 #include "bbencode.h"
 
-
 static int verbose=0;
 
 extern int domplex(int has_video, int has_audio);

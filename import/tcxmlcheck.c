@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr,"(%s) Cannot attach shared memory segment\n",EXE);
 			exit(1);
 		}
-		memcpy((char *)p_vob,(char *) &s_vob, sizeof(vob_t));
+		tc_memcpy((char *)p_vob,(char *) &s_vob, sizeof(vob_t));
 		(int) shmdt(p_vob);
 		exit(0);
 	}
@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr,"(%s) Cannot attach shared memory segment\n",EXE);
 			exit(1);
 		}
-		memcpy((char *)&s_vob,(char *) p_vob, sizeof(vob_t));
+		tc_memcpy((char *)&s_vob,(char *) p_vob, sizeof(vob_t));
 		shmctl( s_shm, IPC_RMID, NULL );
 		(int) shmdt(p_vob);
 		p_video_tmp=s_vob.video_in_file;

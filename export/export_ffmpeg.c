@@ -49,7 +49,6 @@
 				added option for truncated file support "trunc" (default off)
 				added option for generating closed gop streams "closedgop" (disable scene detection) (default off)
 				added option for selecting intra_dc_precision ("intra_dc_precision") (default lowest)
-				added option for selecting skipping top or bottom macro block rows ("skip_top"/"skip_bottom") (default none)
 0.3.12	EMS		removed unused huffyuv code
 				removed unnecessary compares on "mpeg1" and "mpeg2" when checking for "mpeg1video" and "mpeg2video"
 				cleaned up little 4mv mess

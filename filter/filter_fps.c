@@ -35,7 +35,7 @@
 #include "config.h"
 #endif
 
-#include "transcode.h"
+#include <transcode.h>
 #include "framebuffer.h"
 #include "optstr.h"
 
@@ -75,7 +75,7 @@ parse_options(char *options, int *pre, double *infps, double *outfps)
 
 	len = strlen(options);
 	p = alloca(len + 1);
-	memcpy(p, options, len);
+	tc_memcpy(p, options, len);
 	p[len] = '\0';
 
 	i = 0;

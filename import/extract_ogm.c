@@ -30,6 +30,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <transcode.h>
+
 #include "ioaux.h"
 #include "tc.h"
 
@@ -359,7 +361,7 @@ void process_ogm(int fdin, int fdout)
         stream->sample_rate = -1;
         stream->sno = nastreams + 1;
         stream->stype = 'a';
-        memcpy(&stream->instate, &sstate, sizeof(sstate));
+        tc_memcpy(&stream->instate, &sstate, sizeof(sstate));
         if (extraction_requested(xaudio, nastreams + 1, NOAUDIO)) {
 	  stream->fd = fdout;
           if (stream->fd == -1) {
@@ -420,7 +422,7 @@ void process_ogm(int fdin, int fdout)
           stream->serial = sno;
           stream->sample_rate = (double)10000000 / (double)sth->time_unit;
           stream->sno = nvstreams + 1;
-          memcpy(&stream->instate, &sstate, sizeof(sstate));
+          tc_memcpy(&stream->instate, &sstate, sizeof(sstate));
           if (extraction_requested(xvideo, nvstreams + 1, NOVIDEO)) {
 	    stream->fd = fdout;
             
@@ -437,7 +439,7 @@ void process_ogm(int fdin, int fdout)
         } else if (!strncmp(sth->streamtype, "audio", 5)) {
           int codec;
           char buf[5];
-          memcpy(buf, sth->subtype, 4);
+          tc_memcpy(buf, sth->subtype, 4);
           buf[4] = 0;
           codec = strtoul(buf, NULL, 16);
           if (verbose > 0) {
@@ -463,7 +465,7 @@ void process_ogm(int fdin, int fdout)
                                 sth->sh.audio.channels;
           stream->serial = sno;
           stream->acodec = codec;
-          memcpy(&stream->instate, &sstate, sizeof(sstate));
+          tc_memcpy(&stream->instate, &sstate, sizeof(sstate));
           if (extraction_requested(xaudio, nastreams + 1, NOAUDIO)) {
               
 	    /*
@@ -495,7 +497,7 @@ void process_ogm(int fdin, int fdout)
           stream->stype = 't';
           stream->sample_rate = (double)10000000 / (double)sth->time_unit;
           stream->serial = sno;
-          memcpy(&stream->instate, &sstate, sizeof(sstate));
+          tc_memcpy(&stream->instate, &sstate, sizeof(sstate));
           if (extraction_requested(xtext, ntstreams + 1, NOTEXT)) {
             new_name = malloc(strlen(basename) + 20);
             if (!new_name) {

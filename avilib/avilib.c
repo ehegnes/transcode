@@ -43,7 +43,6 @@
 #endif
 
 #include "avilib.h"
-
 #include "xio.h"
 
 #define INFO_LIST

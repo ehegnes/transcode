@@ -28,6 +28,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <transcode.h>
 
 static char *buffer;
 
@@ -227,12 +228,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
   
   if(ptr->tag & TC_PRE_M_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
-      memcpy(buffer, ptr->video_buf, ptr->v_width*ptr->v_height*3);
+      tc_memcpy(buffer, ptr->video_buf, ptr->v_width*ptr->v_height*3);
 
       if (vob->im_v_codec == CODEC_YUV) crshift_yuv(buffer, vob, loop);
       if (vob->im_v_codec == CODEC_RGB) crshift_rgb(buffer, vob, loop);
       
-      memcpy(ptr->video_buf, buffer, ptr->v_width*ptr->v_height*3);
+      tc_memcpy(ptr->video_buf, buffer, ptr->v_width*ptr->v_height*3);
   } 
   
   return(0);

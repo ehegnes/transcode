@@ -158,8 +158,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
     /*
     if (!tc_do_telecide) {
-	    memcpy (video_buf[0], ptr->video_buf, height*width*3/2);
-	    memcpy (video_buf[1], ptr->video_buf, height*width*3/2);
+	    tc_memcpy (video_buf[0], ptr->video_buf, height*width*3/2);
+	    tc_memcpy (video_buf[1], ptr->video_buf, height*width*3/2);
 	    return 0;
     }
     */
@@ -178,13 +178,13 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 	/* save top2 lines */
 	for (y=0; y<(height+1)/2; y++) {
-	    memcpy (Y1, Y2, width);
+	    tc_memcpy (Y1, Y2, width);
 	    Y1 += width*2;
 	    Y2 += width*2;
 	}
 	/* color */
 	for (y=0; y<(height+1)/2; y++) {
-	    memcpy (Cr1, Cr2, width2);
+	    tc_memcpy (Cr1, Cr2, width2);
 	    Cr1 += width;
 	    Cr2 += width;
 	}
@@ -199,13 +199,13 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 	/* save top3 lines */
 	for (y=0; y<(height+1)/2; y++) {
-	    memcpy (Y1, Y2, width);
+	    tc_memcpy (Y1, Y2, width);
 	    Y1 += width*2;
 	    Y2 += width*2;
 	}
 	/* color */
 	for (y=0; y<(height+1)/2; y++) {
-	    memcpy (Cr1, Cr2, width2);
+	    tc_memcpy (Cr1, Cr2, width2);
 	    Cr1 += width;
 	    Cr2 += width;
 	}
@@ -218,13 +218,13 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 	/* merge bot3 with top2 */
 	for (y=0; y<(height+1)/2; y++) {
-	    memcpy (Y1, Y2, width);
+	    tc_memcpy (Y1, Y2, width);
 	    Y1 += width*2;
 	    Y2 += width*2;
 	}
 	/* color */
 	for (y=0; y<(height+1)/2; y++) {
-	    memcpy (Cr1, Cr2, width2);
+	    tc_memcpy (Cr1, Cr2, width2);
 	    Cr1 += width;
 	    Cr2 += width;
 	}
@@ -234,7 +234,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	    ptr->attributes |= TC_FRAME_IS_CLONED;
 
 	    /* save complete frame */
-	    memcpy (video_buf[0], ptr->video_buf, height*width*3/2);
+	    tc_memcpy (video_buf[0], ptr->video_buf, height*width*3/2);
 
 	    /* merge bot4 with top3 */
 	    Y1 = ptr->video_buf;
@@ -244,20 +244,20 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	    Cr2 = video_buf[1]+wh;
 
 	    for (y=0; y<(height+1)/2; y++) {
-		memcpy (Y1, Y2, width);
+		tc_memcpy (Y1, Y2, width);
 		Y1 += width*2;
 		Y2 += width*2;
 	    }
 	    /* color */
 	    for (y=0; y<(height+1)/2; y++) {
-		memcpy (Cr1, Cr2, width2);
+		tc_memcpy (Cr1, Cr2, width2);
 		Cr1 += width;
 		Cr2 += width;
 	    }
 	} else {
 	    /* restore frame4 = frame 5 */
 	    // this is the cloned frame
-	    memcpy (ptr->video_buf, video_buf[0], height*width*3/2);
+	    tc_memcpy (ptr->video_buf, video_buf[0], height*width*3/2);
 	}
 	break;
     } // switch mod
@@ -278,30 +278,30 @@ int tc_filter(vframe_list_t *ptr, char *options)
       case 2:
 	/* save top2 lines */
 	for (y=0; y<height-1; y+=2) 
-	  memcpy (video_buf[0]+y*width3, ptr->video_buf+y*width3, width3);
+	  tc_memcpy (video_buf[0]+y*width3, ptr->video_buf+y*width3, width3);
 	break;
       case 3:
 	/* save top3 lines */
 	for (y=0; y<height-1; y+=2) 
-	  memcpy (video_buf[1]+y*width3, ptr->video_buf+y*width3, width3);
+	  tc_memcpy (video_buf[1]+y*width3, ptr->video_buf+y*width3, width3);
 	
 	/* merge bot3 with top2 */
 	for (y=0; y<height-1; y+=2) 
-	  memcpy (ptr->video_buf+y*width3, video_buf[0]+y*width3, width3);
+	  tc_memcpy (ptr->video_buf+y*width3, video_buf[0]+y*width3, width3);
 	break;
       case 0:
 	if (!(ptr->attributes & TC_FRAME_WAS_CLONED)) {
 	    ptr->attributes |= TC_FRAME_IS_CLONED;
 
 	    /* save complete frame */
-	    memcpy (video_buf[0], ptr->video_buf, height*width3);
+	    tc_memcpy (video_buf[0], ptr->video_buf, height*width3);
 	    /* merge bot4 with top3 */
 	    for (y=0; y<height-1; y+=2) 
-		memcpy (ptr->video_buf+y*width3, video_buf[1]+y*width3, width3);
+		tc_memcpy (ptr->video_buf+y*width3, video_buf[1]+y*width3, width3);
 	} else {
 	    /* restore frame4 = frame 5 */
 	    // this is the cloned frame
-	    memcpy (ptr->video_buf, video_buf[0], height*width3);
+	    tc_memcpy (ptr->video_buf, video_buf[0], height*width3);
 	}
 	break;
     } // switch mod

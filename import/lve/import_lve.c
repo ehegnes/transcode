@@ -208,7 +208,7 @@ MOD_decode
     
     //-- force size --
     param->size = (lve_ctx->pic_size_l * 3)>>1;
-    //memcpy(param->buffer, framebuffer, param->size);
+    //tc_memcpy(param->buffer, framebuffer, param->size);
     
     return(0);
   }

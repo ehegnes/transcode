@@ -161,7 +161,7 @@ int a52_decore(decode_t *decode) {
     
     // FIXME:
     // save header 
-    // memcpy(header, &buf[2], 5);
+    // tc_memcpy(header, &buf[2], 5);
 
     // valid AC3 frame?
 

@@ -51,6 +51,8 @@
 #define MAX_VIDEO_TRACKS 255
 #define BLOCK_SIZE 4096
 
+#include <transcode.h>
+
 //#define  OGM_DEBUG
 
 struct demux_t {
@@ -173,7 +175,7 @@ void probe_ogg(info_t *ipipe)
 
 			streams[natracks].serial = sno;
 			streams[natracks].vorbis = 1;
-			memcpy(&streams[natracks].state, &sstate, sizeof(sstate));
+			tc_memcpy(&streams[natracks].state, &sstate, sizeof(sstate));
 			natracks++;
 		    }
 		    break;
@@ -195,7 +197,7 @@ void probe_ogg(info_t *ipipe)
 		    idx = natracks + MAX_AUDIO_TRACKS;
 
 		    streams[idx].serial = sno;
-		    memcpy(&streams[idx].state, &sstate, sizeof(sstate));
+		    tc_memcpy(&streams[idx].state, &sstate, sizeof(sstate));
 		    nvtracks++;
 		    break;
 	        }
@@ -272,12 +274,12 @@ void probe_ogg(info_t *ipipe)
 			idx = natracks + MAX_AUDIO_TRACKS;
 
 			streams[idx].serial = sno;
-			memcpy(&streams[idx].state, &sstate, sizeof(sstate));
+			tc_memcpy(&streams[idx].state, &sstate, sizeof(sstate));
 			nvtracks++;
 		    } else if (!strncmp(sth->streamtype, "audio", 5)) {
 			int codec;
 			char buf[5];
-			memcpy(buf, sth->subtype, 4);
+			tc_memcpy(buf, sth->subtype, 4);
 			buf[4] = 0;
 			codec = strtoul(buf, NULL, 16);
 #ifdef OGM_DEBUG
@@ -308,7 +310,7 @@ void probe_ogg(info_t *ipipe)
 			if(ipipe->probe_info->track[natracks].chan>0) ++ipipe->probe_info->num_tracks;
 
 			streams[idx].serial = sno;
-			memcpy(&streams[idx].state, &sstate, sizeof(sstate));
+			tc_memcpy(&streams[idx].state, &sstate, sizeof(sstate));
 			natracks++;
 		    } else {
 			fprintf(stderr, "(%s) (%d) found new header of unknown/" \

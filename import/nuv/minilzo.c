@@ -132,10 +132,13 @@
 #  undef memcmp
 #  define memcmp    lzo_memcmp
 #endif
-#if !defined(HAVE_MEMCPY)
-#  undef memcpy
-#  define memcpy    lzo_memcpy
-#endif
+
+// Erik Slagter
+// #if !defined(HAVE_MEMCPY)
+// #  undef memcpy
+// #  define memcpy    lzo_memcpy
+// #endif
+
 #if !defined(HAVE_MEMMOVE)
 #  undef memmove
 #  define memmove   lzo_memmove
@@ -510,7 +513,7 @@ extern "C" {
 #if !defined(__LZO_DOS16) && !defined(__LZO_WIN16)
 
 #define MEMCPY8_DS(dest,src,len) \
-    memcpy(dest,src,len); \
+    tc_memcpy(dest,src,len); \
     dest += len; \
     src += len
 
@@ -808,6 +811,7 @@ lzo_memcmp(const lzo_voidp s1, const lzo_voidp s2, lzo_uint len)
 #endif
 }
 
+#if 0 // Erik Slagter
 LZO_PUBLIC(lzo_voidp)
 lzo_memcpy(lzo_voidp dest, const lzo_voidp src, lzo_uint len)
 {
@@ -825,6 +829,7 @@ lzo_memcpy(lzo_voidp dest, const lzo_voidp src, lzo_uint len)
     return dest;
 #endif
 }
+#endif
 
 LZO_PUBLIC(lzo_voidp)
 lzo_memmove(lzo_voidp dest, const lzo_voidp src, lzo_uint len)

@@ -31,6 +31,8 @@
 #include <unistd.h>
 #include "resample.h"
 
+#include <transcode.h>
+
 #define RESAMPLE_BUFFER_SIZE 8192
 
 static char resample_buffer[RESAMPLE_BUFFER_SIZE];
@@ -162,7 +164,7 @@ int tc_filter(aframe_list_t *ptr, char *options)
     
     if(ptr->audio_size<0) ptr->audio_size=0;
     
-    memcpy(ptr->audio_buf, resample_buffer, ptr->audio_size);
+    tc_memcpy(ptr->audio_buf, resample_buffer, ptr->audio_size);
     
   } 
   

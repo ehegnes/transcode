@@ -46,6 +46,8 @@
 #include "aux_pes.h"
 #include "tc.h"
 
+#include <transcode.h>
+
 #define BUFFER_SIZE 262144
 static uint8_t *buffer = NULL;
 static FILE *in_file, *out_file;
@@ -139,7 +141,7 @@ static void pes_ac3_loop (void)
 	  }
 	  
 	  // get pts time stamp:
-	  memcpy(pack_buf, &buf[6], 16);
+	  tc_memcpy(pack_buf, &buf[6], 16);
 	  
 	  if(get_pts_dts(pack_buf, &i_pts, &i_dts)) {
 	    pack_rpts = (double) i_pts/90000.;
@@ -162,7 +164,7 @@ static void pes_ac3_loop (void)
 	case 0xba:	/* pack header */
 	  
 	  if(get_pts) {
-	    memcpy(pack_buf, &buf[4], 6);
+	    tc_memcpy(pack_buf, &buf[4], 6);
 	    pack_lpts = read_tc_time_stamp(pack_buf);
 	  }
 
@@ -215,7 +217,7 @@ static void pes_ac3_loop (void)
 	      if (tmp1 < tmp2) {
 		
 		// get pts time stamp:
-		  memcpy(pack_buf, &buf[6], 16);
+		  tc_memcpy(pack_buf, &buf[6], 16);
 
 		  if(get_pts_dts(pack_buf, &i_pts, &i_dts)) {
 		    pack_sub_rpts = (double) i_pts/90000.;
@@ -260,7 +262,7 @@ static void pes_ac3_loop (void)
 		
 		//test
 		if(0) {
-		    memcpy(pack_buf, &buf[6], 16);
+		    tc_memcpy(pack_buf, &buf[6], 16);
 		    get_pts_dts(pack_buf, &i_pts, &i_dts);
 		    fprintf(stderr, "AC3 PTS=%f\n", (double) i_pts/90000.);
 		}

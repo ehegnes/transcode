@@ -34,6 +34,8 @@
 
 #include "aclib/ac.h"
 
+#include <transcode.h>
+
 static char *buffer;
 
 static int ac=0, loop=0;
@@ -160,35 +162,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
     int n;
 
-    for(n=0; n<loop; ++n) {
-      
-      switch (ac) {
-
-#ifdef HAVE_MMX	
-      case 1:
-	ac_memcpy_mmx(buffer, ptr->video_buf, ptr->video_size);
-	memset(ptr->video_buf, 0, ptr->video_size);
-	ac_memcpy_mmx(ptr->video_buf, buffer, ptr->video_size);
-	break;
-#endif
-
-#ifdef HAVE_SSE	
-      case 2:
-	ac_memcpy_sse(buffer, ptr->video_buf, ptr->video_size);
-	memset(ptr->video_buf, 0, ptr->video_size);
-	ac_memcpy_sse(ptr->video_buf, buffer, ptr->video_size);
-	break;
-#endif
-
-      case 0:
-      default:
-	memcpy(buffer, ptr->video_buf, ptr->video_size);
-	memset(ptr->video_buf, 0, ptr->video_size);
-	memcpy(ptr->video_buf, buffer, ptr->video_size);
-	break;
-      } //ac
+    for(n=0; n<loop; ++n)
+	{
+	    tc_memcpy(buffer, ptr->video_buf, ptr->video_size);
+	    memset(ptr->video_buf, 0, ptr->video_size);
+	    tc_memcpy(ptr->video_buf, buffer, ptr->video_size);
     } //loop
-
 
   } //slot 
   

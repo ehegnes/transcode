@@ -36,6 +36,8 @@
 #include "transcoders.h"
 #include <assert.h>
 
+#include <transcode.h>
+
 static tomsmocomp_t *tmc_global = NULL;
 
 static void help_optstr (void) {
@@ -211,6 +213,9 @@ int tc_filter (vframe_list_t *ptr, char *options)
 	tmc->DSinfo.FieldHeight  = tmc->height / 2;
 	tmc->DSinfo.InputPitch   = 2* tmc->rowsize;
 
+// "cleaned up" by Erik Slagter
+
+#if 0
 	if (tmc->cpuflags & MM_SSE) {
 	    tmc->DSinfo.pMemcpy      = (MEMCPY_FUNC*) ac_memcpy_sse;
 	} else if (tmc->cpuflags & MM_MMX) {
@@ -222,6 +227,9 @@ int tc_filter (vframe_list_t *ptr, char *options)
 	    return -1;
 	}
 	tmc->DSinfo.pMemcpy      = memcpy; /* at least _mmx is broken: last bytes don't get copied */
+#else
+	tmc->DSinfo.pMemcpy = tc_memcpy;
+#endif
 	
 	if (verbose) {
 	    printf("[%s] TopFirst %s,  SearchEffort %d,  StrangeBob %s\n",
@@ -280,7 +288,7 @@ int tc_filter (vframe_list_t *ptr, char *options)
 	/* Convert / Copy to yuy2 */
 	switch (tmc->codec) {
 	case CODEC_YUY2:
-	    memcpy (tmc->frameIn, ptr->video_buf, tmc->size);
+	    tc_memcpy (tmc->frameIn, ptr->video_buf, tmc->size);
 	    break;
 	case CODEC_YUV:
 	    yv12toyuy2 (ptr->video_buf_Y[!ptr->free],
@@ -302,7 +310,7 @@ int tc_filter (vframe_list_t *ptr, char *options)
 	    /* Now convert back */
 	    switch (tmc->codec) {
 	    case CODEC_YUY2:
-		memcpy (ptr->video_buf, tmc->frameOut,
+		tc_memcpy (ptr->video_buf, tmc->frameOut,
 			tmc->size);
 		break;
 	    case CODEC_YUV:

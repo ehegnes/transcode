@@ -523,14 +523,14 @@ MOD_decode {
 	if (key || bkey) printf("[%s] Keyframe info (AVI | Bitstream) (%d|%d)\n", MOD_NAME, key, bkey);
 
       param->size = (int) bytes_read;
-      memcpy(param->buffer, buffer, bytes_read); 
+      tc_memcpy(param->buffer, buffer, bytes_read); 
 
       return TC_IMPORT_OK;
     }
 
     if (bytes_read == 0) {
         // repeat last frame
-        memcpy(param->buffer, frame, frame_size);
+        tc_memcpy(param->buffer, frame, frame_size);
         param->size = frame_size;
         return 0;
     }
@@ -562,7 +562,7 @@ retry:
 	} else {
 
 	  // repeat last frame
-	  memcpy(param->buffer, frame, frame_size);
+	  tc_memcpy(param->buffer, frame, frame_size);
 	  param->size = frame_size;
 	  return 0;
 	}
@@ -581,15 +581,15 @@ retry:
         if (pix_fmt == CODEC_YUV) {
           edge_width = (picture.linesize[0] - lavc_dec_context->width) / 2;
           for (i = 0; i < lavc_dec_context->height; i++) {
-            memcpy(Ybuf + i * lavc_dec_context->width,
+            tc_memcpy(Ybuf + i * lavc_dec_context->width,
                    picture.data[0] + i * picture.linesize[0], //+ edge_width,
                    lavc_dec_context->width);
           }
           for (i = 0; i < lavc_dec_context->height / 2; i++) {
-            memcpy(Vbuf + i * lavc_dec_context->width / 2,
+            tc_memcpy(Vbuf + i * lavc_dec_context->width / 2,
                    picture.data[1] + i * picture.linesize[1],// + edge_width / 2,
                    lavc_dec_context->width / 2);
-            memcpy(Ubuf + i * lavc_dec_context->width / 2,
+            tc_memcpy(Ubuf + i * lavc_dec_context->width / 2,
                    picture.data[2] + i * picture.linesize[2],// + edge_width / 2,
                    lavc_dec_context->width / 2);
           }
@@ -599,17 +599,17 @@ retry:
           Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
           edge_width = (picture.linesize[0] - lavc_dec_context->width) / 2;
           for (i = 0; i < lavc_dec_context->height; i++) {
-            memcpy(Ybuf + (lavc_dec_context->height - i - 1) *
+            tc_memcpy(Ybuf + (lavc_dec_context->height - i - 1) *
                      lavc_dec_context->width,
                    picture.data[0] + i * picture.linesize[0], //+ edge_width,
                    lavc_dec_context->width);
           }
           for (i = 0; i < lavc_dec_context->height / 2; i++) {
-            memcpy(Vbuf + (lavc_dec_context->height / 2 - i - 1) *
+            tc_memcpy(Vbuf + (lavc_dec_context->height / 2 - i - 1) *
                      lavc_dec_context->width / 2,
                    picture.data[1] + i * picture.linesize[1],// + edge_width / 2,
                    lavc_dec_context->width / 2);
-            memcpy(Ubuf + (lavc_dec_context->height / 2 - i - 1) *
+            tc_memcpy(Ubuf + (lavc_dec_context->height / 2 - i - 1) *
                      lavc_dec_context->width / 2,
                    picture.data[2] + i * picture.linesize[2],// + edge_width / 2,
                    lavc_dec_context->width / 2);
@@ -628,19 +628,19 @@ retry:
         break;
       case PIX_FMT_YUV422P:
           // Result is in YUV 4:2:2 format (subsample UV vertically for YV12):
-          memcpy(Ybuf, picture.data[0], picture.linesize[0] * lavc_dec_context->height);
+          tc_memcpy(Ybuf, picture.data[0], picture.linesize[0] * lavc_dec_context->height);
           src = 0;
           dst = 0;
           for (row=0; row<lavc_dec_context->height; row+=2) {
-            memcpy(Ubuf + dst, picture.data[1] + src, UVls);
-            memcpy(Vbuf + dst, picture.data[2] + src, UVls);
+            tc_memcpy(Ubuf + dst, picture.data[1] + src, UVls);
+            tc_memcpy(Vbuf + dst, picture.data[2] + src, UVls);
             dst += UVls;
             src = dst << 1;
           }
 	  break;
       case PIX_FMT_YUV444P:
           // Result is in YUV 4:4:4 format (subsample UV h/v for YV12):
-	  memcpy(Ybuf, picture.data[0], picture.linesize[0] * lavc_dec_context->height);
+	  tc_memcpy(Ybuf, picture.data[0], picture.linesize[0] * lavc_dec_context->height);
           src = 0;
           dst = 0;
           for (row=0; row<lavc_dec_context->height; row+=2) {
@@ -659,7 +659,7 @@ retry:
 	  // 4:1:1 -> 4:2:0
 
           for (i = 0; i < lavc_dec_context->height; i++) {
-            memcpy(Ybuf + i * lavc_dec_context->width,
+            tc_memcpy(Ybuf + i * lavc_dec_context->width,
                    picture.data[0] + i * picture.linesize[0], 
                    lavc_dec_context->width);
           }
@@ -676,7 +676,7 @@ retry:
           Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
           Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
           for (i = 0; i < lavc_dec_context->height; i++) {
-            memcpy(Ybuf + i * lavc_dec_context->width,
+            tc_memcpy(Ybuf + i * lavc_dec_context->width,
                    picture.data[0] + i * picture.linesize[0], 
                    lavc_dec_context->width);
           }
@@ -704,7 +704,7 @@ retry:
 	return TC_IMPORT_ERROR;
     }
 
-    memcpy(param->buffer, frame, frame_size);
+    tc_memcpy(param->buffer, frame, frame_size);
     param->size = frame_size;
 
     return 0;

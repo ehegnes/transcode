@@ -144,7 +144,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	//     -J ivtc,decimate  
 	// or (better) :
 	//     -J ivtc,32detect=force_mode=3,decimate
-	memcpy( lastFrames[frameIn], 
+	tc_memcpy( lastFrames[frameIn], 
 		ptr->video_buf, 
 		ptr->v_width*ptr->v_height*3);
 	if (show_results) 
@@ -183,7 +183,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 		lastFramesOK[(frameOut+indexMin)%FRBUFSIZ] = 0;
 	    }
 	    if (lastFramesOK[frameOut]) {
-		memcpy(	ptr->video_buf, 
+		tc_memcpy(	ptr->video_buf, 
 			lastFrames[frameOut], 
 			ptr->v_width*ptr->v_height*3);
 		if (show_results) 

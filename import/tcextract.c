@@ -46,14 +46,11 @@ void import_exit(int code)
   exit(code);
 }
 
-
 /* ------------------------------------------------------------ 
  *
  * print a usage/version message
  *
  * ------------------------------------------------------------*/
-
-
 
 void usage(int status)
 {
@@ -96,6 +93,8 @@ int main(int argc, char *argv[])
 
     int ch, done=0, track=0;
     char *magic=NULL, *codec=NULL, *name=NULL;
+
+	tc_memcpy_init(verbose & TC_INFO, -1);
 
     //proper initialization
     memset(&ipipe, 0, sizeof(info_t));

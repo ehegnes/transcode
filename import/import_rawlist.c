@@ -157,7 +157,7 @@ static void gray2rgb(char *dest, char *input, int width, int height)
 
 static void gray2yuv(char *dest, char *input, int width, int height) 
 {
-    memcpy (dest, input, height*width);
+    tc_memcpy (dest, input, height*width);
     memset (dest+height*width, 128, height*width/2);
 }
 
@@ -407,7 +407,7 @@ retry:
     }
 
     convfkt(video_buffer, param->buffer, vob->im_v_width, vob->im_v_height);
-    memcpy(param->buffer, video_buffer, out_bytes);
+    tc_memcpy(param->buffer, video_buffer, out_bytes);
   
   } else  {
     if(p_read(fd_in, param->buffer, bytes) != bytes) { 

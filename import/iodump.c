@@ -37,6 +37,8 @@
 #include "dvd_reader.h"
 #endif
 
+#include <transcode.h>
+
 int dvd_read(int arg_title, int arg_chapter, int arg_angle);
 
 #ifdef SYS_BSD
@@ -459,7 +461,7 @@ void tccat_thread(info_t *ipipe)
 	
 	//extract and concatenate streams
 
-	memcpy(&ipipe_avi, ipipe, sizeof(info_t));
+	tc_memcpy(&ipipe_avi, ipipe, sizeof(info_t));
 	
 	//real AVI file name
 	ipipe_avi.name = name;

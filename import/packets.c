@@ -23,6 +23,8 @@
 
 #include "packets.h"
 
+#include <transcode.h>
+
 #define FLUSH_BUFFER_MAX (1024<<4)
 
 
@@ -471,7 +473,7 @@ int flush_buffer_write(int fd_out, char*buffer, int packet_size)
     
     pack_ptr = packet_register(pack_ctr);
 
-    memcpy(pack_ptr->buffer, buffer, packet_size);
+    tc_memcpy(pack_ptr->buffer, buffer, packet_size);
     
     pack_ptr->size = packet_size;
     pack_ptr->status = PACKET_READY; //packet ready to go

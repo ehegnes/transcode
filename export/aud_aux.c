@@ -37,6 +37,8 @@
 #include "ac3.h"
 #include "../aclib/ac.h"
 
+#include <transcode.h>
+
 extern pthread_mutex_t init_avcodec_lock;
 
 static AVCodec        *mpa_codec = NULL;
@@ -811,7 +813,7 @@ static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 	 * Apend the new incoming audio to the already available but not yet
 	 * consumed.
 	 */
-        memcpy (input+input_len, aud_buffer, aud_size);
+        tc_memcpy (input+input_len, aud_buffer, aud_size);
 	input_len += aud_size;
 	debug("audio_encode_mp3: input buffer size=%d", input_len);
 	
@@ -923,7 +925,7 @@ static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
       //------------------------------
       if ( bytes_avail >= bytes_needed ) {
 	
-	memcpy(&mpa_buf[mpa_buf_ptr], in_buf, bytes_needed);
+	tc_memcpy(&mpa_buf[mpa_buf_ptr], in_buf, bytes_needed);
 	
 	pthread_mutex_lock(&init_avcodec_lock);
 	out_size = avcodec_encode_audio(&mpa_ctx, (unsigned char *)output, 
@@ -941,7 +943,7 @@ static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
       //--------------------------------------------------------------- 
       else {
 	
-	memcpy(&mpa_buf[mpa_buf_ptr], aud_buffer, bytes_avail);
+	tc_memcpy(&mpa_buf[mpa_buf_ptr], aud_buffer, bytes_avail);
         mpa_buf_ptr += bytes_avail;
         return (0);
       }
@@ -968,7 +970,7 @@ static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
     //--------------------------------------
     if (in_size > 0) {
       mpa_buf_ptr = in_size; 
-      memcpy(mpa_buf, in_buf, mpa_buf_ptr);
+      tc_memcpy(mpa_buf, in_buf, mpa_buf_ptr);
     }
     
     return (TC_EXPORT_OK);

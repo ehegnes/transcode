@@ -295,8 +295,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // or after and determines video/audio context
   
   if(ptr->tag & TC_PRE_M_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
-  //    memcpy(buffer, ptr->video_buf, SIZE_RGB_FRAME);
-  //    memcpy(ptr->video_buf, buffer, SIZE_RGB_FRAME);
+  //    tc_memcpy(buffer, ptr->video_buf, SIZE_RGB_FRAME);
+  //    tc_memcpy(ptr->video_buf, buffer, SIZE_RGB_FRAME);
 
       if (vob->im_v_codec==CODEC_YUV) {
 	  if (tc > 2) ymask_yuv(ptr->video_buf, vob, 0, tc - 1); 

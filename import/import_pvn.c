@@ -152,7 +152,7 @@ MOD_decode
     }
 
     if (inParams.magic[2]=='6')
-      memcpy(param->buffer, tmpBuf, tmpBufSize);
+      tc_memcpy(param->buffer, tmpBuf, tmpBufSize);
     else
     {
       param->size*=3;

@@ -840,13 +840,6 @@ AM_PATH_QT(AC_DEFINE([HAVE_QT], 1, [Have quicktime support]))
 AM_CONDITIONAL(HAVE_QT, test x"$have_qt" = "xyes")
 
 dnl
-dnl libquicktime support
-dnl
-
-AM_PATH_OPENQT(AC_DEFINE([HAVE_OPENQT], 1, [Have openquicktime support]))
-AM_CONDITIONAL(HAVE_OPENQT, test x"$have_openqt" = "xyes")
-
-dnl
 dnl LZO support
 dnl
 

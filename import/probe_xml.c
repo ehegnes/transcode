@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include "ioaux.h"
 #include "tc.h"
+#include <transcode.h>
 
 #ifndef	HAVE_LIBXML2
 
@@ -217,7 +218,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
 				if ((s_first_element & 0x02) == 0)
 				{
 					s_first_element|=0x02;
-					memcpy(p_first_video,&s_other_video,sizeof(probe_info_t));
+					tc_memcpy(p_first_video,&s_other_video,sizeof(probe_info_t));
 				}
 				f_det_totale_video_frame(p_audio_video);
 				if (p_audio_video->s_start_video > p_audio_video->s_end_video)
@@ -292,7 +293,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
 				if ((s_first_element & 0x01) == 0)
 				{
 					s_first_element|=0x01;
-					memcpy(p_first_audio,&s_other_audio,sizeof(probe_info_t));
+					tc_memcpy(p_first_audio,&s_other_audio,sizeof(probe_info_t));
 				}
 				f_det_totale_audio_frame(p_audio_video);
 				if (p_audio_video->s_start_audio > p_audio_video->s_end_audio)
@@ -336,19 +337,19 @@ void probe_xml(info_t *ipipe)
 
 	if (s_first_element & 0x03)	//have video and audio tracks
 	{
-		memcpy(ipipe->probe_info,&s_first_video,sizeof(probe_info_t)); //setup the probe_info structure
+		tc_memcpy(ipipe->probe_info,&s_first_video,sizeof(probe_info_t)); //setup the probe_info structure
 		ipipe->probe_info->frames=s_tot_frames_video;		//Force sum of selected frames
 		ipipe->probe_info->num_tracks=s_first_audio.num_tracks;
-		memcpy(ipipe->probe_info->track,&(s_first_audio.track),TC_MAX_AUD_TRACKS*sizeof(pcm_t));
+		tc_memcpy(ipipe->probe_info->track,&(s_first_audio.track),TC_MAX_AUD_TRACKS*sizeof(pcm_t));
 	}
 	else if (s_first_element & 0x02)     //have only video track
 	{
-		memcpy(ipipe->probe_info,&s_first_video,sizeof(probe_info_t)); //setup the probe_info structure
+		tc_memcpy(ipipe->probe_info,&s_first_video,sizeof(probe_info_t)); //setup the probe_info structure
 		ipipe->probe_info->frames=s_tot_frames_video;		//Force sum of selected frames
 	}
 	else if (s_first_element & 0x01)     //have only audio tracks
 	{
-		memcpy(ipipe->probe_info,&s_first_audio,sizeof(probe_info_t)); //setup the probe_info structure
+		tc_memcpy(ipipe->probe_info,&s_first_audio,sizeof(probe_info_t)); //setup the probe_info structure
 		ipipe->probe_info->frames=s_tot_frames_audio;		//Force sum of selected frames
 	}
 	s_first_element=0;

@@ -26,6 +26,8 @@
 
 #include "subproc.h"
 
+#include <transcode.h>
+
 #define MAXDATA (1024*100)
 
 //#define DEBUG(args...) fprintf(stderr, ## args)
@@ -417,7 +419,7 @@ static int process_sub(unsigned char *data, unsigned int size, int block, unsign
       buffer.size=0 ;
   }
   
-  memcpy(buffer.data+buffer.size, data, size) ;
+  tc_memcpy(buffer.data+buffer.size, data, size) ;
   buffer.size += size ;
   
   buffer.pts=pts;

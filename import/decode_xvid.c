@@ -262,7 +262,7 @@ void decode_xvid(decode_t *decode)
 
 	    /* Move data if needed */
 	    if (rest)
-		memcpy(in_buffer, mp4_ptr, rest);
+		tc_memcpy(in_buffer, mp4_ptr, rest);
 
 	    /* Update mp4_ptr */
 	    mp4_ptr = in_buffer; 

@@ -35,6 +35,7 @@
 
 #include <avcodec.h>
 
+#include <transcode.h>
 #include "vid_aux.h"
 
 //-- experimental --
@@ -169,7 +170,7 @@ MOD_open
     //-------------------------
     if (bbmpeg_fcnt<0) 
     {
-      memcpy(&bbmpeg_vob, vob, sizeof(vob_t));
+      tc_memcpy(&bbmpeg_vob, vob, sizeof(vob_t));
       bbmpeg_fcnt = 0;
     }
       
@@ -593,14 +594,14 @@ MOD_encode
       }
       else
       {
-        memcpy(py_dst, py_src, size_l);
-        memcpy(pu_dst, pu_src, size_c);
-        memcpy(pv_dst, pv_src, size_c);
+        tc_memcpy(py_dst, py_src, size_l);
+        tc_memcpy(pu_dst, pu_src, size_c);
+        tc_memcpy(pv_dst, pv_src, size_c);
       }
 
 #ifdef HAS_DNR      
       dnr_run(my_fctx, py_dst);
-      if (my_fctx->undo) memcpy(py_dst, my_fctx->undo_data, my_fctx->img_size);
+      if (my_fctx->undo) tc_memcpy(py_dst, my_fctx->undo_data, my_fctx->img_size);
 #endif
 
       //-- return on incomplete buffer fill --
@@ -715,7 +716,7 @@ MOD_encode
       //------------------------------
       if ( bytes_avail >= bytes_needed ) {
 	
-	memcpy(&mpa_buf[mpa_buf_ptr], in_buf, bytes_needed);
+	tc_memcpy(&mpa_buf[mpa_buf_ptr], in_buf, bytes_needed);
 	
 	out_size = avcodec_encode_audio(&mpa_ctx, (unsigned char *)out_buf, 
 					OUTBUF_SIZE, (short *)mpa_buf);
@@ -731,7 +732,7 @@ MOD_encode
       //--------------------------------------------------------------- 
       else {
 	
-	memcpy(&mpa_buf[mpa_buf_ptr], param->buffer, bytes_avail);
+	tc_memcpy(&mpa_buf[mpa_buf_ptr], param->buffer, bytes_avail);
         mpa_buf_ptr += bytes_avail;
         return (0);
       }
@@ -756,7 +757,7 @@ MOD_encode
     //--------------------------------------
     if (in_size > 0) {
       mpa_buf_ptr = in_size; 
-      memcpy(mpa_buf, in_buf, mpa_buf_ptr);
+      tc_memcpy(mpa_buf, in_buf, mpa_buf_ptr);
     }
     
     return(0);

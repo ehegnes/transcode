@@ -241,7 +241,7 @@ static void Erode_Dilate (uint8_t *_moving, uint8_t *_fmoving, int width, int he
 	    {
 		uint8_t  res[8];
 
-		memcpy(fmoving, moving, 4);
+		tc_memcpy(fmoving, moving, 4);
 
 		m = p;
 
@@ -476,7 +476,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 			    // write to moving
 			    movd_r2m(mm0, *moving);
 
-			    memcpy(prev, src, 4);
+			    tc_memcpy(prev, src, 4);
 
 			    src+=4;
 			    prev+=4;
@@ -645,7 +645,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 				// write to moving
 				movd_r2m(mm0, *moving);
 
-				memcpy(prev, src, 4);
+				tc_memcpy(prev, src, 4);
 
 				src+=4;
 				prev+=4;
@@ -706,7 +706,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 				// write to moving
 				movd_r2m(mm0, *moving);
 
-				memcpy(prev, src, 4);
+				tc_memcpy(prev, src, 4);
 
 				src+=4;
 				prev+=4;
@@ -993,7 +993,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	src = src_buf;
 	dst = dst_buf;
 
-	memcpy(dst, src, w);
+	tc_memcpy(dst, src, w);
 	src = src_buf + srcpitch;
 	srcminus = src - srcpitch;
 	srcplus = src + srcpitch;
@@ -1080,7 +1080,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		movingplus += (w+PAD);
 	    }
 	    // The last line gets a free ride.
-	    memcpy(dst, src, w);
+	    tc_memcpy(dst, src, w);
 
 	    if (clamp_f == clamp_Y)
 		counter++;
@@ -1246,7 +1246,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	    else
 	    {
 		// Even line; pass it through.
-		memcpy(dst, src, w);
+		tc_memcpy(dst, src, w);
 	    }
 	    src +=  srcpitch;
 	    srcminus += srcpitch;
@@ -1265,7 +1265,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	}
 
 	// The last line gets a free ride.
-	memcpy(dst, src, w);
+	tc_memcpy(dst, src, w);
 	if (clamp_f == clamp_Y)
 	    counter++;
 
@@ -1556,7 +1556,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 			  mfd->movingV+off, mfd->fmovingV+off, clamp_UV, mfd->chromathres);
 	  } else {
 	      //pass through
-	      memcpy(mfd->buf+U, ptr->video_buf+U, ptr->v_width*ptr->v_height/2);
+	      tc_memcpy(mfd->buf+U, ptr->video_buf+U, ptr->v_width*ptr->v_height/2);
 	      //memset(mfd->buf+U, BLACK_BYTE_UV, ptr->v_width*ptr->v_height/2);
 	  }
 
@@ -1565,7 +1565,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	  memset(mfd->buf+U, BLACK_BYTE_UV, ptr->v_width*ptr->v_height/2);
 			  */
 
-	  memcpy (ptr->video_buf, mfd->buf, ptr->video_size);
+	  tc_memcpy (ptr->video_buf, mfd->buf, ptr->video_size);
 
 	  return 0;
   }
