@@ -1,6 +1,21 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-09 Marzio Malanchini <marzio_malanchini at vodafone.it>
+
+  * import/af6_decore.cpp import/import_xml.c import/ioxml.c
+  import/magic.h:
+  enable support for all source files readable by avifile (af6) (see
+  document file).
+  
+2003-07-08 Tilmann Bitterberg <transcode at tibit.org>
+
+  * acinclude.m4 aclocal.m4 configure import/probe_ogg.c:
+  check for libtheora version after 20030609. Pointed out by Rainer
+  Lay.
+
+  * src/transcode.c:
+  print meaningful PCM bitrate
 
 --------------------------------------------
 transcode-0.6.8 Mon Jul 7 08:36:58 CEST 2003
