@@ -25,6 +25,7 @@ filter_32drop.so
 filter_aclip.so
 filter_astat.so
 filter_compare.so
+filter_control.so
 filter_cpaudio.so
 filter_cshift.so
 filter_cut.so

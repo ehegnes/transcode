@@ -1524,6 +1524,36 @@ Generate a file in with information about the times, frame, etc the pattern
 defined in the image parameter is observed.
 .RE
 .TP 4
+\fBcontrol\fP - \fBapply a filter control list\fP
+\fBcontrol\fP was written by Tilmann Bitterberg. The version documented here is v0.0.1 (2003-11-29). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
+.IP
+.RS
+\(bu 
+.I file 
+= \fI%s\fP
+.RS 3
+read commands to apply from file.
+.RE
+\(bu 
+.I ofile 
+= \fI%s\fP
+.RS 3
+write output of commands to output file
+.RE
+.IP
+The format of the command file is framenumber followed by at least one whitespace followed
+by the command followed by at least one whitespace followed by arguments for the command.
+Empty lines and lines starting with a `#' are ignored. The frame numbers must be sorted ascending.
+
+      # Example file
+      # At frame 10 load the smooth filter
+      10 load smooth
+      # reconfigure at 20
+      20 configure smooth=strength=0.9
+      99 disable smooth
+
+.RE
+.TP 4
 \fBcpaudio\fP - \fBcopy one audio channel to the other channel filter plugin\fP
 \fBcpaudio\fP was written by William H Wittig. The version documented here is v0.1 (2003-04-30). This is a audio filter. It is a post-processing only filter.
 .IP

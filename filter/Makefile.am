@@ -70,6 +70,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_fps.la\
 			filter_whitebalance.la\
 			filter_detectclipping.la\
+			filter_control.la\
 			$(F_MMX) $(F_LOGO) $(F_TEXT)
 
 filter_null_la_SOURCES = filter_null.c
@@ -210,6 +211,9 @@ filter_fields_la_LDFLAGS =  -module -avoid-version
 
 filter_fps_la_SOURCES = filter_fps.c
 filter_fps_la_LDFLAGS = -module -avoid-version
+
+filter_control_la_SOURCES = filter_control.c
+filter_control_la_LDFLAGS = -module -avoid-version
 
 filter_whitebalance_la_SOURCES = filter_whitebalance.c
 filter_whitebalance_la_LDFLAGS = -module -avoid-version
