@@ -104,15 +104,6 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
 	 return 10;
       }
 
-      /* if we got a list tag, ignore it */
-
-      if(strncasecmp(data,"LIST",4)==0 
-	      || !strncasecmp(data,"RIFF",4)
-	      || !strncasecmp(data,"AVIX",4)) {
-	  lseek(AVI->fdes,-4,SEEK_CUR);
-	  continue;
-      }
-
       if(strncasecmp(data,AVI->video_tag,3) == 0)
       {
          *len = str2ulong(data+4);
@@ -210,6 +201,8 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
          if(lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
          return 9;
          break;
+      } else {
+	  lseek(AVI->fdes,-4,SEEK_CUR);
       }
       // else if(lseek(AVI->fdes,n,SEEK_CUR)==(off_t)-1)  return 0;
    }
@@ -217,15 +210,15 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
 
 int is_key(unsigned char *data, long size, char *codec) 
 {
-    if (strcasecmp(codec, "div3") == 0) {
+    if (strncasecmp(codec, "div3", 4) == 0) {
 
 	int32_t c=( (data[0]<<24) | (data[1]<<16) | (data[2]<<8) | (data[3]&0xff) );
 	if(c&0x40000000) return(0);
 	else return 1;
 
-    } else if (strcasecmp(codec, "xvid") == 0 || strcasecmp(codec, "divx") == 0
-	    || strcasecmp(codec, "dx50") == 0 || strcasecmp(codec, "div4") == 0
-	    || strcasecmp(codec, "mpg4") == 0) {
+    } else if (strncasecmp(codec, "xvid", 4) == 0 || strncasecmp(codec, "divx", 4) == 0
+	    || strncasecmp(codec, "dx50", 4) == 0 || strncasecmp(codec, "div4", 4) == 0
+	    || strncasecmp(codec, "mpg4", 4) == 0) {
         int result = 0;
         int i;
 
@@ -418,7 +411,7 @@ int main(int argc, char *argv[])
 	case 1: sprintf(tag, "00db");
 		print_ms = vid_ms = (avifile1->video_pos)*1000.0/fps;
 		chunk = avifile1->video_pos;
-		key = is_key(data, len, codec);
+		key = is_key(data, LEN, codec);
 		break;
 	case 2: case 3:
 	case 4: case 5:
