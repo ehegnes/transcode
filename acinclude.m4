@@ -696,7 +696,7 @@ if test x$with_dv = "x"yes ; then
 			AC_DEFINE([HAVE_DV], 1, [Have libdv]),
 			have_dv=yes
 		],
-		[have_dv=no],
+		[have_dv=no]
 		[$with_dv_l])
 
 	dnl check for version >= 0.95
@@ -792,23 +792,27 @@ fi
 AC_CHECK_LIB(avcodec,
 		avcodec_thread_init,
 		[HAVE_FFMPEG_LIBS_LIBS=1],
-		[echo "*** Transcode depends on the FFmpeg (libavcodec) libraries and headers ***"
-		exit 1],
+		[
+			echo "*** Transcode depends on the FFmpeg (libavcodec) libraries and headers ***"
+			exit 1
+		]
 		[$FFMPEG_LIBS_EXTRALIBS])
 
 AC_CHECK_LIB(z,
 		gzopen,
 		[],
-		[echo "*** Transcode depends on libz libraries and headers ***"
-		 exit 1
+		[
+			echo "*** Transcode depends on libz libraries and headers ***"
+			exit 1
 		]
 		[])
 
 AC_CHECK_LIB(m,
 		sin,
 		[],
-		[echo "*** Transcode depends on libm (>= 2.0) libraries and headers ***"
-		 exit 1
+		[
+			echo "*** Transcode depends on libm (>= 2.0) libraries and headers ***"
+			exit 1
 		]
 		[-lc])
 
