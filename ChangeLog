@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-02-24 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/export_def.h:
+  Fix a (really bad) copy and paste error. Pointed out by Stefan
+  Scheffler.
+
 2004-02-24 James Flemer <jflemer at uvm.edu>
 
   * export/export_ac3.c:

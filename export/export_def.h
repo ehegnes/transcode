@@ -106,7 +106,7 @@ int tc_export(int opt, void *para1, void *para2)
 
   case TC_EXPORT_CLOSE:
       
-      return(RENAME(MOD_PRE, _stop)((transfer_t *) para1));
+      return(RENAME(MOD_PRE, _close)((transfer_t *) para1));
       
   default:
       return(TC_EXPORT_UNKNOWN);
