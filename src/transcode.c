@@ -539,6 +539,25 @@ void tc_info(char *fmt, ...)
 
 vob_t *tc_get_vob() {return(vob);}
 
+int tc_guess_frc(double fps)
+{
+  if (fps-0.01 < 00.010 && 00.010 < fps+0.01) return 0;
+  if (fps-0.01 < 23.976 && 23.976 < fps+0.01) return 1;
+  if (fps-0.01 < 24.000 && 24.000 < fps+0.01) return 2;
+  if (fps-0.01 < 25.000 && 25.000 < fps+0.01) return 3;
+  if (fps-0.01 < 29.970 && 29.970 < fps+0.01) return 4;
+  if (fps-0.01 < 30.000 && 30.000 < fps+0.01) return 5;
+  if (fps-0.01 < 50.000 && 50.000 < fps+0.01) return 6;
+  if (fps-0.01 < 59.940 && 59.940 < fps+0.01) return 7;
+  if (fps-0.01 < 60.000 && 60.000 < fps+0.01) return 8;
+  if (fps-0.01 <  1.000 &&  1.000 < fps+0.01) return 9;
+  if (fps-0.01 <  5.000 &&  5.000 < fps+0.01) return 10;
+  if (fps-0.01 < 10.000 && 10.000 < fps+0.01) return 11;
+  if (fps-0.01 < 12.000 && 12.000 < fps+0.01) return 12;
+  if (fps-0.01 < 15.000 && 15.000 < fps+0.01) return 13;
+  return 0;
+}
+
 /* ------------------------------------------------------------ 
  *
  * transcoder engine
@@ -883,7 +902,7 @@ int main(int argc, char *argv[]) {
     vob->ex_a_fcc         = NULL;
     vob->ex_profile_name  = NULL;
     vob->fps              = PAL_FPS;
-    vob->ex_fps           = PAL_FPS;
+    vob->ex_fps           = 0;
     vob->im_frc           = 0;
     vob->ex_frc           = 0;
     vob->pulldown         = 0;
@@ -2962,8 +2981,8 @@ int main(int argc, char *argv[]) {
     // -f
 
     if(verbose & TC_INFO) 
-      printf("[%s] V: %-16s | %.3f\n", PACKAGE, "encoding fps", vob->fps);
-    
+      printf("[%s] V: %-16s | %.3f (%d)\n", PACKAGE, "decoding fps", vob->fps, vob->im_frc);
+   
     // -R
     
     if(vob->divxmultipass && verbose & TC_INFO) {
@@ -3102,31 +3121,33 @@ int main(int argc, char *argv[]) {
     if (vob->im_a_codec == CODEC_AC3)
       vob->a_chan = vob->a_chan>2?2:vob->a_chan;
 
-    
-    if (vob->im_frc == 0) {
-      if (vob->fps-0.01 < 00.010 && 00.010 < vob->fps+0.01) vob->im_frc =  0;
-      if (vob->fps-0.01 < 23.976 && 23.976 < vob->fps+0.01) vob->im_frc =  1;
-      if (vob->fps-0.01 < 24.000 && 24.000 < vob->fps+0.01) vob->im_frc =  2;
-      if (vob->fps-0.01 < 25.000 && 25.000 < vob->fps+0.01) vob->im_frc =  3;
-      if (vob->fps-0.01 < 29.970 && 29.970 < vob->fps+0.01) vob->im_frc =  4;
-      if (vob->fps-0.01 < 30.000 && 30.000 < vob->fps+0.01) vob->im_frc =  5;
-      if (vob->fps-0.01 < 50.000 && 50.000 < vob->fps+0.01) vob->im_frc =  6;
-      if (vob->fps-0.01 < 59.940 && 59.940 < vob->fps+0.01) vob->im_frc =  7;
-      if (vob->fps-0.01 < 60.000 && 60.000 < vob->fps+0.01) vob->im_frc =  8;
-      if (vob->fps-0.01 <  1.000 &&  1.000 < vob->fps+0.01) vob->im_frc =  9;
-      if (vob->fps-0.01 <  5.000 &&  5.000 < vob->fps+0.01) vob->im_frc = 10;
-      if (vob->fps-0.01 < 10.000 && 10.000 < vob->fps+0.01) vob->im_frc = 11;
-      if (vob->fps-0.01 < 12.000 && 12.000 < vob->fps+0.01) vob->im_frc = 12;
-      if (vob->fps-0.01 < 15.000 && 15.000 < vob->fps+0.01) vob->im_frc = 13;
-    }
+    // -f and --export_fps/export_frc
+    //
+    // set import/export frc/fps
+    if (vob->im_frc == 0) 
+      vob->im_frc = tc_guess_frc(vob->fps);
 
-    if (vob->ex_frc==0 && vob->im_frc) {
+    // ex_fps given, but not ex_frc
+    if (vob->ex_frc == 0 && (vob->ex_fps != 0.0))
+      vob->ex_frc = tc_guess_frc(vob->ex_fps);
+
+    if (vob->ex_frc == 0 && vob->im_frc != 0)
       vob->ex_frc = vob->im_frc;
-    }
 
-    // XXX: conditional
-    vob->ex_fps  = frc_table[vob->ex_frc];
-    printf("XXX: frc (%d) fps (%f)\n", vob->ex_frc, vob->ex_fps);
+    // ex_frc always overwrites ex_fps
+    if (vob->ex_frc != 0)
+      vob->ex_fps  = frc_table[vob->ex_frc];
+
+    if (vob->im_frc == 0 && vob->ex_frc == 0 && vob->ex_fps == 0)
+      vob->ex_fps = vob->fps;
+
+    // --export_fps
+
+    if(verbose & TC_INFO) 
+      printf("[%s] V: %-16s | %.3f (%d)\n", PACKAGE, "encoding fps", vob->ex_fps, vob->ex_frc);
+    
+
+    //printf("FPS: %f,%d | %f,%d\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
     
     // --a52_demux
 
