@@ -614,6 +614,7 @@ int main(int argc, char *argv[])
 	  chan   = AVI_audio_channels(avifile1);
 	  bits   = AVI_audio_bits(avifile1);
 	  bits   = bits==0?16:bits;
+	  mp3rate= AVI_audio_mp3rate(avifile1);
 	  
 	  byte_count_audio[ k ] = AVI_get_audio_position_index(avifile1);
 	 
@@ -621,7 +622,8 @@ int main(int argc, char *argv[])
 
 	    if (!didread) while (aud_ms[k] < vid_ms) {
 
-	      aud_bitrate = 0;
+	      aud_bitrate = format==0x1?1:0;
+	      aud_bitrate = format==0x2000?1:0;
 	      audio_bytes = AVI_read_audio_chunk( avifile1, audio_data );
 
 	      if (audio_bytes<=0) { 
@@ -630,13 +632,13 @@ int main(int argc, char *argv[])
 		  break; 
 	      }
 
-	      if ( format == 0x1 ) aud_bitrate = 1;
 	      if (!aud_bitrate && tc_get_audio_header(audio_data, audio_bytes, format, NULL, NULL, &aud_bitrate)<0) {
 		//fprintf(stderr, "Corrupt Audio track (%d)?\n", k); 
 		aud_ms[k] = vid_ms;
 		break;
 	      } else {
-		aud_ms[k] += (audio_bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):aud_bitrate);
+		aud_ms[k] += (audio_bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):
+				       (format==0x2000?(double)(mp3rate):aud_bitrate));
 	      }
 
 	    }
@@ -720,11 +722,14 @@ int main(int argc, char *argv[])
 	    chan   = AVI_audio_channels(avifile1);
 	    bits   = AVI_audio_bits(avifile1);
 	    bits   = bits==0?16:bits;
+	    mp3rate= AVI_audio_mp3rate(avifile1);
 
 	    if (tc_format_ms_supported(format)) {
 	      while (aud_ms[k] < vid_ms) {
 
-		aud_bitrate = 0;
+		aud_bitrate = format==0x1?1:0;
+		aud_bitrate = format==0x2000?1:0;
+
 		if(  (audio_bytes = AVI_read_audio_chunk( avifile1, audio_data)) < 0 ) {
 		  AVI_print_error( "AVI audio read frame" );
 		  aud_ms[k] = vid_ms;
@@ -737,14 +742,14 @@ int main(int argc, char *argv[])
 		}
 		if (audio_bytes==0) break;
 
-		if ( format == 0x1 ) aud_bitrate = 1;
 	
 		if ( !aud_bitrate && (frsize = tc_get_audio_header(audio_data, audio_bytes, format, NULL, NULL, &aud_bitrate))<0) {
 		  fprintf(stderr, "Corrupt %s track (%d)?\n", format==0x55?"MP3":"AC3", k); 
 		  if (n == frames-1) continue;
 		  aud_ms[k] = vid_ms;
 		} else {
-		  aud_ms[k] += (audio_bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):aud_bitrate);
+		  aud_ms[k] += (audio_bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):
+				       (format==0x2000?(double)(mp3rate):aud_bitrate));
 		}
 		//fprintf(stderr, " 1 (%02d) %s frame_read len=%4ld fsize (%4d) (A/V) (%8.2f/%8.2f)\n", n, format==0x55?"MP3":"AC3", audio_bytes, frsize, aud_ms[k], vid_ms);
 	      } // (aud_ms_w[k] < vid_ms_w)
