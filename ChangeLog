@@ -62,6 +62,9 @@ transcode-0.6.12
   * import/v4l/import_v4l2.c:
   MMX enhance of yuy2 to uvyv and some typos.
 
+  * filter/resample/resample.c:
+  Kill nonsense printout (drain 35).
+
 2004-01-06 Tilmann Bitterberg <transcode at tibit.org>
 
   * docs/man/avimerge.c:
