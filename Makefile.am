@@ -19,7 +19,6 @@ SUBDIRS = \
 	libvo \
 	libmpeg2 \
 	libdvenc \
-	bbmpeg \
 	import \
 	export \
 	filter \

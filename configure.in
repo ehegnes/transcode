@@ -1280,14 +1280,6 @@ AC_SUBST(ACLIB_CFLAGS)
 AC_SUBST(ACLIB_LIBS)
 
 dnl
-dnl bbmpeg
-dnl
-BBMPEG_CFLAGS="-I\$(top_srcdir)/bbmpeg"
-BBMPEG_LIBS="\$(top_builddir)/bbmpeg/libbbmpeg.la"
-AC_SUBST(BBMPEG_CFLAGS)
-AC_SUBST(BBMPEG_LIBS)
-
-dnl
 dnl libdvenc
 dnl
 LIBDVENC_CFLAGS="-I\$(top_srcdir)/libdvenc"
@@ -1345,8 +1337,6 @@ AC_OUTPUT([
 	Makefile
 	aclib/Makefile
 	avilib/Makefile
-	bbmpeg/Makefile
-	bbmpeg/tcmplex/Makefile
 	contrib/Makefile
 	contrib/pnmpvn/Makefile
 	docs/Makefile
