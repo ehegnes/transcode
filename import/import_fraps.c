@@ -120,7 +120,7 @@ MOD_open
                             "for YUV processing\n", codec);
             return(TC_IMPORT_ERROR);
         }
-        return(0);
+        return(TC_IMPORT_OK);
     }
     return(TC_IMPORT_ERROR);
 }
@@ -145,7 +145,7 @@ MOD_decode
 
         /* If we are using tccat, then do nothing here */
         if (param->fd != NULL)
-            return(0);
+            return(TC_IMPORT_OK);
 
         size = AVI_read_frame(avifile2, buffer, &key);
 
@@ -194,7 +194,7 @@ MOD_decode
         param->attributes |= TC_FRAME_IS_KEYFRAME;
         ++vframe_count;
 
-        return(0);
+        return(TC_IMPORT_OK);
     }
     return(TC_IMPORT_ERROR);
 }
@@ -215,7 +215,7 @@ MOD_close
             AVI_close(avifile2);
             avifile2 = NULL;
         }
-        return(0);
+        return(TC_IMPORT_OK);
     }
 
     return(TC_IMPORT_ERROR);
