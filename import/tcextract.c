@@ -411,6 +411,12 @@ int main(int argc, char *argv[])
 	extract_rgb(&ipipe);
 	done = 1;
     }
+
+    if (strcmp(codec, "raw")==0 || strcmp(codec, "video")==0) {
+	ipipe.magic=TC_MAGIC_RAW;
+	extract_rgb(&ipipe);
+	done = 1;
+    }
     
 
     if(!done) {
