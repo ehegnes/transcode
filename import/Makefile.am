@@ -53,10 +53,8 @@ if HAVE_LZO
 LZO_MOD = import_lzo.la
 endif
 
-if TRANSCODE_0_6
 if HAVE_IMAGEMAGICK
 IM_MOD = import_im.la import_imlist.la
-endif
 endif
 
 if HAVE_LIBXML2
@@ -544,8 +542,4 @@ if HAVE_LIBLVE
 LVEDIR = lve
 endif
 
-if TRANSCODE_0_6
 SUBDIRS = nuv af6 net v4l yuv $(LVEDIR)
-else
-SUBDIRS = nuv af6 $(LVEDIR)
-endif

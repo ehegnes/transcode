@@ -1286,10 +1286,6 @@ AC_ARG_WITH(mod-path,
   MOD_PATH=$withval)
 AC_SUBST(MOD_PATH)
 
-transcode_0_6=yes
-AC_DEFINE([TRANSCODE_0_6], 1, [Define for transcode_0_6])
-AM_CONDITIONAL(TRANSCODE_0_6, test x"$transcode_0_6" = x"yes")
-
 X_CFLAGS=`echo $X_CFLAGS | sed -e 's/  */ /g'`
 X_PRE_LIBS=`echo $X_PRE_LIBS | sed -e 's/  */ /g'`
 X_LIBS=`echo $X_LIBS | sed -e 's/  */ /g'`
