@@ -1,28 +1,39 @@
-.TH avimerge 1 "25th June 2003" "avimerge(1)"
+.TH avimerge 1 "06th January 2004" "avimerge(1)"
 .SH NAME
 avimerge \- merge several AVI-files into one
 .SH SYNOPSIS
 .na
 .B avimerge
-[
 .B -o
 .I name
 .B -i
 .IB file " ..."
+[
 .B -p
 .IB file
+] [
 .B -a
 .I num
+] [
+.B -A
+.I num
+] [
 .B -b
 .I num
+] [
 .B -f
 .I commentfile
+] [
+.B -x
+.I indexfile
 ]
 .SH COPYRIGHT
 \fBavimerge\fP is Copyright (C) by Thomas Östreich.
 .SH DESCRIPTION
 .B avimerge
-merges several AVI-files into one.
+merges several AVI-files into one. Can also be used to fix an index of a broken
+file and can also replace audio tracks or muxes new ones. It can read raw AC3
+and MP3 files for multplexing.
 .SH OPTIONS
 .TP
 \fB-o\fP \fIname\fP
@@ -37,35 +48,57 @@ Specify the name of the audio file to multiplex into the output file. The type
 of file can be either another AVI file or an MP3 or AC3 file.
 .TP
 \fB-b\fP \fInum\fP
-Specify if avisync should write an VBR mp3 header into the AVI file. Default is
-1 because it does not hurt. \fInum\fP is either 1 or 0.
+Specify if avimerge should write an VBR mp3 header into the AVI file. Default
+is dependent on the input file (and usually correct). \fInum\fP is either 1 or
+0.
 .TP
 \fB-f\fP \fIcommentfile\fP
 Read AVI tombstone data for header comments from \fIcommentfile\fP. See
 /docs/avi_comments.txt for a sample.
 .TP
+\fB-x\fP \fIindexfile\fP
+Read the AVI index from \fIindexfile\fP. See aviindex(1) for information on how
+to create such a file.
+.TP
 \fB-a\fP \fInum\fP
-Specify the number of the audio channel.
+Specify the number of the audio track you want to use from the
+.I input
+file.
+.TP
+\fB-A\fP \fInum\fP
+Specify the number of the audio track you want to use in the
+.I output
+file. If you specify an existing track number, the track will be replaced. If
+omitted, the next free slot will be used.
 .SH EXAMPLES
 The command
-.PP
+
+.nf
 .B avimerge -o big.avi -i my_file1.avi my_file2.avi my_file3.avi
-.PP
+.fi
+
 merges the three input files \fImy_file[123].avi\fP into one big AVI-file
 \fIbig.avi\fP.
-.PP
+
+.nf
 .B avimerge -o out.avi -i in.avi -p audio2.avi -a 1
-.PP
-merges an additional audio track as track number 1 to the AVI-file. You can
+.fi
+
+merges track number 1 form in.avi to the next free track number in out.avi. You can
 create audio-only AVI-files using
-.PP
+
+.nf
 .B  transcode -i song.mp3 -x null,mp3 -g 0x0 -y raw -a 1 -o audio2.avi -u 50
-.PP
+.fi
+
 The command
-.PP
+
+.nf
 .B avimerge -o out.avi -i in.avi -p sound.mp3
-.PP
+.fi
+
 merges the file sound.mp3 as an additional audio track into out.avi.
+
 .SH AUTHORS
 .B avimerge
 was written by Thomas Östreich
