@@ -55,6 +55,8 @@
 int tc_filter(vframe_list_t *ptr, char *options)
 {
 
+  static int mycount=0, count=0;
+  static int ofps=25;
   vob_t *vob=NULL;
 
   // API explanation:
@@ -92,6 +94,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
     if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
     
     if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+    if (options)
+      ofps=atoi(options);
     
     return(0);
   }
@@ -117,10 +121,17 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
 
-  if(ptr->tag & TC_POST_PROCESS && ptr->tag & TC_VIDEO) {
+  if(ptr->tag & TC_POST_S_PROCESS && ptr->tag & TC_VIDEO) {
     
-    if(ptr->id & 1) ptr->attributes |= TC_FRAME_IS_CLONED;
-    
+    //printf("mycount (%d) ptr->id (%d) (%f)\n", mycount, ptr->id, (double)mycount*15.0/25.0);
+    if (((double)mycount*15.0)/25.0 < (double)ptr->id) {
+      ptr->attributes |= TC_FRAME_IS_CLONED;
+    }
+
+    // converts from 15 fps to 25 fps
+
+    ++mycount;
+
   }
   
   return(0);
