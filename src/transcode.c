@@ -669,6 +669,7 @@ int main(int argc, char *argv[]) {
     struct fc_time *tstart = NULL;
     char *fc_ttime_separator = ",";
     char *fc_ttime_string = NULL;
+    int sync_seconds=0;
 
     int no_audio_adjust=TC_FALSE, no_split=TC_FALSE;
 
@@ -1691,6 +1692,7 @@ int main(int argc, char *argv[]) {
 	if (1 != sscanf(optarg,"%d", &vob->sync)) 
 	  tc_error("invalid parameter for option -D");
 
+	sync_seconds = vob->sync; // save for later;
 	preset_flag |= TC_PROBE_NO_AVSHIFT;
 
 	break;
@@ -3262,12 +3264,13 @@ int main(int argc, char *argv[]) {
         tstart = tstart->next;
 	// see if we're using vob_offset
 	if ((tstart != NULL) && (tstart->vob_offset != 0)){
-	  tc_decoder_delay=1;
+	  tc_decoder_delay=3;
 	  import_threads_cancel();
 	  import_close(vob);
 	  aframe_flush();
 	  vframe_flush();
 	  vob->vob_offset = tstart->vob_offset;
+	  vob->sync = sync_seconds;
 	  if(import_open(vob)<0) tc_error("failed to open input source");
 	  import_threads_create(vob);
 	}
