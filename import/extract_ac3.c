@@ -237,7 +237,7 @@ static void pes_ac3_loop (void)
 		subtitle_header.payload_length=tmp2-tmp1;
 		
 		if(verbose & TC_STATS) 
-		  fprintf(stderr,"subtitle=0x%x size=%4d lpts=%d rpts=%f rptsfromvid=%f\n", track_code, tmp2-tmp1, subtitle_header.lpts, subtitle_header.rpts,abs_rpts); 
+		  fprintf(stderr,"subtitle=0x%x size=%4d lpts=%d rpts=%f rptsfromvid=%f\n", track_code, subtitle_header.payload_length, subtitle_header.lpts, subtitle_header.rpts,abs_rpts); 
 		
 		if(p_write(STDOUT_FILENO, (char*) subtitle_header_str, strlen(subtitle_header_str))<0) {
 		  fprintf(stderr, "error writing subtitle\n");

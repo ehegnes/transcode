@@ -485,7 +485,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
       
     cont1:
       
-      if(verbose & TC_STATS) fprintf(stderr, "got frame 0x%x (%d)\n", (int) vptr, fid);
+      if(verbose & TC_STATS) fprintf(stderr, "got frame 0x%lux (%d)\n", (unsigned long) vptr, fid);
       
       // now we do the post processing ... this way, if just a video frame is
       // skipped, we'll know.

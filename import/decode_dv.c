@@ -251,7 +251,7 @@ void decode_dv(decode_t *decode)
 
       // print info:
       if(!dvinfo && verbose && (decode->format != TC_CODEC_PCM)) {
-	fprintf(stderr, "(%s) %s video: %dx%d framesize=%d sampling=%d\n", __FILE__, ((dv_decoder->system==e_dv_system_625_50)?"PAL":"NTSC"), dv_decoder->width, dv_decoder->height, dv_decoder->frame_size, dv_decoder->sampling);
+	fprintf(stderr, "(%s) %s video: %dx%d framesize=%lu sampling=%d\n", __FILE__, ((dv_decoder->system==e_dv_system_625_50)?"PAL":"NTSC"), dv_decoder->width, dv_decoder->height, (unsigned long)dv_decoder->frame_size, dv_decoder->sampling);
 	dvinfo=1;
       }
       

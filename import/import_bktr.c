@@ -464,8 +464,8 @@ int bktr_grab(size_t size, char * dest)
     if (dest) {
         if (verbose_flag & TC_DEBUG) {
             fprintf(stderr,
-                "[%s] copying %d bytes, buffer size is %d\n",
-                MOD_NAME, size, bktr_buffer_size);
+                "[%s] copying %lu bytes, buffer size is %lu\n",
+                MOD_NAME, (unsigned long)size, (unsigned long)bktr_buffer_size);
         }
         switch (bktr_convert) {
           case BKTR2RGB:    copy_buf_rgb(dest, size);  break;
@@ -492,8 +492,8 @@ static void copy_buf_yuv422(char * dest, size_t size)
 {
     if (bktr_buffer_size != size)
         fprintf(stderr,
-            "[%s] buffer sizes do not match (input %d != output %d)\n",
-            MOD_NAME, bktr_buffer_size, size);
+            "[%s] buffer sizes do not match (input %lu != output %lu)\n",
+            MOD_NAME, (unsigned long)bktr_buffer_size, (unsigned long)size);
 
     tc_memcpy(dest, bktr_buffer, size);
 }
@@ -508,8 +508,8 @@ static void copy_buf_yuv(char * dest, size_t size)
 
     if (bktr_buffer_size != size)
         fprintf(stderr,
-            "[%s] buffer sizes do not match (input %d != output %d)\n",
-            MOD_NAME, bktr_buffer_size, size);
+            "[%s] buffer sizes do not match (input %lu != output %lu)\n",
+            MOD_NAME, (unsigned long)bktr_buffer_size, (unsigned long)size);
 
     /* switch Cb and Cr */
     tc_memcpy(dest + y_offset,  bktr_buffer + y_offset,  y_size);
@@ -525,8 +525,8 @@ static void copy_buf_rgb(char * dest, size_t size)
 
     if (bktr_buffer_size * 3 / 4 != size)
         fprintf(stderr,
-            "[%s] buffer sizes do not match (input %d != output %d)\n",
-            MOD_NAME, bktr_buffer_size * 3 / 4, size);
+            "[%s] buffer sizes do not match (input %lu != output %lu)\n",
+            MOD_NAME, (unsigned long)bktr_buffer_size * 3 / 4, (unsigned long)size);
 
     /* bktr_buffer_size was set to width * height * 4 (32 bits) */
     /* so width * height = bktr_buffer_size / 4                 */
