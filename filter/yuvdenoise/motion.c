@@ -334,11 +334,13 @@ calc_SAD_half_mmx (uint8_t * ref, uint8_t * frm1, uint8_t * frm2)
 {
   static uint32_t a;
 #ifdef HAVE_ASM_MMX
-  static uint32_t bit_mask[2] = {0x7f7f7f7f,0x7f7f7f7f};
 
   __asm__ __volatile__
       (
 	  " pxor         %%mm0 , %%mm0;          /* clear mm0                                          */"
+	  " pcmpeqw      %%mm6 , %%mm6;          /* Build 7f7f7f7f7f7f7f in a register                 */"
+	  " psrlw        $9    , %%mm6;          /*                                                    */"
+	  " packuswb     %%mm6 , %%mm6;          /*                                                    */"
 	  "                           ;          /*                                                    */"
 	  " .rept 8                   ;          /*                                                    */"
 	  " movq        (%%esi), %%mm1;          /* 8 Pixels from filtered frame to mm1                */"
@@ -346,8 +348,8 @@ calc_SAD_half_mmx (uint8_t * ref, uint8_t * frm1, uint8_t * frm2)
 	  " movq        (%%eax), %%mm3;          /* reference to mm3                                   */"
 	  " psrlq        $1    , %%mm1;          /* average source pixels                              */"
 	  " psrlq        $1    , %%mm2;          /* shift right by one (divide by two)                 */"
-	  " pand         %5    , %%mm1;          /* kill downshifted bits                              */"
-	  " pand         %5    , %%mm2;          /* kill downshifted bits                              */"
+	  " pand         %%mm6 , %%mm1;          /* kill downshifted bits                              */"
+	  " pand         %%mm6 , %%mm2;          /* kill downshifted bits                              */"
 	  " paddusw      %%mm2 , %%mm1;          /* add up ...                                         */"
 
 	  " movq         %%mm3 , %%mm4;          /* copy reference to mm4                              */"
@@ -362,7 +364,7 @@ calc_SAD_half_mmx (uint8_t * ref, uint8_t * frm1, uint8_t * frm2)
 	  "                                      /*                                                    */"
 	  " movq         %%mm0 , %0   ;          /* make mm0 available to gcc ...                      */"
 	  :"=g" (a)     
-	  :"S" (frm1),"D" (frm2), "a" (ref), "c" (denoiser.frame.w), "m" (bit_mask)
+	  :"S" (frm1),"D" (frm2), "a" (ref), "c" (denoiser.frame.w)
 	  );
 #endif
   return a;
