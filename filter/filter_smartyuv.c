@@ -111,7 +111,7 @@ static unsigned int get_prefetch_const (int blocksize_in_vectors, int block_coun
 	    (block_stride&0xFFFF);
 }
 
-static unsigned char *bufalloc(size_t size)
+static unsigned char *bufalloc(size_t size, char *location)
 {
 
 #ifdef HAVE_GETPAGESIZE
@@ -127,6 +127,8 @@ static unsigned char *bufalloc(size_t size)
    if (buf == NULL) {
        fprintf(stderr, "(%s) out of memory", __FILE__);
    }
+
+   location = buf;
    
    adjust = buffer_align - ((int) buf) % buffer_align;
 
@@ -161,6 +163,16 @@ typedef struct MyFilterData {
 	int 			Blend;
 	int 			doChroma;
 	int 			verbose;
+
+	// These are the locations of the real malloc buffers
+        char                    *Rbuf;
+	char			*RprevFrame;
+	unsigned char		*RmovingY;
+	unsigned char		*RmovingU;
+	unsigned char		*RmovingV;
+	unsigned char		*RfmovingY;
+	unsigned char		*RfmovingU;
+	unsigned char		*RfmovingV;
 } MyFilterData;
 
 static MyFilterData *mfd;
@@ -1344,18 +1356,24 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 
 
-	mfd->buf =  bufalloc (width*height*3);
-	mfd->prevFrame =  bufalloc (width*height*3);
+	mfd->buf =  bufalloc (width*height*3, mfd->Rbuf);
+	mfd->prevFrame =  bufalloc (width*height*3, mfd->RprevFrame);
 
 	msize = width*height + 4*(width+PAD) + PAD*height;
-	mfd->movingY = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
-	mfd->fmovingY = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
+	mfd->movingY = (unsigned char *) bufalloc(sizeof(unsigned char)*msize, 
+		(char *)mfd->RmovingY);
+	mfd->fmovingY = (unsigned char *) bufalloc(sizeof(unsigned char)*msize,
+		(char *)mfd->RfmovingY);
 
 	msize = width*height/4 + 4*(width+PAD) + PAD*height;
-	mfd->movingU  = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
-	mfd->movingV  = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
-	mfd->fmovingU = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
-	mfd->fmovingV = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
+	mfd->movingU  = (unsigned char *) bufalloc(sizeof(unsigned char)*msize,
+		(char *)mfd->RmovingU);
+	mfd->movingV  = (unsigned char *) bufalloc(sizeof(unsigned char)*msize,
+		(char *)mfd->RmovingV);
+	mfd->fmovingU = (unsigned char *) bufalloc(sizeof(unsigned char)*msize,
+		(char *)mfd->RfmovingU);
+	mfd->fmovingV = (unsigned char *) bufalloc(sizeof(unsigned char)*msize,
+		(char *)mfd->RfmovingV);
 
 	if ( !mfd->movingY || !mfd->movingU || !mfd->movingV || !mfd->fmovingY || 
 	      !mfd->fmovingU || !mfd->fmovingV || !mfd->buf || !mfd->prevFrame) {
@@ -1462,21 +1480,29 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	if (!mfd)
 		return 0;
 	
-	if (mfd->buf)
-	    free(mfd->buf);
+	if (mfd->Rbuf)
+	    free(mfd->Rbuf);
 	mfd->buf = NULL;
+	mfd->Rbuf = NULL;
 
-	if (mfd->prevFrame)
-	    free(mfd->prevFrame);
+	if (mfd->RprevFrame)
+	    free(mfd->RprevFrame);
 	mfd->prevFrame = NULL;
+	mfd->RprevFrame = NULL;
 
-	if (mfd->movingY) free(mfd->movingY); mfd->movingY = NULL;
-	if (mfd->movingU) free(mfd->movingU); mfd->movingU = NULL;
-	if (mfd->movingV) free(mfd->movingV); mfd->movingV = NULL;
+	if (mfd->RmovingY) free(mfd->RmovingY); mfd->RmovingY = NULL; 
+	mfd->movingY = NULL;
+	if (mfd->RmovingU) free(mfd->RmovingU); mfd->RmovingU = NULL;
+	mfd->movingU = NULL;
+	if (mfd->RmovingV) free(mfd->RmovingV); mfd->RmovingV = NULL;
+	mfd->movingV = NULL;
 
-	if (mfd->fmovingY) free(mfd->fmovingY); mfd->fmovingY = NULL;
-	if (mfd->fmovingU) free(mfd->fmovingU); mfd->fmovingU = NULL;
-	if (mfd->fmovingV) free(mfd->fmovingV); mfd->fmovingV = NULL;
+	if (mfd->RfmovingY) free(mfd->RfmovingY); mfd->RfmovingY = NULL;
+	mfd->fmovingY = NULL;
+	if (mfd->RfmovingU) free(mfd->RfmovingU); mfd->RfmovingU = NULL;
+	mfd->fmovingU = NULL;
+	if (mfd->RfmovingV) free(mfd->RfmovingV); mfd->RfmovingV = NULL;
+	mfd->fmovingV = NULL;
 
 	if (mfd)
 		free(mfd);
