@@ -94,6 +94,7 @@ typedef struct MyFilterData {
 	char *string;        /* text to display */
 	int fade;            /* fade in/out (speed) */
 	int transparent;     /* do not draw a black bounding box */
+	int tstamp;          /* */
 	int antialias;       /* do sub frame anti-aliasing (not done) */
 	int R, G, B;         /* color to apply in RGB */
 	int Y, U, V;         /* color to apply in YUV */
@@ -132,6 +133,7 @@ static void help_optstr(void)
    printf (" 'notransparent' disable transparency\n");
    printf ("           'pos' Position (0-width x 0-height) [0x0]\n");
    printf ("        'posdef' Position (0=None 1=TopL 2=TopR 3=BotL 4=BotR 5=Cent 6=BotCent) [0]\n");
+   printf ("        'tstamp' add timestamp to each frame (overrides string)\n");
 }
 
 static void font_render(int width, int height, int size, int codec, int w, int h, int i, char *p, char *q, char *buf)
@@ -227,6 +229,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
   static int w, h, i;
   int error;
   static time_t mytime=0;
+  static int hh, mm, ss, ss_frame;
+  static float elapsed_ss;
   static char *buf = NULL;
   static char *p, *q;
   char *default_font = "/usr/X11R6/lib/X11/fonts/TrueType/arial.ttf";
@@ -271,6 +275,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
       optstr_param (options, "posdef", "Position (0=None 1=TopL 2=TopR 3=BotL 4=BotR 5=Cent 6=BotCent)",  "%d", "0", "0", "5");
 
       optstr_param (options, "notransparent", "disable transparency (enables block box)", "", "0");
+      optstr_param (options, "tstamp", "add timestamp to each frame (overrides string)", "", "0");
 
       return 0;
   }
@@ -308,6 +313,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     mfd->antialias=1;
 
     mfd->do_time=1;
+    mfd->tstamp=0;
     mfd->opaque=MAX_OPACITY;
     mfd->fade_in = 0;
     mfd->fade_out = 0;
@@ -316,7 +322,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
     mfd->boundX=0;
     mfd->boundY=0;
     mfd->flip = flip;
-    mfd->string = NULL;
 
     //if the user wants flipping, do it here in this filter
     if (mfd->flip) flip=TC_FALSE;
@@ -349,8 +354,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
         mfd->U =  (0.439 * mfd->R) - (0.368 * mfd->G) - (0.071 * mfd->B) + 128;
         mfd->V = -(0.148 * mfd->R) - (0.291 * mfd->G) + (0.439 * mfd->B) + 128;
 
-	if (optstr_lookup (options, "notransparent") )
+	if (optstr_lookup (options, "notransparent") ) {
 	    mfd->transparent = !mfd->transparent;
+        }
 
 	if (font && strlen(font)>0) {
 	    free (mfd->font);
@@ -360,6 +366,13 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	if (string && strlen(string)>0) {
 	    mfd->string=strdup(string);
 	    mfd->do_time=0;
+        }
+        else if (optstr_lookup (options, "tstamp") ) {
+	    // mytime = time(NULL);
+            mfd->string=strdup("[ timestamp ]");
+	    mfd->do_time = 0;
+	    mfd->tstamp = 1;
+
 	} else {
 	    // do `date` as default
 	    mytime = time(NULL);
@@ -556,6 +569,16 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	    mytime = time(NULL);
 	    mfd->string = ctime(&mytime);
 	    mfd->string[strlen(mfd->string)-1] = '\0';
+	    font_render(width,height,size,codec,w,h,i,p,q,buf);
+	}
+
+	else if (mfd->tstamp) {
+	    elapsed_ss = ptr->id / vob->fps;
+	    hh = elapsed_ss / 3600;
+	    mm = (elapsed_ss - (3600 * hh)) / 60;
+	    ss = (elapsed_ss - (3600 * hh) - (60 * mm));
+	    ss_frame = (ptr->id - (((hh * 3600) + (mm * 60) + ss) * vob->fps));
+	    sprintf(mfd->string, "%02i:%02i:%02i.%02i", hh, mm, ss, ss_frame);  
 	    font_render(width,height,size,codec,w,h,i,p,q,buf);
 	}
 

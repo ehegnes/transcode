@@ -1,3 +1,9 @@
+2005-01-25 Doug Fregusson <dougf at fergusson dot cx>
+  * filter/filter_text.c
+  Place a HH:MM:SS.FRAME timestamp in each frame with the
+  new filter option "tstamp".  A "string" option will be
+  ignored if "tstamp" is active.
+
 2005-01-25 Matthias Hopf <mhopf at suse dot de>
   * filter/tomsmocomp/Readme_TomsMoComp.txt
     filter/tomsmocomp/filter_tomsmocomp.c
