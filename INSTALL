@@ -20,31 +20,41 @@ you are on an x86 based platform. A recent version of lame is a good
 thing to have installed, too. Depending on what you want to do with
 transcode you may need additional packages installed.
 
-Now do "./configure --help" to find out which packages transcode can use
-(see the --enable-$$$ and --with-$$$ flags). ONLY PACKAGES THAT ARE
-ENABLED EXPLICITLY USING CONFIGURE ARE ACTUALLY USED TO BUILD MODULES.
+Before actually trying to build transcode, run:
+
+ ./configure --help
+
+To get some idea of the many optional packages that can be incorporated.
+Note the *--enable-$$$* and *--with-$$$* flags.
+
+ONLY PACKAGES THAT ARE ENABLED EXPLICITLY USING CONFIGURE ARE ACTUALLY
+USED TO BUILD MODULES.
 
 If you have any optimisations your C compiler supports and you want to
-use, put them in the environment variable CFLAGS. Recommended for
-newbies: export CFLAGS="-O3". It pays off to study all the optimisation
-flags your C compiler offers and hand them to transcode. For instance,
-add "-march=pentium4" if you're going to run transcode on pentium 4.
+use, put them in the environment ./configure is run in. It pays off to
+study all the optimisation flags your C compiler offers. Some of these
+may be useful, and some may cause problems, that is why transcode itself
+does not use any optimization flags unless absolutely necessary. For
+instance, if you are going to be running transcode on a Pentium4 system
+and building with *gcc*, you can invoke configure like this:
 
-If you're using gcc and get errors about "can't find a register in class
-`GENERAL_REGS'" add -fomit-frame-pointer to CFLAGS.
+ $ env CFLAGS="-O3 -march=pentium4" ./configure ...
 
-The file tcconfig has some example (!) optimisations you might want to use.
+to create an optimised build.
 
-Then do "./configure" with all the relevant --enable-$$$ and --with-$$$
-options.
+Don't forget the relevant configure options, described below.
 
-make; make install
+then:
+
+  make
+  make install
 
 If your libraries/packages are not installed in standard places, use the
-respective --with-$$$-includes and --with-$$$-libs options, where $$$ is
-the package name.
+respective *--with-$$$-includes=* and *--with-$$$-libs=* options, where
+*$$$* is the package name.
 
-Configure options for transcode
+------------------------------------------------------------------------
+*Configure options for transcode*
 
 For the options described below, the default value is in parenthesis
 after the option.
@@ -312,7 +322,7 @@ Optional packages:
           prefix where local libdv includes are installed
       --with-libdv-libs=PFX ()
           prefix where local libdv libs are installed
-    affected modules: export_dvraw.so, export_dv.so
+    affected modules: export_dvraw.so, export_dv.so, filter_preview.so
 
   libquicktime  http://libquicktime.sourceforge.net/
     related options:
@@ -356,7 +366,7 @@ Optional packages:
           if enabled, adds support for graphical display via gtk
     affected modules: filter_preview.so
 
-  ImageMagick http://www.imagemagick.com/
+  ImageMagick  http://www.imagemagick.com/
     related options:
       --enable-imagemagick (disabled)
           if enabled, build ImageMagick dependent modules
@@ -397,4 +407,4 @@ Optional packages:
           base directory for libend2end
       --with-liblors=DIR ()
           base directory for liblors
-    affected modules: none
+    affected modules: none?
