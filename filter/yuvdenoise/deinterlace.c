@@ -156,13 +156,9 @@ deinterlace_mmx(void)
                   " pxor        %%mm0 , %%mm0;           /* clear mm0                                          */\n"
                   " pxor        %%mm7 , %%mm7;           /* clear mm7                                          */\n"
                   "                                      /*                                                    */\n"
-                  " movl         %1    , %%eax;          /* load frameadress into eax                          */\n"
-                  " movl         %2    , %%ebx;          /* load frameadress into ebx                          */\n"
-                  " movl         %3    , %%ecx;          /* load frameadress into ecx                          */\n"
-                  "                                      /*                                                    */\n"
                   " .rept 3                              /* repeat 3 times                                     */\n"
-                  " movq        (%%eax), %%mm1;          /* 8 Pixels from line                                 */\n"
-                  " movq        (%%ecx), %%mm2;          /* 8 Pixels from displaced                            */\n"
+                  " movq        (%%esi), %%mm1;          /* 8 Pixels from line                                 */\n"
+                  " movq        (%%edi), %%mm2;          /* 8 Pixels from displaced                            */\n"
                   " movq         %%mm2 , %%mm3;          /* hold a copy of mm2 in mm3                          */\n"
                   " psubusb      %%mm1 , %%mm3;          /* positive differences between mm2 and mm1           */\n"
                   " psubusb      %%mm2 , %%mm1;          /* positive differences between mm1 and mm3           */\n"
@@ -173,8 +169,8 @@ deinterlace_mmx(void)
                   " paddusw      %%mm1 , %%mm0;          /* add mm1 (stored in mm1 and mm2...)                 */\n"
                   " paddusw      %%mm2 , %%mm0;          /* to mm0                                             */\n"
                   "                                      /*                                                    */\n"
-                  " movq        (%%ebx), %%mm1;          /* 8 Pixels from line                                 */\n"
-                  " movq        (%%ecx), %%mm2;          /* 8 Pixels from displaced line                       */\n"
+                  " movq        (%%eax), %%mm1;          /* 8 Pixels from line                                 */\n"
+                  " movq        (%%edi), %%mm2;          /* 8 Pixels from displaced line                       */\n"
                   " movq         %%mm2 , %%mm3;          /* hold a copy of mm2 in mm3                          */\n"
                   " psubusb      %%mm1 , %%mm3;          /* positive differences between mm2 and mm1           */\n"
                   " psubusb      %%mm2 , %%mm1;          /* positive differences between mm1 and mm3           */\n"
@@ -184,15 +180,14 @@ deinterlace_mmx(void)
                   " punpckhbw    %%mm7 , %%mm2;          /*                                                    */\n"
                   " paddusw      %%mm1 , %%mm0;          /* add mm1 (stored in mm1 and mm2...)                 */\n"
                   " paddusw      %%mm2 , %%mm0;          /* to mm0                                             */\n"
+                  " addl         $8    , %%esi;          /* add 8 to frameaddress                              */\n"
                   " addl         $8    , %%eax;          /* add 8 to frameaddress                              */\n"
-                  " addl         $8    , %%ebx;          /* add 8 to frameaddress                              */\n"
-                  " addl         $8    , %%ecx;          /* add 8 to frameaddress                              */\n"
+                  " addl         $8    , %%edi;          /* add 8 to frameaddress                              */\n"
                   " .endr                                /* end loop                                           */\n"
                   "                                      /*                                                    */\n"
                   " movq         %%mm0 , %0   ;          /* make mm0 available to gcc ...                      */\n"
                   :"=m" (a)
-                  :"m" (ref1), "m" (ref2), "m" (ref3)
-                  :"%eax", "%ebx", "%ecx"
+                  :"S" (ref1), "a" (ref2), "D" (ref3)
                 );
               
               d=a[0]+a[1]+a[2]+a[3];
