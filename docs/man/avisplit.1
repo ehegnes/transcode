@@ -85,6 +85,45 @@ created chunks will be named my_file.avi-0000, my_file.avi-0001, etc.
 .B avisplit -i my_file.avi -c -o out.avi -t 00:10:00-00:11:00,00:13:00-00:14:00
 .PP
 will grab Minutes 10 to 11 and 13 to 14 from my_file.avi and merge it into out.avi
+.SH BAD SYNCH
+When you split a file with \fBavisplit\fP and the A/V sync for the first file
+is OK but the sync on all successive files is bad then have a look at the
+output of tcprobe(1) (shortend).
+
+.br
+ | V: 25.000 fps, codec=dvsd, frames=250, width=720, height=576
+.br
+ | A: 48000 Hz, format=0x01, bits=16, channels=2, bitrate=1536 kbps,
+.br
+ |    \fI10\fP chunks, 1920000 bytes
+.br
+
+You'll see the AVI file has only 10 Audio chunks but 250 video
+chunks. That means one audio chunk spans several video frames.
+avisplit can not cut a chunk in half, it only handles complete
+chunks. If you do, say, avisplit -s 20, it is possible that the first file will
+have 6 audio chunks and the second one only 4 meaning there is too much
+audio in the first AVI file.
+
+The solution is to remux the AVI file with
+.RS
+.B transcode -i in.avi -P1 -N 0x1 -y raw -o out.avi
+.RE
+(of course -N 0x1 is not correct for all AVI files).
+Now look at tcprobe again
+
+.br
+ | V: 25.000 fps, codec=dvsd, frames=250, width=720, height=576                      
+.br
+ | A: 48000 Hz, format=0x01, bits=16, channels=2, bitrate=1536 kbps,                 
+.br
+ |   \fI250\fP chunks, 1920000 bytes
+.br
+
+The data in this file is \fIexactly\fP the same (its bit-identical)                             
+as it was in in.avi; the AVI file was just written in a                                
+different way, we do now have 250 audio chunks which makes splitting much
+easier and more accurate for avisplit.
 .SH AUTHORS
 .B avisplit
 was written by Thomas Östreich
@@ -92,6 +131,7 @@ was written by Thomas Östreich
 <ostreich@theorie.physik.uni-goettingen.de> with contributions from
 many others.  See AUTHORS for details.
 .SH SEE ALSO
+.BR aviindex (1),
 .BR avifix (1),
 .BR avimerge (1),
 .BR tccat (1),
