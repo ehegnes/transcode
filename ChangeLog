@@ -3,6 +3,17 @@ transcode-0.6.10
 
 2003-09-02 Tilmann Bitterberg <transcode at tibit.org>
 
+   * import/{Makefile.am Makefile.in fileinfo.c ioaux.c magic.h
+   probe_stream.c tc.h tcxpm2rgb.c import_vnc.c probe_vnc.c}:
+   Enable support for VNC (Virtual Network Client) recordings. To
+   use this (IMHO pretty cool) feature, you need vncrec from
+   <http://www.sodan.org/~penny/vncrec/>
+   I have created a video tutorial about how to use this new module,
+   grab the clip from
+   <http://zebra.fh-weingarten.de/~transcode/pre/tc-vnc-tutorial.avi>
+
+2003-09-02 Tilmann Bitterberg <transcode at tibit.org>
+
    * avilib/avilib.c import/extract_pcm.c:
    Small fixup for WAVE files with a slighly different header
 

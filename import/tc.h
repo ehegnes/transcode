@@ -74,6 +74,7 @@ void probe_lav(info_t *ipipe);
 void probe_ogg(info_t *ipipe);
 void extract_ogm(info_t *ipipe);
 void decode_ogg(info_t *ipipe);
+void probe_vnc(info_t *ipipe);
 
 int scan_header_dv(char *buf);
 

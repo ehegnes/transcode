@@ -400,6 +400,14 @@ long fileinfo(int fdes, int skip)
     id = TC_MAGIC_XML;
     goto exit;
   }
+
+  // vncrec log file
+
+  if(strncasecmp(buf,"vncLog",6) ==0 ) {
+    id = TC_MAGIC_VNC;
+    goto exit;
+  }
+
  
   /* -------------------------------------------------------------------
    *
@@ -751,6 +759,7 @@ char *filetype(long magic)
   case TC_MAGIC_DVD_NTSC:     return("NTSC DVD image/device");
   case TC_MAGIC_YUV4MPEG:     return("YUV4MPEG stream");
   case TC_MAGIC_NUV:          return("NuppelVideo stream");
+  case TC_MAGIC_VNC:          return("VNCrec logfile");
 
   case TC_MAGIC_SOCKET:       return("network stream");
   case TC_MAGIC_V4L_AUDIO:    return("V4L audio device");

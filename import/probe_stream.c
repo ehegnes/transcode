@@ -69,6 +69,11 @@ void tcprobe_thread(info_t *ipipe)
       probe_avi(ipipe);
       
       break;
+
+    case TC_MAGIC_VNC:
+      probe_vnc(ipipe);
+
+      break;
       
     case TC_MAGIC_TIFF1:   // ImageMagick images
     case TC_MAGIC_TIFF2:

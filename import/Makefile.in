@@ -339,7 +339,7 @@ INCLUDES = -Wall -I./ -I../src -I../avilib $(AC3_INC) $(MPEG2_INC) -I../libvo -I
 @HAVE_OGG_TRUE@@HAVE_VORBIS_TRUE@VORBISFILE = -lvorbisfile
 
 pkgdir = @MOD_PATH@
-pkg_LTLIBRARIES = import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la import_dv.la import_vob.la import_raw.la import_nvrec.la import_yuv4mpeg.la import_lav.la import_null.la import_divx.la $(A52_MOD) $(MP123_MOD) $(DVD_MOD) $(MPEG3) $(IM_MOD) $(MODQT) af6_decore.la $(LIBXML2_MOD) import_mplayer.la import_rawlist.la import_ogg.la import_xvid.la import_ffmpeg.la $(LZO_MOD)
+pkg_LTLIBRARIES = import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la import_dv.la import_vob.la import_raw.la import_nvrec.la import_yuv4mpeg.la import_lav.la import_null.la import_divx.la $(A52_MOD) $(MP123_MOD) $(DVD_MOD) $(MPEG3) $(IM_MOD) $(MODQT) af6_decore.la $(LIBXML2_MOD) import_mplayer.la import_rawlist.la import_ogg.la import_xvid.la import_ffmpeg.la $(LZO_MOD) import_vnc.la
 
 import_null_la_SOURCES = import_null.c
 import_null_la_LDFLAGS = -module -avoid-version 
@@ -439,6 +439,9 @@ import_dvd_la_LIBADD = @DVDREAD_LIBS@ $(AC3_LIB) -lm
 import_dv_la_SOURCES = import_dv.c 
 import_dv_la_LDFLAGS = -module -avoid-version 
 
+import_vnc_la_SOURCES = import_vnc.c 
+import_vnc_la_LDFLAGS = -module -avoid-version 
+
 EXTRA_DIST = \
    ac3scan.h \
    aux_pes.h \
@@ -461,7 +464,7 @@ EXTRA_DIST = \
    tc.h
 
 
-bin_PROGRAMS = tcextract tcdecode tcscan tcdemux tccat tcprobe tcxmlcheck
+bin_PROGRAMS = tcextract tcdecode tcscan tcdemux tccat tcprobe tcxmlcheck tcxpm2rgb
 
 tcdecode_SOURCES = tcdecode.c      \
 		   decode_ac3.c    \
@@ -490,7 +493,7 @@ tccat_LDADD = @DVDREAD_LIBS@ -L../avilib -lavi @DV_LIBS@  @LIBXML2_LIBS@ @DLDARW
 tcscan_SOURCES = tcscan.c fileinfo.c bitrate.c ioaux.c scan_pes.c aux_pes.c mpg123.c ac3scan.c scan_dv.c
 tcscan_LDADD = @LAME_LIBS@ $(AC3_LIB) -L../avilib -lavi @DV_LIBS@ -lm 
 
-tcprobe_SOURCES = tcprobe.c probe_stream.c fileinfo.c bitrate.c ioaux.c extract_avi.c scan_pes.c aux_pes.c mpg123.c ac3scan.c dvd_reader.c probe_dvd.c decode_dv.c extract_yuv.c probe_nuv.c probe_wav.c iodump.c probe_socket.c scan_dv.c probe_im.c probe_mov.c probe_xml.c ioxml.c probe_lav.c probe_ogg.c ts_reader.c
+tcprobe_SOURCES = tcprobe.c probe_stream.c fileinfo.c bitrate.c ioaux.c extract_avi.c scan_pes.c aux_pes.c mpg123.c ac3scan.c dvd_reader.c probe_dvd.c decode_dv.c extract_yuv.c probe_nuv.c probe_wav.c iodump.c probe_socket.c scan_dv.c probe_im.c probe_mov.c probe_xml.c ioxml.c probe_lav.c probe_ogg.c ts_reader.c probe_vnc.c
 tcprobe_LDADD = @LAME_LIBS@ -L../avilib -lavi $(AC3_LIB) @DVDREAD_LIBS@ @DV_LIBS@ @MAGICK_LIBS@ @QT_LIBS@ @LIBXML2_LIBS@ @VORBIS_LIBS@ @THEORA_LIBS@ @OGG_LIBS@ @DLDARWINLIB@ -lm
 
 tcextract_SOURCES = tcextract.c extract_ac3.c extract_mpeg2.c extract_pcm.c fileinfo.c extract_yuv.c extract_rgb.c extract_dv.c ioaux.c extract_mp3.c scan_dv.c aux_pes.c extract_ogm.c extract_lzo.c
@@ -501,6 +504,8 @@ tcdemux_LDADD = $(AC3_LIB) $(MPEG2_LIB) -L../libvo -lvout -L../avilib -lavi @DVD
 
 tcxmlcheck_SOURCES = tcxmlcheck.c probe_xml.c ioxml.c ioaux.c fileinfo.c scan_dv.c
 tcxmlcheck_LDADD = @LIBXML2_LIBS@ @DV_LIBS@ -lm
+
+tcxpm2rgb_SOURCES = tcxpm2rgb.c
 
 @HAVE_LIBLVE_TRUE@LVEDIR = lve
 
@@ -582,6 +587,9 @@ import_rawlist_la_OBJECTS = $(am_import_rawlist_la_OBJECTS)
 import_vdrac3_la_DEPENDENCIES =
 am_import_vdrac3_la_OBJECTS = import_vdrac3.lo ioaux.lo ac3scan.lo
 import_vdrac3_la_OBJECTS = $(am_import_vdrac3_la_OBJECTS)
+import_vnc_la_LIBADD =
+am_import_vnc_la_OBJECTS = import_vnc.lo
+import_vnc_la_OBJECTS = $(am_import_vnc_la_OBJECTS)
 import_vob_la_DEPENDENCIES =
 am_import_vob_la_OBJECTS = import_vob.lo ac3scan.lo clone.lo ioaux.lo \
 	frame_info.lo ivtc.lo
@@ -597,7 +605,7 @@ am_import_yuv4mpeg_la_OBJECTS = import_yuv4mpeg.lo
 import_yuv4mpeg_la_OBJECTS = $(am_import_yuv4mpeg_la_OBJECTS)
 bin_PROGRAMS = tcextract$(EXEEXT) tcdecode$(EXEEXT) tcscan$(EXEEXT) \
 	tcdemux$(EXEEXT) tccat$(EXEEXT) tcprobe$(EXEEXT) \
-	tcxmlcheck$(EXEEXT)
+	tcxmlcheck$(EXEEXT) tcxpm2rgb$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 
 am_tccat_OBJECTS = tccat.$(OBJEXT) dvd_reader.$(OBJEXT) \
@@ -643,7 +651,8 @@ am_tcprobe_OBJECTS = tcprobe.$(OBJEXT) probe_stream.$(OBJEXT) \
 	probe_nuv.$(OBJEXT) probe_wav.$(OBJEXT) iodump.$(OBJEXT) \
 	probe_socket.$(OBJEXT) scan_dv.$(OBJEXT) probe_im.$(OBJEXT) \
 	probe_mov.$(OBJEXT) probe_xml.$(OBJEXT) ioxml.$(OBJEXT) \
-	probe_lav.$(OBJEXT) probe_ogg.$(OBJEXT) ts_reader.$(OBJEXT)
+	probe_lav.$(OBJEXT) probe_ogg.$(OBJEXT) ts_reader.$(OBJEXT) \
+	probe_vnc.$(OBJEXT)
 tcprobe_OBJECTS = $(am_tcprobe_OBJECTS)
 tcprobe_DEPENDENCIES =
 tcprobe_LDFLAGS =
@@ -660,6 +669,11 @@ am_tcxmlcheck_OBJECTS = tcxmlcheck.$(OBJEXT) probe_xml.$(OBJEXT) \
 tcxmlcheck_OBJECTS = $(am_tcxmlcheck_OBJECTS)
 tcxmlcheck_DEPENDENCIES =
 tcxmlcheck_LDFLAGS =
+am_tcxpm2rgb_OBJECTS = tcxpm2rgb.$(OBJEXT)
+tcxpm2rgb_OBJECTS = $(am_tcxpm2rgb_OBJECTS)
+tcxpm2rgb_LDADD = $(LDADD)
+tcxpm2rgb_DEPENDENCIES =
+tcxpm2rgb_LDFLAGS =
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/a52_decore.Plo \
@@ -709,6 +723,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/import_raw.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/import_rawlist.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/import_vdrac3.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/import_vnc.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/import_vob.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/import_xml.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/import_xvid.Plo \
@@ -722,13 +737,14 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/probe_nuv.Po ./$(DEPDIR)/probe_ogg.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/probe_socket.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/probe_stream.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/probe_wav.Po ./$(DEPDIR)/probe_xml.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/probe_xml.Po ./$(DEPDIR)/scan_dv.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/scan_pack.Po ./$(DEPDIR)/scan_pes.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/seqinfo.Po ./$(DEPDIR)/tccat.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/tcdecode.Po ./$(DEPDIR)/tcdemux.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/tcextract.Po ./$(DEPDIR)/tcprobe.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/tcscan.Po ./$(DEPDIR)/tcxmlcheck.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/probe_vnc.Po ./$(DEPDIR)/probe_wav.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/probe_xml.Plo ./$(DEPDIR)/probe_xml.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/scan_dv.Po ./$(DEPDIR)/scan_pack.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/scan_pes.Po ./$(DEPDIR)/seqinfo.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/tccat.Po ./$(DEPDIR)/tcdecode.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/tcdemux.Po ./$(DEPDIR)/tcextract.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/tcprobe.Po ./$(DEPDIR)/tcscan.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/tcxmlcheck.Po ./$(DEPDIR)/tcxpm2rgb.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/ts_reader.Po ./$(DEPDIR)/zoom.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -756,11 +772,12 @@ DIST_SOURCES = $(a52_decore_la_SOURCES) $(af6_decore_la_SOURCES) \
 	$(import_mplayer_la_SOURCES) $(import_null_la_SOURCES) \
 	$(import_nvrec_la_SOURCES) $(import_ogg_la_SOURCES) \
 	$(import_raw_la_SOURCES) $(import_rawlist_la_SOURCES) \
-	$(import_vdrac3_la_SOURCES) $(import_vob_la_SOURCES) \
-	$(import_xml_la_SOURCES) $(import_xvid_la_SOURCES) \
-	$(import_yuv4mpeg_la_SOURCES) $(tccat_SOURCES) \
-	$(tcdecode_SOURCES) $(tcdemux_SOURCES) $(tcextract_SOURCES) \
-	$(tcprobe_SOURCES) $(tcscan_SOURCES) $(tcxmlcheck_SOURCES)
+	$(import_vdrac3_la_SOURCES) $(import_vnc_la_SOURCES) \
+	$(import_vob_la_SOURCES) $(import_xml_la_SOURCES) \
+	$(import_xvid_la_SOURCES) $(import_yuv4mpeg_la_SOURCES) \
+	$(tccat_SOURCES) $(tcdecode_SOURCES) $(tcdemux_SOURCES) \
+	$(tcextract_SOURCES) $(tcprobe_SOURCES) $(tcscan_SOURCES) \
+	$(tcxmlcheck_SOURCES) $(tcxpm2rgb_SOURCES)
 
 RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 	ps-recursive install-info-recursive uninstall-info-recursive \
@@ -769,7 +786,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 	check-recursive installcheck-recursive
 DIST_COMMON = Makefile.am Makefile.in
 DIST_SUBDIRS = nuv af6 net v4l yuv lve
-SOURCES = $(a52_decore_la_SOURCES) $(af6_decore_la_SOURCES) $(import_ac3_la_SOURCES) $(import_avi_la_SOURCES) $(import_divx_la_SOURCES) $(import_dv_la_SOURCES) $(import_dvd_la_SOURCES) $(import_ffmpeg_la_SOURCES) $(import_im_la_SOURCES) $(import_imlist_la_SOURCES) $(import_lav_la_SOURCES) $(import_lzo_la_SOURCES) $(import_mov_la_SOURCES) $(import_mp3_la_SOURCES) $(import_mpeg2_la_SOURCES) $(import_mpeg3_la_SOURCES) $(import_mplayer_la_SOURCES) $(import_null_la_SOURCES) $(import_nvrec_la_SOURCES) $(import_ogg_la_SOURCES) $(import_raw_la_SOURCES) $(import_rawlist_la_SOURCES) $(import_vdrac3_la_SOURCES) $(import_vob_la_SOURCES) $(import_xml_la_SOURCES) $(import_xvid_la_SOURCES) $(import_yuv4mpeg_la_SOURCES) $(tccat_SOURCES) $(tcdecode_SOURCES) $(tcdemux_SOURCES) $(tcextract_SOURCES) $(tcprobe_SOURCES) $(tcscan_SOURCES) $(tcxmlcheck_SOURCES)
+SOURCES = $(a52_decore_la_SOURCES) $(af6_decore_la_SOURCES) $(import_ac3_la_SOURCES) $(import_avi_la_SOURCES) $(import_divx_la_SOURCES) $(import_dv_la_SOURCES) $(import_dvd_la_SOURCES) $(import_ffmpeg_la_SOURCES) $(import_im_la_SOURCES) $(import_imlist_la_SOURCES) $(import_lav_la_SOURCES) $(import_lzo_la_SOURCES) $(import_mov_la_SOURCES) $(import_mp3_la_SOURCES) $(import_mpeg2_la_SOURCES) $(import_mpeg3_la_SOURCES) $(import_mplayer_la_SOURCES) $(import_null_la_SOURCES) $(import_nvrec_la_SOURCES) $(import_ogg_la_SOURCES) $(import_raw_la_SOURCES) $(import_rawlist_la_SOURCES) $(import_vdrac3_la_SOURCES) $(import_vnc_la_SOURCES) $(import_vob_la_SOURCES) $(import_xml_la_SOURCES) $(import_xvid_la_SOURCES) $(import_yuv4mpeg_la_SOURCES) $(tccat_SOURCES) $(tcdecode_SOURCES) $(tcdemux_SOURCES) $(tcextract_SOURCES) $(tcprobe_SOURCES) $(tcscan_SOURCES) $(tcxmlcheck_SOURCES) $(tcxpm2rgb_SOURCES)
 
 all: all-recursive
 
@@ -854,6 +871,8 @@ import_rawlist.la: $(import_rawlist_la_OBJECTS) $(import_rawlist_la_DEPENDENCIES
 	$(LINK) -rpath $(pkgdir) $(import_rawlist_la_LDFLAGS) $(import_rawlist_la_OBJECTS) $(import_rawlist_la_LIBADD) $(LIBS)
 import_vdrac3.la: $(import_vdrac3_la_OBJECTS) $(import_vdrac3_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(import_vdrac3_la_LDFLAGS) $(import_vdrac3_la_OBJECTS) $(import_vdrac3_la_LIBADD) $(LIBS)
+import_vnc.la: $(import_vnc_la_OBJECTS) $(import_vnc_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(import_vnc_la_LDFLAGS) $(import_vnc_la_OBJECTS) $(import_vnc_la_LIBADD) $(LIBS)
 import_vob.la: $(import_vob_la_OBJECTS) $(import_vob_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(import_vob_la_LDFLAGS) $(import_vob_la_OBJECTS) $(import_vob_la_LIBADD) $(LIBS)
 import_xml.la: $(import_xml_la_OBJECTS) $(import_xml_la_DEPENDENCIES) 
@@ -912,6 +931,9 @@ tcscan$(EXEEXT): $(tcscan_OBJECTS) $(tcscan_DEPENDENCIES)
 tcxmlcheck$(EXEEXT): $(tcxmlcheck_OBJECTS) $(tcxmlcheck_DEPENDENCIES) 
 	@rm -f tcxmlcheck$(EXEEXT)
 	$(LINK) $(tcxmlcheck_LDFLAGS) $(tcxmlcheck_OBJECTS) $(tcxmlcheck_LDADD) $(LIBS)
+tcxpm2rgb$(EXEEXT): $(tcxpm2rgb_OBJECTS) $(tcxpm2rgb_DEPENDENCIES) 
+	@rm -f tcxpm2rgb$(EXEEXT)
+	$(LINK) $(tcxpm2rgb_LDFLAGS) $(tcxpm2rgb_OBJECTS) $(tcxpm2rgb_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -975,6 +997,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/import_raw.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/import_rawlist.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/import_vdrac3.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/import_vnc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/import_vob.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/import_xml.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/import_xvid.Plo@am__quote@
@@ -995,6 +1018,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/probe_ogg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/probe_socket.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/probe_stream.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/probe_vnc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/probe_wav.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/probe_xml.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/probe_xml.Po@am__quote@
@@ -1009,6 +1033,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcprobe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcscan.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcxmlcheck.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcxpm2rgb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ts_reader.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zoom.Plo@am__quote@
 

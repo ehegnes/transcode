@@ -54,7 +54,7 @@ endif
 endif
 
 pkgdir=@MOD_PATH@
-pkg_LTLIBRARIES=import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la import_dv.la import_vob.la import_raw.la import_nvrec.la import_yuv4mpeg.la import_lav.la import_null.la import_divx.la $(A52_MOD) $(MP123_MOD) $(DVD_MOD) $(MPEG3) $(IM_MOD) $(MODQT) af6_decore.la $(LIBXML2_MOD) import_mplayer.la import_rawlist.la import_ogg.la import_xvid.la import_ffmpeg.la $(LZO_MOD)
+pkg_LTLIBRARIES=import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la import_dv.la import_vob.la import_raw.la import_nvrec.la import_yuv4mpeg.la import_lav.la import_null.la import_divx.la $(A52_MOD) $(MP123_MOD) $(DVD_MOD) $(MPEG3) $(IM_MOD) $(MODQT) af6_decore.la $(LIBXML2_MOD) import_mplayer.la import_rawlist.la import_ogg.la import_xvid.la import_ffmpeg.la $(LZO_MOD) import_vnc.la
 
 import_null_la_SOURCES = import_null.c
 import_null_la_LDFLAGS =  -module -avoid-version 
@@ -154,6 +154,9 @@ import_dvd_la_LIBADD =  @DVDREAD_LIBS@ $(AC3_LIB) -lm
 import_dv_la_SOURCES = import_dv.c 
 import_dv_la_LDFLAGS =  -module -avoid-version 
 
+import_vnc_la_SOURCES = import_vnc.c 
+import_vnc_la_LDFLAGS =  -module -avoid-version 
+
 EXTRA_DIST =  \
    ac3scan.h \
    aux_pes.h \
@@ -175,7 +178,7 @@ EXTRA_DIST =  \
    seqinfo.h \
    tc.h
 
-bin_PROGRAMS = tcextract tcdecode tcscan tcdemux tccat tcprobe tcxmlcheck
+bin_PROGRAMS = tcextract tcdecode tcscan tcdemux tccat tcprobe tcxmlcheck tcxpm2rgb
 
 tcdecode_SOURCES = tcdecode.c      \
 		   decode_ac3.c    \
@@ -203,7 +206,7 @@ tccat_LDADD = @DVDREAD_LIBS@ -L../avilib -lavi @DV_LIBS@  @LIBXML2_LIBS@ @DLDARW
 tcscan_SOURCES = tcscan.c fileinfo.c bitrate.c ioaux.c scan_pes.c aux_pes.c mpg123.c ac3scan.c scan_dv.c
 tcscan_LDADD = @LAME_LIBS@ $(AC3_LIB) -L../avilib -lavi @DV_LIBS@ -lm 
 
-tcprobe_SOURCES = tcprobe.c probe_stream.c fileinfo.c bitrate.c ioaux.c extract_avi.c scan_pes.c aux_pes.c mpg123.c ac3scan.c dvd_reader.c probe_dvd.c decode_dv.c extract_yuv.c probe_nuv.c probe_wav.c iodump.c probe_socket.c scan_dv.c probe_im.c probe_mov.c probe_xml.c ioxml.c probe_lav.c probe_ogg.c ts_reader.c
+tcprobe_SOURCES = tcprobe.c probe_stream.c fileinfo.c bitrate.c ioaux.c extract_avi.c scan_pes.c aux_pes.c mpg123.c ac3scan.c dvd_reader.c probe_dvd.c decode_dv.c extract_yuv.c probe_nuv.c probe_wav.c iodump.c probe_socket.c scan_dv.c probe_im.c probe_mov.c probe_xml.c ioxml.c probe_lav.c probe_ogg.c ts_reader.c probe_vnc.c
 tcprobe_LDADD = @LAME_LIBS@ -L../avilib -lavi $(AC3_LIB) @DVDREAD_LIBS@ @DV_LIBS@ @MAGICK_LIBS@ @QT_LIBS@ @LIBXML2_LIBS@ @VORBIS_LIBS@ @THEORA_LIBS@ @OGG_LIBS@ @DLDARWINLIB@ -lm
 
 tcextract_SOURCES = tcextract.c extract_ac3.c extract_mpeg2.c extract_pcm.c fileinfo.c extract_yuv.c extract_rgb.c extract_dv.c ioaux.c extract_mp3.c scan_dv.c aux_pes.c extract_ogm.c extract_lzo.c
@@ -215,6 +218,7 @@ tcdemux_LDADD = $(AC3_LIB) $(MPEG2_LIB) -L../libvo -lvout -L../avilib -lavi @DVD
 tcxmlcheck_SOURCES = tcxmlcheck.c probe_xml.c ioxml.c ioaux.c fileinfo.c scan_dv.c
 tcxmlcheck_LDADD = @LIBXML2_LIBS@ @DV_LIBS@ -lm
 
+tcxpm2rgb_SOURCES = tcxpm2rgb.c
 
 
 if HAVE_LIBLVE
