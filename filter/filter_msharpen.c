@@ -308,7 +308,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	unsigned char   *srcpp, *srcp, *srcpn, *workp, *blurp, *blurpn, *dstp;
 	int r1, r2, r3, r4, g1, g2, g3, g4, b1, b2, b3, b4;
 	int x, y, max;
-	int strength = mfd->strength, invstrength = 255 - strength;;
+	int strength = mfd->strength, invstrength = 255 - strength;
 	int threshold = mfd->threshold;
 	const int	srcpitch = ptr->v_width*sizeof(Pixel32);
 	const int	dstpitch = ptr->v_width*sizeof(Pixel32);
