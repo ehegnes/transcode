@@ -198,7 +198,12 @@ int AVI_can_read_audio(avi_t *AVI)
    if(!AVI->video_index)         { return -1; }
    if(!AVI->track[AVI->aptr].audio_index)         { return -1; }      
 
-   if (AVI->track[AVI->aptr].audio_posc>=AVI->track[AVI->aptr].audio_chunks-1) return 0;
+   // is it -1? the last ones got left out --tibit 
+   //if (AVI->track[AVI->aptr].audio_posc>=AVI->track[AVI->aptr].audio_chunks-1) {
+   if (AVI->track[AVI->aptr].audio_posc>=AVI->track[AVI->aptr].audio_chunks) {
+       return 0;
+   }
+
    if (AVI->video_pos >= AVI->video_frames) return 1;
    
    if (AVI->track[AVI->aptr].audio_index[AVI->track[AVI->aptr].audio_posc].pos < AVI->video_index[AVI->video_pos].pos) return 1;
@@ -686,7 +691,7 @@ static int avi_close_output_file(avi_t *AVI)
    OUTLONG(0);                  /* Start */
    OUTLONG(AVI->video_frames);  /* Length */
    OUTLONG(0);                  /* SuggestedBufferSize */
-   OUTLONG(-1);                 /* Quality */
+   OUTLONG(0);                 /* Quality */
    OUTLONG(0);                  /* SampleSize */
    OUTLONG(0);                  /* Frame */
    OUTLONG(0);                  /* Frame */
@@ -719,8 +724,15 @@ static int avi_close_output_file(avi_t *AVI)
      
      //if (AVI->track[j].a_chans && AVI->track[j].audio_bytes)
        {
+	 unsigned long nBlockAlign;
 	   
 	 sampsize = avi_sampsize(AVI, j);
+
+	 nBlockAlign = (AVI->track[j].a_rate<32000)?576:1152;
+	 /*
+	 printf("XXX sampsize (%d) block (%ld) rate (%ld) audio_bytes (%ld) chunks(%ld)\n", 
+		 sampsize, nBlockAlign, AVI->track[j].a_rate, AVI->track[j].audio_bytes, AVI->track[j].audio_chunks );
+		 */
 	   
 	 OUT4CC ("LIST");
 	 OUTLONG(0);        /* Length of list in bytes, don't know yet */
@@ -741,39 +753,82 @@ static int avi_close_output_file(avi_t *AVI)
 	 OUTLONG(0);             /* Flags */
 	 OUTLONG(0);             /* Reserved, MS says: wPriority, wLanguage */
 	 OUTLONG(0);             /* InitialFrames */
-	   
-	 // ThOe /4
-	 OUTLONG(sampsize/4);      /* Scale */
-	 OUTLONG(1000*AVI->track[j].mp3rate/8);
-	 OUTLONG(0);             /* Start */
-	 OUTLONG(4*AVI->track[j].audio_bytes/sampsize);   /* Length */
-	 OUTLONG(0);             /* SuggestedBufferSize */
-	 OUTLONG(-1);            /* Quality */
-	   
-	 // ThOe /4
-	 OUTLONG(sampsize/4);    /* SampleSize */
-	   
-	 OUTLONG(0);             /* Frame */
-	 OUTLONG(0);             /* Frame */
-	 //	 OUTLONG(0);             /* Frame */
-	 //OUTLONG(0);             /* Frame */
+	 
+	 // VBR 
+	 if (AVI->track[j].a_fmt == 0x55 && AVI->track[j].a_vbr) {
+	     OUTLONG(nBlockAlign);                   /* Scale */
+	     OUTLONG(AVI->track[j].a_rate);          /* Rate */
+	     OUTLONG(0);                             /* Start */
+	     OUTLONG(AVI->track[j].audio_chunks);    /* Length */
+	     OUTLONG(0);                             /* SuggestedBufferSize */
+	     OUTLONG(0);                             /* Quality */
+	     OUTLONG(0);                             /* SampleSize */
+	     OUTLONG(0);                             /* Frame */
+	     OUTLONG(0);                             /* Frame */
+	 } else {
+	     OUTLONG(sampsize/4);                    /* Scale */
+	     OUTLONG(1000*AVI->track[j].mp3rate/8);  /* Rate */
+	     OUTLONG(0);                             /* Start */
+	     OUTLONG(4*AVI->track[j].audio_bytes/sampsize);   /* Length */
+	     OUTLONG(0);                             /* SuggestedBufferSize */
+	     OUTLONG(0);                             /* Quality */
+	     OUTLONG(sampsize/4);                    /* SampleSize */
+	     OUTLONG(0);                             /* Frame */
+	     OUTLONG(0);                             /* Frame */
+	 }
 	   
 	 /* The audio stream format */
-	 
+
 	 OUT4CC ("strf");
-	 OUTLONG(16);                   /* # of bytes to follow */
-	 OUTSHRT(AVI->track[j].a_fmt);           /* Format */
-	 OUTSHRT(AVI->track[j].a_chans);         /* Number of channels */
-	 OUTLONG(AVI->track[j].a_rate);          /* SamplesPerSec */
-	 //ThOe
-	 OUTLONG(1000*AVI->track[j].mp3rate/8);
-	 //ThOe (/4)
 	 
-	 OUTSHRT(sampsize/4);           /* BlockAlign */
+	 if (AVI->track[j].a_fmt == 0x55 && AVI->track[j].a_vbr) {
+
+	     OUTLONG(30);                            /* # of bytes to follow */ // mplayer writes 28
+	     OUTSHRT(AVI->track[j].a_fmt);           /* Format */                  // 2
+	     OUTSHRT(AVI->track[j].a_chans);         /* Number of channels */      // 2
+	     OUTLONG(AVI->track[j].a_rate);          /* SamplesPerSec */           // 4
+	     //ThOe/tibit
+	     OUTLONG(1000*AVI->track[j].mp3rate/8);  /* maybe we should write an avg. */ // 4
+	     OUTSHRT(nBlockAlign);                   /* BlockAlign */              // 2
+	     OUTSHRT(AVI->track[j].a_bits);          /* BitsPerSample */           // 2
+
+	     OUTSHRT(12);                           /* cbSize */                   // 2
+	     OUTSHRT(1);                            /* wID */                      // 2
+	     OUTLONG(2);                            /* fdwFlags */                 // 4
+	     OUTSHRT(nBlockAlign);                  /* nBlockSize */               // 2
+	     OUTSHRT(1);                            /* nFramesPerBlock */          // 2
+	     OUTSHRT(0);                            /* nCodecDelay */              // 2
 	 
+	 } else if (AVI->track[j].a_fmt == 0x55 && !AVI->track[j].a_vbr) {
+
+	     OUTLONG(30);                            /* # of bytes to follow */
+	     OUTSHRT(AVI->track[j].a_fmt);           /* Format */
+	     OUTSHRT(AVI->track[j].a_chans);         /* Number of channels */
+	     OUTLONG(AVI->track[j].a_rate);          /* SamplesPerSec */
+	     //ThOe/tibit
+	     OUTLONG(1000*AVI->track[j].mp3rate/8);
+	     OUTSHRT(sampsize/4);                    /* BlockAlign */
+	     OUTSHRT(AVI->track[j].a_bits);          /* BitsPerSample */
+
+	     OUTSHRT(12);                           /* cbSize */
+	     OUTSHRT(1);                            /* wID */
+	     OUTLONG(2);                            /* fdwFlags */
+	     OUTSHRT(nBlockAlign);                  /* nBlockSize */
+	     OUTSHRT(1);                            /* nFramesPerBlock */
+	     OUTSHRT(0);                            /* nCodecDelay */
 	 
-	 OUTSHRT(AVI->track[j].a_bits);          /* BitsPerSample */
-	 
+	 } else {
+
+	     OUTLONG(16);                   /* # of bytes to follow */
+	     OUTSHRT(AVI->track[j].a_fmt);           /* Format */
+	     OUTSHRT(AVI->track[j].a_chans);         /* Number of channels */
+	     OUTLONG(AVI->track[j].a_rate);          /* SamplesPerSec */
+	     //ThOe/tibit
+	     OUTLONG(1000*AVI->track[j].mp3rate/8);
+	     OUTSHRT(sampsize/4);                    /* BlockAlign */
+	     OUTSHRT(AVI->track[j].a_bits);          /* BitsPerSample */
+
+	 }
 	 /* Finish stream list, i.e. put number of bytes in the list to proper pos */
        }
        long2str(AVI_header+strl_start-4,nhb-strl_start);
@@ -944,6 +999,7 @@ int AVI_write_audio(avi_t *AVI, char *data, long bytes)
 
    if( avi_write_data(AVI,data,bytes,1,0) ) return -1;
    AVI->track[AVI->aptr].audio_bytes += bytes;
+   AVI->track[AVI->aptr].audio_chunks++;
    return 0;
 }
 
@@ -1013,6 +1069,16 @@ int AVI_set_audio_track(avi_t *AVI, int track)
 int AVI_get_audio_track(avi_t *AVI)
 {
     return(AVI->aptr);
+}
+
+void AVI_set_audio_vbr(avi_t *AVI, long is_vbr)
+{
+    AVI->track[AVI->aptr].a_vbr = is_vbr;
+}
+
+long AVI_get_audio_vbr(avi_t *AVI)
+{
+    return(AVI->track[AVI->aptr].a_vbr);
 }
 
 
@@ -1634,6 +1700,27 @@ long AVI_read_frame(avi_t *AVI, char *vidbuf, int *keyframe)
    return n;
 }
 
+long AVI_get_audio_position_index(avi_t *AVI)
+{
+   if(AVI->mode==AVI_MODE_WRITE) { AVI_errno = AVI_ERR_NOT_PERM; return -1; }
+   if(!AVI->track[AVI->aptr].audio_index) { AVI_errno = AVI_ERR_NO_IDX;   return -1; }
+
+   return (AVI->track[AVI->aptr].audio_posc);
+}
+
+int AVI_set_audio_position_index(avi_t *AVI, long indexpos)
+{
+   if(AVI->mode==AVI_MODE_WRITE) { AVI_errno = AVI_ERR_NOT_PERM; return -1; }
+   if(!AVI->track[AVI->aptr].audio_index)         { AVI_errno = AVI_ERR_NO_IDX;   return -1; }
+   if(indexpos > AVI->track[AVI->aptr].audio_chunks)     { AVI_errno = AVI_ERR_NO_IDX;   return -1; }
+
+   AVI->track[AVI->aptr].audio_posc = indexpos;
+   AVI->track[AVI->aptr].audio_posb = 0;
+
+   return 0;
+}
+
+
 int AVI_set_audio_position(avi_t *AVI, long byte)
 {
    long n0, n1, n;
@@ -1699,6 +1786,32 @@ long AVI_read_audio(avi_t *AVI, char *audbuf, long bytes)
    }
 
    return nr;
+}
+
+long AVI_read_audio_chunk(avi_t *AVI, char *audbuf)
+{
+   long pos, left;
+
+   if(AVI->mode==AVI_MODE_WRITE) { AVI_errno = AVI_ERR_NOT_PERM; return -1; }
+   if(!AVI->track[AVI->aptr].audio_index)         { AVI_errno = AVI_ERR_NO_IDX;   return -1; }
+
+   left = AVI->track[AVI->aptr].audio_index[AVI->track[AVI->aptr].audio_posc].len - AVI->track[AVI->aptr].audio_posb;
+   
+   if (audbuf == NULL) return left;
+   
+   if(left==0) return 0;
+
+   pos = AVI->track[AVI->aptr].audio_index[AVI->track[AVI->aptr].audio_posc].pos + AVI->track[AVI->aptr].audio_posb;
+   lseek(AVI->fdes, pos, SEEK_SET);
+   if (avi_read(AVI->fdes,audbuf,left) != left)
+   {
+      AVI_errno = AVI_ERR_READ;
+      return -1;
+   }
+   AVI->track[AVI->aptr].audio_posc++;
+   AVI->track[AVI->aptr].audio_posb = 0;
+
+   return left;
 }
 
 /* AVI_read_data: Special routine for reading the next audio or video chunk

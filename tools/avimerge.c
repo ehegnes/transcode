@@ -45,12 +45,14 @@ void usage(int status)
     printf("\t -i file1 [file2 [...]]    input file(s)\n");
     printf("\t -p file                   multiplex additional audio track from file\n");
     printf("\t -a num                    audio track number [0]\n");
+    printf("\t -b n                      handle vbr audio [0]\n");
     exit(status);
 }
 
 static char data[SIZE_RGB_FRAME];
 
 long sum_frames = 0;
+int is_vbr=0;
 
 int merger(avi_t *out, char *file)
 {
@@ -81,6 +83,7 @@ int merger(avi_t *out, char *file)
 	AVI_print_error("AVI write video frame");
 	return(-1);
       }
+
       
       
       for(j=0; j<aud_tracks; ++j) {
@@ -89,23 +92,22 @@ int merger(avi_t *out, char *file)
 	  
 	  // audio
 	  chan = AVI_audio_channels(in);
+	  AVI_set_audio_track(out, j);
 	  
 	  if(chan) {
-	      while (AVI_can_read_audio(in)) {
-		  bytes = AVI_audio_size(in, n);
-		  
-		  if(AVI_read_audio(in, data, bytes) < 0) {
-		      AVI_print_error("AVI audio read frame");
-		      return(-1);
-		  }
-	      
-		  AVI_set_audio_track(out, j);
+	      do {
 
-		  if(AVI_write_audio(out, data, bytes)<0) {
-		      AVI_print_error("AVI write audio frame");
-		      return(-1);
-		  } 
-	      }
+		if ( (bytes = AVI_read_audio_chunk(in, data) ) < 0) { 
+		  AVI_print_error("AVI audio read frame"); 
+		  return(-1);
+		}
+		//printf( "vframes(%ld), bytes(%ld) frames(%ld)\n", n, bytes, frames);
+ 
+		if(AVI_write_audio(out, data, bytes)<0) {
+		  AVI_print_error("AVI write audio frame");
+		  return(-1);
+		} 
+	      } while (AVI_can_read_audio(in));
 	      
 	  }
       }
@@ -147,7 +149,7 @@ int main(int argc, char *argv[])
   
   if(argc==1) usage(EXIT_FAILURE);
   
-  while ((ch = getopt(argc, argv, "a:i:o:p:?h")) != -1) {
+  while ((ch = getopt(argc, argv, "a:b:i:o:p:?h")) != -1) {
     
     switch (ch) {
       
@@ -164,6 +166,15 @@ int main(int argc, char *argv[])
       track_num = atoi(optarg);
       
       if(track_num<0) usage(EXIT_FAILURE);
+      
+      break;
+      
+    case 'b':
+      
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
+      is_vbr = atoi(optarg);
+      
+      if(is_vbr<0) usage(EXIT_FAILURE);
       
       break;
       
@@ -256,6 +267,7 @@ int main(int argc, char *argv[])
       //set next track of output file
       AVI_set_audio_track(avifile, j);
       AVI_set_audio(avifile, chan, rate, bits, format, mp3rate);
+      AVI_set_audio_vbr(avifile, is_vbr);
   }
   
   if(audfile!=NULL) goto audio_merge;
@@ -323,6 +335,7 @@ int main(int argc, char *argv[])
   //set next track
   AVI_set_audio_track(avifile, aud_tracks);
   AVI_set_audio(avifile, chan, rate, bits, format, mp3rate);
+  AVI_set_audio_vbr(avifile, is_vbr);
   
   AVI_seek_start(avifile1);
   frames =  AVI_video_frames(avifile1);
@@ -348,26 +361,25 @@ int main(int argc, char *argv[])
     for(j=0; j<aud_tracks; ++j) {
       
       AVI_set_audio_track(avifile1, j);
+      AVI_set_audio_track(avifile, j);
       
       // audio
       chan = AVI_audio_channels(avifile1);
       
       if(chan) {
-	while (AVI_can_read_audio(avifile1)) {
-	  bytes = AVI_audio_size(avifile1, n);
+	do {
 	
-	  if(AVI_read_audio(avifile1, data, bytes) < 0) {
+	  if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
 	    AVI_print_error("AVI audio read frame");
 	    return(-1);
 	  }
 	
-	  AVI_set_audio_track(avifile, j);
 
 	  if(AVI_write_audio(avifile, data, bytes)<0) {
 	    AVI_print_error("AVI write audio frame");
 	    return(-1);
 	  } 
-	}
+	} while (AVI_can_read_audio(avifile1));
 	  
       }
     }
@@ -378,23 +390,22 @@ int main(int argc, char *argv[])
     bytes = AVI_read_frame(avifile2, data, &key);
     // audio
     chan = AVI_audio_channels(avifile2);
+    AVI_set_audio_track(avifile, aud_tracks);
     
     if(chan) {
-      while (AVI_can_read_audio(avifile2)) {
-	bytes = AVI_audio_size(avifile2, n);
+      do {
       
-	if(AVI_read_audio(avifile2, data, bytes) < 0) {
+	if( (bytes = AVI_read_audio_chunk(avifile2, data)) < 0) {
 	  AVI_print_error("AVI audio read frame");
 	  return(-1);
 	}
       
-	AVI_set_audio_track(avifile, aud_tracks);
       
 	if(AVI_write_audio(avifile, data, bytes)<0) {
 	  AVI_print_error("AVI write audio frame");
 	  return(-1);
 	} 
-      }
+      } while (AVI_can_read_audio(avifile2));
 	  
     }
 
@@ -446,10 +457,9 @@ int main(int argc, char *argv[])
 	chan = AVI_audio_channels(avifile1);
 	
 	if(chan) {
-	  while (AVI_can_read_audio(avifile1)) {
-	  bytes = AVI_audio_size(avifile1, n);
+	  do {
 	  
-	  if(AVI_read_audio(avifile1, data, bytes) < 0) {
+	  if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
 	    AVI_print_error("AVI audio read frame");
 	    return(-1);
 	  }
@@ -460,7 +470,7 @@ int main(int argc, char *argv[])
 	    AVI_print_error("AVI write audio frame");
 	    return(-1);
 	  }
-	  }
+	  } while (AVI_can_read_audio(avifile1));
 	  
 	}
       }
@@ -473,7 +483,7 @@ int main(int argc, char *argv[])
       if(chan) {
 	bytes = AVI_audio_size(avifile2, offset+n);
 	
-	if(AVI_read_audio(avifile2, data, bytes) < 0) {
+	if( (bytes = AVI_read_audio_chunk(avifile2, data ))< 0) {
 	  AVI_print_error("AVI audio read frame");
 	  return(-1);
 	}

@@ -178,8 +178,8 @@ LAME_LIBS=""
 LAME_CFLAGS=""
 
 lame89=no
-lame92=no
 have_lame=no
+lame_version=1
 
 if test x$with_lame = "x"yes ; then
 
@@ -195,29 +195,48 @@ if test x$with_lame = "x"yes ; then
 	    with_lame_l="/usr/lib"
         fi
 	
+AC_CHECK_FILE($with_lame_i/lame/lame.h, [AC_DEFINE(HAVE_LAME_INC, 1, [Have Lame includes in separate path]) lame_inc=yes])
+if test x"$lame_inc" != xyes; then 
+AC_CHECK_FILE(/usr/local/include/lame/lame.h, [AC_DEFINE([HAVE_LAME_INC], [Have Lame includes in separate path]) lame_inc=yes])
+fi
+	AC_MSG_CHECKING([lame version])
+	ac_save_CFLAGS="$CFLAGS"
+	ac_save_LIBS="$LIBS"
+	CFLAGS="$CFLAGS -I$with_lame_i"
+	LIBS="-L$with_lame_l -lmp3lame -lm $LIBS"
+	AC_TRY_RUN([
+#include <stdio.h>
+
+#ifdef HAVE_LAME_INC
+#include <lame/lame.h>
+#else
+#include <lame.h>
+#endif
+
+
+int main () {
+  lame_version_t lv;
+  get_lame_version_numerical(&lv);
+  printf("%d%d\n", lv.major, lv.minor);
+  return 0;
+}
+],lame_version="`./conftest$ac_exeext`",lame_version=1,)
+	CFLAGS="$ac_save_CFLAGS"
+	LIBS="$ac_save_LIBS"
+
+	dnl define HAVE_LAME to version number
 	AC_CHECK_LIB(mp3lame, lame_init,
        	[LAME_CFLAGS="-I$with_lame_i -I/usr/local/include" 
          LAME_LIBS="-L$with_lame_l -lmp3lame -lm"
-       	AC_DEFINE([HAVE_LAME], 1, [Have the lame lib]) 
+       	AC_DEFINE_UNQUOTED([HAVE_LAME], $lame_version, [Have the lame lib]) 
 	AC_DEFINE_UNQUOTED([LAME_3_89], 1, [Have Lame-3.89 or newer])	
 	hav_lame=yes
 	lame89=yes
 	have_lame=yes], [have_lame=no lame89=no], 
        	-L$with_lame_l -lmp3lame -lm)
 
-	AC_CHECK_LIB(mp3lame, lame_set_asm_optimizations,
-       	[LAME_CFLAGS="-I$with_lame_i -I/usr/local/include" 
-         LAME_LIBS="-L$with_lame_l -lmp3lame -lm"
-	AC_DEFINE_UNQUOTED([LAME_3_92], 1, [Have Lame-3.92 or newer])	
-	lame92=yes], [lame92=no], 
-       	-L$with_lame_l -lmp3lame -lm)
-
 fi   
 
-AC_CHECK_FILE($with_lame_i/lame/lame.h, [AC_DEFINE(HAVE_LAME_INC, 1, [Have Lame includes in separate path]) lame_inc=yes])
-if test x"$lame_inc" != xyes; then 
-AC_CHECK_FILE(/usr/local/include/lame/lame.h, [AC_DEFINE([HAVE_LAME_INC], [Have Lame includes in separate path]) lame_inc=yes])
-fi
 
 if test x"$have_lame" != "xyes"; then
 	
@@ -234,7 +253,6 @@ if test x"$have_lame" != "xyes"; then
 fi
 
 AC_SUBST(LAME_3_89)
-AC_SUBST(LAME_3_92)
 AC_SUBST(LAME_CFLAGS)
 AC_SUBST(LAME_LIBS)
 ])

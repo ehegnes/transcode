@@ -136,6 +136,7 @@ enum {
   AVI_LIMIT,
   SOCKET_FILE,
   DV_YUY2_MODE,
+  LAME_PRESET,
 };
 
 int print_counter_interval = 1;
@@ -212,6 +213,7 @@ void usage(int status)
   printf(" -b b[,vbr[,q]]    audio encoder bitrate kBits/s[,vbr[,quality]] [%d,%d,%d]\n", ABITRATE, AVBR, AQUALITY);
   printf("--no_audio_adjust  disable audio frame sample adjustment [off]\n");
   printf("--no_bitreservoir  disable lame bitreservoir [off]\n");
+  printf("--lame_preset name[,fast]  use lame preset with name. [off]\n");
   printf("\n");
 
   //video
@@ -698,6 +700,7 @@ int main(int argc, char *argv[]) {
       {"ts_pid", required_argument, NULL, TS_PID},
       {"socket", required_argument, NULL, SOCKET_FILE},
       {"dv_yuy2_mode", no_argument, NULL, DV_YUY2_MODE},
+      {"lame_preset", required_argument, NULL, LAME_PRESET},
       {0,0,0,0}
     };
     
@@ -882,6 +885,7 @@ int main(int argc, char *argv[]) {
 #endif
     vob->psu_offset       = 0.0f;
     vob->bitreservoir     = TC_TRUE;
+    vob->lame_preset      = NULL;
 
     vob->ts_pid1          = 0x0;
     vob->ts_pid2          = 0x0;
@@ -1787,6 +1791,16 @@ int main(int argc, char *argv[]) {
 
 	case NO_BITRESERVOIR:
 	  vob->bitreservoir=TC_FALSE;
+	  break;
+
+	case LAME_PRESET:
+	  if (optarg && strlen(optarg)) {
+	    vob->lame_preset = optarg;
+	  } else {
+	    tc_error ("--lame_preset: invalid preset\n");
+	  }
+
+	  
 	  break;
 
 	case AV_FINE_MS:

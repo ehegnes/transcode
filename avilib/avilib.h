@@ -63,6 +63,7 @@ typedef struct track_s
     long   a_rate;            /* Rate in Hz */
     long   a_bits;            /* bits per audio sample */
     long   mp3rate;           /* mp3 bitrate kbs*/
+    long   a_vbr;             /* 0 == no Variable BitRate */
 
     long   audio_strn;        /* Audio stream number */
     long   audio_bytes;       /* Total number of bytes of audio data */
@@ -228,7 +229,11 @@ long AVI_read_frame(avi_t *AVI, char *vidbuf, int *keyframe);
 int  AVI_set_audio_position(avi_t *AVI, long byte);
 int  AVI_set_audio_bitrate(avi_t *AVI, long bitrate);
 
+long AVI_get_audio_position_index(avi_t *AVI);
+int  AVI_set_audio_position_index(avi_t *AVI, long indexpos);
+
 long AVI_read_audio(avi_t *AVI, char *audbuf, long bytes);
+long AVI_read_audio_chunk(avi_t *AVI, char *audbuf);
 
 long AVI_audio_codech_offset(avi_t *AVI);
 long AVI_audio_codecf_offset(avi_t *AVI);
@@ -257,6 +262,8 @@ int AVI_set_audio_track(avi_t *AVI, int track);
 int AVI_get_audio_track(avi_t *AVI);
 int AVI_audio_tracks(avi_t *AVI);
 
+void AVI_set_audio_vbr(avi_t *AVI, long is_vbr);
+long AVI_get_audio_vbr(avi_t *AVI);
 
 struct riff_struct 
 {

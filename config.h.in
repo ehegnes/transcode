@@ -284,9 +284,6 @@
 /* Have Lame-3.89 or newer */
 #undef LAME_3_89
 
-/* Have Lame-3.92 or newer */
-#undef LAME_3_92
-
 /* Have libdv 0.95 or newer */
 #undef LIBDV_095
 

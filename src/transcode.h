@@ -287,6 +287,7 @@ typedef struct _vob_t {
   float mp3quality;         //0=best (very slow).  9=worst (default=5)
 
   int bitreservoir;
+  char *lame_preset;
 
   char *audiologfile;
   
