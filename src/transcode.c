@@ -2368,7 +2368,16 @@ int main(int argc, char *argv[]) {
 	    if(chunkptype == tmptime->stf) {
 	      int lenf = tmptime->etf - tmptime->stf;
 	      new_frame_a = chunkptype - last_keyframe;
-	      //if(verbose & TC_DEBUG) 
+	      
+	      // If we are doing pass-through, we cannot skip frames, but only start
+	      // passthrough on a keyframe boundary. At least, we respect the
+	      // last frame the user whishes.
+	      if(vob->pass_flag & TC_VIDEO) {
+		new_frame_a = 0;
+		lenf += (chunkptype - last_keyframe);
+	      }
+
+	      if(verbose & TC_DEBUG) 
 		printf("%s: -c %d-%d -> -L %ld -c %d-%d\n", 
 		    nav_seek_file, tmptime->stf, tmptime->etf, last_keyframe, new_frame_a, new_frame_a+lenf);
 	      tmptime->stf = frame_a = new_frame_a;
