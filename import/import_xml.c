@@ -45,7 +45,6 @@ static int capability_flag=-1;
 static FILE *s_fd_video=0;
 static FILE *s_fd_audio=0;
 static int s_frame_size=0;
-static int s_frame_audio_size=0;
 static  audiovideo_t    s_audio,*p_audio=NULL;
 static  audiovideo_t    s_video,*p_video=NULL;
 
@@ -63,6 +62,7 @@ MOD_open
 	probe_info_t s_probe_dummy1,s_probe_dummy2;
 	long s_tot_dummy1,s_tot_dummy2;
 	int s_v_codec,s_a_codec;
+	int s_frame_audio_size=0;
 
 	if(param->flag == TC_VIDEO) 
 	{
@@ -238,6 +238,7 @@ MOD_open
                         fprintf(stderr,"\nerror: there isn't no file in  %s. \n", vob->audio_in_file);
 			return(TC_IMPORT_ERROR);
 		}
+/*
 		if ((p_audio->s_audio_smpte==smpte)||(p_audio->s_audio_smpte==smpte25)||(p_audio->s_audio_smpte==npt))
 		{
 			s_frame_audio_size=(1.00 * vob->a_rate * vob->a_bits * vob->a_chan)/(25*8);
@@ -246,6 +247,9 @@ MOD_open
 		{
 			s_frame_audio_size=(1.00 * vob->a_rate * vob->a_bits * vob->a_chan)/(29.97*8);
 		}
+*/
+		s_frame_audio_size=vob->im_a_size;
+		fprintf(stderr,"[%s] setting audio size to %d\n",MOD_NAME,vob->im_a_size);
 		switch(p_audio->s_a_magic)
 		{
 		   case TC_MAGIC_DV_PAL:
@@ -308,6 +312,7 @@ MOD_decode
 	static int s_audio_frame_size_orig=0;
 	static int s_video_frame_size_orig=0;
 	int s_v_codec,s_a_codec;
+	int s_frame_audio_size=0;
 
 	if(param->flag == TC_AUDIO) 
 	{
@@ -321,6 +326,18 @@ MOD_decode
                 {
                         if (p_audio != NULL)    // is there a file ?
                         {
+/*
+				if ((p_audio->s_audio_smpte==smpte)||(p_audio->s_audio_smpte==smpte25)||(p_audio->s_audio_smpte==npt))
+				{
+					s_frame_audio_size=(1.00 * vob->a_rate * vob->a_bits * vob->a_chan)/(25*8);
+				}
+				else if (p_audio->s_audio_smpte==smpte30drop)
+				{
+					s_frame_audio_size=(1.00 * vob->a_rate * vob->a_bits * vob->a_chan)/(29.97*8);
+				}
+*/
+				s_frame_audio_size=vob->im_a_size;
+				fprintf(stderr,"[%s] setting audio size to %d\n",MOD_NAME,vob->im_a_size);
 				switch(p_audio->s_a_magic)
 				{
 				   case TC_MAGIC_DV_PAL:
