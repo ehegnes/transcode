@@ -1,16 +1,22 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-19 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/import_ffmpeg.c:
+  Fix a segfault at closing time in pass-through mode. Pointed put
+  by ltwp.
+
 2004-01-19 ENDOH, Hiromichi <endoo at iwao.net>
 
   * avilib/avilib.c avilib/avilib.h export/export_ffmpeg.c:
-    1.  Both YUV422P frame input and encoder output use the same
+  1.  Both YUV422P frame input and encoder output use the same
     buffer (tmp_buffer). With low compression codec like Huffyuv,
     input frame can be corrupted by encoder output.
-    2.  export_ffmpeg should provide extradata to AVI header. This
+  2.  export_ffmpeg should provide extradata to AVI header. This
     might be needed with some codecs (say, Huffyuv with irregular
     huffman table). Not always?
-    3.  Cr and Cb plane are swapped in UYVY->YUV42xP conversion; I
+  3.  Cr and Cb plane are swapped in UYVY->YUV42xP conversion; I
     needed -k option to get encoding output with correct color (But
     MJPEG doesn't need -k option. I don't know why...)
 

@@ -110,7 +110,7 @@ static int                 pass_through = 0;
 static char               *buffer =  NULL;
 static char               *yuv2rgb_buffer = NULL;
 static AVCodec            *lavc_dec_codec = NULL;
-static AVCodecContext     *lavc_dec_context;
+static AVCodecContext     *lavc_dec_context = NULL;
 static int                 x_dim = 0, y_dim = 0;
 static int                 pix_fmt, frame_size = 0, bpp;
 static char                *frame = NULL;
@@ -715,13 +715,17 @@ MOD_close {
   if (param->flag == TC_VIDEO) {
 
     if(lavc_dec_context) {
-      avcodec_flush_buffers(lavc_dec_context);
+      if (!pass_through)
+	avcodec_flush_buffers(lavc_dec_context);
       
       avcodec_close(lavc_dec_context);
+      if (lavc_dec_context->extradata_size) free(lavc_dec_context->extradata);
       free(lavc_dec_context);
 
       lavc_dec_context = NULL;
       done_seek=0;
+
+      pass_through = 0;
 
     }
     
