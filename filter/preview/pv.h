@@ -156,6 +156,7 @@ extern "C" {
   void preview_cache_draw(int d);
   void preview_cache_submit(char *buf, int n, int flag);
   int preview_cache_init();
+  int preview_grab_jpeg(void);
 
   char **char2bmp(char c);
   void bmp2img(char *img, char **c, int width, int height, 

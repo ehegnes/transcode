@@ -138,6 +138,9 @@ int tc_socket_preview(char *buf)
     } else if (!strncasecmp(c, "display", 6)) {
 	tc_socket_msgchar = TC_SOCK_PV_DISPLAY;
     
+    } else if (!strncasecmp(c, "grab", 4)) {
+	tc_socket_msgchar = TC_SOCK_PV_SAVE_JPG;
+    
     } else 
 	ret = 1;
 
@@ -302,7 +305,7 @@ int tc_socket_help(char *buf)
 	    "  [ draw | undo | pause | fastfw |\n"
 	    "    slowfw | slowbw | rotate |\n"
 	    "    rotate | display | slower |\n"
-	    "    faster | toggle ]\n"
+	    "    faster | toggle | grab ]\n"
 	    "list [ load | enable | disable ]\n");
 
     return 0;

@@ -25,6 +25,15 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_DLFCN_H
+#include <dlfcn.h>
+#else
+# ifdef SYSTEM_DARWIN
+#  include "../libdldarwin/dlfcn.h"
+# endif
+#endif
+
+
 #define MOD_NAME    "filter_pv.so"
 #define MOD_VERSION "v0.2.2 (2003-02-27)"
 #define MOD_CAP     "xv only preview plugin"
@@ -792,6 +801,72 @@ char **char2bmp(char c) {
 	default: return NULL;
     }
     return NULL;
+}
+
+int preview_grab_jpeg(void) 
+{
+#if defined(__FreeBSD__) || defined (__APPLE__)
+    const
+#endif  
+    char *error;
+    char *prefix = "preview_grab-";
+    static vob_t *mvob;
+    static void *jpeg_vhandle = NULL;
+    static int (*JPEG_export)(int opt, void *para1, void *para2);
+    static int counter = 0;
+
+    char module[TC_BUF_MAX];
+    transfer_t export_para;
+    int ret = 0;
+
+    
+    if (jpeg_vhandle == NULL) { 
+	sprintf(module, "%s/export_%s.so", MOD_PATH, "jpg");
+	jpeg_vhandle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
+	if (!jpeg_vhandle) {
+	    tc_warn("%s", dlerror());
+	    tc_warn("(%s) loading \"%s\" failed", __FILE__, module);
+	    return(1);
+	}
+	JPEG_export = dlsym(jpeg_vhandle, "tc_export");   
+	if ((error = dlerror()) != NULL)  {
+	    tc_warn("%s", error);
+	    return(1);
+	}
+	export_para.flag = TC_DEBUG;
+	ret = JPEG_export(TC_EXPORT_NAME, &export_para, NULL);
+
+	mvob = malloc(sizeof(vob_t));
+	memcpy (mvob, vob, sizeof(vob_t));
+	mvob->video_out_file = prefix;
+
+	export_para.flag = TC_VIDEO;
+	if((ret=JPEG_export(TC_EXPORT_INIT, &export_para, mvob))==TC_EXPORT_ERROR) {
+	    tc_warn("(%s) video jpg export module error: init failed", __FILE__);
+	    return(1);
+	}
+
+	export_para.flag = TC_VIDEO;	
+	if((ret=JPEG_export(TC_EXPORT_OPEN, &export_para, mvob))==TC_EXPORT_ERROR) {
+	    tc_warn("(%s) video export module error: open failed", __FILE__);
+	    return(1);
+	}
+    }
+
+    // encode and export video frame
+    export_para.buffer = (char *)vid_buf[cache_ptr];
+    export_para.size   = size;
+    export_para.attributes = TC_FRAME_IS_KEYFRAME;
+    export_para.flag   = TC_VIDEO;
+
+    if(JPEG_export(TC_EXPORT_ENCODE, &export_para, mvob)<0) {
+	tc_warn("(%s) error encoding jpg frame", __FILE__);
+	return 1;
+    }
+    printf("[%s] Saved JPEG to %s%06d.jpg\n", "filter_pv", prefix, counter++);
+
+
+    return 0;
 }
 
 /* vim:sw=4

@@ -618,7 +618,7 @@ int plugin_single_close(int id)
     if(plugins_string==NULL) return(0);
     if(!plugins_loaded) return(1);    
 
-    if(filter[id].unload)  {
+    if(1 || filter[id].unload)  {
 	dlclose(filter[id].handle);
 	free(filter[id].name);
 	memset (&filter[id], 0, sizeof (filter_t));

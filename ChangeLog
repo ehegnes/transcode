@@ -1,6 +1,19 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-14 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/preview{Makefile.am filter_pv.c pv.c pv.h display.c} src/{socket.c
+  socket.h filter.c}:
+  Add a feature which saves the current displayed frame as a jpeg.
+  Note that this doesn't work when you are using -y jpg.
+  Hit "j" in the preview window of -J pv or issue the command
+  "preview grab" on the socket.
+
+  Also disabled the display hack it does not seem to be needed
+  anymore. If segfaults at closing time with -J preview or -J pv
+  happen, please report.
+
 2003-08-13 marrq <marrq at ugcs.caltech.edu>
   
   * filter_modfps.c:

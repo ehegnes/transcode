@@ -210,6 +210,10 @@ void xv_display_event (xv_display_t *dv_dpy)
 		sockmsg = TC_SOCK_PV_NONE;
 		preview_toggle_skip();
 		break;
+	    case TC_SOCK_PV_SAVE_JPG:
+		sockmsg = TC_SOCK_PV_NONE;
+		preview_grab_jpeg();
+		break;
 	    case TC_SOCK_PV_DISPLAY:
 		sockmsg = TC_SOCK_PV_NONE;
 		xv_pause=0;
@@ -338,6 +342,11 @@ void xv_display_event (xv_display_t *dv_dpy)
       case XK_y:
       case XK_Y:
 	preview_toggle_skip();
+	break;
+
+      case XK_j:
+      case XK_J:
+	preview_grab_jpeg();
 	break;
 
 #if 0
@@ -685,12 +694,14 @@ int xv_display_init(xv_display_t *dv_dpy, int *argc, char ***argv, int width, in
     dv_dpy->pitches[2] = width / 2;
     break;
   }
+#if 0
   
 #if defined(__FreeBSD__) || defined(__APPLE__) /* We don't have on_exit() */
   xv_dpy_on_exit_hack = dv_dpy;
   atexit(xv_display_on_exit_hack_handler);
 #else
   on_exit(xv_display_exit_handler, dv_dpy);
+#endif
 #endif
   
   return(0);

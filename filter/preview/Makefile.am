@@ -3,7 +3,7 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-INCLUDES = -I./ -I../../src -I../ -I../../ -I$(srcdir)/../../src -I$(srcdir)/../.. @DV_CFLAGS@ -Wall $(X_CFLAGS) $(GTK_CFLAGS) $(SDL_CFLAGS)
+INCLUDES = -I./ -I../../src -I../ -I../../ -I$(srcdir)/../../src -I$(srcdir)/../.. @DV_CFLAGS@ -Wall $(X_CFLAGS) $(GTK_CFLAGS) $(SDL_CFLAGS) @DLDARWININCL@
 
 if HAVE_LIBXV
 LIBS_XV=-lXv
@@ -19,8 +19,7 @@ endif
 
 LIBS = $(LIBS_XV) $(LIBS_GTK) $(LIBS_SDL) 
 
-CFLAGS = -D_REENTRANT @CFLAGS@
-
+CFLAGS = -D_REENTRANT -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@ 
 pkgdir=@MOD_PATH@
 
 if HAVE_DV
@@ -35,7 +34,7 @@ filter_preview_la_LIBADD = $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(X_EXTRA_LIBS) 
 
 filter_pv_la_SOURCES = filter_pv.c pv.c 
 filter_pv_la_LDFLAGS =  -module -avoid-version 
-filter_pv_la_LIBADD = $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(LIBS_XV)
+filter_pv_la_LIBADD = $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(LIBS_XV) @DLDARWINLIB@ 
 
 
 EXTRA_DIST = display.h dv_types.h filter_preview.h font_xpm.h pv.h

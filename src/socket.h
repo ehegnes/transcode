@@ -68,6 +68,7 @@ enum TC_SOCKET_RETURN {
 #define TC_SOCK_PV_TOGGLE    11
 #define TC_SOCK_PV_ROTATE    12
 #define TC_SOCK_PV_DISPLAY   13
+#define TC_SOCK_PV_SAVE_JPG  14
 
 void tc_socket_submit (char *buf);
 void socket_thread(void);

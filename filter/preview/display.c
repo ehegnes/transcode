@@ -794,11 +794,13 @@ dv_display_init(dv_display_t *dv_dpy, int *argc, char ***argv, int width, int he
   fprintf(stderr, " Using gtk for display\n");
 
  ok:
+#if 0 /* disabled because it does not seem to be needed any more */
 #if defined(__FreeBSD__) || defined(__APPLE__) /* We don't have on_exit() */
   dv_dpy_on_exit_hack = dv_dpy;
   atexit(dv_display_on_exit_hack_handler);
 #else
   on_exit(dv_display_exit_handler, dv_dpy);
+#endif
 #endif
   return(TRUE);
 
