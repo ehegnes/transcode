@@ -50,6 +50,75 @@
 #endif
 
 
+static char lock_file[] = "/tmp/LCK..dvd";
+
+/*
+ * lock - create a lock file for the device
+ */
+int
+lock(void)
+{
+    char lock_buffer[12];
+    int fd, pid, n;
+
+    while ((fd = open(lock_file, O_EXCL | O_CREAT | O_RDWR, 0644)) < 0) {
+	if (errno != EEXIST) {
+	    fprintf( stderr, "Can't create lock file %s: %m", lock_file);
+	    break;
+	}
+
+	/* Read the lock file to find out who has the device locked. */
+	fd = open(lock_file, O_RDONLY, 0);
+	if (fd < 0) {
+	    if (errno == ENOENT) /* This is just a timing problem. */
+		continue;
+	    fprintf( stderr, "Can't open existing lock file %s: %m", lock_file);
+	    break;
+	}
+	n = read(fd, lock_buffer, 11);
+	close(fd);
+	fd = -1;
+	if (n <= 0) {
+	    fprintf( stderr, "Can't read pid from lock file %s", lock_file);
+	    break;
+	}
+
+	/* See if the process still exists. */
+	lock_buffer[n] = 0;
+	pid = atoi(lock_buffer);
+	if (pid == getpid())
+	    return 0;		/* somebody else locked it for us */
+	if (pid == 0
+	    || (kill(pid, 0) == -1 && errno == ESRCH)) {
+	    if (unlink (lock_file) == 0) {
+		fprintf( stderr, "Removed stale lock (pid %d)", pid);
+		continue;
+	    }
+	    fprintf( stderr, "Couldn't remove stale lock");
+	}
+	break;
+    }
+
+    if (fd < 0) {
+	return 1;
+    }
+
+    pid = getpid();
+    sprintf(lock_buffer, "%10d\n", pid);
+    write (fd, lock_buffer, 11);
+    close(fd);
+    return 0;
+}
+
+/*
+ * unlock - remove our lockfile
+ */
+void
+unlock( void )
+{
+	unlink(lock_file);
+}
+
 
 static long playtime=0;
 
@@ -698,6 +767,7 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
     int pgc_id, len, start_cell, cur_cell, last_cell, next_cell;
     unsigned int cur_pack;
     int ttn, pgn;
+    int lockretries;
 
     dvd_file_t *title;
     ifo_handle_t *vmg_file;
@@ -793,9 +863,19 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
      * We've got enough info, time to open the title set data.
      */
     
+    for (lockretries=0; lock() && lockretries < 180; lockretries++ ) {
+        sleep(1);
+    }
+
+    if( lockretries >= 180 ) {
+        fprintf( stderr, "Can't acquire lock.\n" );
+    }
+
     title = DVDOpenFile( dvd, tt_srpt->title[ titleid ].title_set_nr,
                          DVD_READ_TITLE_VOBS);
     
+    unlock();
+
     if( !title ) {
         fprintf( stderr, "Can't open title VOBS (VTS_%02d_1.VOB).\n",
                  tt_srpt->title[ titleid ].title_set_nr );
