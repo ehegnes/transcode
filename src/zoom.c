@@ -99,6 +99,7 @@
 #include <malloc.h>
 #endif
 #include <math.h>
+#include <inttypes.h>
 
 #include "zoom.h"
 
@@ -111,10 +112,19 @@
 
 #define WHITE_PIXEL (255)
 #define BLACK_PIXEL (0)
+#if 0
 #define CLAMP(v) (((v) < (BLACK_PIXEL)) ? \
                   (BLACK_PIXEL) :  \
                   (((v) > (WHITE_PIXEL)) ? (WHITE_PIXEL) : (v)))
-
+#else
+static inline uint8_t CLAMP(uint32_t v) {
+    // negative will be clipped to 1
+    v >>= ((v&0xF8000000)>>27);
+    // >255 -> 255.
+    v |= (v>>8)*0xff;
+    return v&0xff;
+}
+#endif
 
 #define get_pixel(image, y, x) ((image)->data[(x) + (y) * image->span])
 #define put_pixel(image, y, x, p) ((image)->data[(x) + (y) * image->span] = (p))

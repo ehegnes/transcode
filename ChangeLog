@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-03-01 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/zoom.c:
+  optimized CLAMP routine
+
 2004-02-29 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/import_ffmpeg.c:
