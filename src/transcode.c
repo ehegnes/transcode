@@ -1375,6 +1375,7 @@ int main(int argc, char *argv[]) {
 	  if(vob->divxcrispness < 0 || vob->divxcrispness >100 ) 
 	    tc_error("invalid crispness parameter for option -w");
 	case 2:
+	  probe_export_attributes |= TC_PROBE_NO_EXPORT_GOP;
 	case 1:
 
 	  vob->divxbitrate = (int)ratefact;

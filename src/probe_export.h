@@ -49,6 +49,7 @@
 #define TC_PROBE_NO_EXPORT_VMINRATE  (1<<17) // unused
 #define TC_PROBE_NO_EXPORT_ASR       (1<<18) // --export_asr
 #define TC_PROBE_NO_EXPORT_PAR       (1<<19) // --export_par
+#define TC_PROBE_NO_EXPORT_GOP       (1<<20) // divx key frames
 
 extern unsigned int probe_export_attributes;
 
