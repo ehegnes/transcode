@@ -427,7 +427,7 @@ vframe_list_t *vframe_dup(vframe_list_t *f)
 
   //fprintf(stderr, "Duplicating (%d)\n", f->id);
   if (!f) {
-      fprintf(stderr, "Hmm, 1 cannot find a free slot (%d)\n", f->id);
+      if(verbose & TC_FLIST)fprintf(stderr, "Hmm, 1 cannot find a free slot (%d)\n", f->id);
       pthread_mutex_unlock(&vframe_list_lock);
       return (NULL);
   }
@@ -437,7 +437,7 @@ vframe_list_t *vframe_dup(vframe_list_t *f)
 #ifdef STATBUFFER
   if((ptr = vid_buf_retrieve()) == NULL) {
     pthread_mutex_unlock(&vframe_list_lock);
-    fprintf(stderr, "(%s) cannot find a free slot (%d)\n", __FILE__, f->id);
+    if(verbose & TC_FLIST)fprintf(stderr, "(%s) cannot find a free slot (%d)\n", __FILE__, f->id);
     return(NULL);
   }
 #else 
