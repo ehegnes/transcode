@@ -87,7 +87,9 @@ MOD_open
   ret = system("divx4rec -h >/dev/null 2>&1");
   if (ret == 0 || ret == 65280)
       strcpy(prgname, "divx4rec");
-  
+
+  /* make this even more ugly. Add another check for prgname */
+  if (tc_test_program(prgname) != 0) return (TC_EXPORT_ERROR);
   
   if(param->flag == TC_VIDEO) {
 

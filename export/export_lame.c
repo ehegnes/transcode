@@ -72,6 +72,10 @@ static int p_write (char *buf, size_t len)
 
 MOD_open
 {
+
+  /* check for lame */
+  if (tc_test_program("lame") != 0) return (TC_EXPORT_ERROR);
+
   if (param->flag == TC_AUDIO) {
     char buf [PATH_MAX];
     int ifreq,ofreq,orate;

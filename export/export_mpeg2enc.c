@@ -146,6 +146,9 @@ MOD_open
   char *pulldown="";
   int fields = !!vob->encode_fields;
 
+  /* check for mpeg2enc */
+  if (tc_test_program("mpeg2enc") != 0) return (TC_EXPORT_ERROR);
+        
   if(param->flag == TC_VIDEO) 
   {
     char buf[PATH_MAX];

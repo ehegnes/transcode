@@ -54,6 +54,9 @@ static FILE *videopipefd = NULL;
 
 MOD_open
 {
+  /* check for mplayer */
+  if (tc_test_program("mplayer") != 0) return (TC_EXPORT_ERROR);  
+
   switch (param->flag) {
     case TC_VIDEO:
     

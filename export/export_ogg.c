@@ -65,6 +65,9 @@ MOD_open
     int result;
     int ifreq,ofreq;
 
+    /* check for oggenc */
+    if (tc_test_program("oggenc") != 0) return (TC_EXPORT_ERROR);
+        
     ofreq = vob->mp3frequency;
     ifreq = vob->a_rate;
 

@@ -62,6 +62,10 @@ static FILE *videopipefd = NULL;
 
 MOD_open
 {
+
+  /* check for ffmpeg */
+  if (tc_test_program("ffmpeg") != 0) return (TC_EXPORT_ERROR);
+        
   switch (param->flag) {
     case TC_VIDEO:
     

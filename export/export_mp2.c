@@ -93,6 +93,9 @@ MOD_open
 {
     int result, srate;
 
+    /* check for ffmpeg */
+    if (tc_test_program("ffmpeg") != 0) return (TC_EXPORT_ERROR);
+
     if (param->flag == TC_AUDIO) {
 	    char buf [PATH_MAX];
         char out_fname [PATH_MAX];
@@ -110,6 +113,10 @@ MOD_open
 
     // need sox for speed changing?
     if (speed > 0.0) {
+
+        /* check for sox */
+        if (tc_test_program("sox") != 0) return (TC_EXPORT_ERROR);
+        
         result = snprintf(buf, PATH_MAX,
                             "sox %s -s -c %d -r %d -t raw - -r %d -t wav - speed %.10f | ",
                             vob->dm_bits == 16 ? "-w" : "-b",

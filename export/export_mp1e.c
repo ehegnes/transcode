@@ -70,6 +70,9 @@ static int audio_frames_written =0;
 
 MOD_open
 {
+    
+    /* check for mp1e program */
+    if (tc_test_program("mp1e") != 0) return (TC_EXPORT_ERROR);
 
     if (do_audio && !audio_open_done) {
 	pFifo = fopen (fifoname, "w");

@@ -1,5 +1,17 @@
 transcode-0.13-pre2 EMS
 
+2004-09-01 Stefan Scheffler <stefanscheffler at gmx dot net>
+  * export/export_ac3.c export_lame.c export_mp1e.c export_mp2.c
+  * export_mp2enc.c export_mpeg2enc.c export_ogg.c export_toolame.c
+  * import_ffbin.c import_lav.c import_mplayer.c import_nvrec.c
+  * tc_functions.c tc_functions.h:
+  - check if external program is there before trying to execute it and
+  give the user better feedback.
+  - if NON_POSIX_PATH is defined the check always returns success. Who knows 
+  maybe we'll one day (or do already?) run on a platform where it's 
+  necessery. Might be a good idea to add it to config.h, src/Makefile.am 
+  or something like that.
+
 2004-08-30 Jacob Meuser <jakemsr at jakemsr dot com>
   * acinclude.m4 configure.in libdvenc/dvenc.h libvo/yuv2rgb_mmx.c:
   - display "no" when ffbin is not enabled

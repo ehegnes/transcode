@@ -65,6 +65,10 @@ static inline int p_write (char *buf, size_t len)
 MOD_open
 {
     int result;
+
+    /* check for ffmpeg */
+    if (tc_test_program("ffmpeg") != 0) return (TC_EXPORT_ERROR);
+
     if (param->flag == TC_AUDIO) {
 	char buf [PATH_MAX];
         char out_fname [PATH_MAX];

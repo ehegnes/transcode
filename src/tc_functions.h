@@ -28,4 +28,12 @@ void tc_error(char *fmt, ...);
 void tc_info(char *fmt, ...);
 void tc_warn(char *fmt, ...);
 
+/*
+ * Find program <name> in $PATH
+ * returns 0 if found, ENOENT if not and the value of errno of the first 
+ * occurance if found but not accessible.
+ */
+
+int tc_test_program(char *name);
+
 #endif

@@ -85,6 +85,9 @@ MOD_open
     char chan;
     char *ptr = buf;
 
+    /* check for toolame */
+    if (tc_test_program("toolame") != 0) return (TC_EXPORT_ERROR);
+        
     /* verbose? */
     verb = (verbose & TC_DEBUG) ? 2:0;
 
@@ -101,6 +104,9 @@ MOD_open
 
     /* need conversion? */
     if(ofreq!=ifreq) {
+      /* check for sox */
+      if (tc_test_program("sox") != 0) return (TC_EXPORT_ERROR);
+            
       /* add sox for conversion */
       sprintf(buf,"sox %s -r %d -c %d -t raw - -r %d -t raw - polyphase "
 	      "2>/dev/null | ",

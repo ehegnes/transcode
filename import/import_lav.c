@@ -58,6 +58,9 @@ MOD_open
   
   if(param->flag == TC_VIDEO) {
     
+    /* check for lav2yuv */
+    if (tc_test_program("lav2yuv") != 0) return (TC_EXPORT_ERROR);
+
     switch(vob->im_v_codec) {
       
     case CODEC_RGB:
@@ -94,6 +97,10 @@ MOD_open
   }
   
   if(param->flag == TC_AUDIO) {
+
+    /* check for lav2wav */
+    if (tc_test_program("lav2wav") != 0) return (TC_EXPORT_ERROR);
+    
     if((snprintf(import_cmd_buf, MAX_BUF, "lav2wav \"%s\"%s | tcextract -x pcm -t wav ", vob->audio_in_file, i ? "*" : "")<0)) {
       perror("cmd buffer overflow");
       return(TC_IMPORT_ERROR);

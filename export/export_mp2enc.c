@@ -58,7 +58,10 @@ static char *mpa=".mpa";
 MOD_open
 {
     int verb;
-  
+
+    /* check for mp2enc */
+    if (tc_test_program("mp2enc") != 0) return (TC_EXPORT_ERROR);
+          
     if (param->flag == TC_AUDIO) 
     {
         char buf [PATH_MAX];

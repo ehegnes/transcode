@@ -29,6 +29,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <unistd.h>
+#include <errno.h>
 
 #include "tc_functions.h"
 
@@ -95,5 +97,56 @@ void tc_info(char *fmt, ...)
   va_end(ap);
   free (a);
   fflush(stdout);
+}
+
+int tc_test_program(char *name)
+{
+#ifndef NON_POSIX_PATH
+  char *tok_path = NULL;
+  char *compl_path = NULL;
+  char *tmp_path = malloc(strlen(getenv("PATH")) * sizeof(char));
+  char **strtokbuf = malloc(strlen(getenv("PATH")) * sizeof(char));
+  int tmp_errno = 0;
+
+  strcpy(tmp_path, getenv("PATH"));
+  
+  /* iterate through PATH tokens */
+  for (tok_path = strtok_r(tmp_path, ":", strtokbuf);
+       tok_path != NULL;
+       tok_path = strtok_r(NULL, ":", strtokbuf)) {
+
+    compl_path = malloc((strlen(tok_path) + strlen(name) + 1) * sizeof(char));
+  
+    strcpy(compl_path, tok_path);
+    compl_path = strncat(compl_path, "/", 1);
+    compl_path = strncat(compl_path, name, strlen(name));
+    
+    if (access(compl_path, X_OK) == 0) {
+      free(tok_path);
+      free(strtokbuf);
+      free(compl_path);
+      return 0;
+    }
+    if (errno != ENOENT) tmp_errno = errno;
+  }
+  
+  free(tok_path);
+  free(strtokbuf); 
+  free(compl_path);
+                  
+  if (tmp_errno == 0) {
+    fprintf(stderr, "[%s] ERROR: The '%s' program could not be found. \n"
+                    "[%s]        Please check your installation.\n", PACKAGE,  name, PACKAGE);
+    return errno;
+  }
+
+  /* access returned an unhandled error */
+  fprintf(stderr, "[%s] ERROR: The '%s' program was found but is not accessible.\n"
+                  "[%s]        %s\n"
+                  "[%s]        Please check your installation.\n", PACKAGE,  name, PACKAGE,  strerror(tmp_errno), PACKAGE);
+  return tmp_errno;
+#else
+  return 0;
+#endif
 }
 
