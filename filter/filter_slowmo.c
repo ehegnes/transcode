@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_slowmo.so"
-#define MOD_VERSION "v0.1 (2003-06-19)"
+#define MOD_VERSION "v0.2 (2003-06-23)"
 #define MOD_CAP     "slow-motion effect"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
@@ -122,7 +122,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     
     if (options) {
 	if (verbose) printf("[%s] options=%s\n", MOD_NAME, options);
-	if (optstr_get(options, "help", "")>=0) held_optstr();
+	if (optstr_get(options, "help", "")>=0) help_optstr();
     }
     
     return(0);

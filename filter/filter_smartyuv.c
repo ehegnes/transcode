@@ -103,16 +103,28 @@ static void help_optstr(void)
 {
    printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
    printf ("* Overview\n");
-   printf ("   This filter is basically a rewrite of the\n");
-   printf ("   smartdeint filter (without advanced processing options) for\n");
-   printf ("   YUV mode only. Its faster than using the smartdeinter in YUV mode\n");
-   printf ("   and is also tuned with its threshold settings for YUV mode.\n");
-   printf ("   The filter detects motion and static areas in an image and only\n");
-   printf ("   deinterlaces (either by blending or by cubic interpolation) the\n");
-   printf ("   moving areas. The result is an image with high detail in static\n");
-   printf ("   areas, no information is lost there.\n");
+   printf ("   New filter smartyuv. This filter is basically a rewrite of the\n");
+   printf ("   smartdeinter filter by Donald Graft (without advanced processing\n");
+   printf ("   options) for YUV mode only. Its faster than using the smartdeinter\n");
+   printf ("   in YUV mode and is also tuned with its threshold settings for YUV\n");
+   printf ("   mode. The filter detects motion and static areas in an image and\n");
+   printf ("   only deinterlaces (either by blending or by cubic interpolation)\n");
+   printf ("   the moving areas. The result is an image with high detail in\n");
+   printf ("   static areas, no information is lost there.\n");
+   printf ("\n");
+   printf ("   The threshold settings should be sufficent for most users. As a\n");
+   printf ("   rule of thumb, I recommend setting the chroma threshold to about\n");
+   printf ("   the half of the luma threshold. If you want more deinterlacing,\n");
+   printf ("   lower the thresholds. The scene threshold can be easily found by\n");
+   printf ("   turning on verbose mode and the preview filter. In verbose mode,\n");
+   printf ("   the filter will print out, when it detects a scene change. If\n");
+   printf ("   scenechanges go by unnoticed, lower the scene threshold. You can\n");
+   printf ("   completly disable chroma processing with the doChroma=0 option.\n");
+   printf ("   Here is a sample commandline\n");
+   printf ("   -J smartyuv=hiqhq=1:diffmode=2:cubic=1:Blend=1:chromathres=4:threshold=8:doChroma=1\n");
    printf ("* Options\n");
    printf ("  'motionOnly' Show motion areas only (0=off, 1=on) [1]\n");
+   printf ("    'diffmode' Motion Detection (0=frame, 1=field, 2=both) [0]\n");
    printf ("   'threshold' Motion Threshold (luma) (0-255) [14]\n");
    printf (" 'chromathres' Motion Threshold (chroma) (0-255) [7]\n");
    printf ("  'scenethres' Threshold for detecting scenechanges (0-255) [31]\n");
@@ -648,6 +660,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 	  printf (" Smart YUV Deinterlacer Test Filter Settings (%dx%d):\n", width, height);
 	  printf ("        motionOnly = %d\n", mfd->motionOnly);
+	  printf ("          diffmode = %d\n", mfd->diffmode);
 	  printf ("         threshold = %d\n", mfd->threshold);
 	  printf ("       chromathres = %d\n", mfd->chromathres);
 	  printf ("        scenethres = %d\n", mfd->scenethreshold);
@@ -697,6 +710,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
       sprintf (buf, "%d", mfd->motionOnly);
       optstr_param (options, "motionOnly", "Show motion areas only, blacking out static areas" ,"%d", buf, "0", "1");
+      sprintf (buf, "%d", mfd->diffmode);
+      optstr_param (options, "diffmode", "Motion Detection (0=frame, 1=field, 2=both)", "%d", buf, "0", "2" );
       sprintf (buf, "%d", mfd->threshold);
       optstr_param (options, "threshold", "Motion Threshold (luma)", "%d", buf, "0", "255" );
       sprintf (buf, "%d", mfd->chromathres);
