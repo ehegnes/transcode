@@ -368,8 +368,8 @@ static void jpeg_table_header(MpegEncContext *s)
 static void jpeg_put_comments(MpegEncContext *s)
 {
     PutBitContext *p = &s->pb;
-    int size;
-    uint8_t *ptr;
+    //int size;
+    //uint8_t *ptr;
 
     if (s->aspect_ratio_info /* && !lossless */)
     {
@@ -405,17 +405,28 @@ static void jpeg_put_comments(MpegEncContext *s)
     put_bits(p, 8, 0); /* thumbnail height */
     }
 
+#if 0
     /* comment */
     if(!(s->flags & CODEC_FLAG_BITEXACT)){
-        put_marker(p, COM);
+        //put_marker(p, COM);
+        put_marker(p, APP0);
         flush_put_bits(p);
         ptr = pbBufPtr(p);
         put_bits(p, 16, 0); /* patched later */
-        put_string(p, LIBAVCODEC_IDENT);
-        size = strlen(LIBAVCODEC_IDENT)+3;
+        //put_string(p, LIBAVCODEC_IDENT);
+        //size = strlen(LIBAVCODEC_IDENT)+3;
+        put_string(p, "AVI1");
+        size = strlen("AVI1")+3;
         ptr[0] = size >> 8;
         ptr[1] = size;
     }
+#endif
+
+    // for quicktime -- tibit
+    put_marker(p, APP0);
+    put_bits(p, 16, 0x0a);
+    put_string(p, "AVI1");
+    put_bits(p, 24, 0);
 }
 
 void mjpeg_picture_header(MpegEncContext *s)
