@@ -105,7 +105,7 @@ void decode_a52(info_t *ipipe)
   
   //load the codec
   if(a52_init(mod_path)<0) {
-    printf("failed to init ATSC A-52 stream decoder");
+    fprintf(stderr, "failed to init ATSC A-52 stream decoder");
     import_exit(1);
   }
   
