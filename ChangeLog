@@ -1,6 +1,57 @@
 --------------------------------------------
 transcode-0.6.8
 
+2003-06-18 Tilmann Bitterberg <transcode at tibit.org>
+
+  * avisplit, avimerge:
+  Added synced time support for PCM audio in AVI files. Files
+  produced by mencoder (and of course transcode) should now be
+  handled now. Splitting AVI files created by mencoder may lead to
+  offsync but thats not a bug of avisplit. Mencoder writes one large
+  audio chunk which will last ~12 frames while transcode writes one
+  small audio chunk per frame which enables easier splitting.
+
+2003-06-16 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter_unsharp.c:
+  New filter ported from mplayer (vf_unsharp). This filter can
+  applies an unsharp mask or gaussian blur to the image
+  This filter blurs or sharpens an image depending on
+  the sign of "amount". You can either set amout to the
+  same for luma and chroma or you can set it individually
+  A positive value for amount will sharpen the image, a negative
+  value will blur it. A sane range for amount is -1.5 to 1.5.  The
+  matrix sizes must be odd and define the range/strength of the
+  effect. Sensible ranges are 3x3 to 7x7.
+  It sometimes makes sense to sharpen the luma and to blur the
+  chroma. Sample string is:
+  
+  luma=0.8:luma_matrix=7x5:chroma=-0.2:chroma_matrix=3x3
+
+  Options:
+           amount : Luma and chroma (un)sharpness amount
+           matrix : Luma and chroma search matrix size
+             luma : Luma (un)sharpness amount
+           chroma : Chroma (un)sharpness amount
+      luma_matrix : Luma search matrix size
+    chroma_matrix : Chroma search matrix size
+              pre : run as a pre filter
+
+ * export_toolame.c:
+ Do not caculate float from 2 ints. Pointed out by elronxenu.
+
+2003-06-14 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * avilib.c:
+  Bugfix when writing length for AVI comments.
+  Bugfix for AVI_read_audio_chunks, advance the chunk counter also for zero sized
+  frames.
+
+2003-06-12 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export_divx5.c:
+  Apply VBV settings to first pass, too.
+
 2003-06-11 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/decoder.c export/export_xvidcvs.c:
