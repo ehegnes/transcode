@@ -7,7 +7,8 @@ EXTRA_DIST = \
 	filter-help.txt \
 	make-filter-man.sh \
 	make-module-man.sed \
-	export-mods.txt
+	export-mods.txt \
+	import-mods.txt
 
 SUBDIRS = . man html
 
