@@ -3007,7 +3007,7 @@ int main(int argc, char *argv[]) {
       
       if( vob->ex_v_width - vob->im_clip_left - vob->im_clip_right <= 0 ||    
 	  vob->ex_v_width - vob->im_clip_left - vob->im_clip_right > TC_MAX_V_FRAME_WIDTH) tc_error("invalid left/right clip parameter for option -j");
-      
+
       vob->ex_v_height -= (vob->im_clip_top + vob->im_clip_bottom);
       vob->ex_v_width  -= (vob->im_clip_left + vob->im_clip_right);
       
@@ -3294,7 +3294,7 @@ int main(int argc, char *argv[]) {
 	
       vob->ex_v_height -= (vob->ex_clip_top + vob->ex_clip_bottom);
       vob->ex_v_width -= (vob->ex_clip_left + vob->ex_clip_right);
-      
+
       if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d\n", PACKAGE, "clip frame (->)", vob->ex_v_width, vob->ex_v_height);
 
       //2003-01-13 
@@ -3856,6 +3856,15 @@ int main(int argc, char *argv[]) {
       
       if(core_mode == TC_MODE_AVI_SPLIT && no_v_out_codec)
 	tc_warn("no option -y found, option -t ignored, writing to \"/dev/null\"");
+
+      if( vob->im_v_codec==CODEC_YUV && (vob->im_clip_left%2!=0 ||
+	    vob->im_clip_right%2 || vob->im_clip_top%2!=0 || vob->im_clip_bottom%2!=0))
+	tc_warn ("Odd import clipping paramter(s) detected, may cause distortion");
+
+      if( vob->im_v_codec==CODEC_YUV && (vob->ex_clip_left%2!=0 ||
+	    vob->ex_clip_right%2 || vob->ex_clip_top%2!=0 || vob->ex_clip_bottom%2!=0))
+	tc_warn ("Odd export clipping paramter(s) detected, may cause distortion");
+      
 
     }
 

@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-02-19 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/transcode.c:
+  Warn about odd clipping parameters in YUV mode
+
 2004-02-16 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/{import_*.c import_def.h} export/{export_*.c
