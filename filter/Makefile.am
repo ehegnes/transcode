@@ -185,10 +185,6 @@ filter_fields_la_LDFLAGS =  -module -avoid-version
 
 EXTRA_DIST =  parse_csv.awk filter_list.awk mmx.h
 
-if HAVE_DV
-ADD1=preview 
-endif
-
 if HAVE_XAW_SIMPLE
 if HAVE_LIBXPM
 ADD2=subtitler
@@ -196,7 +192,7 @@ endif
 endif
 
 if HAVE_X11
-SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc $(ADD1) $(ADD2)
+SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc preview $(ADD2)
 else
 SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc
 endif
