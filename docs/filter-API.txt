@@ -45,7 +45,7 @@
 Example filter code:
 
 #define MOD_NAME    "filter_null.so"
-#define MOD_VERSION "v0.1 (2001-08-17)"
+#define MOD_VERSION "v0.1 (2003-10-12)"
 #define MOD_CAP     "demo filter plugin"
 #define MOD_AUTHOR  "Jon Doe <me@there>"
 

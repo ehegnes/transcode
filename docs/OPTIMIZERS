@@ -124,7 +124,7 @@ The memory layout is
  \_______________/ \_______________/
     Pixel(0,0)        Pixel(1,0)
 
-* YUV
+* YUV (4:2:0)
 This is actually YV12 or Y420 with 1+1/2 byte per pixel. It is a planar
 format meaning first all Y data then Cr and then Cb.
 The memory layout is
@@ -136,6 +136,17 @@ The memory layout is
 
 There are Width*Height Y bytes, Width*Height/4 Cr bytes and
 Width*Height/4 Cb bytes. The size of the image is Width*Height*3/2
+
+
+* YUV (4:2:2)
+This is UYVY 8-bit packed.
+
+ _______________________________________  ....
+|_U1_|_Y1_|_V1_|_Y2_|_U2_|_Y3_|_V2_|_Y4_| ....
+ \_________________/ \_________________/
+    Pixel 1 and 2       Pixel 3 and 4
+
+Size of the image is 2*W*H.
 
 (c) 2003 Tilmann Bitterberg <transcode@tibit.org>
 Modified: Fri May  9 12:07:21 CEST 2003

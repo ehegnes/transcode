@@ -1,4 +1,4 @@
-.TH transcode 1 "8th September 2003" "transcode(1)"
+.TH transcode 1 "12th October 2003" "transcode(1)"
 .SH NAME
 transcode \- LINUX video stream processing tool
 .SH SYNOPSIS
@@ -25,9 +25,10 @@ of external filters.
 .LP
 A number of modules are included to enable import of DVDs on-the-fly,
 MPEG elementary (ES) or program streams (VOB), MPEG video, Digital
-Video (DV), YUV4MPEG streams, NuppelVideo file format and raw or
-compressed (pass-through) video frames and export modules for writing
-DivX;-), XviD, DivX 4.xx/5.xx or uncompressed AVI files with MPEG, AC3
+Video (DV), YUV4MPEG streams, NuppelVideo file format, AVI
+based codecs and raw or compressed (pass-through) video
+frames and export modules for writing DivX;-), XviD, DivX
+4.xx/5.xx or uncompressed AVI and raw files with MPEG, AC3
 (pass-through) or PCM audio.
 .LP
 Additional export modules to write single frames (PPM) or YUV4MPEG
@@ -40,8 +41,9 @@ of tools is included to demux (tcdemux), extract (tcextract) and
 decode (tcdecode) the sources into raw video/audio streams for import,
 probing (tcprobe) and scanning (tcscan) your sources and to enable
 post-processing of AVI files, fixing AVI file header information
-(avifix), merging multiple files (avimerge) or splitting large AVI
-files (avisplit) to fit on a CD.
+(avifix), merging multiple files (avimerge), splitting large AVI
+files (avisplit) to fit on a CD and avisync to correct
+AV-offsyncs.
 .SH OPTIONS
 .TP
 .B \-A
@@ -129,6 +131,8 @@ gamma correction (0.0-10.0) [off].
 .TP
 .B \-H \fIn\fP
 auto-probe \fIn\fP MB of source (0=disable) default [1]
+.br
+Use a higher value than the default to detect all subtitles in the VOB.
 .TP
 .B \-I \fImode\fP
 enable de-interlacing mode (1-5) [off].
@@ -203,9 +207,13 @@ section documents nearly every filter which might be of use.
 .TP
 .B \-L \fIn\fP
 seek to VOB stream offset \fIn\fPx2kB default [0]
+.br
+This option is usually calculated automatically when giving --nav_seek and -c.
 .TP
 .B \-K
 enable black/white by removing colors mode (grayscale) [off].
+.br
+Please note this does not necessarily lead to a smaller image / better compression.
 .br
 For YUV mode, this is done by emptying the chroma planes, for RGB mode a
 weightend grayscale value is computed.
@@ -214,6 +222,19 @@ weightend grayscale value is computed.
 demuxer PES AV sync modes (0-4) [1].
 
 .RS
+.TP 0
+.I Overview
+The demuxer takes care that the right video frames go together with the right
+audio frame. This can sometimes be a complex task and transcode tries to aid you
+as much as possible.
+.br
+WARNING: It does make a difference if you (the user) specifies a demuxer to use
+or if transcode resp. tcprobe(1) chooses the one which it thinks is right for
+your material. 
+.br
+This is done on purpose to avoid mystic side-effects. So think twice, wether you
+specify a demuxer or let transcode choose one or you might end up with an
+off-sync result.
 .TP 4
 .I 0 
 Pass-through.
@@ -230,11 +251,12 @@ This mode generates synchronization information for transcode by
 analyzing the frame display time.
 .TP
 .I 3
-(like -M 1)
-but invokes "-D/--av_fine_ms" options internally based on "tcprobe" PTS analysis.
+(like -M 1): sync AV at initial PTS,
+but invokes "-D/--av_fine_ms" options internally based on "tcprobe" PTS
+analysis. PTS stands for Presentation Time Stamp.
 .TP
 .I 4
-(like -M 2)
+(like -M 2): initial PTS / enforce frame rate,
 with additional frame rate enforcement (for NTSC).
 .RE
 .TP
@@ -247,13 +269,14 @@ Available format IDs are:
 PCM uncompressed audio
 .TP
 .I \ \ 0x50
-MPEG layer-2 aka MP2 (only with -y *,mpeg)
+MPEG layer-2 aka MP2
 .TP
 .I \ \ 0x55
 MPEG layer-3 aka MP3
+Also have a look at --lame_preset if you intend to do VBR audio.
 .TP
 .I 0x2000
-AC3 audio (only with -A)
+AC3 audio
 .TP
 .I 0xfffe
 OGG/Vorbis audio
@@ -264,6 +287,19 @@ flush lame mp3 buffer on encoder stop [off].
 .TP
 .B \-P \fIflag\fP
 pass-through flag (0=off|1=V|2=A|3=A+V) [0].
+.br
+Pass-through for \fIflag\fP != 1 is broken and not a trivial thing to fix.
+.br
+You can pass-through DV video, AVI files and MPEG2 video. When doing MPEG2
+pass-through (together with the -y raw module), you can give a requantization
+factor by using -w -- for example -w 1.5 -- this will make the MPEG2 stream
+smaller.
+.IP
+The pass-through mode is useful for reconstruction of a broken index of an AVI
+file. The -x ffmpeg import-module analyzes the compressed bitstream and can
+detect a keyframe for DIV3, MPEG4 (DivX, XviD, ..) and other formats. It then
+sets an internal flag which the export module will respect when writing the
+frame out.
 .TP
 .B \-Q \fIn\fP[\fI,m\fP]
 encoding[,decoding] quality (0=fastest-5=best) [5,5].
@@ -311,7 +347,7 @@ The quantizer is the "compression level" of the picture. The lower the
 quantizer is, the higher is the quality of the picture. This mode can help
 in making sure the sequence is encoded at constant quality, but no prediction
 can be made on the final bitrate. When using this mode, the \fB-w\fP option
-changes its meaning. It now takes the quantizer ranging from 1 to 31.
+changes its meaning, it now takes the quantizer ranging from 1 to 31.
 .RE
 .TP
 .B \-S \fIunit\fP[\fI,s1-s2\fP]
@@ -777,17 +813,74 @@ sure of what you are doing. Transcode internally multiplicates vbv_bitrate with
 400, vbv_size with 16384 and vbv_occupancy with 64 to ensure the supplied
 values are multiples of what the encoder library wants.
 .TP
+.B \-\-export_fps \fIrate\fP[,\fIfrc\fP]
+set export frame rate (and code) [as input].Valid values
+for \fIfrc\fP are
+.RS
+
+\	frc\	:\	rate
+.br
+\	\ 1\	:\	23.976 (24000/1001.0)
+.br
+\	\ 2\	:\	24
+.br
+\	\ 3\	:\	25
+.br
+\	\ 4\	:\	29.970 (30000/1001.0)
+.br
+\	\ 5\	:\	30
+.br
+\	\ 6\	:\	50
+.br
+\	\ 7\	:\	59.940 (2 * 29.970)
+.br
+\	\ 8\	:\	60
+.br
+\	\ 9\	:\	\ 1
+.br
+\	10\	:\	\ 5
+.br
+\	11\	:\	10
+.br
+\	12\	:\	12
+.br
+\	13\	:\	15
+.RE
+.TP
 .B \-\-export_frc \fIF\fP
 set export frame rate code \fIF\fP [as input]
+.br
+obsolete, use --export_fps 0,F
+.TP
+.B \-\-hard_fps
+disable smooth dropping (for variable fps clips) [off]
+.br
+see /docs/framerate.txt for more information.
+.TP
+.B \-\-uyvy
+use UYVY (4:2:2) as internal video codec [off]
+.br
+This is an experimental feature and a developers playground. Not many import,
+export and filter modules support this colorspace. A 4:2:2 colorspace offers
+much more quality then the "traditional" 4:2:0 colorspace like YV12/I420. Most
+pre-production / pre-broadcast steps are done in UYVY.  UYVY doubles the
+precision for chroma (color difference) information in the image.
+.IP
+All internal transformations are supported in UYVY mode (clipping, flipping,
+zooming, etc). 
 .TP
 .B \-\-import_v4l \fIn\fP[,\fIid\fP]
 channel number and station number or name [0]
 .TP
 .B \-\-record_v4l \fIa-b\fP
 recording time interval in seconds [off]
+.br
+obsolete, use -c a-b.
 .TP
 .B \-\-duration \fIhh:mm:ss\fP
 limit v4l recording to this duration [off]
+.br
+obsolete, use -c 0-hh:mm:ss.
 .TP
 .B \-\-pulldown
 set MPEG 3:2 pulldown flags on export [off]
@@ -800,6 +893,12 @@ disable internal audio frame sample adjustment [off]
 .TP
 .B \-\-no_bitreservoir
 disable lame bitreservoir for MP3 encoding [off]
+.TP
+.B \-\-config_dir \fIdir\fP
+Assume config files are in this \fIdir\fP
+.br
+This only affects the -y ffmpeg and all -y xvid234 modules. It gives the path
+where the modules search for their configuration.
 .TP
 .B \-\-lame_preset \fIname\fP[\fI,fast\fP]
 use lame preset with \fIname\fP. [off]
@@ -851,6 +950,8 @@ CBR.
 .TP
 .B \-\-av_fine_ms \fIt\fP
 AV fine-tuning shift \fIt\fP in millisecs [autodetect]
+.br
+also see -D.
 .TP
 .B \-\-nav_seek \fIfile\fP
 use VOB or AVI navigation file [off].

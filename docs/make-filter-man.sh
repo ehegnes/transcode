@@ -119,6 +119,9 @@ beer
   s/A.*V/This is a video and audio filter. /
   s/V/This is a video filter. /
   s/A/This is a audio filter. /
+  s/4.*R.*Y/It can handle rgb,yuv and yuv422 mode. /
+  s/R.*4.*Y/It can handle rgb,yuv and yuv422 mode. /
+  s/R.*Y.*4/It can handle rgb,yuv and yuv422 mode. /
   s/R.*Y/It can handle rgb and yuv mode. /
   s/Y.*R/It can handle rgb and yuv mode. /
   s/R/It can handle rgb mode only. /
