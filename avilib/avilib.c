@@ -2815,6 +2815,8 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 
       while(1)
       {
+	  if (nvi >= AVI->total_frames) break;
+
          if( avi_read(AVI->fdes,data,8) != 8 ) break;
          n = str2ulong((unsigned char *)data+4);
 
@@ -2838,7 +2840,9 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
          /* Check if we got a tag ##db, ##dc or ##wb */
 	 
 	 // VIDEO
-         if( (data[2]=='d' || data[2]=='D') &&
+         if( 
+	     (data[0]=='0' || data[1]=='0') &&
+	     (data[2]=='d' || data[2]=='D') &&
              (data[3]=='b' || data[3]=='B' || data[3]=='c' || data[3]=='C') ) {
 
 	     AVI->video_index[nvi].key = 0x0;
@@ -2850,7 +2854,9 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 	 } 
 
 	 //AUDIO
-	 else if( (data[2]=='w' || data[2]=='W') &&
+	 else if( 
+		 (data[0]=='0' || data[1]=='1') &&
+		 (data[2]=='w' || data[2]=='W') &&
 	     (data[3]=='b' || data[3]=='B') ) {
 
 	        j=0;
