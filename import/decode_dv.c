@@ -41,13 +41,16 @@
 #define DV_NTSC_SIZE   frame_size_525_60
 #define DV_HEADER_SIZE header_size
 
-static const int attribute_used(header_size) = 80 * 52;
-static const int attribute_used(frame_size_525_60) = 10 * 150 * 80;
-static const int attribute_used(frame_size_625_50) = 12 * 150 * 80;
+#ifdef LIBDV_0103
+static const int header_size = 80 * 52;
+static const int frame_size_525_60 = 10 * 150 * 80;
+static const int frame_size_625_50 = 12 * 150 * 80;
+#endif
 
 static int verbose=TC_QUIET;
 
-attribute_used static unsigned char *bufalloc(size_t size)
+#ifdef HAVE_DV
+static unsigned char *bufalloc(size_t size)
 {
    long buffer_align=getpagesize();
  
@@ -120,6 +123,8 @@ void yuy2touyvy(char *dest, char *src, int width, int height)
         dest[i+3] = src[i+2];
     }
 }
+#endif
+
 
 
 /* ------------------------------------------------------------ 
@@ -147,7 +152,7 @@ void decode_dv(decode_t *decode)
 
   // Initialize DV decoder
 
-#ifdef LIBDV_095    
+#ifdef LIBDV_095
   if((dv_decoder = dv_decoder_new(FALSE, FALSE, FALSE))==NULL) {
     fprintf(stderr, "(%s) dv decoder init failed\n", __FILE__);
     import_exit(1);
@@ -472,3 +477,6 @@ void probe_dv(info_t *ipipe)
   
   return;
 }
+
+
+

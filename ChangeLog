@@ -1,5 +1,38 @@
 transcode-0.13-pre2 EMS
 
+2004-08-16 Bryan Mayland <bmayland at leoninedev dot com>
+  * aclib/ac.h:
+  - added support for 3dnowext, sse3
+  - cleaned up cpu test
+
+2004-08-16 Erik Slagter <erik at oldconomy dot com>
+  * acinclude.m4 configure.h:
+  - reversed --with-ffmpeg-libs-* behaviour, to be used with 
+    prefix of installed package (e.g. /usr /usr/local etc.)
+  - typo fix
+  - added warning to discourage attribute_used and always_inline
+
+2004-08-16 Jacob Meuser <jakemsr at jakemsr dot com>
+  * acinclude.m4:
+  - libdv check cleanup
+  - pkgconfig added
+  - removed "(-devel)" remark from packages, it's too linux
+    specific
+  - added warning for not found libmpeg3
+
+2004-08-16 Jacob Meuser <jakemsr at jakemsr dot com>
+  * export/af6_aux.cpp export_export_mov.c fieldanalysis.c
+  * filter/filter_modfps libdvenc/enc_audio_input.c
+  * src/info_server.c:
+  - cleanup
+  - comment typo
+  - HAVE_STDINT check
+  - warnings fixes
+  - header_size, frame_size_525_60, frame_size_625_50 only
+    to be used when they're not defined by the library
+  - bufalloc only to be compiled when HAVE_DV
+  - only compile pp_write when NET_STREAM
+
 2004-08-15 Jacob Meuser <jakemsr at jakemsr dot com>
   * filter/tomsmocomp/(tomsmocompfilter.h/tomsmocompfilter_3dnow.c/tomsmocompfilter_mmx.c
   * tomsmocompfilter_sse.c:

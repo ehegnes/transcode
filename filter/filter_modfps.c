@@ -123,7 +123,7 @@ static void help_optstr()
     printf ("  For most users, modfps will need either no options, or just mode=1\n");
     printf ("* Options\n");
     printf ("\tmode : (0=unbuffered, 1=buffered [%d]\n", mode);
-    printf ("\tinfps : original fps (override what transcode supplies) [%lf]\n",infps);
+    printf ("\tinfps : original fps (override what transcode supplies) [%f]\n",infps);
     printf ("\tinfrc : original frc (overwrite infps) [%d]\n",infrc);
     printf ("\tbuffer : number of frames to buffer [%d]\n",numSample);
     printf ("\tsubsample : number of pixels to subsample when examining buffers [%d]\n",offset);
@@ -474,7 +474,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	  }
 	  optstr_get (options, "verbose", "%d", &show_results);
 	  optstr_get (options, "mode", "%d", &mode);
-	  optstr_get (options, "infps", "%lf", &infps);
+	  optstr_get (options, "infps", "%f", &infps);
 	  optstr_get (options, "infrc", "%d", &infrc);
 	  optstr_get (options, "buffer", "%d", &numSample);
 	  optstr_get (options, "subsample", "%d", &offset);
@@ -523,7 +523,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 
       sprintf(buf, "%d",mode);
       optstr_param(options,"mode","mode of operation", "%d", buf, "0", "1");
-      snprintf(buf, 128, "%lf", infps);
+      snprintf(buf, 128, "%f", infps);
       optstr_param(options, "infps", "Original fps", "%f", buf, "MIN_FPS", "200.0");
       snprintf(buf, 128, "%d", infrc);
       optstr_param(options, "infrc", "Original frc", "%d", buf, "0", "16");

@@ -22,7 +22,17 @@ int mm_flag=-1;
          "xchgl %%ebx, %%esi"\
          : "=a" (eax), "=S" (ebx),\
            "=c" (ecx), "=d" (edx)\
-         : "0" (index));
+         : "a" (index));
+
+#define CPUID_STD_MMX          0x00800000
+#define CPUID_STD_SSE          0x02000000
+#define CPUID_STD_SSE2         0x04000000
+#define CPUID_STD_SSE3         0x00000001  // ECX!
+#define CPUID_EXT_AMD_3DNOW    0x80000000
+#define CPUID_EXT_AMD_3DNOWEXT 0x40000000
+#define CPUID_EXT_AMD_MMXEXT   0x00400000
+#define CPUID_EXT_CYR_MMX      0x00800000
+#define CPUID_EXT_CYR_MMXEXT   0x01000000
 
 /* Function to test if multimedia instructions are supported...  */
 static int mm_support(void)
@@ -30,6 +40,7 @@ static int mm_support(void)
 #ifdef ARCH_X86
     int rval;
     int eax, ebx, ecx, edx;
+    char vendor[13] = "UnknownVndr";
     
     __asm__ __volatile__ (
                           /* See if CPUID instruction is supported ... */
@@ -65,65 +76,62 @@ static int mm_support(void)
     
     cpuid(0, eax, ebx, ecx, edx);
 
-    if (ebx == 0x756e6547 &&
-        edx == 0x49656e69 &&
-        ecx == 0x6c65746e) {
-        
-        /* intel */
-    inteltest:
-        cpuid(1, eax, ebx, ecx, edx);
-        if ((edx & 0x00800000) == 0)
-            return 0;
-        rval = MM_MMX;
-        if (edx & 0x02000000) 
-            rval |= MM_MMXEXT | MM_SSE;
-        if (edx & 0x04000000) 
-            rval |= MM_SSE2;
+    /* save the vendor string */
+    *(int *)vendor = ebx;
+    *(int *)&vendor[4] = edx;
+    *(int *)&vendor[8] = ecx;
+
+    rval = 0;
+
+    /* highest cpuid is 0, no standard features */
+    if (eax == 0)
         return rval;
-    } else if (ebx == 0x68747541 &&
-               edx == 0x69746e65 &&
-               ecx == 0x444d4163) {
-        /* AMD */
-        cpuid(0x80000000, eax, ebx, ecx, edx);
-        if ((unsigned)eax < 0x80000001)
-            goto inteltest;
-        cpuid(0x80000001, eax, ebx, ecx, edx);
-        if ((edx & 0x00800000) == 0)
-            return 0;
-        rval = MM_MMX;
-        if (edx & 0x80000000)
+
+    /* get standard features */
+    cpuid(1, eax, ebx, ecx, edx); 
+    //printf("CPUID 1 eax=0x%8.8x ebx=0x%8.8x ecx=0x%8.8x edx=0x%8.8x\n", eax, ebx, ecx, edx);
+    if (edx & CPUID_STD_MMX)
+        rval |= MM_MMX;
+    if (edx & CPUID_STD_SSE)
+        rval |= MM_MMXEXT | MM_SSE;
+    if (edx & CPUID_STD_SSE2)
+        rval |= MM_SSE2;
+    if (ecx & CPUID_STD_SSE3)
+        rval |= MM_SSE3;
+
+    /* check for extended feature flags support */
+    cpuid(0x80000000, eax, ebx, ecx, edx);
+    //printf("CPUID 8-0 eax=0x%8.8x ebx=0x%8.8x ecx=0x%8.8x edx=0x%8.8x\n", eax, ebx, ecx, edx);
+    if (eax < 0x80000001)
+        return rval;
+
+    /* get extended feature flags */
+    cpuid(0x80000001, eax, ebx, ecx, edx);
+    //printf("CPUID 8-1 eax=0x%8.8x ebx=0x%8.8x ecx=0x%8.8x edx=0x%8.8x\n", eax, ebx, ecx, edx);
+
+    /* AMD-specific extensions */
+    if (strcmp(vendor, "AuthenticAMD") == 0) {
+        if (edx & CPUID_EXT_AMD_3DNOW)
             rval |= MM_3DNOW;
-        if (edx & 0x00400000)
+        if (edx & CPUID_EXT_AMD_3DNOWEXT)
+            rval |= MM_3DNOWEXT;
+        /* if no MMXEXT already, check AMD-specific flag */
+        if (((rval & MM_MMXEXT) == 0) && (edx & CPUID_EXT_AMD_MMXEXT))
             rval |= MM_MMXEXT;
-		if(edx & 0x02000000)
-			rval |= MM_SSE;
-		if(edx & 0x04000000)
-			rval |= MM_SSE2;
-        return rval;
-    } else if (ebx == 0x69727943 &&
-               edx == 0x736e4978 &&
-               ecx == 0x64616574) {
-        /* Cyrix Section */
-        /* See if extended CPUID level 80000001 is supported */
-        /* The value of CPUID/80000001 for the 6x86MX is undefined
-           according to the Cyrix CPU Detection Guide (Preliminary
-           Rev. 1.01 table 1), so we'll check the value of eax for
-           CPUID/0 to see if standard CPUID level 2 is supported.
-           According to the table, the only CPU which supports level
-           2 is also the only one which supports extended CPUID levels.
-        */
-        if (eax != 2) 
-            goto inteltest;
-        cpuid(0x80000001, eax, ebx, ecx, edx);
-        if ((eax & 0x00800000) == 0)
-            return 0;
-        rval = MM_MMX;
-        if (eax & 0x01000000)
-            rval |= MM_MMXEXT;
-        return rval;
-    } else {
-        return 0;
     }
+
+    /* Cyrix-specific extensions */
+    else if (strcmp(vendor, "CyrixInstead") == 0) {
+        /* The Cyrix CPU Detection Guide says that CPUID level 1 should 
+           return the proper MMX feature flag, but just in case */
+        if (((rval & MM_MMX) == 0) && (edx & CPUID_EXT_CYR_MMX))
+            rval |= MM_MMX;
+        /* if no MMXEXT already, check Cyrix-specific flag */
+        if (((rval & MM_MMXEXT) == 0) && (edx & CPUID_EXT_CYR_MMXEXT))
+            rval |= MM_MMXEXT;
+    }
+
+    return rval;
 #else // not X86
     return 0;
 #endif
@@ -148,11 +156,17 @@ void ac_mmtest()
   
   printf("(%s) available multimedia extensions:", __FILE__);
   
-  if(cc & MM_SSE2) {
+  if(cc & MM_SSE3) {
+    printf(" sse3\n");
+    return;
+  } else if(cc & MM_SSE2) {
     printf(" sse2\n");
     return;
   } else if(cc & MM_SSE) {
     printf(" sse\n");
+    return;
+  } else if(cc & MM_3DNOWEXT) {
+    printf(" 3dnowext\n");
     return;
   } else if(cc & MM_3DNOW) {
     printf(" 3dnow\n");
@@ -181,10 +195,14 @@ char *ac_mmstr(int flag, int mode)
   
   //return max supported mm extensions, or str for user provided flag
   if(mode==0) {
-    if(cc & MM_SSE2) {
+    if(cc & MM_SSE3) {
+      return("sse3");
+    } else if(cc & MM_SSE2) {
       return("sse2");
     } else if(cc & MM_SSE) {
       return("sse");
+    } else if(cc & MM_3DNOWEXT) {
+      return("3dnowext");
     } else if(cc & MM_3DNOW) {
       return("3dnow");
     } else if(cc & MM_MMXEXT) {
@@ -198,8 +216,10 @@ char *ac_mmstr(int flag, int mode)
 
   //return full capability list
   if(mode==1) {
-    if(cc & MM_SSE2) sprintf(mmstr, "sse2 ");
+    if(cc & MM_SSE3) strcpy(mmstr, "sse3 ");
+    if(cc & MM_SSE2) strcat(mmstr, "sse2 ");
     if(cc & MM_SSE) strcat(mmstr, "sse "); 
+    if(cc & MM_3DNOWEXT) strcat(mmstr, "3dnowext "); 
     if(cc & MM_3DNOW) strcat(mmstr, "3dnow "); 
     if(cc & MM_MMXEXT) strcat(mmstr, "mmxext "); 
     if(cc & MM_MMX) strcat(mmstr, "mmx "); 

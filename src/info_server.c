@@ -23,7 +23,8 @@
 
 #include "transcode.h"
 
-attribute_used static size_t pp_write (int fd, char *buf, size_t len)
+#ifdef NET_STREAM
+static size_t pp_write (int fd, char *buf, size_t len)
 {
    size_t n = 0;
    size_t r = 0;
@@ -37,6 +38,7 @@ attribute_used static size_t pp_write (int fd, char *buf, size_t len)
    }
    return r;
 }
+#endif
 
 void server_thread(vob_t *vob)
 {

@@ -57,7 +57,9 @@ typedef unsigned int uint32_t;
 #include "tc_defaults.h"
 #include "tc_functions.h"
 
-// from libavcodec - common.h
+// Uglyness from libavcodec - common.h
+// Don't use these except when your code won't work without it, 
+// and there is no alternative.
 
 #ifndef always_inline
 #if defined(__GNUC__) && (__GNUC__ > 3 || __GNUC__ == 3 && __GNUC_MINOR__ > 0)

@@ -43,6 +43,8 @@ typedef unsigned int uint32_t;
 #define MM_3DNOW   0x0008 //AMD 3DNOW 
 #define MM_SSE     0x0010 //SSE functions 
 #define MM_SSE2    0x0020 //PIV SSE2 functions 
+#define MM_3DNOWEXT 0x0040 //AMD 3DNow! ext.
+#define MM_SSE3    0x0080 //Prescot SSE3
 
 extern void * (*tc_memcpy)(void *, const void *, size_t);
 extern void tc_memcpy_init(int verbose, int mmflags);

@@ -36,7 +36,7 @@
 #include <avifile-0.7/videoencoder.h>
 #include <avifile-0.7/audioencoder.h>
 #include <avifile-0.7/avm_fourcc.h>
-#include <avifile-0.7/creators.h>
+#include <avifile-0.7/avm_creators.h>
 #include <avifile-0.7/avm_default.h>
 #elif HAVE_AVIFILE_INCLUDES == 0
 #include <avifile/videoencoder.h>

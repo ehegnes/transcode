@@ -10,7 +10,7 @@ void tc_memcpy_init(int verbose, int mmflags)
 	const char * method = "libc";
 	
 #ifdef ARCH_X86
-	if((accel && MM_MMXEXT) || (accel & MM_SSE))
+	if((accel & MM_MMXEXT) || (accel & MM_SSE))
 	{
 		method = "amdmmx";
 		tc_memcpy = ac_memcpy_amdmmx;

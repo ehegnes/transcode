@@ -653,56 +653,71 @@ dnl
 AC_DEFUN([AM_PATH_DV],
 [
 
-AC_ARG_WITH(dv, AC_HELP_STRING([--with-dv],[build libdv dependent modules (yes)]),[case "${withval}" in
-  yes) ;;
-  no)  ;;
-  *) AC_MSG_ERROR(bad value ${withval} for --with-dv) ;;
-esac], with_dv=yes)
+AC_ARG_WITH(dv,
+  AC_HELP_STRING([--with-dv],[build libdv dependent modules (yes)]),
+  [case "${withval}" in
+    yes) ;;
+    no)  ;;
+    *) AC_MSG_ERROR(bad value ${withval} for --with-dv) ;;
+  esac], with_dv=yes)
 
-AC_ARG_WITH(dv-includes,AC_HELP_STRING([--with-dv-includes=PFX],[prefix where local libdv includes are installed (optional)]),
-	  dv_includes="$withval",dv_includes="")
+AC_ARG_WITH(dv-includes,
+  AC_HELP_STRING([--with-dv-includes=PFX],
+    [prefix where local libdv includes are installed (optional)]),
+  dv_includes="$withval", dv_includes="")
 
-AC_ARG_WITH(dv-libs,AC_HELP_STRING([--with-dv-libs=PFX],[prefix where local libdv libs are installed (optional)]),
-	  dv_libs="$withval", dv_libs="")
+AC_ARG_WITH(dv-libs,
+  AC_HELP_STRING([--with-dv-libs=PFX],
+    [prefix where local libdv libs are installed (optional)]),
+  dv_libs="$withval", dv_libs="")
 
-
-EXTRA_LIBS="$LIBS $GLIB_LIBS -lm"
 DV_EXTRA_LIBS="$GLIB_LIBS -lm"
 
 if test x$with_dv = "x"yes ; then
 
+  if test -z "$PKG_CONFIG"; then
+    AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
+  fi
+  if test "$PKG_CONFIG" = "no" ; then
+     echo "*** The pkg-config script could not be found. Make sure it is"
+     echo "*** in your path, or set the PKG_CONFIG environment variable"
+     echo "*** to the full path to pkg-config."
+     echo "*** Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config."
+  fi
+
 	if test x$dv_includes != "x" ; then
-	    with_dv_i="$dv_includes/include"
+	    with_dv_i="-I$dv_includes/include"
         else
-	    with_dv_i="/usr/include"
+	    with_dv_i="`$PKG_CONFIG --cflags libdv`"
         fi
 
         if test x$dv_libs != x ; then
-            with_dv_l="$dv_libs/lib"
+            with_dv_l="-L$dv_libs/lib -ldv $DV_EXTRA_LIBS"
         else
-            with_dv_l="/usr${deflib}"
+            with_dv_l="`$PKG_CONFIG --libs libdv`"
         fi
 
 	AC_CHECK_LIB(dv, dv_init,
-      [DV_CFLAGS="-I$with_dv_i ${GLIB_CFLAGS} -I/usr/local/include"	
-       DV_LIBS="-L$with_dv_l -ldv ${EXTRA_LIBS}"
-       AC_DEFINE(HAVE_DV) have_dv=yes],have_dv=no, 
-	-L$with_dv_l -ldv ${EXTRA_LIBS})
+	  [DV_CFLAGS="$with_dv_i" DV_LIBS="$with_dv_l"
+	    AC_DEFINE([HAVE_DV], 1, [Have libdv]),
+	    have_dv=yes],
+	  have_dv=no,
+	  $with_dv_l)
 
-	dnl check for version >= 0.9.5	
-	AC_CHECK_LIB(dv, dv_encoder_new,
-      [DV_CFLAGS="-I$with_dv_i ${GLIB_CFLAGS} -I/usr/local/include"	
-       DV_LIBS="-L$with_dv_l -ldv ${EXTRA_LIBS}"
-       AC_DEFINE([LIBDV_095], 1, [Have libdv 0.95 or newer])],, 
-	-L$with_dv_l -ldv ${EXTRA_LIBS})
+	dnl check for version >= 0.95
+	if $PKG_CONFIG libdv --atleast-version 0.95 ; then
+           AC_DEFINE([LIBDV_095], 1, [Have libdv 0.95 or newer])
+	fi
 
-	dnl check for version >= 0.9.9	
-	AC_CHECK_LIB(dv, dv_calculate_samples,
-      [DV_CFLAGS="-I$with_dv_i ${GLIB_CFLAGS} -I/usr/local/include"	
-       DV_LIBS="-L$with_dv_l -ldv ${EXTRA_LIBS}"
-       AC_DEFINE([LIBDV_099], 1, [Have libdv 0.99 or newer])],, 
-	-L$with_dv_l -ldv ${EXTRA_LIBS})
+	dnl check for version >= 0.99
+	if $PKG_CONFIG libdv --atleast-version 0.99 ; then
+           AC_DEFINE([LIBDV_095], 1, [Have libdv 0.99 or newer])
+	fi
 
+	dnl check for version >= 0.103
+	if $PKG_CONFIG libdv --atleast-version 0.103 ; then
+           AC_DEFINE([LIBDV_0103], 1, [Have libdv 0.103 or newer])
+	fi
 else
     have_dv=no
 fi
@@ -720,11 +735,6 @@ dnl
 have_ffmpeg_libs=no
 AC_DEFUN([AM_PATH_FFMPEG_LIBS],
 [
-dnl AC_ARG_WITH(ffmpeg-libs, AC_HELP_STRING([--with-ffmpeg-libs],[build  dependent modules (yes)]),[case "${withval}" in
-dnl  yes) ;;
-dnl  no)  ;;
-dnl  *) AC_MSG_ERROR(bad value ${withval} for --with-libz) ;;
-dnl esac], with_libz=yes)
 with_ffmpeg_libs=yes
 
 AC_ARG_WITH(ffmpeg-libs-includes,AC_HELP_STRING([--with-ffmpeg-libs-includes=PFX],[prefix where ffmpeg libs includes are installed (optional)]),
@@ -734,13 +744,13 @@ AC_ARG_WITH(ffmpeg-libs-libs,AC_HELP_STRING([--with-ffmpeg-libs-libs=PFX],[prefi
 	  ffmpeg_libs_libs="$withval", ffmpeg_libs_libs="")
 
 if test x$ffmpeg_libs_includes != "x" ; then
-	with_ffmpeg_libs_i="$ffmpeg_libs_includes"
+	with_ffmpeg_libs_i="$ffmpeg_libs_includes/include/ffmpeg"
 else
 	with_ffmpeg_libs_i="/usr/include/ffmpeg"
 fi
 
 if test x$ffmpeg_libs_libs != x ; then
-	with_ffmpeg_libs_l="$ffmpeg_libs_libs"
+	with_ffmpeg_libs_l="$ffmpeg_libs_libs/lib"
 else
 	with_ffmpeg_libs_l="/usr${deflib}"
 fi
@@ -748,7 +758,7 @@ fi
 AC_CHECK_FILE($with_ffmpeg_libs_i/avcodec.h,
 		[if test `sed -ne 's,#define[[:space:]]*LIBAVCODEC_BUILD[[:space:]]*\(.*\),\1,p' $with_ffmpeg_libs_i/avcodec.h` -lt 4718
 		then
-			echo "*** Transcode needs at least ffmpeg(-devel) build 4718 (0.4.9-pre1 or a cvs version after 20040703) ***"
+			echo "*** Transcode needs at least ffmpeg build 4718 (0.4.9-pre1 or a cvs version after 20040703) ***"
 			exit 1
 		fi],
 		[echo "*** Cannot find header file $with_ffmpeg_libs_i/avcodec.h from ffmpeg ***"
@@ -772,7 +782,7 @@ AC_CHECK_LIB(avcodec,
 AC_CHECK_LIB(z,
 		gzopen,
 		[],
-		[echo "*** Transcode depends on libz(-devel) libraries and headers ***"
+		[echo "*** Transcode depends on libz libraries and headers ***"
 		 exit 1
 		]
 		[])
@@ -780,7 +790,7 @@ AC_CHECK_LIB(z,
 AC_CHECK_LIB(m,
 		_LIB_VERSION,
 		[],
-		[echo "*** Transcode depends on libm(-devel) (>= 2.0) libraries and headers ***"
+		[echo "*** Transcode depends on libm (>= 2.0) libraries and headers ***"
 		 exit 1
 		]
 		[])
@@ -946,6 +956,10 @@ if test x$with_libmpeg3 = "x"yes ; then
 		if test x$libmpeg3_inc = "x"yes; then
         		with_libmpeg3_i="/usr/local/include/mpeg3"
 		fi   
+	fi
+	if test x$with_libmpeg3_i = x ; then
+		echo "warning: never found libmpeg3.h"
+		with_libmpeg3_i = "/usr/include"
 	fi
 
 	if test x$libmpeg3_libs != x ; then

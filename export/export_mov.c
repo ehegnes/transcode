@@ -388,7 +388,7 @@ MOD_init
         strcmp(qt_codec,"jpeg") == 0)
         quicktime_set_parameter(qtfile, "jpeg_quality", &jpeg_quality);
     
-    /* looks terrible :/*/ 
+    /* looks terrible :/ */ 
     if (strcmp(qt_codec,"ffmpeg_mjpg") == 0|| 
         strcmp(qt_codec,"ffmpeg_h263p") == 0||
         strcmp(qt_codec,"ffmpeg_h263") == 0||

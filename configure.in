@@ -1247,7 +1247,7 @@ dnl
 dnl libavcodec
 dnl
 
-AM_PATH_FFMPEG_LIBS(AC_DEFINE([HAVE_FFMPEG_LIBS], 1, [Have ffmpeg avcodec libraray support]))
+AM_PATH_FFMPEG_LIBS(AC_DEFINE([HAVE_FFMPEG_LIBS], 1, [Have ffmpeg avcodec library support]))
 AM_CONDITIONAL(HAVE_FFMPEG_LIBS, test x"$have_ffmpeg_libs" = "xyes")
 
 dnl AVCODEC_CFLAGS="-I\$(top_srcdir)/ffmpeg/libavcodec"
