@@ -294,7 +294,7 @@ void usage(int status)
   printf("\n");
 
   //range control
-  printf(" -c f1-f2           encode only frames f1-f2 [all]\n");
+  printf(" -c f1-f2[,f3-f4]   encode only frames f1-f2[,f3-f4] [all frames]\n");
   printf(" -t n,base          split output to base%s.avi with n frames [off]\n", "%03d");
   printf("--dir_mode base     process directory contents to base-%s.avi [off]\n", "%03d");
   printf("--frame_interval N  select only every Nth frame to be exported [1]\n");
@@ -317,8 +317,6 @@ void usage(int status)
 
   //v4l
   printf("--import_v4l n[,id]   channel number and station number or name [0]\n");
-  printf("--record_v4l a-b      recording time interval in seconds [off]\n");
-  printf("--duration hh:mm:ss   limit v4l recording to this duration [off]\n");
   printf("\n");
   
   //mpeg
@@ -1677,6 +1675,8 @@ int main(int argc, char *argv[]) {
 
 
 	case RECORD_V4L:
+	  tc_error ("--record_v4l is deprecated, please use -c 0:0:s1-0:0:s2");
+
 	  if((n = sscanf( optarg, "%d-%d", &frame_asec, &frame_bsec) ) != 2 )
 	    tc_error( "invalid parameter for option --record_v4l" );
 	  
@@ -1757,6 +1757,8 @@ int main(int argc, char *argv[]) {
 	  break;
 
 	case DURATION:
+	  tc_error ("--duration is deprecated, please use -c 0-hh:mm:ss");
+
 	  if( ( n = sscanf( optarg, "%d:%d:%d", &hh, &mm, &ss ) ) == 0 ) usage(EXIT_FAILURE);
 	  
 	  frame_a = 0;

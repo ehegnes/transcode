@@ -257,9 +257,17 @@ extract audio[,video] track for encoding.
 .B \-b \fIb\fP[,\fIvbr\fP,[\fIq\fP]]
 audio encoder bitrate kBits/s[,vbr[,quality]] [128,0,5]
 .TP
-.B \-c \fIf1\fP-\fIf2\fP
-encode only frames \fIf1-f2\fP [all]. Use this and you'll get
-statistics about remaining encoding time.
+.B \-c \fIf1\fP\-\fIf2\fP[,\fIf3\fP\-\fIf4\fP[, ... ] ]
+encode only frames \fIf1\-f2\fP [and \fIf3\-f4\fP]. Default is to encode
+all available frames.  Use this and you'll get statistics about remaining
+encoding time. The \fIf[N]\fP parameters may also be timecodes in the
+HH:MM:SS.FRAME format.
+.RS
+Example: \-c 500\-0:5:01,:10:20\-1:18:02.1 
+.PP
+Will encode only from frame 500 to 5 minutes and 1 second and from 10 min,
+20 sec to 1 hour, 18 min, 2 sec and one frame.
+.RE
 .TP
 .B \-d
 swap bytes in audio stream [off]. In most cases, DVD PCM audio tracks require
@@ -300,10 +308,11 @@ print out usage information.
 input file/directory/device/mountpoint/host name, default is [/dev/zero].
 .TP
 .B \-j \fItop\fP[\fI,left\fP[\fI,bottom\fP[\fI,right\fP]]]
-select frame region by clipping border [off].
+select frame region by clipping border. Negative values add a border [off].
+
 .TP
 .B \-k
-swap red/blue (Cb/Cr) in video frame [off].
+swap red/blue (Cb/Cr) in video frame [off]. Use if people have blue faces.
 .TP
 .B \-l
 mirror video frame [off].
@@ -347,6 +356,8 @@ for appropriate import modules. A full-blown transcode installation has the foll
 .IP
 Module "ac3": (audio) AC3
 .br
+Module "af6": (video) Win32 dll | (audio) PCM
+.br
 Module "avi": (video) * | (audio) *
 .br
 Module "divx": (video) DivX;-)/XviD/OpenDivX/DivX 4.xx/5.xx
@@ -354,6 +365,8 @@ Module "divx": (video) DivX;-)/XviD/OpenDivX/DivX 4.xx/5.xx
 Module "dv": (video) DV | (audio) PCM
 .br
 Module "dvd": (video) DVD | (audio) MPEG/AC3/PCM
+.br
+Module "ffmpeg": (video) FFMPEG API (build 4631) | MS MPEG4v1-3/MPEG4/MJPEG
 .br
 Module "im": (video) RGB
 .br
@@ -377,7 +390,7 @@ Module "mplayer": (video) rendered by mplayer | (audio) rendered by mplayer
 .br
 Module "null": (video) null | (audio) null
 .br
-Module "nvrec": (video) nvrec | (audio) nvrec
+Module "nvrec": (video) nvrec - v4l | (audio) nvrec - dsp
 .br
 Module "ogg": (audio) OGG Vorbis
 .br
@@ -392,6 +405,8 @@ Module "vob": (video) MPEG-2 | (audio) MPEG/AC3/PCM | (subtitle)
 Module "v4l": (video) YUV/RGB | (audio) PCM
 .br
 Module "xml": (video) * | (audio) *
+.br
+Module "xvid":  (video) XviD/OpenDivX/DivX 4.xx/5.xx
 .br
 Module "yuv4mpeg": (video) YUV4MPEGx | (audio) WAVE
 .IP
@@ -422,6 +437,8 @@ Module "divx4raw": (video) DivX 4.xx (ES) | (audio) MPEG/AC3/PCM
 .br
 Module "divx5": (video) DivX 5.xx | (audio) MPEG/AC3/PCM
 .br
+Module "divx5raw": (video) DivX 5.xx (ES) | (audio) MPEG/AC3/PCM
+.br
 Module "dv": (video) Digital Video | (audio) MPEG/AC3/PCM
 .br
 Module "dvraw": (video) Digital Video | (audio) PCM
@@ -433,6 +450,8 @@ Module "ffmpeg": (video) ffmpeg API | (audio) MPEG/AC3/PCM
 Module "im": (video) *
 .br
 Module "jpg": (video) *
+.br
+Module "lame": (audio) MPEG 1/2
 .br
 Module "lzo": (video) LZO | (audio) MPEG/AC3/PCM
 .br
@@ -450,13 +469,15 @@ Module "net": (video) RGB/YUV | (audio) PCM/AC3
 .br
 Module "null": (video) null | (audio) null
 .br
+Module "ogg": (video) null | (audio) OGG Vorbis
+.br
 Module "pcm": (audio) PCM (non-interleaved)
 .br
 Module "ppm": (video) PPM/PGM | (audio) MPEG/AC3/PCM
 .br
-Module "ogg": (video) null | (audio) OGG Vorbis
-.br
 Module "raw": (video) * | (audio) MPEG/AC3/PCM
+.br
+Module "sampeg": (video) MPEG-2
 .br
 Module "toolame": (audio) MPEG 1/2
 .br
@@ -575,10 +596,12 @@ disable lame bitreservoir for MP3 encoding [off]
 AV fine-tuning shift \fIt\fP in millisecs [autodetect]
 .TP
 .B \-\-nav_seek \fIfile\fP
-use VOB navigation file [off]
+use VOB navigation file [off] Generate a nav file with tcdemux -W >nav_log
 .TP
 .B \-\-psu_mode
-process VOB in PSU, -o is a filemask incl. %d [off]
+process VOB in PSU, -o is a filemask incl. %d [off]. PSU means Program
+Stream Unit and this mode is useful for (mostly) NTSC DVDs which have
+several program stream units.
 .TP
 .B \-\-psu_chunks \fIa-b\fP
 process only selected units \fIa-b\fP for PSU mode [all]
