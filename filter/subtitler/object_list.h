@@ -104,6 +104,8 @@ struct object
 	double extra_character_space;
 	double dextra_character_space;
 
+	int anti_alias_flag;
+
 	int pattern;
 	int background;
 	int emphasis1;

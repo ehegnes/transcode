@@ -444,7 +444,7 @@ if(pa -> data[0] == '*')
 					{
 					/* set the global for subtitles to the current value */
 					subtitle_current_font_descriptor = pb -> pfd;
-					subtitle_current_spacing = po -> extra_character_space; 
+//					subtitle_current_spacing = po -> extra_character_space; 
 					/*
 					every subtitle read from the ppml file is formatted using
 					this setting, until a line with a subtitle reference
@@ -519,6 +519,8 @@ if(pa -> data[0] == '*')
 			/* some text releated */
 			sscanf(token, "espace=%lf", &po -> extra_character_space);
 			sscanf(token, "despace=%lf", &po -> dextra_character_space);
+
+			sscanf(token, "anti_alias=%d", &po -> anti_alias_flag);
 
 			/* end font or text related */
 
@@ -634,6 +636,8 @@ if(pa -> type == FORMATTED_TEXT)
 
 	line_height = subtitle_current_font_descriptor -> height;
 	window_top = window_bottom - (screen_lines * line_height);
+
+//fprintf(stdout, "WAS line_height=%d\n", line_height);
 
 	if(debug_flag)
 		{

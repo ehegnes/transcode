@@ -361,7 +361,7 @@ struct subtitle_fontname *ps;
 font_desc_t *pfd;
 char temp[4096];
 
-//if(debug_flag)
+if(debug_flag)
 	{
 	fprintf(stdout,\
 	"add_font(): arg name=%s symbols=%d size=%d iso_extension=%d outline_thickness=%.2f blur_radius=%.2f\n",\

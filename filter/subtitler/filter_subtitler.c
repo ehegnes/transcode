@@ -156,6 +156,7 @@ if(pfl->tag & TC_FILTER_INIT)
 	extra space between characters
 	*/
 	extra_character_space = EXTRA_CHAR_SPACE;
+	subtitle_extra_character_space = EXTRA_CHAR_SPACE;
 
 	/* the ppml file */
 	sprintf(temp, "%s/.subtitles/demo.ppml", home_dir);
@@ -886,7 +887,7 @@ if(a)
 	
 			window_size = pfl->v_width * pfl->v_height;
 			window_open_flag = 1;
-	
+
 			if(color_depth == 0) color_depth = get_x11_bpp();
 
 			} /* end if ! window_open_flag */
@@ -1229,13 +1230,13 @@ if(vob->im_v_codec == CODEC_RGB)
 			dst = ImageData + a - (b + c);
 
 			/* clip right scroll */
-			if( (x + x0) > image_width) continue;
+			if( (x + x0) > image_width - 1) continue;
 
 			/* clip left scroll */
 			if( (x + x0 ) < 0) continue;
 
 			/* clip top scroll */
-			if( (y + y0) > image_height) continue;
+			if( (y + y0) > image_height - 1) continue;
 	
 			/* clip bottom scroll */
 			if( (y + y0) < 0) continue;
@@ -1408,17 +1409,18 @@ else if(vob->im_v_codec == CODEC_YUV)
 		for(x = 0; x < w; x++)
 			{
 
+//fprintf(stdout, "WAS imagewidth=%d image_height=%d\n", image_width, image_height);
 //fprintf(stdout, "WAS y=%d x=%d y0=%d x0=%d py=%p pu=%p pv=%p\n",\
 //y, x, y0, x0, py, pu, pv);
 
 			/* clip right scroll */
-			if( (x + x0) > image_width) continue;
+			if( (x + x0) > image_width - 1) continue;
 
 			/* clip left scroll */
 			if( (x + x0 ) < 0) continue;
 
 			/* clip top scroll */
-			if( (y + y0) > image_height) continue;
+			if( (y + y0) > image_height - 1) continue;
 	
 			/* clip bottom scroll */
 			if( (y + y0) < 0) continue;
@@ -1829,16 +1831,16 @@ if(! rgb_palette_valid_flag) return 1;
 
 /* parameter check */
 if(pa -> bg_y_start < 0) return 0;
-if(pa -> bg_y_start >= image_height) return 0;
+if(pa -> bg_y_start > image_height - 1) return 0;
 
 if(pa -> bg_x_start < 0) return 0;
-if(pa -> bg_x_start >= image_width) return 0;
+if(pa -> bg_x_start > image_width - 1) return 0;
 
-if(pa -> bg_y_end <= pa -> bg_y_start) return 0;
-if(pa -> bg_y_end > image_height) return 0;
+if(pa -> bg_y_end < pa -> bg_y_start) return 0;
+if(pa -> bg_y_end > image_height - 1) return 0;
 
-if(pa -> bg_x_end <= pa -> bg_x_start) return 0;
-if(pa -> bg_x_end > image_width) return 0;
+if(pa -> bg_x_end < pa -> bg_x_start) return 0;
+if(pa -> bg_x_end > image_width - 1) return 0;
 
 /* calculate 'visibility' insert */
 da = (double) pa -> background_contrast / 15.0; // DVD background request, 1.0 for 100 % opaque

@@ -21,7 +21,7 @@ double subtitle_contrast = 100.0;
 double subtitle_transparency = 0.0;
 double subtitle_dxpos, subtitle_dypos, subtitle_dzpos;
 font_desc_t *subtitle_pfd;
-double subtitle_extra_character_space = EXTRA_CHAR_SPACE;
+//double subtitle_extra_character_space = EXTRA_CHAR_SPACE;
 double subtitle_font_factor;
 double subtitle_font;
 

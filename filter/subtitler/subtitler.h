@@ -54,7 +54,7 @@
 #define SUBTITLE_V_FACTOR	.042
 
 /* for this specfic default font */
-#define EXTRA_CHAR_SPACE	2
+#define EXTRA_CHAR_SPACE	1
 
 /*
 for masking out areas in rotate and shear.
@@ -99,7 +99,6 @@ YUV_MASK is used to prevent picture areas to be cut out.
 int debug_flag;
 font_desc_t *vo_font;
 font_desc_t *subtitle_current_font_descriptor;
-int subtitle_current_spacing;
 uint8_t *ImageData;
 int image_width, image_height;
 int default_font;
@@ -156,6 +155,10 @@ pthread_attr_t *attributes;
 /* global subtitle parameters */
 double ssat, dssat, scol, dscol;
 double default_font_factor;
+double subtitle_extra_character_space;
+
+int anti_alias_flag;
+int subtitle_anti_alias_flag;
 
 /* for rotate and shear, the luminance where we cut out the border */
 int border_luminance;

@@ -95,6 +95,7 @@ while(1)
 		{
 		return 1;
 		}
+//fprintf(stdout, "WAS readline_ppml temp=%s strlen(temp)=%d\n", temp, strlen(temp) );
 
 	if(debug_flag)
 		{
@@ -352,6 +353,7 @@ while(1)
 
 	/* add entry to linked list from here */
 
+
 	/* add entry to structure */
 	if(! add_frame(\
 	arg0,\
@@ -587,6 +589,7 @@ This prevents stack overflow, and variables getting overwritten.
 contents[i] = 0;/* force string termination */
 
 line_number++;
+
 
 if(debug_flag)
 	{

@@ -305,14 +305,23 @@ Added test-demo script.
 Fixed a bug in the demo.ppml.
 
 0.8.3:
-Set the character extra spacing back to the old values of teh fist
+Set the character extra spacing back to the old values of the fist
 subtitler (using the mplayer code).
-So teh default extra spacing is now 2.
+So the default extra spacing is now 2.
 This should fix any compatibility problems with older versions.
 You need to upgrade to xste 3.2.5 too!
 
 
+0.8.4:
+Patch for AMD64 compilation by Tilmann Bitterberg.   
+Character spacing routines as in old versions, for better
+compatibility.
+Default character spacing now 2.
 
+
+0.8.5:
+Many buxfixes, especially centering, spacing and reformatting related.
+Text overflow on top and right side of screen fixed.
 
 -
 Talking about 'objects' title_list.c is now object_list.c
