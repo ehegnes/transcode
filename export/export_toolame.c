@@ -78,8 +78,8 @@ MOD_open
     char buf [PATH_MAX];
     int ifreq,ofreq,orate;
     int verb;
-    int ofreq_int;
-    int ofreq_dec;
+    //int ofreq_int;
+    //int ofreq_dec;
     int ochan;
     char chan;
     char *ptr = buf;
@@ -109,12 +109,14 @@ MOD_open
     }
 
     /* convert output frequency to fixed point */
+    /* why that?
     ofreq_int = ofreq/1000.0;
     ofreq_dec = ofreq-ofreq_int*1000;
+    */
 	    
     /* toolame command line */
-    sprintf(ptr, "toolame -s %d.%03d -b %d -m %c - \"%s.mp2\" 2>/dev/null %s", 
-	    ofreq_int, ofreq_dec, orate, chan, vob->audio_out_file, (vob->ex_a_string?vob->ex_a_string:""));
+    sprintf(ptr, "toolame -s %0.3f -b %d -m %c - \"%s.mp2\" 2>/dev/null %s", 
+	    (double)ofreq/1000.0, orate, chan, vob->audio_out_file, (vob->ex_a_string?vob->ex_a_string:""));
 	
     fprintf (stderr,"[%s] cmd=%s\n", MOD_NAME, buf);
     
