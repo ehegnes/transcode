@@ -222,14 +222,14 @@ int export_init(vob_t *vob, char *a_mod, char *v_mod)
     }
     
     if(!cc) {
-      tc_warn("(%s) audio codec not supported by export module\n", __FILE__);
+      tc_warn("(%s) audio codec not supported by export module", __FILE__);
       return(-1);
     }
 
   } else { 
    
     if(vob->im_a_codec != CODEC_PCM) {
-      tc_warn("(%s) audio codec not supported by export module\n", __FILE__); 
+      tc_warn("(%s) audio codec not supported by export module", __FILE__); 
       return(-1);
     }
   }
@@ -262,14 +262,14 @@ int export_init(vob_t *vob, char *a_mod, char *v_mod)
     }
     
     if(!cc) {
-      tc_warn("(%s) video codec not supported by export module\n", __FILE__); 
+      tc_warn("(%s) video codec not supported by export module", __FILE__); 
       return(-1);
     }
 
   } else {
     
     if(vob->im_v_codec != CODEC_RGB) {
-      tc_warn("(%s) video codec not supported by export module\n", __FILE__); 
+      tc_warn("(%s) video codec not supported by export module", __FILE__); 
       return(-1);
     }
   }
@@ -742,7 +742,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	    fprintf(stderr, "[%s] Delaying audio (%d)\n", __FILE__, vob->video_frames_delay);
 	} else {
 	    if(tca_export(TC_EXPORT_ENCODE, &export_para, vob)<0) {
-		tc_warn("error encoding audio frame\n");
+		tc_warn("error encoding audio frame");
 		exit_on_encoder_error=1;
 	    }
 	
