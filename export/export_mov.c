@@ -132,6 +132,7 @@ MOD_init
   /* video setup -------------------------------------------------- */
   if(param->flag == TC_VIDEO) {
     char *qt_codec;
+    int divxbitrate;
     
     /* fetch frame size */
     w = vob->ex_v_width;
@@ -218,7 +219,7 @@ MOD_init
 
         /* set codec parameters */
         // if max bitrate > bitrate  use difference for bitrate tolerance
-        int divx_bitrate = vob->divxbitrate * 1000; // tc uses kb        
+        divx_bitrate = vob->divxbitrate * 1000; // tc uses kb        
         if (vob->video_max_bitrate > vob->divxbitrate) div3_bitrate_tolerance = (vob->video_max_bitrate - vob->divxbitrate) * 1000; //kb again
 
         /* set codec parameters */

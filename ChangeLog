@@ -1,6 +1,14 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-15 Gordon Talge <gtalge@pe.net>
+
+  * export/export_af6.cpp:
+  Revert to 0.6.11 inclusion of creators.h instead of avm_creators.h
+
+  * export/export_mov.c:
+  C89 fix.
+
 2004-01-14 Tilmann Bitterberg <transcode at tibit.org>
 
   * export/export_mpeg2enc.c:
