@@ -7,13 +7,13 @@ read AVI files.
 You will need to have libavcodec (also known as ffmpeg libraries)
 installed somewhere on your computer. Without libavcodec transcode
 doesn't compile. The best way to accomplish this is to get ffmpeg from
-cvs (www.ffmpeg.org), configure it with at least --enable-shared,
-compile and install it. A package of some kind that includes
-libavcodec.so and the headers will do as well. If the files are
-installed in a non-default location (transcode assumes prefix: /usr),
-then you will need to tell transcode where they live. Very important:
-you _need_ both the header files _and_ libavcodec.so files. The
-libavcodec.a file won't do!
+cvs (www.ffmpeg.org), configure it with at least --enable-shared
+and --enable-pthreads compile and install it. A package of some kind
+that includes libavcodec.so and the headers will do as well. If the
+files are installed in a non-default location (transcode assumes prefix:
+/usr), then you will need to tell transcode where they live. Very
+important: you _need_ both the header files _and_ libavcodec.so files.
+The libavcodec.a file won't do!
 
 It is recommended, that you have a recent nasm installed (>=0.98.35) if
 you are on an x86 based platform. A recent version of lame is a good
