@@ -50,8 +50,7 @@ static int capability_flag = TC_CAP_YUV|TC_CAP_PCM;
 #endif
 
 
-#include "lve/lve_read.h"
-//#include "lve/lve_read.c"
+#include "lve_read.h"
 
 //-- main lve-reader context --
 //-----------------------------
@@ -161,7 +160,7 @@ MOD_open
     if (lve_ctx) return (0);
     
     if (lr_file_chk(vob->video_in_file))
-      lve_ctx = lr_init(vob->a_track);
+      lve_ctx = lr_init(vob->a_track, 0);
     else
     {
       fprintf(stderr, "ERROR: (%s) is no lve edit-list\n", 

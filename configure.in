@@ -816,7 +816,6 @@ AM_CONDITIONAL(HAVE_LAME, test x"$have_lame" = x"yes")
 AC_SUBST(LAME_CFLAGS)
 AC_SUBST(LAME_LIBS)
 
-
 dnl
 dnl ogg support
 dnl
@@ -883,7 +882,6 @@ AM_CONDITIONAL(HAVE_LIBDVDREAD, test x"$have_libdvdread" = x"yes")
 AC_SUBST(LIBDVDREAD_CFLAGS)
 AC_SUBST(LIBDVDREAD_LIBS)
 
-
 dnl
 dnl xvid support
 dnl
@@ -910,12 +908,6 @@ dnl MPlayer libpostproc
 dnl
 dnl AM_PATH_POSTPROC(AC_DEFINE([HAVE_LIBPOSTPROC], 1, [Have libpostproc support]))
 dnl AM_CONDITIONAL(HAVE_LIBPOSTPROC, test x"$have_libpostproc" = x"yes")
-
-dnl
-dnl GM's lve
-dnl
-TC_PATH_LVE(AC_DEFINE([HAVE_LIBLVE], 1, [Have liblve support]))
-AM_CONDITIONAL(HAVE_LIBLVE, test x"$have_liblve" = x"yes")
 
 dnl
 dnl PVM
@@ -1015,6 +1007,11 @@ AM_CONDITIONAL(HAVE_A52, test x"$have_a52" = x"yes")
 AC_SUBST(A52_CFLAGS)
 AC_SUBST(A52_LIBS)
 
+dnl
+dnl GM's lve
+dnl
+TC_PATH_LVE(AC_DEFINE([HAVE_LIBLVE], 1, [Have liblve support]))
+AM_CONDITIONAL(HAVE_LIBLVE, test x"$have_liblve" = x"yes")
 
 dnl
 dnl libmpeg3
