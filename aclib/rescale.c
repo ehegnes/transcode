@@ -68,15 +68,13 @@ int ac_rescale_mmxext(char *row1, char *row2, char *out, int bytes,
 mmxext.no_switch:							\n\
 									\n\
 	movd %%ecx, %%mm3	# 0:	0:	0:	w1		\n\
-	movq %%mm3, %%mm7						\n\
 									\n\
+	movq %%mm3, %%mm7						\n\
 	psllq $16, %%mm3	# 0:	0:	w1:	0		\n\
 	por %%mm7, %%mm3	# 0:	0:	w1:	w1		\n\
 									\n\
-	psllq $16, %%mm3						\n\
-	por %%mm7, %%mm3	# 0:	w1:	w1:	w1		\n\
-									\n\
-	psllq $16, %%mm3						\n\
+	movq %%mm3, %%mm7						\n\
+	psllq $32, %%mm3	#w1:	w1:	0:	0		\n\
 	por %%mm7, %%mm3	#w1:	w1:	w1:	w1		\n\
 									\n\
 	mov 12(%%esi), %%ecx	# bytes					\n\
@@ -193,15 +191,13 @@ int ac_rescale_sse(char *row1, char *row2, char *out, int bytes,
 sse.no_switch:								\n\
 									\n\
 	movd %%ecx, %%mm3	# 0:	0:	0:	w1		\n\
-	movq %%mm3, %%mm7						\n\
 									\n\
+	movq %%mm3, %%mm7						\n\
 	psllq $16, %%mm3	# 0:	0:	w1:	0		\n\
 	por %%mm7, %%mm3	# 0:	0:	w1:	w1		\n\
 									\n\
-	psllq $16, %%mm3						\n\
-	por %%mm7, %%mm3	# 0:	w1:	w1:	w1		\n\
-									\n\
-	psllq $16, %%mm3						\n\
+	movq %%mm3, %%mm7						\n\
+	psllq $32, %%mm3	#w1:	w1:	0:	0		\n\
 	por %%mm7, %%mm3	#w1:	w1:	w1:	w1		\n\
 									\n\
 	mov 12(%%esi), %%ecx	# bytes					\n\
@@ -321,28 +317,18 @@ int ac_rescale_sse2(char *row1, char *row2, char *out, int bytes,
 									\n\
 sse2.no_switch:								\n\
 									\n\
-	movd   %%ecx, %%xmm3	# 0 0 0 0 0 0 0 w1			\n\
+	movd %%ecx, %%xmm3	# 0 0 0 0 0 0 0 w1			\n\
+									\n\
 	movdqa %%xmm3, %%xmm7						\n\
-									\n\
 	psllq $16, %%xmm3						\n\
-	por %%xmm7, %%xmm3						\n\
+	por %%xmm7, %%xmm3	# 0 0 0 0 0 0 w1 w1			\n\
 									\n\
-	psllq $16, %%xmm3						\n\
-	por %%xmm7, %%xmm3						\n\
+	movdqa %%xmm3, %%xmm7						\n\
+	psllq $32, %%xmm3						\n\
+	por %%xmm7, %%xmm3	# 0 0 0 0 w1 w1 w1 w1			\n\
 									\n\
-	psllq $16, %%xmm3						\n\
-	por %%xmm7, %%xmm3						\n\
-									\n\
-	psllq $16, %%xmm3						\n\
-	por %%xmm7, %%xmm3						\n\
-									\n\
-	psllq $16, %%xmm3						\n\
-	por %%xmm7, %%xmm3						\n\
-									\n\
-	psllq $16, %%xmm3						\n\
-	por %%xmm7, %%xmm3						\n\
-									\n\
-	psllq $16, %%xmm3						\n\
+	movdqa %%xmm3, %%xmm7						\n\
+	psllq $64, %%xmm3						\n\
 	por %%xmm7, %%xmm3	# w1 w1 w1 w1 w1 w1 w1 w1		\n\
 									\n\
 	mov 12(%%esi), %%ecx	# bytes					\n\

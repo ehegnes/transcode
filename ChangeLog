@@ -1,4 +1,13 @@
 2005-02-21 Andrew Church <achurch at achurch dot org>
+  * aclib/average.c aclib/rescale.c
+  Two very minor cleanups in the aclib assembly source:
+    (1) avoid using register EBX in average.c, and
+    (2) optimize register initialization in rescale.c.
+  These save about 100 bytes of code and maybe a couple dozen
+  cycles, but what's the point of using assembly if it's not
+  done efficiently? ;)
+
+2005-02-21 Andrew Church <achurch at achurch dot org>
   * export/export_ffmpeg.c
   closedgop=1 (ffmpeg.cfg) doesn't work with current FFmpeg because
   scene detection has to be explicitly disabled as well.  This
