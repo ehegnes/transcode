@@ -1572,9 +1572,17 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 
    hdrl_data = 0;
 
+   off_t oldpos=-1, newpos=-1;
+
    while(1)
    {
       if( avi_read(AVI->fdes,data,8) != 8 ) break; /* We assume it's EOF */
+      newpos=lseek(AVI->fdes,0,SEEK_CUR);
+      if(oldpos==newpos) {
+	      /* This is a broken AVI stream... */
+	      return -1;
+      }
+      oldpos=newpos;
 
       n = str2ulong(data+4);
       n = PAD_EVEN(n);
