@@ -331,6 +331,7 @@ do_avi:
     lavc_dec_context->error_resilience = 2;
     lavc_dec_context->error_concealment = 3;
     lavc_dec_context->workaround_bugs = FF_BUG_AUTODETECT;
+    lavc_dec_context->stream_codec_tag= (fourCC[0]<<24)|(fourCC[1]<<16)|(fourCC[2]<<8)|fourCC[0];
 
     // XXX: some codecs need extra data
     switch (codec->id)
