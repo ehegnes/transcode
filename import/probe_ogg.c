@@ -233,6 +233,9 @@ void probe_ogg(info_t *ipipe)
 			    if(strcasecmp(vid_codec,"DX50")==0)
 				ipipe->probe_info->codec=TC_CODEC_DIVX5;
 
+			    if(strcasecmp(vid_codec,"XVID")==0)
+				ipipe->probe_info->codec=TC_CODEC_XVID;
+
 			    if(strcasecmp(vid_codec,"MJPG")==0)
 				ipipe->probe_info->codec=TC_CODEC_MJPG;
 			}

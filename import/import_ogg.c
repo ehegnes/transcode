@@ -82,6 +82,7 @@ MOD_open
 	    case TC_CODEC_DIVX5:
 	    case TC_CODEC_DIVX4:
 	    case TC_CODEC_DIVX3:
+	    case TC_CODEC_XVID:
 		codec = "xvid";
 		break;
 

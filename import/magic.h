@@ -32,7 +32,6 @@
 #define TC_CODEC_AC3                   0x00002000
 #define TC_CODEC_A52                   0x00002001
 #define TC_CODEC_YV12                  0x32315659
-#define TC_CODEC_YUY2                  0x32595559
 #define TC_CODEC_YUV2                  0x32565559
 #define TC_CODEC_M2V                   0x000001b3
 #define TC_CODEC_MPEG                  0x01000000
@@ -47,6 +46,7 @@
 #define TC_CODEC_MP42                  0x000031B4
 #define TC_CODEC_DIVX4                 0x000041B6
 #define TC_CODEC_DIVX5                 0x000051B6
+#define TC_CODEC_XVID                  0x58766944
 #define TC_CODEC_MJPG                  0xA0000010
 #define TC_CODEC_MPG1                  0xA0000012
 #define TC_CODEC_SUB                   0xA0000011

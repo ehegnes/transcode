@@ -638,6 +638,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   case TC_CODEC_DIVX3:
   case TC_CODEC_DIVX4:
   case TC_CODEC_DIVX5:
+  case TC_CODEC_XVID:
 
     // if input is ogg, do not probe video
     if (probe_further_for_codec) {
@@ -729,6 +730,9 @@ char *codec2str(int f)
 
   case TC_CODEC_DIVX5:
     return("DivX5");
+
+  case TC_CODEC_XVID:
+    return("XviD");
     
   case TC_CODEC_MPEG1:
     return("MPEG-1");

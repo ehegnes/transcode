@@ -1,11 +1,16 @@
 --------------------------------------------
 transcode-0.6.8
 
+2003-06-11 Tilmann Bitterberg <transcode at tibit.org>
+
+  * extract_avi.c import_ogg.c magic.h probe_ogg.c probe.c:
+  Add support for the FOURCC "XVID".
+
 2003-06-10 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/decode_mp3.c import/import_mp3.c import/mpg123.c
-  * import/mpg123.h import/tc.h import/tcdecode.c
-  * import/tcextract.c:
+  import/mpg123.h import/tc.h import/tcdecode.c
+  import/tcextract.c:
   Reading mp3 which did not start with a mp3 header caused problems
   sometimes. Sometimes -- when scanning through the file for a MP3
   sync byte transcode found illegal ones and treated them as valid.
