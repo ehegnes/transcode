@@ -421,13 +421,14 @@ int main(int argc, char *argv[])
     if ((strcmp(magic, "avi")==0 || ipipe.magic==TC_MAGIC_AVI)&& (codec == NULL)) {
 	
 	ipipe.magic=TC_MAGIC_AVI;
-	extract_rgb(&ipipe);
+	extract_avi(&ipipe);
 	done = 1;
     }
 
     if (strcmp(codec, "raw")==0 || strcmp(codec, "video")==0) {
-	ipipe.magic=TC_MAGIC_RAW;
-	extract_rgb(&ipipe);
+	ipipe.select=TC_VIDEO-1;
+	ipipe.magic=TC_MAGIC_AVI;
+	extract_avi(&ipipe);
 	done = 1;
     }
     

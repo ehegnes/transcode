@@ -347,6 +347,7 @@ tcextract_SOURCES = tcextract.c \
 		    extract_mp3.c \
 		    scan_dv.c \
 		    aux_pes.c \
+		    extract_avi.c \
 		    extract_ogm.c \
 		    extract_lzo.c \
 		    extract_mxf.c

@@ -659,6 +659,7 @@ tcextract_SOURCES = tcextract.c \
 		    extract_mp3.c \
 		    scan_dv.c \
 		    aux_pes.c \
+		    extract_avi.c \
 		    extract_ogm.c \
 		    extract_lzo.c \
 		    extract_mxf.c
@@ -862,8 +863,9 @@ am_tcextract_OBJECTS = tcextract.$(OBJEXT) extract_ac3.$(OBJEXT) \
 	extract_mpeg2.$(OBJEXT) extract_pcm.$(OBJEXT) \
 	fileinfo.$(OBJEXT) extract_yuv.$(OBJEXT) extract_rgb.$(OBJEXT) \
 	extract_dv.$(OBJEXT) ioaux.$(OBJEXT) extract_mp3.$(OBJEXT) \
-	scan_dv.$(OBJEXT) aux_pes.$(OBJEXT) extract_ogm.$(OBJEXT) \
-	extract_lzo.$(OBJEXT) extract_mxf.$(OBJEXT)
+	scan_dv.$(OBJEXT) aux_pes.$(OBJEXT) extract_avi.$(OBJEXT) \
+	extract_ogm.$(OBJEXT) extract_lzo.$(OBJEXT) \
+	extract_mxf.$(OBJEXT)
 tcextract_OBJECTS = $(am_tcextract_OBJECTS)
 tcextract_DEPENDENCIES =
 tcextract_LDFLAGS =
