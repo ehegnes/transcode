@@ -6,12 +6,12 @@ INCLUDES = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/filter \
 	-I$(top_srcdir)/src \
-	@DLDARWININCL@
+	$(DLDARWININCL)
 
 AM_CPPFLAGS = \
 	-D_REENTRANT \
-	-DMOD_PATH=\"@MOD_PATH@\" \
-	@LIBDV_CFLAGS@ \
+	-DMOD_PATH=\"$(MOD_PATH)\" \
+	$(LIBDV_CFLAGS) \
 	$(X_CFLAGS) \
 	$(GTK_CFLAGS) \
 	$(SDL_CFLAGS)
@@ -33,7 +33,7 @@ LIBS = \
 	$(LIBS_GTK) \
 	$(LIBS_SDL)
 
-pkgdir = @MOD_PATH@
+pkgdir = $(MOD_PATH)
 
 if HAVE_LIBDV
 MOD1 = filter_preview.la
@@ -49,7 +49,7 @@ filter_preview_la_LIBADD = \
 	-lXext \
 	-lX11 \
 	$(X_EXTRA_LIBS) \
-	@LIBDV_LIBS@
+	$(LIBDV_LIBS)
 
 filter_pv_la_SOURCES = filter_pv.c pv.c
 filter_pv_la_LDFLAGS = -module -avoid-version
@@ -59,7 +59,7 @@ filter_pv_la_LIBADD = \
 	-lXext \
 	-lX11 \
 	$(LIBS_XV) \
-	@DLDARWINLIB@
+	$(DLDARWINLIB)
 
 EXTRA_DIST = \
 	display.h \

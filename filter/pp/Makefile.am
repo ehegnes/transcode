@@ -7,7 +7,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/filter \
 	-I$(top_srcdir)/src \
-	@LIBVO_CFLAGS@
+	$(LIBVO_CFLAGS)
 
 if HAVE_GCC
 if HAVE_FOMIT_FP
@@ -15,7 +15,7 @@ AM_CFLAGS = -fomit-frame-pointer
 endif
 endif
 
-pkgdir = @MOD_PATH@
+pkgdir = $(MOD_PATH)
 
 pkg_LTLIBRARIES = filter_pp.la
 

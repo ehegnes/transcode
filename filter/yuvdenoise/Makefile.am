@@ -6,20 +6,11 @@ INCLUDES = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/filter \
 	-I$(top_srcdir)/src \
-	@LIBVO_CFLAGS@
-
-AM_CFLAGS = \
-	-funroll-all-loops \
-	-finline-functions \
-	-ffast-math \
-	-frerun-cse-after-loop \
-	-frerun-loop-opt \
-	-fexpensive-optimizations \
-	-fmove-all-movables
+	$(LIBVO_CFLAGS)
 
 AM_CPPFLAGS = -D_REENTRANT
 
-pkgdir = @MOD_PATH@
+pkgdir = $(MOD_PATH)
 
 pkg_LTLIBRARIES = \
 	filter_yuvdenoise.la \
@@ -31,7 +22,7 @@ filter_yuvdenoise_la_SOURCES = \
 	denoise.c \
 	motion.c
 filter_yuvdenoise_la_LDFLAGS = -module -avoid-version
-filter_yuvdenoise_la_LIBADD = @LIBVO_LIBS@
+filter_yuvdenoise_la_LIBADD = $(LIBVO_LIBS)
 
 filter_yuvmedian_la_SOURCES = filter_yuvmedian.c
 filter_yuvmedian_la_LDFLAGS = -module -avoid-version

@@ -9,9 +9,9 @@ INCLUDES = \
 AM_CPPFLAGS = \
 	-D_REENTRANT \
 	$(X_CFLAGS) \
-	@FT2_CFLAGS@
+	$(FT2_CFLAGS)
 
-pkgdir = @MOD_PATH@
+pkgdir = $(MOD_PATH)
 
 pkg_LTLIBRARIES = filter_subtitler.la
 
@@ -40,7 +40,7 @@ filter_subtitler_la_LIBADD = \
 	-lXt \
 	-lXaw \
 	-lm \
-	@FT2_LIBS@
+	$(FT2_LIBS)
 
 EXTRA_DIST =  \
 	HOWTO_USE_THIS \

@@ -9,7 +9,7 @@ INCLUDES = \
 
 AM_CPPFLAGS = -D_REENTRANT
 
-pkgdir = @MOD_PATH@
+pkgdir = $(MOD_PATH)
 
 pkg_LTLIBRARIES = filter_extsub.la filter_extsub2.la
 
