@@ -44,4 +44,7 @@ libavcodec_a_SOURCES = \
 
 noinst_HEADERS = *.h
 
+EXTRA_DIST = motion_est_template.c \
+	     wmv2.c
+
 SUBDIRS = . i386 ppc
