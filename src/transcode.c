@@ -94,6 +94,7 @@ static char *ex_aud_mod = NULL, *ex_vid_mod = NULL;
 
 static pthread_t thread_signal, thread_server, thread_socket;
 int tc_signal_thread     =  0;
+sigset_t sigs_to_block;
 
 void socket_thread(); // socket.c
 
@@ -416,25 +417,26 @@ int source_check(char *import_file)
 void signal_thread()
 {      
   
-  sigset_t sigs_to_catch;
-  
   int caught;
   char *signame = NULL;
 
   writepid = getpid();
 
-  sigemptyset(&sigs_to_catch);
-
-  sigaddset(&sigs_to_catch, SIGINT);
-  sigaddset(&sigs_to_catch, SIGTERM);
+  /*
+  sigemptyset(&sigs_to_block);
+  sigaddset(&sigs_to_block, SIGINT);
+  sigaddset(&sigs_to_block, SIGTERM);
+  sigaddset(&sigs_to_block, SIGPIPE);
+  */
   
   for (;;) {
     
-    sigwait(&sigs_to_catch, &caught);
+    sigwait(&sigs_to_block, &caught);
     
     switch (caught) {
     case SIGINT:  signame = "SIGINT"; break;
     case SIGTERM: signame = "SIGTERM"; break;
+    case SIGPIPE: signame = "SIGPIPE"; break;
     }
     
     if (signame) {
@@ -643,8 +645,6 @@ int main(int argc, char *argv[]) {
 
     char *dir_name, *dir_fname;
     int dir_fcnt=0, dir_audio=0;
-
-    sigset_t sigs_to_block;
 
     transfer_t export_para;
     
@@ -970,11 +970,13 @@ int main(int argc, char *argv[]) {
 
     // prepare for SIGINT to catch
     
-    signal(SIGINT, SIG_IGN);
+    //signal(SIGINT, SIG_IGN);
     
     sigemptyset(&sigs_to_block);
     
     sigaddset(&sigs_to_block,  SIGINT);
+    sigaddset(&sigs_to_block,  SIGTERM);
+    sigaddset(&sigs_to_block,  SIGPIPE);
     
     pthread_sigmask(SIG_BLOCK, &sigs_to_block, NULL);
     
