@@ -45,7 +45,7 @@ parse_options(char *options, int *pre, double *infps, double *outfps)
 	char	*p, *q, *r;
 	size_t	len;
 	vob_t	*vob;
-	int	default_pre;
+	int	default_pre, i;
 
 	/* defaults from -f and --export_fps */
 	vob = tc_get_vob();
