@@ -167,7 +167,7 @@ MOD_decode
   } while (decoded_frames++<offset);
 #else
       memset(param->buffer+ac_off, 0, ac_bytes);
-      if (fread(param->buffer+ac_off, ac_bytes, 1, fd) !=1) {
+      if (fread(param->buffer+ac_off, ac_bytes-ac_off, 1, fd) !=1) {
 	  // not sure what this hack is for, probably can be removed
 	  //--count; if(count<=0) return(TC_IMPORT_ERROR);
 	  return(TC_IMPORT_ERROR);
