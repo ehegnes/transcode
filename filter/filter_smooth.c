@@ -26,9 +26,6 @@
 #define MOD_CAP     "(single-frame) smoothing plugin"
 #define MOD_AUTHOR  "Chad Page"
 
-#include <stdio.h>
-#include <stdlib.h>
-
 /* -------------------------------------------------
  *
  * mandatory include files

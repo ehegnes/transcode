@@ -26,10 +26,6 @@
 #define MOD_CAP     "yuv de-interlace filter plugin"
 #define MOD_AUTHOR  "Thomas Oestreich"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <inttypes.h>
 
 /* -------------------------------------------------

@@ -40,9 +40,6 @@
 	1.0.6	EMS	fixed annoying typo
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <inttypes.h>
 #include <math.h>
 

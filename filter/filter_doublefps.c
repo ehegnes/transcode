@@ -26,11 +26,6 @@
 #define MOD_CAP     "double frame rate by creating frames from fields"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 /* -------------------------------------------------
  *
  * mandatory include files

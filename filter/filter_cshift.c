@@ -26,9 +26,6 @@
 #define MOD_CAP     "chroma-lag shifter"
 #define MOD_AUTHOR  "Thomas Östreich, Chad Page"
 
-#include <stdio.h>
-#include <stdlib.h>
-
 /* -------------------------------------------------
  *
  * mandatory include files

@@ -74,11 +74,6 @@
  *
  *-------------------------------------------------*/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 #include "transcode.h"
 #include "framebuffer.h"
 #include "filter.h"

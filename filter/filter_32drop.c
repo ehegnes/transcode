@@ -26,10 +26,6 @@
 #define MOD_CAP     "3:2 inverse telecine removal plugin"
 #define MOD_AUTHOR  "Chad Page"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <inttypes.h>
 
 /* -------------------------------------------------

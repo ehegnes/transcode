@@ -26,11 +26,6 @@
 #define MOD_CAP     "generate stream of testframes"
 #define MOD_AUTHOR  "Thomas Oestreich"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 /* -------------------------------------------------
  *
  * mandatory include files

@@ -33,12 +33,6 @@
 #define MOD_CAP     "VirtualDub's XSharpen Filter"
 #define MOD_AUTHOR  "Donald Graft, Tilmann Bitterberg"
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 /* -------------------------------------------------
  *
  * mandatory include files

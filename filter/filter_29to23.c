@@ -27,11 +27,6 @@
 #define MOD_CAP     "frame rate conversion filter (interpolating 29 to 23)"
 #define MOD_AUTHOR  "Tilmann Bitterberg, Max Alekseyev"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 /* -------------------------------------------------
  *
  * mandatory include files

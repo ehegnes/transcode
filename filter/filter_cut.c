@@ -36,11 +36,6 @@
 #define MOD_CAP     "encode only listed frames"
 #define MOD_AUTHOR  "Thomas Östreich"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 // do the mod/step XXX
 
 /* -------------------------------------------------

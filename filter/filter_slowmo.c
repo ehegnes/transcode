@@ -26,11 +26,6 @@
 #define MOD_CAP     "very cheap slow-motion effect"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 /* -------------------------------------------------
  *
  * mandatory include files

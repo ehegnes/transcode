@@ -26,14 +26,8 @@
 #define MOD_CAP     "dynamic noise reduction"
 #define MOD_AUTHOR  "Gerhard Monzel"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <inttypes.h>
 #include <math.h>
-#include <string.h>
-
 
 /* -------------------------------------------------
  *

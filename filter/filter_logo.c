@@ -32,10 +32,6 @@
 #define MOD_CAP     "render image in videostream"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <inttypes.h>
 
 /* -------------------------------------------------

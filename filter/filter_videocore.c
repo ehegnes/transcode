@@ -26,10 +26,6 @@
 #define MOD_CAP     "Core video transformations"
 #define MOD_AUTHOR  "Thomas Oestreich, Tilmann Bitterberg"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <inttypes.h>
 
 /* -------------------------------------------------

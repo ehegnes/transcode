@@ -29,9 +29,6 @@
 #define MOD_CAP     "White Balance Filter - correct images with a broken white balance"
 #define MOD_AUTHOR  "Guillaume Cottenceau"
 
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
 #include <ctype.h>
 

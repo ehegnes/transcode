@@ -26,10 +26,6 @@
 #define MOD_CAP     "apply a filter control list"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <ctype.h>
 #include <inttypes.h>
 

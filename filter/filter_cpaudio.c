@@ -35,11 +35,6 @@
 #define MOD_CAP     "copy one audio channel to the other channel filter plugin"
 #define MOD_AUTHOR  "William H Wittig"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 /* -------------------------------------------------
  *
  * mandatory include files

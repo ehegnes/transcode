@@ -26,12 +26,6 @@
 #define MOD_CAP     "convert video frame rate, gets defaults from -f and --export_fps"
 #define MOD_AUTHOR  "Christopher Cramer"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 #include "transcode.h"
 #include "framebuffer.h"
 #include "optstr.h"

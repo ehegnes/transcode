@@ -38,11 +38,7 @@
 #define MOD_CAP     "Volume normalizer"
 #define MOD_AUTHOR  "pl, Tilmann Bitterberg"
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <inttypes.h>
 
 /* -------------------------------------------------

@@ -27,10 +27,6 @@
 #define MOD_CAP     "detect clipping parameters (-j or -Y)"
 #define MOD_AUTHOR  "Tilmann Bitterberg, A'rpi"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <inttypes.h>
 
 /* -------------------------------------------------

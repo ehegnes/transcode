@@ -31,11 +31,6 @@
 #define TMP_FILE			"raw"
 #define TMP_STRING_SIZE		7
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 /* -------------------------------------------------
  *
  * mandatory include files

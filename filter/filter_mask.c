@@ -26,9 +26,6 @@
 #define MOD_CAP     "Filter through a rectangular Mask"
 #define MOD_AUTHOR  "Thomas Östreich, Chad Page"
 
-#include <stdio.h>
-#include <stdlib.h>
-
 /* -------------------------------------------------
  *
  * mandatory include files

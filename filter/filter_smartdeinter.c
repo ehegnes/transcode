@@ -37,12 +37,6 @@
 #define MOD_CAP     "VirtualDub's smart deinterlacer"
 #define MOD_AUTHOR  "Donald Graft, Tilmann Bitterberg"
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 /* -------------------------------------------------
  *
  * mandatory include files

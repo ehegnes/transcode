@@ -27,11 +27,6 @@
 #define MOD_CAP     "Mask people faces in video interviews."
 #define MOD_AUTHOR  "Julien Tierny"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 /* -------------------------------------------------
  *
  * mandatory include files

@@ -44,11 +44,6 @@
 /// Author of the filter plugin
 #define MOD_AUTHOR  "Thomas Östreich, Thomas Wehrspann"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 /* -------------------------------------------------
  *
  * mandatory include files
