@@ -42,7 +42,7 @@ static int capability_flag=TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AC3|TC_CAP_AU
 static char buf[256];
 static char buf2[64];
 
-static uint8_t tmp_buffer[SIZE_RGB_FRAME];
+static uint8_t *tmp_buffer; //[SIZE_RGB_FRAME];
 
 static int codec, width, height, row_bytes;
 
@@ -75,6 +75,9 @@ MOD_init
 	row_bytes = vob->v_bpp/8 * vob->ex_v_width;
 
 	codec =  CODEC_YUV;
+
+	if (!tmp_buffer) tmp_buffer = malloc (vob->ex_v_width*vob->ex_v_height*3);
+	if (!tmp_buffer) return 1;
       }
 
       return(0);
@@ -201,6 +204,9 @@ MOD_stop
   
   if(param->flag == TC_VIDEO) return(0);
   if(param->flag == TC_AUDIO) return(audio_stop());
+
+  if (tmp_buffer) free(tmp_buffer);
+  tmp_buffer = NULL;
   
   return(TC_EXPORT_ERROR);
 }

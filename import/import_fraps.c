@@ -72,6 +72,7 @@ MOD_open
 {
   double fps=0;
   char *codec=NULL;
+  size_t size;
 
   param->fd = NULL;
 
@@ -94,8 +95,9 @@ MOD_open
       }
     }
 
-    if (!buffer) buffer = malloc(SIZE_RGB_FRAME);
-    if (!save_buffer) save_buffer = malloc(SIZE_RGB_FRAME);
+    size = AVI_video_width(avifile2)*AVI_video_height(avifile2)*3;
+    if (!buffer) buffer = malloc(size);
+    if (!save_buffer) save_buffer = malloc(size);
 
     if (vob->vob_offset>0)
 	AVI_set_video_position(avifile2, vob->vob_offset);

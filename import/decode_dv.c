@@ -188,7 +188,8 @@ void decode_dv(decode_t *decode)
   
   // allocate space, assume max buffer size
   for(i=0; i < 4; i++) {
-      if((video[i] = bufalloc(SIZE_RGB_FRAME))==NULL) {
+      //if((video[i] = bufalloc(SIZE_RGB_FRAME))==NULL) {
+      if((video[i] = bufalloc(768*576*3))==NULL) { // shouldn't this be sufficent?
 	  fprintf(stderr, "(%s) out of memory\n", __FILE__);
 	  import_exit(1);
       }

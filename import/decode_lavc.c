@@ -42,7 +42,6 @@
 #include "../ffmpeg/libavcodec/avcodec.h"
 #include "yuv2rgb.h"
 
-#define BUFFER_SIZE SIZE_RGB_FRAME
 #define READ_BUFFER_SIZE (10*1024*1024)
 #define MOD_NAME "decode_ffmpeg"
 
@@ -235,6 +234,7 @@ void decode_lavc(decode_t *decode)
     
   pix_fmt = decode->format;
     
+  frame_size = (x_dim * y_dim * 3)/2;
   switch (pix_fmt) {
       case TC_CODEC_YV12:
         frame_size = (x_dim * y_dim * 3)/2;
@@ -244,13 +244,13 @@ void decode_lavc(decode_t *decode)
         bpp = 24;
         yuv2rgb_init(bpp, MODE_RGB);
 
-        if (yuv2rgb_buffer == NULL) yuv2rgb_buffer = bufalloc(BUFFER_SIZE);
+        if (yuv2rgb_buffer == NULL) yuv2rgb_buffer = bufalloc(frame_size);
 	
         if (yuv2rgb_buffer == NULL) {
           perror("out of memory");
           goto decoder_error;
         } else
-          memset(yuv2rgb_buffer, 0, BUFFER_SIZE);  
+          memset(yuv2rgb_buffer, 0, frame_size);  
         break;
       case TC_CODEC_RAW:
 	pass_through = 1;
@@ -263,14 +263,14 @@ void decode_lavc(decode_t *decode)
       goto decoder_error;
   }
 
-  if(out_buffer == NULL) out_buffer=bufalloc(BUFFER_SIZE);
+  if(out_buffer == NULL) out_buffer=bufalloc(frame_size);
   if(out_buffer == NULL) {
       perror("out of memory");
       goto decoder_error;
   }
 
   memset(buffer, 0, READ_BUFFER_SIZE);  
-  memset(out_buffer, 0, BUFFER_SIZE);  
+  memset(out_buffer, 0, frame_size);  
 
   // DECODE MAIN LOOP
 

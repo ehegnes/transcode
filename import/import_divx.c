@@ -104,7 +104,6 @@ static int pass_through=0, pass_through_decode=0;
 
 //temporary video buffer
 static char *buffer = NULL;
-#define BUFFER_SIZE SIZE_RGB_FRAME
 
 
 inline static int stream_read_char(char *d)
@@ -367,6 +366,7 @@ MOD_open
     pbi->biWidth = AVI_video_width(avifile);
     pbi->biHeight = AVI_video_height(avifile);
 
+    frame_size = pbi->biWidth * pbi->biHeight * 3;
     switch(codec) {
       
     case CODEC_RGB:
@@ -399,6 +399,7 @@ MOD_open
 
     
 #else
+    frame_size = divx->x_dim * divx->y_dim * 3;
     switch(codec) {
       
     case CODEC_RGB:
@@ -466,12 +467,12 @@ MOD_open
     }
   
     if (!buffer) {
-      if ((buffer = bufalloc(BUFFER_SIZE))==NULL) {
+      if ((buffer = bufalloc(frame_size))==NULL) {
 	perror("out of memory");
 	return(TC_EXPORT_ERROR); 
       } 
       else {
-	memset(buffer, 0, BUFFER_SIZE);
+	memset(buffer, 0, frame_size);
       }
     }
     

@@ -245,6 +245,7 @@ static double psnr(double d){
 MOD_init {
   char *p;
   int   i;
+  size_t fsize;
   
   if (param->flag == TC_VIDEO) {
     // Check if the user used '-F codecname' and abort if not.
@@ -674,7 +675,7 @@ MOD_init {
           return TC_EXPORT_ERROR;
         }
         fseek(stats_file, 0, SEEK_END);
-        size = ftell(stats_file);
+        fsize = ftell(stats_file);
         fseek(stats_file, 0, SEEK_SET);
 
 	// count the lines of the file to not encode to much
@@ -686,10 +687,10 @@ MOD_init {
 	
         fseek(stats_file, 0, SEEK_SET);
 
-        lavc_venc_context->stats_in= malloc(size + 1);
-        lavc_venc_context->stats_in[size] = 0;
+        lavc_venc_context->stats_in= malloc(fsize + 1);
+        lavc_venc_context->stats_in[fsize] = 0;
 
-        if (fread(lavc_venc_context->stats_in, size, 1, stats_file) < 1){
+        if (fread(lavc_venc_context->stats_in, fsize, 1, stats_file) < 1){
           fprintf(stderr, "[%s] Could not read the complete 2pass log file "
                   "\"%s\".\n", MOD_NAME, vob->divxlogfile);
           return TC_EXPORT_ERROR;
@@ -838,7 +839,6 @@ MOD_encode
 {
   
   int out_size;
-  int buf_size=SIZE_RGB_FRAME;
   const char pict_type_char[5]= {'?', 'I', 'P', 'B', 'S'};
   
   if (param->flag == TC_VIDEO) { 
@@ -933,7 +933,7 @@ MOD_encode
 
     pthread_mutex_lock(&init_avcodec_lock);
     out_size = avcodec_encode_video(lavc_venc_context,
-                                    (unsigned char *) tmp_buffer, buf_size,
+                                    (unsigned char *) tmp_buffer, size,
                                     lavc_venc_frame);
     pthread_mutex_unlock(&init_avcodec_lock);
   

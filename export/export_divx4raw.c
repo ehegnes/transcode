@@ -70,7 +70,6 @@ static int fd;
   
 //temporary audio/video buffer
 static char *buffer;
-#define BUFFER_SIZE SIZE_RGB_FRAME<<1
 
 ENC_PARAM   *divx;
 ENC_FRAME  encode;
@@ -192,11 +191,11 @@ MOD_init
       }
     }
     
-    if ((buffer = malloc(BUFFER_SIZE))==NULL) {
+    if ((buffer = malloc(vob->ex_v_height*vob->ex_v_width*3))==NULL) {
       perror("out of memory");
       return(TC_EXPORT_ERROR); 
     } else
-      memset(buffer, 0, BUFFER_SIZE);  
+      memset(buffer, 0, vob->ex_v_height*vob->ex_v_width*3);  
 
     //load the codec
 

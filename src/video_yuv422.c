@@ -818,7 +818,7 @@ void yuv422_vresize_8(char *image, int width, int height, int resize)
 }
 
 // works
-void yuv422_vresize_8_up(char *image, int width, int height, int resize)
+void yuv422_vresize_8_up(char *image, char *tmp_image, int width, int height, int resize)
 {
   
   char *in, *out, *last_row;
@@ -918,7 +918,7 @@ void yuv422_hresize_8(char *image, int width, int height, int resize)
 
 
 //works
-void yuv422_hresize_8_up(char *image, int width, int height, int resize)
+void yuv422_hresize_8_up(char *image, char *tmp_image, int width, int height, int resize)
 {
     
     char *in, *out;

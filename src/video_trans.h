@@ -71,8 +71,8 @@ int rgb_merge_C(char *row1, char *row2, char *out, int bytes,
 		unsigned long weight1, unsigned long weight2);
 void rgb_vresize_8(char *image, int width, int height, int resize);
 void rgb_hresize_8(char *image, int width, int height, int resize);
-void rgb_hresize_8_up(char *image, int width, int height, int resize);
-void rgb_vresize_8_up(char *image, int width, int height, int resize);
+void rgb_hresize_8_up(char *image, char *tmp_image, int width, int height, int resize);
+void rgb_vresize_8_up(char *image, char *tmp_image, int width, int height, int resize);
 void rgb_deinterlace_linear(char *image, int width, int height);
 void rgb_deinterlace_linear_blend(char *image, char *tmp, int width, int height);
 inline void rgb_decolor(char *image, int bytes);
@@ -127,8 +127,8 @@ int yuv422_merge_C(char *row1, char *row2, char *out, int bytes,
 
 void yuv422_vresize_8(char *image, int width, int height, int resize);
 void yuv422_hresize_8(char *image, int width, int height, int resize);
-void yuv422_hresize_8_up(char *image, int width, int height, int resize);
-void yuv422_vresize_8_up(char *image, int width, int height, int resize);
+void yuv422_hresize_8_up(char *image, char *tmp_image, int width, int height, int resize);
+void yuv422_vresize_8_up(char *image, char *tmp_image, int width, int height, int resize);
 void yuv422_deinterlace_linear(char *image, int width, int height);
 void yuv422_deinterlace_linear_blend(char *image, char *tmp, int width, int height);
 inline void yuv422_decolor(char *image, int bytes);

@@ -48,7 +48,6 @@
 #define MOD_PRE lzo
 #include "export_def.h"
 
-#define BUFFER_SIZE SIZE_RGB_FRAME<<1
 
 static avi_t *avifile1=NULL;
 static avi_t *avifile2=NULL;
@@ -86,7 +85,7 @@ MOD_init
       }
 
       wrkmem = (lzo_bytep) lzo_malloc(LZO1X_1_MEM_COMPRESS);
-      out = (lzo_bytep) lzo_malloc(BUFFER_SIZE);
+      out = (lzo_bytep) lzo_malloc(vob->ex_v_height*vob->ex_v_width*3*2);
 
       if (wrkmem == NULL || out == NULL) {
 	printf("[%s] out of memory\n", MOD_NAME);

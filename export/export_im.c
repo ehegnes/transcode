@@ -47,7 +47,7 @@ static int capability_flag=TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AUD;
 
 static char buf2[PATH_MAX];
 
-static uint8_t tmp_buffer[SIZE_RGB_FRAME];
+static uint8_t *tmp_buffer; //[SIZE_RGB_FRAME];
 
 static int codec, width, height, row_bytes;
 
@@ -97,6 +97,9 @@ MOD_init
       if (quality <= 0) quality = 0;
 
       image_info->quality = quality;
+
+      if (!tmp_buffer) tmp_buffer = malloc (vob->ex_v_width*vob->ex_v_height*3);
+      if (!tmp_buffer) return 1;
        
       return(0);
     }
@@ -215,6 +218,10 @@ MOD_stop
     DestroyImageInfo(image_info);
     DestroyConstitute();
     DestroyMagick();
+
+    if (tmp_buffer) free(tmp_buffer);
+    tmp_buffer = NULL;
+
     return(0);
   }
 

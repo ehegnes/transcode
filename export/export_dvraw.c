@@ -138,7 +138,7 @@ MOD_init
   if(param->flag == TC_VIDEO) {
     
     target = bufalloc(TC_FRAME_DV_PAL);
-    vbuf = bufalloc(SIZE_RGB_FRAME);
+    vbuf = bufalloc(PAL_W*PAL_H*3);
 
 #ifdef LIBDV_095
     if(vob->dv_yuy2_mode) {

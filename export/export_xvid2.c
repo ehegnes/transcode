@@ -95,7 +95,6 @@ static FILE *hints_file = NULL;
   
 /* temporary audio/video buffer */
 static char *buffer;
-#define BUFFER_SIZE SIZE_RGB_FRAME<<1
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_PCM |
@@ -171,14 +170,16 @@ MOD_init
 	float bpp;
 
 	if(param->flag == TC_VIDEO) {
+		int fsize = vob->ex_v_width * vob->ex_v_height;
+
 		bpp = 1000 * (vob->divxbitrate) / 
 			(vob->ex_fps * vob->ex_v_width * vob->ex_v_height);
     
-		if((buffer = malloc(BUFFER_SIZE))==NULL) {
+		if((buffer = malloc(fsize*3))==NULL) {
 			perror("out of memory");
 			return(TC_EXPORT_ERROR); 
 		} else {
-			memset(buffer, 0, BUFFER_SIZE);  
+			memset(buffer, 0, fsize*3);  
 		}
 
 		/* Load the codec */
@@ -242,19 +243,19 @@ MOD_init
 
 		switch(vob->im_v_codec) {
 		case CODEC_RGB:	
-			global_framesize = SIZE_RGB_FRAME;
+			global_framesize = fsize*3;
 			global_colorspace = XVID_CSP_RGB24;
 			break;
 		case CODEC_YUV:
-			global_framesize = SIZE_RGB_FRAME*2/3;
+			global_framesize = fsize*3/2;
 			global_colorspace = XVID_CSP_YV12;
 			break;
 		case CODEC_YUV422:
-			global_framesize = SIZE_RGB_FRAME*2/3;
+			global_framesize = fsize*2;
 			global_colorspace = XVID_CSP_UYVY;
 			break;
 		default: /* down know... simply use YV12, too... */
-			global_framesize = SIZE_RGB_FRAME*2/3;
+			global_framesize = fsize*3/2;
 			global_colorspace = XVID_CSP_YV12;
 			break;
 		}			

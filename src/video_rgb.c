@@ -560,7 +560,7 @@ void rgb_vresize_8(char *image, int width, int height, int resize)
   return;
 }
 
-void rgb_vresize_8_up(char *image, int width, int height, int resize)
+void rgb_vresize_8_up(char *image, char *tmp_image, int width, int height, int resize)
 {
   
   char *in, *out, *last_row;
@@ -658,7 +658,7 @@ void rgb_hresize_8(char *image, int width, int height, int resize)
 }
 
 
-void rgb_hresize_8_up(char *image, int width, int height, int resize)
+void rgb_hresize_8_up(char *image, char *tmp_image, int width, int height, int resize)
 {
     
     char *in, *out;

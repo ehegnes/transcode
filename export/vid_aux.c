@@ -28,7 +28,6 @@ static int x_dim=0, y_dim=0;
 static int x_dimY=0, y_dimY=0;
 static char *frame_buffer=NULL;
 static char *frame_bufferY=NULL;
-#define BUFFER_SIZE SIZE_RGB_FRAME
 static char *y_out, *u_out, *v_out;
 static char *rgb_outY;
 
@@ -40,9 +39,9 @@ int tc_yuv2rgb_init(int width, int height)
     // XXX: 24
     yuv2rgb_init(24, MODE_BGR);
     
-    if ((frame_bufferY = malloc(BUFFER_SIZE))==NULL) return(-1);
+    if ((frame_bufferY = malloc(width*height*3))==NULL) return(-1);
     
-    memset(frame_bufferY, 0, BUFFER_SIZE);  
+    memset(frame_bufferY, 0, width*height*3);  
 
     //init data
 
@@ -95,9 +94,9 @@ int tc_rgb2yuv_init(int width, int height)
     
     init_rgb2yuv();
     
-    if ((frame_buffer = malloc(BUFFER_SIZE))==NULL) return(-1);
+    if ((frame_buffer = malloc(width*height*3))==NULL) return(-1);
     
-    memset(frame_buffer, 0, BUFFER_SIZE);  
+    memset(frame_buffer, 0, width*height*3);  
 
     //init data
 

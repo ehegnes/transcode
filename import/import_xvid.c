@@ -143,7 +143,6 @@ static int pass_through=0;
 
 //temporary video buffer
 static char *buffer;
-#define BUFFER_SIZE SIZE_RGB_FRAME
 
 static unsigned char *bufalloc(size_t size)
 {
@@ -244,6 +243,7 @@ MOD_open
     }
     XviD_decore_handle=xparam.handle;
 
+    frame_size = xparam.width * xparam.height * 3;
     switch(vob->im_v_codec) {
       case CODEC_RGB:
         global_colorspace = XVID_CSP_RGB24 | XVID_CSP_VFLIP;
@@ -259,11 +259,11 @@ MOD_open
 	break;
     }
     
-    if ((buffer = bufalloc(BUFFER_SIZE))==NULL) {
+    if ((buffer = bufalloc(frame_size))==NULL) {
       perror("out of memory");
       return(TC_EXPORT_ERROR); 
     } else
-      memset(buffer, 0, BUFFER_SIZE);  
+      memset(buffer, 0, frame_size);  
     
     param->fd = NULL;
     

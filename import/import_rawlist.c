@@ -352,7 +352,7 @@ MOD_open
     }
 
     if (alloc_buffer)
-      if((video_buffer = (char *)calloc(1, SIZE_RGB_FRAME))==NULL) {
+      if((video_buffer = (char *)calloc(1, out_bytes))==NULL) {
 	fprintf(stderr, "(%s) out of memory", __FILE__);
 	return(TC_IMPORT_ERROR);
       }

@@ -361,6 +361,7 @@ do_avi:
     
     pix_fmt = vob->im_v_codec;
     
+    frame_size = x_dim * y_dim * 3;
     switch (pix_fmt) {
       case CODEC_YUV:
         frame_size = (x_dim * y_dim * 3)/2;
@@ -399,14 +400,14 @@ do_avi:
     //
     //----------------------------------------
     
-    if(buffer == NULL) buffer=bufalloc(BUFFER_SIZE);
+    if(buffer == NULL) buffer=bufalloc(frame_size);
     
     if(buffer == NULL) {
       perror("out of memory");
       return TC_IMPORT_ERROR;
     }
 
-    memset(buffer, 0, BUFFER_SIZE);  
+    memset(buffer, 0, frame_size);  
     
     param->fd = NULL;
 

@@ -67,7 +67,13 @@ int clone_init(FILE *fd)
 
   // copy file pointer
   pfd=fd;
-  
+
+  vob = tc_get_vob();
+  fps = vob->fps;
+  width = vob->im_v_width;
+  height = vob->im_v_height;
+  vcodec = vob->im_v_codec;
+
   //sync log file
   
   if((sfd = open(logfile, O_RDONLY, 0666))<0) {
@@ -79,7 +85,7 @@ int clone_init(FILE *fd)
   
   // allocate space, assume max buffer size
   
-  if((video_buffer = (char *)calloc(1, SIZE_RGB_FRAME))==NULL) {
+  if((video_buffer = (char *)calloc(1, width*height*3))==NULL) {
     fprintf(stderr, "(%s) out of memory", __FILE__);
     sync_disabled_flag=1;
     return(-1);
@@ -87,7 +93,7 @@ int clone_init(FILE *fd)
   
   // allocate space, assume max buffer size
   
-  if((pulldown_buffer = (char *)calloc(1, SIZE_RGB_FRAME))==NULL) {
+  if((pulldown_buffer = (char *)calloc(1, width*height*3))==NULL) {
     fprintf(stderr, "(%s) out of memory", __FILE__);
     sync_disabled_flag=1;
     return(-1);
@@ -103,12 +109,6 @@ int clone_init(FILE *fd)
       return(-1);
   }
   
-  vob = tc_get_vob();
-  fps = vob->fps;
-  width = vob->im_v_width;
-  height = vob->im_v_height;
-  vcodec = vob->im_v_codec;
-
   return(0);
 }
 

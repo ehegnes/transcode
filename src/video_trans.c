@@ -425,18 +425,15 @@ int process_yuv422_frame(vob_t *vob, vframe_list_t *ptr)
 
     if(!yuv422_vert_resize_init_flag) yuv422_vert_resize_init(ptr->v_width);
     
-     if(tmp_image == NULL) {
-      if((tmp_image = (char *)calloc(1, SIZE_RGB_FRAME))==NULL) {
-	fprintf(stderr, "(%s) out of memory", __FILE__);
-	exit(1);
-      }
-    }
     if(!vert_table_8_up_flag) {
       init_table_8_up(vert_table_8_up, ptr->v_height, vob->vert_resize2);
       vert_table_8_up_flag=1;
     }
     
-    yuv422_vresize_8_up(ptr->video_buf, ptr->v_width, ptr->v_height, vob->vert_resize2);
+    yuv422_vresize_8_up(ptr->video_buf, ptr->video_buf_Y[ptr->free], ptr->v_width, ptr->v_height, vob->vert_resize2);
+
+    ptr->video_buf = ptr->video_buf_Y[ptr->free];
+    ptr->free = (ptr->free) ? 0:1;
     
     ptr->v_height += vob->vert_resize2<<3;    
     ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2 *3;
@@ -453,18 +450,15 @@ int process_yuv422_frame(vob_t *vob, vframe_list_t *ptr)
 
   if(resize2 && vob->hori_resize2) {
 
-     if(tmp_image == NULL) {
-      if((tmp_image = (char *)calloc(1, SIZE_RGB_FRAME))==NULL) {
-	fprintf(stderr, "(%s) out of memory", __FILE__);
-	exit(1);
-      }
-    }
     if(!hori_table_8_up_flag) {
       init_table_8_up(hori_table_8_up, ptr->v_width, vob->hori_resize2);
       hori_table_8_up_flag=1;
     }
     
-    yuv422_hresize_8_up(ptr->video_buf, ptr->v_width, ptr->v_height, vob->hori_resize2);
+    yuv422_hresize_8_up(ptr->video_buf, ptr->video_buf_Y[ptr->free], ptr->v_width, ptr->v_height, vob->hori_resize2);
+
+    ptr->video_buf = ptr->video_buf_Y[ptr->free];
+    ptr->free = !ptr->free;
 
     ptr->v_width += vob->hori_resize2<<3;    
     ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2 *3;
@@ -1222,20 +1216,16 @@ int process_rgb_frame(vob_t *vob, vframe_list_t *ptr)
      
      if(!rgb_vert_resize_init_flag) rgb_vert_resize_init();
      
-     if(tmp_image == NULL) {
-       
-      if((tmp_image = (char *)calloc(1, SIZE_RGB_FRAME))==NULL) {
-	fprintf(stderr, "(%s) out of memory", __FILE__);
-	exit(1);
-      }
-    }
-    
     if(!vert_table_8_up_flag) {
       init_table_8_up(vert_table_8_up, ptr->v_height, vob->vert_resize2);
       vert_table_8_up_flag=1;
     }
     
-    rgb_vresize_8_up(ptr->video_buf, ptr->v_width, ptr->v_height, vob->vert_resize2);
+    rgb_vresize_8_up(ptr->video_buf, ptr->video_buf_RGB[ptr->free], ptr->v_width, ptr->v_height, vob->vert_resize2);
+
+    // adjust pointer, zoomed frame in tmp buffer
+    ptr->video_buf = ptr->video_buf_RGB[ptr->free];
+    ptr->free = (ptr->free) ? 0:1;
 
     ptr->v_height += vob->vert_resize2<<3;    
     ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8;
@@ -1251,20 +1241,15 @@ int process_rgb_frame(vob_t *vob, vframe_list_t *ptr)
 
   if(resize2 && vob->hori_resize2) {
 
-    if(tmp_image == NULL) {
-      
-      if((tmp_image = (char *)calloc(1, SIZE_RGB_FRAME))==NULL) {
-	fprintf(stderr, "(%s) out of memory", __FILE__);
-	exit(1);
-      }
-    }
-    
     if(!hori_table_8_up_flag) {
       init_table_8_up(hori_table_8_up, ptr->v_width, vob->hori_resize2);
       hori_table_8_up_flag=1;
     }
     
-    rgb_hresize_8_up(ptr->video_buf, ptr->v_width, ptr->v_height, vob->hori_resize2);
+    rgb_hresize_8_up(ptr->video_buf, ptr->video_buf_RGB[ptr->free], ptr->v_width, ptr->v_height, vob->hori_resize2);
+
+    ptr->video_buf = ptr->video_buf_RGB[ptr->free];
+    ptr->free = (ptr->free) ? 0:1;
 
     ptr->v_width += vob->hori_resize2<<3;    
     ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8;

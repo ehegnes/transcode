@@ -44,7 +44,6 @@ static avi_t *avifile=NULL;
   
 //temporary audio/video buffer
 static unsigned char *buffer;
-#define BUFFER_SIZE SIZE_RGB_FRAME<<1
 
 static fame_context_t *fame_context;
 static fame_parameters_t fame_params = FAME_PARAMETERS_INITIALIZER;
@@ -186,11 +185,11 @@ MOD_init
       return(TC_EXPORT_ERROR); 
     }
     
-    if ((buffer = malloc(BUFFER_SIZE))==NULL) {
+    if ((buffer = malloc(vob->ex_v_height*vob->ex_v_width*3))==NULL) {
       perror("out of memory");
       return(TC_EXPORT_ERROR); 
     } else
-      memset(buffer, 0, BUFFER_SIZE);  
+      memset(buffer, 0, vob->ex_v_height*vob->ex_v_width*3);  
         
     
     fame_params.width = vob->ex_v_width;
@@ -219,7 +218,7 @@ MOD_init
       logfileout = fopen("fame.log", "w");
     fprintf(logfileout, "Frames: %7d\n", 0);
 
-    fame_init(fame_context, &fame_params, buffer, BUFFER_SIZE);
+    fame_init(fame_context, &fame_params, buffer, vob->ex_v_height*vob->ex_v_width*3);
 
 
     if(verbose_flag & TC_DEBUG) 
