@@ -446,6 +446,8 @@ int source_check(char *import_file)
       tc_error("invalid filename \"%s\"", import_file);
       return(1);
     }
+
+    if(import_file[0] == '!') return(0);
     
     if(stat(import_file, &fbuf)==0) return(0);
     
