@@ -198,18 +198,18 @@ A:	Once you have separated (using tcextract) the audio and the video,
 	tcrequant -i ofile.m2v -o movie.m2v -f requant_factor
 	</pre> (cooper)
 ---
-Q:      What options to set in ~/.transcode/ffmpeg for encoding to dvd with
+Q:      What options to set in ~/.transcode/ffmpeg.cfg for encoding to dvd with
         ffmpeg, when not using profile support
 A:      <pre>vrc_minrate=0
         vrc_maxrate=9800
 	vrc_buf_size=1792
+
         </pre>
-
 	If ratecontrol still is insufficient, try:
-
 	<pre>
 	lmin=0
 	lmax=10000
+
 	</pre>
 	(try lower lmax if still not right) (ems).
 ---
