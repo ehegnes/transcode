@@ -2906,6 +2906,10 @@ int main(int argc, char *argv[]) {
 	} else {
 	  vob->pre_im_clip_bottom = vob->pre_im_clip_top = pre_clip/2;
 	}
+	if (vob->pre_im_clip_top%2 != 0 || vob->pre_im_clip_bottom%2 != 0) {
+	  vob->pre_im_clip_top--;
+	  vob->pre_im_clip_bottom++;
+	}
       }
 
       //FIXME hack, kludge, etc. EMS

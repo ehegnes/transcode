@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-27 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/transcode.c:
+  Do not use odd clipping values in profile mode. Pointed out by
+  malaca.
+
 2004-01-26 Tilmann Bitterberg <transcode at tibit.org>
 
   * tools/avimerge.c docs/man/avimerge.1:
