@@ -112,7 +112,7 @@ int f_init_func(char *p_option,char *p_mod)
 		if (p_mod!=NULL)
 		{
 			memset((char *)&s_module,'\0',MAX_BUF);
-			sprintf(s_module, "%s/export_%s.so", p_modpath,p_mod);
+			snprintf(s_module, sizeof(s_module), "%s/export_%s.so", p_modpath,p_mod);
 			f_ext_handle=dlopen(s_module, RTLD_GLOBAL|RTLD_LAZY);
 			if (!f_ext_handle) 
 			{
@@ -146,7 +146,7 @@ int f_init_func(char *p_option,char *p_mod)
 		{
 			tc_accel = ac_mmflag();			/*det the properties of cpu*/
 			memset((char *)&s_module,'\0',MAX_BUF);
-			sprintf(s_module, "%s/export_%s.so", p_modpath,p_mod);
+			snprintf(s_module, sizeof(s_module), "%s/export_%s.so", p_modpath,p_mod);
 			f_ext_handle=dlopen(s_module, RTLD_GLOBAL|RTLD_LAZY);
 			if (!f_ext_handle) 
 			{

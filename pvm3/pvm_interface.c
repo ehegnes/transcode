@@ -53,7 +53,7 @@ void *f_init_pvm_func(char *p_option,void *p_ret_handle)
 	
 	if(!strcasecmp(p_option,"open"))
 	{
-		sprintf(s_module, "%s/%s", MOD_PATH, M_LOAD_LIB);
+		snprintf(s_module, sizeof(s_module), "%s/%s", MOD_PATH, M_LOAD_LIB);
 		p_handle=dlopen(s_module, RTLD_GLOBAL|RTLD_LAZY);
 		if (!p_handle) 
 		{
