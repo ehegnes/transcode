@@ -231,7 +231,7 @@ MOD_open
     
     if (!decore_in_use) {
       if(divx_init(vob->mod_path)<0) {
-	printf("failed to init DivX 4.xx/5.xx codec");
+	fprintf(stderr, "[%s] failed to init DivX 4.xx/5.xx codec\n", MOD_NAME);
 	return(TC_IMPORT_ERROR); 
       }
     }
@@ -252,7 +252,7 @@ MOD_open
     codec_str = AVI_video_compressor(avifile);
 
     if(strlen(codec_str)==0) {
-	printf("invalid AVI file codec");
+	fprintf(stderr, "[%s] invalid AVI file codec", MOD_NAME);
 	return(TC_IMPORT_ERROR); 
     }
 
@@ -271,7 +271,7 @@ MOD_open
     if(strcasecmp(codec_str,"DIV3")==0) {
 	divx_version=DEC_OPT_FRAME_311;
         if(verbose & TC_DEBUG) 
-		printf("[%s] detected DivX divx_version3.11 codec\n", MOD_NAME);
+		fprintf(stderr, "[%s] detected DivX divx_version3.11 codec\n", MOD_NAME);
     }
     else
 	divx_version=DEC_OPT_FRAME;
@@ -316,7 +316,7 @@ MOD_open
     //----------------------------------------
     
     if(divx_decore(divx_id, DEC_OPT_INIT, divx, NULL) < 0) {
-      printf("codec DEC_OPT_INIT error");
+      fprintf(stderr, "[%s] codec DEC_OPT_INIT error", MOD_NAME);
       return(TC_IMPORT_ERROR); 
     } else
 	++decore_in_use;
@@ -435,7 +435,7 @@ MOD_decode {
       decFrame->render_flag = 1;
       
       if(divx_decore(divx_id, divx_version, decFrame, NULL) != DEC_OK) {
-	printf("codec DEC_OPT_FRAME error");
+	fprintf(stderr, "[%s] codec DEC_OPT_FRAME error", MOD_NAME);
 	return(TC_IMPORT_ERROR); 
       }
       
@@ -453,7 +453,7 @@ MOD_decode {
       decFrame->render_flag = 1;
       
       if(divx_decore(divx_id, divx_version, decFrame, NULL) < 0) {
-	printf("codec DEC_OPT_FRAME error");
+	fprintf(stderr, "[%s] codec DEC_OPT_FRAME error", MOD_NAME);
 	return(TC_IMPORT_ERROR); 
       }
     }
