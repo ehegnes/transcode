@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_smooth.so"
-#define MOD_VERSION "v0.2.2 (2003-01-29)"
+#define MOD_VERSION "v0.2.3 (2003-03-27)"
 #define MOD_CAP     "(single-frame) smoothing plugin"
 #define MOD_AUTHOR  "Chad Page"
 
