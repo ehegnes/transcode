@@ -80,11 +80,15 @@ MOD_open
 
     //printf("vob->amod_probed (%s)\n", vob->amod_probed);
 
+    /* This check is bogus since amod->probed does not contain what the user
+     * specified with -x 
+
     if ((vob->amod_probed && strlen(vob->amod_probed)>=4 && !strncmp(vob->amod_probed, "null", 4)) 
 	    || !vob->amod_probed) {
 	printf("NO AUDIO\n");
 	do_audio = 0;
     }
+    */
 
     if ((vob->video_in_file && strlen(vob->video_in_file)>=11 && strncmp(vob->video_in_file, "/dev/video1", 11))) do_resync=0; //no resync stuff for webcams
 	
