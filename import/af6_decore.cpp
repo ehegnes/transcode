@@ -338,6 +338,10 @@ extern "C" {
       /* alloc audio buffer */
       samples = fmt.nSamplesPerSec * TOTAL_SECS;
       buffer_size = sample_size * fmt.nChannels * samples;
+      /* here we increase the buffer size if necessary */
+      if (ars->GetFrameSize() > buffer_size) {
+	buffer_size = ars->GetFrameSize();
+      }
       buffer = (char *)malloc(buffer_size);
       if(buffer==0) {
 	fprintf(stderr,"(%s) ERROR: No memory for buffer!!!\n",__FILE__);
@@ -355,8 +359,13 @@ extern "C" {
 	unsigned int ret_size;
 
 	/* read sample data */
-	ars->ReadFrames((void*) buffer, buffer_size, samples,
-			ret_samples, ret_size);
+	if (ars->ReadFrames((void*) buffer, buffer_size, samples,
+			ret_samples, ret_size)) {
+	  fprintf(stderr, "(%s) error calling ars->ReadFrames(..,)\n",
+		  __FILE__);
+	  ipipe->error=1;
+	  return;
+	}
 	
 	if(verbose_flag & TC_STATS) 
 	  fprintf(stderr, "(%s) audio: requested: %u, got: %u samples",
