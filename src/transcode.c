@@ -167,6 +167,7 @@ enum {
   DIVX5_VBV,
   CONFIG_DIR,
   USE_UYVY,
+  DVD_ACCESS_DELAY,
 };
 
 int print_counter_interval = 1;
@@ -190,6 +191,9 @@ pid_t tc_probe_pid       = 0;
 int tc_frame_width_max   = 0;
 int tc_frame_height_max  = 0;
 int tc_niceness          = 0;
+
+// for import_dvd
+int tc_dvd_access_delay  = 3;
 
 //-------------------------------------------------------------
 
@@ -235,6 +239,7 @@ void usage(int status)
   printf(" -x vmod[,amod]      video[,audio] import modules [%s]\n", 
 	 TC_DEFAULT_IMPORT_VIDEO);
   printf(" -a a[,v]            extract audio[,video] track [0,0]\n");
+  printf("--dvd_access_delay N delay DVD access by N seconds [3]\n");
   printf("\n");
 
   //audio
@@ -778,6 +783,7 @@ int main(int argc, char *argv[]) {
       {"hard_fps", no_argument, NULL, HARD_FPS},
       {"config_dir", required_argument, NULL, CONFIG_DIR},
       {"uyvy", no_argument, NULL, USE_UYVY},
+      {"dvd_access_delay", required_argument, NULL, DVD_ACCESS_DELAY},
       {0,0,0,0}
     };
     
@@ -1938,6 +1944,11 @@ int main(int argc, char *argv[]) {
 	      break;
 	  }
 	  
+	  break;
+
+	case DVD_ACCESS_DELAY:
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+	  tc_dvd_access_delay = atoi(optarg);
 	  break;
 
 	case HARD_FPS:

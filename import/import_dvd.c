@@ -41,7 +41,7 @@
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];
 
-#define ACCESS_DELAY 3
+//#define ACCESS_DELAY 3
 
 typedef struct tbuf_t {
 	int off;
@@ -68,6 +68,9 @@ int a_re_entry=0, v_re_entry=0;
 
 #define TMP_BUF_SIZE 256
 static char seq_buf[TMP_BUF_SIZE], dem_buf[TMP_BUF_SIZE], cat_buf[TMP_BUF_SIZE], cha_buf[TMP_BUF_SIZE];
+
+// set in transcode.c
+extern int tc_dvd_access_delay;
 
 /* ------------------------------------------------------------
  *
@@ -333,9 +336,9 @@ MOD_open
     
     param->fd = NULL;
     
-    if (ACCESS_DELAY) {
-      if(verbose_flag && !v_re_entry) printf("[%s] delaying DVD access by %d second(s)\n", MOD_NAME, ACCESS_DELAY);
-      n=ACCESS_DELAY; 
+    if (tc_dvd_access_delay) {
+      if(verbose_flag && !v_re_entry) printf("[%s] delaying DVD access by %d second(s)\n", MOD_NAME, tc_dvd_access_delay);
+      n=tc_dvd_access_delay; 
       while(n--) {
 	if(verbose_flag) printf("."); 
 	fflush(stdout); sleep(1);
