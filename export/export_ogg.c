@@ -71,7 +71,7 @@ MOD_open
 	    fprintf(stderr, "[%s] Writing audio to \"/dev/null\" (no -m option)\n", MOD_NAME);
 	}
 	if (vob->mp3bitrate == 0)
-	  result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -q %.2f -R %d -Q -o %s %s -",
+	  result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -q %.2f -R %d -Q -o \"%s\" %s -",
 		vob->a_bits,
 		vob->a_chan,
 		vob->mp3quality,
@@ -79,7 +79,7 @@ MOD_open
 		vob->audio_out_file?vob->audio_out_file:"/dev/null",
 		(vob->ex_a_string?vob->ex_a_string:""));
 	else
-	  result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -b %d -R %d -Q -o %s %s -",
+	  result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -b %d -R %d -Q -o \"%s\" %s -",
 		vob->a_bits,
 		vob->a_chan,
 		vob->mp3bitrate,

@@ -16,8 +16,12 @@ transcode-0.6.9
   dynamic allocation. Pointed out by Jason Bishop.
 
   * acinclude.m4 aclocal.m4 configure:
-  Decrecment lame version when lame advertises to be an alpha or
+  Decrement lame version when lame advertises to be an alpha or
   beta version. Pointed out by Jason Bishop.
+
+  * export/export_ogg.c:
+  Fix a quoting bug which causes oggenc to fail when there are
+  spaces in the output filename. Pointed out by Christophe Nowick.
 
 2003-07-15 Andreas Kies <andikies at t-online.de>
 
