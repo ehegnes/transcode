@@ -903,6 +903,13 @@ $ transcode ... \-\-write_pid /tmp/transcode.pid &
 $ kill -2 `cat /tmp/transcode.pid`
 .RE
 .TP
+.B \-\-nice \fIN\fP
+set niceness to \fIN\fP [off]
+.br
+The option \-\-nice which renices transcode to the given positive or
+negative value. \-10 sets a high priority; +10 a low priority.
+This might be useful for cluster mode.
+.TP
 .B \-\-progress_off
 disable progress meter status line [off]
 .TP

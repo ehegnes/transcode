@@ -141,6 +141,7 @@ enum {
   ENCODE_FIELDS,
   PRINT_STATUS,
   WRITE_PID,
+  NICENESS,
   PROGRESS_OFF,
   DEBUG_MODE,
   ACCEL_MODE,
@@ -176,6 +177,7 @@ int tc_avi_limit         = AVI_FILE_LIMIT;  //AVI file size limit in MB
 pid_t tc_probe_pid       = 0;
 int tc_frame_width_max   = 0;
 int tc_frame_height_max  = 0;
+int tc_niceness          = 0;
 
 //-------------------------------------------------------------
 
@@ -372,6 +374,7 @@ void usage(int status)
   printf("--progress_off            disable progress meter status line [off]\n");
   printf("--color N                 level of color in transcodes output [1]\n");
   printf("--write_pid file          write pid of signal thread to \"file\" [off]\n");
+  printf("--nice N                  set niceness to N [off]\n");
 #ifdef ARCH_X86
   printf("--accel type              enforce IA32 acceleration for type [autodetect]\n");
 #endif
@@ -798,6 +801,7 @@ int main(int argc, char *argv[]) {
       {"encode_fields", no_argument, NULL, ENCODE_FIELDS},
       {"print_status", required_argument, NULL, PRINT_STATUS},
       {"write_pid", required_argument, NULL, WRITE_PID},
+      {"nice", required_argument, NULL, NICENESS},
       {"progress_off", no_argument, NULL, PROGRESS_OFF},
       {"debug_mode", no_argument, NULL, DEBUG_MODE},
       {"accel_mode", required_argument, NULL, ACCEL_MODE},
@@ -1957,6 +1961,12 @@ int main(int argc, char *argv[]) {
 	  vob->ts_pid2 = vob->ts_pid1;
 	  break;
 
+	case NICENESS:
+	  
+	  tc_niceness = atoi(optarg);
+
+	  break;
+
 	case WRITE_PID:
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  
@@ -2228,6 +2238,12 @@ int main(int argc, char *argv[]) {
 
     // display program version
     if(verbose) version();
+
+    if (tc_niceness) {
+      if (nice(tc_niceness)<0) {
+	tc_warn("setting nice to %d failed", tc_niceness);
+      }
+    }
 
     // this will determine most source parameter
     if(auto_probe) {
