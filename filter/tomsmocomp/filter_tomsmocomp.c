@@ -257,13 +257,13 @@ int tc_filter (vframe_list_t *ptr, char *options)
 	char buf[255];
 	optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION,
 			    MOD_AUTHORS, "VY4E", "1");
-	sprintf (buf, "%d", tmc->TopFirst);
+	snprintf (buf, sizeof(buf), "%d", tmc->TopFirst);
 	optstr_param (options, "TopFirst", "Assume the top field should be displayed first" ,"%d", buf, "0", "1");
-	sprintf (buf, "%d", tmc->SearchEffort);
+	snprintf (buf, sizeof(buf), "%d", tmc->SearchEffort);
 	optstr_param (options, "SearchEffort", "CPU time used to find moved pixels" ,"%d", buf, "0", "30");
-	sprintf (buf, "%d", tmc->UseStrangeBob);
+	snprintf (buf, sizeof(buf), "%d", tmc->UseStrangeBob);
 	optstr_param (options, "UseStrangeBob", "?Unknown?" ,"%d", buf, "0", "1");
-	sprintf (buf, "%02x", tmc->cpuflags);
+	snprintf (buf, sizeof(buf), "%02x", tmc->cpuflags);
 	optstr_param (options, "CpuFlags", "Manual specification of CPU capabilities" ,"%x", buf, "00", "ff");
     }
     

@@ -521,19 +521,19 @@ int tc_filter(vframe_list_t * ptr, char *options)
       char buf[255];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYRE", "1");
 
-      sprintf(buf, "%d",mode);
+      snprintf(buf, sizeof(buf), "%d",mode);
       optstr_param(options,"mode","mode of operation", "%d", buf, "0", "1");
-      snprintf(buf, 128, "%f", infps);
+      snprintf(buf, sizeof(buf), "%f", infps);
       optstr_param(options, "infps", "Original fps", "%f", buf, "MIN_FPS", "200.0");
-      snprintf(buf, 128, "%d", infrc);
+      snprintf(buf, sizeof(buf), "%d", infrc);
       optstr_param(options, "infrc", "Original frc", "%d", buf, "0", "16");
-      sprintf(buf, "%d", numSample);
+      snprintf(buf, sizeof(buf), "%d", numSample);
       optstr_param(options,"examine", "How many frames to buffer", "%d", buf, "2", "25");
-      sprintf(buf, "%d", offset);
+      snprintf(buf, sizeof(buf), "%d", offset);
       optstr_param(options, "subsample", "How many pixels to subsample", "%d", buf, "1", "256");
-      sprintf(buf, "%d", clonetype);
+      snprintf(buf, sizeof(buf), "%d", clonetype);
       optstr_param(options, "clonetype", "How to clone frames", "%d", buf, "0", "16");
-      sprintf(buf, "%d", verbose);
+      snprintf(buf, sizeof(buf), "%d", verbose);
       optstr_param(options, "verbose", "run in verbose mode", "%d", buf, "0", "1");
       return 0;
     }

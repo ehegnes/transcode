@@ -132,7 +132,7 @@ int tc_filter(aframe_list_t *ptr, char *options)
       char buf[255];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "AE", "1");
 
-      sprintf (buf, "%d", taps);
+      snprintf (buf, sizeof(buf), "%d", taps);
       optstr_param (options, "taps", "strength (may be negative)", "%d", buf, "-50", "50");
   }
   //----------------------------------
