@@ -1,4 +1,4 @@
-2005-01-25 Andrew Church
+2005-01-25 Andrew Church <achurch at achurch dot org>
   * src/transcode.c docs/man/transcode.1
   For the -E option, samplerate and bits per sample can now be
   specified as 0 to mean "same as input".  This allows converting
