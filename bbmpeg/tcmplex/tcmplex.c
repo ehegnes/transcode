@@ -228,6 +228,6 @@ int main(int argc, char **argv)
    
    fprintf(stderr, "\n\n");
    
-   return 1;
+   return EXIT_SUCCESS;
 }
 
