@@ -181,8 +181,9 @@ void probe_ogg(info_t *ipipe)
 		case Theora:
 		{
 		    theora_info ti;
+		    theora_comment tc;
 
-		    theora_decode_header(&ti, &pack);
+		    theora_decode_header(&ti, &tc, &pack);
 		    
 		    ipipe->probe_info->width  =  ti.width;
 		    ipipe->probe_info->height =  ti.height;

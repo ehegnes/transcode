@@ -15331,9 +15331,9 @@ if test x$with_theora = "x"yes ; then
 	    with_theora_l="/usr/lib"
         fi
 
-	echo "$as_me:$LINENO: checking for theora_version_number in -ltheora" >&5
-echo $ECHO_N "checking for theora_version_number in -ltheora... $ECHO_C" >&6
-if test "${ac_cv_lib_theora_theora_version_number+set}" = set; then
+	echo "$as_me:$LINENO: checking for theora_info_init in -ltheora" >&5
+echo $ECHO_N "checking for theora_info_init in -ltheora... $ECHO_C" >&6
+if test "${ac_cv_lib_theora_theora_info_init+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -15352,11 +15352,11 @@ extern "C"
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
-char theora_version_number ();
+char theora_info_init ();
 int
 main ()
 {
-theora_version_number ();
+theora_info_init ();
   ;
   return 0;
 }
@@ -15373,19 +15373,19 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  ac_cv_lib_theora_theora_version_number=yes
+  ac_cv_lib_theora_theora_info_init=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-ac_cv_lib_theora_theora_version_number=no
+ac_cv_lib_theora_theora_info_init=no
 fi
 rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-echo "$as_me:$LINENO: result: $ac_cv_lib_theora_theora_version_number" >&5
-echo "${ECHO_T}$ac_cv_lib_theora_theora_version_number" >&6
-if test $ac_cv_lib_theora_theora_version_number = yes; then
+echo "$as_me:$LINENO: result: $ac_cv_lib_theora_theora_info_init" >&5
+echo "${ECHO_T}$ac_cv_lib_theora_theora_info_init" >&6
+if test $ac_cv_lib_theora_theora_info_init = yes; then
   THEORA_CFLAGS="-I$with_theora_i -I/usr/local/include"
          THEORA_LIBS="-L$with_theora_l -ltheora -lm"
        	cat >>confdefs.h <<\_ACEOF

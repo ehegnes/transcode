@@ -416,7 +416,7 @@ if test x$with_theora = "x"yes ; then
 	    with_theora_l="/usr/lib"
         fi
 
-	AC_CHECK_LIB(theora, theora_version_number,
+	AC_CHECK_LIB(theora, theora_info_init,
        	[THEORA_CFLAGS="-I$with_theora_i -I/usr/local/include" 
          THEORA_LIBS="-L$with_theora_l -ltheora -lm"
        	AC_DEFINE(HAVE_THEORA) 
