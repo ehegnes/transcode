@@ -169,7 +169,7 @@ MOD_decode
   
   int key;
 
-  long bytes_read=0;
+  long bytes_read=0, i;
   
   if(param->flag == TC_VIDEO) {
     // If we are using tccat, then do nothing here
@@ -178,6 +178,12 @@ MOD_decode
     }
 
     param->size = AVI_read_frame(avifile2, param->buffer, &key);
+
+    for (i = 0; i<height; i++) {
+	memmove (param->buffer+(i*width*3),
+		 param->buffer+(i*width*3) + 2*i,
+		width*3);
+    }
 
     if(verbose & TC_STATS && key) printf("keyframe %d\n", vframe_count); 
     

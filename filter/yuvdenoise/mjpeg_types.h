@@ -1,5 +1,5 @@
 /*
-    $Id: mjpeg_types.h,v 1.1.1.1 2003-03-08 13:42:49 tibit Exp $
+    $Id: mjpeg_types.h,v 1.2 2003-03-14 11:12:41 tibit Exp $
 
     Copyright (C) 2000 Herbert Valerio Riedel <hvr@gnu.org>
 
@@ -20,7 +20,20 @@
 
 #ifndef __MJPEG_TYPES_H__
 #define __MJPEG_TYPES_H__
-#include "config.h"
+
+#ifdef HAVE_CONFIG_H
+#include "../../config.h"
+#endif
+
+#ifdef HAVE_ASM_MMX
+# ifdef emms
+#  undef emms
+# endif
+# define    emms() __asm__ __volatile__ ("emms")
+#else
+# define emms() do {} while(0)
+#endif
+
 
 #if defined(HAVE_STDINT_H)
 # include <stdint.h>

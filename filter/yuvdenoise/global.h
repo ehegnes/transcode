@@ -28,8 +28,7 @@
 
 // config
 
-/* does not compile with gcc3 and produces weird results */
-#undef HAVE_ASM_MMX
+// should always be defined
 #define HAVE_FILTER_IO_BUF
 
 struct DNSR_GLOBAL

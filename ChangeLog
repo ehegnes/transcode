@@ -12,6 +12,10 @@ transcode-0.6.4.HEAD
 - Fix (longstanding) bug where transcode failed to probe some mpeg
   streams in connection with -q2
 
+- Reenable the MMX routines in filter_yuvdenoise.c, this makes the
+  filter considerable faster (about 70%) on MMX-capable machines
+   -- Christoph Lampert <chl at math.uni-bonn.de>
+
 --------------------------------------------
 transcode-0.6.4.20030311 Tue Mar 11 15:09:44 CET 2003
 

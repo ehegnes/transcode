@@ -1,3 +1,7 @@
+/* fixed mmx routines/enable compile with gcc-3 
+ * Christoph Lampert <chl at math.uni-bonn.de>
+ * Fri Mar 14 12:03:48 CET 2003
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -141,13 +145,9 @@ calc_SAD_mmx (uint8_t * frm, uint8_t * ref)
     " pxor        %%mm0 , %%mm0;           /* clear mm0                                          */\n"
     " pxor        %%mm7 , %%mm7;           /* clear mm7                                          */\n"
     "                                      /*                                                    */\n"
-    " movl         %1    , %%eax;          /* load frameadress into eax                          */\n"
-    " movl         %2    , %%ebx;          /* load frameadress into ebx                          */\n"
-    " movl         %3    , %%ecx;          /* load width       into ecx                          */\n"
-    "                                      /*                                                    */\n"
     ".rept 8                    ;          /* Loop for 8 lines                                   */\n"
-    " movq        (%%eax), %%mm1;          /* 8 Pixels from filtered frame to mm1                */\n"
-    " movq        (%%ebx), %%mm2;          /* 8 Pixels from reference frame to mm2               */\n"
+    " movq        (%%esi), %%mm1;          /* 8 Pixels from filtered frame to mm1                */\n"
+    " movq        (%%edi), %%mm2;          /* 8 Pixels from reference frame to mm2               */\n"
     " movq         %%mm2 , %%mm3;          /* hold a copy of mm2 in mm3                          */\n"
     " psubusb      %%mm1 , %%mm3;          /* positive differences between mm2 and mm1           */\n"
     " psubusb      %%mm2 , %%mm1;          /* positive differences between mm1 and mm3           */\n"
@@ -157,14 +157,13 @@ calc_SAD_mmx (uint8_t * frm, uint8_t * ref)
     " punpckhbw    %%mm7 , %%mm2;          /*                                                    */\n"
     " paddusw      %%mm1 , %%mm0;          /* add mm1 (stored in mm1 and mm2...)                 */\n"
     " paddusw      %%mm2 , %%mm0;          /* to mm0                                             */\n"
-    " addl         %%ecx , %%eax;          /* add framewidth to frameaddress                     */\n"
-    " addl         %%ecx , %%ebx;          /* add framewidth to frameaddress                     */\n"
+    " addl         %%ecx , %%esi;          /* add framewidth to frameaddress                     */\n"
+    " addl         %%ecx , %%edi;          /* add framewidth to frameaddress                     */\n"
     " .endr                                /* end loop                                           */\n"
     "                                      /*                                                    */\n"
     " movq         %%mm0 , %0   ;          /* make mm0 available to gcc ...                      */\n"
-    :"=m" (a)     
-    :"m" (frm), "m" (ref), "m" (denoiser.frame.w)
-    :"%eax", "%ebx", "%ecx"
+    :"=g" (a)     
+    :"S" (frm), "D" (ref), "c" (denoiser.frame.w)
     );
 #endif
 
@@ -186,22 +185,18 @@ calc_SAD_mmxe (uint8_t * frm, uint8_t * ref)
   __asm__ __volatile__
     (
     " pxor         %%mm0 , %%mm0;          /* clear mm0                                          */\n"
-    " movl         %1    , %%eax;          /* load frameadress into eax                          */\n"
-    " movl         %2    , %%ebx;          /* load frameadress into ebx                          */\n"
-    " movl         %3    , %%ecx;          /* load width       into ecx                          */\n"
     "                           ;          /*                                                    */\n"
     " .rept 8                   ;          /*                                                    */\n"
-    " movq        (%%eax), %%mm1;          /* 8 Pixels from filtered frame to mm1                */\n"
-    " psadbw      (%%ebx), %%mm1;          /* 8 Pixels difference to mm1                         */\n"
+    " movq        (%%esi), %%mm1;          /* 8 Pixels from filtered frame to mm1                */\n"
+    " psadbw      (%%edi), %%mm1;          /* 8 Pixels difference to mm1                         */\n"
     " paddusw      %%mm1 , %%mm0;          /* add result to mm0                                  */\n"
-    " addl         %%ecx , %%eax;          /* add framewidth to frameaddress                     */\n"
-    " addl         %%ecx , %%ebx;          /* add framewidth to frameaddress                     */\n"
+    " addl         %%ecx , %%esi;          /* add framewidth to frameaddress                     */\n"
+    " addl         %%ecx , %%edi;          /* add framewidth to frameaddress                     */\n"
     " .endr                     ;          /*                                                    */\n"
     "                                      /*                                                    */\n"
     " movq         %%mm0 , %0   ;          /* make mm0 available to gcc ...                      */\n"
-    :"=m" (a)     
-    :"m" (frm), "m" (ref), "m" (denoiser.frame.w)
-    :"%eax", "%ebx", "%ecx"
+    :"=g" (a)     
+    :"S" (frm), "D" (ref), "c" (denoiser.frame.w)
     );
 #endif
   return a;
@@ -248,13 +243,9 @@ calc_SAD_uv_mmx (uint8_t * frm, uint8_t * ref)
     " pxor        %%mm0 , %%mm0;           /* clear mm0                                          */\n"
     " pxor        %%mm7 , %%mm7;           /* clear mm7                                          */\n"
     "                                      /*                                                    */\n"
-    " movl         %1    , %%eax;          /* load frameadress into eax                          */\n"
-    " movl         %2    , %%ebx;          /* load frameadress into ebx                          */\n"
-    " movl         %3    , %%ecx;          /* load width       into ecx                          */\n"
-    "                                      /*                                                    */\n"
     ".rept 4                    ;          /* Loop for 4 lines                                   */\n"
-    " movd        (%%eax), %%mm1;          /* 4 Pixels from filtered frame to mm1                */\n"
-    " movd        (%%ebx), %%mm2;          /* 4 Pixels from reference frame to mm2               */\n"
+    " movd        (%%esi), %%mm1;          /* 4 Pixels from filtered frame to mm1                */\n"
+    " movd        (%%edi), %%mm2;          /* 4 Pixels from reference frame to mm2               */\n"
     " movq         %%mm2 , %%mm3;          /* hold a copy of mm2 in mm3                          */\n"
     " psubusb      %%mm1 , %%mm3;          /* positive differences between mm2 and mm1           */\n"
     " psubusb      %%mm2 , %%mm1;          /* positive differences between mm1 and mm3           */\n"
@@ -264,14 +255,13 @@ calc_SAD_uv_mmx (uint8_t * frm, uint8_t * ref)
     " punpckhbw    %%mm7 , %%mm2;          /*                                                    */\n"
     " paddusw      %%mm1 , %%mm2;          /* add mm1 (stored in mm1 and mm2...)                 */\n"
     " paddusw      %%mm2 , %%mm0;          /* to mm0                                             */\n"
-    " addl         %%ecx , %%eax;          /* add framewidth to frameaddress                     */\n"
-    " addl         %%ecx , %%ebx;          /* add framewidth to frameaddress                     */\n"
+    " addl         %%ecx , %%esi;          /* add framewidth to frameaddress                     */\n"
+    " addl         %%ecx , %%edi;          /* add framewidth to frameaddress                     */\n"
     " .endr                                /* end loop                                           */\n"
     "                                      /*                                                    */\n"
     " movq         %%mm0 , %0   ;          /* make mm0 available to gcc ...                      */\n"
-    :"=m" (a)     
-    :"m" (frm), "m" (ref), "m" (denoiser.frame.w/2)
-    :"%eax", "%ebx", "%ecx"
+    :"=g" (a)     
+    :"S" (frm), "D" (ref), "c" (denoiser.frame.w/2)
     );
 #endif
   return (uint32_t)(a[0]+a[1]+a[2]+a[3]);
@@ -292,23 +282,19 @@ calc_SAD_uv_mmxe (uint8_t * frm, uint8_t * ref)
   __asm__ __volatile__
     (
     " pxor         %%mm0 , %%mm0;          /* clear mm0                                          */\n"
-    " movl         %1    , %%eax;          /* load frameadress into eax                          */\n"
-    " movl         %2    , %%ebx;          /* load frameadress into ebx                          */\n"
-    " movl         %3    , %%ecx;          /* load width       into ecx                          */\n"
     "                           ;          /*                                                    */\n"
     " .rept 4                   ;          /*                                                    */\n"
-    " movd        (%%eax), %%mm1;          /* 4 Pixels from filtered frame to mm1                */\n"
-    " movd        (%%ebx), %%mm2;          /* 4 Pixels from filtered frame to mm2                */\n"
+    " movd        (%%esi), %%mm1;          /* 4 Pixels from filtered frame to mm1                */\n"
+    " movd        (%%edi), %%mm2;          /* 4 Pixels from filtered frame to mm2                */\n"
     " psadbw       %%mm2 , %%mm1;          /* 4 Pixels difference to mm1                         */\n"
     " paddusw      %%mm1 , %%mm0;          /* add result to mm0                                  */\n"
-    " addl         %%ecx , %%eax;          /* add framewidth to frameaddress                     */\n"
-    " addl         %%ecx , %%ebx;          /* add framewidth to frameaddress                     */\n"
+    " addl         %%ecx , %%esi;          /* add framewidth to frameaddress                     */\n"
+    " addl         %%ecx , %%edi;          /* add framewidth to frameaddress                     */\n"
     " .endr                     ;          /*                                                    */\n"
     "                                      /*                                                    */\n"
     " movq         %%mm0 , %0   ;          /* make mm0 available to gcc ...                      */\n"
-    :"=m" (a)     
-    :"m" (frm), "m" (ref), "m" (denoiser.frame.w/2)
-    :"%eax", "%ebx", "%ecx"
+    :"=g" (a)     
+    :"S" (frm), "D" (ref), "c" (denoiser.frame.w/2)
     );
 #endif
   return a;
@@ -353,15 +339,11 @@ calc_SAD_half_mmx (uint8_t * ref, uint8_t * frm1, uint8_t * frm2)
   __asm__ __volatile__
       (
 	  " pxor         %%mm0 , %%mm0;          /* clear mm0                                          */"
-	  " movl         %1    , %%eax;          /* load frameadress into eax                          */"
-	  " movl         %2    , %%ebx;          /* load frameadress into ebx                          */"
-	  " movl         %3    , %%ecx;          /* load frameadress into ecx                          */"
-	  " movl         %4    , %%edx;          /* load width       into edx                          */"
 	  "                           ;          /*                                                    */"
 	  " .rept 8                   ;          /*                                                    */"
-	  " movq        (%%eax), %%mm1;          /* 8 Pixels from filtered frame to mm1                */"
-	  " movq        (%%ebx), %%mm2;          /* 8 Pixels from filtered frame to mm2 (displaced)    */"
-	  " movq        (%%ecx), %%mm3;          /* reference to mm3                                   */"
+	  " movq        (%%esi), %%mm1;          /* 8 Pixels from filtered frame to mm1                */"
+	  " movq        (%%edi), %%mm2;          /* 8 Pixels from filtered frame to mm2 (displaced)    */"
+	  " movq        (%%eax), %%mm3;          /* reference to mm3                                   */"
 	  " psrlq        $1    , %%mm1;          /* average source pixels                              */"
 	  " psrlq        $1    , %%mm2;          /* shift right by one (divide by two)                 */"
 	  " pand         %5    , %%mm1;          /* kill downshifted bits                              */"
@@ -373,15 +355,14 @@ calc_SAD_half_mmx (uint8_t * ref, uint8_t * frm1, uint8_t * frm2)
 	  " psubusb      %%mm4 , %%mm1;          /* positive differences between mm1 and mm3 */"
 	  " paddusb      %%mm3 , %%mm1;          /* mm1 now contains abs(mm1-mm2) */"
 	  " paddusw      %%mm1 , %%mm0;          /* add result to mm0                                  */"
-	  " addl         %%edx , %%eax;          /* add framewidth to frameaddress                     */"
-	  " addl         %%edx , %%ebx;          /* add framewidth to frameaddress                     */"
-	  " addl         %%edx , %%ecx;          /* add framewidth to frameaddress                     */"
+	  " addl         %%ecx , %%esi;          /* add framewidth to frameaddress                     */"
+	  " addl         %%ecx , %%edi;          /* add framewidth to frameaddress                     */"
+	  " addl         %%ecx , %%ecx;          /* add framewidth to frameaddress                     */"
 	  " .endr                     ;          /*                                                    */"
 	  "                                      /*                                                    */"
 	  " movq         %%mm0 , %0   ;          /* make mm0 available to gcc ...                      */"
-	  :"=m" (a)     
-	  :"m" (frm1),"m" (frm2), "m" (ref), "m" (denoiser.frame.w), "m" (bit_mask)
-	  :"%eax", "%ebx", "%ecx", "%edx"
+	  :"=g" (a)     
+	  :"S" (frm1),"D" (frm2), "a" (ref), "c" (denoiser.frame.w), "m" (bit_mask)
 	  );
 #endif
   return a;
@@ -402,27 +383,22 @@ calc_SAD_half_mmxe (uint8_t * ref, uint8_t * frm1, uint8_t * frm2)
   __asm__ __volatile__
       (
 	  " pxor         %%mm0 , %%mm0;          /* clear mm0                                          */\n"
-	  " movl         %1    , %%eax;          /* load frameadress into eax                          */\n"
-	  " movl         %2    , %%ebx;          /* load frameadress into ebx                          */\n"
-	  " movl         %3    , %%ecx;          /* load frameadress into ecx                          */\n"
-	  " movl         %4    , %%edx;          /* load width       into edx                          */\n"
 	  "                           ;          /*                                                    */\n"
 	  " .rept 8                   ;          /*                                                    */\n"
-	  " movq        (%%eax), %%mm1;          /* 8 Pixels from filtered frame to mm1                */\n"
-	  " movq        (%%ebx), %%mm2;          /* 8 Pixels from filtered frame to mm2 (displaced)    */\n"
-	  " movq        (%%ecx), %%mm3;          /* 8 Pixels from reference frame to mm3               */\n"
+	  " movq        (%%esi), %%mm1;          /* 8 Pixels from filtered frame to mm1                */\n"
+	  " movq        (%%edi), %%mm2;          /* 8 Pixels from filtered frame to mm2 (displaced)    */\n"
+	  " movq        (%%eax), %%mm3;          /* 8 Pixels from reference frame to mm3               */\n"
 	  " pavgb        %%mm2 , %%mm1;          /* average source pixels                              */\n"
 	  " psadbw       %%mm3 , %%mm1;          /* 8 Pixels difference to mm1                         */\n"
 	  " paddusw      %%mm1 , %%mm0;          /* add result to mm0                                  */\n"
-	  " addl         %%edx , %%eax;          /* add framewidth to frameaddress                     */\n"
-	  " addl         %%edx , %%ebx;          /* add framewidth to frameaddress                     */\n"
-	  " addl         %%edx , %%ecx;          /* add framewidth to frameaddress                     */\n"
+	  " addl         %%ecx , %%esi;          /* add framewidth to frameaddress                     */\n"
+	  " addl         %%ecx , %%edi;          /* add framewidth to frameaddress                     */\n"
+	  " addl         %%ecx , %%eax;          /* add framewidth to frameaddress                     */\n"
 	  " .endr                     ;          /*                                                    */\n"
 	  "                                      /*                                                    */\n"
 	  " movq         %%mm0 , %0   ;          /* make mm0 available to gcc ...                      */\n"
-	  :"=m" (a)     
-	  :"m" (frm1),"m" (frm2), "m" (ref), "m" (denoiser.frame.w)
-	  :"%eax", "%ebx", "%ecx", "%edx"
+	  :"=g" (a)     
+	  :"S" (frm1),"D" (frm2), "a" (ref), "c" (denoiser.frame.w)
 	  );
 #endif
   return a;

@@ -23,7 +23,7 @@
  */
 
 #define MOD_NAME    "filter_yuvdenoise.so"
-#define MOD_VERSION "v0.1.2 (2003-01-26)"
+#define MOD_VERSION "v0.2.0 (2003-03-14)"
 #define MOD_CAP     "mjpegs YUV denoiser"
 #define MOD_AUTHOR  "Stefan Fendt, Tilmann Bitterberg"
 
@@ -364,7 +364,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	  memcpy(denoiser.frame.avg2[Cb]+frame_offset4, denoiser.frame.io[Cb],y_size4);
       }
 
-      if(!denoiser.reset) denoise_frame();
+      if(!denoiser.reset) { denoise_frame(); emms(); }
 
       if(denoiser.reset) {
 	  if(verbose && denoiser.reset==denoiser.do_reset)
@@ -378,6 +378,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	  memcpy(denoiser.frame.avg2[Cb]+frame_offset4, denoiser.frame.io[Cb],y_size4);
 
 	  denoise_frame();
+	  emms();
 	  denoiser.reset--;
       }
 
