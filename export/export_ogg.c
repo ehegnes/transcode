@@ -27,7 +27,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "export_ogg.so"
-#define MOD_VERSION "v0.0.3 (2003-03-06)"
+#define MOD_VERSION "v0.0.4 (2003-07-17)"
 #define MOD_CODEC   "(video) null | (audio) ogg"
 
 #define MOD_PRE ogg
