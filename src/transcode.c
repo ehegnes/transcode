@@ -149,6 +149,8 @@ enum {
   LAME_PRESET,
   COLOR_LEVEL,
   AVI_COMMENTS,
+  DIVX5_VBV_PROF,
+  DIVX5_VBV,
 };
 
 int print_counter_interval = 1;
@@ -309,6 +311,9 @@ void usage(int status)
   printf(" -Q n[,m]              encoding[,decoding] quality (0=fastest-5=best) [%d,%d]\n", VQUALITY, VQUALITY);
   printf(" --divx_quant min,max  divx encoder min/max quantizer [%d,%d]\n", VMINQUANTIZER, VMAXQUANTIZER);
   printf(" --divx_rc p,rp,rr     divx encoder rate control parameter [%d,%d,%d]\n", RC_PERIOD, RC_REACTION_PERIOD, RC_REACTION_RATIO);
+  printf(" --divx_vbv_prof N     divx5 encoder VBV profile (0=free-5=hiqhq) [%d]\n", DIVX5_VBV_PROFILE);
+  printf(" --divx_vbv br,sz,oc   divx5 encoder VBV params (bitrate,size,occup.) [%d,%d,%d]\n", 
+      DIVX5_VBV_BITRATE, DIVX5_VBV_SIZE, DIVX5_VBV_OCCUPANCY);
   printf("\n");
 
   //range control
@@ -767,6 +772,8 @@ int main(int argc, char *argv[]) {
       {"color", required_argument, NULL, COLOR_LEVEL},
       {"colour", required_argument, NULL, COLOR_LEVEL},
       {"avi_comments", required_argument, NULL, AVI_COMMENTS},
+      {"divx_vbv_prof", required_argument, NULL, DIVX5_VBV_PROF},
+      {"divx_vbv", required_argument, NULL, DIVX5_VBV},
       {0,0,0,0}
     };
     
@@ -815,6 +822,11 @@ int main(int argc, char *argv[]) {
     vob->rc_period          = RC_PERIOD;
     vob->rc_reaction_period = RC_REACTION_PERIOD;
     vob->rc_reaction_ratio  = RC_REACTION_RATIO;
+
+    vob->divx5_vbv_prof      = DIVX5_VBV_PROFILE;
+    vob->divx5_vbv_bitrate   = DIVX5_VBV_BITRATE;
+    vob->divx5_vbv_size      = DIVX5_VBV_SIZE;
+    vob->divx5_vbv_occupancy = DIVX5_VBV_OCCUPANCY;
 
     vob->mp3bitrate       = ABITRATE;
     vob->mp3frequency     = 0;
@@ -1797,6 +1809,26 @@ int main(int argc, char *argv[]) {
 	    if(optarg[0]=='-') usage(EXIT_FAILURE);
 
 	    if (sscanf(optarg,"%d,%d,%d", &vob->rc_period, &vob->rc_reaction_period, &vob->rc_reaction_ratio )<0) tc_error("invalid parameter for option --divx_rc");
+
+	    break;
+
+	case DIVX5_VBV_PROF:
+	    if(optarg[0]=='-') usage(EXIT_FAILURE);
+
+	    if (sscanf(optarg,"%d", &vob->divx5_vbv_prof)<0) 
+	      tc_error("invalid parameter for option --divx_vbv_prof");
+	    if (vob->divx5_vbv_prof <0 || vob->divx5_vbv_prof >4)
+	      tc_error("invalid value (%d) for option --divx_vbv_prof (0-4)", vob->divx5_vbv_prof);
+
+	    break;
+
+	case DIVX5_VBV:
+	    if(optarg[0]=='-') usage(EXIT_FAILURE);
+
+	    if (sscanf(optarg,"%d,%d,%d", &vob->divx5_vbv_bitrate, 
+		                          &vob->divx5_vbv_size, 
+					  &vob->divx5_vbv_occupancy )<0) 
+	      tc_error("invalid parameters for option --divx_vbv");
 
 	    break;
 

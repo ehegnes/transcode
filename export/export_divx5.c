@@ -66,7 +66,7 @@
 #include "vbr.h"
 
 #define MOD_NAME    "export_divx5.so"
-#define MOD_VERSION "v0.1.6 (2003-06-09)"
+#define MOD_VERSION "v0.1.6 (2003-06-10)"
 #define MOD_CODEC   "(video) DivX 5.xx | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE divx5
@@ -99,6 +99,19 @@ static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3|TC_CAP_AU
 static int (*divx5_encore)(void *para0, int opt, void *para1, void *para2);
 static void *handle;
 static char module[TC_BUF_MAX];
+
+static char * prof2name(int n)
+{
+    switch (n) {
+	 case 0: return "Free/No profile";
+	 case 1: return "Handheld";
+	 case 2: return "Portable";
+	 case 3: return "Home Theatre";
+	 case 4: return "High Definition";
+	default: return "Free/No profile";
+    }
+}
+
 
 #define MODULE "libdivxencore.so.0"
 
@@ -167,7 +180,10 @@ static int divx5_init(char *path) {
 MOD_init
 {
 
+#if ENCORE_VERSION >= 20021024
+#else
   struct stat fbuf;
+#endif
   int ch;
   
   if(param->flag == TC_VIDEO) {
@@ -271,7 +287,7 @@ MOD_init
 	sprintf(logfile_mv, "%s_mv", vob->divxlogfile);
     }
 
-    // default
+    // default -- expose this to user?
     settings->complexity_modulation = 0.5;
 
     settings->bitrate = vob->divxbitrate*1000;
@@ -295,6 +311,47 @@ MOD_init
 	 settings->log_file_read = vob->divxlogfile;
 	 // segfaults if !NULL;
 	 settings->log_file_write = NULL;
+
+	 /* 
+	  * http://www.divx.com/support/divx/guide_mac.php
+	  *
+	  * Handheld 128000,262144,196608
+	  * Portable 768000,1048576,786432
+	  * Home Theatre Theatre 4000000,3145728,2359296
+	  * High Definition 8000000,6291456,4718592
+	  */
+
+	 switch (vob->divx5_vbv_prof) {
+	     case 1: // Handheld
+		 settings->vbv_bitrate   =  128000;
+		 settings->vbv_size      =  262144;
+		 settings->vbv_occupancy =  196608;
+		 break;
+	     case 2: // Portable
+		 settings->vbv_bitrate   =  768000;
+		 settings->vbv_size      = 1048576;
+		 settings->vbv_occupancy =  786432;
+		 break;
+	     case 3: // Home Theatre
+		 settings->vbv_bitrate   = 4000000;
+		 settings->vbv_size      = 3145728;
+		 settings->vbv_occupancy = 2359296;
+		 break;
+	     case 4: // High Definition
+		 settings->vbv_bitrate   = 8000000;
+		 settings->vbv_size      = 6291456;
+		 settings->vbv_occupancy = 4718592;
+		 break;
+	     case 0: // Free/user supplied
+	     default:
+		 settings->vbv_bitrate   = vob->divx5_vbv_bitrate*400;
+		 settings->vbv_size      = vob->divx5_vbv_size*16384;
+		 settings->vbv_occupancy = vob->divx5_vbv_occupancy*64;
+		 break;
+	 }
+	 if (verbose & TC_DEBUG)
+	     printf("[%s] Using VBV Profile [%d] (%s)\n", MOD_NAME, vob->divx5_vbv_prof, 
+		     prof2name(vob->divx5_vbv_prof));
 
 	 break;
 

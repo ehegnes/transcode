@@ -680,6 +680,30 @@ divx encoder min/max quantizer [2,31]
 .B \-\-divx_rc \fIp\fP,\fIrp\fP,\fIrr\fP
 divx encoder rate control parameter [2000,10,20]
 .TP
+.B \-\-divx_vbv_prof \fIN\fP
+divx5 encoder VBV profile (0=free-5=hiqhq) [3]
+.br
+Sets a predefined profile for the Video Bitrate Verifier. If \fIN\fP is set to
+zero, no profile is applied and the user specified values from
+\fB\-\-divx_vbv\fP are used. Valid profiles are:
+.RS
+
+ 0    Free/No profile  (Use supplied values)
+ 1    Handheld         (  320,  16,  3072)
+ 2    Portable         ( 1920,  64, 12288)
+ 3    Home Theatre     (10000, 192, 36864)
+ 4    High Definition  (20000, 384, 73728)
+.RE
+.TP
+.B \-\-divx_vbv \fIbr\fP,\fIsz\fP,\fIoc\fP
+divx5 encoder VBV params (bitrate,size,occup.) [10000,192,36864]
+.br
+These parameters are normally set through the profile parameter
+\fB\-\-divx_vbv_prof\fP. Do not mess with theses value unless you are absolutely
+sure of what you are doing. Transcode internally multiplicates vbv_bitrate with
+400, vbv_size with 16384 and vbv_occupancy with 64 to ensure the supplied
+values are multiples of what the encoder library wants.
+.TP
 .B \-\-export_frc \fIF\fP
 set export frame rate code \fIF\fP [as input]
 .TP

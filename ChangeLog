@@ -1,6 +1,25 @@
 --------------------------------------------
 transcode-0.6.8
 
+2003-06-10 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/filter_tc_video.c:
+  The telecide video filter produced wrong (not telecide but
+  something else) for YUV mode and is still wrong in RGB mode.
+
+  * export_divx5.c src/transcode.c docs/man/transcode.1:
+  When using divx5 2pass (Nth-pass) with the new divx5.0.5 transcode
+  set some wrong VBV parameters. Added support for predefined VBV
+  profiles and user defined parameters through the new commandline
+  parameter --divx_vbv_profile and --divx_vbv.
+  Valid values are (default is 3):
+
+     0    Free/No profile  (Use supplied values)
+     1    Handheld         (  320,  16,  3072)
+     2    Portable         ( 1920,  64, 12288)
+     3    Home Theatre     (10000, 192, 36864)
+     4    High Definition  (20000, 384, 73728)
+  
 2003-06-09 Tilmann Bitterberg <transcode at tibit.org>
 
   * export/* avilib.c docs/avi_comments.txt:

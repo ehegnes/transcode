@@ -284,6 +284,12 @@ typedef struct _vob_t {
   int rc_reaction_period;
   int rc_reaction_ratio;
 
+  int divx5_vbv_prof; // profile
+  // Video Bitrate Verifier contraints (override profile)
+  int divx5_vbv_bitrate;
+  int divx5_vbv_size;
+  int divx5_vbv_occupancy;
+
   int mp3bitrate;
   int mp3frequency;
   float mp3quality;         //0=best (very slow).  9=worst (default=5)
