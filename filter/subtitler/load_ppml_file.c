@@ -270,11 +270,11 @@ while(1)
 		For reasons unknow to me, when called from a thread, transcode
 		leaves the ' in, when called from a shell not...... why?
 		*/
-		sprintf(subtitler_args, " no_objects write_ppm movie_id=%d",\
+		snprintf(subtitler_args, sizeof(subtitler_args), " no_objects write_ppm movie_id=%d",\
 		movie_number); 
 
 		/* arguments to transcode */
-		sprintf(temp,\
+		snprintf(temp, sizeof(temp),\
 	" -i %s -x mpeg2,null -y null,null -V -J subtitler=%c%s%c",\
 		ptr, '"', subtitler_args, '"');
 
@@ -322,7 +322,7 @@ while(1)
 	if( isdigit(arg0[0]) )
 		{
 		/* a subtitle, or an object manipulation */
-		sprintf(arg0, "%d", start_frame);
+		snprintf(arg0, sizeof(arg0), "%d", start_frame);
 		
 		if(ptr[0] != '*') 
 			{

@@ -229,7 +229,7 @@ if(debug_flag)
 if(! data) return 0;
 
 /* Need unique entry for each object */
-sprintf(name, "%d %d %f %f %f %d",\
+snprintf(name, sizeof(name), "%d %d %f %f %f %d",\
 start_frame_nr, end_frame_nr, xpos, ypos, zpos, type);
 pa = install_object_at_end_of_list(name);
 if(! pa)
@@ -499,7 +499,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 			wait for the semaphore file to appear,
 			indication the xxxx.ppm is ready
 			*/
-			sprintf(temp, "%s/.subtitles/%d.sem", home_dir, pa -> id);
+			snprintf(temp, sizeof(temp), "%s/.subtitles/%d.sem", home_dir, pa -> id);
 			while(1)
 				{
 				fptr = fopen(temp, "r");
@@ -518,7 +518,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 			if(! pa -> status & OBJECT_STATUS_INIT)
 				{
 				/* read the ppm file to get the size */
-				sprintf(temp, "%s/.subtitles/%d.ppm", home_dir, pa -> id); 
+				snprintf(temp, sizeof(temp), "%s/.subtitles/%d.ppm", home_dir, pa -> id); 
 				temp_data = ppm_to_yuv_in_char(temp, &width, &height);
 				if(! temp_data)
    			        {
@@ -550,7 +550,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 				)
 					{
 					/* work around mogrify bug by moving pic to home dir */
-					sprintf(temp,\
+					snprintf(temp, sizeof(temp),\
 					"mv %s/.subtitles/%d.ppm %s/",\
 					home_dir, pa -> id, home_dir);
 					execute(temp);
@@ -584,7 +584,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 					)
 						{
 						/* load ppm */
-						sprintf(temp, "%s/%d.ppm", home_dir, pa -> id);
+						snprintf(temp, sizeof(temp), "%s/%d.ppm", home_dir, pa -> id);
 						ptr = ppm_to_yuv_in_char(temp, &width, &height); 
 						if(! ptr) return 0;
 
@@ -609,7 +609,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 						} /* end if zrotation or shear */
 					if( (dx != 0.0) || (pa -> yshear != 0.0) )
 						{
-						sprintf(temp,\
+						snprintf(temp, sizeof(temp),\
 "mogrify  -geometry %dx%d%c  -rotate %.2f  -shear %.2fx%.2f  %s/%d.ppm",\
 						x, y, a,\
 						pa -> zrotation,\
@@ -618,7 +618,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 						}
 					else
 						{
-						sprintf(temp,\
+						snprintf(temp, sizeof(temp),\
 "mogrify  -geometry %dx%d%c  -rotate %.2f  %s/%d.ppm",\
 						x, y, a,\
 						pa -> zrotation,\
@@ -628,7 +628,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 					execute(temp);					
 
 					/* back to normal dir */
-					sprintf(temp,\
+					snprintf(temp, sizeof(temp),\
 					"mv %s/%d.ppm %s/.subtitles/",\
 					home_dir, pa -> id, home_dir);
 					execute(temp);
@@ -639,7 +639,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 				dty = pa -> ysize;
 
 				/* read the ppm file into the buffer */
-				sprintf(temp, "%s/.subtitles/%d.ppm", home_dir, pa -> id); 
+				snprintf(temp, sizeof(temp), "%s/.subtitles/%d.ppm", home_dir, pa -> id); 
 				pa -> data = ppm_to_yuv_in_char(temp, &width, &height);
 		        if(! pa -> data)
     		        {
@@ -658,7 +658,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 				remove the semaphore,
 				so the other transcode can get the next frame.
 				*/
-				sprintf(temp, "%s/.subtitles/%d.sem", home_dir, pa -> id);
+				snprintf(temp, sizeof(temp), "%s/.subtitles/%d.sem", home_dir, pa -> id);
 				unlink(temp);
 
 				/* here pa -> data holds the picture in YUYV format */
@@ -686,7 +686,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 			{
 			pa -> zpos = 65535;
 
-			sprintf(temp, "frame=%d", current_frame_nr);
+			snprintf(temp, sizeof(temp), "frame=%d", current_frame_nr);
 			add_text( (int)pa -> xpos, (int)pa -> ypos, temp,\
 			pa, (int)pa -> u, (int)pa -> v,\
 			pa -> contrast, pa -> transparency, pa -> pfd,\
