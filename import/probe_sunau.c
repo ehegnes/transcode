@@ -21,10 +21,6 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "ioaux.h"
 #include "tc.h"
 
@@ -33,7 +29,6 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/audioio.h>
-#include <string.h>
 
 
 void
@@ -42,9 +37,9 @@ probe_sunau(info_t * ipipe)
     audio_info_t audio_if;
 
     close(ipipe->fd_in);
-    ipipe->fd_in = open(ipipe->name, O_RDWR, 0);
+    ipipe->fd_in = open(ipipe->name, O_RDONLY, 0);
     if (ipipe->fd_in < 0) {
-	fprintf(stderr, "[probe_sunau] cannot (re)open device in RW mode\n");
+	fprintf(stderr, "[probe_sunau] cannot (re)open device\n");
 	perror("[probe_sunau] open sunau device");
 	goto error;
     }
@@ -99,6 +94,9 @@ probe_sunau(info_t * ipipe)
     if (ipipe->probe_info->track[0].chan > 0)
         ipipe->probe_info->num_tracks = 1;
 
+    ipipe->probe_info->magic = TC_MAGIC_SUNAU_AUDIO;
+    ipipe->probe_info->codec = TC_CODEC_PCM;
+
     return;
 
 error:
@@ -111,6 +109,7 @@ error:
 }
 
 #else			/* HAVE_SUNAU */
+
 void 
 probe_sunau(info_t * ipipe)
 {
@@ -118,4 +117,5 @@ probe_sunau(info_t * ipipe)
     ipipe->probe_info->codec = TC_CODEC_UNKNOWN;
     ipipe->probe_info->magic = TC_MAGIC_UNKNOWN;
 }
+
 #endif
