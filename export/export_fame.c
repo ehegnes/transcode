@@ -34,7 +34,7 @@
 #include "aud_aux.h"
 
 #define MOD_NAME    "export_fame.so"
-#define MOD_VERSION "v0.8.9 (2002-01-14)"
+#define MOD_VERSION "v0.9.0 (2003-03-30)"
 #define MOD_CODEC   "(video) MPEG-4 | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE fame
@@ -46,19 +46,19 @@ static avi_t *avifile=NULL;
 static unsigned char *buffer;
 #define BUFFER_SIZE SIZE_RGB_FRAME<<1
 
-fame_context_t *fame_context;
-fame_parameters_t fame_params = FAME_PARAMETERS_INITIALIZER;
+static fame_context_t *fame_context;
+static fame_parameters_t fame_params = FAME_PARAMETERS_INITIALIZER;
 
 #define CHUNK_SIZE 1024
-int ofile;
+static int ofile;
 
 
 static int verbose_flag=TC_DEBUG;
 static int capability_flag=TC_CAP_PCM|TC_CAP_AC3|TC_CAP_AUD|TC_CAP_YUV;
 
 int frame =0;
-FILE *logfileout;
-FILE *logfilein;
+static FILE *logfileout;
+static FILE *logfilein;
 
 int read_stats(fame_frame_statistics_t *stats)
 {
@@ -247,19 +247,31 @@ MOD_encode
 {
   int keyframe;
   fame_yuv_t yuv;
-  fame_frame_statistics_t *current_stats;
+  static fame_frame_statistics_t *current_stats=NULL;
+  int size;
 
   if(param->flag == TC_VIDEO) { 
     
+    if (!current_stats)
+      current_stats = malloc (sizeof (current_stats));
+    memset (current_stats, 0, sizeof (current_stats));
+
     // encode video
     yuv.w = fame_params.width;
     yuv.h = fame_params.height;
+    yuv.p = fame_params.width;
     yuv.y = param->buffer;
     yuv.v = yuv.y + yuv.w*yuv.h;
     yuv.u = yuv.v + yuv.w*yuv.h/4;
 
+    fame_start_frame(fame_context, &yuv, NULL);
+    // segfaults here
+    while( (size = fame_encode_slice(fame_context)) ) {
+	split_write(ofile, buffer, size);
+    }
+    fame_end_frame(fame_context, current_stats);
+
     frame++;
-    current_stats = fame_encode_frame(fame_context, &yuv, NULL);
     
     // write stats
     print_stats(current_stats);
@@ -272,11 +284,11 @@ MOD_encode
 
     // write video
     
-    if(AVI_write_frame(avifile, buffer, current_stats->actual_bits/8, keyframe)<0) {
+    if(AVI_write_frame(avifile, buffer, size, keyframe)<0) {
       printf("avi video write error");
       return(TC_EXPORT_ERROR); 
     }
-    split_write(ofile, buffer, current_stats->actual_bits/8);
+    //split_write(ofile, buffer, current_stats->actual_bits/8);
     
     return(0);
   }

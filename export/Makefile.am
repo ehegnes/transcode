@@ -147,7 +147,7 @@ export_divx5raw_la_LIBADD = @LAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
 
 export_ffmpeg_la_SOURCES = export_ffmpeg.c aud_aux.c ffmpeg_cfg.c vid_aux.c
 export_ffmpeg_la_LDFLAGS = -no-undefined -module -avoid-version 
-export_ffmpeg_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec/ -lavcodec -L../avilib -L../libioaux -lioaux -L../libvo -lvout $(AC3_LIB) -lavi -lm
+export_ffmpeg_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec/ -lavcodec -L../avilib -lavi -L../libioaux -ltcioaux -L../libvo -lvout $(AC3_LIB) -lm
 
 export_divx4raw_la_SOURCES = export_divx4raw.c aud_aux.c divx4_vbr.c
 export_divx4raw_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -155,15 +155,15 @@ export_divx4raw_la_LIBADD =  @LAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
 
 export_xvid_la_SOURCES = export_xvid.c aud_aux.c xvid_vbr.c
 export_xvid_la_LDFLAGS = -no-undefined -module -avoid-version 
-export_xvid_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -lioaux $(AC3_LIB) -lavi -lm
+export_xvid_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
 
 export_xvidraw_la_SOURCES = export_xvidraw.c aud_aux.c xvid_vbr.c
 export_xvidraw_la_LDFLAGS = -no-undefined -module -avoid-version 
-export_xvidraw_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -lioaux $(AC3_LIB) -lavi -lm
+export_xvidraw_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
 
 export_xvidcvs_la_SOURCES = export_xvidcvs.c aud_aux.c xvid_vbr.c
 export_xvidcvs_la_LDFLAGS = -no-undefined -module -avoid-version 
-export_xvidcvs_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -lioaux $(AC3_LIB) -lavi -lm 
+export_xvidcvs_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm 
 
 export_raw_la_SOURCES = export_raw.c aud_aux.c
 export_raw_la_LDFLAGS = -no-undefined -module -avoid-version 

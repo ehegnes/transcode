@@ -39,7 +39,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <dlfcn.h>
 #include <math.h>
 
 #ifdef HAVE_CONFIG_H
@@ -48,6 +47,14 @@
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
+
+#ifdef HAVE_DLFCN_H
+#include <dlfcn.h>
+#else
+# ifdef SYSTEM_DARWIN
+#  include "../libdldarwin/dlfcn.h"
+# endif
 #endif
 
 #include "transcode.h"

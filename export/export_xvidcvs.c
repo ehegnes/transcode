@@ -28,14 +28,25 @@
  * Includes
  ****************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <dlfcn.h>
 #include <math.h>
+
+#ifdef HAVE_DLFCN_H
+#include <dlfcn.h>
+#else
+# ifdef SYSTEM_DARWIN
+#  include "../libdldarwin/dlfcn.h"
+# endif
+#endif
 
 #ifndef __FreeBSD__ /* We have malloc() in stdlib.h */
 #include <malloc.h>
@@ -51,7 +62,6 @@
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
-#include "config.h"
 
 #ifdef DEVELOPER_USE
 #include "../libioaux/configs.h"
