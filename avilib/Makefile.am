@@ -7,7 +7,7 @@ noinst_LIBRARIES = libavi.a
 
 INCLUDES = -I./
 
-CFLAGS=-O3 -funroll-loops -ffast-math -DLINUX -Wall @CFLAGS@
+CFLAGS=-funroll-loops -ffast-math -DLINUX -Wall @CFLAGS@
 libavi_a_SOURCES = avilib.c avidump.c avimisc.c
 
 EXTRA_DIST = avilib.h README.avilib

@@ -1,6 +1,18 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-11-05 Moritz Bunkus  <moritz at bunkus.org>
+
+  * avilib/{avidump.c avilib.c avilib.h avimisc.c os.h}:
+  Fixes are: include files for different OS, some type casts for
+  weird/strict compilers, fixes for 64bit systems, included support
+  for getting the frame types without acutally reading the frame
+  contents (useful if you only need frame types and frame sizes),
+  one or two small bug fixes for weird AVIs (I encountered some for
+  which the last audio chunk had a length of 0, this is not handled
+  correctly).
+
+
 2003-11-05 Tilmann Bitterberg <transcode at tibit.org>
 
   * aclib/ac.h avilib/avilib.c ffmpeg/libavcodec/Makefile.am
