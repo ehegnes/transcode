@@ -2744,7 +2744,9 @@ int main(int argc, char *argv[]) {
       vob->ex_v_height /= vob->reduce_h;
       vob->ex_v_width /= vob->reduce_w; 
     
-      if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d\n", PACKAGE, "rescale frame", vob->ex_v_width, vob->ex_v_height);
+      //new aspect ratio:
+      asr *= (double)vob->ex_v_width/vob->ex_v_height*(vob->reduce_h*vob->ex_v_height)/(vob->reduce_w*vob->ex_v_width);
+      if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d  %4.2f:1 (-r)\n", PACKAGE, "rescale frame", vob->ex_v_width, vob->ex_v_height,asr);
 
       //2003-01-13 
       tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
