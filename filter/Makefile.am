@@ -56,6 +56,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_tc_audio.la\
 			filter_cpaudio.la\
 			filter_hqdn3d.la\
+			filter_modfps.la\
 			filter_29to23.la\
 			filter_smooth.la\
 			filter_unsharp.la\
@@ -90,6 +91,9 @@ filter_unsharp_la_LDFLAGS =  -module -avoid-version
 
 filter_hqdn3d_la_SOURCES = filter_hqdn3d.c
 filter_hqdn3d_la_LDFLAGS =  -module -avoid-version 
+
+filter_modfps_la_SOURCES = filter_modfps.c
+filter_modfps_la_LDFLAGS =  -module -avoid-version 
 
 filter_29to23_la_SOURCES = filter_29to23.c
 filter_29to23_la_LDFLAGS =  -module -avoid-version 

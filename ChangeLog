@@ -1,12 +1,27 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-18 marrq <marrq at ugcs.caltech.edu>
+
+  * filter/filter_modfps.c:
+  NEW: This filter aims to allow transcode to alter the fps
+  of video.  While one can reduce the fps to any amount,
+  one can only increase the fps to at most twice the
+  original fps.
+  There are two modes of operation, simple dropping and cloning,
+  and one can decimate when lowering the framerate (I.E. allow
+  3 out of every 5 frames will pick the three frames least like the
+  frame following it.  This should yield best results, but won't
+  work for all framerates.
+  Temp: decimate not implemented.
+  See tcmodinfo -i modfps for options.
+
 2003-07-18 Antonio Beamud Montero <antonio.beamud at linkend.com>
   
   * filter/filter_compare.c:
-  This filter looks for a pattern in the video stream. When it finds
-  one, it notes that in a log file. See tcmodinfo -i compare for
-  help.
+  NEW: This filter looks for a pattern in the video stream. When it
+  finds one, it notes that in a log file. See tcmodinfo -i compare
+  for help.
 
 2003-07-18 Max Alekseyev <relf at os2.ru>
 
