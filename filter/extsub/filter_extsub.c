@@ -237,6 +237,7 @@ void anti_alias_subtitle(int black) {
     } else sub_frame[n]=black;
     
   next_pix:
+    continue;
   }
   
   //use transcode's anti-alias routine (full frame mode = 3)
