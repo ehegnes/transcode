@@ -2857,14 +2857,23 @@ int main(int argc, char *argv[]) {
 	// vob->im_v_codec = CODEC_YUV; // mpeg is always YUV // will this always do?
 
       // Make an educated guess if this is pal or ntsc
-      if (vob->im_v_height == 288 || vob->im_v_height == 576) impal = 1;
-      if ((int)vob->fps == 25 || vob->im_frc == 3) impal = 1;
-
-      if (vob->mpeg_profile == VCD_PAL || 
-	  vob->mpeg_profile == SVCD_PAL || 
-	      vob->mpeg_profile == XVCD_PAL || 
-	  vob->mpeg_profile == DVD_PAL)
-	impal = 1;
+      switch (vob->mpeg_profile) {
+      case VCD:
+      case SVCD:
+      case XVCD:
+      case DVD:
+          if (vob->im_v_height == 288 || vob->im_v_height == 576) impal = 1;
+          if ((int)vob->fps == 25 || vob->im_frc == 3) impal = 1;
+          break;
+      case VCD_PAL:
+      case SVCD_PAL:
+      case XVCD_PAL:
+      case DVD_PAL:
+          impal = 1;
+          break;
+      default:
+          break;
+      }
 
       // choose height dependent on pal or NTSC.
       switch (vob->mpeg_profile) {

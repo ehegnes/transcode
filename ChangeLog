@@ -1,4 +1,10 @@
 2005-02-18 Jacob Meuser <jakemsr at jakemsr dot com>
+  * src/trascode.c
+  Don't up and decide the user wants PAL compliant video if an NTSC
+  profile is chosen.  Thanks to Rick Harris for finding the problem
+  in the code.
+
+2005-02-18 Jacob Meuser <jakemsr at jakemsr dot com>
   * configure.in
   Enable optimized assembly (--enable-mmx, --enable-3dnow, --enable-sse
   --enable-sse2) on amd64 by default.  There is still a bit of code that
