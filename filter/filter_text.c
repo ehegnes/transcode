@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_text.so"
-#define MOD_VERSION "v0.1.0 (2003-04-28)"
+#define MOD_VERSION "v0.1.1 (2003-06-03)"
 #define MOD_CAP     "write text in the image"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
@@ -154,8 +154,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	      "%d", buf, "72", "300");
 
       snprintf(buf, 128, "%d", mfd->fade);
-      optstr_param (options, "fade", "fade in/out (0=off, 1=slow, 10=fast", 
-	      "%d", buf, "72", "300");
+      optstr_param (options, "fade", "fade in/out (0=off, 1=slow, 10=fast)", 
+	      "%d", buf, "0", "10");
 
       optstr_param (options, "pos", "Position (0-width x 0-height)",  
 	      "%dx%d", "0x0", "0", "width", "0", "height");
