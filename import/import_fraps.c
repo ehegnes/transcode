@@ -23,7 +23,11 @@
  * Fraps has codec FPS1 and the image data is actually a packed form of YUV420
  *
  * Binary layout is as follows:
- * Each frame has an 8 byte header which I know nothing about it.
+ * Each frame has an 8 byte header:
+ *    The first DWORD (little endian) contains the following:
+        Bit 31  - Skipped frame when set, no data.
+        Bit 30  - DWORD pad to align to 8 bytes (always set)
+        Bit 0-7 - Version number (currently 0. Unrecognised format if higher)
  * Then comes data which is organized into 24 bytes blocks:
  * 
  *   8bytes luma | 8bytes = next line luma | 4 bytes Cr | 4 bytes Cb
@@ -40,7 +44,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_fraps.so"
-#define MOD_VERSION "v0.0.1 (2003-11-12)"
+#define MOD_VERSION "v0.0.2 (2003-11-12)"
 #define MOD_CODEC   "(video) * "
 
 #define MOD_PRE fraps
@@ -136,6 +140,7 @@ MOD_decode
     int x, y;
     int size = 0;
     char *c, *d, *e, *u, *v;
+    unsigned char version;
 
     // If we are using tccat, then do nothing here
     if (param->fd != NULL) {
@@ -156,6 +161,12 @@ MOD_decode
     }
 
 
+    // right?
+    version = buffer[0] & 0xff;
+    if (version != 0) {
+	tc_warn ("unsupported protocol version for FRAPS");
+	return (TC_IMPORT_ERROR);
+    }
     c = buffer+8; // skip header
     d = param->buffer;
     param->size = width*height*3/2;
