@@ -1,6 +1,21 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-11-07 Martin Schlemmer <azarah at gentoo.org>
+
+  * ffmpeg/av_config.h:
+  For more details one the errors, you can look at:
+
+    http://bugs.gentoo.org/show_bug.cgi?id=30877
+
+  Basically when passing --disable-mmx, but building on a box that
+  supports mmx, HAVE_MMX still gets set, breaking libavcodec that relies
+  on it, as it still includes config.h through ffmpeg/av_config.h.
+
+  We thus have to unset HAVE_MMX in ffmpeg/av_config.h, but also
+  add #ifdef's to config.h to ensure HAVE_MMX is not set, and then
+  HAVE_MMX will only be set properly by the ffmpeg/libavcodec/Makefile
+
 2003-11-05 Moritz Bunkus  <moritz at bunkus.org>
 
   * avilib/{avidump.c avilib.c avilib.h avimisc.c os.h}:
