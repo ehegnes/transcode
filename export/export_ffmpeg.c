@@ -1370,8 +1370,11 @@ MOD_open
         else
             ext = is_mpegvideo == 1 ? ".m1v" : ".m2v";
         
-        buf = malloc(strlen (vob->video_out_file)+1+strlen(ext));
-        sprintf(buf, "%s%s", vob->video_out_file, ext);
+        if ((buf = malloc(strlen (vob->video_out_file) + 1 + strlen(ext))) == NULL) {
+            fprintf(stderr, "Could not allocate memory for buf\n");
+            return(TC_EXPORT_ERROR);
+        }
+        snprintf(buf, strlen(vob->video_out_file) + 1 + strlen(ext), "%s%s", vob->video_out_file, ext);
         mpeg1fd = fopen(buf, "wb");
 
         if (!mpeg1fd)
@@ -1534,7 +1537,7 @@ MOD_encode
             struct tm *today;
             today2 = time(NULL);
             today = localtime(&today2);
-            sprintf(filename, "psnr_%02d%02d%02d.log", today->tm_hour,
+            snprintf(filename, sizeof(filename), "psnr_%02d%02d%02d.log", today->tm_hour,
                 today->tm_min, today->tm_sec);
             fvstats = fopen(filename,"w");
             if(!fvstats) {
