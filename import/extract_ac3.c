@@ -48,7 +48,7 @@
 #include "tc.h"
 
 #define BUFFER_SIZE 262144
-static uint8_t buffer[BUFFER_SIZE];
+static uint8_t *buffer = NULL;
 static FILE *in_file, *out_file;
 
 static int verbose;
@@ -302,13 +302,18 @@ int ac3scan(int infd, int outfd)
   int n=0;
 #endif
 
-  char buffer[SIZE_PCM_FRAME];
+  char *buffer = malloc (SIZE_PCM_FRAME);
 
   int frame_size, bitrate;
   
   float rbytes;
   
   uint16_t sync_word = 0;
+
+  if (!buffer) {
+    fprintf(stderr, "%s:%d no memory\n", __FILE__, __LINE__);
+    return 1;
+  }
 
   // need to find syncframe:
   
@@ -320,6 +325,7 @@ int ac3scan(int infd, int outfd)
       
       if (p_read(infd, &buffer[s], 1) !=1) {
 	//ac3 sync frame scan failed
+	free (buffer);
 	return(ERROR_INVALID_HEADER);
       }
       
@@ -334,6 +340,7 @@ int ac3scan(int infd, int outfd)
 
       if(k>(1<<20)) {
 	fprintf(stderr, "no AC3 sync frame found within 1024 kB of stream\n");
+	free (buffer);
 	return(1);
       }
     }
@@ -347,11 +354,13 @@ int ac3scan(int infd, int outfd)
     // read rest of header
     if (p_read(infd, &buffer[2], 3) !=3) {
       //ac3 header read failed
+      free (buffer);
       return(ERROR_INVALID_HEADER);
     }
     
     if((frame_size = 2*get_ac3_framesize(&buffer[2])) < 1) {
       fprintf(stderr, "(%s) ac3 framesize %d invalid\n", __FILE__, frame_size);
+      free (buffer);
       return(1);
     }
     
@@ -362,6 +371,7 @@ int ac3scan(int infd, int outfd)
   
     if((bitrate = get_ac3_bitrate(&buffer[2])) < 1) {
       fprintf(stderr, "(%s) ac3 bitrate invalid\n", __FILE__);
+      free (buffer);
       return(1);
     }
     
@@ -385,6 +395,7 @@ int ac3scan(int infd, int outfd)
     j=i;
   }
   
+  free (buffer);
   return(1);
 }
 
@@ -408,10 +419,11 @@ void extract_ac3(info_t *ipipe)
     avi_t *avifile;
     
     long frames, bytes, padding, n;
-    static int done_seek=0;
 
     verbose = ipipe->verbose;
     
+    buffer = malloc (BUFFER_SIZE);
+
     switch(ipipe->magic) {
 
     case TC_MAGIC_VDR:
@@ -519,6 +531,7 @@ void extract_ac3(info_t *ipipe)
       break;
     }
     
+    free (buffer);
     import_exit(error);
     
 }
