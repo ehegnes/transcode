@@ -46,7 +46,8 @@ void usage(int status)
     printf("\t -o file                   output file name\n");
     printf("\t -i file1 [file2 [...]]    input file(s)\n");
     printf("\t -p file                   multiplex additional audio track from file\n");
-    printf("\t -a num                    audio track number [0]\n");
+    printf("\t -a num                    select audio track number from input file [0]\n");
+    printf("\t -A num                    select audio track number in output file [next]\n");
     printf("\t -b n                      handle vbr audio [autodetect]\n");
     printf("\t -f FILE                   read AVI comments from FILE [off]\n");
     printf("\t -x FILE                   read AVI index from FILE [off] (see aviindex(1))\n");
@@ -161,7 +162,7 @@ int main(int argc, char *argv[])
   
   long rate, mp3rate;
   
-  int j, ch, cc=0, track_num=0;
+  int j, ch, cc=0, track_num=0, out_track_num=-1;
   int width, height, format=0, format_add, chan, bits, aud_error=0;
   
   double fps;
@@ -186,7 +187,7 @@ int main(int argc, char *argv[])
   
   if(argc==1) usage(EXIT_FAILURE);
   
-  while ((ch = getopt(argc, argv, "a:b:i:o:p:f:x:?hv")) != -1) {
+  while ((ch = getopt(argc, argv, "A:a:b:i:o:p:f:x:?hv")) != -1) {
     
     switch (ch) {
       
@@ -194,6 +195,15 @@ int main(int argc, char *argv[])
       
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       infile = optarg;
+      
+      break;
+      
+    case 'A':
+      
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
+      out_track_num = atoi(optarg);
+      
+      if(out_track_num<-1) usage(EXIT_FAILURE);
       
       break;
       
@@ -314,9 +324,11 @@ int main(int argc, char *argv[])
 
   //multi audio tracks?
   aud_tracks = AVI_audio_tracks(avifile1);
+  if (out_track_num < 0) out_track_num = aud_tracks;
   
   for(j=0; j<aud_tracks; ++j) {
     
+      if (out_track_num == j) continue;
       AVI_set_audio_track(avifile1, j);
     
       rate   =  AVI_audio_rate(avifile1);
@@ -377,7 +389,7 @@ int main(int argc, char *argv[])
   
  audio_merge:
   
-  printf("merging audio %s track (multiplexing) ...\n", audfile);
+  printf("merging audio %s track %d (multiplexing) into %d ...\n", audfile, track_num, out_track_num);
   
   // open audio file read only
   if(NULL == (avifile2 = AVI_open_input_file(audfile,1))) {
@@ -417,7 +429,7 @@ int main(int argc, char *argv[])
   mp3rate=  AVI_audio_mp3rate(avifile2);
   
   //set next track
-  AVI_set_audio_track(avifile, aud_tracks);
+  AVI_set_audio_track(avifile, out_track_num);
   AVI_set_audio(avifile, chan, rate, bits, format, mp3rate);
   AVI_set_audio_vbr(avifile, AVI_get_audio_vbr(avifile2));
   
@@ -450,6 +462,7 @@ int main(int argc, char *argv[])
     
     for(j=0; j<aud_tracks; ++j) {
       
+      if (j == out_track_num) continue;
       AVI_set_audio_track(avifile1, j);
       AVI_set_audio_track(avifile, j);
       chan   = AVI_audio_channels(avifile1);
@@ -466,7 +479,7 @@ int main(int argc, char *argv[])
     
     // audio
     chan = AVI_audio_channels(avifile2);
-    AVI_set_audio_track(avifile, aud_tracks);
+    AVI_set_audio_track(avifile, out_track_num);
 
     if(chan) {
 	sync_audio_video_avi2avi(vid_ms, &aud_ms, avifile2, avifile);
@@ -518,6 +531,7 @@ int main(int argc, char *argv[])
       // audio
       for(j=0; j<aud_tracks; ++j) {
 	
+	if (j == out_track_num) continue;
 	AVI_set_audio_track(avifile1, j);
 	AVI_set_audio_track(avifile, j);
 	
@@ -531,7 +545,7 @@ int main(int argc, char *argv[])
       // merge additional track
       
       chan   = AVI_audio_channels(avifile2);
-      AVI_set_audio_track(avifile, aud_tracks);
+      AVI_set_audio_track(avifile, out_track_num);
       
       if(chan) {
 	  sync_audio_video_avi2avi(vid_ms, &aud_ms, avifile2, avifile);
@@ -577,7 +591,7 @@ merge_mp3:
   fseek(f, aud_offset, SEEK_SET);
 
   //set next track
-  AVI_set_audio_track(avifile, aud_tracks);
+  AVI_set_audio_track(avifile, out_track_num);
   AVI_set_audio(avifile, chan_i, rate_i, 16, format_add, mp3rate_i);
   AVI_set_audio_vbr(avifile, is_vbr);
 
@@ -608,6 +622,7 @@ merge_mp3:
 
     for(j=0; j<aud_tracks; ++j) {
 
+      if (j == out_track_num) continue;
       AVI_set_audio_track(avifile1, j);
       AVI_set_audio_track(avifile, j);
       chan   = AVI_audio_channels(avifile1);
@@ -649,7 +664,7 @@ merge_mp3:
 	  break;
 	}
 
-	AVI_set_audio_track(avifile, aud_tracks);
+	AVI_set_audio_track(avifile, out_track_num);
 
 	if(AVI_write_audio(avifile, data, headlen)<0) {
 	  AVI_print_error("AVI write audio frame");
@@ -700,6 +715,7 @@ merge_mp3:
 
       for(j=0; j<aud_tracks; ++j) {
 
+	if (j == out_track_num) continue;
 	AVI_set_audio_track(avifile1, j);
 	AVI_set_audio_track(avifile, j);
 	chan   = AVI_audio_channels(avifile1);
@@ -739,7 +755,7 @@ merge_mp3:
 	    aud_error=1; break;
 	  }
 
-	  AVI_set_audio_track(avifile, aud_tracks);
+	  AVI_set_audio_track(avifile, out_track_num);
 
 	  if(AVI_write_audio(avifile, data, headlen)<0) {
 	    AVI_print_error("AVI write audio frame");

@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-12-29 Tilmann Bitterberg <transcode at tibit.org>
+
+  * tools/avimerge.c:
+  New option -A which will allow to overwrite an audio track.
+
 2003-12-26 Marcus Holland-Moritz <mhx-perl at gmx.net>
 
   * import/{import_ac3.c import_vdrac3.c}:
