@@ -71,6 +71,12 @@ int tc_filter(vframe_list_t * ptr, char *options)
     //
     //----------------------------------
 
+    if (ptr->tag & TC_FILTER_GET_CONFIG) {
+	if (options) {
+	    optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Thanassis Tsiodras", "VYO", "1");
+	    optstr_param (options, "verbose", "print verbose information", "", "0");
+	}
+    }
 
     if (ptr->tag & TC_FILTER_INIT) {
 
