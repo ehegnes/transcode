@@ -35,12 +35,18 @@
 #include "config.h"
 #endif
 
-#ifdef HAVE_MACHINE_IOCTL_BT848_H
-#include <machine/ioctl_meteor.h>
-#include <machine/ioctl_bt848.h>
-#endif
 #ifdef HAVE_DEV_IC_BT8XX_H
 #include <dev/ic/bt8xx.h>
+#else
+# ifdef HAVE_DEV_BKTR_IOCTL_BT848_H
+#  include <dev/bktr/ioctl_meteor.h>
+#  include <dev/bktr/ioctl_bt848.h>
+# else
+#  ifdef HAVE_MACHINE_IOCTL_BT848_H
+#   include <machine/ioctl_meteor.h>
+#   include <machine/ioctl_bt848.h>
+#  endif
+# endif
 #endif
 
 #include "transcode.h"
