@@ -39,6 +39,10 @@
 
 #endif
 
+#ifndef DCT_YUV_PRECISION
+#define DCT_YUV_PRECISION 1
+#endif
+
 #define DV_PAL_HEIGHT  576
 #define DV_NTSC_HEIGHT 480
 #define DV_WIDTH       720
