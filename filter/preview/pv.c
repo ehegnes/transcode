@@ -38,7 +38,8 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
-#ifdef __FreeBSD__ /* We don't have on_exit() */
+// FIXME: Use autoconf for this!!
+#if defined(__FreeBSD__) || defined(__APPLE__) /* We don't have on_exit() */
 xv_display_t 	*xv_dpy_on_exit_hack = NULL;
 #endif
 
@@ -126,7 +127,7 @@ void xv_display_exit(xv_display_t *dv_dpy) {
   
   free(dv_dpy);
   dv_dpy = NULL;
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__APPLE__) /* We don't have on_exit() */
   xv_dpy_on_exit_hack = NULL;
 #endif
 } // xv_display_exit
@@ -632,7 +633,7 @@ static void xv_display_exit_handler(int code, void *arg)
   if(code && arg) xv_display_exit(arg);
 } // dv_display_exit_handler 
 
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__APPLE__) /* We don't have on_exit() */
 static void
 xv_display_on_exit_hack_handler()
 {
@@ -685,7 +686,7 @@ int xv_display_init(xv_display_t *dv_dpy, int *argc, char ***argv, int width, in
     break;
   }
   
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__APPLE__) /* We don't have on_exit() */
   xv_dpy_on_exit_hack = dv_dpy;
   atexit(xv_display_on_exit_hack_handler);
 #else

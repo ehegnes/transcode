@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-06 Benjamin Riefenstahl <Benjamin.Riefenstahl at epost.de>
+
+  * filter/preview/display.c, filter/preview/pv.c:
+  MacOSX fixes: Remove the need for on_exit, disable SDL. 
+
 2003-08-06 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/transcode.c:

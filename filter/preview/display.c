@@ -42,7 +42,15 @@
 #include <sys/shm.h>
 #endif
 
-#ifdef __FreeBSD__ /* We don't have on_exit() */
+// FIXME: Use autoconf for this!!
+// MacOSX SDL uses native GUI frameworks, but this is an X11
+// application setup.
+#ifdef __APPLE__
+#undef HAVE_SDL
+#endif
+
+// FIXME: Use autoconf for this!!
+#if defined(__FreeBSD__) || defined(__APPLE__) /* We don't have on_exit() */
 dv_display_t 	*dv_dpy_on_exit_hack = NULL;
 #endif
 
@@ -203,7 +211,7 @@ dv_display_exit(dv_display_t *dv_dpy) {
 
   free(dv_dpy);
   dv_dpy = NULL;
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__APPLE__) /* We don't have on_exit() */
   dv_dpy_on_exit_hack = NULL;
 #endif
 } /* dv_display_exit */
@@ -660,7 +668,7 @@ dv_display_exit_handler(int code, void *arg)
   } /* if */
 } /* dv_display_exit_handler */
 
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__APPLE__) /* We don't have on_exit() */
 static void
 dv_display_on_exit_hack_handler()
 {
@@ -786,7 +794,7 @@ dv_display_init(dv_display_t *dv_dpy, int *argc, char ***argv, int width, int he
   fprintf(stderr, " Using gtk for display\n");
 
  ok:
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__APPLE__) /* We don't have on_exit() */
   dv_dpy_on_exit_hack = dv_dpy;
   atexit(dv_display_on_exit_hack_handler);
 #else
