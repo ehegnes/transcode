@@ -118,6 +118,7 @@ export_pcm_la_LIBADD = -L../avilib -lavi -lm
 
 export_mp2enc_la_SOURCES = export_mp2enc.c
 export_mp2enc_la_LDFLAGS =  -module -avoid-version 
+export_mp2enc_la_LIBADD = -L../avilib -lavi -lm 
 
 export_fame_la_SOURCES = export_fame.c aud_aux.c
 export_fame_la_LDFLAGS =  -module -avoid-version 
@@ -209,7 +210,7 @@ export_mpeg2enc_la_LIBADD = @MJPEG_LIBS@ -L../libvo -lvout -lm
 
 export_sampeg_la_SOURCES = export_sampeg.c vid_aux.c
 export_sampeg_la_LDFLAGS =  -module -avoid-version 
-export_sampeg_la_LIBADD = -L../libvo -lvout -lm
+export_sampeg_la_LIBADD = -L../libvo -lvout -L../avilib -lavi -lm
 
 export_im_la_SOURCES = export_im.c vid_aux.c
 export_im_la_LDFLAGS =  -module -avoid-version 
