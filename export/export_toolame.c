@@ -108,7 +108,7 @@ MOD_open
       if (tc_test_program("sox") != 0) return (TC_EXPORT_ERROR);
             
       /* add sox for conversion */
-      sprintf(buf,"sox %s -r %d -c %d -t raw - -r %d -t raw - polyphase "
+      snprintf(buf, sizeof(buf), "sox %s -r %d -c %d -t raw - -r %d -t raw - polyphase "
 	      "2>/dev/null | ",
 	      (vob->dm_bits==16)?"-w -s":"-b -u", 
 	      ifreq, ochan, ofreq);
@@ -122,7 +122,8 @@ MOD_open
     */
 	    
     /* toolame command line */
-    sprintf(ptr, "toolame -s %0.3f -b %d -m %c - \"%s.mp2\" 2>/dev/null %s", 
+    /* ptr is a pointer to buf */
+    snprintf(ptr, sizeof(buf), "toolame -s %0.3f -b %d -m %c - \"%s.mp2\" 2>/dev/null %s", 
 	    (double)ofreq/1000.0, orate, chan, vob->audio_out_file, (vob->ex_a_string?vob->ex_a_string:""));
 	
     fprintf (stderr,"[%s] cmd=%s\n", MOD_NAME, buf);
