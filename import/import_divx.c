@@ -213,7 +213,7 @@ static int divx_init(char *path) {
     }
     
     if (!handle) {
-      fprintf(stderr, "[%s] %s\n", MOD_NAME, dlerror());
+      tc_warn("[%s] %s\n", MOD_NAME, dlerror());
       return(-1);
     } else {  
       if(verbose_flag & TC_DEBUG) 
@@ -223,7 +223,7 @@ static int divx_init(char *path) {
     divx_decore = dlsym(handle, "decore");   
     
     if ((error = dlerror()) != NULL)  {
-      fprintf(stderr, "[%s] %s\n", MOD_NAME, error);
+      tc_warn("[%s] %s\n", MOD_NAME, error);
       return(-1);
     }
 
