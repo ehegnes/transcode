@@ -2935,6 +2935,8 @@ int main(int argc, char *argv[]) {
       // If yes, there can be much more settings adjusted.
       if (ex_vid_mod == NULL || !strcmp(ex_vid_mod, "mpeg2enc")) {
 #ifdef HAVE_MJPEGTOOLS
+	if(!ex_aud_mod)
+	    ex_aud_mod = "mp2enc";
 	no_v_out_codec=0;
 	ex_vid_mod = "mpeg2enc";
 	if(!vob->ex_v_fcc) {

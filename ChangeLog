@@ -1,4 +1,14 @@
-transcode-0.13-pre2 EMS
+transcode-0.13-pre4 EMS
+
+2004-10-19 Peter Chiocchetti <pch14 at myzel dot net>
+  * export/export_mpeg2enc:
+  attached promised patch, to omit setting mpeg2enc -b flag when
+  export_profile is set to dvd and no video bitrate was given on
+  the commandline. thus, the defaults of mpeg2enc are used.
+  beware: this does not check, if explicitly set values are
+  within the spec - export profiles in my view mostly are a
+  convenience, if you override, you are on your own - mpeg2enc
+  will complain though...
 
 2004-10-06 Jacob Meuser <jakemsr at jakemsr dot com>
   * *:
@@ -37,7 +47,7 @@ transcode-0.13-pre2 EMS
 
   fixed up some typos/updated docs/import-API.txt
 
-  remove duplicat include statements from the filters ...
+  remove duplicate include statements from the filters ...
   too much cut 'n paste, tsk, tsk.
 
 2004-10-06 Peter Chiocchetti <pch14 at myzel dot net>
