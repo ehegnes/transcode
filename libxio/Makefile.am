@@ -7,6 +7,6 @@ noinst_LIBRARIES = libxio.a
 INCLUDES = -I./
 
 CFLAGS=-O2 -DLINUX -Wall -fPIC -DPIC $(LIBXML2_CFLAGS) @CFLAGS@ -D_REENTRANT
-libxio_a_SOURCES = libxio.c
+libxio_a_SOURCES = libxio.c xio.h
 
-EXTRA_DIST = xio.h 
+EXTRA_DIST = static_xio.h

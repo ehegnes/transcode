@@ -321,9 +321,9 @@ AUTOMAKE_OPTIONS = 1.3 foreign
 noinst_LIBRARIES = libxio.a
 
 INCLUDES = -I./
-libxio_a_SOURCES = libxio.c
+libxio_a_SOURCES = libxio.c xio.h
 
-EXTRA_DIST = xio.h 
+EXTRA_DIST = static_xio.h
 subdir = libxio
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/autotools/mkinstalldirs

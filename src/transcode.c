@@ -40,7 +40,7 @@
 #include "split.h"
 #include "iodir.h"
 #include "aclib/ac.h"
-#include <xio.h>
+#include "../libxio/xio.h"
 
 #ifdef HAVE_GETOPT_LONG_ONLY
 #include <getopt.h>
