@@ -20,7 +20,14 @@ you are on an x86 based platform. A recent version of lame is a good
 thing to have installed, too. Depending on what you want to do with
 transcode you may need additional packages installed.
 
-Before actually trying to build transcode, run:
+If you obtained transcode using CVS, you will need to generate the
+"configure" script yourself while in the snapshot tarballs it's
+included. To do this you need _recent_ versions of autoconf (>= 2.59),
+automake (>= 1.8) and libtool (>= 1.5) utilities. Now to make the
+configure script, run "autoreconf -i -f". Do not use "autoreconf -if"
+because this does not work on some distributions.
+
+Now run
 
  ./configure --help
 
