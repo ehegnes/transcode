@@ -1,11 +1,38 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-28 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/{export_ffmpeg.c ffmpeg_cfg.h ffmpeg_cfg.c}
+  libioaux{configs.c configs.h}:
+  Moved the `struct config' routines to a more generic place and
+  made them more generic. Idea by Edouard Gomez.
+  The search location of the ffmpeg.cfg changed. Instead of looking
+  for $HOME/.ffmpeg.cfg transcode will now look at
+  $HOME/.transcode/ffmpeg.cfg.
+
+  * src/transcode.c:
+  Fix a bug related to fps/export_fps handling
+
+  * src/export_mpeg2enc.c:
+  Respect export_fps and not the import side.
+
+  * filter/filter_detectsilence.c:
+  New filter. This filter detects silence in the audio stream and
+  prints out the position in Milliseconds. This filter may be
+  useful for splitting a large MP3 stream recorded from radio.
+  At closing time, the filter prints out a `tcmp3cut' commandline
+  which the user can execute then.
+
+  * tools/tcmp3cut.c:
+  A very simple utility which can split MP3 files at given
+  millisecond positions.
+
 2003-07-26 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/tccat.c:
   Fix a segfault when tccat reads from stdin. Pointed out by
-  heffner_.
+  heffner_ on #transcode.
 
   * src/filter.c:
   Fix errors reported by valgrind because of new dynamic string
