@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_extsub.so"
-#define MOD_VERSION "0.3.3 (2003-09-03)"
+#define MOD_VERSION "0.3.4 (2003-10-14)"
 #define MOD_CAP     "DVD subtitle overlay plugin"
 #define MOD_AUTHOR  "Thomas Oestreich"
 
@@ -274,7 +274,7 @@ static void subtitle_overlay_yuv(char *vid_frame, int w, int h)
   //check:
   eff_sub_ylen = (sub_ylen+vshift>h) ?  h-vshift:sub_ylen;
 
-  off = (vshift<0) ? -vshift:0;
+  off = (vshift>0) ? vshift:0;
 
   if(eff_sub_ylen<0 || off>eff_sub_ylen) {
     fprintf(stderr, "[%s] invalid subtitle shift parameter\n", __FILE__); 
@@ -294,7 +294,7 @@ static void subtitle_overlay_yuv(char *vid_frame, int w, int h)
   
   for(y=0; y<eff_sub_ylen-off; ++y) {
     
-    m = sub_xpos + (y+h-eff_sub_ylen-vshift)*w;
+    m = sub_xpos + (y+h-eff_sub_ylen)*w+vshift*w;
     
     for(x=0; x<sub_xlen; ++x) {
       
@@ -339,6 +339,7 @@ static void subtitle_overlay_rgb(char *vid_frame, int w, int h)
 
   //check:
   eff_sub_ylen = (sub_ylen+vshift>h) ?  h-vshift:sub_ylen;
+  eff_sub_ylen = sub_ylen;
 
   off = (vshift<0) ? -vshift:0;
 
@@ -351,7 +352,7 @@ static void subtitle_overlay_rgb(char *vid_frame, int w, int h)
   
   for(y=0; y<eff_sub_ylen-off; ++y) {
     
-    m = sub_xpos*3 + (eff_sub_ylen-y+vshift)*w*3;
+    m = sub_xpos*3 + (eff_sub_ylen-y+vshift+(off?0:vshift))*w*3;
     
     for(x=0; x<sub_xlen; ++x) {
       

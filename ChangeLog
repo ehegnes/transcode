@@ -42,6 +42,12 @@ transcode-0.6.11
   Upgraded -y xvid4 to the latest API
 
 
+2003-10-14 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/extsub/filter_extsub.c:
+  Fix a bug when vertshift does not shift. Pointed out by Justin
+  Graham.
+
 2003-10-14 Helge Klein <hklein at como.com>
 
   * import/scan_pes.c:
