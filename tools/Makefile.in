@@ -309,7 +309,7 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I. @DLDARWININ
 
 EXTRA_DIST = buffer.h aud_scan.h
 
-bin_PROGRAMS = avimerge avisplit avifix avisync tcmodinfo
+bin_PROGRAMS = avimerge avisplit avifix avisync aviindex tcmodinfo
 
 avisync_SOURCES = avisync.c buffer.c aud_scan.c
 avisync_LDADD = -L../avilib -lavi
@@ -319,6 +319,9 @@ avimerge_LDADD = -L../avilib -lavi
 
 avifix_SOURCES = avifix.c aud_scan.c
 avifix_LDADD = -L../avilib -lavi
+
+aviindex_SOURCES = aviindex.c aud_scan.c
+aviindex_LDADD = -L../avilib -lavi
 
 avisplit_SOURCES = avisplit.c aud_scan.c 
 avisplit_LDADD = -L../avilib -lavi -L../libioaux -ltcioaux
@@ -331,13 +334,17 @@ mkinstalldirs = $(SHELL) $(top_srcdir)/autotools/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 bin_PROGRAMS = avimerge$(EXEEXT) avisplit$(EXEEXT) avifix$(EXEEXT) \
-	avisync$(EXEEXT) tcmodinfo$(EXEEXT)
+	avisync$(EXEEXT) aviindex$(EXEEXT) tcmodinfo$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 
 am_avifix_OBJECTS = avifix.$(OBJEXT) aud_scan.$(OBJEXT)
 avifix_OBJECTS = $(am_avifix_OBJECTS)
 avifix_DEPENDENCIES =
 avifix_LDFLAGS =
+am_aviindex_OBJECTS = aviindex.$(OBJEXT) aud_scan.$(OBJEXT)
+aviindex_OBJECTS = $(am_aviindex_OBJECTS)
+aviindex_DEPENDENCIES =
+aviindex_LDFLAGS =
 am_avimerge_OBJECTS = avimerge.$(OBJEXT) aud_scan.$(OBJEXT)
 avimerge_OBJECTS = $(am_avimerge_OBJECTS)
 avimerge_DEPENDENCIES =
@@ -357,9 +364,9 @@ tcmodinfo_DEPENDENCIES = ../src/optstr.o
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/aud_scan.Po ./$(DEPDIR)/avifix.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/avimerge.Po ./$(DEPDIR)/avisplit.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/avisync.Po ./$(DEPDIR)/buffer.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/tcmodinfo.Po
+@AMDEP_TRUE@	./$(DEPDIR)/aviindex.Po ./$(DEPDIR)/avimerge.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/avisplit.Po ./$(DEPDIR)/avisync.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/buffer.Po ./$(DEPDIR)/tcmodinfo.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -367,10 +374,10 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(avifix_SOURCES) $(avimerge_SOURCES) $(avisplit_SOURCES) \
-	$(avisync_SOURCES) $(tcmodinfo_SOURCES)
+DIST_SOURCES = $(avifix_SOURCES) $(aviindex_SOURCES) $(avimerge_SOURCES) \
+	$(avisplit_SOURCES) $(avisync_SOURCES) $(tcmodinfo_SOURCES)
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(avifix_SOURCES) $(avimerge_SOURCES) $(avisplit_SOURCES) $(avisync_SOURCES) $(tcmodinfo_SOURCES)
+SOURCES = $(avifix_SOURCES) $(aviindex_SOURCES) $(avimerge_SOURCES) $(avisplit_SOURCES) $(avisync_SOURCES) $(tcmodinfo_SOURCES)
 
 all: all-am
 
@@ -413,6 +420,9 @@ clean-binPROGRAMS:
 avifix$(EXEEXT): $(avifix_OBJECTS) $(avifix_DEPENDENCIES) 
 	@rm -f avifix$(EXEEXT)
 	$(LINK) $(avifix_LDFLAGS) $(avifix_OBJECTS) $(avifix_LDADD) $(LIBS)
+aviindex$(EXEEXT): $(aviindex_OBJECTS) $(aviindex_DEPENDENCIES) 
+	@rm -f aviindex$(EXEEXT)
+	$(LINK) $(aviindex_LDFLAGS) $(aviindex_OBJECTS) $(aviindex_LDADD) $(LIBS)
 avimerge$(EXEEXT): $(avimerge_OBJECTS) $(avimerge_DEPENDENCIES) 
 	@rm -f avimerge$(EXEEXT)
 	$(LINK) $(avimerge_LDFLAGS) $(avimerge_OBJECTS) $(avimerge_LDADD) $(LIBS)
@@ -434,6 +444,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/aud_scan.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avifix.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/aviindex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avimerge.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avisplit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avisync.Po@am__quote@
