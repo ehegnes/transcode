@@ -3,6 +3,13 @@ transcode-0.6.10
 
 2003-08-10 Christopher Cramer <crayc at pyro.net>
 
+  * filter/filter_fps.c:
+  Bumped version number.
+  Last update screwed up option parsing - fixed.
+  Reduced number of printf() calls in help.
+
+2003-08-10 Christopher Cramer <crayc at pyro.net>
+
   * import/extract_avi.c, import/magic.h, src/probe.c:
   Added support for MSMPEG4 v3 (MP43).
   Improved description of MSMPEG4 v2 (MP42).

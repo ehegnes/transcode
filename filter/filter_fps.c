@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_fps.so"
-#define MOD_VERSION "v0.1 (2003-07-15)"
+#define MOD_VERSION "v0.2 (2003-08-10)"
 #define MOD_CAP     "convert video frame rate"
 
 #include <stdio.h>
@@ -53,14 +53,18 @@ parse_options(char *options, double *infps, double *outfps)
 
 	if (!options || !*options) return 0;
 	if (!strcmp(options, "help")) {
-		printf("[%s] help\n", MOD_NAME);
-		printf("This filter converts the video frame rate,"
-			" by repeating or dropping frames.\n");
-		printf("options: <input fps>:<output fps>\n");
-		printf("example: -J fps=25:29.97 will convert"
-			" from PAL to NTSC\n");
+		printf("[%s] help\n"
+			"This filter converts the video frame rate,"
+			" by repeating or dropping frames.\n"
+			"options: <input fps>:<output fps>\n"
+			"example: -J fps=25:29.97 will convert"
+			" from PAL to NTSC\n"
+			"If no options are given, defaults"
+			" or -f/--export_fps/--export_frc will be used.\n",
+			MOD_NAME);
 		return -1;
 	}
+
 	len = strlen(options);
 	p = alloca(len + 1);
 	memcpy(p, options, len);
@@ -82,7 +86,7 @@ tc_filter(vframe_list_t *ptr, char *options)
 	if(ptr->tag & TC_FILTER_INIT) {
 		if (verbose) printf("[%s] %s %s\n",
 			MOD_NAME, MOD_VERSION, MOD_CAP);
-		if (parse_options(&options, &infps, &outfps) == -1) return -1;
+		if (parse_options(options, &infps, &outfps) == -1) return -1;
 		if (verbose && options) printf(
 			"[%s] options=%s, converting from %g fps to %g fps\n",
 			MOD_NAME, options, infps, outfps);
