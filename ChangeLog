@@ -1,3 +1,8 @@
+2005-02-12 Andrew Church <achurch at achurch dot org>
+  * aclib/* src/video_*.c
+  Replace all nasm code with inline C assembly.
+  Thank you Andrew!
+
 2005-01-28 Bauke Jan Douma <bjdouma at xs4all dot nl>
   * src/transcode
   Instead of hoping a thread sets a variable before it's used in

@@ -476,9 +476,7 @@ void rgb_swap(char *image, int pixels)
   rgb_swap_core = rgb_swap_C;
 
 #ifdef ARCH_X86
-#ifdef HAVE_ASM_NASM
   if(tc_accel>0) rgb_swap_core = ac_swap_rgb2bgr_asm;
-#endif
 #endif
 
   rgb_swap_core(image, pixels);
@@ -807,13 +805,11 @@ void rgb_deinterlace_linear(char *image, int width, int height)
   rgb_average =  rgb_average_C;
   
 #ifdef ARCH_X86 
-#ifdef HAVE_ASM_NASM
   
   if(tc_accel & MM_MMX)  rgb_average = ac_average_mmx;
   if(tc_accel & MM_SSE)  rgb_average = ac_average_sse;
   if(tc_accel & MM_SSE2) rgb_average = ac_average_sse2;
   
-#endif
 #endif
 
   rgb_deinterlace_core(image, width, height);
@@ -830,7 +826,6 @@ void rgb_deinterlace_linear_blend(char *image, char *tmp, int width, int height)
   // memcpy_accel = memcpy_C; // EMS
   
 #ifdef ARCH_X86 
-#ifdef HAVE_ASM_NASM
 
   if(tc_accel & MM_MMX) {
     rgb_average = ac_average_mmx;  
@@ -847,7 +842,6 @@ void rgb_deinterlace_linear_blend(char *image, char *tmp, int width, int height)
     // memcpy_accel = ac_memcpy_sse2; // EMS
   }
 
-#endif
 #endif
   
   //process only Y component

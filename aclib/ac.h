@@ -67,7 +67,6 @@ int ac_average_sse2(char *row1, char *row2, char *out, int bytes);
 
 //swap
 int ac_swap_rgb2bgr_asm(char *im, int bytes);
-int ac_swap_rgb2bgr_mmx(char *im, int bytes);
 
 //rescale
 int ac_rescale_mmxext(char *row1, char *row2, char *out, int bytes, 

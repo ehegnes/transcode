@@ -1060,13 +1060,11 @@ void yuv422_deinterlace_linear(char *image, int width, int height)
   
 #if 0
 #ifdef ARCH_X86 
-#ifdef HAVE_ASM_NASM
   
   if(tc_accel & MM_MMX)  yuv422_average = ac_average_mmx;
   if(tc_accel & MM_SSE)  yuv422_average = ac_average_sse;
   if(tc_accel & MM_SSE2) yuv422_average = ac_average_sse2;
   
-#endif
 #endif
 #endif
 
@@ -1085,7 +1083,6 @@ void yuv422_deinterlace_linear_blend(char *image, char *tmp, int width, int heig
   
 #if 0
 #ifdef ARCH_X86 
-#ifdef HAVE_ASM_NASM
 
   if(tc_accel & MM_MMX) {
     yuv422_average = ac_average_mmx;  
@@ -1103,7 +1100,6 @@ void yuv422_deinterlace_linear_blend(char *image, char *tmp, int width, int heig
   }
 
   
-#endif
 #endif
 #endif // 0
   

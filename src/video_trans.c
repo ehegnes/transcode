@@ -82,7 +82,6 @@ void yuv_vert_resize_init(int width)
   yuv_merge_16 = yuv_merge_C;
 
 #ifdef ARCH_X86
-#ifdef HAVE_ASM_NASM
   
   if(((width>>1) % 16) == 0) {
     if(tc_accel & MM_MMXEXT) yuv_merge_8 = ac_rescale_mmxext;
@@ -105,7 +104,6 @@ void yuv_vert_resize_init(int width)
   }
   
 #endif
-#endif
   
   return;
 }
@@ -118,7 +116,6 @@ void yuv422_vert_resize_init()
   
 #if 0
 #ifdef ARCH_X86
-#ifdef HAVE_ASM_NASM
   
   if(tc_accel & MM_SSE2) {
     yuv422_merge=ac_rescale_sse2;
@@ -136,7 +133,6 @@ void yuv422_vert_resize_init()
   }
   
 #endif
-#endif
 #endif // 0
   
   yuv422_merge=yuv422_merge_C;
@@ -150,7 +146,6 @@ void rgb_vert_resize_init()
   rgb_vert_resize_init_flag=1;
   
 #ifdef ARCH_X86
-#ifdef HAVE_ASM_NASM
   
   if(tc_accel & MM_SSE2) {
     rgb_merge=ac_rescale_sse2;
@@ -167,7 +162,6 @@ void rgb_vert_resize_init()
     return;
   }
   
-#endif
 #endif
   
   rgb_merge=rgb_merge_C;

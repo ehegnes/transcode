@@ -3,13 +3,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
+#include "ac.h"
+
 #ifdef HAVE_STRING_H
 # include <string.h>
 #endif
-#include "ac.h"
 
 #ifdef ARCH_X86_64
 #  define REG_b "rbx"
@@ -77,12 +75,12 @@ static int mm_support(void)
     if (a == c)
         return 0; /* CPUID not supported */
 
-    /* highest cpuid is 0, no standard features */
-    if (a == 0)
-        return rval;
-    
     cpuid(0, max_std_level, ebx, ecx, edx);
 
+    /* highest cpuid is 0, no standard features */
+    if (max_std_level == 0)
+        return rval;
+    
     /* save the vendor string */
     *(int *)vendor = ebx;
     *(int *)&vendor[4] = edx;

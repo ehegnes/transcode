@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "config.h"
-
 #include "ac.h"
 
 #define LOOPS  2000
