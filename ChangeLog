@@ -1,4 +1,13 @@
 --------------------------------------------
+transcode-0.6.11
+
+2003-09-12 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/export_dvraw.c:
+  Fix a bug when the video gets passed-through but the audio is
+  coming from a separate file. Pointed out by Frederic Briere.
+
+--------------------------------------------
 transcode-0.6.10
 
   * Terse/less technical ChangeLog:
