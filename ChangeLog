@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.11
 
+2003-10-10 Stuart Cunningham <stuartc at rd.bbc.co.uk>
+
+  * export/export_dvraw.c:
+  Set the aspect ratio correctly depending on --export_asr.
+
 2003-10-06 Nicolas Boos <nicolas.boos at wanadoo.fr>
 
   * filter/filter_hqdn3d.c:

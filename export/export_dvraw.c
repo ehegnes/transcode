@@ -223,8 +223,9 @@ MOD_open
 
     
 #ifdef LIBDV_095
+    // Store aspect ratio - ex_asr uses the value 3 for 16x9
+    encoder->is16x9 = ((vob->ex_asr<0) ? vob->im_asr:vob->ex_asr) == 3;
     encoder->isPAL = (vob->ex_v_height==PAL_H);
-    encoder->is16x9 = FALSE;
     encoder->vlc_encode_passes = 3;
     encoder->static_qno = 0;
     encoder->force_dct = DV_DCT_AUTO;
