@@ -23,7 +23,7 @@
 
 #include "framebuffer.h"
 #include "video_trans.h"
-#include "ac.h"
+#include "aclib/ac.h"
 
 /* ------------------------------------------------------------ 
  *

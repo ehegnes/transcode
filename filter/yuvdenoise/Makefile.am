@@ -20,6 +20,6 @@ filter_yuvdenoise_la_LDFLAGS =  -module -avoid-version -L../../libvo -lvout
 filter_yuvmedian_la_SOURCES = filter_yuvmedian.c 
 filter_yuvmedian_la_LDFLAGS =  -module -avoid-version
 
-EXTRA_DIST = *.h 
+EXTRA_DIST = deinterlace.h denoise.h global.h mjpeg_types.h motion.h
 
 

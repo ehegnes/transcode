@@ -34,7 +34,7 @@
 #include <string.h>
  
 #include "zoom.h"
-#include "ac.h"
+#include "aclib/ac.h"
 
 #define BLACK_BYTE_Y 16
 #define BLACK_BYTE_UV 128

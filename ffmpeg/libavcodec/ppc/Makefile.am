@@ -1,4 +1,13 @@
 # # Process this file with automake to produce Makefile.in.
 
 AUTOMAKE_OPTIONS = 1.3 foreign
-EXTRA_DIST = *.h *.c
+EXTRA_DIST =  \
+   dsputil_altivec.c \
+   dsputil_altivec.h \
+   dsputil_ppc.c \
+   dsputil_ppc.h \
+   fft_altivec.c \
+   gmc_altivec.c \
+   idct_altivec.c \
+   mpegvideo_altivec.c \
+   mpegvideo_ppc.c

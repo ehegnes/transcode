@@ -10,5 +10,5 @@ EXTRA_libsupport_a_SOURCES	=  getopt.c getopt1.c
 libsupport_a_DEPENDENCIES	= @SUPPORTOBJECTS@
 libsupport_a_LIBADD		= @SUPPORTOBJECTS@
 
-EXTRA_DIST 			= *.c *.h
+EXTRA_DIST 			= getopt.c getopt.h getopt1.c
 

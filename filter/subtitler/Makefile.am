@@ -27,5 +27,18 @@ color_processor.c
 filter_subtitler_la_LDFLAGS =  -module -avoid-version 
 filter_subtitler_la_LIBADD = $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(X_EXTRA_LIBS) -lXpm -lXt -lXaw -lm 
 
-EXTRA_DIST = *.h HOWTO* *.ppm *.txt README.* *.ppml
+EXTRA_DIST =  \
+   HOWTO_USE_THIS \
+   README.COLOR.PROCESSOR \
+   README.PPML \
+   demo.ppml \
+   frame_list.h \
+   load_font.h \
+   new-timed.txt \
+   object_list.h \
+   rose.ppm \
+   subtitler.h \
+   subtitler_proto.h \
+   sun.ppm \
+   x11.h
 

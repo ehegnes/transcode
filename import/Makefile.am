@@ -152,7 +152,26 @@ import_dvd_la_LIBADD =  @DVDREAD_LIBS@ $(AC3_LIB) -lm
 import_dv_la_SOURCES = import_dv.c 
 import_dv_la_LDFLAGS =  -module -avoid-version 
 
-EXTRA_DIST = *.h
+EXTRA_DIST =  \
+   ac3scan.h \
+   aux_pes.h \
+   clone.h \
+   demuxer.h \
+   divx_decore.h \
+   dvd_reader.h \
+   frame_info.h \
+   frame_video.h \
+   import_def.h \
+   ioaux.h \
+   ioxml.h \
+   ivtc.h \
+   magic.h \
+   mpg123.h \
+   ogmstreams.h \
+   packets.h \
+   probe_xml.h \
+   seqinfo.h \
+   tc.h
 
 bin_PROGRAMS = tcextract tcdecode tcscan tcdemux tccat tcprobe tcxmlcheck
 

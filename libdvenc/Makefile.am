@@ -19,5 +19,19 @@ endif
 libdvenc_a_SOURCES = $(DVENC1) $(DVENC2) $(DVENC3) 
 noinst_HEADERS = enc_output.h enc_input.h enc_audio_input.h dvenc.h 
 
-EXTRA_DIST = README.encoder COPYRIGHT AUTHORS *.c *.S *.h
-
+EXTRA_DIST = README.encoder COPYRIGHT AUTHORS \
+   dvenc.c \
+   dvenc.h \
+   enc_audio_input.c \
+   enc_audio_input.h \
+   enc_audio_input2.h \
+   enc_input.c \
+   enc_input.h \
+   enc_output.c \
+   enc_output.h \
+   enc_output2.c \
+   enc_output2.h \
+   encode_x86.S \
+   headers2.h \
+   rgbtoyuv.S \
+   transpose_x86.S

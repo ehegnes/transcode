@@ -12,7 +12,26 @@ endif
 
 transcode_LDADD= @DLDARWINLIB@ @SUPPORTLIB@ -L../libioaux -ltcioaux -L../aclib -lac -lm
 
-EXTRA_DIST = *.h
+EXTRA_DIST =  \
+   audio_trans.h \
+   counter.h \
+   decoder.h \
+   dl_loader.h \
+   encoder.h \
+   filter.h \
+   frame_threads.h \
+   framebuffer.h \
+   iodir.h \
+   optstr.h \
+   probe.h \
+   socket.h \
+   split.h \
+   tc_defaults.h \
+   transcode.h \
+   usage.h \
+   video_buffer.h \
+   video_trans.h \
+   zoom.h
 
 transcode_SOURCES =	transcode.c\
 			iodir.c\

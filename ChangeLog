@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.7
 
+2003-05-23 Tilmann Bitterberg <transcode at tibit.org>
+
+  * *Makefile.am*:
+  Enable building in a separate dir. Replaced EXTRA_DIST = *.h with
+  the real filenames.
+
 2003-05-22 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/dl_loader.c src/encoder.c src/transcode.c src/transcode.h

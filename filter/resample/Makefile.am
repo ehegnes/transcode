@@ -14,6 +14,6 @@ pkg_LTLIBRARIES = filter_resample.la
 filter_resample_la_SOURCES = filter_resample.c resample.c soxfuncs.c
 filter_resample_la_LDFLAGS =  -module -avoid-version 
 
-EXTRA_DIST = *.h 
+EXTRA_DIST = resampl.h resample.h st.h
 
 

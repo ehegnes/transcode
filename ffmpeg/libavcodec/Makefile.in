@@ -335,7 +335,27 @@ libtcavcodec_a_SOURCES = \
       huffyuv.c $(FF_SRC_MMX) $(FF_SRC_PPC) $(FF_SRC_ALTIVEC)
 
 
-noinst_HEADERS = *.h
+noinst_HEADERS = \
+   ac3.h \
+   ac3tab.h \
+   avcodec.h \
+   bswap.h \
+   common.h \
+   dsputil.h \
+   dvdata.h \
+   fastmemcpy.h \
+   h263data.h \
+   mpeg12data.h \
+   mpeg4data.h \
+   mpegaudio.h \
+   mpegaudiodectab.h \
+   mpegaudiotab.h \
+   mpegvideo.h \
+   msmpeg4data.h \
+   simple_idct.h \
+   svq1_cb.h \
+   wmadata.h
+
 
 EXTRA_DIST = motion_est_template.c \
 	     wmv2.c

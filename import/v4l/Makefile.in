@@ -315,7 +315,7 @@ import_v4l_la_SOURCES = import_v4l.c common.c video.c audio.c frequencies.c
 import_v4l_la_LDFLAGS = -no-undefined -module -avoid-version 
 import_v4l_la_LIBADD = -L../../libioaux -ltcioaux
 
-EXTRA_DIST = *.h
+EXTRA_DIST = audio.h channels.h common.h counter.h frequencies.h vcr.h video.h
 subdir = import/v4l
 mkinstalldirs = $(SHELL) $(top_srcdir)/autotools/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h

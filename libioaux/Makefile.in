@@ -306,8 +306,8 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 noinst_LIBRARIES = libtcioaux.a
 libtcioaux_a_SOURCES = framecode.c configs.c
 
-noinst_HEADERS = *.h
-EXTRA_DIST = *.h *.l
+noinst_HEADERS = configs.h framecode.h
+EXTRA_DIST = configs.h framecode.h framecode.l
 subdir = libioaux
 mkinstalldirs = $(SHELL) $(top_srcdir)/autotools/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h

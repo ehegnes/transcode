@@ -51,7 +51,7 @@
 #include "framebuffer.h"
 
 #include "mjpeg_types.h"
-#include "mm_accel.h"
+#include "libvo/mm_accel.h"
 
 #include "global.h"
 #include "motion.h"

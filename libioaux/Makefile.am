@@ -8,5 +8,5 @@ noinst_LIBRARIES = libtcioaux.a
 CFLAGS=-O3 -funroll-loops -ffast-math -DLINUX -Wall @CFLAGS@
 libtcioaux_a_SOURCES = framecode.c configs.c
 
-noinst_HEADERS = *.h
-EXTRA_DIST = *.h *.l
+noinst_HEADERS = configs.h framecode.h
+EXTRA_DIST = configs.h framecode.h framecode.l

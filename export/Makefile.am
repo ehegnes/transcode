@@ -215,7 +215,21 @@ export_im_la_LIBADD = @MAGICK_LIBS@ -L../libvo -lvout -lm
 
 pkg_DATA = export_af6.conf xvid.cfg
 
-EXTRA_DIST = *.h *.conf *.cfg
+EXTRA_DIST = \
+  af6_aux.h \
+  aud_aux.h \
+  divx4_encore2.h \
+  divx4_encparam.h \
+  divx5_encore2.h \
+  export_af6.conf \
+  export_def.h \
+  ffmpeg_cfg.h \
+  vbr.h \
+  vid_aux.h \
+  xvid.cfg \
+  xvid.h \
+  xvid_vbr.h \
+  xvidcvs.h
 
 
 

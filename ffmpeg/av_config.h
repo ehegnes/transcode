@@ -1,6 +1,6 @@
 /* Map transcode configure defines to libavcodecs */
 
-#include "../config.h"
+#include "config.h"
 
 /* These come from our config.h */
 /* #define ARCH_PPC */

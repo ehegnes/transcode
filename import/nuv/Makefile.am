@@ -14,6 +14,15 @@ import_nuv_la_SOURCES = RTjpegN.c  import_nuv.c  minilzo.c  resample.c  rtjpeg_a
 import_nuv_la_LDFLAGS = -no-undefined -module -avoid-version 
 import_nuv_la_LIBADD = -lm
 
-EXTRA_DIST = *.h LICENSE.Nuppelvideo LICENSE.rtjpeg README.rtjpeg
+EXTRA_DIST =  LICENSE.Nuppelvideo LICENSE.rtjpeg README.rtjpeg \
+   RTjpegN.h \
+   lzoconf.h \
+   minilzo.h \
+   nuppelvideo.h \
+   resampl.h \
+   resample.h \
+   rtjpeg_aud_plugin.h \
+   rtjpeg_vid_plugin.h \
+   st.h
 
 

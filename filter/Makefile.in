@@ -446,7 +446,7 @@ filter_dilyuvmmx_la_LDFLAGS = -module -avoid-version
 filter_fields_la_SOURCES = filter_fields.c
 filter_fields_la_LDFLAGS = -module -avoid-version 
 
-EXTRA_DIST = *.h parse_csv.awk filter_list.awk
+EXTRA_DIST = parse_csv.awk filter_list.awk mmx.h
 
 @HAVE_DV_TRUE@ADD1 = preview 
 

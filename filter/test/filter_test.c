@@ -32,7 +32,7 @@
 #include "config.h"
 #endif
 
-#include "ac.h"
+#include "aclib/ac.h"
 
 static char *buffer;
 

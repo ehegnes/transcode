@@ -158,7 +158,7 @@ filter_fields_la_SOURCES = filter_fields.c
 filter_fields_la_LDFLAGS =  -module -avoid-version 
 
 
-EXTRA_DIST = *.h parse_csv.awk filter_list.awk
+EXTRA_DIST =  parse_csv.awk filter_list.awk mmx.h
 
 if HAVE_DV
 ADD1=preview 

@@ -34,6 +34,6 @@ filter_pv_la_LDFLAGS =  -module -avoid-version
 filter_pv_la_LIBADD = $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(LIBS_XV)
 
 
-EXTRA_DIST = *.h 
+EXTRA_DIST = display.h dv_types.h filter_preview.h font_xpm.h pv.h
 
 

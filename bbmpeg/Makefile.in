@@ -315,7 +315,37 @@ libbbmpeg_a_SOURCES = dovideo.c params.c bits.c puthdr.c putpic.c putmpg.c putvl
 
 noinst_HEADERS = mtable.h mplex.h mmx.h main.h imgresample.h gmo_read.h encaudio.h consts.h consts1.h common.h bbencode.h 
 
-EXTRA_DIST = README.TXT *.cfg *.h *.S *.s mmxasm.c
+EXTRA_DIST = README.TXT  \
+  bbencode.h \
+  bdist1.s \
+  bdist2.s \
+  common.h \
+  consts.h \
+  consts1.h \
+  dist1-trans.s \
+  dist1.s \
+  dist2.s \
+  edist1.s \
+  encaudio.h \
+  fdct_mmx.s \
+  gmo_read.h \
+  idct_mmx.s \
+  imgresample.h \
+  main.h \
+  mmx.h \
+  motion_mmx.s \
+  mplex.h \
+  mtable.h \
+  pred_mmx.s \
+  pred_old.s \
+  predict_mmx.S \
+  predict_sse.S \
+  quant_mmx.s \
+  svcd352x288.cfg \
+  template.cfg \
+  variance_mmx.s \
+  mmxasm.c
+
 
 SUBDIRS = . tcmplex
 

@@ -36,7 +36,7 @@
 #include "probe.h"
 #include "split.h"
 #include "iodir.h"
-#include "ac.h"
+#include "aclib/ac.h"
 
 #ifdef HAVE_GETOPT_LONG_ONLY
 #include <getopt.h>

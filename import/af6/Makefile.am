@@ -19,5 +19,3 @@ pkg_LTLIBRARIES=$(MOD)
 import_af6_la_SOURCES = import_af6.c
 import_af6_la_LDFLAGS = -no-undefined -module -avoid-version 
 
-#EXTRA_DIST = *.h
-

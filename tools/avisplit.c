@@ -28,9 +28,9 @@
 #include <string.h>
 #include "buffer.h"
 #include "avilib.h"
-#include "../config.h"
+#include "config.h"
 #include "transcode.h"
-#include "framecode.h"
+#include "libioaux/framecode.h"
 
 #define EXE "avisplit"
 #define MBYTE (1<<20)

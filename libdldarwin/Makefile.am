@@ -10,5 +10,5 @@ EXTRA_libdldarwin_a_SOURCES	=  dlfcn_simple.c
 libdldarwin_a_DEPENDENCIES	= @DLDARWINOBJECTS@
 libdldarwin_a_LIBADD		= @DLDARWINOBJECTS@
 
-EXTRA_DIST 			= *.c *.h
+EXTRA_DIST 			= dlfcn.h dlfcn_simple.c dummy.c
 

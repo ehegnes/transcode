@@ -12,7 +12,16 @@ CFLAGS = -funroll-loops -ffast-math -DLINUX @CFLAGS@
 
 libac_a_SOURCES = cputest.c $(ASM_SRC)
 
-EXTRA_DIST = *.h *.s *.inc movtest.c actest.c make.sh
+EXTRA_DIST = \
+  ac.h \
+  asm_io.inc \
+  asm_io.s \
+  average.s \
+  cputest.h \
+  memcpy.s \
+  rescale.s \
+  swap.s \
+  movtest.c actest.c make.sh
 
 ASM = @NASM@
 ASMFLAGS = @NASMFLAGS@ -g

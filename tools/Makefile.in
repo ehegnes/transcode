@@ -303,7 +303,7 @@ x_libraries = @x_libraries@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I. @DLDARWININCL@ -I../libioaux -I$(srcdir)/../../libioaux 
 
-EXTRA_DIST = *.h 
+EXTRA_DIST = buffer.h
 
 bin_PROGRAMS = avimerge avisplit avifix avisync tcmodinfo
 

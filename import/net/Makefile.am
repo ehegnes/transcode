@@ -17,5 +17,3 @@ pkg_LTLIBRARIES=$(MOD)
 import_net_la_SOURCES = import_net.c 
 import_net_la_LDFLAGS = -no-undefined -module -avoid-version 
 
-
-#EXTRA_DIST = *.h

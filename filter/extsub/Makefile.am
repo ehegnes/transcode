@@ -17,6 +17,6 @@ filter_extsub_la_LDFLAGS =  -module -avoid-version
 filter_extsub2_la_SOURCES = filter_extsub.c subproc.c subtitle_buffer.c
 filter_extsub2_la_LDFLAGS =  -module -avoid-version 
 
-EXTRA_DIST = *.h 
+EXTRA_DIST = subproc.h subtitle_buffer.h
 
 

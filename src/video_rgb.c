@@ -30,7 +30,7 @@
 #include "framebuffer.h"
 #include "video_trans.h"
 #include "zoom.h"
-#include "ac.h"
+#include "aclib/ac.h"
 
 #define BLACK_BYTE 0
 
