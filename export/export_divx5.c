@@ -123,7 +123,7 @@ static int divx5_init(char *path) {
   char *error;
   int *quiet_encore;
   
-  sprintf(module, "%s/%s", path, MODULE);
+  snprintf(module, sizeof(module), "%s/%s", path, MODULE);
   
 
   // try transcode's module directory
@@ -285,8 +285,11 @@ MOD_init
     }
 
     if (vob->divxlogfile && *vob->divxlogfile) {
-	logfile_mv = malloc (strlen(vob->divxlogfile)+4);
-	sprintf(logfile_mv, "%s_mv", vob->divxlogfile);
+	if ((logfile_mv = malloc (strlen(vob->divxlogfile)+4) == NULL) {
+            fprintf(stderr, "Cannot allocate memory for logfile_mv\n");
+            return(TC_EXPORT_ERROR);
+        }
+	snprintf(logfile_mv, strlen(vob->divxlogfile)+4, "%s_mv", vob->divxlogfile);
     }
 
     // default -- expose this to user?
