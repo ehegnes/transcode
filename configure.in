@@ -202,8 +202,8 @@ case x"$host_cpu" in
     ;;
   xpowerpc*)
     have_ppccpu=true
-    AC_MSG_RESULT([Intel Pentium architecture (IA32)])
-    AC_DEFINE([ARCH_X86], 1, [Define if your machine is X86 based])
+    AC_MSG_RESULT([Mac PPC architecture (PPC)])
+    AC_DEFINE([ARCH_PPC], 1, [Define if your machine is PPC based])
     ;;
   *)
     ;;
