@@ -241,9 +241,9 @@ void usage(int status)
   printf("--export_asr C     set export aspect ratio code C [as input]\n");
   printf("--import_asr C     set import aspect ratio code C [auto]\n");
   printf("--keep_asr         try to keep aspect ratio (only with -Z) [off]\n");
-  printf(" -f rate[,frc]     output video frame rate[,frc] [%.3f,0] fps\n", PAL_FPS);
+  printf(" -f rate[,frc]     input video frame rate[,frc] [%.3f,0] fps\n", PAL_FPS);
+  printf("--export_fps f[,c] output video frame rate[,code] [as input] [%0.3f,3]\n", PAL_FPS);
   printf("--export_frc F     set export frame rate code F [as input]\n");
-  printf("--export_fps f[,c] set export frame rate[,code] [as input] [%0.3f,3]\n", PAL_FPS);
   printf("--hard_fps         disable smooth dropping (for variable fps clips) [off]\n");
   printf("\n");
 
@@ -798,7 +798,7 @@ int main(int argc, char *argv[]) {
       {"a52_dolby_off", no_argument, NULL, A52_DOLBY_OFF},
       {"dir_mode", required_argument, NULL, DIR_MODE},
       {"frame_interval", required_argument, NULL, FRAME_INTERVAL},
-      {"encode_fields", no_argument, NULL, ENCODE_FIELDS},
+      {"encode_fields", required_argument, NULL, ENCODE_FIELDS},
       {"print_status", required_argument, NULL, PRINT_STATUS},
       {"write_pid", required_argument, NULL, WRITE_PID},
       {"nice", required_argument, NULL, NICENESS},
@@ -1849,6 +1849,7 @@ int main(int argc, char *argv[]) {
 	    if(optarg[0]=='-') usage(EXIT_FAILURE);
 	    n = sscanf(optarg,"%lf,%d", &vob->ex_fps, &vob->ex_frc);
 
+	    if(n==1) vob->ex_frc = 0;
 	    if(n==2) vob->ex_fps=MIN_FPS; //will be overwritten later
 
 	    if(vob->ex_fps < MIN_FPS || n < 0) tc_error("invalid parameter for option --export_fps");
@@ -1943,7 +1944,21 @@ int main(int argc, char *argv[]) {
 	  break;
 
 	case ENCODE_FIELDS:
-	  vob->encode_fields = TC_TRUE;
+	  if(optarg[0]=='-') {
+	    tc_error("option --encode_fields requires an argument (one of p, t or b)");
+	  }
+	  switch (optarg[0]) {
+	    case 'p':
+	      vob->encode_fields = 0; break;
+	    case 't':
+	      vob->encode_fields = 1; break;
+	    case 'b':
+	      vob->encode_fields = 2; break;
+	    default:
+	      tc_error("option --encode_fields argument must be one of p, t or b");
+	      break;
+	  }
+	  
 	  break;
 
 	case HARD_FPS:
@@ -3202,12 +3217,13 @@ int main(int argc, char *argv[]) {
     //printf("XXX: 4 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
 
     // ex_frc always overwrites ex_fps
-    if (vob->ex_frc > 0)
+    if (vob->ex_frc > 0) {
       vob->ex_fps  = frc_table[vob->ex_frc];
+    }
 
     //printf("XXX: 4 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
 
-    if (vob->im_frc == 0 && vob->ex_frc == 0 && vob->ex_fps == 0)
+    if (vob->im_frc <= 0 && vob->ex_frc <= 0 && vob->ex_fps == 0)
       vob->ex_fps = vob->fps;
     //printf("XXX: 4 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
 

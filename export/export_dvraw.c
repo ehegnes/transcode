@@ -269,8 +269,6 @@ MOD_open
 MOD_encode
 {
   
-  int i, j, ch;
-
   if(param->flag == TC_VIDEO) { 
     
     if(pass_through) {
@@ -333,7 +331,7 @@ MOD_encode
       //_dv_raw_insert_audio(target, &audio, encoder->isPAL);
       
       //FIXME: need to switch to "dv_encode_full_audio" only
-      audio_bufs[0] = param->buffer;
+      audio_bufs[0] = (uint16_t *)param->buffer;
       dv_encode_full_audio(encoder, audio_bufs, chans, rate, target);
 
 #else    

@@ -39,7 +39,7 @@
 #endif
 
 #define MOD_NAME    "export_mpeg2enc.so"
-#define MOD_VERSION "v1.1.8 (2003-07-24)"
+#define MOD_VERSION "v1.1.9 (2003-08-23)"
 #define MOD_CODEC   "(video) MPEG 1/2"
 
 #define MOD_PRE mpeg2enc
@@ -129,14 +129,15 @@ MOD_open
 
   int verb, prof=0;
   char *p1, *p2, *p3;
-  char dar_tag[20];
+  //char dar_tag[20];
   y4m_ratio_t framerate;  
+  y4m_ratio_t dar;
   int frc=0, asr=0;
   char *tv_type="-n p";
   char *pulldown="";
   char *m1v=".m1v";
   char *m2v=".m2v";
-  int fields = vob->encode_fields;
+  int fields = !!vob->encode_fields;
 
   if(param->flag == TC_VIDEO) 
   {
@@ -146,13 +147,22 @@ MOD_open
     //note: this is the real framerate of the raw stream
     framerate = (vob->ex_frc==0) ? mpeg_conform_framerate(vob->ex_fps):mpeg_framerate(vob->ex_frc);
     asr = (vob->ex_asr<0) ? vob->im_asr:vob->ex_asr;
+    switch (asr) {
+	case 1: dar.n = 1; dar.d = 1; break;
+	case 2: dar = y4m_dar_4_3; break;
+	case 3: dar = y4m_dar_16_9; break;
+	case 4: dar = y4m_dar_221_100; break;
+	case 0: default: dar.n=0; dar.d=0; break;
+    }
     
     y4m_init_stream_info(&y4mstream);
     y4m_si_set_framerate(&y4mstream,framerate);
     y4m_si_set_interlace(&y4mstream,vob->encode_fields );
-    y4m_si_set_sampleaspect(&y4mstream,y4m_sar_UNKNOWN);
+    y4m_si_set_sampleaspect(&y4mstream, y4m_guess_sar(vob->ex_v_width, vob->ex_v_height, dar));
+    /*
     snprintf( dar_tag, 19, "XM2AR%03d", asr );
     y4m_xtag_add( y4m_si_xtags(&y4mstream), dar_tag );
+    */
     y4mstream.height = vob->ex_v_height;
     y4mstream.width = vob->ex_v_width;
     

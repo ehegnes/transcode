@@ -32,7 +32,7 @@
 #include "avilib.h"
 
 #define MOD_NAME    "import_ffmpeg.so"
-#define MOD_VERSION "v0.1.4 (2003-12-08)"
+#define MOD_VERSION "v0.1.5 (2003-08-23)"
 #define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
                     "): MS MPEG4v1-3/MPEG4/MJPEG"
 #define MOD_PRE ffmpeg
@@ -274,7 +274,7 @@ MOD_open {
  * ------------------------------------------------------------*/
 
 MOD_decode {
-  int        key,len, i, edge_width;
+  int        key,len, i, edge_width, j;
   long       bytes_read = 0;
   int        got_picture, UVls, src, dst, row, col;
   char      *Ybuf, *Ubuf, *Vbuf;
@@ -394,7 +394,7 @@ MOD_decode {
 	  break;
       case PIX_FMT_YUV444P:
           // Result is in YUV 4:4:4 format (subsample UV h/v for YV12):
-          memcpy(Ybuf, picture.data[0], picture.linesize[0] * lavc_dec_context->height);
+	  memcpy(Ybuf, picture.data[0], picture.linesize[0] * lavc_dec_context->height);
           src = 0;
           dst = 0;
           for (row=0; row<lavc_dec_context->height; row+=2) {
@@ -407,8 +407,55 @@ MOD_decode {
             src += UVls;
           }
           break;
+      case PIX_FMT_YUV411P:
+        if (pix_fmt == CODEC_YUV) {
+	  // Planar YUV 4:1:1 (1 Cr & Cb sample per 4x1 Y samples)
+	  // 4:1:1 -> 4:2:0
+
+          Ybuf = param->buffer;
+          Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
+          Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
+          for (i = 0; i < lavc_dec_context->height; i++) {
+            memcpy(Ybuf + i * lavc_dec_context->width,
+                   picture.data[0] + i * picture.linesize[0], 
+                   lavc_dec_context->width);
+          }
+          for (i = 0; i < lavc_dec_context->height; i++) {
+	      for (j=0; j < lavc_dec_context->width / 2; j++) {
+		  Vbuf[i/2 * lavc_dec_context->width/2 + j] = *(picture.data[1] + i * picture.linesize[1] + j/2);
+		  Ubuf[i/2 * lavc_dec_context->width/2 + j] = *(picture.data[2] + i * picture.linesize[2] + j/2);
+	      }
+          }
+        } else { // RGB
+          Ybuf = yuv2rgb_buffer;
+          Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
+          Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
+          for (i = 0; i < lavc_dec_context->height; i++) {
+            memcpy(Ybuf + i * lavc_dec_context->width,
+                   picture.data[0] + i * picture.linesize[0], 
+                   lavc_dec_context->width);
+          }
+          for (i = 0; i < lavc_dec_context->height; i++) {
+	      for (j=0; j < lavc_dec_context->width / 2; j++) {
+		  Vbuf[i/2 * lavc_dec_context->width/2 + j] = *(picture.data[1] + i * picture.linesize[1] + j/2);
+		  Ubuf[i/2 * lavc_dec_context->width/2 + j] = *(picture.data[2] + i * picture.linesize[2] + j/2);
+	      }
+          }
+          yuv2rgb(param->buffer, yuv2rgb_buffer,
+                  yuv2rgb_buffer +
+                    lavc_dec_context->width * lavc_dec_context->height, 
+                  yuv2rgb_buffer +
+                    5 * lavc_dec_context->width * lavc_dec_context->height / 4, 
+                  lavc_dec_context->width,
+                  lavc_dec_context->height, 
+                  lavc_dec_context->width * bpp / 8,
+                  lavc_dec_context->width,
+                  lavc_dec_context->width / 2);
+        }
+
+	  break;
       default:
-	fprintf(stderr, "[%s] Unsupported decoded frame format", MOD_NAME);
+	tc_warn("[%s] Unsupported decoded frame format: %d", MOD_NAME, lavc_dec_context->pix_fmt);
 	return TC_IMPORT_ERROR;
     }
 

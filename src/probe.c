@@ -216,9 +216,9 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   }
 
   if( !(*flag & TC_PROBE_NO_FRC)) {
-    if(info->frc>0) vob->im_frc = info->frc;
+    if(info->frc>0) { vob->im_frc = info->frc; }
   } else {
-    vob->fps = frc_table[vob->im_frc];
+    if (vob->fps == MIN_FPS) {vob->fps = frc_table[vob->im_frc];}
   }
 
   //check for additional attributes
@@ -627,6 +627,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     break;
 
   case TC_CODEC_LZO1:
+  case TC_CODEC_LZO2:
 
     vob->im_v_codec=CODEC_YUV;
 

@@ -29,7 +29,7 @@
 #include "vid_aux.h"
 
 #define MOD_NAME    "export_yuv4mpeg.so"
-#define MOD_VERSION "v0.1.7 (2003-07-24)"
+#define MOD_VERSION "v0.1.8 (2003-08-23)"
 #define MOD_CODEC   "(video) YUV4MPEG2 | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE yuv4mpeg
@@ -118,7 +118,7 @@ MOD_open
 {
 
   int asr;
-  char dar_tag[20];
+  //char dar_tag[20];
   y4m_ratio_t framerate;  
   y4m_ratio_t asr_rate;
 
@@ -136,9 +136,11 @@ MOD_open
     y4m_init_stream_info(&y4mstream);
     y4m_si_set_framerate(&y4mstream,framerate);
     y4m_si_set_interlace(&y4mstream,vob->encode_fields );
-    y4m_si_set_sampleaspect(&y4mstream, asr_rate);
+    y4m_si_set_sampleaspect(&y4mstream, y4m_guess_sar(vob->ex_v_width, vob->ex_v_height, asr_rate));
+    /*
     snprintf( dar_tag, 19, "XM2AR%03d", asr );
     y4m_xtag_add( y4m_si_xtags(&y4mstream), dar_tag );
+    */
     y4mstream.height = vob->ex_v_height;
     y4mstream.width = vob->ex_v_width;
     

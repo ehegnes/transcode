@@ -889,6 +889,10 @@ demux AC3/A52 to separate channels [off]
 .TP
 .B \-\-a52_dolby_off
 disable liba52 dolby surround [enabled]
+.br
+selects whether the output is plain stereo (if the option is set) or if                               
+it is Dolby Pro Logic - also called Dolby surround or 3:1 - downmix (if                               
+the option is not used).
 .TP
 .B \-\-dir_mode \fIbase\fP
 process directory contents to base-%03d.avi [off]
@@ -896,8 +900,19 @@ process directory contents to base-%03d.avi [off]
 .B \-\-frame_interval \fIN\fP
 select only every \fIN\fPth frame to be exported [1]
 .TP
-.B \-\-encode_fields
+.B \-\-encode_fields \fIC\fP
 enable field based encoding (if supported) [off]
+.br
+This option takes an argument if given to denote the order of fields. If the
+option is not given, it defaults to progressive (do not assume the picture is
+interlaced)
+.RS
+.PP
+Valid codes for \fIC\fP are:
+     p    progressive (default)
+     t    top-field first
+     b    bottom-field first
+.RE
 .TP
 .B \-\-dv_yuy2_mode
 decoded Digital Video (raw) YUV frame is in YUY2 (packet) format using libdv. Downsample frame to YV12. PAL users should compile libdv with --with-pal-yuv=YV12 to avoid this option [off]
