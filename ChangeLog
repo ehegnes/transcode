@@ -1,6 +1,18 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-12-05 Edouard Gomez <ed.gomez at free.fr>
+
+  * export/{export_xvid4.c xvid4.cfg xvid4.h}
+  patch-22
+
+    Summary:
+      Synced with xvid 1.0.0-beta2
+    Revision:
+      transcode-xvidmodule--devapi4--1.0--patch-22
+
+  If you are using xvid4conf, you need version 1.10
+
 2003-12-05 Tilmann Bitterberg <transcode at tibit.org>
 
   * avilib/avilib.c avilib/avilib.h:

@@ -19,7 +19,7 @@
  *  along with this program ; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- * $Id: xvid4.h,v 1.5 2003-11-10 16:26:51 tibit Exp $
+ * $Id: xvid4.h,v 1.6 2003-12-05 16:23:08 tibit Exp $
  *
  ****************************************************************************/
 
@@ -57,7 +57,7 @@ extern "C" {
 #define XVID_API_MAJOR(a)        (((a)>>16) & 0xff)
 #define XVID_API_MINOR(a)        (((a)>> 0) & 0xff)
 
-#define XVID_VERSION             XVID_MAKE_VERSION(1,-127,0)
+#define XVID_VERSION             XVID_MAKE_VERSION(1,0,-127)
 #define XVID_API                 XVID_MAKE_API(4, 0)
 
 #define XVID_UNSTABLE
@@ -73,7 +73,7 @@ extern "C" {
  * doesnt hurt but not increasing it could cause difficulty for decoders in the
  * future
  */
-#define XVID_BS_VERSION "0020"
+#define XVID_BS_VERSION "0023"
 
 
 /*****************************************************************************
@@ -313,7 +313,8 @@ typedef struct
 #define XVID_PLG_DESTROY (1<<1)
 #define XVID_PLG_INFO    (1<<2)
 #define XVID_PLG_BEFORE  (1<<3)
-#define XVID_PLG_AFTER   (1<<4)
+#define XVID_PLG_FRAME   (1<<4)
+#define XVID_PLG_AFTER   (1<<5)
 
 /* xvid_plg_info_t.flags */
 #define XVID_REQORIGINAL (1<<0) /* plugin requires a copy of the original (uncompressed) image */
@@ -472,8 +473,11 @@ typedef struct {
 	int max_overflow_improvement; /* [in] percentage of allowed range for a frame that gets bigger because of overflow bonus */
 	int max_overflow_degradation; /* [in] percentage of allowed range for a frame that gets smaller because of overflow penalty */
 
-	int kfreduction;              /* [in] */
-	int min_key_interval;         /* [in] Minimum interval of frames between two IFrames */
+	int kfreduction;              /* [in] maximum bitrate reduction applied to an iframe under the kfthreshold distance limit */
+	int kfthreshold;              /* [in] if an iframe is closer to the next iframe than this distance, a quantity of bits
+								   *      is substracted from its bit allocation. The reduction is computed as multiples of
+								   *      kfreduction/kthreshold. It reaches kfreduction when the distance == kfthreshold,
+								   *      0 for 1<distance<kfthreshold */
 
 	int container_frame_overhead; /* [in] How many bytes the controller has to compensate per frame due to container format overhead */
 }xvid_plugin_2pass2_t;

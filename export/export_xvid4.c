@@ -65,7 +65,7 @@
  ****************************************************************************/
 
 #define MOD_NAME    "export_xvid4.so"
-#define MOD_VERSION "v0.0.4 (2003-08-24)"
+#define MOD_VERSION "v0.0.5 (2003-12-05)"
 #define MOD_CODEC  \
 "(video) XviD 1.0.x series (aka API 4.0) | (audio) MPEG/AC3/PCM"
 #define MOD_PRE xvid4_ 
@@ -669,7 +669,7 @@ static void read_config_file(xvid_transcode_module_t *mod)
 			{"max_overflow_improvement", &pass2->max_overflow_improvement, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
 			{"max_overflow_degradation", &pass2->max_overflow_degradation, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
 			{"kfreduction", &pass2->kfreduction, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
-			{"min_key_interval", &pass2->min_key_interval, CONF_TYPE_INT, CONF_MIN, 0, 0, NULL},
+			{"kfthreshold", &pass2->kfthreshold, CONF_TYPE_INT, CONF_MIN, 0, 0, NULL},
 			{"container_frame_overhead", &pass2->container_frame_overhead, CONF_TYPE_INT, CONF_MIN, 0, 0, NULL},
 
 			/* End of the config file */
@@ -910,7 +910,7 @@ static void set_create_struct(xvid_transcode_module_t *mod, vob_t *vob)
 		pass2->max_overflow_improvement = pass2cfg->max_overflow_improvement;
 		pass2->max_overflow_degradation = pass2cfg->max_overflow_degradation;
 		pass2->kfreduction = pass2cfg->kfreduction;
-		pass2->min_key_interval = pass2cfg->min_key_interval;
+		pass2->kfthreshold = pass2cfg->kfthreshold;
 		pass2->container_frame_overhead = pass2cfg->container_frame_overhead;
 
 		/* Positive bitrate values are bitrates as usual but if the
