@@ -1,4 +1,34 @@
 --------------------------------------------
+transcode-0.6.8
+
+2003-06-03 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/v4l/video.c:
+  Fix a bug which caused transcode to segfault at closing time.
+  Pointed out by Thomas.
+
+  * import/tcscan.c:
+  tcscan now prints a duration estimation for mp3 files. Its
+  actually very accurate.
+
+2003-06-03 Zsolt László BÉRCZES" <arris at gmx.at>
+
+  * filter/filter_text.c:
+  Fix a copy and paste error
+
+2003-05-30 Marzio Malanchini <marzio_malanchini at vodafone.it>
+
+  * docs/import-xml.txt import/import_xml.c import/ioxml.c:
+  Enable support for libdv-yuy2.
+
+2003-05-30 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/divxkey/filter_divxkey.c import/extract_avi.c
+  import/import_ogg.c import/magic.h import/probe_mov.c
+  import/probe_ogg.c src/probe.c:
+  Add probing support for "DX50" and a magic tag TC_CODEC_DIVX5
+
+--------------------------------------------
 transcode-0.6.7 Thu May 29 18:50:46 CEST 2003
 
 2003-05-29 Tilmann Bitterberg <transcode at tibit.org>
