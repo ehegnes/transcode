@@ -192,6 +192,7 @@ typedef union cf_value cfv_t;
 #define CONF_TYPE_INT		1
 #define CONF_TYPE_FLOAT		2
 #define CONF_TYPE_STRING	3
+#define CONF_TYPE_SECTION	4
 
 #define CONF_MIN		(1<<0)
 #define CONF_MAX		(1<<1)
