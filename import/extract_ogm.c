@@ -39,6 +39,7 @@ unsigned char *xaudio = NULL;
 unsigned char *xvideo = NULL;
 unsigned char *xtext = NULL;
 int no[3];
+int      xraw = 0;
 
 int verbose = 0;
 
@@ -78,7 +79,6 @@ typedef struct stream_t {
 
 stream_t *first;
 int      nastreams = 0, nvstreams = 0, ntstreams = 0, numstreams = 0;
-int      xraw = 0;
 char basename[] = "stdout";
 
 void add_stream(stream_t *ndmx) {

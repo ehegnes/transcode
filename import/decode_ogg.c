@@ -33,6 +33,7 @@
 #include "transcode.h"
 #include "ioaux.h"
 
+#if (HAVE_OGG && HAVE_VORBIS) 
 #include <vorbis/vorbisfile.h>
 
 static int quiet = 0;
@@ -110,6 +111,7 @@ int decode_ogg_file(int fdin, int fdout)
     fclose(out);
     return 0;
 }
+#endif // HAVE_OGG
 
 
 void decode_ogg(info_t *ipipe)
