@@ -2,6 +2,7 @@
 
 AUTOMAKE_OPTIONS = 1.3 foreign
 
+AM_CFLAGS = -O3 -fomit-frame-pointer
 AM_CPPFLAGS = \
 	-D_REENTRANT \
 	-I$(top_srcdir) \
