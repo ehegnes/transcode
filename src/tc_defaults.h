@@ -189,6 +189,9 @@
 #define TC_FRAME_IS_CLONED      256
 #define TC_FRAME_WAS_CLONED     512
 #define TC_FRAME_IS_OUT_OF_RANGE  1024
+#define TC_FRAME_IS_I_FRAME    2048
+#define TC_FRAME_IS_P_FRAME    4096
+#define TC_FRAME_IS_B_FRAME    8192
 
 //overwritten by cmd line parameter
 #define TC_PROBE_ERROR         -1

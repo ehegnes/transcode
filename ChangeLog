@@ -3,6 +3,12 @@ transcode-0.6.11
 
 2003-10-02 Tilmann Bitterberg <transcode at tibit.org>
 
+  * src/tc_defaults.h:
+  New frame attributes: TC_FRAME_IS_[IPB]_FRAME. The mpeg import
+  modules set these when working with m2v elementary streams.
+
+2003-10-02 Tilmann Bitterberg <transcode at tibit.org>
+
   * export/aud_aux.c:
   Fix AC3 pass-through when audio is not written to a AVI file.
   Few debug printf's cleanup.
