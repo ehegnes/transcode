@@ -3,6 +3,12 @@ transcode-0.6.12
 
 2003-11-26 Tilmann Bitterberg <transcode at tibit.org>
 
+  * import/magic.h src/probe.c:
+  Magic values for v4l2 import modules and the core probing
+  architecture.
+
+2003-11-26 Tilmann Bitterberg <transcode at tibit.org>
+
   * configure.in:
   Enable freetype by default.
 

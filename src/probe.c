@@ -40,6 +40,7 @@ static char *std_module[] = {"null",
 			     "ogg",
 			     "mov",
 			     "v4l",
+			     "v4l2",
 			     "xml",
 			     "lav",
 			     "lzo",
@@ -62,6 +63,7 @@ enum _std_module {_null_,
 		  _ogg_,
 		  _mov_,
 		  _v4l_,
+		  _v4l2_,
 		  _xml_,
 		  _lav_,
 		  _lzo_,
@@ -407,6 +409,21 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
 
     break;
 
+  case TC_MAGIC_V4L2_VIDEO:
+    vob->vmod_probed=std_module[_v4l2_];
+    preset |= TC_VIDEO;
+
+    if( !(*flag & TC_PROBE_NO_FRAMESIZE) && vob->im_v_codec == CODEC_RGB) {
+	vob->im_v_width  = PAL_W/2;
+	vob->im_v_height = PAL_H/2;
+    }
+    if( !(*flag & TC_PROBE_NO_FRAMESIZE) && vob->im_v_codec == CODEC_YUV) {
+	vob->im_v_width  = 352;
+	vob->im_v_height = 288;
+    }
+
+    break;
+
   case TC_MAGIC_SOCKET:
     vob->vmod_probed=std_module[_net_];
     break;
@@ -525,6 +542,11 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
 
   case TC_MAGIC_V4L_AUDIO:
       vob->amod_probed=std_module[_v4l_];
+      preset |= TC_AUDIO;
+      break;
+      
+  case TC_MAGIC_V4L2_AUDIO:
+      vob->amod_probed=std_module[_v4l2_];
       preset |= TC_AUDIO;
       break;
       
