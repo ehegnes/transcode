@@ -1,6 +1,48 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-30 Edouard Gomez <ed.gomez at free.fr>
+
+  * import/{import_xvid.c decode_xvid.c}:
+  Fix includes, since xvidcvs.h does not exist anymore.
+
+  * Big update of all export_*xvid* modules:
+  o  export_xvid -> export_xvid2. This module uses xvid-0.9.x.
+  
+  o  export_xvidcvs -> export_xvid3. This module uses HEAD which
+     is available in xvid cvs.
+  
+  o  new module export_xvid4. This module will use xvid-1.0 when
+     this xvid library will be released by the XviD team. xvid4 is to
+     be configured through the well commented xvid4.cfg. If you want
+     improved quality, you must tweak xvid4.cfg otherwise the quality
+     will be the same as what xvid2 does because of the default
+     parameters.
+  
+  o  all xvidraw modules removed. If you want to write a raw
+     bitstream, use transcodes -F option: `-F raw'.
+  
+  o  all modules can coexist. You can have several libxvidcore.so.$VER
+     libraries installed, the module will pick the right one. Don't
+     forget to run ldconfig so that the export module will find the
+     codec.
+
+  o  transcode now ships three configuration files for the different
+     xvid export modules. The file xvid2.cfg is read by -y xvid2,
+     xvid3.cfg is read by -y xvid3 and xvid4.cfg is read by -y xvid4
+     The files are looked for in the current working directory. Each
+     module will tell you if it found its config file or not.
+
+  o  To fetch the various xvid codecs, use the following cvs
+     commands. Set your CVSROOT, login and check out.
+     export CVSROOT=":pserver:anonymous@cvs.xvid.org:/xvid"
+       export_xvid2 : cvs -z3 co -rrelease-0_9_2 xvidcore
+       export_xvid3 : cvs -z3 co -rHEAD          xvidcore
+       export_xvid4 : cvs -z3 co -rdev-api-4     xvidcore
+     build and install xvid as usual. More help is at
+     <http://www.xvid.org/modules.php?op=modload&\
+     name=Sections&file=index&req=viewarticle&artid=1&page=1>
+
 2003-07-30 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/import_divx.c:
