@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-31 Lenz Grimmer <lenz at grimmer.com>
+
+  * transcode.spec.in:
+  New description of transcode for the RPM file, fixed file list,
+  use more macros (_mandir, _libdir), added URL.
+
 2003-07-31 Tilmann Bitterberg <transcode at tibit.org>
 
   * bbmpeg/tcmplex/tcmplex.c import/ioaux.c src/transcode.c
@@ -21,6 +27,17 @@ transcode-0.6.9
   Remove configure check for XVID, it is not needed since transcode
   ships all the files required.
 
+  * contrib/mpipe.c:
+  A very small and simple tool which can be used as a pipe
+  multiplexer. It is useful if you want to run tcdemux, tcscan and
+  copy the file to disc from the dvd at the same time:
+     $ tccat -i /dev/dvd -P1 | \
+     mpipe \
+     "tccat -t vob >file" \
+     "tcdemux -x vob -W>seek.log" \
+     "tcextract -t vob -x ac3 | tcdecode -x a52 | tcscan -x pcm"
+  Tool suggested by GigaStorm. NB: this is a five-minute hack so
+  don't expect wonders on performance.
 
 2003-07-30 marrq <marrq at ugcs.caltech.edu>
 
