@@ -437,7 +437,7 @@ void tcdemux_thread(info_t *ipipe)
 	  //diff:
 	  if(flag_av_fine_tune==1) {
 	    av_fine_diff=av_fine_pts2-av_fine_pts1;
-	    if(verbose & TC_DEBUG) fprintf(stderr, "AV fine-tuning: %d ms\n", (int)(av_fine_diff*1000));
+	    if(verbose & TC_DEBUG) fprintf(stderr, "[%s] AV fine-tuning: %d ms\n", __FILE__, (int)(av_fine_diff*1000));
 	  }
 	  
 	  //sanity check:
