@@ -10,6 +10,7 @@
 #include <errno.h>
 
 #include "transcode.h"
+#include "ioaux.h"
 
 #define MOD_NAME    "import_vnc.so"
 #define MOD_VERSION "v0.0.2 (2003-11-29)"
@@ -32,6 +33,7 @@ static char fifo[256];
  *
  * ------------------------------------------------------------*/
 
+#if 0  /* get this from ioaux.c */
 static ssize_t p_read(int fd, char *buf, size_t len)
 {
    ssize_t n = 0;
@@ -53,7 +55,7 @@ static ssize_t p_read(int fd, char *buf, size_t len)
 
    return r;
 }
-
+#endif
 
 MOD_open
 {

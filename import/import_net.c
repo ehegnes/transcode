@@ -32,6 +32,7 @@
 #include <netdb.h>
 
 #include "transcode.h"
+#include "ioaux.h"
 
 #define MOD_NAME    "import_net.so"
 #define MOD_VERSION "v0.0.1 (2001-11-21)"
@@ -48,6 +49,7 @@ char import_cmd_buf[MAX_BUF];
 
 static int vs, as;
 
+#if 0  /* get this from ioaux.c */
 static size_t p_read(int fd, char *buf, size_t len)
 {
    size_t n = 0;
@@ -63,6 +65,7 @@ static size_t p_read(int fd, char *buf, size_t len)
 
    return r;
 }
+#endif
 
 /* ------------------------------------------------------------ 
  *

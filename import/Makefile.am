@@ -227,7 +227,7 @@ import_dvd_la_LIBADD = $(LIBDVDREAD_LIBS) $(AC3_LIBS)
 import_dv_la_SOURCES = import_dv.c
 import_dv_la_LDFLAGS = -module -avoid-version
 
-import_vnc_la_SOURCES = import_vnc.c
+import_vnc_la_SOURCES = import_vnc.c ioaux.c
 import_vnc_la_LDFLAGS = -module -avoid-version
 
 import_pvn_la_SOURCES = import_pvn.c pvn.c pvnglobals.c
@@ -245,7 +245,7 @@ import_sunau_la_LDFLAGS = -module -avoid-version
 import_af6_la_SOURCES = import_af6.c
 import_af6_la_LDFLAGS = -module -avoid-version
 
-import_net_la_SOURCES = import_net.c
+import_net_la_SOURCES = import_net.c ioaux.c
 import_net_la_LDFLAGS = -module -avoid-version
 
 import_yuv_la_SOURCES = import_yuv.c
