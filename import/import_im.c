@@ -39,7 +39,7 @@
 
 
 #define MOD_NAME    "import_im.so"
-#define MOD_VERSION "v0.0.2 (2002-01-25)"
+#define MOD_VERSION "v0.0.3 (2003-07-01)"
 #define MOD_CODEC   "(video) RGB"
 
 #define MOD_PRE im
@@ -96,8 +96,7 @@ MOD_open
     param->fd = NULL;
 
     // get the frame name and range
-    regex = "\\(.\\+[._]\\)\\?\\([0-9]\\+\\)\\([._].\\+\\)\\?";
-
+    regex = "\\(.\\+[-._]\\)\\?\\([0-9]\\+\\)\\([-._].\\+\\)\\?";
     result = regcomp(&preg, regex, 0);
     if (result) {
         perror("ERROR:  Regex compile failed.\n");
