@@ -110,6 +110,12 @@ static int divx4_init(char *path) {
 #endif  
   char *error;
   int *quiet_encore;
+
+	fprintf(stderr, "[%s] *** Warning: DivX is broken and support for it is ***\n", MOD_NAME);
+	fprintf(stderr, "[%s] *** obsolete in transcode. Sooner or later it  ***\n", MOD_NAME);
+	fprintf(stderr, "[%s] *** will be removed from transcode. Don't use ***\n", MOD_NAME);
+	fprintf(stderr, "[%s] *** DivX. Use xvid or ffmpeg -F mpeg4 instead ***\n", MOD_NAME);
+	fprintf(stderr, "[%s] *** for all your mpeg4 encodings. ***\n", MOD_NAME);
   
   snprintf(module, sizeof(module), "%s/%s", path, MODULE);
   
