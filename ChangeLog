@@ -3,6 +3,13 @@ transcode-0.6.12
 
 2003-11-28 Tilmann Bitterberg <transcode at tibit.org>
 
+  * avilib/avilib.c:
+  Support for AVI files with multiple RIFF chunks and an AVIX
+  header. xawtv produces such files. only one audio track supported
+  so far.
+
+2003-11-28 Tilmann Bitterberg <transcode at tibit.org>
+
   * import/v4l2/import_v4l2.c configure.in:
   Add improved configure check for linux/videodev2.h
   Fix freetype2 detection

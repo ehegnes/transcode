@@ -234,9 +234,10 @@ typedef struct
   int is_opendml;           /* set to 1 if this is an odml file with multiple index chunks */
   
   off_t  last_pos;          /* Position of last frame written */
-  unsigned long last_len;          /* Length of last frame written */
-  int must_use_index;              /* Flag if frames are duplicated */
+  unsigned long last_len;   /* Length of last frame written */
+  int must_use_index;       /* Flag if frames are duplicated */
   off_t  movi_start;
+  int total_frames;         /* total number of frames if dmlh is present */
   
   int anum;            // total number of audio tracks 
   int aptr;            // current audio working track 
@@ -375,8 +376,8 @@ int  AVI_read_data(avi_t *AVI, char *vidbuf, long max_vidbuf,
                                long *len);
 
 void AVI_print_error(char *str);
-char *AVI_strerror();
-char *AVI_syserror();
+char *AVI_strerror(void);
+char *AVI_syserror(void);
 
 int AVI_scan(char *name);
 int AVI_dump(char *name, int mode);
@@ -385,7 +386,7 @@ char *AVI_codec2str(short cc);
 int AVI_file_check(char *import_file);
 
 void AVI_info(avi_t *avifile);
-uint64_t AVI_max_size();
+uint64_t AVI_max_size(void);
 int avi_update_header(avi_t *AVI);
 
 int AVI_set_audio_track(avi_t *AVI, int track);

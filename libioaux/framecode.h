@@ -44,6 +44,9 @@ void fc_time_normalize( struct fc_time * list, int fc_verb );
 int fc_frame_in_time( struct fc_time * list, unsigned int frame );
 void free_fc_time( struct fc_time * time );
 
+#define rindex strrchr
+#define index strchr
+
 #endif
 
 

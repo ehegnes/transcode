@@ -1821,8 +1821,9 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
          num_stream++;
       }
       else if(strncasecmp(hdrl_data+i,"dmlh",4) == 0) {
+	  AVI->total_frames = str2ulong(hdrl_data+i+8);
 #ifdef DEBUG_ODML
-	 fprintf(stderr, "real number of frames %ld\n", str2ulong(hdrl_data+i+8));
+	 fprintf(stderr, "real number of frames %d\n", AVI->total_frames);
 #endif
 	 i += 8;
       }
@@ -2093,7 +2094,8 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
       /* idx_type remains 0 if neither of the two tests above succeeds */
    }
 
-   if(idx_type == 0 && !AVI->is_opendml)
+
+   if(idx_type == 0 && !AVI->is_opendml && !AVI->total_frames)
    {
       /* we must search through the file to get the index */
 
@@ -2262,7 +2264,98 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
       }
    } // is opendml
 
-   else 
+   else if (AVI->total_frames && !AVI->is_opendml) {
+
+   // *********************
+   // MULTIPLE RIFF CHUNKS (and no index)
+   // *********************
+   
+      lseek(AVI->fdes, AVI->movi_start, SEEK_SET);
+
+      AVI->n_idx = 0;
+
+      // Number of frames; only one audio track supported
+      nvi = AVI->video_frames = AVI->total_frames;
+      nai[0] = AVI->track[0].audio_chunks = AVI->total_frames;
+      for(j=1; j<AVI->anum; ++j) AVI->track[j].audio_chunks = 0;
+
+      AVI->video_index = (video_index_entry *) malloc(nvi*sizeof(video_index_entry));
+      if(AVI->video_index==0) ERR_EXIT(AVI_ERR_NO_MEM);
+      for(j=0; j<AVI->anum; ++j) {
+	  if(AVI->track[j].audio_chunks) {
+	      AVI->track[j].audio_index = (audio_index_entry *) malloc((nai[j]+1)*sizeof(audio_index_entry));
+	      memset(AVI->track[j].audio_index, 0, (nai[j]+1)*(sizeof(audio_index_entry)));
+	      if(AVI->track[j].audio_index==0) ERR_EXIT(AVI_ERR_NO_MEM);
+	  }
+      }   
+
+      fprintf(stderr, "[avilib] Reconstructing index...");
+      nvi = 0;
+      for(j=0; j<AVI->anum; ++j) nai[j] = tot[j] = 0;
+
+      while(1)
+      {
+         if( avi_read(AVI->fdes,data,8) != 8 ) break;
+         n = str2ulong((unsigned char *)data+4);
+
+
+         /* The movi list may contain sub-lists, ignore them */
+
+         if(strncasecmp(data,"LIST",4)==0 
+		 || !strncasecmp(data,"RIFF",4)
+		 || !strncasecmp(data,"AVIX",4))
+         {
+            lseek(AVI->fdes,-4,SEEK_CUR);
+            continue;
+         }
+
+	 if (nai[0] >= AVI->total_frames) { // XXX: probably too much
+	      AVI->track[j].audio_index = (audio_index_entry *) realloc(  AVI->track[j].audio_index, (2*nai[0]+1)*sizeof(audio_index_entry));
+	     
+	 }
+
+         /* Check if we got a tag ##db, ##dc or ##wb */
+	 
+	 // VIDEO
+         if( (data[2]=='d' || data[2]=='D') &&
+             (data[3]=='b' || data[3]=='B' || data[3]=='c' || data[3]=='C') ) {
+
+	     AVI->video_index[nvi].key = 0x10;
+	     AVI->video_index[nvi].pos = lseek(AVI->fdes,0,SEEK_CUR)+8;
+	     AVI->video_index[nvi].len = n;
+	     nvi++;
+
+	     lseek(AVI->fdes,PAD_EVEN(n),SEEK_CUR);
+	 } 
+
+	 //AUDIO
+	 else if( (data[2]=='w' || data[2]=='W') &&
+	     (data[3]=='b' || data[3]=='B') ) {
+
+	        j=0;
+
+		AVI->track[j].audio_index[nai[j]].pos = lseek(AVI->fdes,0,SEEK_CUR)+8;
+		AVI->track[j].audio_index[nai[j]].len = n;
+		AVI->track[j].audio_index[nai[j]].tot = tot[j];
+		tot[j] += AVI->track[j].audio_index[nai[j]].len;
+		nai[j]++;
+
+		lseek(AVI->fdes,PAD_EVEN(n),SEEK_CUR);
+	   }
+
+      }
+
+
+      AVI->video_frames = nvi;
+      AVI->track[0].audio_chunks = nai[0];
+
+      for(j=0; j<AVI->anum; ++j) AVI->track[j].audio_bytes = tot[j];
+      idx_type = 1;
+      fprintf(stderr, "done. nvi=%ld nai=%ld tot=%ld\n", nvi, nai[0], tot[0]);
+
+   } // total_frames but no indx chunk (xawtv does this)
+
+   else
 
    {
    // ******************
@@ -2757,7 +2850,7 @@ void AVI_print_error(char *str)
    }
 }
 
-char *AVI_strerror()
+char *AVI_strerror(void)
 {
    int aerrno;
 
@@ -2778,7 +2871,7 @@ char *AVI_strerror()
    }
 }
 
-uint64_t AVI_max_size()
+uint64_t AVI_max_size(void)
 {
   return((uint64_t) AVI_MAX_LEN);
 }

@@ -511,7 +511,7 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 #ifdef AVI_DEBUG
 	    printf("enter [%d] size=%lu pos=%Lu left=%lu\n", RekDepth, subchunksize, datapos, *chunksize-datashowed); 
 #endif
-	    if (!ProcessChunk(fd, datapos, filesize, (off_t) 0,
+	    if (!ProcessChunk(fd, datapos, filesize,  0,
 			      RekDepth+1, &subchunksize)) return(FALSE);
 	    
 	    subchunklen = sizeof(FOURCC) +  /* this is the complete..   */
