@@ -34,8 +34,9 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_PCM;
 #include "import_def.h"
 
 
-#define MAX_BUF 1024
-char import_cmd_buf[MAX_BUF];
+extern int errno;
+char import_cmd_buf[TC_BUF_MAX];
+
 
 /* ------------------------------------------------------------ 
  *
@@ -46,76 +47,88 @@ char import_cmd_buf[MAX_BUF];
 MOD_open
 {
   int i;
+  int sret;
+
   i = strlen(vob->video_in_file);
   if(vob->video_in_file[i-1] == '/')
       i = 1;
   else
       i = 0;
-  
+
   if(param->flag == TC_VIDEO) {
-    
+
     /* check for lav2yuv */
     if (tc_test_program("lav2yuv") != 0) return (TC_EXPORT_ERROR);
 
     switch(vob->im_v_codec) {
-      
+
     case CODEC_RGB:
-      
-      if((snprintf(import_cmd_buf, MAX_BUF, "lav2yuv \"%s\"%s | tcextract -x yv12 -t yuv4mpeg | tcdecode -x yv12 -g %dx%d", vob->video_in_file, i ? "*" : "", vob->im_v_width, vob->im_v_height)<0)) {
-	perror("cmd buffer overflow");
+
+      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+                      "lav2yuv \"%s\"%s |"
+                      " tcextract -x yv12 -t yuv4mpeg |"
+                      " tcdecode -x yv12 -g %dx%d",
+                      vob->video_in_file, i ? "*" : "",
+                      vob->im_v_width, vob->im_v_height);
+      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
 	return(TC_IMPORT_ERROR);
-      }
-      
+
       break;
-  
+
     case CODEC_YUV:
-      
-      if((snprintf(import_cmd_buf, MAX_BUF, "lav2yuv \"%s\"%s | tcextract -x yv12 -t yuv4mpeg", vob->video_in_file, i ? "*" : "")<0)) {
-	perror("cmd buffer overflow");
+
+      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+                      "lav2yuv \"%s\"%s |"
+                      " tcextract -x yv12 -t yuv4mpeg",
+                      vob->video_in_file, i ? "*" : "");
+      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
 	return(TC_IMPORT_ERROR);
-      }
-      
+
+      break;
+
+    default:
       break;
     }
-    
+
     // print out
     if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
-    
+
     param->fd = NULL;
-    
+
     // popen
     if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
       perror("popen RGB stream");
       return(TC_IMPORT_ERROR);
     }
 
-    return(0);
+    return(TC_IMPORT_OK);
   }
-  
+
   if(param->flag == TC_AUDIO) {
 
     /* check for lav2wav */
     if (tc_test_program("lav2wav") != 0) return (TC_EXPORT_ERROR);
-    
-    if((snprintf(import_cmd_buf, MAX_BUF, "lav2wav \"%s\"%s | tcextract -x pcm -t wav ", vob->audio_in_file, i ? "*" : "")<0)) {
-      perror("cmd buffer overflow");
+
+    sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+                    "lav2wav \"%s\"%s | tcextract -x pcm -t wav ",
+                    vob->audio_in_file, i ? "*" : "");
+    if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
       return(TC_IMPORT_ERROR);
-    }
-    
+
     // print out
     if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
-    
+
     param->fd = NULL;
-    
+
     // popen
     if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
       perror("popen PCM stream");
       return(TC_IMPORT_ERROR);
     }
-    
-    return(0);
+
+    return(TC_IMPORT_OK);
   }
-  
+
  return(TC_IMPORT_ERROR);
 }
 
@@ -125,7 +138,7 @@ MOD_open
  *
  * ------------------------------------------------------------*/
 
-MOD_decode{return(0);}
+MOD_decode{ return(TC_IMPORT_OK); }
 
 /* ------------------------------------------------------------ 
  *
@@ -138,7 +151,5 @@ MOD_close
 
   if(param->fd != NULL) pclose(param->fd);
 
-  return(0);
+  return(TC_IMPORT_OK);
 }
-
-
