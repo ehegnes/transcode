@@ -1,4 +1,8 @@
 2004-12-15 Jacob Meuser <jakemsr at jakemsr dot com>
+  * contrib/bitrate
+  Try to make this more portable, flexible and robust.
+
+2004-12-15 Jacob Meuser <jakemsr at jakemsr dot com>
   * import/{Makefile.am,fileinfo.c,ioaux.c,probe_stream.c,tc.h,
     tcprobe.c}
   Probing support for bktr and sunau devices as found on some
