@@ -1,6 +1,17 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-12-05 Tilmann Bitterberg <transcode at tibit.org>
+
+  * avilib/avilib.c avilib/avilib.h:
+  Support for writing AVI 2.0 files (OpenDML). This is very
+  experimental. Transcode has odml _reading_ support for quite a
+  while which has to be proven stable. This patch allows AVI files
+  to become as big as 32GB.
+  A new index will be automatically triggered after 2GB.
+  Mplayer has problems with these files. The generated AVIs work
+  fine in Adobe Premiere and Quicktime.
+  
 2003-12-04 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/import_dv.c import/decode_dv.c:

@@ -89,21 +89,6 @@ typedef struct _avistdindex_entry {
     unsigned long dwSize;                  // bit 31 is set if this is NOT a keyframe
 } avistdindex_entry;
 
-
-// Base Index Form 'indx'
-typedef struct _avisuperindex_chunk {
-    char           fcc[4];
-    unsigned long  dwSize;                 // size of this chunk
-    unsigned short wLongsPerEntry;         // size of each entry in aIndex array (must be 8 for us)
-    unsigned char  bIndexSubType;          // future use. must be 0
-    unsigned char  bIndexType;             // one of AVI_INDEX_* codes
-    unsigned long  nEntriesInUse;          // index of first unused member in aIndex array
-    char           dwChunkId[4];           // fcc of what is indexed
-    unsigned long  dwReserved[3];          // meaning differs for each index type/subtype.
-                                           // 0 if unused
-    avisuperindex_entry *aIndex;
-} avisuperindex_chunk;
-    
 // Standard index 
 typedef struct _avistdindex_chunk {
     char           fcc[4];                 // ix##
@@ -119,6 +104,21 @@ typedef struct _avistdindex_chunk {
 } avistdindex_chunk;
     
 
+// Base Index Form 'indx'
+typedef struct _avisuperindex_chunk {
+    char           fcc[4];
+    unsigned long  dwSize;                 // size of this chunk
+    unsigned short wLongsPerEntry;         // size of each entry in aIndex array (must be 8 for us)
+    unsigned char  bIndexSubType;          // future use. must be 0
+    unsigned char  bIndexType;             // one of AVI_INDEX_* codes
+    unsigned long  nEntriesInUse;          // index of first unused member in aIndex array
+    char           dwChunkId[4];           // fcc of what is indexed
+    unsigned long  dwReserved[3];          // meaning differs for each index type/subtype.
+                                           // 0 if unused
+    avisuperindex_entry *aIndex;           // where are the ix## chunks
+    avistdindex_chunk **stdindex;          // the ix## chunks itself (array)
+} avisuperindex_chunk;
+    
 
 
 typedef struct track_s
