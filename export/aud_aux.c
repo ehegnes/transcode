@@ -94,6 +94,7 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* freq);
  *
  * ------------------------------------------------------------*/
 
+char * lame_error2str(int error);
 
 int audio_init(vob_t *vob, int debug)
 {
@@ -506,7 +507,6 @@ int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile)
     outbuf  = aud_buffer;
     outsize = aud_size;
     
-
     if(verbose & TC_STATS) fprintf(stderr, "(%s) audio submodule: in=0x%x out=0x%x\n %d bytes\n", __FILE__, i_codec, o_codec, aud_size);
 
     switch(i_codec) {
@@ -535,7 +535,7 @@ int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile)
 #define DEBUG
 #undef DEBUG
 
-	while(buffer_len < 4) {
+	while(buffer_len < 4 && input_buffer_len >= aud_size_len) {
 
 
 	    if(aud_mono) {
@@ -551,6 +551,10 @@ int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile)
 
 	    }
 
+	    if(outsize<0) {
+		fprintf(stderr, "(%s) lame encoding error|1| (%s)\n", __FILE__, lame_error2str(outsize));
+		return(TC_EXPORT_ERROR); 
+	    }
 	    // please, please rewrite me.
 	    memmove (input_buffer, input_buffer+aud_size_len, buffer_size - aud_size_len);
 
@@ -598,6 +602,10 @@ int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile)
 
 		}
 
+		if(outsize<0) {
+		    fprintf(stderr, "(%s) lame encoding error |2|(%s)\n", __FILE__, lame_error2str(outsize));
+		    return(TC_EXPORT_ERROR); 
+		}
 		// please, please rewrite me.
 		memmove (input_buffer, input_buffer+aud_size_len, buffer_size - aud_size_len);
 		buffer_len += outsize;
@@ -613,7 +621,7 @@ int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile)
 
 
 	if(outsize<0) {
-	    fprintf(stderr, "(%s) lame encoding error (%d)\n", __FILE__, outsize);
+	    fprintf(stderr, "(%s) lame encoding error |3|(%d)\n", __FILE__, outsize);
 	    return(TC_EXPORT_ERROR); 
 	}
 #ifdef DEBUG
@@ -621,7 +629,7 @@ int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile)
 		__FILE__, buffer_len, header_len, aud_size, (write_audio?"yes":"no"));
 #endif
 
-	if (write_audio) {
+	if (header_len > 0 && write_audio) {
 	    int doit=1;
 	    int inner_len = header_len;
 
@@ -922,3 +930,15 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate){
     return framesize;
 }
 
+char * lame_error2str(int error)
+{
+    switch (error) {
+	case -1: return "-1:  mp3buf was too small";
+	case -2: return "-2:  malloc() problem";
+	case -3: return "-3:  lame_init_params() not called";
+	case -4: return "-4:  psycho acoustic problems";
+	case -5: return "-5:  ogg cleanup encoding error";
+	case -6: return "-6:  ogg frame encoding error";
+	default: return "";
+    }
+}

@@ -1,4 +1,14 @@
 --------------------------------------------
+transcode-0.6.7
+
+2003-05-22 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/aud_aux.c:
+  Fixes a bug when encoding to mp3 where lame returned immediatly with
+  'lame encoding error -3'. Reported by marrq.
+
+
+--------------------------------------------
 transcode-0.6.6 Wed May 21 08:51:00 CEST 2003
 
 2003-05-21 Tilmann Bitterberg <transcode at tibit.org>
