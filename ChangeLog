@@ -1,6 +1,9 @@
 --------------------------------------------
 transcode-0.6.4.HEAD
 
+- Added manpage explanation of de-interlacing algos -I1-5
+   -- marrq <marrq at ugcs.caltech.edu>
+
 - OGG/OGM input support.
   This enables transcode to read and demux ogg/ogm streams produced by
   the ogmtools. For this to work, divx decoding in tcdecode was needed.
