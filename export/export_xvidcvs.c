@@ -62,9 +62,9 @@
  ****************************************************************************/
 
 #define MOD_NAME    "export_xvidcvs.so"
-#define MOD_VERSION "v0.3.7 (2003-01-12)"
+#define MOD_VERSION "v0.3.8 (2003-03-16)"
 #define MOD_CODEC  \
-"(video) XviD (CVS 2003-01-12)  | (audio) MPEG/AC3/PCM"
+"(video) XviD (CVS 2003-03-16)  | (audio) MPEG/AC3/PCM"
 #define MOD_PRE xvidcvs_ 
 #include "export_def.h"
 
@@ -113,7 +113,7 @@ static XVID_ENC_FRAME  global_frame;
 static vbr_control_t   vbr_state;
 
 /* XviD shared library name */
-#define XVID_SHARED_LIB_NAME "libtestcore.so"
+#define XVID_SHARED_LIB_NAME "libxvidcore.so"
 #ifdef DEVELOPER_USE
 #define XVID_CONFIG_FILE "xvidcvs.cfg"
 #endif
@@ -400,6 +400,7 @@ MOD_encode
 	xframe.quant = vbrGetQuant(&vbr_state);
 	xframe.intra = vbrGetIntra(&vbr_state);
 	xframe.bquant = 0;
+	xframe.bframe_threshold = global_frame.bframe_threshold;
 	xframe.stride = global_param.width;
 	if(global_frame.colorspace == (int)(XVID_CSP_VFLIP|XVID_CSP_RGB24))
 		xframe.stride *= 3;
@@ -656,6 +657,7 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 	/* Frame flags */
 	eframe->general  = general_presets[quality];
 	eframe->motion   =  motion_presets[quality];
+	eframe->bframe_threshold = 0;  
 	eframe->quant_inter_matrix = NULL;
 	eframe->quant_intra_matrix = NULL;
 
@@ -802,14 +804,13 @@ static config_flag_t const global_flags[] = {
 
 static config_flag_t const general_flags[] = {
 	{ "XVID_VALID_FLAGS",       XVID_VALID_FLAGS},
-	{ "XVID_CUSTOM_QMATRIX", XVID_CUSTOM_QMATRIX},
+	{ "XVID_CUSTOM_QMATRIX",    XVID_CUSTOM_QMATRIX},
 	{ "XVID_H263QUANT",         XVID_H263QUANT},
 	{ "XVID_MPEGQUANT",         XVID_MPEGQUANT},
 	{ "XVID_HALFPEL",           XVID_HALFPEL},
 	{ "XVID_QUARTERPEL",        XVID_QUARTERPEL},
 	{ "XVID_ADAPTIVEQUANT",     XVID_ADAPTIVEQUANT},
 	{ "XVID_LUMIMASKING",       XVID_LUMIMASKING},
-	{ "XVID_LATEINTRA",         XVID_LATEINTRA},
 	{ "XVID_INTERLACING",       XVID_INTERLACING},
 	{ "XVID_TOPFIELDFIRST",     XVID_TOPFIELDFIRST},
 	{ "XVID_ALTERNATESCAN",     XVID_ALTERNATESCAN},
@@ -817,9 +818,12 @@ static config_flag_t const general_flags[] = {
 	{ "XVID_HINTEDME_SET",      XVID_HINTEDME_SET},
 	{ "XVID_INTER4V",           XVID_INTER4V},
 	{ "XVID_GREYSCALE",         XVID_GREYSCALE},
-	{ "XVID_GRAYSCALE",         XVID_GRAYSCALE},
+	{ "XVID_GRAYSCALE",         XVID_GREYSCALE},
 	{ "XVID_GMC",               XVID_GMC},
 	{ "XVID_GMC_TRANSLATIONAL", XVID_GMC_TRANSLATIONAL},
+	{ "XVID_HQACPRED",          XVID_HQACPRED},
+	{ "XVID_MODEDECISION_BITS", XVID_MODEDECISION_BITS},
+	{ "XVID_CHROMAOPT",         XVID_CHROMAOPT},
 	{ NULL,                     0}
 };
 
@@ -830,7 +834,6 @@ static config_flag_t const motion_flags[] = {
 	{ "PMV_HALFPELREFINE16",    PMV_HALFPELREFINE16},
 	{ "PMV_QUARTERPELREFINE16", PMV_QUARTERPELREFINE16},
 	{ "PMV_EXTSEARCH16",        PMV_EXTSEARCH16},
-	{ "PMV_QUICKSTOP16",        PMV_QUICKSTOP16},
 	{ "PMV_UNRESTRICTED16",     PMV_UNRESTRICTED16},
 	{ "PMV_OVERLAPPING16",      PMV_OVERLAPPING16},
 	{ "PMV_USESQUARES16",       PMV_USESQUARES16},
@@ -839,10 +842,16 @@ static config_flag_t const motion_flags[] = {
 	{ "PMV_HALFPELREFINE8",     PMV_HALFPELREFINE8},
 	{ "PMV_QUARTERPELREFINE8",  PMV_QUARTERPELREFINE8},
 	{ "PMV_EXTSEARCH8",         PMV_EXTSEARCH8},
-	{ "PMV_QUICKSTOP8",         PMV_QUICKSTOP8},
+	{ "PMV_CHROMA8",            PMV_CHROMA8},
 	{ "PMV_UNRESTRICTED8",      PMV_UNRESTRICTED8},
 	{ "PMV_OVERLAPPING8",       PMV_OVERLAPPING8},
 	{ "PMV_USESQUARES8",        PMV_USESQUARES8},
+	{ "HALFPELREFINE16_BITS",   HALFPELREFINE16_BITS},
+	{ "HALFPELREFINE8_BITS",    HALFPELREFINE8_BITS},
+	{ "QUARTERPELREFINE16_BITS",QUARTERPELREFINE16_BITS},
+	{ "QUARTERPELREFINE8_BITS", QUARTERPELREFINE8_BITS},
+	{ "EXTSEARCH_BITS",         EXTSEARCH_BITS},
+	{ "CHECKPREDICTION_BITS",   CHECKPREDICTION_BITS},
 	{ NULL,                     0}
 };
 
@@ -949,6 +958,11 @@ static void xvid_config_get_frame(XVID_ENC_FRAME *eframe,
 	/* Get the general value */
 	if( ( pTemp = cf_get("frame.general" ) ) != NULL ) {
 		eframe->general = string2flags(pTemp, general_flags);
+	}
+
+	if( ( pTemp = cf_get("frame.bframe_threshold")) != NULL) {
+		int n = atoi(pTemp);
+		eframe->bframe_threshold = Clamp(n, -255, +255);
 	}
 
 	/* Get the inter matrix filename and read the matrix */
@@ -1456,6 +1470,10 @@ static int xvid_print_config(XVID_INIT_PARAM *einit,
 	/* Bframe quant offset */
 	fprintf(stderr,	"[%s]\tBFrame Quant Offset: %d\n",
 		MOD_NAME, eparam->bquant_offset);
+
+	/* Bframe thresholding */
+	fprintf(stderr,	"[%s]\tBFrame Threshold: %d\n",
+		MOD_NAME, eframe->bframe_threshold);
 
 	/* Motion flags */
 	fprintf(stderr,	"[%s]\tMotion Flags:\n",
