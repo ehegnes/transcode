@@ -102,17 +102,16 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
 	 //fprintf (stderr, "Found an index chunk at %lld len %lld\n", *pos, *len);
          if(lseek(AVI->fdes,n,SEEK_CUR)==(off_t)-1)  return 0;
 	 return 10;
-         continue;
       }
 
       /* if we got a list tag, ignore it */
 
-      if(strncasecmp(data,"LIST",4) == 0)
-      {
-         lseek(AVI->fdes,4,SEEK_CUR);
-         continue;
+      if(strncasecmp(data,"LIST",4)==0 
+	      || !strncasecmp(data,"RIFF",4)
+	      || !strncasecmp(data,"AVIX",4)) {
+	  lseek(AVI->fdes,-4,SEEK_CUR);
+	  continue;
       }
-
 
       if(strncasecmp(data,AVI->video_tag,3) == 0)
       {
@@ -212,8 +211,7 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
          return 9;
          break;
       }
-      else
-         if(lseek(AVI->fdes,n,SEEK_CUR)==(off_t)-1)  return 0;
+      // else if(lseek(AVI->fdes,n,SEEK_CUR)==(off_t)-1)  return 0;
    }
 }
 
