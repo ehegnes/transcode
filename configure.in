@@ -77,7 +77,7 @@ if test x$is_osx = xtrue; then
     AC_MSG_WARN([does not automatically prepend an underscore])
     AC_MSG_WARN([to symbols.]))
 fi
-AM_DISABLE_STATIC
+AC_DISABLE_STATIC
 
 # Checks for support lib
 enable_supportlib=no
@@ -606,7 +606,7 @@ fi
 AM_CONDITIONAL(HAVE_GCC2, test x"$gcc2" = x"yes")
 
 AC_LIBTOOL_DLOPEN
-AM_PROG_LIBTOOL
+AC_PROG_LIBTOOL
 dnl AC_CONFIG_SUBDIRS(libltdl)
 dnl LTLIBOBJS=`echo "$AC_LIBOBJ" | sed 's,.o ,.lo ,g;s,.o$,.lo,'`
 dnl AC_SUBST(LTLIBOBJS)
