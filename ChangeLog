@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-23 Erik Slagter <erik at oldconomy.com>
+
+  * docs/faq:
+  Start of a FAQ (frequently asked questions)
+  Also available in a HTML version at http://transcoding.org/faq.html
+
 2004-01-22 Tilmann Bitterberg <transcode at tibit.org>
 
   * export/export_ffmpeg.c:
