@@ -707,7 +707,7 @@ dnl
 dnl ogg support
 dnl
 
-AM_PATH_OGG(AC_DEFINE([HAVE_OGG], 1, [Have OGG support]))
+AM_PATH_OGG(AC_DEFINE([HAVE_OGG], 1, [Have Ogg support]))
 AM_CONDITIONAL(HAVE_OGG, test x"$have_ogg" = "xyes")
 
 dnl
@@ -718,7 +718,7 @@ AM_PATH_VORBIS(AC_DEFINE([HAVE_VORBIS], 1, [Have Vorbis support]))
 AM_CONDITIONAL(HAVE_VORBIS, test x"$have_vorbis" = "xyes")
 
 dnl
-dnl vorbis support
+dnl theora support
 dnl
 
 AM_PATH_THEORA(AC_DEFINE([HAVE_THEORA], 1, [Have Theora support]))
@@ -1122,6 +1122,24 @@ AC3_CFLAGS="-I\$(top_srcdir)/libac3"
 AC3_LIBS="-L\$(top_builddir)/libac3 -lac3_tc"
 AC_SUBST(AC3_CFLAGS)
 AC_SUBST(AC3_LIBS)
+
+dnl
+dnl libmpeg2
+dnl
+
+MPEG2CVS_CFLAGS="-I\$(top_srcdir)/libmpeg2"
+MPEG2CVS_LIBS="-L\$(top_builddir)/libmpeg2 -lmpeg2cvs"
+AC_SUBST(MPEG2CVS_CFLAGS)
+AC_SUBST(MPEG2CVS_LIBS)
+
+dnl
+dnl libxio
+dnl
+
+XIO_CFLAGS="-I\$(top_srcdir)/libxio"
+XIO_LIBS="-L\$(top_builddir)/libxio -lxio $IBP_LIBS $LIBXML2_LIBS"
+AC_SUBST(XIO_CFLAGS)
+AC_SUBST(XIO_LIBS)
 
 dnl import/export module path
 

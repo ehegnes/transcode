@@ -212,7 +212,7 @@
 /* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
 
-/* Have OGG support */
+/* Have Ogg support */
 #undef HAVE_OGG
 
 /* Have openquicktime support */

@@ -1,8 +1,10 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 
-noinst_LIBRARIES = libmpeg2cvs.a
-
 INCLUDES = -I$(top_srcdir)/libvo
+
+AM_CFLAGS = -fPIC -DPIC
+
+noinst_LIBRARIES = libmpeg2cvs.a
 
 libmpeg2cvs_a_SOURCES = \
 	attributes.h \

@@ -1,6 +1,16 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-02-01 Nicolas Boos <nicolas.boos at wanadoo.fr>
+
+  * avilib/Makefile.am bbmpeg/tcmplex/Makefile.am configure.in
+  ffmpeg/Makefile.am import/Makefile.am libac3/Makefile.am
+  libioaux/Makefile.am libmp3lame/Makefile.am libmpeg2/Makefile.am
+  libvo/Makefile.am libxio/Makefile.am tools/Makefile.am
+  tools/avisplit.c:
+  More autotools cleanup. CFLAGS should now be untouched by
+  transcode.
+
 2004-02-01 Jean-Yves Simon <lethalwp at tiscali.be>
 
   * import/extract_ac3.c:

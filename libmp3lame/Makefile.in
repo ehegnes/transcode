@@ -70,8 +70,7 @@ CC = @CC@
 CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
-
-CFLAGS = -fPIC -DPIC @CFLAGS@ -finline-functions -Wall 
+CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
@@ -223,6 +222,8 @@ MJPEGTOOLSCONFIG = @MJPEGTOOLSCONFIG@
 MJPEG_CFLAGS = @MJPEG_CFLAGS@
 MJPEG_LIBS = @MJPEG_LIBS@
 MOD_PATH = @MOD_PATH@
+MPEG2CVS_CFLAGS = @MPEG2CVS_CFLAGS@
+MPEG2CVS_LIBS = @MPEG2CVS_LIBS@
 NASM = @NASM@
 NASMFLAGS = @NASMFLAGS@
 NET_STREAM = @NET_STREAM@
@@ -268,6 +269,8 @@ USE_LIBA52_DECODER = @USE_LIBA52_DECODER@
 VERSION = @VERSION@
 VORBIS_CFLAGS = @VORBIS_CFLAGS@
 VORBIS_LIBS = @VORBIS_LIBS@
+XIO_CFLAGS = @XIO_CFLAGS@
+XIO_LIBS = @XIO_LIBS@
 XVID_DEFAULT = @XVID_DEFAULT@
 X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
@@ -319,16 +322,45 @@ target_os = @target_os@
 target_vendor = @target_vendor@
 x_includes = @x_includes@
 x_libraries = @x_libraries@
-
-# # Process this file with automake to produce Makefile.in.
 AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
+
+AM_CFLAGS = -fPIC -DPIC
 
 noinst_LIBRARIES = libmp3.a
 
-libmp3_a_SOURCES = VbrTag.c  amiga_mpega.c  bitstream.c  brhist.c  encoder.c  fft.c  get_audio.c  id3tag.c  lame.c  lametime.c  newmdct.c  parse.c  portableio.c  psymodel.c  quantize.c  quantize_pvt.c  reservoir.c  rtp.c  tables.c  takehiro.c  timestatus.c  util.c  vbrquantize.c  version.c  vorbis_interface.c 
+libmp3_a_SOURCES = \
+	amiga_mpega.c \
+	bitstream.c bitstream.h \
+	brhist.c brhist.h \
+	confdefs.h \
+	encoder.c encoder.h \
+	fft.c fft.h \
+	get_audio.c get_audio.h \
+	gpkplotting.h \
+	gtkanal.h \
+	id3tag.c id3tag.h \
+	ieeefloat.h \
+	l3side.h \
+	lame.c lame.h \
+	lametime.c lametime.h \
+	machine.h \
+	newmdct.c newmdct.h \
+	parse.c \
+	portableio.c portableio.h \
+	psymodel.c psymodel.h \
+	quantize.c quantize.h \
+	quantize_pvt.c quantize_pvt.h \
+	reservoir.c reservoir.h \
+	rtp.c rtp.h \
+	tables.c tables.h \
+	takehiro.c \
+	timestatus.c timestatus.h \
+	util.c util.h \
+	vbrquantize.c \
+	VbrTag.c VbrTag.h \
+	version.c version.h \
+	vorbis_interface.c
 
-noinst_HEADERS = version.h VbrTag.h util.h timestatus.h tables.h rtp.h reservoir.h quantize_pvt.h quantize.h psymodel.h portableio.h newmdct.h machine.h lametime.h lame.h l3side.h ieeefloat.h id3tag.h gtkanal.h gpkplotting.h get_audio.h fft.h encoder.h confdefs.h brhist.h bitstream.h 
 
 EXTRA_DIST = LICENSE COPYING README API USAGE STYLEGUIDE
 subdir = libmp3lame
@@ -340,16 +372,18 @@ LIBRARIES = $(noinst_LIBRARIES)
 
 libmp3_a_AR = $(AR) cru
 libmp3_a_LIBADD =
-am_libmp3_a_OBJECTS = VbrTag.$(OBJEXT) amiga_mpega.$(OBJEXT) \
-	bitstream.$(OBJEXT) brhist.$(OBJEXT) encoder.$(OBJEXT) \
-	fft.$(OBJEXT) get_audio.$(OBJEXT) id3tag.$(OBJEXT) \
-	lame.$(OBJEXT) lametime.$(OBJEXT) newmdct.$(OBJEXT) \
-	parse.$(OBJEXT) portableio.$(OBJEXT) psymodel.$(OBJEXT) \
-	quantize.$(OBJEXT) quantize_pvt.$(OBJEXT) reservoir.$(OBJEXT) \
-	rtp.$(OBJEXT) tables.$(OBJEXT) takehiro.$(OBJEXT) \
-	timestatus.$(OBJEXT) util.$(OBJEXT) vbrquantize.$(OBJEXT) \
+am_libmp3_a_OBJECTS = amiga_mpega.$(OBJEXT) bitstream.$(OBJEXT) \
+	brhist.$(OBJEXT) encoder.$(OBJEXT) fft.$(OBJEXT) \
+	get_audio.$(OBJEXT) id3tag.$(OBJEXT) lame.$(OBJEXT) \
+	lametime.$(OBJEXT) newmdct.$(OBJEXT) parse.$(OBJEXT) \
+	portableio.$(OBJEXT) psymodel.$(OBJEXT) quantize.$(OBJEXT) \
+	quantize_pvt.$(OBJEXT) reservoir.$(OBJEXT) rtp.$(OBJEXT) \
+	tables.$(OBJEXT) takehiro.$(OBJEXT) timestatus.$(OBJEXT) \
+	util.$(OBJEXT) vbrquantize.$(OBJEXT) VbrTag.$(OBJEXT) \
 	version.$(OBJEXT) vorbis_interface.$(OBJEXT)
 libmp3_a_OBJECTS = $(am_libmp3_a_OBJECTS)
+
+DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/VbrTag.Po ./$(DEPDIR)/amiga_mpega.Po \
@@ -373,10 +407,7 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(libmp3_a_SOURCES)
-HEADERS = $(noinst_HEADERS)
-
-DIST_COMMON = README $(noinst_HEADERS) $(srcdir)/Makefile.in COPYING \
-	Makefile.am
+DIST_COMMON = README $(srcdir)/Makefile.in COPYING Makefile.am
 SOURCES = $(libmp3_a_SOURCES)
 
 all: all-am
@@ -558,7 +589,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(HEADERS)
+all-am: Makefile $(LIBRARIES)
 
 installdirs:
 install: install-am

@@ -1,15 +1,40 @@
-# # Process this file with automake to produce Makefile.in.
 AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-CFLAGS = -fPIC -DPIC @CFLAGS@ -finline-functions -Wall 
+AM_CFLAGS = -fPIC -DPIC
 
 noinst_LIBRARIES = libmp3.a
 
-
-libmp3_a_SOURCES = VbrTag.c  amiga_mpega.c  bitstream.c  brhist.c  encoder.c  fft.c  get_audio.c  id3tag.c  lame.c  lametime.c  newmdct.c  parse.c  portableio.c  psymodel.c  quantize.c  quantize_pvt.c  reservoir.c  rtp.c  tables.c  takehiro.c  timestatus.c  util.c  vbrquantize.c  version.c  vorbis_interface.c 
-
-noinst_HEADERS = version.h VbrTag.h util.h timestatus.h tables.h rtp.h reservoir.h quantize_pvt.h quantize.h psymodel.h portableio.h newmdct.h machine.h lametime.h lame.h l3side.h ieeefloat.h id3tag.h gtkanal.h gpkplotting.h get_audio.h fft.h encoder.h confdefs.h brhist.h bitstream.h 
+libmp3_a_SOURCES = \
+	amiga_mpega.c \
+	bitstream.c bitstream.h \
+	brhist.c brhist.h \
+	confdefs.h \
+	encoder.c encoder.h \
+	fft.c fft.h \
+	get_audio.c get_audio.h \
+	gpkplotting.h \
+	gtkanal.h \
+	id3tag.c id3tag.h \
+	ieeefloat.h \
+	l3side.h \
+	lame.c lame.h \
+	lametime.c lametime.h \
+	machine.h \
+	newmdct.c newmdct.h \
+	parse.c \
+	portableio.c portableio.h \
+	psymodel.c psymodel.h \
+	quantize.c quantize.h \
+	quantize_pvt.c quantize_pvt.h \
+	reservoir.c reservoir.h \
+	rtp.c rtp.h \
+	tables.c tables.h \
+	takehiro.c \
+	timestatus.c timestatus.h \
+	util.c util.h \
+	vbrquantize.c \
+	VbrTag.c VbrTag.h \
+	version.c version.h \
+	vorbis_interface.c
 
 EXTRA_DIST = LICENSE COPYING README API USAGE STYLEGUIDE
-

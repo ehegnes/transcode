@@ -1,8 +1,10 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 
-noinst_LIBRARIES = libvout.a
-
 INCLUDES = -I$(top_srcdir)/libmpeg2
+
+AM_CFLAGS = -fPIC -DPIC
+
+noinst_LIBRARIES = libvout.a
 
 libvout_a_SOURCES = \
 	cpu_accel.c \

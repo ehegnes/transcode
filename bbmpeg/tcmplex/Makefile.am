@@ -1,11 +1,18 @@
-# # Process this file with automake to produce Makefile.in.
 AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-CFLAGS = -O3 -funroll-loops -ffast-math @CFLAGS@
-INCLUDES = -Wall -I./ -I ../ -I../../ -I../../src -I$(srcdir)/.. -I$(srcdir)/../.. -I$(srcdir)/../../src
+INCLUDES = -I$(top_srcdir)/bbmpeg
 
 bin_PROGRAMS = tcmplex
 
-tcmplex_SOURCES = tcmplex.c domplex.c multplex.c inits.c interact.c timecode.c inptstrm.c buffer.c systems.c
-tcmplex_LDADD = -L../ -lbbmpeg -lm
+tcmplex_SOURCES = \
+	buffer.c \
+	domplex.c \
+	inits.c \
+	inptstrm.c \
+	interact.c \
+	multplex.c \
+	systems.c \
+	tcmplex.c \
+	timecode.c
+
+tcmplex_LDADD = -L$(top_builddir)/bbmpeg -lbbmpeg -lm

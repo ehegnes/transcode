@@ -1,10 +1,8 @@
-# Process this file with automake to produce Makefile.in.
-
 AUTOMAKE_OPTIONS = 1.3 foreign
 
-noinst_LIBRARIES = libavi.a
-
 INCLUDES = -I$(top_srcdir)/libxio
+
+noinst_LIBRARIES = libavi.a
 
 libavi_a_SOURCES = \
 	avidump.c \

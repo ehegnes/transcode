@@ -1,10 +1,8 @@
-# Process this file with automake to produce Makefile.in.
-
 AUTOMAKE_OPTIONS = 1.3 foreign
 
-noinst_LIBRARIES = libac3_tc.a
+AM_CFLAGS = -fPIC -DPIC
 
-AM_CFLAGS = -fPIC -DPIC -funroll-loops -ffast-math -DLINUX
+noinst_LIBRARIES = libac3_tc.a
 
 libac3_tc_a_SOURCES = \
 	ac3.h \

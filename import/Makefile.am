@@ -1,19 +1,31 @@
-# # Process this file with automake to produce Makefile.in.
-
 AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-MPEG2_LIB=-L../libmpeg2 -lmpeg2cvs
-MPEG2_INC=-I../libmpeg2 -I$(srcdir)/../libmpeg2
-XIO_LIB=-L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@ -lm
-
-INCLUDES = -Wall -I./ -I../src -I../libxio @AC3_CFLAGS@ $(MPEG2_INC) -I../libvo -I$(srcdir)/../src @AVILIB_CFLAGS@ -I$(srcdir)/../libxio -I$(srcdir)/../libvo @LAME_CFLAGS@ @DV_CFLAGS@ @LIBMPEG3_CFLAGS@ @A52_CFLAGS@ @AVIFILE_CFLAGS@ @MAGICK_CFLAGS@ @QT_CFLAGS@ @LIBXML2_CFLAGS@ @DVDREAD_CFLAGS@ @OGG_CFLAGS@ @VORBIS_CFLAGS@ @THEORA_CFLAGS@ @LZO_CFLAGS@
+INCLUDES = \
+	-DMOD_PATH=\"@MOD_PATH@\" \
+	-D_REENTRANT \
+	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/libvo \
+	@AC3_CFLAGS@ \
+	@MPEG2CVS_CFLAGS@ \
+	@AVILIB_CFLAGS@ \
+	@XIO_CFLAGS@ \
+	@LAME_CFLAGS@ \
+	@DV_CFLAGS@ \
+	@LIBMPEG3_CFLAGS@ \
+	@A52_CFLAGS@ \
+	@AVIFILE_CFLAGS@ \
+	@MAGICK_CFLAGS@ \
+	@QT_CFLAGS@ \
+	@LIBXML2_CFLAGS@ \
+	@DVDREAD_CFLAGS@ \
+	@OGG_CFLAGS@ \
+	@VORBIS_CFLAGS@ \
+	@THEORA_CFLAGS@ \
+	@LZO_CFLAGS@
 
 if HAVE_QT
 MODQT = import_mov.la
 endif
-
-CFLAGS = -D_REENTRANT -funroll-loops -ffast-math -Wall -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@   -g
 
 if HAVE_LIBDVDREAD
 DVD_MOD=import_dvd.la
@@ -139,7 +151,7 @@ import_vdrac3_la_LIBADD  = @AC3_LIBS@ -lm
 
 a52_decore_la_SOURCES = a52_decore.c ioaux.c
 a52_decore_la_LDFLAGS =  -module -avoid-version 
-a52_decore_la_LIBADD  = ${A52_LIBS} $(XIO_LIB)
+a52_decore_la_LIBADD  = ${A52_LIBS} @XIO_LIBS@
 
 af6_decore_la_SOURCES = af6_decore.cpp ioaux.c
 af6_decore_la_LDFLAGS =  -module -avoid-version 
@@ -209,7 +221,21 @@ tcdecode_SOURCES = tcdecode.c      \
 		   decode_mov.c    \
 		   decode_lzo.c
 
-tcdecode_LDADD = -L../ffmpeg/libavcodec -ltcavcodec @LAME_LIBS@ @AC3_LIBS@ $(MPEG2_LIB) -L../libvo -lvout @DV_LIBS@ $(VORBISFILE) @THEORA_LIBS@ @VORBIS_LIBS@ @OGG_LIBS@ @DLDARWINLIB@ @QT_LIBS@ @LZO_LIBS@ $(XIO_LIB)
+tcdecode_LDADD = \
+	-L../ffmpeg/libavcodec -ltcavcodec \
+	@LAME_LIBS@ \
+	@AC3_LIBS@ \
+	@MPEG2CVS_LIBS@ \
+	-L../libvo -lvout \
+	@DV_LIBS@ \
+	$(VORBISFILE) \
+	@THEORA_LIBS@ \
+	@VORBIS_LIBS@ \
+	@OGG_LIBS@ \
+	@DLDARWINLIB@ \
+	@QT_LIBS@ \
+	@LZO_LIBS@ \
+	@XIO_LIBS@
 
 
 # ----------------- #
@@ -217,7 +243,7 @@ tcdecode_LDADD = -L../ffmpeg/libavcodec -ltcavcodec @LAME_LIBS@ @AC3_LIBS@ $(MPE
 # ----------------- #
 
 tcrequant_SOURCES = tcrequant.c
-tcrequant_LDADD = $(XIO_LIB)
+tcrequant_LDADD = @XIO_LIBS@
 
 
 # --------- #
@@ -234,7 +260,7 @@ tccat_SOURCES = tccat.c \
 		ioxml.c \
 		ts_reader.c
 
-tccat_LDADD = @AVILIB_LIBS@ @DVDREAD_LIBS@ @DV_LIBS@ @DLDARWINLIB@ $(XIO_LIB)
+tccat_LDADD = @AVILIB_LIBS@ @DVDREAD_LIBS@ @DV_LIBS@ @DLDARWINLIB@ @XIO_LIBS@
 
 
 # ----------- #
@@ -251,7 +277,7 @@ tcscan_SOURCES = tcscan.c \
 		 ac3scan.c \
 		 scan_dv.c
 
-tcscan_LDADD = @LAME_LIBS@ @AC3_LIBS@ @AVILIB_LIBS@ @DV_LIBS@ $(XIO_LIB)
+tcscan_LDADD = @LAME_LIBS@ @AC3_LIBS@ @AVILIB_LIBS@ @DV_LIBS@ @XIO_LIBS@
 
 
 # ------------- #
@@ -288,7 +314,19 @@ tcprobe_SOURCES = tcprobe.c \
 		  extract_mxf.c \
 		  probe_v4l.c
 
-tcprobe_LDADD = @LAME_LIBS@ @AVILIB_LIBS@ @AC3_LIBS@ @DVDREAD_LIBS@ @DV_LIBS@ @MAGICK_LIBS@ @QT_LIBS@ @VORBIS_LIBS@ @THEORA_LIBS@ @OGG_LIBS@ @DLDARWINLIB@ $(XIO_LIB)
+tcprobe_LDADD = \
+	@LAME_LIBS@ \
+	@AVILIB_LIBS@ \
+	@AC3_LIBS@ \
+	@DVDREAD_LIBS@ \
+	@DV_LIBS@ \
+	@MAGICK_LIBS@ \
+	@QT_LIBS@ \
+	@VORBIS_LIBS@ \
+	@THEORA_LIBS@ \
+	@OGG_LIBS@ \
+	@DLDARWINLIB@ \
+	@XIO_LIBS@
 
 
 # ----------------- #
@@ -311,7 +349,16 @@ tcextract_SOURCES = tcextract.c \
 		    extract_lzo.c \
 		    extract_mxf.c
 
-tcextract_LDADD = @AC3_LIBS@ $(MPEG2_LIB) -L../libvo -lvout @AVILIB_LIBS@ @DV_LIBS@ @THEORA_LIBS@ @OGG_LIBS@ @VORBIS_LIBS@ $(XIO_LIB)
+tcextract_LDADD = \
+	@AC3_LIBS@ \
+	@MPEG2CVS_LIBS@ \
+	-L../libvo -lvout \
+	@AVILIB_LIBS@ \
+	@DV_LIBS@ \
+	@THEORA_LIBS@ \
+	@OGG_LIBS@ \
+	@VORBIS_LIBS@ \
+	@XIO_LIBS@
 
 
 # ------------- #
@@ -330,8 +377,15 @@ tcdemux_SOURCES = tcdemux.c \
 		  scan_dv.c \
 		  demux_pass.c
 
-tcdemux_LDADD = @AC3_LIBS@ $(MPEG2_LIB) -L../libvo -lvout @AVILIB_LIBS@ @DVDREAD_LIBS@ @DV_LIBS@ @DLDARWINLIB@ $(XIO_LIB)
-
+tcdemux_LDADD = \
+	@AC3_LIBS@ \
+	@MPEG2CVS_LIBS@ \
+	-L../libvo -lvout \
+	@AVILIB_LIBS@ \
+	@DVDREAD_LIBS@ \
+	@DV_LIBS@ \
+	@DLDARWINLIB@ \
+	@XIO_LIBS@
 
 # ------------------- #
 # T C X M L C H E C K #
@@ -344,7 +398,7 @@ tcxmlcheck_SOURCES = tcxmlcheck.c \
 		     fileinfo.c \
 		     scan_dv.c
 
-tcxmlcheck_LDADD =  @DV_LIBS@ $(XIO_LIB)
+tcxmlcheck_LDADD =  @DV_LIBS@ @XIO_LIBS@
 
 # ----------------- #
 # T C X P M 2 R G B #
