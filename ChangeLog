@@ -1,6 +1,21 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-12-11 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/fileinfo.c:
+  Better detection of MP3/MP2 files (based on file(1) magic)
+
+2003-12-11 Tilmann Bitterberg <transcode at tibit.org>
+
+  * ffmpeg/libavcodec/mjpeg.c:
+  Hack to write quicktime (MacOSX) compatible mjpeg avis
+
+2003-12-11 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/aud_aux.c export/export_dvraw.c:
+  Big endian fixes
+
 2003-12-05 Edouard Gomez <ed.gomez at free.fr>
 
   * export/{export_xvid4.c xvid4.cfg xvid4.h}
@@ -12,6 +27,28 @@ transcode-0.6.12
       transcode-xvidmodule--devapi4--1.0--patch-22
 
   If you are using xvid4conf, you need version 1.10
+
+2003-12-07 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/import_sh.c:
+  Reading from sh. Executes the command specified as video input
+  resp. audio input file and reads its output.
+
+  transcode -i '!tccat -i mjpegdir/ | tcextract -x raw | 
+  tcdecode -x mjpeg -t lavc -g 720x576 -y yv12' -x sh,null 
+  -H0 -g 720x576 -y ffmpeg -F mjpeg -o foo.avi -V
+
+  This modules is mainly for debugging but can be useful when a
+  particular combination of the tc-tools is missing. The command
+  specified has to start with a bang (`!').
+
+2003-12-07 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/{decode_lavc.c import_ffmpeg.c tcdecode.c}:
+  Support for decoding dv with ffmpeg:
+   $ transcode -i file.dv -x ffmpeg -V ...
+  On my Powerbook, decoding is about 10 times (sic!) faster than
+  with libdv. Directory mode works as well.
 
 2003-12-05 Tilmann Bitterberg <transcode at tibit.org>
 
