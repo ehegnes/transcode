@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-02-24 James Flemer <jflemer at uvm.edu>
+
+  * export/export_ac3.c:
+  Bourne Shell compatibility
+
 2004-02-24 Erik Slagter <erik at oldconomy.com>
 
   * export/{export_ffmpeg.c ffmpeg_cfg.[ch]}:
