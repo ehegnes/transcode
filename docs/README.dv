@@ -25,3 +25,15 @@ pixels at the bottom at all, as about 0 - 10% of the image
 will be offscreen anyways - the region tv sets and beamers
 display is closer to 640x480 than to 720x576 for PAL systems
 - see eg. the title-safe region in editing software.
+
+Example:
+
+This line captures from a pal source to pal dv and crops 64
+pixels from the bottom and adds it again as solid black -
+obviously the clipping params are non-intuitively, shouldnt
+the sequence be t,l,b,r?
+
+	transcode -q 2 -x v4l2 -i /dev/video0 \
+		-p /dev/dsp -g 720x576 -j 64,0,0,0 \
+		-Y -64,0,0,0 -y dvraw="qno=2" -o rec.dv \
+		-H 0 -n 0x1 -N 0x1 --uyvy --print_status 25
