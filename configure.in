@@ -1394,7 +1394,7 @@ experimental xio | support for IBP storage	 $libxio | $have_ibp
 pvm3 support					 $have_pvm3
 *-*-*-*-*-*-* Codec *-*-*-*-*-*-*
 nasm dependent modules (bbmpeg)                  $nasm
-mjpegtools dependent modules                     $MJPEGTOOLSCONFIG
+mjpegtools dependent modules                     $mjpegtools
 libdv dependent modules			         $have_dv
 Ogg support | Vorbis support | Theora support    $have_ogg | $have_vorbis | $have_theora
 Default xvid export module                       $XVID_DEFAULT
