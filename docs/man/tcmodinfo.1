@@ -1,0 +1,83 @@
+.TH tcmodinfo 1 "21th January 2003" "tcmodinfo(1)"
+.SH NAME
+tcmodinfo \- Get and Set information in filter modules
+.SH SYNOPSIS
+.na
+.B tcmodinfo
+[
+.B -i
+.I name
+] [
+.B -m
+.I path
+] [
+.B -s
+.I socket
+] [
+.B -p
+] [
+.B -v
+]
+.SH COPYRIGHT
+\fBtcmodinfo\fP is Copyright (C) by Tilmann Bitterberg
+.SH DESCRIPTION
+.B tcmodinfo
+Loads a supplied transcode(1) filtermodule and prints its parameters. It can
+also connect to transcode through a socket to do runtime configuration of
+transcode and its filters. 
+.SH OPTIONS
+.TP
+\fB-i\fP \fIname\fP
+Specify the name of the filter. \fIName\fP is specified without the prefix
+.B filter_
+and without the suffix
+.B \.so
+So if you want information about filter_smooth.so, just supply
+.B smooth
+.TP
+\fB-m\fP \fIPath\fP
+Look in \fIPath\fP instead of the compiled-in module path for a module.
+.TP
+\fB-s\fP \fIsocket\fP
+Connect to socket \fIsocket\fP. You can use this socket to do runtime
+configuration of transcode. For all the boring details about the socket
+protocol have a look at /docs/filter\-socket.txt. transcode has to be started
+with the \fB\-\-socket\fP option to open the socket.
+.TP
+.B -p
+Print the compiled-in module path and exit.
+.TP
+.B -v
+Print version information and exit.
+.SH EXAMPLES
+The command
+.PP
+.B tcmodinfo \-i smooth
+.PP
+prints information about the smooth filter.
+.PP
+.B transcode \-\-socket /tmp/tc\-socket &
+.br
+.B echo help | tcmodinfo \-s /tmp/tc\-socket
+.PP
+prints the socket help text and exits.
+.PP
+.B tcmodinfo \-s /tmp/tc\-socket
+.PP
+Will drop you into an interactive "shell" where you can talk to the socket.
+.SH AUTHORS
+.B tcmodinfo
+was written by Tilmann Bitterberg
+.br
+<transcode@tibit.org> with contributions from
+many others.  See AUTHORS for details.
+.SH SEE ALSO
+.BR avimerge (1),
+.BR avisplit (1),
+.BR tccat (1),
+.BR tcdecode (1),
+.BR tcdemux (1),
+.BR tcextract (1),
+.BR tcprobe (1),
+.BR tcscan (1),
+.BR transcode (1)
