@@ -102,6 +102,20 @@ struct qt_codec_list qt_param_list[] = {
   {"info", "",  "Info string (no '=' or ',' allowed) "},
   {NULL, NULL, NULL}};
 
+#ifdef LIBQUICKTIME_000904
+/* from libquicktime */
+int tc_quicktime_get_timescale(double frame_rate)
+{
+	int timescale = 600;
+	/* Encode the 29.97, 23.976, 59.94 framerates */
+	if(frame_rate - (int)frame_rate != 0) 
+		timescale = (int)(frame_rate * 1001 + 0.5);
+	else
+		if((600 / frame_rate) - (int)(600 / frame_rate) != 0) 
+			timescale = (int)(frame_rate * 100 + 0.5);
+	return timescale;
+}
+#endif
 
 /* print list of things. Shamelessly stolen from export_ffmpeg.c */ 
 static int list(char *list_type) 
@@ -262,8 +276,16 @@ MOD_init
             return(TC_EXPORT_ERROR);
         }
 
+#if !defined(LIBQUICKTIME_000904)
         /* set proposed video codec */
         lqt_set_video(qtfile, 1, w, h, vob->ex_fps,qt_codec_info[0]);
+#else
+	fprintf(stderr, "\n \n  %i \n \n", tc_quicktime_get_timescale(vob->ex_fps));
+        /* set proposed video codec */
+        lqt_set_video(qtfile, 1, w, h,
+		tc_quicktime_get_timescale(vob->ex_fps) / vob->ex_fps+0.5,
+		tc_quicktime_get_timescale(vob->ex_fps), qt_codec_info[0]);
+#endif
     }
 
     /* set color model */

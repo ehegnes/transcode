@@ -160,6 +160,7 @@ void decode_mov(decode_t *decode)
 			}
 			free(p_buffer);
 		} 
+#if !defined(LIBQUICKTIME_000904)
 		else if((strcasecmp(p_a_codec,QUICKTIME_RAW)==0) || (strcasecmp(p_a_codec,QUICKTIME_TWOS)==0)) 
 		{
 			s_sample=(1.00 * s_channel * s_bits *s_audio_rate)/(s_fps*8);
@@ -180,6 +181,7 @@ void decode_mov(decode_t *decode)
 			quicktime_close(p_qt_structure);
 			free(p_buffer);
 		}
+#endif
 		else 
 		{
 			quicktime_close(p_qt_structure);

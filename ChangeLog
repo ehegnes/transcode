@@ -1,3 +1,13 @@
+2005-01-24 Stefan Scheffler <stefanscheffler at gmx dot net>
+  * export/export_mov.c import/decode_mov.c import/import_mov.c
+    import/import_probe.c
+  support libquicktime >= 0.9.4 as well as previous versions.
+
+2005-01-24 Jacob Meuser <jakemsr at jakemsr dot com>
+  * configure.in
+  add test for libquicktime >= 0.9.4, since they've changed
+  their API a bit.
+
 2005-01-22 Jacob Meuser <jakemsr at jakemsr dot com>
   * filter/pp/mangle.h filter/pp/postprocess.c
     filter/pp/postprocess_template.c

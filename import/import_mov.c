@@ -136,11 +136,13 @@ MOD_open
     if(quicktime_supported_audio(qt_audio, 0)!=0) {
       rawAudioMode = 0;
     } 
+#if !defined(LIBQUICKTIME_000904)
     /* RAW PCM is directly supported */
     else if(strcasecmp(codec,QUICKTIME_RAW)==0) {
       rawAudioMode = 1;
       fprintf(stderr,"[%s] using RAW audio mode!\n",MOD_NAME);
     }
+#endif
     /* unsupported codec */
     else {
       fprintf(stderr, "error: quicktime audio codec '%s' not supported!\n",
@@ -334,12 +336,14 @@ MOD_decode
     }
 
     /* raw read mode */
+#if !defined(LIBQUICKTIME_000904)
     if(rawAudioMode) {
       bytes_read = quicktime_read_audio(qt_audio, 
 					param->buffer, param->size, 0);
-    } 
-    /* decode audio mode */
-    else {
+    } else
+#endif
+    {
+      /* decode audio mode */
       long pos = quicktime_audio_position(qt_audio,0);
       long samples = param->size;
       if(bits==16)

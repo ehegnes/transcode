@@ -967,6 +967,10 @@ TC_PATH_PKG(libquicktime, no, LIBQUICKTIME, libquicktime, lqt-config,
   [quicktime/lqt.h], quicktime, quicktime_open)
 if test x"$have_libquicktime" = x"yes" ; then
   AC_DEFINE([HAVE_LIBQUICKTIME], 1, [have libquicktime support])
+  AC_CHECK_LIB(quicktime, lqt_encode_video,
+    [AC_DEFINE([LIBQUICKTIME_000904], [1], [Have libquicktime 0.9.4 or newer])],
+    [], 
+    [$LIBQUICKTIME_EXTRA_LIBS])
 fi
 AM_CONDITIONAL(HAVE_LIBQUICKTIME, test x"$have_libquicktime" = x"yes")
 AC_SUBST(LIBQUICKTIME_CFLAGS)
