@@ -1,3 +1,17 @@
+2005-03-15 Andrew Church <achurch at achurch dot org>
+  * aclib/tcmemcpy.c
+  - ac_memcpy_amd64(): Copy forward rather than backward, which seems
+  to have slightly better performance for misaligned data; fix missing
+  instruction causing slow copy routine to be used inappropriately;
+  and optimize a few instructions.
+  - ac_memcpy_amdmmx(): Replace with ac_memcpy_sse(), an x86 version
+  of the AMD64 routine using SSE1 instructions.  (SSE2 seems to
+  provide no measurable benefit over SSE1 on x86, and is slower in
+  some cases.)
+  - ac_memcpy_mmx(): Rewrite based on ac_memcpy_sse(), and add more
+  comments.
+  - Add authorship notice (:
+
 2005-03-14 Jacob Meuser <jakemsr at jakemsr dot com>
   * INSTALL acinclude.m4 configure.in export/aud_aux.c
     import/lve/Makefile.am
