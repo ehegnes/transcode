@@ -45,7 +45,7 @@
 #include "../export/xvid3.h"
 
 #define MOD_NAME    "import_xvid.so"
-#define MOD_VERSION "v0.0.2 (2003-11-10)"
+#define MOD_VERSION "v0.0.3 (2003-11-29)"
 #define MOD_CODEC   "(video) XviD/OpenDivX/DivX 4.xx/5.xx"
 #define MOD_PRE xvid
 #include "import_def.h"
@@ -97,13 +97,16 @@ static int xvid2_init(char *path) {
 		/* Try loading the shared lib */
 		handle = dlopen(modules[i], RTLD_GLOBAL| RTLD_LAZY);
 
+		/* We need to fetch every dlerror() */
+		error = dlerror();
+
 		/* Test wether loading succeeded */
 		if(handle != NULL)
 			goto so_loaded;
 	}
 
 	/* None of the modules were available */
-	fprintf(stderr, dlerror());
+	fprintf(stderr, "dlopen: %s\n", error);
 	return(-1);
 
  so_loaded:
@@ -115,17 +118,19 @@ static int xvid2_init(char *path) {
 	XviD_init   = dlsym(handle, "xvid_init");
     
 	/* Something went wrong */
-	if((error = dlerror()) != NULL)  {
-		fprintf(stderr, error);
+	error = dlerror();
+	if(error != NULL)  {
+		fprintf(stderr, "XviD_init: %s\n", error);
 		return(-1);
 	}
 
 	/* Import the XviD encoder entry point */
 	XviD_decore = dlsym(handle, "xvid_decore");
 
+	error = dlerror();
 	/* Something went wrong */
-	if((error = dlerror()) != NULL)  {
-		fprintf(stderr, error);
+	if(error != NULL)  {
+		fprintf(stderr, "XviD_decore: %s\n", error);
 		return(-1);
 	}
 
@@ -218,7 +223,7 @@ MOD_open
     //load the codec
     //if(xvid2_init("/data/scr/comp/video/xvid/xvid_20030610/xvidcore/build/generic")<0) {
     if(xvid2_init(vob->mod_path)<0) {
-      printf("failed to init Xvid codec");
+      printf("failed to init Xvid codec\n");
       return(TC_IMPORT_ERROR); 
     }
     
