@@ -31,17 +31,13 @@
 #include <ctype.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 /* -------------------------------------------------
  *
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-#include <inttypes.h>
 
 #include "transcode.h"
 #include "filter.h"
