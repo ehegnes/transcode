@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_resample.so"
-#define MOD_VERSION "v0.1.2 (2002-02-21)"
+#define MOD_VERSION "v0.1.3 (2003-07-11)"
 #define MOD_CAP     "audio resampling filter plugin"
 
 #include <stdio.h>
