@@ -40,7 +40,6 @@ void
 probe_sunau(info_t * ipipe)
 {
     audio_info_t audio_if;
-    int encoding;
 
     close(ipipe->fd_in);
     ipipe->fd_in = open(ipipe->name, O_RDWR, 0);
