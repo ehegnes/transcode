@@ -66,15 +66,15 @@ typedef enum dv_dpy_lib_e {
 
 typedef struct {
   dv_color_space_t color_space;
-  gint		    width, height;
-  guchar           *pixels[3];
-  gint              pitches[3];
-  gint              dontdraw;
+  int		    width, height;
+  unsigned char     *pixels[3];
+  int               pitches[3];
+  int               dontdraw;
 
   /* Begin Private */
   dv_dpy_lib_t      lib;
-  guint32           len; 
-  guint32           format;   /* fourcc code for YUV modes */
+  uint32_t           len; 
+  uint32_t           format;   /* fourcc code for YUV modes */
 
 #if HAVE_LIBXV
   /* -----------------------------------------------------------
@@ -83,7 +83,7 @@ typedef struct {
   Display          *dpy;
   Screen           *scn;
   Window            rwin, win;
-  gint		    dwidth, dheight,
+  int		    dwidth, dheight,
 		    swidth, sheight,
 		    lwidth, lheight,
 		    lxoff, lyoff,
@@ -109,11 +109,11 @@ typedef struct {
   SDL_Rect rect;
 #endif
 
-  gint 			arg_display,
+  int 			arg_display,
 			arg_aspect_val,
 			arg_size_val,
 			arg_xv_port;
-  gchar			*arg_aspect_string;
+  char			*arg_aspect_string;
 
 #if HAVE_LIBPOPT
   struct poptOption	option_table[DV_DISPLAY_NUM_OPTS+1];
@@ -125,7 +125,7 @@ extern "C" {
 #endif
 
 extern dv_display_t *dv_display_new(void);
-extern gboolean      dv_display_init(dv_display_t *dpy,
+extern int           dv_display_init(dv_display_t *dpy,
 				     int *argc, char ***argv, 
 				     int width, int height, 
 				     dv_sample_t sampling,

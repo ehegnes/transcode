@@ -39,10 +39,10 @@ typedef struct {
   dv_mmap_region_t mmap_region;
   struct stat      statbuf;
   struct timeval   tv[3];
-  gint             arg_disable_audio;
-  gint             arg_disable_video;
-  gint             arg_num_frames;
-  gint             arg_dump_frames;
+  int             arg_disable_audio;
+  int             arg_disable_video;
+  int             arg_num_frames;
+  int             arg_dump_frames;
 } dv_player_t;
 
 #endif

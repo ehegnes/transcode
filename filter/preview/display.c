@@ -50,8 +50,8 @@
 dv_display_t 	*dv_dpy_on_exit_hack = NULL;
 #endif
 
-static int      dv_display_SDL_init(dv_display_t *dv_dpy, gchar *w_name, gchar   *i_name           );
-static gboolean dv_display_gdk_init(dv_display_t *dv_dpy, gint  *argc,   gchar ***argv             );
+static int      dv_display_SDL_init(dv_display_t *dv_dpy, char *w_name, char   *i_name           );
+static int      dv_display_gdk_init(dv_display_t *dv_dpy, int  *argc,   char ***argv             );
 
 #if HAVE_SDL
 static void dv_center_window(SDL_Surface *screen);
@@ -75,8 +75,8 @@ static void dv_center_window(SDL_Surface *screen);
 #define DV_FORMAT_WIDE		1
 
 static void dv_display_event (dv_display_t *dv_dpy);
-static gint dv_display_Xv_init (dv_display_t *dv_dpy, gchar *w_name,
-				gchar   *i_name, int flags, int size);
+static int dv_display_Xv_init (dv_display_t *dv_dpy, char *w_name,
+				char   *i_name, int flags, int size);
 #endif 
 
 
@@ -255,8 +255,8 @@ dv_display_exit(dv_display_t *dv_dpy) {
 #endif
 } /* dv_display_exit */
 
-static gboolean
-dv_display_gdk_init(dv_display_t *dv_dpy, gint *argc, gchar ***argv) {
+static int
+dv_display_gdk_init(dv_display_t *dv_dpy, int *argc, char ***argv) {
 
 #if HAVE_GTK
   dv_dpy->pixels[0] = (guchar *)calloc(1,dv_dpy->width * dv_dpy->height * 3);
@@ -294,7 +294,7 @@ static int xv_pause=0;
 static void
 dv_display_event (dv_display_t *dv_dpy)
 {
-    gint	old_pic_format;
+    int	old_pic_format;
     KeySym keysym;
     char buf[16];
 
@@ -412,8 +412,8 @@ dv_display_check_format(dv_display_t *dv_dpy, int pic_format)
 #if HAVE_LIBXV
 /* ----------------------------------------------------------------------------
  */
-static gint
-dv_display_Xv_init(dv_display_t *dv_dpy, gchar *w_name, gchar *i_name,
+static int
+dv_display_Xv_init(dv_display_t *dv_dpy, char *w_name, char *i_name,
                    int flags, int size) {
   int		scn_id,
                 ad_cnt, fmt_cnt,
@@ -642,9 +642,9 @@ dv_center_window(SDL_Surface *screen)
 } /* dv_center_window */
 
 static int
-dv_display_SDL_init(dv_display_t *dv_dpy, gchar *w_name, gchar *i_name) {
+dv_display_SDL_init(dv_display_t *dv_dpy, char *w_name, char *i_name) {
   const SDL_VideoInfo *video_info;
-  gint video_bpp;
+  int video_bpp;
 
   if(SDL_Init(SDL_INIT_VIDEO) < 0) goto no_sdl;
   /* Get the "native" video mode */
@@ -692,7 +692,7 @@ dv_display_SDL_init(dv_display_t *dv_dpy, gchar *w_name, gchar *i_name) {
 #else
 
 static int
-dv_display_SDL_init(dv_display_t *dv_dpy, gchar *w_name, gchar *i_name) {
+dv_display_SDL_init(dv_display_t *dv_dpy, char *w_name, char *i_name) {
   fprintf(stderr,"playdv was compiled without SDL support\n");
   return(FALSE);
 } /* dv_display_SDL_init */
@@ -717,9 +717,9 @@ dv_display_on_exit_hack_handler()
 } /* dv_display_exit_handler */
 #endif
 
-gboolean
-dv_display_init(dv_display_t *dv_dpy, gint *argc, gchar ***argv, gint width, gint height, 
-		dv_sample_t sampling, gchar *w_name, gchar *i_name) {
+int
+dv_display_init(dv_display_t *dv_dpy, int *argc, char ***argv, int width, int height, 
+		dv_sample_t sampling, char *w_name, char *i_name) {
 
   dv_dpy->width = width;
   dv_dpy->height = height;
