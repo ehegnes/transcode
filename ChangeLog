@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.11
 
+2003-10-06 Wolfgang Hoffmann <woho at woho.de>
+
+  * import/import_xml.c:
+  Fix missing break's; fix --dv_yuy2_mode option with import_xml
+  module
+
 2003-10-02 Tilmann Bitterberg <transcode at tibit.org>
   
   * import/{aux_pes.c aux_pes.h scan_pes.c}:

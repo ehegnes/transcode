@@ -354,6 +354,7 @@ MOD_open
 						perror("command buffer overflow");
 						return(TC_IMPORT_ERROR);
 					}
+				break;
 				case CODEC_YUV:
 					s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height))/2;
 					if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x dv -d %d -C %ld-%ld | tcdecode -x dv -y yv12 -d %d -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video,vob->verbose, vob->quality)<0))
@@ -729,6 +730,7 @@ MOD_decode
 								perror("command buffer overflow");
 								return(TC_IMPORT_ERROR);
 							}
+						break;
 						case CODEC_YUV:
 							s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height))/2;
 							if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x dv -d %d -C %ld-%ld | tcdecode -x dv -y yv12 -d %d -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video,vob->verbose, vob->quality)<0))
