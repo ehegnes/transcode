@@ -90,7 +90,7 @@ The \-F parameter has different meanings for different export modules.
   The codec String for the codec you want to encode. Example values are -F mpeg4 or -F mpeg1video or -F huffyuv. To get a list of valid codecs, use -F list
 
 -y \fIim\fP:
-  The name of the image format you want to export. Example values are '-F jpg' (default) or '-F png' or -F 'gif'
+  The name of the image format you want to export. Example values are '-F jpg' (default) or '-F png' or -F 'gif'. With -F jpg, -w gives quality in percent. With -F png, the first digit of -w gives compression level, the second one gives quality, so -w 95 selects best compression level (9) and 5 means PNG adaptive filtering.
 
 -y \fIjpg\fP:
   The quality of the JPEG encode in percent. Example values are '-F 75' (default) or '-F 100'

@@ -36,7 +36,7 @@
 #include <magick/api.h>
 
 #define MOD_NAME    "export_im.so"
-#define MOD_VERSION "v0.0.3 (2003-06-05)"
+#define MOD_VERSION "v0.0.4 (2003-11-13)"
 #define MOD_CODEC   "(video) *"
 
 #define MOD_PRE im
@@ -73,6 +73,7 @@ MOD_init
     interval = vob->frame_interval;
     
     if(param->flag == TC_VIDEO) {
+      int quality = 75;
 
       width = vob->ex_v_width;
       height = vob->ex_v_height;
@@ -88,6 +89,15 @@ MOD_init
 
       image_info=CloneImageInfo((ImageInfo *) NULL);
       
+      if (vob->divxbitrate == 1600)
+	quality = 75;
+      else quality = vob->divxbitrate;
+
+      if (quality >= 100) quality = 100;
+      if (quality <= 0) quality = 0;
+
+      image_info->quality = quality;
+       
       return(0);
     }
 

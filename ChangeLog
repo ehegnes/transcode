@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-11-14 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/export_im.c docs/man/transcode.1:
+  Use -w to give quality to -y im -F jpg/png
+
 2003-11-12 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/import_imlist.c import/import_im.c:
