@@ -1305,7 +1305,7 @@ int main(int argc, char *argv[]) {
 	  
 	  n = sscanf(optarg,"%d,%d,%f,%d", &vob->mp3bitrate, &vob->a_vbr, &vob->mp3quality, &vob->mp3mode);
 
-	if(n<0 || vob->mp3bitrate < 0|| vob->a_vbr<0 || vob->mp3quality<0 || vob->mp3mode<0) 
+	if(n<0 || vob->mp3bitrate < 0|| vob->a_vbr<0 || vob->mp3quality<-1.00001 || vob->mp3mode<0) 
 	  tc_error("invalid bitrate for option -b");
 	
 	break;

@@ -27,7 +27,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "export_ogg.so"
-#define MOD_VERSION "v0.0.4 (2003-07-17)"
+#define MOD_VERSION "v0.0.5 (2003-08-31)"
 #define MOD_CODEC   "(video) null | (audio) ogg"
 
 #define MOD_PRE ogg
@@ -63,27 +63,46 @@ static inline int p_write (char *buf, size_t len)
 MOD_open
 {
     int result;
+    int ifreq,ofreq;
+
+    ofreq = vob->mp3frequency;
+    ifreq = vob->a_rate;
+
+    /* default out freq */
+    if(ofreq==0)
+        ofreq = ifreq;
+ 
     if (param->flag == TC_AUDIO) {
 	char buf [PATH_MAX];
+	char resample [PATH_MAX];
 
+	if (ofreq != ifreq) {
+	    result = snprintf(resample, PATH_MAX, "--resample %d -R %d", vob->mp3frequency, vob->a_rate);
+	} else {
+	    result = snprintf(resample, PATH_MAX, "-R %d", vob->a_rate);
+        }
+	if (result < 0) {
+	    perror("command buffer overflow");
+	    return(TC_EXPORT_ERROR); 
+	}
 
 	if (!strcmp(vob->video_out_file, vob->audio_out_file)) {
 	    fprintf(stderr, "[%s] Writing audio to \"/dev/null\" (no -m option)\n", MOD_NAME);
 	}
 	if (vob->mp3bitrate == 0)
-	  result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -q %.2f -R %d -Q -o \"%s\" %s -",
+	    result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -q %.2f %s -Q -o \"%s\" %s -",
 		vob->a_bits,
 		vob->a_chan,
 		vob->mp3quality,
-		vob->a_rate,
+		resample,
 		vob->audio_out_file?vob->audio_out_file:"/dev/null",
 		(vob->ex_a_string?vob->ex_a_string:""));
 	else
-	  result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -b %d -R %d -Q -o \"%s\" %s -",
+	    result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -b %d %s -Q -o \"%s\" %s -",
 		vob->a_bits,
 		vob->a_chan,
 		vob->mp3bitrate,
-		vob->a_rate,
+		resample,
 		vob->audio_out_file?vob->audio_out_file:"/dev/null",
 		(vob->ex_a_string?vob->ex_a_string:""));
 	if (result < 0) {
