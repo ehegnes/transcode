@@ -51,10 +51,9 @@ static int sfd=0;
 
 static double fps;
 
-static pthread_t thread;
+static pthread_t thread=(pthread_t)0;
 
 static int clone_read_thread_flag=0;
-static int clone_have_thread=0;
 
 static pthread_mutex_t buffer_fill_lock=PTHREAD_MUTEX_INITIALIZER;
 static int buffer_fill_ctr;
@@ -76,7 +75,7 @@ int clone_init(FILE *fd)
     return(-1);
   }
   
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) reading video frame sync data from %s\n", __FILE__, logfile);
+  if(verbose & TC_DEBUG) fprintf(stderr, "\n(%s) reading video frame sync data from %s\n", __FILE__, logfile);
   
   // allocate space, assume max buffer size
   
@@ -104,7 +103,6 @@ int clone_init(FILE *fd)
       return(-1);
   }
   
-  clone_have_thread = 1;
   vob = tc_get_vob();
   fps = vob->fps;
   width = vob->im_v_width;
@@ -275,10 +273,10 @@ void clone_close()
     void *status;
 
     // cancel the thread
-    if (clone_have_thread) {
+    if (thread) {
       pthread_cancel(thread);
       pthread_join(thread, &status);
-      clone_have_thread = 0;
+      thread = (pthread_t)0;
     }
 
     //reentrance safe
