@@ -72,7 +72,11 @@ static int            mpa_bytes_ps, mpa_bytes_pf;
 
 static int verbose=TC_DEBUG;
 #define IS_AUDIO_MONO	(avi_aud_chan == 1)
+#ifdef LAME_3_89
 #define IS_VBR		(lame_get_VBR(lgf) != vbr_off)
+#else
+#define IS_VBR          0
+#endif
 /* Output buffer */
 #define OUTPUT_SIZE	SIZE_PCM_FRAME	
 static char *output   = NULL;
