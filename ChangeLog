@@ -1,3 +1,7 @@
+2005-02-12 Jacob Meuser <jakemsr at jakemsr dot com>
+  * configure.in
+  Remove test for nasm.
+
 2005-02-12 Andrew Church <achurch at achurch dot org>
   * aclib/* src/video_*.c
   Replace all nasm code with inline C assembly.

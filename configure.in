@@ -1,13 +1,13 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT(transcode,1.0.0beta1)
+AC_INIT(transcode,1.0.0beta2)
 AC_CONFIG_AUX_DIR(autotools)
 AC_CONFIG_SRCDIR(src/transcode.c)
 
 dnl Detect the canonical host and target build environment
 AC_CANONICAL_SYSTEM
 
-AM_INIT_AUTOMAKE(transcode,1.0.0beta1)
+AM_INIT_AUTOMAKE(transcode,1.0.0beta2)
 AM_CONFIG_HEADER(config.h)
   
 AM_MAINTAINER_MODE
@@ -269,42 +269,6 @@ AM_CONDITIONAL(HAVE_MMX, test x"$have_asm_mmx" = x"yes")
 if test x"$have_asm_mmx" = x"no" ; then
   AC_MSG_WARN(*** All of mmx dependent parts will be disabled ***)
 fi
-
-have_asm_nasm="no"
-if test x"$use_mmx" = x"yes" ; then
-  AC_MSG_CHECKING([for support for gcc-style register parameters on Intel])
-  AC_TRY_COMPILE([],
-    [extern void x(
-      const unsigned char *src1,
-      const unsigned char *src2,
-      unsigned count,
-      unsigned char *dst) __attribute((regparm(3)));],
-    [AC_MSG_RESULT(yes)
-      AC_PATH_PROG(NASM, nasm, no)
-      case "${NASM}" in
-        no)
-          ;;
-        *)
-          dnl Check nasm version
-          AC_MSG_CHECKING([for recent nasm version])
-          nasm_patch_version=`${NASM} -r | cut -d '.' -f 3 | cut -d ' ' -f 1`
-          if test "$nasm_patch_version" -lt "34" ; then
-            AC_MSG_RESULT([no])
-            AC_MSG_WARN(*** NASM Optimizations disabled....)
-          else
-            AC_MSG_RESULT([yes])
-            AC_DEFINE([HAVE_ASM_NASM], 1, [have nasm])
-            NASMFLAGS="-felf"
-            AC_SUBST(NASMFLAGS)
-            have_asm_nasm="yes"
-          fi
-          ;;
-      esac],
-    [AC_MSG_RESULT(no)
-      AC_MSG_WARN(*** MMX Optimizations disabled....)]);
-fi
-AM_CONDITIONAL(HAVE_ASM_NASM, test x"$have_asm_nasm" = x"yes")
-
 
 dnl 3DNow support
 dnl
@@ -1418,7 +1382,6 @@ ffmpeg libs build                                $FFMPEG_LIBS_BUILD
 ffmpeg libs version                              $FFMPEG_LIBS_VERSION
 ffmpeg libs statically linked                    $enable_ffmpeg_libs_static
 *-*-*-*-*-*-* Codec *-*-*-*-*-*-*
-nasm dependent modules                           $have_asm_nasm
 lame support (>=3.89) | ver                      $have_lame | $lame_version
 mjpegtools dependent modules                     $have_mjpegtools
 libdv dependent modules			         $have_libdv
@@ -1445,13 +1408,3 @@ X11 dependent filter plugins                     $USE_X11
 freetype2 dependent filter (text, subtitler)     $have_freetype2
 ----------------------------------------------------------
 ])
-
-if test x"$have_x86cpu" = x"true" ; then
-  case "${NASM}" in
-  no)
-     AC_MSG_RESULT([
-It is recommended that you install/upgrade your nasm.
-You need at least 0.9.34 from http://nasm.sf.net])
-  ;;
-  esac
-fi
