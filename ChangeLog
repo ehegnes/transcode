@@ -3,6 +3,12 @@ transcode-0.6.10
 
 2003-08-19 Tilmann Bitterberg <transcode at tibit.org>
 
+   * export/tc_lzo.h import/decode_lzo.c import/extract_lzo.c
+   export/export_lzo.h:
+   unfinished lzo2 stuff to enable better streaming
+
+2003-08-19 Tilmann Bitterberg <transcode at tibit.org>
+
   * filter/filter_smartyuv.c:
   More speed optimizations rendering the filter source completely
   unreadable.

@@ -80,6 +80,8 @@ void usage(int status)
  *
  * ------------------------------------------------------------*/
 
+void extract_lzo(info_t *ipipe);
+
 int main(int argc, char *argv[])
 {
 
@@ -371,6 +373,18 @@ int main(int argc, char *argv[])
 	if(strcmp(magic, "yuv4mpeg")==0) ipipe.magic = TC_MAGIC_YUV4MPEG;
 	
 	extract_yuv(&ipipe);
+	done = 1;
+    }
+   
+    // LZO
+    if(strcmp(codec,"lzo")==0) { 
+	
+	ipipe.codec = TC_CODEC_YV12;
+
+	if(strcmp(magic, "avi")==0) ipipe.magic = TC_MAGIC_AVI;
+	if(strcmp(magic, "raw")==0) ipipe.magic = TC_MAGIC_RAW;
+	
+	extract_lzo(&ipipe);
 	done = 1;
     }
 

@@ -34,6 +34,13 @@
 #  include <lzoutil.h>
 #endif
 
+#define LZO2 1
+#undef LZO2
+
+#ifdef LZO2
+#include "tc_lzo.h"
+#endif
+
 #define MOD_NAME    "export_lzo.so"
 #define MOD_VERSION "v0.0.6 (2003-07-24)"
 #define MOD_CODEC   "(video) LZO real-time compression | (audio) MPEG/AC3/PCM"
@@ -55,6 +62,7 @@ static int r;
 static lzo_byte *out;
 static lzo_byte *wrkmem;
 static lzo_uint out_len;
+static int codec;
 
 /* ------------------------------------------------------------ 
  *
@@ -84,6 +92,8 @@ MOD_init
 	printf("[%s] out of memory\n", MOD_NAME);
 	return(TC_EXPORT_ERROR); 
       }
+
+      codec = vob->im_v_codec;
       
       return(0);
     }
@@ -120,14 +130,23 @@ MOD_open
       //force keyframe
       force_kf=1;
       
+#ifdef LZO2
+      AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->ex_fps, "LZO2");
+#else
       AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->ex_fps, "LZO1");
+#endif
 
       if (vob->avi_comment_fd>0)
 	  AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
       
       if(!info_shown && verbose_flag) 
+#ifdef LZO2
+	fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
+		MOD_NAME, "LZO2", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
+#else
 	fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
 		MOD_NAME, "LZO1", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
+#endif
       
       info_shown=1;
       
@@ -140,6 +159,20 @@ MOD_open
     return(TC_EXPORT_ERROR); 
 }   
 
+inline static void long2str(long a, unsigned char *b)
+{
+      b[0] = (a&0xff000000)>>24;
+      b[1] = (a&0x00ff0000)>>16;
+      b[2] = (a&0x0000ff00)>>8;
+      b[3] = (a&0x000000ff);
+}
+
+inline static void short2str(short a, unsigned char *b)
+{
+      b[0] = (a&0xff00)>>8;
+      b[1] = (a&0x00ff);
+}
+
 /* ------------------------------------------------------------ 
  *
  * encode and export
@@ -150,6 +183,10 @@ MOD_encode
 {
 
   int key;
+
+#ifdef LZO2
+  tc_lzo_header_t h;
+#endif
   
   if(param->flag == TC_VIDEO) { 
     
@@ -161,7 +198,20 @@ MOD_encode
      * compress from `in' to `out' with LZO1X-1
      */
 
+#ifdef LZO2
+    r = lzo1x_1_compress(param->buffer, param->size, out+sizeof(h), &out_len, wrkmem);
+    h.magic = TC_CODEC_LZO2;
+    h.size = out_len;
+    h.method = 1;
+    h.level = 1;
+    h.flags = 0;
+    h.flags |= ((codec==CODEC_RGB)?TC_LZO_FORMAT_RGB24:TC_LZO_FORMAT_YV12);
+
+    // XXX
+    memcpy (out, &h, sizeof(h));
+#else
     r = lzo1x_1_compress(param->buffer, param->size, out, &out_len, wrkmem);
+#endif
     
     if (r == LZO_E_OK) {
       if(verbose & TC_DEBUG) printf("compressed %lu bytes into %lu bytes\n",
@@ -174,11 +224,19 @@ MOD_encode
     }
     
     /* check for an incompressible block */
-    if (out_len >= param->size) 
+    if (out_len >= param->size)  {
       if(verbose & TC_DEBUG) printf("[%s] block contains incompressible data\n", MOD_NAME);
+#ifdef LZO2
+      h.flags |= TC_LZO_NOT_COMPRESSIBLE;
+#endif
+    }
     
     //0.5.0-pre8:
     key = ((param->attributes & TC_FRAME_IS_KEYFRAME) || force_kf) ? 1:0;
+
+#ifdef LZO2
+    out_len += sizeof(h);
+#endif
 
     //0.6.2: switch outfile on "C" and -J pv
     //0.6.2: enforce auto-split at 2G (or user value) for normal AVI files

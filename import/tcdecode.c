@@ -409,6 +409,13 @@ int main(int argc, char *argv[])
       done = 1;
     }
     
+    // LZO
+    if(strcmp(codec,"lzo")==0) {
+      
+      decode_lzo(&ipipe);
+      done = 1;
+    }
+    
     if(!done) {
 	fprintf(stderr, "[%s] (pid=%d) unable to handle codec %s\n", EXE, getpid(), codec);
 	exit(1);
