@@ -102,6 +102,10 @@ static void ps_loop (void)
 	  break;
 	  
 	case 0xe0:	/* video */
+	case 0xe1:	/* video */
+	case 0xe2:	/* video */
+	case 0xe3:	/* video */
+	case 0xe4:	/* video */
 
 	  tmp2 = buf + 6 + (buf[4] << 8) + buf[5];
 	  if (tmp2 > end)
@@ -125,7 +129,7 @@ static void ps_loop (void)
 	      import_exit(0); /* decoder has exited */
 	  buf = tmp2;
 	  break;
-	  
+
 	default:
 	  if (buf[3] < 0xb9) fprintf (stderr, "(%s) broken stream - skipping data\n", __FILE__);
 

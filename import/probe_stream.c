@@ -53,7 +53,7 @@ void tcprobe_thread(info_t *ipipe)
     ipipe->probe_info = &probe_info;
     ipipe->probe = 1; 
 
-    //date will be completed by subroutines
+    //data structure will be completed by subroutines
     memset((char*) &probe_info, 0, sizeof(probe_info_t));
     
     /* ------------------------------------------------------------ 
@@ -69,7 +69,7 @@ void tcprobe_thread(info_t *ipipe)
       probe_avi(ipipe);
       
       break;
-
+      
     case TC_MAGIC_TIFF1:   // ImageMagick images
     case TC_MAGIC_TIFF2:
     case TC_MAGIC_JPEG:
@@ -156,7 +156,7 @@ void tcprobe_thread(info_t *ipipe)
 
       break;
 
-    case TC_MAGIC_MPEG:     // MPEG PES
+    case TC_MAGIC_MPEG:    // MPEG PES 
       probe_pes(ipipe);
 
       ipipe->probe_info->attributes |= TC_INFO_NO_DEMUX;

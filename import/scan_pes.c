@@ -342,6 +342,10 @@ void scan_pes(int verbose, FILE *in_file)
 	    break;
 	
 	case 0xe0:	/* video */
+	case 0xe1:	/* video */
+	case 0xe2:	/* video */
+	case 0xe3:	/* video */
+	case 0xe4:	/* video */
 
 	    id = buf[3] &  0xff;
 	    
@@ -634,8 +638,11 @@ void probe_pes(info_t *ipipe)
 	    //
 	    //------------------------
 
-	    
-	case 0xe0:	/* video */
+	case 0xe0:	/* video */    
+	case 0xe1:	/* video */
+	case 0xe2:	/* video */
+	case 0xe3:	/* video */
+	case 0xe4:	/* video */
 
 	    id = buf[3] &  0xff;
 	    
@@ -985,7 +992,7 @@ void probe_pes(info_t *ipipe)
 	  break;
 	  
 	case 0xb3:
-	    
+
 	  //MPEG video ES
 	  probe_sequence(&buf[4], ipipe->probe_info);
 	
@@ -996,20 +1003,21 @@ void probe_pes(info_t *ipipe)
 	  break;
 	  
 	default:
-	    if (buf[3] < 0xb9) {
-		fprintf(stderr, "(%s) looks like an elementary stream - not program stream\n", __FILE__);
-		ipipe->probe_info->codec=TC_CODEC_MPEG;
-		if ((buf[6] & 0xc0) == 0x80) ipipe->probe_info->codec=TC_CODEC_MPEG2;
-		return;
-	    }
-	    
-	    /* skip */
-	    tmp1 = buf + 6 + (buf[4] << 8) + buf[5];
-	    if (tmp1 > end)
-		goto copy;
-	    buf = tmp1;
-	    break;
-	    
+	  if (buf[3] < 0xb9) {
+	    fprintf(stderr, "(%s) looks like an elementary stream - not program stream\n", __FILE__);
+	    ipipe->probe_info->codec=TC_CODEC_MPEG;
+	    if ((buf[6] & 0xc0) == 0x80) ipipe->probe_info->codec=TC_CODEC_MPEG2;
+	    return;
+	  }
+
+	  /* skip */
+	  
+	  tmp1 = buf + 6 + (buf[4] << 8) + buf[5];
+	  if (tmp1 > end)
+	    goto copy;
+	  buf = tmp1;
+	  break;
+	  
 	} //start code selection
       } //scan buffer
       

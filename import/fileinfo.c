@@ -249,6 +249,13 @@ long fileinfo(int fdes, int skip)
     goto exit;
   }
 
+  // MPEG Video / .VDR
+  
+  if(cmp_32_bits(buf, TC_MAGIC_MPEG_E4)) { 
+    id = TC_MAGIC_MPEG;
+    goto exit;
+  }
+
   // DV
   
   if(cmp_32_bits(buf, TC_MAGIC_DV_NTSC)) { 
@@ -697,6 +704,7 @@ char *filetype(long magic)
   case TC_MAGIC_M2V:          return("MPEG elementary stream (ES)");
   case TC_MAGIC_TS:           return("MPEG transport stream (TS)");
   case TC_MAGIC_MPEG:         return("MPEG packetized elementary stream (PES)");
+  case TC_MAGIC_MPEG_E4:      return("MPEG/VDR packetized elementary stream (PES)");
   case TC_MAGIC_AVI:          return("RIFF data, AVI video");
   case TC_MAGIC_WAV:          return("RIFF data, WAVE audio");
   case TC_MAGIC_CDXA:         return("RIFF data, CDXA");
