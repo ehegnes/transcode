@@ -252,7 +252,6 @@ MOD_open
 
       if (vob->demuxer==TC_DEMUX_SEQ_FSYNC || vob->demuxer==TC_DEMUX_SEQ_FSYNC2) {
 	
-	fprintf(stderr, "\n[%s] creating fifo for sync info\n", MOD_NAME);
 	if(clone_init(param->fd)<0) {
 	  if(verbose_flag) fprintf(stderr, "[%s] failed to init stream sync mode\n", MOD_NAME);
 	  return(TC_IMPORT_ERROR);
