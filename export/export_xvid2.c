@@ -780,12 +780,12 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 			char *home = getenv("HOME");
 
 			if(home != NULL) {
-				snprintf(buffer, 1023, "%s/.%s", home,
+				snprintf(buffer, 1023, "%s/.transcode/%s", home,
 					 XVID_CONFIG_FILE);
 
 				if(stat(buffer, &statfile) == -1) {
 					fprintf(stderr,
-						"No ./xvid2.cfg nor ${HOME}/.xvid2.cfg"
+						"No ./xvid2.cfg nor ~/.transcode/xvid2.cfg"
 						" file found, falling back to"
 						" hardcoded defaults\n");
 					return(0);
