@@ -26,6 +26,7 @@
 #include <transcode.h>
 
 #define MPEG2ENC_MP2ENC_PROG	"mplex"
+#define MPEG_MPEG_PROG		"tcmplex"
 
 int f_multiplexer(char *p_codec,char *p_merge_cmd,char *p_video_filename,char *p_audio_filename,char *p_dest_file,int s_verbose)
 {
@@ -35,6 +36,15 @@ int f_multiplexer(char *p_codec,char *p_merge_cmd,char *p_video_filename,char *p
 	{
 		memset((char *)&s_buffer,'\0',2*MAX_BUF);
 		snprintf((char *)&s_buffer,2*MAX_BUF,"%s %s -o %s %s %s",MPEG2ENC_MP2ENC_PROG,p_merge_cmd,p_dest_file,p_video_filename,p_audio_filename);
+		if(s_verbose & TC_DEBUG)	
+			fprintf(stderr,"(%s) multiplex cmd: %s\n",__FILE__,(char *)&s_buffer);
+		(int)system((char *)&s_buffer);
+		return(0);
+	}
+	else if(!strcasecmp(p_codec,"mpeg-mpeg"))
+	{
+		memset((char *)&s_buffer,'\0',2*MAX_BUF);
+		snprintf((char *)&s_buffer,2*MAX_BUF,"%s %s -o %s -i %s -p %s",MPEG_MPEG_PROG,p_merge_cmd,p_dest_file,p_video_filename,p_audio_filename);
 		if(s_verbose & TC_DEBUG)	
 			fprintf(stderr,"(%s) multiplex cmd: %s\n",__FILE__,(char *)&s_buffer);
 		(int)system((char *)&s_buffer);
@@ -55,7 +65,7 @@ char *f_external_suffix(char *p_codec,char *p_param)
 		{
 			return(p_suffix[2]);
 		}
-		else if(!strcasecmp(p_codec,"mpeg2enc-mp2enc"))
+		else if((!strcasecmp(p_codec,"mpeg2enc-mp2enc"))||(!strcasecmp(p_codec,"mpeg-mpeg")))
 		{
 			return(p_suffix[3]);
 		}
@@ -90,7 +100,11 @@ char *f_external_suffix(char *p_codec,char *p_param)
 		{
 			return(p_suffix[2]);
 		}
-		else if(!strcasecmp(p_codec,"mpeg2enc-mp2enc"))
+		else if(!strcasecmp(p_codec,"mpeg"))	/*valid only for audio (no param)*/ 
+		{
+			return(p_suffix[2]);
+		}
+		else if((!strcasecmp(p_codec,"mpeg2enc-mp2enc"))||(!strcasecmp(p_codec,"mpeg-mpeg")))
 		{
 			return(p_suffix[3]);
 		}

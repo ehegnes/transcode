@@ -1,6 +1,13 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-25 Malanchini Marzio <marzio_malanchini at vodafone.it>
+  
+   * docs/export_pvm.txt export/export_pvm.c
+   pvm3/{export_pvm_slave.c external_codec.c pvm_version.h
+   tcpvmexportd.c}:
+   support for export_mpeg encode.
+
 2003-08-23 Tilmann Bitterberg <transcode at tibit.org>
   
    * export/{export_ffmpeg.c export_xvid[234].c} src/transcode.c:

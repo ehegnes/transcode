@@ -1,6 +1,6 @@
 Export_pvm Documentation 
 
-Last update 2003/08/12 Marzio Malanchini <marzio_malanchini@vodafone.it>
+Last update 2003/08/21 Marzio Malanchini <marzio_malanchini@vodafone.it>
 
 ---------------
 * Index
@@ -29,10 +29,12 @@ For instance only this export module are supported:
 Video:
 	null	(built in)
 	mpeg2enc
+	mpeg
 
 Audio:
 	null	(built in)
 	mp2enc
+	mpeg
 
 ---------------
 * Schema
@@ -191,7 +193,7 @@ Section [SystemMerger] define parameter for the system merger task
 
 Section [ExportVideoModule] define parameter for export codec
 
-	Codec		The name of the codec (for instance mpeg2enc,null)
+	Codec		The name of the codec (e.g. mpeg2enc,null,mpeg)
 	
 	Param1		1st codec parameter
 
@@ -201,7 +203,7 @@ Section [ExportVideoModule] define parameter for export codec
 
 Section [ExportAudioModule] define parameter for export codec
 
-	Codec		The name of the codec (for instance mp2enc,null)
+	Codec		The name of the codec (e.g. mp2enc,null,mpeg)
 	
 	Param1		1st codec parameter
 
@@ -265,7 +267,7 @@ Section [AddVideoList] and [AddAudioList] define the merge group list
 
 	Destination	The name of destination file
 
-	Codec		The name of the codec (for instance mpeg2enc)
+	Codec		The name of the codec 
 
 	file name.....
 
@@ -277,7 +279,7 @@ Section [SystemList] define how to multiplex the produced file list
 
 	Destination	The name of destination file
 
-	Codec		The name of the codec (for instance mpeg2enc-mp2enc)
+	Codec		The name of the codec (e.g. mpeg2enc-mp2enc,mpeg-mpeg)
 
 	MultiplexParams	The parameters to pass to multiplex program (e.g.  MultiplexParams = "-f 8")
 
@@ -811,12 +813,16 @@ Cmd2
 3) Set 1-2 process for each CPU
 4) If the decode process never wait for a free task then you probably found the right configuration (add more slave host is useless: you need to speed up the decode process).
 5) If you plan to have a system file don't multiplex the merged audio and video, but run the built in system merge process (this remove an A/V sync problem).
-6) If you plan to have create a DVD with dvdauthor then set BuildOnlyBatchMergeList=2 in the [SystemMerger] section and pass to dvdauthor the system files generated (force BuildOnlyIntermediateFile=1 in the [SystemList] section)
+6) If you plan to have create a DVD with dvdauthor then set BuildOnlyBatchMergeList=2 in the [SystemMerger] section and pass to dvdauthor the system files generated (force BuildOnlyIntermediateFile=1 in the [SystemList] section). (with dvdauthor alpha 338 use this command dvdauthor -o mydir -c 0:00,x:yz mympeg.mpeg-000000 -c c 0:00,x:yz mympeg.mpeg-000001 ........ where x:yz is the value set in NumElabFrameForTask (e.g. NumElabFrameForTask=99 and PAL x:yz=3:24))
 
 
 ---------------
 * Change log
 ---------------
+
+2003-08-21 * docs/export_pvm.txt export/export_pvm.c pvm3/external_codec.c pvm3/tcpvmexportd.c
+
+- added support for mpeg encode.
 
 2003-08-20 * docs/export_pvm.txt docs/man/tcpvmexportd.1 docs/pvm.cfg export/export_pvm.c pvm3/export_pvm_slave.c pvm3/export_pvm_slave.h pvm3/pvm_parser.c pvm3/pvm_parser.h pvm3/pvm_version.h pvm3/tcpvmexportd.c
 

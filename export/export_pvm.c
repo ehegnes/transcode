@@ -154,6 +154,7 @@ void f_help()
 			"[%s]  ----------      ----------\n",MOD_NAME,MOD_NAME);
 	fprintf(stderr, "[%s]     null            null\n",MOD_NAME);
 	fprintf(stderr, "[%s]   mpeg2enc         mp2enc \n",MOD_NAME);
+	fprintf(stderr, "[%s]     mpeg            mpeg  \n",MOD_NAME);
 }
 
 /* ------------------------------------------------------------ 
@@ -345,7 +346,7 @@ MOD_init
 		p_argv_merger_sys[s_contsys++]="-x";
 		p_argv_merger_sys[s_contsys++]=p_pvm_conf->p_multiplex_cmd;
 	}
-	if ((!strcasecmp(p_conf_codec->p_codec, "mpeg2enc"))||(!strcasecmp(p_conf_codec->p_codec, "mp2enc")))
+	if ((!strcasecmp(p_conf_codec->p_codec, "mpeg2enc"))||(!strcasecmp(p_conf_codec->p_codec, "mp2enc"))||(!strcasecmp(p_conf_codec->p_codec, "mpeg")))
 	{
 		p_argv[s_cont++]="-c";
 		p_argv[s_cont++]=p_conf_codec->p_codec; /*store the parameter*/
@@ -357,6 +358,16 @@ MOD_init
 			if (p_pvm_conf->s_system_merger.p_hostname!=NULL)
 			{
 				p_argv_merger_sys[s_contsys++]="mpeg2enc-mp2enc"; /*store the parameter*/
+				s_sys_merger_started=0;	
+			}
+			else
+				s_sys_merger_started=-1;	/*so the system merger never started*/
+		}
+		else if ((!strcasecmp(p_pvm_conf->s_video_codec.p_codec, "mpeg"))&&(!strcasecmp(p_pvm_conf->s_audio_codec.p_codec, "mpeg")))
+		{
+			if (p_pvm_conf->s_system_merger.p_hostname!=NULL)
+			{
+				p_argv_merger_sys[s_contsys++]="mpeg-mpeg"; /*store the parameter*/
 				s_sys_merger_started=0;	
 			}
 			else

@@ -297,7 +297,13 @@ int main(int argc,char **argv)
 					exit(1);
 				f_pvm_skeduler(f_export_func);
 			}
-			else if(!strcasecmp(p_request_func,"mpeg2enc-mp2enc"))
+			else if(!strcasecmp(p_request_func,"mpeg"))
+			{
+				if (f_init_func("open","mpeg"))		/*init the pvm and mpeg interface*/
+					exit(1);
+				f_pvm_skeduler(f_export_func);
+			}
+			else if((!strcasecmp(p_request_func,"mpeg2enc-mp2enc"))||(!strcasecmp(p_request_func,"mpeg-mpeg")))
 			{
 				if (f_init_func("open",NULL))		/*init the pvm interface*/
 					exit(1);

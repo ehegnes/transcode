@@ -87,8 +87,8 @@ int f_system_merge(pvm_config_env *p_pvm_conf)
 			return(1);
 		}
 	}
-	for (p_video_list=p_pvm_conf->p_add_list;((p_video_list->s_type!=TC_AUDIO)&&(p_video_list!=NULL));p_video_list=p_video_list->p_next);
-	for (p_audio_list=p_pvm_conf->p_add_list;((p_audio_list->s_type!=TC_VIDEO)&&(p_audio_list!=NULL));p_audio_list=p_audio_list->p_next);
+	for (p_video_list=p_pvm_conf->p_add_list;((p_video_list->s_type==TC_AUDIO)&&(p_video_list!=NULL));p_video_list=p_video_list->p_next);
+	for (p_audio_list=p_pvm_conf->p_add_list;((p_audio_list->s_type==TC_VIDEO)&&(p_audio_list!=NULL));p_audio_list=p_audio_list->p_next);
 	if (p_video_list==NULL)
 	{
 		fprintf(stderr,"(%s) request a system merge without video list inside %s .\n",__FILE__,p_out_file_name);
@@ -511,6 +511,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 			}
 			else	/*audio codec*/
 			{
+				vob->video_out_file=(char *)&s_filename;	/*some export module require it e.g. export_mpeg*/
 				vob->audio_out_file=(char *)&s_filename;
 				s_export_param.flag=TC_AUDIO;
 			}
