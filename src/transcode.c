@@ -517,6 +517,15 @@ int transcoder(int mode, vob_t *vob)
     return(0);
 }
 
+// for atexit
+void safe_exit (void) {
+    void *thread_status;
+
+    if (thread_signal) {
+       pthread_cancel(thread_signal);
+       pthread_join(thread_signal, &thread_status);
+    }
+}
 
 /* ------------------------------------------------------------ 
  *
@@ -879,6 +888,9 @@ int main(int argc, char *argv[]) {
     // start the signal handler thread     
     if(pthread_create(&thread_signal, NULL, (void *) signal_thread, NULL)!=0)
       tc_error("failed to start signal handler thread");
+
+    // close all threads at exit
+    atexit(safe_exit);
     
     /* ------------------------------------------------------------ 
      *
