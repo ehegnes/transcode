@@ -33,5 +33,5 @@ int debug_is_on(void);
 	}\
 }
 #else
-void dprintf(char fmt[],...);
+#define dprintf(a,...)
 #endif
