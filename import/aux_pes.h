@@ -24,16 +24,12 @@
 #ifndef _AUX_PES_H
 #define _AUX_PES_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <inttypes.h>
-#include <unistd.h> 
-
 #include "transcode.h"
 #include "ioaux.h"
 #include "tc.h"
+
+#include <errno.h>
+#include <inttypes.h>
 
 typedef struct _seq_info_t {
   

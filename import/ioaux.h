@@ -24,26 +24,12 @@
 #ifndef _IOAUX_H
 #define _IOAUX_H
 
-#include "config.h"
+#include "transcode.h"
+#include "magic.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/time.h>
-#include <signal.h>
-#include <string.h>
 #include <errno.h>
 #include <inttypes.h>
-#include <unistd.h>
 
-#ifdef NET_STREAM
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#endif
-
-#include "magic.h"
-#include "transcode.h"
 
 // this exit is provided by the import module or frontend
 extern void import_exit(int ret);

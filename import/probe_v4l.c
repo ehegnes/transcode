@@ -21,10 +21,6 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "ioaux.h"
 #include "tc.h"
 
@@ -135,10 +131,12 @@ error:
 }
 
 #else // HAVE_V4l
+
 void probe_v4l(info_t *ipipe)
 {
     fprintf(stderr, "No support for video4linux compiled in\n");
     ipipe->probe_info->codec=TC_CODEC_UNKNOWN;
     ipipe->probe_info->magic=TC_MAGIC_UNKNOWN;
 }
+
 #endif
