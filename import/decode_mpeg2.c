@@ -94,7 +94,6 @@ void decode_mpeg2(decode_t *decode)
   accel = mm_accel () | MM_ACCEL_MLIB;
   vo_accel(accel);
 
-
   if(decode->format == TC_CODEC_YV12) output = vo_open(vo_yuvpipe_open, outstream);
   if(decode->format == TC_CODEC_RGB) output = vo_open(vo_ppmpipe_open, outstream);
 

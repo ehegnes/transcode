@@ -67,7 +67,7 @@ MOD_init
     if(param->flag == TC_VIDEO) {
 
       if(vob->im_v_codec == CODEC_YUV) {
-	yuv2rgb_init (vob->v_bpp, MODE_RGB);
+	yuv2rgb_init (vob->v_bpp, MODE_BGR); 
 
 	width = vob->ex_v_width;
 	height = vob->ex_v_height;
