@@ -33,7 +33,7 @@
 #include "avilib.h"
 
 #define MOD_NAME    "export_mp2enc.so"
-#define MOD_VERSION "v1.0.5 (2003-03-06)"
+#define MOD_VERSION "v1.0.6 (2003-03-08)"
 #define MOD_CODEC   "(audio) MPEG 1/2"
 
 #define MOD_PRE mp2enc
@@ -131,6 +131,9 @@ MOD_init
         memset((char *) &rtf, 0, sizeof(rtf));
     
         strncpy(rtf.riff.id, "RIFF", 4);
+        rtf.riff.len = sizeof(struct riff_struct)
+	             + sizeof(struct chunk_struct)
+		     + sizeof(struct common_struct);
         strncpy(rtf.riff.wave_id, "WAVE",4);
         strncpy(rtf.format.id, "fmt ",4);
     
