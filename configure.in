@@ -268,6 +268,8 @@ if test "x${ac_cv_altivec_inline}" != "xno"; then
   fi
 fi
 
+have_c_altivec=no
+
 AC_CACHE_CHECK([if \$CC groks AltiVec C extensions],
     [ac_cv_c_altivec],
     [CFLAGS="${CFLAGS_save} -faltivec"
@@ -282,6 +284,7 @@ AC_CACHE_CHECK([if \$CC groks AltiVec C extensions],
      CFLAGS="${CFLAGS_save}"])
 if test "x${ac_cv_c_altivec}" != "xno"; then
   AC_DEFINE(CAN_COMPILE_C_ALTIVEC, 1, Define if your compiler groks C AltiVec extensions.)
+  have_c_altivec=true
 fi
 
 AC_CACHE_CHECK([if linker needs -framework vecLib],
@@ -384,7 +387,7 @@ AM_CONDITIONAL(HAVE_ASM_NASM, test x$have_asm_nasm = xtrue)
 AM_CONDITIONAL(HAVE_X86CPU, test x$have_x86cpu = xtrue)
 AM_CONDITIONAL(ARCH_X86, test x$have_x86cpu = xtrue)
 AM_CONDITIONAL(ARCH_PPC, test x$have_ppccpu = xtrue)
-AM_CONDITIONAL(CAN_COMPILE_C_ALTIVEC, test x${ac_cv_c_altivec} = xtrue)
+AM_CONDITIONAL(CAN_COMPILE_C_ALTIVEC, test "x${have_c_altivec}" = xtrue)
 
 
 dnl GCC-specific flags

@@ -11,12 +11,24 @@
 /* #define HAVE_MEMALIGN */
 /* #define HAVE_MALLOC_H */
 
+#ifdef ARCH_PPC
+#  define ARCH_POWERPC
+#endif
+
 #ifdef HAVE_DLOPEN
 #  define CONFIG_HAVE_DLOPEN 1
 #endif
 
 #ifdef HAVE_DLFCN_H
 #  define CONFIG_HAVE_DLFCN 1
+#endif
+
+#ifdef SYSTEM_DARWIN
+#  define CONFIG_DARWIN 1
+#endif
+
+#ifdef CAN_COMPILE_C_ALTIVEC
+#  define HAVE_ALTIVEC 1
 #endif
 
 #define CONFIG_ENCODERS 1

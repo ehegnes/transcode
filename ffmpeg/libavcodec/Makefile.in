@@ -334,7 +334,8 @@ INCLUDES = -I../../
 @CAN_COMPILE_C_ALTIVEC_TRUE@FF_SRC_ALTIVEC = ppc/dsputil_altivec.c ppc/mpegvideo_altivec.c ppc/idct_altivec.c \
 @CAN_COMPILE_C_ALTIVEC_TRUE@		 ppc/fft_altivec.c ppc/gmc_altivec.c
 
-@CAN_COMPILE_C_ALTIVEC_TRUE@ALTIVEC = -maltivec -mabi=altivec
+@CAN_COMPILE_C_ALTIVEC_TRUE@@SYSTEM_DARWIN_FALSE@ALTIVEC_CFL = -maltivec -mabi=altivec
+@CAN_COMPILE_C_ALTIVEC_TRUE@@SYSTEM_DARWIN_TRUE@ALTIVEC_CFL = -faltivec
 
 AM_CFLAGS = -O2 -g -Wall -ffast-math $(ALTIVEC) $(X86) $(MMX) -DHAVE_AV_CONFIG_H -D_GNU_SOURCE --include=../av_config.h
 

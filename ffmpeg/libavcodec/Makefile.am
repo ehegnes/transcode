@@ -24,8 +24,13 @@ endif
 if CAN_COMPILE_C_ALTIVEC
 FF_SRC_ALTIVEC = ppc/dsputil_altivec.c ppc/mpegvideo_altivec.c ppc/idct_altivec.c \
 		 ppc/fft_altivec.c ppc/gmc_altivec.c
-ALTIVEC=-maltivec -mabi=altivec
+if SYSTEM_DARWIN
+ALTIVEC_CFL=-faltivec
+else
+ALTIVEC_CFL=-maltivec -mabi=altivec
 endif
+endif
+
 
 AM_CFLAGS = -O2 -g -Wall -ffast-math $(ALTIVEC) $(X86) $(MMX) -DHAVE_AV_CONFIG_H -D_GNU_SOURCE --include=../av_config.h
 

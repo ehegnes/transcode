@@ -1,6 +1,17 @@
 --------------------------------------------
 transcode-0.6.11
 
+2003-09-29 Tilmann Bitterberg <transcode at tibit.org>
+
+  * configure.in ffmpeg/libavcodec/Makefile.am ffmpeg/av_config.h:
+  Enable building of altivec specific parts of libavcodec. Only
+  tested on X86 and MacOS X.
+
+2003-09-26 Tilmann Bitterberg <transcode at tibit.org>
+
+  * libtool config.h.in autotools/*:
+  Upgrade to libtool 1.5
+
 2003-09-25 Malanchini Marzio <marzio_malanchini at vodafone.it>
 
   * acinclude.m4 aclocal.m4 docs/export_pvm.txt
