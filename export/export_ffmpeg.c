@@ -32,7 +32,7 @@
 #include "../ffmpeg/libavcodec/avcodec.h"
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.2.5 (2003-03-14)"
+#define MOD_VERSION "v0.2.6 (2003-03-18)"
 #define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
                     ") | (audio) MPEG/AC3/PCM"
 #define MOD_PRE ffmpeg
@@ -73,6 +73,8 @@ static int                  pix_fmt;
 static FILE                *stats_file = NULL;
 static size_t               size;
 static struct ffmpeg_codec *codec;
+static int                  is_mpeg1video = 0;
+static FILE                *mpeg1fd = NULL;
 
 static struct ffmpeg_codec *find_ffmpeg_codec(char *name) {
   int i;
@@ -149,6 +151,10 @@ MOD_init {
       return TC_EXPORT_ERROR;
     }
     
+    if (!strcmp (vob->ex_v_fcc, "mpeg1video") ) {
+	is_mpeg1video = 1;
+    }
+
     avcodec_init();
     avcodec_register_all();
     
@@ -198,14 +204,13 @@ MOD_init {
     else
       lavc_venc_context->gop_size = 250; /* default */
 
-    if (!strcmp (vob->ex_v_fcc, "mpeg1video") && vob->divxkeyframes == 250) {
+    if (is_mpeg1video && vob->divxkeyframes == 250) {
 	// set a sensible gop_size
 	lavc_venc_context->gop_size = 12;
 	fprintf(stderr, "[%s] setting gop_size to 12 for mpeg1video\n", MOD_NAME);
     }
 
 	
-    
     ffmpeg_read_config(codec->name, MOD_NAME, lavcopts_conf);
     if (verbose_flag & TC_DEBUG) {
       fprintf(stderr, "[%s] Using the following FFMPEG parameters:\n",
@@ -238,6 +243,9 @@ MOD_init {
     lavc_venc_context->rc_eq              = lavc_param_rc_eq;
     lavc_venc_context->rc_max_rate        = lavc_param_rc_max_rate * 1000;
     lavc_venc_context->rc_min_rate        = lavc_param_rc_min_rate * 1000;
+    lavc_venc_context->rc_max_rate        = (vob->divxbitrate) * 1000; //XXX
+    lavc_venc_context->rc_min_rate        = (vob->divxbitrate) * 1000; //XXX
+    lavc_venc_context->bit_rate_tolerance = 1;
     lavc_venc_context->rc_buffer_size     = lavc_param_rc_buffer_size * 1000;
     lavc_venc_context->rc_buffer_aggressivity= lavc_param_rc_buffer_aggressivity;
     lavc_venc_context->rc_initial_cplx    = lavc_param_rc_initial_cplx;
@@ -428,15 +436,17 @@ MOD_open
   // open output file
   
   /* Open file */
-  if (vob->avifile_out==NULL) {
+  if ( (param->flag == TC_VIDEO && !is_mpeg1video) || (param->flag == TC_AUDIO)) {
+    if (vob->avifile_out==NULL) {
 
-    vob->avifile_out = AVI_open_output_file(vob->video_out_file);
+      vob->avifile_out = AVI_open_output_file(vob->video_out_file);
 
-    if ((vob->avifile_out) == NULL) {
-      AVI_print_error("avi open error");
-      return TC_EXPORT_ERROR;
+      if ((vob->avifile_out) == NULL) {
+	AVI_print_error("avi open error");
+	return TC_EXPORT_ERROR;
+      }
+
     }
-
   }
     
   /* Save locally */
@@ -446,8 +456,22 @@ MOD_open
   if (param->flag == TC_VIDEO) {
     
     // video
-    AVI_set_video(avifile, vob->ex_v_width, vob->ex_v_height, vob->fps,
-                  codec->fourCC);
+    if (is_mpeg1video) {
+      char *buf = malloc (strlen (vob->video_out_file)+1+4);
+
+      sprintf(buf, "%s.m1v", vob->video_out_file);
+      mpeg1fd = fopen ( buf, "wb" );
+
+      if (!mpeg1fd) {
+	fprintf(stderr, "Can not open |%s|\n", buf); 
+	return TC_EXPORT_ERROR;
+      }
+      free (buf);
+
+    } else {
+      AVI_set_video(avifile, vob->ex_v_width, vob->ex_v_height, vob->fps,
+                    codec->fourCC);
+    }
     
     return 0;
   }
@@ -523,15 +547,22 @@ MOD_encode
 
     //0.6.2: switch outfile on "r/R" and -J pv
     //0.6.2: enforce auto-split at 2G (or user value) for normal AVI files
-    if((uint32_t)(AVI_bytes_written(avifile)+out_size+16+8)>>20 >= tc_avi_limit) tc_outstream_rotate_request();
+    if (!is_mpeg1video) {
+      if((uint32_t)(AVI_bytes_written(avifile)+out_size+16+8)>>20 >= tc_avi_limit) tc_outstream_rotate_request();
     
-    if (lavc_venc_context->coded_frame->key_frame) tc_outstream_rotate();
+      if (lavc_venc_context->coded_frame->key_frame) tc_outstream_rotate();
     
-    if (AVI_write_frame(avifile, tmp_buffer, out_size,
+      if (AVI_write_frame(avifile, tmp_buffer, out_size,
                        lavc_venc_context->coded_frame->key_frame? 1 : 0) < 0) {
-      AVI_print_error("avi video write error");
+	AVI_print_error("avi video write error");
       
-      return TC_EXPORT_ERROR; 
+	return TC_EXPORT_ERROR; 
+      }
+    } else { // mpeg1video
+      if ( fwrite (tmp_buffer, out_size, 1, mpeg1fd) <= 0) {
+	fprintf(stderr, "[%s] encoder error", MOD_NAME);
+	return TC_EXPORT_ERROR; 
+      }
     }
     
     /* store stats if there are any */
@@ -606,6 +637,13 @@ MOD_close
     vob->avifile_out=NULL;
   }
   
+  if (is_mpeg1video) {
+    if (mpeg1fd) {
+      fclose (mpeg1fd);
+      mpeg1fd = NULL;
+    }
+  }
+
   if (param->flag == TC_VIDEO) {
     if (pix_fmt == PIX_FMT_RGB24)
       tc_rgb2yuv_close();

@@ -1385,6 +1385,26 @@ inline void yuv_deinterlace_linear_core(char *image, int width, int height)
     
     memcpy(out, in, block);
 
+    // now, take care of U V components
+    fprintf(stderr,"Taking care of U V\n");
+    in = image + width*height;
+    out = image + width*height +(block>>1);
+    for (y = 0; y < ((height>>2)-1); y++){
+      yuv_average(in, in+block, out, block>>1);
+
+      in += block;
+      out += block;
+    }
+
+    in = image +((5*width*height)>>2);
+    out = image + ((5*width*height)>>2) + (block>>1);
+    for (y = 0; y< ((height>>2)-1); y++){
+      yuv_average(in, in+block, out, block>>1);
+
+      in += block;
+      out += block;
+    }
+
     return;
 }
 
