@@ -305,3 +305,15 @@ Q:	How do I transfer my .avi .mpg .mov. asf .wmv etc. files to DVD so that
 A:	A step by step howto can be found at
 	http://mightylegends.zapto.org/dvd/dvdauthor_howto.php (rickfharris)
 ---
+Q:	What do I need to compile the export_mpeg.so module?
+A:	A recent nasm from http://nasm.sf.net (tibit)
+---
+Q:	What do I need to get the import_im and import_imlist modules?
+A:	These modules use the ImageMagick library from
+	http://www.imagemagick.org 
+---
+Q:	I do have ImageMagick including the -devel package installed and still
+	get no import_im and import_imlist module.
+A:	Some distributions ship a ImageMagick-devel package which also needs
+	bzip2-devel package installed. Check config.log for details.
+---
