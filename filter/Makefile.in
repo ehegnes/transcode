@@ -524,7 +524,7 @@ filter_whitebalance_la_LIBADD = -L../libvo -lvout ../export/vid_aux.lo -lm
 
 EXTRA_DIST = parse_csv.awk filter_list.awk mmx.h
 
-@HAVE_LIBXPM_TRUE@@HAVE_XAW_SIMPLE_TRUE@ADD2 = subtitler
+@HAVE_FREETYPE2_TRUE@@HAVE_LIBXPM_TRUE@@HAVE_XAW_SIMPLE_TRUE@ADD2 = subtitler
 
 @HAVE_X11_TRUE@SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc preview $(ADD2)
 @HAVE_X11_FALSE@SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc

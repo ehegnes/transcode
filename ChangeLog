@@ -45,9 +45,12 @@ transcode-0.6.11
 
 2003-10-20 Tilmann Bitterberg <transcode at tibit.org>
 
-  * filter/subtitler/*:
+  * filter/subtitler/* filter/Makefile.am:
   Upgrade to external version 0.7 from 
   http://www.home.zonnet.nl/panteltje/subtitles/
+  The filter depends on libfreetype2 now which is disabled by
+  default. You need to enable it with the not-so-fitting configure
+  switch --with-text.
 
 2003-10-17 Edouard Gomez <ed.gomez at free.fr>
 

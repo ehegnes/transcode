@@ -223,9 +223,11 @@ filter_whitebalance_la_LIBADD = -L../libvo -lvout ../export/vid_aux.lo -lm
 
 EXTRA_DIST =  parse_csv.awk filter_list.awk mmx.h
 
+if HAVE_FREETYPE2
 if HAVE_XAW_SIMPLE
 if HAVE_LIBXPM
 ADD2=subtitler
+endif
 endif
 endif
 
