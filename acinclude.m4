@@ -904,7 +904,7 @@ AC_ARG_WITH(libmpeg3-libs,
     [prefix where local libmpeg3 libs are installed (optional)]),
   libmpeg3_libs="$withval", libmpeg3_libs="")
 
-LIBMPEG3_EXTRA_LIBS="-lm"
+LIBMPEG3_EXTRA_LIBS="-lm -lpthread"
 have_libmpeg3=no
 
 if test x$enable_libmpeg3 = "x"yes ; then
@@ -2251,9 +2251,12 @@ AC_ARG_ENABLE(ffbin,
   enable_ffbin=no)
 AC_MSG_RESULT($enable_ffbin)
 
-have_ffmpeg=no
+have_ffmpeg=""
 if test x$enable_ffbin = "x"yes ; then
-  AC_CHECK_PROG(have_ffmpeg, ffmpeg, yes, no)
+  AC_CHECK_PROG(have_ffmpeg,
+		  ffmpeg,
+		  yes,
+		  no)
   if test x$have_ffmpeg = xyes ; then
     ifelse([$1], , :, [$1])
   else

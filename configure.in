@@ -1198,7 +1198,7 @@ ffmpeg libs build                                $FFMPEG_LIBS_BUILD
 ffmpeg libs version                              $FFMPEG_LIBS_VERSION
 ffmpeg libs statically linked                    $enable_ffmpeg_libs_static
 *-*-*-*-*-*-* Codec *-*-*-*-*-*-*
-nasm dependent modules (bbmpeg)                  $nasm
+nasm dependent modules                           $nasm
 mjpegtools dependent modules                     $have_mjpegtools
 libdv dependent modules			         $have_dv
 Ogg support | Vorbis support | Theora support    $have_ogg | $have_vorbis | $have_theora

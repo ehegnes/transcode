@@ -1,5 +1,12 @@
 transcode-0.13-pre2 EMS
 
+2004-08-27 Erik Slagter <erik at oldconomy dot com>
+  * acinclude.m4:
+  - added -lpthread to libmpeg3 test
+  - set have_ffmpeg to "" otherwise configure will skip the
+    test completely
+  - little cosmetic output change
+
 2004-08-26 Erik Slagter <erik at oldconomy dot com>
   * INSTALL:
   Cleaned up.
@@ -18,6 +25,10 @@ transcode-0.13-pre2 EMS
   - changed macro names to make sure the version from acinclude.m4 is
     used instead of possibly using macros from local aclocal library
   - use pkg-config or <package>-config scripts where possible
+  - export/aud_aux.c: preset only used with lame >= 3.92
+  - filter/Makefile.am don't build filter_tomsmocomp if using gcc2
+  - src/Makefile.am transcode needs to link with the pthreads library
+    ($pthread_lib was previously erroneously added to $LIBS)
 
 2004-08-26 Erik Slagter <erik at oldconomy dot com>
   * aclib/tcmemcpy.c:
