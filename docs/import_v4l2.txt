@@ -65,10 +65,23 @@ transcode buffers are not overrun (watch the number between
 parenthesises), and your audio and video become out-of-sync, then you
 should try the force resync mode. Else happy capturing! ;-)
 
-5) You can enable and tune the resync mode using the transcode "-T"
-flag. It will take two parameters, first is the amount of frames
-difference between audio and video before resync takes place. The second
-is the number of frames between successive sync checks.
+5) You can enable and tune the resync mode using parameters to
+the v4l2 module (-x v4l2="<param>,<param>,etc").
+
+Possible parameters:
+
+resync_margin=x     this many frames the audio and video may drift
+    apart before frame dropping or cloning starts.
+resync_interval=x   this many frames between each resynchronisation
+    check
+overrun_guard=x     set this to 1 if you have a saa7134 and a very old
+    driver (pre-2004)
+crop=wxh+txl        use hardware cropping width * height at top / left;
+    only works on recent saa7134 driver
+convert=x           specifiy conversion scheme manually.
+    x is a number, obtained with convert=-1, -2 = auto (default)
+format=x            specify colour format manually, use format=list
+    to obtain a list.
 
 Please note: if you do not need the resync mode, do not enable it! If
 your card produces good a/v sync ON AVERAGE (although short variations
@@ -77,8 +90,8 @@ by cloning and dropping frames and yes, this is visible! On the other
 hand, a hickup every now and then may be more acceptable than audio
 running before or behind. Your milage may vary ;-) If you determined
 that you definitely need the resync mode, then you should tune the
-resync parameters. A good start is -T 2,15. Whenever "info output" is
-"on" (-q 1) and a frame is cloned or dropped, transcode will show a line
-with some parameters, like whether the frame is dropped or cloned and
-the sequence numbers of audio and video. When finished encoding, a
-summary is shown.
+resync parameters. A good start is resync_margin=2,resync_interval=15.
+Whenever "info output" is "on" (-q 1) and a frame is cloned or dropped,
+transcode will show a line with some parameters, like whether the frame
+is dropped or cloned and the sequence numbers of audio and video. When
+finished encoding, a summary is shown.
