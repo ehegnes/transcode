@@ -376,6 +376,7 @@ int main(int argc, char *argv[])
 	format = AVI_audio_format(avifile1);
 	rate   = AVI_audio_rate(avifile1);
 	chan   = AVI_audio_channels(avifile1);
+	mp3rate= AVI_audio_mp3rate(avifile1);
 	bits   = AVI_audio_bits(avifile1);
 	bits   = bits==0?16:bits;
 
@@ -388,7 +389,9 @@ int main(int argc, char *argv[])
 		aud_ms[k] = vid_ms;
 		break;
 	    }
-	    aud_bitrate = 0;
+
+	    aud_bitrate = format==0x1?1:0;
+	    aud_bitrate = format==0x2000?1:0;
 
 	    if(AVI_write_audio(avifile2, data, bytes)<0) {
 	      AVI_print_error("AVI write audio frame");
@@ -399,14 +402,14 @@ int main(int argc, char *argv[])
 	      aud_ms[k] = vid_ms;
 	      break;
 	    }
-	    if ( format == 0x1 ) aud_bitrate = 1;
 
 	    if ( !aud_bitrate && (framesize = tc_get_audio_header(data, bytes, format, NULL, NULL, &aud_bitrate))<0) { 
 	      // if this is the last frame of the file, slurp in audio chunks
 	      if (n == frames-1) continue;
 	      aud_ms[k] = vid_ms;
 	    } else {
-	      aud_ms[k] += (bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):aud_bitrate);
+	      aud_ms[k] += (bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):
+				       (format==0x2000?(double)(mp3rate):aud_bitrate));
 	    }
 	    /*
 	    printf(" 0 frame_read len=%ld (A/V) (%8.2f/%8.2f)\n", bytes, aud_ms[k], vid_ms);

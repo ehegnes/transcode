@@ -339,7 +339,7 @@ void tc_format_mute(unsigned char *buf, int buflen, int format) {
 	case 0x2000:
 	case 0x2001:
 	    // check me!
-	    memset (buf+4, 0, buflen-4);
+	    memset (buf+5, 0, buflen-5);
 	    break;
 	default:
 	    return;

@@ -60,7 +60,7 @@ int is_vbr=1;
 int merger(avi_t *out, char *file)
 {
     avi_t *in;
-    long frames, n, bytes;
+    long frames, n, bytes, mp3rate;
     int key, chan, j, aud_tracks;
     int aud_bitrate=0, format;
 
@@ -109,6 +109,7 @@ int merger(avi_t *out, char *file)
 	  rate = AVI_audio_rate(in);
 	  bits = AVI_audio_bits(in);
 	  bits = bits==0?16:bits;
+	  mp3rate = AVI_audio_mp3rate(in);
 	  AVI_set_audio_track(out, j);
 	  
 	  if(chan) {
@@ -117,6 +118,7 @@ int merger(avi_t *out, char *file)
 		  while (aud_ms[j] < vid_ms) {
 
 		      aud_bitrate = format==0x1?1:0;
+		      aud_bitrate = format==0x2000?1:0;
 
 		      if( (bytes = AVI_read_audio_chunk(in, data)) < 0) {
 			  AVI_print_error("AVI audio read frame");
@@ -140,7 +142,14 @@ int merger(avi_t *out, char *file)
 			  if (n == frames-1) continue;
 			  aud_ms[j] = vid_ms;
 		      } else 
-			  aud_ms[j] += (bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):aud_bitrate);
+			  aud_ms[j] += 
+			      (bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):
+					  (format==0x2000?(double)(mp3rate):aud_bitrate));
+		      /*
+		      fprintf(stderr, "%s track (%d) %8.0lf->%8.0lf len (%ld) rate (%ld)\n", 
+			      format==0x55?"MP3":format==0x1?"PCM":"AC3", 
+			      j, vid_ms, aud_ms[j], bytes, mp3rate); 
+			      */
 		  }
 	      } else {
 		  do {

@@ -37,7 +37,7 @@
 
 void version()
 {
-  printf("%s (%s v%s) (C) 2001-2002 Thomas Östreich\n", EXE, PACKAGE, VERSION);
+  printf("%s (%s v%s) (C) 2001-2003 Thomas Östreich\n", EXE, PACKAGE, VERSION);
 }
 
 
@@ -472,7 +472,7 @@ int main(int argc, char *argv[])
 		    return(-1);
 		} 
 
-		fprintf(status_fd, "V [%05d][%08.2f] | A [%05d][%08.2f] [%05ld]\n", n, vid_ms, aud_chunks, aud_ms[track_num], bytes);
+		fprintf(status_fd, "V [%05d][%08.2f] | A [%05d][%08.2f] [%05ld]\r", n, vid_ms, aud_chunks, aud_ms[track_num], bytes);
 
 		if (bytes == 0) {
 		    aud_ms[track_num] = vid_ms + shift_ms;
@@ -516,7 +516,7 @@ int main(int argc, char *argv[])
 		return(-1);
 	    } 
 	
-	    fprintf(status_fd, "V [%05d] | A [%05d] [%05ld]\n", n, n+shift, bytes);
+	    fprintf(status_fd, "V [%05d] | A [%05d] [%05ld]\r", n, n+shift, bytes);
 	
 	    if(n>=frames-2*shift) {
 	  
@@ -560,7 +560,7 @@ int main(int argc, char *argv[])
 		    return(-1);
 		} 
 
-		fprintf(status_fd, " V [%05d][%08.2f] | A [%05d][%08.2f] [%05ld]\n", n, vid_ms, n+shift, aud_ms[track_num], bytes);
+		fprintf(status_fd, " V [%05d][%08.2f] | A [%05d][%08.2f] [%05ld]\r", n, vid_ms, n+shift, aud_ms[track_num], bytes);
 
 		if ( !aud_bitrate && tc_get_audio_header(ptrdata, ptrlen, format, NULL, NULL, &aud_bitrate)<0) {
 		    //if (n == frames-1) continue;
@@ -624,8 +624,10 @@ int main(int argc, char *argv[])
 
 	// shift<0 -> shift_ms<0 !
 	while (aud_ms[track_num] < vid_ms) {
+	    /*
 	  fprintf(stderr, " 1 (%02d) %s frame_read len=%4ld (A/V) (%8.2f/%8.2f)\n", 
 	      n, format==0x55?"MP3":"AC3", bytes, aud_ms[track_num], vid_ms);
+	      */
 
 	  aud_bitrate = format==0x1?1:0;
 
