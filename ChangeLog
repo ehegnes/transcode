@@ -3,7 +3,7 @@ transcode-0.6.10
 
 2003-08-23 Tilmann Bitterberg <transcode at tibit.org>
   
-   * export/{export_ffmpeg.c export_xvid4.c} src/transcode.c:
+   * export/{export_ffmpeg.c export_xvid[234].c} src/transcode.c:
    new commandline option --config_dir DIR. This tells the both
    modules -yffmpeg and -yxvid4 to look for their configuration in
    the given directory. Suggested by Joern Reder.

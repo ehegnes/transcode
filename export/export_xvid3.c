@@ -85,6 +85,8 @@ extern int video_frames_delay;
  * Local data
  ****************************************************************************/
 
+extern char* tc_config_dir;
+
 static int VbrMode = 0;
 static int encode_fields = 0;
 static avi_t *avifile = NULL;
@@ -725,7 +727,12 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 #ifdef DEVELOPER_USE
 
 	/* Check conf file existence */
-	if(stat(XVID_CONFIG_FILE, &statfile) == -1) {
+	if (tc_config_dir) {
+	    snprintf(buffer, 1024, "%s/%s", tc_config_dir, XVID_CONFIG_FILE);
+	} else {
+	    snprintf(buffer, 1024, "%s", XVID_CONFIG_FILE);
+	}
+	if(stat(buffer, &statfile) == -1) {
 
 		if(errno == ENOENT) {
 			char *home = getenv("HOME");
@@ -749,8 +756,6 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 				" defaults\n", strerror(errno));
 			return(0);
 		}
-	} else {
-		strcpy(buffer, XVID_CONFIG_FILE);
 	}
 
 	if(!S_ISREG(statfile.st_mode)) {
