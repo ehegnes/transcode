@@ -3040,6 +3040,14 @@ int main(int argc, char *argv[]) {
       
       if(ex_aud_mod && strlen(ex_aud_mod) != 0 && strcmp(ex_aud_mod, "mp2enc")==0) vob->ex_a_codec=CODEC_MP2;
       
+      // calc export bitrate
+      switch (vob->ex_a_codec) {
+      case 0x1: // PCM
+	vob->mp3bitrate = ((vob->mp3frequency>0)? vob->mp3frequency:vob->a_rate) *
+	                  ((vob->dm_bits>0)?vob->dm_bits:vob->a_bits) *
+			  ((vob->dm_chan>0)?vob->dm_chan:vob->a_chan) / 1000;
+      }
+
       if(verbose & TC_INFO) {
 	if(vob->pass_flag & TC_AUDIO)
 	  printf("[%s] A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps\n", PACKAGE, "export format", vob->im_a_codec, aformat2str(vob->im_a_codec),
