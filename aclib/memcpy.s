@@ -62,6 +62,7 @@ ac_memcpy_mmx:
 	mov edi, [esp+16+4]	; dest
 	mov esi, [esp+16+8]	; src
 	mov ecx, [esp+16+12]	; bytes
+	mov edx, ecx
 
 	mov ebp, 64		; constant
 
@@ -70,7 +71,6 @@ ac_memcpy_mmx:
 	jz near .lastcopy		; Just rep movs if <64 bytes
 
 	; Align destination pointer to a multiple of 8 bytes
-	mov edx, ecx
 	xor ecx, ecx
 	mov cl, 7
 	and ecx, edi
