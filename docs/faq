@@ -4,7 +4,7 @@ Q:	I am using version 0.6.x where x < 11, and I'm having
 A:	Upgrade to 0.6.12 (or newer or cvs). (ems)
 ---
 Q:	How do I make a copy of a DVD-9
-A:
+A:	For german reading users here is a link http://linuxwiki.de/DvdAuthoring (felix)
 ---
 Q:	How do I obtain transcode from CVS
 A:	There are instructions available at
@@ -135,7 +135,7 @@ A2:	I solved this problem with the -k option to transcode.
 	to use the -k option. (ems)
 ---
 Q:	People are upside-down!
-A:      Use -z. (tibit)
+A:      Use -z. Usually it goes away when you turn on YUV mode with -V. (tibit)
 ---
 Q:	I have installed latest transcode tool from source and
 	then from rpm. Whenever I run program it falls over as
