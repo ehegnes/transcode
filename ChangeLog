@@ -1,4 +1,4 @@
-2004-11-28 Massimiliano Giorgi
+2004-11-28 Massimiliano Giorgi <massy at gandalf dot sssup dot it>
   * import/dvd_reader.c
   Allow for chapters that are comprised of more than a single cell.
 
