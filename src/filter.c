@@ -135,6 +135,7 @@ int load_plugin(char *path) {
   int n;
   char *c;
   int id = filter_next_free_id();
+  int len;
 
 
   //replace "=" by "/0" in filter name
@@ -142,7 +143,8 @@ int load_plugin(char *path) {
 
   filter[id].options=NULL;
 
-  for(n=0; n<strlen(filter[id].name); ++n) {
+  len = strlen(filter[id].name);
+  for(n=0; n<len; ++n) {
     if(filter[id].name[n]=='=') {
       filter[id].name[n]='\0';
       filter[id].options=filter[id].name+n+1;
@@ -364,15 +366,17 @@ int load_single_plugin (char *mfilter_string)
 char *get_next_filter_name(char **name, int *namelen, char *string)
 {
   char *res = string;
+  int len = 0;
 
   if(string[0]=='\0') return(NULL);
 
   while (1) {
       if((res=strchr(res, ','))==NULL) {
 	  *namelen = strlen(string);
-	  *name = (char *)malloc(*namelen+1);
-	  memcpy(*name, string, *namelen);
-	  (*name)[*namelen+1]='\0';
+	  len = *namelen;
+	  *name = (char *)malloc(len+2);
+	  memset(*name, 0, len+2);
+	  memcpy(*name, string, len);
 
 	  //return pointer to '\0'
 	  return(string+strlen(string));
@@ -387,10 +391,11 @@ char *get_next_filter_name(char **name, int *namelen, char *string)
       break;
   }
   *namelen = (int)(res-string);
-  *name = (char *)malloc(*namelen+1);
+  len = *namelen;
+  *name = (char *)malloc(len+2);
 
-  memcpy(*name, string, *namelen);
-  (*name)[*namelen+1]='\0';
+  memset(*name, 0, len+2);
+  memcpy(*name, string, len);
   
   return(res+1);
 }
@@ -487,11 +492,18 @@ int init_plugin(vob_t *vob)
   
   // need to load the plugins
 
-  memset(filter, 0, sizeof(filter_t)*MAX_FILTER);
+  //memset(filter, 0, sizeof(filter_t)*MAX_FILTER);
+
+  for(n=0; n<MAX_FILTER; ++n) {
+      //memset(&(filter[n]), 0, sizeof(filter[n]));
+      filter[n].options = NULL;
+      filter[n].name = NULL;
+  }
   
+  j=0;
   for(n=0; n<MAX_FILTER; ++n) {
     
-    if((offset=get_next_filter_name(&filter[j].name, &filter[j].namelen, offset))==NULL) break;
+    if((offset=get_next_filter_name(&(filter[j].name), &(filter[j].namelen), offset))==NULL) break;
     
     if(load_plugin(vob->mod_path)==0) ++j;
   }

@@ -1,6 +1,16 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-26 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/tccat.c:
+  Fix a segfault when tccat reads from stdin. Pointed out by
+  heffner_.
+
+  * src/filter.c:
+  Fix errors reported by valgrind because of new dynamic string
+  handling.
+  
 2003-07-25 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/transcode.[ch]:
