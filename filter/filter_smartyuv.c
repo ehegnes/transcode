@@ -44,7 +44,6 @@
 #include "transcode.h"
 #include "framebuffer.h"
 #include "optstr.h"
-#include "../export/vid_aux.h"
 
 static vob_t *vob=NULL;
 
@@ -104,13 +103,24 @@ static void help_optstr(void)
 {
    printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
    printf ("* Overview\n");
-
+   printf ("   This filter is basically a rewrite of the\n");
+   printf ("   smartdeint filter (without advanced processing options) for\n");
+   printf ("   YUV mode only. Its faster than using the smartdeinter in YUV mode\n");
+   printf ("   and is also tuned with its threshold settings for YUV mode.\n");
+   printf ("   The filter detects motion and static areas in an image and only\n");
+   printf ("   deinterlaces (either by blending or by cubic interpolation) the\n");
+   printf ("   moving areas. The result is an image with high detail in static\n");
+   printf ("   areas, no information is lost there.\n");
    printf ("* Options\n");
-
-   printf ("      'motionOnly' Show motion areas only (0=off, 1=on) [1]\n");
-   printf ("       'threshold' Motion Threshold (0-255) [15]\n");
-   printf ("         'denoise' denoise (0=off, 1=on) [0]\n");
-   printf ("       'shiftEven' Phase shift (0=off, 1=on) [0]\n");
+   printf ("  'motionOnly' Show motion areas only (0=off, 1=on) [1]\n");
+   printf ("   'threshold' Motion Threshold (luma) (0-255) [14]\n");
+   printf (" 'chromathres' Motion Threshold (chroma) (0-255) [7]\n");
+   printf ("  'scenethres' Threshold for detecting scenechanges (0-255) [31]\n");
+   printf ("       'cubic' Do cubic interpolation (0=off 1=on) [1]\n");
+   printf ("       'highq' High-Quality processing (motion Map denoising) (0=off 1=on) [1]\n");
+   printf ("       'Blend' Blend the frames for deinterlacing (0=off 1=on) [1]\n");
+   printf ("    'doChroma' Enable chroma processing (slower but more accurate) (0=off 1=on) [1]\n");
+   printf ("     'verbose' Verbose mode (0=off 1=on) [1]\n");
 
 }
 
@@ -696,7 +706,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
       sprintf (buf, "%d", mfd->highq);
       optstr_param (options, "highq", "High-Quality processing (motion Map denoising)", "%d", buf, "0", "1" );
       sprintf (buf, "%d", mfd->cubic);
-      optstr_param (options, "cubic", "Use cubic interpolation", "%d", buf, "0", "1" );
+      optstr_param (options, "cubic", "Do cubic interpolation", "%d", buf, "0", "1" );
       sprintf (buf, "%d", mfd->Blend);
       optstr_param (options, "Blend", "Blend the frames for deinterlacing", "%d", buf, "0", "1" );
       sprintf (buf, "%d", mfd->doChroma);
