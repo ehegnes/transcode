@@ -2,25 +2,29 @@
 transcode-0.6.12
 
   * Terse/less technical ChangeLog:
+  Changes:
+  o tccat: use '-T 1,-1 -P' instead of '-P 1'.
+  o --avi_limit option: Defaults to 0 (disabled) instead of 2GB.
+
   Fixes:
-  o make distcheck: correct inclusion of config.h file.
   o avilib: 64bit issues and other compiler support.
-  o libavcodec: building without mmx.
   o v4l: building with linux-2.6 headers.
-  o maintaining: included sdl.m4 and glib.m4 in acinclude.m4
   o xvid import: check for more library sonames.
-  o dvd import: The DVD device may be a char device.
+  o dvd import: The DVD device may be a char device (osx).
   o im import: segmentation fault at closing time.
   o tcrequant: upstream bugfixes.
   o xvid import: fix library loading on MacOSX.
   o dv import: Do NOT apply a setup when decoding the DV frame. Last
     frame was skipped in NTSC.
   o yuv4mpeg import: read files produced by streamer.
-  o -c option: had a rounding error, only 99 frames of 100 for NTSC.
+  o -c option: rounding error, only 99 frames of 100 for NTSC.
+  o make distcheck: correct inclusion of config.h file.
+  o libavcodec: building without mmx.
+  o maintaining: included sdl.m4 and glib.m4 in acinclude.m4
 
   New:
-  o avilib: Writing AVI 2.0 (OpenDML) files. Xine (with my submitted
-    patch) plays such files nicely.
+  o avilib: Writing AVI 2.0 (OpenDML) files. 
+    xine (with my submitted patch) plays such files nicely.
   o denoise3d filter: very fast denoiser.
   o fraps import: decode AVI files from www.fraps.com.
   o v4l2: reading from a video4linux2 device.
@@ -51,11 +55,32 @@ transcode-0.6.12
   o libavcodec: Updated included lavc to 4695.
   o aviindex: keyframe detection by analyzing the content of frames.
   o subtitler filter: Update to upstream version 0.8.2
-
-  Changes:
-  o tccat: instead of '-P 1' use '-T 1,-1 -P'
-  o --avi_limit option: Defaults to 0 (disabled) instead of 2GB.
+  o pv filter: updated docs and YUV422 support.
+  o ivtc filter: new magic and field parameters.
          
+2004-01-06 Frederic Briere <fbriere at fbriere.net>
+
+  * filter/ivtc/filter_ivtc.c:
+  Tentative patch for ivtc. New parameters:
+
+  "field": 
+  The field parameter specifies whether you want to work on the top
+  field (by default) or the bottom field.  Basically, when you
+  enable verboseness, if you see lots of "using 0" and "using 1",
+  then you stand to benefit from working on the opposite field
+  instead.  (If ivtc is using 1s and 2s, you've got it right.)
+
+  "magic":
+  I also added a bit of "magic", to give ivtc a little nudge towards
+  the current field instead of the previous/next one.  When looking
+  at the verbose output, you'll see that ivtc often favors the
+  "wrong" field, ie.  if you work on the top field, and have the
+  following frames:
+  Frame:          A  B  C  D  E
+  Top field:      1  2  3  3  4
+  Bottom field:   1  1  2  3  4
+  Then there is a good chance that frame D will end up with C's top
+  field, for reasons that are beyond me.
 
 2004-01-06 Tilmann Bitterberg <transcode at tibit.org>
 

@@ -21,9 +21,9 @@
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
  *
  */
-
+ 
 #define MOD_NAME    "filter_ivtc.so"
-#define MOD_VERSION "v0.4 (2003-04-22)"
+#define MOD_VERSION "v0.4.1 (2004-06-01)"
 #define MOD_CAP     "NTSC inverse telecine plugin"
 
 #include <stdio.h>
@@ -49,6 +49,33 @@
 
 static int show_results=0;
 
+void ivtc_copy_field (unsigned char *dest, unsigned char *src, vframe_list_t * ptr, int field) {
+    int y;
+
+    if (field == 1) {
+	src  += ptr->v_width;
+	dest += ptr->v_width;
+    }
+
+    for (y = 0; y < (ptr->v_height+1)/2; y++) {
+	memcpy(dest, src, ptr->v_width);
+	src  += ptr->v_width*2;
+	dest += ptr->v_width*2;
+    }
+
+    if (field == 1) {
+	src  -= (ptr->v_width+1) / 2;
+	dest -= (ptr->v_width+1) / 2;
+    }
+
+    for (y = 0; y < (ptr->v_height+1)/2; y++) {
+	memcpy(dest, src, ptr->v_width/2);
+	src  += ptr->v_width;
+	dest += ptr->v_width;
+    }
+}
+
+
 /*-------------------------------------------------
  *
  * single function interface
@@ -64,6 +91,8 @@ int tc_filter(vframe_list_t * ptr, char *options)
     static char *lastFrames[FRBUFSIZ];
     static int frameIn = 0;
     static int frameCount = 0;
+    static int field = 0;
+    static int magic = 0;
 
     //----------------------------------
     //
@@ -76,6 +105,8 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	if (options) {
 	    optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Thanassis Tsiodras", "VYE", "1");
 	    optstr_param (options, "verbose", "print verbose information", "", "0");
+	    optstr_param (options, "field", "which field to replace (0=top 1=bottom)",  "%d", "0",  "0", "1");
+	    optstr_param (options, "magic", "perform magic? (0=no 1=yes)",  "%d", "0",  "0", "1");
 	}
     }
 
@@ -97,6 +128,9 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	    if (optstr_get (options, "verbose", "") >= 0) {
 		show_results=1;
 	    }
+
+	    optstr_get(options, "field", "%d", &field);
+	    optstr_get(options, "magic", "%d", &magic);
 
 	}
 
@@ -166,20 +200,22 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	    idxc = frameIn-2; while(idxc<0) idxc+=FRBUFSIZ;
 	    idxp = frameIn-3; while(idxp<0) idxp+=FRBUFSIZ;
 
+            y = (field ? 2 : 1) * ptr->v_width;
+
 	    // bottom field of current
-	    curr =  &lastFrames[idxc][ptr->v_width];  	
+	    curr =  &lastFrames[idxc][y];
 	    // top field of previous
-	    pprev = &lastFrames[idxp][0];		
+	    pprev = &lastFrames[idxp][y - ptr->v_width];
 	    // top field of previous - 2nd scanline
-	    pnext = &lastFrames[idxp][2*ptr->v_width];	
+	    pnext = &lastFrames[idxp][y + ptr->v_width];
 	    // top field of current
-	    cprev = &lastFrames[idxc][0];		
+	    cprev = &lastFrames[idxc][y - ptr->v_width];
 	    // top field of current - 2nd scanline
-	    cnext = &lastFrames[idxc][2*ptr->v_width];	
+	    cnext = &lastFrames[idxc][y + ptr->v_width];
 	    // top field of next
-	    nprev = &lastFrames[idxn][0];		
+	    nprev = &lastFrames[idxn][y - ptr->v_width];
 	    // top field of next - 2nd scanline
-	    nnext = &lastFrames[idxn][2*ptr->v_width]; 	
+	    nnext = &lastFrames[idxn][y + ptr->v_width];
 
 	    // Blatant copy begins...
 
@@ -229,6 +265,11 @@ int tc_filter(vframe_list_t * ptr, char *options)
 		    lowest = n;
 		    chosen = 2;
 	    }
+
+	    if (magic && c < 50 && abs(lowest - c) < 10 && (p+c+n) > 1000) {
+		lowest = c;
+		chosen = 1;
+            }
 		
 	    // Blatant copy ends... :)
 
@@ -251,59 +292,10 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	    
 	    // First output the top field selected 
 	    // from the set of three stored frames.
-	    for (y = 0; y < (ptr->v_height+1)/2; y++)
-	    {
-		    memcpy(dstp, curr, ptr->v_width);
-		    curr += ptr->v_width*2;
-		    dstp += ptr->v_width*2;
-	    }
+	    ivtc_copy_field(dstp, curr, ptr, field);
 
 	    // The bottom field of the current frame unchanged 
-	    dstp = ptr->video_buf   + ptr->v_width;
-	    curr = lastFrames[idxc] + ptr->v_width;
-	    
-	    for (y = 0; y < (ptr->v_height+1)/2; y++)
-	    {
-		    memcpy(dstp, curr, ptr->v_width);
-		    curr += ptr->v_width*2;
-		    dstp += ptr->v_width*2;
-	    }
-
-	    // And now, the color planes
-	    if (chosen == 0) 
-		curr = lastFrames[idxp];
-	    else if (chosen == 1) 
-		curr = lastFrames[idxc];
-	    else 
-		curr = lastFrames[idxn];
-	    curr += ptr->v_width * ptr->v_height;
-
-	    dstp = ptr->video_buf;
-	    dstp += ptr->v_width * ptr->v_height;
-	    
-	    // First output the top field selected 
-	    // from the set of three stored frames. 
-	    for (y = 0; y < (ptr->v_height+1)/2; y++)
-	    {
-		    memcpy(dstp, curr, ptr->v_width/2);
-		    curr += ptr->v_width;  // jump two color scanlines
-		    dstp += ptr->v_width;  // jump two color scanlines
-	    }
-
-	    /* The bottom field of the current frame unchanged */
-	    dstp =  ptr->video_buf + 
-		    ptr->v_width * ptr->v_height + 
-		    ptr->v_width/2;
-	    curr =  lastFrames[idxc] + 
-		    ptr->v_width * ptr->v_height + 
-		    ptr->v_width/2;
-	    
-	    for (y = 0; y < (ptr->v_height+1)/2; y++)
-	    {
-		    memcpy(dstp, curr, ptr->v_width/2);
-		    curr += ptr->v_width;  // jump two color scanlines
-		    dstp += ptr->v_width;  // jump two color scanlines
-	    }
+	    ivtc_copy_field(dstp, lastFrames[idxc], ptr, 1-field);
 
 	}
     }

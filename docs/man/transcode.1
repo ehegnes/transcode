@@ -2158,14 +2158,26 @@ apply filter to [start-end]/step frames
 .RE
 .TP 4
 \fBivtc\fP - \fBNTSC inverse telecine plugin\fP
-\fBivtc\fP was written by Thanassis Tsiodras. The version documented here is v0.4 (2003-04-22). This is a video filter. It can handle YUV mode only. It is a pre-processing only filter.
+\fBivtc\fP was written by Thanassis Tsiodras. The version documented here is v0.4.1 (2004-06-01). This is a video filter. It can handle YUV mode only. It is a pre-processing only filter.
 .IP
 .RS
-\(bu
-.I verbose
-(bool)
+\(bu 
+.I verbose 
+(bool) 
 .RS 3
 print verbose information
+.RE
+\(bu 
+.I field 
+= \fI%d\fP  [default \fI0\fP] 
+.RS 3
+which field to replace (0=top 1=bottom)
+.RE
+\(bu 
+.I magic 
+= \fI%d\fP  [default \fI0\fP] 
+.RS 3
+perform magic? (0=no 1=yes)
 .RE
 .IP
 see /docs/README.Inverse.Telecine.txt
