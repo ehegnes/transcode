@@ -246,7 +246,11 @@ MOD_open
     audio.bitspersample = 16;
     audio.bytealignment = (chans==2) ? 4:2;
     audio.bytespersecond = rate * audio.bytealignment;
+#ifdef LIBDV_095
     audio.bytesperframe = audio.bytespersecond/(encoder->isPAL ? 25 : 30);
+#else
+    audio.bytesperframe = audio.bytespersecond/((int)vob-im_fps);
+#endif
 
     if(verbose & TC_DEBUG) fprintf(stderr, "[%s] audio: CH=%d, f=%d, balign=%d, bps=%d, bpf=%d\n", MOD_NAME, audio.channels, audio.frequency, audio.bytealignment, audio.bytespersecond, audio.bytesperframe);
     
