@@ -2103,6 +2103,10 @@ int main(int argc, char *argv[]) {
 	  if(tc_accel==-1) usage(EXIT_FAILURE);
 
 	  break;
+#else
+	case ACCEL_MODE: 
+	  // not supported
+	  break;
 #endif
 
 	case AVI_LIMIT:

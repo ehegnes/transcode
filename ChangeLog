@@ -4,6 +4,7 @@ transcode-0.6.11
   * Terse/less technical ChangeLog:
   Bugfix audio core; fix AC3 pass-thru.
   Bugfix audio core; undefined symbol in lame lib.
+  Bugfix for --accel on PPC (not supported)
   Bugfix for -J hqdn3d; fix typo and default value printout.
   Bugfix for -x im; handle 16bit image files.
   Bugfix for -x xml; fix DV import.
@@ -41,6 +42,12 @@ transcode-0.6.11
   Upgraded -y xvid4 to the latest API
 
 
+2003-10-14 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/transcode.c:
+  Fix a fatal error when using --accel on PPC. Pointed out by
+  Nicolas Boos.
+  
 2003-10-13 Seth Green <sgreen at sparse.org>
 
   * import/dvd_reader.c:
