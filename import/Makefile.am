@@ -491,6 +491,7 @@ tcdemux_LDADD = \
 	@DLDARWINLIB@ \
 	@XIO_LIBS@ \
 	@ACLIB_LIBS@ \
+	$(PTHREAD_LIBS) \
 	-lm
 
 tcdemux_CFLAGS = $(AM_CFLAGS)
