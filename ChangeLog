@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.12
 
+2004-01-05 Florin Andrei <florin at andrei.myip.org>
+
+  * docs/DV-to-DVD-HOWTO.txt:
+  A Howto describing how to make DVDs out of DV footage including
+  scripts. 
+
 2004-01-05 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/transcode.[ch] docs/man/transcode.1:
