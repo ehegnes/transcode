@@ -227,27 +227,52 @@ the socket.
 transcode -i file.avi -V -J pv=cache=30 --socket /tmp/sock
 .fi
 
-.TS
-c s s
-l l l
-l l l.
+.RS
+.TP 8
 Available Commands
+.TP
 Key	Socket*	Effect
-_
-RET	draw	Redraws the image, applying filters.
-u	undo	goes to image before draw.
-SPACE	pause	pause the preview (and transcode).
-UP	fastfw	In pause mode, step forward 5 frames.
-RIGHT	slowfw	In pause mode, step forward 1 frame.
-DOWN	fastbw	In pause mode, step back 5 frames.
-LEFT	slowbw	In pause mode, step back 1 frame.
-q	display	Toggle display of frames
-s	slower	slow down
-f	faster	speed up
-y	toggle	toggle displaying only every 5 frames
-j	grab	Save a JPEG
-r	rotate	Rotate AVI file after next keyframe
-.TE
+.TP
+.I RET
+draw	redraws the image, applying filters.
+.TP
+.I u
+undo	goes to image before draw
+.TP
+.I SPACE
+pause	pause the preview (and transcode)
+.TP
+.I UP
+fastfw	in pause mode, step forward 5 frames
+.TP
+.I RIGHT
+slowfw	in pause mode, step forward 1 frame
+.TP
+.I DOWN
+fastbw	in pause mode, step back 5 frames
+.TP
+.I LEFT
+slowbw	in pause mode, step back 1 frame
+.TP
+.I q
+display	toggle display of frames
+.TP
+.I s
+slower	slow down
+.TP
+.I f
+faster	speed up
+.TP
+.I y
+toggle	toggle displaying only every 5 frames
+.TP
+.I j
+grab	save a JPEG
+.TP
+.I r
+rotate	rotate AVI file after next keyframe
+.TP
+.RE
 (*) all commands must be prefixed with "preview ".
 <----------------------|
 
