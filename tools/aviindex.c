@@ -106,7 +106,7 @@ static int avi_stream_nr(int id)
 	return 1;
     } else {
 	int res = (p[0]-'0')+(p[1]-'0');
-	res = (res==0)?2:res+1
+	res = (res==0)?2:res+1;
 	return res;
     }
 #endif
