@@ -121,21 +121,21 @@ int merger(avi_t *out, char *file)
 		  if (aud_ms[j] == old_ms) {
 		      do_drop_video = 1;
 		      if (!have_printed) {
-			  fprintf(stderr, "No audiodata left for track %d->%d (%.2f=%.2f) %s ..\n", 
+			  fprintf(stderr, "\nNo audiodata left for track %d->%d (%.2f=%.2f) %s ..\n", 
 			      AVI_get_audio_track(in), AVI_get_audio_track(out), 
 			      old_ms, aud_ms[j], (do_drop_video && drop_video)?"breaking (-c)":"continuing");
 			  have_printed++;
 		      }
 		  }
 	      } else {
-		  fprintf(stderr, "An error happend at frame %ld track %d\n", n, j);
+		  fprintf(stderr, "\nAn error happend at frame %ld track %d\n", n, j);
 	      }
 	  }
 	  
       }
 
       if (do_drop_video && drop_video) {
-	  fprintf(stderr, "[avimerge] Dropping %ld frames\n", frames-n-1);
+	  fprintf(stderr, "\n[avimerge] Dropping %ld frames\n", frames-n-1);
 	  goto out;
       }
       
