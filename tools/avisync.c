@@ -750,7 +750,7 @@ int main(int argc, char *argv[])
   AVI_close(avifile2);
 
   if (avifile3) {
-      memset(nulls, 0, 1024); sprintf(nulls, "rm -f %s", tmp0); system(nulls);
+      memset(nulls, 0, 1024); snprintf(nulls, sizeof(nulls), "rm -f %s", tmp0); system(nulls);
       AVI_close(avifile3);
   }
   

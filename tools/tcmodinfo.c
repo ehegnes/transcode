@@ -143,7 +143,7 @@ void *load_module(char *mod_name, char *mod_path, int mode)
   
   if(mode & TC_EXPORT) {
     
-    sprintf(module, "%s/export_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
+    snprintf(module, sizeof(module), "%s/export_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
     
     if(verbose & TC_DEBUG) 
       printf("loading %s export module %s\n", ((mode & TC_VIDEO)? "video": "audio"), module); 
@@ -178,7 +178,7 @@ void *load_module(char *mod_name, char *mod_path, int mode)
   
   if(mode & TC_IMPORT) {
     
-    sprintf(module, "%s/import_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
+    snprintf(module, sizeof(module), "%s/import_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
     
     //if(verbose & TC_DEBUG) 
       printf("loading %s import module %s\n", ((mode & TC_VIDEO)? "video": "audio"), module); 
@@ -240,7 +240,7 @@ int load_plugin(char *path, int id) {
     }
   }
   
-  sprintf(module, "%s/filter_%s.so", path, filter[id].name);
+  snprintf(module, sizeof(module), "%s/filter_%s.so", path, filter[id].name);
   
   // try transcode's module directory
   

@@ -416,7 +416,7 @@ static int avi_add_odml_index_entry(avi_t *AVI, unsigned char *tag, long flags, 
 
 	    AVI->track[AVI->aptr].audio_superindex->nEntriesInUse++;
 
-	    sprintf(fcc, "ix%02d", AVI->aptr+1);
+	    snprintf(fcc, sizeof(fcc), "ix%02d", AVI->aptr+1);
 	    if (avi_add_std_index (AVI, fcc, tag, AVI->track[AVI->aptr].audio_superindex->stdindex[ 
 			AVI->track[AVI->aptr].audio_superindex->nEntriesInUse - 1 ]) < 0
 	       ) return -1;
@@ -475,8 +475,8 @@ static int avi_add_odml_index_entry(avi_t *AVI, unsigned char *tag, long flags, 
 	    }
 	    AVI->track[audtr].audio_superindex->nEntriesInUse++;
 
-	    sprintf(fcc, "ix%02d", audtr+1);
-	    sprintf(aud, "0%01dwb", audtr+1);
+	    snprintf(fcc, sizeof(fcc), "ix%02d", audtr+1);
+	    snprintf(aud, sizeof(aud), "0%01dwb", audtr+1);
 	    if (avi_add_std_index (AVI, fcc, aud, AVI->track[audtr].audio_superindex->stdindex[ 
 			AVI->track[audtr].audio_superindex->nEntriesInUse - 1 ]) < 0
 	       ) return -1;
@@ -1601,7 +1601,7 @@ static int avi_close_output_file(avi_t *AVI)
    //OUTLONG(MAX_INFO_STRLEN);
    memset(id_str, 0, MAX_INFO_STRLEN);
 
-   sprintf(id_str, "%s-%s", PACKAGE, VERSION);
+   snprintf(id_str, sizeof(id_str), "%s-%s", PACKAGE, VERSION);
    real_id_len = id_len = strlen(id_str)+1;
    if (id_len&1) id_len++;
 
@@ -1623,7 +1623,7 @@ static int avi_close_output_file(avi_t *AVI)
 //   OUTLONG(MAX_INFO_STRLEN);
 
 //   calptr=time(NULL); 
-//   sprintf(id_str, "\t%s %s", ctime(&calptr), "");
+//   snprintf(id_str, sizeof(id_str), "\t%s %s", ctime(&calptr), "");
 //   memset(AVI_header+nhb, 0, MAX_INFO_STRLEN);
 //   memcpy(AVI_header+nhb, id_str, 25);
 //   nhb += MAX_INFO_STRLEN;
@@ -1729,7 +1729,7 @@ static int avi_write_data(avi_t *AVI, char *data, unsigned long length, int audi
    /* Add index entry */
 
    //set tag for current audio track
-   sprintf((char *)astr, "0%1dwb", (int)(AVI->aptr+1));
+   snprintf((char *)astr, sizeof(astr), "0%1dwb", (int)(AVI->aptr+1));
 
    if(audio) {
      if (!AVI->is_opendml) n = avi_add_index_entry(AVI,astr,0x10,AVI->pos,length);
@@ -3469,7 +3469,7 @@ char *AVI_strerror(void)
       AVI_errno == AVI_ERR_WRITE_INDEX ||
       AVI_errno == AVI_ERR_CLOSE )
    {
-      sprintf(error_string,"%s - %s",avi_errors[aerrno],strerror(errno));
+      snprintf(error_string, sizeof(error_string), "%s - %s",avi_errors[aerrno],strerror(errno));
       return error_string;
    }
    else
