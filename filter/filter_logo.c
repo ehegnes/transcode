@@ -28,15 +28,9 @@
      */
 
 #define MOD_NAME    "filter_logo.so"
-#define MOD_VERSION "v0.8 (2003-01-26)"
+#define MOD_VERSION "v0.9 (2003-04-09)"
 #define MOD_CAP     "render image in videostream"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <magick/api.h>
 
 /* -------------------------------------------------
  *
@@ -47,14 +41,22 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include "transcode.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+
+
 #include <unistd.h>
 #include <inttypes.h>
 
-#include "transcode.h"
 #include "framebuffer.h"
 #include "filter.h"
 #include "../export/vid_aux.h"
 
+#include <magick/api.h>
 
 // basic parameter
 

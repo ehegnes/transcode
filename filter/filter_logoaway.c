@@ -46,20 +46,17 @@
  *      now you need ImageMagick at compile time
  *    -Documentation added
  *
- * v0.2 (2002-01-21) Tilmann Bitterberg
+ * v0.2 (2003-01-21) Tilmann Bitterberg
  *    -More support for new filter-API.
+ *
+ * v0.2 (2003-04-08) Tilmann Bitterberg
+ *    -change include order to avoid warnings from Magick
  */
 
 #define MOD_NAME    "filter_logoaway.so"
-#define MOD_VERSION "v0.2 (2003-01-26)"
+#define MOD_VERSION "v0.2 (2003-04-08)"
 #define MOD_CAP     "remove an image from the video"
 #define MOD_AUTHOR  "Thomas Wehrspann <thomas@wehrspann.de>"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <magick/api.h>
 
 /* -------------------------------------------------
  *
@@ -71,11 +68,17 @@
 #include "config.h"
 #endif
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include "transcode.h"
 #include "framebuffer.h"
 #include "filter.h"
 #include "optstr.h"
 
+#include <magick/api.h>
 
 static vob_t *vob=NULL;
 static int instance;
