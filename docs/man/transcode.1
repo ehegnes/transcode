@@ -428,10 +428,20 @@ process DVD in chapter mode to base-ch%02d.avi [off].
 
 .TP
 .B \-V
-use YV12/I420 as internal video codec [off].
+use YV12/I420 as internal video layout / colour space
 .br
-This is usually much faster than RGB processing but some import modules may not
-support this format. Always use this option when possible.
+This option is depricated. It is default now because it is most codecs'
+internal format so there is no need for conversions. Some modules may
+not support it though. Use --use_rgb in that case.
+
+.TP
+.B \--use_rgb
+Use RGB as internal video layout / colour space
+.br
+Use this when you want the old (pre-0.6.13) transcode behaviour of using
+RGB as internal format. Most codecs do not support this format natively
+and have to convert it to/from YUV first, so only use this option if you're
+really sure or you want to use a module that doesn't support YUV.
 
 .TP
 .B \-W \fIn\fP,\fIm\fP[,\fInav_file\fP]
