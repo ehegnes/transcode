@@ -934,13 +934,19 @@ static int avi_write_data(avi_t *AVI, char *data, unsigned long length, int audi
    int n;
 
    unsigned char astr[5];
-
+   
+   // transcode core itself checks for the size -- unneeded and 
+   // does harm to xvid 2pass encodes where the first pass can get 
+   // _very_ large -- tibit.
+   
+#if 0 
    /* Check for maximum file length */
    
    if ( (AVI->pos + 8 + length + 8 + (AVI->n_idx+1)*16) > AVI_MAX_LEN ) {
      AVI_errno = AVI_ERR_SIZELIM;
      return -1;
    }
+#endif
    
    /* Add index entry */
 
