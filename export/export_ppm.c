@@ -169,7 +169,7 @@ MOD_encode
     } else 
 	sprintf(buf2, "%s%06d.ppm", prefix, counter++);
     
-    if((fd = fopen(buf2, "w"))<0) {
+    if((fd = fopen(buf2, "w"))==NULL) {
       perror("fopen file");
       return(TC_EXPORT_ERROR);
     }     

@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-23 Stéphane Gourichon <gouri at free.fr>
+
+  * export/export_ppm.c:
+  Check return of open.
+
 2004-01-23 Tilmann Bitterberg <transcode at tibit.org>
 
   * avilib/avilib.c:
