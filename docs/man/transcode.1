@@ -772,6 +772,15 @@ $ transcode ... \-\-write_pid /tmp/transcode.pid &
 $ kill -2 `cat /tmp/transcode.pid`
 .RE
 .TP
+.B \-\-progress_off
+disable progress meter status line [off]
+.TP
+.B \-\-color \fIN\fP
+level of color in transcodes output [1]
+.br 
+Colorful output can be disabled by setting \fIN\fP to \fI0\fP. It will be 
+automatically disabled if the output of transcode is a file or a pipe.
+.TP
 .B \-\-print_status \fIN\fP[,\fIusecr\fP]
 print status every \fIN\fP frames / use CR or NL [1,1]
 .br
@@ -785,6 +794,7 @@ the time.
 .TP
 .B \-\-write_pid \fIfile\fP
 write pid of signal thread to \fIfile\fP [off]
+.br
 Enables you to terminate transcode cleanly by sending a SIGINT (2) to the pid
 in \fIfile\fP. Please note \fIfile\fP will be overwritten. Usage example
 .RS
