@@ -102,7 +102,7 @@ int buf_probe_ac3(unsigned char *_buf, int len, pcm_t *pcm)
   if(j<0 || bitrate <0) return(-1);
 
   pcm->samplerate = j;
-  pcm->chan = (nfchans<=0?2:nfchans);
+  pcm->chan = (nfchans<2?2:nfchans);
   pcm->bits = 16;
   pcm->format = CODEC_AC3;
   pcm->bitrate = bitrate;
