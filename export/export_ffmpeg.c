@@ -1159,12 +1159,12 @@ MOD_init {
     //-- open codec --
     //----------------
     if (avcodec_open(lavc_venc_context, lavc_venc_codec) < 0) {
-      fprintf(stderr, "[%s] could not open FFMPEG/MPEG4 codec\n", MOD_NAME);
+      fprintf(stderr, "[%s] could not open FFMPEG codec\n", MOD_NAME);
       return TC_EXPORT_ERROR; 
     }
 
     if (lavc_venc_context->codec->encode == NULL) {
-      fprintf(stderr, "[%s] could not open FFMPEG/MPEG4 codec "
+      fprintf(stderr, "[%s] could not open FFMPEG codec "
               "(lavc_venc_context->codec->encode == NULL)\n", MOD_NAME);
       return TC_EXPORT_ERROR; 
     }
