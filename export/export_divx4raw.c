@@ -108,7 +108,7 @@ static int divx4_init(char *path) {
   char *error;
   int *quiet_encore;
   
-  sprintf(module, "%s/%s", path, MODULE);
+  snprintf(module, sizeof(module), "%s/%s", path, MODULE);
   
   // try transcode's module directory
   
