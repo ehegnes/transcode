@@ -1,6 +1,13 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-31 marrq <marrq at ugcs.caltech.edu>
+  
+  * src/encoder.c:
+  Make skipping work for POST_S plugins. There are still a few
+  issues to be sorted out, for example what should happen to a frame
+  if it is SKIPPED and CLONED?
+
 2003-07-31 Lenz Grimmer <lenz at grimmer.com>
 
   * transcode.spec.in:

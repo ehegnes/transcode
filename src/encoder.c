@@ -484,6 +484,96 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
       
       if(verbose & TC_STATS) fprintf(stderr, "got frame 0x%x (%d)\n", (int) vptr, fid);
       
+      // now we do the post processing ... this way, if just a video frame is
+      // skipped, we'll know.
+
+      if(have_vframe_threads==0) {
+	pthread_mutex_lock(&vbuffer_im_fill_lock);
+	--vbuffer_im_fill_ctr;
+	pthread_mutex_unlock(&vbuffer_im_fill_lock);
+
+	pthread_mutex_lock(&vbuffer_xx_fill_lock);
+	++vbuffer_xx_fill_ctr;
+	pthread_mutex_unlock(&vbuffer_xx_fill_lock);
+
+	// external plugin pre-processing
+	vptr->tag = TC_VIDEO|TC_PRE_PROCESS;
+	process_vid_plugins(vptr);
+	
+	// internal processing of video
+	vptr->tag = TC_VIDEO;
+	process_vid_frame(vob, vptr);
+	  
+	// external plugin post-processing
+	vptr->tag = TC_VIDEO|TC_POST_PROCESS;
+	process_vid_plugins(vptr);
+	postprocess_vid_frame(vob, vptr);
+	  
+	pthread_mutex_lock(&vbuffer_xx_fill_lock);
+	--vbuffer_xx_fill_ctr;
+	pthread_mutex_unlock(&vbuffer_xx_fill_lock);
+	  
+	pthread_mutex_lock(&vbuffer_ex_fill_lock);
+	++vbuffer_ex_fill_ctr;
+	pthread_mutex_unlock(&vbuffer_ex_fill_lock);
+	  
+      }
+	
+      //second stage post-processing - (synchronous)
+     
+      vptr->tag = TC_VIDEO|TC_POST_S_PROCESS;
+      process_vid_plugins(vptr);
+      postprocess_vid_frame(vob, vptr);
+
+      if (vptr->attributes & TC_FRAME_IS_SKIPPED){
+	if (have_vframe_threads == 0){
+          pthread_mutex_lock(&vbuffer_im_fill_lock);
+	  --vbuffer_im_fill_ctr;
+	  pthread_mutex_unlock(&vbuffer_im_fill_lock);
+	} else {
+          pthread_mutex_lock(&vbuffer_ex_fill_lock);
+	  --vbuffer_ex_fill_ctr;
+	  pthread_mutex_unlock(&vbuffer_ex_fill_lock);
+	}
+	
+	if(vptr!=NULL && (vptr->attributes & TC_FRAME_WAS_CLONED)) {
+	  // XXX do we want to track skipped cloned flags?
+	  tc_update_frames_cloned(1);
+	}
+
+	if(vptr!=NULL && (vptr->attributes & TC_FRAME_IS_CLONED)) {
+	  // XXX what to do when a frame is cloned and skipped?
+	  // I'd like to say they cancel, but perhaps they will end
+	  // up also skipping the clone?  or perhaps they'll keep,
+	  // but modify the clone?  Best to do the whole drill :/
+	  if(verbose & TC_DEBUG){
+	    fprintf (stdout, "(%d) V pointer done. Skipped and Cloned: (%d)\n", vptr->id, (vptr->attributes));
+	  }
+	  // update flags
+	  vptr->attributes &= ~TC_FRAME_IS_CLONED;
+	  vptr->attributes |= TC_FRAME_WAS_CLONED;
+	  // this has to be done here, 
+	  // frame_threads.c won't see the frame again
+	  pthread_mutex_lock(&vbuffer_ex_fill_lock);
+	  ++vbuffer_ex_fill_ctr;
+	  pthread_mutex_unlock(&vbuffer_ex_fill_lock);
+	}
+	if(vptr!=NULL && !(vptr->attributes & TC_FRAME_IS_CLONED)) {
+	  vframe_remove(vptr);
+
+	  //notify sleeping import thread
+	  pthread_mutex_lock(&vframe_list_lock);
+	  pthread_cond_signal(&vframe_list_full_cv);
+	  pthread_mutex_unlock(&vframe_list_lock);
+
+	  // reset pointer for next retrieve
+	  vptr=NULL;
+	}
+	//tc_update_frames_skipped(1);
+	goto vretry;
+      }
+
+      
       //audio
       
     aretry:
@@ -519,6 +609,83 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
       
       if(verbose & TC_STATS) fprintf(stderr, "got audio frame (%d)\n", aptr->id );
       
+      // now we try to process the audio frame
+      if(have_aframe_threads==0) {
+        pthread_mutex_lock(&abuffer_im_fill_lock);
+	--abuffer_im_fill_ctr;
+	pthread_mutex_unlock(&abuffer_im_fill_lock);
+
+	pthread_mutex_lock(&abuffer_xx_fill_lock);
+	++abuffer_xx_fill_ctr;
+	pthread_mutex_unlock(&abuffer_xx_fill_lock);
+
+	// external plugin pre-processing
+	aptr->tag = TC_AUDIO|TC_PRE_PROCESS;
+	process_aud_plugins(aptr);
+	  
+	// internal processing of audio
+	aptr->tag = TC_AUDIO;
+	process_aud_frame(vob, aptr);
+	  
+	// external plugin post-processing
+	aptr->tag = TC_AUDIO|TC_POST_PROCESS;
+	process_aud_plugins(aptr);
+	  
+	pthread_mutex_lock(&abuffer_xx_fill_lock);
+	--abuffer_xx_fill_ctr;
+	pthread_mutex_unlock(&abuffer_xx_fill_lock);
+	  
+	pthread_mutex_lock(&abuffer_ex_fill_lock);
+	++abuffer_ex_fill_ctr;
+	pthread_mutex_unlock(&abuffer_ex_fill_lock);
+      }
+	
+      //second stage post-processing - (synchronous)
+	
+      aptr->tag = TC_AUDIO|TC_POST_S_PROCESS;
+      process_aud_plugins(aptr);
+
+      if (aptr->attributes & TC_FRAME_IS_SKIPPED){
+        if (have_aframe_threads == 0){
+	  pthread_mutex_lock(&abuffer_im_fill_lock);
+	  --abuffer_im_fill_ctr;
+	  pthread_mutex_unlock(&abuffer_im_fill_lock);
+	} else {
+	  pthread_mutex_lock(&abuffer_ex_fill_lock);
+	  --abuffer_ex_fill_ctr;
+	  pthread_mutex_unlock(&abuffer_ex_fill_lock);
+	}
+
+	if(aptr!=NULL && !(aptr->attributes & TC_FRAME_IS_CLONED)) {
+	  aframe_remove(aptr);  
+
+	  //notify sleeping import thread
+	  pthread_mutex_lock(&aframe_list_lock);
+	  pthread_cond_signal(&aframe_list_full_cv);
+	  pthread_mutex_unlock(&aframe_list_lock);
+
+	  // reset pointer for next retrieve
+	  aptr=NULL;
+	}
+
+	if(aptr!=NULL && (aptr->attributes & TC_FRAME_IS_CLONED)) {
+	  if(verbose & TC_DEBUG){
+	    fprintf (stdout, "(%d) A pointer done. Skipped and Cloned: (%d)\n", aptr->id, (aptr->attributes));
+	  }
+
+	  //adjust clone flags
+	  aptr->attributes &= ~TC_FRAME_IS_CLONED;
+	  aptr->attributes |= TC_FRAME_WAS_CLONED;
+
+	  // this has to be done here, 
+	  // frame_threads.c won't see the frame again
+	  pthread_mutex_lock(&abuffer_ex_fill_lock);
+	  ++abuffer_ex_fill_ctr;
+	  pthread_mutex_unlock(&abuffer_ex_fill_lock);
+	}
+	goto aretry;
+      }
+
       //--------------------------------
       //
       // need a valid pointer to proceed
@@ -538,45 +705,8 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	}
 	
 	//video
-	if(have_vframe_threads==0) {
-	    
-	  pthread_mutex_lock(&vbuffer_im_fill_lock);
-	  --vbuffer_im_fill_ctr;
-	  pthread_mutex_unlock(&vbuffer_im_fill_lock);
 	  
-	  pthread_mutex_lock(&vbuffer_xx_fill_lock);
-	  ++vbuffer_xx_fill_ctr;
-	  pthread_mutex_unlock(&vbuffer_xx_fill_lock);
-	  
-	  // external plugin pre-processing
-	  vptr->tag = TC_VIDEO|TC_PRE_PROCESS;
-	  process_vid_plugins(vptr);
-	  
-	  // internal processing of video
-	  vptr->tag = TC_VIDEO;
-	  process_vid_frame(vob, vptr);
-	  
-	  // external plugin post-processing
-	  vptr->tag = TC_VIDEO|TC_POST_PROCESS;
-	  process_vid_plugins(vptr);
-	  postprocess_vid_frame(vob, vptr);
-	  
-	  pthread_mutex_lock(&vbuffer_xx_fill_lock);
-	  --vbuffer_xx_fill_ctr;
-	  pthread_mutex_unlock(&vbuffer_xx_fill_lock);
-	  
-	  pthread_mutex_lock(&vbuffer_ex_fill_lock);
-	  ++vbuffer_ex_fill_ctr;
-	  pthread_mutex_unlock(&vbuffer_ex_fill_lock);
-	  
-	}
-	
-	//second stage post-processing - (synchronous)
-	
-	vptr->tag = TC_VIDEO|TC_POST_S_PROCESS;
-	process_vid_plugins(vptr);
-	postprocess_vid_frame(vob, vptr);
-	
+
 	// encode and export video frame
 	export_para.buffer = vptr->video_buf;
 	export_para.size   = vptr->video_size;
@@ -598,43 +728,6 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	--vbuffer_ex_fill_ctr;
 	pthread_mutex_unlock(&vbuffer_ex_fill_lock);
 
-	//audio
-	if(have_aframe_threads==0) {
-	  
-	  pthread_mutex_lock(&abuffer_im_fill_lock);
-	  --abuffer_im_fill_ctr;
-	  pthread_mutex_unlock(&abuffer_im_fill_lock);
-	  
-	  pthread_mutex_lock(&abuffer_xx_fill_lock);
-	  ++abuffer_xx_fill_ctr;
-	  pthread_mutex_unlock(&abuffer_xx_fill_lock);
-	  
-	  // external plugin pre-processing
-	  aptr->tag = TC_AUDIO|TC_PRE_PROCESS;
-	  process_aud_plugins(aptr);
-	  
-	  // internal processing of audio
-	  aptr->tag = TC_AUDIO;
-	  process_aud_frame(vob, aptr);
-	  
-	  // external plugin post-processing
-	  aptr->tag = TC_AUDIO|TC_POST_PROCESS;
-	  process_aud_plugins(aptr);
-	  
-	  pthread_mutex_lock(&abuffer_xx_fill_lock);
-	  --abuffer_xx_fill_ctr;
-	  pthread_mutex_unlock(&abuffer_xx_fill_lock);
-	  
-	  pthread_mutex_lock(&abuffer_ex_fill_lock);
-	  ++abuffer_ex_fill_ctr;
-	  pthread_mutex_unlock(&abuffer_ex_fill_lock);
-	}
-	
-	//second stage post-processing - (synchronous)
-	
-	aptr->tag = TC_AUDIO|TC_POST_S_PROCESS;
-	process_aud_plugins(aptr);
-	
 	// encode and export audio frame
 	export_para.buffer = aptr->audio_buf;
 	export_para.size   = aptr->audio_size;
