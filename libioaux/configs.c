@@ -2497,9 +2497,9 @@ int module_read_config(char *section, char *prefix, char *module, struct config 
     if (home != NULL) {
       snprintf(buffer, 1023, "%s/.transcode/%s.cfg", home, module);
       if (stat(buffer, &statfile) != 0) {
-        fprintf(stderr, "[%s] Neither './%s.cfg' nor '~/.transcode/%s.cfg'"
-                "found. Default settings will be used instead.\n",
-                prefix, module, module);
+        fprintf(stderr, "[%s] Neither './%s.cfg' nor '~/.transcode/%s.cfg'\n"
+                "[%s] found. Default settings will be used instead.\n",
+                prefix, module, module, prefix);
         return 0;
       }
     } else {
