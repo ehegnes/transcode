@@ -27,50 +27,56 @@
 #define PMAX_BUF 1024
 char probe_cmd_buf[PMAX_BUF];
 
-static char *std_module[] = {"null",
-			     "raw", 
-			     "dv", 
-			     "nuv", 
-			     "yuv4mpeg", 
-			     "mpeg2", "vob", "dvd",
-			     "af6", "avi", "divx", "ffmpeg",
-			     "mp3", "ac3",
-			     "net",
-			     "im",
-			     "ogg",
-			     "mov",
-			     "v4l",
-			     "v4l2",
-			     "xml",
-			     "lav",
-			     "lzo",
-			     "ts",
-			     "vnc",
-			     "fraps",
-			     "mplayer"
+static char *std_module[] = {
+  "null",
+  "raw", 
+  "dv", 
+  "nuv", 
+  "yuv4mpeg", 
+  "mpeg2", "vob", "dvd",
+  "af6", "avi", "divx", "ffmpeg",
+  "mp3", "ac3",
+  "net",
+  "im",
+  "ogg",
+  "mov",
+  "v4l",
+  "v4l2",
+  "xml",
+  "lav",
+  "lzo",
+  "ts",
+  "vnc",
+  "fraps",
+  "mplayer",
+  "bktr",
+  "sunau"
 };
 
-enum _std_module {_null_, 
-		  _raw_,
-		  _dv_, 
-		  _nuv_, 
-		  _yuv4mpeg_, 
-		  _mpeg2_, _vob_, _dvd_,
-		  _af6_, _avi_, _divx_, _ffmpeg_,
-		  _mp3_, _ac3_,
-		  _net_,
-		  _im_,
-		  _ogg_,
-		  _mov_,
-		  _v4l_,
-		  _v4l2_,
-		  _xml_,
-		  _lav_,
-		  _lzo_,
-		  _ts_,
-		  _vnc_,
-		  _fraps_,
-		  _theora_
+enum _std_module {
+  _null_, 
+  _raw_,
+  _dv_, 
+  _nuv_, 
+  _yuv4mpeg_, 
+  _mpeg2_, _vob_, _dvd_,
+  _af6_, _avi_, _divx_, _ffmpeg_,
+  _mp3_, _ac3_,
+  _net_,
+  _im_,
+  _ogg_,
+  _mov_,
+  _v4l_,
+  _v4l2_,
+  _xml_,
+  _lav_,
+  _lzo_,
+  _ts_,
+  _vnc_,
+  _fraps_,
+  _theora_,
+  _bktr_,
+  _sunau_
 };
 
 static int title, verb;
@@ -424,6 +430,25 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
 
     break;
 
+  case TC_MAGIC_BKTR_VIDEO:
+    vob->vmod_probed=std_module[_bktr_];
+    preset |= TC_VIDEO;
+
+    if ( !(*flag & TC_PROBE_NO_FRAMESIZE) && vob->im_v_codec == CODEC_RGB) {
+        if (!((vob->im_v_width > 0) && (vob->im_v_height > 0))) {
+	    vob->im_v_width  = PAL_W/2;
+	    vob->im_v_height = PAL_H/2;
+        }
+    }
+    if ( !(*flag & TC_PROBE_NO_FRAMESIZE) && vob->im_v_codec == CODEC_YUV) {
+        if (!((vob->im_v_width > 0) && (vob->im_v_height > 0))) {
+	    vob->im_v_width  = 352;
+	    vob->im_v_height = 288;
+	}
+    }
+
+    break;
+
   case TC_MAGIC_SOCKET:
     vob->vmod_probed=std_module[_net_];
     break;
@@ -547,6 +572,11 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
       
   case TC_MAGIC_V4L2_AUDIO:
       vob->amod_probed=std_module[_v4l2_];
+      preset |= TC_AUDIO;
+      break;
+      
+  case TC_MAGIC_SUNAU_AUDIO:
+      vob->amod_probed=std_module[_sunau_];
       preset |= TC_AUDIO;
       break;
       
