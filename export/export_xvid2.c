@@ -73,7 +73,7 @@
  ****************************************************************************/
 
 #define MOD_NAME    "export_xvid2.so"
-#define MOD_VERSION "v0.3.9 (2003-07-24)"
+#define MOD_VERSION "v0.3.10 (2003-07-30)"
 #define MOD_CODEC   "(video) XviD 0.9.x (aka API 2.1 series)  | (audio) MPEG/AC3/PCM"
 #define MOD_PRE xvid2_ 
 #include "export_def.h"
@@ -169,7 +169,7 @@ MOD_init
 
 	if(param->flag == TC_VIDEO) {
 		bpp = 1000 * (vob->divxbitrate) / 
-			(vob->fps * vob->ex_v_width * vob->ex_v_height);
+			(vob->ex_fps * vob->ex_v_width * vob->ex_v_height);
     
 		if((buffer = malloc(BUFFER_SIZE))==NULL) {
 			perror("out of memory");
@@ -207,12 +207,12 @@ MOD_init
 		/* Set values for the unitialized members */
 		global_param.width  = vob->ex_v_width;
 		global_param.height = vob->ex_v_height;
-		if((vob->fps - (int)vob->fps) == 0) {
+		if((vob->ex_fps - (int)vob->ex_fps) == 0) {
 			global_param.fincr = 1;
-			global_param.fbase = (int)vob->fps;
+			global_param.fbase = (int)vob->ex_fps;
 		} else {
 			global_param.fincr = 1001;
-			global_param.fbase = (int)(1001 * vob->fps);
+			global_param.fbase = (int)(1001 * vob->ex_fps);
 		}
 
 		if(VbrMode == 0) {
@@ -413,7 +413,7 @@ MOD_open
 		if(avi_output) {
 			/* AVI Video output */
 			AVI_set_video(vob->avifile_out, vob->ex_v_width,
-				      vob->ex_v_height, vob->fps, "XVID");
+				      vob->ex_v_height, vob->ex_fps, "XVID");
 
 			if(vob->avi_comment_fd > 0)
 				AVI_set_comment_fd(vob->avifile_out,
