@@ -499,6 +499,26 @@ void tc_warn(char *fmt, ...)
   fflush(stdout);
 }
 
+void tc_info(char *fmt, ...)
+{
+  
+  va_list ap;
+
+  // munge format
+  int size = strlen(fmt)+strlen(BLUE)+strlen(GRAY)+strlen(PACKAGE)+strlen("[] \n")+1;
+  char *a = malloc (size);
+
+  version();
+
+  snprintf(a, size, "[%s%s%s] %s\n", BLUE, PACKAGE, GRAY, fmt);
+
+  va_start(ap, fmt);
+  vfprintf (stderr, a, ap);
+  va_end(ap);
+  free (a);
+  fflush(stdout);
+}
+
 vob_t *tc_get_vob() {return(vob);}
 
 /* ------------------------------------------------------------ 
