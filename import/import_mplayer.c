@@ -57,8 +57,6 @@ MOD_open
   switch (param->flag) {
     case TC_VIDEO:
     
-      rgbswap = !rgbswap; // needed!
-      
       if (mkfifo("stream.yuv", 00660) == -1) {
         perror("mkfifo(\"stream.yuv\") failed");
         return(TC_IMPORT_ERROR);
@@ -82,6 +80,7 @@ MOD_open
       }
       
       if (vob->im_v_codec == CODEC_YUV) {
+        rgbswap = !rgbswap;
         if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i stream.yuv -x yv12 -t yuv4mpeg")<0)) {
           perror("command buffer overflow");
           return(TC_IMPORT_ERROR);
