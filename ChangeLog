@@ -1,4 +1,17 @@
 2004-11-21 Jacob Meuser <jakemsr at jakemsr dot com>
+  * filter/subtitler/*
+  defining variables in a shared header is bad ju-ju.
+  cleanup and decruft.  should build on OS X now.
+
+2004-11-21 Jacob Meuser <jakemsr at jakemsr dot com>
+  * acinclude.m4 configure.in
+  don't do AC_LANG_PUSH/AC_LANG_POP in TC_PATH_PKG
+  add test for libiconv, which filter/subtitler needs
+  note: the test for libiconv causes warnings during
+  autoreconf.  see the cvs log for details.  the
+  warnings should be harmless.
+
+2004-11-21 Jacob Meuser <jakemsr at jakemsr dot com>
   * import/af6 import/net import/yuv
   Move contents of small subdirectories directly into the import/
   directory.
