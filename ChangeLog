@@ -1,3 +1,12 @@
+2004-11-21 Jacob Meuser <jakemsr at jakemsr dot com>
+  * import/af6 import/net import/yuv
+  Move contents of small subdirectories directly into the import/
+  directory.
+
+2004-11-19 Jacob Meuser <jakemsr at jakemsr dot com>
+  * */Makefile.am
+  Use variables defined by configure instead of substitutions
+
 2004-11-17 Andrew Church <achurch at achurch dot org>
   * import/tcprobe.c
   Allow the use of raw DVD images (*.iso) with tcprobe; this allows
