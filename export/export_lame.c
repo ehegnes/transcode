@@ -81,6 +81,7 @@ MOD_open
     int ochan;
     char chan;
     char *ptr = buf;
+	const char * swap_bytes = "";
     
     char br[64];
 
@@ -113,6 +114,10 @@ MOD_open
     ofreq_dec = ofreq-ofreq_int*1000;
 	    
     /* lame command line */
+
+#if !defined(WORDS_BIGENDIAN)
+	swap_bytes = "-x";
+#endif
     
     switch(vob->a_vbr) {
 
@@ -133,8 +138,8 @@ MOD_open
       break;
     }      
     
-    sprintf(ptr, "lame -x %s -s %d.%03d -m %c - \"%s.mp3\" 2>/dev/null %s", 
-	    br, ofreq_int, ofreq_dec, chan, vob->audio_out_file, (vob->ex_a_string?vob->ex_a_string:""));
+    sprintf(ptr, "lame -x %s %s %d.%03d -m %c - \"%s.mp3\" 2>/dev/null %s", 
+	    swap_bytes, br, ofreq_int, ofreq_dec, chan, vob->audio_out_file, (vob->ex_a_string?vob->ex_a_string:""));
     
     fprintf (stderr,"[%s] cmd=%s\n", MOD_NAME, buf);
     
