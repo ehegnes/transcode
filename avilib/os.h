@@ -14,12 +14,16 @@
 # define SYS_APPLE
 # define COMP_GCC
 # define SYS_UNIX
-# define SYS_BSD
+# if !defined(SYS_BSD)
+#  define SYS_BSD
+# endif
 #else
 # define COMP_GCC
 # define SYS_UNIX
-# if defined(__bsdi__) || defined(__FreeBSD__) 
-#  define SYS_BSD
+# if defined(__bsdi__) || defined(__FreeBSD__)
+#  if !defined(SYS_BSD)
+#   define SYS_BSD
+#  endif
 # else
 #  define SYS_LINUX
 # endif
