@@ -33,13 +33,13 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#include <avcodec.h>
+
 #include "vid_aux.h"
 
 //-- experimental --
 //#define HAS_DNR    1
 //------------------
-
-#define HAS_FFMPEG 1
 
 #ifdef HAS_DNR
 #include "mpeg_dnr.c"
@@ -49,28 +49,17 @@
 #include "../bbmpeg/bbencode.h"
 #include "probe_export.h"
 
-#ifdef HAS_FFMPEG
-#include "../ffmpeg/libavcodec/avcodec.h"
-#endif
-
 #ifdef HAS_DNR
 #define MOD_NAME    "export_mpeg_dnr.so"
 #else
 #define MOD_NAME    "export_mpeg.so"
 #endif
+
 #define MOD_VERSION "v1.2.3 (2003-08-21)"
-#ifdef HAS_FFMPEG
 #define MOD_CODEC   "(video) MPEG 1/2 | (audio) MPEG 1 Layer II"
-#else
-#define MOD_CODEC   "(video) MPEG 1/2"
-#endif
 
 static int verbose_flag=TC_QUIET;
-#ifdef HAS_FFMPEG
 static int capability_flag=TC_CAP_PCM|TC_CAP_YUV|TC_CAP_RGB;
-#else
-static int capability_flag=TC_CAP_YUV|TC_CAP_RGB;
-#endif
 
 #define MOD_PRE mpeg
 #include "export_def.h"
@@ -85,7 +74,6 @@ static int          bbmpeg_fnew   = 0;
 static int          bbmpeg_fcnt   = -1;
 static vob_t        bbmpeg_vob;
 
-#ifdef HAS_FFMPEG
 static AVCodec        *mpa_codec = NULL;
 static AVCodecContext mpa_ctx;
 static FILE*          mpa_out_file = NULL;
@@ -93,8 +81,6 @@ static char           *mpa_buf     = NULL;
 static int            mpa_buf_ptr  = 0;
 static int            mpa_bytes_ps, mpa_bytes_pf;
 static ReSampleContext *ReSamplectx=NULL;
-#endif
-
 
 //== cleanup/setup buffer to read source mpeg into ==
 //===================================================
@@ -236,7 +222,6 @@ MOD_open
     return(0);
   }
   
-#ifdef HAS_FFMPEG  
   if(param->flag == TC_AUDIO) 
   {
     if (mpa_out_file == NULL)
@@ -295,7 +280,6 @@ MOD_open
     }
     return(0);
   }
-#endif
 
   // invalid flag
   return(TC_EXPORT_ERROR); 
@@ -320,6 +304,20 @@ MOD_init
     char *p1 = NULL;
     char *p2 = NULL;
     char *p3 = NULL;
+
+	fprintf(stderr, "%s", 
+			"\n"
+			"*** WARNING ***\n"
+			"*** You are using the \"mpeg\" export module. ***\n"
+			"*** This is probably not what you want. ***\n"
+			"*** This module is based on the bbmpeg library, ***\n"
+			"*** which is obsolete, as is this export module. ***\n"
+			"*** This module may be removed in a future ***\n"
+			"*** transcode release. ***\n"
+			"*** Use the mpeg2enc or ffmpeg export modules instead ***\n"
+			"*** in combination with a vcd, svcd or dvd export profile ***\n"
+			"*** WARNING ***\n"
+			"\n");
 
     //ThOe added RGB2YUV cap
     if(vob->im_v_codec == CODEC_RGB) {
@@ -519,7 +517,6 @@ MOD_init
     return(0);
   }
 
-#ifdef HAS_FFMPEG
   if(param->flag == TC_AUDIO) 
   {
     //fprintf(stderr, "[%s] *** init-a *** !\n", MOD_NAME); 
@@ -542,7 +539,6 @@ MOD_init
 	audio_ext = ".mpa";
     return(0);  
   }
-#endif
 
   // invalid flag
   return(TC_EXPORT_ERROR); 
@@ -677,7 +673,6 @@ MOD_encode
       return(0);
   }
 
-#ifdef HAS_FFMPEG  
   if(param->flag == TC_AUDIO) 
   {
     int  in_size, out_size, new_size;
@@ -766,7 +761,6 @@ MOD_encode
     
     return(0);
   }
-#endif
   
   // invalid flag
   return(TC_EXPORT_ERROR); 
@@ -794,7 +788,6 @@ MOD_stop
     return(0);
   }
 
-#ifdef HAS_FFMPEG  
   if(param->flag == TC_AUDIO) 
   {
     //-- cleanup encoder --
@@ -802,7 +795,6 @@ MOD_stop
     
     return (0);
   }  
-#endif
   
   return(TC_EXPORT_ERROR);     
 }
@@ -816,7 +808,6 @@ MOD_stop
 MOD_close
 {  
 
-#ifdef HAS_FFMPEG
   if(param->flag == TC_AUDIO) 
   {
     //-- release encoder --
@@ -836,7 +827,6 @@ MOD_close
     
     return (0);
   } 
-#endif
     
   if(param->flag == TC_VIDEO) 
   {

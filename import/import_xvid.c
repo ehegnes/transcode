@@ -68,7 +68,7 @@ static int x_dim, y_dim;
 #define XVID_SHARED_LIB_NAME "libxvidcore.so"
 
 static int xvid2_init(char *path) {
-#if defined(__FreeBSD__) || defined(__APPLE__)
+#ifdef SYS_BSD
 	const
 #endif    
 		char *error;

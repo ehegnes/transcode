@@ -41,6 +41,10 @@
 #define DV_NTSC_SIZE   frame_size_525_60
 #define DV_HEADER_SIZE header_size
 
+static const int header_size = 80 * 52;
+static const int frame_size_525_60 = 10 * 150 * 80;
+static const int frame_size_625_50 = 12 * 150 * 80;
+
 static int verbose=TC_QUIET;
 
 static unsigned char *bufalloc(size_t size)

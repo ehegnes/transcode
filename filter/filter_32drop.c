@@ -44,6 +44,7 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "optstr.h"
 
 // basic parameter
 static int color_diff_threshold1=50;

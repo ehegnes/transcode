@@ -128,7 +128,7 @@ int tca_import(int opt, void *para1, void *para2)
 
 void *load_module(char *mod_name, int mode)
 {
-#if defined(__FreeBSD__) || defined (__APPLE__)
+#ifdef SYS_BSD
   const
 #endif  
   char *error;

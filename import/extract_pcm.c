@@ -47,25 +47,6 @@ static int verbose;
 
 static unsigned int track_code;
 
-static int cmp_16_bits(char *buf, long x)
-{
-  
-  int16_t sync_word=0;
-
-  if(0) {
-    fprintf(stderr, "MAGIC: 0x%02lx 0x%02lx 0x%02lx 0x%02lx %s\n", (x >> 24) & 0xff, ((x >> 16) & 0xff), ((x >>  8) & 0xff), ((x      ) & 0xff), filetype(x));
-    fprintf(stderr, " FILE: 0x%02x 0x%02x 0x%02x 0x%02x\n", buf[0] & 0xff, buf[1] & 0xff, buf[2] & 0xff, buf[3] & 0xff);
-  }
-
-  sync_word = (sync_word << 8) + (uint8_t) buf[0]; 
-  sync_word = (sync_word << 8) + (uint8_t) buf[1]; 
-  
-  if(sync_word == (int16_t) x) return 1;
-
-  // not found;
-  return 0;
-}
-
 static void pes_lpcm_loop (void)
 {
     static int mpeg1_skip_table[16] = {
@@ -73,16 +54,25 @@ static void pes_lpcm_loop (void)
 	0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff
     };
 
-    int n=0;
-
     uint8_t * buf;
     uint8_t * end;
     uint8_t * tmp1=NULL;
     uint8_t * tmp2=NULL;
     int complain_loudly;
 
+    const unsigned *extract_order;
+    unsigned extract_size;
+    unsigned i;
+    unsigned left_over;
+
+    static const unsigned lpcm_bele16[4] = { 1,0, 3,2 };
+    static const unsigned lpcm_bebe16[4] = { 0,1, 2,3 };
+    static const unsigned lpcm_bebe24[12] = { 0,1,8, 2,3,9 ,4,5,10, 6,7,11 };
+    static const unsigned lpcm_bele24[12] = { 8,1,0, 9,3,2 ,10,5,4, 11,7,6 };
+
     complain_loudly = 1;
     buf = buffer;
+    left_over = 0;
 
     do {
       end = buf + fread (buf, 1, buffer + BUFFER_SIZE - buf, in_file);
@@ -153,19 +143,64 @@ static void pes_lpcm_loop (void)
 
 	  if (*tmp1 == track_code) {   
 	    
-	    if (tmp1 < tmp2-2) 
-	      
-	      for(n=0; n<tmp2-tmp1-2; ++n) {
-		if(cmp_16_bits(tmp1+n, TC_MAGIC_LPCM)) {
-		  break;
+	    tmp1++;
+
+	    /*
+	     * Additional audio header consists of:
+	     *   number of frames
+	     *   offset to frame start (high byte)
+	     *   offset to frame start (low byte)
+	     *
+	     * followed by LPCM header:
+	     *   emphasis:1, mute:1, rvd:1, frame number:5
+	     *   quantization:2, freq:2, rvd:1, channels:3
+	     *   dynamic range control (0x80=off)
+	     */
+
+	    tmp1 += 3;
+
+	    switch ((tmp1[1] >> 6) & 3) {
+	    case 0: extract_size = 4;
+#ifdef WORDS_BIGENDIAN
+		    extract_order = lpcm_bebe16;
+#else
+		    extract_order = lpcm_bele16;
+#endif
+		    break;
+            case 2: extract_size = 12;
+#ifdef WORDS_BIGENDIAN
+		    extract_order = lpcm_bebe24;
+#else
+		    extract_order = lpcm_bele24;
+#endif
+		    break;
+            default: fprintf (stderr, "unsupported LPCM quantization\n");
+		     import_exit (1);
+            }
+
+	    tmp1 += 3;
+
+	    if (left_over) {
+	      while (left_over < extract_size && tmp1 != tmp2)
+		audio[left_over++] = *tmp1++;
+	      if (left_over == extract_size) {
+		for (i = 0; i < extract_size; i++)
+		  fputc (audio[extract_order[i]], out_file);
+		left_over = 0;
 		}
+	    }
+
+	    while ((tmp2 - tmp1) >= extract_size) {
+	      for (i = 0; i < extract_size; i++)
+		fputc (tmp1[extract_order[i]], out_file);
+	      tmp1 += extract_size;
 	      }
-	    
-	    tmp1 += n+2;
-	    if (tmp1 < tmp2) fwrite (tmp1, tmp2-tmp1, 1, stdout);
+
+	    while (tmp1 != tmp2)
+	      audio[left_over++] = *tmp1++;
 	  }
+
 	  buf = tmp2;
-	  
 	  break;
 	  
 	default:

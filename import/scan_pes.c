@@ -982,13 +982,36 @@ void probe_pes(info_t *ipipe)
 
 		if(!(ipipe->probe_info->track[num].attribute &
 		     PACKAGE_AUDIO_PCM)) {
+
+		  tmp1 += 4;
+
 		  ipipe->probe_info->track[num].attribute |= PACKAGE_AUDIO_PCM;
 
-		  //FIXME: need to read header
-		  ipipe->probe_info->track[num].samplerate=48000;
-		  ipipe->probe_info->track[num].bits=16;
-		  ipipe->probe_info->track[num].chan=2;
-		  ipipe->probe_info->track[num].bitrate=1536;
+		  switch ((tmp1[1] >> 4) & 3) {
+		  case 0: ipipe->probe_info->track[num].samplerate = 48000;
+			  break;
+		  case 1: ipipe->probe_info->track[num].samplerate = 96000;
+			  break;
+		  case 2: ipipe->probe_info->track[num].samplerate = 44100;
+			  break;
+		  case 3: ipipe->probe_info->track[num].samplerate = 32000;
+			  break;
+		  }
+		  switch ((tmp1[1] >> 6) & 3) {
+		  case 0: ipipe->probe_info->track[num].bits = 16;
+			  break;
+		  case 1: ipipe->probe_info->track[num].bits = 20;
+			  break;
+		  case 2: ipipe->probe_info->track[num].bits = 24;
+			  break;
+		  default: fprintf (stderr, "unknown LPCM quantization\n");
+			  import_exit (1);
+		  }
+		  ipipe->probe_info->track[num].chan = 1 + (tmp1[1] & 7);
+		  ipipe->probe_info->track[num].bitrate
+		    = ipipe->probe_info->track[num].samplerate
+		      * ipipe->probe_info->track[num].bits
+		      * ipipe->probe_info->track[num].chan / 1000;
 		  ipipe->probe_info->track[num].format=CODEC_LPCM;
 
 		  memcpy(scan_buf, &buf[6], 16);

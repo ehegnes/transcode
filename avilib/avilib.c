@@ -25,14 +25,14 @@
  *
  */
 
-#include "os.h"
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #else 
 #define PACKAGE "transcode"
 #define VERSION "0.6.12"
 #endif
+
+#include "os.h"
 
 #if defined(COMP_MSC) || defined(COMP_MINGW)
 #include <io.h>

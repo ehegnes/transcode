@@ -131,7 +131,7 @@ void tc_info(char *fmt, ...)
 
 void *load_module(char *mod_name, char *mod_path, int mode)
 {
-#if defined(__FreeBSD__) || defined (__APPLE__)
+#ifdef SYS_BSD
   const
 #endif  
   char *error;
@@ -215,7 +215,7 @@ void *load_module(char *mod_name, char *mod_path, int mode)
 
 
 int load_plugin(char *path, int id) {
-#if defined(__FreeBSD__) || defined(__APPLE__)
+#ifdef SYS_BSD
   const
 #endif    
   char *error;

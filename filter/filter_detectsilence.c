@@ -50,6 +50,7 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "optstr.h"
 
 static int a_rate, a_bits, chan; 
 

@@ -50,9 +50,10 @@ void ac_mmtest();
 char *ac_mmstr(int flag, int mode);
 
 //ac_memcpy
-int ac_memcpy_mmx(char *dest, char *src, int bytes);
-int ac_memcpy_sse(char *dest, char *src, int bytes);
-int ac_memcpy_sse2(char *dest, char *src, int bytes);
+void * ac_memcpy_mmx(void *dest, const void *src, int bytes);
+void * ac_memcpy_sse(void *dest, const void *src, int bytes);
+void * ac_memcpy_sse2(void *dest, const void *src, int bytes);
+void * ac_memcpy_amdmmx(void *dest, const void *src, int bytes);
 
 //average (simple average over 2 rows)
 int ac_average_mmx(char *row1, char *row2, char *out, int bytes);

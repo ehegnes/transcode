@@ -28,6 +28,9 @@
 #endif
 #endif
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 #ifdef	__linux__
 #include <features.h>
 #endif
@@ -108,7 +111,7 @@ int rtjpeg_vid_open(char *tplorg)
     regions[0].end   = -1;
   }
 
-#if defined(__FreeBSD__) || defined(__APPLE__) 
+#ifdef SYS_BSD
   rtjpeg_vid_file=open(tplorg, O_RDONLY);
 #else 
   rtjpeg_vid_file=open(tplorg, O_RDONLY|O_LARGEFILE);

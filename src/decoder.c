@@ -40,8 +40,8 @@ static FILE *fd_ppm=NULL, *fd_pcm=NULL;
 static void *import_ahandle, *import_vhandle;
 
 // import flags (1=import active | 0=import closed)
-static int aimport=0;
-static int vimport=0;
+static volatile int aimport=0;
+static volatile int vimport=0;
 static pthread_mutex_t import_v_lock=PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t import_a_lock=PTHREAD_MUTEX_INITIALIZER;
 
@@ -149,16 +149,15 @@ void import_threads_cancel()
   
   if(verbose & TC_DEBUG) fprintf(stderr, "(%s) audio thread exit (ret_code=%d) (status_code=%d)\n", __FILE__, cc2, (int) status);
 
-  
   cc1 = pthread_mutex_trylock(&vframe_list_lock);
   
   if(verbose & TC_DEBUG) fprintf(stderr, "(%s) vframe_list_lock=%s\n", __FILE__, (cc1==EBUSY)? "BUSY":"0");
-  pthread_mutex_unlock(&vframe_list_lock);
+  if(cc1 == 0) pthread_mutex_unlock(&vframe_list_lock);
   
   cc2 = pthread_mutex_trylock(&aframe_list_lock);
   
   if(verbose & TC_DEBUG) fprintf(stderr, "(%s) aframe_list_lock=%s\n", __FILE__, (cc2==EBUSY)? "BUSY":"0");
-  pthread_mutex_unlock(&aframe_list_lock);
+  if(cc2 == 0) pthread_mutex_unlock(&aframe_list_lock);
 
   return;
 
@@ -450,6 +449,12 @@ static int mfread(char *buf, int size, int nelem, FILE *f)
   return (nelem);
 }
 
+static void
+import_lock_cleanup (void *arg)
+{
+  pthread_mutex_unlock ((pthread_mutex_t *)arg);
+}
+
 //-------------------------------------------------------------------------
 //
 // video import thread
@@ -485,6 +490,8 @@ void vimport_thread(vob_t *vob)
     //check buffer fill level
     pthread_mutex_lock(&vframe_list_lock);
     
+    pthread_cleanup_push (import_lock_cleanup, &vframe_list_lock);
+
     while(vframe_fill_level(TC_BUFFER_FULL)) {
 	pthread_cond_wait(&vframe_list_full_cv, &vframe_list_lock);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
@@ -493,10 +500,12 @@ void vimport_thread(vob_t *vob)
 	
 	// check for pending shutdown via ^C
 	if(vimport_test_shutdown()) {
-	  pthread_mutex_unlock(&vframe_list_lock);
 	  pthread_exit( (int *) 11);
 	}
     }
+
+    pthread_cleanup_pop (0);
+
     pthread_mutex_unlock(&vframe_list_lock);
     
     // get a frame buffer or wait
@@ -673,6 +682,8 @@ void aimport_thread(vob_t *vob)
     //check buffer fill level
     pthread_mutex_lock(&aframe_list_lock);
     
+    pthread_cleanup_push (import_lock_cleanup, &aframe_list_lock);
+
     while(aframe_fill_level(TC_BUFFER_FULL)) {
       pthread_cond_wait(&aframe_list_full_cv, &aframe_list_lock);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
@@ -681,11 +692,12 @@ void aimport_thread(vob_t *vob)
 
       // check for pending shutdown via ^C
       if(aimport_test_shutdown(TEST_ON_BUFFER_FULL)) {
-	pthread_mutex_unlock(&aframe_list_lock);
 	pthread_exit( (int *) 11);
       }
     }
     
+    pthread_cleanup_pop (0);
+
     pthread_mutex_unlock(&aframe_list_lock);
     
     // get a frame buffer or wait
@@ -959,15 +971,16 @@ void aimport_start()
 int aimport_status()
 {
   
-  int cc=0;
+  int cc;
 
   pthread_mutex_lock(&import_a_lock);
 
-  if(aimport) {
-    pthread_mutex_unlock(&import_a_lock);
-    return(aimport);
-  }
+  cc = aimport;
+
   pthread_mutex_unlock(&import_a_lock);
+
+  if (cc)
+    return 1;
 
   // decoder finished, check for frame list
   pthread_mutex_lock(&aframe_list_lock);
@@ -997,16 +1010,16 @@ void aimport_notify()
 int vimport_status()
 {
   
-  int cc=0;
+  int cc;
 
   pthread_mutex_lock(&import_v_lock);
 
-  if(vimport) {
-    pthread_mutex_unlock(&import_v_lock);
-    return(vimport);
-  }
+  cc = vimport;
 
   pthread_mutex_unlock(&import_v_lock);
+
+  if (cc)
+    return 1;
   
   // decoder finished, check for frame list
   pthread_mutex_lock(&vframe_list_lock);

@@ -48,8 +48,10 @@
 # endif
 #endif
 
-#if !defined(__FreeBSD__) && !defined(__APPLE__)
-#include <malloc.h>
+#ifndef SYS_BSD
+# ifdef HAVE_MALLOC_H
+# include <malloc.h>
+# endif
 #endif
 
 #include "xvid4.h"
@@ -1158,7 +1160,7 @@ static void print_matrix(unsigned char *matrix)
 
 static int load_xvid(xvid_module_t *xvid, char *path)
 {
-#if defined(__FreeBSD__) || defined(__APPLE__)
+#ifdef SYS_BSD
 	const char *error;
 #else
 	char *error;

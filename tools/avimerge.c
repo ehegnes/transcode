@@ -27,7 +27,6 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "avilib.h"
 #include "config.h"
 #include "transcode.h"
 #include "aud_scan.h"

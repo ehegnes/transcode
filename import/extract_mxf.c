@@ -30,7 +30,6 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "avilib.h"
 #include "ioaux.h"
 #include "aux_pes.h"
 #include "tc.h"

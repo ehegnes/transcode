@@ -1,5 +1,5 @@
 /*
-    $Id: mjpeg_types.h,v 1.3 2003-11-05 11:02:15 tibit Exp $
+    $Id: mjpeg_types.h,v 1.4 2004-10-17 22:03:14 jacob Exp $
 
     Copyright (C) 2000 Herbert Valerio Riedel <hvr@gnu.org>
 
@@ -58,8 +58,8 @@ typedef u_int64_t uint64_t;
 /* fixme */
 #endif /* HAVE_STDINT_H */
 
-#if defined(__FreeBSD__)
-#include <sys/types.h> /* FreeBSD - ssize_t */
+#if defined(HAVE_SYS_TYPES_H)
+#include <sys/types.h>
 #endif
 
 #if defined(HAVE_STDBOOL_H) && !defined(__cplusplus)

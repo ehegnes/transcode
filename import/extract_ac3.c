@@ -42,7 +42,6 @@
 
 #include <limits.h>
 #include <ac3.h>
-#include "avilib.h"
 #include "ioaux.h"
 #include "aux_pes.h"
 #include "tc.h"
@@ -206,7 +205,7 @@ static void pes_ac3_loop (void)
 	  if(verbose & TC_STATS) fprintf(stderr,"track code 0x%x\n", *tmp1); 
 	  
 	  if(vdr_work_around) {
-	    if (tmp1 < tmp2) fwrite (tmp1, tmp2-tmp1, 1, stdout);
+	    if (tmp1 < tmp2) fwrite (tmp1, tmp2-tmp1, 1, out_file);
 	  } else {
 
 	    //subtitle
@@ -266,7 +265,7 @@ static void pes_ac3_loop (void)
 		    fprintf(stderr, "AC3 PTS=%f\n", (double) i_pts/90000.);
 		}
 		
-		if (tmp1 < tmp2) fwrite (tmp1, tmp2-tmp1, 1, stdout);
+		if (tmp1 < tmp2) fwrite (tmp1, tmp2-tmp1, 1, out_file);
 	    }
 	  }
 	  

@@ -181,7 +181,7 @@ static unsigned char *bufalloc(size_t size)
 }
 
 static int divx_init(char *path) {
-#ifdef __FreeBSD__
+#ifdef SYS_BSD
     const
 #endif    
     char *error;

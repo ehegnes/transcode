@@ -95,6 +95,7 @@ YUV_MASK is used to prevent picture areas to be cut out.
 #include "load_font.h"
 #include "frame_list.h"
 #include "object_list.h"
+#include "optstr.h"
 
 int debug_flag;
 font_desc_t *vo_font;

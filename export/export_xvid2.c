@@ -48,8 +48,10 @@
 # endif
 #endif
 
-#if !defined(__FreeBSD__) && !defined(__APPLE__) /* We have malloc() in stdlib.h */
-#include <malloc.h>
+#ifndef SYS_BSD /* We have malloc() in stdlib.h */
+# ifdef HAVE_MALLOC_H
+# include <malloc.h>
+# endif
 #endif
 
 /* You must match options compiled into your XviD lib */
@@ -643,7 +645,7 @@ MOD_stop
 static int xvid2_init(char *path)
 {
 
-#if defined(__FreeBSD__) || defined(__APPLE__)
+#ifdef SYS_BSD
 	const
 #endif    
 		char *error;

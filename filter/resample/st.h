@@ -15,10 +15,16 @@
 extern "C" {
 #endif
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef HAVE_MALLOC_H
-#include <malloc.h>
+#ifndef SYS_BSD
+# ifdef HAVE_MALLOC_H
+# include <malloc.h>
+# endif
 #endif
 #ifdef HAVE_BYTESWAP_H
 #include <byteswap.h>

@@ -829,7 +829,7 @@ char **char2bmp(char c) {
 
 int preview_grab_jpeg(void) 
 {
-#if defined(__FreeBSD__) || defined (__APPLE__)
+#ifdef SYS_BSD
     const
 #endif  
     char *error;

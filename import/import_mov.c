@@ -27,14 +27,16 @@
 #include <unistd.h>
 #include <string.h>
 #include <quicktime.h>
+#include <colormodels.h>
 #include "transcode.h"
+#include "magic.h"
 
 #define MOD_NAME    "import_mov.so"
 #define MOD_VERSION "v0.1.2 (2002-05-16)"
 #define MOD_CODEC   "(video) * | (audio) *"
 
 static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV;
+static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
 
 #define MOD_PRE mov
 #include "import_def.h"
@@ -44,19 +46,26 @@ static quicktime_t *qt_audio=NULL;
 static quicktime_t *qt_video=NULL;
 
 /* row pointer for decode frame */
-static unsigned char **ptr = 0;
+static unsigned char **row_ptr = NULL;
 /* raw or decode frame */
 static int rawVideoMode = 0;
 /* raw or decode audio */
 static int rawAudioMode = 0;
 /* frame size */
-static int width=0, height=0;
+static int w=0, h=0;
 /* number of audio channels */
 static int chan=0;
 /* number of audio bits */
 static int bits=0;
 
+/* number of frames */
 static int frames=0;
+
+/* number of audio samples */
+static int no_samples=0;
+
+/* import colormodel */
+static int qt_cm = 0;
 
 /* ------------------------------------------------------------ 
  *
@@ -77,16 +86,18 @@ MOD_open
     /* open movie for audio extraction */
     if(qt_audio==NULL) {
       if(NULL == (qt_audio = quicktime_open(vob->audio_in_file,1,0))){
-	fprintf(stderr,"error: can't open quicktime!\n");
-	return(TC_IMPORT_ERROR); 
+	       fprintf(stderr,"error: can't open quicktime!\n");
+	       return(TC_IMPORT_ERROR); 
       } 
     }   
 
     /* check for audio track */
     numTrk = quicktime_audio_tracks(qt_audio);
     if(numTrk==0) {
-      fprintf(stderr,"error: no audio track in quicktime found!\n");
-      return(TC_IMPORT_ERROR); 
+      fprintf(stderr,"[%s] AUDIO: --no audio track in quicktime found --\n",
+            MOD_NAME);
+      no_samples=0;
+      return(0);
     }
     
     /* extract audio parameters */
@@ -95,9 +106,12 @@ MOD_open
     bits   = quicktime_audio_bits(qt_audio, 0);
     codec  = quicktime_audio_compressor(qt_audio, 0);
 
+    /* The total frames */
+    no_samples=quicktime_audio_length(qt_audio, 0);
+
     /* verbose info */
-    fprintf(stderr, "[%s] codec=%s, rate=%ld Hz, bits=%d, channels=%d\n", 
-	    MOD_NAME, codec, rate, bits, chan);
+    fprintf(stderr, "[%s] codec=%s, rate=%ld Hz, bits=%d, channels=%d, samples=%d\n", 
+           MOD_NAME, codec, rate, bits, chan, no_samples);
 
     /* check bits */
     if((bits!=8)&&(bits!=16)) {
@@ -146,8 +160,8 @@ MOD_open
     /* open movie for video extraction */
     if(qt_video==NULL) 
       if(NULL == (qt_video = quicktime_open(vob->video_in_file,1,0))){
-	fprintf(stderr,"error: can't open quicktime!\n");
-	return(TC_IMPORT_ERROR); 
+	       fprintf(stderr,"error: can't open quicktime!\n");
+	       return(TC_IMPORT_ERROR); 
       }
     
     /* check for audio track */
@@ -158,17 +172,17 @@ MOD_open
     }
 
     /* read all video parameter from input file */
-    width  =  quicktime_video_width(qt_video, 0);
-    height =  quicktime_video_height(qt_video, 0);    
+    w      =  quicktime_video_width(qt_video, 0);
+    h      =  quicktime_video_height(qt_video, 0);    
     fps    =  quicktime_frame_rate(qt_video, 0);
     codec  =  quicktime_video_compressor(qt_video, 0);
-    
-    /* verbose info */
-    fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
-	    MOD_NAME, codec, fps, width, height);
 
     //ThOe total frames
     frames=quicktime_video_length(qt_video, 0);
+
+    /* verbose info */
+    fprintf(stderr, "[%s] VIDEO: codec=%s, fps=%6.3f, width=%d, height=%d, frames=%d\n", 
+           MOD_NAME, codec, fps, w, h, frames);
 
     /* check codec string */
     if(strlen(codec)==0) {
@@ -176,43 +190,67 @@ MOD_open
       return(TC_IMPORT_ERROR);
     }
 
-    /* RGB import */
-    if(vob->im_v_codec == CODEC_RGB) {
-
-      /* check if a suitable compressor is available */
-      if(quicktime_supported_video(qt_video,0)==0) {
-	fprintf(stderr, "error: quicktime codec '%s' not supported for RGB!\n",
-		codec);
-	return(TC_IMPORT_ERROR);
-      }
-
-      rawVideoMode = 0;
-
-      /* allocate buffer for row pointers */
-      ptr = malloc(height*sizeof(char *));
-      if(ptr==0) {
-	fprintf(stderr,"error: can't alloc row pointers\n");
-	return(TC_IMPORT_ERROR);
-      }
+    /* check if a suitable compressor is available */
+    if(quicktime_supported_video(qt_video,0)==0) {
+	     fprintf(stderr, "error: quicktime codec '%s' not supported for RGB!\n",
+		      codec);
+	     return(TC_IMPORT_ERROR);
     }
-    /* YUV import */
-    else if(vob->im_v_codec == CODEC_YUV) {
 
-      /* accept only 4:2:0 YUV */
-      if((strcasecmp(codec,QUICKTIME_YUV4)!=0)&&
-	 (strcasecmp(codec,QUICKTIME_YUV420)!=0)) {
-	fprintf(stderr, "error: quicktime codec '%s' not suitable for YUV!\n",
-		codec);
-	return(TC_IMPORT_ERROR);
-      }
 
-      rawVideoMode = 1;
-    }
-    /* unknown import mode */
-    else {
-      fprintf(stderr,"error: unknown codec mode!\n");
-      return(TC_IMPORT_ERROR);
-    }
+    /* set color model */
+    switch(vob->im_v_codec) {
+        case CODEC_RGB:
+              /* use raw mode when possible */                      /* not working ?*/
+              /*if (strcmp(qt_codec, "raw ")) rawVideo=1; */
+	      	    /* allocate buffer for row pointers */
+	      	    row_ptr = malloc(h*sizeof(char *));
+	      	    if(row_ptr==0) {
+			           fprintf(stderr,"error: can't alloc row pointers\n");
+			           return(TC_IMPORT_ERROR);
+	      	    }
+
+              quicktime_set_cmodel(qt_video, BC_RGB888); qt_cm = BC_RGB888;
+              break;
+              
+        case CODEC_YUV:
+              /* use raw mode when possible */                      /* not working ?*/
+              /* if (strcmp(qt_codec, "yv12")) rawVideo=1; */       
+
+	      	    /* allocate buffer for row pointers */
+	      	    row_ptr = malloc(3*sizeof(char *));
+              if(row_ptr==0) {
+			           fprintf(stderr,"error: can't alloc row pointers\n");
+			           return(TC_IMPORT_ERROR);
+	      	    }
+
+              quicktime_set_cmodel(qt_video, BC_YUV420P); qt_cm = BC_YUV420P;
+              break;
+/*TODO: implement YUV2  / Passthrough has issues */
+        case CODEC_YUV422:
+              /*fprintf(stderr," using yuv422\n"); */                 
+              quicktime_set_cmodel(qt_video, BC_YUV422); qt_cm = BC_YUV422;
+              break;
+                         
+        case CODEC_YUY2:
+              /*fprintf(stderr," using yuy2\n");*/
+              quicktime_set_cmodel(qt_video, BC_YUV422); qt_cm = CODEC_YUY2;
+              break;                         
+         
+         /* passthrough */
+         case CODEC_RAW_RGB:
+         case CODEC_RAW_YUV:
+         case CODEC_RAW:
+              rawVideoMode = 1;
+              break;
+              
+        default:
+            /* unsupported internal format */
+            fprintf(stderr,"[%s] unsupported internal video format %x\n",
+                MOD_NAME,vob->ex_v_codec);
+            return(TC_EXPORT_ERROR);
+            break;
+       }
 
     return(0);
   }
@@ -242,20 +280,41 @@ MOD_decode
     } else {
       /* decode frame */
       int y;
-      char *mem = param->buffer;
-      
-      /* set row pointers for buffer */
-      for(y=0;y<height;y++) {
-	ptr[y] = mem;
-	mem += width * 3;
-      }
+      unsigned char *mem = param->buffer;
+
+      int iy,sl;
+
+      switch(qt_cm) {
+      case BC_RGB888:
+              /* setup row pointers for RGB: inverse! */
+              sl = w*3; 
+              for(iy=0;iy<h;iy++){
+                  row_ptr[iy] = mem;
+                  mem += sl;
+              }
+		            
+              param->size = (h*w) * 3;
+              break;
+                
+      case BC_YUV420P: {
+              /* setup row pointers for YUV420P: inverse! */
+              row_ptr[0] = mem;
+              mem = mem + (h*w);
+              row_ptr[1] = mem;
+              mem = mem + (h*w)/4;
+              row_ptr[2] = mem;
+		            
+              param->size = (h*w*3)/2;
+              break;
+              }
+      }      
+
       /* decode the next frame */
-      if(quicktime_decode_video(qt_video,ptr,0)<0) {
-	if(verbose & TC_DEBUG)
-	  fprintf(stderr,"can't decode frame");
-	return(TC_IMPORT_ERROR);
-      }
-      param->size = (mem-param->buffer);
+      if(lqt_decode_video(qt_video,row_ptr,0)<0) {
+        if(verbose & TC_DEBUG)
+          fprintf(stderr,"can't decode frame");
+          return(TC_IMPORT_ERROR);
+        }
     }
 
     //ThOe trust file header and terminate after all frames have been processed.
@@ -265,7 +324,14 @@ MOD_decode
 
   /* audio */
   if(param->flag == TC_AUDIO) {
+
     int bytes_read;
+
+    /* Leave if audio track is empty */
+    if (no_samples==0){
+      param->size=0;
+      return(0);
+    }
 
     /* raw read mode */
     if(rawAudioMode) {
@@ -366,8 +432,8 @@ MOD_close
       qt_video=NULL;
     }
     /* free row pointer */
-    if(ptr!=0)
-      free(ptr);
+    if(row_ptr!=0)
+      free(row_ptr);
     
     return(0);
   }

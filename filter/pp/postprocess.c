@@ -72,8 +72,10 @@ try to unroll inner for(x=0 ... loop to avoid these damn if(x ... checks
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef HAVE_MALLOC_H
-#include <malloc.h>
+#ifndef SYS_BSD
+# ifdef HAVE_MALLOC_H
+# include <malloc.h>
+# endif
 #endif
 //#undef HAVE_MMX2
 //#define HAVE_3DNOW

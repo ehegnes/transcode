@@ -233,7 +233,7 @@ static void ps_loop (void)
 	  
 	  if((buf[3] & 0xff) == demux_track) {
 	      if (tmp1 < tmp2)
-		if (fwrite (tmp1, tmp2-tmp1, 1, stdout) != 1)
+		if (fwrite (tmp1, tmp2-tmp1, 1, out_file) != 1)
 		  import_exit(0); /* decoder exited */
 	  }
 	  buf = tmp2;

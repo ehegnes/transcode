@@ -27,7 +27,7 @@
 #include <string.h>
 
 #include "transcode.h"
-#include "../ffmpeg/libavcodec/avcodec.h"
+#include <avcodec.h>
 #include "yuv2rgb.h"
 #include "avilib.h"
 #include "magic.h"

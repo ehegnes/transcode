@@ -50,6 +50,7 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "optstr.h"
 
 static int min=0, max=0, bytes_per_sec;
 static long total=0;

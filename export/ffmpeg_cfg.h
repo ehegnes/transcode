@@ -2,7 +2,7 @@
 #define __FFMPEG_CFG_H
 
 #include "../libioaux/configs.h"
-#include "../ffmpeg/libavcodec/avcodec.h"
+#include <avcodec.h>
 
 //char *lavc_param_vcodec = "mpeg4";
 //extern int lavc_param_vbitrate;
@@ -63,9 +63,7 @@ extern int lavc_param_me_pre_cmp;
 extern int lavc_param_me_cmp;
 extern int lavc_param_me_sub_cmp;
 extern int lavc_param_mb_cmp;
-#ifdef FF_CMP_VSAD
 extern int lavc_param_ildct_cmp;
-#endif
 extern int lavc_param_pre_dia_size;
 extern int lavc_param_dia_size;
 extern int lavc_param_qpel;
@@ -94,6 +92,13 @@ extern int lavc_param_alt;
 extern int lavc_param_ilme;
 extern int lavc_param_scan_offset;
 extern int lavc_param_threads;
+extern int lavc_param_gmc;
+extern int lavc_param_trunc;
+extern int lavc_param_fps_code;
+extern int lavc_param_closedgop;
+extern int lavc_param_intra_dc_precision;
+extern int lavc_param_skip_top;
+extern int lavc_param_skip_bottom;
 
 extern struct config lavcopts_conf[];
 

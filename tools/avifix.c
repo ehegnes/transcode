@@ -29,8 +29,8 @@
 #include <fcntl.h>
 #include <string.h>
 
-#include "avilib.h"
 #include "config.h"
+#include "avilib.h"
 
 #define EXE "avifix"
 

@@ -3,6 +3,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+#ifdef HAVE_STRING_H
+# include <string.h>
+#endif
 #include "ac.h"
 
 //exported
@@ -89,6 +95,10 @@ static int mm_support(void)
             rval |= MM_3DNOW;
         if (edx & 0x00400000)
             rval |= MM_MMXEXT;
+		if(edx & 0x02000000)
+			rval |= MM_SSE;
+		if(edx & 0x04000000)
+			rval |= MM_SSE2;
         return rval;
     } else if (ebx == 0x69727943 &&
                edx == 0x736e4978 &&

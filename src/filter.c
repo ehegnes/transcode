@@ -127,7 +127,7 @@ int filter_unquote_options(char *options)
 }
 
 int load_plugin(char *path) {
-#if defined(__FreeBSD__) || defined (__APPLE__)
+#ifdef SYS_BSD
   const
 #endif    
   char *error;

@@ -44,6 +44,7 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "optstr.h"
 
 char *get_next_range(char *name, char *_string)
 {

@@ -50,12 +50,11 @@
 #endif
 
 #include "transcode.h"
-#include "aclib/ac.h"
-
+// #include "aclib/ac.h"
 #include "filter/mmx.h"
 
 #define MOD_NAME		"import_v4l2.so"
-#define MOD_VERSION		"v1.2.2 (2004-01-03)"
+#define MOD_VERSION		"v1.3.3 (2004-08-08)"
 #define MOD_CODEC		"(video) v4l2 | (audio) pcm"
 
 static int verbose_flag		= TC_QUIET;
@@ -97,16 +96,19 @@ static int capability_flag	= TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_PC
 					hacked in alternate fields (#if 0'ed) 
 					fixed a typo (UYUV -> UYVY)
 	1.2.2	EMS	fixed av sync mutex not yet grabbed problem with "busy" wait
+	1.3.0	EMS	added cropping cap, removed saa7134 and bttv specific code, not
+					necessary
+	1.3.1	EMS make conversion user-selectable
+	1.3.2	EMS removed a/v sync mutex, doesn't work as expected
+			EMS added explicit colour format / frame rate selection
+			EMS deleted disfunctional experimental alternating fields code
+			EMS added experimental code to make sa7134 survive sync glitches
+	1.3.3	EMS adapted fast memcpy to new default transcode method
 
 	TODO
 
 	- add more conversion schemes
-	- make conversion user-selectable
 	- use more mmx/sse/3dnow
-	- add (clean) alternate fields support to spit out
-	  	50 fields per second.
-
-	vim: ts=4
 */
 
 #define module "[" MOD_NAME "]: "
@@ -141,12 +143,10 @@ static struct
 	size_t length;
 } * v4l2_buffers;
 
-static pthread_mutex_t	v4l2_av_start_mutex = PTHREAD_MUTEX_INITIALIZER;
+static char *			v4l2_device;
 static v4l2_fmt_t		v4l2_fmt;
 static v4l2_resync_op	v4l2_video_resync_op = resync_none;
 
-static int	v4l2_saa7134_video = 0;
-static int	v4l2_bttv_video = 0;
 static int	v4l2_saa7134_audio = 0;
 static int	v4l2_overrun_guard = 1;
 static int 	v4l2_resync_margin_frames = 0;
@@ -161,11 +161,18 @@ static int	v4l2_video_dropped = 0;
 static int	v4l2_frame_rate;
 static int	v4l2_width = 0;
 static int	v4l2_height = 0;
+static int	v4l2_crop_width = 0;
+static int	v4l2_crop_height = 0;
+static int	v4l2_crop_left = 0;
+static int	v4l2_crop_top = 0;
+static int	v4l2_crop_enabled = 0;
+static int	v4l2_convert_index = -2;
 
-static char * v4l2_resync_previous_frame = 0;
+static char *	v4l2_resync_previous_frame = 0;
+static char		v4l2_crop_parm[128] = "";
+static char		v4l2_format_string[128] = "";
 
-static int	 		(*v4l2_memcpy)(char *, const char *, int) = (int (*)(char *, const char *, int))memcpy;
-static void			(*v4l2_format_convert)(const char *, char *, size_t, int, int) = 0;
+static void		(*v4l2_format_convert)(const char *, char *, size_t, int, int) = 0;
 
 static void v4l2_convert_rgb24_rgb(const char *, char *, size_t, int, int);
 static void v4l2_convert_bgr24_rgb(const char *, char *, size_t, int, int);
@@ -177,9 +184,12 @@ static void v4l2_convert_yuv420_yuv420(const char *, char *, size_t, int, int);
 
 static v4l2_parameter_t v4l2_parameters[] =
 {
-	{ v4l2_param_int, "resync_margin",   0, { .integer = &v4l2_resync_margin_frames }},
-	{ v4l2_param_int, "resync_interval", 0, { .integer = &v4l2_resync_interval_frames }},
-	{ v4l2_param_int, "overrun_guard",   0, { .integer = &v4l2_overrun_guard }}
+	{ v4l2_param_int, 		"resync_margin",	0,							{ .integer	= &v4l2_resync_margin_frames }},
+	{ v4l2_param_int, 		"resync_interval",	0,							{ .integer	= &v4l2_resync_interval_frames }},
+	{ v4l2_param_int, 		"overrun_guard",	0,							{ .integer	= &v4l2_overrun_guard }},
+	{ v4l2_param_string,	"crop",				sizeof(v4l2_crop_parm),		{ .string	= v4l2_crop_parm }},
+	{ v4l2_param_int,		"convert",			0,							{ .integer	= &v4l2_convert_index }},
+	{ v4l2_param_string,	"format",			sizeof(v4l2_format_string),	{ .string	= v4l2_format_string }}
 };
 
 static v4l2_format_convert_table_t v4l2_format_convert_table[] = 
@@ -207,7 +217,7 @@ static void v4l2_convert_rgb24_rgb(const char * source, char * dest, size_t size
 	if(mysize != size)
 		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
 
-	v4l2_memcpy(dest, source,  mysize);
+	tc_memcpy(dest, source,  mysize);
 }
 
 static void v4l2_convert_bgr24_rgb(const char * source, char * dest, size_t size, int xsize, int ysize)
@@ -233,7 +243,7 @@ static void v4l2_convert_uyvy_yuv422(const char * source, char * dest, size_t si
 	if(mysize != size)
 		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
 
-	v4l2_memcpy(dest, source, mysize);
+	tc_memcpy(dest, source, mysize);
 }
 
 static void v4l2_convert_yuyv_yuv422(const char * source, char * dest, size_t size, int xsize, int ysize)
@@ -394,7 +404,7 @@ static void v4l2_convert_yvu420_yuv420(const char * source, char * dest, size_t 
 	if(mysize != size)
 		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
 
-	v4l2_memcpy(dest, source, mysize);
+	tc_memcpy(dest, source, mysize);
 }
 
 static void v4l2_convert_yuv420_yuv420(const char * source, char * dest, size_t size, int xsize, int ysize)
@@ -410,9 +420,9 @@ static void v4l2_convert_yuv420_yuv420(const char * source, char * dest, size_t 
 	if(mysize != size)
 		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
 
-	v4l2_memcpy(dest + yplane_offset,  source + yplane_offset,  yplane_size);
-	v4l2_memcpy(dest + u1plane_offset, source + u2plane_offset, uplane_size);
-	v4l2_memcpy(dest + u2plane_offset, source + u1plane_offset, uplane_size);
+	tc_memcpy(dest + yplane_offset,  source + yplane_offset,  yplane_size);
+	tc_memcpy(dest + u1plane_offset, source + u2plane_offset, uplane_size);
+	tc_memcpy(dest + u2plane_offset, source + u1plane_offset, uplane_size);
 }
 
 /* ============================================================ 
@@ -443,7 +453,7 @@ static int v4l2_video_clone_frame(char *dest, size_t size)
 	if(!v4l2_resync_previous_frame)
 		memset(dest, 0, size);
 	else
-		v4l2_memcpy(dest, v4l2_resync_previous_frame, size);
+		tc_memcpy(dest, v4l2_resync_previous_frame, size);
 
 	return(1);
 }
@@ -453,14 +463,14 @@ static void v4l2_save_frame(const char * source, size_t length)
 	if(!v4l2_resync_previous_frame)
 		v4l2_resync_previous_frame = malloc(length);
 
-	v4l2_memcpy(v4l2_resync_previous_frame, source, length);
+	tc_memcpy(v4l2_resync_previous_frame, source, length);
 }
 
 static int v4l2_video_grab_frame(char * dest, size_t length)
 {
 	static struct v4l2_buffer buffer;
-	static int next_buffer_ix = 0;
 	int ix;
+	int eio = 0;
 
 	// get buffer
 
@@ -470,34 +480,57 @@ static int v4l2_video_grab_frame(char * dest, size_t length)
 	if(ioctl(v4l2_video_fd, VIDIOC_DQBUF, &buffer) < 0)
 	{
 		perror(module "VIDIOC_DQBUF");
-		return(0);
+
+		if(errno != EIO)
+			return(0);
+		else
+		{
+			eio = 1;
+
+			for(ix = 0; ix < v4l2_buffers_count; ix++)
+			{
+				buffer.type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+				buffer.memory	= V4L2_MEMORY_MMAP;
+				buffer.index	= ix;
+				buffer.flags	= 0;
+
+				if(ioctl(v4l2_video_fd, VIDIOC_DQBUF, &buffer) < 0)
+					perror("recover DQBUF");
+			}
+
+			for(ix = 0; ix < v4l2_buffers_count; ix++)
+			{
+				buffer.type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+				buffer.memory	= V4L2_MEMORY_MMAP;
+				buffer.index	= ix;
+				buffer.flags	= 0;
+
+				if(ioctl(v4l2_video_fd, VIDIOC_QBUF, &buffer) < 0)
+					perror("recover QBUF");
+			}
+		}
 	}
-
-	// check sync
-
+	
 	ix	= buffer.index;
-
-	if(next_buffer_ix != ix)
-		fprintf(stderr, "\n" module "video frame missed (buffer pool) (%d/%d)\n", ix, next_buffer_ix);
-
-	next_buffer_ix = (ix + 1) % v4l2_buffers_count;
 
 	// copy frame
 
 	if(dest)
 		v4l2_format_convert(v4l2_buffers[ix].start, dest, length, v4l2_width, v4l2_height);
 	
-#if 0
-	// for alternating fields
-	if (dest) memcpy(dest, v4l2_buffers[ix].start, length/2);
-#endif
-
 	// enqueue buffer again
 
-	if(ioctl(v4l2_video_fd, VIDIOC_QBUF, &buffer) < 0)
+	if(!eio)
 	{
-		perror(module "VIDIOC_QBUF");
-		return(0);
+		buffer.type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		buffer.memory	= V4L2_MEMORY_MMAP;
+		buffer.flags	= 0;
+	
+		if(ioctl(v4l2_video_fd, VIDIOC_QBUF, &buffer) < 0)
+		{
+			perror(module "VIDIOC_QBUF");
+			return(0);
+		}
 	}
 
 	return(1);
@@ -576,10 +609,10 @@ static void v4l2_parse_options(const char * options_in)
 				{
 					case(v4l2_param_int): *(pt->value.integer) = strtoul(value, 0, 10); break;
 					case(v4l2_param_fp): *(pt->value.fp) = strtod(value, 0); break;
-						case(v4l2_param_string):
+					case(v4l2_param_string):
 					{
 						strncpy(pt->value.string, value, pt->length);
-						pt->value.string[pt->length] = '\0';
+						pt->value.string[pt->length - 1] = '\0';
 						break;
 					}
 				}
@@ -609,50 +642,8 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 	struct v4l2_buffer buffer;
 	struct v4l2_capability caps;
 	struct v4l2_streamparm streamparm;
-	v4l2_std_id std;
-	const char * memcpy_name;
-
-	if(pthread_mutex_trylock(&v4l2_av_start_mutex))
-	{
-		perror(module "lock av mutex");
-		return(1);
-	}
-
-	memcpy_name = 0;
-
-#if defined(ARCH_X86) && defined(HAVE_ASM_NASM)
-
-	if(tc_accel & MM_SSE2)
-	{
-		v4l2_memcpy = (void *)ac_memcpy_sse2;
-		memcpy_name = "sse2";
-	}
-	else
-		if(tc_accel & MM_SSE)
-		{
-			v4l2_memcpy = (void *)ac_memcpy_sse;
-			memcpy_name = "sse";
-		}
-		else
-			if(tc_accel & MM_MMX)
-			{
-				v4l2_memcpy = (void *)ac_memcpy_mmx;
-				memcpy_name = "mmx";
-			}
-
-	if(verbose_flag & TC_INFO)
-	{
-		if(!memcpy_name)
-			fprintf(stderr, module "accelerated memcpy disabled by autodetection / flags\n");
-		else
-			fprintf(stderr, module "accelerated memcpy using: %s\n", memcpy_name);
-	}
-#else
-	if(verbose_flag & TC_INFO)
-	{
-		fprintf(stderr, module "accelerated memcpy disabled by config\n");
-	}
-#endif
+	v4l2_std_id stdid;
+	struct v4l2_standard standard;
 
 	switch(layout)
 	{
@@ -669,6 +660,16 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 
 	v4l2_parse_options(options);
 
+	if(v4l2_convert_index == -1)	// list
+	{
+		for(ix = 0, fcp = v4l2_format_convert_table, found = 0; ix < (sizeof(v4l2_format_convert_table) / sizeof(*v4l2_format_convert_table)); ix++)
+		{
+			fprintf(stderr, module "conversion index: %d = %s\n", ix, fcp[ix].description);
+		}
+
+		return(1);
+	}
+
 	if(verbose_flag & TC_INFO)
 	{
 		if(v4l2_resync_margin_frames == 0 || v4l2_resync_interval_frames == 0)
@@ -678,6 +679,9 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 					v4l2_resync_margin_frames,
 					v4l2_resync_interval_frames);
 	}
+
+	if(device)
+		v4l2_device = strdup(device);
 
 	if((v4l2_video_fd = open(device, O_RDWR, 0)) < 0)
 	{
@@ -704,82 +708,18 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 	}
 
 	if(verbose_flag & TC_INFO)
-	{
 		fprintf(stderr, module "video grabbing, driver = %s, card = %s\n",
 				caps.driver, caps.card);
-	}
-
-	if(!strncmp(caps.driver, "saa713", 6))
-	{
-		if(verbose_flag & TC_INFO)
-			fprintf(stderr, module "video input from saa7134 driver detected\n");
-		v4l2_saa7134_video = 1;
-	}
-
-	if(!strncmp(caps.driver, "bttv", 4))
-	{
-		if(verbose_flag & TC_INFO)
-			fprintf(stderr, module "video input from bttv driver detected\n");
-		v4l2_bttv_video = 1;
-	}
 
 	v4l2_width = width;
 	v4l2_height = height;
 
-	if(!v4l2_saa7134_video && !v4l2_bttv_video)
-	{
-		cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-
-		if(ioctl(v4l2_video_fd, VIDIOC_CROPCAP, &cropcap) < 0)
-		{
-			perror(module "VIDIOC_CROPCAP");
-			return(1);
-		}
-
-		if((width > cropcap.bounds.width) || (height > cropcap.bounds.height) || (width < 0) || (height < 0))
-		{
-			fprintf(stderr, module "dimensions exceed maximum crop area: %dx%d\n", cropcap.bounds.width, cropcap.bounds.height);
-			return(1);
-		}
-
-		if(verbose_flag & TC_INFO)
-		{
-			fprintf(stderr, module "cropcap: %dx%d +%d+%d\n", 
-					cropcap.bounds.width,
-					cropcap.bounds.height,
-					cropcap.bounds.top,
-					cropcap.bounds.left);
-		}
-	
-		crop.type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		crop.c.width	= cropcap.defrect.width;
-		crop.c.height	= cropcap.defrect.height;
-		crop.c.left		= cropcap.defrect.left;
-		crop.c.top		= cropcap.defrect.top;
-
-		if(ioctl(v4l2_video_fd, VIDIOC_S_CROP, &crop) < 0)
-		{
-			perror(module "VIDIOC_S_CROP: ");
-			return(1);
-		}
-
-		memset(&streamparm, 0, sizeof(streamparm));
-
-		streamparm.type										= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		streamparm.parm.capture.capturemode					= 0;
-		streamparm.parm.capture.timeperframe.numerator 		= 1;
-		streamparm.parm.capture.timeperframe.denominator	= fps;
-
-		if(ioctl(v4l2_video_fd, VIDIOC_S_PARM, &streamparm) < 0)
-		{
-			perror(module "VIDIOC_S_PARM: ");
-			return(1);
-		}
-	}
-
 	for(ix = 0, fcp = v4l2_format_convert_table, found = 0; ix < (sizeof(v4l2_format_convert_table) / sizeof(*v4l2_format_convert_table)); ix++)
 	{
 		if(fcp[ix].to != v4l2_fmt)
+			continue;
+
+		if((v4l2_convert_index >= 0) && (v4l2_convert_index != ix))
 			continue;
 
 		memset(&format, 0, sizeof(format));
@@ -787,12 +727,6 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 		format.fmt.pix.width		= width;
 		format.fmt.pix.height		= height;
 		format.fmt.pix.pixelformat	= fcp[ix].from;
-
-#if 0
-		// this causes the driver to deliver the fields alternating
-		if ((int)fps > 30)
-			format.fmt.pix.field        = V4L2_FIELD_ALTERNATE;
-#endif
 
 		if(ioctl(v4l2_video_fd, VIDIOC_S_FMT, &format) < 0)
 			perror(module "VIDIOC_S_FMT: ");
@@ -811,16 +745,84 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 		return(1);
 	}
 
-	if(ioctl(v4l2_video_fd, VIDIOC_G_STD, &std) < 0)
+	memset(&streamparm, 0, sizeof(streamparm));
+	streamparm.type										= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	streamparm.parm.capture.capturemode					= 0;
+	streamparm.parm.capture.timeperframe.numerator 		= 1e7;
+	streamparm.parm.capture.timeperframe.denominator	= fps;
+
+	if(ioctl(v4l2_video_fd, VIDIOC_S_PARM, &streamparm) < 0)
+	{
+		fprintf(stderr, module "driver does not support setting parameters (ioctl(VIDIOC_S_PARM) returns \"%s\")\n",
+			errno <= sys_nerr ? sys_errlist[errno] : "unknown");
+	}
+
+	if(!strcmp(v4l2_format_string, "list")) // list
+	{
+		for(ix = 0; ix < 128; ix++)
+		{
+			standard.index = ix;
+
+			if(ioctl(v4l2_video_fd, VIDIOC_ENUMSTD, &standard) < 0)
+			{
+				if(errno == EINVAL)
+					break;
+
+				perror("VIDIOC_ENUMSTD");
+				return(1);
+			}
+
+			fprintf(stderr, module "%s\n", standard.name);
+		}
+
+		return(1);
+	}
+
+	if(strlen(v4l2_format_string) > 0)
+	{
+		for(ix = 0; ix < 128; ix++)
+		{
+			standard.index = ix;
+
+			if(ioctl(v4l2_video_fd, VIDIOC_ENUMSTD, &standard) < 0)
+			{
+				if(errno == EINVAL)
+					break;
+
+				perror("VIDIOC_ENUMSTD");
+				return(1);
+			}
+
+			if(!strcasecmp(standard.name, v4l2_format_string))
+				break;
+		}
+
+		if(ix == 128)
+		{
+			fprintf(stderr, module "unknown format %s\n", v4l2_format_string);
+			return(1);
+		}
+		
+		if(ioctl(v4l2_video_fd, VIDIOC_S_STD, &standard.id) < 0)
+		{
+			perror(module "VIDIOC_S_STD");
+			return(-1);
+		}
+
+		if(verbose_flag & TC_INFO)
+			fprintf(stderr, module "colour & framerate standard set to: [%s]\n", standard.name);
+	}
+
+	if(ioctl(v4l2_video_fd, VIDIOC_G_STD, &stdid) < 0)
 	{
 		perror(module "VIDIOC_QUERYSTD: ");
 		return(1);
 	}
 
-	if(std & V4L2_STD_525_60)
+	if(stdid & V4L2_STD_525_60)
 		v4l2_frame_rate = 30;
 	else
-		if(std & V4L2_STD_625_50)
+		if(stdid & V4L2_STD_625_50)
 			v4l2_frame_rate = 25;
 		else
 		{
@@ -829,7 +831,127 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 		}
 
 	if(verbose_flag & TC_INFO)
+	{
+		fprintf(stderr, module "checking colour & framerate standards: ");
+
+		for(ix = 0; ix < 128; ix++)
+		{
+			standard.index = ix;
+
+			if(ioctl(v4l2_video_fd, VIDIOC_ENUMSTD, &standard) < 0)
+			{
+				if(errno == EINVAL)
+					break;
+
+				perror("\n" module "VIDIOC_ENUMSTD");
+				return(1);
+			}
+
+			if(standard.id == stdid)
+				fprintf(stderr, "[%s] ", standard.name);
+		}
+
+		fputs("\n", stderr);
 		fprintf(stderr, module "receiving %d frames / sec\n", v4l2_frame_rate);
+	}
+
+	if(strcmp(v4l2_crop_parm, ""))
+	{
+		if(sscanf(v4l2_crop_parm, "%ux%u+%ux%u", &v4l2_crop_width, &v4l2_crop_height,
+					&v4l2_crop_left, &v4l2_crop_top) == 4)
+			v4l2_crop_enabled = 1;
+		else
+		{
+			v4l2_crop_height = v4l2_crop_width = 
+				v4l2_crop_top = v4l2_crop_left = 0;
+			v4l2_crop_enabled = 0;
+		}
+	}
+
+	if((verbose_flag & TC_INFO) && v4l2_crop_enabled)
+	{
+		fprintf(stderr, module "source frame set to: %dx%d+%dx%d\n",
+			v4l2_crop_width, v4l2_crop_height,
+			v4l2_crop_left, v4l2_crop_top);
+	}
+
+	cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+	if(ioctl(v4l2_video_fd, VIDIOC_CROPCAP, &cropcap) < 0)
+	{
+		fprintf(stderr, module "driver does not support cropping (ioctl(VIDIOC_CROPCAP) returns \"%s\"), disabled\n",
+			errno <= sys_nerr ? sys_errlist[errno] : "unknown");
+	}
+	else
+	{
+		fprintf(stderr, module "frame size: %dx%d\n", width, height);
+		fprintf(stderr, module "cropcap bounds: %dx%d +%d+%d\n", 
+				cropcap.bounds.width,
+				cropcap.bounds.height,
+				cropcap.bounds.left,
+				cropcap.bounds.top);
+		fprintf(stderr, module "cropcap defrect: %dx%d +%d+%d\n", 
+				cropcap.defrect.width,
+				cropcap.defrect.height,
+				cropcap.defrect.left,
+				cropcap.defrect.top);
+		fprintf(stderr, module "cropcap pixelaspect: %d/%d\n",
+				cropcap.pixelaspect.numerator,
+				cropcap.pixelaspect.denominator);
+
+		if((width > cropcap.bounds.width) || (height > cropcap.bounds.height) || (width < 0) || (height < 0))
+		{
+			fprintf(stderr, module "capturing dimensions exceed maximum crop area: %dx%d\n", cropcap.bounds.width, cropcap.bounds.height);
+			return(1);
+		}
+
+		crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+		if(ioctl(v4l2_video_fd, VIDIOC_G_CROP, &crop) < 0)
+		{
+			fprintf(stderr, module "driver does not support inquering cropping parameters (ioctl(VIDIOC_G_CROP) returns \"%s\")\n",
+				errno <= sys_nerr ? sys_errlist[errno] : "unknown");
+		}
+		else
+		{
+			fprintf(stderr, module "default cropping: %dx%d +%d+%d\n", 
+				crop.c.width,
+				crop.c.height,
+				crop.c.left,
+				crop.c.top);
+		}
+
+		if(v4l2_crop_enabled)
+		{
+			crop.type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+			crop.c.width	= v4l2_crop_width;
+			crop.c.height	= v4l2_crop_height;
+			crop.c.left		= v4l2_crop_left;
+			crop.c.top		= v4l2_crop_top;
+
+			if(ioctl(v4l2_video_fd, VIDIOC_S_CROP, &crop) < 0)
+			{
+				perror("VIDIOC_S_CROP");
+				return(1);
+			}
+
+			crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+			if(ioctl(v4l2_video_fd, VIDIOC_G_CROP, &crop) < 0)
+			{
+				fprintf(stderr, module "driver does not support inquering cropping parameters (ioctl(VIDIOC_G_CROP) returns \"%s\")\n",
+					errno <= sys_nerr ? sys_errlist[errno] : "unknown");
+			}
+			else
+			{
+				fprintf(stderr, module "cropping after set frame source: %dx%d +%d+%d\n", 
+					crop.c.width,
+					crop.c.height,
+					crop.c.left,
+					crop.c.top);
+			}
+		}
+	}
 
 	// get buffer data
 
@@ -919,21 +1041,6 @@ int	v4l2_video_get_frame(size_t size, char * data)
 {
 	int buffers_filled = 0;
 	int dummy;
-
-	if(v4l2_video_sequence == 0)
-	{
-		for(dummy = 0; dummy < 4; dummy++)
-			if(!v4l2_video_grab_frame(0, 0))
-				return(1);
-
-		if(pthread_mutex_unlock(&v4l2_av_start_mutex))
-		{
-			perror(module "unlock av start mutex by video read frame\n");
-			return(1);
-		}
-
-		sched_yield();
-	}
 
 	if(v4l2_overrun_guard)
 	{
@@ -1056,6 +1163,9 @@ int v4l2_audio_init(const char * device, int rate, int bits, int channels)
 		return(1);
 	}
 
+	if(!strcmp(device, "/dev/null") || !strcmp(device, "/dev/zero"))
+		return(0);
+
 	if(bits != 8 && bits != 16)
 	{
 		fprintf(stderr, module "bits/sample must be 8 or 16\n");
@@ -1117,44 +1227,6 @@ int v4l2_audio_grab_frame(size_t size, char * buffer)
 	int left;
 	int offset;
 	int received;
-	int result;
-
-	if(v4l2_audio_sequence == 0) // wait for video to start
-	{
-		for(;;)
-		{
-			if((result = pthread_mutex_trylock(&v4l2_av_start_mutex)))
-				break;
-
-			fprintf(stderr, module "Waiting one second for av start mutex to be locked\n");
-			sleep(1);
-		}
-
-		if(result != EBUSY) 
-		{
-			perror(module "av start mutex trylock");
-			fprintf(stderr, module "result = %d\n", result);
-			return(1);
-		}
-
-		if(pthread_mutex_lock(&v4l2_av_start_mutex))
-		{
-			perror(module "av mutex lock");
-			return(1);
-		}
-
-		if(pthread_mutex_unlock(&v4l2_av_start_mutex))
-		{
-			perror(module "av mutex unlock");
-			return(1);
-		}
-
-		if(pthread_mutex_destroy(&v4l2_av_start_mutex))
-		{
-			perror(module "av mutex destroy");
-			return(1);
-		}
-	}
 
 	for(left = size, offset = 0; left > 0;)
 	{

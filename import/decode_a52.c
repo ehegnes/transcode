@@ -54,7 +54,7 @@ static void *handle;
 static char module[TC_BUF_MAX];
 
 int a52_do_init(char *path) {
-#ifdef __FreeBSD__
+#ifdef SYS_BSD
     const
 #endif    
     char *error;

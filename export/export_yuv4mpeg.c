@@ -203,7 +203,7 @@ MOD_encode
 	}
 	
 	
-#ifdef USE_NEW_CVS_CODE
+#ifdef USE_NEW_MJPEGTOOLS_CODE
 	y4m_init_frame_info(&info);
 	
 	if(y4m_write_frame_header( fd, &y4mstream, &info ) != Y4M_OK )
@@ -214,7 +214,7 @@ MOD_encode
 #else
 	y4m_init_frame_info(&info);
 	
-	if(y4m_write_frame_header( fd, &y4mstream) != Y4M_OK )
+	if(y4m_write_frame_header( fd, &info) != Y4M_OK )
 	{
 	    perror("write frame header");
 	    return(TC_EXPORT_ERROR);

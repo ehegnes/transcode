@@ -141,13 +141,23 @@ AC_FUNC_STAT
 AC_FUNC_STRCOLL
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS([strtol memalign ftruncate gettimeofday memset strerror strncasecmp stat floor atexit getpagesize memmove mkfifo vsscanf strptime])
+AC_CHECK_LIB(m, lrint, AC_DEFINE(HAVE_LIBM_LRINT, 1, [Define if the lrint() function is in libm on your system]))
+
+case "$host_os" in
+  freebsd*|openbsd*|netbsd*|bsdi*|darwin*|rhapsody*)
+     AC_DEFINE([SYS_BSD], 1, [Define if your system is modern BSD])
+     ;;
+  *)
+     ;;
+esac
+
 
 dnl for libavcodec
 AC_CHECK_LIB(m, lrintf, AC_DEFINE([HAVE_LRINTF], 1, [define if you have the lrintf function]))
 
 dnl Replace `main' with a function in pthread libs:
  case "$host" in
-   *-*-freebsd*)
+   *-*-freebsd*|*-*-openbsd*)
     pthread_cflags="-D_REENTRANT -D_THREAD_SAFE"
     pthread_lib="-pthread"
     ;;
@@ -188,7 +198,7 @@ dnl       code, not whether the host can execute the code, thats done
 dnl       at run time with the exception of the SSE code.
 dnl
 dnl 
-have_asm_mmx=false
+dnl have_asm_mmx=false  # we can't set this and then use AC_CACHE_CHECK()
 have_asm_sse=false
 have_asm_3dnow=false
 have_asm_nasm=false
@@ -399,7 +409,7 @@ if test "$enable_3dnow_accel" != "no" ; then
 EOF
  if $CC -c conftest.S ; then
    rm -f conftest.*
-   AC_DEFINE([HAVE_ASM_3DNOW], 1, [Define if you CPU can du 3dnow assembler])
+   AC_DEFINE([HAVE_ASM_3DNOW], 1, [Define if your tool chain can do 3dnow assembler])
    have_asm_3dnow=true
  else
    echo "configure: failed program was:" >&AC_FD_CC
@@ -413,6 +423,25 @@ else
   AC_MSG_RESULT(no)
 fi
 
+dnl ************************************************************************
+dnl Check that the GCC tool chain can generate SSE assmebly instructions
+dnl
+if test "$enable_sse_accel" != "no"; then
+   AC_CACHE_CHECK([if \$CC groks SSE inline assembly],
+		  [have_asm_sse],
+		  [CFLAGS="${CFLAGS_save}"
+		   AC_TRY_COMPILE(,[void *p;asm volatile("movntps %xmm0, 0"::"r"(p));],
+		   have_asm_sse=yes, have_asm_sse=no)])
+   if test "x${have_asm_sse}" != "xno"; then
+      AC_DEFINE([HAVE_ASM_SSE], 1, [Define if your CPU understands ASM SSE instructions])
+      AC_DEFINE([HAVE_SSE], 1, [Define if your CPU understands SSE instructions])
+      have_asm_sse=true
+      AC_MSG_RESULT([yes])
+   else
+      AC_MSG_RESULT([no])
+   fi
+fi
+
 dnl ********************************************************************* 
 dnl This test only works on Linux machines with /proc filesystem support
 dnl enabled or on *BSD (tested under FreeBSD) where CPU information is in
@@ -424,7 +453,7 @@ if test x$have_x86cpu = xtrue ; then
  AC_MSG_CHECKING(for CMOV support)
  if test "$enable_cmov_extension" != "no" ; then
  case "$host" in
- *-*-freebsd*)
+ *-*-freebsd*|*-*-openbsd*)
   cpu_features=`grep -l CMOV /var/run/dmesg.boot`
   if test X"$cpu_features" = X"/var/run/dmesg.boot" ; then
     have_cmov=true
@@ -470,6 +499,7 @@ dnl **********************************************************************
 dnl All the conditional stuff for the Makefiles
 dnl
 AM_CONDITIONAL(HAVE_ASM_MMX, test x$have_asm_mmx = xtrue)
+AM_CONDITIONAL(HAVE_ASM_SSE, test x$have_asm_sse = xtrue)
 AM_CONDITIONAL(HAVE_ASM_3DNOW, test x$have_asm_3dnow = xtrue)
 AM_CONDITIONAL(HAVE_ASM_NASM, test x$have_asm_nasm = xtrue)
 AM_CONDITIONAL(HAVE_X86CPU, test x$have_x86cpu = xtrue)
@@ -823,12 +853,12 @@ dnl
 AM_PATH_LZO(AC_DEFINE([HAVE_LZO], 1, [Have liblzo support]))
 AM_CONDITIONAL(HAVE_LZO, test x"$have_lzo" = "xyes")
 
-dnl
-dnl LIBZ support
-dnl
-
-AM_PATH_LIBZ(AC_DEFINE([HAVE_LIBZ], 1, [Have libz support]))
-AM_CONDITIONAL(HAVE_LIBZ, test x"$have_libz" = "xyes")
+dnl dnl
+dnl dnl LIBZ support
+dnl dnl
+dnl 
+dnl AM_PATH_LIBZ(AC_DEFINE([HAVE_LIBZ], 1, [Have libz support]))
+dnl AM_CONDITIONAL(HAVE_LIBZ, test x"$have_libz" = "xyes")
 
 dnl
 dnl A52 support
@@ -991,6 +1021,25 @@ then
 	mjpeg_incs="`mjpegtools-config --prefix`/include/mjpegtools"
 	AC_CHECK_FILE($mjpeg_incs/yuv4mpeg.h, 
 	   [AC_DEFINE(HAVE_MJPEG_INC, 1, mjpeg include)])
+
+  dnl
+  dnl check if we have version >= Mar 31 2004
+
+  CFLAGS="$CFLAGS $MJPEG_CFLAGS"
+  LIBS="$LIBS $MJPEG_LIBS"
+  AC_TRY_LINK([
+  #if defined(HAVE_MJPEG_INC)
+  #include "yuv4mpeg.h"
+  #include "mpegconsts.h"
+  #else
+  #include "mjpegtools/yuv4mpeg.h"
+  #include "mjpegtools/mpegconsts.h"
+  #endif],
+  [y4m_write_frame_header(1, NULL, NULL)], 
+    [AC_DEFINE(USE_NEW_MJPEGTOOLS_CODE, 1, using mjpegtools post Mar 31 2004)])
+  CFLAGS="$ac_save_CFLAGS"
+  LIBS="$ac_save_LIBS"
+
 else
 MJPEGTOOLSCONFIG=no
 fi
@@ -1118,6 +1167,13 @@ AM_PATH_LIBJPEG(AC_DEFINE([HAVE_LIBJPEG], 1, [Have libjpeg support]))
 AM_CONDITIONAL(HAVE_LIBJPEG, test x"$have_libjpeg" = "xyes")
 
 dnl
+dnl ffmpeg support
+dnl
+
+AM_PATH_FFMPEG(AC_DEFINE([HAVE_FFMPEG], 1, [Have ffmpeg binary support]))
+AM_CONDITIONAL(HAVE_FFMPEG, test x"$have_ffmpeg" = "xyes")
+
+dnl
 dnl avilib
 dnl
 
@@ -1157,15 +1213,17 @@ dnl
 dnl libavcodec
 dnl
 
-AVCODEC_CFLAGS="-I\$(top_srcdir)/ffmpeg/libavcodec"
-AVCODEC_LIBS="-L\$(top_builddir)/ffmpeg/libavcodec -ltcavcodec"
-if test x"$have_libz" = "xyes"; then
-  AVCODEC_CFLAGS="$AVCODEC_CFLAGS $LIBZ_CFLAGS";
-  AVCODEC_LIBS="$AVCODEC_LIBS $LIBZ_LIBS";
-fi
-AC_SUBST(AVCODEC_CFLAGS)
-AC_SUBST(AVCODEC_LIBS)
+AM_PATH_FFMPEG_LIBS(AC_DEFINE([HAVE_FFMPEG_LIBS], 1, [Have ffmpeg avcodec libraray support]))
+AM_CONDITIONAL(HAVE_FFMPEG_LIBS, test x"$have_ffmpeg_libs" = "xyes")
 
+dnl AVCODEC_CFLAGS="-I\$(top_srcdir)/ffmpeg/libavcodec"
+dnl AVCODEC_LIBS="-L\$(top_builddir)/ffmpeg/libavcodec -ltcavcodec"
+dnl if test x"$have_libz" = "xyes"; then
+dnl   AVCODEC_CFLAGS="$AVCODEC_CFLAGS $LIBZ_CFLAGS";
+dnl   AVCODEC_LIBS="$AVCODEC_LIBS $LIBZ_LIBS";
+dnl fi
+dnl AC_SUBST(AVCODEC_CFLAGS)
+dnl AC_SUBST(AVCODEC_LIBS)
 
 dnl
 dnl libxio if requested
@@ -1229,6 +1287,11 @@ AC_SUBST(CFLAGS)
 AC_SUBST(CC)
 AC_SUBST(LDFLAGS)
 
+dnl			ffmpeg/Makefile
+dnl			ffmpeg/libavcodec/Makefile
+dnl			ffmpeg/libavcodec/i386/Makefile
+dnl			ffmpeg/libavcodec/ppc/Makefile
+
 AC_OUTPUT([
            Makefile
 	   libxio/Makefile
@@ -1243,10 +1306,6 @@ AC_OUTPUT([
            libdvenc/Makefile
            bbmpeg/Makefile
            bbmpeg/tcmplex/Makefile
-           ffmpeg/Makefile
-           ffmpeg/libavcodec/Makefile
-           ffmpeg/libavcodec/i386/Makefile
-           ffmpeg/libavcodec/ppc/Makefile
            export/Makefile
            import/Makefile
            import/nuv/Makefile
@@ -1265,6 +1324,7 @@ AC_OUTPUT([
            filter/test/Makefile
            filter/ivtc/Makefile
            filter/yuvdenoise/Makefile
+           filter/tomsmocomp/Makefile
            pvm3/Makefile
            docs/Makefile
            docs/html/Makefile
@@ -1316,6 +1376,11 @@ experimental lve support                         $have_liblve
 libmpeg3 dependent modules                       $have_libmpeg3
 libfame video encoding plugin                    $have_libfame
 quicktime dependent modules                      $have_qt
+ffmpeg libs headers                              $with_ffmpeg_libs_i
+ffmpeg libs libraries                            $with_ffmpeg_libs_l
+ffmpeg libs build                                $FFMPEG_BUILD
+ffmpeg libs version                              $FFMPEG_VERSION
+ffbin modules                                    $have_ffmpeg
 *-*-*-*-*-*-* Filter *-*-*-*-*-*-*
 X11 dependent filter plugins                     $USE_X11
 freetype2 dependent filter (text, subtitler)     $freetype2

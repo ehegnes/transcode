@@ -43,6 +43,7 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "optstr.h"
 
 // this variable is for external control from transcode. Not enabled right now
 // extern int tc_do_telecide;

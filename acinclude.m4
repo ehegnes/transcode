@@ -93,7 +93,7 @@ dnl
 dnl pvm3
 dnl 
 
-AC_DEFUN(AM_PATH_PVM3,
+AC_DEFUN([AM_PATH_PVM3],
 [
 AC_ARG_WITH(pvm3, AC_HELP_STRING([--with-pvm3],[Enable pvm3 code (yes)]),[case "${withval}" in
   yes) with_pvm3=yes;;
@@ -166,7 +166,7 @@ dnl AM_PATH_AVIFILE([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for AVIFILE, and define AVIFILE_CFLAGS and AVIFILE_LIBS
 dnl
 
-AC_DEFUN(AM_PATH_AVIFILE,
+AC_DEFUN([AM_PATH_AVIFILE],
 [
 dnl 
 dnl Get the cflags and libraries from the avifile-config script
@@ -259,7 +259,7 @@ dnl AM_PATH_LAME([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for LAME, and define LAME_CFLAGS and LAME_LIBS
 dnl
 
-AC_DEFUN(AM_PATH_LAME,
+AC_DEFUN([AM_PATH_LAME],
 [
 
 AC_ARG_WITH(lame, AC_HELP_STRING([--with-lame],[use installed lame library (yes)]),[case "${withval}" in
@@ -368,7 +368,7 @@ AC_SUBST(LAME_LIBS)
 dnl AM_PATH_OGG([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for libogg, and define OGG_CFLAGS and OGG_LIBS
 dnl
-AC_DEFUN(AM_PATH_OGG,
+AC_DEFUN([AM_PATH_OGG],
 [dnl 
 dnl Get the cflags and libraries
 dnl
@@ -424,7 +424,7 @@ AC_SUBST(OGG_LIBS)
 dnl AM_PATH_VORBIS([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for libvorbis, and define VORBIS_CFLAGS and VORBIS_LIBS
 dnl
-AC_DEFUN(AM_PATH_VORBIS,
+AC_DEFUN([AM_PATH_VORBIS],
 [dnl 
 dnl Get the cflags and libraries
 dnl
@@ -480,7 +480,7 @@ AC_SUBST(VORBIS_LIBS)
 dnl AM_PATH_THEORA([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for libtheora, and define THEORA_CFLAGS and THEORA_LIBS
 dnl
-AC_DEFUN(AM_PATH_THEORA,
+AC_DEFUN([AM_PATH_THEORA],
 [dnl 
 dnl Get the cflags and libraries
 dnl
@@ -537,7 +537,7 @@ dnl AM_PATH_LIBDVDREAD([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for LIBDVDREAD, and define LIBDVDREAD_CFLAGS and LIBDVDREAD_LIBS
 dnl
 
-AC_DEFUN(AM_PATH_LIBDVDREAD,
+AC_DEFUN([AM_PATH_LIBDVDREAD],
 [
 
 AC_ARG_WITH(dvdread, AC_HELP_STRING([--with-dvdread],[use installed libdvdread library (yes)]),[case "${withval}" in
@@ -597,7 +597,7 @@ dnl AM_PATH_LIBXVID([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for LIBXVID, and define LIBXVID_CFLAGS and LIBXVID_LIBS
 dnl
 
-AC_DEFUN(AM_PATH_LIBXVID,
+AC_DEFUN([AM_PATH_LIBXVID],
 [
 
 AC_ARG_WITH(xvidcore, AC_HELP_STRING([--with-xvidcore],[use installed LIBXVID library (yes)]),[case "${withval}" in
@@ -650,7 +650,7 @@ dnl libdv
 dnl 
 dnl 
 
-AC_DEFUN(AM_PATH_DV,
+AC_DEFUN([AM_PATH_DV],
 [
 
 AC_ARG_WITH(dv, AC_HELP_STRING([--with-dv],[build libdv dependent modules (yes)]),[case "${withval}" in
@@ -714,63 +714,66 @@ AC_SUBST(DV_CFLAGS)
 
 
 dnl 
-dnl liblzo
-dnl 
+dnl FFmpeg libs support
 dnl 
 
-have_libz=no
-AC_DEFUN(AM_PATH_LIBZ,
+have_ffmpeg_libs=no
+AC_DEFUN([AM_PATH_FFMPEG_LIBS],
 [
+dnl AC_ARG_WITH(ffmpeg-libs, AC_HELP_STRING([--with-ffmpeg-libs],[build  dependent modules (yes)]),[case "${withval}" in
+dnl  yes) ;;
+dnl  no)  ;;
+dnl  *) AC_MSG_ERROR(bad value ${withval} for --with-libz) ;;
+dnl esac], with_libz=yes)
+with_ffmpeg_libs=yes
 
-AC_ARG_WITH(libz, AC_HELP_STRING([--with-libz],[build libz dependent modules (yes)]),[case "${withval}" in
-  yes) ;;
-  no)  ;;
-  *) AC_MSG_ERROR(bad value ${withval} for --with-libz) ;;
-esac], with_libz=yes)
+AC_ARG_WITH(ffmpeg-libs-includes,AC_HELP_STRING([--with-ffmpeg-libs-includes=PFX],[prefix where ffmpeg libs includes are installed (optional)]),
+	  ffmpeg_libs_includes="$withval",ffmpeg_libs_includes="")
 
-AC_ARG_WITH(libz-includes,AC_HELP_STRING([--with-libz-includes=PFX],[prefix where local zlib includes are installed (optional)]),
-	  libz_includes="$withval",libz_includes="")
+AC_ARG_WITH(ffmpeg-libs-libs,AC_HELP_STRING([--with-ffmpeg-libs-libs=PFX],[prefix where ffmpeg libs libraries files are installed (optional)]),
+	  ffmpeg_libs_libs="$withval", ffmpeg_libs_libs="")
 
-AC_ARG_WITH(libz-libs,AC_HELP_STRING([--with-libz-libs=PFX],[prefix where local zlib files are installed (optional)]),
-	  libz_libs="$withval", libz_libs="")
-
-
-if test x$with_libz = "x"yes ; then
-
-	if test x$libz_includes != "x" ; then
-	    with_libz_i="$libz_includes/include"
-        else
-	    with_libz_i="/usr/include"
-        fi
-
-        if test x$libz_libs != x ; then
-            with_libz_l="$libz_libs/lib"
-        else
-            with_libz_l="/usr${deflib}"
-        fi
-
-	AC_CHECK_LIB(z, deflate,
-      [LIBZ_CFLAGS="-I$with_libz_i"	
-       LIBZ_LIBS="-L$with_libz_l -lz"
-       AC_DEFINE(HAVE_LIBZ) have_libz=yes],have_libz=no, 
-	-L$with_libz_l)
-
-	if test x"${LIBZ_CFLAGS}" = x"-I/usr/include"; then
-	  LIBZ_CFLAGS="";
-	fi;
-	if test x"${LIBZ_LIBS}" = x"-L/usr/lib -lz"; then
-	  LIBZ_LIBS="-lz";
-	fi;
-
+if test x$ffmpeg_libs_includes != "x" ; then
+	with_ffmpeg_libs_i="$ffmpeg_libs_includes/include/ffmpeg"
 else
-    have_libz=no
+	with_ffmpeg_libs_i="/usr/include/ffmpeg"
 fi
-AC_SUBST(LIBZ_LIBS)
-AC_SUBST(LIBZ_CFLAGS)
+
+if test x$ffmpeg_libs_libs != x ; then
+	with_ffmpeg_libs_l="$ffmpeg_libs_libs/lib"
+else
+	with_ffmpeg_libs_l="/usr${deflib}"
+fi
+
+AC_CHECK_HEADER($with_ffmpeg_libs_i/avcodec.h,
+		[if perl -ane 'if(/#define\s*LIBAVCODEC_BUILD/) { exit($F[2] >= 4719) ? 1 : 0 }' $with_ffmpeg_libs_i/avcodec.h
+		then
+			echo "*** Transcode needs at least ffmpeg(-devel) build 4719 (0.4.9-pre1 or a cvs version after 20040703) ***"
+			exit -1
+		fi],
+		[echo "*** Cannot find header file $with_ffmpeg_libs_i/avcodec.h from ffmpeg ***"
+		exit -1])
+
+FFMPEG_BUILD=$(perl -ane 'if(/#define\s+LIBAVCODEC_BUILD\s+/) { printf("%s\n", $F[2]); }' $with_ffmpeg_libs_i/avcodec.h)
+FFMPEG_VERSION=$(perl -ane 'if(/#define\s+FFMPEG_VERSION\s+/) { printf("%s\n", $F[2]); }' $with_ffmpeg_libs_i/avcodec.h)
+
+AC_SUBST(FFMPEG_BUILD)
+AC_SUBST(FFMPEG_VERSION)
+
+AC_CHECK_LIB(avcodec,
+		avcodec_thread_init,
+		[FFMPEG_LIBS_CFLAGS="-I$with_ffmpeg_libs_i"
+		 FFMPEG_LIBS_LIBS="-L$with_ffmpeg_libs_l -lavcodec"
+		], 
+		[echo "*** Transcode depends on the FFmpeg libraries and headers (libavcodec) ***"
+		exit -1],
+		[-L$with_ffmpeg_libs_l])
+
+AC_SUBST(FFMPEG_LIBS_CFLAGS)
+AC_SUBST(FFMPEG_LIBS_LIBS)
 ])
 
-
-AC_DEFUN(AM_PATH_LZO,
+AC_DEFUN([AM_PATH_LZO],
 [
 
 AC_ARG_WITH(lzo, AC_HELP_STRING([--with-lzo],[build liblzo dependent modules (yes)]),[case "${withval}" in
@@ -827,7 +830,7 @@ dnl liba52
 dnl 
 dnl 
 
-AC_DEFUN(AM_PATH_A52,
+AC_DEFUN([AM_PATH_A52],
 [
 
 AC_ARG_WITH(a52, AC_HELP_STRING([--with-a52],[build liba52 decoder module (yes)]),[case "${withval}" in
@@ -880,7 +883,7 @@ dnl libmpeg3
 dnl 
 dnl 
 
-AC_DEFUN(AM_PATH_LIBMPEG3,
+AC_DEFUN([AM_PATH_LIBMPEG3],
 [
 
 AC_ARG_WITH(libmpeg3, AC_HELP_STRING([--with-libmpeg3],[build libmpeg3 dependent module (yes)]),[case "${withval}" in
@@ -969,7 +972,7 @@ dnl libpostproc
 dnl 
 dnl 
 
-AC_DEFUN(AM_PATH_POSTPROC,
+AC_DEFUN([AM_PATH_POSTPROC],
 [
 
 AC_ARG_WITH(libpostproc-builddir,AC_HELP_STRING([--with-libpostproc-builddir=PFX],[path to MPlayer builddir  (optional)]),
@@ -1026,7 +1029,7 @@ dnl liblve
 dnl 
 dnl 
 
-AC_DEFUN(AM_PATH_LVE,
+AC_DEFUN([AM_PATH_LVE],
 [
 
 AC_ARG_WITH(liblve-builddir,AC_HELP_STRING([--with-liblve-builddir=PFX],[path to lve builddir (optional)]),
@@ -1083,7 +1086,7 @@ dnl qt
 dnl 
 dnl 
 
-AC_DEFUN(AM_PATH_QT,
+AC_DEFUN([AM_PATH_QT],
 [
 
 AC_ARG_WITH(qt, AC_HELP_STRING([--with-qt],[build quicktime dependent module (no)]),[case "${withval}" in
@@ -1131,13 +1134,36 @@ AC_SUBST(QT_CFLAGS)
 ])
 
 
+dnl 
+dnl ffmpeg
+dnl 
+dnl 
+
+AC_DEFUN([AM_PATH_FFMPEG],
+[
+
+AC_ARG_WITH(ffbin, AC_HELP_STRING([--with-ffbin],[build ffbin module (no)]),[case "${withval}" in
+  yes) ;;
+  no)  ;;
+  *) AC_MSG_ERROR(bad value ${withval} for --with-ffbin) ;;
+esac], with_ffbin=no)
+
+if test x$with_ffbin = "x"yes ; then
+
+AC_CHECK_PROG(have_ffmpeg, ffmpeg, yes, no)
+
+else
+    have_ffmpeg=no
+fi
+
+])
 
 dnl 
 dnl openqt
 dnl 
 dnl 
 
-AC_DEFUN(AM_PATH_OPENQT,
+AC_DEFUN([AM_PATH_OPENQT],
 [
 
 AC_ARG_WITH(openqt, AC_HELP_STRING([--with-openqt],[build openquicktime dependent module (no)]),[case "${withval}" in
@@ -1192,7 +1218,7 @@ AC_SUBST(OPENQT_CFLAGS)
 dnl AM_PATH_GTK([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND [, MODULES]]]])
 dnl Test for GTK, and define GTK_CFLAGS and GTK_LIBS
 dnl
-AC_DEFUN(AM_PATH_GTK,
+AC_DEFUN([AM_PATH_GTK],
 [dnl 
 dnl Get the cflags and libraries from the gtk-config script
 dnl
@@ -1385,7 +1411,7 @@ dnl AM_PATH_MAGICK([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for MAGICK, and define MAGICK_CFLAGS and MAGICK_LIBS
 dnl
 
-AC_DEFUN(AM_PATH_MAGICK,
+AC_DEFUN([AM_PATH_MAGICK],
 [
 dnl 
 dnl Get the cflags and libaries from the magick-config script
@@ -1434,7 +1460,7 @@ dnl Test for MAGICK, and define MAGICK_CFLAGS and MAGICK_LIBS
 dnl
 
 
-AC_DEFUN(AM_PATH_LIBJPEG,
+AC_DEFUN([AM_PATH_LIBJPEG],
 [
 
 LIBJPEG_CFLAGS=""
@@ -1477,7 +1503,7 @@ dnl Test for libfame, and define LIBFAME_CFLAGS and LIBFAME_LIBS
 dnl Vivien Chappelier 2000-12-11
 dnl stolen from ORBit autoconf
 dnl
-AC_DEFUN(AM_PATH_LIBFAME,
+AC_DEFUN([AM_PATH_LIBFAME],
 [dnl 
 dnl Get the cflags and libraries from the libfame-config script
 dnl
@@ -1661,7 +1687,7 @@ main ()
 dnl AC_CHECK_FT2([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
 dnl Test for FreeType2, and define FT2_CFLAGS and FT2_LIBS
 dnl
-AC_DEFUN(AC_CHECK_FT2,
+AC_DEFUN([AC_CHECK_FT2],
 [dnl
 dnl Get the cflags and libraries from the freetype-config script
 dnl
@@ -1809,7 +1835,7 @@ AC_SUBST(FT2_LIBS)
 dnl AM_PATH_SDL([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
 dnl Test for SDL, and define SDL_CFLAGS and SDL_LIBS
 dnl
-AC_DEFUN(AM_PATH_SDL,
+AC_DEFUN([AM_PATH_SDL],
  [dnl 
   AC_REQUIRE([AC_PROG_CC])dnl
   AC_REQUIRE([AC_CANONICAL_HOST])dnl
@@ -1980,7 +2006,7 @@ dnl AM_PATH_GLIB([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND [, MO
 dnl Test for GLIB, and define GLIB_CFLAGS and GLIB_LIBS, if "gmodule" or 
 dnl gthread is specified in MODULES, pass to glib-config
 dnl
-AC_DEFUN(AM_PATH_GLIB,
+AC_DEFUN([AM_PATH_GLIB],
 [dnl 
 dnl Get the cflags and libraries from the glib-config script
 dnl

@@ -8,11 +8,10 @@ endif
 
 SUBDIRS = . libxio autotools docs contrib libdldarwin libsupport libioaux\
 	aclib avilib libac3 libvo libmpeg2\
-	libmp3lame libdvenc bbmpeg ffmpeg\
+	libmp3lame libdvenc bbmpeg \
 	import export filter src tools $(PVM3)
 
 EXTRA_DIST=transcode.spec libtool
-
 
 docsdir = $(datadir)/doc/transcode
 docs_DATA = ChangeLog

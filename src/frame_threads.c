@@ -314,6 +314,12 @@ void frame_threads_close()
       continue; \
     }
 
+static void
+process_frame_lock_cleanup (void *arg)
+{
+  pthread_mutex_unlock ((pthread_mutex_t *)arg);
+}
+
 void process_vframe(vob_t *vob)
 {
   
@@ -336,6 +342,8 @@ void process_vframe(vob_t *vob)
     
     pthread_mutex_lock(&vbuffer_im_fill_lock);
     
+    pthread_cleanup_push (process_frame_lock_cleanup, &vbuffer_im_fill_lock);
+
     while(vbuffer_im_fill_ctr==0) {
       pthread_cond_wait(&vbuffer_fill_cv, &vbuffer_im_fill_lock);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
@@ -344,11 +352,12 @@ void process_vframe(vob_t *vob)
       
       //exit
       if(vframe_threads_shutdown) {
-	pthread_mutex_unlock(&vbuffer_im_fill_lock);
 	pthread_exit(0);
       }
     }
     
+    pthread_cleanup_pop (0);
+
     pthread_mutex_unlock(&vbuffer_im_fill_lock);
     
     ptr = vframe_retrieve_status(FRAME_WAIT, FRAME_LOCKED);
@@ -443,6 +452,8 @@ void process_aframe(vob_t *vob)
     
     pthread_mutex_lock(&abuffer_im_fill_lock);
     
+    pthread_cleanup_push (process_frame_lock_cleanup, &abuffer_im_fill_lock);
+
     while(abuffer_im_fill_ctr==0) {
       pthread_cond_wait(&abuffer_fill_cv, &abuffer_im_fill_lock);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
@@ -451,11 +462,12 @@ void process_aframe(vob_t *vob)
       
       //exit
       if(aframe_threads_shutdown) {
-	pthread_mutex_unlock(&abuffer_im_fill_lock);
 	pthread_exit(0);
       }
     }
     
+    pthread_cleanup_pop (0);
+
     pthread_mutex_unlock(&abuffer_im_fill_lock);
     
     ptr = aframe_retrieve_status(FRAME_WAIT, FRAME_LOCKED);

@@ -109,12 +109,17 @@ void probe_mov(info_t *ipipe)
       if(strcasecmp(codec,"DX50")==0)
 	ipipe->probe_info->codec=TC_CODEC_DIVX5;
       
-      if(strcasecmp(codec,"MJPG")==0)
+      if(strcasecmp(codec,"MJPG")==0 || strcasecmp(codec,"JPEG")==0)
 	ipipe->probe_info->codec=TC_CODEC_MJPG;
 
       if(strcasecmp(codec,"YUV2")==0)
 	ipipe->probe_info->codec=TC_CODEC_YUV2;
       
+      if(strcasecmp(codec,"SVQ1")==0)
+	ipipe->probe_info->codec=TC_CODEC_SVQ1;
+
+      if(strcasecmp(codec,"SVQ3")==0)
+	ipipe->probe_info->codec=TC_CODEC_SVQ3;
     }
   } else
     ipipe->probe_info->codec=TC_CODEC_UNKNOWN;

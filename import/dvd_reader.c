@@ -404,12 +404,15 @@ static void stats_audio_attributes(audio_attr_t *attr, int track, probe_info_t *
   switch(attr->quantization) {
   case 0:
     printf("16bit ");
+    probe_info->track[track].bits = 16;
     break;
   case 1:
     printf("20bit ");
+    probe_info->track[track].bits = 20;
     break;
   case 2:
     printf("24bit ");
+    probe_info->track[track].bits = 24;
     break;
   case 3:
     printf("drc ");
@@ -422,6 +425,18 @@ static void stats_audio_attributes(audio_attr_t *attr, int track, probe_info_t *
   case 0:
     printf("48kHz ");
     probe_info->track[track].samplerate = 48000;
+    break;
+  case 1:
+    printf("96kHz ");
+    probe_info->track[track].samplerate = 96000;
+    break;
+  case 2:
+    printf("44.1kHz ");
+    probe_info->track[track].samplerate = 44100;
+    break;
+  case 3:
+    printf("32kHz ");
+    probe_info->track[track].samplerate = 32000;
     break;
   default:
     printf("(please send a bug report) ");

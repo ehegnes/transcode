@@ -31,8 +31,9 @@
 #include <inttypes.h>
 #include <assert.h>
 
+#include <avcodec.h>
+
 #include "aud_aux.h"
-#include "../ffmpeg/libavcodec/avcodec.h"
 #include "ac3.h"
 #include "../aclib/ac.h"
 

@@ -239,7 +239,7 @@ int probe_path(char *name)
       
       // treat block device as absolute directory path
       if(S_ISBLK(fbuf.st_mode) 
-#ifdef __APPLE__ // accessing through the raw device (/dev/rdiskX)
+#ifdef SYS_BSD // accessing through the raw device (/dev/rdiskX)
 	      || S_ISCHR(fbuf.st_mode)
 #endif
 	      )

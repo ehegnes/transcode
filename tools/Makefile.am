@@ -35,6 +35,6 @@ avisplit_LDADD = @AVILIB_LIBS@ @TCIOAUX_LIBS@ @XIO_LIBS@
 
 tcmodinfo_SOURCES = tcmodinfo.c
 tcmodinfo_LDADD = @DLDARWINLIB@ -lm $(top_builddir)/src/optstr.o
-tcmodinfo_LDFLAGS = -rdynamic 
+tcmodinfo_LDFLAGS = -export-dynamic 
 
 tcmp3cut_SOURCES = tcmp3cut.c

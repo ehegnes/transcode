@@ -61,7 +61,7 @@ static int x_dim, y_dim;
 
 static int xvid2_init(char *path) {
 
-#ifdef __FreeBSD__
+#ifdef SYS_BSD
 	const
 #endif    
 		char *error;

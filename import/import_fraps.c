@@ -40,7 +40,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include "avilib.h"
 #include "transcode.h"
 
 #define MOD_NAME    "import_fraps.so"

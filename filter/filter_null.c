@@ -42,6 +42,7 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "optstr.h"
 
 /*-------------------------------------------------
  *

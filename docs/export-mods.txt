@@ -108,7 +108,7 @@ D: (video) LZO real-time compression | (audio) MPEG/AC3/PCM
 C: liblzo libmp3lame
 R: none
 S: +
-I: Encodes video using a loss-less real-time LZO codec. This codec is a homegrown invention of transcode and is intended as an intermediate storage format. MPlayer can playback LZO-based AVI files as well. 
+I: Encodes video using a loss-less real-time LZO codec. This codec is a homegrown invention of transcode and is intended as an intermediate storage format. MPlayer can playback LZO-based AVI files as well.
 
 M: export_mjpeg.c
 D: (video) Motion JPEG | (audio) MPEG/AC3/PCM
@@ -130,6 +130,13 @@ C: none
 R: mp1e
 S: +
 I: Drives the mp1e binary and writes an mpeg1 file to disc. It can also encode vcd compliant streams. Note: it writes an intermediate wav file for audio due to a limitation of mp1e.
+
+M: export_mp2.c
+D: (video) null | (audio) MPEG 1/2
+C: none
+R: ffmpeg sox
+S: +
+I: This module lets you encode audio (raw PCM) to MPEG 1 Layer 2 audio aka mp2. Additionaly it can change the speed of the audio stream by a factor you can specify. See docs/export_mp2.txt.
 
 M: export_mp2enc.c
 D: (audio) MPEG 1/2

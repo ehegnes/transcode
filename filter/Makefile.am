@@ -3,7 +3,7 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-INCLUDES = -I./ -I../src -I$(srcdir)/../src @FT2_CFLAGS@ @AVILIB_CFLAGS@ @AVIFILE_CFLAGS@ @LAME_CFLAGS@ -I../libac3 -I$(srcdir)/../libac3 @MAGICK_CFLAGS@
+INCLUDES = -I./ -I../src -I$(srcdir)/../src @AVILIB_CFLAGS@ @AVIFILE_CFLAGS@ @LAME_CFLAGS@ -I../libac3 -I$(srcdir)/../libac3 @MAGICK_CFLAGS@ @FT2_CFLAGS@
 
 pkgdir=@MOD_PATH@
 
@@ -26,6 +26,14 @@ if SYSTEM_DARWIN
 ALTIVEC=-faltivec
 else
 ALTIVEC=-maltivec -mabi=altivec
+endif
+endif
+
+if HAVE_ASM_MMX
+if HAVE_ASM_SSE
+if HAVE_ASM_3DNOW
+F_TOMSMOCOMP=tomsmocomp
+endif
 endif
 endif
 
@@ -71,6 +79,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_whitebalance.la\
 			filter_detectclipping.la\
 			filter_control.la\
+                        filter_levels.la\
 			$(F_MMX) $(F_LOGO) $(F_TEXT)
 
 filter_null_la_SOURCES = filter_null.c
@@ -219,6 +228,9 @@ filter_whitebalance_la_SOURCES = filter_whitebalance.c
 filter_whitebalance_la_LDFLAGS = -module -avoid-version
 filter_whitebalance_la_LIBADD = -L../libvo -lvout ../export/vid_aux.lo -lm
 
+filter_levels_la_SOURCES = filter_levels.c
+filter_levels_la_LDFLAGS = -module -avoid-version
+
 EXTRA_DIST =  parse_csv.awk filter_list.awk mmx.h
 
 if HAVE_FREETYPE2
@@ -230,9 +242,9 @@ endif
 endif
 
 if HAVE_X11
-SUBDIRS = . pp divxkey extsub resample test yuvdenoise ivtc preview $(ADD2)
+SUBDIRS = . pp divxkey extsub resample test yuvdenoise ivtc $(F_TOMSMOCOMP) preview $(ADD2)
 else
-SUBDIRS = . pp divxkey extsub resample test yuvdenoise ivtc
+SUBDIRS = . pp divxkey extsub resample test yuvdenoise ivtc $(F_TOMSMOCOMP)
 endif
 
 pkg_SCRIPTS = filter_list.awk parse_csv.awk

@@ -33,7 +33,6 @@
 
 #include "xio.h"
 
-#include "avilib.h"
 #include "config.h"
 #include "transcode.h"
 

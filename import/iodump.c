@@ -39,7 +39,7 @@
 
 int dvd_read(int arg_title, int arg_chapter, int arg_angle);
 
-#if defined(__bsdi__) || defined(__FreeBSD__) || defined(__APPLE__)
+#ifdef SYS_BSD
 typedef	off_t off64_t;
 #define	lseek64 lseek
 #endif

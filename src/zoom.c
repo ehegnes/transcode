@@ -92,11 +92,17 @@
         - Added implementation of getopt() if compiling under Windows.
 */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if !defined(__FreeBSD__) && !defined(__APPLE__)
-#include <malloc.h>
+#ifndef SYS_BSD
+# ifdef HAVE_MALLOC_H
+# include <malloc.h>
+# endif
 #endif
 #include <math.h>
 #include <inttypes.h>

@@ -52,6 +52,7 @@
 #include "transcode.h"
 #include "framebuffer.h"
 #include "optstr.h"
+#include "video_trans.h"
 
 // basic parameter
 

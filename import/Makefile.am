@@ -22,7 +22,7 @@ INCLUDES = \
 	@VORBIS_CFLAGS@ \
 	@THEORA_CFLAGS@ \
 	@LZO_CFLAGS@ \
-	@AVCODEC_CFLAGS@
+	@FFMPEG_LIBS_CFLAGS@
 
 if HAVE_QT
 MODQT = import_mov.la
@@ -74,7 +74,7 @@ pkg_LTLIBRARIES = import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la \
 		  $(IM_MOD) $(MODQT) af6_decore.la $(LIBXML2_MOD) \
 		  import_mplayer.la import_rawlist.la import_ogg.la \
 		  import_xvid.la import_ffmpeg.la $(LZO_MOD) import_vnc.la \
-		  import_fraps.la import_pvn.la
+		  import_fraps.la import_pvn.la $(FFBIN_MOD) $(FFBIN2_MOD)
 
 import_null_la_SOURCES = import_null.c
 import_null_la_LDFLAGS =  -module -avoid-version 
@@ -106,7 +106,7 @@ import_xvid_la_LDFLAGS =  -module -avoid-version
 
 import_ffmpeg_la_SOURCES = import_ffmpeg.c 
 import_ffmpeg_la_LDFLAGS =  -module -avoid-version 
-import_ffmpeg_la_LIBADD = -lm
+import_ffmpeg_la_LIBADD = @FFMPEG_LIBS_LIBS@ -lm
 
 import_im_la_SOURCES = import_im.c
 import_im_la_LDFLAGS =  -module -avoid-version 
@@ -228,7 +228,7 @@ tcdecode_SOURCES = tcdecode.c      \
 		   decode_lzo.c
 
 tcdecode_LDADD = \
-	@AVCODEC_LIBS@ \
+	@FFMPEG_LIBS_LIBS@ \
 	@LAME_LIBS@ \
 	@AC3_LIBS@ \
 	@MPEG2CVS_LIBS@ \

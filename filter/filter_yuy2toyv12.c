@@ -44,7 +44,7 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
-
+#include "optstr.h"
 
 void yuy2toyv12(char *dest, char *input, int width, int height) 
 {

@@ -38,8 +38,12 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 // FIXME: Use autoconf for this!!
-#if defined(__FreeBSD__) || defined(__APPLE__) /* We don't have on_exit() */
+#ifdef SYS_BSD /* We don't have on_exit() */
 xv_display_t 	*xv_dpy_on_exit_hack = NULL;
 #endif
 
@@ -127,7 +131,7 @@ void xv_display_exit(xv_display_t *dv_dpy) {
   
   free(dv_dpy);
   dv_dpy = NULL;
-#if defined(__FreeBSD__) || defined(__APPLE__) /* We don't have on_exit() */
+#ifdef SYS_BSD /* We don't have on_exit() */
   xv_dpy_on_exit_hack = NULL;
 #endif
 } // xv_display_exit
@@ -654,14 +658,13 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
   return 1;
 } // xv_display_Xv_init 
 
-
-
+#if 0  // unused
+#ifndef SYS_BSD /* We don't have on_exit() */
 static void xv_display_exit_handler(int code, void *arg)
 {
   if(code && arg) xv_display_exit(arg);
 } // dv_display_exit_handler 
-
-#if defined(__FreeBSD__) || defined(__APPLE__) /* We don't have on_exit() */
+#else
 static void
 xv_display_on_exit_hack_handler()
 {
@@ -669,8 +672,8 @@ xv_display_on_exit_hack_handler()
     xv_display_exit(xv_dpy_on_exit_hack);
   } /* if */
 } // xv_display_exit_handler
-#endif
-
+#endif  // ! SYS_BSD
+#endif  // unused
 
 int xv_display_init(xv_display_t *dv_dpy, int *argc, char ***argv, int width, int height, char *w_name, char *i_name, int yuv422) {
 
@@ -716,7 +719,7 @@ int xv_display_init(xv_display_t *dv_dpy, int *argc, char ***argv, int width, in
   }
 #if 0
   
-#if defined(__FreeBSD__) || defined(__APPLE__) /* We don't have on_exit() */
+#ifdef SYS_BSD /* We don't have on_exit() */
   xv_dpy_on_exit_hack = dv_dpy;
   atexit(xv_display_on_exit_hack_handler);
 #else

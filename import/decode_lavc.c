@@ -39,7 +39,7 @@
 #include "transcode.h"
 #include "ioaux.h"
 
-#include "../ffmpeg/libavcodec/avcodec.h"
+#include <avcodec.h>
 #include "yuv2rgb.h"
 
 #define READ_BUFFER_SIZE (10*1024*1024)

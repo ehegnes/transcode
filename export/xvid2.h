@@ -48,7 +48,7 @@
  *  exception also makes it possible to release a modified version which
  *  carries forward this exception.
  *
- * $Id: xvid2.h,v 1.1 2003-07-30 05:39:42 tibit Exp $
+ * $Id: xvid2.h,v 1.2 2004-10-17 22:03:12 jacob Exp $
  *
  *****************************************************************************/
 

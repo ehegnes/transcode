@@ -34,32 +34,22 @@
 #include "avilib.h"
 #include "aud_aux.h"
 #include "vid_aux.h"
-#include "../ffmpeg/libavcodec/avcodec.h"
+// #include "../ffmpeg/libavcodec/avcodec.h"
+#include <avcodec.h>
 
 #if !defined(INFINITY) && defined(HUGE_VAL)
 #define INFINITY HUGE_VAL
 #endif
 
-#if LIBAVCODEC_BUILD < 4641
-#error we dont support libavcodec prior to build 4641, get the latest libavcodec CVS
-#endif
-
-#if LIBAVCODEC_BUILD < 4659
-#warning your version of libavcodec is old, u might want to get a newer one
-#endif
-
-#if LIBAVCODEC_BUILD < 4645
-#define AVFrame AVVideoFrame
-#define coded_frame coded_picture
-#endif
-
-#ifndef CODEC_FLAG_SVCD_SCAN_OFFSET
-#define CODEC_FLAG_SVCD_SCAN_OFFSET 0
-#endif
-
 /*
    Changelog
 
+0.3.13	EMS		removed more unused code
+				added option for global motion compensation "gmc" (may not be working in ffmpeg yet) (default off)
+				added option for truncated file support "trunc" (default off)
+				added option for generating closed gop streams "closedgop" (disable scene detection) (default off)
+				added option for selecting intra_dc_precision ("intra_dc_precision") (default lowest)
+				added option for selecting skipping top or bottom macro block rows ("skip_top"/"skip_bottom") (default none)
 0.3.12	EMS		removed unused huffyuv code
 				removed unnecessary compares on "mpeg1" and "mpeg2" when checking for "mpeg1video" and "mpeg2video"
 				cleaned up little 4mv mess
@@ -87,7 +77,7 @@ my tab settings: se ts=4, sw=4
 */
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.3.14 (2004-02-29)"
+#define MOD_VERSION "v0.3.13 (2004-08-03)"
 #define MOD_CODEC   "(video) " LIBAVCODEC_IDENT \
                     " | (audio) MPEG/AC3/PCM"
 
@@ -697,15 +687,57 @@ MOD_init {
               MOD_NAME);
       module_print_config("", lavcopts_conf);
     }
-    
+
+// this overwrites transcode settings
+    if (lavc_param_fps_code > 0)
+    {
+        switch (lavc_param_fps_code) {
+	    case 1: // 23.976
+	        lavc_venc_context->frame_rate      = 24000;
+	        lavc_venc_context->frame_rate_base = 1001;
+	        break;
+	    case 2: // 24.000
+	        lavc_venc_context->frame_rate      = 24000;
+	        lavc_venc_context->frame_rate_base = 1000;
+	        break;
+	    case 3: // 25.000
+	        lavc_venc_context->frame_rate      = 25000;
+	        lavc_venc_context->frame_rate_base = 1000;
+	        break;
+	    case 4: // 29.970
+	        lavc_venc_context->frame_rate      = 30000;
+	        lavc_venc_context->frame_rate_base = 1001;
+	        break;
+	    case 5: // 30.000
+    	    lavc_venc_context->frame_rate      = 30000;
+	        lavc_venc_context->frame_rate_base = 1000;
+	        break;
+	    case 6: // 50.000
+	        lavc_venc_context->frame_rate      = 50000;
+	        lavc_venc_context->frame_rate_base = 1000;
+	        break;
+	    case 7: // 59.940
+	        lavc_venc_context->frame_rate      = 60000;
+	        lavc_venc_context->frame_rate_base = 1001;
+	        break;
+	    case 8: // 60.000
+	        lavc_venc_context->frame_rate      = 60000;
+	        lavc_venc_context->frame_rate_base = 1000;
+	        break;
+	    case 0: // not set
+	    default:
+	        //lavc_venc_context->frame_rate      = (int)(vob->ex_fps*1000.0);
+	        //lavc_venc_context->frame_rate_base = 1000;
+	    break;
+        }
+    }
+
     lavc_venc_context->bit_rate           = vob->divxbitrate * 1000;
     lavc_venc_context->bit_rate_tolerance = lavc_param_vrate_tolerance * 1000;
     lavc_venc_context->mb_qmin= lavc_param_mb_qmin;
     lavc_venc_context->mb_qmax= lavc_param_mb_qmax;
-#if LIBAVCODEC_BUILD > 4694
     lavc_venc_context->lmin= (int)(FF_QP2LAMBDA * lavc_param_lmin + 0.5);
     lavc_venc_context->lmax= (int)(FF_QP2LAMBDA * lavc_param_lmax + 0.5);
-#endif
     lavc_venc_context->max_qdiff          = lavc_param_vqdiff;
     lavc_venc_context->qcompress          = lavc_param_vqcompress;
     lavc_venc_context->qblur              = lavc_param_vqblur;
@@ -745,14 +777,18 @@ MOD_init {
     lavc_venc_context->scenechange_threshold= lavc_param_sc_threshold;
     lavc_venc_context->noise_reduction    = lavc_param_noise_reduction;
     lavc_venc_context->inter_threshold    = lavc_param_inter_threshold;
+    lavc_venc_context->intra_dc_precision = lavc_param_intra_dc_precision;
+    lavc_venc_context->skip_top           = lavc_param_skip_top;
+    lavc_venc_context->skip_bottom        = lavc_param_skip_bottom;
 
-#if LIBAVCODEC_BUILD > 4701
     if((lavc_param_threads < 1) || (lavc_param_threads > 7))
-		ff_error("Thread count out of range (should be [1-7])\n");
+		ff_error("Thread count out of range (should be [0-7])\n");
+
     lavc_venc_context->thread_count = lavc_param_threads;
-	ff_info("Starting %d threads\n", lavc_venc_context->thread_count);
+
+	ff_info("Starting %d thread(s)\n", lavc_venc_context->thread_count);
+
 	avcodec_thread_init(lavc_venc_context, lavc_param_threads);
-#endif
 
     if (lavc_param_intra_matrix)
     {
@@ -836,39 +872,6 @@ MOD_init {
     lavc_venc_context->p_masking             = lavc_param_p_masking;
     lavc_venc_context->dark_masking          = lavc_param_dark_masking;
 
-#if 0 // original tilmann code
-    if (lavc_param_aspect != NULL)
-    {
-	int par_width, par_height, e;
-	float ratio=0;
-	e = sscanf (lavc_param_aspect, "%d/%d", &par_width, &par_height);
-	if(e==2) {
-            if(par_height)
-                ratio= (float)par_width / (float)par_height;
-        } else {
-	    e= sscanf (lavc_param_aspect, "%f", &ratio);
-	}
-
-	if (e && ratio > 0.1 && ratio < 10.0) {
-	    lavc_venc_context->sample_aspect_ratio=
-		av_d2q(ratio * vob->ex_v_height / vob->ex_v_width, 255);
-	} else {
-	    fprintf(stderr, "[%s] Unsupported aspect ration %s.\n", MOD_NAME,
-		    lavc_param_aspect);
-	    return TC_EXPORT_ERROR; 
-	}
-    }
-    else if (lavc_param_autoaspect) {
-
-	if (vob->ex_par_height) {
-	    lavc_venc_context->sample_aspect_ratio.num = vob->ex_par_width;
-	    lavc_venc_context->sample_aspect_ratio.den = vob->ex_par_height;
-	} else {
-	    lavc_venc_context->sample_aspect_ratio.num = 0;
-	    lavc_venc_context->sample_aspect_ratio.den = 1;
-	}
-    }
-#else // *new* *improved* EMS code ;-) ;-)
 	if(probe_export_attributes & TC_PROBE_NO_EXPORT_PAR) // export_par explicitely set by user
 	{
 		if(vob->ex_par > 0)
@@ -964,15 +967,16 @@ MOD_init {
 			else
 				ff_error("Parameter value to --export_asr out of range (allowed: [1-4])\n");
 		}
-		else // user did not specify asr at all, assume 4:3
+		else // user did not specify asr at all, assume no change
 		{
-			ff_info("Set display aspect ratio to 4:3\n");
-            sar = (4.0 * ((double)vob->ex_v_height) / (3.0 * (double)vob->ex_v_width));
-            lavc_venc_context->sample_aspect_ratio.num = (int)(sar * 1000);
-            lavc_venc_context->sample_aspect_ratio.den = 1000;
+			ff_info("Set display aspect ratio to input\n");
+            // sar = (4.0 * ((double)vob->ex_v_height) / (3.0 * (double)vob->ex_v_width));
+            // lavc_venc_context->sample_aspect_ratio.num = (int)(sar * 1000);
+            // lavc_venc_context->sample_aspect_ratio.den = 1000;
+            lavc_venc_context->sample_aspect_ratio.num = 1;
+            lavc_venc_context->sample_aspect_ratio.den = 1;
 		}
     }
-#endif
 
     lavc_venc_context->flags = 0;
 
@@ -982,11 +986,12 @@ MOD_init {
     lavc_venc_context->me_cmp     = lavc_param_me_cmp;
     lavc_venc_context->me_sub_cmp = lavc_param_me_sub_cmp;
     lavc_venc_context->mb_cmp     = lavc_param_mb_cmp;
-#ifdef FF_CMP_VSAD
     lavc_venc_context->ildct_cmp   = lavc_param_ildct_cmp;
-#endif    
     lavc_venc_context->dia_size   = lavc_param_dia_size;
     lavc_venc_context->flags |= lavc_param_qpel;
+    lavc_venc_context->flags |= lavc_param_gmc;
+    lavc_venc_context->flags |= lavc_param_closedgop;
+    lavc_venc_context->flags |= lavc_param_trunc;
     lavc_venc_context->flags |= lavc_param_trell;
     lavc_venc_context->flags |= lavc_param_aic;
     lavc_venc_context->flags |= lavc_param_umv;
@@ -1029,12 +1034,8 @@ MOD_init {
 		}
 	}
 
-#if defined(CODEC_FLAG_INTERLACED_DCT)
 	lavc_venc_context->flags |= interlacing_active ? CODEC_FLAG_INTERLACED_DCT : 0;
-#endif
-#if defined(CODEC_FLAG_INTERLACED_ME)
 	lavc_venc_context->flags |= interlacing_active ? CODEC_FLAG_INTERLACED_ME : 0;
-#endif
 
     lavc_venc_context->flags|= lavc_param_psnr;
     do_psnr = lavc_param_psnr;
@@ -1441,11 +1442,6 @@ MOD_encode
 
     if (pix_fmt == PIX_FMT_YUV420P) {
       lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
-#if 0
-      avpicture_fill((AVPicture *)lavc_venc_frame, param->buffer,
-	  PIX_FMT_YUV420P, lavc_venc_context->width, lavc_venc_context->height);
-
-#else
       lavc_venc_frame->linesize[0] = lavc_venc_context->width;     
       lavc_venc_frame->linesize[1] = lavc_venc_context->width / 2;
       lavc_venc_frame->linesize[2] = lavc_venc_context->width / 2;
@@ -1455,7 +1451,6 @@ MOD_encode
         lavc_venc_context->width * lavc_venc_context->height;
       lavc_venc_frame->data[1]     = param->buffer +
         (lavc_venc_context->width * lavc_venc_context->height*5)/4;
-#endif
     } else if (pix_fmt == PIX_FMT_YUV422) {
 
       if (is_huffyuv) {
