@@ -23,9 +23,9 @@
  */
 
 #define MOD_NAME    "filter_detectclipping.so"
-#define MOD_VERSION "v0.1.4 (2003-10-12)"
-#define MOD_CAP     "detectclipping the image"
-#define MOD_AUTHOR  "Tilmann Bitterberg"
+#define MOD_VERSION "v0.1.0 (2003-11-01)"
+#define MOD_CAP     "detect clipping parameters (-j or -Y)"
+#define MOD_AUTHOR  "Tilmann Bitterberg, A'rpi"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,18 +51,21 @@
 // basic parameter
 
 typedef struct MyFilterData {
+    /* configurable */
 	unsigned int start;
 	unsigned int end;
 	unsigned int step;
-	int boolstep;
+	int post;
 	int limit;
+	int x1, y1, x2, y2;
+
+    /* internal */
+	int stride, bpp;
+	int fno;
+	int boolstep;
 } MyFilterData;
 	
-typedef struct {
-    int tl, tr, bl, br;
-} crop;
-
-static MyFilterData *mfd = NULL;
+static MyFilterData *mfd[16];
 
 /* should probably honor the other flags too */ 
 
@@ -76,9 +79,16 @@ static void help_optstr(void)
 {
    printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
    printf ("* Overview\n");
-   printf ("    detect black regions on top and bottom of an image\n");
+   printf ("    Detect black regions on top, bottom, left and right of an image\n");
+   printf ("    It is suggested that the filter is run for around 100 frames.\n");
+   printf ("    It will print its detected parameters every frame. If you\n");
+   printf ("    don't notice any change in the printout for a while, the filter\n");
+   printf ("    probably won't find any other values.\n");
+   printf ("    The filter converges, meaning it will learn.\n");
    printf ("* Options\n");
    printf ("    'range' apply filter to [start-end]/step frames [0-oo/1]\n");
+   printf ("    'limit' the sum of a line must be below this limit to be considered black\n");
+   printf ("     'post' run as a POST filter (calc -Y instead of the default -j)\n");
 }
 
 static int checkline(unsigned char* src,int stride,int len,int bpp){
@@ -107,17 +117,18 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   static vob_t *vob=NULL;
 
-  static int width, height;
-  static int size;
-  int w, h;
-  
+  if (ptr->tag & TC_AUDIO)
+    return 0;
+
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
       char buf[128];
-      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRY4O", "1");
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYEOM", "1");
 
-      snprintf(buf, 128, "%u-%u/%d", mfd->start, mfd->end, mfd->step);
+      snprintf(buf, 128, "%u-%u/%d", mfd[ptr->filter_id]->start, mfd[ptr->filter_id]->end, mfd[ptr->filter_id]->step);
       optstr_param (options, "range", "apply filter to [start-end]/step frames", 
 	      "%u-%u/%d", buf, "0", "oo", "0", "oo", "1", "oo");
+      optstr_param (options, "limit", "the sum of a line must be below this limit to be considered as black", "%d", "24", "0", "255");
+      optstr_param (options, "post", "run as a POST filter (calc -Y instead of the default -j)", "", "0");
 
       return 0;
   }
@@ -133,28 +144,31 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
     if((vob = tc_get_vob())==NULL) return(-1);
 
-    if((mfd = (MyFilterData *)malloc (sizeof(MyFilterData))) == NULL) return (-1);
+    if((mfd[ptr->filter_id] = (MyFilterData *)malloc (sizeof(MyFilterData))) == NULL) return (-1);
 
 
-    mfd->start=0;
-    mfd->end=(unsigned int)-1;
-    mfd->step=1;
-    mfd->limit=24;
+    mfd[ptr->filter_id]->start=0;
+    mfd[ptr->filter_id]->end=(unsigned int)-1;
+    mfd[ptr->filter_id]->step=1;
+    mfd[ptr->filter_id]->limit=24;
+    mfd[ptr->filter_id]->post = 0;
 
     if (options != NULL) {
     
 	if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
 
-	optstr_get (options, "range",  "%u-%u/%d",    &mfd->start, &mfd->end, &mfd->step);
-	optstr_get (options, "limit",  "%d",    &mfd->limit);
+	optstr_get (options, "range",  "%u-%u/%d",    &mfd[ptr->filter_id]->start, &mfd[ptr->filter_id]->end, &mfd[ptr->filter_id]->step);
+	optstr_get (options, "limit",  "%d",    &mfd[ptr->filter_id]->limit);
+	if (optstr_get (options, "post",  "")>=0) mfd[ptr->filter_id]->post = 1;
     }
 
 
     if (verbose > 1) {
-	printf (" detectclipping Settings:\n");
-	printf ("             range = %u-%u\n", mfd->start, mfd->end);
-	printf ("              step = %u\n", mfd->step);
-	printf ("             limit = %u\n", mfd->limit);
+	printf (" detectclipping#%d Settings:\n", ptr->filter_id);
+	printf ("              range = %u-%u\n", mfd[ptr->filter_id]->start, mfd[ptr->filter_id]->end);
+	printf ("               step = %u\n", mfd[ptr->filter_id]->step);
+	printf ("              limit = %u\n", mfd[ptr->filter_id]->limit);
+	printf ("    run POST filter = %s\n", mfd[ptr->filter_id]->post?"yes":"no");
     }
 
     if (options)
@@ -162,13 +176,38 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	    help_optstr();
 	}
 
-    if (mfd->start % mfd->step == 0)
-      mfd->boolstep = 0;
+    if (mfd[ptr->filter_id]->start % mfd[ptr->filter_id]->step == 0)
+      mfd[ptr->filter_id]->boolstep = 0;
     else 
-      mfd->boolstep = 1;
+      mfd[ptr->filter_id]->boolstep = 1;
+
+    if (!mfd[ptr->filter_id]->post) {
+	mfd[ptr->filter_id]->x1 = vob->im_v_width;
+	mfd[ptr->filter_id]->y1 = vob->im_v_height;
+    } else {
+	mfd[ptr->filter_id]->x1 = vob->ex_v_width;
+	mfd[ptr->filter_id]->y1 = vob->ex_v_height;
+    }
+    mfd[ptr->filter_id]->x2 = 0;
+    mfd[ptr->filter_id]->y2 = 0;
+    mfd[ptr->filter_id]->fno = 0;
+
+    if (vob->im_v_codec == CODEC_YUV) {
+	mfd[ptr->filter_id]->stride = mfd[ptr->filter_id]->post?vob->ex_v_width:vob->im_v_width;
+	mfd[ptr->filter_id]->bpp = 1;
+    } else if (vob->im_v_codec == CODEC_RGB) {
+	mfd[ptr->filter_id]->stride = mfd[ptr->filter_id]->post?(vob->ex_v_width*3):(vob->im_v_width*3);
+	mfd[ptr->filter_id]->bpp = 3;
+    } else {
+	fprintf (stderr, "[%s] unsupported colorspace\n", MOD_NAME);
+	return -1;
+    }
+
+
+
 
     // filter init ok.
-    if (verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if (verbose) printf("[%s] %s %s #%d\n", MOD_NAME, MOD_VERSION, MOD_CAP, ptr->filter_id);
 
     
     return(0);
@@ -183,10 +222,10 @@ int tc_filter(vframe_list_t *ptr, char *options)
   
   if(ptr->tag & TC_FILTER_CLOSE) {
 
-    if (mfd) { 
-	free(mfd);
+    if (mfd[ptr->filter_id]) { 
+	free(mfd[ptr->filter_id]);
     }
-    mfd=NULL;
+    mfd[ptr->filter_id]=NULL;
 
     return(0);
 
@@ -203,11 +242,62 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
   
-  if((ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO) && 
+  if(((ptr->tag & TC_PRE_M_PROCESS && !mfd[ptr->filter_id]->post) || 
+      (ptr->tag & TC_POST_M_PROCESS && mfd[ptr->filter_id]->post)) && 
      !(ptr->attributes & TC_FRAME_IS_SKIPPED))  {
 
-    int y, x;
+    int y;
     char *p = ptr->video_buf;
+    int l,r,t,b;
+
+    if (mfd[ptr->filter_id]->fno++ < 3)
+	return 0;
+
+    if (mfd[ptr->filter_id]->start <= ptr->id && ptr->id <= mfd[ptr->filter_id]->end && ptr->id%mfd[ptr->filter_id]->step == mfd[ptr->filter_id]->boolstep) {
+
+    for (y = 0; y < mfd[ptr->filter_id]->y1; y++) {
+	if(checkline(p+mfd[ptr->filter_id]->stride*y, mfd[ptr->filter_id]->bpp, ptr->v_width, mfd[ptr->filter_id]->bpp) > mfd[ptr->filter_id]->limit) {
+	    mfd[ptr->filter_id]->y1 = y;
+	    break;
+	}
+    }
+
+    for (y=ptr->v_height-1; y>mfd[ptr->filter_id]->y2; y--) {
+	if (checkline(p+mfd[ptr->filter_id]->stride*y, mfd[ptr->filter_id]->bpp, ptr->v_width, mfd[ptr->filter_id]->bpp) > mfd[ptr->filter_id]->limit) {
+	    mfd[ptr->filter_id]->y2 = y;
+	    break;
+	}
+    }
+    
+    for (y = 0; y < mfd[ptr->filter_id]->x1; y++) {
+	if(checkline(p+mfd[ptr->filter_id]->bpp*y, mfd[ptr->filter_id]->stride, ptr->v_height, mfd[ptr->filter_id]->bpp) > mfd[ptr->filter_id]->limit) {
+	    mfd[ptr->filter_id]->x1 = y;
+	    break;
+	}
+    }
+
+    for (y = ptr->v_width-1; y > mfd[ptr->filter_id]->x2; y--) {
+	if(checkline(p+mfd[ptr->filter_id]->bpp*y, mfd[ptr->filter_id]->stride, ptr->v_height, mfd[ptr->filter_id]->bpp) > mfd[ptr->filter_id]->limit) {
+	    mfd[ptr->filter_id]->x2 = y;
+	    break;
+	}
+    }
+
+
+    t = (mfd[ptr->filter_id]->y1+1)&(~1);
+    l = (mfd[ptr->filter_id]->x1+1)&(~1);
+    b = ptr->v_height - (mfd[ptr->filter_id]->y2+1)&(~1);
+    r = ptr->v_width - (mfd[ptr->filter_id]->x2+1)&(~1);
+
+    printf("[detectclipping#%d] valid area: X: %d..%d Y: %d..%d  -> %s %d,%d,%d,%d\n",
+	ptr->filter_id,
+	mfd[ptr->filter_id]->x1,mfd[ptr->filter_id]->x2,
+	mfd[ptr->filter_id]->y1,mfd[ptr->filter_id]->y2,
+	mfd[ptr->filter_id]->post?"-Y":"-j", 
+	t, l, b, r
+	  );
+    
+    }
 
   }
   
