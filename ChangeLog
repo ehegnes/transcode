@@ -1,6 +1,19 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-02-03 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/magic.h:
+  Add a CODEC define for TC_CODEC_DTS.
+  
+  * import/tcextract.c:
+  CHANGE: The audio track was formerly selected using a hexadecimal
+  number. That has now been changed to accept a decimal number. The
+  hex track argument was nowhere documented and I myself fall into
+  this trap.
+  Add an extraction routine for DTS audio (codec -x dts) into
+  tcextract.
+
 2004-02-02 Tilmann Bitterberg <transcode at tibit.org>
 
   * export/{export_ffmpeg.c ffmpeg_cfg.[ch]} ffmpeg/libavcodec/*:

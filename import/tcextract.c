@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
 	case 'a': 
 	    
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
-	  track = strtol(optarg, NULL, 16);
+	  track = strtol(optarg, NULL, 0);
 	  break;
 	  
         case 'C':
@@ -322,6 +322,19 @@ int main(int argc, char *argv[])
     }
     
     
+    // DTS
+    if(strcmp(codec,"dts")==0) {
+	
+	ipipe.codec = TC_CODEC_DTS;
+	ipipe.select = TC_AUDIO;
+
+	if(strcmp(magic, "raw")==0) ipipe.magic = TC_MAGIC_RAW;
+	if(strcmp(magic, "vob")==0) ipipe.magic = TC_MAGIC_VOB;
+
+	extract_ac3(&ipipe);
+	done = 1;
+    }
+
     // AC3
     if(strcmp(codec,"ac3")==0) {
 	
