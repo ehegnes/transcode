@@ -64,6 +64,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_smartbob.la\
 			filter_smartyuv.la\
 			filter_msharpen.la\
+			filter_fps.la\
 			$(F_PP) $(F_MMX) $(F_LOGO) $(F_TEXT)
 
 filter_null_la_SOURCES = filter_null.c
@@ -199,6 +200,8 @@ filter_dilyuvmmx_la_LDFLAGS =  -module -avoid-version
 filter_fields_la_SOURCES = filter_fields.c
 filter_fields_la_LDFLAGS =  -module -avoid-version 
 
+filter_fps_la_SOURCES = filter_fps.c
+filter_fps_la_LDFLAGS = -module -avoid-version
 
 EXTRA_DIST =  parse_csv.awk filter_list.awk mmx.h
 

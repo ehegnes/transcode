@@ -1,6 +1,19 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-29 Christopher Cramer <crayc at asuka.halfassedprojects.com>
+
+  * filter/filter_fps.c:
+  This patch adds the "fps" filter to transcode, which can convert
+  any video frame rate to any other rate by repeating or dropping frames.
+  For example:
+        -J fps=25:29.97         convert from 25 fps (PAL) to 29.97 fps (NTSC)
+        -J fps=120:12           convert from 120 fps to 12 fps
+        -J fps=15:30            convert from 15 fps to 30 fps
+  The frame rate you should give with the -f option should be the
+  output frame rate. If --export_fps is specified, the supplied
+  value will be taken for export.
+
 2003-07-29 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/ac3scan.c:
