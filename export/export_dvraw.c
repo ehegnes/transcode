@@ -274,7 +274,8 @@ MOD_open
 
 MOD_encode
 {
-  
+  int i;
+
   if(param->flag == TC_VIDEO) { 
     
     if(pass_through) {
@@ -315,32 +316,31 @@ MOD_encode
       
       dv_encode_full_frame(encoder, pixels, (format)?e_dv_color_yuv:e_dv_color_rgb, target);
       
-      // demux audio channels
-      //j=0;
-      //for(i=0; i <param->size/4 ; i++) {
-      //for(ch=0; ch < chans; ch++) {
-      //  audio_bufs[ch][i] = (int16_t) param->buffer[j];
-      //  ++j; 
-      //} 
-      //}
-      
     }//no pass-through
 #ifdef LIBDV_099
       encoder->samples_this_frame=param->size;
 #endif
       dv_encode_metadata(target, encoder->isPAL, encoder->is16x9, &now, 0);
       dv_encode_timecode(target, encoder->isPAL, 0);
-      
-      pcm_swap(param->buffer, param->size);
 
-
-      //memcpy(audio.data, param->buffer, param->size);
-      //_dv_raw_insert_audio(target, &audio, encoder->isPAL);
-      
-      //FIXME: need to switch to "dv_encode_full_audio" only -- DONE?
-
-      audio_bufs[0] = (uint16_t *)param->buffer;
-      dv_encode_full_audio(encoder, audio_bufs, chans, rate, target);
+      // Although dv_encode_full_audio supports 4 channels, the internal
+      // PCM data (param->buffer) is only carrying 2 channels so only deal
+      // with 1 or 2 channel audio.
+      // Work around apparent bug in dv_encode_full_audio when chans == 1
+      // by putting silence in 2nd channel and calling with chans = 2
+      if (chans == 1) {
+          audio_bufs[0] = param->buffer;
+          memset(audio_bufs[1], 0, DV_AUDIO_MAX_SAMPLES * 2);
+          dv_encode_full_audio(encoder, audio_bufs, 2, rate, target);
+      }
+      else {
+          // assume 2 channel, demultiplex for libdv API
+          for(i=0; i < param->size/4; i++) {
+              audio_bufs[0][i] = ((int16_t *)param->buffer)[i*2];
+              audio_bufs[1][i] = ((int16_t *)param->buffer)[i*2+1];
+          }
+          dv_encode_full_audio(encoder, audio_bufs, chans, rate, target);
+      }
 
 #else    
       //merge audio     

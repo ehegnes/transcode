@@ -4,6 +4,14 @@ transcode-0.6.11
 2003-10-10 Stuart Cunningham <stuartc at rd.bbc.co.uk>
 
   * export/export_dvraw.c:
+  Make audio export work with an unpatched version of libdv.
+  The easiest way to get it work is to grab a CVS snapshot of libdv
+  and do _NOT_ apply the libdv-0.99 patch from the transcode
+  homepage.
+
+2003-10-10 Stuart Cunningham <stuartc at rd.bbc.co.uk>
+
+  * export/export_dvraw.c:
   Set the aspect ratio correctly depending on --export_asr.
 
 2003-10-06 Nicolas Boos <nicolas.boos at wanadoo.fr>
