@@ -729,6 +729,23 @@ AM_CONDITIONAL(HAVE_LIBXML2, test x"$LIBXML2CONFIG" = x"yes" )
 dnl 
 dnl mjpegtools (actually only YUV4MPEG) support
 dnl
+mjepgtools=yes
+
+AC_MSG_CHECKING([whether mjpegtools support is requested])
+AC_ARG_ENABLE(mjpeg,  AC_HELP_STRING([--enable-mjpeg], [build mjpeg dependent plugins (yes)]), 
+[
+if test x"${enableval}" = x"yes" ; then
+   AC_MSG_RESULT(yes)
+   mjpegtools=yes
+else 
+   AC_MSG_RESULT(no)
+   mjpegtools=no
+fi], [
+   AC_MSG_RESULT(yes)
+   mjpegtools=yes]
+)
+
+if test "$mjpegtools" = "yes"; then
 
 AC_MSG_CHECKING([for YUV4MPEG support])
 
@@ -744,6 +761,9 @@ then
 	mjpeg_incs="`mjpegtools-config --prefix`/include/mjpegtools"
 	AC_CHECK_FILE($mjpeg_incs/yuv4mpeg.h, 
 	   [AC_DEFINE(HAVE_MJPEG_INC, 1, mjpeg include)])
+else
+MJPEGTOOLSCONFIG=no
+fi
 else
 MJPEGTOOLSCONFIG=no
 fi
