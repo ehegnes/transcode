@@ -153,8 +153,9 @@ MOD_open
         frame = malloc(pad + 1);
         do {
             last_frame++;
-            sprintf(printfspec, "%%s%%0%dd%%s", pad);
-            sprintf(filename, printfspec, head, last_frame, tail);
+            snprintf(printfspec, sizeof(printfspec), "%%s%%0%dd%%s", pad);
+            snprintf(filename, strlen(head) + pad + strlen(tail) + 1,
+                     printfspec, head, last_frame, tail);
         } while (close(open(filename, O_RDONLY)) != -1); 
         last_frame--;
         free(filename);
@@ -211,13 +212,13 @@ MOD_decode {
     if (pad) {
         frame = malloc(pad+1);
         framespec = malloc(10);
-        sprintf(framespec, "%%0%dd", pad);
-        sprintf(frame, framespec, current_frame);
+        snprintf(framespec, 10, "%%0%dd", pad);
+        snprintf(frame, pad+1, framespec, current_frame);
         frame[pad] = '\0';
     }
     else if (first_frame >= 0) {
         frame = malloc(10);
-        sprintf(frame, "%d", current_frame);
+        snprintf(frame, 10, "%d", current_frame);
     }
     strcpy(filename, head);
     if (frame != NULL) {
