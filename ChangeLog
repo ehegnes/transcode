@@ -1,3 +1,7 @@
+2005-02-21 Andrew Church <achurch at achurch dot org>
+  * src/counter.c
+  Smoother and less convoluted ETA timer.
+
 2005-02-18 Jacob Meuser <jakemsr at jakemsr dot com>
   * src/trascode.c
   Don't up and decide the user wants PAL compliant video if an NTSC

@@ -103,7 +103,7 @@ void counter_print(int pida, int pidn, char *s, long int t1, long int t2, char *
 
       if(range_starttime == -1) range_starttime = tv.tv_sec;
       done = (double)(pidn-range_a)/(range_b-range_a);
-      secleft = (1-done)*(double)(tv.tv_sec-range_starttime)/done;
+      secleft = (range_b-pidn)/fps;
       
       if(!encoder_progress_flag) {
  	printf("%s frame [%d], %6.2f fps, %4.1f%%, ETA: %d:%02d:%02d, (%2d|%2d|%2d)  %c", s, pidn, fps, 100*done,
