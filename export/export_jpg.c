@@ -253,7 +253,7 @@ MOD_open
 	  
 	default:
 	  
-	  fprintf(stderr, "[%s] codec not supported\n", MOD_NAME);
+	  fprintf(stderr, "[%s] codec not supported (0x%x)\n", MOD_NAME, vob->im_v_codec);
 	  return(TC_EXPORT_ERROR); 
 	  
 	  break;
