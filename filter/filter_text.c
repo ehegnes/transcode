@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_text.so"
-#define MOD_VERSION "v0.1.2 (2003-06-27)"
+#define MOD_VERSION "v0.1.3 (2003-10-16)"
 #define MOD_CAP     "write text in the image"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
@@ -285,6 +285,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
     if (verbose) {
 	printf (" Text Settings:\n");
+	printf ("            string = \"%s\"\n", mfd->string);
 	printf ("             range = %u-%u\n", mfd->start, mfd->end);
 	printf ("              step = %u\n", mfd->step);
 	printf ("               dpi = %u\n", mfd->dpi);
@@ -530,7 +531,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
   
-  if((ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO) && (!ptr->attributes & TC_FRAME_IS_SKIPPED))  {
+  if((ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO) && !(ptr->attributes & TC_FRAME_IS_SKIPPED))  {
 
     if (mfd->start <= ptr->id && ptr->id <= mfd->end && ptr->id%mfd->step == mfd->boolstep) {
 
