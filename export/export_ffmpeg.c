@@ -63,6 +63,12 @@
 
 extern char *tc_config_dir;
 
+// libavcodec is not thread-safe. We must protect concurrent access to it.
+// this is visible (without the mutex of course) with 
+// transcode .. -x ffmpeg -y ffmpeg -F mpeg4
+
+extern pthread_mutex_t init_avcodec_lock;
+
 static int verbose_flag    = TC_QUIET;
 static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AC3|
                              TC_CAP_AUD;
@@ -193,8 +199,10 @@ MOD_init {
 	is_mpeg1video = 1;
     }
 
-    avcodec_init();
-    avcodec_register_all();
+    pthread_mutex_lock(&init_avcodec_lock);
+      avcodec_init();
+      avcodec_register_all();
+    pthread_mutex_unlock(&init_avcodec_lock);
     
     //-- get it --
     lavc_venc_codec = avcodec_find_encoder_by_name(codec->name);
@@ -295,8 +303,7 @@ MOD_init {
       module_print_config("", lavcopts_conf);
     }
     
-    if (lavc_param_vhq)
-      lavc_venc_context->flags |= CODEC_FLAG_HQ;
+    //if (lavc_param_vhq) lavc_venc_context->flags |= CODEC_FLAG_HQ;
 
     lavc_venc_context->bit_rate_tolerance = lavc_param_vrate_tolerance * 1000;
     lavc_venc_context->max_qdiff          = lavc_param_vqdiff;
@@ -673,9 +680,11 @@ MOD_encode
     }
 
 
+    pthread_mutex_lock(&init_avcodec_lock);
     out_size = avcodec_encode_video(lavc_venc_context,
                                     (unsigned char *) tmp_buffer, buf_size,
                                     lavc_venc_frame);
+    pthread_mutex_unlock(&init_avcodec_lock);
   
     if (out_size < 0) {
       fprintf(stderr, "[%s] encoder error: size (%d)\n", MOD_NAME, out_size);

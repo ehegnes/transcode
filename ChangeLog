@@ -2,6 +2,19 @@
 transcode-0.6.11
 
 2003-09-17 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/{export_ffmpeg.c aud_aux.c} src/transcode.c
+  import/import_ffmpeg.c:
+  libavcodec is not thread-safe; We now use a mutex to protect
+  concurrent accesses to libavcodec.
+
+  * ffmpeg/libavcodec/*:
+  Upgrade included libavcodec to official release 0.4.7
+
+  * export/export_ffmpeg.c:
+  Adjust to work with new ffmpeg (vhq is gone)
+
+2003-09-17 Tilmann Bitterberg <transcode at tibit.org>
   
   * avilib/avilib.c:
   Respect errno when reading. When reading/writing WAV headers,

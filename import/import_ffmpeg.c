@@ -41,6 +41,12 @@
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];
 
+// libavcodec is not thread-safe. We must protect concurrent access to it.
+// this is visible (without the mutex of course) with 
+// transcode .. -x ffmpeg -y ffmpeg -F mpeg4
+
+extern pthread_mutex_t init_avcodec_lock;
+
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_VID;
 static int done_seek=0;
@@ -178,8 +184,10 @@ MOD_open {
 
     //-- initialization of ffmpeg stuff:          --
     //----------------------------------------------
-    avcodec_init();
-    avcodec_register_all();
+    pthread_mutex_lock(&init_avcodec_lock);
+     avcodec_init();
+     avcodec_register_all();
+    pthread_mutex_unlock(&init_avcodec_lock);
 
     codec = find_ffmpeg_codec(fourCC);
     if (codec == NULL) {
@@ -311,8 +319,10 @@ MOD_decode {
     // ------------
 
     do {
-      len = avcodec_decode_video(lavc_dec_context, &picture, 
+	pthread_mutex_lock(&init_avcodec_lock);
+	 len = avcodec_decode_video(lavc_dec_context, &picture, 
 			         &got_picture, buffer, bytes_read);
+	pthread_mutex_unlock(&init_avcodec_lock);
 
       if (len < 0) {
         fprintf(stderr, "[%s] frame decoding failed", MOD_NAME);

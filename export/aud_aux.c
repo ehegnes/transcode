@@ -36,6 +36,8 @@
 #include "ac3.h"
 #include "../aclib/ac.h"
 
+extern pthread_mutex_t init_avcodec_lock;
+
 static AVCodec        *mpa_codec = NULL;
 static AVCodecContext mpa_ctx;
 static char           *mpa_buf     = NULL;
@@ -378,9 +380,11 @@ static int audio_init_ffmpeg(vob_t *vob, int o_codec)
 
     // INIT
 
+    pthread_mutex_lock(&init_avcodec_lock);
     avcodec_init();
     register_avcodec(&ac3_encoder);
     register_avcodec(&mp2_encoder);
+    pthread_mutex_unlock(&init_avcodec_lock);
 
     switch (o_codec) {
 	case   0x50: codeid = CODEC_ID_MP2; break;
@@ -911,8 +915,10 @@ static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
 	
 	memcpy(&mpa_buf[mpa_buf_ptr], in_buf, bytes_needed);
 	
+	pthread_mutex_lock(&init_avcodec_lock);
 	out_size = avcodec_encode_audio(&mpa_ctx, (unsigned char *)output, 
 					OUTPUT_SIZE, (short *)mpa_buf);
+	pthread_mutex_unlock(&init_avcodec_lock);
 	audio_write(output, out_size, avifile);
 	
         in_size -= bytes_needed; 
