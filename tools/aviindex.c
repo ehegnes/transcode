@@ -97,7 +97,7 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
       if(strncasecmp(data,"IDX1",4) == 0)
       {
 	 // deal with it to extract keyframe info
-         *len = n;
+         *len = str2ulong(data+4);
 	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 //fprintf (stderr, "Found an index chunk at %lld len %lld\n", *pos, *len);
          if(lseek(AVI->fdes,n,SEEK_CUR)==(off_t)-1)  return 0;
@@ -116,7 +116,7 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
 
       if(strncasecmp(data,AVI->video_tag,3) == 0)
       {
-         *len = n;
+         *len = str2ulong(data+4);
 	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
          AVI->video_pos++;
 	 rlen = (n<LEN)?n:LEN;
@@ -126,7 +126,7 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
       }
       else if(AVI->anum>=1 && strncasecmp(data,AVI->track[0].audio_tag,4) == 0)
       {
-         *len = n;
+         *len = str2ulong(data+4);
 	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 AVI->track[0].audio_posc++;
 	 rlen = (n<LEN)?n:LEN;
@@ -137,7 +137,7 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
       }
       else if(AVI->anum>=2 && strncasecmp(data,AVI->track[1].audio_tag,4) == 0)
       {
-         *len = n;
+         *len = str2ulong(data+4);
 	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 AVI->track[1].audio_posc++;
 	 rlen = (n<LEN)?n:LEN;
@@ -148,7 +148,7 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
       }
       else if(AVI->anum>=3 && strncasecmp(data,AVI->track[2].audio_tag,4) == 0)
       {
-         *len = n;
+         *len = str2ulong(data+4);
 	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 AVI->track[2].audio_posc++;
 	 rlen = (n<LEN)?n:LEN;
@@ -159,7 +159,7 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
       }
       else if(AVI->anum>=4 && strncasecmp(data,AVI->track[3].audio_tag,4) == 0)
       {
-         *len = n;
+         *len = str2ulong(data+4);
 	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 AVI->track[3].audio_posc++;
 	 rlen = (n<LEN)?n:LEN;
@@ -170,7 +170,7 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
       }
       else if(AVI->anum>=5 && strncasecmp(data,AVI->track[4].audio_tag,4) == 0)
       {
-         *len = n;
+         *len = str2ulong(data+4);
 	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 AVI->track[4].audio_posc++;
 	 rlen = (n<LEN)?n:LEN;
@@ -181,7 +181,7 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
       }
       else if(AVI->anum>=6 && strncasecmp(data,AVI->track[5].audio_tag,4) == 0)
       {
-         *len = n;
+         *len = str2ulong(data+4);
 	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 AVI->track[5].audio_posc++;
 	 rlen = (n<LEN)?n:LEN;
@@ -192,7 +192,7 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
       }
       else if(AVI->anum>=7 && strncasecmp(data,AVI->track[6].audio_tag,4) == 0)
       {
-         *len = n;
+         *len = str2ulong(data+4);
 	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 AVI->track[6].audio_posc++;
 	 rlen = (n<LEN)?n:LEN;
@@ -203,7 +203,7 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
       }
       else if(AVI->anum>=8 && strncasecmp(data,AVI->track[7].audio_tag,4) == 0)
       {
-         *len = n;
+         *len = str2ulong(data+4);
 	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 AVI->track[7].audio_posc++;
 	 rlen = (n<LEN)?n:LEN;
@@ -236,9 +236,9 @@ int main(int argc, char *argv[])
   int ch;
   int progress=0, old_progress=0;
 
-  //long rate;
-  //int format, chan, bits;
-  //int aud_bitrate = 0;
+  long rate;
+  int format, chan, bits;
+  int aud_bitrate = 0;
 
   FILE *out_fd    = NULL;
   int open_without_index=0;
@@ -357,6 +357,7 @@ int main(int argc, char *argv[])
       int audtr = ret-2;
 
       /* don't need this and it saves time
+       * */
       if (audtr>=0 && audtr<=7) {
 	AVI_set_audio_track(avifile1, audtr);
 	format = AVI_audio_format (avifile1);
@@ -374,12 +375,10 @@ int main(int argc, char *argv[])
 	    aud_ms[audtr] += (len*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):aud_bitrate);
 	}
       }
-      */
 
       switch (ret) {
 	case 1: sprintf(tag, "00db");
-		//vid_ms = (avifile1->video_pos)*1000.0/fps;
-		print_ms = vid_ms;
+		print_ms = vid_ms = (avifile1->video_pos)*1000.0/fps;
 		chunk = avifile1->video_pos;
 		if (avifile1->video_index) 
 		  key = (avifile1->video_index[chunk-1].key)?1:0;
@@ -515,6 +514,7 @@ int main(int argc, char *argv[])
 
    ioff = idx_type == 1 ? 0 : avifile1->movi_start-4;
    //fprintf(stderr, "index type (%d), ioff (%ld)\n", idx_type, (long)ioff);
+    i=0;
 
     while (i<avifile1->n_idx) {
       memcpy(tag, avifile1->idx[i], 4);
