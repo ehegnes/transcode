@@ -402,8 +402,10 @@ MOD_init {
     lavc_venc_context->bit_rate_tolerance = lavc_param_vrate_tolerance * 1000;
     lavc_venc_context->mb_qmin= lavc_param_mb_qmin;
     lavc_venc_context->mb_qmax= lavc_param_mb_qmax;
+#if LIBAVCODEC_BUILD > 4694
     lavc_venc_context->lmin= (int)(FF_QP2LAMBDA * lavc_param_lmin + 0.5);
     lavc_venc_context->lmax= (int)(FF_QP2LAMBDA * lavc_param_lmax + 0.5);
+#endif
     lavc_venc_context->max_qdiff          = lavc_param_vqdiff;
     lavc_venc_context->qcompress          = lavc_param_vqcompress;
     lavc_venc_context->qblur              = lavc_param_vqblur;
@@ -485,7 +487,7 @@ MOD_init {
 	    lavc_venc_context->inter_matrix = NULL;
 	}
 	else
-	    fprintf(stderr, "[%s] Using user specified intra matrix\n", MOD_NAME);
+	    fprintf(stderr, "[%s] Using user specified inter matrix\n", MOD_NAME);
     }
 
     p = lavc_param_rc_override_string;
@@ -581,7 +583,7 @@ MOD_init {
 	switch(vob->encode_fields)
 	{
 		case(0):
-			{
+		{
 			interlacing_active = 0;
 			interlacing_top_first = 0;
 			break;
@@ -591,7 +593,12 @@ MOD_init {
 		{
 			interlacing_active = 1;
 			interlacing_top_first = 1;
+#if defined(CODEC_FLAG_INTERLACED_DCT)
       		lavc_venc_context->flags |= CODEC_FLAG_INTERLACED_DCT;
+#endif
+#if defined(CODEC_FLAG_INTERLACED_ME)
+      		lavc_venc_context->flags |= CODEC_FLAG_INTERLACED_ME;
+#endif
 			break;
 		}
 
@@ -599,7 +606,12 @@ MOD_init {
 		{
 			interlacing_active = 1;
 			interlacing_top_first = 0;
+#if defined(CODEC_FLAG_INTERLACED_DCT)
       		lavc_venc_context->flags |= CODEC_FLAG_INTERLACED_DCT;
+#endif
+#if defined(CODEC_FLAG_INTERLACED_ME)
+      		lavc_venc_context->flags |= CODEC_FLAG_INTERLACED_ME;
+#endif
 			break;
 		}
 	}
@@ -726,8 +738,6 @@ MOD_init {
   
       //-- GMO end --
 
-      fprintf(stderr, "[%s]              crispness: %d\n", MOD_NAME,
-              vob->divxcrispness);
       fprintf(stderr, "[%s]  max keyframe interval: %d\n", MOD_NAME,
               vob->divxkeyframes);
       fprintf(stderr, "[%s]             frame rate: %.2f\n", MOD_NAME,
@@ -837,6 +847,10 @@ MOD_encode
 
     if (encoded_frames && frames > encoded_frames)
 	return TC_EXPORT_ERROR;
+
+	lavc_venc_frame->qscale_type = FF_QSCALE_TYPE_MPEG2;
+	lavc_venc_frame->interlaced_frame = interlacing_active;
+	lavc_venc_frame->top_field_first = interlacing_top_first;
 
     if (pix_fmt == PIX_FMT_YUV420P) {
       lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;

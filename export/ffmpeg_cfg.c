@@ -34,8 +34,10 @@ int lavc_param_vme = 4;
 //int lavc_param_vqmax = 31;
 int lavc_param_mb_qmin = 2;
 int lavc_param_mb_qmax = 31;
+#if LIBAVCODEC_BUILD > 4694
 int lavc_param_lmin = 2;
 int lavc_param_lmax = 31;
+#endif
 int lavc_param_vqdiff = 3;
 float lavc_param_vqcompress = 0.5;
 float lavc_param_vqblur = 0.5;
@@ -128,8 +130,10 @@ struct config lavcopts_conf[]={
 //    {"vqmax", &lavc_param_vqmax, CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
     {"mbqmin", &lavc_param_mb_qmin, CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
     {"mbqmax", &lavc_param_mb_qmax, CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
+#if LIBAVCODEC_BUILD > 4694
     {"lmin", &lavc_param_lmin, CONF_TYPE_FLOAT, CONF_RANGE, 0.01, 255.0, NULL},
     {"lmax", &lavc_param_lmax, CONF_TYPE_FLOAT, CONF_RANGE, 0.01, 255.0, NULL},
+#endif
     {"vqdiff", &lavc_param_vqdiff, CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
     {"vqcomp", &lavc_param_vqcompress, CONF_TYPE_FLOAT, CONF_RANGE, 0.0, 1.0, NULL},
     {"vqblur", &lavc_param_vqblur, CONF_TYPE_FLOAT, CONF_RANGE, 0.0, 1.0, NULL},

@@ -15,8 +15,10 @@ extern int lavc_param_vme;
 //extern int lavc_param_vqmax;
 extern int lavc_param_mb_qmin;
 extern int lavc_param_mb_qmax;
+#if LIBAVCODEC_BUILD > 4694
 extern int lavc_param_lmin;
 extern int lavc_param_lmax;
+#endif
 extern int lavc_param_vqdiff;
 extern float lavc_param_vqcompress;
 extern float lavc_param_vqblur;

@@ -2,6 +2,22 @@
 transcode-0.6.12
 
 2004-01-03 Erik Slagter <erik at oldconomy.com>
+
+  * export/{export_ffmpeg.c ffmpeg_cfg.c ffmpeg_cfg.h}:
+  - check whether libavcodec actually has lmin,lmax struct members
+    before using them
+  - check whether libavcodec actually has CODEC_FLAG_INTERLACED_DCT
+    before using it
+  - check whether libavcodec actually has CODEC_FLAG_INTERLACED_ME
+    before using it
+  - correct typo in "verbose" text
+  - a little cosmetic change in previous patched code (position of
+    brace)
+  - remove "crispness" output
+  - a little extra patch, needed for interlaced encoding, that
+    didn't get there the first time, for no apparent reason.
+
+2004-01-03 Erik Slagter <erik at oldconomy.com>
   
   * filter/filter_denoise3d.c:
   Fix typo.
