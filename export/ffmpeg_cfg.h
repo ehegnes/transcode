@@ -6,8 +6,8 @@
 
 //extern int lavc_param_vbitrate;
 extern int lavc_param_vrate_tolerance;
-extern int lavc_param_vhq; /* default is NOT realtime encoding! */
 extern int lavc_param_v4mv;
+extern int lavc_param_mb_decision;
 extern int lavc_param_vme;
 //extern int lavc_param_vqscale;
 //extern int lavc_param_vqmin;
@@ -78,6 +78,10 @@ extern int lavc_param_ibias;
 extern int lavc_param_pbias;
 extern int lavc_param_coder;
 extern int lavc_param_context;
+extern char *lavc_param_intra_matrix;
+extern char *lavc_param_inter_matrix;
+extern int lavc_param_cbp;
+extern int lavc_param_mv0;
 
 extern struct config lavcopts_conf[];
 

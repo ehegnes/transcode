@@ -24,8 +24,8 @@
 
 //int lavc_param_vbitrate = -1;
 int lavc_param_vrate_tolerance = 1000*8;
-int lavc_param_vhq = 1; /* default is NOT realtime encoding! */
 int lavc_param_v4mv = 0;
+int lavc_param_mb_decision = 1; /* default is NOT realtime encoding */
 int lavc_param_vme = 4;
 //int lavc_param_vqscale = 0;
 //int lavc_param_vqmin = 2;
@@ -96,12 +96,17 @@ int lavc_param_ibias=FF_DEFAULT_QUANT_BIAS;
 int lavc_param_pbias=FF_DEFAULT_QUANT_BIAS;
 int lavc_param_coder=0;
 int lavc_param_context=0;
+char *lavc_param_intra_matrix = NULL;
+char *lavc_param_inter_matrix = NULL;
+int lavc_param_cbp= 0;
+int lavc_param_mv0= 0;
 
 struct config lavcopts_conf[]={
 //    {"vcodec", &lavc_param_vcodec, CONF_TYPE_STRING, 0, 0, 0, NULL},
 //    {"vbitrate", &lavc_param_vbitrate, CONF_TYPE_INT, CONF_RANGE, 4, 24000000, NULL},
     {"vratetol", &lavc_param_vrate_tolerance, CONF_TYPE_INT, CONF_RANGE, 4, 24000000, NULL},
-    {"vhq", &lavc_param_vhq, CONF_TYPE_FLAG, 0, 0, 1, NULL},
+    {"vhq", &lavc_param_mb_decision, CONF_TYPE_FLAG, 0, 0, 1, NULL},
+    {"mbd", &lavc_param_mb_decision, CONF_TYPE_INT, CONF_RANGE, 0, 9, NULL},
     {"v4mv", &lavc_param_v4mv, CONF_TYPE_FLAG, 0, 0, 1, NULL},
     {"vme", &lavc_param_vme, CONF_TYPE_INT, CONF_RANGE, 0, 5, NULL},
 //    {"vqscale", &lavc_param_vqscale, CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
@@ -173,6 +178,10 @@ struct config lavcopts_conf[]={
     {"pbias", &lavc_param_pbias, CONF_TYPE_INT, CONF_RANGE, -512, 512, NULL},
     {"coder", &lavc_param_coder, CONF_TYPE_INT, CONF_RANGE, 0, 10, NULL},
     {"context", &lavc_param_context, CONF_TYPE_INT, CONF_RANGE, 0, 10, NULL},
+    {"intra_matrix", &lavc_param_intra_matrix, CONF_TYPE_STRING, 0, 0, 0, NULL},
+    {"inter_matrix", &lavc_param_inter_matrix, CONF_TYPE_STRING, 0, 0, 0, NULL},
+    {"cbp", &lavc_param_cbp, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_CBP_RD, NULL},
+    {"mv0", &lavc_param_mv0, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_MV0, NULL},
     {NULL, NULL, 0, 0, 0, 0, NULL}
 };
 
