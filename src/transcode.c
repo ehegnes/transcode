@@ -2816,6 +2816,25 @@ int main(int argc, char *argv[]) {
       double asr_out = (double)vob->ex_v_width/(double)vob->ex_v_height;
       double asr_in  = (double)vob->im_v_width/(double)vob->im_v_height;
       double delta   = 0.01;
+      double asr_cor = 1.0;
+
+
+      if (vob->im_asr) {
+	switch (vob->im_asr) {
+	  case 1:
+	    asr_cor = (1.0);
+	    break;
+	  case 2:
+	    asr_cor = (4.0/3.0);
+	    break;
+	  case 3:
+	    asr_cor = (16.0/9.0);
+	    break;
+	  case 4:
+	    asr_cor = (2.21);
+	    break;
+	}
+      }
 
       if (!zoom) tc_error ("keep_asr only works with -Z");
 
@@ -2824,36 +2843,57 @@ int main(int argc, char *argv[]) {
 
       if (asr_in > asr_out) {
 	  /* adjust height */
+	  int clipV = (vob->im_clip_top +vob->im_clip_bottom);
+	  int clipH = (vob->im_clip_left+vob->im_clip_right);
+	  int clip1 = 0;
+	  int clip2 = 0;
 	  zoomto = (int)((double)(vob->ex_v_width) / 
-		        ((double)(vob->im_v_width -(vob->im_clip_left+vob->im_clip_right)) / 
-		         (double)(vob->im_v_height-(vob->im_clip_top +vob->im_clip_bottom)))+.5);
+		        ( ((double)(vob->im_v_width -clipH) / (vob->im_v_width/asr_cor/vob->im_v_height) )/ 
+		         (double)(vob->im_v_height-clipV))+.5);
 
-	  if (zoomto%2 != 0) zoomto--;
 
 	  clip = vob->ex_v_height - zoomto;
-	  clip /= 2;
+	  /*
+	  printf("clip %d, zoomto %d cor %f ducor %f imw %d imh %d\n", 
+	      clip, zoomto, asr_cor, vob->im_v_width/asr_cor/vob->im_v_height, vob->im_v_width, vob->im_v_height);
+	      */
 
-	  if (clip%2 != 0) clip++;
+	  if (zoomto%2 != 0) (clip>0?zoomto--:zoomto++);
+	  clip = vob->ex_v_height - zoomto;
+	  clip /= 2;
+	  clip1 = clip2 = clip;
+
+	  if (clip&1) { clip1--; clip2++; }
 	  ex_clip = TC_TRUE;
-	  vob->ex_clip_top = -clip;
-	  vob->ex_clip_bottom = -clip;
+	  vob->ex_clip_top = -clip1;
+	  vob->ex_clip_bottom = -clip2;
 
 	  vob->zoom_height = zoomto;
 
       } else {
 	  /* adjust width */
-	  zoomto = (int)((double)vob->ex_v_height *
-		        ((double)(vob->im_v_width -(vob->im_clip_left+vob->im_clip_right)) / 
-		         (double)(vob->im_v_height-(vob->im_clip_top +vob->im_clip_bottom)))+.5);
-	  if (zoomto%2 != 0) zoomto--;
+	  int clipV = (vob->im_clip_top +vob->im_clip_bottom);
+	  int clipH = (vob->im_clip_left+vob->im_clip_right);
+	  int clip1 = 0;
+	  int clip2 = 0;
+	  zoomto = (int)((double)vob->ex_v_height * (
+		        ( ((double)(vob->im_v_width-clipH)) / (vob->im_v_width/asr_cor/vob->im_v_height) ) / 
+		           (double)(vob->im_v_height-clipV)) +.5);
 
 	  clip = vob->ex_v_width - zoomto;
-	  clip /= 2;
 
-	  if (clip%2 != 0) clip++;
+	  /*
+	      */
+
+	  if (zoomto%2 != 0) (clip>0?zoomto--:zoomto++);
+	  clip = vob->ex_v_width - zoomto;
+	  clip /= 2;
+	  clip1 = clip2 = clip;
+
+	  if (clip&1) { clip1--; clip2++; }
 	  ex_clip = TC_TRUE;
-	  vob->ex_clip_left = -clip;
-	  vob->ex_clip_right = -clip;
+	  vob->ex_clip_left = -clip1;
+	  vob->ex_clip_right = -clip2;
 
 	  vob->zoom_width = zoomto;
       }

@@ -18,6 +18,10 @@ transcode-0.6.9
   to do: transcode -i dir/ -P1 -o x.avi -x dv,null -y raw,null
   Pointed out by Frederic Briere. (In dir/ are DVSD AVI files)
 
+  * src/transcode.c:
+  --keep_asr now takes the probed import aspect ratio into account.
+  Pointed out by Bernhard Rosenkraenzer.
+
 2003-08-04 Edouard Gomez <ed.gomez at free.fr>
 
   * export/export_xvid4.c:
