@@ -56,6 +56,7 @@ pkg_LTLIBRARIES = \
 	filter_32detect.la \
 	filter_32drop.la \
 	filter_aclip.la \
+	filter_ascii.la \
 	filter_astat.la \
 	filter_clone.la \
 	filter_control.la \
@@ -67,6 +68,7 @@ pkg_LTLIBRARIES = \
 	filter_detectsilence.la \
 	filter_dnr.la \
 	filter_doublefps.la \
+	filter_facemask.la \
 	filter_fieldanalysis.la\
 	filter_fields.la \
 	filter_fps.la \
@@ -110,6 +112,10 @@ filter_32drop_la_LDFLAGS = -module -avoid-version
 filter_aclip_la_SOURCES = filter_aclip.c
 filter_aclip_la_LDFLAGS = -module -avoid-version 
 
+filter_ascii_la_SOURCES = filter_ascii.c
+filter_ascii_la_LDFLAGS = -module -avoid-version 
+filter_ascii_la_LIBADD = @LIBVO_LIBS@ ../export/vid_aux.lo 
+
 filter_astat_la_SOURCES = filter_astat.c
 filter_astat_la_LDFLAGS = -module -avoid-version 
 
@@ -143,6 +149,10 @@ filter_dnr_la_LIBADD = -lm
 
 filter_doublefps_la_SOURCES = filter_doublefps.c
 filter_doublefps_la_LDFLAGS = -module -avoid-version 
+
+filter_facemask_la_SOURCES = filter_facemask.c
+filter_facemask_la_LDFLAGS = -module -avoid-version 
+filter_facemask_la_LIBADD = @LIBVO_LIBS@ ../export/vid_aux.lo 
 
 filter_fieldanalysis_la_SOURCES = filter_fieldanalysis.c
 filter_fieldanalysis_la_LDFLAGS =  -module -avoid-version 
