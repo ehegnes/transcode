@@ -1075,6 +1075,8 @@ exit1:
 
   if (which_streams & STREAMS_VIDEO)
     unlink (video_units);
+  if (which_streams & STREAMS_AUDIO1)
+    unlink (audio1_units);
   if (which_streams & STREAMS_AUDIO)
     unlink (audio_units);
 
