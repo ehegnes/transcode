@@ -45,25 +45,15 @@ int scan_header_dv(char *buf)
 
     // Initialize DV decoder
 
-#ifdef LIBDV_095    
     if((dv_decoder = dv_decoder_new(TRUE, FALSE, FALSE))==NULL) {
 	fprintf(stderr, "(%s) dv decoder init failed\n", __FILE__);
 	return(-1);
     }
-#else
-    if((dv_decoder = dv_decoder_new())==NULL) {
-	fprintf(stderr, "(%s) dv decoder init failed\n", __FILE__);
-	return(-1);
-    }
-    dv_init();
-#endif
 
     dv_decoder->prev_frame_decoded = 0;
     cc=dv_parse_header(dv_decoder, buf);
 
-#ifdef LIBDV_095    
     dv_decoder_free(dv_decoder);
-#endif
 
 #endif
     return(cc);

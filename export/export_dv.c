@@ -23,7 +23,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "libdvenc/dvenc.h"
+#include <libdv/dv.h>
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
@@ -47,10 +47,8 @@ static int frame_size=0, format=0;
 
 static int dv_yuy2_mode=0;
 
-#ifdef LIBDV_095
 static dv_encoder_t *encoder = NULL;
 static unsigned char *pixels[3], *tmp_buf;
-#endif
 
 static unsigned char *bufalloc(size_t size)
 {
@@ -96,11 +94,7 @@ MOD_init
 	dv_yuy2_mode=1;
       }
 
-#ifdef LIBDV_095
       encoder = dv_encoder_new(FALSE, FALSE, FALSE);
-#else
-      dvenc_init();
-#endif
       
       return(0);
     }
@@ -158,16 +152,11 @@ MOD_open
     // for reading
     frame_size = (vob->ex_v_height==PAL_H) ? TC_FRAME_DV_PAL:TC_FRAME_DV_NTSC;
     
-#ifdef LIBDV_095
     encoder->isPAL = (vob->ex_v_height==PAL_H);
     encoder->is16x9 = FALSE;
     encoder->vlc_encode_passes = 3;
     encoder->static_qno = 0;
     encoder->force_dct = DV_DCT_AUTO;
-#else
-    dvenc_set_parameter(format, vob->ex_v_height, vob->a_rate);
-#endif      
-    
 
     return(0);
   }
@@ -194,9 +183,6 @@ MOD_encode
 
     time_t now = time(NULL);
 
-    
-#ifdef LIBDV_095
-
       pixels[0] = (char *) param->buffer;
 	
       if(encoder->isPAL) {
@@ -216,9 +202,7 @@ MOD_encode
 
     dv_encode_metadata(target, encoder->isPAL, encoder->is16x9, &now, 0);
     dv_encode_timecode(target, encoder->isPAL, 0);
-#else    
-    dvenc_frame(param->buffer, NULL, 0, target);
-#endif
+
     
     // write video
     // only keyframes 
@@ -256,11 +240,7 @@ MOD_stop
   
   if(param->flag == TC_VIDEO) {
     
-#ifdef LIBDV_095
     dv_encoder_free(encoder);  
-#else    
-    dvenc_close();
-#endif
     
     return(0);
   }
@@ -293,4 +273,3 @@ MOD_close
   return(TC_EXPORT_ERROR);  
 
 }
-

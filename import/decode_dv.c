@@ -152,18 +152,10 @@ void decode_dv(decode_t *decode)
 
   // Initialize DV decoder
 
-#ifdef LIBDV_095
   if((dv_decoder = dv_decoder_new(FALSE, FALSE, FALSE))==NULL) {
     fprintf(stderr, "(%s) dv decoder init failed\n", __FILE__);
     import_exit(1);
   }
-#else
-  if((dv_decoder = dv_decoder_new())==NULL) {
-    fprintf(stderr, "(%s) dv decoder init failed\n", __FILE__);
-    import_exit(1);
-  }
-  dv_init();
-#endif
   
   switch (decode->quality) {
       
@@ -404,20 +396,11 @@ void probe_dv(info_t *ipipe)
   int bytes;
 
   // initialize DV decoder
-#ifdef LIBDV_095    
     if((dv_decoder = dv_decoder_new(TRUE, FALSE, FALSE))==NULL) {
 	fprintf(stderr, "(%s) dv decoder init failed\n", __FILE__);
 	    ipipe->error=1;
 	    return;
     }
-#else
-    if((dv_decoder = dv_decoder_new())==NULL) {
-	fprintf(stderr, "(%s) dv decoder init failed\n", __FILE__);
-	ipipe->error=1;
-	return;	
-    }
-    dv_init();
-#endif
 
   // max frame input buffer
   if((buf = (unsigned char*) calloc(1, DV_PAL_SIZE))==NULL) {

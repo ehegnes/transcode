@@ -18,7 +18,6 @@ SUBDIRS = \
 	libac3 \
 	libvo \
 	libmpeg2 \
-	libdvenc \
 	import \
 	export \
 	filter \

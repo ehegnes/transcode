@@ -874,18 +874,13 @@ dnl libdv
 dnl
 LIBDV_EXTRA_LIBS="$LIBDV_EXTRA_LIBS $PTHREAD_LIBS -lm"
 TC_PATH_PKG(libdv, no, LIBDV, libdv, no,
-  [libdv/dv.h], dv, dv_init)
+  [libdv/dv.h], dv, dv_encoder_new)
 if test x"$have_libdv" = x"yes" ; then
   AC_DEFINE([HAVE_LIBDV], 1, [have libdv support])
   save_LDFLAGS="$LDFLAGS"
   LDFLAGS="$LDFLAGS $LIBDV_LIBS"
   save_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $LIBDV_CFLAGS"
-  dnl check for libdv version >= 0.95
-  AC_CHECK_LIB(dv, dv_encoder_new,
-    [AC_DEFINE([LIBDV_095], [1], [Have libdv 0.95 or newer])],
-    [], 
-    [$LIBDV_EXTRA_LIBS])
   dnl check for libdv version >= 0.99
   AC_CHECK_LIB(dv, dv_calculate_samples,
     [AC_DEFINE([LIBDV_099], [1], [Have libdv 0.99 or newer])],
@@ -1254,13 +1249,6 @@ ACLIB_LIBS="\$(top_builddir)/aclib/libac.la"
 AC_SUBST(ACLIB_CFLAGS)
 AC_SUBST(ACLIB_LIBS)
 
-dnl
-dnl libdvenc
-dnl
-LIBDVENC_CFLAGS="-I\$(top_srcdir)/libdvenc"
-LIBDVENC_LIBS="\$(top_builddir)/libdvenc/libdvenc.la"
-AC_SUBST(LIBDVENC_CFLAGS)
-AC_SUBST(LIBDVENC_LIBS)
 
 
 dnl
@@ -1336,7 +1324,6 @@ AC_OUTPUT([
 	import/v4l/Makefile
 	libac3/Makefile
 	libdldarwin/Makefile
-	libdvenc/Makefile
 	libioaux/Makefile
 	libmpeg2/Makefile
 	libsupport/Makefile

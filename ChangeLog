@@ -1,3 +1,13 @@
+2005-01-22 Jacob Meuser <jakemsr at jakemsr dot com>
+  * Makfefile.am configure.in libdvenc/* (removed) export/Makefile.am
+    export/export_dv.c export/export_dvraw.c export/decode_dv.c
+    export/scan_dv.c
+  libdvenc is removed.  it is not used if transcode is built with
+  libdv-0.95 or newer.  since libdv-0.95 was released close to three
+  years ago and new releases are made fairly regularly, change the
+  check in configure.in to the existing check for libdv >= 0.95, and
+  remove the LIBDV_095 macro.
+
 2005-01-20 Thomas Wehrspann <thomas at wehrspann dot de>
   * filter/filter_null.c
   Documentation added.

@@ -23,7 +23,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "libdvenc/dvenc.h"
+#include <libdv/dv.h>
 #include "transcode.h"
 #include "vid_aux.h"
 #include "optstr.h"
@@ -39,19 +39,14 @@ static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID|TC_CAP_YU
 #define MOD_PRE dvraw
 #include "export_def.h"
 
-extern int _dv_raw_insert_audio(unsigned char * frame_buf, 
-                     dv_enc_audio_info_t * audio, int isPAL);
-
 static int fd;
 
 static int16_t *audio_bufs[4];
 
 static uint8_t *target, *vbuf;
 
-#ifdef LIBDV_095
 static dv_encoder_t *encoder = NULL;
 static uint8_t *pixels[3], *tmp_buf;
-#endif
 
 static int frame_size=0, format=0;
 static int pass_through=0;
@@ -59,8 +54,6 @@ static int pass_through=0;
 static int chans, rate;
 static int dv_yuy2_mode=0;
 static int dv_uyvy_mode=0;
-
-static dv_enc_audio_info_t audio;
 
 static unsigned char *bufalloc(size_t size)
 {
@@ -144,7 +137,6 @@ MOD_init
     target = bufalloc(TC_FRAME_DV_PAL);
     vbuf = bufalloc(PAL_W*PAL_H*3);
 
-#ifdef LIBDV_095
     if(vob->dv_yuy2_mode) {
       tmp_buf = bufalloc(PAL_W*PAL_H*2); //max frame
       dv_yuy2_mode=1;
@@ -156,9 +148,6 @@ MOD_init
     }
     
     encoder = dv_encoder_new(FALSE, FALSE, FALSE);
-#else
-    dvenc_init();
-#endif
     
     return(0);
   }
@@ -188,6 +177,9 @@ MOD_init
 
 MOD_open
 {
+  int bytealignment;
+  int bytespersecond;
+  int bytesperframe;
   
   if(param->flag == TC_VIDEO) {
     
@@ -239,8 +231,6 @@ MOD_open
 
     if(verbose & TC_DEBUG) fprintf(stderr, "[%s] encoding to %s DV\n", MOD_NAME, (vob->ex_v_height==PAL_H) ? "PAL":"NTSC");
 
-    
-#ifdef LIBDV_095
     // Store aspect ratio - ex_asr uses the value 3 for 16x9
     encoder->is16x9 = ((vob->ex_asr<0) ? vob->im_asr:vob->ex_asr) == 3;
     encoder->isPAL = (vob->ex_v_height==PAL_H);
@@ -250,9 +240,7 @@ MOD_open
       if (optstr_get (vob->ex_v_string, "qno", "%d", &encoder->static_qno) == 1)
         printf("[%s] using quantisation: %d\n", MOD_NAME, encoder->static_qno);
     encoder->force_dct = DV_DCT_AUTO;
-#else
-    dvenc_set_parameter(format, vob->ex_v_height, vob->a_rate);
-#endif      
+
     return(0);
   }
   
@@ -268,19 +256,12 @@ MOD_open
     //re-sampling only with -J resample possible
     rate = vob->a_rate;
 
-    audio.channels = chans;
-    audio.frequency = rate;
-    audio.bitspersample = 16;
-    audio.bytealignment = (chans==2) ? 4:2;
-    audio.bytespersecond = rate * audio.bytealignment;
-#ifdef LIBDV_095
-    audio.bytesperframe = audio.bytespersecond/(encoder->isPAL ? 25 : 30);
-#else
-    audio.bytesperframe = audio.bytespersecond/((int)vob->ex_fps);
-#endif
+    bytealignment = (chans==2) ? 4:2;
+    bytespersecond = rate * bytealignment;
+    bytesperframe = bytespersecond/(encoder->isPAL ? 25 : 30);
 
-    if(verbose & TC_DEBUG) fprintf(stderr, "[%s] audio: CH=%d, f=%d, balign=%d, bps=%d, bpf=%d\n", MOD_NAME, audio.channels, audio.frequency, audio.bytealignment, audio.bytespersecond, audio.bytesperframe);
-    
+    if(verbose & TC_DEBUG) fprintf(stderr, "[%s] audio: CH=%d, f=%d, balign=%d, bps=%d, bpf=%d\n", MOD_NAME, chans, rate, bytealignment, bytespersecond, bytesperframe);
+
     return(0);
   }
   // invalid flag
@@ -317,8 +298,6 @@ MOD_encode
     if(verbose & TC_STATS) fprintf(stderr, "[%s] ---A---\n", MOD_NAME);
     
     if(!pass_through) {
-
-#ifdef LIBDV_095
 
       pixels[0] = (char *) vbuf;
       
@@ -376,11 +355,7 @@ MOD_encode
           dv_encode_full_audio(encoder, audio_bufs, chans, rate, target);
       }
 
-#else    
-      //merge audio     
-      dvenc_frame(vbuf, param->buffer, param->size, target);
-#endif
-    
+
     //write raw DV frame
     
     if(p_write(fd, target, frame_size) != frame_size) {    
@@ -408,11 +383,7 @@ MOD_stop
   
   if(param->flag == TC_VIDEO) {
     
-#ifdef LIBDV_095
     dv_encoder_free(encoder);  
-#else    
-    dvenc_close();
-#endif
     
     return(0);
   }

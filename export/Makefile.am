@@ -192,11 +192,11 @@ export_im_la_LIBADD = $(IMAGEMAGICK_LIBS) $(LIBVO_LIBS) -lm
 # MODS_LIBDV
 export_dv_la_SOURCES = export_dv.c aud_aux.c vid_aux.c
 export_dv_la_LDFLAGS = -module -avoid-version 
-export_dv_la_LIBADD = $(LAME_LIBS) $(LIBDVENC_LIBS) $(LIBDV_LIBS) $(AC3_LIBS) $(FFMPEG_LIBS_LIBS) $(LIBVO_LIBS)
+export_dv_la_LIBADD = $(LAME_LIBS) $(LIBDV_LIBS) $(AC3_LIBS) $(FFMPEG_LIBS_LIBS) $(LIBVO_LIBS)
 
 export_dvraw_la_SOURCES = export_dvraw.c vid_aux.c ../import/ioaux.c
 export_dvraw_la_LDFLAGS = -module -avoid-version
-export_dvraw_la_LIBADD = $(LIBDVENC_LIBS) $(LIBDV_LIBS) $(LIBVO_LIBS) -lm
+export_dvraw_la_LIBADD = $(LIBDV_LIBS) $(LIBVO_LIBS) -lm
 
 # MODS_LIBFAME
 export_fame_la_SOURCES = export_fame.c aud_aux.c
