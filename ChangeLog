@@ -1,6 +1,168 @@
 --------------------------------------------
 transcode-0.6.11
 
+  * Terse/less technical ChangeLog:
+  Bugfix audio core; fix AC3 pass-thru.
+  Bugfix audio core; undefined symbol in lame lib.
+  Bugfix for -J hqdn3d; fix typo and default value printout.
+  Bugfix for -x im; handle 16bit image files.
+  Bugfix for -x xml; fix DV import.
+  Bugfix for -y dvraw; Pass-thru video but not audio did not work.
+  Bugfix for -y ffmpeg; make it thread-safe.
+  Bugfix for -y ffmpeg; vhq is gone.
+  Bugfix for -y pcm; fixed floating point division.
+  Bugix for avitools; fix audio syncing (again!)
+  Bugix for avitools; pass-thru 0byte frames
+  CHANGE: ffmpeg is now used to decode MPEG4 video.
+  CHANGE: with pass-thru, suggest -y raw,raw.
+  Docu; Description of UYVY colorspace.
+  Docu; tcprobe(1) uptodate
+  Docu; transcode(1) uptodate with additions to various options.
+  Improved -x im; probing and reading SGI image files.
+  Improved -x/-y pvm; support for more codecs.
+  Improved -y ffmpeg; enable altivec support on Macs.
+  Improved -y ffmpeg; keyframe detection in pass-thru mode.
+  Improved AVI support; support for obscure nandub padding.
+  Improved autostuff; upgrade libtool, automake and autoconf
+  Improved avitools; detect an VBR audio track, more robust.
+  Improved binary filesize; libavcodec only linked once.
+  Improved configure; Fix X11 detection.
+  Improved configure; debug option --enable-maintainer-mode.
+  Improved split mode; the base can be taken from output file.
+  Improved tcscan -x mpeg2; print bitrate information.
+  Improved transcode help; Looks more nice.
+  New filter -J whitebalance; corrects broken white balance.
+  New internal colorspace UYVY for higher quality
+  New util tcrequant; requantize an MPEG2-ES stream.
+  New: Pass-thru mode for MPEG2 files (with opt. requantize).
+  Removed -y sampeg; never did anything useful.
+  Upgraded included libavcodec to 0.4.8 (4683)
+
+
+2003-10-12 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * filter/filter_smartyuv.c:
+  Fix a segfault pointed out by LethalWP.
+
+2003-10-12 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/export_ffmpeg.c import/import_ffmpeg.c
+  ffmpeg/libavcodec/*: 
+  Upgrade to libavcodec-4683 (0.4.8+). This is the libavcodec
+  included in mplayer-1.0pre2 which makes it easy for me to keep
+  export_ffmpeg up-to-date.
+
+  This version of ffmpeg gives several new features. It has mpeg2
+  encoding (-F mpeg2video) and DVvideo encoding support (-F dvvideo)
+  although the last one seems to be non-working. FFmpeg-mpeg2video
+  also allows usage of custom inter/intra matrices through
+  ffmpeg.cfg. The format is 
+    intra_matrix=v1,v2,v3,v4, .... ,v64
+
+2003-10-12 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/export_dvraw.c export/export_ffmpeg.c export/export_raw.c
+  export/export_xvid2.c export/export_xvid3.c export/export_xvid4.c
+  filter/filter_invert.c filter/filter_mask.c import/extract_avi.c
+  import/import_avi.c import/import_raw.c import/magic.h
+  import/tcextract.c src/video_yuv422.c src/zoom.c src/Makefile.am
+  src/decoder.c src/encoder.c src/frame_postprocess.c
+  src/frame_preprocess.c src/optstr.h src/probe.c src/tc_defaults.h
+  src/transcode.c src/transcode.h src/video_trans.h
+  src/video_trans.c:
+  Add a new internal colorspace UYVY. This is a packed 4:2:2 format. 
+  The export, filter and import modules listed above support it, as
+  well as all internal transformations except antialias. Currently
+  this colorspace is thought as a playground for developers since
+  not many modules support it. UYVY provides superior quality over
+  YV12 (the format used with -V) because it provides double chroma
+  precision. Of course, the quality does not enhance when doing
+  upsampling from YV12 to UYVY.
+
+  New commandline options --uyvy which enables this mode. It is
+  automatically set, when an UVYV file is probed, eg an AVI with
+  UYVY as fourcc.
+
+  Although from the list of files this feature seams very large, a
+  lot of this files are only touched by a one-liner. The main work
+  was to add all the internal transformations for this which was
+  roughly 12 man hours of work.
+
+  Thanks go to Stuart Cunningham who provided me with (beautiful)
+  sample files when I could not produce one myself.
+
+2003-10-12 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/Makefile.am import/Makefile.am src/Makefile.am
+  src/transcode.c:
+  Playing linker games. The aim of this rearangement is to have no
+  static library (.a files) linked into a shared one. This does not
+  work on all architectures, especially not on ia64 and alpha. This
+  task is not fully completed. It has been done for the libraries
+  libavcodec libavi and libioaux.
+
+  Instead of linking into the .so file, we now link all the static
+  libraries into the transcode binary itself so the functions can
+  resolve at runtime. For this to work, there are dummy functions in
+  transcode.c so that the linker will not strip of unused objects
+  from the .a archives.
+
+  As a side effect, the binary distributions should get alot smaller
+  by now, because instead of linking -- eg libavcodec -- to
+  basically all export modules it is now linked only once into the
+  transcode binary. And libavcodec is not a particulary small
+  library.
+
+2003-10-12 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/tcprobe.c src/probe.c:
+  Have tcprobe print the probed values for -D and --av_fine_ms.
+
+2003-10-12 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/transcode.c:
+  Nicer printout of the help text. Kill warning on non x86 archs.
+
+  * src/transcode.c:
+  with -t (split mode) and an -o arg given, the base is now
+  optional. If base and outfile are given, base wins.
+
+2003-10-12 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/{vid_aux.c vid_aux.h}:
+  UYVY to YUY2 conversion routine added.
+
+2003-10-12 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/export_{divx4 divx4raw divx5 divx5raw}.c:
+  Kill warnings about dlerror not being const on MacOSX. Not that
+  these modules are useful on OSX because divx.com does not ship a
+  library we can use.
+
+2003-10-12 Tilmann Bitterberg <transcode at tibit.org>
+
+  * libioaux/configs.c:
+  Nicer printout when not finding its config.
+
+2003-10-12 Tilmann Bitterberg <transcode at tibit.org>
+
+  * docs/man/tcprobe.1:
+  Explain why -H N with a high N might be useful. Document -s
+  option.
+
+  * docs/man/transcode.1:
+  Bring the manpage uptodate: Several missing options added to the
+  manpage. Give tips about demuxers. Explanation of some options.
+
+2003-10-12 Tilmann Bitterberg <transcode at tibit.org>
+
+  * docs/Optimizers:
+  Add description of UYVY 4:2:2 data
+
+  * docs/{filter-API.txt filter-socket.txt make-filter-man.sh}:
+  Add new filter capability: 4. Use, when a filter can handle YUV422
+  data.
+
 2003-10-10 Stuart Cunningham <stuartc at rd.bbc.co.uk>
 
   * export/export_dvraw.c:
