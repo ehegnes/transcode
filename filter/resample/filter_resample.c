@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_resample.so"
-#define MOD_VERSION "v0.1.3 (2003-07-11)"
+#define MOD_VERSION "v0.1.4 (2003-08-22)"
 #define MOD_CAP     "audio resampling filter plugin"
 
 #include <stdio.h>
@@ -105,6 +105,11 @@ int tc_filter(aframe_list_t *ptr, char *options)
     if (!vob->a_rate || !vob->mp3frequency) {
 	fprintf(stderr, "[%s] Invalid settings\n", MOD_NAME);
 	error = 1;
+	return -1;
+    }
+    if (vob->a_rate == vob->mp3frequency) {
+	fprintf(stderr, "[%s] Frequencies are too similar, filter skipped\n", MOD_NAME);
+	error=1;
 	return -1;
     }
     if (filter_resample_init(vob->a_rate, vob->mp3frequency)<0)

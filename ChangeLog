@@ -1,6 +1,13 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-22 Tilmann Bitterberg <transcode at tibit.org>
+
+   * filter/resample/filter_resample.c:
+   If filter_resample is used although there is no conversion
+   requested (inrate == outrate) return an error. Useful for
+   scripts. Suggested by Nicolas Boos.
+
 2003-08-20 Tilmann Bitterberg <transcode at tibit.org>
 
    * export/export_mpeg.c:
