@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
   char outfile[1024];
   int cursong=0;
 
-  int bytes_per_sec, bytes_read, bframes=0;
+  int bytes_read;
 
   uint64_t total=0;
 
@@ -109,18 +109,7 @@ int main(int argc, char *argv[])
 
   char buffer[CHUNK_SIZE];
   
-  double fps=PAL_FPS, frames, fmin, fmax, vol=0.0;
-
-  int frc;
-
-  int pseudo_frame_size=0;
-
-  int ac_bytes=0, frame_size, bitrate=ABITRATE;
-  
-  float rbytes;
-  
-  uint32_t i=0, j=0;
-  uint16_t sync_word = 0;
+  uint32_t i=0;
 
   if (argc<2)
       usage(EXIT_SUCCESS);
@@ -226,7 +215,6 @@ int main(int argc, char *argv[])
       int framesize = 0;
       int chunks = 0;
       int srate=0 , chans=0, bitrate=0;
-      unsigned long bitrate_add = 0;
       off_t pos=0;
       double ms = 0;
 
