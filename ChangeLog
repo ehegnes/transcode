@@ -1,4 +1,62 @@
 --------------------------------------------
+transcode-0.6.4.20030310 Mon Mar 10 23:27:27 CET 2003
+
+A lot of stuff has been collected over 6 weeks. A lot of critical errors
+have been fixed since 0.6.3 
+
+- Unitialized fields in the vob_t structure 
+   -- Pierre Beyssac <pb at fasterix.frmug.org>
+
+- tcmplex doesn't return 0 on success
+   -- Christopher Cramer <cray at pyro.net>
+
+- Compile transcode on PowerPC without altivec support
+   -- Arkadiusz Miskiewicz <misiek at pld.ORG.PL>
+
+- WAV header fix to export_mpeg2enc
+   -- Luigi Capriotti
+
+- export_xvid* Module update:
+  New:
+    - Added support for Custom matrices (using XVID_CUSTOM_QMATRIX in
+      frame.general option)
+  
+  Fixes:
+    - debug level now reports bitrate correctly when doing 2pass or Fixed
+      quantizer pass (it's been a very old smallbug :-).
+    - cosmetic changes to the debug output (wow! impressive isn't it ?).
+    - fix a signed/unsigned comparison warning reported by gcc 3.3
+      snapshot in export_xvidcvs.c
+   -- Edouard Gomez
+
+- Check nasm version in configure
+
+- Developer docs update
+
+- Support for -y vmod=option,amod=options for passthrough command-line
+  arguments to underlying tools, suggested by Alexandre CONRAD
+
+- Filter update. A videoframe is not SIZE_RGB_FRAME large. filter_videocore
+  completed, The videocore filter lets you use the internal frame
+  transformations from a filter plugin. See 'tcmodinfo -i videocore' for
+  options.
+
+- Fixes a few warnings when compiled with gcc-3.2.2
+
+- Read back attributes set from the encoder (for clone)
+
+- Bug in export_raw pointed out by Loïc
+
+- Support for -x mplayer=options,mplayer=options
+   -- Nils Petter Vaskinn <nils.petter.vaskinn at itsopen.net>
+
+- Manpage and -h update for `-c' with multiple ranges. Also removed the
+  --duration and --record_v4l options as they are obsolete now and broken
+  anyway.
+
+- Fix a segfault (coredump) of tcmodinfo
+
+--------------------------------------------
 transcode-0.6.3 Thu Jan 30 20:33:26 CET 2003
 
 - more clean-ups for the new filter interface by Tilmann and Joern as 
