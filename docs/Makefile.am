@@ -1,6 +1,8 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 
-EXTRA_DIST = $(docs_DATA) 
+EXTRA_DIST = $(docs_DATA) \
+	     filter-help.txt \
+	     make-filter-man.sh
 
 SUBDIRS = . man html
 

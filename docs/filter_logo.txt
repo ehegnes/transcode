@@ -13,7 +13,7 @@ correctly. This is very nice if you use PNG or GIF.
 The position of the image can be specified using the `posx' resp.
 `posy' parameters. There are 5 predefined positions for your
 convenience which are "Top Left, Top Right, Bottom Left, Bottom
-Right and Center" available through `pos'. Origin of the image is
+Right and Center" available through `posdef'. Origin of the image is
 at the very top left.
 
 Support parameters:

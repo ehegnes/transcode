@@ -9,6 +9,25 @@ transcode-0.6.10
   - Bugfix in -x mplayer; respect -k
   - New stream decoder lavc (ffmpeg based) used for OGM
 
+2003-09-08 Tilmann Bitterberg <transcode at tibit.org>
+
+  * docs/man/transcode.1:
+  BIG manpage update. The manpage was slightly rewritten and now
+  contains very verbose information about all filters. It documents
+  each filter option with a short explanation and the format and
+  default value of each option.
+
+  The filter part is completely generated from the output of
+  tcmodinfo -i NAME and therefore should not be modified but
+  regenerated with the script below.
+
+  * docs/make-filter-man.sh docs/filter-help.txt:
+  The script make-filter-man.sh generates the FILTERS section of the
+  transcode(1) manpage. It uses the description compiled into the
+  filters. The filter-help.txt file contains additional notes for
+  some filters. The format is described at the beginning of the
+  file.
+
 2003-09-07 Julio Sanchez <jsanchez at users.sourceforge.net>
 
   * import/fileinfo.c:
