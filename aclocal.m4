@@ -99,11 +99,11 @@ dnl
 AVIFILE_CFLAGS=""
 AVIFILE_LIBS=""
 
-AC_ARG_WITH(avifile-mods,[  --with-avifile-mods      build avifile dependent modules (yes)], avifile_mods="$withval", avifile_mods=yes)
+AC_ARG_WITH(avifile-mods,AC_HELP_STRING([--with-avifile-mods], [build avifile dependent modules (yes)]), avifile_mods="$withval", avifile_mods=yes)
 
 if test x"$avifile_mods" = xyes; then
 
-AC_ARG_WITH(avifile-exec-prefix,[  --with-avifile-exec-prefix=PFX    prefix where avifile is installed],
+AC_ARG_WITH(avifile-exec-prefix,AC_HELP_STRING([--with-avifile-exec-prefix=PFX],[prefix where avifile is installed]),
 	  avifile_exec_prefix="$withval", avifile_exec_prefix="")
 
   if test x$avifile_exec_prefix != x ; then
@@ -175,16 +175,16 @@ dnl
 AC_DEFUN(AM_PATH_LAME,
 [
 
-AC_ARG_WITH(lame, [  --with-lame               use installed lame library (default=yes)],[case "${withval}" in
+AC_ARG_WITH(lame, AC_HELP_STRING([--with-lame],[use installed lame library (yes)]),[case "${withval}" in
   yes) ;;
   no)  ;;
   *) AC_MSG_ERROR(bad value ${withval} for --with-lame) ;;
 esac], with_lame=yes)
 
-AC_ARG_WITH(lame-includes,[  --with-lame-includes=PFX  prefix where local lame includes are installed (optional)],
+AC_ARG_WITH(lame-includes,AC_HELP_STRING([--with-lame-includes=PFX],[prefix where local lame includes are installed (optional)]),
 	  lame_includes="$withval",lame_includes="")
 
-AC_ARG_WITH(lame-libs,[  --with-lame-libs=PFX      prefix where local lame libs are installed (optional)],
+AC_ARG_WITH(lame-libs,AC_HELP_STRING([--with-lame-libs=PFX],[prefix where local lame libs are installed (optional)]),
 	  lame_libs="$withval", lame_libs="")
 
 LAME_LIBS=""
@@ -277,16 +277,16 @@ AC_DEFUN(AM_PATH_OGG,
 [dnl 
 dnl Get the cflags and libraries
 dnl
-AC_ARG_WITH(ogg,[  --with-ogg               Compile in libogg support],[case "${withval}" in
+AC_ARG_WITH(ogg, AC_HELP_STRING([--with-ogg],[Compile in libogg support]),[case "${withval}" in
   yes) ;;
   no)  ;;
   *) AC_MSG_ERROR(bad value ${withval} for --with-ogg) ;;
 esac], with_ogg=yes)
 
-AC_ARG_WITH(ogg-includes,[  --with-ogg-includes=PFX  prefix where local ogg includes are installed (optional)],
+AC_ARG_WITH(ogg-includes,AC_HELP_STRING([--with-ogg-includes=PFX],[prefix where local ogg includes are installed (optional)]),
 	  ogg_includes="$withval",ogg_includes="")
 
-AC_ARG_WITH(ogg-libs,[  --with-ogg-libs=PFX      prefix where local ogg libs are installed (optional)],
+AC_ARG_WITH(ogg-libs,AC_HELP_STRING([--with-ogg-libs=PFX],[prefix where local ogg libs are installed (optional)]),
 	  ogg_libs="$withval",ogg_libs="")
 
 OGG_LIBS=""
@@ -330,16 +330,16 @@ AC_DEFUN(AM_PATH_VORBIS,
 [dnl 
 dnl Get the cflags and libraries
 dnl
-AC_ARG_WITH(vorbis,[  --with-vorbis               Compile in libvorbis support],[case "${withval}" in
+AC_ARG_WITH(vorbis,AC_HELP_STRING([--with-vorbis],[Compile in libvorbis support]),[case "${withval}" in
   yes) ;;
   no)  ;;
   *) AC_MSG_ERROR(bad value ${withval} for --with-vorbis) ;;
 esac], with_vorbis=yes)
 
-AC_ARG_WITH(vorbis-includes,[  --with-vorbis-includes=PFX  prefix where local vorbis includes are installed (optional)],
+AC_ARG_WITH(vorbis-includes,AC_HELP_STRING([--with-vorbis-includes=PFX],[prefix where local vorbis includes are installed (optional)]),
 	  vorbis_includes="$withval",vorbis_includes="")
 
-AC_ARG_WITH(vorbis-libs,[  --with-vorbis-libs=PFX      prefix where local vorbis libs are installed (optional)],
+AC_ARG_WITH(vorbis-libs,AC_HELP_STRING([--with-vorbis-libs=PFX],[prefix where local vorbis libs are installed (optional)]),
 	  vorbis_libs="$withval",vorbis_libs="")
 
 VORBIS_LIBS=""
@@ -383,16 +383,16 @@ dnl
 AC_DEFUN(AM_PATH_LIBDVDREAD,
 [
 
-AC_ARG_WITH(dvdread, [  --with-dvdread               use installed libdvdread library (default=yes)],[case "${withval}" in
+AC_ARG_WITH(dvdread, AC_HELP_STRING([--with-dvdread],[use installed libdvdread library (yes)]),[case "${withval}" in
   yes) with_dvdread=yes;;
   no) with_dvdread=no ;;
   *) AC_MSG_ERROR(bad value ${withval} for --with-dvdread) ;;
 esac], with_dvdread=yes)
 
-AC_ARG_WITH(dvdread-includes,[  --with-dvdread-includes=PFX  prefix where local dvdread includes are installed (optional)],
+AC_ARG_WITH(dvdread-includes,AC_HELP_STRING([--with-dvdread-includes=PFX],[prefix where local dvdread includes are installed (optional)]),
 	  dvdread_includes="$withval",dvdread_includes="")
 
-AC_ARG_WITH(dvdread-libs,[  --with-dvdread-libs=PFX      prefix where local dvdread lib is installed (optional)],
+AC_ARG_WITH(dvdread-libs,AC_HELP_STRING([--with-dvdread-libs=PFX],[prefix where local dvdread lib is installed (optional)]),
 	  dvdread_libs="$withval", dvdread_libs="")
 
 DVDREAD_LIBS=""
@@ -440,16 +440,16 @@ dnl
 AC_DEFUN(AM_PATH_LIBXVID,
 [
 
-AC_ARG_WITH(xvidcore, [  --with-xvidcore               use installed LIBXVID library (default=yes)],[case "${withval}" in
+AC_ARG_WITH(xvidcore, AC_HELP_STRING([--with-xvidcore],[use installed LIBXVID library (yes)]),[case "${withval}" in
   yes) with_xvidcore=yes;;
   no) with_xvidcore=no ;;
   *) AC_MSG_ERROR(bad value ${withval} for --with-xvidcore) ;;
 esac], with_xvidcore=yes)
 
-AC_ARG_WITH(xvidcore-includes,[  --with-xvidcore-includes=PFX  prefix where local xvidcore includes are installed (optional)],
+AC_ARG_WITH(xvidcore-includes,AC_HELP_STRING([--with-xvidcore-includes=PFX],[prefix where local xvidcore includes are installed (optional)]),
 	  xvidcore_includes="$withval",xvidcore_includes="")
 
-AC_ARG_WITH(xvidcore-libs,[  --with-xvidcore-libs=PFX      prefix where local xvidcore lib is installed (optional)],
+AC_ARG_WITH(xvidcore-libs,AC_HELP_STRING([--with-xvidcore-libs=PFX],[prefix where local xvidcore lib is installed (optional)]),
 	  xvidcore_libs="$withval", xvidcore_libs="")
 
 XVIDCORE_LIBS=""
@@ -493,16 +493,16 @@ dnl
 AC_DEFUN(AM_PATH_DV,
 [
 
-AC_ARG_WITH(dv, [  --with-dv                 build libdv dependent modules (default=yes)],[case "${withval}" in
+AC_ARG_WITH(dv, AC_HELP_STRING([--with-dv],[build libdv dependent modules (yes)]),[case "${withval}" in
   yes) ;;
   no)  ;;
   *) AC_MSG_ERROR(bad value ${withval} for --with-dv) ;;
 esac], with_dv=yes)
 
-AC_ARG_WITH(dv-includes,[  --with-dv-includes=PFX    prefix where local libdv includes are installed (optional)],
+AC_ARG_WITH(dv-includes,AC_HELP_STRING([--with-dv-includes=PFX],[prefix where local libdv includes are installed (optional)]),
 	  dv_includes="$withval",dv_includes="")
 
-AC_ARG_WITH(dv-libs,[  --with-dv-libs=PFX        prefix where local libdv libs are installed (optional)],
+AC_ARG_WITH(dv-libs,AC_HELP_STRING([--with-dv-libs=PFX],[prefix where local libdv libs are installed (optional)]),
 	  dv_libs="$withval", dv_libs="")
 
 
@@ -554,16 +554,16 @@ dnl
 AC_DEFUN(AM_PATH_LZO,
 [
 
-AC_ARG_WITH(lzo, [  --with-lzo                 build liblzo dependent modules (default=yes)],[case "${withval}" in
+AC_ARG_WITH(lzo, AC_HELP_STRING([--with-lzo],[build liblzo dependent modules (yes)]),[case "${withval}" in
   yes) ;;
   no)  ;;
   *) AC_MSG_ERROR(bad value ${withval} for --with-lzo) ;;
 esac], with_lzo=yes)
 
-AC_ARG_WITH(lzo-includes,[  --with-lzo-includes=PFX    prefix where local liblzo includes are installed (optional)],
+AC_ARG_WITH(lzo-includes,AC_HELP_STRING([--with-lzo-includes=PFX],[prefix where local liblzo includes are installed (optional)]),
 	  lzo_includes="$withval",lzo_includes="")
 
-AC_ARG_WITH(lzo-libs,[  --with-lzo-libs=PFX        prefix where local liblzo libs are installed (optional)],
+AC_ARG_WITH(lzo-libs,AC_HELP_STRING([--with-lzo-libs=PFX],[prefix where local liblzo libs are installed (optional)]),
 	  lzo_libs="$withval", lzo_libs="")
 
 
@@ -611,16 +611,16 @@ dnl
 AC_DEFUN(AM_PATH_A52,
 [
 
-AC_ARG_WITH(a52, [  --with-a52                build liba52 decoder module (default=yes)],[case "${withval}" in
+AC_ARG_WITH(a52, AC_HELP_STRING([--with-a52],[build liba52 decoder module (yes)]),[case "${withval}" in
   yes) ;;
   no)  ;;
   *) AC_MSG_ERROR(bad value ${withval} for --with-a52) ;;
 esac], with_a52=yes)
 
-AC_ARG_WITH(a52-includes,[  --with-a52-includes=PFX   prefix where local liba52 includes are installed (optional)],
+AC_ARG_WITH(a52-includes,AC_HELP_STRING([--with-a52-includes=PFX],[prefix where local liba52 includes are installed (optional)]),
 	  a52_includes="$withval",a52_includes="")
 
-AC_ARG_WITH(a52-libs,[  --with-a52-libs=PFX       prefix where local liba52 libs are installed (optional)],
+AC_ARG_WITH(a52-libs,AC_HELP_STRING([--with-a52-libs=PFX],[prefix where local liba52 libs are installed (optional)]),
 	  a52_libs="$withval", a52_libs="")
 
 
@@ -664,16 +664,16 @@ dnl
 AC_DEFUN(AM_PATH_LIBMPEG3,
 [
 
-AC_ARG_WITH(libmpeg3, [  --with-libmpeg3                 build libmpeg3 dependent module (default=yes)],[case "${withval}" in
+AC_ARG_WITH(libmpeg3, AC_HELP_STRING([--with-libmpeg3],[build libmpeg3 dependent module (yes)]),[case "${withval}" in
   yes) ;;
   no)  ;;
   *) AC_MSG_ERROR(bad value ${withval} for --with-libmpeg3) ;;
 esac], with_libmpeg3=yes)
 
-AC_ARG_WITH(libmpeg3-includes,[  --with-libmpeg3-includes=PFX    prefix where local libmpeg3 includes are installed (optional)],
+AC_ARG_WITH(libmpeg3-includes,AC_HELP_STRING([--with-libmpeg3-includes=PFX],[prefix where local libmpeg3 includes are installed (optional)]),
 	  libmpeg3_includes="$withval",libmpeg3_includes="")
 
-AC_ARG_WITH(libmpeg3-libs,[  --with-libmpeg3-libs=PFX        prefix where local libmpeg3 libs are installed (optional)],
+AC_ARG_WITH(libmpeg3-libs,AC_HELP_STRING([--with-libmpeg3-libs=PFX],[prefix where local libmpeg3 libs are installed (optional)]),
 	  libmpeg3_libs="$withval", libmpeg3_libs="")
 
 EXTRA_LIBS="-lm"
@@ -718,7 +718,7 @@ dnl
 AC_DEFUN(AM_PATH_POSTPROC,
 [
 
-AC_ARG_WITH(libpostproc-builddir,[  --with-libpostproc-builddir=PFX    path to MPlayer builddir  (optional)],
+AC_ARG_WITH(libpostproc-builddir,AC_HELP_STRING([--with-libpostproc-builddir=PFX],[path to MPlayer builddir  (optional)]),
 	  libpostproc_builddir="$withval",libpostproc_builddir="")
 
 EXTRA_LIBS="-lm"
@@ -775,7 +775,7 @@ dnl
 AC_DEFUN(AM_PATH_LVE,
 [
 
-AC_ARG_WITH(liblve-builddir,[  --with-liblve-builddir=PFX    path to lve builddir  (optional)],
+AC_ARG_WITH(liblve-builddir,AC_HELP_STRING([--with-liblve-builddir=PFX],[path to lve builddir (optional)]),
 	  liblve_builddir="$withval",liblve_builddir="")
 
 EXTRA_LIBS="-lm"
@@ -833,16 +833,16 @@ dnl
 AC_DEFUN(AM_PATH_QT,
 [
 
-AC_ARG_WITH(qt, [  --with-qt                 build quicktime dependent module (default=no)],[case "${withval}" in
+AC_ARG_WITH(qt, AC_HELP_STRING([--with-qt],[build quicktime dependent module (no)]),[case "${withval}" in
   yes) ;;
   no)  ;;
   *) AC_MSG_ERROR(bad value ${withval} for --with-qt) ;;
 esac], with_qt=no)
 
-AC_ARG_WITH(qt-includes,[  --with-qt-includes=PFX    prefix where local quicktime includes are installed (optional)],
+AC_ARG_WITH(qt-includes,AC_HELP_STRING([--with-qt-includes=PFX],[prefix where local quicktime includes are installed (optional)]),
 	  qt_includes="$withval",qt_includes="")
 
-AC_ARG_WITH(qt-libs,[  --with-qt-libs=PFX        prefix where local quicktime libs are installed (optional)],
+AC_ARG_WITH(qt-libs,AC_HELP_STRING([--with-qt-libs=PFX],[prefix where local quicktime libs are installed (optional)]),
 	  qt_libs="$withval", qt_libs="")
 
 EXTRA_LIBS="-lpng -lz -lpthread -lglib -ldl -lm -ldv"
@@ -887,16 +887,16 @@ dnl
 AC_DEFUN(AM_PATH_OPENQT,
 [
 
-AC_ARG_WITH(openqt, [  --with-openqt                 build openquicktime dependent module (default=no)],[case "${withval}" in
+AC_ARG_WITH(openqt, AC_HELP_STRING([--with-openqt],[build openquicktime dependent module (no)]),[case "${withval}" in
   yes) ;;
   no)  ;;
   *) AC_MSG_ERROR(bad value ${withval} for --with-openqt) ;;
 esac], with_openqt=no)
 
-AC_ARG_WITH(openqt-includes,[  --with-openqt-includes=PFX    prefix where local openquicktime includes are installed (optional)],
+AC_ARG_WITH(openqt-includes,AC_HELP_STRING([--with-openqt-includes=PFX],[prefix where local openquicktime includes are installed (optional)]),
 	  openqt_includes="$withval",openqt_includes="")
 
-AC_ARG_WITH(openqt-libs,[  --with-openqt-libs=PFX        prefix where local openquicktime libs are installed (optional)],
+AC_ARG_WITH(openqt-libs,AC_HELP_STRING([--with-openqt-libs=PFX],[prefix where local openquicktime libs are installed (optional)]),
 	  openqt_libs="$withval", openqt_libs="")
 
 EXTRA_LIBS="-lpng -lz -lpthread -lglib -ldl -lm"
@@ -948,11 +948,11 @@ AC_DEFUN(AM_PATH_SDL,
 [dnl 
 dnl Get the cflags and libraries from the sdl-config script
 dnl
-AC_ARG_WITH(sdl-prefix,[  --with-sdl-prefix=PFX   Prefix where SDL is installed (optional)],
+AC_ARG_WITH(sdl-prefix,AC_HELP_STRING([--with-sdl-prefix=PFX],[Prefix where SDL is installed (optional)]),
             sdl_prefix="$withval", sdl_prefix="")
-AC_ARG_WITH(sdl-exec-prefix,[  --with-sdl-exec-prefix=PFX Exec prefix where SDL is installed (optional)],
+AC_ARG_WITH(sdl-exec-prefix,AC_HELP_STRING([--with-sdl-exec-prefix=PFX],[Exec prefix where SDL is installed (optional)]),
             sdl_exec_prefix="$withval", sdl_exec_prefix="")
-AC_ARG_ENABLE(sdltest, [  --disable-sdltest       Do not try to compile and run a test SDL program],
+AC_ARG_ENABLE(sdltest, AC_HELP_STRING([--disable-sdltest],[Do not try to compile and run a test SDL program]),
 		    , enable_sdltest=yes)
 
   if test x$sdl_exec_prefix != x ; then
@@ -1109,9 +1109,9 @@ AC_DEFUN(AM_PATH_GTK,
 [dnl 
 dnl Get the cflags and libraries from the gtk-config script
 dnl
-AC_ARG_WITH(gtk-prefix,[  --with-gtk-prefix=PFX   Prefix where GTK is installed (optional)],
+AC_ARG_WITH(gtk-prefix,AC_HELP_STRING([--with-gtk-prefix=PFX],[Prefix where GTK is installed (optional)]),
             gtk_config_prefix="$withval", gtk_config_prefix="")
-AC_ARG_WITH(gtk-exec-prefix,[  --with-gtk-exec-prefix=PFX Exec prefix where GTK is installed (optional)],
+AC_ARG_WITH(gtk-exec-prefix,AC_HELP_STRING([--with-gtk-exec-prefix=PFX],[Exec prefix where GTK is installed (optional)]),
             gtk_config_exec_prefix="$withval", gtk_config_exec_prefix="")
 AC_ARG_ENABLE(gtktest, [  --disable-gtktest       Do not try to compile and run a test GTK program],
 		    , enable_gtktest=yes)
@@ -1307,11 +1307,11 @@ dnl
 MAGICK_CFLAGS=""
 MAGICK_LIBS=""
 
-AC_ARG_WITH(magick-mods,[  --with-magick-mods      build ImageMagick dependent modules (yes)], magick_mods="$withval", magick_mods=yes)
+AC_ARG_WITH(magick-mods,AC_HELP_STRING([--with-magick-mods],[build ImageMagick dependent modules (yes)]), magick_mods="$withval", magick_mods=yes)
 
 if test x"$magick_mods" = xyes; then
 
-AC_ARG_WITH(magick-exec-prefix,[  --with-magick-exec-prefix=PFX    prefix where ImageMagick is installed],
+AC_ARG_WITH(magick-exec-prefix,AC_HELP_STRING([--with-magick-exec-prefix=PFX],[prefix where ImageMagick is installed]),
 	  magick_exec_prefix="$withval", magick_exec_prefix="")
 
   if test x$magick_exec_prefix != x ; then
@@ -1353,7 +1353,7 @@ AC_DEFUN(AM_PATH_LIBJPEG,
 LIBJPEG_CFLAGS=""
 LIBJPEG_LIBS=""
 
-AC_ARG_WITH(libjpeg-mods,[  --with-libjpeg-mods      build libjpeg dependent modules (yes)], libjpeg_mods="$withval", libjpeg_mods=yes)
+AC_ARG_WITH(libjpeg-mods,AC_HELP_STRING([--with-libjpeg-mods],[build libjpeg dependent modules (yes)]), libjpeg_mods="$withval", libjpeg_mods=yes)
 
 have_libjpegmmx=no
 have_libjpeg=no
@@ -1394,9 +1394,9 @@ AC_DEFUN(AM_PATH_LIBFAME,
 [dnl 
 dnl Get the cflags and libraries from the libfame-config script
 dnl
-AC_ARG_WITH(libfame-prefix,[  --with-libfame-prefix=PFX   Prefix where libfame is installed (optional)],
+AC_ARG_WITH(libfame-prefix,AC_HELP_STRING([--with-libfame-prefix=PFX],[Prefix where libfame is installed (optional)]),
             libfame_config_prefix="$withval", libfame_config_prefix="")
-AC_ARG_WITH(libfame-exec-prefix,[  --with-libfame-exec-prefix=PFX Exec prefix where libfame is installed (optional)],
+AC_ARG_WITH(libfame-exec-prefix,AC_HELP_STRING([--with-libfame-exec-prefix=PFX],[Exec prefix where libfame is installed (optional)]),
             libfame_config_exec_prefix="$withval", libfame_config_exec_prefix="")
 AC_ARG_ENABLE(libfametest, [  --disable-libfametest   Do not try to compile and run a test libfame program],
 		    , enable_libfametest=yes)
