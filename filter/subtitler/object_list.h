@@ -159,8 +159,7 @@ struct object
 	struct object *nxtentr;
 	struct object *prventr;
 	};
-struct object *objecttab[2]; /* first element points to first entry,
-								second element to last entry */
+extern struct object *objecttab[];
 
 #endif /* _OBJECT_LIST_H_ */
 

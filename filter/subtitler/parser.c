@@ -1,7 +1,12 @@
 #include "subtitler.h"
 
 int end_frame_nr;
-
+int screen_start[MAX_H_PIXELS];
+char *tptr;
+int screen_lines;
+char screen_text[MAX_SCREEN_LINES][MAX_H_PIXELS];
+int line_height;
+int window_top, window_bottom;
 
 int parse_frame_entry(struct frame *pa)
 {

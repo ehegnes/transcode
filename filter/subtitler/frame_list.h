@@ -26,7 +26,7 @@ struct frame
 	struct frame *nxtentr;
 	struct frame *prventr;
 	};
-struct frame *frametab[FRAME_HASH_SIZE];
+extern struct frame *frametab[];
 
 
 struct subtitle_fontname
@@ -38,7 +38,7 @@ struct subtitle_fontname
 	struct subtitle_fontname *nxtentr;
 	struct subtitle_fontname *prventr;
 	};
-struct subtitle_fontname *subtitle_fontnametab[2];
+extern struct subtitle_fontname *subtitle_fontnametab[];
 		 /* first element points to first entry, second element to last entry */
 
 #endif /* _FRAME_LIST_H */

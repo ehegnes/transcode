@@ -20,6 +20,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 #include "subtitler.h"
 
+pthread_t *movie_thread[MAX_MOVIES];
+
 int line_number;
 
 int load_ppml_file(char *pathfilename)

@@ -16,6 +16,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 #include "subtitler.h"
 
+/* first element points to first entry,
+   second element to last entry */
+struct object *objecttab[2];
+
 double subtitle_u, subtitle_v;
 double subtitle_contrast = 100.0;
 double subtitle_transparency = 0.0;
@@ -225,7 +229,7 @@ if(debug_flag)
 if(! data) return 0;
 
 /* Need unique entry for each object */
-sprintf(name, "%d %d %lf %lf %lf %d",\
+sprintf(name, "%d %d %f %f %f %d",\
 start_frame_nr, end_frame_nr, xpos, ypos, zpos, type);
 pa = install_object_at_end_of_list(name);
 if(! pa)

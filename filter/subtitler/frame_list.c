@@ -16,6 +16,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 #include "subtitler.h"
 
+struct frame *frametab[FRAME_HASH_SIZE];
+struct subtitle_fontname *subtitle_fontnametab[2];
+
 extern int parse_frame_entry(struct frame *pa);
 
 int hash(s)/* form hash value for string s */

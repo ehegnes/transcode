@@ -3,13 +3,15 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 
 INCLUDES = \
+	-I$(top_srcdir) \
 	-I$(top_srcdir)/filter \
 	-I$(top_srcdir)/src
 
 AM_CPPFLAGS = \
 	-D_REENTRANT \
 	$(X_CFLAGS) \
-	$(FT2_CFLAGS)
+	$(FT2_CFLAGS) \
+	$(LIBICONV_CFLAGS)
 
 pkgdir = $(MOD_PATH)
 
@@ -37,12 +39,13 @@ filter_subtitler_la_LIBADD = \
 	-lX11 \
 	$(X_EXTRA_LIBS) \
 	-lXpm \
-	-lXt \
 	-lXaw \
+	-lXt \
 	-lm \
-	$(FT2_LIBS)
+	$(FT2_LIBS) \
+	$(LIBICONV_LIBS)
 
-EXTRA_DIST =  \
+EXTRA_DIST = \
 	HOWTO_USE_THIS \
 	README.COLOR.PROCESSOR \
 	README.PPML \

@@ -97,82 +97,84 @@ YUV_MASK is used to prevent picture areas to be cut out.
 #include "object_list.h"
 #include "optstr.h"
 
-int debug_flag;
-font_desc_t *vo_font;
-font_desc_t *subtitle_current_font_descriptor;
-uint8_t *ImageData;
-int image_width, image_height;
-int default_font;
-struct passwd *userinfo;
-char *home_dir;
-char *user_name;
-int sync_mode;
-int osd_transp;
-int screen_start[MAX_H_PIXELS];
-char *tptr;
-int screen_lines;
-char screen_text[MAX_SCREEN_LINES][MAX_H_PIXELS];
-char format_start_str[50];
-char format_end_str[50];
-int vert_position;
-int line_height;
-int line_h_start, line_h_end;
-int center_flag;
-int wtop, wbottom, hstart, hend;
-int window_top, window_bottom;
-char *frame_memory0, *frame_memory1 ;
-int file_format;
-char *subtitle_file;
-char *default_font_dir;
-vob_t *vob;
-char *selected_data_directory;
-char *selected_project;
-int frame_offset;
-double dmax_vector;
-int use_pre_processing_flag;
+extern int debug_flag;
+extern font_desc_t *vo_font;
+extern font_desc_t *subtitle_current_font_descriptor;
+extern uint8_t *ImageData;
+extern int image_width, image_height;
+// extern int default_font;
+// extern struct passwd *userinfo;
+extern char *home_dir;
+// extern char *user_name;
+// int sync_mode;
+// int osd_transp;
+extern int screen_start[MAX_H_PIXELS];
+extern char *tptr;
+// extern int screen_lines;
+// extern char screen_text[MAX_SCREEN_LINES][MAX_H_PIXELS];
+// char format_start_str[50];
+// char format_end_str[50];
+// int vert_position;
+// extern int line_height;
+extern int line_h_start, line_h_end;
+extern int center_flag;
+// int wtop, wbottom, hstart, hend;
+// extern int window_top;
+extern int window_bottom;
+// extern char *frame_memory0, *frame_memory1 ;
+// int file_format;
+// extern char *subtitle_file;
+// extern char *default_font_dir;
+// extern vob_t *vob;
+// char *selected_data_directory;
+// char *selected_project;
+extern int frame_offset;
+extern double dmax_vector;
+// extern int use_pre_processing_flag;
 
-char *subtitle_font_path;
-char *default_subtitle_font_name;
-int default_subtitle_symbols;
-int default_subtitle_font_size;
-int default_subtitle_iso_extention;
-double default_subtitle_radius;
-double default_subtitle_thickness;
+// extern char *subtitle_font_path;
+extern char *default_subtitle_font_name;
+extern int default_subtitle_symbols;
+extern int default_subtitle_font_size;
+extern int default_subtitle_iso_extention;
+extern double default_subtitle_radius;
+extern double default_subtitle_thickness;
 
 /* for x11 stuff */
-int show_output_flag;
-int window_open_flag;
-int window_size, buffer_size;
-unsigned char *ucptrs, *ucptrd;
-int color_depth;
+// extern int show_output_flag;
+// extern int window_open_flag;
+// extern int window_size;
+// int buffer_size;
+// extern unsigned char *ucptrs, *ucptrd;
+// extern int color_depth;
 /* end x11 stuff */
 
 /* maximum number of movie objects that can be inserted */
 #define MAX_MOVIES	1024
 /* threads for other instances of transcode in insert movie */
-pthread_t *movie_thread[MAX_MOVIES];
-pthread_attr_t *attributes;
+// extern pthread_t *movie_thread[MAX_MOVIES];
+// pthread_attr_t *attributes;
 
 /* global subtitle parameters */
-double ssat, dssat, scol, dscol;
-double default_font_factor;
-double subtitle_extra_character_space;
+// double ssat, dssat, scol, dscol;
+// extern double default_font_factor;
+extern double subtitle_extra_character_space;
 
-int anti_alias_flag;
-int subtitle_anti_alias_flag;
+// int anti_alias_flag;
+// int subtitle_anti_alias_flag;
 
 /* for rotate and shear, the luminance where we cut out the border */
-int border_luminance;
-int default_border_luminance;
+extern int border_luminance;
+extern int default_border_luminance;
 
-double subtitle_h_factor;
-double subtitle_v_factor;
-double extra_character_space;
+extern double subtitle_h_factor;
+extern double subtitle_v_factor;
+extern double extra_character_space;
 
-int rgb_palette[16][3]; // rgb
-int rgb_palette_valid_flag;
+extern int rgb_palette[16][3]; // rgb
+extern int rgb_palette_valid_flag;
 
-int default_subtitle_font_symbols;
+extern int default_subtitle_font_symbols;
 
 /* this last, so proto knows about structure definitions etc. */
 #include "subtitler_proto.h"

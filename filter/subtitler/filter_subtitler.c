@@ -33,6 +33,53 @@
 #define LIMIT(x) ((((x)>0xffffff)?0xff0000:(((x)<=0xffff)?0:(x)&0xff0000))>>16)
 int write_ppm_flag;
 
+int debug_flag;
+int frame_offset;
+font_desc_t *vo_font;
+font_desc_t *subtitle_current_font_descriptor;
+uint8_t *ImageData;
+int image_width, image_height;
+int default_font;
+struct passwd *userinfo;
+char *home_dir;
+char *user_name;
+int line_h_start, line_h_end;
+int center_flag;
+char *frame_memory0, *frame_memory1;
+char *subtitle_file;
+char *default_font_dir;
+vob_t *vob;
+double dmax_vector;
+int use_pre_processing_flag;
+char *subtitle_font_path;
+char *default_subtitle_font_name;
+int default_subtitle_symbols;
+int default_subtitle_font_size;
+int default_subtitle_iso_extention;
+double default_subtitle_radius;
+double default_subtitle_thickness;
+
+int show_output_flag;
+int window_open_flag;
+int window_size;
+unsigned char *ucptrs, *ucptrd;
+int color_depth;
+
+double default_font_factor;
+double subtitle_extra_character_space;
+
+int border_luminance;
+int default_border_luminance;
+
+double subtitle_h_factor;
+double subtitle_v_factor;
+double extra_character_space;
+
+int rgb_palette[16][3]; // rgb
+int rgb_palette_valid_flag;
+
+int default_subtitle_font_symbols;
+
 int dcontrast, brightness;
 double dsaturation;
 double dhue, dhue_line_drift;
