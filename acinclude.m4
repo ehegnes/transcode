@@ -184,7 +184,7 @@ else
   AC_TRY_LINK([
 #include <ffmpeg/avcodec.h>
 ],[
-AVCodecContext *ctx = NULL;
+AVCodecContext *ctx = (void *)0;
 avcodec_thread_init(ctx, 0);
 ],
     [FFMPEG_LIBS_LIBS="$with_ffmpeg_libs_l/libavcodec.a $FFMPEG_LIBS_EXTRALIBS"],
