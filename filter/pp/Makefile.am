@@ -5,7 +5,7 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
 INCLUDES = -Wall -I./ -I../.. -I../../src/ -I$(srcdir)/../.. -I$(srcdir)/../../src -I../../libvo
 
-CFLAGS = -D_REENTRANT @CFLAGS@
+CFLAGS = -fomit-frame-pointer -D_REENTRANT @CFLAGS@
 
 pkgdir=@MOD_PATH@
 
