@@ -9,6 +9,11 @@ transcode-0.6.10
   - Bugfix in -x mplayer; respect -k
   - New stream decoder lavc (ffmpeg based) used for OGM
 
+2003-09-07 Julio Sanchez <jsanchez at users.sourceforge.net>
+
+  * import/fileinfo.c:
+  Fix detection for some MOV files (which start with tag "pnot")
+
 2003-09-04 Tilmann Bitterberg <transcode at tibit.org>
 
   * filter/*c:

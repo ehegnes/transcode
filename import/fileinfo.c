@@ -373,7 +373,8 @@ long fileinfo(int fdes, int skip)
 
   // MOV
 
-  if(strncasecmp(buf+4,"moov", 4) ==0 || strncasecmp(buf+4,"mdat", 4) ==0) {
+  if(strncasecmp(buf+4,"moov", 4) ==0 || strncasecmp(buf+4,"mdat", 4) ==0 ||
+     strncasecmp(buf+4,"pnot", 4) ==0) {
     id = TC_MAGIC_MOV;
     goto exit;
   }
