@@ -126,12 +126,12 @@ void extract_dv(info_t *ipipe)
     
     default:
     {
+        unsigned char frame[DV_PAL_FRAME_SIZE];
+        ssize_t size;
+
         if(ipipe->magic == TC_MAGIC_UNKNOWN)
 	    fprintf(stderr, "(%s) no file type specified, assuming %s\n", 
 		    __FILE__, filetype(TC_MAGIC_RAW));
-
-        unsigned char frame[DV_PAL_FRAME_SIZE];
-        ssize_t size;
 
         /* Skip to the first desired frame. */
         for(n=0; n<ipipe->frame_limit[0]; ++n) {
