@@ -109,8 +109,8 @@ int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
   // check if a frame transformation is requested:
   
   if (vob->volume > 0.0 || pcmswap
-    || vob->a_chan == 1 && vob->dm_chan == 2
-    || vob->a_chan == 2 && vob->dm_chan == 1
+    || (vob->a_chan == 1 && vob->dm_chan == 2)
+    || (vob->a_chan == 2 && vob->dm_chan == 1)
     || vob->a_bits != vob->dm_bits) trans = TC_TRUE;
 
   if(vob->im_a_codec != CODEC_PCM) {
