@@ -47,4 +47,4 @@ struct subtitle_fontname
 struct subtitle_fontname *subtitle_fontnametab[2];
 		 /* first element points to first entry, second element to last entry */
 
-#endif _FRAME_LIST_H
+#endif // _FRAME_LIST_H

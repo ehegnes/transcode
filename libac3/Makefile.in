@@ -67,7 +67,7 @@ CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
 
-CFLAGS = -O3 -funroll-loops -ffast-math -DLINUX @CFLAGS@
+CFLAGS = -O3 -funroll-loops -ffast-math -DLINUX -fPIC -DPIC @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@

@@ -101,7 +101,7 @@ AC_ARG_WITH(pvm3, AC_HELP_STRING([--with-pvm3],[Enable pvm3 code (yes)]),[case "
   *) AC_MSG_ERROR(bad value ${withval} for --with-pvm3) ;;
 esac], with_pvm3=yes)
 
-AC_ARG_WITH(pvm3-lib,AC_HELP_STRING([--with-pvm3-lib=PFX],[prefix where local pvm3 libraries are installed]), pvm3_lib="$withval",pvm3_lib="/usr/lib")
+AC_ARG_WITH(pvm3-lib,AC_HELP_STRING([--with-pvm3-lib=PFX],[prefix where local pvm3 libraries are installed]), pvm3_lib="$withval",pvm3_lib="/usr${deflib}")
 AC_ARG_WITH(pvm3-include,AC_HELP_STRING([--with-pvm3-include=PFX],[prefix where local pvm3 includes are installed]), pvm3_include="$withval",pvm3_include="/usr/include")
 
 	have_pvm3=no
@@ -292,7 +292,7 @@ if test x$with_lame = "x"yes ; then
         if test x$lame_libs != x ; then
 	    with_lame_l="$lame_libs/lib"	
         else
-	    with_lame_l="/usr/lib"
+	    with_lame_l="/usr${deflib}"
         fi
 	
 AC_CHECK_FILE($with_lame_i/lame/lame.h, [AC_DEFINE(HAVE_LAME_INC, 1, [Have Lame includes in separate path]) lame_inc=yes])
@@ -399,7 +399,7 @@ if test x$with_ogg = "x"yes ; then
         if test x$ogg_libs != x ; then
 	    with_ogg_l="$ogg_libs/lib"	
         else
-	    with_ogg_l="/usr/lib"
+	    with_ogg_l="/usr${deflib}"
         fi
 
 	AC_CHECK_LIB(ogg, ogg_sync_init,
@@ -455,7 +455,7 @@ if test x$with_vorbis = "x"yes ; then
         if test x$vorbis_libs != x ; then
 	    with_vorbis_l="$vorbis_libs/lib"	
         else
-	    with_vorbis_l="/usr/lib"
+	    with_vorbis_l="/usr${deflib}"
         fi
 
 	AC_CHECK_LIB(vorbis, vorbis_info_init,
@@ -511,7 +511,7 @@ if test x$with_theora = "x"yes ; then
         if test x$theora_libs != x ; then
 	    with_theora_l="$theora_libs/lib"	
         else
-	    with_theora_l="/usr/lib"
+	    with_theora_l="/usr${deflib}"
         fi
 
 	AC_CHECK_LIB(theora, theora_info_init,
@@ -568,7 +568,7 @@ if test x$with_dvdread = "x"yes ; then
         if test x$dvdread_libs != x ; then
 	    with_dvdread_l="$dvdread_libs/lib"	
         else
-	    with_dvdread_l="/usr/lib"
+	    with_dvdread_l="/usr${deflib}"
         fi
 	
 	AC_CHECK_LIB(dvdread, DVDOpen,
@@ -628,15 +628,15 @@ if test x$with_xvidcore = "x"yes ; then
         if test x$xvidcore_libs != x ; then
 	    with_xvidcore_l="$xvidcore_libs/lib"	
         else
-	    with_xvidcore_l="/usr/lib"
+	    with_xvidcore_l="/usr${deflib}"
         fi
 	
 	AC_CHECK_LIB(xvidcore, xvid_encore,
        	[XVIDCORE_CFLAGS="-I$with_xvidcore_i -I/usr/local/include" 
-         XVIDCORE_LIBS="-L$with_xvidcore_l -L/usr/local/lib -lxvidcore -lm"
+         XVIDCORE_LIBS="-L$with_xvidcore_l -L/usr/local${deflib} -lxvidcore -lm"
        	AC_DEFINE(HAVE_LIBXVID) 
 	have_xvidcore=yes], have_xvidcore=no, 
-       	-L$with_xvidcore_l -L/usr/local/lib -lxvidcore -lm)
+       	-L$with_xvidcore_l -L/usr/local${deflib} -lxvidcore -lm)
 fi
 
 AC_SUBST(XVIDCORE_CFLAGS)
@@ -680,7 +680,7 @@ if test x$with_dv = "x"yes ; then
         if test x$dv_libs != x ; then
             with_dv_l="$dv_libs/lib"
         else
-            with_dv_l="/usr/lib"
+            with_dv_l="/usr${deflib}"
         fi
 
 	AC_CHECK_LIB(dv, dv_init,
@@ -748,7 +748,7 @@ if test x$with_lzo = "x"yes ; then
         if test x$lzo_libs != x ; then
             with_lzo_l="$lzo_libs/lib"
         else
-            with_lzo_l="/usr/lib"
+            with_lzo_l="/usr${deflib}"
         fi
 
 	AC_CHECK_LIB(lzo, lzo_version,
@@ -804,7 +804,7 @@ if test x$with_a52 = "x"yes ; then
         if test x$a52_libs != x ; then
             with_a52_l="$a52_libs/lib"
         else
-            with_a52_l="/usr/lib"
+            with_a52_l="/usr${deflib}"
         fi
 
      AC_CHECK_LIB(a52, a52_init,
@@ -856,7 +856,7 @@ if test x$with_libmpeg3 = "x"yes ; then
         if test x$libmpeg3_libs != x ; then
             with_libmpeg3_l="$libmpeg3_libs/lib"
         else
-            with_libmpeg3_l="/usr/lib"
+            with_libmpeg3_l="/usr${deflib}"
         fi
 
      AC_CHECK_LIB(mpeg3, mpeg3_open,
@@ -979,7 +979,7 @@ if test x$have_liblve != "xyes" ; then
 	AC_CHECK_LIB(lve, lr_init,
       [
 	LIBLVE_CFLAGS="-I/usr/local/include"
-	LIBLVE_LIBS="-L/usr/local/lib -llve ${EXTRA_LIBS}" 
+	LIBLVE_LIBS="-L/usr/local${deflib} -llve ${EXTRA_LIBS}" 
 	AC_DEFINE(HAVE_LIBLVE)
 	have_liblve=yes
       ], have_liblve=no, )
@@ -1024,7 +1024,7 @@ if test x$with_qt = "x"yes ; then
         if test x$qt_libs != x ; then
             with_qt_l="$qt_libs/lib"
         else
-            with_qt_l="/usr/lib"
+            with_qt_l="/usr${deflib}"
         fi
 
      AC_CHECK_LIB(quicktime, quicktime_open,
@@ -1078,7 +1078,7 @@ if test x$with_openqt = "x"yes ; then
         if test x$openqt_libs != x ; then
             with_openqt_l="$openqt_libs/lib"
         else
-            with_openqt_l="/usr/lib"
+            with_openqt_l="/usr${deflib}"
         fi
 
      AC_CHECK_LIB(openquicktime, quicktime_init,

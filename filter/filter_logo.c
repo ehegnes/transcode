@@ -240,7 +240,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	}
     }
 
-    images = GetFirstImageInList(image);
+    images = (Image *)GetFirstImageInList(image);
     nimg = NewImageList();
 
     while ( images != (Image *)NULL) {

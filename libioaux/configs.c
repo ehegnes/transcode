@@ -2598,7 +2598,7 @@ int module_read_values(CF_ROOT_TYPE *p_root, CF_SECTION_TYPE *p_section,
   CF_KEYVALUE_TYPE *kv;
   struct config    *cur_config;
   char             *value, *error;
-  int               i;
+  long              i;
   float             f;
 
   cur_config = conf;
@@ -2618,11 +2618,11 @@ int module_read_values(CF_ROOT_TYPE *p_root, CF_SECTION_TYPE *p_section,
                     prefix, cur_config->name);
           else if ((cur_config->flags & CONF_MIN) && (i < cur_config->min))
             fprintf(stderr, "[%s] Option '%s' has a value that is too low "
-                    "(%d < %d).\n", prefix, cur_config->name, i,
+                    "(%d < %d).\n", prefix, cur_config->name, (int)i,
                     (int)cur_config->min);
           else if ((cur_config->flags & CONF_MAX) && (i > cur_config->max))
             fprintf(stderr, "[%s] Option '%s' has a value that is too high "
-                    "(%d > %d).\n", prefix, cur_config->name, i,
+                    "(%d > %d).\n", prefix, cur_config->name, (int)i,
                     (int)cur_config->max);
           else
             *((int *)cur_config->p) = i;

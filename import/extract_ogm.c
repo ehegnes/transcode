@@ -446,7 +446,7 @@ void process_ogm(int fdin, int fdout)
                     codec == ACMP3 ? "MP3" :
                     codec == ACAC3 ? "AC3" : "unknown",
                     sth->bits_per_sample, sth->sh.audio.channels,
-                    sth->samples_per_unit);
+                    (long long)sth->samples_per_unit);
              fprintf(stderr, " avgbytespersec: %hd blockalign: %d\n",
                      sth->sh.audio.avgbytespersec, sth->sh.audio.blockalign);
           }
@@ -498,7 +498,7 @@ void process_ogm(int fdin, int fdout)
             new_name = malloc(strlen(basename) + 20);
             if (!new_name) {
               fprintf(stderr, "(%s) Failed to allocate %d bytes.\n", __FILE__,
-                strlen(basename) + 10);
+                (int)strlen(basename) + 10);
               exit(1);
             }
             if (!xraw)

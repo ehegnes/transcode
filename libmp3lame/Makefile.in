@@ -67,7 +67,7 @@ CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
 
-CFLAGS = @CFLAGS@ -finline-functions -Wall 
+CFLAGS = -fPIC -DPIC @CFLAGS@ -finline-functions -Wall 
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@

@@ -32,6 +32,8 @@ AC_SUBST(CCASFLAGS)
 ASFLAGS="$CCASFLAGS"
 AC_SUBST(ASFLAGS)
 
+deflib="/lib"
+
 is_osx=false
 case "x${target_os}" in
    xdarwin*)
@@ -53,6 +55,15 @@ case "x${target_os}" in
     fi
     ;;
 esac
+
+case "x${target_cpu}" in
+  xx86_64*)
+   is_amd64=true
+   deflib="/lib64"
+	AC_MSG_NOTICE([AMD64 CPU detected])
+  ;;
+esac
+
 
 AM_CONDITIONAL([SYSTEM_DARWIN], test x"$is_osx" = x"true")
  
@@ -185,6 +196,8 @@ nasm=no
 have_x86cpu=false
 have_ppccpu=false
 have_ppc_altivec=false
+
+#don't enable mmx for amd64, won't work yet
 
 case x"$host_cpu" in 
   xi?86*|xk6*)
@@ -1087,6 +1100,15 @@ fi
 
 case x${target_os} in
    xdarwin*)
+   ed libtool <<EOF 
+,s/deplibs_check_method=.*/deplibs_check_method="pass_all"/
+wq
+EOF
+   ;;
+esac
+
+case x${target_cpu} in
+   xx86_64*)
    ed libtool <<EOF 
 ,s/deplibs_check_method=.*/deplibs_check_method="pass_all"/
 wq

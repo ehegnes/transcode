@@ -601,8 +601,10 @@ else
     header[31] = (width       ) & 0xFF;
     }
 
-header[10] = height>>8;	header[11] = (unsigned char)height;
-header[12] = colors>>8;	header[13] = (unsigned char)colors;
+header[10] = height>>8;	
+header[11] = (unsigned char)height;
+header[12] = colors>>8;
+header[13] = (unsigned char)(colors&0xff);
 
 for (i = 32; i<800; ++i) header[i] = (i - 32) / 3;
 

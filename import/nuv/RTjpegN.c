@@ -3365,7 +3365,7 @@ int RTjpeg_mcompressYUV422(__s8 *sp, unsigned char *bp, __u16 lmask, __u16 cmask
   bp2+=RTjpeg_width<<2;
   bp3+=RTjpeg_width<<2;
  }
- printf ("%d\n", block - RTjpeg_old);
+ printf ("%ld\n", (long)(block - RTjpeg_old));
 #ifdef MMX
  emms();
 #endif

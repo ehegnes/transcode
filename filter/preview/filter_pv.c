@@ -128,19 +128,19 @@ void preview_toggle_skip()
 char * preview_alloc_align_buffer(size_t size)
 {
 #ifdef HAVE_GETPAGESIZE
-   int buffer_align=getpagesize();
+   long buffer_align=getpagesize();
 #else
-   int buffer_align=0;
+   long buffer_align=0;
 #endif
    char *buf = malloc(size + buffer_align);
 
-   int adjust;
+   long adjust;
 
    if (buf == NULL) {
        fprintf(stderr, "(%s) out of memory", __FILE__);
    }
    
-   adjust = buffer_align - ((int) buf) % buffer_align;
+   adjust = buffer_align - ((long) buf) % buffer_align;
 
    if (adjust == buffer_align)
       adjust = 0;

@@ -45,7 +45,6 @@
 #include "videodev2.h"
 #endif
 
-
 #include "transcode.h"
 #include "aclib/ac.h"
 
@@ -172,7 +171,7 @@ static void v4l2_convert_rgb24_rgb(const char * source, char * dest, size_t size
 	size_t mysize = xsize * ysize * 3;
 
 	if(mysize != size)
-		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", size, mysize);
+		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
 
 	v4l2_memcpy(dest, source,  mysize);
 }
@@ -183,7 +182,7 @@ static void v4l2_convert_bgr24_rgb(const char * source, char * dest, size_t size
 	int offset;
 
 	if(mysize != size)
-		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", size, mysize);
+		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
 
 	for(offset = 0; offset < mysize; offset += 3)
 	{
@@ -198,7 +197,7 @@ static void v4l2_convert_uyvy_yuv422(const char * source, char * dest, size_t si
 	size_t mysize = xsize * ysize * 2;
 
 	if(mysize != size)
-		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", size, mysize);
+		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
 
 	v4l2_memcpy(dest, source, mysize);
 }
@@ -209,7 +208,7 @@ static void v4l2_convert_yuyv_yuv422(const char * source, char * dest, size_t si
 	int offset;
 
 	if(mysize != size)
-		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", size, mysize);
+		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
 
 	for(offset = 0; offset < mysize; offset += 4)
 	{
@@ -225,7 +224,7 @@ static void v4l2_convert_yvu420_yuv420(const char * source, char * dest, size_t 
 	size_t mysize = xsize * ysize * 3 / 2;
 
 	if(mysize != size)
-		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", size, mysize);
+		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
 
 	v4l2_memcpy(dest, source, mysize);
 }
@@ -241,7 +240,7 @@ static void v4l2_convert_yuv420_yuv420(const char * source, char * dest, size_t 
 	int u2plane_offset	= yplane_size + uplane_size;
 
 	if(mysize != size)
-		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", size, mysize);
+		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
 
 	v4l2_memcpy(dest + yplane_offset,  source + yplane_offset,  yplane_size);
 	v4l2_memcpy(dest + u1plane_offset, source + u2plane_offset, uplane_size);

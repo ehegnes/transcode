@@ -129,17 +129,17 @@ static struct ffmpeg_codec *find_ffmpeg_codec(char *fourCC) {
 
 static unsigned char *bufalloc(size_t size) {
 #ifdef HAVE_GETPAGESIZE
-  int buffer_align = getpagesize();
+  long buffer_align = getpagesize();
 #else
-  int buffer_align = 0;
+  long buffer_align = 0;
 #endif
   char *buf = malloc(size + buffer_align);
-  int adjust;
+  long adjust;
 
   if (buf == NULL)
     fprintf(stderr, "(%s) out of memory", __FILE__);
 
-  adjust = buffer_align - ((int) buf) % buffer_align;
+  adjust = buffer_align - ((long) buf) % buffer_align;
 
   if (adjust == buffer_align)
     adjust = 0;
@@ -289,7 +289,7 @@ void decode_lavc(decode_t *decode)
       int got_picture = 0;
 
       if (buf_len >= mp4_size) {
-	  //fprintf(stderr, "[%s] EOF?\n", MOD_NAME);
+	  fprintf(stderr, "[%s] EOF?\n", MOD_NAME);
 	  break;
       }
 
@@ -302,7 +302,7 @@ void decode_lavc(decode_t *decode)
 	      fprintf(stderr, "[%s] frame decoding failed\n", MOD_NAME);
 	      goto decoder_error;
 	  }
-	  //fprintf (stderr, "here frame pic %d run %d len %d\n", got_picture, run, len);
+	  fprintf (stderr, "here frame pic %d run %d len %d\n", got_picture, run, len);
 	  if (run++>10000) { fprintf(stderr, "[%s] Fatal decoder error\n", MOD_NAME); goto decoder_error; }
       } while (!got_picture);
       run = 0;
@@ -452,7 +452,7 @@ void decode_lavc(decode_t *decode)
       /* buffer more than half empty -> Fill it */
       if (!flush && buf_len > mp4_size/2+1) {
 	  int rest = mp4_size - buf_len;
-	  //fprintf(stderr, "FILL rest %d\n", rest);
+	  fprintf(stderr, "FILL rest %d\n", rest);
 
 	  /* Move data if needed */
 	  if (rest)
@@ -460,7 +460,7 @@ void decode_lavc(decode_t *decode)
 
 	  /* read new data */
 	  if ( (bytes_read = p_read(decode->fd_in, (char*) (buffer+(READ_BUFFER_SIZE-buf_len)), buf_len) )  != buf_len) {
-	      //fprintf(stderr, "read failed read (%ld) should (%d)\n", bytes_read, buf_len);
+	      fprintf(stderr, "read failed read (%ld) should (%d)\n", bytes_read, buf_len);
 	      flush = 1;
 	      mp4_size -= buf_len;
 	      mp4_size += bytes_read;

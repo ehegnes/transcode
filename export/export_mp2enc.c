@@ -82,7 +82,7 @@ MOD_open
 	  return(TC_EXPORT_ERROR);
 	} 
 	
-        if(verbose & TC_INFO) printf("[%s] (%d/%d) cmd=%s\n", MOD_NAME, strlen(buf), PATH_MAX, buf);
+        if(verbose & TC_INFO) printf("[%s] (%d/%d) cmd=%s\n", MOD_NAME, (int)strlen(buf), PATH_MAX, buf);
 	
         if((pFile = popen (buf, "w")) == NULL)
 	  return(TC_EXPORT_ERROR);

@@ -520,9 +520,9 @@ tcxmlcheck_LDADD = @LIBXML2_LIBS@ @DV_LIBS@ -lm
 tcxpm2rgb_SOURCES = tcxpm2rgb.c
 
 @HAVE_LIBLVE_TRUE@LVEDIR = lve
-@TRANSCODE_0_6_FALSE@SUBDIRS = nuv af6 $(LVEDIR)
 
 @TRANSCODE_0_6_TRUE@SUBDIRS = nuv af6 net v4l yuv $(LVEDIR)
+@TRANSCODE_0_6_FALSE@SUBDIRS = nuv af6 $(LVEDIR)
 subdir = import
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/autotools/mkinstalldirs
@@ -813,7 +813,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 	installdirs-recursive install-recursive uninstall-recursive \
 	check-recursive installcheck-recursive
 DIST_COMMON = $(srcdir)/Makefile.in Makefile.am
-DIST_SUBDIRS = nuv af6 lve net v4l yuv
+DIST_SUBDIRS = nuv af6 net v4l yuv lve
 SOURCES = $(a52_decore_la_SOURCES) $(af6_decore_la_SOURCES) $(import_ac3_la_SOURCES) $(import_avi_la_SOURCES) $(import_divx_la_SOURCES) $(import_dv_la_SOURCES) $(import_dvd_la_SOURCES) $(import_ffmpeg_la_SOURCES) $(import_fraps_la_SOURCES) $(import_im_la_SOURCES) $(import_imlist_la_SOURCES) $(import_lav_la_SOURCES) $(import_lzo_la_SOURCES) $(import_mov_la_SOURCES) $(import_mp3_la_SOURCES) $(import_mpeg2_la_SOURCES) $(import_mpeg3_la_SOURCES) $(import_mplayer_la_SOURCES) $(import_null_la_SOURCES) $(import_nvrec_la_SOURCES) $(import_ogg_la_SOURCES) $(import_raw_la_SOURCES) $(import_rawlist_la_SOURCES) $(import_sh_la_SOURCES) $(import_vdrac3_la_SOURCES) $(import_vnc_la_SOURCES) $(import_vob_la_SOURCES) $(import_xml_la_SOURCES) $(import_xvid_la_SOURCES) $(import_yuv4mpeg_la_SOURCES) $(tccat_SOURCES) $(tcdecode_SOURCES) $(tcdemux_SOURCES) $(tcextract_SOURCES) $(tcprobe_SOURCES) $(tcrequant_SOURCES) $(tcscan_SOURCES) $(tcxmlcheck_SOURCES) $(tcxpm2rgb_SOURCES)
 
 all: all-recursive

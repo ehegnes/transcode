@@ -29,7 +29,11 @@ static int mm_support(void)
                           /* See if CPUID instruction is supported ... */
                           /* ... Get copies of EFLAGS into eax and ecx */
                           "pushf\n\t"
+#ifdef __x86_64__
+                          "pop %0\n\t"
+#else
                           "popl %0\n\t"
+#endif
                           "movl %0, %1\n\t"
                           
                           /* ... Toggle the ID bit in one copy and store */
@@ -40,7 +44,11 @@ static int mm_support(void)
                           
                           /* ... Get the (hopefully modified) EFLAGS */
                           "pushf\n\t"
+#ifdef __x86_64__
+                          "pop %0\n\t"
+#else
                           "popl %0\n\t"
+#endif
                           : "=a" (eax), "=c" (ecx)
                           :
                           : "cc" 

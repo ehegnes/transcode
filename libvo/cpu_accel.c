@@ -32,27 +32,43 @@ static uint32_t arch_accel (void)
     int AMD;
     uint32_t caps;
 
+#if !defined(PIC) && !defined(__PIC__)
 #define cpuid(op,eax,ebx,ecx,edx)	\
-    asm ("cpuid"			\
-	 : "=a" (eax),			\
-	   "=b" (ebx),			\
-	   "=c" (ecx),			\
-	   "=d" (edx)			\
-	 : "a" (op)			\
-	 : "cc")
+    __asm__ ("cpuid"			\
+	     : "=a" (eax),		\
+	       "=b" (ebx),		\
+	       "=c" (ecx),		\
+	       "=d" (edx)		\
+	     : "a" (op)			\
+	     : "cc")
+#else	/* PIC version : save ebx */
+#define cpuid(op,eax,ebx,ecx,edx)	\
+    __asm__ ("push %%ebx\n\t"		\
+	     "cpuid\n\t"		\
+	     "movl %%ebx,%1\n\t"	\
+	     "pop %%ebx"		\
+	     : "=a" (eax),		\
+	       "=r" (ebx),		\
+	       "=c" (ecx),		\
+	       "=d" (edx)		\
+	     : "a" (op)			\
+	     : "cc")
+#endif
 
-    asm ("pushfl\n\t"
-	 "popl %0\n\t"
-	 "movl %0,%1\n\t"
-	 "xorl $0x200000,%0\n\t"
-	 "pushl %0\n\t"
-	 "popfl\n\t"
-	 "pushfl\n\t"
-	 "popl %0"
-         : "=a" (eax),
-	   "=b" (ebx)
-	 :
-	 : "cc");
+    asm ("pushf\n\t"
+	     "pushf\n\t"
+	     "pop %0\n\t"
+	     "movl %0,%1\n\t"
+	     "xorl $0x200000,%0\n\t"
+	     "push %0\n\t"
+	     "popf\n\t"
+	     "pushf\n\t"
+	     "pop %0\n\t"
+	     "popf"
+	     : "=r" (eax),
+	       "=r" (ebx)
+	     :
+	     : "cc");
 
     if (eax == ebx)		/* no cpuid */
 	return 0;

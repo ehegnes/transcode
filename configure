@@ -5036,6 +5036,8 @@ fi
 ASFLAGS="$CCASFLAGS"
 
 
+deflib="/lib"
+
 is_osx=false
 case "x${target_os}" in
    xdarwin*)
@@ -5065,6 +5067,16 @@ _ACEOF
     fi
     ;;
 esac
+
+case "x${target_cpu}" in
+  xx86_64*)
+   is_amd64=true
+   deflib="/lib64"
+	{ echo "$as_me:$LINENO: AMD64 CPU detected" >&5
+echo "$as_me: AMD64 CPU detected" >&6;}
+  ;;
+esac
+
 
 
 
@@ -8223,6 +8235,8 @@ have_x86cpu=false
 have_ppccpu=false
 have_ppc_altivec=false
 
+#don't enable mmx for amd64, won't work yet
+
 case x"$host_cpu" in
   xi?86*|xk6*)
   echo "$as_me:$LINENO: checking for Intel Pentium architecture (IA32)" >&5
@@ -9352,7 +9366,7 @@ echo $ECHO_N "checking for ld used by $CC... $ECHO_C" >&6
     # Accept absolute paths.
     [\\/]* | ?:[\\/]*)
       re_direlt='/[^/][^/]*/\.\./'
-      # Canonicalize the path of ld
+      # Canonicalize the pathname of ld
       ac_prog=`echo $ac_prog| $SED 's%\\\\%/%g'`
       while echo $ac_prog | grep "$re_direlt" > /dev/null 2>&1; do
 	ac_prog=`echo $ac_prog| $SED "s%$re_direlt%/%"`
@@ -9421,7 +9435,7 @@ if test "${lt_cv_prog_gnu_ld+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   # I'd rather use --version here, but apparently some GNU ld's only accept -v.
-case `"$LD" -v 2>&1 </dev/null` in
+case `$LD -v 2>&1 </dev/null` in
 *GNU* | *'with BFD'*)
   lt_cv_prog_gnu_ld=yes
   ;;
@@ -9614,7 +9628,7 @@ irix5* | irix6* | nonstopux*)
 # This must be Linux ELF.
 linux*)
   case $host_cpu in
-  alpha* | hppa* | i*86 | ia64* | m68* | mips | mipsel | powerpc* | sparc* | s390* | sh*)
+  alpha* | hppa* | i*86 | ia64* | m68* | mips | mipsel | powerpc* | sparc* | s390* | sh* | x86_64)
     lt_cv_deplibs_check_method=pass_all ;;
   *)
     # glibc up to 2.1.1 does not perform some relocations on ARM
@@ -9743,7 +9757,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 9746 "configure"' > conftest.$ac_ext
+  echo '#line 9760 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -9792,7 +9806,7 @@ x86_64-*linux*|ppc*-*linux*|powerpc*-*linux*|s390*-*linux*|sparc*-*linux*)
         x86_64-*linux*)
           LD="${LD-ld} -m elf_i386"
           ;;
-        ppc64-*linux*)
+        ppc64-*linux*|powerpc64-*linux*)
           LD="${LD-ld} -m elf32ppclinux"
           ;;
         s390x-*linux*)
@@ -10360,7 +10374,7 @@ fi
 
 
 # Provide some information about the compiler.
-echo "$as_me:10363:" \
+echo "$as_me:10377:" \
      "checking for Fortran 77 compiler version" >&5
 ac_compiler=`set X $ac_compile; echo $2`
 { (eval echo "$as_me:$LINENO: \"$ac_compiler --version </dev/null >&5\"") >&5
@@ -11365,11 +11379,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11368: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11382: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:11372: \$? = $ac_status" >&5
+   echo "$as_me:11386: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -11597,11 +11611,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11600: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11614: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:11604: \$? = $ac_status" >&5
+   echo "$as_me:11618: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -11664,11 +11678,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11667: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11681: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:11671: \$? = $ac_status" >&5
+   echo "$as_me:11685: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -12992,6 +13006,13 @@ linux*)
   # before this can be enabled.
   hardcode_into_libs=yes
 
+  case $LD in # libtool.m4 will add one of these switches to LD
+  *"-m elf_x86_64"*|*"-m elf64ppc"*|*"-m elf64_s390"*|*"-m elf64_sparc"*)
+    sys_lib_dlsearch_path_spec="/lib64 /usr/lib64"
+    sys_lib_search_path_spec="/lib64 /usr/lib64 /usr/local/lib64"
+    ;;
+  esac
+
   # We used to test for /lib/ld.so.1 and disable shared libraries on
   # powerpc, because MkLinux only supported shared libraries with the
   # GNU dynamic linker.  Since this was broken with cross compilers,
@@ -13676,7 +13697,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 13679 "configure"
+#line 13700 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -13774,7 +13795,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 13777 "configure"
+#line 13798 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -13956,7 +13977,7 @@ if test -f "$ltmain"; then
   # Now quote all the things that may contain metacharacters while being
   # careful not to overquote the AC_SUBSTed values.  We take copies of the
   # variables and quote the copies for generation of the libtool script.
-  for var in echo old_CC old_CFLAGS AR AR_FLAGS EGREP RANLIB LN_S LTCC NM SED SHELL \
+  for var in echo old_CC old_CFLAGS AR AR_FLAGS AS EGREP RANLIB LN_S LTCC NM SED SHELL \
     libname_spec library_names_spec soname_spec extract_expsyms_cmds \
     old_striplib striplib file_magic_cmd finish_cmds finish_eval \
     deplibs_check_method reload_flag reload_cmds need_locks \
@@ -14146,7 +14167,7 @@ DLLTOOL="$DLLTOOL"
 OBJDUMP="$OBJDUMP"
 
 # Used on cygwin: assembler.
-AS="$AS"
+AS=$lt_AS
 
 # The name of the directory that contains temporary libtool files.
 objdir=$objdir
@@ -14588,7 +14609,7 @@ echo $ECHO_N "checking for ld used by $CC... $ECHO_C" >&6
     # Accept absolute paths.
     [\\/]* | ?:[\\/]*)
       re_direlt='/[^/][^/]*/\.\./'
-      # Canonicalize the path of ld
+      # Canonicalize the pathname of ld
       ac_prog=`echo $ac_prog| $SED 's%\\\\%/%g'`
       while echo $ac_prog | grep "$re_direlt" > /dev/null 2>&1; do
 	ac_prog=`echo $ac_prog| $SED "s%$re_direlt%/%"`
@@ -14657,7 +14678,7 @@ if test "${lt_cv_prog_gnu_ld+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   # I'd rather use --version here, but apparently some GNU ld's only accept -v.
-case `"$LD" -v 2>&1 </dev/null` in
+case `$LD -v 2>&1 </dev/null` in
 *GNU* | *'with BFD'*)
   lt_cv_prog_gnu_ld=yes
   ;;
@@ -14702,7 +14723,7 @@ with_gnu_ld=$lt_cv_prog_gnu_ld
     # linker, instead of GNU ld.  If possible, this setting should
     # overridden to take advantage of the native linker features on
     # the platform it is being used on.
-    archive_cmds_CXX='$CC -shared $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags -o $lib'
+    archive_cmds_CXX='$CC -shared -nostdlib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags -o $lib'
   fi
 
   # Commands to make compiler produce verbose output that lists
@@ -15906,11 +15927,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15909: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:15930: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:15913: \$? = $ac_status" >&5
+   echo "$as_me:15934: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -15973,11 +15994,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15976: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:15997: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:15980: \$? = $ac_status" >&5
+   echo "$as_me:16001: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16531,6 +16552,13 @@ linux*)
   # Some rework will be needed to allow for fast_install
   # before this can be enabled.
   hardcode_into_libs=yes
+
+  case $LD in # libtool.m4 will add one of these switches to LD
+  *"-m elf_x86_64"*|*"-m elf64ppc"*|*"-m elf64_s390"*|*"-m elf64_sparc"*)
+    sys_lib_dlsearch_path_spec="/lib64 /usr/lib64"
+    sys_lib_search_path_spec="/lib64 /usr/lib64 /usr/local/lib64"
+    ;;
+  esac
 
   # We used to test for /lib/ld.so.1 and disable shared libraries on
   # powerpc, because MkLinux only supported shared libraries with the
@@ -17216,7 +17244,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 17219 "configure"
+#line 17247 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -17314,7 +17342,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 17317 "configure"
+#line 17345 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -17431,7 +17459,7 @@ if test -f "$ltmain"; then
   # Now quote all the things that may contain metacharacters while being
   # careful not to overquote the AC_SUBSTed values.  We take copies of the
   # variables and quote the copies for generation of the libtool script.
-  for var in echo old_CC old_CFLAGS AR AR_FLAGS EGREP RANLIB LN_S LTCC NM SED SHELL \
+  for var in echo old_CC old_CFLAGS AR AR_FLAGS AS EGREP RANLIB LN_S LTCC NM SED SHELL \
     libname_spec library_names_spec soname_spec extract_expsyms_cmds \
     old_striplib striplib file_magic_cmd finish_cmds finish_eval \
     deplibs_check_method reload_flag reload_cmds need_locks \
@@ -17573,7 +17601,7 @@ DLLTOOL="$DLLTOOL"
 OBJDUMP="$OBJDUMP"
 
 # Used on cygwin: assembler.
-AS="$AS"
+AS=$lt_AS
 
 # The name of the directory that contains temporary libtool files.
 objdir=$objdir
@@ -18136,11 +18164,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:18139: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:18167: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:18143: \$? = $ac_status" >&5
+   echo "$as_me:18171: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -18203,11 +18231,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:18206: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:18234: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:18210: \$? = $ac_status" >&5
+   echo "$as_me:18238: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -19509,6 +19537,13 @@ linux*)
   # before this can be enabled.
   hardcode_into_libs=yes
 
+  case $LD in # libtool.m4 will add one of these switches to LD
+  *"-m elf_x86_64"*|*"-m elf64ppc"*|*"-m elf64_s390"*|*"-m elf64_sparc"*)
+    sys_lib_dlsearch_path_spec="/lib64 /usr/lib64"
+    sys_lib_search_path_spec="/lib64 /usr/lib64 /usr/local/lib64"
+    ;;
+  esac
+
   # We used to test for /lib/ld.so.1 and disable shared libraries on
   # powerpc, because MkLinux only supported shared libraries with the
   # GNU dynamic linker.  Since this was broken with cross compilers,
@@ -19688,7 +19723,7 @@ if test -f "$ltmain"; then
   # Now quote all the things that may contain metacharacters while being
   # careful not to overquote the AC_SUBSTed values.  We take copies of the
   # variables and quote the copies for generation of the libtool script.
-  for var in echo old_CC old_CFLAGS AR AR_FLAGS EGREP RANLIB LN_S LTCC NM SED SHELL \
+  for var in echo old_CC old_CFLAGS AR AR_FLAGS AS EGREP RANLIB LN_S LTCC NM SED SHELL \
     libname_spec library_names_spec soname_spec extract_expsyms_cmds \
     old_striplib striplib file_magic_cmd finish_cmds finish_eval \
     deplibs_check_method reload_flag reload_cmds need_locks \
@@ -19830,7 +19865,7 @@ DLLTOOL="$DLLTOOL"
 OBJDUMP="$OBJDUMP"
 
 # Used on cygwin: assembler.
-AS="$AS"
+AS=$lt_AS
 
 # The name of the directory that contains temporary libtool files.
 objdir=$objdir
@@ -20143,11 +20178,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:20146: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:20181: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:20150: \$? = $ac_status" >&5
+   echo "$as_me:20185: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -20375,11 +20410,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:20378: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:20413: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:20382: \$? = $ac_status" >&5
+   echo "$as_me:20417: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -20442,11 +20477,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:20445: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:20480: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:20449: \$? = $ac_status" >&5
+   echo "$as_me:20484: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -21770,6 +21805,13 @@ linux*)
   # before this can be enabled.
   hardcode_into_libs=yes
 
+  case $LD in # libtool.m4 will add one of these switches to LD
+  *"-m elf_x86_64"*|*"-m elf64ppc"*|*"-m elf64_s390"*|*"-m elf64_sparc"*)
+    sys_lib_dlsearch_path_spec="/lib64 /usr/lib64"
+    sys_lib_search_path_spec="/lib64 /usr/lib64 /usr/local/lib64"
+    ;;
+  esac
+
   # We used to test for /lib/ld.so.1 and disable shared libraries on
   # powerpc, because MkLinux only supported shared libraries with the
   # GNU dynamic linker.  Since this was broken with cross compilers,
@@ -22454,7 +22496,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 22457 "configure"
+#line 22499 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -22552,7 +22594,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 22555 "configure"
+#line 22597 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -22669,7 +22711,7 @@ if test -f "$ltmain"; then
   # Now quote all the things that may contain metacharacters while being
   # careful not to overquote the AC_SUBSTed values.  We take copies of the
   # variables and quote the copies for generation of the libtool script.
-  for var in echo old_CC old_CFLAGS AR AR_FLAGS EGREP RANLIB LN_S LTCC NM SED SHELL \
+  for var in echo old_CC old_CFLAGS AR AR_FLAGS AS EGREP RANLIB LN_S LTCC NM SED SHELL \
     libname_spec library_names_spec soname_spec extract_expsyms_cmds \
     old_striplib striplib file_magic_cmd finish_cmds finish_eval \
     deplibs_check_method reload_flag reload_cmds need_locks \
@@ -22811,7 +22853,7 @@ DLLTOOL="$DLLTOOL"
 OBJDUMP="$OBJDUMP"
 
 # Used on cygwin: assembler.
-AS="$AS"
+AS=$lt_AS
 
 # The name of the directory that contains temporary libtool files.
 objdir=$objdir
@@ -23110,7 +23152,7 @@ if test -f "$ltmain"; then
   # Now quote all the things that may contain metacharacters while being
   # careful not to overquote the AC_SUBSTed values.  We take copies of the
   # variables and quote the copies for generation of the libtool script.
-  for var in echo old_CC old_CFLAGS AR AR_FLAGS EGREP RANLIB LN_S LTCC NM SED SHELL \
+  for var in echo old_CC old_CFLAGS AR AR_FLAGS AS EGREP RANLIB LN_S LTCC NM SED SHELL \
     libname_spec library_names_spec soname_spec extract_expsyms_cmds \
     old_striplib striplib file_magic_cmd finish_cmds finish_eval \
     deplibs_check_method reload_flag reload_cmds need_locks \
@@ -23252,7 +23294,7 @@ DLLTOOL="$DLLTOOL"
 OBJDUMP="$OBJDUMP"
 
 # Used on cygwin: assembler.
-AS="$AS"
+AS=$lt_AS
 
 # The name of the directory that contains temporary libtool files.
 objdir=$objdir
@@ -24506,7 +24548,7 @@ if test x$with_lame = "x"yes ; then
         if test x$lame_libs != x ; then
 	    with_lame_l="$lame_libs/lib"
         else
-	    with_lame_l="/usr/lib"
+	    with_lame_l="/usr${deflib}"
         fi
 
 as_ac_File=`echo "ac_cv_file_$with_lame_i/lame/lame.h" | $as_tr_sh`
@@ -24844,7 +24886,7 @@ if test x$with_ogg = "x"yes ; then
         if test x$ogg_libs != x ; then
 	    with_ogg_l="$ogg_libs/lib"
         else
-	    with_ogg_l="/usr/lib"
+	    with_ogg_l="/usr${deflib}"
         fi
 
 	echo "$as_me:$LINENO: checking for ogg_sync_init in -logg" >&5
@@ -25046,7 +25088,7 @@ if test x$with_vorbis = "x"yes ; then
         if test x$vorbis_libs != x ; then
 	    with_vorbis_l="$vorbis_libs/lib"
         else
-	    with_vorbis_l="/usr/lib"
+	    with_vorbis_l="/usr${deflib}"
         fi
 
 	echo "$as_me:$LINENO: checking for vorbis_info_init in -lvorbis" >&5
@@ -25248,7 +25290,7 @@ if test x$with_theora = "x"yes ; then
         if test x$theora_libs != x ; then
 	    with_theora_l="$theora_libs/lib"
         else
-	    with_theora_l="/usr/lib"
+	    with_theora_l="/usr${deflib}"
         fi
 
 	echo "$as_me:$LINENO: checking for theora_info_init in -ltheora" >&5
@@ -25454,7 +25496,7 @@ if test x$with_dvdread = "x"yes ; then
         if test x$dvdread_libs != x ; then
 	    with_dvdread_l="$dvdread_libs/lib"
         else
-	    with_dvdread_l="/usr/lib"
+	    with_dvdread_l="/usr${deflib}"
         fi
 
 	echo "$as_me:$LINENO: checking for DVDOpen in -ldvdread" >&5
@@ -25686,7 +25728,7 @@ if test x$with_libmpeg3 = "x"yes ; then
         if test x$libmpeg3_libs != x ; then
             with_libmpeg3_l="$libmpeg3_libs/lib"
         else
-            with_libmpeg3_l="/usr/lib"
+            with_libmpeg3_l="/usr${deflib}"
         fi
 
      echo "$as_me:$LINENO: checking for mpeg3_open in -lmpeg3" >&5
@@ -25998,7 +26040,7 @@ echo "${ECHO_T}$ac_cv_lib_lve_lr_init" >&6
 if test $ac_cv_lib_lve_lr_init = yes; then
 
 	LIBLVE_CFLAGS="-I/usr/local/include"
-	LIBLVE_LIBS="-L/usr/local/lib -llve ${EXTRA_LIBS}"
+	LIBLVE_LIBS="-L/usr/local${deflib} -llve ${EXTRA_LIBS}"
 	cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBLVE 1
 _ACEOF
@@ -26049,7 +26091,7 @@ if test "${with_pvm3_lib+set}" = set; then
   withval="$with_pvm3_lib"
   pvm3_lib="$withval"
 else
-  pvm3_lib="/usr/lib"
+  pvm3_lib="/usr${deflib}"
 fi;
 
 # Check whether --with-pvm3-include or --without-pvm3-include was given.
@@ -26300,7 +26342,7 @@ if test x$with_qt = "x"yes ; then
         if test x$qt_libs != x ; then
             with_qt_l="$qt_libs/lib"
         else
-            with_qt_l="/usr/lib"
+            with_qt_l="/usr${deflib}"
         fi
 
      echo "$as_me:$LINENO: checking for quicktime_open in -lquicktime" >&5
@@ -26438,7 +26480,7 @@ if test x$with_openqt = "x"yes ; then
         if test x$openqt_libs != x ; then
             with_openqt_l="$openqt_libs/lib"
         else
-            with_openqt_l="/usr/lib"
+            with_openqt_l="/usr${deflib}"
         fi
 
      echo "$as_me:$LINENO: checking for quicktime_init in -lopenquicktime" >&5
@@ -26578,7 +26620,7 @@ if test x$with_dv = "x"yes ; then
         if test x$dv_libs != x ; then
             with_dv_l="$dv_libs/lib"
         else
-            with_dv_l="/usr/lib"
+            with_dv_l="/usr${deflib}"
         fi
 
 	echo "$as_me:$LINENO: checking for dv_init in -ldv" >&5
@@ -26847,7 +26889,7 @@ if test x$with_lzo = "x"yes ; then
         if test x$lzo_libs != x ; then
             with_lzo_l="$lzo_libs/lib"
         else
-            with_lzo_l="/usr/lib"
+            with_lzo_l="/usr${deflib}"
         fi
 
 	echo "$as_me:$LINENO: checking for lzo_version in -llzo" >&5
@@ -26985,7 +27027,7 @@ if test x$with_a52 = "x"yes ; then
         if test x$a52_libs != x ; then
             with_a52_l="$a52_libs/lib"
         else
-            with_a52_l="/usr/lib"
+            with_a52_l="/usr${deflib}"
         fi
 
      echo "$as_me:$LINENO: checking for a52_init in -la52" >&5
@@ -32549,6 +32591,15 @@ fi
 
 case x${target_os} in
    xdarwin*)
+   ed libtool <<EOF
+,s/deplibs_check_method=.*/deplibs_check_method="pass_all"/
+wq
+EOF
+   ;;
+esac
+
+case x${target_cpu} in
+   xx86_64*)
    ed libtool <<EOF
 ,s/deplibs_check_method=.*/deplibs_check_method="pass_all"/
 wq

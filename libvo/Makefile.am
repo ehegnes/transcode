@@ -2,7 +2,7 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-CFLAGS = -Wall @CFLAGS@ -I../libmpeg2 -I$(srcdir)/../libmpeg2
+CFLAGS = -Wall -fPIC -DPIC @CFLAGS@ -I../libmpeg2 -I$(srcdir)/../libmpeg2
 noinst_LIBRARIES = libvout.a
 
 libvout_a_SOURCES = video_out.c video_out_ppm.c video_out_yuv.c yuv2rgb.c yuv2rgb_mmx.c yuv2rgb_mlib.c cpu_accel.c rgb2yuv.c

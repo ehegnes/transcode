@@ -115,14 +115,14 @@ static unsigned char *bufalloc(size_t size, char *location)
 {
 
 #ifdef HAVE_GETPAGESIZE
-   int buffer_align=getpagesize();
+   long buffer_align=getpagesize();
 #else
-   int buffer_align=16;
+   long buffer_align=16;
 #endif
 
    char *buf = malloc(size + buffer_align);
 
-   int adjust;
+   long adjust;
 
    if (buf == NULL) {
        fprintf(stderr, "(%s) out of memory", __FILE__);
@@ -130,7 +130,7 @@ static unsigned char *bufalloc(size_t size, char *location)
 
    location = buf;
    
-   adjust = buffer_align - ((int) buf) % buffer_align;
+   adjust = buffer_align - ((long) buf) % buffer_align;
 
    if (adjust == buffer_align)
       adjust = 0;

@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-CFLAGS = -Wall @CFLAGS@ -I../libvo -I$(srcdir)/../libvo
+CFLAGS = -Wall -fPIC -DPIC @CFLAGS@ -I../libvo -I$(srcdir)/../libvo
 
 noinst_LIBRARIES = libmpeg2cvs.a
 

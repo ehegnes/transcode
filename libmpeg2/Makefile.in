@@ -67,7 +67,7 @@ CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
 
-CFLAGS = -Wall @CFLAGS@ -I../libvo -I$(srcdir)/../libvo
+CFLAGS = -Wall -fPIC -DPIC @CFLAGS@ -I../libvo -I$(srcdir)/../libvo
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@

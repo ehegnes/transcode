@@ -67,7 +67,7 @@ CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
 
-CFLAGS = -Wall @CFLAGS@ -I../libmpeg2 -I$(srcdir)/../libmpeg2
+CFLAGS = -Wall -fPIC -DPIC @CFLAGS@ -I../libmpeg2 -I$(srcdir)/../libmpeg2
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
