@@ -1,6 +1,109 @@
 --------------------------------------------
 transcode-0.6.8
 
+  * Terse/less technical ChangeLog:
+  - Probing support for FOURCC "DX50" and "XVID"
+  - yuy2 mode support in xml import
+  - Better signal handling
+  - Bugfix in the text filter
+  - Bugfix for v4l import module
+  - Bugfix for fast rescaler -X
+  - Bugfix for the telecine filter
+  - No more zombies during PSU mode
+  - Fix YUV encoding in image export modules
+  - Greatly improved avisplit, avimerge and avisync
+  - tcscan prints duration estimation for MP3 files
+  - avimerge can multiplex raw MP3 and AC3 files into an AVI
+  - Support for reading AVI files with broken MP3 audio tracks
+  - Support for reading large AVI files
+  - Support for adding comments in the AVI header
+  - Support for fast reading of vob files with multiple ranges
+  - Support for VBV profiles for divx5; fix two-pass encoding
+  - configure improvements
+  - New export module debugppm mainly for developer use
+  - Cleanups for filters
+  - New filter hqdn3d; a fast denoiser
+  - New filter unsharp; unsharp mask or gaussian blur
+  - New filter nored; color adjustment
+  - New filter doublefps; double frame rate
+  - New filter smartbob; deinterlacing for double-frame-rate output
+  - New filter slowmo; poor man's slow-motion effect
+  - New filter smartyuv; smartdeinter for YUV mode.
+
+2003-06-23 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * filter_smartyuv.c:
+  New filter smartyuv. This filter is basically a rewrite of the
+  smartdeinter filter by Donald Graft (without advanced processing
+  options) for YUV mode only. Its faster than using the smartdeinter
+  in YUV mode and is also tuned with its threshold settings for YUV
+  mode. The filter detects motion and static areas in an image and
+  only deinterlaces (either by blending or by cubic interpolation)
+  the moving areas. The result is an image with high detail in
+  static areas, no information is lost there.
+
+  Options:
+  'motionOnly' Show motion areas only (0=off, 1=on) [1]
+    'diffmode' Motion Detection (0=frame, 1=field, 2=both) [0]
+   'threshold' Motion Threshold (luma) (0-255) [14]
+ 'chromathres' Motion Threshold (chroma) (0-255) [7]
+  'scenethres' Threshold for detecting scenechanges (0-255) [31]
+       'cubic' Do cubic interpolation (0=off 1=on) [1]
+       'highq' High-Quality processing (motion Map denoising) (0=off 1=on) [1]
+       'Blend' Blend the frames for deinterlacing (0=off 1=on) [1]
+    'doChroma' Enable chroma processing (slower but more accurate) (0=off 1=on) [1]
+     'verbose' Verbose mode (0=off 1=on) [1]
+
+  The threshold settings should be sufficent for most users. As a
+  rule of thumb, I recommend setting the chroma threshold to about
+  the half of the luma threshold. If you want more deinterlacing,
+  lower the thresholds. The scene threshold can be easily found by
+  turning on verbose mode and the preview filter. In verbose mode,
+  the filter will print out, when it detects a scene change. If
+  scenechanges go by unnoticed, lower the scene threshold. You can
+  completly disable chroma processing with the doChroma=0 option.
+  Here is a sample commandline
+
+    -J smartyuv=hiqhq=1:diffmode=2:cubic=1:Blend=1:chromathres=4:threshold=8:doChroma=1
+
+  * filter_slowmo.c:
+  This filter produces a simple slow-motion effect by
+  duplicating certain frames. I have seen this effect
+  on TV and despite its a simple algorithm it works
+  quite well. The filter has no options. Example commandline:
+   
+    -J slowmo
+
+  * filter_doublefps.c filter_smartbob.c:
+  These two filters go together.
+  The filter doublefps takes one frame as input and spits out two
+  frames at half height. It uses the odd and the even fields to make
+  up two frames out of one. The filter smartbob merges these
+  field-frames back into two full-sized frames. While it does that,
+  it uses motion adaptive deinterlacing.
+
+  The filter doublefps only has one option: shiftEven which is off
+  by default. If you experience very jerky
+  "forward-backward-forward-backward" movement set this to 1.
+
+  The filter smartbob has these options:
+      'motionOnly' Show motion areas only (0=off, 1=on) [1]
+       'threshold' Motion Threshold (0-255) [15]
+         'denoise' denoise (0=off, 1=on) [0]
+       'shiftEven' Phase shift (0=off, 1=on) [0]
+
+  The filter_smartbob.c is based on yet another excellent
+  VirtualDub filter by Donald Graft.
+  http://shelob.mordor.net/dgraft/bob.html
+  The filter_doublefps is my invention (not very difficult, though)
+
+  If you force reading the imput file twice its actual frames 
+  per second, A/V will stay in sync (for PAL):
+   -f 50 -J doublefps=shiftEven=1,smartbob=denoise=1:threshold=12
+
+  * filter/*.c:
+  -Wall warning fixes
+
 2003-06-20 marrq <marrq at ugcs.caltech.edu>
 
   * src/video_rgb.c src/video_yuv.c:
@@ -35,6 +138,8 @@ transcode-0.6.8
   file from "long" to "off_t" which should have always be the case.
   
   * avisplit, avimerge, avisync:
+  Greatly improved versions. A lot of different AVI files should now
+  be handled correctly with best available A/V sync.
   Added synced time support for PCM audio in AVI files. Files
   produced by mencoder (and of course transcode) should now be
   handled now. Splitting AVI files created by mencoder may lead to
@@ -72,14 +177,14 @@ transcode-0.6.8
               pre : run as a pre filter
 
  * export_toolame.c:
- Do not caculate float from 2 ints. Pointed out by elronxenu.
+ Do not calculate float from 2 ints. Pointed out by elronxenu.
 
 2003-06-14 Tilmann Bitterberg <transcode at tibit.org>
   
   * avilib.c:
   Bugfix when writing length for AVI comments.
-  Bugfix for AVI_read_audio_chunks, advance the chunk counter also for zero sized
-  frames.
+  Bugfix for AVI_read_audio_chunks, advance the chunk counter also for zero
+  sized frames.
 
 2003-06-12 Tilmann Bitterberg <transcode at tibit.org>
 
@@ -157,9 +262,6 @@ transcode-0.6.8
    IART My proud family
 
 2003-06-08 Tilmann Bitterberg <transcode at tibit.org>
-
-  * tools/avisplit.c:
-  XXX: (improve A/V sync for option -s)
 
   * tools/avimerge.c:
   Enable merging raw mp3 files with avimerge. That means you don't
