@@ -1373,7 +1373,7 @@ ffmpeg libs headers                              $with_ffmpeg_libs_i
 ffmpeg libs libraries                            $with_ffmpeg_libs_l
 ffmpeg libs build                                $FFMPEG_BUILD
 ffmpeg libs version                              $FFMPEG_VERSION
-ffbin modules                                    $have_ffmpeg
+ffbin module                                     $have_ffmpeg
 *-*-*-*-*-*-* Filter *-*-*-*-*-*-*
 X11 dependent filter plugins                     $USE_X11
 freetype2 dependent filter (text, subtitler)     $freetype2

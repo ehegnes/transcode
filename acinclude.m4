@@ -746,9 +746,9 @@ else
 fi
 
 AC_CHECK_HEADER($with_ffmpeg_libs_i/avcodec.h,
-		[if perl -ane 'if(/#define\s*LIBAVCODEC_BUILD/) { exit($F[2] >= 4719) ? 1 : 0 }' $with_ffmpeg_libs_i/avcodec.h
+		[if perl -ane 'if(/#define\s*LIBAVCODEC_BUILD/) { exit($F[2] >= 4718) ? 1 : 0 }' $with_ffmpeg_libs_i/avcodec.h
 		then
-			echo "*** Transcode needs at least ffmpeg(-devel) build 4719 (0.4.9-pre1 or a cvs version after 20040703) ***"
+			echo "*** Transcode needs at least ffmpeg(-devel) build 4718 (0.4.9-pre1 or a cvs version after 20040801) ***"
 			exit -1
 		fi],
 		[echo "*** Cannot find header file $with_ffmpeg_libs_i/avcodec.h from ffmpeg ***"

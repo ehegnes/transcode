@@ -65,6 +65,10 @@ VORBISFILE=-lvorbisfile
 endif
 endif
 
+if HAVE_FFMPEG
+FFBIN_MOD=import_ffbin.la
+endif
+
 pkgdir=@MOD_PATH@
 
 pkg_LTLIBRARIES = import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la \
@@ -74,7 +78,7 @@ pkg_LTLIBRARIES = import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la \
 		  $(IM_MOD) $(MODQT) af6_decore.la $(LIBXML2_MOD) \
 		  import_mplayer.la import_rawlist.la import_ogg.la \
 		  import_xvid.la import_ffmpeg.la $(LZO_MOD) import_vnc.la \
-		  import_fraps.la import_pvn.la $(FFBIN_MOD) $(FFBIN2_MOD)
+		  import_fraps.la import_pvn.la $(FFBIN_MOD)
 
 import_null_la_SOURCES = import_null.c
 import_null_la_LDFLAGS =  -module -avoid-version 
@@ -181,6 +185,9 @@ import_vnc_la_LDFLAGS =  -module -avoid-version
 
 import_pvn_la_SOURCES = import_pvn.c pvn.c pvnglobals.c
 import_pvn_la_LDFLAGS =  -module -avoid-version 
+
+import_ffbin_la_SOURCES = import_ffbin.c 
+import_ffbin_la_LDFLAGS =  -module -avoid-version 
 
 EXTRA_DIST =  \
    ac3scan.h \
