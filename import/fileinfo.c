@@ -420,15 +420,17 @@ long fileinfo(int fdes, int skip)
     id = TC_MAGIC_YUV4MPEG;
     goto exit;
   }
-
+  
   // MOV
 
-  if(strncasecmp(buf+4,"moov", 4) ==0 || strncasecmp(buf+4,"mdat", 4) ==0 ||
+  if(strncasecmp(buf+4,"moov", 4) ==0 ||
+     strncasecmp(buf+4,"cmov", 4) ==0 ||
+     strncasecmp(buf+4,"mdat", 4) ==0 ||
      strncasecmp(buf+4,"pnot", 4) ==0) {
     id = TC_MAGIC_MOV;
     goto exit;
   }
- 
+  
   // PNG
 
   if (cmp_32_bits(buf, TC_MAGIC_PNG) &&
@@ -532,6 +534,16 @@ long fileinfo(int fdes, int skip)
   //MXF
   if(memcmp(mxfmagic,buf,sizeof(mxfmagic))==0) {
     id = TC_MAGIC_MXF;
+    goto exit;
+  }
+
+  // MOV
+
+  if(strncasecmp(buf+12,"moov", 4) ==0 ||
+     strncasecmp(buf+12,"cmov", 4) ==0 ||
+     strncasecmp(buf+12,"mdat", 4) ==0 ||
+     strncasecmp(buf+12,"pnot", 4) ==0) {
+    id = TC_MAGIC_MOV;
     goto exit;
   }
 
@@ -732,7 +744,10 @@ long streaminfo(int fdes)
   
   // MOV
 
-  if(strncasecmp(buf+4,"moov",4) ==0 ) {
+  if(strncasecmp(buf+4,"moov", 4) ==0 ||
+     strncasecmp(buf+4,"cmov", 4) ==0 ||
+     strncasecmp(buf+4,"mdat", 4) ==0 ||
+     strncasecmp(buf+4,"pnot", 4) ==0) {
     id = TC_MAGIC_MOV;
     goto exit;
   }
