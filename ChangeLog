@@ -1,6 +1,29 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-15 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/export_ffmpeg.c:
+  Fix a bug in RGB mode where -y ffmpeg used the transcode provided
+  buffer to do an rgb2yuv transform. This caused distorted frames
+  with a cloning filter (eg. -J modfps). Pointed out by Marrq.
+
+2003-08-15 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * src/transcode.c:
+  Fix a bug with framerate codes. "probe" the frc later (this is not
+  the final solution)
+
+  * src/transcode.c:
+  Fix a bug in split mode (-t) where transcode did not update the
+  audio_out_file. Pointed out by Erik Slagter.
+
+2003-08-15 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * filter/filter_hqdn3d.c:
+  Fix a bug when parsing the options (%f != %lf). Pointed out by
+  Erik Slagter.
+
 2003-08-14 Tilmann Bitterberg <transcode at tibit.org>
 
   * filter/preview{Makefile.am filter_pv.c pv.c pv.h display.c} src/{socket.c

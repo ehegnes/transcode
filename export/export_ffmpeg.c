@@ -53,7 +53,7 @@
 #endif
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.3.5 (2003-07-28)"
+#define MOD_VERSION "v0.3.6 (2003-08-15)"
 #define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
                     ") | (audio) MPEG/AC3/PCM"
 #define MOD_PRE ffmpeg
@@ -87,7 +87,9 @@ struct ffmpeg_codec ffmpeg_codecs[] = {
   {"huffyuv", "HFYU", "Lossless HUFFYUV codec", 1},
   {NULL, NULL, NULL, 0}};
 
-static uint8_t              tmp_buffer[SIZE_RGB_FRAME];
+
+static uint8_t             *tmp_buffer = NULL;
+static AVFrame             *lavc_convert_frame = NULL;
 
 static AVCodec             *lavc_venc_codec = NULL;
 static AVFrame             *lavc_venc_frame = NULL;
@@ -204,8 +206,13 @@ MOD_init {
 
     lavc_venc_context = avcodec_alloc_context();
     lavc_venc_frame   = avcodec_alloc_frame();
-    
-    if (lavc_venc_context == NULL) {
+
+    lavc_convert_frame= avcodec_alloc_frame();
+    size = avpicture_get_size(PIX_FMT_RGB24, vob->ex_v_width, vob->ex_v_height);
+    tmp_buffer = malloc(size);
+
+     
+    if (lavc_venc_context == NULL || !tmp_buffer || !lavc_convert_frame) {
       fprintf(stderr, "[%s] Could not allocate enough memory.\n", MOD_NAME);
       return TC_EXPORT_ERROR;
     }
@@ -213,12 +220,6 @@ MOD_init {
     if (vob->im_v_codec == CODEC_YUV)
       pix_fmt = PIX_FMT_YUV420P;
     else if (vob->im_v_codec == CODEC_RGB) {
-      // ffmpeg seems not to do its own RGB to YUV conversion.
-      if (tc_rgb2yuv_init(vob->ex_v_width, vob->ex_v_height) != 0) {
-        fprintf(stderr, "[%s] Could not initialize RGB to YUV conversion.\n",
-                MOD_NAME);
-        return TC_EXPORT_ERROR;
-      }
       pix_fmt = PIX_FMT_RGB24;
     } else {
       fprintf(stderr, "[%s] Unknown color space %d.\n", MOD_NAME,
@@ -253,8 +254,12 @@ MOD_init {
 	    lavc_venc_context->frame_rate      = 30000;
 	    lavc_venc_context->frame_rate_base = 1000;
 	    break;
+	case 6: // 50.000
+	    lavc_venc_context->frame_rate      = 50000;
+	    lavc_venc_context->frame_rate_base = 1000;
+	    break;
 	case 0: // not set
-	    lavc_venc_context->frame_rate      = (int)vob->ex_fps*1000;
+	    lavc_venc_context->frame_rate      = (int)(vob->ex_fps*1000.0);
 	    lavc_venc_context->frame_rate_base = 1000;
 	    break;
 	default:
@@ -626,6 +631,11 @@ MOD_encode
     if (pix_fmt == PIX_FMT_YUV420P) {
       lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
       
+#if 0
+      avpicture_fill((AVPicture *)lavc_venc_frame, param->buffer,
+	  PIX_FMT_YUV420P, lavc_venc_context->width, lavc_venc_context->height);
+
+#else
       lavc_venc_frame->linesize[0] = lavc_venc_context->width;     
       lavc_venc_frame->linesize[1] = lavc_venc_context->width / 2;
       lavc_venc_frame->linesize[2] = lavc_venc_context->width / 2;
@@ -635,24 +645,20 @@ MOD_encode
         lavc_venc_context->width * lavc_venc_context->height;
       lavc_venc_frame->data[1]     = param->buffer +
         (lavc_venc_context->width * lavc_venc_context->height*5)/4;
+#endif
     } else if (pix_fmt == PIX_FMT_RGB24) {
-      // Do RGB to YUV conversion now as ffmpeg does not seem to do it itself.
+
+      avpicture_fill((AVPicture *)lavc_convert_frame, param->buffer,
+	  PIX_FMT_RGB24, lavc_venc_context->width, lavc_venc_context->height);
+
+      avpicture_fill((AVPicture *)lavc_venc_frame, tmp_buffer,
+	  PIX_FMT_YUV420P, lavc_venc_context->width, lavc_venc_context->height);
+
       lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
+      img_convert((AVPicture *)lavc_venc_frame, PIX_FMT_YUV420P,
+	          (AVPicture *)lavc_convert_frame, PIX_FMT_RGB24, 
+		  lavc_venc_context->width, lavc_venc_context->height);
 
-      if (tc_rgb2yuv_core_flip(param->buffer) != 0) {
-        fprintf(stderr, "[%s] RGB to YUV conversion failed.\n", MOD_NAME);
-        return TC_EXPORT_ERROR;
-      }
-
-      lavc_venc_frame->linesize[0] = lavc_venc_context->width;     
-      lavc_venc_frame->linesize[1] = lavc_venc_context->width / 2;
-      lavc_venc_frame->linesize[2] = lavc_venc_context->width / 2;
-
-      lavc_venc_frame->data[0]     = param->buffer;
-      lavc_venc_frame->data[1]     = param->buffer +
-        lavc_venc_context->width * lavc_venc_context->height;
-      lavc_venc_frame->data[2]     = param->buffer +
-        (lavc_venc_context->width * lavc_venc_context->height*5)/4;
     } else {
       fprintf(stderr, "[%s] Unknown pixel format %d.\n", MOD_NAME,
               lavc_venc_context->pix_fmt);
@@ -820,12 +826,6 @@ MOD_close
     }
   }
 
-  if (param->flag == TC_VIDEO) {
-    if (pix_fmt == PIX_FMT_RGB24)
-      tc_rgb2yuv_close();
-    return 0;
-  }
-  
   return TC_EXPORT_ERROR;
   
 }
