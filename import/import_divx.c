@@ -21,6 +21,7 @@
  *
  */
 
+
 #ifdef HAVE_CONFIG_H
 #include "../config.h"
 #endif
@@ -39,11 +40,20 @@
 #endif
 
 #include "transcode.h"
-#include "divx_decore.h"
 #include "avilib.h"
 
+#ifdef HAVE_DIVX_DECORE
+#include <decore.h>
+#else
+#include "divx_decore.h"
+#endif
+
+#ifndef DECORE_VERSION
+#define DECORE_VERSION 0
+#endif
+
 #define MOD_NAME    "import_divx.so"
-#define MOD_VERSION "v0.2.6 (2003-04-08)"
+#define MOD_VERSION "v0.2.7 (2003-05-29)"
 #define MOD_CODEC   "(video) DivX;-)/XviD/OpenDivX/DivX 4.xx/5.xx"
 #define MOD_PRE divx
 #include "import_def.h"
@@ -59,17 +69,30 @@ static unsigned long divx_version=DEC_OPT_FRAME;
 static int black_frames = 0;
 
 
-static DEC_PARAM    *divx = NULL;
 static DEC_FRAME    *decFrame = NULL;
 static DEC_FRAME_INFO *decInfo = NULL;
+
+#if DECORE_VERSION >= 20021112
+
+  static void* dec_handle = NULL;
+  static DEC_INIT *decInit = NULL;
+  DivXBitmapInfoHeader* pbi=NULL;
+  static int (*divx_decore)(void *para0, unsigned long opt, void *para1, void *para2);
+
+#else
+
+  static DEC_PARAM    *divx = NULL;
+  static int (*divx_decore)(unsigned long para0, unsigned long opt, void *para1, void *para2);
+  static unsigned long divx_id=0x4711;
+
+#endif
 
 static int decore_in_use = 0; // semaphore to keep track of usage count
 
 // dl stuff
-static int (*divx_decore)(unsigned long para0, unsigned long opt, void *para1, void *para2);
 static void *handle=NULL;
-static unsigned long divx_id=0x4711;
 static char module[TC_BUF_MAX];
+
 
 #define MODULE   "libdivxdecore.so"
 #define MODULE_V "libdivxdecore.so.0"
@@ -236,6 +259,37 @@ MOD_open
       }
     }
     
+    //check DivX version:
+    codec_str = AVI_video_compressor(avifile);
+
+    if(strlen(codec_str)==0) {
+	fprintf(stderr, "[%s] invalid AVI file codec", MOD_NAME);
+	return(TC_IMPORT_ERROR); 
+    }
+
+#if DECORE_VERSION >= 20020303
+#if DECORE_VERSION >= 20021112
+    if ((decInit = malloc(sizeof(DEC_INIT)))==NULL) {
+      perror("out of memory");
+      return(TC_IMPORT_ERROR); 
+    } else
+      memset(decInit,0x00,sizeof(DEC_INIT));
+
+      if (verbose & TC_DEBUG) 
+      		printf("[%s] using DivX5.0.5 decoder syntax.\n", MOD_NAME);
+
+      if (strcasecmp(codec_str,"DIV3")==0)
+	  decInit->codec_version = 311;
+      else if (strcasecmp(codec_str,"DIVX")==0)
+	  decInit->codec_version = 412;
+      else
+	  decInit->codec_version = 500;
+
+      // no smoothing of the CPU load
+      decInit->smooth_playback = 0;
+      divx_version=DEC_OPT_FRAME;
+#else
+
     if ((divx = malloc(sizeof(DEC_PARAM)))==NULL) {
       perror("out of memory");
       return(TC_IMPORT_ERROR); 
@@ -248,15 +302,6 @@ MOD_open
     divx->time_incr = 15; //default
 
 
-    //check DivX version:
-    codec_str = AVI_video_compressor(avifile);
-
-    if(strlen(codec_str)==0) {
-	fprintf(stderr, "[%s] invalid AVI file codec", MOD_NAME);
-	return(TC_IMPORT_ERROR); 
-    }
-
-#if DECORE_VERSION >= 20020303
       if (verbose & TC_DEBUG) 
       		printf("[%s] using DivX5 decoder syntax.\n", MOD_NAME);
 
@@ -267,7 +312,9 @@ MOD_open
 
       divx->build_number = 0;
       divx_version=DEC_OPT_FRAME;
+#endif
 #else
+
     if(strcasecmp(codec_str,"DIV3")==0) {
 	divx_version=DEC_OPT_FRAME_311;
         if(verbose & TC_DEBUG) 
@@ -280,6 +327,54 @@ MOD_open
 
     codec=vob->im_v_codec;
     
+#if DECORE_VERSION >= 20021112
+    
+    // yes this only works on little endian machines.
+    // Anyway, we don't support divx4linux decoding on big endian machines.
+#define FOURCC(A, B, C, D) ( ((uint8_t) (A)) | (((uint8_t) (B))<<8) | (((uint8_t) (C))<<16) | (((uint8_t) (D))<<24) )
+
+    if ((pbi = malloc(sizeof(DivXBitmapInfoHeader)))==NULL) {
+      perror("out of memory");
+      return(TC_IMPORT_ERROR); 
+    } else
+      memset(pbi,0x00,sizeof(DivXBitmapInfoHeader));
+
+    pbi->biSize=sizeof(DivXBitmapInfoHeader);
+    pbi->biWidth = AVI_video_width(avifile);
+    pbi->biHeight = AVI_video_height(avifile);
+
+    switch(codec) {
+      
+    case CODEC_RGB:
+      
+      pbi->biCompression=0;
+      pbi->biBitCount=24;
+      frame_size = pbi->biWidth * pbi->biHeight * 3;
+      break;
+      
+    case CODEC_YUV:
+      
+      pbi->biCompression = FOURCC('Y','V','1','2');
+      frame_size = (pbi->biWidth * pbi->biHeight * 3)/2;
+      break;
+      
+    case CODEC_RAW:
+	
+      pass_through=1;
+      pbi->biCompression = FOURCC('I','4','2','0');
+      break;
+
+    case CODEC_RAW_YUV:
+      
+      pass_through=1;
+      pass_through_decode=1;
+      pbi->biCompression = FOURCC('Y','V','1','2');
+      frame_size = pbi->biWidth * pbi->biHeight * 3;
+      break;
+    }
+
+    
+#else
     switch(codec) {
       
     case CODEC_RGB:
@@ -308,18 +403,32 @@ MOD_open
       frame_size = (divx->x_dim * divx->y_dim * 3)/2;
       break;
     }
+#endif
     
     //----------------------------------------
     //
     // setup decoder
     //
     //----------------------------------------
+#if DECORE_VERSION >= 20021112
+    if(divx_decore(&dec_handle, DEC_OPT_INIT, decInit, NULL) < 0) {
+      fprintf(stderr, "[%s] codec DEC_OPT_INIT error", MOD_NAME);
+      return(TC_IMPORT_ERROR); 
+    } else
+	++decore_in_use;
+
+    if(divx_decore(dec_handle, DEC_OPT_SETOUT, pbi, NULL) < 0) {
+      fprintf(stderr, "[%s] codec DEC_OPT_SETOUT error", MOD_NAME);
+      return(TC_IMPORT_ERROR); 
+    }
+#else
     
     if(divx_decore(divx_id, DEC_OPT_INIT, divx, NULL) < 0) {
       fprintf(stderr, "[%s] codec DEC_OPT_INIT error", MOD_NAME);
       return(TC_IMPORT_ERROR); 
     } else
 	++decore_in_use;
+#endif
     
     if ((decFrame = malloc(sizeof(DEC_FRAME)))==NULL) {
       perror("out of memory");
@@ -343,7 +452,7 @@ MOD_open
     }
     
     //postproc
-/*    
+/*   XXX enable this somehow. 
     dec_set.postproc_level = vob->quality * 20;  //0-100;
     if(verbose & TC_DEBUG) printf("[%s] decoder postprocessing quality = %d\n", MOD_NAME, dec_set.postproc_level);
 
@@ -429,15 +538,24 @@ MOD_decode {
 
       //need to decode the frame
       decFrame->bitstream = buffer;
-      decFrame->stride = divx->x_dim;
       decFrame->bmp = param->buffer;
       decFrame->length = (int) bytes_read;
       decFrame->render_flag = 1;
       
+#if DECORE_VERSION >= 20021112
+      decFrame->stride = pbi->biWidth;
+      if(divx_decore(dec_handle, divx_version, decFrame, NULL) != DEC_OK) {
+	fprintf(stderr, "[%s]:%d  codec DEC_OPT_FRAME error", MOD_NAME, __LINE__);
+	return(TC_IMPORT_ERROR); 
+      }
+#else
+      decFrame->stride = divx->x_dim;
+
       if(divx_decore(divx_id, divx_version, decFrame, NULL) != DEC_OK) {
 	fprintf(stderr, "[%s] codec DEC_OPT_FRAME error", MOD_NAME);
 	return(TC_IMPORT_ERROR); 
       }
+#endif
       
       param->size = frame_size;
     }
@@ -447,15 +565,25 @@ MOD_decode {
     if(pass_through_decode) {
 
       decFrame->bitstream = param->buffer; //read only??
-      decFrame->stride = divx->x_dim;
       decFrame->bmp = param->buffer2; 
       decFrame->length = (int) bytes_read;
       decFrame->render_flag = 1;
       
-      if(divx_decore(divx_id, divx_version, decFrame, NULL) < 0) {
-	fprintf(stderr, "[%s] codec DEC_OPT_FRAME error", MOD_NAME);
-	return(TC_IMPORT_ERROR); 
+#if DECORE_VERSION >= 20021112
+      decFrame->stride = pbi->biWidth;
+
+      if(divx_decore(dec_handle, divx_version, decFrame, NULL) != DEC_OK) {
+	  fprintf(stderr, "[%s] codec DEC_OPT_FRAME error", MOD_NAME);
+	  return(TC_IMPORT_ERROR); 
       }
+#else
+      decFrame->stride = divx->x_dim;
+
+      if(divx_decore(divx_id, divx_version, decFrame, NULL) != DEC_OK) {
+	  fprintf(stderr, "[%s] codec DEC_OPT_FRAME error", MOD_NAME);
+	  return(TC_IMPORT_ERROR); 
+      }
+#endif
     }
     
     return(0);
@@ -478,7 +606,12 @@ MOD_close
 
 	if (decore_in_use>0) {
 	    --decore_in_use;
+#if DECORE_VERSION >= 20021112
+	    status = divx_decore(dec_handle, DEC_OPT_RELEASE, NULL, NULL);
+	    dec_handle = NULL;
+#else
 	    status = divx_decore(divx_id, DEC_OPT_RELEASE, NULL, NULL);
+#endif
 	    if(verbose_flag & TC_DEBUG) 
 		fprintf(stderr, "DivX decore module returned %d\n", status); 
 
@@ -487,7 +620,11 @@ MOD_close
 	}
 
 	// free memory
+#if DECORE_VERSION >= 20021112
+	if (pbi)      { free (pbi);          pbi=NULL;      }
+#else
 	if (divx)     { free (divx);         divx=NULL;     }
+#endif
 	if (decFrame) { free (decFrame);     decFrame=NULL; }
 	if (decInfo)  { free (decInfo);      decInfo=NULL;  }
 	if (avifile)  { AVI_close (avifile); avifile=NULL;  }

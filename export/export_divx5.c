@@ -53,7 +53,13 @@
 # endif
 #endif
 
+
+
+#ifdef HAVE_DIVX_ENCORE2
+#include <encore2.h>
+#else
 #include "divx5_encore2.h"
+#endif
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
@@ -75,7 +81,14 @@ static avi_t *avifile=NULL;
 static char *buffer;
 #define BUFFER_SIZE SIZE_RGB_FRAME<<1
 
+#if ENCORE_VERSION >= 20021024
+DivXBitmapInfoHeader *format =NULL;
+void* encore_handle = NULL;
+SETTINGS *settings = NULL;
+char *logfile_mv=NULL;
+#else
 ENC_PARAM   *divx;
+#endif
 ENC_FRAME  encode;
 ENC_RESULT    key;
 
@@ -191,12 +204,123 @@ MOD_init
     //load the codec
 
     if(divx5_init(vob->mod_path)<0) {
-      printf("failed to init DivX 5.0 Codec");
+      tc_warn("failed to init DivX 5.0 Codec");
       return(TC_EXPORT_ERROR); 
     }
 
-    if ((divx = malloc(sizeof(ENC_PARAM)))==NULL) {
+    if (divx5_encore(0, ENC_OPT_VERSION, 0, 0) != ENCORE_VERSION) {
+	tc_warn("API in encore.h is not compatible with installed lbdivxencore library");
+	return (TC_EXPORT_ERROR);
+    }
+
+    VbrMode = vob->divxmultipass;
+    // 0 for nothing,  
+    // 1 for DivX 5.0 - first-pass, 
+    // 2 for DivX 5.0 - second pass
+    // 3 constant quantizer
+    
+#if ENCORE_VERSION >= 20021024
+#define FOURCC(A, B, C, D) ( ((uint8_t) (A)) | (((uint8_t) (B))<<8) | (((uint8_t) (C))<<16) | (((uint8_t) (D))<<24) )
+
+    if ((settings = malloc(sizeof(SETTINGS)))==NULL) {
       perror("out of memory");
+      return(TC_EXPORT_ERROR); 
+    }
+    if ((format = malloc(sizeof(DivXBitmapInfoHeader)))==NULL) {
+      perror("out of memory");
+      return(TC_EXPORT_ERROR); 
+    }
+    memset (settings, 0, sizeof(SETTINGS));
+    memset (format, 0, sizeof(DivXBitmapInfoHeader));
+
+    format->biSize = sizeof(DivXBitmapInfoHeader);
+    format->biWidth = vob->ex_v_width;
+    format->biHeight = vob->ex_v_height;
+    format->biCompression = (vob->im_v_codec==CODEC_RGB)?0:FOURCC('Y','V','1','2');
+    format->biBitCount = (vob->im_v_codec==CODEC_RGB)?24:0;
+
+    switch (vob->ex_frc) {
+	case 1: // 23.976
+	    settings->input_clock        = 24000;
+	    settings->input_frame_period = 1001;
+	    break;
+	case 2: // 24.000
+	    settings->input_clock        = 24000;
+	    settings->input_frame_period = 1000;
+	    break;
+	case 3: // 25.000
+	    settings->input_clock        = 25000;
+	    settings->input_frame_period = 1000;
+	    break;
+	case 4: // 29.970
+	    settings->input_clock        = 30000;
+	    settings->input_frame_period = 1001;
+	    break;
+	case 5: // 30.000
+	    settings->input_clock        = 30000;
+	    settings->input_frame_period = 1000;
+	    break;
+	default:
+	    tc_warn("unknown/unset export frame rate code -- exiting");
+	    return (TC_EXPORT_ERROR);
+	    break;
+    }
+
+    if (vob->divxlogfile && *vob->divxlogfile) {
+	logfile_mv = malloc (strlen(vob->divxlogfile)+4);
+	sprintf(logfile_mv, "%s_mv", vob->divxlogfile);
+    }
+
+    // default
+    settings->complexity_modulation = 0.5;
+
+    settings->bitrate = vob->divxbitrate*1000;
+    settings->max_key_interval = vob->divxkeyframes;
+
+    settings->quality = vob->divxquality;
+
+    switch(VbrMode) {
+     case 0:
+	 break;
+	 settings->vbr_mode = RCMODE_VBV_1PASS;
+     case 1:
+	 settings->vbr_mode = RCMODE_VBV_MULTIPASS_1ST;
+	 settings->mv_file = logfile_mv;
+	 settings->log_file_read = NULL;
+	 settings->log_file_write = vob->divxlogfile;
+	 break;
+     case 2:
+	 settings->vbr_mode = RCMODE_VBV_MULTIPASS_NTH;
+	 settings->mv_file = logfile_mv;
+	 settings->log_file_read = vob->divxlogfile;
+	 // segfaults if !NULL;
+	 settings->log_file_write = NULL;
+
+	 break;
+
+     case 3:
+	 settings->vbr_mode = RCMODE_1PASS_CONSTANT_Q;
+	 settings->quantizer = vob->divxbitrate;
+	 break;
+    }
+
+    // bframes ..  lets see how to handle it
+    // the codec is crippled anyway
+    settings->use_bidirect = 0;
+
+    // don't need this.
+    settings->enable_crop = 0;
+    settings->enable_resize = 0;
+
+    if(divx5_encore(&encore_handle, ENC_OPT_INIT, format, settings) < 0) {
+      tc_warn("Error doing ENC_OPT_INIT");
+      return(TC_EXPORT_ERROR); 
+    }
+
+#else
+
+    if ((divx = malloc(sizeof(ENC_PARAM)))==NULL) {
+	perror("out of memory");
       return(TC_EXPORT_ERROR); 
     }
 
@@ -224,7 +348,13 @@ MOD_init
     divx->handle=NULL;
 
     if(divx5_encore(NULL, ENC_OPT_INIT, divx, NULL) < 0) {
-      printf("codec open error");
+      tc_warn("DivX codec init error");
+      return(TC_EXPORT_ERROR); 
+    }
+
+    // catch API mismatch
+    if(!divx || !divx->handle) {
+      tc_warn("DivX codec open error");
       return(TC_EXPORT_ERROR); 
     }
     
@@ -249,15 +379,11 @@ MOD_init
 	fprintf(stderr, "[%s]            deinterlace: %d\n", MOD_NAME, divx->deinterlace);
     }
 
-    encode.bitstream = buffer;
-
     encode.colorspace = (vob->im_v_codec==CODEC_RGB) ? ENC_CSP_RGB24:ENC_CSP_YV12;
     encode.mvs = NULL;
-    
-    VbrMode = vob->divxmultipass;
-    // 0 for nothing,  
-    // 1 for DivX 5.0 - first-pass, 
-    // 2 for DivX 5.0 - second pass
+
+    encode.bitstream = buffer;
+
     
     switch(VbrMode) {
 	
@@ -297,6 +423,7 @@ MOD_init
       // none
       break;
     }
+#endif
     
     return(0);
   }
@@ -332,8 +459,13 @@ MOD_open
   if(param->flag == TC_VIDEO) {
     
     // video
+#if ENCORE_MAJOR_VERSION >= 5010
+    AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, 
+		  vob->fps, "DX50");
+#else
     AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, 
 		  vob->fps, "DIVX");
+#endif
     
     //do not force key frame at the very beginning of encoding, since
     //first frame will be a key fame anayway. Therefore key.quantizer
@@ -363,7 +495,39 @@ MOD_encode
     // encode video
     
     encode.image = param->buffer;
+    encode.bitstream = buffer;
     
+#if ENCORE_VERSION >= 20021024
+    encode.produce_empty_frame = 0;
+
+    do {
+	if(divx5_encore(encore_handle, ENC_OPT_ENCODE, &encode, &key) < 0) {
+	    tc_warn("DivX encoder error");
+	    return(TC_EXPORT_ERROR); 
+	}	
+	// write bitstream
+	if(key.cType != '\0') {
+	    /*
+	    printf("Quant(%d) Type(%c) Motion(%d) Texture(%d) Stuffing(%d) Total(%d) SeqNr(%d) length(%d)\n",
+		    key.iQuant, key.cType, key.iMotionBits, key.iTextureBits, 
+		    key.iStuffingBits, key.iTotalBits, key.iSequenceNumber, encode.length);
+		    */
+
+	    /* split the AVI */
+	    if((uint32_t)(AVI_bytes_written(avifile)+encode.length+16+8)>>20 >= tc_avi_limit) 
+		tc_outstream_rotate_request();
+
+	    //0.6.2: switch outfile on "C" and -J pv
+	    if(key.cType == 'I') tc_outstream_rotate();
+
+	    if(AVI_write_frame(avifile, buffer, encode.length, (key.cType == 'I')?1:0)<0) {
+		tc_warn("DivX avi video write error");
+		return(TC_EXPORT_ERROR); 
+	    }
+	}
+	encode.image = NULL;
+    } while (encode.length >= 0 && key.cType != '\0');
+#else
     switch(VbrMode) {
 
    //-- GMO start --   
@@ -456,9 +620,10 @@ MOD_encode
     if(key.is_key_frame) tc_outstream_rotate();
   
     if(AVI_write_frame(avifile, buffer, encode.length, key.is_key_frame)<0) {
-	printf("avi video write error");
+	fprintf(stderr, "DivX avi video write error\n");
 	return(TC_EXPORT_ERROR); 
     }
+#endif
     
     return(0);
   }
@@ -502,9 +667,15 @@ MOD_stop
 {  
 
   if(param->flag == TC_VIDEO) { 
-    if(divx5_encore(divx->handle, ENC_OPT_RELEASE, NULL, NULL) < 0) {
-      printf("encoder close error");
+#if ENCORE_VERSION >= 20021024
+    if(divx5_encore(encore_handle, ENC_OPT_RELEASE, NULL, NULL) < 0) {
+      tc_warn("DivX encoder close error\n");
     }
+#else
+    if(divx5_encore(divx->handle, ENC_OPT_RELEASE, NULL, NULL) < 0) {
+      fprintf(stderr, "DivX encoder close error\n");
+    }
+#endif
 
     if(buffer!=NULL) {
 	free(buffer);
@@ -514,6 +685,8 @@ MOD_stop
     //remove codec
     dlclose(handle);
     
+#if ENCORE_VERSION >= 20021024
+#else
     switch(VbrMode) {
 	
     case 1:
@@ -525,6 +698,7 @@ MOD_stop
     default:
 	break;
     }
+#endif
     
     return(0);
   }
