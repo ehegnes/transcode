@@ -653,15 +653,16 @@ xv_display_on_exit_hack_handler()
 #endif
 
 
-int xv_display_init(xv_display_t *dv_dpy, int *argc, char ***argv, int width, int height, char *w_name, char *i_name) {
+int xv_display_init(xv_display_t *dv_dpy, int *argc, char ***argv, int width, int height, char *w_name, char *i_name, int yuv422) {
 
   dv_dpy->width = width;
   dv_dpy->height = height;
 
   dv_dpy->dontdraw = 0;
   
-  dv_dpy->format = DV_FOURCC_YV12;
+  dv_dpy->format = yuv422?DV_FOURCC_UYVY:DV_FOURCC_YV12;
   dv_dpy->len = (dv_dpy->width * dv_dpy->height * 3) / 2;
+  if (yuv422) dv_dpy->len = dv_dpy->width * dv_dpy->height * 2;
   
   /* Xv */
   if(xv_display_Xv_init(dv_dpy, w_name, i_name,

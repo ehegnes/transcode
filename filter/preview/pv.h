@@ -49,6 +49,7 @@
 
 #define DV_FOURCC_YV12  0x32315659	/* 4:2:0 Planar mode: Y + V + U  (3 planes) */
 #define DV_FOURCC_YUY2  0x32595559	/* 4:2:2 Packed mode: Y0+U0+Y1+V0 (1 plane) */
+#define DV_FOURCC_UYVY  0x59565955	/* 4:2:2 Packed mode: U0+Y0+V0+Y1 (1 plane) */
 
 #define DV_DISPLAY_OPT_METHOD   0
 #define DV_DISPLAY_OPT_ASPECT	1
@@ -140,7 +141,7 @@ extern "C" {
   extern int xv_display_init(xv_display_t *dpy,
 			     int *argc, char ***argv, 
 			     int width, int height, 
-			     char *w_name, char *i_name); 
+			     char *w_name, char *i_name, int yuv422); 
   
   extern void xv_display_show(xv_display_t *dv_dpy);
   extern void xv_display_event(xv_display_t *dv_dpy);

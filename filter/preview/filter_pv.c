@@ -227,17 +227,25 @@ int tc_filter(vframe_list_t *ptr, char *options)
     
     switch(vob->im_v_codec) {
       
+    case CODEC_YUV422:
+      
+      if(xv_display_init(xv_player->display, 0, NULL, 
+			 w, h, buffer, buffer, 1)<0) return(-1);
+			 size = w*h*2;
+
+      break;
+    
     case CODEC_YUV:
       
       if(xv_display_init(xv_player->display, 0, NULL, 
-			 w, h, buffer, buffer)<0) return(-1);
+			 w, h, buffer, buffer, 0)<0) return(-1);
 
       break;
     
     case CODEC_RAW_YUV:
     
       if(xv_display_init(xv_player->display, 0, NULL, 
-			  w, h, buffer, buffer)<0) return(-1);
+			  w, h, buffer, buffer, 0)<0) return(-1);
       use_secondary_buffer=1;
       break;
       
