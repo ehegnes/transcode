@@ -1,5 +1,5 @@
 --------------------------------------------
-transcode-0.6.4.HEAD
+transcode-0.6.4.20030318 Tue Mar 18 13:29:39 CET 2003
 
 - bug in yuv_merge_fields which is called when one uses the -M2 or -M4
   option
@@ -8,6 +8,9 @@ transcode-0.6.4.HEAD
 - upgrade to ffmpeg-0.4.6 Build 4646
 
 - update import_ffmpeg and export_ffmpeg to use new ffmpeg
+
+- fix import_ffmpeg to understand other YUV formats than 4:2:0. This
+  (re-)enables import of MJPG stuff mostly produced by digital cameras.
 
 - When encoding with -F mpeg1video, set the gop_size to 12 and not
   to the default keyframes (which is 250) pointed out by Nicolas Boos

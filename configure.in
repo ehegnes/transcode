@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 AC_INIT
 AC_CONFIG_AUX_DIR(autotools)
-AM_INIT_AUTOMAKE(transcode,0.6.4.20030311)
+AM_INIT_AUTOMAKE(transcode,0.6.4.20030318)
 AC_CONFIG_SRCDIR(src/transcode.c)
 AM_CONFIG_HEADER(config.h)
   
