@@ -41,4 +41,5 @@ docs_DATA = \
 	import_nvrec.txt \
 	import_v4l2.txt \
 	pvm.cfg \
+	faq \
 	template.cfg.txt
