@@ -1,3 +1,7 @@
+2005-01-13 Bevis King <brwk at bevteccom dot co dot uk>
+  * export/export_ppm.c
+  add support for YUV422 colorspace to this filter.
+
 2005-01-13 Jacob Meuser <jakemsr at jakemsr dor com>
   * bbmpeg/*
   bbmpeg may have been the king at one time, but now there

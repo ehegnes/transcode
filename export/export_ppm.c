@@ -34,7 +34,7 @@
 #define MOD_CODEC   "(video) PPM/PGM | (audio) MPEG/AC3/PCM"
 
 static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AC3|TC_CAP_AUD;
+static int capability_flag=TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AC3|TC_CAP_AUD|TC_CAP_YUV422;
 
 #define MOD_PRE ppm
 #include "export_def.h"
@@ -52,6 +52,40 @@ static char *type;
 static int interval=1;
 static unsigned int int_counter=0;
 
+/*
+ * Utility function
+ *
+ * yuv422toyuv422pl
+ * Convert YUV422 (YUV 4:2:2 Packed) to YUV422pl (Planar)
+ *   input:  [Y][U][Y][V]
+ *   output: [Y-frame][U-frame][V-frame]
+ */
+
+void yuv422toyuv422pl( char *out, char *in, int width, int height )
+{
+	int src, ydst, udst, vdst;
+	int uloc, vloc;
+
+	uloc = (width*height);  /* U starts straight after the Y frame */
+	vloc = (width*height)+((width*height)/2); /* V starts half the */
+				/* length of the Y frame after U...    */
+	ydst=0; /* set output counters */
+	udst=0;
+	vdst=0;
+	/* move through the input buffer in 4-byte steps */
+	for( src=0;src<height*width*2; src+=4 )
+	{
+		out[ydst]=in[src];	/* first byte of Y */
+		out[ydst+1]=in[src+2];  /* second byte of Y */
+		out[(uloc+udst)]=in[src+1];   /* U byte */
+		out[(vloc+vdst)]=in[src+3];   /* V byte */
+		ydst+=2;  /* we've moved forward by two bytes of Y */
+		udst++;   /* and one each of U and V...            */
+		vdst++;
+	}
+	/* done */
+}
+
 /* ------------------------------------------------------------ 
  *
  * init codec
@@ -66,6 +100,7 @@ MOD_init
 
     if(param->flag == TC_VIDEO) {
 
+      /* this supports output of 4:1:1 YUV material, ie CODEC_YUV */
       if(vob->im_v_codec == CODEC_YUV) {
 	yuv2rgb_init (vob->v_bpp, MODE_BGR); 
 
@@ -80,9 +115,30 @@ MOD_init
 	if (!tmp_buffer) return 1;
       }
 
+      /* this supports output of 4:2:2 YUV material, ie CODEC_YUV422 */
+      if(vob->im_v_codec == CODEC_YUV422) {
+	yuv2rgb_init (vob->v_bpp, MODE_RGB); 
+
+	/* size of the exported image */
+	width = vob->ex_v_width;
+	height = vob->ex_v_height;
+	
+	/* bytes per scan line (aka row) */
+	row_bytes = vob->v_bpp/8 * vob->ex_v_width;
+
+	codec =  CODEC_YUV422;
+
+	/* this is for the output, one byte each for R, G and B per pixel */
+	if (!tmp_buffer) tmp_buffer = malloc (vob->ex_v_width*vob->ex_v_height*3);
+	if (!tmp_buffer) return 1;
+      }
+
+      /* source stream encoding format not supported */
       return(0);
+
     }
 
+    /* audio is not supported in PPM image format... */
     if(param->flag == TC_AUDIO) return(audio_init(vob, verbose_flag));
 
     // invalid flag
@@ -105,6 +161,7 @@ MOD_open
 	switch(vob->im_v_codec) {
 
 	case CODEC_YUV:
+	case CODEC_YUV422:
 	case CODEC_RGB:
 	  
 	  if(vob->video_out_file!=NULL && strcmp(vob->video_out_file,"/dev/null")!=0) prefix=vob->video_out_file;
@@ -133,6 +190,7 @@ MOD_open
     return(TC_EXPORT_ERROR); 
 }   
 
+
 /* ------------------------------------------------------------ 
  *
  * encode and export
@@ -144,6 +202,7 @@ MOD_encode
   
   FILE *fd;
   char *out_buffer = param->buffer;
+  char *convbuff;
   int n, out_size = param->size;
   
   if ((++int_counter-1) % interval != 0)
@@ -160,6 +219,32 @@ MOD_encode
       
       out_buffer = tmp_buffer;
       out_size = height * 3 *width;
+    }
+
+    /* YUV422 Support: */
+    /* OK, so how does yuv2rgb work? */
+    /* first, pointer to the output buffer */
+    /* second, pointer to the start of the input Y data */
+    /* third, pointer to the start of the U data */
+    /* fourth, pointer to the start of the V data */
+    /* fifth, sixth - dimensions of the image */
+    /* seventh, bytes per pixel * length of a line */
+    /* eighth, size of the y samples */
+    /* ninth, size of the u & v samples */ 
+    if(codec==CODEC_YUV422) {
+      /* convert the buffer from YUV422 packed to YUV422 planar */
+      convbuff = malloc( width*height*4 ); 
+      yuv422toyuv422pl(convbuff, param->buffer, width, height );
+      /* now we have the planar version, we can call yuv2rgb to */
+      /* produce the RGB needed by the PPM output code...       */
+      yuv2rgb (tmp_buffer,
+               convbuff, convbuff+width*height,
+               convbuff+6*width*height/4,
+               width, height, row_bytes, width, width);
+
+      out_buffer = tmp_buffer;
+      out_size = height * 3 *width;
+      free( convbuff );		/* release the memory used during convert */
     }
     
     if(strncmp(type, "P5", 2)==0) {   
