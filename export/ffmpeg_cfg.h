@@ -27,6 +27,8 @@ struct config {
 extern int lavc_param_vrate_tolerance;
 extern int lavc_param_vhq; /* default is NOT realtime encoding! */
 extern int lavc_param_v4mv;
+extern int lavc_param_qpel;
+extern int lavc_param_gmc;
 extern int lavc_param_vme;
 //extern int lavc_param_vqscale;
 //extern int lavc_param_vqmin;
