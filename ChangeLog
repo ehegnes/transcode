@@ -1,11 +1,21 @@
 --------------------------------------------
 transcode-0.6.7
 
+2003-05-24 Tilmann Bitterberg <transcode at tibit.org>
+
+  * acinclude.m4:
+  Check for libdv version >= 0.99
+
 2003-05-23 Tilmann Bitterberg <transcode at tibit.org>
 
   * *Makefile.am*:
-  Enable building in a separate dir. Replaced EXTRA_DIST = *.h with
-  the real filenames.
+  Enable building in a separate dir. For e.g. Replaced EXTRA_DIST =
+  *.h with the real filenames.
+
+  * avilib/avilib.c:
+  Remove a check for filesize because transcode does this check
+  itself. This breaks some xvid 1st passes. Lots of thanks go to
+  fluffle on #transcode.
 
 2003-05-22 Tilmann Bitterberg <transcode at tibit.org>
 
