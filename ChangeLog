@@ -1,3 +1,11 @@
+2004-11-17 Andrew Church <achurch at achurch dot org>
+  * import/tcprobe.c
+  Allow the use of raw DVD images (*.iso) with tcprobe; this allows
+  e.g. dvd9to5 to be used on disc images rather than having to
+  have the DVD in the drive when dvd9to5 is run.  tcprobe will attempt
+  to open regular files as DVD images when the -T option is given (if
+  this fails the files will be treated normally).
+
 2004-11-17 Julien Tierny <julien.tierny at wanadoo dot fr>
   * filter/filter_ascii.c:
     filter_ascii.so renders video samples into colored ascii-art.

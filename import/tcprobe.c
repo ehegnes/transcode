@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     int ch, i, n, cc=0, probe_factor=1, skip=0;
 
 
-    int dvd_title=1;
+    int dvd_title=1, dvd_title_set=0;
     char *name=NULL;
     char *nav_seek_file=NULL;
 
@@ -178,6 +178,7 @@ int main(int argc, char *argv[])
 	  
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  dvd_title = atoi(optarg);
+	  dvd_title_set = 1;
 
 	  break;
 	  
@@ -236,13 +237,22 @@ int main(int argc, char *argv[])
 	
       case 0:  //regular file
 	
-	if((ipipe.fd_in = xio_open(name, O_RDONLY))<0) {
-	  perror("file open");
-	  return(-1);
-	}
+	if(!dvd_title_set || dvd_verify(name)<0) {
 
-	stream_magic = fileinfo(ipipe.fd_in, skip);
-	ipipe.seek_allowed = 1;
+	  if((ipipe.fd_in = xio_open(name, O_RDONLY))<0) {
+	    perror("file open");
+	    return(-1);
+	  }
+
+	  stream_magic = fileinfo(ipipe.fd_in, skip);
+	  ipipe.seek_allowed = 1;
+
+	} else {  //DVD image
+
+	  stream_magic = TC_MAGIC_DVD;
+	  ipipe.seek_allowed = 0;
+
+	}
 
 	break;
 	
