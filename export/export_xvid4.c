@@ -546,6 +546,7 @@ static void reset_module(xvid_transcode_module_t *mod)
 	mod->cfg_vhq = 0;
 	mod->cfg_motion = 6;
 	mod->cfg_stats = 0;
+	mod->cfg_greyscale = 0;
 	mod->cfg_quant_method = strdup("h263");
 
 	/* No bframes by default but ratio and offset have to be initialized */
@@ -800,7 +801,7 @@ static void dispatch_settings(xvid_transcode_module_t *mod)
 	if(mod->cfg_vhq >= 4) {
 		frame->motion |= XVID_ME_EXTSEARCH_RD;
 	}
-
+	
 	/* motion level == 0 means no motion search which is equivalent to
 	 * intra coding only */
 	if(mod->cfg_motion == 0) {
@@ -1011,6 +1012,12 @@ static void set_frame_struct(xvid_transcode_module_t *mod, vob_t *vob, transfer_
 	x->quant_intra_matrix = xcfg->quant_intra_matrix;
 	x->quant_inter_matrix = xcfg->quant_inter_matrix;
 
+	/* pixel aspect ratio */
+	/* transcode.c uses 0 for EXT instead of 15 */
+	x->par = vob->ex_par==0?XVID_PAR_EXT:vob->ex_par;
+	x->par_width = vob->ex_par_width;
+	x->par_height = vob->ex_par_height;
+	
 	return;
 }
 

@@ -1,7 +1,33 @@
 --------------------------------------------
 transcode-0.6.12
 
-2003-12-20 Stéphane Gourichon" <gouri at free.fr>
+2003-12-22 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/transcode.c export/export_xvid4.c docs/man/transcode.1:
+  New commandline parameter --export_par which sets the pixel aspect
+  ratio. This is useful when encoding anamorphic material and can
+  tell players how to deal with this stream.
+  Currently, only -y xvid4 honors this setting. Thanks to Christoph
+  Lampert for the initial patch which was xvid specific.
+
+2003-12-22 Tilmann Bitterberg <transcode at tibit.org>
+
+  * avilib/avilib.[ch]:
+  Fixes for 64bit architectures (x86_64). Thanks a lot to Bodo Bauer
+  for providing an account on such a box.
+  Typo when using a mask with only seven f's where there should be
+  eigth. 
+
+2003-12-22 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/{export_dv.c export_dvraw.c} filter/{filter_smartyuv.c
+  filter_unharp.c extsub/subtitle_buffer.c preview/filter_pv.c
+  test/filter_test.c} import/{decode_lavc.c extract_ogm.c
+  import_divx.c import_ffmpeg.c import_xvid.c v4l/import_v4l2.c} 
+  src/{audio_buffer.c video_buffer.c}:
+  Simple 64bit fixes (usually int -> long)
+
+200-12-20 Stéphane Gourichon <gouri at free.fr>
 
   * src/audio_trans.c:
   valgrind pointed out that a memcpy should be a memmove and of

@@ -177,6 +177,7 @@ enum {
   USE_UYVY,
   DVD_ACCESS_DELAY,
   EXTENSIONS,
+  EX_PIXEL_ASPECT,
 };
 
 int print_counter_interval = 1;
@@ -264,8 +265,9 @@ void usage(int status)
 
   //video
   printf(" -g wxh              RGB video stream frame size [%dx%d]\n", PAL_W, PAL_H);
-  printf("--export_asr C       set export aspect ratio code C [as input]\n");
-  printf("--import_asr C       set import aspect ratio code C [auto]\n");
+  printf("--import_asr C       set import display aspect ratio code C [auto]\n");
+  printf("--export_asr C       set export display aspect ratio code C [as input]\n");
+  printf("--export_par N,D     set export pixel aspect ratio [auto]\n");
   printf("--keep_asr           try to keep aspect ratio (only with -Z) [off]\n");
   printf(" -f rate[,frc]       input video frame rate[,frc] [%.3f,0] fps\n", PAL_FPS);
   printf("--export_fps f[,c]   output video frame rate[,code] [as input] [%0.3f,3]\n", PAL_FPS);
@@ -800,6 +802,7 @@ int main(int argc, char *argv[]) {
       {"uyvy", no_argument, NULL, USE_UYVY},
       {"dvd_access_delay", required_argument, NULL, DVD_ACCESS_DELAY},
       {"ext", required_argument, NULL, EXTENSIONS},
+      {"export_par", required_argument, NULL, EX_PIXEL_ASPECT},
       {0,0,0,0}
     };
     
@@ -952,7 +955,13 @@ int main(int argc, char *argv[]) {
     vob->format_flag      = 0;
     vob->codec_flag       = 0;
     vob->im_asr           = 0;
+    vob->im_par           = 0;
+    vob->im_par_width     = 0;
+    vob->im_par_height    = 0;
     vob->ex_asr           = -1;
+    vob->ex_par           = 0;
+    vob->ex_par_width     = 0;
+    vob->ex_par_height    = 0;
     vob->quality          = VQUALITY;
     vob->amod_probed      = NULL;
     vob->vmod_probed      = NULL;
@@ -2233,6 +2242,33 @@ int main(int argc, char *argv[]) {
 
 	case SOCKET_FILE:
 	  socket_file = optarg;
+	  break;
+
+	case EX_PIXEL_ASPECT: 
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+
+	  n = sscanf(optarg, "%d,%d", &vob->ex_par_width, &vob->ex_par_height);
+	  if (n == 1) {
+	    vob->ex_par = vob->ex_par_width;
+	    vob->ex_par_width = vob->ex_par_height = 0;
+	    if (vob->ex_par < 0 || vob->ex_par > 5) {
+	      tc_error("--ex_par must be between 0 and 5");
+	    }
+	    
+	    switch (vob->ex_par) {
+	      case 1: vob->ex_par_width =  1; vob->ex_par_height =  1; break;
+	      case 2: vob->ex_par_width = 12; vob->ex_par_height = 11; break;
+	      case 3: vob->ex_par_width = 10; vob->ex_par_height = 11; break;
+	      case 4: vob->ex_par_width = 16; vob->ex_par_height = 11; break;
+	      case 5: vob->ex_par_width = 40; vob->ex_par_height = 33; break;
+	      default: case 0: vob->ex_par_width = 0; vob->ex_par_height = 1; break;
+	    }
+
+	  } else if (n == 2) {
+	    vob->ex_par = 0;
+	  } else {
+	    tc_error("invalid argument for --ex_par");
+	  }
 	  break;
 
 	case EXTENSIONS:

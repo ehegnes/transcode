@@ -1044,6 +1044,31 @@ Valid codes for \fIC\fP are:
      4     2.21:1
 .RE
 .TP
+.B \-\-export_par \fIC\fP[,\fIN\fP]
+set export pixel aspect ratio \fIC\fP[,\fIN\fP]
+.br
+To encode anamorphic material, transcode can encode the target pixel aspect ratio
+into the file. This is NOT the actual aspect ratio of the image, but only the
+amount by which every single pixel is stretched when played with an
+aspect ratio aware application, like mplayer.
+
+To encode at non standard aspect ratios, set both \fIC\fP and \fIN\fP
+E.g. to make every pixel twice as high as it's wide (e.g. to scale back to
+normal size after deinterlacing by dropping every second line).
+
+If \fP and \fIN\fP are specified, the value set for \fIC\fP does give the
+pixel aspect ratio of the width and \fIN\fP the one for the height
+If only \fIC\fP is specified, the table below applies.
+.RS
+.PP
+Valid codes for \fIC\fP are:
+     1    1:1    No stretching
+     2   12:11   5:4 image to 4:3  (ex: 720x576 ->  768x576)
+     3   10:11   3:2 image to 4:3  (ex: 720x480 ->  640x480)
+     4   16:11   5:4 image to 16:9 (ex: 720x576 -> 1024x576)
+     5   40:33   3:2 image to 16:9 (ex: 720x480 ->  872x480)
+.RE
+.TP
 .B \-\-import_asr \fIC\fP
 set import aspect ratio code \fIC\fP [autoprobed]
 .RS

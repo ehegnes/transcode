@@ -191,7 +191,13 @@ typedef struct _vob_t {
   int v_bpp;                // defaults to BPP
   
   int im_asr;               // import aspect ratio code  
+  int im_par;               // import pixel aspect (code)
+  int im_par_width;         // import pixel aspect width
+  int im_par_height;        // import pixel aspect height
   int ex_asr;               // export aspect ratio code  
+  int ex_par;               // export pixel aspect (code)
+  int ex_par_width;         // export pixel aspect width
+  int ex_par_height;        // export pixel aspect height
   int attributes;           // more video frame attributes 
 
   int im_v_codec;           // true frame buffer video codec
@@ -379,6 +385,9 @@ typedef struct probe_info_s {
 
   int asr;                //aspect ratio code
   int frc;                //frame cate code
+
+  int par_width;          // pixel aspect (== sample aspect ratio)
+  int par_height;
 
   int attributes;         //video attributes
   
