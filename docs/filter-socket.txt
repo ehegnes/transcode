@@ -20,7 +20,7 @@ To use the socket, start transcode with --socket FILE, then use
 tcmodinfo -s FILE to connect.
 
 After each command, the server will write an OK or FAILED back
-to the client, depending of the success of the required action.
+to the client, depending of the success of the requested action.
 
 load <filter> <initial string>
   Load <filter> with options set to <initial string>
@@ -58,8 +58,8 @@ preview <command>
   slowfw -- Step 1 frame forward
   slowbw -- Step 1 frame backward
   rotate -- Save to an Avi in Passthrough-Mode (rotate AVI)
-  display -- Disable writing to the preview Window. Do display
-             again to reeanble it
+ display -- Disable writing to the preview Window. Do display
+            again to reeanble it
   slower -- Slow down transcode (and preview speed)
   faster -- Speed up transcode (and preview speed). Please note
             you cannot gain any extra speed out of transcode
