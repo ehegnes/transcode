@@ -71,6 +71,7 @@ static int bitrate=0, sample_size=0, aud_mono=0, bitrate_flag=0;
 static avi_t *avifile1=NULL, *avifile2=NULL;
 
 static FILE *fd=NULL;
+static int is_pipe = 0;
 
 // AVI file information for subsequent calls of open routine:
 static int avi_aud_codec, avi_aud_bitrate;
@@ -449,6 +450,16 @@ int audio_open(vob_t *vob, avi_t *avifile)
     
     if(fd==NULL) {
       
+      if (vob->audio_out_file[0] == '|') {
+	if ( (fd = popen ( vob->audio_out_file+1, "w")) == NULL) {
+	  fprintf(stderr, "(%s) popen audio file\n", __FILE__);
+	  return(TC_EXPORT_ERROR);
+	}
+	is_pipe = 1;
+      }
+    }
+
+    if(fd==NULL) {
       if((fd = fopen(vob->audio_out_file, "w"))<0) {
 	fprintf(stderr, "(%s) fopen audio file\n", __FILE__);
 	return(TC_EXPORT_ERROR);
@@ -524,19 +535,51 @@ int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile)
       case CODEC_MP2:
       case CODEC_MP3:
 
+#define DEBUG
+#undef DEBUG
+
+	// ***************************
+	// How this code works:
+	//
+	// We always encode raw audio chunks which are aud_size_len (==2304)
+	// bytes large.
+	// input_buffer contains the raw audio
+	// buffer contains the encoded audio
+	//
+	// It is possible (very likely) that lame cannot produce a valid mp3
+	// chunk per "audio frame" so we do not write out any compressed audio.
+	// We need to buffer the not consumed input audio where another 2304
+	// bytes chunk won't fit in AND we need to buffer the already encoded
+	// but not enough audio.
+	//
+	// To find out how much we actually need to encode we decode the mp3
+	// header of the recently encoded audio chunk and read out the actual
+	// length.
+	//
+	// Then we write the audio. There can either be more than one valid mp3
+	// frame in buffer and/or still enough raw data left to encode one.
+	//
+	// Easy, eh? -- tibit.
+	// ***************************
+
+	// append the new incoming audio to the already available but not yet
+	// consumed.
         memcpy (input_buffer + input_buffer_len, aud_buffer, aud_size);
 	input_buffer_len += aud_size;
+
+#ifdef DEBUG
+	fprintf(stderr, "Entering (have |%d|)\n", input_buffer_len);
+#endif
 	
 	// this codec has to write the audio in a loop so we don't use the 
 	// "general" write after the switch statement.
 
 	audio_already_written = 1;
 
-#define DEBUG
-#undef DEBUG
+	// As long as lame doesn't return encoded data (lame needs to fill its
+	// internal buffers) AND as long as there is enough input data left.
 
 	while(buffer_len < 4 && input_buffer_len >= aud_size_len) {
-
 
 	    if(aud_mono) {
 
@@ -551,15 +594,16 @@ int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile)
 
 	    }
 
+	    // outsize == 0 is ok, but not negative.
 	    if(outsize<0) {
 		fprintf(stderr, "(%s) lame encoding error|1| (%s)\n", __FILE__, lame_error2str(outsize));
 		return(TC_EXPORT_ERROR); 
 	    }
-	    // please, please rewrite me.
-	    memmove (input_buffer, input_buffer+aud_size_len, buffer_size - aud_size_len);
-
 	    buffer_len += outsize;
 	    input_buffer_len -= aud_size_len;
+	    
+	    memmove (input_buffer, input_buffer+aud_size_len, input_buffer_len);
+
 	    ++count;
 #ifdef DEBUG
 	    fprintf(stderr, "(%s) |1| count(%d) outsize(%d) buffer_len(%d) consumed(%d)\n", 
@@ -573,21 +617,32 @@ int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile)
 	fprintf(stderr, "(%s) header_len(%d) buffer_len(%d) input_buffer_len(%d)\n", 
 		__FILE__, header_len, buffer_len, input_buffer_len);
 #endif
+	// Uh, we don't have enough data to write out a mp3 frame AND we have
+	// not enough raw data left to encoded more mp3 audio
+	if (buffer_len < header_len && input_buffer_len < aud_size_len) {
+	    write_audio = 0; //buffer for more audio;
+#ifdef DEBUG
+	    fprintf(stderr, "(%s) MOVING from(%d) len(%d)\n", 
+		    __FILE__, count*aud_size_len, input_buffer_len);
+#endif
+	    memmove(input_buffer, input_buffer + count*aud_size_len, input_buffer_len);
+	    break;
+	}
 
 	while (buffer_len < header_len || input_buffer_len >= aud_size_len) {
 	    write_audio = 1;
 
-	    // don't have any more data
-	    if (aud_size_len > input_buffer_len) {
+	    // safety check to not stuck in an endless loop.
+	    if (input_buffer_len < aud_size_len) {
 		write_audio = 0; //buffer for more audio;
 #ifdef DEBUG
-		fprintf(stderr, "(%s) MOVING from(%d) len(%d)\n", 
-			__FILE__, (count)*aud_size_len, aud_size - (count)*aud_size_len);
+		fprintf(stderr, "(%s) DEMO MOVING from(%d) len(%d)\n", 
+			__FILE__, count*aud_size_len, input_buffer_len);
 #endif
-		memmove(input_buffer, input_buffer + input_buffer_len, buffer_size-input_buffer_len);
 		break;
 	    }
 
+	    // Hurray, we still have enough raw data .. lets encode!
 	    while (input_buffer_len >= aud_size_len) {
 
 		if(aud_mono) {
@@ -603,13 +658,17 @@ int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile)
 		}
 
 		if(outsize<0) {
+#ifdef DEBUG
+		    fprintf(stderr, "(%s) |2.a| count(%d) outsize(%d) buffer_len(%d) consumed(%d) input_buffer_len(%d)\n", 
+			    __FILE__, count, outsize, buffer_len, count*aud_size_len, input_buffer_len);
+#endif
 		    fprintf(stderr, "(%s) lame encoding error |2|(%s)\n", __FILE__, lame_error2str(outsize));
 		    return(TC_EXPORT_ERROR); 
 		}
-		// please, please rewrite me.
-		memmove (input_buffer, input_buffer+aud_size_len, buffer_size - aud_size_len);
+
 		buffer_len += outsize;
-		input_buffer_len -= aud_size_len;
+		input_buffer_len -= aud_size_len; // still left
+		memmove (input_buffer, input_buffer+aud_size_len, input_buffer_len);
 		++count;
 
 #ifdef DEBUG
@@ -633,6 +692,7 @@ int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile)
 	    int doit=1;
 	    int inner_len = header_len;
 
+	    // there may be more than one valid mp3 frame in buffer.
 	    while (buffer_len>=inner_len && doit) {
 #ifdef DEBUG
 		fprintf(stderr, "XXX do the write out! (%d)\n", inner_len);
@@ -652,8 +712,10 @@ int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile)
 		    } 
 		}
 
-		memmove (buffer, buffer+inner_len, buffer_size-inner_len);
 		buffer_len -= inner_len;
+		memmove (buffer, buffer+inner_len, buffer_len);
+
+		// do we have another one?
 		inner_len = tc_decode_mp3_header(buffer);
 		if (inner_len<0)
 		    doit=0;
@@ -803,7 +865,12 @@ int audio_close()
 #endif  
   
   if(fd!=NULL) {
-    fclose(fd);
+
+    if (is_pipe)
+      pclose(fd);
+    else 
+      fclose(fd);
+    
     fd=NULL;
   }
   
