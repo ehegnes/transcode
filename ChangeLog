@@ -10,6 +10,22 @@ transcode-0.6.4.HEAD
   http://www.lpm.univ-montp2.fr/domi/V2divx
    -- Caron Dominique <domi at LPM.univ-montp2.fr>
 
+- renamed libioaux to libtcioaux and install it into $prefix/bin 
+  pointed out by Dag Wieers <dag at wieers.com>
+
+- some very initial macosx support. Based on testing done by 
+  Håvard Dahle" <havardda at orakel.ntnu.no>
+
+- fix ac3scan issue I introduced last release; trancode incorrectly
+  probed the channels of a dolby stream as mono. Pointed out by 
+  Lethal Weapon <lethalwp at tiscali.be>
+
+- made volume rescale available to mono audio streams too, I have not
+  found any problems with it.
+
+- New filter lowpass based on the 'filt' algorithm by Markus Wandel
+  <http://wandel.ca/homepage/audiohacks.html>
+
 --------------------------------------------
 transcode-0.6.4.20030325
 
