@@ -21,6 +21,8 @@
  *
  */
 
+#include "transcode.h"
+
 static size_t pp_write (int fd, char *buf, size_t len)
 {
    size_t n = 0;

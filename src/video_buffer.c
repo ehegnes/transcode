@@ -21,6 +21,7 @@
  *
  */
 
+#include "transcode.h"
 #include "framebuffer.h"
 #include "frame_threads.h"
 

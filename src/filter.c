@@ -25,6 +25,7 @@
 #include "../config.h"
 #endif
 
+#include "transcode.h"
 #include "framebuffer.h"
 #include <string.h>
 #include <sys/types.h>

@@ -2,7 +2,7 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-CFLAGS = -D_REENTRANT -Wall -funroll-loops -ffast-math -finline-functions @DLDARWININCL@ @SUPPORTINCL@ -I../export -I../import -I$(srcdir)/../export -I$(srcdir)/../import -export-dynamic -I../aclib -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@ --include $(top_srcdir)/src/transcode.h 
+CFLAGS = -D_REENTRANT -Wall -funroll-loops -ffast-math -finline-functions @DLDARWININCL@ @SUPPORTINCL@ -I../export -I../import -I$(srcdir)/../export -I$(srcdir)/../import -export-dynamic -I../aclib -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@
 
 bin_PROGRAMS = transcode
 

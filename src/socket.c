@@ -28,6 +28,7 @@
 #include "config.h"
 #endif
 
+#include "transcode.h"
 #include "filter.h"
 #include "socket.h"
 

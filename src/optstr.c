@@ -25,10 +25,13 @@
  *
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
 
+/* for vsscanf */
 #ifdef HAVE_VSSCANF
-#  define __USE_ISOC99 /* for vsscanf */
+#  define _GNU_SOURCE
 #endif
 
 #include <stdio.h>

@@ -21,6 +21,8 @@
  *
  */
 
+#include "transcode.h"
+
 #define PMAX_BUF 1024
 char split_cmd_buf[PMAX_BUF];
 

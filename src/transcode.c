@@ -25,6 +25,7 @@
 #include "config.h"
 #endif
 
+#include "transcode.h"
 #include "decoder.h"
 #include "encoder.h"
 #include "dl_loader.h"

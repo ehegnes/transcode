@@ -21,6 +21,7 @@
  *
  */
 
+#include "transcode.h"
 #include "framebuffer.h"
 #include "video_trans.h"
 #include "audio_trans.h"

@@ -32,6 +32,7 @@
 # endif
 #endif
 
+#include "transcode.h"
 #include "dl_loader.h"
 
 char *mod_path=MOD_PATH;

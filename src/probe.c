@@ -21,6 +21,7 @@
  *
  */
 
+#include "transcode.h"
 #include "probe.h"
 
 #define PMAX_BUF 1024

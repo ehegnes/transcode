@@ -21,9 +21,9 @@
  *
  */
 
+#include "transcode.h"
 #include "counter.h"
 #include "frame_threads.h"
-#include "transcode.h"
 
 static int encoder_progress_flag=0;
 static char encoder_progress_str[128];

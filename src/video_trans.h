@@ -28,7 +28,9 @@
 #include "config.h"
 #endif
 
-#include "math.h"
+#include <math.h>
+
+#include "transcode.h"
 #include "frame_threads.h"
 
 # ifndef PI
