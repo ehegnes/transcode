@@ -93,7 +93,7 @@ int rtjpeg_aud_open(char *tplorg)
   char   *space;
   int    editmode=0;
 
-  sprintf(editfname,"%s.%s", tplorg, "edit");
+  snprintf(editfname, sizeof(editfname), "%s.%s", tplorg, "edit");
   editfile = fopen(editfname, "r");
 
   if (editfile != NULL && editmode==0) {
