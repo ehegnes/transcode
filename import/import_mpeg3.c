@@ -36,8 +36,6 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_AUD | TC_CAP_PCM;
 #include <libmpeg3.h>
 
 
-#define MAX_BUF 1024
-char import_cmd_buf[MAX_BUF];
 #define BUFSIZE 65536
 
 #define FRAMES_TO_PREFETCH 8
@@ -85,13 +83,15 @@ MOD_open
 		  fprintf(stderr, "open file failed\n");
 		  return(TC_IMPORT_ERROR);
 	      }
-	      if (verbose & TC_DEBUG)printf("[%s] Opened video NO copy\n", MOD_NAME);
+	      if (verbose & TC_DEBUG)
+                  printf("[%s] Opened video NO copy\n", MOD_NAME);
 	  } else if (file_a) {
 	      if((file = mpeg3_open_copy(vob->video_in_file, file_a))==NULL) {
 		  fprintf(stderr, "open file failed\n");
 		  return(TC_IMPORT_ERROR);
 	      }
-	      if (verbose & TC_DEBUG)printf("[%s] Opened video WITH copy\n", MOD_NAME);
+	      if (verbose & TC_DEBUG)
+                  printf("[%s] Opened video WITH copy\n", MOD_NAME);
 	  }
       }
   }
@@ -102,13 +102,15 @@ MOD_open
 		  fprintf(stderr, "open audio file failed\n");
 		  return(TC_IMPORT_ERROR);
 	      }
-	      if (verbose & TC_DEBUG)printf("[%s] Opened audio NO copy\n", MOD_NAME);
+	      if (verbose & TC_DEBUG)
+                  printf("[%s] Opened audio NO copy\n", MOD_NAME);
 	  } else if (file) {
 	      if((file_a = mpeg3_open_copy(vob->audio_in_file, file))==NULL) {
 		  fprintf(stderr, "open_copy audio file failed\n");
 		  return(TC_IMPORT_ERROR);
 	      }
-	      if (verbose & TC_DEBUG)printf("[%s] Opened audio WITH copy\n", MOD_NAME);
+	      if (verbose & TC_DEBUG)
+                  printf("[%s] Opened audio WITH copy\n", MOD_NAME);
 	  }
       }
   }
@@ -119,8 +121,10 @@ MOD_open
       int a_rate, a_chan;
       long a_samp;
 
+#ifdef ARCH_X86  /* until otherwise confirmed to work elsewhere */
 #ifdef HAVE_MMX
       mpeg3_set_mmx(file_a, 1);
+#endif
 #endif
       mpeg3_set_cpus(file_a,1);
 
@@ -130,8 +134,10 @@ MOD_open
 	  return TC_IMPORT_ERROR;
       }
       astream = mpeg3_total_astreams(file_a);
-      if (verbose & TC_DEBUG)printf("[%s] <%d> audio streams found, we only handle one stream right now\n", 
-	      MOD_NAME, astream);
+      if (verbose & TC_DEBUG)
+          printf("[%s] <%d> audio streams found, we only handle one"
+                 " stream right now\n", 
+	         MOD_NAME, astream);
 
       astreamid = vob->a_track;
       a_rate = mpeg3_sample_rate(file_a, astreamid);
@@ -139,13 +145,10 @@ MOD_open
       a_samp = -1;
 
       if (verbose & TC_DEBUG)
-	  printf("[%s] <%d> Channels, <%d> Samplerate, <%ld> Samples, <%d> fch, <%s> Format\n", MOD_NAME,
-	      a_chan,
-	      a_rate,
-	      a_samp,
-	      vob->im_a_size,
-	      mpeg3_audio_format(file_a, astreamid)
-	    );
+	  printf("[%s] <%d> Channels, <%d> Samplerate, <%ld> Samples,"
+                 " <%d> fch, <%s> Format\n",
+                 MOD_NAME, a_chan, a_rate, a_samp, vob->im_a_size,
+	         mpeg3_audio_format(file_a, astreamid));
 
       if (a_rate != vob->a_rate) {
 	  fprintf(stderr, "[%s] Audio parameter mismatch (rate)\n", MOD_NAME);
@@ -153,8 +156,8 @@ MOD_open
       }
 
       if (a_chan != vob->a_chan) {
-	  fprintf(stderr, "[%s] Audio parameter mismatch (%d!=%d channels)\n", MOD_NAME,
-		  a_chan, vob->a_chan);
+	  fprintf(stderr, "[%s] Audio parameter mismatch (%d!=%d channels)\n",
+                          MOD_NAME, a_chan, vob->a_chan);
 	  //return TC_IMPORT_ERROR;
       }
 
@@ -174,15 +177,17 @@ MOD_open
 	      return TC_IMPORT_ERROR;
       }
 
-      return(0);
+      return(TC_IMPORT_OK);
   }
 
   if(param->flag == TC_VIDEO) {
 
     if(!mpeg3_check_sig(vob->video_in_file)) return(TC_IMPORT_ERROR);
 
+#ifdef ARCH_X86  /* until otherwise confirmed to work elsewhere */
 #ifdef HAVE_MMX
     mpeg3_set_mmx(file, 1);
+#endif
 #endif
     mpeg3_set_cpus(file,1);
 
@@ -221,7 +226,7 @@ MOD_open
 	mpeg3_set_frame(file, sample, stream_id);
     }
     
-    return(0);
+    return(TC_IMPORT_OK);
   }
   return(TC_IMPORT_ERROR);
   
@@ -289,10 +294,11 @@ MOD_decode
 	    }
 	} 
 	tc_memcpy (param->buffer, 
-		(char *)prefetch_buffer + (framenum%FRAMES_TO_PREFETCH)*vob->im_a_size, 
+		(char *)prefetch_buffer + 
+                           (framenum % FRAMES_TO_PREFETCH) * vob->im_a_size, 
 		vob->im_a_size);
 	framenum++;
-      return(0);
+      return(TC_IMPORT_OK);
     }
 
 
@@ -302,7 +308,9 @@ MOD_decode
     
     case CODEC_RGB:
       
-      if(mpeg3_read_frame(file, rowptr, 0, 0, width, height, width, height, MPEG3_BGR888, stream_id)) return(TC_IMPORT_ERROR);
+      if(mpeg3_read_frame(file, rowptr, 0, 0, width, height, width,
+                          height, MPEG3_BGR888, stream_id))
+          return(TC_IMPORT_ERROR);
       
       block = width * 3; 
       param->size = block * height;
@@ -314,13 +322,15 @@ MOD_decode
 
     case CODEC_YUV:
 
-      if(mpeg3_read_yuvframe(file, y_output, u_output, v_output, 0, 0, width, height, stream_id)) return(TC_IMPORT_ERROR);
+      if(mpeg3_read_yuvframe(file, y_output, u_output, v_output, 0, 0,
+                             width, height, stream_id))
+          return(TC_IMPORT_ERROR);
 
       param->size = (width * height * 3)>>1;
       tc_memcpy(param->buffer, framebuffer,param->size);
       break;
     }
-    return(0);
+    return(TC_IMPORT_OK);
   }
   return(TC_IMPORT_ERROR);
 }
@@ -341,7 +351,7 @@ MOD_close
 	    mpeg3_close(file);
 	    file = NULL;
 	}
-	return 0;
+	return TC_IMPORT_OK;
     }
     if(param->flag == TC_AUDIO) {
 	if (file_a) {
@@ -350,12 +360,8 @@ MOD_close
 	}
 	if (prefetch_buffer) {free (prefetch_buffer); prefetch_buffer=NULL;}
 	if (read_buffer) {free (read_buffer); read_buffer=NULL;}
-	return 0;
+	return TC_IMPORT_OK;
     }
 
     return(TC_IMPORT_ERROR);
 }
-
-
-/* vim: sw=4
- */
