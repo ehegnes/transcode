@@ -25,6 +25,8 @@ transcode-0.6.9
     Module cleanups (comments + missing memory freeing)
   patch-12
     Updated the config system to new transcode capabilities.
+  patch-13
+    Fixes PSNR U,V planes
 
 2003-08-03 Edouard Gomez <ed.gomez at free.fr>
 

@@ -502,11 +502,11 @@ MOD_stop
 				 thismod.xvid_enc_create.width,
 				 thismod.xvid_enc_create.height),
 			SSE2PSNR(thismod.sse_u,
-				 thismod.xvid_enc_create.width,
-				 thismod.xvid_enc_create.height),
+				 thismod.xvid_enc_create.width/2,
+				 thismod.xvid_enc_create.height/2),
 			SSE2PSNR(thismod.sse_v,
-				 thismod.xvid_enc_create.width,
-				 thismod.xvid_enc_create.height));
+				 thismod.xvid_enc_create.width/2,
+				 thismod.xvid_enc_create.height/2));
 	}
 
 	/* This is the last function according to the transcode API
