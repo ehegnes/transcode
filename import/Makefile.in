@@ -370,15 +370,13 @@ import_rawlist_la_LDFLAGS = -module -avoid-version -lm
 
 import_divx_la_SOURCES = import_divx.c
 import_divx_la_LDFLAGS = -module -avoid-version 
-import_divx_la_LIBADD = -L../avilib -lavi 
 
 import_xvid_la_SOURCES = import_xvid.c
 import_xvid_la_LDFLAGS = -module -avoid-version 
-import_xvid_la_LIBADD = -L../avilib -lavi 
 
 import_ffmpeg_la_SOURCES = import_ffmpeg.c 
 import_ffmpeg_la_LDFLAGS = -module -avoid-version 
-import_ffmpeg_la_LIBADD = -L../ffmpeg/libavcodec/ -ltcavcodec -L../avilib -lavi -L../libvo -lvout -lm
+import_ffmpeg_la_LIBADD = -L../libvo -lvout -lm
 
 import_im_la_SOURCES = import_im.c
 import_im_la_LDFLAGS = -module -avoid-version 
@@ -410,7 +408,6 @@ import_mpeg3_la_LIBADD = @LIBMPEG3_LIBS@
 
 import_avi_la_SOURCES = import_avi.c 
 import_avi_la_LDFLAGS = -module -avoid-version 
-import_avi_la_LIBADD = -L../avilib -lavi 
 
 import_ac3_la_SOURCES = import_ac3.c ioaux.c ac3scan.c
 import_ac3_la_LDFLAGS = -module -avoid-version 
@@ -434,7 +431,7 @@ import_mp3_la_LIBADD = -lm
 
 import_lzo_la_SOURCES = import_lzo.c 
 import_lzo_la_LDFLAGS = -module -avoid-version 
-import_lzo_la_LIBADD = -L../avilib -lavi @LZO_LIBS@ -lm
+import_lzo_la_LIBADD = @LZO_LIBS@ -lm
 
 import_vob_la_SOURCES = import_vob.c ac3scan.c clone.c ioaux.c frame_info.c ivtc.c
 import_vob_la_LDFLAGS = -module -avoid-version 
@@ -540,10 +537,10 @@ af6_decore_la_OBJECTS = $(am_af6_decore_la_OBJECTS)
 import_ac3_la_DEPENDENCIES =
 am_import_ac3_la_OBJECTS = import_ac3.lo ioaux.lo ac3scan.lo
 import_ac3_la_OBJECTS = $(am_import_ac3_la_OBJECTS)
-import_avi_la_DEPENDENCIES =
+import_avi_la_LIBADD =
 am_import_avi_la_OBJECTS = import_avi.lo
 import_avi_la_OBJECTS = $(am_import_avi_la_OBJECTS)
-import_divx_la_DEPENDENCIES =
+import_divx_la_LIBADD =
 am_import_divx_la_OBJECTS = import_divx.lo
 import_divx_la_OBJECTS = $(am_import_divx_la_OBJECTS)
 import_dv_la_LIBADD =
@@ -611,7 +608,7 @@ import_vob_la_OBJECTS = $(am_import_vob_la_OBJECTS)
 import_xml_la_DEPENDENCIES =
 am_import_xml_la_OBJECTS = import_xml.lo ioxml.lo probe_xml.lo zoom.lo
 import_xml_la_OBJECTS = $(am_import_xml_la_OBJECTS)
-import_xvid_la_DEPENDENCIES =
+import_xvid_la_LIBADD =
 am_import_xvid_la_OBJECTS = import_xvid.lo
 import_xvid_la_OBJECTS = $(am_import_xvid_la_OBJECTS)
 import_yuv4mpeg_la_LIBADD =

@@ -323,7 +323,9 @@ bin_PROGRAMS = transcode
 
 @SYSTEM_DARWIN_TRUE@transcode_LDFLAGS = -Xlinker -m
 
-transcode_LDADD = @DLDARWINLIB@ @SUPPORTLIB@ -L../libioaux -ltcioaux -L../aclib -lac -lm
+
+#AM_LDFLAGS=`ar t ../ffmpeg/libavcodec/libtcavcodec.a | sed -e '/^__/d' -e 's@^@../ffmpeg/libavcodec/@' | tr '\n' ' '` `ar t ../avilib/libavi.a | sed -e '/^__/d' -e 's@^@../avilib/@' | tr '\n' ' '`
+transcode_LDADD = @DLDARWINLIB@ @SUPPORTLIB@ -L../libioaux -ltcioaux -L../aclib -lac -L../ffmpeg/libavcodec -ltcavcodec -L../avilib -lavi -lm 
 
 EXTRA_DIST = \
    audio_trans.h \
@@ -362,6 +364,7 @@ transcode_SOURCES = transcode.c\
 			audio_trans.c\
 			video_rgb.c\
 			video_yuv.c\
+			video_yuv422.c\
 			filter.c\
 			counter.c\
 			zoom.c\
@@ -387,10 +390,10 @@ am_transcode_OBJECTS = transcode.$(OBJEXT) iodir.$(OBJEXT) \
 	audio_buffer.$(OBJEXT) frame_preprocess.$(OBJEXT) \
 	frame_postprocess.$(OBJEXT) video_trans.$(OBJEXT) \
 	audio_trans.$(OBJEXT) video_rgb.$(OBJEXT) video_yuv.$(OBJEXT) \
-	filter.$(OBJEXT) counter.$(OBJEXT) zoom.$(OBJEXT) \
-	probe.$(OBJEXT) split.$(OBJEXT) callback.$(OBJEXT) \
-	socket.$(OBJEXT) optstr.$(OBJEXT) tc_functions.$(OBJEXT) \
-	info_server.$(OBJEXT)
+	video_yuv422.$(OBJEXT) filter.$(OBJEXT) counter.$(OBJEXT) \
+	zoom.$(OBJEXT) probe.$(OBJEXT) split.$(OBJEXT) \
+	callback.$(OBJEXT) socket.$(OBJEXT) optstr.$(OBJEXT) \
+	tc_functions.$(OBJEXT) info_server.$(OBJEXT)
 transcode_OBJECTS = $(am_transcode_OBJECTS)
 transcode_DEPENDENCIES =
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
@@ -410,7 +413,8 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/transcode.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/video_buffer.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/video_rgb.Po ./$(DEPDIR)/video_trans.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/video_yuv.Po ./$(DEPDIR)/zoom.Po
+@AMDEP_TRUE@	./$(DEPDIR)/video_yuv.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/video_yuv422.Po ./$(DEPDIR)/zoom.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -493,6 +497,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/video_rgb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/video_trans.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/video_yuv.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/video_yuv422.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zoom.Po@am__quote@
 
 .c.o:

@@ -77,15 +77,13 @@ import_rawlist_la_LDFLAGS = -module -avoid-version -lm
 
 import_divx_la_SOURCES = import_divx.c
 import_divx_la_LDFLAGS =  -module -avoid-version 
-import_divx_la_LIBADD  = -L../avilib -lavi 
 
 import_xvid_la_SOURCES = import_xvid.c
 import_xvid_la_LDFLAGS =  -module -avoid-version 
-import_xvid_la_LIBADD  = -L../avilib -lavi 
 
 import_ffmpeg_la_SOURCES = import_ffmpeg.c 
 import_ffmpeg_la_LDFLAGS =  -module -avoid-version 
-import_ffmpeg_la_LIBADD = -L../ffmpeg/libavcodec/ -ltcavcodec -L../avilib -lavi -L../libvo -lvout -lm
+import_ffmpeg_la_LIBADD = -L../libvo -lvout -lm
 
 import_im_la_SOURCES = import_im.c
 import_im_la_LDFLAGS =  -module -avoid-version 
@@ -117,7 +115,6 @@ import_mpeg3_la_LIBADD  = @LIBMPEG3_LIBS@
 
 import_avi_la_SOURCES = import_avi.c 
 import_avi_la_LDFLAGS =  -module -avoid-version 
-import_avi_la_LIBADD  = -L../avilib -lavi 
 
 import_ac3_la_SOURCES = import_ac3.c ioaux.c ac3scan.c
 import_ac3_la_LDFLAGS =  -module -avoid-version 
@@ -141,7 +138,7 @@ import_mp3_la_LIBADD  = -lm
 
 import_lzo_la_SOURCES = import_lzo.c 
 import_lzo_la_LDFLAGS =  -module -avoid-version 
-import_lzo_la_LIBADD  = -L../avilib -lavi @LZO_LIBS@ -lm
+import_lzo_la_LIBADD  = @LZO_LIBS@ -lm
 
 import_vob_la_SOURCES = import_vob.c ac3scan.c clone.c ioaux.c frame_info.c ivtc.c
 import_vob_la_LDFLAGS =	 -module -avoid-version 
