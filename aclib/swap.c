@@ -202,7 +202,7 @@ mask1110 = 0xFFFFFF00							\n\
 	jg .loop							\n\
 									\n\
 .exit:									\n\
-	pop %%ebx							\n\
+	pop %%rbx							\n\
     " : /* no outputs */
       : "S" (im), "c" (pixels)
       : "%rax", "%rdx", "%rdi", "%r8", "%r9", "%r10", "%r11", "%r12", "%r13"
