@@ -132,4 +132,14 @@ A:	This is not necessarily a bad thing. transcode has configure checks
 	never use anyway. <br />
 	If you are sure you have a specific library installed and transcode still
 	does not find it, have a look at config.log to find out the reason. (tibit)
+---
+Q:	When trying to read a DVD I get something like
+	<tt> (dvd_reader.c) no support for DVD reading configured - exit.
+	</tt>
+	What am I missing, ie what do I need to do to fix it?
+A:	You have probably installed transcode from source and you are missing
+	the dvdread library. This library (including the -devel packages) must be
+	installed at compile time and transcode must find it. If transcode
+	found it, it will print <tt>"DVD navigation support with libdvdread
+	yes"</tt> at the end of the configure run. (tibit)
 ----
