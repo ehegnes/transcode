@@ -240,9 +240,16 @@ void extract_pcm(info_t *ipipe)
     }
     
     // scan file
-    if(NULL == (avifile = AVI_open_fd(ipipe->fd_in,1))) {
-      AVI_print_error("AVI open");
-      break;
+    if (ipipe->nav_seek_file) {
+      if(NULL == (avifile = AVI_open_indexfd(ipipe->fd_in,0,ipipe->nav_seek_file))) {
+	AVI_print_error("AVI open");
+	break;
+      }
+    } else {
+      if(NULL == (avifile = AVI_open_fd(ipipe->fd_in,1))) {
+	AVI_print_error("AVI open");
+	break;
+      }
     }
   
     //set selected for multi-audio AVI-files
