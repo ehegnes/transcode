@@ -78,7 +78,7 @@ void tc_import_stop()
   frame_threads_notify(TC_VIDEO);
   frame_threads_notify(TC_AUDIO);
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) import stop requested by client=%ld (main=%d) import status=%d\n", __FILE__, pthread_self(), tc_pthread_main, import_status());
+  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) import stop requested by client=%ld (main=%ld) import status=%d\n", __FILE__, pthread_self(), tc_pthread_main, import_status());
 
 }
 
@@ -110,7 +110,7 @@ void import_threads_cancel()
     
     if(cc2 == ESRCH) fprintf(stderr, "(%s) audio thread already terminated\n", __FILE__);  
     
-    fprintf(stderr, "(%s) A/V import canceled (%ld) (%d)\n", __FILE__, pthread_self(), tc_pthread_main);
+    fprintf(stderr, "(%s) A/V import canceled (%ld) (%ld)\n", __FILE__, pthread_self(), tc_pthread_main);
     
   }
 
