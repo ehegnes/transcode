@@ -50,6 +50,9 @@ transcode-0.6.4.HEAD
     anymore.
    -- Edouard Gomez <ed.gomez at free.fr>
 
+- avimerge - hack for more audio chunks per video frame
+   -- Jindrich Makovicka <makovick at kmlinux.fjfi.cvut.cz>
+
 --------------------------------------------
 transcode-0.6.4.20030311 Tue Mar 11 15:09:44 CET 2003
 
