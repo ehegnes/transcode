@@ -806,7 +806,7 @@ dnl if test "${USE_X11}" = "yes"; then
 
 AC_PATH_XTRA
 if test x${no_x} = xyes; then
-  	AC_MSG_ERROR(can not find X11)
+  	AC_MSG_WARN(can not find X11)
         USE_X11=no
 else
 AC_DEFINE([HAVE_X11], 1, [Have X11 support])

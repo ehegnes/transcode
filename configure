@@ -28676,9 +28676,8 @@ fi
 fi
 
 if test x${no_x} = xyes; then
-  	{ { echo "$as_me:$LINENO: error: can not find X11" >&5
-echo "$as_me: error: can not find X11" >&2;}
-   { (exit 1); exit 1; }; }
+  	{ echo "$as_me:$LINENO: WARNING: can not find X11" >&5
+echo "$as_me: WARNING: can not find X11" >&2;}
         USE_X11=no
 else
 
