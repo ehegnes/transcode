@@ -66,6 +66,15 @@ filter/
 00:54 < GomGom> transcode -J help
 
 
+23:11 < iMars> If someone sees this: I'd have a question that experienced 
+               transcode users might know about, but that I couldn't find in 
+               the mailing lists. Using -c in directory mode, or any other way 
+               to skip commercials through multiple input files... I see no 
+               documentation of -c's limitation to a single input file.
+23:13 < tibit> iMars: that depends on the input
+23:13 < iMars> A directory containing dvgrab'ed DV files in dv2 .avi format.
+23:15 < tibit> I'll look at that 
+
 
 
 
