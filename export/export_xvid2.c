@@ -8,19 +8,19 @@
  *
  *  This file is part of transcode, a linux video stream processing tool
  *      
- *  transcode is free software; you can redistribute it and/or modify
+ *  transcode is free software ; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2, or (at your option)
- *  any later version.
- *   
- *  transcode is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  the Free Software Foundation ; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY ; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
- *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  along with this program ; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
  *****************************************************************************/
 
@@ -57,7 +57,7 @@
 #define DEVELOPER_USE /* Turns on/off transcode xvid.cfg option file */
 #endif
 
-#include "xvid.h"
+#include "xvid2.h"
 #include "xvid_vbr.h"
 
 #include "transcode.h"
@@ -72,10 +72,10 @@
  * Transcode module binding functions and strings
  ****************************************************************************/
 
-#define MOD_NAME    "export_xvid.so"
+#define MOD_NAME    "export_xvid2.so"
 #define MOD_VERSION "v0.3.9 (2003-07-24)"
-#define MOD_CODEC   "(video) XviD (Stable)  | (audio) MPEG/AC3/PCM"
-#define MOD_PRE xvid_ 
+#define MOD_CODEC   "(video) XviD 0.9.x (aka API 2.1 series)  | (audio) MPEG/AC3/PCM"
+#define MOD_PRE xvid2_ 
 #include "export_def.h"
 
 /*****************************************************************************
@@ -85,6 +85,8 @@
 static int VbrMode = 0;
 static int encode_fields = 0;
 static avi_t *avifile = NULL;
+static int rawfd = -1;
+
 #define HINT_BUFFER_SIZE (50*1024) /* 50kb should be enough */
 #define HINT_FILE "xvid-me.hints"
 static FILE *hints_file = NULL;
@@ -110,7 +112,6 @@ static int (*XviD_init)(void *para0, int opt, void *para1, void *para2);
 
 static void *XviD_encore_handle = NULL;
 static void *handle = NULL;
-static char module[TC_BUF_MAX];
 
 static int global_colorspace;
 static int global_framesize;
@@ -128,7 +129,7 @@ static vbr_control_t   vbr_state;
 /* XviD shared library name */
 #define XVID_SHARED_LIB_NAME "libxvidcore.so"
 #ifdef DEVELOPER_USE
-#define XVID_CONFIG_FILE "xvid.cfg"
+#define XVID_CONFIG_FILE "xvid2.cfg"
 #endif
 
 #define Max(a,b) (((a)>(b))?(a):(b))
@@ -154,27 +155,26 @@ static int xvid_print_config(XVID_INIT_PARAM *einit,
 
 static void xvid_print_vbr(vbr_control_t *state);
 
+static int p_write(int fd, char *buf, size_t len);
+
 /*****************************************************************************
  * Init codec
  ****************************************************************************/
 
 MOD_init
 {
-
 	int xerr; 
 	int quality;
 	float bpp;
 
-	if(param->flag == TC_VIDEO) 
-	{
+	if(param->flag == TC_VIDEO) {
 		bpp = 1000 * (vob->divxbitrate) / 
-			(vob->ex_fps * vob->ex_v_width * vob->ex_v_height);
+			(vob->fps * vob->ex_v_width * vob->ex_v_height);
     
-		if ((buffer = malloc(BUFFER_SIZE))==NULL) {
+		if((buffer = malloc(BUFFER_SIZE))==NULL) {
 			perror("out of memory");
 			return(TC_EXPORT_ERROR); 
-		}
-		else {
+		} else {
 			memset(buffer, 0, BUFFER_SIZE);  
 		}
 
@@ -207,13 +207,12 @@ MOD_init
 		/* Set values for the unitialized members */
 		global_param.width  = vob->ex_v_width;
 		global_param.height = vob->ex_v_height;
-		if ((vob->ex_fps - (int)vob->ex_fps) == 0) {
+		if((vob->fps - (int)vob->fps) == 0) {
 			global_param.fincr = 1;
-			global_param.fbase = (int)vob->ex_fps;
-		}
-		else {
+			global_param.fbase = (int)vob->fps;
+		} else {
 			global_param.fincr = 1001;
-			global_param.fbase = (int)(1001 * vob->ex_fps);
+			global_param.fbase = (int)(1001 * vob->fps);
 		}
 
 		if(VbrMode == 0) {
@@ -238,7 +237,7 @@ MOD_init
 		/* These xframe settings are used in the MOD_encode */
 		if(encode_fields) global_frame.general |= XVID_INTERLACING;
 
-		switch (vob->im_v_codec) {
+		switch(vob->im_v_codec) {
 		case CODEC_RGB:	
 			global_framesize = SIZE_RGB_FRAME;
 			global_colorspace = XVID_CSP_RGB24;
@@ -340,7 +339,7 @@ MOD_init
 			hints_file = fopen(HINT_FILE, rights);
 			if(hints_file == NULL) {
 				fprintf(stderr, "Error opening input file %s\n", HINT_FILE);
-				return(-1);
+				return(TC_EXPORT_ERROR);
 			}
 		}
 
@@ -349,7 +348,7 @@ MOD_init
 			return(TC_EXPORT_ERROR);
 
 		/* Print debug info if required */
-		if (verbose_flag & TC_DEBUG) {
+		if(verbose_flag & TC_DEBUG) {
 
 			xvid_print_config(&global_init,
 					  &global_param,
@@ -363,16 +362,15 @@ MOD_init
 			if(VbrMode == 2) xvid_print_vbr(&vbr_state);
 		}
     
-		return(0);
+		return(TC_EXPORT_OK);
 
 	}
   
 	if(param->flag == TC_AUDIO) 
 		return(audio_init(vob, verbose));    
   
-	// invalid flag
+	/* invalid flag */
 	return(TC_EXPORT_ERROR); 
-
 }
 
 
@@ -382,9 +380,15 @@ MOD_init
 
 MOD_open
 {
+	int avi_output = 1;
+
+	/* Check for raw output */
+	if((vob->ex_v_fcc != NULL) && (strlen(vob->ex_v_fcc) != 0) &&
+	   (strcasecmp(vob->ex_v_fcc, "raw") == 0))
+		avi_output = 0;
 
 	/* Open file */
-	if(vob->avifile_out==NULL) {
+	if(avi_output && vob->avifile_out == NULL) {
 
 		vob->avifile_out = AVI_open_output_file(vob->video_out_file);
 
@@ -392,28 +396,43 @@ MOD_open
 			AVI_print_error("avi open error");
 			return(TC_EXPORT_ERROR); 
 		}
-
 	}
-    
+
 	/* Save locally */
 	avifile = vob->avifile_out;
-
-	if(param->flag == TC_AUDIO) return(audio_open(vob, vob->avifile_out));
+    
+	if(param->flag == TC_AUDIO)
+		return(audio_open(vob, vob->avifile_out));
     
 	if(param->flag == TC_VIDEO) {
+
+		if(verbose_flag & TC_DEBUG)
+			fprintf(stderr, "[%s] Using %s output\n",
+				MOD_NAME, avi_output?"AVI":"Raw");
     
-		/* Video */
-		AVI_set_video(vob->avifile_out, vob->ex_v_width,
-			      vob->ex_v_height, vob->ex_fps, "DIVX");
+		if(avi_output) {
+			/* AVI Video output */
+			AVI_set_video(vob->avifile_out, vob->ex_v_width,
+				      vob->ex_v_height, vob->fps, "XVID");
 
-		if (vob->avi_comment_fd>0)
-		    AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
+			if(vob->avi_comment_fd > 0)
+				AVI_set_comment_fd(vob->avifile_out,
+						   vob->avi_comment_fd);
+		} else {
+			/* Raw Video output */
+			rawfd = open(vob->video_out_file,
+				     O_RDWR|O_CREAT|O_TRUNC,
+				     S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+			if(rawfd < 0) {
+				perror("open file");
+				return(TC_EXPORT_ERROR);
+			}
+		}
 
-		return(0);
-
+		return(TC_EXPORT_OK);
 	}
   
-	// invalid flag
+	/* invalid flag */
 	return(TC_EXPORT_ERROR); 
 }
 
@@ -430,11 +449,10 @@ MOD_encode
 	XVID_ENC_STATS xstats;
 
 	if(param->flag == TC_AUDIO) 
-		return(audio_encode(param->buffer, param->size, avifile));  
+		return(audio_encode(param->buffer, param->size, avifile));
   
   	if(param->flag != TC_VIDEO) 
 		return(TC_EXPORT_ERROR); 
-
 
 	/* Initialize the local frame copy */
 	xframe.bitstream  = buffer;
@@ -473,7 +491,6 @@ MOD_encode
 		 */
 		if(xframe.general & XVID_HINTEDME_SET)
 			fread(xframe.hint.hintstream, 1, size, hints_file);
-
 	}
 
 	/* Encode the frame */
@@ -481,7 +498,7 @@ MOD_encode
 			   &xstats);
 
 	/* Error ? */
-	if (xerr == XVID_ERR_FAIL) {
+	if(xerr == XVID_ERR_FAIL) {
 		fprintf(stderr, "codec encoding error %d\n", xerr);
 		return(TC_EXPORT_ERROR); 
     	}
@@ -499,7 +516,6 @@ MOD_encode
 
 		/* Free the buffer */
 		if(xframe.hint.hintstream) free(xframe.hint.hintstream);
-
 	}
 
 	/* Update the VBR controler */
@@ -507,20 +523,28 @@ MOD_encode
 		  xframe.length, xstats.kblks, xstats.mblks, xstats.ublks);
 
 
-	/* split the AVI */
-	if((uint32_t)(AVI_bytes_written(avifile)+xframe.length+16+8)>>20 >= tc_avi_limit) 
-	    tc_outstream_rotate_request();
+	/* Split the AVI */
+	if(rawfd < 0) {
+		if((uint32_t)(AVI_bytes_written(avifile)+xframe.length+16+8)>>20 >= tc_avi_limit)
+			tc_outstream_rotate_request();
 
-	/* 0.6.2: switch outfile on "C" and -J pv */
-	if(xframe.intra) tc_outstream_rotate();
+		/* 0.6.2: switch outfile on "C" and -J pv */
+		if(xframe.intra) tc_outstream_rotate();
+	}
 
 	/* Write bitstream */
-	if(AVI_write_frame(avifile, buffer, xframe.length, xframe.intra) < 0) {
-		fprintf(stderr, "avi video write error");
-		return(TC_EXPORT_ERROR); 
-	}
+	if(rawfd < 0) {
+		if(AVI_write_frame(avifile, buffer, xframe.length, xframe.intra) < 0) {
+			fprintf(stderr, "avi video write error");
+			return(TC_EXPORT_ERROR); 
+		}
+	} else if(p_write(rawfd, buffer, xframe.length)  != xframe.length) {    
+		perror("write frame");
+		return(TC_EXPORT_ERROR);
+	}     
+
     
-	return(0);
+	return(TC_EXPORT_OK);
 }
 
 /*****************************************************************************
@@ -529,22 +553,28 @@ MOD_encode
 
 MOD_close
 {  
-
 	vob_t *vob = tc_get_vob();
 
-	if(param->flag == TC_AUDIO) return(audio_close()); 
+	if(param->flag == TC_AUDIO)
+		return(audio_close());
     
-	if(vob->avifile_out!=NULL) {
-		AVI_close(vob->avifile_out);
-		vob->avifile_out=NULL;
+	if(param->flag == TC_VIDEO) {
+		if(rawfd >= 0) {
+			close(rawfd);
+			rawfd = -1;
+		}
+		if(vob->avifile_out != NULL) {
+			AVI_close(vob->avifile_out);
+			vob->avifile_out = NULL;
+		}
+		if(hints_file != NULL) {
+			fclose(hints_file);
+			hints_file = NULL;
+		}
+		return(TC_EXPORT_OK);
 	}
-
-	if(hints_file != NULL) fclose(hints_file);
-
-	if(param->flag == TC_VIDEO) return(0);
   
 	return(TC_EXPORT_ERROR);
-
 }
 
 
@@ -554,7 +584,6 @@ MOD_close
 
 MOD_stop
 {  
-
 	int xerr;
 
 	if(param->flag == TC_VIDEO) { 
@@ -590,14 +619,13 @@ MOD_stop
 		/* Stops the VBR controler */
 		vbrFinish(&vbr_state);
     
-		return(0);
-
+		return(TC_EXPORT_OK);
   	}
 
-	if(param->flag == TC_AUDIO) return(audio_stop());
+	if(param->flag == TC_AUDIO)
+		return(audio_stop());
   
 	return(TC_EXPORT_ERROR);
-
 }
 
 /*****************************************************************************
@@ -611,48 +639,59 @@ static int xvid2_init(char *path)
 	const
 #endif    
 		char *error;
+	char modules[4][TC_BUF_MAX];
+	char *module;
+	int i;
+	
 
-	/* XviD comes now as a single core-module */    
-	sprintf(module, "%s/%s", path, XVID_SHARED_LIB_NAME);
-    
-	/* try transcode's module directory */
-	handle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
-    
-	if (!handle) {
+	/* First we build all lib names we will try to load */
+	sprintf(modules[0], "%s/%s.%d", path, XVID_SHARED_LIB_NAME, API_VERSION>>16);
+	sprintf(modules[1], "%s.%d", XVID_SHARED_LIB_NAME, API_VERSION>>16);
+	sprintf(modules[2], "%s/%s", path, XVID_SHARED_LIB_NAME);
+	sprintf(modules[3], "%s", XVID_SHARED_LIB_NAME);
 
-		/* try the default */
-		handle = dlopen(XVID_SHARED_LIB_NAME, RTLD_GLOBAL| RTLD_LAZY);
-      
-		/* Success */
-		if (!handle) {
-			fputs(dlerror(), stderr);
-			return(-1);
-		}
-		else {  
-			if(verbose_flag & TC_DEBUG) 
-				fprintf(stderr,
-					"loading external codec module %s\n",
-					XVID_SHARED_LIB_NAME); 
-		}
-      
+	for(i=0; i<4; i++) {
+		module = modules[i];
+
+		if(verbose_flag & TC_DEBUG)
+			fprintf(stderr,	"[%s] Trying to load shared lib %s\n",
+				MOD_NAME, module);
+
+		/* Try loading the shared lib */
+		handle = dlopen(modules[i], RTLD_GLOBAL| RTLD_LAZY);
+
+		/* Test wether loading succeeded */
+		if(handle != NULL)
+			goto so_loaded;
 	}
-	else {  
-		if(verbose_flag & TC_DEBUG) 
-			fprintf(stderr,
-				"loading external codec module %s\n",
-				module);
-	}
-    
-	/* Import the XviD encoder&init entry points */
-	XviD_encore = dlsym(handle, "xvid_encore");
+
+	/* None of the modules were available */
+	fprintf(stderr, dlerror());
+	return(-1);
+
+ so_loaded:
+	if(verbose_flag & TC_DEBUG)
+		fprintf(stderr,	"[%s] Using shared lib %s\n",
+			MOD_NAME, module);
+
+	/* Import the XviD init entry point */
 	XviD_init   = dlsym(handle, "xvid_init");
     
 	/* Something went wrong */
-	if ((error = dlerror()) != NULL)  {
-		fputs(error, stderr);
+	if((error = dlerror()) != NULL)  {
+		fprintf(stderr, error);
 		return(-1);
 	}
-    
+
+	/* Import the XviD encoder entry point */
+	XviD_encore = dlsym(handle, "xvid_encore");
+
+	/* Something went wrong */
+	if((error = dlerror()) != NULL)  {
+		fprintf(stderr, error);
+		return(-1);
+	}
+
 	return(0);
 
 }
@@ -688,7 +727,6 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 		       vbr_control_t   *evbr_state,
 		       int quality)
 {
-
 	CF_ROOT_TYPE	* pRoot;
 	CF_SECTION_TYPE * pSection;
 	struct stat statfile;
@@ -747,25 +785,22 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 
 				if(stat(buffer, &statfile) == -1) {
 					fprintf(stderr,
-						"No ./xvid.cfg nor ~/.xvid.cfg"
+						"No ./xvid2.cfg nor ${HOME}/.xvid2.cfg"
 						" file found, falling back to"
 						" hardcoded defaults\n");
 					return(0);
 				}
-			}
-			else {
+			} else {
 				return(0);
 			}
 
-		}
-		else {
+		} else {
 			fprintf(stderr, "Error: %s\nFalling back to hardcoded"
 				" defaults\n", strerror(errno));
 			return(0);
 		}
 
-	}
-	else {
+	} else {
 		strcpy(buffer, XVID_CONFIG_FILE);
 	}
 
@@ -787,7 +822,6 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 	snprintf(buffer, 15, "%s%d", "quality", quality);
 
 	if((pSection = cf_get_section(pRoot)) != NULL) {
-
 		do {
 
 			int n;
@@ -809,15 +843,13 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 			if(!n)
 				xvid_config_get_vbr(evbr_state, pRoot,pSection);
 
-		}while((pSection=cf_get_next_section(pRoot,pSection)) != NULL);
-
+		} while((pSection=cf_get_next_section(pRoot,pSection)) != NULL);
 	}
 
         CF_FREE_ROOT(pRoot);
 #endif
 
 	return(0);
-
 }
 
 /*----------------------------------------------------------------------------
@@ -922,7 +954,6 @@ static void xvid_config_get_init(XVID_INIT_PARAM *einit,
 				 CF_ROOT_TYPE *pRoot,
 				 CF_SECTION_TYPE *pSection)
 {
-
 	char *pTemp;
 
 	/* Get the cpu value */
@@ -931,14 +962,12 @@ static void xvid_config_get_init(XVID_INIT_PARAM *einit,
 	}
 
 	return;
-
 }
 
 static void xvid_config_get_param(XVID_ENC_PARAM *eparam,
 				  CF_ROOT_TYPE *pRoot,
 				  CF_SECTION_TYPE *pSection)
 {
-
 	char *pTemp;
 
 	/* Get the rc_reaction_delay_factor value */
@@ -969,14 +998,12 @@ static void xvid_config_get_param(XVID_ENC_PARAM *eparam,
 	}
 
 	return;
-
 }
 
 static void xvid_config_get_frame(XVID_ENC_FRAME *eframe,
 				  CF_ROOT_TYPE *pRoot,
 				  CF_SECTION_TYPE *pSection)
 {
-
 	char *pTemp;
 
 	/* Get the motion value */
@@ -1008,27 +1035,20 @@ static void xvid_config_get_frame(XVID_ENC_FRAME *eframe,
 		/* Is there at least one filled matrix ? */
 		if(eframe->quant_inter_matrix != NULL ||
 		   eframe->quant_intra_matrix != NULL) {
-
 			/* There's one - turn off h263 and turn on mpeg */
 			eframe->general &= ~XVID_H263QUANT;
 			eframe->general |= XVID_MPEGQUANT;
-
 		} else {
-
 			/* There's none - why custom mtrix is set ?! */
 			eframe->general &= ~XVID_CUSTOM_QMATRIX;
-
 		}
-		
 	}
 
 	return;
-
 }
 
 static void *xvid_read_matrixfile(unsigned char *filename)
 {
-
 	int i;
 	unsigned char *matrix;
 	FILE *input;
@@ -1071,7 +1091,6 @@ static void *xvid_read_matrixfile(unsigned char *filename)
 	fclose(input);
 
 	return(matrix);
-		
 }
 
 #if 0
@@ -1110,7 +1129,6 @@ static void xvid_config_get_vbr(vbr_control_t *evbr_state,
 				CF_ROOT_TYPE *pRoot,
 				CF_SECTION_TYPE *pSection)
 {
-
 	char *pTemp;
 
 /* Managed by the command line options */
@@ -1387,7 +1405,6 @@ static void xvid_config_get_vbr(vbr_control_t *evbr_state,
 	}
 
 	return;
-
 }
 
 #undef cf_get
@@ -1395,7 +1412,6 @@ static void xvid_config_get_vbr(vbr_control_t *evbr_state,
 
 static unsigned long string2mode(char *string, config_flag_t const *modes)
 {
-
 	unsigned long mode;
 	int i;
 
@@ -1412,13 +1428,10 @@ static unsigned long string2mode(char *string, config_flag_t const *modes)
 	}
 
 	return(mode);
-
-
 }
 
 static unsigned long string2flags(char *string, config_flag_t const *flags)
 {
-
 	unsigned long flag;
 	int i;
 
@@ -1433,7 +1446,6 @@ static unsigned long string2flags(char *string, config_flag_t const *flags)
 	}
 
 	return(flag);
-
 }
 
 static int xvid_print_config(XVID_INIT_PARAM *einit,
@@ -1444,7 +1456,6 @@ static int xvid_print_config(XVID_INIT_PARAM *einit,
 			     char *csp,
 			     int bitrate)
 {
-
 	int i;
 
 	char *passtype[] =
@@ -1533,9 +1544,7 @@ static int xvid_print_config(XVID_INIT_PARAM *einit,
 				fprintf(stderr, "%3d ",
 					eframe->quant_intra_matrix[i*8+j]);
 			fprintf(stderr,"\n");
-
 		}
-
 	}
 
 	if(eframe->quant_inter_matrix != NULL) {
@@ -1549,18 +1558,14 @@ static int xvid_print_config(XVID_INIT_PARAM *einit,
 				fprintf(stderr, "%3d ",
 					eframe->quant_inter_matrix[i*8+j]);
 			fprintf(stderr,"\n");
-
 		}
-
 	}
 
 	return(0);
-
 }
 
 static void xvid_print_vbr(vbr_control_t *state)
 {
-
 	fprintf(stderr, "[%s]\tXviD VBR settings\n",
 		MOD_NAME);
 	fprintf(stderr, "\t\t\tmode : %d\n",
@@ -1644,3 +1649,24 @@ static void xvid_print_vbr(vbr_control_t *state)
 	fprintf(stderr, "\t\t\tfixed_quant = %d\n",
 		state->fixed_quant);
 }
+
+static int p_write(int fd, char *buf, size_t len)
+{
+   size_t n = 0;
+   size_t r = 0;
+
+   while(r < len) {
+      n = write(fd, buf + r, len - r);
+      if(n < 0)
+         return n;
+      
+      r += n;
+   }
+   return r;
+}
+
+/*
+ * Please do not modify the tag line.
+ *
+ * arch-tag: 16c618a5-6cda-4c95-a418-602fc4837824 export_xvid module
+ */

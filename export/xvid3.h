@@ -19,7 +19,7 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- * $Id: xvidcvs.h,v 1.4 2003-03-17 15:32:34 tibit Exp $
+ * $Id: xvid3.h,v 1.1 2003-07-30 05:39:42 tibit Exp $
  *
  ****************************************************************************/
 
@@ -34,8 +34,8 @@ extern "C" {
  * Global constants
  ****************************************************************************/
 
-/* API Version : 2.1 */
-#define API_VERSION ((2 << 16) | (1))
+/* API Version : 3.0 */
+#define API_VERSION ((3 << 16) | (0))
 #define XVID_API_UNSTABLE
 
 /* Bitstream Version 
@@ -49,7 +49,7 @@ extern "C" {
  * doesnt hurt but not increasing it could cause difficulty for decoders in the
  * future
  */
-#define XVID_BS_VERSION "0009"
+#define XVID_BS_VERSION "0015"
 
 
 /* Error codes */
@@ -458,3 +458,9 @@ extern "C" {
 #endif
 
 #endif
+
+/*
+ * Please do not modify the tag line.
+ *
+ * arch-tag: 42914b48-83c4-4165-9d6d-5ad9382a5dec xvid header
+ */

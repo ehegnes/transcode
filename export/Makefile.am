@@ -76,10 +76,8 @@ MODS13 = export_lzo.la
 endif
 endif
 
-if HAVE_LIBXVID
 if HAVE_LAME
-MODS14 = export_xvid.la export_xvidcvs.la export_xvidraw.la
-endif
+MODS14 = export_xvid2.la export_xvid3.la export_xvid4.la
 endif
 
 
@@ -153,17 +151,17 @@ export_divx4raw_la_SOURCES = export_divx4raw.c aud_aux.c divx4_vbr.c
 export_divx4raw_la_LDFLAGS =  -module -avoid-version 
 export_divx4raw_la_LIBADD =  @LAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
 
-export_xvid_la_SOURCES = export_xvid.c aud_aux.c xvid_vbr.c
-export_xvid_la_LDFLAGS =  -module -avoid-version 
-export_xvid_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
+export_xvid2_la_SOURCES = export_xvid2.c aud_aux.c xvid_vbr.c
+export_xvid2_la_LDFLAGS =  -module -avoid-version 
+export_xvid2_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
 
-export_xvidraw_la_SOURCES = export_xvidraw.c aud_aux.c xvid_vbr.c
-export_xvidraw_la_LDFLAGS =  -module -avoid-version 
-export_xvidraw_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
+export_xvid3_la_SOURCES = export_xvid3.c aud_aux.c xvid_vbr.c
+export_xvid3_la_LDFLAGS =  -module -avoid-version 
+export_xvid3_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
 
-export_xvidcvs_la_SOURCES = export_xvidcvs.c aud_aux.c xvid_vbr.c
-export_xvidcvs_la_LDFLAGS =  -module -avoid-version 
-export_xvidcvs_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm 
+export_xvid4_la_SOURCES = export_xvid4.c aud_aux.c
+export_xvid4_la_LDFLAGS =  -module -avoid-version 
+export_xvid4_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
 
 export_raw_la_SOURCES = export_raw.c aud_aux.c
 export_raw_la_LDFLAGS =  -module -avoid-version 
@@ -217,7 +215,7 @@ export_im_la_SOURCES = export_im.c vid_aux.c
 export_im_la_LDFLAGS =  -module -avoid-version 
 export_im_la_LIBADD = @MAGICK_LIBS@ -L../libvo -lvout -lm 
 
-pkg_DATA = export_af6.conf xvid.cfg
+pkg_DATA = export_af6.conf xvid2.cfg xvid3.cfg xvid4.cfg
 
 EXTRA_DIST = \
   af6_aux.h \
@@ -230,10 +228,10 @@ EXTRA_DIST = \
   ffmpeg_cfg.h \
   vbr.h \
   vid_aux.h \
-  xvid.cfg \
-  xvid.h \
-  xvid_vbr.h \
-  xvidcvs.h
-
-
-
+  xvid2.h \
+  xvid3.h \
+  xvid4.h \
+  xvid2.cfg \
+  xvid3.cfg \
+  xvid4.cfg \
+  xvid_vbr.h

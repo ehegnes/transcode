@@ -48,7 +48,7 @@
  *  exception also makes it possible to release a modified version which
  *  carries forward this exception.
  *
- * $Id: xvid.h,v 1.3 2003-03-08 17:21:05 tibit Exp $
+ * $Id: xvid2.h,v 1.1 2003-07-30 05:39:42 tibit Exp $
  *
  *****************************************************************************/
 
@@ -821,3 +821,9 @@ extern "C" {
 #endif
 
 #endif
+
+/*
+ * Please do not modify the tag line.
+ *
+ * arch-tag: 2e4fc330-79a8-4986-8d2f-9658820382da xvid header
+ */

@@ -346,7 +346,7 @@ pkgdir = @MOD_PATH@
 
 @HAVE_LAME_TRUE@@HAVE_LZO_TRUE@MODS13 = export_lzo.la
 
-@HAVE_LAME_TRUE@@HAVE_LIBXVID_TRUE@MODS14 = export_xvid.la export_xvidcvs.la export_xvidraw.la
+@HAVE_LAME_TRUE@MODS14 = export_xvid2.la export_xvid3.la export_xvid4.la
 
 pkg_LTLIBRARIES = export_null.la \
 		  export_ac3.la \
@@ -419,17 +419,17 @@ export_divx4raw_la_SOURCES = export_divx4raw.c aud_aux.c divx4_vbr.c
 export_divx4raw_la_LDFLAGS = -module -avoid-version 
 export_divx4raw_la_LIBADD = @LAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
 
-export_xvid_la_SOURCES = export_xvid.c aud_aux.c xvid_vbr.c
-export_xvid_la_LDFLAGS = -module -avoid-version 
-export_xvid_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
+export_xvid2_la_SOURCES = export_xvid2.c aud_aux.c xvid_vbr.c
+export_xvid2_la_LDFLAGS = -module -avoid-version 
+export_xvid2_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
 
-export_xvidraw_la_SOURCES = export_xvidraw.c aud_aux.c xvid_vbr.c
-export_xvidraw_la_LDFLAGS = -module -avoid-version 
-export_xvidraw_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
+export_xvid3_la_SOURCES = export_xvid3.c aud_aux.c xvid_vbr.c
+export_xvid3_la_LDFLAGS = -module -avoid-version 
+export_xvid3_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
 
-export_xvidcvs_la_SOURCES = export_xvidcvs.c aud_aux.c xvid_vbr.c
-export_xvidcvs_la_LDFLAGS = -module -avoid-version 
-export_xvidcvs_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm 
+export_xvid4_la_SOURCES = export_xvid4.c aud_aux.c
+export_xvid4_la_LDFLAGS = -module -avoid-version 
+export_xvid4_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
 
 export_raw_la_SOURCES = export_raw.c aud_aux.c
 export_raw_la_LDFLAGS = -module -avoid-version 
@@ -483,7 +483,7 @@ export_im_la_SOURCES = export_im.c vid_aux.c
 export_im_la_LDFLAGS = -module -avoid-version 
 export_im_la_LIBADD = @MAGICK_LIBS@ -L../libvo -lvout -lm 
 
-pkg_DATA = export_af6.conf xvid.cfg
+pkg_DATA = export_af6.conf xvid2.cfg xvid3.cfg xvid4.cfg
 
 EXTRA_DIST = \
   af6_aux.h \
@@ -496,10 +496,13 @@ EXTRA_DIST = \
   ffmpeg_cfg.h \
   vbr.h \
   vid_aux.h \
-  xvid.cfg \
-  xvid.h \
-  xvid_vbr.h \
-  xvidcvs.h
+  xvid2.h \
+  xvid3.h \
+  xvid4.h \
+  xvid2.cfg \
+  xvid3.cfg \
+  xvid4.cfg \
+  xvid_vbr.h
 
 subdir = export
 mkinstalldirs = $(SHELL) $(top_srcdir)/autotools/mkinstalldirs
@@ -597,15 +600,15 @@ export_toolame_la_OBJECTS = $(am_export_toolame_la_OBJECTS)
 export_wav_la_DEPENDENCIES =
 am_export_wav_la_OBJECTS = export_wav.lo
 export_wav_la_OBJECTS = $(am_export_wav_la_OBJECTS)
-export_xvid_la_DEPENDENCIES =
-am_export_xvid_la_OBJECTS = export_xvid.lo aud_aux.lo xvid_vbr.lo
-export_xvid_la_OBJECTS = $(am_export_xvid_la_OBJECTS)
-export_xvidcvs_la_DEPENDENCIES =
-am_export_xvidcvs_la_OBJECTS = export_xvidcvs.lo aud_aux.lo xvid_vbr.lo
-export_xvidcvs_la_OBJECTS = $(am_export_xvidcvs_la_OBJECTS)
-export_xvidraw_la_DEPENDENCIES =
-am_export_xvidraw_la_OBJECTS = export_xvidraw.lo aud_aux.lo xvid_vbr.lo
-export_xvidraw_la_OBJECTS = $(am_export_xvidraw_la_OBJECTS)
+export_xvid2_la_DEPENDENCIES =
+am_export_xvid2_la_OBJECTS = export_xvid2.lo aud_aux.lo xvid_vbr.lo
+export_xvid2_la_OBJECTS = $(am_export_xvid2_la_OBJECTS)
+export_xvid3_la_DEPENDENCIES =
+am_export_xvid3_la_OBJECTS = export_xvid3.lo aud_aux.lo xvid_vbr.lo
+export_xvid3_la_OBJECTS = $(am_export_xvid3_la_OBJECTS)
+export_xvid4_la_DEPENDENCIES =
+am_export_xvid4_la_OBJECTS = export_xvid4.lo aud_aux.lo
+export_xvid4_la_OBJECTS = $(am_export_xvid4_la_OBJECTS)
 export_yuv4mpeg_la_DEPENDENCIES =
 am_export_yuv4mpeg_la_OBJECTS = export_yuv4mpeg.lo aud_aux.lo vid_aux.lo
 export_yuv4mpeg_la_OBJECTS = $(am_export_yuv4mpeg_la_OBJECTS)
@@ -642,9 +645,9 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/export_sampeg.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/export_toolame.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/export_wav.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/export_xvid.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/export_xvidcvs.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/export_xvidraw.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/export_xvid2.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/export_xvid3.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/export_xvid4.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/export_yuv4mpeg.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/ffmpeg_cfg.Plo ./$(DEPDIR)/vid_aux.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/xvid_vbr.Plo
@@ -677,13 +680,13 @@ DIST_SOURCES = $(export_ac3_la_SOURCES) $(export_af6_la_SOURCES) \
 	$(export_ogg_la_SOURCES) $(export_pcm_la_SOURCES) \
 	$(export_ppm_la_SOURCES) $(export_raw_la_SOURCES) \
 	$(export_sampeg_la_SOURCES) $(export_toolame_la_SOURCES) \
-	$(export_wav_la_SOURCES) $(export_xvid_la_SOURCES) \
-	$(export_xvidcvs_la_SOURCES) $(export_xvidraw_la_SOURCES) \
+	$(export_wav_la_SOURCES) $(export_xvid2_la_SOURCES) \
+	$(export_xvid3_la_SOURCES) $(export_xvid4_la_SOURCES) \
 	$(export_yuv4mpeg_la_SOURCES)
 DATA = $(pkg_DATA)
 
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(export_ac3_la_SOURCES) $(export_af6_la_SOURCES) $(export_debugppm_la_SOURCES) $(export_divx4_la_SOURCES) $(export_divx4raw_la_SOURCES) $(export_divx5_la_SOURCES) $(export_divx5raw_la_SOURCES) $(export_dv_la_SOURCES) $(export_dvraw_la_SOURCES) $(export_fame_la_SOURCES) $(export_ffmpeg_la_SOURCES) $(export_im_la_SOURCES) $(export_jpg_la_SOURCES) $(export_lame_la_SOURCES) $(export_lzo_la_SOURCES) $(export_mjpeg_la_SOURCES) $(export_mov_la_SOURCES) $(export_mp2enc_la_SOURCES) $(export_mpeg_la_SOURCES) $(export_mpeg2enc_la_SOURCES) $(export_net_la_SOURCES) $(export_null_la_SOURCES) $(export_ogg_la_SOURCES) $(export_pcm_la_SOURCES) $(export_ppm_la_SOURCES) $(export_raw_la_SOURCES) $(export_sampeg_la_SOURCES) $(export_toolame_la_SOURCES) $(export_wav_la_SOURCES) $(export_xvid_la_SOURCES) $(export_xvidcvs_la_SOURCES) $(export_xvidraw_la_SOURCES) $(export_yuv4mpeg_la_SOURCES)
+SOURCES = $(export_ac3_la_SOURCES) $(export_af6_la_SOURCES) $(export_debugppm_la_SOURCES) $(export_divx4_la_SOURCES) $(export_divx4raw_la_SOURCES) $(export_divx5_la_SOURCES) $(export_divx5raw_la_SOURCES) $(export_dv_la_SOURCES) $(export_dvraw_la_SOURCES) $(export_fame_la_SOURCES) $(export_ffmpeg_la_SOURCES) $(export_im_la_SOURCES) $(export_jpg_la_SOURCES) $(export_lame_la_SOURCES) $(export_lzo_la_SOURCES) $(export_mjpeg_la_SOURCES) $(export_mov_la_SOURCES) $(export_mp2enc_la_SOURCES) $(export_mpeg_la_SOURCES) $(export_mpeg2enc_la_SOURCES) $(export_net_la_SOURCES) $(export_null_la_SOURCES) $(export_ogg_la_SOURCES) $(export_pcm_la_SOURCES) $(export_ppm_la_SOURCES) $(export_raw_la_SOURCES) $(export_sampeg_la_SOURCES) $(export_toolame_la_SOURCES) $(export_wav_la_SOURCES) $(export_xvid2_la_SOURCES) $(export_xvid3_la_SOURCES) $(export_xvid4_la_SOURCES) $(export_yuv4mpeg_la_SOURCES)
 
 all: all-am
 
@@ -780,12 +783,12 @@ export_toolame.la: $(export_toolame_la_OBJECTS) $(export_toolame_la_DEPENDENCIES
 	$(LINK) -rpath $(pkgdir) $(export_toolame_la_LDFLAGS) $(export_toolame_la_OBJECTS) $(export_toolame_la_LIBADD) $(LIBS)
 export_wav.la: $(export_wav_la_OBJECTS) $(export_wav_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(export_wav_la_LDFLAGS) $(export_wav_la_OBJECTS) $(export_wav_la_LIBADD) $(LIBS)
-export_xvid.la: $(export_xvid_la_OBJECTS) $(export_xvid_la_DEPENDENCIES) 
-	$(LINK) -rpath $(pkgdir) $(export_xvid_la_LDFLAGS) $(export_xvid_la_OBJECTS) $(export_xvid_la_LIBADD) $(LIBS)
-export_xvidcvs.la: $(export_xvidcvs_la_OBJECTS) $(export_xvidcvs_la_DEPENDENCIES) 
-	$(LINK) -rpath $(pkgdir) $(export_xvidcvs_la_LDFLAGS) $(export_xvidcvs_la_OBJECTS) $(export_xvidcvs_la_LIBADD) $(LIBS)
-export_xvidraw.la: $(export_xvidraw_la_OBJECTS) $(export_xvidraw_la_DEPENDENCIES) 
-	$(LINK) -rpath $(pkgdir) $(export_xvidraw_la_LDFLAGS) $(export_xvidraw_la_OBJECTS) $(export_xvidraw_la_LIBADD) $(LIBS)
+export_xvid2.la: $(export_xvid2_la_OBJECTS) $(export_xvid2_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(export_xvid2_la_LDFLAGS) $(export_xvid2_la_OBJECTS) $(export_xvid2_la_LIBADD) $(LIBS)
+export_xvid3.la: $(export_xvid3_la_OBJECTS) $(export_xvid3_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(export_xvid3_la_LDFLAGS) $(export_xvid3_la_OBJECTS) $(export_xvid3_la_LIBADD) $(LIBS)
+export_xvid4.la: $(export_xvid4_la_OBJECTS) $(export_xvid4_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(export_xvid4_la_LDFLAGS) $(export_xvid4_la_OBJECTS) $(export_xvid4_la_LIBADD) $(LIBS)
 export_yuv4mpeg.la: $(export_yuv4mpeg_la_OBJECTS) $(export_yuv4mpeg_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(export_yuv4mpeg_la_LDFLAGS) $(export_yuv4mpeg_la_OBJECTS) $(export_yuv4mpeg_la_LIBADD) $(LIBS)
 
@@ -827,9 +830,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_sampeg.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_toolame.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_wav.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_xvid.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_xvidcvs.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_xvidraw.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_xvid2.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_xvid3.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_xvid4.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_yuv4mpeg.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ffmpeg_cfg.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vid_aux.Plo@am__quote@

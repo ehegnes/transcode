@@ -2,7 +2,7 @@
  *
  *   XviD VBR Library
  *   
- *   Copyright (C) 2002 Edouard Gomez <ed.gomez@wanadoo.fr>
+ *   Copyright (C) 2002 Edouard Gomez <ed.gomez@free.fr>
  *
  *   The curve treatment algorithm is based on work done by Foxer <email?> and
  *   Dirk Knop <dknop@gwdg.de> for the XviD vfw dynamic library.
@@ -229,3 +229,9 @@ extern int vbrUpdate(vbr_control_t *state,
 extern int vbrFinish(vbr_control_t *state);
 
 #endif
+
+/*
+ * Please do not modify the tag line.
+ *
+ * arch-tag: c2262e37-c3c1-4077-a9d9-2b8f345d8c3f xvid_vbr module header
+ */
