@@ -220,3 +220,21 @@ A:	This message comes from the mp3 decoder (lame). It means (since
 	the file was split at some time.
 	There is not much you can do about it. (tibit)
 ---
+Q:	I have problems encoding with the divx4linux libraries from divx.com
+A:	Transcode ships two divx encoder modules. One is divx4 and one is divx5.
+	Please note that the `4' in divx_4_linux only stands for the word "for"
+	it does <b>not</b> denote the version number.<br />
+	Use -y divx4 if you have a really old version of the divx4linux
+	libraries installed. The divx5 export module is usuable depended on the
+	divx4linux libraries you had installed when you compiled transcode. The
+	Developers from divx.com changed their API in a backwards incompatible
+	way causeing that -y divx5 either supports the new API or the old one.
+	They are mutually exclusive. So if you have problems with -y divx4 try
+	-y divx5.
+	<br />
+	Please note that the current version of the divx4linux libraries
+	available form divx.com have a bug on they may segfault on Pentium4
+	systems. There is another bug in older versions of divx4linux where it
+	crashes when writting data to a FAT32 partition. Look at
+	http://www.exit1.org/dvdrip/doc/faq.cipp#faq11 (tibit)
+---
