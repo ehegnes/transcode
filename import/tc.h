@@ -24,8 +24,6 @@
 #ifndef _TC_H
 #define _TC_H
 
-#include "config.h"
-
 void decode_ac3(decode_t *decode);
 void decode_a52(decode_t *decode);
 void extract_ac3(info_t *ipipe);
