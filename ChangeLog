@@ -1,6 +1,19 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-06-08 Marcel J.E. Mol <marcel at mesa.nl>
+
+  * import/v4l/video.c:
+     - Support the freq key in .xawtv                                                  
+     - Fixed indentation for the code part processing .xawtv to
+     improve readability
+     - Fixed bug in calculating frequency from .xawtv
+     channel and fine keys.
+     - Station names/channel number are checked for exact match of the
+     name/channel in .xawtv instead of the requested one.
+     - When a station name/channel is requested but not found, transcode
+     will be aborted!
+
 2004-05-05 Tilmann Bitterberg <transcode at tibit.org>
   
   * filter/filter_smartyuv.c:
