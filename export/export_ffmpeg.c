@@ -707,8 +707,16 @@ MOD_init {
 	    break;
 	case 0: // not set
 	default:
-	    lavc_venc_context->frame_rate      = (int)(vob->ex_fps*1000.0);
-	    lavc_venc_context->frame_rate_base = 1000;
+		if((vob->ex_fps > 29) && (vob->ex_fps < 30))
+		{
+	    	lavc_venc_context->frame_rate      = 30000;
+	    	lavc_venc_context->frame_rate_base = 1001;
+		}
+		else
+		{
+	    	lavc_venc_context->frame_rate      = (int)(vob->ex_fps*1000.0);
+	    	lavc_venc_context->frame_rate_base = 1000;
+		}
 	    break;
     }
 
