@@ -83,7 +83,13 @@ endif
 endif
 
 
-pkg_LTLIBRARIES = export_null.la export_wav.la export_pcm.la $(MODS1) $(MODS2) $(MODS3) $(MODS4) $(MODS5) $(MODS6) $(MODS7) $(MODS8) $(MOD9) $(MODS10) export_ogg.la export_toolame.la export_sampeg.la $(MODS11) $(MODS12) $(MODS13) $(MODS14)
+pkg_LTLIBRARIES = export_null.la \
+		  export_ac3.la \
+		  export_wav.la \
+		  export_pcm.la \
+		  $(MODS1) $(MODS2) $(MODS3) $(MODS4) $(MODS5) $(MODS6) $(MODS7) $(MODS8) $(MOD9) $(MODS10) export_ogg.la \
+		  export_toolame.la \
+		  export_sampeg.la $(MODS11) $(MODS12) $(MODS13) $(MODS14)
 
 export_null_la_SOURCES = export_null.c
 export_null_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -93,6 +99,9 @@ export_net_la_LDFLAGS = -no-undefined -module -avoid-version
 
 export_toolame_la_SOURCES = export_toolame.c
 export_toolame_la_LDFLAGS = -no-undefined -module -avoid-version 
+
+export_ac3_la_SOURCES = export_ac3.c
+export_ac3_la_LDFLAGS = -no-undefined -module -avoid-version 
 
 export_ogg_la_SOURCES = export_ogg.c
 export_ogg_la_LDFLAGS = -no-undefined -module -avoid-version 

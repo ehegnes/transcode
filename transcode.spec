@@ -1,6 +1,6 @@
 # Note that this is NOT a relocatable package
 Name: transcode
-Version: 0.6.3
+Version: 0.6.4.20030311
 Release: 1
 Summary:  a linux video stream processing utility
 Copyright: GPL

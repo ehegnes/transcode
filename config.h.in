@@ -1,57 +1,7 @@
 /* config.h.in.  Generated from configure.in by autoheader.  */
-#undef HAVE_AVIFILE
-#undef HAVE_LAME
-#undef HAVE_LAME_INC
-#undef HAVE_OGG
-#undef HAVE_VORBIS
-#undef HAVE_DV
-#undef HAVE_A52
-#undef HAVE_LIBXV
-#undef HAVE_LZO
-#undef HAVE_GTK
-#undef HAVE_SDL
-#undef HAVE_MAGICK
-#undef HAVE_X11
-#undef HAVE_LIBMPEG3
-#undef HAVE_QT
-#undef HAVE_OPENQT
-#undef HAVE_LIBPOSTPROC
-#undef HAVE_MJPEG
-#undef HAVE_V4L
-#undef HAVE_LIBLVE
-#undef HAVE_LIBFAME
-#undef HAVE_LIBXML2
-#undef HAVE_LIBJPEG
-#undef HAVE_LIBDVDREAD
-#undef HAVE_LIBDVDREAD_INC
-#undef HAVE_LIBXVID
 
-#undef HAVE_MMX
-#undef HAVE_SSE
-#undef HAVE_ASM_3DNOW
-#undef HAVE_CMOV
-#undef HAVE_ASM_NASM
-#undef HAVE_ASM_MMX
-#undef HAVE_PPC_ALTIVEC
-#undef HAVE_X86CPU
-#undef ARCH_X86
+/* Define if your CPU is PPC */
 #undef ARCH_PPC
-
-#undef WORDS_BIGENDIAN
-
-#undef STATBUFFER
-#undef NET_STREAM
-#undef USE_LIBA52_DECODER
-
-#undef LAME_3_89
-#undef LAME_3_92
-#undef TRANSCODE_0_6
-#undef LIBDV_095
-
-
-
-
-
 
 /* x86 architecture */
 #undef ARCH_X86
@@ -67,6 +17,9 @@
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
 
+/* Have liba52 support */
+#undef HAVE_A52
+
 /* Define to 1 if you have `alloca', as a function or macro. */
 #undef HAVE_ALLOCA
 
@@ -74,11 +27,23 @@
    */
 #undef HAVE_ALLOCA_H
 
+/* Define if you CPU can du 3dnow assembler */
+#undef HAVE_ASM_3DNOW
+
+/* Define if your CPU understands ASM MMX instructions */
+#undef HAVE_ASM_MMX
+
 /* have nasm */
 #undef HAVE_ASM_NASM
 
 /* Define to 1 if you have the `atexit' function. */
 #undef HAVE_ATEXIT
+
+/* Have Avifile support */
+#undef HAVE_AVIFILE
+
+/* Define if your CPU understands CMOV */
+#undef HAVE_CMOV
 
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
@@ -92,6 +57,9 @@
 
 /* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 #undef HAVE_DOPRNT
+
+/* Have dv support */
+#undef HAVE_DV
 
 /* Define to 1 if you have the <errno.h> header file. */
 #undef HAVE_ERRNO_H
@@ -114,17 +82,59 @@
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
 
+/* Have GTK support */
+#undef HAVE_GTK
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+
+/* Have the lame lib */
+#undef HAVE_LAME
+
+/* Have Lame includes in separate path */
+#undef HAVE_LAME_INC
 
 /* Define to 1 if you have the `dl' library (-ldl). */
 #undef HAVE_LIBDL
 
+/* Have Libdvdread support */
+#undef HAVE_LIBDVDREAD
+
+/* Have Libdvdread includes in separate path */
+#undef HAVE_LIBDVDREAD_INC
+
+/* Have libfame support */
+#undef HAVE_LIBFAME
+
+/* Have libjpeg support */
+#undef HAVE_LIBJPEG
+
+/* Have liblve support */
+#undef HAVE_LIBLVE
+
+/* Have libmpeg3 support */
+#undef HAVE_LIBMPEG3
+
+/* Have libpostproc support */
+#undef HAVE_LIBPOSTPROC
+
 /* libxml2 support */
 #undef HAVE_LIBXML2
 
+/* Have libxv support */
+#undef HAVE_LIBXV
+
+/* Have XVID support */
+#undef HAVE_LIBXVID
+
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
+
+/* Have liblzo support */
+#undef HAVE_LZO
+
+/* Have ImageMagick support */
+#undef HAVE_MAGICK
 
 /* Define to 1 if you have the `malloc' function. */
 #undef HAVE_MALLOC
@@ -141,6 +151,9 @@
 /* Define to 1 if you have the `memset' function. */
 #undef HAVE_MEMSET
 
+/* Have mjpeg suppport */
+#undef HAVE_MJPEG
+
 /* mjpegtools support */
 #undef HAVE_MJPEGTOOLS
 
@@ -150,8 +163,29 @@
 /* Define to 1 if you have the `mkfifo' function. */
 #undef HAVE_MKFIFO
 
+/* Define if your CPU understands MMX instructions */
+#undef HAVE_MMX
+
 /* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
+
+/* Have OGG support */
+#undef HAVE_OGG
+
+/* Have openquicktime support */
+#undef HAVE_OPENQT
+
+/* Define if your CPU understands altivec intstructions */
+#undef HAVE_PPC_ALTIVEC
+
+/* Have quicktime support */
+#undef HAVE_QT
+
+/* Have libsdl support */
+#undef HAVE_SDL
+
+/* Define if your CPU understands SSE instructions */
+#undef HAVE_SSE
 
 /* Define to 1 if you have the `stat' function. */
 #undef HAVE_STAT
@@ -205,15 +239,39 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Have Video4linux headers */
+#undef HAVE_V4L
+
+/* Have Vorbis support */
+#undef HAVE_VORBIS
+
 /* Define to 1 if you have the `vprintf' function. */
 #undef HAVE_VPRINTF
 
 /* Define to 1 if you have the `vsscanf' function. */
 #undef HAVE_VSSCANF
 
+/* Have X11 support */
+#undef HAVE_X11
+
+/* Define if you have and X86 based CPU */
+#undef HAVE_X86CPU
+
+/* Have Lame-3.89 or newer */
+#undef LAME_3_89
+
+/* Have Lame-3.92 or newer */
+#undef LAME_3_92
+
+/* Have libdv 0.95 or newer */
+#undef LIBDV_095
+
 /* Define to 1 if `lstat' dereferences a symlink specified with a trailing
    slash. */
 #undef LSTAT_FOLLOWS_SLASHED_SYMLINK
+
+/* Enable network functionality */
+#undef NET_STREAM
 
 /* Name of package */
 #undef PACKAGE
@@ -244,14 +302,26 @@
         STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
+/* Use the static buffers */
+#undef STATBUFFER
+
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
 
+/* Define for transcode_0_6 */
+#undef TRANSCODE_0_6
+
+/* Use the liba52 decoder as default */
+#undef USE_LIBA52_DECODER
+
 /* Version number of package */
 #undef VERSION
+
+/* Define if your CPU is big endian */
+#undef WORDS_BIGENDIAN
 
 /* Define to 1 if the X Window System is missing or not being used. */
 #undef X_DISPLAY_MISSING
@@ -262,6 +332,9 @@
 /* Define as `__inline' if that's what the C compiler calls it, or to nothing
    if it is not supported. */
 #undef inline
+
+/* Define to rpl_malloc if the replacement function should be used. */
+#undef malloc
 
 /* Define to `long' if <sys/types.h> does not define. */
 #undef off_t

@@ -198,8 +198,8 @@ if test x$with_lame = "x"yes ; then
 	AC_CHECK_LIB(mp3lame, lame_init,
        	[LAME_CFLAGS="-I$with_lame_i -I/usr/local/include" 
          LAME_LIBS="-L$with_lame_l -lmp3lame -lm"
-       	AC_DEFINE(HAVE_LAME) 
-	AC_DEFINE_UNQUOTED(LAME_3_89)	
+       	AC_DEFINE([HAVE_LAME], 1, [Have the lame lib]) 
+	AC_DEFINE_UNQUOTED([LAME_3_89], 1, [Have Lame-3.89 or newer])	
 	hav_lame=yes
 	lame89=yes
 	have_lame=yes], [have_lame=no lame89=no], 
@@ -208,15 +208,15 @@ if test x$with_lame = "x"yes ; then
 	AC_CHECK_LIB(mp3lame, lame_set_asm_optimizations,
        	[LAME_CFLAGS="-I$with_lame_i -I/usr/local/include" 
          LAME_LIBS="-L$with_lame_l -lmp3lame -lm"
-	AC_DEFINE_UNQUOTED(LAME_3_92)	
+	AC_DEFINE_UNQUOTED([LAME_3_92], 1, [Have Lame-3.92 or newer])	
 	lame92=yes], [lame92=no], 
        	-L$with_lame_l -lmp3lame -lm)
 
 fi   
 
-AC_CHECK_FILE($with_lame_i/lame/lame.h, [AC_DEFINE(HAVE_LAME_INC) lame_inc=yes])
+AC_CHECK_FILE($with_lame_i/lame/lame.h, [AC_DEFINE(HAVE_LAME_INC, 1, [Have Lame includes in separate path]) lame_inc=yes])
 if test x"$lame_inc" != xyes; then 
-AC_CHECK_FILE(/usr/local/include/lame/lame.h, [AC_DEFINE(HAVE_LAME_INC) lame_inc=yes])
+AC_CHECK_FILE(/usr/local/include/lame/lame.h, [AC_DEFINE([HAVE_LAME_INC], [Have Lame includes in separate path]) lame_inc=yes])
 fi
 
 if test x"$have_lame" != "xyes"; then
@@ -390,9 +390,9 @@ if test x$with_dvdread = "x"yes ; then
 	have_dvdread=yes], have_dvdread=no, 
        	-L$with_dvdread_l -ldvdread -lm)
 
-AC_CHECK_FILE($with_dvdread_i/dvdread/dvd_reader.h, [AC_DEFINE(HAVE_LIBDVDREAD_INC) dvdread_inc=yes])
+AC_CHECK_FILE($with_dvdread_i/dvdread/dvd_reader.h, [AC_DEFINE([HAVE_LIBDVDREAD_INC], 1, [Have Libdvdread includes in separate path]) dvdread_inc=yes])
 if test x"$dvdread_inc" != xyes; then 
-AC_CHECK_FILE(/usr/local/include/dvdread/dvd_reader.h, [AC_DEFINE(HAVE_LIBDVDREAD_INC) dvdread_inc=yes])
+AC_CHECK_FILE(/usr/local/include/dvdread/dvd_reader.h, [AC_DEFINE([HAVE_LIBDVDREAD_INC], 1, [Have Libdvdread includes in separate path]) dvdread_inc=yes])
 fi
 
 if test x"$have_dvdread" != "xyes"; then
@@ -516,7 +516,7 @@ if test x$with_dv = "x"yes ; then
 	AC_CHECK_LIB(dv, dv_encoder_new,
       [DV_CFLAGS="-I$with_dv_i ${GLIB_CFLAGS} -I/usr/local/include"	
        DV_LIBS="-L$with_dv_l -ldv ${EXTRA_LIBS}"
-       AC_DEFINE(LIBDV_095)],, 
+       AC_DEFINE([LIBDV_095], 1, [Have libdv 0.95 or newer])],, 
 	-L$with_dv_l -ldv ${EXTRA_LIBS})
 
 else
@@ -1350,7 +1350,7 @@ if test x"$libjpeg_mods" = xyes; then
 	have_libjpeg=yes have_libjpegmmx=yes
       ], [have_libjpeg=no have_libjpegmmx=no], )
  
-  if test x$LIBJPEG_LIBS == x; then
+  if test x$LIBJPEG_LIBS = x; then
   AC_CHECK_LIB(jpeg, jpeg_CreateCompress,
       [
 	LIBJPEG_CFLAGS=""

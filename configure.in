@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 AC_INIT
 AC_CONFIG_AUX_DIR(autotools)
-AM_INIT_AUTOMAKE(transcode,0.6.3)
+AM_INIT_AUTOMAKE(transcode,0.6.4.20030311)
 AC_CONFIG_SRCDIR(src/transcode.c)
 AM_CONFIG_HEADER(config.h)
   
@@ -27,6 +27,8 @@ CCAS='$(CC)'
 AC_SUBST(CCAS)
 AC_PROG_CC
 AC_SUBST(CCASFLAGS)
+ASFLAGS="$CCASFLAGS"
+AC_SUBST(ASFLAGS)
 
 # functions
 AC_CHECK_FUNCS([strtol])
@@ -67,7 +69,7 @@ AC_C_CONST
 AC_HEADER_TIME
 AC_C_INLINE
 AC_TYPE_SIZE_T 
-AC_C_BIGENDIAN([big_endian=true;AC_DEFINE(WORDS_BIGENDIAN)],big_endian=false)
+AC_C_BIGENDIAN([big_endian=true;AC_DEFINE([WORDS_BIGENDIAN], 1, [Define if your CPU is big endian])],big_endian=false)
 AM_CONDITIONAL(BIG_ENDIAN,test x"$big_endian" = xtrue)
 AC_TYPE_OFF_T
 AC_C_ATTRIBUTE_ALIGNED
@@ -142,8 +144,8 @@ if test "$host_cpu" = "i386" -o "$host_cpu" = "i486" \
   have_x86cpu=true
 
   if test "$enable_mmx_accel" != "no"; then
-   AC_DEFINE(HAVE_X86CPU)
-   AC_DEFINE(ARCH_X86)
+   AC_DEFINE([HAVE_X86CPU], 1, [Define if you have and X86 based CPU])
+   AC_DEFINE([ARCH_X86], 1, [Define if your machine is X86 based])
    AC_MSG_CHECKING([for support for gcc-style register parameters on Intel])
    AC_TRY_COMPILE([],
     [extern void x(
@@ -161,8 +163,8 @@ EOF
     if $CC -c conftest.S ; then
       AC_MSG_RESULT(yes)
       rm -f conftest.*
-      AC_DEFINE(HAVE_ASM_MMX)
-      AC_DEFINE(HAVE_MMX)
+      AC_DEFINE([HAVE_ASM_MMX], 1, [Define if your CPU understands ASM MMX instructions])
+      AC_DEFINE([HAVE_MMX], 1, [Define if your CPU understands MMX instructions])
       have_asm_mmx=true
     else
      AC_MSG_RESULT(no)
@@ -175,11 +177,19 @@ EOF
 no)
    ;;
 *)
-     AC_DEFINE(HAVE_ASM_NASM, 1, have nasm)
-     NASMFLAGS="-felf"
-     AC_SUBST(NASMFLAGS)
-     have_asm_nasm=true
-     nasm=yes
+     dnl Check nasm version
+     AC_MSG_CHECKING([for recent nasm version]) 
+     nasm_patch_version=`${NASM} -r | cut -d '.' -f 3 | cut -d ' ' -f 1`
+     if test "$nasm_patch_version" -lt "34"; then
+       AC_MSG_RESULT([no])
+     else
+       AC_MSG_RESULT([yes])
+       AC_DEFINE(HAVE_ASM_NASM, 1, have nasm)
+       NASMFLAGS="-felf"
+       AC_SUBST(NASMFLAGS)
+       have_asm_nasm=true
+       nasm=yes
+     fi
    ;;
 esac
   ],
@@ -194,7 +204,7 @@ else
  if test "$host_cpu" = "powerpc"; then
    AC_MSG_RESULT(yes)
    have_ppccpu=true
-   AC_DEFINE(ARCH_PPC)
+   AC_DEFINE(ARCH_PPC, 1, [Define if your CPU is PPC])
    AC_MSG_CHECKING([for Altivec support])
     cat > conftest.S <<EOF
        .text
@@ -204,7 +214,7 @@ EOF
    if $CC -c conftest.S ; then
       AC_MSG_RESULT(yes)
       rm -f conftest.*
-      AC_DEFINE(HAVE_PPC_ALTIVEC)
+      AC_DEFINE([HAVE_PPC_ALTIVEC], 1, [Define if your CPU understands altivec intstructions])
       have_ppc_altivec=true
    else
      AC_MSG_RESULT(no)
@@ -225,7 +235,7 @@ if test "$enable_3dnow_accel" != "no" ; then
 EOF
  if $CC -c conftest.S ; then
    rm -f conftest.*
-   AC_DEFINE(HAVE_ASM_3DNOW)
+   AC_DEFINE([HAVE_ASM_3DNOW], 1, [Define if you CPU can du 3dnow assembler])
    have_asm_3dnow=true
  else
    echo "configure: failed program was:" >&AC_FD_CC
@@ -254,13 +264,13 @@ if test x$have_x86cpu = xtrue ; then
   cpu_features=`grep -l CMOV /var/run/dmesg.boot`
   if test X"$cpu_features" = X"/var/run/dmesg.boot" ; then
     have_cmov=true
-    AC_DEFINE(HAVE_CMOV)
+    AC_DEFINE([HAVE_CMOV], 1, [Define if your CPU understands CMOV])
   fi ;;
  *)
   cpu_family=`grep "cpu family" /proc/cpuinfo | awk 'BEGIN { FS = ":"; } { printf "%d", $2 + 0;}'`
   if test "$cpu_family" -gt 5 ; then
     have_cmov=true
-    AC_DEFINE(HAVE_CMOV)
+    AC_DEFINE([HAVE_CMOV], 1, [Define if your CPU understands CMOV])
   fi ;;
  esac
  fi
@@ -321,7 +331,7 @@ if test x"$GCC" = x"yes"; then
     dnl arch-specific flags
     case "$host_cpu" in
     i?86-* | k?-*)
-	AC_DEFINE([ARCH_X86],,[x86 architecture])
+	AC_DEFINE([ARCH_X86], 1,[x86 architecture])
 dnl
 dnl FreeBSD (NetBSD? OpenBSD?) gives i386 anyway
 dnl
@@ -394,7 +404,7 @@ else
 fi], AC_MSG_RESULT(yes))
 
 if test x"${statbuf}" = x"yes"; then
-	AC_DEFINE_UNQUOTED(STATBUFFER)	
+	AC_DEFINE_UNQUOTED([STATBUFFER], 1, [Use the static buffers])	
 fi
 AC_SUBST(STATBUFFER)
 
@@ -409,7 +419,7 @@ AC_ARG_ENABLE(netstream,  [  --enable-netstream      enable network streaming su
 if test x"${enableval}" = x"yes" -a x"$GCC" = x"yes"; then
     AC_MSG_RESULT(yes)
     net=yes
-    AC_DEFINE_UNQUOTED(NET_STREAM)	
+    AC_DEFINE_UNQUOTED([NET_STREAM], 1, [Enable network functionality])	
 else
 AC_MSG_RESULT(no)
 net=no
@@ -417,7 +427,7 @@ fi], AC_MSG_RESULT(yes))
 AM_CONDITIONAL(NET_STREAM, test x"$net" = x"yes")
 
 if test x"${net}" = x"yes"; then
-    AC_DEFINE_UNQUOTED(NET_STREAM)	
+    AC_DEFINE_UNQUOTED([NET_STREAM], 1, [Enable network functionality])	
 fi
 AC_SUBST(NET_STREAM)
 
@@ -426,7 +436,7 @@ dnl
 dnl AVIFILE support
 dnl
 
-AM_PATH_AVIFILE(AC_DEFINE(HAVE_AVIFILE))
+AM_PATH_AVIFILE(AC_DEFINE([HAVE_AVIFILE], 1, [Have Avifile support]))
 AM_CONDITIONAL(HAVE_AVIFILE, test x"$have_avifile" = "xyes")
 
 dnl
@@ -446,7 +456,7 @@ else
 fi], )
 
 if test x"${v4l}" = x"yes" ; then
-AC_DEFINE(HAVE_V4L)	
+AC_DEFINE([HAVE_V4L], 1, [Have Video4linux headers])	
 AC_MSG_RESULT(yes)
 fi
 
@@ -456,7 +466,7 @@ dnl
 dnl lame support
 dnl
 
-AM_PATH_LAME(AC_DEFINE(HAVE_LAME))
+AM_PATH_LAME(AC_DEFINE([HAVE_LAME], 1, [Have lame lib support]))
 AM_CONDITIONAL(HAVE_LAME, test x"$have_lame" = "xyes")
 AM_CONDITIONAL(LAME_3_89, test x"$lame89" = "xyes")
 AM_CONDITIONAL(LAME_3_92, test x"$lame92" = "xyes")
@@ -465,14 +475,14 @@ dnl
 dnl ogg support
 dnl
 
-AM_PATH_OGG(AC_DEFINE(HAVE_OGG))
+AM_PATH_OGG(AC_DEFINE([HAVE_OGG], 1, [Have OGG support]))
 AM_CONDITIONAL(HAVE_OGG, test x"$have_ogg" = "xyes")
 
 dnl
 dnl vorbis support
 dnl
 
-AM_PATH_VORBIS(AC_DEFINE(HAVE_VORBIS))
+AM_PATH_VORBIS(AC_DEFINE([HAVE_VORBIS], 1, [Have Vorbis support]))
 AM_CONDITIONAL(HAVE_VORBIS, test x"$have_vorbis" = "xyes")
 
 
@@ -481,7 +491,7 @@ dnl libdvdread support
 dnl
 
 have_dvdread=no
-AM_PATH_LIBDVDREAD(AC_DEFINE(HAVE_LIBDVDREAD))
+AM_PATH_LIBDVDREAD(AC_DEFINE([HAVE_LIBDVDREAD], 1, [Have Libdvdread support]))
 AM_CONDITIONAL(HAVE_LIBDVDREAD, test x"$have_dvdread" = "xyes")
 
 dnl
@@ -489,63 +499,63 @@ dnl libxvidcore support
 dnl
 
 have_xvidcore=no
-AM_PATH_LIBXVID(AC_DEFINE(HAVE_LIBXVID))
+AM_PATH_LIBXVID(AC_DEFINE([HAVE_LIBXVID], 1, [Have XVID support]))
 AM_CONDITIONAL(HAVE_LIBXVID, test x"$have_xvidcore" = "xyes")
 
 dnl
 dnl libmpeg3 support
 dnl
 
-AM_PATH_LIBMPEG3(AC_DEFINE(HAVE_LIBMPEG3))
+AM_PATH_LIBMPEG3(AC_DEFINE([HAVE_LIBMPEG3], 1, [Have libmpeg3 support]))
 AM_CONDITIONAL(HAVE_LIBMPEG3, test x"$have_libmpeg3" = "xyes")
 
 dnl
 dnl MPlayer libpostproc
 dnl
 
-AM_PATH_POSTPROC(AC_DEFINE(HAVE_LIBPOSTPROC))
+AM_PATH_POSTPROC(AC_DEFINE([HAVE_LIBPOSTPROC], 1, [Have libpostproc support]))
 AM_CONDITIONAL(HAVE_LIBPOSTPROC, test x"$have_libpostproc" = "xyes")
 
 dnl
 dnl GM's lve
 dnl
 
-AM_PATH_LVE(AC_DEFINE(HAVE_LIBLVE))
+AM_PATH_LVE(AC_DEFINE([HAVE_LIBLVE], 1, [Have liblve support]))
 AM_CONDITIONAL(HAVE_LIBLVE, test x"$have_liblve" = "xyes")
 
 dnl
 dnl libquicktime support
 dnl
 
-AM_PATH_QT(AC_DEFINE(HAVE_QT))
+AM_PATH_QT(AC_DEFINE([HAVE_QT], 1, [Have quicktime support]))
 AM_CONDITIONAL(HAVE_QT, test x"$have_qt" = "xyes")
 
 dnl
 dnl libquicktime support
 dnl
 
-AM_PATH_OPENQT(AC_DEFINE(HAVE_OPENQT))
+AM_PATH_OPENQT(AC_DEFINE([HAVE_OPENQT], 1, [Have openquicktime support]))
 AM_CONDITIONAL(HAVE_OPENQT, test x"$have_openqt" = "xyes")
 
 dnl
 dnl DV support
 dnl
 
-AM_PATH_DV(AC_DEFINE(HAVE_DV))
+AM_PATH_DV(AC_DEFINE([HAVE_DV], 1, [Have dv support]))
 AM_CONDITIONAL(HAVE_DV, test x"$have_dv" = "xyes")
 
 dnl
 dnl LZO support
 dnl
 
-AM_PATH_LZO(AC_DEFINE(HAVE_LZO))
+AM_PATH_LZO(AC_DEFINE([HAVE_LZO], 1, [Have liblzo support]))
 AM_CONDITIONAL(HAVE_LZO, test x"$have_lzo" = "xyes")
 
 dnl
 dnl A52 support
 dnl
 
-AM_PATH_A52(AC_DEFINE(HAVE_A52))
+AM_PATH_A52(AC_DEFINE([HAVE_A52], 1, [Have liba52 support]))
 AM_CONDITIONAL(HAVE_A52, test x"$have_a52" = "xyes")
 
 dnl
@@ -567,7 +577,7 @@ else
 fi], AC_MSG_RESULT(no))
 
 if test x"${a52_decoder}" = x"yes"; then
-	AC_DEFINE_UNQUOTED(USE_LIBA52_DECODER)	
+	AC_DEFINE_UNQUOTED([USE_LIBA52_DECODER], 1, [Use the liba52 decoder as default])	
 fi
 AC_SUBST(USE_LIBA52_DECODER)
 else
@@ -586,7 +596,7 @@ AC_SUBST([LIBXML2_LIBS])
 AC_CHECK_PROG([LIBXML2CONFIG],[xml2-config],[yes])
 if test x"$LIBXML2CONFIG" = x"yes"
 then
-       AC_DEFINE([HAVE_LIBXML2],,[libxml2 support])
+       AC_DEFINE([HAVE_LIBXML2],1 ,[libxml2 support])
        LIBXML2_CFLAGS="`xml2-config --cflags`"
        LIBXML2_LIBS="`xml2-config --libs`"
 else
@@ -607,8 +617,8 @@ AC_SUBST([MJPEG_LIBS])
 AC_CHECK_PROG([MJPEGTOOLSCONFIG],[mjpegtools-config],[yes])
 if test x"$MJPEGTOOLSCONFIG" = x"yes"
 then
-	AC_DEFINE([HAVE_MJPEGTOOLS],,[mjpegtools support])
-	AC_DEFINE(HAVE_MJPEG)
+	AC_DEFINE([HAVE_MJPEGTOOLS], 1,[mjpegtools support])
+	AC_DEFINE([HAVE_MJPEG], 1, [Have mjpeg suppport])
   	MJPEG_CFLAGS="`mjpegtools-config --cflags`"
   	MJPEG_LIBS="`mjpegtools-config --libs`"
 	mjpeg_incs="`mjpegtools-config --prefix`/include/mjpegtools"
@@ -645,7 +655,7 @@ AC_PATH_XTRA
 if test "-DX_DISPLAY_MISSING" = "$X_CFLAGS"; then
   	AC_MSG_ERROR(can not find X11)
 else
-AC_DEFINE(HAVE_X11)
+AC_DEFINE([HAVE_X11], 1, [Have X11 support])
 fi
 
 AC_SUBST(X_CFLAGS)
@@ -660,14 +670,14 @@ AM_CONDITIONAL(HAVE_X11, test x"${USE_X11}" = "xyes")
 
 have_xv=no
 AC_CHECK_LIB(Xv, XvQueryExtension,
-[	AC_DEFINE(HAVE_LIBXV)
+[	AC_DEFINE([HAVE_LIBXV], 1, [Have libxv support])
 	have_xv=yes
 ],, $X_LIBS $X_PRE_LIBS -lXext -lX11 $X_EXTRA_LIBS)
 AM_CONDITIONAL(HAVE_LIBXV, test x"$have_xv" = "xyes")
 
 have_sdl=no
 AM_PATH_SDL(1.1.6, 
-[	AC_DEFINE(HAVE_SDL)
+[	AC_DEFINE([HAVE_SDL], 1, [Have libsdl support])
 	have_sdl=yes
 ])
 AM_CONDITIONAL(HAVE_SDL, test x"$have_sdl" = "xyes")
@@ -676,7 +686,7 @@ AM_CONDITIONAL(HAVE_SDL, test x"$have_sdl" = "xyes")
 have_gtk=no
 AM_PATH_GTK(,
 [
-	AC_DEFINE(HAVE_GTK) 
+	AC_DEFINE([HAVE_GTK], 1, [Have GTK support]) 
 	have_gtk=yes	
 ])
 AM_CONDITIONAL(HAVE_GTK, test x"$have_gtk" = "xyes")
@@ -688,7 +698,7 @@ dnl
 have_libfame=no
 AM_PATH_LIBFAME(,
 [
-	AC_DEFINE(HAVE_LIBFAME) 
+	AC_DEFINE([HAVE_LIBFAME], 1, [Have libfame support]) 
 	have_libfame=yes	
 ])
 AM_CONDITIONAL(HAVE_LIBFAME, test x"$have_libfame" = "xyes")
@@ -697,14 +707,14 @@ dnl
 dnl MAGICK support
 dnl
 
-AM_PATH_MAGICK(AC_DEFINE(HAVE_MAGICK))
+AM_PATH_MAGICK(AC_DEFINE([HAVE_MAGICK], 1, [Have ImageMagick support]))
 AM_CONDITIONAL(HAVE_MAGICK, test x"$have_magick" = "xyes")
 
 dnl
 dnl libjpg support
 dnl
 
-AM_PATH_LIBJPEG(AC_DEFINE(HAVE_LIBJPEG))
+AM_PATH_LIBJPEG(AC_DEFINE([HAVE_LIBJPEG], 1, [Have libjpeg support]))
 AM_CONDITIONAL(HAVE_LIBJPEG, test x"$have_libjpeg" = "xyes")
 
 dnl import/export module path
@@ -756,11 +766,11 @@ AM_CONDITIONAL(HAVE_SSE, test x"$use_sse" = x"yes")
 if test x"$use_sse" = x"no" ; then
 	AC_MSG_RESULT(*** All of sse dependent parts will be disabled ***)
 else
-AC_DEFINE(HAVE_SSE)
+AC_DEFINE([HAVE_SSE], 1, [Define if your CPU understands SSE instructions])
 fi
 
 transcode_0_6=yes
-AC_DEFINE(TRANSCODE_0_6)
+AC_DEFINE([TRANSCODE_0_6], 1, [Define for transcode_0_6])
 AM_CONDITIONAL(TRANSCODE_0_6,test x"$transcode_0_6" = x"yes")
 
 X_CFLAGS=`echo $X_CFLAGS | sed -e 's/  */ /g'`
@@ -852,4 +862,13 @@ experimental Ogg support | Vorbis support        $have_ogg | $have_vorbis
 XVID support with libxvidcore                    $have_xvidcore
 ----------------------------------------------------------
 ])
+if test x"$have_x86cpu" = x"true"; then
+  case "${NASM}" in
+  no)
+     AC_MSG_RESULT([
+It is recommended that you install/upgrade your nasm.
+You need at least 0.9.34 from http://nasm.sf.net])
+  ;;
+  esac
+fi
 

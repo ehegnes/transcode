@@ -7,7 +7,7 @@ SUBDIRS = . autotools docs contrib libsupport libioaux\
 	libmp3lame libdvenc bbmpeg ffmpeg dvdread\
 	import export filter src tools
 
-EXTRA_DIST=acconfig.h transcode.spec libtool
+EXTRA_DIST=transcode.spec libtool
 
 
 
