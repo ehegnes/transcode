@@ -35,7 +35,7 @@
 #include "parse.h"
 
 /* Misc LUT */
-static const uint_16 nfchans[8] = {2,1,2,3,3,4,4,5};
+static const unsigned char nfchans[] = {2,1,2,3,3,4,4,5,1,1,2};
 
 struct frmsize_s
 {
@@ -120,15 +120,12 @@ int get_ac3_framesize(char *buf)
 int get_ac3_nfchans(char *buf) 
 {
   int acmod = 0;
-  uint_8 tmp = 0;
 
   // skip syncinfo (size = 5bytes);
-  buf += 5;
   // skip to acmod
-  buf += 1;
-  acmod = (*buf>>5)&0x7;
+  acmod = buf[6]>>5;
 
-  if (acmod < 0 || acmod > 7) return -1;
+  if (acmod < 0 || acmod > 11) return -1;
 
   return(nfchans[acmod]);
 }
