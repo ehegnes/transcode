@@ -21,10 +21,6 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "ioaux.h"
 #include "tc.h"
 
@@ -54,7 +50,7 @@ probe_bktr(info_t * ipipe)
     close(ipipe->fd_in);
     ipipe->fd_in = open(ipipe->name, O_RDONLY, 0);
     if (ipipe->fd_in < 0) {
-	fprintf(stderr, "[probe_bktr] cannot (re)open device in RW mode\n");
+	fprintf(stderr, "[probe_bktr] cannot open device\n");
 	perror("[probe_bktr] open bktr device");
 	goto error;
     }
@@ -71,16 +67,16 @@ probe_bktr(info_t * ipipe)
             fprintf(stderr, "yes\n");
     }
 
-    ipipe->probe_info->magic = TC_MAGIC_BKTR_VIDEO;
-
     if (ioctl(ipipe->fd_in, BT848_GCAPAREA, &caparea) < 0) {
 	perror("BT848_GCAPAREA");
+        goto error;
     }
     ipipe->probe_info->width = caparea.x_size;
     ipipe->probe_info->height = caparea.y_size;
 
     if (ioctl(ipipe->fd_in, METEORGFPS, &fps) < 0) {
 	perror("METEORGFPS");
+        goto error;
     }
     ipipe->probe_info->fps = fps;
     switch(fps) {
@@ -94,6 +90,8 @@ probe_bktr(info_t * ipipe)
             break;
     }
 
+    ipipe->probe_info->magic = TC_MAGIC_BKTR_VIDEO;
+
     return;
 
 error:
@@ -106,6 +104,7 @@ error:
 }
 
 #else			/* HAVE_BKTR */
+
 void 
 probe_bktr(info_t * ipipe)
 {
@@ -113,4 +112,5 @@ probe_bktr(info_t * ipipe)
     ipipe->probe_info->codec = TC_CODEC_UNKNOWN;
     ipipe->probe_info->magic = TC_MAGIC_UNKNOWN;
 }
+
 #endif
