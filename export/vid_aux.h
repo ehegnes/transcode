@@ -24,8 +24,8 @@
 #ifndef _VID_AUX_H
 #define _VID_AUX_H
 
-#include "config.h"
 #include "transcode.h"
+
 #include "libvo/rgb2yuv.h"
 #include "libvo/yuv2rgb.h"
 

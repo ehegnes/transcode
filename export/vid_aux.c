@@ -23,8 +23,6 @@
 
 #include "vid_aux.h"
 
-#include "transcode.h"
-
 static int convert=0, convertY=0;
 static int x_dim=0, y_dim=0;
 static int x_dimY=0, y_dimY=0;
