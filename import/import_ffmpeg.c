@@ -33,7 +33,7 @@
 #include "magic.h"
 
 #define MOD_NAME    "import_ffmpeg.so"
-#define MOD_VERSION "v0.1.9 (2003-12-07)"
+#define MOD_VERSION "v0.1.10 (2003-12-30)"
 #define MOD_CODEC   "(video)  " LIBAVCODEC_IDENT \
                     ": MS MPEG4v1-3/MPEG4/MJPEG"
 #define MOD_PRE ffmpeg
@@ -95,6 +95,12 @@ static struct ffmpeg_codec ffmpeg_codecs[] = {
     {"MPG2", ""}},
   {CODEC_ID_MPEG2VIDEO, TC_CODEC_MPEG, "mpeg2video",
     {"MPG2", ""}},
+  {CODEC_ID_ASV1, TC_CODEC_ASV1, "asv1",
+    {"ASV1", ""}},
+  {CODEC_ID_ASV2, TC_CODEC_ASV2, "asv2",
+    {"ASV2", ""}},
+  {CODEC_ID_FFV1, TC_CODEC_FFV1, "ffv1",
+    {"FFV1", ""}},
   {0, TC_CODEC_UNKNOWN, NULL, {""}}};
 
 #define BUFFER_SIZE SIZE_RGB_FRAME
@@ -236,6 +242,7 @@ static unsigned char *bufalloc(size_t size) {
 MOD_open {
   char   *fourCC = NULL;
   double  fps = 0;
+  int extra_data_size = 0;
 
   if (param->flag == TC_VIDEO) {
     
@@ -324,6 +331,26 @@ do_avi:
     lavc_dec_context->error_resilience = 2;
     lavc_dec_context->error_concealment = 3;
     lavc_dec_context->workaround_bugs = FF_BUG_AUTODETECT;
+
+    // XXX: some codecs need extra data
+    switch (codec->id)
+    {
+      case CODEC_ID_MJPEG: extra_data_size  = 28; break;
+      case CODEC_ID_LJPEG: extra_data_size  = 28; break;
+      case CODEC_ID_HUFFYUV: extra_data_size = 1000; break;
+      case CODEC_ID_ASV1: extra_data_size = 8; break;
+      case CODEC_ID_ASV2: extra_data_size = 8; break;
+      case CODEC_ID_WMV1: extra_data_size = 4; break;
+      case CODEC_ID_WMV2: extra_data_size = 4; break;
+      default: extra_data_size = 0; break;
+    }
+
+    if (extra_data_size) {
+      lavc_dec_context->extradata = malloc(extra_data_size);
+      memset (lavc_dec_context->extradata, 0, extra_data_size);
+      lavc_dec_context->extradata_size = extra_data_size;
+    }
+    
 
     if (avcodec_open(lavc_dec_context, lavc_dec_codec) < 0) {
       fprintf(stderr, "[%s] Could not initialize the '%s' codec.\n", MOD_NAME,

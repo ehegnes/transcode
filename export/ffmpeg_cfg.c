@@ -22,56 +22,60 @@
  * Default values as taken from MPlayer's libmpcodecs/ve_lavc.c
  */
 
+/* video options */
+//char *lavc_param_vcodec = "mpeg4";
 //int lavc_param_vbitrate = -1;
 int lavc_param_vrate_tolerance = 1000*8;
-int lavc_param_v4mv = 0;
 int lavc_param_mb_decision = 1; /* default is NOT realtime encoding */
+int lavc_param_v4mv = 0;
 int lavc_param_vme = 4;
 //int lavc_param_vqscale = 0;
 //int lavc_param_vqmin = 2;
 //int lavc_param_vqmax = 31;
 int lavc_param_mb_qmin = 2;
 int lavc_param_mb_qmax = 31;
+int lavc_param_lmin = 2;
+int lavc_param_lmax = 31;
 int lavc_param_vqdiff = 3;
 float lavc_param_vqcompress = 0.5;
 float lavc_param_vqblur = 0.5;
 float lavc_param_vb_qfactor = 1.25;
+float lavc_param_vb_qoffset = 1.25;
+float lavc_param_vi_qfactor = 0.8;
+float lavc_param_vi_qoffset = 0.0;
 int lavc_param_vmax_b_frames = 0;
+//int lavc_param_keyint = -1;
 //int lavc_param_vpass = 0;
 int lavc_param_vrc_strategy = 2;
 int lavc_param_vb_strategy = 0;
-float lavc_param_vb_qoffset = 1.25;
 int lavc_param_luma_elim_threshold = 0;
 int lavc_param_chroma_elim_threshold = 0;
 int lavc_param_packet_size= 0;
 int lavc_param_strict= 0;
 int lavc_param_data_partitioning= 0;
-//int lavc_param_keyint = -1;
 int lavc_param_gray=0;
-int lavc_param_mpeg_quant=0;
-float lavc_param_vi_qfactor = 0.8;
-float lavc_param_vi_qoffset = 0.0;
 float lavc_param_rc_qsquish=1.0;
 float lavc_param_rc_qmod_amp=0;
 int lavc_param_rc_qmod_freq=0;
-char *lavc_param_rc_eq="tex^qComp";
 char *lavc_param_rc_override_string=NULL;
-int lavc_param_rc_max_rate=0;
-int lavc_param_rc_min_rate=0;
+char *lavc_param_rc_eq="tex^qComp";
 int lavc_param_rc_buffer_size=0;
 float lavc_param_rc_buffer_aggressivity=1.0;
+int lavc_param_rc_max_rate=0;
+int lavc_param_rc_min_rate=0;
 float lavc_param_rc_initial_cplx=0.0;
+int lavc_param_mpeg_quant=0;
 int lavc_param_fdct=0;
+int lavc_param_idct=0;
 char* lavc_param_aspect=NULL;
 int lavc_param_autoaspect=1; // FLAG
 float lavc_param_lumi_masking= 0.0;
+float lavc_param_dark_masking= 0.0;
 float lavc_param_temporal_cplx_masking= 0.0;
 float lavc_param_spatial_cplx_masking= 0.0;
 float lavc_param_p_masking= 0.0;
 int lavc_param_normalize_aqp= 0;
-float lavc_param_dark_masking= 0.0;
-int lavc_param_interlaced_dct= 0;
-int lavc_param_idct=0;
+//int lavc_param_interlaced_dct= 0;
 int lavc_param_prediction_method= FF_PRED_LEFT;
 char *lavc_param_format="YV12";
 int lavc_param_debug= 0;
@@ -84,14 +88,12 @@ int lavc_param_pre_dia_size= 0;
 int lavc_param_dia_size= 0;
 int lavc_param_qpel= 0;
 int lavc_param_trell= 0;
+int lavc_param_aic=0;
+int lavc_param_umv=0;
 int lavc_param_last_pred= 0;
 int lavc_param_pre_me= 1;
 int lavc_param_me_subpel_quality= 8;
 int lavc_param_me_range=0;
-#ifdef CODEC_FLAG_H263P_AIC
-int lavc_param_aic=0;
-int lavc_param_umv=0;
-#endif
 int lavc_param_ibias=FF_DEFAULT_QUANT_BIAS;
 int lavc_param_pbias=FF_DEFAULT_QUANT_BIAS;
 int lavc_param_coder=0;
@@ -100,8 +102,20 @@ char *lavc_param_intra_matrix = NULL;
 char *lavc_param_inter_matrix = NULL;
 int lavc_param_cbp= 0;
 int lavc_param_mv0= 0;
+int lavc_param_noise_reduction= 0;
+int lavc_param_qp_rd= 0;
+
+//char *lavc_param_acodec = "mp2";
+//int lavc_param_atag = 0;
+//int lavc_param_abitrate = 224;
+
+
+
 
 struct config lavcopts_conf[]={
+//    {"acodec", &lavc_param_acodec, CONF_TYPE_STRING, 0, 0, 0, NULL},
+//    {"abitrate", &lavc_param_abitrate, CONF_TYPE_INT, CONF_RANGE, 1, 1000, NULL},
+//    {"atag", &lavc_param_atag, CONF_TYPE_INT, CONF_RANGE, 0, 0xffff, NULL},
 //    {"vcodec", &lavc_param_vcodec, CONF_TYPE_STRING, 0, 0, 0, NULL},
 //    {"vbitrate", &lavc_param_vbitrate, CONF_TYPE_INT, CONF_RANGE, 4, 24000000, NULL},
     {"vratetol", &lavc_param_vrate_tolerance, CONF_TYPE_INT, CONF_RANGE, 4, 24000000, NULL},
@@ -114,6 +128,8 @@ struct config lavcopts_conf[]={
 //    {"vqmax", &lavc_param_vqmax, CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
     {"mbqmin", &lavc_param_mb_qmin, CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
     {"mbqmax", &lavc_param_mb_qmax, CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
+    {"lmin", &lavc_param_lmin, CONF_TYPE_FLOAT, CONF_RANGE, 0.01, 255.0, NULL},
+    {"lmax", &lavc_param_lmax, CONF_TYPE_FLOAT, CONF_RANGE, 0.01, 255.0, NULL},
     {"vqdiff", &lavc_param_vqdiff, CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
     {"vqcomp", &lavc_param_vqcompress, CONF_TYPE_FLOAT, CONF_RANGE, 0.0, 1.0, NULL},
     {"vqblur", &lavc_param_vqblur, CONF_TYPE_FLOAT, CONF_RANGE, 0.0, 1.0, NULL},
@@ -138,8 +154,8 @@ struct config lavcopts_conf[]={
     {"vqmod_freq", &lavc_param_rc_qmod_freq, CONF_TYPE_INT, 0, 0, 0, NULL},
     {"vrc_eq", &lavc_param_rc_eq, CONF_TYPE_STRING, 0, 0, 0, NULL},
     {"vrc_override", &lavc_param_rc_override_string, CONF_TYPE_STRING, 0, 0, 0, NULL},
-    {"vrc_maxrate", &lavc_param_rc_max_rate, CONF_TYPE_INT, CONF_RANGE, 4, 24000000, NULL},
-    {"vrc_minrate", &lavc_param_rc_min_rate, CONF_TYPE_INT, CONF_RANGE, 4, 24000000, NULL},
+    {"vrc_maxrate", &lavc_param_rc_max_rate, CONF_TYPE_INT, CONF_RANGE, 0, 24000000, NULL},
+    {"vrc_minrate", &lavc_param_rc_min_rate, CONF_TYPE_INT, CONF_RANGE, 0, 24000000, NULL},
     {"vrc_buf_size", &lavc_param_rc_buffer_size, CONF_TYPE_INT, CONF_RANGE, 4, 24000000, NULL},
     {"vrc_buf_aggressivity", &lavc_param_rc_buffer_aggressivity, CONF_TYPE_FLOAT, CONF_RANGE, 0.0, 99.0, NULL},
     {"vrc_init_cplx", &lavc_param_rc_initial_cplx, CONF_TYPE_FLOAT, CONF_RANGE, 0.0, 9999999.0, NULL},
@@ -152,7 +168,7 @@ struct config lavcopts_conf[]={
     {"p_mask", &lavc_param_p_masking, CONF_TYPE_FLOAT, CONF_RANGE, -1.0, 1.0, NULL},
     {"naq", &lavc_param_normalize_aqp, CONF_TYPE_FLAG, 0, 0, 1, NULL},
     {"dark_mask", &lavc_param_dark_masking, CONF_TYPE_FLOAT, CONF_RANGE, -1.0, 1.0, NULL},
-    {"ildct", &lavc_param_interlaced_dct, CONF_TYPE_FLAG, 0, 0, 1, NULL},
+    //{"ildct", &lavc_param_interlaced_dct, CONF_TYPE_FLAG, 0, 0, 1, NULL},
     {"idct", &lavc_param_idct, CONF_TYPE_INT, CONF_RANGE, 0, 20, NULL},
     {"pred", &lavc_param_prediction_method, CONF_TYPE_INT, CONF_RANGE, 0, 20, NULL},
     {"format", &lavc_param_format, CONF_TYPE_STRING, 0, 0, 0, NULL},
@@ -170,10 +186,8 @@ struct config lavcopts_conf[]={
     {"preme", &lavc_param_pre_me, CONF_TYPE_INT, CONF_RANGE, 0, 2000, NULL},
     {"subq", &lavc_param_me_subpel_quality, CONF_TYPE_INT, CONF_RANGE, 0, 8, NULL},
     {"me_range", &lavc_param_me_range, CONF_TYPE_INT, CONF_RANGE, 0, 16000, NULL},
-#ifdef CODEC_FLAG_H263P_AIC
     {"aic", &lavc_param_aic, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_AIC, NULL},
     {"umv", &lavc_param_umv, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_UMV, NULL},
-#endif
     {"ibias", &lavc_param_ibias, CONF_TYPE_INT, CONF_RANGE, -512, 512, NULL},
     {"pbias", &lavc_param_pbias, CONF_TYPE_INT, CONF_RANGE, -512, 512, NULL},
     {"coder", &lavc_param_coder, CONF_TYPE_INT, CONF_RANGE, 0, 10, NULL},
@@ -182,6 +196,8 @@ struct config lavcopts_conf[]={
     {"inter_matrix", &lavc_param_inter_matrix, CONF_TYPE_STRING, 0, 0, 0, NULL},
     {"cbp", &lavc_param_cbp, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_CBP_RD, NULL},
     {"mv0", &lavc_param_mv0, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_MV0, NULL},
+    {"nr", &lavc_param_noise_reduction, CONF_TYPE_INT, CONF_RANGE, 0, 1000000, NULL},
+    {"qprd", &lavc_param_qp_rd, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_QP_RD, NULL},
     {NULL, NULL, 0, 0, 0, 0, NULL}
 };
 

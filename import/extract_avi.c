@@ -146,6 +146,15 @@ void probe_avi(info_t *ipipe)
 	if(strcasecmp(codec,"FPS1")==0)
 	  ipipe->probe_info->codec=TC_CODEC_FRAPS;
 	
+	if(strcasecmp(codec,"ASV1")==0)
+	  ipipe->probe_info->codec=TC_CODEC_ASV1;
+	
+	if(strcasecmp(codec,"ASV2")==0)
+	  ipipe->probe_info->codec=TC_CODEC_ASV2;
+	
+	if(strcasecmp(codec,"FFV1")==0)
+	  ipipe->probe_info->codec=TC_CODEC_FFV1;
+	
       }
     } else
       ipipe->probe_info->codec=TC_CODEC_UNKNOWN;

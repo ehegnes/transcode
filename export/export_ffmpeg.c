@@ -53,7 +53,7 @@
 #endif
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.3.8 (2003-10-11)"
+#define MOD_VERSION "v0.3.11 (2003-12-30)"
 #define MOD_CODEC   "(video) " LIBAVCODEC_IDENT \
                     " | (audio) MPEG/AC3/PCM"
 #define MOD_PRE ffmpeg
@@ -85,6 +85,7 @@ struct ffmpeg_codec ffmpeg_codecs[] = {
   {"msmpeg4", "div3", "old DivX3 compatible (aka MSMPEG4v3)", 1},
   {"msmpeg4v2", "MP42", "old DivX3 compatible (older version)", 1},
   {"mjpeg", "MJPG", "Motion JPEG", 0},
+  {"ljpeg", "LJPG", "Lossless JPEG", 0},
   {"mpeg1video", "mpg1", "MPEG1 compliant video", 1},
   {"mpeg1", "mpg1", "MPEG1 compliant video (alias of above)", 1},
   {"mpeg2video", "mpg2", "MPEG2 compliant video", 1},
@@ -96,6 +97,9 @@ struct ffmpeg_codec ffmpeg_codecs[] = {
   {"rv10", "RV10", "old RealVideo codec", 1},
   {"huffyuv", "HFYU", "Lossless HUFFYUV codec", 1},
   {"dvvideo", "DVSD", "Digital Video", 0},
+  {"ffv1", "FFV1", "FF Video Codec 1 (an experimental lossless codec)", 0},
+  {"asv1", "ASV1", "ASUS V1 codec", 0},
+  {"asv2", "ASV2", "ASUS V2 codec", 0},
   {NULL, NULL, NULL, 0}};
 
 
@@ -115,6 +119,8 @@ static struct ffmpeg_codec *codec;
 static int                  is_mpegvideo = 0;
 static int                  is_huffyuv = 0;
 static FILE                *mpeg1fd = NULL;
+static int					interlacing_active = 0;
+static int					interlacing_top_first = 0;
 
 // We can't declare lavc_param_psnr static so save it to this variable
 static int                  do_psnr = 0;
@@ -327,7 +333,7 @@ MOD_init {
 
     lavc_venc_context->width              = vob->ex_v_width;
     lavc_venc_context->height             = vob->ex_v_height;
-    lavc_venc_context->bit_rate           = vob->divxbitrate * 1000;
+    lavc_venc_context->bit_rate           = vob->divxbitrate * 999;
     lavc_venc_context->qmin               = vob->min_quantizer;
     lavc_venc_context->qmax               = vob->max_quantizer;
 
@@ -394,6 +400,10 @@ MOD_init {
     //if (lavc_param_vhq) lavc_venc_context->flags |= CODEC_FLAG_HQ;
 
     lavc_venc_context->bit_rate_tolerance = lavc_param_vrate_tolerance * 1000;
+    lavc_venc_context->mb_qmin= lavc_param_mb_qmin;
+    lavc_venc_context->mb_qmax= lavc_param_mb_qmax;
+    lavc_venc_context->lmin= (int)(FF_QP2LAMBDA * lavc_param_lmin + 0.5);
+    lavc_venc_context->lmax= (int)(FF_QP2LAMBDA * lavc_param_lmax + 0.5);
     lavc_venc_context->max_qdiff          = lavc_param_vqdiff;
     lavc_venc_context->qcompress          = lavc_param_vqcompress;
     lavc_venc_context->qblur              = lavc_param_vqblur;
@@ -430,7 +440,7 @@ MOD_init {
     lavc_venc_context->inter_quant_bias   = lavc_param_pbias;
     lavc_venc_context->coder_type         = lavc_param_coder;
     lavc_venc_context->context_model      = lavc_param_context;
-
+    lavc_venc_context->noise_reduction= lavc_param_noise_reduction;
     if (lavc_param_intra_matrix)
     {
 	char *tmp;
@@ -513,14 +523,6 @@ MOD_init {
     lavc_venc_context->p_masking             = lavc_param_p_masking;
     lavc_venc_context->dark_masking          = lavc_param_dark_masking;
 
-    /* XXX: This version of ffmpeg has no sample aspect ratio setting
-    if (vob->ex_par_width>0 && vob->ex_par_height>0) {
-	fprintf(stderr, "[%s] Setting aspect to %d:%d\n", MOD_NAME, vob->ex_par_width, vob->ex_par_height);
-	lavc_venc_context->aspect_ratio= (float)(vob->ex_par_width) / 
-	    (float)(vob->ex_par_height);
-    }
-    */
-
     if (lavc_param_aspect != NULL)
     {
 	int par_width, par_height, e;
@@ -534,7 +536,8 @@ MOD_init {
 	}
 
 	if (e && ratio > 0.1 && ratio < 10.0) {
-	    lavc_venc_context->aspect_ratio= ratio;
+	    lavc_venc_context->sample_aspect_ratio=
+		av_d2q(ratio * vob->ex_v_height / vob->ex_v_width, 255);
 	} else {
 	    fprintf(stderr, "[%s] Unsupported aspect ration %s.\n", MOD_NAME,
 		    lavc_param_aspect);
@@ -542,17 +545,19 @@ MOD_init {
 	}
     }
     else if (lavc_param_autoaspect) {
-	switch (vob->ex_asr) {
-	    case 1: lavc_venc_context->aspect_ratio = 1./1.; break;
-	    case 2: lavc_venc_context->aspect_ratio = 4./3.; break;
-	    case 3: lavc_venc_context->aspect_ratio = 16.9/9.; break;
-	    case 4: lavc_venc_context->aspect_ratio = 2.21/1.; break;
-	    case 0:
-	    default:
-		    lavc_venc_context->aspect_ratio = (float)vob->ex_v_width/vob->ex_v_height;
-		    break;
+
+	if (vob->ex_par_height) {
+	    lavc_venc_context->sample_aspect_ratio.num = vob->ex_par_width;
+	    lavc_venc_context->sample_aspect_ratio.den = vob->ex_par_height;
+	} else {
+	    lavc_venc_context->sample_aspect_ratio.num = 0;
+	    lavc_venc_context->sample_aspect_ratio.den = 1;
 	}
     }
+
+    lavc_venc_context->flags = 0;
+    if (lavc_param_mb_decision)
+        lavc_venc_context->mb_decision= lavc_param_mb_decision;
 
     lavc_venc_context->me_cmp     = lavc_param_me_cmp;
     lavc_venc_context->me_sub_cmp = lavc_param_me_sub_cmp;
@@ -566,13 +571,38 @@ MOD_init {
     lavc_venc_context->flags |= lavc_param_data_partitioning;
     lavc_venc_context->flags |= lavc_param_cbp;
     lavc_venc_context->flags |= lavc_param_mv0;
+    lavc_venc_context->flags |= lavc_param_qp_rd;
 
     if (lavc_param_gray)
       lavc_venc_context->flags |= CODEC_FLAG_GRAY;
     if (lavc_param_normalize_aqp)
       lavc_venc_context->flags |= CODEC_FLAG_NORMALIZE_AQP;
-    if (lavc_param_interlaced_dct)
-      lavc_venc_context->flags |= CODEC_FLAG_INTERLACED_DCT;
+
+	switch(vob->encode_fields)
+	{
+		case(0):
+			{
+			interlacing_active = 0;
+			interlacing_top_first = 0;
+			break;
+		}
+
+		case(1):
+		{
+			interlacing_active = 1;
+			interlacing_top_first = 1;
+      		lavc_venc_context->flags |= CODEC_FLAG_INTERLACED_DCT;
+			break;
+		}
+
+		case(2):
+		{
+			interlacing_active = 1;
+			interlacing_top_first = 0;
+      		lavc_venc_context->flags |= CODEC_FLAG_INTERLACED_DCT;
+			break;
+		}
+	}
 
     lavc_venc_context->flags|= lavc_param_psnr;
     do_psnr = lavc_param_psnr;
@@ -656,7 +686,7 @@ MOD_init {
       case 3:
         /* fixed qscale :p */
         lavc_venc_context->flags   |= CODEC_FLAG_QSCALE;
-        lavc_venc_frame->quality  = vob->min_quantizer;
+        lavc_venc_frame->quality  = vob->divxbitrate;
         break;
     }
 
@@ -810,6 +840,10 @@ MOD_encode
 
     if (pix_fmt == PIX_FMT_YUV420P) {
       lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
+
+      lavc_venc_frame->qscale_type = FF_QSCALE_TYPE_MPEG2;
+      lavc_venc_frame->interlaced_frame = interlacing_active;
+      lavc_venc_frame->top_field_first = interlacing_top_first;
       
 #if 0
       avpicture_fill((AVPicture *)lavc_venc_frame, param->buffer,
@@ -939,7 +973,7 @@ MOD_encode
             }
         }
 
-        fprintf(fvstats, "%6d, %2.2f, %6d, %2.2f, %2.2f, %2.2f, %2.2f %c\n",
+        fprintf(fvstats, "%6d, %2d, %6d, %2.2f, %2.2f, %2.2f, %2.2f %c\n",
             lavc_venc_context->coded_frame->coded_picture_number,
             lavc_venc_context->coded_frame->quality,
             out_size,

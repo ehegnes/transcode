@@ -649,6 +649,9 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   case TC_CODEC_MP42:
   case TC_CODEC_MP43:
   case TC_CODEC_RV10:
+  case TC_CODEC_ASV1:
+  case TC_CODEC_ASV2:
+  case TC_CODEC_FFV1:
     vob->im_v_codec=CODEC_YUV;
 
     //overwrite pass-through selection!

@@ -71,6 +71,9 @@
 #define TC_CODEC_H263I                 0x000CFFFE
 #define TC_CODEC_LZO2                  0x000DFFFE
 #define TC_CODEC_FRAPS                 0x000EFFFE
+#define TC_CODEC_FFV1                  0x000FFFFE
+#define TC_CODEC_ASV1                  0x0010FFFE
+#define TC_CODEC_ASV2                  0x0011FFFE
 
 // file/device magic:
 #define TC_MAGIC_ERROR                 0xFFFFFFFF

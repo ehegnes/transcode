@@ -4,56 +4,59 @@
 #include "../libioaux/configs.h"
 #include "../ffmpeg/libavcodec/avcodec.h"
 
+//char *lavc_param_vcodec = "mpeg4";
 //extern int lavc_param_vbitrate;
 extern int lavc_param_vrate_tolerance;
-extern int lavc_param_v4mv;
 extern int lavc_param_mb_decision;
+extern int lavc_param_v4mv;
 extern int lavc_param_vme;
 //extern int lavc_param_vqscale;
 //extern int lavc_param_vqmin;
 //extern int lavc_param_vqmax;
 extern int lavc_param_mb_qmin;
 extern int lavc_param_mb_qmax;
+extern int lavc_param_lmin;
+extern int lavc_param_lmax;
 extern int lavc_param_vqdiff;
 extern float lavc_param_vqcompress;
 extern float lavc_param_vqblur;
 extern float lavc_param_vb_qfactor;
+extern float lavc_param_vb_qoffset;
+extern float lavc_param_vi_qfactor;
+extern float lavc_param_vi_qoffset;
 extern int lavc_param_vmax_b_frames;
+//extern int lavc_param_keyint;
 //extern int lavc_param_vpass;
 extern int lavc_param_vrc_strategy;
 extern int lavc_param_vb_strategy;
-extern float lavc_param_vb_qoffset;
 extern int lavc_param_luma_elim_threshold;
 extern int lavc_param_chroma_elim_threshold;
 extern int lavc_param_packet_size;
 extern int lavc_param_strict;
 extern int lavc_param_data_partitioning;
-//extern int lavc_param_keyint;
 extern int lavc_param_gray;
-extern int lavc_param_mpeg_quant;
-extern float lavc_param_vi_qfactor;
-extern float lavc_param_vi_qoffset;
 extern float lavc_param_rc_qsquish;
 extern float lavc_param_rc_qmod_amp;
 extern int lavc_param_rc_qmod_freq;
-extern char *lavc_param_rc_eq;
 extern char *lavc_param_rc_override_string;
-extern int lavc_param_rc_max_rate;
-extern int lavc_param_rc_min_rate;
+extern char *lavc_param_rc_eq;
 extern int lavc_param_rc_buffer_size;
 extern float lavc_param_rc_buffer_aggressivity;
+extern int lavc_param_rc_max_rate;
+extern int lavc_param_rc_min_rate;
 extern float lavc_param_rc_initial_cplx;
+extern int lavc_param_mpeg_quant;
 extern int lavc_param_fdct;
+extern int lavc_param_idct;
 extern char* lavc_param_aspect;
 extern int lavc_param_autoaspect; // FLAG
 extern float lavc_param_lumi_masking;
+extern float lavc_param_dark_masking;
 extern float lavc_param_temporal_cplx_masking;
 extern float lavc_param_spatial_cplx_masking;
 extern float lavc_param_p_masking;
 extern int lavc_param_normalize_aqp;
-extern float lavc_param_dark_masking;
-extern int lavc_param_interlaced_dct;
-extern int lavc_param_idct;
+// ildct
 extern int lavc_param_prediction_method;
 extern char *lavc_param_format;
 extern int lavc_param_debug;
@@ -66,14 +69,12 @@ extern int lavc_param_pre_dia_size;
 extern int lavc_param_dia_size;
 extern int lavc_param_qpel;
 extern int lavc_param_trell;
+extern int lavc_param_aic;//CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_AIC, NULL},
+extern int lavc_param_umv;// CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_UMV, NULL},
 extern int lavc_param_last_pred;
 extern int lavc_param_pre_me;
 extern int lavc_param_me_subpel_quality;
 extern int lavc_param_me_range;
-#ifdef CODEC_FLAG_H263P_AIC
-extern int lavc_param_aic;//CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_AIC, NULL},
-extern int lavc_param_umv;// CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_UMV, NULL},
-#endif
 extern int lavc_param_ibias;
 extern int lavc_param_pbias;
 extern int lavc_param_coder;
@@ -82,6 +83,8 @@ extern char *lavc_param_intra_matrix;
 extern char *lavc_param_inter_matrix;
 extern int lavc_param_cbp;
 extern int lavc_param_mv0;
+extern int lavc_param_noise_reduction;
+extern int lavc_param_qp_rd;
 
 extern struct config lavcopts_conf[];
 

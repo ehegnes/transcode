@@ -6,6 +6,23 @@ transcode-0.6.12
   * ffmpeg/libavcodec/*:
   Upgrade to 4695 (included in mplayer-1.0pre3)
 
+  * export/{export_ffmpeg.c ffmpeg_cfg.[ch]}:
+  Sync to new libavcodec. Incorporates patch for encode_fields, -w
+  and lmin/lmax from Erik Slagter. The -w patch changes the
+  behaviour of -y ffmpeg when used with -R3. You now have to use -w
+  to set the quantizer you want.
+  The --encode_fields semantics are identical to the other export
+  modules that support it.
+
+  * import/magic.h:
+  New magics for ffv1, asv1 and asv2
+
+  * import/import_ffmpeg.c src/probe.c import/extract.c:
+  Support for probing (and decoding) the new codecs.
+
+  * import/import_ffmpeg.c:
+  Some codecs need extra data.
+
 2003-12-29 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/transcode.c:
