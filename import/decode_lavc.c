@@ -164,7 +164,6 @@ void decode_lavc(info_t *ipipe)
   struct ffmpeg_codec *codec;
 
   char   *fourCC = NULL;
-  double  fps = 0;
   char *mp4_ptr=NULL;
   int flush = 0;
   int mp4_size=0;
@@ -186,7 +185,6 @@ void decode_lavc(info_t *ipipe)
   x_dim = ipipe->width;
   y_dim = ipipe->height;
 
-  fps = ipipe->fps;
   fourCC="DIVX";
 
   //----------------------------------------
@@ -200,8 +198,8 @@ void decode_lavc(info_t *ipipe)
 
   codec = find_ffmpeg_codec_id(ipipe->codec);
   if (codec == NULL) {
-      fprintf(stderr, "[%s] No codec is known the FOURCC '%s'.\n", MOD_NAME,
-	      fourCC);
+      fprintf(stderr, "[%s] No codec is known the TAG '%lx'.\n", MOD_NAME,
+	      ipipe->codec);
       goto decoder_error;
   }
 
@@ -292,6 +290,7 @@ void decode_lavc(info_t *ipipe)
 	  break;
       }
 
+      //fprintf(stderr, "SIZE: (%d) MP4(%d) blen(%d) BUF(%d) read(%ld)\n", len, mp4_size, buf_len, READ_BUFFER_SIZE, bytes_read);
       do {
 	  len = avcodec_decode_video(lavc_dec_context, &picture, 
 		  &got_picture, buffer+buf_len, mp4_size-buf_len);
