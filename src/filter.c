@@ -202,8 +202,12 @@ int filter_single_init(int id)
   if(!plugins_loaded) return(1);    
 
   ptr.tag = TC_FILTER_INIT;
-
   ptr.filter_id = filter[id].id;
+ 
+  // This size is very wrong for audio filters, but it is the maximum size of
+  // the buffer a filter may get during that transcode run.
+  ptr.size = tc_frame_height_max*tc_frame_width_max*3;
+
   if(filter[id].entry(&ptr, filter[id].options)<0) {
     tc_warn("filter plugin '%s' returned error - plugin skipped", filter[id].name);
     filter[id].status=0;

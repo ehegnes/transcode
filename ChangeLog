@@ -1,7 +1,7 @@
 --------------------------------------------
 transcode-0.6.9
 
-2003-07-30 Tilmann Bitterberg <transcode at tibit.org>
+2003-07-31 Tilmann Bitterberg <transcode at tibit.org>
 
   * bbmpeg/tcmplex/tcmplex.c import/ioaux.c src/transcode.c
   tools/tcmodinfo.c tools/avifix.c tools/avimerge.c
@@ -9,6 +9,14 @@ transcode-0.6.9
   Remove the Latin-1 character from output it caused garbled
   displays sometimes. Sorry Thomas. Pointed out by Benjamin
   Riefenstahl.
+
+  * src/{framebuffer.h filter.c}:
+  Give the filters a hint about the frame size. That might not be
+  the framesize which the filter will get at runtime, but the
+  runtime size will be less or equal to that at init time. Changes
+  in the frame_list_t structures were needed for a sane
+  implementation.
+
 
 2003-07-30 marrq <marrq at ugcs.caltech.edu>
 

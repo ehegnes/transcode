@@ -38,11 +38,35 @@
 #define TC_BUFFER_READY  2
 #define TC_BUFFER_LOCKED 3
 
+/*
+ * BIG FAT WARNING:
+ *
+ * These structures must be kept in sync: meaning that if you add
+ * another field to the vframe_list_t you must add it at the end
+ * of the structure.
+ *
+ * aframe_list_t, vframe_list_t and the wrapper frame_list_t share
+ * the same offsets to their elements up to the field "size". That
+ * means that when a filter is called with at init time with the
+ * anonymouse frame_list_t, it can already access the size.
+ *
+ *          -- tibit
+ */
+
 typedef struct frame_list {
   
   int bufid;     // buffer id
   int tag;       // init, open, close, ...
   int filter_id; // filter instance to run
+  int codec;     // v_codec or a_codec
+  int id;        // 
+  int status;
+  int attributes;
+  int thread_id;
+  int param1; // v_width or a_rate
+  int param2; // v_height or a_bits
+  int param3; // v_bpp or a_chan
+  int size;
 
 } frame_list_t;
 
@@ -64,12 +88,6 @@ typedef struct vframe_list {
     
   int thread_id;
 
-  struct vframe_list *next;
-  struct vframe_list *prev;
-
-  int clone_flag;    // set to N if frame needs to be processed (encoded) N+1 times.
-  int deinter_flag;  // set to N for internal de-interlacing with "-I N"
-
     //frame physical parameter
 
   int v_width;
@@ -77,8 +95,15 @@ typedef struct vframe_list {
   int v_bpp;
   
   int video_size;
+
+  struct vframe_list *next;
+  struct vframe_list *prev;
   
   int plane_mode;
+
+  int clone_flag;    // set to N if frame needs to be processed (encoded) N+1 times.
+  int deinter_flag;  // set to N for internal de-interlacing with "-I N"
+
   
   //pointer to current buffer
   char *video_buf;
@@ -144,15 +169,15 @@ typedef struct aframe_list {
   
   int thread_id;
   
-  struct aframe_list *next;
-  struct aframe_list *prev;
-  
   
   int a_rate;
   int a_bits;
   int a_chan;
   
   int audio_size;
+
+  struct aframe_list *next;
+  struct aframe_list *prev;
 
 #ifdef STATBUFFER
   char *audio_buf;

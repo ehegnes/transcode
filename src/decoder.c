@@ -684,9 +684,9 @@ void aimport_thread(vob_t *vob)
     // read audio frame
     
     if(vob->sync>0) {
-      
+ 
       // discard vob->sync frames
-      
+
       while (vob->sync--) {
 
 	if(fd_pcm != NULL) {
