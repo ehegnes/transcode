@@ -267,6 +267,7 @@ int buf_probe_mp3(unsigned char *_buf, int len, pcm_t *pcm)
   char *buf;
   mp3data_struct *mp3data;
   int     i, ret;
+  int format=0;
   short int pcm_l[1152], pcm_r[1152];
 
   int type;
@@ -282,12 +283,19 @@ int buf_probe_mp3(unsigned char *_buf, int len, pcm_t *pcm)
   buf=_buf;
   
   for (i = 0; i < len - 1; i++) {
-    if(is_syncword_mp123(buf)) break;
+    if(is_syncword_mp123(buf)) {
+	// catch false positives
+	switch(buf[1] & 0xff) {
+	    case 0xFD: case 0xFC: format = CODEC_MP2; break;
+	    case 0xFB:            format = CODEC_MP3; break;
+	}
+	if (format) break;
+    }
     ++buf;
   }
 
   type = buf[1] & 0xff;
-  
+
   ret = lame_decode1_headers(buf, len, pcm_l, pcm_r, mp3data);
 
   if (-1 == ret) {
