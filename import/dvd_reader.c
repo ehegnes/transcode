@@ -1175,8 +1175,8 @@ int dvd_stream(int arg_title,int arg_chapid)
      * Playback the cells for our title
      */
 
-    fprintf(stderr,"(%s) Title %02d is defined by PGC %d with %d cells, exporting cell %d\n",
-      __FILE__,tt_srpt->title[ titleid ].title_set_nr,pgc_id,cur_pgc->nr_of_cells,chapid+1);
+    fprintf(stderr,"(%s) Title %d in VTS %02d is defined by PGC %d with %d cells, exporting cell %d\n",
+      __FILE__,titleid+1,tt_srpt->title[ titleid ].title_set_nr,pgc_id,cur_pgc->nr_of_cells,chapid+1);
 
     cur_pack = cur_pgc->cell_playback[chapid].first_sector;
 

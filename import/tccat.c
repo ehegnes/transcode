@@ -155,7 +155,9 @@ int main(int argc, char *argv[])
 	if (n != 3) {
 	  
 	  n = sscanf(optarg,"%d,%d,%d", &title, &chapter1, &angle);
-	  
+          // only do one chapter !
+	  chapter2=chapter1;
+
 	  if(n<0 || n>3) {
 	    fprintf(stderr, "invalid parameter for option -T\n");
 	    exit(1);
