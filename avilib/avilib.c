@@ -663,8 +663,8 @@ static int avi_parse_comments (int fd, char *buf, int space_left)
 	    memcpy(buf+len,c,4); 
 	    len += 4;
 
-	    // write len
-	    long2str(buf+len, k); len += 4;
+	    // write length + '\0'
+	    long2str(buf+len, k+1); len += 4;
 
 	    // write comment string
 	    memcpy (buf+len, d, k);
@@ -715,7 +715,7 @@ static int avi_close_output_file(avi_t *AVI)
 
 #ifdef INFO_LIST
    long info_len;
-   long id_len;
+   long id_len, real_id_len;
    long info_start_pos;
 //   time_t calptr;
 #endif
@@ -990,11 +990,13 @@ static int avi_close_output_file(avi_t *AVI)
 
    OUT4CC ("ISFT");
    //OUTLONG(MAX_INFO_STRLEN);
+   memset(id_str, 0, MAX_INFO_STRLEN);
 
    sprintf(id_str, "%s-%s", PACKAGE, VERSION);
-   id_len = strlen(id_str)+1;
+   real_id_len = id_len = strlen(id_str)+1;
+   if (id_len&1) id_len++;
 
-   OUTLONG(id_len);
+   OUTLONG(real_id_len);
 
    memset(AVI_header+nhb, 0, id_len);
    memcpy(AVI_header+nhb, id_str, id_len);
@@ -2061,11 +2063,17 @@ long AVI_read_audio_chunk(avi_t *AVI, char *audbuf)
    if(AVI->mode==AVI_MODE_WRITE) { AVI_errno = AVI_ERR_NOT_PERM; return -1; }
    if(!AVI->track[AVI->aptr].audio_index)         { AVI_errno = AVI_ERR_NO_IDX;   return -1; }
 
+   if (AVI->track[AVI->aptr].audio_posc+1>AVI->track[AVI->aptr].audio_chunks) return -1;
+
    left = AVI->track[AVI->aptr].audio_index[AVI->track[AVI->aptr].audio_posc].len - AVI->track[AVI->aptr].audio_posb;
    
    if (audbuf == NULL) return left;
    
-   if(left==0) return 0;
+   if(left==0) {
+       AVI->track[AVI->aptr].audio_posc++;
+       AVI->track[AVI->aptr].audio_posb = 0;
+       return 0;
+   }
 
    pos = AVI->track[AVI->aptr].audio_index[AVI->track[AVI->aptr].audio_posc].pos + AVI->track[AVI->aptr].audio_posb;
    lseek(AVI->fdes, pos, SEEK_SET);
