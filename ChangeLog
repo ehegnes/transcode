@@ -1,4 +1,26 @@
-2004-11-14
+2004-11-17 Julien Tierny <julien.tierny at wanadoo dot fr>
+  * filter/filter_ascii.c:
+    filter_ascii.so renders video samples into colored ascii-art.
+    It requires the `aart` package as runtime dependency only (available at
+	http://aart.sourceforge.net/).
+    RGB-YUV conversion features of /export/vid_aux.c are required (please
+	consider it in the compilation process).
+    Source code clean-up for integration. 0.6.13 integration tests. `sprintf`
+	and `strcpy` moved to `snprintf` and `strncpy`. `fprintf` moved to
+	`tc_warn`, `tc_error`, or `tc_info`.
+    `libcaca` team has been contacted for a feature-add. Therefore,
+	filter_ascii.so should be ported to libcaca pretty soon.
+	
+2004-11-17 Julien Tierny <julien.tierny at wanadoo dot fr>
+  * filter/filter_facemask.c:
+    filter_facemask.so masks people faces in video interviews, in a static way
+	for the moment.
+    RGB-YUV conversion features of /export/vid_aux.c are required (please
+    consider it in the compilation process).
+    Source code clean-up for integration. 0.6.13 integration tests. `fprintf`
+	moved to `tc_warn`, `tc_error` or `tc_info`
+
+2004-11-15
   trancode-0.6.14 release
   trancode-0.6.14 is a bug-fix release addressing identified
     issues in the 0.6.13 release
