@@ -538,10 +538,10 @@ dnl
 gcc2=no
 if test x$GCC = xyes ; then
   gcc_ver="`$CC --version`"
-  if test x$gcc_ver = x ; then
+  if test "x$gcc_ver" = x ; then
     gcc_ver="`$CC -v 2>&1 | sed -ne 's,.* version \(.\).*,\1,p'`"
   fi
-  if test x$gcc_ver != x ; then
+  if test "x$gcc_ver" != x ; then
     if echo $gcc_ver | grep -q ^2 ; then
       gcc2=yes
     fi
@@ -833,12 +833,6 @@ XVID_DEFAULT="$default_xvid"
 AC_SUBST(XVID_DEFAULT)
 
 dnl
-dnl libmpeg3
-dnl
-TC_PATH_LIBMPEG3(AC_DEFINE([HAVE_LIBMPEG3], 1, [Have libmpeg3 support]))
-AM_CONDITIONAL(HAVE_LIBMPEG3, test x"$have_libmpeg3" = "xyes")
-
-dnl
 dnl MPlayer libpostproc
 dnl
 dnl AM_PATH_POSTPROC(AC_DEFINE([HAVE_LIBPOSTPROC], 1, [Have libpostproc support]))
@@ -910,6 +904,12 @@ else
   AC_MSG_CHECKING(for use libac3 as default decoder)
   AC_MSG_RESULT(yes)
 fi
+
+dnl
+dnl libmpeg3
+dnl
+TC_PATH_LIBMPEG3(AC_DEFINE([HAVE_LIBMPEG3], 1, [Have libmpeg3 support]))
+AM_CONDITIONAL(HAVE_LIBMPEG3, test x"$have_libmpeg3" = "xyes")
 
 dnl
 dnl libxml2

@@ -904,15 +904,15 @@ AC_ARG_WITH(libmpeg3-libs,
     [prefix where local libmpeg3 libs are installed (optional)]),
   libmpeg3_libs="$withval", libmpeg3_libs="")
 
-LIBMPEG3_EXTRA_LIBS="-lm -lpthread"
+LIBMPEG3_EXTRA_LIBS="-lm -lpthread $A52_LIBS"
 have_libmpeg3=no
 
 if test x$enable_libmpeg3 = "x"yes ; then
 
   if test x$libmpeg3_includes != x ; then
-    with_libmpeg3_i="$libmpeg3_includes/include"
+    with_libmpeg3_i="$libmpeg3_includes"
   else
-    with_libmpeg3_i="/usr/include"
+    with_libmpeg3_i="/usr"
   fi
   if test x$libmpeg3_libs != x ; then
     with_libmpeg3_l="$libmpeg3_libs/lib"
@@ -921,8 +921,8 @@ if test x$enable_libmpeg3 = "x"yes ; then
   fi
 
   libmpeg3_inc=no
-  save_CFLAGS="$CFLAGS"
-  CFLAGS="$CFLAGS -I$with_libmpeg3_i"
+  save_CPPFLAGS="$CPPFLAGS"
+  CPPFLAGS="$CPPFLAGS -I$with_libmpeg3_i"
   AC_CHECK_HEADER([libmpeg3/libmpeg3.h],
     [with_libmpeg3_i="$with_libmpeg3_i/include/libmpeg3"
       libmpeg3_inc=yes])
@@ -932,9 +932,14 @@ if test x$enable_libmpeg3 = "x"yes ; then
         libmpeg3_inc=yes])
   fi
   if test x$libmpeg3_inc = xno ; then
+    AC_CHECK_HEADER([libmpeg3.h],
+	  [with_libmpeg3_i="$with_libmpeg3_i/include"
+	     libmpeg3_inc=yes])
+  fi
+  if test x$libmpeg3_inc = xno ; then
     AC_MSG_ERROR([libmpeg3 requested, but cannot compile libmpeg3.h])
   fi
-  CFLAGS="$save_CFLAGS"
+  CPPFLAGS="$save_CPPFLAGS"
 
   AC_CHECK_LIB(mpeg3, mpeg3_open,
     [LIBMPEG3_CFLAGS="-I$with_libmpeg3_i"
