@@ -50,6 +50,7 @@ extern char* socket_file; // transcode.c
 unsigned int tc_socket_msgchar = 0;
 char *tc_socket_submit_buf=NULL;
 static int socket_fd=-1;
+extern void tc_pause_request(void);
 
 pthread_mutex_t tc_socket_msg_lock=PTHREAD_MUTEX_INITIALIZER;
 
@@ -73,6 +74,189 @@ int tc_socket_version(char *buf)
     sprintf(buf, "%s%s", VERSION, "\n");
     return 0;
 }
+
+#define P(field,fmt) \
+    n = snprintf (buf, M_BUF_SIZE, "%20s = "fmt"\n", #field, vob->field); \
+    s_write (socket_fd, buf, n)
+
+int tc_socket_dump_vob(char *buf) 
+{
+    vob_t *vob = tc_get_vob();
+    int n;
+    P(vmod_probed, "%s");
+    P(amod_probed, "%s");
+    P(vmod_probed_xml, "%s");
+    P(amod_probed_xml, "%s");
+    P(verbose, "%d");
+    P(video_in_file, "%s");
+    P(audio_in_file, "%s");
+    P(nav_seek_file, "%s");
+    P(in_flag, "%d");
+    P(has_audio, "%d");
+    P(has_audio_track, "%d");
+    P(has_video, "%d");
+    P(lang_code, "%d");
+    P(a_track, "%d");
+    P(v_track, "%d");
+    P(s_track, "%d");
+    P(sync, "%d");
+    P(sync_ms, "%d");
+    P(dvd_title, "%d");
+    P(dvd_chapter1, "%d");
+    P(dvd_chapter2, "%d");
+    P(dvd_max_chapters, "%d");
+    P(dvd_angle, "%d");
+    P(ps_unit, "%d");
+    P(ps_seq1, "%d");
+    P(ps_seq2, "%d");
+    P(ts_pid1, "%d");
+    P(ts_pid2, "%d");
+    P(vob_offset, "%d");
+    P(vob_chunk, "%d");
+    P(vob_chunk_num1, "%d");
+    P(vob_chunk_num2, "%d");
+    P(vob_chunk_max, "%d");
+    P(vob_percentage, "%d");
+    P(vob_psu_num1, "%d");
+    P(vob_psu_num2, "%d");
+    P(vob_info_file, "%s");
+    P(pts_start, "%f");
+    P(psu_offset, "%f");
+    P(demuxer, "%d");
+    P(format_flag, "%ld");
+    P(codec_flag, "%ld");
+    P(quality, "%d");
+    P(af6_mode, "%d");
+    P(a_stream_bitrate, "%d");
+    P(a_chan, "%d");
+    P(a_bits, "%d");
+    P(a_rate, "%d");
+    P(a_padrate, "%d");
+    P(im_a_size, "%d");
+    P(ex_a_size, "%d");
+    P(im_a_codec, "%d");
+    P(fixme_a_codec, "%d");
+    P(a_leap_frame, "%d");
+    P(a_leap_bytes, "%d");
+    P(a_vbr, "%d");
+    P(a52_mode, "%d");
+    P(dm_bits, "%d");
+    P(dm_chan, "%d");
+    P(v_stream_bitrate, "%d");
+    P(fps, "%f");
+    P(im_frc, "%d");
+    P(ex_fps, "%f");
+    P(ex_frc, "%d");
+    P(hard_fps_flag, "%d");
+    P(pulldown, "%d");
+    P(im_v_height, "%d");
+    P(im_v_width, "%d");
+    P(im_v_size, "%d");
+    P(v_bpp, "%d");
+    P(im_asr, "%d");
+    P(ex_asr, "%d");
+    P(attributes, "%d");
+    P(im_v_codec, "%d");
+    P(encode_fields, "%d");
+    P(dv_yuy2_mode, "%d");
+    P(core_a_format, "%d");
+    P(volume, "%f");
+    P(ac3_gain[0], "%f");
+    P(ac3_gain[1], "%f");
+    P(ac3_gain[2], "%f");
+    P(clip_count, "%d");
+    P(core_v_format, "%d");
+    P(ex_v_width, "%d");
+    P(ex_v_height, "%d");
+    P(ex_v_size, "%d");
+    P(reduce_h, "%d");
+    P(reduce_w, "%d");
+    P(resize1_mult, "%d");
+    P(vert_resize1, "%d");
+    P(hori_resize1, "%d");
+    P(resize2_mult, "%d");
+    P(vert_resize2, "%d");
+    P(hori_resize2, "%d");
+    P(zoom_width, "%d");
+    P(zoom_height, "%d");
+    P(zoom_filter, "%p");
+    P(zoom_support, "%f");
+    P(antialias, "%d");
+    P(deinterlace, "%d");
+    P(decolor, "%d");
+    P(aa_weight, "%f");
+    P(aa_bias, "%f");
+    P(gamma, "%f");
+    P(ex_clip_top, "%d");
+    P(ex_clip_bottom, "%d");
+    P(ex_clip_left, "%d");
+    P(ex_clip_right, "%d");
+    P(im_clip_top, "%d");
+    P(im_clip_bottom, "%d");
+    P(im_clip_left, "%d");
+    P(im_clip_right, "%d");
+    P(post_ex_clip_top, "%d");
+    P(post_ex_clip_bottom, "%d");
+    P(post_ex_clip_left, "%d");
+    P(post_ex_clip_right, "%d");
+    P(pre_im_clip_top, "%d");
+    P(pre_im_clip_bottom, "%d");
+    P(pre_im_clip_left, "%d");
+    P(pre_im_clip_right, "%d");
+    P(video_out_file, "%s");
+    P(audio_out_file, "%s");
+    P(avifile_in, "%p");
+    P(avifile_out, "%p");
+    P(avi_comment_fd, "%d");
+    P(out_flag, "%d");
+    P(divxbitrate, "%d");
+    P(divxkeyframes, "%d");
+    P(divxquality, "%d");
+    P(divxcrispness, "%d");
+    P(divxmultipass, "%d");
+    P(video_max_bitrate, "%d");
+    P(divxlogfile, "%s");
+    P(min_quantizer, "%d");
+    P(max_quantizer, "%d");
+    P(rc_period, "%d");
+    P(rc_reaction_period, "%d");
+    P(rc_reaction_ratio, "%d");
+    P(divx5_vbv_prof, "%d");
+    P(divx5_vbv_bitrate, "%d");
+    P(divx5_vbv_size, "%d");
+    P(divx5_vbv_occupancy, "%d");
+    P(mp3bitrate, "%d");
+    P(mp3frequency, "%d");
+    P(mp3quality, "%f");
+    P(mp3mode, "%d");
+    P(bitreservoir, "%d");
+    P(lame_preset, "%s");
+    P(audiologfile, "%s");
+    P(ex_a_codec, "%d");
+    P(ex_v_codec, "%d");
+    P(ex_v_fcc, "%s");
+    P(ex_a_fcc, "%s");
+    P(ex_profile_name, "%s");
+    P(pass_flag, "%d");
+    P(lame_flush, "%d");
+    P(mod_path, "%s");
+    P(ttime, "%p");
+    P(ttime_current, "%d");
+    P(frame_interval, "%d");
+    P(chanid, "%d");
+    P(station_id, "%s");
+    P(im_v_string, "%s");
+    P(im_a_string, "%s");
+    P(ex_v_string, "%s");
+    P(ex_a_string, "%s");
+    P(accel, "%d");
+    P(video_frames_delay, "%d");
+    P(m2v_requant, "%f");
+
+    return 0;
+}
+#undef P
+
 
 int tc_socket_preview(char *buf)
 {
@@ -301,6 +485,9 @@ int tc_socket_help(char *buf)
 	    "enable <filter>\n"
 	    "disable <filter>\n"
 	    "unload <filter>\n"
+	    "progress\n"
+	    "pause\n"
+	    "dump\n"
 	    "preview <command>\n"
 	    "  [ draw | undo | pause | fastfw |\n"
 	    "    slowfw | slowbw | rotate |\n"
@@ -321,7 +508,7 @@ int tc_socket_handle(char *buf)
 	ret = TC_SOCK_LOAD;
     } else if (!strncasecmp(buf, "config", 2)) {
 	ret = TC_SOCK_CONFIG;
-    } else if (!strncasecmp(buf, "parameters", 2)) {
+    } else if (!strncasecmp(buf, "parameters", 3)) {
 	ret = TC_SOCK_PARAMETER;
     } else if (!strncasecmp(buf, "quit", 2) || !strncasecmp(buf, "exit", 2)) {
 	ret = TC_SOCK_QUIT;
@@ -339,6 +526,10 @@ int tc_socket_handle(char *buf)
 	ret = TC_SOCK_PREVIEW;
     } else if (!strncasecmp(buf, "progress", 3)) {
 	ret = TC_SOCK_PROGRESS_METER;
+    } else if (!strncasecmp(buf, "pause", 3)) {
+	ret = TC_SOCK_PAUSE;
+    } else if (!strncasecmp(buf, "dump", 3)) {
+	ret = TC_SOCK_DUMP;
     } else {
 	ret = TC_SOCK_FAILED;
     }
@@ -410,7 +601,7 @@ void socket_thread(void)
 
 	socket_fd = msgsock = accept(thisfd, 0, 0);
 
-	printf("Connect!\n");
+	//printf("Connect!\n");
 	if (msgsock == -1) {
 	    perror("accept");
 	    goto socket_out;
@@ -426,11 +617,11 @@ void socket_thread(void)
 		//goto socket_out;
 		continue;
 	    } else if (retval == 0)  {
-		printf("read Ending connection\n");
+		//printf("read Ending connection\n");
 		break;
 	    } else {
 		rbuf[strlen(rbuf)-1] = '\0'; // chomp
-		fprintf(stderr, "[%s]: ->|%s|\n", "socket_read", rbuf);
+		//fprintf(stderr, "[%s]: ->|%s|\n", "socket_read", rbuf);
 	    }
 
 
@@ -480,6 +671,14 @@ void socket_thread(void)
 		    break;
 		case TC_SOCK_PROGRESS_METER:
 		    tc_progress_meter = !tc_progress_meter;
+		    memset (rbuf, 0, M_BUF_SIZE);
+		    break;
+		case TC_SOCK_PAUSE:
+		    tc_pause_request();
+		    memset (rbuf, 0, M_BUF_SIZE);
+		    break;
+		case TC_SOCK_DUMP:
+		    ret = !tc_socket_dump_vob(rbuf);
 		    memset (rbuf, 0, M_BUF_SIZE);
 		    break;
 		default:

@@ -44,6 +44,8 @@ enum TC_SOCKET_RETURN {
     TC_SOCK_PARAMETER,
     TC_SOCK_PREVIEW,
     TC_SOCK_PROGRESS_METER,
+    TC_SOCK_PAUSE,
+    TC_SOCK_DUMP,
 };
 
 // The heigh 8 bits are used to pass a char as an arg

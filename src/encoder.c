@@ -500,6 +500,8 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	return;
       }
 
+      tc_pause();
+
       if(have_vframe_threads==0) {
 	pthread_mutex_lock(&vbuffer_im_fill_lock);
 	--vbuffer_im_fill_ctr;
