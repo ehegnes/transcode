@@ -45,6 +45,12 @@ transcode-0.6.11
 
 2003-10-28 Tilmann Bitterberg <transcode at tibit.org>
 
+  * src/transcode.c:
+  Architecture for setting the filename extension for the export
+  modules.
+
+2003-10-28 Tilmann Bitterberg <transcode at tibit.org>
+
   * export/export_yuv4mpeg.c:
   Unfinished fixup for 64bit arches.
 

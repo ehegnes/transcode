@@ -112,6 +112,10 @@ char *plugins_string = NULL;
 char *tc_config_dir = NULL;
 pid_t writepid = 0;
 
+// move these to transcode.h?
+char *video_ext = "avi";
+char *audio_ext = "mp3";
+
 //default
 int tc_encode_stream = 0;
 int tc_decode_stream = 0;
@@ -168,6 +172,7 @@ enum {
   CONFIG_DIR,
   USE_UYVY,
   DVD_ACCESS_DELAY,
+  EXTENSIONS,
 };
 
 int print_counter_interval = 1;
@@ -400,6 +405,8 @@ void usage(int status)
   printf("--socket file        socket file for run-time control [no file]\n");
   printf("--dv_yuy2_mode       libdv YUY2 mode (default is YV12) [off]\n");
   printf("--config_dir dir     Assume config files are in this dir [off]\n");
+  // unfinished.
+  //printf("--ext vext,aext      Use these file extensions [%s,%s]\n", video_ext, audio_ext);
 
   printf("\n");
 
@@ -785,6 +792,7 @@ int main(int argc, char *argv[]) {
       {"config_dir", required_argument, NULL, CONFIG_DIR},
       {"uyvy", no_argument, NULL, USE_UYVY},
       {"dvd_access_delay", required_argument, NULL, DVD_ACCESS_DELAY},
+      {"ext", required_argument, NULL, EXTENSIONS},
       {0,0,0,0}
     };
     
@@ -2203,6 +2211,34 @@ int main(int argc, char *argv[]) {
 
 	case SOCKET_FILE:
 	  socket_file = optarg;
+	  break;
+
+	case EXTENSIONS:
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+
+	  {
+	    char *c;
+	    
+	    c = strchr (optarg, ',');
+	    if (!c) { // no amod
+	      video_ext = optarg;
+	    } else if (c == optarg) { // only amod
+	      audio_ext = c+1;
+	    } else { // both
+	      *c = '\0';
+	      video_ext = optarg;
+	      audio_ext = c+1;
+	    }
+	    if ( !strcmp(video_ext, "none")) video_ext = "";
+	    if ( !strcmp(video_ext, "null")) video_ext = "";
+	    if ( !strcmp(audio_ext, "none")) audio_ext = "";
+	    if ( !strcmp(audio_ext, "null")) audio_ext = "";
+	    
+	    // if (*c == *optarg && *(c+1) == '\0')
+
+	  }
+			
+
 	  break;
 
 	default:
