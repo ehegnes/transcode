@@ -11,6 +11,9 @@ transcode-0.6.13
 
   * src/video_buffer.c:
   Malloc a little more than the calculated max framesize
+
+  * src/transcode.c:
+  Another wrong clipping calc error. Pointed out by malaca.
   
 2004-01-30 Tilmann Bitterberg <transcode at tibit.org>
   
