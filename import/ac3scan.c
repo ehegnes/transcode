@@ -53,10 +53,10 @@ int ac3scan(FILE *fd, char *buffer, int size, int *ac_off, int *ac_bytes, int *p
   // and for 2 channels and 16bit 6kB bytes PCM audio 
   
   rbytes = (float) (size)/1024/6 * frame_size;
-  pseudo_frame_size = (int) rbytes;
+  pseudo_frame_size = (int) (rbytes+0.5); // XXX
   bitrate = get_ac3_bitrate(buffer+2);
   
-  if(verbose) fprintf(stderr, "(%s) AC3 frame %d (%d) bytes | bitrate %d kBits/s\n", __FILE__, frame_size, pseudo_frame_size, bitrate);
+  if(verbose) fprintf(stderr, "(%s) AC3 frame %d (%d) bytes | bitrate %d kBits/s | depsize %d | rbytes %f\n", __FILE__, frame_size, pseudo_frame_size, bitrate, size, rbytes);
     
   // return information
   
