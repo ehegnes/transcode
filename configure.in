@@ -840,7 +840,7 @@ dnl openquicktime dependent modules                  $have_openqt
 
 AC_MSG_RESULT([
 ----------------------------------------------------------
-Summary for transcode 0.6.4.20030311 features:
+Summary for transcode $VERSION features:
 
 static AV-frame buffering                        $statbuf
 DVD navigation support with libdvdread           $have_dvdread
