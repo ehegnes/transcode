@@ -139,7 +139,7 @@ int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
 
     //bytes > 0 --> discard PCM data
 
-    if(bytes>0) memcpy(ptr->audio_buf, ptr->audio_buf+bytes, ptr->audio_size-bytes);
+    if(bytes>0) memmove(ptr->audio_buf, ptr->audio_buf+bytes, ptr->audio_size-bytes);
 
     //bytes < 0 --> padd PCM data
 

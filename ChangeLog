@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-12-20 Stéphane Gourichon" <gouri at free.fr>
+
+  * src/audio_trans.c:
+  valgrind pointed out that a memcpy should be a memmove and of
+  course thats right.
+
 2003-12-20 Tilmann Bitterberg <transcode at tibit.org>
 
   * libioaux/framecode.h:
