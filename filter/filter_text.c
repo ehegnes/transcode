@@ -540,7 +540,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 		    unsigned int e = 0;
 		    
 		    // transparency
-		    if (mfd->transparent && (c < 16)) continue;
+		    if (mfd->transparent && (c <= 16)) continue;
 
 		    // opacity
 		    e = ((MAX_OPACITY-mfd->opaque)*d + mfd->opaque*c)/MAX_OPACITY;
@@ -567,7 +567,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 			unsigned int c = q[3*(h*width+w)-(2-i)]&0xff;
 			unsigned int d = p[3*(h*width+w)-(2-i)]&0xff;
 			unsigned int e;
-			if (mfd->transparent && c < 16) continue;
+			if (mfd->transparent && c <= 16) continue;
 		
 			// opacity
 			e = ((MAX_OPACITY-mfd->opaque)*d + mfd->opaque*c)/MAX_OPACITY;
