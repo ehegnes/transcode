@@ -45,6 +45,11 @@ transcode-0.6.11
 
 2003-10-28 Tilmann Bitterberg <transcode at tibit.org>
 
+  * export/export_yuv4mpeg.c:
+  Unfinished fixup for 64bit arches.
+
+2003-10-28 Tilmann Bitterberg <transcode at tibit.org>
+
   * import/tcprobe.c:
   Fix a segfault when reading data from stdin
 
