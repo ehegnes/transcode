@@ -53,10 +53,20 @@
 #define TC_CODEC_MPG1                  0xA0000012
 #define TC_CODEC_SUB                   0xA0000011
 #define TC_CODEC_LAV                   0xFFFF0023
+#define TC_CODEC_THEORA                0x00001234
 #define TC_CODEC_VORBIS                0x0000FFFE
 #define TC_CODEC_LZO1                  0x0001FFFE
 #define TC_CODEC_RV10                  0x0002FFFE
-#define TC_CODEC_THEORA                0x00001234
+#define TC_CODEC_SVQ1                  0x0003FFFE
+#define TC_CODEC_SVQ3                  0x0004FFFE
+#define TC_CODEC_VP3                   0x0005FFFE
+#define TC_CODEC_4XM                   0x0006FFFE
+#define TC_CODEC_WMV1                  0x0007FFFE
+#define TC_CODEC_WMV2                  0x0008FFFE
+#define TC_CODEC_HFYU                  0x0009FFFE
+#define TC_CODEC_INDEO3                0x000AFFFE
+#define TC_CODEC_H263P                 0x000BFFFE
+#define TC_CODEC_H263I                 0x000CFFFE
 
 // file/device magic:
 #define TC_MAGIC_ERROR                 0xFFFFFFFF
