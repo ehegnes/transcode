@@ -910,9 +910,9 @@ have_libmpeg3=no
 if test x$enable_libmpeg3 = "x"yes ; then
 
   if test x$libmpeg3_includes != x ; then
-    with_libmpeg3_i="$libmpeg3_includes"
+    with_libmpeg3_i="$libmpeg3_includes/include"
   else
-    with_libmpeg3_i="/usr"
+    with_libmpeg3_i="/usr/include"
   fi
   if test x$libmpeg3_libs != x ; then
     with_libmpeg3_l="$libmpeg3_libs/lib"
@@ -924,16 +924,16 @@ if test x$enable_libmpeg3 = "x"yes ; then
   save_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS -I$with_libmpeg3_i"
   AC_CHECK_HEADER([libmpeg3/libmpeg3.h],
-    [with_libmpeg3_i="$with_libmpeg3_i/include/libmpeg3"
+    [with_libmpeg3_i="$with_libmpeg3_i/libmpeg3"
       libmpeg3_inc=yes])
   if test x$libmpeg3_inc = xno ; then
     AC_CHECK_HEADER([mpeg3/libmpeg3.h],
-      [with_libmpeg3_i="$with_libmpeg3_i/include/mpeg3"
+      [with_libmpeg3_i="$with_libmpeg3_i/mpeg3"
         libmpeg3_inc=yes])
   fi
   if test x$libmpeg3_inc = xno ; then
     AC_CHECK_HEADER([libmpeg3.h],
-	  [with_libmpeg3_i="$with_libmpeg3_i/include"
+	  [with_libmpeg3_i="$with_libmpeg3_i"
 	     libmpeg3_inc=yes])
   fi
   if test x$libmpeg3_inc = xno ; then
