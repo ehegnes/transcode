@@ -605,7 +605,7 @@ iconv_t cd;	// iconv conversion descriptor
 #define f1616ToInt(x)		(((x)+0x8000)>>16)	// 16.16
 #define floatTof266(x)		((int)((x)*(1<<6)+0.5))
 
-#define ALIGN(x)		(((x)+7)&~7)	// 8 byte align
+#define ALIGN8(x)		(((x)+7)&~7)	// 8 byte align
 
 
 void paste_bitmap(FT_Bitmap *bitmap, int x, int y)
@@ -943,7 +943,7 @@ int		glyphs_count = 0;
 		pen_xa-1,					// bitmap end
 		(unsigned int)character, (unsigned int)(code<' '||code>255 ? '.':code));
 #endif
-	pen_x = ALIGN(pen_xa);
+	pen_x = ALIGN8(pen_xa);
     }
 
 
@@ -1006,7 +1006,7 @@ int		glyphs_count = 0;
 
 	pen_x += f1616ToInt(glyph->root.advance.x) + 2*padding;
 #endif
-	pen_x = ALIGN(pen_x);
+	pen_x = ALIGN8(pen_x);
 
 	FT_Done_Glyph((FT_Glyph)glyph);
     }
