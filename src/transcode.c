@@ -1227,12 +1227,12 @@ int main(int argc, char *argv[]) {
 
 	  n = sscanf(optarg,"%d,%d,%d", &vob->mp3frequency, &vob->dm_bits, &vob->dm_chan);
 	  
-	  if(n < 0 || vob->mp3frequency<= 0)  
+	  if(n < 0 || vob->mp3frequency < 0)  
 	    tc_error("invalid parameter for option -E");
 	  
 	  if(n>2 && (vob->dm_chan < 0 || vob->dm_chan > 6)) tc_error("invalid parameter for option -E");
 	  
-	  if(n>1 && vob->dm_bits != 8 && vob->dm_bits != 16 && vob->dm_bits != 24) tc_error("invalid parameter for option -E");
+	  if(n>1 && vob->dm_bits != 0 && vob->dm_bits != 8 && vob->dm_bits != 16 && vob->dm_bits != 24) tc_error("invalid parameter for option -E");
 
 	  switch (n) {
 	    case 3: probe_export_attributes |= TC_PROBE_NO_EXPORT_ACHANS;

@@ -212,7 +212,7 @@ process full frame (slow)
 sync video start with audio frame num [0].
 .TP
 .B \-E \fIr\fP[\fI,b\fP[\fI,c\fP]]
-audio output samplerate [Hz], bits per sample and channels [as input]. The option "-J resample" must be provided for export modules not capable of re-sampling.
+audio output samplerate [Hz], bits per sample and channels [as input]. The option "-J resample" must be provided for export modules not capable of re-sampling. Samplerate and bits per sample can be specified as 0 to mean "same as input"; this allows converting from stereo to mono while leaving the other parameters alone (-E 0,0,1).
 
 .TP
 .B \-F \fIcodec_string\fP

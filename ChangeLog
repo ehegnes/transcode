@@ -1,3 +1,10 @@
+2005-01-25 Andrew Church
+  * src/transcode.c docs/man/transcode.1
+  For the -E option, samplerate and bits per sample can now be
+  specified as 0 to mean "same as input".  This allows converting
+  from stereo to mono while leaving the other parameters alone
+  (-E 0,0,1).
+
 2005-01-24 Stefan Scheffler <stefanscheffler at gmx dot net>
   * export/export_mov.c import/decode_mov.c import/import_mov.c
     import/import_probe.c
