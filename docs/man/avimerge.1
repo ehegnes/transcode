@@ -1,4 +1,4 @@
-.TH avimerge 1 "06th January 2004" "avimerge(1)"
+.TH avimerge 1 "26th January 2004" "avimerge(1)"
 .SH NAME
 avimerge \- merge several AVI-files into one
 .SH SYNOPSIS
@@ -7,7 +7,7 @@ avimerge \- merge several AVI-files into one
 .B -o
 .I name
 .B -i
-.IB file " ..."
+.IB file1 " [ " file2 " [ " .\|.\|. " ] ] "
 [
 .B -p
 .IB file
@@ -21,6 +21,8 @@ avimerge \- merge several AVI-files into one
 .B -b
 .I num
 ] [
+.B -c
+] [
 .B -f
 .I commentfile
 ] [
@@ -31,41 +33,60 @@ avimerge \- merge several AVI-files into one
 \fBavimerge\fP is Copyright (C) by Thomas Östreich.
 .SH DESCRIPTION
 .B avimerge
-merges several AVI-files into one. Can also be used to fix an index of a broken
-file and can also replace audio tracks or muxes new ones. It can read raw AC3
-and MP3 files for multplexing.
+is a  versatile tool.  It can contatenate several AVI files into one. It can
+also be used to fix an index of a broken file and can also replace audio tracks
+or muxes new ones. It can read raw AC3 and MP3 files for multplexing.
 .SH OPTIONS
 .TP
-\fB-o\fP \fIname\fP
+.BI "\-o " name
 Specify the name of the output file.
 .TP
-\fB-i\fP \fIfile\fP
+.BI "\-i " file
 Specify the name(s) of the input file(s) to merge into the output
 file.
 .TP
-\fB-p\fP \fIfile\fP
+.BI "\-p " file
 Specify the name of the audio file to multiplex into the output file. The type
 of file can be either another AVI file or an MP3 or AC3 file.
 .TP
-\fB-b\fP \fInum\fP
+.BI "\-b " num
 Specify if avimerge should write an VBR mp3 header into the AVI file. Default
 is dependent on the input file (and usually correct). \fInum\fP is either 1 or
 0.
 .TP
-\fB-f\fP \fIcommentfile\fP
+.B \-c
+Drop video frames in case audio is missing [off]
+.br
+Only when merging multiple AVI files. Some AVI files run a little bit (usually
+for one or two video frames) short on audio. This means avimerge cannot keep up
+sync when concatinating them. The files play fine when played individually but
+not when merged because audio from the new file gets played back with video
+from the old file.
+.B avimerge
+will print a message like
+.nf
+
+  No audiodata left for track 0->0 (59950.25=59950.25) continuing ..
+
+.fi
+When you turn on the -c option, the video which is too much will be dropped.
+.TP
+.BI "\-f " commentfile
 Read AVI tombstone data for header comments from \fIcommentfile\fP. See
 /docs/avi_comments.txt for a sample.
 .TP
-\fB-x\fP \fIindexfile\fP
-Read the AVI index from \fIindexfile\fP. See aviindex(1) for information on how
+.BI "\-x " indexfile
+Read the AVI index from 
+.I indexfile. 
+See aviindex(1) for information on how
 to create such a file.
 .TP
-\fB-a\fP \fInum\fP
+.BI "\-a " num
 Specify the number of the audio track you want to use from the
 .I input
 file.
 .TP
-\fB-A\fP \fInum\fP
+.BI "\-A " num
 Specify the number of the audio track you want to use in the
 .I output
 file. If you specify an existing track number, the track will be replaced. If
