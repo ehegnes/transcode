@@ -104,6 +104,7 @@ void
 fc_time_normalize( struct fc_time * list, int fc_verb )
 {
   unsigned int th, tm, ts, tf;
+  double t;
 
   while( list != NULL ) {
     // avoid fpu error
@@ -149,10 +150,12 @@ fc_time_normalize( struct fc_time * list, int fc_verb )
       list->em -= ( 60  * ( list->em / 60  ) );
     }
 
-    list->etf = list->eh * 3600 * list->fps + 
-                list->em *   60 * list->fps + 
+    t = list->eh * 3600.0 * list->fps + 
+                list->em *   60.0 * list->fps + 
 		            list->es * list->fps        + 
 			          list->ef;
+    list->etf = (int)(t+.5);
+                
     /*
      * swap values if required
      */
