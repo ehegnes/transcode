@@ -17,6 +17,10 @@ transcode-0.6.9
   in the frame_list_t structures were needed for a sane
   implementation.
 
+  * configure.in */Makefile.in:
+  Remove configure check for XVID, it is not needed since transcode
+  ships all the files required.
+
 
 2003-07-30 marrq <marrq at ugcs.caltech.edu>
 

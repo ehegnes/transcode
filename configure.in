@@ -586,10 +586,10 @@ AM_CONDITIONAL(HAVE_LIBDVDREAD, test x"$have_dvdread" = "xyes")
 dnl
 dnl libxvidcore support
 dnl
-
-have_xvidcore=no
-AM_PATH_LIBXVID(AC_DEFINE([HAVE_LIBXVID], 1, [Have XVID support]))
-AM_CONDITIONAL(HAVE_LIBXVID, test x"$have_xvidcore" = "xyes")
+dnl Disabled because it was never really needed -- tibit
+dnl have_xvidcore=no
+dnl AM_PATH_LIBXVID(AC_DEFINE([HAVE_LIBXVID], 1, [Have XVID support]))
+dnl AM_CONDITIONAL(HAVE_LIBXVID, test x"$have_xvidcore" = "xyes")
 
 dnl
 dnl libmpeg3 support
@@ -951,6 +951,7 @@ AC_OUTPUT([
           ])
 
 dnl openquicktime dependent modules                  $have_openqt
+dnl XVID support with libxvidcore                    $have_xvidcore
 
 AC_MSG_RESULT([
 ----------------------------------------------------------
@@ -966,7 +967,6 @@ nasm dependent modules (bbmpeg)                  $nasm
 mjpegtools dependent modules                     $MJPEGTOOLSCONFIG
 libdv dependent modules			         $have_dv
 Ogg support | Vorbis support | Theora support    $have_ogg | $have_vorbis | $have_theora
-XVID support with libxvidcore                    $have_xvidcore
 liba52 audio plugin (>=0.7.3) | default decoder  $have_a52 | $a52_decoder
 avifile API support                              $have_avifile
 ImageMagick dependent modules (>=5.4.3)          $have_magick

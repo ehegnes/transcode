@@ -145,9 +145,6 @@
 /* Have libxv support */
 #undef HAVE_LIBXV
 
-/* Have XVID support */
-#undef HAVE_LIBXVID
-
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 

@@ -96,7 +96,8 @@ filter_hqdn3d_la_SOURCES = filter_hqdn3d.c
 filter_hqdn3d_la_LDFLAGS =  -module -avoid-version 
 
 filter_modfps_la_SOURCES = filter_modfps.c
-filter_modfps_la_LDFLAGS =  -module -avoid-version 
+filter_modfps_la_LDFLAGS = -module -avoid-version 
+filter_modfps_la_LIBADD = -lm
 
 filter_29to23_la_SOURCES = filter_29to23.c
 filter_29to23_la_LDFLAGS =  -module -avoid-version 
