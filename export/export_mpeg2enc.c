@@ -149,7 +149,7 @@ MOD_open
     
     y4m_init_stream_info(&y4mstream);
     y4m_si_set_framerate(&y4mstream,framerate);
-    y4m_si_set_interlace(&y4mstream,Y4M_UNKNOWN );
+    y4m_si_set_interlace(&y4mstream,vob->encode_fields );
     y4m_si_set_sampleaspect(&y4mstream,y4m_sar_UNKNOWN);
     snprintf( dar_tag, 19, "XM2AR%03d", asr );
     y4m_xtag_add( y4m_si_xtags(&y4mstream), dar_tag );
