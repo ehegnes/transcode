@@ -87,7 +87,7 @@ MOD_open
 	char *chan;
 
 	//tibit: do not write to /dev/null.m1v
-	if (!strncmp(vob->audio_out_file, "/dev/null", 9)) {
+	if (vob->audio_out_file && strlen(vob->audio_out_file)>=9 && !strncmp(vob->audio_out_file, "/dev/null", 9)) {
 	    mpa="";
 	}
 
