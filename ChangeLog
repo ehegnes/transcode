@@ -12,6 +12,9 @@ transcode-0.6.9
   import/probe_wav.c:
   Use the new routines. 
 
+  * configure.in:
+  Add dlsym define for libdlcompat
+
 2003-08-04 Tilmann Bitterberg <transcode at tibit.org>
 
   * configure.in export/Makefile.am:

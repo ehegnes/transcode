@@ -36,9 +36,9 @@ is_osx=false
 case "x${target_os}" in
    xdarwin*)
     is_osx=true
-    CFLAGS_save="${CFLAGS_save} -no-cpp-precomp -D_INTL_REDIRECT_MACROS "; CFLAGS="${CFLAGS_save}"
-    CXXFLAGS_save="${CXXFLAGS_save} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"; CXXFLAGS="${CXXFLAGS_save}"
-    OBJCFLAGS_save="${OBJCFLAGS_save} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"; OBJCFLAGS="${OBJCFLAGS_save}"
+    CFLAGS_save="${CFLAGS} -no-cpp-precomp -D_INTL_REDIRECT_MACROS -Ddlsym=dlsym_prepend_underscore "; CFLAGS="${CFLAGS_save}"
+    CXXFLAGS_save="${CXXFLAGS} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"; CXXFLAGS="${CXXFLAGS_save}"
+    OBJCFLAGS_save="${OBJCFLAGS} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"; OBJCFLAGS="${OBJCFLAGS_save}"
     #LDFLAGS_save="${LDFLAGS_save} -all_load"; LDFLAGS="${LDFLAGS_save}"
     AC_DEFINE([SYSTEM_DARWIN], 1, [Define if this is Darwin / MacOSX OS])
     ;;
@@ -273,7 +273,8 @@ fi
 
 AC_CACHE_CHECK([if linker needs -framework vecLib],
     [ac_cv_ld_altivec],
-    [LDFLAGS="${LDFLAGS} -framework vecLib"
+    [LDFLAGS_save="${LDFLAGS}"
+     LDFLAGS="${LDFLAGS} -framework vecLib"
      AC_TRY_LINK([],,ac_cv_ld_altivec=yes,ac_cv_ld_altivec=no)
      LDFLAGS="${LDFLAGS_save}"
     ])
