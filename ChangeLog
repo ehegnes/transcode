@@ -12,6 +12,10 @@ transcode-0.6.9
   correctly round and the bug is gone. Thanks go to Tyler for
   samples.
 
+  * import/import_divx.c:
+  Re-enable detection of DIV3 keyframes. Useful for broken files
+  when rebuilding the index with -P3. Pointed out by LethalWP
+
 2003-07-28 Tilmann Bitterberg <transcode at tibit.org>
 
   * export/{export_ffmpeg.c ffmpeg_cfg.h ffmpeg_cfg.c}

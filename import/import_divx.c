@@ -522,7 +522,14 @@ MOD_decode {
       //determine keyframe
       
 #if DECORE_VERSION >= 20020303
-      cc=divx4_is_key((unsigned char *)param->buffer, (long) param->size);
+      switch (decInit->codec_version){
+      case 311:
+	  if(param->size>4) cc=divx3_is_key((unsigned char *)param->buffer);
+	  break;
+      default:
+	  cc=divx4_is_key((unsigned char *)param->buffer, (long) param->size);
+	  break;
+      }
 #else
       switch(divx_version) {
       case DEC_OPT_FRAME:
