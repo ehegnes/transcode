@@ -70,6 +70,7 @@
 #define TC_CODEC_H263P                 0x000BFFFE
 #define TC_CODEC_H263I                 0x000CFFFE
 #define TC_CODEC_LZO2                  0x000DFFFE
+#define TC_CODEC_FRAPS                 0x000EFFFE
 
 // file/device magic:
 #define TC_MAGIC_ERROR                 0xFFFFFFFF

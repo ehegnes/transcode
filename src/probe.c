@@ -45,6 +45,7 @@ static char *std_module[] = {"null",
 			     "lzo",
 			     "ts",
 			     "vnc",
+			     "fraps",
 			     "mplayer"
 };
 
@@ -66,6 +67,7 @@ enum _std_module {_null_,
 		  _lzo_,
 		  _ts_,
 		  _vnc_,
+		  _fraps_,
 		  _theora_
 };
 
@@ -685,6 +687,20 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     
     break;
     
+  case TC_CODEC_FRAPS:
+    vob->im_v_codec=CODEC_YUV;
+
+    //overwrite pass-through selection!
+    vob->vmod_probed=std_module[_fraps_];
+    preset |= TC_VIDEO;
+    
+    if(preset & TC_AUDIO) break;
+    
+    //audio
+    vob->amod_probed=get_audio_module(vob->fixme_a_codec, vob->has_audio);
+    preset |= TC_AUDIO;  
+    break;
+
   case TC_CODEC_YV12:
     vob->im_v_codec=CODEC_YUV;
 

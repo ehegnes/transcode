@@ -2,6 +2,14 @@
 transcode-0.6.12
 
 2003-11-12 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/Makefile.am import/extract_avi.c import/import_fraps.c
+  import/magic.h src/probe.c:
+  New import module for AVI files with the FOURCC "FPS1". These
+  files are produced by the win32 tool "fraps" which can capture
+  movies of DirectX/OpenGL games.
+
+2003-11-12 Tilmann Bitterberg <transcode at tibit.org>
   
   * filter/pp/*:
   Added the postprocess code to transcode and move the filter to

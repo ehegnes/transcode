@@ -143,6 +143,9 @@ void probe_avi(info_t *ipipe)
 	if(strcasecmp(codec,"LZO2")==0)
 	  ipipe->probe_info->codec=TC_CODEC_LZO2;
 	
+	if(strcasecmp(codec,"FPS1")==0)
+	  ipipe->probe_info->codec=TC_CODEC_FRAPS;
+	
       }
     } else
       ipipe->probe_info->codec=TC_CODEC_UNKNOWN;
