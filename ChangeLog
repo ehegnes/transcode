@@ -1,4 +1,8 @@
 2004-12-15 Jacob Meuser <jakemsr at jakemsr dot com>
+  * libac3/bitstream.c
+  don't cast an lvalue
+
+2004-12-15 Jacob Meuser <jakemsr at jakemsr dot com>
   * Makefile.am */Makefile.am */*/Makefile.am
   Use PTHREAD_CFLAGS everywhere.  Tested for quite some time on
   OpenBSD and a bit on FreeBSD.  Hopefully this will fix some of the
