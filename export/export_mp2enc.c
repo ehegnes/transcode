@@ -33,7 +33,7 @@
 #include "avilib.h"
 
 #define MOD_NAME    "export_mp2enc.so"
-#define MOD_VERSION "v1.0.6 (2003-03-08)"
+#define MOD_VERSION "v1.0.7 (2003-03-17)"
 #define MOD_CODEC   "(audio) MPEG 1/2"
 
 #define MOD_PRE mp2enc
