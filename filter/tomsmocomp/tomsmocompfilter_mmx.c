@@ -20,6 +20,7 @@
 
 #include "tomsmocompfilter.h"
 
+#ifdef HAVE_MMX
 #define IS_MMX
 #define SSE_TYPE MMX
 #define FUNCT_NAME filterDScaler_MMX
@@ -27,3 +28,4 @@
 #undef  IS_MMX
 #undef  SSE_TYPE
 #undef  FUNCT_NAME
+#endif

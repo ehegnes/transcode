@@ -57,3 +57,16 @@ static inline int Fieldcopy(void *dest, const void *src, size_t count,
     }
     return 0;
 }
+
+
+/* Kludge:
+ * gcc-2.95 wont compile postprocess_template in -fPIC mode
+ * gcc-3.2.3 does work -- tibit
+ */
+#if defined(PIC) && (__GNUC__ == 2)
+#undef HAVE_MMX
+#undef HAVE_MMX2
+#undef HAVE_SSE
+#undef HAVE_3DNOW
+#warning All optimizations disabled because of gcc-2.95
+#endif
