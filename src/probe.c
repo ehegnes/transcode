@@ -610,6 +610,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   case TC_CODEC_MJPG:
   case TC_CODEC_MPG1:
   case TC_CODEC_MP42:
+  case TC_CODEC_MP43:
   case TC_CODEC_RV10:
     vob->im_v_codec=CODEC_YUV;
 
@@ -739,7 +740,10 @@ char *codec2str(int f)
     return("DivX;-)");
 
   case TC_CODEC_MP42:
-    return("MP42");
+    return("MSMPEG4 V2");
+
+  case TC_CODEC_MP43:
+    return("MSMPEG4 V3");
     
   case TC_CODEC_DIVX4:
     return("DivX");

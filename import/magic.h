@@ -46,6 +46,7 @@
 #define TC_CODEC_PS2                   0x00007002
 #define TC_CODEC_DIVX3                 0x000031B3
 #define TC_CODEC_MP42                  0x000031B4
+#define TC_CODEC_MP43                  0x000031B5
 #define TC_CODEC_DIVX4                 0x000041B6
 #define TC_CODEC_DIVX5                 0x000051B6
 #define TC_CODEC_XVID                  0x58766944

@@ -111,6 +111,9 @@ void probe_avi(info_t *ipipe)
 
 	if(strcasecmp(codec,"MP42")==0)
 	  ipipe->probe_info->codec=TC_CODEC_MP42;
+
+	if(strcasecmp(codec,"MP43")==0)
+	  ipipe->probe_info->codec=TC_CODEC_MP43;
 	
 	if(strcasecmp(codec,"DIVX")==0)
 	  ipipe->probe_info->codec=TC_CODEC_DIVX4;
