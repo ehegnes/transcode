@@ -20969,7 +20969,7 @@ fi
 
 echo "$as_me:$LINENO: result:
 ----------------------------------------------------------
-Summary for transcode 0.6.3 features:
+Summary for transcode 0.6.4.20030311 features:
 
 static AV-frame buffering                        $statbuf
 DVD navigation support with libdvdread           $have_dvdread
@@ -20997,7 +20997,7 @@ XVID support with libxvidcore                    $have_xvidcore
 " >&5
 echo "${ECHO_T}
 ----------------------------------------------------------
-Summary for transcode 0.6.3 features:
+Summary for transcode 0.6.4.20030311 features:
 
 static AV-frame buffering                        $statbuf
 DVD navigation support with libdvdread           $have_dvdread
