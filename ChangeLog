@@ -9,6 +9,12 @@ transcode-0.6.10
   - Bugfix in -x mplayer; respect -k
   - New stream decoder lavc (ffmpeg based) used for OGM
 
+2003-09-03 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * docs/man/tcdecode.1 import/tcdecode.c:
+  Document the new -t package flag for tcdecode. See tcdecode(1) for
+  more information
+
 2003-09-03 Benjamin Riefenstahl <Benjamin.Riefenstahl at epost.de>
 
   * configure.in:

@@ -61,6 +61,7 @@ void usage(int status)
 
   fprintf(stderr,"\t -i file           input file [stdin]\n");
   fprintf(stderr,"\t -x codec          source codec (required)\n");
+  fprintf(stderr,"\t -t package        codec package\n");
   fprintf(stderr,"\t -g wxh            stream frame size [autodetect]\n");
   fprintf(stderr,"\t -y format         output raw stream format [rgb]\n");
   fprintf(stderr,"\t -Q mode           decoding quality (0=fastest-5=best) [%d]\n", VQUALITY);

@@ -10,6 +10,9 @@ tcdecode \- read multimedia streams from medium, decode to raw format and print 
 .B -x
 .I codec
 ] [
+.B -t
+.I package
+] [
 .B -g
 .I wxh
 ] [
@@ -76,6 +79,11 @@ af6audio	audio API		(avifile)
 af6video	video API		(avifile)    
 
 mov   Quicktime		(libquicktime)
+
+.IP "\fB-t \fIpackage\fP"
+Currently only argument supported is "lavc". Use the codec by -x from this package. Available (-x) codecs for \fIlavc\fP are
+
+"mpeg2", "divx3", "divx", "divx4", "mp42", "mjpg", "rv10", "svq1", "svq3", "vp3", "4xm", "wmv1", "wmv2", "hfyu", "indeo3", "h263p", "h263i"
 
 
 .IP "\fB-y \fIcodec\fP" 
