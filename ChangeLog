@@ -8,6 +8,11 @@ transcode-0.6.9
   issues to be sorted out, for example what should happen to a frame
   if it is SKIPPED and CLONED?
 
+  * filter/filter_cut.c:
+  Make the filter_cut be aware of an fps change. If input
+  and output frame rates were different it will skip more/less
+  audio frames so that they'll be in sync.
+
 2003-07-31 Lenz Grimmer <lenz at grimmer.com>
 
   * transcode.spec.in:
