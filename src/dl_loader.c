@@ -99,7 +99,7 @@ int tcv_import(int opt, void *para1, void *para2)
   ret = TCV_import(opt, para1, para2);
   
   if(ret==TC_IMPORT_ERROR && verbose & TC_DEBUG)
-    printf("video import module error");
+    printf("(%s) video import module error\n", __FILE__);
   
   if(ret==TC_IMPORT_UNKNOWN && verbose & TC_DEBUG) 
     printf("option %d unsupported by video import module\n", opt); 
@@ -117,7 +117,7 @@ int tca_import(int opt, void *para1, void *para2)
   ret = TCA_import(opt, para1, para2);
   
   if(ret==TC_IMPORT_ERROR && verbose & TC_DEBUG)
-    printf("audio import module error");
+    printf("(%s) audio import module error\n", __FILE__);
   
   if(ret==TC_IMPORT_UNKNOWN && verbose & TC_DEBUG) 
     printf("option %d unsupported by audio import module\n", opt); 
