@@ -193,7 +193,7 @@ MOD_open
     strcpy(out_fname, vob->video_out_file);
     
     if (bbmpeg_fcnt > 0)
-      sprintf(out_fname, "%s-%03d", out_fname, bbmpeg_fcnt);
+      snprintf(out_fname, sizeof(out_fname), "%s-%03d", out_fname, bbmpeg_fcnt);
      
     strcat(out_fname, video_ext);    
 
@@ -233,7 +233,7 @@ MOD_open
       strcpy(out_fname, vob->video_out_file);
       
       if (bbmpeg_fcnt > 0)
-        sprintf(out_fname, "%s-%03d", out_fname, bbmpeg_fcnt);
+        snprintf(out_fname, sizeof(out_fname), "%s-%03d", out_fname, bbmpeg_fcnt);
 
       strcat(out_fname, audio_ext);
       

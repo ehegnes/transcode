@@ -111,7 +111,7 @@ MOD_open
 	  
 	  type = (vob->decolor) ? "P5":"P6"; 
 
-	  sprintf(buf, "%s\n#(%s-v%s) \n%d %d 255\n", type, PACKAGE, VERSION, vob->ex_v_width, vob->ex_v_height);
+	  snprintf(buf, sizeof(buf), "%s\n#(%s-v%s) \n%d %d 255\n", type, PACKAGE, VERSION, vob->ex_v_width, vob->ex_v_height);
 	  
 	  break;
 	  
@@ -165,9 +165,9 @@ MOD_encode
     if(strncmp(type, "P5", 2)==0) {   
 	out_size /= 3;
 	for (n=0; n<out_size; ++n) out_buffer[n] = out_buffer[3*n];
-	sprintf(buf2, "%s%06d.pgm", prefix, counter++);
+	snprintf(buf2, sizeof(buf2), "%s%06d.pgm", prefix, counter++);
     } else 
-	sprintf(buf2, "%s%06d.ppm", prefix, counter++);
+	snprintf(buf2, sizeof(buf2), "%s%06d.ppm", prefix, counter++);
     
     if((fd = fopen(buf2, "w"))==NULL) {
       perror("fopen file");

@@ -607,22 +607,22 @@ static int xvid2_init(char *path)
 
 	/* First we build all lib names we will try to load */
 #ifdef SYSTEM_DARWIN
-	sprintf(modules[0], "%s/%s.%d.%s", path, XVID_SHARED_LIB_BASE,
+	snprintf(modules[0], sizeof(modules[0]), "%s/%s.%d.%s", path, XVID_SHARED_LIB_BASE,
 		API_VERSION>>16, XVID_SHARED_LIB_SUFX);
 #else
-	sprintf(modules[0], "%s/%s.%s.%d", path, XVID_SHARED_LIB_BASE,
+	snprintf(modules[0], sizeof(modules[0]), "%s/%s.%s.%d", path, XVID_SHARED_LIB_BASE,
 		XVID_SHARED_LIB_SUFX, API_VERSION>>16);
 #endif
 #ifdef SYSTEM_DARWIN
-	sprintf(modules[1], "%s.%d.%s", XVID_SHARED_LIB_BASE,
+	snprintf(modules[1], sizeof(modules[1]), "%s.%d.%s", XVID_SHARED_LIB_BASE,
 		API_VERSION>>16, XVID_SHARED_LIB_SUFX);
 #else
-	sprintf(modules[1], "%s.%s.%d", XVID_SHARED_LIB_BASE,
+	snprintf(modules[1], sizeof(modules[1]), "%s.%s.%d", XVID_SHARED_LIB_BASE,
 		XVID_SHARED_LIB_SUFX, API_VERSION>>16);
 #endif
-	sprintf(modules[2], "%s/%s.%s", path, XVID_SHARED_LIB_BASE,
+	snprintf(modules[2], sizeof(modules[2]), "%s/%s.%s", path, XVID_SHARED_LIB_BASE,
 		XVID_SHARED_LIB_SUFX);
-	sprintf(modules[3], "%s.%s", XVID_SHARED_LIB_BASE,
+	snprintf(modules[3], sizeof(modules[3]), "%s.%s", XVID_SHARED_LIB_BASE,
 		XVID_SHARED_LIB_SUFX);
 
 	for(i=0; i<4; i++) {

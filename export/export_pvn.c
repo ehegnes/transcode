@@ -114,7 +114,7 @@ MOD_open
 	  }     
     
           /* replace 0 with actual # of frames; but 0 should work for now */
-	  sprintf(buf, "%s\n#(%s-v%s) \n%d %d %d\n8.0000 %d\n", type, PACKAGE, VERSION, vob->ex_v_width, vob->ex_v_height, 0, (unsigned int)vob->ex_fps);
+	  snprintf(buf, sizeof(buf), "%s\n#(%s-v%s) \n%d %d %d\n8.0000 %d\n", type, PACKAGE, VERSION, vob->ex_v_width, vob->ex_v_height, 0, (unsigned int)vob->ex_fps);
 
 	  if(fwrite(buf, strlen(buf), 1, fd) != 1) 
 	  {    
