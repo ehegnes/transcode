@@ -125,9 +125,10 @@ A:	There are two ways: Quick&Dirty (but tested by me) and the more
 	"install" in directories ffmpeg/libavcodec, ffmpeg/libavcodec/i386 and
 	ffmpeg/libavcodec/ppc (or configure will fail):
 	<pre>
-	    $ echo -e "all:\ninstall:" > ffmpeg/libavcodec/Makefile.in
-	    $ echo -e "all:\ninstall:" > ffmpeg/libavcodec/i386/Makefile.in
-	    $ echo -e "all:\ninstall:" > ffmpeg/libavcodec/ppc/Makefile.in
+	    $ echo -e "all:\\ninstall:" > ffmpeg/libavcodec/Makefile.in
+	    $ echo -e "all:\\ninstall:" > ffmpeg/libavcodec/i386/Makefile.in
+	    $ echo -e "all:\\ninstall:" > ffmpeg/libavcodec/ppc/Makefile.in
+	    $ echo -e "all:\\ninstall:" > ffmpeg/Makefile.in
 	</pre>
 	</li>
 	<li>now you can go to the top of the transcode source directory and type
@@ -235,6 +236,18 @@ A:	Transcode ships two divx encoder modules. One is divx4 and one is divx5.
 	Please note that the current version of the divx4linux libraries
 	available form divx.com have a bug on they may segfault on Pentium4
 	systems. There is another bug in older versions of divx4linux where it
-	crashes when writting data to a FAT32 partition. Look at
-	http://www.exit1.org/dvdrip/doc/faq.cipp#faq11 (tibit)
+	crashes when writting data to a FAT32 windows partition. Look at
+	http://www.exit1.org/dvdrip/doc/faq.cipp#faq11
+	<br />
+---
+Q:	transcode cannot find libdivxdecore.so/libdivxencore.so/libxvidcore.so ...
+A:	The best place to put these libraries is the transcode libdir 
+	(/usr/local/lib/transcode/ by default). You can find out the libdir of
+	your transcode installation by executing <tt>tcmodinfo -p</tt>.
+	Transcode will look into this libdir first when searching for a
+	library. When that fails, transcode will look at the standard library
+	locations. You should make sure that the location of the library is in
+	<tt>/etc/ld.so.conf</tt> and don't forget to run ldconfig afterwards.
+	You do not need to put the transcode libdir into the dlloader config
+	file.
 ---
