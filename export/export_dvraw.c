@@ -237,13 +237,11 @@ MOD_open
   
   if(param->flag == TC_AUDIO) {
     
-      /*
     if (!encoder) {
-      tc_warning("[export_dvraw] -y XXX,dvraw is not possible without the video");
-      tc_warning("[export_dvraw] export module also being dvraw");
+      tc_warn("[export_dvraw] -y XXX,dvraw is not possible without the video");
+      tc_warn("[export_dvraw] export module also being dvraw");
       return (TC_EXPORT_ERROR);
     }
-    */
     chans = (vob->dm_chan != vob->a_chan) ? vob->dm_chan : vob->a_chan;
     //re-sampling only with -J resample possible
     rate = vob->a_rate;
@@ -316,11 +314,6 @@ MOD_encode
       
       dv_encode_full_frame(encoder, pixels, (format)?e_dv_color_yuv:e_dv_color_rgb, target);
       
-      dv_encode_metadata(target, encoder->isPAL, encoder->is16x9, &now, 0);
-      dv_encode_timecode(target, encoder->isPAL, 0);
-      
-      pcm_swap(param->buffer, param->size);
-
       // demux audio channels
       //j=0;
       //for(i=0; i <param->size/4 ; i++) {
@@ -330,14 +323,21 @@ MOD_encode
       //} 
       //}
       
+    }//no pass-through
 #ifdef LIBDV_099
       encoder->samples_this_frame=param->size;
 #endif
+      dv_encode_metadata(target, encoder->isPAL, encoder->is16x9, &now, 0);
+      dv_encode_timecode(target, encoder->isPAL, 0);
+      
+      pcm_swap(param->buffer, param->size);
+
 
       //memcpy(audio.data, param->buffer, param->size);
       //_dv_raw_insert_audio(target, &audio, encoder->isPAL);
       
-      //FIXME: need to switch to "dv_encode_full_audio" only
+      //FIXME: need to switch to "dv_encode_full_audio" only -- DONE?
+
       audio_bufs[0] = (uint16_t *)param->buffer;
       dv_encode_full_audio(encoder, audio_bufs, chans, rate, target);
 
@@ -345,7 +345,6 @@ MOD_encode
       //merge audio     
       dvenc_frame(vbuf, param->buffer, param->size, target);
 #endif
-    }//no pass-through
     
     //write raw DV frame
     
