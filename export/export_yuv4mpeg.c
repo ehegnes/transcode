@@ -139,7 +139,12 @@ MOD_open
 
     //note: this is the real framerate of the raw stream
     framerate = (vob->ex_frc==0) ? mpeg_conform_framerate(vob->ex_fps):mpeg_framerate(vob->ex_frc);
+    if (framerate.n==0 && framerate.d==0) {
+	framerate.n=vob->ex_fps*1000;
+	framerate.d=1000;
+    }
 
+    //printf("OUT %d %f %d %d\n", vob->ex_frc, vob->ex_fps, framerate.n, framerate.d);
     asr = (vob->ex_asr<0) ? vob->im_asr:vob->ex_asr;
     asrcode2asrratio(asr, &asr_rate);
 

@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-03-13 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * export/export_yuv4mpeg.c:
+  when the internal framerate calculation fails, use our own.
+  Pointed out by Jorg Heymans.
+  
 2004-03-13 Alexander Varakin <avarakin at hotmail.com>
 
   * filter/preview/filter_pv.c:
