@@ -566,20 +566,23 @@ AC_ARG_WITH(liblve-builddir,
     [path to lve builddir (optional)]),
   liblve_builddir="$withval", liblve_builddir="")
 
-LVE_EXTRA_LIBS="-lstdc++ -lm"
+LVE_EXTRA_LIBS="$FFMPEG_LIBS_LIBS $A52_LIBS"
 have_liblve=no
 
 if test x"$enable_liblve" = x"yes" ; then
+
+  AC_LANG_PUSH([C++])
+
   if test x"$liblve_builddir" != x"" ; then
     with_liblve_p="$liblve_builddir"
     save_LDFLAGS="$LDFLAGS"
-    LDFLAGS="$LDFLAGS -L$with_liblve_p/lve"
+    LDFLAGS="$LDFLAGS -L$with_liblve_p/src"
     AC_CHECK_LIB(lve, lr_init,
-      [LVE_CFLAGS="-I$with_liblve_p/lve"
-        LVE_LIBS="-L$with_liblve_p/lve -llve -L$with_liblve_p/ffmpeg -lavcodec -L$with_liblve_p/libmpeg2/.libs -lmpeg2 -L$with_liblve_p/liba52 -la52 $LVE_EXTRA_LIBS"
+      [LVE_CFLAGS="-I$with_liblve_p/src"
+        LVE_LIBS="-L$with_liblve_p/src -llve -L$with_liblve_p/ffmpeg/libavcodec -lavcodec -L$with_liblve_p/mpeg2dec/libmpeg2/.libs -lmpeg2"
         have_liblve=yes],
       [],
-      [-L$with_liblve_p/ffmpeg -lavcodec -L$with_liblve_p/libmpeg2/.libs -lmpeg2 -L$with_liblve_p/liba52 -la52 $LVE_EXTRA_LIBS])
+      [-L$with_liblve_p/ffmpeg/libavcodec -lavcodec -L$with_liblve_p/mpeg2dec/libmpeg2/.libs -lmpeg2])
     LDFLAGS="$save_LDFLAGS"
   fi
   if test x"$have_liblve" != x"yes" ; then
@@ -590,15 +593,30 @@ if test x"$enable_liblve" = x"yes" ; then
       [],
       [$LVE_EXTRA_LIBS])
   fi
+  if test x"$have_liblve" != x"yes" ; then
+    AC_MSG_ERROR([liblve support is requested, but cannot link against liblve])
+  fi
+
+  save_LDFLAGS="$LDFLAGS"
+  LDFLAGS="$LDFLAGS $LVE_LIBS"
+  save_CPPFLAGS="$CPPFLAGS"
+  CPPFLAGS="$CPPFLAGS $LVE_CFLAGS"
+  AC_TRY_COMPILE([#include <lve_read.h>],
+    [T_LVE_READ_CTX *lve_ctx = NULL;
+     lve_ctx = lr_init(NULL, 0);],
+    [],
+    [AC_MSG_ERROR([liblve support is requested, but cannot compile test code])])
+  CPPFLAGS="$save_CPPFLAGS"
+  LDFLAGS="$save_LDFLAGS"
+
+  AC_LANG_POP([C++])
+
   if test x"$have_liblve" = x"yes" ; then
     ifelse([$1], , :, [$1])
-  else
-    AC_MSG_ERROR([liblve support is requested, but cannot link against liblve])
   fi
 else
   LVE_LIBS=""
   LVE_CFLAGS=""
-  ifelse([$2], , :, [$2])
 fi
 AC_SUBST(LVE_LIBS)
 AC_SUBST(LVE_CFLAGS)

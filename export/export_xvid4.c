@@ -81,7 +81,12 @@ static int capability_flag = TC_CAP_PCM |
 #include "export_def.h"
 
 /* XviD shared library name */
-#define XVID_SHARED_LIB_NAME "libxvidcore.so"
+#define XVID_SHARED_LIB_BASE "libxvidcore"
+#ifdef SYSTEM_DARWIN
+#define XVID_SHARED_LIB_SUFX "dylib"
+#else
+#define XVID_SHARED_LIB_SUFX "so"
+#endif
 #define XVID_CONFIG_FILE "xvid4.cfg"
 
 /*****************************************************************************
@@ -1172,10 +1177,24 @@ static int load_xvid(xvid_module_t *xvid, char *path)
 	memset(xvid, 0, sizeof(xvid[0]));
 
 	/* First we build all sonames we will try to load */
-	snprintf(soname[0], 4095, "%s/%s.%d", path, XVID_SHARED_LIB_NAME, XVID_API_MAJOR(XVID_API));
-	snprintf(soname[1], 4095, "%s.%d", XVID_SHARED_LIB_NAME, XVID_API_MAJOR(XVID_API));
-	snprintf(soname[2], 4095, "%s/%s", path, XVID_SHARED_LIB_NAME);
-	snprintf(soname[3], 4095, "%s", XVID_SHARED_LIB_NAME);
+#ifdef SYSTEM_DARWIN
+	snprintf(soname[0], 4095, "%s/%s.%d.%s", path, XVID_SHARED_LIB_BASE,
+		XVID_API_MAJOR(XVID_API), XVID_SHARED_LIB_SUFX);
+#else
+	snprintf(soname[0], 4095, "%s/%s.%s.%d", path, XVID_SHARED_LIB_BASE,
+		XVID_SHARED_LIB_SUFX, XVID_API_MAJOR(XVID_API));
+#endif
+#ifdef SYSTEM_DARWIN
+	snprintf(soname[1], 4095, "%s.%d.%s", XVID_SHARED_LIB_BASE,
+		XVID_API_MAJOR(XVID_API), XVID_SHARED_LIB_SUFX);
+#else
+	snprintf(soname[1], 4095, "%s.%s.%d", XVID_SHARED_LIB_BASE,
+		XVID_SHARED_LIB_SUFX, XVID_API_MAJOR(XVID_API));
+#endif
+	snprintf(soname[2], 4095, "%s/%s.%s", path, XVID_SHARED_LIB_BASE,
+		XVID_SHARED_LIB_SUFX);
+	snprintf(soname[3], 4095, "%s.%s", XVID_SHARED_LIB_BASE,
+		XVID_SHARED_LIB_SUFX);
 
 	/* Let's try each shared lib until success */
 	for(i=0; i<4; i++) {

@@ -262,13 +262,13 @@ Optional packages:
 
   libdvdread  http://www.dtek.chalmers.se/groups/dvd/
     related options:
-      --enable-dvdread (enabled)
+      --enable-libdvdread (enabled)
           if enabled, adds support for reading DVDs
-      --with-dvdread-prefix=PFX ()
+      --with-libdvdread-prefix=PFX ()
           prefix where local dvdread is installed
-      --with-dvdread-includes=PFX ()
+      --with-libdvdread-includes=PFX ()
           prefix where local dvdread includes are installed
-      --with-dvdread-libs=PFX ()
+      --with-libdvdread-libs=PFX ()
           prefix where local dvdread lib is installed
     affected modules: import_dvd.so
 
@@ -284,7 +284,7 @@ Optional packages:
           prefix where local libmpeg3 libs are installed
     affected modules: import_mpeg3.so
 
-  liblve  http://lvempeg.sourceforge.net/
+  liblve >= 040322  http://lvempeg.sourceforge.net/
     related options:
       --enable-liblve (disabled)
           if enabled, build liblve dependent module

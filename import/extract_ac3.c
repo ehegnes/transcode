@@ -472,8 +472,12 @@ void extract_ac3(info_t *ipipe)
 	  fprintf(stderr, "(%s) invalid track number: %d\n", __FILE__, ipipe->track);
 	  import_exit(1);
 	}
-	
-	track_code = ipipe->track + 0x80;
+
+	// DTS tracks begin with ID 0x88, ac3 with 0x80
+	if (ipipe->codec == TC_CODEC_DTS)
+	  track_code = ipipe->track + 0x88;
+	else
+	  track_code = ipipe->track + 0x80;
       }
 
       pes_ac3_loop();

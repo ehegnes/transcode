@@ -1,0 +1,35 @@
+=== Highlights of the 0.6.14 release ===
+
+Fixed
+    * remove erroneous include from filter_pp, allow
+      filter_pp to build optimized code with gcc-2.95.
+    * allow extraction of DTS audio from DVD. (Stefan Becker)
+    * allow extraction of WAV files larger than 2GB. (Andrew Church)
+    * use the proper name for dlopen()ing libxvidcore on OSX.
+    * correct import_v4l2 documentation to describe the current
+      parameters. (Erik Slagter)
+    * use a valid default frame rate in export_ffmpeg. (Erik Slagter)
+    * fix arguments for libdvdread in INSTALL.
+    * improve wording of message for mismatched color space.
+    * improve wording of message for listing codecs supported
+      by export_ffmpeg.
+    * improve wording of message for failure to load a codec
+      in export_ffmpeg. (Erik Slagter)
+    * LVE's lr_init() now (040322) takes two arguments.  update the
+      transcode sources to reflect this, and make sure the user has
+      the proper version.  other LVE build issues corrected.
+    * overhaul PVM3 autoconf magic, include paths and BSD support.
+    * tc_memcpy uses nasm code for acceleration.  emit a(nother)
+      warning at configure time and do not allow the accelerated code
+      to be called if nasm is not found at configure time.
+    * make tcmplex clean up second audio file. (Andrew Church)
+    * fix argument switch-up in export_lame.
+    * don't try to use a random file in import_mplayer, since mplayer
+      always writes to './stream.yuv'. (Erik Slagter)
+    * fix segfault in tcdecode caused by missing cast in
+      libac3/bitstream.c. (Robin Hill)
+
+=== IMPORTANT ===
+
+Read INSTALL throughly or you won't be able to install transcode!
+

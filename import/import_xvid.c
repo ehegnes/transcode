@@ -65,7 +65,12 @@ static int done_seek=0;
 
 static int x_dim, y_dim;
 
-#define XVID_SHARED_LIB_NAME "libxvidcore.so"
+#define XVID_SHARED_LIB_BASE "libxvidcore"
+#ifdef SYSTEM_DARWIN
+#define XVID_SHARED_LIB_SUFX "dylib"
+#else
+#define XVID_SHARED_LIB_SUFX "so"
+#endif
 
 static int xvid2_init(char *path) {
 #ifdef SYS_BSD
@@ -81,12 +86,38 @@ static int xvid2_init(char *path) {
 	 *  - xvid3 decoders to have bframe support
 	 *  - then xvid2 decoders
 	 *  - bare soname as a fallback */
-	sprintf(modules[0], "%s/%s.%d", path, XVID_SHARED_LIB_NAME, 3);
-	sprintf(modules[1], "%s.%d", XVID_SHARED_LIB_NAME, 3);
-	sprintf(modules[2], "%s/%s.%d", path, XVID_SHARED_LIB_NAME, 2);
-	sprintf(modules[3], "%s.%d", XVID_SHARED_LIB_NAME, 2);
-	sprintf(modules[4], "%s/%s", path, XVID_SHARED_LIB_NAME);
-	sprintf(modules[5], "%s", XVID_SHARED_LIB_NAME);
+#ifdef SYSTEM_DARWIN
+	sprintf(modules[0], "%s/%s.%d.%s", path, XVID_SHARED_LIB_BASE,
+		3, XVID_SHARED_LIB_SUFX);
+#else
+	sprintf(modules[0], "%s/%s.%s.%d", path, XVID_SHARED_LIB_BASE,
+		XVID_SHARED_LIB_SUFX, 3);
+#endif
+#ifdef SYSTEM_DARWIN
+	sprintf(modules[1], "%s.%d.%s", XVID_SHARED_LIB_BASE,
+		3, XVID_SHARED_LIB_SUFX);
+#else
+	sprintf(modules[1], "%s.%s.%d", XVID_SHARED_LIB_BASE,
+		XVID_SHARED_LIB_SUFX, 3);
+#endif
+#ifdef SYSTEM_DARWIN
+	sprintf(modules[2], "%s/%s.%d.%s", path, XVID_SHARED_LIB_BASE,
+		2, XVID_SHARED_LIB_SUFX);
+#else
+	sprintf(modules[2], "%s/%s.%s.%d", path, XVID_SHARED_LIB_BASE,
+		XVID_SHARED_LIB_SUFX, 2);
+#endif
+#ifdef SYSTEM_DARWIN
+	sprintf(modules[3], "%s.%d.%s", XVID_SHARED_LIB_BASE,
+		2, XVID_SHARED_LIB_SUFX);
+#else
+	sprintf(modules[3], "%s.%s.%d", XVID_SHARED_LIB_BASE,
+		XVID_SHARED_LIB_SUFX, 2);
+#endif
+	sprintf(modules[4], "%s/%s.%s", path, XVID_SHARED_LIB_BASE,
+		XVID_SHARED_LIB_SUFX);
+	sprintf(modules[5], "%s.%s", XVID_SHARED_LIB_BASE,
+		XVID_SHARED_LIB_SUFX);
 
 	for(i=0; i<6; i++) {
 		module = modules[i];

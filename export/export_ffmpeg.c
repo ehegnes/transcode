@@ -347,7 +347,7 @@ MOD_init {
 	{
 		fprintf(stderr, "[%s] You must chose a codec by supplying '-F "
               "<codecname>'. A list of supported codecs can be obtained with "
-              "'-F list'.\n", MOD_NAME);
+              "'transcode -y ffmpeg -F list'.\n", MOD_NAME);
 
       return TC_EXPORT_ERROR;
     }

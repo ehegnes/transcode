@@ -1,13 +1,13 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT(transcode,0.6.13)
+AC_INIT(transcode,0.6.14)
 AC_CONFIG_AUX_DIR(autotools)
 AC_CONFIG_SRCDIR(src/transcode.c)
 
 dnl Detect the canonical host and target build environment
 AC_CANONICAL_SYSTEM
 
-AM_INIT_AUTOMAKE(transcode,0.6.13)
+AM_INIT_AUTOMAKE(transcode,0.6.14)
 AM_CONFIG_HEADER(config.h)
   
 AM_MAINTAINER_MODE
@@ -816,7 +816,6 @@ AM_CONDITIONAL(HAVE_LAME, test x"$have_lame" = x"yes")
 AC_SUBST(LAME_CFLAGS)
 AC_SUBST(LAME_LIBS)
 
-
 dnl
 dnl ogg support
 dnl
@@ -883,7 +882,6 @@ AM_CONDITIONAL(HAVE_LIBDVDREAD, test x"$have_libdvdread" = x"yes")
 AC_SUBST(LIBDVDREAD_CFLAGS)
 AC_SUBST(LIBDVDREAD_LIBS)
 
-
 dnl
 dnl xvid support
 dnl
@@ -910,12 +908,6 @@ dnl MPlayer libpostproc
 dnl
 dnl AM_PATH_POSTPROC(AC_DEFINE([HAVE_LIBPOSTPROC], 1, [Have libpostproc support]))
 dnl AM_CONDITIONAL(HAVE_LIBPOSTPROC, test x"$have_libpostproc" = x"yes")
-
-dnl
-dnl GM's lve
-dnl
-TC_PATH_LVE(AC_DEFINE([HAVE_LIBLVE], 1, [Have liblve support]))
-AM_CONDITIONAL(HAVE_LIBLVE, test x"$have_liblve" = x"yes")
 
 dnl
 dnl PVM
@@ -1015,6 +1007,11 @@ AM_CONDITIONAL(HAVE_A52, test x"$have_a52" = x"yes")
 AC_SUBST(A52_CFLAGS)
 AC_SUBST(A52_LIBS)
 
+dnl
+dnl GM's lve
+dnl
+TC_PATH_LVE(AC_DEFINE([HAVE_LIBLVE], 1, [Have liblve support]))
+AM_CONDITIONAL(HAVE_LIBLVE, test x"$have_liblve" = x"yes")
 
 dnl
 dnl libmpeg3
@@ -1324,6 +1321,7 @@ AC_OUTPUT([
 	docs/Makefile
 	docs/html/Makefile
 	docs/man/Makefile
+	docs/release-notes/Makefile
 	export/Makefile
 	filter/Makefile
 	filter/divxkey/Makefile
