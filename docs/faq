@@ -172,3 +172,19 @@ Q:	I am missing the mp3 import module (import_mp3.so)!
 A:	You need to have a recent lame library installed. Including all header
 	files (-devel package) (tibit)
 ---
+Q:	How do I calculate the best tcrequant number from within a script
+	when going from a DVD9 to a DVD5?
+A:	Once you have separated (using tcextract) the audio and the video,
+	get the file sizes of the audio and video files.  If you are burning to
+	a DVD5, the maximum image size is 4700000000.  So the following
+	equation will give you a 'best fit' number.  1.04 is a fudge factor to
+	leave space for the file system and other overhead.
+	<br />
+	If you are including more that one audio stream or a subtitle stream,
+	those filesizes must also be subtracted from the maximum dvd image size.
+
+	<pre>
+	requant_factor = (video_size / (dvdmax_size - audio_size)) * 1.04;
+	tcrequant -i ofile.m2v -o movie.m2v -f requant_factor
+	</pre> (jcooper)
+---
