@@ -31,6 +31,7 @@ endif
 
 pkg_LTLIBRARIES = 	filter_null.la\
 			filter_invert.la\
+			filter_nored.la\
 			filter_32detect.la\
 			filter_32drop.la\
 			filter_yuy2toyv12.la\
@@ -53,6 +54,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_tc_video.la\
 			filter_tc_audio.la\
 			filter_cpaudio.la\
+			filter_hqdn3d.la\
 			filter_29to23.la\
 			filter_smooth.la\
 			$(F_PP) $(F_MMX) $(F_LOGO) $(F_TEXT)
@@ -75,6 +77,9 @@ filter_text_la_LIBADD  = @FT2_LIBS@
 
 filter_smooth_la_SOURCES = filter_smooth.c
 filter_smooth_la_LDFLAGS =  -module -avoid-version 
+
+filter_hqdn3d_la_SOURCES = filter_hqdn3d.c
+filter_hqdn3d_la_LDFLAGS =  -module -avoid-version 
 
 filter_29to23_la_SOURCES = filter_29to23.c
 filter_29to23_la_LDFLAGS =  -module -avoid-version 
@@ -146,6 +151,9 @@ filter_logoaway_la_LIBADD = @MAGICK_LIBS@
 
 filter_invert_la_SOURCES = filter_invert.c
 filter_invert_la_LDFLAGS =  -module -avoid-version 
+
+filter_nored_la_SOURCES = filter_nored.c
+filter_nored_la_LDFLAGS =  -module -avoid-version 
 
 filter_pp_la_SOURCES = filter_pp.c
 filter_pp_la_LDFLAGS =  -module -avoid-version 
