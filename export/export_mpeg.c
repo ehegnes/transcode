@@ -47,6 +47,7 @@
 
 #include "transcode.h"
 #include "../bbmpeg/bbencode.h"
+#include "probe_export.h"
 
 #ifdef HAS_FFMPEG
 #include "../ffmpeg/libavcodec/avcodec.h"
@@ -208,10 +209,7 @@ MOD_open
     if (bbmpeg_fcnt > 0)
       sprintf(out_fname, "%s-%03d", out_fname, bbmpeg_fcnt);
      
-    if (bbmpeg_type == 1)
-      strcat(out_fname, ".m1v");    
-    else
-      strcat(out_fname, ".m2v");  
+    strcat(out_fname, video_ext);    
 
     //-- now init encoder with this prepared stuff --
     //-----------------------------------------------   
@@ -252,7 +250,7 @@ MOD_open
       if (bbmpeg_fcnt > 0)
         sprintf(out_fname, "%s-%03d", out_fname, bbmpeg_fcnt);
 
-      strcat(out_fname, ".mpa");
+      strcat(out_fname, audio_ext);
       
       //-- open output-file --
       //----------------------
@@ -439,6 +437,16 @@ MOD_init
       bbmpeg_type = 1; // is mpeg1
     else
       bbmpeg_type = 2; // is mpeg2 
+
+
+    if ( !(probe_export_attributes & TC_PROBE_NO_EXPORT_VEXT) ) {
+	if (bbmpeg_type == 1) {
+	    video_ext = ".m1v";
+	} else  {
+	    video_ext = ".m2v";
+	}
+    }
+
    
     //-- check parameter ("-F ?,<r>,?") for resizer --
     //-- and setup w/h values of destination frame  --
@@ -529,6 +537,9 @@ MOD_init
       fprintf(stderr, "[%s] mpa codec not found !\n", MOD_NAME);
       return(TC_EXPORT_ERROR); 
     }
+
+    if ( !(probe_export_attributes & TC_PROBE_NO_EXPORT_AEXT) )
+	audio_ext = ".mpa";
     return(0);  
   }
 #endif

@@ -32,8 +32,10 @@
 #include "transcode.h"
 #include "avilib.h"
 
+#include "probe_export.h"
+
 #define MOD_NAME    "export_mp2enc.so"
-#define MOD_VERSION "v1.0.8 (2003-04-10)"
+#define MOD_VERSION "v1.0.9 (2003-10-30)"
 #define MOD_CODEC   "(audio) MPEG 1/2"
 
 #define MOD_PRE mp2enc
@@ -44,6 +46,8 @@ static int 			verbose_flag	= TC_QUIET;
 static int 			capability_flag	= TC_CAP_PCM;
 static struct wave_header 	rtf;
 
+static char *mpa=".mpa";
+
 /* ------------------------------------------------------------ 
  *
  * open outputfile
@@ -53,13 +57,14 @@ static struct wave_header 	rtf;
 MOD_open
 {
     int verb;
-    char *mpa=".mpa";
   
     if (param->flag == TC_AUDIO) 
     {
         char buf [PATH_MAX];
 	int srate, brate;
 	char *chan;
+
+	mpa = audio_ext;
 
 	//tibit: do not write to /dev/null.m1v
 	if (vob->audio_out_file && strlen(vob->audio_out_file)>=9 && !strncmp(vob->audio_out_file, "/dev/null", 9)) {
@@ -72,7 +77,7 @@ MOD_open
 	brate = vob->mp3bitrate;
 	chan = (vob->dm_chan>=2) ? "-s": "-m";
 	
-	if(((unsigned)snprintf(buf, PATH_MAX, "mp2enc -v %d -r %d -b %d %s -o \"%s\"%s %s", verb, srate, brate, chan, vob->audio_out_file, mpa, (vob->ex_a_string?vob->ex_a_string:""))>=PATH_MAX)) {
+	if(((unsigned)snprintf(buf, PATH_MAX, "mp2enc -v %d -r %d -b %d %s -o \"%s%s\" %s", verb, srate, brate, chan, vob->audio_out_file, mpa, (vob->ex_a_string?vob->ex_a_string:""))>=PATH_MAX)) {
 	  perror("cmd buffer overflow");
 	  return(TC_EXPORT_ERROR);
 	} 
@@ -128,6 +133,9 @@ MOD_init
         rtf.common.wBlockAlign       = vob->dm_chan*vob->dm_bits/8;
 
         strncpy(rtf.data.id, "data",4);
+
+	if ( !(probe_export_attributes & TC_PROBE_NO_EXPORT_AEXT))
+		audio_ext = mpa;
 	  
         fprintf(stderr, "[%s] *** init-v *** !\n", MOD_NAME); 
     

@@ -35,6 +35,7 @@ EXTRA_DIST =  \
    video_trans.h \
    tc_functions.h \
    tc_func_excl.h \
+   probe_export.h \
    zoom.h
 
 transcode_SOURCES =	transcode.c\

@@ -59,6 +59,10 @@ char *WHITE  = COL(37);
 char *GRAY   =  "\033[0m";
 */
 
+// communicating with export modules to allow to set them defaults.
+#include "probe_export.h"
+unsigned int probe_export_attributes = 0;
+
 
 /* ------------------------------------------------------------ 
  *
@@ -82,6 +86,7 @@ int decolor     = TC_FALSE;
 int zoom        = TC_FALSE;
 int dgamma      = TC_FALSE;
 int keepasr     = TC_FALSE;
+int fast_resize = TC_FALSE;
 
 // global information structure
 static vob_t *vob;
@@ -112,9 +117,8 @@ char *plugins_string = NULL;
 char *tc_config_dir = NULL;
 pid_t writepid = 0;
 
-// move these to transcode.h?
-char *video_ext = "avi";
-char *audio_ext = "mp3";
+char *video_ext = ".avi";
+char *audio_ext = ".mp3";
 
 //default
 int tc_encode_stream = 0;
@@ -307,7 +311,7 @@ void usage(int status)
   printf(" -r n[,m]            reduce video height/width by n[,m] [off]\n");
   printf(" -B n[,m[,M]]        resize to height-n*M rows [,width-m*M] columns [off,32]\n");
   printf(" -X n[,m[,M]]        resize to height+n*M rows [,width+m*M] columns [off,32]\n");
-  printf(" -Z wxh              resize to w columns, h rows with filtering [off]\n");
+  printf(" -Z wxh[,fast]       resize to w columns, h rows with filtering [off,notfast]\n");
   printf("--zoom_filter str    use filter string for video resampling -Z [Lanczos3]\n");
   printf("\n");
 
@@ -405,8 +409,7 @@ void usage(int status)
   printf("--socket file        socket file for run-time control [no file]\n");
   printf("--dv_yuy2_mode       libdv YUY2 mode (default is YV12) [off]\n");
   printf("--config_dir dir     Assume config files are in this dir [off]\n");
-  // unfinished.
-  //printf("--ext vext,aext      Use these file extensions [%s,%s]\n", video_ext, audio_ext);
+  printf("--ext vid,aud        Use these file extensions [%s,%s]\n", video_ext, audio_ext);
 
   printf("\n");
 
@@ -1635,12 +1638,26 @@ int main(int argc, char *argv[]) {
 
 	if(optarg[0]=='-') usage(EXIT_FAILURE);
 
-	if ((n = sscanf(optarg,"%dx%d", &vob->zoom_width, &vob->zoom_height))<=0) tc_error("invalid parameter for option -Z");
+	{ 
+	char *c = strchr(optarg, 'x');
 
-	if(vob->zoom_width > TC_MAX_V_FRAME_WIDTH || vob->zoom_width==0) tc_error("invalid width for option -Z");
-	if(vob->zoom_height >TC_MAX_V_FRAME_HEIGHT || vob->zoom_height==0) tc_error("invalid height for option -Z");
+	vob->zoom_width  = 0;
+	vob->zoom_height = 0;
+
+	if (c && *c && *(c+1)) vob->zoom_height = atoi (c+1);
+	if (*optarg != 'x')    vob->zoom_width = atoi(optarg);
+
+	if(vob->zoom_width > TC_MAX_V_FRAME_WIDTH) 
+	  tc_error("invalid width for option -Z");
+	if(vob->zoom_height >TC_MAX_V_FRAME_HEIGHT) 
+	  tc_error("invalid height for option -Z");
+
+	c = strchr(optarg, ',');
+	if (c && *c && *(c+1) && !strncmp(c+1, "fast", 1)) fast_resize = TC_TRUE;
 
 	zoom=TC_TRUE;
+
+	}
 
 	break;
 	
@@ -2222,20 +2239,22 @@ int main(int argc, char *argv[]) {
 	    c = strchr (optarg, ',');
 	    if (!c) { // no amod
 	      video_ext = optarg;
+	      probe_export_attributes |= TC_PROBE_NO_EXPORT_VEXT;
 	    } else if (c == optarg) { // only amod
 	      audio_ext = c+1;
+	      probe_export_attributes |= TC_PROBE_NO_EXPORT_AEXT;
 	    } else { // both
 	      *c = '\0';
 	      video_ext = optarg;
 	      audio_ext = c+1;
+	      probe_export_attributes |= TC_PROBE_NO_EXPORT_AEXT;
+	      probe_export_attributes |= TC_PROBE_NO_EXPORT_VEXT;
 	    }
 	    if ( !strcmp(video_ext, "none")) video_ext = "";
 	    if ( !strcmp(video_ext, "null")) video_ext = "";
 	    if ( !strcmp(audio_ext, "none")) audio_ext = "";
 	    if ( !strcmp(audio_ext, "null")) audio_ext = "";
 	    
-	    // if (*c == *optarg && *(c+1) == '\0')
-
 	  }
 			
 
@@ -2268,7 +2287,7 @@ int main(int argc, char *argv[]) {
 	  *suffix = '\0';
 	}
 	psubase = malloc(PATH_MAX);
-	snprintf(psubase, PATH_MAX, "%s-psu%%02d.avi", video_out_file);
+	snprintf(psubase, PATH_MAX, "%s-psu%%02d%s", video_out_file, video_ext);
       } else {
 	psubase = video_out_file;
       }
@@ -2744,6 +2763,135 @@ int main(int argc, char *argv[]) {
     }
     
     if(vob->deinterlace==4) vob->ex_v_height /= 2;
+
+    // Calculate the missing w or h based on the ASR
+    if (zoom && (vob->zoom_width == 0 || vob->zoom_height == 0)) {
+
+      typedef struct ratio_t { int t, b; } ratio_t;
+      enum missing_t { NONE, CALC_W, CALC_H, ALL } missing = ALL;
+      ratio_t asrs[] = { {1, 1}, {1, 1}, {4, 3}, {16, 9}, {221, 100} };
+      ratio_t asr = asrs[0];
+      float oldr;
+
+      // check if we have at least on width or height
+      if (vob->zoom_width==0 && vob->zoom_height==0) missing = ALL;
+      else if (vob->zoom_width==0 && vob->zoom_height>0) missing = CALC_W;
+      else if (vob->zoom_width>0 && vob->zoom_height==0) missing = CALC_H;
+      else if (vob->zoom_width>0 && vob->zoom_height>0) missing = NONE;
+
+      // try import
+      if (vob->im_asr>0 && vob->im_asr<5) asr = asrs[vob->im_asr];
+      // try the export aspectratio
+      else if (vob->ex_asr>0 && vob->ex_asr<5) asr = asrs[vob->ex_asr];
+
+      switch (missing) {
+	case ALL: 
+	  tc_error("Neither zoom width nor height set, can't guess anything"); 
+	case CALC_W: 
+	  vob->zoom_width = vob->zoom_height * asr.t; vob->zoom_width /= asr.b;
+	  break;
+	case CALC_H: 
+	  vob->zoom_height = vob->zoom_width * asr.b; vob->zoom_height /= asr.t;
+	  break;
+	case NONE: default:
+	  /* can't happen */
+	  break;
+      }
+
+      // for error printout
+      oldr = (float)vob->zoom_width/(float)vob->zoom_height;
+
+      // align
+      if (vob->zoom_height%8 != 0) vob->zoom_height += 8-(vob->zoom_height%8);
+      if (vob->zoom_width%8 != 0) vob->zoom_width += 8-(vob->zoom_width%8);
+      //printf("New %%8s %d X %d\n", vob->zoom_width, vob->zoom_height);
+      oldr = ((float)vob->zoom_width/(float)vob->zoom_height-oldr)*100.0;
+      oldr = oldr<0?-oldr:oldr;
+
+      printf("[%s] V: %-16s | %03dx%03d  %4.2f:1 error %.2f%%\n", 
+	  PACKAGE, "auto resize", vob->zoom_width, vob->zoom_height,
+	  (float)vob->zoom_width/(float)vob->zoom_height, oldr);
+
+    }
+
+    // -Z ...,fast
+    if (fast_resize) {
+
+      int nw, nh, ow, oh;
+      int Bw, Bh, Xw, Xh;
+      int dw, dh, M=0;
+
+      ow = vob->ex_v_width;
+      oh = vob->ex_v_height;
+      nw = vob->zoom_width;
+      nh = vob->zoom_height;
+
+      // -B: new = old - n*M
+      // (-1)*n = (new - old)/M 
+
+      dw = nw - ow;
+      if (dw%8 == 0) M = 8;
+      if (!M) fast_resize = 0;
+
+      M = 0;
+      dh = nh - oh;
+      if (dh%8 == 0) M = 8;
+      if (!M) fast_resize = 0; 
+
+      if (fast_resize) {
+
+	Bw = dw/M;
+	Bh = dh/M;
+
+	if        (Bw < 0 && Bh < 0) {
+	  resize1 = TC_TRUE;
+	  resize2 = TC_FALSE;
+	  Xh = Xw = 0;
+	  Bw = -Bw;
+	  Bh = -Bh;
+	} else if (Bw < 0 && Bh >= 0) {
+	  resize1 = TC_TRUE;
+	  resize2 = TC_TRUE;
+	  Bw = -Bw;
+	  Xh = Bh;
+	  Xw = Bh = 0;
+	} else if (Bw >= 0 && Bh < 0) {
+	  resize1 = TC_TRUE;
+	  resize2 = TC_TRUE;
+	  Bh = -Bh;
+	  Xw = Bw;
+	  Bw = Xh = 0;
+	} else {
+	  resize1 = TC_FALSE;
+	  resize2 = TC_TRUE;
+	  Xw = Bw;
+	  Xh = Bh;
+	  Bh = Bw = 0;
+	}
+
+	vob->resize1_mult = 8;
+	vob->resize2_mult = 8;
+	vob->vert_resize1 = Bh;
+	vob->hori_resize1 = Bw;
+	vob->vert_resize2 = Xh;
+	vob->hori_resize2 = Xw;
+	vob->zoom_width   = 0;
+	vob->zoom_height  = 0;
+
+	if (Bw == 0 && Bh == 0) resize1 = TC_FALSE;
+	if (Xw == 0 && Xh == 0) resize2 = TC_FALSE;
+
+	printf("[%s] V: %-16s | Using -B %d,%d,8 -X %d,%d,8\n", 
+	    PACKAGE, "fast resize", Bh, Bw, Xh, Xw);
+
+	zoom = TC_FALSE;
+
+      } else {
+	printf("[%s] V: %-16s | requested but can't be used (W or H mod 8 != 0)\n", 
+	    PACKAGE, "fast resize");
+      }
+
+    }
     
     // -X
 
@@ -3577,7 +3725,7 @@ int main(int argc, char *argv[]) {
 	if (!base || !strlen(base)) strncpy(base, vob->video_out_file, TC_BUF_MIN);
 	
 	// create new filename 
-	sprintf(buf, "%s%03d.avi", base, ch1++);
+	sprintf(buf, "%s%03d%s", base, ch1++, video_ext);
 	
 	// update vob structure
 	vob->video_out_file = buf;
@@ -3790,7 +3938,7 @@ int main(int argc, char *argv[]) {
       if(no_split) {
 	
 	// create single output filename 
-	sprintf(buf, "%s.avi", dirbase);
+	sprintf(buf, "%s%s", dirbase, video_ext);
 	
 	// update vob structure
 	if(dir_audio) {
@@ -3798,7 +3946,7 @@ int main(int argc, char *argv[]) {
 	  switch(vob->ex_a_codec) {
 	    
 	  case CODEC_MP3:
-	    sprintf(buf, "%s-%03d.mp3", dirbase, dir_fcnt);
+	    sprintf(buf, "%s-%03d%s", dirbase, dir_fcnt, audio_ext);
 	    break;
 	  }
 
@@ -3826,7 +3974,7 @@ int main(int argc, char *argv[]) {
 
 	if(!no_split) {
 	  // create new filename 
-	  sprintf(buf, "%s-%03d.avi", dirbase, dir_fcnt);
+	  sprintf(buf, "%s-%03d%s", dirbase, dir_fcnt, video_ext);
 	  
 	  // update vob structure
 	  if(dir_audio) {
@@ -3834,7 +3982,7 @@ int main(int argc, char *argv[]) {
 	    switch(vob->ex_a_codec) {
 	      
 	    case CODEC_MP3:
-	      sprintf(buf, "%s-%03d.mp3", dirbase, dir_fcnt);
+	      sprintf(buf, "%s-%03d%s", dirbase, dir_fcnt, audio_ext);
 	      break;
 	    }
 
@@ -3934,7 +4082,7 @@ int main(int argc, char *argv[]) {
       if(no_split) {
 	
 	// create new filename 
-	sprintf(buf, "%s.avi", chbase);
+	sprintf(buf, "%s%s", chbase, video_ext);
 	
 	// update vob structure
 	vob->video_out_file = buf;
@@ -3960,7 +4108,7 @@ int main(int argc, char *argv[]) {
 	
 	if(!no_split) {
 	  // create new filename 
-	  sprintf(buf, "%s-ch%02d.avi", chbase, ch1);
+	  sprintf(buf, "%s-ch%02d%s", chbase, ch1, video_ext);
 	  
 	  // update vob structure
 	  vob->video_out_file = buf;

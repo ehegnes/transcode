@@ -91,9 +91,13 @@ transcode-0.6.11
 
 2003-10-28 Tilmann Bitterberg <transcode at tibit.org>
 
-  * src/transcode.c:
+  * src/transcode.c export/export_{mp2enc.c mpeg.c mpeg2enc.c}
+  src/probe_export.h:
   Architecture for setting the filename extension for the export
-  modules.
+  modules. A few modules and the core of transcode support this (the
+  modules listed on the top).
+  This goes together with a new commandline option --ext vext,aext
+  Use "none" to disable the filename completion completely.
 
 2003-10-28 Tilmann Bitterberg <transcode at tibit.org>
 
