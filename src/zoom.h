@@ -27,6 +27,17 @@
 #ifndef _ZOOMIMAGE_H_
 #define _ZOOMIMAGE_H_
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_MMX
+# define emms() __asm__ __volatile__ ("emms")
+#else
+# define emms() do{}while(0)
+#endif
+
+
 /* This type represents one pixel */
 typedef unsigned char pixel_t;
 

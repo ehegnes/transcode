@@ -296,6 +296,8 @@ int i;                      * pixel_t column in source bitmap being processed */
     double weight;
     int j, k, n;
 
+    emms();
+
     if(xscale < 1.0)
     {
         /* Shrinking image */
@@ -377,6 +379,8 @@ zoom_image_init(image_t *dst, image_t *src, double (*filterf)(double), double fw
     CLIST  contribX;
     CLIST *contribY;
     instruction_t *prg;
+
+    emms();
     
     zoomer = (zoomer_t*)malloc(sizeof(zoomer_t));
     zoomer->src = src;
@@ -538,6 +542,8 @@ void zoom_image_process(zoomer_t *zoomer)
     pixel_t *out = zoomer->dst->data;
     pixel_t *tmpOut;
     instruction_t *prgY, *prgX = NULL, *prgXa;
+
+    emms();
 
     prgXa = zoomer->programX;
     
