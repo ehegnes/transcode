@@ -17,22 +17,31 @@
 #ifndef PVNPNMGLOBALS_H
 #define PVNPNMGLOBALS_H
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <unistd.h>
+#ifdef HAVE_MALLOC_H
+#  ifndef SYS_BSD
+#  include <malloc.h>
+#  endif
+#endif
 
 #ifdef _MSC_VER
-  #include <malloc.h>
   #define LITTLE_ENDIAN 1234
-  #define BYTE_ORDER LITTLE_ENDIAN
-#elif defined(__APPLE__)
+#endif
+#ifndef BYTE_ORDER
+  #ifdef WORDS_BIGENDIAN
   #define BYTE_ORDER BIG_ENDIAN
-#else
-  #include <malloc.h>
-  #include <endian.h>
+  #else
+  #define BYTE_ORDER LITTLE_ENDIAN
+  #endif
 #endif
 
 

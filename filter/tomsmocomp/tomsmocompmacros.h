@@ -1,7 +1,11 @@
-#include <malloc.h>
 #include <string.h>
 #include <math.h>
-#include <malloc.h>
+#include <stdlib.h>
+#ifdef HAVE_MALLOC_H
+#  ifndef SYS_BSD
+#  include <malloc.h>
+#  endif
+#endif
 
 #define USE_FOR_DSCALER
 

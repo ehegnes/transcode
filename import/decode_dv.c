@@ -41,14 +41,15 @@
 #define DV_NTSC_SIZE   frame_size_525_60
 #define DV_HEADER_SIZE header_size
 
+#if 0
 static const int header_size = 80 * 52;
 static const int frame_size_525_60 = 10 * 150 * 80;
 static const int frame_size_625_50 = 12 * 150 * 80;
+#endif
 
 static int verbose=TC_QUIET;
 
-#if 0 // not used, EMS
-static unsigned char *bufalloc(size_t size)
+unsigned char *bufalloc(size_t size) // apparently not static, EMS
 {
    long buffer_align=getpagesize();
  
@@ -67,7 +68,6 @@ static unsigned char *bufalloc(size_t size)
 
    return buf + adjust;
 }
-#endif
 
 void yuy2toyv12(char *_y, char *_u, char *_v, char *input, int width, int height) 
 {
@@ -260,7 +260,7 @@ void decode_dv(decode_t *decode)
 	pitches[1]  = 0;
 	pitches[2]  = 0;
 	  
-	dv_decode_full_frame(dv_decoder, buf, e_dv_color_rgb, (unsigned char **) video, pitches);
+	dv_decode_full_frame(dv_decoder, buf, e_dv_color_rgb, (unsigned char **) video, (int *)pitches);
 	dv_decoder->prev_frame_decoded = 1;
 	  
 	bytes = 3 * dv_decoder->width * dv_decoder->height;
@@ -277,7 +277,7 @@ void decode_dv(decode_t *decode)
 	pitches[1]  = 0;
 	pitches[2]  = 0;
 	  
-	dv_decode_full_frame(dv_decoder, buf, e_dv_color_yuv, (unsigned char **) video, pitches);
+	dv_decode_full_frame(dv_decoder, buf, e_dv_color_yuv, (unsigned char **) video, (int *)pitches);
 	dv_decoder->prev_frame_decoded = 1;
 	  
 	bytes = 2 * dv_decoder->width * dv_decoder->height;
@@ -302,7 +302,7 @@ void decode_dv(decode_t *decode)
 	    pitches[1]  = pitches[0]/2;
 	    pitches[2]  = pitches[0]/2;
 	    
-	    dv_decode_full_frame(dv_decoder, buf, e_dv_color_yuv, (unsigned char **) video, pitches);
+	    dv_decode_full_frame(dv_decoder, buf, e_dv_color_yuv, (unsigned char **) video, (int *)pitches);
 	  
 	  } else {
 	    
@@ -310,7 +310,7 @@ void decode_dv(decode_t *decode)
 	    pitches[1]  = 0;
 	    pitches[2]  = 0;
 	    
-	    dv_decode_full_frame(dv_decoder, buf, e_dv_color_yuv, (unsigned char **) video, pitches);
+	    dv_decode_full_frame(dv_decoder, buf, e_dv_color_yuv, (unsigned char **) video, (int *)pitches);
 	    
 	    //downsample to YV12:	  
 	    yuy2toyv12(video[3], video[2], video[1], video[0], dv_decoder->width, dv_decoder->height);
