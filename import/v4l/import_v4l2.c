@@ -52,6 +52,8 @@
 #include "transcode.h"
 #include "aclib/ac.h"
 
+#include "filter/mmx.h"
+
 #define MOD_NAME		"import_v4l2.so"
 #define MOD_VERSION		"v1.2.1 (2004-01-03)"
 #define MOD_CODEC		"(video) v4l2 | (audio) pcm"
@@ -87,11 +89,16 @@
 					This means that must not use -D anymore.
 	1.2.1	EMS added bttv driver to blacklist 'does not support cropping
 					info ioctl'
+			tibit added mmx version of yuy2_to_uyvy
+			      hacked in alternate fields (#if 0'ed) 
+				  fixed a typo (UYUV -> UYVY)
 	TODO
 
 	- add more conversion schemes
 	- make conversion user-selectable
 	- use more mmx/sse/3dnow
+	- add (clean) alternate fields support to spit out
+	  50 fields per second.
 */
 
 #define module "[" MOD_NAME "]: "
@@ -175,7 +182,7 @@ static v4l2_format_convert_table_t v4l2_format_convert_table[] =
 	{ V4L2_PIX_FMT_RGB24, v4l2_fmt_rgb, v4l2_convert_rgb24_rgb, "RGB24 [packed] -> RGB [packed] (no conversion)" },
 	{ V4L2_PIX_FMT_BGR24, v4l2_fmt_rgb, v4l2_convert_bgr24_rgb, "BGR24 [packed] -> RGB [packed] (slow conversion)" },
 
-	{ V4L2_PIX_FMT_UYVY, v4l2_fmt_yuv422packed, v4l2_convert_uyvy_yuv422, "UYUV [packed] -> YUV422 [packed] (no conversion)" },
+	{ V4L2_PIX_FMT_UYVY, v4l2_fmt_yuv422packed, v4l2_convert_uyvy_yuv422, "UYVY [packed] -> YUV422 [packed] (no conversion)" },
 	{ V4L2_PIX_FMT_YUYV, v4l2_fmt_yuv422packed, v4l2_convert_yuyv_yuv422, "YUYV [packed] -> YUV422 [packed] (slow conversion) " },
 
 	{ V4L2_PIX_FMT_YVU420, v4l2_fmt_yuv420planar, v4l2_convert_yvu420_yuv420, "YVU420 [planar] -> YUV420 [planar] (no conversion)" },
@@ -227,10 +234,83 @@ static void v4l2_convert_uyvy_yuv422(const char * source, char * dest, size_t si
 static void v4l2_convert_yuyv_yuv422(const char * source, char * dest, size_t size, int xsize, int ysize)
 {
 	size_t mysize = xsize * ysize * 2;
+	size_t mmxsize;
 	int offset;
 
 	if(mysize != size)
 		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
+
+	mmxsize = mysize/32;
+
+#ifdef HAVE_MMX
+	/* 
+	 * I am not using masks to clear out the unneeded Y resp. U/V values
+	 * because it would occupy registers and the shifts don't cost much.
+	 * To fullfill that w*h*2 is a multiple of 32, either w and h must be a
+	 * multple of 4 or w must be a multiple of 8 and h a multiple of 2. I think
+	 * thats reasonable.
+	 *
+	 * CPU cycles:
+	 *  C:    7200410 cycles (avg)
+	 *  MMX:  3503287 cycles (avg)
+	 * 
+	 * I know that there should be "collection" of these routines somewhere
+	 * else in the transcode dir but before that happens, I use this place
+	 * here as a temporary location. --tibit
+	 */
+
+	do {
+
+		/* u0 y0 v0 y1 u1 y2 v1 y3 HAVE*/
+		/*  \ /   \ /   \ /   \ /      */ 
+		/*   x     x     x     x       */ 
+		/*  / \   / \   / \   / \      */ 
+		/* y0 u0 y1 v0 y2 u1 y3 v1 WANT*/
+
+		movq_m2r(*(source+ 0), mm0); /* u0 y0 v0 y1 u1 y2 v1 y3 */
+		movq_m2r(*(source+ 8), mm2);
+		movq_m2r(*(source+16), mm4);
+		movq_m2r(*(source+24), mm6);
+
+		movq_r2r(mm0, mm1);
+		movq_r2r(mm2, mm3);
+		movq_r2r(mm4, mm5);
+		movq_r2r(mm6, mm7);
+
+		psllw_i2r(8, mm0);  /* y0 00 y1 00 y2 00 y3 00 */
+		psllw_i2r(8, mm2);
+		psllw_i2r(8, mm4);
+		psllw_i2r(8, mm6);
+
+		psrlw_i2r(8, mm1);  /* 00 u0 00 v0 00 u1 00 v1 */
+		psrlw_i2r(8, mm3);
+		psrlw_i2r(8, mm5);
+		psrlw_i2r(8, mm7);
+
+		por_r2r(mm1, mm0);  /* y0 u0 y1 v0 y2 u1 y3 v1 */
+		por_r2r(mm3, mm2);
+		por_r2r(mm5, mm4);
+		por_r2r(mm7, mm6);
+
+		movq_r2m(mm0, *(dest+ 0));
+		movq_r2m(mm2, *(dest+ 8));
+		movq_r2m(mm4, *(dest+16));
+		movq_r2m(mm6, *(dest+24));
+
+		source+=32;
+		dest+=32;
+
+	} while (mmxsize--);
+
+	emms();
+	
+	// catch the rest of pixels (if there are any)
+
+	mmxsize  = mysize/32;
+	mmxsize *= 32;
+	mysize  -= mmxsize;
+
+	// mysize should now be 0, if not ...
 
 	for(offset = 0; offset < mysize; offset += 4)
 	{
@@ -239,6 +319,17 @@ static void v4l2_convert_yuyv_yuv422(const char * source, char * dest, size_t si
 		dest[offset + 2] = source[offset + 3];
 		dest[offset + 3] = source[offset + 2];
 	}
+
+#else
+	for(offset = 0; offset < mysize; offset += 4)
+	{
+		dest[offset + 0] = source[offset + 1];
+		dest[offset + 1] = source[offset + 0];
+		dest[offset + 2] = source[offset + 3];
+		dest[offset + 3] = source[offset + 2];
+	}
+#endif
+
 }
 
 static void v4l2_convert_yuyv_yuv420(const char * source, char * dest, size_t dest_size, int xsize, int ysize)
@@ -390,6 +481,11 @@ static int v4l2_video_grab_frame(char * dest, size_t length)
 
 	if(dest)
 		v4l2_format_convert(v4l2_buffers[ix].start, dest, length, v4l2_width, v4l2_height);
+	
+#if 0
+	// for alternating fields
+	if (dest) memcpy(dest, v4l2_buffers[ix].start, length/2);
+#endif
 
 	// enqueue buffer again
 
@@ -684,6 +780,12 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 		format.fmt.pix.width		= width;
 		format.fmt.pix.height		= height;
 		format.fmt.pix.pixelformat	= fcp[ix].from;
+
+#if 0
+		// this causes the driver to deliver the fields alternating
+		if ((int)fps > 30)
+			format.fmt.pix.field        = V4L2_FIELD_ALTERNATE;
+#endif
 
 		if(ioctl(v4l2_video_fd, VIDIOC_S_FMT, &format) < 0)
 			perror(module "VIDIOC_S_FMT: ");
@@ -1195,3 +1297,6 @@ MOD_close
 
 	return(0);
 }
+
+/* vim: ts=4
+ */

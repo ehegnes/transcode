@@ -1,6 +1,84 @@
 --------------------------------------------
 transcode-0.6.12
 
+  * Terse/less technical ChangeLog:
+  Fixes:
+  o make distcheck: correct inclusion of config.h file.
+  o avilib: 64bit issues and other compiler support.
+  o libavcodec: building without mmx.
+  o v4l: building with linux-2.6 headers.
+  o maintaining: included sdl.m4 and glib.m4 in acinclude.m4
+  o xvid import: check for more library sonames.
+  o dvd import: The DVD device may be a char device.
+  o im import: segmentation fault at closing time.
+  o tcrequant: upstream bugfixes.
+  o xvid import: fix library loading on MacOSX.
+  o dv import: Do NOT apply a setup when decoding the DV frame. Last
+    frame was skipped in NTSC.
+  o yuv4mpeg import: read files produced by streamer.
+  o -c option: had a rounding error, only 99 frames of 100 for NTSC.
+
+  New:
+  o avilib: Writing AVI 2.0 (OpenDML) files. Xine (with my submitted
+    patch) plays such files nicely.
+  o denoise3d filter: very fast denoiser.
+  o fraps import: decode AVI files from www.fraps.com.
+  o v4l2: reading from a video4linux2 device.
+  o control filter: read and executes a control "script"
+  o ffmpeg import: DV raw decoding support (-i file.dv -x ffmpeg).  
+  o sh import: executes the input file and reads its output.
+  o mp1e export: module based on mp1e, a mpeg1 encoder.
+  o os: Support for AMDs x86_64 architecture.
+  o --export_par option: sets the pixel/sample aspect ratio.
+  o script: bash completion for transcode with tccomplete.source.
+  o docs: layout fixes so it will look good on www.transcoding.org
+  o ffmpeg export: new codecs namely ffv1, asv1 and asv2.
+  o --export_prof option: sets mpeg "profiles" so that transcode
+    tries can be smart and guess clipping and zooming options.
+  o docs: DV to DVD HOWTO including scripts.
+
+  Improved:
+  o xvid4 export: synced with xvidcore-beta3. Please upgrade to this
+    release and also update your xvid4.cfg. New xvid4conf is available.
+  o pp filter: included postprocess code into transcode.
+  o im export: use -w to set quality.
+  o dvd import: support for non-continuus chapters.
+  o avilib: Support for files with multiple RIFF chunks and no index.
+  o vnc import: now respects the --dvd_access_delay setting. Pass
+    additional paramters down to vncrec by -x vnc="-arg1 -arg2".
+  o mjpeg export: compatibility with Apples quicktime player. 
+  o probing: improved detection of MP3/MP2 files.
+  o libavcodec: Updated included lavc to 4695.
+  o aviindex: keyframe detection by analyzing the content of frames.
+  o subtitler filter: Update to upstream version 0.8.2
+
+  Changes:
+  o tccat: instead of '-P 1' use '-T 1,-1 -P'
+  o --avi_limit option: Defaults to 0 (disabled) instead of 2GB.
+         
+
+2004-01-06 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/v4l/import_v4l2.c:
+  MMX enhance of yuy2 to uvyv and some typos.
+
+2004-01-06 Tilmann Bitterberg <transcode at tibit.org>
+
+  * docs/man/avimerge.c:
+  Update to current commandline options and explain some old.
+
+  * docs/make-filter-man.sh:
+  small yuv422 bugfix, didn't handle "Y4".
+
+  * docs/filter-help.txt:
+  Description of keys and socket commands for the pv filter.
+
+2004-01-06 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/preview/{pv.h filter_pv.c pv.c}:
+  Added support for UYVY. For example watch UYVY TV with
+  transcode -i /dev/video -x v4l2,null -J pv --uyvy
+
 2004-01-05 Florin Andrei <florin at andrei.myip.org>
 
   * docs/DV-to-DVD-HOWTO.txt:
