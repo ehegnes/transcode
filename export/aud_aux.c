@@ -118,8 +118,9 @@ int audio_open(vob_t *vob, avi_t *avifile);
 static int audio_write(char *buffer, size_t size, avi_t *avifile);
 static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile);
 static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile);
-static int audio_passthrough_ac3(char *aud_buffer, int aud_size, avi_t *avifile);
 static int audio_pass_through(char *aud_buffer, int aud_size, avi_t *avifile);
+static int audio_pass_through_ac3(char *aud_buffer, int aud_size, avi_t *avifile);
+static int audio_pass_through_pcm(char *aud_buffer, int aud_size, avi_t *avifile);
 static int audio_mute(char *aud_buffer, int aud_size, avi_t *avifile);
 int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile);
 int audio_close();
@@ -574,7 +575,7 @@ int audio_init(vob_t *vob, int v)
 			debug("PCM -> PCM");
 			/* adjust bitrate with magic ! */
 			avi_aud_bitrate=(vob->a_rate*4)/1000*8;
-			audio_encode_function = audio_pass_through;
+			audio_encode_function = audio_pass_through_pcm;
 			break;
 
 		case CODEC_MP2:	
@@ -631,7 +632,7 @@ int audio_init(vob_t *vob, int v)
 			if (vob->out_flag) {
 				audio_encode_function = audio_pass_through;
 			} else {
-				audio_encode_function = audio_passthrough_ac3;
+				audio_encode_function = audio_pass_through_ac3;
 			}
 			/*
 			 *the bitrate can only be determined in the encoder
@@ -970,7 +971,7 @@ static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
     return (TC_EXPORT_OK);
 }
 
-static int audio_passthrough_ac3(char *aud_buffer, int aud_size, avi_t *avifile)
+static int audio_pass_through_ac3(char *aud_buffer, int aud_size, avi_t *avifile)
 {
 	if(bitrate == 0)
 	{
@@ -1001,6 +1002,26 @@ static int audio_passthrough_ac3(char *aud_buffer, int aud_size, avi_t *avifile)
 	return(audio_write(aud_buffer, aud_size, avifile));
 }
 
+
+/**
+ *
+ */
+static int audio_pass_through_pcm(char *aud_buffer, int aud_size, avi_t *avifile)
+{
+#ifdef WORDS_BIGENDIAN
+	int i;
+	char tmp;
+
+	for(i=0; i<aud_size; i+=2)
+	{
+		tmp = aud_buffer[i+1];
+		aud_buffer[i+1] = aud_buffer[i];
+		aud_buffer[i] = tmp;
+	}
+#endif
+	return(audio_write(aud_buffer, aud_size, avifile));
+
+}
 
 /**
  *

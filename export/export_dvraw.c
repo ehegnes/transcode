@@ -342,6 +342,14 @@ MOD_encode
       dv_encode_metadata(target, encoder->isPAL, encoder->is16x9, &now, 0);
       dv_encode_timecode(target, encoder->isPAL, 0);
 
+#ifdef WORDS_BIGENDIAN
+      for (i=0; i<param->size; i+=2) {
+	  char tmp = param->buffer[i];
+	  param->buffer[i] = param->buffer[i+1];
+	  param->buffer[i+1] = tmp;
+      }
+#endif
+
       // Although dv_encode_full_audio supports 4 channels, the internal
       // PCM data (param->buffer) is only carrying 2 channels so only deal
       // with 1 or 2 channel audio.
