@@ -5,7 +5,6 @@ docsdir = \
 	$(datadir)/doc/transcode/html
 
 docs_DATA =  \
-	core.html \
 	dv.html \
 	dvd.html \
 	export_af6.html \
