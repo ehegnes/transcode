@@ -543,10 +543,11 @@ long streaminfo(int fdes)
   
   // assume this is a valid file descriptor
  
-  int bytes=16;
+  int bytes=16, ret=0;
 
-  if(p_read(fdes, buf, bytes)<bytes) {
-    perror("stream read error");
+  if( (ret = p_read(fdes, buf, bytes))<bytes) {
+    if (ret) fprintf(stderr, "File too short (must be 16 bytes at least)\n");
+    else perror("stream read error");
     return(TC_MAGIC_ERROR);
   }
   
