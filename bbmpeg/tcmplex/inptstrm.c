@@ -313,7 +313,7 @@ char *video_units,
 Video_struc *video_info,
 double *startup_delay,
 unsigned int *video_total,
-unsigned int length)
+double length)
 {
   FILE* info_file;
   double prev_offset=0.0;
@@ -431,11 +431,11 @@ unsigned int length)
   firstField = 0;
   do
   {
-    percent = (int)( floor(((bitcount(&bs) / 8.0)) / 
-                     ((double) length) * 100.0) );
+    double pos = bitcount(&bs) / 8.0;
+    percent = (int)( floor(pos / length * 100.0) );
     if (percent != oldPercent)
     {
-      sprintf(tmpStr, "Scanning video stream: %d%% - byte offset %.0f of %d.", percent, bitcount(&bs) / 8.0, length);
+      sprintf(tmpStr, "Scanning video stream: %d%% - byte offset %.0f of %.0f.", percent, pos, length);
       DisplayProgress(tmpStr, percent);
       oldPercent = percent;
     }
@@ -914,7 +914,7 @@ char *audio_units,
 Audio_struc *audio_info,
 double *startup_delay,
 unsigned int *audio_total,
-unsigned int length)
+double length)
 {
   FILE* info_file;
   double offset_bits=0.0;
@@ -1023,11 +1023,11 @@ unsigned int length)
 
     do
     {
-      percent = (int) ( floor(((bitcount(&bs) / 8.0)) / 
-                        ((double) length) * 100.0) );
+      double pos = bitcount(&bs) / 8.0;
+      percent = (int) ( floor(pos / length * 100.0) );
       if (percent != oldPercent)
       {
-        sprintf(tmpStr, "Scanning audio stream: %d%% - byte offset %.0f of %d.", percent, bitcount(&bs) / 8.0, length);
+        sprintf(tmpStr, "Scanning audio stream: %d%% - byte offset %.0f of %.0f.", percent, pos, length);
         DisplayProgress(tmpStr, percent);
         oldPercent = percent;
       }
@@ -1152,11 +1152,11 @@ unsigned int length)
 
       do
       {
-        percent = (int)( floor(((bitcount(&bs) / 8.0)) / 
-                         ((double) length) * 100.0) );
+        double pos = bitcount(&bs) / 8.0;
+        percent = (int) ( floor(pos / length * 100.0) );
         if (percent != oldPercent)
         {
-          sprintf(tmpStr, "Scanning audio stream: %d%% - byte offset %.0f of %d.", percent, bitcount(&bs) / 8.0, length);
+          sprintf(tmpStr, "Scanning audio stream: %d%% - byte offset %.0f of %.0f.", percent, pos, length);
           DisplayProgress(tmpStr, percent);
           oldPercent = percent;
         }

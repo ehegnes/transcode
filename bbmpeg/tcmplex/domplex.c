@@ -135,7 +135,7 @@ int domplex(int mplex_video, int mplex_audio)
       mkstemp(temp_filename_v);    
       video_units = temp_filename_v;
       
-      if (!get_info_video (VideoFilename, video_units, &video_info, &startup_delay, &video_total, video_bytes))
+      if (!get_info_video (VideoFilename, video_units, &video_info, &startup_delay, &video_total, (double)video_bytes))
 	  return FALSE;
       //DisplayProgress("", 0);
   }
@@ -146,7 +146,7 @@ int domplex(int mplex_video, int mplex_audio)
   {
       mkstemp(temp_filename_a);
       audio_units = temp_filename_a;
-      if (!get_info_audio (AudioFilename, audio_units, &audio_info, &startup_delay, &audio_total, audio_bytes))
+      if (!get_info_audio (AudioFilename, audio_units, &audio_info, &startup_delay, &audio_total, (double)audio_bytes))
 	  return FALSE;
       //DisplayProgress("", 0);
   }
@@ -157,7 +157,7 @@ int domplex(int mplex_video, int mplex_audio)
   {
       mkstemp(temp_filename_a1);
       audio1_units = temp_filename_a1;
-      if (!get_info_audio (Audio1Filename, audio1_units, &audio1_info, &startup_delay, &audio1_total, audio1_bytes))
+      if (!get_info_audio (Audio1Filename, audio1_units, &audio1_info, &startup_delay, &audio1_total, (double)audio1_bytes))
 	  return FALSE;
       DisplayProgress("", 0);
   }

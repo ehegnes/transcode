@@ -277,7 +277,7 @@ int get_info_video       (	/* Info Access Units Video Stream	*/
    Video_struc *video_info,
    double *startup_delay,
    unsigned int *video_total,
-   unsigned int length);
+   double length);
 
 void output_info_video    (	/* Ausgabe Information Access Units	*/
    Video_struc *video_info);
@@ -288,7 +288,7 @@ int get_info_audio       (	/* Info Access Units Audio Stream	*/
    Audio_struc *audio_info,
    double *startup_delay,
    unsigned int *audio_total,
-   unsigned int length);
+   double length);
 
 void output_info_audio    (	/* Ausgabe Information Access Units	*/
    Audio_struc *audio_info);

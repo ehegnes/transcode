@@ -3,6 +3,15 @@ transcode-0.6.13
 
 2004-01-20 Andrew Church <achurch at achurch.org>
 
+  * bbmpeg/mplex.h bbmpeg/tcmplex/{domplex.c inptstrm.c}:
+  This patch fixes a cosmetic bug in tcmplex's progress displays
+  when reading input files: the file size (off_t, potentially 64
+  bits) is passed into a 32-bit variable, causing "byte offset
+  1234567890 of -1678432642" or even "byte offset 9876543210 of
+  12182564".
+
+2004-01-20 Andrew Church <achurch at achurch.org>
+
   * bbmpeg/mplex.h bbmpeg/tcmplex/{multplex.c systems.c}:
   tcmplex in transcode 0.6.12 has two bugs in counting syncwords
   for packet headers.  One is a simple logic error (0x0B 0x0B 0x77
