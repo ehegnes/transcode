@@ -723,8 +723,9 @@ dnl
 dnl avifile support
 dnl
 AVIFILE_EXTRA_LIBS="$AVIFILE_EXTRA_LIBS $X_LIBS $PTHREAD_LIBS"
+AC_LANG_PUSH([C++])
 TC_PATH_PKG(avifile, no, AVIFILE, avifile, avifile-config,
-  [C++], avifile.h, aviplay, GetAvifileVersion)
+  avifile.h, aviplay, GetAvifileVersion)
 if test x"$have_avifile" = x"yes" ; then
   AC_DEFINE([HAVE_AVIFILE], 1, [have avifile support])
   if echo "$AVIFILE_CFLAGS" | grep -q '/avifile-0\.7' ; then
@@ -735,6 +736,7 @@ if test x"$have_avifile" = x"yes" ; then
   AC_DEFINE_UNQUOTED([HAVE_AVIFILE_INCLUDES], $have_avifile_includes,
     [avifile includes directory version specific])
 fi
+AC_LANG_POP([C++])
 AM_CONDITIONAL(HAVE_AVIFILE, test x"$have_avifile" = x"yes")
 AC_SUBST(AVIFILE_CFLAGS)
 AC_SUBST(AVIFILE_LIBS)
@@ -742,12 +744,12 @@ AC_SUBST(AVIFILE_LIBS)
 dnl
 dnl lame support
 dnl
-TC_PATH_PKG(lame, yes, LAME, lame, [],
-  [C], [], mp3lame, lame_init)
+TC_PATH_PKG(lame, yes, LAME, lame, no,
+  [], mp3lame, lame_init)
 if test x"$have_lame" = x"yes" ; then
   lame_inc=no
   save_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS $LAME_CFLAGS"
+  CPPFLAGS="$CPPFLAGS $lame_ii"
   AC_CHECK_HEADER([lame/lame.h],
     [AC_DEFINE([HAVE_LAME_INC], [1],
       [Have Lame includes in separate path]) lame_inc=yes])
@@ -756,6 +758,8 @@ if test x"$have_lame" = x"yes" ; then
   fi
   if test x"$lame_inc" = x"no" ; then
     AC_MSG_ERROR([lame requested, but cannot compile lame.h])
+  else
+    LAME_CFLAGS="$lame_ii"
   fi
   CPPFLAGS="$save_CPPFLAGS"
 
@@ -799,8 +803,8 @@ AC_SUBST(LAME_LIBS)
 dnl
 dnl ogg support
 dnl
-TC_PATH_PKG(ogg, no, OGG, ogg, [],
-  [C], [ogg/ogg.h], ogg, ogg_stream_init)
+TC_PATH_PKG(ogg, no, OGG, ogg, no,
+  [ogg/ogg.h], ogg, ogg_stream_init)
 if test x"$have_ogg" = x"yes" ; then
   AC_DEFINE([HAVE_OGG], 1, [have ogg support])
 fi
@@ -812,8 +816,8 @@ dnl
 dnl vorbis support
 dnl
 VORBIS_EXTRA_LIBS="$VORBIS_EXTRA_LIBS $OGG_LIBS -lm"
-TC_PATH_PKG(vorbis, no, VORBIS, vorbis, [],
-  [C], [vorbis/codec.h], vorbis, vorbis_info_init)
+TC_PATH_PKG(vorbis, no, VORBIS, vorbis, no,
+  [vorbis/codec.h], vorbis, vorbis_info_init)
 if test x"$have_vorbis" = x"yes" ; then
   AC_DEFINE([HAVE_VORBIS], 1, [have vorbis support])
 fi
@@ -826,7 +830,7 @@ dnl theora support
 dnl
 THEORA_EXTRA_LIBS="$THEORA_EXTRA_LIBS $OGG_LIBS -lm"
 TC_PATH_PKG(theora, no, THEORA, theora, theora-config,
-  [C], [theora/theora.h], theora, theora_info_init)
+  [theora/theora.h], theora, theora_info_init)
 if test x"$have_theora" = x"yes" ; then
   AC_DEFINE([HAVE_THEORA], 1, [have theora support])
 fi
@@ -838,12 +842,12 @@ dnl
 dnl libdvdread support
 dnl
 DVDREAD_EXTRA_LIBS="$DVDREAD_EXTRA_LIBS -lm"
-TC_PATH_PKG(libdvdread, yes, LIBDVDREAD, libdvdread, [],
-  [C], [], dvdread, DVDOpen)
+TC_PATH_PKG(libdvdread, yes, LIBDVDREAD, libdvdread, no,
+  [], dvdread, DVDOpen)
 if test x"$have_libdvdread" = x"yes" ; then
   libdvdread_inc=no
   save_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS $LIBDVDREAD_CFLAGS"
+  CPPFLAGS="$CPPFLAGS $libdvdread_ii"
   AC_CHECK_HEADER([dvdread/dvd_reader.h],
     [AC_DEFINE([HAVE_LIBDVDREAD_INC], [1],
       [have libdvdread includes in separate path])
@@ -855,6 +859,8 @@ if test x"$have_libdvdread" = x"yes" ; then
   CPPFLAGS="$save_CPPFLAGS"
   if test x"$libdvdread_inc" = x"no" ; then
     AC_MSG_ERROR([libdvdread requested, but cannot compile dvd_reader.h])
+  else
+    LIBDVDREAD_CFLAGS="$libdvdread_ii"
   fi
   AC_DEFINE([HAVE_LIBDVDREAD], 1, [have libdvdread support])
 fi
@@ -885,8 +891,8 @@ dnl
 dnl libdv
 dnl
 LIBDV_EXTRA_LIBS="$LIBDV_EXTRA_LIBS $PTHREAD_LIBS -lm"
-TC_PATH_PKG(libdv, no, LIBDV, libdv, [],
-  [C], [libdv/dv.h], dv, dv_init)
+TC_PATH_PKG(libdv, no, LIBDV, libdv, no,
+  [libdv/dv.h], dv, dv_init)
 if test x"$have_libdv" = x"yes" ; then
   AC_DEFINE([HAVE_LIBDV], 1, [have libdv support])
   save_LDFLAGS="$LDFLAGS"
@@ -921,7 +927,7 @@ dnl libquicktime
 dnl
 LIBQUICKTIME_EXTRA_LIBS="$LIBQUICKTIME_EXTRA_LIBS -lpng -lz $PTHREAD_LIBS -lm $LIBDV_LIBS"
 TC_PATH_PKG(libquicktime, no, LIBQUICKTIME, libquicktime, lqt-config,
-  [C], [quicktime/lqt.h], quicktime, quicktime_open)
+  [quicktime/lqt.h], quicktime, quicktime_open)
 if test x"$have_libquicktime" = x"yes" ; then
   AC_DEFINE([HAVE_LIBQUICKTIME], 1, [have libquicktime support])
 fi
@@ -932,8 +938,8 @@ AC_SUBST(LIBQUICKTIME_LIBS)
 dnl
 dnl LZO
 dnl
-TC_PATH_PKG(lzo, no, LZO, lzo, [],
-  [C], [lzo1x.h], lzo, lzo_version)
+TC_PATH_PKG(lzo, no, LZO, lzo, no,
+  [lzo1x.h], lzo, lzo_version)
 if test x"$have_lzo" = x"yes" ; then
   AC_DEFINE([HAVE_LZO], 1, [have lzo support])
 fi
@@ -945,8 +951,8 @@ dnl
 dnl A52
 dnl
 A52_EXTRA_LIBS="$A52_EXTRA_LIBS -lm"
-TC_PATH_PKG(a52, no, A52, a52, [],
-  [C], [a52dec/a52.h], a52, a52_init)
+TC_PATH_PKG(a52, no, A52, a52, no,
+  [a52dec/a52.h], a52, a52_init)
 if test x"$have_a52" = x"yes" ; then
   AC_DEFINE([HAVE_A52], 1, [have a52 support])
   # whether to use liba52 as the default decoder 
@@ -983,28 +989,29 @@ dnl
 dnl libmpeg3
 dnl
 LIBMPEG3_EXTRA_LIBS="$LIBMPEG3_EXTRA_LIBS $A52_LIBS -lm $PTHREAD_LIBS"
-TC_PATH_PKG(libmpeg3, no, LIBMPEG3, libmpeg3, [],
-  [C], [], mpeg3, mpeg3_open)
+TC_PATH_PKG(libmpeg3, no, LIBMPEG3, libmpeg3, no,
+  [], mpeg3, mpeg3_open)
 if test x"$have_libmpeg3" = x"yes" ; then
   libmpeg3_inc=no
   save_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS $LIBMPEG3_CFLAGS"
+  CPPFLAGS="$CPPFLAGS $libmpeg3_ii"
   AC_CHECK_HEADER([libmpeg3/libmpeg3.h],
-    [LIBMPEG3_CFLAGS="$LIBMPEG3_CFLAGS/libmpeg3"
+    [LIBMPEG3_CFLAGS="$libmpeg3_ii/libmpeg3"
       libmpeg3_inc=yes])
   if test x"$libmpeg3_inc" = x"no" ; then
     AC_CHECK_HEADER([mpeg3/libmpeg3.h],
-      [LIBMPEG3_CFLAGS="$LIBMPEG3_CFLAGS/mpeg3"
+      [LIBMPEG3_CFLAGS="$libmpeg3_ii/mpeg3"
         libmpeg3_inc=yes])
   fi
   if test x"$libmpeg3_inc" = x"no" ; then
     AC_CHECK_HEADER([libmpeg3.h],
-	  [libmpeg3_inc=yes])
+      [LIBMPEG3_CFLAGS="$libmpeg3_ii"
+        libmpeg3_inc=yes])
   fi
+  CPPFLAGS="$save_CPPFLAGS"
   if test x"$libmpeg3_inc" = x"no" ; then
     AC_MSG_ERROR([libmpeg3 requested, but cannot compile libmpeg3.h])
   fi
-  CPPFLAGS="$save_CPPFLAGS"
   AC_DEFINE([HAVE_LIBMPEG3], 1, [have libmpeg3 support])
 fi
 AM_CONDITIONAL(HAVE_LIBMPEG3, test x"$have_libmpeg3" = x"yes")
@@ -1017,7 +1024,7 @@ dnl libxml2
 dnl
 LIBXML2_EXTRA_LIBS="$LIBXML2_EXTRA_LIBS -lz -lm"
 TC_PATH_PKG(libxml2, no, LIBXML2, [libxml-2.0], xml2-config,
-  [C], [libxml/parser.h], xml2, xmlStrcmp)
+  [libxml/parser.h], xml2, xmlStrcmp)
 if test x"$have_libxml2" = x"yes" ; then
   AC_DEFINE([HAVE_LIBXML2], 1, [have libxml2 support])
 fi
@@ -1035,7 +1042,7 @@ dnl
 dnl mjpegtools (actually only YUV4MPEG)
 dnl
 TC_PATH_PKG(mjpegtools, no, MJPEGTOOLS, mjpegtools, mjpegtools-config,
-  [C], [mjpegtools/yuv4mpeg.h], mjpegutils, y4m_si_get_height)
+  [mjpegtools/yuv4mpeg.h], mjpegutils, y4m_si_get_height)
 if test x"$have_mjpegtools" = x"yes" ; then
   AC_DEFINE([HAVE_MJPEGTOOLS], 1, [have mjpegtools support])
   # check if mjpegtools version >= Mar 31 2004
@@ -1090,7 +1097,7 @@ dnl
 dnl GTK
 dnl
 TC_PATH_PKG(gtk, no, GTK, gtk+, gtk-config,
-  [C], [gtk/gtk.h], gtk, gtk_init)
+  [gtk/gtk.h], gtk, gtk_init)
 if test x"$have_gtk" = x"yes" ; then
   AC_DEFINE([HAVE_GTK], 1, [have gtk support])
 fi
@@ -1109,7 +1116,7 @@ dnl ImageMagick
 dnl
 IMAGEMAGICK_EXTRA_LIBS="$IMAGEMAGICK_EXTRA_LIBS -lz -lm"
 TC_PATH_PKG(imagemagick, no, IMAGEMAGICK, ImageMagick, Magick-config,
-  [C], [magick/api.h], Magick, InitializeMagick)
+  [magick/api.h], Magick, InitializeMagick)
 if test x"$have_imagemagick" = x"yes" ; then
   AC_DEFINE([HAVE_IMAGEMAGICK], 1, [have ImageMagick support])
 fi
@@ -1128,6 +1135,44 @@ dnl ffmpeg binary
 dnl
 TC_PATH_FFMPEG(AC_DEFINE([HAVE_FFMPEG], 1, [Have ffmpeg binary support]))
 AM_CONDITIONAL(HAVE_FFMPEG, test x"$have_ffmpeg" = x"yes")
+
+dnl
+dnl libiconv
+dnl
+TC_PATH_PKG(libiconv, no, LIBICONV, libiconv, no,
+  [iconv.h], [], [])
+if test x"$have_libiconv" = x"yes" ; then
+
+  save_LDFLAGS="$LDFLAGS"
+  LDFLAGS="$LDFLAGS $libiconv_ll"
+  AC_CHECK_LIB(iconv, iconv_open,
+    [],
+    [have_libiconv="no"],
+    [$LIBICONV_EXTRA_LIBS])
+  LDFLAGS="$save_LDFLAGS"
+
+  if test x"$have_libiconv" = x"no" ; then
+    save_LDFLAGS="$LDFLAGS"
+    LDFLAGS="$LDFLAGS $libiconv_ll"
+    AC_CHECK_LIB(iconv, libiconv_open,
+      [have_libiconv="yes"],
+      [have_libiconv="no"],
+      [$LIBICONV_EXTRA_LIBS])
+    LDFLAGS="$save_LDFLAGS"
+  fi
+
+  if test x"$have_libiconv" = x"yes" ; then
+    LIBICONV_LIBS="$libiconv_ll -liconv $LIBICONV_EXTRA_LIBS"
+  else
+    AC_MSG_ERROR([libiconv requested, but cannot link against libiconv])
+  fi
+
+  AC_DEFINE([HAVE_LIBICONV], 1, [have libiconv support])
+fi
+AM_CONDITIONAL(HAVE_LIBICONV, test x"$have_libiconv" = x"yes")
+AC_SUBST(LIBICONV_CFLAGS)
+AC_SUBST(LIBICONV_LIBS)
+
 
 
 dnl
