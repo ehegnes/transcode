@@ -1,6 +1,13 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-12 Tilmann Bitterberg <transcode at tibit.org>
+
+  * avilib/avilib.c import/import_ffmpeg.c:
+  Fix a bug when import_ffmpeg didn't detect pass-through mode
+  properly.
+  Fix a bug when avilib parses the index file.
+
 2003-08-11 Tilmann Bitterberg <transcode at tibit.org>
 
   * acinclude.m4 aclocal.m4 config.h.in configure export/af6_aux.cpp

@@ -1456,6 +1456,7 @@ int avi_parse_index_from_file(avi_t *AVI, char *filename)
     for (i=0; i<AVI_MAX_TRACKS; i++) aud_chunks[i] = 0;
     i=0;
 
+
     if (AVI->video_index)  // already have an index
 	return 0;
 
@@ -1522,7 +1523,7 @@ int avi_parse_index_from_file(avi_t *AVI, char *filename)
 
 	switch (i) {
 	    case 0: // video
-		AVI->video_index[vid_chunks].key = (off_t)key;
+		AVI->video_index[vid_chunks].key = (off_t)(key?0x10:0);
 		AVI->video_index[vid_chunks].pos = pos+8;
 		AVI->video_index[vid_chunks].len = len;
 		vid_chunks++;

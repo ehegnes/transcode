@@ -32,7 +32,7 @@
 #include "avilib.h"
 
 #define MOD_NAME    "import_ffmpeg.so"
-#define MOD_VERSION "v0.1.3 (2003-04-08)"
+#define MOD_VERSION "v0.1.4 (2003-12-08)"
 #define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
                     "): MS MPEG4v1-3/MPEG4/MJPEG"
 #define MOD_PRE ffmpeg
@@ -236,6 +236,8 @@ MOD_open {
           memset(yuv2rgb_buffer, 0, BUFFER_SIZE);  
         break;
       case CODEC_RAW:
+      case CODEC_RAW_YUV:
+      case CODEC_RAW_RGB:
         pass_through = 1;
         break;
     }
@@ -291,8 +293,9 @@ MOD_decode {
     // recycle read buffer
     if (bytes_read == 0) bytes_read = old_bytes;
     
-    if (key)
+    if (key) {
       param->attributes |= TC_FRAME_IS_KEYFRAME;
+    }
 
     // PASS_THROUGH MODE
 
