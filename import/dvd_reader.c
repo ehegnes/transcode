@@ -1214,4 +1214,17 @@ int dvd_close()
 
 return(-1);
 }
+int dvd_verify(char *name) 
+{
+ 
+  fprintf(stderr, "(%s) no support for DVD reading configured - exit.\n", __FILE__);
+
+return(-1);
+}
+int dvd_probe(int title, probe_info_t *info)
+{
+  fprintf(stderr, "(%s) no support for DVD reading configured - exit.\n", __FILE__);
+
+return(-1);
+}
 #endif
