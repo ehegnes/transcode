@@ -36,7 +36,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_rawlist.so"
-#define MOD_VERSION "v0.1.1 (2002-11-18)"
+#define MOD_VERSION "v0.1.2 (2003-10-14)"
 #define MOD_CODEC   "(video) YUV/RGB raw frames"
 
 #define MOD_PRE rawlist
@@ -46,7 +46,7 @@
 char import_cmd_buf[MAX_BUF];
 
 static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AUD;
+static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AUD|TC_CAP_YUV422;
 
 static FILE *fd; 
 static char buffer[PATH_MAX+2];
@@ -174,11 +174,49 @@ static void argb2rgb(char *dest, char *input, int width, int height)
 		*dest++ = *input++;
 	}
 }
+
+// untested
+static void yuy2touyvy(char *dest, char *src, int width, int height) 
+{
+
+    int i;
+    
+    for (i=0; i<width*height*2; i+=4) {
+
+	/* packed YUV 4:2:2 is Y[i] U[i] Y[i+1] V[i] (YUY2)*/
+	/* packed YUV 4:2:2 is U[i] Y[i] V[i] Y[i+1] (UYVY)*/
+
+	dest[i] = src[i+1];
+	dest[i+1] = src[i];
+	dest[i+2] = src[i+3];
+	dest[i+3] = src[i+2];
+    }
+}
+
+#if 0 // works, but is unneeded
+static void uyvytoyuy2(char *dest, char *src, int width, int height) 
+{
+
+    int i;
+    
+    for (i=0; i<width*height*2; i+=4) {
+
+	/* packed YUV 4:2:2 is Y[i] U[i] Y[i+1] V[i] (YUY2)*/
+	/* packed YUV 4:2:2 is U[i] Y[i] V[i] Y[i+1] (UYVY)*/
+
+	dest[i] = src[i+1];
+	dest[i+1] = src[i];
+	dest[i+2] = src[i+3];
+	dest[i+3] = src[i+2];
+    }
+}
+#endif
+
 static void ayuvtoyv12(char *dest, char *input, int width, int height) 
 {
 
     int i,j,w2;
-    char *y, *u, *v, *n = input;
+    char *y, *u, *v;
 
     w2 = width/2;
 
@@ -261,13 +299,20 @@ MOD_open
 		convfkt = gray2yuv;
 	    alloc_buffer = 1;
 	} else if (!strcasecmp(vob->im_v_string, "yuy2")) {
-	    convfkt = yuy2toyv12;
+	    if (vob->im_v_codec == CODEC_YUV422) {
+		convfkt = yuy2touyvy;
+	    } else {
+		convfkt = yuy2toyv12;
+	    }
 	    bytes = vob->im_v_width * vob->im_v_height * 2;
 	    alloc_buffer = 1;
+
 	} else if (!strcasecmp(vob->im_v_string, "uyvy")) {
-	    convfkt = uyvy2toyv12;
-	    bytes = vob->im_v_width * vob->im_v_height * 2;
-	    alloc_buffer = 1;
+	    if (vob->im_v_codec != CODEC_YUV422) {
+		convfkt = uyvy2toyv12;
+		bytes = vob->im_v_width * vob->im_v_height * 2;
+		alloc_buffer = 1;
+	    }
 	} else if (!strcasecmp(vob->im_v_string, "argb")) {
 	    convfkt = argb2rgb;
 	    bytes = vob->im_v_width * vob->im_v_height * 4;
@@ -299,6 +344,11 @@ MOD_open
 	  bytes=(vob->im_v_width * vob->im_v_height * 3)/2;
       out_bytes=(vob->im_v_width * vob->im_v_height * 3)/2;
       break;
+
+    case CODEC_YUV422:
+      if (!bytes)
+	  bytes=(vob->im_v_width * vob->im_v_height * 2);
+      out_bytes=(vob->im_v_width * vob->im_v_height * 2);
     }
 
     if (alloc_buffer)

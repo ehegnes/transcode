@@ -28,7 +28,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_dv.so"
-#define MOD_VERSION "v0.3.0 (2003-05-05)"
+#define MOD_VERSION "v0.3.1 (2003-10-14)"
 #define MOD_CODEC   "(video) DV | (audio) PCM"
 
 #define MOD_PRE dv
@@ -39,7 +39,7 @@
 char import_cmd_buf[MAX_BUF];
 
 static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_DV|TC_CAP_PCM|TC_CAP_VID;
+static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_DV|TC_CAP_PCM|TC_CAP_VID|TC_CAP_YUV422;
 
 static int frame_size=0;
 static FILE *fd=NULL;
@@ -107,6 +107,29 @@ MOD_open
 
       // for reading
       frame_size = (vob->im_v_width * vob->im_v_height * 3)/2;
+
+      param->fd = NULL;
+      
+      // popen
+      if((fd = popen(import_cmd_buf, "r"))== NULL) {
+	return(TC_IMPORT_ERROR);
+      }
+      
+      break;
+
+    case CODEC_YUV422:
+      
+      if((snprintf(import_cmd_buf, MAX_BUF, 
+		      "%s -i \"%s\" -d %d "
+		      "| tcdecode -x dv %s -d %d -Q %d", 
+		      cat_buf, vob->video_in_file, vob->verbose, 
+		      yuv_buf, vob->verbose, vob->quality)<0)) {
+	perror("command buffer overflow");
+	return(TC_IMPORT_ERROR);
+      }
+
+      // for reading
+      frame_size = vob->im_v_width * vob->im_v_height * 2;
 
       param->fd = NULL;
       
