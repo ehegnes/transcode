@@ -40,6 +40,8 @@ host_triplet = @host@
 target_triplet = @target@
 A52_CFLAGS = @A52_CFLAGS@
 A52_LIBS = @A52_LIBS@
+AC3_CFLAGS = @AC3_CFLAGS@
+AC3_LIBS = @AC3_LIBS@
 ACLOCAL = @ACLOCAL@
 ALLOCA = @ALLOCA@
 AMDEP_FALSE = @AMDEP_FALSE@
@@ -57,6 +59,8 @@ AUTOMAKE = @AUTOMAKE@
 AVIFILE_CFLAGS = @AVIFILE_CFLAGS@
 AVIFILE_CONFIG = @AVIFILE_CONFIG@
 AVIFILE_LIBS = @AVIFILE_LIBS@
+AVILIB_CFLAGS = @AVILIB_CFLAGS@
+AVILIB_LIBS = @AVILIB_LIBS@
 AWK = @AWK@
 BIG_ENDIAN_FALSE = @BIG_ENDIAN_FALSE@
 BIG_ENDIAN_TRUE = @BIG_ENDIAN_TRUE@
@@ -253,6 +257,8 @@ SUPPORTLIB = @SUPPORTLIB@
 SUPPORTOBJECTS = @SUPPORTOBJECTS@
 SYSTEM_DARWIN_FALSE = @SYSTEM_DARWIN_FALSE@
 SYSTEM_DARWIN_TRUE = @SYSTEM_DARWIN_TRUE@
+TCIOAUX_CFLAGS = @TCIOAUX_CFLAGS@
+TCIOAUX_LIBS = @TCIOAUX_LIBS@
 THEORA_CFLAGS = @THEORA_CFLAGS@
 THEORA_LIBS = @THEORA_LIBS@
 TRANSCODE_0_6_FALSE = @TRANSCODE_0_6_FALSE@
@@ -316,7 +322,7 @@ x_libraries = @x_libraries@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-INCLUDES = -Wall @PVM3_CFLAGS@ -I../src -I../aclib -I../libioaux
+INCLUDES = -Wall @PVM3_CFLAGS@ -I../src -I../aclib @TCIOAUX_CFLAGS@
 
 pkgdir = @MOD_PATH@
 
@@ -328,7 +334,7 @@ pvm_functions_la_LDFLAGS = -module -avoid-version
 pvm_functions_la_LIBADD = @PVM3_LIB@ 
 
 tcpvmexportd_SOURCES = tcpvmexportd.c export_pvm_slave.c pvm_interface.c pvm_parser.c external_codec.c vob_pack_unpack.c ../src/tc_functions.c
-tcpvmexportd_LDADD = -L../aclib -lac -lm -L../libioaux -ltcioaux
+tcpvmexportd_LDADD = -L../aclib -lac -lm @TCIOAUX_LIBS@
 
 EXTRA_DIST = pvm_functions.h export_pvm_slave.h pvm_interface.h pvm_parser.h external_codec.h pvm_version.h vob_pack_unpack.h
 subdir = pvm3

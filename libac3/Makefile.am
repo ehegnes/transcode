@@ -1,17 +1,27 @@
-# # Process this file with automake to produce Makefile.in.
-AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
+# Process this file with automake to produce Makefile.in.
 
-CFLAGS = -O3 -funroll-loops -ffast-math -DLINUX -fPIC -DPIC @CFLAGS@
+AUTOMAKE_OPTIONS = 1.3 foreign
 
 noinst_LIBRARIES = libac3_tc.a
 
-libac3_tc_a_SOURCES = bitstream.c decode.c imdct.c coeff.c exponent.c stats.c\
-	bit_allocate.c  parse.c crc.c debug.c rematrix.c downmix.c dither.c \
-	sanity_check.c
+AM_CFLAGS = -fPIC -DPIC -funroll-loops -ffast-math -DLINUX
 
-noinst_HEADERS = stats.h sanity_check.h rematrix.h parse.h imdct.h exponent.h downmix.h dither.h decode.h debug.h crc.h coeff.h bitstream.h bit_allocate.h ac3_internal.h ac3.h 
+libac3_tc_a_SOURCES = \
+	ac3.h \
+	ac3_internal.h \
+	bit_allocate.c bit_allocate.h \
+	bitstream.c bitstream.h \
+	coeff.c coeff.h \
+	crc.c crc.h \
+	debug.c debug.h \
+	decode.c decode.h \
+	dither.c dither.h \
+	downmix.c downmix.h \
+	exponent.c exponent.h \
+	imdct.c imdct.h \
+	parse.c parse.h \
+	rematrix.c rematrix.h \
+	sanity_check.c sanity_check.h \
+	stats.c stats.h
 
 EXTRA_DIST = COPYING README
-
-

@@ -35,6 +35,7 @@ docs_DATA = \
 	filter_text.txt \
 	filter_yuvdenoise.txt \
 	framerate.txt \
+	ibp_support.txt \
 	import-API.txt \
 	import-xml.txt \
 	import_nvrec.txt \

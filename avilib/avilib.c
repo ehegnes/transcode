@@ -44,7 +44,7 @@
 
 #include "avilib.h"
 
-#include "../libxio/xio.h"
+#include "xio.h"
 
 #define INFO_LIST
 

@@ -42,6 +42,8 @@ host_triplet = @host@
 target_triplet = @target@
 A52_CFLAGS = @A52_CFLAGS@
 A52_LIBS = @A52_LIBS@
+AC3_CFLAGS = @AC3_CFLAGS@
+AC3_LIBS = @AC3_LIBS@
 ACLOCAL = @ACLOCAL@
 ALLOCA = @ALLOCA@
 AMDEP_FALSE = @AMDEP_FALSE@
@@ -59,6 +61,8 @@ AUTOMAKE = @AUTOMAKE@
 AVIFILE_CFLAGS = @AVIFILE_CFLAGS@
 AVIFILE_CONFIG = @AVIFILE_CONFIG@
 AVIFILE_LIBS = @AVIFILE_LIBS@
+AVILIB_CFLAGS = @AVILIB_CFLAGS@
+AVILIB_LIBS = @AVILIB_LIBS@
 AWK = @AWK@
 BIG_ENDIAN_FALSE = @BIG_ENDIAN_FALSE@
 BIG_ENDIAN_TRUE = @BIG_ENDIAN_TRUE@
@@ -69,7 +73,7 @@ CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
 
-CFLAGS = -Wall -I../src -I../avilib -I$(srcdir)/../src -I$(srcdir)/../avilib -I$(srcdir)/../libac3 @CFLAGS@ -DMOD_PATH=\"@MOD_PATH@\"
+CFLAGS = -Wall -I../src -I$(srcdir)/../src @AVILIB_CFLAGS@ -I$(srcdir)/../libac3 @CFLAGS@ -DMOD_PATH=\"@MOD_PATH@\"
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
@@ -256,6 +260,8 @@ SUPPORTLIB = @SUPPORTLIB@
 SUPPORTOBJECTS = @SUPPORTOBJECTS@
 SYSTEM_DARWIN_FALSE = @SYSTEM_DARWIN_FALSE@
 SYSTEM_DARWIN_TRUE = @SYSTEM_DARWIN_TRUE@
+TCIOAUX_CFLAGS = @TCIOAUX_CFLAGS@
+TCIOAUX_LIBS = @TCIOAUX_LIBS@
 THEORA_CFLAGS = @THEORA_CFLAGS@
 THEORA_LIBS = @THEORA_LIBS@
 TRANSCODE_0_6_FALSE = @TRANSCODE_0_6_FALSE@
@@ -317,24 +323,24 @@ x_includes = @x_includes@
 x_libraries = @x_libraries@
 
 AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I. @DLDARWININCL@ -I../libioaux -I$(srcdir)/../../libioaux 
+DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I. @DLDARWININCL@ @TCIOAUX_CFLAGS@
 
 bin_PROGRAMS = avimerge avisplit avifix avisync aviindex tcmodinfo tcmp3cut
 
 avisync_SOURCES = avisync.c buffer.c buffer.h aud_scan.c aud_scan.h
-avisync_LDADD = -L../avilib -lavi  -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@ 
+avisync_LDADD = @AVILIB_LIBS@ -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@ 
 
 avimerge_SOURCES = avimerge.c aud_scan.c aud_scan.h
-avimerge_LDADD = -L../avilib -lavi  -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@
+avimerge_LDADD = @AVILIB_LIBS@ -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@
 
 avifix_SOURCES = avifix.c aud_scan.c aud_scan.h
-avifix_LDADD = -L../avilib -lavi  -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@
+avifix_LDADD = @AVILIB_LIBS@ -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@
 
 aviindex_SOURCES = aviindex.c aud_scan.c aud_scan.h
-aviindex_LDADD = -L../avilib -lavi  -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@
+aviindex_LDADD = @AVILIB_LIBS@ -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@
 
 avisplit_SOURCES = avisplit.c aud_scan.c aud_scan.h
-avisplit_LDADD = -L../avilib -lavi -L../libioaux -ltcioaux  -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@
+avisplit_LDADD = @AVILIB_LIBS@ @TCIOAUX_LIBS@ -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@
 
 tcmodinfo_SOURCES = tcmodinfo.c
 tcmodinfo_LDADD = @DLDARWINLIB@ -ldl -lm ../src/optstr.o

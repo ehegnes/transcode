@@ -14,6 +14,8 @@
 
 @SET_MAKE@
 
+# Process this file with automake to produce Makefile.in.
+
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
@@ -40,6 +42,8 @@ host_triplet = @host@
 target_triplet = @target@
 A52_CFLAGS = @A52_CFLAGS@
 A52_LIBS = @A52_LIBS@
+AC3_CFLAGS = @AC3_CFLAGS@
+AC3_LIBS = @AC3_LIBS@
 ACLOCAL = @ACLOCAL@
 ALLOCA = @ALLOCA@
 AMDEP_FALSE = @AMDEP_FALSE@
@@ -57,6 +61,8 @@ AUTOMAKE = @AUTOMAKE@
 AVIFILE_CFLAGS = @AVIFILE_CFLAGS@
 AVIFILE_CONFIG = @AVIFILE_CONFIG@
 AVIFILE_LIBS = @AVIFILE_LIBS@
+AVILIB_CFLAGS = @AVILIB_CFLAGS@
+AVILIB_LIBS = @AVILIB_LIBS@
 AWK = @AWK@
 BIG_ENDIAN_FALSE = @BIG_ENDIAN_FALSE@
 BIG_ENDIAN_TRUE = @BIG_ENDIAN_TRUE@
@@ -66,8 +72,7 @@ CC = @CC@
 CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
-
-CFLAGS = -O3 -funroll-loops -ffast-math -DLINUX -fPIC -DPIC @CFLAGS@
+CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
@@ -254,6 +259,8 @@ SUPPORTLIB = @SUPPORTLIB@
 SUPPORTOBJECTS = @SUPPORTOBJECTS@
 SYSTEM_DARWIN_FALSE = @SYSTEM_DARWIN_FALSE@
 SYSTEM_DARWIN_TRUE = @SYSTEM_DARWIN_TRUE@
+TCIOAUX_CFLAGS = @TCIOAUX_CFLAGS@
+TCIOAUX_LIBS = @TCIOAUX_LIBS@
 THEORA_CFLAGS = @THEORA_CFLAGS@
 THEORA_LIBS = @THEORA_LIBS@
 TRANSCODE_0_6_FALSE = @TRANSCODE_0_6_FALSE@
@@ -314,18 +321,30 @@ target_vendor = @target_vendor@
 x_includes = @x_includes@
 x_libraries = @x_libraries@
 
-# # Process this file with automake to produce Makefile.in.
 AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
 noinst_LIBRARIES = libac3_tc.a
 
-libac3_tc_a_SOURCES = bitstream.c decode.c imdct.c coeff.c exponent.c stats.c\
-	bit_allocate.c  parse.c crc.c debug.c rematrix.c downmix.c dither.c \
-	sanity_check.c
+AM_CFLAGS = -fPIC -DPIC -funroll-loops -ffast-math -DLINUX
 
+libac3_tc_a_SOURCES = \
+	ac3.h \
+	ac3_internal.h \
+	bit_allocate.c bit_allocate.h \
+	bitstream.c bitstream.h \
+	coeff.c coeff.h \
+	crc.c crc.h \
+	debug.c debug.h \
+	decode.c decode.h \
+	dither.c dither.h \
+	downmix.c downmix.h \
+	exponent.c exponent.h \
+	imdct.c imdct.h \
+	parse.c parse.h \
+	rematrix.c rematrix.h \
+	sanity_check.c sanity_check.h \
+	stats.c stats.h
 
-noinst_HEADERS = stats.h sanity_check.h rematrix.h parse.h imdct.h exponent.h downmix.h dither.h decode.h debug.h crc.h coeff.h bitstream.h bit_allocate.h ac3_internal.h ac3.h 
 
 EXTRA_DIST = COPYING README
 subdir = libac3
@@ -337,12 +356,14 @@ LIBRARIES = $(noinst_LIBRARIES)
 
 libac3_tc_a_AR = $(AR) cru
 libac3_tc_a_LIBADD =
-am_libac3_tc_a_OBJECTS = bitstream.$(OBJEXT) decode.$(OBJEXT) \
-	imdct.$(OBJEXT) coeff.$(OBJEXT) exponent.$(OBJEXT) \
-	stats.$(OBJEXT) bit_allocate.$(OBJEXT) parse.$(OBJEXT) \
-	crc.$(OBJEXT) debug.$(OBJEXT) rematrix.$(OBJEXT) \
-	downmix.$(OBJEXT) dither.$(OBJEXT) sanity_check.$(OBJEXT)
+am_libac3_tc_a_OBJECTS = bit_allocate.$(OBJEXT) bitstream.$(OBJEXT) \
+	coeff.$(OBJEXT) crc.$(OBJEXT) debug.$(OBJEXT) decode.$(OBJEXT) \
+	dither.$(OBJEXT) downmix.$(OBJEXT) exponent.$(OBJEXT) \
+	imdct.$(OBJEXT) parse.$(OBJEXT) rematrix.$(OBJEXT) \
+	sanity_check.$(OBJEXT) stats.$(OBJEXT)
 libac3_tc_a_OBJECTS = $(am_libac3_tc_a_OBJECTS)
+
+DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/bit_allocate.Po \
@@ -361,10 +382,7 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(libac3_tc_a_SOURCES)
-HEADERS = $(noinst_HEADERS)
-
-DIST_COMMON = README $(noinst_HEADERS) $(srcdir)/Makefile.in COPYING \
-	Makefile.am
+DIST_COMMON = README $(srcdir)/Makefile.in COPYING Makefile.am
 SOURCES = $(libac3_tc_a_SOURCES)
 
 all: all-am
@@ -535,7 +553,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(HEADERS)
+all-am: Makefile $(LIBRARIES)
 
 installdirs:
 install: install-am

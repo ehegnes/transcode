@@ -3,7 +3,7 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-INCLUDES = -I./ -I../../src -I../ -I../../ -Wall -I$(srcdir)/../../src -I$(srcdir)/.. -I$(srcdir)/../.. -I../../libioaux -I$(srcdir)/../../libioaux 
+INCLUDES = -I./ -I../../src -I../ -I../../ -Wall -I$(srcdir)/../../src -I$(srcdir)/.. -I$(srcdir)/../.. @TCIOAUX_CFLAGS@
 
 CFLAGS = -D_REENTRANT @CFLAGS@
 

@@ -1096,6 +1096,33 @@ dnl
 AM_PATH_LIBJPEG(AC_DEFINE([HAVE_LIBJPEG], 1, [Have libjpeg support]))
 AM_CONDITIONAL(HAVE_LIBJPEG, test x"$have_libjpeg" = "xyes")
 
+dnl
+dnl avilib
+dnl
+
+AVILIB_CFLAGS="-I\$(top_srcdir)/avilib"
+AVILIB_LIBS="-L\$(top_builddir)/avilib -lavi"
+AC_SUBST(AVILIB_CFLAGS)
+AC_SUBST(AVILIB_LIBS)
+
+dnl
+dnl libioaux
+dnl
+
+TCIOAUX_CFLAGS="-I\$(top_srcdir)/libioaux"
+TCIOAUX_LIBS="-L\$(top_builddir)/libioaux -ltcioaux"
+AC_SUBST(TCIOAUX_CFLAGS)
+AC_SUBST(TCIOAUX_LIBS)
+
+dnl
+dnl libac3
+dnl
+
+AC3_CFLAGS="-I\$(top_srcdir)/libac3"
+AC3_LIBS="-L\$(top_builddir)/libac3 -lac3_tc"
+AC_SUBST(AC3_CFLAGS)
+AC_SUBST(AC3_LIBS)
+
 dnl import/export module path
 
 MOD_PATH="\${prefix}/lib/transcode"
@@ -1187,9 +1214,9 @@ Summary for transcode $VERSION features:
 *-*-*-*-*-*-* Core *-*-*-*-*-*-*
 static AV-frame buffering                        $statbuf
 support for network (sockets) streams            $net
-support for IBP storage				 $have_ibp
 DVD navigation support with libdvdread           $have_dvdread
 link against local lame library (>=3.89) | ver   $lame89 | $lame_print
+support for IBP storage				 $have_ibp
 pvm3 support					 $have_pvm3
 *-*-*-*-*-*-* Codec *-*-*-*-*-*-*
 nasm dependent modules (bbmpeg)                  $nasm

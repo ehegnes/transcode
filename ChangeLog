@@ -1,6 +1,15 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-25 Nicolas Boos <nicolas.boos at wanadoo.fr>
+
+  * configure.in avilib/Makefile.am avilib/avidump.c avilib/avilib.c
+  avilib/avimisc.c docs/Makefile.am export/Makefile.am filter/Makefile.am
+  import/Makefile.am import/v4l/Makefile.am libac3/Makefile.am
+  libmpeg2/Makefile.am libvo/Makefile.am libxio/Makefile.am pvm3/Makefile.am
+  src/Makefile.am tools/Makefile.am:
+  More makefile cleanup
+
 2004-01-24 Nicolas Boos <nicolas.boos at wanadoo.fr>
 
   * Makefile.am avilib/Makefile.am configure.in docs/Makefile.am

@@ -1,12 +1,20 @@
-
 AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-CFLAGS = -Wall -fPIC -DPIC @CFLAGS@ -I../libmpeg2 -I$(srcdir)/../libmpeg2
 noinst_LIBRARIES = libvout.a
 
-libvout_a_SOURCES = video_out.c video_out_ppm.c video_out_yuv.c yuv2rgb.c yuv2rgb_mmx.c yuv2rgb_mlib.c cpu_accel.c rgb2yuv.c
+INCLUDES = -I$(top_srcdir)/libmpeg2
 
-noinst_HEADERS = yuv2rgb.h video_out_internal.h video_out.h rgb2yuv.h mmx.h mm_accel.h 
+libvout_a_SOURCES = \
+	cpu_accel.c \
+	mm_accel.h \
+	mmx.h \
+	rgb2yuv.c rgb2yuv.h \
+	video_out.c video_out.h \
+	video_out_internal.h \
+	video_out_ppm.c \
+	video_out_yuv.c \
+	yuv2rgb.c yuv2rgb.h \
+	yuv2rgb_mlib.c \
+	yuv2rgb_mmx.c
+
 EXTRA_DIST = COPYING AUTHORS README
-

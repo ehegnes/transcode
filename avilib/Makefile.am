@@ -4,7 +4,7 @@ AUTOMAKE_OPTIONS = 1.3 foreign
 
 noinst_LIBRARIES = libavi.a
 
-INCLUDES = -I../libxio
+INCLUDES = -I$(top_srcdir)/libxio
 
 libavi_a_SOURCES = \
 	avidump.c \
@@ -13,6 +13,3 @@ libavi_a_SOURCES = \
 	os.h
 
 EXTRA_DIST = README.avilib
-
-
-
