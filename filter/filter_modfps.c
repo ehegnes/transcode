@@ -24,6 +24,9 @@
  */
 
 // ----------------- Changes 
+// 0.5 -> 0.6: Tilmann Bitterberg
+//             Make mode=0 independent of the Frame number transcode
+//             gives us.
 // 0.4 -> 0.5: marrq
 //		initialize memory at runtime.
 //		skip at PRE_S_ clone at POST_S_
@@ -50,7 +53,7 @@
 //	4. temporal weighted average
 
 #define MOD_NAME    "filter_modfps.so"
-#define MOD_VERSION "v0.5 (2003-08-01)"
+#define MOD_VERSION "v0.6 (2003-08-01)"
 #define MOD_CAP     "plugin to modify framerate"
 #define MOD_AUTHOR  "Marrq"
 //#define DEBUG 1
@@ -180,6 +183,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
     static int frameCount = 0;
     static int init = 1;
     static int cloneq = 0; // queue'd clones ;)
+    static int outframes = 0;
 
     static double outfps = 0.0;
 
@@ -298,28 +302,30 @@ int tc_filter(vframe_list_t * ptr, char *options)
         if (infps < outfps){
 	  // Notes; since we currently only can clone frames (and just clone
 	  // them once, we can at most double the input framerate.
-	  if ((double)frameCount*infps/outfps < (double)ptr->id){
+	    if (!(ptr->attributes & TC_FRAME_WAS_CLONED)) frameCount++;
+	  if ((double)frameCount/infps > (double)++outframes/outfps){
 	    if (show_results){
 	      printf("FRAME IS CLONED");
 	    }
 	    if ((ptr->attributes & TC_FRAME_IS_CLONED) || (ptr->attributes & TC_FRAME_WAS_CLONED)){
 	      printf("Ack, this frame was cloned!\n");
 	    }
+
 	    ptr->attributes |= TC_FRAME_IS_CLONED;
 	  }
 	} else {
-	  if ((double)frameCount*infps/outfps > (double)ptr->id){
+	  if ((double)++frameCount/infps > outframes / outfps){
+	       outframes++; 
+	  } else {
 	    if (show_results){
 	      printf("FRAME IS SKIPPED");
 	    }
 	    ptr->attributes |= TC_FRAME_IS_SKIPPED;
-	    --frameCount;
 	  }
 	}
 	if (show_results){
 	  printf("\n");
 	}
-	++frameCount;
 	return(0);
       } // else
       if (mode == 1){
