@@ -452,7 +452,6 @@ void tccat_thread(info_t *ipipe)
 	
 	p_readwrite(ipipe->fd_in, ipipe->fd_out);
 	
-	close(ipipe->fd_in);
 	
 	break;
 	
@@ -475,6 +474,8 @@ void tccat_thread(info_t *ipipe)
 	exit(1);
       }
       
+      close(ipipe->fd_in);
+
     }//process files
     
     close_directory();
