@@ -40,7 +40,7 @@
 
 void version()
 {
-  printf("%s (%s v%s) (C) 2001-2003 Thomas Östreich\n", EXE, PACKAGE, VERSION);
+  printf("%s (%s v%s) (C) 2001-2003 Tilmann Bitterberg\n", EXE, PACKAGE, VERSION);
 }
 
 

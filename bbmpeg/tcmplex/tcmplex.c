@@ -45,7 +45,7 @@ extern int domplex(int has_video, int has_audio);
 void version(char *exe)
 {
     // print id string to stderr
-    fprintf(stderr, "%s (%s v%s) (C) 2001 Thomas Östreich\n", exe, PACKAGE, VERSION);
+    fprintf(stderr, "%s (%s v%s) (C) 2001 Thomas Oestreich\n", exe, PACKAGE, VERSION);
 }
 
 void usage()
