@@ -222,7 +222,7 @@ void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
       if ((strlen(sub) > 1) || (*sub != ' ')) {
         sst = (pack->granulepos / stream->sample_rate) * 1000;
         pgp = sst + lenbytes;
-        sprintf(out, "%d\r\n%02d:%02d:%02d,%03d --> " \
+        snprintf(out,sizeof(out), "%d\r\n%02d:%02d:%02d,%03d --> " \
                 "%02d:%02d:%02d,%03d\r\n", stream->subnr + 1,
                 (int)(sst / 3600000),
                 (int)(sst / 60000) % 60,
@@ -502,13 +502,13 @@ void process_ogm(int fdin, int fdout)
             new_name = malloc(strlen(basename) + 20);
             if (!new_name) {
               fprintf(stderr, "(%s) Failed to allocate %d bytes.\n", __FILE__,
-                (int)strlen(basename) + 10);
+                (int)strlen(basename) + 20);
               exit(1);
             }
             if (!xraw)
-              sprintf(new_name, "%s-t%d.srt", basename, ntstreams + 1);
+              snprintf(new_name, strlen(basename) + 20, "%s-t%d.srt", basename, ntstreams + 1);
             else
-              sprintf(new_name, "%s-t%d.raw", basename, ntstreams + 1);
+              snprintf(new_name, strlen(basename) + 20, "%s-t%d.raw", basename, ntstreams + 1);
             //stream->fd = open(new_name, O_WRONLY | O_CREAT | O_TRUNC,
             //                S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
             stream->fd = fdout;
