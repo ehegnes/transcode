@@ -21,23 +21,12 @@
  *
  */
 
-#include <sys/types.h>
-#include <unistd.h>
 #include "ioaux.h"
 #include "tc.h"
-#include "transcode.h"
 
-#ifndef	HAVE_LIBXML2
+#include <sys/types.h>
 
-void probe_xml(info_t *ipipe)
-{
-        fprintf(stderr, "(%s) no support for XML compiled - exit.\n", __FILE__);
-        ipipe->error=1;
-        return;
-}
-
-#else
-
+#ifdef HAVE_LIBXML2
 
 #include "ioxml.h"
 
@@ -354,4 +343,14 @@ void probe_xml(info_t *ipipe)
 	}
 	s_first_element=0;
 }
+
+#else  // HAVE_LIBXML2
+
+void probe_xml(info_t *ipipe)
+{
+        fprintf(stderr, "(%s) no support for XML compiled - exit.\n", __FILE__);
+        ipipe->error=1;
+        return;
+}
+
 #endif
