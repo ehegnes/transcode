@@ -271,7 +271,7 @@ MOD_open
 
     a_re_entry=1;
 
-    return(0);
+    return(TC_IMPORT_OK);
   }
 
   if(param->flag == TC_SUBEX) {  
@@ -301,7 +301,7 @@ MOD_open
       return(TC_IMPORT_ERROR);
     }
 
-    return(0);
+    return(TC_IMPORT_OK);
   }
 
   if(param->flag == TC_VIDEO) {
@@ -454,7 +454,8 @@ MOD_open
       tbuf.len = SIZE_RGB_FRAME;
       tbuf.off = 0;
 
-      if ( (tbuf.len = fread(tbuf.d, 1, tbuf.len, f))<0) return -1;
+      if ((tbuf.len = fread(tbuf.d, 1, tbuf.len, f)) < 0)
+        return(TC_IMPORT_ERROR);
 
       // find a sync word
       while (tbuf.off+4<tbuf.len) {
@@ -472,7 +473,7 @@ MOD_open
 
     v_re_entry=1;
 
-    return(0);
+    return(TC_IMPORT_OK);
   }
 
   return(TC_IMPORT_ERROR);
@@ -645,10 +646,10 @@ MOD_decode
 
     }
 
-    return(0);
+    return(TC_IMPORT_OK);
   }
 
-  if (param->flag == TC_SUBEX) return(0);
+  if (param->flag == TC_SUBEX) return(TC_IMPORT_OK);
 
   if(param->flag == TC_AUDIO) {
 
@@ -717,7 +718,7 @@ MOD_decode
     if (fread(param->buffer+ac_off, ac_bytes-ac_off, 1, fd) !=1) 
       return(TC_IMPORT_ERROR);
 
-    return(0);
+    return(TC_IMPORT_OK);
   }
 
   return(TC_IMPORT_ERROR);
@@ -739,7 +740,7 @@ MOD_close
 	//safe
 	clone_close();
 
-	return(0);
+	return(TC_IMPORT_OK);
     }
 
     if(param->flag == TC_AUDIO) {
@@ -747,7 +748,7 @@ MOD_close
       if(fd) pclose(fd);
       fd=NULL;
 
-      return(0);
+      return(TC_IMPORT_OK);
 
     }
 

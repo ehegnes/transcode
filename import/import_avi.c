@@ -81,7 +81,7 @@ MOD_open
       if ((param->fd = popen(import_cmd_buf, "r"))== NULL) {
         return(TC_IMPORT_ERROR);
       }
-      return(0);
+      return(TC_IMPORT_OK);
     }
 
     // Otherwise proceed to open the file directly and decode here
@@ -131,7 +131,7 @@ MOD_open
     AVI_set_audio_position(avifile1, vob->vob_offset*vob->im_a_size);
 
     audio_codec=vob->im_a_codec;
-    return(0);
+    return(TC_IMPORT_OK);
   }
 
   if(param->flag == TC_VIDEO) {
@@ -183,7 +183,7 @@ MOD_open
                       " for YV12 processing\n", codec);
       return(TC_IMPORT_ERROR);
     }
-    return(0);
+    return(TC_IMPORT_OK);
   }
 
   return(TC_IMPORT_ERROR);
@@ -208,7 +208,7 @@ MOD_decode
 
     // If we are using tccat, then do nothing here
     if (param->fd != NULL) {
-      return(0);
+      return(TC_IMPORT_OK);
     }
 
     param->size = AVI_read_frame(avifile2, param->buffer, &key);
@@ -235,7 +235,7 @@ MOD_decode
 
     ++vframe_count;
 
-    return(0);
+    return(TC_IMPORT_OK);
   }
 
   if(param->flag == TC_AUDIO) {
@@ -273,7 +273,7 @@ MOD_decode
       if(bytes_read < param->size) param->size=bytes_read;
     }
 
-    return(0);
+    return(TC_IMPORT_OK);
   }
 
   return(TC_IMPORT_ERROR);
@@ -296,7 +296,7 @@ MOD_close
 	    AVI_close(avifile1);
 	    avifile1=NULL;
 	}
-	return(0);
+	return(TC_IMPORT_OK);
     }
 
     if(param->flag == TC_VIDEO) {
@@ -305,7 +305,7 @@ MOD_close
 	    AVI_close(avifile2);
 	    avifile2=NULL;
 	}
-	return(0);
+	return(TC_IMPORT_OK);
     }
 
     return(TC_IMPORT_ERROR);

@@ -26,13 +26,14 @@
 #define MOD_CODEC   "(video) DivX;-)/XviD/OpenDivX/DivX 4.xx/5.xx"
 
 #include "transcode.h"
-#include "avilib.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_VID;
 
 #define MOD_PRE divx
 #include "import_def.h"
+
+#include "avilib/avilib.h"
 
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
@@ -49,12 +50,15 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_VID;
 #endif
 
 
+extern int errno;
+char import_cmd_buf[TC_BUF_MAX];
+
+static int codec, frame_size=0;
+
 #ifndef DECORE_VERSION
 #define DECORE_VERSION 0
 #endif
 
-char import_cmd_buf[TC_BUF_MAX];
-static int codec, frame_size=0;
 static unsigned long divx_version=DEC_OPT_FRAME;
 
 static int done_seek=0;
@@ -354,7 +358,8 @@ MOD_open
 
     // yes this only works on little endian machines.
     // Anyway, we don't support divx4linux decoding on big endian machines.
-#define FOURCC(A, B, C, D) ( ((uint8_t) (A)) | (((uint8_t) (B))<<8) | (((uint8_t) (C))<<16) | (((uint8_t) (D))<<24) )
+#define FOURCC(A, B, C, D) ( ((uint8_t) (A)) | (((uint8_t) (B))<<8) | \
+                             (((uint8_t) (C))<<16) | (((uint8_t) (D))<<24) )
 
     if ((pbi = malloc(sizeof(DivXBitmapInfoHeader)))==NULL) {
       perror("out of memory");
@@ -486,7 +491,7 @@ MOD_open
   */
     param->fd = NULL;
 
-    return(0);
+    return(TC_IMPORT_OK);
   }
 
   return(TC_IMPORT_ERROR);
@@ -561,7 +566,8 @@ MOD_decode {
       }
 #endif
       if(cc) param->attributes |= TC_FRAME_IS_KEYFRAME;
-      if(verbose & TC_DEBUG) printf("keyframe info (AVI|bitstream)=(%d|%d)\n", key, cc);
+      if(verbose & TC_DEBUG)
+        printf("keyframe info (AVI|bitstream)=(%d|%d)\n", key, cc);
 
     } else {
 
@@ -579,7 +585,8 @@ MOD_decode {
 #if DECORE_VERSION >= 20021112
       decFrame->stride = pbi->biWidth;
       if(divx_decore(dec_handle, divx_version, decFrame, NULL) != DEC_OK) {
-	fprintf(stderr, "[%s]:%d  codec DEC_OPT_FRAME error", MOD_NAME, __LINE__);
+	fprintf(stderr, "[%s]:%d  codec DEC_OPT_FRAME error",
+                         MOD_NAME, __LINE__);
 	return(TC_IMPORT_ERROR); 
       }
 #else
@@ -622,7 +629,7 @@ MOD_decode {
       tc_memcpy(param->buffer2, working_frame, frame_size);
     }
 
-    return(0);
+    return(TC_IMPORT_OK);
 }
 
 /* ------------------------------------------------------------ 
@@ -667,7 +674,7 @@ MOD_close
 
 	done_seek=0;
 
-	return(0);
+	return(TC_IMPORT_OK);
     }
 
     return(TC_IMPORT_ERROR);

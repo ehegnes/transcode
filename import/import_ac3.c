@@ -35,6 +35,7 @@ static int capability_flag = TC_CAP_PCM | TC_CAP_AC3;
 
 #include "ac3scan.h"
 
+
 extern int errno;
 char import_cmd_buf[TC_BUF_MAX];
 
@@ -125,7 +126,7 @@ MOD_open
 	return(TC_IMPORT_ERROR);
     }
 
-    return(0);
+    return(TC_IMPORT_OK);
 }
 
 /* ------------------------------------------------------------ 
@@ -209,7 +210,7 @@ MOD_decode
   if (fread(param->buffer+ac_off, ac_bytes-ac_off, 1, fd) !=1)
       return(TC_IMPORT_ERROR);
 
-  return(0);
+  return(TC_IMPORT_OK);
 }
 
 /* ------------------------------------------------------------ 
@@ -222,5 +223,5 @@ MOD_close
 {  
   if(param->fd != NULL) pclose(param->fd);
 
-  return(0);
+  return(TC_IMPORT_OK);
 }

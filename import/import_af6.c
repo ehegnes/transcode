@@ -70,7 +70,7 @@ MOD_open
 	return(TC_IMPORT_ERROR);
       }
 
-      return(0);
+      return(TC_IMPORT_OK);
     }
 
     if(param->flag == TC_VIDEO) {
@@ -111,7 +111,7 @@ MOD_open
 	return(TC_IMPORT_ERROR);
       }
 
-      return(0);
+      return(TC_IMPORT_OK);
     }
 
     return(TC_IMPORT_ERROR);
@@ -171,7 +171,7 @@ MOD_decode {
 
       if(k>(1<<20)) {
 	fprintf(stderr, "no sync string found within 1024 kB of stream\n");
-	return(1);
+	return(TC_IMPORT_ERROR);
       }
     }
 
@@ -180,7 +180,7 @@ MOD_decode {
     if (fread(param->buffer, param->size, 1, vfd) !=1) 
       return(TC_IMPORT_ERROR);
 
-    return(0);
+    return(TC_IMPORT_OK);
   }
 
   if(param->flag == TC_AUDIO) {
@@ -222,7 +222,7 @@ MOD_decode {
 
       if(k>(1<<20)) {
 	fprintf(stderr, "no sync string found within 1024 kB of stream\n");
-	return(1);
+	return(TC_IMPORT_ERROR);
       }
     }
 
@@ -234,7 +234,7 @@ MOD_decode {
 
       return(TC_IMPORT_ERROR);
     }    
-    return(0);
+    return(TC_IMPORT_OK);
   }
 
     return(TC_IMPORT_ERROR);
@@ -253,5 +253,5 @@ MOD_close
 
   if(param->fd != NULL) pclose(param->fd);
 
-  return(0);
+  return(TC_IMPORT_OK);
 }

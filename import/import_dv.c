@@ -48,7 +48,7 @@ int scan(char *name)
 
   if(xio_stat(name, &fbuf)) {
     fprintf(stderr, "(%s) invalid file \"%s\"\n", __FILE__, name);
-    exit(1);
+    return(-1);
   }
 
   // file or directory?
@@ -73,10 +73,14 @@ MOD_open
   if(param->flag == TC_VIDEO) {
 
     //directory mode?
-    (scan(vob->video_in_file)) ?
+    sret = scan(vob->video_in_file);
+    if (sret < 0)
+        return(TC_IMPORT_ERROR);
+    (sret == 1) ?
         snprintf(cat_buf, TC_BUF_MAX, "tccat") :
         ((vob->im_v_string) ?
-            snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv %s", vob->im_v_string) :
+            snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv %s",
+                                              vob->im_v_string) :
             snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv"));
 
     //yuy2 mode?
@@ -128,8 +132,8 @@ MOD_open
     case CODEC_YUV422:
 
       sret = snprintf(import_cmd_buf, TC_BUF_MAX, 
-		      "%s -i \"%s\" -d %d "
-		      "| tcdecode -x dv -y yuy2 -d %d -Q %d", 
+		      "%s -i \"%s\" -d %d |"
+                      " tcdecode -x dv -y yuy2 -d %d -Q %d", 
 		      cat_buf, vob->video_in_file, vob->verbose, 
 		      vob->verbose, vob->quality);
       if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
@@ -157,7 +161,8 @@ MOD_open
 	return(TC_IMPORT_ERROR);
 
       // for reading
-      frame_size = (vob->im_v_height==PAL_H) ? TC_FRAME_DV_PAL:TC_FRAME_DV_NTSC;
+      frame_size = (vob->im_v_height==PAL_H) ?
+          TC_FRAME_DV_PAL : TC_FRAME_DV_NTSC;
 
       param->fd = NULL;
 
@@ -178,7 +183,7 @@ MOD_open
     // print out
     if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
 
-    return(0);
+    return(TC_IMPORT_OK);
   }
 
   if(param->flag == TC_AUDIO) {
@@ -187,7 +192,8 @@ MOD_open
     (scan(vob->audio_in_file)) ?
         snprintf(cat_buf, TC_BUF_MAX, "tccat") :
         ((vob->im_a_string) ?
-            snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv %s", vob->im_a_string) :
+            snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv %s",
+                                              vob->im_a_string) :
             snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv"));
 
     sret = snprintf(import_cmd_buf, TC_BUF_MAX,
@@ -207,7 +213,7 @@ MOD_open
 	return(TC_IMPORT_ERROR);
     }
 
-    return(0);
+    return(TC_IMPORT_OK);
   }
 
   return(TC_IMPORT_ERROR);
@@ -223,7 +229,7 @@ MOD_open
 MOD_decode
 {
 
-    if(param->flag == TC_AUDIO) return(0);
+    if(param->flag == TC_AUDIO) return(TC_IMPORT_OK);
 
     // video and YUV only
     if(param->flag == TC_VIDEO && frame_size==0) return(TC_IMPORT_ERROR);
@@ -234,7 +240,7 @@ MOD_decode
     if (fread(param->buffer, frame_size, 1, fd) !=1) 
 	return(TC_IMPORT_ERROR);
 
-    return(0);
+    return(TC_IMPORT_OK);
 }
 
 /* ------------------------------------------------------------ 
@@ -248,14 +254,14 @@ MOD_close
 {
   if(param->fd != NULL) pclose(param->fd);
 
-  if(param->flag == TC_AUDIO) return(0);
+  if(param->flag == TC_AUDIO) return(TC_IMPORT_OK);
 
   if(param->flag == TC_VIDEO) {
 
     if(fd) pclose(fd);
     fd=NULL;
 
-    return(0);
+    return(TC_IMPORT_OK);
 
   }
 
