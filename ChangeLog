@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-09 Tilmann Bitterberg <transcode at tibit.org>
+
+  * tools/avisync, avisplit, avimerge:
+  Bugfix when handling files with PCM audio track
+
 2003-07-09 Marzio Malanchini <marzio_malanchini at vodafone.it>
 
   * import/af6_decore.cpp import/import_xml.c import/ioxml.c
