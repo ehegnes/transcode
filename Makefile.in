@@ -320,7 +320,7 @@ AUTOMAKE_OPTIONS = 1.3 foreign dist-bzip2
 @HAVE_PVM3_TRUE@PVM3 = pvm3
 
 SUBDIRS = . libxio autotools docs contrib libdldarwin libsupport libioaux\
-	aclib avilib movlib libac3 libvo libmpeg2\
+	aclib avilib libac3 libvo libmpeg2\
 	libmp3lame libdvenc bbmpeg ffmpeg\
 	import export filter src tools $(PVM3)
 
@@ -347,8 +347,8 @@ DIST_COMMON = README $(srcdir)/Makefile.in $(srcdir)/configure AUTHORS \
 	COPYING ChangeLog INSTALL Makefile.am TODO acinclude.m4 \
 	aclocal.m4 config.h.in configure configure.in transcode.spec.in
 DIST_SUBDIRS = . libxio autotools docs contrib libdldarwin libsupport \
-	libioaux aclib avilib movlib libac3 libvo libmpeg2 libmp3lame \
-	libdvenc bbmpeg ffmpeg import export filter src tools pvm3
+	libioaux aclib avilib libac3 libvo libmpeg2 libmp3lame libdvenc \
+	bbmpeg ffmpeg import export filter src tools pvm3
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

@@ -11,32 +11,33 @@ SUBDIRS = . man html
 docsdir = $(datadir)/doc/transcode
 
 docs_DATA = \
-                    clone.txt \
-                    export_mpeg.txt \
-                    export_pvm.txt \
-                    pvm.cfg \
-                    export_ffmpeg.txt \
-                    filter_dnr.txt \
-                    filter_logo.txt \
-                    filter_text.txt \
-                    filter_logoaway.txt \
-                    filter_yuvdenoise.txt \
-                    import_nvrec.txt \
-                    import_v4l2.txt \
-                    import-xml.txt \
-                    README.cluster \
-                    README.rip \
-                    README.sync \
-                    README.vcd \
-		    README.Inverse.Telecine.txt \
-		    README.xvid-credits \
-                    README.filter.modfps \
-                    template.cfg.txt\
-		    filter-socket.txt\
-		    avi_comments.txt\
-		    framerate.txt\
-		    architecture.txt\
-		    filter-API.txt export-API.txt import-API.txt \
-		    OPTIMIZERS
-
-
+	DV-to-DVD-HOWTO.txt \
+	OPTIMIZERS \
+	README.Inverse.Telecine.txt \
+	README.cluster \
+	README.filter.modfps \
+	README.rip \
+	README.sync \
+	README.vcd \
+	README.xvid-credits \
+	architecture.txt \
+	avi_comments.txt \
+	clone.txt \
+	export-API.txt \
+	export_ffmpeg.txt \
+	export_mpeg.txt \
+	export_pvm.txt \
+	filter-API.txt \
+	filter-socket.txt \
+	filter_dnr.txt \
+	filter_logo.txt \
+	filter_logoaway.txt \
+	filter_text.txt \
+	filter_yuvdenoise.txt \
+	framerate.txt \
+	import-API.txt \
+	import-xml.txt \
+	import_nvrec.txt \
+	import_v4l2.txt \
+	pvm.cfg \
+	template.cfg.txt

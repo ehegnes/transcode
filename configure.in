@@ -1128,7 +1128,6 @@ AC_OUTPUT([
            autotools/Makefile
            src/Makefile
            avilib/Makefile
-           movlib/Makefile
 	   libioaux/Makefile
            libac3/Makefile
            libvo/Makefile

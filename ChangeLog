@@ -1,6 +1,13 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-24 Nicolas Boos <nicolas.boos at wanadoo.fr>
+
+  * Makefile.am avilib/Makefile.am configure.in docs/Makefile.am
+  libioaux/Makefile.am:
+  Cleanup the makefiles and add DV-to-DVD-HOWTO.txt to the
+  distribution.
+
 2004-01-24 Lukas Hejtmanek <xhejtman at mail.muni.cz>
 
   * Makefile.am avilib/Makefile.am avilib/avidump.c avilib/avilib.c

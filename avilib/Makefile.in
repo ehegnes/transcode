@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-# # Process this file with automake to produce Makefile.in.
+# Process this file with automake to produce Makefile.in.
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -68,8 +68,7 @@ CC = @CC@
 CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
-
-CFLAGS = -funroll-loops -ffast-math -DLINUX -Wall @CFLAGS@
+CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
@@ -317,14 +316,19 @@ x_includes = @x_includes@
 x_libraries = @x_libraries@
 
 AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I. 
 
 noinst_LIBRARIES = libavi.a
 
-INCLUDES = -I./ -I../libxio
-libavi_a_SOURCES = avilib.c avidump.c avimisc.c
+INCLUDES = -I../libxio
 
-EXTRA_DIST = avilib.h README.avilib os.h
+libavi_a_SOURCES = \
+	avidump.c \
+	avilib.c avilib.h \
+	avimisc.c \
+	os.h
+
+
+EXTRA_DIST = README.avilib
 subdir = avilib
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/autotools/mkinstalldirs
@@ -334,9 +338,11 @@ LIBRARIES = $(noinst_LIBRARIES)
 
 libavi_a_AR = $(AR) cru
 libavi_a_LIBADD =
-am_libavi_a_OBJECTS = avilib.$(OBJEXT) avidump.$(OBJEXT) \
+am_libavi_a_OBJECTS = avidump.$(OBJEXT) avilib.$(OBJEXT) \
 	avimisc.$(OBJEXT)
 libavi_a_OBJECTS = $(am_libavi_a_OBJECTS)
+
+DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/avidump.Po ./$(DEPDIR)/avilib.Po \

@@ -7,7 +7,7 @@ PVM3=pvm3
 endif
 
 SUBDIRS = . libxio autotools docs contrib libdldarwin libsupport libioaux\
-	aclib avilib movlib libac3 libvo libmpeg2\
+	aclib avilib libac3 libvo libmpeg2\
 	libmp3lame libdvenc bbmpeg ffmpeg\
 	import export filter src tools $(PVM3)
 
