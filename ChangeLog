@@ -1,13 +1,36 @@
 --------------------------------------------
 transcode-0.6.8
 
+2003-06-09 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/* avilib.c docs/avi_comments.txt:
+  It is now possible to write tomb-stone data like the name of the
+  creator or the Subject of the file into the AVI header. There are
+  a lot of tags available see the sample config file
+  docs/avi_comments.txt. Example:
+  
+   transcode [...] -y xvid -o foo.avi --avi_comments mycomms.txt
+   
+  Where mycomms.txt is:
+
+   # Name of the file
+   INAM My 1st Birthday
+   # Subject
+   ISBJ My first steps!
+   # Artist
+   IART My proud family
+
 2003-06-08 Tilmann Bitterberg <transcode at tibit.org>
 
   * tools/avisplit.c:
   XXX: (improve A/V sync for option -s)
 
   * tools/avimerge.c:
-  XXX: (raw mp3 files)
+  Enable merging raw mp3 files with avimerge. That means you don't
+  have to reencode a MP3 into an AVI container but can work directly
+  with the MP3 track. Example:
+
+   avimerge -i in1.avi -p soundtrack.mp3 -o out.avi
 
 2003-06-06 Tilmann Bitterberg <transcode at tibit.org>
 
