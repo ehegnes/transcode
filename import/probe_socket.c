@@ -21,13 +21,10 @@
  *
  */
 
-#include "transcode.h"
 #include "ioaux.h"
+#include "tc.h"
 
 #ifdef NET_STREAM
-
-#include <sys/types.h>
-#include <sys/socket.h>
 
 static vob_t *ivob;
 
@@ -98,6 +95,16 @@ void probe_net(info_t *ipipe)
 
   return;  
   
+}
+
+#else
+
+void 
+probe_net(info_t * ipipe)
+{
+    fprintf(stderr, "No support for network sockets compiled in\n");
+    ipipe->probe_info->codec = TC_CODEC_UNKNOWN;
+    ipipe->probe_info->magic = TC_MAGIC_UNKNOWN;
 }
 
 #endif
