@@ -869,17 +869,30 @@ static int avi_close_output_file(avi_t *AVI)
      
      //if (AVI->track[j].a_chans && AVI->track[j].audio_bytes)
        {
-	 unsigned long nBlockAlign;
+	 unsigned long nBlockAlign = 0;
+	 unsigned long avgbsec = 0;
+	 unsigned long scalerate = 0;
 	   
 	 sampsize = avi_sampsize(AVI, j);
 	 sampsize = AVI->track[j].a_fmt==0x1?sampsize*4:sampsize;
 
 	 nBlockAlign = (AVI->track[j].a_rate<32000)?576:1152;
 	 /*
-	 printf("XXX sampsize (%d) block (%ld) rate (%ld) audio_bytes (%ld) chunks(%ld)\n", 
-		 sampsize, nBlockAlign, AVI->track[j].a_rate, AVI->track[j].audio_bytes, AVI->track[j].audio_chunks );
+	 printf("XXX sampsize (%d) block (%ld) rate (%ld) audio_bytes (%ld) mp3rate(%ld,%ld)\n", 
+		 sampsize, nBlockAlign, AVI->track[j].a_rate, 
+		 (long int)AVI->track[j].audio_bytes, 
+		 1000*AVI->track[j].mp3rate/8, AVI->track[j].mp3rate);
 		 */
 	   
+	 if (AVI->track[j].a_fmt==0x1) {
+	     sampsize = (AVI->track[j].a_chans<2)?sampsize/2:sampsize;
+	     avgbsec = AVI->track[j].a_rate*sampsize/4;
+	     scalerate = AVI->track[j].a_rate*sampsize/4;
+	 } else  {
+	     avgbsec = 1000*AVI->track[j].mp3rate/8;
+	     scalerate = 1000*AVI->track[j].mp3rate/8;
+	 }
+
 	 OUT4CC ("LIST");
 	 OUTLONG(0);        /* Length of list in bytes, don't know yet */
 	 strl_start = nhb;  /* Store start position */
@@ -913,7 +926,7 @@ static int avi_close_output_file(avi_t *AVI)
 	     OUTLONG(0);                             /* Frame */
 	 } else {
 	     OUTLONG(sampsize/4);                    /* Scale */
-	     OUTLONG(1000*AVI->track[j].mp3rate/8);  /* Rate */
+	     OUTLONG(scalerate);  /* Rate */
 	     OUTLONG(0);                             /* Start */
 	     OUTLONG(4*AVI->track[j].audio_bytes/sampsize);   /* Length */
 	     OUTLONG(0);                             /* SuggestedBufferSize */
@@ -965,14 +978,15 @@ static int avi_close_output_file(avi_t *AVI)
 	 
 	 } else {
 
-	     OUTLONG(16);                   /* # of bytes to follow */
+	     OUTLONG(18);                   /* # of bytes to follow */
 	     OUTSHRT(AVI->track[j].a_fmt);           /* Format */
 	     OUTSHRT(AVI->track[j].a_chans);         /* Number of channels */
 	     OUTLONG(AVI->track[j].a_rate);          /* SamplesPerSec */
 	     //ThOe/tibit
-	     OUTLONG(1000*AVI->track[j].mp3rate/8);
+	     OUTLONG(avgbsec);  /* Avg bytes/sec */
 	     OUTSHRT(sampsize/4);                    /* BlockAlign */
 	     OUTSHRT(AVI->track[j].a_bits);          /* BitsPerSample */
+	     OUTSHRT(0);                           /* cbSize */  
 
 	 }
 	 /* Finish stream list, i.e. put number of bytes in the list to proper pos */
