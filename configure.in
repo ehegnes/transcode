@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 AC_INIT
 AC_CONFIG_AUX_DIR(autotools)
-AM_INIT_AUTOMAKE(transcode,0.6.0)
+AM_INIT_AUTOMAKE(transcode,0.6.1)
 AC_CONFIG_SRCDIR(src/transcode.c)
 AM_CONFIG_HEADER(config.h)
   
@@ -170,16 +170,18 @@ EOF
      cat conftest.S >&AC_FD_CC
      rm -f conftest.*;
     fi
-    AC_PATH_PROG(NASM, nasm)
-    if test x$NASM = x -o x$NASM = x'"$NASM"'; then
-      : # no nasm in the path
-    else
-     AC_DEFINE(HAVE_ASM_NASM)
-     NASMFLAGS="-f elf"
+    AC_PATH_PROG(NASM, nasm, no)
+    case "${NASM}" in
+no)
+   ;;
+*)
+     AC_DEFINE(HAVE_ASM_NASM, 1, have nasm)
+     NASMFLAGS="-felf"
      AC_SUBST(NASMFLAGS)
      have_asm_nasm=true
      nasm=yes
-    fi
+   ;;
+esac
   ],
   [AC_MSG_RESULT(no)
    AC_MSG_WARN(*** MMX Optimizations disabled....)]);
@@ -616,6 +618,9 @@ then
 	AC_DEFINE(HAVE_MJPEG)
   	MJPEG_CFLAGS="`mjpegtools-config --cflags`"
   	MJPEG_LIBS="`mjpegtools-config --libs`"
+	mjpeg_incs="`mjpegtools-config --prefix`/include/mjpegtools"
+	AC_CHECK_FILE($mjpeg_incs/yuv4mpeg.h, 
+	   [AC_DEFINE(HAVE_MJPEG_INC, 1, mjpeg include)])
 else
 MJPEGTOOLSCONFIG=no
 fi
@@ -812,6 +817,7 @@ AC_OUTPUT([
            filter/extsub/Makefile
            filter/resample/Makefile
            filter/test/Makefile
+           filter/ivtc/Makefile
            filter/yuvdenoise/Makefile
            docs/Makefile
            docs/man/Makefile
@@ -826,7 +832,7 @@ dnl openquicktime dependent modules                  $have_openqt
 
 AC_MSG_RESULT([
 ----------------------------------------------------------
-Summary for transcode 0.6.0 features:
+Summary for transcode 0.6.1 features:
 
 static AV-frame buffering                        $statbuf
 DVD navigation support with libdvdread           $have_dvdread

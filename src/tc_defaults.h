@@ -171,6 +171,8 @@
 #define TC_FRAME_IS_YUV          32
 #define TC_FRAME_IS_PCM          64
 #define TC_FRAME_IS_AC3         128
+#define TC_FRAME_IS_CLONED      256
+#define TC_FRAME_WAS_CLONED     512
 
 //overwritten by cmd line parameter
 #define TC_PROBE_ERROR         -1

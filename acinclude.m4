@@ -110,6 +110,9 @@ AC_ARG_WITH(avifile-exec-prefix,[  --with-avifile-exec-prefix=PFX    prefix wher
     have_avifile=yes
     AVIFILE_CFLAGS=`$AVIFILE_CONFIG $avifileconf_args --cflags`
     AVIFILE_LIBS=`$AVIFILE_CONFIG $avifileconf_args --libs`
+    avifile_incs="`$AVIFILE_CONFIG $avifileconf_args --prefix`/include/avifile"
+    AC_CHECK_FILE($avifile_incs/avifile.h, 
+	  [AC_DEFINE(HAVE_AVIFILE_INC, 1, avifile include)])
   fi	
 
 else

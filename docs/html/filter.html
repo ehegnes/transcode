@@ -23,15 +23,17 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 
 
 The order in which frames and plug-ins
-are processed with 0.6.X is as follows. There are 7 (A-G) processing
-	  slots available. External user contributed plug-ins hook to
-	  slots B,C for pre-processing and E,F for
-	  post-processing. At each of these slots, transcode calles
+are processed with <i>transcode</i> 0.6.X is as follows. There are 7 (A-G) processing
+	  slots available. Slots A, D and G are reserved for internal
+	   use only.
+	   External user contributed plug-ins hook to
+	  slots B and C for pre-processing, or E and F for
+	  post-processing. At each of these slots, transcode calls
 	  all plug-ins given with option -J from left to right. A
 	  single plug-in can therefore run code in all 4 slots,
-	  if required. Only single-threaded slots allow for frame
+	  if necessary. Only single-threaded slots B and F allow for frame
 	  processing in correct display order. The number of threads
-	  created to process ths frames is controlled by the second
+	  created to process the frames is controlled by the second
 	  option of "-u".
 	  
 
@@ -163,7 +165,8 @@ are processed with 0.6.X is as follows. There are 7 (A-G) processing
 	    
   <li><FONT color=red><b>filter_yuvdenoise.so</b></font> (new in
        v0.6.0rc4)<img align="top" src="new.png"><br>
-       <i>Author:</i> Tilmann Bitterberg<br>
+       <i>Author:</i> Tilmann Bitterberg based on 
+       the original <i>mjpeg-tools</i> denoiser code by Stefan Fendt &lt;stefan@lionfish.ping.de&gt;.<br>
        <i>Usage:</i> -J yuvdenoise=&lt;val&gt;<br>
        <ul>
 	 <li> Use -J yuvdenoise=help to get a comprehensive list of options.
@@ -412,7 +415,7 @@ increase the compression-ratio to be achieved by subsequent encoders.
 
 
 <!-- hhmts start -->
-Last modified: Thu Aug  1 22:37:05 CEST 2002
+Last modified: Mon Sep 16 10:32:50 Europe/Berlin 2002
 <!-- hhmts end -->
 
 </body> </html>

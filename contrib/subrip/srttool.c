@@ -9,7 +9,6 @@
   Version: 0.03
 */
 
-#include "spudec.h"
 #include <stdio.h>
 #include <assert.h>
 #include <sys/types.h>

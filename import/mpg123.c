@@ -290,7 +290,8 @@ int buf_probe_mp3(unsigned char *_buf, int len, pcm_t *pcm)
   pcm->format = CODEC_MP3;
   pcm->bitrate = mp3data->bitrate;
 
-  if(verbose_flag & TC_DEBUG) fprintf(stderr, "(%s) channels=%d, samplerate=%d Hz, bitrate=%d kbps, (fsize=%d)\n", __FILE__, mp3data->stereo, mp3data->samplerate, mp3data->bitrate, mp3data->framesize);
+  if(verbose_flag & TC_DEBUG) 
+    fprintf(stderr, "(%s) channels=%d, samplerate=%d Hz, bitrate=%d kbps, (fsize=%d)\n", __FILE__, mp3data->stereo, mp3data->samplerate, mp3data->bitrate, mp3data->framesize);
   
   switch(type) {
 

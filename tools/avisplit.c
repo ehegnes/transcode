@@ -35,9 +35,6 @@
 #define EXE "avisplit"
 #define MBYTE (1<<20)
 
-extern int fc_to, fc_verb;
-extern struct fc_time * fc_list;
-
 void version()
 {
   printf("%s (%s v%s) (C) 2001-2002 Thomas Östreich\n", EXE, PACKAGE, VERSION);
@@ -103,11 +100,14 @@ int main(int argc, char *argv[])
   static char audio_data[SIZE_RGB_FRAME];
   static char *single_output_file=NULL;
   struct fc_time * ttime = NULL;
+  struct fc_time * tstart = NULL;
   int start_keyframe=0;
   int split_option=0;
   long audio_bytes=0;
   int first_frame=1;
   int num_frames;
+
+  char separator[] = ",";
 
   if(argc==1) usage();
   
@@ -354,12 +354,12 @@ int main(int argc, char *argv[])
 
   case SPLIT_BY_TIME:
 
-    if( parse_fc_time_string( argcopy, fps ) == -1 )
+    if( parse_fc_time_string( argcopy, fps, separator, 1, &ttime ) == -1 )
       usage();
     /*
      * pointer into the fc_list
      */
-    ttime = fc_list;
+     tstart = ttime;
     /*
      * index of split files
      */
@@ -586,8 +586,8 @@ int main(int argc, char *argv[])
       if( avifile2 != NULL ) AVI_close( avifile2 );
     }
 
-    if( fc_list != NULL )
-      free_fc_time( fc_list );
+    if( tstart != NULL )
+      free_fc_time( tstart );
 
     printf( "\n" );
 

@@ -74,9 +74,9 @@ int rtjpeg_aud_open(char *tplorg)
   FILE   *editfile;
   char   editfname[255];
   int    start,end,rpos;
-  int    filesize;
-  int    startpos;
-  int    pos;
+  off_t  filesize;
+  off_t  startpos;
+  off_t  pos;
   //int    seekdist;
   int    foundit=0;
   int    regpos;

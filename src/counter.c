@@ -23,6 +23,7 @@
 
 #include "counter.h"
 #include "frame_threads.h"
+#include "transcode.h"
 
 static int encoder_progress_flag=0;
 static char encoder_progress_str[128];
@@ -73,11 +74,15 @@ void counter_print(int pida, int pidn, char *s, long int t1, long int t2, char *
 
   double fps;
 
+  if(tc_progress_meter == TC_OFF) return;
+  if((pidn % print_counter_interval) != 0) return;
+
   if(gettimeofday(&tv,&tz)<0) return;
 
   fps=(pidn-pida)/((tv.tv_sec+tv.tv_usec/1000000.0)-(t1+t2/1000000.0));
   
   if(fps>0 && fps<10000) {
+    int secleft = 0;
     
     pthread_mutex_lock(&vbuffer_im_fill_lock);
     buf1=vbuffer_im_fill_ctr;
@@ -93,24 +98,27 @@ void counter_print(int pida, int pidn, char *s, long int t1, long int t2, char *
     
     if(range_b != -1 && pidn>=range_a && counter_active==TC_ON) {
       double done;
-      int secleft;
-      
+
       if(range_starttime == -1) range_starttime = tv.tv_sec;
       done = (double)(pidn-range_a)/(range_b-range_a);
       secleft = (1-done)*(double)(tv.tv_sec-range_starttime)/done;
       
       if(!encoder_progress_flag) {
-	printf("%s frames [%06d-%06d], %6.2f fps, %4.1f%%, ETA: %d:%02d:%02d, (%2d|%2d|%2d)  \r", s, pida, pidn, fps, 100*done,
-	       secleft/3600, (secleft/60) % 60, secleft % 60, 
-	       buf1, buf2, buf3);
+ 	printf("%s frames [%06d-%06d], %6.2f fps, %4.1f%%, ETA: %d:%02d:%02d, (%2d|%2d|%2d)  %c", s, pida, pidn, fps, 100*done,
+  	       secleft/3600, (secleft/60) % 60, secleft % 60, 
+ 	       buf1, buf2, buf3, print_counter_cr?'\r':'\n');
 	
       } else tc_encoder_progress();
       
     } else {
+      vob_t *vob = tc_get_vob();
+
+      if(range_starttime == -1) range_starttime = tv.tv_sec;
+      secleft = (double)pidn/((vob->fps<1.0)?1.0:vob->fps);
       
       if(!encoder_progress_flag) {
-	printf("%s frames [%06d-%06d], %6.2f fps, (%2d|%2d|%2d)  \r", 
-	       s, pida, pidn, fps, buf1, buf2, buf3);
+	
+  	printf("%s frames [%06d-%06d], %6.2f fps, EMT: %d:%02d:%02d, (%2d|%2d|%2d)  %c", s, pida, pidn, fps, secleft/3600, (secleft/60) % 60, secleft % 60, buf1, buf2, buf3, print_counter_cr?'\r':'\n');
 	
       } else tc_encoder_progress();
     }

@@ -25,8 +25,11 @@ CFLAGS = $(COPT) $(WARN) $(DEFINES) $(INCLUDES)
 PACKAGE_FILES = Makefile \
                subtitle2pgm.c subtitle2pgm.h spudec.c  spudec.h \
                srttool.c \
+               vobsub.c vobsub.h subtitle2vobsub.c \
                pgm2txt \
-               README  README.gocr  README.srttool  README.subtitle2pgm 
+               gocrfilter_en.sed gocrfilter_fr.sed gocrfilter_none.sed \
+               README  README.gocr  README.srttool \
+               README.subtitle2pgm README.vobsub
 
 # Name of the package
 PACKAGE = subrip
@@ -36,7 +39,7 @@ VERSION = `date +%Y%m%d`
 
 # Main targets
 
-TARGETS = subtitle2pgm srttool
+TARGETS = subtitle2pgm srttool subtitle2vobsub
 
 all:  $(TARGETS) 
 
@@ -50,8 +53,14 @@ all:  $(TARGETS)
 subtitle2pgm.o: subtitle2pgm.c spudec.h subtitle2pgm.h
 spudec.o: spudec.c spudec.h
 
+subtitle2vobsub.o: subtitle2vobsub.c vobsub.c vobsub.h  
+
 # Target
 subtitle2pgm: subtitle2pgm.o spudec.o
+	@echo "Linking $@"
+	@$(CC) $(LIBS) $^ -o $@  
+
+subtitle2vobsub: subtitle2vobsub.o vobsub.o 
 	@echo "Linking $@"
 	@$(CC) $(LIBS) $^ -o $@  
 

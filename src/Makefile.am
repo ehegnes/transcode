@@ -6,7 +6,7 @@ CFLAGS = -D_REENTRANT -Wall -funroll-loops -ffast-math -finline-functions @SUPPO
 
 bin_PROGRAMS = transcode
 
-transcode_LDADD= @SUPPORTLIB@ -lm
+transcode_LDADD= @SUPPORTLIB@ -L../libioaux -lioaux -lm 
 
 EXTRA_DIST = *.h
 

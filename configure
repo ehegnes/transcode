@@ -1687,7 +1687,7 @@ fi
 
 # Define the identity of the package.
  PACKAGE=transcode
- VERSION=0.6.0
+ VERSION=0.6.1
 
 
 cat >>confdefs.h <<_ACEOF
@@ -7819,6 +7819,7 @@ do
 done
 done
 
+  test -z "$ac_cv_path_NASM" && ac_cv_path_NASM="no"
   ;;
 esac
 fi
@@ -7832,18 +7833,21 @@ else
 echo "${ECHO_T}no" >&6
 fi
 
-    if test x$NASM = x -o x$NASM = x'"$NASM"'; then
-      : # no nasm in the path
-    else
-     cat >>confdefs.h <<\_ACEOF
+    case "${NASM}" in
+no)
+   ;;
+*)
+
+cat >>confdefs.h <<\_ACEOF
 #define HAVE_ASM_NASM 1
 _ACEOF
 
-     NASMFLAGS="-f elf"
+     NASMFLAGS="-felf"
 
      have_asm_nasm=true
      nasm=yes
-    fi
+   ;;
+esac
 
 else
   echo "$as_me: failed program was:" >&5
@@ -9448,7 +9452,7 @@ test "x$enable_libtool_lock" != xno && enable_libtool_lock=yes
 case $host in
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 9451 "configure"' > conftest.$ac_ext
+  echo '#line 9455 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -9984,7 +9988,7 @@ chmod -w .
 save_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -o out/conftest2.$ac_objext"
 compiler_c_o=no
-if { (eval echo configure:9987: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
+if { (eval echo configure:9991: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
   # The compiler can only warn and ignore the option if not recognized
   # So say no if there are warnings
   if test -s out/conftest.err; then
@@ -11777,7 +11781,7 @@ else
     lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 11780 "configure"
+#line 11784 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11875,7 +11879,7 @@ else
     lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 11878 "configure"
+#line 11882 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12875,6 +12879,33 @@ _ACEOF
     have_avifile=yes
     AVIFILE_CFLAGS=`$AVIFILE_CONFIG $avifileconf_args --cflags`
     AVIFILE_LIBS=`$AVIFILE_CONFIG $avifileconf_args --libs`
+    avifile_incs="`$AVIFILE_CONFIG $avifileconf_args --prefix`/include/avifile"
+    as_ac_File=`echo "ac_cv_file_$avifile_incs/avifile.h" | $as_tr_sh`
+echo "$as_me:$LINENO: checking for $avifile_incs/avifile.h" >&5
+echo $ECHO_N "checking for $avifile_incs/avifile.h... $ECHO_C" >&6
+if eval "test \"\${$as_ac_File+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "$avifile_incs/avifile.h"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_AVIFILE_INC 1
+_ACEOF
+
+fi
+
   fi
 
 else
@@ -14892,6 +14923,33 @@ _ACEOF
 
   	MJPEG_CFLAGS="`mjpegtools-config --cflags`"
   	MJPEG_LIBS="`mjpegtools-config --libs`"
+	mjpeg_incs="`mjpegtools-config --prefix`/include/mjpegtools"
+	as_ac_File=`echo "ac_cv_file_$mjpeg_incs/yuv4mpeg.h" | $as_tr_sh`
+echo "$as_me:$LINENO: checking for $mjpeg_incs/yuv4mpeg.h" >&5
+echo $ECHO_N "checking for $mjpeg_incs/yuv4mpeg.h... $ECHO_C" >&6
+if eval "test \"\${$as_ac_File+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "$mjpeg_incs/yuv4mpeg.h"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_MJPEG_INC 1
+_ACEOF
+
+fi
+
 else
 MJPEGTOOLSCONFIG=no
 fi
@@ -17523,7 +17581,7 @@ LDFLAGS=`echo $LDFLAGS | sed -e 's/  */ /g'`
 
 
 
-ac_config_files="$ac_config_files Makefile autotools/Makefile src/Makefile avilib/Makefile movlib/Makefile libioaux/Makefile encore2/Makefile libac3/Makefile dvdread/Makefile libvo/Makefile libmpeg2/Makefile libmp3lame/Makefile libdvenc/Makefile bbmpeg/Makefile bbmpeg/tcmplex/Makefile ffmpeg/Makefile ffmpeg/libavcodec/Makefile export/Makefile import/Makefile import/nuv/Makefile import/af6/Makefile import/net/Makefile import/v4l/Makefile import/yuv/Makefile filter/Makefile filter/subtitler/Makefile filter/preview/Makefile filter/divxkey/Makefile filter/extsub/Makefile filter/resample/Makefile filter/test/Makefile filter/yuvdenoise/Makefile docs/Makefile docs/man/Makefile contrib/Makefile tools/Makefile aclib/Makefile libsupport/Makefile transcode.spec"
+ac_config_files="$ac_config_files Makefile autotools/Makefile src/Makefile avilib/Makefile movlib/Makefile libioaux/Makefile encore2/Makefile libac3/Makefile dvdread/Makefile libvo/Makefile libmpeg2/Makefile libmp3lame/Makefile libdvenc/Makefile bbmpeg/Makefile bbmpeg/tcmplex/Makefile ffmpeg/Makefile ffmpeg/libavcodec/Makefile export/Makefile import/Makefile import/nuv/Makefile import/af6/Makefile import/net/Makefile import/v4l/Makefile import/yuv/Makefile filter/Makefile filter/subtitler/Makefile filter/preview/Makefile filter/divxkey/Makefile filter/extsub/Makefile filter/resample/Makefile filter/test/Makefile filter/ivtc/Makefile filter/yuvdenoise/Makefile docs/Makefile docs/man/Makefile contrib/Makefile tools/Makefile aclib/Makefile libsupport/Makefile transcode.spec"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -18295,6 +18353,7 @@ do
   "filter/extsub/Makefile" ) CONFIG_FILES="$CONFIG_FILES filter/extsub/Makefile" ;;
   "filter/resample/Makefile" ) CONFIG_FILES="$CONFIG_FILES filter/resample/Makefile" ;;
   "filter/test/Makefile" ) CONFIG_FILES="$CONFIG_FILES filter/test/Makefile" ;;
+  "filter/ivtc/Makefile" ) CONFIG_FILES="$CONFIG_FILES filter/ivtc/Makefile" ;;
   "filter/yuvdenoise/Makefile" ) CONFIG_FILES="$CONFIG_FILES filter/yuvdenoise/Makefile" ;;
   "docs/Makefile" ) CONFIG_FILES="$CONFIG_FILES docs/Makefile" ;;
   "docs/man/Makefile" ) CONFIG_FILES="$CONFIG_FILES docs/man/Makefile" ;;
@@ -19173,7 +19232,7 @@ fi
 
 echo "$as_me:$LINENO: result:
 ----------------------------------------------------------
-Summary for transcode 0.6.0 features:
+Summary for transcode 0.6.1 features:
 
 static AV-frame buffering                        $statbuf
 DVD navigation support with libdvdread           $have_dvdread
@@ -19198,7 +19257,7 @@ experimental Ogg support | Vorbis support        $have_ogg | $have_vorbis
 " >&5
 echo "${ECHO_T}
 ----------------------------------------------------------
-Summary for transcode 0.6.0 features:
+Summary for transcode 0.6.1 features:
 
 static AV-frame buffering                        $statbuf
 DVD navigation support with libdvdread           $have_dvdread

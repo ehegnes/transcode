@@ -33,7 +33,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_nvrec.so"
-#define MOD_VERSION "v0.1.2 (2002-05-30)"
+#define MOD_VERSION "v0.1.3 (2002-08-14)"
 #define MOD_CODEC   "(video) nvrec | (audio) nvrec"
 
 #define MOD_PRE nvrec
@@ -100,7 +100,7 @@ MOD_open
     n += snprintf(import_cmd_buf+n, MAX_BUF, " -b %d",  vob->a_bits);
     n += snprintf(import_cmd_buf+n, MAX_BUF, " -r %d",  vob->a_rate);
     n += snprintf(import_cmd_buf+n, MAX_BUF, " -ab %d", vob->mp3bitrate);
-    n += snprintf(import_cmd_buf+n, MAX_BUF, " -aq %d", vob->mp3quality);
+    n += snprintf(import_cmd_buf+n, MAX_BUF, " -aq %d", (int)vob->mp3quality);
 
     if (strncmp(vob->video_in_file, "/dev/zero", 9) == 0) {
 	fprintf (stderr, "[%s] Warning: Input v4l1/2 device assumed to be %s\n", MOD_NAME, "/dev/video");
@@ -109,15 +109,13 @@ MOD_open
 	n += snprintf(import_cmd_buf+n, MAX_BUF, " -v %s", vob->video_in_file);
     }
 
+    if (strncmp(vob->audio_in_file, "/dev/zero", 9) != 0) {
+      n += snprintf(import_cmd_buf+n, MAX_BUF, " -d %s", vob->audio_in_file);
+    }
 
-    if(vob->ex_v_fcc != NULL && strlen(vob->ex_v_fcc) != 0) {
-	char *a = vob->ex_v_fcc;
-	while (*a != '\0') {
-	    if (*a == '+') *a = '-';
-	    a++;
-	}
-	    
-	n += snprintf(import_cmd_buf+n, MAX_BUF, " %s", vob->ex_v_fcc);
+    // new since 0.1.3
+    if(vob->im_v_string != NULL) {
+	n += snprintf(import_cmd_buf+n, MAX_BUF, " %s", vob->im_v_string);
     }
 
     /* Check NVrec features */

@@ -68,7 +68,7 @@ Additional export modules to write single frames (PPM) or
 YUV4MPEG streams are available, as well as an interface import module
 	  to the <i>avifile</i> library.
 It's modular concept is intended to provide flexibility and easy user 
-extensibility to include other video/audio codecs or filetypes. 
+extensibility to include other video/audio codecs or file types. 
 A set of tools is included to demux (<FONT color=red><i>tcdemux</i></font>), extract (<FONT color=red><i>tcextract</i></font>) and decode
 	   (<FONT color=red><i>tcdecode</i></font>) the sources 
 into raw video/audio streams for import, probing (<FONT
@@ -78,9 +78,10 @@ of AVI files, fixing AVI file header information (<FONT
 	   color=red><i>avifix</i></font>), merging multiple files (<FONT color=red><i>avimerge</i></font>) or splitting 
 large AVI files (<FONT color=red><i>avisplit</i></font>) to fit on a CD.
 <p><p>
-	  
+
+
 	  <b><i>transcode</i></b> plug-in architecture overview:<p>
-	  <i>transcode</i> loads shared library modules that are responsible for feeding it with raw streams and encoding the frames:
+	  <i>transcode</i> loads shared library modules that are responsible for feeding it with raw streams and encoding the frames.
 	  <ul> 
 	    <li> The <b>import modules</b> for audio/video decoding are loaded with
 		<i>dlopen</i> system call and are
@@ -88,34 +89,34 @@ large AVI files (<FONT color=red><i>avisplit</i></font>) to fit on a CD.
 		<i>popen</i> system call) and have a single function interface to the main program.
 	    The import is handled by a thread that buffers the video/audio frames.<p>
 	    <li> The main program <b><i>transcode</i></b> currently performs
-		a number of simple video/audio frame manipulations (in
+		a number of video/audio frame manipulations (in
 		this order) or allows simple pass-through of raw frame data:
 		<p>
 
 		<font size=+2 color=blue>Video:</font>
 		<ul>  
 		  
-		  <li> cut out arbitray frame region for processing
+		  <li> cut out arbitrary frame region for processing
 
 		  <li> de-interlace video frame
 		      
-		  <li> fast enlarging of video width/height by a multiple of 32
-		      rows/column up to 1024x768
+		  <li> fast enlarging of video width/height by a
+		       multiple of 8/16/32 rows/columns up to 1024x768
 
-		  <li> fast reduction of video width/height by a multiple of 32
-		      rows/column 		      
+		  <li> fast reduction of video width/height by a multiple of 8/16/32 rows/columns 		      
 
-		  <li> high-quality resizing with filter
+		  <li> high-quality resizing with different filtering
 
-		  <li> cut out arbitray frame region for encoding
+		  <li> cut out arbitrary frame region for encoding
 
-		  <li> rescale (downsample) video width/height by a power of 2
+		  <li> fast rescale (down-sample) video width/height by a power of 2
 		      
 		  <li> flip video frame upside down
 
 		  <li> mirror image of video frame 
 
-		  <li> swap R and B bytes in video frame
+		  <li> swap <i>red</i> and <i>blue</i> bytes or chroma
+		       components in video frame
 
 		  <li> transform to  b/w video frame
 
@@ -123,21 +124,20 @@ large AVI files (<FONT color=red><i>avisplit</i></font>) to fit on a CD.
 		      
 		  <li> anti-alias video frame
 
-
 		</ul>
 
 		<p>
 		<font size=+2 color=blue>Audio:</font>
 		<ul>
 		  <li> change the volume of the audio stream
-		  <li> resample audio stream
+		  <li> re-sample audio stream
 		  <li> swap byte order in audio stream
 		  <li> sync video with audio frames (V=0|A=N, V=1|A=N+1,...)
 		</ul>
 		<p>  
 
-		<font size=+2 color=blue>Filter Plugins:</font>
-		<ul> <li>Additional effects are available via <a href=filter.html>external filter plugins</a> loaded with option "-J".
+		<font size=+2 color=blue>Filter Plug-Ins:</font>
+		<ul> <li>Additional effects are available via <a href=filter.html>external filter plug-ins</a> loaded with option "-J".
 		</ul><p>
 		
 
@@ -170,7 +170,8 @@ large AVI files (<FONT color=red><i>avisplit</i></font>) to fit on a CD.
 Unconnected boxes not yet implemented, but <i>0.6.0</i> (final) will
 	  have a symmetrical butterfly structure.
 	  OpenDivX
-	  (obsolete) support included, but much newer and faster Divx encoding/decoding requires codecs available for linux. 
+	  (obsolete) support included, but much newer and faster DIVX
+      encoding/decoding requires additional codecs available for linux. 
 	  Picture import supported by newer versions of <i>ImageMagick</i>
 	  (0.5.x). Additional optional audio/video import codecs supported by using the
 	  <i>avifile</i> library. Quicktime movie with limited codec
@@ -195,7 +196,7 @@ Unconnected boxes not yet implemented, but <i>0.6.0</i> (final) will
 
 
 <!-- hhmts start -->
-Last modified: Thu May 16 12:45:10 CEST 2002
+Last modified: Mon Sep 16 10:54:50 Europe/Berlin 2002
 <!-- hhmts end -->
 
 </body> </html>

@@ -101,7 +101,7 @@ cf_get_named_section( CF_ROOT_TYPE * pRoot, char * pName )
 			/*
 			 * this the named section?
 			 */
-			if( strncmp( next->name, pName, strlen( next->name ) ) == 0 )
+			if( strcmp( next->name, pName ) == 0 )
 				return next;
 		/*
 		 * no? then get the next section.
@@ -257,7 +257,7 @@ cf_get_named_section_value_of_key( CF_ROOT_TYPE * pRoot, char * pName, char * pK
 	 * and key-value pair.
 	 */
 	if( ( pKeyvalue = cf_get_named_section_keyvalue( pRoot, pName ) ) != NULL ) {
-		while( pKeyvalue != NULL && strncmp( pKeyvalue->key, pKey, strlen( pKeyvalue->key ) ) != 0 )
+		while( pKeyvalue != NULL && strcmp( pKeyvalue->key, pKey ) != 0 )
 			pKeyvalue = pKeyvalue->next;
 
 		if( pKeyvalue != NULL )
@@ -307,7 +307,7 @@ cf_put_named_section_value_of_key( CF_ROOT_TYPE * pRoot, char * pName, char * pK
 	 * find the named key-value pair.
 	 */
 	if( ( pKeyvalue = cf_get_named_section_keyvalue( pRoot, pName ) ) != NULL ) {
-		while( pKeyvalue != NULL && strncmp( pKeyvalue->key, pKey, strlen( pKeyvalue->key ) ) != 0 )
+		while( pKeyvalue != NULL && strcmp( pKeyvalue->key, pKey ) != 0 )
 			pKeyvalue = pKeyvalue->next;
 
 		if( pKeyvalue != NULL ) {
@@ -379,7 +379,7 @@ cf_get_named_subsection( CF_ROOT_TYPE * pRoot, char * pName )
 				/*
 				 * this the named section?
 				 */
-				if( strncmp( pSsection->name, pName, strlen( pSsection->name ) ) == 0 )
+				if( strcmp( pSsection->name, pName ) == 0 )
 					return pSsection;
 			/*
 			 * no? then get the next subsection.
@@ -2186,7 +2186,7 @@ cf_split( char * pString, char ** pKeyP, char ** pValP, cf_t * pType, char ** pC
 		/*
 		 * this key-value pair has a type.
 		 */
-		if( strncmp( cf_sntoupper( pSplit + 1, 3 ), "INT", 3 ) == 0 ) {
+		if( strcmp( cf_sntoupper( pSplit + 1, 3 ), "INT") == 0 ) {
 			* pType = CF_INT;
 		}
 

@@ -19,7 +19,7 @@ BB_SRC3 = predict_sse.S
 endif
 
 #CFLAGS = -O3 -funroll-loops -ffast-math -DLINUX @CFLAGS@
-CFLAGS= -g -ffast-math -DLINUX $(MMX)
+CFLAGS= -g -ffast-math -DLINUX $(MMX) -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
 
 libbbmpeg_a_SOURCES = dovideo.c params.c bits.c puthdr.c putpic.c putmpg.c putvlc.c stats.c quantize.c predict.c ratectl.c idct.c motion.c transfrm.c fdctref.c resize.c $(BB_SRC1) $(BB_SRC2) $(BB_SRC3)
 
@@ -30,9 +30,10 @@ EXTRA_DIST = README.TXT *.cfg *.h *.S *.s
 
 SUBDIRS = . tcmplex
 
-ASM = nasm
+ASM = @NASM@
+ASMFLAGS = @NASMFLAGS@
 
-%.o: %.s ;	$(ASM) -o $@ @NASMFLAGS@ $<
+%.o: %.s ;	$(ASM) $(ASMFLAGS) -o $@ $<
 
 
 

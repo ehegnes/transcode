@@ -207,7 +207,6 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     if(info->frc>0) vob->im_frc = info->frc;
   } else {
     vob->fps = frc_table[vob->im_frc];
-    printf("\n DEBUG vob->fps = (%f)\n", vob->fps);
   }
 
   //check for additional attributes

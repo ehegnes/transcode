@@ -51,6 +51,8 @@ static char *type;
 static int interval=1;
 static unsigned int int_counter=0;
 
+ImageInfo *image_info;
+
 /* ------------------------------------------------------------ 
  *
  * init codec
@@ -76,6 +78,8 @@ MOD_init
       }
       
       InitializeMagick("");
+
+      image_info=CloneImageInfo((ImageInfo *) NULL);
       
       return(0);
     }
@@ -140,9 +144,8 @@ MOD_encode
 {
   
   ExceptionInfo exception_info;
-  Image *image=NULL;
-  ImageInfo *image_info;
   char *out_buffer = param->buffer;
+  Image *image=NULL;
 
   if ((++int_counter-1) % interval != 0)
       return (0);
@@ -150,7 +153,6 @@ MOD_encode
   if(param->flag == TC_VIDEO) { 
 
     GetExceptionInfo(&exception_info);
-    image_info=CloneImageInfo((ImageInfo *) NULL);
 
     if(((unsigned) snprintf(buf2, PATH_MAX, "%s%06d.%s", prefix, counter++, type)>=PATH_MAX)) {
       perror("cmd buffer overflow");
@@ -171,6 +173,7 @@ MOD_encode
     strcpy(image->filename, buf2);
     
     WriteImage(image_info, image);
+    DestroyImage(image);
     
     return(0);
   }
@@ -191,6 +194,8 @@ MOD_stop
 {
   
   if(param->flag == TC_VIDEO) {
+    DestroyImageInfo(image_info);
+    DestroyConstitute();
     DestroyMagick();
     return(0);
   }

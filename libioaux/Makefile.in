@@ -162,29 +162,32 @@ x_libraries = @x_libraries@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-noinst_LIBRARIES = libioaux.a
+pkgdir = @MOD_PATH@
+
+pkg_LTLIBRARIES = libioaux.la
 
 INCLUDES = -I./
-libioaux_a_SOURCES = framecode.c configs.c
+libioaux_la_SOURCES = framecode.c configs.c
 
 EXTRA_DIST = *.h *.l
 subdir = libioaux
 mkinstalldirs = $(SHELL) $(top_srcdir)/autotools/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-LIBRARIES = $(noinst_LIBRARIES)
+LTLIBRARIES = $(pkg_LTLIBRARIES)
 
-libioaux_a_AR = $(AR) cru
-libioaux_a_LIBADD =
-am_libioaux_a_OBJECTS = framecode.$(OBJEXT) configs.$(OBJEXT)
-libioaux_a_OBJECTS = $(am_libioaux_a_OBJECTS)
+libioaux_la_LDFLAGS =
+libioaux_la_LIBADD =
+am_libioaux_la_OBJECTS = framecode.lo configs.lo
+libioaux_la_OBJECTS = $(am_libioaux_la_OBJECTS)
 
 DEFS = @DEFS@
 CPPFLAGS = @CPPFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/configs.Po ./$(DEPDIR)/framecode.Po
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/configs.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/framecode.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -192,9 +195,9 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(libioaux_a_SOURCES)
+DIST_SOURCES = $(libioaux_la_SOURCES)
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(libioaux_a_SOURCES)
+SOURCES = $(libioaux_la_SOURCES)
 
 all: all-am
 
@@ -205,15 +208,30 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am  $(top_srcdir)/configu
 	  $(AUTOMAKE) --foreign  libioaux/Makefile
 Makefile: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)
+pkgLTLIBRARIES_INSTALL = $(INSTALL)
+install-pkgLTLIBRARIES: $(pkg_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(pkgdir)
+	@list='$(pkg_LTLIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    f="`echo $$p | sed -e 's|^.*/||'`"; \
+	    echo " $(LIBTOOL) --mode=install $(pkgLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) $$p $(DESTDIR)$(pkgdir)/$$f"; \
+	    $(LIBTOOL) --mode=install $(pkgLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) $$p $(DESTDIR)$(pkgdir)/$$f; \
+	  else :; fi; \
+	done
 
-AR = ar
+uninstall-pkgLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	@list='$(pkg_LTLIBRARIES)'; for p in $$list; do \
+	    p="`echo $$p | sed -e 's|^.*/||'`"; \
+	  echo " $(LIBTOOL) --mode=uninstall rm -f $(DESTDIR)$(pkgdir)/$$p"; \
+	  $(LIBTOOL) --mode=uninstall rm -f $(DESTDIR)$(pkgdir)/$$p; \
+	done
 
-clean-noinstLIBRARIES:
-	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
-libioaux.a: $(libioaux_a_OBJECTS) $(libioaux_a_DEPENDENCIES) 
-	-rm -f libioaux.a
-	$(libioaux_a_AR) libioaux.a $(libioaux_a_OBJECTS) $(libioaux_a_LIBADD)
-	$(RANLIB) libioaux.a
+clean-pkgLTLIBRARIES:
+	-test -z "$(pkg_LTLIBRARIES)" || rm -f $(pkg_LTLIBRARIES)
+libioaux.la: $(libioaux_la_OBJECTS) $(libioaux_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(libioaux_la_LDFLAGS) $(libioaux_la_OBJECTS) $(libioaux_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -221,8 +239,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/configs.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/framecode.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/configs.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/framecode.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)
@@ -319,9 +337,10 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES)
+all-am: Makefile $(LTLIBRARIES)
 
 installdirs:
+	$(mkinstalldirs) $(DESTDIR)$(pkgdir)
 
 install: install-am
 install-exec: install-exec-am
@@ -349,7 +368,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libtool clean-noinstLIBRARIES \
+clean-am: clean-generic clean-libtool clean-pkgLTLIBRARIES \
 	mostlyclean-am
 
 distclean: distclean-am
@@ -365,7 +384,7 @@ info: info-am
 
 info-am:
 
-install-data-am:
+install-data-am: install-pkgLTLIBRARIES
 
 install-exec-am:
 
@@ -384,18 +403,19 @@ mostlyclean: mostlyclean-am
 mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool
 
-uninstall-am: uninstall-info-am
+uninstall-am: uninstall-info-am uninstall-pkgLTLIBRARIES
 
 .PHONY: GTAGS all all-am check check-am clean clean-generic \
-	clean-libtool clean-noinstLIBRARIES distclean distclean-compile \
+	clean-libtool clean-pkgLTLIBRARIES distclean distclean-compile \
 	distclean-depend distclean-generic distclean-libtool \
 	distclean-tags distdir dvi dvi-am info info-am install \
 	install-am install-data install-data-am install-exec \
 	install-exec-am install-info install-info-am install-man \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	tags uninstall uninstall-am uninstall-info-am
+	install-pkgLTLIBRARIES install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool tags uninstall \
+	uninstall-am uninstall-info-am uninstall-pkgLTLIBRARIES
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -78,7 +78,7 @@ CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 
 #CFLAGS = -O3 -funroll-loops -ffast-math -DLINUX @CFLAGS@
-CFLAGS = -g -ffast-math -DLINUX $(MMX)
+CFLAGS = -g -ffast-math -DLINUX $(MMX) -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
 CPP = @CPP@
 CXX = @CXX@
 DEPDIR = @DEPDIR@
@@ -179,7 +179,8 @@ EXTRA_DIST = README.TXT *.cfg *.h *.S *.s
 
 SUBDIRS = . tcmplex
 
-ASM = nasm
+ASM = @NASM@
+ASMFLAGS = @NASMFLAGS@
 subdir = bbmpeg
 mkinstalldirs = $(SHELL) $(top_srcdir)/autotools/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
@@ -559,7 +560,7 @@ uninstall-info: uninstall-info-recursive
 	uninstall-recursive
 
 
-%.o: %.s ;	$(ASM) -o $@ @NASMFLAGS@ $<
+%.o: %.s ;	$(ASM) $(ASMFLAGS) -o $@ $<
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

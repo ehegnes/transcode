@@ -50,7 +50,7 @@ LIBXML2_MOD=import_xml.la
 endif
 
 pkgdir=@MOD_PATH@
-pkg_LTLIBRARIES=import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la import_dv.la import_vob.la import_raw.la import_nvrec.la import_yuv4mpeg.la import_lav.la import_null.la import_divx.la $(A52_MOD) $(MP123_MOD) $(DVD_MOD) $(MPEG3) $(IM_MOD) $(MODQT) $(MOD_FF) af6_decore.la $(LIBXML2_MOD) import_mplayer.la import_rawlist.la import_ogg.la
+pkg_LTLIBRARIES=import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la import_dv.la import_vob.la import_raw.la import_nvrec.la import_yuv4mpeg.la import_lav.la import_null.la import_divx.la $(A52_MOD) $(MP123_MOD) $(DVD_MOD) $(MPEG3) $(IM_MOD) $(MODQT) $(MOD_FF) af6_decore.la $(LIBXML2_MOD) import_mplayer.la import_rawlist.la import_ogg.la import_xvid.la
 
 import_null_la_SOURCES = import_null.c
 import_null_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -78,6 +78,10 @@ import_mjpeg_la_LIBADD = -L../ffmpeg/libavcodec/ -lavcodec -L../avilib -lavi -lm
 import_divx_la_SOURCES = import_divx.c
 import_divx_la_LDFLAGS = -no-undefined -module -avoid-version 
 import_divx_la_LIBADD  = -L../avilib -lavi 
+
+import_xvid_la_SOURCES = import_xvid.c
+import_xvid_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_xvid_la_LIBADD  = -L../avilib -lavi 
 
 import_im_la_SOURCES = import_im.c
 import_im_la_LDFLAGS = -no-undefined -module -avoid-version 

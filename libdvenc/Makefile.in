@@ -181,14 +181,14 @@ LIBRARIES = $(noinst_LIBRARIES)
 
 libdvenc_a_AR = $(AR) cru
 libdvenc_a_LIBADD =
-am__objects_7 = dvenc.$(OBJEXT)
-@HAVE_DV_TRUE@am__objects_8 = enc_audio_input.$(OBJEXT) \
+am__objects_8 = dvenc.$(OBJEXT)
+@HAVE_DV_TRUE@am__objects_9 = enc_audio_input.$(OBJEXT) \
 @HAVE_DV_TRUE@	enc_input.$(OBJEXT) enc_output.$(OBJEXT)
-@HAVE_DV_TRUE@@HAVE_X86CPU_TRUE@am__objects_9 = rgbtoyuv.$(OBJEXT) \
+@HAVE_DV_TRUE@@HAVE_X86CPU_TRUE@am__objects_10 = rgbtoyuv.$(OBJEXT) \
 @HAVE_DV_TRUE@@HAVE_X86CPU_TRUE@	encode_x86.$(OBJEXT) \
 @HAVE_DV_TRUE@@HAVE_X86CPU_TRUE@	transpose_x86.$(OBJEXT)
-am_libdvenc_a_OBJECTS = $(am__objects_7) $(am__objects_8) \
-	$(am__objects_9)
+am_libdvenc_a_OBJECTS = $(am__objects_8) $(am__objects_9) \
+	$(am__objects_10)
 libdvenc_a_OBJECTS = $(am_libdvenc_a_OBJECTS)
 
 DEFS = @DEFS@

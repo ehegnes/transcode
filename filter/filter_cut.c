@@ -45,6 +45,8 @@
 #include "transcode.h"
 #include "framebuffer.h"
 
+extern int max_frame_buffer;
+
 char *get_next_range(char *name, char *_string)
 {
   char *res, *string;
@@ -187,7 +189,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // last cut region finished?
 
   stop=0;
-  if (ptr->id>ib[cut-1])
+  if (ptr->id>ib[cut-1]+max_frame_buffer)
 	  stop=1;
 
   //call back

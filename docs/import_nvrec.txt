@@ -91,11 +91,11 @@ Everything should work like you expect it to work.
 
 If you don't specify the '-m' option, audio will be written to
 audio.avi. If you need to pass special options to divx4rec, you can
-use transcodes -F option, just use '+' instead of '-' for the
-divx4rec options. This can be useful if you want to control
+pass options by supplying a string after the module name, just write
+down the divx4rec options. This can be useful if you want to control
 NVrecs buffer usage
 
- $ transcode (..) -F "+H 90 +L 10 +M 50"
+ $ transcode (..) -x nvrec="-H 90 -L 10 -M 50"
 
 The divx4rec command to be executed will get printed out, look for
 something like
@@ -159,16 +159,17 @@ To squeeze out even more fps you can tell divx4rec to not encode the audio
 to mp3 and write a WAV file instead. Sebastian <scut@nb.in-berlin.de>
 writes in http://www.theorie.physik.uni-goettingen.de/
 pipermail/transcode-users/2002-June/002575.html (in one line)
+(adjusted by tibit to reflect the new syntax)
 
   "I use this command line to record from TV (after setting the correct channel
 with xawtv):
 
 transcode --duration 01:00:00 \
-        -x nvrec -i /dev/video0 -V -H0 -u 100 \
+        -x nvrec="-wav",null 
+	-i /dev/video0 -V -H0 -u 100 \
         -g 576x432 \
         -y divx5,null -w 1200 -o output-video.avi \
         -e 44100,16,2 \
-        -F "+wav" \
         -J dilyuvmmx
 
 This produces the files "output-video.avi" and "audio.avi", which is just a
@@ -185,17 +186,60 @@ The output-complete.avi file is the finished recording, but with ads. I use
 new keyframe. Use the markers begin/end and the delete option from the
 "mark" menu to cut the ads out. Then write a new file with A/V to disk. For
 me the smart mode sometimes segfaults, and I do not use it."
+---------
+Another Usage scenario is described by Christoph Gaitzsch
+<christoph.gaitzsch@t-online.de> in
+http://www.theorie.physik.uni-goettingen.de/pipermail/transcode-users/2002-August/003946.html
+(adjusted by tibit to reflect the new syntax)
+
+"I also use my PC as a video recorder on a Athlon 1G. After
+experimenting much with transcode, nvrec, lavrec, etc. I now capture
+with transcode via nvrec, save this as yuv4mpeg raw stream to a fast
+disk and postprocess later. I found that the quality is much better
+when encoding in a separate step than live, even when I have no
+framedrops.
+
+Basically I record with the following commands:
+
+Pass 1 (recording)
+
+transcode -V -i /dev/video0 -x nvrec="-N 32",null -y yuv4mpeg,null 
+        -o out_video.yuv4mpeg -g 384x288 -u 100 -m out_audio.avi 
+	-H0 -f 25
+
+Pass 2 (encoding)
+
+nice -19 transcode -i out_video.yuv4mpeg -p out_audio.avi
+		-g 384x288 -f 25 -x yuv4mpeg,mp3 -y ffmpeg4 -w 3000 
+		-o out.avi -u 100 -J dnr,yuvdenoise,32detect=force_mode=3
+
+The advantage is, that the recording stage needs ~5% CPU time, so I
+have no framedrops even when the machine runs updatedb or other,
+CPU-consuming cron jobs. It is also possible to record while encoding
+(because it's niced). Since I schedule my recordings via at and the
+second pass lasts very long (~4fps), it's an issue to record at low
+CPU usage.
+
+The filters used in this way, dnr first, then yuvdenoise give me very
+good picture quality. Thanks to Jason Lunz' for his work on filter
+comparison."
+
+
 
 
 * Changes
 ---------
+(newest last)
 - NVrec interface changed based on discussion with Justin. RAWrec is now 
-divx4rec -o raw:// in raw file mode.
+  divx4rec -o raw:// in raw file mode.
 - Use -i ... as input video device.
 - Use -H0 to disable conflicting autoprobing with import_v4l
 - Added Sebastians tip for encoding to wav
 - Justin renamed DIVX4rec to divx4rec
+- Syntax changed. Do not use transcode's -F anymore, if you need to pass special
+  options to nvrec use
+    -x nvrec="-S2 -N32",null
 
 Have fun
 
-06/2002 Tilmann Bitterberg <transcode@tibit.org>
+08/2002 Tilmann Bitterberg <transcode@tibit.org>

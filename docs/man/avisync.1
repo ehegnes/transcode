@@ -14,6 +14,7 @@ avisync \- adjust audio synchronisation
 .IB num
 .B -a
 .I num
+.B -N
 ]
 .SH COPYRIGHT
 \fBavisync\fP is Copyright (C) by Thomas Östreich.
@@ -30,6 +31,10 @@ Specify the name of the input file.
 .TP
 \fB-q\fP
 be less verbose.
+.TP
+\fB-N\fP
+Don't repeat the audio when shifting. Using this option fires up a transcode
+and generates a muted mp3 frame which will be inserted.
 .TP
 \fB-n\fP \fIcount\fP
 shift audio by \fIcount\fP frames. If \fIcount\fP is positive, audio 

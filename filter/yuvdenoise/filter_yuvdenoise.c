@@ -2,6 +2,7 @@
  *  filter_yuvdenoise.c
  *
  *  Copyright (C) Tilmann Bitterberg, July 2002
+ *                based on work by Stefan Fendt
  *
  *  This file is part of transcode, a linux video stream processing tool
  *      
@@ -22,7 +23,7 @@
  */
 
 #define MOD_NAME    "filter_yuvdenoise.so"
-#define MOD_VERSION "v0.0.4 (2002-07-30)"
+#define MOD_VERSION "v0.1.0 (2002-08-28)"
 #define MOD_CAP     "mjpegs YUV denoiser"
 
 #include <stdio.h>
@@ -55,8 +56,6 @@
 #include "motion.h"
 #include "denoise.h"
 #include "deinterlace.h"
-
-#undef HAVE_FILTER_IO_BUF
 
 /*-------------------------------------------------
  *
@@ -133,31 +132,41 @@ int tc_filter(vframe_list_t *ptr, char *options)
     denoiser.border.h        = 0;
 
     denoiser.reset           = 0;
-    denoiser.do_reset        = 0;
+    denoiser.do_reset        = 1; /* reseting the denoiser after a scenechange */
+				  /* gives much better results */
     denoiser.scene_thres     = 50;
     denoiser.block_thres     = 1024;
+
+    denoiser.increment_cb    = 2;
+    denoiser.increment_cr    = 2; /* maybe more? */
   
 
     /* process commandline */
     if (options) {
-	optstr_get (options, "radius",         "%d", &denoiser.radius);
-	optstr_get (options, "threshold",      "%d", &denoiser.threshold);
-	optstr_get (options, "pp_threshold",   "%d", &denoiser.pp_threshold);
-	optstr_get (options, "delay",          "%d", &denoiser.delay);
-	optstr_get (options, "postprocess",    "%d", &denoiser.postprocess);
-	optstr_get (options, "luma_contrast",  "%d", &denoiser.luma_contrast);
-	optstr_get (options, "chroma_contrast","%d", &denoiser.chroma_contrast);
-	optstr_get (options, "sharpen",        "%d", &denoiser.sharpen);
-	optstr_get (options, "deinterlace",    "%d", &denoiser.deinterlace);
-	optstr_get (options, "mode",           "%d", &denoiser.mode);
+	int t1, t2, t3, t4; /* cant read in the struct correctly */
+	if (optstr_get (options, "radius",         "%d", &t1) >= 0) denoiser.radius = t1&0xff;
+	if (optstr_get (options, "threshold",      "%d", &t1) >= 0) denoiser.threshold = t1&0xff;
+	if (optstr_get (options, "pp_threshold",   "%d", &t1) >= 0) denoiser.pp_threshold = t1&0xff;
+	if (optstr_get (options, "delay",          "%d", &t1) >= 0) denoiser.delay = t1&0xff;
+	if (optstr_get (options, "postprocess",    "%d", &t1) >= 0) denoiser.postprocess = t1&0xffff;
+	if (optstr_get (options, "luma_contrast",  "%d", &t1) >= 0) denoiser.luma_contrast = t1&0xffff;
+	if (optstr_get (options, "chroma_contrast","%d", &t1) >= 0) denoiser.chroma_contrast = t1&0xffff;
+	if (optstr_get (options, "sharpen",        "%d", &t1) >= 0) denoiser.sharpen = t1&0xffff;
+	if (optstr_get (options, "deinterlace",    "%d", &t1) >= 0) denoiser.deinterlace = t1&0xff;
+	if (optstr_get (options, "mode",           "%d", &t1) >= 0) denoiser.mode = t1&0xff;
+
+	if (optstr_get (options, "scene_thres",    "%d%%", &t1) >= 0) denoiser.scene_thres=t1;
+	if (optstr_get (options, "block_thres",    "%d", &t1) >= 0) denoiser.block_thres=t1;
+	if (optstr_get (options, "do_reset",       "%d", &t1) >= 0) denoiser.do_reset=t1;
+	if (optstr_get (options, "increment_cr",   "%d", &t1) >= 0) denoiser.increment_cr=t1;
+	if (optstr_get (options, "increment_cb",   "%d", &t1) >= 0) denoiser.increment_cb=t1;
+
+	if (optstr_get (options, "border",         "%dx%d-%dx%d", &t1, &t2, &t3, &t4) >= 0) {
+	    denoiser.border.x = t1&0xffff; denoiser.border.y = t2&0xffff; 
+	    denoiser.border.w = t3&0xffff; denoiser.border.h = t4&0xffff;
+	}
+
 	optstr_get (options, "pre",            "%d", &pre);
-
-	optstr_get (options, "scene_thres",    "%d%%", &denoiser.scene_thres);
-	optstr_get (options, "block_thres",    "%d", &denoiser.block_thres);
-	optstr_get (options, "do_reset",       "%d", &denoiser.do_reset);
-
-	optstr_get (options, "border",         "%dx%d-%dx%d", &denoiser.border.x,
-		&denoiser.border.y, &denoiser.border.w, &denoiser.border.h);
 
 	if (optstr_get (options, "help", "") >= 0)
 	    display_help();
@@ -248,6 +257,31 @@ int tc_filter(vframe_list_t *ptr, char *options)
       memcpy(denoiser.frame.io[Yy], ptr->video_buf,            y_size );
       memcpy(denoiser.frame.io[Cr], ptr->video_buf+y_size    , y_size4);
       memcpy(denoiser.frame.io[Cb], ptr->video_buf+y_size*5/4, y_size4);
+
+      /* pre-fixup for non-greenish look --tibit */
+      {
+	  int y;
+	  uint8_t *p = denoiser.frame.io[Cb];
+	  uint8_t *q = denoiser.frame.io[Cr];
+	  int32_t pi;
+	  int32_t qi;
+	  for (y=0;y<W2*H2;y++) {
+	      // Cb
+	      pi = *p;
+	      pi += denoiser.increment_cb;
+	      *p = (pi>C_HI_LIMIT?C_HI_LIMIT:pi)&0xff;
+	      *p = (pi<C_LO_LIMIT?C_LO_LIMIT:pi)&0xff;
+	      p++;
+
+	      // Cr
+	      qi = *q;
+	      qi += denoiser.increment_cr;
+	      *q = (qi>C_HI_LIMIT?C_HI_LIMIT:qi)&0xff;
+	      *q = (qi<C_LO_LIMIT?C_LO_LIMIT:qi)&0xff;
+	      q++;
+	  }
+      }
+
 #else
       denoiser.frame.io[Yy] = ptr->video_buf;
       denoiser.frame.io[Cr] = ptr->video_buf+y_size;
@@ -274,7 +308,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
       if (denoiser.reset && denoiser.do_reset) {
 	  if (verbose)
-	      fprintf(stderr, "[%s] Scene change detected at frame %d\n", MOD_NAME, ptr->id); 
+	      fprintf(stderr, "[%s] Scene change detected at frame <%d>\n", MOD_NAME, ptr->id); 
 
 	  denoiser.reset = 0;
 	  memcpy(denoiser.frame.avg[Yy]+frame_offset,   denoiser.frame.io[Yy],y_size );
@@ -283,6 +317,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	  memcpy(denoiser.frame.avg2[Yy]+frame_offset,  denoiser.frame.io[Yy],y_size );
 	  memcpy(denoiser.frame.avg2[Cr]+frame_offset4, denoiser.frame.io[Cr],y_size4);
 	  memcpy(denoiser.frame.avg2[Cb]+frame_offset4, denoiser.frame.io[Cb],y_size4);
+
+	  denoise_frame();
       }
 
 
@@ -422,6 +458,8 @@ void print_settings(void)
   fprintf (stderr, " block_threshold  : %d\n",denoiser.block_thres);  
   fprintf (stderr, " scene_threshold  : %d%%\n",denoiser.scene_thres);  
   fprintf (stderr, " SceneChange Reset: %s\n",(denoiser.do_reset==0)? "Off":"On");  
+  fprintf (stderr, " increment_cr     : %d\n",denoiser.increment_cr);
+  fprintf (stderr, " increment_cb     : %d\n",denoiser.increment_cb);
   fprintf (stderr, " \n");
 
 }
@@ -522,14 +560,18 @@ display_help(void)
   "pre <0..1>         [0]: run as a post process filter (default)\n"
   "                   [1]: run as a pre process filter (not recommended)\n"
   "\n"
-  "do_reset <0..1>    [0]: reset the filter after a scene change\n"
-  "                   [1]: dont reset (default)\n"
+  "do_reset <0..1>    [1]: reset the filter after a scene change (default)\n"
+  "                   [0]: dont reset\n"
   "\n"
   "block_thres <0..oo>   Every SAD value greater than this will be considered \"bad\" \n"
   "                   (default=%i)\n"
   "\n"
   "scene_thres <0%%..100%%> Percentage of blocks where motion estimation should fail\n"
   "                   before a scene is considered changed (default=%i%%)\n"
+  "\n"
+  "increment_cb <-128..127> Increment Cb with a constant (default=%d)"
+  "\n"
+  "increment_cr <-128..127> Increment Cr with a constant (default=%d)"
   "\n",
   denoiser.threshold,
   denoiser.delay,
@@ -543,7 +585,9 @@ display_help(void)
   denoiser.sharpen,
   denoiser.pp_threshold,
   denoiser.block_thres,
-  denoiser.scene_thres
+  denoiser.scene_thres,
+  denoiser.increment_cr,
+  denoiser.increment_cb
   );
 }
 

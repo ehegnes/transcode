@@ -40,10 +40,28 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_xsharpen.la\
 			filter_smartdeinter.la\
 			filter_normalize.la\
-			filter_testframe.la $(F_PP) $(F_MMX) $(F_LOGO)
+			filter_testframe.la\
+			filter_fields.la\
+			filter_clone.la\
+			filter_tc_video.la\
+			filter_tc_audio.la\
+			filter_29to23.la\
+			$(F_PP) $(F_MMX) $(F_LOGO)
 
 filter_null_la_SOURCES = filter_null.c
 filter_null_la_LDFLAGS = -no-undefined -module -avoid-version 
+
+filter_clone_la_SOURCES = filter_clone.c
+filter_clone_la_LDFLAGS = -no-undefined -module -avoid-version 
+
+filter_29to23_la_SOURCES = filter_29to23.c
+filter_29to23_la_LDFLAGS = -no-undefined -module -avoid-version 
+
+filter_tc_video_la_SOURCES = filter_tc_video.c
+filter_tc_video_la_LDFLAGS = -no-undefined -module -avoid-version 
+
+filter_tc_audio_la_SOURCES = filter_tc_audio.c
+filter_tc_audio_la_LDFLAGS = -no-undefined -module -avoid-version 
 
 filter_skip_la_SOURCES = filter_skip.c
 filter_skip_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -107,6 +125,9 @@ filter_ppcvs_la_LIBADD = @LIBPOSTPROC_LIBS@
 filter_dilyuvmmx_la_SOURCES = filter_dilyuvmmx.c deinterlace.c
 filter_dilyuvmmx_la_LDFLAGS = -no-undefined -module -avoid-version 
 
+filter_fields_la_SOURCES = filter_fields.c
+filter_fields_la_LDFLAGS = -no-undefined -module -avoid-version 
+
 #filter_dilb_la_SOURCES = filter_dilb.c 
 #filter_dilb_la_LDFLAGS = -no-undefined -module -avoid-version 
 
@@ -119,7 +140,7 @@ endif
 ADD2=subtitler
 
 if HAVE_X11
-SUBDIRS = . divxkey extsub resample test yuvdenoise $(ADD1) $(ADD2)
+SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc $(ADD1) $(ADD2)
 else
-SUBDIRS = . divxkey extsub resample test yuvdenoise
+SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc
 endif

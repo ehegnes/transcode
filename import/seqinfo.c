@@ -384,11 +384,12 @@ void seq_update(seq_list_t *ptr, int end_pts, int pictures, int packets, int fla
   if(adj == -2 && ptr->ptime ==  6006 && ptr->seq_pics== 4) ptr->pulldown = 3;
   if(adj == -1 && ptr->ptime == 39039 && ptr->seq_pics==11) ptr->pulldown = 4;
   
-  //smooth drop/copy algorithm 2002-06-04
-  if((adj==1 || adj == -1 || adj==2 || adj== -2 || adj== -3 || adj== 3) && ptr->pulldown==0) adj=0;
-  if(adj >  3 && ptr->pulldown==0) adj= 1;
-  if(adj < -3 && ptr->pulldown==0) adj=-1;
-
+  //smooth drop/copy algorithm 2002-08-21
+  if(ptr->pulldown==0) {
+    if(adj==-1 || adj==1 || adj==2) adj=0;
+    if(adj== 3) adj=1;
+  }
+  
  skip: 
 
   if(verbose & TC_PRIVATE) {

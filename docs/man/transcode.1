@@ -131,15 +131,18 @@ volume normalizer and the cut filter. Some of the filter plugins have
 additional documentation in /docs/filter_*.txt
 .RE
 .PP
-Warning:
+Note:
 .RS
-You can only specify one \-J argument. If you specify more than one, 
-the last -J argument takes precedence over the previous ones.
+You can specify more than one \-J argument. The order of filter arguments
+specify in which order the filters are applied. Note also, for transcode
+internally it makes no difference whether you do "\-J filter1 \-J filter2"
+or "\-J filter1,filter2"
 .RE
 .PP
 .TP
 .B \-L \fIn\fP
 seek to VOB stream offset \fIn\fPx2kB default [0]
+.PP
 .B \-K
 enable b/w mode [off].
 .TP
@@ -241,8 +244,26 @@ swapping of audio bytes
 PCM audio stream parameter. Sample rate [Hz], bits per sample and
 number of channels [48000,16,2].
 .TP
-.B \-f \fIrate\fP,[\fIfrc\fP]
-output video frame rate[,frc] [25.000,0].
+.B \-f \fIrate\fP[,\fIfrc\fP]
+output video frame rate[,frc] [25.000,0]. If \fIfrc\fP (frame rate code) is specified,
+transcode will calculate the precise frames per second internally. Valid values
+for \fIfrc\fP are
+.PP
+.RS
+  1  :  23.976 (24000/1001.0)
+  2  :  24
+  3  :  25
+  4  :  29.970 (30000/1001.0)
+  5  :  30
+  6  :  50
+  7  :  59.940 (2 * 29.970)
+  8  :  60
+  9  :   1
+ 10  :   5
+ 11  :  10
+ 12  :  12
+ 13  :  15
+.RE
 .TP
 .B \-g \fIwidth\fPx\fIheight\fP
 video stream frame size [720x576].
@@ -349,6 +370,16 @@ Module "yuv4mpeg": (video) YUV4MPEGx | (audio) WAVE
 To see what your transcode has, do a  
 .br
 .B ls -1 $TRANSCODE_MOD_PATH/import*.so
+.IP
+It is possible to pass option strings to import modules like to filter modules.
+The average user does not this feature and not many modules support it. The syntax is
+.B  \-x vmod=options,amod=options
+.br
+Example
+  \-x rawlist=uyvy,null
+.br
+To tell the rawlist import module (which reads images from a list of files) the
+colour space of the images.
 .TP
 .B \-y \fIvmod[,amod]\fP
 video[,audio] export modules [null].  If omitted, transcode will encode to
@@ -501,6 +532,39 @@ select only every \fIN\fPth frame to be exported [1]
 .B \-\-encode_fields
 enable field based encoding (if supported) [off]
 .TP
+.B \-\-write_pid \fIfile\fP
+write pid of signal thread to \fIfile\fP [off]
+Enables you to terminate transcode cleanly by sending a SIGINT (2) to the pid
+in \fIfile\fP. Please note \fIfile\fP will be overwritten. Usage example
+.RS
+.PP
+$ transcode ... \-\-write_pid /tmp/transcode.pid &
+.br
+$ kill -2 `cat /tmp/transcode.pid`
+.RE
+.TP
+.B \-\-print_status \fIN\fP[,\fIusecr\fP]
+print status every \fIN\fP frames / use CR or NL [1,1]
+.br
+The first parameter controls how frequently the status message is printed                 
+(every \fIN\fP frames), the second parameter (if provided) controls whether transcode           
+ends the line with a CR ('\\r') or NL ('\\n') character.  Transcode defaults to             
+ending with a CR if its output is going to a terminal, or a LF if its output is           
+going to somewhere else (such as a logfile), so most people shouldn't have any            
+need to specify the second parameter since it should do the right thing most of           
+the time.
+.TP
+.B \-\-write_pid \fIfile\fP
+write pid of signal thread to \fIfile\fP [off]
+Enables you to terminate transcode cleanly by sending a SIGINT (2) to the pid
+in \fIfile\fP. Please note \fIfile\fP will be overwritten. Usage example
+.RS
+.PP
+$ transcode ... \-\-write_pid /tmp/transcode.pid &
+.br
+$ kill -2 `cat /tmp/transcode.pid`
+.RE
+.TP
 .B \-\-more_help \fIparam\fP
 more help on named parameter (if supported)
 .SH NOTES
@@ -577,6 +641,26 @@ resolution. The exact formula is
            bitrate*1000
   bpp =  ----------------
          width*height*fps
+
+.RE
+.TP
+*
+.I AC3 / Multiple channels
+
+When you do import an audio stream which has more then two audio channels \-
+this is usually the case for AC3 audio \- transcode will automagically downmix
+to two channels (stereo). You'll see line like
+.RS
+
+[transcode] A: downmix          | 5 channels -> 2 channels
+
+This is done, because most encoders and audio filters can not handle more than
+2 channels correctly. The PCM internal representation does not support more
+than two channels, audio will be downmixed to stereo
+.B No
+downmix will happen, if you use AC3 as the internal audio codec or use audio
+pass-through.
+.RE
 
 .SH EXAMPLES
 The following command will read it's input from the DVD drive (I

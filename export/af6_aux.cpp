@@ -24,6 +24,7 @@
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
  *
  */
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,15 +32,19 @@
 #include <unistd.h>
 #include <string.h>
 
+#if defined(HAVE_AVIFILE_INC)
 #include <videoencoder.h>
 #include <audioencoder.h>
-
-#include "config.h"
-
 #include <fourcc.h>
 #include <creators.h>
-
 #include <default.h>
+#else
+#include <avifile/videoencoder.h>
+#include <avifile/audioencoder.h>
+#include <avifile/fourcc.h>
+#include <avifile/creators.h>
+#include <avifile/default.h>
+#endif
 
 #include "transcode.h"
 

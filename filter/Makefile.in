@@ -189,11 +189,29 @@ pkg_LTLIBRARIES = filter_null.la\
 			filter_xsharpen.la\
 			filter_smartdeinter.la\
 			filter_normalize.la\
-			filter_testframe.la $(F_PP) $(F_MMX) $(F_LOGO)
+			filter_testframe.la\
+			filter_fields.la\
+			filter_clone.la\
+			filter_tc_video.la\
+			filter_tc_audio.la\
+			filter_29to23.la\
+			$(F_PP) $(F_MMX) $(F_LOGO)
 
 
 filter_null_la_SOURCES = filter_null.c
 filter_null_la_LDFLAGS = -no-undefined -module -avoid-version 
+
+filter_clone_la_SOURCES = filter_clone.c
+filter_clone_la_LDFLAGS = -no-undefined -module -avoid-version 
+
+filter_29to23_la_SOURCES = filter_29to23.c
+filter_29to23_la_LDFLAGS = -no-undefined -module -avoid-version 
+
+filter_tc_video_la_SOURCES = filter_tc_video.c
+filter_tc_video_la_LDFLAGS = -no-undefined -module -avoid-version 
+
+filter_tc_audio_la_SOURCES = filter_tc_audio.c
+filter_tc_audio_la_LDFLAGS = -no-undefined -module -avoid-version 
 
 filter_skip_la_SOURCES = filter_skip.c
 filter_skip_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -257,6 +275,9 @@ filter_ppcvs_la_LIBADD = @LIBPOSTPROC_LIBS@
 filter_dilyuvmmx_la_SOURCES = filter_dilyuvmmx.c deinterlace.c
 filter_dilyuvmmx_la_LDFLAGS = -no-undefined -module -avoid-version 
 
+filter_fields_la_SOURCES = filter_fields.c
+filter_fields_la_LDFLAGS = -no-undefined -module -avoid-version 
+
 
 #filter_dilb_la_SOURCES = filter_dilb.c 
 #filter_dilb_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -266,14 +287,17 @@ EXTRA_DIST = *.h
 
 ADD2 = subtitler
 
-@HAVE_X11_TRUE@SUBDIRS = . divxkey extsub resample test yuvdenoise $(ADD1) $(ADD2)
-@HAVE_X11_FALSE@SUBDIRS = . divxkey extsub resample test yuvdenoise
+@HAVE_X11_TRUE@SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc $(ADD1) $(ADD2)
+@HAVE_X11_FALSE@SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc
 subdir = filter
 mkinstalldirs = $(SHELL) $(top_srcdir)/autotools/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(pkg_LTLIBRARIES)
 
+filter_29to23_la_LIBADD =
+am_filter_29to23_la_OBJECTS = filter_29to23.lo
+filter_29to23_la_OBJECTS = $(am_filter_29to23_la_OBJECTS)
 filter_32detect_la_LIBADD =
 am_filter_32detect_la_OBJECTS = filter_32detect.lo
 filter_32detect_la_OBJECTS = $(am_filter_32detect_la_OBJECTS)
@@ -286,6 +310,9 @@ filter_aclip_la_OBJECTS = $(am_filter_aclip_la_OBJECTS)
 filter_astat_la_LIBADD =
 am_filter_astat_la_OBJECTS = filter_astat.lo
 filter_astat_la_OBJECTS = $(am_filter_astat_la_OBJECTS)
+filter_clone_la_LIBADD =
+am_filter_clone_la_OBJECTS = filter_clone.lo
+filter_clone_la_OBJECTS = $(am_filter_clone_la_OBJECTS)
 filter_cshift_la_LIBADD =
 am_filter_cshift_la_OBJECTS = filter_cshift.lo
 filter_cshift_la_OBJECTS = $(am_filter_cshift_la_OBJECTS)
@@ -298,6 +325,9 @@ filter_dilyuvmmx_la_OBJECTS = $(am_filter_dilyuvmmx_la_OBJECTS)
 filter_dnr_la_DEPENDENCIES =
 am_filter_dnr_la_OBJECTS = filter_dnr.lo
 filter_dnr_la_OBJECTS = $(am_filter_dnr_la_OBJECTS)
+filter_fields_la_LIBADD =
+am_filter_fields_la_OBJECTS = filter_fields.lo
+filter_fields_la_OBJECTS = $(am_filter_fields_la_OBJECTS)
 filter_invert_la_LIBADD =
 am_filter_invert_la_OBJECTS = filter_invert.lo
 filter_invert_la_OBJECTS = $(am_filter_invert_la_OBJECTS)
@@ -325,6 +355,12 @@ filter_skip_la_OBJECTS = $(am_filter_skip_la_OBJECTS)
 filter_smartdeinter_la_LIBADD =
 am_filter_smartdeinter_la_OBJECTS = filter_smartdeinter.lo
 filter_smartdeinter_la_OBJECTS = $(am_filter_smartdeinter_la_OBJECTS)
+filter_tc_audio_la_LIBADD =
+am_filter_tc_audio_la_OBJECTS = filter_tc_audio.lo
+filter_tc_audio_la_OBJECTS = $(am_filter_tc_audio_la_OBJECTS)
+filter_tc_video_la_LIBADD =
+am_filter_tc_video_la_OBJECTS = filter_tc_video.lo
+filter_tc_video_la_OBJECTS = $(am_filter_tc_video_la_OBJECTS)
 filter_testframe_la_LIBADD =
 am_filter_testframe_la_OBJECTS = filter_testframe.lo
 filter_testframe_la_OBJECTS = $(am_filter_testframe_la_OBJECTS)
@@ -341,14 +377,17 @@ LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/deinterlace.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/filter_29to23.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_32detect.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_32drop.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_aclip.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_astat.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/filter_clone.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_cshift.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_cut.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_dilyuvmmx.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_dnr.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/filter_fields.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_invert.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_logo.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_mask.Plo \
@@ -358,6 +397,8 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/filter_ppcvs.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_skip.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_smartdeinter.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/filter_tc_audio.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/filter_tc_video.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_testframe.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_xsharpen.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_yuy2toyv12.Plo
@@ -368,15 +409,17 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(filter_32detect_la_SOURCES) $(filter_32drop_la_SOURCES) \
-	$(filter_aclip_la_SOURCES) $(filter_astat_la_SOURCES) \
+DIST_SOURCES = $(filter_29to23_la_SOURCES) $(filter_32detect_la_SOURCES) \
+	$(filter_32drop_la_SOURCES) $(filter_aclip_la_SOURCES) \
+	$(filter_astat_la_SOURCES) $(filter_clone_la_SOURCES) \
 	$(filter_cshift_la_SOURCES) $(filter_cut_la_SOURCES) \
 	$(filter_dilyuvmmx_la_SOURCES) $(filter_dnr_la_SOURCES) \
-	$(filter_invert_la_SOURCES) $(filter_logo_la_SOURCES) \
-	$(filter_mask_la_SOURCES) $(filter_normalize_la_SOURCES) \
-	$(filter_null_la_SOURCES) $(filter_pp_la_SOURCES) \
-	$(filter_ppcvs_la_SOURCES) $(filter_skip_la_SOURCES) \
-	$(filter_smartdeinter_la_SOURCES) \
+	$(filter_fields_la_SOURCES) $(filter_invert_la_SOURCES) \
+	$(filter_logo_la_SOURCES) $(filter_mask_la_SOURCES) \
+	$(filter_normalize_la_SOURCES) $(filter_null_la_SOURCES) \
+	$(filter_pp_la_SOURCES) $(filter_ppcvs_la_SOURCES) \
+	$(filter_skip_la_SOURCES) $(filter_smartdeinter_la_SOURCES) \
+	$(filter_tc_audio_la_SOURCES) $(filter_tc_video_la_SOURCES) \
 	$(filter_testframe_la_SOURCES) $(filter_xsharpen_la_SOURCES) \
 	$(filter_yuy2toyv12_la_SOURCES)
 
@@ -385,9 +428,9 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 	install-exec-recursive installdirs-recursive install-recursive \
 	uninstall-recursive check-recursive installcheck-recursive
 DIST_COMMON = Makefile.am Makefile.in
-DIST_SUBDIRS = . divxkey extsub resample test yuvdenoise preview \
+DIST_SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc preview \
 	subtitler
-SOURCES = $(filter_32detect_la_SOURCES) $(filter_32drop_la_SOURCES) $(filter_aclip_la_SOURCES) $(filter_astat_la_SOURCES) $(filter_cshift_la_SOURCES) $(filter_cut_la_SOURCES) $(filter_dilyuvmmx_la_SOURCES) $(filter_dnr_la_SOURCES) $(filter_invert_la_SOURCES) $(filter_logo_la_SOURCES) $(filter_mask_la_SOURCES) $(filter_normalize_la_SOURCES) $(filter_null_la_SOURCES) $(filter_pp_la_SOURCES) $(filter_ppcvs_la_SOURCES) $(filter_skip_la_SOURCES) $(filter_smartdeinter_la_SOURCES) $(filter_testframe_la_SOURCES) $(filter_xsharpen_la_SOURCES) $(filter_yuy2toyv12_la_SOURCES)
+SOURCES = $(filter_29to23_la_SOURCES) $(filter_32detect_la_SOURCES) $(filter_32drop_la_SOURCES) $(filter_aclip_la_SOURCES) $(filter_astat_la_SOURCES) $(filter_clone_la_SOURCES) $(filter_cshift_la_SOURCES) $(filter_cut_la_SOURCES) $(filter_dilyuvmmx_la_SOURCES) $(filter_dnr_la_SOURCES) $(filter_fields_la_SOURCES) $(filter_invert_la_SOURCES) $(filter_logo_la_SOURCES) $(filter_mask_la_SOURCES) $(filter_normalize_la_SOURCES) $(filter_null_la_SOURCES) $(filter_pp_la_SOURCES) $(filter_ppcvs_la_SOURCES) $(filter_skip_la_SOURCES) $(filter_smartdeinter_la_SOURCES) $(filter_tc_audio_la_SOURCES) $(filter_tc_video_la_SOURCES) $(filter_testframe_la_SOURCES) $(filter_xsharpen_la_SOURCES) $(filter_yuy2toyv12_la_SOURCES)
 
 all: all-recursive
 
@@ -420,6 +463,8 @@ uninstall-pkgLTLIBRARIES:
 
 clean-pkgLTLIBRARIES:
 	-test -z "$(pkg_LTLIBRARIES)" || rm -f $(pkg_LTLIBRARIES)
+filter_29to23.la: $(filter_29to23_la_OBJECTS) $(filter_29to23_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(filter_29to23_la_LDFLAGS) $(filter_29to23_la_OBJECTS) $(filter_29to23_la_LIBADD) $(LIBS)
 filter_32detect.la: $(filter_32detect_la_OBJECTS) $(filter_32detect_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_32detect_la_LDFLAGS) $(filter_32detect_la_OBJECTS) $(filter_32detect_la_LIBADD) $(LIBS)
 filter_32drop.la: $(filter_32drop_la_OBJECTS) $(filter_32drop_la_DEPENDENCIES) 
@@ -428,6 +473,8 @@ filter_aclip.la: $(filter_aclip_la_OBJECTS) $(filter_aclip_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkgdir) $(filter_aclip_la_LDFLAGS) $(filter_aclip_la_OBJECTS) $(filter_aclip_la_LIBADD) $(LIBS)
 filter_astat.la: $(filter_astat_la_OBJECTS) $(filter_astat_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_astat_la_LDFLAGS) $(filter_astat_la_OBJECTS) $(filter_astat_la_LIBADD) $(LIBS)
+filter_clone.la: $(filter_clone_la_OBJECTS) $(filter_clone_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(filter_clone_la_LDFLAGS) $(filter_clone_la_OBJECTS) $(filter_clone_la_LIBADD) $(LIBS)
 filter_cshift.la: $(filter_cshift_la_OBJECTS) $(filter_cshift_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_cshift_la_LDFLAGS) $(filter_cshift_la_OBJECTS) $(filter_cshift_la_LIBADD) $(LIBS)
 filter_cut.la: $(filter_cut_la_OBJECTS) $(filter_cut_la_DEPENDENCIES) 
@@ -436,6 +483,8 @@ filter_dilyuvmmx.la: $(filter_dilyuvmmx_la_OBJECTS) $(filter_dilyuvmmx_la_DEPEND
 	$(LINK) -rpath $(pkgdir) $(filter_dilyuvmmx_la_LDFLAGS) $(filter_dilyuvmmx_la_OBJECTS) $(filter_dilyuvmmx_la_LIBADD) $(LIBS)
 filter_dnr.la: $(filter_dnr_la_OBJECTS) $(filter_dnr_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_dnr_la_LDFLAGS) $(filter_dnr_la_OBJECTS) $(filter_dnr_la_LIBADD) $(LIBS)
+filter_fields.la: $(filter_fields_la_OBJECTS) $(filter_fields_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(filter_fields_la_LDFLAGS) $(filter_fields_la_OBJECTS) $(filter_fields_la_LIBADD) $(LIBS)
 filter_invert.la: $(filter_invert_la_OBJECTS) $(filter_invert_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_invert_la_LDFLAGS) $(filter_invert_la_OBJECTS) $(filter_invert_la_LIBADD) $(LIBS)
 filter_logo.la: $(filter_logo_la_OBJECTS) $(filter_logo_la_DEPENDENCIES) 
@@ -454,6 +503,10 @@ filter_skip.la: $(filter_skip_la_OBJECTS) $(filter_skip_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkgdir) $(filter_skip_la_LDFLAGS) $(filter_skip_la_OBJECTS) $(filter_skip_la_LIBADD) $(LIBS)
 filter_smartdeinter.la: $(filter_smartdeinter_la_OBJECTS) $(filter_smartdeinter_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_smartdeinter_la_LDFLAGS) $(filter_smartdeinter_la_OBJECTS) $(filter_smartdeinter_la_LIBADD) $(LIBS)
+filter_tc_audio.la: $(filter_tc_audio_la_OBJECTS) $(filter_tc_audio_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(filter_tc_audio_la_LDFLAGS) $(filter_tc_audio_la_OBJECTS) $(filter_tc_audio_la_LIBADD) $(LIBS)
+filter_tc_video.la: $(filter_tc_video_la_OBJECTS) $(filter_tc_video_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(filter_tc_video_la_LDFLAGS) $(filter_tc_video_la_OBJECTS) $(filter_tc_video_la_LIBADD) $(LIBS)
 filter_testframe.la: $(filter_testframe_la_OBJECTS) $(filter_testframe_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_testframe_la_LDFLAGS) $(filter_testframe_la_OBJECTS) $(filter_testframe_la_LIBADD) $(LIBS)
 filter_xsharpen.la: $(filter_xsharpen_la_OBJECTS) $(filter_xsharpen_la_DEPENDENCIES) 
@@ -468,14 +521,17 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/deinterlace.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_29to23.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_32detect.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_32drop.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_aclip.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_astat.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_clone.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_cshift.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_cut.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_dilyuvmmx.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_dnr.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_fields.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_invert.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_logo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_mask.Plo@am__quote@
@@ -485,6 +541,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_ppcvs.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_skip.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_smartdeinter.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_tc_audio.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_tc_video.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_testframe.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_xsharpen.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_yuy2toyv12.Plo@am__quote@

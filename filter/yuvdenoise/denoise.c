@@ -83,7 +83,7 @@ void contrast_frame (void)
 	  value=(value>Y_HI_LIMIT)? Y_HI_LIMIT:value;
 	  value=(value<Y_LO_LIMIT)? Y_LO_LIMIT:value;
 
-	  *(p++)=value;
+	  *(p++)=value&0xff;
   }
 
   p=denoiser.frame.ref[Cr]+16*W2;
@@ -100,7 +100,7 @@ void contrast_frame (void)
 	  value=(value>C_HI_LIMIT)? C_HI_LIMIT:value;
 	  value=(value<C_LO_LIMIT)? C_LO_LIMIT:value;
 
-	  *(p++)=value;
+	  *(p++)=value&0xff;
   }
   
   p=denoiser.frame.ref[Cb]+16*W2;
@@ -117,7 +117,7 @@ void contrast_frame (void)
 	  value=(value>C_HI_LIMIT)? C_HI_LIMIT:value;
 	  value=(value<C_LO_LIMIT)? C_LO_LIMIT:value;
 
-	  *(p++)=value;
+	  *(p++)=value&0xff;
   }
   
 }
@@ -295,16 +295,20 @@ average_frame (void)
     src_Yy++;
   }      
   
+  /* Why? -- tibit 
   for (c = 0; c < (W2*H2); c++)
   {
     *(dst_Cr) = ( *(dst_Cr) * t + *(src_Cr) )/(t1);
     dst_Cr++;
     src_Cr++;
   }
+  */
   
   for (c = 0; c < (W2*H2); c++)
   {
     *(dst_Cr) = ( *(dst_Cr) * t + *(src_Cr) )/(t1);
+    dst_Cr++;
+    src_Cr++;
     *(dst_Cb) = ( *(dst_Cb) * t + *(src_Cb) )/(t1);
     dst_Cb++;
     src_Cb++;

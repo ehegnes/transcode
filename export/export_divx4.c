@@ -92,6 +92,7 @@ static void *handle;
 static char module[TC_BUF_MAX];
 
 #define MODULE "libdivxencore.so"
+#define MODULE_V "libdivxencore.so.0"
 
 static int divx_init(char *path) {
 #ifdef __FreeBSD__ /* Just in case ProjectMayo will release FreeBSD library :-) */  
@@ -100,44 +101,52 @@ static int divx_init(char *path) {
   char *error;
   int *quiet_encore;
   
-  sprintf(module, "%s/%s", path, MODULE);
-  
+  handle = NULL;
+
   // try transcode's module directory
-  
-  handle = dlopen(module, RTLD_NOW); 
-  
-  
   if (!handle) {
+    // (try 5.x "libdivxencore.so.0" style)
+    sprintf(module, "%s/%s", path, MODULE_V);
+    handle = dlopen(module, RTLD_LAZY); 
+  }
+  if (!handle) {
+    // (try 4.x "libdivxencore.so" style)
+    sprintf(module, "%s/%s", path, MODULE);
+    handle = dlopen(module, RTLD_LAZY); 
+  }
+
+  //try the default:
+  if (!handle) {
+    // (try 5.x "libdivxencore.so.0" style)
+    sprintf(module, "%s", MODULE_V);
+    handle = dlopen(module, RTLD_LAZY); 
+  }
+  if (!handle) {
+    // (try 4.x "libdivxencore.so" style)
+    sprintf(module, "%s", MODULE);
+    handle = dlopen(module, RTLD_LAZY); 
+  }
     
-    //try the default:
-    
-    handle = dlopen(MODULE, RTLD_GLOBAL| RTLD_LAZY);
-    
-    if (!handle) {
-      fputs (dlerror(), stderr);
-      return(-1);
-    } else { 
-      if(verbose_flag & TC_DEBUG) 
-	fprintf(stderr, "loading external codec module %s\n", MODULE); 
-    }
-    
-  } else {  
-    if(verbose_flag & TC_DEBUG) 
-      fprintf(stderr, "loading external codec module %s\n", module); 
+  if (!handle) {
+    fprintf(stderr, "[%s] %s\n", MOD_NAME, dlerror());
+    return(-1);
+  } else {
+    if(verbose_flag & TC_DEBUG)
+      fprintf(stderr, "[%s] Loading external codec module %s\n", MOD_NAME, module);
   }
   
   
   divx_encore = dlsym(handle, "encore");   
   
   if ((error = dlerror()) != NULL)  {
-    fputs(error, stderr);
+    fprintf(stderr, "[%s] %s\n", MOD_NAME, error);
     return(-1);
   }
   
   quiet_encore=dlsym(handle, "quiet_encore"); 
   
   if ((error = dlerror()) != NULL)  {
-    fputs(error, stderr);
+    fprintf(stderr, "[%s] %s\n", MOD_NAME, error);
     return(-1);
   }
   

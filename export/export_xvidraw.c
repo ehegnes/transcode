@@ -1,10 +1,10 @@
-/*
- *  export_xvidraw.c
+/*****************************************************************************
+ *  - XviD Transcode Export Module -
  *
- *  Copyright (C) Thomas Östreich - June 2002
- *  support for XviD_Codec: Christoph Lampert <gruel@web.de> 
+ *  Copyright (C) 2001 - Thomas Östreich
  *
- *  Copyright (C) 2002 Christoph Lampert <gruel@web.de>
+ *  Original Author    : Christoph Lampert <gruel@web.de> 
+ *  Current maintainer : Edouard Gomez <ed.gomez@wanadoo.fr>
  *
  *  This file is part of transcode, a linux video stream processing tool
  *      
@@ -22,10 +22,15 @@
  *  along with GNU Make; see the file COPYING.  If not, write to
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
  *
- */
+ *****************************************************************************/
+
+/*****************************************************************************
+ * Includes
+ ****************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -35,7 +40,13 @@
 #ifndef __FreeBSD__ /* We have malloc() in stdlib.h */
 #include <malloc.h>
 #endif
-#include "xvid.h"
+
+/* You must match options compiled into your XviD lib */
+#if 1
+#define DEVELOPER_USE /* Turns on/off transcode xvid.cfg option file */
+#endif
+
+#include "xvidcvs.h"
 #include "xvid_vbr.h"
 
 #include "transcode.h"
@@ -43,46 +54,93 @@
 #include "aud_aux.h"
 #include "config.h"
 
-#define MOD_NAME    "export_xvidraw.so"
-#define MOD_VERSION "v0.3.3 (2002-06-14)"
-#if API_VERSION == ((2 << 16) | (0))
-#define MOD_CODEC   "(video) XviD API 2.0 (ES) | (audio) MPEG/AC3/PCM"
-#else
-#define MOD_CODEC   "(video) XviD API 1.0 (ES) | (audio) MPEG/AC3/PCM"
+#ifdef DEVELOPER_USE
+#include "../libioaux/configs.h"
 #endif
 
-#define MOD_PRE xvidraw 
+/*****************************************************************************
+ * Transcode module binding functions and strings
+ ****************************************************************************/
+
+#define MOD_NAME    "export_xvidraw.so"
+#define MOD_VERSION "v0.3.4 (2002-09-17)"
+#define MOD_CODEC   "(video) XviD (Stable - Raw Output) | (audio) MPEG/AC3/PCM"
+#define MOD_PRE xvidraw_ 
 #include "export_def.h"
 
-int VbrMode=0;
-int force_key_frame=-1;
-#if API_VERSION == ((2 << 16) | (0))
-static int quality = 0;
-#endif
+/*****************************************************************************
+ * Local data
+ ****************************************************************************/
 
-static int fd;
+/* Raw output file descrisptor */
+static int rawfd;
+
+static int VbrMode = 0;
+static int encode_fields = 0;
   
-//temporary audio/video buffer
-char *buffer;
+/* temporary audio/video buffer */
+static char *buffer;
 #define BUFFER_SIZE SIZE_RGB_FRAME<<1
 
-float quant_array[100][100];
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_PCM |
+                             TC_CAP_RGB |
+                             TC_CAP_YUV |
+                             TC_CAP_AC3 |
+                             TC_CAP_AUD;
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3|TC_CAP_AUD;
+/*****************************************************************************
+ * Prototypes for shared library symbols
+ ****************************************************************************/
 
-// dl stuff
+/* XviD API bindings - Will be the pointers to XviD shared lib symbols */
 static int (*XviD_encore)(void *para0, int opt, void *para1, void *para2);
 static int (*XviD_init)(void *para0, int opt, void *para1, void *para2);
-static void *XviD_encore_handle=NULL;
-static void *handle=NULL;
+
+static void *XviD_encore_handle = NULL;
+static void *handle = NULL;
 static char module[TC_BUF_MAX];
 
 static int global_colorspace;
 static int global_framesize;
-static int global_fixedquant;
 
-#define MODULE1 "libxvidcore.so"
+/*
+ * As these variables are written only once (only by one thread) and then they
+ * are just "read only" variables used in MOD_encode, this is not a problem to
+ * make them global. We won't suffer simultaneous write/read by threads.
+ */
+static XVID_INIT_PARAM global_init;
+static XVID_ENC_PARAM  global_param;
+static XVID_ENC_FRAME  global_frame;
+static vbr_control_t   vbr_state;
+
+/* XviD shared library name */
+#define XVID_SHARED_LIB_NAME "libxvidcore.so"
+#ifdef DEVELOPER_USE
+#define XVID_CONFIG_FILE "xvid.cfg"
+#endif
+
+#define Max(a,b) (((a)>(b))?(a):(b))
+#define Min(a,b) (((a)<(b))?(a):(b))
+#define Clamp(var, min, max) (Max(min,Min(var, max)))
+#define MakeBool(a) (((a))?1:0)
+
+static int xvid2_init(char *path);
+
+static int xvid_config(XVID_INIT_PARAM *einit,
+		       XVID_ENC_PARAM  *eparam,
+		       XVID_ENC_FRAME  *eframe,
+		       vbr_control_t   *vbr_state,
+		       int quality);
+
+static int xvid_print_config(XVID_INIT_PARAM *einit,
+			     XVID_ENC_PARAM  *eparam,
+			     XVID_ENC_FRAME  *eframe,
+			     int quality,
+			     int pass,
+			     char *csp);
+
+static void xvid_print_vbr(vbr_control_t *state);
 
 static int p_write (int fd, char *buf, size_t len)
 {
@@ -99,430 +157,1249 @@ static int p_write (int fd, char *buf, size_t len)
    return r;
 }
 
-
-static int xvid2_init(char *path) {
-#ifdef __FreeBSD__
-    const
-#endif    
-    char *error;
-
-    //XviD comes now as a single core-module 
-    
-    sprintf(module, "%s/%s", path, MODULE1);
-    
-    // try transcode's module directory
-    handle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
-    
-    if (!handle) {
-
-      //try the system default:
-      handle = dlopen(MODULE1, RTLD_GLOBAL| RTLD_LAZY);
-      
-      if (!handle) {
-	fputs (dlerror(), stderr);
-	return(-1);
-      } else {  
-	if(verbose_flag & TC_DEBUG) 
-	  fprintf(stderr, "loading external codec module %s\n", MODULE1); 
-      }
-      
-    } else {  
-      if(verbose_flag & TC_DEBUG) 
-	fprintf(stderr, "loading external codec module %s\n", module); 
-    }  
-    
-    
-    XviD_encore = dlsym(handle, "xvid_encore");   	/* NEW XviD_API ! */
-    XviD_init = dlsym(handle, "xvid_init");   		/* NEW XviD_API ! */
-    
-    if ((error = dlerror()) != NULL)  {
-      fputs(error, stderr);
-      return(-1);
-    }
-    
-    return(0);
-}
-
-
-/* ------------------------------------------------------------ 
- *
- * init codec
- *
- * ------------------------------------------------------------*/
+/*****************************************************************************
+ * Init codec
+ ****************************************************************************/
 
 MOD_init
 {
-  XVID_INIT_PARAM xinit;
-  XVID_ENC_PARAM xparam;
 
-  struct stat fbuf;
-  int xerr; 
-  float bpp;
+	int xerr; 
+	int quality;
+	float bpp;
 
-  if(param->flag == TC_VIDEO) 
-  {
-	bpp = 1000*(vob->divxbitrate)/(vob->fps)/(vob->ex_v_width)/(vob->ex_v_height);
+	if(param->flag == TC_VIDEO) 
+	{
+		bpp = 1000 * (vob->divxbitrate) / 
+			(vob->fps * vob->ex_v_width * vob->ex_v_height);
     
-	if ((buffer = malloc(BUFFER_SIZE))==NULL) {
-		perror("out of memory");
-		return(TC_EXPORT_ERROR); 
-	} else
-	      memset(buffer, 0, BUFFER_SIZE);  
-
-	//load the codec
-
-	if(xvid2_init(vob->mod_path)<0) {
-		printf("failed to init Xvid codec");
-		return(TC_EXPORT_ERROR); 
-	}
-
-	VbrMode = vob->divxmultipass;
-    
-	xinit.cpu_flags = 0;
-	XviD_init(NULL, 0, &xinit, NULL);
-
-	xparam.width = vob->ex_v_width;
-	xparam.height = vob->ex_v_height;
-	if ((vob->fps - (int)vob->fps) == 0)
-        {
-                xparam.fincr = 1;
-                xparam.fbase = (int)vob->fps;
-        }
-        else
-        {
-                xparam.fincr = 1001;
-                xparam.fbase = (int)(1001 * vob->fps);
-        }
-	if ( (VbrMode==3) )
-		xparam.bitrate = 0;		// disable rate-control
-	else 
-	  	xparam.bitrate = vob->divxbitrate*1000;
-		
-	//recommended (advanced) parameter
-#if API_VERSION == ((2 << 16) | (0))
-	//	xparam.rc_buffersize      = 10 * vob->divxbitrate*1000;
-	xparam.rc_buffersize      = 16;
-	quality                   = (vob->divxquality>5)?5:vob->divxquality;
-
-#else
-	xparam.rc_period          = vob->rc_period;
-	xparam.rc_reaction_period = vob->rc_reaction_period; 
-	xparam.rc_reaction_ratio  = vob->rc_reaction_ratio;
-
-        xparam.motion_search      = vob->divxquality;
-        xparam.lum_masking = 0; // Luminance Masking is still under development
-        xparam.quant_type = 0;  // 0=h.263, 1=mpeg4
-#endif
-
-	xparam.min_quantizer      = vob->min_quantizer;
-	xparam.max_quantizer      = vob->max_quantizer;
-	xparam.max_key_interval   = vob->divxkeyframes;
-
-        xerr = XviD_encore(NULL, XVID_DEC_CREATE, &xparam, NULL);
-
-	if(xerr == XVID_ERR_FAIL)
-	{
-		printf("codec open error");
-		return(TC_EXPORT_ERROR); 
-	}
-        XviD_encore_handle=xparam.handle;
-    
-	if (verbose_flag & TC_DEBUG) 
-	{
-	fprintf(stderr, "[%s]     multi-pass session: %d\n", MOD_NAME, vob->divxmultipass);
-#if API_VERSION == ((2 << 16) | (0))
-	fprintf(stderr, "[%s]                quality: %d\n", MOD_NAME, quality);
-#else
-	fprintf(stderr, "[%s]                quality: %d\n", MOD_NAME, xparam.motion_search);
-#endif
-	fprintf(stderr, "[%s]      bitrate [kBits/s]: %d\n", MOD_NAME, xparam.bitrate/1000);
-	fprintf(stderr, "[%s]  max keyframe interval: %d\n", MOD_NAME, xparam.max_key_interval);
-	fprintf(stderr, "[%s]             frame rate: %.2f\n", MOD_NAME, vob->fps);
-	fprintf(stderr, "[%s]            color space: %s\n", MOD_NAME, (vob->im_v_codec==CODEC_RGB) ? "RGB24":"YV12");
-//	fprintf(stderr, "[%s]            deinterlace: %d\n", MOD_NAME, divx->deinterlace);
-	}
-
-	switch (vob->im_v_codec)
-	{
-	case CODEC_RGB:	
-		global_framesize = SIZE_RGB_FRAME;
-		global_colorspace = XVID_CSP_RGB24;
-		break;
-	case CODEC_YUV:
-		global_framesize = SIZE_RGB_FRAME*2/3;
-		global_colorspace = XVID_CSP_YV12;
-		break;
-	default: /* down know... simply use YV12, too... */
-		global_framesize = SIZE_RGB_FRAME*2/3;
-		global_colorspace = XVID_CSP_YV12;
-		break;
-	}			
-
-
-	switch(VbrMode) 
-	{
-	
-	case 1:
-		VbrControl_init_2pass_vbr_analysis(vob->divxlogfile, vob->divxquality, bpp);   
-		break;
-	
-	case 2:	 // check for logfile
-		if(vob->divxlogfile==NULL || stat(vob->divxlogfile, &fbuf))
-      		{
-		fprintf(stderr, "(%s) pass-1 logfile \"%s\" not found exit\n", __FILE__, vob->divxlogfile);
-		return(TC_EXPORT_ERROR);
+		if ((buffer = malloc(BUFFER_SIZE))==NULL) {
+			perror("out of memory");
+			return(TC_EXPORT_ERROR); 
 		}
-// second pass: read back the logfile
-		VbrControl_init_2pass_vbr_encoding(vob->divxlogfile, vob->divxbitrate*1000, 
-			vob->fps, vob->divxcrispness, vob->divxquality);
-		break;
-	case 3:
-		global_fixedquant = vob->divxbitrate;
-		vob->divxbitrate = 0;
-		VbrControl_init_2pass_vbr_analysis(vob->divxlogfile, vob->divxquality, bpp);   
-		break;
-	default:	      // no option -> single pass
-		VbrControl_init_1pass_vbr(vob->divxquality, vob->divxcrispness, bpp);   
-	      break;
-	}
+		else {
+			memset(buffer, 0, BUFFER_SIZE);  
+		}
+
+		/* Load the codec */
+		if(xvid2_init(vob->mod_path)<0) {
+			fprintf(stderr, "Failed to init XviD codec");
+			return(TC_EXPORT_ERROR); 
+		}
+
+		VbrMode = vob->divxmultipass;
+
+		encode_fields = vob->encode_fields;
+
+		/* The quality parameter must be in the good range */
+		quality = Clamp(vob->divxquality, 0, 5);
+
+		/* Set VBR control defaults */
+		vbrSetDefaults(&vbr_state);
+
+		/* Read the config file or set defaults */
+		xvid_config(&global_init,
+			    &global_param,
+			    &global_frame,
+			    &vbr_state,
+			    quality);
+
+		/* Initialize XviD */
+		XviD_init(NULL, 0, &global_init, NULL);
+
+		/* Set values for the unitialized members */
+		global_param.width  = vob->ex_v_width;
+		global_param.height = vob->ex_v_height;
+		if ((vob->fps - (int)vob->fps) == 0) {
+			global_param.fincr = 1;
+			global_param.fbase = (int)vob->fps;
+		}
+		else {
+			global_param.fincr = 1001;
+			global_param.fbase = (int)(1001 * vob->fps);
+		}
+
+		if(VbrMode == 0) {
+			/* Set the desired bitrate for cbr mode */
+			global_param.rc_bitrate = vob->divxbitrate*1000;
+		} else {
+			/* Disabling rate-control for all vbr modes */
+			global_param.rc_bitrate = 0;
+		}
+
+		/*
+		 * These settings are passed through the command line and are
+		 * enforced
+		 */
+		global_param.min_quantizer    = vob->min_quantizer;
+		global_param.max_quantizer    = vob->max_quantizer;
+		global_param.max_key_interval = vob->divxkeyframes;
+
+		/* Same thing for vbr module */
+		vbr_state.max_key_interval = vob->divxkeyframes;
+
+		/* These xframe settings are used in the MOD_encode */
+		if(encode_fields) global_frame.general |= XVID_INTERLACING;
+
+		switch (vob->im_v_codec) {
+		case CODEC_RGB:	
+			global_framesize = SIZE_RGB_FRAME;
+			global_colorspace = XVID_CSP_RGB24;
+			break;
+		case CODEC_YUV:
+			global_framesize = SIZE_RGB_FRAME*2/3;
+			global_colorspace = XVID_CSP_YV12;
+			break;
+		default: /* down know... simply use YV12, too... */
+			global_framesize = SIZE_RGB_FRAME*2/3;
+			global_colorspace = XVID_CSP_YV12;
+			break;
+		}			
+
+		global_frame.colorspace = global_colorspace;
+		global_frame.length     = global_framesize;
+		global_frame.quant_intra_matrix = NULL;
+		global_frame.quant_inter_matrix = NULL;
+
+		/* We create the encoder instance */
+		xerr = XviD_encore(NULL, XVID_ENC_CREATE, &global_param, NULL);
+
+		if(xerr == XVID_ERR_FAIL) {
+			fprintf(stderr, "codec open error");
+			return(TC_EXPORT_ERROR); 
+		}
+
+		/* Here is our XviD handle which identify our instance */
+		XviD_encore_handle = global_param.handle;
     
-	return(0);
-  }
+		/* Overide the vbr settings with command line options */
+		vbr_state.fps = (float)((float)global_param.fbase/(float)global_param.fincr);
+		vbr_state.debug = (verbose_flag & TC_DEBUG)?1:0;
+
+		switch(VbrMode) {
+		case 1:
+			/*
+			 * Two pass mode - 1st pass : we will collect the
+			 * encoder statistics for future use during the 2nd pass
+			 */
+			vbr_state.mode = VBR_MODE_2PASS_1;
+			vbr_state.filename = vob->divxlogfile;
+			break;
+		case 2:	
+			/*
+			 * Two pass mode - 2nd pass : the vbr controler will
+			 * analyse the statistics file generated during 1st pass
+			 * and control XviD quantizer and intra frame values
+			 */
+			vbr_state.mode = VBR_MODE_2PASS_2;
+			vbr_state.filename = vob->divxlogfile;
+
+			/* divxbitrate represents the desired file size in Mo */
+			vbr_state.desired_bitrate = vob->divxbitrate*1000;
+			break;
+		case 3:
+			/*
+			 * Fixed quantizer mode - the XviD bit rate controller
+			 * is totally disabled and a fixed quant is used all
+			 * frames long
+			 */
+			vbr_state.mode = VBR_MODE_FIXED_QUANT;
+
+			/* divxbitrate represents the desired fixed quant */
+			vbr_state.fixed_quant = vob->divxbitrate;
+			break;
+		default:
+			/*
+			 * One pass mode - The XviD bit rate allocator will be
+			 * used. Nothing has to be initilaized.
+			 */
+			vbr_state.mode = VBR_MODE_1PASS;
+			break;
+		}
+
+
+		/* Init the vbr state */
+		if(vbrInit(&vbr_state) != 0)
+			return(TC_EXPORT_ERROR);
+
+		/* Print debug info if required */
+		if (verbose_flag & TC_DEBUG) {
+
+			xvid_print_config(&global_init,
+					  &global_param,
+					  &global_frame,
+					  quality,
+					  vob->divxmultipass,
+					  (vob->im_v_codec==CODEC_RGB) ?
+					  "RGB24":"YV12");
+
+			xvid_print_vbr(&vbr_state);
+		}
+    
+		return(0);
+
+	}
   
-  if(param->flag == TC_AUDIO) 
-  	return(audio_init(vob, verbose));    
+	if(param->flag == TC_AUDIO) 
+		return(audio_init(vob, verbose));    
   
-  // invalid flag
-  return(TC_EXPORT_ERROR); 
+	// invalid flag
+	return(TC_EXPORT_ERROR); 
+
 }
 
 
-/* ------------------------------------------------------------ 
- *
- * open outputfile
- *
- * ------------------------------------------------------------*/
+/*****************************************************************************
+ * Open the output file
+ ****************************************************************************/
 
 MOD_open
 {
 
-  if(param->flag == TC_AUDIO) return(audio_open(vob, vob->avifile_out));  
+	if(param->flag == TC_AUDIO) return(audio_open(vob, vob->avifile_out));
+    
+	if(param->flag == TC_VIDEO) {
+    
+		int mask;
 
-  if(param->flag == TC_VIDEO) {
+		/* Video */
+		mask = umask (0);
+		umask (mask);
     
-    int mask;
-    
-    // video
-    mask = umask (0);
-    umask (mask);
-    
-    if((fd = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) &~ mask))<0) {
-      perror("open file");
+		rawfd = open(vob->video_out_file,
+			     O_RDWR|O_CREAT|O_TRUNC,
+			     (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) &~ mask);
+		if(rawfd < 0) {
+			perror("open file");
       
-      return(TC_EXPORT_ERROR);
-    }     
-    
-    //do not force key frame at the very beginning of encoding, since
-    //first frame will be a key fame anayway. Therefore key.quantizer
-    //is well defined for any frame to follow
-    force_key_frame=(force_key_frame<0) ? 0:1;
-    
-    return(0);
-  }
+			return(TC_EXPORT_ERROR);
+		}
+
+		return(0);
+
+	}
   
-  // invalid flag
-  return(TC_EXPORT_ERROR); 
+	// invalid flag
+	return(TC_EXPORT_ERROR); 
 }
 
 
-/* ------------------------------------------------------------ 
- *
- * encode and export frame
- *
- * ------------------------------------------------------------*/
-
+/*****************************************************************************
+ * Encode and export a frame
+ ****************************************************************************/
 
 MOD_encode
 {
 	int xerr;
-#if API_VERSION == ((2 << 16) | (0))
-int motion_presets[7] = {
-                0,
-                PMV_QUICKSTOP16,
-                PMV_EARLYSTOP16,
-                PMV_EARLYSTOP16 | PMV_HALFPELREFINE16,
-                PMV_EARLYSTOP16 | PMV_HALFPELREFINE16 | PMV_EARLYSTOP8,
-                PMV_EARLYSTOP16 | PMV_HALFPELREFINE16 | PMV_EXTSEARCH16 |
-		PMV_EARLYSTOP8 | PMV_HALFPELREFINE8,
-                PMV_HALFPELREFINE16 | PMV_EXTSEARCH16 | PMV_HALFPELREFINE8
-        };
-#endif
-	
+
 	XVID_ENC_FRAME xframe;
 	XVID_ENC_STATS xstats;
 
 	if(param->flag == TC_AUDIO) 
-		return(audio_encode(param->buffer, param->size, NULL));  
+		return(audio_encode(param->buffer, param->size, NULL));
   
   	if(param->flag != TC_VIDEO) 
 		return(TC_EXPORT_ERROR); 
 
-/* so the rest is TC_VIDEO only */
 
+	/* Initialize the local frame copy */
 	xframe.bitstream  = buffer;
 	xframe.image      = param->buffer;
-	xframe.colorspace = global_colorspace;
-	xframe.length     = global_framesize;
+	xframe.general    = global_frame.general;
+	xframe.motion     = global_frame.motion;
+	xframe.colorspace = global_frame.colorspace;
+	xframe.quant_intra_matrix = NULL;
+	xframe.quant_inter_matrix = NULL;
+	xframe.quant = vbrGetQuant(&vbr_state);
+	xframe.intra = vbrGetIntra(&vbr_state);
 
-#if API_VERSION == ((2 << 16) | (0))
-	xframe.general = XVID_HALFPEL | XVID_H263QUANT;
+  	/* Encode the frame */
+	xerr = XviD_encore(XviD_encore_handle, XVID_ENC_ENCODE, &xframe,
+			   &xstats);
 
-	if(quality > 3)
-		xframe.general |= XVID_INTER4V;
-
-	xframe.motion = motion_presets[quality];
-	xframe.quant_intra_matrix = xframe.quant_inter_matrix = NULL;
-#endif
-
-	switch(VbrMode) 
-	{
-
-	case 3: 
-		xframe.quant = global_fixedquant;
-		xframe.intra = -1;
-		if(force_key_frame) 
-		{
-			    force_key_frame=0; 
-			    xframe.intra=1;    		// force keyframe
-		}
-	
-		xerr = XviD_encore(XviD_encore_handle, XVID_ENC_ENCODE, &xframe, &xstats);
-		VbrControl_update_2pass_vbr_analysis(xframe.intra, 
-			xstats.hlength*8, (xframe.length-xstats.hlength)*8, 
-			xframe.length*8, xstats.quant);
-		break;
-
-	case 2:	
-		xframe.quant = VbrControl_get_quant();
-		xframe.intra = VbrControl_get_intra();
-		if(force_key_frame) 
-		{
-			    force_key_frame=0; 
-			    xframe.intra=1;    		// force keyframe
-		}
-	
-		xerr = XviD_encore(XviD_encore_handle, XVID_ENC_ENCODE, &xframe, &xstats);
-
-		VbrControl_update_2pass_vbr_encoding(xstats.hlength*8, 
-			(xframe.length-xstats.hlength)*8, xframe.length*8);
-		break; 
-
-	case 1:
-		xframe.quant=0;       
-		xframe.intra=-1;
-		if (force_key_frame) 
-		{
-			force_key_frame=0; 
-			xframe.intra=1;
-		}
-	  	xerr = XviD_encore(XviD_encore_handle, XVID_ENC_ENCODE, &xframe, &xstats);
-// first pass of two-pass, save results
-		VbrControl_update_2pass_vbr_analysis(xframe.intra, 
-			xstats.hlength*8, (xframe.length-xstats.hlength)*8, 
-			xframe.length*8, xstats.quant);
-		break;
-		
-	default:
-		xframe.quant=0;       
-		xframe.intra = -1;
-		if (force_key_frame) 
-		{
-			force_key_frame=0; 
-			xframe.intra=1;
-	      	}
-		xerr = XviD_encore(XviD_encore_handle, XVID_ENC_ENCODE, &xframe, &xstats);
-		VbrControl_update_1pass_vbr();   
-		
-    	}
-	if (xerr == XVID_ERR_FAIL)
-	{
-		printf("codec encoding error %d\n",xerr);
+	/* Error ? */
+	if (xerr == XVID_ERR_FAIL) {
+		fprintf(stderr, "codec encoding error %d\n", xerr);
 		return(TC_EXPORT_ERROR); 
     	}
 
-    // write bitstream
+	/* Update the VBR controler */
+	vbrUpdate(&vbr_state, xstats.quant, xframe.intra, xstats.hlength,
+		  xframe.length, xstats.kblks, xstats.mblks, xstats.ublks);
+
+	/* Write bitstream */
+	if(p_write(rawfd, buffer, xframe.length) != xframe.length) {    
+		perror("write frame");
+		return(TC_EXPORT_ERROR);
+	}     
     
-    if(p_write(fd, buffer, xframe.length) != xframe.length) {    
-      perror("write frame");
-      return(TC_EXPORT_ERROR);
-    }     
-    
-    return(0);
+	return(0);
 }
 
-/* ------------------------------------------------------------ 
- *
- * close codec
- *
- * ------------------------------------------------------------*/
+/*****************************************************************************
+ * Close codec
+ ****************************************************************************/
 
 MOD_close
 {  
-  vob_t *vob = tc_get_vob();
-  if(param->flag == TC_AUDIO) return(audio_close()); 
 
-  if(param->flag == TC_VIDEO) {
-    close(fd);
-    return(0);
-  }
+	if(param->flag == TC_AUDIO) return(audio_close()); 
+    
+	if(param->flag == TC_VIDEO) {
+		close(rawfd);
+		return(0);
+	}
   
-  if(param->flag == TC_VIDEO) return(0);
-  
-  return(TC_EXPORT_ERROR); 
+	return(TC_EXPORT_ERROR);
+
 }
 
 
-/* ------------------------------------------------------------ 
- *
- * stop encoder
- *
- * ------------------------------------------------------------*/
+/*****************************************************************************
+ * Stop encoder
+ ****************************************************************************/
 
 MOD_stop
 {  
+
 	int xerr;
-	if(param->flag == TC_VIDEO) 
-	{ 
-		xerr = XviD_encore(XviD_encore_handle, XVID_ENC_DESTROY, NULL, NULL);
-		if (xerr == XVID_ERR_FAIL)	
-		{
+
+	if(param->flag == TC_VIDEO) { 
+
+		/* Stop the encoder */
+		xerr = XviD_encore(XviD_encore_handle, XVID_ENC_DESTROY, NULL,
+				   NULL);
+
+		if(xerr == XVID_ERR_FAIL) {
 			printf("encoder close error");
 		}
 
-		if(buffer!=NULL) 
-		{
+		if(buffer != NULL) {
 			free(buffer);
 			buffer=NULL;
 		}
     
-		//remove codec
+		/* Unload XviD core shared library */
 		dlclose(handle);
     
-		switch(VbrMode) 
-		{
-	case 1:
-		case 2:
-			VbrControl_close();
-			break;
-		default:
-			break;
-		}
+		/* Stops the VBR controler */
+		vbrFinish(&vbr_state);
     
-    return(0);
+		return(0);
+
   	}
 
-  if(param->flag == TC_AUDIO) return(audio_stop());  
+	if(param->flag == TC_AUDIO) return(audio_stop());
   
-  return(TC_EXPORT_ERROR);     
+	return(TC_EXPORT_ERROR);
+
 }
 
+/*****************************************************************************
+ * Utility functions
+ ****************************************************************************/
+
+static int xvid2_init(char *path)
+{
+
+#ifdef __FreeBSD__
+	const
+#endif    
+		char *error;
+
+	/* XviD comes now as a single core-module */    
+	sprintf(module, "%s/%s", path, XVID_SHARED_LIB_NAME);
+    
+	/* try transcode's module directory */
+	handle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
+    
+	if (!handle) {
+
+		/* try the default */
+		handle = dlopen(XVID_SHARED_LIB_NAME, RTLD_GLOBAL| RTLD_LAZY);
+      
+		/* Success */
+		if (!handle) {
+			fputs(dlerror(), stderr);
+			return(-1);
+		}
+		else {  
+			if(verbose_flag & TC_DEBUG) 
+				fprintf(stderr,
+					"loading external codec module %s\n",
+					XVID_SHARED_LIB_NAME); 
+		}
+      
+	}
+	else {  
+		if(verbose_flag & TC_DEBUG) 
+			fprintf(stderr,
+				"loading external codec module %s\n",
+				module);
+	}
+    
+	/* Import the XviD encoder&init entry points */
+	XviD_encore = dlsym(handle, "xvid_encore");
+	XviD_init   = dlsym(handle, "xvid_init");
+    
+	/* Something went wrong */
+	if ((error = dlerror()) != NULL)  {
+		fputs(error, stderr);
+		return(-1);
+	}
+    
+	return(0);
+
+}
+
+/*****************************************************************************
+ *
+ * Configuration of the codec through a configuration file read at runtime
+ *
+ ****************************************************************************/
+
+static void xvid_config_get_init(XVID_INIT_PARAM *einit,
+				 CF_ROOT_TYPE *pRoot,
+				 CF_SECTION_TYPE *pSection);
+
+static void xvid_config_get_param(XVID_ENC_PARAM *eparam,
+				  CF_ROOT_TYPE *pRoot,
+				  CF_SECTION_TYPE *pSection);
+
+static void xvid_config_get_frame(XVID_ENC_FRAME *eframe,
+				  CF_ROOT_TYPE *pRoot,
+				  CF_SECTION_TYPE *pSection);
+
+static void xvid_config_get_vbr(vbr_control_t *vbr_state,
+				CF_ROOT_TYPE *pRoot,
+				CF_SECTION_TYPE *pSection);
+
+
+static int xvid_config(XVID_INIT_PARAM *einit,
+		       XVID_ENC_PARAM  *eparam,
+		       XVID_ENC_FRAME  *eframe,
+		       vbr_control_t   *evbr_state,
+		       int quality)
+{
+
+	CF_ROOT_TYPE	* pRoot;
+	CF_SECTION_TYPE * pSection;
+	struct stat statfile;
+	char buffer[1024];
+
+	unsigned long const motion_presets[6] = {
+		0,
+		PMV_EARLYSTOP16,
+		PMV_EARLYSTOP16 | PMV_HALFPELREFINE16,
+		PMV_EARLYSTOP16 | PMV_HALFPELREFINE16,
+		PMV_EARLYSTOP16 | PMV_HALFPELREFINE16 | PMV_EARLYSTOP8 |
+		PMV_HALFPELREFINE8, 	
+		PMV_EARLYSTOP16 | PMV_HALFPELREFINE16 | PMV_EXTSEARCH16 |
+		PMV_USESQUARES16 | PMV_EARLYSTOP8 | PMV_HALFPELREFINE8
+	};
+
+	unsigned long const general_presets[6] = {
+		XVID_MPEGQUANT,
+		XVID_H263QUANT,
+		XVID_H263QUANT | XVID_HALFPEL,
+		XVID_H263QUANT | XVID_HALFPEL | XVID_INTER4V,
+		XVID_H263QUANT | XVID_HALFPEL | XVID_INTER4V,
+		XVID_H263QUANT | XVID_HALFPEL | XVID_INTER4V
+	};
+
+	/* Avoid quality overflows */
+	quality = Clamp(quality, 0, 5);
+
+	/* Hardcoded defaults */
+
+	/* Init flags */
+	einit->cpu_flags = 0;
+
+	/* Param flags (-1 = xvid default) */
+	eparam->rc_buffer                = -1;
+	eparam->rc_reaction_delay_factor = -1;
+	eparam->rc_averaging_period      = -1;
+
+	/* Frame flags */
+	eframe->general  = general_presets[quality];
+	eframe->motion   =  motion_presets[quality];
+
+#ifdef DEVELOPER_USE
+
+	/* Check conf file existence */
+	if(stat(XVID_CONFIG_FILE, &statfile) == -1) {
+
+		if(errno == ENOENT) {
+			char *home = getenv("HOME");
+
+			if(home != NULL) {
+				snprintf(buffer, 1023, "%s/.%s", home,
+					 XVID_CONFIG_FILE);
+
+				if(stat(buffer, &statfile) == -1) {
+					fprintf(stderr,
+						"No ./xvid.cfg nor ~/.xvid.cfg"
+						" file found, falling back to"
+						" hardcoded defaults\n");
+					return(0);
+				}
+			}
+			else {
+				return(0);
+			}
+
+		}
+		else {
+			fprintf(stderr, "Error: %s\nFalling back to hardcoded"
+				" defaults\n", strerror(errno));
+			return(0);
+		}
+
+	}
+	else {
+		strcpy(buffer, XVID_CONFIG_FILE);
+	}
+
+	if(!S_ISREG(statfile.st_mode)) {
+		fprintf(stderr, "%s file is not a regular file ! Falling back"
+			" to defaults\n", buffer);
+		return(0);
+	}
+
+	/*
+	 * Now look if the xvid.cfg config file exists and has a [qualityX]
+	 * section
+	 */
+	if(( pRoot = cf_read( buffer ) ) == NULL ) {
+		fprintf(stderr, "Error reading configuration file\n");
+		return(0);
+	}
+
+	snprintf(buffer, 15, "%s%d", "quality", quality);
+
+	if((pSection = cf_get_section(pRoot)) != NULL) {
+
+		do {
+
+			int n;
+
+			/* Test the [qualityX] section */
+			n = strncmp(pSection->name, buffer,
+				    strlen(buffer));
+
+			if(!n) {
+				xvid_config_get_param(eparam, pRoot, pSection);
+				xvid_config_get_frame(eframe, pRoot, pSection);
+				xvid_config_get_init(einit  , pRoot, pSection);
+				continue;
+			}
+
+			/* Test the [vbr] section */
+			n = strncmp(pSection->name, "vbr", strlen("vbr"));
+
+			if(!n)
+				xvid_config_get_vbr(evbr_state, pRoot,pSection);
+
+		}while((pSection=cf_get_next_section(pRoot,pSection)) != NULL);
+
+	}
+
+        CF_FREE_ROOT(pRoot);
+#endif
+
+	return(0);
+
+}
+
+/*----------------------------------------------------------------------------
+ | Configuration utility functions
+ *--------------------------------------------------------------------------*/
+
+/* This flags couples have been obtained using a little sh script
+ *
+ * #!/bin/sh
+ * echo "typedef _config_flag_t"
+ * echo "{"
+ * echo "  char *flag_string;"
+ * echo "  unsigned long flag_value;"
+ * echo "}config_flag_t;"
+ *
+ * echo
+ * echo "static config_flag_t xvid_flags[] = {"
+ * grep "#define XVID_" xvidcvs.h | awk '{printf("\t{\"%s\", %s},\n", $2, $2)}'
+ * echo "};"
+ *
+ * echo
+ * echo "static config_flag_t motion_flags[] = {"
+ * grep "#define PMV_" xvidcvs.h | awk '{printf("\t{\"%s\", %s},\n", $2, $2)}'
+ * echo "};"
+ * EOF
+ *
+ * Then i splitted/corrected the resulting array according to the different xvid
+ * flags. I've also disabled those flags that should not be used with transcode
+ * because they lack support.
+ */
+
+typedef struct _config_flag_t
+{
+	char *flag_string;
+	unsigned long flag_value;
+}config_flag_t;
+
+static config_flag_t const cpu_flags[] = {
+	{ "XVID_CPU_MMX",      XVID_CPU_MMX},
+	{ "XVID_CPU_MMXEXT",   XVID_CPU_MMXEXT},
+	{ "XVID_CPU_SSE",      XVID_CPU_SSE},
+	{ "XVID_CPU_SSE2",     XVID_CPU_SSE2},
+	{ "XVID_CPU_3DNOW",    XVID_CPU_3DNOW},
+	{ "XVID_CPU_3DNOWEXT", XVID_CPU_3DNOWEXT},
+	{ "XVID_CPU_TSC",      XVID_CPU_TSC},
+//	{ "XVID_CPU_IA64",     XVID_CPU_IA64},
+//	{ "XVID_CPU_CHKONLY",  XVID_CPU_CHKONLY},
+	{ "XVID_CPU_FORCE",    XVID_CPU_FORCE},
+	{ NULL,                0}
+};
+
+static config_flag_t const general_flags[] = {
+	{ "XVID_VALID_FLAGS",    XVID_VALID_FLAGS},
+//	{ "XVID_CUSTOM_QMATRIX", XVID_CUSTOM_QMATRIX},
+	{ "XVID_H263QUANT",      XVID_H263QUANT},
+	{ "XVID_MPEGQUANT",      XVID_MPEGQUANT},
+	{ "XVID_HALFPEL",        XVID_HALFPEL},
+	{ "XVID_ADAPTIVEQUANT",  XVID_ADAPTIVEQUANT},
+	{ "XVID_LUMIMASKING",    XVID_LUMIMASKING},
+	{ "XVID_LATEINTRA",      XVID_LATEINTRA},
+	{ "XVID_INTERLACING",    XVID_INTERLACING},
+	{ "XVID_TOPFIELDFIRST",  XVID_TOPFIELDFIRST},
+	{ "XVID_ALTERNATESCAN",  XVID_ALTERNATESCAN},
+	{ "XVID_HINTEDME_GET",   XVID_HINTEDME_GET},
+	{ "XVID_HINTEDME_SET",   XVID_HINTEDME_SET},
+	{ "XVID_INTER4V",        XVID_INTER4V},
+	{ "XVID_ME_ZERO",        XVID_ME_ZERO},
+	{ "XVID_ME_LOGARITHMIC", XVID_ME_LOGARITHMIC},
+	{ "XVID_ME_FULLSEARCH",  XVID_ME_FULLSEARCH},
+	{ "XVID_ME_PMVFAST",     XVID_ME_PMVFAST},
+	{ "XVID_ME_EPZS",        XVID_ME_EPZS},
+	{ NULL,                  0}
+};
+
+static config_flag_t const motion_flags[] = {
+	{ "PMV_ADVANCEDDIAMOND8",  PMV_ADVANCEDDIAMOND8},
+	{ "PMV_ADVANCEDDIAMOND16", PMV_ADVANCEDDIAMOND16},
+	{ "PMV_HALFPELDIAMOND16",  PMV_HALFPELDIAMOND16},
+	{ "PMV_HALFPELREFINE16",   PMV_HALFPELREFINE16},
+	{ "PMV_EXTSEARCH16",       PMV_EXTSEARCH16},
+	{ "PMV_EARLYSTOP16",       PMV_EARLYSTOP16},
+	{ "PMV_QUICKSTOP16",       PMV_QUICKSTOP16},
+	{ "PMV_UNRESTRICTED16",    PMV_UNRESTRICTED16},
+	{ "PMV_OVERLAPPING16",     PMV_OVERLAPPING16},
+	{ "PMV_USESQUARES16",      PMV_USESQUARES16},
+	{ "PMV_HALFPELDIAMOND8",   PMV_HALFPELDIAMOND8},
+	{ "PMV_HALFPELREFINE8",    PMV_HALFPELREFINE8},
+	{ "PMV_EXTSEARCH8",        PMV_EXTSEARCH8},
+	{ "PMV_EARLYSTOP8",        PMV_EARLYSTOP8},
+	{ "PMV_QUICKSTOP8",        PMV_QUICKSTOP8},
+	{ "PMV_UNRESTRICTED8",     PMV_UNRESTRICTED8},
+	{ "PMV_OVERLAPPING8",      PMV_OVERLAPPING8},
+	{ "PMV_USESQUARES8",       PMV_USESQUARES8},
+	{ NULL,                    0}
+};
+
+static unsigned long string2flags(char *string, config_flag_t const *flags);
+
+#define cf_get_named_key(x,y,z) cf_get_named_section_value_of_key(x,y,z)
+#define cf_get(key) cf_get_named_key( pRoot, pSection->name, key)
+
+static void xvid_config_get_init(XVID_INIT_PARAM *einit,
+				 CF_ROOT_TYPE *pRoot,
+				 CF_SECTION_TYPE *pSection)
+{
+
+	char *pTemp;
+
+	/* Get the cpu value */
+	if( ( pTemp = cf_get("init.cpu_flags" ) ) != NULL ) {
+		einit->cpu_flags = string2flags(pTemp, cpu_flags);
+	}
+
+	return;
+
+}
+
+static void xvid_config_get_param(XVID_ENC_PARAM *eparam,
+				  CF_ROOT_TYPE *pRoot,
+				  CF_SECTION_TYPE *pSection)
+{
+
+	char *pTemp;
+
+	/* Get the rc_reaction_delay_factor value */
+	if( ( pTemp = cf_get("param.rc_reaction_delay_factor")) != NULL ) {
+		eparam->rc_reaction_delay_factor = Max(0, atoi(pTemp));
+	}
+
+	/* Get the rc_averaging_period value */
+	if( (pTemp = cf_get("param.rc_averaging_period")) != NULL ) {
+		eparam->rc_averaging_period = Max(0, atoi(pTemp));
+	}
+
+	/* Get the rc_buffer value */
+	if( (pTemp = cf_get("param.rc_buffer")) != NULL ) {
+		eparam->rc_buffer = Max(0, atoi(pTemp));
+	}
+
+	/* Get the min_quantizer value */
+	if( (pTemp = cf_get("param.min_quantizer")) != NULL ) {
+		int n = atoi(pTemp);
+		eparam->min_quantizer = Clamp(n, 1, 31);
+	}
+
+	/* Get the max_quantizer value */
+	if( (pTemp = cf_get("param.max_quantizer")) != NULL ) {
+		int n = atoi(pTemp);
+		eparam->max_quantizer = Clamp(n, 1, 31);
+	}
+
+	return;
+
+}
+
+static void xvid_config_get_frame(XVID_ENC_FRAME *eframe,
+				  CF_ROOT_TYPE *pRoot,
+				  CF_SECTION_TYPE *pSection)
+{
+
+	char *pTemp;
+
+	/* Get the motion value */
+	if( ( pTemp = cf_get("frame.motion" ) ) != NULL ) {
+		eframe->motion = string2flags(pTemp, motion_flags);
+	}
+
+	/* Get the general value */
+	if( ( pTemp = cf_get("frame.general" ) ) != NULL ) {
+		eframe->general = string2flags(pTemp, general_flags);
+	}
+
+	return;
+
+}
+
+#if 0
+static config_flag_t const xvidvbr_mode[] = {
+	{"VBR_MODE_1PASS",       VBR_MODE_1PASS},
+	{"VBR_MODE_2PASS_1",     VBR_MODE_2PASS_1},
+	{"VBR_MODE_2PASS_2",     VBR_MODE_2PASS_2},
+	{"VBR_MODE_FIXED_QUANT", VBR_MODE_FIXED_QUANT},
+	{NULL, 0}
+};
+#endif
+
+static config_flag_t const credits_mode[] = {
+	{"VBR_CREDITS_MODE_RATE",  VBR_CREDITS_MODE_RATE},
+	{"VBR_CREDITS_MODE_QUANT", VBR_CREDITS_MODE_QUANT},
+	{"VBR_CREDITS_MODE_SIZE",  VBR_CREDITS_MODE_SIZE},
+	{NULL, 0}
+};
+
+static config_flag_t const altcc_mode[] = {
+	{"VBR_ALT_CURVE_SOFT",      VBR_ALT_CURVE_SOFT},
+	{"VBR_ALT_CURVE_LINEAR",    VBR_ALT_CURVE_LINEAR},
+	{"VBR_ALT_CURVE_AGGRESIVE", VBR_ALT_CURVE_AGGRESIVE},
+	{NULL, 0}
+};
+
+static config_flag_t const payback_mode[] = {
+	{"VBR_PAYBACK_BIAS",         VBR_PAYBACK_BIAS},
+	{"VBR_PAYBACK_PROPORTIONAL", VBR_PAYBACK_PROPORTIONAL},
+	{NULL, 0}
+};
+
+static unsigned long string2mode(char *string, config_flag_t const *modes);
+
+static void xvid_config_get_vbr(vbr_control_t *evbr_state,
+				CF_ROOT_TYPE *pRoot,
+				CF_SECTION_TYPE *pSection)
+{
+
+	char *pTemp;
+
+/* Managed by the command line options */
+#if 0
+	/* Get the global vbr mode */
+	if( ( pTemp = cf_get("mode" ) ) != NULL ) {
+		evbr_state->mode = string2mode(pTemp, xvidvbr_mode);
+	}
+#endif
+
+	/* Get the credits mode */
+	if( ( pTemp = cf_get("credits_mode" ) ) != NULL ) {
+		evbr_state->credits_mode = (int)string2mode(pTemp,credits_mode);
+	}
+
+	/* Do we enable credits mode at starting */
+	if( ( pTemp = cf_get("credits_start" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->credits_start = MakeBool(n);
+	}
+
+	/* Get the starting credits start frame */
+	if( ( pTemp = cf_get("credits_start_begin" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->credits_start_begin = Max(0, n);
+	}
+
+	/* Get the starting credits end frame */
+	if( ( pTemp = cf_get("credits_start_end" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->credits_start_end = Max(0, n);
+	}
+
+	if(evbr_state->credits_start_end < evbr_state->credits_start_begin) {
+		int tmp;
+		tmp = evbr_state->credits_start_end;
+		evbr_state->credits_start_end = evbr_state->credits_start_begin;
+		evbr_state->credits_start_begin = tmp;
+	}
+
+	/* Do we enable credits mode at starting */
+	if( ( pTemp = cf_get("credits_end" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->credits_end = MakeBool(n);
+	}
+
+	/* Get the starting credits start frame */
+	if( ( pTemp = cf_get("credits_end_begin" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->credits_end_begin = Max(0, n);
+	}
+
+	/* Get the starting credits end frame */
+	if( ( pTemp = cf_get("credits_end_end" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->credits_end_end = Max(0, n);
+	}
+
+	if(evbr_state->credits_end_end < evbr_state->credits_end_begin) {
+		int tmp;
+		tmp = evbr_state->credits_end_end;
+		evbr_state->credits_end_end = evbr_state->credits_end_begin;
+		evbr_state->credits_end_begin = tmp;
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("credits_quant_ratio" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->credits_quant_ratio = Clamp(n, 0, 100);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("credits_fixed_quant" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->credits_fixed_quant = Clamp(n, 1, 31);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("credits_quant_i" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->credits_quant_i = Clamp(n, 1, 31);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("credits_quant_p" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->credits_quant_p = Clamp(n, 1, 31);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("credits_start_size" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->credits_start_size = Max(0, n);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("credits_end_size" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->credits_end_size = Max(0, n);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("keyframe_boost" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->keyframe_boost = Clamp(n, 0, 1000);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("kftreshold" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->kftreshold = Max(0, n);
+	}
+	/* Get the value */
+	if( ( pTemp = cf_get("curve_compression_high" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->curve_compression_high = Clamp(n, 0, 100);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("curve_compression_low" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->curve_compression_low = Clamp(n, 0, 100);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("use_alt_curve" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->use_alt_curve = MakeBool(n);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("alt_curve_type" ) ) != NULL ) {
+		evbr_state->alt_curve_type =(int)string2mode(pTemp, altcc_mode);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("alt_curve_low_dist" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->alt_curve_low_dist = Max(0, n);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("alt_curve_high_dist" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->alt_curve_high_dist = Max(0, n);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("alt_curve_min_rel_qual" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->alt_curve_min_rel_qual = Clamp(n, 0, 100);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("alt_curve_use_auto" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->alt_curve_use_auto = MakeBool(n);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("alt_curve_auto_str" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->alt_curve_auto_str = Max(0, n);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("alt_curve_use_auto_bonus_bias" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->alt_curve_use_auto_bonus_bias = MakeBool(n);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("alt_curve_bonus_bias" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->alt_curve_bonus_bias = Max(0, n);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("bitrate_payback_method" ) ) != NULL ) {
+		evbr_state->bitrate_payback_method =
+			(int)string2mode(pTemp, payback_mode);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("bitrate_payback_delay" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->bitrate_payback_delay = Max(0, n);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("max_iquant" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->max_iquant = Clamp(n, 1, 31);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("min_iquant" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->min_iquant = Clamp(n, 1, 31);
+	}
+
+	if(evbr_state->min_iquant > evbr_state->max_iquant) {
+		int tmp;
+		tmp = evbr_state->min_iquant;
+		evbr_state->min_iquant = evbr_state->max_iquant;
+		evbr_state->max_iquant = tmp;
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("max_pquant" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->max_pquant = Clamp(n, 1, 31);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("min_pquant" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->min_pquant = Clamp(n, 1, 31);
+	}
+
+	if(evbr_state->min_pquant > evbr_state->max_pquant) {
+		int tmp;
+		tmp = evbr_state->min_pquant;
+		evbr_state->min_pquant = evbr_state->max_pquant;
+		evbr_state->max_pquant = tmp;
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("fixed_quant" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->fixed_quant = Clamp(n, 1, 31);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("min_key_interval" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->min_key_interval = Max(0, n);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("max_key_interval" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->max_key_interval = Max(0, n);
+	}
+
+	if(evbr_state->max_key_interval < evbr_state->max_key_interval) {
+		int tmp;
+		tmp = evbr_state->max_key_interval;
+		evbr_state->max_key_interval = evbr_state->min_key_interval;
+		evbr_state->min_key_interval = tmp;
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("debug" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->debug = MakeBool(n);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("twopass_max_bitrate" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->twopass_max_bitrate = Max(0, n);
+	}
+
+	/* Get the value */
+	if( ( pTemp = cf_get("twopass_max_overflow_improvement" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->twopass_max_overflow_improvement = Max(0, n);
+	}
+	
+	if( ( pTemp = cf_get("twopass_max_overflow_degradation" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		evbr_state->twopass_max_overflow_degradation = Max(0, n);
+	}
+
+	return;
+
+}
+
+#undef cf_get
+#undef cf_get_named_key
+
+static unsigned long string2mode(char *string, config_flag_t const *modes)
+{
+
+	unsigned long mode;
+	int i;
+
+	mode = 0;
+
+	for(i=0; modes[i].flag_string != NULL; i++) {
+
+		if(strstr(string, modes[i].flag_string) != NULL) {
+			mode = modes[i].flag_value;
+			break;
+		}
+
+
+	}
+
+	return(mode);
+
+
+}
+
+static unsigned long string2flags(char *string, config_flag_t const *flags)
+{
+
+	unsigned long flag;
+	int i;
+
+	flag = 0;
+
+	for(i=0; flags[i].flag_string != NULL; i++) {
+
+		if(strstr(string, flags[i].flag_string) != NULL)
+			flag |= flags[i].flag_value;
+
+
+	}
+
+	return(flag);
+
+}
+
+static int xvid_print_config(XVID_INIT_PARAM *einit,
+			     XVID_ENC_PARAM  *eparam,
+			     XVID_ENC_FRAME  *eframe,
+			     int quality,
+			     int pass,
+			     char *csp)
+{
+
+	int i;
+
+	/* What pass is it ? */
+	fprintf(stderr, "[%s]     multi-pass session: %d\n",
+		MOD_NAME, pass);
+
+	/* Quality used */
+	fprintf(stderr,	"[%s]                quality: %d\n",
+		MOD_NAME, quality);
+
+	/* Bitrate */
+	fprintf(stderr,	"[%s]      bitrate [kBits/s]: %d\n",
+		MOD_NAME, eparam->rc_bitrate/1000);
+
+	/* Key frame interval */
+	fprintf(stderr,	"[%s]  max keyframe interval: %d\n",
+		MOD_NAME, eparam->max_key_interval);
+
+	/* Motion flags */
+	fprintf(stderr,	"[%s]           motion flags:\n",
+		MOD_NAME);
+
+	for(i=0; motion_flags[i].flag_string != NULL; i++) {
+		if(motion_flags[i].flag_value & eframe->motion)
+			fprintf(stderr, "                             %s\n",
+				motion_flags[i].flag_string);
+	}
+
+	/* General flags */
+	fprintf(stderr,	"[%s]          general flags:\n",
+		MOD_NAME);
+
+	for(i=0; general_flags[i].flag_string != NULL; i++) {
+		if(general_flags[i].flag_value & eframe->general)
+			fprintf(stderr, "                             %s\n",
+				general_flags[i].flag_string);
+	}
+
+	/* CPU flags */
+	fprintf(stderr,	"[%s]              cpu flags:\n",
+		MOD_NAME);
+
+	for(i=0; cpu_flags[i].flag_string != NULL; i++) {
+		if(cpu_flags[i].flag_value & einit->cpu_flags)
+			fprintf(stderr, "                             %s\n",
+				cpu_flags[i].flag_string);
+	}
+
+	/* Frame Rate */
+	fprintf(stderr,	"[%s]             frame rate: %.2f\n",
+		MOD_NAME, (float)((float)eparam->fbase/(float)eparam->fincr));
+
+	/* Color Space */
+	fprintf(stderr,	"[%s]            color space: %s\n",
+		MOD_NAME, csp);
+
+	return(0);
+
+}
+
+static void xvid_print_vbr(vbr_control_t *state)
+{
+
+	fprintf(stderr, "\t============| XviD VBR settings |============\n");
+	fprintf(stderr, "\tmode : %d\n",
+		state->mode);
+	fprintf(stderr, "\tcredits_mod = %d\n",
+		state->credits_mode);
+	fprintf(stderr, "\tcredits_start = %d\n", 
+		state->credits_start);
+	fprintf(stderr, "\tcredits_start_begin = %d\n",
+		state->credits_start_begin);
+	fprintf(stderr, "\tcredits_start_end = %d\n",
+		state->credits_start_end);
+	fprintf(stderr, "\tcredits_end = %d\n",
+		state->credits_end);
+	fprintf(stderr, "\tcredits_end_begin = %d\n",
+		state->credits_end_begin);
+	fprintf(stderr, "\tcredits_end_end = %d\n",
+		state->credits_end_end);
+	fprintf(stderr, "\tcredits_quant_ratio = %d\n",
+		state->credits_quant_ratio);
+	fprintf(stderr, "\tcredits_fixed_quant = %d\n",
+		state->credits_fixed_quant);
+	fprintf(stderr, "\tcredits_quant_i = %d\n",
+		state->credits_quant_i);
+	fprintf(stderr, "\tcredits_quant_p = %d\n",
+		state->credits_quant_p);
+	fprintf(stderr, "\tcredits_start_size = %d\n",
+		state->credits_start_size);
+	fprintf(stderr, "\tcredits_end_size = %d\n",
+		state->credits_end_size);
+	fprintf(stderr, "\tkeyframe_boost = %d\n",
+		state->keyframe_boost);
+	fprintf(stderr, "\tkftreshold = %d\n",
+		state->kftreshold);
+	fprintf(stderr, "\tkfreduction = %d\n",
+		state->kfreduction);
+	fprintf(stderr, "\tmin_key_interval = %d\n",
+		state->min_key_interval);
+	fprintf(stderr, "\tmax_key_interval = %d\n",
+		state->max_key_interval);
+	fprintf(stderr, "\tcurve_comp_high = %d\n",
+		state->curve_compression_high);
+	fprintf(stderr, "\tcurve_comp_low = %d\n",
+		state->curve_compression_low);
+	fprintf(stderr, "\tuse_alt_curve = %d\n",
+		state->use_alt_curve);
+	fprintf(stderr, "\talt_curve_type = %d\n",
+		state->alt_curve_type);
+	fprintf(stderr, "\talt_curve_low_dist = %d\n",
+		state->alt_curve_low_dist);
+	fprintf(stderr, "\talt_curve_high_dist = %d\n",
+		state->alt_curve_high_dist);
+	fprintf(stderr, "\talt_curve_min_rel_qual = %d\n",
+		state->alt_curve_min_rel_qual);
+	fprintf(stderr, "\talt_curve_use_auto = %d\n",
+		state->alt_curve_use_auto);
+	fprintf(stderr, "\talt_curve_auto_str = %d\n",
+		state->alt_curve_auto_str);
+	fprintf(stderr, "\talt_curve_use_auto_bonus_bias = %d\n",
+		state->alt_curve_use_auto_bonus_bias);
+	fprintf(stderr, "\talt_curve_bonus_bias = %d\n",
+		state->alt_curve_bonus_bias);
+	fprintf(stderr, "\tbitrate_payback_method = %d\n",
+		state->bitrate_payback_method);
+	fprintf(stderr, "\tbitrate_payback_delay = %d\n",
+		state->bitrate_payback_delay);
+	fprintf(stderr, "\ttwopass_max_bitrate = %d\n",
+		state->twopass_max_bitrate);
+	fprintf(stderr, "\ttwopass_max_overflow_improvement = %d\n",
+		state->twopass_max_overflow_improvement);
+	fprintf(stderr, "\ttwopass_max_overflow_degradation = %d\n",
+		state->twopass_max_overflow_degradation);
+	fprintf(stderr, "\tmax_iquant = %d\n",
+		state->max_iquant);
+	fprintf(stderr, "\tmin_iquant = %d\n",
+		state->min_iquant);
+	fprintf(stderr, "\tmax_pquant = %d\n",
+		state->max_pquant);
+	fprintf(stderr, "\tmin_pquant = %d\n",
+		state->min_pquant);
+	fprintf(stderr, "\tfixed_quant = %d\n",
+		state->fixed_quant);
+	fprintf(stderr,
+		"\t============| End of XviD VBR settings |============\n");
+
+}

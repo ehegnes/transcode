@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include "config.h"
 
 #ifndef MAXPATH
 #define MAXPATH 260

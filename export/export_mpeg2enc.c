@@ -30,8 +30,13 @@
 #include "transcode.h"
 #include "vid_aux.h"
 
+#if defined(HAVE_MJPEG_INC)
+#include "yuv4mpeg.h"
+#include "mpegconsts.h"
+#else
 #include "mjpegtools/yuv4mpeg.h"
 #include "mjpegtools/mpegconsts.h"
+#endif
 
 #define MOD_NAME    "export_mpeg2enc.so"
 #define MOD_VERSION "v1.1.2 (2002-06-05)"

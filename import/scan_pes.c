@@ -661,17 +661,17 @@ void probe_pes(info_t *ipipe)
 		    ipipe->probe_info->pts_start=(double)i_pts/90000.0;
 		    initial_sync=1;
 		  }
+		  
+		  if(!show_seq_info) {
 		    
-		    if(!show_seq_info) {
-			
-			for(n=0; n<128; ++n) {
-			    
-			    if(cmp_32_bits(buf+n, TC_MAGIC_M2V)) {
-				probe_sequence(buf+n+4, ipipe->probe_info);
-				show_seq_info=1;
-			    }
-			}
-		    } // probe sequence header	    
+		    for(n=0; n<128; ++n) {
+		      
+		      if(cmp_32_bits(buf+n, TC_MAGIC_M2V)) {
+			probe_sequence(buf+n+4, ipipe->probe_info);
+			show_seq_info=1;
+		      }
+		    }
+		  } // probe sequence header	    
 		}
 		
 		
@@ -710,6 +710,9 @@ void probe_pes(info_t *ipipe)
 	      ++stream[id];
 
 	      mpeg_version=1;
+
+	      //MPEG1 may have audio but no time stamps
+	      initial_sync=1;
 	      ipipe->probe_info->codec=TC_CODEC_MPEG1;
 
 	      if(!show_seq_info) {
@@ -736,7 +739,6 @@ void probe_pes(info_t *ipipe)
 
 		if(ipipe->probe_info->pts_start==0 || has_audio==0) {
 		  ipipe->probe_info->pts_start=(double)i_pts/90000.0;
-		  initial_sync=1;
 		}
 
 	      }
@@ -811,9 +813,6 @@ void probe_pes(info_t *ipipe)
 		  // get pts time stamp:
 		  memcpy(scan_buf, &buf[6], 16);
 		  has_pts_dts=get_pts_dts(scan_buf, &i_pts, &i_dts);
-		  //		  ipipe->probe_info->track[num].pts_start=(double) i_pts/90000.;
-		  //  ipipe->probe_info->track[num].pts_start=pack_ppp;
-
 		}
 	      }
 	    }
@@ -842,16 +841,12 @@ void probe_pes(info_t *ipipe)
 		  
 		  //need to scan payload for more AC3 audio info
 		  ret = buf_probe_ac3(tmp1, tmp2-tmp1, &ipipe->probe_info->track[num]);
-
-		  //		  fprintf(stderr, "AC3: %d %d %d\n", ret, tmp1-buf, tmp2-tmp1);
-		  
 		  if(ret==0) {
 		    ipipe->probe_info->track[num].attribute |= PACKAGE_AUDIO_AC3;
 		    memcpy(scan_buf, &buf[6], 16);
 		    has_pts_dts=get_pts_dts(scan_buf, &i_pts, &i_dts);
 		    ipipe->probe_info->track[num].pts_start=(double) i_pts/90000.;
 		    has_audio=1;
-		    //ipipe->probe_info->track[num].pts_start=pack_ppp;
 		  }
 		}
 	      }
@@ -961,7 +956,7 @@ void probe_pes(info_t *ipipe)
 	  //need to scan payload for more MPEG audio info
 
 	  num=(buf[3] & 0xff) - 0xc0;
-	  
+
 	  if(num >= 0 && !track[num] && num<TC_MAX_AUD_TRACKS && initial_sync) {
 	    
 	    ++ipipe->probe_info->num_tracks;

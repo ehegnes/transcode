@@ -1,4 +1,187 @@
 ---------------------------------------------
+transcode-0.6.1 Thu Sep 19 22:15:28 CEST 2002
+
+- LFS bugfix for NuppelVideo import by Tilmann.
+
+- improved divx[4,5] codec detection by alex@foogod.com. 
+
+- a new import module "import_xvid.so" by Moritz Bunkus for MPEG-4 AVI-files 
+  decoded with the XVID codec.
+	
+- frame number detection fix for NTSC by Christian Vogelgsang.
+
+- export_toolame fix for spaces in filenames by Christian Vogelgsang.
+
+- More fixes and updates for XVID encoding by Edouard Gomez.
+  xvid and xvidraw work with the latest snapshot (with bframes disabled). 
+  xvidcvs can still use a bframe XviD build. 
+  Added twopass_max_bitrate, twopass_max_overflow_improvement,
+  twopass_max_overflow_degradation bindings into config file.
+  twopass_max_bitrate has been set to much higher default, so nasty
+  blocking effects during scene  changes and/or high motion scenes is no more.
+
+- export_xvidcvs.c: Now the xvid cvs module looks for the config file into 
+  current directory and if the ./xvid.cfg does not exist, it tries to read
+  the ~/.xvid.cfg. If neither ./xvid.cfg nor ~/.xvid.cfg  files are
+  found, then fall back to hard-coded defaults as usual. E.G.
+
+- updated filters (telecide and decimate).
+
+- small patch that changes mp3quality (the third parameter for -b) to a float.
+  This is necessary as oggenc can use floats for its
+  -q parameter - and export_ogg.c uses mp3quality just for this purpose. Patch
+  by Mosu (Moritz Bunkus).
+
+- new experimental filter to "down-sample" NTSC TV @ 29.9 fps to 23.9 fps
+  by Tilmann. Usage is not that easy and the audio has to be handled in a
+  separate step. It only works for RGB right now.
+  // video
+  transcode -i 29.9.avi -J 29to23 -y xvidcvs,null -x auto,null -o vid.avi
+  // fix header
+  avifix -i foo.avi -f 24000,1001
+  // audio
+  transcode -i 29.9.avi -f 0,1 -x null,auto -g 0x0 -y raw -o audio.avi
+  // merge
+  avimerge -i vid.avi -p audio.avi -o comp.avi
+
+- re-enabled large file support (LFS) for libbbmpeg.
+	
+------------------------------------------------------
+transcode-0.6.1.20020829 Thu Aug 29 22:42:15 CEST 2002
+
+- new option "--progress_off" to disable display of the progress meter 
+  status line as suggested by Philippe Troin <phil@fifi.org>.
+
+- regrouped the option list on "-h" into more logical units. 
+
+- added Tilmann's filter_tc_video.o and filter_tc_audio.o filter plug-ins.
+  See /docs/clone.txt for more information.
+	
+- Dominique CARON <domi@LPM.univ-montp2.fr> updated the vob2divx.pl
+  perl script in the contrib directory to v.1.0rc2.
+
+- added Tilmann's nasm/avifile patch to fix some compilation problems for 
+  related modules. 
+
+- transcode -p option is now passed to import_nvrec.so, thanks to a hint
+  by Bryan Mayland <bmayland@leoninedev.com>.
+
+- applied a patch by Edouard Gomez <ed.gomez@wanadoo.fr> to
+  replaces all strncmp calls by their strcmp counterparts. 
+
+- more filter_yuvdenoise.so updates by Tilmann.
+	
+------------------------------------------------------
+transcode-0.6.1.20020814 Wed Aug 14 22:40:48 CEST 2002
+
+- last snapshot was broken. Here is a fix plus some more cleanups by Tilmann.
+
+- import_nvrec now takes options as an import module option
+  string, like this. The options are passed through to nvrec.
+
+  transcode ... -x nvrec="-wav -N 32"
+
+  The documentation is updated to reflect the changes and added 
+  Christoph Gaitzsch' tip (recording using -y yuv4mpeg) to the documentation. 
+
+- update for avisync manpage to document -N
+
+- removed ugly DEBUG info in probe.c 
+
+- Arne Driescher updated his subrip packages located in the contrib directory.
+  See the Changelog for details.
+	
+------------------------------------------------------
+transcode-0.6.1.20020813 Tue Aug 13 22:43:08 CEST 2002
+
+- transcode.1 manpage updates by Tilmann.
+
+- import_rawlist.c adds support for raw uyvy (tested) and yuy2 files (untested)
+  These not transcode compatible color spaces get subsampled to yv12.
+  Also Tilmann made the module more tolerant of whats in the filelist.
+
+- Feature to pass a string to the import modules added by Tilmann. 
+  This is needed for import_rawlist to specify the import format. 
+  The syntax is like for the filters plugins
+
+  -x vmod[=options][,amod[=options]]
+
+  Example: -x rawlist=uyvy,null
+  
+  Note this module makes "import_yuv.so" obsolete.
+	
+- fixes for -J yuvdenoise by Tilmann for a color problem.
+
+- small bugfixes in export_ogg.c and filter_cut.c by Tilmann.
+
+- 2 new NTSC only filter for inverse telecine by 
+  Thanassis Tsiodras <ttsiod AT softlab.ntua.gr> ported from 
+  Donald Graft (author of Decomb). See /filter/ivtc/README.Inverse.Telecine
+  for more information.
+
+- giant memory leak fixed in export_im.so by Tilmann.
+
+- updates for XviD export by Edouard Gomez <ed.gomez AT wanadoo.fr>.
+  2-pass encoding has been improved and a configuration file "xvid.cfg" 
+  has been introduced to tweak a couple of more parameters in conjunction
+  with "export_xvidcvs.so". You need a recent XviD CVS snapshot to make it
+  work.
+  The config file must be called xvid.cfg and must reside in the
+  transcode working directory (where it is run from). You can find a
+  sample file in the /export directory. The XviD flags are described in the 
+  xvid-encoder.txt document on xvid.org. A "Joe" user should not modify the 
+  defaults!
+
+- merged Tilmanns TC_FRAME_IS_CLONED patch to prepare infra-structure
+  for upcoming filter_clone.so plug-in.
+
+------------------------------------------------------
+transcode-0.6.1.20020808 Thu Aug  8 22:15:32 CEST 2002
+
+- filter `-J' arguments are now cumulative.
+  With Tilmanns patch, this is now possible, e.g.,
+
+  -J normalize=smooth=0.05 -J yuvdenoise=sharpen=0,ppcvs="lb dr"
+
+  same as
+
+  -J normalize=smooth=0.05,yuvdenoise=sharpen=0,ppcvs="lb dr"  
+
+- fixed tar.gz issue in tramscode.spec.in
+
+- patch by Tilmann to add --dir_mode capabilities to import_divx. 
+
+- patch by Tilmann which introduces a new command line option 
+  '--write_pid pidfile'. When enabled, transcodes writes the pid of its 
+  signal thread to "pidfile".
+
+  Usage is pretty straight forward:
+
+  $ transcode .. --write_pid /tmp/transcode.pid &
+  $ kill -2 `cat /tmp/transcode.pid`
+
+  Note: If you send other signals than SIGINT (2) to transcode,
+  transcode will not exit correctly and leave its output file(s)
+  probably in an unusable state. 
+
+- various nasm/configure related fixes by Tilmann.
+
+- patch by Tilmann to display the desired information. He called it
+  EMT for Elapsed Movie Time. It displays the encoded frames in a 
+  more human readable way.    
+
+- new filter plug-in "filter_fields.so" by Alex Stewart. See
+  the source code in the filter directory for more information or
+  try -J fields=help.
+
+- new option to restrict the progress meter updates and LF/CR behavior
+  by Alex Stewart.
+
+- transcode is now dynamically loaded against libioaux.so so modules like 
+  export_xvidcvs.so can access functions from libioaux.so.
+  Changes made by Tilmann.
+	
+---------------------------------------------
 transcode-0.6.0 Thu Aug  2 00:20:07 CEST 2002
 
 - This is 0.6.0 (final), fixes for rc4 provided by Tilmann Bitterberg.

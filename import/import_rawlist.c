@@ -36,7 +36,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_rawlist.so"
-#define MOD_VERSION "v0.0.1 (2002-07-30)"
+#define MOD_VERSION "v0.1.0 (2002-08-13)"
 #define MOD_CODEC   "(video) YUV/RGB raw frames"
 
 #define MOD_PRE rawlist
@@ -52,12 +52,96 @@ static FILE *fd;
 static char buffer[PATH_MAX+2];
 
 static int bytes=0;
+static char *video_buffer=NULL;
+static int alloc_buffer;
   
 /* ------------------------------------------------------------ 
  *
  * open stream
  *
  * ------------------------------------------------------------*/
+static void dummyconvert(char *dest, char *input, int width, int height) { }
+
+static void (*convfkt)(char *, char *, int, int) = dummyconvert;
+
+static void uyvy2toyv12(char *dest, char *input, int width, int height) 
+{
+
+    int i,j,w2;
+    char *y, *u, *v;
+
+    w2 = width/2;
+
+    //I420
+    y = dest;
+    v = dest+width*height;
+    u = dest+width*height*5/4;
+    
+    for (i=0; i<height; i+=2) {
+      for (j=0; j<w2; j++) {
+	
+	/* UYVY.  The byte order is CbY'CrY' */
+	*u++ = *input++;
+	*y++ = *input++;
+	*v++ = *input++;
+	*y++ = *input++;
+      }
+
+      //down sampling
+      u -= w2;
+      v -= w2;
+      
+      /* average every second line for U and V */
+      for (j=0; j<w2; j++) {
+	  int un = *u & 0xff;
+	  int vn = *v & 0xff; 
+
+	  un += *input++ & 0xff;
+	  *u++ = un>>1;
+
+	  *y++ = *input++;
+
+	  vn += *input++ & 0xff;
+	  *v++ = vn>>1;
+
+	  *y++ = *input++;
+      }
+    }
+}
+static void yuy2toyv12(char *dest, char *input, int width, int height) 
+{
+
+    int i,j,w2;
+    char *y, *u, *v;
+
+    w2 = width/2;
+
+    //I420
+    y = dest;
+    v = dest+width*height;
+    u = dest+width*height*5/4;
+    
+    for (i=0; i<height; i+=2) {
+      for (j=0; j<w2; j++) {
+	
+	/* packed YUV 422 is: Y[i] U[i] Y[i+1] V[i] */
+	*(y++) = *(input++);
+	*(u++) = *(input++);
+	*(y++) = *(input++);
+	*(v++) = *(input++);
+      }
+      
+      //down sampling
+      
+      for (j=0; j<w2; j++) {
+	/* skip every second line for U and V */
+	*(y++) = *(input++);
+	input++;
+	*(y++) = *(input++);
+	input++;
+      }
+    }
+}
 
 MOD_open
 {
@@ -69,18 +153,50 @@ MOD_open
 
     param->fd = NULL;
 
-    if((fd = fopen(vob->video_in_file, "r"))==NULL) return(TC_IMPORT_ERROR);
+    if (vob->im_v_string) {
+	if        (!strcasecmp(vob->im_v_string, "RGB")) {
+	    convfkt = dummyconvert;
+	    bytes=vob->im_v_width * vob->im_v_height * 3;
+	} else if (!strcasecmp(vob->im_v_string, "yv12") || 
+		   !strcasecmp(vob->im_v_string, "i420")) {
+	    convfkt = dummyconvert;
+	    bytes = vob->im_v_width * vob->im_v_height * 3 / 2;
+	} else if (!strcasecmp(vob->im_v_string, "yuy2")) {
+	    convfkt = yuy2toyv12;
+	    bytes = vob->im_v_width * vob->im_v_height * 2;
+	    alloc_buffer = 1;
+	} else if (!strcasecmp(vob->im_v_string, "uyvy")) {
+	    convfkt = uyvy2toyv12;
+	    bytes = vob->im_v_width * vob->im_v_height * 2;
+	    alloc_buffer = 1;
+	} else {
+	    tc_error("Unknown format {rgb, yv12, i420, yuy2, uyvy}");
+	}
+    }
+
+    if((fd = fopen(vob->video_in_file, "r"))==NULL) {
+	    tc_error("You need to specify a filelist as input");
+	    return(TC_IMPORT_ERROR);
+    }
 
     switch(vob->im_v_codec) {
       
     case CODEC_RGB:
-      bytes=vob->im_v_width * vob->im_v_height * 3;
+      if (!bytes)
+	  bytes=vob->im_v_width * vob->im_v_height * 3;
       break;
       
     case CODEC_YUV:
-      bytes=(vob->im_v_width * vob->im_v_height * 3)/2;
+      if (!bytes)
+	  bytes=(vob->im_v_width * vob->im_v_height * 3)/2;
       break;
     }
+
+    if (alloc_buffer)
+      if((video_buffer = (char *)calloc(1, SIZE_RGB_FRAME))==NULL) {
+	fprintf(stderr, "(%s) out of memory", __FILE__);
+	return(TC_IMPORT_ERROR);
+      }
     
     return(0);
   }
@@ -104,7 +220,9 @@ MOD_decode {
     fd_in, n;
   
   if(param->flag == TC_AUDIO) return(0);
-  
+
+retry:  
+
   // read a filename from the list
   if(fgets (buffer, PATH_MAX, fd)==NULL) return(TC_IMPORT_ERROR);    
   
@@ -117,13 +235,27 @@ MOD_decode {
   //read the raw frame
   
   if((fd_in = open(filename, O_RDONLY))<0) {
+    fprintf(stderr, "[%s] Opening file \"%s\" failed!\n", MOD_NAME, filename);
     perror("open file");
-    return(TC_IMPORT_ERROR);
+    goto retry;
   } 
   
-  if(p_read(fd_in, param->buffer, bytes) != bytes) { 
-    perror("image parameter mismatch");
-    return(TC_IMPORT_ERROR);
+  if (alloc_buffer) {
+    if(p_read(fd_in, param->buffer, bytes) != bytes) { 
+      perror("image parameter mismatch");
+      close(fd_in);
+      goto retry;
+    }
+
+    convfkt(video_buffer, param->buffer, vob->im_v_width, vob->im_v_height);
+    memcpy(param->buffer, video_buffer, vob->im_v_width*vob->im_v_height*3/2);
+  
+  } else  {
+    if(p_read(fd_in, param->buffer, bytes) != bytes) { 
+      perror("image parameter mismatch");
+      close(fd_in);
+      goto retry;
+    }
   }
   
   close(fd_in);

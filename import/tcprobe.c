@@ -27,6 +27,7 @@
 #include <sys/errno.h>
 #include <errno.h>
 #include <unistd.h>
+#include <math.h>
 
 #include "config.h"
 #include "transcode.h"
@@ -205,7 +206,7 @@ int main(int argc, char *argv[])
     if(stream_stype!=TC_STYPE_STDIN) {
       
       cc=probe_path(name);
-      
+
       switch(cc) {
 	
       case -1: //non-existent source
@@ -275,10 +276,7 @@ int main(int argc, char *argv[])
     ipipe.magic = stream_magic;
     ipipe.stype = stream_stype;
     ipipe.codec = stream_codec;
-    
-    ipipe.verbose = verbose;
     ipipe.name = name;
-    
     ipipe.dvd_title = dvd_title;
     ipipe.factor = probe_factor;
 
@@ -431,7 +429,7 @@ int main(int argc, char *argv[])
     //encoder bitrate infos (DVD only)
     
     if(stream_magic == TC_MAGIC_DVD_PAL || stream_magic == TC_MAGIC_DVD_NTSC ||stream_magic == TC_MAGIC_DVD) {
-      enc_bitrate((long) ipipe.probe_info->fps*ipipe.probe_info->time, ipipe.probe_info->fps, bitrate, EXE, 0);
+      enc_bitrate((long)ceil(ipipe.probe_info->fps*ipipe.probe_info->time), ipipe.probe_info->fps, bitrate, EXE, 0);
     } else {
       
       if(ipipe.probe_info->frames > 0)

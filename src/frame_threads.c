@@ -231,7 +231,8 @@ void process_vframe(vob_t *vob)
     if(ptr==NULL) {
       if(verbose & TC_DEBUG) fprintf(stderr, "(%s) internal error (V|%d)\n", __FILE__, vbuffer_im_fill_ctr);
       
-      goto invalid_ptr; // this shouldn't happen but is non-fatal
+      continue;
+      //goto invalid_vptr; // this shouldn't happen but is non-fatal
     }
 
     pthread_testcancel();
@@ -272,8 +273,9 @@ void process_vframe(vob_t *vob)
       pthread_mutex_lock(&vbuffer_im_fill_lock);
       --vbuffer_xx_fill_ctr;
       pthread_mutex_unlock(&vbuffer_im_fill_lock);
-      
-      goto invalid_ptr; // frame skipped
+
+      continue;
+      //goto invalid_vptr; // frame skipped
     }
 
     // internal processing of video
@@ -290,15 +292,24 @@ void process_vframe(vob_t *vob)
       pthread_mutex_lock(&vbuffer_xx_fill_lock);
       --vbuffer_xx_fill_ctr;
       pthread_mutex_unlock(&vbuffer_xx_fill_lock);
-      
-      goto invalid_ptr; // frame skipped
+
+      continue;
+      //goto invalid_vptr; // frame skipped
     }
 
     pthread_testcancel();
     
     // ready for encoding
     vframe_set_status(ptr, FRAME_READY);
-
+    
+    /* -- moved to encoder.c
+    if (ptr->attributes & TC_FRAME_IS_CLONED) {
+      pthread_mutex_lock(&vbuffer_ex_fill_lock);
+      ++vbuffer_ex_fill_ctr;
+      pthread_mutex_unlock(&vbuffer_ex_fill_lock);
+    }
+    */
+    
     pthread_mutex_lock(&vbuffer_xx_fill_lock);
     --vbuffer_xx_fill_ctr;
     pthread_mutex_unlock(&vbuffer_xx_fill_lock);
@@ -307,7 +318,7 @@ void process_vframe(vob_t *vob)
     ++vbuffer_ex_fill_ctr;
     pthread_mutex_unlock(&vbuffer_ex_fill_lock);
     
-  invalid_ptr:
+    //invalid_vptr:
   }
   
   return;
@@ -342,7 +353,8 @@ void process_aframe(vob_t *vob)
     if(ptr==NULL) {
       if(verbose & TC_DEBUG) fprintf(stderr, "(%s) internal error (A|%d)\n", __FILE__, abuffer_im_fill_ctr);
       
-      goto invalid_ptr; // this shouldn't happen but is non-fatal
+      continue;
+      //goto invalid_aptr; // this shouldn't happen but is non-fatal
     }
 
     pthread_testcancel();
@@ -379,7 +391,8 @@ void process_aframe(vob_t *vob)
       --abuffer_xx_fill_ctr;
       pthread_mutex_unlock(&abuffer_xx_fill_lock);
       
-      goto invalid_ptr; // frame skipped
+      continue;
+      //goto invalid_aptr; // frame skipped
     }
     
     // internal processing of audio
@@ -397,13 +410,22 @@ void process_aframe(vob_t *vob)
       --abuffer_xx_fill_ctr;
       pthread_mutex_unlock(&abuffer_xx_fill_lock);
 
-      goto invalid_ptr; // frame skipped
+      continue;
+      //goto invalid_aptr; // frame skipped
     }
 
     pthread_testcancel();
 
     // ready for encoding
     aframe_set_status(ptr, FRAME_READY);
+
+    /* -- moved to encoder.c
+    if (ptr->attributes & TC_FRAME_IS_CLONED) {
+      pthread_mutex_lock(&abuffer_ex_fill_lock);
+      ++abuffer_ex_fill_ctr;
+      pthread_mutex_unlock(&abuffer_ex_fill_lock);
+    }
+    */
 
     pthread_mutex_lock(&abuffer_xx_fill_lock);
     --abuffer_xx_fill_ctr;
@@ -413,7 +435,7 @@ void process_aframe(vob_t *vob)
     ++abuffer_ex_fill_ctr;
     pthread_mutex_unlock(&abuffer_ex_fill_lock);
 
-  invalid_ptr:
+    //invalid_aptr:
   }
   
   return;

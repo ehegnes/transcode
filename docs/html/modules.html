@@ -49,79 +49,97 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
      <ul>
        <li> <a href="import_null.html">import_null.so</a><br> 
 	    dummy module, reads from <i>/dev/zero</i>
+	    
        <li> <a href="import_avi.html">import_avi.so</a> <br>RGB/PCM
 	    from RIFF AVI files.
+	    
        <li> <a href="import_raw.html">import_raw.so</a><br> 
 	    RGB/PCM from RIFF AVI/WAVE files or raw streams.
+	    
+       <li> <a href="import_yuv4mpeg.html">import_yuv4mpeg.so</a><br> 
+	    YUV from video streams produced by <i>mjpegtools</i> (YUV4MPEG)
+	    and RIFF WAVE pcm audio.
 
-      <li> <a href="import_yuv4mpeg.html">import_yuv4mpeg.so</a><br> 
-	  YUV from video streams produced by <i>mjpegtools</i> (YUV4MPEG)
-	  and RIFF WAVE pcm audio.
+       <li> <a href="import_yuv.html">import_yuv.so</a><br>
+	    reads YUV raw images. (obsolete)
+	    
+       <li> <a href="sorry.html">import_lav.so</a><br>
+	    interface to  <i>mjpegtools</i> (YUV4MPEG) streams produced
+	    by <i>lav2yuv</i> and <i>lav2wav</i>.
+	    
+       <li> <a href="sorry.html">import_net.so</a><br>
+	    read raw video/audio streams from sockets.
 
-      <li> <a href="import_yuv.html">import_yuv.so</a>(new in v0.6.0pre5)<img align="top" src="new.png"><br> 
-	  YUV raw images.
-	  
-      <li> <a href="sorry.html">import_lav.so</a> (new in v0.6.0pre2)<img align="top" src="new.png"><br>
-	   interface to  <i>mjpegtools</i> (YUV4MPEG) streams produced
-	  by <i>lav2yuv</i> and <i>lav2wav</i>.
+    </ul><p>	
+    <font size=+2 color=blue>Quicktime4linux API:</font>	
+    <ul>
+
+      <li> <a href="sorry.html">import_mov.so</a><br>
+	   Quicktime file format, audio/video codecs supported by
+	   <i>quicktime4linux</i>.
 	   
-      <li> <a href="sorry.html">import_net.so</a> (new in v0.6.0pre1)<img align="top" src="new.png">
-	  <br>read raw video/audio streams from socket
-
-    </ul><p>	
-<font size=+2 color=blue>Quicktime4linux API:</font>	
-<ul>
-
-        <li> <a href="sorry.html">import_mov.so</a> (new in v0.6.0pre3)<img align="top" src="new.png">
-	  <br> Quicktime file format, audio/video codecs supported by
-	  <i>quicktime4linux</i>.
-
   
-    </ul><p>	
-<font size=+2 color=blue>Avifile API:</font>	
-<ul>
+      </ul><p>	
+      <font size=+2 color=blue>Avifile API:</font>	
+      <ul>
 
-  <li> <a href="sorry.html">import_af6.so</a> <br>
+	<li> <a href="sorry.html">import_af6.so</a> <br>
 	  interface to <i>avifile</i> library supported codecs and
 	  file formats.
 	   
-</ul><p>	
-<font size=+2 color=blue>MPEG-4:</font>	
-<ul>
+      </ul><p>
+      <font size=+2 color=blue>FFmpeg API:</font>	
+      <ul>
+	
+	<li> <a href="sorry.html">import_ffmpeg.so</a> <br>
+	     interface to <i>ffmpeg</i> library supported codecs and
+	     file formats.
+	     
+	<li> <a href="sorry.html">import_mjpeg.so</a><br>
+	     native decoding support for AVI-files with MJPEG video
+	     format.
+	     
+      </ul>
+      <p>	
+      <font size=+2 color=blue>MPEG-4:</font>	
+      <ul>
+	
+  <li> <a href="sorry.html">import_divx.so</a><br>
+       decoding support for AVI-files with DivX, OpendivX, DivX
+       4.xx/5.xx, XviD video using the DivX codec.
 
-  <li> <a href="sorry.html">import_divx.so</a> (new in v0.6.0pre2)<img align="top" src="new.png"><br>
-	  decoding support for AVI-files with DivX, OpendivX, DivX
-	  4.xx/5.xx video.
+  <li> <a href="sorry.html">import_xvid.so</a><br>
+       decoding support for AVI-files with DivX, OpendivX, DivX
+       4.xx/5.xx, XviD video using the XviD codec. 
 	  
 </ul><p>	
 <font size=+2 color=blue>MPEG-1/2, AC3:</font>	
 <ul>
 
     
-  <li> <a href="import_ac3.html">import_ac3.so</a> <br>AC3 audio 
-       from MPEG program streams or raw streams.
+  <li> <a href="import_ac3.html">import_ac3.so</a> <br>
+       AC3 audio from MPEG program streams or raw streams.
 
-  <li> <a href="import_mp3.html">import_mp3.so</a> 
-       <br>MPEG audio 
-       from program streams or raw streams.	  
+  <li> <a href="import_mp3.html">import_mp3.so</a><br>
+       MPEG audio from program streams or raw streams.	  
+
   <li> <a href="import_mpeg2.html">import_mpeg2.so</a><br>
        video track from MPEG program streams or raw streams,
        extracted and decoded by <i>mpeg2dec</i>.
-  <li> <a href="import_mpeg3.html">import_mpeg3.so</a> <br>
+
+  <li> <a href="import_mpeg3.html">import_mpeg3.so</a><br>
        video track from MPEG program streams or raw streams
        extracted and decoded by <i>libmpeg3</i>.
 
-  <li> <a href="import_vob.html">import_vob.so</a><br> MPEG/AC3
-       program streams in VOB files (found on unencrypted DVDs).
+  <li> <a href="import_vob.html">import_vob.so</a><br>
+       MPEG/AC3 program streams in VOB files (found on unencrypted/ripped DVDs).
+
   <li> <a href="import_dvd.html">import_dvd.so</a><br>
        on-the-fly DVD transcoding
        
-  <li> <a href="sorry.html">import_mjpeg.so</a> (new in v0.6.0pre2)<img align="top" src="new.png"><br>
-       native decoding support for AVI-files with MJPEG video
-       format.
-    <li> <a href="sorry.html">import_vdrac3.so</a> (new in v0.6.0pre2)<img align="top" src="new.png"><br>
-	  AC3 audio only from MPEG streams produced by digital capture
-	  cards with invalid AC3 audio stream header.       
+  <li> <a href="sorry.html">import_vdrac3.so</a><br>
+       AC3 audio with invalid AC3 audio stream header from MPEG
+       streams produced by digital capture cards. 
 
   </ul><p>	
   <font size=+2 color=blue>NuppelVideo:</font>	
@@ -135,42 +153,45 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 <font size=+2 color=blue>Digital Video:</font>	
 <ul>
   
-  <li> <a href="import_dv.html">import_dv.so</a> <br>digital video
-       DV/PCM from  RIFF AVI files or raw streams.
+  <li> <a href="import_dv.html">import_dv.so</a> <br>
+       Digital Video and PCM audio from RIFF AVI-files or raw streams.
        
 </ul><p>	
 <font size=+2 color=blue>Images:</font>	
 <ul>
 
-  <li> <a href="sorry.html">import_im.so</a> (new in v0.6.0pre2)<img align="top" src="new.png"><br>
+  <li> <a href="sorry.html">import_im.so</a><br>
        interface to <i>ImageMagick</i> library supported picture codecs and
        file formats for making animations. Reads images with a
        counter pattern.
        
-  <li> <a href="sorry.html">import_imlist.so</a> (new in v0.6.0pre4)<img align="top" src="new.png"><br>
+  <li> <a href="sorry.html">import_imlist.so</a><br>
        interface to <i>ImageMagick</i> library supported picture codecs and
        file formats for making animations. Reads images from a list.
        
-  <li> <a href="sorry.html">import_rawlist.so</a> (new in v0.6.0rc4)<img align="top" src="new.png"><br>
-       Reads images from a list. Native support for raw image formats only.
+  <li> <a href="sorry.html">import_rawlist.so</a><br>
+       reads images from a list. Native support for raw image formats only.
        
 </ul>  
 <p>
 <font size=+2 color=blue>XML:</font>	
+
 <ul>
+  
+  <li> <a href="sorry.html">import_xml.so</a><br>
+       interface to XML files with file listing and frame range
+       produced by <i>kino</i>.
+       
+</ul>  
 
-  <li> <a href="sorry.html">import_xml.so</a> (new in v0.6.0pre4)<img align="top" src="new.png"><br>
-      Interface to XML files with file listing and frame range
-      produced by <i>kino</i>.
-    </ul>  
-
-    <p>
+<p>
     <font size=+2 color=blue>Video4linux:</font>	
     <ul>
-      <li> <a href="sorry.html">import_v4l.so</a> (new in v0.6.0pre3)<img align="top" src="new.png">
-	   <br> Simple module for grabbing sound/video from a v4l device. 
-      <li> <a href="sorry.html">import_nvrec.so</a> (new in v0.6.0pre5)<img align="top" src="new.png">
-	   <br> Interface to NVrec video recorder.  
+      <li> <a href="sorry.html">import_v4l.so</a><br>
+	   interface for grabbing sound/video from a v4l device. 
+
+      <li> <a href="sorry.html">import_nvrec.so</a><br>
+	   interface to <i>NVrec</i> video recorder program.  
 	   <p>  
     </ul>
 
@@ -179,12 +200,12 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 <ul>
 
   <li> <a href="sorry.html">import_mplayer.so</a> <br>
-	  interface to <i>Mplayer</i> for decoding unsupported codecs and
-	  file formats or critical sources.
+       interface to <i>Mplayer</i> for decoding unsupported codecs,
+       exotic file formats or more ore less broken sources.
 </ul>
 
     <p>	
-<font size=+2 color=blue>Ogg Streams:</font>	
+<font size=+2 color=blue>Ogg Media:</font>	
 
     <ul>
       <li>
@@ -192,7 +213,7 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 	     <tr>
 	       <td align=left valign="top" width=30% bgcolor=#e9e9e9>
 	       <a href="import_ogg.php"><font size=+0>import_ogg.so</font></a>
-	       <img align="top" src="new.png"></td>
+	     </td>
 	     </tr>
 	     <tr>
 	       <td>decodes Ogg Vorbis audio streams.
@@ -210,55 +231,72 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 <font size=+2 color=blue>Raw:</font>	
   
   <ul>
-    <li> <a href="export_null.html">export_null.so</a> <br>benchmark,
-	frame sink, disable audio for AVI file.
+    <li> <a href="export_null.html">export_null.so</a> <br>
+	 benchmark, frame sink, disable audio for AVI file.
 
     <li> <a href="export_raw.html">export_raw.so</a><br>
 	 uncompressed or raw (compressed) frames, RGB, PCM.
 	 
-    <li> <a href="sorry.html">export_net.so</a> (new in v0.6.0pre1)<img align="top" src="new.png">
-	 <br>write raw video/audio stream to a socket
-	 
+    <li> <a href="sorry.html">export_net.so</a><br>
+	 write raw video/audio stream to a socket
 	 
     <li> <a href="sorry.html">export_wav.so</a>
 	 <br>RIFF WAVE data with PCM audio.
 
-    <li> <a href="sorry.html">export_toolame.so</a> (new in v0.6.0pre5)<img align="top" src="new.png">
-	<br>MPEG-1 layer 2 audio stream, encoded by <i>toolame</i>.
+    <li> <a href="sorry.html">export_toolame.so</a><br>
+	 MPEG-1 layer-II audio stream, encoded by <i>toolame</i>.
 	 
     <li> <a href="sorry.html">export_yuv4mpeg.so</a><br>
-	  exports to YUV4MPEG stream, sound to file with "-m" option.
+	 exports to YUV4MPEG stream, sound to file with "-m" option.
+
+    <li> <a href="sorry.html">export_pcm.so</a><br>
+	 exports raw, multi-channel PCM audio to separate files.
 	   
-  </ul><p>	
-<font size=+2 color=blue>Quicktime4linux API:</font>	
-<ul>
-
-      <li> <a href="sorry.html">export_qt.so</a><br>
-	  limited support for Quicktime movie export. (obsolete)
-	  
-      <li> <a href="sorry.html">export_mov.so</a> (new in v0.6.0pre3)<img align="top" src="new.png">
-	  <br> Quicktime file format, audio/video codecs supported by
-	  <i>quicktime4linux</i>.
-
-    </ul><p>	
-<font size=+2 color=blue>Avifile API:</font>	
-<ul>
-
-  all modules have MP3/AC3/PCM audio support.
+  </ul><p>
   
-      <li> <a href="export_af6.html">export_af6.so</a>  <br>
-	   interface to <i>avifile 0.6.0 beta</i> video codecs.
+  <font size=+2 color=blue>Quicktime4linux API:</font>	
+  <ul>
+    
+    <li> <a href="sorry.html">export_qt.so</a><br>
+	 limited support for Quicktime movie export. (obsolete)
+	 
+    <li> <a href="sorry.html">export_mov.so</a><br>
+	 Quicktime file format, audio/video codecs supported by
+	 <i>quicktime4linux</i>.
+	 
+  </ul>
+  <p>
 
-      <li> <a href="export_divx.html">export_divx.so</a> <br>DivX;-)
-	  3.11 with <i>avifile-0.5.3.</i> (obsolete)
-	  
-	  
-      <li> <a href="export_iv50.html">export_iv50.so</a><br>
-	  Intel Indeo Video 5.0 with <i>avifile-0.5.3.</i> (obsolete)
-	  
-	  
-</ul><p>	
-<font size=+2 color=blue>MPEG-4:</font>	
+  <font size=+2 color=blue>FFmpeg API:</font>	
+  <ul>
+
+    all modules have MP3/AC3/PCM audio support.
+    
+    <li> <a href="sorry.html">export_ffmpeg.so</a><br>
+	 interface to <i>ffmpeg</i> library supported video codecs.
+
+    <li> <a href="sorry.html">export_ffmpeg4.so</a><br>
+	 encodes to MPEG-4 codec provided by the <i>ffmpeg</i> library. 
+  </ul>
+  <p>	
+  
+  <font size=+2 color=blue>Avifile API:</font>	
+  <ul>
+
+    all modules have MP3/AC3/PCM audio support.
+    
+    <li> <a href="export_af6.html">export_af6.so</a><br>
+	 interface to <i>avifile</i> supported video codecs.
+	 
+    <li> <a href="export_divx.html">export_divx.so</a> <br>
+	 DivX version 3, aka DivX;-) 3.11, with <i>avifile-0.5.3.</i> (obsolete)
+	 
+    <li> <a href="export_iv50.html">export_iv50.so</a><br>
+	 Intel Indeo Video 5.0 with <i>avifile-0.5.3.</i> (obsolete)
+	 
+	 
+  </ul><p>	
+  <font size=+2 color=blue>MPEG-4:</font>	
 <ul>
 
   all modules have MP3/AC3/PCM audio support.
@@ -291,7 +329,7 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 	  </td>
 	</tr>
 	<tr>
-	  <td>DivX 4.xx codec. 
+	  <td>DivX version 4 codec.  
 	  </td>
 	</tr>
   </table>
@@ -307,7 +345,7 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 	<tr>
 	</tr>
 	<tr>
-	  <td>DivX 5.xx codec. (new in v0.6.0pre5)<img align="top" src="new.png">
+	  <td>DivX version 5 codec.
 	  </td>
 	</tr>
   </table>
@@ -355,41 +393,46 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 <font size=+2 color=blue>MPEG-1/2:</font>	
 <ul>
 
-  <li> <a href="sorry.html">export_mpeg.so</a> (new in v0.6.0pre1)<img align="top" src="new.png">
-      <br> MPEG-1/2, (S)VCD, DVD, MPEG-1 layer-II audio.
-  <li> <a href="sorry.html">export_mpeg2enc.so</a> (new in v0.6.0pre2)<img align="top" src="new.png">
-      <br> MPEG-1/2, (S)VCD, frontent for <i>mpeg2enc</i> from
-      <i>mjpegtools</i>.
-      <li> <a href="sorry.html">export_mp2enc.so</a> (new in v0.6.0pre3)<img align="top" src="new.png">
-	  <br> MPEG layer-2 audio frontend for <i>mp2enc</i> from
-	  <i>mjpegtools</i>.
-      <li> <a href="sorry.html">export_mjpeg.so</a> (new in v0.6.0pre4)<br>
-	  native encoding support for AVI-files with MJPEG video
-	  format via <i>ffmpeg</i>.
-    </ul><p>	
+  <li> <a href="sorry.html">export_mpeg.so</a><br>
+       MPEG-1/2, (S)VCD, DVD, MPEG-1 layer-II audio.
+
+  <li> <a href="sorry.html">export_mpeg2enc.so</a><br>
+       MPEG-1/2, (S)VCD, frontend for <i>mpeg2enc</i> from
+       <i>mjpegtools</i>.
+       
+  <li> <a href="sorry.html">export_mp2enc.so</a><br>
+       MPEG layer-2 audio frontend for <i>mp2enc</i> from
+       <i>mjpegtools</i>.
+       
+  <li> <a href="sorry.html">export_mjpeg.so</a><br>
+       native support for AVI-files with JPEG video
+       frames encoded with <i>libjpeg</i>.
+       
+</ul><p>	
 <font size=+2 color=blue>Digital Video:</font>	
 <ul>
 
-      <li> <a href="sorry.html">export_dv.so</a>
-	  <br>Digital Video, MPEG/AC3/PCM audio - AVI file.
-      <li> <a href="sorry.html">export_dvraw.so</a> 
-	  <br>Digital Video frames with interleaved PCM audio.
-
+  <li> <a href="sorry.html">export_dv.so</a><br>
+       Digital Video, MPEG/AC3/PCM audio with AVI-file format.
+       
+  <li> <a href="sorry.html">export_dvraw.so</a> <br>
+       raw Digital Video with interleaved uncompressed PCM audio.
+       
 </ul>
 <p>	
 <font size=+2 color=blue>Images:</font>	
 <ul>
- <li> <a href="sorry.html">export_ppm.so</a> <br>
-	  exports to PPM pictures, sound to file with "-m" option.
-
- <li> <a href="sorry.html">export_im.so</a> (new in v0.6.0pre4)<img align="top" src="new.png"><br>
-     interface to <i>ImageMagick</i> library supported picture codecs and
-     file formats for generating picture sequences.
+ <li> <a href="sorry.html">export_ppm.so</a><br>
+      PPM raw video picture sequence, sound to extra file with "-m" option.
+      
+ <li> <a href="sorry.html">export_im.so</a><br>
+      interface to <i>ImageMagick</i> library supported picture codecs and
+      file formats for generating picture sequences.
      
     </ul>
 
 <p>	
-<font size=+2 color=blue>Ogg Streams:</font>	
+<font size=+2 color=blue>Ogg Media:</font>	
 
     <ul>
       <li>
@@ -397,11 +440,11 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 	     <tr>
 	       <td align=left valign="top" width=30% bgcolor=#e9e9e9>
 	       <a href="export_ogg.php"><font size=+0>export_ogg.so</font></a>
-	       <img align="top" src="new.png"></td>
+	       </td>
 	     </tr>
 	     <tr>
-	       <td>exports Ogg Vorbis audio stream to file with "-m
-		    <filename>" option (v0.6.0rc4).
+	       <td>exports Ogg Vorbis audio stream to Ogg stream file with "-m
+		    <filename>" option.
 	       </td>
 	     </tr>
       </table>
@@ -419,7 +462,7 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 
 
 <!-- hhmts start -->
-Last modified: Tue Jul 30 23:13:28 CEST 2002
+Last modified: Mon Sep 16 10:24:01 Europe/Berlin 2002
 <!-- hhmts end -->
 
 </body> </html>

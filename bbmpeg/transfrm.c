@@ -60,8 +60,13 @@ void init_transform(int sh_info)
         fprintf(stderr, "INFO: dct with MMX-acceleration (AMD)!\n");
       sub_pred_sub = sub_pred_mmx;
       add_pred_sub = add_pred_mmx;
+#if HAVE_ASM_NASM == 1
       idct_sub = bb_idct_mmx; 
       fdct_sub = bb_fdct_mmx;
+#else 
+      idct_sub = bb_idct; 
+      fdct_sub = bb_intfdct;
+#endif
       break;
 
     case MODE_SSE:       // Intel SSE, use MMX
@@ -70,8 +75,13 @@ void init_transform(int sh_info)
         fprintf(stderr, "INFO: dct with MMX acceleration (intel)!\n");
       sub_pred_sub = sub_pred_mmx;
       add_pred_sub = add_pred_mmx;
+#if HAVE_ASM_NASM == 1
       idct_sub = bb_idct_mmx; 
       fdct_sub = bb_fdct_mmx;
+#else 
+      idct_sub = bb_idct; 
+      fdct_sub = bb_intfdct;
+#endif
       break;
 
     default:  // straight IA

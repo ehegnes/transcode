@@ -264,7 +264,7 @@ int main(int argc, char** argv)
       show_version_mismatch=0;
     }
 
-    // we only try to procced if the major versions match
+    // we only try to proceed if the major versions match
     if( major_version(subtitle_header.header_version) != major_version(MIN_VERSION_CODE) ){
       fprintf(stderr,"Versions are not compatible. Please extract subtitle stream\n"
 	      " with a newer transcode version\n");

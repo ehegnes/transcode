@@ -19,15 +19,18 @@
 #define Y_LO_LIMIT 16
 #define Y_HI_LIMIT 235
 #define C_LO_LIMIT 16
-#define C_HI_LIMIT 235
+#define C_HI_LIMIT 240
 
 #define W  (denoiser.frame.w)
 #define H  (denoiser.frame.h)
 #define W2 (denoiser.frame.w/2)
 #define H2 (denoiser.frame.h/2)
 
+// config
+
 /* does not compile with gcc3 and produces weird results */
 #undef HAVE_ASM_MMX
+#define HAVE_FILTER_IO_BUF
 
 struct DNSR_GLOBAL
   {
@@ -35,32 +38,35 @@ struct DNSR_GLOBAL
     /* 0 progressive */
     /* 1 interlaced */
     /* 2 PASS II only */
-    uint32_t   mode;
+    uint8_t   mode;
     
     /* Search radius */    
-    uint32_t   radius;
+    uint8_t   radius;
 
     /* Copy threshold */
-    uint32_t   threshold;
-    uint32_t   pp_threshold;
+    uint8_t   threshold;
+    uint8_t   pp_threshold;
     
     /* Time-average-delay */
-    uint32_t   delay;
+    uint8_t   delay;
     
     /* Deinterlacer to be turned on? */    
-    uint32_t   deinterlace;
+    uint8_t   deinterlace;
 
     /* Postprocessing */
-    uint32_t   postprocess;
-    uint32_t   luma_contrast;
-    uint32_t   chroma_contrast;
-    uint32_t   sharpen;
+    uint16_t   postprocess;
+    uint16_t   luma_contrast;
+    uint16_t   chroma_contrast;
+    uint16_t   sharpen;
 
     /* scene change detection */
     uint32_t   do_reset;
     uint32_t   reset;
     uint32_t   block_thres;
     uint32_t   scene_thres;
+
+    int32_t   increment_cr;
+    int32_t   increment_cb;
     
     /* Frame information */
     struct 
@@ -84,18 +90,18 @@ struct DNSR_GLOBAL
     /* Border information */
     struct 
     {
-      uint32_t  x;
-      uint32_t  y;
-      uint32_t  w;
-      uint32_t  h;      
+      uint16_t  x;
+      uint16_t  y;
+      uint16_t  w;
+      uint16_t  h;      
     } border;
     
   };
   
 struct DNSR_VECTOR
 {
-  int32_t  x;
-  int32_t  y;
+  int8_t  x;
+  int8_t  y;
   uint32_t SAD;
 };
 

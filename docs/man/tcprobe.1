@@ -1,0 +1,103 @@
+.TH tcprobe 1 "15th January 2002" "tcprobe(1)"
+.SH NAME
+tcprobe \- probe multimedia streams from medium and print information on the
+standard output
+.SH SYNOPSIS
+.TP
+.B tcprobe
+.B -i
+.I name
+[
+.B -B
+] [
+.B -T
+.I title
+] [
+.B -b
+.I bitrate
+] [
+.B -H
+.I n
+] [
+.B -d
+.I verbosity
+] [
+.B -v
+]
+.SH COPYRIGHT
+\fBtcprobe\fP is Copyright (C) by Thomas Östreich.
+.SH DESCRIPTION
+.B tcprobe
+is part of and usually called by \fBtranscode\fP.
+.br
+However, it can also be used independently.
+.br
+\fBtcprobe\fP reads source (from stdin if not explicitely defined) and
+prints on the standard output.
+.SH OPTIONS
+.IP "\fB-i \fIname\fP"
+Specify input source.  If ommited, \fIstdin\fP is assumed.
+.br
+You can specify a file, directory, device, mountpoint or host address
+as input source.  \fBtcprobe\fP usually handles the different types
+correctly.
+.IP "\fB-B\fP
+Binary output to stdout for use in transcode.
+.IP "\fB-T \fItitle\fP
+Probe for DVD
+.I title 
+.IP "\fB-H\fP \fIn\fP"
+This option tells \fBtcprobe\fP to scan \fIn\fP MB of input data. Default
+is to scan 1 MB.
+.IP "\fB-b\fP \fIbitrate\fP"
+Set audio encoder bitrate to \fIbitrate\fP
+.IP "\fB-d\fP \fIlevel\fP"
+With this option you can specify a bitmask to enable different levels
+of verbosity (if supported).  You can combine several levels by adding the
+corresponding values:
+
+QUIET         0
+
+INFO          1
+
+DEBUG         2
+
+STATS         4
+
+WATCH         8
+
+FLIST        16
+
+VIDCORE      32
+
+SYNC         64
+
+COUNTER     128
+
+PRIVATE     256
+.IP "\fB-v\fP"
+Print version information and exit.
+.SH NOTES
+\fBtcprobe\fP is a front end for probing various source types and is used in \fBtranscode\fP´s import modules. 
+.SH EXAMPLES
+The command
+.B tcprobe -i foo.avi
+will print interesting information about the AVI file itself and its video and
+audio content.
+.PP
+.SH AUTHORS
+.B tcprobe
+was written by Thomas Östreich
+.br
+<ostreich@theorie.physik.uni-goettingen.de> with contributions from
+many others.  See AUTHORS for details.
+.SH SEE ALSO
+.BR avifix (1),
+.BR avimerge (1),
+.BR avisplit (1),
+.BR tcdecode (1),
+.BR tcdemux (1),
+.BR tcextract (1),
+.BR tccat (1),
+.BR tcscan (1),
+.BR transcode (1)

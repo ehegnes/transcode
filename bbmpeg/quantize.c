@@ -39,7 +39,6 @@ static void iquant1_non_intra(short *src, short *dst,
  * this quantizer has a bias of 1/8 stepsize towards zero
  * (except for the DC coefficient)
  */
-
 int quant_intra(short *src, short *dst, int dc_prec,
                              unsigned char *quant_mat, int mquant)
 {
@@ -115,6 +114,7 @@ int mquant)
         it flags saturation...
     */
 
+#if HAVE_ASM_NASM == 1
  if ((MMXMode > MODE_NONE) && (mquant > 1))
   {
     ret = bb_quant_ni_mmx(dst, src, quant_mat, i_quant_mat, imquant, mquant, clipvalue);
@@ -129,6 +129,7 @@ int mquant)
     if ((ret & 0xffff) == 0)
       return !!nzflag;
   }
+#endif
 
   nzflag = 0;
   for (i = 0; i < 64; i++)

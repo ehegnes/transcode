@@ -42,7 +42,6 @@ static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3;
 
 static avi_t *avifile=NULL;
 
-static int frame_size=0;
 static int format=0, bytes_per_sample=0;
 
 /* ------------------------------------------------------------ 

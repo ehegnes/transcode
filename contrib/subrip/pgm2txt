@@ -3,41 +3,92 @@
 # (this file is part of subtitle2pgm)
 # Please modify it to your needs
 #set -x
+
+###### Configuration section #################
+
+# If you already have a GOCR database adjust.
+# If in doubt, keep the default
 DB_PATH=./db/
 
+# Adjust this path to where the files
+# gocrfilter_en.sed  gocrfilter_fr.sed  gocrfilter_none.sed
+# are located
 PATH_TO_LANGUAGE_FILTER=~/sourceforge/subtitleripper/src/
+
+# set your options for gocr. Please read the gocr
+# docs to find out more about this
 GOCR_OPTIONS="-s 7 -d 0 -m 130 -m 256 -m 32"
+
+
+# Select the language of the default filter.
+# use -f command line option to override this
+# valid are: none, en, fr
 LANGUAGE=none 
+
+# Choose your favorite image viewer if you want to see
+# the current pgm image while gocr is running.
+# Enable the viewer with -v command line option.
+IMAGE_VIWER=xv
+IMAGE_VIEWER_OPTIONS=-q
+
+###### End of configuration section #########
+
+
+DISPLAY_PGM=false
 
 # function to print usage information
 usage()
 {
 cat << _END_
 Usage:
-    pgm2txt pgm_base_name [language]
+    pgm2txt [-v] [-f {en|fr|none}] pgm_base_name 
 
     pgm_base_name are the common first letters of your
     subtitle pgm files. E.g. "my_movie" if all your pgm files
     are matched by "my_movie*.pgm"
  
     You can optionally specify a language filter
-    as the second option. Currently only english
-    is supported. 
-    language = {en|none}
-    Version: 0.1
+    using the -f option. Currently only English
+    and French are supported. 
+    language = {en|fr|none}
+
+    The current pgm image can be shown in a viewer
+    by adding -v to the command line.
+
+    Example:
+
+    pgm2txt -v -f en my_movie
+
+    Version: 0.11
 _END_
 exit 1
 }
 
 # if no argument is given display usage information
-if [ -z $1 ]; then
+if [ $# -eq 0 ]; then
     usage
 fi
 
-# set the language according to second argument
-if [ $# -eq 2 ]; then
-    LANGUAGE=$2
-fi
+
+# process command line options
+while getopts ":vf:" Option
+do
+  case $Option in
+    v) 
+	DISPLAY_PGM=true
+	;;
+    f) 
+	LANGUAGE=$OPTARG
+	;;
+    *) 
+	usage
+	;; 
+  esac
+done
+
+# The first argument that is not an option is the pgm file basename
+shift $(($OPTIND - 1))
+PGM_BASE_NAME=$1
     
 if [ -f ${PATH_TO_LANGUAGE_FILTER}gocrfilter_${LANGUAGE}.sed ]; then
 	FILTER_SCRIPT=${PATH_TO_LANGUAGE_FILTER}gocrfilter_${LANGUAGE}.sed
@@ -53,6 +104,16 @@ else
 fi
 
 
+# Check if gocr is in the search path
+GOCR_TEST_PATH=`which gocr`
+if [ ! -x "${GOCR_TEST_PATH}" -a ! -L "${GOCR_TEST_PATH}" ]; then
+	echo "  ------------------------------------------------ "
+	echo "                Cannot find gocr !                 "
+	echo "    Please make sure you have installed gocr and   "
+	echo "    add it to your search path.                    "
+	echo "  ------------------------------------------------ "
+	exit 1
+fi
 
 # create a local db file if it does'n exist
 if [ ! -d ${DB_PATH} ]; then
@@ -66,20 +127,27 @@ if [ ! -f ${DB_PATH}/db.lst ]; then
 fi
 
 # run gocr on all pgm files
-for i in $1*.pgm $1*.pgm.gz; do
+for i in ${PGM_BASE_NAME}*.pgm ${PGM_BASE_NAME}*.pgm.gz; do
     if [ ! -f $i ]; then
 	echo "File $i not found"
 	continue
     fi
 
     echo "Converting $i into text"
-    #xv -quit $i &
+    if [ ! "$DISPLAY_PGM" = "false" ]; then
+	${IMAGE_VIWER} ${IMAGE_VIEWER_OPTIONS} $i &
+    fi
     if [ "none" = "${LANGUAGE}" ]; then
 	gocr ${GOCR_OPTIONS} -p ${DB_PATH}  $i > $i.txt
     else
 	gocr ${GOCR_OPTIONS} -p ${DB_PATH}  $i | sed -f ${FILTER_SCRIPT} -  > $i.txt
     fi
-    #killall xv
+
+    # close the viewer
+    if [ ! "$DISPLAY_PGM" = "false" ]; then
+	killall ${IMAGE_VIWER}
+    fi
+
 done
 
 

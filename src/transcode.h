@@ -273,7 +273,7 @@ typedef struct _vob_t {
 
   int mp3bitrate;
   int mp3frequency;
-  int mp3quality;         //0=best (very slow).  9=worst (default=5)
+  float mp3quality;         //0=best (very slow).  9=worst (default=5)
 
   char *audiologfile;
   
@@ -293,6 +293,9 @@ typedef struct _vob_t {
 
   int   chanid;
   char *station_id;
+
+  char *im_v_string;  // pass parameters to import video modules
+  char *im_a_string;  // pass parameters to import audio modules
   
 } vob_t;
 
@@ -437,8 +440,10 @@ void tc_error(char *string);
 vob_t *tc_get_vob(void); 
 long tc_get_frames_encoded(void);
 long tc_get_frames_dropped(void);
+long tc_get_frames_cloned(void);
 void tc_update_frames_dropped(long cc);
 void tc_update_frames_encoded(long cc);
+void tc_update_frames_cloned(long cc);
 void tc_set_force_exit(void);
 int tc_get_force_exit(void);
 
@@ -467,6 +472,8 @@ extern int resize2;
 extern int decolor;
 extern int zoom;
 extern int dgamma;
+extern int print_counter_interval;
+extern int print_counter_cr;
 
 // core parameter
 extern int tc_buffer_delay;
@@ -476,6 +483,7 @@ extern int tc_cluster_mode;
 extern int tc_decoder_delay;
 extern int tc_x_preview;
 extern int tc_y_preview;
+extern int tc_progress_meter;
 
 # define TC_EXPORT_NAME     10
 # define TC_EXPORT_OPEN     11

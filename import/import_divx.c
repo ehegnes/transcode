@@ -32,7 +32,7 @@
 #include "avilib.h"
 
 #define MOD_NAME    "import_divx.so"
-#define MOD_VERSION "v0.2.3 (2002-07-30)"
+#define MOD_VERSION "v0.2.4 (2002-08-03)"
 #define MOD_CODEC   "(video) DivX;-)/XviD/OpenDivX/DivX 4.xx/5.xx"
 #define MOD_PRE divx
 #include "import_def.h"
@@ -45,10 +45,11 @@ static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
 static int codec, frame_size=0;
 static unsigned long divx_version=DEC_OPT_FRAME;
 
-static DEC_PARAM    *divx;
-static DEC_FRAME    *decFrame;
-static DEC_FRAME_INFO *decInfo;
+static DEC_PARAM    *divx = NULL;
+static DEC_FRAME    *decFrame = NULL;
+static DEC_FRAME_INFO *decInfo = NULL;
 
+static int decore_in_use = 0; // semaphore to keep track of usage count
 
 // dl stuff
 static int (*divx_decore)(unsigned long para0, unsigned long opt, void *para1, void *para2);
@@ -56,14 +57,15 @@ static void *handle=NULL;
 static unsigned long divx_id=0x4711;
 static char module[TC_BUF_MAX];
 
-#define MODULE_4xx  "libdivxdecore.so"
+#define MODULE   "libdivxdecore.so"
+#define MODULE_V "libdivxdecore.so.0"
 
 static avi_t *avifile=NULL;
 
 static int pass_through=0;
 
 //temporary video buffer
-static char *buffer;
+static char *buffer = NULL;
 #define BUFFER_SIZE SIZE_RGB_FRAME
 
 
@@ -140,38 +142,50 @@ static unsigned char *bufalloc(size_t size)
    return (unsigned char *) (buf + adjust);
 }
 
-static int divx_init(char *path, char *mod) {
+static int divx_init(char *path) {
 #ifdef __FreeBSD__
     const
 #endif    
     char *error;
 
-    sprintf(module, "%s/%s", path, mod);
-  
-    if(verbose_flag & TC_DEBUG) 
-	fprintf(stderr, "loading external module %s\n", module); 
+    handle = NULL;
 
     // try transcode's module directory
-
-    handle = dlopen(module, RTLD_NOW); 
-    
-    
     if (!handle) {
-      
-      //try the default:
+      // (try 5.x "libdivxencore.so.0" style)
+      sprintf(module, "%s/%s", path, MODULE_V);
+      handle = dlopen(module, RTLD_LAZY); 
+    }
+    if (!handle) {
+      // (try 4.x "libdivxencore.so" style)
+      sprintf(module, "%s/%s", path, MODULE);
+      handle = dlopen(module, RTLD_LAZY); 
+    }
 
-      handle = dlopen(mod, RTLD_GLOBAL| RTLD_LAZY);
-
-      if (!handle) {
-	fputs (dlerror(), stderr);
-	return(-1);
-      }
+    //try the default:
+    if (!handle) {
+      // (try 5.x "libdivxencore.so.0" style)
+      sprintf(module, "%s", MODULE_V);
+      handle = dlopen(module, RTLD_LAZY); 
+    }
+    if (!handle) {
+      // (try 4.x "libdivxencore.so" style)
+      sprintf(module, "%s", MODULE);
+      handle = dlopen(module, RTLD_LAZY); 
     }
     
+    if (!handle) {
+      fprintf(stderr, "[%s] %s\n", MOD_NAME, dlerror());
+      return(-1);
+    } else {  
+      if(verbose_flag & TC_DEBUG) 
+        fprintf(stderr, "[%s] Loading external codec module %s\n", MOD_NAME, module); 
+    }
+
     divx_decore = dlsym(handle, "decore");   
     
     if ((error = dlerror()) != NULL)  {
-      fputs(error, stderr);
+      fprintf(stderr, "[%s] %s\n", MOD_NAME, error);
       return(-1);
     }
 
@@ -200,9 +214,11 @@ MOD_open
     
     //load the codec
     
-    if(divx_init(vob->mod_path, MODULE_4xx)<0) {
-      printf("failed to init DivX 4.xx/5.xx codec");
-      return(TC_IMPORT_ERROR); 
+    if (!decore_in_use) {
+      if(divx_init(vob->mod_path)<0) {
+	printf("failed to init DivX 4.xx/5.xx codec");
+	return(TC_IMPORT_ERROR); 
+      }
     }
     
     if ((divx = malloc(sizeof(DEC_PARAM)))==NULL) {
@@ -278,7 +294,8 @@ MOD_open
     if(divx_decore(divx_id, DEC_OPT_INIT, divx, NULL) < 0) {
       printf("codec DEC_OPT_INIT error");
       return(TC_IMPORT_ERROR); 
-    }
+    } else
+	++decore_in_use;
     
     if ((decFrame = malloc(sizeof(DEC_FRAME)))==NULL) {
       perror("out of memory");
@@ -291,11 +308,13 @@ MOD_open
       return(TC_IMPORT_ERROR); 
     }
   
-    if ((buffer = bufalloc(BUFFER_SIZE))==NULL) {
-      perror("out of memory");
-      return(TC_EXPORT_ERROR); 
-    } else
-      memset(buffer, 0, BUFFER_SIZE);  
+    if (!buffer) {
+      if ((buffer = bufalloc(BUFFER_SIZE))==NULL) {
+	perror("out of memory");
+	return(TC_EXPORT_ERROR); 
+      } else
+	memset(buffer, 0, BUFFER_SIZE);  
+    }
     
     //postproc
 /*    
@@ -392,12 +411,25 @@ MOD_close
 
     if(param->flag == TC_VIDEO) {
 	
-	int status = divx_decore(divx_id, DEC_OPT_RELEASE, NULL, NULL);
-    	if(verbose_flag & TC_DEBUG) 
+	int status;
+
+	//fprintf (stderr, "DEBUG [%s:%d] 1\n", __FILE__, __LINE__);
+
+	if (decore_in_use>0) {
+	    --decore_in_use;
+	    status = divx_decore(divx_id, DEC_OPT_RELEASE, NULL, NULL);
+	    if(verbose_flag & TC_DEBUG) 
 		fprintf(stderr, "DivX decore module returned %d\n", status); 
 
-	//remove codec
-	dlclose(handle);
+	    //remove codec
+	    dlclose(handle);
+	}
+
+	// free memory
+	if (divx)     { free (divx);         divx=NULL;     }
+	if (decFrame) { free (decFrame);     decFrame=NULL; }
+	if (decInfo)  { free (decInfo);      decInfo=NULL;  }
+	if (avifile)  { AVI_close (avifile); avifile=NULL;  }
  
 	return(0);
     }

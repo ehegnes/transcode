@@ -3,6 +3,10 @@
  * framecode token scanner
  * Copyright (c) 2002 Chris C. Hoover
  * cchoover@charter.net
+ *
+ * Note: Please do NOT modify framecode.c directly, make changes to framecode.l
+ * instead and regenerate framecode.c with
+ *   flex -oframecode.c -L -CF framecode.l
  */
 
 %option noyywrap
@@ -11,17 +15,19 @@
 
 #include "framecode.h"
 
-int fc_to = 0, fc_verb = 1;
-struct fc_time * fc_list = NULL;
+#define YY_DECL int yylex YY_PROTO((struct fc_time *fc_list, int *fc_to, int fc_verb))
+
 
 int
-parse_fc_time_string( char * string, double fps )
+parse_fc_time_string( char * string, double fps, char *separator, 
+                      int fc_verb, struct fc_time **fc_list)
 {
   struct fc_time * time;
+  int fc_to = 0;
   char * hold;
 
   yy_scan_string( "" );
-  hold = strtok( string, "," );
+  hold = strtok( string, separator);
 
   while( hold != NULL ) {
     yy_scan_string( hold );
@@ -29,25 +35,49 @@ parse_fc_time_string( char * string, double fps )
     if( ( time = new_fc_time( ) ) == NULL )
       return -1;
 
-    memset (time, 0, sizeof(struct fc_time));
+    time->sh    = 0;
+    time->sm    = 0;
+    time->ss    = 0;
+    time->sf    = 0;
+    time->stf   = 0;
+    time->eh    = 0;
+    time->em    = 0;
+    time->es    = 0;
+    time->ef    = 0;
+    time->etf   = 0;
+    time->stepf = 1;
+    time->next  = NULL;
 
     time->fps = fps;
 
-    if( fc_list == NULL )
-      fc_list = time;
+    if( *fc_list == NULL )
+      *fc_list = time;
 
-    else if( append_fc_time( fc_list, time ) == -1 )
+    else if( append_fc_time( *fc_list, time ) == -1 )
       return -1;
 
-    if( yylex( ) < 0 ) {
+    if( yylex( *fc_list, &fc_to, fc_verb ) < 0 ) {
       printf( "[%s:%d]syntax error\n", __FILE__, __LINE__ );
       return -1;
     }
 
-    hold = strtok( NULL, "," );
+    hold = strtok( NULL, separator);
   }
 
   return 0;
+}
+
+int fc_frame_in_time( struct fc_time * list, unsigned int frame ) 
+{
+    while (list) {
+	if (list->stf <= frame && frame < list->etf)
+	    return list->stepf;
+	else 
+	    list = list->next;
+    }
+
+    return 0;
+
 }
 
 void
@@ -61,28 +91,29 @@ fc_set_start_time( struct fc_time * time, unsigned int frames )
     time->ss = 0;
     time->sf = frames;
     time->stf = 0;
+    time->stepf = 1;
     next = time->next;
     time->next = NULL;
-    fc_time_normalize( time );
+    fc_time_normalize( time, 0 );
     time->next = next;
   }
 }
 
 void
-fc_time_normalize( struct fc_time * list )
+fc_time_normalize( struct fc_time * list, int fc_verb )
 {
   unsigned int th, tm, ts, tf;
 
   while( list != NULL ) {
     // avoid fpu error
-    if( list->fps == 0 )
-      list->fps = 1;
+    if( list->fps == 0.0 )
+      list->fps = 1.0;
     /*
      * start time
      */
     if( list->sf >= list->fps ) {
       list->ss += list->sf / list->fps;
-      list->sf -= ( list->fps * ( list->sf / list->fps ) );
+      list->sf -= ( list->fps * (int)( list->sf / list->fps ) );
     }
 
     if( list->ss >= 60  ) {
@@ -104,7 +135,7 @@ fc_time_normalize( struct fc_time * list )
      */
     if( list->ef >= list->fps ) {
       list->es += list->ef / list->fps;
-      list->ef -= ( list->fps * ( list->ef / list->fps ) );
+      list->ef -= ( list->fps * (int)( list->ef / list->fps ) );
     }
 
     if( list->es >= 60  ) {
@@ -204,6 +235,7 @@ append_fc_time( struct fc_time * list, struct fc_time * time )
 DIGIT                             [0-9]
 FRM_BLOCK                         \.?{DIGIT}*
 HMS_BLOCK                         :?{DIGIT}*
+STEP                              \/{DIGIT}*
 TO                                -
 OOPS                              .
 SKIP                              [ \t\n]+
@@ -224,11 +256,23 @@ HOURS_MINUTES_SECONDS_AND_FRAMES  {DIGIT}*{MINUTES_SECONDS_AND_FRAMES}
   if( fc_verb )
     printf( "%d frames ", atoi( yytext ) );
 
-  if( fc_to )
+  if( *fc_to ) {
     tail_fc_time( fc_list )->ef = (unsigned)atoi( yytext );
-
-  else
+  } 
+  else {
     tail_fc_time( fc_list )->sf = (unsigned)atoi( yytext );
+  }
+}
+
+{STEP} {
+
+  if( *yytext == '/' )
+    yytext++;
+
+    if( fc_verb )
+      printf( "stepwidth %d ", atoi( yytext ) );
+
+    tail_fc_time( fc_list )->stepf = (unsigned)atoi( yytext );
 }
 
 {SECONDS_AND_FRAMES} {
@@ -240,7 +284,7 @@ HOURS_MINUTES_SECONDS_AND_FRAMES  {DIGIT}*{MINUTES_SECONDS_AND_FRAMES}
     if( fc_verb )
       printf( "%d seconds ", atoi( yytext ) );
 
-    if( fc_to )
+    if( *fc_to )
  	    tail_fc_time( fc_list )->es = (unsigned)atoi( yytext );
 
     else
@@ -251,7 +295,7 @@ HOURS_MINUTES_SECONDS_AND_FRAMES  {DIGIT}*{MINUTES_SECONDS_AND_FRAMES}
     if( fc_verb )
       printf( "%d seconds and %d frames ", atoi( yytext ), atoi( index( yytext, '.' ) + 1 ) );
 
-    if( fc_to ) {
+    if( *fc_to ) {
  	    tail_fc_time( fc_list )->es = (unsigned)atoi( yytext );
  	    tail_fc_time( fc_list )->ef = (unsigned)atoi( index( yytext, '.' ) + 1 );
     }
@@ -262,6 +306,7 @@ HOURS_MINUTES_SECONDS_AND_FRAMES  {DIGIT}*{MINUTES_SECONDS_AND_FRAMES}
   }
 }
 
+
 {MINUTES_SECONDS_AND_FRAMES} {
 
   if( *yytext == ':' )
@@ -271,7 +316,7 @@ HOURS_MINUTES_SECONDS_AND_FRAMES  {DIGIT}*{MINUTES_SECONDS_AND_FRAMES}
     if( fc_verb )
       printf( "%d minutes and %d seconds ", atoi( yytext ), atoi( index( yytext, ':' ) + 1 ) );
 
-    if( fc_to ) {
+    if( *fc_to ) {
  	    tail_fc_time( fc_list )->em = (unsigned)atoi( yytext );
  	    tail_fc_time( fc_list )->es = (unsigned)atoi( index( yytext, ':' ) + 1 );
     }
@@ -286,7 +331,7 @@ HOURS_MINUTES_SECONDS_AND_FRAMES  {DIGIT}*{MINUTES_SECONDS_AND_FRAMES}
     if( fc_verb )
       printf( "%d minutes, %d seconds and %d frames ", atoi( yytext ), atoi( index( yytext, ':' ) + 1 ), atoi( index( yytext, '.' ) + 1 ) );
 
-    if( fc_to ) {
+    if( *fc_to ) {
  	    tail_fc_time( fc_list )->em = (unsigned)atoi( yytext );
  	    tail_fc_time( fc_list )->es = (unsigned)atoi( index( yytext, ':' ) + 1 );
       tail_fc_time( fc_list )->ef = (unsigned)atoi( index( yytext, '.' ) + 1 );
@@ -305,7 +350,7 @@ HOURS_MINUTES_SECONDS_AND_FRAMES  {DIGIT}*{MINUTES_SECONDS_AND_FRAMES}
     if( fc_verb )
       printf( "%d hours, %d minutes and %d seconds ", atoi( yytext ), atoi( index( yytext, ':' ) + 1 ), atoi( rindex( yytext, ':' ) + 1 ) );
 
-    if( fc_to ) {
+    if( *fc_to ) {
  	    tail_fc_time( fc_list )->eh = (unsigned)atoi( yytext );
  	    tail_fc_time( fc_list )->em = (unsigned)atoi( index( yytext, ':' ) + 1 );
       tail_fc_time( fc_list )->es = (unsigned)atoi( rindex( yytext, ':' ) + 1 );
@@ -321,7 +366,7 @@ HOURS_MINUTES_SECONDS_AND_FRAMES  {DIGIT}*{MINUTES_SECONDS_AND_FRAMES}
     if( fc_verb )
       printf( "%d hours, %d minutes, %d seconds and %d frames ", atoi( yytext ), atoi( index( yytext, ':' ) + 1 ), atoi( rindex( yytext, ':' ) + 1 ), atoi( index( yytext, '.' ) + 1 ) );
 
-    if( fc_to ) {
+    if( *fc_to ) {
  	    tail_fc_time( fc_list )->eh = (unsigned)atoi( yytext );
  	    tail_fc_time( fc_list )->em = (unsigned)atoi( index( yytext, ':' ) + 1 );
       tail_fc_time( fc_list )->es = (unsigned)atoi( rindex( yytext, ':' ) + 1 );
@@ -338,13 +383,13 @@ HOURS_MINUTES_SECONDS_AND_FRAMES  {DIGIT}*{MINUTES_SECONDS_AND_FRAMES}
 
 {TO} {
 
-  if( fc_to == 1 ) {
+  if( *fc_to == 1 ) {
     if( fc_verb )
       printf( "\n[%s:%d] too to\n", __FILE__, __LINE__ );
     return -1;
   }
 
-  fc_to = 1;
+  *fc_to = 1;
 
   if( fc_verb )
     printf( "to " ); 
@@ -360,8 +405,8 @@ HOURS_MINUTES_SECONDS_AND_FRAMES  {DIGIT}*{MINUTES_SECONDS_AND_FRAMES}
 
 <<EOF>>  {
 
-  fc_time_normalize( tail_fc_time( fc_list ) );
-  fc_to = 0;
+  fc_time_normalize( tail_fc_time( fc_list ), fc_verb );
+  *fc_to = 0;
 
   if( fc_verb )
     printf( "\n" );

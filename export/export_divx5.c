@@ -80,7 +80,7 @@ static int (*divx5_encore)(void *para0, int opt, void *para1, void *para2);
 static void *handle;
 static char module[TC_BUF_MAX];
 
-#define MODULE "libdivxencore.so"
+#define MODULE "libdivxencore.so.0"
 
 static int divx5_init(char *path) {
 #ifdef __FreeBSD__ /* Just in case ProjectMayo will release FreeBSD library :-) */  
@@ -103,29 +103,29 @@ static int divx5_init(char *path) {
     handle = dlopen(MODULE, RTLD_GLOBAL| RTLD_LAZY);
     
     if (!handle) {
-      fputs (dlerror(), stderr);
+      fprintf(stderr, "[%s] %s\n", MOD_NAME, dlerror());
       return(-1);
     } else {  
       if(verbose_flag & TC_DEBUG) 
-	fprintf(stderr, "loading external codec module %s\n", MODULE); 
+        fprintf(stderr, "[%s] Loading external codec module %s\n", MOD_NAME, MODULE);
     }
     
   } else {  
     if(verbose_flag & TC_DEBUG) 
-      fprintf(stderr, "loading external codec module %s\n", module); 
+      fprintf(stderr, "[%s] Loading external codec module %s\n", MOD_NAME, module);
   }
   
   divx5_encore = dlsym(handle, "encore");   
   
   if ((error = dlerror()) != NULL)  {
-    fputs(error, stderr);
+    fprintf(stderr, "[%s] %s\n", MOD_NAME, error);
     return(-1);
   }
   
   quiet_encore=dlsym(handle, "quiet_encore"); 
   
   if ((error = dlerror()) != NULL)  {
-    fputs(error, stderr);
+    fprintf(stderr, "[%s] %s\n", MOD_NAME, error);
     return(-1);
   }
   

@@ -6,17 +6,17 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 AC3_LIB=-L../libac3 -lac3_tc
 AC3_INC=-I../libac3 -I$(srcdir)/../libac3
 
-INCLUDES = -I./ -I../ -I$(srcdir)/.. -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ -I../encore2 -I$(srcdir)/../encore2  @LAME_CFLAGS@ $(AC3_INC) @QT_CFLAGS@ -Wall @DV_CFLAGS@ -I../libvo -I$(srcdir)/../libvo @MJPEG_CFLAGS@ @LIBFAME_CFLAGS@ @MAGICK_CFLAGS@ @LIBJPEG_CFLAGS@
+INCLUDES = -I./ -I../ -I$(srcdir)/.. -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ -I../encore2 -I$(srcdir)/../encore2  @LAME_CFLAGS@ $(AC3_INC) @QT_CFLAGS@ -Wall @DV_CFLAGS@ -I../libvo -I$(srcdir)/../libvo @MJPEG_CFLAGS@ @LIBFAME_CFLAGS@ @MAGICK_CFLAGS@ @LIBJPEG_CFLAGS@ -I../libioaux -I$(srcdir)/../libioaux
 
 CFLAGS = -D_REENTRANT @CFLAGS@
 
 pkgdir=@MOD_PATH@
 
-if HAVE_ASM_NASM
+#if HAVE_ASM_NASM
 if TRANSCODE_0_6
 MODS7 = export_mpeg.la 
 endif
-endif
+#endif
 
 if HAVE_AVIFILE
 if HAVE_LAME
@@ -139,15 +139,15 @@ export_divx4raw_la_LIBADD =  @LAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
 
 export_xvid_la_SOURCES = export_xvid.c aud_aux.c xvid_vbr.c
 export_xvid_la_LDFLAGS = -no-undefined -module -avoid-version 
-export_xvid_la_LIBADD = @LAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
+export_xvid_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -lioaux $(AC3_LIB) -lavi -lm
 
 export_xvidraw_la_SOURCES = export_xvidraw.c aud_aux.c xvid_vbr.c
 export_xvidraw_la_LDFLAGS = -no-undefined -module -avoid-version 
-export_xvidraw_la_LIBADD = @LAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
+export_xvidraw_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -lioaux $(AC3_LIB) -lavi -lm
 
 export_xvidcvs_la_SOURCES = export_xvidcvs.c aud_aux.c xvid_vbr.c
 export_xvidcvs_la_LDFLAGS = -no-undefined -module -avoid-version 
-export_xvidcvs_la_LIBADD = @LAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
+export_xvidcvs_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -lioaux $(AC3_LIB) -lavi -lm 
 
 export_raw_la_SOURCES = export_raw.c aud_aux.c
 export_raw_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -193,8 +193,9 @@ export_im_la_SOURCES = export_im.c vid_aux.c
 export_im_la_LDFLAGS = -no-undefined -module -avoid-version 
 export_im_la_LIBADD = @MAGICK_LIBS@ -L../libvo -lvout -lm 
 
-pkg_DATA = export_af6.conf
+pkg_DATA = export_af6.conf xvid.cfg
 
-EXTRA_DIST = *.h *.conf
+EXTRA_DIST = *.h *.conf *.cfg
+
 
 

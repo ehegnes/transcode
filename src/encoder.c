@@ -36,6 +36,7 @@ static void *export_ahandle, *export_vhandle;
 
 long frames_encoded = 0;
 long frames_dropped = 0;
+long frames_cloned  = 0;
 static pthread_mutex_t frame_counter_lock=PTHREAD_MUTEX_INITIALIZER;
 
 static int export = 0;
@@ -93,6 +94,23 @@ void tc_update_frames_dropped(long cc)
 {
   pthread_mutex_lock(&frame_counter_lock);
   frames_dropped +=cc;
+  pthread_mutex_unlock(&frame_counter_lock);
+  return;
+}
+
+long tc_get_frames_cloned()
+{
+  long cc;
+  pthread_mutex_lock(&frame_counter_lock);
+  cc=frames_cloned;
+  pthread_mutex_unlock(&frame_counter_lock);
+  return(cc);
+}
+
+void tc_update_frames_cloned(long cc)
+{
+  pthread_mutex_lock(&frame_counter_lock);
+  frames_cloned +=cc;
   pthread_mutex_unlock(&frame_counter_lock);
   return;
 }
@@ -622,7 +640,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
       
       // release frame buffer memory
       
-      if(vptr!=NULL) {
+      if(vptr!=NULL && !(vptr->attributes & TC_FRAME_IS_CLONED)) {
 	
 	vframe_remove(vptr);  
 	
@@ -635,9 +653,28 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	vptr=NULL;           
       }
       
+      
+      if(vptr!=NULL && (vptr->attributes & TC_FRAME_IS_CLONED)) {
+	if(verbose & TC_DEBUG) fprintf (stdout, "(%d) V pointer done. Cloned: (%d)\n", vptr->id, (vptr->attributes));
+	
+	// delete clone flag
+	vptr->attributes &= ~TC_FRAME_IS_CLONED;
 
-      if(aptr!=NULL) {
+	// set info for filters
+	vptr->attributes |= TC_FRAME_WAS_CLONED;
 
+	// this has to be done here, 
+	// frame_threads.c won't see the frame again
+	pthread_mutex_lock(&vbuffer_ex_fill_lock);
+	++vbuffer_ex_fill_ctr;
+	pthread_mutex_unlock(&vbuffer_ex_fill_lock);
+
+	// update counter
+	tc_update_frames_cloned(1);
+      }
+      
+      if(aptr!=NULL && !(aptr->attributes & TC_FRAME_IS_CLONED)) {
+	
 	aframe_remove(aptr);  
 	
 	//notify sleeping import thread
@@ -649,6 +686,22 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	aptr=NULL;
       }           
 
+      if(aptr!=NULL && (aptr->attributes & TC_FRAME_IS_CLONED)) {
+	if(verbose & TC_DEBUG) fprintf (stdout, "(%d) A pointer done. Cloned: (%d)\n", aptr->id, (aptr->attributes));
+	
+	// delete clone flag
+	aptr->attributes &= ~TC_FRAME_IS_CLONED;
+
+	// set info for filters
+	aptr->attributes |= TC_FRAME_WAS_CLONED;
+
+	// this has to be done here, 
+	// frame_threads.c won't see the frame again
+	pthread_mutex_lock(&abuffer_ex_fill_lock);
+	++abuffer_ex_fill_ctr;
+	pthread_mutex_unlock(&abuffer_ex_fill_lock);
+      }
+      
     } while(import_status() && !terminate); // main frame decoding loop
     
     if(verbose & TC_DEBUG) fprintf(stderr, "(%s) export terminated - buffer empty\n", __FILE__);

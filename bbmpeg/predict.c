@@ -77,10 +77,12 @@ void init_predict(int sh_info)
       break;
 
     case MODE_SSE:       // Intel SSE, 
+#if HAVE_SSE == 1
       if (sh_info)
         fprintf(stderr, "INFO: prediction with SSE-acceleration!\n");
       pred_comp = pred_comp_sse;
       break;
+#endif
       
     case MODE_MMX:       // Intel or AMD MMX
       if (sh_info)

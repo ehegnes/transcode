@@ -90,7 +90,7 @@ static char *scan_directory(char *dir_name)
 	      continue;
 	  
 	  sprintf(filename, "%s%s", dir_name, dent->d_name);
-	  
+
 	  //counter 
 	  ++nfiles;
 	  
@@ -480,7 +480,7 @@ void tccat_thread(info_t *ipipe)
 
 int fileinfo_dir(char *dname, int *fd, long *magic)
 {    
-    char *name;
+    char *name=NULL;
     
     //check file type - file order not important
     
@@ -492,7 +492,7 @@ int fileinfo_dir(char *dname, int *fd, long *magic)
 	fprintf(stderr, "(%s) scanning directory \"%s\"\n", __FILE__, dname);
     
     if((name=scan_directory(dname))==NULL) return(-1); 	
-    
+
     if((*fd= open(name, O_RDONLY))<0) {
 	perror("open file");
 	return(-1);

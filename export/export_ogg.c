@@ -62,21 +62,29 @@ int p_write (char *buf, size_t len)
 
 MOD_open
 {
+    int result;
     if (param->flag == TC_AUDIO) {
 	char buf [PATH_MAX];
 
 
 	if (!strcmp(vob->video_out_file, vob->audio_out_file)) {
 	    fprintf(stderr, "[%s] Writing audio to \"/dev/null\" (no -m option)\n", MOD_NAME);
-	    strcpy(vob->audio_out_file, "/dev/null");
 	}
-	if (snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -q %d -R %d -Q -o %s -",
+	if (vob->mp3bitrate == 0)
+	  result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -q %.2f -R %d -Q -o %s -",
 		vob->a_bits,
 		vob->a_chan,
 		vob->mp3quality,
 		vob->a_rate,
-		vob->audio_out_file 
-		) < 0) {
+		vob->audio_out_file?vob->audio_out_file:"/dev/null");
+	else
+	  result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -b %d -R %d -Q -o %s -",
+		vob->a_bits,
+		vob->a_chan,
+		vob->mp3bitrate,
+		vob->a_rate,
+		vob->audio_out_file?vob->audio_out_file:"/dev/null");
+	if (result < 0) {
 	    perror("command buffer overflow");
 	    return(TC_EXPORT_ERROR); 
 	}
@@ -84,7 +92,7 @@ MOD_open
 	    return(TC_EXPORT_ERROR);
 
 	if (verbose > 0)
-	    fprintf (stderr, "[%s] cmd=%s\n", MOD_NAME, buf);
+	    fprintf (stderr, "[%s] %s\n", MOD_NAME, buf);
 
 	return(0);
 		
@@ -181,9 +189,10 @@ MOD_close
     
 	pFile = NULL;
 
-	if (verbose > 0 && strcmp (vob->audio_out_file, "/dev/null")) {
+	if (verbose > 0 && strcmp (vob->audio_out_file, "/dev/null") &&
+		strcmp (vob->video_out_file, "/dev/null")!=0) {
 	    fprintf (stderr, "\n[%s] Hint: Now merge the files with\n", MOD_NAME);
-	    fprintf (stderr, "[%s] Hint: oggmerge -o complete.ogg %s %s\n", 
+	    fprintf (stderr, "[%s] Hint: ogmmerge -o complete.ogg %s %s\n", 
 		    MOD_NAME, vob->video_out_file, vob->audio_out_file );
 	}
   

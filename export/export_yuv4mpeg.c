@@ -35,8 +35,13 @@
 #define MOD_PRE yuv4mpeg
 #include "export_def.h"
 
+#if defined(HAVE_MJPEG_INC)
+#include "yuv4mpeg.h"
+#include "mpegconsts.h"
+#else
 #include "mjpegtools/yuv4mpeg.h"
 #include "mjpegtools/mpegconsts.h"
+#endif
 
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_YUV|TC_CAP_PCM|TC_CAP_AC3|TC_CAP_AUD|TC_CAP_RGB;

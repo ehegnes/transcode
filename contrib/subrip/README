@@ -1,19 +1,17 @@
 Author: Arne Driescher 
-Date: Apr 23 2002
+Date: 2002-08-14
 Project homepage: http://subtitleripper.sourceforge.net
-#	$Id: README,v 1.1.1.1 2003-03-08 13:42:45 tibit Exp $	
+#	$Id: README,v 1.3 2003-03-08 13:56:33 tibit Exp $	
 
 1) What is this package for?
 ============================
 
-This package extracts DVD subtitles from
-a subtitle stream and converts it to pgm 
-or ppm images. The main purpose is to 
-provide the required input to OCR software
-to convert the subtitle images into ASCII
-text. Please note that the conversion
-into ASCII is not part of this package
-but requires an OCR program like gocr.
+This package extracts DVD subtitles from a subtitle stream and
+converts it to pgm or ppm images or into VobSub format.  The main
+purpose is to provide the required input to OCR software to convert
+the subtitle images into ASCII text. Please note that the conversion
+into ASCII is not part of this package but requires an OCR program
+like gocr.
 
 
 2) Installation
@@ -69,6 +67,11 @@ You might want to have a look at gorc:
 http://jocr.sourceforge.net/
 (Please read the README.gocr too.)
 
+VobSub does not require any additional packages
+but you need a video play like mplayer
+(http://mplayer.dev.hu/homepage/news.html)
+to really see this subtitles. 
+
 4) Basic knowledge about subtitle ripping
 ========================================
 DVDs save subtitles as images that 
@@ -113,9 +116,21 @@ Alternatives:
    refering to the extsub option
    on how to do it.
 
+   VobSub saves subtitles as
+   the pictures. So you
+   have the same advantages as in the
+   original DVD subtitles but this
+   format requires much more space
+   to store the subtitles. 
+
 
 5) How to use this package
 ==========================
+
+If you want to use VobSub subtitles
+please read the file README.vobsub.
+
+For ACSII subtitles read on:
 
 [ ---------------------------------------------------------------------------------
   Here the short version for the impatient reader:
@@ -252,11 +267,11 @@ try to run it on the images.  An example script is given in the file
 pgm2txt. For the example "my_movie" in this document you would call it
 in this way
 
-   pgm2txt my_movie en
+   pgm2txt -f en my_movie 
 
 The first argument it the basename of all your pgm files. The
 script tries to find my_movie*.pgm and my_movie*.pgm.gz
-files. The second argument is the language filter
+files. The argument to -f is the language filter
 that you want to use for gocr output. Currently
 only english is supported. The language filter
 is nothing else then a search/replace table
