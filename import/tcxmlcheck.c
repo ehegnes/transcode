@@ -126,10 +126,10 @@ int main(int argc, char *argv[])
 {
 
 	vob_t s_vob,*p_vob;
-	char s_cmd,*p_in_v_file="/dev/stdin",*p_in_a_file=NULL,*p_audio_tmp=NULL,*p_video_tmp=NULL;
+	char *p_in_v_file="/dev/stdin",*p_in_a_file=NULL,*p_audio_tmp=NULL,*p_video_tmp=NULL;
 	pid_t s_pid;
 	int s_bin_dump=0,s_type_check=VIDEO_MODE|AUDIO_MODE,s_shmem=0;
-	int s_shm,s_rc;
+	int s_shm,s_rc,s_cmd;
 	key_t s_key=0x00112233;
 	
 	//proper initialization
