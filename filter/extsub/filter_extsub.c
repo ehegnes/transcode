@@ -500,7 +500,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
     // misc:
 
-    f_time = 1./vob->fps;
+    if (post) {
+	f_time = 1./vob->ex_fps;
+    } else {
+	f_time = 1./vob->fps;
+    }
 
     codec = vob->im_v_codec;
     

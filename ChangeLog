@@ -7,6 +7,10 @@ transcode-0.6.12
   Protect all calls to libavcodec with locks. This was basically
   already done, but I have missed one.
 
+  * filter/extsub/filter_extsub.c:
+  When running as a post filter, use the export_fps setting instead
+  of the import one.
+
 2003-12-11 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/fileinfo.c:
