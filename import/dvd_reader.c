@@ -652,6 +652,7 @@ int dvd_probe(int title, probe_info_t *info)
 	start_cell = cur_pgc->program_map[pgn - 1] - 1;
 	pgc_id     = vts_ptt_srpt->title[ttn - 1].ptt[i + 1].pgcn;
 	pgn        = vts_ptt_srpt->title[ttn - 1].ptt[i + 1].pgn;
+	if (pgn < 1) continue;
 	cur_pgc    = vts_file->vts_pgcit->pgci_srp[pgc_id - 1].pgc;
 	end_cell   = cur_pgc->program_map[pgn - 1] - 2;
 	cur_time   = 0;

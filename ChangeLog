@@ -11,8 +11,9 @@ transcode-0.6.11
   Bugfix for -y ffmpeg; make it thread-safe.
   Bugfix for -y ffmpeg; vhq is gone.
   Bugfix for -y pcm; fixed floating point division.
-  Bugix for avitools; fix audio syncing (again!)
-  Bugix for avitools; pass-thru 0byte frames
+  Bugfix for avitools; fix audio syncing (again!)
+  Bugfix for avitools; pass-thru 0byte frames
+  Bugfix for tcprobe; segfault reading chapter table.
   CHANGE: ffmpeg is now used to decode MPEG4 video.
   CHANGE: with pass-thru, suggest -y raw,raw.
   Docu; Description of UYVY colorspace.
@@ -39,6 +40,12 @@ transcode-0.6.11
   Upgraded included libavcodec to 0.4.8 (4683)
   Upgraded -y xvid4 to the latest API
 
+
+2003-10-13 Seth Green <sgreen at sparse.org>
+
+  * import/dvd_reader.c:
+  Fix a segfault with some particular dvds where tcprobe crashes
+  when printing information about the last chapter.
 
 2003-10-13 Edouard Gomez <ed.gomez at free.fr>
 
