@@ -24,10 +24,6 @@ AM_CPPFLAGS = \
 
 pkgdir = $(MOD_PATH)
 
-if HAVE_ASM_NASM
-MODS_ASM_NASM = export_mpeg.la 
-endif
-
 if HAVE_AVIFILE
 MODS_AVIFILE = export_af6.la
 endif 
@@ -182,11 +178,6 @@ export_xvid3_la_LIBADD = $(FFMPEG_LIBS_LIBS) $(LAME_LIBS) $(AC3_LIBS)
 export_xvid4_la_SOURCES = export_xvid4.c aud_aux.c
 export_xvid4_la_LDFLAGS = -module -avoid-version
 export_xvid4_la_LIBADD = $(FFMPEG_LIBS_LIBS) $(LAME_LIBS) $(AC3_LIBS)
-
-# MODS_ASM_NASM
-export_mpeg_la_SOURCES = export_mpeg.c vid_aux.c
-export_mpeg_la_LDFLAGS = -module -avoid-version
-export_mpeg_la_LIBADD = $(BBMPEG_LIBS) $(LIBVO_LIBS) $(FFMPEG_LIBS_LIBS)
 
 # MODS_AVIFILE
 export_af6_la_SOURCES = export_af6.cpp af6_aux.cpp aud_aux.c
