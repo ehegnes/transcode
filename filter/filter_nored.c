@@ -147,9 +147,10 @@ int tc_filter(vframe_list_t *ptr, char *options)
     width = vob->ex_v_width;
     height = vob->ex_v_height;
 
-    if (vob->im_v_codec == CODEC_RGB)
-      size = width*3;
-    else 
+    if (vob->im_v_codec == CODEC_RGB) {
+	fprintf(stderr, "[%s] This filter is only capable of YUV mode\n", MOD_NAME);
+	return -1;
+    } else 
       size = width*3/2;
 
     // filter init ok.
