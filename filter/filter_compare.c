@@ -23,11 +23,11 @@
  */
 
 #define MOD_NAME    "filter_compare.so"
-#define MOD_VERSION "v0.1.0 (2003-07-18)"
+#define MOD_VERSION "v0.1.1 (2003-08-26)"
 #define MOD_CAP     "compare with other image to find a pattern"
 #define MOD_AUTHOR  "Antonio Beamud"
 
-#define DELTA_COLOR 35.0
+#define DELTA_COLOR 45.0
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -176,6 +176,13 @@ int tc_filter(vframe_list_t *ptr, char *options)
 			optstr_get(options, "results", "%[^:]", &results_name);
 			optstr_get(options, "delta", "%f", &compare->delta);
 			
+			if (verbose > 1) {
+			printf("Compare Image Settings:\n");
+			printf("      pattern = %s\n", pattern_name);
+			printf("      results = %s\n", results_name);
+			printf("        delta = %f\n", compare->delta);
+			}		
+			
 			if (strlen(results_name) == 0) {
 				// Ponemos el nombre del fichero al original con extension dat
 				strcpy(results_name,"/tmp/compare.dat");
@@ -187,30 +194,31 @@ int tc_filter(vframe_list_t *ptr, char *options)
 			}
 			
 			InitializeMagick("");
-			
+			if (verbose > 1) printf("[%s] Magick Initialized successfully\n", MOD_NAME);
+				
 			GetExceptionInfo(&exception_info);
 			image_info = CloneImageInfo ((ImageInfo *) NULL);
 			strcpy(image_info->filename,pattern_name);
-			
+			if (verbose > 1)
+			     printf("Trying to open image\n");
 			orig = ReadImage(image_info,
 					 &exception_info);
+			
 			if (orig == (Image *) NULL) {
 				MagickWarning(exception_info.severity,
 					      exception_info.reason,
 					      exception_info.description);
 				strcpy(pattern_name, "/dev/null");
-			}
+			}else{
+			       if (verbose > 1)
+			       		printf("[%s] Image loaded successfully\n", MOD_NAME);
+			     }
 		}
 		
 		else{
 			perror("Not image provided");
 		}
-		if (verbose > 1) {
-			printf(" Compare Image Settings:\n");
-			printf("      pattern = %s\n", pattern_name);
-			printf("      results = %s\n", results_name);
-			printf("        delta = %f\n", compare->delta);
-		}
+ 		
 		if (options != NULL)
 			if (optstr_lookup (options, "help")) {
 				help_optstr();
@@ -220,27 +228,34 @@ int tc_filter(vframe_list_t *ptr, char *options)
 		fprintf(compare->results,"#fps:%f\n",compare->vob->fps);
 		
 		if (orig != NULL){
+                        // Flip and resize
 			if (compare->vob->im_v_codec == CODEC_YUV)
 				TransformRGBImage(orig,YCbCrColorspace);
-			
-                        // Flip and resize
-
+			if (verbose > 1) printf("[%s] Resizing the Image\n", MOD_NAME);
 			resized = ResizeImage(orig,
 					      compare->width,
 					      compare->height,
 					      GaussianFilter,
 					      1,
 					      &exception_info);
-			
+			if (verbose > 1)
+				printf("[%s] Flipping the Image\n", MOD_NAME);
 			pattern = FlipImage(resized, &exception_info);
-			
+			if (pattern == (Image *) NULL) {
+				MagickError (exception_info.severity,
+					     exception_info.reason,
+					     exception_info.description);
+			}			
+		
 			// Filling the matrix with the pixels values not
 			// alpha
 
+			if (verbose > 1) printf("[%s] GetImagePixels\n", MOD_NAME);
 			pixel_packet = GetImagePixels(pattern,0,0,
 						      pattern->columns,
 						      pattern->rows);
 
+			if (verbose > 1) printf("[%s] Filling the Image matrix\n", MOD_NAME);
 			for (t = 0; t < pattern->rows; t++) 
 				for (r = 0; r < pattern->columns; r++){
 					index = t*pattern->columns + r;
@@ -281,7 +296,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	
 	if(ptr->tag & TC_FILTER_CLOSE) {
 		
-		if (compare) {
+		if (compare != NULL) {
 			fclose(compare->results);
 			free(compare);
 		}
@@ -303,7 +318,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	// transcodes internal video/audio frame processing routines
 	// or after and determines video/audio context
 	
-	if((ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO) && !(ptr->attributes & TC_FRAME_IS_SKIPPED))  {
+	if((ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO))  {
 		// For now I only support RGB color space
 		pixelsMask *item = NULL;
 		double sr,sg,sb;
@@ -325,13 +340,14 @@ int tc_filter(vframe_list_t *ptr, char *options)
 				
 				width_long = compare->width*3;
 				while(item){
-					r = item->row*width_long
-						+ item->col*3;
+					r = item->row*width_long + item->col*3;
 					g = item->row*width_long 
 						+ item->col*3 + 1;
 					b = item->row*width_long
 						+ item->col*3 + 2;
 				
+				// diff between points
+				// Interchange RGB values if necesary
 					sr = sr + (double)abs((unsigned char)ptr->video_buf[r] - item->r);
 					sg = sg + (double)abs((unsigned char)ptr->video_buf[g] - item->g);
 					sb = sb + (double)abs((unsigned char)ptr->video_buf[b] - item->b);
@@ -347,16 +363,17 @@ int tc_filter(vframe_list_t *ptr, char *options)
 					fprintf(compare->results,"1");
 				else
 					fprintf(compare->results,"n");
+				fflush(compare->results);
 			}
 			compare->frames++;
 			return(0);
 		}else{
 			
                         // The colospace is YUV
-			//
-			// FIXME: Doesn't works, I need to code all this part
-			// again
 			
+                        // FIXME: Doesn't works, I need to code all this part
+			// again
+  			
 			int index,Y,Cr,Cb,c,col;
 						
 			if (compare->pixel_mask != NULL)
@@ -375,6 +392,10 @@ int tc_filter(vframe_list_t *ptr, char *options)
 					Cr = compare->height*compare->width
 						+ (int)((compare->height*compare->width)/4)
 						+ (int)((item->row*compare->width + item->col)/4);
+
+				        // diff between points
+				        // Interchange RGB values if necesary
+
 					sr = sr + (double)abs((unsigned char)ptr->video_buf[Y] - item->r);
 					sg = sg + (double)abs((unsigned char)ptr->video_buf[Cb] - item->g);
 					sb = sb + (double)abs((unsigned char)ptr->video_buf[Cr] - item->b);
