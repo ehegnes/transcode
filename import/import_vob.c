@@ -77,10 +77,18 @@ MOD_open
       
     case CODEC_AC3:
       
+#if 1
       if((snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x ac3 %s %s -d %d | tcextract -t vob -a %d -x ac3 -d %d | tcextract -t raw -x ac3 -d %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose, vob->verbose)<0)) {
 	perror("command buffer overflow");
 	return(TC_IMPORT_ERROR);
       }
+#else
+
+      if((snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x ac3 %s %s -d %d | tcextract -t vob -a %d -x ac3 -d %d | tcdecode -y raw -x a52 -d %d -A 0", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose, vob->verbose)<0)) {
+	perror("command buffer overflow");
+	return(TC_IMPORT_ERROR);
+      }
+#endif
       
       if(verbose_flag & TC_DEBUG) printf("[%s] AC3->AC3\n", MOD_NAME);
       
@@ -244,8 +252,9 @@ MOD_open
 
       if (vob->demuxer==TC_DEMUX_SEQ_FSYNC || vob->demuxer==TC_DEMUX_SEQ_FSYNC2) {
 	
+	fprintf(stderr, "\n[%s] creating fifo for sync info\n", MOD_NAME);
 	if(clone_init(param->fd)<0) {
-	  if(verbose_flag) printf("[%s] failed to init stream sync mode\n", MOD_NAME);
+	  if(verbose_flag) fprintf(stderr, "[%s] failed to init stream sync mode\n", MOD_NAME);
 	  return(TC_IMPORT_ERROR);
 	} else param->fd = NULL;
       }
@@ -274,7 +283,7 @@ MOD_decode
     if (vob->demuxer==TC_DEMUX_SEQ_FSYNC || vob->demuxer==TC_DEMUX_SEQ_FSYNC2) {
       
       if(clone_frame(param->buffer, param->size)<0) {
-	if(verbose_flag & TC_DEBUG) printf("[%s] end of stream - failed to sync video frame\n", MOD_NAME);
+	if(verbose_flag & TC_DEBUG) fprintf(stderr, "[%s] end of stream - failed to sync video frame\n", MOD_NAME);
 	return(TC_IMPORT_ERROR);
       } 
     }
@@ -317,17 +326,21 @@ MOD_decode
       // return effective_frame_size as physical size of audio data
       param->size = effective_frame_size; 
 
-      if(verbose_flag & TC_STATS) fprintf(stderr,"[%s] pseudo=%d, real=%d, frames=%d, effective=%d\n", MOD_NAME, ac_bytes, real_frame_size, num_frames, effective_frame_size);
+      if(verbose_flag & TC_STATS) 
+	  fprintf(stderr,"[%s] pseudo=%d, real=%d, frames=%d, effective=%d offset=%d\n", 
+		  MOD_NAME, ac_bytes, real_frame_size, num_frames, effective_frame_size, ac_off);
 
       // adjust
       ac_bytes=effective_frame_size;
 
+#if 0
       if(syncf>0) {
 	//dump an ac3 frame, instead of a pcm frame 
 	ac_bytes = real_frame_size-ac_off;
 	param->size = real_frame_size; 
 	--syncf;
       }
+#endif
       
       break;
       
@@ -344,7 +357,7 @@ MOD_decode
       
     }
     
-    if (fread(param->buffer+ac_off, ac_bytes, 1, fd) !=1) 
+    if (fread(param->buffer+ac_off, ac_bytes-ac_off, 1, fd) !=1) 
       return(TC_IMPORT_ERROR);
     
     
@@ -366,6 +379,8 @@ MOD_close
 	pclose(param->fd);
     }
     param->fd = NULL;
+
+    syncf = 0;
 
     if(param->flag == TC_VIDEO) {
 
