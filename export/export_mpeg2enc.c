@@ -168,20 +168,27 @@ MOD_open
     prof = (p1==NULL || strlen(p1) == 0) ? 0:atoi(p1);
 
 
-   //-- adjust frame rate stuff --
+    //-- adjust frame rate stuff --
     //-----------------------------
-    if ((int)(vob->fps*100.0 + 0.01) == (int)(29.97*100.0)) {
-      frc=4;
-      tv_type = "-n n";
-    } else if ((int)(vob->fps*100.0 + 0.01) == (int)(23.97*100.0)) {
-      frc=1;
-      tv_type = "-n n";
-    } else if ((int)(vob->fps*100.0 + 0.01) == (int)(24.00*100.0)) {
-      frc=2;
+    if (vob->ex_frc) {  // use specified output frame rate code
+      frc = vob->ex_frc;
+    } else {     // otherwise we guess based on the frame rate
+      if ((int)(vob->fps*100.0 + 0.01) == (int)(29.97*100.0)) {
+	frc=4;
+      } else if ((int)(vob->fps*100.0 + 0.01) == (int)(23.97*100.0)) {
+	frc=1;
+      } else if ((int)(vob->fps*100.0 + 0.01) == (int)(24.00*100.0)) {
+	frc=2;
+      } else {
+	frc=3;  // default is PAL framerate code
+      }
+    }
+    // now set the stream type to either NTSC or PAL based on the
+    // frame rate code
+    if ((frc == 4) || (frc == 1) || (frc == 2)) {
       tv_type = "-n n";
     } else {
-      frc=3;
-      tv_type = "-n p";
+      tv_type = "-n p";  // default is PAL
     }
     
     //ThOe pulldown?

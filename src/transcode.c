@@ -1165,6 +1165,8 @@ int main(int argc, char *argv[]) {
 	if(n==2) {
 	  if(vob->im_frc < 0 || vob->im_frc > 15) tc_error("invalid frame rate code for option -f");
 	  
+	  vob->fps = frc_table[vob->im_frc];
+	  
 	  preset_flag |= TC_PROBE_NO_FRC;
 	}
 	

@@ -23,6 +23,17 @@ transcode-0.6.4.HEAD
   than what the codec requires.
    -- Leif Harcke <lharcke at Stanford.EDU>
 
+- Resolve the frc to fps even if autoprobing is disabled
+   -- Leif Harcke <lharcke at Stanford.EDU>
+
+- Make export_mpeg2enc listen to a user specified --export_frc setting
+   -- Leif Harcke <lharcke at Stanford.EDU>
+
+- The export_mp2enc.so module doesn't recognize when single channel mono
+  is input and stereo output is requested via -E. Allow mono to stereo
+  doubling.
+   -- Leif Harcke <lharcke at Stanford.EDU>
+
 --------------------------------------------
 transcode-0.6.4.20030311 Tue Mar 11 15:09:44 CET 2003
 

@@ -64,12 +64,6 @@ enum _std_module {_null_,
 		  _ts_
 };
 
-static double frc_table[16] = {0,
-			       NTSC_FILM, 24, 25, NTSC_VIDEO, 30, 50, 
-			       (2*NTSC_VIDEO), 60,
-			       1, 5, 10, 12, 15, 
-			       0, 0};
-
 static int title, verb;
 
 
