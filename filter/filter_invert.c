@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_invert.so"
-#define MOD_VERSION "v0.1.3 (2003-01-26)"
+#define MOD_VERSION "v0.1.4 (2003-10-12)"
 #define MOD_CAP     "invert the image"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
@@ -86,7 +86,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
       char buf[128];
-      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYO", "1");
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRY4O", "1");
 
       snprintf(buf, 128, "%u-%u/%d", mfd->start, mfd->end, mfd->step);
       optstr_param (options, "range", "apply filter to [start-end]/step frames", 
@@ -137,14 +137,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
     else 
       mfd->boolstep = 1;
 
-    width = vob->ex_v_width;
-    height = vob->ex_v_height;
-
-    if (vob->im_v_codec == CODEC_RGB)
-      size = width*3;
-    else 
-      size = width*3/2;
-
     // filter init ok.
     if (verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
 
@@ -182,16 +174,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // or after and determines video/audio context
   
   if((ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO) && !(ptr->attributes & TC_FRAME_IS_SKIPPED))  {
-    char *p;
+    char *p = ptr->video_buf;
 
     if (mfd->start <= ptr->id && ptr->id <= mfd->end && ptr->id%mfd->step == mfd->boolstep) {
 
-      for (h = 0; h < height; h++) {
-	for (w = 0; w < size; w++) {
-	  p = ptr->video_buf + h*size + w;
-	  *p = 255 - *p;
-	}
-      }
+      for (w = 0; w < ptr->video_size; w++)  *p++ = 255 - *p;
+
     }
   }
   

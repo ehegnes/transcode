@@ -113,6 +113,34 @@ void deinterlace_yuv_zoom(unsigned char *src, int width, int height);
 void deinterlace_yuv_nozoom(unsigned char *src, int width, int height);
 void yuv_antialias(char *image, char *dest, int width, int height, int mode);
 
+
+void yuv422_rescale(char *image, int width, int height, int reduce_h, int reduce_w);
+void yuv422_flip(char *image, int width, int height);
+void yuv422_hclip(char *image, int width, int height, int cols);
+void yuv422_clip_left_right(char *image, int width, int height, int cols_left, int cols_right);
+void yuv422_clip_top_bottom(char *image, char *dest, int width, int height, int lines_top, int lines_bottom);
+void yuv422_mirror(char *image, int width,  int height);
+void yuv422_swap(char *image, int width,  int height);
+
+int yuv422_merge_C(char *row1, char *row2, char *out, int bytes, 
+		unsigned long weight1, unsigned long weight2);
+
+void yuv422_vresize_8(char *image, int width, int height, int resize);
+void yuv422_hresize_8(char *image, int width, int height, int resize);
+void yuv422_hresize_8_up(char *image, int width, int height, int resize);
+void yuv422_vresize_8_up(char *image, int width, int height, int resize);
+void yuv422_deinterlace_linear(char *image, int width, int height);
+void yuv422_deinterlace_linear_blend(char *image, char *tmp, int width, int height);
+inline void yuv422_decolor(char *image, int bytes);
+inline void yuv422_gamma(char *image, int bytes);
+void yuv422_vclip(char *image, int width, int height, int lines);
+void yuv422_zoom(char *image, char *tmp, int width, int height, int new_width, int new_height);
+void yuv422_zoom_DI(char *image, int width, int height, int new_width, int new_height);
+void deinterlace_yuv422_zoom(unsigned char *src, int width, int height);
+void deinterlace_yuv422_nozoom(unsigned char *src, int width, int height);
+void yuv422_antialias(char *image, char *dest, int width, int height, int mode);
+
+
 extern char *tmp_image;
 extern int vert_table_8_flag;
 extern int hori_table_8_flag;
@@ -146,5 +174,9 @@ int (*yuv_merge_16)(char *row1, char *row2, char *out, int bytes,
 
 int (*rgb_merge)(char *row1, char *row2, char *out, int bytes, 
 		 unsigned long weight1, unsigned long weight2);
+
+int (*yuv422_merge)(char *row1, char *row2, char *out, int bytes, 
+		 unsigned long weight1, unsigned long weight2);
+
 
 #endif

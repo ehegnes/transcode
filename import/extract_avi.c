@@ -107,6 +107,9 @@ void probe_avi(info_t *ipipe)
 	if(strcasecmp(codec,"yv12")==0)
 	  ipipe->probe_info->codec=TC_CODEC_YV12;
 	
+	if(strcasecmp(codec,"UYVY")==0)
+	  ipipe->probe_info->codec=TC_CODEC_UYVY;
+	
 	if(strcasecmp(codec,"DIV3")==0)
 	  ipipe->probe_info->codec=TC_CODEC_DIVX3;
 

@@ -244,7 +244,9 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
       D_arg = 0;
   }
 
-  if(verbose & TC_DEBUG) printf("(%s) suggested AV correction -D %d (%d ms) | AV %d ms | %d ms\n", __FILE__, D_arg, (int) ((D_arg*1000)/vob->fps), (int) (1000*pts_diff), D_arg_ms);	
+  if(verbose & TC_INFO) 
+      printf("[%s] (probe) suggested AV correction -D %d (%d ms) | AV %d ms | %d ms\n",
+	  "transcode", D_arg, (int) ((D_arg*1000)/vob->fps), (int) (1000*pts_diff), D_arg_ms);	
   
   // AV sync correction: case (1)
   //
@@ -694,6 +696,23 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     //audio
     vob->amod_probed=get_audio_module(vob->fixme_a_codec, vob->has_audio);
     preset |= TC_AUDIO;  
+
+    break;
+    
+  case TC_CODEC_UYVY:
+    vob->im_v_codec=CODEC_YUV422;
+
+    //overwrite pass-through selection!
+    vob->vmod_probed=std_module[_raw_];
+    preset |= TC_VIDEO;
+    
+    if(preset & TC_AUDIO) break;
+    
+    //audio
+    vob->amod_probed=get_audio_module(vob->fixme_a_codec, vob->has_audio);
+    preset |= TC_AUDIO;  
+
+    break;
     
   case TC_CODEC_RGB:
 

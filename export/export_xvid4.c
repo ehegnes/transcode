@@ -86,6 +86,7 @@ static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_PCM |
                              TC_CAP_RGB |
                              TC_CAP_YUV |
+			     TC_CAP_YUV422 |
                              TC_CAP_AC3 |
                              TC_CAP_AUD;
 
@@ -988,6 +989,9 @@ static void set_frame_struct(xvid_transcode_module_t *mod, vob_t *vob, transfer_
 	if(vob->im_v_codec == CODEC_RGB) {
 		x->input.csp       = XVID_CSP_BGR;
 		x->input.stride[0] = vob->ex_v_width*3;
+	} else if (vob->im_v_codec == CODEC_YUV422) {
+		x->input.csp       = XVID_CSP_UYVY;
+		x->input.stride[0] = vob->ex_v_width*2;
 	} else {
 		x->input.csp       = XVID_CSP_YV12;
 		x->input.stride[0] = vob->ex_v_width;

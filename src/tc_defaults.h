@@ -165,6 +165,7 @@
 #define CODEC_RAW         32
 #define CODEC_RAW_RGB     64
 #define CODEC_RAW_YUV    128
+#define CODEC_YUV422     256
 
 #define CODEC_PCM     0x1
 #define CODEC_AC3     0x2000

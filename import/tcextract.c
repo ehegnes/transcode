@@ -375,6 +375,19 @@ int main(int argc, char *argv[])
 	extract_yuv(&ipipe);
 	done = 1;
     }
+
+    // YV12
+    if(strcmp(codec,"uyvy")==0) { 
+	
+	ipipe.codec = TC_CODEC_YV12;
+
+	if(strcmp(magic, "avi")==0) ipipe.magic = TC_MAGIC_AVI;
+	if(strcmp(magic, "raw")==0) ipipe.magic = TC_MAGIC_RAW;
+	
+	extract_yuv(&ipipe);
+	done = 1;
+    }
+   
    
     // LZO
     if(strcmp(codec,"lzo")==0) { 

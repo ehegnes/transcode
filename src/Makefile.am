@@ -10,7 +10,10 @@ if SYSTEM_DARWIN
 transcode_LDFLAGS= -Xlinker -m
 endif
 
-transcode_LDADD= @DLDARWINLIB@ @SUPPORTLIB@ -L../libioaux -ltcioaux -L../aclib -lac -lm
+
+#AM_LDFLAGS=`ar t ../ffmpeg/libavcodec/libtcavcodec.a | sed -e '/^__/d' -e 's@^@../ffmpeg/libavcodec/@' | tr '\n' ' '` `ar t ../avilib/libavi.a | sed -e '/^__/d' -e 's@^@../avilib/@' | tr '\n' ' '`
+
+transcode_LDADD= @DLDARWINLIB@ @SUPPORTLIB@ -L../libioaux -ltcioaux -L../aclib -lac -L../ffmpeg/libavcodec -ltcavcodec -L../avilib -lavi -lm 
 
 EXTRA_DIST =  \
    audio_trans.h \
@@ -48,6 +51,7 @@ transcode_SOURCES =	transcode.c\
 			audio_trans.c\
 			video_rgb.c\
 			video_yuv.c\
+			video_yuv422.c\
 			filter.c\
 			counter.c\
 			zoom.c\

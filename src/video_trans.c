@@ -57,6 +57,7 @@ char *tmp_image=NULL;
 
 static int yuv_vert_resize_init_flag=0;
 static int rgb_vert_resize_init_flag=0;
+static int yuv422_vert_resize_init_flag=0;
 
 void yuv_vert_resize_init(int width)
 {
@@ -95,6 +96,39 @@ void yuv_vert_resize_init(int width)
   return;
 }
 
+
+void yuv422_vert_resize_init()
+{
+  
+  yuv422_vert_resize_init_flag=1;
+  
+#if 0
+#ifdef ARCH_X86
+#ifdef HAVE_ASM_NASM
+  
+  if(tc_accel & MM_SSE2) {
+    yuv422_merge=ac_rescale_sse2;
+    return;
+  }
+  
+  if(tc_accel & MM_SSE) {
+    yuv422_merge=ac_rescale_sse;
+    return;
+  }
+  
+  if(tc_accel & MM_MMXEXT) {
+    yuv422_merge=ac_rescale_mmxext;
+    return;
+  }
+  
+#endif
+#endif
+#endif // 0
+  
+  yuv422_merge=yuv422_merge_C;
+  
+  return;
+}
 
 void rgb_vert_resize_init()
 {
@@ -264,6 +298,402 @@ void init_aa_table(double aa_weight, double aa_bias)
     aa_table_d[i] = (aa_table_x[i]+aa_table_y[i])/2;
   }
   aa_table_flag = 1; 
+}
+
+int process_yuv422_frame(vob_t *vob, vframe_list_t *ptr)
+{
+    
+  /* ------------------------------------------------------------ 
+   *
+   * clip lines from top and bottom 
+   *
+   * ------------------------------------------------------------*/
+    
+  if(im_clip && (vob->im_clip_top || vob->im_clip_bottom)) {
+    
+    check_clip_para(vob->im_clip_top);
+    check_clip_para(vob->im_clip_bottom);
+    
+    if(vob->im_clip_top==vob->im_clip_bottom) {
+	yuv422_vclip(ptr->video_buf, ptr->v_width, ptr->v_height, vob->im_clip_top);
+    } else {
+
+	yuv422_clip_top_bottom(ptr->video_buf, ptr->video_buf_Y[ptr->free], ptr->v_width, ptr->v_height, vob->im_clip_top, vob->im_clip_bottom);
+	
+	// adjust pointer, clipped frame in tmp buffer
+	ptr->video_buf = ptr->video_buf_Y[ptr->free];
+	ptr->free = (ptr->free) ? 0:1;
+    }
+    
+    // update frame_list_t *ptr
+    
+    ptr->v_height -= (vob->im_clip_top + vob->im_clip_bottom);
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2*3;
+    
+  }
+  
+  /* ------------------------------------------------------------ 
+   *
+   * clip coloums from left and right
+   *
+   * ------------------------------------------------------------*/
+  
+  if(im_clip && (vob->im_clip_left || vob->im_clip_right)) {
+    
+    check_clip_para(vob->im_clip_left);
+    check_clip_para(vob->im_clip_right);
+    
+    if(vob->im_clip_left == vob->im_clip_right) {
+      yuv422_hclip(ptr->video_buf, ptr->v_width, ptr->v_height, vob->im_clip_left);
+    } else {
+      
+      yuv422_clip_left_right(ptr->video_buf, ptr->v_width, ptr->v_height, vob->im_clip_left, vob->im_clip_right);
+    }	  
+    
+    // update frame_list_t *ptr
+    
+    ptr->v_width -= (vob->im_clip_left + vob->im_clip_right);
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2 *3;
+  }
+  
+  /* ------------------------------------------------------------ 
+   *
+   * deinterlace video frame
+   *
+   * ------------------------------------------------------------*/
+  
+  if(vob->deinterlace>0) {
+    
+    switch (vob->deinterlace) {
+      
+    case 1:
+      yuv422_deinterlace_linear(ptr->video_buf, ptr->v_width, ptr->v_height);
+      break;
+      
+    case 2:
+      //handled by encoder
+      break;
+      
+    case 3:
+      deinterlace_yuv422_zoom(ptr->video_buf, ptr->v_width, ptr->v_height);
+      break;
+
+#ifdef NO_UNFINSHED
+    case 4:
+      deinterlace_yuv422_nozoom(ptr->video_buf, ptr->v_width, ptr->v_height);
+      ptr->v_height /=2;
+      break;
+#endif
+
+    case 5:
+      yuv422_deinterlace_linear_blend(ptr->video_buf, ptr->video_buf_Y[ptr->free], ptr->v_width, ptr->v_height);
+      break;
+    }
+  }
+
+
+  // check for de-interlace attribute
+
+
+  if(ptr->attributes & TC_FRAME_IS_INTERLACED) {
+      
+      switch (ptr->deinter_flag) {
+	  
+      case 1:
+	  yuv422_deinterlace_linear(ptr->video_buf, ptr->v_width, ptr->v_height);
+	  break;
+      
+      case 3:
+	  deinterlace_yuv422_zoom(ptr->video_buf, ptr->v_width, ptr->v_height);
+	  break;
+      
+      case 5:
+	yuv422_deinterlace_linear_blend(ptr->video_buf, ptr->video_buf_Y[ptr->free], ptr->v_width, ptr->v_height);
+	break;
+      }
+  }
+  
+  // no update for frame_list_t *ptr required
+  
+  /* ------------------------------------------------------------ 
+   *
+   * vertical resize of frame (up)
+   *
+   * ------------------------------------------------------------*/
+  
+  if(resize2 && vob->vert_resize2) {
+
+    if(!yuv422_vert_resize_init_flag) yuv422_vert_resize_init(ptr->v_width);
+    
+     if(tmp_image == NULL) {
+      if((tmp_image = (char *)calloc(1, SIZE_RGB_FRAME))==NULL) {
+	fprintf(stderr, "(%s) out of memory", __FILE__);
+	exit(1);
+      }
+    }
+    if(!vert_table_8_up_flag) {
+      init_table_8_up(vert_table_8_up, ptr->v_height, vob->vert_resize2);
+      vert_table_8_up_flag=1;
+    }
+    
+    yuv422_vresize_8_up(ptr->video_buf, ptr->v_width, ptr->v_height, vob->vert_resize2);
+    
+    ptr->v_height += vob->vert_resize2<<3;    
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2 *3;
+
+    clear_mmx();
+
+  }
+ 
+  /* ------------------------------------------------------------ 
+   *
+   * horizontal resize of frame (up)
+   *
+   * ------------------------------------------------------------*/
+
+  if(resize2 && vob->hori_resize2) {
+
+     if(tmp_image == NULL) {
+      if((tmp_image = (char *)calloc(1, SIZE_RGB_FRAME))==NULL) {
+	fprintf(stderr, "(%s) out of memory", __FILE__);
+	exit(1);
+      }
+    }
+    if(!hori_table_8_up_flag) {
+      init_table_8_up(hori_table_8_up, ptr->v_width, vob->hori_resize2);
+      hori_table_8_up_flag=1;
+    }
+    
+    yuv422_hresize_8_up(ptr->video_buf, ptr->v_width, ptr->v_height, vob->hori_resize2);
+
+    ptr->v_width += vob->hori_resize2<<3;    
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2 *3;
+  }
+
+
+  /* ------------------------------------------------------------ 
+   *
+   * vertical resize of frame (down)
+   *
+   * ------------------------------------------------------------*/
+
+  if(resize1 && vob->vert_resize1) {
+
+    if(!yuv422_vert_resize_init_flag) yuv422_vert_resize_init(ptr->v_width);
+
+    if(!vert_table_8_flag) {
+      init_table_8(vert_table_8, ptr->v_height, vob->vert_resize1);
+      vert_table_8_flag=1;
+    }
+    
+    yuv422_vresize_8(ptr->video_buf, ptr->v_width,  ptr->v_height, vob->vert_resize1);
+    
+    // update frame_list_t *ptr
+    
+    ptr->v_height -= vob->vert_resize1<<3;
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2 *3;
+
+    clear_mmx();
+
+  }
+  
+
+  /* ------------------------------------------------------------ 
+   *
+   * horizontal resize of frame (down)
+   *
+   * ------------------------------------------------------------*/
+  
+  if(resize1 && vob->hori_resize1) {
+    
+    if(!hori_table_8_flag) { 
+      init_table_8(hori_table_8, ptr->v_width, vob->hori_resize1);
+      hori_table_8_flag=1;
+    }
+    
+    yuv422_hresize_8(ptr->video_buf, ptr->v_width, ptr->v_height, vob->hori_resize1);
+    
+    // update frame_list_t *ptr
+    
+    ptr->v_width -= vob->hori_resize1<<3;
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2*3;
+  }
+
+
+  /* ------------------------------------------------------------ 
+   *
+   * zoom video frame with filtering
+   *
+   * ------------------------------------------------------------*/
+  
+  if(zoom) {
+    
+    yuv422_zoom(ptr->video_buf, ptr->video_buf_Y[ptr->free], ptr->v_width, ptr->v_height, vob->zoom_width, vob->zoom_height);
+    
+    ptr->video_buf = ptr->video_buf_Y[ptr->free];
+    ptr->free = (ptr->free) ? 0:1;
+    
+    // update frame_list_t *ptr
+    
+    ptr->v_width    = vob->zoom_width;
+    ptr->v_height   = vob->zoom_height; 
+    ptr->video_size = vob->zoom_width * vob->zoom_height * vob->v_bpp/8/2 *3;
+
+  }
+
+
+  /* ------------------------------------------------------------ 
+   *
+   * post-processing: clip lines from top and bottom 
+   *
+   * ------------------------------------------------------------*/
+  
+  if(ex_clip && (vob->ex_clip_top || vob->ex_clip_bottom)) {
+
+    check_clip_para(vob->ex_clip_top);
+    check_clip_para(vob->ex_clip_bottom);    
+    
+      if(vob->ex_clip_top==vob->ex_clip_bottom) {
+	  yuv422_vclip(ptr->video_buf, ptr->v_width, ptr->v_height, vob->ex_clip_top);
+      } else {
+	  
+	  yuv422_clip_top_bottom(ptr->video_buf, ptr->video_buf_Y[ptr->free], ptr->v_width, ptr->v_height, vob->ex_clip_top, vob->ex_clip_bottom);
+
+	  // adjust pointer, clipped frame in tmp buffer
+	  ptr->video_buf = ptr->video_buf_Y[ptr->free];
+	  ptr->free = (ptr->free) ? 0:1;
+      }
+      
+      // update frame_list_t *ptr
+      
+      ptr->v_height -= (vob->ex_clip_top + vob->ex_clip_bottom);
+      ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2 *3;
+  }
+
+  /* ------------------------------------------------------------ 
+   *
+   * post-processing: clip cols from left and right
+   *
+   * ------------------------------------------------------------*/
+
+  if(ex_clip && (vob->ex_clip_left || vob->ex_clip_right)) {
+
+    check_clip_para(vob->ex_clip_left);
+    check_clip_para(vob->ex_clip_right);
+    
+      if(vob->ex_clip_left == vob->ex_clip_right) {
+	  yuv422_hclip(ptr->video_buf, ptr->v_width, ptr->v_height, vob->ex_clip_left);
+      } else { 
+	  
+	  yuv422_clip_left_right(ptr->video_buf, ptr->v_width, ptr->v_height, vob->ex_clip_left, vob->ex_clip_right);
+	  
+      }
+      
+    // update frame_list_t *ptr
+    
+    ptr->v_width -= (vob->ex_clip_left + vob->ex_clip_right);
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2 *3;
+  }
+ 
+  /* ------------------------------------------------------------ 
+   *
+   * rescale video frame
+   *
+   * ------------------------------------------------------------*/
+  
+  if(rescale) {
+    
+    yuv422_rescale(ptr->video_buf, ptr->v_width, ptr->v_height, vob->reduce_h, vob->reduce_w);
+  
+    // update frame_list_t *ptr
+
+    ptr->v_width    /= vob->reduce_w; 
+    ptr->v_height   /= vob->reduce_h; 
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2 * 3;
+
+  }
+
+
+  /* ------------------------------------------------------------ 
+   *
+   * flip picture upside down
+   *
+   * ------------------------------------------------------------*/
+  
+  if(flip) {
+    
+    yuv422_flip(ptr->video_buf, ptr->v_width, ptr->v_height);   
+    
+    // no update for frame_list_t *ptr required
+  }
+
+
+
+  /* ------------------------------------------------------------ 
+   *
+   * mirror picture
+   *
+   * ------------------------------------------------------------*/
+  
+  if(mirror) {
+
+      yuv422_mirror(ptr->video_buf, ptr->v_width, ptr->v_height); 
+      
+      // no update for frame_list_t *ptr required
+      
+  }
+
+  /* ------------------------------------------------------------ 
+   *
+   * swap Cr with Cb
+   *
+   * ------------------------------------------------------------*/
+  
+  if(rgbswap) {
+    
+    yuv422_swap(ptr->video_buf, ptr->v_width, ptr->v_height);
+  
+    // no update for frame_list_t *ptr required
+    
+  }
+
+
+  /* ------------------------------------------------------------ 
+   *
+   * b/w mode
+   *
+   * ------------------------------------------------------------*/
+  
+  if(decolor) {
+    
+    yuv422_decolor(ptr->video_buf, ptr->v_width * ptr->v_height);
+    
+    // no update for frame_list_t *ptr required
+      
+  }
+
+ /* ------------------------------------------------------------ 
+   *
+   * gamma correction
+   *
+   * ------------------------------------------------------------*/
+  
+  if(dgamma) {
+      
+      if(!gamma_table_flag) {
+	  init_gamma_table(gamma_table, vob->gamma);
+	  gamma_table_flag = 1;
+      }
+
+      yuv422_gamma(ptr->video_buf, ptr->v_width * ptr->v_height * 2);
+      
+      // no update for frame_list_t *ptr required
+      
+  }
+
+
+  //done
+  return(0);
 }
    
 int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
@@ -1118,6 +1548,12 @@ int process_vid_frame(vob_t *vob, vframe_list_t *ptr)
       ptr->v_codec = CODEC_YUV;
       return(process_yuv_frame(vob, ptr));
   }
+
+  if(vob->im_v_codec == CODEC_YUV422) {
+      ptr->v_codec = CODEC_YUV422;
+      return(process_yuv422_frame(vob, ptr));
+  }
+  
   
   tc_error("Oops, invalid colorspace video frame data"); 
   

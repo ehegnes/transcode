@@ -166,6 +166,7 @@ enum {
   DIVX5_VBV_PROF,
   DIVX5_VBV,
   CONFIG_DIR,
+  USE_UYVY,
 };
 
 int print_counter_interval = 1;
@@ -204,7 +205,7 @@ void version()
 {
   /* id string */
   if(tcversion++) return;
-  fprintf(stderr, "%s v%s (C) 2001-2003 Thomas Oestreich\n", PACKAGE, VERSION);
+  fprintf(stderr, "%s v%s (C) 2001-2003 Thomas Oestreich, 2003 T. Bitterberg\n", PACKAGE, VERSION);
 }
 
 
@@ -218,151 +219,152 @@ void usage(int status)
   //source
 #ifdef HAVE_LIBDVDREAD
 #ifdef NET_STREAM
-  printf(" -i name           input file/directory/device/mountpoint/host name\n");
+  printf(" -i name             input file/directory/device/mountpoint/host name\n");
 #else
-  printf(" -i name           input file/directory/device/mountpoint name\n");
+  printf(" -i name             input file/directory/device/mountpoint name\n");
 #endif
 #else
 #ifdef NET_STREAM 
-  printf(" -i name           input file/directory/host name\n");
+  printf(" -i name             input file/directory/host name\n");
 #else
-  printf(" -i name           input file/directory name\n");
+  printf(" -i name             input file/directory name\n");
 #endif
 #endif
-  printf(" -H n              auto-probe n MB of source (0=off) [1]\n");
-  printf(" -p file           read audio stream from separate file [off]\n");
-  printf(" -x vmod[,amod]    video[,audio] import modules [%s]\n", 
+  printf(" -H n                auto-probe n MB of source (0=off) [1]\n");
+  printf(" -p file             read audio stream from separate file [off]\n");
+  printf(" -x vmod[,amod]      video[,audio] import modules [%s]\n", 
 	 TC_DEFAULT_IMPORT_VIDEO);
-  printf(" -a a[,v]          extract audio[,video] track [0,0]\n");
+  printf(" -a a[,v]            extract audio[,video] track [0,0]\n");
   printf("\n");
 
   //audio
-  printf(" -e r[,b[,c]]      PCM audio stream parameter [%d,%d,%d]\n", RATE, BITS, CHANNELS);
-  printf(" -E r[,b[,c]]      audio output samplerate, bits, channels [as input]\n"); 
-  printf(" -n 0xnn           import audio format id [0x%x]\n", CODEC_AC3);
-  printf(" -N 0xnn           export audio format id [0x%x]\n", CODEC_MP3);
-  printf(" -b b[,v[,q[,m]]]  audio encoder bitrate kBits/s[,vbr[,quality[,mode]]] [%d,%d,%d,%d]\n", ABITRATE, AVBR, AQUALITY, AMODE);
-  printf("--no_audio_adjust  disable audio frame sample adjustment [off]\n");
-  printf("--no_bitreservoir  disable lame bitreservoir [off]\n");
+  printf(" -e r[,b[,c]]        PCM audio stream parameter [%d,%d,%d]\n", RATE, BITS, CHANNELS);
+  printf(" -E r[,b[,c]]        audio output samplerate, bits, channels [as input]\n"); 
+  printf(" -n 0xnn             import audio format id [0x%x]\n", CODEC_AC3);
+  printf(" -N 0xnn             export audio format id [0x%x]\n", CODEC_MP3);
+  printf(" -b b[,v[,q[,m]]]    audio encoder bitrate kBits/s[,vbr[,quality[,mode]]] [%d,%d,%d,%d]\n", ABITRATE, AVBR, AQUALITY, AMODE);
+  printf("--no_audio_adjust    disable audio frame sample adjustment [off]\n");
+  printf("--no_bitreservoir    disable lame bitreservoir [off]\n");
   printf("--lame_preset name[,fast]  use lame preset with name. [off]\n");
   printf("\n");
 
   //video
-  printf(" -g wxh            RGB video stream frame size [%dx%d]\n", PAL_W, PAL_H);
-  printf("--export_asr C     set export aspect ratio code C [as input]\n");
-  printf("--import_asr C     set import aspect ratio code C [auto]\n");
-  printf("--keep_asr         try to keep aspect ratio (only with -Z) [off]\n");
-  printf(" -f rate[,frc]     input video frame rate[,frc] [%.3f,0] fps\n", PAL_FPS);
-  printf("--export_fps f[,c] output video frame rate[,code] [as input] [%0.3f,3]\n", PAL_FPS);
-  printf("--export_frc F     set export frame rate code F [as input]\n");
-  printf("--hard_fps         disable smooth dropping (for variable fps clips) [off]\n");
+  printf(" -g wxh              RGB video stream frame size [%dx%d]\n", PAL_W, PAL_H);
+  printf("--export_asr C       set export aspect ratio code C [as input]\n");
+  printf("--import_asr C       set import aspect ratio code C [auto]\n");
+  printf("--keep_asr           try to keep aspect ratio (only with -Z) [off]\n");
+  printf(" -f rate[,frc]       input video frame rate[,frc] [%.3f,0] fps\n", PAL_FPS);
+  printf("--export_fps f[,c]   output video frame rate[,code] [as input] [%0.3f,3]\n", PAL_FPS);
+  printf("--export_frc F       set export frame rate code F [as input]\n");
+  printf("--hard_fps           disable smooth dropping (for variable fps clips) [off]\n");
   printf("\n");
 
   //output
-  printf(" -o file           output file name\n");
-  printf(" -m file           write audio stream to separate file [off]\n");
-  printf(" -y vmod[,amod]    video[,audio] export modules [%s]\n", 
+  printf(" -o file             output file name\n");
+  printf(" -m file             write audio stream to separate file [off]\n");
+  printf(" -y vmod[,amod]      video[,audio] export modules [%s]\n", 
 	 TC_DEFAULT_EXPORT_VIDEO);
-  printf(" -F codec          encoder parameter strings [module dependent]\n");
-  printf(" --avi_limit N     split output AVI file after N MB [%d]\n", AVI_FILE_LIMIT);
-  printf(" --avi_comments F  Read AVI header comments from file F (see transcode(1)) [off]\n");
+  printf(" -F codec            encoder parameter strings [module dependent]\n");
+  printf(" --avi_limit N       split output AVI file after N MB [%d]\n", AVI_FILE_LIMIT);
+  printf(" --avi_comments F    Read AVI header comments from file F (see transcode(1)) [off]\n");
   printf("\n");
 
   //audio effects
-  printf(" -d                swap bytes in audio stream [off]\n");
-  printf(" -s g[,c[,f[,r]]]  increase volume by gain,[center,front,rear] [off,1,1,1]\n");
+  printf(" -d                  swap bytes in audio stream [off]\n");
+  printf(" -s g[,c[,f[,r]]]    increase volume by gain,[center,front,rear] [off,1,1,1]\n");
   printf("\n");
 
   //processing
-  printf(" -u m[,n]          use m framebuffer[,n threads] for AV processing [%d,%d]\n", TC_FRAME_BUFFER, TC_FRAME_THREADS);
-  printf(" -A                use AC3 as internal audio codec [off]\n");
-  printf(" -V                use YV12/I420 as internal video codec [off]\n");
-  printf(" -J f1[,f2[,...]]  apply external filter plugins [off]\n");
-  printf(" -P flag           pass-through flag (0=off|1=V|2=A|3=A+V) [0]\n");
+  printf(" -u m[,n]            use m framebuffer[,n threads] for AV processing [%d,%d]\n", TC_FRAME_BUFFER, TC_FRAME_THREADS);
+  printf(" -A                  use AC3 as internal audio codec [off]\n");
+  printf(" -V                  use YV12/I420 as internal video codec [off]\n");
+  printf("--uyvy               use UYVY (4:2:2) as internal video codec [off]\n");
+  printf(" -J f1[,f2[,...]]    apply external filter plugins [off]\n");
+  printf(" -P flag             pass-through flag (0=off|1=V|2=A|3=A+V) [0]\n");
   printf("\n");
 
   //AV offset
-  printf(" -D num            sync video start with audio frame num [0]\n");
-  printf("--av_fine_ms t     AV fine-tuning shift t in millisecs [autodetect]\n");
+  printf(" -D num              sync video start with audio frame num [0]\n");
+  printf("--av_fine_ms t       AV fine-tuning shift t in millisecs [autodetect]\n");
   printf("\n");
 
   //sync modes
-  printf(" -M mode           demuxer PES AV sync mode (0=off|1=PTS only|2=full) [1]\n");
-  printf(" -O                flush lame mp3 buffer on encoder stop [off]\n");
+  printf(" -M mode             demuxer PES AV sync mode (0=off|1=PTS only|2=full) [1]\n");
+  printf(" -O                  flush lame mp3 buffer on encoder stop [off]\n");
   printf("\n");
 
   //resizing
-  printf(" -r n[,m]             reduce video height/width by n[,m] [off]\n");
-  printf(" -B n[,m[,M]]         resize to height-n*M rows [,width-m*M] columns [off,32]\n");
-  printf(" -X n[,m[,M]]         resize to height+n*M rows [,width+m*M] columns [off,32]\n");
-  printf(" -Z wxh               resize to w columns, h rows with filtering [off]\n");
-  printf("--zoom_filter string  use filter string for video resampling -Z [Lanczos3]\n");
+  printf(" -r n[,m]            reduce video height/width by n[,m] [off]\n");
+  printf(" -B n[,m[,M]]        resize to height-n*M rows [,width-m*M] columns [off,32]\n");
+  printf(" -X n[,m[,M]]        resize to height+n*M rows [,width+m*M] columns [off,32]\n");
+  printf(" -Z wxh              resize to w columns, h rows with filtering [off]\n");
+  printf("--zoom_filter str    use filter string for video resampling -Z [Lanczos3]\n");
   printf("\n");
 
   //anti-alias
-  printf(" -C mode              enable anti-aliasing mode (1-3) [off]\n");
-  printf("--antialias_para w,b  center pixel weight, xy-bias [%.3f,%.3f]\n", TC_DEFAULT_AAWEIGHT, TC_DEFAULT_AABIAS);
+  printf(" -C mode             enable anti-aliasing mode (1-3) [off]\n");
+  printf("--antialias_para w,b center pixel weight, xy-bias [%.3f,%.3f]\n", TC_DEFAULT_AAWEIGHT, TC_DEFAULT_AABIAS);
   printf("\n");
 
   //de-interlacing
-  printf(" -I mode           enable de-interlacing mode (1-5) [off]\n");
+  printf(" -I mode             enable de-interlacing mode (1-5) [off]\n");
   printf("\n");
 
   //video effects
-  printf(" -K                enable b/w mode [off]\n");
-  printf(" -G val            gamma correction (0.0-10.0) [off]\n");
-  printf(" -z                flip video frame upside down [off]\n");
-  printf(" -l                mirror video frame [off]\n");
-  printf(" -k                swap red/blue (Cb/Cr) in video frame [off]\n");
+  printf(" -K                  enable b/w mode [off]\n");
+  printf(" -G val              gamma correction (0.0-10.0) [off]\n");
+  printf(" -z                  flip video frame upside down [off]\n");
+  printf(" -l                  mirror video frame [off]\n");
+  printf(" -k                  swap red/blue (Cb/Cr) in video frame [off]\n");
   printf("\n");
 
   //clipping
-  printf(" -j t[,l[,b[,r]]]         select frame region by clipping border [off]\n");
-  printf(" -Y t[,l[,b[,r]]]         select (encoder) frame region by clipping border [off]\n");
+  printf(" -j t[,l[,b[,r]]]    select frame region by clipping border [off]\n");
+  printf(" -Y t[,l[,b[,r]]]    select (encoder) frame region by clipping border [off]\n");
   printf("--pre_clip t[,l[,b[,r]]]  select initial frame region by clipping border [off]\n");
   printf("--post_clip t[,l[,b[,r]]] select final frame region by clipping border [off]\n");
   printf("\n");
 
   //multi-pass
-  printf(" -w b[,k[,c]]          encoder bitrate[,keyframes[,crispness]] [%d,%d,%d]\n", VBITRATE, VKEYFRAMES, VCRISPNESS);
-  printf(" -R n[,f1[,f2]]        enable multi-pass encoding (0-3) [%d,divx4.log,pcm.log]\n", VMULTIPASS);
-  printf(" -Q n[,m]              encoding[,decoding] quality (0=fastest-5=best) [%d,%d]\n", VQUALITY, VQUALITY);
-  printf(" --divx_quant min,max  divx encoder min/max quantizer [%d,%d]\n", VMINQUANTIZER, VMAXQUANTIZER);
-  printf(" --divx_rc p,rp,rr     divx encoder rate control parameter [%d,%d,%d]\n", RC_PERIOD, RC_REACTION_PERIOD, RC_REACTION_RATIO);
-  printf(" --divx_vbv_prof N     divx5 encoder VBV profile (0=free-5=hiqhq) [%d]\n", DIVX5_VBV_PROFILE);
-  printf(" --divx_vbv br,sz,oc   divx5 encoder VBV params (bitrate,size,occup.) [%d,%d,%d]\n", 
+  printf(" -w b[,k[,c]]        encoder bitrate[,keyframes[,crispness]] [%d,%d,%d]\n", VBITRATE, VKEYFRAMES, VCRISPNESS);
+  printf(" -R n[,f1[,f2]]      enable multi-pass encoding (0-3) [%d,divx4.log,pcm.log]\n", VMULTIPASS);
+  printf(" -Q n[,m]            encoding[,decoding] quality (0=fastest-5=best) [%d,%d]\n", VQUALITY, VQUALITY);
+  printf("--divx_quant min,max divx encoder min/max quantizer [%d,%d]\n", VMINQUANTIZER, VMAXQUANTIZER);
+  printf("--divx_rc p,rp,rr    divx encoder rate control parameter [%d,%d,%d]\n", RC_PERIOD, RC_REACTION_PERIOD, RC_REACTION_RATIO);
+  printf("--divx_vbv_prof N    divx5 encoder VBV profile (0=free-5=hiqhq) [%d]\n", DIVX5_VBV_PROFILE);
+  printf("--divx_vbv br,sz,oc  divx5 encoder VBV params (bitrate,size,occup.) [%d,%d,%d]\n", 
       DIVX5_VBV_BITRATE, DIVX5_VBV_SIZE, DIVX5_VBV_OCCUPANCY);
   printf("\n");
 
   //range control
-  printf(" -c f1-f2[,f3-f4]   encode only f1-f2[,f3-f4] (frames or HH:MM:SS) [all]\n");
-  printf(" -t n,base          split output to base%s.avi with n frames [off]\n", "%03d");
-  printf("--dir_mode base     process directory contents to base-%s.avi [off]\n", "%03d");
-  printf("--frame_interval N  select only every Nth frame to be exported [1]\n");
+  printf(" -c f1-f2[,f3-f4]    encode only f1-f2[,f3-f4] (frames or HH:MM:SS) [all]\n");
+  printf(" -t n,base           split output to base%s.avi with n frames [off]\n", "%03d");
+  printf("--dir_mode base      process directory contents to base-%s.avi [off]\n", "%03d");
+  printf("--frame_interval N   select only every Nth frame to be exported [1]\n");
   printf("\n");
 
   //DVD
 #ifdef HAVE_LIBDVDREAD
-  printf(" -U base          process DVD in chapter mode to base-ch%s.avi [off]\n", "%02d");
-  printf(" -T t[,c[-d][,a]] select DVD title[,chapter(s)[,angle]] [1,1,1]\n");
+  printf(" -U base             process DVD in chapter mode to base-ch%s.avi [off]\n", "%02d");
+  printf(" -T t[,c[-d][,a]]    select DVD title[,chapter(s)[,angle]] [1,1,1]\n");
   printf("\n");
 #endif
 
   //cluster mode
-  printf(" -W n,m[,file]        autosplit and process part n of m (VOB only) [off]\n");
-  printf("--cluster_percentage  use percentage mode for cluster encoding -W [off]\n");
-  printf("--cluster_chunks a-b  process chunk range instead of selected chunk [off]\n");
-  printf(" -S unit[,s1-s2]      process program stream unit[,s1-s2] sequences [0,all]\n");
-  printf(" -L n                 seek to VOB stream offset nx2kB [0]\n");
+  printf(" -W n,m[,file]       autosplit and process part n of m (VOB only) [off]\n");
+  printf("--cluster_percentage use percentage mode for cluster encoding -W [off]\n");
+  printf("--cluster_chunks a-b process chunk range instead of selected chunk [off]\n");
+  printf(" -S unit[,s1-s2]     process program stream unit[,s1-s2] sequences [0,all]\n");
+  printf(" -L n                seek to VOB stream offset nx2kB [0]\n");
   printf("\n");
 
   //v4l
-  printf("--import_v4l n[,id]   channel number and station number or name [0]\n");
+  printf("--import_v4l n[,id]  channel number and station number or name [0]\n");
   printf("\n");
   
   //mpeg
-  printf("--pulldown          set MPEG 3:2 pulldown flags on export [off]\n");
-  printf("--encode_fields     enable field based encoding (if supported) [off]\n");
+  printf("--pulldown           set MPEG 3:2 pulldown flags on export [off]\n");
+  printf("--encode_fields      enable field based encoding (if supported) [off]\n");
   printf("\n");
 
   //psu mode
@@ -375,31 +377,31 @@ void usage(int status)
   printf("\n");
 
   //a52
-  printf("--a52_drc_off       disable liba52 dynamic range compression [enabled]\n");
-  printf("--a52_demux         demux AC3/A52 to separate channels [off]\n");
-  printf("--a52_dolby_off     disable liba52 dolby surround [enabled]\n");
+  printf("--a52_drc_off        disable liba52 dynamic range compression [enabled]\n");
+  printf("--a52_demux          demux AC3/A52 to separate channels [off]\n");
+  printf("--a52_dolby_off      disable liba52 dolby surround [enabled]\n");
   printf("\n");
 
   //internal flags
-  printf("--print_status N[,use_cr] print status every N frames / use CR or NL [1,1]\n");
-  printf("--progress_off            disable progress meter status line [off]\n");
-  printf("--color N                 level of color in transcodes output [1]\n");
-  printf("--write_pid file          write pid of signal thread to \"file\" [off]\n");
-  printf("--nice N                  set niceness to N [off]\n");
+  printf("--print_status N[,r] print status every N frames / use CR or NL [1,1]\n");
+  printf("--progress_off       disable progress meter status line [off]\n");
+  printf("--color N            level of color in transcodes output [1]\n");
+  printf("--write_pid file     write pid of signal thread to \"file\" [off]\n");
+  printf("--nice N             set niceness to N [off]\n");
 #ifdef ARCH_X86
-  printf("--accel type              enforce IA32 acceleration for type [autodetect]\n");
+  printf("--accel type         enforce IA32 acceleration for type [autodetect]\n");
 #endif
-  printf("--socket file             socket file for run-time control [no file]\n");
-  printf("--dv_yuy2_mode            libdv YUY2 mode (default is YV12) [off]\n");
-  printf("--config_dir dir          Assume config files are in this dir [off]\n");
+  printf("--socket file        socket file for run-time control [no file]\n");
+  printf("--dv_yuy2_mode       libdv YUY2 mode (default is YV12) [off]\n");
+  printf("--config_dir dir     Assume config files are in this dir [off]\n");
 
   printf("\n");
 
   //help
-  printf(" -q level           verbosity (0=quiet,1=info,2=debug) [%d]\n", TC_INFO);
-  printf(" -h                 this usage message\n");
-  printf(" -v                 print version\n");
-  printf("--more_help param   more help on named parameter\n");
+  printf(" -q level            verbosity (0=quiet,1=info,2=debug) [%d]\n", TC_INFO);
+  printf(" -h                  this usage message\n");
+  printf(" -v                  print version\n");
+//  printf("--more_help param   more help on named parameter\n");
   printf("\n");
   
   exit(status);
@@ -630,9 +632,14 @@ int main(int argc, char *argv[]) {
 
     char 
       base[TC_BUF_MIN], buf[TC_BUF_MAX], 
-      *chbase=NULL, *psubase=NULL, *dirbase=NULL, *accel=NULL,
+      *chbase=NULL, *psubase=NULL, *dirbase=NULL, 
       abuf1[TC_BUF_MIN], vbuf1[TC_BUF_MIN], 
       abuf2[TC_BUF_MIN], vbuf2[TC_BUF_MIN];
+
+#ifdef ARCH_X86
+    char
+      *accel=NULL;
+#endif
     
     char 
       vlogfile[TC_BUF_MIN], alogfile[TC_BUF_MIN], vob_logfile[TC_BUF_MIN];
@@ -770,6 +777,7 @@ int main(int argc, char *argv[]) {
       {"divx_vbv", required_argument, NULL, DIVX5_VBV},
       {"hard_fps", no_argument, NULL, HARD_FPS},
       {"config_dir", required_argument, NULL, CONFIG_DIR},
+      {"uyvy", no_argument, NULL, USE_UYVY},
       {0,0,0,0}
     };
     
@@ -1035,8 +1043,10 @@ int main(int argc, char *argv[]) {
 	case 't':
 	    
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
-	  
-	  if (2 != sscanf(optarg,"%d,%s", &splitavi_frames, base)) tc_error("invalid parameter for option -t");
+
+	  n = sscanf(optarg,"%d,%s", &splitavi_frames, base);
+
+	  if (!n) tc_error("invalid parameter for option -t");
 	  
 	  if(splitavi_frames <= 0) tc_error("invalid parameter for option -t");
 	  
@@ -1772,6 +1782,10 @@ int main(int argc, char *argv[]) {
 	  
 	  break;
 
+	case USE_UYVY:
+	  vob->im_v_codec = CODEC_YUV422;
+	  break;
+
 	case CLUSTER_PERCENTAGE:
 	  vob->vob_percentage=1;
 	  break;
@@ -2148,7 +2162,7 @@ int main(int argc, char *argv[]) {
 	  
 	case PRINT_STATUS:
 	  if( ( n = sscanf( optarg, "%d,%d", &print_counter_interval, &print_counter_cr ) ) == 0 )
-	    tc_error( "invalid parameter for option --print_counter" );
+	    tc_error( "invalid parameter for option --print_status" );
 	  
 	  break;
 
@@ -3058,12 +3072,16 @@ int main(int argc, char *argv[]) {
       tc_error("invalid frame processing requested");
     }    
 
-    // -V
+    // -V / --uyvy
     
     if(vob->im_v_codec==CODEC_YUV) {
       vob->ex_v_size = (3*vob->ex_v_height * vob->ex_v_width)>>1;
       vob->im_v_size = (3*vob->im_v_height * vob->im_v_width)>>1;
       if(verbose & TC_INFO) printf("[%s] V: %-16s | YV12/I420\n", PACKAGE, "Y'CbCr");
+    } else if (vob->im_v_codec==CODEC_YUV422) {
+      vob->ex_v_size = (2*vob->ex_v_height * vob->ex_v_width);
+      vob->im_v_size = (2*vob->im_v_height * vob->im_v_width);
+      if(verbose & TC_INFO) printf("[%s] V: %-16s | UYVY (4:2:2)\n", PACKAGE, "Y'CbCr");
     } else
       vob->ex_v_size = vob->ex_v_height * vob->ex_v_width * vob->v_bpp>>3;
 
@@ -3145,6 +3163,12 @@ int main(int argc, char *argv[]) {
 	vob->mp3bitrate = ((vob->mp3frequency>0)? vob->mp3frequency:vob->a_rate) *
 	                  ((vob->dm_bits>0)?vob->dm_bits:vob->a_bits) *
 			  ((vob->dm_chan>0)?vob->dm_chan:vob->a_chan) / 1000;
+	break;
+      case 0x2000: // PCM
+	if (vob->im_a_codec == CODEC_AC3) {
+	  vob->mp3bitrate = vob->a_stream_bitrate;
+	}
+	break;
       }
 
       if(verbose & TC_INFO) {
@@ -3336,6 +3360,7 @@ int main(int argc, char *argv[]) {
       
       if(core_mode == TC_MODE_AVI_SPLIT && no_v_out_codec)
 	tc_warn("no option -y found, option -t ignored, writing to \"/dev/null\"");
+
     }
 
     if(ex_aud_mod && strlen(ex_aud_mod) != 0 && strcmp(ex_aud_mod, "net")==0) 
@@ -3357,6 +3382,10 @@ int main(int argc, char *argv[]) {
       if(pthread_create(&thread_socket, NULL, (void *) socket_thread, NULL)!=0)
 	tc_error("failed to start socket handler thread");
     }
+
+
+    if(core_mode == TC_MODE_AVI_SPLIT && !strlen(base) && !video_out_file)
+      tc_error("no option -o found, no base for -t given, so what?");
 
     /* ------------------------------------------------------------- 
      *
@@ -3492,6 +3521,8 @@ int main(int argc, char *argv[]) {
       ch1 = 0;
       
       do { 
+
+	if (!base || !strlen(base)) strncpy(base, vob->video_out_file, TC_BUF_MIN);
 	
 	// create new filename 
 	sprintf(buf, "%s%03d.avi", base, ch1++);
@@ -4022,5 +4053,39 @@ int main(int argc, char *argv[]) {
       exit(0);
 }
 
+// this Code below here _never_ gets called.
+// it is just there to trick the linker to not remove
+// unneeded object files from a .a file.
+
+#include "../ffmpeg/libavcodec/avcodec.h"
+void dummy_avcodec(void) {
+  AVCodecContext *ctx = NULL;
+  AVFrame *fr = NULL;
+  AVCodec *codec = NULL;
+
+  avcodec_init();
+  avcodec_register_all();
+  ctx = avcodec_alloc_context();
+  fr = avcodec_alloc_frame();
+  avcodec_open(ctx, codec);
+  avcodec_encode_video(NULL, NULL, 0, NULL);
+  avcodec_encode_audio(NULL, NULL, 0, NULL);
+  avcodec_close(ctx);
+}
+
+#include "../avilib/avilib.h"
+void dummy_avilib(void) {
+  avi_t *file;
+  file = AVI_open_input_file((char *)NULL, 1);
+  AVI_close(file);
+  AVI_dump((char *)NULL, 0);
+  AVI_info(file);
+}
+
+#include "../libioaux/configs.h"
+void dummy_libioaux(void) {
+  module_read_config(NULL, NULL, NULL, NULL, NULL);
+  append_fc_time( NULL, NULL);
+}
 /* vim: sw=2
  */

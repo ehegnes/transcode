@@ -101,6 +101,7 @@ int optstr_get(char *options, char *name, char *fmt, ...);
  *               "A":  Can do Audio
  *               "R":  Can do RGB
  *               "Y":  Can do YUV
+ *               "4":  Can do YUV422
  *               "M":  Can do Multiple Instances
  *               "E":  Is a PRE filter
  *               "O":  Is a POST filter

@@ -253,6 +253,9 @@ int export_init(vob_t *vob, char *a_mod, char *v_mod)
     case CODEC_YUV: 
       cc=(export_para.flag & TC_CAP_YUV);
       break;
+    case CODEC_YUV422: 
+      cc=(export_para.flag & TC_CAP_YUV422);
+      break;
     case CODEC_RAW: 
     case CODEC_RAW_YUV: 
       cc=(export_para.flag & TC_CAP_VID);

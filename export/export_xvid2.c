@@ -103,6 +103,7 @@ static int capability_flag = TC_CAP_PCM |
                              TC_CAP_RGB |
                              TC_CAP_YUV |
                              TC_CAP_AC3 |
+			     TC_CAP_YUV422 |
                              TC_CAP_AUD;
 
 /*****************************************************************************
@@ -256,6 +257,10 @@ MOD_init
 		case CODEC_YUV:
 			global_framesize = SIZE_RGB_FRAME*2/3;
 			global_colorspace = XVID_CSP_YV12;
+			break;
+		case CODEC_YUV422:
+			global_framesize = SIZE_RGB_FRAME*2/3;
+			global_colorspace = XVID_CSP_UYVY;
 			break;
 		default: /* down know... simply use YV12, too... */
 			global_framesize = SIZE_RGB_FRAME*2/3;

@@ -261,6 +261,9 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
     case CODEC_YUV: 
       cc=(import_para.flag & TC_CAP_YUV);
       break;
+    case CODEC_YUV422: 
+      cc=(import_para.flag & TC_CAP_YUV422);
+      break;
     case CODEC_RAW_YUV: 
     case CODEC_RAW: 
       cc=(import_para.flag & TC_CAP_VID);

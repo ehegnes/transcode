@@ -628,6 +628,94 @@ void zoom_image_process(zoomer_t *zoomer)
             } /* next dst row */
         } /* next dst column */
       }
+    /* all colour components in one plane -- e.g. when processing 422 */
+    else if (zoomer->src->pixspan == 2)
+      {
+        for(x = zoomer->dst->xsize; x; --x)
+        {
+            /* Apply horz filter to make dst column in tmp. */
+            for(in = zoomer->src->data, tmpOut = zoomer->tmp, 
+                k = zoomer->src->ysize; k; --k, in+=2) {
+
+                prgX = prgXa;
+                weight = 0;
+                
+		(prgX++);
+		
+                for(j = (prgX++)->count; j; --j) {
+		  pel2 = in[(prgX++)->index];
+		  weight += pel2 * (prgX++)->weight;
+                }
+                *(tmpOut++) = (pixel_t)CLAMP(fixdouble2int(weight));
+            } /* next row in temp column */
+            
+	    prgXa = prgX;
+
+            /* The temp column has been built. Now stretch it 
+             vertically into dst column. */
+            
+	    prgY = zoomer->programY;
+            
+	    for(i = zoomer->dst->ysize; i; --i) {
+	      
+	      weight = 0;
+	      (prgY++);
+	      
+	      for(j = (prgY++)->count; j; --j) {
+		pel2 = *((prgY++)->pixel);
+		weight += pel2 * (prgY++)->weight;
+	      }
+	      
+	      *(out) = (pixel_t)CLAMP(fixdouble2int(weight));
+	      out += 2;
+	      
+            } /* next dst row */
+        } /* next dst column */
+      }
+    /* all colour components in one plane -- e.g. when processing 422 */
+    else if (zoomer->src->pixspan == 4)
+      {
+        for(x = zoomer->dst->xsize; x; --x)
+        {
+            /* Apply horz filter to make dst column in tmp. */
+            for(in = zoomer->src->data, tmpOut = zoomer->tmp, 
+                k = zoomer->src->ysize; k; --k, in+=4) {
+
+                prgX = prgXa;
+                weight = 0;
+                
+		(prgX++);
+		
+                for(j = (prgX++)->count; j; --j) {
+		  pel2 = in[(prgX++)->index];
+		  weight += pel2 * (prgX++)->weight;
+                }
+                *(tmpOut++) = (pixel_t)CLAMP(fixdouble2int(weight));
+            } /* next row in temp column */
+            
+	    prgXa = prgX;
+
+            /* The temp column has been built. Now stretch it 
+             vertically into dst column. */
+            
+	    prgY = zoomer->programY;
+            
+	    for(i = zoomer->dst->ysize; i; --i) {
+	      
+	      weight = 0;
+	      (prgY++);
+	      
+	      for(j = (prgY++)->count; j; --j) {
+		pel2 = *((prgY++)->pixel);
+		weight += pel2 * (prgY++)->weight;
+	      }
+	      
+	      *(out) = (pixel_t)CLAMP(fixdouble2int(weight));
+	      out += 4;
+	      
+            } /* next dst row */
+        } /* next dst column */
+      }
 }
 
 

@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_mask.so"
-#define MOD_VERSION "v0.2.2 (2003-08-27)"
+#define MOD_VERSION "v0.2.3 (2003-10-12)"
 #define MOD_CAP     "Filter through a rectangular Mask"
 #define MOD_AUTHOR  "Thomas Östreich, Chad Page"
 
@@ -72,6 +72,17 @@ void ymask_yuv(unsigned char *buf, vob_t *vob, int top, int bottom)
 
 }
 
+void ymask_yuv422(unsigned char *buf, vob_t *vob, int top, int bottom)
+{
+	int i,j;
+	unsigned char *t;
+
+	for (i = top; i <= bottom; i++) {
+	    t = buf + i * vob->im_v_width * 2;
+	    for (j=0; j<vob->im_v_width*2; j++)
+		*t++ = (j&1)?0x10:0x80;
+	}
+}
 void ymask_rgb(unsigned char *buf, vob_t *vob, int top, int bottom)
 {
 	int i;
@@ -122,6 +133,19 @@ void xmask_yuv(unsigned char *buf, vob_t *vob, int left, int right)
 			ptr += vob->im_v_width/2;
 		}
 	}	
+}
+
+void xmask_yuv422(unsigned char *buf, vob_t *vob, int left, int right)
+{
+	int y, j;
+	unsigned short *t;
+	unsigned short mask = ((0x80 << 8)&0xff00) | ((0x10)&0xff);
+
+	for (y = 0; y < vob->im_v_height; y++) { 
+	    t = (unsigned short *)(buf + y * vob->im_v_width * 2 + left*2);
+	    for (j=0; j<(right-left); j++)
+		*t++ = mask;
+	}
 }
 
 void xmask_rgb(unsigned char *buf, vob_t *vob, int left, int right)
@@ -190,7 +214,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
       char buf[32];
 
-      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYE", "1");
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRY4E", "1");
       
       snprintf(buf, 32, "%dx%d", lc, tc);
       optstr_param (options, "lefttop", "Upper left corner of the box", "%dx%d", buf, "0", "width", "0", "height"); 
@@ -285,6 +309,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	  if ((vob->im_v_height - bc) > 1) ymask_rgb(ptr->video_buf, vob, bc, vob->im_v_height - 1); 
 	  if (lc > 2) xmask_rgb(ptr->video_buf, vob, 0, lc - 1); 
 	  if ((vob->im_v_width - rc) > 1) xmask_rgb(ptr->video_buf, vob, rc, vob->im_v_width - 1); 
+      }
+      if (vob->im_v_codec==CODEC_YUV422) {
+	  if (tc > 2) ymask_yuv422(ptr->video_buf, vob, 0, tc - 1); 
+	  if ((vob->im_v_height - bc) > 1) ymask_yuv422(ptr->video_buf, vob, bc, vob->im_v_height - 1); 
+	  if (lc > 2) xmask_yuv422(ptr->video_buf, vob, 0, lc - 1); 
+	  if ((vob->im_v_width - rc) > 1) xmask_yuv422(ptr->video_buf, vob, rc, vob->im_v_width - 1); 
       }
   } 
   

@@ -41,7 +41,7 @@ static avi_t *avifile1=NULL;
 static avi_t *avifile2=NULL;
 
 static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_DV|TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3|TC_CAP_AUD|TC_CAP_VID;
+static int capability_flag=TC_CAP_DV|TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3|TC_CAP_AUD|TC_CAP_VID|TC_CAP_YUV422;
 
 static int info_shown=0, force_kf=0;
 static int width=0, height=0, im_v_codec=-1;
@@ -155,6 +155,21 @@ further:
 	if(!info_shown && verbose_flag) 
 	  fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
 		MOD_NAME, "YV12", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
+	break;
+
+      case CODEC_YUV422:
+	
+	//force keyframe
+	force_kf=1;
+
+	width = vob->ex_v_width;
+	height = vob->ex_v_height;
+	
+	AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->ex_fps, "UYVY");
+	
+	if(!info_shown && verbose_flag) 
+	  fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
+		MOD_NAME, "UYVY", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
 	break;
 
 	    

@@ -38,7 +38,7 @@ extern int _dv_raw_insert_audio(unsigned char * frame_buf,
                      dv_enc_audio_info_t * audio, int isPAL);
 
 static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
+static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID|TC_CAP_YUV422;
 
 static int fd;
 
@@ -56,6 +56,7 @@ static int pass_through=0;
 
 static int chans, rate;
 static int dv_yuy2_mode=0;
+static int dv_uyvy_mode=0;
 
 static dv_enc_audio_info_t audio;
 
@@ -99,6 +100,7 @@ static int p_write (int fd, char *buf, size_t len)
    return r;
 }
 
+#if 0
 static void pcm_swap(char *buffer, int len)
 {
   char *in, *out;
@@ -120,7 +122,7 @@ static void pcm_swap(char *buffer, int len)
     out = out+2;
   }
 }
-
+#endif
 
 /* ------------------------------------------------------------ 
  *
@@ -141,6 +143,11 @@ MOD_init
     if(vob->dv_yuy2_mode) {
       tmp_buf = bufalloc(PAL_W*PAL_H*2); //max frame
       dv_yuy2_mode=1;
+    }
+
+    if (vob->im_v_codec == CODEC_YUV422) {
+      tmp_buf = bufalloc(PAL_W*PAL_H*2); //max frame
+      dv_uyvy_mode=1;
     }
     
 #ifdef LIBDV_095
@@ -201,6 +208,13 @@ MOD_open
       
       if(verbose & TC_DEBUG) fprintf(stderr, "[%s] raw format is YV12\n", MOD_NAME);
       break;
+
+    case CODEC_YUV422:
+      format=1;
+      
+      if(verbose & TC_DEBUG) fprintf(stderr, "[%s] raw format is UYVY\n", MOD_NAME);
+      break;
+      
       
     case CODEC_RAW:
     case CODEC_RAW_YUV:
@@ -313,6 +327,11 @@ MOD_encode
 	yv12toyuy2(pixels[0], pixels[1], pixels[2], tmp_buf, PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
 	pixels[0]=tmp_buf;
       }
+
+      if (dv_uyvy_mode) {
+	  uyvytoyuy2(pixels[0], tmp_buf, PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
+	  pixels[0]=tmp_buf;
+      }
       
       dv_encode_full_frame(encoder, pixels, (format)?e_dv_color_yuv:e_dv_color_rgb, target);
       
@@ -329,7 +348,7 @@ MOD_encode
       // Work around apparent bug in dv_encode_full_audio when chans == 1
       // by putting silence in 2nd channel and calling with chans = 2
       if (chans == 1) {
-          audio_bufs[0] = param->buffer;
+          audio_bufs[0] = (int16_t *)param->buffer;
           memset(audio_bufs[1], 0, DV_AUDIO_MAX_SAMPLES * 2);
           dv_encode_full_audio(encoder, audio_bufs, 2, rate, target);
       }

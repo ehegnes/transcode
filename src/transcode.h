@@ -582,6 +582,7 @@ extern pid_t tc_probe_pid;
 # define TC_CAP_MP3         64
 # define TC_CAP_YUY2       128
 # define TC_CAP_DV         256
+# define TC_CAP_YUV422     512
 
 # define TC_MODE_DEFAULT            0
 # define TC_MODE_AVI_SPLIT          1

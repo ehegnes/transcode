@@ -39,7 +39,7 @@
 char import_cmd_buf[MAX_BUF];
 
 static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM;
+static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM|TC_CAP_YUV422;
 static int codec;
 
 int scan(char *name) 
@@ -105,7 +105,12 @@ MOD_open
 	
 	(vob->im_v_string) ? sprintf(cat_buf, "tcextract %s", vob->im_v_string):sprintf(cat_buf, "tcextract");
 	
-	co=(codec==CODEC_RGB)? "-x rgb":"-x yv12";
+	switch (codec) {
+	    case CODEC_RGB: co = "-x rgb"; break;
+	    case CODEC_YUV422: co = "-x uyvy"; break;
+	    case CODEC_YUV: 
+	    default: co = "-x yv12"; break;
+	}
       }
       
       
@@ -123,6 +128,13 @@ MOD_open
       case CODEC_YUV:
 	
 	if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x yv12 -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose)<0)) {
+	  perror("cmd buffer overflow");
+	  return(TC_IMPORT_ERROR);
+	}
+	
+      case CODEC_YUV422:
+	
+	if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x uyvy -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose)<0)) {
 	  perror("cmd buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}

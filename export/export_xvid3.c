@@ -250,6 +250,10 @@ MOD_init
 			global_framesize = SIZE_RGB_FRAME*2/3;
 			global_colorspace = XVID_CSP_YV12;
 			break;
+		case CODEC_YUV422:
+			global_framesize = SIZE_RGB_FRAME*2/3;
+			global_colorspace = XVID_CSP_UYVY;
+			break;
 		default: /* down know... simply use YV12, too... */
 			global_framesize = SIZE_RGB_FRAME*2/3;
 			global_colorspace = XVID_CSP_YV12;

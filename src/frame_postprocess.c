@@ -27,6 +27,11 @@
 
 extern void check_clip_para(int p);
 
+int postprocess_yuv422_frame(vob_t *vob, vframe_list_t *ptr)
+{
+    return 0;
+}
+
 int postprocess_yuv_frame(vob_t *vob, vframe_list_t *ptr)
 {
     
@@ -221,6 +226,11 @@ int postprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
   if(vob->im_v_codec == CODEC_YUV) {
       ptr->v_codec = CODEC_YUV;
       return(postprocess_yuv_frame(vob, ptr));
+  }
+  
+  if(vob->im_v_codec == CODEC_YUV422) {
+      ptr->v_codec = CODEC_YUV422;
+      return(postprocess_yuv422_frame(vob, ptr));
   }
   
   tc_error("Oops, invalid colorspace video frame data"); 

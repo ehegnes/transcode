@@ -33,6 +33,7 @@
 #define TC_CODEC_AC3                   0x00002000
 #define TC_CODEC_A52                   0x00002001
 #define TC_CODEC_YV12                  0x32315659
+#define TC_CODEC_UYVY                  0x59565955
 #define TC_CODEC_YUV2                  0x32565559
 #define TC_CODEC_YUY2                  0x32595559
 #define TC_CODEC_M2V                   0x000001b3
