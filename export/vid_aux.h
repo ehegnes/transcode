@@ -39,5 +39,6 @@ int tc_yuv2rgb_core(char *buffer);
 int tc_yuv2rgb_close();
 
 void yv12toyuy2(char *_y, char *_u, char *_v, char *output, int width, int height); 
+void uyvytoyuy2(char *input, char *output, int width, int height);
 
 #endif

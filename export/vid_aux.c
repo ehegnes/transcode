@@ -166,6 +166,23 @@ int tc_rgb2yuv_close()
     return(0);
 }
 
+void uyvytoyuy2(char *input, char *output, int width, int height) 
+{
+
+    int i;
+    
+    for (i=0; i<width*height*2; i+=4) {
+
+      /* packed YUV 4:2:2 is Y[i] U[i] Y[i+1] V[i] (YUY2)*/
+      /* packed YUV 4:2:2 is U[i] Y[i] V[i] Y[i+1] (UYVY)*/
+	output[i] = input[i+1];
+	output[i+1] = input[i];
+	output[i+2] = input[i+3];
+	output[i+3] = input[i+2];
+    }
+
+
+}
 
 void yv12toyuy2(char *_y, char *_u, char *_v, char *output, int width, int height) 
 {
