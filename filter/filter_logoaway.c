@@ -56,10 +56,13 @@
  *    -coordinates in RGB=YUV
  *    -Added SHAPE-mode
  *    -Documentation updated
+ *
+ * v0.4 (2003-09-03) Tilmann Bitterberg
+ *    -add information for shape mode
  */
 
 #define MOD_NAME    "filter_logoaway.so"
-#define MOD_VERSION "v0.3 (2003-04-24)"
+#define MOD_VERSION "v0.4 (2003-09-03)"
 #define MOD_CAP     "remove an image from the video"
 #define MOD_AUTHOR  "Thomas Wehrspann <thomas@wehrspann.de>"
 
@@ -127,14 +130,14 @@ static void help_optstr(void)
    printf ("    You can choose from different methods.                                \n");
    printf ("                                                                          \n");
    printf ("* Options                                                                 \n");
-   printf ("       'range' Frame Range      (0-oo)                  [0-end]           \n");
-   printf ("         'pos' Position         (0-width x 0-height)    [0x0]             \n");
-   printf ("        'size' Size             (0-width x 0-height)    [10x10]           \n");
-   printf ("        'mode' Filter Mode      (0=none, 1=solid, 2=xy) [0]               \n");
+   printf ("       'range' Frame Range      (0-oo)                        [0-end]     \n");
+   printf ("         'pos' Position         (0-width x 0-height)          [0x0]       \n");
+   printf ("        'size' Size             (0-width x 0-height)          [10x10]     \n");
+   printf ("        'mode' Filter Mode      (0=none,1=solid,2=xy,3=shape) [0]         \n");
    printf ("      'border' Visible Border                                             \n");
-   printf ("     'xweight' X-Y Weight       (0%%-100%%)               [50]              \n");
-   printf ("        'fill' Solid Fill Color (RRGGBB)                [000000]          \n");
-   printf ("        'file' Image with alpha/shape information       []                \n");
+   printf ("     'xweight' X-Y Weight       (0%%-100%%)                     [50]        \n");
+   printf ("        'fill' Solid Fill Color (RRGGBB)                      [000000]    \n");
+   printf ("        'file' Image with alpha/shape information             []          \n");
    printf ("                                                                          \n");
 }
 
@@ -575,7 +578,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     optstr_param (options, "size",   "Size of logo",                        "%dx%d",     buf, "0", "width", "0", "height");
 
     sprintf (buf, "%d", data[instance]->mode);
-    optstr_param (options, "mode",   "Filter Mode (0=none, 1=solid, 2=xy)", "%d",        buf, "0", "2");
+    optstr_param (options, "mode",   "Filter Mode (0=none,1=solid,2=xy,3=shape)", "%d",  buf, "0", "3");
 
     sprintf (buf, "%d",  data[instance]->border);
     optstr_param (options, "border", "Visible Border",                      "",          buf);
