@@ -39,8 +39,8 @@
 #endif // HAVE_LIBXV
 
 #if HAVE_SDL
-#include <SDL/SDL.h>
-#include <SDL/SDL_syswm.h>
+#include <SDL.h>
+#include <SDL_syswm.h>
 #endif // HAVE_SDL
 
 #if HAVE_GTK
