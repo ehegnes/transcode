@@ -144,7 +144,7 @@ MOD_open
     char buf2[16];
 
     //note: this is the real framerate of the raw stream
-    framerate = (vob->im_frc==0) ? mpeg_conform_framerate(vob->ex_fps):mpeg_framerate(vob->im_frc);
+    framerate = (vob->ex_frc==0) ? mpeg_conform_framerate(vob->ex_fps):mpeg_framerate(vob->ex_frc);
     asr = (vob->ex_asr<0) ? vob->im_asr:vob->ex_asr;
     
     y4m_init_stream_info(&y4mstream);
