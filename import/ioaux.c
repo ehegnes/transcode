@@ -229,54 +229,69 @@ int probe_path(char *name)
 
     if(name == NULL) { 
       fprintf(stderr, "(%s) invalid file \"%s\"\n", __FILE__, name);
-      return(-1);
+      return(TC_PROBE_PATH_INVALID);
     }
- 
-    
+
     if(xio_stat(name, &fbuf)==0) {
 
-      //inode exists
-      
-      // treat block device as absolute directory path
-      if(S_ISBLK(fbuf.st_mode) 
-#ifdef SYS_BSD // accessing through the raw device (/dev/rdiskX)
-	      || S_ISCHR(fbuf.st_mode)
-#endif
-	      )
-	   return(2);
+      /* inode exists */
 
-      // char device? v4l?
+      /* treat block device as absolute directory path */
+      if (S_ISBLK(fbuf.st_mode))
+	   return(TC_PROBE_PATH_ABSPATH);
+#ifdef SYS_BSD
+      if (S_ISCHR(fbuf.st_mode)) {
+	  switch (major(fbuf.st_rdev)) {
+	      case 15: // rcd (OpenBSD)
+		  return(TC_PROBE_PATH_ABSPATH);
+	      default:
+		  break;
+	  }
+      }
+#endif
+
+      /* char device? v4l? bktr? sunau? */
       if(S_ISCHR(fbuf.st_mode)) {
 	  switch (major(fbuf.st_rdev)) {
-	      case 81: // v4l
-	      case 14: // dsp
-		  return(4);
+#ifdef SYS_BSD
+	      case 49: /* bktr (OpenBSD) */
+                  return(TC_PROBE_PATH_BKTR);
+              case 42: /* sunau (OpenBSD) */
+                  return(TC_PROBE_PATH_SUNAU);
+#else
+	      case 81: /* v4l (Linux) */
+                  return(TC_PROBE_PATH_V4L_VIDEO);
+	      case 14: /* dsp (Linux) */
+                  return(TC_PROBE_PATH_V4L_AUDIO);
+#endif
 	      default:
 		  break;
 	  }
       }
 
-      // file or directory?
-      if(!S_ISDIR(fbuf.st_mode)) return(0);
+      /* file or directory? */
+      if (!S_ISDIR(fbuf.st_mode))
+          return(TC_PROBE_PATH_FILE);
 
-      // directory, check for absolute path
-      if(name[0] == '/') return(2);
+      /* directory, check for absolute path */
+      if(name[0] == '/')
+          return(TC_PROBE_PATH_ABSPATH);
 
-      //directory mode
-      return(1);
+      /* directory mode */
+      return(TC_PROBE_PATH_RELDIR);
     
     } else {
 
-#ifdef NET_STREAM      
-      //check for network host
-      
-      if((hp = gethostbyname(name)) != NULL) return(3);
-#endif      
+#ifdef NET_STREAM
+      /* check for network host */
+      if ((hp = gethostbyname(name)) != NULL)
+          return(TC_PROBE_PATH_NET);
+#endif
       fprintf(stderr, "(%s) invalid filename or host \"%s\"\n", __FILE__, name);
-      return(-1);
+      return(TC_PROBE_PATH_INVALID);
     }
     
-    return(-1);
+    return(TC_PROBE_PATH_INVALID);
 }
 
 int fps2frc(double _fps)

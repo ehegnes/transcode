@@ -104,6 +104,14 @@ void tcprobe_thread(info_t *ipipe)
         probe_v4l(ipipe);
 	break;
 
+    case TC_MAGIC_BKTR_VIDEO:
+        probe_bktr(ipipe);
+	break;
+
+    case TC_MAGIC_SUNAU_AUDIO:
+        probe_sunau(ipipe);
+	break;
+
     case TC_MAGIC_OGG:
 	probe_ogg(ipipe);
 	break;

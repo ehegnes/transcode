@@ -1,4 +1,15 @@
 2004-12-15 Jacob Meuser <jakemsr at jakemsr dot com>
+  * import/{Makefile.am,fileinfo.c,ioaux.c,probe_stream.c,tc.h,
+    tcprobe.c}
+  Probing support for bktr and sunau devices as found on some
+  BSD systems.
+  !! NOTE !! this commit breaks DVD player probing on probably every
+  SYS_BSD system.  This includes OSX, FreeBSD, BSDi, etc.  This will
+  be fixed soon, but if you have a problem, please contact me.  I
+  probably only need the character major ID for DVD device, and of
+  course what system that is on. (uname -a; ls -l /dev/<dvd>).
+
+2004-12-15 Jacob Meuser <jakemsr at jakemsr dot com>
   * libac3/bitstream.c
   don't cast an lvalue
 

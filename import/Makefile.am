@@ -437,6 +437,8 @@ tcprobe_SOURCES = \
 	probe_vnc.c \
 	extract_mxf.c \
 	probe_v4l.c \
+	probe_bktr.c \
+	probe_sunau.c \
 	probe_pvn.c \
 	pvn.c \
 	pvnglobals.c

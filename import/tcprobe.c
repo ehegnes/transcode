@@ -225,93 +225,81 @@ int main(int argc, char *argv[])
     // 
     //--------------------------------------
 
-    // do not try to mess with the stream
-    if(stream_stype!=TC_STYPE_STDIN) {
-      
-      cc=probe_path(name);
-
+    /* do not try to mess with the stream */
+    if (stream_stype != TC_STYPE_STDIN) {
+      cc = probe_path(name);
       switch(cc) {
-	
-      case -1: //non-existent source
-	exit(1);
-	
-      case 0:  //regular file
-	
-	if(!dvd_title_set || dvd_verify(name)<0) {
+        case TC_PROBE_PATH_INVALID:	/* non-existent source */
+          exit(1);
 
-	  if((ipipe.fd_in = xio_open(name, O_RDONLY))<0) {
-	    perror("file open");
-	    return(-1);
-	  }
+        case TC_PROBE_PATH_FILE:	/* regular file */
+          if (!dvd_title_set || (dvd_verify(name) < 0)) {
+            if ((ipipe.fd_in = xio_open(name, O_RDONLY)) < 0) {
+              perror("file open");
+              return(-1);
+            }
+            stream_magic = fileinfo(ipipe.fd_in, skip);
+            ipipe.seek_allowed = 1;
+          } else {                        /* DVD image */
+            stream_magic = TC_MAGIC_DVD;
+            ipipe.seek_allowed = 0;
+          }
+          break;
 
-	  stream_magic = fileinfo(ipipe.fd_in, skip);
-	  ipipe.seek_allowed = 1;
+        case TC_PROBE_PATH_RELDIR:        /* relative path to directory */
+          if (fileinfo_dir(name, &ipipe.fd_in, &stream_magic) < 0)
+            exit(1);
+          ipipe.seek_allowed = 0;
+          break;
 
-	} else {  //DVD image
+        case TC_PROBE_PATH_ABSPATH:       /* absolute path */
+          ipipe.seek_allowed = 0;
+          if (dvd_verify(name) < 0) {
+            /* normal directory - no DVD copy */
+            if (fileinfo_dir(name, &ipipe.fd_in, &stream_magic) < 0)
+              exit(1);
+          } else {
+            stream_magic = TC_MAGIC_DVD;
+          }
+          break;
 
-	  stream_magic = TC_MAGIC_DVD;
-	  ipipe.seek_allowed = 0;
+        case TC_PROBE_PATH_NET:		/* network host */
+          ipipe.seek_allowed = 0;
+          stream_magic = TC_MAGIC_SOCKET;
+          break;
 
-	}
+        case TC_PROBE_PATH_BKTR:	/* bktr device */
+          ipipe.seek_allowed = 0;
+          stream_magic = TC_MAGIC_BKTR_VIDEO;
+          break;
 
-	break;
-	
-	
-      case 1:  //relative path to directory
-	
-	if(fileinfo_dir(name, &ipipe.fd_in, &stream_magic)<0) exit(1);
-	ipipe.seek_allowed = 0;
+        case TC_PROBE_PATH_SUNAU:	/* sunau device */
+          ipipe.seek_allowed = 0;
+          stream_magic = TC_MAGIC_SUNAU_AUDIO;
+          break;
 
-	break;
-	
-	
-      case 2: //absolute path
+        case TC_PROBE_PATH_V4L_VIDEO:	/* v4l video device */
+          ipipe.seek_allowed = 0;
+          stream_magic = TC_MAGIC_V4L_VIDEO;
+          break;
 
-	ipipe.seek_allowed = 0;
+        case TC_PROBE_PATH_V4L_AUDIO:	/* v4l audio device */
+          ipipe.seek_allowed = 0;
+          stream_magic = TC_MAGIC_V4L_AUDIO;
+          break;
 
-	if(dvd_verify(name)<0) {
+        default:
+          exit(1);
 
-	  //normal directory - no DVD copy
-	  if(fileinfo_dir(name, &ipipe.fd_in, &stream_magic)<0) exit(1);
-	  
-	} else {
-	  
-	  stream_magic = TC_MAGIC_DVD;
-	} // DVD
-	
-	break;
+      } /* probe_path */
 
-      case 3: //network host
-
-	ipipe.seek_allowed = 0;
-	stream_magic = TC_MAGIC_SOCKET;
-	break;
-
-      case 4: // v4l device
-
-	ipipe.seek_allowed = 0;
-	// maybe audio as well
-	stream_magic = TC_MAGIC_V4L_VIDEO;
-	break;
-
-      default:
-	exit(1);
-	
-      } // probe_path
-      
     } else {
       ipipe.fd_in = STDIN_FILENO;
       ipipe.seek_allowed = 0;
-      
       stream_magic = streaminfo(ipipe.fd_in);
     }
 
-#if 0
-    if(name && *name && strlen(name)>=10 && strncmp(name, "/dev/video", 10)==0) stream_magic = TC_MAGIC_V4L_VIDEO;
-    if(name && *name && strlen(name)>=7 && strncmp(name, "/dev/dsp",7)==0) stream_magic = TC_MAGIC_V4L_AUDIO;
-#endif
-    
-    // fill out defaults for info structure
+    /* fill out defaults for info structure */
     ipipe.fd_out = STDOUT_FILENO;
     
     ipipe.magic = stream_magic;
@@ -411,13 +399,20 @@ int main(int argc, char *argv[])
     c_ptr=c_old;
     if(ipipe.probe_info->fps != PAL_FPS) c_ptr=c_new;
 
-    frame_time = (ipipe.probe_info->fps!=0)? (long) (1./ipipe.probe_info->fps*1000):0;
-    
-    printf("%18s %s %.3f [%.3f] frc=%d %s\n", "frame rate:", "-f", ipipe.probe_info->fps, PAL_FPS, ipipe.probe_info->frc, c_ptr);
+    frame_time = (ipipe.probe_info->fps != 0) ?
+                 (long)(1. / ipipe.probe_info->fps * 1000) : 0;
 
-    if(ipipe.probe_info->pts_start && ipipe.probe_info->bitrate) printf("%18s PTS=%.4f, frame_time=%ld ms, bitrate=%ld kbps\n", "", ipipe.probe_info->pts_start, frame_time, ipipe.probe_info->bitrate);
-    else if (ipipe.probe_info->pts_start) printf("%18s PTS=%.4f, frame_time=%ld ms\n", "", ipipe.probe_info->pts_start, frame_time);
+    printf("%18s %s %.3f [%.3f] frc=%d %s\n", "frame rate:", "-f",
+           ipipe.probe_info->fps, PAL_FPS, ipipe.probe_info->frc, c_ptr);
 
+    if (ipipe.probe_info->pts_start && ipipe.probe_info->bitrate)
+        printf("%18s PTS=%.4f, frame_time=%ld ms, bitrate=%ld kbps\n", "",
+               ipipe.probe_info->pts_start, frame_time,
+               ipipe.probe_info->bitrate);
+    else
+        if (ipipe.probe_info->pts_start)
+            printf("%18s PTS=%.4f, frame_time=%ld ms\n", "",
+                   ipipe.probe_info->pts_start, frame_time);
 
  audio:
     
@@ -428,28 +423,44 @@ int main(int argc, char *argv[])
       int D_arg=0, D_arg_ms=0;
       double pts_diff=0.;
 
-      if(ipipe.probe_info->track[n].format !=0 && ipipe.probe_info->track[n].chan>0) {
+      if(ipipe.probe_info->track[n].format != 0 &&
+         ipipe.probe_info->track[n].chan > 0) {
 	
 	c_ptr=c_old;
-	if(ipipe.probe_info->track[n].samplerate != RATE || ipipe.probe_info->track[n].chan != CHANNELS  || ipipe.probe_info->track[n].bits != BITS || ipipe.probe_info->track[n].format != CODEC_AC3) c_ptr=c_new;
+	if (ipipe.probe_info->track[n].samplerate != RATE ||
+            ipipe.probe_info->track[n].chan != CHANNELS  ||
+            ipipe.probe_info->track[n].bits != BITS ||
+            ipipe.probe_info->track[n].format != CODEC_AC3)
+            c_ptr=c_new;
 	
-	printf("%18s -a %d [0] -e %d,%d,%d [%d,%d,%d] -n 0x%x [0x%x] %s\n", "audio track:", ipipe.probe_info->track[n].tid, ipipe.probe_info->track[n].samplerate, ipipe.probe_info->track[n].bits,  ipipe.probe_info->track[n].chan, RATE, BITS, CHANNELS, ipipe.probe_info->track[n].format, CODEC_AC3, c_ptr);
-	
+	printf("%18s -a %d [0] -e %d,%d,%d [%d,%d,%d] -n 0x%x [0x%x] %s\n",
+               "audio track:",
+               ipipe.probe_info->track[n].tid,
+               ipipe.probe_info->track[n].samplerate,
+               ipipe.probe_info->track[n].bits,
+               ipipe.probe_info->track[n].chan,
+               RATE, BITS, CHANNELS,
+               ipipe.probe_info->track[n].format,
+               CODEC_AC3, c_ptr);
 
 	if(ipipe.probe_info->track[n].pts_start 
 	   && ipipe.probe_info->track[n].bitrate)
-	  
-	  printf("%18s PTS=%.4f, bitrate=%d kbps\n", " ", ipipe.probe_info->track[n].pts_start, ipipe.probe_info->track[n].bitrate);
-	
-	if(ipipe.probe_info->track[n].pts_start 
-	   && ipipe.probe_info->track[n].bitrate==0)
-	  printf("%18s PTS=%.4f\n", " ", ipipe.probe_info->track[n].pts_start);
-	
-	if(ipipe.probe_info->track[n].pts_start==0 
-	   && ipipe.probe_info->track[n].bitrate)
-	  printf("%18s bitrate=%d kbps\n", " ", ipipe.probe_info->track[n].bitrate);
 
-	if( ipipe.probe_info->pts_start>0 && 
+	  printf("%18s PTS=%.4f, bitrate=%d kbps\n", " ",
+                 ipipe.probe_info->track[n].pts_start,
+                 ipipe.probe_info->track[n].bitrate);
+
+	if((ipipe.probe_info->track[n].pts_start) &&
+	   (ipipe.probe_info->track[n].bitrate == 0))
+	  printf("%18s PTS=%.4f\n", " ",
+                 ipipe.probe_info->track[n].pts_start);
+	
+	if ((ipipe.probe_info->track[n].pts_start == 0) &&
+	    (ipipe.probe_info->track[n].bitrate))
+	  printf("%18s bitrate=%d kbps\n", " ",
+                 ipipe.probe_info->track[n].bitrate);
+
+	if (ipipe.probe_info->pts_start>0 && 
 	    ipipe.probe_info->track[n].pts_start>0 &&
 	    ipipe.probe_info->fps!=0) {
 	  pts_diff = ipipe.probe_info->pts_start - ipipe.probe_info->track[n].pts_start;
@@ -458,8 +469,6 @@ int main(int argc, char *argv[])
 
 	  printf("%18s -D %d --av_fine_ms %d (frames & ms) [0] [0]\n", " ", D_arg, D_arg_ms);
 	}
-
-	
       }
     }
     
