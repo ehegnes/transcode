@@ -3,6 +3,14 @@ transcode-0.6.13
 
 2004-01-14 Tilmann Bitterberg <transcode at tibit.org>
 
+  * export/export_mpeg2enc.c:
+  Add support for constant quantizer encoding with -R3.
+  When enabling -R3 with -y mpeg2enc, -w will be the quantizer. You
+  probably have to set --video_max_rate as well, depending on the
+  profile. For example: -F 5 -w 2 -R3 --video_max_bitrate 2000
+
+2004-01-14 Tilmann Bitterberg <transcode at tibit.org>
+
   * src/transcode.c:
   Fix a race condition when reading from a .smil file in connection
   with tcxmlcheck.
