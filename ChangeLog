@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-02-04 Jean-Yves Simon <lethalwp at tiscali.be>
+
+  * import/extract_ac3.c:
+  Subtitle stuff. when there's a chapter change, the pts is reset
+  to 0. Now directly add the video offset to the subtitle.
+
 2004-02-03 Nicolas Boos <nicolas.boos at wanadoo.fr>
 
   * configure.in:

@@ -77,7 +77,7 @@ static void pes_ac3_loop (void)
 
     unsigned int pack_lpts=0;
     double pack_rpts=0.0f, last_rpts=0.0f, offset_rpts=0.0f, abs_rpts=0.0f;
-    double pack_sub_rpts=0.0f, last_sub_rpts=0.0f, offset_sub_rpts=0.0f, abs_sub_rpts=0.0f;
+    double pack_sub_rpts=0.0f, abs_sub_rpts=0.0f;
 
     int discont=0;
 
@@ -145,7 +145,7 @@ static void pes_ac3_loop (void)
 	  if(get_pts_dts(pack_buf, &i_pts, &i_dts)) {
 	    pack_rpts = (double) i_pts/90000.;
 	    
-	    if(pack_rpts < last_rpts){
+	    if(pack_rpts < last_rpts){ // pts resets when a new chapter begins
 	      offset_rpts += last_rpts;
 	      ++discont;
 	    }  
@@ -217,22 +217,17 @@ static void pes_ac3_loop (void)
 		
 		// get pts time stamp:
 		  memcpy(pack_buf, &buf[6], 16);
-	  
+
 		  if(get_pts_dts(pack_buf, &i_pts, &i_dts)) {
 		    pack_sub_rpts = (double) i_pts/90000.;
 	    
-		    if(pack_sub_rpts < last_sub_rpts){
-		      offset_sub_rpts += last_sub_rpts;
-		       // ++discont;
-		    }  
+		    //i suppose there *canNOT* be 2 sub chunks from the
+		    //same sub line over a chapter change
+		    //let's add the video offset to the subs
+		    abs_sub_rpts=pack_sub_rpts + offset_rpts;
 	    
-		    //default
-		    last_sub_rpts=pack_sub_rpts;
-		    abs_sub_rpts=pack_sub_rpts + offset_sub_rpts;
-	    
-		    //fprintf(stderr, "PTS=%8.3f ABS=%8.3f\n", pack_rpts, abs_rpts);
+		    //fprintf(stderr, "sub PTS=%8.3f ABS=%8.3f\n", pack_rpts, abs_rpts);
 		  }
-		// buf = tmp2;   should be below, not needed
 
 		subtitle_header.lpts = pack_lpts;
 		subtitle_header.rpts = abs_sub_rpts;
