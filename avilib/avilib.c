@@ -1008,8 +1008,6 @@ static int avi_close_output_file(avi_t *AVI)
    // write correct len
    long2str(AVI_header+info_start_pos, info_len + id_len + 4+4+4);
 
-   // XXX:
-   printf("Got len (%ld)\n", info_len);
    nhb += info_len;
 
 //   OUT4CC ("ICMT");
