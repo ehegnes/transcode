@@ -21,10 +21,8 @@
  *
  */
 
-#include <stdio.h>
-
-#include "transcode.h"
 #include "ioaux.h"
+#include "tc.h"
 
 #define LAV_AUDIO_FORMAT TC_CODEC_AC3
 #define LAV_VIDEO_FORMAT TC_CODEC_LAV
