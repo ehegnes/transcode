@@ -10,7 +10,10 @@ EXTRA_DIST = \
 	export-mods.txt \
 	import-mods.txt
 
-SUBDIRS = . man html
+SUBDIRS = \
+	man \
+	html \
+	release-notes
 
 docsdir = $(datadir)/doc/transcode
 
