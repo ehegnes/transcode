@@ -1,5 +1,11 @@
 transcode-0.13-pre2 EMS
 
+2004-08-25 Erik Slagter <erik at oldconomy dot com>
+  * import/v4l/import_v4l2.c:
+  The saa7134 driver appears to not handle RGB24 correctly.
+  Removed the RGB24 capturing format and made the module
+  use BGR24 + conversion to RGB24.
+
 2004-08-22 Erik Slagter <erik at oldconomy dot com>
   * src/transcode.c:
   Made YUV420/YV12 internal handling default, added warning to

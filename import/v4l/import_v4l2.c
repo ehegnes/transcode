@@ -50,11 +50,10 @@
 #endif
 
 #include "transcode.h"
-// #include "aclib/ac.h"
 #include "filter/mmx.h"
 
 #define MOD_NAME		"import_v4l2.so"
-#define MOD_VERSION		"v1.3.3 (2004-08-08)"
+#define MOD_VERSION		"v1.3.4 (2004-08-25)"
 #define MOD_CODEC		"(video) v4l2 | (audio) pcm"
 
 static int verbose_flag		= TC_QUIET;
@@ -104,6 +103,7 @@ static int capability_flag	= TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_PC
 			EMS deleted disfunctional experimental alternating fields code
 			EMS added experimental code to make sa7134 survive sync glitches
 	1.3.3	EMS adapted fast memcpy to new default transcode method
+	1.3.4	EMS fixed RGB24 capturing bug when using saa7134.
 
 	TODO
 
@@ -174,7 +174,6 @@ static char		v4l2_format_string[128] = "";
 
 static void		(*v4l2_format_convert)(const char *, char *, size_t, int, int) = 0;
 
-static void v4l2_convert_rgb24_rgb(const char *, char *, size_t, int, int);
 static void v4l2_convert_bgr24_rgb(const char *, char *, size_t, int, int);
 static void v4l2_convert_uyvy_yuv422(const char *, char *, size_t, int, int);
 static void v4l2_convert_yuyv_yuv422(const char *, char *, size_t, int, int);
@@ -194,7 +193,6 @@ static v4l2_parameter_t v4l2_parameters[] =
 
 static v4l2_format_convert_table_t v4l2_format_convert_table[] = 
 {
-	{ V4L2_PIX_FMT_RGB24, v4l2_fmt_rgb, v4l2_convert_rgb24_rgb, "RGB24 [packed] -> RGB [packed] (no conversion)" },
 	{ V4L2_PIX_FMT_BGR24, v4l2_fmt_rgb, v4l2_convert_bgr24_rgb, "BGR24 [packed] -> RGB [packed] (slow conversion)" },
 
 	{ V4L2_PIX_FMT_UYVY, v4l2_fmt_yuv422packed, v4l2_convert_uyvy_yuv422, "UYVY [packed] -> YUV422 [packed] (no conversion)" },
@@ -208,17 +206,6 @@ static v4l2_format_convert_table_t v4l2_format_convert_table[] =
 /* ============================================================ 
  * CONVERSION ROUTINES
  * ============================================================*/
-
-
-static void v4l2_convert_rgb24_rgb(const char * source, char * dest, size_t size, int xsize, int ysize)
-{
-	size_t mysize = xsize * ysize * 3;
-
-	if(mysize != size)
-		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
-
-	tc_memcpy(dest, source,  mysize);
-}
 
 static void v4l2_convert_bgr24_rgb(const char * source, char * dest, size_t size, int xsize, int ysize)
 {
@@ -663,9 +650,7 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 	if(v4l2_convert_index == -1)	// list
 	{
 		for(ix = 0, fcp = v4l2_format_convert_table, found = 0; ix < (sizeof(v4l2_format_convert_table) / sizeof(*v4l2_format_convert_table)); ix++)
-		{
 			fprintf(stderr, module "conversion index: %d = %s\n", ix, fcp[ix].description);
-		}
 
 		return(1);
 	}
