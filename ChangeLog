@@ -71,6 +71,19 @@ transcode-0.6.9
   The filters now return if they don't want skipped frames so there
   is no need anymore for the filter core to skip the filters
 
+  * export/export_xvid[234].c:
+  Use vob->ex_fps instead of vob->fps
+
+  * docs/architecture.txt:
+  A document describing the internal architecture of transcode and
+  contains useful information if you want to write a filter but are
+  not sure which slot transcode offers you should choose. Needs to
+  be worked on.
+
+  * docs/framerate.txt:
+  A document describing how to do framerate conversions with
+  transcode. Needs to be worked on.
+
 2003-07-29 Christopher Cramer <crayc at asuka.halfassedprojects.com>
 
   * filter/filter_fps.c:

@@ -25,6 +25,8 @@ docs_DATA = \
                     template.cfg.txt\
 		    filter-socket.txt\
 		    avi_comments.txt\
+		    framerate.txt\
+		    architecture.txt\
 		    filter-API.txt export-API.txt import-API.txt \
 		    OPTIMIZERS
 
