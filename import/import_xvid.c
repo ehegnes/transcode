@@ -245,6 +245,28 @@ MOD_open
   return(TC_IMPORT_ERROR);
 }
 
+// Determine of the compressed frame is a keyframe for direct copy
+static int divx4_is_key(unsigned char *data, long size)
+{
+        int result = 0;
+        int i;
+
+        for(i = 0; i < size - 5; i++)
+        {
+                if( data[i]     == 0x00 && 
+                        data[i + 1] == 0x00 &&
+                        data[i + 2] == 0x01 &&
+                        data[i + 3] == 0xb6)
+                {
+                        if((data[i + 4] & 0xc0) == 0x0) 
+                                return 1;
+                        else
+                                return 0;
+                }
+        }
+        
+        return result;
+}
 
 /* ------------------------------------------------------------ 
  *
@@ -270,6 +292,8 @@ MOD_decode {
 
     // PASS_THROUGH MODE
     if(pass_through) {
+      if (divx4_is_key((unsigned char *)param->buffer, (long) param->size))
+	  param->attributes |= TC_FRAME_IS_KEYFRAME;
       param->size = (int) bytes_read;
       memcpy(param->buffer, buffer, bytes_read); 
 
