@@ -28,7 +28,7 @@
 #include "vid_aux.h"
 
 #define MOD_NAME    "export_dvraw.so"
-#define MOD_VERSION "v0.3 (2003-07-24)"
+#define MOD_VERSION "v0.4 (2003-10-14)"
 #define MOD_CODEC   "(video) Digital Video | (audio) PCM"
 
 #define MOD_PRE dvraw
@@ -323,7 +323,7 @@ MOD_encode
 	pixels[1]=(char *) vbuf + (NTSC_W*NTSC_H*5)/4;
       }
       
-      if(dv_yuy2_mode) {	
+      if(dv_yuy2_mode && !dv_uyvy_mode) {	
 	yv12toyuy2(pixels[0], pixels[1], pixels[2], tmp_buf, PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
 	pixels[0]=tmp_buf;
       }
