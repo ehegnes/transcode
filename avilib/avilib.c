@@ -27,7 +27,6 @@
 
 #include "avilib.h"
 #include "../config.h"
-//#include <time.h>
 
 #define INFO_LIST
 
@@ -204,8 +203,6 @@ avi_t* AVI_open_output_file(char * filename)
    avi_t *AVI;
    int i;
 
-   int mask;
-   
    unsigned char AVI_header[HEADERBYTES];
 
    /* Allocate the avi_t struct and zero it */
@@ -222,10 +219,8 @@ avi_t* AVI_open_output_file(char * filename)
       we do not truncate the file when we open it.
       Instead it is truncated when the AVI file is closed */
 
-   mask = umask (0);
-   umask (mask);
-
-   AVI->fdes = open(filename, O_RDWR|O_CREAT, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) &~ mask);
+   AVI->fdes = open(filename, O_RDWR|O_CREAT,
+		    S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
    if (AVI->fdes < 0)
    {
       AVI_errno = AVI_ERR_OPEN;
@@ -527,13 +522,6 @@ int avi_update_header(avi_t *AVI)
    OUTLONG(njunk);
    memset(AVI_header+nhb,0,njunk);
    
-   //2001-11-14 added id string 
-
-   if(njunk > strlen(id_str)+8) {
-     sprintf(id_str, "%s-%s", PACKAGE, VERSION);
-     memcpy(AVI_header+nhb, id_str, strlen(id_str));
-   }
-   
    nhb += njunk;
 
    /* Start the movi list */
@@ -764,7 +752,7 @@ static int avi_close_output_file(avi_t *AVI)
 	 OUTSHRT(AVI->track[j].a_fmt);           /* Format */
 	 OUTSHRT(AVI->track[j].a_chans);         /* Number of channels */
 	 OUTLONG(AVI->track[j].a_rate);          /* SamplesPerSec */
-	 // ThOe
+	 //ThOe
 	 OUTLONG(1000*AVI->track[j].mp3rate/8);
 	 //ThOe (/4)
 	 
@@ -1041,6 +1029,7 @@ int AVI_close(avi_t *AVI)
    //FIXME
    //if(AVI->audio_index) free(AVI->audio_index);
    free(AVI);
+   AVI=NULL;
 
    return ret;
 }
@@ -1079,11 +1068,17 @@ avi_t *AVI_open_input_file(char *filename, int getIndex)
       return 0;
     }
   
+  AVI_errno = 0;
   avi_parse_input_file(AVI, getIndex);
 
-  AVI->aptr=0; //reset  
+  if (AVI != NULL && !AVI_errno) {
+      AVI->aptr=0; //reset  
+  }
 
-  return AVI;
+  if (AVI_errno)
+      return AVI=NULL;
+  else
+      return AVI;
 }
 
 avi_t *AVI_open_fd(int fd, int getIndex)
@@ -1105,11 +1100,17 @@ avi_t *AVI_open_fd(int fd, int getIndex)
   // file alread open
   AVI->fdes = fd;
   
+  AVI_errno = 0;
   avi_parse_input_file(AVI, getIndex);
 
-  AVI->aptr=0; //reset
+  if (AVI != NULL && !AVI_errno) {
+      AVI->aptr=0; //reset
+  }
   
-  return AVI;
+  if (AVI_errno)
+      return AVI=NULL;
+  else
+      return AVI;
 }
 
 int avi_parse_input_file(avi_t *AVI, int getIndex)

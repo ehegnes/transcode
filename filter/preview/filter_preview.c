@@ -48,6 +48,7 @@
 static char buffer[128];
 static int size=0;
 static int use_secondary_buffer=0;
+static char *undo_buffer = NULL;
 
 static int preview_delay=0;
 
@@ -177,6 +178,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
     default:
       fprintf(stderr, "[%s] codec not supported for preview\n", MOD_NAME);
       return(-1);
+    }
+
+    if ((undo_buffer = (char *) malloc (size)) == NULL) {
+      fprintf(stderr, "[%s] codec not supported for preview\n", MOD_NAME);
+      return (-1);
     }
 
     return(0);

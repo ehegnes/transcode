@@ -28,10 +28,10 @@
 static char buffer[MAX_BUF];
 char filename[1024];
 
-size_t p_read(int fd, char *buf, size_t len)
+ssize_t p_read(int fd, char *buf, size_t len)
 {
-   size_t n = 0;
-   size_t r = 0;
+   ssize_t n = 0;
+   ssize_t r = 0;
 
    while (r < len) {
       n = read (fd, buf + r, len - r);
@@ -44,10 +44,10 @@ size_t p_read(int fd, char *buf, size_t len)
    return r;
 }
 
-size_t p_write (int fd, char *buf, size_t len)
+ssize_t p_write (int fd, char *buf, size_t len)
 {
-   size_t n = 0;
-   size_t r = 0;
+   ssize_t n = 0;
+   ssize_t r = 0;
 
    while (r < len) {
       n = write (fd, buf + r, len - r);
@@ -61,7 +61,7 @@ size_t p_write (int fd, char *buf, size_t len)
 
 int p_readwrite(int fd_in, int fd_out)
 {
-    int bytes;
+    ssize_t bytes;
     int error=0;
 
     do {

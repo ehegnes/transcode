@@ -27,675 +27,125 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 
 	   <table border="0" cellpadding="0" cellspacing="0" font size=+2 bgcolor="#ffffff" width=100%>
 
-	<tr> 
-	  <td bgcolor="#e9e9e9" width=10%> <b>option </b> </td>
-	  <td align="left" bgcolor="#e9e9e9" width=20%>
-	  <b>optarg </b>
-	  </td>
-	  <td align=left bgcolor="#e9e9e9" width=50%>
-	  <b>comment </b>
-	  </td>
-	  <td align=left bgcolor="#e9e9e9" width=20%>
-	  <b>defaults </b>
-	  </td>
-	</tr>
+<code>	     
+ -i name &nbsp;&nbsp;&nbsp;&nbsp;    input file/directory/device/mountpoint/host name  <br>
+ -H n  &nbsp;&nbsp;&nbsp;&nbsp;            auto-probe n MB of source (0=off) [1]<br>
+ -p file     &nbsp;&nbsp;&nbsp;&nbsp;      read audio stream from separate file [off]<br>
+-x vmod[,amod] &nbsp;&nbsp;&nbsp;&nbsp;video[,audio] import modules [null]<br>
+ -a a[,v]        &nbsp;&nbsp;&nbsp;&nbsp;  extract audio[,video] track [0,0]<br><br>
 
-	<tr>
-	  <td align="left" bgcolor="#ffffff">
-	  -i  </td>  <td bgcolor="#ffffff"> name
-	  </td>
-	  <td align=left width=90%>
-	  file/directory/path_to_device/mountpoint name
+ -e r[,b[,c]]  &nbsp;&nbsp;&nbsp;&nbsp;    PCM audio stream parameter [48000,16,2] <br>
+ -E r[,b[,c]]  &nbsp;&nbsp;&nbsp;&nbsp;    audio output samplerate, bits, channels [as input]<br>
+ -n 0xnn      &nbsp;&nbsp;&nbsp;&nbsp;     import audio format id [0x2000]<br>
+ -N 0xnn      &nbsp;&nbsp;&nbsp;&nbsp;     export audio format id [0x55]<br>
+ -b b[,vbr[,q]] &nbsp;&nbsp;&nbsp;&nbsp;   audio encoder bitrate kBits/s[,vbr[,quality]] [128,0,5]<br>
+--no_audio_adjust &nbsp;&nbsp;&nbsp;&nbsp; disable audio frame sample adjustment [off]<br>
+--no_bitreservoir &nbsp;&nbsp;&nbsp;&nbsp; disable lame bitreservoir [off]<br><br>
 
-	  </td> 
-	</tr>
+ -g wxh       &nbsp;&nbsp;&nbsp;&nbsp;     RGB video stream frame size [720x576]<br>
+--export_asr C  &nbsp;&nbsp;&nbsp;&nbsp;   set export aspect ratio code C [as input]<br>
+--import_asr C  &nbsp;&nbsp;&nbsp;&nbsp;   set import aspect ratio code C [auto]<br>
+--keep_asr      &nbsp;&nbsp;&nbsp;&nbsp;   try to keep aspect ratio (only with -Z) [off]<br>
+ -f rate[,frc]    &nbsp;&nbsp;&nbsp;&nbsp; output video frame rate[,frc] [25.000,0] fps<br>
+--export_frc F    &nbsp;&nbsp;&nbsp;&nbsp; set export frame rate code F [as input]<br><br>
 
-	<tr>
-	  <td align="left" bgcolor="#ffffff">
-	  -H  </td>  <td bgcolor="#ffffff"> 
-	  </td>
-	  <td align=left width=90%>
-	  disable auto-probing
-	  </td> <td bgcolor="#ffffff" width=20%>[off]  
-	  </td>
-	</tr>
+ -o file       &nbsp;&nbsp;&nbsp;&nbsp;    output file name<br>
+ -m file      &nbsp;&nbsp;&nbsp;&nbsp;     write audio stream to separate file [off]<br>
+ -y vmod[,amod]  &nbsp;&nbsp;&nbsp;&nbsp;  video[,audio] export modules [null]<br>
+ -F codec        &nbsp;&nbsp;&nbsp;&nbsp;  encoder parameter strings [module dependent]<br>
+ --avi_limit N  &nbsp;&nbsp;&nbsp;&nbsp;   split output AVI file after N MB [2048]<br><br>
+
+ -d   &nbsp;&nbsp;&nbsp;&nbsp;             swap bytes in audio stream [off]<br>
+ -s g[,c[,f[,r]]] &nbsp;&nbsp;&nbsp;&nbsp; increase volume by gain,[center,front,rear] [off,1,1,1]<br><br>
+
+ -u m[,n]      &nbsp;&nbsp;&nbsp;&nbsp;    use m framebuffer[,n threads] for AV processing [10,1]<br>
+ -A        &nbsp;&nbsp;&nbsp;&nbsp;        use AC3 as internal audio codec [off]<br>
+ -V                use YV12/I420 as internal video codec [off]<br>
+ -J f1[,f2[,...]]&nbsp;&nbsp;&nbsp;&nbsp;  apply external filter plugins [off]<br>
+ -P flag    &nbsp;&nbsp;&nbsp;&nbsp;       pass-through flag (0=off|1=V|2=A|3=A+V) [0]<br><br>
+
+ -D num    &nbsp;&nbsp;&nbsp;&nbsp;        sync video start with audio frame num [0]<br>
+--av_fine_ms t    &nbsp;&nbsp;&nbsp;&nbsp;  AV fine-tuning shift t in millisecs [autodetect]<br><br>
+
+ -M mode   &nbsp;&nbsp;&nbsp;&nbsp;        demuxer PES AV sync mode (0=off|1=PTS only|2=full) [1]<br>
+ -O   &nbsp;&nbsp;&nbsp;&nbsp;             flush lame mp3 buffer on encoder stop [off]<br><br>
+
+ -r n[,m]   &nbsp;&nbsp;&nbsp;&nbsp;          reduce video height/width by n[,m] [off]<br>
+ -B n[,m[,M]]     &nbsp;&nbsp;&nbsp;&nbsp;    resize to height-n*M rows [,width-m*M] columns [off,32]<br>
+ -X n[,m[,M]]    &nbsp;&nbsp;&nbsp;&nbsp;     resize to height+n*M rows [,width+m*M] columns [off,32]<br>
+ -Z wxh      &nbsp;&nbsp;&nbsp;&nbsp;         resize to w columns, h rows with filtering [off]<br>
+--zoom_filter string  &nbsp;&nbsp;&nbsp;&nbsp;use filter string for video resampling -Z [Lanczos3]<br>
+ -C mode       &nbsp;&nbsp;&nbsp;&nbsp;       enable anti-aliasing mode (1-3) [off]<br>
+--antialias_para w,b &nbsp;&nbsp;&nbsp;&nbsp; center pixel weight, xy-bias [0.333,0.500]<br><br>
+
+ -I mode   &nbsp;&nbsp;&nbsp;&nbsp;        enable de-interlacing mode (1-3) [off]<br>
+
+ -K           &nbsp;&nbsp;&nbsp;&nbsp;     enable b/w mode [off]<br>
+ -G val        &nbsp;&nbsp;&nbsp;&nbsp;    gamma correction (0.0-10.0) [off]<br>
+ -z        &nbsp;&nbsp;&nbsp;&nbsp;        flip video frame upside down [off]<br>
+ -l        &nbsp;&nbsp;&nbsp;&nbsp;        mirror video frame [off]<br>
+ -k         &nbsp;&nbsp;&nbsp;&nbsp;       swap red/blue (Cb/Cr) in video frame [off]<br><br>
+
+ -j t[,l[,b[,r]]] &nbsp;&nbsp;&nbsp;&nbsp;        select frame region by clipping border [off]<br>
+ -Y t[,l[,b[,r]]] &nbsp;&nbsp;&nbsp;&nbsp;        select (encoder) frame region by clipping border [off]<br>
+--pre_clip t[,l[,b[,r]]]&nbsp;&nbsp;&nbsp;&nbsp;  select initial frame region by clipping border [off]<br>
+--post_clip t[,l[,b[,r]]] &nbsp;&nbsp;&nbsp;&nbsp;select final frame region by clipping border [off]<br><br>
+
+ -w b[,k[,c]]    &nbsp;&nbsp;&nbsp;&nbsp;      encoder bitrate[,keyframes[,crispness]] [1800,250,100]<br>
+ -R n[,f1[,f2]] &nbsp;&nbsp;&nbsp;&nbsp;       enable multi-pass encoding (0-3) [0,divx4.log,pcm.log]<br>
+ -Q n[,m]    &nbsp;&nbsp;&nbsp;&nbsp;          encoding[,decoding] quality (0=fastest-5=best) [5,5]<br>
+ --divx_quant min,max &nbsp;&nbsp;&nbsp;&nbsp; divx encoder min/max quantizer [2,31]<br>
+ --divx_rc p,rp,rr &nbsp;&nbsp;&nbsp;&nbsp;    divx encoder rate control parameter [2000,10,20]<br><br>
+
+ -c f1-f2   &nbsp;&nbsp;&nbsp;&nbsp;        encode only frames f1-f2 [all]<br>
+ -t n,base    &nbsp;&nbsp;&nbsp;&nbsp;      split output to base%03d.avi with n frames [off]<br>
+--dir_mode base  &nbsp;&nbsp;&nbsp;&nbsp;   process directory contents to base-%03d.avi [off]<br>
+--frame_interval N  &nbsp;&nbsp;&nbsp;&nbsp;select only every Nth frame to be exported [1]<br><br>
+
+ -U base     &nbsp;&nbsp;&nbsp;&nbsp;     process DVD in chapter mode to base-ch%02d.avi [off]<br>
+ -T t[,c[-d][,a]] &nbsp;&nbsp;&nbsp;&nbsp;select DVD title[,chapter(s)[,angle]] [1,1,1]<br><br>
+
+ -W n,m[,file]    &nbsp;&nbsp;&nbsp;&nbsp;    autosplit and process part n of m (VOB only) [off]<br>
+--cluster_percentage &nbsp;&nbsp;&nbsp;&nbsp; use percentage mode for cluster encoding -W [off]<br>
+--cluster_chunks a-b&nbsp;&nbsp;&nbsp;&nbsp;  process chunk range instead of selected chunk [off]<br>
+ -S unit[,s1-s2]  &nbsp;&nbsp;&nbsp;&nbsp;    process program stream unit[,s1-s2] sequences [0,all]<br>
+ -L n       &nbsp;&nbsp;&nbsp;&nbsp;          seek to VOB stream offset nx2kB [0]<br><br>
+
+--import_v4l n[,id] &nbsp;&nbsp;&nbsp;&nbsp;  channel number and station number or name [0]<br>
+--record_v4l a-b  &nbsp;&nbsp;&nbsp;&nbsp;    recording time interval in seconds [off]<br>
+--duration hh:mm:ss  &nbsp;&nbsp;&nbsp;&nbsp; limit v4l recording to this duration [off]<br>
+
+--pulldown   &nbsp;&nbsp;&nbsp;&nbsp;       set MPEG 3:2 pulldown flags on export [off]<br>
+--encode_fields  &nbsp;&nbsp;&nbsp;&nbsp;   enable field based encoding (if supported) [off]<br><br>
+
+--nav_seek file &nbsp;&nbsp;&nbsp;&nbsp;     use VOB navigation file [off]<br>
+--psu_mode  &nbsp;&nbsp;&nbsp;&nbsp;         process VOB in PSU, -o is a filemask incl. %d [off]<br>
+--psu_chunks a-b  &nbsp;&nbsp;&nbsp;&nbsp;   process only selected units a-b for PSU mode [all]<br>
+--no_split    &nbsp;&nbsp;&nbsp;&nbsp;       encode to single file in chapter/psu mode [off]<br>
+--ts_pid 0xnn  &nbsp;&nbsp;&nbsp;&nbsp;      transport video stream pid [0]<br><br>
+
+--a52_drc_off &nbsp;&nbsp;&nbsp;&nbsp;      disable liba52 dynamic range compression [enabled]<br>
+--a52_demux   &nbsp;&nbsp;&nbsp;&nbsp;      demux AC3/A52 to separate channels [off]<br>
+--a52_dolby_off  &nbsp;&nbsp;&nbsp;&nbsp;   disable liba52 dolby surround [enabled]<br><br>
+
+--print_status N[,use_cr]&nbsp;&nbsp;&nbsp;&nbsp; print status every N frames / use CR or NL [1,1]<br>
+--progress_off     &nbsp;&nbsp;&nbsp;&nbsp;       disable progress meter status line [off]<br>
+--write_pid file   &nbsp;&nbsp;&nbsp;&nbsp;       write pid of signal thread to "file" [off]<br>
+--accel type    &nbsp;&nbsp;&nbsp;&nbsp;          enforce IA32 acceleration for type [autodetect]<br><br>
+
+ -q level  &nbsp;&nbsp;&nbsp;&nbsp;         verbosity (0=quiet,1=info,2=debug) [1]<br>
+ -h        &nbsp;&nbsp;&nbsp;&nbsp;         this usage message<br>
+ -v              &nbsp;&nbsp;&nbsp;&nbsp;   print version<br>
+--more_help param  &nbsp;&nbsp;&nbsp;&nbsp; more help on named parameter<br><br>
+</code>
 	
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -p </td>  <td bgcolor="#ffffff" width=20%> file
-	  </td>
-	  <td align=left width=90%>
-	  read audio stream from separate file </td> 
-	  </td> <td bgcolor="#ffffff" width=20%>[off] </td> 
-
-	</tr>
-
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -e </td> <td bgcolor="#ffffff" width=20%> r[,b[,c]]
-	  </td>	  <td align=left width=90%>
-	  PCM audio stream parameter </td>  <td bgcolor="#ffffff" width=20%>[48000,16,2]
-	  </td> 
-
-	</tr>
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -a </td>  <td bgcolor="#ffffff" width=20%> ach[,vch]
-	  </td>
-	  <td align=left width=90%>
-	  extract audio[,video] track for encoding </td>  <td bgcolor="#ffffff" width=20%>[0]
-	  </td> 
-	</tr>
-
-	
-	
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -T </td> <td bgcolor="#ffffff" width=20%> t[,c[,a]] 
-	  </td>	  <td align=left width=90%>
-	  select DVD title[,chapter[,angle]]  </td>  <td bgcolor="#ffffff" width=20%>[1,1,1]
-	  </td> 
-
-	</tr>
-
-	
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -g </td>  <td bgcolor="#ffffff" width=20%> wxh 
-	  </td>
-	  <td align=left width=90%>
-	  RGB video stream frame size </td>  <td bgcolor="#ffffff" width=20%>[720x576]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -u </td>  <td bgcolor="#ffffff" width=20%>num
-	  </td>
-	  <td align=left width=90%>
-	  import num audio/video frames ahead </td>  <td bgcolor="#ffffff" width=20%>[5]
-	  </td> 
-	</tr>
-	
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -x </td>  <td bgcolor="#ffffff" width=20%> vmod[,amod]   
-	  </td>
-	  <td align=left width=90%>
-	  video[,audio] import modules</td>  <td bgcolor="#ffffff" width=20%> [null]	  </td> 
-	</tr>
-	
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	 -o </td>  <td bgcolor="#ffffff" width=20%> file          
-	  </td>
-	  <td align=left width=90%>
-	 output file name
-	  </td> 
-	</tr>
-	
-	
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	 -m </td>  <td bgcolor="#ffffff" width=20%> file        
-	  </td>
-	  <td align=left width=90%>
-	  write audio stream to separate file </td>  <td bgcolor="#ffffff" width=20%>[off]
-	  </td> 
-	</tr>
-	
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -y </td>  <td bgcolor="#ffffff" width=20%> vmod[,amod] 
-	  </td>
-	  <td align=left width=90%>
-	  video[,audio] export modules </td>  <td bgcolor="#ffffff" width=20%>[null]
-	  </td> 
-	</tr>
-	
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -f</td>  <td bgcolor="#ffffff" width=20%> 
-	  rate
-	  </td>
-	  <td align=left width=90%>
-	  output video frame rate in fps</td>  <td bgcolor="#ffffff"
-	  width=20%> [25.00]
-	  </td> 
-	</tr>
-	
-	
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -d</td>  <td bgcolor="#ffffff" width=20%> 
-	  </td>
-	  <td align=left width=90%>
-	  swap bytes in audio stream </td>  <td bgcolor="#ffffff" width=20%> [off]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -s </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  gain         
-	  </td>
-	  <td align=left width=90%>
-	  increase volume of audio stream by gain
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [off]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -A </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-
-	  </td>
-	  <td align=left width=90%>
-	use AC3 as internal audio codec <FONT color=red></font>
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [off]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -V </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  </td>
-	  <td align=left width=90%>
-	  use YUV as internal video colorspace
-
-	  <FONT color=red></font>
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [off]
-	  </td> 
-	</tr>
-
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -J </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  filter[,...]
-	  </td>
-	  <td align=left width=90%>
-	  apply external filter plugins
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [off]
-	  </td> 
-	</tr>
-
-
-	
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -P </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  flag
-	  </td>
-	  <td align=left width=90%>
-	  pass-through flag (0|1=V|2=A|3=AV)
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [0]
-	  </td> 
-	</tr>
-
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10% valign=top>
-	  -D </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  num         
-	  </td>
-	  <td align=left width=90%>
-	  sync video start with audio frame num 
-	  </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  [0]
-	  </td> 
-	</tr>
-
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10% valign=top>
-	  -M </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  mode         
-	  </td>
-	  <td align=left width=90%>
-	  demuxer PES A-V sync mode (0=off|1=PTS only|2=full)
-	  </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  [1]
-	  </td> 
-	</tr>
-
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10% valign=top>
-	  -O </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-
-	  </td>
-	  <td align=left width=90%>
-	  flush lame mp3 buffer on encoder stop
-	  </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  [off]
-	  </td> 
-	</tr>
-
-	
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -z </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  
-	  </td>
-	  <td align=left width=90%>
-	  flip video frame upside down
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [off]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -l </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  
-	  </td>
-	  <td align=left width=90%>
-	  mirror video frame
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [off]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -k </td>
-	  <td bgcolor="#ffffff" width=20%>
-
-	  </td>
-	  <td align=left width=90%>
-	  swap red/blue in video frame
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [off]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -r </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  factor
-	  </td>
-	  <td align=left width=90%>
-	  reduce video height/width by (2|4|8)
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [off]
-	  </td> 
-	</tr>
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -j </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  t[,l[,b[,r]]]
-	  </td>
-	  <td align=left width=90%>
-	  select frame region 
-	  by clipping border
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [off]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10% valign=top>
-	  -B </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  n[,m]
-	  </td>
-	  <td align=left width=90%>
-	  resize to height-n*32 rows [,width-m*32] columns <FONT color=red></font>
-	  </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  [off]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10% valign=top>
-	  -X </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  n[,m]
-	  </td>
-	  <td align=left width=90%>
-	  resize to height+n*32 rows [,width+m*32] columns <FONT color=red></font>
-	  </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  [off]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10% valign=top>
-	  -Z </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  wxh
-	  </td>
-	  <td align=left width=90%>
-	   resize to w columns, h rows with filtering<FONT color=red></font>
-	  </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  [off]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -I </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  mode
-	  </td>
-	  <td align=left width=90%>
-	  enable de-interlacing mode (1-3) <FONT color=red></font>
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [off]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -C </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  mode
-	  </td>
-	  <td align=left width=90%>
-	  enable anti-aliasing mode (1-3) <FONT color=red></font>
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [off]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -K </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-
-	  </td>
-	  <td align=left width=90%>
-	  enable b/w mode <FONT color=red></font>
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [off]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -G  </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  val
-	  </td>
-	  <td align=left width=90%>
-	   gamma correction (0.0-10.0) <FONT color=red></font>
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [off]
-	  </td> 
-	</tr>
-
-	
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -Y </td>
-	  <td bgcolor="#ffffff" width=20% valign=top>
-	  t[,l[,b[,r]]]
-	  </td>
-	  <td align=left width=90%>select (encoder) frame region 
-	  by clipping border
-	   <FONT color=red></font>
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [off]
-	  </td> 
-	</tr>
-
-
-	
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -w </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  b[,k[,c]]    
-	  </td>
-	  <td align=left width=90%>
-	  encoder bitrate[,keyframes[,crispness]]
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [1800,250,100]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -Q </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  mode
-	  </td>
-	  <td align=left width=90%>
-	  encoding quality (1=fastest-5=best)
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [5]
-	  </td> 
-	</tr>
-	
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -R </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  n[,f1[,f2]]
-	  </td>
-	  <td align=left width=90%>
-	  enable multi-pass encoding (0-2) 
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [0,divx4.log,pcm.log]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -b </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  rate         
-	  </td>
-	  <td align=left width=90%>
-	  audio encoder bitrate kBits/s 
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [128]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -n </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  0xnn
-	  </td>
-	  <td align=left width=90%>
-	  import audio format id
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [0x2000]
-	  </td> 
-	</tr>
-
-		<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -N </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  0xnn
-	  </td>
-	  <td align=left width=90%>
-	  export audio format id
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [0x55]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -E </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  samplerate
-	  </td>
-	  <td align=left width=90%>
-	  audio output samplerate
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [as input]
-	  </td> 
-	</tr>
-
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -F </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  codec 
-	  </td>
-	  <td align=left width=90%>
-	  avifile 0.6 video codec string 
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  ["DivX ;-) low-motion"]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -c </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  f1-f2
-	  </td>
-	  <td align=left width=90%>
-	  encode only frames f1-f2 
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [all]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -t </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  n,base         
-	  </td>
-	  <td align=left width=90%>
-	  split output to base%03d.avi with n frames
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [off]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -U </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  base         
-	  </td>
-	  <td align=left width=90%>
-	  process DVD in chapter mode to base-ch%02d.avi 
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [off]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -S </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  unit[,s1-s2]
-	  </td>
-	  <td align=left width=90%>
-	  process program stream unit[,s1-s2] sequences 
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [0,all]
-	  </td> 
-	</tr>	
-	
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -q </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  level         
-	  </td>
-	  <td align=left width=90%>
-	  verbosity (0=quiet,1=info,2=debug)
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  [1]
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -h </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  </td>
-	  <td align=left width=90%>
-	  display this usage message
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  </td> 
-	</tr>
-
-	<tr>
-	  <td align="left" bgcolor="#ffffff" width=10%>
-	  -v </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  </td>
-	  <td align=left width=90%>
-	  print version
-	  </td>
-	  <td bgcolor="#ffffff" width=20%>
-	  </td> 
-	</tr>	
  </table>
 </table>
 </table>
 
 
 <!-- hhmts start -->
-Last modified: Thu May 16 12:45:40 CEST 2002
+Last modified: Sun Dec  8 19:29:47 Europe/Berlin 2002
 <!-- hhmts end -->
 
 </body> </html>

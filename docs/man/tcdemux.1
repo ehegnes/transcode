@@ -1,4 +1,4 @@
-.TH tcdemux 1 "20th September 2002" "tcdemux(1)"
+.TH tcdemux 1 "09th January 2003" "tcdemux(1)"
 .SH NAME
 tcdemux \- demultiplex a program stream 
 .SH SYNOPSIS
@@ -101,12 +101,12 @@ at the very beginning. This option can be used to eleminate junk units at the be
 Do not skip initial sequence. Used internally by transcode.
 .br
 .IP "\fB-A \fIn[,m[,...]]\fP"
-Select packets using the standard identifier for extracting only selected streams without processing. This is useful for size reduction of your multimedia stream. Example:  
+Select packets using an identifier for extracting only selected streams without processing. This is useful for size reduction of your multimedia stream. Example:  
 
-.B tcdemux -i dvd.vob -A 0xe0,0xbd,0xf0
+.B tcdemux -i big_dvd.vob -A 0xe0,0x81,0x20 > small_dvd.vob
 
-extracts all packets for the first video stream, AC3 audio tracks and the
-first subtitle. 
+extracts all packets for the video stream, AC3 audio track (1) and the
+first subtitle stream (0). 
 .br
 .IP "\fB-M \fImode\fP"
 Select synchronization strategy

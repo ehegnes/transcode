@@ -1,10 +1,10 @@
 /*****************************************************************************
  *  - XviD Transcode Export Module -
  *
- *  Copyright (C) 2001 - Thomas Östreich
+ *  Copyright (C) 2001-2003 - Thomas Östreich
  *
  *  Original Author    : Christoph Lampert <gruel@web.de> 
- *  Current maintainer : Edouard Gomez <ed.gomez@wanadoo.fr>
+ *  Current maintainer : Edouard Gomez <ed.gomez@free.fr>
  *
  *  This file is part of transcode, a linux video stream processing tool
  *      
@@ -46,7 +46,7 @@
 #define DEVELOPER_USE /* Turns on/off transcode xvid.cfg option file */
 #endif
 
-#include "xvidcvs.h"
+#include "xvid.h"
 #include "xvid_vbr.h"
 
 #include "transcode.h"
@@ -63,7 +63,7 @@
  ****************************************************************************/
 
 #define MOD_NAME    "export_xvidraw.so"
-#define MOD_VERSION "v0.3.4 (2002-09-17)"
+#define MOD_VERSION "v0.3.6 (2002-12-30)"
 #define MOD_CODEC   "(video) XviD (Stable - Raw Output) | (audio) MPEG/AC3/PCM"
 #define MOD_PRE xvidraw_ 
 #include "export_def.h"
@@ -77,7 +77,11 @@ static int rawfd;
 
 static int VbrMode = 0;
 static int encode_fields = 0;
-  
+
+#define HINT_BUFFER_SIZE (50*1024) /* 50kb should be enough */
+#define HINT_FILE "xvid-me.hints"
+static FILE *hints_file = NULL;
+
 /* temporary audio/video buffer */
 static char *buffer;
 #define BUFFER_SIZE SIZE_RGB_FRAME<<1
@@ -276,6 +280,17 @@ MOD_init
 		vbr_state.fps = (float)((float)global_param.fbase/(float)global_param.fincr);
 		vbr_state.debug = (verbose_flag & TC_DEBUG)?1:0;
 
+		/*
+		 * Take care of 1pass CBR | 2pass 1&2 | fixed quant
+		 *
+		 * We have also to take care of HINTED modes:
+		 *   GET for pass1
+		 *   SET for pass2
+		 *
+		 * Power Users should know about both flags but they can use
+		 * a shortcut using XVID_HINTEDME without specifying the action
+		 *
+		 */
 		switch(VbrMode) {
 		case 1:
 			/*
@@ -284,6 +299,7 @@ MOD_init
 			 */
 			vbr_state.mode = VBR_MODE_2PASS_1;
 			vbr_state.filename = vob->divxlogfile;
+			global_frame.general &= ~XVID_HINTEDME_SET;
 			break;
 		case 2:	
 			/*
@@ -293,6 +309,7 @@ MOD_init
 			 */
 			vbr_state.mode = VBR_MODE_2PASS_2;
 			vbr_state.filename = vob->divxlogfile;
+			global_frame.general &= ~XVID_HINTEDME_GET;
 
 			/* divxbitrate represents the desired file size in Mo */
 			vbr_state.desired_bitrate = vob->divxbitrate*1000;
@@ -317,6 +334,24 @@ MOD_init
 			break;
 		}
 
+		/* Prepare things for Hinted ME */
+		if(global_frame.general & (XVID_HINTEDME_SET|XVID_HINTEDME_GET)) {
+			char *rights = "rb";
+
+			/*
+			 * If we are getting hints from core, we will have to
+			 * write them to hint file
+			 */
+			if(global_frame.general & XVID_HINTEDME_GET)
+				rights = "w+b";
+
+			/* Open the hint file */
+			hints_file = fopen(HINT_FILE, rights);
+			if(hints_file == NULL) {
+				fprintf(stderr, "Error opening input file %s\n", HINT_FILE);
+				return(-1);
+			}
+		}
 
 		/* Init the vbr state */
 		if(vbrInit(&vbr_state) != 0)
@@ -360,15 +395,10 @@ MOD_open
     
 	if(param->flag == TC_VIDEO) {
     
-		int mask;
-
 		/* Video */
-		mask = umask (0);
-		umask (mask);
-    
 		rawfd = open(vob->video_out_file,
 			     O_RDWR|O_CREAT|O_TRUNC,
-			     (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) &~ mask);
+			     S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
 		if(rawfd < 0) {
 			perror("open file");
       
@@ -413,7 +443,36 @@ MOD_encode
 	xframe.quant = vbrGetQuant(&vbr_state);
 	xframe.intra = vbrGetIntra(&vbr_state);
 
-  	/* Encode the frame */
+  	/* Hinted ME stuff */
+	if(xframe.general & (XVID_HINTEDME_GET|XVID_HINTEDME_SET)) {
+		long size = HINT_BUFFER_SIZE;
+
+		/*
+		 * If we are setting ME hints, we have to read data from
+		 * the file - first the hints size
+		 */
+		if(xframe.general & XVID_HINTEDME_SET)
+			fread(&size, 1, sizeof(long), hints_file);
+
+		/* Initialise hints in the frame structure */
+		xframe.hint.rawhints = 0;
+		xframe.hint.hintstream = malloc(size);
+
+		if(xframe.hint.hintstream == NULL) {
+			fprintf(stderr, "Could not allocate memory for ME hints\n");
+			return(TC_EXPORT_ERROR);
+		}
+
+		/*
+		 * If we are setting ME hints, we have to read data from
+		 * the file - then the hints
+		 */
+		if(xframe.general & XVID_HINTEDME_SET)
+			fread(xframe.hint.hintstream, 1, size, hints_file);
+
+	}
+
+	/* Encode the frame */
 	xerr = XviD_encore(XviD_encore_handle, XVID_ENC_ENCODE, &xframe,
 			   &xstats);
 
@@ -421,8 +480,24 @@ MOD_encode
 	if (xerr == XVID_ERR_FAIL) {
 		fprintf(stderr, "codec encoding error %d\n", xerr);
 		return(TC_EXPORT_ERROR); 
-    	}
+   	}
 
+ 	/* Hinted ME stuff - The come back :-) */
+ 	if(xframe.general & (XVID_HINTEDME_GET|XVID_HINTEDME_SET)) {
+ 
+ 		/* If we are getting ME hints - write them to file */
+ 		if(xframe.general & XVID_HINTEDME_GET) {
+ 			long size;
+ 			size = xframe.hint.hintlength;
+ 			fwrite(&size, 1, sizeof(long), hints_file);
+ 			fwrite(xframe.hint.hintstream, 1, size, hints_file);
+ 		}
+ 
+ 		/* Free the buffer */
+ 		if(xframe.hint.hintstream) free(xframe.hint.hintstream);
+ 
+ 	}
+ 
 	/* Update the VBR controler */
 	vbrUpdate(&vbr_state, xstats.quant, xframe.intra, xstats.hlength,
 		  xframe.length, xstats.kblks, xstats.mblks, xstats.ublks);
@@ -449,7 +524,9 @@ MOD_close
 		close(rawfd);
 		return(0);
 	}
-  
+
+	if(hints_file != NULL) fclose(hints_file);
+
 	return(TC_EXPORT_ERROR);
 
 }
@@ -754,15 +831,12 @@ static config_flag_t const cpu_flags[] = {
 	{ "XVID_CPU_3DNOW",    XVID_CPU_3DNOW},
 	{ "XVID_CPU_3DNOWEXT", XVID_CPU_3DNOWEXT},
 	{ "XVID_CPU_TSC",      XVID_CPU_TSC},
-//	{ "XVID_CPU_IA64",     XVID_CPU_IA64},
-//	{ "XVID_CPU_CHKONLY",  XVID_CPU_CHKONLY},
 	{ "XVID_CPU_FORCE",    XVID_CPU_FORCE},
 	{ NULL,                0}
 };
 
 static config_flag_t const general_flags[] = {
 	{ "XVID_VALID_FLAGS",    XVID_VALID_FLAGS},
-//	{ "XVID_CUSTOM_QMATRIX", XVID_CUSTOM_QMATRIX},
 	{ "XVID_H263QUANT",      XVID_H263QUANT},
 	{ "XVID_MPEGQUANT",      XVID_MPEGQUANT},
 	{ "XVID_HALFPEL",        XVID_HALFPEL},
@@ -774,6 +848,7 @@ static config_flag_t const general_flags[] = {
 	{ "XVID_ALTERNATESCAN",  XVID_ALTERNATESCAN},
 	{ "XVID_HINTEDME_GET",   XVID_HINTEDME_GET},
 	{ "XVID_HINTEDME_SET",   XVID_HINTEDME_SET},
+	{ "XVID_HINTEDME",       XVID_HINTEDME_SET|XVID_HINTEDME_GET},
 	{ "XVID_INTER4V",        XVID_INTER4V},
 	{ "XVID_ME_ZERO",        XVID_ME_ZERO},
 	{ "XVID_ME_LOGARITHMIC", XVID_ME_LOGARITHMIC},

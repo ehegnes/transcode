@@ -1259,7 +1259,7 @@ static int end_program_stream(double clock_cycles, unsigned long packet_data_siz
     }
 
     // GMO if (!SetEndOfFile(programFile))
-    if (fseek(programFile, 0, SEEK_END) != 0)
+    if (fseeko(programFile, 0, SEEK_END) != 0)
     {
       sprintf(tmpStr, "Unable to set the end of file for program file %s.",
               programFilename);
@@ -1296,7 +1296,7 @@ static int sector_to_timecode(unsigned char *ptr, unsigned int frame)
   unsigned int i, j;
   char tmpStr[MAXPATH];
 
-  if (fseek(svcd_info, frame << 2, SEEK_SET))
+  if (fseeko(svcd_info, frame << 2, SEEK_SET))
   {
     sprintf(tmpStr, "Unable to seek position in SVCD temporary file %s", svcd_name);
     DisplayError(tmpStr);
@@ -1427,7 +1427,7 @@ static int embed_svcd_scan_info(Video_struc *video_info)
         }
         if (j == 0x0E)
         {
-          ret = fseek(programFile, (long) (bitcount(&bs) / 8.0), SEEK_SET); 
+          ret = fseeko(programFile, (long) (bitcount(&bs) / 8.0), SEEK_SET); 
           if (ret)
           {
             sprintf(tmpStr, "Unable to seek position in program file %s.", programFilename);

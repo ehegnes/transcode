@@ -24,14 +24,23 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 	  This chapter gives an introduction to Digital Video
 	  processing with transcode. Here is a list of features:
 	  
-	  <ul> <li> decoding DV with <i>libdv</i> or <i>avifile</i>
-	      API.
-	  <li> concatenating clips with directory mode and option "-i"
+	  <ul>
+	    <li> AVI-files with Digital Video streams can be
+		 decoded with 
+		 <ul>
+		   <li><i>libdv</i> (default)
+		   <li><i>avifile</i> (-x af6)
+		   <li><i>ffmpeg</i> (-x ffmpeg)
+		 </ul>
+		 
+	  <li> concatenating clips with directory mode and option "-i <i>direname</i>"
 	      before processing.
 	  <li> a couple of fast or high-quality de-interlace
-	      <a href=filter.html#video>filters</a> available.
+	      <a href=filter.html#video>filters</a> available to
+	       enhance the quality.
 	  <li> support for encoding to DV with <i>libdv</i> as raw
 	      stream or interleaved AVI-file.
+	  <li> pass-through mode: raw DV -> AVI-file conversion.
 	</ul>
 
 	Unfortunately, while most linux player happily accept the AVI-DV files
@@ -70,13 +79,16 @@ program stream, video, audio, transcode, decoder, stream, YV12">
       <td align="left" bgcolor="#e9e9e9">
 
       <font>Digital Video (DV)
-	  ---> DivX 4.0</font>
+	  ---> MPEG-4</font>
     </tr>
     <tr>
       <td>
 
-	  Here is a 3 step guide to convert a DV tape to a full-screen AVI
-	  DivX 4.0 movie clip under linux using <i>transcode</i>
+	  Here is a 3 step guide to convert a DV tape to a compressed AVI
+	  MPEG-4 movie clip under linux using <i>transcode</i>. For a
+	   selection of a video codec implementation supported by
+	   transcode consult the <a href=modules.html> modules</a> info-page.
+	   
 	  <ul>
 	    <li> You need Arne Schirmacher's nice tool <i>dvgrab</I>
 		to transfer the DV tape to disk. Make sure, you use
@@ -85,21 +97,24 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		libdv sound seems to be broken. Optionally, use <br><br>
 		<FONT color=red> tcprobe -i&nbsp; file.avi <br><br>
 		 </i> to find out important parameters: For example:
-		<br><br><code>
-		 [audio]: 32000 Hz, format=0x01, bits=16, channels=2, bitrate=1024<br>
-[video]: 25.00 fps, codec=dvsd, frames=360, width=720, height=576<br><br></code>
-		 indicates we need to provide "-e 32000".
-		 If the output looks like:<br><br><code>
-		 [audio]: 32000 Hz, format=0x01, bits=16, channels=2, bitrate=1024<br>
-[video]: 29.97 fps, codec=dvsd, frames=372, width=720, height=480<br><br></code>
-		 we also need to correct the frame rate with "-f
-		 29.97"
-		 and the NTSC frame size with "-g 720x480" in addition
-		 to "-e 32000". Fortunately, the auto-probing feature
-		of <i>transcode</i> available in v.0.5.x takes care of
-		these
-		details.
- 		 
+
+		 <p><code>
+		 
+[tcprobe] RIFF data, AVI video
+[avilib] V: 25.000 fps, codec=dvsd, frames=633, width=720, height=576 <br>
+[avilib] A: 48000 Hz, format=0x01, bits=16, channels=2, bitrate=1536
+		 kbps, <br>
+[avilib]    633 chunks, 4861528 bytes <br>
+[tcprobe] summary for test-2002.10.04_14-47-25.avi, (*) = not default, 0 = not detected<br>
+import frame size: -g 720x576 [720x576] <br>
+       frame rate: -f 25.000 [25.000] frc=3 <br>
+      audio track: -a 0 [0] -e 48000,16,2 [48000,16,2] -n 0x1 [0x2000] (*)
+                   bitrate=1536 kbps <br>
+           length: 633 frames, frame_time=40 msec <br>
+</code><p>
+		 
+		 Fortunately, the auto-probing feature
+		of <i>transcode</i> takes care of these details.
 		 <br><br>
 
 	     <li> To encode the clips, we have a number of options:
@@ -223,8 +238,27 @@ program stream, video, audio, transcode, decoder, stream, YV12">
     </tr>
     <tr>
       <td>
+	   The pass-through mode is able to wrap raw Digital Video
+	   streams into AVI-files with the following command. Note, that
+	   the interleaved raw audio data can be transcoded to a separate
+	   audio track with the codec of your choice. However, this
+	   does not save space since Digital Video has identical frame
+	   size independent of the presence of audio.
 
-	  In progress.
+	   <p>
+	   <code>
+	   transcode -i raw.dv -P 1 -o raw.avi -y raw
+	   </code>
+	   <p>
+
+	   The opposite way is achieved by:
+
+	   <p>
+	   <code>
+	   tcextract -i raw.avi -x raw > raw.dv
+	   </code>
+	   <p>
+	   
 </table>
 </table>
 
@@ -267,7 +301,7 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 
 
 <!-- hhmts start -->
-Last modified: Thu May 16 12:58:18 CEST 2002
+Last modified: Fri Dec  6 16:25:56 Europe/Berlin 2002
 <!-- hhmts end -->
 
 </body> </html>

@@ -107,6 +107,8 @@ LIBFAME_CONFIG = @LIBFAME_CONFIG@
 LIBFAME_LIBS = @LIBFAME_LIBS@
 LIBJPEG_CFLAGS = @LIBJPEG_CFLAGS@
 LIBJPEG_LIBS = @LIBJPEG_LIBS@
+LIBLVE_CFLAGS = @LIBLVE_CFLAGS@
+LIBLVE_LIBS = @LIBLVE_LIBS@
 LIBMPEG3_CFLAGS = @LIBMPEG3_CFLAGS@
 LIBMPEG3_LIBS = @LIBMPEG3_LIBS@
 LIBPOSTPROC_CFLAGS = @LIBPOSTPROC_CFLAGS@
@@ -152,6 +154,8 @@ USE_LIBA52_DECODER = @USE_LIBA52_DECODER@
 VERSION = @VERSION@
 VORBIS_CFLAGS = @VORBIS_CFLAGS@
 VORBIS_LIBS = @VORBIS_LIBS@
+XVIDCORE_CFLAGS = @XVIDCORE_CFLAGS@
+XVIDCORE_LIBS = @XVIDCORE_LIBS@
 X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
 X_LIBS = @X_LIBS@
@@ -175,7 +179,7 @@ pkgdir = @MOD_PATH@
 @HAVE_MMX_TRUE@F_MMX = filter_dilyuvmmx.la 
 @HAVE_MMX_FALSE@F_MMX = 
 
-@HAVE_MAGICK_TRUE@F_LOGO = filter_logo.la
+@HAVE_MAGICK_TRUE@F_LOGO = filter_logo.la filter_logoaway.la
 
 pkg_LTLIBRARIES = filter_null.la\
 			filter_invert.la\
@@ -195,6 +199,7 @@ pkg_LTLIBRARIES = filter_null.la\
 			filter_testframe.la\
 			filter_fields.la\
 			filter_clone.la\
+			filter_videocore.la\
 			filter_tc_video.la\
 			filter_tc_audio.la\
 			filter_29to23.la\
@@ -242,6 +247,9 @@ filter_astat_la_LDFLAGS = -no-undefined -module -avoid-version
 filter_aclip_la_SOURCES = filter_aclip.c
 filter_aclip_la_LDFLAGS = -no-undefined -module -avoid-version 
 
+filter_videocore_la_SOURCES = filter_videocore.c
+filter_videocore_la_LDFLAGS = -no-undefined -module -avoid-version 
+
 filter_32detect_la_SOURCES = filter_32detect.c
 filter_32detect_la_LDFLAGS = -no-undefined -module -avoid-version 
 
@@ -256,17 +264,22 @@ filter_yuy2toyv12_la_LDFLAGS = -no-undefined -module -avoid-version
 
 filter_smartdeinter_la_SOURCES = filter_smartdeinter.c
 filter_smartdeinter_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_smartdeinter_la_LIBADD = -L../libvo -lvout ../export/vid_aux.lo
 
 filter_normalize_la_SOURCES = filter_normalize.c
 filter_normalize_la_LDFLAGS = -no-undefined -module -avoid-version 
 filter_normalize_la_LIBADD = -lm
 
 filter_logo_la_SOURCES = filter_logo.c
-filter_logo_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_logo_la_LDFLAGS = -no-undefined -module -avoid-version
 filter_logo_la_LIBADD = @MAGICK_LIBS@ -L../libvo -lvout ../export/vid_aux.lo
 
 filter_xsharpen_la_SOURCES = filter_xsharpen.c
 filter_xsharpen_la_LDFLAGS = -no-undefined -module -avoid-version 
+
+filter_logoaway_la_SOURCES = filter_logoaway.c
+filter_logoaway_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_logoaway_la_LIBADD = @MAGICK_LIBS@
 
 filter_invert_la_SOURCES = filter_invert.c
 filter_invert_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -281,10 +294,7 @@ filter_dilyuvmmx_la_LDFLAGS = -no-undefined -module -avoid-version
 filter_fields_la_SOURCES = filter_fields.c
 filter_fields_la_LDFLAGS = -no-undefined -module -avoid-version 
 
-
-#filter_dilb_la_SOURCES = filter_dilb.c 
-#filter_dilb_la_LDFLAGS = -no-undefined -module -avoid-version 
-EXTRA_DIST = *.h 
+EXTRA_DIST = *.h parse_csv.awk filter_list.awk
 
 @HAVE_DV_TRUE@ADD1 = preview 
 
@@ -292,6 +302,8 @@ ADD2 = subtitler
 
 @HAVE_X11_TRUE@SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc $(ADD1) $(ADD2)
 @HAVE_X11_FALSE@SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc
+
+pkg_SCRIPTS = filter_list.awk parse_csv.awk
 subdir = filter
 mkinstalldirs = $(SHELL) $(top_srcdir)/autotools/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
@@ -337,6 +349,9 @@ filter_invert_la_OBJECTS = $(am_filter_invert_la_OBJECTS)
 filter_logo_la_DEPENDENCIES = ../export/vid_aux.lo
 am_filter_logo_la_OBJECTS = filter_logo.lo
 filter_logo_la_OBJECTS = $(am_filter_logo_la_OBJECTS)
+filter_logoaway_la_DEPENDENCIES =
+am_filter_logoaway_la_OBJECTS = filter_logoaway.lo
+filter_logoaway_la_OBJECTS = $(am_filter_logoaway_la_OBJECTS)
 filter_mask_la_LIBADD =
 am_filter_mask_la_OBJECTS = filter_mask.lo
 filter_mask_la_OBJECTS = $(am_filter_mask_la_OBJECTS)
@@ -352,7 +367,7 @@ filter_pp_la_OBJECTS = $(am_filter_pp_la_OBJECTS)
 filter_skip_la_LIBADD =
 am_filter_skip_la_OBJECTS = filter_skip.lo
 filter_skip_la_OBJECTS = $(am_filter_skip_la_OBJECTS)
-filter_smartdeinter_la_LIBADD =
+filter_smartdeinter_la_DEPENDENCIES = ../export/vid_aux.lo
 am_filter_smartdeinter_la_OBJECTS = filter_smartdeinter.lo
 filter_smartdeinter_la_OBJECTS = $(am_filter_smartdeinter_la_OBJECTS)
 filter_smooth_la_LIBADD =
@@ -367,12 +382,17 @@ filter_tc_video_la_OBJECTS = $(am_filter_tc_video_la_OBJECTS)
 filter_testframe_la_LIBADD =
 am_filter_testframe_la_OBJECTS = filter_testframe.lo
 filter_testframe_la_OBJECTS = $(am_filter_testframe_la_OBJECTS)
+filter_videocore_la_LIBADD =
+am_filter_videocore_la_OBJECTS = filter_videocore.lo
+filter_videocore_la_OBJECTS = $(am_filter_videocore_la_OBJECTS)
 filter_xsharpen_la_LIBADD =
 am_filter_xsharpen_la_OBJECTS = filter_xsharpen.lo
 filter_xsharpen_la_OBJECTS = $(am_filter_xsharpen_la_OBJECTS)
 filter_yuy2toyv12_la_LIBADD =
 am_filter_yuy2toyv12_la_OBJECTS = filter_yuy2toyv12.lo
 filter_yuy2toyv12_la_OBJECTS = $(am_filter_yuy2toyv12_la_OBJECTS)
+SCRIPTS = $(pkg_SCRIPTS)
+
 
 DEFS = @DEFS@
 CPPFLAGS = @CPPFLAGS@
@@ -393,6 +413,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/filter_fields.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_invert.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_logo.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/filter_logoaway.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_mask.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_normalize.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_null.Plo \
@@ -403,6 +424,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/filter_tc_audio.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_tc_video.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_testframe.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/filter_videocore.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_xsharpen.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_yuy2toyv12.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
@@ -418,12 +440,13 @@ DIST_SOURCES = $(filter_29to23_la_SOURCES) $(filter_32detect_la_SOURCES) \
 	$(filter_cshift_la_SOURCES) $(filter_cut_la_SOURCES) \
 	$(filter_dilyuvmmx_la_SOURCES) $(filter_dnr_la_SOURCES) \
 	$(filter_fields_la_SOURCES) $(filter_invert_la_SOURCES) \
-	$(filter_logo_la_SOURCES) $(filter_mask_la_SOURCES) \
-	$(filter_normalize_la_SOURCES) $(filter_null_la_SOURCES) \
-	$(filter_pp_la_SOURCES) $(filter_skip_la_SOURCES) \
-	$(filter_smartdeinter_la_SOURCES) $(filter_smooth_la_SOURCES) \
-	$(filter_tc_audio_la_SOURCES) $(filter_tc_video_la_SOURCES) \
-	$(filter_testframe_la_SOURCES) $(filter_xsharpen_la_SOURCES) \
+	$(filter_logo_la_SOURCES) $(filter_logoaway_la_SOURCES) \
+	$(filter_mask_la_SOURCES) $(filter_normalize_la_SOURCES) \
+	$(filter_null_la_SOURCES) $(filter_pp_la_SOURCES) \
+	$(filter_skip_la_SOURCES) $(filter_smartdeinter_la_SOURCES) \
+	$(filter_smooth_la_SOURCES) $(filter_tc_audio_la_SOURCES) \
+	$(filter_tc_video_la_SOURCES) $(filter_testframe_la_SOURCES) \
+	$(filter_videocore_la_SOURCES) $(filter_xsharpen_la_SOURCES) \
 	$(filter_yuy2toyv12_la_SOURCES)
 
 RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
@@ -433,7 +456,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 DIST_COMMON = Makefile.am Makefile.in
 DIST_SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc preview \
 	subtitler
-SOURCES = $(filter_29to23_la_SOURCES) $(filter_32detect_la_SOURCES) $(filter_32drop_la_SOURCES) $(filter_aclip_la_SOURCES) $(filter_astat_la_SOURCES) $(filter_clone_la_SOURCES) $(filter_cshift_la_SOURCES) $(filter_cut_la_SOURCES) $(filter_dilyuvmmx_la_SOURCES) $(filter_dnr_la_SOURCES) $(filter_fields_la_SOURCES) $(filter_invert_la_SOURCES) $(filter_logo_la_SOURCES) $(filter_mask_la_SOURCES) $(filter_normalize_la_SOURCES) $(filter_null_la_SOURCES) $(filter_pp_la_SOURCES) $(filter_skip_la_SOURCES) $(filter_smartdeinter_la_SOURCES) $(filter_smooth_la_SOURCES) $(filter_tc_audio_la_SOURCES) $(filter_tc_video_la_SOURCES) $(filter_testframe_la_SOURCES) $(filter_xsharpen_la_SOURCES) $(filter_yuy2toyv12_la_SOURCES)
+SOURCES = $(filter_29to23_la_SOURCES) $(filter_32detect_la_SOURCES) $(filter_32drop_la_SOURCES) $(filter_aclip_la_SOURCES) $(filter_astat_la_SOURCES) $(filter_clone_la_SOURCES) $(filter_cshift_la_SOURCES) $(filter_cut_la_SOURCES) $(filter_dilyuvmmx_la_SOURCES) $(filter_dnr_la_SOURCES) $(filter_fields_la_SOURCES) $(filter_invert_la_SOURCES) $(filter_logo_la_SOURCES) $(filter_logoaway_la_SOURCES) $(filter_mask_la_SOURCES) $(filter_normalize_la_SOURCES) $(filter_null_la_SOURCES) $(filter_pp_la_SOURCES) $(filter_skip_la_SOURCES) $(filter_smartdeinter_la_SOURCES) $(filter_smooth_la_SOURCES) $(filter_tc_audio_la_SOURCES) $(filter_tc_video_la_SOURCES) $(filter_testframe_la_SOURCES) $(filter_videocore_la_SOURCES) $(filter_xsharpen_la_SOURCES) $(filter_yuy2toyv12_la_SOURCES)
 
 all: all-recursive
 
@@ -492,6 +515,8 @@ filter_invert.la: $(filter_invert_la_OBJECTS) $(filter_invert_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkgdir) $(filter_invert_la_LDFLAGS) $(filter_invert_la_OBJECTS) $(filter_invert_la_LIBADD) $(LIBS)
 filter_logo.la: $(filter_logo_la_OBJECTS) $(filter_logo_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_logo_la_LDFLAGS) $(filter_logo_la_OBJECTS) $(filter_logo_la_LIBADD) $(LIBS)
+filter_logoaway.la: $(filter_logoaway_la_OBJECTS) $(filter_logoaway_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(filter_logoaway_la_LDFLAGS) $(filter_logoaway_la_OBJECTS) $(filter_logoaway_la_LIBADD) $(LIBS)
 filter_mask.la: $(filter_mask_la_OBJECTS) $(filter_mask_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_mask_la_LDFLAGS) $(filter_mask_la_OBJECTS) $(filter_mask_la_LIBADD) $(LIBS)
 filter_normalize.la: $(filter_normalize_la_OBJECTS) $(filter_normalize_la_DEPENDENCIES) 
@@ -512,10 +537,33 @@ filter_tc_video.la: $(filter_tc_video_la_OBJECTS) $(filter_tc_video_la_DEPENDENC
 	$(LINK) -rpath $(pkgdir) $(filter_tc_video_la_LDFLAGS) $(filter_tc_video_la_OBJECTS) $(filter_tc_video_la_LIBADD) $(LIBS)
 filter_testframe.la: $(filter_testframe_la_OBJECTS) $(filter_testframe_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_testframe_la_LDFLAGS) $(filter_testframe_la_OBJECTS) $(filter_testframe_la_LIBADD) $(LIBS)
+filter_videocore.la: $(filter_videocore_la_OBJECTS) $(filter_videocore_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(filter_videocore_la_LDFLAGS) $(filter_videocore_la_OBJECTS) $(filter_videocore_la_LIBADD) $(LIBS)
 filter_xsharpen.la: $(filter_xsharpen_la_OBJECTS) $(filter_xsharpen_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_xsharpen_la_LDFLAGS) $(filter_xsharpen_la_OBJECTS) $(filter_xsharpen_la_LIBADD) $(LIBS)
 filter_yuy2toyv12.la: $(filter_yuy2toyv12_la_OBJECTS) $(filter_yuy2toyv12_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_yuy2toyv12_la_LDFLAGS) $(filter_yuy2toyv12_la_OBJECTS) $(filter_yuy2toyv12_la_LIBADD) $(LIBS)
+install-pkgSCRIPTS: $(pkg_SCRIPTS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(pkgdir)
+	@list='$(pkg_SCRIPTS)'; for p in $$list; do \
+	  f="`echo $$p|sed '$(transform)'`"; \
+	  if test -f $$p; then \
+	    echo " $(INSTALL_SCRIPT) $$p $(DESTDIR)$(pkgdir)/$$f"; \
+	    $(INSTALL_SCRIPT) $$p $(DESTDIR)$(pkgdir)/$$f; \
+	  elif test -f $(srcdir)/$$p; then \
+	    echo " $(INSTALL_SCRIPT) $(srcdir)/$$p $(DESTDIR)$(pkgdir)/$$f"; \
+	    $(INSTALL_SCRIPT) $(srcdir)/$$p $(DESTDIR)$(pkgdir)/$$f; \
+	  else :; fi; \
+	done
+
+uninstall-pkgSCRIPTS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(pkg_SCRIPTS)'; for p in $$list; do \
+	  f="`echo $$p|sed '$(transform)'`"; \
+	  echo " rm -f $(DESTDIR)$(pkgdir)/$$f"; \
+	  rm -f $(DESTDIR)$(pkgdir)/$$f; \
+	done
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -537,6 +585,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_fields.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_invert.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_logo.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_logoaway.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_mask.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_normalize.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_null.Plo@am__quote@
@@ -547,6 +596,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_tc_audio.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_tc_video.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_testframe.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_videocore.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_xsharpen.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_yuy2toyv12.Plo@am__quote@
 
@@ -718,10 +768,10 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-recursive
-all-am: Makefile $(LTLIBRARIES)
+all-am: Makefile $(LTLIBRARIES) $(SCRIPTS)
 installdirs: installdirs-recursive
 installdirs-am:
-	$(mkinstalldirs) $(DESTDIR)$(pkgdir)
+	$(mkinstalldirs) $(DESTDIR)$(pkgdir) $(DESTDIR)$(pkgdir)
 
 install: install-recursive
 install-exec: install-exec-recursive
@@ -765,7 +815,7 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-pkgLTLIBRARIES
+install-data-am: install-pkgLTLIBRARIES install-pkgSCRIPTS
 
 install-exec-am:
 
@@ -784,7 +834,8 @@ mostlyclean: mostlyclean-recursive
 mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool
 
-uninstall-am: uninstall-info-am uninstall-pkgLTLIBRARIES
+uninstall-am: uninstall-info-am uninstall-pkgLTLIBRARIES \
+	uninstall-pkgSCRIPTS
 
 uninstall-info: uninstall-info-recursive
 
@@ -797,14 +848,14 @@ uninstall-info: uninstall-info-recursive
 	install-data-recursive install-exec install-exec-am \
 	install-exec-recursive install-info install-info-am \
 	install-info-recursive install-man install-pkgLTLIBRARIES \
-	install-recursive install-strip installcheck installcheck-am \
-	installdirs installdirs-am installdirs-recursive \
-	maintainer-clean maintainer-clean-generic \
+	install-pkgSCRIPTS install-recursive install-strip installcheck \
+	installcheck-am installdirs installdirs-am \
+	installdirs-recursive maintainer-clean maintainer-clean-generic \
 	maintainer-clean-recursive mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool mostlyclean-recursive \
 	tags tags-recursive uninstall uninstall-am uninstall-info-am \
 	uninstall-info-recursive uninstall-pkgLTLIBRARIES \
-	uninstall-recursive
+	uninstall-pkgSCRIPTS uninstall-recursive
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

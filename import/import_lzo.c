@@ -34,7 +34,7 @@
 #endif
 
 #define MOD_NAME    "import_lzo.so"
-#define MOD_VERSION "v0.0.2 (2002-10-17)"
+#define MOD_VERSION "v0.0.3 (2002-11-26)"
 #define MOD_CODEC   "(video) LZO"
 
 #define MOD_PRE lzo
@@ -51,10 +51,10 @@ static int aframe_count=0, vframe_count=0;
 
 #define BUFFER_SIZE SIZE_RGB_FRAME<<1
 
-int r;
-lzo_byte *out;
-lzo_byte *wrkmem;
-lzo_uint out_len;
+static int r;
+static lzo_byte *out;
+static lzo_byte *wrkmem;
+static lzo_uint out_len;
 
 
 /* ------------------------------------------------------------ 

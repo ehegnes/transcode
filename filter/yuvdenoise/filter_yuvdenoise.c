@@ -23,8 +23,9 @@
  */
 
 #define MOD_NAME    "filter_yuvdenoise.so"
-#define MOD_VERSION "v0.1.0 (2002-08-28)"
+#define MOD_VERSION "v0.1.2 (2003-01-26)"
 #define MOD_CAP     "mjpegs YUV denoiser"
+#define MOD_AUTHOR  "Stefan Fendt, Tilmann Bitterberg"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -104,6 +105,65 @@ int tc_filter(vframe_list_t *ptr, char *options)
   if(ptr->tag & TC_AUDIO)
       return 0;
 
+
+  if (ptr->tag & TC_FILTER_GET_CONFIG && options) {
+      char buf[255];
+
+      sprintf (buf, "%d", denoiser.delay); // frames_needed
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYO", buf);
+
+      sprintf (buf, "%d", denoiser.radius);
+      optstr_param (options, "radius",         "Search radius", "%d", buf, "8", "24");
+
+      sprintf (buf, "%d", denoiser.threshold);
+      optstr_param (options, "threshold",      "Denoiser threshold", "%d", buf, "0", "255");
+
+      sprintf (buf, "%d", denoiser.pp_threshold);
+      optstr_param (options, "pp_threshold",   "Pass II threshold", "%d",  buf, "0", "255");
+
+      sprintf (buf, "%d", denoiser.delay);
+      optstr_param (options, "delay",          "Average 'n' frames for a time-lowpassed pixel", "%d", buf, "1", "255"  );
+
+      sprintf (buf, "%d", denoiser.postprocess);
+      optstr_param (options, "postprocess",    "Filter internal postprocessing", "%d", buf, "0", "1"  );
+
+      sprintf (buf, "%d", denoiser.luma_contrast);
+      optstr_param (options, "luma_contrast",  "Luminance contrast in percent", "%d", buf, "0", "255" );
+
+      sprintf (buf, "%d", denoiser.chroma_contrast);
+      optstr_param (options, "chroma_contrast","Chrominance contrast in percent.", "%d", buf, "0", "255" );
+
+      sprintf (buf, "%d", denoiser.sharpen);
+      optstr_param (options, "sharpen",        "Sharpness in percent", "%d", buf, "0", "255"  );
+
+      sprintf (buf, "%d", denoiser.deinterlace);
+      optstr_param (options, "deinterlace",    "Force deinterlacing", "%d", buf, "0", "1" );
+
+      sprintf (buf, "%d", denoiser.mode);
+      optstr_param (options, "mode",           "[0]: Progressive [1]: Interlaced [2]: Fast", "%d", buf, "0", "2" );
+
+      sprintf (buf, "%d", denoiser.scene_thres);
+      optstr_param (options, "scene_thres",    "Blocks where motion estimation should fail before scenechange", "%d%%", buf, "0", "100" );
+
+      sprintf (buf, "%d", denoiser.block_thres);
+      optstr_param (options, "block_thres",    "Every SAD value greater than this will be considered bad", "%d", buf, "0", "oo" );
+
+      sprintf (buf, "%d", denoiser.do_reset);
+      optstr_param (options, "do_reset",       "Reset the filter for `n' frames after a scene", "%d", buf, "0", "oo" );
+
+      sprintf (buf, "%d", denoiser.increment_cr);
+      optstr_param (options, "increment_cr",   "Increment Cr with constant", "%d", buf, "-128", "127" );
+
+      sprintf (buf, "%d", denoiser.increment_cb);
+      optstr_param (options, "increment_cb",   "Increment Cb with constant", "%d", buf, "-128", "127"  );
+
+      sprintf (buf, "%dx%d-%dx%d", 
+	denoiser.border.x, denoiser.border.y, denoiser.border.w, denoiser.border.h);
+      optstr_param (options, "border",         "Active image area", "%dx%d-%dx%d", buf, "0", "W", "0", "H", "0", "W", "0", "H");
+
+      return 0;
+  }
+  
   if(ptr->tag & TC_FILTER_INIT) {
     
     if((vob = tc_get_vob())==NULL) return(-1);
@@ -408,7 +468,6 @@ void allc_buffers(void)
   denoiser.frame.sub4avg[Yy] = bufalloc (luma_buffsize);
   denoiser.frame.sub4avg[Cr] = bufalloc (chroma_buffsize);
   denoiser.frame.sub4avg[Cb] = bufalloc (chroma_buffsize);
-
 }
 
 
@@ -421,6 +480,7 @@ void free_buffers(void)
     {
 #ifdef HAVE_FILTER_IO_BUF
       free (denoiser.frame.io[i]);
+      denoiser.frame.io[i] = NULL;
 #endif
       free (denoiser.frame.ref[i]);
       free (denoiser.frame.avg[i]);
@@ -432,6 +492,17 @@ void free_buffers(void)
       free (denoiser.frame.sub2avg[i]);
       free (denoiser.frame.sub4ref[i]);
       free (denoiser.frame.sub4avg[i]);
+
+      denoiser.frame.ref[i] = NULL;
+      denoiser.frame.avg[i] = NULL;
+      denoiser.frame.dif[i] = NULL;
+      denoiser.frame.dif2[i] = NULL;
+      denoiser.frame.avg2[i] = NULL;
+      denoiser.frame.tmp[i] = NULL;
+      denoiser.frame.sub2ref[i] = NULL;
+      denoiser.frame.sub2avg[i] = NULL;
+      denoiser.frame.sub4ref[i] = NULL;
+      denoiser.frame.sub4avg[i] = NULL;
     }
 }
 

@@ -114,6 +114,9 @@ typedef struct _vob_t {
   int ps_seq1;
   int ps_seq2;
 
+  int ts_pid1;
+  int ts_pid2;
+
   int vob_offset;
   int vob_chunk;
   int vob_chunk_num1;
@@ -406,6 +409,8 @@ typedef struct _info_t {
   int ps_seq1;
   int ps_seq2;
 
+  int ts_pid;
+
   int seek_allowed;
   
   int demux;      // demux or debug
@@ -448,7 +453,8 @@ typedef struct subtitle_header_s {
 // some functions exported by transcode
 
 void tc_progress(char *string);
-void tc_import_stop(void);
+void tc_import_stop_nolock(void);
+void tc_export_stop_nolock(void);
 void tc_error(char *string);
 vob_t *tc_get_vob(void); 
 long tc_get_frames_encoded(void);
@@ -462,6 +468,8 @@ int tc_get_force_exit(void);
 
 void tc_outstream_rotate();
 void tc_outstream_rotate_request();
+
+void tc_adjust_frame_buffer(int height, int width);
 
 #define Malloc(p,n,typ)  do if( !(p = (typ *) malloc ( sizeof(typ) * (n) )))\
 {\
@@ -504,6 +512,9 @@ extern int tc_progress_meter;
 extern int tc_pthread_main;
 extern int tc_accel;
 extern int tc_avi_limit;
+extern int tc_frame_width_max;
+extern int tc_frame_height_max;
+extern pid_t tc_probe_pid;
 
 # define TC_EXPORT_NAME     10
 # define TC_EXPORT_OPEN     11

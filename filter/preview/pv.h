@@ -97,6 +97,7 @@ typedef struct {
 		    flags,
 		    pic_format;
   GC                gc;
+  Atom              wm_delete_window_atom;
   XEvent            event;
   XvPortID	    port;
   XShmSegmentInfo   shminfo;
@@ -146,8 +147,11 @@ extern "C" {
   extern void xv_display_exit(xv_display_t *dv_dpy);
   extern void xv_display_check_format(xv_display_t *dv_dpy, int pic_format);
 
+  void preview_filter(void);
+  int preview_filter_buffer(int frames_needed);
   void dec_preview_delay();
   void inc_preview_delay();
+  void preview_cache_undo();
   void preview_toggle_skip();  
   void preview_cache_draw(int d);
   void preview_cache_submit(char *buf, int n, int flag);
@@ -161,6 +165,8 @@ extern "C" {
 
  extern int cache_long_skip;
  extern int cache_short_skip;
+
+ int DoSelection(XButtonEvent *ev, int *xanf, int *yanf, int *xend, int *yend);
   
 #ifdef __cplusplus
 }

@@ -65,6 +65,8 @@ typedef struct vframe_list {
   int clone_flag;    // set to N if frame needs to be processed (encoded) N+1 times.
   int deinter_flag;  // set to N for internal de-interlacing with "-I N"
 
+  int thread_id;
+
     //frame physical parameter
 
   int v_width;
@@ -134,6 +136,8 @@ typedef struct aframe_list {
   
   int id;        // frame number
   int status;    // frame status
+
+  int thread_id;
   
   int attributes;
   
@@ -170,5 +174,6 @@ extern pthread_cond_t aframe_list_full_cv;
 extern aframe_list_t *aframe_list_head;
 extern aframe_list_t *aframe_list_tail;
 
+#define FINFO printf("(%s@%d) w=%d h=%d size=%d\n", __FILE__, __LINE__, ptr->v_width, ptr->v_height, ptr->video_size);
 
 #endif

@@ -86,6 +86,7 @@ void usage(int status)
   fprintf(stderr,"\t -S n             seek to VOB stream offset nx2kB [0]\n");
   fprintf(stderr,"\t -P t             stream full DVD title [off]\n");
   fprintf(stderr,"\t -a               dump AVI-file/socket audio stream\n");
+  fprintf(stderr,"\t -n id            transport stream id [0x10]\n");
   fprintf(stderr,"\t -d mode          verbosity mode\n");
   fprintf(stderr,"\t -v               print version\n");
 
@@ -98,6 +99,7 @@ void usage(int status)
 # define IS_DVD      3
 # define IS_DIR      4
 # define IS_SOCKET   5
+# define IS_TS       6
 
 /* ------------------------------------------------------------ 
  *
@@ -118,20 +120,20 @@ int main(int argc, char *argv[])
   
   int end_chapter, start_chapter;
   
-  int title=1, chapter1=1, chapter2=-1, angle=1, n, j, loop=0, stream=0, audio=0;
+  int title=1, chapter1=1, chapter2=-1, angle=1, n=0, j, loop=0, stream=0, audio=0;
 
   int max_chapters;
   int max_angles;
   int max_titles;
 
   int vob_offset=0;
-  int ch;
+  int ch, ts_pid=0x10;
   char *magic="", *name=NULL;
 
   //proper initialization
   memset(&ipipe, 0, sizeof(info_t));
   
-  while ((ch = getopt(argc, argv, "S:T:d:i:vt:LaP:?h")) != -1) {
+  while ((ch = getopt(argc, argv, "S:T:d:i:vt:LaP:?hn:")) != -1) {
     
     switch (ch) {
       
@@ -144,22 +146,25 @@ int main(int argc, char *argv[])
       
     case 'T': 
 
-      if (4 == sscanf(optarg,"%d,%d-%d,%d", &title, &chapter1, &chapter2, &angle));
-      else if (3 == sscanf(optarg,"%d,%d-%d", &title, &chapter1, &chapter2));
-      else {
-	n = sscanf(optarg,"%d,%d,%d", &title, &chapter1, &angle);
-	if(n<0 || n>3) {
-	  fprintf(stderr, "invalid parameter for option -T\n");
-	  exit(1);
-	}
+      n = sscanf(optarg,"%d,%d-%d,%d", &title, &chapter1, &chapter2, &angle);
 
-	//reset to defaults
-	chapter2=-1;
-	angle=1;
+      if (n != 4) {
+
+	n = sscanf(optarg,"%d,%d-%d", &title, &chapter1, &chapter2);
+
+	if (n != 3) {
+	  
+	  n = sscanf(optarg,"%d,%d,%d", &title, &chapter1, &angle);
+	  
+	  if(n<0 || n>3) {
+	    fprintf(stderr, "invalid parameter for option -T\n");
+	    exit(1);
+	  }
+	}
       }
-	
+      
       source = IS_DVD;
-	
+      
       if(chapter2!=-1) {
 	if(chapter2<chapter1) {
 	  fprintf(stderr, "invalid parameter for option -T\n");
@@ -169,8 +174,6 @@ int main(int argc, char *argv[])
       }
 
       if(chapter1==-1) loop=1;
-
-      //fprintf(stderr, "T=%d %d %d %d %d\n", n, title, chapter1, chapter2, angle);
 
       break;
       
@@ -201,6 +204,16 @@ int main(int argc, char *argv[])
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       verbose = atoi(optarg);
       
+      break;
+
+
+    case 'n': 
+      
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
+      ts_pid = strtol(optarg, NULL, 16);
+      
+      source = IS_TS;
+
       break;
 
     case 'S': 
@@ -235,6 +248,10 @@ int main(int argc, char *argv[])
       usage(EXIT_FAILURE);
     }
   }
+
+  //DVD debugging information
+  if(verbose & TC_DEBUG && source == IS_DVD) fprintf(stderr, "T=%d %d %d %d %d\n", n, title, chapter1, chapter2, angle);
+
   
   /* ------------------------------------------------------------ 
    *
@@ -260,7 +277,7 @@ int main(int argc, char *argv[])
   }
   
   // do not try to mess with the stdin stream
-  if((source!=IS_DVD) && (source!=IS_STDIN)) {
+  if((source!=IS_DVD) && (source!=IS_TS) && (source!=IS_STDIN)) {
     
     // file or directory?
     
@@ -296,6 +313,8 @@ int main(int argc, char *argv[])
   ipipe.dvd_chapter = chapter1;
   ipipe.dvd_angle = angle;
 
+  ipipe.ts_pid = ts_pid;
+
   ipipe.vob_offset = vob_offset;
 
   ipipe.name = name;
@@ -309,7 +328,26 @@ int main(int argc, char *argv[])
    * ------------------------------------------------------------*/
   
   switch(source) {
+
+    // ---
+    // TS
+    // ---
     
+  case IS_TS:
+
+    if((ipipe.fd_in = open(name, O_RDONLY))<0) {
+      perror("file open");
+      exit(1);
+    }
+    
+    ipipe.magic = TC_MAGIC_TS;
+
+    tccat_thread(&ipipe);
+    
+    close(ipipe.fd_in);
+    
+    break;
+
     // ---
     // DVD
     // ---

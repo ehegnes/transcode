@@ -6,7 +6,7 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 AC3_LIB=-L../libac3 -lac3_tc
 AC3_INC=-I../libac3 -I$(srcdir)/../libac3
 
-INCLUDES = -I./ -I../ -I$(srcdir)/.. -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ -I../encore2 -I$(srcdir)/../encore2  @LAME_CFLAGS@ $(AC3_INC) @QT_CFLAGS@ -Wall @DV_CFLAGS@ -I../libvo -I$(srcdir)/../libvo @MJPEG_CFLAGS@ @LIBFAME_CFLAGS@ @MAGICK_CFLAGS@ @LIBJPEG_CFLAGS@ -I../libioaux -I$(srcdir)/../libioaux @LZO_CFLAGS@
+INCLUDES = -I./ -I../ -I$(srcdir)/.. -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ -I../encore2 -I$(srcdir)/../encore2  @LAME_CFLAGS@ $(AC3_INC) @QT_CFLAGS@ -Wall @DV_CFLAGS@ -I../libvo -I$(srcdir)/../libvo @MJPEG_CFLAGS@ @LIBFAME_CFLAGS@ @MAGICK_CFLAGS@ @LIBJPEG_CFLAGS@ -I../libioaux -I$(srcdir)/../libioaux @LZO_CFLAGS@ 
 
 CFLAGS = -D_REENTRANT @CFLAGS@
 
@@ -36,7 +36,7 @@ MODS5 =
 endif
 
 if HAVE_LAME
-MODS2 = export_raw.la export_divx4.la export_divx4raw.la export_ppm.la export_xvid.la export_xvidraw.la export_xvidcvs.la export_divx5.la export_ffmpeg.la
+MODS2 = export_raw.la export_divx4.la export_divx4raw.la export_divx5raw.la export_ppm.la export_divx5.la export_ffmpeg.la export_lame.la
 endif
 
 if HAVE_LIBFAME
@@ -76,8 +76,14 @@ MODS13 = export_lzo.la
 endif
 endif
 
+if HAVE_LIBXVID
+if HAVE_LAME
+MODS14 = export_xvid.la export_xvidcvs.la export_xvidraw.la
+endif
+endif
 
-pkg_LTLIBRARIES = export_null.la export_wav.la export_pcm.la $(MODS1) $(MODS2) $(MODS3) $(MODS4) $(MODS5) $(MODS6) $(MODS7) $(MODS8) $(MOD9) $(MODS10) export_ogg.la export_toolame.la $(MODS11) $(MODS12) $(MODS13)
+
+pkg_LTLIBRARIES = export_null.la export_wav.la export_pcm.la $(MODS1) $(MODS2) $(MODS3) $(MODS4) $(MODS5) $(MODS6) $(MODS7) $(MODS8) $(MOD9) $(MODS10) export_ogg.la export_toolame.la export_sampeg.la $(MODS11) $(MODS12) $(MODS13) $(MODS14)
 
 export_null_la_SOURCES = export_null.c
 export_null_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -110,6 +116,10 @@ export_fame_la_SOURCES = export_fame.c aud_aux.c
 export_fame_la_LDFLAGS = -no-undefined -module -avoid-version 
 export_fame_la_LIBADD = @LAME_LIBS@ @LIBFAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
 
+export_lame_la_SOURCES = export_lame.c
+export_lame_la_LDFLAGS = -no-undefined -module -avoid-version 
+export_lame_la_LIBADD = @LAME_LIBS@ -lm
+
 export_af6_la_SOURCES = export_af6.cpp af6_aux.cpp aud_aux.c
 export_af6_la_LDFLAGS = -no-undefined -module -avoid-version 
 export_af6_la_LIBADD = @LAME_LIBS@ @AVIFILE_LIBS@ -lstdc++ $(AC3_LIB) -L../avilib -lavi -lm 
@@ -121,6 +131,10 @@ export_divx4_la_LIBADD = @LAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
 export_divx5_la_SOURCES = export_divx5.c aud_aux.c divx4_vbr.c
 export_divx5_la_LDFLAGS = -no-undefined -module -avoid-version 
 export_divx5_la_LIBADD = @LAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
+
+export_divx5raw_la_SOURCES = export_divx5raw.c aud_aux.c divx4_vbr.c
+export_divx5raw_la_LDFLAGS = -no-undefined -module -avoid-version 
+export_divx5raw_la_LIBADD = @LAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
 
 export_ffmpeg_la_SOURCES = export_ffmpeg.c aud_aux.c ffmpeg_cfg.c vid_aux.c
 export_ffmpeg_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -181,6 +195,10 @@ export_mjpeg_la_LIBADD = @LIBJPEG_LIBS@ @LAME_LIBS@ -L../libvo -lvout $(AC3_LIB)
 export_mpeg2enc_la_SOURCES = export_mpeg2enc.c vid_aux.c
 export_mpeg2enc_la_LDFLAGS = -no-undefined -module -avoid-version 
 export_mpeg2enc_la_LIBADD = @MJPEG_LIBS@ -L../libvo -lvout -lm
+
+export_sampeg_la_SOURCES = export_sampeg.c vid_aux.c
+export_sampeg_la_LDFLAGS = -no-undefined -module -avoid-version 
+export_sampeg_la_LIBADD = -L../libvo -lvout -lm
 
 export_im_la_SOURCES = export_im.c vid_aux.c
 export_im_la_LDFLAGS = -no-undefined -module -avoid-version 

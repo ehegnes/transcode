@@ -27,7 +27,7 @@ A number of modules are included to enable import of DVDs on-the-fly,
 MPEG elementary (ES) or program streams (VOB), MPEG video, Digital
 Video (DV), YUV4MPEG streams, NuppelVideo file format and raw or
 compressed (pass-through) video frames and export modules for writing
-DivX;-), OpenDivX, DivX 4.xx or uncompressed AVI files with MPEG, AC3
+DivX;-), XviD, DivX 4.xx/5.xx or uncompressed AVI files with MPEG, AC3
 (pass-through) or PCM audio.
 .LP
 Additional export modules to write single frames (PPM) or YUV4MPEG
@@ -140,10 +140,12 @@ Filter "xsharpen": VirtualDub's XSharpen Filter
 .br
 Filter "yuvdenoise": mjpegs YUV denoiser
 .br
+Filter "yuvmedian": mjpegs median filter
+.br
 .IP
 To see what your transcode has, do a  
 .br
-.B ls -1 $TRANSCODE_MOD_PATH/filter*.so
+.B ls -1 `tcmodinfo -p`/filter*.so
 .PP
 Example:
 .RS 
@@ -244,7 +246,7 @@ autosplit and process part \fIn\fP of \fIm\fP (VOB only) [off]
 resize to height+\fIn\fP*\fIM\fP rows [,width+\fIm\fP*\fIM\fP] columns [off,32]. M must be one of 8, 16 or 32.
 .TP
 .B \-Y \fItop\fP[\fI,left\fP[\fI,bottom\fP[\fI,right\fP]]]
-select (encoder) frame region by clipping border [off].
+select (encoder) frame region by clipping border. Negative values add a border [off].
 .TP
 .B \-Z \fIwidth\fPx\fIheight\fP
 resize to \fIwidht\fP columns, \fIheight\fP rows with filtering [off].
@@ -341,8 +343,7 @@ encoder bitrate[,keyframes[,crispness]] [1800,250,100].
 .TP
 .B \-x \fIvmod[,amod]\fP
 video[,audio] import modules [auto,auto]. If omitted, transcode will probe
-for appropriate import modules. A full-blown transcode has the following
-import modules:
+for appropriate import modules. A full-blown transcode installation has the following import modules:
 .IP
 Module "ac3": (audio) AC3
 .br
@@ -410,7 +411,7 @@ colour space of the images.
 .TP
 .B \-y \fIvmod[,amod]\fP
 video[,audio] export modules [null].  If omitted, transcode will encode to
-the \fInull\fP module. A full-blown transcode has the following
+the \fInull\fP module. A full-blown transcode installation has the following
 export modules:
 .IP
 Module "af6": (video) Win32 dll | (audio) MPEG/AC3/PCM
@@ -642,6 +643,10 @@ $ transcode ... \-\-write_pid /tmp/transcode.pid &
 $ kill -2 `cat /tmp/transcode.pid`
 .RE
 .TP
+.B \-\-socket \fIFILE\fP
+Open a socket to accept commands while running. See \fBtcmodinfo(1)\fP and
+/docs/filter-socket.txt for more information about the protocol.
+.TP
 .B \-\-more_help \fIparam\fP
 more help on named parameter (if supported)
 .SH NOTES
@@ -804,14 +809,17 @@ was written by Thomas Östreich
 many others.  See \fIAUTHORS\fP for details.
 .SH SEE ALSO
 .BR avifix (1),
+.BR avisync (1),
 .BR avimerge (1),
 .BR avisplit (1),
+.BR tcprobe (1),
+.BR tcscan (1),
 .BR tccat (1),
 .BR tcdemux (1),
 .BR tcextract (1),
 .BR tcdecode (1),
-.BR tcscan (1),
-.BR tcprobe (1),
+.BR tcmodinfo (1),
+.BR transcode (1)
 .br
 .SH WWW
 Frequently asked questions (FAQ) at

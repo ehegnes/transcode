@@ -286,7 +286,7 @@ void process_vframe(vob_t *vob)
     // internal processing of video
     ptr->tag = TC_VIDEO;
     process_vid_frame(vob, ptr);
-    
+
     // external plugin post-processing
     ptr->tag = TC_VIDEO|TC_POST_M_PROCESS;
     process_vid_plugins(ptr);

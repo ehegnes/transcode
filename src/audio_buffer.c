@@ -381,17 +381,17 @@ void aframe_flush()
   */
 
   aframe_list_t *ptr;
-
+  
   int cc=0;
-
+  
   while((ptr=aframe_retrieve())!=NULL) {
-      if(verbose & TC_DEBUG) fprintf(stderr, "flushing audio buffers\n"); 
-      aframe_remove(ptr);
-      ++cc;
+    if(verbose & TC_STATS) fprintf(stderr, "flushing audio buffers\n"); 
+    aframe_remove(ptr);
+    ++cc;
   }
-
+  
   if(verbose & TC_DEBUG) fprintf(stderr, "(%s) flushing %d audio buffer\n", __FILE__, cc); 
-
+  
   pthread_mutex_lock(&abuffer_im_fill_lock);
   abuffer_im_fill_ctr=0;
   pthread_mutex_unlock(&abuffer_im_fill_lock);  
@@ -399,11 +399,11 @@ void aframe_flush()
   pthread_mutex_lock(&abuffer_ex_fill_lock);
   abuffer_ex_fill_ctr=0;
   pthread_mutex_unlock(&abuffer_ex_fill_lock);
-
+  
   pthread_mutex_lock(&abuffer_xx_fill_lock);
   abuffer_xx_fill_ctr=0;
   pthread_mutex_unlock(&abuffer_xx_fill_lock);
-
+  
   return;
 }
 
@@ -448,7 +448,7 @@ aframe_list_t *aframe_retrieve()
       //this frame is ready to go
       if(ptr->status == FRAME_READY) 
       {
-	  pthread_mutex_unlock(&aframe_list_lock);
+	pthread_mutex_unlock(&aframe_list_lock);
 	  return(ptr);
       }
       ptr = ptr->next;

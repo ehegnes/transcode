@@ -22,7 +22,7 @@ F_MMX=
 endif
 
 if HAVE_MAGICK
-F_LOGO=filter_logo.la
+F_LOGO=filter_logo.la filter_logoaway.la
 endif
 
 pkg_LTLIBRARIES = 	filter_null.la\
@@ -43,6 +43,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_testframe.la\
 			filter_fields.la\
 			filter_clone.la\
+			filter_videocore.la\
 			filter_tc_video.la\
 			filter_tc_audio.la\
 			filter_29to23.la\
@@ -89,6 +90,9 @@ filter_astat_la_LDFLAGS = -no-undefined -module -avoid-version
 filter_aclip_la_SOURCES = filter_aclip.c
 filter_aclip_la_LDFLAGS = -no-undefined -module -avoid-version 
 
+filter_videocore_la_SOURCES = filter_videocore.c
+filter_videocore_la_LDFLAGS = -no-undefined -module -avoid-version 
+
 filter_32detect_la_SOURCES = filter_32detect.c
 filter_32detect_la_LDFLAGS = -no-undefined -module -avoid-version 
 
@@ -103,17 +107,22 @@ filter_yuy2toyv12_la_LDFLAGS = -no-undefined -module -avoid-version
 
 filter_smartdeinter_la_SOURCES = filter_smartdeinter.c
 filter_smartdeinter_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_smartdeinter_la_LIBADD = -L../libvo -lvout ../export/vid_aux.lo
 
 filter_normalize_la_SOURCES = filter_normalize.c
 filter_normalize_la_LDFLAGS = -no-undefined -module -avoid-version 
 filter_normalize_la_LIBADD = -lm
 
 filter_logo_la_SOURCES = filter_logo.c
-filter_logo_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_logo_la_LDFLAGS = -no-undefined -module -avoid-version
 filter_logo_la_LIBADD = @MAGICK_LIBS@ -L../libvo -lvout ../export/vid_aux.lo
 
 filter_xsharpen_la_SOURCES = filter_xsharpen.c
 filter_xsharpen_la_LDFLAGS = -no-undefined -module -avoid-version 
+
+filter_logoaway_la_SOURCES = filter_logoaway.c
+filter_logoaway_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_logoaway_la_LIBADD = @MAGICK_LIBS@
 
 filter_invert_la_SOURCES = filter_invert.c
 filter_invert_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -128,10 +137,8 @@ filter_dilyuvmmx_la_LDFLAGS = -no-undefined -module -avoid-version
 filter_fields_la_SOURCES = filter_fields.c
 filter_fields_la_LDFLAGS = -no-undefined -module -avoid-version 
 
-#filter_dilb_la_SOURCES = filter_dilb.c 
-#filter_dilb_la_LDFLAGS = -no-undefined -module -avoid-version 
 
-EXTRA_DIST = *.h 
+EXTRA_DIST = *.h parse_csv.awk filter_list.awk
 
 if HAVE_DV
 ADD1=preview 
@@ -144,3 +151,5 @@ SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc $(ADD1) $(ADD2)
 else
 SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc
 endif
+
+pkg_SCRIPTS = filter_list.awk parse_csv.awk

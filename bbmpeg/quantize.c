@@ -43,7 +43,7 @@ static void iquant1_non_intra(short *src, short *dst,
  * this quantizer has a bias of 1/8 stepsize towards zero
  * (except for the DC coefficient)
  */
-int quant_intra(short *src, short *dst, int dc_prec,
+int bb_quant_intra(short *src, short *dst, int dc_prec,
                              unsigned char *quant_mat, int mquant)
 {
   int i, ret = 1;

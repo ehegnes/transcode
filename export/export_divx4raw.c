@@ -50,7 +50,7 @@
 #include "vbr.h"
 
 #define MOD_NAME    "export_divx4raw.so"
-#define MOD_VERSION "v0.3.4 (2002-05-24)"
+#define MOD_VERSION "v0.3.5 (2002-12-19)"
 #define MOD_CODEC   "(video) DivX 4.xx (ES) | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE divx4raw
@@ -320,13 +320,9 @@ MOD_open
     
   if(param->flag == TC_VIDEO) {
 
-    int mask;
-      
     // video
-    mask = umask (0);
-    umask (mask);
-    
-    if((fd = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) &~ mask))<0) {
+    if((fd = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC,
+		  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))<0) {
       perror("open file");
       
       return(TC_EXPORT_ERROR);

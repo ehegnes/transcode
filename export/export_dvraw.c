@@ -27,7 +27,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "export_dvraw.so"
-#define MOD_VERSION "v0.1.1 (2002-11-21)"
+#define MOD_VERSION "v0.1.3 (2002-12-19)"
 #define MOD_CODEC   "(video) Digital Video | (audio) PCM"
 
 #define MOD_PRE dvraw
@@ -52,6 +52,8 @@ static int frame_size=0, format=0;
 static int pass_through=0;
 
 static int chans, rate;
+
+dv_enc_audio_info_t audio;
 
 static unsigned char *bufalloc(size_t size)
 {
@@ -78,7 +80,7 @@ static unsigned char *bufalloc(size_t size)
    return (unsigned char *) (buf + adjust);
 }
 
-int p_write (int fd, char *buf, size_t len)
+static int p_write (int fd, char *buf, size_t len)
 {
    size_t n = 0;
    size_t r = 0;
@@ -109,7 +111,7 @@ MOD_init
     target = bufalloc(TC_FRAME_DV_PAL);
     
 #ifdef LIBDV_095
-    encoder = dv_encoder_new(TRUE, FALSE, FALSE);
+    encoder = dv_encoder_new(FALSE, FALSE, FALSE);
 #else
     dvenc_init();
 #endif
@@ -142,15 +144,13 @@ MOD_init
 
 MOD_open
 {
-  int mask, format;
+  int format;
   
   if(param->flag == TC_VIDEO) {
     
     // video
-    mask = umask (0);
-    umask (mask);
-    
-    if((fd = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) &~ mask))<0) {
+    if((fd = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC,
+		  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))<0) {
       perror("open file");
       
       return(TC_EXPORT_ERROR);
@@ -205,6 +205,13 @@ MOD_open
     //re-sampling only with -J resample possible
     rate = vob->a_rate;
 
+    audio.channels = chans;
+    audio.frequency = rate;
+    audio.bitspersample = 16;
+    audio.bytealignment = (chans==2) ? 4:2;
+    audio.bytespersecond = rate * audio.bytealignment;
+    audio.bytesperframe = audio.bytespersecond/(encoder->isPAL ? 25 : 30);
+
     return(0);
   }
   // invalid flag
@@ -219,8 +226,6 @@ MOD_open
 
 MOD_encode
 {
-
-  int i=0;
 
   if(param->flag == TC_VIDEO) { 
     
@@ -249,22 +254,14 @@ MOD_encode
 	pixels[1]=(char *) vbuf + (NTSC_W*NTSC_H*5)/4;
       }
 
-      // split the audio into two buffers
-      
-      if(chans==2) {
-	for(i=0; i < param->size/4; ++i) {
-	  audio_bufs[0][i] = (int16_t) param->buffer[i];
-	  audio_bufs[1][i] = (int16_t) param->buffer[2*i+1];
-	}
-      }
-
-      if(chans==1) audio_bufs[0] = (int16_t *) param->buffer;
-      
       dv_encode_full_frame(encoder, pixels, (format)?e_dv_color_yuv:e_dv_color_rgb, target);
       dv_encode_metadata(target, encoder->isPAL, encoder->is16x9, &now, 0);
       dv_encode_timecode(target, encoder->isPAL, 0);
-
+      
       dv_encode_full_audio(encoder, audio_bufs, chans, rate, target);
+      
+      memcpy(audio.data, param->buffer, param->size);
+      dvenc_insert_audio(target, &audio, encoder->isPAL);
 #else    
       //merge audio     
       dvenc_frame(vbuf, param->buffer, param->size, target);

@@ -239,7 +239,7 @@ static void parse_data_sequence(unsigned char *data, parsed_ctrl_sequence *parse
     }
     
     for (n=0; n < len; n++) {
-      picture[parsed->dimensions.size[0]*y + x]=colour& 0xff;
+      picture[parsed->dimensions.size[0]*y + x + n]=colour& 0xff;
       //      fputc(colour, file); 
       pixcounter++ ;
     }

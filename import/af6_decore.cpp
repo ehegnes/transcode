@@ -31,7 +31,7 @@
 
 #ifdef HAVE_AVIFILE
 
-#include <avifile/fourcc.h>
+#include <avifile/avm_fourcc.h>
 #include <avifile/avifile.h>
 #include <avifile/image.h>
 #include <avifile/aviplay.h>
@@ -215,6 +215,7 @@ extern "C" {
 
 	  /* 4:2:2 packed -> 4:2:0 planar -- SLOW! MMX anyone???? :) */
 	  if(lumi_first) {
+
 	    for(y=0;y<subh;y++) {
 	      for(x=0;x<subw;x++) {
 		*(Y++) = *(buf++);
@@ -252,7 +253,7 @@ extern "C" {
 	    break;
 	  }
 	} else {
-	  /* directly wrtie raw frame */
+	  /* directly write raw frame */
 	  if(p_write(ipipe->fd_out, buf, buffer_size)!= buffer_size) {
 	    fprintf(stderr,"(%s) ERROR: Pipe write error!\n",__FILE__);
 	    ipipe->error=1;

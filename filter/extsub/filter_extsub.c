@@ -85,7 +85,7 @@ static int sub_alpha[4];
 static int codec;
 static int vshift=0, tshift=0, post=0;
 
-static unsigned int color1=0, color2=0;
+static unsigned int color1=0, color2=255;
 
 
 //-------------------------------------------------------------------
@@ -215,8 +215,8 @@ void anti_alias_subtitle(int black) {
   int back_col=black;
   int n;
 
-  if(color1<black) color1=black;
-  if(color2<black) color2=black;
+  if(color1<=black) color1=black+1;
+  if(color2<=black) color2=black+1;
   
   for(n=0; n<sub_ylen*sub_xlen; ++n) {
 

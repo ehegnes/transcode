@@ -68,6 +68,7 @@ void usage(int status)
   fprintf(stderr,"\t -i name        input file/directory/device/host name [stdin]\n");
   fprintf(stderr,"\t -B             binary output to stdout (used by transcode) [off]\n");
   fprintf(stderr,"\t -H n           probe n MB of stream [1]\n");
+  fprintf(stderr,"\t -s n           skip first n bytes of stream [0]\n");
   fprintf(stderr,"\t -T title       probe for DVD title [off]\n");
   fprintf(stderr,"\t -b bitrate     audio encoder bitrate kBits/s [%d]\n", ABITRATE);
   fprintf(stderr,"\t -d verbosity   verbosity mode [1]\n");
@@ -93,7 +94,7 @@ int main(int argc, char *argv[])
 	stream_magic = TC_MAGIC_UNKNOWN, 
 	stream_codec = TC_CODEC_UNKNOWN;
 
-    int ch, i, n, cc=0, probe_factor=1;
+    int ch, i, n, cc=0, probe_factor=1, skip=0;
 
 
     int dvd_title=1;
@@ -103,10 +104,12 @@ int main(int argc, char *argv[])
 
     long frame_time=0;
 
+    pid_t pid=getpid();
+
     //proper initialization
     memset(&ipipe, 0, sizeof(info_t));
 
-    while ((ch = getopt(argc, argv, "i:vBd:T:b:H:?h")) != -1) {
+    while ((ch = getopt(argc, argv, "i:vBd:T:b:s:H:?h")) != -1) {
       
 	switch (ch) {
 
@@ -136,6 +139,13 @@ int main(int argc, char *argv[])
 	  
 	  break;
 
+	case 's': 
+	  
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+	  skip = atoi(optarg);
+	  
+	  break;
+
 	case 'H': 
 	  
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
@@ -150,6 +160,8 @@ int main(int argc, char *argv[])
 	case 'B':
 	  
 	  binary_dump = 1;
+
+	  p_write(STDOUT_FILENO, (char *) &pid, sizeof(pid_t));
 	    
 	  break;
 
@@ -220,7 +232,7 @@ int main(int argc, char *argv[])
 	  return(-1);
 	}
 
-	stream_magic = fileinfo(ipipe.fd_in);
+	stream_magic = fileinfo(ipipe.fd_in, skip);
 	ipipe.seek_allowed = 1;
 
 	break;

@@ -29,7 +29,7 @@
 #include "vid_aux.h"
 
 #define MOD_NAME    "export_yuv4mpeg.so"
-#define MOD_VERSION "v0.1.3 (2002-03-11)"
+#define MOD_VERSION "v0.1.5 (2003-01-09)"
 #define MOD_CODEC   "(video) YUV4MPEG2 | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE yuv4mpeg
@@ -53,7 +53,7 @@ float framerates[] = { 0, 23.976, 24.0, 25.0, 29.970, 30.0, 50.0, 59.940, 60.0 }
 
 static y4m_stream_info_t y4mstream;
 
-int p_write (int fd, char *buf, size_t len)
+static int p_write (int fd, char *buf, size_t len)
 {
    size_t n = 0;
    size_t r = 0;
@@ -130,10 +130,8 @@ MOD_open
     
     size = vob->ex_v_width * vob->ex_v_height * 3/2;
     
-    mask = umask (0);
-    umask (mask);
-    
-    if((fd = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) &~ mask))<0) {
+    if((fd = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC, 
+		  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))<0) {
 	  perror("open file");
 	  return(TC_EXPORT_ERROR);
     }     

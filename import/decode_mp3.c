@@ -104,7 +104,8 @@ void decode_mp3(info_t *ipipe)
     
     bytes = samples * channels * 2;
  
-    p_write(ipipe->fd_out, (char*) buffer, bytes);
+    if (p_write(ipipe->fd_out, (char*) buffer, bytes) < 0)
+      break; /* broken pipe */
   }
 
   import_exit(0);

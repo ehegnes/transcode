@@ -6,7 +6,7 @@
     File found?
 *************************************************************************/
 
-int open_file(char *name, unsigned int *bytes)
+int open_file(char *name, off_t *bytes)
 {
   FILE* datei;
   char tmpStr[MAXPATH];
@@ -18,14 +18,14 @@ int open_file(char *name, unsigned int *bytes)
     DisplayError(tmpStr);
     return TRUE;
   }
-  if (fseek(datei, 0, 2))
+  if (fseeko(datei, 0, 2))
   {
     sprintf(tmpStr, "Error searching input file %s.", name);
     fclose(datei);
     DisplayError(tmpStr);
     return TRUE;
   }
-  if ((*bytes = ftell(datei)) == -1L)
+  if ((*bytes = ftello(datei)) == -1LL)
   {
     sprintf(tmpStr, "Error getting size of input file %s.", name);
     fclose(datei);
@@ -63,14 +63,15 @@ int marker_bit (bitstream *bs, unsigned int what)
 *************************************************************************/
 
 int check_files (
-unsigned int *audio_bytes,
-unsigned int *audio1_bytes,
-unsigned int *video_bytes,
+off_t *audio_bytes,
+off_t *audio1_bytes,
+off_t *video_bytes,
 unsigned int which_streams)
 {
-  unsigned int bytes_1, bytes_2, bytes_3, retval=0;
+  off_t bytes_1, bytes_2, bytes_3;
+  unsigned int retval=0;
   int exiterror;
-  char tmpStr[80];
+  char tmpStr[MAXPATH];
   bitstream bs;
 
   exiterror = TRUE;

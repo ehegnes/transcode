@@ -21,6 +21,7 @@ int mm_flag=-1;
 /* Function to test if multimedia instructions are supported...  */
 static int mm_support(void)
 {
+#ifdef ARCH_X86
     int rval;
     int eax, ebx, ecx, edx;
     
@@ -105,6 +106,9 @@ static int mm_support(void)
     } else {
         return 0;
     }
+#else // not X86
+    return 0;
+#endif
 }
 
 int ac_mmflag(void) 

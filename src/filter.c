@@ -24,6 +24,10 @@
 #include "framebuffer.h"
 #include <dlfcn.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+
 #include "filter.h"
 
 /* ------------------------------------------------------------ 
@@ -45,16 +49,64 @@ static char module[TC_BUF_MAX];
 
 filter_t filter[MAX_FILTER];
 
-int load_plugin(char *path, int id) {
+int filter_next_free_id(void)
+{
+  int n;
+
+  for (n=0; n<MAX_FILTER; ++n) {
+    // no filter
+    if (filter[n].name[0] == '\0')
+      break;
+  }
+  if (n >= MAX_FILTER) {
+    fprintf(stderr, "[%s] internal error - No more filter slots\n", PACKAGE); 
+    n = -1;
+  }
+
+  return n-1;
+}
+
+void plugin_fix_id(void)
+{
+  int n;
+  char *offset;
+
+  for (n=0; n<MAX_FILTER; ++n) {
+    int i;
+    int count=0;
+    offset = filter[n].name;
+
+    // no filter or already counted
+    if (filter[n].name[0] == '\0' || filter[n].id != 0) continue;
+
+    for (i=n+1; i<MAX_FILTER; ++i) {
+      if (strcmp(filter[i].name,offset) == 0) {
+	count++;
+	filter[i].id = count;
+      }
+    }
+
+  }
+  if (verbose & TC_DEBUG) {
+    for (n=0; n<MAX_FILTER; ++n) {
+      fprintf(stderr, "Filter[%d].name (%s) instance # (%d)\n", n, filter[n].name, filter[n].id);
+    }
+  }
+}
+  
+
+int load_plugin(char *path) {
 #ifdef __FreeBSD__
   const
 #endif    
   char *error;
 
   int n;
+  char *c;
+  int id = filter_next_free_id();
+
 
   //replace "=" by "/0" in filter name
-  
   if(strlen(filter[id].name)==0) return(-1);
 
   filter[id].options=NULL;
@@ -66,8 +118,19 @@ int load_plugin(char *path, int id) {
       break;
     }
   }
-  
+
+  // delete instance
+  c = filter[id].name;
+  while (*c) {
+      if (*c == '#') { 
+	  *c = '\0';
+	  break;
+      }
+      c++;
+  }
+      
   sprintf(module, "%s/filter_%s.so", path, filter[id].name);
+  //fprintf(stderr, "[%s] next free ID (%d) is (%d)\n", __FILE__, filter_next_free_id(), id);
   
   // try transcode's module directory
   
@@ -96,6 +159,174 @@ int load_plugin(char *path, int id) {
   return(0);
 }
 
+int filter_single_init(int id)
+{
+  frame_list_t ptr;
+
+  if(!plugins_loaded) return(1);    
+
+  ptr.tag = TC_FILTER_INIT;
+
+  ptr.filter_id = filter[id].id;
+  if(filter[id].entry(&ptr, filter[id].options)<0) {
+    fprintf(stderr," (%s) filter plugin '%s' returned error - plugin skipped\n", 
+	            __FILE__, filter[id].name);
+    filter[id].status=0;
+  } else {
+    filter[id].status=1;
+  }
+
+  return 0;
+}
+
+char * filter_single_readconf(int id)
+{
+  frame_list_t ptr;
+  
+  char *buffer = (char *)malloc (PATH_MAX);
+
+  if (!buffer) {
+     fprintf(stderr, "Malloc failed in %s:%d", __FILE__, __LINE__);
+     return NULL;
+  }
+
+  memset (buffer, 0, PATH_MAX);
+  ptr.tag = TC_FILTER_GET_CONFIG;
+
+  // the Filter writes into buffer
+
+  ptr.filter_id = filter[id].id;
+  if(filter[id].entry(&ptr, buffer)<0) {
+    fprintf(stderr," (%s) filter plugin '%s' returned error - plugin disabled\n", 
+	            __FILE__, filter[id].name);
+    filter[id].status=0;
+    return NULL;
+  } else {
+    filter[id].status=1;
+    return buffer;
+  }
+
+  return NULL;
+}
+
+int filter_single_close(int id)
+{
+    frame_list_t ptr;
+
+    if(!plugins_loaded) return(1);
+	
+    ptr.tag = TC_FILTER_CLOSE;
+
+    ptr.filter_id = filter[id].id;
+    if(filter[id].entry(&ptr, NULL)<0) 
+	   fprintf(stderr," (%s) filter plugin '%s' returned error - ignored\n", 
+			   __FILE__, filter[id].name);
+    
+    return(0);
+}
+
+// s == "name[#instance][=.*]"
+int plugin_find_id(char *s)
+{
+  int n, id = -1;
+  int instance = -1;
+  char *inst; 
+  char *args; 
+  int len = 0;
+
+  // fprintf (stderr, "[%s] 1 Looking for  (%s) (#%d)\n", __FILE__, s, instance);
+
+  if (!s) return -1;
+
+  inst = strchr (s, '#');
+  args = strchr (s, '=');
+
+  // instance?
+  if (inst) { 
+      instance = atoi(inst+1);
+      len = inst - s;
+  }
+  
+  // arguments?
+  if (args) { 
+      if (!len)
+	  len = args - s;
+  }
+  
+  if (!args && !inst)
+      len = strlen (s);
+
+  //fprintf (stderr, "[%s] 2 Looking for  (%s) (#%d)\n", __FILE__, s, instance);
+
+  for (n=0; n<MAX_FILTER; ++n) {
+	  
+    if ( ( ((instance==-1)?filter[n].id:instance) == filter[n].id) && 
+		  (strncmp(filter[n].name, s, len) == 0)) {
+      return n;
+    }
+  }
+
+  return id;
+}
+
+int filter_single_configure_handle (int handle, char *options) 
+{
+    int ret = 0;
+    filter[handle].options = options;
+
+    // disable it.
+    plugin_disable_id (handle);
+    
+    // filter_ need to be restartet to take new options into account
+    fprintf (stderr, "[%s] filter_close (%d:%s)\n", __FILE__, ret, options);
+    filter_single_close(handle);
+
+    fprintf (stderr, "[%s] filter_init  (%d:%s)\n", __FILE__, ret, options);
+    ret = filter_single_init(handle);
+
+    // reenable it.
+    plugin_enable_id (handle);
+
+    fprintf (stderr, "[%s] filter_single_configure_handle returning (%d)\n", __FILE__, ret);
+    return ret;
+}
+
+// instance maybe -1 to pick the first match
+filter_t * plugin_by_name(char *name, int instance)
+{
+  int n;
+  filter_t *t = NULL;
+
+  for (n=0; n<MAX_FILTER; ++n) {
+    if ( ( ((instance==-1)?filter[n].id:instance) == filter[n].id) && 
+	            (strcmp(filter[n].name, name) == 0)) {
+      t = &filter[n];
+    }
+  }
+  return t;
+}
+
+int load_single_plugin (char *mfilter_string)
+{
+  int id = filter_next_free_id()+1;
+  vob_t *vob = tc_get_vob();
+
+  fprintf(stderr, "[%s] Loading (%s) ..\n", __FILE__, mfilter_string);
+
+  strcpy(filter[id].name, mfilter_string);
+  if (load_plugin(vob->mod_path)==0)  {
+    plugins++;
+    plugins_loaded = 1;
+  } else {
+    return 1;
+  }
+
+  plugin_fix_id();
+  filter_single_init(id);
+
+  return 0;
+}
+
 char *get_next_filter_name(char *name, char *string)
 {
   char *res;
@@ -113,6 +344,87 @@ char *get_next_filter_name(char *name, char *string)
   return(res+1);
 }
 
+int plugin_enable_id (int id)
+{
+  filter[id].status = 1;
+  return 0;
+}
+int plugin_disable_id (int id)
+{
+  filter[id].status = 0;
+  return 0;
+}
+
+int plugin_list_disabled(char *buf)
+{
+    int n, pos=0;
+
+    for (n=0; n<MAX_FILTER; n++) {
+	if ( (filter[n].status == 0) && strlen(filter[n].name)) {
+	    if (pos == 0) { // first
+		pos = sprintf(buf, "\"%s\"", filter[n].name);
+	    } else {
+		pos += sprintf(buf+pos, ", \"%s\"", filter[n].name);
+	    }
+	}
+    }
+    sprintf(buf+pos, "\n");
+    return 0;
+}
+
+int plugin_list_enabled(char *buf) 
+{
+    int n, pos=0;
+
+    for (n=0; n<MAX_FILTER; n++) {
+	if ( (filter[n].status == 1) && strlen(filter[n].name)) {
+	    if (pos == 0) { // first
+		pos = sprintf(buf, "\"%s\"", filter[n].name);
+	    } else {
+		pos += sprintf(buf+pos, ", \"%s\"", filter[n].name);
+	    }
+	}
+    }
+    sprintf(buf+pos, "\n");
+    return 0;
+}
+
+int plugin_list_loaded(char *buf)
+{
+    int n, pos=0;
+
+    for (n=0; n<MAX_FILTER; n++) {
+	if (strlen(filter[n].name)) {
+	    if (pos == 0) { // first
+		pos = sprintf(buf, "\"%s\"", filter[n].name);
+	    } else {
+		pos += sprintf(buf+pos, ", \"%s\"", filter[n].name);
+	    }
+	}
+    }
+    sprintf(buf+pos, "\n");
+    return 0;
+}
+
+int plugin_get_handle (char *name)
+{
+  int id = -1;
+
+  fprintf(stderr, "[%s] Filter \"%s\" with args (%s)\n", __FILE__, name, name);
+  if ( (id = plugin_find_id (name)) < 0) {
+    fprintf(stderr, "[%s] Filter \"%s\" not loaded. Loading ...\n", __FILE__, name);
+
+    if (load_single_plugin(name) != 0) {
+      fprintf(stderr, "[%s] Loading filter \"%s\" failed\n", __FILE__, name);
+      return -1;
+    }
+    id = plugin_find_id (name);
+  } else {
+    fprintf(stderr, "[%s] Filter \"%s\" is already loaded.\n", __FILE__, name);
+  }
+  return id;
+
+}
 int init_plugin(vob_t *vob)
 {
 
@@ -128,30 +440,11 @@ int init_plugin(vob_t *vob)
     
     if((offset=get_next_filter_name(filter[j].name, offset))==NULL) break;
     
-    if(load_plugin(vob->mod_path, j)==0) ++j;
+    if(load_plugin(vob->mod_path)==0) ++j;
   }
 
-  for (n=0; n<MAX_FILTER; ++n) {
-    int i;
-    int count=0;
-    offset = filter[n].name;
+  plugin_fix_id();
 
-    // no filter or already counted
-    if (filter[n].name[0] == '\0' || filter[n].id != 0) continue;
-
-    for (i=n+1; i<MAX_FILTER; ++i) {
-      if (strcmp(filter[i].name,offset) == 0) {
-	count++;
-	filter[i].id = count;
-      }
-    }
-
-  }
-  if (verbose & TC_DEBUG)
-    for (n=0; n<MAX_FILTER; ++n) {
-      fprintf(stderr, "Filter[%d].name (%s) instance # (%d)\n", n, filter[n].name, filter[n].id);
-    }
-  
   return j;
 }
 
@@ -195,7 +488,7 @@ int plugin_init(vob_t *vob)
     
     if(!plugins_loaded) {
 	
-	plugins=init_plugin(vob);
+	    plugins=init_plugin(vob);
 	
 	if(verbose & TC_DEBUG) fprintf(stderr, "(%s) successfully loaded %d filter plugin(s)\n", __FILE__, plugins);
 	plugins_loaded=1;
@@ -208,24 +501,14 @@ int plugin_init(vob_t *vob)
 int filter_init()
 {
 
-    int n;
+  int n;
 
-    frame_list_t ptr;
+  if(plugins_string==NULL) return(0);
 
-    if(plugins_string==NULL) return(0);
-
-    if(!plugins_loaded) return(1);    
-
-    ptr.tag = TC_FILTER_INIT;
+  if(!plugins_loaded) return(1);    
 
     for(n=0; n<plugins; ++n) {
-      ptr.filter_id = filter[n].id;
-      if(filter[n].entry(&ptr, filter[n].options)<0) {
-	fprintf(stderr," (%s) filter plugin '%s' returned error - plugin skipped\n", __FILE__, filter[n].name);
-	filter[n].status=0;
-      } else {
-	filter[n].status=1;
-      }
+      filter_single_init(n);
     }
     
     return(0);
@@ -237,23 +520,30 @@ int filter_close()
 
     int n;
 
-    frame_list_t ptr;
-
     if(plugins_string==NULL) return(0);
     
     if(!plugins_loaded) return(1);
 	
-    ptr.tag = TC_FILTER_CLOSE;
-
     for(n=0; n<plugins; ++n)  {
-      ptr.filter_id = filter[n].id;
-      if(filter[n].entry(&ptr, NULL)<0) fprintf(stderr," (%s) filter plugin '%s' returned error - ignored\n", __FILE__, filter[n].name);
+	filter_single_close(n);
     }
     
     return(0);
 }
 
 
+int plugin_single_close(int id)
+{
+    if(plugins_string==NULL) return(0);
+    if(!plugins_loaded) return(1);    
+
+    if(filter[id].unload)  {
+	dlclose(filter[id].handle);
+	memset (&filter[id], 0, sizeof (filter_t));
+    }
+
+    return (0);
+}
 int plugin_close()
 {
     
@@ -263,7 +553,9 @@ int plugin_close()
     
     if(!plugins_loaded) return(1);
     
-    for(n=0; n<plugins; ++n) if(filter[n].unload) dlclose(filter[n].handle);
+    for(n=0; n<plugins; ++n) {
+	plugin_single_close(n);
+    }
     
     return(0);
 }

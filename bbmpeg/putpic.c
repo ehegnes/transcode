@@ -148,7 +148,7 @@ int putpict(unsigned char *frame)
             qi = 1;
             for (comp = 0; comp < block_count; comp++)
             {
-              qi &= quant_intra (blocks[k * block_count + comp],
+              qi &= bb_quant_intra (blocks[k * block_count + comp],
                  blocks[k * block_count + comp], dc_prec, intra_q, mbinfo[k].mquant);
               if (qi==0 && mbinfo[k].mquant < intra_q[31])
                 break;
@@ -165,7 +165,7 @@ int putpict(unsigned char *frame)
         else
         {
           for (comp=0; comp<block_count; comp++)
-            quant_intra(blocks[k*block_count+comp],blocks[k*block_count+comp],
+            bb_quant_intra(blocks[k*block_count+comp],blocks[k*block_count+comp],
                         dc_prec,intra_q,mbinfo[k].mquant);
           mbinfo[k].cbp = cbp = (1<<block_count) - 1;
         }

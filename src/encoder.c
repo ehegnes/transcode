@@ -51,6 +51,13 @@ static int counter_skipping=0;
 static long startsec;
 static long startusec;
 
+void tc_export_stop_nolock()
+{
+  force_exit=1;
+  return;
+}
+
+
 int export_status()
 {
   pthread_mutex_lock(&export_lock);
@@ -503,7 +510,6 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	  
 	  // external plugin pre-processing
 	  vptr->tag = TC_VIDEO|TC_PRE_PROCESS;
-	  preprocess_vid_frame(vob, vptr);
 	  process_vid_plugins(vptr);
 	  
 	  // internal processing of video
@@ -606,7 +612,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	  
 	  if(!fill_flag) fill_flag=1;
 	 
-	  counter_print(frame_a, fid, "encoding", startsec, startusec, ((vob->video_out_file==NULL)?vob->audio_out_file:vob->video_out_file));
+	  counter_print(frame_a, fid, "encoding", startsec, startusec, ((vob->video_out_file==NULL)?vob->audio_out_file:vob->video_out_file), vptr->thread_id);
 	}
 	
 	// on success, increase global frame counter
@@ -652,7 +658,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	  if(!fill_flag) {
 	    fill_flag=1;
 	  }
-	  counter_print(0, fid, "skipping", startsec, startusec, "/dev/null");
+	  counter_print(0, fid, "skipping", startsec, startusec, "/dev/null", vptr->thread_id);
 	}
 	
       } // frame processing loop
@@ -723,7 +729,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
       
     } while(import_status() && !exit_on_encoder_error); // main frame decoding loop
     
-    if(verbose & TC_DEBUG) fprintf(stderr, "(%s) export terminated - buffer empty\n", __FILE__);
+    if(verbose & TC_DEBUG) fprintf(stderr, "(%s) export terminated - buffer(s) empty\n", __FILE__);
     
     return;
 }

@@ -71,7 +71,7 @@ static void es_loop(void)
 static int outstream(char *framebuffer, int bytes)
 {
     if (fwrite(framebuffer, bytes, 1, out_file)!= 1) {
-	fprintf(stderr, "(%s) video write failed", __FILE__);
+	fprintf(stderr, "(%s) video write failed.\n", __FILE__);
 	import_exit(0);
   }
   return(1);

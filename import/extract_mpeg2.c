@@ -121,7 +121,8 @@ static void ps_loop (void)
 	  }
 	  
 	  if (tmp1 < tmp2)
-	    fwrite (tmp1, tmp2-tmp1, 1, out_file);
+	    if (fwrite (tmp1, tmp2-tmp1, 1, out_file) != 1)
+	      import_exit(0); /* decoder has exited */
 	  buf = tmp2;
 	  break;
 	  

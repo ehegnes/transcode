@@ -359,7 +359,6 @@ int audio_init(vob_t *vob, int debug)
 int audio_open(vob_t *vob, avi_t *avifile)
 {
   
-  int mask;
 
   if(mute) return(0);
   
@@ -371,12 +370,6 @@ int audio_open(vob_t *vob, avi_t *avifile)
 	fprintf(stderr, "(%s) fopen audio file\n", __FILE__);
 	return(TC_EXPORT_ERROR);
       }     
-      
-      mask = umask(0);
-      umask(mask);
-      
-      chmod(vob->audio_out_file, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) &~ mask);
-      
     } // open audio output file
     
     if(verbose & TC_DEBUG) 

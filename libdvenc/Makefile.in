@@ -104,6 +104,8 @@ LIBFAME_CONFIG = @LIBFAME_CONFIG@
 LIBFAME_LIBS = @LIBFAME_LIBS@
 LIBJPEG_CFLAGS = @LIBJPEG_CFLAGS@
 LIBJPEG_LIBS = @LIBJPEG_LIBS@
+LIBLVE_CFLAGS = @LIBLVE_CFLAGS@
+LIBLVE_LIBS = @LIBLVE_LIBS@
 LIBMPEG3_CFLAGS = @LIBMPEG3_CFLAGS@
 LIBMPEG3_LIBS = @LIBMPEG3_LIBS@
 LIBPOSTPROC_CFLAGS = @LIBPOSTPROC_CFLAGS@
@@ -149,6 +151,8 @@ USE_LIBA52_DECODER = @USE_LIBA52_DECODER@
 VERSION = @VERSION@
 VORBIS_CFLAGS = @VORBIS_CFLAGS@
 VORBIS_LIBS = @VORBIS_LIBS@
+XVIDCORE_CFLAGS = @XVIDCORE_CFLAGS@
+XVIDCORE_LIBS = @XVIDCORE_LIBS@
 X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
 X_LIBS = @X_LIBS@
@@ -169,7 +173,7 @@ noinst_LIBRARIES = libdvenc.a
 
 DVENC1 = dvenc.c 
 
-@HAVE_DV_TRUE@DVENC2 = enc_audio_input.c enc_input.c enc_output.c 
+@HAVE_DV_TRUE@DVENC2 = enc_audio_input.c enc_input.c enc_output.c enc_output2.c 
 @HAVE_DV_TRUE@@HAVE_X86CPU_TRUE@DVENC3 = rgbtoyuv.S encode_x86.S transpose_x86.S
 
 libdvenc_a_SOURCES = $(DVENC1) $(DVENC2) $(DVENC3) 
@@ -186,7 +190,8 @@ libdvenc_a_AR = $(AR) cru
 libdvenc_a_LIBADD =
 am__objects_6 = dvenc.$(OBJEXT)
 @HAVE_DV_TRUE@am__objects_7 = enc_audio_input.$(OBJEXT) \
-@HAVE_DV_TRUE@	enc_input.$(OBJEXT) enc_output.$(OBJEXT)
+@HAVE_DV_TRUE@	enc_input.$(OBJEXT) enc_output.$(OBJEXT) \
+@HAVE_DV_TRUE@	enc_output2.$(OBJEXT)
 @HAVE_DV_TRUE@@HAVE_X86CPU_TRUE@am__objects_8 = rgbtoyuv.$(OBJEXT) \
 @HAVE_DV_TRUE@@HAVE_X86CPU_TRUE@	encode_x86.$(OBJEXT) \
 @HAVE_DV_TRUE@@HAVE_X86CPU_TRUE@	transpose_x86.$(OBJEXT)
@@ -201,7 +206,8 @@ depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/dvenc.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/enc_audio_input.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/enc_input.Po ./$(DEPDIR)/enc_output.Po
+@AMDEP_TRUE@	./$(DEPDIR)/enc_input.Po ./$(DEPDIR)/enc_output.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/enc_output2.Po
 CCASCOMPILE = $(CCAS) $(AM_CCASFLAGS) $(CCASFLAGS)
 LTCCASCOMPILE = $(LIBTOOL) --mode=compile $(CCAS) $(AM_CCASFLAGS) \
 	$(CCASFLAGS)
@@ -247,6 +253,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/enc_audio_input.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/enc_input.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/enc_output.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/enc_output2.Po@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)

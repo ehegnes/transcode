@@ -317,7 +317,7 @@ int main(int argc, char *argv[])
       
       // try to find out the filetype
       
-      stream_magic=fileinfo(ipipe.fd_in);
+      stream_magic=fileinfo(ipipe.fd_in, 0);
       
       if(verbose) fprintf(stderr, "[%s] (pid=%d) %s\n", EXE, getpid(), filetype(stream_magic));
       

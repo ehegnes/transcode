@@ -52,8 +52,8 @@
 #define NTSC_H                  480
 
 //new max frame size:
-#define TC_MAX_V_FRAME_WIDTH     1024 //768
-#define TC_MAX_V_FRAME_HEIGHT    768  //576
+#define TC_MAX_V_FRAME_WIDTH     1920 //1024 //768
+#define TC_MAX_V_FRAME_HEIGHT    1088 //768  //576
 
 // audio defaults
 #define RATE         48000
@@ -114,13 +114,14 @@
 #define TC_POST_M_PROCESS      256
 #define TC_POST_S_PROCESS      512
 #define TC_FILTER_CLOSE       1024
+#define TC_FILTER_GET_CONFIG  4096
 
 //for compatibility
 #define TC_PRE_PROCESS  TC_PRE_M_PROCESS
 #define TC_POST_PROCESS TC_POST_M_PROCESS
 
-#define TC_IMPORT             2048
-#define TC_EXPORT             4096
+#define TC_IMPORT             8192
+#define TC_EXPORT            16384
 
 #define TC_DELAY_MAX         40000
 #define TC_DELAY_MIN         10000

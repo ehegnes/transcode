@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_dnr.so"
-#define MOD_VERSION "v0.1 (2001-11-27)"
+#define MOD_VERSION "v0.2 (2003-01-21)"
 #define MOD_CAP     "dynamic noise reduction"
 
 #include <stdio.h>
@@ -378,14 +378,13 @@ static void dnr_cleanup(T_DNR_FILTER_CTX *fctx)
 #define DEFAULT_CL  8
 #define DEFAULT_SC 30
 
-static T_DNR_FILTER_CTX my_data;
 static T_DNR_FILTER_CTX *dnr_init(int src_w, int src_h, int isYUV)
 {
   double low1, low2;
   double high1, high2;
   int    a, b, dif1, dif2;
   
-  T_DNR_FILTER_CTX *fctx = &my_data;
+  T_DNR_FILTER_CTX *fctx = malloc (sizeof(T_DNR_FILTER_CTX));
   
   //-- PARAMETERS --
   fctx->pThreshold  = DEFAULT_LT; // threshold to blend luma/red (default 10)
@@ -473,6 +472,16 @@ static T_DNR_FILTER_CTX *dnr_init(int src_w, int src_h, int isYUV)
   return fctx;
 }
 
+// old or new syntax?
+int is_optstr (char *buf) {
+    if (strchr(buf, '='))
+	return 1;
+    if (strchr(buf, 'l'))
+	return 1;
+    if (strchr(buf, 'c'))
+	return 1;
+    return 0;
+}
 /*-------------------------------------------------
  *
  * single function interface
@@ -490,6 +499,30 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //
   //----------------------------------
 
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+    char buf[32];
+      
+    optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Gerhard Monzel", "VYRO", "1");
+
+    snprintf(buf, 32, "%d", my_fctx->pThreshold);
+    optstr_param (options, "lt", "Threshold to blend luma/red", "%d", buf, "1", "128");
+
+    snprintf(buf, 32, "%d", my_fctx->pPixellock);
+    optstr_param (options, "ll", "Threshold to lock luma/red", "%d", buf, "1", "128");
+
+    snprintf(buf, 32, "%d", my_fctx->pThreshold2);
+    optstr_param (options, "ct", "Threshold to blend croma/green+blue", "%d", buf, "1", "128");
+
+    snprintf(buf, 32, "%d", my_fctx->pPixellock2);
+    optstr_param (options, "cl", "Threshold to lock croma/green+blue", "%d", buf, "1", "128");
+
+    snprintf(buf, 32, "%d", my_fctx->pScene);
+    optstr_param (options, "sc", "Percentage of picture difference (scene change)", "%d", buf, "1", "90");
+
+
+      return 0;
+  }
+  
   if(ptr->tag & TC_FILTER_INIT) 
   {
     if((vob = tc_get_vob())==NULL) return(-1);
@@ -497,55 +530,68 @@ int tc_filter(vframe_list_t *ptr, char *options)
     //-- initialization --   
     my_fctx = dnr_init( vob->ex_v_width, vob->ex_v_height, 
                         (vob->im_v_codec==CODEC_RGB)? 0:1 );  
-    if (!my_fctx) return (-1);
+    if (!my_fctx) {
+      return (-1);
+    }
     
     if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
     
     
     if (options)
     {
-      char *p1, *p2;
-      char hlp_str[128];
-      
-      p1 = options;
-      p2 = hlp_str;
-      do
-      {
-        if (*p1 == ':') 
-        {
-          *p2 = ' ';
-          p2++;   
-        }
-        *p2 = *p1;
-        p1++;
-        p2++; 
-      } while (*p1);
-      *p2 = '\0';
-      
-      if(verbose & TC_DEBUG) printf("[%s] options=%s\n", MOD_NAME, options);
+      if (!is_optstr(options)) {
+	char *p1, *p2;
+	char hlp_str[128];
 
-      if ( (p1 = strtok(hlp_str,":")) != NULL)
-        my_fctx->pThreshold  = atoi(p1);
-      if ( (p1 = strtok(NULL, ":")) != NULL )   
-        my_fctx->pPixellock  = atoi(p1);
-      if ( (p1 = strtok(NULL, ":")) != NULL )   
-        my_fctx->pThreshold2 = atoi(p1); 
-      if ( (p1 = strtok(NULL, ":")) != NULL )   
-        my_fctx->pPixellock2 = atoi(p1);  
-      if ( (p1 = strtok(NULL, ":")) != NULL )   
-        my_fctx->pScene = atoi(p1); 
-    
+	p1 = options;
+	p2 = hlp_str;
+	do
+	{
+	  if (*p1 == ':') 
+	  {
+	    *p2 = ' ';
+	    p2++;   
+	  }
+	  *p2 = *p1;
+	  p1++;
+	  p2++; 
+	} while (*p1);
+	*p2 = '\0';
+      
+	if(verbose & TC_DEBUG) printf("[%s] options=%s\n", MOD_NAME, options);
+
+	if ( (p1 = strtok(hlp_str,":")) != NULL)
+	  my_fctx->pThreshold  = atoi(p1);
+	if ( (p1 = strtok(NULL, ":")) != NULL )   
+	  my_fctx->pPixellock  = atoi(p1);
+	if ( (p1 = strtok(NULL, ":")) != NULL )   
+	  my_fctx->pThreshold2 = atoi(p1); 
+	if ( (p1 = strtok(NULL, ":")) != NULL )   
+	  my_fctx->pPixellock2 = atoi(p1);  
+	if ( (p1 = strtok(NULL, ":")) != NULL )   
+	  my_fctx->pScene = atoi(p1); 
+
+
+      } else { // new options
+
+	optstr_get (options, "lt", "%d", &my_fctx->pThreshold);
+	optstr_get (options, "ll", "%d", &my_fctx->pPixellock);
+	optstr_get (options, "ct", "%d", &my_fctx->pThreshold2);
+	optstr_get (options, "cl", "%d", &my_fctx->pPixellock2);
+	optstr_get (options, "sc", "%d", &my_fctx->pScene);
+
+      }
+
       if (my_fctx->pThreshold > 128 || my_fctx->pThreshold < 1)
-        my_fctx->pThreshold = DEFAULT_LT;
+	my_fctx->pThreshold = DEFAULT_LT;
       if (my_fctx->pPixellock > 128 || my_fctx->pPixellock < 1)
-        my_fctx->pPixellock = DEFAULT_LL;
+	my_fctx->pPixellock = DEFAULT_LL;
       if (my_fctx->pThreshold2 > 128 || my_fctx->pThreshold2 < 1)
-        my_fctx->pThreshold2 = DEFAULT_CT;
+	my_fctx->pThreshold2 = DEFAULT_CT;
       if (my_fctx->pPixellock2 > 128 || my_fctx->pPixellock2 < 1)
-        my_fctx->pPixellock2 = DEFAULT_CL;
+	my_fctx->pPixellock2 = DEFAULT_CL;
       if (my_fctx->pScene > 90 || my_fctx->pScene < 1)
-        my_fctx->pScene = DEFAULT_SC;
-
+	my_fctx->pScene = DEFAULT_SC;
 /*
       fprintf(stderr, "*** (%d:%d:%d:%d:%d)\n",
               my_fctx->pThreshold, my_fctx->pPixellock,

@@ -109,7 +109,7 @@ void pcm_finish()
 
 int pcm_load(dv_enc_audio_info_t * audio_info, int isPAL)
 {
-	unsigned char data[1920 * 2 * 2];
+	unsigned char data[DV_AUDIO_MAX_SAMPLES * 2 * 2];
 
 	memcpy(data, dvenc_abuf, audio_info->bytesperframe); 
 	audio_converter(data, audio_info->data, 

@@ -39,7 +39,7 @@
 #endif
 
 #define MOD_NAME    "export_mpeg2enc.so"
-#define MOD_VERSION "v1.1.2 (2002-06-05)"
+#define MOD_VERSION "v1.1.3 (2003-01-31)"
 #define MOD_CODEC   "(video) MPEG 1/2"
 
 #define MOD_PRE mpeg2enc
@@ -228,10 +228,10 @@ MOD_open
       break;
       
     case 4:
-
+      
       //Standard SVCD. An MPEG-2 profile
       //exactly  to  the  SVCD2.0 specification
-
+      
       if(p2==NULL) 
 	sprintf(buf, "mpeg2enc -v %d -f 4 -F %d %s -o \"%s\".m2v", verb, frc, buf2, vob->video_out_file);
       else
@@ -247,11 +247,25 @@ MOD_open
       else
 	sprintf(buf, "mpeg2enc -v %d -q 3 -f 5 -4 2 -2 3 -b %d -F %d %s -V 230 -o \"%s\".m2v %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, p2);
       break;
-     
-      // Manual parameter mode.
+      
     case 6:
-	sprintf(buf, "mpeg2enc -v %d -b %d -o %s.m2v %s", verb, vob->divxbitrate, vob->video_out_file, p2);
-	break;
+      
+      // Manual parameter mode.
+      
+      sprintf(buf, "mpeg2enc -v %d -b %d -o %s.m2v %s", verb, vob->divxbitrate, vob->video_out_file, p2);
+      break;
+      
+    case 8:
+      
+      //DVD
+      
+      if(p2==NULL) 
+	sprintf(buf, "mpeg2enc -v %d -f 8 -b %d -F %d %s -o \"%s\".m2v", verb, vob->divxbitrate, frc, buf2, vob->video_out_file);
+      else
+	sprintf(buf, "mpeg2enc -v %d -f 8 -b %d -F %d %s -o \"%s\".m2v %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, p2);
+      
+      break;
+
 
     case 0:       
     default:

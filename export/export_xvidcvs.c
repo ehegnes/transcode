@@ -1,10 +1,10 @@
 /*****************************************************************************
  *  - XviD Transcode Export Module -
  *
- *  Copyright (C) 2001 - Thomas Östreich
+ *  Copyright (C) 2001-2003 - Thomas Östreich
  *
  *  Original Author    : Christoph Lampert <gruel@web.de> 
- *  Current maintainer : Edouard Gomez <ed.gomez@wanadoo.fr>
+ *  Current maintainer : Edouard Gomez <ed.gomez@free.fr>
  *
  *  This file is part of transcode, a linux video stream processing tool
  *      
@@ -41,10 +41,6 @@
 #include <malloc.h>
 #endif
 
-/* You must match options compiled into your XviD lib */
-#if 0
-#define BFRAMES       /* Turns on XviD BFrame support */
-#endif
 #if 1
 #define DEVELOPER_USE /* Turns on/off transcode xvid.cfg option file */
 #endif
@@ -66,15 +62,9 @@
  ****************************************************************************/
 
 #define MOD_NAME    "export_xvidcvs.so"
-#define MOD_VERSION "v0.3.6 (2002-09-17)"
-#ifdef BFRAMES
-#define BFRAMES_ON " - Supports and requires a bframes build"
-#else
-#define BFRAMES_ON
-#endif
-
+#define MOD_VERSION "v0.3.7 (2003-01-12)"
 #define MOD_CODEC  \
-"(video) XviD (CVS"BFRAMES_ON")  | (audio) MPEG/AC3/PCM"
+"(video) XviD (CVS 2003-01-12)  | (audio) MPEG/AC3/PCM"
 #define MOD_PRE xvidcvs_ 
 #include "export_def.h"
 
@@ -123,9 +113,9 @@ static XVID_ENC_FRAME  global_frame;
 static vbr_control_t   vbr_state;
 
 /* XviD shared library name */
-#define XVID_SHARED_LIB_NAME "libxvidcore.so"
+#define XVID_SHARED_LIB_NAME "libtestcore.so"
 #ifdef DEVELOPER_USE
-#define XVID_CONFIG_FILE "xvid.cfg"
+#define XVID_CONFIG_FILE "xvidcvs.cfg"
 #endif
 
 #define Max(a,b) (((a)>(b))?(a):(b))
@@ -237,7 +227,7 @@ MOD_init
 		switch (vob->im_v_codec) {
 		case CODEC_RGB:	
 			global_framesize = SIZE_RGB_FRAME;
-			global_colorspace = XVID_CSP_RGB24;
+			global_colorspace = XVID_CSP_RGB24|XVID_CSP_VFLIP;
 			break;
 		case CODEC_YUV:
 			global_framesize = SIZE_RGB_FRAME*2/3;
@@ -369,13 +359,8 @@ MOD_open
 	if(param->flag == TC_VIDEO) {
     
 		/* Video */
-#ifdef BFRAMES
 		AVI_set_video(vob->avifile_out, vob->ex_v_width,
-			      vob->ex_v_height, vob->fps, "DX50");
-#else
-		AVI_set_video(vob->avifile_out, vob->ex_v_width,
-			      vob->ex_v_height, vob->fps, "DIVX");
-#endif
+			      vob->ex_v_height, vob->fps, "XVID");
 
 		return(0);
 
@@ -414,9 +399,10 @@ MOD_encode
 	xframe.quant_inter_matrix = NULL;
 	xframe.quant = vbrGetQuant(&vbr_state);
 	xframe.intra = vbrGetIntra(&vbr_state);
-#ifdef BFRAMES
 	xframe.bquant = 0;
-#endif
+	xframe.stride = global_param.width;
+	if(global_frame.colorspace == (XVID_CSP_VFLIP|XVID_CSP_RGB24))
+		xframe.stride *= 3;
 
   	/* Encode the frame */
 	xerr = XviD_encore(XviD_encore_handle, XVID_ENC_ENCODE, &xframe,
@@ -429,11 +415,32 @@ MOD_encode
     	}
 
 	/* Update the VBR controler */
-	vbrUpdate(&vbr_state, xstats.quant, xframe.intra, xstats.hlength,
-		  xframe.length, xstats.kblks, xstats.mblks, xstats.ublks);
+	vbrUpdate(&vbr_state,
+		  xstats.quant,
+		  xframe.intra,
+		  xstats.hlength,
+		  xframe.length,
+		  xstats.kblks,
+		  xstats.mblks,
+		  xstats.ublks);
+
+	/*
+	 * Ported from an anonymous(?) change in export_xvid.c
+	 * Original comment:
+	 *   0.6.2: switch outfile on "C" and -J pv
+	 *
+	 * NB: we now test xframe.intra == 1 because xvidocre can return 
+	 *     0 == PFrame (predicted frame)
+	 *     1 == IFrame (intra frame)
+	 *     2 == BFrame (bidirectional frame)
+	 *     3 == SFrame (sprite frame)
+	 *     4 == packed frame (group of (I|P)B..B frames)
+	 *     5 == skiped frame (mostly filling internal buffer)
+	 */
+	if(xframe.intra == 1) tc_outstream_rotate();
 
 	/* Write bitstream */
-	if(AVI_write_frame(avifile, buffer, xframe.length, xframe.intra) < 0) {
+	if(AVI_write_frame(avifile, buffer, xframe.length, xframe.intra == 1) < 0) {
 		fprintf(stderr, "avi video write error");
 		return(TC_EXPORT_ERROR); 
 	}
@@ -598,13 +605,12 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 
 	unsigned long const motion_presets[6] = {
 		0,
-		PMV_EARLYSTOP16,
-		PMV_EARLYSTOP16 | PMV_HALFPELREFINE16,
-		PMV_EARLYSTOP16 | PMV_HALFPELREFINE16,
-		PMV_EARLYSTOP16 | PMV_HALFPELREFINE16 | PMV_EARLYSTOP8 |
-		PMV_HALFPELREFINE8, 	
-		PMV_EARLYSTOP16 | PMV_HALFPELREFINE16 | PMV_EXTSEARCH16 |
-		PMV_USESQUARES16 | PMV_EARLYSTOP8 | PMV_HALFPELREFINE8
+		0,
+		PMV_HALFPELREFINE16,
+		PMV_HALFPELREFINE16,
+		PMV_HALFPELREFINE16 | PMV_HALFPELREFINE8,
+		PMV_HALFPELREFINE16 | PMV_EXTSEARCH16 |
+		PMV_USESQUARES16 | PMV_HALFPELREFINE8
 	};
 
 	unsigned long const general_presets[6] = {
@@ -625,12 +631,11 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 	einit->cpu_flags = 0;
 
 	/* Param flags (-1 = xvid default) */
-#ifdef BFRAMES
-	eparam->global       = 0;
-	eparam->max_bframes  = -1;
-	eparam->bquant_ratio = 200;
+	eparam->global        = 0;
+	eparam->max_bframes   = -1;
+	eparam->bquant_ratio  = 150;
+	eparam->bquant_offset = 100;
 	eparam->frame_drop_ratio = 0;
-#endif
 	eparam->rc_buffer                = -1;
 	eparam->rc_reaction_delay_factor = -1;
 	eparam->rc_averaging_period      = -1;
@@ -653,7 +658,7 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 
 				if(stat(buffer, &statfile) == -1) {
 					fprintf(stderr,
-						"No ./xvid.cfg nor ~/.xvid.cfg"
+						"No ./xvidcvs.cfg nor ~/.xvidcvs.cfg"
 						" file found, falling back to"
 						" hardcoded defaults\n");
 					return(0);
@@ -769,64 +774,60 @@ static config_flag_t const cpu_flags[] = {
 	{ "XVID_CPU_3DNOW",    XVID_CPU_3DNOW},
 	{ "XVID_CPU_3DNOWEXT", XVID_CPU_3DNOWEXT},
 	{ "XVID_CPU_TSC",      XVID_CPU_TSC},
-//	{ "XVID_CPU_IA64",     XVID_CPU_IA64},
-//	{ "XVID_CPU_CHKONLY",  XVID_CPU_CHKONLY},
 	{ "XVID_CPU_FORCE",    XVID_CPU_FORCE},
 	{ NULL,                0}
 };
 
-#ifdef BFRAMES
 static config_flag_t const global_flags[] = {
 	{ "XVID_GLOBAL_PACKED",   XVID_GLOBAL_PACKED},
 	{ "XVID_GLOBAL_DX50BVOP", XVID_GLOBAL_DX50BVOP},
 	{ "XVID_GLOBAL_DEBUG",    XVID_GLOBAL_DEBUG},
 	{ NULL,                   0}
 };
-#endif
 
 static config_flag_t const general_flags[] = {
-	{ "XVID_VALID_FLAGS",    XVID_VALID_FLAGS},
-//	{ "XVID_CUSTOM_QMATRIX", XVID_CUSTOM_QMATRIX},
-	{ "XVID_H263QUANT",      XVID_H263QUANT},
-	{ "XVID_MPEGQUANT",      XVID_MPEGQUANT},
-	{ "XVID_HALFPEL",        XVID_HALFPEL},
-	{ "XVID_ADAPTIVEQUANT",  XVID_ADAPTIVEQUANT},
-	{ "XVID_LUMIMASKING",    XVID_LUMIMASKING},
-	{ "XVID_LATEINTRA",      XVID_LATEINTRA},
-	{ "XVID_INTERLACING",    XVID_INTERLACING},
-	{ "XVID_TOPFIELDFIRST",  XVID_TOPFIELDFIRST},
-	{ "XVID_ALTERNATESCAN",  XVID_ALTERNATESCAN},
-	{ "XVID_HINTEDME_GET",   XVID_HINTEDME_GET},
-	{ "XVID_HINTEDME_SET",   XVID_HINTEDME_SET},
-	{ "XVID_INTER4V",        XVID_INTER4V},
-	{ "XVID_ME_ZERO",        XVID_ME_ZERO},
-	{ "XVID_ME_LOGARITHMIC", XVID_ME_LOGARITHMIC},
-	{ "XVID_ME_FULLSEARCH",  XVID_ME_FULLSEARCH},
-	{ "XVID_ME_PMVFAST",     XVID_ME_PMVFAST},
-	{ "XVID_ME_EPZS",        XVID_ME_EPZS},
-	{ NULL,                  0}
+	{ "XVID_VALID_FLAGS",       XVID_VALID_FLAGS},
+	{ "XVID_H263QUANT",         XVID_H263QUANT},
+	{ "XVID_MPEGQUANT",         XVID_MPEGQUANT},
+	{ "XVID_HALFPEL",           XVID_HALFPEL},
+	{ "XVID_QUARTERPEL",        XVID_QUARTERPEL},
+	{ "XVID_ADAPTIVEQUANT",     XVID_ADAPTIVEQUANT},
+	{ "XVID_LUMIMASKING",       XVID_LUMIMASKING},
+	{ "XVID_LATEINTRA",         XVID_LATEINTRA},
+	{ "XVID_INTERLACING",       XVID_INTERLACING},
+	{ "XVID_TOPFIELDFIRST",     XVID_TOPFIELDFIRST},
+	{ "XVID_ALTERNATESCAN",     XVID_ALTERNATESCAN},
+	{ "XVID_HINTEDME_GET",      XVID_HINTEDME_GET},
+	{ "XVID_HINTEDME_SET",      XVID_HINTEDME_SET},
+	{ "XVID_INTER4V",           XVID_INTER4V},
+	{ "XVID_GREYSCALE",         XVID_GREYSCALE},
+	{ "XVID_GRAYSCALE",         XVID_GRAYSCALE},
+	{ "XVID_GMC",               XVID_GMC},
+	{ "XVID_GMC_TRANSLATIONAL", XVID_GMC_TRANSLATIONAL},
+	{ NULL,                     0}
 };
 
 static config_flag_t const motion_flags[] = {
-	{ "PMV_ADVANCEDDIAMOND8",  PMV_ADVANCEDDIAMOND8},
-	{ "PMV_ADVANCEDDIAMOND16", PMV_ADVANCEDDIAMOND16},
-	{ "PMV_HALFPELDIAMOND16",  PMV_HALFPELDIAMOND16},
-	{ "PMV_HALFPELREFINE16",   PMV_HALFPELREFINE16},
-	{ "PMV_EXTSEARCH16",       PMV_EXTSEARCH16},
-	{ "PMV_EARLYSTOP16",       PMV_EARLYSTOP16},
-	{ "PMV_QUICKSTOP16",       PMV_QUICKSTOP16},
-	{ "PMV_UNRESTRICTED16",    PMV_UNRESTRICTED16},
-	{ "PMV_OVERLAPPING16",     PMV_OVERLAPPING16},
-	{ "PMV_USESQUARES16",      PMV_USESQUARES16},
-	{ "PMV_HALFPELDIAMOND8",   PMV_HALFPELDIAMOND8},
-	{ "PMV_HALFPELREFINE8",    PMV_HALFPELREFINE8},
-	{ "PMV_EXTSEARCH8",        PMV_EXTSEARCH8},
-	{ "PMV_EARLYSTOP8",        PMV_EARLYSTOP8},
-	{ "PMV_QUICKSTOP8",        PMV_QUICKSTOP8},
-	{ "PMV_UNRESTRICTED8",     PMV_UNRESTRICTED8},
-	{ "PMV_OVERLAPPING8",      PMV_OVERLAPPING8},
-	{ "PMV_USESQUARES8",       PMV_USESQUARES8},
-	{ NULL,                    0}
+	{ "PMV_ADVANCEDDIAMOND8",   PMV_ADVANCEDDIAMOND8},
+	{ "PMV_ADVANCEDDIAMOND16",  PMV_ADVANCEDDIAMOND16},
+	{ "PMV_HALFPELDIAMOND16",   PMV_HALFPELDIAMOND16},
+	{ "PMV_HALFPELREFINE16",    PMV_HALFPELREFINE16},
+	{ "PMV_QUARTERPELREFINE16", PMV_QUARTERPELREFINE16},
+	{ "PMV_EXTSEARCH16",        PMV_EXTSEARCH16},
+	{ "PMV_QUICKSTOP16",        PMV_QUICKSTOP16},
+	{ "PMV_UNRESTRICTED16",     PMV_UNRESTRICTED16},
+	{ "PMV_OVERLAPPING16",      PMV_OVERLAPPING16},
+	{ "PMV_USESQUARES16",       PMV_USESQUARES16},
+	{ "PMV_CHROMA16",           PMV_CHROMA16},
+	{ "PMV_HALFPELDIAMOND8",    PMV_HALFPELDIAMOND8},
+	{ "PMV_HALFPELREFINE8",     PMV_HALFPELREFINE8},
+	{ "PMV_QUARTERPELREFINE8",  PMV_QUARTERPELREFINE8},
+	{ "PMV_EXTSEARCH8",         PMV_EXTSEARCH8},
+	{ "PMV_QUICKSTOP8",         PMV_QUICKSTOP8},
+	{ "PMV_UNRESTRICTED8",      PMV_UNRESTRICTED8},
+	{ "PMV_OVERLAPPING8",       PMV_OVERLAPPING8},
+	{ "PMV_USESQUARES8",        PMV_USESQUARES8},
+	{ NULL,                     0}
 };
 
 static unsigned long string2flags(char *string, config_flag_t const *flags);
@@ -857,7 +858,6 @@ static void xvid_config_get_param(XVID_ENC_PARAM *eparam,
 
 	char *pTemp;
 
-#ifdef BFRAMES
 	/* Get the global value */
 	if( ( pTemp = cf_get("param.global" ) ) != NULL ) {
 		eparam->global = string2flags(pTemp, global_flags);
@@ -875,13 +875,17 @@ static void xvid_config_get_param(XVID_ENC_PARAM *eparam,
 		eparam->bquant_ratio = Clamp(n, 0, 200);
 	}
 
+	/* Get the bquant_offset value */
+	if( ( pTemp = cf_get("param.bquant_offset" ) ) != NULL ) {
+		int n = atoi(pTemp);
+		eparam->bquant_offset = Clamp(n, 0, 3000);
+	}
+
 	/* Get the frame drop ratio value */
 	if( ( pTemp = cf_get("param.frame_drop_ratio" ) ) != NULL ) {
 		int n = atoi(pTemp);
 		eparam->frame_drop_ratio = Clamp(n, 0, 100);
 	}
-
-#endif
 
 	/* Get the rc_reaction_delay_factor value */
 	if( ( pTemp = cf_get("param.rc_reaction_delay_factor")) != NULL ) {
@@ -1323,7 +1327,6 @@ static int xvid_print_config(XVID_INIT_PARAM *einit,
 	fprintf(stderr,	"[%s]  max keyframe interval: %d\n",
 		MOD_NAME, eparam->max_key_interval);
 
-#ifdef BFRAMES
 	/* Max bframe sequence */
 	fprintf(stderr,	"[%s]    max bframe sequence: %d\n",
 		MOD_NAME, eparam->max_bframes);
@@ -1331,7 +1334,6 @@ static int xvid_print_config(XVID_INIT_PARAM *einit,
 	/* Bframe quant = Normal quant * 100 / bquant */
 	fprintf(stderr,	"[%s]     bframe quant ratio: %d\n",
 		MOD_NAME, eparam->bquant_ratio);
-#endif
 
 	/* Motion flags */
 	fprintf(stderr,	"[%s]           motion flags:\n",
@@ -1343,7 +1345,6 @@ static int xvid_print_config(XVID_INIT_PARAM *einit,
 				motion_flags[i].flag_string);
 	}
 
-#ifdef BFRAMES
 	/* Global flags */
 	fprintf(stderr,	"[%s]           global flags:\n",
 		MOD_NAME);
@@ -1353,7 +1354,6 @@ static int xvid_print_config(XVID_INIT_PARAM *einit,
 			fprintf(stderr, "                             %s\n",
 				global_flags[i].flag_string);
 	}
-#endif
 
 	/* General flags */
 	fprintf(stderr,	"[%s]          general flags:\n",

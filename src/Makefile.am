@@ -30,6 +30,7 @@ transcode_SOURCES =	transcode.c\
 			probe.c\
 			split.c\
 			callback.c\
+			socket.c\
 			optstr.c\
 			info_server.c
 

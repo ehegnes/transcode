@@ -33,7 +33,7 @@
 
 #include <avifile/videoencoder.h>
 #include <avifile/audioencoder.h>
-#include <avifile/fourcc.h>
+#include <avifile/avm_fourcc.h>
 #include <avifile/creators.h>
 #include <avifile/image.h>
 

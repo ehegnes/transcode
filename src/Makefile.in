@@ -105,6 +105,8 @@ LIBFAME_CONFIG = @LIBFAME_CONFIG@
 LIBFAME_LIBS = @LIBFAME_LIBS@
 LIBJPEG_CFLAGS = @LIBJPEG_CFLAGS@
 LIBJPEG_LIBS = @LIBJPEG_LIBS@
+LIBLVE_CFLAGS = @LIBLVE_CFLAGS@
+LIBLVE_LIBS = @LIBLVE_LIBS@
 LIBMPEG3_CFLAGS = @LIBMPEG3_CFLAGS@
 LIBMPEG3_LIBS = @LIBMPEG3_LIBS@
 LIBPOSTPROC_CFLAGS = @LIBPOSTPROC_CFLAGS@
@@ -150,6 +152,8 @@ USE_LIBA52_DECODER = @USE_LIBA52_DECODER@
 VERSION = @VERSION@
 VORBIS_CFLAGS = @VORBIS_CFLAGS@
 VORBIS_LIBS = @VORBIS_LIBS@
+XVIDCORE_CFLAGS = @XVIDCORE_CFLAGS@
+XVIDCORE_LIBS = @XVIDCORE_LIBS@
 X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
 X_LIBS = @X_LIBS@
@@ -190,6 +194,7 @@ transcode_SOURCES = transcode.c\
 			probe.c\
 			split.c\
 			callback.c\
+			socket.c\
 			optstr.c\
 			info_server.c
 
@@ -208,7 +213,7 @@ am_transcode_OBJECTS = transcode.$(OBJEXT) iodir.$(OBJEXT) \
 	audio_trans.$(OBJEXT) video_rgb.$(OBJEXT) video_yuv.$(OBJEXT) \
 	filter.$(OBJEXT) counter.$(OBJEXT) zoom.$(OBJEXT) \
 	probe.$(OBJEXT) split.$(OBJEXT) callback.$(OBJEXT) \
-	optstr.$(OBJEXT) info_server.$(OBJEXT)
+	socket.$(OBJEXT) optstr.$(OBJEXT) info_server.$(OBJEXT)
 transcode_OBJECTS = $(am_transcode_OBJECTS)
 transcode_DEPENDENCIES =
 transcode_LDFLAGS =
@@ -228,7 +233,8 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/frame_threads.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/info_server.Po ./$(DEPDIR)/iodir.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/optstr.Po ./$(DEPDIR)/probe.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/split.Po ./$(DEPDIR)/transcode.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/socket.Po ./$(DEPDIR)/split.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/transcode.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/video_buffer.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/video_rgb.Po ./$(DEPDIR)/video_trans.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/video_yuv.Po ./$(DEPDIR)/zoom.Po
@@ -304,6 +310,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iodir.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/optstr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/probe.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/socket.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/split.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/transcode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/video_buffer.Po@am__quote@

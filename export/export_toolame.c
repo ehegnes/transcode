@@ -33,7 +33,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "export_toolame.so"
-#define MOD_VERSION "v1.0.2 (2002-05-30)"
+#define MOD_VERSION "v1.0.4 (2003-01-09)"
 #define MOD_CODEC   "(audio) MPEG 1/2"
 
 #define MOD_PRE toolame
@@ -49,7 +49,7 @@ static int 			capability_flag	= TC_CAP_PCM;
  *
  * ------------------------------------------------------------*/
 
-int p_write (char *buf, size_t len)
+static int p_write (char *buf, size_t len)
 {
     size_t n  = 0;
     size_t r  = 0;
@@ -80,6 +80,7 @@ MOD_open
     int verb;
     int ofreq_int;
     int ofreq_dec;
+    int ochan;
     char chan;
     char *ptr = buf;
 
@@ -90,7 +91,8 @@ MOD_open
     ofreq = vob->mp3frequency;
     ifreq = vob->a_rate;
     orate = vob->mp3bitrate;
-    chan = (vob->a_chan==2) ? 'j':'m';
+    ochan = (vob->dm_chan != vob->a_chan) ? vob->dm_chan : vob->a_chan;
+    chan = (ochan==2) ? 'j':'m';
 
     /* default out freq */
     if(ofreq==0)
@@ -99,10 +101,10 @@ MOD_open
     /* need conversion? */
     if(ofreq!=ifreq) {
       /* add sox for conversion */
-      sprintf(buf,"sox %s -r %d -t raw - -r %d -t wav - polyphase "
+      sprintf(buf,"sox %s -r %d -c %d -t raw - -r %d -t wav - polyphase "
 	      "2>/dev/null | ",
 	      (vob->a_bits==16)?"-w -s":"-b -u", 
-	      ifreq,ofreq);
+	      ifreq, ochan, ofreq);
       ptr = buf + strlen(buf);
     }
 

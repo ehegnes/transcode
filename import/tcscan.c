@@ -269,7 +269,7 @@ int main(int argc, char *argv[])
       exit(1);
     } 
     
-    magic = fileinfo(ipipe.fd_in);
+    magic = fileinfo(ipipe.fd_in, 0);
 
   } else ipipe.fd_in = STDIN_FILENO;
   

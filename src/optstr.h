@@ -1,7 +1,7 @@
 /*
  *  optstr.h
  *
- *  Copyright (C) Tilmann Bitterberg 2002
+ *  Copyright (C) Tilmann Bitterberg 2003
  *
  *  Description: A general purpose option string parser
  * 
@@ -50,6 +50,7 @@
 
 #define ARG_MAXIMUM (16)
 #define ARG_SEP ':'
+#define ARG_CONFIG_LEN 8192
 
 /*
  * Finds the _exact_ needle in haystack
@@ -82,5 +83,103 @@ char * optstr_lookup(char *haystack, char *needle);
  */
 
 int optstr_get(char *options, char *name, char *fmt, ...);
+
+/*
+ * Purpose:
+ *   Generate a Description of a filter
+ *   The output in buf will be a row in CSV format. Example:
+ *   "filter_foo", "comment", "0.1", "no@one", "VRY", "1"\n
+ *
+ * Input:
+ *   buf:     A write buffer, will contain the result of the function.
+ *            buf must be at least ARG_CONFIG_LEN characters large.
+ *   filter_(name|comment|version|author):
+ *            obvious, various filter meta data
+ *   capabilities:
+ *            String of filter capabilities. 
+ *               "V":  Can do Video
+ *               "A":  Can do Audio
+ *               "R":  Can do RGB
+ *               "Y":  Can do YUV
+ *               "M":  Can do Multiple Instances
+ *               "E":  Is a PRE filter
+ *               "O":  Is a POST filter
+ *            Valid examples:
+ *               "VR"  : Video and RGB
+ *               "VRY" : Video and YUV and RGB
+ *            
+ *   frames_needed:
+ *            A string of how many frames the filter needs to take effect.
+ *            Usually this is "1".
+ *
+ * Return values:
+ *    1       Not enough space in buf
+ *    0       Successfull
+ */
+int optstr_filter_desc (char *buf,
+		char *filter_name,
+                char *filter_comment,
+		char *filter_version,
+		char *filter_author,
+		char *capabilities,
+		char *frames_needed
+		);
+
+/*
+ * Purpose:
+ *   Extract the how many frames the filter needs from an CSV row.
+ *
+ * Input:
+ *   filter_desc:
+ *            the CSV row
+ *   needed_frames:
+ *            The result will be stored in needed_frames
+ *
+ * Return values:
+ *    1       An Error happend
+ *    0       Successfull
+ */
+int optstr_frames_needed (char *filter_desc, int *needed_frames);
+
+/*
+ * Purpose:
+ *   Generate a description of one filter parameter. The output will be in CSV
+ *   format. Example:
+ *   "radius", "Search radius", "%d", "8", "8", "24"\n
+ *
+ * Input:
+ *   buf:     A write buffer, will contain the result of the function.
+ *            buf must be at least ARG_CONFIG_LEN characters large.
+ *   name:    The name of the parameter (eg "radius")
+ *   comment: A short description (eg "Search radius")
+ *   fmt:     A printf style parse string (eg "%d")
+ *   val:     Current value (eg "8")
+ *   (...):   Always pairs: Legal values for the parameter
+ *            (eg "8", "24" -- meaning, the radius parameter is valid 
+ *            from 8 to 24)
+ *          
+ * Return values:
+ *    1       An Error happend
+ *    0       Successfull
+ *
+ * More examples:
+ *   "pos", "Position (0-width x 0-height)", "%dx%d", "0x0", "0", "width", "0", "height"
+ *    "%dx%d" is interesting, because this parameter takes two values in this format
+ *            so we must supply two ranges (one for each parameter), when this
+ *            param is valid ("0", "width", "0", "height")
+ *    
+ *   "flip", "Mirror image", "", "0"
+ *     This is a boolean, defaults to false. A boolean has no argument, eg "filter_foo=flip"
+ *   
+ */
+int optstr_param  (char *buf, 
+		   char *name, 
+		   char *comment, 
+		   char *fmt, 
+		   char *val, 
+		   ... ); /* char *valid_from1, char *valid_to1 */ 
+
+/* internal */
+int optstr_is_string_arg(char *fmt);
 
 #endif /* __OPTSTR_H */

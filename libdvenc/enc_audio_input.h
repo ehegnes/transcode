@@ -44,7 +44,7 @@ extern "C" {
 		/* stored by load */
 		int bytesperframe;
 		/* big endian 12/16 bit is assumed */
-		unsigned char data[1920 * 2 * 2]; /* max 48000.0 Hz PAL */
+		unsigned char data[DV_AUDIO_MAX_SAMPLES * 2 * 2]; /* max 48000.0 Hz PAL */
 	} dv_enc_audio_info_t;
 
 	typedef struct dv_audio_enc_input_filter_s {

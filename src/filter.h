@@ -56,4 +56,22 @@ int filter_close();
 int plugin_init(vob_t *vob);
 int filter_init();
 
+// instance maybe -1 to pick the first match
+filter_t * plugin_by_name (char *name, int instance);
+
+// s == "name[#instance][=.*]"
+int plugin_find_id(char *s);
+int plugin_get_handle (char *name);
+int plugin_disable_id (int id);
+int plugin_enable_id (int id);
+int plugin_single_close(int id);
+
+int load_single_plugin (char *mfilter_string);
+
+int plugin_list_disabled(char *buf);
+int plugin_list_enabled(char *buf);
+int plugin_list_loaded(char *buf);
+
+char * filter_single_readconf(int id);
+int filter_single_configure_handle(int handle, char *options);
 #endif

@@ -18,5 +18,8 @@ docs_DATA = \
                     README.rip \
                     README.sync \
                     README.vcd \
-                    template.cfg.txt
+                    template.cfg.txt\
+		    filter-socket.txt\
+		    filter-API.txt export-API.txt import-API.txt
+
 

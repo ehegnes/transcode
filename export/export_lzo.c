@@ -35,7 +35,7 @@
 #endif
 
 #define MOD_NAME    "export_lzo.so"
-#define MOD_VERSION "v0.0.3 (2002-11-14)"
+#define MOD_VERSION "v0.0.4 (2002-11-26)"
 #define MOD_CODEC   "(video) LZO real-time compression | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE lzo
@@ -51,11 +51,10 @@ static int capability_flag=TC_CAP_DV|TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3
 
 static int info_shown=0, force_kf=0;
 
-int r;
-lzo_byte *out;
-lzo_byte *wrkmem;
-lzo_uint out_len;
-
+static int r;
+static lzo_byte *out;
+static lzo_byte *wrkmem;
+static lzo_uint out_len;
 
 /* ------------------------------------------------------------ 
  *

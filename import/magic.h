@@ -84,6 +84,7 @@
 #define TC_MAGIC_M2V                   0x000001b3
 #define TC_MAGIC_PICEXT                0x000001b5
 #define TC_MAGIC_MPEG                  0x000001e0
+#define TC_MAGIC_TS                    0x00000047
 #define TC_MAGIC_YUV4MPEG              0x00000300
 #define TC_MAGIC_DV_PAL                0x1f0700bf
 #define TC_MAGIC_DV_NTSC               0x1f07003f
@@ -103,6 +104,7 @@
 #define TC_MAGIC_GIF                   0x00474946
 #define TC_MAGIC_PPM                   0x00005036
 #define TC_MAGIC_PGM                   0x00005035
+#define TC_MAGIC_ID3                   0x49443303
 
 //movie types:
 #define TC_MAGIC_PAL                   0x000000F1

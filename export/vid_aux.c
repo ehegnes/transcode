@@ -23,11 +23,70 @@
 
 #include "vid_aux.h"
 
-static int convert=0;
+static int convert=0, convertY=0;
 static int x_dim=0, y_dim=0;
+static int x_dimY=0, y_dimY=0;
 static char *frame_buffer=NULL;
+static char *frame_bufferY=NULL;
 #define BUFFER_SIZE SIZE_RGB_FRAME
 static char *y_out, *u_out, *v_out;
+static char *rgb_outY;
+
+int tc_yuv2rgb_init(int width, int height)
+{
+    
+    if(convert) tc_yuv2rgb_close();
+    
+    // XXX: 24
+    yuv2rgb_init(24, MODE_BGR);
+    
+    if ((frame_bufferY = malloc(BUFFER_SIZE))==NULL) return(-1);
+    
+    memset(frame_bufferY, 0, BUFFER_SIZE);  
+
+    //init data
+
+    x_dimY = width;
+    y_dimY = height;
+    
+    rgb_outY=frame_bufferY;
+    
+    //activate
+    convertY = 1;
+    
+    return(0);
+}
+
+int tc_yuv2rgb_core(char *buffer)
+{	  
+    if(!convertY) return(0);
+    
+    //conversion
+    
+    yuv2rgb((void *)rgb_outY, 
+	    buffer, buffer + x_dimY*y_dimY, buffer + (x_dimY*y_dimY*5)/4,
+	    x_dimY /*h_size*/, y_dimY /*v_size*/, 
+	    x_dimY*3 /*rgb_stride*/, x_dimY, x_dimY/2);
+    
+    //put it back
+    memcpy(buffer, rgb_outY, y_dim*x_dim*3);
+    
+    return(0);
+    
+}
+
+
+int tc_yuv2rgb_close()
+{
+    if(!convertY) return(0);
+    
+    if(frame_bufferY!=NULL) free(frame_bufferY);
+    
+    frame_bufferY=NULL;
+    convertY = 0;
+
+    return(0);
+}
 
 int tc_rgb2yuv_init(int width, int height)
 {

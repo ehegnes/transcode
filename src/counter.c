@@ -65,7 +65,7 @@ int counter_get_range( void )
   return range_b - range_a + 1;
 }
 
-void counter_print(int pida, int pidn, char *s, long int t1, long int t2, char *file)
+void counter_print(int pida, int pidn, char *s, long int t1, long int t2, char *file, int who)
 {
   struct timeval tv;
   struct timezone tz={0,0};
@@ -118,7 +118,7 @@ void counter_print(int pida, int pidn, char *s, long int t1, long int t2, char *
       
       if(!encoder_progress_flag) {
 	
-	printf("%s frames [%06d-%06d], %6.2f fps, EMT: %d:%02d:%02d, (%2d|%2d|%2d)  %c", s, pida, pidn, fps, secleft/3600, (secleft/60) % 60, secleft % 60, buf1, buf2, buf3, print_counter_cr?'\r':'\n');
+	printf("%s frames [%06d-%06d], %6.2f fps, EMT: %d:%02d:%02d, (%2d|%2d|%2d) %c", s, pida, pidn, fps, secleft/3600, (secleft/60) % 60, secleft % 60, buf1, buf2, buf3, print_counter_cr?'\r':'\n');
 	
       } else tc_encoder_progress();
     }

@@ -201,6 +201,12 @@ struct VAL names_strf_auds[] = {
     { INT32,  "av_bps" },
     { INT16,  "blockalign" },
     { INT16,  "bits" },
+    { INT16,  "cbSize" },
+    { INT16,  "wID" },
+    { INT32,  "fdwFlags" },
+    { INT16,  "nBlockSize" },
+    { INT16,  "nFramesPerBlock" },
+    { INT16,  "nCodecDelay" },
     { EoLST,  NULL }    
 };
 

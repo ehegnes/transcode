@@ -100,7 +100,7 @@ int save_read(char *buf, int bytes, off_t offset, int fdes)
 
 #define MAX_PROBE_BYTES 4096
 
-long fileinfo(int fdes)
+long fileinfo(int fdes, int skip)
 {
   
   char buf[MAX_PROBE_BYTES];
@@ -113,17 +113,19 @@ long fileinfo(int fdes)
 
   // assume this is a valid file descriptor
 
-  // are we at zero offset
-  if((offset = lseek(fdes, 0, SEEK_CUR)) < 0) {
+  // are we at offset defined by skip?
+  if((offset = lseek(fdes, skip, SEEK_CUR)) < 0) {
     if(errno==ESPIPE) return(TC_MAGIC_PIPE);
     return(TC_MAGIC_ERROR);
   }
   
   // refuse to work with a file not at offset 0
-  if(offset != 0) {
-    fprintf(stderr, "file pointer not at zero offset - exit\n");
+  if(offset != skip) {
+    fprintf(stderr, "(%s) file pointer not at requested offset %d - exit\n", __FILE__, skip);
     return(TC_MAGIC_ERROR);
   }
+
+  off +=skip;
   
   /* -------------------------------------------------------------------
    *
@@ -141,7 +143,7 @@ long fileinfo(int fdes)
   
   if(off<0) goto exit;
 
-  //  fprintf(stderr, "off=%d '%c' '%c' '%c' '%c'\n", off, buf[0], buf[1], buf[2], buf[3]);
+  //fprintf(stderr, "off=%d '%c' '%c' '%c' '%c'\n", off, buf[0], buf[1], buf[2], buf[3]);
   
 
   /* -------------------------------------------------------------------
@@ -214,6 +216,15 @@ long fileinfo(int fdes)
       id = TC_MAGIC_PGM;
       goto exit;
   }
+
+
+  // transport stream
+
+  if (buf[0] == (uint8_t) TC_MAGIC_TS) {
+    id = TC_MAGIC_TS;
+    goto exit;
+  }
+
   
   /* -------------------------------------------------------------------
    *
@@ -301,6 +312,26 @@ long fileinfo(int fdes)
 
   if(cmp_16_bits(buf+1, TC_MAGIC_MP3_2)) { 
     id = TC_MAGIC_MP3_2;
+    goto exit;
+  }
+  
+  if(cmp_16_bits(buf+2, TC_MAGIC_MP3)) { 
+    id = TC_MAGIC_MP3;
+    goto exit;
+  }
+
+  if(cmp_16_bits(buf+2, TC_MAGIC_MP3_2_5)) { 
+    id = TC_MAGIC_MP3_2_5;
+    goto exit;
+  }
+
+  if(cmp_16_bits(buf+2, TC_MAGIC_MP3_2)) { 
+    id = TC_MAGIC_MP3_2;
+    goto exit;
+  }
+
+  if(cmp_32_bits(buf, TC_MAGIC_ID3)) {
+    id = TC_MAGIC_ID3;
     goto exit;
   }
   
@@ -493,6 +524,13 @@ long streaminfo(int fdes)
     goto exit;
   }
 
+  // transport stream
+
+  if (buf[0] == (uint8_t) TC_MAGIC_TS) {
+    id = TC_MAGIC_TS;
+    goto exit;
+  }
+
   /* -------------------------------------------------------------------
    *
    * 4 byte section
@@ -558,6 +596,28 @@ long streaminfo(int fdes)
     goto exit;
   }
  
+  if(cmp_16_bits(buf+2, TC_MAGIC_MP3)) { 
+    id = TC_MAGIC_MP3;
+    goto exit;
+  }
+
+  if(cmp_16_bits(buf+2, TC_MAGIC_MP3_2_5)) { 
+    id = TC_MAGIC_MP3_2_5;
+    goto exit;
+  }
+
+  if(cmp_16_bits(buf+2, TC_MAGIC_MP3_2)) { 
+    id = TC_MAGIC_MP3_2;
+    goto exit;
+  }
+
+  // transport stream
+
+  if (cmp_16_bits(buf, TC_MAGIC_TS)) {
+    id = TC_MAGIC_TS;
+    goto exit;
+  }
+
 
   /* -------------------------------------------------------------------
    *
@@ -635,6 +695,7 @@ char *filetype(long magic)
     
   case TC_MAGIC_VOB:          return("MPEG program stream (PS)");
   case TC_MAGIC_M2V:          return("MPEG elementary stream (ES)");
+  case TC_MAGIC_TS:           return("MPEG transport stream (TS)");
   case TC_MAGIC_MPEG:         return("MPEG packetized elementary stream (PES)");
   case TC_MAGIC_AVI:          return("RIFF data, AVI video");
   case TC_MAGIC_WAV:          return("RIFF data, WAVE audio");
@@ -660,6 +721,7 @@ char *filetype(long magic)
   case TC_MAGIC_MP3_2:        return("MPEG-2 layer-3 stream");
   case TC_MAGIC_MP3_2_5:      return("MPEG-2.5 layer-3 stream");
   case TC_MAGIC_MP2:          return("MP2 stream");
+  case TC_MAGIC_ID3:          return("MPEG audio ID3 tag");
 
   case TC_MAGIC_DV_NTSC:      return("Digital Video (NTSC)");
   case TC_MAGIC_DV_PAL:       return("Digital Video (PAL)");
@@ -686,10 +748,12 @@ char *filemagic(long magic)
     
   case TC_MAGIC_VOB:      return("vob");
   case TC_MAGIC_M2V:      return("m2v");
+  case TC_MAGIC_TS:       return("ts");
   case TC_MAGIC_AVI:      return("avi");
   case TC_MAGIC_WAV:      return("wav");
   case TC_MAGIC_RAW:      return("raw");
   case TC_MAGIC_MP3:      return("mp3");
+  case TC_MAGIC_ID3:      return("mp3+idtag");
   case TC_MAGIC_MP3_2_5:  return("mp3");
   case TC_MAGIC_MP3_2:    return("mp3");
   case TC_MAGIC_MP2:      return("mp2");

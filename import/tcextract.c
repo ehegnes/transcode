@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
 	return(-1);
       }
       
-      stream_magic = fileinfo(ipipe.fd_in);
+      stream_magic = fileinfo(ipipe.fd_in, 0);
       
       if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (pid=%d) %s\n", EXE, getpid(), filetype(stream_magic));
       

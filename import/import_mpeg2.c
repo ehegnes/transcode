@@ -29,7 +29,7 @@
 
 
 #define MOD_NAME    "import_mpeg2.so"
-#define MOD_VERSION "v0.2.2 (2001-08-03)"
+#define MOD_VERSION "v0.3.0 (2002-12-05)"
 #define MOD_CODEC   "(video) MPEG2"
 
 #define MOD_PRE mpeg2
@@ -52,25 +52,49 @@ MOD_open
   
   if(param->flag != TC_VIDEO) return(TC_IMPORT_ERROR);
   
-  switch(vob->im_v_codec) {
+  if(vob->ts_pid1==0) {
     
-  case CODEC_RGB:
-    
-    if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -x mpeg2 -i \"%s\" -d %d | tcdecode -x mpeg2 -d %d", vob->video_in_file, vob->verbose, vob->verbose)<0)) {
-      perror("command buffer overflow");
-      return(TC_IMPORT_ERROR);
+    switch(vob->im_v_codec) {
+      
+    case CODEC_RGB:
+      
+      if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -x mpeg2 -i \"%s\" -d %d | tcdecode -x mpeg2 -d %d", vob->video_in_file, vob->verbose, vob->verbose)<0)) {
+	perror("command buffer overflow");
+	return(TC_IMPORT_ERROR);
+      }
+      break;
+      
+    case CODEC_YUV:
+      
+      if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -x mpeg2 -i \"%s\" -d %d | tcdecode -x mpeg2 -d %d -y yv12", vob->video_in_file, vob->verbose, vob->verbose)<0)) {
+	perror("command buffer overflow");
+	return(TC_IMPORT_ERROR);
+      }
+      break;
     }
-    break;
   
-  case CODEC_YUV:
+  } else {
     
-    if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -x mpeg2 -i \"%s\" -d %d | tcdecode -x mpeg2 -d %d -y yv12", vob->video_in_file, vob->verbose, vob->verbose)<0)) {
-      perror("command buffer overflow");
-      return(TC_IMPORT_ERROR);
+    switch(vob->im_v_codec) {
+      
+    case CODEC_RGB:
+      
+      if((snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -d %d -n 0x%x | tcextract -x mpeg2 -t m2v -d %d | tcdecode -x mpeg2 -d %d", vob->video_in_file, vob->verbose, vob->ts_pid1, vob->verbose, vob->verbose)<0)) {
+	perror("command buffer overflow");
+	return(TC_IMPORT_ERROR);
+      }
+      break;
+      
+    case CODEC_YUV:
+      
+      if((snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -d %d -n 0x%x | tcextract -x mpeg2 -t m2v -d %d | tcdecode -x mpeg2 -d %d -y yv12", vob->video_in_file, vob->verbose,vob->ts_pid1, vob->verbose, vob->verbose)<0)) {
+	perror("command buffer overflow");
+	return(TC_IMPORT_ERROR);
+      }
+      break;
     }
-    break;
   }
-
+   
   // print out
   if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
   
@@ -82,7 +106,7 @@ MOD_open
     return(TC_IMPORT_ERROR);
   }
   
-    return(0);
+  return(0);
 }
 
 /* ------------------------------------------------------------ 

@@ -40,12 +40,27 @@ static int aimport=0;
 static int vimport=0;
 static pthread_mutex_t import_lock=PTHREAD_MUTEX_INITIALIZER;
 
-
 //exported variables
 int max_frame_buffer=TC_FRAME_BUFFER;
 int max_frame_threads=TC_FRAME_THREADS;
 
 static pthread_t athread=0, vthread=0;
+
+#define TEST_ON_BUFFER_FULL    0
+#define TEST_ON_BUFFER_REQUEST 1
+#define TEST_ON_INTERUPT       2
+
+//-------------------------------------------------------------------------
+//
+// signal handler callback
+//
+//--------------------------------------------------------------------------
+
+void tc_import_stop_nolock()
+{
+  vimport = aimport = 0;
+  return;
+}
 
 //-------------------------------------------------------------------------
 //
@@ -55,25 +70,14 @@ static pthread_t athread=0, vthread=0;
 
 void tc_import_stop()
 {
-
+  
   vimport_stop();
   aimport_stop();
 
-  //notify sleeping import threads
-
-  pthread_mutex_lock(&vframe_list_lock);
-  pthread_cond_signal(&vframe_list_full_cv);
-  pthread_mutex_unlock(&vframe_list_lock);
-
   frame_threads_notify(TC_VIDEO);
-
-  pthread_mutex_lock(&aframe_list_lock);
-  pthread_cond_signal(&aframe_list_full_cv);
-  pthread_mutex_unlock(&aframe_list_lock);
-
   frame_threads_notify(TC_AUDIO);
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) import stop requested by thread (client=%ld) (main=%d) status=%d\n", __FILE__, pthread_self(), tc_pthread_main, import_status());
+  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) import stop requested by client=%ld (main=%d) import status=%d\n", __FILE__, pthread_self(), tc_pthread_main, import_status());
 
 }
 
@@ -85,35 +89,49 @@ void tc_import_stop()
 //
 //-------------------------------------------------------------------------
 
-static int threads_canceled=0;
 
 void import_threads_cancel()
 {
   
-  void *status;
+  void *status=NULL;
 
   int cc1, cc2;
 
   // notify import threads, if not yet done, that task is done
   tc_import_stop();
 
-  if(threads_canceled) return; 
-
   cc1=pthread_cancel(vthread);
   cc2=pthread_cancel(athread);
-
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) import canceled by main thread (%d) (%d) (%ld) (%d)\n", __FILE__, cc1, cc2, pthread_self(), tc_pthread_main);
+  
+  if(verbose & TC_DEBUG) {
+    
+    if(cc1 == ESRCH) fprintf(stderr, "(%s) video thread already terminated\n", __FILE__);  
+    
+    if(cc2 == ESRCH) fprintf(stderr, "(%s) audio thread already terminated\n", __FILE__);  
+    
+    fprintf(stderr, "(%s) import canceled (%ld) (%d)\n", __FILE__, pthread_self(), tc_pthread_main);
+    
+  }
 
   //wait for threads to terminate
   cc1=pthread_join(vthread, &status);
-
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) video thread exit (%d)\n", __FILE__, cc1);
-
+  
+  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) video thread exit (ret_code=%d) (status_code=%d)\n", __FILE__, cc1, (int) status);
+  
   cc2=pthread_join(athread, &status);
+  
+  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) audio thread exit (ret_code=%d) (status_code=%d)\n", __FILE__, cc2, (int) status);
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) audio thread exit (%d)\n", __FILE__, cc2);
-
-  threads_canceled=1;
+  
+  cc1 = pthread_mutex_trylock(&vframe_list_lock);
+  
+  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) vframe_list_lock=%s\n", __FILE__, (cc1==EBUSY)? "BUSY":"0");
+  pthread_mutex_unlock(&vframe_list_lock);
+  
+  cc2 = pthread_mutex_trylock(&aframe_list_lock);
+  
+  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) aframe_list_lock=%s\n", __FILE__, (cc2==EBUSY)? "BUSY":"0");
+  pthread_mutex_unlock(&aframe_list_lock);
   
   return;
 
@@ -126,7 +144,7 @@ void import_threads_create(vob_t *vob)
 
   //start import threads
   //flag on, in case we restart the decoder
-  
+
   aimport_start();
 
   if(pthread_create(&athread, NULL, (void *) aimport_thread, vob)!=0)
@@ -347,26 +365,25 @@ int import_close()
 //
 // check for video import flag
 //
-// called by video import thread
+// called by video import thread, returns 1 on exit request
 //
 //-------------------------------------------------------------------------
 
 
-int vimport_shutdown()
+static int vimport_test_shutdown()
 {
-
-  pthread_testcancel();
 
   pthread_mutex_lock(&import_lock);
   
   if(!vimport) {
     pthread_mutex_unlock(&import_lock);
-
+    
     if(verbose & TC_DEBUG) {
-      printf("(%s) video import cancelation requested\n", __FILE__);
+      fprintf(stderr, "(%s) video import cancelation requested\n", __FILE__);
     }
+    
+    return(1);  // notify thread to exit immediately
 
-    return(1);  // exit thread
   } else 
     pthread_mutex_unlock(&import_lock);
   
@@ -421,6 +438,8 @@ void vimport_thread(vob_t *vob)
   
   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &last);
 
+  if(verbose & TC_DEBUG) fprintf(stderr, "video thread id=%ld\n", pthread_self());
+
   // bytes per video frame
   vbytes = vob->im_v_size;
   
@@ -441,9 +460,9 @@ void vimport_thread(vob_t *vob)
 	pthread_cond_wait(&vframe_list_full_cv, &vframe_list_lock);
 	
 	// check for pending shutdown via ^C
-	if(vimport_shutdown()) {
+	if(vimport_test_shutdown()) {
 	  pthread_mutex_unlock(&vframe_list_lock);
-	  pthread_exit(0);
+	  pthread_exit( (int *) 11);
 	}
     }
     pthread_mutex_unlock(&vframe_list_lock);
@@ -454,8 +473,8 @@ void vimport_thread(vob_t *vob)
       pthread_testcancel();
       
       // check for pending shutdown via ^C
-      if(vimport_shutdown()) {
-	pthread_exit(0);
+      if(vimport_test_shutdown()) {
+	pthread_exit ( (int *) 12);
       }
       
       //next buffer in row may be still locked
@@ -481,7 +500,7 @@ void vimport_thread(vob_t *vob)
       import_para.buffer2 = ptr->video_buf2;
       import_para.size    = vbytes;
       import_para.flag    = TC_VIDEO;
-      
+
       ret = tcv_import(TC_IMPORT_DECODE, &import_para, vob);
 
       // import module return information on true frame size
@@ -503,13 +522,15 @@ void vimport_thread(vob_t *vob)
       vimport_stop();
 
       //exit
-      pthread_exit(0);
+      pthread_exit( (int *) 13);
     }
     
     // init frame buffer structure with import frame data
     ptr->v_height   = vob->im_v_height;
     ptr->v_width    = vob->im_v_width;
     ptr->v_bpp      = vob->v_bpp;
+    
+    ptr->thread_id = (int) getpid();
 
     pthread_testcancel();
 
@@ -521,24 +542,26 @@ void vimport_thread(vob_t *vob)
     vframe_set_status(ptr, FRAME_WAIT);
 
     //first stage pre-processing - (synchronous)
+    preprocess_vid_frame(vob, ptr);    
+    
+    //plugin pre-processing - (synchronous)
     ptr->tag = TC_VIDEO|TC_PRE_S_PROCESS;
-    preprocess_vid_frame(vob, ptr);
     process_vid_plugins(ptr);
-
+    
     //no frame threads?
     if(have_vframe_threads==0) {
       vframe_set_status(ptr, FRAME_READY);
     } else {
       //notify sleeping frame processing threads
-	pthread_mutex_lock(&vbuffer_im_fill_lock);
-	pthread_cond_signal(&vbuffer_fill_cv);
-	pthread_mutex_unlock(&vbuffer_im_fill_lock);
+      pthread_mutex_lock(&vbuffer_im_fill_lock);
+      pthread_cond_signal(&vbuffer_fill_cv);
+      pthread_mutex_unlock(&vbuffer_im_fill_lock);
     }
     
     if(verbose & TC_STATS) printf("%10s [%ld] V=%d bytes\n", "received", i, ptr->video_size);
     
     // check for pending shutdown via ^C
-    if(vimport_shutdown()) pthread_exit(0);
+    if(vimport_test_shutdown()) pthread_exit( (int *)14);
 
     ++i; // get next frame
   }
@@ -548,32 +571,27 @@ void vimport_thread(vob_t *vob)
 //
 // check for audio import status flag
 //
-// called by audio import thread
+// called by audio import thread, returns 1 on exit request
 //
 //-------------------------------------------------------------------------
 
-int aimport_shutdown(int test)
+static int aimport_test_shutdown(int mode)
 {
-  
-  if(verbose & TC_STATS) fprintf(stderr, "enter (%d)\n", test);
-  
-  pthread_testcancel();
-  
+
   pthread_mutex_lock(&import_lock);
   
   if(!aimport) {
     pthread_mutex_unlock(&import_lock);
-
+    
     if(verbose & TC_DEBUG) {
-      printf("(%s) audio import cancelation requested\n", __FILE__);
+      fprintf(stderr, "(%s) audio import cancelation requested (%d)\n", __FILE__, mode);
     }
-
-    if(verbose & TC_STATS) fprintf(stderr, "exit (%d) - 1\n", test);
-    return(1);  // exit thread
+    
+    return(1);  // notify thread to exit immediately
+    
   } else 
     pthread_mutex_unlock(&import_lock);
-
-  if(verbose & TC_STATS) fprintf(stderr, "exit (%d) - 0\n", test);  
+  
   return(0);
 }
 
@@ -597,6 +615,8 @@ void aimport_thread(vob_t *vob)
   int last;
   
   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &last);
+
+  if(verbose & TC_DEBUG) fprintf(stderr, "audio thread id=%ld\n", pthread_self());
 
   // bytes per audio frame
   abytes = vob->im_a_size;
@@ -627,9 +647,9 @@ void aimport_thread(vob_t *vob)
       pthread_cond_wait(&aframe_list_full_cv, &aframe_list_lock);
       
       // check for pending shutdown via ^C
-      if(aimport_shutdown(0)) {
+      if(aimport_test_shutdown(TEST_ON_BUFFER_FULL)) {
 	pthread_mutex_unlock(&aframe_list_lock);
-	pthread_exit(0);
+	pthread_exit( (int *) 11);
       }
     }
     
@@ -641,9 +661,9 @@ void aimport_thread(vob_t *vob)
       pthread_testcancel();
       
       // check for pending shutdown via ^C
-      if(aimport_shutdown(1)) {
-	pthread_exit(0);
-      }
+      if(aimport_test_shutdown(TEST_ON_BUFFER_REQUEST)) {
+	pthread_exit( (int *) 12);
+      } 
       
       //next buffer in row may be still locked
       usleep(tc_buffer_delay_dec);
@@ -728,7 +748,7 @@ void aimport_thread(vob_t *vob)
       aimport_stop();
 
       //exit
-      pthread_exit(0);
+      pthread_exit((int *) 13);
     }
     
     
@@ -736,6 +756,8 @@ void aimport_thread(vob_t *vob)
     ptr->a_rate = vob->a_rate;
     ptr->a_bits = vob->a_bits;
     ptr->a_chan = vob->a_chan;
+
+    ptr->thread_id = (int) getpid();
 
     pthread_testcancel();
 
@@ -763,7 +785,7 @@ void aimport_thread(vob_t *vob)
     if(verbose & TC_STATS) printf("%10s [%ld] A=%d bytes\n", "received", i, ptr->audio_size);
 
     // check for pending shutdown via ^C
-    if(aimport_shutdown(2)) pthread_exit(0);
+    if(aimport_test_shutdown(TEST_ON_INTERUPT)) pthread_exit((int *)14);
     
     ++i; // get next frame
   }

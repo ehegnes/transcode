@@ -324,6 +324,14 @@ uint64_t time= rdtsc();
    
    /* no supplementary picture */
     if (buf_size == 0) {
+        pict->data[0] = s->last_picture[0];
+        pict->data[1] = s->last_picture[1];
+        pict->data[2] = s->last_picture[2];
+        pict->linesize[0] = s->linesize;
+        pict->linesize[1] = s->uvlinesize;
+        pict->linesize[2] = s->uvlinesize;
+        if (pict->data[0] && pict->data[1] && pict->data[2])
+          *data_size = sizeof(AVPicture);
         return 0;
     }
 

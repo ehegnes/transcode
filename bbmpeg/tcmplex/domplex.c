@@ -112,7 +112,7 @@ int domplex(int mplex_video, int mplex_audio)
   Audio_struc audio_info;
   Audio_struc audio1_info;
   unsigned int audio_total, audio1_total, video_total;
-  unsigned int audio_bytes, audio1_bytes, video_bytes;
+  off_t audio_bytes, audio1_bytes, video_bytes;
   unsigned int which_streams=0;
   double startup_delay=0;
 

@@ -3,15 +3,6 @@
 *  XVID MPEG-4 VIDEO CODEC
 *  - XviD Main header file -
 *
-*  This program is an implementation of a part of one or more MPEG-4
-*  Video tools as specified in ISO/IEC 14496-2 standard.  Those intending
-*  to use this software module in hardware or software products are
-*  advised that its use may infringe existing patents or copyrights, and
-*  any such use would be at such party's own risk.  The original
-*  developer of this software module and his/her company, and subsequent
-*  editors and their companies, will have no liability for use of this
-*  software or modifications or derivatives thereof.
-*
 *  This program is free software ; you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
 *  the Free Software Foundation ; either version 2 of the License, or
@@ -37,7 +28,7 @@
 *               ToDo ? : when BFRAMES is defined, the API_VERSION should not
 *                        be the same (3.0 ?)
 *
-*  $Id: xvidcvs.h,v 1.2 2003-03-08 13:56:33 tibit Exp $
+*  $Id: xvidcvs.h,v 1.3 2003-03-08 17:21:05 tibit Exp $
 *
 *****************************************************************************/
 
@@ -55,6 +46,20 @@ extern "C" {
 
 /* API Version : 2.1 */
 #define API_VERSION ((2 << 16) | (1))
+#define XVID_API_UNSTABLE
+
+/* Bitstream Version 
+ * this will be writen into the bitstream to allow easy detection of xvid 
+ * encoder bugs in the decoder, without this it might not possible to 
+ * automatically distinquish between a file which has been encoded with an 
+ * old & buggy XVID from a file which has been encoded with a bugfree version
+ * see the infamous interlacing bug ...
+ *
+ * this MUST be increased if an encoder bug is fixed, increasing it too often
+ * doesnt hurt but not increasing it could cause difficulty for decoders in the
+ * future
+ */
+#define XVID_BS_VERSION "0006"
 
 
 /* Error codes */
@@ -65,7 +70,7 @@ extern "C" {
 
 
 /* Colorspaces */
-#define XVID_CSP_RGB24 	0
+#define XVID_CSP_RGB24 	0		/* [b|g|r] */
 #define XVID_CSP_YV12	1
 #define XVID_CSP_YUY2	2
 #define XVID_CSP_UYVY	3
@@ -75,7 +80,12 @@ extern "C" {
 #define XVID_CSP_USER	12
 #define XVID_CSP_EXTERN      1004  // per slice rendering
 #define XVID_CSP_YVYU	1002
-#define XVID_CSP_RGB32 	1000
+#define XVID_CSP_RGB32 	1000	/* [b|g|r|a] */
+#define XVID_CSP_ABGR	1006	/* [a|b|g|r] */
+#define XVID_CSP_RGBA	1005	/* [r|g|b|a] */
+
+
+
 #define XVID_CSP_NULL 	9999
 
 #define XVID_CSP_VFLIP	0x80000000	// flip mask
@@ -86,21 +96,37 @@ extern "C" {
  ****************************************************************************/
 
 /* CPU flags for XVID_INIT_PARAM.cpu_flags */
-
-#define XVID_CPU_MMX		0x00000001
-#define XVID_CPU_MMXEXT		0x00000002
-#define XVID_CPU_SSE		0x00000004 
-#define XVID_CPU_SSE2		0x00000008
-#define XVID_CPU_3DNOW		0x00000010
-#define XVID_CPU_3DNOWEXT	0x00000020
-
-#define XVID_CPU_TSC		0x00000040
-
-#define XVID_CPU_IA64		0x00000080
-
-#define XVID_CPU_CHKONLY	0x40000000		/* check cpu only; dont init globals */
 #define XVID_CPU_FORCE		0x80000000
+#define XVID_CPU_CHKONLY	0x40000000		/* check cpu only; dont init globals */
 
+#define XVID_CPU_ASM		0x00000080		/* native assembly */
+/* ARCH_X86 */
+#define XVID_CPU_MMX		0x00000001		/* mmx: pentiumMMX,k6 */
+#define XVID_CPU_MMXEXT		0x00000002		/* mmxx-ext: pentium2,athlon */
+#define XVID_CPU_SSE		0x00000004		/* sse: pentium3,athlonXP */
+#define XVID_CPU_SSE2		0x00000008		/* sse2: pentium4,athlon64 */
+#define XVID_CPU_3DNOW		0x00000010		/* 3dnow: k6-2 */
+#define XVID_CPU_3DNOWEXT	0x00000020		/* 3dnow-ext: athlon */
+#define XVID_CPU_TSC		0x00000040		/* timestamp counter */
+/* ARCH_IA64 */
+#define XVID_CPU_IA64		XVID_CPU_ASM	/* defined for backward compatibility */
+/* ARCH_PPC */
+#define XVID_CPU_ALTIVEC	0x00000001		/* altivec */
+
+
+	typedef struct
+	{
+		int colorspace;
+		void * y;
+		void * u;
+		void * v;
+		int y_stride;
+		int uv_stride;
+	} XVID_IMAGE;		/* from yv12 */
+
+#define XVID_INIT_INIT		0
+#define XVID_INIT_CONVERT	1
+#define XVID_INIT_TEST		2
 
 /*****************************************************************************
  *  Initialization structures
@@ -113,6 +139,15 @@ extern "C" {
 		int core_build;
 	}
 	XVID_INIT_PARAM;
+
+	typedef struct
+	{
+		XVID_IMAGE input;
+		XVID_IMAGE output;
+		int width;
+		int height;
+		int interlacing;
+	} XVID_INIT_CONVERTINFO;
 
 /*****************************************************************************
  *  Initialization entry point
@@ -129,6 +164,11 @@ extern "C" {
  ****************************************************************************/
 
 /* Flags for XVID_DEC_FRAME.general */
+#define XVID_DEC_LOWDELAY		0x00000001	/* decode lowdelay mode (ie. video-for-windows) */
+#define XVID_DEC_DEBLOCKY		0x00000002	/* luma deblocking */
+#define XVID_DEC_DEBLOCKUV		0x00000008	/* chroma deblocking */
+#define XVID_DEC_DISCONTINUITY	0x00000004	/* indicates break in stream; instructs 
+											decoder to ignore any previous reference frames */
 #define XVID_QUICK_DECODE		0x00000010
 
 /*****************************************************************************
@@ -142,6 +182,33 @@ extern "C" {
 		void *handle;
 	}
 	XVID_DEC_PARAM;
+
+
+#define XVID_DEC_VOP	0
+#define XVID_DEC_VOL	1
+#define XVID_DEC_NOTHING	2	/* nothing was decoded */
+
+	typedef struct
+	{
+		int notify;			/* [out]	output 'mode' */
+		union
+		{
+			struct	/* XVID_DEC_VOP */
+			{
+				int time_base;		/* [out]	time base */
+				int time_increment;	/* [out]	time increment */
+			} vop;
+			struct	/* XVID_DEC_VOL */
+			{
+				int general;		/* [out]	flags: eg. frames are interlaced */
+				int width;			/* [out]	width */
+				int height;			/* [out]	height */
+				int aspect_ratio;	/* [out]	aspect ratio */
+				int par_width;		/* [out]	aspect ratio width */
+				int par_height;		/* [out]	aspect ratio height */
+			} vol;
+		} data;
+	} XVID_DEC_STATS;
 
 
 	typedef struct
@@ -188,6 +255,7 @@ extern "C" {
 #define XVID_GLOBAL_PACKED		0x00000001	/* packed bitstream */
 #define XVID_GLOBAL_DX50BVOP	0x00000002	/* dx50 bvop compatibility */
 #define XVID_GLOBAL_DEBUG		0x00000004	/* print debug info on each frame */
+#define XVID_GLOBAL_REDUCED		0x04000000	/* reduced resolution vop enable */
 
 /* Flags for XVID_ENC_FRAME.general */
 #define XVID_VALID_FLAGS		0x80000000
@@ -196,6 +264,7 @@ extern "C" {
 #define XVID_H263QUANT			0x00000010
 #define XVID_MPEGQUANT			0x00000020
 #define XVID_HALFPEL			0x00000040	/* use halfpel interpolation */
+#define XVID_QUARTERPEL			0x02000000
 #define XVID_ADAPTIVEQUANT		0x00000080
 #define XVID_LUMIMASKING		0x00000100
 #define XVID_LATEINTRA			0x00000200
@@ -215,10 +284,13 @@ extern "C" {
 #define XVID_ME_PMVFAST			0x00080000
 #define XVID_ME_EPZS			0x00100000
 
-
 #define XVID_GREYSCALE			0x01000000	/* enable greyscale only mode (even for */
-#define XVID_GRAYSCALE			0x01000000      /* color input material chroma is ignored) */
+#define XVID_GRAYSCALE			0x01000000  /* color input material chroma is ignored) */
 
+#define XVID_GMC				0x10000000
+#define XVID_GMC_TRANSLATIONAL	0x20000000
+
+#define XVID_REDUCED			0x04000000	/* reduced resolution vop */
 
 /* Flags for XVID_ENC_FRAME.motion */
 #define PMV_ADVANCEDDIAMOND8	0x00004000
@@ -226,21 +298,35 @@ extern "C" {
 
 #define PMV_HALFPELDIAMOND16 	0x00010000
 #define PMV_HALFPELREFINE16 	0x00020000
-#define PMV_EXTSEARCH16 		0x00040000	/* extend PMV by more searches */
-#define PMV_EARLYSTOP16	   		0x00080000
-#define PMV_QUICKSTOP16	   		0x00100000	/* like early, but without any more refinement */
+#define PMV_QUARTERPELREFINE16	0x00040000
+#define PMV_EXTSEARCH16 		0x00080000	/* extend PMV by more searches */
+
+#define PMV_CHROMA16			0x00100000	/* also use chroma for MB-ME */
 #define PMV_UNRESTRICTED16   	0x00200000	/* unrestricted ME, not implemented */
 #define PMV_OVERLAPPING16   	0x00400000	/* overlapping ME, not implemented */
-#define PMV_USESQUARES16		0x00800000
+#define PMV_USESQUARES16		0x00800000	/* use squares instead of diamonds as search pattern */
 
 #define PMV_HALFPELDIAMOND8 	0x01000000
 #define PMV_HALFPELREFINE8 		0x02000000
-#define PMV_EXTSEARCH8 			0x04000000	/* extend PMV by more searches */
-#define PMV_EARLYSTOP8	   		0x08000000
-#define PMV_QUICKSTOP8	   		0x10000000	/* like early, but without any more refinement */
+#define PMV_QUARTERPELREFINE8	0x04000000
+#define PMV_EXTSEARCH8 			0x08000000	/* extend PMV by more searches */
+
+#define PMV_CHROMA8				0x10000000	/* also use chroma for B-ME */
 #define PMV_UNRESTRICTED8   	0x20000000	/* unrestricted ME, not implemented */
 #define PMV_OVERLAPPING8   		0x40000000	/* overlapping ME, not implemented */
 #define PMV_USESQUARES8			0x80000000
+
+
+/* note: old and deprecated */
+
+/* only for compatability with old encoders */
+
+#define PMV_EARLYSTOP16			0x00	
+#define PMV_EARLYSTOP8			0x00
+#define PMV_QUICKSTOP16	   		0x00	
+#define PMV_QUICKSTOP8	   		0x00	
+
+#define XVID_ME_COLOUR			0x00	/* this has been converted to PMV_COLOUR[16/8] */
 
 
 /*****************************************************************************
@@ -261,7 +347,6 @@ extern "C" {
 #ifdef _SMP
 		int num_threads;		/* number of threads */
 #endif
-#ifdef BFRAMES
 		int global;				/* global/debug options */
 		int max_bframes;		/* max sequential bframes (0=disable bframes) */
 		int bquant_ratio;		/* bframe quantizer multipier (percentage).
@@ -269,8 +354,8 @@ extern "C" {
 								 * eg. 200 = x2 multiplier
 								 * quant = ((past_quant + future_quant) * bquant_ratio)/200
 								 */
+		int bquant_offset;		/* bquant += bquant_offset */
 		int frame_drop_ratio;   /* frame dropping: 0=drop none... 100=drop all */
-#endif
 		void *handle;			/* [out] encoder instance handle */
 	}
 	XVID_ENC_PARAM;
@@ -315,6 +400,7 @@ extern "C" {
 		int length;				/* [out] bitstream length (bytes) */
 
 		void *image;			/* [in] image ptr */
+		int stride;
 		int colorspace;			/* [in] source colorspace */
 
 		unsigned char *quant_intra_matrix;	// [in] custom intra qmatrix */
@@ -325,9 +411,7 @@ extern "C" {
 								 */
 		HINTINFO hint;			/* [in/out] mv hint information */
 
-#ifdef BFRAMES
 		int bquant;				/* [in] bframe quantizer */
-#endif
 
 	}
 	XVID_ENC_FRAME;
@@ -338,7 +422,6 @@ extern "C" {
 		int quant;				/* [out] frame quantizer */
 		int hlength;			/* [out] header length (bytes) */
 		int kblks, mblks, ublks;	/* [out] */
-
 	}
 	XVID_ENC_STATS;
 

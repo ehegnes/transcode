@@ -251,7 +251,7 @@ int rtjpeg_vid_open(char *tplorg)
 
   lseek(rtjpeg_vid_file, startpos, SEEK_SET);
 
-  resample_init((rtjpeg_vid_effdsp+50)/100, 44100);
+  //resample_init((rtjpeg_vid_effdsp+50)/100, 44100);
 
   return(0);
 }

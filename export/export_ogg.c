@@ -37,7 +37,7 @@ static int   verbose_flag=TC_QUIET;
 static int   capability_flag=TC_CAP_PCM;
 static FILE *pFile = NULL;
 
-int p_write (char *buf, size_t len)
+static inline int p_write (char *buf, size_t len)
 {
     size_t n  = 0;
     size_t r  = 0;

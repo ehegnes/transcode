@@ -1,11 +1,11 @@
 /*
  *  optstr.c
  *
- *  Copyright (C) Tilmann Bitterberg 2002
+ *  Copyright (C) Tilmann Bitterberg 2003
  *
  *  Description: A general purpose option string parser
  * 
- *  Usage: see optstr.h
+ *  Usage: see optstr.h, please
  *
  *  This file is part of transcode, a linux video stream processing tool
  *      
@@ -37,13 +37,6 @@
 #include <stdarg.h>
 #include "optstr.h"
 
-/*
- * Finds the _exact_ needle in haystack
- * Return values:
- * A pointer   into haystack when needle is found
- * NULL        if needle is not found in haystack
- */
-
 char * optstr_lookup(char *haystack, char *needle)
 {
 	char *ch = haystack;
@@ -70,28 +63,6 @@ char * optstr_lookup(char *haystack, char *needle)
 
 	
 }
-
-/*
- * Purpose:
- *   Extract values from option string 
- *
- * Input:
- *   options: A null terminated string of options to parse, syntax is
- *            "opt1=val1:opt_bool:opt2=val1-val2"
- *             where ':' is the seperator.
- *   name:    The name to look for in options; eg
- *            "opt2"
- *   fmt:     The format to scan values (printf format); eg
- *            "%d-%d"
- *   (...):   Variables to assign; eg
- *            &lower, &upper
- *
- * Return values:
- *   -2       internal error
- *   -1       `name' is not in `options'
- *    0       `name' is in `options'
- *   positiv  number of arguments assigned
- */
 
 int optstr_get(char *options, char *name, char *fmt, ...)
 {
@@ -164,3 +135,98 @@ int optstr_get(char *options, char *name, char *fmt, ...)
 
 	return n;
 }
+
+int optstr_is_string_arg(char *fmt)
+{
+    if (!fmt)
+	return 0;
+
+    if (!strlen(fmt))
+	return 0;
+
+    if (strchr (fmt, 's'))
+	return 1;
+
+    if (strchr (fmt, '[') && strchr (fmt, ']'))
+	return 1;
+
+    return 0;
+}
+
+
+int optstr_filter_desc (char *buf,
+		char *filter_name,
+                char *filter_comment,
+		char *filter_version,
+		char *filter_author,
+		char *capabilities,
+		char *frames_needed
+		)
+{
+    int len = strlen(buf);
+    if (snprintf(buf+len, ARG_CONFIG_LEN-len, "\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\"\n", 
+				    filter_name,filter_comment,filter_version,
+				    filter_author, capabilities, frames_needed) <= 0)
+	return 1;
+    return 0;
+}
+
+int optstr_frames_needed (char *filter_desc, int *needed_frames)
+{
+    char *s;
+
+    if ((s = strrchr (filter_desc, ',')) == NULL)
+	return 1;
+    if ((s = strchr (s, '\"')) == NULL)
+	return 1;
+
+    *needed_frames = strtol (s+1, (char **)NULL, 0);
+    return 0;
+}
+
+int optstr_param  (char *buf, 
+		   char *name, 
+		   char *comment, 
+		   char *fmt, 
+		   char *val, 
+		   ... ) /* char *valid_from1, char *valid_to1, ... */ 
+{
+    va_list ap; 
+    int n = 0, pos, numargs=0;
+    int len = strlen(buf);
+
+    if ((n += snprintf(buf+len, ARG_CONFIG_LEN-len, "\"%s\", \"%s\", \"%s\", \"%s\"", 
+				name,comment,fmt,val)) <= 0)
+	return 1;
+
+
+    /* count format strings */
+    for (pos=0; pos < strlen(fmt); pos++) {
+	if (fmt[pos] == '%') {
+	    ++numargs;
+	    /* is this one quoted  with '%%' */
+	    if (pos+1 < strlen(fmt) && fmt[pos+1] == '%') {
+		--numargs;
+		++pos;
+	    }
+	}
+    }
+    numargs *= 2;
+
+    if (numargs && optstr_is_string_arg(fmt))
+	numargs = 0;
+
+    va_start (ap, val);
+      while (numargs--) {
+	  if ((n += snprintf (buf+len+n, ARG_CONFIG_LEN-len-n, ", \"%s\"", va_arg(ap, char *))) <= 0)
+	      return 1;
+      }
+    va_end (ap);
+
+    if ((n += snprintf (buf+len+n, ARG_CONFIG_LEN-len-n, "\n")) <= 0 )
+	return 1;
+
+
+    return 0;
+}
+

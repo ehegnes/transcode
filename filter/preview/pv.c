@@ -33,6 +33,7 @@
 #include <string.h>
 
 #include "pv.h"
+#include "../../src/socket.h"
 
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -97,9 +98,9 @@ void xv_display_show(xv_display_t *dv_dpy) {
     XvShmPutImage(dv_dpy->dpy, dv_dpy->port,
 		  dv_dpy->win, dv_dpy->gc,
 		  dv_dpy->xv_image,
-		  0, 0,			        /* sx, sy */
+		  0, 0,			                /* sx, sy */
 		  dv_dpy->swidth, dv_dpy->sheight,	/* sw, sh */
-		  dv_dpy->lxoff,  dv_dpy->lyoff,      /* dx, dy */
+		  dv_dpy->lxoff,  dv_dpy->lyoff,        /* dx, dy */
 		  dv_dpy->lwidth, dv_dpy->lheight,	/* dw, dh */
 		  True);
     XFlush(dv_dpy->dpy);
@@ -132,21 +133,116 @@ void xv_display_exit(xv_display_t *dv_dpy) {
 
 static int xv_pause=0;
 
+void xv_window_close(xv_display_t *dv_dpy) 
+{
+    dv_dpy->dontdraw = 1;
+
+    XvStopVideo(dv_dpy->dpy, dv_dpy->port, dv_dpy->win);
+    XDestroyWindow(dv_dpy->dpy, dv_dpy->win);
+
+    tc_socket_submit ("[filter_pv]: preview window close\n");
+    //reset
+    xv_pause=0;
+}
+
+
 void xv_display_event (xv_display_t *dv_dpy)
 {
   int	old_pic_format;
   KeySym keysym;
   char buf[16];
+  XButtonEvent *but_event;
+  static int x1, y1, x2, y2;
+  int arg;
+  unsigned int sockmsg = 0;
+
+  pthread_mutex_lock(&tc_socket_msg_lock);
+  sockmsg = tc_socket_msgchar;
+  tc_socket_msgchar = TC_SOCK_PV_NONE;
+  pthread_mutex_unlock(&tc_socket_msg_lock);
   
-  while (XCheckTypedWindowEvent (dv_dpy->dpy, dv_dpy->win,
-				 ConfigureNotify, &dv_dpy->event) ||
-	 XCheckTypedWindowEvent (dv_dpy->dpy, dv_dpy->win,
-				 KeyPress, &dv_dpy->event)) {
+  while ( sockmsg || XPending(dv_dpy->dpy) )  {
+
+    // tibit: Poll for a socket message
+    if (sockmsg) {
+	//printf("[%s]: Got char (%c)\n", "filter_pv", sockmsg);
+	arg = TC_SOCK_GET_ARG(sockmsg);
+	//printf("FILTER: (%d)\n", arg);
+	switch (sockmsg & TC_SOCK_COMMAND_MASK) {
+	    case TC_SOCK_PV_DRAW:
+		sockmsg = TC_SOCK_PV_NONE;
+		preview_filter_buffer(arg?arg:1);
+		break;
+	    case TC_SOCK_PV_UNDO:
+		sockmsg = TC_SOCK_PV_NONE;
+		preview_cache_undo();
+		break;
+	    case TC_SOCK_PV_SLOW_FW:
+		sockmsg = TC_SOCK_PV_NONE;
+		preview_cache_draw(cache_short_skip);
+		break;
+	    case TC_SOCK_PV_SLOW_BW:
+		sockmsg = TC_SOCK_PV_NONE;
+		preview_cache_draw(-cache_short_skip);
+		break;
+	    case TC_SOCK_PV_FAST_FW:
+		sockmsg = TC_SOCK_PV_NONE;
+		preview_cache_draw(cache_long_skip);
+		break;
+	    case TC_SOCK_PV_FAST_BW:
+		sockmsg = TC_SOCK_PV_NONE;
+		preview_cache_draw(-cache_long_skip);
+		break;
+	    case TC_SOCK_PV_ROTATE:
+		sockmsg = TC_SOCK_PV_NONE;
+		tc_outstream_rotate_request();
+		break;
+	    case TC_SOCK_PV_FASTER:
+		sockmsg = TC_SOCK_PV_NONE;
+		dec_preview_delay();
+		break;
+	    case TC_SOCK_PV_SLOWER:
+		sockmsg = TC_SOCK_PV_NONE;
+		inc_preview_delay();
+		break;
+	    case TC_SOCK_PV_TOGGLE:
+		sockmsg = TC_SOCK_PV_NONE;
+		preview_toggle_skip();
+		break;
+	    case TC_SOCK_PV_DISPLAY:
+		sockmsg = TC_SOCK_PV_NONE;
+		xv_pause=0;
+		dv_dpy->dontdraw = (dv_dpy->dontdraw) ? 0:1;
+		break;
+	    case TC_SOCK_PV_PAUSE:
+		sockmsg = TC_SOCK_PV_NONE;
+		xv_pause = (xv_pause)?0:1; 
+		while(xv_pause) {
+		    xv_display_event(dv_dpy);
+		    usleep(10000);
+		}
+		break;
+	    default:
+		break;
+	} // switch msg
+	sockmsg = TC_SOCK_PV_NONE;
+    } else {
+
+    // remove Event
+    XNextEvent(dv_dpy->dpy, &dv_dpy->event);
+
 
     switch (dv_dpy->event.type) {
       
+	case ClientMessage:
+	    // stolen from xmms opengl_plugin  -- tibit
+	    if ((Atom)(dv_dpy->event.xclient.data.l[0]) == dv_dpy->wm_delete_window_atom)
+	    {
+		xv_window_close (dv_dpy);
+	    }
+	    break;
+
     case ConfigureNotify:
-      
       dv_dpy->dwidth = dv_dpy->event.xconfigure.width;
       dv_dpy->dheight = dv_dpy->event.xconfigure.height;
       /* --------------------------------------------------------------------
@@ -158,6 +254,34 @@ void xv_display_event (xv_display_t *dv_dpy)
       xv_display_check_format(dv_dpy, old_pic_format);
       break;
       
+    case ButtonPress:
+
+      but_event = (XButtonEvent *) &dv_dpy->event;
+      if (DoSelection(but_event, &x1, &y1, &x2, &y2)) {
+	      // min <-> max
+	      int xanf = (x1<x2)?x1:x2;
+	      int yanf = (y1<y2)?y1:y2;
+	      int xend = (x1>x2)?x1:x2;
+	      int yend = (y1>y2)?y1:y2;
+	      char buf[255];
+
+	      sprintf(buf, "[%s]: pos1=%dx%d pos2=%dx%d pos=%dx%d:size=%dx%d -Y %d,%d,%d,%d\n", 
+			      "filter_pv", xanf, yanf, xend, yend, xanf, yanf, xend-xanf, yend-yanf, 
+			      yanf, xanf,  dv_dpy->height-yend, dv_dpy->width - xend);
+
+	      //print to socket
+	      tc_socket_submit (buf);
+	      //print elsewhere
+	      fprintf(stderr, "%s", buf);
+	      // white
+	      XSetForeground(dv_dpy->dpy,dv_dpy->gc, 0xFFFFFFFFUL);
+	      XDrawRectangle(dv_dpy->dpy,dv_dpy->win,dv_dpy->gc, 
+			      xanf, yanf, (unsigned int)xend-xanf, (unsigned int)yend-yanf);
+
+      }
+
+      break;
+
     case KeyPress:
       
       XLookupString (&dv_dpy->event.xkey, buf, 16, &keysym, NULL);
@@ -165,16 +289,14 @@ void xv_display_event (xv_display_t *dv_dpy)
       switch(keysym) {
 	
       case XK_Escape:
-	dv_dpy->dontdraw = 1;
-
-	XvStopVideo(dv_dpy->dpy, dv_dpy->port, dv_dpy->win);
-	XDestroyWindow(dv_dpy->dpy, dv_dpy->win);
-
-	//reset
-	xv_pause=0;
-
+	xv_window_close (dv_dpy);
 	break;
 	
+      case XK_u:
+      case XK_U:
+	preview_cache_undo();
+	break;
+
       case XK_Q:
       case XK_q:
 	xv_pause=0;
@@ -216,11 +338,23 @@ void xv_display_event (xv_display_t *dv_dpy)
       case XK_Y:
 	preview_toggle_skip();
 	break;
+
+#if 0
+      case XK_a:
+      case XK_A:
+	preview_filter();
+	break;
+#endif
 	
+      case XK_Return:
+	xv_display_show(dv_dpy);
+	break;
+
       case XK_space:
 	xv_pause = (xv_pause)?0:1; 
 	while(xv_pause) {
 	  xv_display_event(dv_dpy);
+	  //xv_display_show(dv_dpy);
 	  usleep(10000);
 	}
       default:
@@ -229,6 +363,7 @@ void xv_display_event (xv_display_t *dv_dpy)
     default:
       break;
     } /* switch */
+  } /* else */
   } /* while */
 } // xv_display_event
 
@@ -287,6 +422,8 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
   XWMHints	wmhints;
   XTextProperty	x_wname, x_iname;
   
+  Atom wm_protocols[1];
+  
   XvAdaptorInfo	*ad_info;
   XvImageFormatValues *fmt_info;
   
@@ -321,7 +458,7 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
 
       if (!(ad_info[i].type & XvImageMask)) {
 	fprintf(stderr,
-		"Xv: %s: XvImage NOT in capabilty list (%s%s%s%s%s )\n",
+		"Xv: %s: XvImage NOT in capability list (%s%s%s%s%s )\n",
 		ad_info[i].name,
 		(ad_info[i].type & XvInputMask) ? " XvInput"  : "",
 		(ad_info[i]. type & XvOutputMask) ? " XvOutput" : "",
@@ -402,9 +539,10 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
   XStringListToTextProperty(&i_name, 1 ,&x_iname);
 
   /*
-   * default settings: source, destination and logical widht/height
+   * default settings: source, destination and logical width/height
    * are set to our well known dimensions.
    */
+
   dv_dpy->lwidth = dv_dpy->dwidth = dv_dpy->swidth = dv_dpy->width;
   dv_dpy->lheight = dv_dpy->dheight = dv_dpy->sheight = dv_dpy->height;
   dv_dpy->lxoff = dv_dpy->lyoff = 0;
@@ -444,12 +582,20 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
 				       XBlackPixel(dv_dpy->dpy, scn_id));
   } else {
   }
+
   XSetWMProperties(dv_dpy->dpy, dv_dpy->win,
 		    &x_wname, &x_iname,
 		    NULL, 0,
 		    &hints, &wmhints, NULL);
 
-  XSelectInput(dv_dpy->dpy, dv_dpy->win, ExposureMask | StructureNotifyMask | KeyPressMask);
+
+  XSelectInput(dv_dpy->dpy, dv_dpy->win, ExposureMask | StructureNotifyMask | 
+		                         KeyPressMask | ButtonPressMask);
+
+  dv_dpy->wm_delete_window_atom = wm_protocols[0] =
+      XInternAtom(dv_dpy->dpy, "WM_DELETE_WINDOW", False);
+  XSetWMProtocols(dv_dpy->dpy, dv_dpy->win, wm_protocols, 1);
+		  	
   XMapRaised(dv_dpy->dpy, dv_dpy->win);
   XNextEvent(dv_dpy->dpy, &dv_dpy->event);
 
@@ -473,6 +619,8 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
 
   XShmAttach(dv_dpy->dpy, &dv_dpy->shminfo);
   XSync(dv_dpy->dpy, False);
+
+
 
   return 1;
 } // xv_display_Xv_init 
@@ -550,3 +698,44 @@ int xv_display_init(xv_display_t *dv_dpy, int *argc, char ***argv, int width, in
   fprintf(stderr, "Unable to establish a display method\n");
   return(-1);
 } // xv_display_init 
+
+
+// returns 1 if a selection is complete (2nd click)
+
+int DoSelection(XButtonEvent *ev, int *xanf, int *yanf, int *xend, int *yend)
+{
+  int          rv;
+  static Time  lastClickTime   = 0;
+  static int   lastClickButton = Button3;
+
+
+  /* make sure it's even vaguely relevant */
+  if (ev->type   != ButtonPress) return 0;
+
+  rv = 0;
+
+  if (ev->button == Button1) {
+    /* double clicked B1 ? */
+      // save
+    if (lastClickButton!=Button1) {
+      *xanf = ev->x; 
+      *yanf = ev->y;
+      lastClickButton=Button1;
+      rv = 0;
+    } else  {
+      *xend = ev->x; 
+      *yend = ev->y;
+      lastClickButton=Button3;
+
+      //printf ("** x (%d) y (%d) h (%d) w (%d)\n", *xanf, *yanf, *xend-*xanf, *yend-*yanf);
+      rv = 1;
+    }
+
+  } else if (ev->button == Button2) {      /* do a drag & drop operation */
+    printf ("** Button2\n");
+  }
+
+  lastClickTime   = ev->time;
+  return rv;
+}
+

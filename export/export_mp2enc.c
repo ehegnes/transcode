@@ -33,7 +33,7 @@
 #include "avilib.h"
 
 #define MOD_NAME    "export_mp2enc.so"
-#define MOD_VERSION "v1.0.3 (2002-06-05)"
+#define MOD_VERSION "v1.0.4 (2003-01-09)"
 #define MOD_CODEC   "(audio) MPEG 1/2"
 
 #define MOD_PRE mp2enc
@@ -51,7 +51,7 @@ static struct wave_header 	rtf;
  * ------------------------------------------------------------*/
 
 
-int p_write (char *buf, size_t len)
+static int p_write (char *buf, size_t len)
 {
     size_t n  = 0;
     size_t r  = 0;

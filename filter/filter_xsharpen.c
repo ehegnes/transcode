@@ -640,5 +640,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
      }
   }
+  return -1;
 }
 

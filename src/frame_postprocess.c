@@ -79,6 +79,23 @@ int postprocess_yuv_frame(vob_t *vob, vframe_list_t *ptr)
     
     ptr->v_width -= (vob->post_ex_clip_left + vob->post_ex_clip_right);
   }
+
+  
+   /* ------------------------------------------------------------ 
+    *
+    * final sanity check:
+    *
+    * ------------------------------------------------------------*/
+   
+   
+  if(ptr->v_width != vob->ex_v_width || ptr->v_height != vob->ex_v_height) {
+    
+    printf("(%s) width %d %d | height %d %d\n", __FILE__, 
+	   ptr->v_width, vob->ex_v_width, 
+	   ptr->v_height, vob->ex_v_height);
+    
+    tc_error("Oops, frame parameter mismatch detected"); 
+  }
   
   //done
   return(0);
@@ -142,18 +159,16 @@ int postprocess_rgb_frame(vob_t *vob, vframe_list_t *ptr)
     *
     * ------------------------------------------------------------*/
    
-   
-   if( ptr->video_size != vob->ex_v_size 
-       || ptr->v_width != vob->ex_v_width || ptr->v_height != vob->ex_v_height) {
-     printf("width %d %d | height %d %d | size %d %d\n", 
-	    ptr->v_width, vob->ex_v_width, 
-	    ptr->v_height, vob->ex_v_height, 
-	    ptr->video_size, vob->ex_v_size);
-     
-     tc_error("Oops, frame parameter mismatch detected"); 
-   }
-
-   return(0);
+  if(ptr->v_width != vob->ex_v_width || ptr->v_height != vob->ex_v_height) {
+    
+    printf("(%s) width %d %d | height %d %d\n", __FILE__, 
+	   ptr->v_width, vob->ex_v_width, 
+	   ptr->v_height, vob->ex_v_height);
+    
+    tc_error("Oops, frame parameter mismatch detected"); 
+  }
+  
+  return(0);
 }
 
 

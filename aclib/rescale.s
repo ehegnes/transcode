@@ -43,14 +43,138 @@ align 16
 section .text
 
 	;; 
-	;; int ac_rescale_mmx(char *row1, char *row2, char *out, int bytes, 
+	;; int ac_rescale_mmxext(char *row1, char *row2, char *out, int bytes, 
+	;; 		         unsigned int weight1, unsigned int weight2)
+	;;
+
+cglobal ac_rescale_mmxext
+
+align 16
+ac_rescale_mmxext:	
+
+	push ebx
+	push ecx
+	push edx	
+	push edi
+
+	mov ebx, [esp+off+ 4]	; row1
+	mov eax, [esp+off+ 8]	; row2	
+
+	mov edi, [esp+off+12]	; out		
+
+	mov ecx, [esp+off+20]  ; w1
+	mov edx, [esp+off+24]  ; w2	
+
+	cmp ecx, edx
+	jl .no_switch
+
+	mov ecx, eax
+	mov eax, ebx
+	mov ebx, ecx 
+	mov ecx, edx
+	
+.no_switch:	
+		
+	movd mm3, ecx		; 0:	0:	0:	w1	
+	movq mm7, mm3
+
+	psllq mm3, 16           ; 0:	0:	w1:	0
+	por mm3, mm7            ; 0:	0:	w1:	w1
+	
+	psllq mm3, 16	
+	por mm3, mm7            ; 0:	w1:	w1:	w1
+
+	psllq mm3, 16	
+	por mm3, mm7		;w1:	w1:	w1:	w1	
+
+	mov ecx, [esp+off+16]	; bytes 
+	shr ecx, 3		; /8
+	
+	pxor mm7, mm7           ; zero
+
+	
+.rescale:		
+	movq mm0, [ebx]   	;  A
+	movq mm4, [eax]	        ;  B
+
+;;; 0-3	(A-B)
+	movq mm2, mm0
+	psubusb mm2, mm4
+	movq mm5, mm2           ;  save
+	
+	punpckhbw mm2, mm7
+	pmulhuw mm2, mm3	
+	
+	packsswb mm2, mm7       ; collapse
+	
+	movq mm6, mm2	        ; save into mm6
+	psllq mm6, 32		
+
+;;; 4-7 (A-B)
+	movq mm2, mm5
+	punpcklbw mm2, mm7
+	pmulhuw mm2, mm3	
+	
+	packsswb mm2, mm7       ; collapse
+	
+	por mm6, mm2	        ; save into mm6
+
+	movq mm5, mm4
+	paddb mm5, mm6
+	
+;;; 0-3	(B-A)
+	movq mm2, mm4
+	psubusb mm2, mm0
+	movq mm4, mm2
+	
+	punpckhbw mm2, mm7
+	pmulhuw mm2, mm3	
+	
+	packsswb mm2, mm7       ; collapse
+	
+	movq mm6, mm2	        ; save into mm6
+	psllq mm6, 32		
+
+;;; 4-7 (B-A)
+	movq mm2, mm4
+	punpcklbw mm2, mm7
+	pmulhuw mm2, mm3	
+	
+	packsswb mm2, mm7       ; collapse
+	
+	por mm6, mm2	        ; save into mm6
+
+	psubb mm5, mm6
+		
+	movq [edi], mm5
+	;; done
+
+	add eax, 8		; inc pointers
+	add ebx, 8
+	add edi, 8
+	
+	dec ecx
+	jg .rescale
+
+.exit:		
+	xor eax, eax		; exit
+
+	pop edi
+	pop edx
+	pop ecx
+	pop ebx
+	
+	ret			
+
+	;; 
+	;; int ac_rescale_sse(char *row1, char *row2, char *out, int bytes, 
 	;; 		      unsigned int weight1, unsigned int weight2)
 	;;
 
-cglobal ac_rescale_mmx
+cglobal ac_rescale_sse
 
 align 16
-ac_rescale_mmx:	
+ac_rescale_sse:	
 
 	push ebx
 	push ecx
@@ -170,7 +294,6 @@ ac_rescale_mmx:
 	pop ebx
 	
 	ret			
-
 
 
 	;; 

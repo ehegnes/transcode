@@ -28,8 +28,9 @@
      */
 
 #define MOD_NAME    "filter_logo.so"
-#define MOD_VERSION "v0.5 (2002-06-19)"
+#define MOD_VERSION "v0.8 (2003-01-26)"
 #define MOD_CAP     "render image in videostream"
+#define MOD_AUTHOR  "Tilmann Bitterberg"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,6 +52,7 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "filter.h"
 #include "../export/vid_aux.h"
 
 
@@ -131,6 +133,24 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //----------------------------------
 
 
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYO", "1");
+      // buf, name, comment, format, val, from, to  
+      optstr_param (options, "file",   "Image filename",    "%s",    "logo.png");
+      optstr_param (options, "posdef", "Position (0=None, 1=TopL, 2=TopR, 3=BotL, 4=BotR, 5=Center)",  "%d", "0", "0", "5");
+      optstr_param (options, "pos",    "Position (0-width x 0-height)",  "%dx%d", "0x0", "0", "width", "0", "height");
+      optstr_param (options, "range",  "Restrict rendering to framerange",  "%u-%u", "0-0", "0", "oo", "0", "oo");
+
+      // bools
+      optstr_param (options, "ignoredelay", "Ignore delay specified in animations", "", "0"); 
+      optstr_param (options, "rgbswap", "Swap red/blue colors", "", "0");
+      optstr_param (options, "grayout", "YUV only: don't write Cb and Cr, makes a nice effect", "",  "0");
+      optstr_param (options, "flip",   "Mirror image",  "", "0");
+
+      return 0;
+  }
+
   if(ptr->tag & TC_FILTER_INIT) {
 
     if((vob = tc_get_vob())==NULL) return(-1);
@@ -139,6 +159,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
     //mfd->file = filename;
     strcpy (mfd->file, "logo.png");
+    mfd->yuv   = NULL;
     mfd->flip  = 0;
     mfd->pos   = 0;
     mfd->posx  = 0;
@@ -147,6 +168,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     mfd->end   = (unsigned int)-1;
     mfd->ignoredelay = 0;
     mfd->rgbswap     = 0;
+    mfd->grayout     = 0;
     
     mfd->nr_of_images = 0;
     mfd->cur_seq      = 0;
@@ -161,9 +183,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	optstr_get (options, "pos",      "%dx%d",     &mfd->posx,  &mfd->posy);
 	optstr_get (options, "range",    "%u-%u",     &mfd->start, &mfd->end);
 
-	if (optstr_get (options, "ignoredelay", "") >= 0) mfd->ignoredelay=1;
-	if (optstr_get (options, "rgbswap", "") >= 0) mfd->rgbswap=1;
-	if (optstr_get (options, "grayout", "") >= 0) mfd->grayout=1;
+	if (optstr_get (options, "ignoredelay", "") >= 0) mfd->ignoredelay=!mfd->ignoredelay;
+	if (optstr_get (options, "rgbswap", "") >= 0) mfd->rgbswap=!mfd->rgbswap;
+	if (optstr_get (options, "grayout", "") >= 0) mfd->grayout=!mfd->grayout;
 
 	if (optstr_get (options, "help", "") >= 0)
 	    help_optstr();
@@ -187,8 +209,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
     strcpy(image_info->filename, mfd->file);
 
     image = ReadImage (image_info, &exception_info);
-    if (image == (Image *) NULL)
-        MagickError (exception_info.severity, exception_info.reason, exception_info.description);
+    if (image == (Image *) NULL) {
+        MagickWarning (exception_info.severity, exception_info.reason, exception_info.description);
+	strcpy(mfd->file, "/dev/null");
+	return 0;
+    }
 
 
     if (image->columns > vob->ex_v_width || image->rows > vob->ex_v_height) {
@@ -356,19 +381,26 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
     if (mfd) { 
 	int i;
-	if (mfd->yuv)
+	if (mfd->yuv) {
 	    for (i=0; i<mfd->nr_of_images; i++)
-		if (mfd->yuv[i])
+		if (mfd->yuv[i]) {
 		    free(mfd->yuv[i]);
+		    mfd->yuv[i] = NULL;
+		}
 	    free(mfd->yuv);
+	    mfd->yuv = NULL;
+	}
 	free(mfd);
+	mfd = NULL;
     }
 
     if (vob->im_v_codec == CODEC_YUV)
 	tc_rgb2yuv_close();
 
-    DestroyImage(image);
-    DestroyImageInfo(image_info);
+    if (image) {
+	    DestroyImage(image);
+	    DestroyImageInfo(image_info);
+    }
     DestroyMagick();
 
     return(0);
@@ -391,6 +423,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
       if (ptr->id < mfd->start || ptr->id > mfd->end)
 	  return (0);
+
+      if (!strcmp(mfd->file, "/dev/null"))
+	      return 0;
 
       mfd->cur_delay--;
 

@@ -51,7 +51,7 @@ extern void import_exit(int ret);
 int file_check(char *file);
 void version(char *s);
 
-long fileinfo(int fd);
+long fileinfo(int fd, int skipy);
 int fileinfo_dir(char *name, int *fd, long *cc);
 long streaminfo(int fd);
 
@@ -62,8 +62,8 @@ void scan_pes(int verbose, FILE *fd);
 void probe_pes(info_t *ipipe);
 int probe_dvd(info_t *ipipe);
 
-size_t p_read(int fd, char *buf, size_t len);
-size_t p_write(int fd, char *buf, size_t len);
+ssize_t p_read(int fd, char *buf, size_t len);
+ssize_t p_write(int fd, char *buf, size_t len);
 int p_readwrite(int in, int out);
 
 int open_dir(char *name, int *fd, long *stype);
@@ -78,6 +78,8 @@ unsigned int read_tc_time_stamp(char *s);
 long read_time_stamp_long(unsigned char *s);
 int fps2frc(double _fps);
 void import_info(int code, char *EXE);
+
+int ts_read(int fd_in, int fd_out, int demux_pid);
 
 #define VOB_PACKET_SIZE   0x800
 #define VOB_PACKET_OFFSET    22

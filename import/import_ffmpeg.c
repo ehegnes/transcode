@@ -33,7 +33,7 @@
 #include "avilib.h"
 
 #define MOD_NAME    "import_ffmpeg.so"
-#define MOD_VERSION "v0.1.0 (2002-11-21)"
+#define MOD_VERSION "v0.1.1 (2002-11-29)"
 #define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
                     "): MS MPEG4v1-3/MPEG4/MJPEG"
 #define MOD_PRE ffmpeg
@@ -159,6 +159,7 @@ MOD_open {
     if (strlen(fourCC) == 0) {
       fprintf(stderr, "[%s] FOURCC has zero length!? Broken source?\n",
               MOD_NAME);
+      
       return TC_IMPORT_ERROR;
     }
 
@@ -376,15 +377,18 @@ MOD_decode {
 MOD_close {  
 
   if (param->flag == TC_VIDEO) {
-    avcodec_close(lavc_dec_context);
+
+    if(lavc_dec_context) {
+      
+      avcodec_close(lavc_dec_context);
+      free(lavc_dec_context);
+
+      lavc_dec_context = NULL;
+
+    }
     
     // do not free buffer and yuv2rgb_buffer!!
     
-    if (lavc_dec_context != NULL) {
-      free(lavc_dec_context);
-      lavc_dec_context = NULL;
-    }
-
     if(avifile!=NULL) {
       AVI_close(avifile);
       avifile=NULL;

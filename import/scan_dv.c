@@ -61,7 +61,10 @@ int scan_header_dv(char *buf)
     dv_decoder->prev_frame_decoded = 0;
     cc=dv_parse_header(dv_decoder, buf);
 
+#ifdef LIBDV_095    
     dv_decoder_free(dv_decoder);
+#endif
+
 #endif
     return(cc);
 }

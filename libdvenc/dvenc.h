@@ -48,6 +48,10 @@ int dvenc_set_parameter(int codec, int format, int sample_rate);
 int dvenc_init();
 int dvenc_close();
 
+#ifdef HAVE_DV
+int dvenc_insert_audio(unsigned char * frame_buf, dv_enc_audio_info_t * audio, int isPAL);
+#endif
+
 extern unsigned char *dvenc_dvbuf, *dvenc_abuf, *dvenc_vbuf;
 
 #ifdef HAVE_DV

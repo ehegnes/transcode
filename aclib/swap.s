@@ -56,7 +56,7 @@ cglobal ac_swap_rgb2bgr_asm
 %define off esp+20
 
 %macro  SWAP_4 0
-	prefetchnta [esi]		
+
 	mov eax, [esi]		; R1 B0 G0 R0  (1)
 	bswap eax               ; R0 G0 B0 R1
 	ror eax, 8	        ; R1 R0 G0 B0

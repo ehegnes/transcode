@@ -22,8 +22,9 @@
  */
 
 #define MOD_NAME    "filter_mask.so"
-#define MOD_VERSION "v0.2.0 (2002-04-21)"
-#define MOD_CAP     "masking plugin"
+#define MOD_VERSION "v0.2.1 (2003-01-21)"
+#define MOD_CAP     "Filter through a rectangular Mask"
+#define MOD_AUTHOR  "Thomas Östreich, Chad Page"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,6 +45,7 @@ static int loop=1;
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "optstr.h"
 
 /*-------------------------------------------------
  *
@@ -112,6 +114,18 @@ void xmask_rgb(unsigned char *buf, vob_t *vob, int left, int right)
 	}
 }
 
+
+// old or new syntax?
+int is_optstr (char *buf) {
+    if (strchr(buf, '='))
+	return 1;
+    if (strchr(buf, 't'))
+	return 1;
+    if (strchr(buf, 'h'))
+	return 1;
+    return 0;
+}
+
 int tc_filter(vframe_list_t *ptr, char *options)
 {
 
@@ -139,6 +153,20 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // (6) filter is last time with TC_FILTER_CLOSE flag set
 
 
+
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+      char buf[32];
+
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYE", "1");
+      
+      snprintf(buf, 32, "%dx%d", lc, tc);
+      optstr_param (options, "lefttop", "Upper left corner of the box", "%dx%d", buf, "0", "width", "0", "height"); 
+
+      snprintf(buf, 32, "%dx%d", rc, bc);
+      optstr_param (options, "rightbot", "Lower right corner of the box", "%dx%d", buf, "0", "width", "0", "height"); 
+
+      return 0;
+  }
   //----------------------------------
   //
   // filter init
@@ -156,15 +184,26 @@ int tc_filter(vframe_list_t *ptr, char *options)
     
     if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
 
-    buffer = malloc(SIZE_RGB_FRAME);
+    if (!buffer)
+	buffer = malloc(SIZE_RGB_FRAME);
 
     lc = 0; 
     tc = 0;
+    _rc = 0;
+    _bc = 0;
+    rc = vob->im_v_width;
+    bc = vob->im_v_height;
 
-    if(options != NULL) sscanf(options, "%d:%d:%d:%d", &lc, &_rc, &tc, &_bc);
-
-    rc = vob->im_v_width - _rc;
-    bc = vob->im_v_height - _bc;
+    if(options != NULL) { 
+	if (!is_optstr(options)) { // old syntax
+	    sscanf(options, "%d:%d:%d:%d", &lc, &_rc, &tc, &_bc);
+	    rc = vob->im_v_width - _rc;
+	    bc = vob->im_v_height - _bc;
+	} else {
+           optstr_get (options, "lefttop", "%dx%d", &lc, &tc);
+           optstr_get (options, "rightbot", "%dx%d", &rc, &bc);
+	}
+    }
 
     return(0);
   }
@@ -178,7 +217,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
   
   if(ptr->tag & TC_FILTER_CLOSE) {
     
-    free(buffer);
+      if (buffer)
+	  free(buffer);
+      buffer = NULL;
     
     return(0);
   }

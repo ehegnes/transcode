@@ -153,7 +153,7 @@ MOD_open
     
     codec_str = AVI_video_compressor(avifile);
     if(strlen(codec_str)==0) {
-      printf("invalid AVI file codec");
+      printf("invalid AVI file codec\n");
       return(TC_IMPORT_ERROR); 
     }
     if (!strcasecmp(codec_str, "DIV3") ||

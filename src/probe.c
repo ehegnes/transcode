@@ -41,7 +41,8 @@ static char *std_module[] = {"null",
 			     "v4l",
 			     "xml",
 			     "lav",
-			     "lzo"
+			     "lzo",
+			     "ts"
 };
 
 enum _std_module {_null_, 
@@ -59,7 +60,8 @@ enum _std_module {_null_,
 		  _v4l_,
 		  _xml_,
 		  _lav_,
-		  _lzo_
+		  _lzo_,
+		  _ts_
 };
 
 static double frc_table[16] = {0,
@@ -116,7 +118,8 @@ int probe_source_core(probe_info_t *pvob, int range, char *file)
   
   // popen
   if((fd = popen(probe_cmd_buf, "r"))== NULL)  return(-1);
-  
+
+  if (fread(&tc_probe_pid, sizeof(pid_t), 1, fd) !=1) return(-1);
   if (fread(pvob, sizeof(probe_info_t), 1, fd) !=1) return(-1);
 
   pclose(fd);
@@ -442,6 +445,11 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     vob->vmod_probed=std_module[_mov_];
     preset |= TC_VIDEO;
     break;
+
+  case TC_MAGIC_TS:
+    vob->vmod_probed=std_module[_ts_];
+    preset |= TC_VIDEO;
+    break;
     
   case TC_MAGIC_TIFF1:
   case TC_MAGIC_TIFF2:
@@ -515,6 +523,11 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
 
   case TC_MAGIC_MOV:
     vob->amod_probed=std_module[_mov_];
+    preset |= TC_AUDIO;
+    break;
+
+  case TC_MAGIC_TS:
+    vob->amod_probed=std_module[_ts_];
     preset |= TC_AUDIO;
     break;
 
@@ -774,6 +787,8 @@ char *mformat2str(int f)
 	return("PAL");
     case TC_MAGIC_NTSC:
 	return("NTSC");
+    case TC_MAGIC_TS:
+	return("MPEG transport stream");
     case TC_MAGIC_YUV4MPEG:
 	return("YUV4MPEG");
     case TC_MAGIC_SOCKET:

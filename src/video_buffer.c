@@ -87,6 +87,9 @@ static int vid_buf_alloc(int ex_num)
     
     int n, num;
 
+
+    int frame_size_max = tc_frame_width_max * tc_frame_height_max * BPP/8;
+
     if(ex_num < 0) return(-1);
     
     num = ex_num + 1; //alloc at least one buffer
@@ -119,12 +122,12 @@ static int vid_buf_alloc(int ex_num)
 	vid_buf_ptr[n]->bufid = n;
 
 	//allocate extra video memory:
-	if((vid_buf_ptr[n]->internal_video_buf_0=bufalloc(n, 0, SIZE_RGB_FRAME))==NULL) {
+	if((vid_buf_ptr[n]->internal_video_buf_0=bufalloc(n, 0, frame_size_max))==NULL) {
 	    perror("out of memory");
 	    return(-1);
 	}
 	
-	if((vid_buf_ptr[n]->internal_video_buf_1=bufalloc(n, 1, SIZE_RGB_FRAME))==NULL) {
+	if((vid_buf_ptr[n]->internal_video_buf_1=bufalloc(n, 1, frame_size_max))==NULL) {
 	    perror("out of memory");
 	    return(-1);
 	}
@@ -138,14 +141,14 @@ static int vid_buf_alloc(int ex_num)
 	vid_buf_ptr[n]->video_buf_Y[1] = vid_buf_ptr[n]->internal_video_buf_1;
 
 	vid_buf_ptr[n]->video_buf_U[0] = vid_buf_ptr[n]->video_buf_Y[0]
-	  + TC_MAX_V_FRAME_WIDTH * TC_MAX_V_FRAME_HEIGHT;
+	  + tc_frame_width_max * tc_frame_height_max;
 	vid_buf_ptr[n]->video_buf_U[1] = vid_buf_ptr[n]->video_buf_Y[1]
-	  + TC_MAX_V_FRAME_WIDTH * TC_MAX_V_FRAME_HEIGHT;
+	  + tc_frame_width_max * tc_frame_height_max;
 
 	vid_buf_ptr[n]->video_buf_V[0] = vid_buf_ptr[n]->video_buf_U[0]
-	  + (TC_MAX_V_FRAME_WIDTH * TC_MAX_V_FRAME_HEIGHT)/4;
+	  + (tc_frame_width_max * tc_frame_height_max)/4;
 	vid_buf_ptr[n]->video_buf_V[1] = vid_buf_ptr[n]->video_buf_U[1]
-	  + (TC_MAX_V_FRAME_WIDTH * TC_MAX_V_FRAME_HEIGHT)/4;
+	  + (tc_frame_width_max * tc_frame_height_max)/4;
 
 	//default pointer
 	vid_buf_ptr[n]->video_buf  = vid_buf_ptr[n]->internal_video_buf_0;
@@ -417,7 +420,7 @@ void vframe_flush()
   int cc=0;
 
   while((ptr=vframe_retrieve())!=NULL) {
-      if(verbose & TC_DEBUG) fprintf(stderr, "flushing video buffers (%d)\n", ptr->id); 
+      if(verbose & TC_STATS) fprintf(stderr, "flushing video buffers (%d)\n", ptr->id); 
       vframe_remove(ptr);
       ++cc;
   }
@@ -616,3 +619,9 @@ int vframe_fill_level(int status)
   return(0);
 }
 
+//2003-01-13
+void tc_adjust_frame_buffer(int height, int width)
+{
+  if(height > tc_frame_height_max) tc_frame_height_max=height; 
+  if(width > tc_frame_width_max) tc_frame_width_max=width; 
+}

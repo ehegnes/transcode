@@ -83,8 +83,11 @@ static int sig_tstp  = 0;
 static char *im_aud_mod = NULL, *im_vid_mod = NULL;
 static char *ex_aud_mod = NULL, *ex_vid_mod = NULL;
 
-static pthread_t thread_signal, thread_server;
+static pthread_t thread_signal, thread_server, thread_socket;
 
+void socket_thread(); // socket.c
+
+char *socket_file = NULL;
 char *plugins_string = NULL;
 pid_t writepid = 0;
 
@@ -128,7 +131,9 @@ enum {
   PROGRESS_OFF,
   DEBUG_MODE,
   ACCEL_MODE,
+  TS_PID,
   AVI_LIMIT,
+  SOCKET_FILE,
 };
 
 int print_counter_interval = 1;
@@ -147,6 +152,9 @@ int tc_y_preview         =  0;
 int tc_progress_meter    =  1;
 int tc_accel             = -1;    //acceleration code
 int tc_avi_limit         = AVI_FILE_LIMIT;  //AVI file size limit in MB 
+pid_t tc_probe_pid       = 0;
+int tc_frame_width_max   = 0;
+int tc_frame_height_max  = 0;
 
 //-------------------------------------------------------------
 
@@ -162,7 +170,7 @@ void version()
 {
   /* id string */
   if(tcversion++) return;
-  fprintf(stderr, "%s v%s (C) 2001-2002 Thomas Östreich\n", PACKAGE, VERSION);
+  fprintf(stderr, "%s v%s (C) 2001-2003 Thomas Östreich\n", PACKAGE, VERSION);
 }
 
 
@@ -319,10 +327,12 @@ void usage(int status)
   printf("\n");
 
   //psu mode
-  printf("--nav_seek file     use VOB navigation file [off]\n");
-  printf("--psu_mode          process VOB in PSU, -o is a filemask incl. %%d [off]\n");
-  printf("--psu_chunks a-b    process only selected units a-b for PSU mode [all]\n");
-  printf("--no_split          encode to single file in chapter/psu mode [off]\n");
+  printf("--nav_seek file      use VOB navigation file [off]\n");
+  printf("--psu_mode           process VOB in PSU, -o is a filemask incl. %%d [off]\n");
+  printf("--psu_chunks a-b     process only selected units a-b for PSU mode [all]\n");
+  printf("--no_split           encode to single file in chapter/psu mode [off]\n");
+  //  printf("--ts_pid 0xnn[,0xmm] transport stream pids [0,0]\n");
+  printf("--ts_pid 0xnn        transport video stream pid [0]\n");
   printf("\n");
 
   //a52
@@ -338,6 +348,7 @@ void usage(int status)
 #ifdef ARCH_X86
   printf("--accel type              enforce IA32 acceleration for type [autodetect]\n");
 #endif
+  printf("--socket file             socket file for run-time control [no file]\n");
   printf("\n");
 
   //help
@@ -415,16 +426,18 @@ void signal_thread()
     
     if (signame) {
       if(verbose & TC_INFO) fprintf(stderr, "\n[%s] (sighandler) %s received\n", PACKAGE, signame);
-      
+
       sig_int=1;
 
-      // import (stage 1 termination signal)
-      tc_import_stop();
+      if(tc_probe_pid>0) kill(tc_probe_pid, SIGTERM);
+
+      // import (termination signal)
+      tc_import_stop_nolock();
 
       if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (sighandler) import cancelation submitted\n", PACKAGE);
 
-      // export
-      tc_set_force_exit(); 
+      // export (termination signal)
+      tc_export_stop_nolock();
 
       if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (sighandler) export cancelation submitted\n", PACKAGE);
 
@@ -552,8 +565,8 @@ int main(int argc, char *argv[]) {
     char *aux_str;
     char **endptr=&aux_str;
 
-    char *dir_name;
-    int dir_fcnt=0;
+    char *dir_name, *dir_fname;
+    int dir_fcnt=0, dir_audio=0;
 
     sigset_t sigs_to_block;
 
@@ -669,6 +682,8 @@ int main(int argc, char *argv[]) {
       {"debug_mode", no_argument, NULL, DEBUG_MODE},
       {"accel_mode", required_argument, NULL, ACCEL_MODE},
       {"avi_limit", required_argument, NULL, AVI_LIMIT},
+      {"ts_pid", required_argument, NULL, TS_PID},
+      {"socket", required_argument, NULL, SOCKET_FILE},
       {0,0,0,0}
     };
     
@@ -849,6 +864,9 @@ int main(int argc, char *argv[]) {
 #endif
     vob->psu_offset       = 0.0f;
     vob->bitreservoir     = TC_TRUE;
+
+    vob->ts_pid1          = 0x0;
+    vob->ts_pid2          = 0x0;
 
     // prepare for SIGINT to catch
     
@@ -1686,6 +1704,15 @@ int main(int argc, char *argv[]) {
 	  vob->encode_fields = TC_TRUE;
 	  break;
 
+
+	case TS_PID:
+
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+
+	  vob->ts_pid1 = strtol(optarg, endptr, 16);
+	  vob->ts_pid2 = vob->ts_pid1;
+	  break;
+
 	case WRITE_PID:
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  
@@ -1872,6 +1899,10 @@ int main(int argc, char *argv[]) {
 	  tc_progress_meter = TC_OFF;
 	  break;
 
+	case SOCKET_FILE:
+	  socket_file = optarg;
+	  break;
+
 	default:
 	  short_usage(EXIT_FAILURE);
 	  break;
@@ -1882,6 +1913,9 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "warning: unused command line parameter detected (%d/%d)\n", optind, argc);
       
       for(n=optind; n<argc; ++n) fprintf(stderr, "argc[%d]=%s (unused)\n", n, argv[n]);
+      
+      if(optind==1) short_usage(EXIT_SUCCESS);
+      
     }
 
     if ( psu_mode ) {
@@ -2098,6 +2132,8 @@ int main(int argc, char *argv[]) {
     // export bytes per frame (RGB 24bits)
     vob->ex_v_size   = vob->im_v_size;
 
+    //2003-01-13 
+    tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
 
     // --PRE_CLIP
     
@@ -2106,17 +2142,18 @@ int main(int argc, char *argv[]) {
       //check against import parameter, this is pre processing!
       
       if(vob->ex_v_height - vob->pre_im_clip_top - vob->pre_im_clip_bottom <= 0 ||
-	 vob->ex_v_height - vob->pre_im_clip_top - vob->pre_im_clip_bottom > TC_MAX_V_FRAME_HEIGHT) tc_error("invalid top/bottom clip parameter for option -j");
+	 vob->ex_v_height - vob->pre_im_clip_top - vob->pre_im_clip_bottom > TC_MAX_V_FRAME_HEIGHT) tc_error("invalid top/bottom clip parameter for option --pre_clip");
       
       if( vob->ex_v_width - vob->pre_im_clip_left - vob->pre_im_clip_right <= 0 ||    
-	  vob->ex_v_width - vob->pre_im_clip_left - vob->pre_im_clip_right > TC_MAX_V_FRAME_WIDTH) tc_error("invalid left/right clip parameter for option -j");
+	  vob->ex_v_width - vob->pre_im_clip_left - vob->pre_im_clip_right > TC_MAX_V_FRAME_WIDTH) tc_error("invalid left/right clip parameter for option --pre_clip");
       
       vob->ex_v_height -= (vob->pre_im_clip_top + vob->pre_im_clip_bottom);
       vob->ex_v_width  -= (vob->pre_im_clip_left + vob->pre_im_clip_right);
       
-      vob->ex_v_size = vob->ex_v_height * vob->ex_v_width * vob->v_bpp/8;
-      
       if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d\n", PACKAGE, "pre clip frame", vob->ex_v_width, vob->ex_v_height);
+    
+      //2003-01-13 
+      tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
     }
 
 
@@ -2133,11 +2170,12 @@ int main(int argc, char *argv[]) {
       vob->ex_v_height -= (vob->im_clip_top + vob->im_clip_bottom);
       vob->ex_v_width  -= (vob->im_clip_left + vob->im_clip_right);
       
-      vob->ex_v_size = vob->ex_v_height * vob->ex_v_width * vob->v_bpp/8;
-      
       if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d\n", PACKAGE, "clip frame (<-)", vob->ex_v_width, vob->ex_v_height);
+    
+      //2003-01-13 
+      tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
     }
-
+    
     
     // -I
 
@@ -2194,7 +2232,6 @@ int main(int argc, char *argv[]) {
 	
         vob->ex_v_height += (vob->vert_resize2 * vob->resize2_mult);
         vob->ex_v_width += (vob->hori_resize2 * vob->resize2_mult);
-	vob->ex_v_size = vob->ex_v_width * vob->ex_v_height * vob->v_bpp/8;
 
 	//check2:
 
@@ -2211,6 +2248,9 @@ int main(int argc, char *argv[]) {
         vob->hori_resize2 *= (vob->resize2_mult/8);
 
 	if(verbose & TC_INFO && vob->ex_v_height>0) printf("[%s] V: %-16s | %03dx%03d  %4.2f:1 (-X)\n", PACKAGE, "new aspect ratio", vob->ex_v_width, vob->ex_v_height, asr);
+
+      //2003-01-13 
+      tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
     } 
 
     
@@ -2232,7 +2272,6 @@ int main(int argc, char *argv[]) {
 	
         vob->ex_v_height -= (vob->vert_resize1 * vob->resize1_mult);
         vob->ex_v_width -= (vob->hori_resize1 * vob->resize1_mult);
-	vob->ex_v_size = vob->ex_v_width * vob->ex_v_height * vob->v_bpp/8;
 
 	//check:
 
@@ -2246,6 +2285,9 @@ int main(int argc, char *argv[]) {
         vob->hori_resize1 *= (vob->resize1_mult/8);
 
 	if(verbose & TC_INFO && vob->ex_v_height>0) printf("[%s] V: %-16s | %03dx%03d  %4.2f:1 (-B)\n", PACKAGE, "new aspect ratio", vob->ex_v_width, vob->ex_v_height, asr);
+
+      //2003-01-13 
+      tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
     } 
 
 
@@ -2258,9 +2300,11 @@ int main(int argc, char *argv[]) {
 
         vob->ex_v_width  = vob->zoom_width;
         vob->ex_v_height = vob->zoom_height;
-	vob->ex_v_size   = vob->ex_v_height * vob->ex_v_width * vob->v_bpp/8;
 
         if(verbose & TC_INFO && vob->ex_v_height>0 ) printf("[%s] V: %-16s | %03dx%03d  %4.2f:1 (%s)\n", PACKAGE, "zoom", vob->ex_v_width, vob->ex_v_height, asr, zoom_filter);
+
+      //2003-01-13 
+      tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
     }
 
 
@@ -2279,11 +2323,11 @@ int main(int argc, char *argv[]) {
       vob->ex_v_height -= (vob->ex_clip_top + vob->ex_clip_bottom);
       vob->ex_v_width -= (vob->ex_clip_left + vob->ex_clip_right);
       
-      vob->ex_v_size = vob->ex_v_height * vob->ex_v_width * vob->v_bpp/8;
-      
       if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d\n", PACKAGE, "clip frame (->)", vob->ex_v_width, vob->ex_v_height);
-    }
 
+      //2003-01-13 
+      tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
+    }
     
     // -r
   
@@ -2291,9 +2335,11 @@ int main(int argc, char *argv[]) {
 	
       vob->ex_v_height /= vob->reduce_h;
       vob->ex_v_width /= vob->reduce_w; 
-      vob->ex_v_size = vob->ex_v_width * vob->ex_v_height * vob->v_bpp/8;
-      
+    
       if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d\n", PACKAGE, "rescale frame", vob->ex_v_width, vob->ex_v_height);
+
+      //2003-01-13 
+      tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
     } 
 
     // --keep_asr
@@ -2448,18 +2494,18 @@ int main(int argc, char *argv[]) {
       //check against export parameter, this is post processing!
       
       if(vob->ex_v_height - vob->post_ex_clip_top - vob->post_ex_clip_bottom <= 0 ||
-	 vob->ex_v_height - vob->post_ex_clip_top - vob->post_ex_clip_bottom > TC_MAX_V_FRAME_HEIGHT) tc_error("invalid top/bottom clip parameter for option -Y");
+	 vob->ex_v_height - vob->post_ex_clip_top - vob->post_ex_clip_bottom > TC_MAX_V_FRAME_HEIGHT) tc_error("invalid top/bottom clip parameter for option --post_clip");
       
       if(vob->ex_v_width - vob->post_ex_clip_left - vob->post_ex_clip_right <= 0 ||
-	 vob->ex_v_width - vob->post_ex_clip_left - vob->post_ex_clip_right > TC_MAX_V_FRAME_WIDTH) tc_error("invalid left/right clip parameter for option -Y");
+	 vob->ex_v_width - vob->post_ex_clip_left - vob->post_ex_clip_right > TC_MAX_V_FRAME_WIDTH) tc_error("invalid left/right clip parameter for option --post_clip");
 
       vob->ex_v_height -= (vob->post_ex_clip_top + vob->post_ex_clip_bottom);
       vob->ex_v_width -= (vob->post_ex_clip_left + vob->post_ex_clip_right);
       
-      vob->ex_v_size = vob->ex_v_height * vob->ex_v_width * vob->v_bpp/8;
-      
       if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d\n", PACKAGE, "post clip frame", vob->ex_v_width, vob->ex_v_height);
 
+      //2003-01-13 
+      tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
     }
     
     
@@ -2511,8 +2557,9 @@ int main(int argc, char *argv[]) {
       vob->ex_v_size = (3*vob->ex_v_height * vob->ex_v_width)>>1;
       vob->im_v_size = (3*vob->im_v_height * vob->im_v_width)>>1;
       if(verbose & TC_INFO) printf("[%s] V: %-16s | YV12/I420\n", PACKAGE, "Y'CbCr");
-    }
-    
+    } else
+      vob->ex_v_size = vob->ex_v_height * vob->ex_v_width * vob->v_bpp>>3;
+
     // -p
     
     // video/audio from same source?
@@ -2574,7 +2621,7 @@ int main(int argc, char *argv[]) {
       vob->a_chan = 2;
     }
 
-    if(vob->ex_a_codec==0 || vob->fixme_a_codec==0) {
+    if(vob->ex_a_codec==0 || vob->fixme_a_codec==0 || ex_aud_mod == NULL || strcmp(ex_aud_mod, "null")==0) {
       if(verbose & TC_INFO) printf("[%s] A: %-16s | disabled\n", PACKAGE, "export");
       ex_aud_mod="null";
     } else {
@@ -2742,6 +2789,11 @@ int main(int argc, char *argv[]) {
     if(verbose & TC_DEBUG) printf("[%s] encoder delay = decode=%d encode=%d usec\n", PACKAGE, tc_buffer_delay_dec, tc_buffer_delay_enc);    
     
 
+    if (socket_file) {
+      if(pthread_create(&thread_socket, NULL, (void *) socket_thread, NULL)!=0)
+	tc_error("failed to start socket handler thread");
+    }
+
     /* ------------------------------------------------------------- 
      *
      * OK, so far, now start the support threads, setup buffers, ...
@@ -2756,6 +2808,8 @@ int main(int argc, char *argv[]) {
 
     //this will speed up in pass-through mode
     if(vob->pass_flag && !(preset_flag & TC_PROBE_NO_BUFFER)) max_frame_buffer=50;
+
+    if(verbose & TC_INFO) printf("[%s] V: video buffer     | %d @ %dx%d\n", PACKAGE, max_frame_buffer, tc_frame_width_max, tc_frame_height_max);    
     
 #ifdef STATBUFFER
     // allocate buffer
@@ -2791,7 +2845,7 @@ int main(int argc, char *argv[]) {
        * ------------------------------------------------------------*/  
 
       // init decoder and open the source     
-      import_open(vob);
+      if(import_open(vob)<0) tc_error("failed to open input source");
 
       // start the AV import threads that load the frames into transcode
       // this must be called after import_open
@@ -2846,7 +2900,7 @@ int main(int argc, char *argv[]) {
        * ------------------------------------------------------------*/  
 
       // init decoder and open the source     
-      import_open(vob);
+      if(import_open(vob)<0) tc_error("failed to open input source");
 
       // start the AV import threads that load the frames into transcode
       import_threads_create(vob);
@@ -2960,7 +3014,7 @@ int main(int argc, char *argv[]) {
 	  
 	  // start new decoding session with updated vob structure
 	  // this starts the full decoder setup, including the threads
-	  import_open(vob);
+	  if(import_open(vob)<0) tc_error("failed to open input source");
 	  
 	  // start the AV import threads that load the frames into transcode
 	  import_threads_create(vob);
@@ -3029,26 +3083,28 @@ int main(int argc, char *argv[]) {
        *
        * --------------------------------------------------------------*/  
       
-      dir_name = vob->video_in_file;
+      if(strncmp(vob->video_in_file, "/dev/zero", 9)==0) dir_audio=1;
+      
+      dir_name = (dir_audio) ? vob->audio_in_file : vob->video_in_file;
       dir_fcnt = 0;
       
       if((tc_open_directory(dir_name))<0) { 
 	fprintf(stderr, "(%s) unable to open directory \"%s\"\n", __FILE__, dir_name);
 	exit(1);
       }
-
-      while((vob->video_in_file=tc_scan_directory(dir_name))!=NULL) {
-	if(verbose & TC_DEBUG) printf("(%d) %s\n", dir_fcnt, vob->video_in_file);
+      
+      while((dir_fname=tc_scan_directory(dir_name))!=NULL) {
+	if(verbose & TC_DEBUG) printf("(%d) %s\n", dir_fcnt, dir_fname);
 	++dir_fcnt;
       }
       
       printf("(%s) processing %d file(s) in directory %s\n", __FILE__, dir_fcnt, dir_name);
-
+      
       tc_close_directory();
       
       if(dir_fcnt==0) tc_error("no valid input files found");
       dir_fcnt=0;
-
+      
       if((tc_open_directory(dir_name))<0) { 
 	fprintf(stderr, "(%s) unable to open directory \"%s\"\n", __FILE__, dir_name);
 	exit(1);
@@ -3070,32 +3126,60 @@ int main(int argc, char *argv[]) {
 	sprintf(buf, "%s.avi", dirbase);
 	
 	// update vob structure
-	vob->video_out_file = buf;
+	if(dir_audio) {
+
+	  switch(vob->ex_a_codec) {
+	    
+	  case CODEC_MP3:
+	    sprintf(buf, "%s-%03d.mp3", dirbase, dir_fcnt);
+	    break;
+	  }
+
+	  vob->audio_out_file = buf;
+	  
+	} else { 
+	  vob->video_out_file = buf;
+	}
 	
 	if(encoder_open(&export_para, vob)<0) 
 	  tc_error("failed to open output");      
       }
 
-      // 1 sec delay after decoder closing
-      tc_decoder_delay=1;
-      
       // need to loop with directory content for this option
       
-      while((vob->video_in_file=tc_scan_directory(dir_name))!=NULL) {
+      while((dir_fname=tc_scan_directory(dir_name))!=NULL) {
 	
-	//single source file
-	vob->audio_in_file = vob->video_in_file;
+	// update vob structure
+	if(dir_audio) {
+	  vob->audio_in_file = dir_fname;
+	} else { 
+	  vob->video_in_file = dir_fname;
+	  vob->audio_in_file = dir_fname;
+	}
 
 	if(!no_split) {
 	  // create new filename 
 	  sprintf(buf, "%s-%03d.avi", dirbase, dir_fcnt);
 	  
 	  // update vob structure
-	  vob->video_out_file = buf;
+	  if(dir_audio) {
+	    
+	    switch(vob->ex_a_codec) {
+	      
+	    case CODEC_MP3:
+	      sprintf(buf, "%s-%03d.mp3", dirbase, dir_fcnt);
+	      break;
+	    }
+
+	    vob->audio_out_file = buf;
+	    vob->out_flag=1;
+	  } else { 
+	    vob->video_out_file = buf;
+	  }
 	}
-	
+
 	// start new decoding session with updated vob structure
-	import_open(vob);
+	if(import_open(vob)<0) tc_error("failed to open input source");
 
 	// start the AV import threads that load the frames into transcode
 	import_threads_create(vob);
@@ -3139,7 +3223,7 @@ int main(int argc, char *argv[]) {
 	
 	// flush all buffers before we proceed to next file
 	aframe_flush();
-	vframe_flush();
+        vframe_flush();
 	
 	++dir_fcnt;
 	
@@ -3192,9 +3276,6 @@ int main(int argc, char *argv[]) {
 	  tc_error("failed to open output");      
       }
 
-      // 1 sec delay after decoder closing
-      tc_decoder_delay=0;
-      
       // loop each chapter
       ch1=vob->dvd_chapter1;
       ch2=vob->dvd_chapter2;
@@ -3219,7 +3300,7 @@ int main(int argc, char *argv[]) {
 	}
 	
 	// start decoding with updated vob structure
-	import_open(vob);
+	if(import_open(vob)<0) tc_error("failed to open input source");
 	
 	// start the AV import threads that load the frames into transcode
 	import_threads_create(vob);

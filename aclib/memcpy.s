@@ -63,9 +63,6 @@ ac_memcpy_mmx:
 	jz .rest
 	
 .64loop:		
-	prefetchnta [eax]
-	prefetchnta [eax+32]		
-
 	movq mm0, [eax   ]
 	movq mm1, [eax+ 8]
 	movq mm2, [eax+16]
@@ -75,14 +72,14 @@ ac_memcpy_mmx:
 	movq mm6, [eax+48]
 	movq mm7, [eax+56]						
 		
-	movntq [ebx   ], mm0
-	movntq [ebx+ 8], mm1
-	movntq [ebx+16], mm2
-	movntq [ebx+24], mm3
-	movntq [ebx+32], mm4
-	movntq [ebx+40], mm5
-	movntq [ebx+48], mm6
-	movntq [ebx+56], mm7	
+	movq [ebx   ], mm0
+	movq [ebx+ 8], mm1
+	movq [ebx+16], mm2
+	movq [ebx+24], mm3
+	movq [ebx+32], mm4
+	movq [ebx+40], mm5
+	movq [ebx+48], mm6
+	movq [ebx+56], mm7	
 
 	add eax, 64
 	add ebx, 64
@@ -91,16 +88,12 @@ ac_memcpy_mmx:
 	jg .64loop
 
 .rest:
-	prefetchnta [eax]	
 	mov esi, eax
 	mov edi, ebx
 	std
 	rep movsb
 	
 .exit:		
-
-	sfence
-
 	xor eax, eax		; exit
 
 	pop esi
@@ -162,7 +155,6 @@ ac_memcpy_sse:
 	rep movsb
 	
 .exit:		
-
 	sfence
 
 	xor eax, eax		; exit
@@ -226,7 +218,6 @@ ac_memcpy_sse2:
 	rep movsb
 	
 .exit:		
-
 	sfence
 
 	xor eax, eax		; exit

@@ -22,8 +22,9 @@
  */
 
 #define MOD_NAME    "filter_invert.so"
-#define MOD_VERSION "v0.1.1 (2002-06-09)"
+#define MOD_VERSION "v0.1.3 (2003-01-26)"
 #define MOD_CAP     "invert the image"
+#define MOD_AUTHOR  "Tilmann Bitterberg"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -82,6 +83,17 @@ int tc_filter(vframe_list_t *ptr, char *options)
   static int width, height;
   static int size;
   int w, h;
+  
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+      char buf[128];
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYO", "1");
+
+      snprintf(buf, 128, "%ux%u/%d", mfd->start, mfd->end, mfd->step);
+      optstr_param (options, "range", "apply filter to [start-end]/step frames", 
+	      "%u-%u/%d", buf, "0", "oo", "0", "oo", "1", "oo");
+
+      return 0;
+  }
   
   //----------------------------------
   //
@@ -152,6 +164,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     if (mfd) { 
 	free(mfd);
     }
+    mfd=NULL;
 
     return(0);
 

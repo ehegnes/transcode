@@ -32,7 +32,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "export_net.so"
-#define MOD_VERSION "v0.0.1 (2001-11-21)"
+#define MOD_VERSION "v0.0.2 (2003-01-09)"
 #define MOD_CODEC   "(video) RGB/YUV | (audio) PCM/AC3"
 
 #define MOD_PRE net
@@ -47,7 +47,7 @@ static pthread_t thread1, thread2;
 
 static int size;
 
-size_t p_write (int fd, char *buf, size_t len)
+static size_t p_write (int fd, char *buf, size_t len)
 {
    size_t n = 0;
    size_t r = 0;

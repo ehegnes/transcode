@@ -42,8 +42,11 @@ char import_cmd_buf[MAX_BUF];
 
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
-static int codec, frame_size=0;
+static int codec, frame_size=0, uv_size=0;
 static unsigned long divx_version=DEC_OPT_FRAME;
+
+static int black_frames = 0;
+
 
 static DEC_PARAM    *divx = NULL;
 static DEC_FRAME    *decFrame = NULL;
@@ -322,8 +325,10 @@ MOD_open
       if ((buffer = bufalloc(BUFFER_SIZE))==NULL) {
 	perror("out of memory");
 	return(TC_EXPORT_ERROR); 
-      } else
-	memset(buffer, 0, BUFFER_SIZE);  
+      } 
+      else {
+	memset(buffer, 0, BUFFER_SIZE);
+      }
     }
     
     //postproc
@@ -384,7 +389,44 @@ MOD_decode {
       if(verbose & TC_DEBUG) printf("keyframe info (AVI|bitstream)=(%d|%d)\n", key, cc);
 
     } else {
+
+      /*
+	Divx 3.11 encoded video sometimes have frames with zero
+	length data. These frames need to be cleared (eg filled
+	with black). The frame after the zero length frame 
+	sometimes needs to be cleared too, I don't know why but
+	it solves my problems... Works for me. (TM)
+       */
+
+      if(black_frames) {
+	printf("bytes_read=(%d)\n", bytes_read);
+      }
+
+      if (bytes_read == 0) {
+	black_frames = 2;
+      }
+
+      if(black_frames > 0) {
+	if(verbose & TC_DEBUG) printf("bytes_read=(%d)\n", bytes_read);
+
+	codec=vob->im_v_codec;
+    
+	switch(codec) {
       
+	case CODEC_RGB:
+	  memset(param->buffer,0x00,frame_size);
+	  break;
+      
+	case CODEC_YUV:
+	  uv_size = frame_size/3;
+	  memset(param->buffer,0x10,uv_size*2);
+	  memset(param->buffer + uv_size*2,0x80,uv_size);
+	  break;
+	}
+
+	black_frames--;
+      }
+
       //need to decode the frame
       decFrame->bitstream = buffer;
       decFrame->stride = divx->x_dim;
@@ -392,7 +434,7 @@ MOD_decode {
       decFrame->length = (int) bytes_read;
       decFrame->render_flag = 1;
       
-      if(divx_decore(divx_id, divx_version, decFrame, NULL) < 0) {
+      if(divx_decore(divx_id, divx_version, decFrame, NULL) != DEC_OK) {
 	printf("codec DEC_OPT_FRAME error");
 	return(TC_IMPORT_ERROR); 
       }

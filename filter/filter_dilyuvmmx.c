@@ -24,6 +24,7 @@
 #define MOD_NAME    "filter_dilyuvmmx.so"
 #define MOD_VERSION "v0.1.1 (2002-02-21)"
 #define MOD_CAP     "yuv de-interlace filter plugin"
+#define MOD_AUTHOR  "Thomas Oestreich"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -65,6 +66,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //----------------------------------
   
   
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYE", "1");
+      return 0;
+  }
+
   if(ptr->tag & TC_FILTER_INIT) {
     
     if((vob = tc_get_vob())==NULL) return(-1);

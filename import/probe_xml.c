@@ -21,6 +21,8 @@
  *
  */
 
+#include <sys/types.h>
+#include <unistd.h>
 #include "ioaux.h"
 #include "tc.h"
 
@@ -57,6 +59,7 @@ void probe_xml(info_t *ipipe)
 	probe_info_t	s_first_audio,s_other_audio;
 	probe_info_t	s_first_video,s_other_video;
 	int	s_first_element=0;
+	pid_t   tc_probe_pid;
 
 	s_tot_frames_audio=s_tot_frames_video=0;
 	ipipe->error=f_manage_input_xml(ipipe->name,1,&s_audiovideo);
@@ -85,12 +88,21 @@ void probe_xml(info_t *ipipe)
 					ipipe->error=1;
 					break;
 				}
+
 				if((p_fd = popen(s_probe_cmd_buf, "r"))== NULL)
 				{
 	                		fprintf(stderr,"Cannot open pipe\n");
 					ipipe->error=1;
 					break;
 				}
+
+                                if (fread(&tc_probe_pid, sizeof(pid_t), 1, p_fd) !=1)
+                                {
+                                        fprintf(stderr,"Cannot read pipe\n");
+                                        ipipe->error=1;
+                                        break;
+                                }
+
 				if (fread(&s_other_video, sizeof(probe_info_t), 1, p_fd) !=1)
 				{
 	                		fprintf(stderr,"Cannot read pipe\n");
@@ -151,6 +163,14 @@ void probe_xml(info_t *ipipe)
 					ipipe->error=1;
 					break;
 				}
+
+                                if (fread(&tc_probe_pid, sizeof(pid_t), 1, p_fd) !=1)
+                                {
+                                        fprintf(stderr,"Cannot read pipe\n");
+                                        ipipe->error=1;
+                                        break;
+                                }
+
 				if (fread(&s_other_audio, sizeof(probe_info_t), 1, p_fd) !=1)
 				{
 	                		fprintf(stderr,"Cannot read pipe\n");

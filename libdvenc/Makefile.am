@@ -10,7 +10,7 @@ noinst_LIBRARIES = libdvenc.a
 DVENC1 = dvenc.c 
 
 if HAVE_DV
-DVENC2 = enc_audio_input.c enc_input.c enc_output.c 
+DVENC2 = enc_audio_input.c enc_input.c enc_output.c enc_output2.c 
 if HAVE_X86CPU
 DVENC3 = rgbtoyuv.S encode_x86.S transpose_x86.S
 endif

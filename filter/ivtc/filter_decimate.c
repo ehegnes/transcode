@@ -45,11 +45,12 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "optstr.h"
 
 // basic parameter
-static int color_diff_threshold1 = 50;
-static int color_diff_threshold2 = 100;
-static double critical_threshold = 0.00005;
+// static int color_diff_threshold1 = 50;
+// static int color_diff_threshold2 = 100;
+// static double critical_threshold = 0.00005;
 static int show_results=0;
 
 /*-------------------------------------------------
@@ -155,7 +156,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	
 		// First, find which one from the last 4 looks almost exactly like
 		// its previous one.
-		int diff1,diff2,diff3,diff4,diff5, i, j;
+		int diff1,diff2,diff3,diff4,diff5, i;
 		diff1 = diff2 = diff3 = diff4 = diff5 = 0;
 
 		// Skip 16 pixels for speed.

@@ -36,7 +36,8 @@
 #include "zoom.h"
 #include "ac.h"
 
-#define BLACK_BYTE_YUV 16
+#define BLACK_BYTE_Y 16
+#define BLACK_BYTE_UV 128
 
 /* ------------------------------------------------------------ 
  *
@@ -234,9 +235,9 @@ void yuv_hclip(char *image, int width, int height, int cols)
   
   for (y = 0; y < height; y++) {
       
-      memset (out-cols, BLACK_BYTE_YUV, cols);
+      memset (out-cols, BLACK_BYTE_Y, cols);
       memmove (out, in, rowbytes);
-      memset (out+rowbytes, BLACK_BYTE_YUV, cols);
+      memset (out+rowbytes, BLACK_BYTE_Y, cols);
       
       // advance to next row
       
@@ -256,9 +257,9 @@ void yuv_hclip(char *image, int width, int height, int cols)
   
   for (y = 0; y < height/2; y++) {
       
-      memset(out-offset, 0x80, offset);
+      memset(out-offset, BLACK_BYTE_UV, offset);
       memmove(out, in, rowbytes);
-      memset(out+rowbytes, 0x80, offset);
+      memset(out+rowbytes, BLACK_BYTE_UV, offset);
       
       // advance to next row
       
@@ -274,9 +275,9 @@ void yuv_hclip(char *image, int width, int height, int cols)
 
   for (y = 0; y < height/2; y++) {
       
-      memset(out-offset, 0x80, offset);
+      memset(out-offset, BLACK_BYTE_UV, offset);
       memmove(out, in, rowbytes);
-      memset(out+rowbytes, 0x80, offset);
+      memset(out+rowbytes,BLACK_BYTE_UV , offset);
       
       // advance to next row
       
@@ -385,9 +386,9 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
   
     for (y = 0; y < height; y++) {
       
-        memset (out-cols_left, BLACK_BYTE_YUV, cols_left);
+        memset (out-cols_left, BLACK_BYTE_Y, cols_left);
 	memmove (out, in, rowbytes);
-	memset (out+rowbytes, BLACK_BYTE_YUV, cols_right);
+	memset (out+rowbytes, BLACK_BYTE_Y, cols_right);
       
 	// advance to next row
       
@@ -408,9 +409,9 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
   
     for (y = 0; y < height/2; y++) {
       
-        memset(out-offset_left, 0x80, offset_left);
+        memset(out-offset_left, BLACK_BYTE_UV, offset_left);
 	memmove(out, in, rowbytes);
-	memset(out+rowbytes, 0x80, offset_right);
+	memset(out+rowbytes, BLACK_BYTE_UV, offset_right);
       
 	// advance to next row
       
@@ -427,9 +428,9 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
 
     for (y = 0; y < height/2; y++) {
       
-        memset(out-offset_left, 0x80, offset_left);
+        memset(out-offset_left, BLACK_BYTE_UV, offset_left);
 	memmove(out, in, rowbytes);
-	memset(out+rowbytes, 0x80, offset_right);
+	memset(out+rowbytes, BLACK_BYTE_UV, offset_right);
       
 	// advance to next row
       
@@ -463,7 +464,7 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
   
     for (y = 0; y < height; y++) {
       
-        memset (out-cols_left, BLACK_BYTE_YUV, cols_left);
+        memset (out-cols_left, BLACK_BYTE_Y, cols_left);
 	memmove (out, in, rowbytes);
       
 	// advance to next row
@@ -486,7 +487,7 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
   
     for (y = 0; y < height/2; y++) {
       
-        memset(out-offset_left, 0x80, offset_left);
+        memset(out-offset_left, BLACK_BYTE_UV, offset_left);
 	memmove(out, in, rowbytes);
       
 	// advance to next row
@@ -504,7 +505,7 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
 
     for (y = 0; y < height/2; y++) {
       
-        memset(out-offset_left, 0x80, offset_left);
+        memset(out-offset_left, BLACK_BYTE_UV, offset_left);
 	memmove(out, in, rowbytes);
       
 	// advance to next row
@@ -541,7 +542,7 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
     for (y = 0; y < height; y++) {
       
         memmove (out, in, rowbytes);
-	memset (out+rowbytes, BLACK_BYTE_YUV, cols_right);
+	memset (out+rowbytes, BLACK_BYTE_Y, cols_right);
       
 	// advance to next row
       
@@ -564,7 +565,7 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
     for (y = 0; y < height/2; y++) {
       
         memmove(out, in, rowbytes);
-	memset(out+rowbytes, 0x80, offset_right);
+	memset(out+rowbytes, BLACK_BYTE_UV, offset_right);
       
 	// advance to next row
       
@@ -582,7 +583,7 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
     for (y = 0; y < height/2; y++) {
       
         memmove(out, in, rowbytes);
-	memset(out+rowbytes, 0x80, offset_right);
+	memset(out+rowbytes, BLACK_BYTE_UV, offset_right);
       
 	// advance to next row
 
@@ -649,8 +650,8 @@ void yuv_vclip(char *image, int width, int height, int lines)
   out = image + (4+1)*block + (8+2+1) * bar;
 
   memmove(out, in, block); 
-  memset(out-bar, 0x80, bar);
-  memset(out + block, 0x80, bar);
+  memset(out-bar, BLACK_BYTE_UV, bar);
+  memset(out + block, BLACK_BYTE_UV, bar);
 
   //Cr  
 
@@ -658,8 +659,8 @@ void yuv_vclip(char *image, int width, int height, int lines)
   out = image + 4*block + (8+1) * bar;
   
   memmove(out, in, block); 
-  memset(out-bar, 0x80, bar);
-  memset(out + block, 0x80, bar);
+  memset(out-bar, BLACK_BYTE_UV, bar);
+  memset(out + block, BLACK_BYTE_UV, bar);
 
 
   //Y
@@ -668,8 +669,8 @@ void yuv_vclip(char *image, int width, int height, int lines)
   out = image + 4*bar;
   
   memmove(out, in, 4*block); 
-  memset(image, BLACK_BYTE_YUV, 4*bar);
-  memset(out + 4*block, BLACK_BYTE_YUV, 4*bar);
+  memset(image, BLACK_BYTE_Y, 4*bar);
+  memset(out + 4*block, BLACK_BYTE_Y, 4*bar);
   
 }
 
@@ -709,14 +710,14 @@ void yuv_clip_top_bottom(char *image, char *dest, int _width, int _height, int _
     in    = offset;
     bytes = block*(height - lines_bottom);
     out   = next - lines_top*block;
-    memset(next, BLACK_BYTE_YUV, -lines_top*block);
+    memset(next, BLACK_BYTE_Y, -lines_top*block);
     next += block*(height - (lines_bottom+lines_top));
   }
 
   if(lines_top>=0 && lines_bottom<0) { 
     in    = offset + block * lines_top;
     bytes = block*(height - lines_top);
-    memset(next+bytes, BLACK_BYTE_YUV, -lines_bottom*block);
+    memset(next+bytes, BLACK_BYTE_Y, -lines_bottom*block);
     out   = next;
     next += (bytes - block*lines_bottom);
   }
@@ -724,8 +725,8 @@ void yuv_clip_top_bottom(char *image, char *dest, int _width, int _height, int _
   if(lines_top<0 && lines_bottom<0) { 
     in    = offset;
     bytes = block * height;
-    memset(next, BLACK_BYTE_YUV, -lines_top*block);
-    memset(next+bytes-lines_top*block, BLACK_BYTE_YUV, -lines_bottom*block);
+    memset(next, BLACK_BYTE_Y, -lines_top*block);
+    memset(next+bytes-lines_top*block, BLACK_BYTE_Y, -lines_bottom*block);
     out   = next - lines_top*block;
     next += (bytes - block*(lines_top + lines_bottom)); 
   }
@@ -754,14 +755,14 @@ void yuv_clip_top_bottom(char *image, char *dest, int _width, int _height, int _
     in    = offset;
     bytes = block*(height - lines_bottom);
     out   = next - lines_top*block;
-    memset(next, 0x80, -lines_top*block);
+    memset(next, BLACK_BYTE_UV, -lines_top*block);
     next += block*(height - (lines_bottom+lines_top));
   }
 
   if(lines_top>=0 && lines_bottom<0) { 
     in    = offset + block * lines_top;
     bytes = block*(height - lines_top);
-    memset(next+bytes, 0x80, -lines_bottom*block);
+    memset(next+bytes, BLACK_BYTE_UV, -lines_bottom*block);
     out   = next;
     next += (bytes - block*lines_bottom);
   }
@@ -769,8 +770,8 @@ void yuv_clip_top_bottom(char *image, char *dest, int _width, int _height, int _
   if(lines_top<0 && lines_bottom<0) { 
     in    = offset;
     bytes = block * height;
-    memset(next, 0x80, -lines_top*block);
-    memset(next+bytes-lines_top*block , 0x80, -lines_bottom*block);
+    memset(next, BLACK_BYTE_UV, -lines_top*block);
+    memset(next+bytes-lines_top*block , BLACK_BYTE_UV, -lines_bottom*block);
     out   = next - lines_top*block;
     next += (bytes - block*(lines_top + lines_bottom)); 
   }
@@ -793,14 +794,14 @@ void yuv_clip_top_bottom(char *image, char *dest, int _width, int _height, int _
     in    = offset;
     bytes = block*(height - lines_bottom);
     out   = next - lines_top*block;
-    memset(next, 0x80, -lines_top*block);
+    memset(next, BLACK_BYTE_UV, -lines_top*block);
     next += block*(height - (lines_bottom+lines_top));
   }
 
   if(lines_top>=0 && lines_bottom<0) { 
     in    = offset + block * lines_top;
     bytes = block*(height - lines_top);
-    memset(next+bytes, 0x80, -lines_bottom*block);
+    memset(next+bytes, BLACK_BYTE_UV, -lines_bottom*block);
     out   = next;
     next += (bytes - block*lines_bottom);
   }
@@ -808,8 +809,8 @@ void yuv_clip_top_bottom(char *image, char *dest, int _width, int _height, int _
   if(lines_top<0 && lines_bottom<0) { 
     in    = offset;
     bytes = block * height;
-    memset(next, 0x80, -lines_top*block);
-    memset(next+bytes-lines_top*block, 0x80, -lines_bottom*block);
+    memset(next, BLACK_BYTE_UV, -lines_top*block);
+    memset(next+bytes-lines_top*block, BLACK_BYTE_UV, -lines_bottom*block);
     out   = next - lines_top*block;
     next += (bytes - block*(lines_top + lines_bottom)); 
   }
@@ -1509,7 +1510,7 @@ inline void yuv_decolor(char *image, int offset)
     
     unsigned int y;
 
-    for (y = 0; y<offset/2; ++y) image[offset + y] = 0x80;
+    for (y = 0; y<offset/2; ++y) image[offset + y] = BLACK_BYTE_UV;
     
     return;
 }

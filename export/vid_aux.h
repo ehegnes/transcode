@@ -27,10 +27,15 @@
 #include "config.h"
 #include "transcode.h"
 #include "libvo/rgb2yuv.h"
+#include "libvo/yuv2rgb.h"
 
 int tc_rgb2yuv_init(int width, int height);
 int tc_rgb2yuv_core(char *buffer);
 int tc_rgb2yuv_core_flip(char *buffer);
 int tc_rgb2yuv_close();
+
+int tc_yuv2rgb_init(int width, int height);
+int tc_yuv2rgb_core(char *buffer);
+int tc_yuv2rgb_close();
 
 #endif

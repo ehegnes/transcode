@@ -46,9 +46,6 @@ section .text
 cglobal ac_average_mmx 
 
 %macro INTER_8 0
-	prefetchnta [eax]
-	prefetchnta [ebx]		
-
 	movq mm0, [eax]
 	movq mm4, [ebx]
 
@@ -73,7 +70,7 @@ cglobal ac_average_mmx
 	psrlw mm2, 1
 
 	packuswb mm3, mm2
-	movntq [edi], mm3
+	movq [edi], mm3
 
 	add eax, 8
 	add ebx, 8

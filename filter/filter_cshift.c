@@ -22,8 +22,9 @@
  */
 
 #define MOD_NAME    "filter_cshift.so"
-#define MOD_VERSION "v0.2.0 (2002-04-21)"
+#define MOD_VERSION "v0.2.1 (2003-01-21)"
 #define MOD_CAP     "chroma-lag shifter"
+#define MOD_AUTHOR  "Thomas Östreich, Chad Page"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,6 +45,7 @@ static int loop=1;
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "optstr.h"
 
 void crshift_yuv(char * buffer, vob_t *vob, int shift)
 {
@@ -122,6 +124,16 @@ void crshift_rgb(unsigned char * buffer, vob_t *vob, int shift)
  *
  *-------------------------------------------------*/
 
+// old or new syntax?
+int is_optstr (char *buf) {
+    if (strchr(buf, '='))
+	return 1;
+    if (strchr(buf, 's'))
+	return 1;
+    if (strchr(buf, 'h'))
+	return 1;
+    return 0;
+}
 
 int tc_filter(vframe_list_t *ptr, char *options)
 {
@@ -147,6 +159,14 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // (6) filter is last time with TC_FILTER_CLOSE flag set
 
 
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+      char buf[32];
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYE", "1");
+
+      snprintf(buf, 32, "%d", loop);
+      optstr_param (options, "shift", "Shift chroma(color) to the left", "%d", buf, "0", "width");
+      return 0;
+  }
   //----------------------------------
   //
   // filter init
@@ -164,9 +184,16 @@ int tc_filter(vframe_list_t *ptr, char *options)
     
     if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
 
-    buffer = malloc(SIZE_RGB_FRAME);
+    if (!buffer)
+	buffer = malloc(SIZE_RGB_FRAME);
 
-    if(options != NULL) loop=atoi(options);
+    if(options != NULL) {
+	if (!is_optstr(options)) { // old syntax
+	    loop=atoi(options);
+	} else {
+	    optstr_get (options, "shift", "%d", &loop);
+	}
+    }
       
     return(0);
   }
@@ -180,7 +207,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
   
   if(ptr->tag & TC_FILTER_CLOSE) {
     
-    free(buffer);
+    if (buffer)
+	free(buffer);
+    buffer = NULL;
     
     return(0);
   }

@@ -190,9 +190,13 @@ void tcprobe_thread(info_t *ipipe)
       probe_lav(ipipe);
       break;
 
-      //    case TC_MAGIC_OGG:
+      //case TC_MAGIC_OGG:
       //not yet implemented
       //break;
+      
+    case TC_MAGIC_TS:
+      //not yet implemented
+      break;
 
     case TC_MAGIC_WAV:
       probe_wav(ipipe);

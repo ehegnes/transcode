@@ -1,4 +1,301 @@
 --------------------------------------------
+transcode-0.6.3 Thu Jan 30 20:33:26 CET 2003
+
+- more clean-ups for the new filter interface by Tilmann and Joern as 
+  outlined below:
+
+- new option "--socket file_name" creates a socket file for run-time control
+  of filter options together with a new binary "tcmodinfo" (with man-page).
+	
+  This is explained by Tilmann:
+
+  You can use this socket to do runtime configuration of
+  transcode. I've rewritten basically the complete filter plugin
+  handling to allow filters to be loaded and configured on the
+  fly. The idea was to allow in conjunction with the -J pv Preview
+  plugin to see the effect of filters in realtime and then decide
+  if the you like the outcome of the filter.
+
+  There is a new tool available, called tcmodinfo. It has a
+  manpage so please do not hesitate and read it :). This tool
+  serves two purposes: First, it can retrieve information from
+  filter plugins and second, it can be used as a simple socket
+  client.
+
+  Ok, before this bores you, here is an example session. We will
+  load a filter (the smooth-filter), configure it, and then
+  disable it again.
+
+   $ transcode -V -i in.avi -J pv=cache=30 --socket /tmp/tc-socket --progress_off &
+
+   $ tcmodinfo -s /tmp/tc-socket
+
+   # Pause the preview window
+   preview pause
+
+   # load the smooth filter
+   load smooth
+
+   # See what parameters it has. The format is explained in
+   # /docs/filter-socket.txt
+   parameters smooth
+   "filter_smooth.so", "(single-frame) smoothing plugin", "v0.2.1 (2003-01-21)", \
+    "Chad Page", "VYEM", "1"
+    "strength", "Blending factor", "%f", "0.25", "0.0", "0.9"
+    "cdiff", "Max difference in chroma values", "%d", "6", "0", "16"
+    "ldiff", "Max difference in luma value", "%d", "8", "0", "16"
+    "range", "Search Range", "%d", "4", "0", "16"
+
+   # configure the filter to be more agressive
+     configure smooth strength=0.9
+
+   # show the effect of the filter
+   preview draw
+
+   # Uhh, that looks really ugly
+   preview undo
+
+   # Disable the filter
+   disable smooth
+
+   # Unpause transcode
+   preview pause
+
+   # Disconnect
+   quit
+
+   For all the details, available commands, etc., please read 
+   /docs/filter-socket.txt.
+
+- Dominique CARON <domi@LPM.univ-montp2.fr> updated vob2divx.pl to v1.1.0
+  in the contrib directory.
+
+- some cleanups for source import handling with "fwrite" by 
+  Tomi Ollila <too@guru.megabaud.fi>.
+
+- export_mpeg2enc.so fix by Markus Plail <transcode-devel@gitteundmarkus.de>.
+
+- negative cropping info added to manpage by Roman Fietze <fietze@s.netic.de>.
+	
+-----------------------------------------------------
+transcode-0.6.3.20030123 Thu Jan 23 22:49:19 CET 2003
+
+- mainly an internal development snapshot for Tilmann and Joern.
+	
+- fixes by Tilmann for new the avifile-0.7.25 API.
+
+- feature extension patch for filter_cut.so by Torsten Werner <email@twerner42.de>. Example: transcode [...] -Jcut=%4 
+  processes only every 4th frame. Useful for fast-forward with preview mode.
+
+- removed unneeded libxvidcore.so linking that slipped into Makefile.
+ 	
+-----------------------------------------------------
+transcode-0.6.3.20030116 Thu Jan 16 22:54:20 CET 2003
+
+- video buffer size is now dependent on the maximum frame size required.
+
+- small avilib.c bugfix for non-AVI files by Tilmann.
+ 	
+- updated filter_logoaway.so plug-in and documentation by Thomas Wehrspann 
+  <thomas.wehrspann@tu-clausthal.de>.
+
+- tcmplex segfault fix for long filenames by Tilmann.
+
+- added xvid.h back into transcode's source.
+
+- XviD updates for export-xvidcvs.so by Edouard Gomez <ed.gomez@free.fr>.
+  Quoting form the posting:
+	
+  - Adds support for today's xvid cvs (aka dev-api-3)
+
+  - Fix RGB mode for new core which seems to flip input frame all the
+    time (more over XVID_CSP_VFLIP seems to be broken, so it's a
+    workaround i'm using)
+
+  - Fixed Key Frame report as XviD now return BVOP, SVOP, Packed and
+    NVOPS.
+ 
+  Changes:
+   - bframes are now always enabled in transcode's module
+     (but they are not used by default)
+
+   - added hook for bquant_offset in param. settings in xvid conf files.
+
+   - __uses libtestcore.so__ instead of libxvidcore.so, so the user can
+     have both versions (stable and dev-api-3) on the same box.
+
+     NB: Users should install xvid dev-api- 3 unsing the install-test
+         target, it will take care installing xvid as libtestcore.so
+
+   - __uses ./xvidcvs.cfg or ~/.xvidcvs.cfg filenames__ for settings
+     instead of ./xvid.cfg  and ~/.xvid.cfg.  This is also  to let users
+     have both versions at the same time.
+
+   Warnings:
+   - 2pass code will *not work* with this module, use fixed quant or
+     1pass only. I'll not update this because 2pass wil be put into
+     xvidcore for dev-api-3 so it's not worth porting xvid vfw changes
+     to xvid_vbr.c again.
+
+   - This module is not intended to be used for real encodes. It is
+     intended for testing purposes. Don't complain if your videos are
+     not well encoded, or if xvid cvs created a bad stream. _you are
+     playing with test code_ you're warned.
+
+     Please send your feedback to Edouard Gomez <ed.gomez@free.fr>.
+
+- yuv2rgb and an rgb2yuv wrapper in filter_smartdeinter.so by Tilmann.
+	
+-----------------------------------------------------
+transcode-0.6.3.20030109 Thu Jan  9 21:58:40 CET 2003
+
+- subtitle patch by Jarno Elonen <elonen@iki.fi>, updated by Jörn Reder 
+  <joern@zyn.de>. This patch seems to fix the persistent rendering problems.
+
+- fixes and updates for xvid export by Edouard Gomez <ed.gomez@free.fr>.
+    Quoting from his mail to transcode-devel:
+  - Hinted ME support
+    Though this option reduces quality severely, i added support for it
+    for test purposes. It's coded so i  don't see why it would not go
+    into mainstream.
+
+    Bugfix:
+  - small mistake with headers (was including xvidcvs.h instead of xvid.h)
+
+    What's Hinted ME:
+    Hinted ME was a nice idea of reusing first pass Motion Estimation
+    vectors for second pass. This speeds up second pass a lot as most of
+    encoding time is lost in Motion Estimation. The drawback is a loss in
+    quality because vectors are usually chosen according to a penalty
+    threshold (the higher the bitrate, the longer vectors can be and vice
+    versa) When using Hinted ME, this penalty system that discard Motion
+    Vector candidates because of their length is not used, this results in
+    more bits spent in MVs. This leads to a quality loss when the difference
+    of bitrate during 1st and 2nd pass is high. As xvid modules usually do
+    the 1st pass at quant2 to obtain a natural curve, the 2nd pass is not
+    near enough from the first one to make 1st pass MVs good vectors for 2nd
+    pass bitrate.
+
+    How to use it:
+    The easiest way is to use the meta flag XVID_HINTEDME in frame.general
+    flag. This meta flag will take care of performing XVID_HINTEDME_GET
+    during first pass and XVID_HINTEDME_SET during 2nd pass. 
+    Btw, you can use the real flags XVID_HINTEDME_SET/GET, but they are
+    checked and during 2nd pass GET is unset and SET is unset during 1st
+    pass. So it's not worth worrying about what flag to use, just use
+    XVID_HINTEDME. 
+
+- patch for probe_xml.c by Marzio Malanchini <marzio_malanchini AT vodafone.it>. 
+
+- fix for the DivX green frame problem by Andreas Påhlsson <tml@pahlsson.info>. 
+- new yuvmedian filter added by Tilmann, a port from the mjpeg toolkit. It
+  smoothes the frame using a median algorithm. (see -J yuvmedian=help)
+ 
+- fix for "p_write" namespace pollution in some export modules which popped 
+  up with gcc-3.x. Patches by Tilmann.
+
+- Dominique CARON <domi@LPM.univ-montp2.fr> updated vob2divx.pl to v1.0.2
+  in the contrib directory.
+
+- filter_logo and /docs/filter-API.txt updates by Tilmann with useful hints how
+  to use the optstr_* functions.
+
+- small nuppelvideo audio import bug fixed by Tilmann. 	
+	
+- highly experimental demo filter called filter_videocore.so by Tilmann. This
+  filter allows access to selected internal frame processing operations.
+  This makes it possible to workaround the hard-coded frame processing 
+  queue order.
+
+- patches for the Alpha port provided by Tilmann based on the ML discussion. 
+
+- fixed xvid/bbmpeg quant_intra name clash reported by Michael Lausch.
+
+- small fix for spec-file and man-page path by Rainer Lay.
+
+- corrected tcdemux option -A (pass-through) man-page description.
+
+- export_mpeg2enc.so DVD profile enabled with -F 8. BTW, -F 6,"XXXXX"
+  passes almost only a user specified option string to mpeg2enc. 	
+	
+-----------------------------------------------------
+transcode-0.6.3.20021219 Thu Dec 19 23:55:39 CET 2002
+
+- more documentation updates in docs/html.	
+
+- replaced invalid MMXEXT movntq intruction by movq in MMX code.
+
+- assiged ac_rescale_mmx to MMXWXT code to workaround -B MMX-only bug.
+ 
+- proper transport stream sync-byte detection.	
+
+- patch from XI <xizard@enib.fr> to fix a compilation issue with libdv.
+
+- Philippe Troin <phil@fifi.org> fix for umask extra bits. 
+
+- locally installed liba52 is now the default library for AC3 decoding.
+	
+-----------------------------------------------------
+transcode-0.6.3.20021205 Thu Dec  5 23:09:55 CET 2002
+	
+- ^C enabled to kill hanging tcprobe process.
+
+- fixed another import thread related bug affecting thread cancelation.
+
+- minor documentation updates in docs/html.
+
+- patch by Tilmann to enable libpostproc filter plug-in also in pre-processing
+  slot. '|' or the '/' character can be used to separate arguments. Example: 
+
+  transcode [...] -J pp=pre/linblenddeint -Z 320x240 -J pp=autolevels/tmpnoise:1:2:3/dering
+
+- new filter "-J logoaway" by Thomas Wehrspann <thomas.wehrspann@tu-clausthal.de>. This filter removes an image in a user specified area from the video.
+  Use "-J logoaway=help" to learn about the filter plugin-in inspired by
+  a similar filter of VirtualDub.
+
+- very experimental MPEG transport stream support for video added. Example:
+
+  transcode -i vertical.ts --ts_pid 0x11 -x mpeg2,null -g 1920x1088 -H 0 -J pv -V -Z 400x300 
+
+  Extraction is done via "tcat" and option -n for transport pid selection. 
+  No auto-probing. You need to know the framesize and the pid before you start.
+	
+-----------------------------------------------------
+transcode-0.6.3.20021128 Thu Nov 28 22:32:28 CET 2002
+
+- removed SSE instructions from MMX assembler code, thanks to a hint by
+  Svante Signell <svante.signell@telia.com>.
+
+- fixed a hidden encoder/decoder bug where pre-preprocessing slot (A) was 
+  actually called twice. Affected only --pre_clip so far.
+
+- fixed the mono export bug in export_toolame.so, thanks to a hint by 
+  Miguel Martins <miguelm@ieg.com.br>.
+
+- new (experimental) lame export audio module -y lame.
+
+- export_divx5raw.c added by Loic Le Loarer <loic.le-loarer@polytechnique.org>.
+	
+-----------------------------------------------------
+transcode-0.6.3.20021126 Tue Nov 26 22:37:16 CET 2002
+
+- fixed the tcscan DVD angle option bug.
+
+- fixed name clashes for import/export LZO.
+
+- fixed compiling problem with older versions of libdv in scan_dv.c
+
+- added manpages for tcdecode/tcextract.
+
+- removed all mutex locks from signal handler.
+
+- removed testcancel calls from within a mutex protected decoder code section.
+
+- enabled directory mode for audio only files.
+
+- fixes for audio merging in export_dvraw.so. 
+	
+--------------------------------------------
 transcode-0.6.2 Fri Nov 22 00:10:11 CET 2002
 
 - fixed deadlock in core mode "-t,foo" with ^C.

@@ -10,10 +10,15 @@ CFLAGS = -D_REENTRANT @CFLAGS@
 
 pkgdir=@MOD_PATH@
 
-pkg_LTLIBRARIES = filter_yuvdenoise.la 
+pkg_LTLIBRARIES = \
+         filter_yuvdenoise.la \
+	 filter_yuvmedian.la
 
 filter_yuvdenoise_la_SOURCES = filter_yuvdenoise.c deinterlace.c denoise.c motion.c 
 filter_yuvdenoise_la_LDFLAGS = -no-undefined -module -avoid-version -L../../libvo -lvout
+
+filter_yuvmedian_la_SOURCES = filter_yuvmedian.c 
+filter_yuvmedian_la_LDFLAGS = -no-undefined -module -avoid-version
 
 EXTRA_DIST = *.h 
 

@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 AC_INIT
 AC_CONFIG_AUX_DIR(autotools)
-AM_INIT_AUTOMAKE(transcode,0.6.2)
+AM_INIT_AUTOMAKE(transcode,0.6.3)
 AC_CONFIG_SRCDIR(src/transcode.c)
 AM_CONFIG_HEADER(config.h)
   
@@ -485,6 +485,14 @@ AM_PATH_LIBDVDREAD(AC_DEFINE(HAVE_LIBDVDREAD))
 AM_CONDITIONAL(HAVE_LIBDVDREAD, test x"$have_dvdread" = "xyes")
 
 dnl
+dnl libxvidcore support
+dnl
+
+have_xvidcore=no
+AM_PATH_LIBXVID(AC_DEFINE(HAVE_LIBXVID))
+AM_CONDITIONAL(HAVE_LIBXVID, test x"$have_xvidcore" = "xyes")
+
+dnl
 dnl libmpeg3 support
 dnl
 
@@ -497,6 +505,13 @@ dnl
 
 AM_PATH_POSTPROC(AC_DEFINE(HAVE_LIBPOSTPROC))
 AM_CONDITIONAL(HAVE_LIBPOSTPROC, test x"$have_libpostproc" = "xyes")
+
+dnl
+dnl GM's lve
+dnl
+
+AM_PATH_LVE(AC_DEFINE(HAVE_LIBLVE))
+AM_CONDITIONAL(HAVE_LIBLVE, test x"$have_liblve" = "xyes")
 
 dnl
 dnl libquicktime support
@@ -537,7 +552,7 @@ dnl
 dnl use liba52 as the default decoder 
 dnl
 
-a52_decoder=no
+a52_decoder=yes
 
 if test x"$have_a52" = "xyes"; then
 AC_MSG_CHECKING(for liba52 as default decoder)
@@ -786,6 +801,7 @@ AC_OUTPUT([
            import/af6/Makefile
            import/net/Makefile
            import/v4l/Makefile
+           import/lve/Makefile
            import/yuv/Makefile
            filter/Makefile
            filter/subtitler/Makefile
@@ -810,7 +826,7 @@ dnl openquicktime dependent modules                  $have_openqt
 
 AC_MSG_RESULT([
 ----------------------------------------------------------
-Summary for transcode 0.6.2 features:
+Summary for transcode 0.6.3 features:
 
 static AV-frame buffering                        $statbuf
 DVD navigation support with libdvdread           $have_dvdread
@@ -828,10 +844,12 @@ libjpeg dependent modules | mmx accel            $have_libjpeg | $have_libjpegmm
 libxml2 dependent modules                        $LIBXML2CONFIG
 mjpegtools dependent modules                     $MJPEGTOOLSCONFIG
 experimental v4l support                         $v4l
+experimental lve support                         $have_liblve
 X11 dependent filter plugins                     $USE_X11
 liblzo dependent modules 			 $have_lzo
 libpostproc dependent filter plugin      	 $have_libpostproc
 experimental Ogg support | Vorbis support        $have_ogg | $have_vorbis
+XVID support with libxvidcore                    $have_xvidcore
 ----------------------------------------------------------
 ])
 

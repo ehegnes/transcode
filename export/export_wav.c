@@ -28,7 +28,7 @@
 #include "avilib.h"
 
 #define MOD_NAME    "export_wav.so"
-#define MOD_VERSION "v0.2.0 (2002-11-14)"
+#define MOD_VERSION "v0.2.3 (2003-01-16)"
 #define MOD_CODEC   "(audio) WAVE PCM"
 
 #define MOD_PRE wav
@@ -41,7 +41,7 @@ static struct wave_header rtf;
 static int fd;
 static long total=0;
 
-int p_write (int fd, char *buf, size_t len)
+static int p_write (int fd, char *buf, size_t len)
 {
    size_t n = 0;
    size_t r = 0;
@@ -72,7 +72,8 @@ MOD_init
   if(param->flag == TC_AUDIO) {
 
     memset((char *) &rtf, 0, sizeof(rtf));
-    
+    rtf.riff.len = sizeof(struct riff_struct) + sizeof(struct
+chunk_struct) + sizeof(struct common_struct);
     strncpy(rtf.riff.id, "RIFF", 4);
     strncpy(rtf.riff.wave_id, "WAVE",4);
     strncpy(rtf.format.id, "fmt ",4);
@@ -109,14 +110,10 @@ MOD_init
 MOD_open
 {
 
-  int mask;
-  
   if(param->flag == TC_AUDIO) {
     
-    mask = umask (0);
-    umask (mask);
-    
-    if((fd = open(vob->audio_out_file, O_RDWR|O_CREAT|O_TRUNC, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) &~ mask))<0) {
+    if((fd = open(vob->audio_out_file, O_RDWR|O_CREAT|O_TRUNC,
+		  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))<0) {
       perror("open file");
       return(TC_EXPORT_ERROR);
     }     

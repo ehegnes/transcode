@@ -1169,7 +1169,7 @@ static int ifoRead_C_ADT_internal(ifo_handle_t *ifofile,
 
     CHECK_ZERO(c_adt->cell_adr_table[i].zero_1);
     assert(c_adt->cell_adr_table[i].vob_id > 0);
-    assert(c_adt->cell_adr_table[i].vob_id <= c_adt->nr_of_vobs);
+    //    assert(c_adt->cell_adr_table[i].vob_id <= c_adt->nr_of_vobs);
     assert(c_adt->cell_adr_table[i].cell_id > 0);
     assert(c_adt->cell_adr_table[i].start_sector < 
            c_adt->cell_adr_table[i].last_sector);

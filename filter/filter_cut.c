@@ -79,6 +79,7 @@ char *get_next_range(char *name, char *_string)
 static int ia[MAX_CUT];
 static int ib[MAX_CUT];
 static int cut=0, status=0, stop=0;
+static int mod=0;
 
 int tc_filter(vframe_list_t *ptr, char *options)
 {
@@ -131,24 +132,38 @@ int tc_filter(vframe_list_t *ptr, char *options)
     if(options == NULL) return(0);
 
     offset=options;
-
-    if(verbose) printf("[%s] selecting frames ", MOD_NAME);
-    for (n=0; n<MAX_CUT; ++n) {
-
-      memset(buf, 0, 64);
-
-      if((offset=get_next_range(buf, offset))==NULL) break;
-      
-      i=sscanf(buf, "%d-%d", &ia[n], &ib[n]);
-      
-      if(i==2) {
-	printf("%d-%d ", ia[n], ib[n]); 
-	++cut;    
-      } else {
-	if(i<0) break;
-      }
+    if(offset[0]=='%') {
+       offset++;
+       mod=atoi(offset);
+       if(mod<=0) {
+	  printf("[%s] You must specify a positive number after %%!\n",
+		MOD_NAME);
+	  exit(1);
+       }
+       else {
+	  if(verbose) printf("[%s] encoding every %d frame.\n",
+		MOD_NAME, mod);
+       }
     }
-    printf("\n"); 
+    else {
+       if(verbose) printf("[%s] selecting frames ", MOD_NAME);
+       for (n=0; n<MAX_CUT; ++n) {
+
+	 memset(buf, 0, 64);
+
+	 if((offset=get_next_range(buf, offset))==NULL) break;
+	 
+	 i=sscanf(buf, "%d-%d", &ia[n], &ib[n]);
+	 
+	 if(i==2) {
+	   printf("%d-%d ", ia[n], ib[n]); 
+	   ++cut;    
+	 } else {
+	   if(i<0) break;
+	 }
+       }
+       printf("\n");
+    }
     return(0);
   }
 
@@ -176,6 +191,13 @@ int tc_filter(vframe_list_t *ptr, char *options)
   if(ptr->tag & TC_PRE_S_PROCESS) pre=1;
   
   if(pre==0) return(0);
+
+  if(mod) {
+     if(ptr->id % mod) {
+	ptr->attributes |= TC_FRAME_IS_SKIPPED;
+     }
+     return 0;
+  }
 
   status=0;
   

@@ -259,15 +259,15 @@ int domplex(int mplex_video, int mplex_audio);
 
 				/* Ueberpruefen der Argumente		*/
 int check_files          (	/* Kontrolliert ob Files vorhanden und	*/
-   unsigned int *audio_bytes,
-   unsigned int *audio1_bytes,
-   unsigned int *video_bytes,
+   off_t *audio_bytes,
+   off_t *audio1_bytes,
+   off_t *video_bytes,
    unsigned int which_streams);
 
 				/* weist sie Audio/Video Pointern zu	*/
 int  open_file            (	/* File vorhanden?			*/
    char *name,
-   unsigned int *bytes);
+   off_t *bytes);
 
 int get_info_video       (	/* Info Access Units Video Stream	*/
    char *video_file,

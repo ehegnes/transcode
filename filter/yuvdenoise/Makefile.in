@@ -107,6 +107,8 @@ LIBFAME_CONFIG = @LIBFAME_CONFIG@
 LIBFAME_LIBS = @LIBFAME_LIBS@
 LIBJPEG_CFLAGS = @LIBJPEG_CFLAGS@
 LIBJPEG_LIBS = @LIBJPEG_LIBS@
+LIBLVE_CFLAGS = @LIBLVE_CFLAGS@
+LIBLVE_LIBS = @LIBLVE_LIBS@
 LIBMPEG3_CFLAGS = @LIBMPEG3_CFLAGS@
 LIBMPEG3_LIBS = @LIBMPEG3_LIBS@
 LIBPOSTPROC_CFLAGS = @LIBPOSTPROC_CFLAGS@
@@ -152,6 +154,8 @@ USE_LIBA52_DECODER = @USE_LIBA52_DECODER@
 VERSION = @VERSION@
 VORBIS_CFLAGS = @VORBIS_CFLAGS@
 VORBIS_LIBS = @VORBIS_LIBS@
+XVIDCORE_CFLAGS = @XVIDCORE_CFLAGS@
+XVIDCORE_LIBS = @XVIDCORE_LIBS@
 X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
 X_LIBS = @X_LIBS@
@@ -170,10 +174,16 @@ AM_CFLAGS = -funroll-all-loops -finline-functions -ffast-math -frerun-cse-after-
 
 pkgdir = @MOD_PATH@
 
-pkg_LTLIBRARIES = filter_yuvdenoise.la 
+pkg_LTLIBRARIES = \
+         filter_yuvdenoise.la \
+	 filter_yuvmedian.la
+
 
 filter_yuvdenoise_la_SOURCES = filter_yuvdenoise.c deinterlace.c denoise.c motion.c 
 filter_yuvdenoise_la_LDFLAGS = -no-undefined -module -avoid-version -L../../libvo -lvout
+
+filter_yuvmedian_la_SOURCES = filter_yuvmedian.c 
+filter_yuvmedian_la_LDFLAGS = -no-undefined -module -avoid-version
 
 EXTRA_DIST = *.h 
 subdir = filter/yuvdenoise
@@ -186,6 +196,9 @@ filter_yuvdenoise_la_LIBADD =
 am_filter_yuvdenoise_la_OBJECTS = filter_yuvdenoise.lo deinterlace.lo \
 	denoise.lo motion.lo
 filter_yuvdenoise_la_OBJECTS = $(am_filter_yuvdenoise_la_OBJECTS)
+filter_yuvmedian_la_LIBADD =
+am_filter_yuvmedian_la_OBJECTS = filter_yuvmedian.lo
+filter_yuvmedian_la_OBJECTS = $(am_filter_yuvmedian_la_OBJECTS)
 
 DEFS = @DEFS@
 CPPFLAGS = @CPPFLAGS@
@@ -195,6 +208,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/deinterlace.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/denoise.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_yuvdenoise.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/filter_yuvmedian.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/motion.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -203,9 +217,10 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(filter_yuvdenoise_la_SOURCES)
+DIST_SOURCES = $(filter_yuvdenoise_la_SOURCES) \
+	$(filter_yuvmedian_la_SOURCES)
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(filter_yuvdenoise_la_SOURCES)
+SOURCES = $(filter_yuvdenoise_la_SOURCES) $(filter_yuvmedian_la_SOURCES)
 
 all: all-am
 
@@ -240,6 +255,8 @@ clean-pkgLTLIBRARIES:
 	-test -z "$(pkg_LTLIBRARIES)" || rm -f $(pkg_LTLIBRARIES)
 filter_yuvdenoise.la: $(filter_yuvdenoise_la_OBJECTS) $(filter_yuvdenoise_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_yuvdenoise_la_LDFLAGS) $(filter_yuvdenoise_la_OBJECTS) $(filter_yuvdenoise_la_LIBADD) $(LIBS)
+filter_yuvmedian.la: $(filter_yuvmedian_la_OBJECTS) $(filter_yuvmedian_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(filter_yuvmedian_la_LDFLAGS) $(filter_yuvmedian_la_OBJECTS) $(filter_yuvmedian_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -250,6 +267,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/deinterlace.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/denoise.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_yuvdenoise.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_yuvmedian.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/motion.Plo@am__quote@
 
 distclean-depend:

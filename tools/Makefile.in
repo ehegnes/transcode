@@ -78,7 +78,7 @@ CC = @CC@
 CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 
-CFLAGS = -Wall -I../src -I../avilib -I../libac3 -I$(srcdir)/../src -I$(srcdir)/../avilib -I$(srcdir)/../libac3 @CFLAGS@ 
+CFLAGS = -Wall -I../src -I../avilib -I../libac3 -I$(srcdir)/../src -I$(srcdir)/../avilib -I$(srcdir)/../libac3 @CFLAGS@ -DMOD_PATH=\"@MOD_PATH@\"
 CPP = @CPP@
 CXX = @CXX@
 DEPDIR = @DEPDIR@
@@ -107,6 +107,8 @@ LIBFAME_CONFIG = @LIBFAME_CONFIG@
 LIBFAME_LIBS = @LIBFAME_LIBS@
 LIBJPEG_CFLAGS = @LIBJPEG_CFLAGS@
 LIBJPEG_LIBS = @LIBJPEG_LIBS@
+LIBLVE_CFLAGS = @LIBLVE_CFLAGS@
+LIBLVE_LIBS = @LIBLVE_LIBS@
 LIBMPEG3_CFLAGS = @LIBMPEG3_CFLAGS@
 LIBMPEG3_LIBS = @LIBMPEG3_LIBS@
 LIBPOSTPROC_CFLAGS = @LIBPOSTPROC_CFLAGS@
@@ -152,6 +154,8 @@ USE_LIBA52_DECODER = @USE_LIBA52_DECODER@
 VERSION = @VERSION@
 VORBIS_CFLAGS = @VORBIS_CFLAGS@
 VORBIS_LIBS = @VORBIS_LIBS@
+XVIDCORE_CFLAGS = @XVIDCORE_CFLAGS@
+XVIDCORE_LIBS = @XVIDCORE_LIBS@
 X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
 X_LIBS = @X_LIBS@
@@ -167,7 +171,7 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I. -I../libioa
 
 EXTRA_DIST = *.h 
 
-bin_PROGRAMS = avimerge avisplit avifix avisync 
+bin_PROGRAMS = avimerge avisplit avifix avisync tcmodinfo
 
 avisync_SOURCES = avisync.c buffer.c
 avisync_LDADD = -L../avilib -lavi
@@ -180,12 +184,16 @@ avifix_LDADD = -L../avilib -lavi
 
 avisplit_SOURCES = avisplit.c
 avisplit_LDADD = -L../avilib -lavi -L../libioaux -lioaux
+
+tcmodinfo_SOURCES = tcmodinfo.c
+tcmodinfo_LDADD = -lm ../src/optstr.o
+tcmodinfo_LDFLAGS = -rdynamic
 subdir = tools
 mkinstalldirs = $(SHELL) $(top_srcdir)/autotools/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 bin_PROGRAMS = avimerge$(EXEEXT) avisplit$(EXEEXT) avifix$(EXEEXT) \
-	avisync$(EXEEXT)
+	avisync$(EXEEXT) tcmodinfo$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 
 am_avifix_OBJECTS = avifix.$(OBJEXT)
@@ -204,6 +212,9 @@ am_avisync_OBJECTS = avisync.$(OBJEXT) buffer.$(OBJEXT)
 avisync_OBJECTS = $(am_avisync_OBJECTS)
 avisync_DEPENDENCIES =
 avisync_LDFLAGS =
+am_tcmodinfo_OBJECTS = tcmodinfo.$(OBJEXT)
+tcmodinfo_OBJECTS = $(am_tcmodinfo_OBJECTS)
+tcmodinfo_DEPENDENCIES = ../src/optstr.o
 
 DEFS = @DEFS@
 CPPFLAGS = @CPPFLAGS@
@@ -212,7 +223,7 @@ depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/avifix.Po ./$(DEPDIR)/avimerge.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/avisplit.Po ./$(DEPDIR)/avisync.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/buffer.Po
+@AMDEP_TRUE@	./$(DEPDIR)/buffer.Po ./$(DEPDIR)/tcmodinfo.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -221,9 +232,9 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(avifix_SOURCES) $(avimerge_SOURCES) $(avisplit_SOURCES) \
-	$(avisync_SOURCES)
+	$(avisync_SOURCES) $(tcmodinfo_SOURCES)
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(avifix_SOURCES) $(avimerge_SOURCES) $(avisplit_SOURCES) $(avisync_SOURCES)
+SOURCES = $(avifix_SOURCES) $(avimerge_SOURCES) $(avisplit_SOURCES) $(avisync_SOURCES) $(tcmodinfo_SOURCES)
 
 all: all-am
 
@@ -273,6 +284,9 @@ avisplit$(EXEEXT): $(avisplit_OBJECTS) $(avisplit_DEPENDENCIES)
 avisync$(EXEEXT): $(avisync_OBJECTS) $(avisync_DEPENDENCIES) 
 	@rm -f avisync$(EXEEXT)
 	$(LINK) $(avisync_LDFLAGS) $(avisync_OBJECTS) $(avisync_LDADD) $(LIBS)
+tcmodinfo$(EXEEXT): $(tcmodinfo_OBJECTS) $(tcmodinfo_DEPENDENCIES) 
+	@rm -f tcmodinfo$(EXEEXT)
+	$(LINK) $(tcmodinfo_LDFLAGS) $(tcmodinfo_OBJECTS) $(tcmodinfo_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -285,6 +299,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avisplit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avisync.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/buffer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcmodinfo.Po@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)

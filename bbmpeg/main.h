@@ -757,7 +757,7 @@ int bb_quant_ni_mmx(short *dst, short *src,
                     int imquant, int mquant, int sat_limit);
 
 /* quantize.p */
-extern int quant_intra(short *src, short *dst, int dc_prec,
+extern int bb_quant_intra(short *src, short *dst, int dc_prec,
       unsigned char *quant_mat, int mquant);
 extern int quant_non_intra(short *src, short *dst,
       unsigned short *quant_mat, unsigned short *i_quant_mat, int mquant);

@@ -34,9 +34,9 @@
 
 #include <avifile/videoencoder.h>
 #include <avifile/audioencoder.h>
-#include <avifile/fourcc.h>
+#include <avifile/avm_fourcc.h>
 #include <avifile/creators.h>
-#include <avifile/default.h>
+#include <avifile/avm_default.h>
 
 #include "transcode.h"
 
@@ -89,7 +89,7 @@ void list_codecs()
 void list_attributes(const CodecInfo *info)
 {
   int defval=-1;
-  char def_str[256];
+  const char *def_str;
 
   avm::vector<AttributeInfo> enc_attr = info->encoder_info; // video_codecs[idx].encoder_info;
 
@@ -123,7 +123,7 @@ void list_attributes(const CodecInfo *info)
         }
 
       case AttributeInfo::String:
-  	GetCodecAttr(*info, it->GetName(), def_str, 256);
+  	GetCodecAttr(*info, it->GetName(), &def_str);
   	fprintf(stderr, "\tType: string (default value: %s)\n", def_str);
   	break;
     }

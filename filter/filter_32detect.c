@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_32detect.so"
-#define MOD_VERSION "v0.2.0 (2002-06-12)"
+#define MOD_VERSION "v0.2.2 (2003-01-24)"
 #define MOD_CAP     "3:2 pulldown / interlace detection plugin"
 
 #include <stdio.h>
@@ -149,6 +149,27 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //----------------------------------
   
   
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+      char buf[255];
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Thomas", "VRYMEO", "1");
+
+      sprintf(buf, "%d", THRESHOLD);
+      optstr_param (options, "threshold", "Interlace detection threshold", "%d", buf, "0", "255");
+
+      sprintf(buf, "%d", COLOR_EQUAL);
+      optstr_param (options, "equal", "threshold for equal colors", "%d", buf, "0", "255");
+
+      sprintf(buf, "%d", COLOR_DIFF);
+      optstr_param (options, "diff", "threshold for different colors", "%d", buf, "0", "255");
+
+      optstr_param (options, "force_mode", "set internal force de-interlace flag with mode -I N", 
+	      "%d", "0", "0", "5");
+
+      optstr_param (options, "pre", "run as pre filter", "%d", "1", "0", "1");
+      optstr_param (options, "verbose", "show results", "", "0");
+      return (0);
+  }
+
   if(ptr->tag & TC_FILTER_INIT) {
       
       if((vob = tc_get_vob())==NULL) return(-1);

@@ -33,8 +33,9 @@
  *****************************************************************************/
 
 #define MOD_NAME    "filter_fields.so"
-#define MOD_VERSION "v0.1.0 (2002-08-06)"
+#define MOD_VERSION "v0.1.1 (2003-01-21)"
 #define MOD_CAP     "Field adjustment plugin"
+#define MOD_AUTHOR  "Alex Stewart"
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -167,6 +168,18 @@ static inline void swap_fields(char *f1, char *f2, int width, int height) {
  *                           Main Filter Functions                           *
  *****************************************************************************/
 
+static int filter_get_config(char *options) {
+    optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYE", "1");
+    optstr_param (options, "flip", 
+	    "Exchange the top field and bottom field of each frame", "", "0");
+    optstr_param (options, "shift", 
+	    "Shift the video by one field", "", "0");
+    optstr_param (options, "flip_first", 
+	    "Normally shifting is performed before flipping, this option reverses that", 
+	    "", "0");
+    return 0;
+}
+
 static int filter_init(char *options) {
   int help_shown = 0;
 
@@ -273,6 +286,7 @@ static int filter_video_frame(vframe_list_t *ptr) {
 
 static int filter_close(void) {
   free(buffer);
+  buffer=NULL;
   return 0;
 }
 
@@ -286,6 +300,10 @@ int tc_filter(vframe_list_t *ptr, char *options)
     return filter_init(options);
   }
   
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+    return filter_get_config(options);
+  } 
+
   if(ptr->tag & TC_FILTER_CLOSE) {
     return filter_close();
   } 

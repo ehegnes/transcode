@@ -33,8 +33,9 @@
 */
 
 #define MOD_NAME    "filter_smartdeinter.so"
-#define MOD_VERSION "v2.7b (2002-03-14)"
+#define MOD_VERSION "v2.7b (2003-01-19)"
 #define MOD_CAP     "VirtualDub's smart deinterlacer"
+#define MOD_AUTHOR  "Donald Graft"
 
 #include <stdio.h>
 #include <string.h>
@@ -55,6 +56,7 @@
 #include "transcode.h"
 #include "framebuffer.h"
 #include "optstr.h"
+#include "../export/vid_aux.h"
 
 static vob_t *vob=NULL;
 
@@ -94,6 +96,7 @@ typedef struct MyFilterData {
 	int			colordiff;
 	int			noMotion;
 	int			cubic;
+	int			codec;
 } MyFilterData;
 
 static MyFilterData *mfd;
@@ -133,8 +136,8 @@ void convert_argb2rgb (Pixel32 *in, char * out, int width, int height)
 
 	for (run = 0; run < size; run++) {
 
-		*(out+0) = ((*in & R_MASK) >> R_SHIFT);
-		*(out+1) = ((*in & G_MASK) >> G_SHIFT);
+		*(out+0) = ((*in & R_MASK) >> R_SHIFT)&0xff;
+		*(out+1) = ((*in & G_MASK) >> G_SHIFT)&0xff;
 		*(out+2) = (*in) & B_MASK;
 
 		in++;
@@ -186,14 +189,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
     
 	if((vob = tc_get_vob())==NULL) return(-1);
     
-	// filter init ok.
-
-	if (vob->im_v_codec != CODEC_RGB) {
-		printf("[%s] Sorry, only RGB input allowed for now\n", MOD_NAME);
-		return (-1);
-	}
-    
-	if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
 
 	mfd = (MyFilterData *) malloc(sizeof(MyFilterData));
 
@@ -212,6 +207,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	mfd->colordiff      = 1;
 	mfd->noMotion       = 0;
 	mfd->cubic          = 0;
+	mfd->codec          = vob->im_v_codec;
 
 	if (options != NULL) {
     
@@ -283,10 +279,50 @@ int tc_filter(vframe_list_t *ptr, char *options)
 		mfd->fmoving = (unsigned char *) malloc(sizeof(unsigned char)*width*height);
 	}
 
+	if (mfd->codec == CODEC_YUV) {
+	    tc_rgb2yuv_init(width, height);
+	    tc_yuv2rgb_init(width, height);
+	}
+
+	// filter init ok.
+	if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+
 	return 0;
 
   } /* TC_FILTER_INIT */
 	
+
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+      char buf[255];
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYE", "1");
+
+      sprintf (buf, "%d", mfd->motionOnly);
+      optstr_param (options, "motionOnly", "Show motion areas only" ,"%d", buf, "0", "1");
+      sprintf (buf, "%d", mfd->Blend);
+      optstr_param (options, "Blend", "Blend instead of interpolate in motion areas", "%d", buf, "0", "1" );
+      sprintf (buf, "%d", mfd->threshold);
+      optstr_param (options, "threshold", "Motion Threshold", "%d", buf, "0", "255" );
+      sprintf (buf, "%d", mfd->scenethreshold);
+      optstr_param (options, "scenethreshold", "Scene Change Threshold", "%d", buf, "0", "255" );
+      sprintf (buf, "%d", mfd->fieldShift);
+      optstr_param (options, "fieldShift", "Phase shift", "%d", buf, "0", "1" );
+      sprintf (buf, "%d", mfd->inswap);
+      optstr_param (options, "inswap", "Field swap before phase shift", "%d", buf, "0", "1" );
+      sprintf (buf, "%d", mfd->outswap);
+      optstr_param (options, "outswap", "Field swap after phase shift", "%d", buf, "0", "1" );
+      sprintf (buf, "%d", mfd->noMotion);
+      optstr_param (options, "noMotion", "Disable motion processing", "%d", buf, "0", "1" );
+      sprintf (buf, "%d", mfd->highq);
+      optstr_param (options, "highq", "Motion map denoising for field-only", "%d", buf, "0", "1" );
+      sprintf (buf, "%d", mfd->diffmode);
+      optstr_param (options, "diffmode", "Motion Detection (0=frame, 1=field, 2=both)", "%d", buf, "0", "2" );
+      sprintf (buf, "%d", mfd->colordiff);
+      optstr_param (options, "colordiff", "Compare color channels instead of luma", "%d", buf, "0", "1" );
+      sprintf (buf, "%d", mfd->cubic);
+      optstr_param (options, "cubic", "Use cubic for interpolation", "%d", buf, "0", "1" );
+
+      return (0);
+  }
 
   if(ptr->tag & TC_FILTER_CLOSE) {
 
@@ -332,6 +368,10 @@ int tc_filter(vframe_list_t *ptr, char *options)
 		mfd->convertFrameOut = NULL;
 	}
 
+	if (mfd->codec == CODEC_YUV) {
+	    tc_rgb2yuv_close();
+	    tc_yuv2rgb_close();
+	}
 	if (mfd)
 		free(mfd);
 
@@ -341,7 +381,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 ///////////////////////////////////////////////////////////////////////////
 
-  if(ptr->tag & TC_PRE_PROCESS && ptr->tag & TC_VIDEO) {
+      if(ptr->tag & TC_PRE_PROCESS && ptr->tag & TC_VIDEO) {
     
 	const int		srcpitch = ptr->v_width*sizeof(Pixel32);
 	const int		srcpitchtimes2 = 2 * srcpitch;
@@ -378,6 +418,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 	Pixel32 * dst_buf;
 	Pixel32 * src_buf;
+
+	if (mfd->codec == CODEC_YUV)
+	    tc_yuv2rgb_core(ptr->video_buf);
 
 	convert_rgb2argb (ptr->video_buf, mfd->convertFrameIn, ptr->v_width, ptr->v_height);
 
@@ -1085,6 +1128,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 filter_done:
 	convert_argb2rgb (mfd->convertFrameOut, ptr->video_buf, ptr->v_width, ptr->v_height);
+
+	if (mfd->codec == CODEC_YUV)
+	    tc_rgb2yuv_core(ptr->video_buf);
 
 	return 0;
   }

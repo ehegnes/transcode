@@ -1,6 +1,6 @@
 # Note that this is NOT a relocatable package
 Name: transcode
-Version: 0.6.2
+Version: 0.6.3
 Release: 1
 Summary:  a linux video stream processing utility
 Copyright: GPL
@@ -64,10 +64,12 @@ make install prefix=$RPM_BUILD_ROOT%{prefix} \
 %files
 %defattr(-,root,root)
 %{prefix}
-%{_mandir}/man1/*
 %doc AUTHORS COPYING ChangeLog README TODO docs/*-API.txt
 
 %changelog
+* Tue Dec 10 2002 Rainer Lay <rainer.lay@cs.fau.de> 0.6.3.20021205-1
+- removed extra man in files section
+
 * Thu Apr 18 2002 Michel Alexandre Salim
 - man pages go to /usr/share/man
 - modified for snapshot releases

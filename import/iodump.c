@@ -222,7 +222,12 @@ void tccat_thread(info_t *ipipe)
     
     dvd_read(ipipe->dvd_title, ipipe->dvd_chapter, ipipe->dvd_angle);
     break;
+
+  case TC_MAGIC_TS:
     
+    ts_read(ipipe->fd_in, ipipe->fd_out, ipipe->ts_pid);
+    break;
+
   case TC_MAGIC_RAW:
 
     if(verbose & TC_DEBUG) fprintf(stderr, "(%s) %s\n", __FILE__, filetype(ipipe->magic));
@@ -333,7 +338,7 @@ void tccat_thread(info_t *ipipe)
       //files to follow
       
       
-      itype = fileinfo(ipipe->fd_in);
+      itype = fileinfo(ipipe->fd_in, 0);
       
       close(ipipe->fd_in);
       
@@ -503,6 +508,6 @@ int fileinfo_dir(char *dname, int *fd, long *magic)
     //first valid magic must be the same for all
     //files to follow, but is not checked here
     
-    *magic = fileinfo(*fd);
+    *magic = fileinfo(*fd, 0);
     return(0);
 }

@@ -27,8 +27,8 @@
 #include "transcode.h"
 #include "avilib.h"
 
-#define MOD_NAME    "export_pac.so"
-#define MOD_VERSION "v0.0.1 (2002-05-10)"
+#define MOD_NAME    "export_pcm.so"
+#define MOD_VERSION "v0.0.3 (2003-01-09)"
 #define MOD_CODEC   "(audio) PCM (non-interleaved)"
 
 #define MOD_PRE wav
@@ -40,7 +40,7 @@ static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
 static struct wave_header rtf;
 static int fd_r, fd_l, fd_c, fd_ls, fd_rs, fd_lfe;
 
-int p_write (int fd, char *buf, size_t len)
+static int p_write (int fd, char *buf, size_t len)
 {
    size_t n = 0;
    size_t r = 0;
@@ -107,16 +107,10 @@ MOD_init
 MOD_open
 {
 
-  int mask;
-  
   char fname[256];
 
   if(param->flag == TC_AUDIO) {
       
-      mask = umask (0);
-      umask (mask);
-
-
       switch(rtf.common.wChannels) {
 
 	  
@@ -124,7 +118,9 @@ MOD_open
 	  
 	  sprintf(fname, "%s_ls.pcm", vob->audio_out_file);
 	  
-	  if((fd_ls = open(fname, O_RDWR|O_CREAT|O_TRUNC, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) &~ mask))<0) {
+	  if((fd_ls = open(fname, O_RDWR|O_CREAT|O_TRUNC,
+			   S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))
+	     <0) {
 	      perror("open file");
 	      return(TC_EXPORT_ERROR);
 	  }     
@@ -132,7 +128,9 @@ MOD_open
 	  
 	  sprintf(fname, "%s_rs.pcm", vob->audio_out_file);
 	  
-	  if((fd_rs = open(fname, O_RDWR|O_CREAT|O_TRUNC, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) &~ mask))<0) {
+	  if((fd_rs = open(fname, O_RDWR|O_CREAT|O_TRUNC,
+			   S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))
+	     <0) {
 	      perror("open file");
 	      return(TC_EXPORT_ERROR);
 	  }     
@@ -140,7 +138,9 @@ MOD_open
 	  
 	  sprintf(fname, "%s_lfe.pcm", vob->audio_out_file);
 	  
-	  if((fd_lfe = open(fname, O_RDWR|O_CREAT|O_TRUNC, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) &~ mask))<0) {
+	  if((fd_lfe = open(fname, O_RDWR|O_CREAT|O_TRUNC,
+			    S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))
+	     <0) {
 	      perror("open file");
 	      return(TC_EXPORT_ERROR);
 	  }     
@@ -150,14 +150,18 @@ MOD_open
 	  
 	  sprintf(fname, "%s_l.pcm", vob->audio_out_file);
 	  
-	  if((fd_l = open(fname, O_RDWR|O_CREAT|O_TRUNC, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) &~ mask))<0) {
+	  if((fd_l = open(fname, O_RDWR|O_CREAT|O_TRUNC,
+			  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))
+	     <0) {
 	      perror("open file");
 	      return(TC_EXPORT_ERROR);
 	  }     
 	  
 	  sprintf(fname, "%s_r.pcm", vob->audio_out_file);
 	  
-	  if((fd_r = open(fname, O_RDWR|O_CREAT|O_TRUNC, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) &~ mask))<0) {
+	  if((fd_r = open(fname, O_RDWR|O_CREAT|O_TRUNC,
+			  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))
+	     <0) {
 	      perror("open file");
 	      return(TC_EXPORT_ERROR);
 	  }     
@@ -167,7 +171,9 @@ MOD_open
 	  
 	  sprintf(fname, "%s_c.pcm", vob->audio_out_file);
 	  
-	  if((fd_c = open(fname, O_RDWR|O_CREAT|O_TRUNC, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) &~ mask))<0) {
+	  if((fd_c = open(fname, O_RDWR|O_CREAT|O_TRUNC,
+			  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))
+	     <0) {
 	      perror("open file");
 	      return(TC_EXPORT_ERROR);
 	  }     

@@ -74,7 +74,7 @@ MOD_open
       //directory mode?
       (scan(vob->audio_in_file)) ? sprintf(cat_buf, "tccat -a") : ((vob->im_a_string) ? sprintf(cat_buf, "tcextract -x pcm %s", vob->im_a_string):sprintf(cat_buf, "tcextract -x pcm"));
       
-      if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d | tcextract -a %d -x pcm -d %d", cat_buf, vob->audio_in_file, vob->verbose, vob->a_track, vob->verbose)<0)) {
+      if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d | tcextract -a %d -x pcm -d %d -t raw", cat_buf, vob->audio_in_file, vob->verbose, vob->a_track, vob->verbose)<0)) {
 	perror("cmd buffer overflow");
 	return(TC_IMPORT_ERROR);
       }

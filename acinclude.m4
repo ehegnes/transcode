@@ -106,6 +106,27 @@ AC_ARG_WITH(avifile-exec-prefix,[  --with-avifile-exec-prefix=PFX    prefix wher
   if test "$AVIFILE_CONFIG" = "no" ; then
     have_avifile=no
   else
+
+    AC_MSG_CHECKING(for avifile - version >= "0.7.25")
+
+    avifile_major_version=`$AVIFILE_CONFIG $avifile_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
+    avifile_minor_version=`$AVIFILE_CONFIG $avifile_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
+    avifile_micro_version=`$AVIFILE_CONFIG $avifile_config_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
+    
+    if test $avifile_major_version -ge 0 && test $avifile_minor_version -ge 7 && \
+       test $avifile_micro_version -ge 25 ; then
+         have_avifile=yes
+    else
+      have_avifile=no
+    fi
+
+    AC_MSG_RESULT([$have_avifile])
+
+    if test "$have_avifile" = "yes" ; then
+
     AC_DEFINE(HAVE_AVIFILE)
     have_avifile=yes
     AVIFILE_CFLAGS=`$AVIFILE_CONFIG $avifileconf_args --cflags`
@@ -119,6 +140,7 @@ AC_ARG_WITH(avifile-exec-prefix,[  --with-avifile-exec-prefix=PFX    prefix wher
       AVIFILE_CFLAGS=`echo $AVIFILE_CFLAGS | sed 's,/avifile$,,'` ;;
       *) ;;
       esac
+    fi
   fi	
 
 else
@@ -394,6 +416,57 @@ AC_SUBST(DVDREAD_LIBS)
 ])
 
 
+dnl AM_PATH_LIBXVID([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
+dnl Test for LIBXVID, and define LIBXVID_CFLAGS and LIBXVID_LIBS
+dnl
+
+AC_DEFUN(AM_PATH_LIBXVID,
+[
+
+AC_ARG_WITH(xvidcore, [  --with-xvidcore               use installed LIBXVID library (default=yes)],[case "${withval}" in
+  yes) with_xvidcore=yes;;
+  no) with_xvidcore=no ;;
+  *) AC_MSG_ERROR(bad value ${withval} for --with-xvidcore) ;;
+esac], with_xvidcore=yes)
+
+AC_ARG_WITH(xvidcore-includes,[  --with-xvidcore-includes=PFX  prefix where local xvidcore includes are installed (optional)],
+	  xvidcore_includes="$withval",xvidcore_includes="")
+
+AC_ARG_WITH(xvidcore-libs,[  --with-xvidcore-libs=PFX      prefix where local xvidcore lib is installed (optional)],
+	  xvidcore_libs="$withval", xvidcore_libs="")
+
+XVIDCORE_LIBS=""
+XVIDCORE_CFLAGS=""
+
+have_xvidcore=no
+
+if test x$with_xvidcore = "x"yes ; then
+
+	if test x$xvidcore_includes != "x" ; then
+	    with_xvidcore_i="$xvidcore_includes/include"
+        else
+	    with_xvidcore_i="/usr/include"
+        fi
+
+        if test x$xvidcore_libs != x ; then
+	    with_xvidcore_l="$xvidcore_libs/lib"	
+        else
+	    with_xvidcore_l="/usr/lib"
+        fi
+	
+	AC_CHECK_LIB(xvidcore, xvid_encore,
+       	[XVIDCORE_CFLAGS="-I$with_xvidcore_i -I/usr/local/include" 
+         XVIDCORE_LIBS="-L$with_xvidcore_l -L/usr/local/lib -lxvidcore -lm"
+       	AC_DEFINE(HAVE_LIBXVID) 
+	have_xvidcore=yes], have_xvidcore=no, 
+       	-L$with_xvidcore_l -L/usr/local/lib -lxvidcore -lm)
+fi
+
+AC_SUBST(XVIDCORE_CFLAGS)
+AC_SUBST(XVIDCORE_LIBS)
+])
+
+
 
 dnl 
 dnl libdv
@@ -641,11 +714,12 @@ if test x$libpostproc_builddir != "x" ; then
 
 	AC_CHECK_LIB(postproc, pp_postprocess,
       [
-	LIBPOSTPROC_CFLAGS="-I$with_libpostproc_p/postproc"
-	LIBPOSTPROC_LIBS="-L$with_libpostproc_p/postproc -lpostproc ${EXTRA_LIBS}" 
+       LIBPOSTPROC_CFLAGS="-I$with_libpostproc_p/include"
+       LIBPOSTPROC_LIBS="-L$with_libpostproc_p/lib -lpostproc ${EXTRA_LIBS}"
+
 	AC_DEFINE(HAVE_LIBPOSTPROC)
 	have_libpostproc=yes
-      ], have_libpostproc=no, )
+      ], have_libpostproc=no, -L$with_libpostproc_p/lib -lpostproc ${EXTRA_LIBS})
 fi
 
 if test x$have_libpostproc != "xyes" ; then
@@ -673,6 +747,62 @@ fi
 
 AC_SUBST(LIBPOSTPROC_LIBS)
 AC_SUBST(LIBPOSTPROC_CFLAGS)
+])
+
+
+dnl 
+dnl liblve
+dnl 
+dnl 
+
+AC_DEFUN(AM_PATH_LVE,
+[
+
+AC_ARG_WITH(liblve-builddir,[  --with-liblve-builddir=PFX    path to MPlayer builddir  (optional)],
+	  liblve_builddir="$withval",liblve_builddir="")
+
+EXTRA_LIBS="-lm"
+
+have_liblve=no
+
+if test x$liblve_builddir != "x" ; then
+
+	with_liblve_p="$liblve_builddir"
+
+	AC_CHECK_LIB(lve, pp_lveess,
+      [
+	LIBLVE_CFLAGS="-I$with_liblve_p/lve"
+	LIBLVE_LIBS="-L$with_liblve_p/lve -llve ${EXTRA_LIBS}" 
+	AC_DEFINE(HAVE_LIBLVE)
+	have_liblve=yes
+      ], have_liblve=no, )
+fi
+
+if test x$have_liblve != "xyes" ; then
+
+	AC_CHECK_LIB(lve, pp_lveess,
+      [
+	LIBLVE_CFLAGS=""
+	LIBLVE_LIBS="-llve ${EXTRA_LIBS}" 
+	AC_DEFINE(HAVE_LIBLVE)
+	 have_liblve=yes
+      ], have_liblve=no, )
+fi
+
+if test x$have_liblve != "xyes" ; then
+
+	AC_CHECK_LIB(lve, pp_lveess,
+      [
+	LIBLVE_CFLAGS="-I/usr/local/include"
+	LIBLVE_LIBS="-L/usr/local/lib -llve ${EXTRA_LIBS}" 
+	AC_DEFINE(HAVE_LIBLVE)
+	have_liblve=yes
+      ], have_liblve=no, )
+fi
+
+
+AC_SUBST(LIBLVE_LIBS)
+AC_SUBST(LIBLVE_CFLAGS)
 ])
 
 
