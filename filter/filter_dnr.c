@@ -24,26 +24,22 @@
 #define MOD_NAME    "filter_dnr.so"
 #define MOD_VERSION "v0.2 (2003-01-21)"
 #define MOD_CAP     "dynamic noise reduction"
+#define MOD_AUTHOR  "Gerhard Monzel"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <inttypes.h>
+#include <math.h>
+#include <string.h>
+
 
 /* -------------------------------------------------
  *
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-#include <unistd.h>
-#include <inttypes.h>
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
 
 #include "transcode.h"
 #include "framebuffer.h"
