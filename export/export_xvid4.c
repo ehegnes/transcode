@@ -65,7 +65,7 @@
  ****************************************************************************/
 
 #define MOD_NAME    "export_xvid4.so"
-#define MOD_VERSION "v0.0.2 (2003-07-30)"
+#define MOD_VERSION "v0.0.3 (2003-08-07)"
 #define MOD_CODEC  \
 "(video) XviD 1.0.x series (aka API 4.0) | (audio) MPEG/AC3/PCM"
 #define MOD_PRE xvid4_ 
@@ -1186,6 +1186,8 @@ static int load_xvid(xvid_module_t *xvid, char *path)
 
 	if(xvid->global == NULL && (error = dlerror()) != NULL) {
 		fprintf(stderr, "[%s] Error loading symbol (%s)\n", MOD_NAME, error);
+		fprintf(stderr, "[%s] Library \"%s\" looks like an old version of libxvidcore\n", MOD_NAME, soname[i]);
+		fprintf(stderr, "[%s] You cannot use this module with this lib; maybe -y xvid2 works\n", MOD_NAME);
 		return(-1);
 	}
 
