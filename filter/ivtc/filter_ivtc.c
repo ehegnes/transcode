@@ -25,23 +25,19 @@
 #define MOD_NAME    "filter_ivtc.so"
 #define MOD_VERSION "v0.4.1 (2004-06-01)"
 #define MOD_CAP     "NTSC inverse telecine plugin"
+#define MOD_AUTHOR  "Thanassis Tsiodras"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 /* -------------------------------------------------
  *
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-#include <unistd.h>
-#include <inttypes.h>
 
 #include "transcode.h"
 #include "framebuffer.h"
