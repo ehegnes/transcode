@@ -2686,11 +2686,21 @@ int AVI_read_wave_header( int fd, struct wave_header * wave )
 	AVI_errno = AVI_ERR_READ;
 	return -1;
     }
+    /*
+    fprintf(stderr, "RIFF: %c%c%c%c| (%d) (%d)\n", 
+	    wave->riff.id[0], wave->riff.id[1], wave->riff.id[2], wave->riff.id[3],
+	    sizeof (*wave), sizeof (struct wave_header));
+    fprintf(stderr, "WAVE: %c%c%c%c|\n", 
+	    wave->riff.wave_id[0], wave->riff.wave_id[1], wave->riff.wave_id[2], wave->riff.wave_id[3]);
+    fprintf(stderr, "fmt : %c%c%c%c|\n", 
+	    wave->format.id[0], wave->format.id[1], wave->format.id[2], wave->format.id[3]);
+    fprintf(stderr, "data: %c%c%c%c|\n", 
+	    wave->data.id[0], wave->data.id[1], wave->data.id[2], wave->data.id[3]);
+	    */
 
     if( strncasecmp(wave->riff.id     , "RIFF",4) != 0 ||
 	strncasecmp(wave->riff.wave_id, "WAVE",4) != 0 ||
-	strncasecmp(wave->format.id   , "fmt ",4) != 0 ||
-	strncasecmp(wave->data.id     , "data",4) != 0 )
+	strncasecmp(wave->format.id   , "fmt ",4) != 0 )
     {
 	AVI_errno = AVI_ERR_NO_AVI;
 	return -1;

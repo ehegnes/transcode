@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-09-02 Tilmann Bitterberg <transcode at tibit.org>
+
+   * avilib/avilib.c import/extract_pcm.c:
+   Small fixup for WAVE files with a slighly different header
+
 2003-08-31 Markus Linnala <maage at sauna.ton.tut.fi>
   
    * acinclude.m4:

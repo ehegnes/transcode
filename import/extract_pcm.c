@@ -219,6 +219,7 @@ void extract_pcm(info_t *ipipe)
   int error=0;
 
   struct wave_header wave;
+  int sz_wave;
 
 
   /* ------------------------------------------------------------ 
@@ -299,9 +300,18 @@ void extract_pcm(info_t *ipipe)
       error=1;
       break;
     }
+
+    sz_wave = sizeof(wave);
+
+    // some wave headers are larger than 44
+    if (wave.data.id[2] == 'd' && wave.data.id[3] == 'a') {
+	char buf[8];
+	AVI_read_wave_pcm_data(ipipe->fd_in, buf, 6);
+	sz_wave += 8;
+    }
     
     // get total audio size
-    bytes = wave.riff.len - sizeof(wave);
+    bytes = wave.riff.len - sz_wave;
     
     if(bytes<=0) { 
       error=1;
