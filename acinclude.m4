@@ -484,66 +484,6 @@ fi
 ])
 
 
-dnl this isn't used
-dnl AM_PATH_POSTPROC([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for libpostproc, and define POSTPROC_LIBS and POSTPROC_CFLAGS
-dnl
-AC_DEFUN([AM_PATH_POSTPROC],
-[
-AC_MSG_CHECKING([whether libpostproc support is requested])
-AC_ARG_ENABLE(libpostproc,
-  AC_HELP_STRING([--enable-libpostproc],
-    [build libpostproc dependent module (no)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-libpostproc) ;;
-  esac],
-  enable_libpostproc=no)
-AC_MSG_RESULT($enable_libpostproc)
-
-AC_ARG_WITH(libpostproc-builddir,
-  AC_HELP_STRING([--with-libpostproc-builddir=PFX],
-    [path to MPlayer builddir (optional)]),
-  libpostproc_builddir="$withval", libpostproc_builddir="")
-
-POSTPROC_EXTRA_LIBS="-lm"
-have_libpostproc=no
-
-if test x"$enable_libpostproc" = x"yes" ; then
-  if test x"$libpostproc_builddir" != x"" ; then
-    with_libpostproc_p="$libpostproc_builddir"
-    save_LDFLAGS="$LDFLAGS"
-    LDFLAGS="$LDFLAGS -L$with_libpostproc_p/lib"
-    AC_CHECK_LIB(postproc, pp_postprocess,
-      [LIBPOSTPROC_CFLAGS="-I$with_libpostproc_p/include"
-        LIBPOSTPROC_LIBS="-L$with_libpostproc_p/lib -lpostproc $POSTPROC_EXTRA_LIBS"
-        have_libpostproc=yes],
-      [],
-      [$POSTPROC_EXTRA_LIBS])
-    LDFLAGS="$save_LDFLAGS"
-  fi
-  if test x"$have_libpostproc" != x"yes" ; then
-    AC_CHECK_LIB(postproc, pp_postprocess,
-      [LIBPOSTPROC_CFLAGS=""
-        LIBPOSTPROC_LIBS="-lpostproc $POSTPROC_EXTRA_LIBS"
-        have_libpostproc=yes])
-  fi
-  if test x"$have_libpostproc" = x"yes" ; then
-    ifelse([$1], , :, [$1])
-  else
-    AC_MSG_ERROR([libpostproc requested, but cannot link with libpostproc])
-  fi
-else
-  LIBPOSTPROC_LIBS=""
-  LIBPOSTPROC_CFLAGS=""
-  ifelse([$2], , :, [$2])
-fi
-AC_SUBST(LIBPOSTPROC_LIBS)
-AC_SUBST(LIBPOSTPROC_CFLAGS)
-])
-
-
 dnl TC_PATH_LVE([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for liblve and set LVE_CFLAGS and LVE_LIBS
 dnl
@@ -1032,37 +972,6 @@ rm -f conf.sdltest
 ])
 
 
-dnl TC_PATH_GTK([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for gtk+, and define GTK_CFLAGS and GTK_LIBS
-dnl
-AC_DEFUN([TC_PATH_GTK],
-[
-AC_MSG_CHECKING([whether gtk+ support is requested])
-AC_ARG_ENABLE(gtk,
-  AC_HELP_STRING([--enable-gtk],
-    [build gtk dependent modules (no)]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-gtk) ;;
-  esac],
-  enable_gtk=no)
-AC_MSG_RESULT($enable_gtk)
-have_gtk=no
-if test x"$enable_gtk" = x"yes" ; then
-  PKG_CHECK_MODULES(GTK, gtk+ >= 0.99.7)
-  have_gtk=yes
-  ifelse([$1], , :, [$1])
-else
-  GTK_CFLAGS=""
-  GTK_LIBS=""
-  AC_SUBST(GTK_CFLAGS)
-  AC_SUBST(GTK_LIBS)
-  ifelse([$2], , :, [$2])
-fi
-])
-
-
 dnl TC_PATH_LIBFAME([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND [, MODULES]]]])
 dnl Test for libfame, and define LIBFAME_CFLAGS and LIBFAME_LIBS
 dnl Vivien Chappelier 2000-12-11
@@ -1353,62 +1262,6 @@ if test x"$enable_ffbin" = x"yes" ; then
     ifelse([$2], , :, [$2])
   fi
 fi
-])
-
-
-dnl PKG_CHECK_MODULES(GSTUFF, gtk+-2.0 >= 1.3 glib = 1.3.4, action-if, action-not)
-dnl defines GSTUFF_LIBS, GSTUFF_CFLAGS, see pkg-config man page
-dnl also defines GSTUFF_PKG_ERRORS on error
-AC_DEFUN([PKG_CHECK_MODULES], [
-  succeeded=no
-
-  if test -z "$PKG_CONFIG"; then
-    AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
-  fi
-
-  if test x"$PKG_CONFIG" = x"no" ; then
-     echo "*** The pkg-config script could not be found. Make sure it is"
-     echo "*** in your path, or set the PKG_CONFIG environment variable"
-     echo "*** to the full path to pkg-config."
-     echo "*** Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config."
-  else
-     PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
-        AC_MSG_CHECKING(for $2)
-
-        if $PKG_CONFIG --exists "$2" ; then
-            AC_MSG_RESULT(yes)
-            succeeded=yes
-
-            AC_MSG_CHECKING($1_CFLAGS)
-            $1_CFLAGS=`$PKG_CONFIG --cflags "$2"`
-            AC_MSG_RESULT($$1_CFLAGS)
-
-            AC_MSG_CHECKING($1_LIBS)
-            $1_LIBS=`$PKG_CONFIG --libs "$2"`
-            AC_MSG_RESULT($$1_LIBS)
-        else
-            $1_CFLAGS=""
-            $1_LIBS=""
-            ## If we have a custom action on failure, don't print errors, but 
-            ## do set a variable so people can do so.
-            $1_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$2"`
-            ifelse([$4], ,echo $$1_PKG_ERRORS,)
-        fi
-
-        AC_SUBST($1_CFLAGS)
-        AC_SUBST($1_LIBS)
-     else
-        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
-        echo "*** See http://www.freedesktop.org/software/pkgconfig"
-     fi
-  fi
-
-  if test x"$succeeded" = x"yes" ; then
-     ifelse([$3], , :, [$3])
-  else
-     ifelse([$4], , AC_MSG_ERROR([Library requirements ($2) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them.]), [$4])
-  fi
 ])
 
 

@@ -590,24 +590,6 @@ fi
 dnl ---------------------------------------------------------------------
 dnl X11 checks
 
-dnl AC_MSG_CHECKING([whether X11 support is requested])
-dnl Default is enabled X11
-
-dnl AC_ARG_ENABLE(x,  AC_HELP_STRING([--enable-x], [build X11 dependent plugins (yes)]), 
-dnl [
-dnl if test x"${enableval}" = x"yes" ; then
-dnl     AC_MSG_RESULT(yes)
-dnl     USE_X11=yes
-dnl else
-dnl     AC_MSG_RESULT(no)
-dnl     USE_X11=no
-dnl fi], [
-dnl USE_X11=yes
-dnl AC_MSG_RESULT(yes)]
-dnl )
-
-dnl if test x"${USE_X11}" = x"yes" ; then
-
 AC_PATH_XTRA
 if test x"${no_x}" = x"yes" ; then
   AC_MSG_WARN(can not find X11)
@@ -760,8 +742,6 @@ AC_SUBST(AVIFILE_LIBS)
 dnl
 dnl lame support
 dnl
-dnl TC_PATH_LAME(AC_DEFINE_UNQUOTED([HAVE_LAME], $lame_version, [Have lame lib support]))
-dnl AM_CONDITIONAL(HAVE_LAME, test x"$have_lame" = x"yes")
 TC_PATH_PKG(lame, yes, LAME, lame, [],
   [C], [], mp3lame, lame_init)
 if test x"$have_lame" = x"yes" ; then
@@ -885,14 +865,6 @@ AC_SUBST(LIBDVDREAD_LIBS)
 dnl
 dnl xvid support
 dnl
-dnl XVID_EXTRA_LIBS="$XVID_EXTRA_LIBS -lm"
-dnl TC_PATH_PKG(xvid, no, XVID, xvid, xvid-config,
-dnl   [C], [xvid4.h], xvidcore, xvid_encore)
-dnl if test x"$have_xvid" = x"yes" ; then
-dnl   AC_DEFINE([HAVE_XVID], 1, [have xvid support])
-dnl fi
-dnl AM_CONDITIONAL(HAVE_XVID, test x"$have_xvid" = x"yes")
-dnl
 AC_MSG_CHECKING([for default xvid])
 AC_ARG_WITH(default-xvid,
   AC_HELP_STRING([--with-default-xvid=xvid2/xvid3/xvid4],
@@ -902,12 +874,6 @@ AC_ARG_WITH(default-xvid,
 AC_MSG_RESULT($default_xvid)
 XVID_DEFAULT="$default_xvid"
 AC_SUBST(XVID_DEFAULT)
-
-dnl
-dnl MPlayer libpostproc
-dnl
-dnl AM_PATH_POSTPROC(AC_DEFINE([HAVE_LIBPOSTPROC], 1, [Have libpostproc support]))
-dnl AM_CONDITIONAL(HAVE_LIBPOSTPROC, test x"$have_libpostproc" = x"yes")
 
 dnl
 dnl PVM
@@ -1123,12 +1089,14 @@ AM_CONDITIONAL(HAVE_DIVX_ENCORE2, test x"$have_divx_encore2" = x"yes" )
 dnl
 dnl GTK
 dnl
-if test x"$PKG_CONFIG" = x"no" ; then
-  echo -n "pkgconfig disabled... "
-  enable_gtk=no
+TC_PATH_PKG(gtk, no, GTK, gtk+, gtk-config,
+  [C], [gtk/gtk.h], gtk, gtk_init)
+if test x"$have_gtk" = x"yes" ; then
+  AC_DEFINE([HAVE_GTK], 1, [have gtk support])
 fi
-TC_PATH_GTK(AC_DEFINE([HAVE_GTK], 1, [define if your system has gtk]))
 AM_CONDITIONAL(HAVE_GTK, test x"$have_gtk" = x"yes")
+AC_SUBST(GTK_CFLAGS)
+AC_SUBST(GTK_LIBS)
 
 dnl
 dnl libfame
