@@ -554,11 +554,11 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	export_para.size   = vptr->video_size;
 	export_para.attributes = vptr->attributes;
 	
-	if(aptr->attributes & TC_FRAME_IS_KEYFRAME) export_para.attributes |= TC_FRAME_IS_KEYFRAME;
+	if(vptr->attributes & TC_FRAME_IS_KEYFRAME) export_para.attributes |= TC_FRAME_IS_KEYFRAME;
 	
 	export_para.flag   = TC_VIDEO;
 
-	if(tcv_export(TC_EXPORT_ENCODE, &export_para, vob)<0) {
+	if( !(vptr->attributes & TC_FRAME_IS_SKIPPED) && tcv_export(TC_EXPORT_ENCODE, &export_para, vob)<0) {
 	  tc_warn("error encoding video frame");
 	  exit_on_encoder_error=1;
 	}
@@ -620,7 +620,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	    aptr->attributes |= TC_FRAME_IS_CLONED; 
 	    fprintf(stderr, "[%s] Delaying audio (%d)\n", __FILE__, vob->video_frames_delay);
 	} else {
-	    if(tca_export(TC_EXPORT_ENCODE, &export_para, vob)<0) {
+	    if( !(aptr->attributes & TC_FRAME_IS_SKIPPED) && tca_export(TC_EXPORT_ENCODE, &export_para, vob)<0) {
 		tc_warn("error encoding audio frame\n");
 		exit_on_encoder_error=1;
 	    }
@@ -649,7 +649,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	
 	// finished?
 	if(fid >= frame_b) {
-	  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) encoder last frame finished\n", __FILE__);
+	  if(verbose & TC_DEBUG) fprintf(stderr, "\n(%s) encoder last frame finished\n", __FILE__);
 	  
 	  return;
 	}
@@ -666,13 +666,13 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	  
 	} else {	
 	  
-	  pthread_mutex_lock(&vbuffer_im_fill_lock);
+	  pthread_mutex_lock(&vbuffer_ex_fill_lock);
 	  --vbuffer_ex_fill_ctr;
-	  pthread_mutex_unlock(&vbuffer_im_fill_lock);
+	  pthread_mutex_unlock(&vbuffer_ex_fill_lock);
 	  
-	  pthread_mutex_lock(&abuffer_im_fill_lock);
+	  pthread_mutex_lock(&abuffer_ex_fill_lock);
 	  --abuffer_ex_fill_ctr;
-	  pthread_mutex_unlock(&abuffer_im_fill_lock);
+	  pthread_mutex_unlock(&abuffer_ex_fill_lock);
 	}
 	
 	if(!counter_skipping) {

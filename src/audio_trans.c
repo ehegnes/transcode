@@ -85,6 +85,22 @@ int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
   char *b;
 
   int trans=TC_FALSE;
+  struct fc_time *t=vob->ttime;
+  int skip=1;
+
+  // set skip attribute very early based on -c
+  while (t) {
+      if (t->stf <= ptr->id && ptr->id < t->etf)  {
+	  skip=0;
+	  break;
+      }
+      t = t->next;
+  }
+  
+  if (skip) {
+      ptr->attributes |= TC_FRAME_IS_SKIPPED;
+      return 0;
+  }
 
   // check for pass-through mode
   

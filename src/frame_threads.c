@@ -263,12 +263,8 @@ void process_vframe(vob_t *vob)
     //------
     // video
     //------
-    
-    // external plugin pre-processing
-    ptr->tag = TC_VIDEO|TC_PRE_M_PROCESS;
-    process_vid_plugins(ptr);
 
-    
+#if 0
     if(ptr->attributes & TC_FRAME_IS_SKIPPED) {
       vframe_remove(ptr);  // release frame buffer memory
       
@@ -284,6 +280,31 @@ void process_vframe(vob_t *vob)
       continue;
       //goto invalid_vptr; // frame skipped
     }
+#endif
+
+    
+    // external plugin pre-processing
+    ptr->tag = TC_VIDEO|TC_PRE_M_PROCESS;
+    process_vid_plugins(ptr);
+
+    
+#if 0
+    if(ptr->attributes & TC_FRAME_IS_SKIPPED) {
+      vframe_remove(ptr);  // release frame buffer memory
+      
+      pthread_mutex_lock(&vbuffer_xx_fill_lock);
+      --vbuffer_xx_fill_ctr;
+      pthread_mutex_unlock(&vbuffer_xx_fill_lock);
+
+      // notify sleeping import thread
+      pthread_mutex_lock(&vframe_list_lock);
+      pthread_cond_signal(&vframe_list_full_cv);
+      pthread_mutex_unlock(&vframe_list_lock);
+      
+      continue;
+      //goto invalid_vptr; // frame skipped
+    }
+#endif
 
     // internal processing of video
     ptr->tag = TC_VIDEO;
@@ -293,6 +314,7 @@ void process_vframe(vob_t *vob)
     ptr->tag = TC_VIDEO|TC_POST_M_PROCESS;
     process_vid_plugins(ptr);
     
+#if 0
     if(ptr->attributes & TC_FRAME_IS_SKIPPED) {
       vframe_remove(ptr);  // release frame buffer memory
       
@@ -308,6 +330,7 @@ void process_vframe(vob_t *vob)
       continue;
       //goto invalid_vptr; // frame skipped
     }
+#endif
 
     pthread_testcancel();
     
@@ -384,11 +407,8 @@ void process_aframe(vob_t *vob)
     //------
     // audio
     //------
-    
-    // external plugin pre-processing
-    ptr->tag = TC_AUDIO|TC_PRE_M_PROCESS;
-    process_aud_plugins(ptr);
 
+#if 0
     if(ptr->attributes & TC_FRAME_IS_SKIPPED) {
       aframe_remove(ptr);  // release frame buffer memory
 
@@ -404,6 +424,29 @@ void process_aframe(vob_t *vob)
       continue;
       //goto invalid_aptr; // frame skipped
     }
+#endif
+    
+    // external plugin pre-processing
+    ptr->tag = TC_AUDIO|TC_PRE_M_PROCESS;
+    process_aud_plugins(ptr);
+
+#if 0
+    if(ptr->attributes & TC_FRAME_IS_SKIPPED) {
+      aframe_remove(ptr);  // release frame buffer memory
+
+      pthread_mutex_lock(&abuffer_xx_fill_lock);
+      --abuffer_xx_fill_ctr;
+      pthread_mutex_unlock(&abuffer_xx_fill_lock);
+      
+      // notify sleeping import thread
+      pthread_mutex_lock(&aframe_list_lock);
+      pthread_cond_signal(&aframe_list_full_cv);
+      pthread_mutex_unlock(&aframe_list_lock);
+      
+      continue;
+      //goto invalid_aptr; // frame skipped
+    }
+#endif
     
     // internal processing of audio
     ptr->tag = TC_AUDIO;
@@ -413,6 +456,7 @@ void process_aframe(vob_t *vob)
     ptr->tag = TC_AUDIO|TC_POST_M_PROCESS;
     process_aud_plugins(ptr);
     
+#if 0
     if(ptr->attributes & TC_FRAME_IS_SKIPPED) {
       aframe_remove(ptr);  // release frame buffer memory
 
@@ -428,6 +472,7 @@ void process_aframe(vob_t *vob)
       continue;
       //goto invalid_aptr; // frame skipped
     }
+#endif
 
     pthread_testcancel();
 

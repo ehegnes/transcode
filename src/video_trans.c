@@ -1097,6 +1097,9 @@ int process_vid_frame(vob_t *vob, vframe_list_t *ptr)
   // check for pass-through mode
 
   if(vob->pass_flag & TC_VIDEO) return(0);
+
+  if (ptr->attributes & TC_FRAME_IS_SKIPPED)
+      return 0;
   
   // check if a frame data are in RGB colorspace
   

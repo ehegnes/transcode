@@ -157,6 +157,22 @@ int preprocess_rgb_frame(vob_t *vob, vframe_list_t *ptr)
 int preprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
     
 {
+  struct fc_time *t=vob->ttime;
+  int skip=1;
+
+  // set skip attribute very early based on -c
+  while (t) {
+      if (t->stf <= ptr->id && ptr->id < t->etf)  {
+	  skip=0;
+	  break;
+      }
+      t = t->next;
+  }
+  
+  if (skip) {
+      ptr->attributes |= TC_FRAME_IS_SKIPPED;
+      return 0;
+  }
 
   // check for pass-through mode
 
