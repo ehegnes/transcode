@@ -674,14 +674,14 @@ main()
       AC_MSG_ERROR([linking static archives into shared objects not supported on this platform]) 
     fi
     save_LIBS="$LIBS"
-    LIBS="$LIBS $w_ffmpeg_libs_l${deflib}/libavcodec.a $FFMPEG_LIBS_EXTRALIBS"
+    LIBS="$LIBS $w_ffmpeg_libs_l${deflib}/libavcodec.a $FFMPEG_LIBS_EXTRA_LIBS"
     AC_TRY_LINK([
 #include <ffmpeg/avcodec.h>
 ],[
 AVCodecContext *ctx = (void *)0;
 avcodec_thread_init(ctx, 0);
 ],
-      [FFMPEG_LIBS_LIBS="$w_ffmpeg_libs_l${deflib}/libavcodec.a $FFMPEG_LIBS_EXTRALIBS"],
+      [FFMPEG_LIBS_LIBS="$w_ffmpeg_libs_l${deflib}/libavcodec.a $FFMPEG_LIBS_EXTRA_LIBS"],
       [AC_MSG_ERROR([cannot link statically with libavcodec])])
     LIBS="$save_LIBS"
   fi
