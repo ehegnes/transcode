@@ -57,8 +57,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   static vob_t *vob=NULL;
   static char *lines = NULL;
-  static int width, height, height_mod;
+  static int width, height, height_mod, codec;
   int w, h;
+  static int evenfirst=1;
 
 
 
@@ -97,9 +98,10 @@ int tc_filter(vframe_list_t *ptr, char *options)
     
     width  = vob->ex_v_width;
     height = vob->ex_v_height;
+    codec  = vob->im_v_codec;
     
     // dirty, dirty, dirty.
-    vob->ex_v_height /= 2;
+    //vob->ex_v_height /= 2;
     height_mod = vob->ex_v_height;
 
     if (!lines) 
@@ -140,33 +142,68 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // or after and determines video/audio context
 
   if(ptr->tag & TC_POST_S_PROCESS) {
+      int stride = ptr->v_width*3;
+      if (codec==CODEC_YUV)
+	  stride = ptr->v_width;
 
       if (!(ptr->attributes & TC_FRAME_WAS_CLONED)) {
 
 	  char *p = ptr->video_buf;
+	  char *s = lines+((evenfirst)?stride:0);
 	  //printf("Is cloned\n");
 
 	  ptr->attributes |= TC_FRAME_IS_CLONED;
 
 	  memcpy (lines, ptr->video_buf, ptr->video_size);
 
-	  for (h = 0; h < ptr->v_height; h += 2) {
-	      memcpy (p, lines + h * ptr->v_width*3, ptr->v_width*3);
-	      p += ptr->v_width*3;
+	  for (h = 0; h < height/2; h++) {
+	      memcpy (p, s, stride);
+	      s += 2*stride;
+	      p +=   stride;
 	  }
+	  if (codec==CODEC_YUV) {
+	      for (h = 0; h < height/4; h++) {
+		  memcpy (p, s, stride/2);
+		  s += 2*stride/2;
+		  p +=   stride/2;
+	      }
+	      for (h = 0; h < height/4; h++) {
+		  memcpy (p, s, stride/2);
+		  s += 2*stride/2;
+		  p +=   stride/2;
+	      }
+	  }
+
+	  memset (p, 0, ptr->video_size/2);
 
       } else {
 
-	  char *p = ptr->video_buf - ptr->v_width*3;
+	  char *p = ptr->video_buf;
+	  char *s = lines+((evenfirst)?0:stride);
 	 // printf("WAS cloned\n");
 
-	  for (h = 1; h < ptr->v_height; h += 2) {
-	      memcpy (p, lines + h * ptr->v_width*3, ptr->v_width*3);
-	      p += ptr->v_width*3;
+	  for (h = 0; h < height/2; h++) {
+	      memcpy (p, s, stride);
+	      s += 2*stride;
+	      p +=   stride;
 	  }
 
+	  if (codec==CODEC_YUV) {
+	      for (h = 0; h < height/4; h++) {
+		  memcpy (p, s, stride/2);
+		  s += 2*stride/2;
+		  p +=   stride/2;
+	      }
+	      for (h = 0; h < height/4; h++) {
+		  memcpy (p, s, stride/2);
+		  s += 2*stride/2;
+		  p +=   stride/2;
+	      }
+	  }
+	  memset (p, 0, ptr->video_size/2);
+
       }
-      ptr->v_height = height_mod;
+     //ptr->v_height = height_mod;
   }
   
   return(0);
