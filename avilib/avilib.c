@@ -2772,7 +2772,7 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
       }
    } // is opendml
 
-   else if (AVI->total_frames && !AVI->is_opendml) {
+   else if (AVI->total_frames && !AVI->is_opendml && idx_type==0) {
 
    // *********************
    // MULTIPLE RIFF CHUNKS (and no index)
