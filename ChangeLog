@@ -46,6 +46,12 @@ transcode-0.6.11
 
 2003-10-16 Tilmann Bitterberg <transcode at tibit.org>
 
+  * filter/filter_logo.c:
+  Fix flipping with image lists (animated images). Pointed out by
+  Jorg Heymans.
+
+2003-10-16 Tilmann Bitterberg <transcode at tibit.org>
+
   * filter/subtitler/*:
   Upgrade to external version 0.6.5 from 
   http://www.home.zonnet.nl/panteltje/subtitles/

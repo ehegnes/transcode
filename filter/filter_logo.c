@@ -28,7 +28,7 @@
      */
 
 #define MOD_NAME    "filter_logo.so"
-#define MOD_VERSION "v0.9 (2003-04-09)"
+#define MOD_VERSION "v0.10 (2003-10-16)"
 #define MOD_CAP     "render image in videostream"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
@@ -56,6 +56,12 @@
 #include "framebuffer.h"
 #include "filter.h"
 #include "../export/vid_aux.h"
+
+// transcode defines this as well as ImageMagick.
+#undef PACKAGE_NAME
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+#undef PACKAGE_STRING
 
 #include <magick/api.h>
 
@@ -126,6 +132,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
   static Image *images;
   static PixelPacket *pixel_packet;
 
+  Image *timg;
+  Image *nimg;
+
   int column, row;
   int rgb_off = 0;
   
@@ -181,12 +190,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
 
 	optstr_get (options, "file",     "%[^:]",    &mfd->file);
-	optstr_get (options, "flip",     "%d",        &mfd->flip);
 	optstr_get (options, "posdef",   "%d",        &mfd->pos);
 	optstr_get (options, "pos",      "%dx%d",     &mfd->posx,  &mfd->posy);
 	optstr_get (options, "range",    "%u-%u",     &mfd->start, &mfd->end);
 
 	if (optstr_get (options, "ignoredelay", "") >= 0) mfd->ignoredelay=!mfd->ignoredelay;
+	if (optstr_get (options, "flip",  "") >= 0) mfd->flip = !mfd->flip;
 	if (optstr_get (options, "rgbswap", "") >= 0) mfd->rgbswap=!mfd->rgbswap;
 	if (optstr_get (options, "grayout", "") >= 0) mfd->grayout=!mfd->grayout;
 
@@ -231,20 +240,37 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	}
     }
 
-    if (mfd->flip || flip) {
-	image = FlipImage (image, &exception_info);
-	if (image == (Image *) NULL)
-	    MagickError (exception_info.severity, exception_info.reason, exception_info.description);
+    images = GetFirstImageInList(image);
+    nimg = NewImageList();
+
+    while ( images != (Image *)NULL) {
+
+	if (mfd->flip || flip) {
+	    timg = FlipImage (images, &exception_info);
+	    if (timg == (Image *) NULL) {
+		MagickError (exception_info.severity, exception_info.reason, 
+			exception_info.description);
+		return -1;
+	    }
+	    AppendImageToList(&nimg, timg);
+	}
+
+	images = GetNextImageInList(images);
+	mfd->nr_of_images++;
     }
 
-    images = image;
-    while (images) {
-	images=images->next;
-	mfd->nr_of_images++;
+    // check for memleaks;
+    //DestroyImageList(image);
+    if (mfd->flip || flip) {
+	image = nimg;
     }
     
     /* initial delay. real delay = 1/100 sec * delay */
     mfd->cur_delay = image->delay*vob->fps/100;
+
+    if (verbose & TC_DEBUG)
+    printf("Nr: %d Delay: %d image->del %d|\n", mfd->nr_of_images,  
+	    mfd->cur_delay, image->delay );
 
     if (vob->im_v_codec == CODEC_YUV) {
 
