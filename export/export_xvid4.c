@@ -535,7 +535,7 @@ static void reset_module(xvid_transcode_module_t *mod)
 	mod->rawfd = -1;
 
 	/* Default options */
-	mod->cfg_packed = 1;
+	mod->cfg_packed = 0;
 	mod->cfg_closed_gop = 1;
 	mod->cfg_interlaced = 0;
 	mod->cfg_quarterpel = 0;
@@ -550,7 +550,7 @@ static void reset_module(xvid_transcode_module_t *mod)
 	mod->cfg_stats = 0;
 	mod->cfg_greyscale = 0;
 	mod->cfg_quant_method = strdup("h263");
-	mod->cfg_create.max_bframes = 2;
+	mod->cfg_create.max_bframes = 1;
 	mod->cfg_create.bquant_ratio = 150;
 	mod->cfg_create.bquant_offset = 100;
 

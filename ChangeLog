@@ -2,6 +2,13 @@
 transcode-0.6.13
 
 2004-01-30 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * export/{export_xvid4.c xvid4.cfg}:
+  Change default options as suggested by chl
+  packed=0
+  max_bframes=1
+
+2004-01-30 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/{video_yuv.c video_yuv422.c}:
   Fix the mirror routine (-l). It never worked before?
