@@ -39,6 +39,11 @@ char *mod_path=MOD_PATH;
 
 char module[TC_BUF_MAX];
 
+int (*TCV_export)(int opt, void *para1, void *para2);
+int (*TCA_export)(int opt, void *para1, void *para2);
+int (*TCV_import)(int opt, void *para1, void *para2);
+int (*TCA_import)(int opt, void *para1, void *para2);
+
 void watch_export_module(char *s, int opt, transfer_t *para)
 {
     printf("module=%s [option=%02d, flag=%d]\n", s, opt, ((para==NULL)? -1:para->flag));

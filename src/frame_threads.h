@@ -80,7 +80,7 @@ typedef struct _fthbuf_t {
 
 } fthbuf_t;
 
-fthbuf_t tbuf[TC_FRAME_THREADS_MAX];
-fthbuf_t tbuf_DI[TC_FRAME_THREADS_MAX];
+extern fthbuf_t tbuf[TC_FRAME_THREADS_MAX];
+extern fthbuf_t tbuf_DI[TC_FRAME_THREADS_MAX];
 
 #endif

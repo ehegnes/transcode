@@ -18,10 +18,6 @@ AM_LDFLAGS = -export-dynamic
 
 bin_PROGRAMS = transcode
 
-if SYSTEM_DARWIN
-transcode_LDFLAGS = -Xlinker -m
-endif
-
 transcode_LDADD = \
 	$(DLDARWINLIB) \
 	$(SUPPORT_LIBS) \

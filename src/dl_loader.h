@@ -27,10 +27,10 @@
 void *load_module(char *mod, int mode);
 void unload_module(void *handle);
 
-int (*TCV_export)(int opt, void *para1, void *para2);
-int (*TCA_export)(int opt, void *para1, void *para2);
-int (*TCV_import)(int opt, void *para1, void *para2);
-int (*TCA_import)(int opt, void *para1, void *para2);
+// extern int (*TCV_export)(int opt, void *para1, void *para2);
+// extern int (*TCA_export)(int opt, void *para1, void *para2);
+// extern int (*TCV_import)(int opt, void *para1, void *para2);
+// extern int (*TCA_import)(int opt, void *para1, void *para2);
 
 int tcv_export(int opt, void *para1, void *para2);
 int tca_export(int opt, void *para1, void *para2);

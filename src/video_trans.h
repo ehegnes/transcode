@@ -166,16 +166,16 @@ extern void clear_mmx();
 # define YGREEN  0.587 //0.7154
 # define YBLUE   0.114 //0.0721
 
-int (*yuv_merge_8)(char *row1, char *row2, char *out, int bytes, 
+extern int (*yuv_merge_8)(char *row1, char *row2, char *out, int bytes, 
 		   unsigned long weight1, unsigned long weight2);
 
-int (*yuv_merge_16)(char *row1, char *row2, char *out, int bytes, 
+extern int (*yuv_merge_16)(char *row1, char *row2, char *out, int bytes, 
 		    unsigned long weight1, unsigned long weight2);
 
-int (*rgb_merge)(char *row1, char *row2, char *out, int bytes, 
+extern int (*rgb_merge)(char *row1, char *row2, char *out, int bytes, 
 		 unsigned long weight1, unsigned long weight2);
 
-int (*yuv422_merge)(char *row1, char *row2, char *out, int bytes, 
+extern int (*yuv422_merge)(char *row1, char *row2, char *out, int bytes, 
 		 unsigned long weight1, unsigned long weight2);
 
 
