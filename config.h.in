@@ -48,9 +48,18 @@
 /* Define if your CPU understands CMOV */
 #undef HAVE_CMOV
 
+/* Define to 1 if you have the <decore.h> header file. */
+#undef HAVE_DECORE_H
+
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
 #undef HAVE_DIRENT_H
+
+/* Have the Divx4linux decore.h header file */
+#undef HAVE_DIVX_DECORE
+
+/* Have the Divx4linux encore2.h header file */
+#undef HAVE_DIVX_ENCORE2
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
@@ -63,6 +72,9 @@
 
 /* Have dv support */
 #undef HAVE_DV
+
+/* Define to 1 if you have the <encore2.h> header file. */
+#undef HAVE_ENCORE2_H
 
 /* Define to 1 if you have the <errno.h> header file. */
 #undef HAVE_ERRNO_H

@@ -775,6 +775,19 @@ AM_PATH_SDL(1.1.6,
 ])
 AM_CONDITIONAL(HAVE_SDL, test x"$have_sdl" = "xyes")
 
+have_divx_decore=false
+AC_CHECK_HEADERS([decore.h], 
+		 [have_divx_decore=true
+		  AC_DEFINE([HAVE_DIVX_DECORE], 1, [Have the Divx4linux decore.h header file])
+		  ], [have_divx_decore=false])
+AM_CONDITIONAL(HAVE_DIVX_DECORE, test x"$have_divx_decore" = x"true" )
+
+have_divx_encore2=false
+AC_CHECK_HEADERS([encore2.h], 
+		 [have_divx_encore2=true
+		  AC_DEFINE([HAVE_DIVX_ENCORE2], 1, [Have the Divx4linux encore2.h header file])
+		  ], [have_divx_encore2=false])
+AM_CONDITIONAL(HAVE_DIVX_ENCORE2, test x"$have_divx_encore2" = x"true" )
 
 have_gtk=no
 AM_PATH_GTK(,
