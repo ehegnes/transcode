@@ -3,6 +3,14 @@ transcode-0.6.9
 
 2003-08-03 Edouard Gomez <ed.gomez at free.fr>
 
+  * export/export_xvid4.c:
+  patch-11
+    Module cleanups (comments + missing memory freeing)
+  patch-12
+    Updated the config system to new transcode capabilities.
+
+2003-08-03 Edouard Gomez <ed.gomez at free.fr>
+
   * export/{export_xvid4.c xvid4.cfg xvid4.h}:
   The transcode module allowed me to spot bugs in xvidcore...
   Update you xvid-dev-api-4 snapshot to the latest and greatest.
