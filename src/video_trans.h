@@ -124,8 +124,6 @@ extern redtab_t hori_table_8_up[];
 extern int gamma_table_flag;
 extern unsigned char gamma_table[];
 
-extern char rowbuffer[];
-
 extern unsigned long *aa_table_c;
 extern unsigned long *aa_table_x;
 extern unsigned long *aa_table_d;	    

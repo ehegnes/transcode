@@ -112,6 +112,9 @@ void yuv_flip_core(char *image, int width, int height)
 {
 
   char *in, *out;
+
+  // this shouldn't be too hard on the stack
+  char rowbuffer[TC_MAX_V_FRAME_WIDTH];
   
   unsigned int y, block;  
   

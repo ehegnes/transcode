@@ -52,8 +52,6 @@ unsigned long *aa_table_y;
 unsigned long *aa_table_d;
 
 
-// tmp rowbuffer
-char rowbuffer[TC_MAX_V_FRAME_WIDTH * BPP/3];
 char *tmp_image=NULL;
 
 

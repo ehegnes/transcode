@@ -76,6 +76,9 @@ void rgb_flip(char *image, int width, int height)
 {
 
   char *in, *out;
+
+  // this shouldn't be too hard on the stack
+  char rowbuffer[TC_MAX_V_FRAME_WIDTH*3];
   
   unsigned int y, block;  
   

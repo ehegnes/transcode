@@ -1,6 +1,13 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-17 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * src/{video_rgb.c video_trans.c video_trans.h video_yuv.c}:
+  Make the flipping routine (-z) thread-safe. When running on
+  multiple CPUs with more than 1 frame processing threads, the
+  flipping caused distortion. Pointed out by Max Alekseyev.
+  
 2003-07-16 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/filter.c src/filter.h:
