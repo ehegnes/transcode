@@ -351,7 +351,7 @@ static void stats_audio_attributes(audio_attr_t *attr, int track, probe_info_t *
     break;
   case 2:
     printf("mpeg1 ");
-    probe_info->track[track].format = CODEC_MP3;
+    probe_info->track[track].format = CODEC_MP2;
     break;
   case 3:
     printf("mpeg2ext ");

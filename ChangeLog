@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-30 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/dvd_reader.c:
+  Use CODEC_MP2 instead of CODEC_MP3 when probing DVDs with an
+  "mpeg" audio codec. Pointed out by Marc Bevand.
+
 2004-01-29 Stefan Scheffler <stefanscheffler at gmx.net>
 
   * configure.in acinclude.m4:
