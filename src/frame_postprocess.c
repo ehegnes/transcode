@@ -54,6 +54,7 @@ int postprocess_yuv_frame(vob_t *vob, vframe_list_t *ptr)
     // update frame_list_t *ptr
     
     ptr->v_height -= (vob->post_ex_clip_top + vob->post_ex_clip_bottom);
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2;
     
   }
   
@@ -78,6 +79,7 @@ int postprocess_yuv_frame(vob_t *vob, vframe_list_t *ptr)
     // update frame_list_t *ptr
     
     ptr->v_width -= (vob->post_ex_clip_left + vob->post_ex_clip_right);
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2;
   }
 
   

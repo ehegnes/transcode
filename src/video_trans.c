@@ -296,6 +296,7 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
     // update frame_list_t *ptr
     
     ptr->v_height -= (vob->im_clip_top + vob->im_clip_bottom);
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2;
     
   }
   
@@ -320,6 +321,7 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
     // update frame_list_t *ptr
     
     ptr->v_width -= (vob->im_clip_left + vob->im_clip_right);
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2;
   }
   
   /* ------------------------------------------------------------ 
@@ -400,6 +402,7 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
     ptr->free = (ptr->free) ? 0:1;
 
     ptr->v_height += vob->vert_resize2<<3;    
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2;
 
     clear_mmx();
 
@@ -424,6 +427,7 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
     ptr->free = (ptr->free) ? 0:1;
 
     ptr->v_width += vob->hori_resize2<<3;    
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2;
   }
 
 
@@ -447,6 +451,7 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
     // update frame_list_t *ptr
     
     ptr->v_height -= vob->vert_resize1<<3;
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2;
 
     clear_mmx();
 
@@ -471,6 +476,7 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
     // update frame_list_t *ptr
     
     ptr->v_width -= vob->hori_resize1<<3;
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2;
   }
 
 
@@ -492,6 +498,7 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
     
     ptr->v_width    = vob->zoom_width;
     ptr->v_height   = vob->zoom_height; 
+    ptr->video_size = vob->zoom_width * vob->zoom_height * vob->v_bpp/8/2;
 
   }
 
@@ -521,6 +528,7 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
       // update frame_list_t *ptr
       
       ptr->v_height -= (vob->ex_clip_top + vob->ex_clip_bottom);
+      ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2;
   }
 
   /* ------------------------------------------------------------ 
@@ -545,6 +553,7 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
     // update frame_list_t *ptr
     
     ptr->v_width -= (vob->ex_clip_left + vob->ex_clip_right);
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2;
   }
  
   /* ------------------------------------------------------------ 
@@ -561,6 +570,7 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
 
     ptr->v_width    /= vob->reduce_w; 
     ptr->v_height   /= vob->reduce_h; 
+    ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2;
 
   }
 
