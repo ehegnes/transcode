@@ -316,7 +316,7 @@ char *clone_fifo()
   } 
 #endif
 
-  return(name);
+  return(logfile);
 }
 
 void clone_read_thread()
