@@ -129,7 +129,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
     // transcodes internal video/audio frame processing routines
     // or after and determines video/audio context
 
-    if ((ptr->tag & TC_POST_S_PROCESS) && (ptr->tag & TC_VIDEO)) {
+    if ((ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO)) {
 
 	// After frame processing, the frames must be deinterlaced. 
 	// For inverse telecine, this has been done by the ivtc filter
