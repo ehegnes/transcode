@@ -169,6 +169,9 @@ void frame_threads_close()
     for(n=0; n<have_aframe_workers; ++n) pthread_cancel(afthread[n]);
     
     //wait for threads to terminate
+#ifdef __APPLE__ // MacOSX: Broken pthreads
+    pthread_cond_broadcast(&abuffer_fill_cv);
+#endif
     for(n=0; n<have_aframe_workers; ++n) pthread_join(afthread[n], &status);
 
     if(verbose & TC_DEBUG) fprintf(stderr, "(%s) audio frame processing threads canceled\n", __FILE__);
@@ -186,6 +189,9 @@ void frame_threads_close()
     for(n=0; n<have_vframe_workers; ++n) pthread_cancel(vfthread[n]);
 
     //wait for threads to terminate
+#ifdef __APPLE__ // MacOSX: Broken pthreads
+    pthread_cond_broadcast(&vbuffer_fill_cv);
+#endif
     for(n=0; n<have_vframe_workers; ++n) pthread_join(vfthread[n], &status);
     
     if(verbose & TC_DEBUG) fprintf(stderr, "(%s) video frame processing threads canceled\n", __FILE__);
@@ -331,8 +337,10 @@ void process_vframe(vob_t *vob)
     pthread_mutex_lock(&vbuffer_im_fill_lock);
     
     while(vbuffer_im_fill_ctr==0) {
-    
       pthread_cond_wait(&vbuffer_fill_cv, &vbuffer_im_fill_lock);
+#ifdef __APPLE__ // MacOSX: Broken pthreads
+      pthread_testcancel();
+#endif
       
       //exit
       if(vframe_threads_shutdown) {
@@ -437,6 +445,9 @@ void process_aframe(vob_t *vob)
     
     while(abuffer_im_fill_ctr==0) {
       pthread_cond_wait(&abuffer_fill_cv, &abuffer_im_fill_lock);
+#ifdef __APPLE__ // MacOSX: Broken pthreads
+      pthread_testcancel();
+#endif
       
       //exit
       if(aframe_threads_shutdown) {

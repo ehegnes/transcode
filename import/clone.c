@@ -128,8 +128,12 @@ int buffered_p_read(char *s)
 
     if(verbose & TC_SYNC) fprintf(stderr, "WAIT (%d)\n", buffer_fill_ctr);
     
-    while(buffer_fill_ctr == 0)   
+    while(buffer_fill_ctr == 0) {
       pthread_cond_wait(&buffer_fill_cv, &buffer_fill_lock);
+#ifdef __APPLE__ // MacOSX: Broken pthreads
+      pthread_testcancel();
+#endif
+    }
 
     --buffer_fill_ctr;
 	
@@ -275,6 +279,9 @@ void clone_close()
     // cancel the thread
     if (thread) {
       pthread_cancel(thread);
+#ifdef __APPLE__ // MacOSX: Broken pthreads
+      pthread_cond_signal(&buffer_fill_cv);
+#endif
       pthread_join(thread, &status);
       thread = (pthread_t)0;
     }

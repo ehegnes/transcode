@@ -119,10 +119,16 @@ void import_threads_cancel()
   }
 
   //wait for threads to terminate
+#ifdef __APPLE__ // MacOSX: Broken pthreads
+  pthread_cond_signal(&vframe_list_full_cv);
+#endif
   cc1=pthread_join(vthread, &status);
   
   if(verbose & TC_DEBUG) fprintf(stderr, "(%s) video thread exit (ret_code=%d) (status_code=%d)\n", __FILE__, cc1, (int) status);
   
+#ifdef __APPLE__ // MacOSX: Broken pthreads
+  pthread_cond_signal(&aframe_list_full_cv);
+#endif
   cc2=pthread_join(athread, &status);
   
   if(verbose & TC_DEBUG) fprintf(stderr, "(%s) audio thread exit (ret_code=%d) (status_code=%d)\n", __FILE__, cc2, (int) status);
@@ -442,10 +448,6 @@ void vimport_thread(vob_t *vob)
 
   transfer_t import_para;
 
-  int last;
-  
-  pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &last);
-
   if(verbose & TC_DEBUG) fprintf(stderr, "(%s) video thread id=%ld\n", __FILE__, pthread_self());
 
   // bytes per video frame
@@ -466,6 +468,9 @@ void vimport_thread(vob_t *vob)
     
     while(vframe_fill_level(TC_BUFFER_FULL)) {
 	pthread_cond_wait(&vframe_list_full_cv, &vframe_list_lock);
+#ifdef __APPLE__ // MacOSX: Broken pthreads
+	pthread_testcancel();
+#endif
 	
 	// check for pending shutdown via ^C
 	if(vimport_test_shutdown()) {
@@ -622,9 +627,6 @@ void aimport_thread(vob_t *vob)
 
   transfer_t import_para;
 
-  int last;
-  
-  pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &last);
 
   if(verbose & TC_DEBUG) fprintf(stderr, "(%s) audio thread id=%ld\n", __FILE__, pthread_self());
 
@@ -653,9 +655,11 @@ void aimport_thread(vob_t *vob)
     pthread_mutex_lock(&aframe_list_lock);
     
     while(aframe_fill_level(TC_BUFFER_FULL)) {
-      
       pthread_cond_wait(&aframe_list_full_cv, &aframe_list_lock);
-      
+#ifdef __APPLE__ // MacOSX: Broken pthreads
+      pthread_testcancel();
+#endif
+
       // check for pending shutdown via ^C
       if(aimport_test_shutdown(TEST_ON_BUFFER_FULL)) {
 	pthread_mutex_unlock(&aframe_list_lock);

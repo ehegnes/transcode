@@ -38,6 +38,16 @@ transcode-0.6.9
   Significant speed increase by doing careful plain C optimizations.
   On my system, the filter now runs at 24.5 fps instead of 16.8 fps.
 
+2003-08-02  Benjamin Riefenstahl  <Benjamin.Riefenstahl@epost.de>
+
+  * filter/extsub/filter_extsub.c, filter/extsub/subtitle_buffer.c,
+  import/clone.c, import/packets.c, src/decoder.c, 
+  src/frame_threads.c, src/transcode.c:
+  Workaround for MacOSX pthreads limitation.  Add pthread_testcancel
+  to all pthread_cond_wait and sigwait.  Add pthread_cond_signal or
+  pthread_kill to all pthread_cancel/pthread_join.  Cleanup for
+  previous attempts at fixes. 
+
 2003-08-02 Tilmann Bitterberg <transcode at tibit.org>
 
   * filter/{filter_32detect.c filter_aclip.c filter_astat.c

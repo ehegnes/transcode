@@ -559,8 +559,12 @@ void subtitle_reader()
   
     pthread_mutex_lock(&sframe_list_lock);
     
-    while(sframe_fill_level(TC_BUFFER_FULL))
+    while(sframe_fill_level(TC_BUFFER_FULL)) {
       pthread_cond_wait(&sframe_list_full_cv, &sframe_list_lock);
+#ifdef __APPLE__ // MacOSX: Broken pthreads
+      pthread_testcancel();
+#endif
+    }
     
     pthread_mutex_unlock(&sframe_list_lock);    
     

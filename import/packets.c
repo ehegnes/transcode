@@ -395,8 +395,12 @@ void flush_buffer_thread()
 
 	pthread_mutex_lock(&pack_ctr_lock);    
 	
-	while(pack_fill_ctr==0) 
+	while(pack_fill_ctr==0) {
 	    pthread_cond_wait(&packet_pop_cv, &pack_ctr_lock);
+#ifdef __APPLE__ // MacOSX: Broken pthreads
+	    pthread_testcancel();
+#endif
+	}
 
 	pthread_mutex_unlock(&pack_ctr_lock);
 	
@@ -456,8 +460,12 @@ int flush_buffer_write(int fd_out, char*buffer, int packet_size)
 
     pthread_mutex_lock(&pack_ctr_lock);
     
-    while(pack_fill_ctr == FLUSH_BUFFER_MAX)
+    while(pack_fill_ctr == FLUSH_BUFFER_MAX) {
       pthread_cond_wait(&packet_push_cv, &pack_ctr_lock);
+#ifdef __APPLE__ // MacOSX: Broken pthreads
+      pthread_testcancel();
+#endif
+    }
     
     pthread_mutex_unlock(&pack_ctr_lock);
     

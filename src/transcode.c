@@ -444,7 +444,9 @@ void signal_thread()
   for (;;) {
     
     sigwait(&sigs_to_block, &caught);
+#ifdef __APPLE__ // MacOSX: Broken pthreads
     pthread_testcancel();
+#endif
     
     switch (caught) {
     case SIGINT:  signame = "SIGINT"; break;
@@ -539,24 +541,26 @@ void tc_info(char *fmt, ...)
 
 vob_t *tc_get_vob() {return(vob);}
 
+#define delta 0.05
 int tc_guess_frc(double fps)
 {
-  if (fps-0.01 < 00.010 && 00.010 < fps+0.01) return 0;
-  if (fps-0.01 < 23.976 && 23.976 < fps+0.01) return 1;
-  if (fps-0.01 < 24.000 && 24.000 < fps+0.01) return 2;
-  if (fps-0.01 < 25.000 && 25.000 < fps+0.01) return 3;
-  if (fps-0.01 < 29.970 && 29.970 < fps+0.01) return 4;
-  if (fps-0.01 < 30.000 && 30.000 < fps+0.01) return 5;
-  if (fps-0.01 < 50.000 && 50.000 < fps+0.01) return 6;
-  if (fps-0.01 < 59.940 && 59.940 < fps+0.01) return 7;
-  if (fps-0.01 < 60.000 && 60.000 < fps+0.01) return 8;
-  if (fps-0.01 <  1.000 &&  1.000 < fps+0.01) return 9;
-  if (fps-0.01 <  5.000 &&  5.000 < fps+0.01) return 10;
-  if (fps-0.01 < 10.000 && 10.000 < fps+0.01) return 11;
-  if (fps-0.01 < 12.000 && 12.000 < fps+0.01) return 12;
-  if (fps-0.01 < 15.000 && 15.000 < fps+0.01) return 13;
-  return 0;
+  if (fps-delta < 00.010 && 00.010 < fps+delta) return 0;
+  if (fps-delta < 23.976 && 23.976 < fps+delta) return 1;
+  if (fps-delta < 24.000 && 24.000 < fps+delta) return 2;
+  if (fps-delta < 25.000 && 25.000 < fps+delta) return 3;
+  if (fps-delta < 29.970 && 29.970 < fps+delta) return 4;
+  if (fps-delta < 30.000 && 30.000 < fps+delta) return 5;
+  if (fps-delta < 50.000 && 50.000 < fps+delta) return 6;
+  if (fps-delta < 59.940 && 59.940 < fps+delta) return 7;
+  if (fps-delta < 60.000 && 60.000 < fps+delta) return 8;
+  if (fps-delta <  1.000 &&  1.000 < fps+delta) return 9;
+  if (fps-delta <  5.000 &&  5.000 < fps+delta) return 10;
+  if (fps-delta < 10.000 && 10.000 < fps+delta) return 11;
+  if (fps-delta < 12.000 && 12.000 < fps+delta) return 12;
+  if (fps-delta < 15.000 && 15.000 < fps+delta) return 13;
+  return -1;
 }
+#undef delta
 
 /* ------------------------------------------------------------ 
  *
@@ -626,6 +630,9 @@ void safe_exit (void) {
 
     if (tc_signal_thread) {
        pthread_cancel(thread_signal);
+#ifdef __APPLE__ // MacOSX: Broken pthreads
+       pthread_kill(thread_signal,SIGINT);
+#endif
        pthread_join(thread_signal, &thread_status);
     }
 }
@@ -1040,9 +1047,7 @@ int main(int argc, char *argv[]) {
     tc_signal_thread=1;
 
     // close all threads at exit
-#if !defined(__APPLE__)
     atexit(safe_exit);
-#endif
     
     /* ------------------------------------------------------------ 
      *
@@ -3136,11 +3141,16 @@ int main(int argc, char *argv[]) {
       vob->ex_frc = vob->im_frc;
 
     // ex_frc always overwrites ex_fps
-    if (vob->ex_frc != 0)
+    if (vob->ex_frc > 0)
       vob->ex_fps  = frc_table[vob->ex_frc];
 
     if (vob->im_frc == 0 && vob->ex_frc == 0 && vob->ex_fps == 0)
       vob->ex_fps = vob->fps;
+
+    if (vob->im_frc == -1) vob->im_frc = 0;
+    if (vob->ex_frc == -1) vob->ex_frc = 0;
+    /*
+    */
 
     // --export_fps
 
@@ -3915,8 +3925,9 @@ int main(int argc, char *argv[]) {
       if(verbose & TC_INFO) { printf(" cancel signal |");fflush(stdout); }
       if (thread_signal) {
 	pthread_cancel(thread_signal);
-	// put the signal thread out of sigwait()
-	kill(writepid, SIGINT);
+#ifdef __APPLE__ // MacOSX: Broken pthreads
+        pthread_kill(thread_signal,SIGINT);
+#endif
 	pthread_join(thread_signal, &thread_status);
       }
       thread_signal=(pthread_t)0;

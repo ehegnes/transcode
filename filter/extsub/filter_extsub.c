@@ -496,6 +496,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
     void * status;
     
     pthread_cancel(thread1);
+#ifdef __APPLE__ // MacOSX: Broken pthreads
+    pthread_cond_signal(&sframe_list_full_cv);
+#endif
     pthread_join(thread1, &status);
     
     import_para.flag=TC_SUBEX;
