@@ -246,6 +246,7 @@ fi
 int main () {
   lame_version_t lv;
   get_lame_version_numerical(&lv);
+  if(lv.alpha || lv.beta) lv.minor--;
   printf("%d%d\n", lv.major, lv.minor);
   return 0;
 }
