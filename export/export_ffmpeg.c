@@ -776,6 +776,10 @@ MOD_init {
         }
     }
 
+    /* closedgop requires scene detection to be disabled separately */
+    if (lavc_param_closedgop)
+	lavc_param_sc_threshold = 1000000000;
+
     lavc_venc_context->bit_rate           = vob->divxbitrate * 1000;
     lavc_venc_context->bit_rate_tolerance = lavc_param_vrate_tolerance * 1000;
     lavc_venc_context->mb_qmin            = lavc_param_mb_qmin;

@@ -1,4 +1,10 @@
 2005-02-21 Andrew Church <achurch at achurch dot org>
+  * export/export_ffmpeg.c
+  closedgop=1 (ffmpeg.cfg) doesn't work with current FFmpeg because
+  scene detection has to be explicitly disabled as well.  This
+  fixes export_ffmpeg.
+
+2005-02-21 Andrew Church <achurch at achurch dot org>
   * src/counter.c
   Smoother and less convoluted ETA timer.
 
