@@ -10,7 +10,7 @@ transcode-0.6.11
   Bugfix for -x xml; fix DV import.
   Bugfix for -y dvraw; Pass-thru video but not audio did not work.
   Bugfix for -y ffmpeg; make it thread-safe.
-  Bugfix for -y ffmpeg; vhq is gone.
+  Bugfix for -y ffmpeg; vhq is gone, use mdb=0-9.
   Bugfix for -y pcm; fixed floating point division.
   Bugfix for avitools; fix audio syncing (again!)
   Bugfix for avitools; pass-thru 0byte frames
@@ -426,6 +426,7 @@ transcode-0.6.11
 
   * export/export_ffmpeg.c:
   Adjust to work with new ffmpeg (vhq is gone)
+  The parameter mdb=0 til 9 replaces it.
 
 2003-09-17 Tilmann Bitterberg <transcode at tibit.org>
   
