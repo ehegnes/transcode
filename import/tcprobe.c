@@ -445,8 +445,20 @@ int main(int argc, char *argv[])
       enc_bitrate((long)ceil(ipipe.probe_info->fps*ipipe.probe_info->time), ipipe.probe_info->fps, bitrate, EXE, 0);
     } else {
       
-      if(ipipe.probe_info->frames > 0)
-	printf("%18s %ld frames, frame_time=%ld msec\n", "length:", ipipe.probe_info->frames, frame_time);
+      if(ipipe.probe_info->frames > 0) {
+	unsigned long dur_ms;
+	unsigned int dur_h, dur_min, dur_s;
+	if(ipipe.probe_info->fps < 0.100)
+	  dur_ms=(long)ipipe.probe_info->frames*frame_time;
+	else
+	  dur_ms=(long)((float)ipipe.probe_info->frames*1000/ipipe.probe_info->fps);
+	dur_h=dur_ms/3600000;
+	dur_min=(dur_ms%=3600000)/60000;
+	dur_s=(dur_ms%=60000)/1000;
+	dur_ms%=1000;
+	printf("%18s %ld frames, frame_time=%ld msec, duration=%u:%02u:%02u.%03lu\n", "length:",
+	  ipipe.probe_info->frames, frame_time, dur_h, dur_min, dur_s, dur_ms);
+      }
     }
     
     if(ipipe.fd_in != STDIN_FILENO) close(ipipe.fd_in);
