@@ -53,8 +53,8 @@
 #define NR_IXNN_CHUNKS 32
 
 
-#undef DEBUG_ODML
 #define DEBUG_ODML
+#undef DEBUG_ODML
 
 /* The following variable indicates the kind of error */
 
@@ -2061,9 +2061,19 @@ int avi_parse_index_from_file(avi_t *AVI, char *filename)
     for (i=0; i<AVI_MAX_TRACKS; i++) aud_chunks[i] = 0;
     i=0;
 
+    // already have an index -- may be incomplete
+    if (AVI->video_index) {
+	free(AVI->video_index);
+	AVI->video_index = NULL;
+    }
 
-    if (AVI->video_index)  // already have an index
-	return 0;
+    for(j=0; j<AVI->anum; ++j) {
+	if(AVI->track[j].audio_index) {
+	    free(AVI->track[j].audio_index);
+	}
+	AVI->track[j].audio_index = NULL;
+	AVI->track[j].audio_chunks = 0;
+    }   
 
     if (!(fd = fopen(filename, "r"))) { perror ("avi_parse_index_from_file: fopen"); return -1; }
 
@@ -2150,7 +2160,6 @@ int avi_parse_index_from_file(avi_t *AVI, char *filename)
     for(j=0; j<AVI->anum; ++j) AVI->track[j].audio_bytes = tot_chunks[j];
 
     fclose (fd);
-
 
     return 0;
 }
@@ -2799,7 +2808,9 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
       for(j=1; j<AVI->anum; ++j) AVI->track[j].audio_chunks = 0;
 
       AVI->video_index = (video_index_entry *) malloc(nvi*sizeof(video_index_entry));
+
       if(AVI->video_index==0) ERR_EXIT(AVI_ERR_NO_MEM);
+
       for(j=0; j<AVI->anum; ++j) {
 	  if(AVI->track[j].audio_chunks) {
 	      AVI->track[j].audio_index = (audio_index_entry *) malloc((nai[j]+1)*sizeof(audio_index_entry));
@@ -2815,26 +2826,23 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 
       while(1)
       {
-	  if (nvi >= AVI->total_frames) break;
+	 if (nvi >= AVI->total_frames) break;
 
          if( avi_read(AVI->fdes,data,8) != 8 ) break;
          n = str2ulong((unsigned char *)data+4);
 
 
-         /* The movi list may contain sub-lists, ignore them */
+	 j=0;
 
-         if(strncasecmp(data,"LIST",4)==0 
-		 || !strncasecmp(data,"RIFF",4)
-		 || !strncasecmp(data,"AVIX",4))
-         {
-            lseek(AVI->fdes,-4,SEEK_CUR);
-            continue;
-         }
-
-	 if (aud_chunks - nai[j] -1 <= 0) { // XXX: probably too much
-	      AVI->track[j].audio_index = (audio_index_entry *) realloc(  AVI->track[j].audio_index, 
-		      (aud_chunks+1)*sizeof(audio_index_entry));
+	 if (aud_chunks - nai[j] -1 <= 0) {
 	     aud_chunks += AVI->total_frames;
+	     AVI->track[j].audio_index = (audio_index_entry *) 
+		 realloc( AVI->track[j].audio_index, (aud_chunks+1)*sizeof(audio_index_entry));
+	     if (!AVI->track[j].audio_index) {
+		 fprintf(stderr, "Internal error in avilib -- no mem\n");
+		 AVI_errno = AVI_ERR_NO_MEM;
+		 return -1;
+	     }
 	 }
 
          /* Check if we got a tag ##db, ##dc or ##wb */
@@ -2859,17 +2867,17 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 		 (data[2]=='w' || data[2]=='W') &&
 	     (data[3]=='b' || data[3]=='B') ) {
 
-	        j=0;
 
 		AVI->track[j].audio_index[nai[j]].pos = lseek(AVI->fdes,0,SEEK_CUR)+8;
 		AVI->track[j].audio_index[nai[j]].len = n;
 		AVI->track[j].audio_index[nai[j]].tot = tot[j];
 		tot[j] += AVI->track[j].audio_index[nai[j]].len;
 		nai[j]++;
-		aud_chunks++;
 
 		lseek(AVI->fdes,PAD_EVEN(n),SEEK_CUR);
 	 }
+	 else 
+            lseek(AVI->fdes,-4,SEEK_CUR);
 
       }
       if (nvi < AVI->total_frames) {

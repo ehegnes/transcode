@@ -1,6 +1,15 @@
 --------------------------------------------
 transcode-0.6.12
 
+2004-01-02 Tilmann Bitterberg <transcode at tibit.org>
+
+  * avilib/avilib.c tools/avimerge.c:
+  Support for AVI files with a broken index or an index in which
+  some part is missing (damaged CD or something).
+
+  * tools/aviindex.c docs/man/aviindex.1:
+  Detecting keyframes based on the codec.
+
 2003-12-30 Tilmann Bitterberg <transcode at tibit.org>
 
   * ffmpeg/libavcodec/*:

@@ -82,9 +82,11 @@ int merger(avi_t *out, char *file)
 	init = 1;
     }
     
-    if(indexfile && (NULL == (in = AVI_open_input_indexfile(file, 0, indexfile)))) {
-	AVI_print_error("AVI open with indexfile");
-	return(-1);
+    if(indexfile)  {
+	if (NULL == (in = AVI_open_input_indexfile(file, 0, indexfile))) {
+	    AVI_print_error("AVI open with indexfile");
+	    return(-1);
+	}
     }
     else if(NULL == (in = AVI_open_input_file(file,1))) {
 	AVI_print_error("AVI open");
@@ -269,8 +271,10 @@ int main(int argc, char *argv[])
   printf("scanning file %s for video/audio parameter\n", infile);
   
   // open first file for video/audio info read only
-  if(indexfile && (NULL == (avifile1 = AVI_open_input_indexfile(infile,0,indexfile)))) {
-    AVI_print_error("AVI open with index file");
+  if(indexfile) {
+      if (NULL == (avifile1 = AVI_open_input_indexfile(infile,0,indexfile))) {
+	  AVI_print_error("AVI open with index file");
+      }
   }  
   else if(NULL == (avifile1 = AVI_open_input_file(infile,1))) {
       AVI_print_error("AVI open");
