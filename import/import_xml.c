@@ -28,7 +28,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_xml.so"
-#define MOD_VERSION "v0.0.7 (2003-06-26)"
+#define MOD_VERSION "v0.0.8 (2003-07-09)"
 #define MOD_CODEC   "(video) * | (audio) *"
 
 #define MOD_PRE xml
@@ -37,6 +37,9 @@
 #include "magic.h"
 #include "probe_xml.h"
 #include "zoom.h"
+
+
+#define M_AUDIOMAX(a,b)  (b==LONG_MAX)?LONG_MAX:a*b
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];
@@ -50,8 +53,58 @@ static  audiovideo_t    s_video,*p_video=NULL,*p_video_prev;
 static	int s_frame_size=0;
 static char *p_vframe_buffer=NULL;
 static	int s_v_codec;
+static	long s_a_magic;
+static	long s_v_magic;
 
 int binary_dump=1;		//force the use of binary dump to create the correct XML tree
+
+
+
+int f_af6_sync(FILE *s_fd,char s_type)
+{
+	int s_skip;
+	char s_buffer;
+
+	s_skip=0;
+	for (;;)
+	{
+		if(fread(&s_buffer, 1, 1, s_fd) !=1)
+			return(TC_IMPORT_ERROR);
+		if (s_buffer == 'T')
+		{
+			if(fread(&s_buffer, 1, 1, s_fd) !=1)
+				return(TC_IMPORT_ERROR);
+			if (s_buffer == 'a')
+			{
+				if(fread(&s_buffer, 1, 1, s_fd) !=1)
+					return(TC_IMPORT_ERROR);
+				if (s_buffer == 'f')
+				{
+					if(fread(&s_buffer, 1, 1, s_fd) !=1)
+						return(TC_IMPORT_ERROR);
+					if (s_buffer == '6')
+						return(0);
+					else
+						s_skip++;
+				}
+				else
+					s_skip++;
+			}
+			else
+				s_skip++;
+		}
+		else
+			s_skip++;
+		if (s_skip > (1<<20))
+		{
+			if ( s_type == 'V' )
+				fprintf(stderr, "[%s] no video af6 sync string found within 1024 kB of stream\n",MOD_NAME);
+			else
+				fprintf(stderr, "[%s] no audio af6 sync string found within 1024 kB of stream\n",MOD_NAME);
+			return(TC_IMPORT_ERROR);
+		}
+	}
+}
 
 
 int f_dim_check(audiovideo_t *p_temp,int *s_new_height,int *s_new_width)
@@ -278,7 +331,8 @@ MOD_open
 		{
 			s_v_codec=p_video->s_v_codec;
 		}
-		switch(p_video->s_v_magic)
+		s_v_magic=p_video->s_v_magic;
+		switch(s_v_magic)
 		{
 		   case TC_MAGIC_DV_PAL:
 		   case TC_MAGIC_DV_NTSC:
@@ -386,9 +440,35 @@ MOD_open
 					return(TC_IMPORT_ERROR);
 					;
 			}
+		   break;
+		   case TC_MAGIC_AF6:
+			capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM;
+			switch(s_v_codec) 
+			{
+				case CODEC_RGB:
+				s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height));
+				if((snprintf(import_cmd_buf, MAX_BUF, "tcdecode -i \"%s\" -x af6video -y rgb -d %d -C %ld,%ld", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video)<0))
+				{
+					perror("command buffer overflow");
+					return(TC_IMPORT_ERROR);
+				}
+				break;
+				case CODEC_YUV:
+					s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height))/2;
+				if((snprintf(import_cmd_buf, MAX_BUF, "tcdecode -i \"%s\" -x af6video -y yv12 -d %d -C %ld,%ld", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video)<0))
+				{
+					perror("command buffer overflow");
+					return(TC_IMPORT_ERROR);
+				}
+				break;
+				default:
+                       			fprintf(stderr,"[%s] error: video codec 0x%x not yet supported. \n", MOD_NAME,s_v_codec);
+					return(TC_IMPORT_ERROR);
+					;
+			}
 		  break;
 		  default:
-                       	fprintf(stderr,"[%s] error: video magic 0x%lx not yet supported. \n", MOD_NAME,p_video->s_v_magic);
+                       	fprintf(stderr,"[%s] error: video magic 0x%lx not yet supported. \n", MOD_NAME,s_v_magic);
 			return(TC_IMPORT_ERROR);
 		}
 		if((s_fd_video = popen(import_cmd_buf, "r"))== NULL)
@@ -433,12 +513,13 @@ MOD_open
 		s_frame_audio_size=(1.00 * p_audio->s_a_bits * p_audio->s_a_chan * p_audio->s_a_rate)/(8*p_audio->s_fps);
 		if(verbose_flag) 
 			fprintf(stderr,"[%s] setting audio size to %d\n",MOD_NAME,s_frame_audio_size);
-		switch(p_audio->s_a_magic)
+		s_a_magic=p_audio->s_a_magic;
+		switch(s_a_magic)
 		{
 		   case TC_MAGIC_DV_PAL:
 		   case TC_MAGIC_DV_NTSC:
 			capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_DV|TC_CAP_PCM;
-			if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x dv -C %ld-%ld | tcdecode -x dv -y pcm -d %d -Q %d", p_audio->p_nome_audio, vob->verbose,s_frame_audio_size*p_audio->s_start_audio,s_frame_audio_size*p_audio->s_end_audio,vob->verbose,vob->quality)<0))
+			if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x dv -C %ld-%ld | tcdecode -x dv -y pcm -d %d -Q %d", p_audio->p_nome_audio, vob->verbose,M_AUDIOMAX(s_frame_audio_size,p_audio->s_start_audio),M_AUDIOMAX(s_frame_audio_size,p_audio->s_end_audio),vob->verbose,vob->quality)<0))
 			{
 				perror("command buffer overflow");
 				return(TC_IMPORT_ERROR);
@@ -446,7 +527,7 @@ MOD_open
 		   break;
 		   case TC_MAGIC_AVI:
 			capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_AUD|TC_CAP_VID;
-			if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x pcm -a %d -C %ld-%ld",p_audio->p_nome_audio, vob->verbose,vob->a_track,s_frame_audio_size*p_audio->s_start_audio,s_frame_audio_size*p_audio->s_end_audio)<0)) 
+			if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x pcm -a %d -C %ld-%ld",p_audio->p_nome_audio, vob->verbose,vob->a_track,M_AUDIOMAX(s_frame_audio_size,p_audio->s_start_audio),M_AUDIOMAX(s_frame_audio_size,p_audio->s_end_audio))<0)) 
 			{
 				perror("command buffer overflow");
 				return(TC_IMPORT_ERROR);
@@ -458,14 +539,22 @@ MOD_open
 				s_frame_audio_size >>= 1;
 			if (p_audio->s_a_chan == 2)
 				s_frame_audio_size >>= 1;
-			if((snprintf(import_cmd_buf, MAX_BUF, "tcdecode -i \"%s\" -d %d -x mov -y pcm -C %ld,%ld",p_audio->p_nome_audio, vob->verbose,s_frame_audio_size*p_audio->s_start_audio,s_frame_audio_size*p_audio->s_end_audio)<0)) 
+			if((snprintf(import_cmd_buf, MAX_BUF, "tcdecode -i \"%s\" -d %d -x mov -y pcm -C %ld,%ld",p_audio->p_nome_audio, vob->verbose,M_AUDIOMAX(s_frame_audio_size,p_audio->s_start_audio),M_AUDIOMAX(s_frame_audio_size,p_audio->s_end_audio))<0)) 
+			{
+				perror("command buffer overflow");
+				return(TC_IMPORT_ERROR);
+			}
+		   break;
+		   case TC_MAGIC_AF6:
+			capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM;
+			if((snprintf(import_cmd_buf, MAX_BUF, "tcdecode -i \"%s\" -d %d -x af6audio -y pcm -C %ld,%ld",p_audio->p_nome_audio, vob->verbose,M_AUDIOMAX(s_frame_audio_size,p_audio->s_start_audio),M_AUDIOMAX(s_frame_audio_size,p_audio->s_end_audio))<0)) 
 			{
 				perror("command buffer overflow");
 				return(TC_IMPORT_ERROR);
 			}
 		   break;
 		   default:
-                        fprintf(stderr,"[%s] error: audio magic 0x%lx not yet supported. \n", MOD_NAME,p_audio->s_a_magic);
+                        fprintf(stderr,"[%s] error: audio magic 0x%lx not yet supported. \n", MOD_NAME,s_a_magic);
 			return(TC_IMPORT_ERROR);
 		}
 		if((s_fd_audio = popen(import_cmd_buf, "r"))== NULL)
@@ -494,6 +583,7 @@ MOD_decode
 	int s_video_frame_size;
 	static int s_audio_frame_size_orig=0;
 	static int s_video_frame_size_orig=0;
+	static int s_v_af6_sync=0,s_a_af6_sync=0;
 	int s_frame_audio_size=0;
 
 	if(param->flag == TC_AUDIO) 
@@ -503,6 +593,16 @@ MOD_decode
                          param->size=s_audio_frame_size_orig;
                          s_audio_frame_size_orig=0;
                 }
+		if (s_a_magic == TC_MAGIC_AF6)
+		{
+			if (s_a_af6_sync == 0)
+			{
+				if (f_af6_sync(s_fd_audio,'A') == 0)
+					s_a_af6_sync=1;
+				else
+					return(TC_IMPORT_ERROR);
+			}
+		}
                 s_audio_frame_size=fread(param->buffer, 1, param->size, s_fd_audio);
                 if (s_audio_frame_size == 0)
                 {
@@ -511,18 +611,19 @@ MOD_decode
 				s_frame_audio_size=(1.00 * p_audio->s_a_bits * p_audio->s_a_chan * p_audio->s_a_rate)/(8*p_audio->s_fps);
 				if(verbose_flag) 
 					fprintf(stderr,"[%s] setting audio size to %d\n",MOD_NAME,s_frame_audio_size);
-				switch(p_audio->s_a_magic)
+				s_a_magic=p_audio->s_a_magic;
+				switch(s_a_magic)
 				{
 				   case TC_MAGIC_DV_PAL:
 				   case TC_MAGIC_DV_NTSC:
-					if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x dv -C %ld-%ld | tcdecode -x dv -y pcm -d %d -Q %d", p_audio->p_nome_audio, vob->verbose,s_frame_audio_size*p_audio->s_start_audio,s_frame_audio_size*p_audio->s_end_audio,vob->verbose,vob->quality)<0))
+					if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x dv -C %ld-%ld | tcdecode -x dv -y pcm -d %d -Q %d", p_audio->p_nome_audio, vob->verbose,M_AUDIOMAX(s_frame_audio_size,p_audio->s_start_audio),M_AUDIOMAX(s_frame_audio_size,p_audio->s_end_audio),vob->verbose,vob->quality)<0))
                                         {
                                                 perror("command buffer overflow");
                                                 return(TC_IMPORT_ERROR);
                                         }
 				   break;
 				   case TC_MAGIC_AVI:
-					if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x pcm -a %d -C %ld-%ld",p_audio->p_nome_audio, vob->verbose,vob->a_track,s_frame_audio_size*p_audio->s_start_audio,s_frame_audio_size*p_audio->s_end_audio)<0)) 
+					if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x pcm -a %d -C %ld-%ld",p_audio->p_nome_audio, vob->verbose,vob->a_track,M_AUDIOMAX(s_frame_audio_size,p_audio->s_start_audio),M_AUDIOMAX(s_frame_audio_size,p_audio->s_end_audio))<0)) 
 					{
 						perror("command buffer overflow");
 						return(TC_IMPORT_ERROR);
@@ -533,14 +634,21 @@ MOD_decode
 						s_frame_audio_size >>= 1;
 					if (p_audio->s_a_chan == 2)
 						s_frame_audio_size >>= 1;
-					if((snprintf(import_cmd_buf, MAX_BUF, "tcdecode -i \"%s\" -d %d -x mov -y pcm -C %ld,%ld",p_audio->p_nome_audio, vob->verbose,s_frame_audio_size*p_audio->s_start_audio,s_frame_audio_size*p_audio->s_end_audio)<0)) 
+					if((snprintf(import_cmd_buf, MAX_BUF, "tcdecode -i \"%s\" -d %d -x mov -y pcm -C %ld,%ld",p_audio->p_nome_audio, vob->verbose,M_AUDIOMAX(s_frame_audio_size,p_audio->s_start_audio),M_AUDIOMAX(s_frame_audio_size,p_audio->s_end_audio))<0)) 
 					{
 						perror("command buffer overflow");
 						return(TC_IMPORT_ERROR);
 					}
 		   		   break;
+				   case TC_MAGIC_AF6:
+					if((snprintf(import_cmd_buf, MAX_BUF, "tcdecode -i \"%s\" -d %d -x af6audio -y pcm -C %ld,%ld",p_audio->p_nome_audio, vob->verbose,M_AUDIOMAX(s_frame_audio_size,p_audio->s_start_audio),M_AUDIOMAX(s_frame_audio_size,p_audio->s_end_audio))<0)) 
+					{
+						perror("command buffer overflow");
+						return(TC_IMPORT_ERROR);
+					}
+				   break;
 				   default:
-                        		fprintf(stderr,"[%s] error: audio magic 0x%lx not yet supported. \n", MOD_NAME,p_audio->s_a_magic);
+                        		fprintf(stderr,"[%s] error: audio magic 0x%lx not yet supported. \n", MOD_NAME,s_a_magic);
 					return(TC_IMPORT_ERROR);
 				}
                                 if((s_fd_audio = popen(import_cmd_buf, "r"))== NULL)
@@ -572,6 +680,16 @@ MOD_decode
                          s_frame_size=s_video_frame_size_orig;
                          s_video_frame_size_orig=0;
                 }
+		if (s_v_magic == TC_MAGIC_AF6)
+		{
+			if (s_v_af6_sync == 0)
+			{
+				if (f_af6_sync(s_fd_video,'V') == 0)
+					s_v_af6_sync=1;
+				else
+					return(TC_IMPORT_ERROR);
+			}
+		}
 		s_video_frame_size=fread(p_vframe_buffer, 1,s_frame_size, s_fd_video);
 		f_mod_video_frame(param,p_video_prev,s_v_codec,0);
 		if (s_video_frame_size == 0)
@@ -589,7 +707,8 @@ MOD_decode
 				{
 				    	s_v_codec=p_video->s_v_codec;
 				}
-				switch(p_video->s_v_magic)
+				s_v_magic=p_video->s_v_magic;
+				switch(s_v_magic)
 				{
 		   		   case TC_MAGIC_DV_PAL:
 		   		   case TC_MAGIC_DV_NTSC:
@@ -693,8 +812,33 @@ MOD_decode
 							;
 					}
 		   		   break;
+				   case TC_MAGIC_AF6:
+					switch(s_v_codec) 
+					{
+						case CODEC_RGB:
+						s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height));
+						if((snprintf(import_cmd_buf, MAX_BUF, "tcdecode -i \"%s\" -x af6video -y rgb -d %d -C %ld,%ld", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video)<0))
+						{
+							perror("command buffer overflow");
+							return(TC_IMPORT_ERROR);
+						}
+						break;
+						case CODEC_YUV:
+							s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height))/2;
+						if((snprintf(import_cmd_buf, MAX_BUF, "tcdecode -i \"%s\" -x af6video -y yv12 -d %d -C %ld,%ld", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video)<0))
+						{
+							perror("command buffer overflow");
+							return(TC_IMPORT_ERROR);
+						}
+						break;
+						default:
+							fprintf(stderr,"[%s] error: video codec 0x%x not yet supported. \n", MOD_NAME,s_v_codec);
+							return(TC_IMPORT_ERROR);
+							;
+					}
+				   break;
 				   default:
-                        		fprintf(stderr,"[%s] error: video magic 0x%lx not yet supported. \n", MOD_NAME,p_video->s_v_magic);
+                        		fprintf(stderr,"[%s] error: video magic 0x%lx not yet supported. \n", MOD_NAME,s_v_magic);
 					return(TC_IMPORT_ERROR);
 				}
                        		if((s_fd_video = popen(import_cmd_buf, "r"))== NULL)

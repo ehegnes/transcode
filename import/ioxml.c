@@ -371,14 +371,28 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 							p_audiovideo->s_v_magic=TC_MAGIC_AVI;
 						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"mov") == 0)
 							p_audiovideo->s_v_magic=TC_MAGIC_AVI;
+						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"af6") == 0)
+							p_audiovideo->s_v_magic=TC_MAGIC_AF6;
+						else
+						{
+							fprintf(stderr,"(%s) The in-video-magic %s parameter isn't yet supported.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
+							s_rc=1;
+						}
 					break;
 					case IN_AUDIO_MAGIC:
 						if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"dv") == 0)
-							p_audiovideo->s_v_magic=TC_MAGIC_DV_PAL;	//the same for PAL and NTSC
+							p_audiovideo->s_a_magic=TC_MAGIC_DV_PAL;	//the same for PAL and NTSC
 						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"avi") == 0)
-							p_audiovideo->s_v_magic=TC_MAGIC_AVI;
+							p_audiovideo->s_a_magic=TC_MAGIC_AVI;
 						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"mov") == 0)
-							p_audiovideo->s_v_magic=TC_MAGIC_AVI;
+							p_audiovideo->s_a_magic=TC_MAGIC_AVI;
+						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"af6") == 0)
+							p_audiovideo->s_a_magic=TC_MAGIC_AF6;
+						else
+						{
+							fprintf(stderr,"(%s) The in-audio-magic %s parameter isn't yet supported.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
+							s_rc=1;
+						}
 					break;
 					case IN_VIDEO_CODEC:
 						if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"rgb") == 0)
@@ -393,7 +407,7 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 							p_audiovideo->s_v_codec=CODEC_RAW;	
 						else
 						{
-							fprintf(stderr,"(%s) The %s parameter isn't yet supported.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
+							fprintf(stderr,"(%s) The in-video-codec %s parameter isn't yet supported.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
 							s_rc=1;
 						}
 						if (s_video_codec == TC_CODEC_UNKNOWN)
@@ -406,10 +420,10 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 					break;
 					case IN_AUDIO_CODEC:
 						if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"pcm") == 0)
-							p_audiovideo->s_a_magic=CODEC_PCM;
+							p_audiovideo->s_a_codec=CODEC_PCM;
 						else
 						{
-							fprintf(stderr,"(%s) The %s parameter isn't yet supported.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
+							fprintf(stderr,"(%s) The in-audio-codec %s parameter isn't yet supported.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
 							s_rc=1;
 						}
 						if (s_audio_codec == TC_CODEC_UNKNOWN)

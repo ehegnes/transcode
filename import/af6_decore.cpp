@@ -77,6 +77,7 @@ extern "C" {
       char *pack_buffer = 0;
       char *packY=0,*packU=0,*packV=0;
       ssize_t pack_size = 0;
+      long s_tot_frame,s_init_frame;
 
       /* create a new file reader */
       vfile = CreateIAviReadFile(ipipe->name);
@@ -190,75 +191,85 @@ extern "C" {
 	packV = pack_buffer + plane_size + (plane_size >> 2);
       }
       
+      s_tot_frame=vrs->GetLength();	//get the total number of the frames
+      if (ipipe->frame_limit[1] < s_tot_frame) //added to enable the -C option of tcdecode
+      {
+             s_tot_frame=ipipe->frame_limit[1];
+      }
+      
       /* start at the beginning */
       vrs->SeekToKeyFrame(0);
-      
+
       /* send sync token */
       fflush(stdout);
       p_write(ipipe->fd_out, sync_str, sizeof(sync_str));
 
       /* frame serve loop */
-      while(!vrs->Eof()) { 
+      /* by default ipipe->frame_limit[0]=0 and ipipe->frame_limit[1]=LONG_MAX so all frames are decoded */
+      for(s_init_frame=0;(s_init_frame<=s_tot_frame)||(!vrs->Eof());s_init_frame++) { 
 	/* fetch a frame */
 	vrs->ReadFrame();
 	CImage *imsrc = vrs->GetFrame();
 	char *buf = (char *)imsrc->Data();
 
-	if(unpack) {
-	  /* unpack and write unpacked data */
-	  char *Y = packY;
-	  char *U = packU;
-	  char *V = packV;
-	  int x,y;
-	  int subw = bh.biWidth >> 1;
-	  int subh = bh.biHeight >> 1;
+	if (s_init_frame >= ipipe->frame_limit[0]) //added to enable the -C option of tcdecode
+	{
+		if(unpack) {
+		  /* unpack and write unpacked data */
+		  char *Y = packY;
+		  char *U = packU;
+		  char *V = packV;
+		  int x,y;
+		  int subw = bh.biWidth >> 1;
+		  int subh = bh.biHeight >> 1;
 
-	  /* 4:2:2 packed -> 4:2:0 planar -- SLOW! MMX anyone???? :) */
-	  if(lumi_first) {
+		  /* 4:2:2 packed -> 4:2:0 planar -- SLOW! MMX anyone???? :) */
+		  if(lumi_first) {
 
-	    for(y=0;y<subh;y++) {
-	      for(x=0;x<subw;x++) {
-		*(Y++) = *(buf++);
-		*(U++) = *(buf++);
-		*(Y++) = *(buf++);
-		*(V++) = *(buf++);
-	      }
-	      for(x=0;x<subw;x++) {
-		*(Y++) = *(buf++);
-		buf++;
-		*(Y++) = *(buf++);
-		buf++;
-	      }
-	    }
-	  } else {
-	    for(y=0;y<subh;y++) {
-	      for(x=0;x<subw;x++) {
-		*(U++) = *(buf++);
-		*(Y++) = *(buf++);
-		*(V++) = *(buf++);
-		*(Y++) = *(buf++);
-	      }
-	      for(x=0;x<subw;x++) {
-		buf++;
-		*(Y++) = *(buf++);
-		buf++;
-		*(Y++) = *(buf++);
-	      }
-	    }
-	  }
-	  /* write unpacked frame */
-	  if(p_write(ipipe->fd_out, pack_buffer, pack_size)!= pack_size) {
-	    fprintf(stderr,"(%s) ERROR: Pipe write error!\n",__FILE__);
-	    ipipe->error=1;
-	    break;
-	  }
-	} else {
-	  /* directly write raw frame */
-	  if(p_write(ipipe->fd_out, buf, buffer_size)!= buffer_size) {
-	    fprintf(stderr,"(%s) ERROR: Pipe write error!\n",__FILE__);
-	    ipipe->error=1;
-	    break;
-	  }
+		    for(y=0;y<subh;y++) {
+		      for(x=0;x<subw;x++) {
+			*(Y++) = *(buf++);
+			*(U++) = *(buf++);
+			*(Y++) = *(buf++);
+			*(V++) = *(buf++);
+		      }
+		      for(x=0;x<subw;x++) {
+			*(Y++) = *(buf++);
+			buf++;
+			*(Y++) = *(buf++);
+			buf++;
+		      }
+		    }
+		  } else {
+		    for(y=0;y<subh;y++) {
+		      for(x=0;x<subw;x++) {
+			*(U++) = *(buf++);
+			*(Y++) = *(buf++);
+			*(V++) = *(buf++);
+			*(Y++) = *(buf++);
+		      }
+		      for(x=0;x<subw;x++) {
+			buf++;
+			*(Y++) = *(buf++);
+			buf++;
+			*(Y++) = *(buf++);
+		      }
+		    }
+		  }
+		  /* write unpacked frame */
+		  if(p_write(ipipe->fd_out, pack_buffer, pack_size)!= pack_size) {
+		    fprintf(stderr,"(%s) ERROR: Pipe write error!\n",__FILE__);
+		    ipipe->error=1;
+		    break;
+		  }
+		} else {
+		  /* directly write raw frame */
+		  if(p_write(ipipe->fd_out, buf, buffer_size)!= buffer_size) {
+		    fprintf(stderr,"(%s) ERROR: Pipe write error!\n",__FILE__);
+		    ipipe->error=1;
+		    break;
+		  }
+		}
 	}
       }
       
@@ -279,6 +290,7 @@ extern "C" {
       unsigned int sample_size = 0;
       unsigned int samples;
       char *buffer;
+      long s_byte_read=0;
 
       /* create AVI audio file reader */
       afile = CreateIAviReadFile(ipipe->name);
@@ -370,12 +382,41 @@ extern "C" {
 	if(verbose_flag & TC_STATS) 
 	  fprintf(stderr, "(%s) audio: requested: %u, got: %u samples",
 		  __FILE__, samples, ret_samples);
-	
-	/* write audio */
-	if((unsigned int)p_write(ipipe->fd_out,buffer,ret_size)!=ret_size) {
-	  ipipe->error=1;
-	  break;
+
+	s_byte_read+=ret_size;
+	/* by default ipipe->frame_limit[0]=0 and ipipe->frame_limit[1]=LONG_MAX so all bytes are decoded */
+	if ((s_byte_read >= ipipe->frame_limit[0]) && (s_byte_read <= ipipe->frame_limit[1])) //added to enable the -C option of tcdecode
+	{
+		if (s_byte_read - ret_size <ipipe->frame_limit[0])
+		{
+			if((unsigned int)p_write(ipipe->fd_out,buffer+(ret_size-(s_byte_read-ipipe->frame_limit[0])),(s_byte_read-ipipe->frame_limit[0]))!=(s_byte_read-ipipe->frame_limit[0])) 
+			{
+				ipipe->error=1;
+			  	break;
+			}
+		}
+		else
+		{
+			if((unsigned int)p_write(ipipe->fd_out,buffer,ret_size)!=ret_size) 
+			{
+			  ipipe->error=1;
+			  break;
+			}
+		}
 	}
+	else if ((s_byte_read> ipipe->frame_limit[0]) && (s_byte_read - ret_size <=ipipe->frame_limit[1]))
+	{
+		if((unsigned int)p_write(ipipe->fd_out,buffer,(s_byte_read-ipipe->frame_limit[1]))!=(s_byte_read-ipipe->frame_limit[1])) 
+		{
+		  	ipipe->error=1;
+		 	break;
+		}
+	}
+	else if (s_byte_read - ret_size >ipipe->frame_limit[1])
+	{
+		break;
+	}
+	
       }
       
       if(verbose_flag & TC_DEBUG) 
