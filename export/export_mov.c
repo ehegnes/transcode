@@ -106,13 +106,18 @@ MOD_init
     w = vob->ex_v_width;
     h = vob->ex_v_height;
 
+    /* fetch qt codec from -F switch */
+    qt_codec = vob->ex_v_fcc;
+
     /* check frame format */
-    if( ((w%16)!=0) || ((h%16)!=0) ) {
-      fprintf(stderr,"[%s] width/height must be multiples of 16\n",
-	      MOD_NAME);
-      fprintf(stderr,"[%s] Try the -j option\n",
-	      MOD_NAME);
-      return(TC_EXPORT_ERROR);
+    if (!strcmp(qt_codec, "cvid")) {
+        if( ((w%16)!=0) || ((h%16)!=0) ) {
+            fprintf(stderr,"[%s] width/height must be multiples of 16\n",
+                    MOD_NAME);
+            fprintf(stderr,"[%s] Try the -j option\n",
+	            MOD_NAME);
+            return(TC_EXPORT_ERROR);
+        }
     }
 
     /* open target file for writing */
@@ -122,8 +127,6 @@ MOD_init
       return(TC_EXPORT_ERROR);
     }
 
-    /* fetch qt codec from -F switch */
-    qt_codec = vob->ex_v_fcc;
     if(qt_codec == NULL || strlen(qt_codec)==0) {
       //default
       qt_codec = "mjpa";
