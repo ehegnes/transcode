@@ -2,11 +2,11 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-CFLAGS = -D_REENTRANT -Wall -funroll-loops -ffast-math -finline-functions @SUPPORTINCL@ -I../export -I../import -I$(srcdir)/../export -I$(srcdir)/../import -export-dynamic -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@ --include $(top_srcdir)/src/transcode.h 
+CFLAGS = -D_REENTRANT -Wall -funroll-loops -ffast-math -finline-functions @SUPPORTINCL@ -I../export -I../import -I$(srcdir)/../export -I$(srcdir)/../import -export-dynamic -I../aclib -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@ --include $(top_srcdir)/src/transcode.h 
 
 bin_PROGRAMS = transcode
 
-transcode_LDADD= @SUPPORTLIB@ -L../libioaux -lioaux -lm 
+transcode_LDADD= @SUPPORTLIB@ -L../libioaux -lioaux -L../aclib -lac -lm 
 
 EXTRA_DIST = *.h
 
@@ -29,6 +29,7 @@ transcode_SOURCES =	transcode.c\
 			zoom.c\
 			probe.c\
 			split.c\
+			callback.c\
 			optstr.c\
 			info_server.c
 

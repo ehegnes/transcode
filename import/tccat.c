@@ -58,7 +58,7 @@ void import_exit(int code)
  * ------------------------------------------------------------*/
 
 
-void usage()
+void usage(int status)
 {
   version(EXE);
   
@@ -89,7 +89,7 @@ void usage()
   fprintf(stderr,"\t -d mode          verbosity mode\n");
   fprintf(stderr,"\t -v               print version\n");
 
-  exit(0);
+  exit(status);
   
 }
 
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
       
     case 'i': 
       
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       name = optarg;
       
       break;
@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
       
     case 'P':
 
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       stream=1;
       loop=0;
 
@@ -198,14 +198,14 @@ int main(int argc, char *argv[])
       
     case 'd': 
       
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       verbose = atoi(optarg);
       
       break;
 
     case 'S': 
       
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       vob_offset = atoi(optarg);
       
       break;
@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
       
     case 't': 
       
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       magic = optarg;
       user=1;
       
@@ -229,10 +229,10 @@ int main(int argc, char *argv[])
       exit(0);
       break;
       
-    case '?':
     case 'h':
+      usage(EXIT_SUCCESS);
     default:
-      usage();
+      usage(EXIT_FAILURE);
     }
   }
   
@@ -244,8 +244,7 @@ int main(int argc, char *argv[])
 
   // no autodetection yet
   if(argc==1) {
-    usage();
-    exit(1);
+    usage(EXIT_FAILURE);
   }
   
   // assume defaults
@@ -257,8 +256,7 @@ int main(int argc, char *argv[])
   // no stdin for DVD 
   if(name==NULL && source==IS_DVD) {
     fprintf(stderr, "error: invalid directory/path_to_device\n");
-    usage();
-    exit(1);
+    usage(EXIT_FAILURE);
   }
   
   // do not try to mess with the stdin stream

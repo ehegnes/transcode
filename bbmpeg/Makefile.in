@@ -68,7 +68,6 @@ A52_CFLAGS = @A52_CFLAGS@
 A52_LIBS = @A52_LIBS@
 AMTAR = @AMTAR@
 AS = @AS@
-ASFLAGS = @ASFLAGS@
 AVIFILE_CFLAGS = @AVIFILE_CFLAGS@
 AVIFILE_CONFIG = @AVIFILE_CONFIG@
 AVIFILE_LIBS = @AVIFILE_LIBS@
@@ -77,8 +76,7 @@ CC = @CC@
 CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 
-#CFLAGS = -O3 -funroll-loops -ffast-math -DLINUX @CFLAGS@
-CFLAGS = -g -ffast-math -DLINUX $(MMX) -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+CFLAGS = -funroll-loops -ffast-math -DLINUX @CFLAGS@ $(MMX)
 CPP = @CPP@
 CXX = @CXX@
 DEPDIR = @DEPDIR@
@@ -98,6 +96,7 @@ GTK_CONFIG = @GTK_CONFIG@
 GTK_LIBS = @GTK_LIBS@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LAME_3_89 = @LAME_3_89@
+LAME_3_92 = @LAME_3_92@
 LAME_CFLAGS = @LAME_CFLAGS@
 LAME_LIBS = @LAME_LIBS@
 LDFLAGS = @LDFLAGS@
@@ -116,6 +115,9 @@ LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
 LIBXML2_LIBS = @LIBXML2_LIBS@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+LZO_CFLAGS = @LZO_CFLAGS@
+LZO_EXTRA_LIBS = @LZO_EXTRA_LIBS@
+LZO_LIBS = @LZO_LIBS@
 MAGICK_CFLAGS = @MAGICK_CFLAGS@
 MAGICK_CONFIG = @MAGICK_CONFIG@
 MAGICK_LIBS = @MAGICK_LIBS@
@@ -160,13 +162,13 @@ x_libraries = @x_libraries@
 
 # # Process this file with automake to produce Makefile.in.
 AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
+DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I. 
 
 noinst_LIBRARIES = libbbmpeg.a
 
-@HAVE_ASM_NASM_TRUE@BB_SRC2 = fdct_mmx.s idct_mmx.s quant_mmx.s
+@HAVE_ASM_NASM_TRUE@BB_SRC2 = fdct_mmx.s idct_mmx.s quant_mmx.s motion_mmx.s variance_mmx.s
 
-@HAVE_MMX_TRUE@BB_SRC1 = mmxasm.c fdctdata.c idctdata.c quantdata.c predict_mmx.S 
+@HAVE_MMX_TRUE@BB_SRC1 = fdctdata.c idctdata.c quantdata.c predict_mmx.S 
 @HAVE_MMX_TRUE@MMX = -DHAVE_MMX
 
 @HAVE_SSE_TRUE@BB_SRC3 = predict_sse.S
@@ -175,7 +177,7 @@ libbbmpeg_a_SOURCES = dovideo.c params.c bits.c puthdr.c putpic.c putmpg.c putvl
 
 noinst_HEADERS = mtable.h mplex.h mmx.h main.h imgresample.h gmo_read.h encaudio.h consts.h consts1.h common.h bbencode.h 
 
-EXTRA_DIST = README.TXT *.cfg *.h *.S *.s
+EXTRA_DIST = README.TXT *.cfg *.h *.S *.s mmxasm.c
 
 SUBDIRS = . tcmplex
 
@@ -189,19 +191,19 @@ LIBRARIES = $(noinst_LIBRARIES)
 
 libbbmpeg_a_AR = $(AR) cru
 libbbmpeg_a_LIBADD =
-@HAVE_MMX_TRUE@am__objects_1 = mmxasm.$(OBJEXT) fdctdata.$(OBJEXT) \
-@HAVE_MMX_TRUE@	idctdata.$(OBJEXT) quantdata.$(OBJEXT) \
-@HAVE_MMX_TRUE@	predict_mmx.$(OBJEXT)
-@HAVE_ASM_NASM_TRUE@am__objects_2 = fdct_mmx.$(OBJEXT) \
-@HAVE_ASM_NASM_TRUE@	idct_mmx.$(OBJEXT) quant_mmx.$(OBJEXT)
-@HAVE_SSE_TRUE@am__objects_3 = predict_sse.$(OBJEXT)
+@HAVE_MMX_TRUE@am__objects_2 = fdctdata.$(OBJEXT) idctdata.$(OBJEXT) \
+@HAVE_MMX_TRUE@	quantdata.$(OBJEXT) predict_mmx.$(OBJEXT)
+@HAVE_ASM_NASM_TRUE@am__objects_3 = fdct_mmx.$(OBJEXT) \
+@HAVE_ASM_NASM_TRUE@	idct_mmx.$(OBJEXT) quant_mmx.$(OBJEXT) \
+@HAVE_ASM_NASM_TRUE@	motion_mmx.$(OBJEXT) variance_mmx.$(OBJEXT)
+@HAVE_SSE_TRUE@am__objects_4 = predict_sse.$(OBJEXT)
 am_libbbmpeg_a_OBJECTS = dovideo.$(OBJEXT) params.$(OBJEXT) \
 	bits.$(OBJEXT) puthdr.$(OBJEXT) putpic.$(OBJEXT) \
 	putmpg.$(OBJEXT) putvlc.$(OBJEXT) stats.$(OBJEXT) \
 	quantize.$(OBJEXT) predict.$(OBJEXT) ratectl.$(OBJEXT) \
 	idct.$(OBJEXT) motion.$(OBJEXT) transfrm.$(OBJEXT) \
-	fdctref.$(OBJEXT) resize.$(OBJEXT) $(am__objects_1) \
-	$(am__objects_2) $(am__objects_3)
+	fdctref.$(OBJEXT) resize.$(OBJEXT) $(am__objects_2) \
+	$(am__objects_3) $(am__objects_4)
 libbbmpeg_a_OBJECTS = $(am_libbbmpeg_a_OBJECTS)
 
 DEFS = @DEFS@
@@ -212,13 +214,13 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/bits.Po ./$(DEPDIR)/dovideo.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/fdctdata.Po ./$(DEPDIR)/fdctref.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/idct.Po ./$(DEPDIR)/idctdata.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mmxasm.Po ./$(DEPDIR)/motion.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/params.Po ./$(DEPDIR)/predict.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/puthdr.Po ./$(DEPDIR)/putmpg.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/putpic.Po ./$(DEPDIR)/putvlc.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/quantdata.Po ./$(DEPDIR)/quantize.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ratectl.Po ./$(DEPDIR)/resize.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/stats.Po ./$(DEPDIR)/transfrm.Po
+@AMDEP_TRUE@	./$(DEPDIR)/motion.Po ./$(DEPDIR)/params.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/predict.Po ./$(DEPDIR)/puthdr.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/putmpg.Po ./$(DEPDIR)/putpic.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/putvlc.Po ./$(DEPDIR)/quantdata.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/quantize.Po ./$(DEPDIR)/ratectl.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/resize.Po ./$(DEPDIR)/stats.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/transfrm.Po
 CCASCOMPILE = $(CCAS) $(AM_CCASFLAGS) $(CCASFLAGS)
 LTCCASCOMPILE = $(LIBTOOL) --mode=compile $(CCAS) $(AM_CCASFLAGS) \
 	$(CCASFLAGS)
@@ -272,7 +274,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fdctref.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/idct.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/idctdata.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmxasm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/motion.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/params.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/predict.Po@am__quote@
@@ -560,7 +561,7 @@ uninstall-info: uninstall-info-recursive
 	uninstall-recursive
 
 
-%.o: %.s ;	$(ASM) $(ASMFLAGS) -o $@ $<
+%.o: %.s ;	$(ASM) -g $(ASMFLAGS) -o $@ $<
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

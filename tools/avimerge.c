@@ -37,7 +37,7 @@ void version()
   printf("%s (%s v%s) (C) 2001-2002 Thomas Östreich\n", EXE, PACKAGE, VERSION);
 }
 
-void usage()
+void usage(int status)
 {
     version();
     printf("\nUsage: %s [options]\n", EXE);
@@ -45,7 +45,7 @@ void usage()
     printf("\t -i file1 [file2 [...]]    input file(s)\n");
     printf("\t -p file                   multiplex additional audio track from file\n");
     printf("\t -a num                    audio track number [0]\n");
-    exit(0);
+    exit(status);
 }
 
 static char data[SIZE_RGB_FRAME];
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
   
   int aud_tracks;
   
-  if(argc==1) usage();
+  if(argc==1) usage(EXIT_FAILURE);
   
   while ((ch = getopt(argc, argv, "a:i:o:p:?h")) != -1) {
     
@@ -150,42 +150,42 @@ int main(int argc, char *argv[])
       
     case 'i':
       
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       infile = optarg;
       
       break;
       
     case 'a':
       
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       track_num = atoi(optarg);
       
-      if(track_num<0) usage();
+      if(track_num<0) usage(EXIT_FAILURE);
       
       break;
       
     case 'o':
       
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       outfile = optarg;
       
       break;
       
     case 'p':
       
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       audfile = optarg;
       
       break;
       
-    case '?':
     case 'h':
+      usage(EXIT_SUCCESS);
     default:
-      usage();
+      usage(EXIT_FAILURE);
     }
   }
   
-  if(outfile == NULL || infile == NULL) usage();
+  if(outfile == NULL || infile == NULL) usage(EXIT_FAILURE);
   
   printf("scanning file %s for video/audio parameter\n", infile);
   

@@ -29,6 +29,7 @@
 #include <unistd.h>
 
 #include "config.h"
+#include "transcode.h"
 
 #ifdef HAVE_DV
 #include <libdv/dv.h>
@@ -57,8 +58,10 @@ int scan_header_dv(char *buf)
     dv_init();
 #endif
 
+    dv_decoder->prev_frame_decoded = 0;
     cc=dv_parse_header(dv_decoder, buf);
 
+    dv_decoder_free(dv_decoder);
 #endif
     return(cc);
 }

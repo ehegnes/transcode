@@ -39,7 +39,7 @@ void version()
     printf("%s (%s v%s) (C) 2001-2002 Thomas Östreich\n", EXE, PACKAGE, VERSION);
 }
 
-void usage()
+void usage(int status)
 {
     version();
     printf("\nUsage: %s [options]\n", EXE);
@@ -51,7 +51,7 @@ void usage()
     printf("\t -e r[,b[,c]]      audio stream parameter (samplerate,bits,channels)\n");
     printf("\t -a num            audio track number [0]\n");
     printf("\t -v                print version\n");
-    exit(0);
+    exit(status);
 }
 
 
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 
   char *filename=NULL;
 
-  if(argc==1) usage();
+  if(argc==1) usage(EXIT_FAILURE);
   
   while ((ch = getopt(argc, argv, "f:i:N:F:vb:e:a:?h")) != -1)
     {
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 	
       case 'N':
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  id = strtol(optarg, NULL, 16);
 
 	  if(id <  0)
@@ -102,17 +102,17 @@ int main(int argc, char *argv[])
 	  
       case 'a':
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	track_num = atoi(optarg);
 	
-	if(track_num<0) usage();
+	if(track_num<0) usage(EXIT_FAILURE);
 	
 	break;
 	
 	
       case 'f':
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  n=sscanf(optarg,"%d,%d", &val1, &val2);
 	  if(n!=2 || val1 < 0 || val2 < 0) fprintf(stderr, "invalid parameter set for option -f");
 
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 
       case 'F':
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  str = optarg;
 
 	  if(strlen(str) > 4 || strlen(str) == 0)
@@ -132,13 +132,13 @@ int main(int argc, char *argv[])
 
       case 'i':
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  filename = optarg;
 	  break;
 
       case 'b':
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  brate = atoi(optarg);
 	  rat = 1;
 	  break;
@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 
       case 'e':
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	
 	n=sscanf(optarg,"%d,%d,%d", &a_rate, &a_bits, &a_chan);
 	
@@ -169,16 +169,15 @@ int main(int argc, char *argv[])
 	
 	break;
 
-      case '?':
       case 'h':
+	  usage(EXIT_SUCCESS);
       default:
-	  usage();
-	  exit(0);
+	  usage(EXIT_FAILURE);
       }
     }
   
   
-  if(filename==NULL) usage();
+  if(filename==NULL) usage(EXIT_FAILURE);
   
   printf("[%s] scanning AVI-file %s for header information\n", EXE, filename);
   

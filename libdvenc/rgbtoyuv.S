@@ -58,10 +58,10 @@ OFFSETWX:       .word   128,0,128,0     #offset used before pack 32
 OFFSETW:        .long   0,0
 OFFSETBX:       .word   128,128,128,128
 OFFSETB:        .long   0,0
-OFFSETY:	.word	(-128+16) << PRECISION 
-		.word   (-128+16) << PRECISION 
-		.word   (-128+16) << PRECISION
-		.word   (-128+16) << PRECISION
+OFFSETY:	.word	(16-128) << PRECISION 
+		.word   (16-128) << PRECISION 
+		.word   (16-128) << PRECISION
+		.word   (16-128) << PRECISION
 	
 TEMP0:          .long   0,0
 TEMPY:  .long   0,0
@@ -1108,6 +1108,8 @@ ppm_copy_ntsc_c_block_mmx:
 
 	movl	$4, %ebx	
 
+	movq	ALLONE, %mm6
+	
 ppm_copy_ntsc_c_block_mmx_loop:	
 	
 	movq	(%esi), %mm0
@@ -1115,13 +1117,20 @@ ppm_copy_ntsc_c_block_mmx_loop:
 	movq	16(%esi), %mm2
 	movq	24(%esi), %mm3
 
-	paddw	%mm0, %mm1
-	paddw	%mm2, %mm3
-	psraw	$1, %mm1
-	psraw	$1, %mm3
+	pmaddwd %mm6, %mm0
+	pmaddwd %mm6, %mm1
 
-	movq	%mm1, 0*8(%edi)
-	movq	%mm3, 1*8(%edi)
+	pmaddwd %mm6, %mm2
+	pmaddwd %mm6, %mm3
+
+	packssdw %mm1, %mm0
+	packssdw %mm3, %mm2
+	
+	psraw	$1, %mm0
+	psraw	$1, %mm2
+
+	movq	%mm0, 0*8(%edi)
+	movq	%mm2, 1*8(%edi)
 
 	addl	$DV_WIDTH_SHORT_HALF, %esi
 	addl	$16, %edi
@@ -1131,13 +1140,20 @@ ppm_copy_ntsc_c_block_mmx_loop:
 	movq	16(%esi), %mm2
 	movq	24(%esi), %mm3
 
-	paddw	%mm0, %mm1
-	paddw	%mm2, %mm3
-	psraw	$1, %mm1
-	psraw	$1, %mm3
+	pmaddwd %mm6, %mm0
+	pmaddwd %mm6, %mm1
 
-	movq	%mm1, 0*8(%edi)
-	movq	%mm3, 1*8(%edi)
+	pmaddwd %mm6, %mm2
+	pmaddwd %mm6, %mm3
+
+	packssdw %mm1, %mm0
+	packssdw %mm3, %mm2
+	
+	psraw	$1, %mm0
+	psraw	$1, %mm2
+
+	movq	%mm0, 0*8(%edi)
+	movq	%mm2, 1*8(%edi)
 
 	addl	$DV_WIDTH_SHORT_HALF, %esi
 	addl	$16, %edi

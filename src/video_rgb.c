@@ -21,10 +21,16 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <string.h>
+
 #include "framebuffer.h"
 #include "video_trans.h"
-#include <string.h>
 #include "zoom.h"
+#include "ac.h"
 
 #define BLACK_BYTE 0
 
@@ -428,8 +434,9 @@ void rgb_mirror(char *image, int width,  int height)
   }
 }
 
+static int (*rgb_swap_core) (char *image, int pixels);
 
-void rgb_swap(char *image, int pixels)
+static int rgb_swap_C(char *image, int pixels)
 {
 
   char *in, *out;
@@ -453,44 +460,62 @@ void rgb_swap(char *image, int pixels)
     in = in+3;
     out = out+3;
   }
+
+  return(0);
+
 }
 
-inline void rgb_merge(char *row1, char *row2, char *out, int bytes, 
-		      unsigned long weight1, unsigned long weight2)
+void rgb_swap(char *image, int pixels)
+{
+
+  rgb_swap_core = rgb_swap_C;
+
+#ifdef ARCH_X86
+#ifdef HAVE_ASM_NASM
+  if(tc_accel>0) rgb_swap_core = ac_swap_rgb2bgr_asm;
+#endif
+#endif
+
+  rgb_swap_core(image, pixels);
+
+}
+
+
+inline int rgb_merge_C(char *row1, char *row2, char *out, int bytes, 
+			unsigned long weight1, unsigned long weight2)
 {
   
-  // calculate the average of each color entry in two arrays and return
-  // result in char *out
+  //blend each color entry in two arrays and return
+  //result in char *out
     
     unsigned int y;
     unsigned long tmp;
     register unsigned long w1 = weight1;
     register unsigned long w2 = weight2;
-    
+
     for (y = 0; y<bytes; ++y) {
       tmp = w2 * (unsigned char) row2[y] + w1 *(unsigned char) row1[y];
       out[y] = (tmp>>16) & 0xff;
     }
 
-    return;
+    return(0);
 }
 
-inline void rgb_average(char *row1, char *row2, char *out, int bytes)
+inline int rgb_average_C(char *row1, char *row2, char *out, int bytes)
 {
   
-  // calculate the average of each color entry in two arrays and return
-  // result in char *out
-    
-    unsigned int y;
-    unsigned short tmp;
-
-    for (y = 0; y<bytes; ++y) {
-      tmp = ((unsigned char) row2[y] + (unsigned char) row1[y])>>1;
-      out[y] = tmp & 0xff;
-    }
-
-
-    return;
+  //calculate the average of each color entry in two arrays and return
+  //result in char *out
+  
+  unsigned int y=0;
+  unsigned short tmp;
+  
+  for (y = 0; y<bytes; ++y) {
+    tmp = ((unsigned char) row2[y] + (unsigned char) row1[y])>>1;
+    out[y] = tmp & 0xff;
+  }
+  
+  return(0);
 }
 
 
@@ -603,7 +628,7 @@ void rgb_hresize_8(char *image, int width, int height, int resize)
 	in  = image + j * blocks * 3 + hori_table_8[i].source * 3;
 	out = image + m;
 	
-	rgb_merge(in, in+3, out, 3, hori_table_8[i].weight1, hori_table_8[i].weight2);
+	rgb_merge_C(in, in+3, out, 3, hori_table_8[i].weight1, hori_table_8[i].weight2);
 
 	m+=3;
       }
@@ -645,7 +670,7 @@ void rgb_hresize_8_up(char *image, int width, int height, int resize)
 	
 	//	(i==cols-1) ? memcpy(out, in, 3):rgb_merge(in, in+3, out, 3, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
 
-	rgb_merge(in, in+3, out, 3, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
+	rgb_merge_C(in, in+3, out, 3, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
 
 	m+=3;
       }
@@ -655,7 +680,17 @@ void rgb_hresize_8_up(char *image, int width, int height, int resize)
     return;
 }
 
-void rgb_deinterlace(char *image, int width, int height)
+static int (*rgb_average) (char *row1, char *row2, char *out, int bytes);
+static int (*memcpy_accel) (char *dest, char *source, int bytes);
+
+inline static int memcpy_C(char *dest, char *source, int bytes)
+{
+  memcpy(dest, source, bytes);
+  return(0);
+}
+
+
+inline void rgb_deinterlace_core(char *image, int width, int height)
 {
     char *in, *out;
     
@@ -678,13 +713,124 @@ void rgb_deinterlace(char *image, int width, int height)
       out += block<<1;
     }
     
-    // clone last row
-    
-    memcpy(out, in, block);
-
     return;
 }
 
+inline void rgb_deinterlace_linear_blend_core(char *image, char *tmp, int width, int height)
+{
+  char *in, *out;
+  
+  unsigned int y, block; 
+  
+  block = 3*width;
+  
+  //(1)
+  //copy frame to 2. internal frame buffer
+
+  memcpy_accel(tmp, image, block*height);
+
+  //(2)
+  //convert first field to full frame by simple interpolation
+  //row(1)=(row(0)+row(2))/2
+  //row(3)=(row(2)+row(4))/2
+  //...
+
+
+  in  = image;
+  out = image;
+  
+  out +=block;
+  
+  for (y = 0; y < (height>>1)-1; y++) {
+    
+    rgb_average(in, in+(block<<1), out, block);
+    
+    in  += block<<1;
+    out += block<<1;
+  }
+
+  //(3)
+  //convert second field to full frame by simple interpolation
+  //row(2)=(row(1)+row(3))/2
+  //row(4)=(row(3)+row(5))/2
+  //...
+
+  in  = tmp+block;
+  out = tmp;
+  
+  out +=block<<1;
+  
+  for (y = 0; y < (height>>1)-1; y++) {
+    
+    rgb_average(in, in+(block<<1), out, block);
+    
+    in  += block<<1;
+    out += block<<1;
+  }
+  
+  //(4)
+  //blend both frames
+  rgb_average(image, tmp, image, block*height);
+  
+  return;
+}
+
+
+void rgb_deinterlace_linear(char *image, int width, int height)
+{
+
+  //default ia32 C mode:
+  rgb_average =  rgb_average_C;
+  
+#ifdef ARCH_X86 
+#ifdef HAVE_ASM_NASM
+  
+  if(tc_accel & MM_MMX)  rgb_average = ac_average_mmx;
+  if(tc_accel & MM_SSE)  rgb_average = ac_average_sse;
+  if(tc_accel & MM_SSE2) rgb_average = ac_average_sse2;
+  
+#endif
+#endif
+
+  rgb_deinterlace_core(image, width, height);
+  
+  clear_mmx();
+}
+
+void rgb_deinterlace_linear_blend(char *image, char *tmp, int width, int height)
+{
+
+  //default ia32 C mode:
+  rgb_average =  rgb_average_C;
+  memcpy_accel = memcpy_C;
+  
+#ifdef ARCH_X86 
+#ifdef HAVE_ASM_NASM
+
+  if(tc_accel & MM_MMX) {
+    rgb_average = ac_average_mmx;  
+    memcpy_accel = ac_memcpy_mmx;
+  }
+
+  if(tc_accel & MM_SSE) {
+    rgb_average = ac_average_sse;
+    memcpy_accel = ac_memcpy_sse;
+  }
+
+  if(tc_accel & MM_SSE2) {
+    rgb_average = ac_average_sse2;
+    memcpy_accel = ac_memcpy_sse2;
+  }
+
+  
+#endif
+#endif
+  
+  //process only Y component
+  rgb_deinterlace_linear_blend_core(image, tmp, width, height);
+
+  clear_mmx();
+}
 
 inline void rgb_decolor(char *image, int bytes)
 {
@@ -1054,8 +1200,10 @@ void rgb_gamma(char *image, int len)
 
     c = (unsigned char*) image;
 
-    for(n=0; n<=len; ++n)
-	*c++ = gamma_table[*c];
+    for(n=0; n<=len; ++n) {
+      *c = gamma_table[*c];
+      ++c;
+    }
 
     return;
 }

@@ -55,7 +55,7 @@ void import_exit(int code)
 
 
 
-void usage()
+void usage(int status)
 {
   version(EXE);
 
@@ -68,7 +68,7 @@ void usage()
   fprintf(stderr,"\t -C s-e            process only (video frame/audio byte) range [all]\n");
   fprintf(stderr,"\t -v                print version\n");
 
-  exit(0);
+  exit(status);
   
 }
 
@@ -106,27 +106,27 @@ int main(int argc, char *argv[])
 	    
 	case 'i': 
 	    
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  name = optarg;
 
 	  break;
 
 	case 'd': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  verbose = atoi(optarg);
 	  
 	  break;
 
 	case 'x': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  codec = optarg;
 	  break;
 	  
 	case 't': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  magic = optarg;
 	  user=1;
 
@@ -134,18 +134,18 @@ int main(int argc, char *argv[])
 	  
 	case 'a': 
 	    
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  track = strtol(optarg, NULL, 16);
 	  break;
 	  
         case 'C':
 
-          if(optarg[0]=='-') usage();
-          if (2 != sscanf(optarg,"%ld-%ld", &ipipe.frame_limit[0], &ipipe.frame_limit[1])) usage();
+          if(optarg[0]=='-') usage(EXIT_FAILURE);
+          if (2 != sscanf(optarg,"%ld-%ld", &ipipe.frame_limit[0], &ipipe.frame_limit[1])) usage(EXIT_FAILURE);
           if (ipipe.frame_limit[0] >= ipipe.frame_limit[1])
           {
                 fprintf(stderr,"Invalid -C options\n");
-                usage();
+                usage(EXIT_FAILURE);
           }
           break;
 
@@ -154,10 +154,10 @@ int main(int argc, char *argv[])
 	  exit(0);
 	  break;
 	  
-	case '?':
 	case 'h':
+	  usage(EXIT_SUCCESS);
 	default:
-	  usage();
+	  usage(EXIT_FAILURE);
 	}
     }
 
@@ -173,8 +173,7 @@ int main(int argc, char *argv[])
     // no autodetection yet
     if(codec==NULL && magic==NULL) {
       fprintf(stderr, "error: invalid codec %s\n", codec);
-      usage();
-      exit(1);
+      usage(EXIT_FAILURE);
     }
 
     if(codec==NULL) codec="";

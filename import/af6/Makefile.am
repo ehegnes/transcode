@@ -7,7 +7,7 @@ INCLUDES = -Wall -I./ -I../ -I../../src -I$(srcdir)/.. -I$(srcdir)/../.. -I$(src
  
 CFLAGS = -D_REENTRANT -funroll-loops -ffast-math -Wall -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@ 
 
-if AVIFILE_0_6
+if HAVE_AVIFILE
 MOD = import_af6.la
 else
 MOD =

@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_preview.so"
-#define MOD_VERSION "v0.1.3 (2002-05-04)"
+#define MOD_VERSION "v0.1.4 (2002-10-08)"
 #define MOD_CAP     "xv/sdl/gtk preview plugin"
 
 #include <stdio.h>
@@ -47,6 +47,9 @@
 
 static char buffer[128];
 static int size=0;
+static int use_secondary_buffer=0;
+
+static int preview_delay=0;
 
 vob_t *vob=NULL;
 
@@ -132,7 +135,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     if(options!=NULL) {
       if(strcasecmp(options,"gtk")==0) dv_player->display->arg_display=1;
       if(strcasecmp(options,"sdl")==0) dv_player->display->arg_display=3;
-      if(strcasecmp(options,"xv")==0) dv_player->display->arg_display=2;
+      if(strcasecmp(options,"xv")==0)  dv_player->display->arg_display=2;
     }
 
     w = tc_x_preview;
@@ -159,10 +162,26 @@ int tc_filter(vframe_list_t *ptr, char *options)
       
       size = w*h* 3/2;
       break;
-    }
-      return(0);
-  }
+    
+    case CODEC_RAW_YUV:
+    
+      if(!dv_display_init(dv_player->display, 0, NULL, 
+			  w, h, e_dv_sample_420, 
+			  buffer, buffer)) return(-1);
+      size = w*h* 3/2;
 
+      use_secondary_buffer=1;
+
+      break;
+
+    default:
+      fprintf(stderr, "[%s] codec not supported for preview\n", MOD_NAME);
+      return(-1);
+    }
+
+    return(0);
+  }
+  
   //----------------------------------
   //
   // filter close
@@ -196,11 +215,16 @@ int tc_filter(vframe_list_t *ptr, char *options)
   pre = (ptr->tag & TC_POST_S_PROCESS)? 1:0;
   vid = (ptr->tag & TC_VIDEO)? 1:0;
   
-  if(pre && vid && !dv_player->display->dontdraw) 
-  {
-      // display video frame
-      memcpy(dv_player->display->pixels[0], (char*) ptr->video_buf, size);
-      dv_display_show(dv_player->display);
+  if(pre && vid) {
+    
+    //0.6.2 (secondaray buffer for pass-through mode)
+    (use_secondary_buffer) ? memcpy(dv_player->display->pixels[0], (char*) ptr->video_buf2, size) : memcpy(dv_player->display->pixels[0], (char*) ptr->video_buf, size); 
+    
+    //display video frame
+    dv_display_show(dv_player->display);
+    
+    //0.6.2
+    usleep(preview_delay);
   }
   
   return(0);

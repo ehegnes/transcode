@@ -36,7 +36,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_rawlist.so"
-#define MOD_VERSION "v0.1.0 (2002-08-13)"
+#define MOD_VERSION "v0.1.1 (2002-11-18)"
 #define MOD_CODEC   "(video) YUV/RGB raw frames"
 
 #define MOD_PRE rawlist
@@ -52,6 +52,7 @@ static FILE *fd;
 static char buffer[PATH_MAX+2];
 
 static int bytes=0;
+static int out_bytes=0;
 static char *video_buffer=NULL;
 static int alloc_buffer;
   
@@ -142,6 +143,23 @@ static void yuy2toyv12(char *dest, char *input, int width, int height)
       }
     }
 }
+static void gray2rgb(char *dest, char *input, int width, int height) 
+{
+
+    int i;
+    
+    for (i=0; i<height*height; i++) {
+	*dest++ = *input;
+	*dest++ = *input;
+	*dest++ = *input++;
+    }
+}
+
+static void gray2yuv(char *dest, char *input, int width, int height) 
+{
+    memcpy (dest, input, height*width);
+    memset (dest+height*width, 128, height*width/2);
+}
 
 MOD_open
 {
@@ -161,6 +179,14 @@ MOD_open
 		   !strcasecmp(vob->im_v_string, "i420")) {
 	    convfkt = dummyconvert;
 	    bytes = vob->im_v_width * vob->im_v_height * 3 / 2;
+	} else if (!strcasecmp(vob->im_v_string, "gray") || 
+		   !strcasecmp(vob->im_v_string, "grey")) {
+	    bytes = vob->im_v_width * vob->im_v_height;
+	    if (vob->im_v_codec == CODEC_RGB)
+		convfkt = gray2rgb;
+	    else 
+		convfkt = gray2yuv;
+	    alloc_buffer = 1;
 	} else if (!strcasecmp(vob->im_v_string, "yuy2")) {
 	    convfkt = yuy2toyv12;
 	    bytes = vob->im_v_width * vob->im_v_height * 2;
@@ -170,7 +196,7 @@ MOD_open
 	    bytes = vob->im_v_width * vob->im_v_height * 2;
 	    alloc_buffer = 1;
 	} else {
-	    tc_error("Unknown format {rgb, yv12, i420, yuy2, uyvy}");
+	    tc_error("Unknown format {rgb, gray, yv12, i420, yuy2, uyvy}");
 	}
     }
 
@@ -184,11 +210,13 @@ MOD_open
     case CODEC_RGB:
       if (!bytes)
 	  bytes=vob->im_v_width * vob->im_v_height * 3;
+      out_bytes=vob->im_v_width * vob->im_v_height * 3;
       break;
       
     case CODEC_YUV:
       if (!bytes)
 	  bytes=(vob->im_v_width * vob->im_v_height * 3)/2;
+      out_bytes=(vob->im_v_width * vob->im_v_height * 3)/2;
       break;
     }
 
@@ -217,7 +245,7 @@ MOD_decode {
     *filename = NULL;
   
   int
-    fd_in, n;
+    fd_in=0, n;
   
   if(param->flag == TC_AUDIO) return(0);
 
@@ -248,7 +276,7 @@ retry:
     }
 
     convfkt(video_buffer, param->buffer, vob->im_v_width, vob->im_v_height);
-    memcpy(param->buffer, video_buffer, vob->im_v_width*vob->im_v_height*3/2);
+    memcpy(param->buffer, video_buffer, out_bytes);
   
   } else  {
     if(p_read(fd_in, param->buffer, bytes) != bytes) { 
@@ -258,10 +286,12 @@ retry:
     }
   }
   
-  close(fd_in);
   
-  param->size=bytes;
+  param->size=out_bytes;
   param->attributes |= TC_FRAME_IS_KEYFRAME;
+
+  close(fd_in);
+
   
   return(0);
 }

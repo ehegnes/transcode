@@ -3,7 +3,7 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 
 SUBDIRS = . autotools docs contrib libsupport libioaux\
-	aclib avilib movlib encore2 libac3 libvo libmpeg2\
+	aclib avilib movlib libac3 libvo libmpeg2\
 	libmp3lame libdvenc bbmpeg ffmpeg dvdread\
 	import export filter tools src 
 

@@ -68,7 +68,6 @@ A52_CFLAGS = @A52_CFLAGS@
 A52_LIBS = @A52_LIBS@
 AMTAR = @AMTAR@
 AS = @AS@
-ASFLAGS = @ASFLAGS@
 AVIFILE_CFLAGS = @AVIFILE_CFLAGS@
 AVIFILE_CONFIG = @AVIFILE_CONFIG@
 AVIFILE_LIBS = @AVIFILE_LIBS@
@@ -96,6 +95,7 @@ GTK_CONFIG = @GTK_CONFIG@
 GTK_LIBS = @GTK_LIBS@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LAME_3_89 = @LAME_3_89@
+LAME_3_92 = @LAME_3_92@
 LAME_CFLAGS = @LAME_CFLAGS@
 LAME_LIBS = @LAME_LIBS@
 LDFLAGS = @LDFLAGS@
@@ -114,6 +114,9 @@ LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
 LIBXML2_LIBS = @LIBXML2_LIBS@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+LZO_CFLAGS = @LZO_CFLAGS@
+LZO_EXTRA_LIBS = @LZO_EXTRA_LIBS@
+LZO_LIBS = @LZO_LIBS@
 MAGICK_CFLAGS = @MAGICK_CFLAGS@
 MAGICK_CONFIG = @MAGICK_CONFIG@
 MAGICK_LIBS = @MAGICK_LIBS@
@@ -181,14 +184,14 @@ LIBRARIES = $(noinst_LIBRARIES)
 
 libdvenc_a_AR = $(AR) cru
 libdvenc_a_LIBADD =
-am__objects_8 = dvenc.$(OBJEXT)
-@HAVE_DV_TRUE@am__objects_9 = enc_audio_input.$(OBJEXT) \
+am__objects_6 = dvenc.$(OBJEXT)
+@HAVE_DV_TRUE@am__objects_7 = enc_audio_input.$(OBJEXT) \
 @HAVE_DV_TRUE@	enc_input.$(OBJEXT) enc_output.$(OBJEXT)
-@HAVE_DV_TRUE@@HAVE_X86CPU_TRUE@am__objects_10 = rgbtoyuv.$(OBJEXT) \
+@HAVE_DV_TRUE@@HAVE_X86CPU_TRUE@am__objects_8 = rgbtoyuv.$(OBJEXT) \
 @HAVE_DV_TRUE@@HAVE_X86CPU_TRUE@	encode_x86.$(OBJEXT) \
 @HAVE_DV_TRUE@@HAVE_X86CPU_TRUE@	transpose_x86.$(OBJEXT)
-am_libdvenc_a_OBJECTS = $(am__objects_8) $(am__objects_9) \
-	$(am__objects_10)
+am_libdvenc_a_OBJECTS = $(am__objects_6) $(am__objects_7) \
+	$(am__objects_8)
 libdvenc_a_OBJECTS = $(am_libdvenc_a_OBJECTS)
 
 DEFS = @DEFS@

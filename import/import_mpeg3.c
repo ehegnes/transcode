@@ -29,26 +29,37 @@
 #include "libmpeg3.h"
 
 #define MOD_NAME    "import_mpeg3.so"
-#define MOD_VERSION "v0.1 (2001-08-18)"
-#define MOD_CODEC   "(video) MPEG2"
+#define MOD_VERSION "v0.3 (2002-09-20)"
+#define MOD_CODEC   "(video) MPEG2 | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE mpeg3
 #include "import_def.h"
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];
+#define BUFSIZE 65536
 
-mpeg3_t* file;
+#define FRAMES_TO_PREFETCH 8
+
+// We need different structures for audio/video import
+static mpeg3_t* file = NULL;
+static mpeg3_t* file_a = NULL;
 
 static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV;
+static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AUD|TC_CAP_PCM;
 
 static int codec, stream_id;
 static int height, width; 
 
+static int astreamid = 0;
+
 static unsigned char framebuffer[PAL_W*PAL_H*3];
 static unsigned char extrabuffer[PAL_W*3+4];
 static unsigned char *rowptr[PAL_H];
+
+static unsigned short *read_buffer;
+static unsigned short *prefetch_buffer;
+static unsigned int prefetch_len;
 
 static unsigned char *y_output, *u_output, *v_output;
 
@@ -63,18 +74,120 @@ MOD_open
 
   int i;
 
-  if(param->flag == TC_AUDIO) return(0);
+  param->fd = NULL;
+
+  //open stream
+  // I don't know which comes first and if were using both audio
+  // and video import
+
+  if (param->flag == TC_VIDEO) {
+      if (!file) {
+	  if (!file_a) {
+	      if((file = mpeg3_open(vob->video_in_file))==NULL) {
+		  fprintf(stderr, "open file failed\n");
+		  return(TC_IMPORT_ERROR);
+	      }
+	      if (verbose & TC_DEBUG)printf("[%s] Opened video NO copy\n", MOD_NAME);
+	  } else if (file_a) {
+	      if((file = mpeg3_open_copy(vob->video_in_file, file_a))==NULL) {
+		  fprintf(stderr, "open file failed\n");
+		  return(TC_IMPORT_ERROR);
+	      }
+	      if (verbose & TC_DEBUG)printf("[%s] Opened video WITH copy\n", MOD_NAME);
+	  }
+      }
+  }
+  if (param->flag == TC_AUDIO) {
+      if (!file_a) {
+	  if (!file) {
+	      if((file_a = mpeg3_open(vob->audio_in_file))==NULL) {
+		  fprintf(stderr, "open audio file failed\n");
+		  return(TC_IMPORT_ERROR);
+	      }
+	      if (verbose & TC_DEBUG)printf("[%s] Opened audio NO copy\n", MOD_NAME);
+	  } else if (file) {
+	      if((file_a = mpeg3_open_copy(vob->audio_in_file, file))==NULL) {
+		  fprintf(stderr, "open_copy audio file failed\n");
+		  return(TC_IMPORT_ERROR);
+	      }
+	      if (verbose & TC_DEBUG)printf("[%s] Opened audio WITH copy\n", MOD_NAME);
+	  }
+      }
+  }
+
+
+  if(param->flag == TC_AUDIO) {
+      int astream;
+      int a_rate, a_chan;
+      long a_samp;
+
+#ifdef HAVE_MMX
+      mpeg3_set_mmx(file_a, 1);
+#endif
+      mpeg3_set_cpus(file_a,1);
+
+  
+      if (!mpeg3_has_audio(file_a)) {
+	  printf("[%s] No audio found\n", MOD_NAME);
+	  return TC_IMPORT_ERROR;
+      }
+      astream = mpeg3_total_astreams(file_a);
+      if (verbose & TC_DEBUG)printf("[%s] <%d> audio streams found, we only handle one stream right now\n", 
+	      MOD_NAME, astream);
+
+      astreamid = vob->a_track;
+      a_rate = mpeg3_sample_rate(file_a, astreamid);
+      a_chan = mpeg3_audio_channels(file_a, astreamid);
+      a_samp = -1;
+
+      if (verbose & TC_DEBUG)
+	  printf("[%s] <%d> Channels, <%d> Samplerate, <%ld> Samples, <%d> fch, <%s> Format\n", MOD_NAME,
+	      a_chan,
+	      a_rate,
+	      a_samp,
+	      vob->im_a_size,
+	      mpeg3_audio_format(file_a, astreamid)
+	    );
+
+      if (a_rate != vob->a_rate) {
+	  fprintf(stderr, "[%s] Audio parameter mismatch (rate)\n", MOD_NAME);
+	  return TC_IMPORT_ERROR;
+      }
+
+      if (a_chan != vob->a_chan) {
+	  fprintf(stderr, "[%s] Audio parameter mismatch (%d!=%d channels)\n", MOD_NAME,
+		  a_chan, vob->a_chan);
+	  //return TC_IMPORT_ERROR;
+      }
+
+
+      if (vob->im_a_string) {
+	  long sample = strtol(vob->im_a_string, (char **)NULL, 0);
+	  mpeg3_set_sample(file_a, sample*vob->im_a_size/2, astreamid);
+      }
+
+      // prefetch 
+      prefetch_len = vob->im_a_size * FRAMES_TO_PREFETCH;
+      
+      read_buffer = malloc (prefetch_len);
+      prefetch_buffer = malloc (prefetch_len);
+      if (!read_buffer || !prefetch_buffer) {
+	  fprintf(stderr, "[%s] malloc failed at %d\n", MOD_NAME, __LINE__);
+	      return TC_IMPORT_ERROR;
+      }
+
+      return(0);
+  }
 
   if(param->flag == TC_VIDEO) {
 
     if(!mpeg3_check_sig(vob->video_in_file)) return(TC_IMPORT_ERROR);
 
-    //open stream
+#ifdef HAVE_MMX
+    mpeg3_set_mmx(file, 1);
+#endif
+    mpeg3_set_cpus(file,1);
 
-    if((file = mpeg3_open(vob->video_in_file))==NULL) {
-      fprintf(stderr, "open file failed\n");
-      return(TC_IMPORT_ERROR);
-    }
 
     codec=vob->im_v_codec;
 
@@ -105,11 +218,13 @@ MOD_open
       break;
     }
     
-    param->fd = NULL;
+    if (vob->im_v_string) {
+	long sample = strtol(vob->im_v_string, (char **)NULL, 0);
+	mpeg3_set_frame(file, sample, stream_id);
+    }
     
     return(0);
   }
-  
   return(TC_IMPORT_ERROR);
   
 }
@@ -125,12 +240,65 @@ MOD_decode
     
   int i, block;
 
-  if(param->flag == TC_AUDIO) return(0);
-  if(param->flag == TC_VIDEO) {
+  if(param->flag == TC_AUDIO) {
+      
+	int channel = 0;
+	int result = 0;
+	static int framenum = 0;
+	int len = prefetch_len/(vob->a_chan * sizeof(int16_t));
 
-#ifdef HAVE_MMX
-    mpeg3_set_mmx(file, 1);
-#endif
+	int16_t *output_ptr;
+	int16_t *input_ptr;
+	int16_t *input_end;
+
+	// I have to do the prefetch stuff, otherwise audio read performance
+	// drops down to an incredible low value.
+	// probably because of libmpeg3s bazillion fseeks -- tibit
+
+	if (framenum%FRAMES_TO_PREFETCH == 0) {
+	    // Zero output channels
+	    memset(read_buffer, 0, prefetch_len);
+	    memset(prefetch_buffer, 0, prefetch_len);
+
+	    for(channel = 0; (channel < vob->a_chan) && !result; channel++) {
+		if(channel == 0) {
+		    result = mpeg3_read_audio(file_a, 
+			    NULL, 
+			    read_buffer, 
+			    channel, 
+			    len, 
+			    astreamid);
+		} else {
+		    result = mpeg3_reread_audio(file_a, 
+			    NULL, 
+			    read_buffer, 
+			    channel, 
+			    len, 
+			    astreamid);
+		}
+
+		// Interleave for output
+		output_ptr = (int16_t*)prefetch_buffer + channel;
+		input_ptr = (int16_t*)read_buffer;
+		input_end = input_ptr + len;
+
+		while(input_ptr < input_end)
+		{
+			*output_ptr = *input_ptr++;
+			output_ptr += vob->a_chan;
+		}
+		if (result) return TC_IMPORT_ERROR;
+	    }
+	} 
+	memcpy (param->buffer, 
+		(char *)prefetch_buffer + (framenum%FRAMES_TO_PREFETCH)*vob->im_a_size, 
+		vob->im_a_size);
+	framenum++;
+      return(0);
+    }
+
+
+  if(param->flag == TC_VIDEO) {
 
     switch(codec) {
     
@@ -171,11 +339,25 @@ MOD_close
     if(param->fd != NULL) pclose(param->fd);
 
     if(param->flag == TC_VIDEO) {
-      mpeg3_close(file);
+	if (file) {
+	    mpeg3_close(file);
+	    file = NULL;
+	}
+	return 0;
     }
-    if(param->flag == TC_AUDIO) return(0);
+    if(param->flag == TC_AUDIO) {
+	if (file_a) {
+	    mpeg3_close(file_a);
+	    file_a = NULL;
+	}
+	if (prefetch_buffer) {free (prefetch_buffer); prefetch_buffer=NULL;}
+	if (read_buffer) {free (read_buffer); read_buffer=NULL;}
+	return 0;
+    }
 
     return(TC_IMPORT_ERROR);
 }
 
 
+/* vim: sw=4
+ */

@@ -68,7 +68,6 @@ A52_CFLAGS = @A52_CFLAGS@
 A52_LIBS = @A52_LIBS@
 AMTAR = @AMTAR@
 AS = @AS@
-ASFLAGS = @ASFLAGS@
 AVIFILE_CFLAGS = @AVIFILE_CFLAGS@
 AVIFILE_CONFIG = @AVIFILE_CONFIG@
 AVIFILE_LIBS = @AVIFILE_LIBS@
@@ -77,8 +76,7 @@ CC = @CC@
 CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 
-#CFLAGS = -O2 -Wall -ffast-math -DLINUX @CFLAGS@
-CFLAGS = -O2 -g -Wall -ffast-math $(X86) $(MMX) -DHAVE_AV_CONFIG_H
+CFLAGS = -O3 -g -Wall -ffast-math $(X86) $(MMX) -DHAVE_AV_CONFIG_H -D_GNU_SOURCE --include=../av_config.h
 CPP = @CPP@
 CXX = @CXX@
 DEPDIR = @DEPDIR@
@@ -98,6 +96,7 @@ GTK_CONFIG = @GTK_CONFIG@
 GTK_LIBS = @GTK_LIBS@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LAME_3_89 = @LAME_3_89@
+LAME_3_92 = @LAME_3_92@
 LAME_CFLAGS = @LAME_CFLAGS@
 LAME_LIBS = @LAME_LIBS@
 LDFLAGS = @LDFLAGS@
@@ -116,6 +115,9 @@ LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
 LIBXML2_LIBS = @LIBXML2_LIBS@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+LZO_CFLAGS = @LZO_CFLAGS@
+LZO_EXTRA_LIBS = @LZO_EXTRA_LIBS@
+LZO_LIBS = @LZO_LIBS@
 MAGICK_CFLAGS = @MAGICK_CFLAGS@
 MAGICK_CONFIG = @MAGICK_CONFIG@
 MAGICK_LIBS = @MAGICK_LIBS@
@@ -164,24 +166,18 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
 INCLUDES = -I../../ 
 
-@HAVE_ASM_NASM_TRUE@@HAVE_MMX_TRUE@FF_SRC2 = sad_mmx.s fdct_mmx.s
-@HAVE_ASM_NASM_FALSE@@HAVE_MMX_TRUE@FF_SRC3 = fdct_mmx_c.c
-
-@HAVE_MMX_TRUE@FF_SRC1 = dsputil_mmx.c idct_mmx.c mpegvideo_mmx.c simple_idct_mmx.c motion_est_mmx.c cputest.c
+@HAVE_MMX_TRUE@FF_SRC_MMX = dsputil_mmx.c fdct_mmx.c idct_mmx.c mpegvideo_mmx.c simple_idct_mmx.c motion_est_mmx.c cputest.c
 @HAVE_MMX_TRUE@MMX = -DHAVE_MMX
 
 @ARCH_X86_TRUE@X86 = -DARCH_X86
 
 noinst_LIBRARIES = libavcodec.a
 
-libavcodec_a_SOURCES = ac3enc.c common.c mpegaudio.c utils.c jfdctfst.c dsputil.c mpeg12.c h263.c h263dec.c mpegvideo.c rv10.c mjpeg.c msmpeg4.c motion_est.c $(FF_SRC1) $(FF_SRC2) $(FF_SRC3) jrevdct.c fdctdata.c resample.c motion_est.c mpegaudiodec.c pcm.c simple_idct.c ratecontrol.c 
+libavcodec_a_SOURCES = ac3enc.c common.c mpegaudio.c utils.c jfdctfst.c dsputil.c mpeg12.c h263.c h263dec.c mpegvideo.c rv10.c mjpeg.c msmpeg4.c motion_est.c $(FF_SRC_MMX) jrevdct.c jfdctint.c fdctdata.c resample.c motion_est.c mpegaudiodec.c pcm.c simple_idct.c ratecontrol.c svq1.c mem.c allcodecs.c  error_resilience.c avcodec.c adpcm.c imgconvert.c imgresample.c eval.c dv.c
 
 noinst_HEADERS = *.h
 
-EXTRA_DIST = mpegvideo_mmx_template.c *.s
-
-ASM = @NASM@
-ASMFLAGS = @NASMFLAGS@
+EXTRA_DIST = mpegvideo_mmx_template.c
 subdir = ffmpeg/libavcodec
 mkinstalldirs = $(SHELL) $(top_srcdir)/autotools/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
@@ -190,22 +186,22 @@ LIBRARIES = $(noinst_LIBRARIES)
 
 libavcodec_a_AR = $(AR) cru
 libavcodec_a_LIBADD =
-@HAVE_MMX_TRUE@am__objects_5 = dsputil_mmx.$(OBJEXT) idct_mmx.$(OBJEXT) \
-@HAVE_MMX_TRUE@	mpegvideo_mmx.$(OBJEXT) \
+@HAVE_MMX_TRUE@am__objects_5 = dsputil_mmx.$(OBJEXT) fdct_mmx.$(OBJEXT) \
+@HAVE_MMX_TRUE@	idct_mmx.$(OBJEXT) mpegvideo_mmx.$(OBJEXT) \
 @HAVE_MMX_TRUE@	simple_idct_mmx.$(OBJEXT) \
 @HAVE_MMX_TRUE@	motion_est_mmx.$(OBJEXT) cputest.$(OBJEXT)
-@HAVE_ASM_NASM_TRUE@@HAVE_MMX_TRUE@am__objects_6 = sad_mmx.$(OBJEXT) \
-@HAVE_ASM_NASM_TRUE@@HAVE_MMX_TRUE@	fdct_mmx.$(OBJEXT)
-@HAVE_ASM_NASM_FALSE@@HAVE_MMX_TRUE@am__objects_7 = fdct_mmx_c.$(OBJEXT)
 am_libavcodec_a_OBJECTS = ac3enc.$(OBJEXT) common.$(OBJEXT) \
 	mpegaudio.$(OBJEXT) utils.$(OBJEXT) jfdctfst.$(OBJEXT) \
 	dsputil.$(OBJEXT) mpeg12.$(OBJEXT) h263.$(OBJEXT) \
 	h263dec.$(OBJEXT) mpegvideo.$(OBJEXT) rv10.$(OBJEXT) \
 	mjpeg.$(OBJEXT) msmpeg4.$(OBJEXT) motion_est.$(OBJEXT) \
-	$(am__objects_5) $(am__objects_6) $(am__objects_7) \
-	jrevdct.$(OBJEXT) fdctdata.$(OBJEXT) resample.$(OBJEXT) \
-	motion_est.$(OBJEXT) mpegaudiodec.$(OBJEXT) pcm.$(OBJEXT) \
-	simple_idct.$(OBJEXT) ratecontrol.$(OBJEXT)
+	$(am__objects_5) jrevdct.$(OBJEXT) jfdctint.$(OBJEXT) \
+	fdctdata.$(OBJEXT) resample.$(OBJEXT) motion_est.$(OBJEXT) \
+	mpegaudiodec.$(OBJEXT) pcm.$(OBJEXT) simple_idct.$(OBJEXT) \
+	ratecontrol.$(OBJEXT) svq1.$(OBJEXT) mem.$(OBJEXT) \
+	allcodecs.$(OBJEXT) error_resilience.$(OBJEXT) \
+	avcodec.$(OBJEXT) adpcm.$(OBJEXT) imgconvert.$(OBJEXT) \
+	imgresample.$(OBJEXT) eval.$(OBJEXT) dv.$(OBJEXT)
 libavcodec_a_OBJECTS = $(am_libavcodec_a_OBJECTS)
 
 DEFS = @DEFS@
@@ -213,13 +209,18 @@ CPPFLAGS = @CPPFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/ac3enc.Po ./$(DEPDIR)/common.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/cputest.Po ./$(DEPDIR)/dsputil.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/dsputil_mmx.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/fdct_mmx_c.Po ./$(DEPDIR)/fdctdata.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/h263.Po ./$(DEPDIR)/h263dec.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/idct_mmx.Po ./$(DEPDIR)/jfdctfst.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/jrevdct.Po ./$(DEPDIR)/mjpeg.Po \
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/ac3enc.Po ./$(DEPDIR)/adpcm.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/allcodecs.Po ./$(DEPDIR)/avcodec.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/common.Po ./$(DEPDIR)/cputest.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/dsputil.Po ./$(DEPDIR)/dsputil_mmx.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/dv.Po ./$(DEPDIR)/error_resilience.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/eval.Po ./$(DEPDIR)/fdct_mmx.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/fdctdata.Po ./$(DEPDIR)/h263.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/h263dec.Po ./$(DEPDIR)/idct_mmx.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/imgconvert.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/imgresample.Po ./$(DEPDIR)/jfdctfst.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/jfdctint.Po ./$(DEPDIR)/jrevdct.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mem.Po ./$(DEPDIR)/mjpeg.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/motion_est.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/motion_est_mmx.Po ./$(DEPDIR)/mpeg12.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mpegaudio.Po \
@@ -229,7 +230,8 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/pcm.Po ./$(DEPDIR)/ratecontrol.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/resample.Po ./$(DEPDIR)/rv10.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/simple_idct.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/simple_idct_mmx.Po ./$(DEPDIR)/utils.Po
+@AMDEP_TRUE@	./$(DEPDIR)/simple_idct_mmx.Po ./$(DEPDIR)/svq1.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/utils.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -237,9 +239,6 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-CCASCOMPILE = $(CCAS) $(AM_CCASFLAGS) $(CCASFLAGS)
-LTCCASCOMPILE = $(LIBTOOL) --mode=compile $(CCAS) $(AM_CCASFLAGS) \
-	$(CCASFLAGS)
 DIST_SOURCES = $(libavcodec_a_SOURCES)
 HEADERS = $(noinst_HEADERS)
 
@@ -249,7 +248,7 @@ SOURCES = $(libavcodec_a_SOURCES)
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .lo .o .obj .s
+.SUFFIXES: .c .lo .o .obj
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	cd $(top_srcdir) && \
 	  $(AUTOMAKE) --foreign  ffmpeg/libavcodec/Makefile
@@ -272,17 +271,27 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ac3enc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adpcm.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/allcodecs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avcodec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/common.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cputest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dsputil.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dsputil_mmx.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fdct_mmx_c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dv.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/error_resilience.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eval.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fdct_mmx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fdctdata.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/h263.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/h263dec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/idct_mmx.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/imgconvert.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/imgresample.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jfdctfst.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jfdctint.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jrevdct.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mem.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mjpeg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/motion_est.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/motion_est_mmx.Po@am__quote@
@@ -298,6 +307,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rv10.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/simple_idct.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/simple_idct_mmx.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/svq1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utils.Po@am__quote@
 
 distclean-depend:
@@ -321,15 +331,6 @@ distclean-depend:
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LTCOMPILE) -c -o $@ `test -f '$<' || echo '$(srcdir)/'`$<
 CCDEPMODE = @CCDEPMODE@
-
-.s.o:
-	$(CCASCOMPILE) -c `test -f '$<' || echo '$(srcdir)/'`$<
-
-.s.obj:
-	$(CCASCOMPILE) -c `cygpath -w $<`
-
-.s.lo:
-	$(LTCCASCOMPILE) -c -o $@ `test -f '$<' || echo '$(srcdir)/'`$<
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -482,8 +483,6 @@ uninstall-am: uninstall-info-am
 	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
 	tags uninstall uninstall-am uninstall-info-am
 
-
-%.o: %.s ; 	$(ASM) $(ASMFLAGS) -o $@ $<
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

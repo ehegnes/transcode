@@ -156,12 +156,12 @@ static void spudec_process_control(spudec_handle_t *this, int pts100)
 	break;
       case 0x01:
 	/* Start display, no arguments */
-	//fprintf(stderr,"Start display!\n");
+	  //fprintf(stderr,"Start display:%d--%d!\n",pts100,date);
 	this->start_pts = pts100 + date;
 	break;
       case 0x02:
 	/* Stop display, no arguments */
-	//fprintf(stderr,"Stop display!\n");
+	  //fprintf(stderr,"Stop display:%d--%d!\n",pts100,date);
 	this->end_pts = pts100 + date;
 	break;
       case 0x03:
@@ -467,21 +467,13 @@ static void  spudec_crop_image(spudec_handle_t * this)
   }
 
   // make sure the requested border around the text is kept
-  if(start_row >= this->start_row + border)  start_row -= border;
-  if(end_row + border <= this->end_row)      end_row   += border;
+  // and assigne the appropriate values to the bounding box
+  this->bb_start_row = start_row > border ? start_row - border : 0;
+  this->bb_end_row = end_row + border < this->height ? end_row + border : this->height-1;
 
-  if(start_col >= this->start_col + border)  start_col -= border;
-  if(end_col + border <= this->end_col)      end_col   += border;
+  this->bb_start_col = start_col > border ? start_col - border : 0;
+  this->bb_end_col = end_col + border < this->width ? end_col + border : this->width-1;
 
-
-  // fprintf(stderr,"rows: %d-%d ; cols: %d-%d\n",start_row, end_row, start_col, end_col);
-
-  // save the results so that the save-functions can use them
-  this->bb_start_row = start_row;
-  this->bb_end_row   = end_row;
-  this->bb_start_col = start_col;
-  this->bb_end_col   = end_col;
-  
   // sanity check for start and end 
   assert( (end_row >=start_row) && (end_col >= start_col) );
 }
@@ -687,6 +679,12 @@ void spudec_free(spudec_handle_t* this)
   }
 }
 
+// return the current title number
+// (equal to the number of written subtitles)
+unsigned int spudec_get_title_num(spudec_handle_t* this)
+{
+    return this->title_num;
+}
 
 
 

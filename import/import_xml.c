@@ -96,6 +96,7 @@ MOD_open
 					}
 				break;
 				case CODEC_RAW:
+				case CODEC_RAW_YUV:
 					s_frame_size = (vob->im_v_height==PAL_H) ? TC_FRAME_DV_PAL:TC_FRAME_DV_NTSC;
 					if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x dv -d %d -C %ld-%ld", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video)<0))
 					{
@@ -295,6 +296,7 @@ MOD_decode
 							}
 						break;
 						case CODEC_RAW:
+						case CODEC_RAW_YUV:
 							if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x dv -d %d -C %ld-%ld", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video)<0))
 							{
 								perror("command buffer overflow");

@@ -22,15 +22,21 @@
  */
 
 #define MOD_NAME    "filter_test.so"
-#define MOD_VERSION "v0.0.0 (2002-03-03)"
+#define MOD_VERSION "v0.0.1 (2002-11-04)"
 #define MOD_CAP     "test filter plugin"
 
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include "ac.h"
+
 static char *buffer;
 
-static int loop=1;
+static int ac=0, loop=0;
 
 /* -------------------------------------------------
  *
@@ -45,6 +51,32 @@ static int loop=1;
 #include "transcode.h"
 #include "framebuffer.h"
 
+static unsigned char *bufalloc(size_t size)
+{
+
+#ifdef HAVE_GETPAGESIZE
+   int buffer_align=getpagesize();
+#else
+   int buffer_align=0;
+#endif
+
+   char *buf = malloc(size + buffer_align);
+
+   int adjust;
+
+   if (buf == NULL) {
+       fprintf(stderr, "(%s) out of memory", __FILE__);
+   }
+   
+   adjust = buffer_align - ((int) buf) % buffer_align;
+
+   if (adjust == buffer_align)
+      adjust = 0;
+
+   return (unsigned char *) (buf + adjust);
+}
+
+
 /*-------------------------------------------------
  *
  * single function interface
@@ -56,6 +88,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 {
 
   vob_t *vob=NULL;
+
 
   // API explanation:
   // ================
@@ -93,9 +126,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
     
     if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
 
-    buffer = malloc(SIZE_RGB_FRAME);
+    buffer = bufalloc(SIZE_RGB_FRAME);
 
-    if(options != NULL) loop=atoi(options);
+    if(options != NULL) sscanf(options,"%d:%d", &loop, &ac);
+
+    //print available multimedia extensions
+    ac_cputest();
       
     return(0);
   }
@@ -108,8 +144,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   
   if(ptr->tag & TC_FILTER_CLOSE) {
-    
-    free(buffer);
     
     return(0);
   }
@@ -125,15 +159,41 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
   
-  if(ptr->tag & TC_PRE_M_PROCESS && ptr->tag & TC_VIDEO) {
+  if((ptr->tag & TC_PRE_M_PROCESS) && (ptr->tag & TC_VIDEO)) {
 
     int n;
 
     for(n=0; n<loop; ++n) {
-      memcpy(buffer, ptr->video_buf, SIZE_RGB_FRAME);
-      memcpy(ptr->video_buf, buffer, SIZE_RGB_FRAME);
-    }
-  } 
+      
+      switch (ac) {
+
+#ifdef HAVE_MMX	
+      case 1:
+	ac_memcpy_mmx(buffer, ptr->video_buf, ptr->video_size);
+	memset(ptr->video_buf, 0, ptr->video_size);
+	ac_memcpy_mmx(ptr->video_buf, buffer, ptr->video_size);
+	break;
+#endif
+
+#ifdef HAVE_SSE	
+      case 2:
+	ac_memcpy_sse(buffer, ptr->video_buf, ptr->video_size);
+	memset(ptr->video_buf, 0, ptr->video_size);
+	ac_memcpy_sse(ptr->video_buf, buffer, ptr->video_size);
+	break;
+#endif
+
+      case 0:
+      default:
+	memcpy(buffer, ptr->video_buf, ptr->video_size);
+	memset(ptr->video_buf, 0, ptr->video_size);
+	memcpy(ptr->video_buf, buffer, ptr->video_size);
+	break;
+      } //ac
+    } //loop
+
+
+  } //slot 
   
   return(0);
 }

@@ -19,33 +19,6 @@
 #include "avcodec.h"
 #include "dsputil.h"
 #include "mpegvideo.h"
-#ifdef HAVE_MALLOC_H
-#include <malloc.h>
-#endif
-
-/* memory alloc */
-void *av_malloc(int size)
-{
-    void *ptr;
-#if defined ( ARCH_X86 ) && defined ( HAVE_MEMALIGN )
-    ptr = memalign(64,size);
-    /* Why 64? 
-       Indeed, we should align it:
-         on 4 for 386
-         on 16 for 486
-	 on 32 for 586, PPro - k6-III
-	 on 64 for K7 (maybe for P3 too).
-       Because L1 and L2 caches are aligned on those values.
-       But I don't want to code such logic here!
-     */
-#else
-    ptr = malloc(size);
-#endif
-    if (!ptr)
-        return NULL;
-    memset(ptr, 0, size);
-    return ptr;
-}
 
 void *av_mallocz(int size)
 {
@@ -55,14 +28,6 @@ void *av_mallocz(int size)
         return NULL;
     memset(ptr, 0, size);
     return ptr;
-}
-
-/* NOTE: ptr = NULL is explicetly allowed */
-void av_free(void *ptr)
-{
-    /* XXX: this test should not be needed on most libcs */
-    if (ptr)
-        free(ptr);
 }
 
 /* cannot call it directly because of 'void **' casting is not automatic */
@@ -82,6 +47,36 @@ void register_avcodec(AVCodec *format)
     while (*p != NULL) p = &(*p)->next;
     *p = format;
     format->next = NULL;
+}
+
+void avcodec_get_context_defaults(AVCodecContext *s){
+    s->bit_rate= 800*1000;
+    s->bit_rate_tolerance= s->bit_rate*10;
+    s->qmin= 2;
+    s->qmax= 31;
+    s->rc_eq= "tex^qComp";
+    s->qcompress= 0.5;
+    s->max_qdiff= 3;
+    s->b_quant_factor=1.25;
+    s->b_quant_offset=1.25;
+    s->i_quant_factor=-0.8;
+    s->i_quant_offset=0.0;
+    s->error_concealment= 3;
+    s->workaround_bugs= FF_BUG_AUTODETECT;
+}
+
+/**
+ * allocates a AVCodecContext and set it to defaults.
+ * this can be deallocated by simply calling free() 
+ */
+AVCodecContext *avcodec_alloc_context(void){
+    AVCodecContext *avctx= av_mallocz(sizeof(AVCodecContext));
+    
+    if(avctx==NULL) return NULL;
+    
+    avcodec_get_context_defaults(avctx);
+    
+    return avctx;
 }
 
 int avcodec_open(AVCodecContext *avctx, AVCodec *codec)
@@ -227,15 +222,18 @@ AVCodec *avcodec_find(enum CodecID id)
 }
 
 const char *pix_fmt_str[] = {
-    "??",
     "yuv420p",
     "yuv422",
     "rgb24",
     "bgr24",
     "yuv422p",
     "yuv444p",
+    "rgba32",
+    "bgra32",
+    "yuv410p",
+    "yuv411p",
 };
-    
+
 void avcodec_string(char *buf, int buf_size, AVCodecContext *enc, int encode)
 {
     const char *codec_name;
@@ -283,9 +281,10 @@ void avcodec_string(char *buf, int buf_size, AVCodecContext *enc, int encode)
                      enc->width, enc->height, 
                      (float)enc->frame_rate / FRAME_RATE_BASE);
         }
-        snprintf(buf + strlen(buf), buf_size - strlen(buf),
-                ", q=%d-%d", enc->qmin, enc->qmax);
-
+        if (encode) {
+            snprintf(buf + strlen(buf), buf_size - strlen(buf),
+                     ", q=%d-%d", enc->qmin, enc->qmax);
+        }
         bitrate = enc->bit_rate;
         break;
     case CODEC_TYPE_AUDIO:
@@ -333,7 +332,15 @@ void avcodec_string(char *buf, int buf_size, AVCodecContext *enc, int encode)
         }
         break;
     default:
-        abort();
+        av_abort();
+    }
+    if (encode) {
+        if (enc->flags & CODEC_FLAG_PASS1)
+            snprintf(buf + strlen(buf), buf_size - strlen(buf),
+                     ", pass 1");
+        if (enc->flags & CODEC_FLAG_PASS2)
+            snprintf(buf + strlen(buf), buf_size - strlen(buf),
+                     ", pass 2");
     }
     if (bitrate != 0) {
         snprintf(buf + strlen(buf), buf_size - strlen(buf), 
@@ -380,6 +387,13 @@ void avpicture_fill(AVPicture *picture, UINT8 *ptr,
         picture->data[2] = NULL;
         picture->linesize[0] = width * 3;
         break;
+    case PIX_FMT_RGBA32:
+    case PIX_FMT_BGRA32:
+        picture->data[0] = ptr;
+        picture->data[1] = NULL;
+        picture->data[2] = NULL;
+        picture->linesize[0] = width * 4;
+        break;
     case PIX_FMT_YUV422:
         picture->data[0] = ptr;
         picture->data[1] = NULL;
@@ -413,6 +427,10 @@ int avpicture_get_size(int pix_fmt, int width, int height)
     case PIX_FMT_BGR24:
         size = (size * 3);
         break;
+    case PIX_FMT_RGBA32:
+    case PIX_FMT_BGRA32:
+        size = (size * 4);
+        break;
     case PIX_FMT_YUV422:
         size = (size * 2);
         break;
@@ -443,71 +461,6 @@ void avcodec_init(void)
     inited = 1;
 
     dsputil_init();
-}
-
-/* simple call to use all the codecs */
-void avcodec_register_all(void)
-{
-    static int inited = 0;
-    
-    if (inited != 0)
-	return;
-    inited = 1;
-
-    /* encoders */
-#ifdef CONFIG_ENCODERS
-    register_avcodec(&ac3_encoder);
-    register_avcodec(&mp2_encoder);
-#ifdef CONFIG_MP3LAME
-    register_avcodec(&mp3lame_encoder);
-#endif
-    register_avcodec(&mpeg1video_encoder);
-    register_avcodec(&h263_encoder);
-    register_avcodec(&h263p_encoder);
-    register_avcodec(&rv10_encoder);
-    register_avcodec(&mjpeg_encoder);
-    register_avcodec(&mpeg4_encoder);
-    register_avcodec(&msmpeg4v1_encoder);
-    register_avcodec(&msmpeg4v2_encoder);
-    register_avcodec(&msmpeg4v3_encoder);
-#endif /* CONFIG_ENCODERS */
-    register_avcodec(&rawvideo_codec);
-
-    /* decoders */
-#ifdef CONFIG_DECODERS
-    register_avcodec(&h263_decoder);
-    register_avcodec(&mpeg4_decoder);
-    register_avcodec(&msmpeg4v1_decoder);
-    register_avcodec(&msmpeg4v2_decoder);
-    register_avcodec(&msmpeg4v3_decoder);
-    register_avcodec(&wmv1_decoder);
-    register_avcodec(&mpeg_decoder);
-    register_avcodec(&h263i_decoder);
-    register_avcodec(&rv10_decoder);
-    register_avcodec(&mjpeg_decoder);
-    register_avcodec(&mp2_decoder);
-    register_avcodec(&mp3_decoder);
-#ifdef CONFIG_AC3
-    register_avcodec(&ac3_decoder);
-#endif
-#endif /* CONFIG_DECODERS */
-
-    /* pcm codecs */
-
-#define PCM_CODEC(id, name) \
-    register_avcodec(& name ## _encoder); \
-    register_avcodec(& name ## _decoder); \
-
-PCM_CODEC(CODEC_ID_PCM_S16LE, pcm_s16le);
-PCM_CODEC(CODEC_ID_PCM_S16BE, pcm_s16be);
-PCM_CODEC(CODEC_ID_PCM_U16LE, pcm_u16le);
-PCM_CODEC(CODEC_ID_PCM_U16BE, pcm_u16be);
-PCM_CODEC(CODEC_ID_PCM_S8, pcm_s8);
-PCM_CODEC(CODEC_ID_PCM_U8, pcm_u8);
-PCM_CODEC(CODEC_ID_PCM_ALAW, pcm_alaw);
-PCM_CODEC(CODEC_ID_PCM_MULAW, pcm_mulaw);
-
-#undef PCM_CODEC
 }
 
 /* this should be called after seeking and before trying to decode the next frame */

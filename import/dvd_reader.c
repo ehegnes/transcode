@@ -382,9 +382,29 @@ static void stats_audio_attributes(audio_attr_t *attr, int track, probe_info_t *
   default:
     printf("(please send a bug report) ");
   }
-    
-  //  printf("%d ", attr->unknown1);
-  //printf("%d ", attr->unknown2);
+  
+  printf("\n"); 
+}
+
+static void stats_subp_attributes(subp_attr_t *attr, int track, probe_info_t *probe_info) {
+  
+  if(attr->type == 0
+     && attr->zero1 == 0
+     && attr->lang_code == 0
+     && attr->lang_extension == 0
+     && attr->zero2 == 0) {
+    printf("(%s) -- Unspecified --", __FILE__);
+    return;
+  }
+
+  printf("(%s) ", __FILE__);  
+  
+  
+  if(attr->type) {
+    printf("subtitle %02d=<%c%c> ", track, attr->lang_code>>8, attr->lang_code & 0xff);
+    if(attr->lang_extension) printf("ext=%d", attr->lang_extension);
+  }
+  
   printf("\n"); 
 }
 
@@ -462,6 +482,7 @@ int dvd_probe(int title, probe_info_t *info)
   vts_ptt_srpt_t *vts_ptt_srpt;
   video_attr_t *v_attr;
   audio_attr_t *a_attr;
+  subp_attr_t *s_attr;
 
     vmg_file = ifoOpen( dvd, 0 );
     if( !vmg_file ) {
@@ -498,6 +519,11 @@ int dvd_probe(int title, probe_info_t *info)
       for(i = 0; i < vts_file->vtsi_mat->nr_of_vts_audio_streams; i++) {
 	a_attr = &vts_file->vtsi_mat->vts_audio_attr[i];
 	stats_audio_attributes(a_attr, i, info);
+      }
+
+      for(i = 0; i < vts_file->vtsi_mat->nr_of_vts_subp_streams; i++) {
+	s_attr = &vts_file->vtsi_mat->vts_subp_attr[i];
+	stats_subp_attributes(s_attr, i, info);
       }
       
     } else {
@@ -777,6 +803,9 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
 	  /**
 	   * Read NAV packet.
 	   */
+
+	     nav_retry:	  
+	  
 	  len = DVDReadBlocks( title, (int) cur_pack, 1, data );
 	  if( len != 1 ) {
 	    fprintf( stderr, "Read failed for block %d\n", cur_pack );
@@ -785,14 +814,22 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
 	    DVDCloseFile( title );
 	    return -1;
 	  }
-	  assert( is_nav_pack( data ) );
-	  
-	  
+
+	  //assert( is_nav_pack( data ) );
+	  if(!is_nav_pack(data)) {
+	    cur_pack++;
+	    goto nav_retry;
+	  }
+
 	  /**
 	   * Parse the contained dsi packet.
 	   */
 	  navRead_DSI( &dsi_pack, &(data[ DSI_START_BYTE ]));
-	  assert( cur_pack == dsi_pack.dsi_gi.nv_pck_lbn );
+
+	  if(!( cur_pack == dsi_pack.dsi_gi.nv_pck_lbn)) {
+	    cur_output_size = 0;
+	    dsi_pack.vobu_sri.next_vobu = SRI_END_OF_CELL;
+	  }
 	  
 	  
 	  /**

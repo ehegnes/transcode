@@ -104,7 +104,7 @@ void counter_print(int pida, int pidn, char *s, long int t1, long int t2, char *
       secleft = (1-done)*(double)(tv.tv_sec-range_starttime)/done;
       
       if(!encoder_progress_flag) {
- 	printf("%s frames [%06d-%06d], %6.2f fps, %4.1f%%, ETA: %d:%02d:%02d, (%2d|%2d|%2d)  %c", s, pida, pidn, fps, 100*done,
+ 	printf("%s frame [%d], %6.2f fps, %4.1f%%, ETA: %d:%02d:%02d, (%2d|%2d|%2d)  %c", s, pidn, fps, 100*done,
   	       secleft/3600, (secleft/60) % 60, secleft % 60, 
  	       buf1, buf2, buf3, print_counter_cr?'\r':'\n');
 	
@@ -118,7 +118,7 @@ void counter_print(int pida, int pidn, char *s, long int t1, long int t2, char *
       
       if(!encoder_progress_flag) {
 	
-  	printf("%s frames [%06d-%06d], %6.2f fps, EMT: %d:%02d:%02d, (%2d|%2d|%2d)  %c", s, pida, pidn, fps, secleft/3600, (secleft/60) % 60, secleft % 60, buf1, buf2, buf3, print_counter_cr?'\r':'\n');
+	printf("%s frames [%06d-%06d], %6.2f fps, EMT: %d:%02d:%02d, (%2d|%2d|%2d)  %c", s, pida, pidn, fps, secleft/3600, (secleft/60) % 60, secleft % 60, buf1, buf2, buf3, print_counter_cr?'\r':'\n');
 	
       } else tc_encoder_progress();
     }

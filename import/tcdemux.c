@@ -57,7 +57,7 @@ void import_exit(int code)
  *
  * ------------------------------------------------------------*/
 
-void usage()
+void usage(int status)
 {
   version(EXE);
 
@@ -78,7 +78,7 @@ void usage()
   fprintf(stderr,"\t-A n[,m[...]]    pass-through packet payload id\n");
   fprintf(stderr,"\t-v               print version\n");
 
-  exit(0);
+  exit(status);
   
 }
 
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 	
       case 'i': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	name = optarg;
       
 	break;
@@ -143,13 +143,13 @@ int main(int argc, char *argv[])
 
       case 'P': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	logfile = optarg;
 	break;
 
       case 'S': 
       
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 
 	if((n = sscanf(optarg,"%d,%d-%d", &unit_seek, &resync_seq1, &resync_seq2))<0) {
 	  fprintf(stderr, "invalid parameter for option -S\n");
@@ -158,13 +158,13 @@ int main(int argc, char *argv[])
 
       if(unit_seek<0) {
 	fprintf(stderr, "error: invalid unit parameter for option -S\n");
-	usage();
+	usage(EXIT_FAILURE);
 	exit(1);
       }
 
       if(resync_seq1<0 || resync_seq2<0 || resync_seq1>=resync_seq2) {
 	  fprintf(stderr, "error: invalid sequence parameter for option -S\n");
-	  usage();
+	  usage(EXIT_FAILURE);
 	  exit(1);
       }
 
@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
 	
       case 'd': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	verbose = atoi(optarg);
 	
 	break;
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
 	
       case 'f': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	fps = atof(optarg);
 	
 	break;
@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
 	
       case 'x': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	codec = optarg;
 
 	if(strcmp(codec,"ac3")==0) {
@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
 	
       case 't': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	magic = optarg;
 	user=1;
 	
@@ -233,13 +233,13 @@ int main(int argc, char *argv[])
 
       case 's': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	subid = strtol(optarg, NULL, 16);
 	break;
 
       case 'A': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	
 	if ((n = sscanf(optarg,"%x,%x,%x,%x,%x", &pass[0], &pass[1], &pass[2], &pass[3], &pass[4]))<=0) {
 	    fprintf(stderr, "invalid parameter for option -A\n");
@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
 
       case 'M': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	demux_mode = atoi(optarg);
 	
 	if(demux_mode==TC_DEMUX_OFF) verbose=TC_QUIET;
@@ -266,7 +266,7 @@ int main(int argc, char *argv[])
 	
       case 'a': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	
 	if ((n = sscanf(optarg,"%d,%d", &a_track, &v_track))<=0) {
 	  fprintf(stderr, "invalid parameter for option -a\n");
@@ -283,10 +283,10 @@ int main(int argc, char *argv[])
 	break;
 
 	
-      case '?':
       case 'h':
+	usage(EXIT_SUCCESS);
       default:
-	usage();
+	usage(EXIT_FAILURE);
       }
     }
     
@@ -302,8 +302,7 @@ int main(int argc, char *argv[])
     // no autodetection yet
     
     if(argc==1) {
-      usage();
-      exit(1);
+      usage(EXIT_FAILURE);
     }
     
     // do not try to mess with the stream

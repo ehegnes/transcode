@@ -166,6 +166,16 @@ long fileinfo(int fdes)
     goto exit;
   }
 
+  if(cmp_16_bits(buf, TC_MAGIC_MP3_2_5)) { 
+    id = TC_MAGIC_MP3_2_5;
+    goto exit;
+  }
+
+  if(cmp_16_bits(buf, TC_MAGIC_MP3_2)) { 
+    id = TC_MAGIC_MP3_2;
+    goto exit;
+  }
+
   // MP2 audio
   
   if(cmp_16_bits(buf, TC_MAGIC_MP2) || cmp_16_bits(buf, TC_MAGIC_MP2_FC)) { 
@@ -273,6 +283,24 @@ long fileinfo(int fdes)
   // Real Media
   if(strncasecmp(buf,".RMF", 4)==0) {
     id = TC_MAGIC_RMF;
+    goto exit;
+  }
+
+
+  // MP3 audio + odd 0 padding
+  
+  if(cmp_16_bits(buf+1, TC_MAGIC_MP3)) { 
+    id = TC_MAGIC_MP3;
+    goto exit;
+  }
+
+  if(cmp_16_bits(buf+1, TC_MAGIC_MP3_2_5)) { 
+    id = TC_MAGIC_MP3_2_5;
+    goto exit;
+  }
+
+  if(cmp_16_bits(buf+1, TC_MAGIC_MP3_2)) { 
+    id = TC_MAGIC_MP3_2;
     goto exit;
   }
   
@@ -455,6 +483,16 @@ long streaminfo(int fdes)
     goto exit;
   }
 
+  if(cmp_16_bits(buf, TC_MAGIC_MP3_2_5)) { 
+    id = TC_MAGIC_MP3_2_5;
+    goto exit;
+  }
+
+  if(cmp_16_bits(buf, TC_MAGIC_MP3_2)) { 
+    id = TC_MAGIC_MP3_2;
+    goto exit;
+  }
+
   /* -------------------------------------------------------------------
    *
    * 4 byte section
@@ -502,6 +540,24 @@ long streaminfo(int fdes)
     id = TC_MAGIC_NUV;
     goto exit;
   }  
+
+ // MP3 audio + odd 0 padding
+  
+  if(cmp_16_bits(buf+1, TC_MAGIC_MP3)) { 
+    id = TC_MAGIC_MP3;
+    goto exit;
+  }
+
+  if(cmp_16_bits(buf+1, TC_MAGIC_MP3_2_5)) { 
+    id = TC_MAGIC_MP3_2_5;
+    goto exit;
+  }
+
+  if(cmp_16_bits(buf+1, TC_MAGIC_MP3_2)) { 
+    id = TC_MAGIC_MP3_2;
+    goto exit;
+  }
+ 
 
   /* -------------------------------------------------------------------
    *
@@ -600,7 +656,9 @@ char *filetype(long magic)
 
   case TC_MAGIC_RAW:          return("RAW stream");
   case TC_MAGIC_AC3:          return("AC3 stream");
-  case TC_MAGIC_MP3:          return("MP3 stream");
+  case TC_MAGIC_MP3:          return("MPEG-1 layer-3 stream");
+  case TC_MAGIC_MP3_2:        return("MPEG-2 layer-3 stream");
+  case TC_MAGIC_MP3_2_5:      return("MPEG-2.5 layer-3 stream");
   case TC_MAGIC_MP2:          return("MP2 stream");
 
   case TC_MAGIC_DV_NTSC:      return("Digital Video (NTSC)");
@@ -632,6 +690,8 @@ char *filemagic(long magic)
   case TC_MAGIC_WAV:      return("wav");
   case TC_MAGIC_RAW:      return("raw");
   case TC_MAGIC_MP3:      return("mp3");
+  case TC_MAGIC_MP3_2_5:  return("mp3");
+  case TC_MAGIC_MP3_2:    return("mp3");
   case TC_MAGIC_MP2:      return("mp2");
   case TC_MAGIC_DVD_NTSC: return("dvd");
   case TC_MAGIC_DVD_PAL:  return("dvd");

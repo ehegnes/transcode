@@ -5,8 +5,8 @@ CFLAGS = -Wall @CFLAGS@ -I../libvo -I$(srcdir)/../libvo
 
 noinst_LIBRARIES = libmpeg2cvs.a
 
-libmpeg2cvs_a_SOURCES = decode.c header.c stats.c slice.c \
-		      motion_comp.c motion_comp_mmx.c \
+libmpeg2cvs_a_SOURCES = cpu_state.c decode.c header.c stats.c slice.c \
+		      motion_comp.c motion_comp_mmx.c motion_comp_mlib.c\
 		      idct.c idct_mlib.c idct_mmx.c \
 		      idct_altivec.c motion_comp_altivec.c
 noinst_HEADERS = vlc.h mpeg2_internal.h mpeg2.h attributes.h 

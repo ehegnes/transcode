@@ -1014,7 +1014,6 @@ Optional Features:
   --enable-warnings       treat warnings as errors
   --enable-statbuffer     enable internal static framebuffer support (yes)
   --enable-netstream      enable network streaming support (yes)
-  --enable-avifile6       enable avifile 0.6 support (yes)
   --enable-v4l            enable experimental v4l support (no)
   --enable-liba52         liba52 as default decoder (no)
   --enable-x              build X11 dependent plugins (yes)
@@ -1050,15 +1049,18 @@ Optional Packages:
   --with-libmpeg3-includes=PFX    prefix where local libmpeg3 includes are installed (optional)
   --with-libmpeg3-libs=PFX        prefix where local libmpeg3 libs are installed (optional)
   --with-libpostproc-builddir=PFX    path to MPlayer builddir  (optional)
-  --with-qt                 build quicktime dependent module (default=yes)
+  --with-qt                 build quicktime dependent module (default=no)
   --with-qt-includes=PFX    prefix where local quicktime includes are installed (optional)
   --with-qt-libs=PFX        prefix where local quicktime libs are installed (optional)
-  --with-openqt                 build openquicktime dependent module (default=yes)
+  --with-openqt                 build openquicktime dependent module (default=no)
   --with-openqt-includes=PFX    prefix where local openquicktime includes are installed (optional)
   --with-openqt-libs=PFX        prefix where local openquicktime libs are installed (optional)
   --with-dv                 build libdv dependent modules (default=yes)
   --with-dv-includes=PFX    prefix where local libdv includes are installed (optional)
   --with-dv-libs=PFX        prefix where local libdv libs are installed (optional)
+  --with-lzo                 build liblzo dependent modules (default=yes)
+  --with-lzo-includes=PFX    prefix where local liblzo includes are installed (optional)
+  --with-lzo-libs=PFX        prefix where local liblzo libs are installed (optional)
   --with-a52                build liba52 decoder module (default=yes)
   --with-a52-includes=PFX   prefix where local liba52 includes are installed (optional)
   --with-a52-libs=PFX       prefix where local liba52 libs are installed (optional)
@@ -1687,7 +1689,7 @@ fi
 
 # Define the identity of the package.
  PACKAGE=transcode
- VERSION=0.6.1
+ VERSION=0.6.2
 
 
 cat >>confdefs.h <<_ACEOF
@@ -9452,7 +9454,7 @@ test "x$enable_libtool_lock" != xno && enable_libtool_lock=yes
 case $host in
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 9455 "configure"' > conftest.$ac_ext
+  echo '#line 9457 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -9988,7 +9990,7 @@ chmod -w .
 save_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -o out/conftest2.$ac_objext"
 compiler_c_o=no
-if { (eval echo configure:9991: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
+if { (eval echo configure:9993: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
   # The compiler can only warn and ignore the option if not recognized
   # So say no if there are warnings
   if test -s out/conftest.err; then
@@ -11781,7 +11783,7 @@ else
     lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 11784 "configure"
+#line 11786 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11879,7 +11881,7 @@ else
     lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 11882 "configure"
+#line 11884 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12879,33 +12881,13 @@ _ACEOF
     have_avifile=yes
     AVIFILE_CFLAGS=`$AVIFILE_CONFIG $avifileconf_args --cflags`
     AVIFILE_LIBS=`$AVIFILE_CONFIG $avifileconf_args --libs`
-    avifile_incs="`$AVIFILE_CONFIG $avifileconf_args --prefix`/include/avifile"
-    as_ac_File=`echo "ac_cv_file_$avifile_incs/avifile.h" | $as_tr_sh`
-echo "$as_me:$LINENO: checking for $avifile_incs/avifile.h" >&5
-echo $ECHO_N "checking for $avifile_incs/avifile.h... $ECHO_C" >&6
-if eval "test \"\${$as_ac_File+set}\" = set"; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  test "$cross_compiling" = yes &&
-  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
-echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
-   { (exit 1); exit 1; }; }
-if test -r "$avifile_incs/avifile.h"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
-echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
-if test `eval echo '${'$as_ac_File'}'` = yes; then
 
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_AVIFILE_INC 1
-_ACEOF
 
-fi
-
+    case $AVIFILE_CFLAGS in
+      */avifile)
+      AVIFILE_CFLAGS=`echo $AVIFILE_CFLAGS | sed 's,/avifile$,,'` ;;
+      *) ;;
+      esac
   fi
 
 else
@@ -12925,55 +12907,6 @@ else
   HAVE_AVIFILE_TRUE='#'
   HAVE_AVIFILE_FALSE=
 fi
-
-
-
-if test x"$have_avifile" = "xyes"; then
-avibeta=yes
-echo "$as_me:$LINENO: checking for avifile-0.6 support" >&5
-echo $ECHO_N "checking for avifile-0.6 support... $ECHO_C" >&6
-# Check whether --enable-avifile6 or --disable-avifile6 was given.
-if test "${enable_avifile6+set}" = set; then
-  enableval="$enable_avifile6"
-
-if test x"${enableval}" = x"yes"; then
-    echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-    cat >>confdefs.h <<_ACEOF
-#define AVIFILE_0_6 1
-_ACEOF
-
-else
-    echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-avibeta=no
-fi
-else
-  echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-cat >>confdefs.h <<_ACEOF
-#define AVIFILE_0_6 1
-_ACEOF
-
-
-fi;
-
-
-
-else
-avibeta=no
-fi
-
-
-
-if test x"$avibeta" = x"yes"; then
-  AVIFILE_0_6_TRUE=
-  AVIFILE_0_6_FALSE='#'
-else
-  AVIFILE_0_6_TRUE='#'
-  AVIFILE_0_6_FALSE=
-fi
-
 
 
 
@@ -13161,6 +13094,7 @@ LAME_LIBS=""
 LAME_CFLAGS=""
 
 lame89=no
+lame92=no
 have_lame=no
 
 if test x$with_lame = "x"yes ; then
@@ -13249,6 +13183,75 @@ _ACEOF
 else
   have_lame=no lame89=no
 fi
+
+
+	echo "$as_me:$LINENO: checking for lame_set_asm_optimizations in -lmp3lame" >&5
+echo $ECHO_N "checking for lame_set_asm_optimizations in -lmp3lame... $ECHO_C" >&6
+if test "${ac_cv_lib_mp3lame_lame_set_asm_optimizations+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lmp3lame -L$with_lame_l -lmp3lame -lm $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+#include "confdefs.h"
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char lame_set_asm_optimizations ();
+#ifdef F77_DUMMY_MAIN
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+#endif
+int
+main ()
+{
+lame_set_asm_optimizations ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_mp3lame_lame_set_asm_optimizations=yes
+else
+  echo "$as_me: failed program was:" >&5
+cat conftest.$ac_ext >&5
+ac_cv_lib_mp3lame_lame_set_asm_optimizations=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_mp3lame_lame_set_asm_optimizations" >&5
+echo "${ECHO_T}$ac_cv_lib_mp3lame_lame_set_asm_optimizations" >&6
+if test $ac_cv_lib_mp3lame_lame_set_asm_optimizations = yes; then
+  LAME_CFLAGS="-I$with_lame_i -I/usr/local/include"
+         LAME_LIBS="-L$with_lame_l -lmp3lame -lm"
+	cat >>confdefs.h <<_ACEOF
+#define LAME_3_92 1
+_ACEOF
+
+	lame92=yes
+else
+  lame92=no
+fi
+
 
 fi
 
@@ -13347,6 +13350,7 @@ fi
 
 
 
+
 if test x"$have_lame" = "xyes"; then
   HAVE_LAME_TRUE=
   HAVE_LAME_FALSE='#'
@@ -13363,6 +13367,16 @@ if test x"$lame89" = "xyes"; then
 else
   LAME_3_89_TRUE='#'
   LAME_3_89_FALSE=
+fi
+
+
+
+if test x"$lame92" = "xyes"; then
+  LAME_3_92_TRUE=
+  LAME_3_92_FALSE='#'
+else
+  LAME_3_92_TRUE='#'
+  LAME_3_92_FALSE=
 fi
 
 
@@ -14109,26 +14123,229 @@ fi;
 
 EXTRA_LIBS="-lm"
 
+have_libpostproc=no
+
 if test x$libpostproc_builddir != "x" ; then
 
 	with_libpostproc_p="$libpostproc_builddir"
 
+	echo "$as_me:$LINENO: checking for pp_postprocess in -lpostproc" >&5
+echo $ECHO_N "checking for pp_postprocess in -lpostproc... $ECHO_C" >&6
+if test "${ac_cv_lib_postproc_pp_postprocess+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpostproc  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+#include "confdefs.h"
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char pp_postprocess ();
+#ifdef F77_DUMMY_MAIN
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+#endif
+int
+main ()
+{
+pp_postprocess ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_postproc_pp_postprocess=yes
+else
+  echo "$as_me: failed program was:" >&5
+cat conftest.$ac_ext >&5
+ac_cv_lib_postproc_pp_postprocess=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_postproc_pp_postprocess" >&5
+echo "${ECHO_T}$ac_cv_lib_postproc_pp_postprocess" >&6
+if test $ac_cv_lib_postproc_pp_postprocess = yes; then
+
 	LIBPOSTPROC_CFLAGS="-I$with_libpostproc_p/postproc"
 	LIBPOSTPROC_LIBS="-L$with_libpostproc_p/postproc -lpostproc ${EXTRA_LIBS}"
-
 	cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBPOSTPROC 1
 _ACEOF
- have_libpostproc=yes
+
+	have_libpostproc=yes
+
 else
+  have_libpostproc=no
+fi
 
-	LIBPOSTPROC_CFLAGS=
-	LIBPOSTPROC_LIBS=
+fi
+
+if test x$have_libpostproc != "xyes" ; then
+
+	echo "$as_me:$LINENO: checking for pp_postprocess in -lpostproc" >&5
+echo $ECHO_N "checking for pp_postprocess in -lpostproc... $ECHO_C" >&6
+if test "${ac_cv_lib_postproc_pp_postprocess+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpostproc  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+#include "confdefs.h"
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char pp_postprocess ();
+#ifdef F77_DUMMY_MAIN
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+#endif
+int
+main ()
+{
+pp_postprocess ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_postproc_pp_postprocess=yes
+else
+  echo "$as_me: failed program was:" >&5
+cat conftest.$ac_ext >&5
+ac_cv_lib_postproc_pp_postprocess=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_postproc_pp_postprocess" >&5
+echo "${ECHO_T}$ac_cv_lib_postproc_pp_postprocess" >&6
+if test $ac_cv_lib_postproc_pp_postprocess = yes; then
+
+	LIBPOSTPROC_CFLAGS=""
+	LIBPOSTPROC_LIBS="-lpostproc ${EXTRA_LIBS}"
 	cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBPOSTPROC 1
 _ACEOF
- have_libpostproc=no
+
+	 have_libpostproc=yes
+
+else
+  have_libpostproc=no
 fi
+
+fi
+
+if test x$have_libpostproc != "xyes" ; then
+
+	echo "$as_me:$LINENO: checking for pp_postprocess in -lpostproc" >&5
+echo $ECHO_N "checking for pp_postprocess in -lpostproc... $ECHO_C" >&6
+if test "${ac_cv_lib_postproc_pp_postprocess+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpostproc  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+#include "confdefs.h"
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char pp_postprocess ();
+#ifdef F77_DUMMY_MAIN
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+#endif
+int
+main ()
+{
+pp_postprocess ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_postproc_pp_postprocess=yes
+else
+  echo "$as_me: failed program was:" >&5
+cat conftest.$ac_ext >&5
+ac_cv_lib_postproc_pp_postprocess=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_postproc_pp_postprocess" >&5
+echo "${ECHO_T}$ac_cv_lib_postproc_pp_postprocess" >&6
+if test $ac_cv_lib_postproc_pp_postprocess = yes; then
+
+	LIBPOSTPROC_CFLAGS="-I/usr/local/include"
+	LIBPOSTPROC_LIBS="-L/usr/local/lib -lpostproc ${EXTRA_LIBS}"
+	cat >>confdefs.h <<\_ACEOF
+#define HAVE_LIBPOSTPROC 1
+_ACEOF
+
+	have_libpostproc=yes
+
+else
+  have_libpostproc=no
+fi
+
+fi
+
 
 
 
@@ -14159,7 +14376,7 @@ echo "$as_me: error: bad value ${withval} for --with-qt" >&2;}
    { (exit 1); exit 1; }; } ;;
 esac
 else
-  with_qt=yes
+  with_qt=no
 fi;
 
 
@@ -14298,7 +14515,7 @@ echo "$as_me: error: bad value ${withval} for --with-openqt" >&2;}
    { (exit 1); exit 1; }; } ;;
 esac
 else
-  with_openqt=yes
+  with_openqt=no
 fi;
 
 
@@ -14624,6 +14841,146 @@ if test x"$have_dv" = "xyes"; then
 else
   HAVE_DV_TRUE='#'
   HAVE_DV_FALSE=
+fi
+
+
+
+
+
+
+# Check whether --with-lzo or --without-lzo was given.
+if test "${with_lzo+set}" = set; then
+  withval="$with_lzo"
+  case "${withval}" in
+  yes) ;;
+  no)  ;;
+  *) { { echo "$as_me:$LINENO: error: bad value ${withval} for --with-lzo" >&5
+echo "$as_me: error: bad value ${withval} for --with-lzo" >&2;}
+   { (exit 1); exit 1; }; } ;;
+esac
+else
+  with_lzo=yes
+fi;
+
+
+# Check whether --with-lzo-includes or --without-lzo-includes was given.
+if test "${with_lzo_includes+set}" = set; then
+  withval="$with_lzo_includes"
+  lzo_includes="$withval"
+else
+  lzo_includes=""
+fi;
+
+
+# Check whether --with-lzo-libs or --without-lzo-libs was given.
+if test "${with_lzo_libs+set}" = set; then
+  withval="$with_lzo_libs"
+  lzo_libs="$withval"
+else
+  lzo_libs=""
+fi;
+
+
+EXTRA_LIBS="$LIBS $GLIB_LIBS -ldl -lm"
+LZO_EXTRA_LIBS="$GLIB_LIBS -ldl -lm"
+
+if test x$with_lzo = "x"yes ; then
+
+	if test x$lzo_includes != "x" ; then
+	    with_lzo_i="$lzo_includes/include"
+        else
+	    with_lzo_i="/usr/include"
+        fi
+
+        if test x$lzo_libs != x ; then
+            with_lzo_l="$lzo_libs/lib"
+        else
+            with_lzo_l="/usr/lib"
+        fi
+
+	echo "$as_me:$LINENO: checking for lzo_version in -llzo" >&5
+echo $ECHO_N "checking for lzo_version in -llzo... $ECHO_C" >&6
+if test "${ac_cv_lib_lzo_lzo_version+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-llzo -L$with_lzo_l -llzo ${EXTRA_LIBS} $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+#include "confdefs.h"
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char lzo_version ();
+#ifdef F77_DUMMY_MAIN
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+#endif
+int
+main ()
+{
+lzo_version ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_lzo_lzo_version=yes
+else
+  echo "$as_me: failed program was:" >&5
+cat conftest.$ac_ext >&5
+ac_cv_lib_lzo_lzo_version=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_lzo_lzo_version" >&5
+echo "${ECHO_T}$ac_cv_lib_lzo_lzo_version" >&6
+if test $ac_cv_lib_lzo_lzo_version = yes; then
+  LZO_CFLAGS="-I$with_lzo_i ${GLIB_CFLAGS} -I/usr/local/include"
+       LZO_LIBS="-L$with_lzo_l -llzo ${EXTRA_LIBS}"
+       cat >>confdefs.h <<\_ACEOF
+#define HAVE_LZO 1
+_ACEOF
+ have_lzo=yes
+else
+  have_lzo=no
+fi
+
+
+else
+    have_lzo=no
+fi
+
+
+
+
+
+
+
+if test x"$have_lzo" = "xyes"; then
+  HAVE_LZO_TRUE=
+  HAVE_LZO_FALSE='#'
+else
+  HAVE_LZO_TRUE='#'
+  HAVE_LZO_FALSE=
 fi
 
 
@@ -17362,9 +17719,83 @@ else
   libjpeg_mods=yes
 fi;
 
+have_libjpegmmx=no
+have_libjpeg=no
+
 if test x"$libjpeg_mods" = xyes; then
 
-echo "$as_me:$LINENO: checking for jpeg_CreateCompress in -ljpeg" >&5
+  echo "$as_me:$LINENO: checking for jpeg_CreateCompress in -ljpeg-mmx" >&5
+echo $ECHO_N "checking for jpeg_CreateCompress in -ljpeg-mmx... $ECHO_C" >&6
+if test "${ac_cv_lib_jpeg_mmx_jpeg_CreateCompress+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ljpeg-mmx  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+#include "confdefs.h"
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char jpeg_CreateCompress ();
+#ifdef F77_DUMMY_MAIN
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+#endif
+int
+main ()
+{
+jpeg_CreateCompress ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_jpeg_mmx_jpeg_CreateCompress=yes
+else
+  echo "$as_me: failed program was:" >&5
+cat conftest.$ac_ext >&5
+ac_cv_lib_jpeg_mmx_jpeg_CreateCompress=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_jpeg_mmx_jpeg_CreateCompress" >&5
+echo "${ECHO_T}$ac_cv_lib_jpeg_mmx_jpeg_CreateCompress" >&6
+if test $ac_cv_lib_jpeg_mmx_jpeg_CreateCompress = yes; then
+
+	LIBJPEG_CFLAGS=""
+	LIBJPEG_LIBS="-ljpeg-mmx"
+	cat >>confdefs.h <<\_ACEOF
+#define HAVE_LIBJPEG 1
+_ACEOF
+
+	have_libjpeg=yes have_libjpegmmx=yes
+
+else
+  have_libjpeg=no have_libjpegmmx=no
+fi
+
+
+  if test x$LIBJPEG_LIBS == x; then
+  echo "$as_me:$LINENO: checking for jpeg_CreateCompress in -ljpeg" >&5
 echo $ECHO_N "checking for jpeg_CreateCompress in -ljpeg... $ECHO_C" >&6
 if test "${ac_cv_lib_jpeg_jpeg_CreateCompress+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -17427,12 +17858,13 @@ if test $ac_cv_lib_jpeg_jpeg_CreateCompress = yes; then
 #define HAVE_LIBJPEG 1
 _ACEOF
 
-	have_libjpeg=yes
+	have_libjpeg=yes have_libjpegmmx=no
 
 else
-  have_libjpeg=no
+  have_libjpeg=no have_libjpegmmx=no
 fi
 
+  fi
 fi
 
 
@@ -17581,7 +18013,7 @@ LDFLAGS=`echo $LDFLAGS | sed -e 's/  */ /g'`
 
 
 
-ac_config_files="$ac_config_files Makefile autotools/Makefile src/Makefile avilib/Makefile movlib/Makefile libioaux/Makefile encore2/Makefile libac3/Makefile dvdread/Makefile libvo/Makefile libmpeg2/Makefile libmp3lame/Makefile libdvenc/Makefile bbmpeg/Makefile bbmpeg/tcmplex/Makefile ffmpeg/Makefile ffmpeg/libavcodec/Makefile export/Makefile import/Makefile import/nuv/Makefile import/af6/Makefile import/net/Makefile import/v4l/Makefile import/yuv/Makefile filter/Makefile filter/subtitler/Makefile filter/preview/Makefile filter/divxkey/Makefile filter/extsub/Makefile filter/resample/Makefile filter/test/Makefile filter/ivtc/Makefile filter/yuvdenoise/Makefile docs/Makefile docs/man/Makefile contrib/Makefile tools/Makefile aclib/Makefile libsupport/Makefile transcode.spec"
+ac_config_files="$ac_config_files Makefile autotools/Makefile src/Makefile avilib/Makefile movlib/Makefile libioaux/Makefile libac3/Makefile dvdread/Makefile libvo/Makefile libmpeg2/Makefile libmp3lame/Makefile libdvenc/Makefile bbmpeg/Makefile bbmpeg/tcmplex/Makefile ffmpeg/Makefile ffmpeg/libavcodec/Makefile export/Makefile import/Makefile import/nuv/Makefile import/af6/Makefile import/net/Makefile import/v4l/Makefile import/yuv/Makefile filter/Makefile filter/subtitler/Makefile filter/preview/Makefile filter/divxkey/Makefile filter/extsub/Makefile filter/resample/Makefile filter/test/Makefile filter/ivtc/Makefile filter/yuvdenoise/Makefile docs/Makefile docs/html/Makefile docs/man/Makefile contrib/Makefile tools/Makefile aclib/Makefile libsupport/Makefile transcode.spec"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -17735,13 +18167,6 @@ echo "$as_me: error: conditional \"HAVE_AVIFILE\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
-if test -z "${AVIFILE_0_6_TRUE}" && test -z "${AVIFILE_0_6_FALSE}"; then
-  { { echo "$as_me:$LINENO: error: conditional \"AVIFILE_0_6\" was never defined.
-Usually this means the macro was only invoked conditionally." >&5
-echo "$as_me: error: conditional \"AVIFILE_0_6\" was never defined.
-Usually this means the macro was only invoked conditionally." >&2;}
-   { (exit 1); exit 1; }; }
-fi
 if test -z "${HAVE_V4L_TRUE}" && test -z "${HAVE_V4L_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"HAVE_V4L\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
@@ -17760,6 +18185,13 @@ if test -z "${LAME_3_89_TRUE}" && test -z "${LAME_3_89_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"LAME_3_89\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"LAME_3_89\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${LAME_3_92_TRUE}" && test -z "${LAME_3_92_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"LAME_3_92\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"LAME_3_92\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -17816,6 +18248,13 @@ if test -z "${HAVE_DV_TRUE}" && test -z "${HAVE_DV_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"HAVE_DV\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"HAVE_DV\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${HAVE_LZO_TRUE}" && test -z "${HAVE_LZO_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"HAVE_LZO\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"HAVE_LZO\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -18328,7 +18767,6 @@ do
   "avilib/Makefile" ) CONFIG_FILES="$CONFIG_FILES avilib/Makefile" ;;
   "movlib/Makefile" ) CONFIG_FILES="$CONFIG_FILES movlib/Makefile" ;;
   "libioaux/Makefile" ) CONFIG_FILES="$CONFIG_FILES libioaux/Makefile" ;;
-  "encore2/Makefile" ) CONFIG_FILES="$CONFIG_FILES encore2/Makefile" ;;
   "libac3/Makefile" ) CONFIG_FILES="$CONFIG_FILES libac3/Makefile" ;;
   "dvdread/Makefile" ) CONFIG_FILES="$CONFIG_FILES dvdread/Makefile" ;;
   "libvo/Makefile" ) CONFIG_FILES="$CONFIG_FILES libvo/Makefile" ;;
@@ -18356,6 +18794,7 @@ do
   "filter/ivtc/Makefile" ) CONFIG_FILES="$CONFIG_FILES filter/ivtc/Makefile" ;;
   "filter/yuvdenoise/Makefile" ) CONFIG_FILES="$CONFIG_FILES filter/yuvdenoise/Makefile" ;;
   "docs/Makefile" ) CONFIG_FILES="$CONFIG_FILES docs/Makefile" ;;
+  "docs/html/Makefile" ) CONFIG_FILES="$CONFIG_FILES docs/html/Makefile" ;;
   "docs/man/Makefile" ) CONFIG_FILES="$CONFIG_FILES docs/man/Makefile" ;;
   "contrib/Makefile" ) CONFIG_FILES="$CONFIG_FILES contrib/Makefile" ;;
   "tools/Makefile" ) CONFIG_FILES="$CONFIG_FILES tools/Makefile" ;;
@@ -18535,19 +18974,18 @@ s,@AVIFILE_CFLAGS@,$AVIFILE_CFLAGS,;t t
 s,@AVIFILE_LIBS@,$AVIFILE_LIBS,;t t
 s,@HAVE_AVIFILE_TRUE@,$HAVE_AVIFILE_TRUE,;t t
 s,@HAVE_AVIFILE_FALSE@,$HAVE_AVIFILE_FALSE,;t t
-s,@ASFLAGS@,$ASFLAGS,;t t
-s,@AS@,$AS,;t t
-s,@AVIFILE_0_6_TRUE@,$AVIFILE_0_6_TRUE,;t t
-s,@AVIFILE_0_6_FALSE@,$AVIFILE_0_6_FALSE,;t t
 s,@HAVE_V4L_TRUE@,$HAVE_V4L_TRUE,;t t
 s,@HAVE_V4L_FALSE@,$HAVE_V4L_FALSE,;t t
 s,@LAME_3_89@,$LAME_3_89,;t t
+s,@LAME_3_92@,$LAME_3_92,;t t
 s,@LAME_CFLAGS@,$LAME_CFLAGS,;t t
 s,@LAME_LIBS@,$LAME_LIBS,;t t
 s,@HAVE_LAME_TRUE@,$HAVE_LAME_TRUE,;t t
 s,@HAVE_LAME_FALSE@,$HAVE_LAME_FALSE,;t t
 s,@LAME_3_89_TRUE@,$LAME_3_89_TRUE,;t t
 s,@LAME_3_89_FALSE@,$LAME_3_89_FALSE,;t t
+s,@LAME_3_92_TRUE@,$LAME_3_92_TRUE,;t t
+s,@LAME_3_92_FALSE@,$LAME_3_92_FALSE,;t t
 s,@OGG_CFLAGS@,$OGG_CFLAGS,;t t
 s,@OGG_LIBS@,$OGG_LIBS,;t t
 s,@HAVE_OGG_TRUE@,$HAVE_OGG_TRUE,;t t
@@ -18581,6 +19019,11 @@ s,@DV_EXTRA_LIBS@,$DV_EXTRA_LIBS,;t t
 s,@DV_CFLAGS@,$DV_CFLAGS,;t t
 s,@HAVE_DV_TRUE@,$HAVE_DV_TRUE,;t t
 s,@HAVE_DV_FALSE@,$HAVE_DV_FALSE,;t t
+s,@LZO_LIBS@,$LZO_LIBS,;t t
+s,@LZO_EXTRA_LIBS@,$LZO_EXTRA_LIBS,;t t
+s,@LZO_CFLAGS@,$LZO_CFLAGS,;t t
+s,@HAVE_LZO_TRUE@,$HAVE_LZO_TRUE,;t t
+s,@HAVE_LZO_FALSE@,$HAVE_LZO_FALSE,;t t
 s,@A52_LIBS@,$A52_LIBS,;t t
 s,@A52_CFLAGS@,$A52_CFLAGS,;t t
 s,@HAVE_A52_TRUE@,$HAVE_A52_TRUE,;t t
@@ -19232,13 +19675,13 @@ fi
 
 echo "$as_me:$LINENO: result:
 ----------------------------------------------------------
-Summary for transcode 0.6.1 features:
+Summary for transcode 0.6.2 features:
 
 static AV-frame buffering                        $statbuf
 DVD navigation support with libdvdread           $have_dvdread
-link against local lame library (>=3.89)         $lame89
+link against local lame library (>=3.89) | 3.92  $lame89 | $lame92
 support for network (sockets) streams            $net
-avifile dependent modules | (>0.6) support       $have_avifile | $avibeta
+avifile API support                              $have_avifile
 libmpeg3 dependent modules                       $have_libmpeg3
 quicktime dependent modules                      $have_qt
 libdv dependent modules                          $have_dv
@@ -19246,24 +19689,25 @@ liba52 audio plugin (>=0.7.3) | default decoder  $have_a52 | $a52_decoder
 libfame video encoding plugin                    $have_libfame
 nasm dependent modules                           $nasm
 ImageMagick dependent modules (>=5.4.3)          $have_magick
-libjpeg dependent modules                        $have_libjpeg
+libjpeg dependent modules | mmx accel            $have_libjpeg | $have_libjpegmmx
 libxml2 dependent modules                        $LIBXML2CONFIG
 mjpegtools dependent modules                     $MJPEGTOOLSCONFIG
 experimental v4l support                         $v4l
 X11 dependent filter plugins                     $USE_X11
-MPlayer libpostproc dependent filter plugin      $have_libpostproc
+liblzo dependent modules 			 $have_lzo
+libpostproc dependent filter plugin      	 $have_libpostproc
 experimental Ogg support | Vorbis support        $have_ogg | $have_vorbis
 ----------------------------------------------------------
 " >&5
 echo "${ECHO_T}
 ----------------------------------------------------------
-Summary for transcode 0.6.1 features:
+Summary for transcode 0.6.2 features:
 
 static AV-frame buffering                        $statbuf
 DVD navigation support with libdvdread           $have_dvdread
-link against local lame library (>=3.89)         $lame89
+link against local lame library (>=3.89) | 3.92  $lame89 | $lame92
 support for network (sockets) streams            $net
-avifile dependent modules | (>0.6) support       $have_avifile | $avibeta
+avifile API support                              $have_avifile
 libmpeg3 dependent modules                       $have_libmpeg3
 quicktime dependent modules                      $have_qt
 libdv dependent modules                          $have_dv
@@ -19271,12 +19715,13 @@ liba52 audio plugin (>=0.7.3) | default decoder  $have_a52 | $a52_decoder
 libfame video encoding plugin                    $have_libfame
 nasm dependent modules                           $nasm
 ImageMagick dependent modules (>=5.4.3)          $have_magick
-libjpeg dependent modules                        $have_libjpeg
+libjpeg dependent modules | mmx accel            $have_libjpeg | $have_libjpegmmx
 libxml2 dependent modules                        $LIBXML2CONFIG
 mjpegtools dependent modules                     $MJPEGTOOLSCONFIG
 experimental v4l support                         $v4l
 X11 dependent filter plugins                     $USE_X11
-MPlayer libpostproc dependent filter plugin      $have_libpostproc
+liblzo dependent modules 			 $have_lzo
+libpostproc dependent filter plugin      	 $have_libpostproc
 experimental Ogg support | Vorbis support        $have_ogg | $have_vorbis
 ----------------------------------------------------------
 " >&6

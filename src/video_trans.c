@@ -23,6 +23,7 @@
 
 #include "framebuffer.h"
 #include "video_trans.h"
+#include "ac.h"
 
 /* ------------------------------------------------------------ 
  *
@@ -54,6 +55,81 @@ unsigned long *aa_table_d;
 // tmp rowbuffer
 char rowbuffer[TC_MAX_V_FRAME_WIDTH * BPP/3];
 char *tmp_image=NULL;
+
+
+static int yuv_vert_resize_init_flag=0;
+static int rgb_vert_resize_init_flag=0;
+
+void yuv_vert_resize_init(int width)
+{
+  
+  yuv_vert_resize_init_flag=1;
+
+  yuv_merge_8  = yuv_merge_C;
+  yuv_merge_16 = yuv_merge_C;
+
+#ifdef ARCH_X86
+#ifdef HAVE_ASM_NASM
+  
+  if(((width>>1) % 16) == 0) {
+    if(tc_accel & MM_SSE || tc_accel & MM_MMX) yuv_merge_8 = ac_rescale_mmx;
+    if(tc_accel & MM_SSE2) yuv_merge_8 = ac_rescale_sse2; 
+  } else {
+    if(tc_accel & MM_SSE2 || tc_accel & MM_SSE || tc_accel & MM_MMX)
+      yuv_merge_8 = ac_rescale_mmx;
+  }
+  
+  if((width % 16) == 0) {
+    if(tc_accel & MM_SSE || tc_accel & MM_MMX) yuv_merge_16=ac_rescale_mmx;
+    if(tc_accel & MM_SSE2) yuv_merge_16=ac_rescale_sse2; 
+  } else {
+    if(tc_accel & MM_SSE2 || tc_accel & MM_SSE || tc_accel & MM_MMX) {
+      yuv_merge_16 = ac_rescale_mmx;
+      yuv_merge_8 = yuv_merge_C;
+    }
+  }
+  
+#endif
+#endif
+  
+  return;
+}
+
+
+void rgb_vert_resize_init()
+{
+  
+  rgb_vert_resize_init_flag=1;
+  
+#ifdef ARCH_X86
+#ifdef HAVE_ASM_NASM
+
+  if(tc_accel & MM_SSE2) {
+    rgb_merge=ac_rescale_sse2;
+    return;
+  }
+  
+  if(tc_accel & MM_SSE || tc_accel & MM_MMX) {
+    rgb_merge=ac_rescale_mmx;
+    return;
+  }
+  
+#endif
+#endif
+  
+  rgb_merge=rgb_merge_C;
+  
+  return;
+}
+
+inline void clear_mmx()
+{
+#ifdef ARCH_X86
+#ifdef HAVE_MMX
+  __asm __volatile ("emms;":::"memory");    
+#endif
+#endif
+}
 
 void init_table_8(redtab_t *table, int length, int resize)
 {
@@ -250,7 +326,7 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
     switch (vob->deinterlace) {
       
     case 1:
-      yuv_deinterlace(ptr->video_buf, ptr->v_width, ptr->v_height);
+      yuv_deinterlace_linear(ptr->video_buf, ptr->v_width, ptr->v_height);
       break;
       
     case 2:
@@ -265,6 +341,10 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
       deinterlace_yuv_nozoom(ptr->video_buf, ptr->v_width, ptr->v_height);
       ptr->v_height /=2;
       break;
+
+    case 5:
+      yuv_deinterlace_linear_blend(ptr->video_buf, ptr->video_buf_Y[ptr->free], ptr->v_width, ptr->v_height);
+      break;
     }
   }
 
@@ -277,19 +357,21 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
       switch (ptr->deinter_flag) {
 	  
       case 1:
-	  yuv_deinterlace(ptr->video_buf, ptr->v_width, ptr->v_height);
+	  yuv_deinterlace_linear(ptr->video_buf, ptr->v_width, ptr->v_height);
 	  break;
       
       case 3:
 	  deinterlace_yuv_zoom(ptr->video_buf, ptr->v_width, ptr->v_height);
 	  break;
+      
+      case 5:
+	yuv_deinterlace_linear_blend(ptr->video_buf, ptr->video_buf_Y[ptr->free], ptr->v_width, ptr->v_height);
+	break;
       }
   }
   
-  
   // no update for frame_list_t *ptr required
-
-
+  
   /* ------------------------------------------------------------ 
    *
    * vertical resize of frame (up)
@@ -297,6 +379,8 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
    * ------------------------------------------------------------*/
   
   if(resize2 && vob->vert_resize2) {
+
+    if(!yuv_vert_resize_init_flag) yuv_vert_resize_init(ptr->v_width);
     
     if(!vert_table_8_up_flag) {
       init_table_8_up(vert_table_8_up, ptr->v_height, vob->vert_resize2);
@@ -309,6 +393,9 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
     ptr->free = (ptr->free) ? 0:1;
 
     ptr->v_height += vob->vert_resize2<<3;    
+
+    clear_mmx();
+
   }
  
   /* ------------------------------------------------------------ 
@@ -340,7 +427,9 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
    * ------------------------------------------------------------*/
 
   if(resize1 && vob->vert_resize1) {
-    
+
+    if(!yuv_vert_resize_init_flag) yuv_vert_resize_init(ptr->v_width);
+
     if(!vert_table_8_flag) {
       init_table_8(vert_table_8, ptr->v_height, vob->vert_resize1);
       vert_table_8_flag=1;
@@ -351,6 +440,9 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
     // update frame_list_t *ptr
     
     ptr->v_height -= vob->vert_resize1<<3;
+
+    clear_mmx();
+
   }
   
 
@@ -605,78 +697,88 @@ int process_rgb_frame(vob_t *vob, vframe_list_t *ptr)
      * clip coloums from left and right
      *
      * ------------------------------------------------------------*/
-
+   
    if(im_clip && (vob->im_clip_left || vob->im_clip_right)) {
-      
-      if(vob->im_clip_left == vob->im_clip_right) {
-	  rgb_hclip(ptr->video_buf, ptr->v_width, ptr->v_height, vob->im_clip_left);
-      } else {
-	  
-	  rgb_clip_left_right(ptr->video_buf, ptr->v_width, ptr->v_height, vob->im_clip_left, vob->im_clip_right);
-      }	  
-      
-      // update frame_list_t *ptr
-      
-      ptr->v_width -= (vob->im_clip_left + vob->im_clip_right);
-      ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8;
-  }
-  
-  /* ------------------------------------------------------------ 
-   *
-   * deinterlace video frame
-   *
-   * ------------------------------------------------------------*/
-
-  switch (vob->deinterlace) {
-      
-  case 1:
-    
-    rgb_deinterlace(ptr->video_buf, ptr->v_width, ptr->v_height);
-    break;
-    
-  case 2:
-    //handled by encoder
-    break;
-    
-  case 3:
-    deinterlace_rgb_zoom(ptr->video_buf, ptr->v_width, ptr->v_height);
-    break;
-
-  case 4:
-    deinterlace_rgb_nozoom(ptr->video_buf, ptr->v_width, ptr->v_height);
-    ptr->v_height /=2;
-    break;
-  }
-  
-  // check for de-interlace attribute
-
-
-  if(ptr->attributes & TC_FRAME_IS_INTERLACED) {
-      
-      switch (ptr->deinter_flag) {
-	  
-      case 1:
-	  yuv_deinterlace(ptr->video_buf, ptr->v_width, ptr->v_height);
-	  break;
-	  
-      case 3:
-	  deinterlace_yuv_zoom(ptr->video_buf, ptr->v_width, ptr->v_height);
-	  break;
-      }
-  }
-  
-  // no update for frame_list_t *ptr required
-  
-  /* ------------------------------------------------------------ 
-   *
-   * vertical resize of frame (up)
-   *
-   * ------------------------------------------------------------*/
-
-  if(resize2 && vob->vert_resize2) {
-
-    if(tmp_image == NULL) {
-      
+     
+     if(vob->im_clip_left == vob->im_clip_right) {
+       rgb_hclip(ptr->video_buf, ptr->v_width, ptr->v_height, vob->im_clip_left);
+     } else {
+       
+       rgb_clip_left_right(ptr->video_buf, ptr->v_width, ptr->v_height, vob->im_clip_left, vob->im_clip_right);
+     }	  
+     
+     // update frame_list_t *ptr
+     
+     ptr->v_width -= (vob->im_clip_left + vob->im_clip_right);
+     ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8;
+   }
+   
+   /* ------------------------------------------------------------ 
+    *
+    * deinterlace video frame
+    *
+    * ------------------------------------------------------------*/
+   
+   switch (vob->deinterlace) {
+     
+   case 1:
+     
+     rgb_deinterlace_linear(ptr->video_buf, ptr->v_width, ptr->v_height);
+     break;
+     
+   case 2:
+     //handled by encoder
+     break;
+     
+   case 3:
+     deinterlace_rgb_zoom(ptr->video_buf, ptr->v_width, ptr->v_height);
+     break;
+     
+   case 4:
+     deinterlace_rgb_nozoom(ptr->video_buf, ptr->v_width, ptr->v_height);
+     ptr->v_height /=2;
+     break;
+     
+   case 5:
+     rgb_deinterlace_linear_blend(ptr->video_buf, ptr->video_buf_RGB[ptr->free], ptr->v_width, ptr->v_height);
+     break;
+   }
+   
+   // check for de-interlace attribute
+   
+   
+   if(ptr->attributes & TC_FRAME_IS_INTERLACED) {
+     
+     switch (ptr->deinter_flag) {
+       
+     case 1:
+       rgb_deinterlace_linear(ptr->video_buf, ptr->v_width, ptr->v_height);
+       break;
+       
+     case 3:
+       deinterlace_rgb_zoom(ptr->video_buf, ptr->v_width, ptr->v_height);
+       break;
+       
+     case 5:
+       rgb_deinterlace_linear_blend(ptr->video_buf, ptr->video_buf_RGB[ptr->free], ptr->v_width, ptr->v_height);
+       break;
+     }
+   }
+   
+   // no update for frame_list_t *ptr required
+   
+   /* ------------------------------------------------------------ 
+    *
+    * vertical resize of frame (up)
+    *
+    * ------------------------------------------------------------*/
+   
+   if(resize2 && vob->vert_resize2) {
+     
+     if(!rgb_vert_resize_init_flag) rgb_vert_resize_init();
+     
+     if(tmp_image == NULL) {
+       
       if((tmp_image = (char *)calloc(1, SIZE_RGB_FRAME))==NULL) {
 	fprintf(stderr, "(%s) out of memory", __FILE__);
 	exit(1);
@@ -692,7 +794,8 @@ int process_rgb_frame(vob_t *vob, vframe_list_t *ptr)
 
     ptr->v_height += vob->vert_resize2<<3;    
     ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8;
-    
+
+    clear_mmx();
   }
   
   /* ------------------------------------------------------------ 
@@ -730,6 +833,8 @@ int process_rgb_frame(vob_t *vob, vframe_list_t *ptr)
    * ------------------------------------------------------------*/
   
   if(resize1 && vob->vert_resize1) {
+
+    if(!rgb_vert_resize_init_flag) rgb_vert_resize_init();
     
     if(!vert_table_8_flag) {
       init_table_8(vert_table_8, ptr->v_height, vob->vert_resize1);
@@ -742,6 +847,8 @@ int process_rgb_frame(vob_t *vob, vframe_list_t *ptr)
     
     ptr->v_height -= vob->vert_resize1<<3;
     ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8;
+
+    clear_mmx();
     
   }
 
@@ -892,7 +999,7 @@ int process_rgb_frame(vob_t *vob, vframe_list_t *ptr)
   if(rgbswap) {
     
     rgb_swap(ptr->video_buf, ptr->v_width * ptr->v_height);
-  
+    
     // no update for frame_list_t *ptr required
     
   }

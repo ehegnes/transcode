@@ -27,20 +27,24 @@
  *
  */
 
+#include "config.h" /* HAVE_MMX and HAVE_SSE #defines are here.*/
 #include "main.h"
 #include <math.h>
+#include "../aclib/ac.h"
 
-static void add_pred(unsigned char *pred, unsigned char *cur,
+extern int tc_accel;
+
+static int add_pred(unsigned char *pred, unsigned char *cur,
       int lx, short *blk);
 
-static void sub_pred(unsigned char *pred, unsigned char *cur,
+static int sub_pred(unsigned char *pred, unsigned char *cur,
       int lx, short *blk);
 
 
-static void (*add_pred_sub)(unsigned char *pred, unsigned char *cur,
+static int (*add_pred_sub)(unsigned char *pred, unsigned char *cur,
       int lx, short *blk);
 
-static void (*sub_pred_sub)(unsigned char *pred, unsigned char *cur,
+static int (*sub_pred_sub)(unsigned char *pred, unsigned char *cur,
       int lx, short *blk);
 
 static void (*fdct_sub)(short *block);
@@ -52,51 +56,33 @@ extern void bb_idct_mmx( short *block );
 
 void init_transform(int sh_info)
 {
-  switch (MMXMode)
-  {
-    case MODE_3DNOWEXT:  // AMD 3DNOW extensions, use MMX
-    case MODE_3DNOW:     // AMD 3DNOW, use MMX
-      if (sh_info)
-        fprintf(stderr, "INFO: dct with MMX-acceleration (AMD)!\n");
-      sub_pred_sub = sub_pred_mmx;
-      add_pred_sub = add_pred_mmx;
-#if HAVE_ASM_NASM == 1
-      idct_sub = bb_idct_mmx; 
-      fdct_sub = bb_fdct_mmx;
-#else 
-      idct_sub = bb_idct; 
-      fdct_sub = bb_intfdct;
-#endif
-      break;
 
-    case MODE_SSE:       // Intel SSE, use MMX
-    case MODE_MMX:       // Intel or AMD MMX
-      if (sh_info)
-        fprintf(stderr, "INFO: dct with MMX acceleration (intel)!\n");
-      sub_pred_sub = sub_pred_mmx;
-      add_pred_sub = add_pred_mmx;
-#if HAVE_ASM_NASM == 1
-      idct_sub = bb_idct_mmx; 
-      fdct_sub = bb_fdct_mmx;
-#else 
-      idct_sub = bb_idct; 
-      fdct_sub = bb_intfdct;
-#endif
-      break;
 
-    default:  // straight IA
-      if (sh_info)
-        fprintf(stderr, "INFO: dct without acceleration!\n");
-      sub_pred_sub = sub_pred;
-      add_pred_sub = add_pred;
-      idct_sub = bb_idct;
-      fdct_sub = bb_intfdct;
-  }
-  if (UseFP)
-  {
+  //default for all
+  sub_pred_sub = sub_pred;
+  add_pred_sub = add_pred;
+  
+  if (UseFP) {
     fdct_sub = bb_fdct;
     idct_sub = bb_idct;
+    return;
+  } else {
+    idct_sub = bb_idct; 
+    fdct_sub = bb_intfdct;
   }
+
+#ifdef ARCH_X86
+#ifdef HAVE_ASM_NASM
+  if(tc_accel & MM_MMX || tc_accel & MM_SSE || tc_accel & MM_SSE2) {
+    idct_sub = bb_idct_mmx; 
+    fdct_sub = bb_fdct_mmx;  
+  
+    sub_pred_sub = sub_pred_mmx;
+    add_pred_sub = add_pred_mmx;
+  }
+#endif
+#endif
+
 }
 
 /* subtract prediction and transform prediction error */
@@ -237,7 +223,7 @@ void itransform(unsigned char *pred[], unsigned char *cur[],
 }
 
 /* add prediction and prediction error, saturate to 0...255 */
-void add_pred(unsigned char *pred,
+int add_pred(unsigned char *pred,
                            unsigned char *cur,
                            int lx, short *blk)
 {
@@ -251,10 +237,13 @@ void add_pred(unsigned char *pred,
     cur+= lx;
     pred+= lx;
   }
+
+  return(0);
+
 }
 
 /* subtract prediction from block data */
-void sub_pred(unsigned char *pred,
+int sub_pred(unsigned char *pred,
                            unsigned char *cur,
                            int lx, short *blk)
 {
@@ -268,6 +257,8 @@ void sub_pred(unsigned char *pred,
     cur+= lx;
     pred+= lx;
   }
+
+  return(0);
 }
 
 /*

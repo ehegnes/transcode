@@ -15,12 +15,13 @@ A number of modules are included to enable import of DVDs on-the-fly,
 MPEG elementary (ES) or program streams (VOB), MPEG video, Digital Video (DV), 
 YUV4MPEG streams, NuppelVideo file format and raw or compressed 
 (pass-through) video frames and export modules for writing DivX;-), 
-OpenDivX, DivX 4.xx, XviD, Digital Video, MPEG-1/2 or uncompressed AVI files 
-with MPEG, AC3 (pass-through) or PCM audio. More file formats and codecs 
-for audio/video import are supported by the avifile library import module, 
-the export with avifile is restricted to video codecs only, with MPEG/PCM or 
-AC3 (pass-through) audio provided by transcode. Limited Quicktime export 
-support and DVD subtitle rendering is also avaliable.
+DivX 4.02/5.xx, XviD, Digital Video, MPEG-1/2 or uncompressed 
+AVI files with MPEG, AC3 (pass-through) or PCM audio. 
+More file formats and codecs for audio/video import are supported by the 
+avifile library import module, the export with avifile is restricted to 
+video codecs only, with MPEG/PCM or AC3 (pass-through) audio provided by 
+transcode. Limited Quicktime export support and DVD subtitle rendering is 
+also avaliable.
 
 It's modular concept is intended to provide flexibility and easy user 
 extensibility to include other video/audio codecs or file types. 
@@ -85,16 +86,13 @@ use the following options, if you libmpeg3 is not installed in the default:
 avifile
 -------
 
-You need avifile-0.53 to build the "divx" and "iv50" modules or
-avifile-0.6 to build the "af6" generic interface. Default is 0.6!
+You need avifile-0.6 or later to build the "af6" generic interface. 
 
   --with-avifile-exec-prefix=PFX  prefix where avifile-config is installed 
  
 use
   --with-avifile-mods=no 
-if you have problems compiling with avifile support or
-  --enable-avifile6=no
-if you have only avifile-0.53.
+if you have problems compiling with avifile support.
 
 
 WHAT GET'S INSTALLED:

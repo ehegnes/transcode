@@ -60,7 +60,7 @@ void import_exit(int code)
 
 
 
-void usage()
+void usage(int status)
 {
   version(EXE);
 
@@ -73,7 +73,7 @@ void usage()
   fprintf(stderr,"\t -d verbosity   verbosity mode [1]\n");
   fprintf(stderr,"\t -v             print version\n");
 
-  exit(0);
+  exit(status);
 }
 
 
@@ -106,13 +106,13 @@ int main(int argc, char *argv[])
     //proper initialization
     memset(&ipipe, 0, sizeof(info_t));
 
-    while ((ch = getopt(argc, argv, "i:vBd:T:b:H:")) != -1) {
+    while ((ch = getopt(argc, argv, "i:vBd:T:b:H:?h")) != -1) {
       
 	switch (ch) {
 
 	case 'b': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  bitrate = atoi(optarg);      
 	  
 	  if(bitrate < 0) {
@@ -124,21 +124,21 @@ int main(int argc, char *argv[])
 	  
 	case 'i': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  name = optarg;
 	  
 	  break;
 	  
 	case 'd': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  verbose = atoi(optarg);
 	  
 	  break;
 
 	case 'H': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  probe_factor = atoi(optarg);
 	    
 	  if(probe_factor < 0) {
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
 
 	case 'T':
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  dvd_title = atoi(optarg);
 
 	  break;
@@ -166,9 +166,10 @@ int main(int argc, char *argv[])
 	  exit(0);
 	  break;
 	  
-	case '?':
+	case 'h':
+	  usage(EXIT_SUCCESS);
 	default:
-	    usage();
+	    usage(EXIT_FAILURE);
 	}
     }
     
@@ -182,12 +183,12 @@ int main(int argc, char *argv[])
     if(name==NULL) stream_stype=TC_STYPE_STDIN;
 
     if(optind < argc) {
-	if(strcmp(argv[optind],"-")!=0) usage();
+	if(strcmp(argv[optind],"-")!=0) usage(EXIT_FAILURE);
 	stream_stype=TC_STYPE_STDIN;
     }
 
     // need at least a file name
-    if(argc==1) usage();
+    if(argc==1) usage(EXIT_FAILURE);
 
     ipipe.verbose = verbose;
 
@@ -218,7 +219,7 @@ int main(int argc, char *argv[])
 	  perror("file open");
 	  return(-1);
 	}
-	
+
 	stream_magic = fileinfo(ipipe.fd_in);
 	ipipe.seek_allowed = 1;
 

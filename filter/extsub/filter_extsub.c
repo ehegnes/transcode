@@ -551,8 +551,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // adjust for dropped frames so far
   // adjust for user shift (in milliseconds)
 
-  f_pts = f_time*(ptr->id-tc_get_frames_dropped()) + tshift/1000.;
-  
+  f_pts = f_time*(ptr->id-tc_get_frames_dropped()+vob->psu_offset) + tshift/1000.;
+
   if(verbose & TC_DEBUG) 
     printf("[%s] frame=%06d pts=%.3f sub1=%.3f sub2=%.3f\n", MOD_NAME, ptr->id, f_pts, sub_pts1, sub_pts2); 
   

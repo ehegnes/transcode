@@ -40,13 +40,13 @@ static int static_qno = 1;
 static int vlc_encode_passes = 3;
 
 int dvenc_init() {
-
+  
 #ifdef LIBDV_095
   dv_encoder_new(TRUE, FALSE, FALSE);
 #else
   dv_init();
 #endif
-
+  
   return(0);
   
 }
@@ -90,7 +90,7 @@ int dvenc_frame(char *_dvenc_vbuf, char *_dvenc_abuf, int aud_bytes, char *_dven
 	       0, 1, dd, dd, 
 	       vlc_encode_passes, static_qno, 0, 25);
 
-  //ready to go DV frame in taget
+  //ready to go DV frame in target
   
   return(0);
 }

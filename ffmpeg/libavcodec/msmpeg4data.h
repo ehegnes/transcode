@@ -3,7 +3,7 @@
  */
 
 /* intra picture macro block coded block pattern */
-const UINT16 table_mb_intra[64][2] = {
+static const UINT16 table_mb_intra[64][2] = {
 { 0x1, 1 },{ 0x17, 6 },{ 0x9, 5 },{ 0x5, 5 },
 { 0x6, 5 },{ 0x47, 9 },{ 0x20, 7 },{ 0x10, 7 },
 { 0x2, 5 },{ 0x7c, 9 },{ 0x3a, 7 },{ 0x1d, 7 },
@@ -23,7 +23,7 @@ const UINT16 table_mb_intra[64][2] = {
 };
 
 /* non intra picture macro block coded block pattern + mb type */
-const UINT32 table_mb_non_intra[128][2] = {
+static const UINT32 table_mb_non_intra[128][2] = {
 { 0x40, 7 },{ 0x13c9, 13 },{ 0x9fd, 12 },{ 0x1fc, 15 },
 { 0x9fc, 12 },{ 0xa83, 18 },{ 0x12d34, 17 },{ 0x83bc, 16 },
 { 0x83a, 12 },{ 0x7f8, 17 },{ 0x3fd, 16 },{ 0x3ff, 16 },
@@ -128,7 +128,7 @@ static const UINT32 table0_dc_chroma[120][2] = {
 
 /* dc table 1 */
 
-const UINT32 table1_dc_lum[120][2] = {
+static const UINT32 table1_dc_lum[120][2] = {
 { 0x2, 2 },{ 0x3, 2 },{ 0x3, 3 },{ 0x2, 4 },
 { 0x5, 4 },{ 0x1, 5 },{ 0x3, 5 },{ 0x8, 5 },
 { 0x0, 6 },{ 0x5, 6 },{ 0xd, 6 },{ 0xf, 6 },
@@ -161,7 +161,7 @@ const UINT32 table1_dc_lum[120][2] = {
 { 0x1e6964, 26 },{ 0x1e6965, 26 },{ 0x1e6966, 26 },{ 0x1e6967, 26 },
 };
 
-const UINT32 table1_dc_chroma[120][2] = {
+static const UINT32 table1_dc_chroma[120][2] = {
 { 0x0, 2 },{ 0x1, 2 },{ 0x4, 3 },{ 0x7, 3 },
 { 0xb, 4 },{ 0xd, 4 },{ 0x15, 5 },{ 0x28, 6 },
 { 0x30, 6 },{ 0x32, 6 },{ 0x52, 7 },{ 0x62, 7 },
@@ -233,7 +233,7 @@ static const UINT16 table0_vlc[133][2] = {
 { 0x16, 7 },
 };
 
-const INT8 table0_level[132] = {
+static const INT8 table0_level[132] = {
   1,  2,  3,  4,  5,  6,  7,  8,
   9, 10, 11, 12, 13, 14, 15, 16,
   1,  2,  3,  4,  5,  6,  7,  8,
@@ -253,7 +253,7 @@ const INT8 table0_level[132] = {
   1,  1,  1,  1,
 };
 
-const INT8 table0_run[132] = {
+static const INT8 table0_run[132] = {
   0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  0,
   1,  1,  1,  1,  1,  1,  1,  1,
@@ -275,7 +275,7 @@ const INT8 table0_run[132] = {
 
 /* vlc table 1, for intra chroma and P macro blocks */
 
-const UINT16 table1_vlc[149][2] = {
+static const UINT16 table1_vlc[149][2] = {
 { 0x4, 3 },{ 0x14, 5 },{ 0x17, 7 },{ 0x7f, 8 },
 { 0x154, 9 },{ 0x1f2, 10 },{ 0xbf, 11 },{ 0x65, 12 },
 { 0xaaa, 12 },{ 0x630, 13 },{ 0x1597, 13 },{ 0x3b7, 14 },
@@ -316,7 +316,7 @@ const UINT16 table1_vlc[149][2] = {
 { 0xd, 9 },
 };
 
-const INT8 table1_level[148] = {
+static const INT8 table1_level[148] = {
   1,  2,  3,  4,  5,  6,  7,  8,
   9, 10, 11, 12, 13, 14,  1,  2,
   3,  4,  5,  6,  7,  8,  9,  1,
@@ -338,7 +338,7 @@ const INT8 table1_level[148] = {
   1,  1,  1,  1,
 };
 
-const INT8 table1_run[148] = {
+static const INT8 table1_run[148] = {
   0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  1,  1,
   1,  1,  1,  1,  1,  1,  1,  2,
@@ -362,7 +362,7 @@ const INT8 table1_run[148] = {
 
 /* third vlc table */
 
-const UINT16 table2_vlc[186][2] = {
+static const UINT16 table2_vlc[186][2] = {
 { 0x1, 2 },{ 0x5, 3 },{ 0xd, 4 },{ 0x12, 5 },
 { 0xe, 6 },{ 0x15, 7 },{ 0x13, 8 },{ 0x3f, 8 },
 { 0x4b, 9 },{ 0x11f, 9 },{ 0xb8, 10 },{ 0x3e3, 10 },
@@ -412,7 +412,7 @@ const UINT16 table2_vlc[186][2] = {
 { 0x23dc, 14 },{ 0x4a, 9 },
 };
 
-const INT8 table2_level[185] = {
+static const INT8 table2_level[185] = {
   1,  2,  3,  4,  5,  6,  7,  8,
   9, 10, 11, 12, 13, 14, 15, 16,
  17, 18, 19,  1,  2,  3,  4,  5,
@@ -439,7 +439,7 @@ const INT8 table2_level[185] = {
   1,
 };
 
-const INT8 table2_run[185] = {
+static const INT8 table2_run[185] = {
   0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  1,  1,  1,  1,  1,
@@ -467,7 +467,7 @@ const INT8 table2_run[185] = {
 };
 
 /* second non intra vlc table */
-const UINT16 table4_vlc[169][2] = {
+static const UINT16 table4_vlc[169][2] = {
 { 0x0, 3 },{ 0x3, 4 },{ 0xb, 5 },{ 0x14, 6 },
 { 0x3f, 6 },{ 0x5d, 7 },{ 0xa2, 8 },{ 0xac, 9 },
 { 0x16e, 9 },{ 0x20a, 10 },{ 0x2e2, 10 },{ 0x432, 11 },
@@ -513,7 +513,7 @@ const UINT16 table4_vlc[169][2] = {
 { 0x169, 9 },
 };
 
-const INT8 table4_level[168] = {
+static const INT8 table4_level[168] = {
   1,  2,  3,  4,  5,  6,  7,  8,
   9, 10, 11, 12, 13, 14, 15, 16,
  17, 18, 19, 20, 21, 22, 23,  1,
@@ -537,7 +537,7 @@ const INT8 table4_level[168] = {
   1,  1,  1,  1,  1,  1,  1,  1,
 };
 
-const INT8 table4_run[168] = {
+static const INT8 table4_run[168] = {
   0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  1,
@@ -575,6 +575,11 @@ extern const UINT8 DCtab_chrom[13][2];
 extern const UINT8 cbpy_tab[16][2];
 extern const UINT8 mvtab[33][2];
 
+extern const UINT8 intra_MCBPC_code[8];
+extern const UINT8 intra_MCBPC_bits[8];
+
+extern const UINT8 inter_MCBPC_code[25];
+extern const UINT8 inter_MCBPC_bits[25];
 
 #define NB_RL_TABLES  6
 
@@ -627,7 +632,7 @@ static RLTable rl_table[NB_RL_TABLES] = {
 
 /* motion vector table 0 */
 
-const UINT16 table0_mv_code[1100] = {
+static const UINT16 table0_mv_code[1100] = {
  0x0001, 0x0003, 0x0005, 0x0007, 0x0003, 0x0008, 0x000c, 0x0001,
  0x0002, 0x001b, 0x0006, 0x000b, 0x0015, 0x0002, 0x000e, 0x000f,
  0x0014, 0x0020, 0x0022, 0x0025, 0x0027, 0x0029, 0x002d, 0x004b,
@@ -768,7 +773,7 @@ const UINT16 table0_mv_code[1100] = {
  0x5f0d, 0x5f0e, 0x5f0f, 0x0000,
 };
 
-const UINT8 table0_mv_bits[1100] = {
+static const UINT8 table0_mv_bits[1100] = {
   1,  4,  4,  4,  5,  5,  5,  6,
   6,  6,  7,  7,  7,  8,  8,  8,
   8,  8,  8,  8,  8,  8,  8,  8,
@@ -909,7 +914,7 @@ const UINT8 table0_mv_bits[1100] = {
  17, 17, 17,  8,
 };
 
-const UINT8 table0_mvx[1099] = {
+static const UINT8 table0_mvx[1099] = {
  32, 32, 31, 32, 33, 31, 33, 31,
  33, 32, 34, 32, 30, 32, 31, 34,
  35, 32, 34, 33, 29, 33, 30, 30,
@@ -1050,7 +1055,7 @@ const UINT8 table0_mvx[1099] = {
  61, 19, 19,
 };
 
-const UINT8 table0_mvy[1099] = {
+static const UINT8 table0_mvy[1099] = {
  32, 31, 32, 33, 32, 31, 31, 33,
  33, 34, 32, 30, 32, 35, 34, 31,
  32, 29, 33, 30, 32, 34, 33, 31,
@@ -1192,7 +1197,7 @@ const UINT8 table0_mvy[1099] = {
 };
 
 /* motion vector table 1 */
-const UINT16 table1_mv_code[1100] = {
+static const UINT16 table1_mv_code[1100] = {
  0x0000, 0x0007, 0x0009, 0x000f, 0x000a, 0x0011, 0x001a, 0x001c,
  0x0011, 0x0031, 0x0025, 0x002d, 0x002f, 0x006f, 0x0075, 0x0041,
  0x004c, 0x004e, 0x005c, 0x0060, 0x0062, 0x0066, 0x0068, 0x0069,
@@ -1333,7 +1338,7 @@ const UINT16 table1_mv_code[1100] = {
  0x2473, 0x26a2, 0x26a3, 0x000b,
 };
 
-const UINT8 table1_mv_bits[1100] = {
+static const UINT8 table1_mv_bits[1100] = {
   2,  4,  4,  4,  5,  5,  5,  5,
   6,  6,  7,  7,  7,  7,  7,  8,
   8,  8,  8,  8,  8,  8,  8,  8,
@@ -1474,7 +1479,7 @@ const UINT8 table1_mv_bits[1100] = {
  15, 15, 15,  4,
 };
 
-const UINT8 table1_mvx[1099] = {
+static const UINT8 table1_mvx[1099] = {
  32, 31, 32, 31, 33, 32, 33, 33,
  31, 34, 30, 32, 32, 34, 35, 32,
  34, 33, 29, 30, 30, 32, 31, 31,
@@ -1615,7 +1620,7 @@ const UINT8 table1_mvx[1099] = {
   0, 12, 27,
 };
 
-const UINT8 table1_mvy[1099] = {
+static const UINT8 table1_mvy[1099] = {
  32, 32, 31, 31, 32, 33, 31, 33,
  33, 32, 32, 30, 34, 31, 32, 29,
  33, 30, 32, 33, 31, 35, 34, 30,
@@ -1756,6 +1761,17 @@ const UINT8 table1_mvy[1099] = {
  34, 28, 21,
 };
 
+/* motion vector table */
+typedef struct MVTable {
+    int n;
+    const UINT16 *table_mv_code;
+    const UINT8 *table_mv_bits;
+    const UINT8 *table_mvx;
+    const UINT8 *table_mvy;
+    UINT16 *table_mv_index; /* encoding: convert mv to index in table_mv */
+    VLC vlc;                /* decoding: vlc */
+} MVTable;
+
 static MVTable mv_tables[2] = {
     {
         1099,
@@ -1781,3 +1797,77 @@ static const UINT8 v2_mb_type[8][2] = {
 static const UINT8 v2_intra_cbpc[4][2] = {
  {1, 1}, {0, 3}, {1, 3}, {1, 2},
 };
+
+static UINT8 wmv1_y_dc_scale_table[32]={
+//  0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+    0, 8, 8, 8, 8, 8, 9, 9,10,10,11,11,12,12,13,13,14,14,15,15,16,16,17,17,18,18,19,19,20,20,21,21
+};
+static UINT8 wmv1_c_dc_scale_table[32]={
+//  0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+    0, 8, 8, 8, 8, 9, 9,10,10,11,11,12,12,13,13,14,14,15,15,16,16,17,17,18,18,19,19,20,20,21,21,22
+};
+
+static UINT8 old_ff_y_dc_scale_table[32]={
+//  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31
+    0, 8, 8, 8, 8,10,12,14,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39
+};
+static UINT8 old_ff_c_dc_scale_table[32]={
+//  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31
+    0, 8, 8, 8, 8, 9, 9,10,10,11,11,12,12,13,13,14,14,15,15,16,16,17,17,18,18,19,19,20,20,21,21,22
+};
+
+
+#define WMV1_SCANTABLE_COUNT 4
+
+static const UINT8 wmv1_scantable00[64]= {
+0x00, 0x08, 0x01, 0x02, 0x09, 0x10, 0x18, 0x11, 
+0x0A, 0x03, 0x04, 0x0B, 0x12, 0x19, 0x20, 0x28, 
+0x30, 0x38, 0x29, 0x21, 0x1A, 0x13, 0x0C, 0x05, 
+0x06, 0x0D, 0x14, 0x1B, 0x22, 0x31, 0x39, 0x3A, 
+0x32, 0x2A, 0x23, 0x1C, 0x15, 0x0E, 0x07, 0x0F, 
+0x16, 0x1D, 0x24, 0x2B, 0x33, 0x3B, 0x3C, 0x34, 
+0x2C, 0x25, 0x1E, 0x17, 0x1F, 0x26, 0x2D, 0x35, 
+0x3D, 0x3E, 0x36, 0x2E, 0x27, 0x2F, 0x37, 0x3F, 
+};
+static const UINT8 wmv1_scantable01[64]= {
+0x00, 0x08, 0x01, 0x02, 0x09, 0x10, 0x18, 0x11, 
+0x0A, 0x03, 0x04, 0x0B, 0x12, 0x19, 0x20, 0x28, 
+0x21, 0x30, 0x1A, 0x13, 0x0C, 0x05, 0x06, 0x0D, 
+0x14, 0x1B, 0x22, 0x29, 0x38, 0x31, 0x39, 0x2A, 
+0x23, 0x1C, 0x15, 0x0E, 0x07, 0x0F, 0x16, 0x1D, 
+0x24, 0x2B, 0x32, 0x3A, 0x33, 0x3B, 0x2C, 0x25, 
+0x1E, 0x17, 0x1F, 0x26, 0x2D, 0x34, 0x3C, 0x35, 
+0x3D, 0x2E, 0x27, 0x2F, 0x36, 0x3E, 0x37, 0x3F, 
+};
+static const UINT8 wmv1_scantable02[64]= {
+0x00, 0x01, 0x08, 0x02, 0x03, 0x09, 0x10, 0x18, 
+0x11, 0x0A, 0x04, 0x05, 0x0B, 0x12, 0x19, 0x20, 
+0x28, 0x30, 0x21, 0x1A, 0x13, 0x0C, 0x06, 0x07, 
+0x0D, 0x14, 0x1B, 0x22, 0x29, 0x38, 0x31, 0x39, 
+0x2A, 0x23, 0x1C, 0x15, 0x0E, 0x0F, 0x16, 0x1D, 
+0x24, 0x2B, 0x32, 0x3A, 0x33, 0x2C, 0x25, 0x1E, 
+0x17, 0x1F, 0x26, 0x2D, 0x34, 0x3B, 0x3C, 0x35, 
+0x2E, 0x27, 0x2F, 0x36, 0x3D, 0x3E, 0x37, 0x3F, 
+};
+static const UINT8 wmv1_scantable03[64]= {
+0x00, 0x08, 0x10, 0x01, 0x18, 0x20, 0x28, 0x09, 
+0x02, 0x03, 0x0A, 0x11, 0x19, 0x30, 0x38, 0x29, 
+0x21, 0x1A, 0x12, 0x0B, 0x04, 0x05, 0x0C, 0x13, 
+0x1B, 0x22, 0x31, 0x39, 0x32, 0x2A, 0x23, 0x1C, 
+0x14, 0x0D, 0x06, 0x07, 0x0E, 0x15, 0x1D, 0x24, 
+0x2B, 0x33, 0x3A, 0x3B, 0x34, 0x2C, 0x25, 0x1E, 
+0x16, 0x0F, 0x17, 0x1F, 0x26, 0x2D, 0x3C, 0x35, 
+0x2E, 0x27, 0x2F, 0x36, 0x3D, 0x3E, 0x37, 0x3F, 
+};
+
+static const UINT8 *wmv1_scantable[WMV1_SCANTABLE_COUNT+1]={
+    wmv1_scantable00,
+    wmv1_scantable01,
+    wmv1_scantable02,
+    wmv1_scantable03,
+};
+
+static UINT8 table_inter_intra[4][2]={
+    {0,1},{2,2},{6,3},{7,3}
+};
+

@@ -40,7 +40,7 @@ void version()
   printf("%s (%s v%s) (C) 2001-2002 Thomas Östreich\n", EXE, PACKAGE, VERSION);
 }
 
-void usage()
+void usage(int status)
 {
     version();
     printf("\nUsage: %s [options]\n", EXE);
@@ -52,7 +52,7 @@ void usage()
     printf("\t -m                  force split at upper limit for option -t [off]\n");
     printf("\t -o base             split to base-%%04d.avi [name-%%04d]\n");
     printf("\t -v                  print version\n");
-    exit(0);
+    exit(status);
 }
 
 // buffer
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 
   char separator[] = ",";
 
-  if(argc==1) usage();
+  if(argc==1) usage(EXIT_FAILURE);
   
   while ((ch = getopt(argc, argv, "mco:vs:i:t:H:?h")) != -1) {
 
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
 
     case 'H':
 
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
   	  split_next = atoi(optarg);
 
   	  if(split_next <= 0) {
@@ -136,14 +136,14 @@ int main(int argc, char *argv[])
 
     case 'i':
   
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       in_file=optarg;
   
       break;
   
     case 's':
   
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       chunk = atoi(optarg);
       split_option=SPLIT_BY_SIZE;
 
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
 
     case 'o':
   
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       base = optarg;
   
       break;
@@ -167,12 +167,11 @@ int main(int argc, char *argv[])
       exit(0);
       break;
 
-    case '?':
     case 'h':
+      usage(EXIT_SUCCESS);
 
     default:
-      usage();
-      exit(0);
+      usage(EXIT_FAILURE);
     }
   }
   /*
@@ -181,13 +180,13 @@ int main(int argc, char *argv[])
   switch (split_option) {
   case SPLIT_BY_SIZE:
 
-    if(in_file==NULL || chunk < 0) usage();
+    if(in_file==NULL || chunk < 0) usage(EXIT_FAILURE);
 
     break;
 
   case SPLIT_BY_TIME:
 
-    if(in_file==NULL) usage();
+    if(in_file==NULL) usage(EXIT_FAILURE);
 
     break;
   }
@@ -355,7 +354,7 @@ int main(int argc, char *argv[])
   case SPLIT_BY_TIME:
 
     if( parse_fc_time_string( argcopy, fps, separator, 1, &ttime ) == -1 )
-      usage();
+      usage(EXIT_FAILURE);
     /*
      * pointer into the fc_list
      */

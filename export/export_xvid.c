@@ -63,7 +63,7 @@
  ****************************************************************************/
 
 #define MOD_NAME    "export_xvid.so"
-#define MOD_VERSION "v0.3.4 (2002-09-17)"
+#define MOD_VERSION "v0.3.5 (2002-10-10)"
 #define MOD_CODEC   "(video) XviD (Stable)  | (audio) MPEG/AC3/PCM"
 #define MOD_PRE xvid_ 
 #include "export_def.h"
@@ -413,6 +413,10 @@ MOD_encode
 	/* Update the VBR controler */
 	vbrUpdate(&vbr_state, xstats.quant, xframe.intra, xstats.hlength,
 		  xframe.length, xstats.kblks, xstats.mblks, xstats.ublks);
+
+
+	//0.6.2: switch outfile on "C" and -J pv
+	if(xframe.intra) tc_outstream_rotate();
 
 	/* Write bitstream */
 	if(AVI_write_frame(avifile, buffer, xframe.length, xframe.intra) < 0) {

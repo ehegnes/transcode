@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 AC_INIT
 AC_CONFIG_AUX_DIR(autotools)
-AM_INIT_AUTOMAKE(transcode,0.6.1)
+AM_INIT_AUTOMAKE(transcode,0.6.2)
 AC_CONFIG_SRCDIR(src/transcode.c)
 AM_CONFIG_HEADER(config.h)
   
@@ -430,36 +430,6 @@ AM_PATH_AVIFILE(AC_DEFINE(HAVE_AVIFILE))
 AM_CONDITIONAL(HAVE_AVIFILE, test x"$have_avifile" = "xyes")
 
 dnl
-dnl avifile 0.6
-dnl
-
-if test x"$have_avifile" = "xyes"; then
-avibeta=yes
-AC_MSG_CHECKING(for avifile-0.6 support)
-AC_ARG_ENABLE(avifile6,  [  --enable-avifile6       enable avifile 0.6 support (yes)], 
-[
-if test x"${enableval}" = x"yes"; then
-    AC_MSG_RESULT(yes)
-    AC_DEFINE_UNQUOTED(AVIFILE_0_6)	
-else
-    AC_MSG_RESULT(no)
-avibeta=no
-fi], 
-AC_MSG_RESULT(yes) 
-AC_DEFINE_UNQUOTED(AVIFILE_0_6)
-)
-AC_SUBST(CFLAGS)
-AC_SUBST(ASFLAGS)
-AC_SUBST(AS)
-dnl AC_SUBST(AVIFILE_0_6)
-else
-avibeta=no
-fi
-
-AM_CONDITIONAL(AVIFILE_0_6, test x"$avibeta" = x"yes")
-
-
-dnl
 dnl v4l
 dnl
 
@@ -489,6 +459,7 @@ dnl
 AM_PATH_LAME(AC_DEFINE(HAVE_LAME))
 AM_CONDITIONAL(HAVE_LAME, test x"$have_lame" = "xyes")
 AM_CONDITIONAL(LAME_3_89, test x"$lame89" = "xyes")
+AM_CONDITIONAL(LAME_3_92, test x"$lame92" = "xyes")
 
 dnl
 dnl ogg support
@@ -547,6 +518,13 @@ dnl
 
 AM_PATH_DV(AC_DEFINE(HAVE_DV))
 AM_CONDITIONAL(HAVE_DV, test x"$have_dv" = "xyes")
+
+dnl
+dnl LZO support
+dnl
+
+AM_PATH_LZO(AC_DEFINE(HAVE_LZO))
+AM_CONDITIONAL(HAVE_LZO, test x"$have_lzo" = "xyes")
 
 dnl
 dnl A52 support
@@ -792,7 +770,6 @@ AC_OUTPUT([
            avilib/Makefile
            movlib/Makefile
 	   libioaux/Makefile
-           encore2/Makefile
            libac3/Makefile
            dvdread/Makefile
            libvo/Makefile
@@ -820,6 +797,7 @@ AC_OUTPUT([
            filter/ivtc/Makefile
            filter/yuvdenoise/Makefile
            docs/Makefile
+           docs/html/Makefile
            docs/man/Makefile
            contrib/Makefile
            tools/Makefile
@@ -832,13 +810,13 @@ dnl openquicktime dependent modules                  $have_openqt
 
 AC_MSG_RESULT([
 ----------------------------------------------------------
-Summary for transcode 0.6.1 features:
+Summary for transcode 0.6.2 features:
 
 static AV-frame buffering                        $statbuf
 DVD navigation support with libdvdread           $have_dvdread
-link against local lame library (>=3.89)         $lame89
+link against local lame library (>=3.89) | 3.92  $lame89 | $lame92
 support for network (sockets) streams            $net
-avifile dependent modules | (>0.6) support       $have_avifile | $avibeta
+avifile API support                              $have_avifile
 libmpeg3 dependent modules                       $have_libmpeg3
 quicktime dependent modules                      $have_qt
 libdv dependent modules                          $have_dv
@@ -846,12 +824,13 @@ liba52 audio plugin (>=0.7.3) | default decoder  $have_a52 | $a52_decoder
 libfame video encoding plugin                    $have_libfame
 nasm dependent modules                           $nasm
 ImageMagick dependent modules (>=5.4.3)          $have_magick
-libjpeg dependent modules                        $have_libjpeg
+libjpeg dependent modules | mmx accel            $have_libjpeg | $have_libjpegmmx
 libxml2 dependent modules                        $LIBXML2CONFIG
 mjpegtools dependent modules                     $MJPEGTOOLSCONFIG
 experimental v4l support                         $v4l
 X11 dependent filter plugins                     $USE_X11
-MPlayer libpostproc dependent filter plugin      $have_libpostproc
+liblzo dependent modules 			 $have_lzo
+libpostproc dependent filter plugin      	 $have_libpostproc
 experimental Ogg support | Vorbis support        $have_ogg | $have_vorbis
 ----------------------------------------------------------
 ])

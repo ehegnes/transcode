@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_pp.so"
-#define MOD_VERSION "v1.0 (2002-01-03)"
+#define MOD_VERSION "v1.1 (2002-11-14)"
 #define MOD_CAP     "postprocess filters"
 
 #include <stdio.h>
@@ -44,22 +44,13 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
-#include "postprocess.h"
+#include <postproc/postprocess.h>
+#include "../aclib/ac.h"
 
-static pp_init_done = 0;
+static int pp_init_done = 0;
 
-//-- dummy stuff --
-//-----------------
-int divx_quality;
-
-void odivx_postprocess(unsigned char *src[], int src_stride,
-                       unsigned char *dst[], int dst_stride,
-                       int w, int h,
-                       QP_STORE_T *QP_store, int QP_Stride, int mode)
-{
-  return;
-}  
-//-----------------                      
+static pp_mode_t *mode=NULL;
+static pp_context_t *context=NULL;
 
 /*-------------------------------------------------
  *
@@ -72,6 +63,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 {
 
   static vob_t *vob=NULL;
+
+  int ppStride[3];
   
   //----------------------------------
   //
@@ -82,7 +75,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   if(ptr->tag & TC_FILTER_INIT) 
   {
-    int verbose_sav;
+    int verbose_sav, i;
        
     if((vob = tc_get_vob())==NULL) return(-1);
          
@@ -97,18 +90,22 @@ int tc_filter(vframe_list_t *ptr, char *options)
       fprintf(stderr, "[%s] error: this filter needs options !\n", MOD_NAME);
       return(-1);
     }
-    
-    verbose_sav = verbose;
-    if (verbose < 2) verbose = 0;
-  
-    if (readPPOpt("", options) == -1) 
-    {
-      fprintf(stderr, "[%s] error in parsing filter options (%s)!\n", MOD_NAME, options);
-      verbose = verbose_sav;
+
+    mode = pp_get_mode_by_name_and_quality(options, PP_QUALITY_MAX);
+
+    if(mode==NULL) {
+      fprintf(stderr, "[%s] internal error (pp_get_mode_by_name_and_quality)\n", MOD_NAME);
       return(-1);
-    
     }
-    verbose = verbose_sav;    
+
+    if(tc_accel & MM_MMX) context = pp_get_context(vob->ex_v_width, vob->ex_v_height, PP_CPU_CAPS_MMX);
+    
+    if(tc_accel & MM_3DNOW) context = pp_get_context(vob->ex_v_width, vob->ex_v_height, PP_CPU_CAPS_3DNOW);
+
+    if(context==NULL) {
+      fprintf(stderr, "[%s] internal error (pp_get_context)\n", MOD_NAME);
+      return(-1);
+    }
     
     // filter init ok.
     pp_init_done = 1;
@@ -126,6 +123,10 @@ int tc_filter(vframe_list_t *ptr, char *options)
   if(ptr->tag & TC_FILTER_CLOSE) 
   {
     pp_init_done = 0;
+
+    pp_free_mode(mode);
+    pp_free_context(context);
+
     return(0);
   }
   
@@ -140,7 +141,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
   
-  if( (pp_init_done) && (ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO))  
+  if( (pp_init_done) && (ptr->tag & TC_POST_M_PROCESS) && (ptr->tag & TC_VIDEO))  
   {
     unsigned char *pp_page[3];
     
@@ -149,12 +150,14 @@ int tc_filter(vframe_list_t *ptr, char *options)
       pp_page[0] = ptr->video_buf;
       pp_page[1] = pp_page[0] + (vob->ex_v_width * vob->ex_v_height);
       pp_page[2] = pp_page[1] + (vob->ex_v_width * vob->ex_v_height)/4;
+
+      ppStride[0] = vob->ex_v_width;
+      ppStride[1] = ppStride[2] = vob->ex_v_width>>1;
        
-      postprocess(pp_page, vob->ex_v_width, 
-                  pp_page, vob->ex_v_width,
-                  vob->ex_v_width, vob->ex_v_height,
-                  NULL, 0,
-                  GET_PP_QUALITY_MAX);    
+      pp_postprocess(pp_page, ppStride, 
+		     pp_page, ppStride,
+		     vob->ex_v_width, vob->ex_v_height,
+		     NULL, 0, mode, context, 0);
     }
   }
   

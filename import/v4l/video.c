@@ -253,23 +253,39 @@ int video_grab_init(
 									/*
 									 * get the brightness value from .xawtv
 									 */
-									if( ( pTemp = cf_get_named_key( pRoot, pSection->name, "bright" ) ) != NULL )
+									if( ( pTemp = cf_get_named_key( pRoot, pSection->name, "bright" ) ) != NULL ) {
 										bright = atoi( pTemp );
+										if (strstr(pTemp, "%") != NULL) {
+											bright *= 655.36f;
+										}
+									}
 									/*
 									 * get the contrast value from .xawtv
 									 */
-									if( ( pTemp = cf_get_named_key( pRoot, pSection->name, "contrast" ) ) != NULL )
+									if( ( pTemp = cf_get_named_key( pRoot, pSection->name, "contrast" ) ) != NULL ) {
 										contrast = atoi( pTemp );
+										if (strstr(pTemp, "%") != NULL) {
+											contrast *= 655.36f;
+										}
+									}
 									/*
 									 * get the color value from .xawtv
 									 */
-									if( ( pTemp = cf_get_named_key( pRoot, pSection->name, "color" ) ) != NULL )
+									if( ( pTemp = cf_get_named_key( pRoot, pSection->name, "color" ) ) != NULL ) {
 										color = atoi( pTemp );
+										if (strstr(pTemp, "%") != NULL) {
+											color *= 655.36f;
+										}
+									}
 									/*
 									 * get the hue value from .xawtv
 									 */
-									if( ( pTemp = cf_get_named_key( pRoot, pSection->name, "hue" ) ) != NULL )
+									if( ( pTemp = cf_get_named_key( pRoot, pSection->name, "hue" ) ) != NULL ) {
 										hue = atoi( pTemp );
+										if (strstr(pTemp, "%") != NULL) {
+											hue *= 655.36f;
+										}
+									}
 
 									i = 0; j = 1;
 									channame = chanlist_names[ i ];

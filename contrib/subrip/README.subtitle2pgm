@@ -22,7 +22,7 @@ Convert a subtitle stream to pgm images.
 The subtitle stream has to be produced by 
 tcextract, e.g.
            tcextract -x ps1 -t vob -a 0x20 -i file.vob
-andn can be piped directly into subtitle2pgm, e.g.
+and can be piped directly into subtitle2pgm, e.g.
            tcextract -x ps1 -t vob -a 0x20 -i file.vob | subtitle2pgm
 
 If the subtitle stream already exists as a file e.g. subtitle_stream.ps1
@@ -68,13 +68,20 @@ Options
 			   with a small value for <border> e.g. -C 0. 
  
 
+-e <hh:mm:ss,n>            Extract only n subtitles starting from the
+                           time stamp hh:mm:ss. This is intended for
+                           getting a short overview about what the
+                           subtitles would look like. E.g.
+                           -e 00:05:00,10 
+                           gives you the first 10 subtitles but
+                           skipping subtitles within the first 5 min.
 
 
+-v                         Enables some more output messages that
+                           you usually won't need.
 
-
-
-
-
+-P                         Write a progress report so that you can
+                           see the program is doing something useful.
 
 
 

@@ -27,8 +27,12 @@
  *
  */
 
+#include "config.h" /* HAVE_MMX and HAVE_SSE #defines are here.*/
 #include "main.h"
 #include "mtable.h"
+#include "../aclib/ac.h"
+
+extern int tc_accel;
 
 /* private prototypes */
 
@@ -112,48 +116,82 @@ int PRUNE_MV, PRUNE_MV_BOT, w4, h4, h42, wh4, wh42, mblok, forwEst, downSampleLi
 
 unsigned char *Old, *New, *Cur;
 
+//GM
+extern int dist1mmx(unsigned char *blk1, unsigned char *blk2,
+		    int lx, int hx, int hy, int h, int distlim);
+
+//ThOe
+extern int dist1_mmx(unsigned char *blk1, unsigned char *blk2,
+		     int lx, int hx, int hy, int h, int distlim);
+     
+//GM
+extern int dist1sse(unsigned char *blk1, unsigned char *blk2,
+			 int lx, int hx, int hy, int h, int distlim);
+
+//ThOe
+extern int dist1_sse(unsigned char *blk1, unsigned char *blk2,
+			 int lx, int hx, int hy, int h, int distlim);
+     
+extern int dist2mmx(unsigned char *blk1, unsigned char *blk2,
+		    int lx, int hx, int hy, int h);
+
+extern int bdist1mmx(unsigned char *pf, unsigned char *pb, 
+		     unsigned char *p2, int lx, 
+		     int hxf, int hyf, int hxb, int hyb, int h);
+
+extern int bdist1sse(unsigned char *pf, unsigned char *pb, 
+		     unsigned char *p2, int lx, 
+		     int hxf, int hyf, int hxb, int hyb, int h);
+
+extern int bdist2mmx(unsigned char *pf, unsigned char *pb, 
+			 unsigned char *p2, int lx, 
+			 int hxf, int hyf, int hxb, int hyb, int h);
+
+extern  int edist1mmx(unsigned char *blk1, unsigned char *blk2,
+		      int lx, int distlim);
+//GM
+extern int variancemmx(unsigned char *p,int lx);
+
+//ThOe
+extern int variance_16x16_mmx(unsigned char *p, int lx);
 
 /* setup MMX, SIMD, etc */
 
 void init_motion_est(int sh_info)
 {
-  switch (MMXMode)
-  {
-    case MODE_3DNOWEXT: // AMD 3DNOW extensions, use SSE
-    case MODE_SSE:      // Intel SSE
-      if (sh_info)
-        fprintf(stderr, "INFO: motion-comp. with SSE/MMX acceleration !\n");
-      dist1sub = dist1sse;
-      dist2sub = dist2mmx;
-      bdist1sub = bdist1sse;
-      bdist2sub = bdist2mmx;
-      variance_sub = variancemmx;
-      edist1sub = edist1sse;
-      break;
 
-    case MODE_3DNOW:   // AMD 3DNOW, use MMX for now
-    case MODE_MMX:     // Intel or AMD MMX
-      if (sh_info)
-        fprintf(stderr, "INFO: motion-comp. with MMX acceleration !\n");
-      dist1sub = dist1mmx;
-      dist2sub = dist2mmx;
-      bdist1sub = bdist1mmx;
-      bdist2sub = bdist2mmx;
-      variance_sub = variancemmx;
-      edist1sub = edist1mmx;
-      break;
-
-    default:  // straight IA
-      if (sh_info)
-        fprintf(stderr, "INFO: motion-comp. without acceleration !\n");
-      dist1sub = dist1;  // GMO !!!
-      dist2sub = dist2;  // GMO !!!
-      bdist1sub = bdist1;
-      bdist2sub = bdist2;
-      variance_sub = variance;
-      edist1sub = edist1;
+  //default for all
+  dist1sub     = dist1;
+  dist2sub     = dist2;
+  bdist1sub    = bdist1;
+  bdist2sub    = bdist2;
+  edist1sub    = edist1;
+  variance_sub = variance;
+  
+#ifdef ARCH_X86
+#ifdef HAVE_ASM_NASM
+  
+  if(tc_accel & MM_MMX) {
+    dist1sub = dist1mmx;
+    dist2sub = dist2mmx;
+    bdist1sub = bdist1mmx;
+    //bdist2sub = bdist2mmx;    //segfaults
+    edist1sub = edist1mmx;
+    //variance_sub = variancemmx;    //picture quality problems with "-F v,1"
   }
+  
+#ifdef HAVE_SSE
+  if(tc_accel & MM_SSE || tc_accel & MM_SSE2) {
+    dist1sub = dist1sse;
+    bdist1sub = bdist1sse;
+    edist1sub = edist1sse;
+  }
+#endif
+
+#endif
+#endif
 }
+
 
 int init_motion_est2(int sh_info)
 {
@@ -205,25 +243,6 @@ void finish_motion_est()
     free(New);
   if (Cur)
     free(Cur);
-}
-
-static int edist1(unsigned char *bo, unsigned char *br, int lx, int distlim)
-{
-  int k;
-  int s = 0;
-
-  for (k = 0; k < 4; k++)
-  {
-    s += motion_lookup[bo[0]][br[0]];
-    s += motion_lookup[bo[1]][br[1]];
-    s += motion_lookup[bo[2]][br[2]];
-    s += motion_lookup[bo[3]][br[3]];
-    if (s >= distlim)
-      break;
-    bo += lx;
-    br += lx;
-  }
-  return s;
 }
 
 static char tbl[9] = {0, 1, 1, 0, 1, 0, 0, 0, 1};
@@ -1613,7 +1632,7 @@ int *iminsp, int *jminsp, int *dsp)
   if (nobot)
     db = 65536;
   else
-    db = fullsearch(botorg,botref,mb,width<<1,
+    db = fullsearch (botorg,botref,mb,width<<1,
                     i,j,sx,sy>>1,8,width,height>>1,
                     &iminb,&jminb);
 
@@ -2070,11 +2089,8 @@ int *iminp, int *jminp)
   return dmin;
 }
 
-
-static int dist1(
-unsigned char *blk1, unsigned char *blk2,
-int lx, int hx, int hy, int h,
-int distlim)
+static int dist1(unsigned char *blk1, unsigned char *blk2,
+		 int lx, int hx, int hy, int h, int distlim)
 {
   unsigned char *p1, *p2, *p1a;
   int j, s;
@@ -2203,9 +2219,8 @@ int distlim)
  * h:         height of block (usually 8 or 16)
  */
 
-static int dist2(
-unsigned char *blk1, unsigned char *blk2,
-int lx, int hx, int hy, int h)
+static int dist2(unsigned char *blk1, unsigned char *blk2,
+		 int lx, int hx, int hy, int h)
 {
   unsigned char *p1,*p1a,*p2;
   int i,j;
@@ -2283,9 +2298,8 @@ int lx, int hx, int hy, int h)
  * lx: distance (in bytes) of vertically adjacent pels in p2,pf,pb
  */
 
-static int bdist1(
-unsigned char *pf, unsigned char *pb, unsigned char *p2,
-int lx, int hxf, int hyf, int hxb, int hyb, int h)
+static int bdist1(unsigned char *pf, unsigned char *pb, unsigned char *p2,
+		  int lx, int hxf, int hyf, int hxb, int hyb, int h)
 {
   unsigned char *pfa,*pfb,*pfc,*pba,*pbb,*pbc;
   int i,j;
@@ -2335,9 +2349,8 @@ int lx, int hxf, int hyf, int hxb, int hyb, int h)
  * lx: distance (in bytes) of vertically adjacent pels in p2,pf,pb
  */
 
-static int bdist2(
-unsigned char *pf, unsigned char *pb, unsigned char *p2,
-int lx, int hxf, int hyf, int hxb, int hyb, int h)
+static int bdist2(unsigned char *pf, unsigned char *pb, unsigned char *p2,
+		  int lx, int hxf, int hyf, int hxb, int hyb, int h)
 {
   unsigned char *pfa,*pfb,*pfc,*pba,*pbb,*pbc;
   int i,j;
@@ -2376,6 +2389,25 @@ int lx, int hxf, int hyf, int hxb, int hyb, int h)
   return s;
 }
 
+static int edist1(unsigned char *bo, unsigned char *br, int lx, int distlim)
+{
+  int k;
+  int s = 0;
+
+  for (k = 0; k < 4; k++)
+  {
+    s += motion_lookup[bo[0]][br[0]];
+    s += motion_lookup[bo[1]][br[1]];
+    s += motion_lookup[bo[2]][br[2]];
+    s += motion_lookup[bo[3]][br[3]];
+    if (s >= distlim)
+      break;
+    bo += lx;
+    br += lx;
+  }
+  return s;
+}
+
 
 /*
  * variance of a (16*16) block, multiplied by 256
@@ -2383,9 +2415,7 @@ int lx, int hxf, int hyf, int hxb, int hyb, int h)
  * lx: distance (in bytes) of vertically adjacent pels
  */
 
-static int variance(
-unsigned char *p,
-int lx)
+static int variance(unsigned char *p, int lx)
 {
   int i,j;
   unsigned int v,s,s2;

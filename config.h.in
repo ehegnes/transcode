@@ -7,6 +7,7 @@
 #undef HAVE_DV
 #undef HAVE_A52
 #undef HAVE_LIBXV
+#undef HAVE_LZO
 #undef HAVE_GTK
 #undef HAVE_SDL
 #undef HAVE_MAGICK
@@ -40,8 +41,8 @@
 #undef NET_STREAM
 #undef USE_LIBA52_DECODER
 
-#undef AVIFILE_0_6
 #undef LAME_3_89
+#undef LAME_3_92
 #undef TRANSCODE_0_6
 #undef LIBDV_095
 
@@ -70,6 +71,9 @@
 /* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
    */
 #undef HAVE_ALLOCA_H
+
+/* have nasm */
+#undef HAVE_ASM_NASM
 
 /* Define to 1 if you have the `atexit' function. */
 #undef HAVE_ATEXIT
@@ -137,6 +141,9 @@
 
 /* mjpegtools support */
 #undef HAVE_MJPEGTOOLS
+
+/* mjpeg include */
+#undef HAVE_MJPEG_INC
 
 /* Define to 1 if you have the `mkfifo' function. */
 #undef HAVE_MKFIFO

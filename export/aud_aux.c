@@ -30,6 +30,7 @@
 
 #include "aud_aux.h"
 #include "ac3.h"
+#include "../aclib/ac.h"
 
 /* ------------------------------------------------------------ 
  *
@@ -94,14 +95,15 @@ int audio_init(vob_t *vob, int debug)
     avi_aud_bitrate = vob->mp3bitrate;
     avi_aud_codec = vob->ex_a_codec;
 
-    avi_aud_bits=vob->a_bits;
-    avi_aud_chan=vob->a_chan;
+    avi_aud_bits=(vob->dm_bits != vob->a_bits) ? vob->dm_bits : vob->a_bits;
+    avi_aud_chan=(vob->dm_chan != vob->a_chan) ? vob->dm_chan : vob->a_chan;
     avi_aud_rate=(vob->mp3frequency != 0) ? vob->mp3frequency : vob->a_rate;
 
     lame_flush=vob->lame_flush;
 
     sample_size = (avi_aud_bits>>3) * avi_aud_chan; //for encoding
-    if(vob->a_chan==1) aud_mono = 1;
+
+    if(avi_aud_chan==1) aud_mono = 1;
 
     if(!sample_size && i_codec != CODEC_NULL) {
 	fprintf(stderr, "(%s) invalid sample size %d detected - invalid audio format in=0x%x\n", __FILE__, sample_size, i_codec);
@@ -146,15 +148,24 @@ int audio_init(vob_t *vob, int debug)
 	  lame_set_VBR(lgf, vob->a_vbr); 
 	  lame_set_quality(lgf, vob->mp3quality);
 
+	  if(vob->bitreservoir==TC_FALSE) lame_set_disable_reservoir(lgf, 1);
+
 	  lame_set_in_samplerate(lgf, vob->a_rate);
-	  lame_set_num_channels(lgf, (vob->a_chan>2 ? 2:vob->a_chan));
+	  lame_set_num_channels(lgf, (avi_aud_chan>2 ? 2:avi_aud_chan));
 
 	  //jstereo/mono
-	  lame_set_mode(lgf, (vob->a_chan>1 ? JOINT_STEREO:MONO)); 
+	  lame_set_mode(lgf, (avi_aud_chan>1 ? JOINT_STEREO:MONO)); 
 	  lame_set_brate(lgf, vob->mp3bitrate);
-          
-	  if(vob->mp3frequency==0) vob->mp3frequency=vob->a_rate;
-	  lame_set_out_samplerate(lgf, vob->mp3frequency);
+
+          //sample rate
+	  lame_set_out_samplerate(lgf, avi_aud_rate);
+
+	  //asm 
+#ifdef LAME_3_92
+	  if(tc_accel & MM_MMX) lame_set_asm_optimizations(lgf, MMX, 1);
+	  if(tc_accel & MM_3DNOW) lame_set_asm_optimizations(lgf, AMD_3DNOW, 1);
+	  if(tc_accel & MM_SSE) lame_set_asm_optimizations(lgf, SSE, 1);
+#endif
 	  
 	  lame_init_params(lgf);
 
@@ -180,8 +191,8 @@ int audio_init(vob_t *vob, int debug)
 	  lgf->silent=1;
 	  lgf->VBR=vbr_off;
 	  lgf->in_samplerate=vob->a_rate;
-	  lgf->num_channels=(vob->a_chan>2 ? 2:vob->a_chan);
-	  lgf->mode=(vob->a_chan>1 ? 1:3);
+	  lgf->num_channels=(avi_aud_chan>2 ? 2:avi_aud_chan);
+	  lgf->mode=(avi_aud_chan>1 ? 1:3);
 	  lgf->brate=(vob->mp3bitrate*1000)/8/125;
 
           if (vob->mp3frequency==0) vob->mp3frequency=vob->a_rate;
@@ -212,7 +223,7 @@ int audio_init(vob_t *vob, int debug)
 	break;
 	
       default:
-	fprintf(stderr, "(%s) in=0x%x out=0x%x not supported - exit\n", __FILE__, i_codec, o_codec);
+	fprintf(stderr, "(%s) audio codec in=0x%x out=0x%x conversion not supported\n", __FILE__, i_codec, o_codec);
 	return(TC_EXPORT_ERROR);
       }
       
@@ -241,7 +252,7 @@ int audio_init(vob_t *vob, int debug)
 	break;
 	
       default:
-	fprintf(stderr, "(%s) 0x%x->0x%x not supported - exit\n", __FILE__, i_codec, o_codec);
+	fprintf(stderr, "(%s) audio codec in=0x%x out=0x%x conversion not supported\n", __FILE__, i_codec, o_codec);
 	return(TC_EXPORT_ERROR);
       }
       

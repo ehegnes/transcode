@@ -68,7 +68,6 @@ A52_CFLAGS = @A52_CFLAGS@
 A52_LIBS = @A52_LIBS@
 AMTAR = @AMTAR@
 AS = @AS@
-ASFLAGS = @ASFLAGS@
 AVIFILE_CFLAGS = @AVIFILE_CFLAGS@
 AVIFILE_CONFIG = @AVIFILE_CONFIG@
 AVIFILE_LIBS = @AVIFILE_LIBS@
@@ -97,6 +96,7 @@ GTK_CONFIG = @GTK_CONFIG@
 GTK_LIBS = @GTK_LIBS@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LAME_3_89 = @LAME_3_89@
+LAME_3_92 = @LAME_3_92@
 LAME_CFLAGS = @LAME_CFLAGS@
 LAME_LIBS = @LAME_LIBS@
 LDFLAGS = @LDFLAGS@
@@ -115,6 +115,9 @@ LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
 LIBXML2_LIBS = @LIBXML2_LIBS@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+LZO_CFLAGS = @LZO_CFLAGS@
+LZO_EXTRA_LIBS = @LZO_EXTRA_LIBS@
+LZO_LIBS = @LZO_LIBS@
 MAGICK_CFLAGS = @MAGICK_CFLAGS@
 MAGICK_CONFIG = @MAGICK_CONFIG@
 MAGICK_LIBS = @MAGICK_LIBS@
@@ -161,8 +164,8 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
 noinst_LIBRARIES = libmpeg2cvs.a
 
-libmpeg2cvs_a_SOURCES = decode.c header.c stats.c slice.c \
-		      motion_comp.c motion_comp_mmx.c \
+libmpeg2cvs_a_SOURCES = cpu_state.c decode.c header.c stats.c slice.c \
+		      motion_comp.c motion_comp_mmx.c motion_comp_mlib.c\
 		      idct.c idct_mlib.c idct_mmx.c \
 		      idct_altivec.c motion_comp_altivec.c
 
@@ -177,9 +180,10 @@ LIBRARIES = $(noinst_LIBRARIES)
 
 libmpeg2cvs_a_AR = $(AR) cru
 libmpeg2cvs_a_LIBADD =
-am_libmpeg2cvs_a_OBJECTS = decode.$(OBJEXT) header.$(OBJEXT) \
-	stats.$(OBJEXT) slice.$(OBJEXT) motion_comp.$(OBJEXT) \
-	motion_comp_mmx.$(OBJEXT) idct.$(OBJEXT) idct_mlib.$(OBJEXT) \
+am_libmpeg2cvs_a_OBJECTS = cpu_state.$(OBJEXT) decode.$(OBJEXT) \
+	header.$(OBJEXT) stats.$(OBJEXT) slice.$(OBJEXT) \
+	motion_comp.$(OBJEXT) motion_comp_mmx.$(OBJEXT) \
+	motion_comp_mlib.$(OBJEXT) idct.$(OBJEXT) idct_mlib.$(OBJEXT) \
 	idct_mmx.$(OBJEXT) idct_altivec.$(OBJEXT) \
 	motion_comp_altivec.$(OBJEXT)
 libmpeg2cvs_a_OBJECTS = $(am_libmpeg2cvs_a_OBJECTS)
@@ -189,11 +193,13 @@ CPPFLAGS = @CPPFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/decode.Po ./$(DEPDIR)/header.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/idct.Po ./$(DEPDIR)/idct_altivec.Po \
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/cpu_state.Po ./$(DEPDIR)/decode.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/header.Po ./$(DEPDIR)/idct.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/idct_altivec.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/idct_mlib.Po ./$(DEPDIR)/idct_mmx.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/motion_comp.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/motion_comp_altivec.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/motion_comp_mlib.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/motion_comp_mmx.Po ./$(DEPDIR)/slice.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/stats.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
@@ -235,6 +241,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cpu_state.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/decode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/header.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/idct.Po@am__quote@
@@ -243,6 +250,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/idct_mmx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/motion_comp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/motion_comp_altivec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/motion_comp_mlib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/motion_comp_mmx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/slice.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stats.Po@am__quote@

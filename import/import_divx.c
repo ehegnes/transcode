@@ -32,7 +32,7 @@
 #include "avilib.h"
 
 #define MOD_NAME    "import_divx.so"
-#define MOD_VERSION "v0.2.4 (2002-08-03)"
+#define MOD_VERSION "v0.2.5 (2002-10-10)"
 #define MOD_CODEC   "(video) DivX;-)/XviD/OpenDivX/DivX 4.xx/5.xx"
 #define MOD_PRE divx
 #include "import_def.h"
@@ -62,7 +62,8 @@ static char module[TC_BUF_MAX];
 
 static avi_t *avifile=NULL;
 
-static int pass_through=0;
+//special codec information
+static int pass_through=0, pass_through_decode=0;
 
 //temporary video buffer
 static char *buffer = NULL;
@@ -274,15 +275,24 @@ MOD_open
       break;
       
     case CODEC_YUV:
-	
-	divx->output_format=DEC_YV12;
-	frame_size = (divx->x_dim * divx->y_dim * 3)/2;
-	break;
-	
+      
+      divx->output_format=DEC_YV12;
+      frame_size = (divx->x_dim * divx->y_dim * 3)/2;
+      break;
+      
     case CODEC_RAW:
-	pass_through=1;
-	divx->output_format=DEC_420;
-	break;
+	
+      pass_through=1;
+      divx->output_format=DEC_420;
+      break;
+
+    case CODEC_RAW_YUV:
+      
+      pass_through=1;
+      pass_through_decode=1;
+      divx->output_format=DEC_YV12;
+      frame_size = (divx->x_dim * divx->y_dim * 3)/2;
+      break;
     }
     
     //----------------------------------------
@@ -343,63 +353,72 @@ MOD_decode {
     int key;
     
     long bytes_read=0;
+
+    if(param->flag != TC_VIDEO) return(TC_IMPORT_ERROR);
     
-    if(param->flag == TC_VIDEO) {
-	
-	
-	bytes_read = (pass_through) ? AVI_read_frame(avifile, param->buffer, &key):AVI_read_frame(avifile, buffer, &key);
-	
-	if( bytes_read < 0) return(TC_IMPORT_ERROR); 
-	
-	decFrame->bitstream = buffer;
-	decFrame->stride = divx->x_dim;
-	decFrame->bmp = param->buffer;
-	decFrame->length = (int) bytes_read;
-	decFrame->render_flag = 1;
-	param->size = frame_size;
-	
-/*	if(pass_through) {
-	    decFrame->render_flag = 0;
-	    //too slow, droped this
-	} else*/ {
-	    
-	    if(divx_decore(divx_id, divx_version, decFrame, NULL) < 0) {
-		printf("codec DEC_OPT_FRAME error");
-		return(TC_IMPORT_ERROR); 
-	    }
-	}
-	
-	if(pass_through) {
-	    
-	    int cc=0;
-	    
-	    param->size = (int) bytes_read;
+    bytes_read = (pass_through) ? AVI_read_frame(avifile, param->buffer, &key):AVI_read_frame(avifile, buffer, &key);
+    
+    if(bytes_read<0) return(TC_IMPORT_ERROR); 
 
-	    //determine keyframe
-	    
-
+    if(pass_through) {
+      
+      int cc=0;
+      
+      param->size = (int) bytes_read;
+      
+      //determine keyframe
+      
 #if DECORE_VERSION >= 20020303
-	    cc=divx4_is_key((unsigned char *)param->buffer, (long) param->size);
+      cc=divx4_is_key((unsigned char *)param->buffer, (long) param->size);
 #else
-	    switch(divx_version) 
-	    {
-	    case DEC_OPT_FRAME:
-		cc=divx4_is_key((unsigned char *)param->buffer, (long) param->size);
-	    break;
-	    case DEC_OPT_FRAME_311:
-		if(param->size>4) cc=divx3_is_key((unsigned char *)param->buffer);
-		break;
-	    }
+      switch(divx_version) {
+      case DEC_OPT_FRAME:
+	cc=divx4_is_key((unsigned char *)param->buffer, (long) param->size);
+	break;
+      case DEC_OPT_FRAME_311:
+	if(param->size>4) cc=divx3_is_key((unsigned char *)param->buffer);
+	break;
+      }
 #endif
-	    if(cc) param->attributes |= TC_FRAME_IS_KEYFRAME;
-	    if(verbose & TC_DEBUG) printf("keyframe info (AVI|bitstream)=(%d|%d)\n", key, cc);
-	}
-	return(0);
+      if(cc) param->attributes |= TC_FRAME_IS_KEYFRAME;
+      if(verbose & TC_DEBUG) printf("keyframe info (AVI|bitstream)=(%d|%d)\n", key, cc);
+
+    } else {
+      
+      //need to decode the frame
+      decFrame->bitstream = buffer;
+      decFrame->stride = divx->x_dim;
+      decFrame->bmp = param->buffer;
+      decFrame->length = (int) bytes_read;
+      decFrame->render_flag = 1;
+      
+      if(divx_decore(divx_id, divx_version, decFrame, NULL) < 0) {
+	printf("codec DEC_OPT_FRAME error");
+	return(TC_IMPORT_ERROR); 
+      }
+      
+      param->size = frame_size;
     }
     
-    return(TC_IMPORT_ERROR);
-}
+    //for preview/pass-through feature
     
+    if(pass_through_decode) {
+
+      decFrame->bitstream = param->buffer; //read only??
+      decFrame->stride = divx->x_dim;
+      decFrame->bmp = param->buffer2; 
+      decFrame->length = (int) bytes_read;
+      decFrame->render_flag = 1;
+      
+      if(divx_decore(divx_id, divx_version, decFrame, NULL) < 0) {
+	printf("codec DEC_OPT_FRAME error");
+	return(TC_IMPORT_ERROR); 
+      }
+    }
+    
+    return(0);
+}
+
 /* ------------------------------------------------------------ 
  *
  * close stream

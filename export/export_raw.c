@@ -30,7 +30,7 @@
 #include "../import/magic.h"
 
 #define MOD_NAME    "export_raw.so"
-#define MOD_VERSION "v0.3.6 (2002-05-24)"
+#define MOD_VERSION "v0.3.9 (2002-11-21)"
 #define MOD_CODEC   "(video) * | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE raw
@@ -123,6 +123,7 @@ MOD_open
 
 	    
       case CODEC_RAW:
+      case CODEC_RAW_YUV:
 
 	switch(vob->format_flag) {
 	  
@@ -205,11 +206,16 @@ MOD_encode
   
   if(param->flag == TC_VIDEO) { 
     
+    //0.5.0-pre8:
+    key = ((param->attributes & TC_FRAME_IS_KEYFRAME) || force_kf) ? 1:0;
+
+    //0.6.2: switch outfile on "r/R" and -J pv
+    //0.6.2: enforce auto-split at 2G (or user value) for normal AVI files
+    if((uint32_t)(AVI_bytes_written(avifile2)+param->size+16+8)>>20 >= tc_avi_limit) tc_outstream_rotate_request();
+    
+    if(key) tc_outstream_rotate();
+
     // write video
-
-    //transcode v.0.5.0-pre8
-    key = (param->attributes & TC_FRAME_IS_KEYFRAME || force_kf) ? 1:0;
-
     if(AVI_write_frame(avifile2, param->buffer, param->size, key)<0) {
       AVI_print_error("avi video write error");
       

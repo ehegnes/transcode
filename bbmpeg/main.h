@@ -655,8 +655,8 @@ int bdist1sse(unsigned char *pf, unsigned char *pb,
 int bdist2mmx(unsigned char *pf, unsigned char *pb,
   unsigned char *p2, int lx, int hxf, int hyf, int hxb, int hyb, int h);
 int variancemmx(unsigned char *p, int lx);
-void sub_pred_mmx(unsigned char *pred, unsigned char *cur, int lx, short *blk);
-void add_pred_mmx(unsigned char *pred, unsigned char *cur, int lx, short *blk);
+int sub_pred_mmx(unsigned char *pred, unsigned char *cur, int lx, short *blk);
+int add_pred_mmx(unsigned char *pred, unsigned char *cur, int lx, short *blk);
 int edist1mmx(unsigned char *blk1, unsigned char *blk2,
   int lx, int distlim);
 int edist1sse(unsigned char *blk1, unsigned char *blk2,

@@ -27,8 +27,12 @@
  *
  */
 
+#include "config.h" /* HAVE_MMX and HAVE_SSE #defines are here.*/
+
 #include <stdio.h>
 #include "main.h"
+#include "../aclib/ac.h"
+
 
 /* private prototypes */
 static void predict_mb
@@ -65,37 +69,30 @@ static void clearblock
  (unsigned char *cur[], int i0, int j0);
 
 
+extern int tc_accel;
+
 void init_predict(int sh_info)
 {
-  switch (MMXMode)
-  {
-    case MODE_3DNOWEXT:  // AMD 3DNOW extensions, use MMX
-    case MODE_3DNOW:     // AMD 3DNOW, use MMX
-      if (sh_info)
-        fprintf(stderr, "INFO: prediction with MMX-acceleration!\n");
-      pred_comp = pred_comp_mmx;
-      break;
 
-    case MODE_SSE:       // Intel SSE, 
-#if HAVE_SSE == 1
-      if (sh_info)
-        fprintf(stderr, "INFO: prediction with SSE-acceleration!\n");
-      pred_comp = pred_comp_sse;
-      break;
-#endif
-      
-    case MODE_MMX:       // Intel or AMD MMX
-      if (sh_info)
-        fprintf(stderr, "INFO: prediction with MMX-acceleration!\n");
-      pred_comp = pred_comp_mmx;
-      break;
 
-    default:  // straight IA
-      if (sh_info)
-        fprintf(stderr, "INFO: prediction without acceleration!\n");
-      pred_comp = pred_comp_C;
-      break;
+  //default for all
+  
+  pred_comp = pred_comp_C;
+  
+#ifdef ARCH_X86
+#ifdef HAVE_ASM_NASM
+  if(tc_accel & MM_MMX) {
+    pred_comp = pred_comp_mmx;
   }
+
+#ifdef HAVE_SSE  
+  if(tc_accel & MM_SSE || tc_accel & MM_SSE2) {
+    pred_comp = pred_comp_sse;
+  }
+#endif
+#endif
+#endif
+
 }
 
 /* form prediction for a complete picture (frontend for predict_mb)

@@ -28,7 +28,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_dv.so"
-#define MOD_VERSION "v0.2.6 (2001-11-08)"
+#define MOD_VERSION "v0.2.8 (2002-11-21)"
 #define MOD_CODEC   "(video) DV | (audio) PCM"
 
 #define MOD_PRE dv
@@ -39,7 +39,7 @@
 char import_cmd_buf[MAX_BUF];
 
 static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_DV|TC_CAP_PCM;
+static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_DV|TC_CAP_PCM|TC_CAP_VID;
 
 static int frame_size=0;
 static FILE *fd=NULL;
@@ -73,7 +73,7 @@ MOD_open
   if(param->flag == TC_VIDEO) {
 
     //directory mode?
-    (scan(vob->video_in_file)) ? sprintf(cat_buf, "tccat") : sprintf(cat_buf, "tcextract -x dv");
+    (scan(vob->video_in_file)) ? sprintf(cat_buf, "tccat") : ((vob->im_v_string) ? sprintf(cat_buf, "tcextract -x dv %s", vob->im_v_string):sprintf(cat_buf, "tcextract -x dv"));
     
     param->fd = NULL;
 
@@ -114,6 +114,7 @@ MOD_open
 
 
     case CODEC_RAW:
+    case CODEC_RAW_YUV:
       
       if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d", cat_buf, vob->video_in_file, vob->verbose)<0)) {
 	perror("command buffer overflow");
@@ -148,7 +149,7 @@ MOD_open
   if(param->flag == TC_AUDIO) {
 
     //directory mode?
-    (scan(vob->audio_in_file)) ? sprintf(cat_buf, "tccat") : sprintf(cat_buf, "tcextract -x dv");
+    (scan(vob->audio_in_file)) ? sprintf(cat_buf, "tccat") : ((vob->im_a_string) ? sprintf(cat_buf, "tcextract -x dv %s", vob->im_a_string):sprintf(cat_buf, "tcextract -x dv"));
     
     if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d | tcdecode -x dv -y pcm -d %d", cat_buf, vob->audio_in_file, vob->verbose, vob->verbose)<0)) {
       perror("command buffer overflow");
@@ -202,12 +203,24 @@ MOD_decode
  *
  * ------------------------------------------------------------*/
 
+
 MOD_close
 {  
-
   if(param->fd != NULL) pclose(param->fd);
   
-  return(0);
+  if(param->flag == TC_AUDIO) return(0);
+  
+  if(param->flag == TC_VIDEO) {
+    
+    if(fd) pclose(fd);
+    fd=NULL;
+    
+    return(0);
+    
+  }
+  
+  return(TC_IMPORT_ERROR);
 }
+
 
 

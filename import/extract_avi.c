@@ -101,12 +101,24 @@ void probe_avi(info_t *ipipe)
 	
 	if(strcasecmp(codec,"DIV3")==0)
 	  ipipe->probe_info->codec=TC_CODEC_DIVX3;
+
+	if(strcasecmp(codec,"MP42")==0)
+	  ipipe->probe_info->codec=TC_CODEC_MP42;
 	
 	if(strcasecmp(codec,"DIVX")==0)
 	  ipipe->probe_info->codec=TC_CODEC_DIVX4;
 	
 	if(strcasecmp(codec,"MJPG")==0)
 	  ipipe->probe_info->codec=TC_CODEC_MJPG;
+
+	if(strcasecmp(codec,"RV10")==0)
+	  ipipe->probe_info->codec=TC_CODEC_RV10;
+
+	if(strcasecmp(codec,"MPG1")==0)
+	  ipipe->probe_info->codec=TC_CODEC_MPG1;
+
+	if(strcasecmp(codec,"LZO1")==0)
+	  ipipe->probe_info->codec=TC_CODEC_LZO1;
 	
       }
     } else

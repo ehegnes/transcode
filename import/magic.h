@@ -44,11 +44,15 @@
 #define TC_CODEC_PS1                   0x00007001
 #define TC_CODEC_PS2                   0x00007002
 #define TC_CODEC_DIVX3                 0x000031B3
+#define TC_CODEC_MP42                  0x000031B4
 #define TC_CODEC_DIVX4                 0x000041B6
 #define TC_CODEC_MJPG                  0xA0000010
+#define TC_CODEC_MPG1                  0xA0000012
 #define TC_CODEC_SUB                   0xA0000011
 #define TC_CODEC_LAV                   0xFFFF0023
 #define TC_CODEC_VORBIS                0x0000FFFE
+#define TC_CODEC_LZO1                  0x0001FFFE
+#define TC_CODEC_RV10                  0x0002FFFE
 
 // file/device magic:
 #define TC_MAGIC_ERROR                 0xFFFFFFFF
@@ -88,6 +92,8 @@
 #define TC_MAGIC_MP3                   0x0000FFFB
 #define TC_MAGIC_MP2_FC                0x0000FFFC
 #define TC_MAGIC_MP2                   0x0000FFFD
+#define TC_MAGIC_MP3_2_5               0x0000FFE3
+#define TC_MAGIC_MP3_2                 0x0000FFF3
 #define TC_MAGIC_NUV                   0x4e757070
 #define TC_MAGIC_TIFF1                 0x00004D4D
 #define TC_MAGIC_TIFF2                 0x00004949

@@ -32,7 +32,7 @@
 #include "clone.h"
 
 #define MOD_NAME    "import_dvd.so"
-#define MOD_VERSION "v0.3.11 (2002-05-14)"
+#define MOD_VERSION "v0.3.12 (2002-10-01)"
 #define MOD_CODEC   "(video) DVD | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE dvd
@@ -49,7 +49,7 @@ static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3|TC_CAP_PCM;
 static int codec, syncf=0;
 static int pseudo_frame_size=0, real_frame_size=0, effective_frame_size=0;
 static int ac3_bytes_to_go=0;
-static FILE *fd;
+static FILE *fd=NULL;
 
 // avoid to much messages for DVD chapter mode
 int a_re_entry=0, v_re_entry=0;
@@ -410,7 +410,14 @@ MOD_close
 	return(0);
     }
     
-    if(param->flag == TC_AUDIO) return(0);
+    if(param->flag == TC_AUDIO) {
+      
+      if(fd) pclose(fd);
+      fd=NULL;
+      
+      return(0);
+      
+    }
     
     return(TC_IMPORT_ERROR);
 }

@@ -27,7 +27,11 @@
  *
  */
 
+#include "config.h" /* HAVE_MMX and HAVE_SSE #defines are here.*/
 #include "main.h"
+#include "../aclib/ac.h"
+
+extern int tc_accel;
 
 static void iquant1_intra(short *src, short *dst,
   int dc_prec, unsigned char *quant_mat, int mquant);
@@ -114,23 +118,24 @@ int mquant)
         it flags saturation...
     */
 
-#if HAVE_ASM_NASM == 1
- if ((MMXMode > MODE_NONE) && (mquant > 1))
-  {
+#ifdef ARCH_X86
+#ifdef HAVE_ASM_NASM
+
+  if (mquant > 1 && tc_accel & MM_MMX) {
     ret = bb_quant_ni_mmx(dst, src, quant_mat, i_quant_mat, imquant, mquant, clipvalue);
     nzflag = ret & 0xffff0000;
-
-
+    
+    
     /* The fast MMX routines have a limited dynamic range.  We simply fall back to
        stanard routines in the (rather rare) cases when they detected out of
        range values...
-     */
-
+    */
+    
     if ((ret & 0xffff) == 0)
       return !!nzflag;
   }
 #endif
-
+#endif
   nzflag = 0;
   for (i = 0; i < 64; i++)
   {

@@ -8,7 +8,7 @@ MPEG2_INC=-I../libmpeg2 -I$(srcdir)/../libmpeg2
 AC3_LIB=-L../libac3 -lac3_tc
 AC3_INC=-I../libac3 -I$(srcdir)/../libac3
 
-INCLUDES = -Wall -I./ -I../src -I../avilib -I../encore2 $(AC3_INC) $(MPEG2_INC) -I../libvo -I$(srcdir)/../src -I$(srcdir)/../avilib -I$(srcdir)/../encore2 -I$(srcdir)/../libvo @LAME_CFLAGS@ @DV_CFLAGS@ @LIBMPEG3_CFLAGS@ @A52_CFLAGS@ @AVIFILE_CFLAGS@ @MAGICK_CFLAGS@ @QT_CFLAGS@ @LIBXML2_CFLAGS@ @DVDREAD_CFLAGS@ @OGG_CFLAGS@ @VORBIS_CFLAGS@
+INCLUDES = -Wall -I./ -I../src -I../avilib -I../encore2 $(AC3_INC) $(MPEG2_INC) -I../libvo -I$(srcdir)/../src -I$(srcdir)/../avilib -I$(srcdir)/../encore2 -I$(srcdir)/../libvo @LAME_CFLAGS@ @DV_CFLAGS@ @LIBMPEG3_CFLAGS@ @A52_CFLAGS@ @AVIFILE_CFLAGS@ @MAGICK_CFLAGS@ @QT_CFLAGS@ @LIBXML2_CFLAGS@ @DVDREAD_CFLAGS@ @OGG_CFLAGS@ @VORBIS_CFLAGS@ @LZO_CFLAGS@
 
 if HAVE_QT
 MODQT = import_mov.la
@@ -33,15 +33,13 @@ if HAVE_A52
 A52_MOD=a52_decore.la
 endif
 
+if HAVE_LZO
+LZO_MOD=import_lzo.la
+endif
+
 if TRANSCODE_0_6
 if HAVE_MAGICK
 IM_MOD=import_im.la import_imlist.la
-endif
-endif
-
-if HAVE_ASM_NASM
-if TRANSCODE_0_6
-MOD_FF = import_mjpeg.la 
 endif
 endif
 
@@ -50,7 +48,7 @@ LIBXML2_MOD=import_xml.la
 endif
 
 pkgdir=@MOD_PATH@
-pkg_LTLIBRARIES=import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la import_dv.la import_vob.la import_raw.la import_nvrec.la import_yuv4mpeg.la import_lav.la import_null.la import_divx.la $(A52_MOD) $(MP123_MOD) $(DVD_MOD) $(MPEG3) $(IM_MOD) $(MODQT) $(MOD_FF) af6_decore.la $(LIBXML2_MOD) import_mplayer.la import_rawlist.la import_ogg.la import_xvid.la
+pkg_LTLIBRARIES=import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la import_dv.la import_vob.la import_raw.la import_nvrec.la import_yuv4mpeg.la import_lav.la import_null.la import_divx.la $(A52_MOD) $(MP123_MOD) $(DVD_MOD) $(MPEG3) $(IM_MOD) $(MODQT) af6_decore.la $(LIBXML2_MOD) import_mplayer.la import_rawlist.la import_ogg.la import_xvid.la import_ffmpeg.la $(LZO_MOD)
 
 import_null_la_SOURCES = import_null.c
 import_null_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -71,10 +69,6 @@ import_mplayer_la_LDFLAGS = -no-undefined -module -avoid-version
 import_rawlist_la_SOURCES = import_rawlist.c ioaux.c
 import_rawlist_la_LDFLAGS = -no-undefined -module -avoid-version -lm
 
-import_mjpeg_la_SOURCES = import_mjpeg.c 
-import_mjpeg_la_LDFLAGS = -no-undefined -module -avoid-version 
-import_mjpeg_la_LIBADD = -L../ffmpeg/libavcodec/ -lavcodec -L../avilib -lavi -lm
-
 import_divx_la_SOURCES = import_divx.c
 import_divx_la_LDFLAGS = -no-undefined -module -avoid-version 
 import_divx_la_LIBADD  = -L../avilib -lavi 
@@ -82,6 +76,10 @@ import_divx_la_LIBADD  = -L../avilib -lavi
 import_xvid_la_SOURCES = import_xvid.c
 import_xvid_la_LDFLAGS = -no-undefined -module -avoid-version 
 import_xvid_la_LIBADD  = -L../avilib -lavi 
+
+import_ffmpeg_la_SOURCES = import_ffmpeg.c 
+import_ffmpeg_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_ffmpeg_la_LIBADD = -L../ffmpeg/libavcodec/ -lavcodec -L../avilib -lavi -L../libvo -lvout -lm
 
 import_im_la_SOURCES = import_im.c
 import_im_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -133,7 +131,11 @@ af6_decore_la_LIBADD  =  @AVIFILE_LIBS@ -lstdc++ -lm
 
 import_mp3_la_SOURCES = import_mp3.c ioaux.c mpg123.c
 import_mp3_la_LDFLAGS = -no-undefined -module -avoid-version 
-import_mp3_la_LIBADD  = ${MP123_LIB} -lm
+import_mp3_la_LIBADD  = $(MP123_LIB) -lm
+
+import_lzo_la_SOURCES = import_lzo.c 
+import_lzo_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_lzo_la_LIBADD  = -L../avilib -lavi @LZO_LIBS@ -lm
 
 import_vob_la_SOURCES = import_vob.c ac3scan.c clone.c ioaux.c frame_info.c ivtc.c
 import_vob_la_LDFLAGS =	-no-undefined -module -avoid-version 

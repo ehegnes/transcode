@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_testframe.so"
-#define MOD_VERSION "v0.1.1 (2002-02-27)"
+#define MOD_VERSION "v0.1.2 (2002-10-30)"
 #define MOD_CAP     "generate stream of testframes"
 
 #include <stdio.h>
@@ -78,6 +78,32 @@ void generate_rgb_frame(char *buffer, int width, int height)
       } 
       
       break;
+
+  case 2:  //red picture
+
+    for(n=0; n<height*width; ++n) {
+      buffer[n*3]   = 255 & 0xff;
+      buffer[n*3+1] = 255 & 0x00;
+      buffer[n*3+2] = 255 & 0x00;
+    } 
+    break;
+
+  case 3:  //green picture
+
+    for(n=0; n<height*width; ++n) {
+      buffer[n*3]   = 255 & 0x00;
+      buffer[n*3+1] = 255 & 0xff;
+      buffer[n*3+2] = 255 & 0x00;
+    } 
+    break;
+  case 4:  //blue
+
+    for(n=0; n<height*width; ++n) {
+      buffer[n*3]   = 255 & 0x00;
+      buffer[n*3+1] = 255 & 0x00;
+      buffer[n*3+2] = 255 & 0xff;
+    } 
+    break;
   }
 }
 
@@ -165,7 +191,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
     if(options!=NULL) sscanf(options, "%d", &mode);
 
-    if(mode <0 || mode>1) return(-1);
+    if(mode <0) return(-1);
     
     return(0);
   }

@@ -203,6 +203,8 @@ void tcprobe_thread(info_t *ipipe)
 	break;
 
     case TC_MAGIC_MP3:
+    case TC_MAGIC_MP3_2:
+    case TC_MAGIC_MP3_2_5:
     case TC_MAGIC_MP2:
 	probe_mp3(ipipe);
 	break;

@@ -1,6 +1,22 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 
-EXTRA_DIST = *.txt README.* html/*
+EXTRA_DIST = $(docs_DATA) 
 
-SUBDIRS = . man
+SUBDIRS = . man html
+
+docsdir = $(datadir)/doc/transcode
+
+docs_DATA = \
+                    clone.txt \
+                    export_mpeg.txt \
+                    filter_dnr.txt \
+                    filter_logo.txt \
+                    filter_yuvdenoise.txt \
+                    import_nvrec.txt \
+                    import-xml.txt \
+                    README.cluster \
+                    README.rip \
+                    README.sync \
+                    README.vcd \
+                    template.cfg.txt
 

@@ -26,7 +26,7 @@
 #ifndef _ENCODER_H
 #define _ENCODER_H 
 
-void export_init(vob_t *vob_ptr, char *a_mod, char *v_mod);
+int export_init(vob_t *vob_ptr, char *a_mod, char *v_mod);
 
 int encoder_init(transfer_t *export_para, vob_t *vob);
 void encoder(vob_t *vob_ptr, int frame_a, int frame_b);
@@ -35,5 +35,6 @@ int encoder_open(transfer_t *export_para, vob_t *vob);
 int encoder_close(transfer_t *export_para);
 
 int export_status();
+void export_shutdown();
 
 #endif

@@ -7,7 +7,7 @@
  *  Intel Application Note AP-922 - fast, precise implementation of DCT
  *        http://developer.intel.com/vtune/cbts/appnotes.htm
  */
-#include "../common.h"
+#include "common.h"
 #include "mmx.h"
 
 #define ATTR_ALIGN(align) __attribute__ ((__aligned__ (align)))
@@ -25,7 +25,7 @@
 
 #define BITS_FRW_ACC	3 //; 2 or 3 for accuracy
 #define SHIFT_FRW_COL	BITS_FRW_ACC
-#define SHIFT_FRW_ROW	(BITS_FRW_ACC + 17)
+#define SHIFT_FRW_ROW	(BITS_FRW_ACC + 17 - 3)
 //#define RND_FRW_ROW		(262144 * (BITS_FRW_ACC - 1)) //; 1 << (SHIFT_FRW_ROW-1)
 #define RND_FRW_ROW		(1 << (SHIFT_FRW_ROW-1))
 //#define RND_FRW_COL		(2 * (BITS_FRW_ACC - 1)) //; 1 << (SHIFT_FRW_COL-1)
@@ -267,7 +267,7 @@ static inline void fdct_row(const int16_t *in, int16_t *out, const int16_t *tabl
     movq_r2m(mm6, *(out + 4));
 }
 
-void fdct_mmx(int16_t *block)
+void ff_fdct_mmx(int16_t *block)
 {
     /* XXX: not thread safe */
     static int16_t block_tmp[64] ATTR_ALIGN(8);

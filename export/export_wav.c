@@ -28,7 +28,7 @@
 #include "avilib.h"
 
 #define MOD_NAME    "export_wav.so"
-#define MOD_VERSION "v0.1.1 (2002-06-15)"
+#define MOD_VERSION "v0.2.0 (2002-11-14)"
 #define MOD_CODEC   "(audio) WAVE PCM"
 
 #define MOD_PRE wav
@@ -83,11 +83,11 @@ MOD_init
     rate=(vob->mp3frequency != 0) ? vob->mp3frequency : vob->a_rate;
 
     rtf.common.dwSamplesPerSec = rate; 
-    rtf.common.dwAvgBytesPerSec = vob->a_chan * rate * vob->a_bits/8;
-    rtf.common.dwAvgBytesPerSec = 1*rate * vob->a_bits/8;
-    rtf.common.wChannels=vob->a_chan;
-    rtf.common.wBitsPerSample=vob->a_bits;
-    rtf.common.wBlockAlign=vob->a_chan*vob->a_bits/8;
+    rtf.common.dwAvgBytesPerSec = vob->dm_chan * rate * vob->dm_bits/8;
+    rtf.common.dwAvgBytesPerSec = rate * vob->dm_bits/8;
+    rtf.common.wChannels=vob->dm_chan;
+    rtf.common.wBitsPerSample=vob->dm_bits;
+    rtf.common.wBlockAlign=vob->dm_chan*vob->dm_bits/8;
 
     rtf.riff.len=0x7FFFFFFF;
     rtf.data.len=0x7FFFFFFF;

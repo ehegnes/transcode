@@ -27,21 +27,56 @@
 #include "transcode.h"
 
 #define MOD_NAME    "export_dvraw.so"
-#define MOD_VERSION "v0.1.0 (2001-12-04)"
+#define MOD_VERSION "v0.1.1 (2002-11-21)"
 #define MOD_CODEC   "(video) Digital Video | (audio) PCM"
 
 #define MOD_PRE dvraw
 #include "export_def.h"
 
 static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV;
+static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
 
 static int fd;
 
-unsigned char target[TC_FRAME_DV_PAL];
+static int16_t *audio_bufs[4];
+
+unsigned char *target;
 unsigned char vbuf[SIZE_RGB_FRAME];
 
-static int frame_size=0;
+#ifdef LIBDV_095
+static dv_encoder_t *encoder = NULL;
+static unsigned char *pixels[3];
+#endif
+
+static int frame_size=0, format=0;
+static int pass_through=0;
+
+static int chans, rate;
+
+static unsigned char *bufalloc(size_t size)
+{
+
+#ifdef HAVE_GETPAGESIZE
+   int buffer_align=getpagesize();
+#else
+   int buffer_align=0;
+#endif
+
+   char *buf = malloc(size + buffer_align);
+
+   int adjust;
+
+   if (buf == NULL) {
+       fprintf(stderr, "(%s) out of memory", __FILE__);
+   }
+   
+   adjust = buffer_align - ((int) buf) % buffer_align;
+
+   if (adjust == buffer_align)
+      adjust = 0;
+
+   return (unsigned char *) (buf + adjust);
+}
 
 int p_write (int fd, char *buf, size_t len)
 {
@@ -66,18 +101,37 @@ int p_write (int fd, char *buf, size_t len)
 
 MOD_init
 {
+  
+  int i;
+  
+  if(param->flag == TC_VIDEO) {
     
-    if(param->flag == TC_VIDEO) {
-
-      dvenc_init();
-
-      return(0);
-    }
-
-    if(param->flag == TC_AUDIO) return(0);
-
-    // invalid flag
-    return(TC_EXPORT_ERROR); 
+    target = bufalloc(TC_FRAME_DV_PAL);
+    
+#ifdef LIBDV_095
+    encoder = dv_encoder_new(TRUE, FALSE, FALSE);
+#else
+    dvenc_init();
+#endif
+    
+    return(0);
+  }
+  
+  if(param->flag == TC_AUDIO) {
+    
+    // tmp audio buffer
+    for(i=0; i < 4; i++) {
+      if(!(audio_bufs[i] = malloc(DV_AUDIO_MAX_SAMPLES * sizeof(int16_t)))) {
+	fprintf(stderr, "(%s) out of memory\n", __FILE__);
+	return(TC_EXPORT_ERROR); 
+      }  
+    }	  
+    
+    return(0);
+  }
+  
+  // invalid flag
+  return(TC_EXPORT_ERROR); 
 }
 
 /* ------------------------------------------------------------ 
@@ -101,8 +155,8 @@ MOD_open
       
       return(TC_EXPORT_ERROR);
     }     
-
-  switch(vob->im_v_codec) {
+    
+    switch(vob->im_v_codec) {
       
     case CODEC_RGB:
       format=0;
@@ -112,6 +166,12 @@ MOD_open
       format=1;
       break;
       
+    case CODEC_RAW:
+    case CODEC_RAW_YUV:
+      format=1;
+      pass_through=1;
+      break;
+      
     default:
       
       fprintf(stderr, "[%s] codec not supported\n", MOD_NAME);
@@ -119,18 +179,34 @@ MOD_open
       
       break;
     }
+    
+    // for reading
+    frame_size = (vob->ex_v_height==PAL_H) ? TC_FRAME_DV_PAL:TC_FRAME_DV_NTSC;
 
-  // for reading
-  frame_size = (vob->ex_v_height==PAL_H) ? TC_FRAME_DV_PAL:TC_FRAME_DV_NTSC;
-  
-  dvenc_set_parameter(format, vob->ex_v_height, vob->a_rate);
-  
-  return(0);
+    if(verbose & TC_DEBUG) fprintf(stderr, "[%s] encoding to %s DV\n", MOD_NAME, (vob->ex_v_height==PAL_H) ? "PAL":"NTSC");
+
+    
+#ifdef LIBDV_095
+    encoder->isPAL = (vob->ex_v_height==PAL_H);
+    encoder->is16x9 = FALSE;
+    encoder->vlc_encode_passes = 3;
+    encoder->static_qno = 0;
+    encoder->force_dct = DV_DCT_AUTO;
+#else
+    dvenc_set_parameter(format, vob->ex_v_height, vob->a_rate);
+#endif      
+    return(0);
   }
   
   
-  if(param->flag == TC_AUDIO) return(0);
-  
+  if(param->flag == TC_AUDIO) {
+    
+    chans = (vob->dm_chan != vob->a_chan) ? vob->dm_chan : vob->a_chan;
+    //re-sampling only with -J resample possible
+    rate = vob->a_rate;
+
+    return(0);
+  }
   // invalid flag
   return(TC_EXPORT_ERROR); 
 }   
@@ -144,17 +220,59 @@ MOD_open
 MOD_encode
 {
 
+  int i=0;
+
   if(param->flag == TC_VIDEO) { 
     
-    memcpy(vbuf, param->buffer, param->size);
+    if(pass_through) {
+      memcpy(target, param->buffer, frame_size);
+    } else { 
+      memcpy(vbuf, param->buffer, param->size);
+    }
     return(0);
   }
   
   if(param->flag == TC_AUDIO) {
     
-    dvenc_frame(vbuf, param->buffer, param->size, target);
+    time_t now = time(NULL);
     
-    //merge audio and write dv frame
+    if(!pass_through) {
+
+#ifdef LIBDV_095
+      pixels[0] = (char *) vbuf;
+      
+      if(encoder->isPAL) {
+	pixels[2]=(char *) vbuf + PAL_W*PAL_H;
+	pixels[1]=(char *) vbuf + (PAL_W*PAL_H*5)/4;
+      } else {
+	pixels[2]=(char *) vbuf + NTSC_W*NTSC_H;
+	pixels[1]=(char *) vbuf + (NTSC_W*NTSC_H*5)/4;
+      }
+
+      // split the audio into two buffers
+      
+      if(chans==2) {
+	for(i=0; i < param->size/4; ++i) {
+	  audio_bufs[0][i] = (int16_t) param->buffer[i];
+	  audio_bufs[1][i] = (int16_t) param->buffer[2*i+1];
+	}
+      }
+
+      if(chans==1) audio_bufs[0] = (int16_t *) param->buffer;
+      
+      dv_encode_full_frame(encoder, pixels, (format)?e_dv_color_yuv:e_dv_color_rgb, target);
+      dv_encode_metadata(target, encoder->isPAL, encoder->is16x9, &now, 0);
+      dv_encode_timecode(target, encoder->isPAL, 0);
+
+      dv_encode_full_audio(encoder, audio_bufs, chans, rate, target);
+#else    
+      //merge audio     
+      dvenc_frame(vbuf, param->buffer, param->size, target);
+#endif
+    }
+    
+    //write raw DV frame
+    
     if(p_write(fd, target, frame_size) != frame_size) {    
       perror("write frame");
       return(TC_EXPORT_ERROR);
@@ -162,7 +280,7 @@ MOD_encode
     
     return(0);
   }
-
+  
   // invalid flag
   return(TC_EXPORT_ERROR);
 }
@@ -176,13 +294,23 @@ MOD_encode
 MOD_stop 
 {
   
+  //  int i;
+  
   if(param->flag == TC_VIDEO) {
     
+#ifdef LIBDV_095
+    dv_encoder_free(encoder);  
+#else    
     dvenc_close();
+#endif
+    
     return(0);
   }
-
-  if(param->flag == TC_AUDIO) return(0);
+  
+  if(param->flag == TC_AUDIO) {
+    //    for(i=0; i < 4; i++) free(audio_bufs[i]);
+    return(0);
+  }  
   
   return(TC_EXPORT_ERROR);
 }

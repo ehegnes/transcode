@@ -28,7 +28,9 @@
 
 /* define USE_HIGHPRECISION to have a bit exact (but slower) mpeg
    audio decoder */
-//#define USE_HIGHPRECISION
+#ifdef CONFIG_MPEGAUDIO_HP
+#define USE_HIGHPRECISION
+#endif
 
 #ifdef USE_HIGHPRECISION
 #define FRAC_BITS   23   /* fractional bits for sb_samples and dct */
@@ -149,9 +151,9 @@ static INT32 scale_factor_mult[15][3];
 { FIXR(1.0 * (v)), FIXR(0.7937005259 * (v)), FIXR(0.6299605249 * (v)) }
 
 static INT32 scale_factor_mult2[3][3] = {
-    SCALE_GEN(1.0 / 3.0), /* 3 steps */
-    SCALE_GEN(1.0 / 5.0), /* 5 steps */
-    SCALE_GEN(1.0 / 9.0), /* 9 steps */
+    SCALE_GEN(4.0 / 3.0), /* 3 steps */
+    SCALE_GEN(4.0 / 5.0), /* 5 steps */
+    SCALE_GEN(4.0 / 9.0), /* 9 steps */
 };
 
 /* 2^(n/4) */
@@ -176,7 +178,8 @@ static inline int l1_unscale(int n, int mant, int scale_factor)
     shift >>= 2;
     val = MUL64(mant + (-1 << n) + 1, scale_factor_mult[n-1][mod]);
     shift += n;
-    return (int)((val + (1 << (shift - 1))) >> shift);
+    /* NOTE: at this point, 1 <= shift >= 21 + 15 */
+    return (int)((val + (1LL << (shift - 1))) >> shift);
 }
 
 static inline int l2_unscale_group(int steps, int mant, int scale_factor)
@@ -186,9 +189,12 @@ static inline int l2_unscale_group(int steps, int mant, int scale_factor)
     shift = scale_factor_modshift[scale_factor];
     mod = shift & 3;
     shift >>= 2;
-    /* XXX: store the result directly */
-    val = (2 * (mant - (steps >> 1))) * scale_factor_mult2[steps >> 2][mod];
-    return (val + (1 << (shift - 1))) >> shift;
+
+    val = (mant - (steps >> 1)) * scale_factor_mult2[steps >> 2][mod];
+    /* NOTE: at this point, 0 <= shift <= 21 */
+    if (shift > 0)
+        val = (val + (1 << (shift - 1))) >> shift;
+    return val;
 }
 
 /* compute value^(4/3) * 2^(exponent/4). It normalized to FRAC_BITS */
@@ -280,7 +286,7 @@ static int int_pow(int i, int *exp_ptr)
         eq--;
     }
     /* now POW_FRAC_ONE <= a < 2 * POW_FRAC_ONE */
-#if (POW_FRAC_BITS - 1) > FRAC_BITS
+#if POW_FRAC_BITS > FRAC_BITS
     a = (a + (1 << (POW_FRAC_BITS - FRAC_BITS - 1))) >> (POW_FRAC_BITS - FRAC_BITS);
     /* correct overflow */
     if (a >= 2 * (1 << FRAC_BITS)) {
@@ -303,12 +309,8 @@ static int decode_init(AVCodecContext * avctx)
         for(i=0;i<64;i++) {
             int shift, mod;
             /* 1.0 (i = 3) is normalized to 2 ^ FRAC_BITS */
-            shift = (i / 3) - 1;
+            shift = (i / 3);
             mod = i % 3;
-#if FRAC_BITS <= 15
-            if (shift > 31)
-                shift = 31;
-#endif
             scale_factor_modshift[i] = mod | (shift << 2);
         }
 
@@ -317,9 +319,9 @@ static int decode_init(AVCodecContext * avctx)
             int n, norm;
             n = i + 2;
             norm = ((INT64_C(1) << n) * FRAC_ONE) / ((1 << n) - 1);
-            scale_factor_mult[i][0] = MULL(FIXR(1.0), norm);
-            scale_factor_mult[i][1] = MULL(FIXR(0.7937005259), norm);
-            scale_factor_mult[i][2] = MULL(FIXR(0.6299605249), norm);
+            scale_factor_mult[i][0] = MULL(FIXR(1.0 * 2.0), norm);
+            scale_factor_mult[i][1] = MULL(FIXR(0.7937005259 * 2.0), norm);
+            scale_factor_mult[i][2] = MULL(FIXR(0.6299605249 * 2.0), norm);
             dprintf("%d: norm=%x s=%x %x %x\n",
                     i, norm, 
                     scale_factor_mult[i][0],
@@ -809,6 +811,8 @@ static void synth_filter(MPADecodeContext *s1,
     for(j=0;j<32;j++) {
         v = tmp[j];
 #if FRAC_BITS <= 15
+        /* NOTE: can cause a loss in precision if very high amplitude
+           sound */
         if (v > 32767)
             v = 32767;
         else if (v < -32768)
@@ -1069,11 +1073,10 @@ static int decode_header(MPADecodeContext *s, UINT32 header)
     /* extract frequency */
     sample_rate_index = (header >> 10) & 3;
     sample_rate = mpa_freq_tab[sample_rate_index] >> (s->lsf + mpeg25);
-    if (sample_rate == 0)
-        return 1;
     sample_rate_index += 3 * (s->lsf + mpeg25);
     s->sample_rate_index = sample_rate_index;
     s->error_protection = ((header >> 16) & 1) ^ 1;
+    s->sample_rate = sample_rate;
 
     bitrate_index = (header >> 12) & 0xf;
     padding = (header >> 9) & 1;
@@ -1131,7 +1134,6 @@ static int decode_header(MPADecodeContext *s, UINT32 header)
             break;
         }
     }
-    s->sample_rate = sample_rate;
     
 #if defined(DEBUG)
     printf("layer%d, %d Hz, %d kbits/s, ",
@@ -1455,11 +1457,8 @@ static void seek_to_maindata(MPADecodeContext *s, long backstep)
     UINT8 *ptr;
 
     /* compute current position in stream */
-#ifdef ALT_BITSTREAM_READER
-    ptr = s->gb.buffer + (s->gb.index>>3);
-#else
-    ptr = s->gb.buf_ptr - (s->gb.bit_cnt >> 3);
-#endif    
+    ptr = s->gb.buffer + (get_bits_count(&s->gb)>>3);
+
     /* copy old data before current one */
     ptr -= backstep;
     memcpy(ptr, s->inbuf1[s->inbuf_index ^ 1] + 
@@ -1545,9 +1544,7 @@ static int huffman_decode(MPADecodeContext *s, GranuleDef *g,
 {
     int s_index;
     int linbits, code, x, y, l, v, i, j, k, pos;
-    UINT8 *last_buf_ptr;
-    UINT32 last_bit_buf;
-    int last_bit_cnt;
+    GetBitContext last_gb;
     VLC *vlc;
     UINT8 *code_table;
 
@@ -1606,36 +1603,20 @@ static int huffman_decode(MPADecodeContext *s, GranuleDef *g,
             
     /* high frequencies */
     vlc = &huff_quad_vlc[g->count1table_select];
-    last_buf_ptr = NULL;
-    last_bit_buf = 0;
-    last_bit_cnt = 0;
+    last_gb.buffer = NULL;
     while (s_index <= 572) {
         pos = get_bits_count(&s->gb);
         if (pos >= end_pos) {
-            if (pos > end_pos && last_buf_ptr != NULL) {
+            if (pos > end_pos && last_gb.buffer != NULL) {
                 /* some encoders generate an incorrect size for this
                    part. We must go back into the data */
                 s_index -= 4;
-#ifdef ALT_BITSTREAM_READER
-                s->gb.buffer = last_buf_ptr;
-                s->gb.index = last_bit_cnt;
-#else
-                s->gb.buf_ptr = last_buf_ptr;
-                s->gb.bit_buf = last_bit_buf;
-                s->gb.bit_cnt = last_bit_cnt;
-#endif            
+                s->gb = last_gb;
             }
             break;
         }
-#ifdef ALT_BITSTREAM_READER
-        last_buf_ptr = s->gb.buffer;
-        last_bit_cnt = s->gb.index;
-#else
-        last_buf_ptr = s->gb.buf_ptr;
-        last_bit_buf = s->gb.bit_buf;
-        last_bit_cnt = s->gb.bit_cnt;
-#endif
-        
+        last_gb= s->gb;
+
         code = get_vlc(&s->gb, vlc);
         dprintf("t=%d code=%d\n", g->count1table_select, code);
         if (code < 0)
@@ -1962,10 +1943,19 @@ void sample_dump(int fnum, INT32 *tab, int n)
 {
     static FILE *files[16], *f;
     char buf[512];
-
+    int i;
+    INT32 v;
+    
     f = files[fnum];
     if (!f) {
-        sprintf(buf, "/tmp/out%d.pcm", fnum);
+        sprintf(buf, "/tmp/out%d.%s.pcm", 
+                fnum, 
+#ifdef USE_HIGHPRECISION
+                "hp"
+#else
+                "lp"
+#endif
+                );
         f = fopen(buf, "w");
         if (!f)
             return;
@@ -1973,18 +1963,20 @@ void sample_dump(int fnum, INT32 *tab, int n)
     }
     
     if (fnum == 0) {
-        int i;
         static int pos = 0;
         printf("pos=%d\n", pos);
         for(i=0;i<n;i++) {
-            printf(" %f", (double)tab[i] / 32768.0);
+            printf(" %0.4f", (double)tab[i] / FRAC_ONE);
             if ((i % 18) == 17)
                 printf("\n");
         }
         pos += n;
     }
-
-    fwrite(tab, 1, n * sizeof(INT32), f);
+    for(i=0;i<n;i++) {
+        /* normalize to 23 frac bits */
+        v = tab[i] << (23 - FRAC_BITS);
+        fwrite(&v, 1, sizeof(INT32), f);
+    }
 }
 #endif
 
@@ -2273,11 +2265,11 @@ static int mp_decode_layer3(MPADecodeContext *s)
             sample_dump(0, g->sb_hybrid, 576);
 #endif
             compute_antialias(s, g);
-#ifdef DEBUG
+#if defined(DEBUG)
             sample_dump(1, g->sb_hybrid, 576);
 #endif
             compute_imdct(s, g, &s->sb_samples[ch][18 * gr][0], s->mdct_buf[ch]); 
-#ifdef DEBUG
+#if defined(DEBUG)
             sample_dump(2, &s->sb_samples[ch][18 * gr][0], 576);
 #endif
         }
@@ -2389,17 +2381,14 @@ static int decode_frame(AVCodecContext * avctx,
                     s->free_format_frame_size = 0;
 		} else {
 		    if (decode_header(s, header) == 1) {
-                        /* free format: compute frame size */
+                        /* free format: prepare to compute frame size */
 			s->frame_size = -1;
-			memcpy(s->inbuf, s->inbuf + 1, s->inbuf_ptr - s->inbuf - 1);
-			s->inbuf_ptr--;
-                    } else {
-                        /* update codec info */
-                        avctx->sample_rate = s->sample_rate;
-                        avctx->channels = s->nb_channels;
-			avctx->bit_rate = s->bit_rate;
-			avctx->frame_size = s->frame_size;
                     }
+                    /* update codec info */
+                    avctx->sample_rate = s->sample_rate;
+                    avctx->channels = s->nb_channels;
+                    avctx->bit_rate = s->bit_rate;
+                    avctx->frame_size = s->frame_size;
 		}
 	    }
         } else if (s->frame_size == -1) {
@@ -2408,8 +2397,10 @@ static int decode_frame(AVCodecContext * avctx,
 	    if (len > buf_size)
 		len = buf_size;
             if (len == 0) {
-                /* frame too long: resync */
+		/* frame too long: resync */
                 s->frame_size = 0;
+		memcpy(s->inbuf, s->inbuf + 1, s->inbuf_ptr - s->inbuf - 1);
+		s->inbuf_ptr--;
             } else {
                 UINT8 *p, *pend;
                 UINT32 header1;
@@ -2471,6 +2462,7 @@ static int decode_frame(AVCodecContext * avctx,
 	    break;
 	}
     next_data:
+	;
     }
     return buf_ptr - buf;
 }

@@ -29,7 +29,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_raw.so"
-#define MOD_VERSION "v0.3.1 (2001-11-09)"
+#define MOD_VERSION "v0.3.2 (2002-11-10)"
 #define MOD_CODEC   "(video) RGB/YUV | (audio) PCM"
 
 #define MOD_PRE raw
@@ -68,16 +68,16 @@ MOD_open
 
     char cat_buf[1024];
     char *co;
-
-    if(param->flag == TC_AUDIO) {
     
-	//directory mode?
-	(scan(vob->audio_in_file)) ? sprintf(cat_buf, "tccat -a") : sprintf(cat_buf, "tcextract -x pcm");
-	
-	if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d | tcextract -a %d -x pcm -d %d", cat_buf, vob->audio_in_file, vob->verbose, vob->a_track, vob->verbose)<0)) {
-	    perror("cmd buffer overflow");
-	    return(TC_IMPORT_ERROR);
-	}
+    if(param->flag == TC_AUDIO) {
+      
+      //directory mode?
+      (scan(vob->audio_in_file)) ? sprintf(cat_buf, "tccat -a") : ((vob->im_a_string) ? sprintf(cat_buf, "tcextract -x pcm %s", vob->im_a_string):sprintf(cat_buf, "tcextract -x pcm"));
+      
+      if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d | tcextract -a %d -x pcm -d %d", cat_buf, vob->audio_in_file, vob->verbose, vob->a_track, vob->verbose)<0)) {
+	perror("cmd buffer overflow");
+	return(TC_IMPORT_ERROR);
+      }
       
 	// print out
 	if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
@@ -94,31 +94,32 @@ MOD_open
     }
     
     if(param->flag == TC_VIDEO) {
-
-	codec=vob->im_v_codec;
-
-	//directory mode?
-	if(scan(vob->video_in_file)) {
-	    sprintf(cat_buf, "tccat");
-	    co=""; 
-	} else {
-	    sprintf(cat_buf, "tcextract");
-	    
-	    co=(codec==CODEC_RGB)? "-x rgb":"-x yv12";
+      
+      codec=vob->im_v_codec;
+      
+      //directory mode?
+      if(scan(vob->video_in_file)) {
+	sprintf(cat_buf, "tccat");
+	co=""; 
+      } else {
+	
+	(vob->im_v_string) ? sprintf(cat_buf, "tcextract %s", vob->im_v_string):sprintf(cat_buf, "tcextract");
+	
+	co=(codec==CODEC_RGB)? "-x rgb":"-x yv12";
+      }
+      
+      
+      switch(codec) {
+	
+      case CODEC_RGB:
+	
+	if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x rgb -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose)<0)) {
+	  perror("cmd buffer overflow");
+	  return(TC_IMPORT_ERROR);
 	}
 	
-	
-      switch(codec) {
-    
-      case CODEC_RGB:
-	  
-	  if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x rgb -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose)<0)) {
-	      perror("cmd buffer overflow");
-	      return(TC_IMPORT_ERROR);
-	  }
-	
 	break;
-      
+	
       case CODEC_YUV:
 	
 	if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x yv12 -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose)<0)) {

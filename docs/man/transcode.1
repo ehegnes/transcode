@@ -1,4 +1,4 @@
-.TH transcode 1 "31 July 2002" "transcode(1)"
+.TH transcode 1 "21 November 2002" "transcode(1)"
 .SH NAME
 transcode \- LINUX video stream processing tool
 .SH SYNOPSIS
@@ -49,8 +49,8 @@ use AC3 as internal audio codec [off].
 .br
 Only pass-through supported.
 .TP
-.B \-B \fIn\fP[\fI,m\fP[,\fIM\fP]
-resize to height-\fIn\fP*\fIM\fP rows [,width-\fIm\fP*\fIM\fP] columns [off,32].
+.B \-B \fIn\fP[\fI,m\fP[,\fIM\fP]]
+resize to height-\fIn\fP*\fIM\fP rows [,width-\fIm\fP*\fIM\fP] columns [off,32]. M must be one of 8, 16 or 32.
 .TP
 .B \-C \fImode\fP
 enable anti-aliasing mode (1-3) [off].
@@ -58,11 +58,11 @@ enable anti-aliasing mode (1-3) [off].
 .B \-D \fInum\fP
 sync video start with audio frame num [0].
 .TP
-.B \-E \fIsamplerate\fP
-audio output samplerate [as input].
+.B \-E \fIr\fP[\fI,b\fP[\fI,c\fP]]
+audio output samplerate [Hz], bits per sample and channels [as input]. The option "-J resample" must be provided for export modules not capable of re-sampling.
 .TP
 .B \-F \fIcodec\fP
-encoder parameter strings [module dependent]
+encoder parameter strings [module dependent].
 .TP
 .B \-G \fIval\fP
 gamma correction (0.0-10.0) [off].
@@ -71,15 +71,18 @@ gamma correction (0.0-10.0) [off].
 auto-probe \fIn\fP MB of source (0=disable) default [1]
 .TP
 .B \-I \fImode\fP
-enable de-interlacing mode (1-3) [off].
+enable de-interlacing mode (1-5) [off].
 .TP
 .B \-J \fIfilter1\fP[\fI,filter2\fP[\fI,...\fP]]
-apply external filter plugins [off].  A full-blown transcode has the
-following filter modules:
+apply external filter plugins [off].  A full-blown transcode installation has the following filter modules:
 .IP
+Filter "29to23": 29.97 to 23.976 frame rate conversion 
+.br
 Filter "32detect": 3:2 pulldown detection plugin
 .br
 Filter "32drop": 3:2 inverse telecine removal plugin
+.br
+Filter "aclip": generate audio clips from source, cuts out silence
 .br
 Filter "astat": audio statistics filter plugin
 .br
@@ -87,11 +90,21 @@ Filter "cshift": chroma-lag shifter
 .br
 Filter "cut": encode only listed frames
 .br
+Filter "decimate": NTSC decimation plugin
+.br
+Filter "divxkey": detect keyframes in MPEG-4 bitstreams
+.br
 Filter "dilyuvmmx": yuv de-interlace filter plugin
 .br
 Filter "dnr": dynamic noise reduction
 .br
+Filter "extsub": subtitle renderer
+.br
+Filter "extsub2": secondary subtitle renderer
+.br
 Filter "invert": invert the image
+.br
+Filter "ivtc": NTSC inverse telecine plugin
 .br
 Filter "logo": render image in videostream
 .br
@@ -99,21 +112,31 @@ Filter "mask": masking plugin
 .br
 Filter "normalize": Volume normalizer
 .br
-Filter "null": demo filter plugin
+Filter "null": API demo filter plugin
 .br
 Filter "pp": mplayer postprocess filters
 .br
-Filter "ppcvs": mplayer (CVS) postprocess filters (npp syntax)
+Filter "preview": preview filter
+.br
+Filter "pv": xv only preview filter with navigation keys
+.br
+Filter "resample": audio resample filter  
 .br
 Filter "skip": skip all listed frames
 .br
 Filter "smartdeinter": VirtualDub's smart deinterlacer
 .br
-Filter "testframe": generate stream of testframes
+Filter "smooth": single-frame smoothing plugin
 .br
-Filter "xharpen": VirtualDub's XSharpen Filter
+Filter "subtitler": powerful custom subtitle generator 
 .br
-Filter "yuy2tov12": YUY2 to YV12 converter plugin
+Filter "tc_audio": audio 24000/1001 -> 30000/1001 telecide filter
+.br
+Filter "tc_video": video 24000/1001 -> 30000/1001 telecide filter
+.br
+Filter "testframe": generate stream of testframes 
+.br
+Filter "xsharpen": VirtualDub's XSharpen Filter
 .br
 Filter "yuvdenoise": mjpegs YUV denoiser
 .br
@@ -124,7 +147,7 @@ To see what your transcode has, do a
 .PP
 Example:
 .RS 
-transcode .. -J 32detect=force_mode=3,normalize,cut="0-100 300-400"
+transcode [...] -J 32detect=force_mode=3,normalize,cut="0-100 300-400"
 
 Will load the 32detect filter plugin with parameter force_mode=3, the
 volume normalizer and the cut filter. Some of the filter plugins have
@@ -218,7 +241,7 @@ format. Always use this option when possible
 autosplit and process part \fIn\fP of \fIm\fP (VOB only) [off]
 .TP
 .B \-X \fIn\fP[,\fIm\fP,[\fIM\fP]]
-resize to height+\fIn\fP*\fIM\fP rows [,width+\fIm\fP*\fIM\fP] columns [off,32].
+resize to height+\fIn\fP*\fIM\fP rows [,width+\fIm\fP*\fIM\fP] columns [off,32]. M must be one of 8, 16 or 32.
 .TP
 .B \-Y \fItop\fP[\fI,left\fP[\fI,bottom\fP[\fI,right\fP]]]
 select (encoder) frame region by clipping border [off].
@@ -272,7 +295,7 @@ video stream frame size [720x576].
 print out usage information.
 .TP
 .B \-i \fIname\fP
-input file/directory/device/mountpoint/host name. default [/dev/zero]
+input file/directory/device/mountpoint/host name, default is [/dev/zero].
 .TP
 .B \-j \fItop\fP[\fI,left\fP[\fI,bottom\fP[\fI,right\fP]]]
 select frame region by clipping border [off].
@@ -287,10 +310,10 @@ mirror video frame [off].
 write audio stream to separate file [off].
 .TP
 .B \-n \fI0xnn\fP
-import audio format id [0x2000].
+import audio format id [0x2000]. Normally, this is autodetected.
 .TP
 .B \-o \fIfile\fP
-output file name. default [/dev/null]
+output file name, default is [/dev/null].
 .TP
 .B \-p \fIfile\fP
 read audio stream from separate file [off].
@@ -337,6 +360,8 @@ Module "imlist": (video) RGB
 .br
 Module "lav": (video) LAV | (audio) WAVE
 .br
+Module "lzo": (video) 
+.br
 Module "mjpeg": (video) MJPEG
 .br
 Module "mov": (video) * | (audio) *
@@ -362,6 +387,8 @@ Module "rawlist": (video) YUV/RGB raw frames
 Module "vdrac3": (audio) VDR-AC3
 .br
 Module "vob": (video) MPEG-2 | (audio) MPEG/AC3/PCM | (subtitle)
+.br
+Module "v4l": (video) YUV/RGB | (audio) PCM
 .br
 Module "xml": (video) * | (audio) *
 .br
@@ -394,21 +421,19 @@ Module "divx4raw": (video) DivX 4.xx (ES) | (audio) MPEG/AC3/PCM
 .br
 Module "divx5": (video) DivX 5.xx | (audio) MPEG/AC3/PCM
 .br
-Module "divx": (video) DivX;-) | (audio) MPEG/AC3/PCM
-.br
 Module "dv": (video) Digital Video | (audio) MPEG/AC3/PCM
 .br
 Module "dvraw": (video) Digital Video | (audio) PCM
 .br
 Module "fame": (video) MPEG-4 | (audio) MPEG/AC3/PCM
 .br
-Module "ffmpeg4": (video) MPEG4 | (audio) MPEG/AC3/PCM
-.br
 Module "ffmpeg": (video) ffmpeg API | (audio) MPEG/AC3/PCM
 .br
 Module "im": (video) *
 .br
-Module "iv50": (video) Indeo Video 5.0 | (audio) MPEG/AC3/PCM
+Module "jpg": (video) *
+.br
+Module "lzo": (video) LZO | (audio) MPEG/AC3/PCM
 .br
 Module "mjpeg": (video) Motion JPEG | (audio) MPEG/AC3/PCM
 .br
@@ -424,9 +449,7 @@ Module "net": (video) RGB/YUV | (audio) PCM/AC3
 .br
 Module "null": (video) null | (audio) null
 .br
-Module "opendivx": (video) OpenDivX | (audio) MPEG/AC3/PCM
-.br
-Module "pac": (audio) PCM (non-interleaved)
+Module "pcm": (audio) PCM (non-interleaved)
 .br
 Module "ppm": (video) PPM/PGM | (audio) MPEG/AC3/PCM
 .br
@@ -442,6 +465,8 @@ Module "xvid": (video) XviD API 1.0 and 2.0 | (audio) MPEG/AC3/PCM
 .br
 Module "xvidcvs": (video) Xvid API 1.0 and 2.0 (CVS) | (audio) MPEG/AC3/PCM
 .br
+Module "xvidraw": (video) Xvid API 1.0 and 2.0 (CVS) | (audio) MPEG/AC3/PCM
+.br
 Module "yuv4mpeg": (video) YUV4MPEG2 | (audio) MPEG/AC3/PCM
 .IP
 To see what your transcode has, do a  
@@ -450,6 +475,12 @@ To see what your transcode has, do a
 .TP
 .B \-z
 flip video frame upside down [off].
+.TP
+.B \-\-accel type
+enforce experimental IA32 acceleration for type [autodetect].
+.TP
+.B \-\-avi_limit N
+split output AVI file after N MB [2048].
 .TP
 .B \-\-zoom_filter \fIstring\fP
 use filter string for video resampling -Z [Lanczos3]
@@ -462,18 +493,61 @@ process chunk range instead of selected chunk [off]
 .TP
 .B \-\-export_asr \fIC\fP
 set export aspect ratio code \fIC\fP [as input]
+.RS
+.PP
+Valid codes for \fIC\fP are:
+     1        1:1
+     2        4:3
+     3       16:9
+     4     2.21:1
+.RE
+.TP
+.B \-\-import_asr \fIC\fP
+set import aspect ratio code \fIC\fP [autoprobed]
+.RS
+.PP
+Valid codes for \fIC\fP are:
+     1        1:1
+     2        4:3
+     3       16:9
+     4     2.21:1
+.RE
 .TP
 .B \-\-keep_asr
 try to keep aspect ratio (only with -Z) [off]
-.TP
-.B \-\-export_frc \fIF\fP
-set export frame rate code \fIF\fP [as input]
+.RS
+.PP
+The \fB\-\-keep_asr\fP options changes the meaning of \fB-Z\fP. It tries to
+fit the video into a framesize specified by \fB-Z\fP by keeping the
+\fIoriginal\fP aspect ratio. 
+
+/----------------\\                            /---480-----\\
+.br
+|                |                            | black     |
+.br
+|720x306 = 2.35:1| -> -Z 480x480 --keep_asr ->|-----------4
+.br
+|                |                            | 480x204   8
+.br
+\\----------------/                            |-----------0
+.br
+                                              | black     |
+.br
+                                              \\-----------/
+.br
+
+Consider \fB--keep_asr\fP a wrapper for calculating \fB-Y\fP options and 
+\fB-Z\fP options
+.RE
 .TP
 .B \-\-divx_quant \fImin,max\fP
 divx encoder min/max quantizer [2,31]
 .TP
 .B \-\-divx_rc \fIp\fP,\fIrp\fP,\fIrr\fP
 divx encoder rate control parameter [2000,10,20]
+.TP
+.B \-\-export_frc \fIF\fP
+set export frame rate code \fIF\fP [as input]
 .TP
 .B \-\-import_v4l \fIn\fP[,\fIid\fP]
 channel number and station number or name [0]
@@ -491,7 +565,10 @@ set MPEG 3:2 pulldown flags on export [off]
 center pixel weight, xy-bias [0.333,0.500]
 .TP
 .B \-\-no_audio_adjust
-disable audio frame sample adjustment [off]
+disable internal audio frame sample adjustment [off]
+.TP
+.B \-\-no_bitreservoir
+disable lame bitreservoir for MP3 encoding [off]
 .TP
 .B \-\-av_fine_ms \fIt\fP
 AV fine-tuning shift \fIt\fP in millisecs [autodetect]
@@ -506,7 +583,7 @@ process VOB in PSU, -o is a filemask incl. %d [off]
 process only selected units \fIa-b\fP for PSU mode [all]
 .TP
 .B \-\-no_split
-encode to single file in chapter/psu mode [off]
+encode to single file in chapter/psu/directory mode [off]
 .TP
 .B \-\-pre_clip t[,l[,b[,r]]]
 select initial frame region by clipping border [off]

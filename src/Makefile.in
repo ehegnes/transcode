@@ -68,7 +68,6 @@ A52_CFLAGS = @A52_CFLAGS@
 A52_LIBS = @A52_LIBS@
 AMTAR = @AMTAR@
 AS = @AS@
-ASFLAGS = @ASFLAGS@
 AVIFILE_CFLAGS = @AVIFILE_CFLAGS@
 AVIFILE_CONFIG = @AVIFILE_CONFIG@
 AVIFILE_LIBS = @AVIFILE_LIBS@
@@ -77,7 +76,7 @@ CC = @CC@
 CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 
-CFLAGS = -D_REENTRANT -Wall -funroll-loops -ffast-math -finline-functions @SUPPORTINCL@ -I../export -I../import -I$(srcdir)/../export -I$(srcdir)/../import -export-dynamic -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@ --include $(top_srcdir)/src/transcode.h 
+CFLAGS = -D_REENTRANT -Wall -funroll-loops -ffast-math -finline-functions @SUPPORTINCL@ -I../export -I../import -I$(srcdir)/../export -I$(srcdir)/../import -export-dynamic -I../aclib -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@ --include $(top_srcdir)/src/transcode.h 
 CPP = @CPP@
 CXX = @CXX@
 DEPDIR = @DEPDIR@
@@ -97,6 +96,7 @@ GTK_CONFIG = @GTK_CONFIG@
 GTK_LIBS = @GTK_LIBS@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LAME_3_89 = @LAME_3_89@
+LAME_3_92 = @LAME_3_92@
 LAME_CFLAGS = @LAME_CFLAGS@
 LAME_LIBS = @LAME_LIBS@
 LDFLAGS = @LDFLAGS@
@@ -115,6 +115,9 @@ LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
 LIBXML2_LIBS = @LIBXML2_LIBS@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+LZO_CFLAGS = @LZO_CFLAGS@
+LZO_EXTRA_LIBS = @LZO_EXTRA_LIBS@
+LZO_LIBS = @LZO_LIBS@
 MAGICK_CFLAGS = @MAGICK_CFLAGS@
 MAGICK_CONFIG = @MAGICK_CONFIG@
 MAGICK_LIBS = @MAGICK_LIBS@
@@ -163,7 +166,7 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
 bin_PROGRAMS = transcode
 
-transcode_LDADD = @SUPPORTLIB@ -L../libioaux -lioaux -lm 
+transcode_LDADD = @SUPPORTLIB@ -L../libioaux -lioaux -L../aclib -lac -lm 
 
 EXTRA_DIST = *.h
 
@@ -186,6 +189,7 @@ transcode_SOURCES = transcode.c\
 			zoom.c\
 			probe.c\
 			split.c\
+			callback.c\
 			optstr.c\
 			info_server.c
 
@@ -203,8 +207,8 @@ am_transcode_OBJECTS = transcode.$(OBJEXT) iodir.$(OBJEXT) \
 	frame_postprocess.$(OBJEXT) video_trans.$(OBJEXT) \
 	audio_trans.$(OBJEXT) video_rgb.$(OBJEXT) video_yuv.$(OBJEXT) \
 	filter.$(OBJEXT) counter.$(OBJEXT) zoom.$(OBJEXT) \
-	probe.$(OBJEXT) split.$(OBJEXT) optstr.$(OBJEXT) \
-	info_server.$(OBJEXT)
+	probe.$(OBJEXT) split.$(OBJEXT) callback.$(OBJEXT) \
+	optstr.$(OBJEXT) info_server.$(OBJEXT)
 transcode_OBJECTS = $(am_transcode_OBJECTS)
 transcode_DEPENDENCIES =
 transcode_LDFLAGS =
@@ -215,9 +219,10 @@ LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/audio_buffer.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/audio_trans.Po ./$(DEPDIR)/counter.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/decoder.Po ./$(DEPDIR)/dl_loader.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/encoder.Po ./$(DEPDIR)/filter.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/audio_trans.Po ./$(DEPDIR)/callback.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/counter.Po ./$(DEPDIR)/decoder.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/dl_loader.Po ./$(DEPDIR)/encoder.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/filter.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/frame_postprocess.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/frame_preprocess.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/frame_threads.Po \
@@ -286,6 +291,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/audio_buffer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/audio_trans.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/callback.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/counter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/decoder.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dl_loader.Po@am__quote@

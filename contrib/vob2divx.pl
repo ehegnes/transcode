@@ -57,16 +57,16 @@ $userconfig="
 # If for some reason vob2divx is unable to determine the audio channel for your LANGUAGE
 # put here the audio channel number ( generaly 0 is your language, 1 is english, 2 is another ...)
 \$DEF_AUDIOCHANNEL=1;   
-# to trace vob2divx
+# to trace vob2divx put this to STDOUT
 \$DEBUG=/dev/null;
-# to know what system command are launch
+# to know what system command are launch put this to STDOUT
 \$INFO=/dev/null;
 
 ";
 
 
 
-$release="1.0rc2";
+$release="1.0pl1";
 $PGMFINDCLIP=pgmfindclip; # New tool of transcode
 $DVDTITLE=dvdtitle;
 system("clear");
@@ -89,6 +89,8 @@ sub get_params;
 sub make_sample;
 sub cluster;
 sub merge;
+sub twoac;
+sub finish;
 sub ask_filesize;
 sub ripdvd;
 sub readconf;
@@ -137,7 +139,7 @@ foreach $pgm ( $XV , $XINE , $AVIPLAY )
 {
 	if ( system("which ".$pgm." > /dev/null 2>&1 ") )
 	{ 
-		print $pgm." is not installed on this System :-( \n Modify your ~/.vobdivxrc to reach your configuration (DVD player, DivX player, Image viewer....) \n"; exit (0);
+		print $pgm." is not installed on this System :-( \n Modify your ~/.vob2divxrc to reach your configuration (DVD player, DivX player, Image viewer....) \n"; exit (0);
 	}
 }
 
@@ -200,7 +202,7 @@ This will ask all what it need to make the movie you want ;-)
 
 ------------\n
 You can interrupt the program anytime. To continue encoding, just run the script
-without parameters in the same directory.\n".$RED."\t You MUST not run vob2divx from the /path/to/vobs directory.\n".$NORM."
+without parameters in the same directory.\n".$RED."\t You MUST NOT run vob2divx from the /path/to/vobs directory.\n".$NORM."
 Vob2divx Release: $release
 \n\n
 ";
@@ -248,7 +250,7 @@ Enter 'vob2divx -h ' to have a small help
 
 
 $last_sec=0;
-$keyframes = 1000;
+$keyframes = 500;
 $sample = "";
 $audiosample_length = 1000;
 $long_timeout = 20;
@@ -312,6 +314,7 @@ sub chk_wdir
 	( `pwd` ne $wdir ) or die $RED." You MUST NOT run vob2divx from the /path/to/vob directory ...\n".$NORM."Please cd to another directory\n".$NORM;
 	chomp($wdir);
 	chdir($wdir);
+	print $DEBUG "<--- chk_wdir\n";
 }
 
 # mv info files from /path/to/vobs to tmp if those info files exist 
@@ -346,6 +349,7 @@ sub vobsample
 sub get_audio_channel
 {	print $DEBUG "---> Enter get_audio_channel\n";	
 	$number_of_ac=0;
+	my($i)=0;
 	if ( -e "tmp/probe.rip" )
 	{
 		open (RIP,"<tmp/probe.rip");
@@ -354,9 +358,15 @@ sub get_audio_channel
 			if ( $_ =~ m,(?:ac3|mpeg2ext|lpcm|dts|mp3) ([^\s]+) , )
 			{
 				$findaudio_channel=$number_of_ac if ( $1 eq $LANGUAGE && ! defined($findaudio_channel));
-				$number_of_ac++; 
+				$number_of_ac++;
+			}
+			if ( $_ =~ m,track: -a (\d+) \[,)
+			{
+			  	@achannels[$i]=$1;
+				$i++;
 			}
 		}
+		
 		if ( defined($findaudio_channel))
 		{
 			$audio_channel=$findaudio_channel;
@@ -375,7 +385,7 @@ sub get_audio_channel
 				@achannels[$number_of_ac]=@junk[1];
 				print @info[0]."\n" ;
 				$number_of_ac++;
-				@achannels[number_of_ac];
+#				@achannels[number_of_ac];
 			}
 		}
 		print $RED." Transcode has detected $number_of_ac audio channel(s)\n";
@@ -444,18 +454,18 @@ sub readuserconf
 }  # END readuserconf
 
 sub printinfo
-{	system("clear");	
+{	system("clear") if ( $DEBUG ne STDOUT );	
 	print "\tEncoded output format: ".$DIVX."\n";
-	if ( $addlogo )
+	if ( $addlogo && ($CLUSTER eq NO || $CLUSTER eq 0) )
 	{
 		$startlogo=floor($beginlogo*$FPS);
 		$timelogo=floor($addlogo*$FPS+$startlogo);
 		$add_logo=",logo=file=".$LOGO.":posdef=".$poslogo.":rgbswap=1:range=".$startlogo."-".$timelogo;
-		print "\tYour Logo ".$LOGO." will be encoded\n";
+		print "\tYour Logo ".$LOGO." will be encoded (start:".$beginlogo."s, end:".$addlogo."s.)\n";
 	}else
 	{ 	print "\tYour Logo ".$LOGO." will NOT be encoded\n";
 	}
-	print "\tEncode on a Cluster using ".$CLUSTER_CONFIG."\n# hostname:% of frames to encode\n".`cat $CLUSTER_CONFIG`."\n" if ( $CLUSTER ne NO);
+	print "\tEncode on a Cluster using ".$CLUSTER_CONFIG."\n# hostname:% of frames to encode\n".`grep -v "^[[:space:]]*#" $CLUSTER_CONFIG`."\n" if ( $CLUSTER ne NO);
 	 print "\t(The previous parameter(s) can be modify in your ~/.vob2divxrc)\n";
 	print "\t\t* *\n";
 	print ("\t Number of frames to encode: ".$nbr_frames.", @ ".$FPS." frames per/sec\n") ;
@@ -579,7 +589,8 @@ sub ask_clust
 		if ( $strF > 0 )  # Take care there are several sequence units !!
 		{       
 			$display=$strF + 1;
-			print $RED."\n*********** WARNING !!!!************\n there is ".$display." Video stream sequence units in the Vob file(s)\n".$NORM;
+			print $RED."\n*********** WARNING !!!!************\n there is ".$display." Video stream sequence units in the Vob file(s)\n Due to a transcode logo bug, your Logo will not be encoded\n".$NORM;
+			$addlogo=0;
 			sleep(2);
 			if ( $strF > 10 )
 			{ 	print $RED." There is too much sequence units in this clip to encode it in cluster mode with a good video quality\n Reversing to NO CLUSTER...\n".$NORM;
@@ -596,6 +607,7 @@ sub ask_clust
 		$CLUSTER="NO";
 	}
         close(CONF);
+	print $DEBUG "<--- ask_clust\n";
 # End sub ask_clust
 }
 
@@ -704,6 +716,8 @@ sub cluster
 			print "Node ".$endnode." has finished to encode\n";
 		}	
 		merge;
+		twoac;
+		finish;
 		unlink("tmp/cluster.args");
 	} else {
 		print " Nothing to do :-( ";
@@ -859,6 +873,7 @@ sub aviencode
 		$params=$params." ".$cluster;
 		chomp($CLUSTER);
 		$sequnit=$CLUSTER;
+		$addlogo=0 if ( $sequnit > 0 )
 	}else{
 		$cluster="";
 # We now split after all encoded
@@ -868,13 +883,13 @@ sub aviencode
 
 	if (  $CLUSTER ne "NO" )
  	{	print("***  Cluster NODE number : ".$node." ******* \n");
-		print("*** SEQ UNIT = ".$sequnit." ********\n");
 	}
 
 	system("rm tmp/*.done  2> /dev/null");
 	
 	for ( $i=$sequnit; $i >= 0 ; $i--  )
     	{      
+		print("*** SEQ UNIT = ".$i." ********\n")  if (  $CLUSTER ne "NO" );
 	if ( $addlogo && $i == 0 && ( ! $node  ) )
        	{
 		$startlogo=floor($beginlogo*$FPS);
@@ -891,7 +906,7 @@ sub aviencode
 	}
 	if (! -e "tmp/1-".$dvdtitle.$node."_".$i.".finish")
 	{
-		system("rm tmp/merge.finish 2> /dev/null");
+		unlink("tmp/merge.finish");
 		print("Encode: ".$vobpath." Pass One ....\n");
                	my $pid = fork();
                	die "couldn't fork\n" unless defined $pid;
@@ -900,6 +915,7 @@ sub aviencode
                        	{       sleep $long_timeout;
                        	}
                        	system("touch tmp/1-".$dvdtitle.$node."_".$i.".finish");
+                       	unlink("tmp/1-".$dvdtitle.$node."_".$i.".done");
                	} else
                	{	
 			$sys = "transcode -i ".$vobpath."/ ".$seqopt." ".$clust_percent." ".$params." -w ".$bitrate.",".$keyframes." -J astat=\"tmp/astat".$node."\"".$filter." -x vob -y ".$DIVX.",null -V  -R 1,".$DIVX.".".$dvdtitle.$node."_".$i.".log -o /dev/null"; 
@@ -916,7 +932,7 @@ sub aviencode
 	if (! -e "tmp/2-".$dvdtitle.$node."_".$i.".finish")
 	{	
 		$filter="-J ".$filter if ( $filter ne "" );
-		system("rm tmp/merge.finish 2> /dev/null");	
+		unlink("tmp/merge.finish");	
 		print("Encode: ".$vobpath." Pass two ....\n");
 		my $pid = fork();
 		die "couldn't fork\n" unless defined $pid;
@@ -925,6 +941,7 @@ sub aviencode
 			{	sleep $long_timeout;
 			}
 			system("touch tmp/2-".$dvdtitle.$node."_".$i.".finish");
+			unlink("tmp/2-".$dvdtitle.$node."_".$i.".done");
 		} else
 		{	
 			$sys = "transcode -i ".$vobpath."/ ".$seqopt." ".$clust_percent." ".$params." -s ".$audio_rescale." -w ".$bitrate.",".$keyframes." -b ".$audio_bitrate." -x vob -y ".$DIVX." -V ".$filter." -R 2,".$DIVX.".".$dvdtitle.$node."_".$i.".log -o tmp/2-".$dvdtitle.$node."_".$i.".avi";
@@ -943,13 +960,15 @@ sub aviencode
         {       print ("Finish ... Wait \n ");
                 sleep (3);
         }
+	print $DEBUG "<--- aviencode\n";
 } # END Aviencode
 
-#			********* MERGING (and Syncing) Function **************
+#			********* MERGING ( and syncing )Function **************
 sub merge
 {	print $DEBUG "--->  Enter merge\n";
 	if (! -e "tmp/merge.finish" )
 	{       unlink("tmp/sync.finish"); 
+		unlink("tmp/merge.done");
 		my $pid = fork();
 		die "couldn't fork\n" unless defined $pid;
 		if ($pid)
@@ -960,93 +979,129 @@ sub merge
 			unlink("touch tmp/merge.done");
 		} else
 # $CLUSTER  is known because we've pass through aviencode before
-		{	if ( $CLUSTER ne "NO" )
-			{	print $GREEN."\t Merging the sequence units\n".$NORM;	
-				for ( $i=$CLUSTER ; $i >= 0 ; $i-- )
-				{ 	print "\tSeq. unit : ".$i."\n";	
-					$sys = "avimerge -i tmp/2-*_".$i.".avi -o tmp/tmp_movie_".$i.".avi";
-					print $INFO $sys."\n";
-		                        system("nice -".$nice." ".$sys." 1> /dev/null");
-				}
-				$sys = "avimerge -i tmp/tmp_movie_*.avi -o tmp/2-".$dvdtitle.".avi";
+		{	
+			print $GREEN."\t Merging the sequence units\n".$NORM;	
+			for ( $i=$CLUSTER ; $i >= 0 ; $i-- )
+			{ 	print "\tSeq. unit : ".$i."\n";	
+				$sys = "avimerge -i tmp/2-*_".$i.".avi -o tmp/tmp_movie_".$i.".avi";
 				print $INFO $sys."\n";
-				system("nice -".$nice." ".$sys." 1> /dev/null");
-				system("rm tmp/tmp_movie_*.avi");
-
-			}else{
-				print $GREEN."\tRenaming ".$dvdtitle."_0.avi ".$dvdtitle.".avi\n".$NORM if ( $last_sec eq 0 );
-			      	rename("tmp/2-".$dvdtitle."_0.avi",$dvdtitle.".avi") if ( $last_sec eq 0 );
-			      	$sys="avisplit -t 0-".$nbr_frames." -i  tmp/2-".$dvdtitle."_0.avi -o ".$dvdtitle.".avi && mv ".$dvdtitle.".avi-0000 ".$dvdtitle.".avi";
-				if ( $last_sec ne 0)
-				{
-					print $GREEN."\t Splitting the result to ".$nbr_frames." frames.\n".$NORM;
-					print $INFO $sys."\n"; 
-                        		system("nice -".$nice." ".$sys);
-				}
-
+		                system("nice -".$nice." ".$sys." 1> /dev/null");
 			}
-			system("touch tmp/merge.done");
-			exit(0);
+			if ( $CLUSTER > 0 )
+			{
+				$sys = "avimerge -i tmp/tmp_movie_*.avi -o tmp/2-".$dvdtitle.".avi && rm tmp/tmp_movie_*.avi";
+			} else {
+				$sys = "mv tmp/tmp_movie_0.avi tmp/2-".$dvdtitle.".avi";
+			}
+		print $INFO $sys."\n";
+		system("nice -".$nice." ".$sys." 1> /dev/null");
+		system("touch tmp/merge.done");
+		exit(0);
 		}
 	}else
 	{       
 		print ($RED."*.avi of ".$dvdtitle." are already merge ... remove \"tmp/merge.finish\" to re-merge it\n".$NORM);
 	}
+	print $DEBUG "<--- merge\n";
 
+
+################# add audio in cluster mode ############################
+
+	print $DEBUG "--->  Enter synchro\n";
 	audiorescale;
-	if (! -e "tmp/sync.finish" &&  $CLUSTER ne "NO" )
+	if (! -e "tmp/sync.finish" )
 	{	
+		unlink("tmp/finish");
+		unlink("tmp/sync.done") if ( -e "tmp/sync.done" );
 		my $pid = fork();
-                die "couldn't fork\n" unless defined $pid;
-                if ($pid)
-                {       while(! -e  "tmp/sync.done")
-                        {       sleep $long_timeout;
-                        }
-                        system("touch tmp/sync.finish");
+               	die "couldn't fork\n" unless defined $pid;
+               	if ($pid)
+               	{       while(! -e  "tmp/sync.done")
+               	        {       sleep $long_timeout;
+               	        }
+               	        system("touch tmp/sync.finish");
 			unlink("tmp/sync.done");
-                } else
-                {
+			unlink("tmp/audiochannel2.finish") if ( -e "tmp/audiochannel2.finish");
+               	} else
+               	{
 			@tmp = split /-a /,$params;
 			@tmp=split / /,@tmp[1];
 			$audio_params="-a ".@tmp[0];
-		    print $GREEN."\t Merging Video and Audio streams\n".$NORM;
-			$sys = "transcode -p ".$vobpath." ".$audio_params." -b ".$audio_bitrate." -s ".$audio_rescale." -i tmp/2-".$dvdtitle.".avi -P 1 -x avi,vob -y raw -o ".$dvdtitle.".avi -u 50";
-#                       $sys = "transcode -p ".$vobpath." ".$audio_params." -b ".$audio_bitrate." -s ".$audio_rescale." -c 0-".$nbr_frames." -i tmp/2-".$dvdtitle.".avi -P 1 -x avi,vob -y raw -o ".$dvdtitle.".avi -u 50 2>&1  | awk '/filling/{RS=\"\\r\"};/encoding fram/{ORS=\"\\r\"; print}'";
-
+			print $GREEN."\t Merging Video and Audio streams\n".$NORM;
+			$sys = "transcode -p ".$vobpath." ".$audio_params." -b ".$audio_bitrate." -s ".$audio_rescale." -i tmp/2-".$dvdtitle.".avi -P 1 -x avi,vob -y raw -o tmp/2-".$dvdtitle."_sync.avi -u 50";
+#                       $sys = "transcode -p ".$vobpath." ".$audio_params." -b ".$audio_bitrate." -s ".$audio_rescale." -c 0-".$nbr_frames." -i tmp/2-".$dvdtitle.".avi -P 1 -x avi,vob -y raw -o tmp/2-".$dvdtitle."_0.avi -u 50 2>&1  | awk '/filling/{RS=\"\\r\"};/encoding fram/{ORS=\"\\r\"; print}'";
 			 print $INFO $sys."\n";
-			system("touch tmp/sync.done");
 			system("nice -".$nice." ".$sys)==0 or die " Unable to merge Audio and Video \n";
+			system("touch tmp/sync.done");
 			exit(0);
 		}
-	    }elsif ( $CLUSTER ne NO ) 
-	    {	print $RED.$dvdtitle." is already sync, remove \"tmp/sync.finish\" to re-sync it\n".$NORM;
-	    }
+	}else
+	{	print $RED.$dvdtitle." is already sync, remove \"tmp/sync.finish\" to re-sync it\n".$NORM;
+	}
+	print $DEBUG "<--- synchro\n";
+} # END merge
+
+
+####################### Encode the optionnal second audio channel #############
+
+sub twoac
+{
+	print $DEBUG "---> Enter twoac\n";
 	if ( defined($ac2) && ! -e "tmp/audiochannel2.finish" )
-	{ 	 print $GREEN."\t Now encode and merge the second audio channel\n".$NORM;	
+	{ 	 
+		unlink("tmp/finish") if ( -e "tmp/finish");
+		print $GREEN."\t Now encode and merge the second audio channel\n".$NORM;	
 		audioformat("-a ".$ac2);
 		$sys="transcode -i ".$vobpath." -x null -s ".$audio_rescale." -b ".$audio_bitrate." -g 0x0 -y raw -a ".$ac2."  -o add-on-ac2.avi -u 50";
 #		$sys="transcode -i ".$vobpath." -x null -s ".$audio_rescale." -b ".$audio_bitrate." -g 0x0 -y raw -a ".$ac2."  -o add-on-ac2.avi -u 50 2>&1  | awk '/filling/{RS=\"\\r\"};/encoding fram/{ORS=\"\\r\"; print}'";
 		print $INFO $sys."\n";
 		system("nice -".$nice." ".$sys)==0 or die $RED."Unable to encode the second audio channel\n".$NORM;
 		print"\n";
-		$sys="avimerge -i ".$dvdtitle.".avi -o ac2movie.avi  -p add-on-ac2.avi";
+		$sys="avimerge -i tmp/2-".$dvdtitle."_sync.avi -o tmp/3-".$dvdtitle."_2ac.avi -p add-on-ac2.avi";
 		print $INFO $sys."\n";
 		system("nice -".$nice." ".$sys." 1> /dev/null")==0 or die $RED."Unable to merge movie and second audio channel".$NORM;
-		rename("ac2movie.avi",$dvdtitle.".avi") && system("touch tmp/audiochannel2.finish") ;
+		rename("tmp/3-".$dvdtitle."_2ac.avi","tmp/2-".$dvdtitle."_sync.avi") && system("touch tmp/audiochannel2.finish") ;
 	}
-	print $GREEN."May I clean the tmp directory and other temporaries and log files ? (Y/N): ".$NORM;
+	 print $DEBUG "<--- twoac\n";
+} # END 2ac
+
+#################### Finish the work ########################
+
+sub finish
+{
+	print $DEBUG "---> Enter finish\n";
+	if (! -e "tmp/finish")
+	{
+		print $GREEN."\tRenaming tmp/2-".$dvdtitle."_sync.avi ".$dvdtitle.".avi\n".$NORM if ( $last_sec eq 0 );
+		rename("tmp/2-".$dvdtitle."_sync.avi",$dvdtitle.".avi") if ( $last_sec eq 0);
+		$sys="avisplit -t 0-".$nbr_frames." -i  tmp/2-".$dvdtitle."_sync.avi -o ".$dvdtitle.".avi && mv ".$dvdtitle.".avi-0000 ".$dvdtitle.".avi";
+		if ( $last_sec ne 0 )
+		{
+			print $GREEN."\t Splitting the result to ".$nbr_frames." frames.\n".$NORM;
+			print $INFO $sys."\n";
+			system("nice -".$nice." ".$sys);
+		}
+		system("touch tmp/finish");
+	}
+	print $GREEN."\tNow take a look at the end of ".$dvdtitle.".avi\n\t If for some reason the divx file does'nt reach the end credits, just edit tmp/vob2divx.conf, decrease the endtime value, remove the tmp/finish file and then run vob2divx without parameters.".$NORM;
+	print $GREEN." Is you divx file OK? (Y/N): ".$NORM;
 	$rep=<STDIN>;
 	chomp($rep);
 	if ($rep eq "O" or $rep eq "o" or $rep eq "y" or $rep eq "Y")
 	{
-		system ("mv tmp/dvdtitle ".$vobpath) if ( -e "tmp/dvdtitle" ); 
-		system ("mv tmp/probe.rip  ".$vobpath) if ( -e "tmp/probe.rip" ); 
-		system("/bin/rm -rf tmp/*  *.log video* audio_sample* add-on-ac2.avi");
+		print $GREEN."May I clean the tmp directory and other temporaries and log files ? (Y/N): ".$NORM;
+		$rep=<STDIN>;
+		chomp($rep);
+		if ($rep eq "O" or $rep eq "o" or $rep eq "y" or $rep eq "Y")
+		{
+			system ("mv tmp/dvdtitle ".$vobpath) if ( -e "tmp/dvdtitle" ); 
+			system ("mv tmp/probe.rip  ".$vobpath) if ( -e "tmp/probe.rip" ); 
+			system("/bin/rm -rf tmp/*  *.log video* audio_sample* add-on-ac2.avi");
+		}
 	}
-
-	print "Bye !!!\n";
-	print $DEBUG "<--- merge\n";
-}  # ENd merge
+		print "Bye !!!\n";
+	print $DEBUG "<--- finish\n";
+}  # ENd finish
 
 
 #  *************   Get Audio Bitrage ************
@@ -1276,15 +1331,15 @@ sub ask_logo
 			chomp($rep);
 			if ( $rep ne "N" && $rep ne "n" )
 			{
-				print $GREEN."How long (in sec.) after the movie beginning must your Logo be displayed (see your ~/.vobdivxrc for default)[".$defbeginlogo."]: ".$NORM;
+				print $GREEN."How long (in sec.) after the movie beginning must your Logo be displayed (see your ~/.vob2divxrc for default)[".$defbeginlogo."]: ".$NORM;
 				$beginlogo=<STDIN>;
 				chomp($beginlogo);
 				$beginlogo=$defbeginlogo if ( $beginlogo eq ""  ) ;
-				print $GREEN."How long (in sec.) should your Logo be displayed (see your ~/.vobdivxrc for default)[".$deftimelogo."]?".$NORM;
+				print $GREEN."How long (in sec.) should your Logo be displayed (see your ~/.vob2divxrc for default)[".$deftimelogo."]?".$NORM;
 				$addlogo=<STDIN>;
 				chomp($addlogo);
 				$addlogo=$deftimelogo if ( $addlogo eq "" || $addlogo == 0 ) ;
-				print $GREEN."Where do you want to put this Logo( 1=TopLeft,2=TopRight,3=BotLeft,4=BotRight,5=Center , see your ~/.vobdivxrc for default)[".$defposlogo."]: ".$NORM;
+				print $GREEN."Where do you want to put this Logo( 1=TopLeft,2=TopRight,3=BotLeft,4=BotRight,5=Center , see your ~/.vob2divxrc for default)[".$defposlogo."]: ".$NORM;
 				$poslogo=<STDIN>;
                                 chomp($poslogo);
 				$poslogo=$defposlogo if ( ! ($poslogo =~ m,[12345],));
@@ -1472,7 +1527,7 @@ sub config
          }
 	$audio_channel=$as;
 	$good_audio="-a ".$audio_channel;
-	system("touch audio_sample._-a_".$audio_channel.".avi");
+#	system("touch audio_sample._-a_".$audio_channel.".avi");
 	if ( $number_of_ac > 0 )
 	{
 		print $GREEN."Do you want to have another audio channel in your AVI movie (take care of the Video quality which decrease with 2 audio channels for the same movie size), this audio channel will be encoded at the same bitrate than the first audio channel (Y/N): ".$NORM;
@@ -1765,13 +1820,14 @@ sub ripdvd
         open (TITLE,">".$vobpath."/dvdtitle");
 	print TITLE $dvdtitle;
 	close(TITLE);
-	chdir($vobpath);
+	opendir(VOB,$vobpath);
+	chdir($vobpath) or die " Unable to chdir to $vobpath.. please DO NOT USE the ~ character in the /path/to/vob ";
 	$sys="tcprobe -i ".$dvd." -T ".$longestTitle."  >> probe.rip 2>&1 ";
     system ("nice -".$nice." ".$sys);
 	$sys="tccat -i /dev/dvd -T ".$longestTitle.",-1,".$angle." | split -b 1024m - ".$dvdtitle."_T".$longestTitle."_" ;
 	print ($sys."\n");
 	system("nice -".$nice." ".$sys);
-	opendir(VOB,$vobpath);
+#	opendir(VOB,".");
 	my(@files)=grep { /$dvdtitle/ && -f "$_" } readdir(VOB);
  	foreach $vob ( @files){rename($vob,$vob.".vob");}
 	print $GREEN." OK, your vob Files are now in ".$vobpath."\n";
@@ -1840,8 +1896,10 @@ get_params;
 if (1)
 {
 	aviencode;	
-	merge;
+	print $GREEN."Renaming tmp/2-".$dvdtitle."_0.avi tmp/2-".$dvdtitle."_sync.avi\n".$NORM;
+	rename("tmp/2-".$dvdtitle."_0.avi","tmp/2-".$dvdtitle."_sync.avi");
+	twoac;
+	finish;
 # We do never come here !
 	exit(1);
 }
--------

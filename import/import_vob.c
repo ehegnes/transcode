@@ -31,7 +31,7 @@
 #include "clone.h"
 
 #define MOD_NAME    "import_vob.so"
-#define MOD_VERSION "v0.5.6 (2002-05-09)"
+#define MOD_VERSION "v0.5.7 (2002-10-01)"
 #define MOD_CODEC   "(video) MPEG-2 | (audio) MPEG/AC3/PCM | (subtitle)"
 
 #define MOD_PRE vob
@@ -356,14 +356,21 @@ MOD_close
     if(param->flag == TC_VIDEO) {
 	
 	//safe
-	clone_close();
+      clone_close();
 	
 	return(0);
     }
     
     if(param->flag == TC_SUBEX) return(0);
-    if(param->flag == TC_AUDIO) return(0);
     
+    if(param->flag == TC_AUDIO) {
+      
+      if(fd) pclose(fd);
+      fd=NULL;
+      
+      return(0);
+      
+    }
     return(TC_IMPORT_ERROR);
 }
 

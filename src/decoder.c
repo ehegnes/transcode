@@ -49,44 +49,106 @@ static pthread_t athread=0, vthread=0;
 
 //-------------------------------------------------------------------------
 //
+// callback for external import threads shutdown request
+//
+//--------------------------------------------------------------------------
+
+void tc_import_stop()
+{
+
+  vimport_stop();
+  aimport_stop();
+
+  //notify sleeping import threads
+
+  pthread_mutex_lock(&vframe_list_lock);
+  pthread_cond_signal(&vframe_list_full_cv);
+  pthread_mutex_unlock(&vframe_list_lock);
+
+  frame_threads_notify(TC_VIDEO);
+
+  pthread_mutex_lock(&aframe_list_lock);
+  pthread_cond_signal(&aframe_list_full_cv);
+  pthread_mutex_unlock(&aframe_list_lock);
+
+  frame_threads_notify(TC_AUDIO);
+
+  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) import stop requested by thread (client=%ld) (main=%d) status=%d\n", __FILE__, pthread_self(), tc_pthread_main, import_status());
+
+}
+
+//-------------------------------------------------------------------------
+//
 // cancel import threads
 //
 // called by transcode (signal handler thread) 
 //
 //-------------------------------------------------------------------------
 
-void import_cancel()
+static int threads_canceled=0;
+
+void import_threads_cancel()
 {
   
   void *status;
 
-  pthread_cancel(vthread);
-  pthread_cancel(athread);
+  int cc1, cc2;
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) import canceled by main thread\n", __FILE__);
+  // notify import threads, if not yet done, that task is done
+  tc_import_stop();
+
+  if(threads_canceled) return; 
+
+  cc1=pthread_cancel(vthread);
+  cc2=pthread_cancel(athread);
+
+  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) import canceled by main thread (%d) (%d) (%ld) (%d)\n", __FILE__, cc1, cc2, pthread_self(), tc_pthread_main);
 
   //wait for threads to terminate
-  pthread_join(vthread, &status);
+  cc1=pthread_join(vthread, &status);
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) video thread exit\n", __FILE__);
+  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) video thread exit (%d)\n", __FILE__, cc1);
 
-  pthread_join(athread, &status);
+  cc2=pthread_join(athread, &status);
+
+  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) audio thread exit (%d)\n", __FILE__, cc2);
+
+  threads_canceled=1;
   
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) audio thread exit\n", __FILE__);
-
   return;
 
+}
+
+//-------------------------------------------------------------------------
+
+void import_threads_create(vob_t *vob)
+{
+
+  //start import threads
+  //flag on, in case we restart the decoder
+  
+  aimport_start();
+
+  if(pthread_create(&athread, NULL, (void *) aimport_thread, vob)!=0)
+    tc_error("failed to start audio stream import thread");
+
+  vimport_start();
+
+  if(pthread_create(&vthread, NULL, (void *) vimport_thread, vob)!=0)
+    tc_error("failed to start video stream import thread");
+
+  return;
 }
 
 //-------------------------------------------------------------------------
 //
 // initialize import by loading modules and checking capabilities
 //
-// called by transcode (main thread) 
+// called by transcode (main thread) in transcoder() 
 //
 //-------------------------------------------------------------------------
 
-void import_init(vob_t *vob, char *a_mod, char *v_mod)
+int import_init(vob_t *vob, char *a_mod, char *v_mod)
 {  
   
   transfer_t import_para;
@@ -96,17 +158,19 @@ void import_init(vob_t *vob, char *a_mod, char *v_mod)
   // load audio import module
   
   if((import_ahandle=load_module(((a_mod==NULL)? TC_DEFAULT_IMPORT_AUDIO: a_mod), TC_IMPORT+TC_AUDIO))==NULL) {
-      tc_error("import module loading failed");
+    fprintf(stderr, "(%s) loading audio import module failed\n", __FILE__);
+    return(-1);
   }
 
-  aimport=1;
+  aimport_start();
   
   // load video import module
   if((import_vhandle=load_module(((v_mod==NULL)? TC_DEFAULT_IMPORT_VIDEO: v_mod), TC_IMPORT+TC_VIDEO))==NULL) {
-      tc_error("import module loading failed");
+    fprintf(stderr, "(%s) loading video import module failed\n", __FILE__);
+    return(-1);
   }
   
-  vimport=1;
+  vimport_start();
 
   // check import module capability, inherit verbosity flag
 
@@ -133,14 +197,21 @@ void import_init(vob_t *vob, char *a_mod, char *v_mod)
       cc=(import_para.flag & TC_CAP_AUD);
       break;
     default:
-      tc_error("audio codec not supported by import module"); 
+      cc=0;
+    }
+
+    if(!cc) {
+      fprintf(stderr, "(%s) audio codec not supported by import module\n", __FILE__); 
+      return(-1);
     }
     
-    if(!cc) tc_error("audio codec not supported by import module"); 
+  } else {
     
-  } else 
-    if(vob->im_a_codec != CODEC_PCM)
-      tc_error("audio codec not confirmed by import module"); 
+    if(vob->im_a_codec != CODEC_PCM) {
+      fprintf(stderr, "(%s) audio codec not supported by import module\n", __FILE__); 
+      return(-1);
+    }
+  }
 
   import_para.flag = verbose;
   tcv_import(TC_IMPORT_NAME, &import_para, NULL);
@@ -161,18 +232,28 @@ void import_init(vob_t *vob, char *a_mod, char *v_mod)
     case CODEC_YUV: 
       cc=(import_para.flag & TC_CAP_YUV);
       break;
+    case CODEC_RAW_YUV: 
     case CODEC_RAW: 
       cc=(import_para.flag & TC_CAP_VID);
       break;
     default:
-      tc_error("video codec not supported by import module"); 
+      cc=0;
     }
     
-    if(!cc) tc_error("video codec not supported by import module"); 
+    if(!cc) {
+      fprintf(stderr, "(%s) video codec not supported by import module\n", __FILE__); 
+      return(-1);
+    }
     
-  } else
-    if(vob->im_a_codec != CODEC_RGB)
-      tc_error("video codec not confirmed by import module"); 
+  } else {
+    
+    if(vob->im_a_codec != CODEC_RGB) {
+      fprintf(stderr, "(%s) video codec not supported by import module\n", __FILE__); 
+      return(-1);
+    }
+  }
+
+  return(0);
   
 }
 
@@ -184,7 +265,7 @@ void import_init(vob_t *vob, char *a_mod, char *v_mod)
 //
 //-------------------------------------------------------------------------
 
-void decoder_init(vob_t *vob)
+int import_open(vob_t *vob)
 {
   
   transfer_t import_para;
@@ -195,31 +276,29 @@ void decoder_init(vob_t *vob)
   import_para.flag=TC_AUDIO;
   
   if(tca_import(TC_IMPORT_OPEN, &import_para, vob)<0) {
-    tc_error("popen PCM stream");
+    fprintf(stderr, "audio import module error: OPEN failed\n");
+    return(-1);
   }
   
   fd_pcm = import_para.fd;
   
+
   // start video stream
   import_para.flag=TC_VIDEO;
-
+  
   if(tcv_import(TC_IMPORT_OPEN, &import_para, vob)<0) {
-    tc_error("popen RGB stream");
+    fprintf(stderr, "video import module error: OPEN failed\n");
+    return(-1);
   }
   
   fd_ppm = import_para.fd;
 
-  // now we can start the thread, the file handles are valid
-  // flag on, in case we restart the decoder
+  // now we can start the import threads, the file handles are valid
 
-  aimport=1;
-  if(pthread_create(&athread, NULL, (void *) aimport_thread, vob)!=0)
-    tc_error("failed to start audio stream import thread");
+  return(0);
 
-  vimport=1;
-  if(pthread_create(&vthread, NULL, (void *) vimport_thread, vob)!=0)
-    tc_error("failed to start video stream import thread");
 }
+ 
 
 //-------------------------------------------------------------------------
 //
@@ -229,7 +308,7 @@ void decoder_init(vob_t *vob)
 //
 //-------------------------------------------------------------------------
 
-int decoder_stop(int what)
+int import_close()
 {
 
     int ret;
@@ -237,37 +316,32 @@ int decoder_stop(int what)
 
     memset(&import_para, 0, sizeof(transfer_t));
 
-    switch(what) {
-
-    case TC_VIDEO:
+    //TC_VIDEO:
       
-      import_para.flag = TC_VIDEO;
-      import_para.fd   = fd_ppm;
-      
-      if((ret=tcv_import(TC_IMPORT_CLOSE, &import_para, NULL))==TC_IMPORT_ERROR) {
-	fprintf(stderr, "video import module error: close failed\n");
-	return(-1);
-      }
-      fd_ppm = NULL;
-
-      break;
-
-    case TC_AUDIO:
+    import_para.flag = TC_VIDEO;
+    import_para.fd   = fd_ppm;
     
-      import_para.flag = TC_AUDIO;
-      import_para.fd   = fd_pcm;
-      
-      if((ret=tca_import(TC_IMPORT_CLOSE, &import_para, NULL))==TC_IMPORT_ERROR) {
-	fprintf(stderr, "audio import module error: close failed\n");
-	return(-1);
-      }
-      fd_pcm = NULL;
-
-      break;
+    if((ret=tcv_import(TC_IMPORT_CLOSE, &import_para, NULL))==TC_IMPORT_ERROR) {
+      fprintf(stderr, "video import module error: CLOSE failed\n");
+      return(-1);
     }
-
-  return(0);
+    fd_ppm = NULL;
+    
+    
+    //TC_AUDIO:
+    
+    import_para.flag = TC_AUDIO;
+    import_para.fd   = fd_pcm;
+    
+    if((ret=tca_import(TC_IMPORT_CLOSE, &import_para, NULL))==TC_IMPORT_ERROR) {
+      fprintf(stderr, "audio import module error: CLOSE failed\n");
+      return(-1);
+    }
+    fd_pcm = NULL;
+    
+    return(0);
 }
+
 
 //-------------------------------------------------------------------------
 //
@@ -366,10 +440,6 @@ void vimport_thread(vob_t *vob)
     while(vframe_fill_level(TC_BUFFER_FULL)) {
 	pthread_cond_wait(&vframe_list_full_cv, &vframe_list_lock);
 	
-	pthread_mutex_unlock(&vframe_list_lock);
-	pthread_testcancel();
-	pthread_mutex_lock(&vframe_list_lock);
-
 	// check for pending shutdown via ^C
 	if(vimport_shutdown()) {
 	  pthread_mutex_unlock(&vframe_list_lock);
@@ -389,7 +459,7 @@ void vimport_thread(vob_t *vob)
       }
       
       //next buffer in row may be still locked
-      usleep(tc_buffer_delay);
+      usleep(tc_buffer_delay_dec);
     }
     
     ptr->attributes=0;
@@ -407,9 +477,10 @@ void vimport_thread(vob_t *vob)
 
     } else {
 	  
-      import_para.buffer = ptr->video_buf;
-      import_para.size   = vbytes;
-      import_para.flag   = TC_VIDEO;
+      import_para.buffer  = ptr->video_buf;
+      import_para.buffer2 = ptr->video_buf2;
+      import_para.size    = vbytes;
+      import_para.flag    = TC_VIDEO;
       
       ret = tcv_import(TC_IMPORT_DECODE, &import_para, vob);
 
@@ -481,9 +552,11 @@ void vimport_thread(vob_t *vob)
 //
 //-------------------------------------------------------------------------
 
-int aimport_shutdown()
+int aimport_shutdown(int test)
 {
-
+  
+  if(verbose & TC_STATS) fprintf(stderr, "enter (%d)\n", test);
+  
   pthread_testcancel();
   
   pthread_mutex_lock(&import_lock);
@@ -494,11 +567,13 @@ int aimport_shutdown()
     if(verbose & TC_DEBUG) {
       printf("(%s) audio import cancelation requested\n", __FILE__);
     }
-    
+
+    if(verbose & TC_STATS) fprintf(stderr, "exit (%d) - 1\n", test);
     return(1);  // exit thread
   } else 
     pthread_mutex_unlock(&import_lock);
-  
+
+  if(verbose & TC_STATS) fprintf(stderr, "exit (%d) - 0\n", test);  
   return(0);
 }
 
@@ -548,16 +623,16 @@ void aimport_thread(vob_t *vob)
     pthread_mutex_lock(&aframe_list_lock);
     
     while(aframe_fill_level(TC_BUFFER_FULL)) {
-
-	pthread_cond_wait(&aframe_list_full_cv, &aframe_list_lock);
-	
-	// check for pending shutdown via ^C
-	if(aimport_shutdown()) {
-	    pthread_mutex_unlock(&aframe_list_lock);
-	    pthread_exit(0);
-	}
+      
+      pthread_cond_wait(&aframe_list_full_cv, &aframe_list_lock);
+      
+      // check for pending shutdown via ^C
+      if(aimport_shutdown(0)) {
+	pthread_mutex_unlock(&aframe_list_lock);
+	pthread_exit(0);
+      }
     }
-	
+    
     pthread_mutex_unlock(&aframe_list_lock);
     
     // get a frame buffer or wait
@@ -566,12 +641,12 @@ void aimport_thread(vob_t *vob)
       pthread_testcancel();
       
       // check for pending shutdown via ^C
-      if(aimport_shutdown()) {
+      if(aimport_shutdown(1)) {
 	pthread_exit(0);
       }
       
       //next buffer in row may be still locked
-      usleep(tc_buffer_delay);
+      usleep(tc_buffer_delay_dec);
     }
     
     ptr->attributes=0;
@@ -688,7 +763,7 @@ void aimport_thread(vob_t *vob)
     if(verbose & TC_STATS) printf("%10s [%ld] A=%d bytes\n", "received", i, ptr->audio_size);
 
     // check for pending shutdown via ^C
-    if(aimport_shutdown()) pthread_exit(0);
+    if(aimport_shutdown(2)) pthread_exit(0);
     
     ++i; // get next frame
   }
@@ -698,23 +773,18 @@ void aimport_thread(vob_t *vob)
 //
 // unload import modules
 //
-// called by transcode (main thread) 
+// called by transcode (main thread) in transcoder()
 //
 //-------------------------------------------------------------------------
 
-void import_close()
+void import_shutdown()
 {
 
-  decoder_stop(TC_AUDIO);
-  
   if(verbose & TC_DEBUG) {
     printf("(%s) unloading audio import module\n", __FILE__);
   }
   
   unload_module(import_ahandle);
-
-
-  decoder_stop(TC_VIDEO);
 
   if(verbose & TC_DEBUG) {
     printf("(%s) unloading video import module\n", __FILE__);
@@ -752,6 +822,29 @@ void vimport_stop()
 
 //-------------------------------------------------------------------------
 //
+// set video import status flag to ON
+//
+//-------------------------------------------------------------------------
+
+void vimport_start()
+{
+  
+  // thread safe
+
+  pthread_mutex_lock(&import_lock);
+
+  // set flag 
+  vimport = 1;
+
+  // release lock
+  pthread_mutex_unlock(&import_lock);
+
+  return;
+
+}
+
+//-------------------------------------------------------------------------
+//
 // set audio import status flag to OFF
 //
 //-------------------------------------------------------------------------
@@ -771,6 +864,30 @@ void aimport_stop()
 
   //cool down
   sleep(tc_decoder_delay);
+
+  return;
+
+}
+
+
+//-------------------------------------------------------------------------
+//
+// set audio import status flag to ON
+//
+//-------------------------------------------------------------------------
+
+void aimport_start()
+{
+  
+  // thread safe
+
+  pthread_mutex_lock(&import_lock);
+
+  // set flag  
+  aimport = 1;
+
+  // release lock
+  pthread_mutex_unlock(&import_lock);
 
   return;
 
@@ -796,12 +913,22 @@ int aimport_status()
   pthread_mutex_unlock(&import_lock);
 
   // decoder finished, check for frame list
-  tc_pthread_mutex_lock(&aframe_list_lock);
+  pthread_mutex_lock(&aframe_list_lock);
   
   cc = (aframe_list_tail==NULL) ? 0 : 1;
   
-  tc_pthread_mutex_unlock(&aframe_list_lock);
+  pthread_mutex_unlock(&aframe_list_lock);
   return(cc);
+}
+
+void aimport_notify()
+{
+  
+  //notify sleeping import thread
+  pthread_mutex_lock(&aframe_list_lock);
+  pthread_cond_signal(&aframe_list_full_cv);
+  pthread_mutex_unlock(&aframe_list_lock);
+
 }
 
 //-------------------------------------------------------------------------
@@ -825,11 +952,11 @@ int vimport_status()
   pthread_mutex_unlock(&import_lock);
   
   // decoder finished, check for frame list
-  tc_pthread_mutex_lock(&vframe_list_lock);
+  pthread_mutex_lock(&vframe_list_lock);
   
   cc = (vframe_list_tail==NULL) ? 0 : 1;
   
-  tc_pthread_mutex_unlock(&vframe_list_lock);
+  pthread_mutex_unlock(&vframe_list_lock);
   return(cc);
 }
 
@@ -848,18 +975,3 @@ int import_status()
   return(0);
 }
 
-//-------------------------------------------------------------------------
-//
-// callback for external import shutdown
-//
-//--------------------------------------------------------------------------
-
-void tc_import_stop()
-{
-
-  vimport_stop();
-  frame_threads_notify(TC_VIDEO);
-
-  aimport_stop();
-  frame_threads_notify(TC_AUDIO);
-}

@@ -39,7 +39,7 @@ void version()
 }
 
 
-void usage()
+void usage(int status)
 {
   version();
   printf("\nUsage: %s [options]\n", EXE);
@@ -51,7 +51,7 @@ void usage()
   printf("\t -n count           shift audio by count frames [0]\n");
   printf("\t                    count>0: audio starts with frame 'count'\n");
   printf("\t                    count<0: prepend 'count' padding audio frames\n");
-  exit(0);
+  exit(status);
 }
 
 // buffer
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
     
   buffer_list_t *ptr;
 
-  if(argc==1) usage();
+  if(argc==1) usage(EXIT_FAILURE);
   
   while ((ch = getopt(argc, argv, "a:vi:o:n:Nq?h")) != -1)
     {
@@ -102,23 +102,23 @@ int main(int argc, char *argv[])
 	    
 	case 'i':
 
-	     if(optarg[0]=='-') usage();
+	     if(optarg[0]=='-') usage(EXIT_FAILURE);
 	    in_file=optarg;
 	  
 	    break;
 	    
 	case 'a':
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  track_num = atoi(optarg);
 	  
-	  if(track_num<0) usage();
+	  if(track_num<0) usage(EXIT_FAILURE);
 	  
 	  break;
 	  
 	case 'o':
 
-	    if(optarg[0]=='-') usage();
+	    if(optarg[0]=='-') usage(EXIT_FAILURE);
 	    out_file=optarg;
 	
 	    break;
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 
 	    if(sscanf(optarg,"%d", &shift)!=1) {
 		fprintf(stderr, "invalid parameter for option -n\n");
-		usage();
+		usage(EXIT_FAILURE);
 	    }
 	    break;
 
@@ -141,16 +141,15 @@ int main(int argc, char *argv[])
 	    version();
 	    exit(0);
 	    break;
-      case '?':
       case 'h':
+	usage(EXIT_SUCCESS);
       default:
-	usage();
-	exit(0);
+	usage(EXIT_FAILURE);
       }
     }
   
   // check
-  if(in_file==NULL || out_file == NULL) usage();
+  if(in_file==NULL || out_file == NULL) usage(EXIT_FAILURE);
   
   if(shift == 0) fprintf(stderr, "no sync requested - exit");
 

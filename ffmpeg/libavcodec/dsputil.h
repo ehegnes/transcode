@@ -26,21 +26,17 @@
 /* dct code */
 typedef short DCTELEM;
 
-void jpeg_fdct_ifast (DCTELEM *data);
+void fdct_ifast (DCTELEM *data);
+void ff_jpeg_fdct_islow (DCTELEM *data);
 
 void j_rev_dct (DCTELEM *data);
 
-void fdct_mmx(DCTELEM *block);
-
-void (*av_fdct)(DCTELEM *block);
+void ff_fdct_mmx(DCTELEM *block);
 
 /* encoding scans */
-extern UINT8 ff_alternate_horizontal_scan[64];
-extern UINT8 ff_alternate_vertical_scan[64];
-extern UINT8 zigzag_direct[64];
-
-/* permutation table */
-extern UINT8 permutation[64];
+extern const UINT8 ff_alternate_horizontal_scan[64];
+extern const UINT8 ff_alternate_vertical_scan[64];
+extern const UINT8 ff_zigzag_direct[64];
 
 /* pixel operations */
 #define MAX_NEG_CROP 384
@@ -51,15 +47,28 @@ extern UINT8 cropTbl[256 + 2 * MAX_NEG_CROP];
 
 void dsputil_init(void);
 
-/* pixel ops : interface with DCT */
+/* minimum alignment rules ;)
+if u notice errors in the align stuff, need more alignment for some asm code for some cpu 
+or need to use a function with less aligned data then send a mail to the ffmpeg-dev list, ...
 
-extern void (*ff_idct)(DCTELEM *block);
-extern void (*get_pixels)(DCTELEM *block, const UINT8 *pixels, int line_size);
-extern void (*diff_pixels)(DCTELEM *block, const UINT8 *s1, const UINT8 *s2, int stride);
-extern void (*put_pixels_clamped)(const DCTELEM *block, UINT8 *pixels, int line_size);
-extern void (*add_pixels_clamped)(const DCTELEM *block, UINT8 *pixels, int line_size);
-extern void (*gmc1)(UINT8 *dst, UINT8 *src, int srcStride, int h, int x16, int y16, int rounder);
-extern void (*clear_blocks)(DCTELEM *blocks);
+!warning these alignments might not match reallity, (missing attribute((align)) stuff somewhere possible)
+i (michael) didnt check them, these are just the alignents which i think could be reached easily ...
+
+!future video codecs might need functions with less strict alignment
+*/
+
+/* pixel ops : interface with DCT */
+extern void (*get_pixels)(DCTELEM *block/*align 16*/, const UINT8 *pixels/*align 8*/, int line_size);
+extern void (*diff_pixels)(DCTELEM *block/*align 16*/, const UINT8 *s1/*align 8*/, const UINT8 *s2/*align 8*/, int stride);
+extern void (*put_pixels_clamped)(const DCTELEM *block/*align 16*/, UINT8 *pixels/*align 8*/, int line_size);
+extern void (*add_pixels_clamped)(const DCTELEM *block/*align 16*/, UINT8 *pixels/*align 8*/, int line_size);
+extern void (*ff_gmc1)(UINT8 *dst/*align 8*/, UINT8 *src/*align 1*/, int srcStride, int h, int x16, int y16, int rounder);
+extern void (*ff_gmc )(UINT8 *dst/*align 8*/, UINT8 *src/*align 1*/, int stride, int h, int ox, int oy, 
+                  int dxx, int dxy, int dyx, int dyy, int shift, int r, int width, int height);
+extern void (*clear_blocks)(DCTELEM *blocks/*align 16*/);
+extern int (*pix_sum)(UINT8 * pix, int line_size);
+extern int (*pix_norm1)(UINT8 * pix, int line_size);
+
 
 
 void get_pixels_c(DCTELEM *block, const UINT8 *pixels, int line_size);
@@ -69,19 +78,28 @@ void add_pixels_clamped_c(const DCTELEM *block, UINT8 *pixels, int line_size);
 void clear_blocks_c(DCTELEM *blocks);
 
 /* add and put pixel (decoding) */
-typedef void (*op_pixels_func)(UINT8 *block, const UINT8 *pixels, int line_size, int h);
-typedef void (*qpel_mc_func)(UINT8 *dst, UINT8 *src, int dstStride, int srcStride, int mx, int my);
+// blocksizes for op_pixels_func are 8x4,8x8 16x8 16x16
+typedef void (*op_pixels_func)(UINT8 *block/*align width (8 or 16)*/, const UINT8 *pixels/*align 1*/, int line_size, int h);
+typedef void (*qpel_mc_func)(UINT8 *dst/*align width (8 or 16)*/, UINT8 *src/*align 1*/, int stride);
 
-extern op_pixels_func put_pixels_tab[4];
-extern op_pixels_func avg_pixels_tab[4];
-extern op_pixels_func put_no_rnd_pixels_tab[4];
-extern op_pixels_func avg_no_rnd_pixels_tab[4];
-extern qpel_mc_func qpel_mc_rnd_tab[16];
-extern qpel_mc_func qpel_mc_no_rnd_tab[16];
+extern op_pixels_func put_pixels_tab[2][4];
+extern op_pixels_func avg_pixels_tab[2][4];
+extern op_pixels_func put_no_rnd_pixels_tab[2][4];
+extern op_pixels_func avg_no_rnd_pixels_tab[2][4];
+extern qpel_mc_func put_qpel_pixels_tab[2][16];
+extern qpel_mc_func avg_qpel_pixels_tab[2][16];
+extern qpel_mc_func put_no_rnd_qpel_pixels_tab[2][16];
+extern qpel_mc_func avg_no_rnd_qpel_pixels_tab[2][16];
+
+#define CALL_2X_PIXELS(a, b, n)\
+static void a(uint8_t *block, const uint8_t *pixels, int line_size, int h){\
+    b(block  , pixels  , line_size, h);\
+    b(block+n, pixels+n, line_size, h);\
+}
 
 /* motion estimation */
 
-typedef int (*op_pixels_abs_func)(UINT8 *blk1, UINT8 *blk2, int line_size);
+typedef int (*op_pixels_abs_func)(UINT8 *blk1/*align width (8 or 16)*/, UINT8 *blk2/*align 1*/, int line_size);
 
 extern op_pixels_abs_func pix_abs16x16;
 extern op_pixels_abs_func pix_abs16x16_x2;
@@ -97,12 +115,7 @@ int pix_abs16x16_x2_c(UINT8 *blk1, UINT8 *blk2, int lx);
 int pix_abs16x16_y2_c(UINT8 *blk1, UINT8 *blk2, int lx);
 int pix_abs16x16_xy2_c(UINT8 *blk1, UINT8 *blk2, int lx);
 
-static inline int block_permute_op(int j)
-{
-	return permutation[j];
-}
-
-void block_permute(INT16 *block);
+void block_permute(INT16 *block, UINT8 *permutation);
 
 #if defined(HAVE_MMX)
 
@@ -158,6 +171,21 @@ void dsputil_init_mlib(void);
 
 void dsputil_init_alpha(void);
 
+#elif defined(ARCH_POWERPC)
+
+#define emms_c()
+#define __align8 __attribute__ ((aligned (16)))
+
+void dsputil_init_ppc(void);
+
+#elif defined(HAVE_MMI)
+
+#define emms_c()
+
+#define __align8 __attribute__ ((aligned (16)))
+
+void dsputil_init_mmi(void);   
+
 #else
 
 #define emms_c()
@@ -165,6 +193,25 @@ void dsputil_init_alpha(void);
 #define __align8
 
 #endif
+
+#ifdef __GNUC__
+
+struct unaligned_64 { uint64_t l; } __attribute__((packed));
+struct unaligned_32 { uint32_t l; } __attribute__((packed));
+
+#define LD32(a) (((const struct unaligned_32 *) (a))->l)
+#define LD64(a) (((const struct unaligned_64 *) (a))->l)
+
+#define ST32(a, b) (((struct unaligned_32 *) (a))->l) = (b)
+
+#else /* __GNUC__ */
+
+#define LD32(a) (*((uint32_t*)(a)))
+#define LD64(a) (*((uint64_t*)(a)))
+
+#define ST32(a, b) *((uint32_t*)(a)) = (b)
+
+#endif /* !__GNUC__ */
 
 /* PSNR */
 void get_psnr(UINT8 *orig_image[3], UINT8 *coded_image[3],

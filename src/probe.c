@@ -32,7 +32,7 @@ static char *std_module[] = {"null",
 			     "nuv", 
 			     "yuv4mpeg", 
 			     "mpeg2", "vob", "dvd",
-			     "af6", "avi", "divx", "mjpeg",
+			     "af6", "avi", "divx", "ffmpeg",
 			     "mp3", "ac3",
 			     "net",
 			     "im",
@@ -40,7 +40,8 @@ static char *std_module[] = {"null",
 			     "mov",
 			     "v4l",
 			     "xml",
-			     "lav"
+			     "lav",
+			     "lzo"
 };
 
 enum _std_module {_null_, 
@@ -49,7 +50,7 @@ enum _std_module {_null_,
 		  _nuv_, 
 		  _yuv4mpeg_, 
 		  _mpeg2_, _vob_, _dvd_,
-		  _af6_, _avi_, _divx_, _mjpeg_,
+		  _af6_, _avi_, _divx_, _ffmpeg_,
 		  _mp3_, _ac3_,
 		  _net_,
 		  _im_,
@@ -57,7 +58,8 @@ enum _std_module {_null_,
 		  _mov_,
 		  _v4l_,
 		  _xml_,
-		  _lav_
+		  _lav_,
+		  _lzo_
 };
 
 static double frc_table[16] = {0,
@@ -201,7 +203,9 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   }
 
   //check for standard encoder profiles
-  if(info->asr>0) vob->im_asr = info->asr;
+  if( !(*flag & TC_PROBE_NO_IMASR)) {
+    if(info->asr>0) vob->im_asr = info->asr;
+  }
 
   if( !(*flag & TC_PROBE_NO_FRC)) {
     if(info->frc>0) vob->im_frc = info->frc;
@@ -584,11 +588,29 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
      break;
 
   case TC_CODEC_MJPG:
+  case TC_CODEC_MPG1:
+  case TC_CODEC_MP42:
+  case TC_CODEC_RV10:
+    vob->im_v_codec=CODEC_YUV;
+
+    //overwrite pass-through selection!
+    vob->vmod_probed=std_module[_ffmpeg_];
+    preset |= TC_VIDEO;
+    
+    if(preset & TC_AUDIO) break;
+
+    //audio
+    vob->amod_probed=get_audio_module(vob->fixme_a_codec, vob->has_audio);
+    preset |= TC_AUDIO;  
+
+    break;
+
+  case TC_CODEC_LZO1:
 
     vob->im_v_codec=CODEC_YUV;
 
     //overwrite pass-through selection!
-    vob->vmod_probed=std_module[_mjpeg_];
+    vob->vmod_probed=std_module[_lzo_];
     preset |= TC_VIDEO;
     
     if(preset & TC_AUDIO) break;
@@ -670,8 +692,20 @@ char *codec2str(int f)
   case TC_CODEC_MJPG:
     return("MJPG");
 
+  case TC_CODEC_MPG1:
+    return("mpg1");
+
+  case TC_CODEC_LZO1:
+    return("LZO1");
+
+  case TC_CODEC_RV10:
+    return("RV10 Real Video");
+
   case TC_CODEC_DIVX3:
     return("DivX;-)");
+
+  case TC_CODEC_MP42:
+    return("MP42");
     
   case TC_CODEC_DIVX4:
     return("DivX");

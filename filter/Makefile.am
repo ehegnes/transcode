@@ -10,7 +10,7 @@ CFLAGS = -D_REENTRANT @CFLAGS@
 pkgdir=@MOD_PATH@
 
 if HAVE_LIBPOSTPROC
-F_PP=filter_pp.la filter_ppcvs.la
+F_PP=filter_pp.la
 else
 F_PP=
 endif
@@ -46,6 +46,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_tc_video.la\
 			filter_tc_audio.la\
 			filter_29to23.la\
+			filter_smooth.la\
 			$(F_PP) $(F_MMX) $(F_LOGO)
 
 filter_null_la_SOURCES = filter_null.c
@@ -53,6 +54,9 @@ filter_null_la_LDFLAGS = -no-undefined -module -avoid-version
 
 filter_clone_la_SOURCES = filter_clone.c
 filter_clone_la_LDFLAGS = -no-undefined -module -avoid-version 
+
+filter_smooth_la_SOURCES = filter_smooth.c
+filter_smooth_la_LDFLAGS = -no-undefined -module -avoid-version 
 
 filter_29to23_la_SOURCES = filter_29to23.c
 filter_29to23_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -117,10 +121,6 @@ filter_invert_la_LDFLAGS = -no-undefined -module -avoid-version
 filter_pp_la_SOURCES = filter_pp.c
 filter_pp_la_LDFLAGS = -no-undefined -module -avoid-version 
 filter_pp_la_LIBADD = @LIBPOSTPROC_LIBS@
-
-filter_ppcvs_la_SOURCES = filter_ppcvs.c
-filter_ppcvs_la_LDFLAGS = -no-undefined -module -avoid-version 
-filter_ppcvs_la_LIBADD = @LIBPOSTPROC_LIBS@
 
 filter_dilyuvmmx_la_SOURCES = filter_dilyuvmmx.c deinterlace.c
 filter_dilyuvmmx_la_LDFLAGS = -no-undefined -module -avoid-version 

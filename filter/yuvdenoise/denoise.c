@@ -644,8 +644,9 @@ denoise_frame(void)
     }
 
     /* scene change? */
-    if ( denoiser.frame.w*denoiser.frame.h*denoiser.scene_thres/(64*100) < bad_vector) {   
-	denoiser.reset = 1;
+    if ( denoiser.do_reset && 
+	 denoiser.frame.w*denoiser.frame.h*denoiser.scene_thres/(64*100) < bad_vector) {   
+      denoiser.reset = denoiser.do_reset;
     }
 
     bad_vector = 0;

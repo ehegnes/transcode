@@ -139,18 +139,21 @@ int tc_get_force_exit()
  *
  * ------------------------------------------------------------*/
 
-void export_init(vob_t *vob, char *a_mod, char *v_mod)
+int export_init(vob_t *vob, char *a_mod, char *v_mod)
 {
 
    transfer_t export_para;
 
-  // load export modules
-  if((export_ahandle = load_module(((a_mod==NULL)? TC_DEFAULT_EXPORT_AUDIO: a_mod), TC_EXPORT+TC_AUDIO))==NULL) 
-    tc_error("audio export module loading failed");
-  
-  if((export_vhandle = load_module(((v_mod==NULL)? TC_DEFAULT_EXPORT_VIDEO: v_mod), TC_EXPORT+TC_VIDEO))==NULL) 
-    tc_error("video export module loading failed");
-  
+   // load export modules
+   if((export_ahandle = load_module(((a_mod==NULL)? TC_DEFAULT_EXPORT_AUDIO: a_mod), TC_EXPORT+TC_AUDIO))==NULL) {
+     fprintf(stderr,"(%s) loading audio export module failed\n", __FILE__);
+     return(-1);
+   }
+
+   if((export_vhandle = load_module(((v_mod==NULL)? TC_DEFAULT_EXPORT_VIDEO: v_mod), TC_EXPORT+TC_VIDEO))==NULL) {
+     fprintf(stderr,"(%s) loading video export module failed\n", __FILE__);
+     return(-1);
+   }
 
   export_para.flag = verbose;
   tca_export(TC_EXPORT_NAME, &export_para, NULL); 
@@ -175,14 +178,21 @@ void export_init(vob_t *vob, char *a_mod, char *v_mod)
       cc=(export_para.flag & TC_CAP_AUD);
       break;
     default:
-      tc_error("audio codec not supported by export module"); 
+      cc=0;
     }
     
-    if(!cc) tc_error("audio codec not supported by export module"); 
+    if(!cc) {
+      fprintf(stderr, "(%s) audio codec not supported by export module\n", __FILE__); 
+      return(-1);
+    }
 
-  } else 
-    if(vob->im_a_codec != CODEC_PCM)
-      tc_error("audio codec not confirmed by export module"); 
+  } else { 
+   
+    if(vob->im_a_codec != CODEC_PCM) {
+      fprintf(stderr, "(%s) audio codec not supported by export module\n", __FILE__); 
+      return(-1);
+    }
+  }
   
   export_para.flag = verbose;
   tcv_export(TC_EXPORT_NAME, &export_para, NULL);
@@ -204,27 +214,35 @@ void export_init(vob_t *vob, char *a_mod, char *v_mod)
       cc=(export_para.flag & TC_CAP_YUV);
       break;
     case CODEC_RAW: 
+    case CODEC_RAW_YUV: 
       cc=(export_para.flag & TC_CAP_VID);
       break;
     default:
-      tc_error("video codec not supported by export module"); 
+      cc=0;
     }
     
-    if(!cc) tc_error("video codec not supported by export module"); 
+    if(!cc) {
+      fprintf(stderr, "(%s) video codec not supported by export module\n", __FILE__); 
+      return(-1);
+    }
 
-  } else
-    if(vob->im_a_codec != CODEC_RGB)
-      tc_error("video codec not confirmed by export module"); 
+  } else {
     
+    if(vob->im_a_codec != CODEC_RGB) {
+      fprintf(stderr, "(%s) video codec not supported by export module\n", __FILE__); 
+      return(-1);
+    }
+  }
+  return(0);
 }  
 
 /* ------------------------------------------------------------ 
  *
- * export close
+ * export close, unload modules
  *
  * ------------------------------------------------------------*/
 
-void export_close()
+void export_shutdown()
 {
 
     if(verbose & TC_DEBUG) {
@@ -255,13 +273,13 @@ int encoder_init(transfer_t *export_para, vob_t *vob)
   
   export_para->flag = TC_VIDEO;
   if((ret=tcv_export(TC_EXPORT_INIT, export_para, vob))==TC_EXPORT_ERROR) {
-    fprintf(stderr, "video export module error: init failed\n");
+    fprintf(stderr, "(%s) video export module error: init failed\n", __FILE__);
     return(-1);
   }
   
   export_para->flag = TC_AUDIO;
   if((ret=tca_export(TC_EXPORT_INIT, export_para, vob))==TC_EXPORT_ERROR) {
-    fprintf(stderr, "audio export module error: init failed\n");
+    fprintf(stderr, "(%s) audio export module error: init failed\n", __FILE__);
     return(-1);
   }
   
@@ -282,13 +300,13 @@ int encoder_open(transfer_t *export_para, vob_t *vob)
   
   export_para->flag = TC_VIDEO;	
   if((ret=tcv_export(TC_EXPORT_OPEN, export_para, vob))==TC_EXPORT_ERROR) {
-    fprintf(stderr, "video export module error: open failed\n");
+    fprintf(stderr, "(%s) video export module error: open failed\n", __FILE__);
     return(-1);
   }
   
   export_para->flag = TC_AUDIO;
   if((ret=tca_export(TC_EXPORT_OPEN, export_para, vob))==TC_EXPORT_ERROR) {
-    fprintf(stderr, "audio export module error: open failed\n");
+    fprintf(stderr, "(%s) audio export module error: open failed\n", __FILE__);
     return(-1);
   }
   
@@ -305,7 +323,7 @@ int encoder_open(transfer_t *export_para, vob_t *vob)
 int encoder_close(transfer_t *export_para)
 {
   
-  // close, errors not letal
+  // close, errors not fatal
 
   export_para->flag = TC_AUDIO;
   tca_export(TC_EXPORT_CLOSE, export_para, NULL);
@@ -318,7 +336,7 @@ int encoder_close(transfer_t *export_para)
   export = TC_OFF;	
   pthread_mutex_unlock(&export_lock);
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) encoder close\n", __FILE__);
+  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) encoder closed\n", __FILE__);
 	
   return(0);
 }
@@ -337,13 +355,13 @@ int encoder_stop(transfer_t *export_para)
 
   export_para->flag = TC_VIDEO;
   if((ret=tcv_export(TC_EXPORT_STOP, export_para, NULL))==TC_EXPORT_ERROR) {
-    fprintf(stderr, "video export module error: stop failed\n");
+    fprintf(stderr, "(%s) video export module error: stop failed\n", __FILE__);
     return(-1);
   }
   
   export_para->flag = TC_AUDIO;
   if((ret=tca_export(TC_EXPORT_STOP, export_para, NULL))==TC_EXPORT_ERROR) {
-    fprintf(stderr, "audio export module error: stop failed\n");
+    fprintf(stderr, "(%s) audio export module error: stop failed\n", __FILE__);
     return(-1);
   }
   
@@ -368,15 +386,19 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 
     int fid=0;
 
-    int terminate=0;
+    int exit_on_encoder_error=0;
     int fill_flag=0;
 
     counter_encoding=0;
     counter_skipping=0;
 
-    if(verbose & TC_INFO) printf("filling buffer ...");
-    
     do {
+      
+      // check for ^C signal
+      if(tc_get_force_exit()) {
+	if(verbose & TC_DEBUG) fprintf(stderr, "(%s) export canceled on user request\n", __FILE__);
+	return;
+      }
       
     vretry:
       //check buffer fill level
@@ -384,7 +406,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
       
       if(vframe_fill_level(TC_BUFFER_READY)) {
 	
-	tc_pthread_mutex_unlock(&vframe_list_lock);
+	pthread_mutex_unlock(&vframe_list_lock);
 	
 	if((vptr = vframe_retrieve())!=NULL) {
 	  fid = vptr->id;
@@ -406,7 +428,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
       
       //no frame available at this time
       
-      usleep(tc_buffer_delay);
+      usleep(tc_buffer_delay_enc);
       goto vretry;
       
       
@@ -418,11 +440,11 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
       
     aretry:
       //check buffer fill level
-      tc_pthread_mutex_lock(&aframe_list_lock);
+      pthread_mutex_lock(&aframe_list_lock);
       
       if(aframe_fill_level(TC_BUFFER_READY)) {
 	
-	tc_pthread_mutex_unlock(&aframe_list_lock);
+	pthread_mutex_unlock(&aframe_list_lock);
 	
 	if((aptr = aframe_retrieve())!=NULL) {
 	  
@@ -431,7 +453,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	
       } else {
 	
-	tc_pthread_mutex_unlock(&aframe_list_lock);
+	pthread_mutex_unlock(&aframe_list_lock);
 	
 	//check import status
 	if(!aimport_status() || tc_get_force_exit())  {
@@ -443,7 +465,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
       }
       
       //no frame available at this time
-      usleep(tc_buffer_delay);
+      usleep(tc_buffer_delay_enc);
       goto aretry;
       
     cont2:
@@ -520,9 +542,9 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	
 	if(tcv_export(TC_EXPORT_ENCODE, &export_para, vob)<0) {
 	  fprintf(stderr, "\nerror encoding video frame\n");
-	  terminate=1;
+	  exit_on_encoder_error=1;
 	}
-	
+
 	pthread_mutex_lock(&vbuffer_ex_fill_lock);
 	--vbuffer_ex_fill_ctr;
 	pthread_mutex_unlock(&vbuffer_ex_fill_lock);
@@ -572,7 +594,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	
 	if(tca_export(TC_EXPORT_ENCODE, &export_para, vob)<0) {
 	  fprintf(stderr, "\nerror encoding audio frame\n");
-	  terminate=1;
+	  exit_on_encoder_error=1;
 	}
 	
 	pthread_mutex_lock(&abuffer_ex_fill_lock);
@@ -582,10 +604,8 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
       
 	if(verbose & TC_INFO) {
 	  
-	  if(!fill_flag) {
-	    printf(" done\n");
-	    fill_flag=1;
-	  }
+	  if(!fill_flag) fill_flag=1;
+	 
 	  counter_print(frame_a, fid, "encoding", startsec, startusec, ((vob->video_out_file==NULL)?vob->audio_out_file:vob->video_out_file));
 	}
 	
@@ -595,7 +615,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
       } else {
 	
 	// finished?
-	if(fid == frame_b) {
+	if(fid >= frame_b) {
 	  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) encoder last frame finished\n", __FILE__);
 	  
 	  return;
@@ -630,7 +650,6 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	if(verbose & TC_INFO) {
 	  
 	  if(!fill_flag) {
-	    printf(" done\n");
 	    fill_flag=1;
 	  }
 	  counter_print(0, fid, "skipping", startsec, startusec, "/dev/null");
@@ -702,7 +721,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	pthread_mutex_unlock(&abuffer_ex_fill_lock);
       }
       
-    } while(import_status() && !terminate); // main frame decoding loop
+    } while(import_status() && !exit_on_encoder_error); // main frame decoding loop
     
     if(verbose & TC_DEBUG) fprintf(stderr, "(%s) export terminated - buffer empty\n", __FILE__);
     

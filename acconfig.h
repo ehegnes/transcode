@@ -6,6 +6,7 @@
 #undef HAVE_DV
 #undef HAVE_A52
 #undef HAVE_LIBXV
+#undef HAVE_LZO
 #undef HAVE_GTK
 #undef HAVE_SDL
 #undef HAVE_MAGICK
@@ -39,8 +40,8 @@
 #undef NET_STREAM
 #undef USE_LIBA52_DECODER
 
-#undef AVIFILE_0_6
 #undef LAME_3_89
+#undef LAME_3_92
 #undef TRANSCODE_0_6
 #undef LIBDV_095
 

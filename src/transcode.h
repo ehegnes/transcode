@@ -39,6 +39,8 @@
 #include <string.h>
 #include "../avilib/avilib.h"
 
+#include "../libioaux/framecode.h"
+
 #ifdef NET_STREAM
 #include <netinet/in.h>
 #include <sys/types.h>
@@ -64,7 +66,9 @@ typedef struct _transfer_t {
   FILE   *fd;
   
   int   size;
+
   char *buffer;
+  char *buffer2;
 
   int attributes;
 
@@ -124,10 +128,12 @@ typedef struct _vob_t {
 
   double pts_start;
 
+  double psu_offset;         // psu offset to pass to extsub
+
   int demuxer;
 
-  long format_flag;           //NTSC=1,PAL=0
-  long codec_flag;            //MPEG version ...
+  long format_flag;          //NTSC=1,PAL=0
+  long codec_flag;           //MPEG version ...
 
   int quality;
 
@@ -275,6 +281,8 @@ typedef struct _vob_t {
   int mp3frequency;
   float mp3quality;         //0=best (very slow).  9=worst (default=5)
 
+  int bitreservoir;
+
   char *audiologfile;
   
   int ex_a_codec;         // audio codec for export module
@@ -289,6 +297,9 @@ typedef struct _vob_t {
   
   char *mod_path;
 
+  struct fc_time *ttime; // for framecode parsing, pointer to first struct
+  int  ttime_current;    // current time element, needed?
+
   unsigned int frame_interval; //select every `frame_interval` frames only
 
   int   chanid;
@@ -296,6 +307,8 @@ typedef struct _vob_t {
 
   char *im_v_string;  // pass parameters to import video modules
   char *im_a_string;  // pass parameters to import audio modules
+
+  int accel;
   
 } vob_t;
 
@@ -447,6 +460,9 @@ void tc_update_frames_cloned(long cc);
 void tc_set_force_exit(void);
 int tc_get_force_exit(void);
 
+void tc_outstream_rotate();
+void tc_outstream_rotate_request();
+
 #define Malloc(p,n,typ)  do if( !(p = (typ *) malloc ( sizeof(typ) * (n) )))\
 {\
     perror(__FILE__); \
@@ -476,7 +492,8 @@ extern int print_counter_interval;
 extern int print_counter_cr;
 
 // core parameter
-extern int tc_buffer_delay;
+extern int tc_buffer_delay_dec;
+extern int tc_buffer_delay_enc;
 extern int tc_encode_stream;
 extern int tc_decode_stream;
 extern int tc_cluster_mode;
@@ -484,6 +501,9 @@ extern int tc_decoder_delay;
 extern int tc_x_preview;
 extern int tc_y_preview;
 extern int tc_progress_meter;
+extern int tc_pthread_main;
+extern int tc_accel;
+extern int tc_avi_limit;
 
 # define TC_EXPORT_NAME     10
 # define TC_EXPORT_OPEN     11
@@ -519,20 +539,16 @@ extern int tc_progress_meter;
 # define TC_MODE_AVI_SPLIT          1
 # define TC_MODE_DVD_CHAPTER        2
 # define TC_MODE_PSU                4
-# define TC_MODE_DIRECTORY          8
+# define TC_MODE_DIRECTORY         16
+# define TC_MODE_DEBUG             32
 
 #define DD {printf("(%s) CHECK @ line (%d)\n", __FILE__, __LINE__); sleep(1);}
 
-//#define tc_pthread_mutex_lock(S) {fprintf(stderr, "(%s@%d) lock....\n", __FILE__, __LINE__); pthread_mutex_lock(S);}
-//#define tc_pthread_mutex_unlock(S) {fprintf(stderr, "(%s@%d) ...unlock\n", __FILE__, __LINE__); pthread_mutex_unlock(S);}
+#define tc_pthread_mutex_lock(S) {fprintf(stderr, "(%s@%d) (%ld) lock....\n", __FILE__, __LINE__, pthread_self()); pthread_mutex_lock(S);}
+#define tc_pthread_mutex_unlock(S) {fprintf(stderr, "(%s@%d)  (%ld) ...unlock\n", __FILE__, __LINE__, pthread_self()); pthread_mutex_unlock(S);}
   
-//#define tc_pthread_cond_wait(A,B) {fprintf(stderr, "(%s@%d) condwait\n", __FILE__, __LINE__); pthread_cond_wait(A,B);}
+#define tc_pthread_cond_wait(A,B) {fprintf(stderr, "(%s@%d) (%ld) condwait\n", __FILE__, __LINE__, pthread_self()); pthread_cond_wait(A,B);}
   
-//#define tc_pthread_mutex_trylock(S);{fprintf(stderr, "(%s@%d) try lock\n", __FILE__, __LINE__); pthread_mutex_trylock(S);}
-  
-#define tc_pthread_mutex_lock(S) pthread_mutex_lock(S);
-#define tc_pthread_mutex_unlock(S) pthread_mutex_unlock(S);
-#define tc_pthread_cond_wait(A,B) pthread_cond_wait(A,B);
-#define tc_pthread_mutex_trylock(S); pthread_mutex_trylock(S);
+#define tc_pthread_mutex_trylock(S);{fprintf(stderr, "(%s@%d) (%ld) try lock\n", __FILE__, __LINE__, pthread_self()); pthread_mutex_trylock(S);}
 
 #endif

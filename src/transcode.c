@@ -1,5 +1,5 @@
 /*
- *  transcode.c
+ *  transcode.c 
  *
  *  Copyright (C) Thomas Östreich - June 2001
  *
@@ -35,12 +35,15 @@
 #include "probe.h"
 #include "split.h"
 #include "iodir.h"
+#include "ac.h"
 
 #ifdef HAVE_GETOPT_LONG_ONLY
 #include <getopt.h>
 #else 
 #include "../libsupport/getopt.h"
 #endif
+
+#include "../libioaux/framecode.h"
 
 #include "usage.h"
 
@@ -94,6 +97,7 @@ enum {
   CLUSTER_PERCENTAGE,
   CLUSTER_CHUNKS,
   EXPORT_ASR,
+  IMPORT_ASR,
   EXPORT_FRC,
   DIVX_QUANT,
   DIVX_RC,
@@ -104,6 +108,7 @@ enum {
   MORE_HELP,
   KEEP_ASR,
   NO_AUDIO_ADJUST,
+  NO_BITRESERVOIR,
   AV_FINE_MS,
   DURATION,
   NAV_SEEK,
@@ -121,6 +126,9 @@ enum {
   PRINT_STATUS,
   WRITE_PID,
   PROGRESS_OFF,
+  DEBUG_MODE,
+  ACCEL_MODE,
+  AVI_LIMIT,
 };
 
 int print_counter_interval = 1;
@@ -129,16 +137,20 @@ int print_counter_cr = 0;
 //-------------------------------------------------------------
 // core parameter
 
-int tc_buffer_delay  = -1;
-int tc_server_thread =  0;
-int tc_cluster_mode  =  0;
-int tc_decoder_delay =  0;
-int tc_x_preview     =  0;
-int tc_y_preview     =  0;
-int tc_progress_meter=  1;
+int tc_buffer_delay_dec  = -1;
+int tc_buffer_delay_enc  = -1;
+int tc_server_thread     =  0;
+int tc_cluster_mode      =  0;
+int tc_decoder_delay     =  0;
+int tc_x_preview         =  0;
+int tc_y_preview         =  0;
+int tc_progress_meter    =  1;
+int tc_accel             = -1;    //acceleration code
+int tc_avi_limit         = AVI_FILE_LIMIT;  //AVI file size limit in MB 
 
 //-------------------------------------------------------------
 
+int tc_pthread_main;
 
 /* ------------------------------------------------------------ 
  *
@@ -154,7 +166,7 @@ void version()
 }
 
 
-void usage()
+void usage(int status)
 {
   version();
 
@@ -184,16 +196,18 @@ void usage()
 
   //audio
   printf(" -e r[,b[,c]]      PCM audio stream parameter [%d,%d,%d]\n", RATE, BITS, CHANNELS);
-  printf(" -E samplerate     audio output samplerate [as input]\n"); 
+  printf(" -E r[,b[,c]]      audio output samplerate, bits, channels [as input]\n"); 
   printf(" -n 0xnn           import audio format id [0x%x]\n", CODEC_AC3);
   printf(" -N 0xnn           export audio format id [0x%x]\n", CODEC_MP3);
   printf(" -b b[,vbr[,q]]    audio encoder bitrate kBits/s[,vbr[,quality]] [%d,%d,%d]\n", ABITRATE, AVBR, AQUALITY);
   printf("--no_audio_adjust  disable audio frame sample adjustment [off]\n");
+  printf("--no_bitreservoir  disable lame bitreservoir [off]\n");
   printf("\n");
 
   //video
   printf(" -g wxh            RGB video stream frame size [%dx%d]\n", PAL_W, PAL_H);
   printf("--export_asr C     set export aspect ratio code C [as input]\n");
+  printf("--import_asr C     set import aspect ratio code C [auto]\n");
   printf("--keep_asr         try to keep aspect ratio (only with -Z) [off]\n");
   printf(" -f rate[,frc]     output video frame rate[,frc] [%.3f,0] fps\n", PAL_FPS);
   printf("--export_frc F     set export frame rate code F [as input]\n");
@@ -205,6 +219,7 @@ void usage()
   printf(" -y vmod[,amod]    video[,audio] export modules [%s]\n", 
 	 TC_DEFAULT_EXPORT_VIDEO);
   printf(" -F codec          encoder parameter strings [module dependent]\n");
+  printf(" --avi_limit N     split output AVI file after N MB [%d]\n", AVI_FILE_LIMIT);
   printf("\n");
 
   //audio effects
@@ -320,6 +335,9 @@ void usage()
   printf("--print_status N[,use_cr] print status every N frames / use CR or NL [1,1]\n");
   printf("--progress_off            disable progress meter status line [off]\n");
   printf("--write_pid file          write pid of signal thread to \"file\" [off]\n");
+#ifdef ARCH_X86
+  printf("--accel type              enforce IA32 acceleration for type [autodetect]\n");
+#endif
   printf("\n");
 
   //help
@@ -329,16 +347,16 @@ void usage()
   printf("--more_help param   more help on named parameter\n");
   printf("\n");
   
-  exit(0);
+  exit(status);
   
 }
 
-void short_usage()
+void short_usage(int status)
 {
   version();
 
   printf("\'transcode -h | more\' shows a list of available command line options.\n");
-  exit(0);
+  exit(status);
   
 }
 
@@ -376,7 +394,7 @@ void signal_thread()
   
   sigset_t sigs_to_catch;
   
-  int caught, sleep_ctr=0;
+  int caught;
   char *signame = NULL;
 
   writepid = getpid();
@@ -387,7 +405,7 @@ void signal_thread()
   sigaddset(&sigs_to_catch, SIGTERM);
   
   for (;;) {
-      
+    
     sigwait(&sigs_to_catch, &caught);
     
     switch (caught) {
@@ -396,38 +414,29 @@ void signal_thread()
     }
     
     if (signame) {
-      printf("\n[%s] %s received - flushing buffer\n", PACKAGE, signame);
+      if(verbose & TC_INFO) fprintf(stderr, "\n[%s] (sighandler) %s received\n", PACKAGE, signame);
       
       sig_int=1;
-      
-      // stop import by setting flags
+
+      // import (stage 1 termination signal)
       tc_import_stop();
 
-      // wait until encoder is finished
-      while(export_status()) {
+      if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (sighandler) import cancelation submitted\n", PACKAGE);
 
-	pthread_testcancel();
-	
-	sleep(1);
-	
-	++sleep_ctr;
+      // export
+      tc_set_force_exit(); 
 
-	//force export to end for more than 2 sec deadlock of transcode
-	if(sleep_ctr==2) tc_set_force_exit();
-	
-	if(verbose & TC_DEBUG) vframe_fill_print(0);
-	if(verbose & TC_DEBUG) printf("[%s] waiting for export to finish\n", PACKAGE);
-      }
+      if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (sighandler) export cancelation submitted\n", PACKAGE);
+
     }
   }
 }
-
 
 void tc_error(char *string)
 {
   version();
   
-  fprintf(stderr, "error: %s\n", string);
+  fprintf(stderr, "critical error: %s - exit\n", string);
   //abort
   fflush(stdout);
   exit(1);
@@ -441,7 +450,7 @@ vob_t *tc_get_vob() {return(vob);}
  *
  * ------------------------------------------------------------*/
 
-void transcoder(int mode, vob_t *vob) 
+int transcoder(int mode, vob_t *vob) 
 {
     
     switch(mode) {
@@ -452,34 +461,49 @@ void transcoder(int mode, vob_t *vob)
       if(im_vid_mod && strcmp(im_vid_mod,"null") != 0) tc_decode_stream|=TC_VIDEO;
 
       // load import modules and check capabilities
-      import_init(vob, im_aud_mod, im_vid_mod);  
-      
+      if(import_init(vob, im_aud_mod, im_vid_mod)<0) {
+	fprintf(stderr,"[%s] failed to init import modules\n", PACKAGE);
+	return(-1);
+      }  
+
       // load and initialize filter plugins
       plugin_init(vob);
+
+      // initalize filter plugins
+      filter_init();
       
       if(ex_aud_mod && strcmp(ex_aud_mod,"null") != 0) tc_encode_stream|=TC_AUDIO;
       if(ex_vid_mod && strcmp(ex_vid_mod,"null") != 0) tc_encode_stream|=TC_VIDEO;
       
       // load export modules and check capabilities
-      export_init(vob, ex_aud_mod, ex_vid_mod);
+      if(export_init(vob, ex_aud_mod, ex_vid_mod)<0) {
+      	fprintf(stderr,"[%s] failed to init export modules\n", PACKAGE);
+	return(-1);
+      }  
       
       break;
       
     case TC_OFF:
       
       // unload import modules
-      import_close();
+      import_shutdown();
+
+      // call all filter plug-ins closing routines
+      filter_close();
       
-      // close filter and unload plugin
+      // and unload plugin
       plugin_close(vob);
       
       // unload export modules
-      export_close();
+      export_shutdown();
       
       break;
+
+    default:
+      return(-1);
     }
     
-    return;
+    return(0);
 }
 
 
@@ -518,7 +542,7 @@ int main(int argc, char *argv[]) {
 
     char 
       base[TC_BUF_MIN], buf[TC_BUF_MAX], 
-      *chbase=NULL, *psubase=NULL, *dirbase=NULL,
+      *chbase=NULL, *psubase=NULL, *dirbase=NULL, *accel=NULL,
       abuf1[TC_BUF_MIN], vbuf1[TC_BUF_MIN], 
       abuf2[TC_BUF_MIN], vbuf2[TC_BUF_MIN];
     
@@ -545,6 +569,10 @@ int main(int argc, char *argv[]) {
     int option_index = 0;
 
     char *zoom_filter="Lanczos3";
+
+    struct fc_time *tstart = NULL;
+    char *fc_ttime_separator = ",";
+    char *fc_ttime_string = NULL;
 
     int no_audio_adjust=TC_FALSE, no_split=TC_FALSE;
 
@@ -609,6 +637,7 @@ int main(int argc, char *argv[]) {
       {"cluster_percentage", no_argument, NULL, CLUSTER_PERCENTAGE},
       {"cluster_chunks", required_argument, NULL, CLUSTER_CHUNKS},
       {"export_asr", required_argument, NULL, EXPORT_ASR},
+      {"import_asr", required_argument, NULL, IMPORT_ASR},
       {"export_frc", required_argument, NULL, EXPORT_FRC},
       {"divx_quant", required_argument, NULL, DIVX_QUANT},
       {"divx_rc", required_argument, NULL, DIVX_RC},
@@ -619,6 +648,7 @@ int main(int argc, char *argv[]) {
       {"more_help", required_argument, NULL, MORE_HELP},
       {"keep_asr", no_argument, NULL, KEEP_ASR},
       {"no_audio_adjust", no_argument, NULL, NO_AUDIO_ADJUST},
+      {"no_bitreservoir", no_argument, NULL, NO_BITRESERVOIR},
       {"av_fine_ms", required_argument, NULL, AV_FINE_MS},
       {"duration", required_argument, NULL, DURATION},
       {"nav_seek", required_argument, NULL, NAV_SEEK},
@@ -636,10 +666,13 @@ int main(int argc, char *argv[]) {
       {"print_status", required_argument, NULL, PRINT_STATUS},
       {"write_pid", required_argument, NULL, WRITE_PID},
       {"progress_off", no_argument, NULL, PROGRESS_OFF},
+      {"debug_mode", no_argument, NULL, DEBUG_MODE},
+      {"accel_mode", required_argument, NULL, ACCEL_MODE},
+      {"avi_limit", required_argument, NULL, AVI_LIMIT},
       {0,0,0,0}
     };
     
-    if(argc==1) short_usage();
+    if(argc==1) short_usage(EXIT_FAILURE);
 
     // if we're sending output to a terminal default to printing CR after every
     // status update instead of LF.
@@ -648,6 +681,9 @@ int main(int argc, char *argv[]) {
     } else {
       print_counter_cr = 0;
     }
+
+    //main thread id
+    tc_pthread_main=pthread_self();
     
     //allocate vob structure
     vob = (vob_t *) malloc(sizeof(vob_t));
@@ -679,8 +715,8 @@ int main(int argc, char *argv[]) {
     vob->a_bits           = BITS;
     vob->a_chan           = CHANNELS;
     
-    vob->dm_bits          = BITS;
-    vob->dm_chan          = CHANNELS;
+    vob->dm_bits          = 0;
+    vob->dm_chan          = 0;
 
     vob->im_a_size        = SIZE_PCM_FRAME;
     vob->im_v_width       = PAL_W;
@@ -803,6 +839,17 @@ int main(int argc, char *argv[]) {
     vob->a52_mode         = 0;
     vob->encode_fields    = 0;
 
+    vob->ttime            = NULL;
+    vob->ttime_current    = 0;
+
+#ifdef ARCH_X86
+    vob->accel            = ac_mmflag();
+#else
+    vob->accel            = 0;
+#endif
+    vob->psu_offset       = 0.0f;
+    vob->bitreservoir     = TC_TRUE;
+
     // prepare for SIGINT to catch
     
     signal(SIGINT, SIG_IGN);
@@ -822,8 +869,8 @@ int main(int argc, char *argv[]) {
      * (II) parse command line
      *
      * ------------------------------------------------------------*/
-     
-    while ((ch1 = getopt_long_only(argc, argv, "n:m:y:hu:i:o:a:t:p:f:zdkr:j:w:b:c:x:s:e:g:q:vlD:AVB:Z:C:I:KP:T:U:L:Q:R:J:F:E:S:M:Y:G:OX:H:N:W:", long_options, &option_index)) != -1) {
+
+    while ((ch1 = getopt_long_only(argc, argv, "n:m:y:h?u:i:o:a:t:p:f:zdkr:j:w:b:c:x:s:e:g:q:vlD:AVB:Z:C:I:KP:T:U:L:Q:R:J:F:E:S:M:Y:G:OX:H:N:W:", long_options, &option_index)) != -1) {
 
 	switch (ch1) {
 	  
@@ -845,7 +892,7 @@ int main(int argc, char *argv[]) {
 	  
 	case 't':
 	    
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  
 	  if (2 != sscanf(optarg,"%d,%s", &splitavi_frames, base)) tc_error("invalid parameter for option -t");
 	  
@@ -857,7 +904,7 @@ int main(int argc, char *argv[]) {
 	  
 	case 'W':
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  
 	  n=sscanf(optarg,"%d,%d,%s", &vob->vob_chunk, &vob->vob_chunk_max, vob_logfile); 
 	  
@@ -869,9 +916,9 @@ int main(int argc, char *argv[]) {
 	  
 	case 's': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  
-	  if ((n = sscanf(optarg,"%lf,%lf,%lf,%lf", &vob->volume, &vob->ac3_gain[0], &vob->ac3_gain[1], &vob->ac3_gain[2]))<0) usage();
+	  if ((n = sscanf(optarg,"%lf,%lf,%lf,%lf", &vob->volume, &vob->ac3_gain[0], &vob->ac3_gain[1], &vob->ac3_gain[2]))<0) usage(EXIT_FAILURE);
 	  
 	  if(vob->volume<0) tc_error("invalid parameter for option -s");
 	  
@@ -882,7 +929,7 @@ int main(int argc, char *argv[]) {
 	  
 	case 'L': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  vob->vob_offset = atoi(optarg);
 	  
 	  if(vob->vob_offset<0) tc_error("invalid parameter for option -L");
@@ -896,7 +943,7 @@ int main(int argc, char *argv[]) {
 	  
 	case 'H':
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  seek_range = atoi(optarg);
 	  if(seek_range==0) auto_probe=0;
 	  
@@ -922,7 +969,7 @@ int main(int argc, char *argv[]) {
 	  
 	case 'M': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  vob->demuxer = atoi(optarg);
 	  
 	  preset_flag |= TC_PROBE_NO_DEMUX;
@@ -934,7 +981,7 @@ int main(int argc, char *argv[]) {
 	  
 	case 'G': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  vob->gamma = atof(optarg);
 	  
 	  if(vob->gamma<0.0) tc_error("invalid parameter for option -G");
@@ -945,11 +992,9 @@ int main(int argc, char *argv[]) {
 	  
 	case 'A': 
 	  vob->im_a_codec=CODEC_AC3;	
-	  
 	  break;
 	  
 	case 'V': 
-	  
 	  vob->im_v_codec=CODEC_YUV;
 	  break;
 	  
@@ -960,14 +1005,14 @@ int main(int argc, char *argv[]) {
 	  
 	case 'C': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  vob->antialias  = atoi(optarg);
 	  
 	  break;
 	  
 	case 'Q': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  
 	  n = sscanf(optarg,"%d,%d", &vob->divxquality, &vob->quality);
 	  
@@ -977,22 +1022,22 @@ int main(int argc, char *argv[]) {
 	  
 	case 'E': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 
 	  n = sscanf(optarg,"%d,%d,%d", &vob->mp3frequency, &vob->dm_bits, &vob->dm_chan);
 	  
 	  if(n < 0 || vob->mp3frequency<= 0)  
 	    tc_error("invalid parameter for option -E");
 	  
-	  if(vob->dm_chan < 0 || vob->dm_chan > 6) tc_error("invalid parameter for option -E");
+	  if(n>2 && (vob->dm_chan < 0 || vob->dm_chan > 6)) tc_error("invalid parameter for option -E");
 	  
-	  if(vob->dm_bits != 8 && vob->dm_bits != 16 && vob->dm_bits != 24) tc_error("invalid parameter for option -E");
+	  if(n>1 && vob->dm_bits != 8 && vob->dm_bits != 16 && vob->dm_bits != 24) tc_error("invalid parameter for option -E");
 	  
 	  break;
 	  
 	case 'R': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  
 	  n = sscanf(optarg,"%d,%64[^,],%s", &vob->divxmultipass, vlogfile, alogfile);
 	  
@@ -1018,7 +1063,7 @@ int main(int argc, char *argv[]) {
 	  
 	case 'P': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  vob->pass_flag  = atoi(optarg);
 	  
 	  if(vob->pass_flag < 0 || vob->pass_flag>3)  
@@ -1028,7 +1073,7 @@ int main(int argc, char *argv[]) {
 	  
 	case 'I': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  vob->deinterlace = atoi(optarg);
 	  
 	  if(vob->deinterlace < 0)
@@ -1038,7 +1083,7 @@ int main(int argc, char *argv[]) {
 	  
 	case 'U': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  
 	  chbase = optarg;
 	  
@@ -1047,12 +1092,12 @@ int main(int argc, char *argv[]) {
 	  
 	case 'h': 
 	  
-	  usage();
+	  usage(EXIT_SUCCESS);
 	  break;
 	  
 	case 'q': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  verbose = atoi(optarg);
 	  
 	  if(verbose) verbose |= TC_INFO;
@@ -1064,7 +1109,7 @@ int main(int argc, char *argv[]) {
 	case 'b': 
 	  
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  
 	  n = sscanf(optarg,"%d,%d,%f", &vob->mp3bitrate, &vob->a_vbr, &vob->mp3quality);
 
@@ -1075,7 +1120,7 @@ int main(int argc, char *argv[]) {
 
       case 'f': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	
 	n = sscanf(optarg,"%lf,%d", &vob->fps, &vob->im_frc);
 
@@ -1095,7 +1140,7 @@ int main(int argc, char *argv[]) {
 
       case 'n': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	vob->fixme_a_codec = strtol(optarg, endptr, 16);
 
 	if(vob->fixme_a_codec < 0) tc_error("invalid parameter for option -n");
@@ -1106,7 +1151,7 @@ int main(int argc, char *argv[]) {
 
       case 'N': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	vob->ex_a_codec = strtol(optarg, endptr, 16);
 
 	if(vob->ex_a_codec < 0) tc_error("invalid parameter for option -N");
@@ -1115,7 +1160,7 @@ int main(int argc, char *argv[]) {
 	
       case 'w': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	
 	n = sscanf(optarg,"%d,%d,%d", &vob->divxbitrate, &vob->divxkeyframes, &vob->divxcrispness);
 	
@@ -1139,9 +1184,9 @@ int main(int argc, char *argv[]) {
 	
       case 'r': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 
-	if ((n = sscanf(optarg,"%d,%d", &vob->reduce_h, &vob->reduce_w))<0) usage();
+	if ((n = sscanf(optarg,"%d,%d", &vob->reduce_h, &vob->reduce_w))<0) usage(EXIT_FAILURE);
 	
 	if(n==1) vob->reduce_w=vob->reduce_h;
 
@@ -1154,18 +1199,14 @@ int main(int argc, char *argv[]) {
 	
       case 'c': 
 	
-	if(optarg[0]=='-') usage();
-	if (2 != sscanf(optarg,"%d-%d", &frame_a, &frame_b)) usage();
-
-	if(frame_b-1 < frame_a) tc_error("invalid frame range for option -c");
-        counter_set_range(frame_a, frame_b);
-	counter_on(); //activate
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
+	fc_ttime_string = optarg;
 
 	break;
 
       case 'Y': 
 	
-	if ((n = sscanf(optarg,"%d,%d,%d,%d", &vob->ex_clip_top, &vob->ex_clip_left, &vob->ex_clip_bottom, &vob->ex_clip_right))<0) usage();
+	if ((n = sscanf(optarg,"%d,%d,%d,%d", &vob->ex_clip_top, &vob->ex_clip_left, &vob->ex_clip_bottom, &vob->ex_clip_right))<0) usage(EXIT_FAILURE);
 	
 	//symmetrical clipping for only 1-3 arguments
 	if(n==1 || n==2) vob->ex_clip_bottom=vob->ex_clip_top;
@@ -1177,7 +1218,7 @@ int main(int argc, char *argv[]) {
 	
 	case 'j': 
 	  
-	  if ((n = sscanf(optarg,"%d,%d,%d,%d", &vob->im_clip_top, &vob->im_clip_left, &vob->im_clip_bottom, &vob->im_clip_right))<0) usage();
+	  if ((n = sscanf(optarg,"%d,%d,%d,%d", &vob->im_clip_top, &vob->im_clip_left, &vob->im_clip_bottom, &vob->im_clip_right))<0) usage(EXIT_FAILURE);
 	  
 	  //symmetrical clipping for only 1-3 arguments
 	  if(n==1 || n==2) vob->im_clip_bottom=vob->im_clip_top;
@@ -1189,9 +1230,9 @@ int main(int argc, char *argv[]) {
 	  
 	case 'S': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 
-	if((n = sscanf(optarg,"%d,%d-%d", &vob->ps_unit, &vob->ps_seq1, &vob->ps_seq2))<0) usage();
+	if((n = sscanf(optarg,"%d,%d-%d", &vob->ps_unit, &vob->ps_seq1, &vob->ps_seq2))<0) usage(EXIT_FAILURE);
 
 	if(vob->ps_unit <0 || vob->ps_seq1 <0 || vob->ps_seq2 <0 || vob->ps_seq1 >= vob->ps_seq2)
 	    tc_error("invalid parameter for option -S");
@@ -1202,7 +1243,7 @@ int main(int argc, char *argv[]) {
 	
       case 'g': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	if (2 != sscanf(optarg,"%dx%d", &vob->im_v_width, &vob->im_v_height)) 
 	  tc_error("invalid video parameter for option -g");
 
@@ -1217,7 +1258,7 @@ int main(int argc, char *argv[]) {
 
       case 'J':
 
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 
 	  if (!plugins_string) {
 	    if (NULL == (plugins_string = (char *)malloc((strlen(optarg)+2)*sizeof(char) )))
@@ -1243,7 +1284,7 @@ int main(int argc, char *argv[]) {
 	
       case 'y': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	
 	if ((n = sscanf(optarg,"%64[^,],%s", vbuf2, abuf2))<=0) tc_error("invalid parameter for option -y");
 	
@@ -1266,7 +1307,7 @@ int main(int argc, char *argv[]) {
 	
       case 'e': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	
 	n = sscanf(optarg,"%d,%d,%d", &vob->a_rate, 
 		   &vob->a_bits, &vob->a_chan);
@@ -1295,7 +1336,7 @@ int main(int argc, char *argv[]) {
 	
       case 'x':
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	
 	if ((n = sscanf(optarg,"%64[^,],%s", vbuf1, abuf1))<=0) tc_error("invalid parameter for option -x");
 	
@@ -1354,9 +1395,9 @@ int main(int argc, char *argv[]) {
 	
       case 'u':
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 
-	if ((n = sscanf(optarg,"%d,%d,%d", &max_frame_buffer, &max_frame_threads, &tc_buffer_delay))<=0) tc_error("invalid parameter for option -u");
+	if ((n = sscanf(optarg,"%d,%d,%d,%d", &max_frame_buffer, &max_frame_threads, &tc_buffer_delay_dec, &tc_buffer_delay_enc))<=0) tc_error("invalid parameter for option -u");
 	
 	if(max_frame_buffer < 0 || max_frame_threads < 0 || max_frame_threads > TC_FRAME_THREADS_MAX) tc_error("invalid parameter for option -u");
 
@@ -1366,7 +1407,7 @@ int main(int argc, char *argv[]) {
 	
       case 'B': 
 
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 
         if ((n = sscanf(optarg,"%d,%d,%d", &vob->vert_resize1, &vob->hori_resize1, &vob->resize1_mult))<=0) tc_error("invalid parameter for option -B");	
 	if(n==1) vob->hori_resize1=0;
@@ -1376,7 +1417,7 @@ int main(int argc, char *argv[]) {
 
       case 'X': 
 
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 
         if ((n = sscanf(optarg,"%d,%d,%d", &vob->vert_resize2, &vob->hori_resize2, &vob->resize2_mult))<=0) tc_error("invalid parameter for option -X");	
 	if(n==1) vob->hori_resize2=0;
@@ -1386,7 +1427,7 @@ int main(int argc, char *argv[]) {
 	
       case 'Z': 
 
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 
 	if ((n = sscanf(optarg,"%dx%d", &vob->zoom_width, &vob->zoom_height))<=0) tc_error("invalid parameter for option -Z");
 
@@ -1409,7 +1450,7 @@ int main(int argc, char *argv[]) {
 	
       case 'a': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	
 	if ((n = sscanf(optarg,"%d,%d", &vob->a_track, &vob->v_track))<=0) tc_error("invalid parameter for option -a");
 	
@@ -1419,7 +1460,7 @@ int main(int argc, char *argv[]) {
 	
       case 'i':
 	
-	if(optarg[0]=='-') usage();
+	//if(optarg[0]=='-') usage(EXIT_FAILURE);
 	
 	video_in_file=optarg;
 	vob->video_in_file = optarg;
@@ -1429,7 +1470,7 @@ int main(int argc, char *argv[]) {
 	
       case 'p':
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	
 	audio_in_file = optarg;
 	vob->audio_in_file = optarg;
@@ -1442,7 +1483,7 @@ int main(int argc, char *argv[]) {
 
       case 'F':
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	
         {
           char *p2 = strchr(optarg,',');
@@ -1463,7 +1504,7 @@ int main(int argc, char *argv[]) {
 	
       case 'o': 
 	
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 
 	video_out_file = optarg;
 	vob->video_out_file = optarg;
@@ -1471,7 +1512,7 @@ int main(int argc, char *argv[]) {
 
       case 'm':
 
-	if(optarg[0]=='-') usage();
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	audio_out_file = optarg;
 	vob->audio_out_file = optarg;
 	
@@ -1489,7 +1530,7 @@ int main(int argc, char *argv[]) {
 	
 	case ZOOM_FILTER:
 
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  
 	  if(optarg && strlen(optarg) > 0) {
 	    
@@ -1554,7 +1595,7 @@ int main(int argc, char *argv[]) {
 	  break;
 
 	case CLUSTER_CHUNKS:
-	    if(optarg[0]=='-') usage();
+	    if(optarg[0]=='-') usage(EXIT_FAILURE);
 	    
 	    if (2 != sscanf(optarg,"%d-%d", &vob->vob_chunk_num1, &vob->vob_chunk_num2)) 
 		tc_error("invalid parameter for option --cluster_chunks");	  
@@ -1564,16 +1605,27 @@ int main(int argc, char *argv[]) {
 
 	case EXPORT_ASR:
 
-	    if(optarg[0]=='-') usage();
+	    if(optarg[0]=='-') usage(EXIT_FAILURE);
 	    vob->ex_asr=atoi(optarg);
 
 	    if(vob->ex_asr < 0) tc_error("invalid parameter for option --export_asr");
 	    
 	    break;
 
+	case IMPORT_ASR:
+
+	    if(optarg[0]=='-') usage(EXIT_FAILURE);
+	    vob->im_asr=atoi(optarg);
+
+	    if(vob->im_asr < 0) tc_error("invalid parameter for option --import_asr");
+
+	    preset_flag |= TC_PROBE_NO_IMASR;
+	    
+	    break;
+
 	case EXPORT_FRC:
 
-	    if(optarg[0]=='-') usage();
+	    if(optarg[0]=='-') usage(EXIT_FAILURE);
 	    vob->ex_frc=atoi(optarg);
 
 	    if(vob->ex_frc<0) tc_error("invalid parameter for option --export_frc");
@@ -1581,14 +1633,14 @@ int main(int argc, char *argv[]) {
 	    break;
 	  
 	case DIVX_QUANT:
-	    if(optarg[0]=='-') usage();
+	    if(optarg[0]=='-') usage(EXIT_FAILURE);
 
 	    if (sscanf(optarg,"%d,%d", &vob->min_quantizer, &vob->max_quantizer)<0) tc_error("invalid parameter for option --divx_quant");
 
 	    break;
 
 	case DIVX_RC:
-	    if(optarg[0]=='-') usage();
+	    if(optarg[0]=='-') usage(EXIT_FAILURE);
 
 	    if (sscanf(optarg,"%d,%d,%d", &vob->rc_period, &vob->rc_reaction_period, &vob->rc_reaction_ratio )<0) tc_error("invalid parameter for option --divx_rc");
 
@@ -1635,7 +1687,7 @@ int main(int argc, char *argv[]) {
 	  break;
 
 	case WRITE_PID:
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  
 	  if (optarg) {
 	    FILE *f = fopen(optarg,"w");
@@ -1648,6 +1700,10 @@ int main(int argc, char *argv[]) {
 	  
 	case NO_AUDIO_ADJUST:
 	  no_audio_adjust=TC_TRUE;
+	  break;
+
+	case NO_BITRESERVOIR:
+	  vob->bitreservoir=TC_FALSE;
 	  break;
 
 	case AV_FINE_MS:
@@ -1669,12 +1725,12 @@ int main(int argc, char *argv[]) {
 	  }
 
 	  printf( "none\n" );
-	  usage();
+	  usage(EXIT_FAILURE);
 	  
 	  break;
 
 	case DURATION:
-	  if( ( n = sscanf( optarg, "%d:%d:%d", &hh, &mm, &ss ) ) == 0 ) usage();
+	  if( ( n = sscanf( optarg, "%d:%d:%d", &hh, &mm, &ss ) ) == 0 ) usage(EXIT_FAILURE);
 	  
 	  frame_a = 0;
 	  
@@ -1721,35 +1777,70 @@ int main(int argc, char *argv[]) {
 	  core_mode=TC_MODE_PSU;
 	  tc_cluster_mode = TC_ON;
 	  break;
-	  
+
 	case FRAME_INTERVAL:
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  if((n = sscanf( optarg, "%u", &vob->frame_interval) ) < 0) 
-	    usage();
+	    usage(EXIT_FAILURE);
 
 	  break;
 	  
 	case DIR_MODE: 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  
 	  dirbase = optarg;
 
 	  core_mode=TC_MODE_DIRECTORY;
 	  
 	  break;
+
+#ifdef ARCH_X86
+	case ACCEL_MODE: 
+	  
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+	  
+	  accel=optarg;
+
+	  if(accel==NULL) usage(EXIT_FAILURE);
+
+	  if(strncasecmp(accel, "C", 1)==0) tc_accel=MM_C;
+	  if(strncasecmp(accel, "ia32asm", 1)==0) tc_accel=MM_IA32ASM;
+	  if(strncasecmp(accel, "mmx", 3)==0) tc_accel=MM_MMX;
+	  if(strncasecmp(accel, "mmxext", 6)==0) tc_accel=MM_MMXEXT;
+	  if(strncasecmp(accel, "3dnow", 5)==0) tc_accel=MM_3DNOW;
+	  if(strncasecmp(accel, "sse", 3)==0) tc_accel=MM_SSE;
+	  if(strncasecmp(accel, "sse2", 4)==0) tc_accel=MM_SSE2;
+	  
+	  if(tc_accel==-1) usage(EXIT_FAILURE);
+
+	  break;
+#endif
+
+	case AVI_LIMIT:
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+
+	  tc_avi_limit=atoi(optarg);
+
+	    break;
+
+	case DEBUG_MODE: 
+
+	  core_mode=TC_MODE_DEBUG;
+
+	  break;
 	  
 	case PSU_CHUNKS: 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  
-	  if((n = sscanf( optarg, "%d-%d,%d", &vob->vob_psu_num1, &vob->vob_psu_num2, &psu_frame_threshold) ) < 0) usage();
+	  if((n = sscanf( optarg, "%d-%d,%d", &vob->vob_psu_num1, &vob->vob_psu_num2, &psu_frame_threshold) ) < 0) usage(EXIT_FAILURE);
 
 	  break;
 
 	case PRE_CLIP: 
 	  
-	  if ((n = sscanf(optarg,"%d,%d,%d,%d", &vob->pre_im_clip_top, &vob->pre_im_clip_left, &vob->pre_im_clip_bottom, &vob->pre_im_clip_right))<0) usage();
+	  if ((n = sscanf(optarg,"%d,%d,%d,%d", &vob->pre_im_clip_top, &vob->pre_im_clip_left, &vob->pre_im_clip_bottom, &vob->pre_im_clip_right))<0) usage(EXIT_FAILURE);
 	  
 	  //symmetrical clipping for only 1-3 arguments
 	  if(n==1 || n==2) vob->pre_im_clip_bottom=vob->pre_im_clip_top;
@@ -1761,7 +1852,7 @@ int main(int argc, char *argv[]) {
 
 	case POST_CLIP: 
 	  
-	  if ((n = sscanf(optarg,"%d,%d,%d,%d", &vob->post_ex_clip_top, &vob->post_ex_clip_left, &vob->post_ex_clip_bottom, &vob->post_ex_clip_right))<0) usage();
+	  if ((n = sscanf(optarg,"%d,%d,%d,%d", &vob->post_ex_clip_top, &vob->post_ex_clip_left, &vob->post_ex_clip_bottom, &vob->post_ex_clip_right))<0) usage(EXIT_FAILURE);
 	  
 	  //symmetrical clipping for only 1-3 arguments
 	  if(n==1 || n==2) vob->post_ex_clip_bottom=vob->post_ex_clip_top;
@@ -1781,12 +1872,12 @@ int main(int argc, char *argv[]) {
 	  tc_progress_meter = TC_OFF;
 	  break;
 
-	case '?':
 	default:
-	  short_usage();
+	  short_usage(EXIT_FAILURE);
+	  break;
 	}
     }
-    
+
     if(optind < argc) {
       fprintf(stderr, "warning: unused command line parameter detected (%d/%d)\n", optind, argc);
       
@@ -1794,6 +1885,9 @@ int main(int argc, char *argv[]) {
     }
 
     if ( psu_mode ) {
+      
+      if(video_out_file==NULL) tc_error("please specify output file name for psu mode");
+
       if(!strchr(video_out_file, '%') && !no_split) {
 	char *suffix = strrchr(video_out_file, '.');
 	if(suffix && 0 == strcmp(".avi", suffix)) {
@@ -1811,14 +1905,17 @@ int main(int argc, char *argv[]) {
        * (III) auto probe properties of input stream
        *
        * ------------------------------------------------------------*/
-      
+
+    // user doesn't want to start at all;-(
     if(sig_int) goto summary;
 
+    // display program version
     if(verbose) version();
 
+    // this will determine most source parameter
     if(auto_probe) {
-      
-      //probe the source
+
+      // interface to "tcprobe"
       probe_source(&preset_flag, vob, seek_range, video_in_file, audio_in_file);
 
       if(verbose) {
@@ -1839,8 +1936,27 @@ int main(int argc, char *argv[]) {
      *
      * ------------------------------------------------------------*/
 
-    //determine -S,-c,-L option parameter for distributed processing
+    // get -c from string
+    if (fc_ttime_string) {
+      if( parse_fc_time_string( fc_ttime_string, vob->fps, 
+	    fc_ttime_separator, 0 /* no debug */, &vob->ttime ) == -1 )
+	usage(EXIT_FAILURE);
 
+      frame_a = vob->ttime->stf;
+      frame_b = vob->ttime->etf;
+
+      tstart=vob->ttime;
+      counter_set_range(frame_a, frame_b);
+      counter_on(); //activate
+    } else {
+      vob->ttime = new_fc_time();
+      frame_a = vob->ttime->stf = TC_FRAME_FIRST;
+      frame_b = vob->ttime->etf = TC_FRAME_LAST;
+      tstart = vob->ttime;
+      tstart->next = NULL;
+    }
+
+    // determine -S,-c,-L option parameter for distributed processing
     if(nav_seek_file) {
       FILE *fp;
       char buf[80];
@@ -1855,6 +1971,7 @@ int main(int argc, char *argv[]) {
 	perror(nav_seek_file);
 	exit(EXIT_FAILURE);
       }
+
       if(verbose & TC_DEBUG) printf("searching %s for frame %d\n", nav_seek_file, frame_a);
       for(line_count = 0; fgets(buf, sizeof(buf), fp); line_count++) {
 	int L, new_frame_a;
@@ -1863,8 +1980,9 @@ int main(int argc, char *argv[]) {
 	    if(line_count == frame_a) {
 		int len = frame_b - frame_a;
 		if(verbose & TC_DEBUG) printf("%s: -c %d-%d -> -L %d -c %d-%d\n", nav_seek_file, frame_a, frame_b, L, new_frame_a, new_frame_a+len);
-		frame_a = new_frame_a;
-		frame_b = new_frame_a + len;
+		vob->ttime->stf = frame_a = new_frame_a;
+		vob->ttime->etf = frame_b = new_frame_a + len;
+		vob->ttime->next = NULL; // only one range
 		vob->vob_offset = L;
 		flag=1;
 		break;
@@ -1930,9 +2048,10 @@ int main(int argc, char *argv[]) {
     // -P
 
     if(vob->pass_flag & TC_VIDEO) {
-      vob->im_v_codec=CODEC_RAW;
+      
+      vob->im_v_codec = (vob->im_v_codec==CODEC_YUV) ? CODEC_RAW_YUV:CODEC_RAW;
       vob->ex_v_codec=CODEC_RAW;
-
+      
       //suggestion:
       if(no_v_out_codec) ex_vid_mod="raw";
       no_v_out_codec=0;
@@ -2034,7 +2153,7 @@ int main(int argc, char *argv[]) {
 	break;
 	
       case 2:
-	printf("[%s] V: %-16s | (mode=2) handled by encoder\n", PACKAGE, "de-interlace");
+	printf("[%s] V: %-16s | (mode=2) handled by encoder (if available)\n", PACKAGE, "de-interlace");
 	break;
 	
       case 3:
@@ -2045,6 +2164,10 @@ int main(int argc, char *argv[]) {
 	printf("[%s] V: %-16s | (mode=4) drop field / half height (fast)\n", PACKAGE, "de-interlace");
 	break;
 	
+      case 5:
+	printf("[%s] V: %-16s | (mode=5) interpolate scanlines / blend frames\n", PACKAGE, "de-interlace");
+	break;
+
       default:
 	tc_error("invalid parameter for option -I");
 	break;
@@ -2222,12 +2345,10 @@ int main(int argc, char *argv[]) {
 	  vob->zoom_width = zoomto;
       }
       
-      if(vob->ex_v_height - vob->ex_clip_top - vob->ex_clip_bottom <= 0 ||
-	 vob->ex_v_height - vob->ex_clip_top - vob->ex_clip_bottom > TC_MAX_V_FRAME_HEIGHT) 
+      if(vob->ex_v_height - vob->ex_clip_top - vob->ex_clip_bottom <= 0)
 	tc_error("invalid top/bottom clip parameter calculated from --keep_asr");
       
-      if(vob->ex_v_width - vob->ex_clip_left - vob->ex_clip_right <= 0 ||
-	 vob->ex_v_width - vob->ex_clip_left - vob->ex_clip_right > TC_MAX_V_FRAME_WIDTH) 
+      if(vob->ex_v_width - vob->ex_clip_left - vob->ex_clip_right <= 0)
 	tc_error("invalid left/right clip parameter calculated from --keep_asr");
       
       if(verbose & TC_INFO) printf("[%s] V: %-16s | yes\n", PACKAGE, "keep aspect");
@@ -2453,7 +2574,6 @@ int main(int argc, char *argv[]) {
       vob->a_chan = 2;
     }
 
-    
     if(vob->ex_a_codec==0 || vob->fixme_a_codec==0) {
       if(verbose & TC_INFO) printf("[%s] A: %-16s | disabled\n", PACKAGE, "export");
       ex_aud_mod="null";
@@ -2472,7 +2592,9 @@ int main(int argc, char *argv[]) {
 	else
 	  printf("[%s] A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps\n", PACKAGE, "export format", vob->ex_a_codec, aformat2str(vob->ex_a_codec),
 		 ((vob->mp3frequency>0)? vob->mp3frequency:vob->a_rate), 
-		 vob->a_bits, vob->a_chan, vob->mp3bitrate);
+		 ((vob->dm_bits>0)?vob->dm_bits:vob->a_bits), 
+		 ((vob->dm_chan>0)?vob->dm_chan:vob->a_chan), 
+		 vob->mp3bitrate);
       }
     }
     
@@ -2523,10 +2645,6 @@ int main(int argc, char *argv[]) {
     } else 
       if(verbose & TC_INFO) printf("[%s] A: %-16s | %d@%d\n", PACKAGE, "adjustment", vob->a_leap_bytes, vob->a_leap_frame);
     
-    // -E
-    
-    if(vob->mp3frequency && (verbose & TC_INFO)) printf("[%s] A: %-16s | %d Hz\n", PACKAGE, "down sampling", vob->mp3frequency);
-
     // -s
 
     if(vob->volume > 0 && vob->a_chan != 2) {
@@ -2549,6 +2667,11 @@ int main(int argc, char *argv[]) {
 
     if(pcmswap) if(verbose & TC_INFO) printf("[%s] A: %-16s | yes\n", PACKAGE, "swap bytes");
     
+    // -E
+    
+    //set export parameter to input parameter, if no re-sampling is requested
+    if(vob->dm_chan==0) vob->dm_chan=vob->a_chan;
+    if(vob->dm_bits==0) vob->dm_bits=vob->a_bits;
 
     // -P
 
@@ -2576,22 +2699,32 @@ int main(int argc, char *argv[]) {
 	counter_set_range(frame_a, frame_b);
     }
 
+#ifdef ARCH_X86
+    // --accel
+    if(tc_accel==-1) tc_accel = ac_mmflag();
+
+    if(verbose & TC_INFO) printf("[%s] V: IA32 accel mode  | %s (%s)\n", PACKAGE, ac_mmstr(tc_accel, 0), ac_mmstr(-1, 1));    
+#endif
+
     // more checks with warnings
     
-    // -i
-    
-    if(video_in_file==NULL) fprintf(stderr, "[%s] no option -i found, reading from \"%s\"\n", PACKAGE, vob->video_in_file);
-    
-    // -o
+    if(verbose & TC_INFO) {
+      
+      // -i
+      
+      if(video_in_file==NULL) fprintf(stderr, "[%s] no option -i found, reading from \"%s\"\n", PACKAGE, vob->video_in_file);
+      
+      // -o
+      
+      if(video_out_file == NULL && audio_out_file == NULL && core_mode == TC_MODE_DEFAULT) fprintf(stderr, "[%s] no option -o found, encoded frames send to \"%s\"\n", PACKAGE, vob->video_out_file);
+      
+      // -y
+      
+      if(core_mode == TC_MODE_DEFAULT && video_out_file != NULL && no_v_out_codec) fprintf(stderr, "[%s] no option -y found, option -o ignored, writing to \"/dev/null\"\n", PACKAGE);
+      
+      if(core_mode == TC_MODE_AVI_SPLIT && no_v_out_codec) fprintf(stderr, "[%s] no option -y found, option -t ignored, writing to \"/dev/null\"\n", PACKAGE);
+    }
 
-    if(video_out_file == NULL && audio_out_file == NULL && core_mode == TC_MODE_DEFAULT) fprintf(stderr, "[%s] no option -o found, encoded frames send to \"%s\"\n", PACKAGE, vob->video_out_file);
-    
-    // -y
-
-    if(core_mode == TC_MODE_DEFAULT && video_out_file != NULL && no_v_out_codec) fprintf(stderr, "[%s] no option -y found, option -o ignored, writing to \"/dev/null\"\n", PACKAGE);
-
-    if(core_mode == TC_MODE_AVI_SPLIT && no_v_out_codec) fprintf(stderr, "[%s] no option -y found, option -t ignored, writing to \"/dev/null\"\n", PACKAGE);
-    
     if(ex_aud_mod && strlen(ex_aud_mod) != 0 && strcmp(ex_aud_mod, "net")==0) 
       tc_server_thread=1;
     if(ex_vid_mod && strlen(ex_vid_mod) != 0 && strcmp(ex_vid_mod, "net")==0) 
@@ -2599,10 +2732,14 @@ int main(int argc, char *argv[]) {
 
     // -u 
     
-    if(tc_buffer_delay==-1) //adjust core parameter 
-      tc_buffer_delay = (vob->pass_flag & TC_VIDEO || ex_vid_mod==NULL || strcmp(ex_vid_mod, "null")==0) ? TC_DELAY_MIN:TC_DELAY_MAX;
+    if(tc_buffer_delay_dec==-1) //adjust core parameter 
+      tc_buffer_delay_dec = (vob->pass_flag & TC_VIDEO || ex_vid_mod==NULL || strcmp(ex_vid_mod, "null")==0) ? TC_DELAY_MIN:TC_DELAY_MAX;
+
+    if(tc_buffer_delay_enc==-1) //adjust core parameter 
+      tc_buffer_delay_enc = (vob->pass_flag & TC_VIDEO || ex_vid_mod==NULL || strcmp(ex_vid_mod, "null")==0) ? TC_DELAY_MIN:TC_DELAY_MAX;
+
     
-    if(verbose & TC_DEBUG) printf("[%s] encoder delay = %d us\n", PACKAGE, tc_buffer_delay);    
+    if(verbose & TC_DEBUG) printf("[%s] encoder delay = decode=%d encode=%d usec\n", PACKAGE, tc_buffer_delay_dec, tc_buffer_delay_enc);    
     
 
     /* ------------------------------------------------------------- 
@@ -2611,7 +2748,7 @@ int main(int argc, char *argv[]) {
      *
      * ------------------------------------------------------------- */ 
     
-    // start the signal vob info structure server thread     
+    // start the signal vob info structure server thread, if requested     
     if(tc_server_thread) {
       if(pthread_create(&thread_server, NULL, (void *) server_thread, vob)!=0)
 	tc_error("failed to start server thread");
@@ -2630,17 +2767,13 @@ int main(int argc, char *argv[]) {
 #else
     if(verbose & TC_DEBUG) printf("[%s] %d framebuffer (dynamical) requested\n", PACKAGE, max_frame_buffer);
 #endif
+
+    // load import/export modules and filters plugins
+    if(transcoder(TC_ON, vob)<0) tc_error("plug-in initialization failed");
     
-    // load the modules and filters plugins
-    transcoder(TC_ON, vob);
-
-    // initalize filter plugins
-    filter_init();
-
     // start frame processing threads
     frame_threads_init(vob, max_frame_threads, max_frame_threads);
 
-    
     /* ------------------------------------------------------------ 
      *
      * transcoder core modes
@@ -2651,35 +2784,55 @@ int main(int argc, char *argv[]) {
       
     case TC_MODE_DEFAULT:
       
-
-      /* ------------------------------------------------------------ 
+      /* ------------------------------------------------------------- 
        *
        * single file continuous or interval mode
        *
        * ------------------------------------------------------------*/  
-      
-      // decoder/encoder routine
-      
-      decoder_init(vob);
 
+      // init decoder and open the source     
+      import_open(vob);
+
+      // start the AV import threads that load the frames into transcode
+      // this must be called after import_open
+      import_threads_create(vob);
+      
       // init encoder
-      if(encoder_init(&export_para, vob)<0) 
-	  tc_error("failed to init encoder");      
+      if(encoder_init(&export_para, vob)<0) tc_error("failed to init encoder");
       
-      // open output
-      if(encoder_open(&export_para, vob)<0) 
-	  tc_error("failed to open output");      
-      
-      // main encoding loop
-      encoder(vob, frame_a, frame_b);
+      // open output files 
+      if(encoder_open(&export_para, vob)<0) tc_error("failed to open output"); 
 
-      // close output
+      // get start interval
+      tstart = vob->ttime;
+
+      while (tstart) {
+	
+        if (tstart->etf != TC_FRAME_LAST) {
+          counter_set_range(tstart->stf, tstart->etf);
+        }
+        // main encoding loop, return when done with all frames
+	// cluster mode will automagically determine frame range
+        (tc_cluster_mode) ? encoder(vob, frame_a, frame_b):encoder(vob, tstart->stf, tstart->etf);
+
+	// check for user cancelation request
+	if (sig_int || sig_tstp) break;
+	
+        // next range
+        tstart = tstart->next;
+      }
+
+      // close output files
       encoder_close(&export_para);
       
       // stop encoder
       encoder_stop(&export_para);
 
-      tc_import_stop();
+      // cancel import threads
+      import_threads_cancel(); 
+
+      // stop decoder and close the source     
+      import_close(vob);
 
       break;
       
@@ -2691,13 +2844,16 @@ int main(int argc, char *argv[]) {
        * split output AVI file
        *
        * ------------------------------------------------------------*/  
-    
-      decoder_init(vob);
 
+      // init decoder and open the source     
+      import_open(vob);
+
+      // start the AV import threads that load the frames into transcode
+      import_threads_create(vob);
+      
       // encoder init
-      if(encoder_init(&export_para, vob)<0) 
-	  tc_error("failed to init encoder");      
-
+      if(encoder_init(&export_para, vob)<0) tc_error("failed to init encoder");
+      
       // need to loop for this option
       
       ch1 = 0;
@@ -2712,7 +2868,7 @@ int main(int argc, char *argv[]) {
 
 	// open output
 	if(encoder_open(&export_para, vob)<0) 
-	    tc_error("failed to open output");      
+	  tc_error("failed to open output");      
 	
 	fa = frame_a;
 	fb = frame_a + splitavi_frames;
@@ -2723,15 +2879,24 @@ int main(int argc, char *argv[]) {
 	encoder_close(&export_para);	
 	
 	// restart
-	    frame_a += splitavi_frames;
-	    if(frame_a >= frame_b) break;
-	    
+	frame_a += splitavi_frames;
+	if(frame_a >= frame_b) break;
+	
+	if(verbose & TC_DEBUG) fprintf(stderr, "(%s) import status=%d\n", __FILE__, import_status());
+
+	// check for user cancelation request
+	if(sig_int || sig_tstp) break;
+	
       } while(import_status());
-
-      encoder_stop(&export_para);
       
-      tc_import_stop();
+      encoder_stop(&export_para);
 
+      // cancel import threads
+      import_threads_cancel(); 
+
+      // stop decoder and close the source     
+      import_close(vob);
+      
       break;
 
     case TC_MODE_PSU:
@@ -2743,10 +2908,12 @@ int main(int argc, char *argv[]) {
        * --------------------------------------------------------------*/  
       
       // encoder init
-      if(encoder_init(&export_para, vob)<0) tc_error("failed to init encoder");      
+      if(encoder_init(&export_para, vob)<0) 
+	tc_error("failed to init encoder");      
+      
       // open output
       if(no_split) {
-
+	
 	vob->video_out_file = psubase;
 	
 	if(encoder_open(&export_para, vob)<0) 
@@ -2757,12 +2924,11 @@ int main(int argc, char *argv[]) {
       tc_decoder_delay=1;
       
       // need to loop for this option
-      
       ch1 = vob->vob_psu_num1;
 
       // enable counter
       counter_on();
-      
+
       for(;;) {
 	
 	int ret;
@@ -2773,10 +2939,11 @@ int main(int argc, char *argv[]) {
 	  
 	  // update vob structure
 	  vob->video_out_file = buf;
-	}
 
-	printf("[%s] using output filename %s\n", PACKAGE, vob->video_out_file);
-	// get seek/frame information on next PSU
+	  if(verbose & TC_INFO) printf("[%s] using output filename %s\n", PACKAGE, vob->video_out_file);
+	}
+	
+	// get seek/frame information for next PSU
 	// need to process whole PSU
 	vob->vob_chunk=0;
 	vob->vob_chunk_max=1;
@@ -2784,19 +2951,24 @@ int main(int argc, char *argv[]) {
 	ret=split_stream(vob, nav_seek_file, ch1, &fa, &fb, 0);
 
 	if(verbose & TC_DEBUG) printf("(%s) processing PSU %d, -L %d -c %d-%d %s (ret=%d)\n", __FILE__, ch1, vob->vob_offset, fa, fb, buf, ret);
-	
+
 	// exit condition
 	if(ret<0 || ch1 == vob->vob_psu_num2) break;
 
+	//do not process units with a small frame number, assume it is junk
 	if((fb-fa) > psu_frame_threshold) {
-	    
+	  
 	  // start new decoding session with updated vob structure
-	  decoder_init(vob);
+	  // this starts the full decoder setup, including the threads
+	  import_open(vob);
+	  
+	  // start the AV import threads that load the frames into transcode
+	  import_threads_create(vob);
 	  
 	  // set range for ETA
 	  counter_set_range(fa, fb);
 	  
-	  // open output
+	  // open new output file
 	  if(!no_split) {
 	    if(encoder_open(&export_para, vob)<0) 
 	      tc_error("failed to open output");      
@@ -2805,27 +2977,31 @@ int main(int argc, char *argv[]) {
 	  // core 
 	  // we try to encode more frames and let the decoder safely
 	  // drain the queue to avoid threads not stopping
+	  
 	  encoder(vob, fa, TC_FRAME_LAST);
 	  
-	  // close output
+	  // close output file
 	  if(!no_split) {
-	      if(encoder_close(&export_para)<0)
-		  fprintf(stderr, "failed to close encoder - non fatal"); 
+	    if(encoder_close(&export_para)<0)
+	      fprintf(stderr, "failed to close encoder - non fatal\n"); 
 	  } else printf("\n");
-
 	  
+	  //debugging code since PSU mode still alpha code
 	  vframe_fill_print(0);
 	  aframe_fill_print(0);
 	  
-	  tc_import_stop();
-	  
-	  decoder_stop(TC_VIDEO);
-	  decoder_stop(TC_AUDIO);
+	  // cancel import threads
+	  import_threads_cancel(); 
+
+	  // stop decoder and close the source     
+	  import_close(vob);
 	  
 	  // flush all buffers before we proceed to next PSU
 	  aframe_flush();
 	  vframe_flush();
 
+	  vob->psu_offset += (double) (fb-fa);
+	  
 	} else printf("skipping PSU %d with %d frame(s)\n", ch1, fb-fa);
 	
 	++ch1;
@@ -2843,7 +3019,7 @@ int main(int argc, char *argv[]) {
       encoder_stop(&export_para);
       
       break;
-    
+
 
     case TC_MODE_DIRECTORY:
       
@@ -2884,7 +3060,9 @@ int main(int argc, char *argv[]) {
       }
       
       // encoder init
-      if(encoder_init(&export_para, vob)<0) tc_error("failed to init encoder");      
+      if(encoder_init(&export_para, vob)<0) 
+	tc_error("failed to init encoder");      
+      
       // open output
       if(no_split) {
 	
@@ -2897,7 +3075,7 @@ int main(int argc, char *argv[]) {
 	if(encoder_open(&export_para, vob)<0) 
 	  tc_error("failed to open output");      
       }
-      
+
       // 1 sec delay after decoder closing
       tc_decoder_delay=1;
       
@@ -2907,7 +3085,7 @@ int main(int argc, char *argv[]) {
 	
 	//single source file
 	vob->audio_in_file = vob->video_in_file;
-	
+
 	if(!no_split) {
 	  // create new filename 
 	  sprintf(buf, "%s-%03d.avi", dirbase, dir_fcnt);
@@ -2917,16 +3095,35 @@ int main(int argc, char *argv[]) {
 	}
 	
 	// start new decoding session with updated vob structure
-	decoder_init(vob);
-	
+	import_open(vob);
+
+	// start the AV import threads that load the frames into transcode
+	import_threads_create(vob);
+
 	// open output
 	if(!no_split) {
 	  if(encoder_open(&export_para, vob)<0) 
 	    tc_error("failed to open output");      
 	}
-	
-	// core 
-	encoder(vob, 0, INT_MAX);
+
+	// get start interval
+	tstart = vob->ttime;
+
+	while (tstart) {
+	  
+	  if (tstart->etf != TC_FRAME_LAST) {
+	    counter_set_range(tstart->stf, tstart->etf);
+	  }
+	  
+	  // main encoding loop, return when done with all frames
+	  encoder(vob, tstart->stf, tstart->etf);
+	  
+	  // check for user cancelation request
+	  if (sig_int || sig_tstp) break;
+	  
+	  // next range
+	  tstart = tstart->next;
+	}
 	
 	// close output
 	if(!no_split) {
@@ -2934,12 +3131,13 @@ int main(int argc, char *argv[]) {
 	    fprintf(stderr, "failed to close encoder - non fatal"); 
 	}
 
-	tc_import_stop();
+	// cancel import threads
+	import_threads_cancel(); 
 
-	decoder_stop(TC_VIDEO);
-	decoder_stop(TC_AUDIO);
-
-	// flush all buffers before we proceed to next PSU
+	// stop decoder and close the source     
+	import_close(vob);
+	
+	// flush all buffers before we proceed to next file
 	aframe_flush();
 	vframe_flush();
 	
@@ -2985,7 +3183,7 @@ int main(int argc, char *argv[]) {
       if(no_split) {
 	
 	// create new filename 
-	sprintf(buf, "%s-ch.avi", chbase);
+	sprintf(buf, "%s.avi", chbase);
 	
 	// update vob structure
 	vob->video_out_file = buf;
@@ -2995,7 +3193,7 @@ int main(int argc, char *argv[]) {
       }
 
       // 1 sec delay after decoder closing
-      tc_decoder_delay=1;
+      tc_decoder_delay=0;
       
       // loop each chapter
       ch1=vob->dvd_chapter1;
@@ -3004,14 +3202,14 @@ int main(int argc, char *argv[]) {
       //ch=-1 is allowed but makes no sense
       if(ch1<0) ch1=1;
 
-      //no ETA please
-      counter_off();
+      //frame range selection finally works
+      (frame_b < INT_MAX) ? counter_set_range(frame_a, frame_b) : counter_off(); 
 
       for(;;) {
 	
-	  vob->dvd_chapter1 = ch1;
-	  vob->dvd_chapter2 =  -1;
-
+	vob->dvd_chapter1 = ch1;
+	vob->dvd_chapter2 =  -1;
+	
 	if(!no_split) {
 	  // create new filename 
 	  sprintf(buf, "%s-ch%02d.avi", chbase, ch1);
@@ -3021,33 +3219,34 @@ int main(int argc, char *argv[]) {
 	}
 	
 	// start decoding with updated vob structure
-	decoder_init(vob);
+	import_open(vob);
+	
+	// start the AV import threads that load the frames into transcode
+	import_threads_create(vob);
 	
 	if(verbose & TC_DEBUG)
 	  fprintf(stderr, "%d chapters for title %d detected\n", vob->dvd_max_chapters, vob->dvd_title);
 	
-	do { 
-	  
-	  // encode
-	  if(!no_split) {
-	    if(encoder_open(&export_para, vob)<0) 
-	      tc_error("failed to init encoder");      
-	  }
-	  
-	  // main encoding loop, selecting an interval won't work
-	  encoder(vob, TC_FRAME_FIRST, TC_FRAME_LAST);
-	  
-	  if(!no_split) {
-	    if(encoder_close(&export_para)<0)
-	      fprintf(stderr, "failed to close encoder - non fatal"); 
-	  }
-	  
-	} while(import_status());
 	
-	tc_import_stop();
+	// encode
+	if(!no_split) {
+	  if(encoder_open(&export_para, vob)<0) 
+	    tc_error("failed to init encoder");      
+	}
+
+	// main encoding loop, selecting an interval won't work
+	encoder(vob, frame_a, frame_b);
+
+	if(!no_split) {
+	  if(encoder_close(&export_para)<0)
+	    fprintf(stderr, "failed to close encoder - non fatal"); 
+	}
 	
-	decoder_stop(TC_VIDEO);
-	decoder_stop(TC_AUDIO);
+	// cancel import threads
+	import_threads_cancel(); 
+	
+	// stop decoder and close the source     
+	import_close(vob);
 	
 	// flush all buffers before we proceed
 	aframe_flush();
@@ -3070,7 +3269,13 @@ int main(int argc, char *argv[]) {
       
 #endif
       break;
+
+    case TC_MODE_DEBUG:
       
+      printf("[%s] debug \"core\" mode", PACKAGE);
+
+      break;
+
     default:
       //should not get here:
       tc_error("internal error");      
@@ -3078,37 +3283,39 @@ int main(int argc, char *argv[]) {
     
     /* ------------------------------------------------------------ 
      *
-     * shutdown transcode
+     * shutdown transcode, all cores modes end up here, core modes
+     * must take care of proper import/export API shutdown. 
+     *
+     * 1) stop and cancel frame processing threads
+     * 2) unload all external modules
+     * 3) cancel internal signal/server thread
      *
      * ------------------------------------------------------------*/  
 
     // shutdown
-    if(verbose & TC_INFO) printf("\nclean up ...");
+    if(verbose & TC_INFO) printf("\nclean up |");
 
-    // notify import threads
-    tc_import_stop();
-    
-    // cancel import threads
-    import_cancel();
+    // stop and cancel frame processing threads
+    frame_threads_close(); 
+    if(verbose & TC_INFO) printf(" frame threads |");
 
-    // stop frame processing threads
-    frame_threads_close();
+    // unload all external modules
+    transcoder(TC_OFF, NULL); 
+    if(verbose & TC_INFO) printf(" unload modules |");
 
-    // clode filter plugins
-    filter_close();
-
-    // unload the modules
-    transcoder(TC_OFF, NULL);
-
-    // no longer used
+    // cancel no longer used internal signal handler threads
     pthread_cancel(thread_signal);
     pthread_join(thread_signal, &thread_status);
     
+    // cancel optional server thread
     if(tc_server_thread) {
       pthread_cancel(thread_server);
       pthread_join(thread_server, &thread_status);
     }
     
+    if(verbose & TC_INFO) printf(" internal threads |");
+
+    // all done
     if(verbose & TC_INFO) printf(" done\n");
 
  summary:
@@ -3132,6 +3339,7 @@ int main(int argc, char *argv[]) {
     if(verbose & TC_DEBUG) fprintf(stderr, "[%s] buffer released\n", PACKAGE);
 #endif
 
+    //exit at last
     if (sig_int || sig_tstp)
       exit(127);
     else

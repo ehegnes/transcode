@@ -24,22 +24,30 @@
 #ifndef _DECODER_H
 #define _DECODER_H 
 
-void import_init(vob_t *vob, char *a_mod, char *v_mod);
-void aimport_thread(vob_t *vob);
-void vimport_thread(vob_t *vob);
+// import API
+int import_init(vob_t *vob, char *a_mod, char *v_mod);
+void import_shutdown();
+
 void aimport_stop();
 void vimport_stop();
-void import_close();
-void import_cancel();
 
-void decoder_init(vob_t *vob);
-int decoder_stop(int what);
+void aimport_start();
+void vimport_start();
 
-void export_close();
+int import_open(vob_t *vob);
+int import_close();
+
+void import_threads_create();
+void import_threads_cancel();
 
 int import_status();
+
 int aimport_status();
 int vimport_status();
+
+// threads
+void aimport_thread(vob_t *vob);
+void vimport_thread(vob_t *vob);
 
 extern int max_frame_buffer;
 extern int max_frame_threads;

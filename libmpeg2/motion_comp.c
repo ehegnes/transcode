@@ -1,6 +1,6 @@
 /*
  * motion_comp.c
- * Copyright (C) 2000-2001 Michel Lespinasse <walken@zoy.org>
+ * Copyright (C) 2000-2002 Michel Lespinasse <walken@zoy.org>
  * Copyright (C) 1999-2000 Aaron Holtzman <aholtzma@ess.engr.uvic.ca>
  *
  * This file is part of mpeg2dec, a free MPEG-2 video stream decoder.
@@ -29,60 +29,54 @@
 #include "mpeg2_internal.h"
 #include "mm_accel.h"
 
-mc_functions_t mc_functions;
+mpeg2_mc_t mpeg2_mc;
 
-void mpeg2_accel_info(void)
-{
-
+void mpeg2_mc_info (uint32_t mm_accel) {
 #ifdef ARCH_X86
-    if (config.flags & MM_ACCEL_X86_MMXEXT) {
+    if (mm_accel & MM_ACCEL_X86_MMXEXT) {
 	fprintf (stderr, "Using MMXEXT for motion compensation\n");
-    } else if (config.flags & MM_ACCEL_X86_3DNOW) {
+    } else if (mm_accel & MM_ACCEL_X86_3DNOW) {
 	fprintf (stderr, "Using 3DNOW for motion compensation\n");
-    } else if (config.flags & MM_ACCEL_X86_MMX) {
+    } else if (mm_accel & MM_ACCEL_X86_MMX) {
 	fprintf (stderr, "Using MMX for motion compensation\n");
     } else
 #endif
 #ifdef ARCH_PPC
-    if (config.flags & MM_ACCEL_PPC_ALTIVEC) {
-      fprintf (stderr, "Using altivec for motion compensation\n");
+    if (mm_accel & MM_ACCEL_PPC_ALTIVEC) {
+	fprintf (stderr, "Using altivec for motion compensation\n");
     } else
 #endif
 #ifdef LIBMPEG2_MLIB
-      if (config.flags & MM_ACCEL_MLIB) {
+    if (mm_accel & MM_ACCEL_MLIB) {
 	fprintf (stderr, "Using mlib for motion compensation\n");
-      } else
+    } else
 #endif
-	{
       fprintf (stderr, "No accelerated motion compensation found\n");
-	}
 }
 
-
-void motion_comp_init (void)
+void mpeg2_mc_init (uint32_t mm_accel)
 {
-
 #ifdef ARCH_X86
-    if (config.flags & MM_ACCEL_X86_MMXEXT) {
-	mc_functions = mc_functions_mmxext;
-    } else if (config.flags & MM_ACCEL_X86_3DNOW) {
-	mc_functions = mc_functions_3dnow;
-    } else if (config.flags & MM_ACCEL_X86_MMX) {
-	mc_functions = mc_functions_mmx;
+    if (mm_accel & MM_ACCEL_X86_MMXEXT) {
+	mpeg2_mc = mpeg2_mc_mmxext;
+    } else if (mm_accel & MM_ACCEL_X86_3DNOW) {
+	mpeg2_mc = mpeg2_mc_3dnow;
+    } else if (mm_accel & MM_ACCEL_X86_MMX) {
+	mpeg2_mc = mpeg2_mc_mmx;
     } else
 #endif
 #ifdef ARCH_PPC
-    if (config.flags & MM_ACCEL_PPC_ALTIVEC) {
-	mc_functions = mc_functions_altivec;
+    if (mm_accel & MM_ACCEL_PPC_ALTIVEC) {
+	mpeg2_mc = mpeg2_mc_altivec;
     } else
 #endif
 #ifdef LIBMPEG2_MLIB
-    if (config.flags & MM_ACCEL_MLIB) {
-	mc_functions = mc_functions_mlib;
+    if (mm_accel & MM_ACCEL_MLIB) {
+	mpeg2_mc = mpeg2_mc_mlib;
     } else
 #endif
     {
-	mc_functions = mc_functions_c;
+	mpeg2_mc = mpeg2_mc_c;
     }
 }
 
@@ -153,4 +147,4 @@ MC_FUNC (avg,y)
 MC_FUNC (put,xy)
 MC_FUNC (avg,xy)
 
-MOTION_COMP_EXTERN (c)
+MPEG2_MC_EXTERN (c)

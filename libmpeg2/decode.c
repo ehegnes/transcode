@@ -1,6 +1,6 @@
 /*
  * decode.c
- * Copyright (C) 2000-2001 Michel Lespinasse <walken@zoy.org>
+ * Copyright (C) 2000-2002 Michel Lespinasse <walken@zoy.org>
  * Copyright (C) 1999-2000 Aaron Holtzman <aholtzma@ess.engr.uvic.ca>
  *
  * This file is part of mpeg2dec, a free MPEG-2 video stream decoder.
@@ -31,12 +31,6 @@
 #include "video_out.h"
 #include "mpeg2.h"
 #include "mpeg2_internal.h"
-#include "mm_accel.h"
-#include "attributes.h"
-
-#ifdef ARCH_X86
-#include "mmx.h"
-#endif
 
 #ifdef HAVE_MEMALIGN
 /* some systems have memalign() but no declaration for it */
@@ -48,7 +42,7 @@ void * memalign (size_t align, size_t size);
 
 #define BUFFER_SIZE (1194 * 1024)
 
-mpeg2_config_t config;
+static int mpeg2_errinfo=0;
 
 void mpeg2_init (mpeg2dec_t * mpeg2dec, uint32_t mm_accel,
 		 vo_instance_t * output)
@@ -57,9 +51,9 @@ void mpeg2_init (mpeg2dec_t * mpeg2dec, uint32_t mm_accel,
 
     if (do_init) {
 	do_init = 0;
-	config.flags = mm_accel;
-	idct_init ();
-	motion_comp_init ();
+	mpeg2_cpu_state_init (mm_accel);
+	mpeg2_idct_init (mm_accel);
+	mpeg2_mc_init (mm_accel);
     }
 
     mpeg2dec->chunk_buffer = memalign (16, BUFFER_SIZE + 4);
@@ -76,8 +70,8 @@ void mpeg2_init (mpeg2dec_t * mpeg2dec, uint32_t mm_accel,
 
     memset (mpeg2dec->picture, 0, sizeof (picture_t));
 
-    /* initialize supstructures */
-    header_state_init (mpeg2dec->picture);
+    /* initialize substructures */
+    mpeg2_header_state_init (mpeg2dec->picture);
 }
 
 static inline int parse_chunk (mpeg2dec_t * mpeg2dec, int code,
@@ -90,7 +84,7 @@ static inline int parse_chunk (mpeg2dec_t * mpeg2dec, int code,
     if (mpeg2dec->is_sequence_needed && (code != 0xb3))
 	return 0;
 
-    stats_header (code, buffer);
+    mpeg2_stats (code, buffer);
 
     picture = mpeg2dec->picture;
     is_frame_done = 0;
@@ -105,16 +99,12 @@ static inline int parse_chunk (mpeg2dec_t * mpeg2dec, int code,
 	    vo_draw ((picture->picture_coding_type == B_TYPE) ?
 		     picture->current_frame :
 		     picture->forward_reference_frame);
-#ifdef ARCH_X86
-	    if (config.flags & MM_ACCEL_X86_MMX)
-		emms ();
-#endif
 	}
     }
 
     switch (code) {
     case 0x00:	/* picture_start_code */
-	if (header_process_picture_header (picture, buffer)) {
+	if (mpeg2_header_picture (picture, buffer)) {
 	    fprintf (stderr, "bad picture header\n");
 	    exit (1);
 	}
@@ -123,7 +113,7 @@ static inline int parse_chunk (mpeg2dec_t * mpeg2dec, int code,
 	break;
 
     case 0xb3:	/* sequence_header_code */
-	if (header_process_sequence_header (picture, buffer)) {
+	if (mpeg2_header_sequence (picture, buffer)) {
 	    fprintf (stderr, "bad sequence header\n");
 	    exit (1);
 	}
@@ -145,15 +135,20 @@ static inline int parse_chunk (mpeg2dec_t * mpeg2dec, int code,
 	break;
 
     case 0xb5:	/* extension_start_code */
-	if (header_process_extension (picture, buffer)) {
+	if (mpeg2_header_extension (picture, buffer)) {
 	    fprintf (stderr, "bad extension\n");
 	    exit (1);
 	}
 	break;
 
     default:
-	if (code >= 0xb9)
-	    fprintf (stderr, "stream not demultiplexed ?\n");
+      
+      if (code >= 0xb9) {
+	if(!mpeg2_errinfo)  {
+	  fprintf (stderr, "stream not demultiplexed ?\n");
+	  mpeg2_errinfo=1;
+	}
+      }
 
 	if (code >= 0xb0)
 	    break;
@@ -164,6 +159,8 @@ static inline int parse_chunk (mpeg2dec_t * mpeg2dec, int code,
 	    if (picture->second_field)
 		vo_field (picture->current_frame, picture->picture_structure);
 	    else {
+		vo_frame_t * frame;
+
 		if (picture->picture_coding_type == B_TYPE)
 		    picture->current_frame =
 			vo_get_frame (mpeg2dec->output,
@@ -177,17 +174,23 @@ static inline int parse_chunk (mpeg2dec_t * mpeg2dec, int code,
 			picture->backward_reference_frame;
 		    picture->backward_reference_frame = picture->current_frame;
 		}
+
+		/* hopefully vektor will be happy */
+		frame = picture->current_frame;
+		frame->aspect_ratio = picture->aspect_ratio_information;
+		frame->frame_rate_code = picture->frame_rate_code;
+		frame->bitrate = picture->bitrate;
+		frame->progressive_sequence = picture->progressive_sequence;
+		frame->progressive_frame = picture->progressive_frame;
+		frame->top_field_first = picture->top_field_first;
+		frame->repeat_first_field = picture->repeat_first_field;
+		frame->picture_coding_type = picture->picture_coding_type;
+		frame->pts = mpeg2dec->pts;
 	    }
 	}
 
-	if (!(mpeg2dec->drop_frame)) {
-	    slice_process (picture, code, buffer);
-
-#ifdef ARCH_X86
-	    if (config.flags & MM_ACCEL_X86_MMX)
-		emms ();
-#endif
-	}
+	if (!(mpeg2dec->drop_frame))
+	    mpeg2_slice (picture, code, buffer);
     }
 
     return is_frame_done;
@@ -207,29 +210,44 @@ static inline uint8_t * copy_chunk (mpeg2dec_t * mpeg2dec,
     if (limit > end)
 	limit = end;
 
-    while (1) {
+    do {
 	byte = *current++;
-	if (shift != 0x00000100) {
-	    shift = (shift | byte) << 8;
-	    *chunk_ptr++ = byte;
-	    if (current < limit)
-		continue;
-	    if (current == end) {
-		mpeg2dec->chunk_ptr = chunk_ptr;
-		mpeg2dec->shift = shift;
-		return NULL;
-	    } else {
-		/* we filled the chunk buffer without finding a start code */
-		mpeg2dec->code = 0xb4;	/* sequence_error_code */
-		mpeg2dec->chunk_ptr = mpeg2dec->chunk_buffer;
-		return current;
-	    }
-	}
-	mpeg2dec->code = byte;
+	if (shift == 0x00000100)
+	    goto startcode;
+	shift = (shift | byte) << 8;
+	*chunk_ptr++ = byte;
+    } while (current < limit);
+
+    mpeg2dec->bytes_since_pts += chunk_ptr - mpeg2dec->chunk_ptr;
+    mpeg2dec->shift = shift;
+    if (current == end) {
+	mpeg2dec->chunk_ptr = chunk_ptr;
+	return NULL;
+    } else {
+	/* we filled the chunk buffer without finding a start code */
 	mpeg2dec->chunk_ptr = mpeg2dec->chunk_buffer;
-	mpeg2dec->shift = 0xffffff00;
+	mpeg2dec->code = 0xb4;	/* sequence_error_code */
 	return current;
     }
+
+startcode:
+    mpeg2dec->bytes_since_pts += chunk_ptr + 1 - mpeg2dec->chunk_ptr;
+    mpeg2dec->chunk_ptr = mpeg2dec->chunk_buffer;
+    mpeg2dec->shift = 0xffffff00;
+    mpeg2dec->code = byte;
+    if (!byte) {
+	if (!mpeg2dec->num_pts)
+	    mpeg2dec->pts = 0;	/* none */
+	else if (mpeg2dec->bytes_since_pts >= 4) {
+	    mpeg2dec->num_pts = 0;
+	    mpeg2dec->pts = mpeg2dec->pts_current;
+	} else if (mpeg2dec->num_pts > 1) {
+	    mpeg2dec->num_pts = 1;
+	    mpeg2dec->pts = mpeg2dec->pts_previous;
+	} else
+	    mpeg2dec->pts = 0;	/* none */
+    }
+    return current;
 }
 
 int mpeg2_decode_data (mpeg2dec_t * mpeg2dec, uint8_t * current, uint8_t * end)
@@ -247,6 +265,14 @@ int mpeg2_decode_data (mpeg2dec_t * mpeg2dec, uint8_t * current, uint8_t * end)
 	ret += parse_chunk (mpeg2dec, code, mpeg2dec->chunk_buffer);
     }
     return ret;
+}
+
+void mpeg2_pts (mpeg2dec_t * mpeg2dec, uint32_t pts)
+{
+    mpeg2dec->pts_previous = mpeg2dec->pts_current;
+    mpeg2dec->pts_current = pts;
+    mpeg2dec->num_pts++;
+    mpeg2dec->bytes_since_pts = 0;
 }
 
 void mpeg2_close (mpeg2dec_t * mpeg2dec)

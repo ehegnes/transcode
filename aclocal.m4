@@ -123,9 +123,15 @@ AC_ARG_WITH(avifile-exec-prefix,[  --with-avifile-exec-prefix=PFX    prefix wher
     have_avifile=yes
     AVIFILE_CFLAGS=`$AVIFILE_CONFIG $avifileconf_args --cflags`
     AVIFILE_LIBS=`$AVIFILE_CONFIG $avifileconf_args --libs`
-    avifile_incs="`$AVIFILE_CONFIG $avifileconf_args --prefix`/include/avifile"
-    AC_CHECK_FILE($avifile_incs/avifile.h, 
-	  [AC_DEFINE(HAVE_AVIFILE_INC, 1, avifile include)])
+
+    dnl check if avifile-config --cflags ends with .*/avifile
+    dnl and strip it if so.
+
+    case $AVIFILE_CFLAGS in
+      */avifile) 
+      AVIFILE_CFLAGS=`echo $AVIFILE_CFLAGS | sed 's,/avifile$,,'` ;;
+      *) ;;
+      esac
   fi	
 
 else
@@ -163,6 +169,7 @@ LAME_LIBS=""
 LAME_CFLAGS=""
 
 lame89=no
+lame92=no
 have_lame=no
 
 if test x$with_lame = "x"yes ; then
@@ -188,6 +195,14 @@ if test x$with_lame = "x"yes ; then
 	lame89=yes
 	have_lame=yes], [have_lame=no lame89=no], 
        	-L$with_lame_l -lmp3lame -lm)
+
+	AC_CHECK_LIB(mp3lame, lame_set_asm_optimizations,
+       	[LAME_CFLAGS="-I$with_lame_i -I/usr/local/include" 
+         LAME_LIBS="-L$with_lame_l -lmp3lame -lm"
+	AC_DEFINE_UNQUOTED(LAME_3_92)	
+	lame92=yes], [lame92=no], 
+       	-L$with_lame_l -lmp3lame -lm)
+
 fi   
 
 AC_CHECK_FILE($with_lame_i/lame/lame.h, [AC_DEFINE(HAVE_LAME_INC) lame_inc=yes])
@@ -210,6 +225,7 @@ if test x"$have_lame" != "xyes"; then
 fi
 
 AC_SUBST(LAME_3_89)
+AC_SUBST(LAME_3_92)
 AC_SUBST(LAME_CFLAGS)
 AC_SUBST(LAME_LIBS)
 ])
@@ -436,7 +452,7 @@ if test x$with_dv = "x"yes ; then
        AC_DEFINE(HAVE_DV) have_dv=yes],have_dv=no, 
 	-L$with_dv_l -ldv ${EXTRA_LIBS})
 
-	dnl check for version 0.9.5	
+	dnl check for version >= 0.9.5	
 	AC_CHECK_LIB(dv, dv_encoder_new,
       [DV_CFLAGS="-I$with_dv_i ${GLIB_CFLAGS} -I/usr/local/include"	
        DV_LIBS="-L$with_dv_l -ldv ${EXTRA_LIBS}"
@@ -451,6 +467,62 @@ AC_SUBST(DV_LIBS)
 AC_SUBST(DV_EXTRA_LIBS)
 AC_SUBST(DV_CFLAGS)
 ])
+
+
+dnl 
+dnl liblzo
+dnl 
+dnl 
+
+AC_DEFUN(AM_PATH_LZO,
+[
+
+AC_ARG_WITH(lzo, [  --with-lzo                 build liblzo dependent modules (default=yes)],[case "${withval}" in
+  yes) ;;
+  no)  ;;
+  *) AC_MSG_ERROR(bad value ${withval} for --with-lzo) ;;
+esac], with_lzo=yes)
+
+AC_ARG_WITH(lzo-includes,[  --with-lzo-includes=PFX    prefix where local liblzo includes are installed (optional)],
+	  lzo_includes="$withval",lzo_includes="")
+
+AC_ARG_WITH(lzo-libs,[  --with-lzo-libs=PFX        prefix where local liblzo libs are installed (optional)],
+	  lzo_libs="$withval", lzo_libs="")
+
+
+EXTRA_LIBS="$LIBS $GLIB_LIBS -ldl -lm"
+LZO_EXTRA_LIBS="$GLIB_LIBS -ldl -lm"
+
+if test x$with_lzo = "x"yes ; then
+
+	if test x$lzo_includes != "x" ; then
+	    with_lzo_i="$lzo_includes/include"
+        else
+	    with_lzo_i="/usr/include"
+        fi
+
+        if test x$lzo_libs != x ; then
+            with_lzo_l="$lzo_libs/lib"
+        else
+            with_lzo_l="/usr/lib"
+        fi
+
+	AC_CHECK_LIB(lzo, lzo_version,
+      [LZO_CFLAGS="-I$with_lzo_i ${GLIB_CFLAGS} -I/usr/local/include"	
+       LZO_LIBS="-L$with_lzo_l -llzo ${EXTRA_LIBS}"
+       AC_DEFINE(HAVE_LZO) have_lzo=yes],have_lzo=no, 
+	-L$with_lzo_l -llzo ${EXTRA_LIBS})
+
+else
+    have_lzo=no
+fi
+
+AC_SUBST(LZO_LIBS)
+AC_SUBST(LZO_EXTRA_LIBS)
+AC_SUBST(LZO_CFLAGS)
+])
+
+
 
 
 
@@ -574,20 +646,43 @@ AC_ARG_WITH(libpostproc-builddir,[  --with-libpostproc-builddir=PFX    path to M
 
 EXTRA_LIBS="-lm"
 
+have_libpostproc=no
+
 if test x$libpostproc_builddir != "x" ; then
 
 	with_libpostproc_p="$libpostproc_builddir"
 
+	AC_CHECK_LIB(postproc, pp_postprocess,
+      [
 	LIBPOSTPROC_CFLAGS="-I$with_libpostproc_p/postproc"
 	LIBPOSTPROC_LIBS="-L$with_libpostproc_p/postproc -lpostproc ${EXTRA_LIBS}" 
-	
-	AC_DEFINE(HAVE_LIBPOSTPROC) have_libpostproc=yes
-else
-
-	LIBPOSTPROC_CFLAGS=
-	LIBPOSTPROC_LIBS=
-	AC_DEFINE(HAVE_LIBPOSTPROC) have_libpostproc=no
+	AC_DEFINE(HAVE_LIBPOSTPROC)
+	have_libpostproc=yes
+      ], have_libpostproc=no, )
 fi
+
+if test x$have_libpostproc != "xyes" ; then
+
+	AC_CHECK_LIB(postproc, pp_postprocess,
+      [
+	LIBPOSTPROC_CFLAGS=""
+	LIBPOSTPROC_LIBS="-lpostproc ${EXTRA_LIBS}" 
+	AC_DEFINE(HAVE_LIBPOSTPROC)
+	 have_libpostproc=yes
+      ], have_libpostproc=no, )
+fi
+
+if test x$have_libpostproc != "xyes" ; then
+
+	AC_CHECK_LIB(postproc, pp_postprocess,
+      [
+	LIBPOSTPROC_CFLAGS="-I/usr/local/include"
+	LIBPOSTPROC_LIBS="-L/usr/local/lib -lpostproc ${EXTRA_LIBS}" 
+	AC_DEFINE(HAVE_LIBPOSTPROC)
+	have_libpostproc=yes
+      ], have_libpostproc=no, )
+fi
+
 
 AC_SUBST(LIBPOSTPROC_LIBS)
 AC_SUBST(LIBPOSTPROC_CFLAGS)
@@ -603,11 +698,11 @@ dnl
 AC_DEFUN(AM_PATH_QT,
 [
 
-AC_ARG_WITH(qt, [  --with-qt                 build quicktime dependent module (default=yes)],[case "${withval}" in
+AC_ARG_WITH(qt, [  --with-qt                 build quicktime dependent module (default=no)],[case "${withval}" in
   yes) ;;
   no)  ;;
   *) AC_MSG_ERROR(bad value ${withval} for --with-qt) ;;
-esac], with_qt=yes)
+esac], with_qt=no)
 
 AC_ARG_WITH(qt-includes,[  --with-qt-includes=PFX    prefix where local quicktime includes are installed (optional)],
 	  qt_includes="$withval",qt_includes="")
@@ -657,11 +752,11 @@ dnl
 AC_DEFUN(AM_PATH_OPENQT,
 [
 
-AC_ARG_WITH(openqt, [  --with-openqt                 build openquicktime dependent module (default=yes)],[case "${withval}" in
+AC_ARG_WITH(openqt, [  --with-openqt                 build openquicktime dependent module (default=no)],[case "${withval}" in
   yes) ;;
   no)  ;;
   *) AC_MSG_ERROR(bad value ${withval} for --with-openqt) ;;
-esac], with_openqt=yes)
+esac], with_openqt=no)
 
 AC_ARG_WITH(openqt-includes,[  --with-openqt-includes=PFX    prefix where local openquicktime includes are installed (optional)],
 	  openqt_includes="$withval",openqt_includes="")
@@ -1125,17 +1220,30 @@ LIBJPEG_LIBS=""
 
 AC_ARG_WITH(libjpeg-mods,[  --with-libjpeg-mods      build libjpeg dependent modules (yes)], libjpeg_mods="$withval", libjpeg_mods=yes)
 
+have_libjpegmmx=no
+have_libjpeg=no
+
 if test x"$libjpeg_mods" = xyes; then
 
-AC_CHECK_LIB(jpeg, jpeg_CreateCompress,
+  AC_CHECK_LIB(jpeg-mmx, jpeg_CreateCompress,
+      [
+	LIBJPEG_CFLAGS=""
+	LIBJPEG_LIBS="-ljpeg-mmx" 
+	AC_DEFINE(HAVE_LIBJPEG)
+	have_libjpeg=yes have_libjpegmmx=yes
+      ], [have_libjpeg=no have_libjpegmmx=no], )
+ 
+  if test x$LIBJPEG_LIBS == x; then
+  AC_CHECK_LIB(jpeg, jpeg_CreateCompress,
       [
 	LIBJPEG_CFLAGS=""
 	LIBJPEG_LIBS="-ljpeg" 
 	AC_DEFINE(HAVE_LIBJPEG)
-	have_libjpeg=yes
-      ], have_libjpeg=no, )
-fi 
- 
+	have_libjpeg=yes have_libjpegmmx=no
+      ], have_libjpeg=no have_libjpegmmx=no, )
+  fi 
+fi
+
 AC_SUBST(LIBJPEG_CFLAGS)
 AC_SUBST(LIBJPEG_LIBS)
 

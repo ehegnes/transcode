@@ -111,7 +111,7 @@ static __inline int util_frametype(vbr_control_t *state)
 
 		if(state->cur_frame >= state->credits_end_begin &&
 		   state->cur_frame < state->credits_end_end)
-			return(FRAME_TYPE_STARTING_CREDITS);
+			return(FRAME_TYPE_ENDING_CREDITS);
 
 	}
 
@@ -610,6 +610,14 @@ static int vbr_finish_2pass1(void *sstate)
 		if(c == '\n') i++;
 
 	}while(i < 2);
+
+	/*
+	 * Force real file position - We experienced problems with BSD systems
+	 * that were not having a single file buffer for reading & writing
+	 * therefore position for writing and reading was not the same and
+	 * frame numbers were written at random places
+	 */
+	fseek(state->pass1_file, 0, SEEK_CUR);
 
 	/* Overwrite the frame field - safe as we have written extra spaces */
 	fprintf(state->pass1_file, "# frames    : %.10d\n", state->nb_frames);

@@ -356,7 +356,8 @@ void probe_dv(info_t *ipipe)
 #ifdef HAVE_DV
 
   static dv_decoder_t *dv_decoder=NULL;
-  unsigned char  *buf;
+
+  unsigned char *buf;
   int bytes;
 
   // initialize DV decoder
@@ -374,11 +375,9 @@ void probe_dv(info_t *ipipe)
     }
     dv_init();
 #endif
-  
-  //  dv_decoder->prev_frame_decoded = 0;
 
   // max frame input buffer
-  if((buf = (unsigned char*) calloc(1, DV_NTSC_SIZE))==NULL) {
+  if((buf = (unsigned char*) calloc(1, DV_PAL_SIZE))==NULL) {
       fprintf(stderr, "(%s) out of memory\n", __FILE__);
       ipipe->error=1;
       return;
@@ -398,14 +397,15 @@ void probe_dv(info_t *ipipe)
     ipipe->error=1;
     return;
   } 
-  
+
   // PAL or NTSC?
   if(dv_decoder->system==e_dv_system_none) {
     fprintf(stderr, "(%s) no valid PAL or NTSC video frame detected\n", __FILE__);
     ipipe->error=1;
     return;
   }
-
+    
+    
   ipipe->probe_info->width  = dv_decoder->width;
   ipipe->probe_info->height = dv_decoder->height;
   ipipe->probe_info->fps = (dv_decoder->system==e_dv_system_625_50)? PAL_FPS:NTSC_VIDEO;

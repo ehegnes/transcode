@@ -1,7 +1,7 @@
 Author: Arne Driescher 
 Date: 2002-08-14
 Project homepage: http://subtitleripper.sourceforge.net
-#	$Id: README,v 1.3 2003-03-08 13:56:33 tibit Exp $	
+#	$Id: README,v 1.4 2003-03-08 14:20:24 tibit Exp $	
 
 1) What is this package for?
 ============================
@@ -273,7 +273,7 @@ The first argument it the basename of all your pgm files. The
 script tries to find my_movie*.pgm and my_movie*.pgm.gz
 files. The argument to -f is the language filter
 that you want to use for gocr output. Currently
-only english is supported. The language filter
+English, French and German are (somehow) supported. The language filter
 is nothing else then a search/replace table
 in form of a sed script. If you are tired of fixing
 the same words again and again you can easily

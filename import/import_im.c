@@ -76,6 +76,9 @@ MOD_open
       *frame,
       *filename;
 
+  char
+      printfspec[20];
+
   regex_t
         preg;
 
@@ -136,12 +139,8 @@ MOD_open
         frame = malloc(pad + 1);
         do {
             last_frame++;
-            strcpy(filename, head);
-            sprintf(frame, "%04d", last_frame);
-            frame[pad] = '\0';
-            strcpy(filename + strlen(head), frame);
-            strcpy(filename + strlen(head) + pad, tail);
-            filename[strlen(head) + pad + strlen(tail)] = '\0';
+            sprintf(printfspec, "%%s%%0%dd%%s", pad);
+            sprintf(filename, printfspec, head, last_frame, tail);
         } while (close(open(filename, O_RDONLY)) != -1); 
         last_frame--;
         free(filename);

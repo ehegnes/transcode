@@ -33,7 +33,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_nvrec.so"
-#define MOD_VERSION "v0.1.3 (2002-08-14)"
+#define MOD_VERSION "v0.1.4 (2002-10-17)"
 #define MOD_CODEC   "(video) nvrec | (audio) nvrec"
 
 #define MOD_PRE nvrec
@@ -97,10 +97,11 @@ MOD_open
     if(vob->a_chan == 2)
 	n += snprintf(import_cmd_buf+n, MAX_BUF, " -s");
 
-    n += snprintf(import_cmd_buf+n, MAX_BUF, " -b %d",  vob->a_bits);
-    n += snprintf(import_cmd_buf+n, MAX_BUF, " -r %d",  vob->a_rate);
-    n += snprintf(import_cmd_buf+n, MAX_BUF, " -ab %d", vob->mp3bitrate);
-    n += snprintf(import_cmd_buf+n, MAX_BUF, " -aq %d", (int)vob->mp3quality);
+    n += snprintf(import_cmd_buf+n, MAX_BUF, " -b %d",    vob->a_bits);
+    n += snprintf(import_cmd_buf+n, MAX_BUF, " -r %d",    vob->a_rate);
+    n += snprintf(import_cmd_buf+n, MAX_BUF, " -ab %d",   vob->mp3bitrate);
+    n += snprintf(import_cmd_buf+n, MAX_BUF, " -aq %d",   (int)vob->mp3quality);
+    n += snprintf(import_cmd_buf+n, MAX_BUF, " -vr %.3f", vob->fps);
 
     if (strncmp(vob->video_in_file, "/dev/zero", 9) == 0) {
 	fprintf (stderr, "[%s] Warning: Input v4l1/2 device assumed to be %s\n", MOD_NAME, "/dev/video");

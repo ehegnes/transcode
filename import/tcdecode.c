@@ -53,7 +53,7 @@ void import_exit(int code)
  * ------------------------------------------------------------*/
 
 
-void usage()
+void usage(int status)
 {
   version(EXE);
 
@@ -70,7 +70,7 @@ void usage()
   fprintf(stderr,"\t -C s,e            decode only from start to end ((V) frames/(A) bytes) [all]\n");
   fprintf(stderr,"\t -v                print version\n");
 
-  exit(0);
+  exit(status);
   
 }
 
@@ -109,45 +109,45 @@ int main(int argc, char *argv[])
 	    
 	case 'i': 
 	    
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  name = optarg;
 	  break;
 
 
 	case 'd': 
 	    
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  verbose = atoi(optarg);
 	  break;
 
 	case 'Q': 
 	    
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  quality = atoi(optarg);
 	  break;
 
 	case 'A': 
 	    
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  a52_mode = atoi(optarg);
 	  break;
 		  
 	case 'x': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  codec = optarg;
 	  break;
 
 	case 'y': 
 	  
-	  if(optarg[0]=='-') usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  format = optarg;
 	  break;
 	  
 	case 'g': 
 	  
-	  if(optarg[0]=='-') usage();
-	  if (2 != sscanf(optarg,"%dx%d", &width, &height)) usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+	  if (2 != sscanf(optarg,"%dx%d", &width, &height)) usage(EXIT_FAILURE);
 	  break;
 	  
 	case 'v': 
@@ -157,25 +157,25 @@ int main(int argc, char *argv[])
 
 	case 's': 
 	  
-	  if(optarg[0]=='-') usage();
-	  if (3 != sscanf(optarg,"%lf,%lf,%lf", &ipipe.ac3_gain[0], &ipipe.ac3_gain[1], &ipipe.ac3_gain[2])) usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+	  if (3 != sscanf(optarg,"%lf,%lf,%lf", &ipipe.ac3_gain[0], &ipipe.ac3_gain[1], &ipipe.ac3_gain[2])) usage(EXIT_FAILURE);
 	  break;
 	  
 	case 'C': 
 	  
-	  if(optarg[0]=='-') usage();
-	  if (2 != sscanf(optarg,"%ld,%ld", &ipipe.frame_limit[0], &ipipe.frame_limit[1])) usage();
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+	  if (2 != sscanf(optarg,"%ld,%ld", &ipipe.frame_limit[0], &ipipe.frame_limit[1])) usage(EXIT_FAILURE);
  	  if (ipipe.frame_limit[0] >= ipipe.frame_limit[1])
 	  {
   		fprintf(stderr,"Invalid -C options\n");
-		usage();
+		usage(EXIT_FAILURE);
 	  }
 	  break;
 	  
-	case '?':
 	case 'h':
+	  usage(EXIT_SUCCESS);
 	default:
-	  usage();
+	  usage(EXIT_FAILURE);
 	}
     }
 
@@ -191,8 +191,7 @@ int main(int argc, char *argv[])
     // no autodetection yet
     if(codec==NULL) {
 	fprintf(stderr, "error: invalid codec %s\n", codec);
-	usage();
-	exit(1);
+	usage(EXIT_FAILURE);
     }
     
     // do not try to mess with the stream

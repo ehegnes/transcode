@@ -132,7 +132,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     denoiser.border.h        = 0;
 
     denoiser.reset           = 0;
-    denoiser.do_reset        = 1; /* reseting the denoiser after a scenechange */
+    denoiser.do_reset        = 2; /* reseting the denoiser after a scenechange */
 				  /* gives much better results */
     denoiser.scene_thres     = 50;
     denoiser.block_thres     = 1024;
@@ -304,13 +304,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	  memcpy(denoiser.frame.avg2[Cb]+frame_offset4, denoiser.frame.io[Cb],y_size4);
       }
 
-      denoise_frame();
+      if(!denoiser.reset) denoise_frame();
 
-      if (denoiser.reset && denoiser.do_reset) {
-	  if (verbose)
-	      fprintf(stderr, "[%s] Scene change detected at frame <%d>\n", MOD_NAME, ptr->id); 
-
-	  denoiser.reset = 0;
+      if(denoiser.reset) {
+	  if(verbose && denoiser.reset==denoiser.do_reset)
+	    fprintf(stderr, "[%s] Scene change detected at frame <%d>\n", MOD_NAME, ptr->id); 
+        
 	  memcpy(denoiser.frame.avg[Yy]+frame_offset,   denoiser.frame.io[Yy],y_size );
 	  memcpy(denoiser.frame.avg[Cr]+frame_offset4,  denoiser.frame.io[Cr],y_size4);
 	  memcpy(denoiser.frame.avg[Cb]+frame_offset4,  denoiser.frame.io[Cb],y_size4);
@@ -319,6 +318,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	  memcpy(denoiser.frame.avg2[Cb]+frame_offset4, denoiser.frame.io[Cb],y_size4);
 
 	  denoise_frame();
+	  denoiser.reset--;
       }
 
 
@@ -560,8 +560,9 @@ display_help(void)
   "pre <0..1>         [0]: run as a post process filter (default)\n"
   "                   [1]: run as a pre process filter (not recommended)\n"
   "\n"
-  "do_reset <0..1>    [1]: reset the filter after a scene change (default)\n"
+  "do_reset <0..n>    [n]: reset the filter for n frames after a scene change\n"
   "                   [0]: dont reset\n"
+  "                   (default=%i)\n"
   "\n"
   "block_thres <0..oo>   Every SAD value greater than this will be considered \"bad\" \n"
   "                   (default=%i)\n"
@@ -584,6 +585,7 @@ display_help(void)
   denoiser.chroma_contrast,
   denoiser.sharpen,
   denoiser.pp_threshold,
+  denoiser.do_reset,
   denoiser.block_thres,
   denoiser.scene_thres,
   denoiser.increment_cr,

@@ -1,6 +1,6 @@
 /*
  * stats.c
- * Copyright (C) 2000-2001 Michel Lespinasse <walken@zoy.org>
+ * Copyright (C) 2000-2002 Michel Lespinasse <walken@zoy.org>
  * Copyright (C) 1999-2000 Aaron Holtzman <aholtzma@ess.engr.uvic.ca>
  *
  * This file is part of mpeg2dec, a free MPEG-2 video stream decoder.
@@ -30,7 +30,6 @@
 #include "mpeg2_internal.h"
 
 static int debug_level = -1;
-static int notify=0;
 
 /* Determine is debug output is required. */
 /* We could potentially have multiple levels of debug info */
@@ -46,12 +45,7 @@ static int debug_is_on (void)
 	else
 	    debug_level = 0;
     }
-
-    if(notify) {
-      fprintf(stderr, "libmpeg2-0.2.1-cvs (C) 2000-2001 Aaron Holtzman & Michel Lespinasse\n");
-      notify=0;
-    }
-
+	
     return debug_level;
 }
 
@@ -158,7 +152,7 @@ static void stats_group (uint8_t * buffer)
 	     (buffer[4] & 0x20) ? " broken_link" : "");
 }
 
-static void stats_slice (uint8_t code, uint8_t * buffer)
+static void stats_slice (int code, uint8_t * buffer)
 {
     /* fprintf (stderr, " (slice %d)\n", code); */
 }
@@ -263,7 +257,7 @@ static void stats_picture_coding_extension (uint8_t * buffer)
 	     alternate_scan, repeat_first_field, progressive_frame);
 }
 
-void stats_header (uint8_t code, uint8_t * buffer)
+void mpeg2_stats (int code, uint8_t * buffer)
 {
     if (! (debug_is_on ()))
 	return;

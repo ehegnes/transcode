@@ -78,8 +78,10 @@ void pcm_swap(char *buffer, int len)
 int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
     
 {
-  short *s, uu;
+  short *s, *d, uu, uu1, uu2;
   int n;
+
+  char *b;
 
   int trans=TC_FALSE;
 
@@ -130,6 +132,15 @@ int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
     if(verbose & TC_DEBUG) printf("(%s) adjusted %d PCM samples (%d ms)\n", __FILE__, bytes/(vob->a_chan*vob->a_bits/16), vob->sync_ms);
     vob->sync_ms=0;
   }
+
+  //-----------------------------------------------------------------
+  //  
+  // transformation: swap audio bytes
+  //
+  // flag: pcmswap
+  
+  if(pcmswap) pcm_swap(ptr->audio_buf, ptr->audio_size);
+
 		       
   //-----------------------------------------------------------------
   //
@@ -146,15 +157,51 @@ int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
       *s++ = uu;
     }
   }
-
+  
   //-----------------------------------------------------------------
-  //  
-  // transformation: swap audio bytes
   //
-  // flag: pcmswap
+  // transformation: convert 16 bit / 2 channel interleaved stereo to mono
+  //
+  // flag: vob->dm_chan = 1
+
+  if(vob->dm_chan == 1 && vob->a_chan == 2 && vob->a_bits == 16) {
+     
+    s=(short *) ptr->audio_buf;
+    d=s;
+    
+    for(n=0; n<ptr->audio_size>>2; ++n) {
+      
+      uu1 = (*s++>>1);
+      uu2 = (*s++>>1);
+      
+      *d++ = uu1+uu2;
+      
+    }
+    
+    ptr->audio_size = ptr->audio_size>>1;
+    
+  }
   
-  if(pcmswap) pcm_swap(ptr->audio_buf, ptr->audio_size);
   
+  //-----------------------------------------------------------------
+  //
+  // transformation: convert 16 bit to 8 bit samples
+  //
+  // only 8 bit unsigned supported!
+  //
+  // flag: vob->dm_bits = 8
+  
+  if(vob->dm_bits == 8 && vob->a_bits == 16) {
+    
+    s = (short *) ptr->audio_buf;
+    b = (char *) s;
+    
+    for(n=0; n<ptr->audio_size>>1; ++n) (*b++) = (char) ((*s++)/256+0x80);
+    ptr->audio_size = ptr->audio_size>>1;
+    
+  }
+  
+
   return(0);
 }
 

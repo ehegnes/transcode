@@ -15,50 +15,6 @@ static FILE *vFile;
 static char doVBRLimit;
 static char ProgressStr[128];
 
-//====================
-//== little helpers ==
-//====================
-static int mmx_probe()
-{
-  int  mode = MODE_NONE;
-  FILE *proc;
-  char string[1024];
-
-  if(!(proc = fopen("/proc/cpuinfo", "r")))
-  {
-    fprintf(stderr, "mmx_probe: failed to open /proc/cpuinfo\n");
-    return mode;
-  }
-  
-  while(!feof(proc))
-  {
-    fgets(string, 1024, proc);
-
-    /*-- Got the flags line --*/
-    if(!strncasecmp(string, "flags", 5))
-    {
-      if (strstr(string, " sse"))
-        mode = MODE_SSE;
-      else if (strstr(string, " SSE"))
-        mode = MODE_SSE;
-      else if (strstr(string, " 3dnow"))
-        mode = MODE_3DNOW; 
-      else if (strstr(string, " 3DNOW"))
-        mode = MODE_3DNOW;   
-      else if (strstr(string, " mmx"))
-        mode = MODE_MMX;
-      else if (strstr(string, " MMX")) 
-        mode = MODE_MMX;
-    
-      break;
-    }
-  }
-  fclose(proc);
-
-  return mode;
-}
-
-
 //======================
 //== Display-Routines ==
 //======================
@@ -704,10 +660,6 @@ T_BBMPEG_CTX *bb_start(char *fname, int enc_w, int enc_h, int sh_info)
   nframes = 0x7fffffff;  // unlimited frames 
 
   audioStereo = 1;
-
-  //-- test for mmx/sse capabilities (using libmpeg3-function) --
-  //-------------------------------------------------------------
-  MMXMode = mmx_probe();
 
   if (!InitVideo(sh_info))
   {

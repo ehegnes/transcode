@@ -46,19 +46,22 @@
 #include "transcode.h"
 #include "framebuffer.h"
 
+#include "filter.h"
+
 // basic parameter
 
 #define COLOR_EQUAL  10
 #define COLOR_DIFF   30
 #define THRESHOLD    10 
 
-static int color_diff_threshold1=COLOR_EQUAL;
-static int color_diff_threshold2=COLOR_DIFF;
+static int color_diff_threshold1[MAX_FILTER];//=COLOR_EQUAL;
+static int color_diff_threshold2[MAX_FILTER];//=COLOR_DIFF;
 
 static int force_mode=0;
-static int threshold=THRESHOLD; 
-static int show_results=0;
+static int threshold[MAX_FILTER];//=THRESHOLD; 
+static int show_results[MAX_FILTER];//=0;
 
+static int pre[MAX_FILTER];// = 0;
 /*-------------------------------------------------
  *
  * single function interface
@@ -79,10 +82,11 @@ static void help_optstr(void)
    printf ("   'equal' threshold for equal colors [%d]\n", COLOR_EQUAL);
    printf ("   'diff' threshold for different colors [%d]\n", COLOR_DIFF);
    printf ("   'force_mode' set internal force de-interlace flag with mode -I N [0]\n");
+   printf ("   'pre' run as pre filter [1]\n");
    printf ("   'verbose' show results [off]\n");
 }
 
-static int interlace_test(char *video_buf, int width, int height, int id)
+static int interlace_test(char *video_buf, int width, int height, int id, int instance)
 {
 
     int j, n, off, block, cc_1, cc_2, cc, flag;
@@ -108,11 +112,11 @@ static int interlace_test(char *video_buf, int width, int height, int id)
 	    s3 = (video_buf[off+j+2*block] & 0xff);
 	    s4 = (video_buf[off+j+3*block] & 0xff);
 	    
-	    if((abs(s1 - s3) < color_diff_threshold1) &&
-	       (abs(s1 - s2) > color_diff_threshold2)) ++cc_1;
+	    if((abs(s1 - s3) < color_diff_threshold1[instance]) &&
+	       (abs(s1 - s2) > color_diff_threshold2[instance])) ++cc_1;
 	    
-	    if((abs(s2 - s4) < color_diff_threshold1) &&
-	       (abs(s2 - s3) > color_diff_threshold2)) ++cc_2;
+	    if((abs(s2 - s4) < color_diff_threshold1[instance]) &&
+	       (abs(s2 - s3) > color_diff_threshold2[instance])) ++cc_2;
 	    
 	    off +=2*block;
 	}
@@ -122,10 +126,10 @@ static int interlace_test(char *video_buf, int width, int height, int id)
     
     cc = (int)((cc_1 + cc_2)*1000.0/(width*height));
 	       
-    flag = (cc > threshold) ? 1:0;
+    flag = (cc > threshold[instance]) ? 1:0;
     
 
-    if(show_results) fprintf(stderr, "frame [%06d]: (1) = %5d | (2) = %5d | (3) = %3d | interlaced = %s\n", id, cc_1, cc_2, cc, ((flag)?"yes":"no")); 
+    if(show_results[instance]) fprintf(stderr, "(%d) frame [%06d]: (1) = %5d | (2) = %5d | (3) = %3d | interlaced = %s\n", instance, id, cc_1, cc_2, cc, ((flag)?"yes":"no")); 
     
     return(flag);
 }
@@ -136,6 +140,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   static vob_t *vob=NULL;
 
   int is_interlaced = 0;
+  int instance = ptr->filter_id;
   
   //----------------------------------
   //
@@ -147,6 +152,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
   if(ptr->tag & TC_FILTER_INIT) {
       
       if((vob = tc_get_vob())==NULL) return(-1);
+
+      color_diff_threshold1[instance] = COLOR_EQUAL;
+      color_diff_threshold2[instance] = COLOR_DIFF;
+      threshold[instance]             = THRESHOLD;
+      show_results[instance]          = 0;
+      pre[instance]                   = 1;
       
       // filter init ok.
       
@@ -158,13 +169,14 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	  
 	  if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
 	  
-	  optstr_get (options, "threshold", "%d",  &threshold);
+	  optstr_get (options, "threshold", "%d",  &threshold[instance]);
 	  optstr_get (options, "force_mode", "%d",  &force_mode);
-	  optstr_get (options, "equal", "%d",  &color_diff_threshold1);
-	  optstr_get (options, "diff", "%d",  &color_diff_threshold2);
+	  optstr_get (options, "equal", "%d",  &color_diff_threshold1[instance]);
+	  optstr_get (options, "diff", "%d",  &color_diff_threshold2[instance]);
+	  optstr_get (options, "pre", "%d",  &pre[instance]);
 
 	  if (optstr_get (options, "verbose", "") >= 0) {
-	      show_results=1;
+	      show_results[instance]=1;
 	  }
 
 	  if (optstr_get (options, "help", "") >= 0) {
@@ -197,12 +209,20 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
   
-  if((ptr->tag & TC_PRE_M_PROCESS) && (ptr->tag & TC_VIDEO))  {
+  if (!(ptr->tag & TC_VIDEO))
+	  return (0);
+
+  //if((ptr->tag & TC_PRE_M_PROCESS) && (ptr->tag & TC_VIDEO))  {
+  if((ptr->tag & TC_PRE_M_PROCESS  && pre[instance]) || 
+	  (ptr->tag & TC_POST_M_PROCESS && !pre[instance])) {
+
+    //if (ptr->tag & TC_PRE_M_PROCESS) fprintf(stderr, "32#%d pre (%d)\n", instance, ptr->id);
+    //if (ptr->tag & TC_POST_M_PROCESS) fprintf(stderr, "32#%d post (%d)\n", instance, ptr->id);
     
     if(vob->im_v_codec==CODEC_RGB) {
-	is_interlaced = interlace_test(ptr->video_buf, 3*ptr->v_width, ptr->v_height, ptr->id); 
+	is_interlaced = interlace_test(ptr->video_buf, 3*ptr->v_width, ptr->v_height, ptr->id, instance); 
     } else {
-	is_interlaced = interlace_test(ptr->video_buf, ptr->v_width, ptr->v_height, ptr->id);
+	is_interlaced = interlace_test(ptr->video_buf, ptr->v_width, ptr->v_height, ptr->id, instance);
     }
 
     //force de-interlacing?

@@ -4,6 +4,9 @@
 # Please modify it to your needs
 #set -x
 
+# Exit script on Control-C (signal 2)
+trap 'echo "Control-C pressed."; exit 1;' 2
+
 ###### Configuration section #################
 
 # If you already have a GOCR database adjust.
@@ -17,8 +20,12 @@ PATH_TO_LANGUAGE_FILTER=~/sourceforge/subtitleripper/src/
 
 # set your options for gocr. Please read the gocr
 # docs to find out more about this
-GOCR_OPTIONS="-s 7 -d 0 -m 130 -m 256 -m 32"
 
+# GOCR options for pure data base mode 
+GOCR_OPTIONS_DB_ONLY="-s 8 -d 0 -m 130 -m 4 -m 256 -m 32"
+
+# GOCR options for with automatic char recognition
+GOCR_OPTIONS_AUTO="-s 10 -m 130"
 
 # Select the language of the default filter.
 # use -f command line option to override this
@@ -41,25 +48,31 @@ usage()
 {
 cat << _END_
 Usage:
-    pgm2txt [-v] [-f {en|fr|none}] pgm_base_name 
+    pgm2txt [-v] [-d] [-f {en|fr|none}] pgm_base_name 
 
-    pgm_base_name are the common first letters of your
-    subtitle pgm files. E.g. "my_movie" if all your pgm files
-    are matched by "my_movie*.pgm"
+    pgm_base_name  are the common first letters of your
+                   subtitle pgm files. E.g. "my_movie" if all your pgm files
+                   are matched by "my_movie*.pgm"
  
-    You can optionally specify a language filter
-    using the -f option. Currently only English
-    and French are supported. 
-    language = {en|fr|none}
+    -f lang        You can optionally specify a language filter
+                   using this option. Currently English,
+                   French and German are supported. 
+                   lang = {en|fr|de|none}
+                   default: none
 
-    The current pgm image can be shown in a viewer
-    by adding -v to the command line.
+    -v             View the pgm-file while GOCR is converting
+         
+    -d             Use GOCR options for "database only" mode
+
 
     Example:
+      Convert PGM files with english language filter and
+      view the PGM while GOCR is converting
 
-    pgm2txt -v -f en my_movie
+      pgm2txt -v -f en my_movie
 
-    Version: 0.11
+
+    Version: 0.13
 _END_
 exit 1
 }
@@ -69,9 +82,11 @@ if [ $# -eq 0 ]; then
     usage
 fi
 
+# set default GOCR options to auto
+GOCR_OPTIONS=${GOCR_OPTIONS_AUTO}
 
 # process command line options
-while getopts ":vf:" Option
+while getopts ":vdf:" Option
 do
   case $Option in
     v) 
@@ -79,6 +94,9 @@ do
 	;;
     f) 
 	LANGUAGE=$OPTARG
+	;;
+    d)  
+	GOCR_OPTIONS=${GOCR_OPTIONS_DB_ONLY}
 	;;
     *) 
 	usage

@@ -26,12 +26,17 @@
 #include <stdlib.h>
 #include <jpeglib.h>
 
+/* quirk: jpeglib.h defines HAVE_STDLIB_H and config.h too */
+#if defined(HAVE_STDLIB_H)
+#undef HAVE_STDLIB_H
+#endif
+
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
 
 #define MOD_NAME    "export_mjpeg.so"
-#define MOD_VERSION "v0.0.2 (2002-06-05)"
+#define MOD_VERSION "v0.0.3 (2002-10-17)"
 #define MOD_CODEC   "(video) Motion JPEG | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE mjpeg

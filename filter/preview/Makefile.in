@@ -70,7 +70,6 @@ A52_CFLAGS = @A52_CFLAGS@
 A52_LIBS = @A52_LIBS@
 AMTAR = @AMTAR@
 AS = @AS@
-ASFLAGS = @ASFLAGS@
 AVIFILE_CFLAGS = @AVIFILE_CFLAGS@
 AVIFILE_CONFIG = @AVIFILE_CONFIG@
 AVIFILE_LIBS = @AVIFILE_LIBS@
@@ -99,6 +98,7 @@ GTK_CONFIG = @GTK_CONFIG@
 GTK_LIBS = @GTK_LIBS@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LAME_3_89 = @LAME_3_89@
+LAME_3_92 = @LAME_3_92@
 LAME_CFLAGS = @LAME_CFLAGS@
 LAME_LIBS = @LAME_LIBS@
 LDFLAGS = @LDFLAGS@
@@ -117,6 +117,9 @@ LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
 LIBXML2_LIBS = @LIBXML2_LIBS@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+LZO_CFLAGS = @LZO_CFLAGS@
+LZO_EXTRA_LIBS = @LZO_EXTRA_LIBS@
+LZO_LIBS = @LZO_LIBS@
 MAGICK_CFLAGS = @MAGICK_CFLAGS@
 MAGICK_CONFIG = @MAGICK_CONFIG@
 MAGICK_LIBS = @MAGICK_LIBS@
@@ -174,11 +177,15 @@ LIBS = $(LIBS_XV) $(LIBS_GTK) $(LIBS_SDL)
 
 pkgdir = @MOD_PATH@
 
-pkg_LTLIBRARIES = filter_preview.la 
+pkg_LTLIBRARIES = filter_preview.la filter_pv.la 
 
 filter_preview_la_SOURCES = filter_preview.c display.c 
 filter_preview_la_LDFLAGS = -no-undefined -module -avoid-version 
 filter_preview_la_LIBADD = -L$(x_libraries) $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(X_EXTRA_LIBS) @DV_LIBS@ 
+
+filter_pv_la_SOURCES = filter_pv.c pv.c 
+filter_pv_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_pv_la_LIBADD = -L$(x_libraries) $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(LIBS_XV)
 
 EXTRA_DIST = *.h 
 subdir = filter/preview
@@ -190,13 +197,18 @@ LTLIBRARIES = $(pkg_LTLIBRARIES)
 filter_preview_la_DEPENDENCIES =
 am_filter_preview_la_OBJECTS = filter_preview.lo display.lo
 filter_preview_la_OBJECTS = $(am_filter_preview_la_OBJECTS)
+@HAVE_LIBXV_TRUE@filter_pv_la_DEPENDENCIES =
+@HAVE_LIBXV_FALSE@filter_pv_la_DEPENDENCIES =
+am_filter_pv_la_OBJECTS = filter_pv.lo pv.lo
+filter_pv_la_OBJECTS = $(am_filter_pv_la_OBJECTS)
 
 DEFS = @DEFS@
 CPPFLAGS = @CPPFLAGS@
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/display.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/filter_preview.Plo
+@AMDEP_TRUE@	./$(DEPDIR)/filter_preview.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/filter_pv.Plo ./$(DEPDIR)/pv.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -204,9 +216,9 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(filter_preview_la_SOURCES)
+DIST_SOURCES = $(filter_preview_la_SOURCES) $(filter_pv_la_SOURCES)
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(filter_preview_la_SOURCES)
+SOURCES = $(filter_preview_la_SOURCES) $(filter_pv_la_SOURCES)
 
 all: all-am
 
@@ -241,6 +253,8 @@ clean-pkgLTLIBRARIES:
 	-test -z "$(pkg_LTLIBRARIES)" || rm -f $(pkg_LTLIBRARIES)
 filter_preview.la: $(filter_preview_la_OBJECTS) $(filter_preview_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_preview_la_LDFLAGS) $(filter_preview_la_OBJECTS) $(filter_preview_la_LIBADD) $(LIBS)
+filter_pv.la: $(filter_pv_la_OBJECTS) $(filter_pv_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(filter_pv_la_LDFLAGS) $(filter_pv_la_OBJECTS) $(filter_pv_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -250,6 +264,8 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/display.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_preview.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_pv.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pv.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)

@@ -14,6 +14,14 @@
 #define STATIC_SPRITE 1
 #define GMC_SPRITE 2
 
+#define MOTION_MARKER 0x1F001
+#define DC_MARKER     0x6B001
+
+#define MB_TYPE_B_DIRECT 0
+#define MB_TYPE_B_BIDIR  1
+#define MB_TYPE_B_BACKW  2
+#define MB_TYPE_B_FORW   3
+
 /* dc encoding for mpeg4 */
 const UINT8 DCtab_lum[13][2] =
 {
@@ -127,7 +135,7 @@ static const UINT16 pixel_aspect[16][2]={
 };
 
 /* these matrixes will be permuted for the idct */
-INT16 ff_mpeg4_default_intra_matrix[64] = {
+const INT16 ff_mpeg4_default_intra_matrix[64] = {
   8, 17, 18, 19, 21, 23, 25, 27,
  17, 18, 19, 21, 23, 25, 27, 28,
  20, 21, 22, 23, 24, 26, 28, 30,
@@ -138,7 +146,7 @@ INT16 ff_mpeg4_default_intra_matrix[64] = {
  27, 28, 30, 32, 35, 38, 41, 45, 
 };
 
-INT16 ff_mpeg4_default_non_intra_matrix[64] = {
+const INT16 ff_mpeg4_default_non_intra_matrix[64] = {
  16, 17, 18, 19, 20, 21, 22, 23,
  17, 18, 19, 20, 21, 22, 23, 24,
  18, 19, 20, 21, 22, 23, 24, 25,
@@ -149,3 +157,15 @@ INT16 ff_mpeg4_default_non_intra_matrix[64] = {
  23, 24, 25, 27, 28, 30, 31, 33,
 };
 
+UINT8 ff_mpeg4_y_dc_scale_table[32]={
+//  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31
+    0, 8, 8, 8, 8,10,12,14,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,34,36,38,40,42,44,46
+};
+UINT8 ff_mpeg4_c_dc_scale_table[32]={
+//  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31
+    0, 8, 8, 8, 8, 9, 9,10,10,11,11,12,12,13,13,14,14,15,15,16,16,17,17,18,18,19,20,21,22,23,24,25
+};
+
+const UINT16 ff_mpeg4_resync_prefix[8]={
+    0x7F00, 0x7E00, 0x7C00, 0x7800, 0x7000, 0x6000, 0x4000, 0x0000
+};

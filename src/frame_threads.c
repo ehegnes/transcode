@@ -270,10 +270,15 @@ void process_vframe(vob_t *vob)
     if(ptr->attributes & TC_FRAME_IS_SKIPPED) {
       vframe_remove(ptr);  // release frame buffer memory
       
-      pthread_mutex_lock(&vbuffer_im_fill_lock);
+      pthread_mutex_lock(&vbuffer_xx_fill_lock);
       --vbuffer_xx_fill_ctr;
-      pthread_mutex_unlock(&vbuffer_im_fill_lock);
+      pthread_mutex_unlock(&vbuffer_xx_fill_lock);
 
+      // notify sleeping import thread
+      pthread_mutex_lock(&vframe_list_lock);
+      pthread_cond_signal(&vframe_list_full_cv);
+      pthread_mutex_unlock(&vframe_list_lock);
+      
       continue;
       //goto invalid_vptr; // frame skipped
     }
@@ -293,6 +298,11 @@ void process_vframe(vob_t *vob)
       --vbuffer_xx_fill_ctr;
       pthread_mutex_unlock(&vbuffer_xx_fill_lock);
 
+      // notify sleeping import thread
+      pthread_mutex_lock(&vframe_list_lock);
+      pthread_cond_signal(&vframe_list_full_cv);
+      pthread_mutex_unlock(&vframe_list_lock);
+
       continue;
       //goto invalid_vptr; // frame skipped
     }
@@ -301,14 +311,6 @@ void process_vframe(vob_t *vob)
     
     // ready for encoding
     vframe_set_status(ptr, FRAME_READY);
-    
-    /* -- moved to encoder.c
-    if (ptr->attributes & TC_FRAME_IS_CLONED) {
-      pthread_mutex_lock(&vbuffer_ex_fill_lock);
-      ++vbuffer_ex_fill_ctr;
-      pthread_mutex_unlock(&vbuffer_ex_fill_lock);
-    }
-    */
     
     pthread_mutex_lock(&vbuffer_xx_fill_lock);
     --vbuffer_xx_fill_ctr;
@@ -391,6 +393,11 @@ void process_aframe(vob_t *vob)
       --abuffer_xx_fill_ctr;
       pthread_mutex_unlock(&abuffer_xx_fill_lock);
       
+      // notify sleeping import thread
+      pthread_mutex_lock(&aframe_list_lock);
+      pthread_cond_signal(&aframe_list_full_cv);
+      pthread_mutex_unlock(&aframe_list_lock);
+      
       continue;
       //goto invalid_aptr; // frame skipped
     }
@@ -410,6 +417,11 @@ void process_aframe(vob_t *vob)
       --abuffer_xx_fill_ctr;
       pthread_mutex_unlock(&abuffer_xx_fill_lock);
 
+      // notify sleeping import thread
+      pthread_mutex_lock(&aframe_list_lock);
+      pthread_cond_signal(&aframe_list_full_cv);
+      pthread_mutex_unlock(&aframe_list_lock);
+
       continue;
       //goto invalid_aptr; // frame skipped
     }
@@ -418,14 +430,6 @@ void process_aframe(vob_t *vob)
 
     // ready for encoding
     aframe_set_status(ptr, FRAME_READY);
-
-    /* -- moved to encoder.c
-    if (ptr->attributes & TC_FRAME_IS_CLONED) {
-      pthread_mutex_lock(&abuffer_ex_fill_lock);
-      ++abuffer_ex_fill_ctr;
-      pthread_mutex_unlock(&abuffer_ex_fill_lock);
-    }
-    */
 
     pthread_mutex_lock(&abuffer_xx_fill_lock);
     --abuffer_xx_fill_ctr;

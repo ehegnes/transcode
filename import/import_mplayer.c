@@ -31,7 +31,7 @@
 
 
 #define MOD_NAME    "import_mplayer.so"
-#define MOD_VERSION "v0.0.3 (2002-07-07)"
+#define MOD_VERSION "v0.0.4 (2002-11-21)"
 #define MOD_CODEC   "(video) rendered by mplayer | (audio) rendered by mplayer"
 
 #define MOD_PRE mplayer
@@ -64,7 +64,7 @@ MOD_open
         return(TC_IMPORT_ERROR);
       }
       
-      if (snprintf(import_cmd_buf, MAX_BUF, "mplayer -benchmark -noframedrop -nogui -nosound -vo yuv4mpeg \"%s\" -osdlevel 0 > /dev/null 2>&1", vob->video_in_file ) < 0) {
+      if (snprintf(import_cmd_buf, MAX_BUF, "mplayer -benchmark -noframedrop -nosound -vo yuv4mpeg \"%s\" -osdlevel 0 > /dev/null 2>&1", vob->video_in_file ) < 0) {
         perror("command buffer overflow");
         exit(1);
       }
@@ -111,7 +111,7 @@ MOD_open
         return(TC_IMPORT_ERROR);
       }
       
-      if (snprintf(import_cmd_buf, MAX_BUF, "mplayer -hardframedrop -nogui -vo null -ao pcm -nowaveheader -aofile %s \"%s\" > /dev/null 2>&1",
+      if (snprintf(import_cmd_buf, MAX_BUF, "mplayer -hardframedrop -vo null -ao pcm -nowaveheader -aofile %s \"%s\" > /dev/null 2>&1",
           audiopipe, vob->audio_in_file) < 0) {
         perror("command buffer overflow");
         exit(1);

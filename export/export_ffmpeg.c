@@ -1,7 +1,7 @@
 /*
  *  export_ffmpeg.c
  *
- *  Copyright (C) Thomas Östreich - March 2002
+ *  Copyright (C) Moritz Bunkus - October 2002
  *
  *  This file is part of transcode, a linux video stream processing tool
  *      
@@ -20,63 +20,93 @@
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
  *
  */
-
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
+#include "vid_aux.h"
 #include "../ffmpeg/libavcodec/avcodec.h"
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.1.0 (2002-05-29)"
-#define MOD_CODEC   "(video) ffmpeg API | (audio) MPEG/AC3/PCM"
-
+#define MOD_VERSION "v0.2.3 (2002-11-14)"
+#define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
+                    ") | (audio) MPEG/AC3/PCM"
 #define MOD_PRE ffmpeg
+
 #include "export_def.h"
+#include "ffmpeg_cfg.h"
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AC3|TC_CAP_AUD;
+static int verbose_flag    = TC_QUIET;
+static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AC3|
+                             TC_CAP_AUD;
 
-static uint8_t tmp_buffer[SIZE_RGB_FRAME];
+struct ffmpeg_codec {
+  char *name;
+  char *fourCC;
+  char *comments;
+  int   multipass;
+};
 
-//static int codec, width, height;
+struct ffmpeg_codec ffmpeg_codecs[] = {
+  {"mpeg4", "DIVX", "MPEG4 compliant video", 1},
+  {"msmpeg4", "div3", "old DivX3 compatible (aka MSMPEG4v3)", 1},
+  {"msmpeg4v2", "MP42", "old DivX3 compatible (older version)", 1},
+  {"mjpeg", "MJPG", "Motion JPEG", 0},
+  {"mpeg1video", "mpg1", "MPEG1 compliant video", 1},
+  //  {"h263", "h263", "H263", 0},
+  //  {"h263p", "h263", "H263 plus", 1},
+  //  {"wmv1", "WMV1", "Windows Media Video v1", 1},
+  //  {"wmv2", "WMV2", "Windows Media Video v2", 1},
+  {"rv10", "RV10", "old RealVideo codec", 1},
+  {NULL, NULL, NULL, 0}};
 
-static AVCodec        *mpa_codec = NULL;
-static AVCodecContext mpa_ctx;
-static AVPicture      mpa_picture;
+static uint8_t              tmp_buffer[SIZE_RGB_FRAME];
 
-static avi_t *avifile=NULL;
+static AVCodec             *lavc_venc_codec = NULL;
+static AVCodecContext      *lavc_venc_context;
+static avi_t               *avifile = NULL;
+static int                  pix_fmt;
+static FILE                *stats_file = NULL;
+static size_t               size;
+static struct ffmpeg_codec *codec;
 
-//== little helper ==
-//===================
-static void adjust_ch(char *line, char ch)
-{
-  char *src = &line[strlen(line)];
-  char *dst = line;
-
-  //-- remove blanks from right and left side --
-  do { src--; } while ( (src != line) && (*src == ch) );
-  *(src+1) = '\0';
-  src = line;
-  while (*src == ch) src++; 
-
-  if (src == line) return;
-
-  //-- copy rest --
-  while (*src)
-  {
-    *dst = *src;
-    src++;
-    dst++;
+static struct ffmpeg_codec *find_ffmpeg_codec(char *name) {
+  int i;
+  
+  i = 0;
+  while (ffmpeg_codecs[i].name != NULL) {
+    if (!strcasecmp(name, ffmpeg_codecs[i].name))
+      return &ffmpeg_codecs[i];
+    i++;
   }
-  *dst = '\0';
+  
+  return NULL;
 }
 
-//default
-static int codec_id=CODEC_ID_MSMPEG4V3;
-static char *FCC="DIV3";
+static void strip(char *s) {
+  char *start;
+
+  if (s == NULL)
+    return;
+      
+  start = s;
+  while ((*start != 0) && isspace(*start))
+    start++;
+  
+  memmove(s, start, strlen(start) + 1);
+  if (strlen(s) == 0)
+    return;
+  
+  start = &s[strlen(s) - 1];
+  while ((start != s) && isspace(*start)) {
+    *start = 0;
+    start--;
+  }
+}
 
 /* ------------------------------------------------------------ 
  *
@@ -84,112 +114,298 @@ static char *FCC="DIV3";
  *
  * ------------------------------------------------------------*/
 
-MOD_init
-{
-    char *p1 = "MJPEG";
-    char *p2 = NULL;
-    char *p3 = NULL;
-    
-    if(param->flag == TC_VIDEO) {
-	
-	avcodec_init();
-
-	if(vob->ex_v_fcc != NULL && strlen(vob->ex_v_fcc) != 0) {
-	    p1 = vob->ex_v_fcc;
-	    adjust_ch(p1, ' ');//-- parameter 1 (base profile) --
-	}
-
-	//p2,p3 not used yet
-
-	if(vob->ex_a_fcc != NULL && strlen(vob->ex_a_fcc) != 0) {
-	    p2 = vob->ex_a_fcc;
-	    adjust_ch(p2, ' ');//-- parameter 2 (resizer-mode) --
-	}
-	
-	if(vob->ex_profile_name != NULL && strlen(vob->ex_profile_name) != 0) {
-	    p3 = vob->ex_profile_name;
-	    adjust_ch(p3, ' ');//-- parameter 3 (user profile-name) --
-	}
-	
-	if(verbose_flag & TC_INFO) printf("[%s] ffmpeg codec: %s\n", MOD_NAME, p1);
-	
-	//select video codec
-	if(p1 != NULL && strcasecmp(p1,"MJPEG")==0) {
-	  codec_id=CODEC_ID_MJPEG;
-	  register_avcodec(&mjpeg_encoder);
-	  FCC="MJPG";
-	}
-	
-	if(p1 != NULL && strcasecmp(p1,"MSMPEG4V3")==0) {
-	  codec_id=CODEC_ID_MSMPEG4V3;
-	  register_avcodec(&msmpeg4v3_encoder);
-	  FCC="DIV3";
-	}
-	
-	//-- get it --
-	mpa_codec = avcodec_find_encoder(codec_id);
-	if (!mpa_codec) {
-	  fprintf(stderr, "[%s] codec not found !\n", MOD_NAME);
-	  return(TC_EXPORT_ERROR); 
-	}
-	
-	//-- set parameters 
-	//--------------------------------------------------------
-	memset(&mpa_ctx, 0, sizeof(mpa_ctx));       // default all
-
-
-	mpa_ctx.frame_rate         = vob->fps * FRAME_RATE_BASE;
-	mpa_ctx.bit_rate           = vob->divxbitrate*1000;
-	mpa_ctx.bit_rate_tolerance = 1024 * 8 * 1000;
-	mpa_ctx.qmin               = vob->min_quantizer;
-	mpa_ctx.qmax               = vob->max_quantizer;
-	mpa_ctx.max_qdiff          = 3;
-	mpa_ctx.qcompress          = 0.5;
-	mpa_ctx.qblur              = 0.5;
-	mpa_ctx.max_b_frames       = 0;
-	mpa_ctx.b_quant_factor     = 2.0;
-	mpa_ctx.rc_strategy        = 2;
-	mpa_ctx.b_frame_strategy   = 0;
-	mpa_ctx.gop_size           = vob->divxkeyframes;
-	mpa_ctx.flags              = CODEC_FLAG_HQ;
-	mpa_ctx.me_method          = 5;
-	
-	if(vob->im_v_codec == CODEC_YUV) {
-	    mpa_ctx.pix_fmt = PIX_FMT_YUV420P;
-	    
-	    mpa_picture.linesize[0]=vob->ex_v_width;     
-	    mpa_picture.linesize[1]=vob->ex_v_width/2;     
-	    mpa_picture.linesize[2]=vob->ex_v_width/2;     
-	    
-	}
-	
-	if(vob->im_v_codec == CODEC_RGB) {
-	    mpa_ctx.pix_fmt = PIX_FMT_RGB24;
-	    
-	    mpa_picture.linesize[0]=vob->ex_v_width*3;     
-	    mpa_picture.linesize[1]=0;     
-	    mpa_picture.linesize[2]=0;
-	}
-	
-	mpa_ctx.width = vob->ex_v_width;
-	mpa_ctx.height = vob->ex_v_height;
-	mpa_ctx.frame_rate = vob->fps;
-	
-	//-- open codec --
-	//----------------
-	if (avcodec_open(&mpa_ctx, mpa_codec) < 0) {
-	    fprintf(stderr, "[%s] could not open codec\n", MOD_NAME);
-	    return(TC_EXPORT_ERROR); 
-	}
-	
-	
-	return(0);
+MOD_init {
+  char *p;
+  int   i;
+  
+  if (param->flag == TC_VIDEO) {
+    // Check if the user used '-F codecname' and abort if not.
+    strip(vob->ex_v_fcc);
+    if ((vob->ex_v_fcc == NULL) || (strlen(vob->ex_v_fcc) == 0)) {
+      fprintf(stderr, "[%s] You must chose a codec by supplying '-F "
+              "<codecname>'. A list of supported codecs can be obtained with "
+              "'-F list'.\n", MOD_NAME);
+      return TC_EXPORT_ERROR;
+    }
+    if (!strcasecmp(vob->ex_v_fcc, "list")) {
+      i = 0;
+      fprintf(stderr, "[%s] List of known and supported codecs:\n"
+              "[%s] Name       fourCC multipass comments\n"
+              "[%s] ---------- ------ --------- ---------------------------"
+              "--------\n", MOD_NAME, MOD_NAME, MOD_NAME);
+      while (ffmpeg_codecs[i].name != NULL) {
+        fprintf(stderr, "[%s] %-10s  %s     %3s    %s\n", MOD_NAME,
+                ffmpeg_codecs[i].name, ffmpeg_codecs[i].fourCC, 
+                ffmpeg_codecs[i].multipass ? "yes" : "no", 
+                ffmpeg_codecs[i].comments);
+        i++;
+      }
+      
+      return TC_EXPORT_ERROR;
+    }
+    codec = find_ffmpeg_codec(vob->ex_v_fcc);
+    if (codec == NULL) {
+      fprintf(stderr, "[%s] Unknown codec '%s'.\n", MOD_NAME, vob->ex_v_fcc);
+      return TC_EXPORT_ERROR;
     }
     
-    if(param->flag == TC_AUDIO) return(audio_init(vob, verbose_flag));
+    avcodec_init();
+    avcodec_register_all();
     
-    // invalid flag
-    return(TC_EXPORT_ERROR); 
+    //-- get it --
+    lavc_venc_codec = avcodec_find_encoder_by_name(codec->name);
+    if (!lavc_venc_codec) {
+      fprintf(stderr, "[%s] Could not find a FFMPEG codec for '%s'.\n",
+              MOD_NAME, codec->name);
+      return TC_EXPORT_ERROR; 
+    }
+    fprintf(stderr, "[%s] Using FFMPEG codec '%s' (FourCC '%s', %s).\n",
+            MOD_NAME, codec->name, codec->fourCC, codec->comments);
+
+    lavc_venc_context = avcodec_alloc_context();
+    
+    if (lavc_venc_context == NULL) {
+      fprintf(stderr, "[%s] Could not allocate enough memory.\n", MOD_NAME);
+      return TC_EXPORT_ERROR;
+    }
+    
+    if (vob->im_v_codec == CODEC_YUV)
+      pix_fmt = PIX_FMT_YUV420P;
+    else if (vob->im_v_codec == CODEC_RGB) {
+      // ffmpeg seems not to do its own RGB to YUV conversion.
+      if (tc_rgb2yuv_init(vob->ex_v_width, vob->ex_v_height) != 0) {
+        fprintf(stderr, "[%s] Could not initialize RGB to YUV conversion.\n",
+                MOD_NAME);
+        return TC_EXPORT_ERROR;
+      }
+      pix_fmt = PIX_FMT_RGB24;
+    } else {
+      fprintf(stderr, "[%s] Unknown color space %d.\n", MOD_NAME,
+              vob->im_v_codec);
+      return TC_EXPORT_ERROR;
+    }
+
+    lavc_venc_context->width              = vob->ex_v_width;
+    lavc_venc_context->height             = vob->ex_v_height;
+    lavc_venc_context->frame_rate         = vob->fps * FRAME_RATE_BASE;
+    lavc_venc_context->bit_rate           = vob->divxbitrate * 1000;
+    lavc_venc_context->qmin               = vob->min_quantizer;
+    lavc_venc_context->qmax               = vob->max_quantizer;
+
+    /* keyframe interval */
+    if (vob->divxkeyframes >= 0) /* != -1 */
+      lavc_venc_context->gop_size = vob->divxkeyframes;
+    else
+      lavc_venc_context->gop_size = 250; /* default */
+    
+    ffmpeg_read_config(codec->name, MOD_NAME, lavcopts_conf);
+    if (verbose_flag & TC_DEBUG) {
+      fprintf(stderr, "[%s] Using the following FFMPEG parameters:\n",
+              MOD_NAME);
+      ffmpeg_print_config("", lavcopts_conf);
+    }
+    
+    if (lavc_param_vhq)
+      lavc_venc_context->flags |= CODEC_FLAG_HQ;
+    lavc_venc_context->bit_rate_tolerance = lavc_param_vrate_tolerance * 1000;
+    lavc_venc_context->max_qdiff          = lavc_param_vqdiff;
+    lavc_venc_context->qcompress          = lavc_param_vqcompress;
+    lavc_venc_context->qblur              = lavc_param_vqblur;
+    lavc_venc_context->max_b_frames       = lavc_param_vmax_b_frames;
+    lavc_venc_context->b_quant_factor     = lavc_param_vb_qfactor;
+    lavc_venc_context->rc_strategy        = lavc_param_vrc_strategy;
+    lavc_venc_context->b_frame_strategy   = lavc_param_vb_strategy;
+    lavc_venc_context->b_quant_offset     = lavc_param_vb_qoffset;
+    lavc_venc_context->luma_elim_threshold= lavc_param_luma_elim_threshold;
+    lavc_venc_context->chroma_elim_threshold= lavc_param_chroma_elim_threshold;
+    lavc_venc_context->rtp_payload_size   = lavc_param_packet_size;
+    if (lavc_param_packet_size)
+      lavc_venc_context->rtp_mode         = 1;
+    lavc_venc_context->strict_std_compliance= lavc_param_strict;
+    lavc_venc_context->i_quant_factor     = lavc_param_vi_qfactor;
+    lavc_venc_context->i_quant_offset     = lavc_param_vi_qoffset;
+    lavc_venc_context->rc_qsquish         = lavc_param_rc_qsquish;
+    lavc_venc_context->rc_qmod_amp        = lavc_param_rc_qmod_amp;
+    lavc_venc_context->rc_qmod_freq       = lavc_param_rc_qmod_freq;
+    lavc_venc_context->rc_eq              = lavc_param_rc_eq;
+    lavc_venc_context->rc_max_rate        = lavc_param_rc_max_rate * 1000;
+    lavc_venc_context->rc_min_rate        = lavc_param_rc_min_rate * 1000;
+    lavc_venc_context->rc_buffer_size     = lavc_param_rc_buffer_size * 1000;
+    lavc_venc_context->rc_buffer_aggressivity= lavc_param_rc_buffer_aggressivity;
+    lavc_venc_context->rc_initial_cplx    = lavc_param_rc_initial_cplx;
+
+    p = lavc_param_rc_override_string;
+    for (i = 0; p; i++) {
+      int start, end, q;
+      int e = sscanf(p, "%d,%d,%d", &start, &end, &q);
+      
+      if (e != 3) {
+        fprintf(stderr, "[%s] Error parsing vrc_override.\n", MOD_NAME);
+        return TC_EXPORT_ERROR;
+      }
+      lavc_venc_context->rc_override =
+          realloc(lavc_venc_context->rc_override, sizeof(RcOverride) * (i + 1));
+      lavc_venc_context->rc_override[i].start_frame = start;
+      lavc_venc_context->rc_override[i].end_frame   = end;
+      if (q > 0) {
+        lavc_venc_context->rc_override[i].qscale         = q;
+        lavc_venc_context->rc_override[i].quality_factor = 1.0;
+      }
+      else {
+        lavc_venc_context->rc_override[i].qscale         = 0;
+        lavc_venc_context->rc_override[i].quality_factor = -q / 100.0;
+      }
+      p = strchr(p, '/');
+      if (p)
+        p++;
+    }
+    lavc_venc_context->rc_override_count     = i;
+    lavc_venc_context->mpeg_quant            = lavc_param_mpeg_quant;
+    lavc_venc_context->dct_algo              = lavc_param_fdct;
+    lavc_venc_context->idct_algo             = lavc_param_idct;
+    lavc_venc_context->lumi_masking          = lavc_param_lumi_masking;
+    lavc_venc_context->temporal_cplx_masking = lavc_param_temporal_cplx_masking;
+    lavc_venc_context->spatial_cplx_masking  = lavc_param_spatial_cplx_masking;
+    lavc_venc_context->p_masking             = lavc_param_p_masking;
+    lavc_venc_context->dark_masking          = lavc_param_dark_masking;
+
+    if (lavc_param_aspect != 0.0)
+    {
+      if (lavc_param_aspect == (float)(4.0/3.0))
+        lavc_venc_context->aspect_ratio_info = FF_ASPECT_4_3_625;
+      else if (lavc_param_aspect == (float)(16.0/9.0))
+        lavc_venc_context->aspect_ratio_info = FF_ASPECT_16_9_625;
+      else if (lavc_param_aspect == (float)(221.0/100.0)) {
+        lavc_venc_context->aspect_ratio_info = FF_ASPECT_EXTENDED;
+        lavc_venc_context->aspected_width = 221;
+        lavc_venc_context->aspected_height = 100;
+      } else {
+        fprintf(stderr, "[%s] Unsupported aspect ration %f.\n", MOD_NAME,
+                lavc_param_aspect);
+        return TC_EXPORT_ERROR; 
+      }
+    }
+
+    // 4mv is currently buggy with B frames 
+    if ((lavc_param_vmax_b_frames > 0) && lavc_param_v4mv) {
+      fprintf(stderr, "[%s] 4MV with B-Frames not supported. 4MV disabled\n",
+              MOD_NAME);
+      lavc_param_v4mv = 0;
+    }
+
+    lavc_venc_context->flags |= lavc_param_v4mv ? CODEC_FLAG_4MV : 0;
+    lavc_venc_context->flags |= lavc_param_data_partitioning;
+    if (lavc_param_gray)
+      lavc_venc_context->flags |= CODEC_FLAG_GRAY;
+    if (lavc_param_normalize_aqp)
+      lavc_venc_context->flags |= CODEC_FLAG_NORMALIZE_AQP;
+    if (lavc_param_interlaced_dct)
+      lavc_venc_context->flags |= CODEC_FLAG_INTERLACED_DCT;
+
+    switch (vob->divxmultipass) {
+      case 1:
+        if (!codec->multipass) {
+          fprintf(stderr, "[%s] This codec does not support multipass "
+                  "encoding.\n", MOD_NAME);
+          return TC_EXPORT_ERROR;
+        }
+        lavc_venc_context->flags |= CODEC_FLAG_PASS1; 
+        stats_file = fopen(vob->divxlogfile, "w");
+        if (stats_file == NULL){
+          fprintf(stderr, "[%s] Could not create 2pass log file \"%s\".\n",
+                  MOD_NAME, vob->divxlogfile);
+          return TC_EXPORT_ERROR;
+        }
+        break;
+      case 2:
+        if (!codec->multipass) {
+          fprintf(stderr, "[%s] This codec does not support multipass "
+                  "encoding.\n", MOD_NAME);
+          return TC_EXPORT_ERROR;
+        }
+        lavc_venc_context->flags |= CODEC_FLAG_PASS2; 
+        stats_file= fopen(vob->divxlogfile, "r");
+        if (stats_file==NULL){
+          fprintf(stderr, "[%s] Could not open 2pass log file \"%s\" for "
+                  "reading.\n", MOD_NAME, vob->divxlogfile);
+          return TC_EXPORT_ERROR;
+        }
+        fseek(stats_file, 0, SEEK_END);
+        size = ftell(stats_file);
+        fseek(stats_file, 0, SEEK_SET);
+
+        lavc_venc_context->stats_in= malloc(size + 1);
+        lavc_venc_context->stats_in[size] = 0;
+
+        if (fread(lavc_venc_context->stats_in, size, 1, stats_file) < 1){
+          fprintf(stderr, "[%s] Could not read the complete 2pass log file "
+                  "\"%s\".\n", MOD_NAME, vob->divxlogfile);
+          return TC_EXPORT_ERROR;
+        }        
+        break;
+      case 3:
+        /* fixed qscale :p */
+        lavc_venc_context->flags   |= CODEC_FLAG_QSCALE;
+        lavc_venc_context->quality  = vob->min_quantizer;
+        break;
+    }
+
+    lavc_venc_context->me_method = ME_ZERO + lavc_param_vme;
+
+
+    //-- open codec --
+    //----------------
+    if (avcodec_open(lavc_venc_context, lavc_venc_codec) < 0) {
+      fprintf(stderr, "[%s] could not open FFMPEG/MPEG4 codec\n", MOD_NAME);
+      return TC_EXPORT_ERROR; 
+    }
+
+    if (lavc_venc_context->codec->encode == NULL) {
+      fprintf(stderr, "[%s] could not open FFMPEG/MPEG4 codec "
+              "(lavc_venc_context->codec->encode == NULL)\n", MOD_NAME);
+      return TC_EXPORT_ERROR; 
+    }
+    
+    /* free second pass buffer, its not needed anymore */
+    if (lavc_venc_context->stats_in)
+      free(lavc_venc_context->stats_in);
+    lavc_venc_context->stats_in = NULL;
+    
+    if (verbose_flag & TC_DEBUG) {
+     //-- GMO start -- 
+      if (vob->divxmultipass == 3) { 
+        fprintf(stderr, "[%s]    single-pass session: 3 (VBR)\n", MOD_NAME);
+        fprintf(stderr, "[%s]          VBR-quantizer: %d\n", MOD_NAME,
+                vob->divxbitrate);
+      } else {
+        fprintf(stderr, "[%s]     multi-pass session: %d\n", MOD_NAME,
+                vob->divxmultipass);
+        fprintf(stderr, "[%s]      bitrate [kBits/s]: %d\n", MOD_NAME,
+                lavc_venc_context->bit_rate/1000);
+      }
+  
+      //-- GMO end --
+
+      fprintf(stderr, "[%s]              crispness: %d\n", MOD_NAME,
+              vob->divxcrispness);
+      fprintf(stderr, "[%s]  max keyframe interval: %d\n", MOD_NAME,
+              vob->divxkeyframes);
+      fprintf(stderr, "[%s]             frame rate: %.2f\n", MOD_NAME,
+              vob->fps);
+      fprintf(stderr, "[%s]            color space: %s\n", MOD_NAME,
+              (vob->im_v_codec==CODEC_RGB) ? "RGB24":"YV12");
+      fprintf(stderr, "[%s]             quantizers: %d/%d\n", MOD_NAME,
+              lavc_venc_context->qmin, lavc_venc_context->qmax);
+    }
+
+    return 0;
+  }
+
+  if (param->flag == TC_AUDIO)
+    return audio_init(vob, verbose_flag);
+  
+  // invalid flag
+  return TC_EXPORT_ERROR;
 }
 
 /* ------------------------------------------------------------ 
@@ -203,28 +419,37 @@ MOD_open
 
   // open output file
   
-  if(vob->avifile_out==NULL) { 
-    if(NULL == (vob->avifile_out = AVI_open_output_file(vob->video_out_file))) {
+  /* Open file */
+  if (vob->avifile_out==NULL) {
+
+    vob->avifile_out = AVI_open_output_file(vob->video_out_file);
+
+    if ((vob->avifile_out) == NULL) {
       AVI_print_error("avi open error");
-      exit(TC_EXPORT_ERROR);
+      return TC_EXPORT_ERROR;
     }
+
   }
-  
-  /* save locally */
+    
+  /* Save locally */
   avifile = vob->avifile_out;
 
-  if(param->flag == TC_VIDEO) {
+  
+  if (param->flag == TC_VIDEO) {
     
-      // video
-      AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->fps, FCC);
-    return(0);
+    // video
+    AVI_set_video(avifile, vob->ex_v_width, vob->ex_v_height, vob->fps,
+                  codec->fourCC);
+    
+    return 0;
   }
   
   
-  if(param->flag == TC_AUDIO) return(audio_open(vob, vob->avifile_out));
+  if (param->flag == TC_AUDIO)
+    return audio_open(vob, vob->avifile_out);
   
   // invalid flag
-  return(TC_EXPORT_ERROR); 
+  return TC_EXPORT_ERROR;
 }   
 
 /* ------------------------------------------------------------ 
@@ -237,29 +462,82 @@ MOD_encode
 {
   
   int out_size;
+  int buf_size=SIZE_RGB_FRAME;
+  AVPicture lavc_venc_picture;
   
-  if(param->flag == TC_VIDEO) { 
-    
-    mpa_picture.data[0]=param->buffer;
-    mpa_picture.data[2]=param->buffer + mpa_ctx.width * mpa_ctx.height;
-    mpa_picture.data[1]=param->buffer + (mpa_ctx.width * mpa_ctx.height*5)/4;
+  if (param->flag == TC_VIDEO) { 
+
+    if (pix_fmt == PIX_FMT_YUV420P) {
+      lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
+      
+      lavc_venc_picture.linesize[0] = lavc_venc_context->width;     
+      lavc_venc_picture.linesize[1] = lavc_venc_context->width / 2;
+      lavc_venc_picture.linesize[2] = lavc_venc_context->width / 2;
+
+      lavc_venc_picture.data[0]     = param->buffer;
+      lavc_venc_picture.data[2]     = param->buffer +
+        lavc_venc_context->width * lavc_venc_context->height;
+      lavc_venc_picture.data[1]     = param->buffer +
+        (lavc_venc_context->width * lavc_venc_context->height*5)/4;
+    } else if (pix_fmt == PIX_FMT_RGB24) {
+      // Do RGB to YUV conversion now as ffmpeg does not seem to do it itself.
+      lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
+
+      if (tc_rgb2yuv_core_flip(param->buffer) != 0) {
+        fprintf(stderr, "[%s] RGB to YUV conversion failed.\n", MOD_NAME);
+        return TC_EXPORT_ERROR;
+      }
+
+      lavc_venc_picture.linesize[0] = lavc_venc_context->width;     
+      lavc_venc_picture.linesize[1] = lavc_venc_context->width / 2;
+      lavc_venc_picture.linesize[2] = lavc_venc_context->width / 2;
+
+      lavc_venc_picture.data[0]     = param->buffer;
+      lavc_venc_picture.data[1]     = param->buffer +
+        lavc_venc_context->width * lavc_venc_context->height;
+      lavc_venc_picture.data[2]     = param->buffer +
+        (lavc_venc_context->width * lavc_venc_context->height*5)/4;
+    } else {
+      fprintf(stderr, "[%s] Unknown pixel format %d.\n", MOD_NAME,
+              lavc_venc_context->pix_fmt);
+      return TC_EXPORT_ERROR;
+    }
+
+
+    out_size = avcodec_encode_video(lavc_venc_context,
+                                    (unsigned char *) tmp_buffer, buf_size,
+                                    &lavc_venc_picture);
   
-    out_size = avcodec_encode_video(&mpa_ctx, (unsigned char *) tmp_buffer, 
-				    SIZE_RGB_FRAME, &mpa_picture);
+    if (out_size < 0) {
+      fprintf(stderr, "[%s] encoder error", MOD_NAME);
+      return TC_EXPORT_ERROR; 
+    }
+
+    //0.6.2: switch outfile on "r/R" and -J pv
+    //0.6.2: enforce auto-split at 2G (or user value) for normal AVI files
+    if((uint32_t)(AVI_bytes_written(avifile)+out_size+16+8)>>20 >= tc_avi_limit) tc_outstream_rotate_request();
     
-    if(AVI_write_frame(avifile, tmp_buffer, out_size, 1)<0) {
+    if (lavc_venc_context->key_frame) tc_outstream_rotate();
+    
+    if (AVI_write_frame(avifile, tmp_buffer, out_size,
+                       lavc_venc_context->key_frame? 1 : 0) < 0) {
       AVI_print_error("avi video write error");
       
-      return(TC_EXPORT_ERROR); 
+      return TC_EXPORT_ERROR; 
     }
     
-    return(0);
+    /* store stats if there are any */
+    if (lavc_venc_context->stats_out && stats_file) 
+      fprintf(stats_file, "%s", lavc_venc_context->stats_out);
+
+    return 0;
   }
   
-  if(param->flag == TC_AUDIO) return(audio_encode(param->buffer, param->size, avifile));
+  if (param->flag == TC_AUDIO)
+    return audio_encode(param->buffer, param->size, avifile);
   
   // invalid flag
-  return(TC_EXPORT_ERROR);
+  return TC_EXPORT_ERROR;
 }
 
 /* ------------------------------------------------------------ 
@@ -271,17 +549,34 @@ MOD_encode
 MOD_stop 
 {
   
-  if(param->flag == TC_VIDEO) {
+  if (param->flag == TC_VIDEO) {
 
     //-- release encoder --
-    if (mpa_codec) avcodec_close(&mpa_ctx);
+    if (lavc_venc_codec) {
+      avcodec_close(lavc_venc_context);
+      lavc_venc_codec = NULL;
+    }
 
-    return(0);
+    if (stats_file) {
+      fclose(stats_file);
+      stats_file = NULL;
+    }
+    
+    if (lavc_venc_context != NULL) {    
+      if (lavc_venc_context->rc_override) {
+        free(lavc_venc_context->rc_override);
+        lavc_venc_context->rc_override = NULL;
+      }
+      free(lavc_venc_context);
+      lavc_venc_context = NULL;
+    }
+    return 0;
   }
   
-  if(param->flag == TC_AUDIO) return(audio_stop());
+  if (param->flag == TC_AUDIO)
+    return audio_stop();
   
-  return(TC_EXPORT_ERROR);
+  return TC_EXPORT_ERROR;
 }
 
 /* ------------------------------------------------------------ 
@@ -295,15 +590,20 @@ MOD_close
 
   vob_t *vob = tc_get_vob();
 
-  if(vob->avifile_out!=NULL) {
+  if (param->flag == TC_AUDIO)
+    return audio_close();
+
+  if (vob->avifile_out!=NULL) {
     AVI_close(vob->avifile_out);
     vob->avifile_out=NULL;
   }
   
-  if(param->flag == TC_AUDIO) return(audio_close());
-  if(param->flag == TC_VIDEO) return(0);
+  if (param->flag == TC_VIDEO) {
+    if (pix_fmt == PIX_FMT_RGB24)
+      tc_rgb2yuv_close();
+    return 0;
+  }
   
-  return(TC_EXPORT_ERROR);  
+  return TC_EXPORT_ERROR;
   
 }
-

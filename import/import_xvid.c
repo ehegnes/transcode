@@ -198,6 +198,7 @@ MOD_open
 	frame_size = (xparam.width * xparam.height * 3)/2;
 	break;
       case CODEC_RAW:
+      case CODEC_RAW_YUV:
 	pass_through=1;
 	break;
     }

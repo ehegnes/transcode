@@ -53,7 +53,7 @@
 #include "vbr.h"
 
 #define MOD_NAME    "export_divx4.so"
-#define MOD_VERSION "v0.3.6 (2002-07-26)"
+#define MOD_VERSION "v0.3.7 (2002-10-10)"
 #define MOD_CODEC   "(video) DivX 4.x/5.x | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE divx4
@@ -547,6 +547,9 @@ MOD_encode
     }
     
     // write bitstream
+
+    //0.6.2: switch outfile on "C" and -J pv
+    if(key.is_key_frame) tc_outstream_rotate();
     
     if(AVI_write_frame(avifile, buffer, encode.length, key.is_key_frame)<0) {
 	printf("avi video write error");

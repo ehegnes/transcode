@@ -31,17 +31,6 @@
 
 #ifdef HAVE_AVIFILE
 
-#if defined(HAVE_AVIFILE_INC)
-#include <fourcc.h>
-#include <avifile.h>
-#include <image.h>
-#include <aviplay.h>
-#include <cpuinfo.h>
-#include <utils.h>
-#include <version.h>
-#include <renderer.h>
-#include <creators.h>
-#else
 #include <avifile/fourcc.h>
 #include <avifile/avifile.h>
 #include <avifile/image.h>
@@ -51,7 +40,7 @@
 #include <avifile/version.h>
 #include <avifile/renderer.h>
 #include <avifile/creators.h>
-#endif
+
 #include <iostream>
 
 using namespace std;

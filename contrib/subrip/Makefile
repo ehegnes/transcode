@@ -28,8 +28,10 @@ PACKAGE_FILES = Makefile \
                vobsub.c vobsub.h subtitle2vobsub.c \
                pgm2txt \
                gocrfilter_en.sed gocrfilter_fr.sed gocrfilter_none.sed \
+               gocrfilter_nl.sed \
                README  README.gocr  README.srttool \
-               README.subtitle2pgm README.vobsub
+               README.subtitle2pgm README.vobsub \
+               ChangeLog
 
 # Name of the package
 PACKAGE = subrip
@@ -70,7 +72,7 @@ srttool: srttool.o
 
 .PHONY: clean dist
 clean:
-	rm -f $(TARGETS) subtitle2pgm.o spudec.o srttool.o *~
+	rm -f $(TARGETS) subtitle2pgm.o spudec.o srttool.o vobsub.o *~
 
 dist:
 	@mkdir $(PACKAGE)

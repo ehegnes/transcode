@@ -182,7 +182,8 @@ static aframe_list_t *aud_buf_retrieve()
     // ok
     if(verbose & TC_FLIST) printf("alloc  =%d [%d]\n", aud_buf_next, ptr->bufid);
 
-    aud_buf_next = (++aud_buf_next) % aud_buf_max;
+    ++aud_buf_next;
+    aud_buf_next %= aud_buf_max;
     
     return(ptr);
 }
@@ -258,19 +259,19 @@ aframe_list_t *aframe_register(int id)
 
   aframe_list_t *ptr;
 
-  tc_pthread_mutex_lock(&aframe_list_lock);
+  pthread_mutex_lock(&aframe_list_lock);
 
   // retrive a valid pointer from the pool
   
 #ifdef STATBUFFER
   if(verbose & TC_FLIST) printf("frameid=%d\n", id);
   if((ptr = aud_buf_retrieve()) == NULL) {
-    tc_pthread_mutex_unlock(&aframe_list_lock);
+    pthread_mutex_unlock(&aframe_list_lock);
     return(NULL);
   }
 #else 
   if((ptr = malloc(sizeof(aframe_list_t))) == NULL) {
-    tc_pthread_mutex_unlock(&aframe_list_lock);
+    pthread_mutex_unlock(&aframe_list_lock);
     return(NULL);
   }
 #endif
@@ -300,7 +301,7 @@ aframe_list_t *aframe_register(int id)
   
   if(verbose & TC_FLIST) fprintf(stderr, "A+  f=%d e=%d w=%d l=%d r=%d \n", aud_buf_fill, aud_buf_empty, aud_buf_wait, aud_buf_locked, aud_buf_ready);
  
-  tc_pthread_mutex_unlock(&aframe_list_lock);
+  pthread_mutex_unlock(&aframe_list_lock);
   
   return(ptr);
 
@@ -329,7 +330,7 @@ void aframe_remove(aframe_list_t *ptr)
   
   if(ptr == NULL) return;         // do nothing if null pointer
 
-  tc_pthread_mutex_lock(&aframe_list_lock);
+  pthread_mutex_lock(&aframe_list_lock);
   
   if(ptr->prev != NULL) (ptr->prev)->next = ptr->next;
   if(ptr->next != NULL) (ptr->next)->prev = ptr->prev;
@@ -380,14 +381,19 @@ void aframe_flush()
   */
 
   aframe_list_t *ptr;
-  
+
+  int cc=0;
+
   while((ptr=aframe_retrieve())!=NULL) {
       if(verbose & TC_DEBUG) fprintf(stderr, "flushing audio buffers\n"); 
       aframe_remove(ptr);
+      ++cc;
   }
 
+  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) flushing %d audio buffer\n", __FILE__, cc); 
+
   pthread_mutex_lock(&abuffer_im_fill_lock);
-  abuffer_ex_fill_ctr=0;
+  abuffer_im_fill_ctr=0;
   pthread_mutex_unlock(&abuffer_im_fill_lock);  
   
   pthread_mutex_lock(&abuffer_ex_fill_lock);
@@ -423,7 +429,7 @@ aframe_list_t *aframe_retrieve()
   
   aframe_list_t *ptr;
 
-  tc_pthread_mutex_lock(&aframe_list_lock);
+  pthread_mutex_lock(&aframe_list_lock);
 
   ptr = aframe_list_head;
 
@@ -435,14 +441,14 @@ aframe_list_t *aframe_retrieve()
       // we have to preserve order in which frames are encoded
       if(ptr->status == FRAME_LOCKED)
       {
-	  tc_pthread_mutex_unlock(&aframe_list_lock);
+	  pthread_mutex_unlock(&aframe_list_lock);
 	  return(NULL);
       }
   
       //this frame is ready to go
       if(ptr->status == FRAME_READY) 
       {
-	  tc_pthread_mutex_unlock(&aframe_list_lock);
+	  pthread_mutex_unlock(&aframe_list_lock);
 	  return(ptr);
       }
       ptr = ptr->next;
@@ -529,7 +535,7 @@ void aframe_set_status(aframe_list_t *ptr, int status)
 
     if(ptr == NULL) return;
   
-    tc_pthread_mutex_lock(&aframe_list_lock);
+    pthread_mutex_lock(&aframe_list_lock);
     
     if(ptr->status==FRAME_READY)  --aud_buf_ready;
     if(ptr->status==FRAME_EMPTY)  --aud_buf_empty;
@@ -543,7 +549,7 @@ void aframe_set_status(aframe_list_t *ptr, int status)
     if(ptr->status==FRAME_READY)  ++aud_buf_ready;
     if(ptr->status==FRAME_LOCKED) ++aud_buf_locked;
 
-    tc_pthread_mutex_unlock(&aframe_list_lock);
+    pthread_mutex_unlock(&aframe_list_lock);
 	
     return;
 }

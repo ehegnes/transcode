@@ -70,7 +70,6 @@ A52_CFLAGS = @A52_CFLAGS@
 A52_LIBS = @A52_LIBS@
 AMTAR = @AMTAR@
 AS = @AS@
-ASFLAGS = @ASFLAGS@
 AVIFILE_CFLAGS = @AVIFILE_CFLAGS@
 AVIFILE_CONFIG = @AVIFILE_CONFIG@
 AVIFILE_LIBS = @AVIFILE_LIBS@
@@ -99,6 +98,7 @@ GTK_CONFIG = @GTK_CONFIG@
 GTK_LIBS = @GTK_LIBS@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LAME_3_89 = @LAME_3_89@
+LAME_3_92 = @LAME_3_92@
 LAME_CFLAGS = @LAME_CFLAGS@
 LAME_LIBS = @LAME_LIBS@
 LDFLAGS = @LDFLAGS@
@@ -117,6 +117,9 @@ LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
 LIBXML2_LIBS = @LIBXML2_LIBS@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+LZO_CFLAGS = @LZO_CFLAGS@
+LZO_EXTRA_LIBS = @LZO_EXTRA_LIBS@
+LZO_LIBS = @LZO_LIBS@
 MAGICK_CFLAGS = @MAGICK_CFLAGS@
 MAGICK_CONFIG = @MAGICK_CONFIG@
 MAGICK_LIBS = @MAGICK_LIBS@
@@ -166,7 +169,7 @@ INCLUDES = -I./ -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @A
 
 pkgdir = @MOD_PATH@
 
-@HAVE_LIBPOSTPROC_TRUE@F_PP = filter_pp.la filter_ppcvs.la
+@HAVE_LIBPOSTPROC_TRUE@F_PP = filter_pp.la
 @HAVE_LIBPOSTPROC_FALSE@F_PP = 
 
 @HAVE_MMX_TRUE@F_MMX = filter_dilyuvmmx.la 
@@ -195,6 +198,7 @@ pkg_LTLIBRARIES = filter_null.la\
 			filter_tc_video.la\
 			filter_tc_audio.la\
 			filter_29to23.la\
+			filter_smooth.la\
 			$(F_PP) $(F_MMX) $(F_LOGO)
 
 
@@ -203,6 +207,9 @@ filter_null_la_LDFLAGS = -no-undefined -module -avoid-version
 
 filter_clone_la_SOURCES = filter_clone.c
 filter_clone_la_LDFLAGS = -no-undefined -module -avoid-version 
+
+filter_smooth_la_SOURCES = filter_smooth.c
+filter_smooth_la_LDFLAGS = -no-undefined -module -avoid-version 
 
 filter_29to23_la_SOURCES = filter_29to23.c
 filter_29to23_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -267,10 +274,6 @@ filter_invert_la_LDFLAGS = -no-undefined -module -avoid-version
 filter_pp_la_SOURCES = filter_pp.c
 filter_pp_la_LDFLAGS = -no-undefined -module -avoid-version 
 filter_pp_la_LIBADD = @LIBPOSTPROC_LIBS@
-
-filter_ppcvs_la_SOURCES = filter_ppcvs.c
-filter_ppcvs_la_LDFLAGS = -no-undefined -module -avoid-version 
-filter_ppcvs_la_LIBADD = @LIBPOSTPROC_LIBS@
 
 filter_dilyuvmmx_la_SOURCES = filter_dilyuvmmx.c deinterlace.c
 filter_dilyuvmmx_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -346,15 +349,15 @@ filter_null_la_OBJECTS = $(am_filter_null_la_OBJECTS)
 filter_pp_la_DEPENDENCIES =
 am_filter_pp_la_OBJECTS = filter_pp.lo
 filter_pp_la_OBJECTS = $(am_filter_pp_la_OBJECTS)
-filter_ppcvs_la_DEPENDENCIES =
-am_filter_ppcvs_la_OBJECTS = filter_ppcvs.lo
-filter_ppcvs_la_OBJECTS = $(am_filter_ppcvs_la_OBJECTS)
 filter_skip_la_LIBADD =
 am_filter_skip_la_OBJECTS = filter_skip.lo
 filter_skip_la_OBJECTS = $(am_filter_skip_la_OBJECTS)
 filter_smartdeinter_la_LIBADD =
 am_filter_smartdeinter_la_OBJECTS = filter_smartdeinter.lo
 filter_smartdeinter_la_OBJECTS = $(am_filter_smartdeinter_la_OBJECTS)
+filter_smooth_la_LIBADD =
+am_filter_smooth_la_OBJECTS = filter_smooth.lo
+filter_smooth_la_OBJECTS = $(am_filter_smooth_la_OBJECTS)
 filter_tc_audio_la_LIBADD =
 am_filter_tc_audio_la_OBJECTS = filter_tc_audio.lo
 filter_tc_audio_la_OBJECTS = $(am_filter_tc_audio_la_OBJECTS)
@@ -394,9 +397,9 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/filter_normalize.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_null.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_pp.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/filter_ppcvs.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_skip.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_smartdeinter.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/filter_smooth.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_tc_audio.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_tc_video.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_testframe.Plo \
@@ -417,8 +420,8 @@ DIST_SOURCES = $(filter_29to23_la_SOURCES) $(filter_32detect_la_SOURCES) \
 	$(filter_fields_la_SOURCES) $(filter_invert_la_SOURCES) \
 	$(filter_logo_la_SOURCES) $(filter_mask_la_SOURCES) \
 	$(filter_normalize_la_SOURCES) $(filter_null_la_SOURCES) \
-	$(filter_pp_la_SOURCES) $(filter_ppcvs_la_SOURCES) \
-	$(filter_skip_la_SOURCES) $(filter_smartdeinter_la_SOURCES) \
+	$(filter_pp_la_SOURCES) $(filter_skip_la_SOURCES) \
+	$(filter_smartdeinter_la_SOURCES) $(filter_smooth_la_SOURCES) \
 	$(filter_tc_audio_la_SOURCES) $(filter_tc_video_la_SOURCES) \
 	$(filter_testframe_la_SOURCES) $(filter_xsharpen_la_SOURCES) \
 	$(filter_yuy2toyv12_la_SOURCES)
@@ -430,7 +433,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 DIST_COMMON = Makefile.am Makefile.in
 DIST_SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc preview \
 	subtitler
-SOURCES = $(filter_29to23_la_SOURCES) $(filter_32detect_la_SOURCES) $(filter_32drop_la_SOURCES) $(filter_aclip_la_SOURCES) $(filter_astat_la_SOURCES) $(filter_clone_la_SOURCES) $(filter_cshift_la_SOURCES) $(filter_cut_la_SOURCES) $(filter_dilyuvmmx_la_SOURCES) $(filter_dnr_la_SOURCES) $(filter_fields_la_SOURCES) $(filter_invert_la_SOURCES) $(filter_logo_la_SOURCES) $(filter_mask_la_SOURCES) $(filter_normalize_la_SOURCES) $(filter_null_la_SOURCES) $(filter_pp_la_SOURCES) $(filter_ppcvs_la_SOURCES) $(filter_skip_la_SOURCES) $(filter_smartdeinter_la_SOURCES) $(filter_tc_audio_la_SOURCES) $(filter_tc_video_la_SOURCES) $(filter_testframe_la_SOURCES) $(filter_xsharpen_la_SOURCES) $(filter_yuy2toyv12_la_SOURCES)
+SOURCES = $(filter_29to23_la_SOURCES) $(filter_32detect_la_SOURCES) $(filter_32drop_la_SOURCES) $(filter_aclip_la_SOURCES) $(filter_astat_la_SOURCES) $(filter_clone_la_SOURCES) $(filter_cshift_la_SOURCES) $(filter_cut_la_SOURCES) $(filter_dilyuvmmx_la_SOURCES) $(filter_dnr_la_SOURCES) $(filter_fields_la_SOURCES) $(filter_invert_la_SOURCES) $(filter_logo_la_SOURCES) $(filter_mask_la_SOURCES) $(filter_normalize_la_SOURCES) $(filter_null_la_SOURCES) $(filter_pp_la_SOURCES) $(filter_skip_la_SOURCES) $(filter_smartdeinter_la_SOURCES) $(filter_smooth_la_SOURCES) $(filter_tc_audio_la_SOURCES) $(filter_tc_video_la_SOURCES) $(filter_testframe_la_SOURCES) $(filter_xsharpen_la_SOURCES) $(filter_yuy2toyv12_la_SOURCES)
 
 all: all-recursive
 
@@ -497,12 +500,12 @@ filter_null.la: $(filter_null_la_OBJECTS) $(filter_null_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkgdir) $(filter_null_la_LDFLAGS) $(filter_null_la_OBJECTS) $(filter_null_la_LIBADD) $(LIBS)
 filter_pp.la: $(filter_pp_la_OBJECTS) $(filter_pp_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_pp_la_LDFLAGS) $(filter_pp_la_OBJECTS) $(filter_pp_la_LIBADD) $(LIBS)
-filter_ppcvs.la: $(filter_ppcvs_la_OBJECTS) $(filter_ppcvs_la_DEPENDENCIES) 
-	$(LINK) -rpath $(pkgdir) $(filter_ppcvs_la_LDFLAGS) $(filter_ppcvs_la_OBJECTS) $(filter_ppcvs_la_LIBADD) $(LIBS)
 filter_skip.la: $(filter_skip_la_OBJECTS) $(filter_skip_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_skip_la_LDFLAGS) $(filter_skip_la_OBJECTS) $(filter_skip_la_LIBADD) $(LIBS)
 filter_smartdeinter.la: $(filter_smartdeinter_la_OBJECTS) $(filter_smartdeinter_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_smartdeinter_la_LDFLAGS) $(filter_smartdeinter_la_OBJECTS) $(filter_smartdeinter_la_LIBADD) $(LIBS)
+filter_smooth.la: $(filter_smooth_la_OBJECTS) $(filter_smooth_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(filter_smooth_la_LDFLAGS) $(filter_smooth_la_OBJECTS) $(filter_smooth_la_LIBADD) $(LIBS)
 filter_tc_audio.la: $(filter_tc_audio_la_OBJECTS) $(filter_tc_audio_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_tc_audio_la_LDFLAGS) $(filter_tc_audio_la_OBJECTS) $(filter_tc_audio_la_LIBADD) $(LIBS)
 filter_tc_video.la: $(filter_tc_video_la_OBJECTS) $(filter_tc_video_la_DEPENDENCIES) 
@@ -538,9 +541,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_normalize.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_null.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_pp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_ppcvs.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_skip.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_smartdeinter.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_smooth.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_tc_audio.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_tc_video.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_testframe.Plo@am__quote@

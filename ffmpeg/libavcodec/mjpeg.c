@@ -16,8 +16,9 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Support for external huffman table and various fixes (AVID workaround) by
- *                                    Alex Beregszaszi <alex@naxine.org>
+ * Support for external huffman table, various fixes (AVID workaround),
+ * aspecting and various markers support
+ *                                  by Alex Beregszaszi <alex@naxine.org>
  */
 //#define DEBUG
 #include "avcodec.h"
@@ -321,14 +322,14 @@ static void jpeg_table_header(MpegEncContext *s)
     put_bits(p, 4, 0); /* 8 bit precision */
     put_bits(p, 4, 0); /* table 0 */
     for(i=0;i<64;i++) {
-        j = zigzag_direct[i];
+        j = s->intra_scantable.permutated[i];
         put_bits(p, 8, s->intra_matrix[j]);
     }
 #ifdef TWOMATRIXES
     put_bits(p, 4, 0); /* 8 bit precision */
     put_bits(p, 4, 1); /* table 1 */
     for(i=0;i<64;i++) {
-        j = zigzag_direct[i];
+        j = s->intra_scantable.permutated[i];
         put_bits(p, 8, s->chroma_intra_matrix[j]);
     }
 #endif
@@ -354,30 +355,53 @@ static void jpeg_put_comments(MpegEncContext *s)
     int size;
     UINT8 *ptr;
 
-#if 0
+    if (s->aspect_ratio_info)
+    {
     /* JFIF header */
     put_marker(p, APP0);
     put_bits(p, 16, 16);
     put_string(p, "JFIF"); /* this puts the trailing zero-byte too */
-    put_bits(p, 16, 0x101);
+    put_bits(p, 16, 0x0201); /* v 1.02 */
     put_bits(p, 8, 0); /* units type: 0 - aspect ratio */
-    put_bits(p, 16, 1); /* aspect: 1:1 */
-    put_bits(p, 16, 1);
+    switch(s->aspect_ratio_info)
+    {
+	case FF_ASPECT_4_3_625:
+	case FF_ASPECT_4_3_525:
+	    put_bits(p, 16, 4); 
+	    put_bits(p, 16, 3);
+	    break;
+	case FF_ASPECT_16_9_625:
+	case FF_ASPECT_16_9_525:
+	    put_bits(p, 16, 16); 
+	    put_bits(p, 16, 9);
+	    break;
+	case FF_ASPECT_EXTENDED:
+	    put_bits(p, 16, s->aspected_width);
+	    put_bits(p, 16, s->aspected_height);
+	    break;
+	case FF_ASPECT_SQUARE:
+	default:
+	    put_bits(p, 16, 1); /* aspect: 1:1 */
+	    put_bits(p, 16, 1);
+	    break;
+    }
     put_bits(p, 8, 0); /* thumbnail width */
     put_bits(p, 8, 0); /* thumbnail height */
-#endif
+    }
 
     /* comment */
-    put_marker(p, COM);
-    flush_put_bits(p);
-    ptr = pbBufPtr(p);
-    put_bits(p, 16, 0); /* patched later */
-#define FFVERSION "FFmpeg" LIBAVCODEC_VERSION "b" LIBAVCODEC_BUILD_STR
-    put_string(p, VERSION);
-    size = strlen(VERSION)+3;
-#undef FFVERSION
-    ptr[0] = size >> 8;
-    ptr[1] = size;
+    if(!ff_bit_exact){
+        put_marker(p, COM);
+        flush_put_bits(p);
+        ptr = pbBufPtr(p);
+        put_bits(p, 16, 0); /* patched later */
+#define MJPEG_VERSION "FFmpeg" LIBAVCODEC_VERSION "b" LIBAVCODEC_BUILD_STR
+        put_string(p, MJPEG_VERSION);
+        size = strlen(MJPEG_VERSION)+3;
+#undef MJPEG_VERSION
+        ptr[0] = size >> 8;
+        ptr[1] = size;
+    }
 }
 
 void mjpeg_picture_header(MpegEncContext *s)
@@ -511,7 +535,7 @@ static void encode_block(MpegEncContext *s, DCTELEM *block, int n)
     run = 0;
     last_index = s->block_last_index[n];
     for(i=1;i<=last_index;i++) {
-        j = zigzag_direct[i];
+        j = s->intra_scantable.permutated[i];
         val = block[j];
         if (val == 0) {
             run++;
@@ -596,6 +620,8 @@ typedef struct MJpegDecodeContext {
     int restart_interval;
     int restart_count;
     int interleaved_rows;
+    ScanTable scantable;
+    void (*idct_put)(UINT8 *dest/*align 8*/, int line_size, DCTELEM *block/*align 16*/);
 } MJpegDecodeContext;
 
 #define SKIP_REMAINING(gb, len) { \
@@ -621,8 +647,22 @@ static void build_vlc(VLC *vlc, const UINT8 *bits_table, const UINT8 *val_table,
 static int mjpeg_decode_init(AVCodecContext *avctx)
 {
     MJpegDecodeContext *s = avctx->priv_data;
+    MpegEncContext s2;
 
     s->avctx = avctx;
+
+    /* ugly way to get the idct & scantable */
+    memset(&s2, 0, sizeof(MpegEncContext));
+    s2.flags= avctx->flags;
+    s2.avctx= avctx;
+//    s2->out_format = FMT_MJPEG;
+    s2.width = 8;
+    s2.height = 8;
+    if (MPV_common_init(&s2) < 0)
+       return -1;
+    s->scantable= s2.intra_scantable;
+    s->idct_put= s2.idct_put;
+    MPV_common_end(&s2);
 
     s->header_state = 0;
     s->mpeg_enc_ctx_allocated = 0;
@@ -633,7 +673,7 @@ static int mjpeg_decode_init(AVCodecContext *avctx)
     s->first_picture = 1;
     s->org_width = avctx->width;
     s->org_height = avctx->height;
-
+    
     build_vlc(&s->vlcs[0][0], bits_dc_luminance, val_dc_luminance, 12);
     build_vlc(&s->vlcs[0][1], bits_dc_chrominance, val_dc_chrominance, 12);
     build_vlc(&s->vlcs[1][0], bits_ac_luminance, val_ac_luminance, 251);
@@ -670,7 +710,7 @@ static int mjpeg_decode_dqt(MJpegDecodeContext *s,
         dprintf("index=%d\n", index);
         /* read quant table */
         for(i=0;i<64;i++) {
-            j = zigzag_direct[i];
+            j = s->scantable.permutated[i];
 	    s->quant_matrixes[index][j] = get_bits(&s->gb, 8);
         }
         len -= 65;
@@ -873,7 +913,7 @@ static int decode_block(MJpegDecodeContext *s, DCTELEM *block,
                 dprintf("error count: %d\n", i);
                 return -1;
             }
-            j = zigzag_direct[i];
+            j = s->scantable.permutated[i];
             block[j] = level * quant_matrix[j];
             i++;
             if (i >= 64)
@@ -992,18 +1032,23 @@ static int mjpeg_decode_sos(MJpegDecodeContext *s,
                         goto the_end;
                     }
 //		    dprintf("mb: %d %d processed\n", mb_y, mb_x);
-                    ff_idct (s->block);
                     ptr = s->current_picture[c] + 
                         (s->linesize[c] * (v * mb_y + y) * 8) + 
                         (h * mb_x + x) * 8;
                     if (s->interlaced && s->bottom_field)
                         ptr += s->linesize[c] >> 1;
-                    put_pixels_clamped(s->block, ptr, s->linesize[c]);
+                    s->idct_put(ptr, s->linesize[c], s->block);
                     if (++x == h) {
                         x = 0;
                         y++;
                     }
                 }
+            }
+            if (s->restart_interval && !--s->restart_count) {
+                align_get_bits(&s->gb);
+                skip_bits(&s->gb, 16); /* skip RSTn */
+                for (j=0; j<nb_components; j++) /* reset dc */
+                    s->last_dc[j] = 1024;
             }
         }
     }
@@ -1024,7 +1069,7 @@ static int mjpeg_decode_dri(MJpegDecodeContext *s,
     if (get_bits(&s->gb, 16) != 4)
 	return -1;
     s->restart_interval = get_bits(&s->gb, 16);
-    printf("restart interval: %d\n", s->restart_interval);
+    dprintf("restart interval: %d\n", s->restart_interval);
 
     return 0;
 }
@@ -1079,6 +1124,19 @@ static int mjpeg_decode_app(MJpegDecodeContext *s,
 	skip_bits(&s->gb, 8); /* the trailing zero-byte */
 	printf("mjpeg: JFIF header found (version: %x.%x)\n",
 	    get_bits(&s->gb, 8), get_bits(&s->gb, 8));
+	if (get_bits(&s->gb, 8) == 0)
+	{
+	    s->avctx->aspect_ratio_info = FF_ASPECT_EXTENDED;
+	    s->avctx->aspected_width = get_bits(&s->gb, 16);
+	    s->avctx->aspected_height = get_bits(&s->gb, 16);
+	}
+	else
+	{
+	    skip_bits(&s->gb, 16);
+	    skip_bits(&s->gb, 16);
+	}
+	skip_bits(&s->gb, 8);
+	skip_bits(&s->gb, 8);
 	goto out;
     }
     
@@ -1157,12 +1215,15 @@ static int find_marker(UINT8 **pbuf_ptr, UINT8 *buf_end,
 
     state = *header_state;
     buf_ptr = *pbuf_ptr;
+retry:
     if (state) {
         /* get marker */
     found:
         if (buf_ptr < buf_end) {
             val = *buf_ptr++;
             state = 0;
+            if ((val >= RST0) && (val <= RST7))
+                goto retry;
         } else {
             val = -1;
         }
@@ -1242,14 +1303,14 @@ static int mjpeg_decode_frame(AVCodecContext *avctx,
                     break;
                 case SOS:
                     mjpeg_decode_sos(s, s->buffer, input_size);
-                    if (s->interlaced) {
-                       s->bottom_field ^= 1;
-                       /* if not bottom field, do not output image yet */
-                       if (s->bottom_field)
-                           break;
-                    }
                     if (s->start_code == EOI || s->buggy_avid || s->restart_interval) {
                         int l;
+                        if (s->interlaced) {
+                            s->bottom_field ^= 1;
+                            /* if not bottom field, do not output image yet */
+                            if (s->bottom_field)
+                                goto not_the_end;
+                        }
                         for(i=0;i<3;i++) {
                             picture->data[i] = s->current_picture[i];
                             l = s->linesize[i];
@@ -1314,6 +1375,8 @@ static int mjpeg_decode_frame(AVCodecContext *avctx,
 #endif
             }
         }
+ not_the_end:
+	;
     }
  the_end:
     return buf_ptr - buf;

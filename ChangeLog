@@ -1,3 +1,350 @@
+--------------------------------------------
+transcode-0.6.2 Fri Nov 22 00:10:11 CET 2002
+
+- fixed deadlock in core mode "-t,foo" with ^C.
+
+- fixed missing SSE code run-time error on non-SSE machines.
+
+- man-page update/clean-up to reflect latest option add-ons.
+
+- quicktime support is now disabled by default due to library name clashes
+  with libdv. You need to enable it explicitly with "configure --with-qt=yes".
+
+- fixed import_ffmpeg.c to make it work in the directory core mode with 
+  the "--dir_mode basename" option.
+
+- added checks for lame-3.92 to enable lame assembler code. 
+
+- small fixes by Tilmann for a parsing problem with -c and raw 8-bit 
+  import with import_imlist.so.
+
+- fixes for MPEG audio stream detection, i.e., MPEG-2/MPEG-2.5 layer-3.
+
+- enabled raw DV pass-through mode. Example:
+
+  transcode [...] -i raw.dv -P 1 -y dvraw -o new.dv
+
+  will simply copy the stream. You can now cut the stream before concatenating
+  by using option "-c".
+
+  transcode [...] -i raw.dv -P 1 -y raw -o newmp3.avi
+
+  will pass-through video, add a mp3 sound track and writes to an AVI-file.
+	
+- updated import_mplayer.so module to work with latest release.
+
+- lastest vob2divx.pl by Dominique CARON <domi@lpm.univ-montp2.fr> included.
+	
+-----------------------------------------------------
+transcode-0.6.2.20021114 Thu Nov 14 23:03:24 CET 2002
+
+- high-quality resizing -Z has been optimized for speed. This
+  should give a performance boost of 10-30%. No assembler code yet.
+
+- enabled sse2 assembler code for fast vertical resizing -B/-X.	
+
+- new de-interlacing mode with option "-I 5" available. This mode
+  does a simple linear interpolation of each field to restore the full frame, 
+  blending the resulting frames. Similar, but not identical to "-J pp=lb".
+  Also available for RGB processing mode.
+
+- improvements in frame range selection for AVI-files. Selecting a frame 
+  for encoding with "-c a-b" normally does a complete decoding of all 
+  preceding frames, i.e., 0-a before the selected range is processed.
+  However, this is not very useful for large AVI-files. 
+  It is now possible to pass a single frame range interval via the
+  import module string parameter directly to "tcextract" which understands
+  the option "-C" (capital C!). Example:
+
+  transcode [...] -x dv="-C 100-150",dv="-C 100-150" 
+  
+  will do a fast-forward to frame 100 before decoding is started.
+  Currently, only "-x dv and -x raw" support this feature.
+
+- implemented a simple stereo to mono down-sampling, available with option -E,
+  as well as 16bit signed to 8bit unsigned conversion. Lame does not seem
+  to support 8bit samples but using export to wav, sox can handle the output.
+
+- small patch by Martin Thierer <thierer@web.de> for yuv4mpeg import in 
+  directory mode.
+
+- cluster mode was broken in the 0.6.2 pre-releases due to changes in the
+  "-c" option - fixed.
+
+- new option "--no_bitreservoir" for lame audio export. This option
+  forces lame to produce an audio stream, which has no raw audio samples 
+  spread over MP3 frame boundaries. Useful for extensive cutting/splitting
+  jobs on post-processing.
+
+- small fix for subtitles in psu-mode by P.C. Chan <pc.chan@alcatel.com>.
+
+- fixes for the new libpostprocess API starting with MPlayer-0.90pre9. 
+  transcode looks for the installed shared library first. Merged
+  filter_ppcvs.c and filter_pp.c into filter_pp.c
+
+- new option --avi_limit N where N is an upper limit for the AVI file size
+  in MB. Useful for raw codec output or LZO. Available/implemented only
+  for export_{raw,lzo,dv,ffmpeg}. Default is N=2048 (=2G).
+
+- Gerhard Monzel <gmo18t@web.de> has converted more assembler code in the
+  bbmpeg core to nasm compliant source.
+
+- small fix for frame parameter checks and --keep_asr by Eckart Haug 
+  <eci@syntacs.com>.
+
+- small fix for v4l percentage readings of brightness, color, hue and contrast
+  values by Henrik <hmr@bostadsbolaget.net>. 	
+	
+-----------------------------------------------------
+transcode-0.6.2.20021107 Thu Nov  7 22:57:46 CET 2002
+
+- added Moritz Bunkus latest fixes to import/export_ffmpeg.c.
+
+- added import auto-detection for ffmpeg supported export formats.
+
+- enabled ffmpeg's Digital Video decoding capability. You need to select
+  the import module with "-x ffmpeg" to override the defaults.
+	
+- added assembler accelerated code for fast vertical resizing (-B/-X),
+  simple de-interlacing with -I1 and RED<->BLUE rgb-swapping.
+  transcode tries to guess supported multimedia extensions at run-time.
+  If this fails, enable your platform specific accelerated code 
+  with the new option "--accel mode".
+  Supported modes are "C,asm,mmx,mmxext,3dnow,sse,sse2". However, 
+  there	is no 3dnow specific code added yet. "C" is the default plain C code.
+  The new code is nasm dependent. More will be added soon.
+
+- Marco Zühlke <MZuehlke@myrealbox.com> added a patch to make transcode 
+  compile with lzo-1.07.
+
+- small fix for export/xvid_vbr.c by Edouard Gomez.
+
+- small fix for dvd_reader.c for broken nav packs.
+
+- changes in the assembler code for bbmpeg.
+
+------------------------------------------------------
+transcode-0.6.2.20021024 Thu Oct 24 22:28:38 CEST 2002
+
+- this snapshot updates the ffmpeg/bbmpeg port.
+	
+- Moritz Bunkus <moritz@bunkus.org> has updated the ffmpeg port
+  of transcode. I quote from his posting to the devel-ML:
+
+- import module "import_ffmpeg.so":
+  Pretty straight forward to use: "transcode ... -x ffmpeg,..." and
+  you're set. It tries to derive the FFMPEG codec to use from the fourCC.
+  I've tested the module with movies encoded with DivX ;-) 3.20, DivX
+  5.02 Pro, ffmpeg's own MPEG4/MSMPEGv{1,2,3}/MPEG1VIDEO codecs and with
+  ffmpeg's own Motion JPEG codec
+
+  NB: this module replaces the "import_mjpeg.so" module. AVI-files with 
+      FOURCC=mjpeg are automatically decoded by ffmpeg.
+	
+- export module "export_ffmpeg.so":
+  This one is a little bit trickier. You start with "transcode ... -y
+  ffmpeg,...". But this does not select the _codec_ to use. You have to
+  add an additional '-F <codecname>' to the command line. All supported
+  codecs can be listed with "transcode -y ffmpeg -F list". The output
+  will look like this:
+
+  [export_ffmpeg.so] v0.2.0 (2002-10-21) (video) FFMPEG API | (audio)
+  MPEG/AC3/PCM
+  [export_ffmpeg.so] List of known and supported codecs:
+  [export_ffmpeg.so] Name       fourCC multipass comments
+  [export_ffmpeg.so] ---------  ------ --------- -----------------------------
+  [export_ffmpeg.so] mpeg4       DIVX     yes    MPEG4 compliant video
+  [export_ffmpeg.so] msmpeg4     div3     yes    old DivX3 compatible (aka
+  MSMPEG4v3)
+  [export_ffmpeg.so] msmpeg4v2   MP42     yes    old DivX3 compatible (older
+  version)
+  [export_ffmpeg.so] mjpeg       MJPG      no    Motion JPEG
+  [export_ffmpeg.so] mpeg1video  mpg1     yes    MPEG1 compliant video
+
+  The "name" field is the interesting one. You'll get your old Motion
+  JPEG export functionality with "transcode ... -y ffmpeg -F mjpeg", and
+  "transcode ... -y ffmpeg -F mpeg4" replaces "-y ffmpeg4".
+
+  Another nice thing is that the ffmpeg export module supports config
+  files - just like the new XviD export modules. It automatically
+  searches for ./ffmpeg.cfg and ~/.ffmpeg.cfg. The format is really easy.
+  
+  Here's an example:
+
+  [mpeg4]
+  vhq = 1
+  v4mv = 1
+  [mjpeg]
+  vhq = 0
+
+  Of course only the section corresponding to the current codec's name is
+  evaluated. In this case the user wanted the best quality for his/her
+  MPEG4 encodings and the faster version for '-F mjpeg'. All allowed
+  variables and their current values will be listed if you run transcode
+  on debug level 2 (e.g. "transcode -y ffmpeg -F mpeg4 -q 2"). This way
+  you can easily copy and paste the values to your ffmpeg.cfg. 
+
+- the bbmpeg library has been upgraded assembler optimized code
+  for the IA32 taken from the XVID project. It replaces the code that
+  was not compiled correctly by gcc-3.x. The library requires
+  nasm to be installed on your system.
+	
+---------------------------------------------------------------
+transcode-0.6.2.20021021 Mon Oct 21 08:36:14 Europe/Berlin 2002
+
+- updated ffmpeg libavcodec to latest CVS available. "nasm" is no longer
+  required to compile the library.
+	
+------------------------------------------------------
+transcode-0.6.2.20021017 Thu Oct 17 22:16:23 CEST 2002
+
+- Chad Page added a new YUV smoothing filter, available via "-J smooth".
+
+- small bugfix for the -c option handing.
+
+- some code cleanup in the core. Cleaner error handling on intialization.
+  Fixes for a ^C bug introduced in last weeks snapshot.
+
+- propagate frame rate to import_nvrec.c patch by Bryan Mayland 
+  <bmayland@leoninedev.com>.
+
+- fixes for <q>,<Q> and new preview plug-in. No frames will be buffered
+  anymore while not rendering.
+
+- Arne Driescher updated the subrip utility in the contrib directory.
+	
+------------------------------------------------------
+transcode-0.6.2.20021010 Thu Oct 10 22:53:42 CEST 2002
+
+- audio byte swapping (-d) and rescaling (-s) order changed.
+  Swapping now comes first, which makes more sense.
+
+- tcprobe now reports subtitle number and language for DVD/DVD-images
+  as extracted from the IFO file.
+	
+- new XV-only preview plug-in "-J pv" ripped and modified from existing code. 
+  This is going to be a more powerful preview modules in the future with 
+  support for keyboard-based navigation. It is YV12/I420 raw format only.
+
+  Example: "-J pv=cache=200"
+
+  generates an additional internal frame buffer cache for 200 decoded frames.
+  What is already implemented? 
+
+  <Space> stops transcoding. Actually, it throws transcode in a loop waiting
+  for <Space> to be pressed again.
+
+  Navigate the cache with cursor keys:
+	<LEFT>   -1 frame back           <UP>   25 frames forward
+	<RIGHT>  +1 frame forward       <DOWN> -25 frames backward
+  For better orientation, Tilmann has contributed some handwritten on-the-fly
+  frame number overlay logos. Check it out. If the frame numbers are 
+  un-readable on white background, use "-Y -20,0,0,0". Asterics "*" denotes
+  a key-frame, if properly detected for MPEG-4.
+
+  <q>,<Q> toggles rendering into the preview window. The window is no 
+  longer closed. This reduces the CPU load. Useful for v4l grabbing to
+  catch up some delays in encoding.
+
+  <y>,<Y> toggles to a mode were only every 25th frame is rendered.
+  This parameter can be changed via plug-in "skip=N" option.
+
+  <s>,<S> introduces a delay, increasing in 1/10 seconds step, until the
+  rendering speed is down to 1fps. 
+  <f>,<F> reduces the delay introduced above until full speed is recovered.
+  	
+  <ESC> closes the preview window.  
+	
+  <r>,<R> saves the current output file given with option "-o outfile" 
+  to "outfile-000n", incrementing n for every event, starting with n=0. 
+  This is enabled for most export modules. The active outputfile is closed 
+  if and only if a keyframe will be written next. 
+  Please note, This may cause a some delay between pressing "<r>/<R>"
+  and the switch of output files. You will be notified at the status bar.
+  Useful for video recordings with active preview. 
+  Note: this option does not work in <pause> mode. You need to slow down
+  preview with <s> in critical sections.
+
+- XV preview windows now also enabled for MPEG-4 pass-through mode using the 
+  "-x divx" import modules. This requires decoding and will be slower 
+  compared to pure pass-through. 
+	
+- adapted export_dv.so to the new encoder API of libdv-0.98.
+  RGB to DV encoding is working fine, but YV12 encoding seems to be broken in 
+  libdv. You need to compile libdv with --with-pal-yuv=YV12.
+
+- small patch for import_im.so by Gregory Brauer <greg@wildbrain.com>. 
+
+- new export module for native "JPEG" encoding support with "libjpg" by 
+  Tilmann. Use it with "-y jpg". 
+
+- support for lossless video compression using LZO library. LZO is a portable 
+  lossless data compression library written in ANSI C.
+  It offers pretty fast compression and very fast decompression.
+  This is supported via "-V" mode and "-y lzo" for encoding as well as 
+  decoding. Compressed blocks are written to AVI-file container with 
+  unofficial FOURCC=LZO1 for proper detecting by transcode.
+
+- fixes for -J cut/skip by Martin Thierer <thierer@web.de>.
+
+- option -c now supports time and frame based arguments. See "avisplit" for 
+  option details. Patch by Tilmann. 
+
+- documentation is now installed in $(datadir)/doc/transcode.
+
+- import_mpeg3.so audio decoding support added by Tilmann.
+
+- tcprobe support for toc files generated by mpeg3toc added by Tilmann.
+  You need libmpeg3, which can be extracted from the "hvirtual" source
+  or use "--with-libmpeg3-includes=/usr/src/comp/video/hvirtual-1.0.0"
+  with your configure command. Untested.
+	
+------------------------------------------------------
+transcode-0.6.2.20021001 Tue Oct  1 23:23:18 CEST 2002
+
+- only some code cleanup, missing contributed patches make in into next 
+  snapshot, sorry, but I need some feedback. 
+  This snapshot may also be broken;-(
+
+- the NTSC psu-mode bug seems to be fixed. 
+
+- small bugfix in the audio buffer flush routine.
+
+- chapter mode now accepts frame range selection with option -c. 
+  This only makes sense if you want to generate a fast preview.
+  
+  Example: "transcode [...] -i /dev/dvd -c 0-250 -U trailer -y xvid --no_split"
+
+  generates 10 sec of each chapter of a PAL-DVD and merges the clips into
+  "trailer.avi".
+
+- some file handle "pclose" fixes in import_{vob,dv,dvd}.c
+	
+- lastest vob2divx.pl by Dominique CARON <domi@lpm.univ-montp2.fr> included.
+
+- Tilmann's fixes for avifile namespace collisions of header files.
+
+- yuvdenoise filter patch by Martin Thierer <thierer@web.de>. 
+	
+------------------------------------------------------
+transcode-0.6.2.20020923 Mon Sep 23 22:48:23 CEST 2002
+
+- updated libmpeg2 to 0.2.1 - this fixes some decoding issues reported.
+
+- added first draft of missing manpages for tcdemux and tcscan.
+
+- the obsolete OPENDivX code tree has been removed. Use XviD instead.	
+
+- support for obsolete avifile-0.53 export has been dropped.
+
+- new option --import_asr ASR_CODE to force a specific aspect
+  ratio for transcode's calculations and manpage update to document ASR_CODE
+  by Tilmann.
+
+- small export_ffmpeg4 fix by Tilmann.
+
+- make transcodes exit code on invalid commandlines !0, by Tilmann.
+	
 ---------------------------------------------
 transcode-0.6.1 Thu Sep 19 22:15:28 CEST 2002
 

@@ -148,7 +148,8 @@ static int vid_buf_alloc(int ex_num)
 	  + (TC_MAX_V_FRAME_WIDTH * TC_MAX_V_FRAME_HEIGHT)/4;
 
 	//default pointer
-	vid_buf_ptr[n]->video_buf = vid_buf_ptr[n]->internal_video_buf_0;
+	vid_buf_ptr[n]->video_buf  = vid_buf_ptr[n]->internal_video_buf_0;
+	vid_buf_ptr[n]->video_buf2 = vid_buf_ptr[n]->internal_video_buf_1;
 	vid_buf_ptr[n]->free=1;
     }
     
@@ -215,7 +216,8 @@ static vframe_list_t *vid_buf_retrieve()
     // ok
     if(verbose & TC_FLIST) printf("alloc = %d [%d]\n", vid_buf_next, ptr->bufid);
 
-    vid_buf_next = (++vid_buf_next) % vid_buf_max;
+    ++vid_buf_next;
+    vid_buf_next %= vid_buf_max;
     
     return(ptr);
 }
@@ -291,19 +293,19 @@ vframe_list_t *vframe_register(int id)
 
   vframe_list_t *ptr;
 
-  tc_pthread_mutex_lock(&vframe_list_lock);
+  pthread_mutex_lock(&vframe_list_lock);
 
   // retrive a valid pointer from the pool
   
 #ifdef STATBUFFER
   if(verbose & TC_FLIST) printf("frameid=%d\n", id);
   if((ptr = vid_buf_retrieve()) == NULL) {
-    tc_pthread_mutex_unlock(&vframe_list_lock);
+    pthread_mutex_unlock(&vframe_list_lock);
     return(NULL);
   }
 #else 
   if((ptr = malloc(sizeof(vframe_list_t))) == NULL) {
-    tc_pthread_mutex_unlock(&vframe_list_lock);
+    pthread_mutex_unlock(&vframe_list_lock);
     return(NULL);
   }
 #endif
@@ -333,7 +335,7 @@ vframe_list_t *vframe_register(int id)
   // adjust fill level
   ++vid_buf_fill;
   
-  tc_pthread_mutex_unlock(&vframe_list_lock);
+  pthread_mutex_unlock(&vframe_list_lock);
   
   return(ptr);
 
@@ -362,7 +364,7 @@ void vframe_remove(vframe_list_t *ptr)
   
   if(ptr == NULL) return;         // do nothing if null pointer
 
-  tc_pthread_mutex_lock(&vframe_list_lock);
+  pthread_mutex_lock(&vframe_list_lock);
   
   if(ptr->prev != NULL) (ptr->prev)->next = ptr->next;
   if(ptr->next != NULL) (ptr->next)->prev = ptr->prev;
@@ -387,7 +389,7 @@ void vframe_remove(vframe_list_t *ptr)
   --vid_buf_fill;
   --vid_buf_empty;
   
-  tc_pthread_mutex_unlock(&vframe_list_lock); 
+  pthread_mutex_unlock(&vframe_list_lock); 
   
 }
 
@@ -420,10 +422,10 @@ void vframe_flush()
       ++cc;
   }
   
-  fprintf(stderr, "(%s) flushing %d video buffer\n", __FILE__, cc); 
+  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) flushing %d video buffer\n", __FILE__, cc); 
 
   pthread_mutex_lock(&vbuffer_im_fill_lock);
-  vbuffer_ex_fill_ctr=0;
+  vbuffer_im_fill_ctr=0;
   pthread_mutex_unlock(&vbuffer_im_fill_lock);  
   
   pthread_mutex_lock(&vbuffer_ex_fill_lock);
@@ -460,7 +462,7 @@ vframe_list_t *vframe_retrieve()
   
   vframe_list_t *ptr;
 
-  tc_pthread_mutex_lock(&vframe_list_lock);
+  pthread_mutex_lock(&vframe_list_lock);
 
   ptr = vframe_list_head;
 
@@ -472,20 +474,20 @@ vframe_list_t *vframe_retrieve()
       // we have to preserve order in which frames are encoded
       if(ptr->status == FRAME_LOCKED)
       {
-	  tc_pthread_mutex_unlock(&vframe_list_lock);
+	  pthread_mutex_unlock(&vframe_list_lock);
 	  return(NULL);
       }
   
       //this frame is ready to go
       if(ptr->status == FRAME_READY) 
       {
-	  tc_pthread_mutex_unlock(&vframe_list_lock);
+	  pthread_mutex_unlock(&vframe_list_lock);
 	  return(ptr);
       }
       ptr = ptr->next;
   }
   
-  tc_pthread_mutex_unlock(&vframe_list_lock);
+  pthread_mutex_unlock(&vframe_list_lock);
   
   return(NULL);
 }
@@ -511,7 +513,7 @@ vframe_list_t *vframe_retrieve_status(int old_status, int new_status)
   
   vframe_list_t *ptr;
 
-  tc_pthread_mutex_lock(&vframe_list_lock);
+  pthread_mutex_lock(&vframe_list_lock);
 
   ptr = vframe_list_head;
 
@@ -534,14 +536,14 @@ vframe_list_t *vframe_retrieve_status(int old_status, int new_status)
 	  if(ptr->status==FRAME_LOCKED) ++vid_buf_locked;	  
 	  if(ptr->status==FRAME_WAIT)   ++vid_buf_wait;
 	  
-	  tc_pthread_mutex_unlock(&vframe_list_lock);
+	  pthread_mutex_unlock(&vframe_list_lock);
 	  
 	  return(ptr);
 	}
       ptr = ptr->next;
     }
   
-  tc_pthread_mutex_unlock(&vframe_list_lock);
+  pthread_mutex_unlock(&vframe_list_lock);
   
   return(NULL);
 }
@@ -568,7 +570,7 @@ void vframe_set_status(vframe_list_t *ptr, int status)
 
     if(ptr == NULL) return;
   
-    tc_pthread_mutex_lock(&vframe_list_lock);
+    pthread_mutex_lock(&vframe_list_lock);
     
     if(ptr->status==FRAME_READY)  --vid_buf_ready;
     if(ptr->status==FRAME_LOCKED) --vid_buf_locked;
@@ -582,7 +584,7 @@ void vframe_set_status(vframe_list_t *ptr, int status)
     if(ptr->status==FRAME_EMPTY)  ++vid_buf_empty;
     if(ptr->status==FRAME_WAIT)   ++vid_buf_wait;
 
-    tc_pthread_mutex_unlock(&vframe_list_lock);
+    pthread_mutex_unlock(&vframe_list_lock);
 	
     return;
 }

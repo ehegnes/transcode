@@ -133,6 +133,7 @@ void *load_module(char *mod_name, int mode)
     
     if (!handle) {
       fputs (dlerror(), stderr);
+      fprintf(stderr, "\n(%s) loading \"%s\" failed\n", __FILE__, module);
       return(NULL);
     }
     

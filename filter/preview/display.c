@@ -287,6 +287,8 @@ dv_display_gdk_init(dv_display_t *dv_dpy, gint *argc, gchar ***argv) {
 
 #if HAVE_LIBXV
 
+static int xv_pause=0;
+
 /* ----------------------------------------------------------------------------
  */
 static void
@@ -314,17 +316,32 @@ dv_display_event (dv_display_t *dv_dpy)
         dv_display_check_format (dv_dpy, old_pic_format);
 	break;
       case KeyPress:
+
 	XLookupString (&dv_dpy->event.xkey, buf, 16, &keysym, NULL);
-	switch(keysym)
-	{
-	    case XK_Escape:
-	    case XK_Q:
-	    case XK_q:
-		dv_dpy->dontdraw = 1;
-		XvStopVideo(dv_dpy->dpy, dv_dpy->port, dv_dpy->win);
-		XDestroyWindow(dv_dpy->dpy, dv_dpy->win);
-		break;
-	    default:
+
+	switch(keysym) {
+	  
+	case XK_Escape:
+	  dv_dpy->dontdraw = 1;
+	  xv_pause=0;
+	  XvStopVideo(dv_dpy->dpy, dv_dpy->port, dv_dpy->win);
+	  XDestroyWindow(dv_dpy->dpy, dv_dpy->win);
+	  break;
+	  
+	case XK_Q:
+	case XK_q:
+	  xv_pause=0;
+	  dv_dpy->dontdraw = (dv_dpy->dontdraw) ? 0:1;
+	  break;
+	  
+	case XK_space:
+	  xv_pause = (xv_pause)?0:1; 
+	  while(xv_pause) {
+	    dv_display_event(dv_dpy);
+	    usleep(10000);
+	  }
+	  
+	default:
 		break;
 	}
 	break;

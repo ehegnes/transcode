@@ -61,13 +61,16 @@ void usage(void)
   fprintf(stderr,"\t  -c <c0,c1,c2,c3> Override the default grey levels.\n");
   fprintf(stderr,"\t                   default: -c 255,255,0,255\n");
   fprintf(stderr,"\t                   Valid values: 0<=c<=255\n");
-  fprintf(stderr,"\t -g <format>       Set output format to 0=PGM (default),\n");
+  fprintf(stderr,"\t  -g <format>      Set output format to 0=PGM (default),\n");
   fprintf(stderr,"\t                   1=PPM, 2=PGM.GZ \n");
-  fprintf(stderr,"\t -l <seconds>      Add <seconds> to PTS for every DVD-9 layer skip\n"); 
+  fprintf(stderr,"\t  -l <seconds>     Add <seconds> to PTS for every DVD-9 layer skip\n"); 
   fprintf(stderr,"\t                   (default 0.0)\n");
-  fprintf(stderr,"\t -C <boarder>      Crop image but keep <boarder> pixels if possible\n");
+  fprintf(stderr,"\t  -C <boarder>     Crop image but keep <boarder> pixels if possible\n");
   fprintf(stderr,"\t                   (default is < 0 = don't crop at all)\n");
-  fprintf(stderr,"\t Version 0.2 (alpha) for >transcode-0.6.0pre4\n");
+  fprintf(stderr,"\t  -e <hh:mm:ss,n>  extract only n subtitles starting from hh:mm:ss\n");
+  fprintf(stderr,"\t  -v               verbose output\n");
+  fprintf(stderr,"\t  -P               progress output\n");
+  fprintf(stderr,"\t Version 0.3 (alpha) for >transcode-0.6.0\n");
 
   exit(0);
 }
@@ -75,6 +78,7 @@ void usage(void)
 
 // magic string (definition must match the one in transcode/import/extract_ac3.c)
 static char *subtitle_header_str="SUBTITLE";
+static unsigned int verbose=0;
 
 int main(int argc, char** argv)
 {
@@ -84,6 +88,8 @@ int main(int argc, char** argv)
   char read_buf[READ_BUF_SIZE];
   char output_base_name[FILENAME_MAX];
   char input_file_name[FILENAME_MAX];
+  char filename_extension[FILENAME_MAX];
+
   subtitle_header_v3_t subtitle_header;
   int ch,n;
   int colors[4];
@@ -97,6 +103,15 @@ int main(int argc, char** argv)
   unsigned int discont_ctr=0;
   int crop = -1;  // default cropping = don't crop
 
+  unsigned int extract_start_hour=0;
+  unsigned int extract_start_min=0;
+  unsigned int extract_start_sec=0;
+  unsigned int extract_number=~0;
+
+  unsigned int progress_output=0;
+
+  unsigned int last_subtitle_number=0;
+
 #ifdef _HAVE_LIB_PPM_
   // initialize libppm
   ppm_init(&argc, argv);
@@ -106,6 +121,7 @@ int main(int argc, char** argv)
 
   // base filename used for output
   strcpy(output_base_name,"movie_subtitle");
+
 
   // color table for subtitle colors 0-3 
   colors[0]=255;
@@ -117,107 +133,153 @@ int main(int argc, char** argv)
   // default output format
   image_format=PGM;
 
+  // default filename extension 
+  strcpy(filename_extension,"pgm");
+
   /* scan command line arguments */
   opterr=0;
-  while ((ch = getopt(argc, argv, "i:g:c:C:o:l:h")) != -1) {
+  while ((ch = getopt(argc, argv, "e:i:g:c:C:o:l:hvP")) != -1) {
       
       switch (ch) {
 
-	// color palett
-      case 'c': 
-	n = sscanf(optarg,"%d,%d,%d,%d", &colors[0], &colors[1], &colors[2], &colors[3]);
-	
-	if(n<1 || n>4) {
-	  fprintf(stderr,"invalid argument to color\n");
-	  exit(-1);
-	}
-	break;
+	  // color palett
+	  case 'c': 
+	      n = sscanf(optarg,"%d,%d,%d,%d", &colors[0], &colors[1], &colors[2], &colors[3]);
+	      
+	      if(n<1 || n>4) {
+		  fprintf(stderr,"invalid argument to color\n");
+		  exit(-1);
+	      }
+	      break;
+	      
+	  case 'C':
+	      n = sscanf(optarg,"%d", &crop);
+	      
+	      if(n != 1) {
+		  fprintf(stderr,"invalid argument to crop\n");
+		  exit(-1);
+	      }
+	      break;
+	      
+	  case 'o':
+	      n = sscanf(optarg,"%s", output_base_name);
+	      
+	      if(n!=1) {
+		  fprintf(stderr,"no filename specified to option -o\n");
+		  exit(1);
+	      }
+	      break;
+	      
+	  case 'i':
+	      n = sscanf(optarg,"%s", input_file_name);
+	      
+	      if(n!=1) {
+		  fprintf(stderr,"no filename specified to option -i\n");
+		  exit(1);
+	      }
+	      // open the specified input file for reading
+	      if( !(freopen(input_file_name,"r",stdin)) ){
+		  perror("stdin redirection");
+		  fprintf(stderr,"Tried to open %s for input\n",input_file_name);
+		  exit(1);
+	      }
+	      
+	      break;
+	      
+	      
+	  case 'h':
+	      usage();
+	      break;
+	      
+	  case 'v':
+	      verbose=~0;
+	      break;
 
-      case 'C':
-	n = sscanf(optarg,"%d", &crop);
-	
-	if(n != 1) {
-	  fprintf(stderr,"invalid argument to crop\n");
-	  exit(-1);
-	}
-	break;
-
-      case 'o':
-	n = sscanf(optarg,"%s", output_base_name);
-	
-	if(n!=1) {
-	  fprintf(stderr,"no filename specified to option -o\n");
-	  exit(1);
-	}
-	break;
-
-      case 'i':
-	n = sscanf(optarg,"%s", input_file_name);
-	
-	if(n!=1) {
-	  fprintf(stderr,"no filename specified to option -i\n");
-	  exit(1);
-	}
-	// open the specified input file for reading
-	if( !(freopen(input_file_name,"r",stdin)) ){
-	  perror("stdin redirection");
-	  fprintf(stderr,"Tried to open %s for input\n",input_file_name);
-	  exit(1);
-	}
-
-	break;
-
-
-      case 'h':
-	usage();
-	break;
-
-      case 'g':
-	n = sscanf(optarg,"%d", &format_arg);
-	
-	if(n!=1) {
-	  fprintf(stderr,"image format omitted for -g option\n");
-	  exit(1);
-	}
-	if( (format_arg<0) || (format_arg >=(int)LAST_FORMAT) ){
-	  fprintf(stderr,"Unknown image format selected for -g.\n");
-	  fprintf(stderr,"Valid are 0, %d\n", (int)LAST_FORMAT);
-	  exit(1);
-	}
-	image_format = (output_formats) format_arg;
-
+	  case 'P':
+	      progress_output=~0;
+	      break;
+	      
+	  case 'g':
+	      n = sscanf(optarg,"%d", &format_arg);
+	      
+	      if(n!=1) {
+		  fprintf(stderr,"image format omitted for -g option\n");
+		  exit(1);
+	      }
+	      if( (format_arg<0) || (format_arg >=(int)LAST_FORMAT) ){
+		  fprintf(stderr,"Unknown image format selected for -g.\n");
+		  fprintf(stderr,"Valid are 0, %d\n", (int)LAST_FORMAT);
+		  exit(1);
+	      }
+	      image_format = (output_formats) format_arg;
+	      
 #ifndef _HAVE_ZLIB_
-	if(image_format == PGMGZ){
-	  fprintf(stderr,"Cannot use compressed format. Hint: Recompile with -D_HAVE_ZLIB_\n");
-	  exit(1);
-	}
+	      if(image_format == PGMGZ){
+		  fprintf(stderr,"Cannot use compressed format. Hint: Recompile with -D_HAVE_ZLIB_\n");
+		  exit(1);
+	      }
 #endif
-	break;
-
-      case 'l':
-	n = sscanf(optarg,"%lf", &layer_skip_offset);
-	if(n!=1) {
-	  fprintf(stderr,"Invalid time argument for -l option\n");
-	  exit(1);
-	}
-	break;
-
-      default:
-	fprintf(stderr,"Unknown option. Use -h for list of valid options.\n");
-	exit(1);
+	      break;
+	      
+	  case 'l':
+	      n = sscanf(optarg,"%lf", &layer_skip_offset);
+	      if(n!=1) {
+		  fprintf(stderr,"Invalid time argument for -l option\n");
+		  exit(1);
+	      }
+	      break;
+	      
+	  case 'e':
+	      n = sscanf(optarg,"%d:%d:%d,%d", 
+			 &extract_start_hour,
+			 &extract_start_min,
+			 &extract_start_sec,
+			 &extract_number);
+	      if(n!=4) {
+		  fprintf(stderr,"Invalid number of parameters for option -e\n");
+		  exit(1);
+	      }
+	      
+	      if(verbose){
+		  fprintf(stderr,"Extracting %d subtitles starting from %02d:%02d:%02d\n",
+			  extract_number,
+			  extract_start_hour,
+			  extract_start_min,
+			  extract_start_sec);
+	      }
+	      break;
+	      
+	  default:
+	      fprintf(stderr,"Unknown option. Use -h for list of valid options.\n");
+	      exit(1);
       }
   }
+  
+  switch(image_format){
+  case PGM:
+    strcpy(filename_extension,"pgm");
+    break;
+  case PPM:
+    strcpy(filename_extension,"ppm");
+    break;
+  case PGMGZ:
+    strcpy(filename_extension,"pgm.gz");
+    break;
+  default:
+    fprintf(stderr,"Unknown output file format\n");
+    exit(1);
+  }
 
-
+  
   // allocate the data struct used by the decoder
   spudec_handle = spudec_new(colors, output_base_name, output_base_name, image_format, crop);
-
+  
   assert(spudec_handle);
-
+  
   // reset to defaults 
   spudec_reset(spudec_handle);
-
-
+  
+  
   // process all packages in the stream
   // the stream is an "augmented" raw subtitle stream
   // where two additional headers are used.
@@ -334,22 +396,52 @@ int main(int argc, char** argv)
 	pts_seconds=subtitle_header.rpts;
       } else {
 	// calculate the time from lpts
-	fprintf(stderr, "fallback to lpts!\n");
+	  if(verbose){
+	      fprintf(stderr, "fallback to lpts!\n");
+	  }
 	pts_seconds = (double)(subtitle_header.lpts/300)/90000.0;
       }
 
       // add offset for layer skip
       pts_seconds += layer_skip_adjust;
 
+      if(pts_seconds < extract_start_hour*3600+extract_start_min*60+extract_start_sec){
+	  // ignore all subtitle till we reached the start time
+	  continue;
+      } 
+
+      // output progress report if requested by -P option
+      if(last_subtitle_number != spudec_get_title_num(spudec_handle) && progress_output){
+	  last_subtitle_number = spudec_get_title_num(spudec_handle);
+	  fprintf(stderr,"Generating image: %s%04d.%s\n",output_base_name, 
+		  last_subtitle_number,
+		  filename_extension);
+      }
+
+      // do the actual work of assembling and decoding the data package
       spudec_assemble(spudec_handle,read_buf, subtitle_header.payload_length-1, 
 		      (int) (pts_seconds*100));
+
+
+      // check if the number of requested subtitles
+      // is already reached. (The internal subtitle number
+      // counter starts with 1.)
+      if(spudec_get_title_num(spudec_handle) == (extract_number+1)){
+	  // exit while loop
+	  break;
+      }
+
     } else {
       perror("Input file processing finished");
       exit(errno);
     }
   }
   
-  fprintf(stderr,"Conversion finished\n");
+  if(verbose){
+      fprintf(stderr,"Wrote %d subtitles\n",
+	      spudec_get_title_num(spudec_handle)-1);
+      fprintf(stderr,"Conversion finished\n");
+  }
   spudec_free((void *) spudec_handle);
 
   return 0;

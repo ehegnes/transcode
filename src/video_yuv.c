@@ -34,6 +34,7 @@
 #include <string.h>
  
 #include "zoom.h"
+#include "ac.h"
 
 #define BLACK_BYTE_YUV 16
 
@@ -118,16 +119,15 @@ void yuv_flip_core(char *image, int width, int height)
   in  = image + block*(height-1);
   out = image;
   
-  for (y = height; y > height/2; y--)
-    {
+  for (y = height; y > height/2; y--) {
 
-      memcpy (rowbuffer, out, block);
-      memcpy (out, in, block);
-      memcpy (in, rowbuffer, block);
-      
-      out = out + block; 
-      in  = in - block;
-    }
+    memcpy(rowbuffer, out, block);
+    memcpy(out, in, block);
+    memcpy(in, rowbuffer, block);
+    
+    out = out + block; 
+    in  = in - block;
+  }
 }
 
 void yuv_flip(char *image, int width, int height)
@@ -894,10 +894,10 @@ void yuv_swap(char *image, int width, int height)
   }
 }
 
-inline void yuv_merge(char *row1, char *row2, char *out, int bytes, 
+inline int yuv_merge_C(char *row1, char *row2, char *out, int bytes, 
 		      unsigned long weight1, unsigned long weight2)
 {
-  // calculate the average of each color entry in two arrays and return
+  // blend each color entry in two arrays and return
   // result in char *out
 
     unsigned int y;
@@ -912,25 +912,24 @@ inline void yuv_merge(char *row1, char *row2, char *out, int bytes,
     tmp = w2 * (unsigned char) row2[0] + w1 *(unsigned char) row1[0];
     out[0] = (tmp>>16) & 0xff;
 
-    return;
+    return(0);
 }
 
-inline void yuv_average(char *row1, char *row2, char *out, int bytes)
+inline int yuv_average_C(char *row1, char *row2, char *out, int bytes)
 {
   
-  // calculate the average of each color entry in two arrays and return
+  // average of each color entry in two arrays and return
   // result in char *out
-    
-    unsigned int y;
-    unsigned short tmp;
-
-    for (y = 0; y<bytes; ++y) {
-      tmp = ((unsigned char) row2[y] + (unsigned char) row1[y])>>1;
-      out[y] = tmp & 0xff;
-    }
-
-
-    return;
+  
+  unsigned int y;
+  unsigned short tmp;
+  
+  for (y = 0; y<bytes; ++y) {
+    tmp = ((unsigned char) row2[y] + (unsigned char) row1[y])>>1;
+    out[y] = tmp & 0xff;
+  }
+  
+  return(0);
 }
 
 
@@ -963,7 +962,7 @@ void yuv_vresize_8_Y(char *image, int width, int height, int resize)
       in = image + j*chunk +  vert_table_8[i].source * row_bytes;
       out = image + m * row_bytes;
       
-      yuv_merge(in, in+row_bytes, out, row_bytes, vert_table_8[i].weight1, vert_table_8[i].weight2);
+      yuv_merge_16(in, in+row_bytes, out, row_bytes, vert_table_8[i].weight1, vert_table_8[i].weight2);
       
       ++m;
     }
@@ -1002,7 +1001,7 @@ void yuv_vresize_8_up_Y(char *dest, char *image, int width, int height, int resi
       in = image + j*chunk +  vert_table_8_up[i].source * row_bytes;
       out = dest + m * row_bytes;
       
-      yuv_merge(in, in+row_bytes, out, row_bytes, vert_table_8_up[i].weight1, vert_table_8_up[i].weight2);
+      yuv_merge_16(in, in+row_bytes, out, row_bytes, vert_table_8_up[i].weight1, vert_table_8_up[i].weight2);
       ++m;
     }
   }      
@@ -1032,6 +1031,7 @@ void yuv_vresize_16_CbCr(char *image, int width, int height, int resize)
   chunk = (height >>2) * row_bytes;
 
   // dest row index
+
   m=0;
   
   for(j = 0; j < 4; ++j) {
@@ -1041,7 +1041,7 @@ void yuv_vresize_16_CbCr(char *image, int width, int height, int resize)
       in = image + j*chunk +  vert_table_8[i].source * row_bytes;
       out = image + m * row_bytes;
       
-      yuv_merge(in, in+row_bytes, out, row_bytes, vert_table_8[i].weight1, vert_table_8[i].weight2);
+      yuv_merge_8(in, in+row_bytes, out, row_bytes, vert_table_8[i].weight1, vert_table_8[i].weight2);
 
       ++m;
     }
@@ -1080,7 +1080,7 @@ void yuv_vresize_16_up_CbCr(char *dest, char *image, int width, int height, int 
       in = image + j*chunk +  vert_table_8_up[i].source * row_bytes;
       out = dest + m * row_bytes;
       
-      yuv_merge(in, in+row_bytes, out, row_bytes, vert_table_8_up[i].weight1, vert_table_8_up[i].weight2);
+      yuv_merge_8(in, in+row_bytes, out, row_bytes, vert_table_8_up[i].weight1, vert_table_8_up[i].weight2);
 
       ++m;
     }
@@ -1169,7 +1169,7 @@ void yuv_hresize_8_Y(char *image, int width, int height, int resize)
 	in  = image + j * blocks + hori_table_8[i].source;
 	out = image + m;
 	
-	rgb_merge(in, in+1, out, 1, hori_table_8[i].weight1, hori_table_8[i].weight2);
+	yuv_merge_C(in, in+1, out, 1, hori_table_8[i].weight1, hori_table_8[i].weight2);
 
 	m+=1;
       }
@@ -1208,7 +1208,7 @@ void yuv_hresize_8_up_Y(char * dest, char *image, int width, int height, int res
 	in  = image + j * blocks + hori_table_8_up[i].source;
 	out = dest + m;
 	
-	rgb_merge(in, in+1, out, 1, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
+	yuv_merge_C(in, in+1, out, 1, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
 
 	m+=1;
       }
@@ -1248,7 +1248,7 @@ void yuv_hresize_16_CrCb(char *image, int width, int height, int resize)
 	in  = image + j * blocks + hori_table_8[i].source;
 	out = image + m;
 	
-	rgb_merge(in, in+1, out, 1, hori_table_8[i].weight1, hori_table_8[i].weight2);
+	yuv_merge_C(in, in+1, out, 1, hori_table_8[i].weight1, hori_table_8[i].weight2);
 	m+=1;
       }
     }      
@@ -1287,7 +1287,7 @@ void yuv_hresize_16_up_CrCb(char *dest, char *image, int width, int height, int 
 	in  = image + j * blocks + hori_table_8_up[i].source;
 	out = dest + m;
 	
-	rgb_merge(in, in+1, out, 1, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
+	yuv_merge_C(in, in+1, out, 1, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
 
 	m+=1;
       }
@@ -1347,9 +1347,17 @@ void yuv_hresize_8_up(char *image, char *tmp_image, int width, int height, int r
     return;
 }
 
+static int (*yuv_average) (char *row1, char *row2, char *out, int bytes);
+static int (*memcpy_accel) (char *dest, char *source, int bytes);
+
+inline static int memcpy_C(char *dest, char *source, int bytes)
+{
+  memcpy(dest, source, bytes);
+  return(0);
+}
 
 
-void yuv_deinterlace_core(char *image, int width, int height)
+inline void yuv_deinterlace_linear_core(char *image, int width, int height)
 {
     char *in, *out;
     
@@ -1366,7 +1374,7 @@ void yuv_deinterlace_core(char *image, int width, int height)
     
     for (y = 0; y < (height>>1)-1; y++) {
       
-      rgb_average(in, in+(block<<1), out, block);
+      yuv_average(in, in+(block<<1), out, block);
       
       in  += block<<1;
       out += block<<1;
@@ -1379,11 +1387,120 @@ void yuv_deinterlace_core(char *image, int width, int height)
     return;
 }
 
-
-void yuv_deinterlace(char *image, int width, int height)
+inline void yuv_deinterlace_linear_blend_core(char *image, char *tmp, int width, int height)
 {
+  char *in, *out;
+  
+  unsigned int y, block; 
+  
+  block = width;
+  
+  //(1)
+  //copy frame to 2. internal frame buffer
+
+  memcpy_accel(tmp, image, width*height);
+
+  //(2)
+  //convert first field to full frame by simple interpolation
+  //row(1)=(row(0)+row(2))/2
+  //row(3)=(row(2)+row(4))/2
+  //...
+
+
+  in  = image;
+  out = image;
+  
+  out +=block;
+  
+  for (y = 0; y < (height>>1)-1; y++) {
+    
+    yuv_average(in, in+(block<<1), out, block);
+    
+    in  += block<<1;
+    out += block<<1;
+  }
+
+  //(3)
+  //convert second field to full frame by simple interpolation
+  //row(2)=(row(1)+row(3))/2
+  //row(4)=(row(3)+row(5))/2
+  //...
+
+  in  = tmp+block;
+  out = tmp;
+  
+  out +=block<<1;
+  
+  for (y = 0; y < (height>>1)-1; y++) {
+    
+    yuv_average(in, in+(block<<1), out, block);
+    
+    in  += block<<1;
+    out += block<<1;
+  }
+  
+  //(4)
+  //blend both frames
+  yuv_average(image, tmp, image, width*height);
+  
+  return;
+}
+
+void yuv_deinterlace_linear(char *image, int width, int height)
+{
+  //default ia32 C mode:
+  yuv_average =  yuv_average_C;
+  
+#ifdef ARCH_X86 
+#ifdef HAVE_ASM_NASM
+
+  if(tc_accel & MM_MMX)  yuv_average = ac_average_mmx;  
+  if(tc_accel & MM_SSE)  yuv_average = ac_average_sse;
+  if(tc_accel & MM_SSE2) yuv_average = ac_average_sse2;
+  
+#endif
+#endif
+  
   //process only Y component
-  yuv_deinterlace_core(image, width, height);
+  yuv_deinterlace_linear_core(image, width, height);
+
+  clear_mmx();
+}
+
+
+void yuv_deinterlace_linear_blend(char *image, char *tmp, int width, int height)
+{
+
+  //default ia32 C mode:
+  yuv_average =  yuv_average_C;
+  memcpy_accel = memcpy_C;
+  
+#ifdef ARCH_X86 
+#ifdef HAVE_ASM_NASM
+
+  if(tc_accel & MM_MMX) {
+    yuv_average = ac_average_mmx;  
+    memcpy_accel = ac_memcpy_mmx;
+  }
+
+  if(tc_accel & MM_SSE) {
+    yuv_average = ac_average_sse;
+    memcpy_accel = ac_memcpy_sse;
+  }
+
+  if(tc_accel & MM_SSE2) {
+    yuv_average = ac_average_sse2;
+    memcpy_accel = ac_memcpy_sse2;
+  }
+
+  
+#endif
+#endif
+  
+  //process only Y component
+  yuv_deinterlace_linear_blend_core(image, tmp, width, height);
+
+  clear_mmx();
 }
 
 
@@ -1555,8 +1672,10 @@ void yuv_gamma(char *image, int len)
 
     c = (unsigned char*) image;
 
-    for(n=0; n<=len; ++n)
-	*c++ = gamma_table[*c];
+    for(n=0; n<=len; ++n) {
+      *c = gamma_table[*c];
+      ++c;
+    }
 
     return;
 }

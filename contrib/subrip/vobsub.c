@@ -10,6 +10,7 @@
  * 2002-08-09
  *   File stolen from MPlayer 0.90pre6-2.95.3
  *   and modified to run through gcc
+ * File is identical to mplayer CVS version 1.18
  */
 
 

@@ -47,6 +47,9 @@
 #define NTSC_FILM    ((double)(24000)/1001.0)
 #define NTSC_VIDEO   ((double)(30000)/1001.0)
 
+//NTSC
+#define NTSC_W                  720
+#define NTSC_H                  480
 
 //new max frame size:
 #define TC_MAX_V_FRAME_WIDTH     1024 //768
@@ -142,14 +145,16 @@
 
 //--------------------------------------------------
 
-#define CODEC_NULL    0x0
+#define CODEC_NULL       0x0
 
-#define CODEC_RGB     1
-#define CODEC_YUV     2
-#define CODEC_MP4     4
-#define CODEC_RAW     8
-#define CODEC_YUY2   16
-#define CODEC_DV     32
+#define CODEC_RGB          1
+#define CODEC_YUV          2
+#define CODEC_MP4          4
+#define CODEC_YUY2         8
+#define CODEC_DV          16
+#define CODEC_RAW         32
+#define CODEC_RAW_RGB     64
+#define CODEC_RAW_YUV    128
 
 #define CODEC_PCM     0x1
 #define CODEC_AC3     0x2000
@@ -189,6 +194,7 @@
 #define TC_PROBE_NO_ACODEC   1024
 #define TC_PROBE_NO_AVSHIFT  2048
 #define TC_PROBE_NO_AV_FINE  4096
+#define TC_PROBE_NO_IMASR    8192
 
 #define TC_INFO_NO_DEMUX        1
 #define TC_INFO_MPEG_PS         2  
@@ -210,5 +216,7 @@
 #define TC_A52_DRC_OFF    1 
 #define TC_A52_DEMUX      2
 #define TC_A52_DOLBY_OFF  4
+
+#define AVI_FILE_LIMIT 2048
 
 #endif

@@ -75,6 +75,26 @@ int tc_rgb2yuv_core(char *buffer)
     
 }
 
+int tc_rgb2yuv_core_flip(char *buffer)
+{	  
+    int cc=0, flip=1;
+    
+    if(!convert) return(0);
+    
+    //conversion
+    
+    cc=RGB2YUV(x_dim, y_dim, buffer, y_out,
+		  u_out, v_out, x_dim, flip);
+    
+    if(cc!=0) return(-1);
+    
+    //put it back
+    memcpy(buffer, frame_buffer, (y_dim*x_dim*3)/2);
+    
+    return(0);
+    
+}
+
 int tc_rgb2yuv_close()
 {
     if(!convert) return(0);

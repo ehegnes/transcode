@@ -32,19 +32,11 @@
 #include <unistd.h>
 #include <string.h>
 
-#if defined(HAVE_AVIFILE_INC)
-#include <videoencoder.h>
-#include <audioencoder.h>
-#include <fourcc.h>
-#include <creators.h>
-#include <default.h>
-#else
 #include <avifile/videoencoder.h>
 #include <avifile/audioencoder.h>
 #include <avifile/fourcc.h>
 #include <avifile/creators.h>
 #include <avifile/default.h>
-#endif
 
 #include "transcode.h"
 

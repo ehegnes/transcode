@@ -41,7 +41,8 @@
 typedef struct frame_list {
   
   int bufid;     // buffer id
-  int tag;       // unused
+  int tag;       // init, open, close, ...
+  int filter_id; // filter instance to run
 
 } frame_list_t;
 
@@ -50,7 +51,9 @@ typedef struct vframe_list {
     //frame accounting parameter
 
   int bufid;     // buffer id
-  int tag;       // unused
+  int tag;       // init, open, close, ...
+
+  int filter_id; // filter instance to run
   
   int v_codec;   // video frame codec
   
@@ -77,6 +80,11 @@ typedef struct vframe_list {
   
   //pointer to current buffer
   char *video_buf;
+
+  //pointer to backup buffer
+  char *video_buf2;
+
+  //flag
   int free;
 
   //RGB 
@@ -118,7 +126,9 @@ extern vframe_list_t *vframe_list_tail;
 typedef struct aframe_list {
   
   int bufid;     // buffer id
-  int tag;       // unused
+  int tag;       // init, open, close, ...
+
+  int filter_id; // filter instance to run
 
   int a_codec;   // audio frame codec
   

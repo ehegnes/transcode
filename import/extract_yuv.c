@@ -33,8 +33,18 @@ static int yuv_readwrite_frame (int in_fd, int out_fd, char *buffer, int bytes)
 
     int padding, blocks, n;
     
-    if (p_read (in_fd, magic, 6) != 6)
+    for(;;) {
+      if (p_read (in_fd, magic, 6) != 6)
 	return 0;
+      
+      // Check for extra header in case input was tccat'ed
+      if (strncmp (magic, "YUV4MP", 6) == 0) {
+	do {
+	  if (p_read (in_fd, magic, 1) < 1) return 0;
+	} while(magic[0] != '\n');
+      } else break;
+    }
+
     if (strncmp (magic, "FRAME\n", 6)) {
 	magic[6] = '\0';
 	fprintf (stderr, "\nStart of frame is not \"FRAME\\n\"\n");

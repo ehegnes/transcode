@@ -88,9 +88,10 @@ int load_plugin(char *path, int id) {
     return(-1);
   }
 
-  //FIXME:
+  //FIXME: XV mods seem to crach transcode if unloaded properly;-)
   filter[id].unload=1;
   if(strcmp(filter[id].name, "preview")==0) filter[id].unload=0;
+  if(strcmp(filter[id].name, "pv")==0) filter[id].unload=0;
   
   return(0);
 }
@@ -129,6 +130,27 @@ int init_plugin(vob_t *vob)
     
     if(load_plugin(vob->mod_path, j)==0) ++j;
   }
+
+  for (n=0; n<MAX_FILTER; ++n) {
+    int i;
+    int count=0;
+    offset = filter[n].name;
+
+    // no filter or already counted
+    if (filter[n].name[0] == '\0' || filter[n].id != 0) continue;
+
+    for (i=n+1; i<MAX_FILTER; ++i) {
+      if (strcmp(filter[i].name,offset) == 0) {
+	count++;
+	filter[i].id = count;
+      }
+    }
+
+  }
+  if (verbose & TC_DEBUG)
+    for (n=0; n<MAX_FILTER; ++n) {
+      fprintf(stderr, "Filter[%d].name (%s) instance # (%d)\n", n, filter[n].name, filter[n].id);
+    }
   
   return j;
 }
@@ -141,6 +163,7 @@ int process_aud_plugins(aframe_list_t *ptr)
     for(n=0; n<plugins; ++n) {
       if(filter[n].status) {
 	
+	ptr->filter_id = filter[n].id;
 	if(filter[n].entry(ptr, NULL)<0) 
 	  fprintf(stderr," (%s) filter plugin '%s' returned error - ignored\n", __FILE__, filter[n].name);
       }
@@ -156,6 +179,7 @@ int process_vid_plugins(vframe_list_t *ptr)
     for(n=0; n<plugins; ++n) {
       if(filter[n].status) {
 	
+	ptr->filter_id = filter[n].id;
 	if(filter[n].entry(ptr, NULL)<0) 
 	  fprintf(stderr," (%s) filter plugin '%s' returned error - ignored\n", __FILE__, filter[n].name);
       }
@@ -194,13 +218,15 @@ int filter_init()
 
     ptr.tag = TC_FILTER_INIT;
 
-    for(n=0; n<plugins; ++n) 
+    for(n=0; n<plugins; ++n) {
+      ptr.filter_id = filter[n].id;
       if(filter[n].entry(&ptr, filter[n].options)<0) {
 	fprintf(stderr," (%s) filter plugin '%s' returned error - plugin skipped\n", __FILE__, filter[n].name);
 	filter[n].status=0;
       } else {
 	filter[n].status=1;
       }
+    }
     
     return(0);
 }
@@ -219,8 +245,10 @@ int filter_close()
 	
     ptr.tag = TC_FILTER_CLOSE;
 
-    for(n=0; n<plugins; ++n) 
-	if(filter[n].entry(&ptr, NULL)<0) fprintf(stderr," (%s) filter plugin '%s' returned error - ignored\n", __FILE__, filter[n].name);
+    for(n=0; n<plugins; ++n)  {
+      ptr.filter_id = filter[n].id;
+      if(filter[n].entry(&ptr, NULL)<0) fprintf(stderr," (%s) filter plugin '%s' returned error - ignored\n", __FILE__, filter[n].name);
+    }
     
     return(0);
 }

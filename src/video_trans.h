@@ -24,6 +24,10 @@
 #ifndef _VIDEO_TRANS_H
 #define _VIDEO_TRANS_H
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "math.h"
 #include "frame_threads.h"
 
@@ -61,14 +65,14 @@ void rgb_hclip(char *image, int width, int height, int cols);
 void rgb_vclip(char *image, int width, int height, int lines);
 void rgb_mirror(char *image, int width,  int height);
 void rgb_swap(char *image, int pixels);
-inline void rgb_merge(char *row1, char *row2, char *out, int bytes, 
-		      unsigned long weight1, unsigned long weight2);
-inline void rgb_average(char *row1, char *row2, char *out, int bytes);
+int rgb_merge_C(char *row1, char *row2, char *out, int bytes, 
+		unsigned long weight1, unsigned long weight2);
 void rgb_vresize_8(char *image, int width, int height, int resize);
 void rgb_hresize_8(char *image, int width, int height, int resize);
 void rgb_hresize_8_up(char *image, int width, int height, int resize);
 void rgb_vresize_8_up(char *image, int width, int height, int resize);
-void rgb_deinterlace(char *image, int width, int height);
+void rgb_deinterlace_linear(char *image, int width, int height);
+void rgb_deinterlace_linear_blend(char *image, char *tmp, int width, int height);
 inline void rgb_decolor(char *image, int bytes);
 inline void rgb_gamma(char *image, int bytes);
 void rgb_antialias(char *image, char *dest, int width, int height, int mode);
@@ -88,15 +92,16 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
 void yuv_clip_top_bottom(char *image, char *dest, int width, int height, int lines_top, int lines_bottom);
 void yuv_mirror(char *image, int width,  int height);
 void yuv_swap(char *image, int width,  int height);
-inline void yuv_merge(char *row1, char *row2, char *out, int bytes, 
-		      unsigned long weight1, unsigned long weight2);
-inline void yuv_average(char *row1, char *row2, char *out, int bytes);
+
+int yuv_merge_C(char *row1, char *row2, char *out, int bytes, 
+		unsigned long weight1, unsigned long weight2);
+
 void yuv_vresize_8(char *image, int width, int height, int resize);
 void yuv_hresize_8(char *image, int width, int height, int resize);
 void yuv_hresize_8_up(char *image, char *image_out, int width, int height, int resize);
 void yuv_vresize_8_up(char *image, char *image_out, int width, int height, int resize);
-void yuv_deinterlace(char *image, int width, int height);
-void yuv_deinterlace(char *image, int width, int height);
+void yuv_deinterlace_linear(char *image, int width, int height);
+void yuv_deinterlace_linear_blend(char *image, char *tmp, int width, int height);
 inline void yuv_decolor(char *image, int bytes);
 inline void yuv_gamma(char *image, int bytes);
 void yuv_vclip(char *image, int width, int height, int lines);
@@ -124,6 +129,8 @@ extern unsigned long *aa_table_x;
 extern unsigned long *aa_table_d;	    
 extern unsigned long *aa_table_y;
 
+extern void clear_mmx();
+
 # define d_threshold 25
 # define s_threshold 25
 
@@ -131,5 +138,13 @@ extern unsigned long *aa_table_y;
 # define YGREEN  0.587 //0.7154
 # define YBLUE   0.114 //0.0721
 
+int (*yuv_merge_8)(char *row1, char *row2, char *out, int bytes, 
+		   unsigned long weight1, unsigned long weight2);
+
+int (*yuv_merge_16)(char *row1, char *row2, char *out, int bytes, 
+		    unsigned long weight1, unsigned long weight2);
+
+int (*rgb_merge)(char *row1, char *row2, char *out, int bytes, 
+		 unsigned long weight1, unsigned long weight2);
 
 #endif

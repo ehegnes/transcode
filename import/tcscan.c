@@ -72,7 +72,7 @@ static void check (int v)
 
 
 
-void usage()
+void usage(int status)
 {
   version(EXE);
 
@@ -88,7 +88,7 @@ void usage()
   fprintf(stderr,"\t -d mode           verbosity mode\n");
   fprintf(stderr,"\t -v                print version\n");
   
-  exit(0);
+  exit(status);
   
 }
 
@@ -143,56 +143,56 @@ int main(int argc, char *argv[])
     
     switch (ch) {
     case 'c':
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       cdsize = atoi(optarg);
       
       break;
 
     case 'd': 
       
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       verbose = atoi(optarg);
       
       break;
       
     case 'e': 
       
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       
       if (3 != sscanf(optarg,"%d,%d,%d", &a_rate, &a_bits, &chan)) fprintf(stderr, "invalid pcm parameter set for option -e");
       
       if(a_rate > RATE || a_rate <= 0) {
 	fprintf(stderr, "invalid pcm parameter 'rate' for option -e");
-	usage();
+	usage(EXIT_FAILURE);
       }
       
       if(!(a_bits == 16 || a_bits == 8)) {
 	fprintf(stderr, "invalid pcm parameter 'bits' for option -e");
-	usage();
+	usage(EXIT_FAILURE);
       }
       
       if(!(chan == 0 || chan == 1 || chan == 2)) {
 	fprintf(stderr, "invalid pcm parameter 'channels' for option -e");
-	usage();
+	usage(EXIT_FAILURE);
       }
       
       break;
       
     case 'i': 
       
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       name = optarg;
       break;
 
     case 'x': 
       
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       codec = optarg;
       break;
 
     case 'f': 
       
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       fps = atof(optarg);      
 
       if(fps<=0) {
@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
 
     case 'w': 
       
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       bframes = atoi(optarg);      
 
       if(bframes <=0) {
@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
 
     case 'b': 
       
-      if(optarg[0]=='-') usage();
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
       bitrate = atoi(optarg);      
 
       if(bitrate < 0) {
@@ -229,10 +229,10 @@ int main(int argc, char *argv[])
       exit(0);
       break;
       
-    case '?':
     case 'h':
+      usage(EXIT_SUCCESS);
     default:
-      usage();
+      usage(EXIT_FAILURE);
     }
   }
   
@@ -254,8 +254,7 @@ int main(int argc, char *argv[])
   // no autodetection yet
   if(codec==NULL && name == NULL) {
     fprintf(stderr, "error: invalid codec %s\n", codec);
-    usage();
-    exit(1);
+    usage(EXIT_FAILURE);
   }
 
   if(codec==NULL) codec="";

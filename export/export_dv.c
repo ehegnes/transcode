@@ -29,7 +29,7 @@
 #include "aud_aux.h"
 
 #define MOD_NAME    "export_dv.so"
-#define MOD_VERSION "v0.1.0 (2001-12-04)"
+#define MOD_VERSION "v0.2.1 (2002-11-14)"
 #define MOD_CODEC   "(video) Digital Video | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE dv
@@ -38,11 +38,42 @@
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3;
 
-unsigned char target[TC_FRAME_DV_PAL];
+static unsigned char *target; //[TC_FRAME_DV_PAL];
 
 static avi_t *avifile=NULL;
 
-static int frame_size=0;
+static int frame_size=0, format=0;
+
+#ifdef LIBDV_095
+static dv_encoder_t *encoder = NULL;
+static unsigned char *pixels[3];
+#endif
+
+static unsigned char *bufalloc(size_t size)
+{
+
+#ifdef HAVE_GETPAGESIZE
+   int buffer_align=getpagesize();
+#else
+   int buffer_align=0;
+#endif
+
+   char *buf = malloc(size + buffer_align);
+
+   int adjust;
+
+   if (buf == NULL) {
+       fprintf(stderr, "(%s) out of memory", __FILE__);
+   }
+   
+   adjust = buffer_align - ((int) buf) % buffer_align;
+
+   if (adjust == buffer_align)
+      adjust = 0;
+
+   return (unsigned char *) (buf + adjust);
+}
+
 
 /* ------------------------------------------------------------ 
  *
@@ -55,13 +86,19 @@ MOD_init
     
     if(param->flag == TC_VIDEO) {
 
-      dvenc_init();
+      target = bufalloc(TC_FRAME_DV_PAL);
 
+#ifdef LIBDV_095
+      encoder = dv_encoder_new(FALSE, FALSE, FALSE);
+#else
+      dvenc_init();
+#endif
+      
       return(0);
     }
-
+    
     if(param->flag == TC_AUDIO) return(audio_init(vob, verbose_flag));
-
+    
     // invalid flag
     return(TC_EXPORT_ERROR); 
 }
@@ -75,9 +112,6 @@ MOD_init
 MOD_open
 {
   
-  int format;
-
-    
   // open out file
   if(vob->avifile_out==NULL) 
     if(NULL == (vob->avifile_out = AVI_open_output_file(vob->video_out_file))) {
@@ -109,12 +143,21 @@ MOD_open
       
       break;
     }
-
-     // for reading
-    frame_size = (vob->ex_v_height==PAL_H) ? TC_FRAME_DV_PAL:TC_FRAME_DV_NTSC;
-
-    dvenc_set_parameter(format, vob->ex_v_height, vob->a_rate);
     
+    // for reading
+    frame_size = (vob->ex_v_height==PAL_H) ? TC_FRAME_DV_PAL:TC_FRAME_DV_NTSC;
+    
+#ifdef LIBDV_095
+    encoder->isPAL = (vob->ex_v_height==PAL_H);
+    encoder->is16x9 = FALSE;
+    encoder->vlc_encode_passes = 3;
+    encoder->static_qno = 0;
+    encoder->force_dct = DV_DCT_AUTO;
+#else
+    dvenc_set_parameter(format, vob->ex_v_height, vob->a_rate);
+#endif      
+    
+
     return(0);
   }
   
@@ -137,11 +180,38 @@ MOD_encode
   int key;
 
   if(param->flag == TC_VIDEO) { 
+
+    time_t now = time(NULL);
+
     
+#ifdef LIBDV_095
+    pixels[0] = (char *) param->buffer;
+    
+    if(encoder->isPAL) {
+      pixels[2]=(char *) param->buffer + PAL_W*PAL_H;
+      pixels[1]=(char *) param->buffer + (PAL_W*PAL_H*5)/4;
+    } else {
+      pixels[2]=(char *) param->buffer + NTSC_W*NTSC_H;
+      pixels[1]=(char *) param->buffer + (NTSC_W*NTSC_H*5)/4;
+    }
+    
+    dv_encode_full_frame(encoder, pixels, (format)?e_dv_color_yuv:e_dv_color_rgb, target);
+    dv_encode_metadata(target, encoder->isPAL, encoder->is16x9, &now, 0);
+    dv_encode_timecode(target, encoder->isPAL, 0);
+#else    
     dvenc_frame(param->buffer, NULL, 0, target);
-    // write video
+#endif
     
+    // write video
+    // only keyframes 
     key = 1;
+    
+    //0.6.2: switch outfile on "r/R" and -J pv
+    //0.6.2: enforce auto-split at 2G (or user value) for normal AVI files
+    if((uint32_t)(AVI_bytes_written(avifile)+frame_size+16+8)>>20 >= tc_avi_limit) tc_outstream_rotate_request();
+    
+    if(key) tc_outstream_rotate();
+
     
     if(AVI_write_frame(avifile, target, frame_size, key)<0) {
       AVI_print_error("avi video write error");
@@ -168,7 +238,12 @@ MOD_stop
   
   if(param->flag == TC_VIDEO) {
     
+#ifdef LIBDV_095
+    dv_encoder_free(encoder);  
+#else    
     dvenc_close();
+#endif
+    
     return(0);
   }
   

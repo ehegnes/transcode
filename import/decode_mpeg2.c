@@ -42,8 +42,8 @@ extern vo_open_t vo_ppmpipe_open;
 extern vo_open_t vo_yuvpipe_open;
 extern vo_open_t vo_yuv_open;
 
-extern void mpeg2_accel_info();
-extern void mpeg2_idct_info();
+extern void mpeg2_mc_info(uint32_t accel);
+extern void mpeg2_idct_info(uint32_t accel);
 
 #define BUFFER_SIZE 262144
 static uint8_t buffer[BUFFER_SIZE];
@@ -104,8 +104,8 @@ void decode_mpeg2(info_t *ipipe)
   mpeg2_init(&mpeg2dec, accel, output);
 
   if(verbose & TC_DEBUG) {
-      mpeg2_accel_info();
-      mpeg2_idct_info();
+      mpeg2_mc_info(accel);
+      mpeg2_idct_info(accel);
   }
 
   es_loop();

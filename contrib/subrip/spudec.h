@@ -49,7 +49,7 @@ spudec_handle_t * spudec_new(int color[4], char* ppm_base_name,
 			     char* tag_base_name, output_formats, int crop);
  void spudec_free(spudec_handle_t *this);
 void spudec_reset(spudec_handle_t *this);	// called after seek
-
+unsigned int spudec_get_title_num(spudec_handle_t* this);
 #endif
 
 
