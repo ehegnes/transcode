@@ -30,8 +30,6 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include "display.h"
-#include "filter_preview.h"
 
 /* -------------------------------------------------
  *
@@ -39,13 +37,12 @@
  *
  *-------------------------------------------------*/
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "transcode.h"
 #include "framebuffer.h"
 #include "optstr.h"
+
+#include "display.h"
+#include "filter_preview.h"
 
 static char buffer[128];
 static int size=0;
