@@ -32,7 +32,7 @@
 #include "../ffmpeg/libavcodec/avcodec.h"
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.2.6 (2003-03-18)"
+#define MOD_VERSION "v0.2.7 (2003-03-22)"
 #define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
                     ") | (audio) MPEG/AC3/PCM"
 #define MOD_PRE ffmpeg
@@ -300,7 +300,7 @@ MOD_init {
       }
     }
 
-    lavc_venc_context->flags |= lavc_param_gmc ? CODEC_FLAG_GMC : 0;
+    lavc_venc_context->flags |= lavc_param_v4mv ? CODEC_FLAG_4MV : 0;
     lavc_venc_context->flags |= lavc_param_data_partitioning;
     if (lavc_param_gray)
       lavc_venc_context->flags |= CODEC_FLAG_GRAY;
