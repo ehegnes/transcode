@@ -36,13 +36,14 @@ static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID;
 // FIXME
 #undef EMULATE_FAST_INT
 #include <ffmpeg/avcodec.h>
-#include "yuv2rgb.h"
-#include "avilib.h"
+
+#include "libvo/yuv2rgb.h"
+#include "avilib/avilib.h"
 #include "magic.h"
 
 
-#define MAX_BUF 1024
-char import_cmd_buf[MAX_BUF];
+extern int errno;
+char import_cmd_buf[TC_BUF_MAX];
 
 // libavcodec is not thread-safe. We must protect concurrent access to it.
 // this is visible (without the mutex of course) with 
@@ -154,11 +155,11 @@ int scan(char *name)
   
   if(stat(name, &fbuf)) {
     fprintf(stderr, "[%s] invalid file \"%s\"\n", MOD_NAME, name);
-    exit(1);
+    return(-1);
   }
-  
+
   // file or directory?
-  
+
   if(S_ISDIR(fbuf.st_mode)) return(1);
   return(0);
 }
@@ -243,20 +244,27 @@ MOD_open {
   char   *fourCC = NULL;
   double  fps = 0;
   int extra_data_size = 0;
+  int sret;
 
   if (param->flag == TC_VIDEO) {
-    
+
     format_flag = vob->format_flag;
 
-    if (scan(vob->video_in_file)) goto do_dv;
+    sret = scan(vob->video_in_file);
+    if (sret == 1)
+      goto do_dv;
+    else
+      if (sret == -1)
+        return TC_IMPORT_ERROR;
 
     if (format_flag == TC_MAGIC_AVI) {
       goto do_avi;
-    } else if ( format_flag==TC_MAGIC_DV_PAL || format_flag==TC_MAGIC_DV_NTSC) {
+    } else if (format_flag==TC_MAGIC_DV_PAL || format_flag==TC_MAGIC_DV_NTSC) {
       fprintf(stderr, "Format 0x%lX DV!!\n", format_flag);
       goto do_dv;
     } else {
-      fprintf(stderr, "[%s] Format 0x%lX not supported\n", MOD_NAME, format_flag);
+      fprintf(stderr, "[%s] Format 0x%lX not supported\n",
+                      MOD_NAME, format_flag);
       return(TC_IMPORT_ERROR); 
     }
     fprintf(stderr, "[%s] Format 0x%lX\n", MOD_NAME, format_flag);
@@ -264,7 +272,8 @@ MOD_open {
 do_avi:
     if(avifile==NULL) {
       if(vob->nav_seek_file) {
-	if(NULL == (avifile = AVI_open_input_indexfile(vob->video_in_file,0,vob->nav_seek_file))){
+	if(NULL == (avifile = AVI_open_input_indexfile(vob->video_in_file,
+                                                    0, vob->nav_seek_file))){
 	  AVI_print_error("avi open error");
 	  return(TC_IMPORT_ERROR); 
 	}
@@ -275,7 +284,7 @@ do_avi:
 	} 
       }
     }
-    
+
     // vob->offset contains the last keyframe
     if (!done_seek && vob->vob_offset>0) {
 	AVI_set_video_position(avifile, vob->vob_offset);
@@ -331,7 +340,8 @@ do_avi:
     lavc_dec_context->error_resilience = 2;
     lavc_dec_context->error_concealment = 3;
     lavc_dec_context->workaround_bugs = FF_BUG_AUTODETECT;
-    lavc_dec_context->codec_tag= (fourCC[0]<<24)|(fourCC[1]<<16)|(fourCC[2]<<8)|fourCC[3];
+    lavc_dec_context->codec_tag= (fourCC[0]<<24) | (fourCC[1]<<16) |
+                                 (fourCC[2]<<8) | (fourCC[3]);
 
     // XXX: some codecs need extra data
     switch (codec->id)
@@ -351,16 +361,15 @@ do_avi:
       memset (lavc_dec_context->extradata, 0, extra_data_size);
       lavc_dec_context->extradata_size = extra_data_size;
     }
-    
 
     if (avcodec_open(lavc_dec_context, lavc_dec_codec) < 0) {
       fprintf(stderr, "[%s] Could not initialize the '%s' codec.\n", MOD_NAME,
               codec->name);
       return TC_IMPORT_ERROR;
     }
-    
+
     pix_fmt = vob->im_v_codec;
-    
+
     frame_size = x_dim * y_dim * 3;
     switch (pix_fmt) {
       case CODEC_YUV:
@@ -372,7 +381,7 @@ do_avi:
         bpp = vob->v_bpp;
 
         if (yuv2rgb_buffer == NULL) yuv2rgb_buffer = bufalloc(BUFFER_SIZE);
-	
+
         if (yuv2rgb_buffer == NULL) {
           perror("out of memory");
           return TC_IMPORT_ERROR;
@@ -385,7 +394,7 @@ do_avi:
         pass_through = 1;
         break;
     }
-    
+
     if (!frame) {
         frame = calloc(frame_size, 1);
         if (!frame) {
@@ -393,25 +402,25 @@ do_avi:
             return TC_IMPORT_ERROR;
         }
     }
-    
+
     //----------------------------------------
     //
     // setup decoder
     //
     //----------------------------------------
-    
+
     if(buffer == NULL) buffer=bufalloc(frame_size);
-    
+
     if(buffer == NULL) {
       perror("out of memory");
       return TC_IMPORT_ERROR;
     }
 
     memset(buffer, 0, frame_size);  
-    
+
     param->fd = NULL;
 
-    return 0;
+    return TC_IMPORT_OK;
 do_dv: 
     x_dim = vob->im_v_width;
     y_dim = vob->im_v_height;
@@ -420,7 +429,7 @@ do_dv:
       char yuv_buf[255];
       //char ext_buf[255];
       struct ffmpeg_codec *codec;
-      
+
       switch (vob->im_v_codec) {
 	case CODEC_RGB:
 	  snprintf(yuv_buf, sizeof(yuv_buf), "rgb");
@@ -439,16 +448,17 @@ do_dv:
 
       //printf ("FFMPEG: codec->name = %s ->id = 0x%x\n", codec->name, codec->id);
 
-      snprintf (import_cmd_buf, MAX_BUF, 
-	  "tccat -i \"%s\" -d %d"
-	  " | tcextract -x dv -d %d"
-	  " | tcdecode -x %s -t lavc -y %s -g %dx%d -Q %d -d %d"
-	  ,
-	  vob->video_in_file, vob->verbose,
-	  vob->verbose,
-	  codec->name, yuv_buf, x_dim, y_dim, vob->quality, vob->verbose);
+      sret = snprintf(import_cmd_buf, TC_BUF_MAX, 
+	              "tccat -i \"%s\" -d %d |"
+                      " tcextract -x dv -d %d |"
+                      " tcdecode -x %s -t lavc -y %s -g %dx%d -Q %d -d %d",
+	              vob->video_in_file, vob->verbose, vob->verbose,
+	              codec->name, yuv_buf, x_dim, y_dim, vob->quality,
+                      vob->verbose);
+      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+        return(TC_IMPORT_ERROR);
     }
-      
+
     // print out
     if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
 
@@ -461,10 +471,10 @@ do_dv:
       return(TC_IMPORT_ERROR);
     }
 
-    return 0;
+    return TC_IMPORT_OK;
 
   }
-  
+
   return TC_IMPORT_ERROR;
 }
 
@@ -517,7 +527,9 @@ MOD_decode {
       }
 
       if (verbose & TC_DEBUG) 
-	if (key || bkey) printf("[%s] Keyframe info (AVI | Bitstream) (%d|%d)\n", MOD_NAME, key, bkey);
+	if (key || bkey)
+          printf("[%s] Keyframe info (AVI | Bitstream) (%d|%d)\n",
+                  MOD_NAME, key, bkey);
 
       param->size = (int) bytes_read;
       tc_memcpy(param->buffer, buffer, bytes_read); 
@@ -529,10 +541,10 @@ MOD_decode {
         // repeat last frame
         tc_memcpy(param->buffer, frame, frame_size);
         param->size = frame_size;
-        return 0;
+        return TC_IMPORT_OK;
     }
 
-    // ------------      
+    // ------------
     // decode frame
     // ------------
 
@@ -561,7 +573,7 @@ retry:
 	  // repeat last frame
 	  tc_memcpy(param->buffer, frame, frame_size);
 	  param->size = frame_size;
-	  return 0;
+	  return TC_IMPORT_OK;
 	}
       }
     } while (0);
@@ -584,10 +596,10 @@ retry:
           }
           for (i = 0; i < lavc_dec_context->height / 2; i++) {
             tc_memcpy(Vbuf + i * lavc_dec_context->width / 2,
-                   picture.data[1] + i * picture.linesize[1],// + edge_width / 2,
+                   picture.data[1] + i * picture.linesize[1], // + edge_width / 2,
                    lavc_dec_context->width / 2);
             tc_memcpy(Ubuf + i * lavc_dec_context->width / 2,
-                   picture.data[2] + i * picture.linesize[2],// + edge_width / 2,
+                   picture.data[2] + i * picture.linesize[2], // + edge_width / 2,
                    lavc_dec_context->width / 2);
           }
         } else {
@@ -604,11 +616,11 @@ retry:
           for (i = 0; i < lavc_dec_context->height / 2; i++) {
             tc_memcpy(Vbuf + (lavc_dec_context->height / 2 - i - 1) *
                      lavc_dec_context->width / 2,
-                   picture.data[1] + i * picture.linesize[1],// + edge_width / 2,
+                   picture.data[1] + i * picture.linesize[1], // + edge_width / 2,
                    lavc_dec_context->width / 2);
             tc_memcpy(Ubuf + (lavc_dec_context->height / 2 - i - 1) *
                      lavc_dec_context->width / 2,
-                   picture.data[2] + i * picture.linesize[2],// + edge_width / 2,
+                   picture.data[2] + i * picture.linesize[2], // + edge_width / 2,
                    lavc_dec_context->width / 2);
           }
           yuv2rgb(frame, yuv2rgb_buffer,
@@ -617,7 +629,7 @@ retry:
                   yuv2rgb_buffer +
                     5 * lavc_dec_context->width * lavc_dec_context->height / 4, 
                   lavc_dec_context->width,
-                  lavc_dec_context->height, 
+                  lavc_dec_context->height,
                   lavc_dec_context->width * bpp / 8,
                   lavc_dec_context->width,
                   lavc_dec_context->width / 2);
@@ -635,20 +647,23 @@ retry:
           dst = 0;
           for (row=0; row<lavc_dec_context->height; row+=2) {
 			for (col=0; col<lavc_dec_context->width/2; col++) {
-			  Vbuf[dst + col] = (picture.data[1][src + col] + picture.data[1][src + UVls + col]) >> 1;
-			  Ubuf[dst + col] = (picture.data[2][src + col] + picture.data[2][src + UVls + col]) >> 1;
+			  Vbuf[dst + col] = (picture.data[1][src + col] +
+                                       picture.data[1][src + UVls + col]) >> 1;
+			  Ubuf[dst + col] = (picture.data[2][src + col] +
+                                       picture.data[2][src + UVls + col]) >> 1;
 			}
             dst += lavc_dec_context->width >> 1;
             src += UVls << 1;
-          } 
+          }
 	  break;
       case PIX_FMT_YUV444P:
           // Result is in YUV 4:4:4 format (subsample UV h/v for YV12):
-	  tc_memcpy(Ybuf, picture.data[0], picture.linesize[0] * lavc_dec_context->height);
+	  tc_memcpy(Ybuf, picture.data[0],
+                             picture.linesize[0] * lavc_dec_context->height);
           src = 0;
           dst = 0;
-          for (row=0; row<lavc_dec_context->height; row+=2) {
-            for (col=0; col<lavc_dec_context->width; col+=2) {
+          for (row = 0; row < lavc_dec_context->height; row += 2) {
+            for (col = 0; col < lavc_dec_context->width; col += 2) {
               Ubuf[dst] = picture.data[1][src];
               Vbuf[dst] = picture.data[2][src];
               dst++;
@@ -686,8 +701,10 @@ retry:
           }
           for (i = 0; i < lavc_dec_context->height; i++) {
 	      for (j=0; j < lavc_dec_context->width / 2; j++) {
-		  Vbuf[i/2 * lavc_dec_context->width/2 + j] = *(picture.data[1] + i * picture.linesize[1] + j/2);
-		  Ubuf[i/2 * lavc_dec_context->width/2 + j] = *(picture.data[2] + i * picture.linesize[2] + j/2);
+		  Vbuf[i/2 * lavc_dec_context->width/2 + j] =
+                            *(picture.data[1] + i * picture.linesize[1] + j/2);
+		  Ubuf[i/2 * lavc_dec_context->width/2 + j] =
+                            *(picture.data[2] + i * picture.linesize[2] + j/2);
 	      }
           }
           yuv2rgb(frame, yuv2rgb_buffer,
@@ -704,14 +721,15 @@ retry:
 
 	  break;
       default:
-	tc_warn("[%s] Unsupported decoded frame format: %d", MOD_NAME, lavc_dec_context->pix_fmt);
+	tc_warn("[%s] Unsupported decoded frame format: %d",
+                 MOD_NAME, lavc_dec_context->pix_fmt);
 	return TC_IMPORT_ERROR;
     }
 
     tc_memcpy(param->buffer, frame, frame_size);
     param->size = frame_size;
 
-    return 0;
+    return TC_IMPORT_OK;
   }
 
   return TC_IMPORT_ERROR;
@@ -723,14 +741,14 @@ retry:
  *
  * ------------------------------------------------------------*/
 
-MOD_close {  
+MOD_close {
 
   if (param->flag == TC_VIDEO) {
 
     if(lavc_dec_context) {
       if (!pass_through)
 	avcodec_flush_buffers(lavc_dec_context);
-      
+
       avcodec_close(lavc_dec_context);
       if (lavc_dec_context->extradata_size) free(lavc_dec_context->extradata);
       free(lavc_dec_context);
@@ -741,20 +759,20 @@ MOD_close {
       pass_through = 0;
 
     }
-    
+
     if (param->fd) pclose(param->fd);
     param->fd = NULL;
 
     // do not free buffer and yuv2rgb_buffer!!
-    
+
     if(avifile!=NULL) {
       AVI_close(avifile);
       avifile=NULL;
     }
-    
-    return(0);
+
+    return TC_IMPORT_OK;
   } 
-  
+
   return TC_IMPORT_ERROR;
 }
 
