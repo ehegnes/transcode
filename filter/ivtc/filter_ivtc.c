@@ -23,7 +23,7 @@
  */
 
 #define MOD_NAME    "filter_ivtc.so"
-#define MOD_VERSION "v0.3 (2003-02-01)"
+#define MOD_VERSION "v0.4 (2003-04-22)"
 #define MOD_CAP     "NTSC inverse telecine plugin"
 
 #include <stdio.h>
@@ -47,7 +47,6 @@
 #include "framebuffer.h"
 #include "optstr.h"
 
-// basic parameter
 static int show_results=0;
 
 /*-------------------------------------------------
@@ -56,7 +55,7 @@ static int show_results=0;
  *
  *-------------------------------------------------*/
 
-#define FRBUFSIZ 15
+#define FRBUFSIZ 3
 
 int tc_filter(vframe_list_t * ptr, char *options)
 {
@@ -130,12 +129,16 @@ int tc_filter(vframe_list_t * ptr, char *options)
 
     if ((ptr->tag & TC_PRE_PROCESS) && (ptr->tag & TC_VIDEO)) {
 
-	memcpy(lastFrames[frameIn], ptr->video_buf, ptr->v_width*ptr->v_height*3);
-	if (show_results) fprintf(stderr, "Inserted frame %d into slot %d\n", frameCount, frameIn);
+	memcpy(	lastFrames[frameIn], 
+		ptr->video_buf, 
+		ptr->v_width*ptr->v_height*3);
+	if (show_results) 
+	    fprintf(stderr, "Inserted frame %d into slot %d\n", 
+		    frameCount, frameIn);
 	frameIn = (frameIn+1) % FRBUFSIZ;
 	frameCount++;
 
-	// The first 2 frames are not output - they are only placed in the buffer
+	// The first 2 frames are not output - they are only buffered
 	if (frameCount <= 2) {
 	    ptr->attributes |= TC_FRAME_IS_SKIPPED;
 	} else {
@@ -145,7 +148,8 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	    // 
 	    // OK, time to work...
 	   
-	    unsigned char *curr, *pprev, *pnext, *cprev, *cnext, *nprev, *nnext, *dstp;
+	    unsigned char *curr, 
+		*pprev, *pnext, *cprev, *cnext, *nprev, *nnext, *dstp;
 	    int idxp, idxc, idxn;
 	    int p, c, n, lowest, chosen;
 	    int C, x, y;
@@ -155,13 +159,20 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	    idxc = frameIn-2; while(idxc<0) idxc+=FRBUFSIZ;
 	    idxp = frameIn-3; while(idxp<0) idxp+=FRBUFSIZ;
 
-	    curr =  &lastFrames[idxc][ptr->v_width];  	// bottom field of current
-	    pprev = &lastFrames[idxp][0];		// top field of previous
-	    pnext = &lastFrames[idxp][2*ptr->v_width];	// top field of previous - 2nd scanline
-	    cprev = &lastFrames[idxc][0];		// top field of current
-	    cnext = &lastFrames[idxc][2*ptr->v_width];	// top field of current - 2nd scanline
-	    nprev = &lastFrames[idxn][0];		// top field of next
-	    nnext = &lastFrames[idxn][2*ptr->v_width]; 	// top field of next - 2nd scanline
+	    // bottom field of current
+	    curr =  &lastFrames[idxc][ptr->v_width];  	
+	    // top field of previous
+	    pprev = &lastFrames[idxp][0];		
+	    // top field of previous - 2nd scanline
+	    pnext = &lastFrames[idxp][2*ptr->v_width];	
+	    // top field of current
+	    cprev = &lastFrames[idxc][0];		
+	    // top field of current - 2nd scanline
+	    cnext = &lastFrames[idxc][2*ptr->v_width];	
+	    // top field of next
+	    nprev = &lastFrames[idxn][0];		
+	    // top field of next - 2nd scanline
+	    nnext = &lastFrames[idxn][2*ptr->v_width]; 	
 
 	    // Blatant copy begins...
 
@@ -177,7 +188,8 @@ int tc_filter(vframe_list_t * ptr, char *options)
 		{
 		    C = curr[x];
 #define T 100
-		    /* This combing metric is based on an original idea of Gunnar Thalin. */
+		    /* This combing metric is based on 
+		       an original idea of Gunnar Thalin. */
 		    comb = ((long)pprev[x] - C) * ((long)pnext[x] - C);
 		    if (comb > T) p++;
 
@@ -213,9 +225,12 @@ int tc_filter(vframe_list_t * ptr, char *options)
 		
 	    // Blatant copy ends... :)
 
-	    if (show_results) fprintf(stderr, "Telecide => frame %d: p=%u  c=%u  n=%u [using %d]\n", frameCount, p, c, n, chosen);
+	    if (show_results) 
+		fprintf(stderr, 
+		    "Telecide => frame %d: p=%u  c=%u  n=%u [using %d]\n", 
+		    frameCount, p, c, n, chosen);
 
-	    /* Set up the pointers in preparation to output final frame. */
+	    // Set up the pointers in preparation to output final frame. 
 
 	    // First, the Y plane
 	    if (chosen == 0) 
@@ -227,8 +242,8 @@ int tc_filter(vframe_list_t * ptr, char *options)
 
 	    dstp = ptr->video_buf;
 	    
-	    /* First output the top field selected from the set of three stored
-	       frames. */
+	    // First output the top field selected 
+	    // from the set of three stored frames.
 	    for (y = 0; y < (ptr->v_height+1)/2; y++)
 	    {
 		    memcpy(dstp, curr, ptr->v_width);
@@ -236,7 +251,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 		    dstp += ptr->v_width*2;
 	    }
 
-	    /* The bottom field of the current frame unchanged */
+	    // The bottom field of the current frame unchanged 
 	    dstp = ptr->video_buf   + ptr->v_width;
 	    curr = lastFrames[idxc] + ptr->v_width;
 	    
@@ -259,8 +274,8 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	    dstp = ptr->video_buf;
 	    dstp += ptr->v_width * ptr->v_height;
 	    
-	    /* First output the top field selected from the set of three stored
-	       frames. */
+	    // First output the top field selected 
+	    // from the set of three stored frames. 
 	    for (y = 0; y < (ptr->v_height+1)/2; y++)
 	    {
 		    memcpy(dstp, curr, ptr->v_width/2);
@@ -269,8 +284,12 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	    }
 
 	    /* The bottom field of the current frame unchanged */
-	    dstp = ptr->video_buf   + ptr->v_width * ptr->v_height + ptr->v_width/2;
-	    curr = lastFrames[idxc] + ptr->v_width * ptr->v_height + ptr->v_width/2;
+	    dstp =  ptr->video_buf + 
+		    ptr->v_width * ptr->v_height + 
+		    ptr->v_width/2;
+	    curr =  lastFrames[idxc] + 
+		    ptr->v_width * ptr->v_height + 
+		    ptr->v_width/2;
 	    
 	    for (y = 0; y < (ptr->v_height+1)/2; y++)
 	    {

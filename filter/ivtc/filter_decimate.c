@@ -23,7 +23,7 @@
  */
 
 #define MOD_NAME    "filter_decimate.so"
-#define MOD_VERSION "v0.3 (2003-02-01)"
+#define MOD_VERSION "v0.4 (2003-04-22)"
 #define MOD_CAP     "NTSC decimation plugin"
 
 #include <stdio.h>
@@ -47,10 +47,6 @@
 #include "framebuffer.h"
 #include "optstr.h"
 
-// basic parameter
-// static int color_diff_threshold1 = 50;
-// static int color_diff_threshold2 = 100;
-// static double critical_threshold = 0.00005;
 static int show_results=0;
 
 /*-------------------------------------------------
@@ -59,7 +55,7 @@ static int show_results=0;
  *
  *-------------------------------------------------*/
 
-#define FRBUFSIZ 15
+#define FRBUFSIZ 6
 
 int tc_filter(vframe_list_t * ptr, char *options)
 {
@@ -84,7 +80,8 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	    return (-1);
 
 	if (vob->im_v_codec != CODEC_YUV) {
-		printf("[%s] Sorry, only YUV input allowed for now\n", MOD_NAME);
+		printf("[%s] Sorry, only YUV input allowed for now\n", 
+		    MOD_NAME);
 		return (-1);
 	}
 
@@ -134,72 +131,69 @@ int tc_filter(vframe_list_t * ptr, char *options)
 
     if ((ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO)) {
 
-	// After frame processing, the frames must be deinterlaced 
-	// To correctly IVTC, you must use filter_ivtc before this filter,
-	// i.e. -J ivtc,decimate
-	memcpy(lastFrames[frameIn], ptr->video_buf, ptr->v_width*ptr->v_height*3);
-	if (show_results) fprintf(stderr, "Inserted frame %d into slot %d ", frameCount, frameIn);
+	// After frame processing, the frames must be deinterlaced. 
+	// For inverse telecine, this has been done by the ivtc filter
+	//     (you must use filter_ivtc before this filter)
+	// for example :
+	//     -J ivtc,decimate  
+	// or (better) :
+	//     -J ivtc,32detect=force_mode=3,decimate
+	memcpy( lastFrames[frameIn], 
+		ptr->video_buf, 
+		ptr->v_width*ptr->v_height*3);
+	if (show_results) 
+	    fprintf(stderr, "Inserted frame %d into slot %d ", 
+		    frameCount, frameIn);
 	lastFramesOK[frameIn] = 1;
 	frameIn = (frameIn+1) % FRBUFSIZ;
 	frameCount++;
 
-	// The first 4 frames are not output - they are only placed in the buffer
+	// The first 5 frames are not processed; they are only buffered.
 	if (frameCount <= 4) {
 	    ptr->attributes |= TC_FRAME_IS_SKIPPED;
 	} else {
-	    // We have the last FRBUFSIZ frames in the buffer
-	    // We will now output one from the FRBUFSIZ buffered.
-	    // From now on, we will drop 1 frame out of 5 (29.97->23.976)
-	    // We will drop the one that looks exactly like its previous one
-	    
+	    // Having 6 frames in the buffer, we will now output one of them.
+	    // From now on, for each group of 5 frames we will drop 1 
+	    // (FPS: 29.97->23.976). In fact, we will drop the frame 
+	    // that looks almost exactly like its successor.
 	    if ((frameCount % 5) == 0) {
 	
-		// First, find which one from the last 4 looks almost exactly like
-		// its previous one.
-		int diff1,diff2,diff3,diff4,diff5, i;
-		diff1 = diff2 = diff3 = diff4 = diff5 = 0;
+		// First, find which one of the first 5 frames in the group 
+		// looks almost exactly like the frame that follows.
+		int i, j, diffMin=INT_MAX, indexMin = -1;
 
-		// Skip 16 pixels for speed.
-		// Don't put all 'diff' calculations in the same loop - cache prefers data locality
-		for(i=0; i<ptr->v_height*ptr->v_width; i+=16)
-		    diff1 += abs(lastFrames[(frameOut+1)%FRBUFSIZ][i] - lastFrames[(frameOut+0)%FRBUFSIZ][i]);
-		for(i=0; i<ptr->v_height*ptr->v_width; i+=16)
-		    diff2 += abs(lastFrames[(frameOut+2)%FRBUFSIZ][i] - lastFrames[(frameOut+1)%FRBUFSIZ][i]);
-		for(i=0; i<ptr->v_height*ptr->v_width; i+=16)
-		    diff3 += abs(lastFrames[(frameOut+3)%FRBUFSIZ][i] - lastFrames[(frameOut+2)%FRBUFSIZ][i]);
-		for(i=0; i<ptr->v_height*ptr->v_width; i+=16)
-		    diff4 += abs(lastFrames[(frameOut+4)%FRBUFSIZ][i] - lastFrames[(frameOut+3)%FRBUFSIZ][i]);
-		for(i=0; i<ptr->v_height*ptr->v_width; i+=16)
-		    diff5 += abs(lastFrames[(frameOut+5)%FRBUFSIZ][i] - lastFrames[(frameOut+4)%FRBUFSIZ][i]);
-
-		if (diff1<diff2 && diff1<diff3 && diff1<diff4 && diff1<diff5) {		// 0 and 1 are almost the same
-		    lastFramesOK[(frameOut+0)%FRBUFSIZ] = 0;
+		for(j=0; j<5; j++) {
+		    int diff = 0;
+		    for(i=0; i<ptr->v_height*ptr->v_width; i+=16)
+			diff += abs(
+			    lastFrames[(frameOut+j+1)%FRBUFSIZ][i] - 
+			    lastFrames[(frameOut+j)%FRBUFSIZ][i]);
+		    if (diff<diffMin) {
+			diffMin = diff;
+			indexMin = j;
+		    }
 		}
-		else if (diff2<diff1 && diff2<diff3 && diff2<diff4 && diff2<diff5) {	// 1 and 2 are almost the same
-		    lastFramesOK[(frameOut+1)%FRBUFSIZ] = 0;
-		}
-		else if (diff3<diff1 && diff3<diff2 && diff3<diff4 && diff3<diff5) {	// 2 and 3 are almost the same
-		    lastFramesOK[(frameOut+2)%FRBUFSIZ] = 0;
-		}
-		else if (diff4<diff1 && diff4<diff2 && diff4<diff3 && diff4<diff5) {	// 3 and 4 are almost the same
-		    lastFramesOK[(frameOut+3)%FRBUFSIZ] = 0;
-		}
-		else if (diff5<diff1 && diff5<diff2 && diff5<diff3 && diff5<diff4) {	// 4 and 5 are almost the same
-		    lastFramesOK[(frameOut+4)%FRBUFSIZ] = 0;
-		}
-		else {									// all are the same...
-		    lastFramesOK[(frameOut+0)%FRBUFSIZ] = 0;
-		}
+		// ...and mark it as junk
+		lastFramesOK[(frameOut+indexMin)%FRBUFSIZ] = 0;
 	    }
-
 	    if (lastFramesOK[frameOut]) {
-		memcpy(ptr->video_buf, lastFrames[frameOut], ptr->v_width*ptr->v_height*3);
-		if (show_results) fprintf(stderr, "giving slot %d\n", frameOut);
+		memcpy(	ptr->video_buf, 
+			lastFrames[frameOut], 
+			ptr->v_width*ptr->v_height*3);
+		if (show_results) 
+		    fprintf(stderr, "giving slot %d\n", frameOut);
 	    }
 	    else {
 		ptr->attributes |= TC_FRAME_IS_SKIPPED;
-		if (show_results) fprintf(stderr, "droping slot %d\n", frameOut);
+		if (show_results) 
+		    fprintf(stderr, "droping slot %d\n", frameOut);
 	    }
+	    // Regardless of the job we periodically do (for each group 
+	    // of 5 frames) we must also advance the two indexes. 
+	    // The frameIn index is increased at frame insertion. 
+	    // Now it is time for the frameOut index.
+	    // Note that both indexes are moving at the same speed, 
+	    // so no code for circular queue index-clashing is required.
 	    frameOut = (frameOut+1) % FRBUFSIZ;
 	}
     }
