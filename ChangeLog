@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-02-20 Tilmann Bitterberg <transcode at tibit.org>
+
+  * libioaux/framecode.[lc]:
+  Fix THE rounding error with non-integral framerates. Pointed out
+  by Marrq.
+
 2004-02-19 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/transcode.c:
