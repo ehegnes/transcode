@@ -3,6 +3,9 @@ transcode-0.6.8
 
 2003-06-11 Tilmann Bitterberg <transcode at tibit.org>
 
+  * import_v4l.c:
+  Typo
+  
   * extract_avi.c import_ogg.c magic.h probe_ogg.c probe.c:
   Add support for the FOURCC "XVID".
 

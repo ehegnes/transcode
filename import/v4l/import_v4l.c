@@ -30,7 +30,7 @@
 #include "vcr.h"
 
 #define MOD_NAME    "import_v4l.so"
-#define MOD_VERSION "v0.0.4 (2003-05-15)"
+#define MOD_VERSION "v0.0.5 (2003-06-11)"
 #define MOD_CODEC   "(video) v4l | (audio) PCM"
 
 #define MOD_PRE v4l
@@ -86,7 +86,7 @@ MOD_open
 	do_audio = 0;
     }
 
-    if ((vob->video_in_file && strncmp(vob->vmod_probed, "/dev/video1", 11))) do_resync=0; //no resync stuff for webcams
+    if ((vob->video_in_file && strlen(vob->video_in_file)>=11 && strncmp(vob->video_in_file, "/dev/video1", 11))) do_resync=0; //no resync stuff for webcams
 	
     switch(vob->im_v_codec) {
       
