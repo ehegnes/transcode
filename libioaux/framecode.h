@@ -48,5 +48,3 @@ void free_fc_time( struct fc_time * time );
 #define index(a,b) strchr(a,b)
 
 #endif
-
-

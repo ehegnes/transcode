@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-12-20 Tilmann Bitterberg <transcode at tibit.org>
+
+  * libioaux/framecode.h:
+  dietlibc does not have (r)index, so use str(r)chr instead.
+  This is useful because I sometimes link the avitool statically.
+
 2003-12-18 Tilmann Bitterberg <transcode at tibit.org>
 
   * export/export_mp1e.c:
