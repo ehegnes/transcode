@@ -18,7 +18,7 @@
 */
 
 #define MOD_NAME    "filter_hqdn3d.so"
-#define MOD_VERSION "v1.0.0 (2003-06-05)"
+#define MOD_VERSION "v1.0.1 (2003-06-15)"
 #define MOD_CAP     "High Quality 3D Denoiser"
 #define MOD_AUTHOR  "Daniel Moreno & A'rpi"
 
