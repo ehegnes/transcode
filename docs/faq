@@ -101,12 +101,13 @@ PA:	(Partial answer) In this form, your question cannot
 	your question a get a proper answer ;-) (ems)
 ---
 Q:	How do I use a CVS version of ffmpeg with transcode?
-A:	There are two ways: Q&D (but tested by me) and the more official way.
-	For this to work you also need transcode from CVS!
+A:	There are two ways: Quick&Dirty (but tested by me) and the more
+	official way. For this to work you also need transcode from CVS!
 
 	Q&D works like this:
 	<ul>
-	<li>make a new directory, not in de transcode directory for ffmpeg</li>
+	<li>make a new directory for ffmpeg, not in the transcode directory
+	(suggestion: ../ffmpeg)</li>
 	<li>get the latest cvs version of ffmpeg and unpack it there</li>
 	<li>configure and compile it</li>
 	<li>go to the transcode source directory</li>
@@ -118,10 +119,19 @@ A:	There are two ways: Q&D (but tested by me) and the more official way.
         common.h -> ../../../ffmpeg/ffmpeg/libavcodec/common.h
         libtcavcodec.a -> ../../../ffmpeg/ffmpeg/libavcodec/libavcodec.a
         rational.h -> ../../../ffmpeg/ffmpeg/libavcodec/rational.h
+	</pre> </li>
+	<li> create the subdirs i386 and ppc in ffmpeg/libavcodec </li>
+	<li> create Makefile.in with empty rules for the targets "all" and
+	"install" in directories ffmpeg/libavcodec, ffmpeg/libavcodec/i386 and
+	ffmpeg/libavcodec/ppc (or configure will fail):
+	<pre>
+	    $ echo -e "all:\ninstall:" > ffmpeg/libavcodec/Makefile.in
+	    $ echo -e "all:\ninstall:" > ffmpeg/libavcodec/i386/Makefile.in
+	    $ echo -e "all:\ninstall:" > ffmpeg/libavcodec/ppc/Makefile.in
 	</pre>
 	</li>
 	<li>now you can go to the top of the transcode source directory and type
-	configure & make.</li>
+	configure && make.</li>
 	</ul></p><p>
 	The other way is replace all the files in the ffmpeg directory with the
 	respective files from ffmpeg cvs (which may be some work ;-)) (ems)
