@@ -142,11 +142,11 @@ Width*Height/4 Cb bytes. The size of the image is Width*Height*3/2
 This is UYVY 8-bit packed.
 
  _______________________________________  ....
-|_U1_|_Y1_|_V1_|_Y2_|_U2_|_Y3_|_V2_|_Y4_| ....
+|_U1_|_Y1_|_V1_|_Y2_|_U3_|_Y3_|_V3_|_Y4_| ....
  \_________________/ \_________________/
     Pixel 1 and 2       Pixel 3 and 4
 
 Size of the image is 2*W*H.
 
 (c) 2003 Tilmann Bitterberg <transcode@tibit.org>
-Modified: Fri May  9 12:07:21 CEST 2003
+Modified: Tue Oct 14 10:35:46 CEST 2003
