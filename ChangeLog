@@ -1,3 +1,34 @@
+2004-11-26 Martin Kuball <MartinKuball at web dot de>
+  * src/transcode.c
+  Added definitions for a xvcd profile and a secam video template.
+  The comandline parser is changed to recognize the new profiles. The 
+  secam template is mapped to the pal template.
+  The help text is changed to include the new profiles.
+  The comandline parser compares the profile names to the predefined 
+  values using strncasecmp. But it does not always use all characters 
+  of the predefined values. This has changed.
+  * src/transcode.h
+  Added the XVCD profile type to the mpeg_profile_t enum type
+  * doc/transcode.1
+  Added the xvcd profile and the secam video template to the 
+  description of the --export_prof option
+  * export_ffmpeg.c
+  Added code to handle the xvcd profile. This is basically the svcd 
+  but allows for higher bitrates. The default is 5000 Kbps but it can
+  be set to 9000 if desired.
+  Removed the secam support because due to the changes in transcode.c 
+  it is now obsolete. It was never possible to use it anyway.
+  In the audio section, simplify the test for the requested profile. 
+  As the video template is irrelevant, it suffices to compare the base 
+  part of the profile.
+  * export_mpeg.c
+  For completeness, added xvcd to the deprecated warning message.
+  * export_mp2enc.c
+  To avoid unnecessary resampling the xvcd profile allows for
+  arbitrary  sampling rates. Because mp2enc supports only 44100
+  and 48000 Hz, allow these and change the rate to 44100 if the
+  source has  something else.
+
 2004-11-26 Jacob Meuser <jakemsr at jakemsr dot com>
   * import/import_yuv.c
   clean this up a bit.
