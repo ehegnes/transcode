@@ -1,5 +1,9 @@
 transcode-0.13-pre2 EMS
 
+2004-09-28 Andrew Church <achurch at achurch.org>
+  * configure.in:
+  Remove default gcc optimisations, breaks all kind of stuff.
+
 2004-09-10 Erik Slagter <erik at oldconomy dot com>
   * INSTALL:
   Some more installation hints [packages are default off,

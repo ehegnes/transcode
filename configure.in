@@ -605,67 +605,6 @@ if test x$GCC = xyes ; then
 fi
 AM_CONDITIONAL(HAVE_GCC2, test x"$gcc2" = x"yes")
 
-dnl GCC-specific flags
-if test x"$GCC" = x"yes"; then
-  OPT_CFLAGS=""
-  if test x${USE_MAINTAINER_MODE} != xno; then
-    OPT_CFLAGS="$OPT_CFLAGS -O2 $CFLAGS"
-  else
-    OPT_CFLAGS="$OPT_CFLAGS -O3 $CFLAGS"
-  fi
-  AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
-
-  if test x${USE_MAINTAINER_MODE} = xno; then
-    OPT_CFLAGS="-fomit-frame-pointer $CFLAGS"
-    AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
-  fi
-  dnl arch-specific flags
-  case "$host_cpu" in
-  i?86* | k?-*)
-    AC_DEFINE([ARCH_X86], 1,[x86 architecture])
-    case "$host" in
-      *-*-freebsd*)
-        arch="i`grep ^CPU /var/run/dmesg.boot | uniq | sed -e 's,.*\(.86\)-class.*,\1,'`"
-        ;;
-      *-*-openbsd*|*-*-netbsd*)
-        arch="i`sysctl hw.model | sed -e 's,.*\(.86\)-class.*,\1,'`"
-        ;;
-      *)
-        arch="$host_cpu"
-        ;;
-    esac
-    case "$arch" in
-      i386*) OPT_CFLAGS="$CFLAGS -mcpu=i386";;
-      i486*) OPT_CFLAGS="$CFLAGS -mcpu=i486";;
-      i586*) OPT_CFLAGS="$CFLAGS -mcpu=pentium";;
-      i686*) OPT_CFLAGS="$CFLAGS -mcpu=pentiumpro";;
-      k6*)   OPT_CFLAGS="$CFLAGS -mcpu=k6";;
-    esac
-    AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
-    ;;
-  sparc-*)
-    OPT_CFLAGS="$CFLAGS -mcpu=ultrasparc -mvis"
-    AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
-    ;;
-  mips-sgi-irix6.*)	dnl do we need to be that specific ?
-    OPT_CFLAGS="$CFLAGS -mabi=64"
-    AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
-    ;;
-  esac
-else
-  dnl non-gcc flags - we probably need exact configuration triplets here.
-  case "$host_cpu" in
-    mips-sgi-irix6.*)
-      OPT_CFLAGS="$CFLAGS -64"
-      AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
-      ;;
-    sparc-sun-solaris*)
-      OPT_CFLAGS="$CFLAGS -xCC -fast -xO5"
-      AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
-      ;;
-  esac
-fi
-
 AC_LIBTOOL_DLOPEN
 AM_PROG_LIBTOOL
 dnl AC_CONFIG_SUBDIRS(libltdl)
