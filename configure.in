@@ -120,10 +120,10 @@ AC_C_CONST
 AC_HEADER_TIME
 AC_C_INLINE
 AC_TYPE_SIZE_T 
-AC_C_BIGENDIAN([big_endian=true
+AC_C_BIGENDIAN([words_bigendian=true
   AC_DEFINE([WORDS_BIGENDIAN], 1, [Define if your CPU is big endian])],
-  big_endian=false)
-AM_CONDITIONAL(BIG_ENDIAN, test x"$big_endian" = x"true")
+  words_bigendian=false)
+AM_CONDITIONAL(WORDS_BIGENDIAN, test x"$words_bigendian" = x"true")
 AC_TYPE_OFF_T
 AC_C_ATTRIBUTE_ALIGNED
 

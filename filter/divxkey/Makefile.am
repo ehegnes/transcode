@@ -7,7 +7,7 @@ INCLUDES = \
 	-I$(top_srcdir)/filter \
 	-I$(top_srcdir)/src
 
-if BIG_ENDIAN
+if WORDS_BIGENDIAN
 BG = -DBIG_ENDIAN
 endif
 
@@ -15,7 +15,7 @@ AM_CPPFLAGS = \
 	-D_REENTRANT \
 	$(BG)
 
-pkgdir = @MOD_PATH@
+pkgdir = $(MOD_PATH)
 
 pkg_LTLIBRARIES = filter_divxkey.la
 
