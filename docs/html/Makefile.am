@@ -14,7 +14,6 @@ docs_DATA =  \
 	export_ogg.php \
 	export_opendivx.php \
 	export_xvid.php \
-	import_ac3.html \
 	import_avi.html \
 	import_dv.html \
 	import_dvd.html \
