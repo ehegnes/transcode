@@ -192,6 +192,122 @@ void frame_threads_close()
     
 }
 
+#define DUP_vptr_if_cloned(vptr) \
+    if(vptr->attributes & TC_FRAME_IS_CLONED) {  \
+	vframe_list_t *tmptr = vframe_dup(vptr);  \
+  \
+	if (!tmptr) {  \
+  \
+	    /* No free slot free to clone ptr */ \
+  \
+	    /* put ptr back into working cue */ \
+	    vframe_set_status (vptr, FRAME_WAIT);  \
+  \
+	    pthread_mutex_lock(&vbuffer_im_fill_lock);  \
+	    ++vbuffer_im_fill_ctr;  \
+	    pthread_mutex_unlock(&vbuffer_im_fill_lock);  \
+  \
+	    pthread_mutex_lock(&vbuffer_xx_fill_lock);  \
+	    --vbuffer_xx_fill_ctr;  \
+	    pthread_mutex_unlock(&vbuffer_xx_fill_lock);  \
+  \
+	    continue;  \
+  \
+	} else {  \
+  \
+	    /* ptr was successfully cloned */ \
+  \
+	    /* delete clone flag */ \
+	    tmptr->attributes &= ~TC_FRAME_IS_CLONED;  \
+	    vptr->attributes  &= ~TC_FRAME_IS_CLONED;  \
+  \
+	    /* set info for filters */ \
+	    tmptr->attributes |= TC_FRAME_WAS_CLONED;  \
+  \
+	    /* this frame is to be processed _after_ the current one */ \
+	    /* so put it back into the queue */ \
+	    vframe_set_status (tmptr, FRAME_WAIT);  \
+  \
+	    pthread_mutex_lock(&vbuffer_im_fill_lock);  \
+	    ++vbuffer_im_fill_ctr;  \
+	    pthread_mutex_unlock(&vbuffer_im_fill_lock);  \
+	}  \
+    }
+
+#define DROP_vptr_if_skipped(ptr) \
+    if(ptr->attributes & TC_FRAME_IS_SKIPPED) { \
+      vframe_remove(ptr);  /* release frame buffer memory */ \
+ \
+      pthread_mutex_lock(&vbuffer_xx_fill_lock); \
+      --vbuffer_xx_fill_ctr; \
+      pthread_mutex_unlock(&vbuffer_xx_fill_lock); \
+ \
+      /* notify sleeping import thread */ \
+      pthread_mutex_lock(&vframe_list_lock); \
+      pthread_cond_signal(&vframe_list_full_cv); \
+      pthread_mutex_unlock(&vframe_list_lock); \
+ \
+      continue; \
+    }
+
+#define DUP_aptr_if_cloned(aptr) \
+    if(aptr->attributes & TC_FRAME_IS_CLONED) {  \
+	aframe_list_t *tmptr = aframe_dup(aptr);  \
+  \
+	if (!tmptr) {  \
+  \
+	    /* No free slot free to clone ptr */ \
+  \
+	    /* put ptr back into working cue */ \
+	    aframe_set_status (aptr, FRAME_WAIT);  \
+  \
+	    pthread_mutex_lock(&abuffer_im_fill_lock);  \
+	    ++abuffer_im_fill_ctr;  \
+	    pthread_mutex_unlock(&abuffer_im_fill_lock);  \
+  \
+	    pthread_mutex_lock(&abuffer_xx_fill_lock);  \
+	    --abuffer_xx_fill_ctr;  \
+	    pthread_mutex_unlock(&abuffer_xx_fill_lock);  \
+  \
+	    continue;  \
+  \
+	} else {  \
+  \
+	    /* ptr was successfully cloned */ \
+  \
+	    /* delete clone flag */ \
+	    tmptr->attributes &= ~TC_FRAME_IS_CLONED;  \
+	    aptr->attributes  &= ~TC_FRAME_IS_CLONED;  \
+  \
+	    /* set info for filters */ \
+	    tmptr->attributes |= TC_FRAME_WAS_CLONED;  \
+  \
+	    /* this frame is to be processed _after_ the current one */ \
+	    /* so put it back into the queue */ \
+	    aframe_set_status (tmptr, FRAME_WAIT);  \
+  \
+	    pthread_mutex_lock(&abuffer_im_fill_lock);  \
+	    ++abuffer_im_fill_ctr;  \
+	    pthread_mutex_unlock(&abuffer_im_fill_lock);  \
+	}  \
+    }
+
+#define DROP_aptr_if_skipped(ptr) \
+    if(ptr->attributes & TC_FRAME_IS_SKIPPED) { \
+      aframe_remove(ptr);  /* release frame buffer memory */ \
+ \
+      pthread_mutex_lock(&abuffer_xx_fill_lock); \
+      --abuffer_xx_fill_ctr; \
+      pthread_mutex_unlock(&abuffer_xx_fill_lock); \
+ \
+      /* notify sleeping import thread */ \
+      pthread_mutex_lock(&aframe_list_lock); \
+      pthread_cond_signal(&aframe_list_full_cv); \
+      pthread_mutex_unlock(&aframe_list_lock); \
+ \
+      continue; \
+    }
+
 void process_vframe(vob_t *vob)
 {
   
@@ -264,47 +380,16 @@ void process_vframe(vob_t *vob)
     // video
     //------
 
-#if 0
-    if(ptr->attributes & TC_FRAME_IS_SKIPPED) {
-      vframe_remove(ptr);  // release frame buffer memory
-      
-      pthread_mutex_lock(&vbuffer_xx_fill_lock);
-      --vbuffer_xx_fill_ctr;
-      pthread_mutex_unlock(&vbuffer_xx_fill_lock);
+    DROP_vptr_if_skipped(ptr)
 
-      // notify sleeping import thread
-      pthread_mutex_lock(&vframe_list_lock);
-      pthread_cond_signal(&vframe_list_full_cv);
-      pthread_mutex_unlock(&vframe_list_lock);
-      
-      continue;
-      //goto invalid_vptr; // frame skipped
-    }
-#endif
-
-    
     // external plugin pre-processing
     ptr->tag = TC_VIDEO|TC_PRE_M_PROCESS;
     process_vid_plugins(ptr);
 
-    
-#if 0
-    if(ptr->attributes & TC_FRAME_IS_SKIPPED) {
-      vframe_remove(ptr);  // release frame buffer memory
-      
-      pthread_mutex_lock(&vbuffer_xx_fill_lock);
-      --vbuffer_xx_fill_ctr;
-      pthread_mutex_unlock(&vbuffer_xx_fill_lock);
+    DROP_vptr_if_skipped(ptr)
 
-      // notify sleeping import thread
-      pthread_mutex_lock(&vframe_list_lock);
-      pthread_cond_signal(&vframe_list_full_cv);
-      pthread_mutex_unlock(&vframe_list_lock);
-      
-      continue;
-      //goto invalid_vptr; // frame skipped
-    }
-#endif
+    // clone if the filter told us to do so.
+    DUP_vptr_if_cloned(ptr)
 
     // internal processing of video
     ptr->tag = TC_VIDEO;
@@ -313,24 +398,11 @@ void process_vframe(vob_t *vob)
     // external plugin post-processing
     ptr->tag = TC_VIDEO|TC_POST_M_PROCESS;
     process_vid_plugins(ptr);
-    
-#if 0
-    if(ptr->attributes & TC_FRAME_IS_SKIPPED) {
-      vframe_remove(ptr);  // release frame buffer memory
-      
-      pthread_mutex_lock(&vbuffer_xx_fill_lock);
-      --vbuffer_xx_fill_ctr;
-      pthread_mutex_unlock(&vbuffer_xx_fill_lock);
 
-      // notify sleeping import thread
-      pthread_mutex_lock(&vframe_list_lock);
-      pthread_cond_signal(&vframe_list_full_cv);
-      pthread_mutex_unlock(&vframe_list_lock);
+    // Won't work, because the frame is already rescaled and such
+    //DUP_vptr_if_cloned(ptr);
 
-      continue;
-      //goto invalid_vptr; // frame skipped
-    }
-#endif
+    DROP_vptr_if_skipped(ptr)
 
     pthread_testcancel();
     
@@ -408,45 +480,15 @@ void process_aframe(vob_t *vob)
     // audio
     //------
 
-#if 0
-    if(ptr->attributes & TC_FRAME_IS_SKIPPED) {
-      aframe_remove(ptr);  // release frame buffer memory
-
-      pthread_mutex_lock(&abuffer_xx_fill_lock);
-      --abuffer_xx_fill_ctr;
-      pthread_mutex_unlock(&abuffer_xx_fill_lock);
-      
-      // notify sleeping import thread
-      pthread_mutex_lock(&aframe_list_lock);
-      pthread_cond_signal(&aframe_list_full_cv);
-      pthread_mutex_unlock(&aframe_list_lock);
-      
-      continue;
-      //goto invalid_aptr; // frame skipped
-    }
-#endif
+    DROP_aptr_if_skipped(ptr)
     
     // external plugin pre-processing
     ptr->tag = TC_AUDIO|TC_PRE_M_PROCESS;
     process_aud_plugins(ptr);
 
-#if 0
-    if(ptr->attributes & TC_FRAME_IS_SKIPPED) {
-      aframe_remove(ptr);  // release frame buffer memory
+    DUP_aptr_if_cloned(ptr)
 
-      pthread_mutex_lock(&abuffer_xx_fill_lock);
-      --abuffer_xx_fill_ctr;
-      pthread_mutex_unlock(&abuffer_xx_fill_lock);
-      
-      // notify sleeping import thread
-      pthread_mutex_lock(&aframe_list_lock);
-      pthread_cond_signal(&aframe_list_full_cv);
-      pthread_mutex_unlock(&aframe_list_lock);
-      
-      continue;
-      //goto invalid_aptr; // frame skipped
-    }
-#endif
+    DROP_aptr_if_skipped(ptr)
     
     // internal processing of audio
     ptr->tag = TC_AUDIO;
@@ -456,23 +498,7 @@ void process_aframe(vob_t *vob)
     ptr->tag = TC_AUDIO|TC_POST_M_PROCESS;
     process_aud_plugins(ptr);
     
-#if 0
-    if(ptr->attributes & TC_FRAME_IS_SKIPPED) {
-      aframe_remove(ptr);  // release frame buffer memory
-
-      pthread_mutex_lock(&abuffer_xx_fill_lock);
-      --abuffer_xx_fill_ctr;
-      pthread_mutex_unlock(&abuffer_xx_fill_lock);
-
-      // notify sleeping import thread
-      pthread_mutex_lock(&aframe_list_lock);
-      pthread_cond_signal(&aframe_list_full_cv);
-      pthread_mutex_unlock(&aframe_list_lock);
-
-      continue;
-      //goto invalid_aptr; // frame skipped
-    }
-#endif
+    DROP_aptr_if_skipped(ptr)
 
     pthread_testcancel();
 
