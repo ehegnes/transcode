@@ -9,7 +9,8 @@ void tc_memcpy_init(int verbose, int mmflags)
 	int accel = mmflags == -1 ? ac_mmflag() : mmflags;
 	const char * method = "libc";
 	
-#ifdef ARCH_X86
+/* these functions are nasm assembly */
+#ifdef HAVE_ASM_NASM
 	if((accel & MM_MMXEXT) || (accel & MM_SSE))
 	{
 		method = "mmxext";
