@@ -266,7 +266,7 @@ int main(int argc, char *argv[])
      * ------------------------------------------------------------*/
 
     // FFMPEG can decode a lot
-    if(strcmp(magic, "ffmpeg")==0 || strcmp(magic, "lavc")) {
+    if(strcmp(magic, "ffmpeg")==0 || !strcmp(magic, "lavc")) {
 	if(!strcmp(codec,"mpeg2")) ipipe.codec = TC_CODEC_MPEG2;
 	if(!strcmp(codec,"divx3")) ipipe.codec = TC_CODEC_DIVX3;
 	if(!strcmp(codec,"divx")) ipipe.codec = TC_CODEC_DIVX4;
