@@ -43,6 +43,11 @@ transcode-0.6.4.HEAD
 
   - Adds *_BITS flags to use the "cost bits" MB mode decision instead of
     the SAD based method.
+
+  - As XviD CVS_HEAD installs the library as libxvidcore.so.3.0 with a
+    SO_NAME==libxvidcore.so I had to change the transcode module as
+    well. So now it loads libxvidcore.so again and not the libtestcore
+    anymore.
    -- Edouard Gomez <ed.gomez at free.fr>
 
 --------------------------------------------
