@@ -57,7 +57,31 @@ transcode-0.6.12
   o subtitler filter: Update to upstream version 0.8.4
   o pv filter: updated docs and YUV422 support.
   o ivtc filter: new magic and field parameters.
+  o mov export: new codecs and colorspaces.
          
+
+2004-01-08 Stefan Scheffler <stefanscheffler at gmx.net>
+
+  * export/export_mov.c:
+  encoding in the yv12 and yuy2 colorspaces to most codecs... I'm
+  not sure about the yuy2 ...
+
+  Most codecs parameters are mapped to transcode ones, the rest can
+  be added with additional -F options
+
+  Most qt4l codecs work fine except DIV3, SVQ1 and uLaw. div3's
+  output is garbled, svq1 produces nothing and uLaw crashes at the
+  end and leaves ugly noise :|... could be a problem with the
+  library itself cause even Cinelerra has trouble with them...
+
+  The code is a bit messy ... okay understatement of the year it
+  looks like crap ... writing clean code isn't one of my strong
+  points :) I'll clean it up in the next days ...
+
+  I don't know which versions of Quicktime4linux work or if it works
+  with libquicktime ... but I use v.2.01 haven't had time test
+  anything else yet.
+
 2004-01-07 Tilmann Bitterberg <transcode at tibit.org>
 
   * filter/subtitler/*:

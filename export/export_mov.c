@@ -60,6 +60,14 @@ static unsigned char** row_ptr = NULL;
 static int rawVideo = 0;
 static int rawAudio = 0;
 
+/* 
+color model to export to
+yuv420 is planar == BC_YUV420P  == 7
+rgb is packed == BC_RGB888 == 9
+yuy422 is packed == BC_YUV422 == 19 // not tested
+*/
+static int qt_cm = 0;
+
 /* store frame dimension */
 static int w = 0,h = 0;
 
@@ -72,6 +80,29 @@ static int bits = 0;
 /* encode audio buffers */
 static int16_t* audbuf0 = NULL;
 static int16_t* audbuf1 = NULL;
+
+// defaults for codec parameters
+int fix_bitrate = 0; 
+int div3_interlaced = 0;
+int div3_bitrate_tolerance = 500000;
+int use_float =0;
+int divx_use_deblocking = 0;
+
+int v_search_range = 100; // wild guess no default given in qt code
+
+int vorbis_max_bitrate = -1;        
+int vorbis_min_bitrate = -1;
+int vorbis_vdr = 0;
+
+/* dv related ... no idea what they mean :| */
+// int dv_decode_quality = DV_QUALITY_BEST; 
+int dv_anamorphic16x9 = 0;
+int dv_vlc_encode_passes = 3;
+int dv_clamp_luma = 0;
+int dv_clamp_chroma = 0;
+int dv_add_ntsc_setup = 0;
+int dv_rem_ntsc_setup = 0;
+
 
 /* ------------------------------------------------------------ 
  *
@@ -109,17 +140,7 @@ MOD_init
     /* fetch qt codec from -F switch */
     qt_codec = vob->ex_v_fcc;
 
-    /* check frame format */
-    if (!strcmp(qt_codec, "cvid")) {
-        if( ((w%16)!=0) || ((h%16)!=0) ) {
-            fprintf(stderr,"[%s] width/height must be multiples of 16\n",
-                    MOD_NAME);
-            fprintf(stderr,"[%s] Try the -j option\n",
-	            MOD_NAME);
-            return(TC_EXPORT_ERROR);
-        }
-    }
-
+    
     /* open target file for writing */
     if(NULL == (qtfile = quicktime_open(vob->video_out_file, 0, 1)) ){
       fprintf(stderr,"[%s] error opening qt file '%s'\n",
@@ -133,61 +154,176 @@ MOD_init
       fprintf(stderr,"[%s] empty qt codec name - switching to %s\n", MOD_NAME, qt_codec);
     }
 
+    /* check frame format */            
+    if (!strcmp(qt_codec, "cvid")){
+            if( ((w%16)!=0) || ((h%16)!=0) ) {
+                fprintf(stderr,"[%s] width/height must be multiples of 16\n",
+                        MOD_NAME);
+                fprintf(stderr,"[%s] Try the -j option\n",
+    	            MOD_NAME);
+                return(TC_EXPORT_ERROR);
+            }
+    }
+
+
     /* set proposed video codec */
     quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,qt_codec); 
      
     /* check given qt video compressor */
-    switch(vob->im_v_codec) {
-    case CODEC_RGB:
-      /* check if we can encode with this codec */
-      if (!quicktime_supported_video(qtfile, 0)){
-	fprintf(stderr,"[%s] qt video codec '%s' unsupported\n",
-		MOD_NAME,qt_codec);
-	return(TC_EXPORT_ERROR);
-      }
 
-      /* quicktime quality is 1-100, so 20,40,60,80,100 */
-      quicktime_set_jpeg(qtfile, 20 * vob->divxquality, 0);
+    if(strcmp(qt_codec,"rawv") == 0){
+        /* raw write frames */
+        rawVideo = 1;    
+    }
+    else{
+        /* check if we can encode with this codec */    
+        if (!quicktime_supported_video(qtfile, 0)){
+        fprintf(stderr,"[%s] qt video codec '%s' unsupported\n",
+            MOD_NAME,qt_codec);
+            return(TC_EXPORT_ERROR);
+        }
 
-      /* alloc row pointers for frame encoding */
-      row_ptr = malloc (sizeof(char *) * h);
-    
-      /* we need to encode frames */
-      rawVideo = 0;
-      break;
+        switch(vob->im_v_codec) {
+        case CODEC_RGB:
+              if (strcmp(qt_codec, "raw ")) rawVideo=1;
+              //fprintf(stderr," using rgb\n");
+              quicktime_set_cmodel(qtfile, 9); qt_cm = 9;
+              break;
+              
+        case CODEC_YUV:
+              if (strcmp(qt_codec, "yv12")) rawVideo=1;        
+              //fprintf(stderr," using yuv420\n");
+              quicktime_set_cmodel(qtfile, 7); qt_cm = 7;
+              break;
+              
+        case CODEC_YUY2:
+              if (strcmp(qt_codec, "yuv2")) rawVideo=1;
+              //fprintf(stderr," using yuv422\n");
+              quicktime_set_cmodel(qtfile, 19); qt_cm = 19;
+              break;
+                         
+        default:
+            /* unsupported internal format */
+            fprintf(stderr,"[%s] unsupported internal video format %x\n",
+                MOD_NAME,vob->ex_v_codec);
+            return(TC_EXPORT_ERROR);
+            break;
+       }
 
-    case CODEC_YUV: /* 4:2:0 */
-      /* only one codec fits :) */
-      if(strcmp(qt_codec,QUICKTIME_YUV420)!=0) {
-	fprintf(stderr,"[%s] qt codec '%s' given, but not suitable for YUV\n",
-		MOD_NAME,qt_codec);
-	fprintf(stderr,"[%s] Try RGB mode or use '%s'\n",
-		MOD_NAME,QUICKTIME_YUV420);
-	return(TC_EXPORT_ERROR);
-      }
-      /* raw write frames */
-      rawVideo = 1;
-      break;
+        if (quicktime_writes_cmodel(qtfile, qt_cm ,0) != 1){ 
+                fprintf(stderr,"[%s] color space not supported need to cs conversion \n",
+                                MOD_NAME);
+        }
 
-    case CODEC_YUY2: /* 4:2:2 */
-      /* only one codec fits :) */
-      if(strcmp(qt_codec,QUICKTIME_YUV2)!=0) {
-	fprintf(stderr,"[%s] qt codec '%s' given, but not suitable for YUY2\n",
-		MOD_NAME,qt_codec);
-	fprintf(stderr,"[%s] Try RGB mode or use '%s'\n",
-		MOD_NAME,QUICKTIME_YUV2);
-	return(TC_EXPORT_ERROR);
-      }
-      /* raw write frames */
-      rawVideo = 1;
-      break;
 
-    default:
-      /* unsupported internal format */
-      fprintf(stderr,"[%s] unsupported internal video format %x\n",
-	      MOD_NAME,vob->ex_v_codec);
-      return(TC_EXPORT_ERROR);
-      break;
+        /* set codec parameters */
+        // if max bitrate > bitrate  use difference for bitrate tolerance
+        int divx_bitrate = vob->divxbitrate * 1000; // tc uses kb        
+        if (vob->video_max_bitrate > vob->divxbitrate) div3_bitrate_tolerance = (vob->video_max_bitrate - vob->divxbitrate) * 1000; //kb again
+
+        /* set codec parameters */
+        /* doesn't look pretty maybe it should be redone in a loop or somethin*/ 
+
+        /* divx */
+        quicktime_set_parameter(qtfile, "divx_bitrate", &divx_bitrate);
+        quicktime_set_parameter(qtfile, "divx_rc_period", &vob->rc_period);
+        quicktime_set_parameter(qtfile, "divx_rc_reaction_period", &vob->rc_reaction_period);
+        quicktime_set_parameter(qtfile, "divx_rc_reaction_ratio", &vob->rc_reaction_ratio);        
+        quicktime_set_parameter(qtfile, "divx_max_key_interval", &vob->divxkeyframes);
+        quicktime_set_parameter(qtfile, "divx_max_quantizer", &vob->max_quantizer);
+        quicktime_set_parameter(qtfile, "divx_min_quantizer", &vob->min_quantizer);
+        quicktime_set_parameter(qtfile, "divx_quality", &vob->quality);
+        quicktime_set_parameter(qtfile, "quantizer", &vob->min_quantizer); // if divx_fix_bitrate == 1; quantizer = min_quantizer 
+        quicktime_set_parameter(qtfile, "divx_fix_bitrate", &fix_bitrate); // no idea what that is  in tc .. use -F switch
+        quicktime_set_parameter(qtfile, "divx_use_deblocking", &divx_use_deblocking); // no idea what that is  in tc .. use -F switch
+        
+        /* looks like a divx codec */
+        quicktime_set_parameter(qtfile, "v_bitrate", &divx_bitrate);
+        quicktime_set_parameter(qtfile, "v_rc_period", &vob->rc_period);
+        quicktime_set_parameter(qtfile, "v_rc_reaction_period", &vob->rc_reaction_period);
+        quicktime_set_parameter(qtfile, "v_rc_reaction_ratio", &vob->rc_reaction_ratio);        
+        quicktime_set_parameter(qtfile, "v_max_key_interval", &vob->divxkeyframes);
+        quicktime_set_parameter(qtfile, "v_max_quantizer", &vob->max_quantizer);
+        quicktime_set_parameter(qtfile, "v_min_quantizer", &vob->min_quantizer);
+        quicktime_set_parameter(qtfile, "v_search_range", &v_search_range);
+        
+        /* DIV3 */ // no workie 
+        quicktime_set_parameter(qtfile, "div3_bitrate", &divx_bitrate);
+        quicktime_set_parameter(qtfile, "div3_bitrate_tolerance", &div3_bitrate_tolerance);
+        quicktime_set_parameter(qtfile, "div3_interlaced", &div3_interlaced); // -F swich
+        quicktime_set_parameter(qtfile, "div3_quantizer", &vob->min_quantizer);
+        quicktime_set_parameter(qtfile, "div3_gop_size", &vob->divxkeyframes);
+        quicktime_set_parameter(qtfile, "div3_fix_bitrate", &fix_bitrate); // -F swich
+
+        /* jpeg */
+        /* quicktime quality is 1-100, so 20,40,60,80,100 */
+        quicktime_set_jpeg(qtfile, 20 * vob->divxquality, use_float);
+        
+        /* mp3 */
+        quicktime_set_parameter(qtfile, "mp3bitrate", &vob->mp3bitrate);        
+        quicktime_set_parameter(qtfile, "mp3quality", &vob->mp3quality);
+        
+        /* vorbis */
+        quicktime_set_parameter(qtfile, "vorbis_bitrate", &vob->mp3bitrate);
+        quicktime_set_parameter(qtfile, "vorbis_max_bitrate", &vorbis_max_bitrate);  //-F switch     
+        quicktime_set_parameter(qtfile, "vorbis_min_bitrate", &vorbis_min_bitrate); //-F switch
+        quicktime_set_parameter(qtfile, "vorbis_vdr", &vorbis_vdr); // -F switch
+        
+        /* dv */ // all -F
+        //quicktime_set_parameter(qtfile, "dv_decode_quality", &dv_decode_quality);  //defined via macro default is probably best  
+        quicktime_set_parameter(qtfile, "dv_anamorphic16x9", &dv_anamorphic16x9);
+        quicktime_set_parameter(qtfile, "dv_vlc_encode_passes", &dv_vlc_encode_passes);
+        quicktime_set_parameter(qtfile, "dv_clamp_luma", &dv_clamp_luma);        
+        quicktime_set_parameter(qtfile, "dv_clamp_chroma", &dv_clamp_chroma);        
+        quicktime_set_parameter(qtfile, "dv_add_ntsc_setup", &dv_add_ntsc_setup);        
+        quicktime_set_parameter(qtfile, "dv_rem_ntsc_setup", &dv_rem_ntsc_setup);    
+        
+        //set extended parameters
+        if (vob->ex_profile_name != NULL) {  // check for extended option
+            char  param[strlen(vob->ex_profile_name)], 
+                     qtvalue[strlen(vob->ex_profile_name)]; 
+            
+            int j = 0; int i,k = 0; int qtvalue_i = 0;
+            
+            for(i=0;i<=strlen(vob->ex_profile_name);i++,j++) {
+                //try to catch wrong input        
+                if ( vob->ex_profile_name[i] == ',' ){
+                  fprintf(stderr,"[%s] malformed -F option found \n", MOD_NAME);
+                  fprintf(stderr,"[%s] try something like this: \"-F vc,ac,opt1=val,opt2=val...\"\n",MOD_NAME);
+                return(TC_EXPORT_ERROR);
+                break;          
+                }
+                if ( vob->ex_profile_name[i] == '=' ) {
+                    param[j] = (char)NULL;
+                    j=-1; //set to 0 in for loop above
+                        for(i++,k=0;i<=strlen(vob->ex_profile_name), vob->ex_profile_name[i] != (char)NULL ;i++,k++) {
+                            //try to catch wrong input        
+                            if ( vob->ex_profile_name[i] == '=' ){
+                              fprintf(stderr,"[%s] malformed -F option found, aborting ...\n",MOD_NAME);
+                              fprintf(stderr,"[%s] try something like this: \"-F vc,ac,opt1=val,opt2=val...\"\n",MOD_NAME);
+                            return(TC_EXPORT_ERROR);
+                            break;          
+                            }
+                            if ( vob->ex_profile_name[i] != ',' ) qtvalue[k] = vob->ex_profile_name[i];
+                            else break;
+                        }
+                        
+                qtvalue[k] = (char)NULL; 
+//              printf("parameter :%s\n",param);
+//              printf("value :%s\n",qtvalue);
+                qtvalue_i = atoi(qtvalue);
+                quicktime_set_parameter(qtfile, param, &qtvalue_i);
+               }
+                else param[j] = vob->ex_profile_name[i];
+            } //forloop
+        } //if ex opt == 0
+
+
+        /* alloc row pointers for frame encoding */
+        row_ptr = malloc (sizeof(char *) * h);
+        
+        /* we need to encode frames */
+        rawVideo = 0;
     }
 
     /* verbose */
@@ -277,23 +413,47 @@ MOD_encode
     }
     /* encode frame */
     else {
-      /* setup row pointers for RGB: inverse! */
-      int iy,sl = w*3;
-      char *ptr = param->buffer;
-      for(iy=0;iy<h;iy++){
-	row_ptr[iy] = ptr;
-	ptr += sl;
-      }
+        switch(qt_cm) {
+        case 9:{
+                /* setup row pointers for RGB: inverse! */
+                int iy,sl = w*3;
+                char *ptr = param->buffer;
+                for(iy=0;iy<h;iy++){
+                row_ptr[iy] = ptr;
+                ptr += sl;
+                }
+                break;
+                }
+        case 7:{
+                /* setup row pointers for YUV420P: inverse! */
+                char *ptr = param->buffer;
+                row_ptr[0] = ptr;  
+                ptr = ptr + (h * w );
+                row_ptr[1] = ptr;  
+                ptr = ptr + (h * w )/4;
+                row_ptr[2] = ptr;
+                break;            
+                }
 
-      /* encode frame */
-      if(quicktime_encode_video(qtfile, row_ptr, 0)<0) {
+        case 19:{
+                /* setup row pointers for YUV422: inverse! */
+                int iy,sl = w*2;
+                char *ptr = param->buffer;
+                for(iy=0;iy<h;iy++){
+                row_ptr[iy] = ptr;
+                ptr += sl;
+                }
+            }
+            break;
+        }    
+  
+  if(quicktime_encode_video(qtfile, row_ptr, 0)<0) {
 	fprintf(stderr, "[%s] error encoding video frame\n",MOD_NAME);
 	return(TC_EXPORT_ERROR);
       }
     }
     return(0);
-  }
-  
+  }  
   /* audio -------------------------------------------------------- */
   if(param->flag == TC_AUDIO){
     /* raw mode is easy */
@@ -348,6 +508,7 @@ MOD_encode
 	return(TC_EXPORT_ERROR);
       }
     }
+        
     return(0);
   }
   
@@ -396,7 +557,7 @@ MOD_close
     quicktime_close(qtfile);
     qtfile=NULL;
     return(0);
-  }
+    }
   
   if(param->flag == TC_AUDIO) {
     return(0);
