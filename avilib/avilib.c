@@ -191,6 +191,19 @@ static int avi_add_index_entry(avi_t *AVI, unsigned char *tag, long flags, unsig
    return 0;
 }
 
+/* Returns 1 if more audio is in that video junk */
+int AVI_can_read_audio(avi_t *AVI)
+{
+   if(AVI->mode==AVI_MODE_WRITE) { return -1; }
+   if(!AVI->video_index)         { return -1; }
+   if(!AVI->track[AVI->aptr].audio_index)         { return -1; }      
+
+   if (AVI->track[AVI->aptr].audio_posc>=AVI->track[AVI->aptr].audio_chunks-1) return 0;
+   if (AVI->video_pos >= AVI->video_frames) return 1;
+   
+   if (AVI->track[AVI->aptr].audio_index[AVI->track[AVI->aptr].audio_posc].pos < AVI->video_index[AVI->video_pos].pos) return 1;
+   else return 0;
+}
 /*
    AVI_open_output_file: Open an AVI File and write a bunch
                          of zero bytes as space for the header.
