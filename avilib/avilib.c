@@ -615,7 +615,7 @@ static int avi_parse_comments (int fd, char *buf, int space_left)
 
     readlen = avi_read ( fd, data, st.st_size);
 
-    printf("Read %d bytes from %d\n", readlen, fd);
+    //printf("Read %d bytes from %d\n", readlen, fd);
 
     c = data;
     space_left--;
@@ -1121,7 +1121,7 @@ static int avi_write_data(avi_t *AVI, char *data, unsigned long length, int audi
 
 int AVI_write_frame(avi_t *AVI, char *data, long bytes, int keyframe)
 {
-  unsigned long pos;
+  off_t pos;
   
   if(AVI->mode==AVI_MODE_READ) { AVI_errno = AVI_ERR_NOT_PERM; return -1; }
   
@@ -1160,6 +1160,7 @@ int AVI_write_audio(avi_t *AVI, char *data, long bytes)
 int AVI_append_audio(avi_t *AVI, char *data, long bytes)
 {
 
+    // won't work for >2gb
   long i, length, pos;
   unsigned char c[4];
 
@@ -1357,6 +1358,7 @@ avi_t *AVI_open_fd(int fd, int getIndex)
       return AVI;
 }
 
+//  won't work for > 2GB
 int AVI_has_index(char *filename)
 {
   long  n;
@@ -1462,7 +1464,8 @@ int AVI_has_index_fd(int fdes)
 
 int avi_parse_input_file(avi_t *AVI, int getIndex)
 {
-  long i, n, rate, scale, idx_type;
+  long i, rate, scale, idx_type;
+  off_t n;
   unsigned char *hdrl_data;
   long header_offset=0, hdrl_len=0;
   long nvi, nai[AVI_MAX_TRACKS], ioff;
@@ -1668,7 +1671,7 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 
    if(AVI->idx)
    {
-      long pos, len;
+      off_t pos, len;
 
       /* Search the first videoframe in the idx1 and look where
          it is in the file */
@@ -2020,7 +2023,8 @@ int AVI_set_audio_position(avi_t *AVI, long byte)
 
 long AVI_read_audio(avi_t *AVI, char *audbuf, long bytes)
 {
-   long nr, pos, left, todo;
+   long nr, left, todo;
+   off_t pos;
 
    if(AVI->mode==AVI_MODE_WRITE) { AVI_errno = AVI_ERR_NOT_PERM; return -1; }
    if(!AVI->track[AVI->aptr].audio_index)         { AVI_errno = AVI_ERR_NO_IDX;   return -1; }
@@ -2058,7 +2062,8 @@ long AVI_read_audio(avi_t *AVI, char *audbuf, long bytes)
 
 long AVI_read_audio_chunk(avi_t *AVI, char *audbuf)
 {
-   long pos, left;
+   long left;
+   off_t pos;
 
    if(AVI->mode==AVI_MODE_WRITE) { AVI_errno = AVI_ERR_NOT_PERM; return -1; }
    if(!AVI->track[AVI->aptr].audio_index)         { AVI_errno = AVI_ERR_NO_IDX;   return -1; }
@@ -2106,7 +2111,7 @@ int AVI_read_data(avi_t *AVI, char *vidbuf, long max_vidbuf,
  *   -2 = audio buffer too small
  */
 
-   int n;
+   off_t n;
    char data[8];
  
    if(AVI->mode==AVI_MODE_WRITE) return 0;
