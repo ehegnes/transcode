@@ -177,6 +177,7 @@ MOD_open
     }
 
     //load the codec
+    //if(xvid2_init("/data/scr/comp/video/xvid/xvid_20030610/xvidcore/build/generic")<0) {
     if(xvid2_init(vob->mod_path)<0) {
       printf("failed to init Xvid codec");
       return(TC_IMPORT_ERROR); 
@@ -194,7 +195,7 @@ MOD_open
     xerr = XviD_decore(NULL, XVID_DEC_CREATE, &xparam, NULL);
 
     if(xerr == XVID_ERR_FAIL) {
-      printf("codec open error");
+      printf("codec open error\n");
       return(TC_EXPORT_ERROR); 
     }
     XviD_decore_handle=xparam.handle;
@@ -270,7 +271,7 @@ MOD_decode {
     xerr = XviD_decore(XviD_decore_handle, XVID_DEC_DECODE, &xframe, NULL);
     if (xerr != XVID_ERR_OK) {
       fprintf(stderr, "[%s] frame decoding failed. Perhaps you're trying to " \
-             "decode MS-MPEG4v3 (aka DivX ;-) aka DivX3)?", MOD_NAME);
+             "decode MS-MPEG4v3 (aka DivX ;-) aka DivX3)?\n", MOD_NAME);
       return(TC_IMPORT_ERROR);
     }
     
@@ -293,7 +294,7 @@ MOD_close
 
     xerr = XviD_decore(XviD_decore_handle, XVID_DEC_DESTROY, NULL, NULL);
     if (xerr == XVID_ERR_FAIL)
-      printf("encoder close error");
+      printf("encoder close error\n");
 
     //remove codec
     dlclose(handle);
