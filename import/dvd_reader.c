@@ -5,20 +5,20 @@
  *  Copyright (C) 2001 Billy Biggs <vektor@dumbterm.net>.
  *
  *  This file is part of transcode, a linux video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -671,14 +671,16 @@ int dvd_probe(int title, probe_info_t *info)
 	    cur_time += (hour * 60 * 60 * 1000 + minute * 60 * 1000 + second * 1000 +
 		    ms);
 	}
-	fprintf(stderr, "(%s) [Chapter %02d] %02ld:%02ld:%02ld.%03ld\n", __FILE__, i + 1,
+	fprintf(stderr, "(%s) [Chapter %02d] %02ld:%02ld:%02ld.%03ld , block from %d to %d\n", __FILE__, i + 1,
 		overall_time / 60 / 60 / 1000, (overall_time / 60 / 1000) % 60,
-		(overall_time / 1000) % 60, overall_time % 1000);
+		(overall_time / 1000) % 60, overall_time % 1000,
+		cur_pgc->cell_playback[i].first_sector, cur_pgc->cell_playback[i].last_sector );
 	overall_time += cur_time;
     }
-    fprintf(stderr, "(%s) [Chapter %02d] %02ld:%02ld:%02ld.%03ld\n", __FILE__, i + 1,
-	    overall_time / 60 / 60 / 1000, (overall_time / 60 / 1000) % 60,
-	    (overall_time / 1000) % 60, overall_time % 1000);
+    fprintf(stderr, "(%s) [Chapter %02d] %02ld:%02ld:%02ld.%03ld , block from %d to %d\n", __FILE__, i + 1,
+		overall_time / 60 / 60 / 1000, (overall_time / 60 / 1000) % 60,
+		(overall_time / 1000) % 60, overall_time % 1000,
+		cur_pgc->cell_playback[i].first_sector, cur_pgc->cell_playback[i].last_sector );
 
     return(0);
 }
@@ -693,7 +695,7 @@ int dvd_verify(char *dvd_path)
     if(!_dvd) return(-1);
 
     vmg_file = ifoOpen( _dvd, 0 );
-    if(!vmg_file) { 
+    if(!vmg_file) {
       DVDClose(_dvd);
       return (-1);
     }
@@ -702,26 +704,26 @@ int dvd_verify(char *dvd_path)
 
     return(0);
 }
- 
+
 
 int dvd_init(char *dvd_path, int *titles, int verb)
 {
 
     tt_srpt_t *tt_srpt;
     ifo_handle_t *vmg_file;
-    
+
     // copy verbosity flag
     verbose = verb;
-    
+
     /**
      * Open the disc.
      */
-    
+
     if(dvd==NULL) {
 	dvd = DVDOpen(dvd_path);
 	if(!dvd) return(-1);
     }
-    
+
     //workspace
 
     if(data==NULL) {
@@ -732,7 +734,7 @@ int dvd_init(char *dvd_path, int *titles, int verb)
 	}
     }
 
-    
+
     vmg_file = ifoOpen( dvd, 0 );
     if( !vmg_file ) {
       fprintf( stderr, "Can't open VMG info.\n" );
@@ -742,9 +744,9 @@ int dvd_init(char *dvd_path, int *titles, int verb)
     }
 
     tt_srpt = vmg_file->tt_srpt;
-    
+
     *titles = tt_srpt->nr_of_srpts;
-    
+
     return(0);
 }
 
@@ -794,10 +796,10 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
 	fprintf( stderr, "Can't open VMG info.\n" );
 	return -1;
     }
-    
+
     tt_srpt = vmg_file->tt_srpt;
-    
-    
+
+
     /**
      * Make sure our title number is valid.
      */
@@ -850,20 +852,20 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
     cur_pgc = vts_file->vts_pgcit->pgci_srp[ pgc_id - 1 ].pgc;
     start_cell = cur_pgc->program_map[ pgn - 1 ] - 1;
 
-    
+
     //ThOe
 
     if (chapid+1 == tt_srpt->title[ titleid ].nr_of_ptts) {
       last_cell = cur_pgc->nr_of_cells;
     } else {
-      
+
       last_cell = cur_pgc->program_map[ (vts_ptt_srpt->title[ ttn - 1 ].ptt[ chapid+1 ].pgn) - 1 ] - 1;
     }
-    
+
     /**
      * We've got enough info, time to open the title set data.
      */
-    
+
     for (lockretries=0; lock() && lockretries < 180; lockretries++ ) {
         sleep(1);
     }
@@ -874,7 +876,7 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
 
     title = DVDOpenFile( dvd, tt_srpt->title[ titleid ].title_set_nr,
                          DVD_READ_TITLE_VOBS);
-    
+
     unlock();
 
     if( !title ) {
@@ -983,7 +985,7 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
 	  
 	  assert( cur_output_size < 1024 );
 	  cur_pack++;
-	  
+
 	  /**
 	   * Read in and output cursize packs.
 	   */
@@ -1067,7 +1069,7 @@ static void counter_print(long int pida, long int pidn, long int t1, long int t2
   }
 }
 
-int dvd_stream(int arg_title)
+int dvd_stream(int arg_title,int arg_chapid)
 {
     int pgc_id, len, start_cell;
     unsigned long cur_pack=0, max_sectors=0, blocks_left=0, blocks_written=0, first_block=0;
@@ -1082,10 +1084,9 @@ int dvd_stream(int arg_title)
     int titleid, angle, chapid;
     unsigned int cur_output_size=1024, blocks=0;
 
-    chapid  = 0;
+    chapid  = arg_chapid - 1;
     titleid = arg_title - 1;
     angle   = 0;
-
 
     /**
      * Load the video manager to find out the information about the titles on
@@ -1098,10 +1099,10 @@ int dvd_stream(int arg_title)
 	fprintf( stderr, "Can't open VMG info.\n" );
 	return -1;
     }
-    
+
     tt_srpt = vmg_file->tt_srpt;
-    
-    
+
+
     /**
      * Make sure our title number is valid.
      */
@@ -1154,14 +1155,14 @@ int dvd_stream(int arg_title)
     cur_pgc = vts_file->vts_pgcit->pgci_srp[ pgc_id - 1 ].pgc;
     start_cell = cur_pgc->program_map[ pgn - 1 ] - 1;
 
-    
+
     /**
      * We've got enough info, time to open the title set data.
      */
-    
+
     title = DVDOpenFile( dvd, tt_srpt->title[ titleid ].title_set_nr,
                          DVD_READ_TITLE_VOBS);
-    
+
     if( !title ) {
         fprintf( stderr, "Can't open title VOBS (VTS_%02d_1.VOB).\n",
                  tt_srpt->title[ titleid ].title_set_nr );
@@ -1174,17 +1175,21 @@ int dvd_stream(int arg_title)
      * Playback the cells for our title
      */
 
-    cur_pack = cur_pgc->cell_playback[start_cell].first_sector;
+    fprintf(stderr,"(%s) Title %02d is defined by PGC %d with %d cells, exporting cell %d\n",
+      __FILE__,tt_srpt->title[ titleid ].title_set_nr,pgc_id,cur_pgc->nr_of_cells,chapid+1);
 
-    max_sectors = (long) cur_pgc->cell_playback[ cur_pgc->nr_of_cells -1].last_sector;
+    cur_pack = cur_pgc->cell_playback[chapid].first_sector;
+
+    max_sectors = (long) cur_pgc->cell_playback[chapid].last_sector;
+    fprintf(stderr,"(%s) From block %ld to block %ld\n",__FILE__,(long)cur_pack,(long)max_sectors);
 
     first_block = cur_pack;
 
-    fprintf(stderr,"(%s) title %02d, %ld blocks (%ld-%ld)\n", __FILE__, tt_srpt->title[ titleid ].title_set_nr, (long) DVDFileSize(title), (long) cur_pack, (long) max_sectors);
-    
+    //fprintf(stderr,"(%s) title %02d, %ld blocks (%ld-%ld)\n", __FILE__, tt_srpt->title[ titleid ].title_set_nr, (long) DVDFileSize(title), (long) cur_pack, (long) max_sectors);
+
     if((long) DVDFileSize(title) <  max_sectors ||  cur_pack < 0)
       fprintf(stderr, "(%s) internal error\n", __FILE__);
-    
+
     //sanity check
     if(max_sectors <= cur_pack) max_sectors = (long) DVDFileSize(title);
 
@@ -1193,7 +1198,7 @@ int dvd_stream(int arg_title)
      */
 
     len = DVDReadBlocks( title, (int) cur_pack, 1, data );
-    
+
     if( len != 1 ) {
       fprintf( stderr, "Read failed for block %ld\n", cur_pack );
       ifoClose( vts_file );
@@ -1201,6 +1206,9 @@ int dvd_stream(int arg_title)
       DVDCloseFile( title );
       return -1;
     }
+
+    //write NAV packet
+    fwrite(data, 1, DVD_VIDEO_LB_LEN, stdout);
     
     if(data[38]==0 && data[39]==0 && data[40]==1 && data[41]==0xBF &&
        data[1024]==0 && data[1025]==0 && data[1026]==1 && data[1027]==0xBF) {
@@ -1210,8 +1218,8 @@ int dvd_stream(int arg_title)
     
     // loop until all packs of title are written
     
-    blocks_left = max_sectors+1;
-    rip_counter_set_range(cur_pack, blocks_left);
+    blocks_left = max_sectors-cur_pack+1;
+    rip_counter_set_range(1, blocks_left);
     rip_counter_init(&startsec, &startusec);
 
     while(blocks_left > 0) {
@@ -1237,7 +1245,7 @@ int dvd_stream(int arg_title)
       fwrite(data, blocks, DVD_VIDEO_LB_LEN, stdout);
       blocks_written += blocks;
 
-      counter_print(first_block, blocks_written, startsec, startusec); 
+      counter_print(1, blocks_written, startsec, startusec); 
 	  
       cur_pack += blocks;
       blocks_left -= blocks;

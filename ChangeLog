@@ -1,6 +1,16 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-11-18 Peter Van Biesen <peter at vanbiesen.com>
+  
+  * import/dvd_reader.[ch] import/tccat.c:
+  Support for titles on a DVD which consist of non-continuus chapters.
+  The -P option of tccat takes no argument any more. To get the old
+  behaviour '-P 1' use '-T 1,-1 -P'. The difference when between
+  just using -T and -T with an additional -P is that with -P the
+  title is streamed, leaving all NAV and VOBU packets (needed for
+  dvdauthor) intact.
+
 2003-11-17 Tilmann Bitterberg <transcode at tibit.org>
 
   * avilib/{avilib.h avilib.c}:

@@ -84,7 +84,7 @@ void usage(int status)
   fprintf(stderr,"\t -L               process all following chapters [off]\n");
 #endif
   fprintf(stderr,"\t -S n             seek to VOB stream offset nx2kB [0]\n");
-  fprintf(stderr,"\t -P t             stream full DVD title [off]\n");
+  fprintf(stderr,"\t -P               stream DVD ( needs -T )\n");
   fprintf(stderr,"\t -a               dump AVI-file/socket audio stream\n");
   fprintf(stderr,"\t -n id            transport stream id [0x10]\n");
   fprintf(stderr,"\t -d mode          verbosity mode\n");
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
   //proper initialization
   memset(&ipipe, 0, sizeof(info_t));
   
-  while ((ch = getopt(argc, argv, "S:T:d:i:vt:LaP:?hn:")) != -1) {
+  while ((ch = getopt(argc, argv, "S:T:d:i:vt:LaP?hn:")) != -1) {
     
     switch (ch) {
       
@@ -184,14 +184,7 @@ int main(int argc, char *argv[])
       break;
       
     case 'P':
-
-      if(optarg[0]=='-') usage(EXIT_FAILURE);
       stream=1;
-      loop=0;
-
-      title = atoi(optarg);
-      
-      source = IS_DVD;
 
       break;
 
@@ -251,7 +244,6 @@ int main(int argc, char *argv[])
 
   //DVD debugging information
   if(verbose & TC_DEBUG && source == IS_DVD) fprintf(stderr, "T=%d %d %d %d %d\n", n, title, chapter1, chapter2, angle);
-
   
   /* ------------------------------------------------------------ 
    *
@@ -366,29 +358,31 @@ int main(int argc, char *argv[])
     
     ipipe.magic = TC_MAGIC_DVD_PAL;
     
-    if(loop) {
-	
-      dvd_query(title, &max_chapters, &max_angles);
+    dvd_query(title, &max_chapters, &max_angles);
 
-
-      start_chapter = (chapter1!=-1 && chapter1 <=max_chapters) ? chapter1:1;
-        end_chapter = (chapter2!=-1 && chapter2 <=max_chapters) ? chapter2:max_chapters;
+    // set chapternumbers now we know how much there are
+    start_chapter = (chapter1!=-1 && chapter1 <=max_chapters) ? chapter1:1;
+      end_chapter = (chapter2!=-1 && chapter2 <=max_chapters) ? chapter2:max_chapters;
       
-      for(j=start_chapter; j<end_chapter+1; ++j) {
-	  ipipe.dvd_chapter=j;
-	  if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (pid=%d) processing chapter (%d/%d)\n", EXE, getpid(), j, max_chapters);
-	  
-	  tccat_thread(&ipipe);
-	  
-      } 
+    for(j=start_chapter; j<end_chapter+1; ++j) {
+      ipipe.dvd_chapter=j;
+      if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (pid=%d) processing chapter (%d/%d)\n", EXE, getpid(), j, max_chapters);
+
+      if(stream) {
+        dvd_stream(title,j);
+      }else{
+        tccat_thread(&ipipe);
+      }
+    } 
+/*
     } else if(stream) {
       
-      dvd_stream(title);
+      dvd_stream(title,chapter1,chapter2);
       
     } else {
 	  if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (pid=%d) processing chapter (%d)\n", EXE, getpid(), chapter1);
           tccat_thread(&ipipe);
-    }
+    }*/
     
     dvd_close();
     

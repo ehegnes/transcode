@@ -19,7 +19,6 @@ tccat \- concatenate multimedia streams from medium and print on the standard ou
 .I n
 ] [
 .B -P
-.I t
 ] [
 .B -a
 ] [
@@ -68,8 +67,8 @@ This option tells \fBtccat\fP to loop through all chapters starting at
 the one given with the option \fB-T\fP.
 .IP "\fB-S\fP \fIn\fP"
 Seek to program stream (VOB) offset \fIn\fPx2kB before starting output.
-.IP "\fB-P\fP \fIt\fP"
-Stream full DVD title \fIt\fP. (v0.6.x only)
+.IP "\fB-P\fP"
+Stream full DVD title specified by -T.
 .IP "\fB-a\fP"
 Use this option to dump an AVI-file/socket audio stream. The default
 is to extract and concatenate AVI-file video stream.
