@@ -46,6 +46,7 @@
 #define TC_CODEC_DIVX3                 0x000031B3
 #define TC_CODEC_MP42                  0x000031B4
 #define TC_CODEC_DIVX4                 0x000041B6
+#define TC_CODEC_DIVX5                 0x000051B6
 #define TC_CODEC_MJPG                  0xA0000010
 #define TC_CODEC_MPG1                  0xA0000012
 #define TC_CODEC_SUB                   0xA0000011

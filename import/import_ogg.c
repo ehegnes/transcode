@@ -79,6 +79,7 @@ MOD_open
 	//fprintf(stderr, "CODEC_FLAG = |%lx|\n", vob->codec_flag);
 	switch (vob->codec_flag) {
 
+	    case TC_CODEC_DIVX5:
 	    case TC_CODEC_DIVX4:
 	    case TC_CODEC_DIVX3:
 		codec = "xvid";

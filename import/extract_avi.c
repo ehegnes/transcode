@@ -107,6 +107,9 @@ void probe_avi(info_t *ipipe)
 	if(strcasecmp(codec,"DIVX")==0)
 	  ipipe->probe_info->codec=TC_CODEC_DIVX4;
 	
+	if(strcasecmp(codec,"DX50")==0)
+	  ipipe->probe_info->codec=TC_CODEC_DIVX5;
+	
 	if(strcasecmp(codec,"MJPG")==0)
 	  ipipe->probe_info->codec=TC_CODEC_MJPG;
 

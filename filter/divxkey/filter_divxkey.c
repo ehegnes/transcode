@@ -216,7 +216,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
       
       // DivX
 
-      if(vob->codec_flag == TC_CODEC_DIVX4) {
+      if(vob->codec_flag == TC_CODEC_DIVX4 || vob->codec_flag == TC_CODEC_DIVX5) {
 	  
 	  cc2=quicktime_divx4_is_key((unsigned char *)ptr->video_buf, (long) ptr->video_size);
 	  if(cc2  && cc1 == I_VOP) ptr->attributes |= TC_FRAME_IS_KEYFRAME;
