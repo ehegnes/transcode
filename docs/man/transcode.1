@@ -1,4 +1,4 @@
-.TH transcode 1 "12th October 2003" "transcode(1)"
+.TH transcode 1 "1st November 2003" "transcode(1)"
 .SH NAME
 transcode \- LINUX video stream processing tool
 .SH SYNOPSIS
@@ -52,7 +52,10 @@ use AC3 as internal audio codec [off].
 Only pass-through supported.
 .TP
 .B \-B \fIn\fP[\fI,m\fP[,\fIM\fP]]
-resize to height-\fIn\fP*\fIM\fP rows [,width-\fIm\fP*\fIM\fP] columns [off,32]. M must be one of 8, 16 or 32.
+resize to height-\fIn\fP*\fIM\fP rows [,width-\fIm\fP*\fIM\fP] columns
+[off,32]. \fIM\fP must be one of 8, 16 or 32. It makes no difference which M you use.
+You might look at the \fIfast\fP flag of the \fB-Z\fP option if you don not
+want to calculate \fIn\fP and \fIm\fP yourself.
 .TP
 .B \-C \fImode\fP
 enable anti-aliasing mode (1-3) [off].
@@ -127,7 +130,10 @@ The \-F parameter has different meanings for different export modules.
 
 .TP
 .B \-G \fIval\fP
-gamma correction (0.0-10.0) [off].
+Gamma correction (0.0-10.0) [off].
+.br
+A value of 1.0 does not change anything. A value lower than 1.0 will make the
+picture "brighter", a value above 1.0 will make it "darker".
 .TP
 .B \-H \fIn\fP
 auto-probe \fIn\fP MB of source (0=disable) default [1]
@@ -140,27 +146,32 @@ enable de-interlacing mode (1-5) [off].
 .TP 4
 .I 1
 "interpolate scanlines" 
+.br
 linear interpolation (takes the average of the surronding even rows to
 determine the odd rows), and copies the even rows as is.
 .TP
 .I 2
 "handled by encoder"
+.br
 tells the encoding code to handle the fact that the frames are interlaced. Most
 codecs do not handle this.
 .TP
 .I 3
 "zoom to full frame" 
+.br
 drops to to half size, then zooms out. This can cause excessive blurring which
 is not always unwanted. On the other hand results are quite good.
 .TP
 .I 4
 "drop field / half height"
+.br
 drop every other field and keep half height.
 .TP
 .I 5
 "interpolate scanlines / blend frames" 
+.br
 linear blend (similar to -vop pp=lb in mplayer) this, like linear blend
-calculates the odd rows as the average of the surronding even rows, and also
+calculates the odd rows as the average of the surrounding even rows, and also
 calculates the even rows as an average of the original even rows and also
 calculates the even rows as an average of the original odd rows and averages
 the calculated and original rows. Something like avg (avg(row1,row3), avg(row2, row4))
@@ -376,13 +387,34 @@ support this format. Always use this option when possible.
 autosplit and process part \fIn\fP of \fIm\fP (VOB only) [off]
 .TP
 .B \-X \fIn\fP[,\fIm\fP,[\fIM\fP]]
-resize to height+\fIn\fP*\fIM\fP rows [,width+\fIm\fP*\fIM\fP] columns [off,32]. M must be one of 8, 16 or 32.
+resize to height+\fIn\fP*\fIM\fP rows [,width+\fIm\fP*\fIM\fP] columns [off,32]. M must be one of 8, 16 or 32. It makes no difference which M you use.
+You might look at the \fIfast\fP flag of the \fB-Z\fP option if you don not
+want to calculate \fIn\fP and \fIm\fP yourself.
 .TP
 .B \-Y \fItop\fP[\fI,left\fP[\fI,bottom\fP[\fI,right\fP]]]
 select (encoder) frame region by clipping border. Negative values add a border [off].
 .TP
-.B \-Z \fIwidth\fPx\fIheight\fP
-resize to \fIwidth\fP columns, \fIheight\fP rows with filtering [off].
+.B \-Z \fIwidth\fPx\fIheight\fP[\fI,fast\fP]
+resize to \fIwidth\fP columns, \fIheight\fP rows with filtering [off,notfast].
+.br
+If \fIfast\fP is given, transcode will calculate the parameters for \fB-X\fP
+and/or \fB-B\fP. The option \fIfast\fP can only be used when
+the import and export geometry of an image is a multiple of 8.
+
+In fast mode, a faster but less precise resizing algorithm will be used
+resulting in a slightly less good quality. Beside this (small) drawback, it is
+worth a try.
+
+It is also possible to omit \fIwidth\fP or \fIheight\fP. In this case,
+transcode will calculate the missing value using the import aspect ratio. The
+new value will be aligned to be a multiple of 8. Using an additional \fIfast\fP
+is also possible.
+
+Examples (assume input is a 16:9 coded file at 720x576):
+   -Z 576x328       uses filtered zoom.
+   -Z 576x328,fast  uses fast zoom.
+   -Z 576x,fast     guess 328 and do fast zoom.
+   -Z x328          guess 576 and do filtered zoom.
 .TP
 .B \-a \fIach\fP[\fI,vch\fP]
 extract audio[,video] track for encoding.
@@ -417,12 +449,13 @@ frame specified. That means that "-c 0-100" will encoded 100 frames starting at
 frame \fI0\fP up to frame \fI99\fP
 .TP
 .B \-d
-swap bytes in audio stream [off]. In most cases, DVD PCM audio tracks require
-swapping of audio bytes
+swap bytes in audio stream [off].
+.br
+In most cases, DVD PCM audio tracks require swapping of audio bytes
 .TP
 .B \-e \fIr\fP[\fI,b\fP[\fI,c\fP]]
 PCM audio stream parameter. Sample rate [Hz], bits per sample and
-number of channels [48000,16,2].
+number of channels [48000,16,2]. Normally this is autodetected.
 .TP
 .B \-f \fIrate\fP[,\fIfrc\fP]
 import video frame rate[,frc] [25.000,0]. If \fIfrc\fP (frame rate code) is specified,
@@ -515,7 +548,7 @@ read audio stream from separate file [off].
 .TP
 .B \-r \fIn\fP[,\fIm\fP]
 reduce video height/width by n[,m] [off]. Example: \-r \fI2\fP will rescale the
-framesize of a 720x576 file to 720x288.
+framesize of a 720x576 file to 360x288.
 .TP
 .B \-s \fIgain\fP,[\fIcenter\fP,[\fIfront\fP,[\fIrear\fP]]]
 increase volume of audio stream by gain,[center,front,rear] default [off,1,1,1].
@@ -613,68 +646,303 @@ colour space of the images.
 video[,audio] export modules [null].  If omitted, transcode will encode to
 the \fInull\fP module. A full-blown transcode installation has the following
 export modules:
-.IP
-Module "af6": (video) Win32 dll | (audio) MPEG/AC3/PCM
+.TP 4
+\fBac3\fP \- (video) null | (audio) ac3
 .br
-Module "divx4": (video) DivX 4.xx | (audio) MPEG/AC3/PCM
+This module has no compile-time dependencies.
+At run-time ffmpeg must be present.
+Support for this module is good.
+.RS 8
+Lets you encode audio (raw PCM) to AC3 via the ffmpeg binary.
+.RE
+.TP 4
+\fBaf6\fP \- (video) Win32 dll | (audio) MPEG/AC3/PCM
 .br
-Module "divx4raw": (video) DivX 4.xx (ES) | (audio) MPEG/AC3/PCM
+At compile-time libavifile must be available.
+At run-time libavifile and win32codecs must be present.
+Support for this module is good.
+.RS 8
+Interface to the avifile library which allows the use of win32codec on the linux-x86 platform.
+.RE
+.TP 4
+\fBdebugppm\fP \- (video) debugPPM/PGM | (audio) MPEG/AC3/PCM
 .br
-Module "divx5": (video) DivX 5.xx | (audio) MPEG/AC3/PCM
+At compile-time libmp3lame must be available.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+Especially usefull when one want to try to find bugs in YUV mode. It encodes the three planes as seperate images. In RGB mode, the 3 color planes get encoded seperatly.
+.RE
+.TP 4
+\fBdivx4\fP \- (video) DivX 4.xx | (audio) MPEG/AC3/PCM
 .br
-Module "divx5raw": (video) DivX 5.xx (ES) | (audio) MPEG/AC3/PCM
+At compile-time libmp3lame must be available.
+At run-time divx4linux (old) and libdivxencore.so must be present.
+Support for this module is fair.
+.RS 8
+Encodes MPEG4 video using the closed-source binaries from divx.com to an AVI container.
+.RE
+.TP 4
+\fBdivx4raw\fP \- (video) DivX 4.xx (ES) | (audio) MPEG/AC3/PCM
 .br
-Module "dv": (video) Digital Video | (audio) MPEG/AC3/PCM
+At compile-time libmp3lame must be available.
+At run-time divx4linux (old) and libdivxencore.so must be present.
+Support for this module is fair.
+.RS 8
+Encodes MPEG4 video using the closed-source binaries from divx.com into no file container at all. It writes out the raw bitstream.
+.RE
+.TP 4
+\fBdivx5\fP \- (video) DivX 5.xx | (audio) MPEG/AC3/PCM
 .br
-Module "dvraw": (video) Digital Video | (audio) PCM
+At compile-time libmp3lame must be available.
+At run-time divx4linux (new) and libdivxencore.so must be present.
+Support for this module is good.
+.RS 8
+Encodes MPEG4 video using the closed-source binaries from divx.com to an AVI container.
+.RE
+.TP 4
+\fBdivx5raw\fP \- (video) DivX 5.xx (ES) | (audio) MPEG/AC3/PCM
 .br
-Module "fame": (video) MPEG-4 | (audio) MPEG/AC3/PCM
+At compile-time libmp3lame must be available.
+At run-time divx4linux (new) and libdivxencore.so must be present.
+Support for this module is fair.
+.RS 8
+Encodes MPEG4 video using the closed-source binaries from divx.com into no file container at all. It writes out the raw bitstream.
+.RE
+.TP 4
+\fBdv\fP \- (video) Digital Video | (audio) MPEG/AC3/PCM
 .br
-Module "ffmpeg": (video) ffmpeg API | (audio) MPEG/AC3/PCM
+At compile-time libdv and libmp3lame must be available.
+At run-time libdv must be present.
+Support for this module is good.
+.RS 8
+Encodes DV into an AVI container. DV is a codec developed by Sony and is often used in digital camcorders.
+.RE
+.TP 4
+\fBdvraw\fP \- (video) Digital Video | (audio) PCM
 .br
-Module "im": (video) *
+At compile-time libdv must be available.
+At run-time libdv must be present.
+Support for this module is good.
+.RS 8
+Encodes DV into a DV file. DV is a codec developed by Sony and is often used in digital camcorders. A raw DV file can be played back into the camcorder.
+.RE
+.TP 4
+\fBfame\fP \- (video) MPEG-4 | (audio) MPEG/AC3/PCM
 .br
-Module "jpg": (video) *
+At compile-time libfame must be available.
+This module has no run-time dependencies.
+Support for this module is poor.
+.RS 8
+Fame is yet another MPEG4 encoder. It encodes to a raw file.
+.RE
+.TP 4
+\fBffmpeg\fP \- (video) * | (audio) MPEG/AC3/PCM
 .br
-Module "lame": (audio) MPEG 1/2
+At compile-time libmp3lame must be available.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+Encodes many different formats to both AVI and raw. Supported are mpeg1video, mpeg2video, mpeg4, mjpeg, h263, h263p, wmv1, wmv2, rv10, msmpeg4, msmpeg4v2, huffyuv and dvvideo.
+.RE
+.TP 4
+\fBim\fP \- (video) * | (audio) MPEG/AC3/PCM
 .br
-Module "lzo": (video) LZO | (audio) MPEG/AC3/PCM
+At compile-time libImageMagick must be available.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+Encodes image sequences by using the ImageMagick library. ImageMagick is able to handle a lot of different image formats among are png, jpg, miff, tiff, etc. Use -F to select the desired format.
+.RE
+.TP 4
+\fBjpg\fP \- (video) * | (audio) MPEG/AC3/PCM
 .br
-Module "mjpeg": (video) Motion JPEG | (audio) MPEG/AC3/PCM
+At compile-time libjpeg must be available.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+Encodes jpg image sequences using libjpeg. Faster than ImageMagick. Use -F to select the compression quality.
+.RE
+.TP 4
+\fBlame\fP \- (audio) MPEG 1/2
 .br
-Module "mov": (video) * | (audio) *
+At compile-time libmp3lame must be available.
+At run-time lame and sox must be present.
+Support for this module is good.
+.RS 8
+An audio-only encoder which drives the lame binary. The tool sox is used to do resampling if required. Encodes to a MP3 file.
+.RE
+.TP 4
+\fBlzo\fP \- (video) LZO real-time compression | (audio) MPEG/AC3/PCM
 .br
-Module "mp2enc": (audio) MPEG 1/2
+At compile-time liblzo and libmp3lame must be available.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+Encodes video using a loss-less real-time LZO codec. This codec is a homegrown invention of transcode and is intended as an intermediate storage format. MPlayer can playback LZO-based AVI files as well. 
+.RE
+.TP 4
+\fBmjpeg\fP \- (video) Motion JPEG | (audio) MPEG/AC3/PCM
 .br
-Module "mpeg2enc": (video) MPEG 1/2
+At compile-time libmp3lame and libjpeg must be available.
+This module has no run-time dependencies.
+Support for this module is poor.
+.RS 8
+Encodes MJPEG based AVI files using a homegrown algorithm based on libjpeg. Using ffmpeg -F mjpeg for this task is a good idea.
+.RE
+.TP 4
+\fBmov\fP \- (video) * | (audio) *
 .br
-Module "mpeg": (video) MPEG 1/2 | (audio) MPEG 1 Layer II
+At compile-time libquicktime must be available.
+At run-time libquicktime must be present.
+Support for this module is fair.
+.RS 8
+Interface to the quicktime library.
+.RE
+.TP 4
+\fBmp2enc\fP \- (audio) MPEG 1/2
 .br
-Module "net": (video) RGB/YUV | (audio) PCM/AC3
+At compile-time mjpegtools must be available.
+At run-time mp2enc must be present.
+Support for this module is good.
+.RS 8
+Drives the mp2enc binary and writes an MP2 (MPEG1-Layer2) file. Useful for when encoding to SVCD to be multiplexed with mplex after encoding.
+.RE
+.TP 4
+\fBmpeg\fP \- (video) MPEG 1/2 | (audio) MPEG 1 Layer II
 .br
-Module "null": (video) null | (audio) null
+At compile-time nasm must be available.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+Interface to the bbmpeg library (included in transcode). It can encode generic mpeg1, VCD, SVCD, MPEG2 and DVD type video. Encoded video goes into a elementary file to be multiplexed with the corresponding audio file after encoding.
+.RE
+.TP 4
+\fBmpeg2enc\fP \- (video) MPEG 1/2
 .br
-Module "ogg": (video) null | (audio) OGG Vorbis
+At compile-time mjpegtools must be available.
+At run-time mpeg2enc must be present.
+Support for this module is good.
+.RS 8
+Drives the mpeg2enc binary. mpeg2enc is a very feature rich MPEG encoder, have a look at its manpage. Encodes generic mpeg1, VCD, SVCD, MPEG2 and DVD type video.
+.RE
+.TP 4
+\fBnet\fP \- (video) RGB/YUV | (audio) PCM/AC3
 .br
-Module "pcm": (audio) PCM (non-interleaved)
+At compile-time net-support must be available.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+Transfers video data over a network between various transcodes. Useful if you have multiple systems connected via a fast network.
+.RE
+.TP 4
+\fBnull\fP \- (video) null | (audio) null
 .br
-Module "ppm": (video) PPM/PGM | (audio) MPEG/AC3/PCM
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+Data sink. Does nothing else than discarding data.
+.RE
+.TP 4
+\fBogg\fP \- (video) null | (audio) ogg
 .br
-Module "raw": (video) * | (audio) MPEG/AC3/PCM
+This module has no compile-time dependencies.
+At run-time oggenc must be present.
+Support for this module is good.
+.RS 8
+Drives the oggenc binary. Encodes an Ogg/Vorbis file. Resamples.
+.RE
+.TP 4
+\fBpcm\fP \- (audio) PCM (non-interleaved)
 .br
-Module "sampeg": (video) MPEG-2
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+Writes each audio channel to a WAVE PCM file.
+.RE
+.TP 4
+\fBppm\fP \- (video) PPM/PGM | (audio) MPEG/AC3/PCM
 .br
-Module "toolame": (audio) MPEG 1/2
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+Writes an image sequence of PGM or PPM files. PPM is an old format and there are several tools around to manipulate such files.
+.RE
+.TP 4
+\fBpvm\fP \- (video) * | (audio) *
 .br
-Module "wav": (audio) WAVE PCM
+At compile-time libpvm3 must be available.
+At run-time pvm must be present.
+Support for this module is good.
+.RS 8
+Meta module. It allows transcode to be used in a PVM cluster. See docs/export_pvm.txt
+.RE
+.TP 4
+\fBraw\fP \- (video) * | (audio) MPEG/AC3/PCM
 .br
-Module "xvid2": (video) XviD 0.9.x (aka API 2.1 series) | (audio) MPEG/AC3/PCM
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+Can write uncompressed streams to an AVI file as well as raw mpeg2 files in pass-through mode.
+.RE
+.TP 4
+\fBtoolame\fP \- (audio) MPEG 1/2
 .br
-Module "xvid3": (video) XviD nonumber series (aka API 3.0) | (audio) MPEG/AC3/PCM
+This module has no compile-time dependencies.
+At run-time toolame and sox must be present.
+Support for this module is good.
+.RS 8
+Drives the toolame binary to create MP2 audio tracks. Sox is used for resampling if requested.
+.RE
+.TP 4
+\fBwav\fP \- (audio) WAVE PCM
 .br
-Module "xvid4": (video) XviD 1.0.x series (aka API 4.0) | (audio) MPEG/AC3/PCM
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+Creates WAVE PCM files with interleaved audio for stereo.
+.RE
+.TP 4
+\fBxvid2\fP \- (video) XviD 0.9.x (aka API 2.1 series)  | (audio) MPEG/AC3/PCM
 .br
-Module "yuv4mpeg": (video) YUV4MPEG2 | (audio) MPEG/AC3/PCM
+At compile-time libmp3lame must be available.
+At run-time libxvidencore.so.2 must be present.
+Support for this module is good.
+.RS 8
+Encodes MPEG4 video using the library available form xvid.org. Check out the library from xvidcvs using cvs -d :pserver:anonymous@cvs.xvid.org:/xvid co -rrelease-0_9_2 xvidcore. The output can either be an AVI file or a MPEG4 elementary stream (with -F raw).
+.RE
+.TP 4
+\fBxvid3\fP \- (video) XviD nonumber series (aka API 3.0)  | (audio) MPEG/AC3/PCM
+.br
+At compile-time libmp3lame must be available.
+At run-time libxvidcore.so.3 must be present.
+Support for this module is good.
+.RS 8
+Encodes MPEG4 video using the library available form xvid.org. Check out the library from xvidcvs using cvs -d :pserver:anonymous@cvs.xvid.org:/xvid co -rHEAD xvidcore. The output can either be an AVI file or a MPEG4 elementary stream (with -F raw).
+.RE
+.TP 4
+\fBxvid4\fP \- (video) XviD 1.0.x series (aka API 4.0) | (audio) MPEG/AC3/PCM
+.br
+At compile-time libmp3lame must be available.
+At run-time libxvidcore.so.4 must be present.
+Support for this module is good.
+.RS 8
+Encodes MPEG4 video using the library available form xvid.org. Check out the library from xvidcvs using cvs -d :pserver:anonymous@cvs.xvid.org:/xvid co -rdev-api-4 xvidcore. There is also a tool available to create configuration files for this xvid version at http://zebra.fh-weingarten.de/transcode/xvid4conf. The output can either be an AVI file or a MPEG4 elementary stream (with -F raw).
+.RE
+.TP 4
+\fByuv4mpeg\fP \- (video) YUV4MPEG2 | (audio) MPEG/AC3/PCM
+.br
+At compile-time mjpegtools must be available.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+Writes the uncompressed raw YUV data in a YUV4MPEG format as used by the lav* and mjpeg* tools.
+.RE
 .IP
 To see what your transcode has, do a  
 .br
@@ -730,6 +998,18 @@ most likely its around 1000 bytes.
 .TP
 .B \-\-zoom_filter \fIstring\fP
 use filter string for video resampling -Z [Lanczos3]
+.br
+The following filters are available:
+.RS
+.PP
+   Bell
+   Box
+   Lanczos3 (default)
+   Mitchell
+   Hermite
+   B_spline
+   Triangle
+.RE
 .TP
 .B \-\-cluster_percentage
 use percentage mode for cluster encoding -W [off]
@@ -974,6 +1254,9 @@ process only selected units \fIa-b\fP for PSU mode [all]
 .TP
 .B \-\-no_split
 encode to single file in chapter/psu/directory mode [off]
+.br
+If you don't give this option, you'll end up with several files in one of the
+above mentioned modes. It is still possible to merge them with avimerge(1).
 .TP
 .B \-\-pre_clip t[,l[,b[,r]]]
 select initial frame region by clipping border [off]
@@ -1071,18 +1354,6 @@ ending with a CR if its output is going to a terminal, or a LF if its output is
 going to somewhere else (such as a logfile), so most people shouldn't have any            
 need to specify the second parameter since it should do the right thing most of           
 the time.
-.TP
-.B \-\-write_pid \fIfile\fP
-write pid of signal thread to \fIfile\fP [off]
-.br
-Enables you to terminate transcode cleanly by sending a SIGINT (2) to the pid
-in \fIfile\fP. Please note \fIfile\fP will be overwritten. Usage example
-.RS
-.PP
-$ transcode ... \-\-write_pid /tmp/transcode.pid &
-.br
-$ kill -2 `cat /tmp/transcode.pid`
-.RE
 .TP
 .B \-\-socket \fIFILE\fP
 Open a socket to accept commands while running. See \fBtcmodinfo(1)\fP and
@@ -1207,7 +1478,7 @@ Number of samples over level will be keyframes
 .RE
 .TP 4
 \fBastat\fP - \fBaudio statistics filter plugin\fP
-\fBastat\fP was written by Thomas Oestreich. The version documented here is v0.1.2 (2002-02-26). This is a audio filter. It is a pre-processing only filter.
+\fBastat\fP was written by Thomas Oestreich. The version documented here is v0.1.3 (2003-09-04). This is a audio filter. It is a pre-processing only filter.
 .IP
 .RS
 \(bu 
@@ -1300,6 +1571,33 @@ see /docs/README.Inverse.Telecine.txt
 \fBdetectsilence\fP - \fBaudio silence detection with tcmp3cut commandline generation\fP
 \fBdetectsilence\fP was written by Tilmann Bitterberg. The version documented here is v0.0.1 (2003-07-26). This is a audio filter. It is a pre-processing only filter.
 .TP 4
+\fBdetectclipping\fP - \fBdetect clipping parameters (-j or -Y)\fP
+\fBdetectclipping\fP was written by Tilmann Bitterberg, A'rpi. The version documented here is v0.1.0 (2003-11-01). This is a video filter. It can handle RGB and YUV mode. It can be used as a pre-processing or as a post-processing filter.
+.IP
+.RS
+\(bu 
+.I range 
+= \fI%u-%u/%d\fP  [default \fI0-4294967295/1\fP] 
+.RS 3
+apply filter to [start-end]/step frames
+.RE
+\(bu 
+.I limit 
+= \fI%d\fP  [default \fI24\fP] 
+.RS 3
+the sum of a line must be below this limit to be considered as black
+.RE
+\(bu 
+.I post 
+(bool) 
+.RS 3
+run as a POST filter (calc -Y instead of the default -j)
+.RE
+.IP
+Detect black regions on top, bottom, left and right of an image.  It is suggested that the filter is run for around 100 frames.  It will print its detected parameters every frame. If you don't notice any change in the printout for a while, the filter probably won't find any other values.  The filter converges, meaning it will learn.
+.RE
+.RE
+.TP 4
 \fBdilyuvmmx\fP - \fByuv de-interlace filter plugin\fP
 \fBdilyuvmmx\fP was written by Thomas Oestreich. The version documented here is v0.1.1 (2002-02-21). This is a video filter. It can handle YUV mode only. It is a pre-processing only filter.
 .TP 4
@@ -1357,7 +1655,7 @@ Assume even field dominance
 .RE
 .TP 4
 \fBextsub\fP - \fBDVD subtitle overlay plugin\fP
-\fBextsub\fP was written by Thomas Oestreich. The version documented here is 0.3.3 (2003-09-03). This is a video filter. It can handle RGB and YUV mode. It can be used as a pre-processing or as a post-processing filter.
+\fBextsub\fP was written by Thomas Oestreich. The version documented here is 0.3.5 (2003-10-15). This is a video filter. It can handle RGB and YUV mode. It can be used as a pre-processing or as a post-processing filter.
 .IP
 .RS
 \(bu 
@@ -1522,7 +1820,7 @@ temporal luma strength
 .RE
 \(bu 
 .I chroma_strength 
-= \fI%f\fP  [default \fI8.000000\fP] 
+= \fI%f\fP  [default \fI4.500000\fP] 
 .RS 3
 temporal chroma strength
 .RE
@@ -1537,7 +1835,7 @@ This filter aims to reduce image noise producing smooth images and making still 
 .RE
 .TP 4
 \fBinvert\fP - \fBinvert the image\fP
-\fBinvert\fP was written by Tilmann Bitterberg. The version documented here is v0.1.3 (2003-01-26). This is a video filter. It can handle RGB and YUV mode. It is a post-processing only filter.
+\fBinvert\fP was written by Tilmann Bitterberg. The version documented here is v0.1.4 (2003-10-12). This is a video filter. It can handle RGB,YUV and YUV422 mode. It is a post-processing only filter.
 .IP
 .RS
 \(bu 
@@ -1695,7 +1993,7 @@ strength (may be negative)
 .RE
 .TP 4
 \fBmask\fP - \fBFilter through a rectangular Mask\fP
-\fBmask\fP was written by Thomas Östreich, Chad Page. The version documented here is v0.2.2 (2003-08-27). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
+\fBmask\fP was written by Thomas Östreich, Chad Page. The version documented here is v0.2.3 (2003-10-12). This is a video filter. It can handle RGB,YUV and YUV422 mode. It is a pre-processing only filter.
 .IP
 .RS
 \(bu 
@@ -2142,7 +2440,7 @@ moving areas, deinterlacing is performed
 .RE
 .TP 4
 \fBsmartyuv\fP - \fBMotion-adaptive deinterlacing\fP
-\fBsmartyuv\fP was written by Tilmann Bitterberg. The version documented here is 0.1.2 (2003-08-28). This is a video filter. It can handle YUV mode only. It is a pre-processing only filter.
+\fBsmartyuv\fP was written by Tilmann Bitterberg. The version documented here is 0.1.4 (2003-10-13). This is a video filter. It can handle YUV mode only. It is a pre-processing only filter.
 .IP
 .RS
 \(bu 
@@ -2379,11 +2677,11 @@ see /docs/filter_text.txt
 .RE
 .TP 4
 \fBunsharp\fP - \fBunsharp mask & gaussian blur\fP
-\fBunsharp\fP was written by Rémi Guyomarch. The version documented here is v1.0.0 (2003-06-05). This is a video filter. It can handle YUV mode only. It is a post-processing only filter.
+\fBunsharp\fP was written by Rémi Guyomarch. The version documented here is v1.0.1 (2003-10-27). This is a video filter. It can handle YUV mode only. It is a post-processing only filter.
 .IP
 .RS
 \(bu 
-.I luma 
+.I amount
 = \fI%f\fP  [default \fI0.0\fP] 
 .RS 3
 Luma and chroma (un)sharpness amount
@@ -2490,7 +2788,7 @@ same as -C/weight/bias
 .RE
 .RE
 .TP 4
-\fBwhitebalance\fP - \fBcorrect images with a broken white balance\fP
+\fBwhitebalance\fP - \fBWhite Balance Filter - correct images with a broken white balance\fP
 \fBwhitebalance\fP was written by Guillaume Cottenceau. The version documented here is v0.1 (2003-10-01). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
 .IP
 .RS
@@ -2706,7 +3004,7 @@ Clipping region options are expanded symmetrically.  Examples:
 .RE
 .TP
 *
-maximum image size is 1024x768. 
+maximum image size is 1920x1088. 
 .TP
 *
 The video frame operations ordering is fixed: "-j -I -X -B -Z -Y -r -z
@@ -2745,7 +3043,7 @@ Clipping of the 2) output.
 *
 .I Bits per pixel
 (bits/pixel) is a value transcode calculates and prints when starting up. It is
-mainly useful when encoding to divx. You'll see line like 
+mainly useful when encoding to MPEG4 (xvid, divx, etc). You'll see line like 
 .RS
 
 [transcode] V: bits/pixel       | 0.237
@@ -2795,7 +3093,7 @@ the DVD medium.  The output files will be named
 \fBtranscode -i /dev/dvd/ -x dvd -V -j 16,0 -B 5,0 \\\fP
 .RS
 .TP
-.B -Y 40,8 -s 4.47 -U my_movie -y divx4 -w 1618
+.B -Y 40,8 -s 4.47 -U my_movie -y xvid -w 1618
 .RE
 .PD 1
 .LP
@@ -2831,10 +3129,13 @@ Option
 .B -U my_movie
 tells \fItranscode\fP to operate in chapter mode and produce output
 to files named \fImy_movie-ch00.avi\fP, \fImy_movie-ch01.avi\fP...
+.br
+You can either merge the files afterwards with avimerge or add the option
+--no_split to the command line.
 .LP
 Option
-.B -y divx4
-tells \fItranscode\fP to use the export module export_divx4.so.
+.B -y xvid
+tells \fItranscode\fP to use the export module export_xvid.so which in turn uses the XviD encoder to encode the video.
 .LP
 Option
 .B -w 1618
