@@ -278,7 +278,9 @@ EXTRA_DIST =  \
 if HAVE_FREETYPE2
 if HAVE_XAW_SIMPLE
 if HAVE_LIBXPM
+if HAVE_LIBICONV
 ADD2 = subtitler
+endif
 endif
 endif
 endif
