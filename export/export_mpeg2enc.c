@@ -39,7 +39,7 @@
 #endif
 
 #define MOD_NAME    "export_mpeg2enc.so"
-#define MOD_VERSION "v1.1.6 (2003-04-10)"
+#define MOD_VERSION "v1.1.7 (2003-05-02)"
 #define MOD_CODEC   "(video) MPEG 1/2"
 
 #define MOD_PRE mpeg2enc
