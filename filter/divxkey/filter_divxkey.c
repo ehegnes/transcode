@@ -24,6 +24,7 @@
 #define MOD_NAME    "filter_divxkey.so"
 #define MOD_VERSION "v0.1 (2002-01-15)"
 #define MOD_CAP     "check for DivX 4.xx / OpenDivX / DivX;-) keyframe"
+#define MOD_AUTHOR  "Thomas Oestreich"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,10 +36,6 @@
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "transcode.h"
 #include "framebuffer.h"
