@@ -31,7 +31,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "export_mov.so"
-#define MOD_VERSION "v0.1.0 (2002-01-31)"
+#define MOD_VERSION "v0.1.1 (2003-07-24)"
 #define MOD_CODEC   "(video) * | (audio) *"
 #define MOD_PRE mov
 #include "export_def.h"
@@ -134,7 +134,7 @@ MOD_init
     }
 
     /* set proposed video codec */
-    quicktime_set_video(qtfile, 1, w, h, vob->fps,qt_codec); 
+    quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,qt_codec); 
      
     /* check given qt video compressor */
     switch(vob->im_v_codec) {
@@ -192,7 +192,7 @@ MOD_init
 
     /* verbose */
     fprintf(stderr,"[%s] video codec='%s' w=%d h=%d fps=%g\n",
-	    MOD_NAME,qt_codec,w,h,vob->fps);
+	    MOD_NAME,qt_codec,w,h,vob->ex_fps);
 
     return(0);
   }

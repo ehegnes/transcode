@@ -60,7 +60,7 @@
 #include "vbr.h"
 
 #define MOD_NAME    "export_divx4.so"
-#define MOD_VERSION "v0.3.9 (2003-06-09)"
+#define MOD_VERSION "v0.3.10 (2003-07-24)"
 #define MOD_CODEC   "(video) DivX 4.x/5.x | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE divx4
@@ -284,7 +284,7 @@ MOD_init
     
     divx->x_dim     = vob->ex_v_width;
     divx->y_dim     = vob->ex_v_height;
-    divx->framerate = vob->fps;
+    divx->framerate = vob->ex_fps;
     divx->bitrate   = vob->divxbitrate*1000;
 
     //recommended (advanced) parameter
@@ -351,7 +351,7 @@ MOD_init
 
 	fprintf(stderr, "[%s]              crispness: %d\n", MOD_NAME, vob->divxcrispness);
 	fprintf(stderr, "[%s]  max keyframe interval: %d\n", MOD_NAME, divx->max_key_interval);
-	fprintf(stderr, "[%s]             frame rate: %.2f\n", MOD_NAME, vob->fps);
+	fprintf(stderr, "[%s]             frame rate: %.2f\n", MOD_NAME, vob->ex_fps);
 	fprintf(stderr, "[%s]            color space: %s\n", MOD_NAME, (vob->im_v_codec==CODEC_RGB) ? "RGB24":"YV12");
 	fprintf(stderr, "[%s]            deinterlace: %d\n", MOD_NAME, divx->deinterlace);
     }
@@ -440,7 +440,7 @@ MOD_open
     
 	// video
     AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, 
-		  vob->fps, "DIVX");
+		  vob->ex_fps, "DIVX");
 
     if (vob->avi_comment_fd>0)
 	AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);

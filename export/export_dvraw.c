@@ -28,7 +28,7 @@
 #include "vid_aux.h"
 
 #define MOD_NAME    "export_dvraw.so"
-#define MOD_VERSION "v0.2 (2003-05-08)"
+#define MOD_VERSION "v0.3 (2003-07-24)"
 #define MOD_CODEC   "(video) Digital Video | (audio) PCM"
 
 #define MOD_PRE dvraw
@@ -249,7 +249,7 @@ MOD_open
 #ifdef LIBDV_095
     audio.bytesperframe = audio.bytespersecond/(encoder->isPAL ? 25 : 30);
 #else
-    audio.bytesperframe = audio.bytespersecond/((int)vob-im_fps);
+    audio.bytesperframe = audio.bytespersecond/((int)vob->ex_fps);
 #endif
 
     if(verbose & TC_DEBUG) fprintf(stderr, "[%s] audio: CH=%d, f=%d, balign=%d, bps=%d, bpf=%d\n", MOD_NAME, audio.channels, audio.frequency, audio.bytealignment, audio.bytespersecond, audio.bytesperframe);

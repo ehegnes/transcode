@@ -30,7 +30,7 @@
 #include "../import/magic.h"
 
 #define MOD_NAME    "export_raw.so"
-#define MOD_VERSION "v0.3.10 (2003-06-09)"
+#define MOD_VERSION "v0.3.11 (2003-07-24)"
 #define MOD_CODEC   "(video) * | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE raw
@@ -105,14 +105,14 @@ MOD_open
 	width = vob->ex_v_width;
 	height = vob->ex_v_height;
 	
-	AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->fps, "RGB");
+	AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->ex_fps, "RGB");
 
 	if (vob->avi_comment_fd>0)
 	    AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
 
 	if(!info_shown && verbose_flag) 
 	  fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
-		  MOD_NAME, "RGB", vob->fps, vob->ex_v_width, vob->ex_v_height);
+		  MOD_NAME, "RGB", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
 	  break;
 	    
       case CODEC_YUV:
@@ -123,11 +123,11 @@ MOD_open
 	width = vob->ex_v_width;
 	height = vob->ex_v_height;
 	
-	AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->fps, "YV12");
+	AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->ex_fps, "YV12");
 	
 	if(!info_shown && verbose_flag) 
 	  fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
-		MOD_NAME, "YV12", vob->fps, vob->ex_v_width, vob->ex_v_height);
+		MOD_NAME, "YV12", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
 	break;
 
 	    
@@ -145,11 +145,11 @@ MOD_open
 	  width = vob->ex_v_width;
 	  height = vob->ex_v_height;
 	
-	  AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->fps, "DVSD");
+	  AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->ex_fps, "DVSD");
 	  
 	  if(!info_shown && verbose_flag) 
 	    fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
-		    MOD_NAME, "DVSD", vob->fps, vob->ex_v_width, vob->ex_v_height);
+		    MOD_NAME, "DVSD", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
 	  break;
 	  
 	default:

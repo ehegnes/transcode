@@ -36,7 +36,7 @@
 #include "aud_aux.h"
 
 #define MOD_NAME    "export_mjpeg.so"
-#define MOD_VERSION "v0.0.4 (2003-06-09)"
+#define MOD_VERSION "v0.0.5 (2003-07-24)"
 #define MOD_CODEC   "(video) Motion JPEG | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE mjpeg
@@ -89,7 +89,7 @@ MOD_open
 
   if(param->flag == TC_VIDEO) {
 
-    AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->fps, "MJPG");
+    AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->ex_fps, "MJPG");
 
     if (vob->avi_comment_fd>0)
 	AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);

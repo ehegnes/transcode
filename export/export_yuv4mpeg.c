@@ -29,7 +29,7 @@
 #include "vid_aux.h"
 
 #define MOD_NAME    "export_yuv4mpeg.so"
-#define MOD_VERSION "v0.1.6 (2003-07-17)"
+#define MOD_VERSION "v0.1.7 (2003-07-24)"
 #define MOD_CODEC   "(video) YUV4MPEG2 | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE yuv4mpeg
@@ -128,7 +128,7 @@ MOD_open
     // video
 
     //note: this is the real framerate of the raw stream
-    framerate = (vob->im_frc==0) ? mpeg_conform_framerate(vob->fps):mpeg_framerate(vob->im_frc);
+    framerate = (vob->ex_frc==0) ? mpeg_conform_framerate(vob->ex_fps):mpeg_framerate(vob->ex_frc);
 
     asr = (vob->ex_asr<0) ? vob->im_asr:vob->ex_asr;
     asrcode2asrratio(asr, &asr_rate);

@@ -66,7 +66,7 @@
 #include "vbr.h"
 
 #define MOD_NAME    "export_divx5.so"
-#define MOD_VERSION "v0.1.7 (2003-06-12)"
+#define MOD_VERSION "v0.1.8 (2003-07-24)"
 #define MOD_CODEC   "(video) DivX 5.xx | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE divx5
@@ -277,7 +277,7 @@ MOD_init
 	    settings->input_frame_period = 1000;
 	    break;
 	case 0: // notset
-	    settings->input_clock        = (int)vob->fps*1000;
+	    settings->input_clock        = (int)vob->ex_fps*1000;
 	    settings->input_frame_period = 1000;
 	    break;
 	default:
@@ -395,7 +395,7 @@ MOD_init
     
     divx->x_dim     = vob->ex_v_width;
     divx->y_dim     = vob->ex_v_height;
-    divx->framerate = vob->fps;
+    divx->framerate = vob->ex_fps;
     divx->bitrate   = vob->divxbitrate*1000;
 
     //recommended (advanced) parameter
@@ -439,7 +439,7 @@ MOD_init
 
 	fprintf(stderr, "[%s]              crispness: %d\n", MOD_NAME, vob->divxcrispness);
 	fprintf(stderr, "[%s]  max keyframe interval: %d\n", MOD_NAME, divx->max_key_interval);
-	fprintf(stderr, "[%s]             frame rate: %.2f\n", MOD_NAME, vob->fps);
+	fprintf(stderr, "[%s]             frame rate: %.2f\n", MOD_NAME, vob->ex_fps);
 	fprintf(stderr, "[%s]            color space: %s\n", MOD_NAME, (vob->im_v_codec==CODEC_RGB) ? "RGB24":"YV12");
 	fprintf(stderr, "[%s]            deinterlace: %d\n", MOD_NAME, divx->deinterlace);
     }
@@ -526,10 +526,10 @@ MOD_open
     // video
 #if ENCORE_MAJOR_VERSION >= 5010
     AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, 
-		  vob->fps, "DX50");
+		  vob->ex_fps, "DX50");
 #else
     AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, 
-		  vob->fps, "DIVX");
+		  vob->ex_fps, "DIVX");
 #endif
     
     if (vob->avi_comment_fd>0)

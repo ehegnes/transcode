@@ -39,7 +39,7 @@
 #endif
 
 #define MOD_NAME    "export_mpeg2enc.so"
-#define MOD_VERSION "v1.1.7 (2003-05-02)"
+#define MOD_VERSION "v1.1.8 (2003-07-24)"
 #define MOD_CODEC   "(video) MPEG 1/2"
 
 #define MOD_PRE mpeg2enc
@@ -144,7 +144,7 @@ MOD_open
     char buf2[16];
 
     //note: this is the real framerate of the raw stream
-    framerate = (vob->im_frc==0) ? mpeg_conform_framerate(vob->fps):mpeg_framerate(vob->im_frc);
+    framerate = (vob->im_frc==0) ? mpeg_conform_framerate(vob->ex_fps):mpeg_framerate(vob->im_frc);
     asr = (vob->ex_asr<0) ? vob->im_asr:vob->ex_asr;
     
     y4m_init_stream_info(&y4mstream);
@@ -176,11 +176,11 @@ MOD_open
     if (vob->ex_frc) {  // use specified output frame rate code
       frc = vob->ex_frc;
     } else {     // otherwise we guess based on the frame rate
-      if ((int)(vob->fps*100.0 + 0.01) == (int)(29.97*100.0)) {
+      if ((int)(vob->ex_fps*100.0 + 0.01) == (int)(29.97*100.0)) {
 	frc=4;
-      } else if ((int)(vob->fps*100.0 + 0.01) == (int)(23.97*100.0)) {
+      } else if ((int)(vob->ex_fps*100.0 + 0.01) == (int)(23.97*100.0)) {
 	frc=1;
-      } else if ((int)(vob->fps*100.0 + 0.01) == (int)(24.00*100.0)) {
+      } else if ((int)(vob->ex_fps*100.0 + 0.01) == (int)(24.00*100.0)) {
 	frc=2;
       } else {
 	frc=3;  // default is PAL framerate code

@@ -57,7 +57,7 @@
 #else
 #define MOD_NAME    "export_mpeg.so"
 #endif
-#define MOD_VERSION "v1.2.1 (2002-06-05)"
+#define MOD_VERSION "v1.2.2 (2003-07-24)"
 #ifdef HAS_FFMPEG
 #define MOD_CODEC   "(video) MPEG 1/2 | (audio) MPEG 1 Layer II"
 #else
@@ -357,13 +357,13 @@ MOD_init
 
     //-- adjust frame rate stuff --
     //-----------------------------
-    if ((int)(vob->fps*100.0 + 0.01) == (int)(29.97*100.0)) {
+    if ((int)(vob->ex_fps*100.0 + 0.01) == (int)(29.97*100.0)) {
       frc=4;
       tv_type = ENCODE_NTSC;
-    } else if ((int)(vob->fps*100.0 + 0.01) == (int)(23.97*100.0)) {
+    } else if ((int)(vob->ex_fps*100.0 + 0.01) == (int)(23.97*100.0)) {
       frc=1;
       tv_type = ENCODE_NTSC;
-    } else if ((int)(vob->fps*100.0 + 0.01) == (int)(24.00*100.0)) {
+    } else if ((int)(vob->ex_fps*100.0 + 0.01) == (int)(24.00*100.0)) {
       frc=2;
       tv_type = ENCODE_NTSC;
     } else {

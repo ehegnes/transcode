@@ -60,7 +60,7 @@
 #include "vbr.h"
 
 #define MOD_NAME    "export_divx5raw.so"
-#define MOD_VERSION "v0.3.5 (2002-12-19)"
+#define MOD_VERSION "v0.3.6 (2003-07-24)"
 #define MOD_CODEC   "(video) DivX 5.xx (ES) | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE divx5raw
@@ -216,7 +216,7 @@ MOD_init
     //important parameter
     divx->x_dim     = vob->ex_v_width;
     divx->y_dim     = vob->ex_v_height;
-    divx->framerate = vob->fps;
+    divx->framerate = vob->ex_fps;
     divx->bitrate   = vob->divxbitrate*1000;
 
     //recommended (advanced) parameter
@@ -255,7 +255,7 @@ MOD_init
 
 	fprintf(stderr, "[%s]              crispness: %d\n", MOD_NAME, vob->divxcrispness);
 	fprintf(stderr, "[%s]  max keyframe interval: %d\n", MOD_NAME, divx->max_key_interval);
-	fprintf(stderr, "[%s]             frame rate: %.2f\n", MOD_NAME, vob->fps);
+	fprintf(stderr, "[%s]             frame rate: %.2f\n", MOD_NAME, vob->ex_fps);
 	fprintf(stderr, "[%s]            color space: %s\n", MOD_NAME, (vob->im_v_codec==CODEC_RGB) ? "RGB24":"YV12");
 	fprintf(stderr, "[%s]            deinterlace: %d\n", MOD_NAME, divx->deinterlace);
     }

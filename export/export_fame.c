@@ -34,7 +34,7 @@
 #include "aud_aux.h"
 
 #define MOD_NAME    "export_fame.so"
-#define MOD_VERSION "v0.9.1 (2003-06-09)"
+#define MOD_VERSION "v0.9.1 (2003-07-24)"
 #define MOD_CODEC   "(video) MPEG-4 | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE fame
@@ -139,7 +139,7 @@ MOD_open
     ofile = open("/tmp/test.mp4", O_WRONLY | O_CREAT | O_TRUNC, 0666); 
 
     AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, 
-		  vob->fps, "DIVX");
+		  vob->ex_fps, "DIVX");
 
     if (vob->avi_comment_fd>0)
 	AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
@@ -198,7 +198,7 @@ MOD_init
     fame_params.coding = "A";
     fame_params.quality = vob->divxquality;
     fame_params.bitrate = vob->divxbitrate*1000;
-    fame_params.frame_rate_num = vob->fps;
+    fame_params.frame_rate_num = vob->ex_fps;
     fame_params.frame_rate_den = 1;
     fame_params.verbose = 0;
      
@@ -227,7 +227,7 @@ MOD_init
 	fprintf(stderr, "[%s]                quality: %d\n", MOD_NAME, fame_params.quality);
 	fprintf(stderr, "[%s]      bitrate [kBits/s]: %d\n", MOD_NAME, fame_params.bitrate/1000);
 	fprintf(stderr, "[%s]              crispness: %d\n", MOD_NAME, vob->divxcrispness);
-	fprintf(stderr, "[%s]             frame rate: %.2f\n", MOD_NAME, vob->fps);
+	fprintf(stderr, "[%s]             frame rate: %.2f\n", MOD_NAME, vob->ex_fps);
 	fprintf(stderr, "[%s]            color space: %s\n", MOD_NAME, (vob->im_v_codec==CODEC_RGB) ? "RGB24":"YV12");
     }
 

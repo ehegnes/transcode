@@ -53,7 +53,7 @@
 #endif
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.3.3 (2003-06-25)"
+#define MOD_VERSION "v0.3.4 (2003-07-24)"
 #define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
                     ") | (audio) MPEG/AC3/PCM"
 #define MOD_PRE ffmpeg
@@ -254,7 +254,7 @@ MOD_init {
 	    lavc_venc_context->frame_rate_base = 1000;
 	    break;
 	case 0: // not set
-	    lavc_venc_context->frame_rate      = (int)vob->fps*1000;
+	    lavc_venc_context->frame_rate      = (int)vob->ex_fps*1000;
 	    lavc_venc_context->frame_rate_base = 1000;
 	    break;
 	default:
@@ -519,7 +519,7 @@ MOD_init {
       fprintf(stderr, "[%s]  max keyframe interval: %d\n", MOD_NAME,
               vob->divxkeyframes);
       fprintf(stderr, "[%s]             frame rate: %.2f\n", MOD_NAME,
-              vob->fps);
+              vob->ex_fps);
       fprintf(stderr, "[%s]            color space: %s\n", MOD_NAME,
               (vob->im_v_codec==CODEC_RGB) ? "RGB24":"YV12");
       fprintf(stderr, "[%s]             quantizers: %d/%d\n", MOD_NAME,
@@ -585,7 +585,7 @@ MOD_open
       free (buf);
 
     } else {
-      AVI_set_video(avifile, vob->ex_v_width, vob->ex_v_height, vob->fps,
+      AVI_set_video(avifile, vob->ex_v_width, vob->ex_v_height, vob->ex_fps,
                     codec->fourCC);
 
       if (vob->avi_comment_fd>0)
