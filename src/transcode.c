@@ -25,6 +25,8 @@
 #include "config.h"
 #endif
 
+#include <ctype.h>
+
 #include "transcode.h"
 #include "decoder.h"
 #include "encoder.h"
@@ -196,7 +198,7 @@ int tc_x_preview         =  0;
 int tc_y_preview         =  0;
 int tc_progress_meter    =  1;
 int tc_accel             = -1;    //acceleration code
-int tc_avi_limit         = AVI_FILE_LIMIT;  //AVI file size limit in MB 
+unsigned int tc_avi_limit = (unsigned int)-1;
 pid_t tc_probe_pid       = 0;
 int tc_frame_width_max   = 0;
 int tc_frame_height_max  = 0;
@@ -620,6 +622,18 @@ void safe_exit (void) {
  *
  * ------------------------------------------------------------*/
 
+typedef enum {
+  NONE = 0,
+  VCD,
+  VCD_PAL,
+  VCD_NTSC,
+  SVCD,
+  SVCD_PAL,
+  SVCD_NTSC,
+  DVD,
+  DVD_PAL,
+  DVD_NTSC,
+} mpeg_profile_t;
 
 int main(int argc, char *argv[]) {
 
@@ -691,6 +705,8 @@ int main(int argc, char *argv[]) {
     int sync_seconds=0;
 
     int no_audio_adjust=TC_FALSE, no_split=TC_FALSE;
+
+    mpeg_profile_t mpeg_profile = NONE;
 
     static struct option long_options[] =
     {
@@ -1658,8 +1674,44 @@ int main(int argc, char *argv[]) {
 	vob->zoom_width  = 0;
 	vob->zoom_height = 0;
 
-	if (c && *c && *(c+1)) vob->zoom_height = atoi (c+1);
-	if (*optarg != 'x')    vob->zoom_width = atoi(optarg);
+	if          (strncasecmp(optarg, "vcd", 3) == 0) {
+	  mpeg_profile = VCD; // need to guess later if pal or ntsc
+	  vob->zoom_width  = 352;
+	  if        (strncasecmp(optarg, "vcd-pal", 7) == 0) {
+	    mpeg_profile = VCD_PAL;
+	    vob->zoom_height = 288;
+	  } else if (strncasecmp(optarg, "vcd-ntsc", 7) == 0) {
+	    mpeg_profile = VCD_NTSC;
+	    vob->zoom_height = 240;
+	  }
+	} else  if  (strncasecmp(optarg, "svcd", 4) == 0) {
+	  mpeg_profile = SVCD;
+	  vob->zoom_width  = 480;
+	  if        (strncasecmp(optarg, "svcd-pal", 7) == 0) {
+	    mpeg_profile = SVCD_PAL;
+	    vob->zoom_height = 576;
+	  } else if (strncasecmp(optarg, "svcd-ntsc", 7) == 0) {
+	    mpeg_profile = SVCD_NTSC;
+	    vob->zoom_height = 480;
+	  }
+	} else  if  (strncasecmp(optarg, "dvd", 3) == 0) {
+	  mpeg_profile = DVD;
+	  vob->zoom_width  = 720;
+	  if        (strncasecmp(optarg, "dvd-pal", 7) == 0) {
+	    mpeg_profile = DVD_PAL;
+	    vob->zoom_height = 576;
+	  } else if (strncasecmp(optarg, "dvd-ntsc", 7) == 0) {
+	    mpeg_profile = DVD_NTSC;
+	    vob->zoom_height = 480;
+	  }
+	} else if (isdigit(*optarg) || *optarg == 'x') {
+
+	  if (c && *c && *(c+1)) vob->zoom_height = atoi (c+1);
+	  if (*optarg != 'x')    vob->zoom_width = atoi(optarg);
+
+	} else {
+	  tc_error("invalid setting for option -Z");
+	}
 
 	if(vob->zoom_width > TC_MAX_V_FRAME_WIDTH) 
 	  tc_error("invalid width for option -Z");
@@ -2165,7 +2217,11 @@ int main(int argc, char *argv[]) {
 
 	  tc_avi_limit=atoi(optarg);
 
-	    break;
+	  if (tc_avi_limit <= 0) {
+	    tc_avi_limit = (unsigned int)-1;
+	  }
+
+	  break;
 
 	case AVI_COMMENTS:
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
@@ -2804,6 +2860,42 @@ int main(int argc, char *argv[]) {
     }
     
     if(vob->deinterlace==4) vob->ex_v_height /= 2;
+ 
+    // calc clip settings for encoding to mpeg (vcd,svcd,dvd)
+    // -Z {vcd,vcd-pal,vcd-ntsc,svcd,svcd-pal,svcd-ntsc,dvd,dvd-pal,dvd-ntsc}
+   
+    if (mpeg_profile) {
+      int pal = 0;
+
+      // Make an educated guess if this is pal or ntsc
+      if (vob->im_v_height == 288 || vob->im_v_height == 576) pal = 1;
+      if ((int)vob->fps == 25 || vob->im_frc == 3) pal = 1;
+
+      switch (mpeg_profile) {
+	case VCD: vob->zoom_height = pal?288:240;
+		  break;
+	case SVCD:
+	case DVD: vob->zoom_height = pal?576:480;
+		  break;
+	default:
+		  break;
+      }
+      switch (mpeg_profile) {
+	case VCD_PAL: case VCD_NTSC: case VCD: 
+	  vob->ex_asr = 2;
+	  break;
+	case SVCD_PAL: case SVCD_NTSC: case SVCD:
+	  vob->ex_asr = 2;
+	  break;
+	case DVD_PAL: case DVD_NTSC: case DVD:
+	  if (vob->ex_asr == 0) vob->ex_asr = 2; // assume 4:3
+		  break;
+	default:
+		  break;
+      }
+      
+    }
+
 
     // Calculate the missing w or h based on the ASR
     if (zoom && (vob->zoom_width == 0 || vob->zoom_height == 0)) {
@@ -3159,7 +3251,8 @@ int main(int argc, char *argv[]) {
       if(vob->ex_v_width - vob->ex_clip_left - vob->ex_clip_right <= 0)
 	tc_error("invalid left/right clip parameter calculated from --keep_asr");
       
-      if(verbose & TC_INFO) printf("[%s] V: %-16s | yes\n", PACKAGE, "keep aspect");
+      if(verbose & TC_INFO) printf("[%s] V: %-16s | yes (%d,%d,%d,%d)\n", PACKAGE, "keep aspect",
+	    vob->ex_clip_top, vob->ex_clip_left, vob->ex_clip_bottom, vob->ex_clip_right);
     }
     
     // -z

@@ -566,7 +566,7 @@ extern int tc_y_preview;
 extern int tc_progress_meter;
 extern pthread_t tc_pthread_main;
 extern int tc_accel;
-extern int tc_avi_limit;
+extern unsigned int tc_avi_limit;
 extern int tc_frame_width_max;
 extern int tc_frame_height_max;
 extern pid_t tc_probe_pid;
