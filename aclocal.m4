@@ -27,6 +27,22 @@ AC_DEFUN([AC_C_ATTRIBUTE_ALIGNED],
 	    [$ac_cv_c_attribute_aligned],[maximum supported data alignment])
     fi])
 
+dnl AC_TRY_CXXFLAGS (CXXFLAGS, [ACTION-IF-WORKS], [ACTION-IF-FAILS])
+dnl check if $CXX supports a given set of cflags
+AC_DEFUN([AC_TRY_CXXFLAGS],
+    [AC_MSG_CHECKING([if $CXX supports $1 flags])
+    SAVE_CXXFLAGS="$CXXFLAGS"
+    CXXFLAGS="$1"
+    AC_TRY_COMPILE([],[],[ac_cv_try_cflags_ok=yes],[ac_cv_try_cflags_ok=no])
+    CXXFLAGS="$SAVE_CXXFLAGS"
+    AC_MSG_RESULT([$ac_cv_try_cflags_ok])
+    if test x"$ac_cv_try_cflags_ok" = x"yes"; then
+	ifelse([$2],[],[:],[$2])
+    else
+	ifelse([$3],[],[:],[$3])
+    fi])
+
+
 dnl AC_TRY_CFLAGS (CFLAGS, [ACTION-IF-WORKS], [ACTION-IF-FAILS])
 dnl check if $CC supports a given set of cflags
 AC_DEFUN([AC_TRY_CFLAGS],
