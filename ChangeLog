@@ -14,6 +14,7 @@ transcode-0.6.8
   - Bugfix for -x auto,dvd and -x auto,ac3 with AC3 pass-through
   - Bugfix for probing YUV4MPEG2 files
   - Bugfix for RH9/NPTL
+  - Bugfix for -x im.
   - No more zombies during PSU mode
   - Fix YUV encoding in image export modules
   - Greatly improved avisplit, avimerge and avisync
@@ -24,6 +25,7 @@ transcode-0.6.8
   - Support for adding comments in the AVI header
   - Support for fast reading of vob files with multiple ranges
   - Support for VBV profiles for divx5; fix two-pass encoding
+  - Support for any width/height in -y mov
   - configure improvements
   - New export module debugppm mainly for developer use
   - Cleanups for filters
@@ -43,7 +45,36 @@ transcode-0.6.8
   - Setting the video bitrate through -w for -y mpeg
 
 
-2003-07-04 Stefan Jones <cretin@gentoo.org>
+2003-07-06 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/a52_decore.c:
+  tcdecode can now behave like tcextract. It decodes the stream but
+  will write out the raw stream it got from the input pipe. This is
+  currently only used for debugging
+
+  * filter/filter_clone.c:
+  Make the filter to do something useful. It will convert a 15 fps
+  video to 25 fps by cloning frames.
+
+  * import/import_mp3.c:
+  Enable fast skipping in AVI files by use of a nav_seek file. See
+  aviindex(1).
+
+  * import/import_vob.c:
+  Cleanup; fix a alignment bug at the beginning of the stream and
+  disable dropping of AC3 frames (the core does that).
+
+2003-07-04 Greg Brauer <greg at wildbrain.com>
+
+  * export/export_mov.c:
+  Only cyuv requires the width and height to be a multiple of 16.
+
+  * import/import_im.c:
+  import_im.c (originally written by me) was not handling file names
+  for frames numbered without leading 0s correctly, causing fatal
+  segfaults. This patch fixes the bug.
+
+2003-07-04 Stefan Jones <cretin at gentoo.org>
 
   * import/clone.c:
   Make clone_close be able to be safely called at any time. (Fixes
