@@ -220,6 +220,7 @@ MOD_init {
     
     if (lavc_param_vhq)
       lavc_venc_context->flags |= CODEC_FLAG_HQ;
+
     lavc_venc_context->bit_rate_tolerance = lavc_param_vrate_tolerance * 1000;
     lavc_venc_context->max_qdiff          = lavc_param_vqdiff;
     lavc_venc_context->qcompress          = lavc_param_vqcompress;
@@ -243,9 +244,6 @@ MOD_init {
     lavc_venc_context->rc_eq              = lavc_param_rc_eq;
     lavc_venc_context->rc_max_rate        = lavc_param_rc_max_rate * 1000;
     lavc_venc_context->rc_min_rate        = lavc_param_rc_min_rate * 1000;
-    lavc_venc_context->rc_max_rate        = (vob->divxbitrate) * 1000; //XXX
-    lavc_venc_context->rc_min_rate        = (vob->divxbitrate) * 1000; //XXX
-    lavc_venc_context->bit_rate_tolerance = 1;
     lavc_venc_context->rc_buffer_size     = lavc_param_rc_buffer_size * 1000;
     lavc_venc_context->rc_buffer_aggressivity= lavc_param_rc_buffer_aggressivity;
     lavc_venc_context->rc_initial_cplx    = lavc_param_rc_initial_cplx;
@@ -302,14 +300,7 @@ MOD_init {
       }
     }
 
-    // 4mv is currently buggy with B frames 
-    if ((lavc_param_vmax_b_frames > 0) && lavc_param_v4mv) {
-      fprintf(stderr, "[%s] 4MV with B-Frames not supported. 4MV disabled\n",
-              MOD_NAME);
-      lavc_param_v4mv = 0;
-    }
-
-    lavc_venc_context->flags |= lavc_param_v4mv ? CODEC_FLAG_4MV : 0;
+    lavc_venc_context->flags |= lavc_param_gmc ? CODEC_FLAG_GMC : 0;
     lavc_venc_context->flags |= lavc_param_data_partitioning;
     if (lavc_param_gray)
       lavc_venc_context->flags |= CODEC_FLAG_GRAY;
