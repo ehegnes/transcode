@@ -36,6 +36,12 @@ extern "C"
 #define MOD_VERSION "v1.0 (12/15/02)"
 #define MOD_CODEC   "(video/audio) MPEG/VOB/LVE"
 
+//-- import filter stuff --
+//-------------------------
+static int verbose_flag    = TC_QUIET;
+static int capability_flag = TC_CAP_YUV|TC_CAP_PCM;
+
+
 #define MOD_PRE lve
 #include "import_def.h"
 
@@ -51,11 +57,6 @@ extern "C"
 //-----------------------------
 static T_LVE_READ_CTX *lve_ctx = NULL;
 
-
-//-- import filter stuff --
-//-------------------------
-int verbose_flag    = TC_QUIET;
-int capability_flag = TC_CAP_YUV|TC_CAP_PCM;
 
 
 static void adjust_params(vob_t *vob, T_LVE_READ_CTX *ctx)

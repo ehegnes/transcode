@@ -32,6 +32,9 @@
 #define MOD_VERSION "v0.3.2 (2002-02-15)"
 #define MOD_CODEC   "(audio) AC3"
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_PCM|TC_CAP_AC3;
+
 #define MOD_PRE ac3
 #include "import_def.h"
 
@@ -39,9 +42,6 @@
 char import_cmd_buf[MAX_BUF];
 
 static FILE *fd;
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_PCM|TC_CAP_AC3;
 
 static int codec, syncf=0;
 static int pseudo_frame_size=0, real_frame_size=0, effective_frame_size=0;

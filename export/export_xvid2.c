@@ -75,6 +75,14 @@
 #define MOD_NAME    "export_xvid2.so"
 #define MOD_VERSION "v0.3.10 (2003-07-30)"
 #define MOD_CODEC   "(video) XviD 0.9.x (aka API 2.1 series)  | (audio) MPEG/AC3/PCM"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_PCM |
+                             TC_CAP_RGB |
+                             TC_CAP_YUV |
+                             TC_CAP_AC3 |
+                             TC_CAP_YUV422 |
+                             TC_CAP_AUD;
 #define MOD_PRE xvid2_ 
 #include "export_def.h"
 
@@ -95,14 +103,6 @@ static FILE *hints_file = NULL;
   
 /* temporary audio/video buffer */
 static char *buffer;
-
-static int verbose_flag = TC_QUIET;
-static int capability_flag = TC_CAP_PCM |
-                             TC_CAP_RGB |
-                             TC_CAP_YUV |
-                             TC_CAP_AC3 |
-                             TC_CAP_YUV422 |
-                             TC_CAP_AUD;
 
 /*****************************************************************************
  * Prototypes for shared library symbols

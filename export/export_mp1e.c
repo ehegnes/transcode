@@ -33,11 +33,11 @@
 #define MOD_VERSION "v0.0.1 (2003-12-18)"
 #define MOD_CODEC   "(video) MPEG1 video | (audio) MPEG1-Layer2"
 
-#define MOD_PRE mp1e
-#include "export_def.h"
-
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_PCM|TC_CAP_YUV|TC_CAP_YUV422|TC_CAP_RGB;
+
+#define MOD_PRE mp1e
+#include "export_def.h"
 static char export_cmd_buf [PATH_MAX];
 static FILE *pFile = NULL;
 static FILE *pFifo = NULL;

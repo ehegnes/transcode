@@ -32,6 +32,9 @@
 #define MOD_VERSION "v0.1.4 (2003-08-04)"
 #define MOD_CODEC   "(audio) MPEG"
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_PCM;
+
 #define MOD_PRE mp3
 #include "import_def.h"
 
@@ -39,9 +42,6 @@
 char import_cmd_buf[MAX_BUF];
 
 static FILE *fd;
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_PCM;
 
 static int codec;
 

@@ -29,13 +29,19 @@
 #error MOD_PRE not defined!
 #endif
 
-#define MOD_name   static int MOD_PRE_name(transfer_t *param)
-#define MOD_open   static int MOD_PRE_open(transfer_t *param, vob_t *vob)
-#define MOD_decode static int MOD_PRE_decode(transfer_t *param, vob_t *vob)
-#define MOD_close  static int MOD_PRE_close(transfer_t *param)
 
-extern int verbose_flag;
-extern int capability_flag;
+#define r2(i, a, b) import_ ## a ## b
+#define r1(a, b) r2(import_, a, b)
+#define RENAME(a, b) r1(a, b)
+
+#define MOD_name static int RENAME(MOD_PRE, _name) (transfer_t *param)
+#define MOD_open static int RENAME(MOD_PRE, _open) (transfer_t *param, vob_t *vob)
+#define MOD_decode static int RENAME(MOD_PRE, _decode) (transfer_t *param, vob_t *vob)
+#define MOD_close  static int RENAME(MOD_PRE, _close) (transfer_t *param)
+
+
+//extern int verbose_flag;
+//extern int capability_flag;
 
 /* ------------------------------------------------------------ 
  *
@@ -76,19 +82,19 @@ int tc_import(int opt, void *para1, void *para2)
       
   case TC_IMPORT_NAME:
       
-      return(MOD_PRE_name((transfer_t *) para1));
+      return RENAME(MOD_PRE, _name)((transfer_t *) para1);
       
   case TC_IMPORT_OPEN:
       
-      return(MOD_PRE_open((transfer_t *) para1, (vob_t *) para2));
+      return RENAME(MOD_PRE, _open)((transfer_t *) para1, (vob_t *) para2);
 
   case TC_IMPORT_DECODE:
       
-      return(MOD_PRE_decode((transfer_t *) para1, (vob_t *) para2));
+      return RENAME(MOD_PRE, _decode)((transfer_t *) para1, (vob_t *) para2);
       
   case TC_IMPORT_CLOSE:
       
-      return(MOD_PRE_close((transfer_t *) para1));
+      return RENAME(MOD_PRE, _close)((transfer_t *) para1);
       
   default:
       return(TC_IMPORT_UNKNOWN);

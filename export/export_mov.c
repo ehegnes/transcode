@@ -35,11 +35,6 @@
 #define MOD_NAME    "export_mov.so"
 #define MOD_VERSION "v0.1.2 (2004-01-19)"
 #define MOD_CODEC   "(video) * | (audio) *"
-#define MOD_PRE mov
-#include "export_def.h"
-
-#include <quicktime.h>
-
 /* verbose flag */
 static int verbose_flag=TC_QUIET;
 
@@ -53,6 +48,11 @@ static int capability_flag=
  TC_CAP_YUY2|
  TC_CAP_VID|
  TC_CAP_YUV422; /* chunky YUV 4:2:2 */
+
+#define MOD_PRE mov
+#include "export_def.h"
+
+#include <quicktime.h>
 
 /* exported quicktime file */
 static quicktime_t *qtfile = NULL;

@@ -37,6 +37,9 @@
 #define MOD_VERSION "v0.9.1 (2003-07-24)"
 #define MOD_CODEC   "(video) MPEG-4 | (audio) MPEG/AC3/PCM"
 
+static int verbose_flag=TC_DEBUG;
+static int capability_flag=TC_CAP_PCM|TC_CAP_AC3|TC_CAP_AUD|TC_CAP_YUV;
+
 #define MOD_PRE fame
 #include "export_def.h"
 
@@ -51,9 +54,6 @@ static fame_parameters_t fame_params = FAME_PARAMETERS_INITIALIZER;
 #define CHUNK_SIZE 1024
 static int ofile;
 
-
-static int verbose_flag=TC_DEBUG;
-static int capability_flag=TC_CAP_PCM|TC_CAP_AC3|TC_CAP_AUD|TC_CAP_YUV;
 
 int frame =0;
 static FILE *logfileout;

@@ -47,11 +47,11 @@
 #define MOD_VERSION "v0.0.2 (2003-11-12)"
 #define MOD_CODEC   "(video) * "
 
-#define MOD_PRE fraps
-#include "import_def.h"
-
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_YUV;
+
+#define MOD_PRE fraps
+#include "import_def.h"
 
 static avi_t *avifile2=NULL;
 

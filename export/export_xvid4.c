@@ -68,6 +68,13 @@
 #define MOD_VERSION "v0.0.5 (2003-12-05)"
 #define MOD_CODEC  \
 "(video) XviD 1.0.x series (aka API 4.0) | (audio) MPEG/AC3/PCM"
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_PCM |
+                             TC_CAP_RGB |
+                             TC_CAP_YUV |
+                             TC_CAP_YUV422 |
+                             TC_CAP_AC3 |
+                             TC_CAP_AUD;
 #define MOD_PRE xvid4_ 
 #include "export_def.h"
 
@@ -82,13 +89,6 @@
 extern char* tc_config_dir;
 
 /* Temporary audio/video buffer */
-static int verbose_flag = TC_QUIET;
-static int capability_flag = TC_CAP_PCM |
-                             TC_CAP_RGB |
-                             TC_CAP_YUV |
-                             TC_CAP_YUV422 |
-                             TC_CAP_AC3 |
-                             TC_CAP_AUD;
 
 /*****************************************************************************
  * XviD symbols grouped in a nice struct.

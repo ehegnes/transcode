@@ -34,6 +34,10 @@
 #define MOD_VERSION "v0.6.0 (2003-10-02)"
 #define MOD_CODEC   "(video) MPEG-2 | (audio) MPEG/AC3/PCM | (subtitle)"
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_VID|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM|TC_CAP_AC3;
+
+
 #define MOD_PRE vob
 #include "import_def.h"
 
@@ -51,9 +55,6 @@ static int can_read = 1;
 static tbuf_t tbuf;
 static int m2v_passthru=0;
 static FILE *f; // video fd
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_VID|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM|TC_CAP_AC3;
 
 static int codec, syncf=0;
 static int pseudo_frame_size=0, real_frame_size=0, effective_frame_size=0;

@@ -32,6 +32,9 @@
 #define MOD_VERSION "v0.1.8 (2003-08-23)"
 #define MOD_CODEC   "(video) YUV4MPEG2 | (audio) MPEG/AC3/PCM"
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_YUV|TC_CAP_PCM|TC_CAP_AC3|TC_CAP_AUD|TC_CAP_RGB;
+
 #define MOD_PRE yuv4mpeg
 #include "export_def.h"
 
@@ -42,9 +45,6 @@
 #include "mjpegtools/yuv4mpeg.h"
 #include "mjpegtools/mpegconsts.h"
 #endif
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_YUV|TC_CAP_PCM|TC_CAP_AC3|TC_CAP_AUD|TC_CAP_RGB;
 
 #ifndef DAR_4_3
 # define DAR_4_3      {   4, 3   }

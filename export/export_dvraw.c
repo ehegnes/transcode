@@ -31,14 +31,14 @@
 #define MOD_VERSION "v0.4 (2003-10-14)"
 #define MOD_CODEC   "(video) Digital Video | (audio) PCM"
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID|TC_CAP_YUV422;
+
 #define MOD_PRE dvraw
 #include "export_def.h"
 
 extern int _dv_raw_insert_audio(unsigned char * frame_buf, 
                      dv_enc_audio_info_t * audio, int isPAL);
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID|TC_CAP_YUV422;
 
 static int fd;
 

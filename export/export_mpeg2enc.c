@@ -42,6 +42,9 @@
 #define MOD_VERSION "v1.1.10 (2003-10-30)"
 #define MOD_CODEC   "(video) MPEG 1/2"
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_YUV|TC_CAP_RGB;
+
 #define MOD_PRE mpeg2enc
 #include "export_def.h"
 
@@ -52,9 +55,6 @@ static int   sa_width  = 0;
 static int   sa_height = 0;
 static int   sa_size_l = 0;
 static int   sa_size_c = 0;
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_YUV|TC_CAP_RGB;
 
 #define Y4M_LINE_MAX 256
 #define Y4M_MAGIC "YUV4MPEG2"

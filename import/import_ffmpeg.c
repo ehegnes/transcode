@@ -36,6 +36,10 @@
 #define MOD_VERSION "v0.1.10 (2003-12-30)"
 #define MOD_CODEC   "(video)  " LIBAVCODEC_IDENT \
                     ": MS MPEG4v1-3/MPEG4/MJPEG"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_VID;
+
 #define MOD_PRE ffmpeg
 #include "import_def.h"
 
@@ -48,8 +52,6 @@ char import_cmd_buf[MAX_BUF];
 
 extern pthread_mutex_t init_avcodec_lock;
 
-static int verbose_flag = TC_QUIET;
-static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_VID;
 static int done_seek=0;
 
 struct ffmpeg_codec {

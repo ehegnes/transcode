@@ -32,6 +32,9 @@
 #define MOD_VERSION "v0.0.2 (2003-08-21)"
 #define MOD_CODEC   "(video) all | (audio) Ogg Vorbis"
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AUD|TC_CAP_PCM|TC_CAP_VID;
+
 #define MOD_PRE ogg
 #include "import_def.h"
 
@@ -39,9 +42,6 @@
 char import_cmd_buf[MAX_BUF];
 
 static FILE *fd;
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AUD|TC_CAP_PCM|TC_CAP_VID;
 
 /* ------------------------------------------------------------ 
  *

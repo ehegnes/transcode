@@ -29,15 +29,20 @@
 #error MOD_PRE not defined!
 #endif
 
-#define MOD_name   static int MOD_PRE_name(transfer_t *param)
-#define MOD_open   static int MOD_PRE_open(transfer_t *param, vob_t *vob)
-#define MOD_init   static int MOD_PRE_init(transfer_t *param, vob_t *vob)
-#define MOD_encode static int MOD_PRE_encode(transfer_t *param)
-#define MOD_stop   static int MOD_PRE_stop(transfer_t *param)
-#define MOD_close  static int MOD_PRE_close(transfer_t *param)
+#define r2(i, a, b) i ## a ## b
+#define r1(a, b) r2(export_, a, b)
+#define RENAME(a, b) r1(a, b)
 
-extern int verbose_flag;
-extern int capability_flag;
+#define MOD_name   static int RENAME(MOD_PRE, _name) (transfer_t *param)
+#define MOD_open   static int RENAME(MOD_PRE, _open) (transfer_t *param, vob_t *vob)
+#define MOD_init   static int RENAME(MOD_PRE, _init) (transfer_t *param, vob_t *vob)
+#define MOD_encode static int RENAME(MOD_PRE, _encode) (transfer_t *param)
+#define MOD_stop   static int RENAME(MOD_PRE, _stop) (transfer_t *param)
+#define MOD_close  static int RENAME(MOD_PRE, _close) (transfer_t *param)
+
+
+//extern int verbose_flag;
+//extern int capability_flag;
 
 /* ------------------------------------------------------------ 
  *
@@ -81,27 +86,27 @@ int tc_export(int opt, void *para1, void *para2)
       
   case TC_EXPORT_NAME:
       
-      return(MOD_PRE_name((transfer_t *) para1));
+      return(RENAME(MOD_PRE, _name)((transfer_t *) para1));
       
   case TC_EXPORT_OPEN:
       
-      return(MOD_PRE_open((transfer_t *) para1, (vob_t *) para2));
+      return(RENAME(MOD_PRE, _open)((transfer_t *) para1, (vob_t *) para2));
 
   case TC_EXPORT_INIT:
       
-      return(MOD_PRE_init((transfer_t *) para1, (vob_t *) para2));
+      return(RENAME(MOD_PRE, _init)((transfer_t *) para1, (vob_t *) para2));
 
   case TC_EXPORT_ENCODE:
       
-      return(MOD_PRE_encode((transfer_t *) para1));
+      return(RENAME(MOD_PRE, _encode)((transfer_t *) para1));
       
   case TC_EXPORT_STOP:
       
-      return(MOD_PRE_stop((transfer_t *) para1));
+      return(RENAME(MOD_PRE, _stop)((transfer_t *) para1));
 
   case TC_EXPORT_CLOSE:
       
-      return(MOD_PRE_close((transfer_t *) para1));
+      return(RENAME(MOD_PRE, _stop)((transfer_t *) para1));
       
   default:
       return(TC_EXPORT_UNKNOWN);

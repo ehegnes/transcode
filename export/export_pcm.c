@@ -31,11 +31,11 @@
 #define MOD_VERSION "v0.0.4 (2003-09-30)"
 #define MOD_CODEC   "(audio) PCM (non-interleaved)"
 
-#define MOD_PRE wav
-#include "export_def.h"
-
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
+
+#define MOD_PRE wav
+#include "export_def.h"
 
 static struct wave_header rtf;
 static int fd_r, fd_l, fd_c, fd_ls, fd_rs, fd_lfe;

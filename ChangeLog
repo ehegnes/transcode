@@ -1,6 +1,25 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-02-16 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/{import_*.c import_def.h} export/{export_*.c
+  export_def.h}:
+  FreeBSD amd64 fixes.
+  In the import and export modules transcode through a mangling
+  include via "import_def.h" resp "export_def.h" declared symbols
+  static as well extern. Although in the same file, it is
+  appearantly illegal on this architecture and transcode recieved a
+  SIGBUS. Now the order is changed, first the static declaration,
+  than the inclusion if *_def.h. Thanks a lot to Hendrik Scholz for
+  providing a nice (and fast!) testbox.
+
+2004-02-15 Tilmann Bitterberg <transcode at tibit.org>
+
+  * configure.in libxio/xio.h src/callback.c:
+  be able to compile completely without libxio since it had some
+  weird side-effects
+
 2004-02-14 Tilmann Bitterberg <transcode at tibit.org>
 
   * filter/filter_text.c:

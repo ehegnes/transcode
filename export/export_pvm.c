@@ -44,11 +44,12 @@
 #define MOD_VERSION  EXPORT_PVM_VERSION
 #define MOD_CODEC   "(video) * | (audio) *"
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=-1; //all codecs are welcome
+
 #define MOD_PRE pvm
 #include "export_def.h"
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=-1; //all codecs are welcome
 static int s_merger_tid_audio[]={-1,-1},s_merger_tid_video[]={-1,-1},s_init_check=0;
 static int s_merger_tid_system[]={-1,-1};
 static int s_null_video_module=0,s_null_audio_module=0,s_sys_merger_started=-1;

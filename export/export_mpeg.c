@@ -65,6 +65,13 @@
 #define MOD_CODEC   "(video) MPEG 1/2"
 #endif
 
+static int verbose_flag=TC_QUIET;
+#ifdef HAS_FFMPEG
+static int capability_flag=TC_CAP_PCM|TC_CAP_YUV|TC_CAP_RGB;
+#else
+static int capability_flag=TC_CAP_YUV|TC_CAP_RGB;
+#endif
+
 #define MOD_PRE mpeg
 #include "export_def.h"
 
@@ -86,13 +93,6 @@ static char           *mpa_buf     = NULL;
 static int            mpa_buf_ptr  = 0;
 static int            mpa_bytes_ps, mpa_bytes_pf;
 static ReSampleContext *ReSamplectx=NULL;
-#endif
-
-static int verbose_flag=TC_QUIET;
-#ifdef HAS_FFMPEG
-static int capability_flag=TC_CAP_PCM|TC_CAP_YUV|TC_CAP_RGB;
-#else
-static int capability_flag=TC_CAP_YUV|TC_CAP_RGB;
 #endif
 
 
@@ -669,8 +669,8 @@ MOD_encode
         {
           bbmpeg_fcnt++;
           bbmpeg_fnew = 1;       // request new audio-file 
-          MOD_PRE_close(param);
-          MOD_PRE_open(param, &bbmpeg_vob);
+          RENAME(MOD_PRE, _close)(param);
+          RENAME(MOD_PRE, _open)(param, &bbmpeg_vob);
         }
       }
 
@@ -689,8 +689,8 @@ MOD_encode
     if (bbmpeg_fnew)
     {
       bbmpeg_fnew = 0;
-      MOD_PRE_close(param);
-      MOD_PRE_open(param, &bbmpeg_vob);
+      RENAME(MOD_PRE, _close)(param);
+      RENAME(MOD_PRE, _open)(param, &bbmpeg_vob);
     }        
 
     //-- input buffer and amount of bytes -- 

@@ -36,12 +36,13 @@
 #define MOD_VERSION "v1.0.6 (2004-01-26)"
 #define MOD_CODEC   "(audio) MPEG 1/2"
 
+static int 			verbose_flag	= TC_QUIET;
+static int 			capability_flag	= TC_CAP_PCM;
+
 #define MOD_PRE toolame
 #include "export_def.h"
 
 static FILE* 			pFile 		= NULL;
-static int 			verbose_flag	= TC_QUIET;
-static int 			capability_flag	= TC_CAP_PCM;
 
 /* ------------------------------------------------------------ 
  *

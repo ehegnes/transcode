@@ -31,8 +31,12 @@
 #define MOD_VERSION "v0.0.8 (2003-07-09)"
 #define MOD_CODEC   "(video) * | (audio) *"
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=-1;
+
 #define MOD_PRE xml
 #include "import_def.h"
+
 #include "ioxml.h"
 #include "magic.h"
 #include "probe_xml.h"
@@ -43,9 +47,6 @@
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=-1;
 static FILE *s_fd_video=0;
 static FILE *s_fd_audio=0;
 static  audiovideo_t    s_audio,*p_audio=NULL;

@@ -37,14 +37,14 @@
 #define MOD_VERSION "v0.0.1 (2001-11-21)"
 #define MOD_CODEC   "(video) RGB/YUV | (audio) PCM"
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM;
+
 #define MOD_PRE net
 #include "import_def.h"
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM;
 
 static int vs, as;
 

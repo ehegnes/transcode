@@ -38,12 +38,13 @@
 #define MOD_VERSION "v1.0.9 (2003-10-30)"
 #define MOD_CODEC   "(audio) MPEG 1/2"
 
+static int 			verbose_flag	= TC_QUIET;
+static int 			capability_flag	= TC_CAP_PCM;
+
 #define MOD_PRE mp2enc
 #include "export_def.h"
 
 static FILE* 			pFile 		= NULL;
-static int 			verbose_flag	= TC_QUIET;
-static int 			capability_flag	= TC_CAP_PCM;
 static struct wave_header 	rtf;
 
 static char *mpa=".mpa";

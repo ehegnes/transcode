@@ -45,17 +45,17 @@ static int verbose=TC_QUIET;
 
 static unsigned char *bufalloc(size_t size)
 {
-   int buffer_align=getpagesize();
+   long buffer_align=getpagesize();
  
    unsigned char *buf = malloc(size + buffer_align);
 
-   int adjust;
+   long adjust;
 
    if (buf == NULL) {
        fprintf(stderr, "(%s) out of memory", __FILE__);
    }
    
-   adjust = buffer_align - ((int) buf) % buffer_align;
+   adjust = buffer_align - ((long) buf) % buffer_align;
 
    if (adjust == buffer_align)
       adjust = 0;

@@ -33,11 +33,11 @@
 #define MOD_VERSION "v0.1.2 (2002-05-16)"
 #define MOD_CODEC   "(video) * | (audio) *"
 
-#define MOD_PRE mov
-#include "import_def.h"
-
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV;
+
+#define MOD_PRE mov
+#include "import_def.h"
 
 /* movie handles */
 static quicktime_t *qt_audio=NULL;

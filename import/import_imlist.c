@@ -46,14 +46,14 @@
 #define MOD_VERSION "v0.0.2 (2003-11-13)"
 #define MOD_CODEC   "(video) RGB"
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_RGB|TC_CAP_VID|TC_CAP_AUD;
+
 #define MOD_PRE im
 #include "import_def.h"
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_VID|TC_CAP_AUD;
 
 int
     first_frame = 0,

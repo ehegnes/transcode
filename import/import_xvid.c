@@ -47,11 +47,12 @@
 #define MOD_NAME    "import_xvid.so"
 #define MOD_VERSION "v0.0.3 (2003-11-29)"
 #define MOD_CODEC   "(video) XviD/OpenDivX/DivX 4.xx/5.xx"
-#define MOD_PRE xvid
-#include "import_def.h"
 
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
+
+#define MOD_PRE xvid
+#include "import_def.h"
 static int frame_size=0;
 
 static int (*XviD_decore)(void *para0, int opt, void *para1, void *para2);

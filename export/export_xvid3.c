@@ -75,6 +75,14 @@
 #define MOD_VERSION "v0.3.12 (2003-07-30)"
 #define MOD_CODEC  \
 "(video) XviD nonumber series (aka API 3.0)  | (audio) MPEG/AC3/PCM"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_PCM |
+                             TC_CAP_RGB |
+                             TC_CAP_YUV |
+                             TC_CAP_AC3 |
+                             TC_CAP_YUV422 |
+                             TC_CAP_AUD;
 #define MOD_PRE xvid3_ 
 #include "export_def.h"
 
@@ -94,14 +102,6 @@ static int rawfd = -1;
   
 /* temporary audio/video buffer */
 static char *buffer;
-
-static int verbose_flag = TC_QUIET;
-static int capability_flag = TC_CAP_PCM |
-                             TC_CAP_RGB |
-                             TC_CAP_YUV |
-                             TC_CAP_AC3 |
-                             TC_CAP_YUV422 |
-                             TC_CAP_AUD;
 
 /*****************************************************************************
  * Prototypes for shared library symbols

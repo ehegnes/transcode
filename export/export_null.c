@@ -30,11 +30,11 @@
 #define MOD_VERSION "v0.1.2 (2001-08-17)"
 #define MOD_CODEC   "(video) null | (audio) null"
 
-#define MOD_PRE null
-#include "export_def.h"
-
 static int verbose_flag=TC_QUIET;
 static int capability_flag=-1; //all codecs welcome
+
+#define MOD_PRE null
+#include "export_def.h"
 
 /* ------------------------------------------------------------ 
  *

@@ -33,11 +33,11 @@
 #define MOD_VERSION "v0.1.1 (2002-02-14)"
 #define MOD_CODEC   "(video) PPM/PGM | (audio) MPEG/AC3/PCM"
 
-#define MOD_PRE ppm
-#include "export_def.h"
-
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AC3|TC_CAP_AUD;
+
+#define MOD_PRE ppm
+#include "export_def.h"
 
 static char buf[256];
 static char buf2[64];

@@ -32,6 +32,9 @@
 #define MOD_VERSION "v0.3 (2002-09-20)"
 #define MOD_CODEC   "(video) MPEG2 | (audio) MPEG/AC3/PCM"
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AUD|TC_CAP_PCM;
+
 #define MOD_PRE mpeg3
 #include "import_def.h"
 
@@ -44,9 +47,6 @@ char import_cmd_buf[MAX_BUF];
 // We need different structures for audio/video import
 static mpeg3_t* file = NULL;
 static mpeg3_t* file_a = NULL;
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AUD|TC_CAP_PCM;
 
 static int codec, stream_id;
 static int height, width; 

@@ -35,11 +35,11 @@
 #define MOD_VERSION "v0.0.2 (2003-01-09)"
 #define MOD_CODEC   "(video) RGB/YUV | (audio) PCM/AC3"
 
-#define MOD_PRE net
-#include "export_def.h"
-
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3;
+
+#define MOD_PRE net
+#include "export_def.h"
 
 static int vns=0, ans=0;
 static int aport, vport;

@@ -15,11 +15,11 @@
 #define MOD_VERSION "v0.0.2 (2003-11-29)"
 #define MOD_CODEC   "(video) VNC"
 
-#define MOD_PRE vnc
-#include "import_def.h"
-
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_VID|TC_CAP_RGB|TC_CAP_YUV;
+
+#define MOD_PRE vnc
+#include "import_def.h"
 
 #define PROGTOCALL "tcxpm2rgb"
 

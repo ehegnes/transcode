@@ -87,14 +87,18 @@ my tab settings: se ts=4, sw=4
 #define MOD_VERSION "v0.3.12 (2004-01-19)"
 #define MOD_CODEC   "(video) " LIBAVCODEC_IDENT \
                     " | (audio) MPEG/AC3/PCM"
+
+static int verbose_flag    = TC_QUIET;
+static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AC3|
+                             TC_CAP_AUD|TC_CAP_YUV422;
 #define MOD_PRE ffmpeg
+#include "export_def.h"
 
 #define ff_error(...) do { fprintf(stderr, "[" MOD_NAME "]: ERROR: " __VA_ARGS__); return(TC_EXPORT_ERROR); } while(0)
 #define ff_warning(...) do { fprintf(stderr, "[" MOD_NAME "]: WARNING: " __VA_ARGS__); } while(0)
 #define ff_info(...) do { if(verbose_flag & TC_INFO) fprintf(stderr, "[" MOD_NAME "]: INFO: " __VA_ARGS__); else (void)0; } while(0)
 
 #include "probe_export.h"
-#include "export_def.h"
 #include "ffmpeg_cfg.h"
 
 extern char *tc_config_dir;
@@ -104,10 +108,6 @@ extern char *tc_config_dir;
 // transcode .. -x ffmpeg -y ffmpeg -F mpeg4
 
 extern pthread_mutex_t init_avcodec_lock;
-
-static int verbose_flag    = TC_QUIET;
-static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AC3|
-                             TC_CAP_AUD|TC_CAP_YUV422;
 
 struct ffmpeg_codec {
   char *name;

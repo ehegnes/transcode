@@ -55,14 +55,15 @@
 #define MOD_NAME    "import_divx.so"
 #define MOD_VERSION "v0.2.9 (2003-07-30)"
 #define MOD_CODEC   "(video) DivX;-)/XviD/OpenDivX/DivX 4.xx/5.xx"
+
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
+
 #define MOD_PRE divx
 #include "import_def.h"
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
 static int codec, frame_size=0;
 static unsigned long divx_version=DEC_OPT_FRAME;
 

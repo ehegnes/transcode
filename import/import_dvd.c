@@ -35,6 +35,9 @@
 #define MOD_VERSION "v0.4.0 (2003-10-02)"
 #define MOD_CODEC   "(video) DVD | (audio) MPEG/AC3/PCM"
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3|TC_CAP_PCM;
+
 #define MOD_PRE dvd
 #include "import_def.h"
 
@@ -55,8 +58,7 @@ static tbuf_t tbuf;
 static int m2v_passthru=0;
 static FILE *f; // video fd
 
-static int query=0, verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3|TC_CAP_PCM;
+static int query=0;
 
 static int codec, syncf=0;
 static int pseudo_frame_size=0, real_frame_size=0, effective_frame_size=0;

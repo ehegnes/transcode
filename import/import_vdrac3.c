@@ -34,6 +34,9 @@
 #define MOD_VERSION "v0.0.2 (2002-01-13)"
 #define MOD_CODEC   "(audio) VDR-AC3"
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_PCM|TC_CAP_AC3;
+
 #define MOD_PRE vdrac3
 #include "import_def.h"
 
@@ -41,9 +44,6 @@
 char import_cmd_buf[MAX_BUF];
 
 static FILE *fd;
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_PCM|TC_CAP_AC3;
 
 static int codec, pseudo_frame_size=0, frame_size=0, syncf=0;
 

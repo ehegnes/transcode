@@ -33,13 +33,13 @@
 #define MOD_VERSION "v0.0.5 (2003-06-11)"
 #define MOD_CODEC   "(video) v4l | (audio) PCM"
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM;
+
 #define MOD_PRE v4l
 #include "import_def.h"
 
 #define MAX_DISPLAY_PTS 25
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM;
 
 //static char *default_audio="/dev/dsp";
 //static char *default_video="/dev/video";

@@ -36,6 +36,9 @@
 #define MOD_VERSION "v0.1.4 (2002-10-17)"
 #define MOD_CODEC   "(video) nvrec | (audio) nvrec"
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_YUV|TC_CAP_PCM;
+
 #define MOD_PRE nvrec
 #include "import_def.h"
 
@@ -43,9 +46,6 @@
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_YUV|TC_CAP_PCM;
 
 static char afile[MAX_BUF];
 static char prgname[MAX_BUF];

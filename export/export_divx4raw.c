@@ -60,6 +60,9 @@
 #define MOD_VERSION "v0.3.6 (2003-07-24)"
 #define MOD_CODEC   "(video) DivX 4.xx (ES) | (audio) MPEG/AC3/PCM"
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3|TC_CAP_AUD;
+
 #define MOD_PRE divx4raw
 #include "export_def.h"
 
@@ -74,9 +77,6 @@ static char *buffer;
 ENC_PARAM   *divx;
 ENC_FRAME  encode;
 ENC_RESULT    key;
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3|TC_CAP_AUD;
 
 // dl stuff
 static int (*divx4_encore)(void *para0, int opt, void *para1, void *para2);

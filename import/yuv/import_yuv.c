@@ -47,15 +47,15 @@
 #define MOD_VERSION "v0.1.0 (2002-04-12)"
 #define MOD_CODEC   "(video) YUV files "
 
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_YUV;
+
 #define MOD_PRE yuv
 #include "import_def.h"
 
 #define MAX_BUF 1024
 #define MAXFRM 10000    // max count of search/encode missing frames
 char import_cmd_buf[MAX_BUF];
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_YUV;
 
 static int frm;
 static char fname[1024];
