@@ -370,6 +370,7 @@ static void jpeg_table_header(MpegEncContext *s)
 static void jpeg_put_comments(MpegEncContext *s)
 {
     PutBitContext *p = &s->pb;
+#if 0
     int size;
     uint8_t *ptr;
 
@@ -398,6 +399,12 @@ static void jpeg_put_comments(MpegEncContext *s)
         ptr[0] = size >> 8;
         ptr[1] = size;
     }
+#endif
+    // for quicktime -- tibit                                                                       
+    put_marker(p, APP0);                                                                            
+    put_bits(p, 16, 0x0a);                                                                          
+    put_string(p, "AVI1");                                                                          
+    put_bits(p, 24, 0);    
 }
 
 void mjpeg_picture_header(MpegEncContext *s)
