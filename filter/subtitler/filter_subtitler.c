@@ -186,7 +186,7 @@ if(pfl->tag & TC_FILTER_INIT)
 	subtitle_v_factor = SUBTITLE_V_FACTOR;
 
 	/* location where font.descr is */
-	sprintf(temp, "%s/.xste/fonts", home_dir);
+	snprintf(temp, sizeof(temp), "%s/.xste/fonts", home_dir);
 	default_font_dir = strsave(temp);
 	if(! default_font_dir)
 		{
@@ -203,7 +203,7 @@ if(pfl->tag & TC_FILTER_INIT)
 	subtitle_extra_character_space = EXTRA_CHAR_SPACE;
 
 	/* the ppml file */
-	sprintf(temp, "%s/.subtitles/demo.ppml", home_dir);
+	snprintf(temp, sizeof(temp), "%s/.subtitles/demo.ppml", home_dir);
 	subtitle_file = strsave(temp);
 	if(! subtitle_file)
 		{
@@ -255,7 +255,7 @@ if(pfl->tag & TC_FILTER_INIT)
 	*/
 	default_border_luminance = LUMINANCE_MASK;
 
-	sprintf(temp, "%s/.xste/fonts", home_dir);
+	snprintf(temp, sizeof(temp), "%s/.xste/fonts", home_dir);
 	subtitle_font_path = strsave(temp);
 	if(! subtitle_font_path)
 		{
@@ -418,8 +418,8 @@ if(pfl->tag & TC_FILTER_INIT)
 	if(add_objects_flag)
 		{
 		/* read in font (also needed for frame counter) */
-//		sprintf(temp, "%s/font.desc", default_font_dir);
-		sprintf(temp, "arial.ttf");
+//		snprintf(temp, sizeof(temp), "%s/font.desc", default_font_dir);
+		snprintf(temp, sizeof(temp), "arial.ttf");
 		vo_font = add_font(temp, default_subtitle_symbols, 28, 15, 1.0, 0.1);
 		if(! vo_font)
 			{
@@ -846,7 +846,7 @@ if(a)
 		    pu = ImageData + (image_width * image_height * 5) / 4;
 
 			/* open the ppm file for write */
-			sprintf(temp, "%s/.subtitles/%d.ppm", home_dir, movie_id);
+			snprintf(temp, sizeof(temp), "%s/.subtitles/%d.ppm", home_dir, movie_id);
 			pppm_file = fopen(temp, "w");
 			if(! pppm_file)
 				{
@@ -901,11 +901,11 @@ if(a)
 		fclose(pppm_file);
 
 		/* set the semaphore indicating the .ppm file is ready */
-		sprintf(temp, "touch %s/.subtitles/%d.sem", home_dir, movie_id);
+		snprintf(temp, sizeof(temp), "touch %s/.subtitles/%d.sem", home_dir, movie_id);
 		execute(temp);
 
 		/* now wait for the semaphore to be removed, by calling */
-		sprintf(temp, "%s/.subtitles/%d.sem", home_dir, movie_id);
+		snprintf(temp, sizeof(temp), "%s/.subtitles/%d.sem", home_dir, movie_id);
 		while(1)
 			{
 			fptr = fopen(temp, "r");

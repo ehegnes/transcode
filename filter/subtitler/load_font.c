@@ -1317,7 +1317,7 @@ if(! iso_extention) return 0;
 
 /* pathfilename of true type font */
 if(font_path) free(font_path);
-sprintf(temp, "%s/.xste/fonts/%s", home_dir, font_name);
+snprintf(temp, sizeof(temp), "%s/.xste/fonts/%s", home_dir, font_name);
 font_path = strsave(temp);
 if(! font_path) return 0;
 
@@ -1332,17 +1332,17 @@ if(! fptr)
 fclose(fptr);
 
 /* create font data directory */
-sprintf(temp, "mkdir %s/.subtitler 2> /dev/zero", home_dir);
+snprintf(temp, sizeof(temp), "mkdir %s/.subtitler 2> /dev/zero", home_dir);
 pptr = popen(temp, "w");
 pclose(pptr);
 
 /* directory where to put the temp files */
-sprintf(temp, "%s/.subtitler", home_dir);
+snprintf(temp, sizeof(temp), "%s/.subtitler", home_dir);
 outdir = strsave(temp);
 if(! outdir) return 0;
 
 /* encoding string */
-sprintf(temp, "iso-8859-%d", iso_extention); 
+snprintf(temp, sizeof(temp), "iso-8859-%d", iso_extention); 
 encoding = strsave(temp);
 if(! encoding) return 0;
 
@@ -1373,7 +1373,7 @@ free(abuffer);
 /* reload the font ! */
 
 /* read in font (also needed for frame counter) */
-sprintf(temp, "%s/font.desc", outdir);
+snprintf(temp, sizeof(temp), "%s/font.desc", outdir);
 
 pfontd = read_font_desc(temp, 1, 0);
 if(! pfontd)

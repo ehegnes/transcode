@@ -129,7 +129,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     
     if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
 
-    sprintf(buffer, "%s-%s", PACKAGE, VERSION);
+    snprintf(buffer, sizeof(buffer), "%s-%s", PACKAGE, VERSION);
     
     if(dv_player != NULL) return(-1);
     if(!(dv_player = dv_player_new())) return(-1);

@@ -209,7 +209,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     if(cache_num<0) printf("[%s] invalid cache number - exit\n", MOD_NAME);
     if(preview_skip_num<0) printf("[%s] invalid number of frames to skip - exit\n", MOD_NAME);
 
-    sprintf(buffer, "%s-%s", PACKAGE, VERSION);
+    snprintf(buffer, sizeof(buffer), "%s-%s", PACKAGE, VERSION);
     
     if(xv_player != NULL) return(-1);
     if(!(xv_player = xv_player_new())) return(-1);
@@ -391,7 +391,7 @@ void preview_cache_submit(char *buf, int id, int flag) {
   
   tc_memcpy((char*) vid_buf[cache_ptr], buf, size);
   
-  (flag & TC_FRAME_IS_KEYFRAME) ? sprintf(string, "%u *", id):sprintf(string, "%u", id);
+  (flag & TC_FRAME_IS_KEYFRAME) ? snprintf(string, sizeof(string), "%u *", id) : snprintf(string, sizeof(string), "%u", id);
   
   str2img (vid_buf[cache_ptr], string, w, h, cols, rows, 0, 0, CODEC_YUV);
 }
@@ -843,7 +843,7 @@ int preview_grab_jpeg(void)
     if(!cache_enabled) return 1;
     
     if (jpeg_vhandle == NULL) { 
-	sprintf(module, "%s/export_%s.so", MOD_PATH, "jpg");
+	snprintf(module, sizeof(module), "%s/export_%s.so", MOD_PATH, "jpg");
 	jpeg_vhandle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
 	if (!jpeg_vhandle) {
 	    tc_warn("%s", dlerror());
