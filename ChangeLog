@@ -1,6 +1,25 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-29 Tilmann Bitterberg <transcode at tibit.org>
+
+   * filter/filter_smartyuv.c:
+   More MMX code. Slighly faster Highq routine.
+   Highq processing is what eats most of the CPU time. If you
+   disable high quality processing with highq=0 the filter nearly
+   doubles its performance.
+   
+2003-08-29 Antonio Beamud Montero <antonio.beamud at linkend.com>
+
+   * filter/filter_compare.c:
+   Support for multiple instances. Its now possible to use the
+   filter multiple times during a transcode run.
+
+2003-08-29 marrq <marrq at ugcs.caltech.edu>
+
+   * INSTALL:
+   Info about how to get access to the CVS tree.
+
 2003-08-27 Tilmann Bitterberg <transcode at tibit.org>
 
    * filter/filter_mask.c:

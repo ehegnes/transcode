@@ -89,6 +89,15 @@ Use `tcmodinfo -p' to find out the modpath of your transcode installation
 
 man pages into ${prefix}/share/man/man1
 
+GETTING UP TO DATE:
+-------------------
+
+Currently the most up to date releases can be bound at:
+http://zebra.fh-weingarten.de/~transcode/#snapshots
+
+and information on how to checkout the latest changes via
+anonymous CVS can be found at:
+http://zebra.fh-weingarten.de/~transcode/#cvs
 
 LINKS:
 --------------------

@@ -23,7 +23,7 @@
  */
 
 #define MOD_NAME    "filter_compare.so"
-#define MOD_VERSION "v0.1.1 (2003-08-26)"
+#define MOD_VERSION "v0.1.2 (2003-08-29)"
 #define MOD_CAP     "compare with other image to find a pattern"
 #define MOD_AUTHOR  "Antonio Beamud"
 
@@ -51,6 +51,7 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "filter.h"
 #include "optstr.h"
 #include <magick/api.h>
 
@@ -82,7 +83,7 @@ typedef struct compareData {
 	
 } compareData;
 
-static compareData *compare = NULL;
+static compareData *compare[MAX_FILTER];
 extern int rgbswap;
 
 /*-------------------------------------------------
@@ -112,6 +113,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	//PixelPacket *pixpat;
 	char *pattern_name;
 	char *results_name;
+
+	int instance = ptr->filter_id;
 	
 	Image *pattern, *resized, *orig;
 	ImageInfo *image_info;
@@ -129,8 +132,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 		optstr_param(options, "pattern", "Pattern image file path", "%s", buf);
 		snprintf(buf, 128, "results.dat");
 		optstr_param(options, "results", "Results file path" , "%s", buf);
-		snprintf(buf, 128, "%f",compare->delta);
-		optstr_param(options, "delta", "Delta error", "%f",buf,"0.0","100.0");
+		snprintf(buf, 128, "%f", compare[instance]->delta);
+		optstr_param(options, "delta", "Delta error", "%f",buf,"0.0", "100.0");
 		return 0;
 	}
   
@@ -147,22 +150,22 @@ int tc_filter(vframe_list_t *ptr, char *options)
 		unsigned int t,r,index;
 		pixelsMask *temp;
 
-		if((compare = (compareData *)malloc(sizeof(compareData))) == NULL)
+		if((compare[instance] = (compareData *)malloc(sizeof(compareData))) == NULL)
 			return (-1);
 		
-		if((compare->vob = tc_get_vob())==NULL) return(-1);
+		if((compare[instance]->vob = tc_get_vob())==NULL) return(-1);
 		
 
-		compare->delta=DELTA_COLOR;
-		compare->step=1;
-		compare->width=0;
-		compare->height=0;
-		compare->frames = 0;
-		compare->pixel_mask = NULL;
+		compare[instance]->delta=DELTA_COLOR;
+		compare[instance]->step=1;
+		compare[instance]->width=0;
+		compare[instance]->height=0;
+		compare[instance]->frames = 0;
+		compare[instance]->pixel_mask = NULL;
 		pixel_last = NULL;
 		
-		compare->width = compare->vob->ex_v_width;
-		compare->height = compare->vob->ex_v_height;
+		compare[instance]->width = compare[instance]->vob->ex_v_width;
+		compare[instance]->height = compare[instance]->vob->ex_v_height;
 
 		if (options != NULL) {
 			char pattern_name[PATH_MAX];
@@ -174,13 +177,13 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	
 			optstr_get(options, "pattern", "%[^:]", &pattern_name);
 			optstr_get(options, "results", "%[^:]", &results_name);
-			optstr_get(options, "delta", "%f", &compare->delta);
+			optstr_get(options, "delta", "%f", &compare[instance]->delta);
 			
 			if (verbose > 1) {
 			printf("Compare Image Settings:\n");
 			printf("      pattern = %s\n", pattern_name);
 			printf("      results = %s\n", results_name);
-			printf("        delta = %f\n", compare->delta);
+			printf("        delta = %f\n", compare[instance]->delta);
 			}		
 			
 			if (strlen(results_name) == 0) {
@@ -188,7 +191,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 				strcpy(results_name,"/tmp/compare.dat");
 				
 			}
-			if (!(compare->results = fopen(results_name, "w")))
+			if (!(compare[instance]->results = fopen(results_name, "w")))
 			{
 				perror("could not open file for writing");
 			}
@@ -225,16 +228,16 @@ int tc_filter(vframe_list_t *ptr, char *options)
 			}
 		
 		
-		fprintf(compare->results,"#fps:%f\n",compare->vob->fps);
+		fprintf(compare[instance]->results,"#fps:%f\n",compare[instance]->vob->fps);
 		
 		if (orig != NULL){
                         // Flip and resize
-			if (compare->vob->im_v_codec == CODEC_YUV)
+			if (compare[instance]->vob->im_v_codec == CODEC_YUV)
 				TransformRGBImage(orig,YCbCrColorspace);
 			if (verbose > 1) printf("[%s] Resizing the Image\n", MOD_NAME);
 			resized = ResizeImage(orig,
-					      compare->width,
-					      compare->height,
+					      compare[instance]->width,
+					      compare[instance]->height,
 					      GaussianFilter,
 					      1,
 					      &exception_info);
@@ -270,7 +273,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 						
 						if (pixel_last == NULL){
 							pixel_last = temp;
-							compare->pixel_mask = temp;
+							compare[instance]->pixel_mask = temp;
 						}else{
 							pixel_last->next = temp;
 							pixel_last = temp;
@@ -296,12 +299,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	
 	if(ptr->tag & TC_FILTER_CLOSE) {
 		
-		if (compare != NULL) {
-			fclose(compare->results);
-			free(compare);
+		if (compare[instance] != NULL) {
+			fclose(compare[instance]->results);
+			free(compare[instance]);
 		}
 		DestroyMagick();
-		compare=NULL;
+		compare[instance]=NULL;
 		
 		return(0);
 
@@ -324,21 +327,21 @@ int tc_filter(vframe_list_t *ptr, char *options)
 		double sr,sg,sb;
 		double avg_dr,avg_dg,avg_db;
 					
-		if (compare->vob->im_v_codec == CODEC_RGB){
+		if (compare[instance]->vob->im_v_codec == CODEC_RGB){
 			
 			int index,r,g,b,c,col;
 			double width_long;
 			
-			if (compare->pixel_mask != NULL)
+			if (compare[instance]->pixel_mask != NULL)
 			{
-				item = compare->pixel_mask;
+				item = compare[instance]->pixel_mask;
 				c = 0;
 				
 				sr = 0.0;
 				sg = 0.0;
 				sb = 0.0;
 				
-				width_long = compare->width*3;
+				width_long = compare[instance]->width*3;
 				while(item){
 					r = item->row*width_long + item->col*3;
 					g = item->row*width_long 
@@ -359,13 +362,13 @@ int tc_filter(vframe_list_t *ptr, char *options)
 				avg_dg = sg/(double)c;
 				avg_db = sb/(double)c;
 			
-				if ((avg_dr < compare->delta) && (avg_dg < compare->delta) && (avg_db < compare->delta))
-					fprintf(compare->results,"1");
+				if ((avg_dr < compare[instance]->delta) && (avg_dg < compare[instance]->delta) && (avg_db < compare[instance]->delta))
+					fprintf(compare[instance]->results,"1");
 				else
-					fprintf(compare->results,"n");
-				fflush(compare->results);
+					fprintf(compare[instance]->results,"n");
+				fflush(compare[instance]->results);
 			}
-			compare->frames++;
+			compare[instance]->frames++;
 			return(0);
 		}else{
 			
@@ -376,9 +379,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
   			
 			int index,Y,Cr,Cb,c,col;
 						
-			if (compare->pixel_mask != NULL)
+			if (compare[instance]->pixel_mask != NULL)
 			{
-				item = compare->pixel_mask;
+				item = compare[instance]->pixel_mask;
 				c = 0;
 				
 				sr = 0.0;
@@ -386,12 +389,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
 				sb = 0.0;
 				
 				while(item){
-					Y  = item->row*compare->width + item->col;
-					Cb = compare->height*compare->width
-						+ (int)((item->row*compare->width + item->col)/4);
-					Cr = compare->height*compare->width
-						+ (int)((compare->height*compare->width)/4)
-						+ (int)((item->row*compare->width + item->col)/4);
+					Y  = item->row*compare[instance]->width + item->col;
+					Cb = compare[instance]->height*compare[instance]->width
+						+ (int)((item->row*compare[instance]->width + item->col)/4);
+					Cr = compare[instance]->height*compare[instance]->width
+						+ (int)((compare[instance]->height*compare[instance]->width)/4)
+						+ (int)((item->row*compare[instance]->width + item->col)/4);
 
 				        // diff between points
 				        // Interchange RGB values if necesary
@@ -407,12 +410,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
 				avg_dg = sg/(double)c;
 				avg_db = sb/(double)c;
 			
-				if ((avg_dr < compare->delta) && (avg_dg < compare->delta) && (avg_db < compare->delta))
-					fprintf(compare->results,"1");
+				if ((avg_dr < compare[instance]->delta) && (avg_dg < compare[instance]->delta) && (avg_db < compare[instance]->delta))
+					fprintf(compare[instance]->results,"1");
 				else
-					fprintf(compare->results,"n");
+					fprintf(compare[instance]->results,"n");
 			}
-			compare->frames++;
+			compare[instance]->frames++;
 			return(0);
 			
 		}

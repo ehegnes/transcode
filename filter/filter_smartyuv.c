@@ -21,7 +21,7 @@
 */
 
 #define MOD_NAME    "filter_smartyuv.so"
-#define MOD_VERSION "0.1.0 (2003-08-27)"
+#define MOD_VERSION "0.1.2 (2003-08-28)"
 #define MOD_CAP     "Motion-adaptive deinterlacing"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
@@ -47,7 +47,8 @@
 
 //#undef HAVE_MMX
 
-// mmx gives a speedup of about 2 fps
+// mmx gives a speedup of about 3 fps
+// when running without highq, mmx gives 12 fps
 
 #ifdef HAVE_MMX
 # include "mmx.h"
@@ -57,6 +58,7 @@
 # define emms() do{}while(0)
 #endif
 
+#define rdtscll(val) __asm__ __volatile__("rdtsc" : "=A" (val))
 
 static vob_t *vob=NULL;
 
@@ -118,7 +120,7 @@ static void help_optstr(void)
 {
    printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
    printf ("* Overview\n");
-   printf ("   New filter smartyuv. This filter is basically a rewrite of the\n");
+   printf ("   This filter is basically a rewrite of the\n");
    printf ("   smartdeinter filter by Donald Graft (without advanced processing\n");
    printf ("   options) for YUV mode only. Its faster than using the smartdeinter\n");
    printf ("   in YUV mode and is also tuned with its threshold settings for YUV\n");
@@ -136,9 +138,9 @@ static void help_optstr(void)
    printf ("   scenechanges go by unnoticed, lower the scene threshold. You can\n");
    printf ("   completly disable chroma processing with the doChroma=0 option.\n");
    printf ("   Here is a sample commandline\n");
-   printf ("   -J smartyuv=hiqhq=1:diffmode=2:cubic=1:Blend=1:chromathres=4:threshold=8:doChroma=1\n");
+   printf ("   -J smartyuv=highq=1:diffmode=2:cubic=1:Blend=1:chromathres=4:threshold=8:doChroma=1\n");
    printf ("* Options\n");
-   printf ("  'motionOnly' Show motion areas only (0=off, 1=on) [1]\n");
+   printf ("  'motionOnly' Show motion areas only (0=off, 1=on) [0]\n");
    printf ("    'diffmode' Motion Detection (0=frame, 1=field, 2=both) [0]\n");
    printf ("   'threshold' Motion Threshold (luma) (0-255) [14]\n");
    printf (" 'chromathres' Motion Threshold (chroma) (0-255) [7]\n");
@@ -151,6 +153,150 @@ static void help_optstr(void)
 
 }
 
+static void Erode_Dilate (uint8_t *_moving, uint8_t *_fmoving, int width, int height)
+{
+    int sum, x, y;
+    uint8_t  *m, *fmoving, *moving, *p;
+    int w4 = width+4;
+    int can_use_mmx = !(width%4);
+
+    // Erode.
+    fmoving = _fmoving;
+    moving = _moving;
+    p = moving - 2*w4 -2;
+
+    for (y = 0; y < height; y++)
+    {
+#ifdef HAVE_MMX
+	/*
+	 * The motion map as either 1 or 0.
+	 * moving[x] is the current position.
+	 * to decide if fmoving[x] should be 1, we need to sum up all 24 values.
+	 * Because of mmx, we can do that also with the next 3 positions since
+	 * the values are read in memory anyway.
+	 */
+
+	if (can_use_mmx) {
+	    for (x = 0; x < width; x+=4)
+	    {
+		uint8_t  res[8];
+
+		memcpy(fmoving, moving, 4);
+
+		m = p;
+
+		movq_m2r   (*m, mm0); m += w4;
+		paddusb_m2r(*m, mm0); m += w4;
+		paddusb_m2r(*m, mm0); m += w4;
+		paddusb_m2r(*m, mm0); m += w4;
+		paddusb_m2r(*m, mm0);
+
+		movq_r2m(mm0, *res);
+
+		if (*moving++) {
+		    res[0]+=res[1];
+		    res[0]+=res[2];
+		    res[0]+=res[3];
+		    res[0]+=res[4];
+		    *fmoving = (res[0] > 7);
+		}
+		fmoving++;
+
+		if (*moving++) {
+		    res[1]+=res[2];
+		    res[1]+=res[3];
+		    res[1]+=res[4];
+		    res[1]+=res[5];
+		    *fmoving = (res[1] > 7);
+		}
+		fmoving++;
+
+		if (*moving++) {
+		    res[2]+=res[3];
+		    res[2]+=res[4];
+		    res[2]+=res[5];
+		    res[2]+=res[6];
+		    *fmoving = (res[2] > 7);
+		}
+		fmoving++;
+
+		if (*moving++) {
+		    res[3]+=res[4];
+		    res[3]+=res[5];
+		    res[3]+=res[6];
+		    res[3]+=res[7];
+		    *fmoving = (res[3] > 7);
+		}
+		fmoving++;
+
+		p += 4;
+
+	    }
+	    fmoving += 4;
+	    moving += 4;
+	    p += 4;
+	} else 
+#endif
+	{
+	    for (x = 0; x < width; x++)
+	    {
+
+		if (!(fmoving[x] = moving[x]) )
+		    continue;
+
+		m = moving + x - 2*w4 -2;
+		sum = 1;
+
+		//sum += m[0] + m[1] + m[2] + m[3] + m[4];
+		//max sum is 25 or better 1<<25
+		sum <<= m[0]; sum <<= m[1]; sum <<= m[2]; sum <<= m[3]; sum <<= m[4];
+		m += w4;
+		sum <<= m[0]; sum <<= m[1]; sum <<= m[2]; sum <<= m[3]; sum <<= m[4];
+		m += w4;
+		sum <<= m[0]; sum <<= m[1]; sum <<= m[2]; sum <<= m[3]; sum <<= m[4];
+		m += w4;
+		sum <<= m[0]; sum <<= m[1]; sum <<= m[2]; sum <<= m[3]; sum <<= m[4];
+		m += w4;
+		sum <<= m[0]; sum <<= m[1]; sum <<= m[2]; sum <<= m[3]; sum <<= m[4];
+
+		// check if the only bit set has an index of 8 or greater (threshold is 7)
+		fmoving[x] = (sum > 128);
+	    }
+	    fmoving += w4;
+	    moving += w4;
+
+	} // else can use mmx
+
+    }
+    emms();
+
+
+    // Dilate.
+    fmoving = _fmoving;
+    moving = _moving;
+    for (y = 0; y < height; y++)
+    {
+	for (x = 0; x < width; x++)
+	{
+	    if ((moving[x] = fmoving[x])) {
+
+		m = moving + x - 2*w4 -2;
+
+		memset(m, 1, 5);
+		m += w4;
+		memset(m, 1, 5);
+		m += w4;
+		memset(m, 1, 5);
+		m += w4;
+		memset(m, 1, 5);
+		m += w4;
+		memset(m, 1, 5);
+	    }
+	}
+	moving += w4;
+	fmoving += w4;
+    }
+}
 static void inline Blendline_c (uint8_t *dst, uint8_t *src, uint8_t *srcminus, uint8_t *srcplus, 
 	                 uint8_t *moving, uint8_t *movingminus, uint8_t *movingplus, const int w, const int scenechange)
 {
@@ -187,19 +333,18 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 
 	char			*src, *dst, *srcminus=NULL, *srcplus, *srcminusminus=NULL, *srcplusplus=NULL;
 	unsigned char		*moving, *movingminus, *movingplus;
-	unsigned char		*fmoving, *mm, *fm;
+	unsigned char		*fmoving;
 	char    		*prev;
 	int			scenechange=0;
-	long			count;
+	long			count=0;
 	int			x, y;
-	int			nextValue, prevValue, luma, luman, lumap, T;
-	int 			p0, p1, p2;
+	int			luma, luman, lumap, T;
+	int 			p1, p2;
 	int 			rp, rn, rpp, rnn, R;
-	unsigned char		frMotion, fiMotion;
+	unsigned char		fiMotion;
 	int			cubic = mfd->cubic;
 	static int 		counter=0;
 	const int		can_use_mmx = !(w%8); // width must a multiple of 8
-	int                     msize;
 
 
 	char * dst_buf;
@@ -509,7 +654,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		else scenechange = 0;
 
 		if (scenechange && mfd->verbose) 
-		    printf("[%s] Scenechange at %6d (%6d moving pixels)\n", MOD_NAME, counter, count);
+		    printf("[%s] Scenechange at %6d (%6ld moving pixels)\n", MOD_NAME, counter, count);
 		/*
 		printf("Frame (%04d) count (%8ld) sc (%d) calc (%02ld)\n", 
 				counter, count, scenechange, (100 * count) / (h * w));
@@ -519,71 +664,14 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		/* Perform a denoising of the motion map if enabled. */
 		if (!scenechange && mfd->highq)
 		{
-			int sum;
-			uint8_t  *m;
-			int w4 = w+4;
-			
-			// this isn't exacly the same output like the original
-			// but just because the original was buggy -- tibit
+		    //uint64_t before = 0;
+		    //uint64_t after = 0;
+		    //rdtscll(before);
 
-			// Erode.
-			fmoving = _fmoving;
-			moving = _moving;
-			for (y = 0; y < h; y++)
-			{
-			    for (x = 0; x < w; x++)
-			    {
+		    Erode_Dilate(_moving, _fmoving, w, h);
 
-				if (!(fmoving[x] = moving[x]) )
-				    continue;
-
-				m = moving + x - 2*w4 -2;
-				sum = 1;
-
-				//sum += m[0] + m[1] + m[2] + m[3] + m[4];
-				//max sum is 25 or better 1<<25
-				sum <<= m[0]; sum <<= m[1]; sum <<= m[2]; sum <<= m[3]; sum <<= m[4];
-				m += w4;
-				sum <<= m[0]; sum <<= m[1]; sum <<= m[2]; sum <<= m[3]; sum <<= m[4];
-				m += w4;
-				sum <<= m[0]; sum <<= m[1]; sum <<= m[2]; sum <<= m[3]; sum <<= m[4];
-				m += w4;
-				sum <<= m[0]; sum <<= m[1]; sum <<= m[2]; sum <<= m[3]; sum <<= m[4];
-				m += w4;
-				sum <<= m[0]; sum <<= m[1]; sum <<= m[2]; sum <<= m[3]; sum <<= m[4];
-
-				// check if the only bit set has an index of 8 or greater (threshold is 7)
-				fmoving[x] = (sum > 128);
-			    }
-			    fmoving += w4;
-			    moving += w4;
-			}
-			// Dilate.
-			fmoving = _fmoving;
-			moving = _moving;
-			for (y = 0; y < h; y++)
-			{
-			    for (x = 0; x < w; x++)
-			    {
-				if (!(moving[x] = fmoving[x]) )
-				    continue;
-
-				m = moving + x - 2*w4 -2;
-
-				//memset(m, 1, 5);
-				*(unsigned int *)m = 0x01010101; m[4] = 1;
-				m += w4;
-				*(unsigned int *)m = 0x01010101; m[4] = 1;
-				m += w4;
-				*(unsigned int *)m = 0x01010101; m[4] = 1;
-				m += w4;
-				*(unsigned int *)m = 0x01010101; m[4] = 1;
-				m += w4;
-				*(unsigned int *)m = 0x01010101; m[4] = 1;
-			    }
-			    moving += w4;
-			    fmoving += w4;
-			}
+		    //rdtscll(after);
+		    //printf("%6d : %8lld\n", count, after-before);
 		}
 	}
 	if (mfd->diffmode == FIELD_ONLY) {
@@ -803,6 +891,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	
 	if (mfd->Blend)
 	{
+	    // linear blend, see Blendline_c for a plainC version
 	    for (y = 1; y < hminus1; y++)
 	    {
 #ifdef HAVE_MMX
@@ -811,98 +900,61 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		uint64_t scmask = (scenechange<<24) | (scenechange<<16) | (scenechange<<8) | scenechange;
 		scmask = (scmask << 32) | scmask;
 
+		pcmpeqw_r2r(mm4, mm4);
+		psrlw_i2r(9,mm4);
+		packuswb_r2r(mm4, mm4);         // build 0x7f7f7f7f7f7f7f7f
+
+		pcmpeqw_r2r(mm6, mm6);
+		psrlw_i2r(10,mm6);
+		packuswb_r2r(mm6, mm6);         // build 0x3f3f3f3f3f3f3f3f
+
 		for (x=0; x<w; x+=8) {
 
 		    movq_m2r(scmask, mm0);          // has a scenechange happend?
 
-		    movq_m2r(src     [x], mm1);
-		    movq_m2r(srcminus[x], mm2);
-		    movq_m2r(srcplus [x], mm3);
+		    pxor_r2r(mm5, mm5);             // clear mm5
 
-		    por_m2r(movingminus[x], mm0);   // motion detected?
-		    por_m2r(moving     [x], mm0);
-		    por_m2r(movingplus [x], mm0);
-
-		    movq_r2r(mm0, mm5);
-		    movq_r2r(mm1, mm6);
-
-		    punpcklbw_r2r (mm0, mm0);
-		    punpcklbw_r2r (mm1, mm1);
-		    punpckhbw_r2r (mm5, mm5);
-		    punpckhbw_r2r (mm6, mm6);
-
-		    psrlw_i2r(8, mm0); // same as & 0x00ff00ff00ff00ff
-		    psrlw_i2r(8, mm1);
-		    psrlw_i2r(8, mm5);
-		    psrlw_i2r(8, mm6);
-
-		    psllw_i2r(15, mm0); // make FF's
-		    psllw_i2r(15, mm5); // make FF's
-		    psraw_i2r(15, mm0);
-		    psraw_i2r(15, mm5);
+		    por_m2r (moving     [x], mm0);
+		    movq_m2r(src        [x], mm1);   // load src
+		    por_m2r (movingminus[x], mm0);   // motion detected?
+		    movq_m2r(src        [x-w], mm2);   // load srcminus
+		    por_m2r (movingplus [x], mm0);
+		    movq_m2r(src        [x+w], mm3);   // load srcplus
 
 		    movq_r2r (mm1, mm7);
 
-		    pcmpeqw_r2r(mm4, mm4); // make all ff's
-		    psubw_r2r  (mm0, mm4);   // inverse mask
-		    pand_r2r   (mm4, mm1); 
-		    pand_r2r   (mm0, mm7); 
-		    psrlw_i2r  (1,   mm7);
-		    por_r2r    (mm7, mm1);
+		    pcmpgtb_r2r(mm5, mm0);  // make FF out 1 and 0 out of 0
 
-		    movq_r2r (mm6, mm7);
-		    pcmpeqw_r2r(mm4, mm4); // make all ff's
-		    psubw_r2r  (mm5, mm4);   // inverse mask
-		    pand_r2r   (mm4, mm6); 
-		    pand_r2r   (mm5, mm7); 
+		    pcmpeqw_r2r(mm5, mm5);  // make all ff's (recycle mm5)
+		    psubb_r2r  (mm0, mm5);  // inverse mask
+		    pand_r2r   (mm0, mm7); 
+		    pand_r2r   (mm5, mm1); 
 		    psrlw_i2r  (1,   mm7);
-		    por_r2r    (mm7, mm6);
+
+		    pand_r2r   (mm4, mm7);  // clear highest bit
+		    por_r2r    (mm7, mm1);  // merge src>>1 and src together dependand on moving mask
 
 		    // mm0: mask, if 0 don't shift, if ff shift
-		    // mm1: complete src[0..4]
+		    // mm1: complete src
 		    // mm2: srcminus
 		    // mm3: srcplus
-		    // mm4: free
-		    // mm5: mask of moving+4.
-		    // mm6: src+4 complete
+		    // mm4: 0x7f mask
+		    // mm5: free
+		    // mm6: 0x3f mask
 		    // mm7: free
 
 		    // handle srcm(inus) and srcp(lus)
-		    movq_r2r (mm2, mm4);
-		    movq_r2r (mm3, mm7);
-
-		    punpcklbw_r2r (mm2, mm2);
-		    punpcklbw_r2r (mm3, mm3);
-		    punpckhbw_r2r (mm4, mm4);
-		    punpckhbw_r2r (mm7, mm7);
-
-		    psrlw_i2r(8, mm2);
-		    psrlw_i2r(8, mm3);
-		    psrlw_i2r(8, mm4);
-		    psrlw_i2r(8, mm7);
 
 		    pand_r2r (mm0, mm2);
-		    pand_r2r (mm5, mm4);
 		    pand_r2r (mm0, mm3);
-		    pand_r2r (mm5, mm7);
 
 		    psrlw_i2r(2,   mm2);  // srcm>>2
-		    psrlw_i2r(2,   mm4);  
 		    psrlw_i2r(2,   mm3);  // srcp>>2
-		    psrlw_i2r(2,   mm7);
+		    pand_r2r (mm6, mm2);  // clear highest two bits
+		    pand_r2r (mm6, mm3);
 
-		    paddusw_r2r (mm2, mm1);   // src>>1 + srcn>>2 + srcp>>2
-		    paddusw_r2r (mm3, mm1);
-		    packuswb_r2r(mm1, mm1);   // pack to bytes
-
-		    paddusw_r2r (mm4, mm6);
-		    paddusw_r2r (mm7, mm6);
-		    packuswb_r2r(mm6, mm6);   // pack to bytes
-
-		    psrlq_i2r(32, mm1);
-		    psllq_i2r(32, mm6);
-
-		    por_r2r(mm6, mm1); // merge
+		    paddusb_r2r (mm2, mm1);   // src>>1 + srcn>>2 + srcp>>2
+		    paddusb_r2r (mm3, mm1);
 
 		    movq_r2m(mm1, dst[x]);
 
@@ -1123,17 +1175,19 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	// o  Erode+dilate
 	//      orig: 55.847.077
 	//       now: 21.764.997
+	//  Erodemmx: 18.765.878
 	// o  Blending
 	//      orig: 8.162.287
 	//       now: 5.384.433
 	//       mmx: 4.569.875
+	//   new mmx: 3.656.537
 	// o  Cubic interpolation
 	//      orig: 7.487.338
 	//       now: 6.684.908
 	//      more: 3.554.580
 	//
 	// Overall improvement in transcode:
-	// 11.57 -> 20.34 frames per second for the test clip.
+	// 11.57 -> 22.78 frames per second for the test clip.
 	//
 
 	// filter init ok.
