@@ -2,6 +2,12 @@
 transcode-0.6.12
 
 2003-12-24 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * contrib/tccomplete.source:
+  New file which enables bash completion for transcode. Usage
+  instructions at the beginning of the script.
+
+2003-12-24 Tilmann Bitterberg <transcode at tibit.org>
 
   * configure.in config.h.in import/v4l/import_v4l2.c:
   Check if the system's videodev2.h header provides a struct

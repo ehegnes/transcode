@@ -1,0 +1,425 @@
+# transcode commandline comletion.
+#
+# source this file with
+# . tccomplete.source
+# or
+# source tccomplete.source
+#
+# (c) 2003 Tilmann Bitterberg <transcode at tibit.org>
+# Version 0.2 
+# Wed Dec 24 11:53:08 CET 2003
+
+
+
+complete -o default -F _transcode transcode
+
+#make this to runtime?
+#tcargs=$(transcode -h 2>/dev/null \
+#      | sed -e 's,^ *,,' -e 's, .*,,' -e '/^ *$/d' -e /Usage/d -e /options:/d \
+#      | tr '\n' ' ')
+
+
+function _transcode_clipping {
+       if test x$3 = x; then
+	  COMPREPLY=(`compgen -W "top[,left[,bottom[,right]]] 0,0,0,0" -- $3`)
+       else
+	  t=$(echo ${3} | sed 's#, *$##');
+          case $t in 
+	  *,*,*,*)
+	     COMPREPLY=$(echo $t | sed 's/^\([^,]*,[^,]*,[^,]*,[^,]*\),.*/\1/');
+	  ;;
+	  *,*,*)
+	     COMPREPLY=$(echo $t | sed 's/[^,]*,\([^,]*\),[^,]*/&,\1/');
+	  ;;
+	  *,*)
+	     COMPREPLY="$t,$t";
+	  ;;
+	  *)
+	     COMPREPLY="$t,$t,$t,$t";
+	  ;;
+	  esac
+       fi
+}
+
+function _transcode_args {
+  # echo "SUB|$1:$2:$3|SUB" >> log
+
+  noarg=1
+
+  case $2 in
+     -i)
+	noarg=0
+	;;
+     -H)
+        COMPREPLY=($(compgen -W "0 5 10 15 20 30 40 50 60 70 80 90" -- $3))
+        noarg=0
+	;;
+     -p)
+	noarg=0
+	;;
+     -x)
+	noarg=0
+	margs=$(ls `tcmodinfo -p`/import_*.so | sed -e 's,.*/import_\([^.]*\)\.so,\1,g' | tr '\n' ' ')
+	t=$3
+	s=$t
+	s=${t//,*/}
+	t=${t//,*,/}
+	case $t in
+	  *,*)
+	  COMPREPLY=($(compgen -P "$s," -W "$margs auto" -- ${t//*,/}))
+	  ;;
+	  *)
+	  COMPREPLY=($(compgen -S "," -W "$margs auto" -- $t))
+	  ;;
+	esac;
+	unset margs s t
+	;;
+     -a)
+        COMPREPLY=($(compgen -W "0 1 2 3 4 5 6 7 8 9" -- $3))
+	noarg=0
+	;;
+     --dvd_access_delay)
+        COMPREPLY=($(compgen -W "0 1 2 3 4 5 6 7 8 9" -- $3))
+	noarg=0
+	;;
+     -e)
+        COMPREPLY=($(compgen -W "rate[,bits[,channels]] 48000,16,2" -- $3))
+	noarg=0
+	;;
+     -E)
+        COMPREPLY=($(compgen -W "rate[,bits[,channels]] 48000,16,2" -- $3))
+	noarg=0
+	;;
+     -n)
+        COMPREPLY=($(compgen -W "0x1 0x50 0x55 0x2000 0xfffe" -- $3))
+	noarg=0
+	;;
+     -N)
+        COMPREPLY=($(compgen -W "0x1 0x50 0x55 0x2000 0xfffe" -- $3))
+	noarg=0
+	;;
+     -b)
+        COMPREPLY=($(compgen -W "kBits/s[,vbr[,quality[,mode]]] 128,0,5,0" -- $3))
+	noarg=0
+	;;
+     --lame_preset)
+	noarg=0
+	COMPREPLY=($(compgen -W "8 16 24 32 40 48 56 64 80 96 112 128 160 192 224 256 320 medium standard extreme insane" -- $3))
+	;;
+     -g)
+        COMPREPLY=($(compgen -W "WIDTHxHEIGHT 720x576" -- $3))
+	noarg=0
+	;;
+     *port_asr) #import/export_asr
+        COMPREPLY=($(compgen -W "0 1 2 3 4" -- $3))
+	noarg=0
+	;;
+     -f)
+        COMPREPLY=($(compgen -W "23.976,1 24,2 25,3 29.970,4 30,5 50,6 59.940,7 60,8" -- $3))
+	noarg=0
+	;;
+     --export_fps)
+        COMPREPLY=($(compgen -W "23.976,1 24,2 25,3 29.970,4 30,5 50,6 59.940,7 60,8" -- $3))
+	noarg=0
+	;;
+     --export_frc)
+        COMPREPLY=($(compgen -W "1 2 3 4 5 6 7 8 9 10 11 12 13 13" -- $3))
+	noarg=0
+	;;
+     -o)
+	noarg=0
+	;;
+     -m)
+	noarg=0
+	;;
+     -y)
+	noarg=0
+	margs=$(ls `tcmodinfo -p`/export_*.so | sed -e 's,.*/export_\([^.]*\)\.so,\1,g' | tr '\n' ' ')
+	t=$3
+	s=$t
+	s=${t//,*/}
+	t=${t//,*,/}
+	case $t in
+	  *,*)
+	  COMPREPLY=($(compgen -P "$s," -W "$margs" -- ${t//*,/}))
+	  ;;
+	  *)
+	  COMPREPLY=($(compgen -S "," -W "$margs" -- $t))
+	  ;;
+	esac;
+	unset margs s t
+	;;
+     -F)
+       a=0;
+       while test $a -lt ${#COMP_WORDS[*]}; do
+	  if test x${COMP_WORDS[$a]} = x"-y";
+	  then
+	     test x${COMP_WORDS[$((a+1))]:0:6} = x"ffmpeg" && \
+	      COMPREPLY=($(compgen -W "mpeg4 msmpeg4 msmpeg4v2 mjpeg mpeg1video mpeg2video h263 h263p wmv1 wmv2 rv10 huffyuv dvvideo" -- $3)) && break;
+	     test x${COMP_WORDS[$((a+1))]:0:8} = x"mpeg2enc" && \
+	      COMPREPLY=($(compgen -W "0 1 2 3 4 5 6 7 8" -- $3)) && break;
+	     test x${COMP_WORDS[$((a+1))]:0:4} = x"mpeg" && \
+	      COMPREPLY=($(compgen -W "1 b v s 2 d" -- $3)) && break;
+	     test x${COMP_WORDS[$((a+1))]:0:2} = x"im" && \
+	      COMPREPLY=($(compgen -W "app1 avs bie bmp cmyk cmyka dcx dib epdf epi eps eps2 eps3 epsf epsi ept fax fits fpx g3 gif gif87 gray h hdf histogram htm html icb icm iptc jbg jbig jp2 jpc jpeg jpg logo m2v map mat matte miff mng mono mpc mpeg mpg mtv mvg otb p7 pal palm pbm pcd pcds pcl pct pcx pdf pgm picon pict pm png pnm ppm preview ps ps2 ps3 psd ptif ras rgb rgba rose sgi shtml sun svg text tga tif tiff tile txt uil uyvy vda vicar vid viff vst wbmp x xbm xpm xv xwd yuv" -- $3)) && break;
+	     test x${COMP_WORDS[$((a+1))]:0:3} = x"jpg" && \
+	      COMPREPLY=($(compgen -W "10 20 30 40 50 60 70 75 80 90 100" -- $3)) && break;
+	     test x${COMP_WORDS[$((a+1))]:0:4} = x"xvid" && \
+	      COMPREPLY=($(compgen -W "raw" -- $3)) && break;
+	  fi
+          a=$((a+1));
+        done;
+        # echo XX:word[$a]=${COMP_WORDS[$a]}:XX >> log;
+	unset a
+	noarg=0
+	;;
+     --avi_limit)
+        COMPREPLY=($(compgen -W "703 651 1024 2048" -- $3))
+	noarg=0
+	;;
+     --avi_comments)
+	noarg=0
+	;;
+     -s)
+        COMPREPLY=($(compgen -W "gain,[center,front,rear] 1,1,1,1" -- $3))
+	noarg=0
+	;;
+     -u)
+        COMPREPLY=($(compgen -W "framebuffer[,threads] 10,1" -- $3))
+	noarg=0
+	;;
+     -J) # unfinished but works somehow
+	case $3 in
+	*=*)
+	   t=$3
+	   s=${t//*=/}
+	   t=${t//=*/}
+	   t=${t//\\\\/}
+	   # echo "J|s=$s:t=$t:3=$3|" >> log
+	   margs=$(tcmodinfo -i $t | sed -n -e '/START/,/END/p' | sed -e '/filter_/d' -e /START/d -e /END/d -e 's,"\([^"]*\)".*,\1,' | tr '\n' ' ')
+	   COMPREPLY=($(compgen -P "$t\\=" -W "$margs" -- $s));
+	;;
+	*)
+	   margs=$(ls `tcmodinfo -p`/filter_*.so | sed -e 's,.*/filter_\([^.]*\)\.so,\1,g' | tr '\n' ' ')
+	   COMPREPLY=($(compgen -S "\=" -W "$margs" -- $3));
+	;;
+	esac
+	noarg=0;
+	unset t margs
+	;;
+     -P)
+       COMPREPLY=(`compgen -W "1 2 3" -- $3`)
+       noarg=0;
+       ;;
+     -D)
+       COMPREPLY=(`compgen -W "NUM_FRAMES 0" -- $3`)
+       noarg=0;
+       ;;
+     --av_fine_ms)
+       COMPREPLY=(`compgen -W "MS 0" -- $3`)
+       noarg=0;
+       ;;
+     -M)
+       COMPREPLY=(`compgen -W "0 1 2 3 4" -- $3`)
+       noarg=0;
+       ;;
+     -r)
+       COMPREPLY=(`compgen -W "n[,m] 1,1" -- $3`)
+       noarg=0;
+       ;;
+     -B)
+       COMPREPLY=(`compgen -W "n[,m[,M]] 0,0,32" -- $3`)
+       noarg=0;
+       ;;
+     -X)
+       COMPREPLY=(`compgen -W "n[,m[,M]] 0,0,32" -- $3`)
+       noarg=0;
+       ;;
+     -Z)
+       COMPREPLY=(`compgen -W "WxH[,fast] 576x432,fast" -- $3`)
+       noarg=0;
+       ;;
+     --zoom_filter)
+       COMPREPLY=(`compgen -W "Bell Box Lanczos3 Mitchell Hermite B_spline Triangle" -- $3`)
+	noarg=0
+       ;;
+     -C)
+       COMPREPLY=(`compgen -W "1 2 3" -- $3`)
+       noarg=0;
+       ;;
+     -C)
+       COMPREPLY=(`compgen -W "1 2 3 4 5" -- $3`)
+       noarg=0;
+       ;;
+     -G)
+       COMPREPLY=(`compgen -W "1.0 0.9 1.1" -- $3`)
+       noarg=0;
+       ;;
+     -j)
+       _transcode_clipping $1 $2 $3
+       noarg=0;
+       ;;
+     -Y)
+       _transcode_clipping $1 $2 $3
+       noarg=0;
+       ;;
+     --pre_clip)
+       _transcode_clipping $1 $2 $3
+       noarg=0;
+       ;;
+     --post_clip)
+       _transcode_clipping $1 $2 $3
+       noarg=0;
+       ;;
+     -w)
+       COMPREPLY=(`compgen -W "bitrate[,keyframes[,crispness]] 1800,250,100" -- $3`)
+       noarg=0;
+       ;;
+     --video_max_bitrate)
+       COMPREPLY=(`compgen -W "max_rate 1800" -- $3`)
+       noarg=0;
+       ;;
+     -R)
+       COMPREPLY=(`compgen -W "0 1 2 3" -- $3`);
+       noarg=0;
+       ;;
+     -Q)
+       COMPREPLY=(`compgen -W "encoding[,decoding] 5,5" -- $3`);
+       noarg=0;
+       ;;
+     --divx_quant)
+       COMPREPLY=(`compgen -W "min_quant,max_quant 2,31" -- $3`)
+       noarg=0;
+       ;;
+     --divx_rc)
+       COMPREPLY=(`compgen -W "p,rp,rr 2000,10,20" -- $3`)
+       noarg=0;
+       ;;
+     --divx_vbv_prof)
+       COMPREPLY=(`compgen -W "0 1 2 3 4 5" -- $3`)
+       noarg=0;
+       ;;
+     --divx_vbv)
+       COMPREPLY=(`compgen -W "bitrate,size,occupation 10000,192,36864" -- $3`)
+       noarg=0;
+       ;;
+     -c)
+       COMPREPLY=(`compgen -W "f1-f2[,f3-f4] 0-999999" -- $3`);
+       noarg=0;
+       ;;
+     -t)
+       COMPREPLY=(`compgen -W "n,base -1,/dev/null" -- $3`);
+       noarg=0;
+       ;;
+     --dir_mode)
+       noarg=0;
+       ;;
+     --frame_interval)
+       COMPREPLY=(`compgen -W "Nth_frame 1" -- $3`);
+       noarg=0;
+       ;;
+     -U)
+       noarg=0;
+       ;;
+     -T)
+       COMPREPLY=(`compgen -W "title[,chapter(s)[,angle]] 1,1,1" -- $3`);
+       noarg=0;
+       ;;
+     -W)
+       COMPREPLY=(`compgen -W "n,m[,file] 1,1,base" -- $3`);
+       noarg=0;
+       ;;
+     --cluster_percentage)
+       noarg=0;
+       ;;
+     --cluster_chunks)
+       COMPREPLY=(`compgen -W "A-B 0-99" -- $3`);
+       noarg=0;
+       ;;
+     -S)
+       COMPREPLY=(`compgen -W "unit[,s1-s2] 0,all" -- $3`);
+       noarg=0;
+       ;;
+     -L)
+       noarg=0;
+       ;;
+     --import_v4l)
+       COMPREPLY=(`compgen -W "channel_number[,channel_name] 0" -- $3`);
+       noarg=0;
+       ;;
+     --encode_fields)
+       COMPREPLY=(`compgen -W "p t b" -- $3`);
+       noarg=0;
+       ;;
+     --nav_seek)
+       noarg=0;
+       ;;
+     --psu_chunks)
+       COMPREPLY=(`compgen -W "A-B 0-99" -- $3`);
+       noarg=0;
+       ;;
+     --ts_pid)
+       COMPREPLY=(`compgen -W "0x0 0xNN" -- $3`);
+       noarg=0;
+       ;;
+     --print_status)
+       COMPREPLY=(`compgen -W "N[,use_cr] 1,1" -- $3`);
+       noarg=0;
+       ;;
+     --color)
+       COMPREPLY=(`compgen -W "0 1" -- $3`);
+       noarg=0;
+       ;;
+     --write_pid)
+       noarg=0;
+       ;;
+     --nice)
+       COMPREPLY=(`compgen -W "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20" -- $3`);
+       noarg=0;
+       ;;
+     --socket)
+       noarg=0;
+       ;;
+     --config_dir)
+       noarg=0;
+       ;;
+     --ext)
+       COMPREPLY=(`compgen -W "video_ext,audio_ext avi,mp3" -- $3`);
+       noarg=0;
+       ;;
+     -q)
+       COMPREPLY=(`compgen -W "0 1 2 3 4" -- $3`);
+       noarg=0;
+       ;;
+     *)
+	:
+	;;
+  esac
+  return $noarg
+}
+
+# 1 ... command name
+# 2 ... current parameter
+# 3 ... previous parameter on the commandline
+
+function _transcode {
+
+   declare -a cmd
+   noarg=1
+  
+   # echo XXX:$1:$2:$3:XXX >> log
+
+   tcargs="-i -H -p -x -a --dvd_access_delay -e -E -n -N -b --no_audio_adjust --no_bitreservoir --lame_preset -g --import_asr --export_asr --export_par --keep_asr -f --export_fps --export_frc --hard_fps -o -m -y -F --avi_limit --avi_comments -d -s -u -A -V --uyvy -J -P -D --av_fine_ms -M -O -r -B -X -Z --zoom_filter -C --antialias_para -I -K -G -z -l -k -j -Y --pre_clip --post_clip -w --video_max_bitrate -R -Q --divx_quant --divx_rc --divx_vbv_prof --divx_vbv -c -t --dir_mode --frame_interval -U -T -W --cluster_percentage --cluster_chunks -S -L --import_v4l --pulldown --encode_fields --nav_seek --psu_mode --psu_chunks --no_split --ts_pid --a52_drc_off --a52_demux --a52_dolby_off --print_status --progress_off --color --write_pid --nice --accel --socket --dv_yuy2_mode --config_dir --ext -q -h -v"
+
+   cmd=($(compgen -W "$tcargs" -- $3))
+
+   if test x${cmd[0]} = x$3; then 
+      _transcode_args $1 $3 $2 || COMPREPLY=($(compgen -W "$tcargs" -- $2))
+
+   else
+
+      COMPREPLY=($(compgen -W "$tcargs" -- $2))
+
+   fi
+   unset tcargs noarg
+}
