@@ -2448,27 +2448,30 @@ int main(int argc, char *argv[]) {
 	if (vob->video_in_file && strstr(vob->video_in_file,"/dev/zero") ==NULL)
 	{
 	      	p_tcxmlcheck_buffer=(char *)calloc(TCXML_MAX_BUFF,1);
-		if ((snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -i %s -S -B -V",vob->video_in_file))<0)
+		if ((snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -i \"%s\" -S -B -V",vob->video_in_file))<0)
 		{
 		  perror("command buffer overflow");
 		  exit(1);
 		}
+		if (verbose & TC_DEBUG) printf("XML check out video: %s\n", p_tcxmlcheck_buffer);
     		if((p_fd_tcxmlcheck = popen(p_tcxmlcheck_buffer, "w"))== NULL)
 		{
 		  fprintf(stderr,"[%s] Error opening pipe\n",PACKAGE);
 		  exit(1);
 		}
-		if ((write(fileno(p_fd_tcxmlcheck),(char *)vob,sizeof(vob_t)))!=sizeof(vob_t))
+		if ((fwrite((char *)vob,sizeof(vob_t), 1, p_fd_tcxmlcheck))!=1)
 		{
-		  fprintf(stderr,"[%s] Error writing data to stdout\n",PACKAGE);
+		  fprintf(stderr,"[%s] Error writing data to tcxmlcheck\n",PACKAGE);
 		  exit(1);
 		}
-		memset(p_tcxmlcheck_buffer,'\0',1);
-		if ((snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -i %s -B -V",vob->video_in_file))<0)
+		pclose (p_fd_tcxmlcheck);
+		memset(p_tcxmlcheck_buffer, 0 ,TCXML_MAX_BUFF);
+		if ((snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -i \"%s\" -B -V",vob->video_in_file))<0)
 		{
 		  perror("command buffer overflow");
 		  exit(1);
 		}
+		if (verbose & TC_DEBUG) printf("XML check in video: %s\n", p_tcxmlcheck_buffer);
     		if((p_fd_tcxmlcheck = popen(p_tcxmlcheck_buffer, "r"))== NULL)
 		{
 		  fprintf(stderr,"[%s] Error opening pipe\n",PACKAGE);
@@ -2476,14 +2479,15 @@ int main(int argc, char *argv[]) {
 		}
 		if ((read(fileno(p_fd_tcxmlcheck),(char *)vob,sizeof(vob_t)))!=sizeof(vob_t))
 		{
-		  fprintf(stderr,"[%s] Error reading data to stdout\n",PACKAGE);
+		  fprintf(stderr,"[%s] Error reading data from tcxmlcheck\n",PACKAGE);
 		  exit(1);
 		}
 		if ((read(fileno(p_fd_tcxmlcheck),&s_tcxmlcheck_resize,sizeof(int)))!=sizeof(int))
 		{
-		  fprintf(stderr,"[%s] Error reading data to stdout\n",PACKAGE);
+		  fprintf(stderr,"[%s] Error reading data from tcxmlcheck 2\n",PACKAGE);
 		  exit(1);
 		}
+		pclose(p_fd_tcxmlcheck);
 		if (s_tcxmlcheck_resize == 2)	//if the xml force the resize i need to disable the parameter passed from command line
 		{
 			resize1=TC_FALSE;	
@@ -2513,6 +2517,7 @@ int main(int argc, char *argv[]) {
 	  		perror("command buffer overflow");
 	  		exit(1);
 		}
+		if (verbose & TC_DEBUG) printf("XML check out audio: %s\n", p_tcxmlcheck_buffer);
 	    	if((p_fd_tcxmlcheck = popen(p_tcxmlcheck_buffer, "w"))== NULL)
 		{
 		  fprintf(stderr,"[%s] Error opening pipe\n",PACKAGE);
@@ -2523,12 +2528,14 @@ int main(int argc, char *argv[]) {
 		  fprintf(stderr,"[%s] Error writing data to stdout\n",PACKAGE);
 		  exit(1);
 		}
-		memset(p_tcxmlcheck_buffer,'\0',1);
+		pclose(p_fd_tcxmlcheck);
+		memset(p_tcxmlcheck_buffer,0 ,TCXML_MAX_BUFF);
 		if ((snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -p %s -B -A",vob->audio_in_file))<0)
 		{
 		  perror("command buffer overflow");
 		  exit(1);
 		}
+		if (verbose & TC_DEBUG) printf("XML check in audio: %s\n", p_tcxmlcheck_buffer);
     		if((p_fd_tcxmlcheck = popen(p_tcxmlcheck_buffer, "r"))== NULL)
 		{
 		  fprintf(stderr,"[%s] Error opening pipe\n",PACKAGE);
@@ -2544,6 +2551,7 @@ int main(int argc, char *argv[]) {
 		  fprintf(stderr,"[%s] Error reading data to stdout\n",PACKAGE);
 		  exit(1);
 		}
+		pclose(p_fd_tcxmlcheck);
 		free(p_tcxmlcheck_buffer);
 	}
     }

@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-14 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/transcode.c:
+  Fix a race condition when reading from a .smil file in connection
+  with tcxmlcheck.
+
 2004-01-13 Tilmann Bitterberg <transcode at tibit.org>
 
   * contrib/subrip/*:
