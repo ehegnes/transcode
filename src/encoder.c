@@ -400,6 +400,14 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
     int exit_on_encoder_error=0;
     int fill_flag=0;
 
+    static int this_frame_b=0;
+    static int last_frame_b=0;
+
+    if (this_frame_b != frame_b){
+      last_frame_b = this_frame_b;
+      this_frame_b = frame_b;
+    }
+
     counter_encoding=0;
     counter_skipping=0;
 
@@ -677,7 +685,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	  if(!fill_flag) {
 	    fill_flag=1;
 	  }
-	  counter_print(0, fid, "skipping", startsec, startusec, "/dev/null", vptr->thread_id);
+	  counter_print(last_frame_b, fid, "skipping", startsec, startusec, "/dev/null", vptr->thread_id);
 	}
 	
       } // frame processing loop

@@ -34,6 +34,10 @@ void tc_encoder_progress()
     fflush(stdout);
 }
 
+static int range_a = -1, range_b = -1;
+static int range_starttime = -1;
+static int counter_active = TC_OFF;
+
 
 void counter_init(long int *t1, long int *t2)
 {
@@ -44,12 +48,9 @@ void counter_init(long int *t1, long int *t2)
   
   *t1=tv.tv_sec;
   *t2=tv.tv_usec;
+  range_starttime = -1;
   
 }
-
-static int range_a = -1, range_b = -1;
-static int range_starttime = -1;
-static int counter_active = TC_OFF;
 
 void counter_set_range(int from, int to)
 {
