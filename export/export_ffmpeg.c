@@ -104,6 +104,7 @@ struct ffmpeg_codec ffmpeg_codecs[] = {
 
 
 static uint8_t             *tmp_buffer = NULL;
+static uint8_t             *yuv42xP_buffer = NULL;
 static AVFrame             *lavc_convert_frame = NULL;
 
 static AVCodec             *lavc_venc_codec = NULL;
@@ -137,14 +138,12 @@ static void uyvyto422p(char *dest, char *input, int width, int height)
     u = dest+width*height*3/2;
     
     for (i=0; i<height; i++) {
-      for (j=0; j<width*2; j++) {
+      for (j=0; j<width/2; j++) {
 	
 	/* UYVY.  The byte order is CbY'CrY' */
-	input++;
-	//*u++ = *input++;
+	*u++ = *input++;
 	*y++ = *input++;
-	input++;
-	//*v++ = *input++;
+	*v++ = *input++;
 	*y++ = *input++;
       }
     }
@@ -290,7 +289,7 @@ MOD_init {
         !strcmp (vob->ex_v_fcc, "mpeg2")) is_mpegvideo = 2;
 
     // doesn't work
-    //if (!strcmp (vob->ex_v_fcc, "huffyuv")) is_huffyuv = 1;
+    if (!strcmp (vob->ex_v_fcc, "huffyuv")) is_huffyuv = 1;
 
     pthread_mutex_lock(&init_avcodec_lock);
       avcodec_init();
@@ -326,6 +325,11 @@ MOD_init {
       pix_fmt = PIX_FMT_RGB24;
     } else if (vob->im_v_codec == CODEC_YUV422) {
       pix_fmt = PIX_FMT_YUV422;
+      yuv42xP_buffer = malloc(size);
+      if (!yuv42xP_buffer) {
+        fprintf(stderr, "[%s] yuv42xP_buffer allocation failed.\n", MOD_NAME);
+        return TC_EXPORT_ERROR;
+      }
     } else {
       fprintf(stderr, "[%s] Unknown color space %d.\n", MOD_NAME,
               vob->im_v_codec);
@@ -744,7 +748,8 @@ MOD_init {
       fprintf(stderr, "[%s]             frame rate: %.2f\n", MOD_NAME,
               vob->ex_fps);
       fprintf(stderr, "[%s]            color space: %s\n", MOD_NAME,
-              (vob->im_v_codec==CODEC_RGB) ? "RGB24":"YV12");
+              (vob->im_v_codec==CODEC_RGB) ? "RGB24":
+             ((vob->im_v_codec==CODEC_YUV) ? "YV12" : "YUV422"));
       fprintf(stderr, "[%s]             quantizers: %d/%d\n", MOD_NAME,
               lavc_venc_context->qmin, lavc_venc_context->qmax);
     }
@@ -811,6 +816,16 @@ MOD_open
       free (buf);
 
     } else {
+      // pass extradata to AVI writer
+      if (lavc_venc_context->extradata > 0) {
+          avifile->extradata      = lavc_venc_context->extradata;
+          avifile->extradata_size = lavc_venc_context->extradata_size;
+      }
+      else {
+          avifile->extradata      = NULL;
+          avifile->extradata_size = 0;
+      }
+
       AVI_set_video(avifile, vob->ex_v_width, vob->ex_v_height, vob->ex_fps,
                     codec->fourCC);
 
@@ -877,36 +892,19 @@ MOD_encode
     } else if (pix_fmt == PIX_FMT_YUV422) {
 
       if (is_huffyuv) {
-
 	lavc_venc_context->pix_fmt     = PIX_FMT_YUV422P;
-	uyvyto422p(tmp_buffer, param->buffer, lavc_venc_context->width, lavc_venc_context->height);
+	uyvyto422p(yuv42xP_buffer, param->buffer, lavc_venc_context->width, lavc_venc_context->height);
 
-	avpicture_fill((AVPicture *)lavc_venc_frame, tmp_buffer,
+	avpicture_fill((AVPicture *)lavc_venc_frame, yuv42xP_buffer,
 	    PIX_FMT_YUV422P, lavc_venc_context->width, lavc_venc_context->height);
-
-	printf ("%d %d %d %p %p %p\n", 
-		lavc_venc_frame->linesize[0], 
-		lavc_venc_frame->linesize[1], 
-		lavc_venc_frame->linesize[2],
-		lavc_venc_frame->data[0],
-		lavc_venc_frame->data[1],
-		lavc_venc_frame->data[2]
-		);
 
       } else {
 
 	lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
-	uyvytoyv12(tmp_buffer, param->buffer, lavc_venc_context->width, lavc_venc_context->height);
+	uyvytoyv12(yuv42xP_buffer, param->buffer, lavc_venc_context->width, lavc_venc_context->height);
 
-	lavc_venc_frame->linesize[0] = lavc_venc_context->width;     
-	lavc_venc_frame->linesize[1] = lavc_venc_context->width / 2;
-	lavc_venc_frame->linesize[2] = lavc_venc_context->width / 2;
-
-	lavc_venc_frame->data[0]     = tmp_buffer;
-	lavc_venc_frame->data[2]     = tmp_buffer +
-	  lavc_venc_context->width * lavc_venc_context->height;
-	lavc_venc_frame->data[1]     = tmp_buffer +
-	  (lavc_venc_context->width * lavc_venc_context->height*5)/4;
+	avpicture_fill((AVPicture *)lavc_venc_frame, yuv42xP_buffer,
+	    PIX_FMT_YUV420P, lavc_venc_context->width, lavc_venc_context->height);
       }
 
 

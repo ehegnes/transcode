@@ -728,6 +728,14 @@ void AVI_set_audio(avi_t *AVI, int channels, long rate, int bits, int format, lo
    } \
    nhb += 1
 
+#define OUTMEM(d, s) \
+   { \
+     unsigned int s_ = (s); \
+     if(nhb <= HEADERBYTES-s_) \
+        memcpy(AVI_header+nhb, (d), s_); \
+     nhb += s_; \
+   }
+
 
 //ThOe write preliminary AVI file header: 0 frames, max vid/aud size
 int avi_update_header(avi_t *AVI)
@@ -736,6 +744,7 @@ int avi_update_header(avi_t *AVI)
    int movi_len, hdrl_start, strl_start, j;
    unsigned char AVI_header[HEADERBYTES];
    long nhb;
+   unsigned long xd_size, xd_size_align2;
 
    //assume max size
    movi_len = AVI_MAX_LEN - HEADERBYTES + 4;
@@ -836,9 +845,12 @@ int avi_update_header(avi_t *AVI)
 
    /* The video stream format */
 
+   xd_size        = AVI->extradata_size;
+   xd_size_align2 = (AVI->extradata_size+1) & ~1;
+
    OUT4CC ("strf");
-   OUTLONG(40);                 /* # of bytes to follow */
-   OUTLONG(40);                 /* Size */
+   OUTLONG(40 + xd_size_align2);/* # of bytes to follow */
+   OUTLONG(40 + xd_size);	/* Size */
    OUTLONG(AVI->width);         /* Width */
    OUTLONG(AVI->height);        /* Height */
    OUTSHRT(1); OUTSHRT(24);     /* Planes, Count */
@@ -849,6 +861,14 @@ int avi_update_header(avi_t *AVI)
    OUTLONG(0);                  /* YPelsPerMeter */
    OUTLONG(0);                  /* ClrUsed: Number of colors used */
    OUTLONG(0);                  /* ClrImportant: Number of colors important */
+
+   // write extradata
+   if (xd_size > 0 && AVI->extradata) {
+      OUTMEM(AVI->extradata, xd_size);
+      if (xd_size != xd_size_align2) {
+         OUTCHR(0);
+      }
+   }
 
    /* Finish stream list, i.e. put number of bytes in the list to proper pos */
 
@@ -1129,6 +1149,7 @@ static int avi_close_output_file(avi_t *AVI)
    int hdrl_start, strl_start, j;
    unsigned char AVI_header[HEADERBYTES];
    long nhb;
+   unsigned long xd_size, xd_size_align2;
 
 #ifdef INFO_LIST
    long info_len;
@@ -1302,9 +1323,12 @@ static int avi_close_output_file(avi_t *AVI)
 
    /* The video stream format */
 
+   xd_size        = AVI->extradata_size;
+   xd_size_align2 = (AVI->extradata_size+1) & ~1;
+
    OUT4CC ("strf");
-   OUTLONG(40);                 /* # of bytes to follow */
-   OUTLONG(40);                 /* Size */
+   OUTLONG(40 + xd_size_align2);/* # of bytes to follow */
+   OUTLONG(40 + xd_size);	/* Size */
    OUTLONG(AVI->width);         /* Width */
    OUTLONG(AVI->height);        /* Height */
    OUTSHRT(1); OUTSHRT(24);     /* Planes, Count */
@@ -1315,6 +1339,14 @@ static int avi_close_output_file(avi_t *AVI)
    OUTLONG(0);                  /* YPelsPerMeter */
    OUTLONG(0);                  /* ClrUsed: Number of colors used */
    OUTLONG(0);                  /* ClrImportant: Number of colors important */
+
+   // write extradata if present
+   if (xd_size > 0 && AVI->extradata) {
+      OUTMEM(AVI->extradata, xd_size);
+      if (xd_size != xd_size_align2) {
+         OUTCHR(0);
+      }
+   }
 
    // dump index of indices for audio
    if (AVI->is_opendml) {
