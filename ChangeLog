@@ -1,4 +1,11 @@
 --------------------------------------------
+transcode-0.6.4.HEAD
+
+2003-04-10  Tilmann Bitterberg  <transcode at tibit.org>
+
+  * export_mpeg2enc, export_mp2enc: Do not write to /dev/null.{m1v,m2v}
+
+--------------------------------------------
 transcode-0.6.4.20030408
 
 - Big import_xml update:

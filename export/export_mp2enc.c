@@ -33,7 +33,7 @@
 #include "avilib.h"
 
 #define MOD_NAME    "export_mp2enc.so"
-#define MOD_VERSION "v1.0.7 (2003-03-17)"
+#define MOD_VERSION "v1.0.8 (2003-04-10)"
 #define MOD_CODEC   "(audio) MPEG 1/2"
 
 #define MOD_PRE mp2enc
@@ -78,12 +78,18 @@ static int p_write (char *buf, size_t len)
 MOD_open
 {
     int verb;
+    char *mpa=".mpa";
   
     if (param->flag == TC_AUDIO) 
     {
         char buf [PATH_MAX];
 	int srate, brate;
 	char *chan;
+
+	//tibit: do not write to /dev/null.m1v
+	if (!strncmp(vob->audio_out_file, "/dev/null", 9)) {
+	    mpa="";
+	}
 
         verb = (verbose & TC_DEBUG) ? 2:0;
 
@@ -95,7 +101,7 @@ MOD_open
 	  chan = "-s";
 	}
 	
-	if(((unsigned)snprintf(buf, PATH_MAX, "mp2enc -v %d -r %d -b %d %s -o \"%s\".mpa %s", verb, srate, brate, chan, vob->audio_out_file, (vob->ex_a_string?vob->ex_a_string:""))>=PATH_MAX)) {
+	if(((unsigned)snprintf(buf, PATH_MAX, "mp2enc -v %d -r %d -b %d %s -o \"%s\"%s %s", verb, srate, brate, chan, vob->audio_out_file, mpa, (vob->ex_a_string?vob->ex_a_string:""))>=PATH_MAX)) {
 	  perror("cmd buffer overflow");
 	  return(TC_EXPORT_ERROR);
 	} 

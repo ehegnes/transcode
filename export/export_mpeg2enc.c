@@ -39,7 +39,7 @@
 #endif
 
 #define MOD_NAME    "export_mpeg2enc.so"
-#define MOD_VERSION "v1.1.5 (2003-03-17)"
+#define MOD_VERSION "v1.1.6 (2003-04-10)"
 #define MOD_CODEC   "(video) MPEG 1/2"
 
 #define MOD_PRE mpeg2enc
@@ -134,6 +134,8 @@ MOD_open
   int frc=0, asr=0;
   char *tv_type="-n p";
   char *pulldown="";
+  char *m1v=".m1v";
+  char *m2v=".m2v";
 
   if(param->flag == TC_VIDEO) 
   {
@@ -200,6 +202,11 @@ MOD_open
     else
       sprintf(buf2, "%s %s", tv_type, pulldown); 
     
+    //tibit: do not write to /dev/null.m1v
+    if (!strncmp(vob->video_out_file, "/dev/null", 9)) {
+	m1v="";
+	m2v="";
+    }
     
     switch(prof) {
       
@@ -209,9 +216,9 @@ MOD_open
       //exactly to the VCD2.0 specification.
       
       if(p2==NULL) 
-	sprintf(buf, "mpeg2enc -v %d -f 1 -F %d %s %s -o \"%s\".m1v", verb, frc, buf2, (vob->ex_v_string?vob->ex_v_string:""),vob->video_out_file);
+	sprintf(buf, "mpeg2enc -v %d -f 1 -F %d %s %s -o \"%s\"%s", verb, frc, buf2, (vob->ex_v_string?vob->ex_v_string:""),vob->video_out_file, m1v);
       else
-	sprintf(buf, "mpeg2enc -v %d -f 1 -F %d %s %s -o \"%s\".m1v %s", verb, frc, buf2, (vob->ex_v_string?vob->ex_v_string:""), vob->video_out_file, p2);
+	sprintf(buf, "mpeg2enc -v %d -f 1 -F %d %s %s -o \"%s\"%s %s", verb, frc, buf2, (vob->ex_v_string?vob->ex_v_string:""), vob->video_out_file, m1v, p2);
       break;
       
     case 2:
@@ -219,9 +226,9 @@ MOD_open
       //User VCD 
       
       if(p2==NULL) 
-	sprintf(buf, "mpeg2enc -v %d -q 3 -f 2 -4 2 -2 3 -b %d -F %d %s -o \"%s\".m1v %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, (vob->ex_v_string?vob->ex_v_string:""));
+	sprintf(buf, "mpeg2enc -v %d -q 3 -f 2 -4 2 -2 3 -b %d -F %d %s -o \"%s\"%s %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, m1v, (vob->ex_v_string?vob->ex_v_string:""));
       else
-	sprintf(buf, "mpeg2enc -v %d -q 3 -f 2 -4 2 -2 3 -b %d -F %d %s -o \"%s\".m1v %s %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, p2, (vob->ex_v_string?vob->ex_v_string:""));
+	sprintf(buf, "mpeg2enc -v %d -q 3 -f 2 -4 2 -2 3 -b %d -F %d %s -o \"%s\"%s %s %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, m1v, p2, (vob->ex_v_string?vob->ex_v_string:""));
       break;
       
     case 3:
@@ -229,9 +236,9 @@ MOD_open
       //Generic MPEG2
       
       if(p2==NULL) 
-	sprintf(buf, "mpeg2enc -v %d -q 3 -f 3 -4 2 -2 3 -b %d -s -F %d %s -o \"%s\".m2v %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, (vob->ex_v_string?vob->ex_v_string:""));
+	sprintf(buf, "mpeg2enc -v %d -q 3 -f 3 -4 2 -2 3 -b %d -s -F %d %s -o \"%s\"%s %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, m2v, (vob->ex_v_string?vob->ex_v_string:""));
       else
-	sprintf(buf, "mpeg2enc -v %d -q 3 -f 3 -4 2 -2 3 -b %d -s -F %d %s -o \"%s\".m2v %s %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, p2, (vob->ex_v_string?vob->ex_v_string:""));
+	sprintf(buf, "mpeg2enc -v %d -q 3 -f 3 -4 2 -2 3 -b %d -s -F %d %s -o \"%s\"%s %s %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, m2v, p2, (vob->ex_v_string?vob->ex_v_string:""));
       break;
       
     case 4:
@@ -240,9 +247,9 @@ MOD_open
       //exactly  to  the  SVCD2.0 specification
       
       if(p2==NULL) 
-	sprintf(buf, "mpeg2enc -v %d -f 4 -F %d %s -o \"%s\".m2v %s", verb, frc, buf2, vob->video_out_file, (vob->ex_v_string?vob->ex_v_string:""));
+	sprintf(buf, "mpeg2enc -v %d -f 4 -F %d %s -o \"%s\"%s %s", verb, frc, buf2, vob->video_out_file, m2v, (vob->ex_v_string?vob->ex_v_string:""));
       else
-	sprintf(buf, "mpeg2enc -v %d -f 4 -F %d %s -o \"%s\".m2v %s %s", verb, frc, buf2, vob->video_out_file, p2, (vob->ex_v_string?vob->ex_v_string:""));
+	sprintf(buf, "mpeg2enc -v %d -f 4 -F %d %s -o \"%s\"%s %s %s", verb, frc, buf2, vob->video_out_file, m2v, p2, (vob->ex_v_string?vob->ex_v_string:""));
       break;
 
     case 5:
@@ -250,16 +257,16 @@ MOD_open
       //User SVCD
 
       if(p2==NULL) 
-	sprintf(buf, "mpeg2enc -v %d -q 3 -f 5 -4 2 -2 3 -b %d -F %d %s -V 230 -o \"%s\".m2v %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, (vob->ex_v_string?vob->ex_v_string:""));
+	sprintf(buf, "mpeg2enc -v %d -q 3 -f 5 -4 2 -2 3 -b %d -F %d %s -V 230 -o \"%s\"%s %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, m2v, (vob->ex_v_string?vob->ex_v_string:""));
       else
-	sprintf(buf, "mpeg2enc -v %d -q 3 -f 5 -4 2 -2 3 -b %d -F %d %s -V 230 -o \"%s\".m2v %s %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, p2, (vob->ex_v_string?vob->ex_v_string:""));
+	sprintf(buf, "mpeg2enc -v %d -q 3 -f 5 -4 2 -2 3 -b %d -F %d %s -V 230 -o \"%s\"%s %s %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, m2v, p2, (vob->ex_v_string?vob->ex_v_string:""));
       break;
       
     case 6:
       
       // Manual parameter mode.
       
-      sprintf(buf, "mpeg2enc -v %d -b %d -o %s.m2v %s %s", verb, vob->divxbitrate, vob->video_out_file, p2, (vob->ex_v_string?vob->ex_v_string:""));
+      sprintf(buf, "mpeg2enc -v %d -b %d -o \"%s\"%s %s %s", verb, vob->divxbitrate, vob->video_out_file, m2v, p2, (vob->ex_v_string?vob->ex_v_string:""));
       break;
       
     case 8:
@@ -267,9 +274,9 @@ MOD_open
       //DVD
       
       if(p2==NULL) 
-	sprintf(buf, "mpeg2enc -v %d -f 8 -b %d -F %d %s -o \"%s\".m2v %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, (vob->ex_v_string?vob->ex_v_string:""));
+	sprintf(buf, "mpeg2enc -v %d -f 8 -b %d -F %d %s -o \"%s\"%s %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, m2v, (vob->ex_v_string?vob->ex_v_string:""));
       else
-	sprintf(buf, "mpeg2enc -v %d -f 8 -b %d -F %d %s -o \"%s\".m2v %s %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, p2, (vob->ex_v_string?vob->ex_v_string:""));
+	sprintf(buf, "mpeg2enc -v %d -f 8 -b %d -F %d %s -o \"%s\"%s %s %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, m2v, p2, (vob->ex_v_string?vob->ex_v_string:""));
       
       break;
 
@@ -280,9 +287,9 @@ MOD_open
       //Generic MPEG1
       
       if(p2==NULL) 
-	sprintf(buf, "mpeg2enc -v %d -q 3 -f 0 -4 2 -2 3 -b %d -F %d %s -o \"%s\".m1v %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, (vob->ex_v_string?vob->ex_v_string:""));
+	sprintf(buf, "mpeg2enc -v %d -q 3 -f 0 -4 2 -2 3 -b %d -F %d %s -o \"%s\"%s %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, m1v, (vob->ex_v_string?vob->ex_v_string:""));
       else
-	sprintf(buf, "mpeg2enc -v %d -q 3 -f 0 -4 2 -2 3 -b %d -F %d %s -o \"%s\".m1v %s %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, p2, (vob->ex_v_string?vob->ex_v_string:""));
+	sprintf(buf, "mpeg2enc -v %d -q 3 -f 0 -4 2 -2 3 -b %d -F %d %s -o \"%s\"%s %s %s", verb, vob->divxbitrate, frc, buf2, vob->video_out_file, m1v, p2, (vob->ex_v_string?vob->ex_v_string:""));
       break;
     }
     
