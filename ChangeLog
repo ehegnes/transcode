@@ -3,13 +3,25 @@ transcode-0.6.8
 
 2003-06-18 Tilmann Bitterberg <transcode at tibit.org>
 
-  * avisplit, avimerge:
+  * avilib/avilib.{c,h}:
+  Enable reading of files >2GB. Note that does not mean that large
+  AVI files are a legal thing to do, its still out of the spec. The
+  index will be missing (or can not be found) from such a file and
+  it needs to be rebuilded at transcodes startup time, which will
+  cause a delay, because the whole file needs to be scanned. This
+  change just changes file offset where transcode reads from the
+  file from "long" to "off_t" which should have always be the case.
+  
+  * avisplit, avimerge, avisync:
   Added synced time support for PCM audio in AVI files. Files
   produced by mencoder (and of course transcode) should now be
   handled now. Splitting AVI files created by mencoder may lead to
   offsync but thats not a bug of avisplit. Mencoder writes one large
   audio chunk which will last ~12 frames while transcode writes one
   small audio chunk per frame which enables easier splitting.
+
+  * configure:
+  Check if the CXX (C++) eats largefile flags.
 
 2003-06-16 Tilmann Bitterberg <transcode at tibit.org>
 
