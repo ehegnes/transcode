@@ -429,16 +429,29 @@ int main(int argc, char *argv[])
       // 480 bytes = 480/20480 s/bytes = .0234 s = 23.4 ms
       //  
       //  ms = (framesize*1000*8)/(bitrate*1000);
-      //  correct? hmm -- tibit
+      //                           why 1000 and not 1024?
+      //  correct? yes! verified with "cat file.mp3|mpg123 -w /dev/null -v -" -- tibit
+
       while (on) {
 	  if ( (bytes_read = read(ipipe.fd_in, buffer, framesize-4)) != framesize-4) { 
 	      on = 0;
 	  } else {
 	      total += bytes_read;
 	      while ((total += read(ipipe.fd_in, header, 4))) {
+		  
+		  //printf("%x %x %x %x\n", header[0]&0xff, header[1]&0xff, header[2]&0xff, header[3]&0xff);
+
 		  if ( (framesize = tc_get_mp3_header (header, &chans, &srate, &bitrate)) < 0) {
 		      fprintf(stderr, "[%s] corrupt mp3 file?\n", EXE);
+		      on = 0;
+		      break;
 		  } else  {
+
+		      /*
+		      printf("Found new header (%d) (framesize = %d) chan(%d) srate(%d) bitrate(%d)\n", 
+			  chunks, framesize, chans, srate, bitrate);
+			  */
+
 		      bitrate_add += bitrate;
 		      check(bitrate);
 		      ms += (framesize*8)/(bitrate);
@@ -447,12 +460,12 @@ int main(int argc, char *argv[])
 		  }
 	      }
 
-	  //printf("Found new header (%d) (framesize = %d) chan(%d) srate(%d) bitrate(%d)\n", 
-	  //	  chunks, framesize, chans, srate, bitrate);
 
 	  }
       }
-      printf("[%s] found %d MP3 chunks. Average bitrate is %3.2f kbps ", 
+      printf("[%s] MPEG-1 layer-3 stream. Info: -e %d,%d,%d\n", 
+	      EXE, srate, 16, chans);
+      printf("[%s] Found %d MP3 chunks. Average bitrate is %3.2f kbps ", 
 	      EXE, chunks, (double)bitrate_add/chunks);
       if (min != max) printf("(%d-%d)\n", min, max);
       else printf("(cbr)\n");
@@ -535,13 +548,13 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
     // head_check:
     if( (newhead & 0xffe00000) != 0xffe00000 ||  
         (newhead & 0x0000fc00) == 0x0000fc00){
-	fprintf( stderr, "[%s] head_check failed\n", __FILE__);
+	//fprintf( stderr, "[%s] head_check failed\n", EXE);
 	return -1;
     }
 #endif
 
     if((4-((newhead>>17)&3))!=3){ 
-      fprintf( stderr, "[%s] not layer-3\n", __FILE__); 
+      fprintf( stderr, "[%s] not layer-3\n", EXE); 
       return -1;
     }
 
@@ -559,7 +572,7 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
       sampling_frequency = ((newhead>>10)&0x3) + (lsf*3);
 
     if(sampling_frequency>8){
-	fprintf( stderr, "[%s] invalid sampling_frequency\n", __FILE__);
+	fprintf( stderr, "[%s] invalid sampling_frequency\n", EXE);
 	return -1;  // valid: 0..8
     }
 
@@ -576,7 +589,7 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
     stereo    = ( (((newhead>>6)&0x3)) == 3) ? 1 : 2;
 
     if(!bitrate_index){
-      fprintf( stderr, "[%s] Free format not supported.\n", __FILE__);
+      fprintf( stderr, "[%s] Free format not supported.\n", EXE);
       return -1;
     }
 
@@ -590,7 +603,7 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
     if (bitrate) *bitrate = tabsel_123[lsf][2][bitrate_index];
 
     if(!framesize){
-	fprintf( stderr, "[%s] invalid framesize/bitrate_index\n", __FILE__);
+	fprintf( stderr, "[%s] invalid framesize/bitrate_index\n", EXE);
 	return -1;  // valid: 1..14
     }
 
