@@ -22,6 +22,7 @@ docs_DATA = \
                     filter_logoaway.txt \
                     filter_yuvdenoise.txt \
                     import_nvrec.txt \
+                    import_v4l2.txt \
                     import-xml.txt \
                     README.cluster \
                     README.rip \

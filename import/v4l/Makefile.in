@@ -320,14 +320,17 @@ INCLUDES = -I./ -I../../src -I../ -I../../ -Wall -I$(srcdir)/../../src -I$(srcdi
 
 pkgdir = @MOD_PATH@
 
-@HAVE_V4L_TRUE@MOD = import_v4l.la 
+@HAVE_V4L_TRUE@MOD = import_v4l.la import_v4l2.la 
 
 pkg_LTLIBRARIES = $(MOD) 
 
 import_v4l_la_SOURCES = import_v4l.c common.c video.c audio.c frequencies.c
 import_v4l_la_LDFLAGS = -no-undefined -module -avoid-version 
 
-EXTRA_DIST = audio.h channels.h common.h counter.h frequencies.h vcr.h video.h videodev.h
+import_v4l2_la_SOURCES = import_v4l2.c
+import_v4l2_la_LDFLAGS = -module -avoid-version 
+
+EXTRA_DIST = audio.h channels.h common.h counter.h frequencies.h vcr.h video.h videodev.h videodev2.h
 subdir = import/v4l
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/autotools/mkinstalldirs
@@ -339,11 +342,15 @@ import_v4l_la_LIBADD =
 am_import_v4l_la_OBJECTS = import_v4l.lo common.lo video.lo audio.lo \
 	frequencies.lo
 import_v4l_la_OBJECTS = $(am_import_v4l_la_OBJECTS)
+import_v4l2_la_LIBADD =
+am_import_v4l2_la_OBJECTS = import_v4l2.lo
+import_v4l2_la_OBJECTS = $(am_import_v4l2_la_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/audio.Plo ./$(DEPDIR)/common.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/frequencies.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/import_v4l.Plo ./$(DEPDIR)/video.Plo
+@AMDEP_TRUE@	./$(DEPDIR)/import_v4l.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/import_v4l2.Plo ./$(DEPDIR)/video.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -351,9 +358,9 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(import_v4l_la_SOURCES)
+DIST_SOURCES = $(import_v4l_la_SOURCES) $(import_v4l2_la_SOURCES)
 DIST_COMMON = $(srcdir)/Makefile.in Makefile.am
-SOURCES = $(import_v4l_la_SOURCES)
+SOURCES = $(import_v4l_la_SOURCES) $(import_v4l2_la_SOURCES)
 
 all: all-am
 
@@ -394,6 +401,8 @@ clean-pkgLTLIBRARIES:
 	done
 import_v4l.la: $(import_v4l_la_OBJECTS) $(import_v4l_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(import_v4l_la_LDFLAGS) $(import_v4l_la_OBJECTS) $(import_v4l_la_LIBADD) $(LIBS)
+import_v4l2.la: $(import_v4l2_la_OBJECTS) $(import_v4l2_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(import_v4l2_la_LDFLAGS) $(import_v4l2_la_OBJECTS) $(import_v4l2_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -405,6 +414,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/common.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/frequencies.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/import_v4l.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/import_v4l2.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/video.Plo@am__quote@
 
 .c.o:

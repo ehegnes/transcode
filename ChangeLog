@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-11-12 Erik Slagter <erik at oldconomy.com>
+  
+  * import/v4l/import_v4l2.h videodev2.h docs/import_v4l2.txt:
+  New v4l2 import module. Please see /docs/import_v4l2.txt
+  
 2003-11-12 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/Makefile.am import/extract_avi.c import/import_fraps.c
