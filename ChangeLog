@@ -1,5 +1,45 @@
 transcode-0.13-pre2 EMS
 
+2004-10-06 Jacob Meuser <jakemsr at jakemsr dot com>
+  * *:
+  Instead of adding 'ffmpeg' to the search path for libavcodec
+  headers in the configure script, include it in the sources
+  (#include <ffmpeg/avcodec.h>).  This only changes the way
+  CFLAGS works wrt libavcodec headers in configure.  We don't
+  (at least not properly, anyway) support libavcodec headers
+  not being in an 'ffmpeg' subdirectory anyway.  This is
+  useful, because if all the packages a transcode build depends
+  on are in the same place, like /usr/local, adding
+  -I/usr/local/include to CPPFLAGS before running configure
+  will allow the build process to find all the packages, without
+  having to pass lots of --with-$$$-includes flags to configure.
+
+  the v4l test in configure.in was missing a substitution call
+  for when it succeeded.  this doesn't matter, since the code
+  that was missed is not used, but it should be there nonetheless.
+
+  two new import modules: import_bktr & import_sunau.  import_bktr
+  if for grabbing video from hardware supported by the bktr
+  driver on *BSD (sorta like bttv for Linux).  import_sunau
+  is for grabbing audio samples from audio hardware on NetBSD and
+  OpenBSD whose audio system is somewhat similar to Sun's (at one time
+  anyway).
+
+  since filter/pp needs -fomit-frame-pointer when compiled with gcc,
+  add a makefile conditional to configure to know if we need it,
+  and add -fomit-frame-pointer to the pp CFLAGS if needed.
+
+  remove all relative paths from include statements.  these all
+  went back to $(top_srcdir). 
+
+  use "" instead of <> in include statements, when the file to
+  be included comes with transcode.
+
+  fixed up some typos/updated docs/import-API.txt
+
+  remove duplicat include statements from the filters ...
+  too much cut 'n paste, tsk, tsk.
+
 2004-10-06 Peter Chiocchetti <pch14 at myzel dot net>
   * export/export_dv.c docs/man/transcode.1:
   when de-interlacing, esp. when capturing movies off pal -

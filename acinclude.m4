@@ -116,9 +116,9 @@ AC_ARG_ENABLE(ffmpeg-libs-static,
   [enable_ffmpeg_libs_static=no])
 
 if test x"$ffmpeg_libs_includes" != x"" ; then
-  with_ffmpeg_libs_i="$ffmpeg_libs_includes/include/ffmpeg"
+  with_ffmpeg_libs_i="$ffmpeg_libs_includes/include"
 else
-  with_ffmpeg_libs_i="/usr/include/ffmpeg"
+  with_ffmpeg_libs_i="/usr/include"
 fi
 if test x"$ffmpeg_libs_libs" != x"" ; then
   with_ffmpeg_libs_l="$ffmpeg_libs_libs/lib"
@@ -130,13 +130,13 @@ FFMPEG_LIBS_EXTRALIBS="-lm -lz $PTHREAD_LIBS"
 
 save_CPPFLAGS="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS -I$with_ffmpeg_libs_i"
-AC_CHECK_HEADER([avcodec.h],
+AC_CHECK_HEADER([ffmpeg/avcodec.h],
   [FFMPEG_LIBS_CFLAGS="-I$with_ffmpeg_libs_i"],
-  [AC_MSG_ERROR([FFmpeg (libavcodec) required, but cannot compile avcodec.h])])
+  [AC_MSG_ERROR([FFmpeg (libavcodec) required, but cannot compile ffmpeg/avcodec.h])])
 
 AC_TRY_RUN([
 #include <stdio.h>
-#include <avcodec.h>
+#include <ffmpeg/avcodec.h>
 int
 main()
 {
@@ -153,7 +153,7 @@ main()
 ],
     [FFMPEG_LIBS_VERSION="`./conftest$ac_exeext | sed -ne 's,VER=\(.*\),\1,p'`"
       FFMPEG_LIBS_BUILD="`./conftest$ac_exeext | sed -ne 's,BUILD=\(.*\),\1,p'`"],
-    [AC_MSG_ERROR([FFmpeg (libavcodec) required, but cannot compile avcodec.h])],
+    [AC_MSG_ERROR([FFmpeg (libavcodec) required, but cannot compile ffmpeg/avcodec.h])],
     [echo $ac_n "cross compiling; assumed OK... $ac_c"
       FFMPEG_LIBS_VERSION=""
       FFMPEG_LIBS_BUILD=""])
@@ -182,7 +182,7 @@ else
   LIBS="$LIBS $with_ffmpeg_libs_libs_l/libavcodec.a $FFMPEG_LIBS_EXTRALIBS"
   CPPFLAGS="$CPPFLAGS -I$with_ffmpeg_libs_i"
   AC_TRY_LINK([
-#include <avcodec.h>
+#include <ffmpeg/avcodec.h>
 ],[
 AVCodecContext *ctx = NULL;
 avcodec_thread_init(ctx, 0);
@@ -413,8 +413,72 @@ buffer.memory = V4L2_MEMORY_MMAP
 
   if test x"$v4l" = x"yes" -o x"$v4l2" = x"yes" ; then
     have_v4l=yes
+    ifelse([$1], , :, [$1])
   else
     AC_MSG_ERROR([v4l is requested, but cannot find headers])
+  fi
+fi
+])
+
+
+dnl TC_CHECK_BKTR([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
+dnl Test for bktr headers
+dnl
+AC_DEFUN([TC_CHECK_BKTR],
+[
+AC_MSG_CHECKING([whether bktr support is requested])
+AC_ARG_ENABLE(bktr,
+  AC_HELP_STRING([--enable-bktr],
+    [enable bktr support (no)]), 
+  [case "${enableval}" in
+    yes) ;;
+    no)  ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-bktr) ;;
+  esac],
+  [enable_bktr=no])
+AC_MSG_RESULT($enable_bktr)
+
+have_bktr="no"
+if test x"$enable_bktr" = x"yes" ; then
+  AC_CHECK_HEADERS([dev/ic/bt8xx.h], [have_bktr="yes"])
+  AC_CHECK_HEADERS([machine/ioctl_bt848.h], [have_bktr="yes"])
+
+  if test x"$have_bktr" = x"yes" ; then
+    have_bktr="yes"
+    ifelse([$1], , :, [$1])
+  else
+    AC_MSG_ERROR([bktr is requested, but cannot find headers])
+  fi
+fi
+])
+
+
+dnl TC_CHECK_SUNAU([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
+dnl Test for sunau headers
+dnl
+AC_DEFUN([TC_CHECK_SUNAU],
+[
+AC_MSG_CHECKING([whether sunau support is requested])
+AC_ARG_ENABLE(sunau,
+  AC_HELP_STRING([--enable-sunau],
+    [enable sunau support (no)]), 
+  [case "${enableval}" in
+    yes) ;;
+    no)  ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-sunau) ;;
+  esac],
+  [enable_sunau=no])
+AC_MSG_RESULT($enable_sunau)
+
+have_sunau="no"
+if test x"$enable_sunau" = x"yes" ; then
+  AC_CHECK_HEADERS([sys/audioio.h], [have_sunau="yes"])
+
+  if test x"$have_sunau" = x"yes" ; then
+    have_sunau="yes"
+    ifelse([$1], , :, [$1])
+  else
+    AC_MSG_ERROR([sunau is requested, but cannot find headers])
   fi
 fi
 ])

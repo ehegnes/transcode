@@ -520,6 +520,19 @@ if test x"$ld_altivec" = x"yes" ; then
   LDFLAGS="$LDFLAGS -framework vecLib"
 fi
 
+dnl
+dnl gcc stuff
+dnl
+AM_CONDITIONAL(HAVE_GCC, test x"$GCC" = x"yes")
+
+dnl XXX hack! filter/pp needs -fomit-fame-pointer with gcc
+have_fomit_fp="no"
+if test x"$GCC" = x"yes" ; then
+  if echo "$CFLAGS" | grep -vq -- '-fomit-frame-pointer' ; then
+    AC_TRY_CFLAGS([-fomit-frame-pointer], [have_fomit_fp="yes"])
+  fi
+fi
+AM_CONDITIONAL(HAVE_FOMIT_FP, test x"$have_fomit_fp" = x"yes")
 
 dnl Check for gcc2, which doesn't seem to handle asm templates
 dnl
@@ -710,6 +723,18 @@ dnl v4l
 dnl
 TC_CHECK_V4L(AC_DEFINE([HAVE_V4L], 1, [Have video4linux(2)]))
 AM_CONDITIONAL(HAVE_V4L, test x"$have_v4l" = x"yes")
+
+dnl
+dnl bktr
+dnl
+TC_CHECK_BKTR(AC_DEFINE([HAVE_BKTR], 1, [Have bktr(4)]))
+AM_CONDITIONAL(HAVE_BKTR, test x"$have_bktr" = x"yes")
+
+dnl
+dnl sunau
+dnl
+TC_CHECK_SUNAU(AC_DEFINE([HAVE_SUNAU], 1, [Have Sun style audio(4)]))
+AM_CONDITIONAL(HAVE_SUNAU, test x"$have_sunau" = x"yes")
 
 dnl
 dnl avifile support
@@ -1365,6 +1390,8 @@ libmpeg3 dependent modules                       $have_libmpeg3
 libfame video encoding plugin                    $have_libfame
 libquicktime dependent modules                   $have_libquicktime
 FFmpeg binary module                             $have_ffmpeg
+bktr video device import module                  $have_bktr
+sunau audio device import module                 $have_sunau
 SDL support                                      $have_sdl
 GTK support                                      $have_gtk
 *-*-*-*-*-*-* Filter *-*-*-*-*-*-*
