@@ -29,16 +29,14 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include "resample.h"
-
+#include <ffmpeg/avcodec.h>
 #include <transcode.h>
 
-#define RESAMPLE_BUFFER_SIZE 8192
-
-static char resample_buffer[RESAMPLE_BUFFER_SIZE];
+static char * resample_buffer = NULL;
 static int bytes_per_sample;
 static int error;
-
+static ReSampleContext *resamplecontext = NULL;
+static int resample_buffer_size;
 /* -------------------------------------------------
  *
  * mandatory include files
@@ -97,7 +95,7 @@ int tc_filter(aframe_list_t *ptr, char *options)
   }
 
   if(ptr->tag & TC_FILTER_INIT) {
-    
+    double samples_per_frame, ratio;
     if((vob = tc_get_vob())==NULL) return(-1);
     
     // filter init ok.
@@ -105,10 +103,26 @@ int tc_filter(aframe_list_t *ptr, char *options)
     if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
     
     if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
-
-    bytes_per_sample = vob->a_chan * vob->a_bits/8;
     
-    if((int) (bytes_per_sample * vob->mp3frequency / vob->fps) > RESAMPLE_BUFFER_SIZE) return(1);
+    bytes_per_sample = vob->a_chan * vob->a_bits/8;
+    samples_per_frame = vob->a_rate/vob->ex_fps;
+    ratio = (float)vob->mp3frequency/(float)vob->a_rate;
+
+    resample_buffer_size = (int)(samples_per_frame * ratio) * bytes_per_sample + 16                            // frame + 16 bytes 
+                                + ((vob->a_leap_bytes > 0)?(int)(vob->a_leap_bytes * ratio) :0); // leap bytes .. kinda
+
+                                resample_buffer = malloc(resample_buffer_size * sizeof(char));
+    if (!resample_buffer) {
+        fprintf(stderr,"[%s] Buffer allocation failed\n", MOD_NAME);
+        return 1;
+    }
+
+    if (verbose & TC_DEBUG) fprintf(stderr, "[%s] bufsize : %i, bytes : %i, bytesfreq/fps: %i, rest %i\n", 
+        MOD_NAME, resample_buffer_size, bytes_per_sample,
+        vob->mp3frequency * bytes_per_sample / (int)vob->fps,
+        (vob->a_leap_bytes > 0 )?(int)(vob->a_leap_bytes * ratio):0);
+        
+    if((int) (bytes_per_sample * vob->mp3frequency / vob->fps) > resample_buffer_size) return(1);
     
     if (!vob->a_rate || !vob->mp3frequency) {
 	fprintf(stderr, "[%s] Invalid settings\n", MOD_NAME);
@@ -120,15 +134,16 @@ int tc_filter(aframe_list_t *ptr, char *options)
 	error=1;
 	return -1;
     }
-    if (filter_resample_init(vob->a_rate, vob->mp3frequency)<0)
-	return -1;
+    resamplecontext = audio_resample_init(vob->a_chan, vob->a_chan, vob->mp3frequency, vob->a_rate);
     
+    if (resamplecontext == NULL) return -1;
     //this will force this resample filter to do the job, not
     //the export module.
     
     vob->a_rate=vob->mp3frequency;
     vob->mp3frequency=0;
-    
+    vob->ex_a_size=resample_buffer_size;
+
     return(0);
   }
   
@@ -141,9 +156,10 @@ int tc_filter(aframe_list_t *ptr, char *options)
   
   if(ptr->tag & TC_FILTER_CLOSE) {
     
-      if (!error)
-	  filter_resample_stop(resample_buffer);
-    
+    if (!error) {
+	  audio_resample_close(resamplecontext);
+          free(resample_buffer);
+    }
     return(0);
   }
   
@@ -159,13 +175,19 @@ int tc_filter(aframe_list_t *ptr, char *options)
   // or after and determines video/audio context
   
   if(ptr->tag & TC_PRE_S_PROCESS && ptr->tag & TC_AUDIO) {
-
-    ptr->audio_size = bytes_per_sample * filter_resample_flow(ptr->audio_buf, ptr->audio_size/bytes_per_sample, resample_buffer);
     
+    if (resample_buffer_size != 0) {
+
+    if (verbose & TC_STATS) fprintf(stderr,"[%s] inbuf:%i, bufsize: %i", MOD_NAME, ptr->audio_size, resample_buffer_size);
+
+    ptr->audio_size = bytes_per_sample * audio_resample(resamplecontext, (short *)resample_buffer, (short *)ptr->audio_buf, ptr->audio_size/bytes_per_sample);
+
+    if (verbose & TC_STATS) fprintf(stderr," outbuf: %i\n", ptr->audio_size);
+
     if(ptr->audio_size<0) ptr->audio_size=0;
     
     tc_memcpy(ptr->audio_buf, resample_buffer, ptr->audio_size);
-    
+    }
   } 
   
   return(0);

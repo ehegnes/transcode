@@ -1,5 +1,11 @@
 transcode-0.13-pre2 EMS
 
+2004-09-28 Stefan Scheffler <stefanscheffler at gmx dot net>
+  * filter/resample/(Makefile.am filter_resample.c):
+  Removed obsolete code that segfaults every now and then,
+  and replaced it by code that calls the resampler from
+  ffmpeg.
+
 2004-09-28 Andrew Church <achurch at achurch.org>
   * configure.in:
   Remove default gcc optimisations, breaks all kind of stuff.
