@@ -54,7 +54,7 @@
 #define SUBTITLE_V_FACTOR	.042
 
 /* for this specfic default font */
-#define EXTRA_CHAR_SPACE	0
+#define EXTRA_CHAR_SPACE	2
 
 /*
 for masking out areas in rotate and shear.
@@ -173,7 +173,7 @@ int default_subtitle_font_symbols;
 /* this last, so proto knows about structure definitions etc. */
 #include "subtitler_proto.h"
 
-#define SUBTITLER_VERSION "-0.8.2"
+#define SUBTITLER_VERSION "-0.8.4"
 
 #endif /* _SUBTITLER_H_ */
 

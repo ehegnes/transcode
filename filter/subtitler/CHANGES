@@ -299,6 +299,21 @@ very close together.
 Reformatting for negative spacing values works. 
 
 
+0.8.2:
+Updated README, tested on transcode transcode-0.6.11.
+Added test-demo script.
+Fixed a bug in the demo.ppml.
+
+0.8.3:
+Set the character extra spacing back to the old values of teh fist
+subtitler (using the mplayer code).
+So teh default extra spacing is now 2.
+This should fix any compatibility problems with older versions.
+You need to upgrade to xste 3.2.5 too!
+
+
+
+
 -
 Talking about 'objects' title_list.c is now object_list.c
 Added a 'zaxis'.

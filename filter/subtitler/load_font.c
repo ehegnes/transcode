@@ -594,7 +594,9 @@ else
     }
 
 header[10] = height>>8;	header[11] = (unsigned char)height;
-header[12] = colors>>8;	header[13] = (unsigned char)(colors&0xff);
+//header[12] = colors>>8;	header[13] = (unsigned char)colors;
+header[12] = colors>>8;
+header[13] = (unsigned char)(colors&0xff); // patch AMD64 by Tilmann Bitterberg
 
 for (i = 32; i<800; ++i) header[i] = (i - 32) / 3;
 
@@ -779,7 +781,7 @@ int		glyphs_count = 0;
 #endif
 	fprintf(f, "spacewidth %i\n",	2 * padding + space_advance);
 #ifndef NEW_DESC
-	fprintf(f, "charspace %i\n", 0); //-2 * padding); // /* -2 * */  padding / 2);
+	fprintf(f, "charspace %i\n", -2 * padding);
 #endif
 	fprintf(f, "height %i\n", (padding * 2) + f266ToInt(face->size->metrics.height));
 #ifdef NEW_DESC
@@ -969,6 +971,10 @@ FT_ULong decode_char(char c)
 FT_ULong o;
 char *inbuf = &c;
 char *outbuf = (char*)&o;
+//int inbytesleft = 1;
+//int outbytesleft = sizeof(FT_ULong);
+
+/* patch for AMD 64 by Tilmann Bitterberg */
 size_t inbytesleft = 1;
 size_t outbytesleft = sizeof(FT_ULong);
 

@@ -54,10 +54,15 @@ transcode-0.6.12
   o probing: improved detection of MP3/MP2 files.
   o libavcodec: Updated included lavc to 4695.
   o aviindex: keyframe detection by analyzing the content of frames.
-  o subtitler filter: Update to upstream version 0.8.2
+  o subtitler filter: Update to upstream version 0.8.4
   o pv filter: updated docs and YUV422 support.
   o ivtc filter: new magic and field parameters.
          
+2004-01-07 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/subtitler/*:
+  Upgrade to 0.6.8.
+
 2004-01-06 Frederic Briere <fbriere at fbriere.net>
 
   * filter/ivtc/filter_ivtc.c:
