@@ -39,7 +39,6 @@ docs_DATA =  \
 	modules.html \
 	mpeg.html \
 	new.png \
-	options.html \
 	other.html \
 	post.html \
 	pre.html \
