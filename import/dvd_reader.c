@@ -39,16 +39,14 @@
 #include <dvdread/dvd_reader.h>
 #include <dvdread/ifo_types.h>
 #include <dvdread/ifo_read.h>
-#include <dvdread/dvd_udf.h>
 #include <dvdread/nav_read.h>
 #include <dvdread/nav_print.h>
 #else
-#include "dvd_reader.h"
-#include "ifo_types.h"
-#include "ifo_read.h"
-#include "dvd_udf.h"
-#include "nav_read.h"
-#include "nav_print.h"
+#include <dvd_reader.h>
+#include <ifo_types.h>
+#include <ifo_read.h>
+#include <nav_read.h>
+#include <nav_print.h>
 #endif
 
 
@@ -412,11 +410,11 @@ static void stats_subp_attributes(subp_attr_t *attr, int track, probe_info_t *pr
 int dvd_query(int title, int *arg_chapter, int *arg_angle)
 {
     
-    int ttn, pgc_id, titleid;
-    tt_srpt_t *tt_srpt;
-    ifo_handle_t *vmg_file;
-    pgc_t *cur_pgc;    
-    ifo_handle_t *vts_file;
+    int             ttn, pgc_id, titleid;
+    tt_srpt_t      *tt_srpt;
+    ifo_handle_t   *vmg_file;
+    pgc_t          *cur_pgc;    
+    ifo_handle_t   *vts_file;
     vts_ptt_srpt_t *vts_ptt_srpt;
     
     vmg_file = ifoOpen( dvd, 0 );
@@ -474,15 +472,19 @@ int dvd_query(int title, int *arg_chapter, int *arg_angle)
 int dvd_probe(int title, probe_info_t *info)
 {
  
-  int i, ttn, pgc_id, titleid;
-  tt_srpt_t *tt_srpt;
-  ifo_handle_t *vmg_file;
-  pgc_t *cur_pgc;    
-  ifo_handle_t *vts_file;
+  int             ttn, pgn, pgc_id, titleid, start_cell, end_cell, i, j;
+  tt_srpt_t      *tt_srpt;
+  ifo_handle_t   *vmg_file;
+  pgc_t          *cur_pgc;    
+  ifo_handle_t   *vts_file;
   vts_ptt_srpt_t *vts_ptt_srpt;
-  video_attr_t *v_attr;
-  audio_attr_t *a_attr;
-  subp_attr_t *s_attr;
+  video_attr_t   *v_attr;
+  audio_attr_t   *a_attr;
+  subp_attr_t    *s_attr;
+
+  dvd_time_t     *dt;
+  double          fps;
+  long            hour, minute, second, ms, overall_time, cur_time;
 
     vmg_file = ifoOpen( dvd, 0 );
     if( !vmg_file ) {
@@ -567,6 +569,46 @@ int dvd_probe(int title, probe_info_t *info)
     fprintf(stderr, "  %ld sec\n", playtime);
     
     info->time=playtime;
+   
+    // stolen from ogmtools-1.0.2 dvdxchap -- tibit
+    ttn = tt_srpt->title[titleid].vts_ttn;
+    vts_ptt_srpt = vts_file->vts_ptt_srpt;
+    overall_time = 0;
+
+    for (i = 0; i < tt_srpt->title[titleid].nr_of_ptts - 1; i++) {
+	pgc_id   = vts_ptt_srpt->title[ttn - 1].ptt[i].pgcn;
+	pgn      = vts_ptt_srpt->title[ttn - 1].ptt[i].pgn;
+	cur_pgc  = vts_file->vts_pgcit->pgci_srp[pgc_id - 1].pgc;
+
+	start_cell = cur_pgc->program_map[pgn - 1] - 1;
+	pgc_id     = vts_ptt_srpt->title[ttn - 1].ptt[i + 1].pgcn;
+	pgn        = vts_ptt_srpt->title[ttn - 1].ptt[i + 1].pgn;
+	cur_pgc    = vts_file->vts_pgcit->pgci_srp[pgc_id - 1].pgc;
+	end_cell   = cur_pgc->program_map[pgn - 1] - 2;
+	cur_time   = 0;
+	for (j = start_cell; j <= end_cell; j++) {
+	    dt = &cur_pgc->cell_playback[j].playback_time;
+	    hour = ((dt->hour & 0xf0) >> 4) * 10 + (dt->hour & 0x0f);
+	    minute = ((dt->minute & 0xf0) >> 4) * 10 + (dt->minute & 0x0f);
+	    second = ((dt->second & 0xf0) >> 4) * 10 + (dt->second & 0x0f);
+	    if (((dt->frame_u & 0xc0) >> 6) == 1)
+		fps = 25.00;
+	    else
+		fps = 29.97;
+	    dt->frame_u &= 0x3f;
+	    dt->frame_u = ((dt->frame_u & 0xf0) >> 4) * 10 + (dt->frame_u & 0x0f);
+	    ms = (double)dt->frame_u * 1000.0 / fps;
+	    cur_time += (hour * 60 * 60 * 1000 + minute * 60 * 1000 + second * 1000 +
+		    ms);
+	}
+	fprintf(stderr, "(%s) [Chapter %02d] %02ld:%02ld:%02ld.%03ld\n", __FILE__, i + 1,
+		overall_time / 60 / 60 / 1000, (overall_time / 60 / 1000) % 60,
+		(overall_time / 1000) % 60, overall_time % 1000);
+	overall_time += cur_time;
+    }
+    fprintf(stderr, "(%s) [Chapter %02d] %02ld:%02ld:%02ld.%03ld\n", __FILE__, i + 1,
+	    overall_time / 60 / 60 / 1000, (overall_time / 60 / 1000) % 60,
+	    (overall_time / 1000) % 60, overall_time % 1000);
 
     return(0);
 }
