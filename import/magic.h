@@ -107,6 +107,9 @@
 #define TC_MAGIC_V4L2_VIDEO            0xF0F0F0F5
 #define TC_MAGIC_V4L2_AUDIO            0xF0F0F0F6
 
+#define TC_MAGIC_BKTR_VIDEO	       0xB5D00001
+#define TC_MAGIC_SUNAU_AUDIO	       0xB5D00002
+
 //raw streams concatenated frames:
 #define TC_MAGIC_M2V                   0x000001b3
 #define TC_MAGIC_PICEXT                0x000001b5
