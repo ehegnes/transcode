@@ -104,7 +104,7 @@ lock(void)
     }
 
     pid = getpid();
-    sprintf(lock_buffer, "%10d\n", pid);
+    snprintf(lock_buffer, sizeof(lock_buffer), "%10d\n", pid);
     write (fd, lock_buffer, 11);
     close(fd);
     return 0;

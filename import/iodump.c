@@ -97,7 +97,7 @@ static char *scan_directory(char *dir_name)
 	  if((strncmp(dent->d_name, ".", 1)==0) || (strcmp(dent->d_name, "..")==0)) 
 	      continue;
 	  
-	  sprintf(filename, "%s%s", dir_name, dent->d_name);
+	  snprintf(filename, sizeof(filename), "%s%s", dir_name, dent->d_name);
 
 	  //counter 
 	  ++nfiles;
@@ -162,7 +162,7 @@ int sortbuf_directory(char *dir_name)
     if((strncmp(dent->d_name, ".", 1)==0) || (strcmp(dent->d_name, "..")==0)) 
       continue;
     
-    sprintf(filename, "%s%s", dir_name, dent->d_name);
+    snprintf(filename, sizeof(filename), "%s%s", dir_name, dent->d_name);
     rbuf_ptr[n++] = strdup(filename);
   }
   

@@ -59,7 +59,7 @@ int af6_init(char *path) {
 #endif    
     char *error;
 
-    sprintf(module, "%s/%s", path, MODULE);
+    snprintf(module, sizeof(module), "%s/%s", path, MODULE);
   
     if(verbose & TC_DEBUG) 
 	fprintf(stderr, "loading external module %s\n", module); 

@@ -77,11 +77,11 @@ MOD_open
 
   int off=0x80;
   
-  (vob->ps_seq1 != 0 || vob->ps_seq2 != INT_MAX) ? snprintf(seq_buf, 256, "-S %d,%d-%d", vob->ps_unit, vob->ps_seq1, vob->ps_seq2) : sprintf(seq_buf, "-S %d", vob->ps_unit);
+  (vob->ps_seq1 != 0 || vob->ps_seq2 != INT_MAX) ? snprintf(seq_buf, sizeof(seq_buf), "-S %d,%d-%d", vob->ps_unit, vob->ps_seq1, vob->ps_seq2) : snprintf(seq_buf, sizeof(seq_buf), "-S %d", vob->ps_unit);
   
   if(param->flag == TC_AUDIO) {
 
-    sprintf(dem_buf, "-M %d", vob->demuxer);
+    snprintf(dem_buf, sizeof(dem_buf), "-M %d", vob->demuxer);
 
     codec = vob->im_a_codec;
     syncf = vob->sync;
@@ -177,7 +177,7 @@ MOD_open
   
   if(param->flag == TC_SUBEX) {  
     
-    sprintf(dem_buf, "-M %d", vob->demuxer);
+    snprintf(dem_buf, sizeof(dem_buf), "-M %d", vob->demuxer);
     
     codec = vob->im_a_codec;
     syncf = vob->sync;
@@ -211,9 +211,9 @@ MOD_open
 	  printf("[%s] failed to create a temporary pipe\n", MOD_NAME);
 	  return(TC_IMPORT_ERROR);
 	} 
-	sprintf(dem_buf, "-M %d -f %f -P %s %s %s", vob->demuxer, vob->fps, logfile, ((vob->vob_chunk==0)? "": "-O"),
+	snprintf(dem_buf, sizeof(dem_buf), "-M %d -f %f -P %s %s %s", vob->demuxer, vob->fps, logfile, ((vob->vob_chunk==0)? "": "-O"),
 		((vob->hard_fps_flag==1)?"-H":""));
-      } else sprintf(dem_buf, "-M %d", vob->demuxer);
+      } else snprintf(dem_buf, sizeof(dem_buf), "-M %d", vob->demuxer);
       
       //determine subtream id for sync adjustment
       //default is off=0x80
