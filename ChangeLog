@@ -1,6 +1,15 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-31 Markus Linnala <maage at sauna.ton.tut.fi>
+
+   * export/export_ogg.c:
+   Use oggenc --resample if ifreq is not ofreq (and if the resample
+   filter is not used).
+
+   * src/transcode.c:
+   Lowest oggenc quality accepted is -1 not 0.
+
 2003-08-29 Tilmann Bitterberg <transcode at tibit.org>
 
    * filter/filter_smartyuv.c:
