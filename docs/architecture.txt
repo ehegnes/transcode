@@ -1,6 +1,6 @@
-===================================================
+====================================================
 A video frame in transcode -- Birth, life and death.
-===================================================
+====================================================
 
 This article has information about the generic stages of a frame in
 the transcode core. It may help you when you want to do a filter for
@@ -186,14 +186,10 @@ allowed to do so.
  ES    |  Before EM
  EM    |  After EM, before OM
  OM    |  After OM, before OS
- OS    |  Cannot skip frames.
+ OS    |  After OS, before encode
 
 In other words, a skipped frame gets dropped right after the filter
-has returned. The OS slot is special, it cannot skip frames. This is
-because the encoder has to deal with audio and video at the same
-time and must ensure that the frames get encoded in the correct
-order. Skipping can not be done reliable here.
-
+has returned.
 
 =================================
 Choosing the Slot for your Filter
@@ -243,7 +239,7 @@ depends on the filter which tag it wants.
 Multiple Instances of your Filter
 =================================
 
-If your you want to be able to run 
+If your you want to be able to run XXX: see /filter/filter_32detect.c 
 
 =======================
 Linked Framebuffer List
