@@ -148,8 +148,8 @@ void probe_ogg(info_t *ipipe)
 				"packet - invalid vorbis stream ()\n");
 		    } else {
 #ifdef OGM_DEBUG
-			fprintf(stdout, "(%s) (a%d/%d) Vorbis audio; 
-				rate: %ldHz, channels: %d, bitrate %3.2f kb/s\n", __FILE__,
+			fprintf(stdout, "(%s) (a%d/%d) Vorbis audio; "
+				"rate: %ldHz, channels: %d, bitrate %3.2f kb/s\n", __FILE__,
 				natracks + 1, natracks + nvtracks + 1, inf->rate, 
 				inf->channels, (double)inf->bitrate_nominal/1000.0);
 #endif

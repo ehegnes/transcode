@@ -64,6 +64,8 @@ void probe_tiff(info_t *ipipe);
 void probe_im(info_t *ipipe);
 void probe_mov(info_t *ipipe);
 void probe_xml(info_t *ipipe);
+void probe_lav(info_t *ipipe);
+void probe_ogg(info_t *ipipe);
 
 int scan_header_dv(char *buf);
 

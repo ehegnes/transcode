@@ -997,8 +997,7 @@ void probe_pes(info_t *ipipe)
 	  
 	default:
 	    if (buf[3] < 0xb9) {
-		printf("(%s) looks like an elementary stream - not program stre
-am\n", __FILE__);
+		printf("(%s) looks like an elementary stream - not program stream\n", __FILE__);
 		ipipe->probe_info->codec=TC_CODEC_MPEG;
 		if ((buf[6] & 0xc0) == 0x80) ipipe->probe_info->codec=TC_CODEC_MPEG2;
 		return;

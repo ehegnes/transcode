@@ -289,8 +289,8 @@ packet_list_t *sbuf_retrieve()
     // ok
 
     if(verbose & TC_FLIST) printf("alloc  =%d [%d]\n", sbuf_next, ptr->bufid);
-
-    sbuf_next = (++sbuf_next) % sbuf_max;
+    ++sbuf_next;
+    sbuf_next %= sbuf_max;
     
     return(ptr);
 }

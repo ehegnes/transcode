@@ -178,7 +178,8 @@ static sframe_list_t *sub_buf_retrieve()
 
     if(verbose & TC_FLIST) printf("alloc  =%d [%d]\n", sub_buf_next, ptr->bufid);
 
-    sub_buf_next = (++sub_buf_next) % sub_buf_max;
+    ++sub_buf_next;
+    sub_buf_next %= sub_buf_max;
     
     return(ptr);
 }

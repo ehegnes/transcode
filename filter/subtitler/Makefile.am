@@ -3,7 +3,7 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-INCLUDES = -I./ -I../../src -I../ -I../../ -I$(srcdir)/../../src -I$(srcdir)/../.. -I$(srcdir)/.. -I$(x_includes)
+INCLUDES = -I./ -I../../src -I../ -I../../ -I$(srcdir)/../../src -I$(srcdir)/../.. -I$(srcdir)/.. $(X_CFLAGS)
 
 CFLAGS = -D_REENTRANT @CFLAGS@
 
@@ -25,7 +25,7 @@ external_programs.c \
 color_processor.c
 
 filter_subtitler_la_LDFLAGS = -no-undefined -module -avoid-version 
-filter_subtitler_la_LIBADD = -L$(x_libraries) $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(X_EXTRA_LIBS) -lXpm -lXt -lXaw -lm 
+filter_subtitler_la_LIBADD = $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(X_EXTRA_LIBS) -lXpm -lXt -lXaw -lm 
 
 EXTRA_DIST = *.h HOWTO* *.ppm *.txt README.* *.ppml
 
