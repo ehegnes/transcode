@@ -206,15 +206,15 @@ export_divx4raw_la_LIBADD = @LAME_LIBS@ @AC3_LIBS@ @FFMPEG_LIBS_LIBS@ -lm
 
 export_xvid2_la_SOURCES = export_xvid2.c aud_aux.c xvid_vbr.c
 export_xvid2_la_LDFLAGS =  -module -avoid-version
-export_xvid2_la_LIBADD = @LAME_LIBS@ @AC3_LIBS@ -lm
+export_xvid2_la_LIBADD = @FFMPEG_LIBS_LIBS@ @LAME_LIBS@ @AC3_LIBS@ -lm
 
 export_xvid3_la_SOURCES = export_xvid3.c aud_aux.c xvid_vbr.c
 export_xvid3_la_LDFLAGS =  -module -avoid-version
-export_xvid3_la_LIBADD = @LAME_LIBS@ @AC3_LIBS@ -lm
+export_xvid3_la_LIBADD = @FFMPEG_LIBS_LIBS@ @LAME_LIBS@ @AC3_LIBS@ -lm
 
 export_xvid4_la_SOURCES = export_xvid4.c aud_aux.c
 export_xvid4_la_LDFLAGS =  -module -avoid-version
-export_xvid4_la_LIBADD = @LAME_LIBS@ @AC3_LIBS@ -lm
+export_xvid4_la_LIBADD = @FFMPEG_LIBS_LIBS@ @LAME_LIBS@ @AC3_LIBS@ -lm
 
 export_raw_la_SOURCES = export_raw.c aud_aux.c
 export_raw_la_LDFLAGS =  -module -avoid-version
