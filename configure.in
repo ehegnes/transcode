@@ -625,6 +625,13 @@ AM_PATH_LVE(AC_DEFINE([HAVE_LIBLVE], 1, [Have liblve support]))
 AM_CONDITIONAL(HAVE_LIBLVE, test x"$have_liblve" = "xyes")
 
 dnl
+dnl PVM
+dnl
+
+AM_PATH_PVM3(AC_DEFINE([HAVE_PVM3], 1, [Have pvm3 support]))
+AM_CONDITIONAL(HAVE_PVM3, test x"$have_pvm3" = "xyes")
+
+dnl
 dnl libquicktime support
 dnl
 
@@ -951,6 +958,7 @@ AC_OUTPUT([
            filter/test/Makefile
            filter/ivtc/Makefile
            filter/yuvdenoise/Makefile
+           pvm3/Makefile
            docs/Makefile
            docs/html/Makefile
            docs/man/Makefile
@@ -974,6 +982,7 @@ static AV-frame buffering                        $statbuf
 support for network (sockets) streams            $net
 DVD navigation support with libdvdread           $have_dvdread
 link against local lame library (>=3.89) | ver   $lame89 | $lame_version
+experimental pvm3 support                        $have_pvm3
 *-*-*-*-*-*-* Codec *-*-*-*-*-*-*
 nasm dependent modules (bbmpeg)                  $nasm
 mjpegtools dependent modules                     $MJPEGTOOLSCONFIG

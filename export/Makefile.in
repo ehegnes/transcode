@@ -68,7 +68,7 @@ CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
 
-CFLAGS = -D_REENTRANT @CFLAGS@
+CFLAGS = -D_REENTRANT -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
@@ -155,6 +155,8 @@ HAVE_OPENQT_FALSE = @HAVE_OPENQT_FALSE@
 HAVE_OPENQT_TRUE = @HAVE_OPENQT_TRUE@
 HAVE_PPC_ALTIVEC_FALSE = @HAVE_PPC_ALTIVEC_FALSE@
 HAVE_PPC_ALTIVEC_TRUE = @HAVE_PPC_ALTIVEC_TRUE@
+HAVE_PVM3_FALSE = @HAVE_PVM3_FALSE@
+HAVE_PVM3_TRUE = @HAVE_PVM3_TRUE@
 HAVE_QT_FALSE = @HAVE_QT_FALSE@
 HAVE_QT_TRUE = @HAVE_QT_TRUE@
 HAVE_SDL_FALSE = @HAVE_SDL_FALSE@
@@ -233,6 +235,8 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PVM3_CFLAGS = @PVM3_CFLAGS@
+PVM3_LIB = @PVM3_LIB@
 QT_CFLAGS = @QT_CFLAGS@
 QT_LIBS = @QT_LIBS@
 RANLIB = @RANLIB@
@@ -311,7 +315,7 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 AC3_LIB = -L../libac3 -lac3_tc
 AC3_INC = -I../libac3 -I$(srcdir)/../libac3
 
-INCLUDES = -I./ -I../ -I$(srcdir)/.. -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ @LAME_CFLAGS@ $(AC3_INC) @QT_CFLAGS@ -Wall @DV_CFLAGS@ -I../libvo -I$(srcdir)/../libvo @MJPEG_CFLAGS@ @LIBFAME_CFLAGS@ @MAGICK_CFLAGS@ @LIBJPEG_CFLAGS@ -I../libioaux -I$(srcdir)/../libioaux @LZO_CFLAGS@ 
+INCLUDES = -I./ -I../ -I$(srcdir)/.. -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ @LAME_CFLAGS@ $(AC3_INC) @QT_CFLAGS@ -Wall @DV_CFLAGS@ -I../libvo -I$(srcdir)/../libvo @MJPEG_CFLAGS@ @LIBFAME_CFLAGS@ @MAGICK_CFLAGS@ @LIBJPEG_CFLAGS@ -I../libioaux -I$(srcdir)/../libioaux @LZO_CFLAGS@ @PVM3_CFLAGS@ -I../pvm3
 
 pkgdir = @MOD_PATH@
 
@@ -345,13 +349,15 @@ pkgdir = @MOD_PATH@
 
 @HAVE_LAME_TRUE@MODS14 = export_xvid2.la export_xvid3.la export_xvid4.la
 
+@HAVE_PVM3_TRUE@MODS15 = export_pvm.la
+
 pkg_LTLIBRARIES = export_null.la \
 		  export_ac3.la \
 		  export_wav.la \
 		  export_pcm.la \
 		  $(MODS1) $(MODS2) $(MODS3) $(MODS4) $(MODS5) $(MODS6) $(MODS7) $(MODS8) $(MOD9) $(MODS10) export_ogg.la \
 		  export_toolame.la \
-		  export_sampeg.la $(MODS11) $(MODS12) $(MODS13) $(MODS14)
+		  export_sampeg.la $(MODS11) $(MODS12) $(MODS13) $(MODS14) $(MODS15)
 
 
 export_null_la_SOURCES = export_null.c
@@ -464,6 +470,9 @@ export_yuv4mpeg_la_LIBADD = @LAME_LIBS@ @MJPEG_LIBS@ -L../libvo -lvout $(AC3_LIB
 export_mpeg_la_SOURCES = export_mpeg.c vid_aux.c
 export_mpeg_la_LDFLAGS = -module -avoid-version 
 export_mpeg_la_LIBADD = -L../bbmpeg -lbbmpeg -L../ffmpeg/libavcodec/ -ltcavcodec -L../libvo -lvout -lm
+
+export_pvm_la_SOURCES = export_pvm.c ../pvm3/pvm_interface.c ../pvm3/pvm_parser.c
+export_pvm_la_LDFLAGS = -module -avoid-version -L../libioaux -ltcioaux
 
 export_mjpeg_la_SOURCES = export_mjpeg.c vid_aux.c aud_aux.c 
 export_mjpeg_la_LDFLAGS = -module -avoid-version 
@@ -586,6 +595,9 @@ export_pcm_la_OBJECTS = $(am_export_pcm_la_OBJECTS)
 export_ppm_la_DEPENDENCIES =
 am_export_ppm_la_OBJECTS = export_ppm.lo aud_aux.lo
 export_ppm_la_OBJECTS = $(am_export_ppm_la_OBJECTS)
+export_pvm_la_LIBADD =
+am_export_pvm_la_OBJECTS = export_pvm.lo pvm_interface.lo pvm_parser.lo
+export_pvm_la_OBJECTS = $(am_export_pvm_la_OBJECTS)
 export_raw_la_DEPENDENCIES =
 am_export_raw_la_OBJECTS = export_raw.lo aud_aux.lo
 export_raw_la_OBJECTS = $(am_export_raw_la_OBJECTS)
@@ -639,6 +651,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/export_ogg.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/export_pcm.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/export_ppm.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/export_pvm.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/export_raw.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/export_sampeg.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/export_toolame.Plo \
@@ -647,7 +660,9 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/export_xvid3.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/export_xvid4.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/export_yuv4mpeg.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/ffmpeg_cfg.Plo ./$(DEPDIR)/vid_aux.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/ffmpeg_cfg.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/pvm_interface.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/pvm_parser.Plo ./$(DEPDIR)/vid_aux.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/xvid_vbr.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -676,15 +691,15 @@ DIST_SOURCES = $(export_ac3_la_SOURCES) $(export_af6_la_SOURCES) \
 	$(export_mpeg_la_SOURCES) $(export_mpeg2enc_la_SOURCES) \
 	$(export_net_la_SOURCES) $(export_null_la_SOURCES) \
 	$(export_ogg_la_SOURCES) $(export_pcm_la_SOURCES) \
-	$(export_ppm_la_SOURCES) $(export_raw_la_SOURCES) \
-	$(export_sampeg_la_SOURCES) $(export_toolame_la_SOURCES) \
-	$(export_wav_la_SOURCES) $(export_xvid2_la_SOURCES) \
-	$(export_xvid3_la_SOURCES) $(export_xvid4_la_SOURCES) \
-	$(export_yuv4mpeg_la_SOURCES)
+	$(export_ppm_la_SOURCES) $(export_pvm_la_SOURCES) \
+	$(export_raw_la_SOURCES) $(export_sampeg_la_SOURCES) \
+	$(export_toolame_la_SOURCES) $(export_wav_la_SOURCES) \
+	$(export_xvid2_la_SOURCES) $(export_xvid3_la_SOURCES) \
+	$(export_xvid4_la_SOURCES) $(export_yuv4mpeg_la_SOURCES)
 DATA = $(pkg_DATA)
 
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(export_ac3_la_SOURCES) $(export_af6_la_SOURCES) $(export_debugppm_la_SOURCES) $(export_divx4_la_SOURCES) $(export_divx4raw_la_SOURCES) $(export_divx5_la_SOURCES) $(export_divx5raw_la_SOURCES) $(export_dv_la_SOURCES) $(export_dvraw_la_SOURCES) $(export_fame_la_SOURCES) $(export_ffmpeg_la_SOURCES) $(export_im_la_SOURCES) $(export_jpg_la_SOURCES) $(export_lame_la_SOURCES) $(export_lzo_la_SOURCES) $(export_mjpeg_la_SOURCES) $(export_mov_la_SOURCES) $(export_mp2enc_la_SOURCES) $(export_mpeg_la_SOURCES) $(export_mpeg2enc_la_SOURCES) $(export_net_la_SOURCES) $(export_null_la_SOURCES) $(export_ogg_la_SOURCES) $(export_pcm_la_SOURCES) $(export_ppm_la_SOURCES) $(export_raw_la_SOURCES) $(export_sampeg_la_SOURCES) $(export_toolame_la_SOURCES) $(export_wav_la_SOURCES) $(export_xvid2_la_SOURCES) $(export_xvid3_la_SOURCES) $(export_xvid4_la_SOURCES) $(export_yuv4mpeg_la_SOURCES)
+SOURCES = $(export_ac3_la_SOURCES) $(export_af6_la_SOURCES) $(export_debugppm_la_SOURCES) $(export_divx4_la_SOURCES) $(export_divx4raw_la_SOURCES) $(export_divx5_la_SOURCES) $(export_divx5raw_la_SOURCES) $(export_dv_la_SOURCES) $(export_dvraw_la_SOURCES) $(export_fame_la_SOURCES) $(export_ffmpeg_la_SOURCES) $(export_im_la_SOURCES) $(export_jpg_la_SOURCES) $(export_lame_la_SOURCES) $(export_lzo_la_SOURCES) $(export_mjpeg_la_SOURCES) $(export_mov_la_SOURCES) $(export_mp2enc_la_SOURCES) $(export_mpeg_la_SOURCES) $(export_mpeg2enc_la_SOURCES) $(export_net_la_SOURCES) $(export_null_la_SOURCES) $(export_ogg_la_SOURCES) $(export_pcm_la_SOURCES) $(export_ppm_la_SOURCES) $(export_pvm_la_SOURCES) $(export_raw_la_SOURCES) $(export_sampeg_la_SOURCES) $(export_toolame_la_SOURCES) $(export_wav_la_SOURCES) $(export_xvid2_la_SOURCES) $(export_xvid3_la_SOURCES) $(export_xvid4_la_SOURCES) $(export_yuv4mpeg_la_SOURCES)
 
 all: all-am
 
@@ -773,6 +788,8 @@ export_pcm.la: $(export_pcm_la_OBJECTS) $(export_pcm_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkgdir) $(export_pcm_la_LDFLAGS) $(export_pcm_la_OBJECTS) $(export_pcm_la_LIBADD) $(LIBS)
 export_ppm.la: $(export_ppm_la_OBJECTS) $(export_ppm_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(export_ppm_la_LDFLAGS) $(export_ppm_la_OBJECTS) $(export_ppm_la_LIBADD) $(LIBS)
+export_pvm.la: $(export_pvm_la_OBJECTS) $(export_pvm_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(export_pvm_la_LDFLAGS) $(export_pvm_la_OBJECTS) $(export_pvm_la_LIBADD) $(LIBS)
 export_raw.la: $(export_raw_la_OBJECTS) $(export_raw_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(export_raw_la_LDFLAGS) $(export_raw_la_OBJECTS) $(export_raw_la_LIBADD) $(LIBS)
 export_sampeg.la: $(export_sampeg_la_OBJECTS) $(export_sampeg_la_DEPENDENCIES) 
@@ -824,6 +841,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_ogg.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_pcm.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_ppm.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_pvm.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_raw.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_sampeg.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_toolame.Plo@am__quote@
@@ -833,6 +851,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_xvid4.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/export_yuv4mpeg.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ffmpeg_cfg.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pvm_interface.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pvm_parser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vid_aux.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xvid_vbr.Plo@am__quote@
 
@@ -871,6 +891,72 @@ distclean-depend:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ `test -f '$<' || echo '$(srcdir)/'`$<
+
+pvm_interface.o: ../pvm3/pvm_interface.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT pvm_interface.o -MD -MP -MF "$(DEPDIR)/pvm_interface.Tpo" \
+@am__fastdepCC_TRUE@	  -c -o pvm_interface.o `test -f '../pvm3/pvm_interface.c' || echo '$(srcdir)/'`../pvm3/pvm_interface.c; \
+@am__fastdepCC_TRUE@	then mv "$(DEPDIR)/pvm_interface.Tpo" "$(DEPDIR)/pvm_interface.Po"; \
+@am__fastdepCC_TRUE@	else rm -f "$(DEPDIR)/pvm_interface.Tpo"; exit 1; \
+@am__fastdepCC_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../pvm3/pvm_interface.c' object='pvm_interface.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/pvm_interface.Po' tmpdepfile='$(DEPDIR)/pvm_interface.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o pvm_interface.o `test -f '../pvm3/pvm_interface.c' || echo '$(srcdir)/'`../pvm3/pvm_interface.c
+
+pvm_interface.obj: ../pvm3/pvm_interface.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT pvm_interface.obj -MD -MP -MF "$(DEPDIR)/pvm_interface.Tpo" \
+@am__fastdepCC_TRUE@	  -c -o pvm_interface.obj `if test -f '../pvm3/pvm_interface.c'; then $(CYGPATH_W) '../pvm3/pvm_interface.c'; else $(CYGPATH_W) '$(srcdir)/../pvm3/pvm_interface.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv "$(DEPDIR)/pvm_interface.Tpo" "$(DEPDIR)/pvm_interface.Po"; \
+@am__fastdepCC_TRUE@	else rm -f "$(DEPDIR)/pvm_interface.Tpo"; exit 1; \
+@am__fastdepCC_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../pvm3/pvm_interface.c' object='pvm_interface.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/pvm_interface.Po' tmpdepfile='$(DEPDIR)/pvm_interface.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o pvm_interface.obj `if test -f '../pvm3/pvm_interface.c'; then $(CYGPATH_W) '../pvm3/pvm_interface.c'; else $(CYGPATH_W) '$(srcdir)/../pvm3/pvm_interface.c'; fi`
+
+pvm_interface.lo: ../pvm3/pvm_interface.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT pvm_interface.lo -MD -MP -MF "$(DEPDIR)/pvm_interface.Tpo" \
+@am__fastdepCC_TRUE@	  -c -o pvm_interface.lo `test -f '../pvm3/pvm_interface.c' || echo '$(srcdir)/'`../pvm3/pvm_interface.c; \
+@am__fastdepCC_TRUE@	then mv "$(DEPDIR)/pvm_interface.Tpo" "$(DEPDIR)/pvm_interface.Plo"; \
+@am__fastdepCC_TRUE@	else rm -f "$(DEPDIR)/pvm_interface.Tpo"; exit 1; \
+@am__fastdepCC_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../pvm3/pvm_interface.c' object='pvm_interface.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/pvm_interface.Plo' tmpdepfile='$(DEPDIR)/pvm_interface.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o pvm_interface.lo `test -f '../pvm3/pvm_interface.c' || echo '$(srcdir)/'`../pvm3/pvm_interface.c
+
+pvm_parser.o: ../pvm3/pvm_parser.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT pvm_parser.o -MD -MP -MF "$(DEPDIR)/pvm_parser.Tpo" \
+@am__fastdepCC_TRUE@	  -c -o pvm_parser.o `test -f '../pvm3/pvm_parser.c' || echo '$(srcdir)/'`../pvm3/pvm_parser.c; \
+@am__fastdepCC_TRUE@	then mv "$(DEPDIR)/pvm_parser.Tpo" "$(DEPDIR)/pvm_parser.Po"; \
+@am__fastdepCC_TRUE@	else rm -f "$(DEPDIR)/pvm_parser.Tpo"; exit 1; \
+@am__fastdepCC_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../pvm3/pvm_parser.c' object='pvm_parser.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/pvm_parser.Po' tmpdepfile='$(DEPDIR)/pvm_parser.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o pvm_parser.o `test -f '../pvm3/pvm_parser.c' || echo '$(srcdir)/'`../pvm3/pvm_parser.c
+
+pvm_parser.obj: ../pvm3/pvm_parser.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT pvm_parser.obj -MD -MP -MF "$(DEPDIR)/pvm_parser.Tpo" \
+@am__fastdepCC_TRUE@	  -c -o pvm_parser.obj `if test -f '../pvm3/pvm_parser.c'; then $(CYGPATH_W) '../pvm3/pvm_parser.c'; else $(CYGPATH_W) '$(srcdir)/../pvm3/pvm_parser.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv "$(DEPDIR)/pvm_parser.Tpo" "$(DEPDIR)/pvm_parser.Po"; \
+@am__fastdepCC_TRUE@	else rm -f "$(DEPDIR)/pvm_parser.Tpo"; exit 1; \
+@am__fastdepCC_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../pvm3/pvm_parser.c' object='pvm_parser.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/pvm_parser.Po' tmpdepfile='$(DEPDIR)/pvm_parser.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o pvm_parser.obj `if test -f '../pvm3/pvm_parser.c'; then $(CYGPATH_W) '../pvm3/pvm_parser.c'; else $(CYGPATH_W) '$(srcdir)/../pvm3/pvm_parser.c'; fi`
+
+pvm_parser.lo: ../pvm3/pvm_parser.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT pvm_parser.lo -MD -MP -MF "$(DEPDIR)/pvm_parser.Tpo" \
+@am__fastdepCC_TRUE@	  -c -o pvm_parser.lo `test -f '../pvm3/pvm_parser.c' || echo '$(srcdir)/'`../pvm3/pvm_parser.c; \
+@am__fastdepCC_TRUE@	then mv "$(DEPDIR)/pvm_parser.Tpo" "$(DEPDIR)/pvm_parser.Plo"; \
+@am__fastdepCC_TRUE@	else rm -f "$(DEPDIR)/pvm_parser.Tpo"; exit 1; \
+@am__fastdepCC_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../pvm3/pvm_parser.c' object='pvm_parser.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/pvm_parser.Plo' tmpdepfile='$(DEPDIR)/pvm_parser.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o pvm_parser.lo `test -f '../pvm3/pvm_parser.c' || echo '$(srcdir)/'`../pvm3/pvm_parser.c
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" \

@@ -9,6 +9,8 @@ docsdir = $(datadir)/doc/transcode
 docs_DATA = \
                     clone.txt \
                     export_mpeg.txt \
+                    export_pvm.txt \
+                    pvm.cfg \
                     export_ffmpeg.txt \
                     filter_dnr.txt \
                     filter_logo.txt \

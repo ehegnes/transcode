@@ -6,9 +6,9 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 AC3_LIB=-L../libac3 -lac3_tc
 AC3_INC=-I../libac3 -I$(srcdir)/../libac3
 
-INCLUDES = -I./ -I../ -I$(srcdir)/.. -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ @LAME_CFLAGS@ $(AC3_INC) @QT_CFLAGS@ -Wall @DV_CFLAGS@ -I../libvo -I$(srcdir)/../libvo @MJPEG_CFLAGS@ @LIBFAME_CFLAGS@ @MAGICK_CFLAGS@ @LIBJPEG_CFLAGS@ -I../libioaux -I$(srcdir)/../libioaux @LZO_CFLAGS@ 
+INCLUDES = -I./ -I../ -I$(srcdir)/.. -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ @LAME_CFLAGS@ $(AC3_INC) @QT_CFLAGS@ -Wall @DV_CFLAGS@ -I../libvo -I$(srcdir)/../libvo @MJPEG_CFLAGS@ @LIBFAME_CFLAGS@ @MAGICK_CFLAGS@ @LIBJPEG_CFLAGS@ -I../libioaux -I$(srcdir)/../libioaux @LZO_CFLAGS@ @PVM3_CFLAGS@ -I../pvm3
 
-CFLAGS = -D_REENTRANT @CFLAGS@
+CFLAGS = -D_REENTRANT -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@
 
 pkgdir=@MOD_PATH@
 
@@ -80,6 +80,9 @@ if HAVE_LAME
 MODS14 = export_xvid2.la export_xvid3.la export_xvid4.la
 endif
 
+if HAVE_PVM3
+MODS15 = export_pvm.la
+endif
 
 pkg_LTLIBRARIES = export_null.la \
 		  export_ac3.la \
@@ -87,7 +90,7 @@ pkg_LTLIBRARIES = export_null.la \
 		  export_pcm.la \
 		  $(MODS1) $(MODS2) $(MODS3) $(MODS4) $(MODS5) $(MODS6) $(MODS7) $(MODS8) $(MOD9) $(MODS10) export_ogg.la \
 		  export_toolame.la \
-		  export_sampeg.la $(MODS11) $(MODS12) $(MODS13) $(MODS14)
+		  export_sampeg.la $(MODS11) $(MODS12) $(MODS13) $(MODS14) $(MODS15)
 
 export_null_la_SOURCES = export_null.c
 export_null_la_LDFLAGS =  -module -avoid-version 
@@ -199,6 +202,9 @@ export_yuv4mpeg_la_LIBADD = @LAME_LIBS@ @MJPEG_LIBS@ -L../libvo -lvout $(AC3_LIB
 export_mpeg_la_SOURCES = export_mpeg.c vid_aux.c
 export_mpeg_la_LDFLAGS =  -module -avoid-version 
 export_mpeg_la_LIBADD = -L../bbmpeg -lbbmpeg -L../ffmpeg/libavcodec/ -ltcavcodec -L../libvo -lvout -lm
+
+export_pvm_la_SOURCES = export_pvm.c ../pvm3/pvm_interface.c ../pvm3/pvm_parser.c
+export_pvm_la_LDFLAGS =  -module -avoid-version -L../libioaux -ltcioaux
 
 export_mjpeg_la_SOURCES = export_mjpeg.c vid_aux.c aud_aux.c 
 export_mjpeg_la_LDFLAGS =  -module -avoid-version 

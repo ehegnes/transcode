@@ -206,6 +206,9 @@
 /* Define if \$CC groks AltiVec inline assembly. */
 #undef HAVE_PPC_ALTIVEC
 
+/* Have pvm3 support */
+#undef HAVE_PVM3
+
 /* Have quicktime support */
 #undef HAVE_QT
 

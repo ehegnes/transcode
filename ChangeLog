@@ -1,6 +1,24 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-19 Malanchini Marzio <marzio_malanchini at vodafone.it>
+
+  * acinclude.m4 configure.in docs/export_pvm.txt docs/Makefile.am
+  docs/man/Makefile.am docs/man/tcpvmexportd.1 docs/pvm.cfg
+  export/export_pvm.c export/Makefile.am Makefile.am
+  pvm3/export_pvm_slave.c pvm3/export_pvm_slave.h
+  pvm3/external_codec.c pvm3/external_codec.h pvm3/Makefile.am
+  pvm3/pvm_functions.c pvm3/pvm_functions.h pvm3/pvm_interface.c
+  pvm3/pvm_interface.h pvm3/pvm_parser.c pvm3/pvm_parser.h
+  pvm3/pvm_version.h pvm3/tcpvmexportd.c:
+
+  this patch add a new "meta" module that enable transcode to encode
+  a video and audio stream on different machine using the PVM3
+  library (Parallel Virtual Machine) in a distributed processing
+  environments.
+
+  More details in the docs/export_pvm.txt file.
+
 2003-08-19 Tilmann Bitterberg <transcode at tibit.org>
 
   * avilib/{avilib.c avilib.h}:

@@ -154,6 +154,8 @@ HAVE_OPENQT_FALSE = @HAVE_OPENQT_FALSE@
 HAVE_OPENQT_TRUE = @HAVE_OPENQT_TRUE@
 HAVE_PPC_ALTIVEC_FALSE = @HAVE_PPC_ALTIVEC_FALSE@
 HAVE_PPC_ALTIVEC_TRUE = @HAVE_PPC_ALTIVEC_TRUE@
+HAVE_PVM3_FALSE = @HAVE_PVM3_FALSE@
+HAVE_PVM3_TRUE = @HAVE_PVM3_TRUE@
 HAVE_QT_FALSE = @HAVE_QT_FALSE@
 HAVE_QT_TRUE = @HAVE_QT_TRUE@
 HAVE_SDL_FALSE = @HAVE_SDL_FALSE@
@@ -232,6 +234,8 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PVM3_CFLAGS = @PVM3_CFLAGS@
+PVM3_LIB = @PVM3_LIB@
 QT_CFLAGS = @QT_CFLAGS@
 QT_LIBS = @QT_LIBS@
 RANLIB = @RANLIB@
@@ -306,10 +310,12 @@ x_libraries = @x_libraries@
 
 AUTOMAKE_OPTIONS = 1.3 foreign
 
+@HAVE_PVM3_TRUE@PVM3 = pvm3
+
 SUBDIRS = . autotools docs contrib libdldarwin libsupport libioaux\
 	aclib avilib movlib libac3 libvo libmpeg2\
 	libmp3lame libdvenc bbmpeg ffmpeg\
-	import export filter src tools
+	import export filter src tools $(PVM3)
 
 
 EXTRA_DIST = transcode.spec libtool
@@ -328,7 +334,9 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 DIST_COMMON = README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
 	Makefile.in TODO acinclude.m4 aclocal.m4 config.h.in configure \
 	configure.in transcode.spec.in
-DIST_SUBDIRS = $(SUBDIRS)
+DIST_SUBDIRS = . autotools docs contrib libdldarwin libsupport libioaux \
+	aclib avilib movlib libac3 libvo libmpeg2 libmp3lame libdvenc \
+	bbmpeg ffmpeg import export filter src tools pvm3
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
@@ -540,7 +548,7 @@ distdir: $(DISTFILES)
 	    || exit 1; \
 	  fi; \
 	done
-	list='$(SUBDIRS)'; for subdir in $$list; do \
+	list='$(DIST_SUBDIRS)'; for subdir in $$list; do \
 	  if test "$$subdir" = .; then :; else \
 	    test -d $(distdir)/$$subdir \
 	    || mkdir $(distdir)/$$subdir \

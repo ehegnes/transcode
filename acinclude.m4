@@ -89,6 +89,74 @@ AC_DEFUN([AC_COMPILE_CHECK_SIZEOF],
     AC_MSG_RESULT([yes])])
 
 
+dnl 
+dnl pvm3
+dnl 
+
+AC_DEFUN(AM_PATH_PVM3,
+[
+AC_ARG_WITH(pvm3, AC_HELP_STRING([--with-pvm3],[Enable experimental pvm3 code]),[case "${withval}" in
+  yes) ;;
+  no)  ;;
+  *) AC_MSG_ERROR(bad value ${withval} for --with-pvm3) ;;
+esac], with_pvm3=no)
+
+AC_ARG_WITH(pvm3-lib,AC_HELP_STRING([--with-pvm3-lib=PFX],[prefix where local pvm3 libraries are installed]), pvm3_lib="$withval",pvm3_lib="/usr/lib")
+AC_ARG_WITH(pvm3-include,AC_HELP_STRING([--with-pvm3-include=PFX],[prefix where local pvm3 includes are installed]), pvm3_include="$withval",pvm3_include="/usr/include")
+
+	have_pvm3=no
+	PVM3_CFLAGS=""
+	PVM3_LIB=""
+	if test x$with_pvm3 = "x"yes ; then
+		if test x$pvm3_lib != "x" ; then
+			AC_CHECK_FILE($pvm3_include/pvm3.h, [pvm3_inc=yes])
+			AC_CHECK_FILE($pvm3_lib/libpvm3.a, [pvm3_libs=yes])
+			if test x$pvm3_inc != "x" ; then
+				if test x$pvm3_libs != "x" ; then
+					AC_DEFINE(HAVE_PVM3)
+					AC_MSG_CHECKING([for pvm3 version >= 3.4])
+					PVM3_CFLAGS="-I$pvm3_include"
+					PVM3_LIB="-L$pvm3_lib -lpvm3" 
+					CFLAGS_OLD=$CFLAGS
+					CFLAGS="$CFLAGS $PVM3_CFLAGS"
+					AC_TRY_RUN([
+						#include <stdio.h>
+						#include <pvm3.h>
+						int main () 
+						{
+						  if ((PVM_MAJOR_VERSION ==3)&&(PVM_MINOR_VERSION<4))
+						  {
+							printf("You need to upgrade pvm3 to version > 3.4\n");
+							return(1);
+						  }
+						  if (PVM_MAJOR_VERSION <3)
+						  {
+							printf("You need to upgrade pvm3 to version > 3.4\n");
+							return(1);
+						  }
+						  return 0;
+						}
+					],, no_pvm3=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
+					CFLAGS=$CFLAGS_OLD
+  					if test "x$no_pvm3" = x ; then
+     						AC_MSG_RESULT(yes)
+						have_pvm3=yes
+					else
+     						AC_MSG_RESULT(no)
+						have_pvm3=no
+					fi
+				else
+					have_pvm3=no
+				fi
+			else
+				have_pvm3=no
+			fi
+		fi
+	fi
+AC_SUBST(PVM3_CFLAGS)
+AC_SUBST(PVM3_LIB)
+])
+
 dnl AM_PATH_AVIFILE([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for AVIFILE, and define AVIFILE_CFLAGS and AVIFILE_LIBS
 dnl
@@ -897,7 +965,6 @@ fi
 AC_SUBST(LIBLVE_LIBS)
 AC_SUBST(LIBLVE_CFLAGS)
 ])
-
 
 
 dnl 
