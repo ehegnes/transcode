@@ -261,6 +261,7 @@ MOD_decode {
   long       bytes_read = 0;
   int        got_picture, UVls, src, dst, row, col;
   char      *Ybuf, *Ubuf, *Vbuf;
+  static long old_bytes = 0;
   AVFrame  picture;
 
   if (param->flag == TC_VIDEO) {
@@ -269,6 +270,11 @@ MOD_decode {
     if (bytes_read < 0) {
       return TC_IMPORT_ERROR;
     }
+
+    if (bytes_read>0) old_bytes = bytes_read;
+
+    // recycle read buffer
+    if (bytes_read == 0) bytes_read = old_bytes;
     
     if (key)
       param->attributes |= TC_FRAME_IS_KEYFRAME;
