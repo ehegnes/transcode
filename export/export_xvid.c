@@ -139,7 +139,8 @@ static int xvid_print_config(XVID_INIT_PARAM *einit,
 			     XVID_ENC_FRAME  *eframe,
 			     int quality,
 			     int pass,
-			     char *csp);
+			     char *csp,
+			     int bitrate);
 
 static void xvid_print_vbr(vbr_control_t *state);
 
@@ -244,8 +245,6 @@ MOD_init
 
 		global_frame.colorspace = global_colorspace;
 		global_frame.length     = global_framesize;
-		global_frame.quant_intra_matrix = NULL;
-		global_frame.quant_inter_matrix = NULL;
 
 		/* We create the encoder instance */
 		xerr = XviD_encore(NULL, XVID_ENC_CREATE, &global_param, NULL);
@@ -348,9 +347,10 @@ MOD_init
 					  quality,
 					  vob->divxmultipass,
 					  (vob->im_v_codec==CODEC_RGB) ?
-					  "RGB24":"YV12");
+					  "RGB24":"YV12",
+					  vob->divxbitrate);
 
-			xvid_print_vbr(&vbr_state);
+			if(VbrMode == 2) xvid_print_vbr(&vbr_state);
 		}
     
 		return(0);
@@ -429,8 +429,8 @@ MOD_encode
 	xframe.general    = global_frame.general;
 	xframe.motion     = global_frame.motion;
 	xframe.colorspace = global_frame.colorspace;
-	xframe.quant_intra_matrix = NULL;
-	xframe.quant_inter_matrix = NULL;
+	xframe.quant_intra_matrix = global_frame.quant_intra_matrix;
+	xframe.quant_inter_matrix = global_frame.quant_inter_matrix;
 	xframe.quant = vbrGetQuant(&vbr_state);
 	xframe.intra = vbrGetIntra(&vbr_state);
 
@@ -550,6 +550,18 @@ MOD_stop
 			printf("encoder close error");
 		}
 
+		/* Free matrices */
+		if(global_frame.quant_inter_matrix) {
+			free(global_frame.quant_inter_matrix);
+			global_frame.quant_inter_matrix = NULL;
+		}
+
+		if(global_frame.quant_intra_matrix) {
+			free(global_frame.quant_intra_matrix);
+			global_frame.quant_intra_matrix = NULL;
+		}
+
+		/* Free frame buffer */
 		if(buffer != NULL) {
 			free(buffer);
 			buffer=NULL;
@@ -646,6 +658,8 @@ static void xvid_config_get_frame(XVID_ENC_FRAME *eframe,
 				  CF_ROOT_TYPE *pRoot,
 				  CF_SECTION_TYPE *pSection);
 
+static void *xvid_read_matrixfile(unsigned char *filename);
+
 static void xvid_config_get_vbr(vbr_control_t *vbr_state,
 				CF_ROOT_TYPE *pRoot,
 				CF_SECTION_TYPE *pSection);
@@ -699,6 +713,8 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 	/* Frame flags */
 	eframe->general  = general_presets[quality];
 	eframe->motion   =  motion_presets[quality];
+	eframe->quant_inter_matrix = NULL;
+	eframe->quant_intra_matrix = NULL;
 
 #ifdef DEVELOPER_USE
 
@@ -836,6 +852,7 @@ static config_flag_t const cpu_flags[] = {
 
 static config_flag_t const general_flags[] = {
 	{ "XVID_VALID_FLAGS",    XVID_VALID_FLAGS},
+	{ "XVID_CUSTOM_QMATRIX", XVID_CUSTOM_QMATRIX},
 	{ "XVID_H263QUANT",      XVID_H263QUANT},
 	{ "XVID_MPEGQUANT",      XVID_MPEGQUANT},
 	{ "XVID_HALFPEL",        XVID_HALFPEL},
@@ -955,8 +972,89 @@ static void xvid_config_get_frame(XVID_ENC_FRAME *eframe,
 		eframe->general = string2flags(pTemp, general_flags);
 	}
 
+	/* Get the inter matrix filename and read the matrix */
+	if( (pTemp = cf_get("frame.quant_inter_matrix")) != NULL ) {
+		eframe->quant_inter_matrix = xvid_read_matrixfile(pTemp);
+	}
+
+	/* Get the inter matrix filename and read the matrix */
+	if( (pTemp = cf_get("frame.quant_intra_matrix")) != NULL ) {
+		eframe->quant_intra_matrix = xvid_read_matrixfile(pTemp);
+	}
+
+	/*
+	 * Just to avoid common error - custom matrices are just usable if
+	 * using mpeg quantization type - Enforce it.
+	 */
+	if(eframe->general & XVID_CUSTOM_QMATRIX) {
+
+		/* Is there at least one filled matrix ? */
+		if(eframe->quant_inter_matrix != NULL ||
+		   eframe->quant_intra_matrix != NULL) {
+
+			/* There's one - turn off h263 and turn on mpeg */
+			eframe->general &= ~XVID_H263QUANT;
+			eframe->general |= XVID_MPEGQUANT;
+
+		} else {
+
+			/* There's none - why custom mtrix is set ?! */
+			eframe->general &= ~XVID_CUSTOM_QMATRIX;
+
+		}
+		
+	}
+
 	return;
 
+}
+
+static void *xvid_read_matrixfile(unsigned char *filename)
+{
+
+	int i;
+	unsigned char *matrix;
+	FILE *input;
+	
+	/* Allocate matrix space */
+	if((matrix = malloc(64*sizeof(unsigned char))) == NULL)
+	   return(NULL);
+
+	/* Open the matrix file */
+	if((input = fopen(filename, "rb")) == NULL) {
+		free(matrix);
+		return(NULL);
+	}
+
+	/* Read the matrix */
+	for(i=0; i<64; i++) {
+
+		int value;
+
+		/* If fscanf fails then get out of the loop */
+		if(fscanf(input, "%d", &value) != 1) {
+			fprintf(stderr,
+				"[%s]\tError: The matrix file %s is corrupted\n",
+				MOD_NAME,
+				filename);
+			free(matrix);
+			fclose(input);
+			return(NULL);
+		}
+
+		/* Clamp the value to safe range */
+		matrix[i] = Clamp(value, 1, 255);
+
+	}
+
+	/* Fills the rest with 1 */
+	while(i<64) matrix[i++] = 1;
+
+	/* We're done */
+	fclose(input);
+
+	return(matrix);
+		
 }
 
 #if 0
@@ -1326,64 +1424,118 @@ static int xvid_print_config(XVID_INIT_PARAM *einit,
 			     XVID_ENC_FRAME  *eframe,
 			     int quality,
 			     int pass,
-			     char *csp)
+			     char *csp,
+			     int bitrate)
 {
 
 	int i;
 
+	char *passtype[] =
+		{
+			"ABR 1 Pass",
+			"VBR 1st Pass",
+			"VBR 2nd Pass",
+			"Constant Quantizer"
+		};
+
 	/* What pass is it ? */
-	fprintf(stderr, "[%s]     multi-pass session: %d\n",
-		MOD_NAME, pass);
+	fprintf(stderr, "[%s]\tPass Type: %s\n",
+		MOD_NAME, passtype[Clamp(pass, 0 , 3)]);
 
 	/* Quality used */
-	fprintf(stderr,	"[%s]                quality: %d\n",
+	fprintf(stderr,	"[%s]\tQuality: %d\n",
 		MOD_NAME, quality);
 
 	/* Bitrate */
-	fprintf(stderr,	"[%s]      bitrate [kBits/s]: %d\n",
-		MOD_NAME, eparam->rc_bitrate/1000);
+	switch(pass) {
+	case 0:
+	case 2:
+		fprintf(stderr,	"[%s]\tBitrate [kBits/s]: %d\n",
+			MOD_NAME, bitrate);
+		break;
+	case 3:
+		fprintf(stderr,	"[%s]\tConstant Quantizer: %d\n",
+			MOD_NAME, bitrate);
+		break;
+	default:
+		fprintf(stderr,	"[%s]\tBitrate: Unknown\n",
+			MOD_NAME);
+	}
 
 	/* Key frame interval */
-	fprintf(stderr,	"[%s]  max keyframe interval: %d\n",
+	fprintf(stderr,	"[%s]\tMax keyframe Interval: %d\n",
 		MOD_NAME, eparam->max_key_interval);
 
 	/* Motion flags */
-	fprintf(stderr,	"[%s]           motion flags:\n",
+	fprintf(stderr,	"[%s]\tMotion flags:\n",
 		MOD_NAME);
 
 	for(i=0; motion_flags[i].flag_string != NULL; i++) {
 		if(motion_flags[i].flag_value & eframe->motion)
-			fprintf(stderr, "                             %s\n",
+			fprintf(stderr, "\t\t\t%s\n",
 				motion_flags[i].flag_string);
 	}
 
 	/* General flags */
-	fprintf(stderr,	"[%s]          general flags:\n",
+	fprintf(stderr,	"[%s]\tGeneral Flags:\n",
 		MOD_NAME);
 
 	for(i=0; general_flags[i].flag_string != NULL; i++) {
 		if(general_flags[i].flag_value & eframe->general)
-			fprintf(stderr, "                             %s\n",
+			fprintf(stderr, "\t\t\t%s\n",
 				general_flags[i].flag_string);
 	}
 
 	/* CPU flags */
-	fprintf(stderr,	"[%s]              cpu flags:\n",
+	fprintf(stderr,	"[%s]\tCPU Flags:\n",
 		MOD_NAME);
 
 	for(i=0; cpu_flags[i].flag_string != NULL; i++) {
 		if(cpu_flags[i].flag_value & einit->cpu_flags)
-			fprintf(stderr, "                             %s\n",
+			fprintf(stderr, "\t\t\t%s\n",
 				cpu_flags[i].flag_string);
 	}
 
 	/* Frame Rate */
-	fprintf(stderr,	"[%s]             frame rate: %.2f\n",
+	fprintf(stderr,	"[%s]\tFrame Rate: %.2f\n",
 		MOD_NAME, (float)((float)eparam->fbase/(float)eparam->fincr));
 
 	/* Color Space */
-	fprintf(stderr,	"[%s]            color space: %s\n",
+	fprintf(stderr,	"[%s]\tColor Space: %s\n",
 		MOD_NAME, csp);
+
+	/* Matrices */
+	if(eframe->quant_intra_matrix != NULL) {
+
+		fprintf(stderr, "[%s]\tIntra Matrix\n", MOD_NAME);
+
+		for(i=0; i<8; i++) {
+			int j;
+			fprintf(stderr,"\t\t\t");
+			for(j=0; j<8; j++)
+				fprintf(stderr, "%3d ",
+					eframe->quant_intra_matrix[i*8+j]);
+			fprintf(stderr,"\n");
+
+		}
+
+	}
+
+	if(eframe->quant_inter_matrix != NULL) {
+
+		fprintf(stderr, "[%s]\tInter Matrix\n", MOD_NAME);
+
+		for(i=0; i<8; i++) {
+			int j;
+			fprintf(stderr,"\t\t\t");
+			for(j=0; j<8; j++)
+				fprintf(stderr, "%3d ",
+					eframe->quant_inter_matrix[i*8+j]);
+			fprintf(stderr,"\n");
+
+		}
+
+	}
 
 	return(0);
 
@@ -1392,88 +1544,86 @@ static int xvid_print_config(XVID_INIT_PARAM *einit,
 static void xvid_print_vbr(vbr_control_t *state)
 {
 
-	fprintf(stderr, "\t============| XviD VBR settings |============\n");
-	fprintf(stderr, "\tmode : %d\n",
+	fprintf(stderr, "[%s]\tXviD VBR settings\n",
+		MOD_NAME);
+	fprintf(stderr, "\t\t\tmode : %d\n",
 		state->mode);
-	fprintf(stderr, "\tcredits_mod = %d\n",
+	fprintf(stderr, "\t\t\tcredits_mod = %d\n",
 		state->credits_mode);
-	fprintf(stderr, "\tcredits_start = %d\n", 
+	fprintf(stderr, "\t\t\tcredits_start = %d\n", 
 		state->credits_start);
-	fprintf(stderr, "\tcredits_start_begin = %d\n",
+	fprintf(stderr, "\t\t\tcredits_start_begin = %d\n",
 		state->credits_start_begin);
-	fprintf(stderr, "\tcredits_start_end = %d\n",
+	fprintf(stderr, "\t\t\tcredits_start_end = %d\n",
 		state->credits_start_end);
-	fprintf(stderr, "\tcredits_end = %d\n",
+	fprintf(stderr, "\t\t\tcredits_end = %d\n",
 		state->credits_end);
-	fprintf(stderr, "\tcredits_end_begin = %d\n",
+	fprintf(stderr, "\t\t\tcredits_end_begin = %d\n",
 		state->credits_end_begin);
-	fprintf(stderr, "\tcredits_end_end = %d\n",
+	fprintf(stderr, "\t\t\tcredits_end_end = %d\n",
 		state->credits_end_end);
-	fprintf(stderr, "\tcredits_quant_ratio = %d\n",
+	fprintf(stderr, "\t\t\tcredits_quant_ratio = %d\n",
 		state->credits_quant_ratio);
-	fprintf(stderr, "\tcredits_fixed_quant = %d\n",
+	fprintf(stderr, "\t\t\tcredits_fixed_quant = %d\n",
 		state->credits_fixed_quant);
-	fprintf(stderr, "\tcredits_quant_i = %d\n",
+	fprintf(stderr, "\t\t\tcredits_quant_i = %d\n",
 		state->credits_quant_i);
-	fprintf(stderr, "\tcredits_quant_p = %d\n",
+	fprintf(stderr, "\t\t\tcredits_quant_p = %d\n",
 		state->credits_quant_p);
-	fprintf(stderr, "\tcredits_start_size = %d\n",
+	fprintf(stderr, "\t\t\tcredits_start_size = %d\n",
 		state->credits_start_size);
-	fprintf(stderr, "\tcredits_end_size = %d\n",
+	fprintf(stderr, "\t\t\tcredits_end_size = %d\n",
 		state->credits_end_size);
-	fprintf(stderr, "\tkeyframe_boost = %d\n",
+	fprintf(stderr, "\t\t\tkeyframe_boost = %d\n",
 		state->keyframe_boost);
-	fprintf(stderr, "\tkftreshold = %d\n",
+	fprintf(stderr, "\t\t\tkftreshold = %d\n",
 		state->kftreshold);
-	fprintf(stderr, "\tkfreduction = %d\n",
+	fprintf(stderr, "\t\t\tkfreduction = %d\n",
 		state->kfreduction);
-	fprintf(stderr, "\tmin_key_interval = %d\n",
+	fprintf(stderr, "\t\t\tmin_key_interval = %d\n",
 		state->min_key_interval);
-	fprintf(stderr, "\tmax_key_interval = %d\n",
+	fprintf(stderr, "\t\t\tmax_key_interval = %d\n",
 		state->max_key_interval);
-	fprintf(stderr, "\tcurve_comp_high = %d\n",
+	fprintf(stderr, "\t\t\tcurve_comp_high = %d\n",
 		state->curve_compression_high);
-	fprintf(stderr, "\tcurve_comp_low = %d\n",
+	fprintf(stderr, "\t\t\tcurve_comp_low = %d\n",
 		state->curve_compression_low);
-	fprintf(stderr, "\tuse_alt_curve = %d\n",
+	fprintf(stderr, "\t\t\tuse_alt_curve = %d\n",
 		state->use_alt_curve);
-	fprintf(stderr, "\talt_curve_type = %d\n",
+	fprintf(stderr, "\t\t\talt_curve_type = %d\n",
 		state->alt_curve_type);
-	fprintf(stderr, "\talt_curve_low_dist = %d\n",
+	fprintf(stderr, "\t\t\talt_curve_low_dist = %d\n",
 		state->alt_curve_low_dist);
-	fprintf(stderr, "\talt_curve_high_dist = %d\n",
+	fprintf(stderr, "\t\t\talt_curve_high_dist = %d\n",
 		state->alt_curve_high_dist);
-	fprintf(stderr, "\talt_curve_min_rel_qual = %d\n",
+	fprintf(stderr, "\t\t\talt_curve_min_rel_qual = %d\n",
 		state->alt_curve_min_rel_qual);
-	fprintf(stderr, "\talt_curve_use_auto = %d\n",
+	fprintf(stderr, "\t\t\talt_curve_use_auto = %d\n",
 		state->alt_curve_use_auto);
-	fprintf(stderr, "\talt_curve_auto_str = %d\n",
+	fprintf(stderr, "\t\t\talt_curve_auto_str = %d\n",
 		state->alt_curve_auto_str);
-	fprintf(stderr, "\talt_curve_use_auto_bonus_bias = %d\n",
+	fprintf(stderr, "\t\t\talt_curve_use_auto_bonus_bias = %d\n",
 		state->alt_curve_use_auto_bonus_bias);
-	fprintf(stderr, "\talt_curve_bonus_bias = %d\n",
+	fprintf(stderr, "\t\t\talt_curve_bonus_bias = %d\n",
 		state->alt_curve_bonus_bias);
-	fprintf(stderr, "\tbitrate_payback_method = %d\n",
+	fprintf(stderr, "\t\t\tbitrate_payback_method = %d\n",
 		state->bitrate_payback_method);
-	fprintf(stderr, "\tbitrate_payback_delay = %d\n",
+	fprintf(stderr, "\t\t\tbitrate_payback_delay = %d\n",
 		state->bitrate_payback_delay);
-	fprintf(stderr, "\ttwopass_max_bitrate = %d\n",
+	fprintf(stderr, "\t\t\ttwopass_max_bitrate = %d\n",
 		state->twopass_max_bitrate);
-	fprintf(stderr, "\ttwopass_max_overflow_improvement = %d\n",
+	fprintf(stderr, "\t\t\ttwopass_max_overflow_improvement = %d\n",
 		state->twopass_max_overflow_improvement);
-	fprintf(stderr, "\ttwopass_max_overflow_degradation = %d\n",
+	fprintf(stderr, "\t\t\ttwopass_max_overflow_degradation = %d\n",
 		state->twopass_max_overflow_degradation);
-	fprintf(stderr, "\tmax_iquant = %d\n",
+	fprintf(stderr, "\t\t\tmax_iquant = %d\n",
 		state->max_iquant);
-	fprintf(stderr, "\tmin_iquant = %d\n",
+	fprintf(stderr, "\t\t\tmin_iquant = %d\n",
 		state->min_iquant);
-	fprintf(stderr, "\tmax_pquant = %d\n",
+	fprintf(stderr, "\t\t\tmax_pquant = %d\n",
 		state->max_pquant);
-	fprintf(stderr, "\tmin_pquant = %d\n",
+	fprintf(stderr, "\t\t\tmin_pquant = %d\n",
 		state->min_pquant);
-	fprintf(stderr, "\tfixed_quant = %d\n",
+	fprintf(stderr, "\t\t\tfixed_quant = %d\n",
 		state->fixed_quant);
-	fprintf(stderr,
-		"\t============| End of XviD VBR settings |============\n");
-
 }
