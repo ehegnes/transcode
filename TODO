@@ -72,7 +72,20 @@ filter/
                documentation of -c's limitation to a single input file.
 23:13 < tibit> iMars: that depends on the input
 23:13 < iMars> A directory containing dvgrab'ed DV files in dv2 .avi format.
-23:15 < tibit> I'll look at that 
+
+
+16:05 < GomGom> tibit: did you ever thought adding some compositing opengl 
+                routines in transcode ?
+16:05 < GomGom> tibit: you could do nice comositing
+16:06 <@tibit> you mean '-F 3d -y gl' which will OCR the image, detect 
+               geometrical elements and generates a 3d environment using time 
+               as the 3rd dimension?
+16:08 < GomGom> no but you would have cheap transitions
+16:08 < GomGom> and 3d panings etc
+16:08 < GomGom> alpha blending for free too
+16:08 < GomGom> logo rendering for not much
+16:09 <@tibit> sounds nice, I'll add it to the todo and await your patch. the 
+               filter_control can be used to control it
 
 
 
