@@ -28,6 +28,7 @@ struct fc_time {
   unsigned int  etf; /* calculated end frame */
 
   unsigned int  stepf; /* step in frames */
+  int vob_offset; /* keep track of vob offset for multiple time ranges */
 
   struct fc_time * next; /* pointer to next range */
 };

@@ -2241,6 +2241,7 @@ int main(int argc, char *argv[]) {
     // determine -S,-c,-L option parameter for distributed processing
     if(nav_seek_file) {
       FILE *fp;
+      struct fc_time *tmptime;
       char buf[80];
       int line_count;
       int flag = 0;
@@ -2254,22 +2255,28 @@ int main(int argc, char *argv[]) {
 	exit(EXIT_FAILURE);
       }
 
-      if(verbose & TC_DEBUG) printf("searching %s for frame %d\n", nav_seek_file, frame_a);
-      for(line_count = 0; fgets(buf, sizeof(buf), fp); line_count++) {
-	int L, new_frame_a;
-	
-	if(2 == sscanf(buf, "%*d %*d %*d %*d %d %d ", &L, &new_frame_a)) {
-	    if(line_count == frame_a) {
-		int len = frame_b - frame_a;
-		if(verbose & TC_DEBUG) printf("%s: -c %d-%d -> -L %d -c %d-%d\n", nav_seek_file, frame_a, frame_b, L, new_frame_a, new_frame_a+len);
-		vob->ttime->stf = frame_a = new_frame_a;
-		vob->ttime->etf = frame_b = new_frame_a + len;
-		vob->ttime->next = NULL; // only one range
-		vob->vob_offset = L;
-		flag=1;
-		break;
-	    }
-	}
+      tmptime = vob->ttime;
+      line_count = 0;
+      while(tmptime){
+        flag=0;
+        if(verbose & TC_DEBUG) printf("searching %s for frame %d\n", nav_seek_file, tmptime->stf);
+        for(; fgets(buf, sizeof(buf), fp); line_count++) {
+  	  int L, new_frame_a;
+    	
+	  if(2 == sscanf(buf, "%*d %*d %*d %*d %d %d ", &L, &new_frame_a)) {
+	      if(line_count == tmptime->stf) {
+		  int len = tmptime->etf - tmptime->stf;
+		  if(verbose & TC_DEBUG) printf("%s: -c %d-%d -> -L %d -c %d-%d\n", nav_seek_file, tmptime->stf, tmptime->etf, L, new_frame_a, new_frame_a+len);
+		  tmptime->stf = frame_a = new_frame_a;
+		  tmptime->etf = frame_b = new_frame_a + len;
+		  tmptime->vob_offset = L;
+		  flag=1;
+		  ++line_count;
+		  break;
+	      }
+  	  }
+        }
+	tmptime = tmptime->next;
       }
       fclose(fp);
 
@@ -3107,6 +3114,9 @@ int main(int argc, char *argv[]) {
        * ------------------------------------------------------------*/  
 
       // init decoder and open the source     
+      if (0 != vob->ttime->vob_offset){
+	vob->vob_offset = vob->ttime->vob_offset;
+      }
       if(import_open(vob)<0) tc_error("failed to open input source");
 
       // start the AV import threads that load the frames into transcode
@@ -3136,6 +3146,16 @@ int main(int argc, char *argv[]) {
 	
         // next range
         tstart = tstart->next;
+	// see if we're using vob_offset
+	if ((tstart != NULL) && (tstart->vob_offset != 0)){
+	  import_threads_cancel();
+	  import_close(vob);
+	  aframe_flush();
+	  vframe_flush();
+	  vob->vob_offset = tstart->vob_offset;
+	  if(import_open(vob)<0) tc_error("failed to open input source");
+	  import_threads_create(vob);
+	}
       }
 
       // close output files

@@ -46,6 +46,7 @@ parse_fc_time_string( char * string, double fps, char *separator,
     time->ef    = 0;
     time->etf   = 0;
     time->stepf = 1;
+    time->vob_offset = 0;
     time->next  = NULL;
 
     time->fps = fps;
