@@ -156,8 +156,8 @@ MOD_open
     snprintf( dar_tag, 19, "XM2AR%03d", asr );
     y4m_xtag_add( y4m_si_xtags(&y4mstream), dar_tag );
     */
-    y4mstream.height = vob->ex_v_height;
-    y4mstream.width = vob->ex_v_width;
+    y4m_si_set_height(&y4mstream,vob->ex_v_height);
+    y4m_si_set_width(&y4mstream,vob->ex_v_width);
     
     size = vob->ex_v_width * vob->ex_v_height * 3/2;
     
@@ -203,13 +203,23 @@ MOD_encode
 	}
 	
 	
+#ifdef USE_NEW_CVS_CODE
 	y4m_init_frame_info(&info);
 	
-	if(y4m_write_frame_header( fd, &info ) != Y4M_OK )
+	if(y4m_write_frame_header( fd, &y4mstream, &info ) != Y4M_OK )
 	{
 	    perror("write frame header");
 	    return(TC_EXPORT_ERROR);
 	}     
+#else
+	y4m_init_frame_info(&info);
+	
+	if(y4m_write_frame_header( fd, &y4mstream) != Y4M_OK )
+	{
+	    perror("write frame header");
+	    return(TC_EXPORT_ERROR);
+	}     
+#endif
 	
 	//do not trust param->size
 	if(p_write(fd, param->buffer, size) != size) {    

@@ -70,8 +70,8 @@ static int y4m_snprint_xtags(char *s, int maxn, y4m_xtag_list_t *xtags)
 {
   int i, room;
   
-  for (i = 0, room = maxn - 1; i < xtags->count; i++) {
-    int n = snprintf(s, room + 1, " %s", xtags->tags[i]);
+  for (i = 0, room = maxn - 1; i < y4m_xtag_count(&xtags); i++) {
+    int n = snprintf(s, room + 1, " %s", y4m_xtag_get(&xtags, i));
     if ((n < 0) || (n > room)) return Y4M_ERR_HEADER;
     s += n;
     room -= n;
@@ -87,19 +87,21 @@ static int y4m_write_stream_header2(FILE *fd, y4m_stream_info_t *i)
   int n;
   int err;
   
-  y4m_ratio_reduce(&(i->framerate));
-  y4m_ratio_reduce(&(i->sampleaspect));
+  y4m_ratio_t tmpframerate = y4m_si_get_framerate(i);
+  y4m_ratio_t tmpsamplerate = y4m_si_get_sampleaspect(i);
+  y4m_ratio_reduce(&tmpframerate);
+  y4m_ratio_reduce(&tmpsamplerate);
   n = snprintf(s, sizeof(s), "%s W%d H%d F%d:%d I%s A%d:%d",
 	       Y4M_MAGIC,
-	       i->width,
-	       i->height,
-	       i->framerate.n, i->framerate.d,
-	       (i->interlace == Y4M_ILACE_NONE) ? "p" :
-	       (i->interlace == Y4M_ILACE_TOP_FIRST) ? "t" :
-	       (i->interlace == Y4M_ILACE_BOTTOM_FIRST) ? "b" : "?",
-	       i->sampleaspect.n, i->sampleaspect.d);
+	       y4m_si_get_width(i),
+	       y4m_si_get_height(i),
+	       y4m_si_get_framerate(i).n, y4m_si_get_framerate(i).d,
+	       (y4m_si_get_interlace(i) == Y4M_ILACE_NONE) ? "p" :
+	       (y4m_si_get_interlace(i) == Y4M_ILACE_TOP_FIRST) ? "t" :
+	       (y4m_si_get_interlace(i) == Y4M_ILACE_BOTTOM_FIRST) ? "b" : "?",
+	       y4m_si_get_sampleaspect(i).n, y4m_si_get_sampleaspect(i).d);
   if ((n < 0) || (n > Y4M_LINE_MAX)) return Y4M_ERR_HEADER;
-  if ((err = y4m_snprint_xtags(s + n, sizeof(s) - n - 1, &(i->x_tags))) 
+  if ((err = y4m_snprint_xtags(s + n, sizeof(s) - n - 1, y4m_si_xtags(i))) 
       != Y4M_OK) 
     return err;
   /* zero on error */
@@ -115,7 +117,7 @@ int y4m_write_frame_header2(FILE *fd, y4m_frame_info_t *i)
   
   n = snprintf(s, sizeof(s), "%s", Y4M_FRAME_MAGIC);
   if ((n < 0) || (n > Y4M_LINE_MAX)) return Y4M_ERR_HEADER;
-  if ((err = y4m_snprint_xtags(s + n, sizeof(s) - n - 1, &(i->x_tags))) 
+  if ((err = y4m_snprint_xtags(s + n, sizeof(s) - n - 1, y4m_fi_xtags(i))) 
       != Y4M_OK) 
     return err;
   /* zero on error */
@@ -168,8 +170,8 @@ MOD_open
     snprintf( dar_tag, 19, "XM2AR%03d", asr );
     y4m_xtag_add( y4m_si_xtags(&y4mstream), dar_tag );
     */
-    y4mstream.height = vob->ex_v_height;
-    y4mstream.width = vob->ex_v_width;
+    y4m_si_set_height(&y4mstream, vob->ex_v_height);
+    y4m_si_set_width(&y4mstream, vob->ex_v_width);
     
     verb = (verbose & TC_DEBUG) ? 2:0;
 

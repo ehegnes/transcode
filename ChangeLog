@@ -1,6 +1,20 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-06-09 Amartyo Banerjee <amartyobanerjee at yahoo.com>
+
+  * export/export_yuv4mpeg.c export/export_mpeg2enc.c:
+  I had built the mjpeg tools checked out from cvs on April 20, 2004.                    
+  I then tried to compile transcode 0.6.12. Compilation failed with                      
+  messages about 'struct does not have member ---'  in the files                         
+  export/export_yuv4mpeg.c and export/export_mpeg2enc.c.                                 
+  After looking at the relevant header files, I replaced statements                      
+  directly manipulating certain structure members in y4m_stream_info_t                   
+  and y4m_frame_info_t with the wrapper functions that are                               
+  supposed to be used instead. Compilation then succeeded.                               
+  I have attached 2 patch files in case anyone else has the                              
+  same problem.
+
 2004-06-09 Andrew Church <achurch at achurch.org>
 
   * bbmpeg/tcmplex/multplex.c:
