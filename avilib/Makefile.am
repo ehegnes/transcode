@@ -10,7 +10,7 @@ INCLUDES = -I./
 CFLAGS=-funroll-loops -ffast-math -DLINUX -Wall @CFLAGS@
 libavi_a_SOURCES = avilib.c avidump.c avimisc.c
 
-EXTRA_DIST = avilib.h README.avilib
+EXTRA_DIST = avilib.h README.avilib os.h
 
 
 

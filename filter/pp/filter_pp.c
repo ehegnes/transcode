@@ -47,8 +47,8 @@
 #include "filter.h"
 #include "optstr.h"
 #include "framebuffer.h"
-#include <postproc/postprocess.h>
-#include "../aclib/ac.h"
+#include "postprocess.h"
+#include "aclib/ac.h"
 
 static pp_mode_t *mode[MAX_FILTER];
 static pp_context_t *context[MAX_FILTER];

@@ -397,20 +397,20 @@ if test x"$GCC" = x"yes"; then
 
 
     dnl -O3
-    changequote(<<,>>)
-    OPT_CFLAGS=`echo "$CFLAGS"|sed "s/-O[0-9]*//g;"`
-    changequote([,])
-    OPT_CFLAGS="$OPT_CFLAGS -O3"
+    dnl changequote(<<,>>)
+    dnl OPT_CFLAGS=`echo "$CFLAGS"|sed "s/-O[0-9]*//g;"`
+    dnl changequote([,])
+    OPT_CFLAGS=""
     if test x${USE_MAINTAINER_MODE} != xno; then
-       OPT_CFLAGS="$OPT_CFLAGS -O2"
+       OPT_CFLAGS="$OPT_CFLAGS -O2 $CFLAGS"
     else
-       OPT_CFLAGS="$OPT_CFLAGS -O3"
+       OPT_CFLAGS="$OPT_CFLAGS -O3 $CFLAGS"
     fi
     AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
 
     dnl -fomit-frame-pointer
     if test x${USE_MAINTAINER_MODE} = xno; then
-       OPT_CFLAGS="$CFLAGS -fomit-frame-pointer"
+       OPT_CFLAGS="-fomit-frame-pointer $CFLAGS"
        AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
     fi
 
@@ -461,7 +461,7 @@ AC_ARG_ENABLE([warnings],
     AC_HELP_STRING([--enable-warnings], [treat warnings as errors]))
 if test x"$enable_warnings" = x"yes" -a x"$GCC" = x"yes"; then
     dnl compiler warnings
-    OPT_CFLAGS="$CFLAGS -Wall -Werror"
+    OPT_CFLAGS="-Wall -Werror $CFLAGS"
     AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
 fi
 
@@ -471,7 +471,7 @@ LTLIBOBJS=`echo "$AC_LIBOBJ" | sed 's,.o ,.lo ,g;s,.o$,.lo,'`
 AC_SUBST(LTLIBOBJS)
 
 
-OPT_CFLAGS="$CFLAGS -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64"
+OPT_CFLAGS="-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 $CFLAGS"
 AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
 AC_SUBST(CFLAGS)
 
@@ -639,8 +639,8 @@ dnl
 dnl MPlayer libpostproc
 dnl
 
-AM_PATH_POSTPROC(AC_DEFINE([HAVE_LIBPOSTPROC], 1, [Have libpostproc support]))
-AM_CONDITIONAL(HAVE_LIBPOSTPROC, test x"$have_libpostproc" = "xyes")
+dnl AM_PATH_POSTPROC(AC_DEFINE([HAVE_LIBPOSTPROC], 1, [Have libpostproc support]))
+dnl AM_CONDITIONAL(HAVE_LIBPOSTPROC, test x"$have_libpostproc" = "xyes")
 
 dnl
 dnl GM's lve
@@ -998,6 +998,7 @@ AC_OUTPUT([
            import/lve/Makefile
            import/yuv/Makefile
            filter/Makefile
+           filter/pp/Makefile
            filter/subtitler/Makefile
            filter/preview/Makefile
            filter/divxkey/Makefile
@@ -1020,6 +1021,7 @@ AC_OUTPUT([
 
 dnl openquicktime dependent modules                  $have_openqt
 dnl XVID support with libxvidcore                    $have_xvidcore
+dnl libpostproc dependent filter plugin      	 yes
 
 if test x${lame_version} = x1; then
   lame_print="static"
@@ -1055,7 +1057,6 @@ libmpeg3 dependent modules                       $have_libmpeg3
 libfame video encoding plugin                    $have_libfame
 quicktime dependent modules                      $have_qt
 *-*-*-*-*-*-* Filter *-*-*-*-*-*-*
-libpostproc dependent filter plugin      	 $have_libpostproc
 X11 dependent filter plugins                     $USE_X11
 freetype2 dependent filter (filter_text)         $have_freetype2
 ----------------------------------------------------------

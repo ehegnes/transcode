@@ -3,15 +3,9 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-INCLUDES = -I./ -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ @LAME_CFLAGS@ -I../libac3 -I$(srcdir)/../libac3 @LIBPOSTPROC_CFLAGS@ @MAGICK_CFLAGS@ @FT2_CFLAGS@
+INCLUDES = -I./ -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ @LAME_CFLAGS@ -I../libac3 -I$(srcdir)/../libac3 @MAGICK_CFLAGS@ @FT2_CFLAGS@
 
 pkgdir=@MOD_PATH@
-
-if HAVE_LIBPOSTPROC
-F_PP=filter_pp.la
-else
-F_PP=
-endif
 
 if HAVE_MMX
 F_MMX=filter_dilyuvmmx.la 
@@ -76,7 +70,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_fps.la\
 			filter_whitebalance.la\
 			filter_detectclipping.la\
-			$(F_PP) $(F_MMX) $(F_LOGO) $(F_TEXT)
+			$(F_MMX) $(F_LOGO) $(F_TEXT)
 
 filter_null_la_SOURCES = filter_null.c
 filter_null_la_LDFLAGS =  -module -avoid-version 
@@ -208,10 +202,6 @@ filter_invert_la_LDFLAGS =  -module -avoid-version
 filter_nored_la_SOURCES = filter_nored.c
 filter_nored_la_LDFLAGS =  -module -avoid-version 
 
-filter_pp_la_SOURCES = filter_pp.c
-filter_pp_la_LDFLAGS =  -module -avoid-version 
-filter_pp_la_LIBADD = @LIBPOSTPROC_LIBS@
-
 filter_dilyuvmmx_la_SOURCES = filter_dilyuvmmx.c deinterlace.c
 filter_dilyuvmmx_la_LDFLAGS =  -module -avoid-version 
 
@@ -236,9 +226,9 @@ endif
 endif
 
 if HAVE_X11
-SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc preview $(ADD2)
+SUBDIRS = . pp divxkey extsub resample test yuvdenoise ivtc preview $(ADD2)
 else
-SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc
+SUBDIRS = . pp divxkey extsub resample test yuvdenoise ivtc
 endif
 
 pkg_SCRIPTS = filter_list.awk parse_csv.awk

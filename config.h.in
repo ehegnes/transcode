@@ -139,9 +139,6 @@
 /* Have libmpeg3 support */
 #undef HAVE_LIBMPEG3
 
-/* Have libpostproc support */
-#undef HAVE_LIBPOSTPROC
-
 /* libxml2 support */
 #undef HAVE_LIBXML2
 

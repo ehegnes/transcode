@@ -2,6 +2,12 @@
 transcode-0.6.12
 
 2003-11-12 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * filter/pp/*:
+  Added the postprocess code to transcode and move the filter to
+  this directory.c.
+
+2003-11-12 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/dvd_reader.c import/fileinfo.c import/ioaux.c:
   The dvd device may be a char device (for example /dev/rdisk1 on

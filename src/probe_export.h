@@ -29,8 +29,10 @@
 // if flag is set, use the extensions provided by the user.
 // otherwise use the ones the export modules suggests.
 
-#define TC_PROBE_NO_EXPORT_VEXT   1
-#define TC_PROBE_NO_EXPORT_AEXT   2
+#define TC_PROBE_NO_EXPORT_VEXT   (1<<0)
+#define TC_PROBE_NO_EXPORT_AEXT   (1<<1)
+#define TC_PROBE_NO_EXPORT_VFMT   (1<<2)
+#define TC_PROBE_NO_EXPORT_AFMT   (1<<3)
 
 extern unsigned int probe_export_attributes;
 
