@@ -309,7 +309,7 @@ LONG *isamp, *osamp;
 	LONG i, last, Nout, Nx, Nproc;
 
 	/* constrain amount we actually process */
-	/*fprintf(stderr,"Xp %d, Xread %d, isamp %d, ",r->Xp, r->Xread,*isamp);*/
+	// fprintf(stderr,"Xp %ld, Xread %ld, isamp %ld\n ",r->Xp, r->Xread,*isamp);
 
 	Nproc = r->Xsize - r->Xp;
 
@@ -757,12 +757,22 @@ LONG N, Num;
    }
 }
 
-#define MY_BUFSIZE 50000
+//#define MY_BUFSIZE 262144
+#define MY_BUFSIZE 16384
 
 int filter_resample_init(int irate, int orate)
 {
-	LONG orbuf[MY_BUFSIZE/2];
-	LONG olbuf[MY_BUFSIZE/2];
+	LONG *orbuf=NULL;
+	LONG *olbuf=NULL;
+	
+	orbuf = (LONG *) malloc (MY_BUFSIZE/2);
+	olbuf = (LONG *) malloc (MY_BUFSIZE/2);
+
+	if (!orbuf || !olbuf) {
+	    fprintf(stderr, "[filter_resample.so] out of memory at %s:%d\n", __FILE__, __LINE__);
+	    return -1;
+	}
+
 //	char *ip;
 //	int isamp=0,osamp=0;
 //	int osampdef;
@@ -774,6 +784,9 @@ int filter_resample_init(int irate, int orate)
 //	int i,start=0;
 	
 	leffp=malloc(sizeof(struct st_effect));
+	memset (leffp, 0, sizeof(struct st_effect));
+	leffp->priv=malloc(sizeof(struct resamplestuff));
+	memset (leffp->priv, 0, sizeof(struct resamplestuff));
 	leffp->ininfo.rate=48000;           /* sampling rate */
 	leffp->ininfo.size=4;           /* word length of data */
 	leffp->ininfo.encoding=ST_ENCODING_UNSIGNED /*?*/;       /* format of sample numbers */
@@ -807,11 +820,12 @@ int filter_resample_init(int irate, int orate)
 	leffp->obuf=olbuf;          /* output buffer */
 	leffp->odone=0; 
 	leffp->olen=0;    /* consumed, total length */
-	/* FIXME: I perfer void * or char * */
-//	double          priv[ST_MAX_PRIVSIZE]; /* private area for effect */
-
 
 	reffp=malloc(sizeof(struct st_effect));
+	memset (reffp, 0, sizeof(struct st_effect));
+	reffp->priv=malloc(sizeof(struct resamplestuff));
+	memset (reffp->priv, 0, sizeof(struct resamplestuff));
+
 	reffp->ininfo.rate=48000;           /* sampling rate */
 	reffp->ininfo.size=4;           /* word length of data */
 	reffp->ininfo.encoding=ST_ENCODING_UNSIGNED /*?*/;       /* format of sample numbers */
@@ -845,8 +859,6 @@ int filter_resample_init(int irate, int orate)
 	reffp->obuf=orbuf;          /* output buffer */
 	reffp->odone=0; 
 	reffp->olen=0;    /* consumed, total length */
-	/* FIXME: I perfer void * or char * */
-//	double          priv[ST_MAX_PRIVSIZE]; /* private area for effect */
 
 	st_resample_getopts(reffp, 0, NULL);
 	st_resample_getopts(leffp, 0, NULL);
@@ -865,7 +877,7 @@ int filter_resample_flow(char *flowi, int isamp, char *flowo)
 	LONG irbuf[MY_BUFSIZE/2];
 	LONG ilbuf[MY_BUFSIZE/2];
 	int osamp, osampdef, i;
-	
+
 	iword=(short *)flowi;
 	oword=(short *)flowo;
 	osampdef=reffp->outinfo.rate>>2;
@@ -875,14 +887,15 @@ int filter_resample_flow(char *flowi, int isamp, char *flowo)
 		ilbuf[i]=(((LONG)wordp[i*2+1])<<16);
 	}
 	osamp=osampdef;
-	st_resample_flow(reffp, &irbuf, reffp->obuf, &isamp, &osamp);
+	st_resample_flow(reffp, irbuf, reffp->obuf, &isamp, &osamp);
 	osamp=osampdef;
-	st_resample_flow(leffp, &ilbuf, leffp->obuf, &isamp, &osamp);
+	st_resample_flow(leffp, ilbuf, leffp->obuf, &isamp, &osamp);
 	wordp=oword;
 	for (i=0; i<osamp; i++) {
 		wordp[i*2]=(int)(reffp->obuf[i]>>16);
 		wordp[i*2+1]=(int)(leffp->obuf[i]>>16);
 	}
+
 	return(osamp);
 }
 
@@ -892,7 +905,7 @@ int filter_resample_stop(char *stopo)
 //	short *wordp, *iword, *oword;
 //	LONG irbuf[MY_BUFSIZE/2];
 //	LONG ilbuf[MY_BUFSIZE/2];
-	LONG osamp;
+	LONG osamp=0; // that code does not make real sense -- tibit
 	int i;
 	
 	oword=(short *)stopo;
@@ -905,5 +918,11 @@ int filter_resample_stop(char *stopo)
 	}
 	st_resample_stop(reffp);
 	st_resample_stop(leffp);
+
+	if (reffp->priv) free (reffp->priv); reffp->priv = NULL;
+	if (leffp->priv) free (leffp->priv); leffp->priv = NULL;
+	if (reffp->obuf) free (reffp->obuf); reffp->obuf = NULL;
+	if (leffp->obuf) free (leffp->obuf); leffp->obuf = NULL;
+
 	return(osamp);
 }

@@ -254,8 +254,8 @@ struct st_effect {
 	st_effect_t 	*h;		/* effects driver */
 	LONG		*obuf;		/* output buffer */
 	LONG		odone, olen;	/* consumed, total length */
-	/* FIXME: I perfer void * or char * */
-	double		priv[ST_MAX_PRIVSIZE]; /* private area for effect */
+	//double		priv[ST_MAX_PRIVSIZE]; /* private area for effect */
+	void 		*priv; /* private area for effect */
 };
 
 extern st_effect_t st_effects[]; /* declared in handlers.c */

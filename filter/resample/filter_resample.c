@@ -107,7 +107,8 @@ int tc_filter(aframe_list_t *ptr, char *options)
 	error = 1;
 	return -1;
     }
-    filter_resample_init(vob->a_rate, vob->mp3frequency);
+    if (filter_resample_init(vob->a_rate, vob->mp3frequency)<0)
+	return -1;
     
     //this will force this resample filter to do the job, not
     //the export module.
