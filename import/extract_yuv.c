@@ -34,29 +34,22 @@ static int yuv_readwrite_frame (int in_fd, int out_fd, char *buffer, int bytes)
     int padding, blocks, n;
     
     for(;;) {
-      if (p_read (in_fd, magic, 6) != 6)
-	return 0;
-      
-      // Check for extra header in case input was tccat'ed
-      if (strncmp (magic, "YUV4MP", 6) == 0) {
-	do {
-	  if (p_read (in_fd, magic, 1) < 1) return 0;
-	} while(magic[0] != '\n');
-      } else break;
-    }
-
-    for(;;) {
       if (p_read (in_fd, magic, 5) != 5)
 	return 0;
       
       // Check for extra header in case input was tccat'ed
-      if (strncmp (magic, "FRAME", 5) == 0) {
+      if (strncmp (magic, "YUV4MP", 5) == 0) {
 	do {
 	  if (p_read (in_fd, magic, 1) < 1) return 0;
 	} while(magic[0] != '\n');
       } else break;
     }
 
+    if (strncmp (magic, "FRAME", 5) == 0) {
+	do {
+	    if (p_read (in_fd, magic, 1) < 1) return 0;
+	} while(magic[0] != '\n');
+    }
 
     padding = bytes % MAX_BUF;
     blocks  = bytes / MAX_BUF;
