@@ -48,7 +48,7 @@
 #endif
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.3.0 (2003-03-25)"
+#define MOD_VERSION "v0.3.1 (2003-04-01)"
 #define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
                     ") | (audio) MPEG/AC3/PCM"
 #define MOD_PRE ffmpeg
@@ -91,6 +91,8 @@ static avi_t               *avifile = NULL;
 static int                  pix_fmt;
 static FILE                *stats_file = NULL;
 static size_t               size;
+static int                  encoded_frames = 0;
+static int                  frames = 0;
 static struct ffmpeg_codec *codec;
 static int                  is_mpeg1video = 0;
 static FILE                *mpeg1fd = NULL;
@@ -401,6 +403,15 @@ MOD_init {
         size = ftell(stats_file);
         fseek(stats_file, 0, SEEK_SET);
 
+	// count the lines of the file to not encode to much
+	{ 
+	    char lbuf[255];
+	    while (fgets (lbuf, 255, stats_file))
+		encoded_frames++;
+	}
+	
+        fseek(stats_file, 0, SEEK_SET);
+
         lavc_venc_context->stats_in= malloc(size + 1);
         lavc_venc_context->stats_in[size] = 0;
 
@@ -549,6 +560,11 @@ MOD_encode
   const char pict_type_char[5]= {'?', 'I', 'P', 'B', 'S'};
   
   if (param->flag == TC_VIDEO) { 
+
+    ++frames;
+
+    if (encoded_frames && frames > encoded_frames)
+	return TC_EXPORT_ERROR;
 
     if (pix_fmt == PIX_FMT_YUV420P) {
       lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
