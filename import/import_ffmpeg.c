@@ -115,6 +115,55 @@ static struct ffmpeg_codec *find_ffmpeg_codec(char *fourCC) {
   return NULL;
 }
 
+inline static int stream_read_char(char *d)
+{
+    return (*d & 0xff);
+}
+
+inline static unsigned int stream_read_dword(char *s)
+{
+    unsigned int y;
+    y=stream_read_char(s);
+    y=(y<<8)|stream_read_char(s+1);
+    y=(y<<8)|stream_read_char(s+2);
+    y=(y<<8)|stream_read_char(s+3);
+    return y;
+}
+
+// Determine of the compressed frame is a keyframe for direct copy
+int mpeg4_is_key(unsigned char *data, long size)
+{
+        int result = 0;
+        int i;
+
+        for(i = 0; i < size - 5; i++)
+        {
+                if( data[i]     == 0x00 && 
+                        data[i + 1] == 0x00 &&
+                        data[i + 2] == 0x01 &&
+                        data[i + 3] == 0xb6)
+                {
+                        if((data[i + 4] & 0xc0) == 0x0) 
+                                return 1;
+                        else
+                                return 0;
+                }
+        }
+        
+        return result;
+}
+
+int divx3_is_key(char *d)
+{
+    int32_t c=0;
+    
+    c=stream_read_dword(d);
+    if(c&0x40000000) return(0);
+    
+    return(1);
+}
+
+
 static unsigned char *bufalloc(size_t size) {
 #ifdef HAVE_GETPAGESIZE
   int buffer_align = getpagesize();
@@ -169,10 +218,15 @@ MOD_open {
 
     //important parameter
 
-    x_dim = AVI_video_width(avifile);
-    y_dim = AVI_video_height(avifile);
+    //x_dim = AVI_video_width(avifile);
+    //y_dim = AVI_video_height(avifile);
+    //fps = AVI_frame_rate(avifile);
 
-    fps = AVI_frame_rate(avifile);
+    // use what transcode gives us.
+    x_dim = vob->im_v_width;
+    y_dim = vob->im_v_height;
+    fps   = vob->fps;
+
     fourCC = AVI_video_compressor(avifile);
 
     if (strlen(fourCC) == 0) {
@@ -185,8 +239,8 @@ MOD_open {
     //-- initialization of ffmpeg stuff:          --
     //----------------------------------------------
     pthread_mutex_lock(&init_avcodec_lock);
-     avcodec_init();
-     avcodec_register_all();
+    avcodec_init();
+    avcodec_register_all();
     pthread_mutex_unlock(&init_avcodec_lock);
 
     codec = find_ffmpeg_codec(fourCC);
@@ -287,6 +341,7 @@ MOD_decode {
   int        got_picture, UVls, src, dst, row, col;
   char      *Ybuf, *Ubuf, *Vbuf;
   static long old_bytes = 0;
+  int        retry;
   AVFrame  picture;
 
   if (param->flag == TC_VIDEO) {
@@ -308,27 +363,54 @@ MOD_decode {
     // PASS_THROUGH MODE
 
     if (pass_through) {
+      int bkey = 0;
+
+      // check for keyframes
+      if (codec->id == CODEC_ID_MSMPEG4V3) {
+	if (divx3_is_key(buffer)) bkey = 1;
+      }
+      else if (codec->id == CODEC_ID_MPEG4) {
+	if (mpeg4_is_key(buffer, bytes_read)) bkey = 1;
+      }
+      else if (codec->id == CODEC_ID_MJPEG) {
+	bkey = 1;
+      }
+
+      if (bkey) {
+	param->attributes |= TC_FRAME_IS_KEYFRAME;
+      }
+
+      if (verbose & TC_DEBUG) 
+	if (key || bkey) printf("[%s] Keyframe info (AVI | Bitstream) (%d|%d)\n", MOD_NAME, key, bkey);
+
       param->size = (int) bytes_read;
       memcpy(param->buffer, buffer, bytes_read); 
 
-      return 0;
+      return TC_IMPORT_OK;
     }
 
     // ------------      
     // decode frame
     // ------------
 
+    // safety counter
+    retry = 0;
     do {
-	pthread_mutex_lock(&init_avcodec_lock);
-	 len = avcodec_decode_video(lavc_dec_context, &picture, 
+      pthread_mutex_lock(&init_avcodec_lock);
+      len = avcodec_decode_video(lavc_dec_context, &picture, 
 			         &got_picture, buffer, bytes_read);
-	pthread_mutex_unlock(&init_avcodec_lock);
+      pthread_mutex_unlock(&init_avcodec_lock);
 
       if (len < 0) {
-        fprintf(stderr, "[%s] frame decoding failed", MOD_NAME);
+	tc_warn ("[%s] frame decoding failed", MOD_NAME);
         return TC_IMPORT_ERROR;
       }
-    } while (!got_picture);
+    } while (!got_picture && ++retry<1000);
+
+    if (retry >= 1000) {
+      tc_warn("[%s] tried a 1000 times but could not decode frame", MOD_NAME);
+      return TC_IMPORT_ERROR;
+    }
 
     Ybuf = param->buffer;
     Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
@@ -511,3 +593,5 @@ MOD_close {
   
   return TC_IMPORT_ERROR;
 }
+
+// vim: sw=2
