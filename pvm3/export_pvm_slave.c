@@ -37,15 +37,15 @@
 #include <dlfcn.h>
 #else
 # ifdef SYSTEM_DARWIN
-#  include "../libdldarwin/dlfcn.h"
+#  include "libdldarwin/dlfcn.h"
 # endif
 #endif
 
-#include <pvm_interface.h>
-#include <export_pvm_slave.h>
-#include <external_codec.h>
-#include <vob_pack_unpack.h>
-#include <transcode.h>
+#include "pvm_interface.h"
+#include "export_pvm_slave.h"
+#include "external_codec.h"
+#include "vob_pack_unpack.h"
+#include "transcode.h"
 
 
 #define MODULE 		"pvm_functions.so"

@@ -30,9 +30,9 @@
 #include "counter.h"
 #include "frequencies.h"
 
-#include "../../src/filter.h"
+#include "src/filter.h"
 
-#include <transcode.h>
+#include "transcode.h"
 
 struct fgdevice fg;
 

@@ -23,7 +23,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../libdvenc/dvenc.h"
+#include "libdvenc/dvenc.h"
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"

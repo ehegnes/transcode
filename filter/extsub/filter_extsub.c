@@ -31,8 +31,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <transcode.h>
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -50,10 +48,6 @@ extern void yuv_antialias(char *image, char *dest, int width, int height, int mo
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "transcode.h"
 #include "dl_loader.h"

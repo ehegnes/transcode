@@ -32,7 +32,7 @@
 #include "zoom.h"
 #include "aclib/ac.h"
 
-#include <transcode.h>
+#include "transcode.h"
 
 #define BLACK_BYTE 0
 

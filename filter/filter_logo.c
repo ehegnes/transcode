@@ -55,7 +55,7 @@
 
 #include "framebuffer.h"
 #include "filter.h"
-#include "../export/vid_aux.h"
+#include "export/vid_aux.h"
 
 // transcode defines this as well as ImageMagick.
 #undef PACKAGE_NAME

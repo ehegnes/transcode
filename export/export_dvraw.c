@@ -23,8 +23,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../libdvenc/dvenc.h"
-#include <transcode.h>
+#include "libdvenc/dvenc.h"
+#include "transcode.h"
 #include "vid_aux.h"
 #include "optstr.h"
 

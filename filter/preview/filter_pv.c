@@ -29,7 +29,7 @@
 #include <dlfcn.h>
 #else
 # ifdef SYSTEM_DARWIN
-#  include "../libdldarwin/dlfcn.h"
+#  include "libdldarwin/dlfcn.h"
 # endif
 #endif
 
@@ -50,7 +50,15 @@
 #include "filter.h"
 #include "video_trans.h"
 
-#include <transcode.h>
+/* -------------------------------------------------
+ *
+ * mandatory include files
+ *
+ *-------------------------------------------------*/
+
+#include "transcode.h"
+#include "framebuffer.h"
+
 
 static int cache_num=0;
 static int cache_ptr=0;
@@ -67,19 +75,6 @@ static int w, h;
 
 static int cols=20;
 static int rows=20;
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include "transcode.h"
-#include "framebuffer.h"
 
 static char buffer[128];
 static int size=0;

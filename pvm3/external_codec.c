@@ -21,9 +21,9 @@
  *
  */
 
-#include <external_codec.h>
 #include <stdlib.h>
-#include <transcode.h>
+#include "external_codec.h"
+#include "transcode.h"
 
 #define MPEG2ENC_MP2ENC_PROG	"mplex"
 #define MPEG_MPEG_PROG		"tcmplex"

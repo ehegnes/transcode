@@ -28,7 +28,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <transcode.h>
 
 static char *buffer;
 

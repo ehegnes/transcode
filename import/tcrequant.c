@@ -50,7 +50,7 @@
 #include <math.h>
 #include <fcntl.h>
 
-#include <transcode.h>
+#include "transcode.h"
 
 // useful constants
 #define I_TYPE 1
@@ -2022,4 +2022,4 @@ int main (int argc, char *argv[])
 	return 0;
 }
 
-#include "../libxio/static_xio.h"
+#include "libxio/static_xio.h"

@@ -24,10 +24,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <transcode.h>
+#include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
-#include "../import/magic.h"
+#include "import/magic.h"
 
 #include <lzo1x.h>
 #if (LZO_VERSION > 0x1070)

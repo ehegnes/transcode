@@ -23,7 +23,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "../config.h"
+#include "config.h"
 #endif
 
 #include <limits.h>
@@ -39,7 +39,7 @@
 #include <dlfcn.h>
 #else
 # ifdef SYSTEM_DARWIN
-#  include "../libdldarwin/dlfcn.h"
+#  include "libdldarwin/dlfcn.h"
 # endif
 #endif
 

@@ -48,7 +48,7 @@
  #include "rtjpeg_vid_plugin.h"
 #undef RTJPEG_INTERNAL
 
-#include <transcode.h>
+#include "transcode.h"
 
 #ifdef __cplusplus
 extern "C" {

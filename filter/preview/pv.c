@@ -33,7 +33,7 @@
 #include <string.h>
 
 #include "pv.h"
-#include "../../src/socket.h"
+#include "src/socket.h"
 
 #include <sys/ipc.h>
 #include <sys/shm.h>

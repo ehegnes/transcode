@@ -25,15 +25,15 @@
 #include "config.h"
 #endif
 
+#include <string.h>
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
 
-#include <transcode.h>
+#include "transcode.h"
 
 #include "framebuffer.h"
 #include "video_trans.h"
-#include <string.h>
  
 #include "zoom.h"
 #include "aclib/ac.h"

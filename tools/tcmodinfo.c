@@ -25,10 +25,6 @@
 #include "config.h"
 #endif
 
-#include "../src/framebuffer.h"
-#include "../src/transcode.h"
-#include "../src/filter.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -43,9 +39,13 @@
 #include <dlfcn.h>
 #else
 # ifdef SYSTEM_DARWIN
-#  include "../libdldarwin/dlfcn.h"
+#  include "libdldarwin/dlfcn.h"
 # endif
 #endif
+
+#include "framebuffer.h"
+#include "transcode.h"
+#include "filter.h"
 
 #define EXE "tcmodinfo"
 #define SIZE 8192 //Buffersize

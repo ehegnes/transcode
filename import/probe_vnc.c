@@ -5,7 +5,7 @@
 
 #include "ioaux.h"
 
-#include <transcode.h>
+#include "transcode.h"
 
 /* Some VNC constants */
 #define VNCREC_MAGIC_STRING	"vncLog0.0"

@@ -26,7 +26,10 @@ if HAVE_SSE
 BB_SRC3 = predict_sse.S
 endif
 
-AM_CPPFLAGS = $(MMX)
+AM_CPPFLAGS = \
+	-I$(top_srcdir) \
+	$(MMX)
+
 AM_CFLAGS = \
 	-funroll-loops \
 	-ffast-math

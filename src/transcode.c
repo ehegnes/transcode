@@ -39,12 +39,12 @@
 #include "probe.h"
 #include "split.h"
 #include "iodir.h"
-#include "../libxio/xio.h"
+#include "libxio/xio.h"
 
 #ifdef HAVE_GETOPT_LONG_ONLY
 #include <getopt.h>
 #else 
-#include "../libsupport/getopt.h"
+#include "libsupport/getopt.h"
 #endif
 
 #include "usage.h"
@@ -4575,12 +4575,12 @@ int main(int argc, char *argv[]) {
       exit(0);
 }
 
-#if 0
 // this Code below here _never_ gets called.
 // it is just there to trick the linker to not remove
 // unneeded object files from a .a file.
 
-#include <avcodec.h>
+#if 0
+#include <ffmpeg/avcodec.h>
 
 void dummy_avcodec(void) {
   AVCodecContext *ctx = NULL;
@@ -4596,11 +4596,10 @@ void dummy_avcodec(void) {
   avcodec_encode_video(NULL, NULL, 0, NULL);
   avcodec_encode_audio(NULL, NULL, 0, NULL);
   avcodec_close(ctx);
-  
 }
 #endif
 
-#include "../avilib/avilib.h"
+#include "avilib/avilib.h"
 void dummy_avilib(void) {
   avi_t *file;
   file = AVI_open_input_file((char *)NULL, 1);
@@ -4609,19 +4608,18 @@ void dummy_avilib(void) {
   AVI_info(file);
 }
 
-#include "../libioaux/configs.h"
+#include "libioaux/configs.h"
 void dummy_libioaux(void) {
   module_read_config(NULL, NULL, NULL, NULL, NULL);
   append_fc_time( NULL, NULL);
 }
 
-#include "../libvo/yuv2rgb.h"
+#include "libvo/yuv2rgb.h"
 void dummy_libvout(void) {
         yuv2rgb_init(24, MODE_RGB);
 	yuv2rgb(NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0);
-
-
-
 }
+
+
 /* vim: sw=2 ts=8 
  */

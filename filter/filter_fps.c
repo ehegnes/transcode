@@ -35,7 +35,7 @@
 #include "config.h"
 #endif
 
-#include <transcode.h>
+#include "transcode.h"
 #include "framebuffer.h"
 #include "optstr.h"
 

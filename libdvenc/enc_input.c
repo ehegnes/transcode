@@ -28,7 +28,7 @@
 #include <signal.h>
 #include <string.h>
 
-#include <transcode.h>
+#include "transcode.h"
 
 #include "dvenc.h"
 

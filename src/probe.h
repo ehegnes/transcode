@@ -24,7 +24,7 @@
 #ifndef _PROBE_H
 #define _PROBE_H 
 
-#include "../import/magic.h"
+#include "import/magic.h"
 
 void probe_source(int *flag, vob_t *vob, int range, char *vid, char *aud);
 char *aformat2str(int f);

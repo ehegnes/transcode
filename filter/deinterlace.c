@@ -33,7 +33,7 @@
 #include <unistd.h>
 #include <inttypes.h>
 #include "mmx.h"
-#include <transcode.h>
+#include "transcode.h"
 
 /*
    DeinterlaceFieldBob algorithm

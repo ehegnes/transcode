@@ -27,6 +27,12 @@ AM_CPPFLAGS = \
 	@VORBIS_CFLAGS@ \
 	@XIO_CFLAGS@
 
+if HAVE_OGG
+if HAVE_VORBIS
+VORBISFILE = -lvorbisfile
+endif
+endif
+
 if HAVE_LIBQUICKTIME
 MODQT = import_mov.la
 endif
@@ -57,14 +63,16 @@ if HAVE_LIBXML2
 LIBXML2_MOD = import_xml.la
 endif
 
-if HAVE_OGG
-if HAVE_VORBIS
-VORBISFILE = -lvorbisfile
-endif
+if HAVE_FFMPEG
+FFBIN_MOD = import_ffbin.la
 endif
 
-if HAVE_FFMPEG
-FFBIN_MOD=import_ffbin.la
+if HAVE_BKTR
+BKTR_MOD = import_bktr.la
+endif
+
+if HAVE_SUNAU
+SUNAU_MOD = import_sunau.la
 endif
 
 pkgdir = @MOD_PATH@
@@ -100,7 +108,9 @@ pkg_LTLIBRARIES = \
 	import_vnc.la \
 	import_fraps.la \
 	import_pvn.la \
-	$(FFBIN_MOD)
+	$(FFBIN_MOD) \
+	$(BKTR_MOD) \
+	$(SUNAU_MOD)
 
 
 import_null_la_SOURCES = import_null.c
@@ -211,7 +221,13 @@ import_pvn_la_SOURCES = import_pvn.c pvn.c pvnglobals.c
 import_pvn_la_LDFLAGS = -module -avoid-version
 
 import_ffbin_la_SOURCES = import_ffbin.c 
-import_ffbin_la_LDFLAGS =  -module -avoid-version 
+import_ffbin_la_LDFLAGS = -module -avoid-version 
+
+import_bktr_la_SOURCES = import_bktr.c 
+import_bktr_la_LDFLAGS = -module -avoid-version 
+
+import_sunau_la_SOURCES = import_sunau.c 
+import_sunau_la_LDFLAGS = -module -avoid-version 
 
 EXTRA_DIST = \
 	ac3scan.h \

@@ -26,7 +26,7 @@
 
 #include "subproc.h"
 
-#include <transcode.h>
+#include "transcode.h"
 
 #define MAXDATA (1024*100)
 

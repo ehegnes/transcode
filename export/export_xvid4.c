@@ -44,7 +44,7 @@
 #include <dlfcn.h>
 #else
 # ifdef SYSTEM_DARWIN
-#  include "../libdldarwin/dlfcn.h"
+#  include "libdldarwin/dlfcn.h"
 # endif
 #endif
 
@@ -60,7 +60,7 @@
 #include "avilib.h"
 #include "aud_aux.h"
 
-#include "../libioaux/configs.h"
+#include "libioaux/configs.h"
 
 /*****************************************************************************
  * Transcode module binding functions and strings

@@ -43,7 +43,7 @@
 #ifdef EMULATE_FAST_INT
 #undef EMULATE_FAST_INT
 #endif
-#include <avcodec.h>
+#include <ffmpeg/avcodec.h>
 #include "yuv2rgb.h"
 
 #define READ_BUFFER_SIZE (10*1024*1024)

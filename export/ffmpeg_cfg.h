@@ -1,8 +1,8 @@
 #ifndef __FFMPEG_CFG_H
 #define __FFMPEG_CFG_H
 
-#include "../libioaux/configs.h"
-#include <avcodec.h>
+#include "libioaux/configs.h"
+#include <ffmpeg/avcodec.h>
 
 //char *lavc_param_vcodec = "mpeg4";
 //extern int lavc_param_vbitrate;

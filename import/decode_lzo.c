@@ -41,7 +41,7 @@
 #  include <lzoutil.h>
 #endif
 
-#include "../export/tc_lzo.h"
+#include "export/tc_lzo.h"
 
 #define MOD_NAME    "decode_lzo"
 

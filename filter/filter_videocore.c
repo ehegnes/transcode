@@ -47,7 +47,7 @@
 #include "framebuffer.h"
 #include "optstr.h"
 #include "filter.h"
-#include "../src/video_trans.h"
+#include "src/video_trans.h"
 
 // basic parameter
 unsigned char gamma_table[256];

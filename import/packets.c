@@ -23,7 +23,7 @@
 
 #include "packets.h"
 
-#include <transcode.h>
+#include "transcode.h"
 
 #define FLUSH_BUFFER_MAX (1024<<4)
 

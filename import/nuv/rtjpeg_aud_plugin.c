@@ -58,7 +58,7 @@ extern "C" {
 #endif
 #include "minilzo.h"
 
-#include <transcode.h>
+#include "transcode.h"
 
 
 /*

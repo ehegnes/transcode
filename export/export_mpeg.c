@@ -33,9 +33,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include <avcodec.h>
+#include <ffmpeg/avcodec.h>
 
-#include <transcode.h>
+#include "transcode.h"
 #include "vid_aux.h"
 
 //-- experimental --
@@ -46,8 +46,7 @@
 #include "mpeg_dnr.c"
 #endif
 
-#include "transcode.h"
-#include "../bbmpeg/bbencode.h"
+#include "bbmpeg/bbencode.h"
 #include "probe_export.h"
 
 #ifdef HAS_DNR

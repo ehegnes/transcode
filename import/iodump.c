@@ -26,18 +26,22 @@
 #endif
 
 #include <sys/types.h>
-
 #include <dirent.h>
+
 #include "ioaux.h"
 #include "tc.h"
 
+#ifdef HAVE_LIBDVDREAD
 #ifdef HAVE_LIBDVDREAD_INC
 #include <dvdread/dvd_reader.h>
+#else
+#include <dvd_reader.h>
+#endif
 #else
 #include "dvd_reader.h"
 #endif
 
-#include <transcode.h>
+#include "transcode.h"
 
 int dvd_read(int arg_title, int arg_chapter, int arg_angle);
 

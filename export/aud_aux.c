@@ -31,13 +31,13 @@
 #include <inttypes.h>
 #include <assert.h>
 
-#include <avcodec.h>
+#include <ffmpeg/avcodec.h>
 
 #include "aud_aux.h"
 #include "ac3.h"
-#include "../aclib/ac.h"
+#include "aclib/ac.h"
 
-#include <transcode.h>
+#include "transcode.h"
 
 extern pthread_mutex_t init_avcodec_lock;
 

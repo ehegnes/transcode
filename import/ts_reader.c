@@ -36,11 +36,9 @@
 #include <sys/mman.h>
 
 #include "ioaux.h"
-
-#include <transcode.h>
+#include "transcode.h"
 
 #ifdef HAVE_IO_H
-#include <fcntl.h>
 #include <io.h>
 #endif
 

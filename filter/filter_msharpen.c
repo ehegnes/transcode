@@ -50,7 +50,7 @@
 #include "transcode.h"
 #include "framebuffer.h"
 #include "optstr.h"
-#include "../export/vid_aux.h"
+#include "export/vid_aux.h"
 
 static vob_t *vob=NULL;
 

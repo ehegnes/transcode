@@ -25,7 +25,7 @@
 #include <unistd.h>
 #include "ioaux.h"
 #include "tc.h"
-#include <transcode.h>
+#include "transcode.h"
 
 #ifndef	HAVE_LIBXML2
 

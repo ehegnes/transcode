@@ -23,7 +23,7 @@
  */
 
 #include "subtitler.h"
-//#include "../../src/framebuffer.h"
+//#include "src/framebuffer.h"
 
 #define MOD_NAME    "filter_subtitler.so"
 #define MOD_VERSION "v0.8.1 (2003/10/25)"

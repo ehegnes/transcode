@@ -37,7 +37,7 @@
 #define MIN_TOT_NPROC	1
 #define MIN_FRAME	10
 
-#include <transcode.h>
+#include "transcode.h"
 
 #define MOD_NAME    "export_pvm.so"
 #define MOD_VERSION  EXPORT_PVM_VERSION

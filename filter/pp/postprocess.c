@@ -83,12 +83,10 @@ try to unroll inner for(x=0 ... loop to avoid these damn if(x ... checks
 //#undef ARCH_X86
 //#define DEBUG_BRIGHTNESS
 
-#include <transcode.h>
+#include "transcode.h"
 #include "mangle.h" //FIXME should be supressed
 #include "postprocess.h"
 #include "postprocess_internal.h"
-
-#include <transcode.h>
 
 
 #ifndef HAVE_MEMALIGN

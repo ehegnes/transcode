@@ -36,7 +36,7 @@
 #include "transcoders.h"
 #include <assert.h>
 
-#include <transcode.h>
+#include "transcode.h"
 
 static tomsmocomp_t *tmc_global = NULL;
 

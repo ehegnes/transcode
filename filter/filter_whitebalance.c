@@ -48,7 +48,7 @@
 #include "transcode.h"
 #include "framebuffer.h"
 #include "optstr.h"
-#include "../export/vid_aux.h"
+#include "export/vid_aux.h"
 
 static unsigned char * buffer = NULL;
 static int level = 40;

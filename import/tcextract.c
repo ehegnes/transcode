@@ -442,4 +442,4 @@ int main(int argc, char *argv[])
     return(0);
 }
 
-#include "../libxio/static_xio.h"
+#include "libxio/static_xio.h"

@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <transcode.h>
+#include "transcode.h"
 
 #include "dvenc.h"
 

@@ -21,7 +21,7 @@
  *
  */
 
-#include <transcode.h>
+#include "transcode.h"
 #include "framebuffer.h"
 #include "video_trans.h"
 #include "aclib/ac.h"

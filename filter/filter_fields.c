@@ -28,8 +28,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <transcode.h>
-
 /*****************************************************************************
  *              Standard Transcode Filter Defines and Includes               *
  *****************************************************************************/

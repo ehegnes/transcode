@@ -30,7 +30,7 @@
 #include "config.h" /* HAVE_MMX and HAVE_SSE #defines are here.*/
 #include "main.h"
 #include "mtable.h"
-#include "../aclib/ac.h"
+#include "aclib/ac.h"
 
 extern int tc_accel;
 

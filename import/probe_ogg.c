@@ -51,7 +51,7 @@
 #define MAX_VIDEO_TRACKS 255
 #define BLOCK_SIZE 4096
 
-#include <transcode.h>
+#include "transcode.h"
 
 //#define  OGM_DEBUG
 

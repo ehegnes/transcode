@@ -34,8 +34,6 @@
 
 #include "aclib/ac.h"
 
-#include <transcode.h>
-
 static char *buffer;
 
 static int ac=0, loop=0;
@@ -45,10 +43,6 @@ static int ac=0, loop=0;
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "transcode.h"
 #include "framebuffer.h"

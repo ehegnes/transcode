@@ -3,6 +3,7 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 
 INCLUDES = \
+	-I$(top_srcdir) \
 	-I$(top_srcdir)/filter \
 	-I$(top_srcdir)/src
 

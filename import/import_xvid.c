@@ -34,7 +34,7 @@
 #include <dlfcn.h>
 #else
 # ifdef SYSTEM_DARWIN
-#  include "../libdldarwin/dlfcn.h"
+#  include "libdldarwin/dlfcn.h"
 # endif
 #endif
 
@@ -42,7 +42,7 @@
 #include "avilib.h"
 
 /* Decoder API hasn't changed from API2 to API3, so we can use both */
-#include "../export/xvid3.h"
+#include "export/xvid3.h"
 
 #define MOD_NAME    "import_xvid.so"
 #define MOD_VERSION "v0.0.3 (2003-11-29)"

@@ -38,9 +38,9 @@
 #include <signal.h>
 #include <string.h>
 #include <stdarg.h>
-#include "../avilib/avilib.h"
-#include "../aclib/ac.h"
-#include "../libioaux/framecode.h"
+#include "avilib/avilib.h"
+#include "aclib/ac.h"
+#include "libioaux/framecode.h"
 
 #ifdef NET_STREAM
 #include <netinet/in.h>

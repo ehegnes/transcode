@@ -27,8 +27,8 @@
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
-#include "../import/magic.h"
-#include "../src/iodir.h"
+#include "import/magic.h"
+#include "src/iodir.h"
 
 #define MOD_NAME    "export_raw.so"
 #define MOD_VERSION "v0.3.12 (2003-08-04)"

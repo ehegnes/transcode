@@ -31,7 +31,7 @@
 
 #include <stdio.h>
 #include "main.h"
-#include "../aclib/ac.h"
+#include "aclib/ac.h"
 
 
 /* private prototypes */

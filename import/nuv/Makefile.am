@@ -5,6 +5,7 @@ AUTOMAKE_OPTIONS = 1.3 foreign
 AM_CPPFLAGS = \
 	-D_REENTRANT \
 	-DMOD_PATH=\"@MOD_PATH@\" \
+	-I$(top_srcdir) \
 	-I$(top_srcdir)/import \
 	-I$(top_srcdir)/src
 

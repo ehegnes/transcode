@@ -30,7 +30,7 @@
 
 #include "dvenc.h"
 
-#include <transcode.h>
+#include "transcode.h"
 
 static dv_enc_audio_info_t *audio_info;
 

@@ -34,14 +34,14 @@
 #include <dlfcn.h>
 #else
 # ifdef SYSTEM_DARWIN
-#  include "../libdldarwin/dlfcn.h"
+#  include "libdldarwin/dlfcn.h"
 # endif
 #endif
 
 #include "transcode.h"
 #include "ioaux.h"
 
-#include "../export/xvid2.h"
+#include "export/xvid2.h"
 
 #define MOD_NAME    "decode_xvid"
 

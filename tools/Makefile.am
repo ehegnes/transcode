@@ -4,6 +4,7 @@ AUTOMAKE_OPTIONS = 1.3 foreign
 
 AM_CPPFLAGS = \
 	-DMOD_PATH=\"@MOD_PATH@\" \
+	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
 	@AC3_CFLAGS@ \
 	@AVILIB_CFLAGS@ \

@@ -29,14 +29,14 @@
 #include "config.h"
 #endif
 
-#include <pvm_interface.h>
-#include <pvm_parser.h>
+#include "pvm_interface.h"
+#include "pvm_parser.h"
 
-#include <transcode.h>
-#include <ac.h>
-#include <export_pvm_slave.h>
-#include <external_codec.h>
-#include <tc_func_excl.h>
+#include "transcode.h"
+#include "aclib/ac.h"
+#include "export_pvm_slave.h"
+#include "external_codec.h"
+#include "tc_func_excl.h"
 
 #define EXE "tcpvmexportd"
 

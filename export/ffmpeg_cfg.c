@@ -14,7 +14,7 @@
 #include <string.h>
 #include <limits.h>
 
-#include "../libioaux/configs.h"
+#include "libioaux/configs.h"
 
 #include "ffmpeg_cfg.h"
 

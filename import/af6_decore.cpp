@@ -429,7 +429,7 @@ extern "C" {
 }
 #endif
 
-#else
+#else  // HAVE_AVIFILE
 
 #ifdef __cplusplus
 extern "C" {

@@ -44,7 +44,7 @@
 #include <dlfcn.h>
 #else
 # ifdef SYSTEM_DARWIN
-#  include "../libdldarwin/dlfcn.h"
+#  include "libdldarwin/dlfcn.h"
 # endif
 #endif
 
@@ -67,7 +67,7 @@
 #include "aud_aux.h"
 
 #ifdef DEVELOPER_USE
-#include "../libioaux/configs.h"
+#include "libioaux/configs.h"
 #endif
 
 /*****************************************************************************

@@ -34,7 +34,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <transcode.h>
+#include "transcode.h"
 
 /* ParseColor and QueryColorDatabase are from ImageMagick */
 

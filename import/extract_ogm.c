@@ -30,7 +30,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <transcode.h>
+#include "transcode.h"
 
 #include "ioaux.h"
 #include "tc.h"

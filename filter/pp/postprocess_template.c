@@ -49,7 +49,7 @@
 	"paddb " #a ", " #b " \n\t"
 #endif
 
-#include <transcode.h>
+#include "transcode.h"
 
 //FIXME? |255-0| = 1 (shouldnt be a problem ...)
 #ifdef HAVE_MMX
