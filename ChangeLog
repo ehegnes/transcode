@@ -1,3 +1,10 @@
+2005-01-13 Jacob Meuser <jakemsr at jakemsr dot com>
+  * src/transcode.c aclib/cputest.c
+    filter/subtitler/load_font.c
+  start converting some x86 inline assembly to handle
+  amd64 as well.  most of this is taken from other places.
+  the real work will be translating aclib.
+
 2005-01-13 Bevis King <brwk at bevteccom dot co dot uk>
   * export/export_ppm.c
   add support for YUV422 colorspace to this filter.

@@ -57,14 +57,6 @@ case "x${target_os}" in
     ;;
 esac
 
-case "x${target_cpu}" in
-  xx86_64*)
-    is_amd64=true
-    deflib="/lib64"
-    AC_MSG_NOTICE([AMD64 CPU detected])
-    ;;
-esac
-
 
 AM_CONDITIONAL([SYSTEM_DARWIN], test x"$is_osx" = x"true")
  
@@ -214,12 +206,18 @@ dnl
 
 AC_MSG_CHECKING([for build architecture])
 have_x86cpu=false
+have_x86_64cpu=false
 have_ppccpu=false
 case x"$host_cpu" in
   xi?86*|xk6*)
     have_x86cpu=true
     AC_MSG_RESULT([Intel Pentium architecture (IA32)])
-    AC_DEFINE([ARCH_X86], 1, [Define if your machine is X86 based])
+    AC_DEFINE([ARCH_X86], 1, [Define if your machine is x86 based])
+    ;;
+  xx86_64*|xamd64*)
+    have_x86_64cpu=true
+    AC_MSG_RESULT([AMD64 architecture (AMD64)])
+    AC_DEFINE([ARCH_X86_64], 1, [Define if your machine is AMD64 based])
     ;;
   xpowerpc*)
     have_ppccpu=true
@@ -230,11 +228,12 @@ case x"$host_cpu" in
     ;;
 esac
 AM_CONDITIONAL(ARCH_X86, test x"$have_x86cpu" = x"true")
+AM_CONDITIONAL(ARCH_X86_64, test x"$have_x86_64cpu" = x"true")
 AM_CONDITIONAL(ARCH_PPC, test x"$have_ppccpu" = x"true")
 
 
-dnl x86 architectures
-
+dnl x86 & x86_64 architectures
+dnl for now, only enable optimized assembly by default on x86
 
 dnl MMX support
 dnl
@@ -417,44 +416,6 @@ AC_MSG_RESULT($have_asm_sse2)
 AM_CONDITIONAL(HAVE_SSE2, test x"$have_asm_sse2" = x"yes")
 if test x"$have_asm_sse2" = x"no" ; then
   AC_MSG_RESULT(*** All of sse2 dependent parts will be disabled ***)
-fi
-
-
-dnl CMOV support
-dnl
-AC_ARG_ENABLE(cmov,
-  AC_HELP_STRING([--enable-cmov],
-    [enable CMOV code portions (yes)]),
-  [case "${enableval}" in
-    yes) use_cmov=yes ;;
-    no)  use_cmov=no ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-cmov) ;;
-  esac],
-  [if test x"$have_x86cpu" = x"true" ; then
-    use_cmov=yes
-  else
-    use_cmov=no
-  fi])
-have_cmov=no
-AC_MSG_CHECKING([for CMOV support])
-if test x"$use_cmov" = x"yes" ; then
-  case "$host" in
-    *-*-freebsd*|*-*-openbsd*|*-*-netbsd*)
-      if grep -q CMOV /var/run/dmesg.boot ; then
-        have_cmov=yes
-      fi
-      ;;
-    *)
-      cpu_family=`grep "cpu family" /proc/cpuinfo | $AWK 'BEGIN { FS = ":"; } { printf "%d", $2 + 0;}'`
-      if test "$cpu_family" -gt 5 ; then
-        have_cmov=yes
-      fi
-      ;;
-  esac
-fi
-AC_MSG_RESULT($have_cmov)
-if test x"$have_cmov" = x"yes" ; then
-  AC_DEFINE([HAVE_CMOV], 1, [Define if your CPU understands CMOV])
 fi
 
 
