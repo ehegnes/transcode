@@ -43,7 +43,7 @@
 #include "avilib.h"
 
 #define MOD_NAME    "import_divx.so"
-#define MOD_VERSION "v0.2.5 (2002-10-10)"
+#define MOD_VERSION "v0.2.6 (2003-04-08)"
 #define MOD_CODEC   "(video) DivX;-)/XviD/OpenDivX/DivX 4.xx/5.xx"
 #define MOD_PRE divx
 #include "import_def.h"
@@ -369,12 +369,15 @@ MOD_decode {
     int key;
     
     long bytes_read=0;
+    static long old_bytes=0;
 
     if(param->flag != TC_VIDEO) return(TC_IMPORT_ERROR);
     
     bytes_read = (pass_through) ? AVI_read_frame(avifile, param->buffer, &key):AVI_read_frame(avifile, buffer, &key);
     
     if(bytes_read<0) return(TC_IMPORT_ERROR); 
+
+    if (bytes_read>0) old_bytes = bytes_read;
 
     if(pass_through) {
       
@@ -419,21 +422,7 @@ MOD_decode {
 
       if(black_frames > 0) {
 	if(verbose & TC_DEBUG) printf("bytes_read=(%ld)\n", bytes_read);
-
-	codec=vob->im_v_codec;
-    
-	switch(codec) {
-      
-	case CODEC_RGB:
-	  memset(param->buffer,0x00,frame_size);
-	  break;
-      
-	case CODEC_YUV:
-	  uv_size = frame_size/3;
-	  memset(param->buffer,0x10,uv_size*2);
-	  memset(param->buffer + uv_size*2,0x80,uv_size);
-	  break;
-	}
+	bytes_read = old_bytes;
 
 	black_frames--;
       }
