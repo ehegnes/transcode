@@ -297,10 +297,15 @@ void clone_close()
 char *clone_fifo() 
 {
 
-  char *name;
+  char *name, *a, b[PATH_MAX];
   
   //need to create a pipe here
-  name=tmpnam(NULL);
+  if ((a = getenv("TMPDIR")) != NULL)
+      snprintf(b, PATH_MAX, "%s/%s", a, "fileXXXXXX");
+  else 
+      snprintf(b, PATH_MAX, "%s/%s", "/tmp", "fileXXXXXX");
+  
+  name = mktemp(b);
   
   logfile=strdup(name);
 
