@@ -17,6 +17,7 @@ docs_DATA = \
 	DV-to-DVD-HOWTO.txt \
 	OPTIMIZERS \
 	README.Inverse.Telecine.txt \
+	README.dv \
 	README.cluster \
 	README.filter.modfps \
 	README.rip \
@@ -28,6 +29,7 @@ docs_DATA = \
 	clone.txt \
 	export-API.txt \
 	export_ffmpeg.txt \
+	export_mp2.txt \
 	export_mpeg.txt \
 	export_pvm.txt \
 	filter-API.txt \

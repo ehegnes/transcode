@@ -25,9 +25,10 @@ SUBDIRS = \
 	filter \
 	src \
 	tools \
-	$(PVM3)
+	$(PVM3) \
+	testsuite
 
-EXTRA_DIST = transcode.spec libtool
+EXTRA_DIST = transcode.spec libtool README-0.6.13
 
 docsdir = $(datadir)/doc/transcode
 docs_DATA = ChangeLog

@@ -13,6 +13,7 @@ EXTRA_DIST = \
 	vob2avi.readme \
 	bitrate \
 	mpipe.c \
-	vob2avi
+	vob2avi \
+	tccomplete.source
 
 SUBDIRS = . pnmpvn
