@@ -43,6 +43,52 @@ transcode-0.6.11
   Upgraded included libavcodec to 0.4.8 (4683)
   Upgraded -y xvid4 to the latest API
 
+2003-11-02 Tilmann Bitterberg <transcode at tibit.org>
+
+  * docs/man/transcode.1:
+  Various typos fixed. The export module section is much better now.
+
+  * docs/make-modules-man.sed docs/export-mods.txt:
+  Sed script to generate the export/import manpage part from a very
+  simple meta language (in docs/export-mods.txt).
+
+2003-11-02 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/transcode.c docs/man/transcode.1:
+  Make -Z much smarter. When the suffix ",fast" is appended,
+  transcode will calculate -B and/or -X options and use the fast
+  rescaler to transform the video. The enhanced option is also
+  "guessing" a suitable width or height.
+  It is also possible to omit width or height. In this case,
+  transcode will calculate the missing value using the import aspect
+  ratio. The new value will be aligned to be a multiple of 8. Using
+  an additional fast is also possible.
+
+  Examples (assume input is a 16:9 coded file at 720x576):
+  -Z 576x328       uses filtered zoom.
+  -Z 576x328,fast  uses fast zoom.
+  -Z 576x,fast     guess 328 and do fast zoom.
+  -Z x328          guess 576 and do filtered zoom.
+
+2003-11-01 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/filter_detectclipping.c:
+  Finish the filter, works and actually produces useful values.
+  You can use the filter to automatically detect the values for -j
+  resp. -Y. Run the filter for ca. 100 frames ideally with the
+  progress bar turned off:
+
+  transcode -V -i in.vob --print_status 0 -J detectclipping -c 0-100
+
+2003-11-01 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/fileinfo.c:
+  Probing for MP3 files mangled by iTunes with ID3 tags at the
+  beginning.
+
+  * import/extract_mp3.c:
+  Again a buffer was too hard on the stack, malloc it dynamically.
+
 2003-10-28 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/transcode.c:

@@ -13,9 +13,5 @@ SUBDIRS = . autotools docs contrib libdldarwin libsupport libioaux\
 
 EXTRA_DIST=transcode.spec libtool
 
-
-
-
-
-
-
+docsdir = $(datadir)/doc/transcode
+docs_DATA = ChangeLog
