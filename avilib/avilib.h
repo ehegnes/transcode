@@ -119,6 +119,7 @@ typedef struct
   int anum;            // total number of audio tracks 
   int aptr;            // current audio working track 
   int comment_fd;      // Read avi header comments from this fd
+  char *index_file;    // read the avi index from this file
   
 } avi_t;
 
@@ -201,8 +202,11 @@ int  AVI_close(avi_t *AVI);
 long AVI_bytes_written(avi_t *AVI);
 
 avi_t *AVI_open_input_file(char *filename, int getIndex);
+avi_t *AVI_open_input_indexfile(char *filename, int getIndex, char *indexfile);
 avi_t *AVI_open_fd(int fd, int getIndex);
+avi_t *AVI_open_indexfd(int fd, int getIndex, char *indexfile);
 int avi_parse_input_file(avi_t *AVI, int getIndex);
+int avi_parse_index_from_file(avi_t *AVI, char *filename);
 long AVI_audio_mp3rate(avi_t *AVI);
 long AVI_video_frames(avi_t *AVI);
 int  AVI_video_width(avi_t *AVI);
