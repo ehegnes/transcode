@@ -12,6 +12,9 @@
 # endif
 #elif defined(__APPLE__)
 # define SYS_APPLE
+# define COMP_GCC
+# define SYS_UNIX
+# define SYS_BSD
 #else
 # define COMP_GCC
 # define SYS_UNIX
