@@ -21,7 +21,7 @@
 */
 
 #define MOD_NAME    "filter_smartyuv.so"
-#define MOD_VERSION "0.1.3 (2003-10-05)"
+#define MOD_VERSION "0.1.4 (2003-10-13)"
 #define MOD_CAP     "Motion-adaptive deinterlacing"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
