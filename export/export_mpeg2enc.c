@@ -227,9 +227,9 @@ MOD_open
       //User VCD 
       
       if(p2==NULL) 
-	sprintf(buf, "mpeg2enc -v %d -I %d -q 3 -f 2 -4 2 -2 3 -b %d -F %d %s -o \"%s\"%s %s", verb, fields, vob->divxbitrate, frc, buf2, vob->video_out_file, m2v, (vob->ex_v_string?vob->ex_v_string:""));
+	sprintf(buf, "mpeg2enc -v %d -I %d -q 3 -f 2 -4 2 -2 3 -b %d -F %d %s -o \"%s\"%s %s", verb, fields, vob->divxbitrate, frc, buf2, vob->video_out_file, m1v, (vob->ex_v_string?vob->ex_v_string:""));
       else
-	sprintf(buf, "mpeg2enc -v %d -I %d -q 3 -f 2 -4 2 -2 3 -b %d -F %d %s -o \"%s\"%s %s %s", verb, fields, vob->divxbitrate, frc, buf2, vob->video_out_file, m2v, p2, (vob->ex_v_string?vob->ex_v_string:""));
+	sprintf(buf, "mpeg2enc -v %d -I %d -q 3 -f 2 -4 2 -2 3 -b %d -F %d %s -o \"%s\"%s %s %s", verb, fields, vob->divxbitrate, frc, buf2, vob->video_out_file, m1v, p2, (vob->ex_v_string?vob->ex_v_string:""));
       break;
       
     case 3:
