@@ -1,6 +1,16 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-03-07 Loic Le Loarer <lll_tr at m4x.org>
+
+  * import/v4l/video.c:
+  I have discovered a bug in the fine tune configuration parameter
+  in .xawtv file used by import_v4l module. According to the source
+  of xawtv and xawdecode, this parameter is in unit of 1/16th of
+  MHz, and is added to the frequency computed from the channel
+  number. But in the code of transcode, it is use as if it was in
+  KHz, which makes it useless.
+
 2004-03-07 Thomas Wehrspann <thomas at wehrspann.de>
 
   * filter_logoaway.{c,txt}:
@@ -15,7 +25,7 @@ transcode-0.6.13
 2004-03-01 Tilmann Bitterberg <transcode at tibit.org>
 
   * configure.in:
-  For newer gccs (>=3.3.2) -fno-unit-at-atime is needed to not
+  For newer gccs (>=3.3.2) -fno-unit-at-a-time is needed to not
   remove "unused" variables from the objects. Thanks to Rainer Lay
   and Andreas Jaeger for pointing out.
 

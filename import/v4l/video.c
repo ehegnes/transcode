@@ -310,11 +310,11 @@ int video_grab_init(
 											 */
 											while( pChanlist->name != NULL ) {
 												if( ! strcmp( pChannel, pChanlist->name ) ) {
-                          tfreq = (unsigned long)( (float)( pChanlist->freq + fine ) * .016 );
+                          tfreq = (unsigned long) ( pChanlist->freq * 16 / 1000 + fine);
 
 													if( verb )
-													  printf( "(%s) \"%s\": using .xawtv from %s, freq=%dKHZ\n", 
-														  __FILE__, pStation, pHome, pChanlist->freq );
+													  printf( "(%s) \"%s\": using .xawtv from %s, freq=%dKHZ, fine = %d\n", 
+														  __FILE__, pStation, pHome, pChanlist->freq, fine );
 													
 													break;
 												}
