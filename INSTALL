@@ -1,0 +1,91 @@
+HOW TO COMPILE:
+---------------
+
+Transcode compiles even if you have no additional libs installed. You do
+not *need* to have a "yes" on every configure check. Transcode comes
+with the most important libs included. That is libmpeg2 for decoding
+MPEG-2 files, libdvdread for reading DVDs and libavcodec for decoding
+and encoding MPEG-4 (DivX) video (use -x ffmpeg as import module).
+
+Its recommended, that you have a recent nasm installed (>=0.98.35) if
+you are on an x86 based platform. A recent version of lame is a good
+thing to have installed, too.
+
+
+./configure --help 
+./configure && make all
+make install
+
+Set --with-mod-path=DIR  where import/export modules loadable at runtime
+should go. Default is "${prefix}/lib/transcode".
+
+If your libraries/packages are not installed in standard places, use the following options:
+
+----
+lame
+----
+
+If you have a local copy of lame (you need at least v3.89), support
+will be configured automatically. lame v3.88 will not compile. 
+As of version 0.3.0, libmp3lame v3.87 is included and will be compiled
+and used as a fallback.
+
+  --with-lame-includes=PFX  prefix where LAME includes are installed (optional)
+  --with-lame-libs=PFX      prefix where LAME libs are installed (optional)
+
+-----
+libdv
+-----
+
+use the following options, if you libdv is not installed in the default:
+
+location
+  --with-dv-includes=PFX    prefix where local libdv includes are installed (optional)
+  --with-dv-libs=PFX        prefix where local libdv libs are installed (optional)
+
+--------
+libmpeg3
+--------
+
+use the following options, if you libmpeg3 is not installed in the default:
+
+  --with-libmpeg3-includes=PFX    prefix where local libmpeg3 includes are installed (optional)
+  --with-libmpeg3-libs=PFX        prefix where local libmpeg3 libs are installed (optional)
+
+
+-------
+avifile
+-------
+
+You need avifile-0.6 or later to build the "af6" generic interface. 
+
+  --with-avifile-exec-prefix=PFX  prefix where avifile-config is installed 
+ 
+use
+  --with-avifile-mods=no 
+if you have problems compiling with avifile support.
+
+
+WHAT GET'S INSTALLED:
+---------------------
+
+binary tools into ${prefix}/bin/  
+transcode, 
+tccat, tcdemux, tcextract, tcdecode, tcscan, tcprobe, tcmplex,
+avimerge, avisplit, avifix, avisync, tcxmlcheck, tcmodinfo
+
+shared library modules into ${prefix}/lib/transcode 
+import_*.so,la, export_*.so,la, filter_*.so,la
+
+Use `tcmodinfo -p' to find out the modpath of your transcode installation
+
+man pages into ${prefix}/share/man/man1
+
+
+LINKS:
+--------------------
+nasm:       http://nasm.sourceforge.net/
+lame:       http://lame.sourceforge.net/
+xvid:       http://www.xvid.org/
+mjpegtools: http://mjpeg.sourceforge.net/
+dv:         http://libdv.sourceforge.net/
