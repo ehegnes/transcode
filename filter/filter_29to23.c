@@ -24,7 +24,7 @@
 
 #define MOD_NAME    "filter_29to23.so"
 #define MOD_VERSION "v0.3 (2003-07-18)"
-#define MOD_CAP     "frame rate conversion filter (video only)"
+#define MOD_CAP     "frame rate conversion filter"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -128,10 +128,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
    * NewFrame[3] = (   OldFrame[3] + 3*OldFrame[4] ) / 4
    */
 
-  if( ptr->tag & TC_POST_PROCESS &&
+  if( ptr->tag & TC_POST_S_PROCESS &&
      (vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_RGB) ) {
 
       int i;
+      unsigned char *f3;
 
       switch ( ptr->id % 5 ) {
 
@@ -157,11 +158,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
           case 4:
 	      //memcpy (f2, ptr->video_buf, ptr->video_size);
-	      {
-                  unsigned char *f3 = ptr->video_buf;
-		  for (i = 0; i<ptr->video_size; i++)
-		      ptr->video_buf[i] = (f1[i] + 3*f3[i] + 1)/4;
-	      }
+              f3 = ptr->video_buf;
+	      for (i = 0; i<ptr->video_size; i++)
+		  ptr->video_buf[i] = (f1[i] + 3*f3[i] + 1)/4;
 	      break;
       }
   }
