@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
@@ -348,7 +349,7 @@ void extract_pcm(info_t *ipipe)
    	bytes=ipipe->frame_limit[1] - ipipe->frame_limit[0];
    	//skip the first ipipe->frame_limit[0] bytes
 	if (ipipe->frame_limit[0]!=0)
-		if (fseek(ipipe->fd_in,ipipe->frame_limit[0],SEEK_SET) !=0)
+		if (lseek(ipipe->fd_in,ipipe->frame_limit[0],SEEK_SET) !=0)
 		{
 			error=1;
 			break;
