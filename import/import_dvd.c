@@ -32,7 +32,7 @@
 #include "clone.h"
 
 #define MOD_NAME    "import_dvd.so"
-#define MOD_VERSION "v0.3.13 (2003-06-11)"
+#define MOD_VERSION "v0.4.0 (2003-10-02)"
 #define MOD_CODEC   "(video) DVD | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE dvd
@@ -42,6 +42,18 @@
 char import_cmd_buf[MAX_BUF];
 
 #define ACCESS_DELAY 3
+
+typedef struct tbuf_t {
+	int off;
+	int len;
+	char *d;
+} tbuf_t;
+
+// m2v passthru
+static int can_read = 1;
+static tbuf_t tbuf;
+static int m2v_passthru=0;
+static FILE *f; // video fd
 
 static int query=0, verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3|TC_CAP_PCM;
@@ -226,6 +238,7 @@ MOD_open
   }
  
   if(param->flag == TC_VIDEO) {
+    char requant_buf[256];
     
     if(query==0) {
       // query DVD first:
@@ -274,6 +287,28 @@ MOD_open
     
     switch(vob->im_v_codec) {
       
+    case CODEC_RAW:
+    case CODEC_RAW_YUV:
+	
+      memset(requant_buf, 0, sizeof (requant_buf)); 
+      if (vob->m2v_requant > M2V_REQUANT_FACTOR) {
+	snprintf (requant_buf, 256, " | tcrequant -d %d -f %f ", vob->verbose, vob->m2v_requant);
+      }
+      m2v_passthru=1;
+
+      if((snprintf(import_cmd_buf, MAX_BUF, 
+	      "tccat -T %s -i \"%s\" -t dvd -d %d"
+	      " | tcdemux -s 0x%x -x mpeg2 %s %s -d %d"
+	      " | tcextract -t vob -a %d -x mpeg2 -d %d"
+	      "%s", 
+	      cha_buf, vob->video_in_file, vob->verbose, 
+	      (vob->a_track+off), seq_buf, dem_buf, vob->verbose,
+	      vob->v_track, vob->verbose, 
+	      requant_buf)<0)) {
+	perror("command buffer overflow");
+	  return(TC_IMPORT_ERROR);
+	}
+	break;
     case CODEC_RGB:
       
       if((snprintf(import_cmd_buf, MAX_BUF, "tccat -T %s -i \"%s\" -t dvd -d %d | tcdemux -s 0x%x -x mpeg2 %s %s -d %d | tcextract -t vob -a %d -x mpeg2 -d %d | tcdecode -x mpeg2 -d %d", cha_buf, vob->video_in_file, vob->verbose, (vob->a_track+off), seq_buf, dem_buf, vob->verbose, vob->v_track, vob->verbose, vob->verbose)<0)) {
@@ -314,12 +349,38 @@ MOD_open
       return(TC_IMPORT_ERROR);
     }
 
-    if (vob->demuxer==TC_DEMUX_SEQ_FSYNC || vob->demuxer==TC_DEMUX_SEQ_FSYNC2) {
+    if (!m2v_passthru &&
+	(vob->demuxer==TC_DEMUX_SEQ_FSYNC || vob->demuxer==TC_DEMUX_SEQ_FSYNC2)) {
       
       if(clone_init(param->fd)<0) {
 	printf("[%s] failed to init stream sync mode\n", MOD_NAME);
 	return(TC_IMPORT_ERROR);
       } else param->fd = NULL;
+    }
+
+    // we handle the read;
+    if (m2v_passthru) {
+      f = param->fd;
+      param->fd = NULL;
+
+      tbuf.d = malloc (SIZE_RGB_FRAME);
+      tbuf.len = SIZE_RGB_FRAME;
+      tbuf.off = 0;
+
+      if ( (tbuf.len = fread(tbuf.d, 1, tbuf.len, f))<0) return -1;
+
+      // find a sync word
+      while (tbuf.off+4<tbuf.len) {
+	if (tbuf.d[tbuf.off+0]==0x0 && tbuf.d[tbuf.off+1]==0x0 && 
+	    tbuf.d[tbuf.off+2]==0x1 && 
+	    (unsigned char)tbuf.d[tbuf.off+3]==0xb3) break;
+	else tbuf.off++;
+      }
+      if (tbuf.off+4>=tbuf.len)  {
+	fprintf (stderr, "Internal Error. No sync word\n");
+	return (TC_IMPORT_ERROR);
+      }
+
     }
     
     v_re_entry=1;
@@ -346,13 +407,149 @@ MOD_decode
 
   if(param->flag == TC_VIDEO) {
       
-    if (vob->demuxer==TC_DEMUX_SEQ_FSYNC || vob->demuxer==TC_DEMUX_SEQ_FSYNC2) {
+    if (!m2v_passthru && (vob->demuxer==TC_DEMUX_SEQ_FSYNC || vob->demuxer==TC_DEMUX_SEQ_FSYNC2)) {
       
       if(clone_frame(param->buffer, param->size)<0) {
 	if(verbose_flag & TC_DEBUG) printf("[%s] end of stream - failed to sync video frame\n", MOD_NAME);
 	return(TC_IMPORT_ERROR);
       } 
     }
+    
+    // ---------------------------------------------------
+    // This code splits the MPEG2 elementary stream
+    // into packets. It sets the type of the packet
+    // as an frame attribute.
+    // I frames (== Key frames) are not only I frames,
+    // they also carry the sequence headers in the packet.
+    // ---------------------------------------------------
+
+    if (m2v_passthru) {
+      int ID, start_seq, start_pic, pic_type;
+
+      ID = tbuf.d[tbuf.off+3]&0xff;
+
+      switch (ID) {
+	case 0xb3: // sequence
+	  start_seq = tbuf.off;
+
+	  // look for pic header
+	  while (tbuf.off+6<tbuf.len) {
+
+	    if (tbuf.d[tbuf.off+0]==0x0 && tbuf.d[tbuf.off+1]==0x0 && 
+		tbuf.d[tbuf.off+2]==0x1 && tbuf.d[tbuf.off+3]==0x0 && 
+		((tbuf.d[tbuf.off+5]>>3)&0x7)>1 && 
+		((tbuf.d[tbuf.off+5]>>3)&0x7)<4) {
+	      if (verbose & TC_DEBUG) printf("Completed a sequence + I frame from %d -> %d\n", 
+		  start_seq, tbuf.off);
+
+	      param->attributes |= ( TC_FRAME_IS_KEYFRAME | TC_FRAME_IS_I_FRAME);
+	      param->size = tbuf.off-start_seq;
+
+	      // spit frame out
+	      memcpy(param->buffer, tbuf.d+start_seq, param->size);
+	      memmove(tbuf.d, tbuf.d+param->size, tbuf.len-param->size);
+	      tbuf.off = 0;
+	      tbuf.len -= param->size;
+
+	      if (verbose & TC_DEBUG) printf("%02x %02x %02x %02x\n", 
+		  tbuf.d[0]&0xff, tbuf.d[1]&0xff, tbuf.d[2]&0xff, tbuf.d[3]&0xff);
+	      return TC_IMPORT_OK;
+	    }
+	    else tbuf.off++;
+	  }
+
+	  // not enough data.
+	  if (tbuf.off+6 >= tbuf.len) {
+
+	    if (verbose & TC_DEBUG) printf("Fetching in Sequence\n");
+	    memmove (tbuf.d, tbuf.d+start_seq, tbuf.len - start_seq);
+	    tbuf.len -= start_seq;
+	    tbuf.off = 0;
+
+	    if (can_read>0) {
+	      can_read = fread (tbuf.d+tbuf.len, SIZE_RGB_FRAME-tbuf.len, 1, f);
+	      tbuf.len += (SIZE_RGB_FRAME-tbuf.len);
+	    } else {
+		printf("No 1 Read %d\n", can_read);
+	      /* XXX: Flush buffers */
+	      return TC_IMPORT_ERROR;
+	    }
+	  }
+	  break;
+
+	case 0x00: // pic header
+
+	  start_pic = tbuf.off;
+	  pic_type = (tbuf.d[start_pic+5] >> 3) & 0x7;
+	  tbuf.off++;
+
+	  while (tbuf.off+6<tbuf.len) {
+	    if (tbuf.d[tbuf.off+0]==0x0 && tbuf.d[tbuf.off+1]==0x0 && 
+		tbuf.d[tbuf.off+2]==0x1 && 
+		(unsigned char)tbuf.d[tbuf.off+3]==0xb3) {
+	      if (verbose & TC_DEBUG) printf("found a last P or B frame %d -> %d\n", 
+		  start_pic, tbuf.off);
+
+	      param->size = tbuf.off - start_pic;
+	      if (pic_type == 2) param->attributes |= TC_FRAME_IS_P_FRAME;
+	      if (pic_type == 3) param->attributes |= TC_FRAME_IS_B_FRAME;
+
+	      memcpy(param->buffer, tbuf.d+start_pic, param->size);
+	      memmove(tbuf.d, tbuf.d+param->size, tbuf.len-param->size);
+	      tbuf.off = 0;
+	      tbuf.len -= param->size;
+
+	      return TC_IMPORT_OK;
+
+	    } else if // P or B frame
+	       (tbuf.d[tbuf.off+0]==0x0 && tbuf.d[tbuf.off+1]==0x0 && 
+		tbuf.d[tbuf.off+2]==0x1 && tbuf.d[tbuf.off+3]==0x0 && 
+		((tbuf.d[tbuf.off+5]>>3)&0x7)>1 && 
+		((tbuf.d[tbuf.off+5]>>3)&0x7)<4) {
+		 if (verbose & TC_DEBUG) printf("found a P or B frame from %d -> %d\n", 
+		     start_pic, tbuf.off);
+
+		 param->size = tbuf.off - start_pic;
+		 if (pic_type == 2) param->attributes |= TC_FRAME_IS_P_FRAME;
+		 if (pic_type == 3) param->attributes |= TC_FRAME_IS_B_FRAME;
+
+		 memcpy(param->buffer, tbuf.d+start_pic, param->size);
+		 memmove(tbuf.d, tbuf.d+param->size, tbuf.len-param->size);
+		 tbuf.off = 0;
+		 tbuf.len -= param->size;
+
+		 return TC_IMPORT_OK;
+
+	       } else tbuf.off++;
+
+	    // not enough data.
+	    if (tbuf.off+6 >= tbuf.len) {
+
+	      memmove (tbuf.d, tbuf.d+start_pic, tbuf.len - start_pic);
+	      tbuf.len -= start_pic;
+	      tbuf.off = 0;
+
+	      if (can_read>0) {
+		can_read = fread (tbuf.d+tbuf.len, SIZE_RGB_FRAME-tbuf.len, 1, f);
+		tbuf.len += (SIZE_RGB_FRAME-tbuf.len);
+	      } else {
+		printf("No 1 Read %d\n", can_read);
+		/* XXX: Flush buffers */
+		return TC_IMPORT_ERROR;
+	      }
+	    }
+	  }
+	  break;
+	default:
+	  // should not get here
+	  printf("Default case\n");
+	  tbuf.off++;
+	  break;
+      }
+
+
+    }
+
     
     return(0);
   }
@@ -436,7 +633,8 @@ MOD_decode
 
 MOD_close
 {  
-    if(param->fd != NULL) pclose(param->fd);
+    if(param->fd != NULL) pclose(param->fd); param->fd = NULL;
+    if (f) pclose (f); f=NULL;
     
     if(param->flag == TC_VIDEO) {
 	

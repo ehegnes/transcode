@@ -3,6 +3,14 @@ transcode-0.6.11
 
 2003-10-02 Tilmann Bitterberg <transcode at tibit.org>
 
+  * import/import_{dvd mpeg2 vob}:
+  Support for mpeg2 pass-through. If needed, the modules will
+  requantize the stream. The stream then gets splitted into I P and
+  B frames to enable use of -c and -S. Not fully tested, the mpeg2
+  parser seems to be fine.
+
+2003-10-02 Tilmann Bitterberg <transcode at tibit.org>
+
   * src/tc_defaults.h:
   New frame attributes: TC_FRAME_IS_[IPB]_FRAME. The mpeg import
   modules set these when working with m2v elementary streams.
