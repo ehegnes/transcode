@@ -39,7 +39,7 @@ static void dct_unquantize_h263_mmx(MpegEncContext *s,
     qmul = qscale << 1;
     qadd = (qscale - 1) | 1;
 
-    assert(s->block_last_index[n]>=0);
+    assert(s->block_last_index[n]>=0 || s->h263_aic);
         
     if (s->mb_intra) {
         if (!s->h263_aic) {
@@ -490,11 +490,14 @@ static void draw_edges_mmx(uint8_t *buf, int wrap, int width, int height, int w)
 
 #undef HAVE_MMX2
 #define RENAME(a) a ## _MMX
+#define RENAMEl(a) a ## _mmx
 #include "mpegvideo_mmx_template.c"
 
 #define HAVE_MMX2
 #undef RENAME
+#undef RENAMEl
 #define RENAME(a) a ## _MMX2
+#define RENAMEl(a) a ## _mmx2
 #include "mpegvideo_mmx_template.c"
 
 void MPV_common_init_mmx(MpegEncContext *s)

@@ -1,6 +1,23 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-12-30 Tilmann Bitterberg <transcode at tibit.org>
+
+  * ffmpeg/libavcodec/*:
+  Upgrade to 4695 (included in mplayer-1.0pre3)
+
+2003-12-29 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/transcode.c:
+  Unfinished mpeg profile support. The idea is to specify -Z vcd and
+  transcode will figure out all clipping parameters and such.
+
+2003-12-29 Tilmann Bitterberg <transcode at tibit.org>
+
+  * pvm3/tcpvmexportd.c src/transcode.c src/transcode.h:
+  CHANGE: Make the avi limit an unsigned int and disable it by
+  default since transcode can write large avis now.
+
 2003-12-29 Tilmann Bitterberg <transcode at tibit.org>
 
   * docs/export_ffmpeg.txt:

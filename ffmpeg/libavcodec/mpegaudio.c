@@ -117,7 +117,7 @@ static int MPA_encode_init(AVCodecContext *avctx)
     s->alloc_table = alloc_tables[table];
 
 #ifdef DEBUG
-    printf("%d kb/s, %d Hz, frame_size=%d bits, table=%d, padincr=%x\n", 
+    av_log(avctx, AV_LOG_DEBUG, "%d kb/s, %d Hz, frame_size=%d bits, table=%d, padincr=%x\n", 
            bitrate, freq, s->frame_size, table, s->frame_frac_incr);
 #endif
 
@@ -765,7 +765,7 @@ static int MPA_encode_frame(AVCodecContext *avctx,
     }
     compute_bit_allocation(s, smr, bit_alloc, &padding);
 
-    init_put_bits(&s->pb, frame, MPA_MAX_CODED_FRAME_SIZE, NULL, NULL);
+    init_put_bits(&s->pb, frame, MPA_MAX_CODED_FRAME_SIZE);
 
     encode_frame(s, bit_alloc, padding);
     

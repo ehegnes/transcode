@@ -28,7 +28,7 @@
 #include "dsputil.h"
 #include "mpegvideo.h"
 #include "simple_idct.h"
-
+#include "faandct.h"
 
 uint8_t cropTbl[256 + 2 * MAX_NEG_CROP];
 uint32_t squareTbl[512];
@@ -42,6 +42,19 @@ const uint8_t ff_zigzag_direct[64] = {
     29, 22, 15, 23, 30, 37, 44, 51,
     58, 59, 52, 45, 38, 31, 39, 46,
     53, 60, 61, 54, 47, 55, 62, 63
+};
+
+/* Specific zigzag scan for 248 idct. NOTE that unlike the
+   specification, we interleave the fields */
+const uint8_t ff_zigzag248_direct[64] = {
+     0,  8,  1,  9, 16, 24,  2, 10,
+    17, 25, 32, 40, 48, 56, 33, 41,
+    18, 26,  3, 11,  4, 12, 19, 27,
+    34, 42, 49, 57, 50, 58, 35, 43,
+    20, 28,  5, 13,  6, 14, 21, 29,
+    36, 44, 51, 59, 52, 60, 37, 45,
+    22, 30,  7, 15, 23, 31, 38, 46,
+    53, 61, 54, 62, 39, 47, 55, 63,
 };
 
 /* not permutated inverse zigzag_direct + 1 for MMX quantizer */
@@ -2248,6 +2261,75 @@ static void put_mspel8_mc22_c(uint8_t *dst, uint8_t *src, int stride){
     wmv2_mspel8_v_lowpass(dst, halfH+8, stride, 8, 8);
 }
 
+static void h263_v_loop_filter_c(uint8_t *src, int stride, int qscale){
+    int x;
+    const int strength= ff_h263_loop_filter_strength[qscale];
+    
+    for(x=0; x<8; x++){
+        int d1, d2, ad1;
+        int p0= src[x-2*stride];
+        int p1= src[x-1*stride];
+        int p2= src[x+0*stride];
+        int p3= src[x+1*stride];
+        int d = (p0 - p3 + 4*(p2 - p1)) / 8;
+
+        if     (d<-2*strength) d1= 0;
+        else if(d<-  strength) d1=-2*strength - d;
+        else if(d<   strength) d1= d;
+        else if(d< 2*strength) d1= 2*strength - d;
+        else                   d1= 0;
+        
+        p1 += d1;
+        p2 -= d1;
+        if(p1&256) p1= ~(p1>>31);
+        if(p2&256) p2= ~(p2>>31);
+        
+        src[x-1*stride] = p1;
+        src[x+0*stride] = p2;
+
+        ad1= ABS(d1)>>1;
+        
+        d2= clip((p0-p3)/4, -ad1, ad1);
+        
+        src[x-2*stride] = p0 - d2;
+        src[x+  stride] = p3 + d2;
+    }
+}
+
+static void h263_h_loop_filter_c(uint8_t *src, int stride, int qscale){
+    int y;
+    const int strength= ff_h263_loop_filter_strength[qscale];
+    
+    for(y=0; y<8; y++){
+        int d1, d2, ad1;
+        int p0= src[y*stride-2];
+        int p1= src[y*stride-1];
+        int p2= src[y*stride+0];
+        int p3= src[y*stride+1];
+        int d = (p0 - p3 + 4*(p2 - p1)) / 8;
+
+        if     (d<-2*strength) d1= 0;
+        else if(d<-  strength) d1=-2*strength - d;
+        else if(d<   strength) d1= d;
+        else if(d< 2*strength) d1= 2*strength - d;
+        else                   d1= 0;
+        
+        p1 += d1;
+        p2 -= d1;
+        if(p1&256) p1= ~(p1>>31);
+        if(p2&256) p2= ~(p2>>31);
+        
+        src[y*stride-1] = p1;
+        src[y*stride+0] = p2;
+
+        ad1= ABS(d1)>>1;
+        
+        d2= clip((p0-p3)/4, -ad1, ad1);
+        
+        src[y*stride-2] = p0 - d2;
+        src[y*stride+1] = p3 + d2;
+    }
+}
 
 static inline int pix_abs16x16_c(uint8_t *pix1, uint8_t *pix2, int line_size)
 {
@@ -2524,6 +2606,24 @@ static void diff_bytes_c(uint8_t *dst, uint8_t *src1, uint8_t *src2, int w){
     }
     for(; i<w; i++)
         dst[i+0] = src1[i+0]-src2[i+0];
+}
+
+static void sub_hfyu_median_prediction_c(uint8_t *dst, uint8_t *src1, uint8_t *src2, int w, int *left, int *left_top){
+    int i;
+    uint8_t l, lt;
+
+    l= *left;
+    lt= *left_top;
+
+    for(i=0; i<w; i++){
+        const int pred= mid_pred(l, src1[i], (l + src1[i] - lt)&0xFF);
+        lt= src1[i];
+        l= src2[i];
+        dst[i]= l - pred;
+    }    
+
+    *left= l;
+    *left_top= lt;
 }
 
 #define BUTTERFLY2(o1,o2,i1,i2) \
@@ -2851,10 +2951,18 @@ void dsputil_init(DSPContext* c, AVCodecContext *avctx)
     int i;
 
 #ifdef CONFIG_ENCODERS
-    if(avctx->dct_algo==FF_DCT_FASTINT)
+    if(avctx->dct_algo==FF_DCT_FASTINT) {
         c->fdct = fdct_ifast;
-    else
+	c->fdct248 = fdct_ifast248;
+    } 
+    else if(avctx->dct_algo==FF_DCT_FAAN) {
+        c->fdct = ff_faandct;
+	c->fdct248 = ff_faandct248; 
+    } 
+    else {
         c->fdct = ff_jpeg_fdct_islow; //slow/accurate/default
+	c->fdct248 = ff_fdct248_islow;
+    }
 #endif //CONFIG_ENCODERS
 
     if(avctx->idct_algo==FF_IDCT_INT){
@@ -3007,7 +3115,11 @@ void dsputil_init(DSPContext* c, AVCodecContext *avctx)
         
     c->add_bytes= add_bytes_c;
     c->diff_bytes= diff_bytes_c;
+    c->sub_hfyu_median_prediction= sub_hfyu_median_prediction_c;
     c->bswap_buf= bswap_buf;
+    
+    c->h263_h_loop_filter= h263_h_loop_filter_c;
+    c->h263_v_loop_filter= h263_v_loop_filter_c;
 
 #ifdef HAVE_MMX
     dsputil_init_mmx(c, avctx);
@@ -3049,7 +3161,7 @@ void dsputil_init(DSPContext* c, AVCodecContext *avctx)
             c->idct_permutation[i]= ((i&7)<<3) | (i>>3);
         break;
     default:
-        fprintf(stderr, "Internal error, IDCT permutation not set\n");
+        av_log(avctx, AV_LOG_ERROR, "Internal error, IDCT permutation not set\n");
     }
 }
 

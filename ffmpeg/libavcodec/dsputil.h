@@ -36,16 +36,20 @@
 typedef short DCTELEM;
 
 void fdct_ifast (DCTELEM *data);
+void fdct_ifast248 (DCTELEM *data);
 void ff_jpeg_fdct_islow (DCTELEM *data);
+void ff_fdct248_islow (DCTELEM *data);
 
 void j_rev_dct (DCTELEM *data);
 
 void ff_fdct_mmx(DCTELEM *block);
+void ff_fdct_mmx2(DCTELEM *block);
 
 /* encoding scans */
 extern const uint8_t ff_alternate_horizontal_scan[64];
 extern const uint8_t ff_alternate_vertical_scan[64];
 extern const uint8_t ff_zigzag_direct[64];
+extern const uint8_t ff_zigzag248_direct[64];
 
 /* pixel operations */
 #define MAX_NEG_CROP 384
@@ -234,10 +238,19 @@ typedef struct DSPContext {
     /* huffyuv specific */
     void (*add_bytes)(uint8_t *dst/*align 16*/, uint8_t *src/*align 16*/, int w);
     void (*diff_bytes)(uint8_t *dst/*align 16*/, uint8_t *src1/*align 16*/, uint8_t *src2/*align 1*/,int w);
+    /**
+     * subtract huffyuv's variant of median prediction
+     * note, this might read from src1[-1], src2[-1]
+     */
+    void (*sub_hfyu_median_prediction)(uint8_t *dst, uint8_t *src1, uint8_t *src2, int w, int *left, int *left_top);
     void (*bswap_buf)(uint32_t *dst, uint32_t *src, int w);
     
+    void (*h263_v_loop_filter)(uint8_t *src, int stride, int qscale);
+    void (*h263_h_loop_filter)(uint8_t *src, int stride, int qscale);
+
     /* (I)DCT */
     void (*fdct)(DCTELEM *block/* align 16*/);
+    void (*fdct248)(DCTELEM *block/* align 16*/);
     
     /* IDCT really*/
     void (*idct)(DCTELEM *block/* align 16*/);
@@ -368,7 +381,9 @@ void dsputil_init_alpha(DSPContext* c, AVCodecContext *avctx);
 extern int mm_flags;
 
 #if defined(HAVE_ALTIVEC) && !defined(CONFIG_DARWIN)
+#define pixel altivec_pixel
 #include <altivec.h>
+#undef pixel
 #endif
 
 #define __align8 __attribute__ ((aligned (16)))
@@ -489,12 +504,6 @@ static inline long int lrintf(float x)
 #else
     return (int)(rint(x));
 #endif
-}
-#endif
-
-#if defined(CONFIG_OS2) || defined(CONFIG_SUNOS)
-static inline float floorf(float f) { 
-    return floor(f); 
 }
 #endif
 

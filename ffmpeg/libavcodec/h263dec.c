@@ -28,17 +28,6 @@
 
 //#define DEBUG
 //#define PRINT_FRAME_TIME
-#ifdef PRINT_FRAME_TIME
-static inline long long rdtsc()
-{
-	long long l;
-	asm volatile(	"rdtsc\n\t"
-		: "=A" (l)
-	);
-//	printf("%d\n", int(l/1000));
-	return l;
-}
-#endif
 
 int ff_h263_decode_init(AVCodecContext *avctx)
 {
@@ -57,13 +46,15 @@ int ff_h263_decode_init(AVCodecContext *avctx)
     s->decode_mb= ff_h263_decode_mb;
     s->low_delay= 1;
     avctx->pix_fmt= PIX_FMT_YUV420P;
+    s->unrestricted_mv= 1;
 
     /* select sub codec */
     switch(avctx->codec->id) {
     case CODEC_ID_H263:
-        s->gob_number = 0;
+        s->unrestricted_mv= 0;
         break;
     case CODEC_ID_MPEG4:
+        s->decode_mb= ff_mpeg4_decode_mb;
         s->time_increment_bits = 4; /* default value for broken headers */
         s->h263_pred = 1;
         s->low_delay = 0; //default, might be overriden in the vol header during header parsing
@@ -154,8 +145,7 @@ static int decode_slice(MpegEncContext *s){
     s->resync_mb_x= s->mb_x;
     s->resync_mb_y= s->mb_y;
 
-    s->y_dc_scale= s->y_dc_scale_table[ s->qscale ];
-    s->c_dc_scale= s->c_dc_scale_table[ s->qscale ];
+    ff_set_qscale(s, s->qscale);
     
     if(s->partitioned_frame){
         const int qscale= s->qscale;
@@ -169,9 +159,7 @@ static int decode_slice(MpegEncContext *s){
         s->first_slice_line=1;
         s->mb_x= s->resync_mb_x;
         s->mb_y= s->resync_mb_y;
-        s->qscale= qscale;
-        s->y_dc_scale= s->y_dc_scale_table[ s->qscale ];
-        s->c_dc_scale= s->c_dc_scale_table[ s->qscale ];
+        ff_set_qscale(s, qscale);
     }
 
     for(; s->mb_y < s->mb_height; s->mb_y++) {
@@ -216,6 +204,8 @@ static int decode_slice(MpegEncContext *s){
                 const int xy= s->mb_x + s->mb_y*s->mb_stride;
                 if(ret==SLICE_END){
                     MPV_decode_mb(s, s->block);
+                    if(s->loop_filter)
+                        ff_h263_loop_filter(s);
 
 //printf("%d %d %d %06X\n", s->mb_x, s->mb_y, s->gb.size*8 - get_bits_count(&s->gb), show_bits(&s->gb, 24));
                     ff_er_add_slice(s, s->resync_mb_x, s->resync_mb_y, s->mb_x, s->mb_y, (AC_END|DC_END|MV_END)&part_mask);
@@ -229,17 +219,19 @@ static int decode_slice(MpegEncContext *s){
                     }
                     return 0; 
                 }else if(ret==SLICE_NOEND){
-                    fprintf(stderr,"Slice mismatch at MB: %d\n", xy);
+                    av_log(s->avctx, AV_LOG_ERROR, "Slice mismatch at MB: %d\n", xy);
                     ff_er_add_slice(s, s->resync_mb_x, s->resync_mb_y, s->mb_x+1, s->mb_y, (AC_END|DC_END|MV_END)&part_mask);
                     return -1;
                 }
-                fprintf(stderr,"Error at MB: %d\n", xy);
+                av_log(s->avctx, AV_LOG_ERROR, "Error at MB: %d\n", xy);
                 ff_er_add_slice(s, s->resync_mb_x, s->resync_mb_y, s->mb_x, s->mb_y, (AC_ERROR|DC_ERROR|MV_ERROR)&part_mask);
     
                 return -1;
             }
 
             MPV_decode_mb(s, s->block);
+            if(s->loop_filter)
+                ff_h263_loop_filter(s);
         }
         
         ff_draw_horiz_band(s, s->mb_y*16, 16);
@@ -291,17 +283,17 @@ static int decode_slice(MpegEncContext *s){
             max_extra+= 256*256*256*64;
         
         if(left>max_extra){
-            fprintf(stderr, "discarding %d junk bits at end, next would be %X\n", left, show_bits(&s->gb, 24));
+            av_log(s->avctx, AV_LOG_ERROR, "discarding %d junk bits at end, next would be %X\n", left, show_bits(&s->gb, 24));
         }
         else if(left<0){
-            fprintf(stderr, "overreading %d bits\n", -left);
+            av_log(s->avctx, AV_LOG_ERROR, "overreading %d bits\n", -left);
         }else
             ff_er_add_slice(s, s->resync_mb_x, s->resync_mb_y, s->mb_x-1, s->mb_y, AC_END|DC_END|MV_END);
         
         return 0;
     }
 
-    fprintf(stderr, "slice end not reached but screenspace end (%d left %06X, score= %d)\n", 
+    av_log(s->avctx, AV_LOG_ERROR, "slice end not reached but screenspace end (%d left %06X, score= %d)\n", 
             s->gb.size_in_bits - get_bits_count(&s->gb),
             show_bits(&s->gb, 24), s->padding_bug_score);
             
@@ -392,7 +384,6 @@ int ff_h263_decode_frame(AVCodecContext *avctx,
     MpegEncContext *s = avctx->priv_data;
     int ret;
     AVFrame *pict = data; 
-    float new_aspect;
     
 #ifdef PRINT_FRAME_TIME
 uint64_t time= rdtsc();
@@ -426,7 +417,7 @@ uint64_t time= rdtsc();
         }else if(s->codec_id==CODEC_ID_H263){
             next= h263_find_frame_end(s, buf, buf_size);
         }else{
-            fprintf(stderr, "this codec doesnt support truncated bitstreams\n");
+            av_log(s->avctx, AV_LOG_ERROR, "this codec doesnt support truncated bitstreams\n");
             return -1;
         }
         
@@ -445,6 +436,12 @@ retry:
     if (!s->context_initialized) {
         if (MPV_common_init(s) < 0) //we need the idct permutaton for reading a custom matrix
             return -1;
+    }
+    
+    //we need to set current_picture_ptr before reading the header, otherwise we cant store anyting im there
+    if(s->current_picture_ptr==NULL || s->current_picture_ptr->data[0]){
+        int i= ff_find_unused_picture(s, 0);
+        s->current_picture_ptr= &s->picture[i];
     }
       
     /* let's go :-) */
@@ -475,7 +472,7 @@ retry:
 
     /* skip if the header was thrashed */
     if (ret < 0){
-        fprintf(stderr, "header damaged\n");
+        av_log(s->avctx, AV_LOG_ERROR, "header damaged\n");
         return -1;
     }
     
@@ -508,7 +505,6 @@ retry:
 
         if(s->avctx->codec_tag == ff_get_fourcc("UMP4")){
             s->workaround_bugs|= FF_BUG_UMP4;
-            s->workaround_bugs|= FF_BUG_AC_VLC;
         }
 
         if(s->divx_version>=500){
@@ -586,7 +582,7 @@ retry:
     }
 
     if(avctx->debug & FF_DEBUG_BUGS)
-        printf("bugs: %X lavc_build:%d xvid_build:%d divx_version:%d divx_build:%d %s\n", 
+        av_log(s->avctx, AV_LOG_DEBUG, "bugs: %X lavc_build:%d xvid_build:%d divx_version:%d divx_build:%d %s\n", 
                s->workaround_bugs, s->lavc_build, s->xvid_build, s->divx_version, s->divx_build,
                s->divx_packed ? "p" : "");
     
@@ -602,20 +598,17 @@ retry:
         /* and other parameters. So then we could init the picture   */
         /* FIXME: By the way H263 decoder is evolving it should have */
         /* an H263EncContext                                         */
-    if(s->aspected_height)
-        new_aspect= s->aspected_width*s->width / (float)(s->height*s->aspected_height);
-    else
-        new_aspect=0;
     
-    if (   s->width != avctx->width || s->height != avctx->height 
-        || ABS(new_aspect - avctx->aspect_ratio) > 0.001) {
+    if (   s->width != avctx->width || s->height != avctx->height) {
         /* H.263 could change picture size any time */
+        ParseContext pc= s->parse_context; //FIXME move these demuxng hack to avformat
+        s->parse_context.buffer=0;
         MPV_common_end(s);
+        s->parse_context= pc;
     }
     if (!s->context_initialized) {
         avctx->width = s->width;
         avctx->height = s->height;
-        avctx->aspect_ratio= new_aspect;
 
         goto retry;
     }

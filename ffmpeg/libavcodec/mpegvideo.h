@@ -134,33 +134,9 @@ typedef struct Picture{
      * halfpel luma planes.
      */
     uint8_t *interpolated[3];
-    
-    int16_t (*motion_val[2])[2];
+    int16_t (*motion_val_base[2])[2];
     int8_t *ref_index[2];
     uint32_t *mb_type_base;
-    uint32_t *mb_type;           ///< mb_type_base + mb_width + 2, note: only used for decoding currently
-#define MB_TYPE_INTRA4x4   0x0001
-#define MB_TYPE_INTRA16x16 0x0002 //FIXME h264 specific
-#define MB_TYPE_INTRA_PCM  0x0004 //FIXME h264 specific
-#define MB_TYPE_16x16      0x0008
-#define MB_TYPE_16x8       0x0010
-#define MB_TYPE_8x16       0x0020
-#define MB_TYPE_8x8        0x0040
-#define MB_TYPE_INTERLACED 0x0080
-#define MB_TYPE_DIRECT2     0x0100 //FIXME
-#define MB_TYPE_ACPRED     0x0200
-#define MB_TYPE_GMC        0x0400 //FIXME mpeg4 specific
-#define MB_TYPE_SKIP       0x0800
-#define MB_TYPE_P0L0       0x1000
-#define MB_TYPE_P1L0       0x2000
-#define MB_TYPE_P0L1       0x4000
-#define MB_TYPE_P1L1       0x8000
-#define MB_TYPE_L0         (MB_TYPE_P0L0 | MB_TYPE_P1L0)
-#define MB_TYPE_L1         (MB_TYPE_P0L1 | MB_TYPE_P1L1)
-#define MB_TYPE_L0L1       (MB_TYPE_L0   | MB_TYPE_L1)
-#define MB_TYPE_QUANT      0x00010000
-//Note bits 24-31 are reserved for codec specific use (h264 ref0, mpeg1 pat, ...)
-
 #define IS_INTRA4x4(a)   ((a)&MB_TYPE_INTRA4x4)
 #define IS_INTRA16x16(a) ((a)&MB_TYPE_INTRA16x16)
 #define IS_PCM(a)        ((a)&MB_TYPE_INTRA_PCM)
@@ -183,7 +159,7 @@ typedef struct Picture{
 #define IS_QUANT(a)      ((a)&MB_TYPE_QUANT)
 #define IS_DIR(a, part, list) ((a) & (MB_TYPE_P0L0<<((part)+2*(list))))
 #define USES_LIST(a, list) ((a) & ((MB_TYPE_P0L0|MB_TYPE_P1L0)<<(2*(list)))) ///< does this mb use listX, note doesnt work if subMBs
-
+#define HAS_CBP(a)        ((a)&MB_TYPE_CBP)
 
     int field_poc[2];           ///< h264 top/bottom POC
     int poc;                    ///< h264 frame POC
@@ -196,7 +172,7 @@ typedef struct Picture{
     uint16_t *mb_var;           ///< Table for MB variances 
     uint16_t *mc_mb_var;        ///< Table for motion compensated MB variances 
     uint8_t *mb_mean;           ///< Table for MB luminance 
-    int32_t *mb_cmp_score;	///< Table for MB cmp scores, for mb decission 
+    int32_t *mb_cmp_score;	///< Table for MB cmp scores, for mb decission FIXME remove
     int b_frame_score;          /* */
 } Picture;
 
@@ -266,7 +242,6 @@ typedef struct MpegEncContext {
 
 /* the following codec id fields are deprecated in favor of codec_id */
     int h263_plus;    ///< h263 plus headers 
-    int h263_rv10;    ///< use RV10 variation for H263 
     int h263_msmpeg4; ///< generate MSMPEG4 compatible stream (deprecated, use msmpeg4_version instead)
     int h263_intel;   ///< use I263 intel h263 header 
     int h263_flv;     ///< use flv h263 header 
@@ -297,13 +272,15 @@ typedef struct MpegEncContext {
     int b_frames_since_non_b;  ///< used for encoding, relative to not yet reordered input 
     int mb_width, mb_height;   ///< number of MBs horizontally & vertically 
     int mb_stride;             ///< mb_width+1 used for some arrays to allow simple addressng of left & top MBs withoutt sig11
+    int b8_stride;             ///< 2*mb_width+1 used for some 8x8 block arrays to allow simple addressng
+    int b4_stride;             ///< 4*mb_width+1 used for some 4x4 block arrays to allow simple addressng
     int h_edge_pos, v_edge_pos;///< horizontal / vertical position of the right/bottom edge (pixel replicateion)
     int mb_num;                ///< number of MBs of a picture 
     int linesize;              ///< line size, in bytes, may be different from width 
     int uvlinesize;            ///< line size, for chroma in bytes, may be different from width 
-    Picture picture[MAX_PICTURE_COUNT]; ///< main picture buffer 
-    Picture *input_picture[MAX_PICTURE_COUNT]; ///< next pictures on display order for encoding
-    Picture *reordered_input_picture[MAX_PICTURE_COUNT]; ///< pointer to the next pictures in codedorder for encoding
+    Picture *picture;          ///< main picture buffer 
+    Picture **input_picture;   ///< next pictures on display order for encoding
+    Picture **reordered_input_picture; ///< pointer to the next pictures in codedorder for encoding
     
     /** 
      * copy of the previous picture structure.
@@ -331,7 +308,6 @@ typedef struct MpegEncContext {
     
     Picture *last_picture_ptr;     ///< pointer to the previous picture.
     Picture *next_picture_ptr;     ///< pointer to the next picture (for bidir pred) 
-    Picture *new_picture_ptr;      ///< pointer to the source picture for encoding 
     Picture *current_picture_ptr;  ///< pointer to the current picture
     int last_dc[3];                ///< last DC values for MPEG1 
     int16_t *dc_val[3];            ///< used for mpeg4 DC prediction, all 3 arrays must be continuous 
@@ -339,6 +315,7 @@ typedef struct MpegEncContext {
     int y_dc_scale, c_dc_scale;
     uint8_t *y_dc_scale_table;     ///< qscale -> y_dc_scale table 
     uint8_t *c_dc_scale_table;     ///< qscale -> c_dc_scale table 
+    const uint8_t *chroma_qscale_table;  ///< qscale -> chroma_qscale (h263)
     uint8_t *coded_block;          ///< used for coded block pattern prediction (msmpeg4v3, wmv1)
     int16_t (*ac_val[3])[16];      ///< used for for mpeg4 AC prediction, all 3 arrays must be continuous 
     int ac_pred;
@@ -354,7 +331,10 @@ typedef struct MpegEncContext {
     uint8_t *edge_emu_buffer;     ///< points into the middle of allocated_edge_emu_buffer  
 
     int qscale;                 ///< QP 
-    float frame_qscale;         ///< qscale from the frame level rc FIXME remove
+    int chroma_qscale;          ///< chroma QP 
+    int lambda;                 ///< lagrange multipler used in rate distortion
+    int lambda2;                ///< (lambda*lambda) >> FF_LAMBDA_SHIFT 
+    int *lambda_table;
     int adaptive_quant;         ///< use adaptive quantization 
     int dquant;                 ///< qscale difference to prev qscale  
     int pict_type;              ///< I_TYPE, P_TYPE, B_TYPE, ... 
@@ -369,7 +349,6 @@ typedef struct MpegEncContext {
     DSPContext dsp;             ///< pointers for accelerated dsp fucntions 
     int f_code;                 ///< forward MV resolution 
     int b_code;                 ///< backward MV resolution for B Frames (mpeg4) 
-    int16_t (*motion_val)[2];
     int16_t (*p_mv_table_base)[2];
     int16_t (*b_forw_mv_table_base)[2];
     int16_t (*b_back_mv_table_base)[2];
@@ -456,19 +435,22 @@ typedef struct MpegEncContext {
     int coded_score[6];
 
     /** precomputed matrix (combine qscale and DCT renorm) */
-    int __align8 q_intra_matrix[32][64];
-    int __align8 q_inter_matrix[32][64];
-    /** identical to the above but for MMX & these are not permutated */
-    uint16_t __align8 q_intra_matrix16[32][64];
-    uint16_t __align8 q_inter_matrix16[32][64];
-    uint16_t __align8 q_intra_matrix16_bias[32][64];
-    uint16_t __align8 q_inter_matrix16_bias[32][64];
+    int (*q_intra_matrix)[64];
+    int (*q_inter_matrix)[64];
+    /** identical to the above but for MMX & these are not permutated, second 64 entries are bias*/
+    uint16_t (*q_intra_matrix16)[2][64];
+    uint16_t (*q_inter_matrix16)[2][64];
     int block_last_index[6];  ///< last non zero coefficient in block
     /* scantables */
     ScanTable __align8 intra_scantable;
     ScanTable intra_h_scantable;
     ScanTable intra_v_scantable;
     ScanTable inter_scantable; ///< if inter == intra then intra should be used to reduce tha cache usage
+    
+    /* noise reduction */
+    int (*dct_error_sum)[64];
+    int dct_count[2];
+    uint16_t (*dct_offset)[64];
 
     void *opaque;              ///< private data for the user
 
@@ -513,13 +495,17 @@ typedef struct MpegEncContext {
     ParseContext parse_context;
 
     /* H.263 specific */
-    int gob_number;
     int gob_index;
+    int obmc;                       ///< overlapped block motion compensation
         
     /* H.263+ specific */
     int umvplus;                    ///< == H263+ && unrestricted_mv 
     int h263_aic;                   ///< Advanded INTRA Coding (AIC) 
-    int h263_aic_dir;               ///< AIC direction: 0 = left, 1 = top 
+    int h263_aic_dir;               ///< AIC direction: 0 = left, 1 = top
+    int h263_slice_structured;
+    int alt_inter_vlc;              ///< alternative inter vlc
+    int modified_quant;
+    int loop_filter;    
     
     /* mpeg4 specific */
     int time_increment_resolution;
@@ -553,8 +539,6 @@ typedef struct MpegEncContext {
     int new_pred;
     int reduced_res_vop;
     int aspect_ratio_info; //FIXME remove
-    int aspected_width;    //FIXME remove
-    int aspected_height;   //FIXME remove
     int sprite_warping_accuracy;
     int low_latency_sprite;
     int data_partitioning;           ///< data partitioning flag from header 
@@ -564,6 +548,7 @@ typedef struct MpegEncContext {
     int low_delay;                   ///< no reordering needed / has no b-frames 
     int vo_type;
     int vol_control_parameters;      ///< does the stream contain the low_delay flag, used to workaround buggy encoders 
+    int intra_dc_threshold;          ///< QP above whch the ac VLC should be used for intra dc 
     PutBitContext tex_pb;            ///< used for data partitioned VOPs 
     PutBitContext pb2;               ///< used for data partitioned VOPs 
 #define PB_BUFFER_SIZE 1024*256
@@ -650,16 +635,16 @@ typedef struct MpegEncContext {
     int interlaced_dct;
     int first_slice;
     int first_field;         ///< is 1 for the first field of a field picture 0 otherwise
-    
+
     /* RTP specific */
-    /* These are explained on avcodec.h */
     int rtp_mode;
-    int rtp_payload_size;
-    void (*rtp_callback)(void *data, int size, int packet_number);
+    
     uint8_t *ptr_lastgob;
+    int swap_uv;//vcr2 codec is mpeg2 varint with UV swaped
+    short * pblocks[12];
     
     DCTELEM (*block)[64]; ///< points to one of the following blocks 
-    DCTELEM blocks[2][6][64] __align8; // for HQ mode we need to keep the best block
+    DCTELEM (*blocks)[6][64]; // for HQ mode we need to keep the best block
     int (*decode_mb)(struct MpegEncContext *s, DCTELEM block[6][64]); // used by some codecs to avoid a switch()
 #define SLICE_OK         0
 #define SLICE_ERROR     -1
@@ -718,6 +703,8 @@ int ff_combine_frame( MpegEncContext *s, int next, uint8_t **buf, int *buf_size)
 void ff_mpeg_flush(AVCodecContext *avctx);
 void ff_print_debug_info(MpegEncContext *s, Picture *pict);
 void ff_write_quant_matrix(PutBitContext *pb, int16_t *matrix);
+int ff_find_unused_picture(MpegEncContext *s, int shared);
+void ff_denoise_dct(MpegEncContext *s, DCTELEM *block);
 
 void ff_er_frame_start(MpegEncContext *s);
 void ff_er_frame_end(MpegEncContext *s);
@@ -805,8 +792,13 @@ static inline int get_rl_index(const RLTable *rl, int last, int run, int level)
 
 extern uint8_t ff_mpeg4_y_dc_scale_table[32];
 extern uint8_t ff_mpeg4_c_dc_scale_table[32];
+extern uint8_t ff_aic_dc_scale_table[32];
 extern const int16_t ff_mpeg4_default_intra_matrix[64];
 extern const int16_t ff_mpeg4_default_non_intra_matrix[64];
+extern const uint8_t ff_h263_chroma_qscale_table[32];
+extern const uint8_t ff_h263_loop_filter_strength[32];
+
+
 int ff_h263_decode_init(AVCodecContext *avctx);
 int ff_h263_decode_frame(AVCodecContext *avctx, 
                              void *data, int *data_size,
@@ -820,7 +812,7 @@ void mpeg4_encode_mb(MpegEncContext *s,
                     int motion_x, int motion_y);
 void h263_encode_picture_header(MpegEncContext *s, int picture_number);
 void ff_flv_encode_picture_header(MpegEncContext *s, int picture_number);
-int h263_encode_gob_header(MpegEncContext * s, int mb_line);
+void h263_encode_gob_header(MpegEncContext * s, int mb_line);
 int16_t *h263_pred_motion(MpegEncContext * s, int block, 
                         int *px, int *py);
 void mpeg4_pred_ac(MpegEncContext * s, DCTELEM *block, int n, 
@@ -833,11 +825,16 @@ int h263_decode_picture_header(MpegEncContext *s);
 int ff_h263_decode_gob_header(MpegEncContext *s);
 int ff_mpeg4_decode_picture_header(MpegEncContext * s, GetBitContext *gb);
 void ff_h263_update_motion_val(MpegEncContext * s);
-
+void ff_h263_loop_filter(MpegEncContext * s);
+void ff_set_qscale(MpegEncContext * s, int qscale);
+int ff_h263_decode_mba(MpegEncContext *s);
+void ff_h263_encode_mba(MpegEncContext *s);
 
 int intel_h263_decode_picture_header(MpegEncContext *s);
 int flv_h263_decode_picture_header(MpegEncContext *s);
 int ff_h263_decode_mb(MpegEncContext *s,
+                      DCTELEM block[6][64]);
+int ff_mpeg4_decode_mb(MpegEncContext *s,
                       DCTELEM block[6][64]);
 int h263_get_picture_format(int width, int height);
 void ff_mpeg4_encode_video_packet_header(MpegEncContext *s);

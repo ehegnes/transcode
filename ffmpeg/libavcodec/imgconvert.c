@@ -147,6 +147,7 @@ static PixFmtInfo pix_fmt_info[PIX_FMT_NB] = {
         .color_type = FF_COLOR_RGB,
         .pixel_type = FF_PIXEL_PACKED,
         .depth = 8,
+        .x_chroma_shift = 0, .y_chroma_shift = 0,
     },
     [PIX_FMT_BGR24] = {
         .name = "bgr24",
@@ -154,6 +155,7 @@ static PixFmtInfo pix_fmt_info[PIX_FMT_NB] = {
         .color_type = FF_COLOR_RGB,
         .pixel_type = FF_PIXEL_PACKED,
         .depth = 8,
+        .x_chroma_shift = 0, .y_chroma_shift = 0,
     },
     [PIX_FMT_RGBA32] = {
         .name = "rgba32",
@@ -161,6 +163,7 @@ static PixFmtInfo pix_fmt_info[PIX_FMT_NB] = {
         .color_type = FF_COLOR_RGB,
         .pixel_type = FF_PIXEL_PACKED,
         .depth = 8,
+        .x_chroma_shift = 0, .y_chroma_shift = 0,
     },
     [PIX_FMT_RGB565] = {
         .name = "rgb565",
@@ -168,6 +171,7 @@ static PixFmtInfo pix_fmt_info[PIX_FMT_NB] = {
         .color_type = FF_COLOR_RGB,
         .pixel_type = FF_PIXEL_PACKED,
         .depth = 5,
+        .x_chroma_shift = 0, .y_chroma_shift = 0,
     },
     [PIX_FMT_RGB555] = {
         .name = "rgb555",
@@ -175,6 +179,7 @@ static PixFmtInfo pix_fmt_info[PIX_FMT_NB] = {
         .color_type = FF_COLOR_RGB,
         .pixel_type = FF_PIXEL_PACKED,
         .depth = 5,
+        .x_chroma_shift = 0, .y_chroma_shift = 0,
     },
 
     /* gray / mono formats */
@@ -1613,7 +1618,7 @@ static ConvertEntry convert_table[PIX_FMT_NB][PIX_FMT_NB] = {
     },
 };
 
-static int avpicture_alloc(AVPicture *picture,
+int avpicture_alloc(AVPicture *picture,
                            int pix_fmt, int width, int height)
 {
     unsigned int size;
@@ -1630,7 +1635,7 @@ static int avpicture_alloc(AVPicture *picture,
     return -1;
 }
 
-static void avpicture_free(AVPicture *picture)
+void avpicture_free(AVPicture *picture)
 {
     av_free(picture->data[0]);
 }

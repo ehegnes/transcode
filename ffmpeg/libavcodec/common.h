@@ -82,6 +82,22 @@ extern const struct AVOption avoptions_workaround_bug[11];
 #    define always_inline inline
 #endif
 
+#ifdef EMULATE_FAST_INT
+/* note that we don't emulate 64bit ints */
+typedef signed char int_fast8_t;
+typedef signed int  int_fast16_t;
+typedef signed int  int_fast32_t;
+typedef unsigned char uint_fast8_t;
+typedef unsigned int  uint_fast16_t;
+typedef unsigned int  uint_fast32_t;
+#endif
+
+#if defined(CONFIG_OS2) || defined(CONFIG_SUNOS)
+static inline float floorf(float f) { 
+    return floor(f); 
+}
+#endif
+
 #ifdef CONFIG_WIN32
 
 /* windows */
@@ -99,19 +115,23 @@ typedef signed __int64 int64_t;
 #        define int64_t_C(c)     (c ## i64)
 #        define uint64_t_C(c)    (c ## i64)
 
-#        define inline __inline
+#    ifdef HAVE_AV_CONFIG_H
+#            define inline __inline
+#    endif
 
 #    else
 #        define int64_t_C(c)     (c ## LL)
 #        define uint64_t_C(c)    (c ## ULL)
 #    endif /* __MINGW32__ */
 
-#    ifdef _DEBUG
-#        define DEBUG
-#    endif
+#    ifdef HAVE_AV_CONFIG_H
+#        ifdef _DEBUG
+#            define DEBUG
+#        endif
 
-#    define snprintf _snprintf
-#    define vsnprintf _vsnprintf
+#        define snprintf _snprintf
+#        define vsnprintf _vsnprintf
+#    endif
 
 /* CONFIG_WIN32 end */
 #elif defined (CONFIG_OS2)
@@ -181,14 +201,14 @@ inline void dprintf(const char* fmt,...) {}
 #    else
 
 #        ifdef DEBUG
-#            define dprintf(fmt,args...) printf(fmt, ## args)
+#            define dprintf(fmt,...) printf(fmt, __VA_ARGS__)
 #        else
-#            define dprintf(fmt,args...)
+#            define dprintf(fmt,...)
 #        endif
 
 #    endif /* !CONFIG_WIN32 */
 
-#    define av_abort()      do { fprintf(stderr, "Abort at %s:%d\n", __FILE__, __LINE__); abort(); } while (0)
+#    define av_abort()      do { av_log(NULL, AV_LOG_ERROR, "Abort at %s:%d\n", __FILE__, __LINE__); abort(); } while (0)
 
 //rounded divison & shift
 #define RSHIFT(a,b) ((a) > 0 ? ((a) + (1<<((b)-1)))>>(b) : ((a) + (1<<((b)-1))-1)>>(b))
@@ -254,15 +274,11 @@ typedef struct PutBitContext {
     int bit_left;
     uint8_t *buf, *buf_ptr, *buf_end;
 #endif
-    int64_t data_out_size; /* in bytes */
 } PutBitContext;
 
-void init_put_bits(PutBitContext *s, 
-                   uint8_t *buffer, int buffer_size,
-                   void *opaque,
-                   void (*write_data)(void *, uint8_t *, int));
+void init_put_bits(PutBitContext *s, uint8_t *buffer, int buffer_size);
 
-int64_t get_bit_count(PutBitContext *s); /* XXX: change function name */
+int get_bit_count(PutBitContext *s); /* XXX: change function name */
 void align_put_bits(PutBitContext *s);
 void flush_put_bits(PutBitContext *s);
 void put_string(PutBitContext * pbc, char *s);
@@ -1053,9 +1069,6 @@ static inline int ff_get_fourcc(const char *s){
 
 #define MKTAG(a,b,c,d) (a | (b << 8) | (c << 16) | (d << 24))
 #define MKBETAG(a,b,c,d) (d | (c << 8) | (b << 16) | (a << 24))
-
-
-void ff_float2fraction(int *nom_arg, int *denom_arg, double f, int max);
 
 
 #ifdef ARCH_X86

@@ -44,18 +44,10 @@ const uint8_t ff_log2_tab[256]={
         7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7
 };
 
-void init_put_bits(PutBitContext *s, 
-                   uint8_t *buffer, int buffer_size,
-                   void *opaque,
-                   void (*write_data)(void *, uint8_t *, int))
+void init_put_bits(PutBitContext *s, uint8_t *buffer, int buffer_size)
 {
     s->buf = buffer;
     s->buf_end = s->buf + buffer_size;
-    s->data_out_size = 0;
-    if(write_data!=NULL) 
-    {
-    	fprintf(stderr, "write Data callback is not supported\n");
-    }
 #ifdef ALT_BITSTREAM_WRITER
     s->index=0;
     ((uint32_t*)(s->buf))[0]=0;
@@ -70,12 +62,12 @@ void init_put_bits(PutBitContext *s,
 #ifdef CONFIG_ENCODERS
 
 /* return the number of bits output */
-int64_t get_bit_count(PutBitContext *s)
+int get_bit_count(PutBitContext *s)
 {
 #ifdef ALT_BITSTREAM_WRITER
-    return s->data_out_size * 8 + s->index;
+    return s->index;
 #else
-    return (s->buf_ptr - s->buf + s->data_out_size) * 8 + 32 - (int64_t)s->bit_left;
+    return (s->buf_ptr - s->buf) * 8 + 32 - s->bit_left;
 #endif
 }
 
@@ -203,7 +195,8 @@ void align_get_bits(GetBitContext *s)
 int check_marker(GetBitContext *s, const char *msg)
 {
     int bit= get_bits1(s);
-    if(!bit) printf("Marker bit missing %s\n", msg);
+    if(!bit)
+	    av_log(NULL, AV_LOG_INFO, "Marker bit missing %s\n", msg);
 
     return bit;
 }
@@ -288,11 +281,11 @@ static int build_table(VLC *vlc, int table_nb_bits,
                 nb = 1 << (table_nb_bits - n);
                 for(k=0;k<nb;k++) {
 #ifdef DEBUG_VLC
-                    printf("%4x: code=%d n=%d\n",
+                    av_log(NULL, AV_LOG_DEBUG, "%4x: code=%d n=%d\n",
                            j, i, n);
 #endif
                     if (table[j][1] /*bits*/ != 0) {
-                        fprintf(stderr, "incorrect codes\n");
+                        av_log(NULL, AV_LOG_ERROR, "incorrect codes\n");
                         av_abort();
                     }
                     table[j][1] = n; //bits
@@ -392,30 +385,4 @@ void free_vlc(VLC *vlc)
 int64_t ff_gcd(int64_t a, int64_t b){
     if(b) return ff_gcd(b, a%b);
     else  return a;
-}
-
-void ff_float2fraction(int *nom_arg, int *denom_arg, double f, int max){
-    double best_diff=1E10, diff;
-    int best_denom=1, best_nom=1;
-    int nom, denom, gcd;
-    
-    //brute force here, perhaps we should try continued fractions if we need large max ...
-    for(denom=1; denom<=max; denom++){
-        nom= (int)(f*denom + 0.5);
-        if(nom<=0 || nom>max) continue;
-        
-        diff= ABS( f - (double)nom / (double)denom );
-        if(diff < best_diff){
-            best_diff= diff;
-            best_nom= nom;
-            best_denom= denom;
-        }
-    }
-    
-    gcd= ff_gcd(best_nom, best_denom);
-    best_nom   /= gcd;
-    best_denom /= gcd;
-
-    *nom_arg= best_nom;
-    *denom_arg= best_denom;
 }

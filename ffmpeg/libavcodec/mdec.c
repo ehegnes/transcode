@@ -110,7 +110,7 @@ static inline int mdec_decode_block_intra(MDECContext *a, DCTELEM *block, int n)
                 }
             }
             if (i > 63){
-                fprintf(stderr, "ac-tex damaged at %d %d\n", a->mb_x, a->mb_y);
+                av_log(a->avctx, AV_LOG_ERROR, "ac-tex damaged at %d %d\n", a->mb_x, a->mb_y);
                 return -1;
             }
 
@@ -175,7 +175,7 @@ static int decode_frame(AVCodecContext *avctx,
 
     p->reference= 0;
     if(avctx->get_buffer(avctx, p) < 0){
-        fprintf(stderr, "get_buffer() failed\n");
+        av_log(avctx, AV_LOG_ERROR, "get_buffer() failed\n");
         return -1;
     }
     p->pict_type= I_TYPE;
@@ -197,7 +197,7 @@ static int decode_frame(AVCodecContext *avctx,
     a->qscale=  get_bits(&a->gb, 16);
     a->version= get_bits(&a->gb, 16);
     
-    printf("qscale:%d (0x%X), version:%d (0x%X)\n", a->qscale, a->qscale, a->version, a->version);
+//    printf("qscale:%d (0x%X), version:%d (0x%X)\n", a->qscale, a->qscale, a->version, a->version);
     
     for(a->mb_x=0; a->mb_x<a->mb_width; a->mb_x++){
         for(a->mb_y=0; a->mb_y<a->mb_height; a->mb_y++){
