@@ -560,7 +560,7 @@ void rgb_vresize_8(char *image, int width, int height, int resize)
 void rgb_vresize_8_up(char *image, int width, int height, int resize)
 {
   
-  char *in, *out;
+  char *in, *out, *last_row;
   
   unsigned int i, j=0, row_bytes, chunk, rows, n_height, m; 
     
@@ -568,6 +568,10 @@ void rgb_vresize_8_up(char *image, int width, int height, int resize)
   
   row_bytes = width * 3;
   
+  // make sure we don't walk past the end
+
+  last_row = image + (height-1)*row_bytes;
+
   // new height
   n_height = height + (resize<<3);
   
@@ -580,7 +584,7 @@ void rgb_vresize_8_up(char *image, int width, int height, int resize)
   // dest row index
   m=0;
   
-  for(j = 0; j < 8 ; ++j) {
+  for(j = 0; j < 7 ; ++j) {
     
     for (i = 0; i < rows; i++) {
       
@@ -592,6 +596,19 @@ void rgb_vresize_8_up(char *image, int width, int height, int resize)
       ++m;
     }
   }      
+  for (i = 0; i < rows; i++) {
+  
+    in = image + j * chunk +  vert_table_8_up[i].source * row_bytes;
+    out = tmp_image + m * row_bytes;
+
+    if (in >= last_row){
+      memcpy(out,in,row_bytes);
+    } else {
+      rgb_merge(in, in+row_bytes, out, row_bytes, vert_table_8_up[i].weight1,
+      		vert_table_8_up[i].weight2);
+    }
+    ++m;
+  }
 
   memcpy(image, tmp_image, n_height*width*3);
   return;
@@ -643,7 +660,7 @@ void rgb_hresize_8_up(char *image, int width, int height, int resize)
     
     char *in, *out;
     
-    unsigned int m, cols, i, j, pixels, n_width, blocks; 
+    unsigned int m, cols, i, j, pixels, n_width, blocks, incr; 
     
     // resize output video 
     
@@ -665,12 +682,11 @@ void rgb_hresize_8_up(char *image, int width, int height, int resize)
       
       for (i = 0; i < cols; i++) {
 	
-	in  = image + j * blocks * 3 + hori_table_8_up[i].source * 3;
+	incr = j * blocks + hori_table_8_up[i].source ;
+	in  = image + incr *3;
 	out = tmp_image + m;
 	
-	//	(i==cols-1) ? memcpy(out, in, 3):rgb_merge(in, in+3, out, 3, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
-
-	rgb_merge_C(in, in+3, out, 3, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
+	(!((incr+1)%width)) ? memcpy(out, in, 3):rgb_merge_C(in, in+3, out, 3, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
 
 	m+=3;
       }

@@ -1,7 +1,15 @@
 --------------------------------------------
 transcode-0.6.8
 
-2003-06-04 marrq <marrq at ugcs.caltech.edu>
+2003-06-20 marrq <marrq at ugcs.caltech.edu>
+
+  * src/video_rgb.c src/video_yuv.c:
+  Bugfix for fast rescaler -X. Special case for the last line of the
+  frame. It got merged with the line after it leading to green
+  artifacts in YUV mode. It was wrong for RGB mode too but wasn't
+  very noticeable.
+  
+2003-06-18 marrq <marrq at ugcs.caltech.edu>
 
   * export/export_debugppm.c:
   This module aids debugging with writing out raw frames.

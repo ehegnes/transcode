@@ -976,7 +976,7 @@ void yuv_vresize_8_Y(char *image, int width, int height, int resize)
 void yuv_vresize_8_up_Y(char *dest, char *image, int width, int height, int resize)
 {
   
-  char *in, *out;
+  char *in, *out, *last_row;
   
   unsigned int i, j=0, row_bytes, chunk, rows, n_height, m; 
     
@@ -984,6 +984,10 @@ void yuv_vresize_8_up_Y(char *dest, char *image, int width, int height, int resi
   
   row_bytes = width;
   
+  // make sure that we don't over-walk the end of the image
+
+  last_row = image + (height-1)*width; 
+    
   // new height
   n_height = height + (resize<<3);
   
@@ -996,16 +1000,30 @@ void yuv_vresize_8_up_Y(char *dest, char *image, int width, int height, int resi
   // dest row index
   m=0;
   
-  for(j = 0; j < 8; ++j) {
+  for(j = 0; j < 7; ++j) {
     for (i = 0; i < rows; i++) {
       
       in = image + j*chunk +  vert_table_8_up[i].source * row_bytes;
       out = dest + m * row_bytes;
       
-      yuv_merge_16(in, in+row_bytes, out, row_bytes, vert_table_8_up[i].weight1, vert_table_8_up[i].weight2);
+      yuv_merge_16(in, in+row_bytes, out, row_bytes, vert_table_8_up[i].weight1,
+      		   vert_table_8_up[i].weight2);
       ++m;
     }
   }      
+  for(i=0; i< rows; i++){
+
+    in = image + j*chunk +  vert_table_8_up[i].source * row_bytes;
+    out = dest + m * row_bytes;
+
+    if (in >= last_row){
+      memcpy(out,last_row,row_bytes);
+    } else {
+      yuv_merge_16(in, in+row_bytes, out, row_bytes, vert_table_8_up[i].weight1,
+      		   vert_table_8_up[i].weight2);
+    }
+    ++m;
+  }
 
   return;
 }
@@ -1054,7 +1072,7 @@ void yuv_vresize_16_CbCr(char *image, int width, int height, int resize)
 void yuv_vresize_16_up_CbCr(char *dest, char *image, int width, int height, int resize)
 {
   
-  char *in, *out;
+  char *in, *out, *last_row;
   
   unsigned int i, j=0, row_bytes, chunk, rows, n_height, m; 
     
@@ -1062,6 +1080,8 @@ void yuv_vresize_16_up_CbCr(char *dest, char *image, int width, int height, int 
   
   row_bytes = width;
   
+  // make sure we don't walk off the end of the array
+  last_row = image+(height-1)*width;
   // new height
   n_height = height + (resize<<2);
   
@@ -1074,7 +1094,7 @@ void yuv_vresize_16_up_CbCr(char *dest, char *image, int width, int height, int 
   // dest row index
   m=0;
   
-  for(j = 0; j < 4; ++j) {
+  for(j = 0; j < 3; ++j) {
     
     for (i = 0; i < rows; i++) {
       
@@ -1086,6 +1106,19 @@ void yuv_vresize_16_up_CbCr(char *dest, char *image, int width, int height, int 
       ++m;
     }
   }      
+  for (i = 0; i < rows; i++) {
+
+    in = image + j*chunk +  vert_table_8_up[i].source * row_bytes;
+    out = dest + m * row_bytes;
+
+    if (in >= last_row){
+      memcpy(out,last_row,row_bytes);
+    } else {
+      yuv_merge_8(in, in+row_bytes, out, row_bytes, vert_table_8_up[i].weight1,
+      		  vert_table_8_up[i].weight2);
+    }
+    ++m;
+  }
 
   return;
 }
@@ -1184,7 +1217,7 @@ void yuv_hresize_8_up_Y(char * dest, char *image, int width, int height, int res
     
     char *in, *out;
     
-    unsigned int m, cols, i, j, pixels, n_width, blocks; 
+    unsigned int m, cols, i, j, pixels, n_width, blocks, incr; 
     
     // resize output video 
     
@@ -1206,10 +1239,11 @@ void yuv_hresize_8_up_Y(char * dest, char *image, int width, int height, int res
       
       for (i = 0; i < cols; i++) {
 	
-	in  = image + j * blocks + hori_table_8_up[i].source;
+	incr = j * blocks + hori_table_8_up[i].source;
+	in  = image + incr;
 	out = dest + m;
 	
-	yuv_merge_C(in, in+1, out, 1, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
+	(!((incr+1)%width)) ? *out=*in : yuv_merge_C(in, in+1, out, 1, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
 
 	m+=1;
       }
@@ -1263,7 +1297,7 @@ void yuv_hresize_16_up_CrCb(char *dest, char *image, int width, int height, int 
     
     char *in, *out;
     
-    unsigned int m, cols, i, j, pixels, n_width, blocks; 
+    unsigned int m, cols, i, j, pixels, n_width, blocks, incr; 
     
     // resize output video 
     
@@ -1282,13 +1316,13 @@ void yuv_hresize_16_up_CrCb(char *dest, char *image, int width, int height, int 
     m=0;
     
     for(j = 0; j < 4 * height; ++j) {
-      
       for (i = 0; i < cols; i++) {
 	
-	in  = image + j * blocks + hori_table_8_up[i].source;
+	incr = j * blocks + hori_table_8_up[i].source;
+	in  = image + incr;
 	out = dest + m;
 	
-	yuv_merge_C(in, in+1, out, 1, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
+	(!((incr+1)%width)) ? *out=*in : yuv_merge_C(in, in+1, out, 1, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
 
 	m+=1;
       }
