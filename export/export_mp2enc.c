@@ -103,6 +103,14 @@ MOD_open
 	  def_brate = CLAMP (brate, 64, 384);
 	  def_chan = stereo;
 	  break;
+	case XVCD_PAL: case XVCD_NTSC: case XVCD:
+	  // check for invalid sample rate
+	  if ((srate != 32000) && (srate != 44100) && (srate != 48000))
+	  	def_srate = 44100;
+	  // don't change if valid rate
+	  def_brate = CLAMP (brate, 64, 384);
+	  def_chan = stereo;
+	  break;
 	case DVD_PAL: case DVD_NTSC: case DVD:
 	  def_srate = 48000;
 	  def_brate = CLAMP (brate, 64, 384);

@@ -315,7 +315,7 @@ MOD_init
 			"*** This module may be removed in a future ***\n"
 			"*** transcode release. ***\n"
 			"*** Use the mpeg2enc or ffmpeg export modules instead ***\n"
-			"*** in combination with a vcd, svcd or dvd export profile ***\n"
+			"*** in combination with a vcd, svcd, xvcd or dvd export profile ***\n"
 			"*** WARNING ***\n"
 			"\n");
 

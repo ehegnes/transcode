@@ -9,7 +9,7 @@ AUTORECONF_ENV="AUTOCONF_VERSION=2.59 AUTOMAKE_VERSION=1.8.3"
 CONFIGURE_ENV="CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib"
 
 # clean some junk
-rm -rf autotools autom4te.cache config.h.in configure libtool
+rm -rf aclocal.m4 autotools autom4te.cache config.h.in configure libtool
 
 # generate configure and *.in
 env $AUTORECONF_ENV autoreconf -fi

@@ -1784,15 +1784,19 @@ Valid codes for \fIC\fP are:
 
 .TP
 .B \-\-export_prof \fIS\fP
-Select an export profile {vcd, svcd, dvd} [none]
+Select an export profile {vcd, svcd, xvcd, dvd} [-pal|-ntsc|-secam]
 .br
+Default is no profile.
+
 If you set this meta option to one of the values below, transcode will adjust
 some internal paramaters as well as geometry and clipping. If no export modules
 are specified, mpeg2enc for video and mp2enc for audio are used when compiled
 with mjpegtools support.
 
-Valid values for \fIS\fP are vcd, vcd-pal, vcd-ntsc, svcd, svcd-pal, svcd-ntsc,
-dvd, dvd-pal and dvd-ntsc.
+Valid values for \fIS\fP are e.g. vcd, vcd-pal, vcd-ntsc, svcd, svcd-pal, ...
+
+xvcd profile is equal to svcd except that it allows for up to 9000 Kbps video
+bitrate (default is 5000) and arbitrary audio samplerate.
 
 When one of the above is used, transcode will calculate the needed clipping and
 resizing values for you based on the import and export aspect ratio. This is
@@ -1800,8 +1804,8 @@ especially handy if you want to encode a 16:9 DVD into a 4:3 SVCD for example.
 Transcode internally then sets --pre_clip to add the black bars ("letterboxing").
 
 If you use "vcd" instead of "vcd-pal" or "vcd-ntsc", transcode will make an
-educated guess if PAL or NTSC vcd is wanted. The same is true for "svcd" and
-"dvd". When the input file has no aspect ratio information at all, transcode
+educated guess if PAL or NTSC vcd is wanted. The same is true for the other
+profiles. When the input file has no aspect ratio information at all, transcode
 guesses it based on the import frame sizes. You can set the import aspect ratio
 by giving --import_asr CODE.
 

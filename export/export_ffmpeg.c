@@ -134,6 +134,7 @@ typedef enum // do not edit without changing *_name and *_rate
 	pc_none,
 	pc_vcd,
 	pc_svcd,
+	pc_xvcd,
 	pc_dvd
 } pseudo_codec_t;
 
@@ -141,16 +142,15 @@ typedef enum // do not edit without changing *_name and *_rate
 {
 	vt_none = 0,
 	vt_pal,
-	vt_secam,
 	vt_ntsc
 } video_template_t;
 
 static pseudo_codec_t		pseudo_codec;
 static video_template_t		video_template;
 static char *				real_codec = 0;
-static const char *			pseudo_codec_name[] = { "none", "vcd", "svcd", "dvd" };
-static const int 			pseudo_codec_rate[] = { 0, 44100, 44100, 48000 };
-static const char *			vt_name[] = { "general", "pal", "secam", "ntsc" };
+static const char *			pseudo_codec_name[] = { "none", "vcd", "svcd", "xvcd", "dvd" };
+static const int 			pseudo_codec_rate[] = { 0, 44100, 44100, -1, 48000 };
+static const char *			vt_name[] = { "general", "pal/secam", "ntsc" };
 static const char *			il_name[] = { "off", "top-first", "bottom-first", "unknown" };
 
 static uint8_t             *tmp_buffer = NULL;
@@ -386,20 +386,16 @@ MOD_init {
 	free(user_codec_string);
 	user_codec_string = 0;
 
-	if((p = strrchr(real_codec, '-'))) // chop off -ntsc/-pal/-secam and set type
+	if((p = strrchr(real_codec, '-'))) // chop off -ntsc/-pal and set type
 	{
 		*p++ = 0;
 
 		if(!strcmp(p, "ntsc"))
 			video_template = vt_ntsc;
-		else
-			if(!strcmp(p, "pal"))
+		else if(!strcmp(p, "pal"))
 				video_template = vt_pal;
 			else
-				if(!strcmp(p, "secam"))
-					video_template = vt_secam;
-				else
-					ff_error("Video template standard must be one of pal/secam/ntsc\n");
+			ff_error("Video template standard must be one of pal/ntsc\n");
 	}
 	else
 		video_template = vt_none;
@@ -410,15 +406,19 @@ MOD_init {
 		real_codec = strdup("mpeg1video");
 		pseudo_codec = pc_vcd;
 	}
-	else
-		if(!strcmp(real_codec, "svcd"))
+	else if(!strcmp(real_codec, "svcd"))
 		{
 			free(real_codec);
 			real_codec = strdup("mpeg2video");
 			pseudo_codec = pc_svcd;
 		}
-		else
-			if(!strcmp(real_codec, "dvd"))
+	else if(!strcmp(real_codec, "xvcd"))
+	{
+		free(real_codec);
+		real_codec = strdup("mpeg2video");
+		pseudo_codec = pc_xvcd;
+	}
+	else if(!strcmp(real_codec, "dvd"))
 			{
 				free(real_codec);
 				real_codec = strdup("mpeg2video");
@@ -500,10 +500,9 @@ MOD_init {
 
 		if(!(probe_export_attributes & TC_PROBE_NO_EXPORT_FIELDS))
 		{
-			if(video_template == vt_pal || video_template == vt_secam)
+			if(video_template == vt_pal)
 				vob->encode_fields = 1; // top first;
-			else
-				if(video_template == vt_ntsc)
+			else if(video_template == vt_ntsc)
 					vob->encode_fields = 2; // bottom first
 				else
 				{
@@ -511,15 +510,15 @@ MOD_init {
 					vob->encode_fields = 3; // unknown
 				}
 
-			ff_info("Set interlacing to %s\n", il_name[vob->encode_fields]);
+			ff_info("Set interlacing to %s\n",
+			        il_name[vob->encode_fields]);
 		}
 	
 		if(!(probe_export_attributes & TC_PROBE_NO_EXPORT_FRC))
 		{
-			if(video_template == vt_pal || video_template == vt_secam)
+			if(video_template == vt_pal)
 				vob->ex_frc = 3;
-			else
-				if(video_template == vt_ntsc)
+			else if(video_template == vt_ntsc)
 					vob->ex_frc = 4;
 				else
 					vob->ex_frc = 0; // unknown
@@ -615,6 +614,53 @@ MOD_init {
       		lavc_venc_context->gop_size = vob->divxkeyframes;
 			lavc_param_rc_min_rate= 0;
 			lavc_param_rc_max_rate = 2516;
+			lavc_param_rc_buffer_size = 224 * 8;
+			lavc_param_rc_buffer_aggressivity = 99;
+			lavc_param_scan_offset = CODEC_FLAG_SVCD_SCAN_OFFSET;
+
+			break;
+		}
+
+		case(pc_xvcd):
+		{
+			if(vob->ex_v_width != 480)
+				ff_warning("X resolution is not 480 as required\n");
+
+			if(vob->ex_v_height != 480 && vob->ex_v_height != 576)
+				ff_warning("Y resolution is not 480 or 576 as required\n");
+
+			if(probe_export_attributes & TC_PROBE_NO_EXPORT_VBITRATE)
+			{
+				if(vob->divxbitrate < 1000 || vob->divxbitrate > 9000)
+					ff_warning("Video bitrate not between 1000 and 9000 kbps as required\n");
+			}
+			else
+			{
+				vob->divxbitrate = 2040;
+				ff_warning("Set video bitrate to 2040\n");
+			}
+
+			if(probe_export_attributes & TC_PROBE_NO_EXPORT_GOP)
+			{
+				if(vob->divxkeyframes > 18)
+					ff_warning("GOP size not < 19 as required\n");
+			}
+			else
+			{
+				if(video_template == vt_ntsc)
+      				vob->divxkeyframes = 18;
+				else
+      				vob->divxkeyframes = 15;
+
+				ff_warning("Set GOP size to %d\n", vob->divxkeyframes);
+			}
+
+      		lavc_venc_context->gop_size = vob->divxkeyframes;
+			lavc_param_rc_min_rate= 0;
+			if (vob->video_max_bitrate != 0)
+				lavc_param_rc_max_rate = vob->video_max_bitrate;
+			else
+				lavc_param_rc_max_rate = 5000;
 			lavc_param_rc_buffer_size = 224 * 8;
 			lavc_param_rc_buffer_aggressivity = 99;
 			lavc_param_scan_offset = CODEC_FLAG_SVCD_SCAN_OFFSET;
@@ -1226,13 +1272,13 @@ MOD_init {
 
 		if(user_codec_string)
 		{
-			if(!strncmp(user_codec_string, "vcd-", 4) || !strcmp(user_codec_string, "vcd"))
+			if(!strncmp(user_codec_string, "vcd", 3))
 				target = pc_vcd;
-			else
-				if(!strncmp(user_codec_string, "svcd-", 5) || !strcmp(user_codec_string, "svcd"))
+			else if(!strncmp(user_codec_string, "svcd", 4))
 					target = pc_svcd;
-				else
-					if(!strncmp(user_codec_string, "dvd-", 4) || !strcmp(user_codec_string, "dvd"))
+			else if(!strncmp(user_codec_string, "xvcd", 4))
+				target = pc_xvcd;
+			else if(!strncmp(user_codec_string, "dvd", 3))
 						target = pc_dvd;
 					else
 						target = pc_none;
@@ -1280,12 +1326,12 @@ MOD_init {
 
 				if(probe_export_attributes & TC_PROBE_NO_EXPORT_ARATE)
 				{
-					if(vob->a_rate == rate)
+					if((rate == -1) || (vob->a_rate == rate))
 						ff_info("No audio resampling necessary\n");
 					else
 						ff_info("Resampling audio from %d Hz to %d Hz as required\n", vob->a_rate, rate);
 				}
-				else
+				else if (rate != -1)
 				{
 					vob->a_rate = rate;
 					ff_info("Set audio sample rate to %d Hz\n", rate);
@@ -1323,7 +1369,7 @@ MOD_init {
 
 			if(probe_export_attributes & TC_PROBE_NO_EXPORT_ABITRATE)
 			{
-				if(target != pc_dvd)
+				if((target != pc_dvd) && (target != pc_xvcd))
 				{
 					if(vob->mp3bitrate != 224)
 						ff_warning("Audio bit rate not 224 kbps as required\n");

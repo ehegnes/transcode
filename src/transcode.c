@@ -415,7 +415,7 @@ void usage(int status)
   printf("--dv_yuy2_mode       libdv YUY2 mode (default is YV12) [off]\n");
   printf("--config_dir dir     Assume config files are in this dir [off]\n");
   printf("--ext vid,aud        Use these file extensions [%s,%s]\n", video_ext, audio_ext);
-  printf("--export_prof S      Export profile {vcd, svcd, dvd}[-pal|-ntsc] [none]\n");
+  printf("--export_prof S      Export profile {vcd, svcd, xvcd,  dvd}[-pal|-ntsc|-secam]\n");
 
   printf("\n");
 
@@ -2357,22 +2357,37 @@ int main(int argc, char *argv[]) {
 	  vob->mpeg_profile = VCD; // need to guess later if pal or ntsc
 	  if        (strncasecmp(optarg, "vcd-pal", 7) == 0) {
 	    vob->mpeg_profile = VCD_PAL;
-	  } else if (strncasecmp(optarg, "vcd-ntsc", 7) == 0) {
+	  } else if (strncasecmp(optarg, "vcd-ntsc", 8) == 0) {
 	    vob->mpeg_profile = VCD_NTSC;
+	  } else if (strncasecmp(optarg, "vcd-secam", 9) == 0) {
+	    vob->mpeg_profile = VCD_PAL;
 	  }
 	} else  if  (strncasecmp(optarg, "svcd", 4) == 0) {
 	  vob->mpeg_profile = SVCD;
-	  if        (strncasecmp(optarg, "svcd-pal", 7) == 0) {
+	  if        (strncasecmp(optarg, "svcd-pal", 8) == 0) {
 	    vob->mpeg_profile = SVCD_PAL;
-	  } else if (strncasecmp(optarg, "svcd-ntsc", 7) == 0) {
+	  } else if (strncasecmp(optarg, "svcd-ntsc", 9) == 0) {
 	    vob->mpeg_profile = SVCD_NTSC;
+	  } else if (strncasecmp(optarg, "svcd-secam", 10) == 0) {
+	    vob->mpeg_profile = SVCD_PAL;
 	  }
 	} else  if  (strncasecmp(optarg, "dvd", 3) == 0) {
 	  vob->mpeg_profile = DVD;
 	  if        (strncasecmp(optarg, "dvd-pal", 7) == 0) {
 	    vob->mpeg_profile = DVD_PAL;
-	  } else if (strncasecmp(optarg, "dvd-ntsc", 7) == 0) {
+	  } else if (strncasecmp(optarg, "dvd-ntsc", 8) == 0) {
 	    vob->mpeg_profile = DVD_NTSC;
+	  } else if (strncasecmp(optarg, "dvd-secam", 9) == 0) {
+	    vob->mpeg_profile = DVD_PAL;
+	  }
+	} else  if  (strncasecmp(optarg, "xvcd", 4) == 0) {
+	  vob->mpeg_profile = XVCD;
+	  if        (strncasecmp(optarg, "xvcd-pal", 8) == 0) {
+	    vob->mpeg_profile = XVCD_PAL;
+	  } else if (strncasecmp(optarg, "xvcd-ntsc", 9) == 0) {
+	    vob->mpeg_profile = XVCD_NTSC;
+	  } else if (strncasecmp(optarg, "xvcd-secam", 10) == 0) {
+	    vob->mpeg_profile = XVCD_PAL;
 	  }
 	} else {
 	  tc_error("invalid setting for option --export_prof");
@@ -2814,7 +2829,7 @@ int main(int argc, char *argv[]) {
     //2003-01-13 
     tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
 
-    // calc clip settings for encoding to mpeg (vcd,svcd,dvd)
+    // calc clip settings for encoding to mpeg (vcd,svcd,xvcd,dvd)
     // --export_prof {vcd,vcd-pal,vcd-ntsc,svcd,svcd-pal,svcd-ntsc,dvd,dvd-pal,dvd-ntsc}
    
     if (vob->mpeg_profile != PROF_NONE) {
@@ -2835,6 +2850,7 @@ int main(int argc, char *argv[]) {
 
       if (vob->mpeg_profile == VCD_PAL || 
 	  vob->mpeg_profile == SVCD_PAL || 
+	      vob->mpeg_profile == XVCD_PAL || 
 	  vob->mpeg_profile == DVD_PAL)
 	impal = 1;
 
@@ -2845,6 +2861,7 @@ int main(int argc, char *argv[]) {
 		  break;
 
 	case SVCD_PAL: case SVCD_NTSC: case SVCD:
+	case XVCD_PAL: case XVCD_NTSC: case XVCD:
 	case DVD_PAL: case DVD_NTSC:
 	case DVD: vob->zoom_height = impal?576:480;
 		  break;
@@ -2860,6 +2877,7 @@ int main(int argc, char *argv[]) {
 	  vob->ex_asr = 2;
 	  break;
 	case SVCD_PAL: case SVCD_NTSC: case SVCD:
+	case XVCD_PAL: case XVCD_NTSC: case XVCD:
 	  if (!vob->zoom_width) vob->zoom_width = 480;
 	  vob->ex_asr = 2;
 	  break;
@@ -2939,12 +2957,14 @@ int main(int argc, char *argv[]) {
 	    ex_aud_mod = "mp2enc";
 	no_v_out_codec=0;
 	ex_vid_mod = "mpeg2enc";
+	//FIXME this should be in export_mpeg2enc.c
 	if(!vob->ex_v_fcc) {
 	  switch (vob->mpeg_profile) {
 	    case VCD_PAL: case VCD_NTSC: case VCD: 
 	      vob->ex_v_fcc = "1";
 	      break;
 	    case SVCD_PAL: case SVCD_NTSC: case SVCD:
+		case XVCD_PAL: case XVCD_NTSC: case XVCD:
 	      vob->ex_v_fcc = "4";
 	      break;
 	    case DVD_PAL: case DVD_NTSC: case DVD:
@@ -2966,7 +2986,10 @@ int main(int argc, char *argv[]) {
 	  case(VCD_NTSC):	vob->ex_v_fcc = "vcd-ntsc";	break;
 	  case(SVCD):		vob->ex_v_fcc = "svcd";		break;
 	  case(SVCD_PAL):	vob->ex_v_fcc = "svcd-pal";	break;
-	  case(SVCD_NTSC):	vob->ex_v_fcc = "svcd-ntsc";	break;
+	  case(SVCD_NTSC):	vob->ex_v_fcc = "svcd-ntsc";break;
+	  case(XVCD):		vob->ex_v_fcc = "xvcd";		break;
+	  case(XVCD_PAL):	vob->ex_v_fcc = "xvcd-pal";	break;
+	  case(XVCD_NTSC):	vob->ex_v_fcc = "xvcd-ntsc";break;
 	  case(DVD):		vob->ex_v_fcc = "dvd";		break;
 	  case(DVD_PAL):	vob->ex_v_fcc = "dvd-pal";	break;
 	  case(DVD_NTSC):	vob->ex_v_fcc = "dvd-ntsc";	break;

@@ -91,9 +91,12 @@ typedef enum {
   SVCD,
   SVCD_PAL,
   SVCD_NTSC,
+  XVCD,
+  XVCD_PAL,
+  XVCD_NTSC,
   DVD,
   DVD_PAL,
-  DVD_NTSC,
+  DVD_NTSC
 } mpeg_profile_t;
 
 
