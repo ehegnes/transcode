@@ -52,6 +52,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_videocore.la\
 			filter_tc_video.la\
 			filter_tc_audio.la\
+			filter_cpaudio.la\
 			filter_29to23.la\
 			filter_smooth.la\
 			$(F_PP) $(F_MMX) $(F_LOGO) $(F_TEXT)
@@ -64,6 +65,9 @@ filter_doublefps_la_LDFLAGS =  -module -avoid-version
 
 filter_clone_la_SOURCES = filter_clone.c
 filter_clone_la_LDFLAGS =  -module -avoid-version 
+
+filter_cpaudio_la_SOURCES = filter_cpaudio.c
+filter_cpaudio_la_LDFLAGS = -module -avoid-version 
 
 filter_text_la_SOURCES = filter_text.c
 filter_text_la_LDFLAGS =  -module -avoid-version 
