@@ -141,7 +141,7 @@ void *load_module(char *mod_name, int mode)
   
   if(mode & TC_EXPORT) {
     
-    sprintf(module, "%s/export_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
+    snprintf(module, sizeof(module), "%s/export_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
     
     if(verbose & TC_DEBUG) 
       printf("loading %s export module %s\n", ((mode & TC_VIDEO)? "video": "audio"), module); 
@@ -179,7 +179,7 @@ void *load_module(char *mod_name, int mode)
   
   if(mode & TC_IMPORT) {
     
-    sprintf(module, "%s/import_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
+    snprintf(module, sizeof(module), "%s/import_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
     
     if(verbose & TC_DEBUG) 
       printf("loading %s import module %s\n", ((mode & TC_VIDEO)? "video": "audio"), module); 

@@ -80,7 +80,7 @@ void tc_outstream_rotate(void)
     tc_error("failed to close output");      
   
   // create new filename 
-  sprintf(buf, "%s-%03d", base, rotate_ctr++);
+  snprintf(buf, sizeof(buf), "%s-%03d", base, rotate_ctr++);
 
   //rename old outputfile
   if(xio_rename(base, buf)<0) tc_error("failed to rename output file\n");
