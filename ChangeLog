@@ -12,6 +12,15 @@ transcode-0.6.4.20030318 Tue Mar 18 13:29:39 CET 2003
 - fix import_ffmpeg to understand other YUV formats than 4:2:0. This
   (re-)enables import of MJPG stuff mostly produced by digital cameras.
 
+- improve export_ffmpeg so that -F mpeg1video will not be written to
+  an AVI file which is kind of brain dead. Instead, video will be
+  written to an .m1v for easy multiplexing afterwards. It makes sense to
+  not use the default ffmpeg module for audio if you are encoding to
+  mpeg1video. Use one of `mpeg', `mp2enc' or `toolame' exports.
+
+    transcode -V -i infile -y ffmpeg,mpeg -F mpeg1video -o test
+    tcmplex -i test.m1v -p test.mpa -o test.mpg
+
 - When encoding with -F mpeg1video, set the gop_size to 12 and not
   to the default keyframes (which is 250) pointed out by Nicolas Boos
 
