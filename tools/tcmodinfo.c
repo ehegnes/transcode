@@ -92,6 +92,14 @@ int tc_x_preview = 32;
 int tc_y_preview = 32;
 void tc_socket_msgchar() {}
 int tc_socket_msg_lock;
+void tc_socket_config() {}
+void tc_socket_disable() {}
+void tc_socket_enable() {}
+void tc_socket_list() {}
+void tc_socket_load() {}
+void tc_socket_parameter() {}
+void tc_socket_preview() {}
+
 
 int (*TCV_export)(int opt, void *para1, void *para2);
 int (*TCA_export)(int opt, void *para1, void *para2);

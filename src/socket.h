@@ -78,4 +78,12 @@ void socket_thread(void);
 extern pthread_mutex_t tc_socket_msg_lock;
 extern unsigned int tc_socket_msgchar;
 
+int tc_socket_preview(char *buf);
+int tc_socket_parameter(char *buf);
+int tc_socket_list(char *buf);
+int tc_socket_config(char *buf);
+int tc_socket_disable(char *buf);
+int tc_socket_enable(char *buf);
+int tc_socket_load(char *buf);
+
 #endif // __TC_SOCKET_H
