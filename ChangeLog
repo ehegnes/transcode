@@ -1,8 +1,12 @@
 transcode-0.13-pre2 EMS
 
+2004-08-25 Stefan Scheffler <stefanscheffler at gmx dot net>
+  * src/probe.c:
+  Yuv4mpeg detection is wrong, tc wants to decode y4m streams as "raw"
+
 2004-08-26 Jens Georg <mail at jensgeorg dot de>
   * import/import_ffmpeg.c:
-  - use correct stride size for PIX_FMT_YUV422P
+  Use correct stride size for PIX_FMT_YUV422P
 
 2004-08-25 Stefan Scheffler <stefanscheffler at gmx dot net>
   * export/Makefile.am import/import_mov.c:

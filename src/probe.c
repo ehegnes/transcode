@@ -730,7 +730,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     vob->im_v_codec=CODEC_YUV;
 
     //overwrite pass-through selection!
-    vob->vmod_probed=std_module[_raw_];
+    if (!(preset & TC_VIDEO)) vob->vmod_probed=std_module[_raw_];
     preset |= TC_VIDEO;
     
     if(preset & TC_AUDIO) break;
@@ -745,7 +745,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     vob->im_v_codec=CODEC_YUV422;
 
     //overwrite pass-through selection!
-    vob->vmod_probed=std_module[_raw_];
+    if (!(preset & TC_VIDEO)) vob->vmod_probed=std_module[_raw_];
     preset |= TC_VIDEO;
     
     if(preset & TC_AUDIO) break;
