@@ -2650,8 +2650,8 @@ int main(int argc, char *argv[]) {
 
     if (keepasr) {
       int clip, zoomto;
-      double asr_out = (double)vob->ex_v_width/vob->ex_v_height;
-      double asr_in  = (double)vob->im_v_width/vob->im_v_height;
+      double asr_out = (double)vob->ex_v_width/(double)vob->ex_v_height;
+      double asr_in  = (double)vob->im_v_width/(double)vob->im_v_height;
       double delta   = 0.01;
 
       if (!zoom) tc_error ("keep_asr only works with -Z");
