@@ -509,6 +509,9 @@ int process_aud_plugins(aframe_list_t *ptr)
     if (ptr->attributes & TC_FRAME_IS_SKIPPED)
 	return 0;
 
+    if (ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)
+	return 0;
+
     for(n=0; n<plugins; ++n) {
       if(filter[n].status) {
 	

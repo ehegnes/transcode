@@ -170,7 +170,7 @@ int preprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
   }
   
   if (skip) {
-      ptr->attributes |= TC_FRAME_IS_SKIPPED;
+      ptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
       return 0;
   }
 
