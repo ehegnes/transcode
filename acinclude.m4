@@ -2258,11 +2258,12 @@ AC_MSG_RESULT($enable_ffbin)
 
 have_ffmpeg=no
 if test x$enable_ffbin = "x"yes ; then
-  AC_CHECK_PROG(have_ffmpeg,
+  AC_CHECK_PROG(have_ffmpeg_bin,
 		  ffmpeg,
 		  yes,
 		  no)
-  if test x$have_ffmpeg = xyes ; then
+  if test x$have_ffmpeg_bin = xyes ; then
+    have_ffmpeg=yes
     ifelse([$1], , :, [$1])
   else
     AC_MSG_ERROR([FFmpeg binary support requested, but ffmpeg cannot be found])

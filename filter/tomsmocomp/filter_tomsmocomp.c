@@ -115,16 +115,25 @@ void do_deinterlace (tomsmocomp_t *tmc) {
     }
 
     /* Call dscaler code */
+#ifdef HAVE_SSE
     if (tmc->cpuflags & MM_SSE) {
 	filterDScaler_SSE (&tmc->DSinfo,
 			   tmc->SearchEffort, tmc->UseStrangeBob);
-    } else if (tmc->cpuflags & MM_3DNOW) {
+    } else
+#endif
+#ifdef HAVE_3DNOW
+    if (tmc->cpuflags & MM_3DNOW) {
 	filterDScaler_3DNOW (&tmc->DSinfo,
 			     tmc->SearchEffort, tmc->UseStrangeBob);
-    } else if (tmc->cpuflags & MM_MMX) {
+    } else
+#endif
+#ifdef HAVE_MMX
+    if (tmc->cpuflags & MM_MMX) {
 	filterDScaler_MMX (&tmc->DSinfo,
 			   tmc->SearchEffort, tmc->UseStrangeBob);
-    } else {
+    } else
+#endif
+    {
 	assert (0);
     }
 

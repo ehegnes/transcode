@@ -36,8 +36,14 @@ typedef struct {
     long InputPitch;
 } TDeinterlaceInfo;
 
-void filterDScaler_MMX(TDeinterlaceInfo* pInfo,
-		       int SearchEffort, int UseStrangeBob);
-void filterDScaler_3DNOW(TDeinterlaceInfo*, int, int);
+#ifdef HAVE_SSE
 void filterDScaler_SSE(TDeinterlaceInfo*, int, int);
+#endif
+#ifdef HAVE_3DNOW
+void filterDScaler_3DNOW(TDeinterlaceInfo*, int, int);
+#endif
+#ifdef HAVE_MMX
+void filterDScaler_MMX(TDeinterlaceInfo*, int, int);
+#endif
 //void filterDScaler_SSE2(TDeinterlaceInfo*, int, int);
+
