@@ -66,6 +66,7 @@ filter_testframe.so
 filter_text.so
 filter_unsharp.so
 filter_videocore.so
+filter_whitebalance.so
 filter_xsharpen.so
 filter_yuvdenoise.so
 filter_yuvmedian.so
