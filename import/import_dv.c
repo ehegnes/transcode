@@ -121,9 +121,9 @@ MOD_open
       
       if((snprintf(import_cmd_buf, MAX_BUF, 
 		      "%s -i \"%s\" -d %d "
-		      "| tcdecode -x dv %s -d %d -Q %d", 
+		      "| tcdecode -x dv -y yuy2 -d %d -Q %d", 
 		      cat_buf, vob->video_in_file, vob->verbose, 
-		      yuv_buf, vob->verbose, vob->quality)<0)) {
+		      vob->verbose, vob->quality)<0)) {
 	perror("command buffer overflow");
 	return(TC_IMPORT_ERROR);
       }

@@ -1,6 +1,50 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-12-04 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/import_dv.c import/decode_dv.c:
+  Support for YUY2 decoding (together with --uyvy)
+  
+2003-12-04 Tilmann Bitterberg <transcode at tibit.org>
+
+  * probe_vnc.c:
+  width and height are at a different offset;
+
+  * import_vnc.c:
+  Support for the -x vnc="-arg1 -arg2" syntax to pass parameters
+  down to vncrec. Very limited parser, no quoting support.
+
+2003-12-02 Mitch <mitch at 0bits.com>
+
+  * import/decode_mov.c:
+  remove decode->error since the new decode_t struct does not have
+  this field.
+ 
+2003-12-01 Florin Andrei <florin at andrei.myip.org>
+
+  * import/import_dv.c:
+  Do NOT apply a setup when decoding the DV frame.
+  See http://www.adamwilt.com/DV-FAQ-tech.html#Setup
+
+2003-11-29 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/filter_control.c:
+  This is a meta filter. It can read command from the file and apply
+  them in transcode. See the manpage and /docs/filter-socket.txt
+
+2003-11-29 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/import_xvid.c:
+  Fix dlerror() usage on MacOSX.
+
+  * filter/filter_slowmo.c:
+  Fix the filter slot, must be used in a synchronous slot.
+
+  * import/import_vnc.c:
+  The import module now respects the --dvd_access_delay setting for
+  setting the timeout.
+
 2003-11-28 Tilmann Bitterberg <transcode at tibit.org>
 
   * avilib/avilib.c:

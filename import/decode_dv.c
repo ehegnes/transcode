@@ -100,6 +100,23 @@ void yuy2toyv12(char *_y, char *_u, char *_v, char *input, int width, int height
     }
 }
 
+void yuy2touyvy(char *dest, char *src, int width, int height)
+{
+
+    int i;
+
+    for (i=0; i<width*height*2; i+=4) {
+
+        /* packed YUV 4:2:2 is Y[i] U[i] Y[i+1] V[i] (YUY2)*/
+        /* packed YUV 4:2:2 is U[i] Y[i] V[i] Y[i+1] (UYVY)*/
+
+        dest[i] = src[i+1];
+        dest[i+1] = src[i];
+        dest[i+2] = src[i+3];
+        dest[i+3] = src[i+2];
+    }
+}
+
 
 /* ------------------------------------------------------------ 
  *
@@ -242,6 +259,25 @@ void decode_dv(decode_t *decode)
 	bytes = 3 * dv_decoder->width * dv_decoder->height;
 	
 	if(p_write (decode->fd_out, video[0], bytes)!= bytes) {
+	  error=1;
+	  goto error;
+	}
+      }
+
+      if (decode->format == TC_CODEC_YUY2) {
+	  
+	pitches[0]  = dv_decoder->width * 2;
+	pitches[1]  = 0;
+	pitches[2]  = 0;
+	  
+	dv_decode_full_frame(dv_decoder, buf, e_dv_color_yuv, (unsigned char **) video, pitches);
+	dv_decoder->prev_frame_decoded = 1;
+	  
+	bytes = 2 * dv_decoder->width * dv_decoder->height;
+	// untested
+
+	yuy2touyvy(video[3], video[0], dv_decoder->width,  dv_decoder->height);
+	if(p_write (decode->fd_out, video[3], bytes)!= bytes) {
 	  error=1;
 	  goto error;
 	}
