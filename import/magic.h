@@ -33,6 +33,7 @@
 #define TC_CODEC_A52                   0x00002001
 #define TC_CODEC_YV12                  0x32315659
 #define TC_CODEC_YUV2                  0x32565559
+#define TC_CODEC_YUY2                  0x32595559
 #define TC_CODEC_M2V                   0x000001b3
 #define TC_CODEC_MPEG                  0x01000000
 #define TC_CODEC_MPEG1                 0x00100000
