@@ -93,6 +93,7 @@ extern int lavc_param_top;
 extern int lavc_param_alt;
 extern int lavc_param_ilme;
 extern int lavc_param_scan_offset;
+extern int lavc_param_threads;
 
 extern struct config lavcopts_conf[];
 

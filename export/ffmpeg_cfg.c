@@ -113,6 +113,8 @@ int lavc_param_alt= 0;
 int lavc_param_ilme= 0;
 
 int lavc_param_scan_offset = 0;
+int lavc_param_threads = 0;
+
 //char *lavc_param_acodec = "mp2";
 //int lavc_param_atag = 0;
 //int lavc_param_abitrate = 224;
@@ -211,6 +213,7 @@ struct config lavcopts_conf[]={
 #ifdef CODEC_FLAG_QP_RD
     {"qprd", &lavc_param_qp_rd, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_QP_RD, NULL},
 #endif
+    {"threads", &lavc_param_threads, CONF_TYPE_INT, CONF_RANGE, 0, 16, NULL},
 #ifdef CODEC_FLAG_H263P_SLICE_STRUCT
     {"ss", &lavc_param_ss, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_SLICE_STRUCT, NULL},
 #endif

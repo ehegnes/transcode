@@ -84,7 +84,7 @@ my tab settings: se ts=4, sw=4
 */
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.3.12 (2004-01-19)"
+#define MOD_VERSION "v0.3.13 (2004-02-15)"
 #define MOD_CODEC   "(video) " LIBAVCODEC_IDENT \
                     " | (audio) MPEG/AC3/PCM"
 
@@ -742,6 +742,16 @@ MOD_init {
     lavc_venc_context->scenechange_threshold= lavc_param_sc_threshold;
     lavc_venc_context->noise_reduction    = lavc_param_noise_reduction;
     lavc_venc_context->inter_threshold    = lavc_param_inter_threshold;
+
+#if LIBAVCODEC_BUILD > 4701
+    lavc_venc_context->thread_count = lavc_param_threads;
+
+    if((lavc_venc_context->thread_count < 1) || (lavc_venc_context->thread_count > 7))
+		lavc_venc_context->thread_count = 1;
+
+	ff_info("Starting %d threads\n", lavc_venc_context->thread_count);
+#endif
+
     if (lavc_param_intra_matrix)
     {
 	char *tmp;
@@ -963,6 +973,7 @@ MOD_init {
 #endif
 
     lavc_venc_context->flags = 0;
+
     if (lavc_param_mb_decision)
         lavc_venc_context->mb_decision= lavc_param_mb_decision;
 
@@ -1259,7 +1270,8 @@ MOD_init {
 					else
 					{
 						vob->mp3frequency = rate;
-						ff_warning("Set audio sample rate to %d Hz, input rate is %d Hz, loading resample plugin\n", rate, vob->a_rate);
+						ff_warning("Set audio sample rate to %d Hz, input rate is %d Hz\n", rate, vob->a_rate);
+						ff_warning("   loading resample plugin\n");
 
 						if(plugin_get_handle("resample") == -1)
 							ff_warning("Load of resample filter failed, expect trouble\n");

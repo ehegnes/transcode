@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-02-24 Erik Slagter <erik at oldconomy.com>
+
+  * export/{export_ffmpeg.c ffmpeg_cfg.[ch]}:
+  Support for using libavcodec threads via the "threads" entry in
+  ffmpeg.cfg
+  
 2004-02-24 Christopher Cramer <crayc at pyro.net>
 
   * filter/filter_fps.c:
