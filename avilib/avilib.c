@@ -60,9 +60,15 @@ static ssize_t avi_read(int fd, char *buf, size_t len)
 
    while (r < len) {
       n = read (fd, buf + r, len - r);
+      if (n == 0)
+	  break;
+      if (n < 0) {
+	  if (errno == EINTR)
+	      continue;
+	  else
+	      break;
+      } 
 
-      if (n <= 0)
-	  return r;
       r += n;
    }
 
@@ -1748,6 +1754,10 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 	   
 	   AVI->track[AVI->aptr].audio_bytes = str2ulong(hdrl_data+i+32)*avi_sampsize(AVI, 0);
 	   AVI->track[AVI->aptr].audio_strn = num_stream;
+
+	   // if samplesize==0 -> vbr
+	   AVI->track[AVI->aptr].a_vbr = !str2ulong(hdrl_data+i+44);
+
 	   //	   auds_strh_seen = 1;
 	   lasttag = 2; /* auds */
 	   
@@ -2341,7 +2351,7 @@ long AVI_audio_size(avi_t *AVI, long frame)
   if(AVI->mode==AVI_MODE_WRITE) { AVI_errno = AVI_ERR_NOT_PERM; return -1; }
   if(!AVI->track[AVI->aptr].audio_index)         { AVI_errno = AVI_ERR_NO_IDX;   return -1; }
   
-  if(frame < 0 || frame >= AVI->track[AVI->aptr].audio_chunks) return 0;
+  if(frame < 0 || frame >= AVI->track[AVI->aptr].audio_chunks) return -1;
   return(AVI->track[AVI->aptr].audio_index[frame].len);
 }
 
@@ -2468,8 +2478,14 @@ long AVI_read_audio(avi_t *AVI, char *audbuf, long bytes)
 
    nr = 0; /* total number of bytes read */
 
+   if (bytes==0) {
+     AVI->track[AVI->aptr].audio_posc++;
+     AVI->track[AVI->aptr].audio_posb = 0;
+      lseek(AVI->fdes, 0LL, SEEK_CUR);
+   }
    while(bytes>0)
    {
+       off_t ret;
       left = AVI->track[AVI->aptr].audio_index[AVI->track[AVI->aptr].audio_posc].len - AVI->track[AVI->aptr].audio_posb;
       if(left==0)
       {
@@ -2484,8 +2500,9 @@ long AVI_read_audio(avi_t *AVI, char *audbuf, long bytes)
          todo = left;
       pos = AVI->track[AVI->aptr].audio_index[AVI->track[AVI->aptr].audio_posc].pos + AVI->track[AVI->aptr].audio_posb;
       lseek(AVI->fdes, pos, SEEK_SET);
-      if (avi_read(AVI->fdes,audbuf+nr,todo) != todo)
+      if ( (ret = avi_read(AVI->fdes,audbuf+nr,todo)) != todo)
       {
+	 fprintf(stderr, "XXX pos = %lld, ret = %lld, todo = %ld\n", pos, ret, todo);
          AVI_errno = AVI_ERR_READ;
          return -1;
       }
@@ -2628,7 +2645,8 @@ void AVI_print_error(char *str)
 
    aerrno = (AVI_errno>=0 && AVI_errno<num_avi_errors) ? AVI_errno : num_avi_errors-1;
 
-   fprintf(stderr,"%s: %s\n",str,avi_errors[aerrno]);
+   if (aerrno != 0)
+       fprintf(stderr,"%s: %s\n",str,avi_errors[aerrno]);
 
    /* for the following errors, perror should report a more detailed reason: */
 
@@ -2668,6 +2686,7 @@ uint64_t AVI_max_size()
   return((uint64_t) AVI_MAX_LEN);
 }
 
+#if 0
 
 // This expression is a compile-time constraint.  It will force a
 // compiler error, if the condition (the correct size of the struct
@@ -2677,15 +2696,36 @@ uint64_t AVI_max_size()
 // in-place.
 typedef char struct_packing_constraint [
     44 == sizeof(struct wave_header) ? 1 : -1];
+#endif
 
 int AVI_read_wave_header( int fd, struct wave_header * wave )
 {
+    char buf[44];
     // read raw data
-    if( avi_read (fd, (char*) wave, sizeof(*wave)) != sizeof(*wave) )
+    if( avi_read (fd, buf, 44) != 44)
     {
 	AVI_errno = AVI_ERR_READ;
 	return -1;
     }
+
+    memcpy(&wave->riff.id      ,buf+0, 4);
+    memcpy(&wave->riff.len     ,buf+4, 4);
+    memcpy(&wave->riff.wave_id ,buf+8, 4);
+
+    memcpy(&wave->format.id    ,buf+12, 4);
+    memcpy(&wave->format.len   ,buf+16, 4);
+
+    memcpy(&wave->common.wFormatTag       ,buf+20, 2);
+    memcpy(&wave->common.wChannels        ,buf+22, 2);
+    memcpy(&wave->common.dwSamplesPerSec  ,buf+24, 4);
+    memcpy(&wave->common.dwAvgBytesPerSec ,buf+28, 4);
+    memcpy(&wave->common.wBlockAlign      ,buf+32, 2);
+    memcpy(&wave->common.wBitsPerSample   ,buf+34, 2);
+
+    memcpy(&wave->data.id  ,buf+36, 4);
+    memcpy(&wave->data.len ,buf+40, 4);
+
+
     /*
     fprintf(stderr, "RIFF: %c%c%c%c| (%d) (%d)\n", 
 	    wave->riff.id[0], wave->riff.id[1], wave->riff.id[2], wave->riff.id[3],
@@ -2729,7 +2769,10 @@ int AVI_read_wave_header( int fd, struct wave_header * wave )
 
 int AVI_write_wave_header( int fd, const struct wave_header * wave )
 {
+    char buf[44];
     struct wave_header buffer = *wave;
+
+
 
 #ifdef WORDS_BIGENDIAN
 #define x_FIXUP(field) \
@@ -2749,8 +2792,26 @@ int AVI_write_wave_header( int fd, const struct wave_header * wave )
 #undef x_FIXUP
 #endif
 
+    memcpy(buf+ 0, &buffer.riff.id, 4);
+    memcpy(buf+ 4, &buffer.riff.len, 4);
+    memcpy(buf+ 8, &buffer.riff.wave_id, 4);
+
+    memcpy(buf+12, &buffer.format.id, 4);
+    memcpy(buf+16, &buffer.format.len, 4);
+
+    memcpy(buf+20, &buffer.common.wFormatTag, 2);
+    memcpy(buf+22, &buffer.common.wChannels, 2);
+    memcpy(buf+24, &buffer.common.dwSamplesPerSec, 4);
+    memcpy(buf+28, &buffer.common.dwAvgBytesPerSec, 4);
+    memcpy(buf+32, &buffer.common.wBlockAlign, 2);
+    memcpy(buf+34, &buffer.common.wBitsPerSample, 2);
+
+    memcpy(buf+36, &buffer.data.id, 4);
+    memcpy(buf+40, &buffer.data.len, 4);
+
+
     // write raw data
-    if( avi_write (fd, (char*) &buffer, sizeof(buffer)) != sizeof(buffer) )
+    if( avi_write (fd, buf, sizeof(buf)) != sizeof(buf) )
     {
 	AVI_errno = AVI_ERR_WRITE;
 	return -1;

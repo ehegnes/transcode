@@ -348,6 +348,7 @@ static void dump_vals(int fd, int count, struct VAL *names)
     }
 }
 
+#if 0
 static void hexlog(unsigned char *buf, int count)
 {
     int l,i;
@@ -369,7 +370,7 @@ static void hexlog(unsigned char *buf, int count)
 	printf("\n");
     }
 }
-
+#endif
 static unsigned char*
 off_t_to_char(off_t val, int base, int len)
 {

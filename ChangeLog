@@ -2,6 +2,28 @@
 transcode-0.6.11
 
 2003-09-17 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * avilib/avilib.c:
+  Respect errno when reading. When reading/writing WAV headers,
+  first read into an buffer and then to the header struct. The old
+  way caused problems on systems where structures are padded.
+
+  * avilib/avilib.c:
+  Detect if an audio track is VBR or CBR. This is important for the
+  avi* utils and makes the -b switch obsolete. Only print an error
+  when an error really happend.
+
+  * avilib/avidump.c:
+  Remove unused function.
+
+  * avilib/avilib.c:
+  Better support when doing pass-through for 0byte sized frames.
+
+  * avilib/avimisc.c:
+  Print out if an audio track is CBR (constant bitrate) or 
+  VBR (variable bitrate).
+
+2003-09-17 Tilmann Bitterberg <transcode at tibit.org>
 
   * configure.in configure:
   When ./configure'ed with --enable-maintainer-mode, transcode will
