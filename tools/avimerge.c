@@ -112,7 +112,7 @@ int merger(avi_t *out, char *file)
 	  AVI_set_audio_track(out, j);
 	  
 	  if(chan) {
-	      if (format == 0x55 || format == 0x2000 || format == 0x2001 || format == 0x1) { 
+	      if (tc_format_ms_supported(format)) {
 
 		  while (aud_ms[j] < vid_ms) {
 
@@ -459,7 +459,7 @@ int main(int argc, char *argv[])
       // audio
       chan = AVI_audio_channels(avifile1);
       if(chan) {
-	if (format == 0x55 || format == 0x2000 || format == 0x2001 || format == 0x1) {
+	if (tc_format_ms_supported(format)) {
 	  while (aud_ms_w[j] < vid_ms) {
 
 	    mp3rate_i = format==0x1?1:0;
@@ -527,7 +527,7 @@ int main(int argc, char *argv[])
     bits   = bits==0?16:bits;
       
       if(chan) {
-	if (format == 0x55 || format == 0x2000 || format == 0x2001 || format == 0x1) {
+	if (tc_format_ms_supported(format)) {
 	  while (aud_ms < vid_ms) {
 
 	    mp3rate_i = format==0x1?1:0;
@@ -651,7 +651,7 @@ int main(int argc, char *argv[])
 	bits   = bits==0?16:bits;
 	
 	if(chan) {
-	  if (format == 0x55 || format == 0x2000 || format == 0x2001 || format == 0x1) {
+	  if (tc_format_ms_supported(format)) {
 	    while (aud_ms_w[j] < vid_ms) {
 
 	      mp3rate_i = format==0x1?1:0;
@@ -716,7 +716,7 @@ int main(int argc, char *argv[])
       bits   = bits==0?16:bits;
       
       if(chan) {
-	if (format == 0x55 || format == 0x2000 || format == 0x2001 || format == 0x1) { 
+	if (tc_format_ms_supported(format)) {
 	  while (aud_ms < vid_ms) {
 	    mp3rate = (format == 0x1)?1:0;
 

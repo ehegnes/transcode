@@ -321,3 +321,8 @@ int tc_probe_audio_header(unsigned char *buf, int buflen)
 	return 0x2000;
     return -1;
 }
+
+int tc_format_ms_supported(int format) {
+    if (format == 0x55 || format == 0x2000 || format == 0x2001 || format == 0x1) return 1;
+    return 0;
+}

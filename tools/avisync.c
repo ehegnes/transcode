@@ -350,10 +350,16 @@ int main(int argc, char *argv[])
 	AVI_set_audio_track(avifile1, j);
 	AVI_set_audio_track(avifile2, j);
 	format = AVI_audio_format(avifile1);
+	rate   = AVI_audio_rate(avifile1);
+	chan   = AVI_audio_channels(avifile1);
+	bits   = AVI_audio_bits(avifile1);
+	bits   = bits==0?16:bits;
 
-	if (format == 0x55 || format == 0x2000) {
+	if (tc_format_ms_supported(format)) {
 	    while (aud_ms[j] < vid_ms) {
 
+		aud_bitrate = format==0x1?1:0;
+	        
 		if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
 		    AVI_print_error("AVI 1 audio read frame");
 		    aud_ms[j] = vid_ms;
@@ -369,12 +375,12 @@ int main(int argc, char *argv[])
 		    aud_ms[j] = vid_ms;
 		    break;
 		}
-		if ( tc_get_audio_header(data, bytes, format, NULL, NULL, &aud_bitrate)<0) {
+		if ( !aud_bitrate && tc_get_audio_header(data, bytes, format, NULL, NULL, &aud_bitrate)<0) {
 		    // if this is the last frame of the file, slurp in audio chunks
 		    if (n == frames-1) continue;
 		    aud_ms[j] = vid_ms;
 		} else 
-		    aud_ms[j] += (bytes*8.0)/(aud_bitrate);
+		    aud_ms[j] += (bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):aud_bitrate);
 	    }
 	} else {
 	    do {
@@ -394,9 +400,13 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "invalid auto track\n");
     }
     AVI_set_audio_track(avifile2, track_num);
-    format = AVI_audio_format(avifile1);
     shift_ms = (double)shift*1000.0/fps;
     one_vid_ms = 1000.0/fps;
+    format = AVI_audio_format(avifile1);
+    rate   = AVI_audio_rate(avifile1);
+    chan   = AVI_audio_channels(avifile1);
+    bits   = AVI_audio_bits(avifile1);
+    bits   = bits==0?16:bits;
     
     
     if(shift>0) {
@@ -405,11 +415,12 @@ int main(int argc, char *argv[])
       
       if(!preload) {
 	
-	if (format == 0x55 || format == 0x2000 || format == 0x2001) {
+	if (tc_format_ms_supported(format)) {
 	  for(i=0;i<shift;++i) {
 	      fprintf (stderr, "shift (%d) i (%d) n (%d) a (%d)\n", shift, i, n, aud_chunks);
 	    while (aud_ms[track_num] < vid_ms + one_vid_ms*i) {
 
+		aud_bitrate = format==0x1?1:0;
 		aud_chunks++;
 		if( (bytes = AVI_read_audio_chunk(avifile1, data)) <= 0) {
 		    aud_ms[track_num] = vid_ms + one_vid_ms*i;
@@ -418,12 +429,12 @@ int main(int argc, char *argv[])
 		    break;
 		}      
 
-		if ( tc_get_audio_header(data, bytes, format, NULL, NULL, &aud_bitrate)<0) {
+		if ( !aud_bitrate && tc_get_audio_header(data, bytes, format, NULL, NULL, &aud_bitrate)<0) {
 		    // if this is the last frame of the file, slurp in audio chunks
 		    if (n == frames-1) continue;
 		    aud_ms[track_num] = vid_ms + one_vid_ms*i;
 		} else 
-		    aud_ms[track_num] += (bytes*8.0)/(aud_bitrate);
+		    aud_ms[track_num] += (bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):aud_bitrate);
 	    }
 	  }
 
@@ -444,14 +455,15 @@ int main(int argc, char *argv[])
       
       // copy rest of the track
       if(n<frames-shift) { 
-	if (format == 0x55 || format == 0x2000 || format == 0x2001) {
+	if (tc_format_ms_supported(format)) {
 
 	    while (aud_ms[track_num] < vid_ms + shift_ms) {
 
 		aud_chunks++;
+		aud_bitrate = format==0x1?1:0;
+
 		if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
 		    aud_ms[track_num] = vid_ms + shift_ms;
-		    //if (bytes == 0) continue;
 		    AVI_print_error("AVI 3 audio read frame");
 		    break;
 		}      
@@ -484,11 +496,11 @@ int main(int argc, char *argv[])
 		}
 
 
-		if ( tc_get_audio_header(data, bytes, format, NULL, NULL, &aud_bitrate)<0) {
+		if ( !aud_bitrate && tc_get_audio_header(data, bytes, format, NULL, NULL, &aud_bitrate)<0) {
 		    if (n == frames-1) continue;
 		    aud_ms[track_num] = vid_ms + shift_ms;
 		} else 
-		    aud_ms[track_num] += (bytes*8.0)/(aud_bitrate);
+		    aud_ms[track_num] += (bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):aud_bitrate);
 	    }
 
 	} else { // fallback
@@ -534,7 +546,7 @@ int main(int argc, char *argv[])
 	    ptrlen = ptr->size;
 	}
 
-	if (format == 0x55 || format == 0x2000 || format == 0x2001) {
+	if (tc_format_ms_supported(format)) {
 
 	    while (aud_ms[track_num] < vid_ms + shift_ms) {
 

@@ -31,3 +31,5 @@ int tc_get_ac3_header(unsigned char* _buf, int len, int* chans, int* srate, int 
 int tc_get_audio_header(unsigned char* buf, int buflen, int format, int* chans, int* srate, int *bitrate);
 int tc_probe_audio_header(unsigned char* buf, int buflen);
 
+int tc_format_ms_supported(int format);
+

@@ -379,7 +379,7 @@ int main(int argc, char *argv[])
 	bits   = AVI_audio_bits(avifile1);
 	bits   = bits==0?16:bits;
 
-	if (format == 0x55 || format == 0x2000 || format == 0x2001 || format == 0x1) { 
+	if (tc_format_ms_supported(format)) {
 
 	  while (aud_ms[k] < vid_ms) {
 
@@ -614,7 +614,7 @@ int main(int argc, char *argv[])
 	  
 	  byte_count_audio[ k ] = AVI_get_audio_position_index(avifile1);
 	 
-	  if (format == 0x55 || format == 0x2000 || format == 0x1) {
+	  if (tc_format_ms_supported(format)) {
 
 	    if (!didread) while (aud_ms[k] < vid_ms) {
 
@@ -718,7 +718,7 @@ int main(int argc, char *argv[])
 	    bits   = AVI_audio_bits(avifile1);
 	    bits   = bits==0?16:bits;
 
-	    if (format == 0x55 || format == 0x2000 || format == 0x1) {
+	    if (tc_format_ms_supported(format)) {
 	      while (aud_ms[k] < vid_ms) {
 
 		aud_bitrate = 0;
