@@ -37,6 +37,8 @@
 
 #define MAX_BUF     1024
 
+void tcdemux_pass_through(info_t *ipipe, int *pass);
+
 static int verbose=TC_QUIET;
 
 /* ------------------------------------------------------------ 
