@@ -237,6 +237,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	  optstr_get (options, "luma_strenth",   "%f",    &Param3);
 	  optstr_get (options, "chroma",         "%f",    &Param2);
 	  optstr_get (options, "chroma_strength","%f",    &Param4);
+	  optstr_get (options, "pre", "%d",    &mfd[instance]->pre);
 
 	  // recalculate only the needed params
 
