@@ -260,13 +260,18 @@ MOD_init {
 	    lavc_venc_context->frame_rate      = 50000;
 	    lavc_venc_context->frame_rate_base = 1000;
 	    break;
-	case 0: // not set
-	    lavc_venc_context->frame_rate      = (int)(vob->ex_fps*1000.0);
+	case 7: // 59.940
+	    lavc_venc_context->frame_rate      = 60000;
+	    lavc_venc_context->frame_rate_base = 1001;
+	    break;
+	case 8: // 60.000
+	    lavc_venc_context->frame_rate      = 60000;
 	    lavc_venc_context->frame_rate_base = 1000;
 	    break;
+	case 0: // not set
 	default:
-	    tc_warn("unknown/unset export frame rate code -- exiting");
-	    return (TC_EXPORT_ERROR);
+	    lavc_venc_context->frame_rate      = (int)(vob->ex_fps*1000.0);
+	    lavc_venc_context->frame_rate_base = 1000;
 	    break;
     }
 
