@@ -625,12 +625,12 @@ AC_MSG_RESULT($enable_pvm3)
 AC_ARG_WITH(pvm3-lib,
   AC_HELP_STRING([--with-pvm3-lib=PFX],
     [prefix where local pvm3 libraries are installed]),
-  [pvm3_lib="$withval" pvm3_lib="/usr${deflib}"])
+  pvm3_lib="$withval", pvm3_lib="/usr${deflib}")
 
 AC_ARG_WITH(pvm3-include,
   AC_HELP_STRING([--with-pvm3-include=PFX],
     [prefix where local pvm3 includes are installed]),
-  [pvm3_include="$withval" pvm3_include="/usr/include"])
+  pvm3_include="$withval", pvm3_include="/usr/include")
 
 have_pvm3=no
 
@@ -676,6 +676,8 @@ int main ()
   fi
   if test x"$have_pvm3" = x"yes" ; then
     AC_MSG_RESULT(yes)
+    dnl we need to also include the in-tree pvm3 headers
+    PVM3_CFLAGS="$PVM3_CFLAGS -I\$(top_srcdir)/pvm3"
     ifelse([$1], , :, [$1])
   else
     AC_MSG_RESULT(no)
