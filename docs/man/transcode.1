@@ -1,4 +1,4 @@
-.TH transcode 1 "1st November 2003" "transcode(1)"
+.TH transcode 1 "6th January 2004" "transcode(1)"
 .SH NAME
 transcode \- LINUX video stream processing tool
 .SH SYNOPSIS
@@ -29,7 +29,7 @@ n ] [  --import_v4l n[,id] ] [  --pulldown  ] [  --encode_fields  ] [
 --config_dir dir ] [  --ext vid,aud ] [ --export_prof S ] [  -q level ] [  -h
 ] [  -v  ]  
 .SH COPYRIGHT
-\fBtranscode\fP is Copyright (C) 2001-2003 by Thomas Östreich, 2003 Tilmann
+\fBtranscode\fP is Copyright (C) 2001-2003 by Thomas Östreich, 2003-2004 Tilmann
 Bitterberg.
 .SH DESCRIPTION
 .LP
@@ -2584,23 +2584,58 @@ XXX: Write me
 .RE
 .TP 4
 \fBpv\fP - \fBxv only preview plugin\fP
-\fBpv\fP was written by Thomas Oestreich, Tilmann Bitterberg. The version documented here is v0.2.2 (2003-02-27). This is a video filter. It can handle YUV mode only. It is a post-processing only filter.
+\fBpv\fP was written by Thomas Oestreich, Tilmann Bitterberg. The version documented here is v0.2.3 (2004-06-01). This is a video filter. It can handle YUV and YUV422 mode. It is a post-processing only filter.
 .IP
 .RS
-\(bu
-.I cache
-= \fI%d\fP  [default \fI15\fP]
+\(bu 
+.I cache 
+= \fI%d\fP  [default \fI15\fP] 
 .RS 3
 Number of raw frames to cache for seeking
 .RE
-\(bu
-.I skip
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I skip 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 display only every Nth frame
 .RE
 .IP
-XXX: write me
+The filter listens to mouse and key strokes. If you click into the preview
+window, the first time say near the upper left corner and the second time near
+the lower right corner, transcode will draw a rectangle and will print out the
+coordinates of this rectangle on stdout and the socket. See the table below for
+available keys.
+
+When you start transcode with the --socket option and the pv filter with (for
+example) cache=20 you can talk to transcode and the pv filter at runtime using
+the socket. 
+
+.nf
+transcode -i file.avi -V -J pv=cache=30 --socket /tmp/sock
+.fi
+
+.TS
+c s s
+l l l
+l l l.
+Available Commands
+Key	Socket*	Effect
+_
+RET	draw	Redraws the image, applying filters.
+u	undo	goes to image before draw.
+SPACE	pause	pause the preview (and transcode).
+UP	fastfw	In pause mode, step forward 5 frames.
+RIGHT	slowfw	In pause mode, step forward 1 frame.
+DOWN	fastbw	In pause mode, step back 5 frames.
+LEFT	slowbw	In pause mode, step back 1 frame.
+q	display	Toggle display of frames
+s	slower	slow down
+f	faster	speed up
+y	toggle	toggle displaying only every 5 frames
+j	grab	Save a JPEG
+r	rotate	Rotate AVI file after next keyframe
+.TE
+(*) all commands must be prefixed with "preview ".
 .RE
 .TP 4
 \fBresample\fP - \fBaudio resampling filter plugin\fP

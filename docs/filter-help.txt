@@ -203,7 +203,42 @@ XXX: Write me
 <----------------------|
 
 ---------------------->[ pv.help ]
-XXX: write me
+The filter listens to mouse and key strokes. If you click into the preview
+window, the first time say near the upper left corner and the second time near
+the lower right corner, transcode will draw a rectangle and will print out the
+coordinates of this rectangle on stdout and the socket. See the table below for
+available keys.
+
+When you start transcode with the --socket option and the pv filter with (for
+example) cache=20 you can talk to transcode and the pv filter at runtime using
+the socket. 
+
+.nf
+transcode -i file.avi -V -J pv=cache=30 --socket /tmp/sock
+.fi
+
+.TS
+c s s
+l l l
+l l l.
+Available Commands
+Key	Socket*	Effect
+_
+RET	draw	Redraws the image, applying filters.
+u	undo	goes to image before draw.
+SPACE	pause	pause the preview (and transcode).
+UP	fastfw	In pause mode, step forward 5 frames.
+RIGHT	slowfw	In pause mode, step forward 1 frame.
+DOWN	fastbw	In pause mode, step back 5 frames.
+LEFT	slowbw	In pause mode, step back 1 frame.
+q	display	Toggle display of frames
+s	slower	slow down
+f	faster	speed up
+y	toggle	toggle displaying only every 5 frames
+j	grab	Save a JPEG
+r	rotate	Rotate AVI file after next keyframe
+.TE
+(*) all commands must be prefixed with "preview ".
 <----------------------|
 
 ---------------------->[ slowmo.help ]
