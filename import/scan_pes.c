@@ -94,9 +94,11 @@ void unit_summary()
     fprintf(stderr, "%d packetized elementary stream(s) PES packets found\n", pes_total); 
     
     fprintf(stderr, "presentation unit PU [%d] contains %d MPEG video sequence(s)\n", unit_ctr, seq_ctr);
+    if (seq_ctr) {
     fprintf(stderr, "Average Bitrate is %u. Min Bitrate is %u, max is %u (%s)\n", 
 	((tot_bitrate*400)/1000)/seq_ctr, min_bitrate*400/1000, max_bitrate*400/1000,
 	(max_bitrate==min_bitrate)?"CBR":"VBR");
+    }
 
     ++tot_unit_ctr;
     tot_seq_ctr+=seq_ctr;
