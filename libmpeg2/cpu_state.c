@@ -44,6 +44,7 @@ static void state_restore_mmx (cpu_state_t * state)
 #endif
 
 #ifdef ARCH_PPC
+#ifdef HAVE_PPC_ALTIVEC
 static void state_save_altivec (cpu_state_t * state)
 {
     asm ("						\n"
@@ -101,6 +102,10 @@ static void state_restore_altivec (cpu_state_t * state)
 	"	lvx		%v31, %r9,  %r3		\n"
 	 );
 }
+#else /* No altivec */
+static void state_save_altivec (cpu_state_t * state) {}
+static void state_restore_altivec (cpu_state_t * state) {}
+#endif
 #endif
 
 void mpeg2_cpu_state_init (uint32_t mm_accel)

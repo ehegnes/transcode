@@ -32,6 +32,8 @@
 #include "mpeg2_internal.h"
 #include "attributes.h"
 
+#ifdef HAVE_PPC_ALTIVEC
+
 static int16_t constants[5][8] ATTR_ALIGN(16) = {
     {23170, 13573, 6518, 21895, -23170, -21895, 32, 31},
     {16384, 22725, 21407, 19266, 16384, 19266, 21407, 22725},
@@ -483,6 +485,11 @@ void mpeg2_idct_altivec_init (void)
     }
 }
 
+#else
+void mpeg2_idct_add_altivec (int16_t * block, uint8_t * dest, int stride) {}
+void mpeg2_idct_copy_altivec (int16_t * block, uint8_t * dest, int stride) {}
+void mpeg2_idct_altivec_init (void) {}
+#endif  /* HAVE_PPC_ALTIVEC */
 #endif	/* ARCH_PPC */
 
 #else	/* __ALTIVEC__ */

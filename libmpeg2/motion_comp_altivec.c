@@ -31,6 +31,8 @@
 
 #include "mpeg2_internal.h"
 
+#ifdef HAVE_PPC_ALTIVEC
+
 /*
  * The asm code is generated with:
  *
@@ -1063,8 +1065,44 @@ static void MC_avg_xy_8_altivec (uint8_t * dest, uint8_t * ref,
 	 );
 }
 
-MPEG2_MC_EXTERN (altivec)
 
+#else
+static void MC_put_o_16_altivec (uint8_t * dest, uint8_t * ref,
+				 int stride, int height) {}
+static void MC_put_o_8_altivec (uint8_t * dest, uint8_t * ref,
+				int stride, int height) {}
+static void MC_put_x_16_altivec (uint8_t * dest, uint8_t * ref,
+				 int stride, int height) {}
+static void MC_put_x_8_altivec (uint8_t * dest, uint8_t * ref,
+				int stride, int height) {}
+static void MC_put_y_16_altivec (uint8_t * dest, uint8_t * ref,
+				 int stride, int height) {}
+static void MC_put_y_8_altivec (uint8_t * dest, uint8_t * ref,
+				int stride, int height) {}
+static void MC_put_xy_16_altivec (uint8_t * dest, uint8_t * ref,
+				  int stride, int height) {}
+static void MC_put_xy_8_altivec (uint8_t * dest, uint8_t * ref,
+				 int stride, int height) {}
+static void MC_avg_o_16_altivec (uint8_t * dest, uint8_t * ref,
+				 int stride, int height) {}
+static void MC_avg_o_8_altivec (uint8_t * dest, uint8_t * ref,
+				int stride, int height) {}
+static void MC_avg_x_16_altivec (uint8_t * dest, uint8_t * ref,
+				 int stride, int height) {}
+static void MC_avg_x_8_altivec (uint8_t * dest, uint8_t * ref,
+				int stride, int height) {}
+static void MC_avg_y_16_altivec (uint8_t * dest, uint8_t * ref,
+				 int stride, int height) {}
+static void MC_avg_y_8_altivec (uint8_t * dest, uint8_t * ref,
+				int stride, int height) {}
+static void MC_avg_xy_16_altivec (uint8_t * dest, uint8_t * ref,
+				  int stride, int height) {}
+static void MC_avg_xy_8_altivec (uint8_t * dest, uint8_t * ref,
+				 int stride, int height) {}
+
+#endif  /* HAVE_PPC_ALTIVEC */
+
+MPEG2_MC_EXTERN (altivec)
 #endif	/* ARCH_PPC */
 
 #else	/* __ALTIVEC__ */

@@ -88,6 +88,7 @@ static uint32_t arch_accel (void)
 #endif
 
 #ifdef ARCH_PPC
+#ifdef HAVE_PPC_ALTIVEC
 #include <signal.h>
 #include <setjmp.h>
 
@@ -123,11 +124,12 @@ static uint32_t arch_accel (void)
     signal (SIGILL, SIG_DFL);
     return MM_ACCEL_PPC_ALTIVEC;
 }
+#endif /* HAVE_PPC_ALTIVEC */
 #endif /* ARCH_PPC */
 
 uint32_t mm_accel (void)
 {
-#if defined(ARCH_X86) || defined (ARCH_PPC)
+#if defined(ARCH_X86) || ( defined (ARCH_PPC) && defined (HAVE_PPC_ALTIVEC))
     static int got_accel = 0;
     static uint32_t accel;
 
