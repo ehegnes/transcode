@@ -55,6 +55,7 @@
 #include "avilib.h"
 #include "aud_aux.h"
 #include "vbr.h"
+#include "ioaux.h"
 
 #define MOD_NAME    "export_divx4raw.so"
 #define MOD_VERSION "v0.3.6 (2003-07-24)"
@@ -85,6 +86,7 @@ static char module[TC_BUF_MAX];
 
 #define MODULE "libdivxencore.so"
 
+#if 0  /* get this from ioaux.c */
 static int p_write (int fd, char *buf, size_t len)
 {
    size_t n = 0;
@@ -99,6 +101,7 @@ static int p_write (int fd, char *buf, size_t len)
    }
    return r;
 }
+#endif
 
 
 static int divx4_init(char *path) {

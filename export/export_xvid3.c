@@ -64,6 +64,7 @@
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
+#include "ioaux.h"
 
 #ifdef DEVELOPER_USE
 #include "libioaux/configs.h"
@@ -163,7 +164,9 @@ static int xvid_print_config(XVID_INIT_PARAM *einit,
 
 static void xvid_print_vbr(vbr_control_t *state);
 
+#if 0  /* get this from ioaux.h */
 static int p_write(int fd, char *buf, size_t len);
+#endif
 
 /*****************************************************************************
  * Init codec
@@ -1705,6 +1708,7 @@ static void xvid_print_vbr(vbr_control_t *state)
 		state->fixed_quant);
 }
 
+#if 0  /* get this from ioaux.c */
 static int p_write(int fd, char *buf, size_t len)
 {
    size_t n = 0;
@@ -1719,6 +1723,7 @@ static int p_write(int fd, char *buf, size_t len)
    }
    return r;
 }
+#endif
 
 /*
  * Please do not modify the tag line.

@@ -59,6 +59,7 @@
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
+#include "ioaux.h"
 
 #include "libioaux/configs.h"
 
@@ -188,7 +189,10 @@ static void dispatch_settings(xvid_transcode_module_t *mod);
 static void set_create_struct(xvid_transcode_module_t *mod, vob_t *vob);
 static void set_frame_struct(xvid_transcode_module_t *mod, vob_t *vob, transfer_t *t);
 static const char *errorstring(int err);
+
+#if 0  /* gte this from ioaux.h */
 static int p_write(int fd, char *buf, size_t len);
+#endif
 
 /*****************************************************************************
  * Init codec
@@ -1070,6 +1074,7 @@ static const char *errorstring(int err)
 	return((const char *)error);
 }
 
+#if 0  /* get this from ioaux.c */
 /*****************************************************************************
  * Writes a buffer to a file descriptor (forces completion of the write)
  ****************************************************************************/
@@ -1088,6 +1093,7 @@ static int p_write(int fd, char *buf, size_t len)
    }
    return r;
 }
+#endif
 
 /*****************************************************************************
  * Read and print a matrix file

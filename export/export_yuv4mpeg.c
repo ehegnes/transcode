@@ -27,6 +27,7 @@
 #include "transcode.h"
 #include "aud_aux.h"
 #include "vid_aux.h"
+#include "ioaux.h"
 
 #define MOD_NAME    "export_yuv4mpeg.so"
 #define MOD_VERSION "v0.1.8 (2003-08-23)"
@@ -63,6 +64,7 @@ static int fd, size;
 
 static y4m_stream_info_t y4mstream;
 
+#if 0  /* get this from ioaux.c */
 static int p_write (int fd, char *buf, size_t len)
 {
    size_t n = 0;
@@ -77,6 +79,7 @@ static int p_write (int fd, char *buf, size_t len)
    }
    return r;
 }
+#endif
 
  
 /* ------------------------------------------------------------ 
