@@ -41,7 +41,7 @@
 #include "transcode.h"
 #include "ioaux.h"
 
-#include "../export/xvid3.h"
+#include "../export/xvid2.h"
 
 #define MOD_NAME    "decode_xvid"
 
@@ -57,50 +57,69 @@ static int global_colorspace;
 
 static int x_dim, y_dim;
 
-#define MODULE1 "libxvidcore.so"
+#define XVID_SHARED_LIB_NAME "libxvidcore.so"
 
 static int xvid2_init(char *path) {
+
 #ifdef __FreeBSD__
-    const
+	const
 #endif    
-	char *error;
+		char *error;
+	char modules[4][TC_BUF_MAX];
+	char *module;
+	int i;
+	
 
-    char module[TC_BUF_MAX];
+	/* First we build all lib names we will try to load */
+	sprintf(modules[0], "%s/%s.%d", path, XVID_SHARED_LIB_NAME, API_VERSION>>16);
+	sprintf(modules[1], "%s.%d", XVID_SHARED_LIB_NAME, API_VERSION>>16);
+	sprintf(modules[2], "%s/%s", path, XVID_SHARED_LIB_NAME);
+	sprintf(modules[3], "%s", XVID_SHARED_LIB_NAME);
 
-    //XviD comes now as a single core-module 
+	for(i=0; i<4; i++) {
+		module = modules[i];
 
-    sprintf(module, "%s/%s", path, MODULE1);
+		if(verbose_flag & TC_DEBUG)
+			fprintf(stderr,	"[%s] Trying to load shared lib %s\n",
+				MOD_NAME, module);
 
-    // try transcode's module directory
-    handle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
+		/* Try loading the shared lib */
+		handle = dlopen(modules[i], RTLD_GLOBAL| RTLD_LAZY);
 
-    if (!handle) {
-	//try the default:
-	handle = dlopen(MODULE1, RTLD_GLOBAL| RTLD_LAZY);
-
-	//success?
-	if (!handle) {
-	    fputs (dlerror(), stderr);
-	    return(-1);
-	} else {  
-	    if(verbose_flag & TC_DEBUG) 
-		fprintf(stderr, "loading external codec module %s\n", MODULE1); 
+		/* Test wether loading succeeded */
+		if(handle != NULL)
+			goto so_loaded;
 	}
 
-    } else {  
-	if(verbose_flag & TC_DEBUG) 
-	    fprintf(stderr, "loading external codec module %s\n", module); 
-    }
-
-    XviD_decore = dlsym(handle, "xvid_decore");   	/* NEW XviD_API ! */
-    XviD_init = dlsym(handle, "xvid_init");   		/* NEW XviD_API ! */
-
-    if ((error = dlerror()) != NULL)  {
-	fputs(error, stderr);
+	/* None of the modules were available */
+	fprintf(stderr, dlerror());
 	return(-1);
-    }
 
-    return(0);
+ so_loaded:
+	if(verbose_flag & TC_DEBUG)
+		fprintf(stderr,	"[%s] Using shared lib %s\n",
+			MOD_NAME, module);
+
+	/* Import the XviD init entry point */
+	XviD_init   = dlsym(handle, "xvid_init");
+    
+	/* Something went wrong */
+	if((error = dlerror()) != NULL)  {
+		fprintf(stderr, error);
+		return(-1);
+	}
+
+	/* Import the XviD encoder entry point */
+	XviD_decore = dlsym(handle, "xvid_decore");
+
+	/* Something went wrong */
+	if((error = dlerror()) != NULL)  {
+		fprintf(stderr, error);
+		return(-1);
+	}
+
+	return(0);
+
 }
 
 static int pass_through=0;
@@ -149,7 +168,6 @@ void decode_xvid(info_t *ipipe)
     char *codec_str;
 
     XVID_DEC_FRAME xframe;
-    int key;
     long bytes_read=0;
     long frame_length=0;
     char *mp4_ptr=NULL;
