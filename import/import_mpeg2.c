@@ -34,8 +34,8 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_VID;
 #include "import_def.h"
 
 
-#define MAX_BUF 1024
-char import_cmd_buf[MAX_BUF];
+extern int errno;
+char import_cmd_buf[TC_BUF_MAX];
 
 typedef struct tbuf_t {
 	int off;
@@ -60,6 +60,7 @@ MOD_open
 {
   
   char requant_buf[256];
+  int sret;
 
   if(param->flag != TC_VIDEO) return(TC_IMPORT_ERROR);
   
@@ -68,19 +69,25 @@ MOD_open
     switch(vob->im_v_codec) {
       
     case CODEC_RGB:
-      
-      if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -x mpeg2 -i \"%s\" -d %d | tcdecode -x mpeg2 -d %d", vob->video_in_file, vob->verbose, vob->verbose)<0)) {
-	perror("command buffer overflow");
+
+      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+                      "tcextract -x mpeg2 -i \"%s\" -d %d |"
+                      " tcdecode -x mpeg2 -d %d",
+                      vob->video_in_file, vob->verbose, vob->verbose);
+      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
 	return(TC_IMPORT_ERROR);
-      }
+
       break;
       
     case CODEC_YUV:
-      
-      if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -x mpeg2 -i \"%s\" -d %d | tcdecode -x mpeg2 -d %d -y yv12", vob->video_in_file, vob->verbose, vob->verbose)<0)) {
-	perror("command buffer overflow");
+
+      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+                      "tcextract -x mpeg2 -i \"%s\" -d %d |"
+                      " tcdecode -x mpeg2 -d %d -y yv12",
+                      vob->video_in_file, vob->verbose, vob->verbose);
+      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
 	return(TC_IMPORT_ERROR);
-      }
+
       break;
 
     case CODEC_RAW:
@@ -88,18 +95,17 @@ MOD_open
 	
 	memset(requant_buf, 0, sizeof (requant_buf)); 
 	if (vob->m2v_requant > M2V_REQUANT_FACTOR) {
-	  snprintf (requant_buf, 256, " | tcrequant -d %d -f %f ", vob->verbose, vob->m2v_requant);
+	  snprintf (requant_buf, 256, " | tcrequant -d %d -f %f ",
+                    vob->verbose, vob->m2v_requant);
 	}
 	m2v_passthru=1;
 
-	if((snprintf(import_cmd_buf, MAX_BUF, 
-		"tcextract -x mpeg2 -i \"%s\" -d %d"
-		"%s", 
-		vob->video_in_file, vob->verbose, 
-		requant_buf)<0)) {
-	  perror("command buffer overflow");
+        sret = snprintf(import_cmd_buf, TC_BUF_MAX, 
+		        "tcextract -x mpeg2 -i \"%s\" -d %d%s", 
+		        vob->video_in_file, vob->verbose, requant_buf);
+        if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
 	  return(TC_IMPORT_ERROR);
-	}
+
 	break;
     }
   
@@ -108,19 +114,29 @@ MOD_open
     switch(vob->im_v_codec) {
       
     case CODEC_RGB:
-      
-      if((snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -d %d -n 0x%x | tcextract -x mpeg2 -t m2v -d %d | tcdecode -x mpeg2 -d %d", vob->video_in_file, vob->verbose, vob->ts_pid1, vob->verbose, vob->verbose)<0)) {
-	perror("command buffer overflow");
+
+      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+                      "tccat -i \"%s\" -d %d -n 0x%x |"
+                      " tcextract -x mpeg2 -t m2v -d %d |"
+                      " tcdecode -x mpeg2 -d %d",
+                      vob->video_in_file, vob->verbose, vob->ts_pid1,
+                      vob->verbose, vob->verbose);
+      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
 	return(TC_IMPORT_ERROR);
-      }
+
       break;
       
     case CODEC_YUV:
-      
-      if((snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -d %d -n 0x%x | tcextract -x mpeg2 -t m2v -d %d | tcdecode -x mpeg2 -d %d -y yv12", vob->video_in_file, vob->verbose,vob->ts_pid1, vob->verbose, vob->verbose)<0)) {
-	perror("command buffer overflow");
+
+      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+                      "tccat -i \"%s\" -d %d -n 0x%x |"
+                      " tcextract -x mpeg2 -t m2v -d %d |"
+                      " tcdecode -x mpeg2 -d %d -y yv12",
+                      vob->video_in_file, vob->verbose,vob->ts_pid1,
+                      vob->verbose, vob->verbose);
+      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
 	return(TC_IMPORT_ERROR);
-      }
+
       break;
     }
   }
@@ -145,7 +161,8 @@ MOD_open
     tbuf.len = SIZE_RGB_FRAME;
     tbuf.off = 0;
 
-    if ( (tbuf.len = fread(tbuf.d, 1, tbuf.len, f))<0) return -1;
+    if ((tbuf.len = fread(tbuf.d, 1, tbuf.len, f)) < 0)
+      return(TC_IMPORT_ERROR);
 
     // find a sync word
     while (tbuf.off+4<tbuf.len) {
@@ -161,7 +178,7 @@ MOD_open
 
   }
 
-  return(0);
+  return(TC_IMPORT_OK);
 }
 
 /* ------------------------------------------------------------ 
@@ -197,10 +214,11 @@ MOD_decode{
 	      tbuf.d[tbuf.off+2]==0x1 && tbuf.d[tbuf.off+3]==0x0 && 
 	      ((tbuf.d[tbuf.off+5]>>3)&0x7)>1 && 
 	      ((tbuf.d[tbuf.off+5]>>3)&0x7)<4) {
-	    if (verbose & TC_DEBUG) printf("Completed a sequence + I frame from %d -> %d\n", 
-		start_seq, tbuf.off);
+	    if (verbose & TC_DEBUG)
+              printf("Completed a sequence + I frame from %d -> %d\n", 
+		      start_seq, tbuf.off);
 
-	    param->attributes |= ( TC_FRAME_IS_KEYFRAME | TC_FRAME_IS_I_FRAME);
+	    param->attributes |= (TC_FRAME_IS_KEYFRAME | TC_FRAME_IS_I_FRAME);
 	    param->size = tbuf.off-start_seq;
 
 	    // spit frame out
@@ -209,8 +227,9 @@ MOD_decode{
 	    tbuf.off = 0;
 	    tbuf.len -= param->size;
 
-	    if (verbose & TC_DEBUG) printf("%02x %02x %02x %02x\n", 
-		tbuf.d[0]&0xff, tbuf.d[1]&0xff, tbuf.d[2]&0xff, tbuf.d[3]&0xff);
+	    if (verbose & TC_DEBUG)
+              printf("%02x %02x %02x %02x\n", tbuf.d[0]&0xff, tbuf.d[1]&0xff,
+                                              tbuf.d[2]&0xff, tbuf.d[3]&0xff);
 	    return TC_IMPORT_OK;
 	  }
 	  else tbuf.off++;
@@ -245,8 +264,9 @@ MOD_decode{
 	  if (tbuf.d[tbuf.off+0]==0x0 && tbuf.d[tbuf.off+1]==0x0 && 
 	      tbuf.d[tbuf.off+2]==0x1 && 
 	      (unsigned char)tbuf.d[tbuf.off+3]==0xb3) {
-	    if (verbose & TC_DEBUG) printf("found a last P or B frame %d -> %d\n", 
-		start_pic, tbuf.off);
+	    if (verbose & TC_DEBUG)
+               printf("found a last P or B frame %d -> %d\n", 
+                       start_pic, tbuf.off);
 
 	    param->size = tbuf.off - start_pic;
 	    if (pic_type == 2) param->attributes |= TC_FRAME_IS_P_FRAME;
@@ -264,8 +284,9 @@ MOD_decode{
 	     tbuf.d[tbuf.off+2]==0x1 && tbuf.d[tbuf.off+3]==0x0 && 
 	     ((tbuf.d[tbuf.off+5]>>3)&0x7)>1 && 
 	     ((tbuf.d[tbuf.off+5]>>3)&0x7)<4) {
-	      if (verbose & TC_DEBUG) printf("found a P or B frame from %d -> %d\n", 
-		  start_pic, tbuf.off);
+	      if (verbose & TC_DEBUG)
+                printf("found a P or B frame from %d -> %d\n", 
+		        start_pic, tbuf.off);
 
 	      param->size = tbuf.off - start_pic;
 	      if (pic_type == 2) param->attributes |= TC_FRAME_IS_P_FRAME;
@@ -307,7 +328,7 @@ MOD_decode{
 
 
   }
-  return(0);
+  return(TC_IMPORT_OK);
 }
 
 /* ------------------------------------------------------------ 
@@ -323,7 +344,5 @@ MOD_close
     if(f != NULL) pclose(f);
     param->fd = f = NULL;
 
-    return(0);
+    return(TC_IMPORT_OK);
 }
-
-
