@@ -32,28 +32,33 @@
 #include <assert.h>
 
 #include "aud_aux.h"
+#include "../ffmpeg/libavcodec/avcodec.h"
 #include "ac3.h"
 #include "../aclib/ac.h"
+
+static AVCodec        *mpa_codec = NULL;
+static AVCodecContext mpa_ctx;
+static char           *mpa_buf     = NULL;
+static int            mpa_buf_ptr  = 0;
+static int            mpa_bytes_ps, mpa_bytes_pf;
 
 /*
  * Capabilities:
  *
- *             +-----------------------+
- *             |         Output        |
- *             +-----------------------+
- *             |  PCM  | MP2/3 |  AC3  |
- * +---+-------+-------+-------+-------+
- * | I |  PCM  |   X   |   X   |       | 
- * | n +-------+-------+-------+-------+
- * | p | MP2/3 |       |   X   |       |
- * | u +-------+-------+-------+-------+
- * | t |  AC3  |       |       |   X   |
- * +---+-------------------------------+
+ *             +-------------------------------+
+ *             |             Output            |
+ *             +-------------------------------+
+ *             |  PCM  |  MP2  |  MP3  |  AC3  |
+ * +---+-------+-------+-------+-------+-------+
+ * | I |  PCM  |   X   |   X   |   X   |   X   | 
+ * | n +-------+-------+-------+-------+-------+
+ * | p |  MP2  |       |   X   |       |       |
+ * | u +-------+-------+-------+-------+-------+
+ * | t |  MP3  |       |       |   X   |       |
+ * |   +-------+-------+-------+-------+-------+
+ * |   |  AC3  |       |       |       |   X   |
+ * +---+---------------------------------------+
  *
- *
- * TODO:
- * 	- zoomplayer: no audio
- * 	- nandub: write 16 bit in header
  */
 
 
@@ -99,11 +104,13 @@ static int avi_aud_chan, avi_aud_bits;
 
 static void error(const char *s, ...);
 static void debug(const char *s, ...);
+static int audio_init_ffmpeg(vob_t *vob, int o_codec);
 static int audio_init_lame(vob_t *vob, int o_codec);
 static int audio_init_raw(vob_t *vob);
 int audio_init(vob_t *vob, int v);
 int audio_open(vob_t *vob, avi_t *avifile);
 static int audio_write(char *buffer, size_t size, avi_t *avifile);
+static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile);
 static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile);
 static int audio_passthrough_ac3(char *aud_buffer, int aud_size, avi_t *avifile);
 static int audio_pass_through(char *aud_buffer, int aud_size, avi_t *avifile);
@@ -336,7 +343,7 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 		lgf->out_samplerate=vob->mp3frequency;
 	  
 		lame_init_params(lgf);
-		if (lame_get_VBR(lgf != vbr_off)
+		if (lame_get_VBR(lgf != vbr_off))
 			vbr = 1;
 
 		if(verbose)
@@ -357,6 +364,82 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 
 	return(TC_EXPORT_OK);
 }
+
+/**
+ * Init FFMPEG AUDIO Encoder
+ *
+ * @param vob
+ * 
+ * @return TC_EXPORT_OK or TC_EXPORT_ERROR
+ */
+static int audio_init_ffmpeg(vob_t *vob, int o_codec)
+{
+    unsigned long codeid = 0;
+
+    // INIT
+
+    avcodec_init();
+    register_avcodec(&ac3_encoder);
+    register_avcodec(&mp2_encoder);
+
+    switch (o_codec) {
+	case   0x50: codeid = CODEC_ID_MP2; break;
+	case 0x2000: codeid = CODEC_ID_AC3; break;
+	default    : error("cannot init ffmpeg with %x", o_codec);
+    }
+    
+    //-- get it --
+    mpa_codec = avcodec_find_encoder(codeid);
+    if (!mpa_codec) 
+    {
+      fprintf(stderr, "[%s] mpa codec not found !\n", "encode_ffmpeg");
+      return(TC_EXPORT_ERROR); 
+    }
+
+    // OPEN
+
+      //-- set parameters (bitrate, channels and sample-rate) --
+      //--------------------------------------------------------
+      memset(&mpa_ctx, 0, sizeof(mpa_ctx));       // default all
+      mpa_ctx.bit_rate = vob->mp3bitrate * 1000;  // bitrate dest.
+      mpa_ctx.channels = vob->a_chan;             // channels
+      mpa_ctx.sample_rate = vob->a_rate;        
+
+      // no resampling currently available, use -J resample
+      /*
+      if (!vob->mp3frequency)                     // sample-rate dest.
+        mpa_ctx.sample_rate = vob->a_rate;        
+      else { 
+	//ThOe added ffmpeg re-sampling capability
+        mpa_ctx.sample_rate = vob->mp3frequency;
+	ReSamplectx = audio_resample_init(vob->a_chan, vob->a_chan,
+					  vob->mp3frequency, vob->a_rate);
+      }
+      */
+
+      //-- open codec --
+      //----------------
+      if (avcodec_open(&mpa_ctx, mpa_codec) < 0) 
+      {
+        fprintf(stderr, "[%s] could not open mpa codec !\n", "encode_ffmpeg");
+        return(TC_EXPORT_ERROR); 
+      }
+    
+      //-- bytes per sample and bytes per frame --
+      mpa_bytes_ps = mpa_ctx.channels * vob->a_bits/8;
+      mpa_bytes_pf = mpa_ctx.frame_size * mpa_bytes_ps;
+    
+      //-- create buffer to hold 1 frame --
+      mpa_buf     = malloc(mpa_bytes_pf);
+      mpa_buf_ptr = 0;
+
+      //fprintf(stderr, "[%s] writing audio to [%s]\n",
+      //                "encode_ffmpeg, out_fname);  
+
+    return(TC_EXPORT_OK);
+
+}
+
 
 /**
  * Init audio encoder RAW -> *
@@ -474,7 +557,6 @@ int audio_init(vob_t *vob, int v)
 			audio_encode_function = audio_mute;
 			break;
 	
-		case CODEC_MP2:
 		case CODEC_MP3:
 			ret=audio_init_lame(vob, vob->ex_a_codec);
 			audio_encode_function = audio_encode_mp3;
@@ -487,8 +569,21 @@ int audio_init(vob_t *vob, int v)
 			audio_encode_function = audio_pass_through;
 			break;
 
+		case CODEC_MP2:	
+			debug("PCM -> MP2");
+			ret=audio_init_ffmpeg(vob, vob->ex_a_codec);
+			audio_encode_function = audio_encode_ffmpeg;
+			break;
+
+		case CODEC_AC3:	
+		case CODEC_A52:	
+			debug("PCM -> AC3");
+			ret=audio_init_ffmpeg(vob, vob->ex_a_codec);
+			audio_encode_function = audio_encode_ffmpeg;
+			break;
+
 		default:
-			error("Conversion not supported (in=x0%x out=x0%x)",
+			error("Conversion not supported (in=0x%x out=0x%x)",
 			      vob->im_a_codec, vob->ex_a_codec);
 			ret=TC_EXPORT_ERROR;
 			break;
@@ -533,7 +628,7 @@ int audio_init(vob_t *vob, int v)
 			 */
 			break;
 		default:
-			error("Conversion not supported (in=x0%x out=x0%x)",
+			error("Conversion not supported (in=0x%x out=0x%x)",
 			      vob->im_a_codec, vob->ex_a_codec);
 			ret=TC_EXPORT_ERROR;
 			break;
@@ -792,6 +887,75 @@ static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 }
 
 
+static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
+{
+    int  in_size, out_size;
+    char *in_buf;
+
+    //-- input buffer and amount of bytes -- 
+    in_size = aud_size;
+    in_buf  = aud_buffer;
+
+    //-- any byte in mpa-buffer left from past call ? --
+    //-------------------------------------------------- 
+    if (mpa_buf_ptr > 0) {
+      
+      int bytes_needed, bytes_avail;
+      
+      bytes_needed = mpa_bytes_pf - mpa_buf_ptr;
+      bytes_avail  = in_size; 
+      
+      //-- complete frame -> encode --
+      //------------------------------
+      if ( bytes_avail >= bytes_needed ) {
+	
+	memcpy(&mpa_buf[mpa_buf_ptr], in_buf, bytes_needed);
+	
+	out_size = avcodec_encode_audio(&mpa_ctx, (unsigned char *)output, 
+					OUTPUT_SIZE, (short *)mpa_buf);
+	audio_write(output, out_size, avifile);
+	
+        in_size -= bytes_needed; 
+        in_buf  += bytes_needed;
+        
+        mpa_buf_ptr = 0;
+      }
+      
+      //-- incomplete frame -> append bytes to mpa-buffer and return --
+      //--------------------------------------------------------------- 
+      else {
+	
+	memcpy(&mpa_buf[mpa_buf_ptr], aud_buffer, bytes_avail);
+        mpa_buf_ptr += bytes_avail;
+        return (0);
+      }
+    } //bytes availabe from last call?
+    
+
+    //-- encode only as much "full" frames as available --
+    //---------------------------------------------------- 
+    
+    while (in_size >= mpa_bytes_pf) {
+      
+      out_size = avcodec_encode_audio(&mpa_ctx, (unsigned char *)output, 
+				      OUTPUT_SIZE, (short *)in_buf);
+      
+      audio_write(output, out_size, avifile);
+      
+      in_size -= mpa_bytes_pf; 
+      in_buf  += mpa_bytes_pf;
+    }
+    
+    //-- hold rest of bytes in mpa-buffer --   
+    //--------------------------------------
+    if (in_size > 0) {
+      mpa_buf_ptr = in_size; 
+      memcpy(mpa_buf, in_buf, mpa_buf_ptr);
+    }
+    
+    return (TC_EXPORT_OK);
+}
+
 static int audio_passthrough_ac3(char *aud_buffer, int aud_size, avi_t *avifile)
 {
 	if(bitrate == 0)
@@ -889,7 +1053,6 @@ int audio_close()
 		}
 	}
 #endif
-
 	if(fd)
 	{
 		if (is_pipe)
@@ -912,6 +1075,19 @@ int audio_stop()
 	if (audio_encode_function == audio_encode_mp3)
 		lame_close(lgf);
 #endif
+
+	if (audio_encode_function == audio_encode_ffmpeg)
+	{
+	    //-- release encoder --
+	    if (mpa_codec) avcodec_close(&mpa_ctx);
+
+	    //-- cleanup buffer resources --
+	    if (mpa_buf) free(mpa_buf);
+	    mpa_buf     = NULL;
+	    mpa_buf_ptr = 0;
+
+	} 
+
 	return(0);
 }
 

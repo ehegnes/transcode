@@ -125,7 +125,7 @@ export_mp2enc_la_LIBADD = -L../avilib -lavi -lm
 
 export_fame_la_SOURCES = export_fame.c aud_aux.c
 export_fame_la_LDFLAGS =  -module -avoid-version 
-export_fame_la_LIBADD = @LAME_LIBS@ @LIBFAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
+export_fame_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec -ltcavcodec @LIBFAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
 
 export_lame_la_SOURCES = export_lame.c
 export_lame_la_LDFLAGS =  -module -avoid-version 
@@ -133,55 +133,55 @@ export_lame_la_LIBADD = @LAME_LIBS@ -lm
 
 export_af6_la_SOURCES = export_af6.cpp af6_aux.cpp aud_aux.c
 export_af6_la_LDFLAGS =  -module -avoid-version 
-export_af6_la_LIBADD = @LAME_LIBS@ @AVIFILE_LIBS@ -lstdc++ $(AC3_LIB) -L../avilib -lavi -lm 
+export_af6_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec -ltcavcodec @AVIFILE_LIBS@ -lstdc++ $(AC3_LIB) -L../avilib -lavi -lm 
 
 export_divx4_la_SOURCES = export_divx4.c aud_aux.c divx4_vbr.c
 export_divx4_la_LDFLAGS =  -module -avoid-version 
-export_divx4_la_LIBADD = @LAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
+export_divx4_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec -ltcavcodec -L../avilib $(AC3_LIB) -lavi -lm
 
 export_divx5_la_SOURCES = export_divx5.c aud_aux.c divx4_vbr.c
 export_divx5_la_LDFLAGS =  -module -avoid-version 
-export_divx5_la_LIBADD = @LAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
+export_divx5_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec -ltcavcodec -L../avilib $(AC3_LIB) -lavi -lm
 
 export_divx5raw_la_SOURCES = export_divx5raw.c aud_aux.c divx4_vbr.c
 export_divx5raw_la_LDFLAGS =  -module -avoid-version 
-export_divx5raw_la_LIBADD = @LAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
+export_divx5raw_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec -ltcavcodec -L../avilib $(AC3_LIB) -lavi -lm
 
 export_ffmpeg_la_SOURCES = export_ffmpeg.c aud_aux.c ffmpeg_cfg.c vid_aux.c
 export_ffmpeg_la_LDFLAGS =  -module -avoid-version 
-export_ffmpeg_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec/ -ltcavcodec -L../avilib -lavi -L../libioaux -ltcioaux -L../libvo -lvout $(AC3_LIB) -lm
+export_ffmpeg_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec -ltcavcodec -L../ffmpeg/libavcodec -ltcavcodec -L../avilib -lavi -L../libioaux -ltcioaux -L../libvo -lvout $(AC3_LIB) -lm
 
 export_divx4raw_la_SOURCES = export_divx4raw.c aud_aux.c divx4_vbr.c
 export_divx4raw_la_LDFLAGS =  -module -avoid-version 
-export_divx4raw_la_LIBADD =  @LAME_LIBS@ -L../avilib $(AC3_LIB) -lavi -lm
+export_divx4raw_la_LIBADD =  @LAME_LIBS@ -L../ffmpeg/libavcodec -ltcavcodec -L../avilib $(AC3_LIB) -lavi -lm
 
 export_xvid2_la_SOURCES = export_xvid2.c aud_aux.c xvid_vbr.c
 export_xvid2_la_LDFLAGS =  -module -avoid-version 
-export_xvid2_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
+export_xvid2_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec -ltcavcodec -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
 
 export_xvid3_la_SOURCES = export_xvid3.c aud_aux.c xvid_vbr.c
 export_xvid3_la_LDFLAGS =  -module -avoid-version 
-export_xvid3_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
+export_xvid3_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec -ltcavcodec -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
 
 export_xvid4_la_SOURCES = export_xvid4.c aud_aux.c
 export_xvid4_la_LDFLAGS =  -module -avoid-version 
-export_xvid4_la_LIBADD = @LAME_LIBS@ -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
+export_xvid4_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec -ltcavcodec -L../avilib -L../libioaux -ltcioaux $(AC3_LIB) -lavi -lm
 
 export_raw_la_SOURCES = export_raw.c aud_aux.c
 export_raw_la_LDFLAGS =  -module -avoid-version 
-export_raw_la_LIBADD = @LAME_LIBS@ -L../avilib -lavi $(AC3_LIB) -lm
+export_raw_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec -ltcavcodec -L../avilib -lavi $(AC3_LIB) -lm
 
 export_lzo_la_SOURCES = export_lzo.c aud_aux.c
 export_lzo_la_LDFLAGS =  -module -avoid-version 
-export_lzo_la_LIBADD = @LAME_LIBS@ @LZO_LIBS@ -L../avilib -lavi $(AC3_LIB) -lm
+export_lzo_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec -ltcavcodec @LZO_LIBS@ -L../avilib -lavi $(AC3_LIB) -lm
 
 export_debugppm_la_SOURCES = export_debugppm.c aud_aux.c
 export_debugppm_la_LDFLAGS =  -module -avoid-version 
-export_debugppm_la_LIBADD = @LAME_LIBS@ -L../avilib -lavi $(AC3_LIB) -L../libvo -lvout -lm
+export_debugppm_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec -ltcavcodec -L../avilib -lavi $(AC3_LIB) -L../libvo -lvout -lm
 
 export_ppm_la_SOURCES = export_ppm.c aud_aux.c
 export_ppm_la_LDFLAGS =  -module -avoid-version 
-export_ppm_la_LIBADD = @LAME_LIBS@ -L../avilib -lavi $(AC3_LIB) -L../libvo -lvout -lm
+export_ppm_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec -ltcavcodec -L../avilib -lavi $(AC3_LIB) -L../libvo -lvout -lm
 
 export_mov_la_SOURCES = export_mov.c 
 export_mov_la_LDFLAGS =  -module -avoid-version 
@@ -193,11 +193,11 @@ export_dvraw_la_LIBADD = -L../libdvenc -ldvenc @DV_LIBS@ -L../libvo -lvout -lm
 
 export_dv_la_SOURCES = export_dv.c aud_aux.c vid_aux.c
 export_dv_la_LDFLAGS =  -module -avoid-version 
-export_dv_la_LIBADD = @LAME_LIBS@ -L../avilib -lavi -L../libdvenc -ldvenc @DV_LIBS@ $(AC3_LIB)  -L../libvo -lvout -lm 
+export_dv_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec -ltcavcodec -L../avilib -lavi -L../libdvenc -ldvenc @DV_LIBS@ $(AC3_LIB)  -L../libvo -lvout -lm 
 
 export_yuv4mpeg_la_SOURCES = export_yuv4mpeg.c aud_aux.c vid_aux.c
 export_yuv4mpeg_la_LDFLAGS =  -module -avoid-version 
-export_yuv4mpeg_la_LIBADD = @LAME_LIBS@ @MJPEG_LIBS@ -L../libvo -lvout $(AC3_LIB) -L../avilib -lavi -lm
+export_yuv4mpeg_la_LIBADD = @LAME_LIBS@ -L../ffmpeg/libavcodec -ltcavcodec @MJPEG_LIBS@ -L../libvo -lvout $(AC3_LIB) -L../avilib -lavi -lm
 
 export_mpeg_la_SOURCES = export_mpeg.c vid_aux.c
 export_mpeg_la_LDFLAGS =  -module -avoid-version 
@@ -208,7 +208,7 @@ export_pvm_la_LDFLAGS =  -module -avoid-version -L../libioaux -ltcioaux
 
 export_mjpeg_la_SOURCES = export_mjpeg.c vid_aux.c aud_aux.c 
 export_mjpeg_la_LDFLAGS =  -module -avoid-version 
-export_mjpeg_la_LIBADD = @LIBJPEG_LIBS@ @LAME_LIBS@ -L../libvo -lvout $(AC3_LIB) -L../avilib -lavi -lm
+export_mjpeg_la_LIBADD = @LIBJPEG_LIBS@ @LAME_LIBS@ -L../ffmpeg/libavcodec -ltcavcodec -L../libvo -lvout $(AC3_LIB) -L../avilib -lavi -lm
 
 export_mpeg2enc_la_SOURCES = export_mpeg2enc.c vid_aux.c
 export_mpeg2enc_la_LDFLAGS =  -module -avoid-version 

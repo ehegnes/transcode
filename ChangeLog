@@ -10,6 +10,13 @@ transcode-0.6.10
   - New stream decoder lavc (ffmpeg based) used for OGM
 
 2003-09-08 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * export/aud_aux.c export/Makefile.am:
+  Add support for AC3 and MP2 encoding via ffmpegs libavcodec. These
+  codecs can be specied through the -N switch. Use -N 0x2000 for AC3
+  encoding (no -A) and -N 0x50 for MP2 audio.
+
+2003-09-08 Tilmann Bitterberg <transcode at tibit.org>
 
   * docs/man/transcode.1:
   BIG manpage update. The manpage was slightly rewritten and now
