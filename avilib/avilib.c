@@ -2829,7 +2829,7 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
          if( (data[2]=='d' || data[2]=='D') &&
              (data[3]=='b' || data[3]=='B' || data[3]=='c' || data[3]=='C') ) {
 
-	     AVI->video_index[nvi].key = 0x10;
+	     AVI->video_index[nvi].key = 0x0;
 	     AVI->video_index[nvi].pos = lseek(AVI->fdes,0,SEEK_CUR)+8;
 	     AVI->video_index[nvi].len = n;
 	     nvi++;
