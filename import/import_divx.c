@@ -53,7 +53,7 @@ char import_cmd_buf[MAX_BUF];
 
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
-static int codec, frame_size=0, uv_size=0;
+static int codec, frame_size=0;
 static unsigned long divx_version=DEC_OPT_FRAME;
 
 static int black_frames = 0;
