@@ -633,7 +633,7 @@ int seq_init(char *logfile, int _ext_sfd, double _fps, int _verbose)
 
   //done
   
-  if(_verbose & TC_DEBUG) fprintf(stderr, "(%s) open %s for frame sync information\n", __FILE__, logfile);
+  if(_verbose & TC_DEBUG) fprintf(stderr, "\n(%s) open %s for frame sync information\n", __FILE__, logfile);
   
   return(0);
 }
