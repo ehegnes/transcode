@@ -134,6 +134,83 @@ static void help_optstr(void)
    printf ("        'posdef' Position (0=None 1=TopL 2=TopR 3=BotL 4=BotR 5=Cent 6=BotCent) [0]\n");
 }
 
+static void font_render(int width, int height, int size, int codec, int w, int h, int i, char *p, char *q, char *buf)
+{
+    int error;
+
+    //render into temp buffer
+    if (codec == CODEC_YUV) {
+
+        memset (buf, 16, height*width);
+        memset (buf+height*width, 128, height*width/2);
+	p = buf+mfd->posy*width+mfd->posx;
+
+	for (i=0; i<strlen(mfd->string); i++) {
+
+	    error = FT_Load_Char( mfd->face, mfd->string[i], FT_LOAD_RENDER);
+	    mfd->slot = mfd->face->glyph;
+
+	    if (verbose > 1) {
+		// see http://www.freetype.org/freetype2/docs/tutorial/metrics.png
+		/*
+		printf ("`%c\': rows(%2d) width(%2d) pitch(%2d) left(%2d) top(%2d) "
+			"METRIC: width(%2d) height(%2d) bearX(%2d) bearY(%2d)\n",
+			mfd->string[i], mfd->slot->bitmap.rows, mfd->slot->bitmap.width, 
+			mfd->slot->bitmap.pitch, mfd->slot->bitmap_left, mfd->slot->bitmap_top,
+			mfd->slot->metrics.width>>6, mfd->slot->metrics.height>>6,
+			mfd->slot->metrics.horiBearingX>>6, mfd->slot->metrics.horiBearingY>>6);
+			*/
+	    }
+
+	    for (h=0; h<mfd->slot->bitmap.rows; h++) {
+		for (w=0; w<mfd->slot->bitmap.width; w++)  {
+		    unsigned char c = mfd->slot->bitmap.buffer[h*mfd->slot->bitmap.width+w] &0xff;
+		    c = yuv255to224[c];
+		    // make it transparent
+		    if (mfd->transparent && c==16) continue;
+
+		    p[width*(h+mfd->top_space - mfd->slot->bitmap_top) + 
+			w+mfd->slot->bitmap_left] = c&0xff;
+
+		    }
+		}
+	    p+=((mfd->slot->advance.x >> 6) - (mfd->slot->advance.y >> 6)*width);
+	} 
+
+    } else if (codec == CODEC_RGB) {
+
+        memset (buf, 0, height*size);
+	p = buf + 3*(height-mfd->posy)*width + 3*mfd->posx;
+
+	for (i=0; i<strlen(mfd->string); i++) {
+
+	    // render the char
+	    error = FT_Load_Char( mfd->face, mfd->string[i], FT_LOAD_RENDER);
+	    mfd->slot = mfd->face->glyph; // shortcut
+
+	    for (h=0; h<mfd->slot->bitmap.rows; h++) {
+		for (w=0; w<mfd->slot->bitmap.width; w++)  {
+		    unsigned char c = mfd->slot->bitmap.buffer[h*mfd->slot->bitmap.width+w];
+		    c = c>254?254:c;
+		    c = c<16?16:c;
+		    // make it transparent
+		    if (mfd->transparent && c==16) continue;
+
+		    p[3*(width*(-(h+mfd->top_space - mfd->slot->bitmap_top)) + 
+			    w+mfd->slot->bitmap_left)-2] = c&0xff;
+		    p[3*(width*(-(h+mfd->top_space - mfd->slot->bitmap_top)) + 
+			    w+mfd->slot->bitmap_left)-1] = c&0xff;
+		    p[3*(width*(-(h+mfd->top_space - mfd->slot->bitmap_top)) + 
+			    w+mfd->slot->bitmap_left)-0] = c&0xff;
+
+		    }
+		}
+
+	    p+=3*((mfd->slot->advance.x >> 6) - (mfd->slot->advance.y >> 6));
+	}
+    }
+}
+
 /*-------------------------------------------------
  *
  * single function interface
@@ -147,11 +224,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   static int width=0, height=0;
   static int size, codec=0;
-  int w, h, i;
+  static int w, h, i;
   int error;
-  time_t mytime = time(NULL);
+  static time_t mytime=0;
   static char *buf = NULL;
-  char *p, *q;
+  static char *p, *q;
   char *default_font = "/usr/X11R6/lib/X11/fonts/TrueType/arial.ttf";
   extern int flip; // transcode.c
   
@@ -239,6 +316,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     mfd->boundX=0;
     mfd->boundY=0;
     mfd->flip = flip;
+    mfd->string = NULL;
 
     //if the user wants flipping, do it here in this filter
     if (mfd->flip) flip=TC_FALSE;
@@ -247,10 +325,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
     mfd->Y = 240; mfd->U = mfd->V = 128;
 
 
-    // do `date` as default
-    mytime = time(NULL);
-    mfd->string = ctime(&mytime);
-    mfd->string[strlen(mfd->string)-1] = '\0';
 
     if (options != NULL) {
 	char font[PATH_MAX];
@@ -286,10 +360,13 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	if (string && strlen(string)>0) {
 	    mfd->string=strdup(string);
 	    mfd->do_time=0;
+	} else {
+	    // do `date` as default
+	    mytime = time(NULL);
+	    mfd->string = ctime(&mytime);
+	    mfd->string[strlen(mfd->string)-1] = '\0';
 	}
-	   
     }
-
 
     if (verbose) {
 	printf (" Text Settings:\n");
@@ -424,75 +501,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	return (-1);
     }
 
-
-    //render into temp buffer
-    if (codec == CODEC_YUV) {
-
-	p = buf+mfd->posy*width+mfd->posx;
-
-	for (i=0; i<strlen(mfd->string); i++) {
-
-	    error = FT_Load_Char( mfd->face, mfd->string[i], FT_LOAD_RENDER);
-	    mfd->slot = mfd->face->glyph;
-
-	    if (verbose > 1) {
-		// see http://www.freetype.org/freetype2/docs/tutorial/metrics.png
-		/*
-		printf ("`%c\': rows(%2d) width(%2d) pitch(%2d) left(%2d) top(%2d) "
-			"METRIC: width(%2d) height(%2d) bearX(%2d) bearY(%2d)\n",
-			mfd->string[i], mfd->slot->bitmap.rows, mfd->slot->bitmap.width, 
-			mfd->slot->bitmap.pitch, mfd->slot->bitmap_left, mfd->slot->bitmap_top,
-			mfd->slot->metrics.width>>6, mfd->slot->metrics.height>>6,
-			mfd->slot->metrics.horiBearingX>>6, mfd->slot->metrics.horiBearingY>>6);
-			*/
-	    }
-
-	    for (h=0; h<mfd->slot->bitmap.rows; h++) {
-		for (w=0; w<mfd->slot->bitmap.width; w++)  {
-		    unsigned char c = mfd->slot->bitmap.buffer[h*mfd->slot->bitmap.width+w] &0xff;
-		    c = yuv255to224[c];
-		    // make it transparent
-		    if (mfd->transparent && c==16) continue;
-
-		    p[width*(h+mfd->top_space - mfd->slot->bitmap_top) + 
-			w+mfd->slot->bitmap_left] = c&0xff;
-
-		    }
-		}
-	    p+=((mfd->slot->advance.x >> 6) - (mfd->slot->advance.y >> 6)*width);
-	} 
-
-    } else if (codec == CODEC_RGB) {
-
-	p = buf + 3*(height-mfd->posy)*width + 3*mfd->posx;
-
-	for (i=0; i<strlen(mfd->string); i++) {
-
-	    // render the char
-	    error = FT_Load_Char( mfd->face, mfd->string[i], FT_LOAD_RENDER);
-	    mfd->slot = mfd->face->glyph; // shortcut
-
-	    for (h=0; h<mfd->slot->bitmap.rows; h++) {
-		for (w=0; w<mfd->slot->bitmap.width; w++)  {
-		    unsigned char c = mfd->slot->bitmap.buffer[h*mfd->slot->bitmap.width+w];
-		    c = c>254?254:c;
-		    c = c<16?16:c;
-		    // make it transparent
-		    if (mfd->transparent && c==16) continue;
-
-		    p[3*(width*(-(h+mfd->top_space - mfd->slot->bitmap_top)) + 
-			    w+mfd->slot->bitmap_left)-2] = c&0xff;
-		    p[3*(width*(-(h+mfd->top_space - mfd->slot->bitmap_top)) + 
-			    w+mfd->slot->bitmap_left)-1] = c&0xff;
-		    p[3*(width*(-(h+mfd->top_space - mfd->slot->bitmap_top)) + 
-			    w+mfd->slot->bitmap_left)-0] = c&0xff;
-
-		    }
-		}
-
-	    p+=3*((mfd->slot->advance.x >> 6) - (mfd->slot->advance.y >> 6));
-	}
-    }
+    font_render(width,height,size,codec,w,h,i,p,q,buf);
 
     // filter init ok.
     if (verbose) printf("[%s] %s %s %dx%d-%d\n", MOD_NAME, MOD_VERSION, MOD_CAP, 
@@ -542,6 +551,13 @@ int tc_filter(vframe_list_t *ptr, char *options)
   if((ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO) && !(ptr->attributes & TC_FRAME_IS_SKIPPED))  {
 
     if (mfd->start <= ptr->id && ptr->id <= mfd->end && ptr->id%mfd->step == mfd->boolstep) {
+
+	if(mfd->do_time && time(NULL)!=mytime) {
+	    mytime = time(NULL);
+	    mfd->string = ctime(&mytime);
+	    mfd->string[strlen(mfd->string)-1] = '\0';
+	    font_render(width,height,size,codec,w,h,i,p,q,buf);
+	}
 
 	if (mfd->start == ptr->id && mfd->fade) {
 	    mfd->fade_in = 1;

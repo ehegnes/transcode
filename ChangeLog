@@ -1,3 +1,9 @@
+2004-11-30 Alexander Graf <alex at csgraf dot de>
+  * filter/filter_text.c
+  If no 'string' is specified, this filter renders the date into the
+  video.  Previously, it only displayed the date at the time encoding
+  started.  Change to display the date as it changes.
+
 2004-11-28 Massimiliano Giorgi <massy at gandalf dot sssup dot it>
   * import/dvd_reader.c
   Allow for chapters that are comprised of more than a single cell.
