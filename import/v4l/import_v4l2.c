@@ -605,6 +605,7 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 	struct v4l2_capability caps;
 	struct v4l2_streamparm streamparm;
 	v4l2_std_id std;
+	const char * memcpy_name;
 
 	if(pthread_mutex_trylock(&v4l2_av_start_mutex))
 	{
@@ -612,8 +613,9 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 		return(1);
 	}
 
+	memcpy_name = 0;
+
 #if defined(ARCH_X86) && defined(HAVE_ASM_NASM)
-	const char * memcpy_name = 0;
 
 	if(tc_accel & MM_SSE2)
 	{
