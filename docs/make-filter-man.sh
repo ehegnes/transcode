@@ -29,6 +29,7 @@ filter_cpaudio.so
 filter_cshift.so
 filter_cut.so
 filter_decimate.so
+filter_denoise3d.so
 filter_detectsilence.so
 filter_detectclipping.so
 filter_dilyuvmmx.so

@@ -38,6 +38,31 @@ see /docs/README.Inverse.Telecine.txt
 Detect black regions on top, bottom, left and right of an image.  It is suggested that the filter is run for around 100 frames.  It will print its detected parameters every frame. If you don't notice any change in the printout for a while, the filter probably won't find any other values.  The filter converges, meaning it will learn.
 <----------------------|
 
+---------------------->[ denoise3d.help ]
+What:
+The denoise3d filter from mplayer (sibling of hqdn3d). Works very crude and
+simple but also very fast. In fact it is even faster than the original from
+mplayer as I managed to tweak some things (a.o. zero frame copying).
+
+Who:
+Everyone who wants to have their captured frames thoroughly denoised (i.e. who
+want to encode to mpeg or mjpeg) but do not have enough processing power to
+real-time encode AND use hqdn3d (better quality but a lot slower) or dnr (yet
+slower), not to mention the other denoisers that are even slower. Quality is
+really good for static scenes (if fed with the right parameters), moving
+objects may show a little ghost-image (also depends on parameters) though. Your
+milage may vary.
+
+How:
+Parameters are the same as the hqdn3d module, although in practice you'll not
+end up with exactly the same values. Just experiment.  Particular for this
+version of the filter is that if you supply -1 to either component's parameters
+(luma/chroma), that component will not have the filter applied to. If you're
+still short on CPU cycles, try disabling the luma filter, this will not make
+much difference in the effectiveness of the filter!
+
+<----------------------|
+
 ---------------------->[ dnr.help ]
 see /docs/filter_dnr.txt (german only)
 <----------------------|

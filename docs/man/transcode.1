@@ -1576,6 +1576,64 @@ print verbose information
 see /docs/README.Inverse.Telecine.txt
 .RE
 .TP 4
+\fBdenoise3d\fP - \fBHigh speed 3D Denoiser\fP
+\fBdenoise3d\fP was written by Daniel Moreno & A'rpi. The version documented here is v1.0.3 (2003-11-08). This is a video filter. It can handle YUV mode only. It supports multiple instances. It can be used as a pre-processing or as a post-processing filter.
+.IP
+.RS
+\(bu 
+.I luma 
+= \fI%f\fP  [default \fI4.000000\fP] 
+.RS 3
+spatial luma strength
+.RE
+\(bu 
+.I chroma 
+= \fI%f\fP  [default \fI3.000000\fP] 
+.RS 3
+spatial chroma strength
+.RE
+\(bu 
+.I luma_strength 
+= \fI%f\fP  [default \fI6.000000\fP] 
+.RS 3
+temporal luma strength
+.RE
+\(bu 
+.I chroma_strength 
+= \fI%f\fP  [default \fI8.000000\fP] 
+.RS 3
+temporal chroma strength
+.RE
+\(bu 
+.I pre 
+= \fI%d\fP  [default \fI0\fP] 
+.RS 3
+run as a pre filter
+.RE
+.IP
+What:
+The denoise3d filter from mplayer (sibling of hqdn3d). Works very crude and
+simple but also very fast. In fact it is even faster than the original from
+mplayer as I managed to tweak some things (a.o. zero frame copying).
+
+Who:
+Everyone who wants to have their captured frames thoroughly denoised (i.e. who
+want to encode to mpeg or mjpeg) but do not have enough processing power to
+real-time encode AND use hqdn3d (better quality but a lot slower) or dnr (yet
+slower), not to mention the other denoisers that are even slower. Quality is
+really good for static scenes (if fed with the right parameters), moving
+objects may show a little ghost-image (also depends on parameters) though. Your
+milage may vary.
+
+How:
+Parameters are the same as the hqdn3d module, although in practice you'll not
+end up with exactly the same values. Just experiment.  Particular for this
+version of the filter is that if you supply -1 to either component's parameters
+(luma/chroma), that component will not have the filter applied to. If you're
+still short on CPU cycles, try disabling the luma filter, this will not make
+much difference in the effectiveness of the filter!
+.RE
+.TP 4
 \fBdetectsilence\fP - \fBaudio silence detection with tcmp3cut commandline generation\fP
 \fBdetectsilence\fP was written by Tilmann Bitterberg. The version documented here is v0.0.1 (2003-07-26). This is a audio filter. It is a pre-processing only filter.
 .TP 4
