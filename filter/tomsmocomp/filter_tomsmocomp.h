@@ -23,20 +23,16 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "aclib/ac.h"
+
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
 
-#include "transcode.h"
-#include "framebuffer.h"
-#include "optstr.h"
-#include "aclib/ac.h"
 #include "dscaler_interface.h"
 
 

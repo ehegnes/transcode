@@ -27,23 +27,16 @@
 #define MOD_CAP     "compare with other image to find a pattern"
 #define MOD_AUTHOR  "Antonio Beamud"
 
-#define DELTA_COLOR 45.0
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
 
 #include <math.h>
 #include <inttypes.h>
 
+#define DELTA_COLOR 45.0
+
 // FIXME: Try to implement the YUV colorspace
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
-#include "transcode.h"
-#include "framebuffer.h"
-#include "filter.h"
-#include "optstr.h"
 
 // transcode defines this as well as ImageMagick.
 #undef PACKAGE_NAME

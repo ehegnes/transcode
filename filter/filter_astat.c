@@ -26,23 +26,14 @@
 #define MOD_CAP     "audio statistics filter plugin"
 #define MOD_AUTHOR  "Thomas Oestreich"
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
-#include "transcode.h"
-#include "framebuffer.h"
-#include "optstr.h"
 
 static int min=0, max=0, bytes_per_sec;
 static long total=0;

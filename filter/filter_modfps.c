@@ -52,20 +52,15 @@
 #define MOD_VERSION "v0.10 (2003-08-18)"
 #define MOD_CAP     "plugin to modify framerate"
 #define MOD_AUTHOR  "Marrq"
-//#define DEBUG 1
+
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
 
 #include <inttypes.h>
 #include <math.h>
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
-#include "transcode.h"
-#include "framebuffer.h"
-#include "optstr.h"
+//#define DEBUG 1
 
 // FIXME
 extern long int lrint(double x);

@@ -21,10 +21,10 @@
  *
  */
 
-#include "framebuffer.h"
-
 #ifndef _FILTER_H
 #define _FILTER_H 
+
+#include "framebuffer.h"
 
 #define MAX_FILTER 16
 

@@ -26,14 +26,8 @@
 #define MOD_CAP     "very cheap slow-motion effect"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
 #include "optstr.h"
 
 /*-------------------------------------------------

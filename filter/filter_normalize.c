@@ -38,18 +38,13 @@
 #define MOD_CAP     "Volume normalizer"
 #define MOD_AUTHOR  "pl, Tilmann Bitterberg"
 
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
+
 #include <math.h>
 #include <inttypes.h>
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
-#include "transcode.h"
-#include "framebuffer.h"
-#include "optstr.h"
 
 // basic parameter
 // mul is the value by which the samples are scaled

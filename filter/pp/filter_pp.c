@@ -26,25 +26,16 @@
 #define MOD_CAP     "Mplayers postprocess filters"
 #define MOD_AUTHOR  "Michael Niedermayer et al, Gerhard Monzel"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <inttypes.h>
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
 #include "filter.h"
 #include "optstr.h"
-#include "framebuffer.h"
-#include "postprocess.h"
+
 #include "aclib/ac.h"
+
+#include <ctype.h>
+#include <inttypes.h>
+
+#include "postprocess.h"
 
 static pp_mode_t *mode[MAX_FILTER];
 static pp_context_t *context[MAX_FILTER];

@@ -27,21 +27,11 @@
 #define MOD_CAP     "NTSC decimation plugin"
 #define MOD_AUTHOR  "Thanassis Tsiodras"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <inttypes.h>
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
 #include "optstr.h"
+
+#include <inttypes.h>
 
 static int show_results=0;
 

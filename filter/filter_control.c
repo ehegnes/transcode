@@ -26,20 +26,14 @@
 #define MOD_CAP     "apply a filter control list"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
-#include <ctype.h>
-#include <inttypes.h>
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
 #include "optstr.h"
 
 #include "src/socket.h"
+
+#include <ctype.h>
+#include <inttypes.h>
 
 #ifndef M_BUF_SIZE
 #define M_BUF_SIZE 8192

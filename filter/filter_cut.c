@@ -36,19 +36,13 @@
 #define MOD_CAP     "encode only listed frames"
 #define MOD_AUTHOR  "Thomas Östreich"
 
-// do the mod/step XXX
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
 #include "optstr.h"
 
 #include "libioaux/framecode.h"
+
+// do the mod/step XXX
 
 extern int max_frame_buffer;
 extern void tc_import_stop(void);

@@ -51,7 +51,6 @@
  *-------------------------------------------------*/
 
 #include "transcode.h"
-#include "framebuffer.h"
 #include "filter.h"
 #include "optstr.h"
 

@@ -32,19 +32,13 @@
 #define MOD_CAP     "render image in videostream"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
-#include <inttypes.h>
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "optstr.h"
-#include "framebuffer.h"
 #include "filter.h"
+#include "optstr.h"
+
 #include "export/vid_aux.h"
+
+#include <inttypes.h>
 
 // transcode defines this as well as ImageMagick.
 #undef PACKAGE_NAME

@@ -25,14 +25,8 @@
 #define MOD_CAP     "Motion-adaptive deinterlacing"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
 #include "optstr.h"
 
 //#undef HAVE_MMX

@@ -27,27 +27,11 @@
 #define MOD_CAP     "mjpegs YUV denoiser"
 #define MOD_AUTHOR  "Stefan Fendt, Tilmann Bitterberg"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
+#include "transcode.h"
+#include "filter.h"
 #include "optstr.h"
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-#include <unistd.h>
 #include <inttypes.h>
-
-#include "transcode.h"
-#include "framebuffer.h"
 
 #include "mjpeg_types.h"
 #include "libvo/mm_accel.h"

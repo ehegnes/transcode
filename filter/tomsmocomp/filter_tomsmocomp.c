@@ -27,16 +27,13 @@
 #define MOD_NAME    "filter_tomsmocomp.so"
 #define MOD_VERSION "v0.1 (2004-07-31)"
 #define MOD_CAP     "Tom's MoComp deinterlacing filter"
-#define MOD_AUTHORS "Tom Barry et al."
+#define MOD_AUTHOR  "Tom Barry et al."
 
 #define DS_HISTORY_SIZE 4		/* Need 4 fields(!) for tomsmocomp */
 
 #include "filter_tomsmocomp.h"
-#include "optstr.h"
 #include "transcoders.h"
 #include <assert.h>
-
-#include "transcode.h"
 
 static tomsmocomp_t *tmc_global = NULL;
 
@@ -255,7 +252,7 @@ int tc_filter (vframe_list_t *ptr, char *options)
     if (ptr->tag & TC_FILTER_GET_CONFIG) {
 	char buf[255];
 	optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION,
-			    MOD_AUTHORS, "VY4E", "1");
+			    MOD_AUTHOR, "VY4E", "1");
 	sprintf (buf, "%d", tmc->TopFirst);
 	optstr_param (options, "topfirst", "Assume the top field should be displayed first" ,"%d", buf, "0", "1");
 	sprintf (buf, "%d", tmc->SearchEffort);

@@ -26,14 +26,8 @@
 #define MOD_CAP     "generate stream of testframes"
 #define MOD_AUTHOR  "Thomas Oestreich"
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
 #include "optstr.h"
 
 static int mode=0;

@@ -24,28 +24,16 @@
 #define MOD_NAME    "filter_test.so"
 #define MOD_VERSION "v0.0.1 (2002-11-04)"
 #define MOD_CAP     "test filter plugin"
+#define MOD_AUTHOR  "Thomas Oestreich"
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "transcode.h"
+#include "filter.h"
 
 #include "aclib/ac.h"
 
 static char *buffer;
 
 static int ac=0, loop=0;
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
-#include "transcode.h"
-#include "framebuffer.h"
 
 static unsigned char *bufalloc(size_t size)
 {

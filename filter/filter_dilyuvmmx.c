@@ -26,18 +26,13 @@
 #define MOD_CAP     "yuv de-interlace filter plugin"
 #define MOD_AUTHOR  "Thomas Oestreich"
 
-#include <inttypes.h>
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
-#include "mmx.h"
+#include "filter.h"
 #include "optstr.h"
+
+#include "mmx.h"
+
+#include <inttypes.h>
 
 
 /*-------------------------------------------------

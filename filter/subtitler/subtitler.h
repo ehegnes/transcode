@@ -22,26 +22,21 @@
 #ifndef _SUBTITLER_H_
 #define _SUBTITLER_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <inttypes.h>
-#include <string.h>
 #include <stddef.h>
 #include <pwd.h>
 #include <ctype.h>
 #include <errno.h>
 #include <math.h>
 #include <limits.h>
-#include <pthread.h>
 
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
+#include "optstr.h"
+
 #include "load_font.h"
 #include "frame_list.h"
 #include "object_list.h"
-#include "optstr.h"
 
 
 /* maximum movie length in frames */

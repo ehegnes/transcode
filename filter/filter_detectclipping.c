@@ -27,17 +27,11 @@
 #define MOD_CAP     "detect clipping parameters (-j or -Y)"
 #define MOD_AUTHOR  "Tilmann Bitterberg, A'rpi"
 
-#include <inttypes.h>
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
 #include "optstr.h"
+
+#include <inttypes.h>
 
 // basic parameter
 

@@ -26,17 +26,11 @@
 #define MOD_CAP     "YUY2 to YV12 converter plugin"
 #define MOD_AUTHOR  "Thomas Oestreich"
 
-#include <inttypes.h>
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
 #include "optstr.h"
+
+#include <inttypes.h>
 
 void yuy2toyv12(char *dest, char *input, int width, int height) 
 {

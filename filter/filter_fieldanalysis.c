@@ -32,22 +32,18 @@
 #define MOD_CAP     "Field analysis for detecting interlace and telecine"
 #define MOD_AUTHOR  "Matthias Hopf"
 
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
+#if 0
+#include "aclib/ac.h"
 #endif
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
 #include <assert.h>
-
-#include "transcode.h"
-#include "framebuffer.h"
-#include "optstr.h"
-#if 0
-#include "aclib/ac.h"
-#endif
 
 
 /*

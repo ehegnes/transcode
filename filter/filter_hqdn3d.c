@@ -20,15 +20,14 @@
 #define MOD_NAME    "filter_hqdn3d.so"
 #define MOD_VERSION "v1.0.2 (2003-08-15)"
 #define MOD_CAP     "High Quality 3D Denoiser"
-#define MOD_AUTHOR  "Daniel Moreno & A'rpi"
+#define MOD_AUTHOR  "Daniel Moreno, A'rpi"
+
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
 
 #include <inttypes.h>
 #include <math.h>
-
-#include "transcode.h"
-#include "framebuffer.h"
-#include "filter.h"
-#include "optstr.h"
 
 #define PARAM1_DEFAULT 4.0
 #define PARAM2_DEFAULT 3.0

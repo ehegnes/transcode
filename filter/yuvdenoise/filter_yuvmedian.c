@@ -29,23 +29,11 @@
 #define MOD_CAP     "mjpegs YUV median filter"
 #define MOD_AUTHOR  "Mike Bernson, Tilmann Bitterberg"
 
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-#include <unistd.h>
-#include <inttypes.h>
-
 #include "transcode.h"
-#include "framebuffer.h"
 #include "filter.h"
-
 #include "optstr.h"
 
+#include <inttypes.h>
 
 #include "mjpeg_types.h"
 

@@ -27,23 +27,16 @@
 #define MOD_CAP     		"Colored ascii-art filter plugin; render a movie into ascii-art."
 #define MOD_AUTHOR		"Julien Tierny"
 
-#define MAX_LENGTH 			1024
-#define TMP_FILE			"raw"
-#define TMP_STRING_SIZE		7
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "tc_defaults.h"
-#include "framebuffer.h"
 #include "filter.h"
+#include "optstr.h"
+
 /* RGB2YUV features */
 #include "export/vid_aux.h"
-#include "optstr.h"
+
+#define MAX_LENGTH 		1024
+#define TMP_FILE		"raw"
+#define TMP_STRING_SIZE		7
 
 
 /*-------------------------------------------------
@@ -54,10 +47,10 @@
 
 
 typedef struct parameter_struct{
-	char 	aart_font[PATH_MAX];
-	char 	aart_pallete[PATH_MAX];
-	int		aart_threads;
-	int		aart_buffer;
+	char	aart_font[PATH_MAX];
+	char	aart_pallete[PATH_MAX];
+	int	aart_threads;
+	int	aart_buffer;
 } parameter_struct;
 
 static parameter_struct *parameters = NULL;

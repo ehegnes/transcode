@@ -39,14 +39,8 @@
 #define MOD_CAP     "skip all listed frames"
 #define MOD_AUTHOR  "Thomas Östreich, Thomas Wehrspann"
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
 #include "optstr.h"
 
 #include "libioaux/framecode.h"

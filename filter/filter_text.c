@@ -26,6 +26,12 @@
 #define MOD_CAP     "write text in the image"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
+
+#include "video_trans.h"
+
 #include <inttypes.h>
 
 // FreeType specific includes
@@ -33,16 +39,6 @@
 #ifdef FT_FREETYPE_H
 #include FT_FREETYPE_H
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
-#include "transcode.h"
-#include "framebuffer.h"
-#include "optstr.h"
-#include "video_trans.h"
 
 // basic parameter
 

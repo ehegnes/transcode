@@ -26,22 +26,12 @@
 #define MOD_CAP     "check for DivX 4.xx / OpenDivX / DivX;-) keyframe"
 #define MOD_AUTHOR  "Thomas Oestreich"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
+#include "optstr.h"
+
 #include "import/magic.h"
 #include "bitstream.h"
-#include "optstr.h"
 
 static char buffer[128];
 

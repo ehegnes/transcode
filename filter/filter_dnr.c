@@ -26,18 +26,13 @@
 #define MOD_CAP     "dynamic noise reduction"
 #define MOD_AUTHOR  "Gerhard Monzel"
 
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
+
 #include <inttypes.h>
 #include <math.h>
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
-#include "transcode.h"
-#include "framebuffer.h"
-#include "optstr.h"
 
 typedef unsigned char T_PIXEL;
 

@@ -29,19 +29,14 @@
 #define MOD_CAP     "White Balance Filter - correct images with a broken white balance"
 #define MOD_AUTHOR  "Guillaume Cottenceau"
 
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
+
+#include "export/vid_aux.h"
+
 #include <math.h>
 #include <ctype.h>
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
-#include "transcode.h"
-#include "framebuffer.h"
-#include "optstr.h"
-#include "export/vid_aux.h"
 
 static unsigned char * buffer = NULL;
 static int level = 40;

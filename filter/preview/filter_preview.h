@@ -1,17 +1,12 @@
 #ifndef _FILTER_PREVIEW_H
 #define _FILTER_PREVIEW_H
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/time.h>
-#include <unistd.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/mman.h>
-#include <fcntl.h>
 
 #include <libdv/dv_types.h>
 #include <libdv/dv.h>
+
 #include "display.h"
 
 #define DV_PLAYER_OPT_VERSION         0

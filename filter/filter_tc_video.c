@@ -26,14 +26,8 @@
 #define MOD_CAP     "video 23.9 -> 29.9 telecide filter"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
 #include "optstr.h"
 
 // this variable is for external control from transcode. Not enabled right now

@@ -29,7 +29,7 @@
 #define MOD_AUTHOR  "Jan Panteltje"
 
 #include "subtitler.h"
-//#include "src/framebuffer.h"
+
 
 /* for YUV to RGB in X11 */
 #define LIMIT(x) ((((x)>0xffffff)?0xff0000:(((x)<=0xffff)?0:(x)&0xff0000))>>16)

@@ -27,18 +27,13 @@
 #define MOD_CAP     "Mask people faces in video interviews."
 #define MOD_AUTHOR  "Julien Tierny"
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
 #include "filter.h"
+#include "optstr.h"
+
 /* RGB2YUV features */
 #include "export/vid_aux.h"
-#include "optstr.h"
+
 
 /*-------------------------------------------------
  *
@@ -47,8 +42,13 @@
  *-------------------------------------------------*/
 
 
-typedef struct parameter_struct{
-	int 	xpos, ypos, xresolution, yresolution, xdim, ydim;
+typedef struct parameter_struct {
+	int 	xpos;
+	int	ypos;
+	int	xresolution;
+	int	yresolution;
+	int	xdim;
+	int	ydim;
 } parameter_struct;
 
 static parameter_struct *parameters = NULL;

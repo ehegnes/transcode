@@ -26,37 +26,23 @@
 #define MOD_CAP     "DVD subtitle overlay plugin"
 #define MOD_AUTHOR  "Thomas Oestreich"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
 
+#include "dl_loader.h"
+#include "import/magic.h"
+
+#include "subtitle_buffer.h"
+#include "subproc.h"
+
 //provided by transcode
 extern void init_aa_table(double aa_weight, double aa_bias);
 extern void yuv_antialias(char *image, char *dest, int width, int height, int mode);
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
-#include "transcode.h"
-#include "dl_loader.h"
-#include "framebuffer.h"
-#include "subtitle_buffer.h"
-#include "import/magic.h"
-#include "subproc.h"
-
-#include "optstr.h"
 
 #define BUFFER_SIZE SIZE_RGB_FRAME
 #define SUBTITLE_BUFFER 100

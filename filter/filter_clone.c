@@ -26,14 +26,8 @@
 #define MOD_CAP     "frame rate conversion filter"
 #define MOD_AUTHOR  "Thomas Oestreich"
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
 
 /*-------------------------------------------------
  *

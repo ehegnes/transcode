@@ -26,17 +26,11 @@
 #define MOD_CAP     "3:2 inverse telecine removal plugin"
 #define MOD_AUTHOR  "Chad Page"
 
-#include <inttypes.h>
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
 #include "optstr.h"
+
+#include <inttypes.h>
 
 // basic parameter
 static int color_diff_threshold1=50;

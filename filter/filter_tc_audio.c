@@ -26,14 +26,8 @@
 #define MOD_CAP     "audio 23.9 -> 29.9 telecide filter"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
 #include "optstr.h"
 
 /*-------------------------------------------------

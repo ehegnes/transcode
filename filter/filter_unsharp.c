@@ -22,24 +22,17 @@
 #define MOD_CAP       "unsharp mask & gaussian blur"
 #define MOD_AUTHOR    "Rémi Guyomarch"
 
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
 
 #include <inttypes.h>
 #include <math.h>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #ifndef SYS_BSD
 # ifdef HAVE_MALLOC_H
 # include <malloc.h>
 # endif
 #endif
-
-#include "transcode.h"
-#include "framebuffer.h"
-#include "filter.h"
-#include "optstr.h"
 
 
 #ifndef MIN

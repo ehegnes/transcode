@@ -26,18 +26,11 @@
 #define MOD_CAP     "3:2 pulldown / interlace detection plugin"
 #define MOD_AUTHOR  "Thomas Oestreich"
 
-#include <inttypes.h>
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
 #include "filter.h"
 #include "optstr.h"
+
+#include <inttypes.h>
 
 // basic parameter
 
@@ -55,7 +48,8 @@ static int threshold[MAX_FILTER];              //=THRESHOLD;
 static int chroma_threshold[MAX_FILTER];       //=THRESHOLD/2; 
 static int show_results[MAX_FILTER];           //=0;
 
-static int pre[MAX_FILTER];// = 0;
+static int pre[MAX_FILTER];	// = 0;
+
 /*-------------------------------------------------
  *
  * single function interface

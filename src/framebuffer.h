@@ -21,11 +21,14 @@
  *
  */
 
-#include "config.h"
-#include <pthread.h>
-
 #ifndef _FRAMEBUFFER_H
 #define _FRAMEBUFFER_H 
+
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+
+#include <pthread.h>
 
 #define FRAME_NULL  -1
 #define FRAME_EMPTY  0

@@ -66,18 +66,12 @@
 #define MOD_NAME    "filter_logoaway.so"
 #define MOD_VERSION "v0.5 (2004-03-07)"
 #define MOD_CAP     "remove an image from the video"
-#define MOD_AUTHOR  "Thomas Wehrspann <thomas@wehrspann.de>"
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
+#define MOD_AUTHOR  "Thomas Wehrspann"
 
 #include "transcode.h"
-#include "framebuffer.h"
 #include "filter.h"
 #include "optstr.h"
+
 #include "tc_func_excl.h"
 
 // transcode defines this as well as ImageMagick.

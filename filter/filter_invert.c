@@ -26,17 +26,11 @@
 #define MOD_CAP     "invert the image"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
-#include <inttypes.h>
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
 #include "optstr.h"
+
+#include <inttypes.h>
 
 // basic parameter
 

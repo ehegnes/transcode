@@ -26,19 +26,13 @@
 #define MOD_CAP     "Core video transformations"
 #define MOD_AUTHOR  "Thomas Oestreich, Tilmann Bitterberg"
 
-#include <inttypes.h>
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
-#include "optstr.h"
 #include "filter.h"
-#include "src/video_trans.h"
+#include "optstr.h"
+
+#include "video_trans.h"
+
+#include <inttypes.h>
 
 // basic parameter
 unsigned char gamma_table[256];

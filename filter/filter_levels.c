@@ -22,14 +22,13 @@
 #define MOD_CAP     "Luminosity level scaler"
 #define MOD_AUTHOR  "Bryan Mayland"
 
-#define module "[" MOD_NAME "]: "
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
 
 #include <math.h>
 
-#include "transcode.h"
-#include "framebuffer.h"
-#include "filter.h"
-#include "optstr.h"
+#define module "[" MOD_NAME "]: "
 
 #define DEFAULT_IN_BLACK   0
 #define DEFAULT_IN_WHITE   255

@@ -28,23 +28,14 @@
 #define MOD_CAP     "High and low pass filter"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
-#include "transcode.h"
-#include "framebuffer.h"
-#include "optstr.h"
 
 static short *array_l = NULL, *array_r = NULL;
 static int taps     = 30;

@@ -49,16 +49,12 @@
 #define MOD_CAP     "Motion-adaptive deinterlacing for double-frame-rate output."
 #define MOD_AUTHOR  "Donald Graft, Tilmann Bitterberg"
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
 #include "optstr.h"
+
 #include "export/vid_aux.h"
+
 
 static vob_t *vob=NULL;
 

@@ -35,15 +35,10 @@
 #define MOD_CAP     "copy one audio channel to the other channel filter plugin"
 #define MOD_AUTHOR  "William H Wittig"
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
 #include "transcode.h"
-#include "framebuffer.h"
+#include "filter.h"
 #include "optstr.h"
+
 
 /*-------------------------------------------------
  * local utility functions

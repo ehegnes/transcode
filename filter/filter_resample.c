@@ -24,32 +24,19 @@
 #define MOD_NAME    "filter_resample.so"
 #define MOD_VERSION "v0.1.4 (2003-08-22)"
 #define MOD_CAP     "audio resampling filter plugin"
+#define MOD_AUTHOR  "Thomas Oestreich, Stefan Scheffler"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
+
 #include <ffmpeg/avcodec.h>
-#include <transcode.h>
 
 static char * resample_buffer = NULL;
 static int bytes_per_sample;
 static int error;
 static ReSampleContext *resamplecontext = NULL;
 static int resample_buffer_size;
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include "transcode.h"
-#include "framebuffer.h"
-#include "optstr.h"
 
 /*-------------------------------------------------
  *

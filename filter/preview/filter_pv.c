@@ -21,9 +21,16 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#define MOD_NAME    "filter_pv.so"
+#define MOD_VERSION "v0.2.3 (2004-06-01)"
+#define MOD_CAP     "xv only preview plugin"
+#define MOD_AUTHOR  "Thomas Oestreich, Tilmann Bitterberg"
+
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
+
+#include "video_trans.h"
 
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
@@ -33,31 +40,8 @@
 # endif
 #endif
 
-
-#define MOD_NAME    "filter_pv.so"
-#define MOD_VERSION "v0.2.3 (2004-06-01)"
-#define MOD_CAP     "xv only preview plugin"
-#define MOD_AUTHOR  "Thomas Oestreich, Tilmann Bitterberg"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 #include "pv.h"
-#include "optstr.h"
 #include "font_xpm.h"
-#include "filter.h"
-#include "video_trans.h"
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
-#include "transcode.h"
-#include "framebuffer.h"
 
 
 static int cache_num=0;

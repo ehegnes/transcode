@@ -26,25 +26,16 @@
 #define MOD_CAP     "audio silence detection with tcmp3cut commandline generation"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
 
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
-#include "transcode.h"
-#include "framebuffer.h"
-#include "optstr.h"
-
 static int a_rate, a_bits, chan; 
+
 
 /*-------------------------------------------------
  *

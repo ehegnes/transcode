@@ -24,6 +24,13 @@
 #define MOD_CAP     "High speed 3D Denoiser"
 #define MOD_AUTHOR  "Daniel Moreno, A'rpi"
 
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
+
+#include <inttypes.h>
+#include <math.h>
+
 #define module "[" MOD_NAME "]: "
 
 /*
@@ -39,14 +46,6 @@
 				denoising U&V (colour) planes now actually works
 	1.0.6	EMS	fixed annoying typo
 */
-
-#include <inttypes.h>
-#include <math.h>
-
-#include "transcode.h"
-#include "framebuffer.h"
-#include "filter.h"
-#include "optstr.h"
 
 #define MAX_PLANES 3
 
