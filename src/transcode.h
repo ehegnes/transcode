@@ -28,26 +28,48 @@
 #include "config.h"
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
-#include <unistd.h>
-#include <fcntl.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+#include <pthread.h>
 #include <signal.h>
-#include <string.h>
 #include <stdarg.h>
+#include <stdio.h>
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+#ifdef NET_STREAM
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#endif
+
 #include "avilib/avilib.h"
 #include "aclib/ac.h"
 #include "libioaux/framecode.h"
 
-#ifdef NET_STREAM
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#endif
 
 #ifdef __bsdi__
 typedef unsigned int uint32_t;
