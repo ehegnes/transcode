@@ -84,6 +84,7 @@ void probe_avi(info_t *ipipe)
       ipipe->probe_info->track[j].bits = AVI_audio_bits(avifile);
       ipipe->probe_info->track[j].format = AVI_audio_format(avifile);
       ipipe->probe_info->track[j].bitrate = AVI_audio_mp3rate(avifile);
+      ipipe->probe_info->track[j].padrate = AVI_audio_padrate(avifile);
 
       ipipe->probe_info->track[j].tid=j;
 

@@ -124,6 +124,7 @@ typedef struct track_s
     long   a_bits;            /* bits per audio sample */
     long   mp3rate;           /* mp3 bitrate kbs*/
     long   a_vbr;             /* 0 == no Variable BitRate */
+    long   padrate;	      /* byte rate used for zero padding */
 
     long   audio_strn;        /* Audio stream number */
     off_t  audio_bytes;       /* Total number of bytes of audio data */
@@ -272,6 +273,7 @@ avi_t *AVI_open_indexfd(int fd, int getIndex, char *indexfile);
 int avi_parse_input_file(avi_t *AVI, int getIndex);
 int avi_parse_index_from_file(avi_t *AVI, char *filename);
 long AVI_audio_mp3rate(avi_t *AVI);
+long AVI_audio_padrate(avi_t *AVI);
 long AVI_video_frames(avi_t *AVI);
 int  AVI_video_width(avi_t *AVI);
 int  AVI_video_height(avi_t *AVI);

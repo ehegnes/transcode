@@ -1758,6 +1758,8 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 	   // if samplesize==0 -> vbr
 	   AVI->track[AVI->aptr].a_vbr = !str2ulong(hdrl_data+i+44);
 
+	   AVI->track[AVI->aptr].padrate = str2ulong(hdrl_data+i+24);
+
 	   //	   auds_strh_seen = 1;
 	   lasttag = 2; /* auds */
 	   
@@ -2290,6 +2292,11 @@ int AVI_audio_channels(avi_t *AVI)
 long AVI_audio_mp3rate(avi_t *AVI)
 {
    return AVI->track[AVI->aptr].mp3rate;
+}
+
+long AVI_audio_padrate(avi_t *AVI)
+{
+   return AVI->track[AVI->aptr].padrate;
 }
 
 int AVI_audio_bits(avi_t *AVI)

@@ -3,10 +3,10 @@ transcode-0.6.11
 
 2003-09-30 Tilmann Bitterberg <transcode at tibit.org>
    
-   * import/{tcrequant.c getvlc.h putvlc.h Makefile.am}:
-   New tool tcrequant which can requantize an mpeg2 elementary
-   stream. Based on code by Antoine Missout. It can be used as a
-   standalone tool to make mpeg2 video streams smaller, for eg
+  * import/{tcrequant.c getvlc.h putvlc.h Makefile.am}:
+  New tool tcrequant which can requantize an mpeg2 elementary
+  stream. Based on code by Antoine Missout. It can be used as a
+  standalone tool to make mpeg2 video streams smaller, for eg
 
     tccat -i vobs/ -t vob | \
     tcdemux -s 0x80 -x mpeg2 -M 1 | \
@@ -31,22 +31,39 @@ transcode-0.6.11
 
 2003-09-30 Tilmann Bitterberg <transcode at tibit.org>
 
-   * import/import_ffmpeg.c:
-   Add keyframe detection stuff and cleanup.
+  * import/import_ffmpeg.c:
+  Add keyframe detection stuff and cleanup.
 
-   * src/probe.c:
-   Now the default import module for mpeg4 video is -x ffmpeg since
-   -x divx is not available on all platforms.
+  * src/probe.c:
+  Now the default import module for mpeg4 video is -x ffmpeg since
+  -x divx is not available on all platforms.
 
 2003-09-30 Tilmann Bitterberg <transcode at tibit.org>
 
-   * export/aud_aux.c:
-   Fix a bug when compiled with included lame
+  * export/aud_aux.c:
+  Fix a bug when compiled with included lame
+
+2003-09-29 Christopher Cramer <crayc at pyro.net>
+
+  * avilib/avilib.c avilib/avilib.h src/transcode.h
+  import/extract_avi.c src/probe.c: Retrieve audio padding rate.
+
+  * import/import_mp3.c import/tcdecode.c import/decode_mp3.c:
+  Pad beginning with silence when AVI audio padding rate is available
+  and zero padding exists (adds -z option to tcdecode).
+
+  I've encountered a few avi files that have zero padding at the
+  beginning of the audio stream to indicate silence. The rate of the
+  zero padding is indicated by the rate field in the strh/auds
+  chunk. The scale field in the same strh/auds chunk, and the fields
+  in the strf/auds chunk and in the audio stream itself appear to be
+  unrelated. I'm told this is put in by nandub, taking advantage of
+  a directshow bug, for audio synchronization.  
 
 2003-09-29 Tilmann Bitterberg <transcode at tibit.org>
    
-   * import/clone.c src/decoder.c:
-   Fix a few compiler warnings
+  * import/clone.c src/decoder.c:
+  Fix a few compiler warnings
 
 2003-09-29 Tilmann Bitterberg <transcode at tibit.org>
 

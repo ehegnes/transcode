@@ -314,6 +314,8 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   }
 
   if(info->track[track].bitrate>0) vob->a_stream_bitrate = info->track[track].bitrate;
+
+  if(info->track[track].padrate>0) vob->a_padrate = info->track[track].padrate;
   
   if( !(*flag & TC_PROBE_NO_ACODEC)) {
     if(info->track[track].format>0) vob->fixme_a_codec = info->track[track].format; 

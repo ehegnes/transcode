@@ -154,6 +154,8 @@ typedef struct _vob_t {
   int a_bits;
   int a_rate;
 
+  int a_padrate;            // zero padding rate
+
   int im_a_size;            // import total bytes per audio frame 
   int ex_a_size;            // export total bytes per audio frame 
 
@@ -351,6 +353,7 @@ typedef struct pcm_s {
   int chan;
   int bits;
   int bitrate;
+  int padrate;         // byterate for zero padding
   
   int format;
   int lang;
@@ -413,6 +416,8 @@ typedef struct _info_t {
   
   int width;      // logical stream parameter
   int height;     // logical stream parameter
+
+  int padrate;    // zero padding rate
   
   long stype;     // specifies stream type for extract thread
   long codec;     // specifies codec for decoder thread

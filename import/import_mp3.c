@@ -95,34 +95,36 @@ MOD_open
 	
 	if (offset && vob->nav_seek_file) {
 	  if((snprintf(import_cmd_buf, MAX_BUF, 
-			"tcextract -a %d -i \"%s\" -x %s -d %d -f %s -C %d-%d | tcdecode -x %s -d %d", 
+			"tcextract -a %d -i \"%s\" -x %s -d %d -f %s -C %d-%d | tcdecode -x %s -d %d -z %d", 
 			vob->a_track, vob->audio_in_file, 
 			(vob->fixme_a_codec==0x50?"mp2":"mp3"), vob->verbose, 
 			vob->nav_seek_file, offset, offset+1, 
-			(vob->fixme_a_codec==0x50?"mp2":"mp3"), vob->verbose)<0)) {
+			(vob->fixme_a_codec==0x50?"mp2":"mp3"), vob->verbose,
+			vob->a_padrate)<0)) {
 	    perror("command buffer overflow");
 	    return(TC_IMPORT_ERROR);
 	  }
 	} else {
 	  if (is_dir) {
 	    if((snprintf(import_cmd_buf, MAX_BUF, 
-			"tccat -a -i %s | tcextract -a %d -x %s -d %d | tcdecode -x %s -d %d", 
+			"tccat -a -i %s | tcextract -a %d -x %s -d %d | tcdecode -x %s -d %d -z %d", 
 			vob->audio_in_file, vob->a_track,
 			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
 			vob->verbose, 
 			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
-			vob->verbose)<0)) {
+			vob->verbose,
+			vob->a_padrate)<0)) {
 	      perror("command buffer overflow");
 	      return(TC_IMPORT_ERROR);
 	    }
 	  } else {
 	    if((snprintf(import_cmd_buf, MAX_BUF, 
-			"tcextract -a %d -i \"%s\" -x %s -d %d | tcdecode -x %s -d %d", 
+			"tcextract -a %d -i \"%s\" -x %s -d %d | tcdecode -x %s -d %d -z %d", 
 			vob->a_track, vob->audio_in_file, 
 			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
 			vob->verbose, 
 			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
-			vob->verbose)<0)) {
+			vob->verbose, vob->a_padrate)<0)) {
 	    perror("command buffer overflow");
 	    return(TC_IMPORT_ERROR);
 	    }

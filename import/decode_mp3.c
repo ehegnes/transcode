@@ -61,7 +61,7 @@ void decode_mp3(info_t *ipipe)
   
 #ifdef LAME_3_89
  
-  int samples=0, j, bytes, channels=0, i;
+  int samples=0, j, bytes, channels=0, i, padding=0, c;
   
   mp3data_struct *mp3data;
   
@@ -85,10 +85,26 @@ void decode_mp3(info_t *ipipe)
   
   in_file = fdopen(ipipe->fd_in, "r");
 
+  while (!(c = fgetc(in_file))) padding++;
+  if (c != EOF) ungetc(c, in_file);
+
   samples=lame_decode_initfile(in_file, mp3data, 0x55);
 
   if (verbose)
     fprintf(stderr, "(%s) channels=%d, samplerate=%d Hz, bitrate=%d kbps, (%d)\n", __FILE__, mp3data->stereo, mp3data->samplerate, mp3data->bitrate, mp3data->framesize);
+
+  if (ipipe->padrate > 0) {
+    padding = (int)((double)padding / (double)ipipe->padrate * mp3data->samplerate)
+      * mp3data->stereo * 2;
+    memset(buffer, 0, sizeof(buffer));
+    while (padding >= sizeof(buffer)) {
+      if (p_write(ipipe->fd_out, (char *)buffer, sizeof(buffer)) < 0)
+        import_exit(0);
+      padding -= sizeof(buffer);
+    }
+    if (padding && p_write(ipipe->fd_out, (char *)buffer, padding) < 0)
+      import_exit(0);
+  }
   
   // decoder loop
 
