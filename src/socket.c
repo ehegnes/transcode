@@ -24,24 +24,15 @@
  * This file opens a socket and lets transcode be configured over it.
  * use tcmodinfo -s FILE to connect
  */
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "transcode.h"
 #include "filter.h"
 #include "socket.h"
 
 //for the socket
-#include <sys/time.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#include <signal.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <pthread.h>
 
 extern char* socket_file; // transcode.c
 

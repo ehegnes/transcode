@@ -29,15 +29,10 @@
 #ifndef PV_H
 #define PV_H
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/time.h>
-#include <unistd.h>
-//#include <stdint.h>
+#include "transcode.h"
+
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/mman.h>
-#include <fcntl.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -45,8 +40,6 @@
 #include <X11/extensions/XShm.h>
 #include <X11/extensions/Xvlib.h>
 #include <X11/Xatom.h>
-
-#include "transcode.h"
 
 #define DV_FOURCC_YV12  0x32315659	/* 4:2:0 Planar mode: Y + V + U  (3 planes) */
 #define DV_FOURCC_YUY2  0x32595559	/* 4:2:2 Packed mode: Y0+U0+Y1+V0 (1 plane) */

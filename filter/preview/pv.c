@@ -26,21 +26,14 @@
  *
  */
 
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
 
 #include "pv.h"
 #include "src/socket.h"
 
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 // FIXME: Use autoconf for this!!
 #ifdef SYS_BSD /* We don't have on_exit() */
