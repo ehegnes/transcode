@@ -1,6 +1,13 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-02-13 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/zoom.c:
+  Make sure that we really use right as an int. It triggers
+  apperantly a compiler bug with gcc-3.3.2. Thanks to James MacLean
+  for testing.
+
 2004-02-04 Tilmann Bitterberg <transcode at tibit.org>
 
   * ffmpeg/libavcodec/i386/* configure.in:

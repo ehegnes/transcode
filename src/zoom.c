@@ -311,7 +311,7 @@ int i;                      * pixel_t column in source bitmap being processed */
         center = (double) i / xscale;
         left = ceil(center - width);
         right = floor(center + width);
-        for(j = (int)left; j <= right; ++j)
+        for(j = (int)left; j <= (int)right; ++j)
         {
             weight = center - (double) j;
             weight = (*filterf)(weight / fscale) / fscale;
@@ -340,7 +340,7 @@ int i;                      * pixel_t column in source bitmap being processed */
         left = ceil(center - fwidth);
         right = floor(center + fwidth);
 
-        for(j = (int)left; j <= right; ++j)
+        for(j = (int)left; j <= (int)right; ++j)
         {
             weight = center - (double) j;
             weight = (*filterf)(weight);
@@ -422,7 +422,7 @@ zoom_image_init(image_t *dst, image_t *src, double (*filterf)(double), double fw
             center = (double) i / yscale;
             left = ceil(center - width);
             right = floor(center + width);
-            for(j = (int)left; j <= right; ++j) {
+            for(j = (int)left; j <= (int)right; ++j) {
                 weight = center - (double) j;
                 weight = (*filterf)(weight / fscale) / fscale;
                 if(j < 0) {
@@ -450,7 +450,7 @@ zoom_image_init(image_t *dst, image_t *src, double (*filterf)(double), double fw
             center = (double) i / yscale;
             left = ceil(center - fwidth);
             right = floor(center + fwidth);
-            for(j = (int)left; j <= right; ++j) {
+            for(j = (int)left; j <= (int)right; ++j) {
                 weight = center - (double) j;
                 weight = (*filterf)(weight);
                 if(j < 0) {
