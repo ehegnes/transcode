@@ -297,8 +297,11 @@
 /* Have Lame-3.89 or newer */
 #undef LAME_3_89
 
-/* Have libdv 0.99 or newer */
+/* Have libdv 0.95 or newer */
 #undef LIBDV_095
+
+/* Have libdv 0.99 or newer */
+#undef LIBDV_099
 
 /* Define to 1 if `lstat' dereferences a symlink specified with a trailing
    slash. */

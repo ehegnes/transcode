@@ -325,7 +325,9 @@ MOD_encode
       //} 
       //}
       
+#ifdef LIBDV_099
       encoder->samples_this_frame=param->size;
+#endif
 
       //memcpy(audio.data, param->buffer, param->size);
       //_dv_raw_insert_audio(target, &audio, encoder->isPAL);

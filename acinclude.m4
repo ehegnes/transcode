@@ -516,11 +516,18 @@ if test x$with_dv = "x"yes ; then
        AC_DEFINE(HAVE_DV) have_dv=yes],have_dv=no, 
 	-L$with_dv_l -ldv ${EXTRA_LIBS})
 
+	dnl check for version >= 0.9.5	
+	AC_CHECK_LIB(dv, dv_encoder_new,
+      [DV_CFLAGS="-I$with_dv_i ${GLIB_CFLAGS} -I/usr/local/include"	
+       DV_LIBS="-L$with_dv_l -ldv ${EXTRA_LIBS}"
+       AC_DEFINE([LIBDV_095], 1, [Have libdv 0.95 or newer])],, 
+	-L$with_dv_l -ldv ${EXTRA_LIBS})
+
 	dnl check for version >= 0.9.9	
 	AC_CHECK_LIB(dv, dv_calculate_samples,
       [DV_CFLAGS="-I$with_dv_i ${GLIB_CFLAGS} -I/usr/local/include"	
        DV_LIBS="-L$with_dv_l -ldv ${EXTRA_LIBS}"
-       AC_DEFINE([LIBDV_095], 1, [Have libdv 0.99 or newer])],, 
+       AC_DEFINE([LIBDV_099], 1, [Have libdv 0.99 or newer])],, 
 	-L$with_dv_l -ldv ${EXTRA_LIBS})
 
 else

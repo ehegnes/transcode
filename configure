@@ -16587,6 +16587,71 @@ else
 fi
 
 
+		echo "$as_me:$LINENO: checking for dv_encoder_new in -ldv" >&5
+echo $ECHO_N "checking for dv_encoder_new in -ldv... $ECHO_C" >&6
+if test "${ac_cv_lib_dv_dv_encoder_new+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ldv -L$with_dv_l -ldv ${EXTRA_LIBS} $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char dv_encoder_new ();
+int
+main ()
+{
+dv_encoder_new ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_dv_dv_encoder_new=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_dv_dv_encoder_new=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_dv_dv_encoder_new" >&5
+echo "${ECHO_T}$ac_cv_lib_dv_dv_encoder_new" >&6
+if test $ac_cv_lib_dv_dv_encoder_new = yes; then
+  DV_CFLAGS="-I$with_dv_i ${GLIB_CFLAGS} -I/usr/local/include"
+       DV_LIBS="-L$with_dv_l -ldv ${EXTRA_LIBS}"
+
+cat >>confdefs.h <<\_ACEOF
+#define LIBDV_095 1
+_ACEOF
+
+fi
+
+
 		echo "$as_me:$LINENO: checking for dv_calculate_samples in -ldv" >&5
 echo $ECHO_N "checking for dv_calculate_samples in -ldv... $ECHO_C" >&6
 if test "${ac_cv_lib_dv_dv_calculate_samples+set}" = set; then
@@ -16646,7 +16711,7 @@ if test $ac_cv_lib_dv_dv_calculate_samples = yes; then
        DV_LIBS="-L$with_dv_l -ldv ${EXTRA_LIBS}"
 
 cat >>confdefs.h <<\_ACEOF
-#define LIBDV_095 1
+#define LIBDV_099 1
 _ACEOF
 
 fi
