@@ -44,7 +44,7 @@
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_YUV|TC_CAP_RGB|TC_CAP_VID|TC_CAP_PCM;
 
-#define MOD_PRE mplayer
+#define MOD_PRE ffbin
 #include "import_def.h"
 
 #define MAX_BUF 1024

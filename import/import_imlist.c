@@ -49,7 +49,7 @@
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_RGB|TC_CAP_VID|TC_CAP_AUD;
 
-#define MOD_PRE im
+#define MOD_PRE imlist
 #include "import_def.h"
 
 #define MAX_BUF 1024
