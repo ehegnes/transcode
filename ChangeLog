@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-07-12 Scott F. Johnston <scott at fleetingimage.com>
+
+  * export/export_jpg.c:
+  Use user supplied quality value.
+
 2004-06-11 Tilmann Bitterberg <transcode at tibit.org>
 
   * filter/Makefile.am:

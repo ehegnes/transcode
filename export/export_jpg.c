@@ -95,7 +95,7 @@ static void write_yuv_JPEG_file(char *filename, int quality,
   jpeg_set_defaults(&encinfo);
   encinfo.dct_method = JDCT_FASTEST;
 
-  jpeg_set_quality(&encinfo, JPEG_DEFAULT_QUALITY, TRUE);
+  jpeg_set_quality(&encinfo, quality, TRUE);
   encinfo.raw_data_in = TRUE;
   encinfo.in_color_space = JCS_YCbCr;
 
