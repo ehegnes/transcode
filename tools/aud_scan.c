@@ -24,6 +24,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <inttypes.h>
 
@@ -325,4 +326,23 @@ int tc_probe_audio_header(unsigned char *buf, int buflen)
 int tc_format_ms_supported(int format) {
     if (format == 0x55 || format == 0x2000 || format == 0x2001 || format == 0x1) return 1;
     return 0;
+}
+
+void tc_format_mute(unsigned char *buf, int buflen, int format) {
+    switch (format) {
+	case 0x1:
+	    memset (buf, 0, buflen);
+	    break;
+	case 0x55:
+	    memset (buf+4, 0, buflen-4);
+	    break;
+	case 0x2000:
+	case 0x2001:
+	    // check me!
+	    memset (buf+4, 0, buflen-4);
+	    break;
+	default:
+	    return;
+
+    }
 }

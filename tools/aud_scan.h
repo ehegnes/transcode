@@ -32,4 +32,5 @@ int tc_get_audio_header(unsigned char* buf, int buflen, int format, int* chans, 
 int tc_probe_audio_header(unsigned char* buf, int buflen);
 
 int tc_format_ms_supported(int format);
+void tc_format_mute(unsigned char *buf, int buflen, int format);
 
