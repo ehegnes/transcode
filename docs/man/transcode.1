@@ -389,10 +389,11 @@ COUNTER     128
 PRIVATE     256
 .TP
 .B \-r \fIn\fP[,\fIm\fP]
-reduce video height/width by n[,m] [off].
+reduce video height/width by n[,m] [off]. Example: \-r \fI2\fP will rescale the
+framesize of a 720x576 file to 720x288.
 .TP
 .B \-s \fIgain\fP,[\fIcenter\fP,[\fIfront\fP,[\fIrear\fP]]]
-increase volume of audio stream by gain[center,front,rear] default [off,1,1,1].
+increase volume of audio stream by gain,[center,front,rear] default [off,1,1,1].
 .TP
 .B \-t \fIn\fP,\fIbase\fP
 split output to \fIbase\fP%03d.avi with \fIn\fP frames [off].
@@ -406,7 +407,7 @@ print version.
 .B \-w \fIb\fP[\fI,k\fP[\fI,c\fP]]
 encoder bitrate[,keyframes[,crispness]] [1800,250,100].
 .TP
-.B \-x \fIvmod[,amod]\fP
+.B \-x \fIvmod\fP[\fI,amod\fP]
 video[,audio] import modules [auto,auto]. If omitted, transcode will probe
 for appropriate import modules. A full-blown transcode installation has the following import modules:
 .IP
@@ -448,7 +449,7 @@ Module "null": (video) null | (audio) null
 .br
 Module "nvrec": (video) nvrec - v4l | (audio) nvrec - dsp
 .br
-Module "ogg": (audio) OGG Vorbis
+Module "ogg": (video) * | (audio) Ogg Vorbis
 .br
 Module "raw": (video) RGB/YUV | (audio) PCM
 .br
@@ -468,7 +469,7 @@ Module "yuv4mpeg": (video) YUV4MPEGx | (audio) WAVE
 .IP
 To see what your transcode has, do a  
 .br
-.B ls -1 $TRANSCODE_MOD_PATH/import*.so
+.B ls -1 `tcmodinfo -p`/import*.so
 .IP
 It is possible to pass option strings to import modules like to filter modules.
 The average user does not this feature and not many modules support it. The syntax is
@@ -480,7 +481,7 @@ Example
 To tell the rawlist import module (which reads images from a list of files) the
 colour space of the images.
 .TP
-.B \-y \fIvmod[,amod]\fP
+.B \-y \fIvmod\fP[\fI,amod\fP]
 video[,audio] export modules [null].  If omitted, transcode will encode to
 the \fInull\fP module. A full-blown transcode installation has the following
 export modules:
@@ -549,7 +550,7 @@ Module "yuv4mpeg": (video) YUV4MPEG2 | (audio) MPEG/AC3/PCM
 .IP
 To see what your transcode has, do a  
 .br
-.B ls -1 $TRANSCODE_MOD_PATH/export*.so
+.B ls -1 `tcmodinfo -p`/export*.so
 .IP
 It is possible to pass option strings to export modules like to filter modules.
 The syntax is
