@@ -94,6 +94,13 @@ int (*TCA_export)(int opt, void *para1, void *para2);
 int (*TCV_import)(int opt, void *para1, void *para2);
 int (*TCA_import)(int opt, void *para1, void *para2);
 
+int tcv_import(int a, void *b, void *c) {
+    return 0;
+}
+void init_aa_table(double a, double b) {
+    return;
+}
+
 void tc_error(char *fmt, ...)
 {
       fprintf(stderr, "critical error: %s - exit\n", fmt);

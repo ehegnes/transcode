@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-09-03 Tilmann Bitterberg <transcode at tibit.org>
+  
+   * filter/extsub/filter_extsub.c tools/tcmodinfo:
+   Enable option string interface in the subtitle filter.
+
 2003-09-03 Nicolas Laurent <nl at gnu.org>
    
    * export/aud_aux.c: 
@@ -10,7 +15,8 @@ transcode-0.6.10
 2003-09-02 Tilmann Bitterberg <transcode at tibit.org>
 
    * import/{Makefile.am Makefile.in fileinfo.c ioaux.c magic.h
-   probe_stream.c tc.h tcxpm2rgb.c import_vnc.c probe_vnc.c}:
+   probe_stream.c tc.h tcxpm2rgb.c import_vnc.c probe_vnc.c
+   src/probe.c}:
    Enable support for VNC (Virtual Network Client) recordings. To
    use this (IMHO pretty cool) feature, you need vncrec from
    <http://www.sodan.org/~penny/vncrec/>

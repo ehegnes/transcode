@@ -22,8 +22,9 @@
  */
 
 #define MOD_NAME    "filter_extsub.so"
-#define MOD_VERSION "0.3.2 (2002-04-14)"
+#define MOD_VERSION "0.3.3 (2003-09-03)"
 #define MOD_CAP     "DVD subtitle overlay plugin"
+#define MOD_AUTHOR  "Thomas Oestreich"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,6 +59,8 @@ extern void yuv_antialias(char *image, char *dest, int width, int height, int mo
 #include "subtitle_buffer.h"
 #include "import/magic.h"
 #include "subproc.h"
+
+#include "optstr.h"
 
 #define BUFFER_SIZE SIZE_RGB_FRAME
 #define SUBTITLE_BUFFER 100
@@ -382,6 +385,13 @@ void subtitle_overlay(char *vid_frame, int w, int h)
  *
  *-------------------------------------------------*/
 
+static int is_optstr (char *buf) {
+    if (strchr(buf, 'h')) return 1;
+    if (strchr(buf, '='))
+	return 1;
+    return 0;
+}
+
 int tc_filter(vframe_list_t *ptr, char *options)
 {
 
@@ -409,6 +419,20 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //
   // (6) filter is last time with TC_FILTER_CLOSE flag set
 
+  if (ptr->tag & TC_FILTER_GET_CONFIG) {
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYOE", "1");
+      optstr_param (options, "track",   "Subtitle track to render",    "%d",    "0", "0", "255");
+      optstr_param (options, "vertshift", "offset of subtitle with respect to bottom of frame in rows", "%d",  "0", "0", "height");
+      optstr_param (options, "timeshift", "global display start time correction in msec",    "%d",    "0", "0", "-1");
+      optstr_param (options, "antialias", "anti-aliasing the rendered text (0=off,1=on)",    "%d",    "1", "0", "1");
+      optstr_param (options, "pre",   "Run as a pre filter",    "%d",    "1", "0", "1");
+      optstr_param (options, "color1", "Make a subtitle color visible with given intensity", "%d",  "0", "0", "255");
+      optstr_param (options, "color2", "Make a subtitle color visible with given intensity", "%d",  "0", "0", "255");
+      optstr_param (options, "ca",   " Shuffle the color assignment by choosing another subtitle color",    "%d", "0", "0", "3");
+      optstr_param (options, "cb",   " Shuffle the color assignment by choosing another subtitle color",    "%d", "0", "0", "3");
+
+      return 0;
+  }
 
   //----------------------------------
   //
@@ -429,7 +453,23 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
     //------------------------------------------------------------
 
-    if(options != NULL) n=sscanf(options,"%d:%d:%d:%d:%d:%d:%d:%d:%d", &vob->s_track, &vshift, &tshift, &skip_anti_alias, &post, &color1, &color2, &ca, &cb);
+    if(options != NULL) {
+	if (!is_optstr(options)) {
+	    n=sscanf(options,"%d:%d:%d:%d:%d:%d:%d:%d:%d", &vob->s_track, &vshift, &tshift, &skip_anti_alias, &post, &color1, &color2, &ca, &cb);
+	} else { // new options
+	    //fprintf(stderr, "[%s] NEW options\n", MOD_NAME);
+	    optstr_get (options, "track", "%d", &vob->s_track);
+	    optstr_get (options, "vertshift", "%d", &vshift);
+	    optstr_get (options, "timeshift", "%d", &tshift);
+	if (optstr_get (options, "antialias", "%d", &skip_anti_alias)>=0) skip_anti_alias = !skip_anti_alias;
+	if (optstr_get (options, "pre", "%d", &post)>=0) post = !post;
+	    optstr_get (options, "color1", "%d", &color1);
+	    optstr_get (options, "color2", "%d", &color2);
+	if (optstr_get (options, "ca", "%d", &ca)>=0) n = 9;
+	if (optstr_get (options, "cb", "%d", &cb)>=0) n = 9;
+	if (optstr_lookup (options, "help")) return (-1);
+	}
+    }
     
     if(n>8) color_set_done=1;
     
