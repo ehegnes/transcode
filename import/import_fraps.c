@@ -25,7 +25,10 @@
  * Binary layout is as follows:
  * Each frame has an 8 byte header which I know nothing about it.
  * Then comes data which is organized into 24 bytes blocks:
- * 4bytes luma | 4bytes = next line luma | 2 bytes Cr | 2 bytes Cb
+ * 
+ *   8bytes luma | 8bytes = next line luma | 4 bytes Cr | 4 bytes Cb
+ *
+ * So one 24 bytes block makes defines 8x2 pixels
  *
  */
 
