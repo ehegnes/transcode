@@ -59,6 +59,27 @@ static int cmp_32_bits(char *buf, long x)
   return 1;
 }
 
+static int cmp_28_bits(char *buf, long x)
+{
+  
+  if(0) {
+    fprintf(stderr, "MAGIC: 0x%02lx 0x%02lx 0x%02lx 0x%02lx %s\n", (x >> 24) & 0xff, ((x >> 16) & 0xff), ((x >>  8) & 0xff), ((x      ) & 0xff), filetype(x));
+    fprintf(stderr, " FILE: 0x%02x 0x%02x 0x%02x 0x%02x\n", buf[0] & 0xff, buf[1] & 0xff, buf[2] & 0xff, buf[3] & 0xff);
+  }
+    
+  if ((uint8_t)buf[0] != ((x >> 24) & 0xff))
+    return 0;
+  if ((uint8_t)buf[1] != ((x >> 16) & 0xff))
+    return 0;
+  if ((uint8_t)buf[2] != ((x >>  8) & 0xff))
+    return 0;
+  if ((uint8_t)(buf[3] & 0xf0) != ((x      ) & 0xff))
+    return 0;
+  
+  // OK found it
+  return 1;
+}
+
 
 static int cmp_16_bits(char *buf, long x)
 {
@@ -244,14 +265,7 @@ long fileinfo(int fdes, int skip)
 
   // MPEG Video / .VDR
   
-  if(cmp_32_bits(buf, TC_MAGIC_MPEG)) { 
-    id = TC_MAGIC_MPEG;
-    goto exit;
-  }
-
-  // MPEG Video / .VDR
-  
-  if(cmp_32_bits(buf, TC_MAGIC_MPEG_E4)) { 
+  if(cmp_28_bits(buf, TC_MAGIC_MPEG)) { 
     id = TC_MAGIC_MPEG;
     goto exit;
   }
@@ -704,7 +718,6 @@ char *filetype(long magic)
   case TC_MAGIC_M2V:          return("MPEG elementary stream (ES)");
   case TC_MAGIC_TS:           return("MPEG transport stream (TS)");
   case TC_MAGIC_MPEG:         return("MPEG packetized elementary stream (PES)");
-  case TC_MAGIC_MPEG_E4:      return("MPEG/VDR packetized elementary stream (PES)");
   case TC_MAGIC_AVI:          return("RIFF data, AVI video");
   case TC_MAGIC_WAV:          return("RIFF data, WAVE audio");
   case TC_MAGIC_CDXA:         return("RIFF data, CDXA");
