@@ -29,5 +29,4 @@ struct frame
 struct frame *frametab[FRAME_HASH_SIZE];
 
 
-#endif //_FRAME_LIST_H
-
+#endif _FRAME_LIST_H

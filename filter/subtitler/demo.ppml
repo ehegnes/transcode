@@ -110,7 +110,7 @@
 
 6 *counter espace=10 despace=.5 outline=0 doutline=.1
 
-6 *subtitle expace=2 despace=.4
+6 *subtitle espace=2 despace=.4
 
 ;*counter2 frame_counter
 ;7 *counter2 escape=10

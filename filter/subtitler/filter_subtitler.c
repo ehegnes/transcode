@@ -26,7 +26,7 @@
 //#include "../../src/framebuffer.h"
 
 #define MOD_NAME    "filter_subtitler.so"
-#define MOD_VERSION "v0.4 (2002-02-19)"
+#define MOD_VERSION "v0.6.5 (2002-06-12)"
 #define MOD_CAP     "subtitle filter"
 
 /* for YUV to RGB in X11 */
@@ -120,6 +120,9 @@ if(pfl->tag & TC_FILTER_INIT)
 	/* set some defaults */
 
 	/* for subtitles */
+
+	/* use post processing */
+	use_pre_processing_flag = 0;
 
 	/* a frame in transcode is 40 ms */
 	frame_offset = 0;
@@ -287,18 +290,33 @@ if(pfl->tag & TC_FILTER_INIT)
 			sscanf(token, "font_factor=%f", &default_font_factor);
 			sscanf(token, "frame_offset=%d", &frame_offset);
 			sscanf(token, "movie_id=%d", &movie_id);
+			if(strcmp(token, "use_pre_processing") == 0)
+				{
+				use_pre_processing_flag = 1;
+				}
 			} /* end while parse options */
 
 		free(running);
 		} /* end if options */
 
+	if(use_pre_processing_flag)
+		{
+		printf("subtitler(): Using pre processing\n");
+		}
+	else
+		{
+		printf("subtitler(): Using post processing\n");
+		}
+
 	if(debug_flag)
 		{		
 		printf("subtitler(): PARSER RESULT\n\
 		write_ppm_flag=%d add_objects_flag=%d show_output_flag=%d\n\
-		color_depth=%d frame_offset=%d movie_id=%d\n",\
+		color_depth=%d frame_offset=%d movie_id=%d\n\
+		use_pre_processing_flag=%d\n",\
 		write_ppm_flag, add_objects_flag, show_output_flag,\
-		color_depth, frame_offset, movie_id\
+		color_depth, frame_offset, movie_id,\
+		use_pre_processing_flag\
 		);
 		}
 
@@ -384,8 +402,20 @@ if(verbose & TC_STATS)
 
 //	}
 
-/* add the subtitles, after the coding, else edges in text get bad */
-if( (pfl->tag & TC_POST_PROCESS) && (pfl->tag & TC_VIDEO) )
+/* 
+default:
+add the subtitles, after the coding, else edges in text get bad 
+*/
+if(use_pre_processing_flag)
+	{
+	a = (pfl->tag & TC_PRE_PROCESS) && (pfl->tag & TC_VIDEO);
+	}
+else
+	{
+	a = (pfl->tag & TC_POST_PROCESS) && (pfl->tag & TC_VIDEO);
+	}
+
+if(a)
 	{
 	ImageData = pfl->video_buf;
 	image_width = pfl->v_width;
@@ -410,12 +440,14 @@ if( (pfl->tag & TC_POST_PROCESS) && (pfl->tag & TC_VIDEO) )
 	calculate where to put and how to reformat the subtitles.
 	These are globals.
 	*/
-	line_h_start = subtitle_h_factor * image_width;
-	line_h_end = image_width - line_h_start;
-	window_bottom = image_height - (subtitle_v_factor * image_height);
+	line_h_start = subtitle_h_factor * (double)image_width;
+	line_h_end = (double)image_width - (double)line_h_start;
+	window_bottom = image_height - (subtitle_v_factor * (double)image_height);
 
-//printf("WAS PROC h_factor=%.2f v_factor=%.2f\n",\
-//subtitle_h_factor, subtitle_v_factor);
+//printf("WAS PROC h_factor=%.2f v_factor=%.2f\n\
+//line_h_start=%d line_h_end=%d window_bottom=%d\n",\
+//subtitle_h_factor, subtitle_v_factor,\
+//line_h_start, line_h_end, window_bottom);
 
 	if(de_stripe_flag)
 		{
@@ -970,7 +1002,7 @@ char *text, int u, int v,\
 double contrast, double transparency, font_desc_t *pfd, int espace)
 {
 int a;
-signed char *ptr;
+char *ptr;
 char temp[4096];
 
 if(debug_flag)
@@ -993,7 +1025,7 @@ while(*ptr)
 		}
 	else
 		{
-		print_char(x, y, a, u, v, contrast, transparency, pfd);
+		draw_char(x, y, a, u, v, contrast, transparency, pfd);
 		}
 
 	x += pfd->width[a] + pfd->charspace;
@@ -1031,7 +1063,7 @@ for(i = 0; i < 16; i++)
 	x = 200;
 	for(j = 0; j < 16; j++)
 		{
-		print_char(x, y, a, 0, 0, 0.0, 0.0, NULL);
+		draw_char(x, y, a, 0, 0, 0.0, 0.0, NULL);
 
 		x += vo_font->width[a] + vo_font->charspace;
 
@@ -1047,14 +1079,14 @@ return 1;
 } /* end function test_char_set */
 
 
-int print_char(\
+int draw_char(\
 int x, int y, int c,\
 int u, int v,\
 double contrast, double transparency, font_desc_t *pfd)
 {
 if(debug_flag)
 	{
-	printf("subtiter(): print_char(): arg\n\
+	printf("subtiter(): draw_char(): arg\n\
 	x=%d y=%d c=%d u=%d v=%d contrast=%.2f transparency=%.2f\n\
 	pfd=%lu",\
 	x, y, c, u, v, contrast, transparency, pfd);
@@ -1071,7 +1103,7 @@ draw_alpha(\
 	u, v, contrast, transparency);
 
 return 1;
-} /* end function print_char */
+} /* end function draw_char */
 
 
 void draw_alpha(\
@@ -1463,7 +1495,9 @@ printf(\
 [color_depth=n]\n\
 [font_dir=s] [font=n] [font_factor=f\n\
 [frame_offset=n]\n\
-[debug] [help]%c\n", '"', '"');
+[debug] [help] [use_pre_processing]%c\n", '"', '"'\
+);
+
 printf("f is float, h is hex, n is integer, s is string.\n\n");
 
 printf(\
@@ -1475,7 +1509,8 @@ font_factor=         .1 to 100 outline characters (10.75).\n\
 frame_offset=        positive (text later) or negative (earlier) integer (0).\n\
 subtitle_file=       pathfilename.ppml location of ppml file (%s).\n\
 debug                prints debug messages (off).\n\
-help                 prints this list and exit.\n",\
+help                 prints this list and exits.\n\
+use_pre_processing   uses pre_processing.\n",\
 default_font_dir, subtitle_file);
 
 printf("\n");

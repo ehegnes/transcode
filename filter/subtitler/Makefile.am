@@ -31,6 +31,7 @@ EXTRA_DIST =  \
    HOWTO_USE_THIS \
    README.COLOR.PROCESSOR \
    README.PPML \
+   CHANGES \
    demo.ppml \
    frame_list.h \
    load_font.h \

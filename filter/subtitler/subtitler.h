@@ -10,7 +10,6 @@
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
- * xine is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
@@ -18,12 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
- *
- * Deinterlace routines by Miguel Freitas
- * based of DScaler project sources (deinterlace.sourceforge.net)
- *
- * Currently only available for Xv driver and MMX extensions
- *
  */
 
 #ifndef _SUBTITLER_H_
@@ -64,7 +57,7 @@
 #define EXTRA_CHAR_SPACE	1 //l followed by t overlap in this font
 
 /*
-for masking out areas in rote and shear.
+for masking out areas in rotate and shear.
 These 2 values are related, and I have not figured out the relation yet.
 YUV_MASK is used to prevent picture areas to be cut out. 
 */
@@ -135,6 +128,7 @@ char *selected_data_directory;
 char *selected_project;
 int frame_offset;
 double dmax_vector;
+int use_pre_processing_flag;
 
 /* for x11 stuff */
 int show_output_flag;
@@ -165,6 +159,6 @@ double extra_character_space;
 /* this last, so proto knows about structure definitions etc. */
 #include "subtitler_proto.h"
 
-#define SUBTITLER_VERSION "-0.6.3"
+#define SUBTITLER_VERSION "-0.6.4.3"
 
 #endif /* _SUBTITLER_H_ */

@@ -19,7 +19,7 @@ extern int add_text(\
 	int x, int y, char *text, int u, int v,\
 	double contrast, double transparency, font_desc_t *pfd,\
 	int extra_char_space);
-extern int print_char(\
+extern int draw_char(\
 	int x, int y, int c, int u, int v,\
 	double contrast, double transparency, font_desc_t *pfd);
 extern void draw_alpha(\

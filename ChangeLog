@@ -6,6 +6,7 @@ transcode-0.6.11
   Bugfix audio core; undefined symbol in lame lib.
   Bugfix for --accel on PPC (not supported)
   Bugfix for -J hqdn3d; fix typo and default value printout.
+  Bugfix for -J extsub; fix vertical shifting up.
   Bugfix for -x im; handle 16bit image files.
   Bugfix for -x xml; fix DV import.
   Bugfix for -y dvraw; Pass-thru video but not audio did not work.
@@ -36,11 +37,39 @@ transcode-0.6.11
   New filter -J whitebalance; corrects broken white balance.
   New internal colorspace UYVY for higher quality
   New util tcrequant; requantize an MPEG2-ES stream.
-  New: Pass-thru mode for MPEG2 files (with opt. requantize).
+  New Pass-thru mode for MPEG2 files (with opt. requantize).
+  New option --dvd_access_delay; increase if you have problems.
   Removed -y sampeg; never did anything useful.
   Upgraded included libavcodec to 0.4.8 (4683)
   Upgraded -y xvid4 to the latest API
 
+
+2003-10-16 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/subtitler/*:
+  Upgrade to external version 0.6.5 from 
+  http://www.home.zonnet.nl/panteltje/subtitles/
+
+2003-10-15 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/import_dvd.c src/transcode.c:
+  Make the ACCESS_DELAY define user setable through new
+  commandline option --dvd_access_delay. Setting this option to a
+  value higher than 3 might help if you have a slow DVD drive which
+  needs some time to settle down when accessing the DVD.
+
+2003-10-15 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/import_dv.c:
+  Add UYVY support.
+
+  * import/import_rawlist.c:
+  Add native support for UYVY raw image files.
+
+2003-10-15 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/extsub/filter_extsub.c:
+  Fix direction of vertical shifting.
 
 2003-10-14 Tilmann Bitterberg <transcode at tibit.org>
 

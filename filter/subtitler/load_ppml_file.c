@@ -222,13 +222,11 @@ while(1)
 			line_number, arguments, a);
 
 			exit(1);
-//			return 0;
 			}
 		
 		} /* end if object */
 	
 	/* NOTE ptr points to start arguments */ 
-//printf("WAS ptr=%s\n", ptr);
 	if(object_type == MAIN_MOVIE)
 		{
 		/* no arguments, identified by type */
@@ -241,7 +239,6 @@ while(1)
 			{
 			printf("subtitler(): could not read file %s\n", ptr1);
 
-//			return 0;
 			exit(1);
 			}
 
@@ -292,7 +289,6 @@ while(1)
 
 			exit(1);
 			}
-//printf("WAS load_ppml: arg to thread temp=%s\n", thread_arg);
 
 		/* create a thread with a new instance of transcode */
 		pthread_create(\
@@ -310,15 +306,15 @@ while(1)
 		movie_number++;
 		} /* end if object_type X_Y_Z_T_MOVIE */
 
-	start_frame -= frame_offset;
-	if(start_frame < 0)
+	start_frame += frame_offset;
+	if(start_frame < 1)
 		{
 		fprintf(stdout,\
-		"subtitler(): WARNING:\n\
-		line %d frame_offset causes negative values frame_offset=%d\n",\
-		line_number, frame_offset);
+		"subtitler(): read_in_ppml_file(): WARNING:\n\
+	line %d frame %d frame_offset %d causes frame values < 1\n",\
+		line_number, start_frame, frame_offset);
 
-//		return 0;
+		/* no exit here, also alert on *main etc */
 		}
 
 	/* update any decimal integer start frame8 to real frame */
@@ -554,8 +550,7 @@ while(1)
 		}
 
 	if(c == '\\') status = HAVE_BACKSLASH;
-
-	if(c == '\n')
+	else if(c == '\n')
 		{
 		line_number++;
 		if(status == HAVE_BACKSLASH)
@@ -570,11 +565,14 @@ while(1)
 		else
 			{
 			contents[i] = 0; /* string termination */
-//printf("WAS read=%s\n", contents);
 			
 			return 1; /* end of line */
 			}
 		} 
+	else
+		{
+		status = 0;
+		}
 
 	contents[i] = c;
 	i++;
