@@ -48,7 +48,7 @@
 # endif
 #endif
 
-#ifndef __FreeBSD__ /* We have malloc() in stdlib.h */
+#if !defined(__FreeBSD__) && !defined(__APPLE__)
 #include <malloc.h>
 #endif
 
