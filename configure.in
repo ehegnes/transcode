@@ -577,6 +577,23 @@ AC_CHECK_HEADERS([linux/videodev2.h], [v4l2=yes], [v4l2=no], [
 #include <linux/types.h>
 ])
 
+if test $v4l2 = yes; then
+AC_MSG_CHECKING([for struct v4l2_buffer in videodev2.h])
+dnl (includes, function-body, [action-if-found], [action-if-not-found])
+AC_TRY_COMPILE([
+#include <linux/types.h>
+#include <linux/videodev2.h>
+], [
+struct v4l2_buffer buf;
+buffer.memory   = V4L2_MEMORY_MMAP
+], [v4l2=yes
+    AC_DEFINE(HAVE_STRUCT_V4L2_BUFFER, 1, [define if your videodev2 header has struct v4l2_buffer])
+    AC_MSG_RESULT([yes])
+], 
+[v4l2=no])
+    AC_MSG_RESULT([no])
+fi
+
 
 
 AC_MSG_CHECKING(for v4l support)

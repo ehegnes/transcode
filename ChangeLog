@@ -1,6 +1,13 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-12-24 Tilmann Bitterberg <transcode at tibit.org>
+
+  * configure.in config.h.in import/v4l/import_v4l2.c:
+  Check if the system's videodev2.h header provides a struct
+  v4l2_buffer. The SuSE 9.0 videodev2.h header file has this
+  #ifdef'ed __kernel__ so this is a work around.
+
 2003-12-22 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/transcode.c export/export_xvid4.c docs/man/transcode.1:

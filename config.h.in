@@ -262,6 +262,9 @@
 /* Define to 1 if you have the `strtol' function. */
 #undef HAVE_STRTOL
 
+/* define if your videodev2 header has struct v4l2_buffer */
+#undef HAVE_STRUCT_V4L2_BUFFER
+
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */
 #undef HAVE_SYS_DIR_H

@@ -38,7 +38,10 @@
 
 #include <linux/types.h>
 
-#ifdef HAVE_LINUX_VIDEODEV2_H
+// The v4l2_buffer struct check is because some distributions protect that
+// struct in videodev2 with a #ifdef __KERNEL__ (SuSE 9.0)
+
+#if defined(HAVE_LINUX_VIDEODEV2_H) && defined(HAVE_STRUCT_V4L2_BUFFER)
 #define _LINUX_TIME_H
 #include <linux/videodev2.h>
 #else
@@ -70,6 +73,7 @@
 				it doesn't work with linux 2.6.0, #defines are wrong.
 	        tibit   figure out if the system does have videodev2.h
 		        gcc-2.95 bugfix
+                tibit   check for struct v4l2_buffer
 
 	TODO
 
