@@ -527,7 +527,8 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
       break;
       
   case TC_MAGIC_WAV:
-    vob->amod_probed=std_module[_yuv4mpeg_];
+    // vob->amod_probed=std_module[_yuv4mpeg_];
+    vob->amod_probed=std_module[_raw_];
     preset |= TC_AUDIO;
     break;
 
@@ -808,6 +809,9 @@ char *codec2str(int f)
   case TC_CODEC_LAV:
     return("LAV");
 
+  case TC_CODEC_PCM:
+    return("PCM");
+
   default:
     return("unknown");
   }
@@ -893,6 +897,8 @@ char *mformat2str(int f)
 	return("MP2");
     case TC_MAGIC_OGG:
 	return("OGG stream");
+    case TC_MAGIC_WAV:
+	return ("WAVE");
     case TC_MAGIC_V4L_VIDEO:
     case TC_MAGIC_V4L_AUDIO:
 	return("V4L");
