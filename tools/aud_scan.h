@@ -25,3 +25,9 @@
 
 int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate);
 #define tc_decode_mp3_header(hbuf)  tc_get_mp3_header(hbuf, NULL, NULL, NULL)
+int tc_get_ac3_header(unsigned char* _buf, int len, int* chans, int* srate, int *bitrate);
+
+// main entrance
+int tc_get_audio_header(unsigned char* buf, int buflen, int format, int* chans, int* srate, int *bitrate);
+int tc_probe_audio_header(unsigned char* buf, int buflen);
+

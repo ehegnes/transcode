@@ -68,7 +68,7 @@ CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
 
-CFLAGS = -Wall -I../src -I../avilib -I../libac3 -I$(srcdir)/../src -I$(srcdir)/../avilib -I$(srcdir)/../libac3 @CFLAGS@ -DMOD_PATH=\"@MOD_PATH@\"
+CFLAGS = -Wall -I../src -I../avilib -I$(srcdir)/../src -I$(srcdir)/../avilib -I$(srcdir)/../libac3 @CFLAGS@ -DMOD_PATH=\"@MOD_PATH@\"
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@

@@ -31,6 +31,8 @@
 #include "../config.h"
 #include "transcode.h"
 
+#include "aud_scan.h"
+
 #define EXE "avisync"
 
 void version()
@@ -47,7 +49,8 @@ void usage(int status)
   printf("\t -i file            input file\n");
   printf("\t -q                 be quiet\n");
   printf("\t -a num             audio track number [0]\n");
-  printf("\t -b n               handle vbr audio [0]\n");
+  printf("\t -b n               handle vbr audio [1]\n");
+  printf("\t -f FILE            read AVI comments from FILE [off]\n");
   //printf("\t -N                 enocde a real silent frame [off]\n");
   printf("\t -n count           shift audio by count frames [0]\n");
   printf("\t                    count>0: audio starts with frame 'count'\n");
@@ -57,7 +60,10 @@ void usage(int status)
 
 // buffer
 static  char data[SIZE_RGB_FRAME];
-int is_vbr = 0;
+static  char ptrdata[SIZE_RGB_FRAME];
+static int   ptrlen=0;
+static char *comfile = NULL;
+int is_vbr = 1;
 
 int main(int argc, char *argv[])
 {
@@ -86,7 +92,7 @@ int main(int argc, char *argv[])
   int width, height, format, chan, bits;
 
   int be_quiet = 0;
-  FILE *status_fd = stderr;
+  FILE *status_fd = stdout;
 
   /* for null frame encoding */
   char nulls[32000];
@@ -94,6 +100,10 @@ int main(int argc, char *argv[])
   char tmp0[] = "/tmp/nullfile.00.avi"; /* XXX: use mktemp*() */
     
   buffer_list_t *ptr;
+
+  double vid_ms = 0.0, shift_ms = 0.0, one_vid_ms = 0.0;
+  double aud_ms [ AVI_MAX_TRACKS ];
+  int aud_bitrate = 0;
 
   if(argc==1) usage(EXIT_FAILURE);
   
@@ -134,6 +144,13 @@ int main(int argc, char *argv[])
 	
 	    break;
 	    
+	case 'f':
+
+	    if(optarg[0]=='-') usage(EXIT_FAILURE);
+	    comfile = optarg;
+
+	    break;
+      
 	case 'n':
 
 	    if(sscanf(optarg,"%d", &shift)!=1) {
@@ -206,6 +223,9 @@ int main(int argc, char *argv[])
   
   //set video in outputfile
   AVI_set_video(avifile2, width, height, fps, codec);
+
+  if (comfile!=NULL)
+    AVI_set_comment_fd(avifile2, open(comfile, O_RDONLY));
   
   aud_tracks = AVI_audio_tracks(avifile1);
   
@@ -294,6 +314,11 @@ int main(int argc, char *argv[])
 
   }
 
+  vid_ms   = 0.0;
+  shift_ms = 0.0;
+  for (n=0; n<AVI_MAX_TRACKS; ++n)
+      aud_ms[n] = 0.0;
+
   // ---------------------------------------------------------------------
 
   for (n=0; n<frames; ++n) {
@@ -310,6 +335,8 @@ int main(int argc, char *argv[])
       AVI_print_error("AVI write video frame");
       return(-1);
     }
+
+    vid_ms = (n+1)*1000.0/fps;
     
 
     // Pass-through all other audio tracks.
@@ -321,16 +348,44 @@ int main(int argc, char *argv[])
 	// switch to track
 	AVI_set_audio_track(avifile1, j);
 	AVI_set_audio_track(avifile2, j);
+	format = AVI_audio_format(avifile1);
 
-	do {
-	    if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
-		AVI_print_error("AVI audio read frame"); return(-1);
+	if (format == 0x55 || format == 0x2000) {
+	    while (aud_ms[j] < vid_ms) {
+
+		if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
+		    AVI_print_error("AVI 1 audio read frame");
+		    aud_ms[j] = vid_ms;
+		    break;
+		}      
+
+		if(AVI_write_audio(avifile2, data, bytes)<0) {
+		    AVI_print_error("AVI 1 write audio frame");
+		    return(-1);
+		}
+
+		if (bytes == 0) {
+		    aud_ms[j] = vid_ms;
+		    break;
+		}
+		if ( tc_get_audio_header(data, bytes, format, NULL, NULL, &aud_bitrate)<0) {
+		    // if this is the last frame of the file, slurp in audio chunks
+		    if (n == frames-1) continue;
+		    aud_ms[j] = vid_ms;
+		} else 
+		    aud_ms[j] += (bytes*8.0)/(aud_bitrate);
 	    }
-	    if(AVI_write_audio(avifile2, data, bytes) < 0) {
-		AVI_print_error("AVI write audio frame"); return(-1);
-	    } 
-	} while (AVI_can_read_audio(avifile1));
+	} else {
+	    do {
+		if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
+		    AVI_print_error("AVI audio read frame");
+		}
+		if(AVI_write_audio(avifile2, data, bytes) < 0) {
+		    AVI_print_error("AVI write audio frame"); return(-1);
+		} 
+	    } while (AVI_can_read_audio(avifile1));
 
+	}
     }
 
     //switch to requested audio_channel
@@ -338,7 +393,9 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "invalid auto track\n");
     }
     AVI_set_audio_track(avifile2, track_num);
-    
+    format = AVI_audio_format(avifile1);
+    shift_ms = (double)shift*1000.0/fps;
+    one_vid_ms = 1000.0/fps;
     
     
     if(shift>0) {
@@ -347,14 +404,37 @@ int main(int argc, char *argv[])
       
       if(!preload) {
 	
-	bytes=0;
-	for(i=0;i<shift;++i) {
-	  do {
-	      if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
-		  AVI_print_error("AVI audio read frame");
-		  return(-1);
-	      }
-	  } while (AVI_can_read_audio(avifile1));
+	if (format == 0x55 || format == 0x2000 || format == 0x2001) {
+	  for(i=0;i<shift;++i) {
+	      printf ("shift (%d) i (%d) n (%d)\n", shift, i, n);
+	    while (aud_ms[track_num] < vid_ms + one_vid_ms*i) {
+
+		if( (bytes = AVI_read_audio_chunk(avifile1, data)) <= 0) {
+		    AVI_print_error("AVI 2 audio read frame");
+		    if (bytes == 0) continue;
+		    aud_ms[track_num] = vid_ms + one_vid_ms*i;
+		    break;
+		}      
+
+		if ( tc_get_audio_header(data, bytes, format, NULL, NULL, &aud_bitrate)<0) {
+		    // if this is the last frame of the file, slurp in audio chunks
+		    if (n == frames-1) continue;
+		    aud_ms[track_num] = vid_ms + one_vid_ms*i;
+		} else 
+		    aud_ms[track_num] += (bytes*8.0)/(aud_bitrate);
+	    }
+	  }
+
+	} else { // fallback
+	    bytes=0;
+	    for(i=0;i<shift;++i) {
+		do {
+		    if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
+			AVI_print_error("AVI audio read frame");
+			return(-1);
+		    }
+		} while (AVI_can_read_audio(avifile1));
+	    }
 	}
 	preload=1;
       }
@@ -362,6 +442,48 @@ int main(int argc, char *argv[])
       
       // copy rest of the track
       if(n<frames-shift) { 
+	if (format == 0x55 || format == 0x2000 || format == 0x2001) {
+
+	    while (aud_ms[track_num] < vid_ms + shift_ms) {
+
+		if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
+		    AVI_print_error("AVI 3 audio read frame");
+		    aud_ms[track_num] = vid_ms + shift_ms;
+		    break;
+		}      
+
+		if(AVI_write_audio(avifile2, data, bytes) < 0) {
+		    AVI_print_error("AVI 3 write audio frame");
+		    return(-1);
+		} 
+
+		fprintf(status_fd, "V [%05d][%08.2lf] | A [%05d][%08.2lf] [%05ld]\n", n, vid_ms, n+shift, aud_ms[track_num], bytes);
+
+		if(n>=frames-2*shift) {
+	  
+		    // save audio frame for later
+		    ptr = buffer_register(n);
+      
+		    if(ptr==NULL) {
+			fprintf(stderr,"buffer allocation failed\n");
+			break;
+		    }
+
+		    memcpy(ptr->data, data, bytes);
+		    ptr->size = bytes;
+		    ptr->status = BUFFER_READY;
+		}
+
+		if (bytes == 0) continue;
+
+		if ( tc_get_audio_header(data, bytes, format, NULL, NULL, &aud_bitrate)<0) {
+		    if (n == frames-1) continue;
+		    aud_ms[track_num] = vid_ms + shift_ms;
+		} else 
+		    aud_ms[track_num] += (bytes*8.0)/(aud_bitrate);
+	    }
+
+	} else { // fallback
 	bytes = AVI_audio_size(avifile1, n+shift-1);
 	
 	do {
@@ -375,7 +497,7 @@ int main(int argc, char *argv[])
 		return(-1);
 	    } 
 	
-	    fprintf(status_fd, "V [%05d] | A [%05d] [%05ld]\r", n, n+shift, bytes);
+	    fprintf(status_fd, "V [%05d] | A [%05d] [%05ld]\n", n, n+shift, bytes);
 	
 	    if(n>=frames-2*shift) {
 	  
@@ -392,10 +514,37 @@ int main(int argc, char *argv[])
 		ptr->status = BUFFER_READY;
 	    }
 	} while (AVI_can_read_audio(avifile1));
+	}
       }
       
       // padding at the end
       if(n>=frames-shift) { 
+	
+	if (!ptrlen) {
+	    ptr = buffer_retrieve();
+	    memcpy (ptrdata, ptr->data, ptr->size);
+	    ptrlen = ptr->size;
+	}
+
+	if (format == 0x55 || format == 0x2000 || format == 0x2001) {
+
+	    while (aud_ms[track_num] < vid_ms + shift_ms) {
+
+		if(AVI_write_audio(avifile2, ptrdata, ptrlen) < 0) {
+		    AVI_print_error("AVI write audio frame");
+		    return(-1);
+		} 
+
+		fprintf(status_fd, " V [%05d][%08.2lf] | A [%05d][%08.2lf] [%05ld]\n", n, vid_ms, n+shift, aud_ms[track_num], bytes);
+
+		if ( tc_get_audio_header(ptrdata, ptrlen, format, NULL, NULL, &aud_bitrate)<0) {
+		    //if (n == frames-1) continue;
+		    aud_ms[track_num] = vid_ms + shift_ms;
+		} else 
+		    aud_ms[track_num] += (ptrlen*8.0)/(aud_bitrate);
+	    }
+
+	} else { // fallback
 	
 	// get next audio frame
 	ptr = buffer_retrieve();
@@ -430,10 +579,15 @@ int main(int argc, char *argv[])
 	    }
 	    
 	    buffer_remove(ptr);
-	    printf("BREAK\n");
 	    break;
 	}  // 1
       }
+      }
+
+
+// *************************************
+// negative shift (pad audio at start)
+// *************************************
 
     } else {
 

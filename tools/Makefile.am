@@ -3,7 +3,7 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I. @DLDARWININCL@ -I../libioaux -I$(srcdir)/../../libioaux 
 
-CFLAGS = -Wall -I../src -I../avilib -I../libac3 -I$(srcdir)/../src -I$(srcdir)/../avilib -I$(srcdir)/../libac3 @CFLAGS@ -DMOD_PATH=\"@MOD_PATH@\"
+CFLAGS = -Wall -I../src -I../avilib -I$(srcdir)/../src -I$(srcdir)/../avilib -I$(srcdir)/../libac3 @CFLAGS@ -DMOD_PATH=\"@MOD_PATH@\"
 
 EXTRA_DIST = buffer.h aud_scan.h
 
