@@ -7,7 +7,7 @@ CFLAGS = -Wall -I../src -I../avilib -I$(srcdir)/../src -I$(srcdir)/../avilib -I$
 
 EXTRA_DIST = buffer.h aud_scan.h
 
-bin_PROGRAMS = avimerge avisplit avifix avisync aviindex tcmodinfo
+bin_PROGRAMS = avimerge avisplit avifix avisync aviindex tcmodinfo tcmp3cut
  
 avisync_SOURCES = avisync.c buffer.c aud_scan.c
 avisync_LDADD = -L../avilib -lavi
@@ -27,4 +27,6 @@ avisplit_LDADD = -L../avilib -lavi -L../libioaux -ltcioaux
 tcmodinfo_SOURCES = tcmodinfo.c
 tcmodinfo_LDADD = @DLDARWINLIB@ -lm ../src/optstr.o
 tcmodinfo_LDFLAGS = -rdynamic
+
+tcmp3cut_SOURCES = tcmp3cut.c
 

@@ -313,7 +313,7 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I. @DLDARWININ
 
 EXTRA_DIST = buffer.h aud_scan.h
 
-bin_PROGRAMS = avimerge avisplit avifix avisync aviindex tcmodinfo
+bin_PROGRAMS = avimerge avisplit avifix avisync aviindex tcmodinfo tcmp3cut
 
 avisync_SOURCES = avisync.c buffer.c aud_scan.c
 avisync_LDADD = -L../avilib -lavi
@@ -333,12 +333,15 @@ avisplit_LDADD = -L../avilib -lavi -L../libioaux -ltcioaux
 tcmodinfo_SOURCES = tcmodinfo.c
 tcmodinfo_LDADD = @DLDARWINLIB@ -lm ../src/optstr.o
 tcmodinfo_LDFLAGS = -rdynamic
+
+tcmp3cut_SOURCES = tcmp3cut.c
 subdir = tools
 mkinstalldirs = $(SHELL) $(top_srcdir)/autotools/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 bin_PROGRAMS = avimerge$(EXEEXT) avisplit$(EXEEXT) avifix$(EXEEXT) \
-	avisync$(EXEEXT) aviindex$(EXEEXT) tcmodinfo$(EXEEXT)
+	avisync$(EXEEXT) aviindex$(EXEEXT) tcmodinfo$(EXEEXT) \
+	tcmp3cut$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 
 am_avifix_OBJECTS = avifix.$(OBJEXT) aud_scan.$(OBJEXT)
@@ -365,12 +368,18 @@ avisync_LDFLAGS =
 am_tcmodinfo_OBJECTS = tcmodinfo.$(OBJEXT)
 tcmodinfo_OBJECTS = $(am_tcmodinfo_OBJECTS)
 tcmodinfo_DEPENDENCIES = ../src/optstr.o
+am_tcmp3cut_OBJECTS = tcmp3cut.$(OBJEXT)
+tcmp3cut_OBJECTS = $(am_tcmp3cut_OBJECTS)
+tcmp3cut_LDADD = $(LDADD)
+tcmp3cut_DEPENDENCIES =
+tcmp3cut_LDFLAGS =
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/aud_scan.Po ./$(DEPDIR)/avifix.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/aviindex.Po ./$(DEPDIR)/avimerge.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/avisplit.Po ./$(DEPDIR)/avisync.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/buffer.Po ./$(DEPDIR)/tcmodinfo.Po
+@AMDEP_TRUE@	./$(DEPDIR)/buffer.Po ./$(DEPDIR)/tcmodinfo.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/tcmp3cut.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -379,9 +388,10 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(avifix_SOURCES) $(aviindex_SOURCES) $(avimerge_SOURCES) \
-	$(avisplit_SOURCES) $(avisync_SOURCES) $(tcmodinfo_SOURCES)
+	$(avisplit_SOURCES) $(avisync_SOURCES) $(tcmodinfo_SOURCES) \
+	$(tcmp3cut_SOURCES)
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(avifix_SOURCES) $(aviindex_SOURCES) $(avimerge_SOURCES) $(avisplit_SOURCES) $(avisync_SOURCES) $(tcmodinfo_SOURCES)
+SOURCES = $(avifix_SOURCES) $(aviindex_SOURCES) $(avimerge_SOURCES) $(avisplit_SOURCES) $(avisync_SOURCES) $(tcmodinfo_SOURCES) $(tcmp3cut_SOURCES)
 
 all: all-am
 
@@ -439,6 +449,9 @@ avisync$(EXEEXT): $(avisync_OBJECTS) $(avisync_DEPENDENCIES)
 tcmodinfo$(EXEEXT): $(tcmodinfo_OBJECTS) $(tcmodinfo_DEPENDENCIES) 
 	@rm -f tcmodinfo$(EXEEXT)
 	$(LINK) $(tcmodinfo_LDFLAGS) $(tcmodinfo_OBJECTS) $(tcmodinfo_LDADD) $(LIBS)
+tcmp3cut$(EXEEXT): $(tcmp3cut_OBJECTS) $(tcmp3cut_DEPENDENCIES) 
+	@rm -f tcmp3cut$(EXEEXT)
+	$(LINK) $(tcmp3cut_LDFLAGS) $(tcmp3cut_OBJECTS) $(tcmp3cut_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -454,6 +467,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avisync.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/buffer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcmodinfo.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcmp3cut.Po@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)
