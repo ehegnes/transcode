@@ -40,7 +40,7 @@ int          bb_stop(T_BBMPEG_CTX *ctx);
 int          bb_encode(T_BBMPEG_CTX *ctx, int check);
 
 int  bb_set_profile(char *profile_name, char ref_type, 
-                    int tv_type, int asr, int frc, int pulldown, int sh_info);
+                    int tv_type, int asr, int frc, int pulldown, int sh_info, int bitrate, int bitrate_max);
 void bb_gen_profile(void);
 
 void bb_resize_setup(int src_w, int src_h, int dst_w, int dst_h, int sh_info);

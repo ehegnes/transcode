@@ -210,7 +210,7 @@ int main(int argc, char **argv)
    
    //-- setup parameters --
    //----------------------
-   bb_set_profile(profile_name, mux_type, tv_type, 0, 0, pulldown, 1);
+   bb_set_profile(profile_name, mux_type, tv_type, 0, 0, pulldown, 1, 0, 0);
 
    //ThOe cmd line parameter have higher priority
 

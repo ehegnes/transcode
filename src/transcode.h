@@ -277,6 +277,7 @@ typedef struct _vob_t {
   int divxquality;
   int divxcrispness;
   int divxmultipass;
+  int video_max_bitrate;
   char *divxlogfile;
 
   int min_quantizer;

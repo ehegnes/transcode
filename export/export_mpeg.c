@@ -401,6 +401,16 @@ MOD_init
         else 
           tv_type = ENCODE_PAL;  
       }
+      if (strchr("d", base_profile) && vob->divxbitrate==VBITRATE) {
+	  vob->divxbitrate=6000;
+	  if(vob->video_max_bitrate == 0)
+	      vob->video_max_bitrate = 9800;
+      }
+    }
+
+    if(vob->video_max_bitrate < vob->divxbitrate) {
+	//tc_warn("Maximum bitrate is smaller than average bitrate, fixing.");
+	vob->video_max_bitrate = vob->divxbitrate;
     }
     
     //-- parameter ("-F ?,?,<"user profile">") will be used as --
@@ -410,9 +420,9 @@ MOD_init
     asr = (vob->ex_asr<0) ? vob->im_asr:vob->ex_asr;
     
     if (p3 && strlen(p3))
-      bb_set_profile(p3, base_profile, tv_type, asr, frc, vob->pulldown, verbose_flag);  
+      bb_set_profile(p3, base_profile, tv_type, asr, frc, vob->pulldown, verbose_flag, vob->divxbitrate, vob->video_max_bitrate);  
     else
-      bb_set_profile(NULL, base_profile, tv_type, asr, frc, vob->pulldown, verbose_flag);
+      bb_set_profile(NULL, base_profile, tv_type, asr, frc, vob->pulldown, verbose_flag, vob->divxbitrate, vob->video_max_bitrate);
       
     //-- store type of mpeg (for later use) --
     //----------------------------------------

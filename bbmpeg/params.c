@@ -1782,7 +1782,7 @@ mpegOutSettings *bb_get_profile()
   return(&iset);
 }
 
-int bb_set_profile(char *profile_name, char ref_type, int tv_type, int asr, int frc, int pulldown, int sh_info)
+int bb_set_profile(char *profile_name, char ref_type, int tv_type, int asr, int frc, int pulldown, int sh_info, int bitrate, int max_bitrate)
 {
   FILE *profile = NULL;
   char line[128];
@@ -1843,6 +1843,18 @@ int bb_set_profile(char *profile_name, char ref_type, int tv_type, int asr, int 
         SetMPEG1Defaults(&iset, tv_type);
         break;
 	
+  }
+
+  // set bitrate passed by -w
+  if (tolower(ref_type) !=  PRO_VCD) {
+    if (bitrate > 0) {
+      iset.bit_rate=bitrate*1000.0;
+      if(bitrate >= 8000 && iset.mquant_value > 2)
+	iset.mquant_value=2;
+    }
+
+    if (max_bitrate > 0)
+      iset.max_bit_rate=max_bitrate*1000.0;
   }
   
   if (sh_info)

@@ -418,7 +418,10 @@ use \fIm\fP framebuffer[,\fIn\fP threads] for AV processing [10,1].
 print version.
 .TP
 .B \-w \fIb\fP[\fI,k\fP[\fI,c\fP]]
-encoder bitrate[,keyframes[,crispness]] [1800,250,100].
+encoder bitrate[,keyframes[,crispness]] [(6000 for MPEG 1/2, 1800 for others),250,100].
+.TP
+.B \-video_max_bitrate \fIb\fP
+Use \fIb\fP as maximal bitrate when encoding variable bitrate MPEG-2 streams
 .TP
 .B \-x \fIvmod\fP[\fI,amod\fP]
 video[,audio] import modules [auto,auto]. If omitted, transcode will probe

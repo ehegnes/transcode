@@ -148,6 +148,7 @@ enum {
   DV_YUY2_MODE,
   LAME_PRESET,
   COLOR_LEVEL,
+  VIDEO_MAX_BITRATE,
   AVI_COMMENTS,
   DIVX5_VBV_PROF,
   DIVX5_VBV,
@@ -773,6 +774,7 @@ int main(int argc, char *argv[]) {
       {"lame_preset", required_argument, NULL, LAME_PRESET},
       {"color", required_argument, NULL, COLOR_LEVEL},
       {"colour", required_argument, NULL, COLOR_LEVEL},
+      {"video_max_bitrate", required_argument, NULL, VIDEO_MAX_BITRATE},
       {"avi_comments", required_argument, NULL, AVI_COMMENTS},
       {"divx_vbv_prof", required_argument, NULL, DIVX5_VBV_PROF},
       {"divx_vbv", required_argument, NULL, DIVX5_VBV},
@@ -813,6 +815,7 @@ int main(int argc, char *argv[]) {
      * ------------------------------------------------------------*/
 
     vob->divxbitrate      = VBITRATE;
+    vob->video_max_bitrate= 0;           /* 0 = set by encoder */
     vob->divxkeyframes    = VKEYFRAMES;
     vob->divxquality      = VQUALITY;
     vob->divxmultipass    = VMULTIPASS;
@@ -1327,6 +1330,13 @@ int main(int argc, char *argv[]) {
 	  tc_error("invalid divx parameter for option -w");
 	}
 	
+	break;
+
+      case VIDEO_MAX_BITRATE:
+	if(optarg[0]=='-') usage(EXIT_FAILURE);
+	n = sscanf(optarg, "%d", &vob->video_max_bitrate);
+	if(!n)
+	  tc_error("invalid parameter for option --video_max_bitrate");
 	break;
 	
       case 'r': 
@@ -3197,6 +3207,23 @@ int main(int argc, char *argv[]) {
     
     if(verbose & TC_DEBUG) printf("[%s] encoder delay = decode=%d encode=%d usec\n", PACKAGE, tc_buffer_delay_dec, tc_buffer_delay_enc);    
     
+    if (vob->im_frc == 0) {
+      if (vob->fps-0.01 < 00.010 && 00.010 < vob->fps+0.01) vob->im_frc =  0;
+      if (vob->fps-0.01 < 23.976 && 23.976 < vob->fps+0.01) vob->im_frc =  1;
+      if (vob->fps-0.01 < 24.000 && 24.000 < vob->fps+0.01) vob->im_frc =  2;
+      if (vob->fps-0.01 < 25.000 && 25.000 < vob->fps+0.01) vob->im_frc =  3;
+      if (vob->fps-0.01 < 29.970 && 29.970 < vob->fps+0.01) vob->im_frc =  4;
+      if (vob->fps-0.01 < 30.000 && 30.000 < vob->fps+0.01) vob->im_frc =  5;
+      if (vob->fps-0.01 < 50.000 && 50.000 < vob->fps+0.01) vob->im_frc =  6;
+      if (vob->fps-0.01 < 59.940 && 59.940 < vob->fps+0.01) vob->im_frc =  7;
+      if (vob->fps-0.01 < 60.000 && 60.000 < vob->fps+0.01) vob->im_frc =  8;
+      if (vob->fps-0.01 <  1.000 &&  1.000 < vob->fps+0.01) vob->im_frc =  9;
+      if (vob->fps-0.01 <  5.000 &&  5.000 < vob->fps+0.01) vob->im_frc = 10;
+      if (vob->fps-0.01 < 10.000 && 10.000 < vob->fps+0.01) vob->im_frc = 11;
+      if (vob->fps-0.01 < 12.000 && 12.000 < vob->fps+0.01) vob->im_frc = 12;
+      if (vob->fps-0.01 < 15.000 && 15.000 < vob->fps+0.01) vob->im_frc = 13;
+    }
+
     if (vob->ex_frc==0 && vob->im_frc) {
       vob->ex_frc = vob->im_frc;
     }
@@ -3402,7 +3429,7 @@ int main(int argc, char *argv[]) {
       }
 
       // 1 sec delay after decoder closing
-      tc_decoder_delay=1;
+      tc_decoder_delay=3;
       
       // need to loop for this option
       ch1 = vob->vob_psu_num1;
