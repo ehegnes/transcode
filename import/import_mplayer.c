@@ -63,11 +63,17 @@ MOD_open
         perror("mkfifo(\"stream.yuv\") failed");
         return(TC_IMPORT_ERROR);
       }
-      
-      if (snprintf(import_cmd_buf, MAX_BUF, "mplayer -benchmark -noframedrop -nosound -vo yuv4mpeg \"%s\" -osdlevel 0 > /dev/null 2>&1", vob->video_in_file ) < 0) {
-        perror("command buffer overflow");
-        exit(1);
-      }
+      if (vob->im_v_string) {
+		if (snprintf(import_cmd_buf, MAX_BUF, "mplayer -benchmark -noframedrop -nosound -vo yuv4mpeg %s \"%s\" -osdlevel 0 > /dev/null 2>&1", vob->im_v_string, vob->video_in_file ) < 0) {
+		  perror("command buffer overflow");
+		  exit(1);
+		}
+	  } else {
+		if (snprintf(import_cmd_buf, MAX_BUF, "mplayer -benchmark -noframedrop -nosound -vo yuv4mpeg \"%s\" -osdlevel 0 > /dev/null 2>&1", vob->video_in_file ) < 0) {
+		  perror("command buffer overflow");
+		  exit(1);
+		}
+	  }
       if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
 
       if ((videopipefd = popen(import_cmd_buf, "w")) == NULL) {
