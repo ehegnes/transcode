@@ -1,6 +1,54 @@
 --------------------------------------------
 transcode-0.6.8
 
+2003-06-08 Tilmann Bitterberg <transcode at tibit.org>
+
+  * tools/avisplit.c:
+  XXX: (improve A/V sync for option -s)
+
+  * tools/avimerge.c:
+  XXX: (raw mp3 files)
+
+2003-06-06 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter_nored.c:
+  A very simple filter which reduces the color red in the image by simply
+  decrementing Cr. Only works in YUV mode.
+
+  * filter_hqdn3d:
+  Ported from mplayer, a High Quality 3D Denoiser. This filter aims
+  to reduce image noise producing smooth images and making still
+  images really still (this should enhance compressibility). See
+  `tcmodinfo -i hqdn3d' for all options.
+
+2003-06-05 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/export_jpg.c export/export_im.c:
+  Fix YUV encoding (no need to use -z -k anymore)
+
+2003-06-04 marrq <marrq at ugcs.caltech.edu>
+
+  * src/transcode.c libioaux/*:
+  If one uses --nav_seek for fast seeking on vobs, one can only use
+  one -c option.  The attached patch works allows me to encode multiple
+  segments, and encodes the same frames as would be encoded doing each
+  seperately.  However, I'm not sure that this won't interfere in some other
+  code paths ... an example command which works now is:
+
+  transcode -i vob -x vob -g 720x480 -y xvid -V -M 0 -f 23.976 -B 0,25,16 
+  -r 2,1 --nav_seek nav_log -o out.1.avi -E 32000,16,2 -b 64 -w 1192 
+  -c 2709-2862,3499-3571,3746-3820,3903-4018,4184-4332
+
+2003-06-04 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/transcode.c:
+  remove signal() and replace it with the proper pthread
+  aequivalent.
+
+  * import/clone.c:
+  Especially at closing time with multiple PSUs sometimes zombie
+  processes hang around. Pointed out by Florin Andrei.
+
 2003-06-03 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/v4l/video.c:
