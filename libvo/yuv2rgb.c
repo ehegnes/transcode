@@ -71,7 +71,8 @@ static void yuv2rgb_c (void * dst, uint8_t * py,
 void yuv2rgb_init (int bpp, int mode) 
 {
     yuv2rgb = NULL;
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
+#ifdef HAVE_MMX
+# if defined(ARCH_X86) || defined(ARCH_X86_64)
     if ((yuv2rgb == NULL) && (vo_mm_accel & MM_ACCEL_X86_MMXEXT)) {
 	yuv2rgb = yuv2rgb_init_mmxext (bpp, mode);
 	if (yuv2rgb != NULL)
@@ -82,6 +83,7 @@ void yuv2rgb_init (int bpp, int mode)
 	if (yuv2rgb != NULL)
 	    fprintf (stderr, "Using MMX for colorspace transform\n");
     }
+# endif
 #endif
 #ifdef LIBVO_MLIB
     if ((yuv2rgb == NULL) && (vo_mm_accel & MM_ACCEL_MLIB)) {
