@@ -1,3 +1,7 @@
+2004-11-28 Massimiliano Giorgi
+  * import/dvd_reader.c
+  Allow for chapters that are comprised of more than a single cell.
+
 2004-11-26 Martin Kuball <MartinKuball at web dot de>
   * src/transcode.c
   Added definitions for a xvcd profile and a secam video template.
