@@ -93,6 +93,8 @@ typedef struct MyFilterData {
 	int fade;            /* fade in/out (speed) */
 	int transparent;     /* do not draw a black bounding box */
 	int antialias;       /* do sub frame anti-aliasing (not done) */
+	int R, G, B;         /* color to apply in RGB */
+	int Y, U, V;         /* color to apply in YUV */
 
     /* private */
 	int opaque;          /* Opaqueness of the text */
@@ -233,6 +235,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
     mfd->boundX=0;
     mfd->boundY=0;
 
+    mfd->R = mfd->B = mfd->G = 0xff; // white
+    mfd->Y = 240; mfd->U = mfd->V = 128;
+
 
     // do `date` as default
     mytime = time(NULL);
@@ -257,6 +262,10 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	optstr_get (options, "string", "%[^:]",    &string);
 	optstr_get (options, "fade",   "%d",       &mfd->fade);
 	optstr_get (options, "antialias",   "%d",       &mfd->antialias);
+	optstr_get (options, "color",   "%2x%2x%2x",  &mfd->R, &mfd->G, &mfd->B);
+        mfd->Y =  (0.257 * mfd->R) + (0.504 * mfd->G) + (0.098 * mfd->B) + 16;
+        mfd->U =  (0.439 * mfd->R) - (0.368 * mfd->G) - (0.071 * mfd->B) + 128;
+        mfd->V = -(0.148 * mfd->R) - (0.291 * mfd->G) + (0.439 * mfd->B) + 128;
 
 	if (optstr_lookup (options, "notransparent") )
 	    mfd->transparent = !mfd->transparent;
@@ -274,7 +283,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     }
 
 
-    if (verbose > 1) {
+    if (verbose) {
 	printf (" Text Settings:\n");
 	printf ("             range = %u-%u\n", mfd->start, mfd->end);
 	printf ("              step = %u\n", mfd->step);
@@ -283,6 +292,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	printf ("              font = %s\n", mfd->font);
 	printf ("            posdef = %d\n", mfd->pos);
 	printf ("               pos = %dx%d\n", mfd->posx, mfd->posy);
+	printf ("       color (RGB) = %x %x %x\n", mfd->R, mfd->G, mfd->B);
+	printf ("       color (YUV) = %x %x %x\n", mfd->Y, mfd->U, mfd->V);
     }
 
     if (options)
@@ -344,9 +355,22 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	    mfd->top_space = mfd->slot->bitmap_top;
 
 	// if you think about it, its somehow correct ;)
+	/*
 	if (mfd->boundY < 2*mfd->slot->bitmap.rows - mfd->slot->bitmap_top)
 	    mfd->boundY = 2*mfd->slot->bitmap.rows - mfd->slot->bitmap_top;
+	    */
+	if (mfd->boundY < 2*(mfd->slot->bitmap.rows) - mfd->slot->bitmap_top)
+	    mfd->boundY = 2*(mfd->slot->bitmap.rows) - mfd->slot->bitmap_top;
 	
+	/*
+	printf ("`%c\': rows(%2d) width(%2d) pitch(%2d) left(%2d) top(%2d) "
+		"METRIC: width(%2d) height(%2d) bearX(%2d) bearY(%2d)\n",
+		mfd->string[i], mfd->slot->bitmap.rows, mfd->slot->bitmap.width, 
+		mfd->slot->bitmap.pitch, mfd->slot->bitmap_left, mfd->slot->bitmap_top,
+		mfd->slot->metrics.width>>6, mfd->slot->metrics.height>>6,
+		mfd->slot->metrics.horiBearingX>>6, mfd->slot->metrics.horiBearingY>>6);
+		*/
+
 	mfd->boundX += mfd->slot->advance.x >> 6;
     }
 
@@ -506,7 +530,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
   
-  if((ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO))  {
+  if((ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO) && (!ptr->attributes & TC_FRAME_IS_SKIPPED))  {
 
     if (mfd->start <= ptr->id && ptr->id <= mfd->end && ptr->id%mfd->step == mfd->boolstep) {
 
@@ -544,12 +568,13 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 		    // opacity
 		    e = ((MAX_OPACITY-mfd->opaque)*d + mfd->opaque*c)/MAX_OPACITY;
+		    //e &= (mfd->Y&0xff);
 
 		    // write to image
 		    p[h*width+w] = e&0xff;
 
-		    U[h/2*width/2+w/2] = 128;
-		    V[h/2*width/2+w/2] = 128;
+		    U[h/2*width/2+w/2] = mfd->U&0xff;
+		    V[h/2*width/2+w/2] = mfd->V&0xff;
 		}
 	    }
 
@@ -571,6 +596,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
 		
 			// opacity
 			e = ((MAX_OPACITY-mfd->opaque)*d + mfd->opaque*c)/MAX_OPACITY;
+
+			switch (i){
+			    case 0: e &= (mfd->G); break;
+			    case 1: e &= (mfd->R); break;
+			    case 2: e &= (mfd->B); break;
+			}
 
 			// write to image
 			p[3*((h)*width+w)-(2-i)] =  e&0xff;
