@@ -1338,12 +1338,9 @@ AC_OUTPUT([
 	filter/Makefile
 	filter/divxkey/Makefile
 	filter/extsub/Makefile
-	filter/ivtc/Makefile
 	filter/pp/Makefile
 	filter/preview/Makefile
-	filter/resample/Makefile
 	filter/subtitler/Makefile
-	filter/test/Makefile
 	filter/tomsmocomp/Makefile
 	filter/yuvdenoise/Makefile
 	import/Makefile
