@@ -453,6 +453,8 @@ typedef struct MpegEncContext {
     uint8_t *chroma_dc_vlc_length;
 #define UNI_AC_ENC_INDEX(run,level) ((run)*128 + (level))
 
+    int coded_score[6];
+
     /** precomputed matrix (combine qscale and DCT renorm) */
     int __align8 q_intra_matrix[32][64];
     int __align8 q_inter_matrix[32][64];
@@ -644,7 +646,6 @@ typedef struct MpegEncContext {
     int repeat_first_field;
     int chroma_420_type;
     int progressive_frame;
-    int mpeg2;
     int full_pel[2];
     int interlaced_dct;
     int first_slice;
@@ -870,6 +871,7 @@ int msmpeg4_decode_ext_header(MpegEncContext * s, int buf_size);
 int ff_msmpeg4_decode_init(MpegEncContext *s);
 void ff_msmpeg4_encode_init(MpegEncContext *s);
 int ff_wmv2_decode_picture_header(MpegEncContext * s);
+int ff_wmv2_decode_secondary_picture_header(MpegEncContext * s);
 void ff_wmv2_add_mb(MpegEncContext *s, DCTELEM block[6][64], uint8_t *dest_y, uint8_t *dest_cb, uint8_t *dest_cr);
 void ff_mspel_motion(MpegEncContext *s,
                                uint8_t *dest_y, uint8_t *dest_cb, uint8_t *dest_cr,

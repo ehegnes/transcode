@@ -32,9 +32,9 @@
 #include "avilib.h"
 
 #define MOD_NAME    "import_ffmpeg.so"
-#define MOD_VERSION "v0.1.6 (2003-09-30)"
-#define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
-                    "): MS MPEG4v1-3/MPEG4/MJPEG"
+#define MOD_VERSION "v0.1.7 (2003-10-10)"
+#define MOD_CODEC   "(video)  " LIBAVCODEC_IDENT \
+                    ": MS MPEG4v1-3/MPEG4/MJPEG"
 #define MOD_PRE ffmpeg
 #include "import_def.h"
 
@@ -71,6 +71,8 @@ static struct ffmpeg_codec ffmpeg_codecs[] = {
     {"MJPG", "AVRN", "AVDJ", "JPEG", "MJPA", "JFIF", ""}},
   {CODEC_ID_MPEG1VIDEO, "mpeg1video",
     {"MPG1", ""}},
+  {CODEC_ID_MPEG1VIDEO, "mpeg2video",
+    {"MPG2", ""}},
   {CODEC_ID_DVVIDEO, "dvvideo",
     {"DVSD", ""}},
   {CODEC_ID_WMV1, "wmv1",

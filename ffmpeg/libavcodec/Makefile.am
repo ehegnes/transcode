@@ -46,7 +46,9 @@ libtcavcodec_a_SOURCES = \
       fft.c mdct.c mace.c huffyuv.c cyuv.c opts.c raw.c h264.c golomb.c \
       vp3.c asv1.c 4xm.c cabac.c ffv1.c ra144.c ra288.c vcr1.c \
       h263.c msmpeg4.c h263dec.c svq1.c rv10.c wmadec.c indeo3.c \
-      cljr.c $(FF_SRC_MMX) $(FF_SRC_PPC) $(FF_SRC_ALTIVEC)
+      cljr.c roqvideo.c dpcm.c interplayvideo.c xan.c rpza.c cinepak.c msrle.c \
+      msvideo1.c vqavideo.c \
+      idcinvideo.c $(FF_SRC_MMX) $(FF_SRC_PPC) $(FF_SRC_ALTIVEC)
 
 noinst_HEADERS =  \
   ac3.h \

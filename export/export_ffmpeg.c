@@ -53,9 +53,9 @@
 #endif
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.3.7 (2003-08-24)"
-#define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
-                    ") | (audio) MPEG/AC3/PCM"
+#define MOD_VERSION "v0.3.8 (2003-10-11)"
+#define MOD_CODEC   "(video) " LIBAVCODEC_IDENT \
+                    " | (audio) MPEG/AC3/PCM"
 #define MOD_PRE ffmpeg
 
 #include "export_def.h"
@@ -71,7 +71,7 @@ extern pthread_mutex_t init_avcodec_lock;
 
 static int verbose_flag    = TC_QUIET;
 static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AC3|
-                             TC_CAP_AUD;
+                             TC_CAP_AUD|TC_CAP_YUV422;
 
 struct ffmpeg_codec {
   char *name;
@@ -87,12 +87,15 @@ struct ffmpeg_codec ffmpeg_codecs[] = {
   {"mjpeg", "MJPG", "Motion JPEG", 0},
   {"mpeg1video", "mpg1", "MPEG1 compliant video", 1},
   {"mpeg1", "mpg1", "MPEG1 compliant video (alias of above)", 1},
+  {"mpeg2video", "mpg2", "MPEG2 compliant video", 1},
+  {"mpeg2", "mpg2", "MPEG2 compliant video (alias of above)", 1},
   {"h263", "h263", "H263", 0},
   {"h263p", "h263", "H263 plus", 1},
   {"wmv1", "WMV1", "Windows Media Video v1", 1},
   {"wmv2", "WMV2", "Windows Media Video v2", 1},
   {"rv10", "RV10", "old RealVideo codec", 1},
   {"huffyuv", "HFYU", "Lossless HUFFYUV codec", 1},
+  {"dvvideo", "DVSD", "Digital Video", 0},
   {NULL, NULL, NULL, 0}};
 
 
@@ -109,11 +112,84 @@ static size_t               size;
 static int                  encoded_frames = 0;
 static int                  frames = 0;
 static struct ffmpeg_codec *codec;
-static int                  is_mpeg1video = 0;
+static int                  is_mpegvideo = 0;
+static int                  is_huffyuv = 0;
 static FILE                *mpeg1fd = NULL;
 
 // We can't declare lavc_param_psnr static so save it to this variable
 static int                  do_psnr = 0;
+
+// make a planar version
+static void uyvyto422p(char *dest, char *input, int width, int height) 
+{
+
+    int i,j;
+    char *y, *u, *v;
+
+    y = dest;
+    v = dest+width*height;
+    u = dest+width*height*3/2;
+    
+    for (i=0; i<height; i++) {
+      for (j=0; j<width*2; j++) {
+	
+	/* UYVY.  The byte order is CbY'CrY' */
+	input++;
+	//*u++ = *input++;
+	*y++ = *input++;
+	input++;
+	//*v++ = *input++;
+	*y++ = *input++;
+      }
+    }
+    return;
+}
+
+// Subsample UYVY to YV12/I420
+static void uyvytoyv12(char *dest, char *input, int width, int height) 
+{
+
+    int i,j,w2;
+    char *y, *u, *v;
+
+    w2 = width/2;
+
+    //I420
+    y = dest;
+    v = dest+width*height;
+    u = dest+width*height*5/4;
+    
+    for (i=0; i<height; i+=2) {
+      for (j=0; j<w2; j++) {
+	
+	/* UYVY.  The byte order is CbY'CrY' */
+	*u++ = *input++;
+	*y++ = *input++;
+	*v++ = *input++;
+	*y++ = *input++;
+      }
+
+      //down sampling
+      u -= w2;
+      v -= w2;
+      
+      /* average every second line for U and V */
+      for (j=0; j<w2; j++) {
+	  int un = *u & 0xff;
+	  int vn = *v & 0xff; 
+
+	  un += *input++ & 0xff;
+	  *u++ = un>>1;
+
+	  *y++ = *input++;
+
+	  vn += *input++ & 0xff;
+	  *v++ = vn>>1;
+
+	  *y++ = *input++;
+      }
+    }
+}
 
 static struct ffmpeg_codec *find_ffmpeg_codec(char *name) {
   int i;
@@ -189,15 +265,25 @@ MOD_init {
       
       return TC_EXPORT_ERROR;
     }
+
+    if (!strcmp (vob->ex_v_fcc, "mpeg1")) vob->ex_v_fcc = "mpeg1video";
+    if (!strcmp (vob->ex_v_fcc, "mpeg2")) vob->ex_v_fcc = "mpeg2video";
+    if (!strcmp (vob->ex_v_fcc, "dv")) vob->ex_v_fcc = "dvvideo";
+    
     codec = find_ffmpeg_codec(vob->ex_v_fcc);
     if (codec == NULL) {
       fprintf(stderr, "[%s] Unknown codec '%s'.\n", MOD_NAME, vob->ex_v_fcc);
       return TC_EXPORT_ERROR;
     }
-    
-    if (!strcmp (vob->ex_v_fcc, "mpeg1video") ) {
-	is_mpeg1video = 1;
-    }
+
+    if (!strcmp (vob->ex_v_fcc, "mpeg1video") ||
+        !strcmp (vob->ex_v_fcc, "mpeg1")) is_mpegvideo = 1;
+
+    if (!strcmp (vob->ex_v_fcc, "mpeg2video") ||
+        !strcmp (vob->ex_v_fcc, "mpeg2")) is_mpegvideo = 2;
+
+    // doesn't work
+    //if (!strcmp (vob->ex_v_fcc, "huffyuv")) is_huffyuv = 1;
 
     pthread_mutex_lock(&init_avcodec_lock);
       avcodec_init();
@@ -231,6 +317,8 @@ MOD_init {
       pix_fmt = PIX_FMT_YUV420P;
     else if (vob->im_v_codec == CODEC_RGB) {
       pix_fmt = PIX_FMT_RGB24;
+    } else if (vob->im_v_codec == CODEC_YUV422) {
+      pix_fmt = PIX_FMT_YUV422;
     } else {
       fprintf(stderr, "[%s] Unknown color space %d.\n", MOD_NAME,
               vob->im_v_codec);
@@ -289,10 +377,10 @@ MOD_init {
     else
       lavc_venc_context->gop_size = 250; /* default */
 
-    if (is_mpeg1video && vob->divxkeyframes == 250) {
+    if (is_mpegvideo && vob->divxkeyframes == 250) {
 	// set a sensible gop_size
 	lavc_venc_context->gop_size = 12;
-	fprintf(stderr, "[%s] setting gop_size to 12 for mpeg1video\n", MOD_NAME);
+	fprintf(stderr, "[%s] setting gop_size to 12 for mpeg1/2-video\n", MOD_NAME);
     }
 
 	
@@ -342,6 +430,53 @@ MOD_init {
     lavc_venc_context->inter_quant_bias   = lavc_param_pbias;
     lavc_venc_context->coder_type         = lavc_param_coder;
     lavc_venc_context->context_model      = lavc_param_context;
+
+    if (lavc_param_intra_matrix)
+    {
+	char *tmp;
+
+	lavc_venc_context->intra_matrix =
+	    malloc(sizeof(*lavc_venc_context->intra_matrix)*64);
+
+	i = 0;
+	while ((tmp = strsep(&lavc_param_intra_matrix, ",")) && (i < 64))
+	{
+	    if (!tmp || (tmp && !strlen(tmp)))
+		break;
+	    lavc_venc_context->intra_matrix[i++] = atoi(tmp);
+	}
+	
+	if (i != 64)
+	{
+	    free(lavc_venc_context->intra_matrix);
+	    lavc_venc_context->intra_matrix = NULL;
+	}
+	else
+	    fprintf(stderr, "[%s] Using user specified intra matrix\n", MOD_NAME);
+    }
+    if (lavc_param_inter_matrix)
+    {
+	char *tmp;
+
+	lavc_venc_context->inter_matrix =
+	    malloc(sizeof(*lavc_venc_context->inter_matrix)*64);
+
+	i = 0;
+	while ((tmp = strsep(&lavc_param_inter_matrix, ",")) && (i < 64))
+	{
+	    if (!tmp || (tmp && !strlen(tmp)))
+		break;
+	    lavc_venc_context->inter_matrix[i++] = atoi(tmp);
+	}
+	
+	if (i != 64)
+	{
+	    free(lavc_venc_context->inter_matrix);
+	    lavc_venc_context->inter_matrix = NULL;
+	}
+	else
+	    fprintf(stderr, "[%s] Using user specified intra matrix\n", MOD_NAME);
+    }
 
     p = lavc_param_rc_override_string;
     for (i = 0; p; i++) {
@@ -411,6 +546,8 @@ MOD_init {
     lavc_venc_context->flags |= lavc_param_umv;
     lavc_venc_context->flags |= lavc_param_v4mv ? CODEC_FLAG_4MV : 0;
     lavc_venc_context->flags |= lavc_param_data_partitioning;
+    lavc_venc_context->flags |= lavc_param_cbp;
+    lavc_venc_context->flags |= lavc_param_mv0;
 
     if (lavc_param_gray)
       lavc_venc_context->flags |= CODEC_FLAG_GRAY;
@@ -423,6 +560,8 @@ MOD_init {
     do_psnr = lavc_param_psnr;
 
     lavc_venc_context->prediction_method= lavc_param_prediction_method;
+
+    // this changed to an int
     if(!strcasecmp(lavc_param_format, "YV12"))
         lavc_venc_context->pix_fmt= PIX_FMT_YUV420P;
     else if(!strcasecmp(lavc_param_format, "422P"))
@@ -433,11 +572,17 @@ MOD_init {
         lavc_venc_context->pix_fmt= PIX_FMT_YUV411P;
     else if(!strcasecmp(lavc_param_format, "YVU9"))
         lavc_venc_context->pix_fmt= PIX_FMT_YUV410P;
+    else if(!strcasecmp(lavc_param_format, "UYVY"))
+        lavc_venc_context->pix_fmt= PIX_FMT_YUV422;
     else if(!strcasecmp(lavc_param_format, "BGR32"))
         lavc_venc_context->pix_fmt= PIX_FMT_RGBA32;
     else{
         fprintf(stderr, "%s is not a supported format\n", lavc_param_format);
         return TC_IMPORT_ERROR;
+    }
+
+    if (is_huffyuv) {
+        lavc_venc_context->pix_fmt= PIX_FMT_YUV422P;
     }
 
     switch (vob->divxmultipass) {
@@ -567,7 +712,7 @@ MOD_open
   // open output file
   
   /* Open file */
-  if ( (param->flag == TC_VIDEO && !is_mpeg1video) || (param->flag == TC_AUDIO)) {
+  if ( (param->flag == TC_VIDEO && !is_mpegvideo) || (param->flag == TC_AUDIO)) {
     if (vob->avifile_out==NULL) {
 
       vob->avifile_out = AVI_open_output_file(vob->video_out_file);
@@ -587,11 +732,14 @@ MOD_open
   if (param->flag == TC_VIDEO) {
     
     // video
-    if (is_mpeg1video) {
+    if (is_mpegvideo) {
       char *buf = malloc (strlen (vob->video_out_file)+1+4);
 
-      if (strcmp(vob->video_out_file, "/dev/null") != 0) {
+      if (is_mpegvideo==1 && strcmp(vob->video_out_file, "/dev/null") != 0) {
 	  sprintf(buf, "%s.m1v", vob->video_out_file);
+	  mpeg1fd = fopen ( buf, "wb" );
+      } else if (is_mpegvideo==2 && strcmp(vob->video_out_file, "/dev/null") != 0) {
+	  sprintf(buf, "%s.m2v", vob->video_out_file);
 	  mpeg1fd = fopen ( buf, "wb" );
       } else {
 	  mpeg1fd = fopen ( vob->video_out_file, "wb" );
@@ -660,6 +808,43 @@ MOD_encode
       lavc_venc_frame->data[1]     = param->buffer +
         (lavc_venc_context->width * lavc_venc_context->height*5)/4;
 #endif
+    } else if (pix_fmt == PIX_FMT_YUV422) {
+
+      if (is_huffyuv) {
+
+	lavc_venc_context->pix_fmt     = PIX_FMT_YUV422P;
+	uyvyto422p(tmp_buffer, param->buffer, lavc_venc_context->width, lavc_venc_context->height);
+
+	avpicture_fill((AVPicture *)lavc_venc_frame, tmp_buffer,
+	    PIX_FMT_YUV422P, lavc_venc_context->width, lavc_venc_context->height);
+
+	printf ("%d %d %d %p %p %p\n", 
+		lavc_venc_frame->linesize[0], 
+		lavc_venc_frame->linesize[1], 
+		lavc_venc_frame->linesize[2],
+		lavc_venc_frame->data[0],
+		lavc_venc_frame->data[1],
+		lavc_venc_frame->data[2]
+		);
+
+      } else {
+
+	lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
+	uyvytoyv12(tmp_buffer, param->buffer, lavc_venc_context->width, lavc_venc_context->height);
+
+	lavc_venc_frame->linesize[0] = lavc_venc_context->width;     
+	lavc_venc_frame->linesize[1] = lavc_venc_context->width / 2;
+	lavc_venc_frame->linesize[2] = lavc_venc_context->width / 2;
+
+	lavc_venc_frame->data[0]     = tmp_buffer;
+	lavc_venc_frame->data[2]     = tmp_buffer +
+	  lavc_venc_context->width * lavc_venc_context->height;
+	lavc_venc_frame->data[1]     = tmp_buffer +
+	  (lavc_venc_context->width * lavc_venc_context->height*5)/4;
+      }
+
+
+
     } else if (pix_fmt == PIX_FMT_RGB24) {
 
       avpicture_fill((AVPicture *)lavc_convert_frame, param->buffer,
@@ -688,12 +873,15 @@ MOD_encode
   
     if (out_size < 0) {
       fprintf(stderr, "[%s] encoder error: size (%d)\n", MOD_NAME, out_size);
-      //return TC_EXPORT_ERROR; 
+      return TC_EXPORT_ERROR; 
+    }
+    if (verbose & TC_STATS) {
+      fprintf(stderr, "[%s] encoder: size of encoded (%d)\n", MOD_NAME, out_size);
     }
 
     //0.6.2: switch outfile on "r/R" and -J pv
     //0.6.2: enforce auto-split at 2G (or user value) for normal AVI files
-    if (!is_mpeg1video) {
+    if (!is_mpegvideo) {
       if((uint32_t)(AVI_bytes_written(avifile)+out_size+16+8)>>20 >= tc_avi_limit) tc_outstream_rotate_request();
     
       if (lavc_venc_context->coded_frame->key_frame) tc_outstream_rotate();
@@ -704,7 +892,7 @@ MOD_encode
       
 	return TC_EXPORT_ERROR; 
       }
-    } else { // mpeg1video
+    } else { // mpegvideo
       if ( (out_size >0) && (fwrite (tmp_buffer, out_size, 1, mpeg1fd) <= 0) ) {
 	fprintf(stderr, "[%s] encoder error write failed size (%d)\n", MOD_NAME, out_size);
 	//return TC_EXPORT_ERROR; 
@@ -836,7 +1024,7 @@ MOD_close
     return 0;
   }
   
-  if (is_mpeg1video) {
+  if (is_mpegvideo) {
     if (mpeg1fd) {
       fclose (mpeg1fd);
       mpeg1fd = NULL;
