@@ -269,8 +269,8 @@ filter_text_la_LIBADD  = $(FT2_LIBS)
 
 
 EXTRA_DIST =  \
-	parse_csv.awk \
-	filter_list.awk \
+	parse_csv.awk.in \
+	filter_list.awk.in \
 	mmx.h
 
 if HAVE_FREETYPE2

@@ -32,6 +32,9 @@ AC_SUBST(CCASFLAGS)
 ASFLAGS="$CCASFLAGS"
 AC_SUBST(ASFLAGS)
 
+dnl we got $AWK already, but not it's full path
+AC_PATH_PROG(PATH_TO_AWK, $AWK)
+
 deflib="/lib"
 
 is_osx=false
@@ -442,7 +445,7 @@ if test x"$use_cmov" = x"yes" ; then
       fi
       ;;
     *)
-      cpu_family=`grep "cpu family" /proc/cpuinfo | awk 'BEGIN { FS = ":"; } { printf "%d", $2 + 0;}'`
+      cpu_family=`grep "cpu family" /proc/cpuinfo | $AWK 'BEGIN { FS = ":"; } { printf "%d", $2 + 0;}'`
       if test "$cpu_family" -gt 5 ; then
         have_cmov=yes
       fi
@@ -1379,6 +1382,8 @@ AC_OUTPUT([
 	testsuite/Makefile
 	tools/Makefile
 	transcode.spec
+	filter/parse_csv.awk
+	filter/filter_list.awk
 ])
 
 

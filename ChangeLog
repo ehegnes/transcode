@@ -1,3 +1,14 @@
+2004-12-17 Jacob Meuser <jakemsr at jakemsr dot com>
+  * configure.in filter/parse_cvs.awk (removed)
+    filter/filter_list.awk (removed) filter/parse_csv.awk.in
+    (added) filter/filter_list.awk.in (added)
+  Use the best possible awk, not necessarily /usr/bin/gawk.
+
+2004-12-17 Jacob Meuser <jakemsr at jakemsr dot com>
+  * export/* import/* filter/*
+  Quit using sprintf.  Change most uses to snprintf, else
+  deal appropriately.
+
 2004-12-15 Jacob Meuser <jakemsr at jakemsr dot com>
   * contrib/bitrate
   Try to make this more portable, flexible and robust.

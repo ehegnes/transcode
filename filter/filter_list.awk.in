@@ -1,4 +1,4 @@
-#!/usr/bin/gawk -f
+#!@PATH_TO_AWK@ -f
 
 BEGIN {
   
