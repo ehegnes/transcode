@@ -46,31 +46,6 @@ static struct wave_header 	rtf;
 
 /* ------------------------------------------------------------ 
  *
- * Pipe write helper function 
- *
- * ------------------------------------------------------------*/
-
-
-static int p_write (char *buf, size_t len)
-{
-    size_t n  = 0;
-    size_t r  = 0;
-    int    fd = fileno (pFile);
-
-    while (r < len) 
-    {
-        if ((n = write (fd, buf + r, len - r)) < 0)
-	    return n;
-      
-        r += n;
-    }
-   
-    return r;
-}
-
-
-/* ------------------------------------------------------------ 
- *
  * open outputfile
  *
  * ------------------------------------------------------------*/
@@ -111,8 +86,8 @@ MOD_open
         if((pFile = popen (buf, "w")) == NULL)
 	  return(TC_EXPORT_ERROR);
 	
-        if (p_write ((char*) &rtf, sizeof(rtf)) != sizeof(rtf)) 
-	  {    
+        if (AVI_write_wave_header (fileno (pFile), &rtf) != 0)
+	{    
       	    perror("write wave header");
       	    return(TC_EXPORT_ERROR);
         }     
@@ -181,7 +156,10 @@ MOD_encode
 {
     if(param->flag == TC_AUDIO)
     {
-        if (p_write (param->buffer, param->size) != param->size) 
+	if (AVI_write_wave_pcm_data(
+		fileno (pFile),
+		param->buffer, param->size
+		) != param->size)
         {    
             perror("write audio frame");
             return(TC_EXPORT_ERROR);

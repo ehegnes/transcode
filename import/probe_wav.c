@@ -28,15 +28,13 @@
 void probe_wav(info_t *ipipe)
 {
 
-  int bytes;
   struct wave_header rtf;
 
-  // read min frame 
-  if((bytes=p_read(ipipe->fd_in, (char*) &rtf, sizeof(rtf)))
-     != sizeof(rtf)) {
-    fprintf(stderr, "(%s) end of stream\n", __FILE__);
-    ipipe->error=1;
-    return;
+  // read frame 
+  if(AVI_read_wave_header(ipipe->fd_in, &rtf) != 0) {
+     fprintf(stderr, "(%s) %s\n", __FILE__, AVI_strerror());
+     ipipe->error=1;
+     return;
   }
   
   ipipe->probe_info->track[0].samplerate = rtf.common.dwSamplesPerSec;

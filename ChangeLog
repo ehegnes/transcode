@@ -1,6 +1,17 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-08-04 Benjamin Riefenstahl <Benjamin.Riefenstahl at epost.de>
+
+  * avilib/avilib.c, avilib/avilib.h:
+  Add routines for reading and writing headers and LE encoded PCM data
+  for WAV files.
+
+  * export/Makefile.am, export/Makefile.in, export/export_mp2enc.c,
+  export/export_sampeg.c, export/export_wav.c, import/extract_pcm.c,
+  import/probe_wav.c:
+  Use the new routines. 
+
 2003-08-04 Tilmann Bitterberg <transcode at tibit.org>
 
   * configure.in export/Makefile.am:

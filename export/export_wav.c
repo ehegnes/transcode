@@ -40,22 +40,6 @@ static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
 static struct wave_header rtf;
 static int fd;
 static long total=0;
-
-static int p_write (int fd, char *buf, size_t len)
-{
-   size_t n = 0;
-   size_t r = 0;
-
-   while (r < len) {
-      n = write (fd, buf + r, len - r);
-      if (n < 0)
-         return n;
-      
-      r += n;
-   }
-   return r;
-}
-
  
 /* ------------------------------------------------------------ 
  *
@@ -120,7 +104,7 @@ MOD_open
 
     total=0;
     
-    if(p_write(fd, (char *) &rtf, sizeof(rtf)) != sizeof(rtf)) {    
+    if(AVI_write_wave_header(fd, &rtf) != 0) {
       perror("write wave header");
       return(TC_EXPORT_ERROR);
     }     
@@ -149,7 +133,7 @@ MOD_encode
     
   if(param->flag == TC_AUDIO) { 
     
-    if(p_write(fd, param->buffer, size) != size) {    
+    if(AVI_write_wave_pcm_data(fd,param->buffer, size) != size) {
       perror("write audio frame");
       return(TC_EXPORT_ERROR);
     }     
@@ -194,7 +178,7 @@ MOD_close
     //write wave header
     lseek(fd, 0, SEEK_SET);     
 
-    if(p_write(fd, (char *) &rtf, sizeof(rtf)) != sizeof(rtf)) {    
+    if(AVI_write_wave_header(fd, &rtf) != 0) {
       perror("write wave header");
       return(TC_EXPORT_ERROR);
     }     

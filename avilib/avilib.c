@@ -88,7 +88,7 @@ static ssize_t avi_write (int fd, char *buf, size_t len)
 #define PAD_EVEN(x) ( ((x)+1) & ~1 )
 
 
-/* Copy n into dst as a 4 byte, little endian number.
+/* Copy n into dst as a 4 or 2 byte, little endian number.
    Should also work on big endian machines */
 
 static void long2str(unsigned char *dst, int n)
@@ -97,6 +97,12 @@ static void long2str(unsigned char *dst, int n)
    dst[1] = (n>> 8)&0xff;
    dst[2] = (n>>16)&0xff;
    dst[3] = (n>>24)&0xff;
+}
+
+static void short2str(unsigned char *dst, int n)
+{
+   dst[0] = (n    )&0xff;
+   dst[1] = (n>> 8)&0xff;
 }
 
 /* Convert a string of 4 or 2 bytes to a number,
@@ -2332,3 +2338,150 @@ uint64_t AVI_max_size()
   return((uint64_t) AVI_MAX_LEN);
 }
 
+
+// This expression is a compile-time constraint.  It will force a
+// compiler error, if the condition (the correct size of the struct
+// wave_header) is not met.  The reason that this may fail is
+// structure padding.  If it happens, the code should be changed to
+// use a byte array for the raw data, instead of doing the fixup
+// in-place.
+typedef char struct_packing_constraint [
+    44 == sizeof(struct wave_header) ? 1 : -1];
+
+int AVI_read_wave_header( int fd, struct wave_header * wave )
+{
+    // read raw data
+    if( avi_read (fd, (char*) wave, sizeof(*wave)) != sizeof(*wave) )
+    {
+	AVI_errno = AVI_ERR_READ;
+	return -1;
+    }
+
+    if( strncasecmp(wave->riff.id     , "RIFF",4) != 0 ||
+	strncasecmp(wave->riff.wave_id, "WAVE",4) != 0 ||
+	strncasecmp(wave->format.id   , "fmt ",4) != 0 ||
+	strncasecmp(wave->data.id     , "data",4) != 0 )
+    {
+	AVI_errno = AVI_ERR_NO_AVI;
+	return -1;
+    }
+
+#ifdef WORDS_BIGENDIAN
+#define x_FIXUP(field) \
+    ((field) = (sizeof(field) == 4 ? str2ulong((unsigned char*)&(field)) \
+				   : str2ushort((unsigned char*)&(field))))
+
+    x_FIXUP(wave->riff.len);
+    x_FIXUP(wave->format.len);
+    x_FIXUP(wave->common.wFormatTag);
+    x_FIXUP(wave->common.wChannels);
+    x_FIXUP(wave->common.dwSamplesPerSec);
+    x_FIXUP(wave->common.dwAvgBytesPerSec);
+    x_FIXUP(wave->common.wBlockAlign);
+    x_FIXUP(wave->common.wBitsPerSample);
+    x_FIXUP(wave->data.len);
+
+#undef x_FIXUP
+#endif
+
+    return 0;
+}
+
+int AVI_write_wave_header( int fd, const struct wave_header * wave )
+{
+    struct wave_header buffer = *wave;
+
+#ifdef WORDS_BIGENDIAN
+#define x_FIXUP(field) \
+    ((sizeof(field) == 4 ? long2str((unsigned char*)&(field),(field)) \
+			 : short2str((unsigned char*)&(field),(field))))
+
+    x_FIXUP(buffer.riff.len);
+    x_FIXUP(buffer.format.len);
+    x_FIXUP(buffer.common.wFormatTag);
+    x_FIXUP(buffer.common.wChannels);
+    x_FIXUP(buffer.common.dwSamplesPerSec);
+    x_FIXUP(buffer.common.dwAvgBytesPerSec);
+    x_FIXUP(buffer.common.wBlockAlign);
+    x_FIXUP(buffer.common.wBitsPerSample);
+    x_FIXUP(buffer.data.len);
+
+#undef x_FIXUP
+#endif
+
+    // write raw data
+    if( avi_write (fd, (char*) &buffer, sizeof(buffer)) != sizeof(buffer) )
+    {
+	AVI_errno = AVI_ERR_WRITE;
+	return -1;
+    }
+
+    return 0;
+}
+
+size_t AVI_read_wave_pcm_data( int fd, void * buffer, size_t buflen )
+{
+    int doneread = avi_read(fd, buffer, buflen);
+
+#ifdef WORDS_BIGENDIAN
+    {
+	char * bufptr = buffer;
+	size_t i;
+	char tmp;
+    
+	for( i=0; i<doneread; i+=2 )
+	{
+	    tmp = bufptr[i];
+	    bufptr[i] = bufptr[i+1];
+	    bufptr[i+1] = tmp;
+	}
+    }
+#endif
+
+    return doneread;
+}
+
+size_t AVI_write_wave_pcm_data( int fd, const void * data, size_t datalen )
+{
+    size_t totalwritten = 0;
+
+#ifdef WORDS_BIGENDIAN
+    const char * inptr = data;
+    char buffer[2048];
+    size_t i, buflen, donewritten;
+
+    while( datalen>0 )
+    {
+	buflen = datalen;
+	if( buflen > sizeof(buffer) )
+	{
+	    buflen = sizeof(buffer);
+	}
+
+	for( i=0; i<buflen; i+=2 )
+	{
+	    buffer[i]   = inptr[i+1];
+	    buffer[i+1] = inptr[i];
+	}
+
+	donewritten = avi_write(fd, buffer, buflen);
+	totalwritten += donewritten;
+	if( buflen != donewritten )
+	{
+	    AVI_errno = AVI_ERR_WRITE;
+	    return totalwritten;
+	}
+
+	datalen -= buflen;
+	inptr += buflen;
+    }
+#else
+    totalwritten = avi_write(fd, data, datalen);
+    if( datalen != totalwritten )
+    {
+	AVI_errno = AVI_ERR_WRITE;
+    }
+#endif
+
+    return totalwritten;
+}

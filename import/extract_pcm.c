@@ -295,7 +295,7 @@ void extract_pcm(info_t *ipipe)
   
   case TC_MAGIC_WAV:
     
-    if(p_read(ipipe->fd_in, (char *)&wave, sizeof(wave))!= sizeof(wave) ) {
+    if(AVI_read_wave_header(ipipe->fd_in, &wave) != 0) {
       error=1;
       break;
     }
@@ -309,7 +309,8 @@ void extract_pcm(info_t *ipipe)
     }
 
     do {
-      if((bytes=p_read(ipipe->fd_in, audio, MAX_BUF))!=MAX_BUF) error=1;
+      bytes = AVI_read_wave_pcm_data(ipipe->fd_in, audio, MAX_BUF);
+      if(bytes != MAX_BUF) error=1;
       if(p_write(ipipe->fd_out, audio, bytes)!= bytes) error=1;
     } while(!error);
     
