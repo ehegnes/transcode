@@ -774,7 +774,7 @@ FFMPEG_LIBS_CFLAGS="-I$with_ffmpeg_libs_i"
 FFMPEG_LIBS_EXTRALIBS="-lm -lz $pthread_lib"
 
 AC_ARG_ENABLE(ffmpeg-libs-static,
-		AC_HELP_STRING([--enable-ffmpeg-libs-static],[link binaries and modules statically to ffmpeg-libs (huge)]),
+		AC_HELP_STRING([--enable-ffmpeg-libs-static],[link binaries and modules statically to ffmpeg-libs (warning: huge) (warning: only tested on linux x86]),
 		[
 			if test x"$enableval" = x'yes'
 			then
