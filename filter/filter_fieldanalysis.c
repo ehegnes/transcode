@@ -604,21 +604,21 @@ int tc_filter (vframe_list_t *ptr, char *options)
 	char buf[255];
 	optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION,
 			    MOD_AUTHORS, "VRY4E", "2");
-	sprintf (buf, "%g", myf->interlaceDiff);
+	snprintf (buf, sizeof(buf), "%g", myf->interlaceDiff);
 	optstr_param (options, "interlacediff", "Minimum temporal inter-field difference for detecting interlaced video", "%f", buf, "1.0", "inf");
-	sprintf (buf, "%g", myf->unknownDiff);
+	snprintf (buf, sizeof(buf), "%g", myf->unknownDiff);
 	optstr_param (options, "unknowndiff", "Maximum inter-frame change vs. detail differences for neglecting interlaced video", "%f", buf, "1.0", "inf");
-	sprintf (buf, "%g", myf->progressiveDiff);
+	snprintf (buf, sizeof(buf), "%g", myf->progressiveDiff);
 	optstr_param (options, "progressivediff", "Minimum inter-frame change vs. detail differences for detecting progressive video" ,"%f", buf, "unknowndiff", "inf");
-	sprintf (buf, "%g", myf->progressiveChange);
+	snprintf (buf, sizeof(buf), "%g", myf->progressiveChange);
 	optstr_param (options, "progressivechange", "Minimum temporal change needed for detecting progressive video" ,"%f", buf, "0", "inf");
-	sprintf (buf, "%g", myf->changedIfMore);
+	snprintf (buf, sizeof(buf), "%g", myf->changedIfMore);
 	optstr_param (options, "changedifmore", "Minimum temporal change for detecting truly changed frames" ,"%f", buf, "0", "65025");
-	sprintf (buf, "%d", myf->forceTelecineDetect);
+	snprintf (buf, sizeof(buf), "%d", myf->forceTelecineDetect);
 	optstr_param (options, "forcetelecinedetect", "Detect telecine even on non-NTSC (29.97fps) video", "%d", buf, "0", "1");
-	sprintf (buf, "%d", myf->verbose);
+	snprintf (buf, sizeof(buf), "%d", myf->verbose);
 	optstr_param (options, "verbose", "Output analysis for every frame", "%d", buf, "0", "2");
-	sprintf (buf, "%d", myf->outDiff);
+	snprintf (buf, sizeof(buf), "%d", myf->outDiff);
 	optstr_param (options, "outdiff", "Output internal debug frames as luminance of YUV video (see source)", "%d", buf, "0", "11");
     }
     
