@@ -123,7 +123,7 @@ MOD_open
 
     /* Check NVrec features */
     memset (buffer, 0, 1024);
-    sprintf (buffer, "%s -h 2>&1", prgname);
+    snprintf (buffer, sizeof(buffer), "%s -h 2>&1", prgname);
     f = popen (buffer, "r");
     memset (buffer, 0, 1024);
 

@@ -72,7 +72,7 @@ MOD_open
     if(param->flag == TC_AUDIO) {
       
       //directory mode?
-      (scan(vob->audio_in_file)) ? sprintf(cat_buf, "tccat -a") : ((vob->im_a_string) ? sprintf(cat_buf, "tcextract -x pcm %s", vob->im_a_string):sprintf(cat_buf, "tcextract -x pcm"));
+      (scan(vob->audio_in_file)) ? snprintf(cat_buf, sizeof(cat_buf), "tccat -a") : ((vob->im_a_string) ? snprintf(cat_buf, sizeof(cat_buf), "tcextract -x pcm %s", vob->im_a_string) : snprintf(cat_buf, sizeof(cat_buf), "tcextract -x pcm"));
       
       if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d | tcextract -a %d -x pcm -d %d -t raw", cat_buf, vob->audio_in_file, vob->verbose, vob->a_track, vob->verbose)<0)) {
 	perror("cmd buffer overflow");
@@ -99,11 +99,11 @@ MOD_open
       
       //directory mode?
       if(scan(vob->video_in_file)) {
-	sprintf(cat_buf, "tccat");
+	snprintf(cat_buf, sizeof(cat_buf), "tccat");
 	co=""; 
       } else {
 	
-	(vob->im_v_string) ? sprintf(cat_buf, "tcextract %s", vob->im_v_string):sprintf(cat_buf, "tcextract");
+	(vob->im_v_string) ? snprintf(cat_buf, sizeof(cat_buf), "tcextract %s", vob->im_v_string) : snprintf(cat_buf, sizeof(cat_buf), "tcextract");
 	
 	switch (codec) {
 	    case CODEC_RGB: co = "-x rgb"; break;

@@ -95,7 +95,7 @@ MOD_decode {
         if(verbose_flag & TC_STATS)
             fprintf(stderr, "[%s] (V) read yuv", MOD_NAME);
 
-        sprintf(fname,"%s/%04d.yuv",vob->video_in_file,frm);	
+        snprintf(fname,sizeof(fname),"%s/%04d.yuv",vob->video_in_file,frm);	
 
         if (!(fd = fopen(fname,"rb"))) {
 
@@ -104,7 +104,7 @@ MOD_decode {
 
             while (frm < MAXFRM){ 
 		frm++;
-		sprintf(fname,"%s/%04d.yuv",vob->video_in_file,frm);
+		snprintf(fname,sizeof(fname),"%s/%04d.yuv",vob->video_in_file,frm);
 		fd=fopen(fname,"rb");
 		if (fd) {
 		    if(verbose_flag & TC_DEBUG)

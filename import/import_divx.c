@@ -191,24 +191,24 @@ static int divx_init(char *path) {
     // try transcode's module directory
     if (!handle) {
       // (try 5.x "libdivxencore.so.0" style)
-      sprintf(module, "%s/%s", path, MODULE_V);
+      snprintf(module, sizeof(module), "%s/%s", path, MODULE_V);
       handle = dlopen(module, RTLD_LAZY); 
     }
     if (!handle) {
       // (try 4.x "libdivxencore.so" style)
-      sprintf(module, "%s/%s", path, MODULE);
+      snprintf(module, sizeof(module), "%s/%s", path, MODULE);
       handle = dlopen(module, RTLD_LAZY); 
     }
 
     //try the default:
     if (!handle) {
       // (try 5.x "libdivxencore.so.0" style)
-      sprintf(module, "%s", MODULE_V);
+      snprintf(module, sizeof(module), "%s", MODULE_V);
       handle = dlopen(module, RTLD_LAZY); 
     }
     if (!handle) {
       // (try 4.x "libdivxencore.so" style)
-      sprintf(module, "%s", MODULE);
+      snprintf(module, sizeof(module), "%s", MODULE);
       handle = dlopen(module, RTLD_LAZY); 
     }
     
