@@ -39,7 +39,7 @@
 
 
 #define MOD_NAME    "import_im.so"
-#define MOD_VERSION "v0.0.3 (2003-07-01)"
+#define MOD_VERSION "v0.0.4 (2003-09-15)"
 #define MOD_CODEC   "(video) RGB"
 
 #define MOD_PRE im
@@ -116,11 +116,15 @@ MOD_open
     else {
         // split the name into head, frame number, and tail
         head = malloc(pmatch[1].rm_eo - pmatch[1].rm_so + 1);
-        head = strncpy(head, vob->video_in_file, pmatch[1].rm_eo - pmatch[1].rm_so);
+        head = strncpy(head, 
+                       vob->video_in_file, 
+                       pmatch[1].rm_eo - pmatch[1].rm_so);
         head[pmatch[1].rm_eo - pmatch[1].rm_so] = '\0';
 
         frame = malloc(pmatch[2].rm_eo - pmatch[2].rm_so + 1);
-        frame = strncpy(frame, vob->video_in_file + pmatch[2].rm_so, pmatch[2].rm_eo - pmatch[2].rm_so);
+        frame = strncpy(frame, 
+                        vob->video_in_file + pmatch[2].rm_so, 
+                        pmatch[2].rm_eo - pmatch[2].rm_so);
         frame[pmatch[2].rm_eo - pmatch[2].rm_so] = '\0';
 
         // If the frame number is padded with zeros, record how many digits 
@@ -131,7 +135,9 @@ MOD_open
         first_frame = atoi(frame);
 
         tail = malloc(pmatch[3].rm_eo - pmatch[3].rm_so + 1);
-        tail = strncpy(tail, vob->video_in_file + pmatch[3].rm_so, pmatch[3].rm_eo - pmatch[3].rm_so);
+        tail = strncpy(tail, 
+               vob->video_in_file + pmatch[3].rm_so, 
+               pmatch[3].rm_eo - pmatch[3].rm_so);
         tail[pmatch[3].rm_eo - pmatch[3].rm_so] = '\0';
 
         // find the last frame by trying to open files
@@ -189,6 +195,7 @@ MOD_decode {
         column,
         row;
 
+
     if (current_frame > last_frame)
         return(TC_IMPORT_ERROR);
 
@@ -219,7 +226,9 @@ MOD_decode {
     (void) strcpy(image_info->filename, filename);
     image=ReadImage(image_info,&exception_info);
     if (image == (Image *) NULL)
-        MagickError(exception_info.severity,exception_info.reason,exception_info.description);
+        MagickError(exception_info.severity,
+                    exception_info.reason,
+                    exception_info.description);
 
     /*
      * Copy the pixels into a buffer in RGB order
@@ -227,12 +236,21 @@ MOD_decode {
     pixel_packet = GetImagePixels(image, 0, 0, image->columns, image->rows);
     for (row = 0; row < image->rows; row++) {
         for (column = 0; column < image->columns; column++) {
+          /*
+           * The bit-shift 8 in the following lines is to convert 
+           * 16-bit-per-channel images that may be read by ImageMagick 
+           * into the 8-bit-per-channel images that transcode uses.
+           * The bit-shift is still valid for 8-bit-per-channel images 
+           * because when ImageMagick handles 8-bit images it still uses 
+           * unsigned shorts, but stores the same 8-bit value in both 
+           * the low and high byte.
+           */
           param->buffer[(row * image->columns + column) * 3 + 0] =
-               pixel_packet[(image->rows - row - 1) * image->columns + column].blue;
+               (char) (pixel_packet[(image->rows - row - 1) * image->columns + column].blue >> 8);
           param->buffer[(row * image->columns + column) * 3 + 1] =
-               pixel_packet[(image->rows - row - 1) * image->columns + column].green;
+               (char) (pixel_packet[(image->rows - row - 1) * image->columns + column].green >> 8);
           param->buffer[(row * image->columns + column) * 3 + 2] =
-               pixel_packet[(image->rows - row - 1) * image->columns + column].red;
+               (char) (pixel_packet[(image->rows - row - 1) * image->columns + column].red >> 8);
         }
     }
 

@@ -1,6 +1,14 @@
 --------------------------------------------
 transcode-0.6.11
 
+2003-09-15 Gregory Brauer <greg at wildbrain.com>
+
+  * import/import_im.c:
+  The Transcode ImageMagick importer module does not properly handle
+  importing 16-bit-per-channel image file formats.  The attached
+  patch to import_im.c fixes the problem, and also contains some
+  very minor code formatting work.
+
 2003-09-12 Tilmann Bitterberg <transcode at tibit.org>
 
   * export/export_dvraw.c:
