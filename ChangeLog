@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-02-14 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/filter_text.c:
+  The filter produced incorrect results when the image was flipped
+  via -z. Reported by Phil Jones.
+
 2004-02-13 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/zoom.c:

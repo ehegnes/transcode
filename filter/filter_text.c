@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_text.so"
-#define MOD_VERSION "v0.1.3 (2003-10-16)"
+#define MOD_VERSION "v0.1.4 (2004-02-14)"
 #define MOD_CAP     "write text in the image"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
@@ -96,6 +96,7 @@ typedef struct MyFilterData {
 	int antialias;       /* do sub frame anti-aliasing (not done) */
 	int R, G, B;         /* color to apply in RGB */
 	int Y, U, V;         /* color to apply in YUV */
+	int flip;
 
     /* private */
 	int opaque;          /* Opaqueness of the text */
@@ -151,6 +152,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   static char *buf = NULL;
   char *p, *q;
   char *default_font = "/usr/X11R6/lib/X11/fonts/TrueType/arial.ttf";
+  extern int flip; // transcode.c
   
   if (ptr->tag & TC_AUDIO)
       return 0;
@@ -235,6 +237,10 @@ int tc_filter(vframe_list_t *ptr, char *options)
     mfd->top_space = 0;
     mfd->boundX=0;
     mfd->boundY=0;
+    mfd->flip = flip;
+
+    //if the user wants flipping, do it here in this filter
+    if (mfd->flip) flip=TC_FALSE;
 
     mfd->R = mfd->B = mfd->G = 0xff; // white
     mfd->Y = 240; mfd->U = mfd->V = 128;
@@ -417,8 +423,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	return (-1);
     }
 
-    //render into temp buffer
 
+    //render into temp buffer
     if (codec == CODEC_YUV) {
 
 	p = buf+mfd->posy*width+mfd->posx;
@@ -606,7 +612,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 			}
 
 			// write to image
-			p[3*((h)*width+w)-(2-i)] =  e&0xff;
+			p[3*(h*width+w)-(2-i)] =  e&0xff;
 		    }
 		}
 	    }
@@ -621,6 +627,23 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	if (mfd->fade && mfd->opaque<MAX_OPACITY && mfd->fade_in) {
 	    mfd->opaque += mfd->fade;
 	    if (mfd->opaque>MAX_OPACITY) mfd->opaque=MAX_OPACITY;
+	}
+
+	if (mfd->flip) {
+	    switch (codec) {
+		case CODEC_RGB:
+		    rgb_flip(ptr->video_buf, ptr->v_width, ptr->v_height);
+		    break;
+		case CODEC_YUV:
+		    yuv_flip(ptr->video_buf, ptr->v_width, ptr->v_height);
+		    break;
+		case CODEC_YUV422:
+		    yuv422_flip(ptr->video_buf, ptr->v_width, ptr->v_height);
+		    break;
+		default:
+		    printf("unsupported\n");
+		    break;
+	    }
 	}
 
 
