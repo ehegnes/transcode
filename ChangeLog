@@ -1,3 +1,25 @@
+2005-01-13 Jacob Meuser <jakemsr at jakemsr dor com>
+  * bbmpeg/*
+  bbmpeg may have been the king at one time, but now there
+  are faster and more accurate MPEG encoders.  the bbmpeg
+  code is apparently no longer maintained, either, putting
+  the burden of keeping it working on the transcode
+  developers, who don't use bbmpeg anyway.
+  because of this, and other factors, the bbmpeg library and
+  it's dependents have been removed from the transcode
+  distribution.
+  for people who used the mpeg export module for MPEG
+  video encoding, it is recommended to use the ffmpeg,
+  mpeg2enc or xvid export modules.
+  since tcmplex also used the bbmpeg library, it it gone too.
+  there is a stand-alone version of tcmplex at:
+    http://www.home.zonnet.nl/panteltje/dvd/
+  this version also supports multiplexing 1 video and up to 8
+  audio tracks while the tcmplex in transcode ocould only
+  handle up to 2 audio tracks.
+  it is probably better to use mplex from the mjpegtools
+  package, however, since it is still actively maintained.
+
 2005-01-11 Andrew Church <achurch at achurch dot org>
   * export/export_toolame.c
   export_toolame was forcing joint stereo mode regardless of
