@@ -2477,14 +2477,18 @@ cf_sntoupper( char * pString, int num )
 // 
 
 
-int module_read_config(char *section, char *prefix, char *module, struct config *conf) {
+int module_read_config(char *section, char *prefix, char *module, struct config *conf, char *configdir) {
   CF_ROOT_TYPE    *p_root;
   CF_SECTION_TYPE *p_section;
   struct stat      statfile;
   char	      buffer[1024];
   char	      conffile[256];
 
-  snprintf(conffile, 255, "./%s.cfg", module);
+  if (configdir) {
+      snprintf(conffile, 255, "%s/%s.cfg", configdir, module);
+  } else {
+      snprintf(conffile, 255, "./%s.cfg", module);
+  }
   
   /* Search for the config file called module.cfg */
   if (stat(conffile, &statfile) != 0) {
