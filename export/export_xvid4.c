@@ -65,7 +65,7 @@
  ****************************************************************************/
 
 #define MOD_NAME    "export_xvid4.so"
-#define MOD_VERSION "v0.0.3 (2003-08-07)"
+#define MOD_VERSION "v0.0.4 (2003-08-24)"
 #define MOD_CODEC  \
 "(video) XviD 1.0.x series (aka API 4.0) | (audio) MPEG/AC3/PCM"
 #define MOD_PRE xvid4_ 
@@ -78,6 +78,8 @@
 /*****************************************************************************
  * Local data
  ****************************************************************************/
+
+extern char* tc_config_dir;
 
 /* Temporary audio/video buffer */
 static int verbose_flag = TC_QUIET;
@@ -678,7 +680,7 @@ static void read_config_file(xvid_transcode_module_t *mod)
 		};
 
 	/* Read the values */
-	module_read_config(NULL, MOD_NAME, "xvid4", complete_config);
+	module_read_config(NULL, MOD_NAME, "xvid4", complete_config, tc_config_dir);
 
 	/* Print the values */
 	if(verbose_flag & TC_DEBUG)

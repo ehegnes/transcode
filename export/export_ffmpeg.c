@@ -53,13 +53,15 @@
 #endif
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.3.6 (2003-08-15)"
+#define MOD_VERSION "v0.3.7 (2003-08-24)"
 #define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
                     ") | (audio) MPEG/AC3/PCM"
 #define MOD_PRE ffmpeg
 
 #include "export_def.h"
 #include "ffmpeg_cfg.h"
+
+extern char *tc_config_dir;
 
 static int verbose_flag    = TC_QUIET;
 static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AC3|
@@ -281,7 +283,7 @@ MOD_init {
     }
 
 	
-    module_read_config(codec->name, MOD_NAME, "ffmpeg", lavcopts_conf);
+    module_read_config(codec->name, MOD_NAME, "ffmpeg", lavcopts_conf, tc_config_dir);
     if (verbose_flag & TC_DEBUG) {
       fprintf(stderr, "[%s] Using the following FFMPEG parameters:\n",
               MOD_NAME);

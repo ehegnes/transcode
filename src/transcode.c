@@ -100,6 +100,7 @@ void socket_thread(); // socket.c
 
 char *socket_file = NULL;
 char *plugins_string = NULL;
+char *tc_config_dir = NULL;
 pid_t writepid = 0;
 
 //default
@@ -155,6 +156,7 @@ enum {
   AVI_COMMENTS,
   DIVX5_VBV_PROF,
   DIVX5_VBV,
+  CONFIG_DIR,
 };
 
 int print_counter_interval = 1;
@@ -380,6 +382,7 @@ void usage(int status)
 #endif
   printf("--socket file             socket file for run-time control [no file]\n");
   printf("--dv_yuy2_mode            libdv YUY2 mode (default is YV12) [off]\n");
+  printf("--config_dir dir          Assume config files are in this dir [off]\n");
 
   printf("\n");
 
@@ -817,6 +820,7 @@ int main(int argc, char *argv[]) {
       {"divx_vbv_prof", required_argument, NULL, DIVX5_VBV_PROF},
       {"divx_vbv", required_argument, NULL, DIVX5_VBV},
       {"hard_fps", no_argument, NULL, HARD_FPS},
+      {"config_dir", required_argument, NULL, CONFIG_DIR},
       {0,0,0,0}
     };
     
@@ -1935,6 +1939,10 @@ int main(int argc, char *argv[]) {
 
 	  break;
 	  
+	case CONFIG_DIR:
+	  tc_config_dir = optarg;
+	  break;
+
 	case PULLDOWN:
 	  vob->pulldown = 1;
 	  break;
