@@ -2,36 +2,60 @@
 Name: transcode
 Version: 0.6.9
 Release: 1
-Summary:  a linux video stream processing utility
-Copyright: GPL
+Summary: A linux video stream processing utility
+URL: http://zebra.fh-weingarten.de/~transcode/
+License: GPL
 Group: Applications/Multimedia
-Packager: Michel Alexandre Salim <salimma1@yahoo.co.uk>
+Packager: Lenz Grimmer <lenz@grimmer.com>
 
 Source: %{name}-%{version}.tar.gz
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
-Prefix: %{_prefix}
 
 %description
-transcode is a text-console video stream processing
-tool. Decoding and encoding is done by loading shared library modules
-that are responsible for feeding transcode with raw RGB/PCM streams 
-(import module) and encoding the frames (export module). It supports
-elementary video and audio frame transformations.
-Some example modules are included to enable import
-of MPEG program streams (VOB), Digital Video (DV), or YUV video 
-and export modules for writing DivX;-), OpenDivX, or uncompressed AVI files. 
-A set of tools is available to extract and decode the sources into 
-raw video/audio streams for import and to enable post-processing of AVI files.
+transcode is a linux text-console utility for video stream processing,
+running on a platform that supports shared libraries and threads.  Decoding
+and encoding is done by loading modules that are responsible for feeding
+transcode with raw video/audio streams (import modules) and encoding the
+frames (export modules). It supports elementary video and audio frame
+transformations, including de-interlacing or fast resizing of video frames
+and loading of external filters.
 
-Written by Thomas Östreich (ostreich@theorie.physik.uni-goettingen.de)
+A number of modules are included to enable import of DVDs on-the-fly, MPEG
+elementary (ES) or program streams (VOB), MPEG video, Digital Video (DV),
+YUV4MPEG streams, NuppelVideo file format and raw or compressed
+(pass-through) video frames and export modules for writing DivX;-), DivX
+4.02/5.xx, XviD, Digital Video, MPEG-1/2 or uncompressed AVI files with
+MPEG, AC3 (pass-through) or PCM audio.  More file formats and codecs for
+audio/video import are supported by the avifile library import module, the
+export with avifile is restricted to video codecs only, with MPEG/PCM or AC3
+(pass-through) audio provided by transcode. Limited Quicktime export support
+and DVD subtitle rendering is also avaliable.
+
+It's modular concept is intended to provide flexibility and easy user
+extensibility to include other video/audio codecs or file types.  A set of
+tools is available to extract, demultiplex and decode the sources into raw
+video/audio streams for import, non AVI-file export modules for writing
+single frames (PPM) or YUV4MPEG streams, auto-probing and scanning your
+sources and to enable post-processing of AVI files, including header fixing,
+merging multiple files or splitting large AVI files to fit on a CD.
+
+More information and usage examples can be found on the original author's
+home page at
+
+  http://www.theorie.physik.uni-goettingen.de/~ostreich/transcode/
+
+Written by Thomas Östreich <ostreich@theorie.physik.uni-goettingen.de>
+Currently maintained by Tilmann Bitterberg <transcode@tibit.org>
+See the Authors file for contributions from the linux community.
+See the file COPYING for license details.
 
 %prep
 %setup -n %{name}-%{version}
 
 
 %build
-CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%{prefix} --mandir=%{prefix}/share/man
+CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%{_prefix} --mandir=%{_mandir}
 
 make
 
@@ -40,10 +64,11 @@ make
 #------------- ab hier bald unnuetz -------------
 perl -pi -e "s|MOD_PATH = /|MOD_PATH = $RPM_BUILD_ROOT|" */Makefile
 #------------- bis hier bald unnuetz ------------
-make install prefix=$RPM_BUILD_ROOT%{prefix} \
-    MOD_PATH=$RPM_BUILD_ROOT%{prefix}/lib/transcode \
-    pkgdir=$RPM_BUILD_ROOT%{prefix}/lib/transcode \
-    mandir=$RPM_BUILD_ROOT%{prefix}/share/man
+make install prefix=$RPM_BUILD_ROOT%{_prefix} \
+    MOD_PATH=$RPM_BUILD_ROOT%{_libdir}/%{name} \
+    pkgdir=$RPM_BUILD_ROOT%{_libdir}/%{name} \
+    mandir=$RPM_BUILD_ROOT%{_mandir} \
+    docsdir=$RPM_BUILD_ROOT%{_defaultdocdir}/%{name}
 
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
@@ -63,10 +88,17 @@ make install prefix=$RPM_BUILD_ROOT%{prefix} \
 
 %files
 %defattr(-,root,root)
-%{prefix}
-%doc AUTHORS COPYING ChangeLog README TODO docs/*-API.txt
+%doc AUTHORS COPYING ChangeLog README TODO
+%doc docs/OPTIMIZERS docs/README.* docs/*.txt
+%doc docs/html/*.txt docs/html/*.html docs/html/*.php docs/html/*.png
+%doc %{_mandir}/man1/*
+%{_bindir}/*
+%{_libdir}/transcode
 
 %changelog
+* Thu Jul 31 2003 Lenz Grimmer <lenz@grimmer.com>
+- fixed file list, use more macros (_mandir, _libdir), added URL
+
 * Tue Dec 10 2002 Rainer Lay <rainer.lay@cs.fau.de> 0.6.3.20021205-1
 - removed extra man in files section
 
