@@ -10,7 +10,7 @@ filter/
 
 tools/
   The avi* utils have problems with some avifiles -- fixed?
-  opendml AVIs do not work.
+  opendml AVIs do not work. They do now 2003/08/24
 
 src/
   Make the order of execution of all the internal processing routines
