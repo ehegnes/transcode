@@ -16,6 +16,12 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
+/**
+ * @file wmadec.c
+ * WMA compatible decoder.
+ */
+
 #include "avcodec.h"
 #include "dsputil.h"
 
@@ -193,7 +199,7 @@ static void dump_floats(const char *name, int prec, const float *tab, int n)
 
 #else
 
-#define trace(fmt, ...)
+#define trace(fmt, args...)
 
 #endif
 
@@ -1215,7 +1221,7 @@ static int wma_decode_frame(WMADecodeContext *s, int16_t *samples)
 
 static int wma_decode_superframe(AVCodecContext *avctx, 
                                  void *data, int *data_size,
-                                 UINT8 *buf, int buf_size)
+                                 uint8_t *buf, int buf_size)
 {
     WMADecodeContext *s = avctx->priv_data;
     int nb_frames, bit_offset, i, pos, len;

@@ -38,32 +38,45 @@ libtcavcodec_a_SOURCES = \
       motion_est.c imgconvert.c imgresample.c \
       mpeg12.c mpegaudiodec.c pcm.c simple_idct.c \
       ratecontrol.c adpcm.c eval.c dv.c error_resilience.c \
-      h263.c msmpeg4.c h263dec.c svq1.c rv10.c wmadec.c \
-      fft.c mdct.c mace.c \
+      fft.c mdct.c mace.c cyuv.c opts.c raw.c h264.c golomb.c \
+      h263.c msmpeg4.c h263dec.c svq1.c rv10.c wmadec.c indeo3.c \
+      vp3.c asv1.c 4xm.c cabac.c ffv1.c ra144.c ra288.c \
       huffyuv.c $(FF_SRC_MMX) $(FF_SRC_PPC) $(FF_SRC_ALTIVEC)
 
 noinst_HEADERS =  \
-   ac3.h \
-   ac3tab.h \
-   avcodec.h \
-   bswap.h \
-   common.h \
-   dsputil.h \
-   dvdata.h \
-   fastmemcpy.h \
-   h263data.h \
-   mpeg12data.h \
-   mpeg4data.h \
-   mpegaudio.h \
-   mpegaudiodectab.h \
-   mpegaudiotab.h \
-   mpegvideo.h \
-   msmpeg4data.h \
-   simple_idct.h \
-   svq1_cb.h \
-   wmadata.h
+  ac3.h \
+  ac3tab.h \
+  avcodec.h \
+  bswap.h \
+  cabac.h \
+  common.h \
+  dsputil.h \
+  dvdata.h \
+  fastmemcpy.h \
+  golomb.h \
+  h263data.h \
+  h264data.h \
+  imgconvert_template.h \
+  indeo3data.h \
+  mpeg12data.h \
+  mpeg4data.h \
+  mpegaudio.h \
+  mpegaudiodectab.h \
+  mpegaudiotab.h \
+  mpegvideo.h \
+  msmpeg4data.h \
+  os_support.h \
+  simple_idct.h \
+  svq1_cb.h \
+  svq1_vlc.h \
+  vp3data.h \
+  wmadata.h
+
 
 EXTRA_DIST = motion_est_template.c \
-	     wmv2.c
+	     wmv2.c \
+	     svq3.c \
+	     faad.c \
+	     amr.c
 
 SUBDIRS = . i386 ppc

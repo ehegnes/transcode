@@ -17,6 +17,12 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
+/**
+ * @file ratecontrol.c
+ * Rate control for video encoders.
+ */ 
+
 #include "avcodec.h"
 #include "dsputil.h"
 #include "mpegvideo.h"
@@ -158,7 +164,7 @@ int ff_rate_control_init(MpegEncContext *s)
                 bits= rce.i_tex_bits + rce.p_tex_bits;
 
                 q= get_qscale(s, &rce, rcc->pass1_wanted_bits/rcc->pass1_rc_eq_output_sum, i);
-                rcc->pass1_wanted_bits+= s->bit_rate/(s->frame_rate / (double)FRAME_RATE_BASE);
+                rcc->pass1_wanted_bits+= s->bit_rate/(s->avctx->frame_rate / (double)s->avctx->frame_rate_base);
             }
         }
 
@@ -191,7 +197,7 @@ static inline double bits2qp(RateControlEntry *rce, double bits){
     
 static void update_rc_buffer(MpegEncContext *s, int frame_size){
     RateControlContext *rcc= &s->rc_context;
-    const double fps= (double)s->frame_rate / FRAME_RATE_BASE;
+    const double fps= (double)s->avctx->frame_rate / (double)s->avctx->frame_rate_base;
     const double buffer_size= s->avctx->rc_buffer_size;
     const double min_rate= s->avctx->rc_min_rate/fps;
     const double max_rate= s->avctx->rc_max_rate/fps;
@@ -250,7 +256,7 @@ static double get_qscale(MpegEncContext *s, RateControlEntry *rce, double rate_f
         (rcc->i_cplx_sum[pict_type] + rcc->p_cplx_sum[pict_type]) / (double)rcc->frame_count[pict_type],
         0
     };
-    char *const_names[]={
+    static const char *const_names[]={
         "PI",
         "E",
         "iTex",
@@ -282,7 +288,7 @@ static double get_qscale(MpegEncContext *s, RateControlEntry *rce, double rate_f
         (void *)qp2bits,
         NULL
     };
-    char *func1_names[]={
+    static const char *func1_names[]={
         "bits2qp",
         "qp2bits",
         NULL
@@ -350,8 +356,8 @@ static double get_diff_limited_q(MpegEncContext *s, RateControlEntry *rce, doubl
  * gets the qmin & qmax for pict_type
  */
 static void get_qminmax(int *qmin_ret, int *qmax_ret, MpegEncContext *s, int pict_type){
-    int qmin= s->qmin;                                                       
-    int qmax= s->qmax;
+    int qmin= s->avctx->qmin;                                                       
+    int qmax= s->avctx->qmax;
 
     if(pict_type==B_TYPE){
         qmin= (int)(qmin*ABS(s->avctx->b_quant_factor)+s->avctx->b_quant_offset + 0.5);
@@ -362,7 +368,7 @@ static void get_qminmax(int *qmin_ret, int *qmax_ret, MpegEncContext *s, int pic
     }
 
     if(qmin<1) qmin=1;
-    if(qmin==1 && s->qmin>1) qmin=2; //avoid qmin=1 unless the user wants qmin=1
+    if(qmin==1 && s->avctx->qmin>1) qmin=2; //avoid qmin=1 unless the user wants qmin=1
 
     if(qmin<3 && s->max_qcoeff<=128 && pict_type==I_TYPE) qmin=3; //reduce cliping problems
 
@@ -473,17 +479,19 @@ static void adaptive_quantization(MpegEncContext *s, double q){
     const int qmin= s->avctx->mb_qmin;
     const int qmax= s->avctx->mb_qmax;
     Picture * const pic= &s->current_picture;
+    int last_qscale=0;
     
     for(i=0; i<s->mb_num; i++){
-        float temp_cplx= sqrt(pic->mc_mb_var[i]);
-        float spat_cplx= sqrt(pic->mb_var[i]);
-        const int lumi= pic->mb_mean[i];
+        const int mb_xy= s->mb_index2xy[i];
+        float temp_cplx= sqrt(pic->mc_mb_var[mb_xy]);
+        float spat_cplx= sqrt(pic->mb_var[mb_xy]);
+        const int lumi= pic->mb_mean[mb_xy];
         float bits, cplx, factor;
         
         if(spat_cplx < q/3) spat_cplx= q/3; //FIXME finetune
         if(temp_cplx < q/3) temp_cplx= q/3; //FIXME finetune
         
-        if((s->mb_type[i]&MB_TYPE_INTRA)){//FIXME hq mode 
+        if((s->mb_type[mb_xy]&MB_TYPE_INTRA)){//FIXME hq mode 
             cplx= spat_cplx;
             factor= 1.0 + p_masking;
         }else{
@@ -524,6 +532,7 @@ static void adaptive_quantization(MpegEncContext *s, double q){
     }
    
     for(i=0; i<s->mb_num; i++){
+        const int mb_xy= s->mb_index2xy[i];
         float newq= q*cplx_tab[i]/bits_tab[i];
         int intq;
 
@@ -531,8 +540,8 @@ static void adaptive_quantization(MpegEncContext *s, double q){
             newq*= bits_sum/cplx_sum;
         }
 
-        if(i && ABS(pic->qscale_table[i-1] - newq)<0.75)
-            intq= pic->qscale_table[i-1];
+        if(i && ABS(last_qscale - newq)<0.75)
+            intq= last_qscale;
         else
             intq= (int)(newq + 0.5);
 
@@ -540,7 +549,8 @@ static void adaptive_quantization(MpegEncContext *s, double q){
         else if(intq < qmin) intq= qmin;
 //if(i%s->mb_width==0) printf("\n");
 //printf("%2d%3d ", intq, ff_sqrt(s->mc_mb_var[i]));
-        pic->qscale_table[i]= intq;
+        last_qscale=
+        pic->qscale_table[mb_xy]= intq;
     }
 }
 
@@ -565,7 +575,7 @@ float ff_rate_estimate_qscale(MpegEncContext *s)
 
     get_qminmax(&qmin, &qmax, s, pict_type);
 
-    fps= (double)s->frame_rate / FRAME_RATE_BASE;
+    fps= (double)s->avctx->frame_rate / (double)s->avctx->frame_rate_base;
 //printf("input_pic_num:%d pic_num:%d frame_rate:%d\n", s->input_picture_number, s->picture_number, s->frame_rate);
         /* update predictors */
     if(picture_number>2){
@@ -658,7 +668,7 @@ float ff_rate_estimate_qscale(MpegEncContext *s)
 
     if(s->avctx->debug&FF_DEBUG_RC){
         printf("%c qp:%d<%2.1f<%d %d want:%d total:%d comp:%f st_q:%2.2f size:%d var:%d/%d br:%d fps:%d\n",
-        ff_get_pict_type_char(pict_type), qmin, q, qmax, picture_number, (int)wanted_bits/1000, (int)s->total_bits/1000,
+        av_get_pict_type_char(pict_type), qmin, q, qmax, picture_number, (int)wanted_bits/1000, (int)s->total_bits/1000,
         br_compensation, short_term_q, s->frame_bits, pic->mb_var_sum, pic->mc_mb_var_sum, s->bit_rate/1000, (int)fps
         );
     }
@@ -692,7 +702,7 @@ static int init_pass2(MpegEncContext *s)
 {
     RateControlContext *rcc= &s->rc_context;
     int i;
-    double fps= (double)s->frame_rate / FRAME_RATE_BASE;
+    double fps= (double)s->avctx->frame_rate / (double)s->avctx->frame_rate_base;
     double complexity[5]={0,0,0,0,0};   // aproximate bits at quant=1
     double avg_quantizer[5];
     uint64_t const_bits[5]={0,0,0,0,0}; // quantizer idependant bits

@@ -16,6 +16,11 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
+/**
+ * @file dv.c
+ * DV decoder.
+ */
 #include "avcodec.h"
 #include "dsputil.h"
 #include "mpegvideo.h"
@@ -32,15 +37,15 @@ typedef struct DVVideoDecodeContext {
     VLC *vlc;
     int sampling_411; /* 0 = 420, 1 = 411 */
     int width, height;
-    UINT8 *current_picture[3]; /* picture structure */
+    uint8_t *current_picture[3]; /* picture structure */
     AVFrame picture;
     int linesize[3];
     DCTELEM block[5*6][64] __align8;
-    UINT8 dv_zigzag[2][64];
-    UINT8 idct_permutation[64];
+    uint8_t dv_zigzag[2][64];
+    uint8_t idct_permutation[64];
     /* XXX: move it to static storage ? */
-    UINT8 dv_shift[2][22][64];
-    void (*idct_put[2])(UINT8 *dest, int line_size, DCTELEM *block);
+    uint8_t dv_shift[2][22][64];
+    void (*idct_put[2])(uint8_t *dest, int line_size, DCTELEM *block);
 } DVVideoDecodeContext;
 
 #include "dvdata.h"
@@ -76,7 +81,7 @@ static int dvvideo_decode_init(AVCodecContext *avctx)
 {
     DVVideoDecodeContext *s = avctx->priv_data;
     MpegEncContext s2;
-    static int done;
+    static int done=0;
 
     if (!done) {
         int i;
@@ -115,12 +120,12 @@ static int dvvideo_decode_init(AVCodecContext *avctx)
     /* XXX: fix it */
     memset(&s2, 0, sizeof(MpegEncContext));
     s2.avctx = avctx;
-    dsputil_init(&s2.dsp, avctx->dsp_mask);
+    dsputil_init(&s2.dsp, avctx);
     if (DCT_common_init(&s2) < 0)
        return -1;
 
-    s->idct_put[0] = s2.idct_put;
-    memcpy(s->idct_permutation, s2.idct_permutation, 64);
+    s->idct_put[0] = s2.dsp.idct_put;
+    memcpy(s->idct_permutation, s2.dsp.idct_permutation, 64);
     memcpy(s->dv_zigzag[0], s2.intra_scantable.permutated, 64);
 
     /* XXX: use MMX also for idct248 */
@@ -136,23 +141,23 @@ static int dvvideo_decode_init(AVCodecContext *avctx)
 //#define VLC_DEBUG
 
 typedef struct BlockInfo {
-    const UINT8 *shift_table;
-    const UINT8 *scan_table;
-    UINT8 pos; /* position in block */
-    UINT8 eob_reached; /* true if EOB has been reached */
-    UINT8 dct_mode;
-    UINT8 partial_bit_count;
-    UINT16 partial_bit_buffer;
+    const uint8_t *shift_table;
+    const uint8_t *scan_table;
+    uint8_t pos; /* position in block */
+    uint8_t eob_reached; /* true if EOB has been reached */
+    uint8_t dct_mode;
+    uint8_t partial_bit_count;
+    uint16_t partial_bit_buffer;
     int shift_offset;
 } BlockInfo;
 
 /* block size in bits */
-static const UINT16 block_sizes[6] = {
+static const uint16_t block_sizes[6] = {
     112, 112, 112, 112, 80, 80
 };
 
 #ifndef ALT_BITSTREAM_READER
-#error only works with ALT_BITSTREAM_READER
+#warning only works with ALT_BITSTREAM_READER
 #endif
 
 /* decode ac coefs */
@@ -161,12 +166,15 @@ static void dv_decode_ac(DVVideoDecodeContext *s,
 {
     int last_re_index;
     int shift_offset = mb->shift_offset;
-    const UINT8 *scan_table = mb->scan_table;
-    const UINT8 *shift_table = mb->shift_table;
+    const uint8_t *scan_table = mb->scan_table;
+    const uint8_t *shift_table = mb->shift_table;
     int pos = mb->pos;
     int level, pos1, sign, run;
     int partial_bit_count;
-
+#ifndef ALT_BITSTREAM_READER //FIXME
+    int re_index=0; 
+    int re1_index=0;
+#endif
     OPEN_READER(re, &s->gb);
     
 #ifdef VLC_DEBUG
@@ -176,8 +184,8 @@ static void dv_decode_ac(DVVideoDecodeContext *s,
     /* if we must parse a partial vlc, we do it here */
     partial_bit_count = mb->partial_bit_count;
     if (partial_bit_count > 0) {
-        UINT8 buf[4];
-        UINT32 v;
+        uint8_t buf[4];
+        uint32_t v;
         int l, l1;
         GetBitContext gb1;
 
@@ -273,7 +281,7 @@ static void dv_decode_ac(DVVideoDecodeContext *s,
             if (pos >= 64) {
             read_error:
 #if defined(VLC_DEBUG) || 1
-                printf("error pos=%d\n", pos);
+                fprintf(stderr, "error pos=%d\n", pos);
 #endif
                 /* for errors, we consider the eob is reached */
                 mb->eob_reached = 1;
@@ -298,21 +306,21 @@ static inline void bit_copy(PutBitContext *pb, GetBitContext *gb, int bits_left)
 
 /* mb_x and mb_y are in units of 8 pixels */
 static inline void dv_decode_video_segment(DVVideoDecodeContext *s, 
-                                           UINT8 *buf_ptr1, 
-                                           const UINT16 *mb_pos_ptr)
+                                           uint8_t *buf_ptr1, 
+                                           const uint16_t *mb_pos_ptr)
 {
     int quant, dc, dct_mode, class1, j;
     int mb_index, mb_x, mb_y, v, last_index;
     DCTELEM *block, *block1;
     int c_offset, bits_left;
-    UINT8 *y_ptr;
+    uint8_t *y_ptr;
     BlockInfo mb_data[5 * 6], *mb, *mb1;
-    void (*idct_put)(UINT8 *dest, int line_size, DCTELEM *block);
-    UINT8 *buf_ptr;
+    void (*idct_put)(uint8_t *dest, int line_size, DCTELEM *block);
+    uint8_t *buf_ptr;
     PutBitContext pb, vs_pb;
-    UINT8 mb_bit_buffer[80 + 4]; /* allow some slack */
+    uint8_t mb_bit_buffer[80 + 4]; /* allow some slack */
     int mb_bit_count;
-    UINT8 vs_bit_buffer[5 * 80 + 4]; /* allow some slack */
+    uint8_t vs_bit_buffer[5 * 80 + 4]; /* allow some slack */
     int vs_bit_count;
     
     memset(s->block, 0, sizeof(s->block));
@@ -359,7 +367,7 @@ static inline void dv_decode_video_segment(DVVideoDecodeContext *s,
 
             /* write the remaining bits  in a new buffer only if the
                block is finished */
-            bits_left = last_index - s->gb.index;
+            bits_left = last_index - get_bits_count(&s->gb);
             if (mb->eob_reached) {
                 mb->partial_bit_count = 0;
                 mb_bit_count += bits_left;
@@ -384,13 +392,13 @@ static inline void dv_decode_video_segment(DVVideoDecodeContext *s,
         mb = mb1;
         init_get_bits(&s->gb, mb_bit_buffer, 80*8);
         for(j = 0;j < 6; j++) {
-            if (!mb->eob_reached && s->gb.index < mb_bit_count) {
+            if (!mb->eob_reached && get_bits_count(&s->gb) < mb_bit_count) {
                 dv_decode_ac(s, mb, block, mb_bit_count);
                 /* if still not finished, no need to parse other blocks */
                 if (!mb->eob_reached) {
                     /* we could not parse the current AC coefficient,
                        so we add the remaining bytes */
-                    bits_left = mb_bit_count - s->gb.index;
+                    bits_left = mb_bit_count - get_bits_count(&s->gb);
                     if (bits_left > 0) {
                         mb->partial_bit_count += bits_left;
                         mb->partial_bit_buffer = 
@@ -405,7 +413,7 @@ static inline void dv_decode_video_segment(DVVideoDecodeContext *s,
         }
         /* all blocks are finished, so the extra bytes can be used at
            the video segment level */
-        bits_left = mb_bit_count - s->gb.index;
+        bits_left = mb_bit_count - get_bits_count(&s->gb);
         vs_bit_count += bits_left;
         bit_copy(&vs_pb, &s->gb, bits_left);
     next_mb:
@@ -468,12 +476,12 @@ static inline void dv_decode_video_segment(DVVideoDecodeContext *s,
                     ptr = pixels;
                     for(y = 0;y < 8; y++) {
                         /* convert to 411P */
-                        c_ptr1 = c_ptr + linesize;
-                        c_ptr1[0] = c_ptr[0] = (ptr[0] + ptr[1]) >> 1;
-                        c_ptr1[1] = c_ptr[1] = (ptr[2] + ptr[3]) >> 1;
-                        c_ptr1[2] = c_ptr[2] = (ptr[4] + ptr[5]) >> 1;
-                        c_ptr1[3] = c_ptr[3] = (ptr[6] + ptr[7]) >> 1;
-                        c_ptr += linesize * 2;
+                        c_ptr1 = c_ptr + 8*linesize;
+                        c_ptr[0]= ptr[0]; c_ptr1[0]= ptr[4];
+                        c_ptr[1]= ptr[1]; c_ptr1[1]= ptr[5];
+                        c_ptr[2]= ptr[2]; c_ptr1[2]= ptr[6];
+                        c_ptr[3]= ptr[3]; c_ptr1[3]= ptr[7];
+                        c_ptr += linesize;
                         ptr += 8;
                     }
                 } else {
@@ -493,12 +501,12 @@ static inline void dv_decode_video_segment(DVVideoDecodeContext *s,
    144000 bytes for PAL) */
 static int dvvideo_decode_frame(AVCodecContext *avctx, 
                                  void *data, int *data_size,
-                                 UINT8 *buf, int buf_size)
+                                 uint8_t *buf, int buf_size)
 {
     DVVideoDecodeContext *s = avctx->priv_data;
     int sct, dsf, apt, ds, nb_dif_segs, vs, width, height, i, packet_size;
-    UINT8 *buf_ptr;
-    const UINT16 *mb_pos_ptr;
+    uint8_t *buf_ptr;
+    const uint16_t *mb_pos_ptr;
     
     /* parse id */
     init_get_bits(&s->gb, buf, buf_size*8);
@@ -532,12 +540,14 @@ static int dvvideo_decode_frame(AVCodecContext *avctx,
     /* init size */
     width = 720;
     if (dsf) {
-        avctx->frame_rate = 25 * FRAME_RATE_BASE;
+        avctx->frame_rate = 25;
+	avctx->frame_rate_base = 1;
         packet_size = PAL_FRAME_SIZE;
         height = 576;
         nb_dif_segs = 12;
     } else {
-        avctx->frame_rate = 30 * FRAME_RATE_BASE;
+        avctx->frame_rate = 30000;
+	avctx->frame_rate_base = 1001;
         packet_size = NTSC_FRAME_SIZE;
         height = 480;
         nb_dif_segs = 10;
@@ -546,11 +556,13 @@ static int dvvideo_decode_frame(AVCodecContext *avctx,
     if (buf_size < packet_size)
         return -1;
     
-    /* XXX: is it correct to assume that 420 is always used in PAL
-       mode ? */
-    s->sampling_411 = !dsf;
+    /* NTSC[dsf == 0] is always 720x480, 4:1:1
+     *  PAL[dsf == 1] is always 720x576, 4:2:0 for IEC 68134[apt == 0]
+     *  but for the SMPTE 314M[apt == 1] it is 720x576, 4:1:1
+     */
+    s->sampling_411 = !dsf || apt;
     if (s->sampling_411) {
-        mb_pos_ptr = dv_place_411;
+        mb_pos_ptr = dsf ? dv_place_411P : dv_place_411;
         avctx->pix_fmt = PIX_FMT_YUV411P;
     } else {
         mb_pos_ptr = dv_place_420;
@@ -559,7 +571,21 @@ static int dvvideo_decode_frame(AVCodecContext *avctx,
 
     avctx->width = width;
     avctx->height = height;
+    
+    /* Once again, this is pretty complicated by the fact that the same
+     * field is used differently by IEC 68134[apt == 0] and 
+     * SMPTE 314M[apt == 1].
+     */
+    if (buf[VAUX_TC61_OFFSET] == 0x61 &&
+        ((apt == 0 && (buf[VAUX_TC61_OFFSET + 2] & 0x07) == 0x07) ||
+	 (apt == 1 && (buf[VAUX_TC61_OFFSET + 2] & 0x07) == 0x02)))
+        avctx->aspect_ratio = 16.0 / 9.0;
+    else
+        avctx->aspect_ratio = 4.0 / 3.0;
 
+    if(s->picture.data[0])
+        avctx->release_buffer(avctx, &s->picture);
+    
     s->picture.reference= 0;
     if(avctx->get_buffer(avctx, &s->picture) < 0) {
         fprintf(stderr, "get_buffer() failed\n");
@@ -597,23 +623,14 @@ static int dvvideo_decode_frame(AVCodecContext *avctx,
     *data_size = sizeof(AVFrame);
     *(AVFrame*)data= s->picture;
     
-    avctx->release_buffer(avctx, &s->picture);
-    
     return packet_size;
 }
 
 static int dvvideo_decode_end(AVCodecContext *avctx)
 {
     DVVideoDecodeContext *s = avctx->priv_data;
-    int i;
-    
-    if(avctx->get_buffer == avcodec_default_get_buffer){
-        for(i=0; i<4; i++){
-            av_freep(&s->picture.base[i]);
-            s->picture.data[i]= NULL;
-        }
-        av_freep(&s->picture.opaque);
-    }
+
+    avcodec_default_free_buffers(avctx);    
 
     return 0;
 }
@@ -642,9 +659,9 @@ static int dvaudio_decode_init(AVCodecContext *avctx)
     return 0;
 }
 
-static UINT16 dv_audio_12to16(UINT16 sample)
+static uint16_t dv_audio_12to16(uint16_t sample)
 {
-    UINT16 shift, result;
+    uint16_t shift, result;
     
     sample = (sample < 0x800) ? sample : sample | 0xf000;
     shift = (sample & 0xf00) >> 8;
@@ -666,26 +683,25 @@ static UINT16 dv_audio_12to16(UINT16 sample)
    144000 bytes for PAL) 
 
    There's a couple of assumptions being made here:
-         1. We don't do any kind of audio error correction. It means,
-	    that erroneous samples 0x8000 are being passed upwards.
-            Do we need to silence erroneous samples ? Average them ?
+         1. By default we silence erroneous (0x8000/16bit 0x800/12bit) 
+	    audio samples. We can pass them upwards when ffmpeg will be ready
+	    to deal with them.
 	 2. We don't do software emphasis.
-	 3. We are not checking for 'speed' argument being valid.
-	 4. Audio is always returned as 16bit linear samples: 12bit
+	 3. Audio is always returned as 16bit linear samples: 12bit
 	    nonlinear samples are converted into 16bit linear ones.
 */
 static int dvaudio_decode_frame(AVCodecContext *avctx, 
                                  void *data, int *data_size,
-                                 UINT8 *buf, int buf_size)
+                                 uint8_t *buf, int buf_size)
 {
     DVVideoDecodeContext *s = avctx->priv_data;
-    const UINT16 (*unshuffle)[9];
+    const uint16_t (*unshuffle)[9];
     int smpls, freq, quant, sys, stride, difseg, ad, dp, nb_dif_segs, i;
-    UINT16 lc, rc;
-    UINT8 *buf_ptr;
+    uint16_t lc, rc;
+    uint8_t *buf_ptr;
     
     /* parse id */
-    init_get_bits(&s->gb, &buf[AAUX_OFFSET], 5*8);
+    init_get_bits(&s->gb, &buf[AAUX_AS_OFFSET], 5*8);
     i = get_bits(&s->gb, 8);
     if (i != 0x50) { /* No audio ? */
 	*data_size = 0;
@@ -711,8 +727,9 @@ static int dvaudio_decode_frame(AVCodecContext *avctx,
 	return -1; /* Unsupported quantization */
 
     avctx->sample_rate = dv_audio_frequency[freq];
+    avctx->channels = 2;
+    avctx->bit_rate = avctx->channels * avctx->sample_rate * 16;
     // What about:
-    // avctx->bit_rate = 
     // avctx->frame_size =
    
     *data_size = (dv_audio_min_samples[sys][freq] + smpls) * 
@@ -738,16 +755,18 @@ static int dvaudio_decode_frame(AVCodecContext *avctx,
 		   if (quant == 0) {  /* 16bit quantization */
 		       i = unshuffle[difseg][ad] + (dp - 8)/2 * stride;
 		       ((short *)data)[i] = (buf_ptr[dp] << 8) | buf_ptr[dp+1]; 
+		       if (((unsigned short *)data)[i] == 0x8000)
+		           ((short *)data)[i] = 0;
 		   } else {           /* 12bit quantization */
 		       if (difseg >= nb_dif_segs/2)
 			   goto out;  /* We're not doing 4ch at this time */
 		       
-		       lc = ((UINT16)buf_ptr[dp] << 4) | 
-			    ((UINT16)buf_ptr[dp+2] >> 4);
-		       rc = ((UINT16)buf_ptr[dp+1] << 4) |
-			    ((UINT16)buf_ptr[dp+2] & 0x0f);
-		       lc = dv_audio_12to16(lc);
-		       rc = dv_audio_12to16(rc);
+		       lc = ((uint16_t)buf_ptr[dp] << 4) | 
+			    ((uint16_t)buf_ptr[dp+2] >> 4);
+		       rc = ((uint16_t)buf_ptr[dp+1] << 4) |
+			    ((uint16_t)buf_ptr[dp+2] & 0x0f);
+		       lc = (lc == 0x800 ? 0 : dv_audio_12to16(lc));
+		       rc = (rc == 0x800 ? 0 : dv_audio_12to16(rc));
 
 		       i = unshuffle[difseg][ad] + (dp - 8)/3 * stride;
 		       ((short *)data)[i] = lc;

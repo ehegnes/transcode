@@ -17,6 +17,11 @@
  *
  */
 
+/**
+ * @file wmv2.c
+ * wmv2 codec.
+ */
+ 
 #include "simple_idct.h"
  
 #define SKIP_TYPE_NONE 0
@@ -50,8 +55,8 @@ typedef struct Wmv2Context{
 static void wmv2_common_init(Wmv2Context * w){
     MpegEncContext * const s= &w->s;
         
-    ff_init_scantable(s, &w->abt_scantable[0], wmv2_scantableA);
-    ff_init_scantable(s, &w->abt_scantable[1], wmv2_scantableB);
+    ff_init_scantable(s->dsp.idct_permutation, &w->abt_scantable[0], wmv2_scantableA);
+    ff_init_scantable(s->dsp.idct_permutation, &w->abt_scantable[1], wmv2_scantableB);
 }
 
 static int encode_ext_header(Wmv2Context *w){
@@ -61,7 +66,7 @@ static int encode_ext_header(Wmv2Context *w){
         
     init_put_bits(&pb, s->avctx->extradata, s->avctx->extradata_size, NULL, NULL);
 
-    put_bits(&pb, 5, s->frame_rate / FRAME_RATE_BASE); //yes 29.97 -> 29
+    put_bits(&pb, 5, s->avctx->frame_rate / s->avctx->frame_rate_base); //yes 29.97 -> 29
     put_bits(&pb, 11, FFMIN(s->bit_rate/1024, 2047));
     
     put_bits(&pb, 1, w->mspel_bit=1);
@@ -79,6 +84,7 @@ static int encode_ext_header(Wmv2Context *w){
     return 0;
 }
 
+#ifdef CONFIG_ENCODERS
 static int wmv2_encode_init(AVCodecContext *avctx){
     Wmv2Context * const w= avctx->priv_data;
     
@@ -125,7 +131,10 @@ int ff_wmv2_encode_picture_header(MpegEncContext * s, int picture_number)
     w->abt_type=0;
     w->j_type=0;
 
+    assert(s->flipflop_rounding);
+
     if (s->pict_type == I_TYPE) {
+        assert(s->no_rounding==1);
         if(w->j_type_bit) put_bits(&s->pb, 1, w->j_type);
         
         if(w->per_mb_rl_bit) put_bits(&s->pb, 1, s->per_mb_rl_table);
@@ -138,7 +147,6 @@ int ff_wmv2_encode_picture_header(MpegEncContext * s, int picture_number)
         put_bits(&s->pb, 1, s->dc_table_index);
 
         s->inter_intra_pred= 0;
-        s->no_rounding = 1;
     }else{
         int cbp_index;
 
@@ -175,7 +183,6 @@ int ff_wmv2_encode_picture_header(MpegEncContext * s, int picture_number)
         put_bits(&s->pb, 1, s->mv_table_index);
     
         s->inter_intra_pred= (s->width*s->height < 320*240 && s->bit_rate<=II_BITRATE);
-        s->no_rounding ^= 1;
     }
     s->esc3_level_length= 0;
     s->esc3_run_length= 0;
@@ -192,7 +199,7 @@ void ff_wmv2_encode_mb(MpegEncContext * s,
     Wmv2Context * const w= (Wmv2Context*)s;
     int cbp, coded_cbp, i;
     int pred_x, pred_y;
-    UINT8 *coded_block;
+    uint8_t *coded_block;
 
     handle_slices(s);
     
@@ -255,24 +262,26 @@ void ff_wmv2_encode_mb(MpegEncContext * s,
         msmpeg4_encode_block(s, block[i], i);
     }
 }
+#endif //CONFIG_ENCODERS
 
 static void parse_mb_skip(Wmv2Context * w){
     int mb_x, mb_y;
     MpegEncContext * const s= &w->s;
+    uint32_t * const mb_type= s->current_picture_ptr->mb_type;
 
     w->skip_type= get_bits(&s->gb, 2);
     switch(w->skip_type){
     case SKIP_TYPE_NONE:
         for(mb_y=0; mb_y<s->mb_height; mb_y++){
             for(mb_x=0; mb_x<s->mb_width; mb_x++){
-                s->mb_type[mb_y*s->mb_width + mb_x]= 0;
+                mb_type[mb_y*s->mb_stride + mb_x]= MB_TYPE_16x16 | MB_TYPE_L0;
             }
         }
         break;
     case SKIP_TYPE_MPEG:
         for(mb_y=0; mb_y<s->mb_height; mb_y++){
             for(mb_x=0; mb_x<s->mb_width; mb_x++){
-                s->mb_type[mb_y*s->mb_width + mb_x]= get_bits1(&s->gb) ? MB_TYPE_SKIPED : 0;
+                mb_type[mb_y*s->mb_stride + mb_x]= (get_bits1(&s->gb) ? MB_TYPE_SKIP : 0) | MB_TYPE_16x16 | MB_TYPE_L0;
             }
         }
         break;
@@ -280,11 +289,11 @@ static void parse_mb_skip(Wmv2Context * w){
         for(mb_y=0; mb_y<s->mb_height; mb_y++){
             if(get_bits1(&s->gb)){
                 for(mb_x=0; mb_x<s->mb_width; mb_x++){
-                    s->mb_type[mb_y*s->mb_width + mb_x]=  MB_TYPE_SKIPED;
+                    mb_type[mb_y*s->mb_stride + mb_x]=  MB_TYPE_SKIP | MB_TYPE_16x16 | MB_TYPE_L0;
                 }
             }else{
                 for(mb_x=0; mb_x<s->mb_width; mb_x++){
-                    s->mb_type[mb_y*s->mb_width + mb_x]= get_bits1(&s->gb) ? MB_TYPE_SKIPED : 0;
+                    mb_type[mb_y*s->mb_stride + mb_x]= (get_bits1(&s->gb) ? MB_TYPE_SKIP : 0) | MB_TYPE_16x16 | MB_TYPE_L0;
                 }
             }
         }
@@ -293,11 +302,11 @@ static void parse_mb_skip(Wmv2Context * w){
         for(mb_x=0; mb_x<s->mb_width; mb_x++){
             if(get_bits1(&s->gb)){
                 for(mb_y=0; mb_y<s->mb_height; mb_y++){
-                    s->mb_type[mb_y*s->mb_width + mb_x]=  MB_TYPE_SKIPED;
+                    mb_type[mb_y*s->mb_stride + mb_x]=  MB_TYPE_SKIP | MB_TYPE_16x16 | MB_TYPE_L0;
                 }
             }else{
                 for(mb_y=0; mb_y<s->mb_height; mb_y++){
-                    s->mb_type[mb_y*s->mb_width + mb_x]= get_bits1(&s->gb) ? MB_TYPE_SKIPED : 0;
+                    mb_type[mb_y*s->mb_stride + mb_x]= (get_bits1(&s->gb) ? MB_TYPE_SKIP : 0) | MB_TYPE_16x16 | MB_TYPE_L0;
                 }
             }
         }
@@ -326,7 +335,7 @@ static int decode_ext_header(Wmv2Context *w){
     code               = get_bits(&gb, 3);
     
     if(code==0) return -1;
-            
+
     s->slice_height = s->mb_height / code;
 
     if(s->avctx->debug&FF_DEBUG_PICT_INFO){
@@ -340,7 +349,7 @@ static int decode_ext_header(Wmv2Context *w){
 int ff_wmv2_decode_picture_header(MpegEncContext * s)
 {
     Wmv2Context * const w= (Wmv2Context*)s;
-    int code, i;
+    int code;
 
 #if 0
 {
@@ -361,6 +370,15 @@ return -1;
         printf("I7:%X/\n", code);
     }
     s->qscale = get_bits(&s->gb, 5);
+    if(s->qscale < 0)
+       return -1;
+       
+    return 0;
+}
+
+int ff_wmv2_decode_secondary_picture_header(MpegEncContext * s)
+{
+    Wmv2Context * const w= (Wmv2Context*)s;
 
     if (s->pict_type == I_TYPE) {
         if(w->j_type_bit) w->j_type= get_bits1(&s->gb);
@@ -447,12 +465,6 @@ return -1;
     s->esc3_level_length= 0;
     s->esc3_run_length= 0;
     
-    if(s->avctx->debug&FF_DEBUG_SKIP){
-        for(i=0; i<s->mb_num; i++){
-            if(i%s->mb_width==0) printf("\n");
-            printf("%d", s->mb_type[i]);
-        }
-    }
 s->picture_number++; //FIXME ?
 
 
@@ -467,7 +479,7 @@ s->picture_number++; //FIXME ?
     return 0;
 }
 
-void ff_wmv2_decode_init(MpegEncContext *s){
+static void ff_wmv2_decode_init(MpegEncContext *s){
 }
 
 static inline int wmv2_decode_motion(Wmv2Context *w, int *mx_ptr, int *my_ptr){
@@ -491,7 +503,7 @@ static inline int wmv2_decode_motion(Wmv2Context *w, int *mx_ptr, int *my_ptr){
 static int16_t *wmv2_pred_motion(Wmv2Context *w, int *px, int *py){
     MpegEncContext * const s= &w->s;
     int xy, wrap, diff, type;
-    INT16 *A, *B, *C, *mot_val;
+    int16_t *A, *B, *C, *mot_val;
 
     wrap = s->block_wrap[0];
     xy = s->block_index[0];
@@ -576,12 +588,11 @@ static inline int wmv2_decode_inter_block(Wmv2Context *w, DCTELEM *block, int n,
 static void wmv2_add_block(Wmv2Context *w, DCTELEM *block1, uint8_t *dst, int stride, int n){
     MpegEncContext * const s= &w->s;
     uint8_t temp[2][64];
-    int i;
-        
+
     switch(w->abt_type_table[n]){
     case 0:
         if (s->block_last_index[n] >= 0) {
-            s->idct_add (dst, stride, block1);
+            s->dsp.idct_add (dst, stride, block1);
         }
         break;
     case 1:
@@ -614,12 +625,12 @@ void ff_wmv2_add_mb(MpegEncContext *s, DCTELEM block1[6][64], uint8_t *dest_y, u
 }
 
 void ff_mspel_motion(MpegEncContext *s,
-                               UINT8 *dest_y, UINT8 *dest_cb, UINT8 *dest_cr,
-                               UINT8 **ref_picture, op_pixels_func (*pix_op)[4],
+                               uint8_t *dest_y, uint8_t *dest_cb, uint8_t *dest_cr,
+                               uint8_t **ref_picture, op_pixels_func (*pix_op)[4],
                                int motion_x, int motion_y, int h)
 {
     Wmv2Context * const w= (Wmv2Context*)s;
-    UINT8 *ptr;
+    uint8_t *ptr;
     int dxy, offset, mx, my, src_x, src_y, v_edge_pos, linesize, uvlinesize;
     int emu=0;
     
@@ -639,7 +650,7 @@ void ff_mspel_motion(MpegEncContext *s,
     if(s->flags&CODEC_FLAG_EMU_EDGE){
         if(src_x<1 || src_y<1 || src_x + 17  >= s->h_edge_pos
                               || src_y + h+1 >= v_edge_pos){
-            ff_emulated_edge_mc(s, ptr - 1 - s->linesize, s->linesize, 19, 19, 
+            ff_emulated_edge_mc(s->edge_emu_buffer, ptr - 1 - s->linesize, s->linesize, 19, 19, 
                              src_x-1, src_y-1, s->h_edge_pos, s->v_edge_pos);
             ptr= s->edge_emu_buffer + 1 + s->linesize;
             emu=1;
@@ -680,7 +691,7 @@ void ff_mspel_motion(MpegEncContext *s,
     offset = (src_y * uvlinesize) + src_x;
     ptr = ref_picture[1] + offset;
     if(emu){
-        ff_emulated_edge_mc(s, ptr, s->uvlinesize, 9, 9, 
+        ff_emulated_edge_mc(s->edge_emu_buffer, ptr, s->uvlinesize, 9, 9, 
                          src_x, src_y, s->h_edge_pos>>1, s->v_edge_pos>>1);
         ptr= s->edge_emu_buffer;
     }
@@ -688,7 +699,7 @@ void ff_mspel_motion(MpegEncContext *s,
 
     ptr = ref_picture[2] + offset;
     if(emu){
-        ff_emulated_edge_mc(s, ptr, s->uvlinesize, 9, 9, 
+        ff_emulated_edge_mc(s->edge_emu_buffer, ptr, s->uvlinesize, 9, 9, 
                          src_x, src_y, s->h_edge_pos>>1, s->v_edge_pos>>1);
         ptr= s->edge_emu_buffer;
     }
@@ -700,14 +711,12 @@ static int wmv2_decode_mb(MpegEncContext *s, DCTELEM block[6][64])
 {
     Wmv2Context * const w= (Wmv2Context*)s;
     int cbp, code, i;
-    UINT8 *coded_val;
+    uint8_t *coded_val;
 
     if(w->j_type) return 0;
     
-    s->error_status_table[s->mb_x + s->mb_y*s->mb_width]= 0;
-    
     if (s->pict_type == P_TYPE) {
-        if(s->mb_type[s->mb_y * s->mb_width + s->mb_x]&MB_TYPE_SKIPED){
+        if(IS_SKIP(s->current_picture.mb_type[s->mb_y * s->mb_stride + s->mb_x])){
             /* skip mb */
             s->mb_intra = 0;
             for(i=0;i<6;i++)
@@ -717,6 +726,7 @@ static int wmv2_decode_mb(MpegEncContext *s, DCTELEM block[6][64])
             s->mv[0][0][0] = 0;
             s->mv[0][0][1] = 0;
             s->mb_skiped = 1;
+            w->hshift=0;
             return 0;
         }
 
@@ -829,6 +839,7 @@ AVCodec wmv2_decoder = {
     CODEC_CAP_DRAW_HORIZ_BAND | CODEC_CAP_DR1,
 };
 
+#ifdef CONFIG_ENCODERS
 AVCodec wmv2_encoder = {
     "wmv2",
     CODEC_TYPE_VIDEO,
@@ -838,4 +849,4 @@ AVCodec wmv2_encoder = {
     MPV_encode_picture,
     MPV_encode_end,
 };
-
+#endif

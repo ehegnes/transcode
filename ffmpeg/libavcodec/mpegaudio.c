@@ -16,6 +16,12 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+ 
+/**
+ * @file mpegaudio.c
+ * The simplest mpeg audio layer 2 encoder.
+ */
+ 
 #include "avcodec.h"
 #include "mpegaudio.h"
 
@@ -23,7 +29,7 @@
    quantization stage) */
 #define FRAC_BITS 15
 #define WFRAC_BITS  14
-#define MUL(a,b) (((INT64)(a) * (INT64)(b)) >> FRAC_BITS)
+#define MUL(a,b) (((int64_t)(a) * (int64_t)(b)) >> FRAC_BITS)
 #define FIX(a)   ((int)((a) * (1 << FRAC_BITS)))
 
 #define SAMPLES_BUF_SIZE 4096
@@ -36,7 +42,7 @@ typedef struct MpegAudioContext {
     int bitrate_index; /* bit rate */
     int freq_index;
     int frame_size; /* frame size, in bits, without padding */
-    INT64 nb_samples; /* total number of samples encoded */
+    int64_t nb_samples; /* total number of samples encoded */
     /* padding computation */
     int frame_frac, frame_frac_incr, do_padding;
     short samples_buf[MPA_MAX_CHANNELS][SAMPLES_BUF_SIZE]; /* buffer for filter */
@@ -54,7 +60,7 @@ typedef struct MpegAudioContext {
 
 #include "mpegaudiotab.h"
 
-int MPA_encode_init(AVCodecContext *avctx)
+static int MPA_encode_init(AVCodecContext *avctx)
 {
     MpegAudioContext *s = avctx->priv_data;
     int freq = avctx->sample_rate;
@@ -737,8 +743,8 @@ static void encode_frame(MpegAudioContext *s,
     flush_put_bits(p);
 }
 
-int MPA_encode_frame(AVCodecContext *avctx,
-                     unsigned char *frame, int buf_size, void *data)
+static int MPA_encode_frame(AVCodecContext *avctx,
+			    unsigned char *frame, int buf_size, void *data)
 {
     MpegAudioContext *s = avctx->priv_data;
     short *samples = data;

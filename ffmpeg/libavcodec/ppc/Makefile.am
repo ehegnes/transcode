@@ -10,4 +10,5 @@ EXTRA_DIST =  \
    gmc_altivec.c \
    idct_altivec.c \
    mpegvideo_altivec.c \
+   gcc_fixes.h \
    mpegvideo_ppc.c

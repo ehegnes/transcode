@@ -40,15 +40,20 @@
 #endif
 
 #if LIBAVCODEC_BUILD < 4641
-#error We dont support libavcodec prior to build 4641, use the included one
+#error we dont support libavcodec prior to build 4641, get the latest libavcodec CVS
+#endif
+
+#if LIBAVCODEC_BUILD < 4659
+#warning your version of libavcodec is old, u might want to get a newer one
 #endif
 
 #if LIBAVCODEC_BUILD < 4645
-#warning your version of libavcodec is old, you might want to get a newer one
+#define AVFrame AVVideoFrame
+#define coded_frame coded_picture
 #endif
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.3.2 (2003-06-09)"
+#define MOD_VERSION "v0.3.3 (2003-06-25)"
 #define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
                     ") | (audio) MPEG/AC3/PCM"
 #define MOD_PRE ffmpeg
@@ -223,10 +228,36 @@ MOD_init {
 
     lavc_venc_context->width              = vob->ex_v_width;
     lavc_venc_context->height             = vob->ex_v_height;
-    lavc_venc_context->frame_rate         = vob->fps * FRAME_RATE_BASE;
     lavc_venc_context->bit_rate           = vob->divxbitrate * 1000;
     lavc_venc_context->qmin               = vob->min_quantizer;
     lavc_venc_context->qmax               = vob->max_quantizer;
+
+    switch (vob->ex_frc) {
+	case 1: // 23.976
+	    lavc_venc_context->frame_rate      = 24000;
+	    lavc_venc_context->frame_rate_base = 1001;
+	    break;
+	case 2: // 24.000
+	    lavc_venc_context->frame_rate      = 24000;
+	    lavc_venc_context->frame_rate_base = 1000;
+	    break;
+	case 3: // 25.000
+	    lavc_venc_context->frame_rate      = 25000;
+	    lavc_venc_context->frame_rate_base = 1000;
+	    break;
+	case 4: // 29.970
+	    lavc_venc_context->frame_rate      = 30000;
+	    lavc_venc_context->frame_rate_base = 1001;
+	    break;
+	case 5: // 30.000
+	    lavc_venc_context->frame_rate      = 30000;
+	    lavc_venc_context->frame_rate_base = 1000;
+	    break;
+	default:
+	    tc_warn("unknown/unset export frame rate code -- exiting");
+	    return (TC_EXPORT_ERROR);
+	    break;
+    }
 
     /* keyframe interval */
     if (vob->divxkeyframes >= 0) /* != -1 */
@@ -283,6 +314,11 @@ MOD_init {
     lavc_venc_context->me_pre_cmp         = lavc_param_me_pre_cmp;
     lavc_venc_context->pre_dia_size       = lavc_param_pre_dia_size;
     lavc_venc_context->me_subpel_quality  = lavc_param_me_subpel_quality;
+    lavc_venc_context->me_range           = lavc_param_me_range;
+    lavc_venc_context->intra_quant_bias   = lavc_param_ibias;
+    lavc_venc_context->inter_quant_bias   = lavc_param_pbias;
+    lavc_venc_context->coder_type         = lavc_param_coder;
+    lavc_venc_context->context_model      = lavc_param_context;
 
     p = lavc_param_rc_override_string;
     for (i = 0; p; i++) {
@@ -339,15 +375,17 @@ MOD_init {
 	    return TC_EXPORT_ERROR; 
 	}
     }
+    else if (lavc_param_autoaspect)
+	lavc_venc_context->aspect_ratio = (float)vob->ex_v_width/vob->ex_v_height;
 
     lavc_venc_context->me_cmp     = lavc_param_me_cmp;
     lavc_venc_context->me_sub_cmp = lavc_param_me_sub_cmp;
     lavc_venc_context->mb_cmp     = lavc_param_mb_cmp;
     lavc_venc_context->dia_size   = lavc_param_dia_size;
     lavc_venc_context->flags |= lavc_param_qpel;
-
     lavc_venc_context->flags |= lavc_param_trell;
-
+    lavc_venc_context->flags |= lavc_param_aic;
+    lavc_venc_context->flags |= lavc_param_umv;
     lavc_venc_context->flags |= lavc_param_v4mv ? CODEC_FLAG_4MV : 0;
     lavc_venc_context->flags |= lavc_param_data_partitioning;
 
@@ -366,6 +404,14 @@ MOD_init {
         lavc_venc_context->pix_fmt= PIX_FMT_YUV420P;
     else if(!strcasecmp(lavc_param_format, "422P"))
         lavc_venc_context->pix_fmt= PIX_FMT_YUV422P;
+    else if(!strcasecmp(lavc_param_format, "444P"))
+        lavc_venc_context->pix_fmt= PIX_FMT_YUV444P;
+    else if(!strcasecmp(lavc_param_format, "411P"))
+        lavc_venc_context->pix_fmt= PIX_FMT_YUV411P;
+    else if(!strcasecmp(lavc_param_format, "YVU9"))
+        lavc_venc_context->pix_fmt= PIX_FMT_YUV410P;
+    else if(!strcasecmp(lavc_param_format, "BGR32"))
+        lavc_venc_context->pix_fmt= PIX_FMT_RGBA32;
     else{
         fprintf(stderr, "%s is not a supported format\n", lavc_param_format);
         return TC_IMPORT_ERROR;

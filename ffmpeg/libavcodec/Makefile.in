@@ -334,35 +334,47 @@ libtcavcodec_a_SOURCES = \
       motion_est.c imgconvert.c imgresample.c \
       mpeg12.c mpegaudiodec.c pcm.c simple_idct.c \
       ratecontrol.c adpcm.c eval.c dv.c error_resilience.c \
-      h263.c msmpeg4.c h263dec.c svq1.c rv10.c wmadec.c \
-      fft.c mdct.c mace.c \
+      fft.c mdct.c mace.c cyuv.c opts.c raw.c h264.c golomb.c \
+      h263.c msmpeg4.c h263dec.c svq1.c rv10.c wmadec.c indeo3.c \
+      vp3.c asv1.c 4xm.c cabac.c ffv1.c ra144.c ra288.c \
       huffyuv.c $(FF_SRC_MMX) $(FF_SRC_PPC) $(FF_SRC_ALTIVEC)
 
 
 noinst_HEADERS = \
-   ac3.h \
-   ac3tab.h \
-   avcodec.h \
-   bswap.h \
-   common.h \
-   dsputil.h \
-   dvdata.h \
-   fastmemcpy.h \
-   h263data.h \
-   mpeg12data.h \
-   mpeg4data.h \
-   mpegaudio.h \
-   mpegaudiodectab.h \
-   mpegaudiotab.h \
-   mpegvideo.h \
-   msmpeg4data.h \
-   simple_idct.h \
-   svq1_cb.h \
-   wmadata.h
+  ac3.h \
+  ac3tab.h \
+  avcodec.h \
+  bswap.h \
+  cabac.h \
+  common.h \
+  dsputil.h \
+  dvdata.h \
+  fastmemcpy.h \
+  golomb.h \
+  h263data.h \
+  h264data.h \
+  imgconvert_template.h \
+  indeo3data.h \
+  mpeg12data.h \
+  mpeg4data.h \
+  mpegaudio.h \
+  mpegaudiodectab.h \
+  mpegaudiotab.h \
+  mpegvideo.h \
+  msmpeg4data.h \
+  os_support.h \
+  simple_idct.h \
+  svq1_cb.h \
+  svq1_vlc.h \
+  vp3data.h \
+  wmadata.h
 
 
 EXTRA_DIST = motion_est_template.c \
-	     wmv2.c
+	     wmv2.c \
+	     svq3.c \
+	     faad.c \
+	     amr.c
 
 
 SUBDIRS = . i386 ppc
@@ -378,9 +390,11 @@ am__libtcavcodec_a_SOURCES_DIST = common.c utils.c mem.c allcodecs.c \
 	mpegvideo.c jrevdct.c jfdctfst.c jfdctint.c mpegaudio.c \
 	ac3enc.c mjpeg.c resample.c dsputil.c motion_est.c imgconvert.c \
 	imgresample.c mpeg12.c mpegaudiodec.c pcm.c simple_idct.c \
-	ratecontrol.c adpcm.c eval.c dv.c error_resilience.c h263.c \
-	msmpeg4.c h263dec.c svq1.c rv10.c wmadec.c fft.c mdct.c mace.c \
-	huffyuv.c i386/fdct_mmx.c i386/cputest.c i386/dsputil_mmx.c \
+	ratecontrol.c adpcm.c eval.c dv.c error_resilience.c fft.c \
+	mdct.c mace.c cyuv.c opts.c raw.c h264.c golomb.c h263.c \
+	msmpeg4.c h263dec.c svq1.c rv10.c wmadec.c indeo3.c vp3.c \
+	asv1.c 4xm.c cabac.c ffv1.c ra144.c ra288.c huffyuv.c \
+	i386/fdct_mmx.c i386/cputest.c i386/dsputil_mmx.c \
 	i386/mpegvideo_mmx.c i386/idct_mmx.c i386/motion_est_mmx.c \
 	i386/simple_idct_mmx.c ppc/dsputil_ppc.c ppc/mpegvideo_ppc.c \
 	ppc/dsputil_altivec.c ppc/mpegvideo_altivec.c \
@@ -404,32 +418,38 @@ am_libtcavcodec_a_OBJECTS = common.$(OBJEXT) utils.$(OBJEXT) \
 	imgconvert.$(OBJEXT) imgresample.$(OBJEXT) mpeg12.$(OBJEXT) \
 	mpegaudiodec.$(OBJEXT) pcm.$(OBJEXT) simple_idct.$(OBJEXT) \
 	ratecontrol.$(OBJEXT) adpcm.$(OBJEXT) eval.$(OBJEXT) \
-	dv.$(OBJEXT) error_resilience.$(OBJEXT) h263.$(OBJEXT) \
+	dv.$(OBJEXT) error_resilience.$(OBJEXT) fft.$(OBJEXT) \
+	mdct.$(OBJEXT) mace.$(OBJEXT) cyuv.$(OBJEXT) opts.$(OBJEXT) \
+	raw.$(OBJEXT) h264.$(OBJEXT) golomb.$(OBJEXT) h263.$(OBJEXT) \
 	msmpeg4.$(OBJEXT) h263dec.$(OBJEXT) svq1.$(OBJEXT) \
-	rv10.$(OBJEXT) wmadec.$(OBJEXT) fft.$(OBJEXT) mdct.$(OBJEXT) \
-	mace.$(OBJEXT) huffyuv.$(OBJEXT) $(am__objects_1) \
-	$(am__objects_2) $(am__objects_3)
+	rv10.$(OBJEXT) wmadec.$(OBJEXT) indeo3.$(OBJEXT) vp3.$(OBJEXT) \
+	asv1.$(OBJEXT) 4xm.$(OBJEXT) cabac.$(OBJEXT) ffv1.$(OBJEXT) \
+	ra144.$(OBJEXT) ra288.$(OBJEXT) huffyuv.$(OBJEXT) \
+	$(am__objects_1) $(am__objects_2) $(am__objects_3)
 libtcavcodec_a_OBJECTS = $(am_libtcavcodec_a_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/ac3enc.Po ./$(DEPDIR)/adpcm.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/allcodecs.Po ./$(DEPDIR)/common.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/cputest.Po ./$(DEPDIR)/dsputil.Po \
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/4xm.Po ./$(DEPDIR)/ac3enc.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/adpcm.Po ./$(DEPDIR)/allcodecs.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/asv1.Po ./$(DEPDIR)/cabac.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/common.Po ./$(DEPDIR)/cputest.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/cyuv.Po ./$(DEPDIR)/dsputil.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/dsputil_altivec.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/dsputil_mmx.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/dsputil_ppc.Po ./$(DEPDIR)/dv.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/error_resilience.Po ./$(DEPDIR)/eval.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/fdct_mmx.Po ./$(DEPDIR)/fft.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/fft_altivec.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/gmc_altivec.Po ./$(DEPDIR)/h263.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/h263dec.Po ./$(DEPDIR)/huffyuv.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/fft_altivec.Po ./$(DEPDIR)/ffv1.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/gmc_altivec.Po ./$(DEPDIR)/golomb.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/h263.Po ./$(DEPDIR)/h263dec.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/h264.Po ./$(DEPDIR)/huffyuv.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/idct_altivec.Po ./$(DEPDIR)/idct_mmx.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/imgconvert.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/imgresample.Po ./$(DEPDIR)/jfdctfst.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/jfdctint.Po ./$(DEPDIR)/jrevdct.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mace.Po ./$(DEPDIR)/mdct.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/mem.Po ./$(DEPDIR)/mjpeg.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/motion_est.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/imgresample.Po ./$(DEPDIR)/indeo3.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/jfdctfst.Po ./$(DEPDIR)/jfdctint.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/jrevdct.Po ./$(DEPDIR)/mace.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mdct.Po ./$(DEPDIR)/mem.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/mjpeg.Po ./$(DEPDIR)/motion_est.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/motion_est_mmx.Po ./$(DEPDIR)/mpeg12.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mpegaudio.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mpegaudiodec.Po \
@@ -437,11 +457,14 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/mpegvideo_altivec.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mpegvideo_mmx.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/mpegvideo_ppc.Po ./$(DEPDIR)/msmpeg4.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/pcm.Po ./$(DEPDIR)/ratecontrol.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/opts.Po ./$(DEPDIR)/pcm.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/ra144.Po ./$(DEPDIR)/ra288.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/ratecontrol.Po ./$(DEPDIR)/raw.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/resample.Po ./$(DEPDIR)/rv10.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/simple_idct.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/simple_idct_mmx.Po ./$(DEPDIR)/svq1.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/utils.Po ./$(DEPDIR)/wmadec.Po
+@AMDEP_TRUE@	./$(DEPDIR)/utils.Po ./$(DEPDIR)/vp3.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/wmadec.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -487,11 +510,15 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/4xm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ac3enc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adpcm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/allcodecs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/asv1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cabac.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/common.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cputest.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cyuv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dsputil.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dsputil_altivec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dsputil_mmx.Po@am__quote@
@@ -502,14 +529,18 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fdct_mmx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fft.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fft_altivec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ffv1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gmc_altivec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/golomb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/h263.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/h263dec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/h264.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/huffyuv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/idct_altivec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/idct_mmx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/imgconvert.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/imgresample.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/indeo3.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jfdctfst.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jfdctint.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jrevdct.Po@am__quote@
@@ -527,14 +558,19 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mpegvideo_mmx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mpegvideo_ppc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/msmpeg4.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opts.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pcm.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ra144.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ra288.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ratecontrol.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/raw.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/resample.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rv10.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/simple_idct.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/simple_idct_mmx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/svq1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vp3.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wmadec.Po@am__quote@
 
 distclean-depend:

@@ -18,9 +18,15 @@
  *
  * alternative bitstream reader & writer by Michael Niedermayer <michaelni@gmx.at>
  */
+
+/**
+ * @file common.c
+ * common internal api.
+ */
+
 #include "avcodec.h"
 
-const UINT8 ff_sqrt_tab[128]={
+const uint8_t ff_sqrt_tab[128]={
         0, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5,
         5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
         8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
@@ -39,9 +45,9 @@ const uint8_t ff_log2_tab[256]={
 };
 
 void init_put_bits(PutBitContext *s, 
-                   UINT8 *buffer, int buffer_size,
+                   uint8_t *buffer, int buffer_size,
                    void *opaque,
-                   void (*write_data)(void *, UINT8 *, int))
+                   void (*write_data)(void *, uint8_t *, int))
 {
     s->buf = buffer;
     s->buf_end = s->buf + buffer_size;
@@ -61,13 +67,15 @@ void init_put_bits(PutBitContext *s,
 #endif
 }
 
+#ifdef CONFIG_ENCODERS
+
 /* return the number of bits output */
-INT64 get_bit_count(PutBitContext *s)
+int64_t get_bit_count(PutBitContext *s)
 {
 #ifdef ALT_BITSTREAM_WRITER
     return s->data_out_size * 8 + s->index;
 #else
-    return (s->buf_ptr - s->buf + s->data_out_size) * 8 + 32 - (INT64)s->bit_left;
+    return (s->buf_ptr - s->buf + s->data_out_size) * 8 + 32 - (int64_t)s->bit_left;
 #endif
 }
 
@@ -79,6 +87,8 @@ void align_put_bits(PutBitContext *s)
     put_bits(s,s->bit_left & 7,0);
 #endif
 }
+
+#endif //CONFIG_ENCODERS
 
 /* pad the end of the output stream with zeros */
 void flush_put_bits(PutBitContext *s)
@@ -98,6 +108,8 @@ void flush_put_bits(PutBitContext *s)
 #endif
 }
 
+#ifdef CONFIG_ENCODERS
+
 void put_string(PutBitContext * pbc, char *s)
 {
     while(*s){
@@ -109,8 +121,16 @@ void put_string(PutBitContext * pbc, char *s)
 
 /* bit input functions */
 
+#endif //CONFIG_ENCODERS
+
+/**
+ * init GetBitContext.
+ * @param buffer bitstream buffer, must be FF_INPUT_BUFFER_PADDING_SIZE bytes larger then the actual read bits
+ * because some optimized bitstream readers read 32 or 64 bit at once and could read over the end
+ * @param bit_size the size of the buffer in bits
+ */
 void init_get_bits(GetBitContext *s,
-                   UINT8 *buffer, int bit_size)
+                   const uint8_t *buffer, int bit_size)
 {
     const int buffer_size= (bit_size+7)>>3;
 
@@ -120,9 +140,19 @@ void init_get_bits(GetBitContext *s,
 #ifdef ALT_BITSTREAM_READER
     s->index=0;
 #elif defined LIBMPEG2_BITSTREAM_READER
+#ifdef LIBMPEG2_BITSTREAM_READER_HACK
+  if ((int)buffer&1) {
+     /* word alignment */
+    s->cache = (*buffer++)<<24;
+    s->buffer_ptr = buffer;
+    s->bit_count = 16-8;
+  } else
+#endif
+  {
     s->buffer_ptr = buffer;
     s->bit_count = 16;
     s->cache = 0;
+  }
 #elif defined A32_BITSTREAM_READER
     s->buffer_ptr = (uint32_t*)buffer;
     s->bit_count = 32;
@@ -132,12 +162,36 @@ void init_get_bits(GetBitContext *s,
     {
         OPEN_READER(re, s)
         UPDATE_CACHE(re, s)
-//        UPDATE_CACHE(re, s)
+        UPDATE_CACHE(re, s)
         CLOSE_READER(re, s)
     }
 #ifdef A32_BITSTREAM_READER
     s->cache1 = 0;
 #endif
+}
+
+/** 
+ * reads 0-32 bits.
+ */
+unsigned int get_bits_long(GetBitContext *s, int n){
+    if(n<=17) return get_bits(s, n);
+    else{
+        int ret= get_bits(s, 16) << (n-16);
+        return ret | get_bits(s, n-16);
+    }
+}
+
+/** 
+ * shows 0-32 bits.
+ */
+unsigned int show_bits_long(GetBitContext *s, int n){
+    if(n<=17) return show_bits(s, n);
+    else{
+        GetBitContext gb= *s;
+        int ret= get_bits_long(s, n);
+        *s= gb;
+        return ret;
+    }
 }
 
 void align_get_bits(GetBitContext *s)
@@ -160,16 +214,16 @@ int check_marker(GetBitContext *s, const char *msg)
 
 #define GET_DATA(v, table, i, wrap, size) \
 {\
-    const UINT8 *ptr = (UINT8 *)table + i * wrap;\
+    const uint8_t *ptr = (const uint8_t *)table + i * wrap;\
     switch(size) {\
     case 1:\
-        v = *(UINT8 *)ptr;\
+        v = *(const uint8_t *)ptr;\
         break;\
     case 2:\
-        v = *(UINT16 *)ptr;\
+        v = *(const uint16_t *)ptr;\
         break;\
     default:\
-        v = *(UINT32 *)ptr;\
+        v = *(const uint32_t *)ptr;\
         break;\
     }\
 }
@@ -194,10 +248,10 @@ static int build_table(VLC *vlc, int table_nb_bits,
                        int nb_codes,
                        const void *bits, int bits_wrap, int bits_size,
                        const void *codes, int codes_wrap, int codes_size,
-                       UINT32 code_prefix, int n_prefix)
+                       uint32_t code_prefix, int n_prefix)
 {
     int i, j, k, n, table_size, table_index, nb, n1, index;
-    UINT32 code;
+    uint32_t code;
     VLC_TYPE (*table)[2];
 
     table_size = 1 << table_nb_bits;
@@ -335,7 +389,7 @@ void free_vlc(VLC *vlc)
     av_free(vlc->table);
 }
 
-int ff_gcd(int a, int b){
+int64_t ff_gcd(int64_t a, int64_t b){
     if(b) return ff_gcd(b, a%b);
     else  return a;
 }

@@ -16,6 +16,12 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
+/**
+ * @file allcodecs.c
+ * Utils for libavcodec.
+ */
+
 #include "avcodec.h"
 
 /* If you do not call this function, then you can select exactly which
@@ -44,6 +50,7 @@ void avcodec_register_all(void)
     register_avcodec(&oggvorbis_decoder);
 #endif
     register_avcodec(&mpeg1video_encoder);
+//    register_avcodec(&h264_encoder);
 #ifdef CONFIG_RISKY
     register_avcodec(&h263_encoder);
     register_avcodec(&h263p_encoder);
@@ -56,9 +63,13 @@ void avcodec_register_all(void)
     register_avcodec(&wmv2_encoder);
 #endif
     register_avcodec(&mjpeg_encoder);
+    register_avcodec(&ljpeg_encoder);
     register_avcodec(&huffyuv_encoder);
+    register_avcodec(&asv1_encoder);
+    register_avcodec(&ffv1_encoder);
 #endif /* CONFIG_ENCODERS */
-    register_avcodec(&rawvideo_codec);
+    register_avcodec(&rawvideo_encoder);
+    register_avcodec(&rawvideo_decoder);
 
     /* decoders */
 #ifdef CONFIG_DECODERS
@@ -73,8 +84,14 @@ void avcodec_register_all(void)
     register_avcodec(&h263i_decoder);
     register_avcodec(&rv10_decoder);
     register_avcodec(&svq1_decoder);
+    register_avcodec(&svq3_decoder);
     register_avcodec(&wmav1_decoder);
     register_avcodec(&wmav2_decoder);
+    register_avcodec(&indeo3_decoder);
+#ifdef CONFIG_FAAD
+    register_avcodec(&aac_decoder);
+    register_avcodec(&mpeg4aac_decoder);
+#endif
 #endif
     register_avcodec(&mpeg_decoder);
     register_avcodec(&dvvideo_decoder);
@@ -86,11 +103,23 @@ void avcodec_register_all(void)
     register_avcodec(&mace3_decoder);
     register_avcodec(&mace6_decoder);
     register_avcodec(&huffyuv_decoder);
+    register_avcodec(&ffv1_decoder);
+    register_avcodec(&cyuv_decoder);
+    register_avcodec(&h264_decoder);
+    register_avcodec(&vp3_decoder);
+    register_avcodec(&asv1_decoder);
+    register_avcodec(&fourxm_decoder);
 #ifdef CONFIG_AC3
     register_avcodec(&ac3_decoder);
 #endif
+    register_avcodec(&ra_144_decoder);
+    register_avcodec(&ra_288_decoder);
 #endif /* CONFIG_DECODERS */
 
+#ifdef AMR_NB
+    register_avcodec(&amr_nb_decoder);
+    register_avcodec(&amr_nb_encoder);
+#endif /* AMR_NB */
     /* pcm codecs */
 
 #define PCM_CODEC(id, name) \
@@ -110,6 +139,7 @@ PCM_CODEC(CODEC_ID_PCM_MULAW, pcm_mulaw);
 PCM_CODEC(CODEC_ID_ADPCM_IMA_QT, adpcm_ima_qt);
 PCM_CODEC(CODEC_ID_ADPCM_IMA_WAV, adpcm_ima_wav);
 PCM_CODEC(CODEC_ID_ADPCM_MS, adpcm_ms);
+PCM_CODEC(CODEC_ID_ADPCM_4XM, adpcm_4xm);
 
 #undef PCM_CODEC
 }

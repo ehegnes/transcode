@@ -16,12 +16,19 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
+/**
+ * @file resample.c
+ * Sample rate convertion for both audio and video.
+ */
+
 #include "avcodec.h"
+#include "os_support.h"
 
 typedef struct {
     /* fractional resampling */
-    UINT32 incr; /* fractional increment */
-    UINT32 frac;
+    uint32_t incr; /* fractional increment */
+    uint32_t frac;
     int last_sample;
     /* integer down sample */
     int iratio;  /* integer divison ratio */
@@ -43,7 +50,7 @@ struct ReSampleContext {
 static void init_mono_resample(ReSampleChannelContext *s, float ratio)
 {
     ratio = 1.0 / ratio;
-    s->iratio = (int)floor(ratio);
+    s->iratio = (int)floorf(ratio);
     if (s->iratio == 0)
         s->iratio = 1;
     s->incr = (int)((ratio / s->iratio) * FRAC);
