@@ -1,11 +1,27 @@
 --------------------------------------------
-transcode-0.6.4.HEAD
+transcode-0.6.4.20030408
 
-- configure check for libXpm and Xaw
+- Big import_xml update:
+  - manage different file type in the same xml (only for dv and avi
+    created with dvgrab/kino)                    
+  - add a program to check the consistence of xml file                                                           
+  - enable new parameters in the PARM option (see file import-xml.txt
+    under docs directory )
+   -- Marzio Malanchini <marzio_malanchini AT vodafone.it>
+
+- reworded description for the -c parameter.
+   -- Udo Wolter <uwp AT dicke-aersche.de>
+
+- Changed black frame behaviour. When an empty frame is detected in
+  DIV3 input, transcode now uses the last non-empty frame instead of
+  setting the frame to black. Modified import_ffmpeg and import_divx.
+
+- configure check for libXpm and Xaw. Fixed lve detection.
 
 - Very preleminary MacOS X support. Compiling and running still needs
   some tweaking. Thansk to the great help from Håvard Dahle
-  <havardda AT orakel.ntnu.no>
+  <havardda AT orakel.ntnu.no>. The port included various real bugfixes
+  even in transcode core and in some of the import and export modules.
 
 - changed ALTIVEC flags in libavcodec to '-maltivec -mabi=altivec'
 
@@ -18,11 +34,8 @@ transcode-0.6.4.HEAD
   http://www.lpm.univ-montp2.fr/domi/V2divx
    -- Caron Dominique <domi at LPM.univ-montp2.fr>
 
-- renamed libioaux to libtcioaux and install it into $prefix/bin 
+- renamed libioaux to libtcioaux and install it into $prefix/lib
   pointed out by Dag Wieers <dag at wieers.com>
-
-- some very initial macosx support. Based on testing done by 
-  Håvard Dahle" <havardda at orakel.ntnu.no>
 
 - fix ac3scan issue I introduced last release; trancode incorrectly
   probed the channels of a dolby stream as mono. Pointed out by 
