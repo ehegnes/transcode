@@ -90,18 +90,10 @@ MOD_open
       
     case CODEC_AC3:
       
-#if 1
       if((snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x ac3 %s %s -d %d | tcextract -t vob -a %d -x ac3 -d %d | tcextract -t raw -x ac3 -d %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose, vob->verbose)<0)) {
 	perror("command buffer overflow");
 	return(TC_IMPORT_ERROR);
       }
-#else
-
-      if((snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x ac3 %s %s -d %d | tcextract -t vob -a %d -x ac3 -d %d | tcdecode -y raw -x a52 -d %d -A %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose, vob->verbose, vob->a52_mode)<0)) {
-	perror("command buffer overflow");
-	return(TC_IMPORT_ERROR);
-      }
-#endif
       
       if(verbose_flag & TC_DEBUG) printf("[%s] AC3->AC3\n", MOD_NAME);
       

@@ -93,6 +93,7 @@ void yuv2rgb_init (int bpp, int mode)
     if (yuv2rgb == NULL) {
 	yuv2rgb_c_init (bpp, mode);
 	yuv2rgb = (yuv2rgb_fun) yuv2rgb_c;
+	// fprintf (stderr, "DEBUG: Using C for colorspace transform\n");
     }
 }
 

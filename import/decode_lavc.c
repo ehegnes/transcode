@@ -40,7 +40,9 @@
 #include "ioaux.h"
 
 // FIXME
+#ifdef EMULATE_FAST_INT
 #undef EMULATE_FAST_INT
+#endif
 #include <avcodec.h>
 #include "yuv2rgb.h"
 
@@ -108,26 +110,6 @@ static struct ffmpeg_codec *find_ffmpeg_codec_id(unsigned int transcode_id) {
   return NULL;
 }
 
-#if 0
-static struct ffmpeg_codec *find_ffmpeg_codec(char *fourCC) {
-  int i;
-  struct ffmpeg_codec *cdc;
-  
-  cdc = &ffmpeg_codecs[0];
-  while (cdc->name != NULL) {
-    i = 0;
-    while (cdc->fourCCs[i][0] != 0) {
-      if (!strcasecmp(cdc->fourCCs[i], fourCC))
-        return cdc;
-      i++;
-    }
-    cdc++;
-  }
-  
-  return NULL;
-}
-#endif
-
 static unsigned char *bufalloc(size_t size) {
 #ifdef HAVE_GETPAGESIZE
   long buffer_align = getpagesize();
@@ -147,8 +129,6 @@ static unsigned char *bufalloc(size_t size) {
 
   return (unsigned char *) (buf + adjust);
 }
-
-
 
 /* ------------------------------------------------------------ 
  *
@@ -237,23 +217,29 @@ void decode_lavc(decode_t *decode)
   pix_fmt = decode->format;
     
   frame_size = (x_dim * y_dim * 3)/2;
-  switch (pix_fmt) {
+  switch (pix_fmt)
+  {
       case TC_CODEC_YV12:
         frame_size = (x_dim * y_dim * 3)/2;
         break;
+
       case TC_CODEC_RGB:
         frame_size = x_dim * y_dim * 3;
         bpp = 24;
         yuv2rgb_init(bpp, MODE_RGB);
 
-        if (yuv2rgb_buffer == NULL) yuv2rgb_buffer = bufalloc(frame_size);
+        if (yuv2rgb_buffer == NULL)
+	    yuv2rgb_buffer = bufalloc(frame_size);
 	
-        if (yuv2rgb_buffer == NULL) {
+        if (yuv2rgb_buffer == NULL)
+	{
           perror("out of memory");
           goto decoder_error;
-        } else
-          memset(yuv2rgb_buffer, 0, frame_size);  
+        }
+	else
+	    memset(yuv2rgb_buffer, 0, frame_size);  
         break;
+
       case TC_CODEC_RAW:
 	pass_through = 1;
 	break;
@@ -316,11 +302,13 @@ void decode_lavc(decode_t *decode)
       Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
       UVls = picture.linesize[1];
 
-      switch (lavc_dec_context->pix_fmt) {
+      switch (lavc_dec_context->pix_fmt)
+      {
 	  case PIX_FMT_YUV420P:
 	      // Result is in YUV 4:2:0 (YV12) format, but each line ends with
 	      // an edge which we must skip
-	      if (pix_fmt == TC_CODEC_YV12) {
+	      if (pix_fmt == TC_CODEC_YV12)
+	      {
 		  Ybuf = out_buffer;
 		  Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
 		  Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
@@ -338,7 +326,9 @@ void decode_lavc(decode_t *decode)
 			      picture.data[2] + i * picture.linesize[2],// + edge_width / 2,
 			      lavc_dec_context->width / 2);
 		  }
-	      } else {
+	      }
+	      else
+	      {
 		  Ybuf = yuv2rgb_buffer;
 		  Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
 		  Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
@@ -416,28 +406,36 @@ void decode_lavc(decode_t *decode)
 			      *(picture.data[2] + i * picture.linesize[2] + j/2);
 		      }
 		  }
-	      } else { // RGB
+	      }
+	      else
+	      { // RGB
+
 		  Ybuf = yuv2rgb_buffer;
 		  Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
 		  Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
-		  for (i = 0; i < lavc_dec_context->height; i++) {
+
+		  for (i = 0; i < lavc_dec_context->height; i++)
+		  {
 		      tc_memcpy(Ybuf + i * lavc_dec_context->width,
 			      picture.data[0] + i * picture.linesize[0], 
 			      lavc_dec_context->width);
 		  }
-		  for (i = 0; i < lavc_dec_context->height; i++) {
-		      for (j=0; j < lavc_dec_context->width / 2; j++) {
+
+		  for (i = 0; i < lavc_dec_context->height; i++)
+		  {
+		      for (j=0; j < lavc_dec_context->width / 2; j++)
+		      {
 			  Vbuf[i/2 * lavc_dec_context->width/2 + j] = 
 			      *(picture.data[1] + i * picture.linesize[1] + j/2);
 			  Ubuf[i/2 * lavc_dec_context->width/2 + j] = 
 			      *(picture.data[2] + i * picture.linesize[2] + j/2);
 		      }
 		  }
-		  yuv2rgb(out_buffer, yuv2rgb_buffer,
-			  yuv2rgb_buffer +
-			  lavc_dec_context->width * lavc_dec_context->height, 
-			  yuv2rgb_buffer +
-			  5 * lavc_dec_context->width * lavc_dec_context->height / 4, 
+
+		  yuv2rgb(out_buffer,
+			  yuv2rgb_buffer,
+			  yuv2rgb_buffer + lavc_dec_context->width * lavc_dec_context->height, 
+			  yuv2rgb_buffer + 5 * lavc_dec_context->width * lavc_dec_context->height / 4, 
 			  lavc_dec_context->width,
 			  lavc_dec_context->height, 
 			  lavc_dec_context->width * bpp / 8,

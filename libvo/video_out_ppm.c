@@ -64,15 +64,27 @@ static void internal_draw_frame (ppm_instance_t * instance, FILE * file,
       fwrite (instance->rgbdata, instance->width*3, instance->height, file);
     } else {
     
+	  // EMS: changed; this fixes tcdecode RGB output, but may break ppm output...
+	  // sigh...
+	  // original comment below
       // frame is written upside down
+
+#if 0
       frame_in   = instance->rgbdata + instance->rgbstride*(instance->height-1);
       
       for (y = instance->height; y > 0; y--) {
-	
 	instance->outstream(frame_in, instance->rgbstride);
-	
 	frame_in  -= instance->rgbstride;
       }
+#else
+	frame_in = instance->rgbdata;
+
+	for (y = instance->height; y > 0; y--)
+	{
+		instance->outstream(frame_in, instance->rgbstride);
+		frame_in += instance->rgbstride;
+	}
+#endif
     }
 }
 
@@ -181,7 +193,12 @@ vo_instance_t *vo_ppmpipe_open (void (*callback))
     instance->pipe = 1;
     instance->outstream=callback;
 
+#if 0
     yuv2rgb_init (instance->bpp, MODE_BGR);
+// EMS: this fixes RGB output, probably breaks ppm output...
+#else
+    yuv2rgb_init (instance->bpp, MODE_RGB);
+#endif
 
     instance->vo.setup = ppmpipe_setup;
     instance->framenum = -2;

@@ -509,6 +509,14 @@ AM_CONDITIONAL(ARCH_X86, test x$have_x86cpu = xtrue)
 AM_CONDITIONAL(ARCH_PPC, test x$have_ppccpu = xtrue)
 AM_CONDITIONAL(CAN_COMPILE_C_ALTIVEC, test "x${have_c_altivec}" = xtrue)
 
+dnl
+dnl libavcodec
+dnl
+dnl test belows adds -Werror that screws ffmpeg's check for libm...
+dnl
+
+AM_PATH_FFMPEG_LIBS(AC_DEFINE([HAVE_FFMPEG_LIBS], 1, [Have ffmpeg avcodec library support]))
+AM_CONDITIONAL(HAVE_FFMPEG_LIBS, test x"$have_ffmpeg_libs" = "xyes")
 
 dnl GCC-specific flags
 if test x"$GCC" = x"yes"; then
@@ -1234,13 +1242,6 @@ LIBDVENC_CFLAGS="-I\$(top_srcdir)/libdvenc"
 LIBDVENC_LIBS="\$(top_builddir)/libdvenc/libdvenc.la"
 AC_SUBST(LIBDVENC_CFLAGS)
 AC_SUBST(LIBDVENC_LIBS)
-
-dnl
-dnl libavcodec
-dnl
-
-AM_PATH_FFMPEG_LIBS(AC_DEFINE([HAVE_FFMPEG_LIBS], 1, [Have ffmpeg avcodec library support]))
-AM_CONDITIONAL(HAVE_FFMPEG_LIBS, test x"$have_ffmpeg_libs" = "xyes")
 
 dnl
 dnl libxio if requested

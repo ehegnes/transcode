@@ -19,6 +19,18 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#ifdef HAVE_MEMALIGN
+/* some systems have memalign() but no declaration for it */
+/* WRONG!!!! EMS */
+/* void * memalign (size_t align, size_t size); */
+#define _XOPEN_SOURCE 600
+#include <stdlib.h>
+#else
+/* assume malloc alignment is sufficient */
+#define memalign(align,size) malloc (size)
+#endif
+
+
 #include "config.h"
 
 #include <stdlib.h>
@@ -26,14 +38,6 @@
 
 #include "video_out.h"
 #include "video_out_internal.h"
-
-#ifdef HAVE_MEMALIGN
-/* some systems have memalign() but no declaration for it */
-void * memalign (size_t align, size_t size);
-#else
-/* assume malloc alignment is sufficient */
-#define memalign(align,size) malloc (size)
-#endif
 
 uint32_t vo_mm_accel = 0;
 
