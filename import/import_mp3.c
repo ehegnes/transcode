@@ -48,6 +48,7 @@ static int codec;
 static int count=TC_PAD_AUD_FRAMES;
 static int decoded_frames=0;
 static int offset=0;
+static int last_percent=0;
 
 
 /* ------------------------------------------------------------ 
@@ -68,8 +69,20 @@ MOD_open
     
     switch(codec) {
 	
+			// (offset && vob->nav_seek_file)?("-S %s"):""
     case CODEC_PCM:
 	
+	if (offset && vob->nav_seek_file) {
+	if((snprintf(import_cmd_buf, MAX_BUF, 
+			"tcextract -a %d -i \"%s\" -x %s -d %d -f %s -C %d-%d | tcdecode -x %s -d %d", 
+			vob->a_track, vob->audio_in_file, 
+			(vob->fixme_a_codec==0x50?"mp2":"mp3"), vob->verbose, 
+			vob->nav_seek_file, offset, offset+1, 
+			(vob->fixme_a_codec==0x50?"mp2":"mp3"), vob->verbose)<0)) {
+	    perror("command buffer overflow");
+	    return(TC_IMPORT_ERROR);
+	}
+	} else {
 	if((snprintf(import_cmd_buf, MAX_BUF, 
 			"tcextract -a %d -i \"%s\" -x %s -d %d | tcdecode -x %s -d %d", 
 			vob->a_track, vob->audio_in_file, 
@@ -79,6 +92,7 @@ MOD_open
 			vob->verbose)<0)) {
 	    perror("command buffer overflow");
 	    return(TC_IMPORT_ERROR);
+	}
 	}
 	
 	if(verbose_flag) printf("[%s] MP3->PCM\n", MOD_NAME);
@@ -136,16 +150,29 @@ MOD_decode
       
   }
   
-  // this can be done a lot smarter in tcdecode and such.
+  // this can be done a lot smarter in tcextract
+#if 1
   do {
-      memset(param->buffer+ac_off, 0, ac_bytes);
+      int percent=0;
+      if (offset) percent = decoded_frames*100/offset+1;
 
+      if (fread(param->buffer+ac_off, ac_bytes, 1, fd) !=1) {
+	  return(TC_IMPORT_ERROR);
+      }
+      if (offset && percent <= 100 && last_percent != percent) {
+	  fprintf(stderr, "[%s] skipping to frame %d .. %d%%\r", 
+		  MOD_NAME, offset, percent);
+	  last_percent = percent;
+      }
+  } while (decoded_frames++<offset);
+#else
+      memset(param->buffer+ac_off, 0, ac_bytes);
       if (fread(param->buffer+ac_off, ac_bytes, 1, fd) !=1) {
 	  // not sure what this hack is for, probably can be removed
 	  //--count; if(count<=0) return(TC_IMPORT_ERROR);
 	  return(TC_IMPORT_ERROR);
       }
-  } while (decoded_frames++<offset);
+#endif
   
   return(0);
 }
@@ -168,6 +195,7 @@ MOD_close
   fd        = NULL;
   param->fd = NULL;
   decoded_frames = 0;
+  last_percent = 0;
  
   
   return(0);
