@@ -53,7 +53,7 @@ static int (*a52_decore)(decode_t *decode);
 static void *handle;
 static char module[TC_BUF_MAX];
 
-int a52_init(char *path) {
+int a52_do_init(char *path) {
 #ifdef __FreeBSD
     const
 #endif    
@@ -70,7 +70,9 @@ int a52_init(char *path) {
       //try the default:
       //      handle = dlopen(MODULE, RTLD_GLOBAL| RTLD_LAZY);
       if (!handle) {
-	fputs (dlerror(), stderr);
+	error = dlerror();
+	fputs (error, stderr);
+	fputs("\n", stderr);
 	return(-1);
       }
     }
@@ -78,6 +80,7 @@ int a52_init(char *path) {
     a52_decore = dlsym(handle, "a52_decore");   
     if ((error = dlerror()) != NULL)  {
       fputs(error, stderr);
+      fputs("\n", stderr);
       return(-1);
     }
 
@@ -95,8 +98,8 @@ void decode_a52(decode_t *decode)
   verbose = decode->verbose;
   
   //load the codec
-  if(a52_init(mod_path)<0) {
-    fprintf(stderr, "failed to init ATSC A-52 stream decoder");
+  if(a52_do_init(mod_path)<0) {
+    fprintf(stderr, "failed to init ATSC A-52 stream decoder\n");
     import_exit(1);
   }
   
