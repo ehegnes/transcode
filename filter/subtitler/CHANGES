@@ -230,6 +230,25 @@ line to be appended to the current one, with the last character swallowed.
 Now '\' at the end of a line continues the line (as in C), a '\' anywhere
 else will force a line feed in the text (so you can format).
 
+
+-0.7:
+True type fonts supported.
+These need to be in ~/.xste/fonts/
+Also the difrectory ~/.xste/fonts/data/ must exist.
+The following PPML commands are no longer active:
+outline
+doutline
+
+The following are new PPML commands and work on al text objects:
+font_name                 string    xxx.ttf    name of a true type font (in font_dir).
+font_size                 int       size of font is pixels.
+font_iso_extension        int       language code, 15 for Euro symbol.
+font_outline_thickness   double     black outline around characters.
+font_blur_radius         double     blur.
+
+The default for font_dir is now ~~/.xste/fonts/
+
+
 -
 Talking about 'objects' title_list.c is now object_list.c
 Added a 'zaxis'.

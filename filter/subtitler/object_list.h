@@ -104,11 +104,18 @@ struct object
 	double extra_character_space;
 	double dextra_character_space;
 
-	font_desc_t *pfd;	
-	int font;
+//	int font;
+//	double font_factor;
+//	double dfont_factor;
 
-	double font_factor;
-	double dfont_factor;
+	char *font_dir;
+	char *font_name;
+	int font_size;
+	int font_iso_extension;
+	double font_outline_thickness;
+	double font_blur_radius;
+
+	font_desc_t *pfd;	
 
 	double u;
 	double du;

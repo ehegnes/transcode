@@ -3,7 +3,7 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-INCLUDES = -I./ -I../../src -I../ -I../../ -I$(srcdir)/../../src -I$(srcdir)/../.. -I$(srcdir)/.. $(X_CFLAGS)
+INCLUDES = -I./ -I../../src -I../ -I../../ -I$(srcdir)/../../src -I$(srcdir)/../.. -I$(srcdir)/.. $(X_CFLAGS) @FT2_CFLAGS@
 
 CFLAGS = -D_REENTRANT @CFLAGS@
 
@@ -22,10 +22,13 @@ text_processing.c \
 load_pictures.c \
 parser.c \
 external_programs.c \
-color_processor.c
+color_processor.c \
+subtitle_fontname_list.c \
+subfont.c
+ 
 
 filter_subtitler_la_LDFLAGS =  -module -avoid-version 
-filter_subtitler_la_LIBADD = $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(X_EXTRA_LIBS) -lXpm -lXt -lXaw -lm 
+filter_subtitler_la_LIBADD = $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(X_EXTRA_LIBS) -lXpm -lXt -lXaw -lm @FT2_LIBS@
 
 EXTRA_DIST =  \
    HOWTO_USE_THIS \
@@ -35,11 +38,11 @@ EXTRA_DIST =  \
    demo.ppml \
    frame_list.h \
    load_font.h \
-   new-timed.txt \
    object_list.h \
    rose.ppm \
    subtitler.h \
    subtitler_proto.h \
    sun.ppm \
+   LICENSE \
    x11.h
 

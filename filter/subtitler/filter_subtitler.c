@@ -26,7 +26,7 @@
 //#include "../../src/framebuffer.h"
 
 #define MOD_NAME    "filter_subtitler.so"
-#define MOD_VERSION "v0.6.5 (2002-06-12)"
+#define MOD_VERSION "v0.7 (2003-10-18)"
 #define MOD_CAP     "subtitle filter"
 
 /* for YUV to RGB in X11 */
@@ -140,7 +140,7 @@ if(pfl->tag & TC_FILTER_INIT)
 	subtitle_v_factor = SUBTITLE_V_FACTOR;
 
 	/* location where font.descr is */
-	sprintf(temp, "%s/.subtitles/font", home_dir);
+	sprintf(temp, "%s/.xste/fonts", home_dir);
 	default_font_dir = strsave(temp);
 	if(! default_font_dir)
 		{
@@ -208,7 +208,35 @@ if(pfl->tag & TC_FILTER_INIT)
 	This ONLY happens if rotate or shear present.
 	*/
 	default_border_luminance = LUMINANCE_MASK;
+
+	sprintf(temp, "%s/.xste/fonts", home_dir);
+	subtitle_font_path = strsave(temp);
+	if(! subtitle_font_path)
+		{
+		fprintf(stderr,\
+		"subtitler: tc_filter(): could not allocate space for subtitle_font_path, aborting\n");
+
+		exit(1);
+		}
+
+	default_subtitle_font_name = strsave("arial.ttf");
+	if(! default_subtitle_font_name)
+		{
+		fprintf(stderr,\
+		"subtitler: tc_filter(): could not allocate space for default_subtitle_font_name, aborting\n");
+
+		exit(1);
+		}
+
+	default_subtitle_font_size = 28;
+	default_subtitle_iso_extention = 15;
+	default_subtitle_radius = 1.0;
+	default_subtitle_thickness = 0.1;
 	
+
+	debug_flag = 0;
+
+
 	/* end defaults */
 	if(debug_flag)
 		{
@@ -324,8 +352,11 @@ if(pfl->tag & TC_FILTER_INIT)
 		{
 		/* read in font (also needed for frame counter) */
 		sprintf(temp, "%s/font.desc", default_font_dir);
-		vo_font =\
-		read_font_desc(temp, default_font_factor, 0);
+//		vo_font = read_font_desc(temp, default_font_factor, 0);
+
+//		add_font(fontname, fontsize, iso_extension, outline_thickness, blur_radius);
+		sprintf(temp, "arial.ttf");
+		vo_font = add_font(temp, 28, 15, 1.0, 0.1);
 		if(! vo_font)
 			{
 			printf("subtitler(): Could not load font\n");

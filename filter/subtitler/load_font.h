@@ -8,6 +8,7 @@ unsigned char *pal;
 int w, h, c;
 } raw_file;
 
+
 typedef struct
 {
 char *name;
@@ -22,6 +23,8 @@ raw_file* pic_b[16];
 short font[65536];
 short start[65536];
 short width[65536];
+double outline_thickness;
+double blur_radius;
 } font_desc_t;
 
 raw_file* load_raw(char *name,int verbose);

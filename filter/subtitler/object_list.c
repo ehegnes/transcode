@@ -233,8 +233,8 @@ if(! pa -> data)
 	}
 
 pa -> extra_character_space = extra_character_space;
-pa -> font_factor = default_font_factor;
-pa -> font = default_font;
+//pa -> font_factor = default_font_factor;
+//pa -> font = default_font;
 
 pa -> status = OBJECT_STATUS_NEW;
 
@@ -249,6 +249,10 @@ if(! sort_objects_by_zaxis() )
 	could not sort objects by zaxis value, aborting\n");
 
 	return 0;
+	}
+if(debug_flag)
+	{
+	fprintf(stderr, "subtitler(): add_subtitle_object() return OK\n");
 	}
 
 return(1);
@@ -356,8 +360,6 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 			pa -> transparency = subtitle_transparency;
 			pa -> pfd = subtitle_pfd;
 			pa -> extra_character_space = subtitle_extra_character_space;
-			pa -> font_factor = subtitle_font_factor;
-			pa -> font = subtitle_font;
 
 			add_text((int)pa -> xpos, (int)pa -> ypos, pa -> data,\
 			(int) pa -> u, (int)pa -> v,\
@@ -655,9 +657,9 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 			subtitle_dypos = pa -> dypos;
 			subtitle_dzpos = pa -> dzpos;
 			subtitle_pfd = pa -> pfd;
+
 			subtitle_extra_character_space = pa -> extra_character_space;
-			subtitle_font_factor = pa -> font_factor;
-			subtitle_font = pa -> font;
+
 			}
 
 		/* text color, this only works on TEXT */
@@ -754,9 +756,6 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 			{
 			pa -> extra_character_space = image_width;
 			}
-
-		pa -> font_factor += pa -> dfont_factor;
-		if(pa -> font_factor < 0.0) pa -> font_factor = 0.0;
 
 		pa -> dspeed += pa -> ddspeed;
 		pa -> speed += pa -> dspeed;
@@ -901,14 +900,14 @@ while(1)/* go through list again and again */
 		{
 		if(debug_flag)
 			{
-			fprintf(stdout, "sort_objects(): sorting %s pa=%lu\n",\
+			fprintf(stdout, "sort_objects_by_zaxis(): sorting %s pa=%lu\n",\
 			pa -> name, pa);		
 			}	
 	
 		pb = pa -> prventr;
 		if(debug_flag)
 			{
-			fprintf(stdout, "pb=pa->prventr=%lu\n", pb);
+			fprintf(stdout, "sort_objects_by_zaxis(): pb=pa->prventr=%lu\n", pb);
 			}
 		
 		if(pb)
@@ -934,6 +933,11 @@ while(1)/* go through list again and again */
 	/* if no more swapping took place, ready, list is sorted */
 	if(! swap_flag) break;
 	}/* end while go through list again and again */
+
+if(debug_flag)
+	{
+	fprintf(stderr, "subtitler: sort_objects_by_zaxis(): return OK\n");
+	}
 
 return 1;
 }/* end function sort_objects_by_zaxis */

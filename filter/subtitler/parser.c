@@ -16,6 +16,7 @@ char *cptr, *tptr;
 int screen_lines;
 int line_height;
 char font_dir[4096];
+char font_name[4096];
 char temp[4096];
 font_desc_t *pfd;
  
@@ -48,7 +49,11 @@ if(pa -> data[0] == '*')
 		{
 		token = strsep (&running, " ");
 		if(token == NULL) break;
-//printf("WAS2 token=%s\n", token);
+
+		if(debug_flag)
+			{	
+			printf("token=%s\n", token);
+			}
 
 		/* avoid empty string */
 		if(token[0] == 0) continue;
@@ -69,7 +74,10 @@ if(pa -> data[0] == '*')
 				}
 						
 			/* get data for this object */
-//			printf("parser(): WAS OBJECT %s data=%s\n", token, pb -> data);
+			if(debug_flag)
+				{
+//				printf("parser(): object %s data=%s\n", token, pb -> data);
+				}
 
 			/*
 			add this object to the display list, if it is already there,
@@ -85,8 +93,6 @@ if(pa -> data[0] == '*')
 			
 				exit(1);
 				}	
-//			printf("parser(): WAS have object pointer in display list for %s\n", token);
-
 			}
 		else /* token[0] != 0, must be an argument */
 			{
@@ -123,8 +129,9 @@ if(pa -> data[0] == '*')
 
 				/* set some defaults */
 				po -> extra_character_space = extra_character_space; 
-				po -> font_factor = default_font_factor;
-				po -> font = default_font;
+
+//				po -> font_factor = default_font_factor;
+//				po -> font = default_font;
 				}
 
 			/* parse line */
@@ -333,16 +340,56 @@ if(pa -> data[0] == '*')
 			sscanf(token, "vfactor=%lf", &subtitle_v_factor);
 			
 			/* font related */
-			sscanf(token, "font=%lf", &po -> font);
+//			sscanf(token, "font=%lf", &po -> font);
 
-			a = sscanf(token, "outline=%lf", &po -> font_factor);
+//			a = sscanf(token, "outline=%lf", &po -> font_factor);
 //			sscanf(token, "doutline=%lf", &po -> dfont_factor);
 
 			font_dir[0] = 0;
-			b = sscanf(token, "font_dir=%s", font_dir);
+			a = sscanf(token, "font_dir=%s", font_dir);
+			if(a == 1)
+				{
+				po -> font_dir = strsave(font_dir);
+				if(! po -> font_dir)
+					{
+					fprintf(stderr,\
+					"subtitler: parse_frame_entry(): could not allocate space for font_dir, aborting\n");
 
+					exit(1);
+					}
+				}
+
+			a = sscanf(token, "font_name=%s", font_name);
+			if(a == 1)
+				{	
+				po -> font_name = strsave(font_name);
+				if(! po -> font_name)
+					{
+					fprintf(stderr,\
+					"subtitler: parse_frame_entry(): could not allocate space for font_name, aborting\n");
+
+					exit(1);
+					}
+				}
+
+			a = sscanf(token, "font_size=%d", &po -> font_size);
+			a = sscanf(token, "font_iso_extension=%d", &po -> font_iso_extension);
+			a = sscanf(token, "font_outline_thickness=%lf", &po -> font_outline_thickness);
+			a = sscanf(token, "font_blur_radius=%lf", &po -> font_blur_radius);
+
+			if(debug_flag)
+				{
+				printf("font_dir=%s font_name=%s\n\
+				font_size=%d font_iso_extension=%d font_outline_thickness=%.2f font_blur_radius=%.2f\n",\
+				po -> font_dir, po -> font_name,\
+				po -> font_size, po -> font_iso_extension,\
+				po -> font_outline_thickness, po -> font_blur_radius);
+				}
+			
 			/* also reload font if font_factor changed */
-			if(strlen(font_dir) != 0)
+			if( (po -> font_dir) && (po -> font_name) &&\
+			(po -> font_size > 0) && (po -> font_iso_extension > 0) &&\
+			(po -> font_outline_thickness > 0.0) && (po -> font_blur_radius > 0.0) )
 				{
 				/*
 				IMPORTANT! this sets data in frame_list (pb)!!!!! NOT<<
@@ -354,19 +401,25 @@ if(pa -> data[0] == '*')
 				Else the data would be erased when the object was no
            	    longer displayed.
 				*/
+
 				/* read in font (also needed for frame counter) */
-				sprintf(temp, "%s/font.desc", font_dir);
-				pfd = read_font_desc(temp, po -> font_factor, 0);
+
+				pfd = add_font(\
+					po -> font_name, po -> font_size, po -> font_iso_extension,\
+					po -> font_outline_thickness, po -> font_blur_radius);
 				if(! pfd)
 					{
-					printf(\
-					"subtitler(): Could not load font %s, aborting\n",\
-					font_dir);
+					fprintf(stderr,\
+					"subtitler(): parser.c: could not load font:\n\
+					font_dir=%s font_name=%s size=%d iso extension=%d\n\
+					outline_thickness=%.2f  blur_radius=%.2f, aborting\n",\
+					po -> font_dir, po -> font_name, po -> font_size, po -> font_iso_extension,\
+					po -> font_outline_thickness, po -> font_blur_radius );
 
 					/* return error */
 					exit(1);
 					}
-					
+
 				/* to frame list */
 				pb -> pfd = pfd;
 

@@ -1,3 +1,27 @@
+extern font_desc_t *add_font(\
+    char *name, int size, int iso_extension, double outline_thickness, double blur_radius);
+//extern void paste_bitmap(FT_Bitmap *bitmap, int x, int y);
+extern void write_header(FILE *f);
+extern int write_bitmap(void *buffer, char type);
+extern int render();
+//extern FT_ULong decode_char(char c);
+extern int prepare_charset();
+extern void outline(unsigned char *s, unsigned char *t, int width, int height, int *m, int r, int mwidth);
+extern void outline1(unsigned char *s, unsigned char *t, int width, int height);
+extern void blur(
+unsigned char *buffer,\
+unsigned char *tmp,\
+int width,\
+int height,\
+int *m,\
+int r,\
+int mwidth,\
+unsigned volume\
+);
+extern unsigned gmatrix(unsigned *m, int r, int w, double const A); 
+extern int alpha(double outline_thickness, double blur_radius); 
+extern font_desc_t *make_font(\
+	char *font_name, int font_size, int iso_extention, double outline_thickness, double blur_radius);
 extern int chroma_key(int u, int v, double color,\
 	double color_window, double saturation);
 extern int set_main_movie_properties(struct object *pa);

@@ -43,6 +43,11 @@ transcode-0.6.11
   Upgraded included libavcodec to 0.4.8 (4683)
   Upgraded -y xvid4 to the latest API
 
+2003-10-20 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/subtitler/*:
+  Upgrade to external version 0.7 from 
+  http://www.home.zonnet.nl/panteltje/subtitles/
 
 2003-10-17 Edouard Gomez <ed.gomez at free.fr>
 

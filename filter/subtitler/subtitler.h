@@ -130,6 +130,16 @@ int frame_offset;
 double dmax_vector;
 int use_pre_processing_flag;
 
+char *subtitle_font_path;
+char *default_subtitle_font_name;
+int default_subtitle_font_size;
+int default_subtitle_iso_extention;
+double default_subtitle_radius;
+double default_subtitle_thickness;
+
+char *subtitle_font_name;
+
+
 /* for x11 stuff */
 int show_output_flag;
 int window_open_flag;
@@ -159,6 +169,6 @@ double extra_character_space;
 /* this last, so proto knows about structure definitions etc. */
 #include "subtitler_proto.h"
 
-#define SUBTITLER_VERSION "-0.6.4.3"
+#define SUBTITLER_VERSION "-0.7"
 
 #endif /* _SUBTITLER_H_ */

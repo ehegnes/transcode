@@ -320,7 +320,7 @@ x_libraries = @x_libraries@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-INCLUDES = -I./ -I../../src -I../ -I../../ -I$(srcdir)/../../src -I$(srcdir)/../.. -I$(srcdir)/.. $(X_CFLAGS)
+INCLUDES = -I./ -I../../src -I../ -I../../ -I$(srcdir)/../../src -I$(srcdir)/../.. -I$(srcdir)/.. $(X_CFLAGS) @FT2_CFLAGS@
 
 pkgdir = @MOD_PATH@
 
@@ -337,11 +337,13 @@ text_processing.c \
 load_pictures.c \
 parser.c \
 external_programs.c \
-color_processor.c
+color_processor.c \
+subtitle_fontname_list.c \
+subfont.c
 
 
 filter_subtitler_la_LDFLAGS = -module -avoid-version 
-filter_subtitler_la_LIBADD = $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(X_EXTRA_LIBS) -lXpm -lXt -lXaw -lm 
+filter_subtitler_la_LIBADD = $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(X_EXTRA_LIBS) -lXpm -lXt -lXaw -lm @FT2_LIBS@
 
 EXTRA_DIST = \
    HOWTO_USE_THIS \
@@ -351,12 +353,12 @@ EXTRA_DIST = \
    demo.ppml \
    frame_list.h \
    load_font.h \
-   new-timed.txt \
    object_list.h \
    rose.ppm \
    subtitler.h \
    subtitler_proto.h \
    sun.ppm \
+   LICENSE \
    x11.h
 
 subdir = filter/subtitler
@@ -370,7 +372,8 @@ filter_subtitler_la_DEPENDENCIES =
 am_filter_subtitler_la_OBJECTS = filter_subtitler.lo load_ppml_file.lo \
 	load_font.lo frame_list.lo object_list.lo x11.lo \
 	text_processing.lo load_pictures.lo parser.lo \
-	external_programs.lo color_processor.lo
+	external_programs.lo color_processor.lo \
+	subtitle_fontname_list.lo subfont.lo
 filter_subtitler_la_OBJECTS = $(am_filter_subtitler_la_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
@@ -382,6 +385,8 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/load_pictures.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/load_ppml_file.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/object_list.Plo ./$(DEPDIR)/parser.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/subfont.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/subtitle_fontname_list.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/text_processing.Plo ./$(DEPDIR)/x11.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -449,6 +454,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/load_ppml_file.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/object_list.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parser.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/subfont.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/subtitle_fontname_list.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/text_processing.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/x11.Plo@am__quote@
 

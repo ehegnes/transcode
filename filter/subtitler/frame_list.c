@@ -225,3 +225,206 @@ for(pa = frametab[hash(temp)]; pa != 0; pa = pa -> nxtentr)
 return 0;
 } /* end function set_end_frame */
 
+
+struct subtitle_fontname *lookup_subtitle_fontname(char *name)
+{
+struct subtitle_fontname *pa;
+
+for(pa = subtitle_fontnametab[0]; pa != 0; pa = pa -> nxtentr)
+	{
+	if(strcmp(pa -> name, name) == 0) return(pa);
+	}
+
+return 0; /* not found */
+}/* end function lookup_subtitle_fontname */
+
+
+struct subtitle_fontname *install_subtitle_fontname_at_end_of_list(char *name)
+{
+struct subtitle_fontname *plast, *pnew;
+
+if(debug_flag)
+	{
+	fprintf(stdout,\
+	"install_subtitle_fontname_at_end_off_list(): arg name=%s\n", name);
+	}
+
+pnew = lookup_subtitle_fontname(name);
+if(pnew) return(pnew);/* already there */
+
+/* create new structure */
+pnew = (struct subtitle_fontname *) calloc(1, sizeof(*pnew) );
+if(! pnew) return 0;
+pnew -> name = strsave(name);
+if(! pnew -> name) return 0;
+
+/* get previous structure */
+plast = subtitle_fontnametab[1]; /* end list */
+
+/* set new structure pointers */
+pnew -> nxtentr = 0; /* new points top zero (is end) */
+pnew -> prventr = plast; /* point to previous entry, or 0 if first entry */
+
+/* set previous structure pointers */
+if( !subtitle_fontnametab[0] ) subtitle_fontnametab[0] = pnew; /* first element in list */
+else plast -> nxtentr = pnew;
+
+/* set array end pointer */
+subtitle_fontnametab[1] = pnew;
+
+return(pnew);/* pointer to new structure */
+}/* end function install_subtitle_fontname */
+
+
+int delete_subtitle_fontname(int subtitle_fontnamenr)/* delete entry from double linked list */
+{
+struct subtitle_fontname *pa, *pprev, *pdel, *pnext;
+char name[80];
+
+if(debug_flag)
+	{
+	fprintf(stdout, "delete_subtitle_fontname(): arg subtitle_fontnamenr=%d\n", subtitle_fontnamenr);
+	}
+
+sprintf(name, "%d", subtitle_fontnamenr);
+pa = subtitle_fontnametab[0];
+while(1)
+	{
+	/* if end list, return not found */
+	if(! pa) return 0;
+
+	/* test for match in name */
+	if(strcmp(name, pa -> name) != 0) /* no match */
+		{
+		/* point to next element in list */
+		pa = pa -> nxtentr;
+
+		/* loop for next element in list */
+		continue;
+		}
+
+	/* we now know which struture to delete */
+	pdel = pa;
+
+	/* get previous and next structure */
+	pnext = pa -> nxtentr;
+	pprev = pa -> prventr;
+
+	/* set pointers for previous structure */
+	/* if first one, modify subtitle_fontnametab[0] */
+	if(pprev == 0) subtitle_fontnametab[0] = pnext;
+	else pprev -> nxtentr = pnext;
+
+	/* set pointers for next structure */
+	/* if last one, modify subtitle_fontnametab[1] */
+	if(pnext == 0) subtitle_fontnametab[1] = pprev;
+	else pnext -> prventr = pprev;
+	
+	/* delete structure */	
+	free(pdel -> name);
+	free(pdel); /* free structure */
+
+	/* return OK deleted */
+	return 1;
+	}/* end for all structures */
+}/* end function delete_subtitle_fontname */
+
+
+int delete_all_subtitle_fontnames()/* delete all entries from table */
+{
+struct subtitle_fontname *pa;
+
+if(debug_flag)
+	{
+	fprintf(stdout, "delete_all_subtitle_fontnames() arg none\n");
+	}
+
+while(1)
+	{	
+	pa = subtitle_fontnametab[0];
+	if(! pa) break;
+	subtitle_fontnametab[0] = pa -> nxtentr;
+
+	free(pa -> name);
+	free(pa);/* free structure */
+	}/* end while all structures */
+
+subtitle_fontnametab[1] = 0;
+return 1;
+}/* end function delete_all_subtitle_fontnames */
+
+
+font_desc_t *add_font(\
+	char *name, int size, int iso_extension, double outline_thickness, double blur_radius)
+{
+struct subtitle_fontname *ps;
+font_desc_t *pfd;
+char temp[4096];
+
+//if(debug_flag)
+	{
+	fprintf(stdout,\
+	"add_font(): arg name=%s size=%d iso_extension=%d outline_thickness=%.2f blur_radius=%.2f\n",\
+	name, size, iso_extension, outline_thickness, blur_radius);
+	}
+
+sprintf(temp, "%s_%d_%d_%.2f_%.2f", name, size, iso_extension, outline_thickness, blur_radius);
+ps = lookup_subtitle_fontname(temp);
+if(ps) /* found in list */
+	{
+	/* get pointer from list */
+
+	pfd = ps -> pfd;
+	
+	return pfd;
+	} /* end if found in list */
+else /* not in fontname_list */
+	{
+	/* if not there yet, create this font and add to list */
+
+	pfd = make_font(\
+		name, size, iso_extension, outline_thickness, blur_radius);
+	if(! pfd)
+		{
+		/* try the default font settings */
+		fprintf(stderr,\
+		"subtitler(): add_font(): could not create requested font %s, trying default font\n", temp); 
+
+		pfd = make_font(\
+			default_subtitle_font_name, default_subtitle_font_size, default_subtitle_iso_extention,\
+			default_subtitle_radius, default_subtitle_thickness);
+		if(! pfd)
+			{
+			fprintf(stderr, "subtitler(): add_font(): could not create any font for %s\n", temp);
+
+			return 0;
+			}
+
+		sprintf(temp, "%s_%d_%d_%.2f_%.2f",\
+			default_subtitle_font_name, default_subtitle_font_size,\
+			default_subtitle_iso_extention,\
+			default_subtitle_radius,\
+			default_subtitle_thickness);
+
+		} /* end if default font failed */
+	} /* end if not in fontname_list */
+
+/* font created OK */
+
+/* add to list */
+ps = install_subtitle_fontname_at_end_of_list(temp);
+if(! ps)
+	{
+	fprintf(stderr,\
+	"subtitler(): add_font(): could not add subtitle font %s to subtitle_fontname_list\n", temp);
+			
+	return 0;
+	}
+
+/* set pointer to font in fontname_list */
+ps -> pfd = pfd;
+
+return pfd;
+} /* end function add_font */
+
+

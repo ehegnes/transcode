@@ -31,6 +31,9 @@
 
 ;this is comment 3
 
+; set the font path to the true type fonts, (where for exmaple arial.ttf is).
+1 *subtitle font_dir=/root/.xste/fonts/
+
 1 *main show_output=1
 1 *subtitle center=0
 
@@ -47,12 +50,11 @@
 ; fade in subtitle :-)
 1 *subtitle color=0 sat=100 dcolor=0 contr=1 dcontr=0 transp=1 dtransp=0
 
-; NOTE SET FOR YOUR FONT PATH!
-;1 *subtitle outline=1.75 font_dir=/root/.subtitles/font/iso-8859-1/arial-28
-1 *subtitle font_dir=/root/.subtitles/font/iso-8859-1/arial-28
+; select some subtitle font specifics
+1 *subtitle font_name=arial.ttf font_size=28 font_iso_extension=15 font_outline_thickness=1.51 font_blur_radius=0.11
 
-;1 *counter outline=0.75 font_dir=/root/.subtitles/font/iso-8859-1/arial-18
-1 *counter font_dir=/root/.subtitles/font/iso-8859-1/arial-18
+; select some counter font specifics
+1 *counter font_dir=/root/.xste/fonts/ font_name=arial.ttf font_size=15 font_iso_extension=15 font_outline_thickness=1.51 font_blur_radius=0.2
 
 ;fade in main movie
 1 *main contr=0.0 dcontr=1 sat=0 dsat=1
@@ -73,6 +75,8 @@
 2 *subtitle color=0 sat=30 contr=70 dcolor=11 dtransp=4
 
 ;2 *sun heading=0 slice=128 dxpos=-1
+
+2 *intro font_dir=/root/.xste/fonts/ font_name=arial.ttf font_size=52 font_iso_extension=15 font_outline_thickness=1.51 font_blur_radius=10.0
 
 3 The Panteltje Picture Manipulation Language
 
@@ -155,7 +159,7 @@
 
 32 *counter despace=0 espace=1
 
-40 *counter ydest=500 xdest=600 speed=10
+40 *counter ydest=500 xdest=570 speed=10
 
 50 *subtitle dtransp=4
 

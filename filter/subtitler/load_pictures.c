@@ -68,7 +68,7 @@ cjpeg writes like this:
 /*
 display writes like this:
 P6
-# CREATOR: XV Version 3.10a  Rev: 1994-12-29
+# CREATOR: XV Version 3.10a  Rev: 12/29/94
 
 125 107
 255
