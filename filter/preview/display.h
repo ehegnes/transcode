@@ -27,8 +27,9 @@
 #ifndef DV_DISPLAY_H
 #define DV_DISPLAY_H
 
-#include <libdv/dv_types.h>
-
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #if HAVE_LIBXV
 #include <X11/Xlib.h>
