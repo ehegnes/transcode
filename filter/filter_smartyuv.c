@@ -136,6 +136,25 @@ static void help_optstr(void)
 
 }
 
+static void inline Blendline_c (uint8_t *dst, uint8_t *src, uint8_t *srcminus, uint8_t *srcplus, 
+	                 uint8_t *moving, uint8_t *movingminus, uint8_t *movingplus, const int w, const int scenechange)
+{
+    int	x=0;
+
+    x = 0;
+    do {
+	if (!(movingminus[x] | moving[x] | movingplus[x]) && !scenechange)
+	    dst[x] = src[x];
+	else
+	{
+	    /* Blend fields. */
+	    dst[x] = ((src[x]>>1) + (srcminus[x]>>2) + (srcplus[x]>>2)) & 0xff;
+	}
+    } while(++x < w);
+}
+
+#define ABS_u8(a) (((a)^((a)>>7))-((a)>>7))
+
 static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int _height, 
 		int _srcpitch, int _dstpitch, 
 		unsigned char *_moving, unsigned char *_fmoving, 
@@ -153,7 +172,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 
 	char			*src, *dst, *srcminus=NULL, *srcplus, *srcminusminus=NULL, *srcplusplus=NULL;
 	unsigned char		*moving, *movingminus, *movingplus;
-	unsigned char		*fmoving;
+	unsigned char		*fmoving, *mm, *fm;
 	char    		*prev;
 	int			scenechange=0;
 	long			count;
@@ -163,7 +182,8 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	int 			rp, rn, rpp, rnn, R;
 	unsigned char		frMotion, fiMotion;
 	int			cubic = mfd->cubic;
-	static int counter=0;
+	static int 		counter=0;
+	int                     msize;
 
 
 	char * dst_buf;
@@ -183,46 +203,71 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		src = src_buf + srcpitch;
 		srcminus = src - srcpitch;
 		prev = _prev + w;
-		moving = _moving + w;
-		for (y = 1; y < hminus1; y++)
-		{
+		moving = _moving + w+4;
+		if (mfd->diffmode == FRAME_ONLY) {
+		    for (y = 1; y < hminus1; y++)
+		    {
 			x = 0;
 			do
 			{
 				// First check frame motion.
 				// Set the moving flag if the diff exceeds the configured
 				// threshold.
-				moving[x] = 0;
-				frMotion = 0;
-				prevValue = *prev&0xff;
+				int luma = *src++&0xff;
+				int p0 = luma - (*(prev)&0xff);
 
-				luma = src[x] & 0xff;
-				if (abs(luma - prevValue) > _threshold) frMotion = 1;
+				*moving = ((ABS_u8(p0) > _threshold));
 
-				// Now check field motion if applicable.
-				if (mfd->diffmode == FRAME_ONLY) moving[x] = frMotion;
-				else
-				{
-					fiMotion = 0;
-					if (y & 1)
-						prevValue = srcminus[x]&0xff;
-					else
-						prevValue = *(prev + w)&0xff;
-
-					luma = src[x] & 0xff;
-					if (abs(luma - prevValue) > _threshold) fiMotion = 1;
-
-					moving[x] = (fiMotion && frMotion);
-				}
-				*prev++ = src[x];
+				*prev++ = luma;
 				/* Keep a count of the number of moving pixels for the
 				   scene change detection. */
-				if (moving[x]) count++;
+				count += *moving++;
 			} while(++x < w);
 
-			src = src + srcpitch;
-			srcminus = srcminus + srcpitch;
-			moving += w;
+			srcminus += srcpitch;
+			moving += 4;
+		    }
+		} else if (mfd->diffmode == FRAME_AND_FIELD) {
+
+		    count = 0;
+		    for (y = 1; y < hminus1; y++)
+		    {
+			x = 0;
+			if (y & 1) { 
+
+			    do {
+
+				int luma = *src++&0xff;
+				int p0 = luma - (*(srcminus+x)&0xff);
+				int p1 = luma - (*(prev)&0xff);
+				/* 15:11 < GomGom> abs can be replaced by i^(i>>31)-(i>>31) */
+
+				*moving = ((ABS_u8(p0) > _threshold) & (ABS_u8(p1) > _threshold));
+
+				*prev++ = luma;
+				count += *moving++;
+
+			    } while(++x < w);
+
+			} else {
+
+			    do {
+
+				int luma = *src++ & 0xff;
+				int p0 = luma - (*(prev+w)&0xff);
+				int p1 = luma - (*(prev)&0xff);
+
+				*moving = ((ABS_u8(p0) > _threshold) & (ABS_u8(p1) > _threshold));
+
+				*prev++ = luma;
+				count += *moving++;
+
+			    } while(++x < w);
+			}
+
+			moving += 4;
+			srcminus += srcpitch;
+		    }
 		}
 
 		/* Determine whether a scene change has occurred. */
@@ -236,9 +281,11 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 				counter, count, scenechange, (100 * count) / (h * w));
 				*/
 
+
 		/* Perform a denoising of the motion map if enabled. */
 		if (!scenechange && mfd->highq)
 		{
+#if 0
 			int xlo, xhi, ylo, yhi;
 			int u, v;
 			int N = DENOISE_DIAMETER;
@@ -307,6 +354,69 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 				}
 				moving += w;
 			}
+#else
+			int sum;
+			uint8_t  *m;
+			
+			// this isn't exacly the same output like the original
+			// but just because the original was buggy -- tibit
+
+
+			// Erode.
+			fmoving = _fmoving;
+			moving = _moving;
+			for (y = 0; y < h; y++)
+			{
+			    for (x = 0; x < w; x++)
+			    {
+
+				if (!(fmoving[x] = moving[x]) )
+				    continue;
+
+				m = _moving + (y-2)*(w+4) + (x-2);
+				sum = 0;
+
+				sum += m[0] + m[1] + m[2] + m[3] + m[4];
+				m += (w+4);
+				sum += m[0] + m[1] + m[2] + m[3] + m[4];
+				m += (w+4);
+				sum += m[0] + m[1] + m[2] + m[3] + m[4];
+				m += (w+4);
+				sum += m[0] + m[1] + m[2] + m[3] + m[4];
+				m += (w+4);
+				sum += m[0] + m[1] + m[2] + m[3] + m[4];
+
+				fmoving[x] = (sum > 7);
+			    }
+			    fmoving += (w+4);
+			    moving += (w+4);
+			}
+			// Dilate.
+			fmoving = _fmoving;
+			moving = _moving;
+			for (y = 0; y < h; y++)
+			{
+			    for (x = 0; x < w; x++)
+			    {
+				if (!(moving[x] = fmoving[x]) )
+				    continue;
+
+				m = _moving + (y-2)*(w+4) + (x-2);
+
+				memset(m, 1, 5);
+				m += (w+4);
+				memset(m, 1, 5);
+				m += (w+4);
+				memset(m, 1, 5);
+				m += (w+4);
+				memset(m, 1, 5);
+				m += (w+4);
+				memset(m, 1, 5);
+			    }
+			    moving += (w+4);
+			    fmoving += (w+4);
+			}
+#endif
 		}
 	}
 	else
@@ -316,7 +426,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		src = src_buf + srcpitch;
 		srcminus = src - srcpitch;
 		srcplus = src + srcpitch;
-		moving = _moving + w;
+		moving = _moving + w+4;
 		for (y = 1; y < hminus1; y++)
 		{
 			x = 0;
@@ -342,7 +452,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 			src = src + srcpitch;
 			srcminus = srcminus + srcpitch;
 			srcplus = srcplus + srcpitch;
-			moving += w;
+			moving += (w+4);
 		}
 
 		/* Determine whether a scene change has occurred. */
@@ -365,7 +475,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 			{
 				for (x = 0; x < w; x++)
 				{
-					if (!((_moving + y * w)[x]))
+					if (!((_moving + y * (w+4))[x]))
 					{
 						fmoving[x] = 0;	
 						continue;
@@ -374,7 +484,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 					xhi = x + Nover2; if (xhi >= w) xhi = wminus1;
 					ylo = y - Nover2; if (ylo < 0) ylo = 0;
 					yhi = y + Nover2; if (yhi >= h) yhi = hminus1;
-					m = _moving + ylo * w;
+					m = _moving + ylo * (w+4);
 					sum = 0;
 					for (u = ylo; u <= yhi; u++)
 					{
@@ -389,7 +499,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 					else
 						fmoving[x] = 0;
 				}
-				fmoving += w;
+				fmoving += (w+4);
 			}
 
 			// Dilate.
@@ -400,7 +510,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 			{
 				for (x = 0; x < w; x++)
 				{
-					if (!((_fmoving + y * w)[x]))
+					if (!((_fmoving + y * (w+4))[x]))
 					{
 						moving[x] = 0;	
 						continue;
@@ -409,17 +519,17 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 					xhi = x + Nover2; if (xhi >= w) xhi = wminus1;
 					ylo = y - Nover2; if (ylo < 0) ylo = 0;
 					yhi = y + Nover2; if (yhi >= h) yhi = hminus1;
-					m = _moving + ylo * w;
+					m = _moving + ylo * (w+4);
 					for (u = ylo; u <= yhi; u++)
 					{
 						for (v = xlo; v <= xhi; v++)
 						{
 							m[v] = 1;
 						}
-						m += w;
+						m += (w+4);
 					}
 				}
-				moving += w;
+				moving += (w+4);
 			}		
 		}
 	}
@@ -428,19 +538,26 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	// The first line gets a free ride.
 	src = src_buf;
 	dst = dst_buf;
+
 	memcpy(dst, src, w);
 	src = src_buf + srcpitch;
 	srcminus = src - srcpitch;
 	srcplus = src + srcpitch;
+
 	if (cubic)
 	{
 		srcminusminus = src - 3 * srcpitch;
 		srcplusplus = src + 3 * srcpitch;
 	}
+
 	dst = dst_buf + dstpitch;
-	moving = _moving + w;
-	movingminus = moving - w;
-	movingplus = moving + w;
+	moving = _moving + w+4;
+	movingminus = _moving;
+	movingplus = moving + w+4;
+
+	/*
+	*/
+
 	for (y = 1; y < hminus1; y++)
 	{
 		if (mfd->motionOnly)
@@ -454,16 +571,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 					else
 					{	
 						/* Blend fields. */
-						p0 = src[x]&0xff;
-						p0 &= 0xfe;
-
-						p1 = srcminus[x]&0xff;
-						p1 &= 0xfc;
-
-						p2 = srcplus[x]&0xff;
-						p2 &= 0xfc;
-
-						dst[x] = ((p0>>1) + (p1>>2) + (p2>>2))&0xff;
+						dst[x] = (((src[x]&0xff)>>1) + ((srcminus[x]&0xff)>>2) + ((srcplus[x]&0xff)>>2))&0xff;
 					}
 				} while(++x < w);
 			}
@@ -507,25 +615,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		{
 			if (mfd->Blend)
 			{
-				x = 0;
-				do {
-					if (!(movingminus[x] | moving[x] | movingplus[x]) && !scenechange)
-						dst[x] = src[x];
-					else
-					{
-						/* Blend fields. */
-						p0 = src[x] & 0xff;
-						p0 &= 0xfe;
-
-						p1 = srcminus[x] & 0xff;
-						p1 &= 0xfc;
-
-						p2 = srcplus[x] & 0xff;
-						p2 &= 0xfc;
-
-						dst[x] = ((p0>>1) + (p1>>2) + (p2>>2)) & 0xff;
-					}
-				} while(++x < w);
+			    Blendline_c (dst, src, srcminus, srcplus, moving, movingminus, movingplus, w, scenechange);
 			}
 			else
 			{
@@ -542,22 +632,13 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 						{
 							if (cubic && (y > 2) && (y < hminus3))
 							{
-								rpp = (srcminusminus[x]) & 0xff;
-								rp =  (srcminus[x]) & 0xff;
-								rn =  (srcplus[x]) & 0xff;
-								rnn = (srcplusplus[x]) & 0xff;
-								R = (5 * (rp + rn) - (rpp + rnn)) >> 3;
+								R = (5 * ((srcminus[x]&0xff) + (srcplus[x]&0xff)) 
+									- ((srcminusminus[x]&0xff) + (srcplusplus[x]&0xff))) >> 3;
 								dst[x] = clamp_f(R & 0xff)&0xff;
 							}
 							else
 							{
-								p1 = srcminus[x] & 0xff;
-								p1 &= 0xfe;
-
-								p2 = srcplus[x] & 0xff;
-								p2 &= 0xfe;
-
-								dst[x] = ((p1>>1) + (p2>>1)) & 0xff;
+								dst[x] = (((srcminus[x]&0xff)>>1) + ((srcplus[x]&0xff)>>1)) & 0xff;
 							}
 						}
 					} while(++x < w);
@@ -572,17 +653,18 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		src = src + srcpitch;
 		srcminus = srcminus + srcpitch;
 		srcplus = srcplus + srcpitch;
+
 		if (cubic)
 		{
 			srcminusminus = srcminusminus + srcpitch;
 			srcplusplus = srcplusplus + srcpitch;
 		}
+
 		dst = dst + dstpitch;
-		moving += w;
-		movingminus += w;
-		movingplus += w;
+		moving += (w+4);
+		movingminus += (w+4);
+		movingplus += (w+4);
 	}
-	
 	// The last line gets a free ride.
 	memcpy(dst, src, w);
 	if (clamp_f == clamp_Y)
@@ -603,6 +685,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   if(ptr->tag & TC_FILTER_INIT) {
 
 	unsigned int width, height;
+	int msize;
     
 	if((vob = tc_get_vob())==NULL) return(-1);
     
@@ -673,28 +756,71 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 	/* fetch memory */
 
+
+
+	mfd->buf =  malloc (width*height*3);
 	mfd->prevFrame =  malloc (width*height*3);
+
+	msize = width*height + 4*(width+4) + 4*height;
+	mfd->movingY = (unsigned char *) malloc(sizeof(unsigned char)*msize);
+	mfd->fmovingY = (unsigned char *) malloc(sizeof(unsigned char)*msize);
+
+	msize = width*height/4 + 4*(width+4) + 4*height;
+	mfd->movingU  = (unsigned char *) malloc(sizeof(unsigned char)*msize);
+	mfd->movingV  = (unsigned char *) malloc(sizeof(unsigned char)*msize);
+	mfd->fmovingU = (unsigned char *) malloc(sizeof(unsigned char)*msize);
+	mfd->fmovingV = (unsigned char *) malloc(sizeof(unsigned char)*msize);
+
+	if ( !mfd->movingY || !mfd->movingU || !mfd->movingV || !mfd->fmovingY || 
+	      !mfd->fmovingU || !mfd->fmovingV || !mfd->buf || !mfd->prevFrame) {
+	    fprintf (stderr, "[%s] Memory allocation error\n", MOD_NAME);
+	    return -1;
+	}
+
 	memset(mfd->prevFrame, BLACK_BYTE_Y, width*height);
 	memset(mfd->prevFrame+width*height, BLACK_BYTE_UV, width*height/2);
 
-	mfd->buf =  malloc (width*height*3);
 	memset(mfd->buf, BLACK_BYTE_Y, width*height);
 	memset(mfd->buf+width*height, BLACK_BYTE_UV, width*height/2);
 
-	mfd->movingY = (unsigned char *) malloc(sizeof(unsigned char)*width*height);
-	memset(mfd->movingY, 0, width*height*sizeof(unsigned char));
-	mfd->movingU = (unsigned char *) malloc(sizeof(unsigned char)*width*height/4);
-	memset(mfd->movingU, 0, width*height*sizeof(unsigned char)/4);
-	mfd->movingV = (unsigned char *) malloc(sizeof(unsigned char)*width*height/4);
-	memset(mfd->movingV, 0, width*height*sizeof(unsigned char)/4);
+	msize = width*height + 4*(width+4) + 4*height;
+	memset(mfd->movingY,  0, msize);
+	memset(mfd->fmovingY, 0, msize);
 
-	mfd->fmovingY = (unsigned char *) malloc(sizeof(unsigned char)*width*height);
-	memset(mfd->fmovingY, 0, width*height*sizeof(unsigned char));
-	mfd->fmovingU = (unsigned char *) malloc(sizeof(unsigned char)*width*height/4);
-	memset(mfd->fmovingU, 0, width*height*sizeof(unsigned char)/4);
-	mfd->fmovingV = (unsigned char *) malloc(sizeof(unsigned char)*width*height/4);
-	memset(mfd->fmovingV, 0, width*height*sizeof(unsigned char)/4);
+	msize = width*height/4 + 4*(width+4) + 4*height;
+	memset(mfd->movingU,  0, msize);
+	memset(mfd->movingV,  0, msize);
+	memset(mfd->fmovingU, 0, msize);
+	memset(mfd->fmovingV, 0, msize);
 
+	// Optimisation
+	// For the motion maps a little bit more than the needed memory is
+	// allocated. This is done, because than we don't have to use
+	// conditional borders int the erode and dilate routines. 2 extra lines
+	// on top and bottom and 2 pixels left and right for each line.
+	// This is also the reason for the w+4's all over the place.
+	//
+	// This gives an speedup factor in erode+denoise of about 3.
+	// 
+	// A lot of brain went into the optimisations, here are some numbers of
+	// the separate steps. Note, to get these numbers I used the rdtsc
+	// instruction to read the CPU cycle counter in seperate programms:
+	// o  Motion map creation
+	//      orig: 26.283.387 Cycles
+	//       now:  8.991.686 Cycles
+	// o  Erode+dilate
+	//      orig: 55.847.077
+	//       now: 21.764.997
+	// o  Blending
+	//      orig: 8.162.287
+	//       now: 5.384.433
+	// o  Cubic interpolation
+	//      orig: 7.487.338
+	//       now: 6.684.908
+	//
+	// Overall improvement in transcode:
+	// 16.88 -> 24.72 frames per second for the test clip.
+	//
 
 	// filter init ok.
 	if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
@@ -768,24 +894,38 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	  int V  = ptr->v_width*ptr->v_height*5/4;
 	  int w2 = ptr->v_width/2;
 	  int h2 = ptr->v_height/2;
+	  int msize = ptr->v_width*ptr->v_height + 4*(ptr->v_width+4) + 4*ptr->v_height;
+	  int off = 2*(ptr->v_width+4)+2;
+
+	  memset(mfd->movingY,  0, msize);
+	  memset(mfd->fmovingY, 0, msize);
 
 
 	  smartyuv_core(ptr->video_buf, mfd->buf, mfd->prevFrame, 
 		        ptr->v_width, ptr->v_height, ptr->v_width, ptr->v_width,
-		        mfd->movingY, mfd->fmovingY, clamp_Y, mfd->threshold);
+		        mfd->movingY+off, mfd->fmovingY+off, clamp_Y, mfd->threshold);
+
 
 	  if (mfd->doChroma) {
+	      msize = ptr->v_width*ptr->v_height/4 + 4*(ptr->v_width+4) + 4*ptr->v_height;
+	      off = 2*(ptr->v_width/2+4)+2;
+
+	      memset(mfd->movingU,  0, msize);
+	      memset(mfd->fmovingU, 0, msize);
+	      memset(mfd->movingV,  0, msize);
+	      memset(mfd->fmovingV, 0, msize);
+
 	      smartyuv_core(ptr->video_buf+U, mfd->buf+U, mfd->prevFrame+U, 
 			  w2, h2, w2, w2,
-			  mfd->movingU, mfd->fmovingU, clamp_UV, mfd->chromathres);
+			  mfd->movingU+off, mfd->fmovingU+off, clamp_UV, mfd->chromathres);
 
 	      smartyuv_core(ptr->video_buf+V, mfd->buf+V, mfd->prevFrame+V, 
 			  w2, h2, w2, w2,
-			  mfd->movingV, mfd->fmovingV, clamp_UV, mfd->chromathres);
+			  mfd->movingV+off, mfd->fmovingV+off, clamp_UV, mfd->chromathres);
 	  } else {
 	      //pass through
-	      //memcpy(mfd->buf+U, ptr->video_buf+U, ptr->v_width*ptr->v_height/2);
-	      memset(mfd->buf+U, BLACK_BYTE_UV, ptr->v_width*ptr->v_height/2);
+	      memcpy(mfd->buf+U, ptr->video_buf+U, ptr->v_width*ptr->v_height/2);
+	      //memset(mfd->buf+U, BLACK_BYTE_UV, ptr->v_width*ptr->v_height/2);
 	  }
 
 	  /*

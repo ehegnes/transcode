@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-08-03 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/filter_smartyuv.c:
+  Significant speed increase by doing careful plain C optimizations.
+  On my system, the filter now runs at 24.5 fps instead of 16.8 fps.
+
 2003-08-02 Tilmann Bitterberg <transcode at tibit.org>
 
   * filter/{filter_32detect.c filter_aclip.c filter_astat.c
@@ -13,7 +19,7 @@ transcode-0.6.9
   filter_xsharpen.c filter_yuy2toyv12.c ivtc/filter_decimate.c
   ivtc/filter_ivtc.c yuvdenoise/filter_yuvdenoise.c
   yuvdenoise/filter_yuvmedian.c}:
-  Fix a typo; (!ptr->attributes & FLAG) != !(ptr->attributes & FLAG)
+  Fix a typo.
 
 2003-07-31 marrq <marrq at ugcs.caltech.edu>
   
