@@ -37,6 +37,9 @@
 
 extern void import_exit(int ret);
 
+#define DV_PAL_FRAME_SIZE  144000
+#define DV_NTSC_FRAME_SIZE 122000
+
 
 /* ------------------------------------------------------------ 
  *
@@ -113,20 +116,62 @@ void extract_dv(info_t *ipipe)
 	 *
 	 * RAW
 	 *
-	 * ------------------------------------------------------------*/
+         * RAW frame skipping code lifted from VLC, which lifted
+         * (some of it) from libdv. 
+         * 
+         * ------------------------------------------------------------*/
 	
 	    
     case TC_MAGIC_RAW:
     
     default:
-
-	if(ipipe->magic == TC_MAGIC_UNKNOWN)
+    {
+        if(ipipe->magic == TC_MAGIC_UNKNOWN)
 	    fprintf(stderr, "(%s) no file type specified, assuming %s\n", 
 		    __FILE__, filetype(TC_MAGIC_RAW));
-	
-	error=p_readwrite(ipipe->fd_in, ipipe->fd_out);
-	
-	break;
+
+        unsigned char frame[DV_PAL_FRAME_SIZE];
+        ssize_t size;
+
+        /* Skip to the first desired frame. */
+        for(n=0; n<ipipe->frame_limit[0]; ++n) {
+            /* The first 32 bits contain the flag for PAL or NTSC frame. */
+            if(p_read(ipipe->fd_in, frame, 4) != 4) {
+                error = 1;
+                return;
+            }
+
+            /* Read the rest of the frame. */
+            size = frame[3] & 128 ? DV_PAL_FRAME_SIZE : DV_NTSC_FRAME_SIZE;
+            if (p_read(ipipe->fd_in, frame, size-4) != size-4) {
+                error = 1;
+                return;
+            }
+        }
+
+        /* Read the right number of frames. */
+        for(n=ipipe->frame_limit[0]; n<=ipipe->frame_limit[1]; ++n) {
+            /* The first 32 bits contain the flag for PAL or NTSC frame. */
+            if(p_read(ipipe->fd_in, frame, 4)!=4) {
+                error = 1;
+                return;
+            }
+
+            /* Read the rest of the frame. */
+            size = frame[3] & 128 ? DV_PAL_FRAME_SIZE : DV_NTSC_FRAME_SIZE;
+            if(p_read(ipipe->fd_in, &frame[4], size-4)!=size-4) {
+                error = 1;
+                return;
+            }
+
+            /* Write it out. */
+            if(p_write(ipipe->fd_out, frame, size)!=size) {
+                error = 1;
+                return;
+            }
+        }
+        break;
+    }
     }
 }		
 
