@@ -24,11 +24,13 @@
 #define MOD_NAME    "filter_32detect.so"
 #define MOD_VERSION "v0.2.4 (2003-07-22)"
 #define MOD_CAP     "3:2 pulldown / interlace detection plugin"
+#define MOD_AUTHOR  "Thomas Oestreich"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 /* -------------------------------------------------
  *
@@ -36,16 +38,8 @@
  *
  *-------------------------------------------------*/
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <unistd.h>
-#include <inttypes.h>
-
 #include "transcode.h"
 #include "framebuffer.h"
-
 #include "filter.h"
 #include "optstr.h"
 

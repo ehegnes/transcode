@@ -24,6 +24,7 @@
 #define MOD_NAME    "filter_aclip.so"
 #define MOD_VERSION "v0.1.1 (2003-09-04)"
 #define MOD_CAP     "generate audio clips from source"
+#define MOD_AUTHOR  "Thomas Oestreich"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,13 +38,8 @@
  *
  *-------------------------------------------------*/
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "transcode.h"
 #include "framebuffer.h"
-
 #include "optstr.h"
 
 static uint64_t total=0;

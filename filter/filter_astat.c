@@ -24,6 +24,7 @@
 #define MOD_NAME    "filter_astat.so"
 #define MOD_VERSION "v0.1.3 (2003-09-04)"
 #define MOD_CAP     "audio statistics filter plugin"
+#define MOD_AUTHOR  "Thomas Oestreich"
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -43,10 +44,6 @@
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "transcode.h"
 #include "framebuffer.h"

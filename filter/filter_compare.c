@@ -33,6 +33,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <math.h>
+#include <inttypes.h>
 
 // FIXME: Try to implement the YUV colorspace
 
@@ -41,13 +42,6 @@
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <inttypes.h>
-
 
 #include "transcode.h"
 #include "framebuffer.h"

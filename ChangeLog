@@ -1,3 +1,20 @@
+2005-02-15 Jacob Meuser <jakemsr at jakemsr dot com>
+  * filter/filter_29to23.c filter/filter_32detect.c filter/filter_aclip.c
+    filter/filter_ascii.c filter/filter_astat.c filter/filter_clone.c
+    filter/filter_compare.c filter/filter_control.c filter/filter_cpaudio.c
+    filter/filter_denoise3d.c filter/filter_detectclipping.c
+    filter/filter_detectsilence.c filter/filter_doublefps.c
+    filter/filter_facemask.c filter/filter_fieldanalysis.c
+    filter/filter_fields.c filter/filter_fps.c filter/filter_hqdn3d.c
+    filter/filter_invert.c filter/filter_levels.c filter/filter_logo.c
+    filter/filter_logoaway.c filter/filter_lowpass.c filter/filter_modfps.c
+    filter/filter_msharpen.c filter/filter_nored.c filter/filter_normalize.c
+    filter/filter_slowmo.c filter/filter_smartbob.c filter/filter_smartyuv.c
+    filter/filter_smooth.c filter/filter_tc_audio.c filter/filter_tc_video.c
+    filter/filter_text.c filter/filter_unsharp.c filter/filter_videocore.c
+    filter/filter_yuy2toyv12.c
+  Header cleanup round 1.  Also make sure MOD_AUTHOR is set properly.
+
 2005-02-12 Jacob Meuser <jakemsr at jakemsr dot com>
   * configure.in
   Remove test for nasm.

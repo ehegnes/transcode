@@ -36,24 +36,20 @@
 #define MOD_NAME    "filter_normalize.so"
 #define MOD_VERSION "v0.1.1 (2002-06-18)"
 #define MOD_CAP     "Volume normalizer"
+#define MOD_AUTHOR  "pl, Tilmann Bitterberg"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 /* -------------------------------------------------
  *
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-#include <unistd.h>
-#include <inttypes.h>
 
 #include "transcode.h"
 #include "framebuffer.h"

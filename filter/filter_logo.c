@@ -32,27 +32,20 @@
 #define MOD_CAP     "render image in videostream"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <inttypes.h>
+
 /* -------------------------------------------------
  *
  * mandatory include files
  *
  *-------------------------------------------------*/
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "transcode.h"
 #include "optstr.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-
-
-#include <unistd.h>
-#include <inttypes.h>
-
 #include "framebuffer.h"
 #include "filter.h"
 #include "export/vid_aux.h"

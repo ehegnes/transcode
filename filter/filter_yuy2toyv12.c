@@ -24,23 +24,19 @@
 #define MOD_NAME    "filter_yuy2tov12.so"
 #define MOD_VERSION "v0.0.2 (2003-09-04)"
 #define MOD_CAP     "YUY2 to YV12 converter plugin"
+#define MOD_AUTHOR  "Thomas Oestreich"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 /* -------------------------------------------------
  *
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-#include <unistd.h>
-#include <inttypes.h>
 
 #include "transcode.h"
 #include "framebuffer.h"

@@ -1,5 +1,5 @@
 /*
- *  filter_clone.c
+ *  filter_slowmo.c
  *
  *  Copyright (C) Thomas Östreich - August 2002
  *
@@ -36,10 +36,6 @@
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "transcode.h"
 #include "framebuffer.h"

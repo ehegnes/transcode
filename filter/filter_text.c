@@ -30,17 +30,6 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
-/* -------------------------------------------------
- *
- * mandatory include files
- *
- *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-#include <unistd.h>
 #include <inttypes.h>
 
 // FreeType specific includes
@@ -48,6 +37,11 @@
 #ifdef FT_FREETYPE_H
 #include FT_FREETYPE_H
 
+/* -------------------------------------------------
+ *
+ * mandatory include files
+ *
+ *-------------------------------------------------*/
 
 #include "transcode.h"
 #include "framebuffer.h"

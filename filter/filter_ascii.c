@@ -25,6 +25,8 @@
 #define MOD_NAME    		"filter_ascii.so"
 #define MOD_VERSION 		"v0.5 (2004-12-08)"
 #define MOD_CAP     		"Colored ascii-art filter plugin; render a movie into ascii-art."
+#define MOD_AUTHOR		"Julien Tierny"
+
 #define MAX_LENGTH 			1024
 #define TMP_FILE			"raw"
 #define TMP_STRING_SIZE		7
@@ -40,16 +42,12 @@
  *
  *-------------------------------------------------*/
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "transcode.h"
 #include "tc_defaults.h"
 #include "framebuffer.h"
 #include "filter.h"
 /* RGB2YUV features */
-#include "../export/vid_aux.h"
+#include "export/vid_aux.h"
 #include "optstr.h"
 
 

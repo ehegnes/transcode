@@ -59,19 +59,13 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <inttypes.h>
+#include <math.h>
 
 /* -------------------------------------------------
  *
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-#include <unistd.h>
-#include <inttypes.h>
-#include <math.h>
 
 #include "transcode.h"
 #include "framebuffer.h"

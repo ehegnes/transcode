@@ -24,6 +24,7 @@
 #define MOD_NAME    "filter_clone.so"
 #define MOD_VERSION "v0.1 (2002-08-13)"
 #define MOD_CAP     "frame rate conversion filter"
+#define MOD_AUTHOR  "Thomas Oestreich"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,10 +36,6 @@
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "transcode.h"
 #include "framebuffer.h"

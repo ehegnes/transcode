@@ -33,6 +33,7 @@
 #define MOD_NAME    "filter_cpaudio.so"
 #define MOD_VERSION "v0.1 (2003-04-30)"
 #define MOD_CAP     "copy one audio channel to the other channel filter plugin"
+#define MOD_AUTHOR  "William H Wittig"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,10 +45,6 @@
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "transcode.h"
 #include "framebuffer.h"

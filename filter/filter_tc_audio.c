@@ -24,6 +24,7 @@
 #define MOD_NAME    "filter_tc_audio.so"
 #define MOD_VERSION "v0.1 (2002-08-13)"
 #define MOD_CAP     "audio 23.9 -> 29.9 telecide filter"
+#define MOD_AUTHOR  "Tilmann Bitterberg"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,10 +36,6 @@
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "transcode.h"
 #include "framebuffer.h"

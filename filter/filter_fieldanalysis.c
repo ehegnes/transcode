@@ -30,7 +30,7 @@
 #define MOD_NAME    "filter_fieldanalysis.so"
 #define MOD_VERSION "v1.0 pl1 (2004-08-13)"
 #define MOD_CAP     "Field analysis for detecting interlace and telecine"
-#define MOD_AUTHORS "Matthias Hopf"
+#define MOD_AUTHOR  "Matthias Hopf"
 
 
 #ifdef HAVE_CONFIG_H
@@ -603,7 +603,7 @@ int tc_filter (vframe_list_t *ptr, char *options)
     if (ptr->tag & TC_FILTER_GET_CONFIG) {
 	char buf[255];
 	optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION,
-			    MOD_AUTHORS, "VRY4E", "2");
+			    MOD_AUTHOR, "VRY4E", "2");
 	snprintf (buf, sizeof(buf), "%g", myf->interlaceDiff);
 	optstr_param (options, "interlacediff", "Minimum temporal inter-field difference for detecting interlaced video", "%f", buf, "1.0", "inf");
 	snprintf (buf, sizeof(buf), "%g", myf->unknownDiff);

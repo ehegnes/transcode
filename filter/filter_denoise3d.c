@@ -22,7 +22,7 @@
 #define MOD_NAME    "filter_denoise3d.so"
 #define MOD_VERSION "v1.0.6 (2003-12-20)"
 #define MOD_CAP     "High speed 3D Denoiser"
-#define MOD_AUTHOR  "Daniel Moreno & A'rpi"
+#define MOD_AUTHOR  "Daniel Moreno, A'rpi"
 
 #define module "[" MOD_NAME "]: "
 
@@ -45,10 +45,6 @@
 #include <string.h>
 #include <inttypes.h>
 #include <math.h>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "transcode.h"
 #include "framebuffer.h"

@@ -24,24 +24,19 @@
 #define MOD_NAME    "filter_videocore.so"
 #define MOD_VERSION "v0.0.4 (2003-02-01)"
 #define MOD_CAP     "Core video transformations"
-#define MOD_AUTHOR  "Thomas, Tilmann"
+#define MOD_AUTHOR  "Thomas Oestreich, Tilmann Bitterberg"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 /* -------------------------------------------------
  *
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-#include <unistd.h>
-#include <inttypes.h>
 
 #include "transcode.h"
 #include "framebuffer.h"

@@ -24,6 +24,7 @@
 #define MOD_NAME    "filter_detectsilence.so"
 #define MOD_VERSION "v0.0.1 (2003-07-26)"
 #define MOD_CAP     "audio silence detection with tcmp3cut commandline generation"
+#define MOD_AUTHOR  "Tilmann Bitterberg"
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -43,10 +44,6 @@
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "transcode.h"
 #include "framebuffer.h"

@@ -18,9 +18,9 @@
 */
 
 #define MOD_NAME      "filter_unsharp.so"
+#define MOD_VERSION   "v1.0.1 (2003-10-27)"
 #define MOD_CAP       "unsharp mask & gaussian blur"
 #define MOD_AUTHOR    "Rémi Guyomarch"
-#define MOD_VERSION   "v1.0.1 (2003-10-27)"
 
 
 #include <stdio.h>
@@ -33,16 +33,17 @@
 #include "config.h"
 #endif
 
-#include "transcode.h"
-#include "framebuffer.h"
-#include "filter.h"
-#include "optstr.h"
-
 #ifndef SYS_BSD
 # ifdef HAVE_MALLOC_H
 # include <malloc.h>
 # endif
 #endif
+
+#include "transcode.h"
+#include "framebuffer.h"
+#include "filter.h"
+#include "optstr.h"
+
 
 #ifndef MIN
 #define        MIN(a,b) (((a)<(b))?(a):(b))
@@ -50,6 +51,7 @@
 #ifndef MAX
 #define        MAX(a,b) (((a)>(b))?(a):(b))
 #endif
+
 
 //===========================================================================//
 

@@ -24,16 +24,13 @@
 #define MOD_NAME    "filter_fps.so"
 #define MOD_VERSION "v1.1 (2004-05-01)"
 #define MOD_CAP     "convert video frame rate, gets defaults from -f and --export_fps"
+#define MOD_AUTHOR  "Christopher Cramer"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "transcode.h"
 #include "framebuffer.h"

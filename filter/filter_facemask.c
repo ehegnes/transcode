@@ -25,6 +25,7 @@
 #define MOD_NAME    "filter_facemask.so"
 #define MOD_VERSION "v0.2 (2004-11-01)"
 #define MOD_CAP     "Mask people faces in video interviews."
+#define MOD_AUTHOR  "Julien Tierny"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,15 +38,11 @@
  *
  *-------------------------------------------------*/
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "transcode.h"
 #include "framebuffer.h"
 #include "filter.h"
 /* RGB2YUV features */
-#include "../export/vid_aux.h"
+#include "export/vid_aux.h"
 #include "optstr.h"
 
 /*-------------------------------------------------

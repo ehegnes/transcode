@@ -25,6 +25,7 @@
 #define MOD_NAME    "filter_29to23.so"
 #define MOD_VERSION "v0.3 (2003-07-18)"
 #define MOD_CAP     "frame rate conversion filter (interpolating 29 to 23)"
+#define MOD_AUTHOR  "Tilmann Bitterberg, Max Alekseyev"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,10 +37,6 @@
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "transcode.h"
 #include "framebuffer.h"
