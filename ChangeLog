@@ -7,6 +7,9 @@ transcode-0.6.11
   New frame attributes: TC_FRAME_IS_[IPB]_FRAME. The mpeg import
   modules set these when working with m2v elementary streams.
 
+  * src/transcode.c:
+  When doing -P1 suggest to use -y raw,raw
+
 2003-10-02 Tilmann Bitterberg <transcode at tibit.org>
 
   * export/aud_aux.c:

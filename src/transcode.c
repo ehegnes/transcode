@@ -2551,6 +2551,9 @@ int main(int argc, char *argv[]) {
       //suggestion:
       if(no_v_out_codec) ex_vid_mod="raw";
       no_v_out_codec=0;
+
+      if(no_a_out_codec) ex_aud_mod="raw";
+      no_a_out_codec=0;
       
       if(verbose & TC_INFO) printf("[%s] V: %-16s | yes\n", PACKAGE, "pass-through");
     }
