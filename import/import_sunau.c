@@ -21,30 +21,24 @@
  *
  */
 
-#include <sys/types.h>
-#include <sys/ioctl.h>
-#include <sys/audioio.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include "transcode.h"
-#include "optstr.h"
-
 #define MOD_NAME	"import_sunau.so"
 #define MOD_VERSION	"v0.0.2 (2004-10-02)"
 #define MOD_CODEC	"(audio) pcm"
+
+#include "transcode.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_PCM;
 
 #define MOD_PRE sunau
 #include "import_def.h"
+
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <sys/audioio.h>
+
+#include "optstr.h"
+
 
 static int sunau_fd = -1;
 

@@ -21,26 +21,23 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
+#define MOD_NAME    "import_lzo.so"
+#define MOD_VERSION "v0.0.3 (2002-11-26)"
+#define MOD_CODEC   "(video) LZO"
+
 #include "transcode.h"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_PCM | TC_CAP_YUV | TC_CAP_RGB | TC_CAP_AUD | TC_CAP_VID;
+
+#define MOD_PRE lzo
+#include "import_def.h"
 
 #include <lzo1x.h>
 #if (LZO_VERSION > 0x1070)
 #  include <lzoutil.h>
 #endif
 
-#define MOD_NAME    "import_lzo.so"
-#define MOD_VERSION "v0.0.3 (2002-11-26)"
-#define MOD_CODEC   "(video) LZO"
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_PCM|TC_CAP_YUV|TC_CAP_RGB|TC_CAP_AUD|TC_CAP_VID;
-
-#define MOD_PRE lzo
-#include "import_def.h"
 
 static avi_t *avifile1=NULL;
 static avi_t *avifile2=NULL;

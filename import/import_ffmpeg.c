@@ -21,12 +21,18 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
+#define MOD_NAME    "import_ffmpeg.so"
+#define MOD_VERSION "v0.1.11 (2004-02-29)"
+#define MOD_CODEC   "(video) ffmpeg: MS MPEG4v1-3/MPEG4/MJPEG"
 
 #include "transcode.h"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID;
+
+#define MOD_PRE ffmpeg
+#include "import_def.h"
+
 // FIXME
 #undef EMULATE_FAST_INT
 #include <ffmpeg/avcodec.h>
@@ -34,16 +40,6 @@
 #include "avilib.h"
 #include "magic.h"
 
-#define MOD_NAME    "import_ffmpeg.so"
-#define MOD_VERSION "v0.1.11 (2004-02-29)"
-#define MOD_CODEC   "(video)  " LIBAVCODEC_IDENT \
-                    ": MS MPEG4v1-3/MPEG4/MJPEG"
-
-static int verbose_flag = TC_QUIET;
-static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_VID;
-
-#define MOD_PRE ffmpeg
-#include "import_def.h"
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];

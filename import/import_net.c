@@ -21,28 +21,20 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-
-#include "transcode.h"
-#include "ioaux.h"
-
 #define MOD_NAME    "import_net.so"
 #define MOD_VERSION "v0.0.1 (2001-11-21)"
 #define MOD_CODEC   "(video) RGB/YUV | (audio) PCM"
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM;
+#include "transcode.h"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_PCM;
 
 #define MOD_PRE net
 #include "import_def.h"
+
+#include "ioaux.h"
+
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];

@@ -21,15 +21,19 @@
  *
  */
 
+#define MOD_NAME    "import_divx.so"
+#define MOD_VERSION "v0.2.9 (2003-07-30)"
+#define MOD_CODEC   "(video) DivX;-)/XviD/OpenDivX/DivX 4.xx/5.xx"
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "transcode.h"
+#include "avilib.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_VID;
+
+#define MOD_PRE divx
+#include "import_def.h"
+
 
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
@@ -38,9 +42,6 @@
 #  include "libdldarwin/dlfcn.h"
 # endif
 #endif
-
-#include "transcode.h"
-#include "avilib.h"
 
 #ifdef HAVE_DIVX_DECORE
 #include <decore.h>
@@ -51,16 +52,6 @@
 #ifndef DECORE_VERSION
 #define DECORE_VERSION 0
 #endif
-
-#define MOD_NAME    "import_divx.so"
-#define MOD_VERSION "v0.2.9 (2003-07-30)"
-#define MOD_CODEC   "(video) DivX;-)/XviD/OpenDivX/DivX 4.xx/5.xx"
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
-
-#define MOD_PRE divx
-#include "import_def.h"
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];

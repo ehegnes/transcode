@@ -21,18 +21,14 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#include "transcode.h"
-
 #define MOD_NAME    "import_xml.so"
 #define MOD_VERSION "v0.0.8 (2003-07-09)"
 #define MOD_CODEC   "(video) * | (audio) *"
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=-1;
+#include "transcode.h"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = -1;
 
 #define MOD_PRE xml
 #include "import_def.h"

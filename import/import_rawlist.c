@@ -21,29 +21,22 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#include <string.h>
-#include <time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include "ioaux.h"
-
-#include "transcode.h"
-
 #define MOD_NAME    "import_rawlist.so"
 #define MOD_VERSION "v0.1.2 (2003-10-14)"
 #define MOD_CODEC   "(video) YUV/RGB raw frames"
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AUD|TC_CAP_YUV422;
+#include "transcode.h"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_AUD | TC_CAP_YUV422;
 
 #define MOD_PRE rawlist
 #include "import_def.h"
+
+#include <time.h>
+#include <sys/types.h>
+#include "ioaux.h"
+
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];

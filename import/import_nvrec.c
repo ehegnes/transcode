@@ -21,26 +21,20 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
-#include "transcode.h"
-
 #define MOD_NAME    "import_nvrec.so"
 #define MOD_VERSION "v0.1.4 (2002-10-17)"
 #define MOD_CODEC   "(video) nvrec | (audio) nvrec"
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_YUV|TC_CAP_PCM;
+#include "transcode.h"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_YUV | TC_CAP_PCM;
 
 #define MOD_PRE nvrec
 #include "import_def.h"
+
+#include <sys/types.h>
+
 
 #define MAX_DISPLAY_PTS 25
 

@@ -21,25 +21,23 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
+#define MOD_NAME    "import_dvd.so"
+#define MOD_VERSION "v0.4.0 (2003-10-02)"
+#define MOD_CODEC   "(video) DVD | (audio) MPEG/AC3/PCM"
 
 #include "transcode.h"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_AC3 | TC_CAP_PCM;
+
+#define MOD_PRE dvd
+#include "import_def.h"
+
 #include "ac3scan.h"
 #include "dvd_reader.h"
 #include "demuxer.h"
 #include "clone.h"
 
-#define MOD_NAME    "import_dvd.so"
-#define MOD_VERSION "v0.4.0 (2003-10-02)"
-#define MOD_CODEC   "(video) DVD | (audio) MPEG/AC3/PCM"
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3|TC_CAP_PCM;
-
-#define MOD_PRE dvd
-#include "import_def.h"
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];

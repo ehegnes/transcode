@@ -21,18 +21,15 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <xio.h>
-#include "transcode.h"
-
 #define MOD_NAME    "import_dv.so"
 #define MOD_VERSION "v0.3.1 (2003-10-14)"
 #define MOD_CODEC   "(video) DV | (audio) PCM"
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_DV|TC_CAP_PCM|TC_CAP_VID|TC_CAP_YUV422;
+#include "transcode.h"
+#include "xio.h"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_DV | TC_CAP_PCM | TC_CAP_VID | TC_CAP_YUV422;
 
 #define MOD_PRE dv
 #include "import_def.h"

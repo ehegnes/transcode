@@ -21,25 +21,22 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#include "transcode.h"
-#include "ac3scan.h"
-#include "demuxer.h"
-#include "clone.h"
-
 #define MOD_NAME    "import_vob.so"
 #define MOD_VERSION "v0.6.0 (2003-10-02)"
 #define MOD_CODEC   "(video) MPEG-2 | (audio) MPEG/AC3/PCM | (subtitle)"
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_VID|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM|TC_CAP_AC3;
+#include "transcode.h"
 
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_VID | TC_CAP_RGB | TC_CAP_YUV | TC_CAP_PCM | TC_CAP_AC3;
 
 #define MOD_PRE vob
 #include "import_def.h"
+
+#include "ac3scan.h"
+#include "demuxer.h"
+#include "clone.h"
+
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];

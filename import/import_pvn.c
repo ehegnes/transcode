@@ -21,30 +21,23 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#include <string.h>
-#include <time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-
-#include "transcode.h"
-
 #define MOD_NAME    "import_pvn.so"
 #define MOD_VERSION "v0.11 (2004-07-23)"
 #define MOD_CODEC   "(video) PVN"
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_VID|TC_CAP_AUD;
+#include "transcode.h"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_RGB | TC_CAP_VID | TC_CAP_AUD;
 
 #define MOD_PRE pvn
 #include "import_def.h"
 
+#include <time.h>
+#include <sys/types.h>
+
 #include "pvn.h"
+
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];
@@ -185,5 +178,3 @@ MOD_close
 
   return(0);
 }
-
-

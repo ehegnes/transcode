@@ -21,22 +21,20 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <xio.h>
-#include "transcode.h"
-
 #define MOD_NAME    "import_mp3.so"
 #define MOD_VERSION "v0.1.4 (2003-08-04)"
 #define MOD_CODEC   "(audio) MPEG"
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_PCM;
+#include "transcode.h"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_PCM;
 
 #define MOD_PRE mp3
 #include "import_def.h"
+
+#include "xio.h"
+
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];

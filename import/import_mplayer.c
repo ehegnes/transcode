@@ -21,24 +21,20 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
-#include "transcode.h"
-
-
 #define MOD_NAME    "import_mplayer.so"
 #define MOD_VERSION "v0.0.5 (2003-03-10)"
 #define MOD_CODEC   "(video) rendered by mplayer | (audio) rendered by mplayer"
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_YUV|TC_CAP_RGB|TC_CAP_VID|TC_CAP_PCM;
+#include "transcode.h"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID | TC_CAP_PCM;
 
 #define MOD_PRE mplayer
 #include "import_def.h"
+
+#include <sys/types.h>
+
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];

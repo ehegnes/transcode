@@ -29,29 +29,18 @@
  * Remeber to add -V option to transcode (only YUV mode is supported) 
  */
 
-
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-
-#include "transcode.h"
-
 #define MOD_NAME    "import_yuv.so"
 #define MOD_VERSION "v0.1.0 (2002-04-12)"
 #define MOD_CODEC   "(video) YUV files "
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_YUV;
+#include "transcode.h"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_YUV;
 
 #define MOD_PRE yuv
 #include "import_def.h"
+
 
 #define MAX_BUF 1024
 #define MAXFRM 10000    // max count of search/encode missing frames

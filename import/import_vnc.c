@@ -1,26 +1,20 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <signal.h>
-#include <errno.h>
-
-#include "transcode.h"
-#include "ioaux.h"
-
 #define MOD_NAME    "import_vnc.so"
 #define MOD_VERSION "v0.0.2 (2003-11-29)"
 #define MOD_CODEC   "(video) VNC"
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_VID|TC_CAP_RGB|TC_CAP_YUV;
+#include "transcode.h"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_VID | TC_CAP_RGB | TC_CAP_YUV;
 
 #define MOD_PRE vnc
 #include "import_def.h"
+
+#include <sys/types.h>
+#include <sys/wait.h>
+
+#include "ioaux.h"
+
 
 #define PROGTOCALL "tcxpm2rgb"
 

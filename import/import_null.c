@@ -21,21 +21,18 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#include "transcode.h"
-
 #define MOD_NAME    "import_null.so"
 #define MOD_VERSION "v0.2.0 (2002-01-19)"
 #define MOD_CODEC   "(video) null | (audio) null"
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=-1;
+#include "transcode.h"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = -1;
 
 #define MOD_PRE null
 #include "import_def.h"
+
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];

@@ -37,22 +37,18 @@
  * So one 24 bytes block makes defines 8x2 pixels
  */
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include "transcode.h"
-
 #define MOD_NAME    "import_fraps.so"
 #define MOD_VERSION "v0.0.2 (2003-11-12)"
 #define MOD_CODEC   "(video) * "
+
+#include "transcode.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_YUV;
 
 #define MOD_PRE fraps
 #include "import_def.h"
+
 
 static avi_t *avifile2 = NULL;
 

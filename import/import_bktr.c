@@ -23,17 +23,22 @@
  *
  */
 
+#define MOD_NAME	"import_bktr.so"
+#define MOD_VERSION	"v0.0.2 (2004-10-02)"
+#define MOD_CODEC	"(video) bktr"
+
+#include "transcode.h"
+#include "optstr.h"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422;
+
+#define MOD_PRE bktr
+#include "import_def.h"
+
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/mman.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #ifdef HAVE_DEV_IC_BT8XX_H
 #include <dev/ic/bt8xx.h>
@@ -49,18 +54,6 @@
 # endif
 #endif
 
-#include "transcode.h"
-#include "optstr.h"
-
-#define MOD_NAME	"import_bktr.so"
-#define MOD_VERSION	"v0.0.2 (2004-10-02)"
-#define MOD_CODEC	"(video) bktr"
-
-static int verbose_flag = TC_QUIET;
-static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422;
-
-#define MOD_PRE bktr
-#include "import_def.h"
 
 static const struct {
     char *name;

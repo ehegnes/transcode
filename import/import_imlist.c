@@ -21,18 +21,20 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#include <string.h>
-#include <time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
+#define MOD_NAME    "import_imlist.so"
+#define MOD_VERSION "v0.0.2 (2003-11-13)"
+#define MOD_CODEC   "(video) RGB"
 
 #include "transcode.h"
+
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_RGB|TC_CAP_VID|TC_CAP_AUD;
+
+#define MOD_PRE imlist
+#include "import_def.h"
+
+#include <time.h>
+#include <sys/types.h>
 
 // transcode defines this as well as ImageMagick.
 #undef PACKAGE_NAME
@@ -42,15 +44,6 @@
 
 #include <magick/api.h>
 
-#define MOD_NAME    "import_imlist.so"
-#define MOD_VERSION "v0.0.2 (2003-11-13)"
-#define MOD_CODEC   "(video) RGB"
-
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_VID|TC_CAP_AUD;
-
-#define MOD_PRE imlist
-#include "import_def.h"
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];

@@ -21,22 +21,20 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#include "transcode.h"
-#include "libmpeg3.h"
-
 #define MOD_NAME    "import_mpeg3.so"
 #define MOD_VERSION "v0.3 (2002-09-20)"
 #define MOD_CODEC   "(video) MPEG2 | (audio) MPEG/AC3/PCM"
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AUD|TC_CAP_PCM;
+#include "transcode.h"
+
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_AUD | TC_CAP_PCM;
 
 #define MOD_PRE mpeg3
 #include "import_def.h"
+
+#include <libmpeg3.h>
+
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];
