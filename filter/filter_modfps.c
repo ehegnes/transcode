@@ -23,8 +23,13 @@
  *
  */
 
+// ----------------- Changes 
+// 0.3 -> 0.4: Tilmann Bitterberg
+//             Fix a typo in the optstr_param printout and correct the filter
+//             flags
+
 #define MOD_NAME    "filter_modfps.so"
-#define MOD_VERSION "v0.3 (2003-07-30)"
+#define MOD_VERSION "v0.4 (2003-07-31)"
 #define MOD_CAP     "plugin to modify framerate"
 #define MOD_AUTHOR  "Marrq"
 //#define DEBUG 1
@@ -180,7 +185,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 
     if (ptr->tag & TC_FILTER_GET_CONFIG){
       char buf[255];
-      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "", "1");
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYRE", "1");
 
       sprintf(buf, "%d",mode);
       optstr_param(options,"mode","mode of operation", "%d", buf, "0", "1");
@@ -191,7 +196,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
       sprintf(buf, "%d", numSample);
       optstr_param(options,"examine", "How many frames to buffer", "%d", buf, "2", "25");
       sprintf(buf, "%d", offset);
-      optstr_param(options, "subsample", "How many pixels to subsample", "%d", buf, "1" "256");
+      optstr_param(options, "subsample", "How many pixels to subsample", "%d", buf, "1", "256");
       sprintf(buf, "%d", verbose);
       optstr_param(options, "verbose", "run in verbose mode", "%d", buf, "0", "1");
       return 0;

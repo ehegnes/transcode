@@ -81,7 +81,7 @@ o Overview
   29to23        |   none    |  little     | 29.9 -> 23.9
   32drop        |   high    |  little     | 29.9 -> 23.9
   ivtc+decimate | very high |   none      | 29.9 -> 23.9
-  modfps        |   none    |   high      | any  -> any
+  modfps        |   fair    |   high      | any  -> any
   fps           |   none    |   high      | any  -> any
   tc_video      |   none    |  little     | 23.9 -> 29.9
 
@@ -110,7 +110,8 @@ o modfps
   cloning and dropping of frames. By doing that, it can produce
   nearly any framerate you might have ever imagined. The filter does
   take options but they can be ommitted by giving correct arguments
-  to transcode.
+  to transcode. There is a second mode of operation, the buffer
+  mode. This mode will look better when dropping frames.
 
 o fps
   This filter is basically the same as `modfps' its just doing its
@@ -120,7 +121,8 @@ o tc_video
   This filter increases the framerate by doing telecine. It takes no
   options. It makes 5 frames out of 4 by clever dealing with the
   fields ( == "lines") of a frame.
-  
+
+
 ===================================
 Framerate related transcode options
 ===================================

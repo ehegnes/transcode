@@ -1,6 +1,15 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-30 Tilmann Bitterberg <transcode at tibit.org>
+
+  * bbmpeg/tcmplex/tcmplex.c import/ioaux.c src/transcode.c
+  tools/tcmodinfo.c tools/avifix.c tools/avimerge.c
+  tools/avisplit.c tools/avisync.c tools/aviindex.c:
+  Remove the Latin-1 character from output it caused garbled
+  displays sometimes. Sorry Thomas. Pointed out by Benjamin
+  Riefenstahl.
+
 2003-07-30 marrq <marrq at ugcs.caltech.edu>
 
   * filter/{filter_32detect.c filter_aclip.c filter_astat.c
@@ -15,6 +24,13 @@ transcode-0.6.9
   yuvdenoise/filter_yuvmedian.c}:
   These filters will never need skipped frames so if they encounter
   a skipped frame, they'll return immediatly.
+
+  * filter/filter_modfps.c:
+  The filter now supports two modes of operation,  buffered and
+  unbuffered, unbuffered is quick, but buffered, especially when
+  dropping frames should look better. See "tcmodinfo -i modfps" for
+  options.
+  
 
 2003-07-30 Edouard Gomez <ed.gomez at free.fr>
 
