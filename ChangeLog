@@ -1,6 +1,16 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-02-01 Jean-Yves Simon <lethalwp at tiscali.be>
+
+  * import/extract_ac3.c:
+  NB: extract_ac3 also takes care of subtitle extraction.
+  1 total subline can be split into 2 sub 'chunks'. the first one
+  will have pts info for timing, the second will be just the end of
+  the data + the control codes. When there is a video packet between
+  these subchunks we incorrectly used the timestamp of the video
+  packet thus leading to a broken sub packet.
+
 2004-01-31 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/{ac3scan.c ac3scan.h demuxer.h fileinfo.c magic.h

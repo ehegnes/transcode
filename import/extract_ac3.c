@@ -77,6 +77,7 @@ static void pes_ac3_loop (void)
 
     unsigned int pack_lpts=0;
     double pack_rpts=0.0f, last_rpts=0.0f, offset_rpts=0.0f, abs_rpts=0.0f;
+    double pack_sub_rpts=0.0f, last_sub_rpts=0.0f, offset_sub_rpts=0.0f, abs_sub_rpts=0.0f;
 
     int discont=0;
 
@@ -208,22 +209,40 @@ static void pes_ac3_loop (void)
 	    if (tmp1 < tmp2) fwrite (tmp1, tmp2-tmp1, 1, stdout);
 	  } else {
 
-	    //subttitle
+	    //subtitle
 	    
 	    if (*tmp1 == track_code && track_code < 0x40) {   
 	      
 	      if (tmp1 < tmp2) {
 		
 		// get pts time stamp:
+		  memcpy(pack_buf, &buf[6], 16);
+	  
+		  if(get_pts_dts(pack_buf, &i_pts, &i_dts)) {
+		    pack_sub_rpts = (double) i_pts/90000.;
+	    
+		    if(pack_sub_rpts < last_sub_rpts){
+		      offset_sub_rpts += last_sub_rpts;
+		       // ++discont;
+		    }  
+	    
+		    //default
+		    last_sub_rpts=pack_sub_rpts;
+		    abs_sub_rpts=pack_sub_rpts + offset_sub_rpts;
+	    
+		    //fprintf(stderr, "PTS=%8.3f ABS=%8.3f\n", pack_rpts, abs_rpts);
+		  }
+		// buf = tmp2;   should be below, not needed
+
 		subtitle_header.lpts = pack_lpts;
-		subtitle_header.rpts = abs_rpts;
+		subtitle_header.rpts = abs_sub_rpts;
 		subtitle_header.discont_ctr = discont;
 		subtitle_header.header_version = TC_SUBTITLE_HDRMAGIC;
 		subtitle_header.header_length = sizeof(subtitle_header_t);
 		subtitle_header.payload_length=tmp2-tmp1;
 		
 		if(verbose & TC_STATS) 
-		  fprintf(stderr,"subtitle=0x%x size=%4d lpts=%d rpts=%f\n", track_code, tmp2-tmp1, subtitle_header.lpts, subtitle_header.rpts); 
+		  fprintf(stderr,"subtitle=0x%x size=%4d lpts=%d rpts=%f rptsfromvid=%f\n", track_code, tmp2-tmp1, subtitle_header.lpts, subtitle_header.rpts,abs_rpts); 
 		
 		if(p_write(STDOUT_FILENO, (char*) subtitle_header_str, strlen(subtitle_header_str))<0) {
 		  fprintf(stderr, "error writing subtitle\n");
