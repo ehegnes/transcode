@@ -3,9 +3,12 @@ transcode-0.6.11
 
 2003-10-02 Tilmann Bitterberg <transcode at tibit.org>
 
-  * aud_aux.c:
+  * export/aud_aux.c:
   Fix AC3 pass-through when audio is not written to a AVI file.
-  Few debug printf's cleanup
+  Few debug printf's cleanup.
+
+  * export/export_raw.c:
+  Fix audio pass-through and video pass-through for M2V/AC3.
 
 2003-10-02 Guillaume Cottenceau <gc at mandrakesoft.com>
 

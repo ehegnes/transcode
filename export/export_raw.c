@@ -103,11 +103,18 @@ MOD_open
     im_v_codec = vob->im_v_codec;
 
     // open out file
-    if(vob->avifile_out==NULL && !(vob->codec_flag == TC_CODEC_MPEG2 && param->flag == TC_VIDEO))
-      if(NULL == (vob->avifile_out = AVI_open_output_file(vob->video_out_file))) {
+    if(param->flag==TC_AUDIO && vob->out_flag) goto further; 
+    if(param->flag==TC_VIDEO && vob->codec_flag == TC_CODEC_MPEG2) goto further;
+    if(vob->avifile_out==NULL)
+      if(NULL == (vob->avifile_out = 
+	  AVI_open_output_file( (param->flag&TC_VIDEO)?
+		  vob->video_out_file:
+		  vob->audio_out_file))) {
 	AVI_print_error("avi open error");
 	exit(TC_EXPORT_ERROR);
       }
+
+further:
     
     /* save locally */
     avifile2 = vob->avifile_out;
@@ -156,13 +163,13 @@ MOD_open
       case CODEC_RAW_YUV:
 
 	if (vob->codec_flag == TC_CODEC_MPEG2) {
-	    fprintf(stderr, "[%s] icodec (0x%08x) and codec_flag (0x%08lx)\n", MOD_NAME,
-		    vob->im_v_codec, vob->codec_flag);
 
 	    if (vob->pass_flag & TC_VIDEO) {
 		mpeg_passthru = 1;
+		fprintf(stderr, "[%s] icodec (0x%08x) and codec_flag (0x%08lx) - passthru\n", MOD_NAME,
+		    vob->im_v_codec, vob->codec_flag);
 
-		mpeg_f = fopen(vob->video_out_file, "w+b");
+		mpeg_f = fopen(vob->video_out_file, "w");
 		if (!mpeg_f) {
 		    tc_warn("[%s] Cannot open outfile \"%s\": %s", MOD_NAME, vob->video_out_file,
 			strerror(errno));
