@@ -106,7 +106,7 @@ MOD_init
 MOD_open
 {
 
-  int asr, mask;
+  int asr;
   char dar_tag[20];
   y4m_ratio_t framerate;  
 

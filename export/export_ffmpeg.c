@@ -32,7 +32,7 @@
 #include "../ffmpeg/libavcodec/avcodec.h"
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.2.3 (2002-11-14)"
+#define MOD_VERSION "v0.2.4 (2003-03-12)"
 #define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
                     ") | (audio) MPEG/AC3/PCM"
 #define MOD_PRE ffmpeg
@@ -272,13 +272,13 @@ MOD_init {
     if (lavc_param_aspect != 0.0)
     {
       if (lavc_param_aspect == (float)(4.0/3.0))
-        lavc_venc_context->aspect_ratio_info = FF_ASPECT_4_3_625;
+        lavc_venc_context->aspect_ratio = FF_ASPECT_4_3_625;
       else if (lavc_param_aspect == (float)(16.0/9.0))
-        lavc_venc_context->aspect_ratio_info = FF_ASPECT_16_9_625;
+        lavc_venc_context->aspect_ratio = FF_ASPECT_16_9_625;
       else if (lavc_param_aspect == (float)(221.0/100.0)) {
-        lavc_venc_context->aspect_ratio_info = FF_ASPECT_EXTENDED;
-        lavc_venc_context->aspected_width = 221;
-        lavc_venc_context->aspected_height = 100;
+        lavc_venc_context->aspect_ratio = FF_ASPECT_EXTENDED;
+        //lavc_venc_context->aspected_width = 221;
+        //lavc_venc_context->aspected_height = 100;
       } else {
         fprintf(stderr, "[%s] Unsupported aspect ration %f.\n", MOD_NAME,
                 lavc_param_aspect);
@@ -346,7 +346,7 @@ MOD_init {
       case 3:
         /* fixed qscale :p */
         lavc_venc_context->flags   |= CODEC_FLAG_QSCALE;
-        lavc_venc_context->quality  = vob->min_quantizer;
+        //lavc_venc_context->quality  = vob->min_quantizer;
         break;
     }
 
@@ -463,21 +463,21 @@ MOD_encode
   
   int out_size;
   int buf_size=SIZE_RGB_FRAME;
-  AVPicture lavc_venc_picture;
+  AVFrame lavc_venc_frame;
   
   if (param->flag == TC_VIDEO) { 
 
     if (pix_fmt == PIX_FMT_YUV420P) {
       lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
       
-      lavc_venc_picture.linesize[0] = lavc_venc_context->width;     
-      lavc_venc_picture.linesize[1] = lavc_venc_context->width / 2;
-      lavc_venc_picture.linesize[2] = lavc_venc_context->width / 2;
+      lavc_venc_frame.linesize[0] = lavc_venc_context->width;     
+      lavc_venc_frame.linesize[1] = lavc_venc_context->width / 2;
+      lavc_venc_frame.linesize[2] = lavc_venc_context->width / 2;
 
-      lavc_venc_picture.data[0]     = param->buffer;
-      lavc_venc_picture.data[2]     = param->buffer +
+      lavc_venc_frame.data[0]     = param->buffer;
+      lavc_venc_frame.data[2]     = param->buffer +
         lavc_venc_context->width * lavc_venc_context->height;
-      lavc_venc_picture.data[1]     = param->buffer +
+      lavc_venc_frame.data[1]     = param->buffer +
         (lavc_venc_context->width * lavc_venc_context->height*5)/4;
     } else if (pix_fmt == PIX_FMT_RGB24) {
       // Do RGB to YUV conversion now as ffmpeg does not seem to do it itself.
@@ -488,14 +488,14 @@ MOD_encode
         return TC_EXPORT_ERROR;
       }
 
-      lavc_venc_picture.linesize[0] = lavc_venc_context->width;     
-      lavc_venc_picture.linesize[1] = lavc_venc_context->width / 2;
-      lavc_venc_picture.linesize[2] = lavc_venc_context->width / 2;
+      lavc_venc_frame.linesize[0] = lavc_venc_context->width;     
+      lavc_venc_frame.linesize[1] = lavc_venc_context->width / 2;
+      lavc_venc_frame.linesize[2] = lavc_venc_context->width / 2;
 
-      lavc_venc_picture.data[0]     = param->buffer;
-      lavc_venc_picture.data[1]     = param->buffer +
+      lavc_venc_frame.data[0]     = param->buffer;
+      lavc_venc_frame.data[1]     = param->buffer +
         lavc_venc_context->width * lavc_venc_context->height;
-      lavc_venc_picture.data[2]     = param->buffer +
+      lavc_venc_frame.data[2]     = param->buffer +
         (lavc_venc_context->width * lavc_venc_context->height*5)/4;
     } else {
       fprintf(stderr, "[%s] Unknown pixel format %d.\n", MOD_NAME,
@@ -506,7 +506,7 @@ MOD_encode
 
     out_size = avcodec_encode_video(lavc_venc_context,
                                     (unsigned char *) tmp_buffer, buf_size,
-                                    &lavc_venc_picture);
+                                    &lavc_venc_frame);
   
     if (out_size < 0) {
       fprintf(stderr, "[%s] encoder error", MOD_NAME);
@@ -517,10 +517,10 @@ MOD_encode
     //0.6.2: enforce auto-split at 2G (or user value) for normal AVI files
     if((uint32_t)(AVI_bytes_written(avifile)+out_size+16+8)>>20 >= tc_avi_limit) tc_outstream_rotate_request();
     
-    if (lavc_venc_context->key_frame) tc_outstream_rotate();
+    if (lavc_venc_context->coded_frame->key_frame) tc_outstream_rotate();
     
     if (AVI_write_frame(avifile, tmp_buffer, out_size,
-                       lavc_venc_context->key_frame? 1 : 0) < 0) {
+                       lavc_venc_context->coded_frame->key_frame? 1 : 0) < 0) {
       AVI_print_error("avi video write error");
       
       return TC_EXPORT_ERROR; 

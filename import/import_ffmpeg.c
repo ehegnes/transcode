@@ -33,7 +33,7 @@
 #include "avilib.h"
 
 #define MOD_NAME    "import_ffmpeg.so"
-#define MOD_VERSION "v0.1.1 (2002-11-29)"
+#define MOD_VERSION "v0.1.3 (2003-03-12)"
 #define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
                     "): MS MPEG4v1-3/MPEG4/MJPEG"
 #define MOD_PRE ffmpeg
@@ -192,8 +192,6 @@ MOD_open {
     lavc_dec_context->width  = x_dim;
     lavc_dec_context->height = y_dim;
 
-    lavc_dec_context->flags |= CODEC_FLAG_NOT_TRUNCATED;
-
     if (vob->decolor) lavc_dec_context->flags |= CODEC_FLAG_GRAY;
     lavc_dec_context->error_resilience = 2;
     lavc_dec_context->error_concealment = 3;
@@ -262,9 +260,9 @@ MOD_open {
 MOD_decode {
   int        key,len, i, edge_width;
   long       bytes_read = 0;
-  int        got_picture;
+  int        got_picture, UVls, src, dst, row, col;
   char      *Ybuf, *Ubuf, *Vbuf;
-  AVPicture  picture;
+  AVFrame  picture;
 
   if (param->flag == TC_VIDEO) {
     bytes_read = AVI_read_frame(avifile, buffer, &key);
@@ -299,6 +297,11 @@ MOD_decode {
       }
     } while (!got_picture);
 
+    Ybuf = param->buffer;
+    Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
+    Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
+    UVls = picture.linesize[1];
+    
     switch (lavc_dec_context->pix_fmt) {
       case PIX_FMT_YUV420P:
         // Result is in YUV 4:2:0 (YV12) format, but each line ends with
@@ -354,6 +357,33 @@ MOD_decode {
                   lavc_dec_context->width / 2);
         }
         break;
+      case PIX_FMT_YUV422P:
+          // Result is in YUV 4:2:2 format (subsample UV vertically for YV12):
+          memcpy(Ybuf, picture.data[0], picture.linesize[0] * lavc_dec_context->height);
+          src = 0;
+          dst = 0;
+          for (row=0; row<lavc_dec_context->height; row+=2) {
+            memcpy(Ubuf + dst, picture.data[1] + src, UVls);
+            memcpy(Vbuf + dst, picture.data[2] + src, UVls);
+            dst += UVls;
+            src = dst << 1;
+          }
+	  break;
+      case PIX_FMT_YUV444P:
+          // Result is in YUV 4:4:4 format (subsample UV h/v for YV12):
+          memcpy(Ybuf, picture.data[0], picture.linesize[0] * lavc_dec_context->height);
+          src = 0;
+          dst = 0;
+          for (row=0; row<lavc_dec_context->height; row+=2) {
+            for (col=0; col<lavc_dec_context->width; col+=2) {
+              Ubuf[dst] = picture.data[1][src];
+              Vbuf[dst] = picture.data[2][src];
+              dst++;
+              src += 2;
+            }
+            src += UVls;
+          }
+          break;
       default:
 	fprintf(stderr, "[%s] Unsupported decoded frame format", MOD_NAME);
 	return TC_IMPORT_ERROR;

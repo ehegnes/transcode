@@ -130,6 +130,9 @@
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
+/* define if you have the lrintf function */
+#undef HAVE_LRINTF
+
 /* Have liblzo support */
 #undef HAVE_LZO
 
@@ -138,6 +141,9 @@
 
 /* Define to 1 if you have the `malloc' function. */
 #undef HAVE_MALLOC
+
+/* Define to 1 if you have the <malloc.h> header file. */
+#undef HAVE_MALLOC_H
 
 /* Define to 1 if you have the `memalign' function. */
 #undef HAVE_MEMALIGN
@@ -215,6 +221,9 @@
 
 /* Define to 1 if you have the `strncasecmp' function. */
 #undef HAVE_STRNCASECMP
+
+/* Define to 1 if you have the `strptime' function. */
+#undef HAVE_STRPTIME
 
 /* Define to 1 if you have the `strtol' function. */
 #undef HAVE_STRTOL
