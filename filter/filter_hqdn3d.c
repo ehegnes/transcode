@@ -18,7 +18,7 @@
 */
 
 #define MOD_NAME    "filter_hqdn3d.so"
-#define MOD_VERSION "v1.0.1 (2003-06-15)"
+#define MOD_VERSION "v1.0.2 (2003-08-15)"
 #define MOD_CAP     "High Quality 3D Denoiser"
 #define MOD_AUTHOR  "Daniel Moreno & A'rpi"
 
@@ -233,10 +233,10 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	      help_optstr();
 	  }
 
-	  optstr_get (options, "luma",           "%f",    &Param1);
-	  optstr_get (options, "luma_strenth",   "%f",    &Param3);
-	  optstr_get (options, "chroma",         "%f",    &Param2);
-	  optstr_get (options, "chroma_strength","%f",    &Param4);
+	  optstr_get (options, "luma",           "%lf",    &Param1);
+	  optstr_get (options, "luma_strength",  "%lf",    &Param3);
+	  optstr_get (options, "chroma",         "%lf",    &Param2);
+	  optstr_get (options, "chroma_strength","%lf",    &Param4);
 	  optstr_get (options, "pre", "%d",    &mfd[instance]->pre);
 
 	  // recalculate only the needed params
@@ -273,7 +273,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
       PrecalcCoefs(mfd[instance]->Coefs[3], ChromTmp);
 
       
-      if(verbose) printf("[%s] %s %s #%d\n", MOD_NAME, MOD_VERSION, MOD_CAP, instance);
+      if(verbose) {
+	  printf("[%s] %s %s #%d\n", MOD_NAME, MOD_VERSION, MOD_CAP, instance);
+	  printf("[%s] Settings luma=%.2f chroma=%.2f luma_strenth=%.2f chroma_strength=%.2f\n",
+		  MOD_NAME, LumSpac, ChromSpac, LumTmp, ChromTmp);
+      }
       return 0;
   }
 
