@@ -1,3 +1,10 @@
+2004-11-23 Jacob Meuser <jakemsr at jakemsr dot com>
+  * src/Makefile.am src/dl_loader.c src/dl_loader.h
+    src/frame_threads.h src/video_trans.c src/video_trans.h 
+  defining variables in shared include files is bad practice.
+  move definition to source files and leave an extern
+  declaration where needed.
+
 2004-11-21 Jacob Meuser <jakemsr at jakemsr dot com>
   * filter/subtitler/*
   defining variables in a shared header is bad ju-ju.
