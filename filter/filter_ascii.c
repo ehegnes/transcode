@@ -23,7 +23,7 @@
  */
 
 #define MOD_NAME    		"filter_ascii.so"
-#define MOD_VERSION 		"v0.4 (2004-11-01)"
+#define MOD_VERSION 		"v0.5 (2004-12-08)"
 #define MOD_CAP     		"Colored ascii-art filter plugin; render a movie into ascii-art."
 #define MAX_LENGTH 			1024
 #define TMP_FILE			"raw"
@@ -45,6 +45,7 @@
 #endif
 
 #include "transcode.h"
+#include "tc_defaults.h"
 #include "framebuffer.h"
 #include "filter.h"
 /* RGB2YUV features */
@@ -219,9 +220,10 @@ int init_slots(int slots[]){
 
 int find_empty_slot(int frame_id, int *slots){
 	int i = 0;
-	while(slots[i]!=0)
+	while((slots[i]!=0)&&(i<TC_FRAME_THREADS_MAX))
 		i++;
-	slots[i] = frame_id;
+	if (i<TC_FRAME_THREADS_MAX)
+		slots[i] = frame_id;
 	if (verbose & TC_DEBUG)
 		tc_info("[%s] Found empty slot %d for frame %d.\n", MOD_NAME, i, frame_id);
 	return i;
@@ -229,9 +231,17 @@ int find_empty_slot(int frame_id, int *slots){
 
 int free_slot(int frame_id, int *slots){
 	int i = 0;
-	while (slots[i]!=frame_id)
+	while ((slots[i]!=frame_id)&&(i<TC_FRAME_THREADS_MAX))
 		i++;
-	slots[i] = 0;
+	/*
+	 * TODO:
+	 * Provide a pthread_mutex lock system.
+	 * Right now, 2 threads might be able to write 
+	 * in the same slot (case never encountered so far),
+	 * which would cause issues at free step.
+	 */
+	if (i<TC_FRAME_THREADS_MAX)
+		slots[i] = 0;
 	if (verbose & TC_DEBUG)
 		tc_info("[%s] Slot %d correctly free.\n", MOD_NAME, i);
 	return 0;
@@ -245,7 +255,7 @@ int tc_filter(vframe_list_t *ptr, char *options){
   
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
 
-	optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Julien Tierny", "VRYMEO", "1");
+	optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Julien Tierny", "VRYMO", "1");
     optstr_param (options, "font", "Valid PSF font file (provided with the `aart` package)", "%s", "default8x9.psf");
 	optstr_param (options, "pallete", "Valid pallete file (provided with the `aart` package)", "%s", "colors.pal");
 	optstr_param(options, "threads", "Use multiple-threaded routine for picture rendering", "%d", "0", "1", "oo");

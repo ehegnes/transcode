@@ -1,3 +1,8 @@
+2004-12-12 Julien Tierny <julien.tierny at wanadoo dot fr>
+  * filter/filter_ascii.c:
+  Fix segfault observed in multi-threaded mode (mistake in 'slot' 
+  manipulation).
+
 2004-12-04 Jacob Meuser <jakemsr at jakemsr dot com>
   * src/audio_trans.c
   Fix audio conversion from 8 to 16 bit.  16 is twice 8, not half.
