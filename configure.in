@@ -953,6 +953,7 @@ dnl
 A52_EXTRA_LIBS="$A52_EXTRA_LIBS -lm"
 TC_PATH_PKG(a52, no, A52, a52, no,
   [a52dec/a52.h], a52, a52_init)
+enable_a52_default_decoder="no"
 if test x"$have_a52" = x"yes" ; then
   AC_DEFINE([HAVE_A52], 1, [have a52 support])
   # whether to use liba52 as the default decoder 
@@ -965,7 +966,7 @@ if test x"$have_a52" = x"yes" ; then
       no)  ;;
       *) AC_MSG_ERROR(bad value ${enableval} for --enable-a52-default-decoder) ;;
     esac],
-    [enable_a52_default_decoder=no])
+    [enable_a52_default_decoder="no"])
   AC_MSG_RESULT($enable_a52_default_decoder)
   if test x"${enable_a52_default_decoder}" = x"yes"; then
     AC_DEFINE([USE_LIBA52_DECODER], 1,
