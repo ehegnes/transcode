@@ -276,6 +276,10 @@ MOD_init
 	    settings->input_clock        = 30000;
 	    settings->input_frame_period = 1000;
 	    break;
+	case 0: // notset
+	    settings->input_clock        = (int)vob->fps*1000;
+	    settings->input_frame_period = 1000;
+	    break;
 	default:
 	    tc_warn("unknown/unset export frame rate code -- exiting");
 	    return (TC_EXPORT_ERROR);
