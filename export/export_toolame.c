@@ -33,7 +33,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "export_toolame.so"
-#define MOD_VERSION "v1.0.5 (2003-02-06)"
+#define MOD_VERSION "v1.0.6 (2004-01-26)"
 #define MOD_CODEC   "(audio) MPEG 1/2"
 
 #define MOD_PRE toolame
@@ -101,7 +101,7 @@ MOD_open
     /* need conversion? */
     if(ofreq!=ifreq) {
       /* add sox for conversion */
-      sprintf(buf,"sox %s -r %d -c %d -t raw - -r %d -t wav - polyphase "
+      sprintf(buf,"sox %s -r %d -c %d -t raw - -r %d -t raw - polyphase "
 	      "2>/dev/null | ",
 	      (vob->dm_bits==16)?"-w -s":"-b -u", 
 	      ifreq, ochan, ofreq);

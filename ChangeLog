@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-25 Dmitry Kasatkin <dmitry.kasatkin at nokia.com>
+
+  * export/export_toolame.c:
+  Let the sox command do not write a WAVE header since it causes a
+  click.
+
 2004-01-25 Tilmann Bitterberg <transcode at tibit.org>
 
    * filter/subtitler/*:
