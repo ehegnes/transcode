@@ -237,6 +237,13 @@ MOD_open
   
   if(param->flag == TC_AUDIO) {
     
+      /*
+    if (!encoder) {
+      tc_warning("[export_dvraw] -y XXX,dvraw is not possible without the video");
+      tc_warning("[export_dvraw] export module also being dvraw");
+      return (TC_EXPORT_ERROR);
+    }
+    */
     chans = (vob->dm_chan != vob->a_chan) ? vob->dm_chan : vob->a_chan;
     //re-sampling only with -J resample possible
     rate = vob->a_rate;
