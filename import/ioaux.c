@@ -239,14 +239,9 @@ int probe_path(char *name)
       /* treat DVD device as absolute directory path */
       if (S_ISBLK(fbuf.st_mode))
 	   return(TC_PROBE_PATH_ABSPATH);
-#ifdef SYS_BSD
-# if !defined(__OpenBSD__) && !defined(__FreeBSD__)
-      if (S_ISCHR(fbuf.st_mode))
-	   return(TC_PROBE_PATH_ABSPATH);
-# endif
-#endif
 
-      /* char device? v4l? bktr? sunau? */
+      /* char device could be several things, depending on system */
+      /* *BSD DVD device? v4l? bktr? sunau? */
       if(S_ISCHR(fbuf.st_mode)) {
 	  switch (major(fbuf.st_rdev)) {
 #ifdef SYS_BSD
@@ -264,14 +259,16 @@ int probe_path(char *name)
               case 229: /* bktr */
                   return(TC_PROBE_PATH_BKTR);
 # endif
+              default: /* libdvdread uses "raw" disk devices here */
+                  return(TC_PROBE_PATH_ABSPATH);
 #else
 	      case 81: /* v4l (Linux) */
                   return(TC_PROBE_PATH_V4L_VIDEO);
 	      case 14: /* dsp (Linux) */
                   return(TC_PROBE_PATH_V4L_AUDIO);
-#endif
 	      default:
 		  break;
+#endif
 	  }
       }
 
