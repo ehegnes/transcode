@@ -74,21 +74,6 @@ if test x"$is_osx" = x"true" ; then
 fi
 AC_DISABLE_STATIC
 
-# Checks for support lib
-enable_supportlib=no
-AC_CHECK_FUNCS(getopt_long_only,[],
-  [enable_supportlib="yes" 
-    SUPPORT_OBJECTS="$SUPPORT_OBJECTS getopt.o getopt1.o"])
-AC_MSG_CHECKING([whether support lib is needed])
-AC_MSG_RESULT($enable_supportlib)
-if test x"$enable_supportlib" = x"yes" ; then
-  SUPPORT_LIBS="\$(top_builddir)/libsupport/libsupport.a" 
-  SUPPORT_INCLUDES="-I\$(top_srcdir)/libsupport"
-  AC_SUBST(SUPPORT_OBJECTS)
-  AC_SUBST(SUPPORT_LIBS)
-  AC_SUBST(SUPPORT_INCLUDES)
-fi
-
 if test x"$ac_cv_lib_dl_dlopen" = x"no" ; then
   case x${target_os} in
     xdarwin*)
@@ -131,11 +116,26 @@ AC_FUNC_STRCOLL
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS([strtol memalign ftruncate gettimeofday memset strerror])
 AC_CHECK_FUNCS([strncasecmp stat floor atexit getpagesize memmove mkfifo])
-AC_CHECK_FUNCS([vsscanf strptime alloca])
+AC_CHECK_FUNCS([vsscanf strptime alloca strlcat strlcpy])
 
 AC_CHECK_LIB(m, lrint,
   AC_DEFINE([HAVE_LIBM_LRINT], 1,
     [Define if the lrint() function is in libm on your system]))
+
+# Checks if support lib is needed
+enable_supportlib="no"
+AC_CHECK_FUNCS(getopt_long_only, [], [enable_supportlib="yes"
+    SUPPORT_OBJECTS="$SUPPORT_OBJECTS getopt.o getopt1.o"])
+AC_MSG_CHECKING([whether support lib is needed])
+AC_MSG_RESULT($enable_supportlib)
+if test x"$enable_supportlib" = x"yes" ; then
+  SUPPORT_LIBS="\$(top_builddir)/libsupport/libsupport.a" 
+  SUPPORT_INCLUDES="-I\$(top_srcdir)/libsupport"
+  AC_SUBST(SUPPORT_OBJECTS)
+  AC_SUBST(SUPPORT_LIBS)
+  AC_SUBST(SUPPORT_INCLUDES)
+fi
+
 
 case "$host_os" in
   freebsd*|openbsd*|netbsd*|bsdi*|darwin*|rhapsody*)

@@ -24,6 +24,10 @@
 #ifndef _TC_FUNCTIONS_H
 #define _TC_FUNCTIONS_H 
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 void tc_error(char *fmt, ...);
 void tc_info(char *fmt, ...);
 void tc_warn(char *fmt, ...);
@@ -45,5 +49,18 @@ int tc_test_program(char *name);
  */
 
 int tc_test_string(char *file, int line, int limit, int ret, int errnum);
+
+/*
+ * Safe string functions from OpenBSD, since these are not in all
+ * libc implementations.
+ */
+
+#ifndef HAVE_STRLCPY
+size_t strlcpy(char *dst, const char *src, size_t size);
+#endif
+
+#ifndef HAVE_STRLCAT
+size_t strlcat(char *dst, const char *src, size_t size);
+#endif
 
 #endif

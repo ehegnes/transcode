@@ -1,3 +1,10 @@
+2005-03-15 Jacob Meuser <jakemsr at jakemsr dot com>
+  * configure.in src/tc_functions.c src/tc_functions.h
+  Move the test for getopt_long_only out of the middle of the OSX
+  section, as this may be needed on other platforms as well.
+  Add strlcpy and strlcat from Todd Miller to tc_functions if
+  they are not found on the system.
+
 2005-03-15 Andrew Church <achurch at achurch dot org>
   * aclib/tcmemcpy.c
   - ac_memcpy_amd64(): Copy forward rather than backward, which seems
