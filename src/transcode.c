@@ -2015,7 +2015,7 @@ int main(int argc, char *argv[]) {
     // get -c from string
     if (fc_ttime_string) {
       if( parse_fc_time_string( fc_ttime_string, vob->fps, 
-	    fc_ttime_separator, 0 /* no debug */, &vob->ttime ) == -1 )
+	    fc_ttime_separator, (verbose>1?1:0), &vob->ttime ) == -1 )
 	usage(EXIT_FAILURE);
 
       frame_a = vob->ttime->stf;
@@ -2737,7 +2737,7 @@ int main(int argc, char *argv[]) {
     // -s
 
     if(vob->volume > 0 && vob->a_chan != 2) {
-      tc_error("option -s not yet implemented for mono streams");
+      //tc_error("option -s not yet implemented for mono streams");
     }
 
     if(vob->volume > 0 && (verbose & TC_INFO)) printf("[%s] A: %-16s | %5.3f\n", PACKAGE, "rescale stream", vob->volume);
@@ -3125,6 +3125,9 @@ int main(int argc, char *argv[]) {
        *
        * --------------------------------------------------------------*/  
       
+      // 1 sec delay after decoder closing
+      tc_decoder_delay=1;
+
       if(strncmp(vob->video_in_file, "/dev/zero", 9)==0) dir_audio=1;
       
       dir_name = (dir_audio) ? vob->audio_in_file : vob->video_in_file;
@@ -3261,7 +3264,7 @@ int main(int argc, char *argv[]) {
 	import_threads_cancel(); 
 
 	// stop decoder and close the source     
-	import_close(vob);
+	import_close();
 	
 	// flush all buffers before we proceed to next file
 	aframe_flush();
