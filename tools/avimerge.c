@@ -801,7 +801,7 @@ merge_mp3:
   len = fread(head, 1, 8, f);
   format_add  = tc_probe_audio_header(head, len);
   headlen = tc_get_audio_header(head, len, format_add, &chan_i, &rate_i, &mp3rate_i);
-  fprintf(stderr, "format(%x) headlen(%d)\n", format_add, headlen);
+  fprintf(stderr, "... this looks like a %s track ...\n", (format_add==0x55)?"MP3":"AC3");
 
   fseek(f, 0L, SEEK_SET);
 
