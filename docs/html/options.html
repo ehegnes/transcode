@@ -91,7 +91,8 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 --pre_clip t[,l[,b[,r]]]&nbsp;&nbsp;&nbsp;&nbsp;  select initial frame region by clipping border [off]<br>
 --post_clip t[,l[,b[,r]]] &nbsp;&nbsp;&nbsp;&nbsp;select final frame region by clipping border [off]<br><br>
 
- -w b[,k[,c]]    &nbsp;&nbsp;&nbsp;&nbsp;      encoder bitrate[,keyframes[,crispness]] [1800,250,100]<br>
+ -w b[,k[,c]]    &nbsp;&nbsp;&nbsp;&nbsp;      encoder bitrate[,keyframes[,crispness]] [(6000 for MPEG 1/2, 1800 for others),250,100]<br>
+ --video_max_bitrate  &nbsp;&nbsp;&nbsp;&nbsp; maximum bitrate when encoding variable bitrate MPEG-2 streams<br>
  -R n[,f1[,f2]] &nbsp;&nbsp;&nbsp;&nbsp;       enable multi-pass encoding (0-3) [0,divx4.log,pcm.log]<br>
  -Q n[,m]    &nbsp;&nbsp;&nbsp;&nbsp;          encoding[,decoding] quality (0=fastest-5=best) [5,5]<br>
  --divx_quant min,max &nbsp;&nbsp;&nbsp;&nbsp; divx encoder min/max quantizer [2,31]<br>

@@ -568,6 +568,12 @@ dnl
 AM_PATH_VORBIS(AC_DEFINE([HAVE_VORBIS], 1, [Have Vorbis support]))
 AM_CONDITIONAL(HAVE_VORBIS, test x"$have_vorbis" = "xyes")
 
+dnl
+dnl vorbis support
+dnl
+
+AM_PATH_THEORA(AC_DEFINE([HAVE_THEORA], 1, [Have Theora support]))
+AM_CONDITIONAL(HAVE_THEORA, test x"$have_theora" = "xyes")
 
 dnl
 dnl libdvdread support
@@ -959,7 +965,7 @@ link against local lame library (>=3.89) | ver   $lame89 | $lame_version
 nasm dependent modules (bbmpeg)                  $nasm
 mjpegtools dependent modules                     $MJPEGTOOLSCONFIG
 libdv dependent modules			         $have_dv
-Ogg support | Vorbis support                     $have_ogg | $have_vorbis
+Ogg support | Vorbis support | Theora support    $have_ogg | $have_vorbis | $have_theora
 XVID support with libxvidcore                    $have_xvidcore
 liba52 audio plugin (>=0.7.3) | default decoder  $have_a52 | $a52_decoder
 avifile API support                              $have_avifile

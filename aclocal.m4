@@ -392,6 +392,59 @@ AC_SUBST(VORBIS_CFLAGS)
 AC_SUBST(VORBIS_LIBS)
 ])
 
+dnl AM_PATH_THEORA([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
+dnl Test for libtheora, and define THEORA_CFLAGS and THEORA_LIBS
+dnl
+AC_DEFUN(AM_PATH_THEORA,
+[dnl 
+dnl Get the cflags and libraries
+dnl
+AC_ARG_WITH(theora,AC_HELP_STRING([--with-theora],[Compile in libtheora support]),[case "${withval}" in
+  yes) ;;
+  no)  ;;
+  *) AC_MSG_ERROR(bad value ${withval} for --with-theora) ;;
+esac], with_theora=yes)
+
+AC_ARG_WITH(theora-includes,AC_HELP_STRING([--with-theora-includes=PFX],[prefix where local theora includes are installed (optional)]),
+	  theora_includes="$withval",theora_includes="")
+
+AC_ARG_WITH(theora-libs,AC_HELP_STRING([--with-theora-libs=PFX],[prefix where local theora libs are installed (optional)]),
+	  theora_libs="$withval",theora_libs="")
+
+THEORA_LIBS=""
+THEORA_CFLAGS=""
+
+have_theora=no
+
+if test x$with_theora = "x"yes ; then
+	if test x$theora_includes != "x" ; then
+	    with_theora_i="$theora_includes/include"
+        else
+	    with_theora_i="/usr/include"
+        fi
+
+        if test x$theora_libs != x ; then
+	    with_theora_l="$theora_libs/lib"	
+        else
+	    with_theora_l="/usr/lib"
+        fi
+
+	AC_CHECK_LIB(theora, theora_version_number,
+       	[THEORA_CFLAGS="-I$with_theora_i -I/usr/local/include" 
+         THEORA_LIBS="-L$with_theora_l -ltheora -lm"
+       	AC_DEFINE(HAVE_THEORA) 
+	hav_theora=yes
+	have_theora=yes], [have_theora=no], 
+       	-L$with_theora_l -ltheora)
+fi   
+AC_CHECK_FILE($with_theora_i/theora/codec.h, [theora_inc=yes])
+if test x"$theora_inc" != xyes; then 
+AC_CHECK_FILE(/usr/local/include/theora/codec.h, [theora_inc=yes])
+fi
+AC_SUBST(THEORA_CFLAGS)
+AC_SUBST(THEORA_LIBS)
+])
+
 dnl AM_PATH_LIBDVDREAD([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for LIBDVDREAD, and define LIBDVDREAD_CFLAGS and LIBDVDREAD_LIBS
 dnl
