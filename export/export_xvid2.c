@@ -131,7 +131,12 @@ static XVID_ENC_FRAME  global_frame;
 static vbr_control_t   vbr_state;
 
 /* XviD shared library name */
-#define XVID_SHARED_LIB_NAME "libxvidcore.so"
+#define XVID_SHARED_LIB_BASE "libxvidcore"
+#ifdef SYSTEM_DARWIN
+#define XVID_SHARED_LIB_SUFX "dylib"
+#else
+#define XVID_SHARED_LIB_SUFX "so"
+#endif
 #ifdef DEVELOPER_USE
 #define XVID_CONFIG_FILE "xvid2.cfg"
 #endif
@@ -655,10 +660,24 @@ static int xvid2_init(char *path)
 	
 
 	/* First we build all lib names we will try to load */
-	sprintf(modules[0], "%s/%s.%d", path, XVID_SHARED_LIB_NAME, API_VERSION>>16);
-	sprintf(modules[1], "%s.%d", XVID_SHARED_LIB_NAME, API_VERSION>>16);
-	sprintf(modules[2], "%s/%s", path, XVID_SHARED_LIB_NAME);
-	sprintf(modules[3], "%s", XVID_SHARED_LIB_NAME);
+#ifdef SYSTEM_DARWIN
+	sprintf(modules[0], "%s/%s.%d.%s", path, XVID_SHARED_LIB_BASE,
+		API_VERSION>>16, XVID_SHARED_LIB_SUFX);
+#else
+	sprintf(modules[0], "%s/%s.%s.%d", path, XVID_SHARED_LIB_BASE,
+		XVID_SHARED_LIB_SUFX, API_VERSION>>16);
+#endif
+#ifdef SYSTEM_DARWIN
+	sprintf(modules[1], "%s.%d.%s", XVID_SHARED_LIB_BASE,
+		API_VERSION>>16, XVID_SHARED_LIB_SUFX);
+#else
+	sprintf(modules[1], "%s.%s.%d", XVID_SHARED_LIB_BASE,
+		XVID_SHARED_LIB_SUFX, API_VERSION>>16);
+#endif
+	sprintf(modules[2], "%s/%s.%s", path, XVID_SHARED_LIB_BASE,
+		XVID_SHARED_LIB_SUFX);
+	sprintf(modules[3], "%s.%s", XVID_SHARED_LIB_BASE,
+		XVID_SHARED_LIB_SUFX);
 
 	for(i=0; i<4; i++) {
 		module = modules[i];
