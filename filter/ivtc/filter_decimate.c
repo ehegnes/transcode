@@ -25,23 +25,19 @@
 #define MOD_NAME    "filter_decimate.so"
 #define MOD_VERSION "v0.4 (2003-04-22)"
 #define MOD_CAP     "NTSC decimation plugin"
+#define MOD_AUTHOR  "Thanassis Tsiodras"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 /* -------------------------------------------------
  *
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-#include <unistd.h>
-#include <inttypes.h>
 
 #include "transcode.h"
 #include "framebuffer.h"

@@ -24,6 +24,7 @@
 #define MOD_NAME    "filter_testframe.so"
 #define MOD_VERSION "v0.1.3 (2003-09-04)"
 #define MOD_CAP     "generate stream of testframes"
+#define MOD_AUTHOR  "Thomas Oestreich"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,10 +36,6 @@
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "transcode.h"
 #include "framebuffer.h"
