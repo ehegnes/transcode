@@ -441,7 +441,12 @@ AC_MSG_RESULT($enable_bktr)
 have_bktr="no"
 if test x"$enable_bktr" = x"yes" ; then
   AC_CHECK_HEADERS([dev/ic/bt8xx.h], [have_bktr="yes"])
-  AC_CHECK_HEADERS([machine/ioctl_bt848.h], [have_bktr="yes"])
+  if text x"$have_bktr" = x"no" ; then
+    AC_CHECK_HEADERS([dev/bktr/ioctl_bt848.h], [have_bktr="yes"])
+  fi
+  if text x"$have_bktr" = x"no" ; then
+    AC_CHECK_HEADERS([machine/ioctl_bt848.h], [have_bktr="yes"])
+  fi
 
   if test x"$have_bktr" = x"yes" ; then
     have_bktr="yes"

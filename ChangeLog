@@ -1,3 +1,8 @@
+2004-12-15 Jacob Meuser <jakemsr at jakemsr dot com>
+  * acinclude.m4
+  Check for bktr headers id dev/bktr/ before machine/, since that is
+  the preferred location on newer FreeBSD releases.
+
 2004-12-12 Vadim Druzhin <vadim at bochvar dot ru>
   * filter/filter_unsharp.c
   filter_ensharp has a bug in aligned buffer allocation/deallocation.
