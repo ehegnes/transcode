@@ -38,11 +38,6 @@ if HAVE_LIBMPEG3
 MPEG3 = import_mpeg3.la
 endif
 
-if LAME_3_89
-MP123_MOD = import_mp3.la
-MP123_LIB = @LAME_LIBS@
-endif
-
 if HAVE_A52
 A52_MOD = a52_decore.la
 endif
@@ -88,7 +83,7 @@ pkg_LTLIBRARIES = \
 	import_sh.la \
 	import_divx.la \
 	$(A52_MOD) \
-	$(MP123_MOD) \
+	import_mp3.la \
 	$(DVD_MOD) \
 	$(MPEG3) \
 	$(IM_MOD) \

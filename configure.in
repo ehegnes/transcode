@@ -1,13 +1,13 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT(transcode,0.6.13-pre2-20040903)
+AC_INIT(transcode,0.6.13-pre2-20040905)
 AC_CONFIG_AUX_DIR(autotools)
 AC_CONFIG_SRCDIR(src/transcode.c)
 
 dnl Detect the canonical host and target build environment
 AC_CANONICAL_SYSTEM
 
-AM_INIT_AUTOMAKE(transcode,0.6.13-pre2-20040903)
+AM_INIT_AUTOMAKE(transcode,0.6.13-pre2-20040905)
 AM_CONFIG_HEADER(config.h)
   
 AM_MAINTAINER_MODE
@@ -849,7 +849,6 @@ dnl lame support
 dnl
 TC_PATH_LAME(AC_DEFINE_UNQUOTED([HAVE_LAME], $lame_version, [Have lame lib support]))
 AM_CONDITIONAL(HAVE_LAME, test x"$have_lame" = "xyes")
-AM_CONDITIONAL(LAME_3_89, test x"$lame89" = "xyes")
 
 dnl
 dnl ogg support
@@ -1196,7 +1195,6 @@ AC_OUTPUT([
            libac3/Makefile
            libvo/Makefile
            libmpeg2/Makefile
-           libmp3lame/Makefile
            libdvenc/Makefile
            bbmpeg/Makefile
            bbmpeg/tcmplex/Makefile
@@ -1232,11 +1230,6 @@ AC_OUTPUT([
            transcode.spec
           ])
 
-if test x${lame_version} = x1; then
-  lame_print="static"
-else
-  lame_print=$lame_version
-fi
 
 AC_MSG_RESULT([
 ----------------------------------------------------------
@@ -1245,7 +1238,6 @@ Summary for transcode $VERSION features:
 static AV-frame buffering                        $enable_statbuffer
 support for network (sockets) streams            $enable_netstream
 DVD navigation support with libdvdread           $have_dvdread
-link against local lame library (>=3.89) | ver   $lame89 | $lame_print
 experimental xio | support for IBP storage       $libxio | $have_ibp
 pvm3 support                                     $have_pvm3
 ffmpeg libs headers                              $with_ffmpeg_libs_i
@@ -1255,6 +1247,7 @@ ffmpeg libs version                              $FFMPEG_LIBS_VERSION
 ffmpeg libs statically linked                    $enable_ffmpeg_libs_static
 *-*-*-*-*-*-* Codec *-*-*-*-*-*-*
 nasm dependent modules                           $have_asm_nasm
+lame support (>=3.89) | ver                      $have_lame | $lame_version
 mjpegtools dependent modules                     $have_mjpegtools
 libdv dependent modules			         $have_dv
 Ogg support | Vorbis support | Theora support    $have_ogg | $have_vorbis | $have_theora

@@ -31,23 +31,15 @@ MODS7 = export_mpeg.la
 endif
 
 if HAVE_AVIFILE
-if HAVE_LAME
 MODS1 = export_af6.la
-endif
 endif 
 
 if HAVE_DV
-MODS5 = export_dvraw.la
-if HAVE_LAME
-MODS6 = export_dv.la 
-else
-MODS6 = 
-endif
+MODS5 = export_dvraw.la export_dv.la 
 else
 MODS5 = 
 endif
 
-if HAVE_LAME
 MODS2 = \
 	export_raw.la \
 	export_divx4.la \
@@ -57,9 +49,9 @@ MODS2 = \
 	export_ppm.la \
 	export_divx5.la \
 	export_ffmpeg.la \
-	export_lame.la \
 	export_pvn.la
-endif
+
+MODS6= export_lame.la
 
 if HAVE_LIBFAME
 MODS9 = export_fame.la 
@@ -70,12 +62,10 @@ MODS3 = export_mov.la
 endif
 
 if HAVE_MJPEG
-if HAVE_LAME
 MODS8 = \
 	export_yuv4mpeg.la \
 	export_mpeg2enc.la \
 	export_mp2enc.la
-endif
 endif
 
 if NET_STREAM
@@ -89,21 +79,14 @@ MODS10 = export_im.la
 endif
 
 if HAVE_LIBJPEG
-if HAVE_LAME
-MODS11 = export_mjpeg.la
-endif
-MODS12 = export_jpg.la
+MODS11 = export_mjpeg.la export_jpg.la
 endif
 
 if HAVE_LZO
-if HAVE_LAME
 MODS13 = export_lzo.la
 endif
-endif
 
-if HAVE_LAME
 MODS14 = export_xvid2.la export_xvid3.la export_xvid4.la
-endif
 
 if HAVE_PVM3
 MODS15 = export_pvm.la
@@ -129,7 +112,6 @@ pkg_LTLIBRARIES = \
 	$(MODS9) \
 	$(MODS10) \
 	$(MODS11) \
-	$(MODS12) \
 	$(MODS13) \
 	$(MODS14) \
 	$(MODS15)
@@ -178,7 +160,6 @@ export_fame_la_LIBADD = @LAME_LIBS@ @LIBFAME_LIBS@ @AC3_LIBS@ @FFMPEG_LIBS_LIBS@
 
 export_lame_la_SOURCES = export_lame.c
 export_lame_la_LDFLAGS =  -module -avoid-version
-export_lame_la_LIBADD = @LAME_LIBS@ -lm
 
 export_af6_la_SOURCES = export_af6.cpp af6_aux.cpp aud_aux.c
 export_af6_la_LDFLAGS =  -module -avoid-version

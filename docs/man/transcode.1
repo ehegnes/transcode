@@ -745,7 +745,8 @@ Lets you encode audio (raw PCM) to AC3 via the ffmpeg binary.
 .TP 4
 \fBaf6\fP \- (video) Win32 dll | (audio) MPEG/AC3/PCM
 .br
-At compile-time libavifile must be available.
+At compile-time libavifile must be available and avifile support must
+be enabled.
 At run-time libavifile and win32codecs must be present.
 Support for this module is good.
 .RS 8
@@ -754,8 +755,9 @@ Interface to the avifile library which allows the use of win32codec on the linux
 .TP 4
 \fBdebugppm\fP \- (video) debugPPM/PGM | (audio) MPEG/AC3/PCM
 .br
-At compile-time libmp3lame must be available.
-This module has no run-time dependencies.
+For MPEG audio encoding, libmp3lame must be available and lame support
+must be enabled at compile-time, and libmp3lame must be available at
+run-time.
 Support for this module is good.
 .RS 8
 Especially usefull when one want to try to find bugs in YUV mode. It encodes the three planes as seperate images. In RGB mode, the 3 color planes get encoded seperatly.
@@ -763,7 +765,9 @@ Especially usefull when one want to try to find bugs in YUV mode. It encodes the
 .TP 4
 \fBdivx4\fP \- (video) DivX 4.xx | (audio) MPEG/AC3/PCM
 .br
-At compile-time libmp3lame must be available.
+For MPEG audio encoding, libmp3lame must be available and lame support
+must be enabled at compile-time, and libmp3lame must be available at
+run-time.
 At run-time divx4linux (old) and libdivxencore.so must be present.
 Support for this module is fair.
 .RS 8
@@ -772,7 +776,9 @@ Encodes MPEG4 video using the closed-source binaries from divx.com to an AVI con
 .TP 4
 \fBdivx4raw\fP \- (video) DivX 4.xx (ES) | (audio) MPEG/AC3/PCM
 .br
-At compile-time libmp3lame must be available.
+For MPEG audio encoding, libmp3lame must be available and lame support
+must be enabled at compile-time, and libmp3lame must be available at
+run-time.
 At run-time divx4linux (old) and libdivxencore.so must be present.
 Support for this module is fair.
 .RS 8
@@ -781,7 +787,9 @@ Encodes MPEG4 video using the closed-source binaries from divx.com into no file 
 .TP 4
 \fBdivx5\fP \- (video) DivX 5.xx | (audio) MPEG/AC3/PCM
 .br
-At compile-time libmp3lame must be available.
+For MPEG audio encoding, libmp3lame must be available and lame support
+must be enabled at compile-time, and libmp3lame must be available at
+run-time.
 At run-time divx4linux (new) and libdivxencore.so must be present.
 Support for this module is good.
 .RS 8
@@ -790,7 +798,9 @@ Encodes MPEG4 video using the closed-source binaries from divx.com to an AVI con
 .TP 4
 \fBdivx5raw\fP \- (video) DivX 5.xx (ES) | (audio) MPEG/AC3/PCM
 .br
-At compile-time libmp3lame must be available.
+For MPEG audio encoding, libmp3lame must be available and lame support
+must be enabled at compile-time, and libmp3lame must be available at
+run-time.
 At run-time divx4linux (new) and libdivxencore.so must be present.
 Support for this module is fair.
 .RS 8
@@ -799,8 +809,12 @@ Encodes MPEG4 video using the closed-source binaries from divx.com into no file 
 .TP 4
 \fBdv\fP \- (video) Digital Video | (audio) MPEG/AC3/PCM
 .br
-At compile-time libdv and libmp3lame must be available.
+At compile-time libdv must be available and libdv support must be
+enabled.
 At run-time libdv must be present.
+For MPEG audio encoding, libmp3lame must be available and lame support
+must be enabled at compile-time, and libmp3lame must be available at
+run-time.
 Support for this module is good.
 .RS 8
 Encodes DV into an AVI container. DV is a codec developed by Sony and is often used in digital camcorders.
@@ -808,7 +822,7 @@ Encodes DV into an AVI container. DV is a codec developed by Sony and is often u
 .TP 4
 \fBdvraw\fP \- (video) Digital Video | (audio) PCM
 .br
-At compile-time libdv must be available.
+At compile-time libdv must be available and libdv support must be enabled.
 At run-time libdv must be present.
 Support for this module is good.
 .RS 8
@@ -817,7 +831,8 @@ Encodes DV into a DV file. DV is a codec developed by Sony and is often used in 
 .TP 4
 \fBfame\fP \- (video) MPEG-4 | (audio) MPEG/AC3/PCM
 .br
-At compile-time libfame must be available.
+At compile-time libfame must be available and libfame support must be
+enabled.
 This module has no run-time dependencies.
 Support for this module is poor.
 .RS 8
@@ -826,7 +841,9 @@ Fame is yet another MPEG4 encoder. It encodes to a raw file.
 .TP 4
 \fBffmpeg\fP \- (video) * | (audio) MPEG/AC3/PCM
 .br
-At compile-time libmp3lame must be available.
+For MPEG audio encoding, libmp3lame must be available and lame support
+must be enabled at compile-time, and libmp3lame must be available at
+run-time.
 This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
@@ -835,7 +852,8 @@ Encodes many different formats to both AVI and raw. Supported are mpeg1video, mp
 .TP 4
 \fBim\fP \- (video) * | (audio) MPEG/AC3/PCM
 .br
-At compile-time libImageMagick must be available.
+At compile-time libImageMagick must be available and ImageMagick support
+must be enabled.
 This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
@@ -844,7 +862,8 @@ Encodes image sequences by using the ImageMagick library. ImageMagick is able to
 .TP 4
 \fBjpg\fP \- (video) * | (audio) MPEG/AC3/PCM
 .br
-At compile-time libjpeg must be available.
+At compile-time libjpeg or libjpegmmx must be available and libjpeg
+support must be enabled.
 This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
@@ -853,7 +872,7 @@ Encodes jpg image sequences using libjpeg. Faster than ImageMagick. Use -F to se
 .TP 4
 \fBlame\fP \- (audio) MPEG 1/2
 .br
-At compile-time libmp3lame must be available.
+This module has no compile-time dependencies.
 At run-time lame and sox must be present.
 Support for this module is good.
 .RS 8
@@ -862,8 +881,12 @@ An audio-only encoder which drives the lame binary. The tool sox is used to do r
 .TP 4
 \fBlzo\fP \- (video) LZO real-time compression | (audio) MPEG/AC3/PCM
 .br
-At compile-time liblzo and libmp3lame must be available.
-This module has no run-time dependencies.
+At compile-time liblzo must be available and lzo support must be enabled.
+For MPEG audio encoding, libmp3lame must be available and lame support
+must be enabled at compile-time, and libmp3lame must be available at
+run-time.
+This module has no run-time dependencies except libmp3lame for MPEG audio
+encoding.
 Support for this module is good.
 .RS 8
 Encodes video using a loss-less real-time LZO codec. This codec is a homegrown invention of transcode and is intended as an intermediate storage format. MPlayer can playback LZO-based AVI files as well.
@@ -871,8 +894,11 @@ Encodes video using a loss-less real-time LZO codec. This codec is a homegrown i
 .TP 4
 \fBmjpeg\fP \- (video) Motion JPEG | (audio) MPEG/AC3/PCM
 .br
-At compile-time libmp3lame and libjpeg must be available.
-This module has no run-time dependencies.
+For MPEG audio encoding, libmp3lame must be available and lame support
+must be enabled at compile-time, and libmp3lame must be available at
+run-time.
+This module has no run-time dependencies except libmp3lame for MPEG audio
+encoding.
 Support for this module is poor.
 .RS 8
 Encodes MJPEG based AVI files using a homegrown algorithm based on libjpeg. Using ffmpeg -F mjpeg for this task is a good idea.
@@ -880,7 +906,8 @@ Encodes MJPEG based AVI files using a homegrown algorithm based on libjpeg. Usin
 .TP 4
 \fBmov\fP \- (video) * | (audio) *
 .br
-At compile-time libquicktime must be available.
+At compile-time libquicktime must be available and libquicktime support
+must be enabled.
 At run-time libquicktime must be present.
 Support for this module is fair.
 .RS 8
@@ -898,7 +925,8 @@ Drives the mp1e binary and writes an mpeg1 file to disc. It can also encode vcd 
 .TP 4
 \fBmp2enc\fP \- (audio) MPEG 1/2
 .br
-At compile-time mjpegtools must be available.
+At compile-time mjpegtools must be available and mjpegtools support must
+be enabled.
 At run-time mp2enc must be present.
 Support for this module is good.
 .RS 8
@@ -916,7 +944,8 @@ Interface to the bbmpeg library (included in transcode). It can encode generic m
 .TP 4
 \fBmpeg2enc\fP \- (video) MPEG 1/2
 .br
-At compile-time mjpegtools must be available.
+At compile-time mjpegtools must be available and mjpegtools support must
+be enabled.
 At run-time mpeg2enc must be present.
 Support for this module is good.
 .RS 8
@@ -925,7 +954,8 @@ Drives the mpeg2enc binary. mpeg2enc is a very feature rich MPEG encoder, have a
 .TP 4
 \fBnet\fP \- (video) RGB/YUV | (audio) PCM/AC3
 .br
-At compile-time net-support must be available.
+At compile-time net-support must be available and net support must be
+enabled.
 This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
@@ -970,7 +1000,8 @@ Writes an image sequence of PGM or PPM files. PPM is an old format and there are
 .TP 4
 \fBpvm\fP \- (video) * | (audio) *
 .br
-At compile-time libpvm3 must be available.
+At compile-time libpvm3 must be available and pvm3 support must be
+enabled.
 At run-time pvm must be present.
 Support for this module is good.
 .RS 8
@@ -1006,7 +1037,9 @@ Creates WAVE PCM files with interleaved audio for stereo.
 .TP 4
 \fBxvid2\fP \- (video) XviD 0.9.x (aka API 2.1 series)  | (audio) MPEG/AC3/PCM
 .br
-At compile-time libmp3lame must be available.
+For MPEG audio encoding, libmp3lame must be available and lame support
+must be enabled at compile-time, and libmp3lame must be available at
+run-time.
 At run-time libxvidencore.so.2 must be present.
 Support for this module is good.
 .RS 8
@@ -1015,7 +1048,9 @@ Encodes MPEG4 video using the library available form xvid.org. Check out the lib
 .TP 4
 \fBxvid3\fP \- (video) XviD nonumber series (aka API 3.0)  | (audio) MPEG/AC3/PCM
 .br
-At compile-time libmp3lame must be available.
+For MPEG audio encoding, libmp3lame must be available and lame support
+must be enabled at compile-time, and libmp3lame must be available at
+run-time.
 At run-time libxvidcore.so.3 must be present.
 Support for this module is good.
 .RS 8
@@ -1024,7 +1059,9 @@ Encodes MPEG4 video using the library available form xvid.org. Check out the lib
 .TP 4
 \fBxvid4\fP \- (video) XviD 1.0.x series (aka API 4.0) | (audio) MPEG/AC3/PCM
 .br
-At compile-time libmp3lame must be available.
+For MPEG audio encoding, libmp3lame must be available and lame support
+must be enabled at compile-time, and libmp3lame must be available at
+run-time.
 At run-time libxvidcore.so.4 must be present.
 Support for this module is good.
 .RS 8
@@ -1033,7 +1070,8 @@ Encodes MPEG4 video using the library available form xvid.org. Check out the lib
 .TP 4
 \fByuv4mpeg\fP \- (video) YUV4MPEG2 | (audio) MPEG/AC3/PCM
 .br
-At compile-time mjpegtools must be available.
+At compile-time mjpegtools must be available and mjpegtools support must
+be enabled.
 This module has no run-time dependencies.
 Support for this module is good.
 .RS 8

@@ -33,7 +33,7 @@
 #include "transcode.h"
 #include "ioaux.h"
 
-#ifdef LAME_3_89
+#ifdef HAVE_LAME
 #include "mpg123.h"
 #endif
 
@@ -41,7 +41,6 @@
 short buffer[MP3_PCM_SIZE<<2];
 short ch1[MP3_PCM_SIZE], ch2[MP3_PCM_SIZE];
 
-static int verbose;
 
 /* why there are decode_mp3 and decode_mp2 which are very similar?
  * It is possible that lame_decode_initfile() when looking for an MP3 syncbyte
@@ -58,11 +57,12 @@ static int verbose;
 
 void decode_mp3(decode_t *decode)
 {
-  
-#ifdef LAME_3_89
- 
+
+#ifdef HAVE_LAME
+
   int samples=0, j, bytes, channels=0, i, padding=0, c;
-  
+  int verbose;
+
   mp3data_struct *mp3data;
   
   FILE *in_file;
@@ -135,20 +135,21 @@ void decode_mp3(decode_t *decode)
   }
 
   import_exit(0);
-  
-#endif
 
-  fprintf(stderr, "(%s) no support for MP123 decoding configured - exit.\n", __FILE__);
+#else  // HAVE_LAME
+  fprintf(stderr, "(%s) no lame support available\n", __FILE__);
   import_exit(1);
+#endif
   
 }
 
 void decode_mp2(decode_t *decode)
 {
   
-#ifdef LAME_3_89
- 
+#ifdef HAVE_LAME
+
   int samples=0, j, bytes, channels=0, i;
+  int verbose;
   
   mp3data_struct *mp3data;
   
@@ -206,10 +207,12 @@ void decode_mp2(decode_t *decode)
   }
 
   import_exit(0);
-  
+
+#else  // HAVE_LAME
+  fprintf(stderr, "(%s) no lame support available\n", __FILE__);
+  import_exit(1);
 #endif
 
-  fprintf(stderr, "(%s) no support for MP123 decoding configured - exit.\n", __FILE__);
-  import_exit(1);
 }
   
+

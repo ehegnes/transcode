@@ -470,7 +470,7 @@ dnl Test for LAME, and define LAME_CFLAGS and LAME_LIBS
 dnl
 AC_DEFUN([TC_PATH_LAME],
 [
-AC_MSG_CHECKING([whether local lame support is requested])
+AC_MSG_CHECKING([whether lame support is requested])
 AC_ARG_ENABLE(lame,
   AC_HELP_STRING([--enable-lame],
     [use installed lame library (enabled)]),
@@ -493,9 +493,8 @@ AC_ARG_WITH(lame-libs,
   lame_libs="$withval", lame_libs="")
 
 LAME_EXTRA_LIBS="-lm"
-lame89=no
 have_lame=no
-lame_version=1
+lame_version=0
 
 if test x$enable_lame = xyes ; then
 
@@ -526,11 +525,19 @@ if test x$enable_lame = xyes ; then
   fi
   CPPFLAGS="$save_CPPFLAGS"
 
+  save_LDFLAGS="$LDFLAGS"
+  LDFLAGS="$LDFLAGS -L$with_lame_l"
+  AC_CHECK_LIB(mp3lame, lame_init,
+    [LAME_LIBS="-L$with_lame_l -lmp3lame $LAME_EXTRA_LIBS"],
+    [AC_MSG_ERROR([lame requested, but cannot link against libmp3lame])],
+    [$LAME_EXTRA_LIBS])
+  LDFLAGS="$save_LDFLAGS"
+
   AC_MSG_CHECKING([lame version])
   ac_save_CFLAGS="$CFLAGS"
   ac_save_LIBS="$LIBS"
-  CFLAGS="$CFLAGS -I$with_lame_i"
-  LIBS="-L$with_lame_l -lmp3lame $LAME_EXTRA_LIBS $LIBS"
+  CFLAGS="$CFLAGS $LAME_CFLAGS"
+  LIBS="$LIBS $LAME_LIBS"
   AC_TRY_RUN([
 #include <stdio.h>
 
@@ -549,41 +556,25 @@ int main () {
 }
 ],
     [lame_version="`./conftest$ac_exeext`"],
-    [],
+    [AC_MSG_ERROR([lame requested, but cannot compile and run a test program])],,
     [echo $ac_n "cross compiling; assumed OK... $ac_c"])
   CFLAGS="$ac_save_CFLAGS"
   LIBS="$ac_save_LIBS"
 
-  dnl define HAVE_LAME to version number
-  dnl is this missing a check for lame_version >= 3.89 ?
-  save_LDFLAGS="$LDFLAGS"
-  LDFLAGS="$LDFLAGS -L$with_lame_l"
-  AC_CHECK_LIB(mp3lame, lame_init,
-    [LAME_LIBS="-L$with_lame_l -lmp3lame $LAME_EXTRA_LIBS"
-      AC_DEFINE([LAME_3_89], [1], [Have Lame-3.89 or newer])
-      lame89=yes],
-    [AC_MSG_ERROR([lame requested, but cannot link against libmp3lame])],
-    [$LAME_EXTRA_LIBS])
-  LDFLAGS="$save_LDFLAGS"
-
-  have_lame=yes
-
+  if test $lame_version -lt 389 ; then
+    LAME_LIBS=""
+    LAME_CFLAGS=""
+    ifelse([$2], , :, [$2])
+    AC_MSG_ERROR([lame requested, but lame version < 3.89])
+  else
+    have_lame=yes
+    ifelse([$1], , :, [$1])
+  fi
 else
   LAME_LIBS=""
   LAME_CFLAGS=""
-  LAME_3_89=""
+  ifelse([$2], , :, [$2])
 fi
-
-if test x"$have_lame" != "xyes"; then
-  dnl use included lib
-  AC_CHECK_FILE(./libmp3lame/lame.h,
-    [LAME_CFLAGS="-I\$(top_srcdir)/libmp3lame" 
-      LAME_LIBS="\$(top_builddir/libmp3lame/libmp3.la"])
-
-  have_lame=yes
-fi
-ifelse([$1], , :, [$1])
-AC_SUBST(LAME_3_89)
 AC_SUBST(LAME_CFLAGS)
 AC_SUBST(LAME_LIBS)
 ])

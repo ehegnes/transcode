@@ -33,7 +33,7 @@
 #include "transcode.h"
 #include "ioaux.h"
 
-#ifdef LAME_3_89
+#ifdef HAVE_LAME
 #include "mpg123.h"
 
 #define         MAX_U_32_NUM            0xFFFFFFFF
@@ -363,14 +363,13 @@ void probe_mp3(info_t *ipipe)
     return;
 }
 
-#else
+#else  // HAVE_LAME
 
 void probe_mp3(info_t *ipipe) {
 
-    fprintf(stderr, "(%s) no support for MPEG audio decoding configured - exit.\n", __FILE__);
-    
+    fprintf(stderr, "(%s) no lame support available\n", __FILE__);
     return;
+
 }
 
 #endif
-

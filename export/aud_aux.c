@@ -75,24 +75,29 @@ static int            mpa_bytes_ps, mpa_bytes_pf;
 
 static int verbose=TC_DEBUG;
 #define IS_AUDIO_MONO	(avi_aud_chan == 1)
-#ifdef LAME_3_89
+#ifdef HAVE_LAME
 #define IS_VBR		(lame_get_VBR(lgf) != vbr_off)
-#else
-#define IS_VBR          0
 #endif
+
 /* Output buffer */
 #define OUTPUT_SIZE	SIZE_PCM_FRAME	
 static char *output   = NULL;
+#ifdef HAVE_LAME
 static int output_len = 0;
+#endif
 
 /* Input buffer */
 #define INPUT_SIZE	SIZE_PCM_FRAME	
 static char *input   = NULL;
+#ifdef HAVE_LAME
 static int input_len = 0;
+#endif
 
 /* encoder */
 static int (*audio_encode_function)(char *, int, avi_t *)=NULL;
+#ifdef HAVE_LAME
 static lame_global_flags *lgf;
+#endif
 static int lame_flush=0;
 static int bitrate=0;
 
@@ -129,12 +134,10 @@ int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile);
 int audio_close();
 int audio_stop();
 static char * lame_error2str(int error);
-#ifdef LAME_3_89
+#ifdef HAVE_LAME
 static void no_debug(const char *format, va_list ap) {return;}
-#else
-extern char *get_lame_version();
-#endif
 static int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate);
+#endif
 
 /**
  *
@@ -188,7 +191,7 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 
 	if(initialized==0)
 	{
-#ifdef LAME_3_89
+#ifdef HAVE_LAME
 #if HAVE_LAME >= 392
 		int preset = 0;
 #endif		
@@ -321,47 +324,6 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 		if(verbose)
 			fprintf(stderr,"Audio: using lame-%s\n",
 				get_lame_version());
-		
-#else /* ! LAME_3_89 : use included lame */
-
-		lgf = malloc(sizeof(*lgf));
-		if(! lgf)
-		{
-			error("Init lame: out of memory.");
-			return(TC_EXPORT_ERROR);
-		}
-	  
-		if(lame_init(lgf) < 0)
-		{
-			error("Lame encoder init failed.");
-			return(TC_EXPORT_ERROR);
-		}
-
-		lgf->silent=1;
-		lgf->VBR=vbr_off;
-		lgf->in_samplerate=vob->a_rate;
-		if (IS_AUDIO_MONO)
-		{
-			lgf->num_channels=avi_aud_chan;
-			lgf->mode=3;
-		} else {
-			lgf->num_channels=2;
-			lgf->mode=1;
-		}
-		lgf->brate=(vob->mp3bitrate*1000)/8/125;
-
-		if (vob->mp3frequency==0)
-			vob->mp3frequency=vob->a_rate;
-		lgf->out_samplerate=vob->mp3frequency;
-	  
-		lame_init_params(lgf);
-		//if (lame_get_VBR(lgf != vbr_off)) vbr = 1;
-
-		if(verbose)
-			fprintf(stderr,"Audio: using lame-%s (static)\n",
-				get_lame_version());
-#endif /* LAME_3_89 */
-
 		debug("Lame config: PCM -> %s",
 		      (o_codec==CODEC_MP3)?"MP3":"MP2");
 		debug("             bitrate         : %d kbit/s",
@@ -375,6 +337,14 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 
 	return(TC_EXPORT_OK);
 }
+#else  /* HAVE_LAME */
+	}
+	fprintf(stderr,"No Lame support available!\n");
+	return(TC_EXPORT_ERROR);
+}
+#endif
+
+
 
 /**
  * Init FFMPEG AUDIO Encoder
@@ -807,6 +777,7 @@ static int audio_write(char *buffer, size_t size, avi_t *avifile)
  */
 static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 {
+#ifdef HAVE_LAME
 	int outsize=0;
 	int count=0;
 	
@@ -902,7 +873,11 @@ static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 	}
 	return(TC_EXPORT_OK);
 }
-
+#else   // HAVE_LAME
+	fprintf(stderr, "No Lame support available!\n");
+	return(TC_EXPORT_ERROR);
+}
+#endif
 
 static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
 {
@@ -1077,10 +1052,10 @@ int audio_close()
 {    
 	/* reset bitrate flag for AC3 pass-through */
 	bitrate = 0;
-  
-#ifdef LAME_3_89
+
 	if (audio_encode_function == audio_encode_mp3)
 	{
+#ifdef HAVE_LAME
 		if(lame_flush) {
 
 			int outsize=0;
@@ -1092,8 +1067,9 @@ int audio_close()
 			if (outsize>0)
 				audio_write(output, outsize, avifile2);
 		}
-	}
 #endif
+	}
+
 	if(fd)
 	{
 		if (is_pipe)
@@ -1112,7 +1088,7 @@ int audio_stop()
 {    
         if (input) free(input); input = NULL;
         if (output) free(output); output = NULL;
-#ifdef LAME_3_89
+#ifdef HAVE_LAME
 	if (audio_encode_function == audio_encode_mp3)
 		lame_close(lgf);
 #endif
@@ -1150,6 +1126,7 @@ static char * lame_error2str(int error)
 	}
 }
 
+#ifdef HAVE_LAME
 
 // from mencoder
 //----------------------- mp3 audio frame header parser -----------------------
@@ -1249,3 +1226,5 @@ static int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate){
 
     return framesize;
 }
+
+#endif  // HAVE_LAME

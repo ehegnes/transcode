@@ -1095,7 +1095,7 @@ void probe_pes(info_t *ipipe)
 	    
 	    ++ipipe->probe_info->num_tracks;
 	    
-#ifdef LAME_3_89
+#ifdef HAVE_LAME
 	    //need to scan payload for more MPEG audio info
 	    if(end-buf>0) buf_probe_mp3(buf, end-buf, &ipipe->probe_info->track[num]);
 #else

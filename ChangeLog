@@ -1,5 +1,14 @@
 transcode-0.13-pre2 EMS
 
+2004-09-05 Jacob Meuser <jakemsr at jakemsr dot com>
+  * Makefile.am acinclude.m4 configure.in docs/man/transcode.1 
+  * export/Makefile.am export/aud_aux.c export/aud_aux.h
+  * import/decode_mp3.c import/mpg123.c import/mpeg123.h 
+  * import/scan_pes.c:
+  here is a patch to make the local copy of libmp3lame useless.
+  well, it's already mostly useless, this makes sure it doesn't
+  get used, and thus can be removed.
+
 2004-09-03 Stefan Scheffler <stefanscheffler at gmx dot net>
   * export/export_mjpeg.c:
   - this should fix the yuv mode in export_mjpeg.

@@ -28,14 +28,12 @@
 #include "transcode.h"
 #include "avilib.h"
 
-#ifdef LAME_3_89
+#ifdef HAVE_LAME
 #ifdef HAVE_LAME_INC
 #include <lame/lame.h>
 #else
 #include <lame.h>
 #endif
-#else
-#include "../libmp3lame/lame.h"
 #endif
 
 int audio_init(vob_t *vob, int debug);

@@ -7,7 +7,6 @@ PVM3 = pvm3
 endif
 
 SUBDIRS = \
-	. \
 	libxio \
 	docs \
 	contrib \
@@ -19,7 +18,6 @@ SUBDIRS = \
 	libac3 \
 	libvo \
 	libmpeg2 \
-	libmp3lame \
 	libdvenc \
 	bbmpeg \
 	import \
