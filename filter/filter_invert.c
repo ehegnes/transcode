@@ -88,7 +88,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
       char buf[128];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYO", "1");
 
-      snprintf(buf, 128, "%ux%u/%d", mfd->start, mfd->end, mfd->step);
+      snprintf(buf, 128, "%u-%u/%d", mfd->start, mfd->end, mfd->step);
       optstr_param (options, "range", "apply filter to [start-end]/step frames", 
 	      "%u-%u/%d", buf, "0", "oo", "0", "oo", "1", "oo");
 
