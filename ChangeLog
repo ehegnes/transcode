@@ -3,6 +3,11 @@ transcode-0.6.12
 
 2003-11-10 Tilmann Bitterberg <transcode at tibit.org>
 
+  * acinclude.m4:
+  Copy the macros for sdl.m4 and glib.m4 in there.
+
+2003-11-10 Tilmann Bitterberg <transcode at tibit.org>
+
   * docs/man/transcode.1 docs/make-filter-man.sh:
   Add documentation for filter_denoise3d to the manpage
 
