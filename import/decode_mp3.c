@@ -54,14 +54,14 @@ void decode_mp3(info_t *ipipe)
   
 #ifdef LAME_3_89
  
-  int ch, samples=0, j, bytes, channels=0, i;
+  int samples=0, j, bytes, channels=0, i;
   
   mp3data_struct *mp3data;
   
   FILE *in_file;
 
   verbose = ipipe->verbose;
-  
+
   // init decoder
   
   if((mp3data = malloc(sizeof(mp3data_struct)))==NULL) {
@@ -90,20 +90,23 @@ void decode_mp3(info_t *ipipe)
   while((samples=lame_decode_fromfile(in_file, ch1, ch2, mp3data))>0) {
     
     //interleave data
-    
+
     j=0;
+    switch (channels) {
+    case 1: // mono
+      memcpy (buffer, ch1, samples*sizeof(short));
+      break;
+    case 2: // stereo
     for(i=0; i < samples; i++) {
-      for(ch=0; ch < channels; ch++) {
-	if(ch==0) {
-	  buffer[j++] = ch1[i];
-	} else {
-	  buffer[j++] = ch2[i];
-	}
+	  *(buffer+j+0) = ch1[i];
+	  *(buffer+j+1) = ch2[i];
+	  j+=2;
       } 
+      break;
     }
     
-    bytes = samples * channels * 2;
- 
+    bytes = samples * channels * sizeof(short);
+
     if (p_write(ipipe->fd_out, (char*) buffer, bytes) < 0)
       break; /* broken pipe */
   }
