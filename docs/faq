@@ -213,3 +213,10 @@ A:      <pre>vrc_minrate=0
 	</pre>
 	(try lower lmax if still not right) (ems).
 ---
+Q:	What does "Can't step back 17" (or similar) means?
+A:	This message comes from the mp3 decoder (lame). It means (since
+        mp3 has interdependent chunks) that one ore more previous mp3
+	chunks are missing "Can't step back ...". This usually happens when
+	the file was split at some time.
+	There is not much you can do about it. (tibit)
+---
