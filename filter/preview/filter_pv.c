@@ -819,6 +819,7 @@ int preview_grab_jpeg(void)
     transfer_t export_para;
     int ret = 0;
 
+    if(!cache_enabled) return 1;
     
     if (jpeg_vhandle == NULL) { 
 	sprintf(module, "%s/export_%s.so", MOD_PATH, "jpg");
