@@ -9,12 +9,10 @@ either export/ffmpeg_cfg.c:90ff or run 'transcode -y ffmpeg -F mpeg4 -q2'
 
   --- ~/.ffmpeg.cfg ----
   [mpeg4]
-  vhq = 1 # this is the default
   qpel = 1
   trellis = 1
 
   [mpeg1video]
-  vhq = 1
   --- ~/.ffmpeg.cfg ----
 
 Now to the options.

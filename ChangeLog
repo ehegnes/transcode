@@ -3,6 +3,15 @@ transcode-0.6.12
 
 2003-12-29 Tilmann Bitterberg <transcode at tibit.org>
 
+  * docs/export_ffmpeg.txt:
+  This really needs an update. At least fix some deprecated errors.
+
+  * docs/man/{aviindex.1 transcode.1 tcdecode.1}:
+  Layout update to make it look better when converted to html on
+  http://transcoding.org
+  
+2003-12-29 Tilmann Bitterberg <transcode at tibit.org>
+
   * tools/avimerge.c:
   New option -A which will allow to overwrite an audio track.
 
