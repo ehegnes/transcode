@@ -1331,12 +1331,9 @@ AC_OUTPUT([
 	filter/tomsmocomp/Makefile
 	filter/yuvdenoise/Makefile
 	import/Makefile
-	import/af6/Makefile
 	import/lve/Makefile
-	import/net/Makefile
 	import/nuv/Makefile
 	import/v4l/Makefile
-	import/yuv/Makefile
 	libac3/Makefile
 	libdldarwin/Makefile
 	libdvenc/Makefile

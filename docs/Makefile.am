@@ -49,6 +49,7 @@ docs_DATA = \
 	import-xml.txt \
 	import_nvrec.txt \
 	import_v4l2.txt \
+	import_yuv.txt \
 	pvm.cfg \
 	faq \
 	template.cfg.txt

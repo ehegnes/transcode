@@ -73,7 +73,22 @@ if HAVE_SUNAU
 SUNAU_MOD = import_sunau.la
 endif
 
+if HAVE_AVIFILE
+AF6_MOD = import_af6.la
+endif
+
+if NET_STREAM
+NET_MOD = import_net.la
+endif
+
+
 pkgdir = $(MOD_PATH)
+
+if HAVE_LIBLVE
+LVEDIR = lve
+endif
+
+SUBDIRS = nuv v4l $(LVEDIR)
 
 pkg_LTLIBRARIES = \
 	import_avi.la \
@@ -96,6 +111,7 @@ pkg_LTLIBRARIES = \
 	$(IM_MOD) \
 	$(MODQT) \
 	af6_decore.la \
+	$(AF6_MOD) \
 	$(LIBXML2_MOD) \
 	import_mplayer.la \
 	import_rawlist.la \
@@ -108,8 +124,9 @@ pkg_LTLIBRARIES = \
 	import_pvn.la \
 	$(FFBIN_MOD) \
 	$(BKTR_MOD) \
-	$(SUNAU_MOD)
-
+	$(SUNAU_MOD) \
+	$(NET_MOD) \
+	import_yuv.la
 
 import_null_la_SOURCES = import_null.c
 import_null_la_LDFLAGS = -module -avoid-version 
@@ -226,6 +243,16 @@ import_bktr_la_LDFLAGS = -module -avoid-version
 
 import_sunau_la_SOURCES = import_sunau.c 
 import_sunau_la_LDFLAGS = -module -avoid-version 
+
+import_af6_la_SOURCES = import_af6.c
+import_af6_la_LDFLAGS = -module -avoid-version
+
+import_net_la_SOURCES = import_net.c
+import_net_la_LDFLAGS = -module -avoid-version
+
+import_yuv_la_SOURCES = import_yuv.c
+import_yuv_la_LDFLAGS = -module -avoid-version
+
 
 EXTRA_DIST = \
 	ac3scan.h \
@@ -536,10 +563,3 @@ tcxmlcheck_CFLAGS = $(AM_CFLAGS)
 tcxpm2rgb_SOURCES = tcxpm2rgb.c
 
 tcxpm2rgb_CFLAGS = $(AM_CFLAGS)
-
-
-if HAVE_LIBLVE
-LVEDIR = lve
-endif
-
-SUBDIRS = nuv af6 net v4l yuv $(LVEDIR)
