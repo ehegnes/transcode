@@ -215,6 +215,44 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
    }
 }
 
+int is_key(unsigned char *data, long size, char *codec) 
+{
+    if (strcasecmp(codec, "div3") == 0) {
+
+	int32_t c=( (data[0]<<24) | (data[1]<<16) | (data[2]<<8) | (data[3]&0xff) );
+	if(c&0x40000000) return(0);
+	else return 1;
+
+    } else if (strcasecmp(codec, "xvid") == 0 || strcasecmp(codec, "divx") == 0
+	    || strcasecmp(codec, "dx50") == 0 || strcasecmp(codec, "div4") == 0
+	    || strcasecmp(codec, "mpg4") == 0) {
+        int result = 0;
+        int i;
+
+        for(i = 0; i < size - 5; i++)
+        {
+                if( data[i]     == 0x00 && 
+                        data[i + 1] == 0x00 &&
+                        data[i + 2] == 0x01 &&
+                        data[i + 3] == 0xb6)
+                {
+                        if((data[i + 4] & 0xc0) == 0x0) 
+                                return 1;
+                        else
+                                return 0;
+                }
+        }
+        
+        return result;
+
+    }
+
+    // mjpeg, uncompressed, etc
+    return 1;
+
+}
+
+
 int main(int argc, char *argv[])
 {
 
@@ -248,6 +286,7 @@ int main(int argc, char *argv[])
   int vid_chunks=0, aud_chunks[AVI_MAX_TRACKS];
   off_t pos, len, key, index_pos=0, index_len=0,size=0;
   struct stat st;
+  char *codec;
   int idx_type=0;
   off_t ioff;
 
@@ -344,6 +383,7 @@ int main(int argc, char *argv[])
     aud_tracks = frames = 0;
     frames = AVI_video_frames(avifile1);
     fps    = AVI_frame_rate  (avifile1);
+    codec  = AVI_video_compressor(avifile1);
 
     aud_tracks = AVI_audio_tracks(avifile1);
     //printf("frames (%ld), aud_tracks (%d)\n", frames, aud_tracks);
@@ -378,8 +418,7 @@ int main(int argc, char *argv[])
 	case 1: sprintf(tag, "00db");
 		print_ms = vid_ms = (avifile1->video_pos)*1000.0/fps;
 		chunk = avifile1->video_pos;
-		if (avifile1->video_index) 
-		  key = (avifile1->video_index[chunk-1].key)?1:0;
+		key = is_key(data, len, codec);
 		break;
 	case 2: case 3:
 	case 4: case 5:

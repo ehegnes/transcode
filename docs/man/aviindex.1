@@ -41,6 +41,9 @@ is larger than 2 GB. If the file is large, the index chunk cannot be
 found the usual way so one must use \fI-n\fP but it is possible that
 there is an index chunk in this file. Cross fingers.
 .PP
+Also in smart mode, \fBaviindex\fP analyzes the content of the video frame and
+tries to detect keyframes by looking at the data depending on the video codec.
+.PP
 The generated index file serves different purposes. 
 .RS
 
