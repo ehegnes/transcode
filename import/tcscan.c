@@ -23,7 +23,7 @@
 
 int enc_bitrate(long frames, double fps, int abit, char *s, int cdsize);
 int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate);
-#define tc_decode_mp3_header(hbuf)  tc_get_mp3_header(hbuf, NULL, NULL)
+#define tc_decode_mp3_header(hbuf)  tc_get_mp3_header(hbuf, NULL, NULL, NULL)
 
 #undef TCF_DEBUG
 
