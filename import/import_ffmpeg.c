@@ -629,15 +629,20 @@ retry:
         break;
       case PIX_FMT_YUV422P:
           // Result is in YUV 4:2:2 format (subsample UV vertically for YV12):
-          tc_memcpy(Ybuf, picture.data[0], picture.linesize[0] * lavc_dec_context->height);
+          for (i = 0; i < lavc_dec_context->height; i++) {
+            tc_memcpy(Ybuf + i * lavc_dec_context->width,
+                   picture.data[0] + i * picture.linesize[0], //+ edge_width,
+                   lavc_dec_context->width);
+          }
+
           src = 0;
           dst = 0;
           for (row=0; row<lavc_dec_context->height; row+=2) {
-            tc_memcpy(Ubuf + dst, picture.data[1] + src, UVls);
-            tc_memcpy(Vbuf + dst, picture.data[2] + src, UVls);
-            dst += UVls;
-            src = dst << 1;
-          }
+            tc_memcpy(Vbuf + dst, picture.data[1] + src, lavc_dec_context->width/2);
+            tc_memcpy(Ubuf + dst, picture.data[2] + src, lavc_dec_context->width/2);
+            dst += lavc_dec_context->width/2;
+            src = row * UVls;
+          } 
 	  break;
       case PIX_FMT_YUV444P:
           // Result is in YUV 4:4:4 format (subsample UV h/v for YV12):
