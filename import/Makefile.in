@@ -336,7 +336,7 @@ INCLUDES = -Wall -I./ -I../src -I../avilib $(AC3_INC) $(MPEG2_INC) -I../libvo -I
 
 @HAVE_LIBXML2_TRUE@LIBXML2_MOD = import_xml.la
 
-@HAVE_OGG_TRUE@VORBISFILE = -lvorbisfile
+@HAVE_OGG_TRUE@@HAVE_VORBIS_TRUE@VORBISFILE = -lvorbisfile
 
 pkgdir = @MOD_PATH@
 pkg_LTLIBRARIES = import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la import_dv.la import_vob.la import_raw.la import_nvrec.la import_yuv4mpeg.la import_lav.la import_null.la import_divx.la $(A52_MOD) $(MP123_MOD) $(DVD_MOD) $(MPEG3) $(IM_MOD) $(MODQT) af6_decore.la $(LIBXML2_MOD) import_mplayer.la import_rawlist.la import_ogg.la import_xvid.la import_ffmpeg.la $(LZO_MOD)
@@ -614,8 +614,10 @@ am_tcdecode_OBJECTS = tcdecode.$(OBJEXT) decode_ac3.$(OBJEXT) \
 	scan_dv.$(OBJEXT) decode_lavc.$(OBJEXT) decode_xvid.$(OBJEXT) \
 	decode_ogg.$(OBJEXT) decode_mov.$(OBJEXT) decode_lzo.$(OBJEXT)
 tcdecode_OBJECTS = $(am_tcdecode_OBJECTS)
-@HAVE_OGG_TRUE@tcdecode_DEPENDENCIES =
-@HAVE_OGG_FALSE@tcdecode_DEPENDENCIES =
+@HAVE_OGG_FALSE@@HAVE_VORBIS_TRUE@tcdecode_DEPENDENCIES =
+@HAVE_OGG_FALSE@@HAVE_VORBIS_FALSE@tcdecode_DEPENDENCIES =
+@HAVE_OGG_TRUE@@HAVE_VORBIS_TRUE@tcdecode_DEPENDENCIES =
+@HAVE_OGG_TRUE@@HAVE_VORBIS_FALSE@tcdecode_DEPENDENCIES =
 tcdecode_LDFLAGS =
 am_tcdemux_OBJECTS = tcdemux.$(OBJEXT) fileinfo.$(OBJEXT) \
 	ioaux.$(OBJEXT) dvd_reader.$(OBJEXT) seqinfo.$(OBJEXT) \

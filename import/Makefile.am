@@ -48,7 +48,9 @@ LIBXML2_MOD=import_xml.la
 endif
 
 if HAVE_OGG
+if HAVE_VORBIS
 VORBISFILE=-lvorbisfile
+endif
 endif
 
 pkgdir=@MOD_PATH@
