@@ -15,21 +15,23 @@ tools/
 src/
   Make the order of execution of all the internal processing routines
   configureable (from a mail)
-  As for the order of command line arguments. I have to say I                                            
-  don't like tools where ./foo -a -b is different than                                                   
-  ./foo -b -a. Since I consider the wish for changing order of                                           
-  execution in video_trans.c a very advanced feature it might be                                         
-  feasible to add an option --internal_transforms STRING where                                           
-  string defaults to "jIXBZYrzlkKGC" (the pre-defined order) but                                         
-  allows to be overwritten. This is not easy to do (and may                                              
-  not even be the best solution) but I think if done correctly                                           
-  this option will give you all the freedom you want. Hmm, is the                                        
+  As for the order of command line arguments. I have to say I
+  don't like tools where ./foo -a -b is different than
+  ./foo -b -a. Since I consider the wish for changing order of
+  execution in video_trans.c a very advanced feature it might be
+  feasible to add an option --internal_transforms STRING where
+  string defaults to "jIXBZYrzlkKGC" (the pre-defined order) but
+  allows to be overwritten. This is not easy to do (and may
+  not even be the best solution) but I think if done correctly
+  this option will give you all the freedom you want. Hmm, is the
   default order actually "jIXBZYrzlkKGC"? need to check that.
 
 Slow filters and 30+ buffers and --nav_seek and -c:
  the time to sleep may be too short the import module will start over again,
  before the export is finished
 
+import/
+ - fix AC3 Pass-through for PSU mode.
 
 
 
