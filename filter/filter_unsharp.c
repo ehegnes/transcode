@@ -38,8 +38,10 @@
 #include "filter.h"
 #include "optstr.h"
 
+#ifndef __FreeBSD__
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
+#endif
 #endif
 
 #ifndef MIN
