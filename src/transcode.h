@@ -57,6 +57,26 @@ typedef unsigned int uint32_t;
 #include "tc_defaults.h"
 #include "tc_functions.h"
 
+// from libavcodec - common.h
+
+#ifndef always_inline
+#if defined(__GNUC__) && (__GNUC__ > 3 || __GNUC__ == 3 && __GNUC_MINOR__ > 0)
+#    define always_inline __attribute__((always_inline)) inline
+#else
+#    define always_inline inline
+#endif
+#endif
+
+#ifndef attribute_used
+#if defined(__GNUC__) && (__GNUC__ > 3 || __GNUC__ == 3 && __GNUC_MINOR__ > 0)
+#    define attribute_used __attribute__((used))
+#else
+#    define attribute_used
+#endif
+#endif
+
+#include "../libioaux/framecode.h"
+
 /* ----------------------------
  * 
  * mpeg profiles for setting

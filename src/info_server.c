@@ -23,7 +23,7 @@
 
 #include "transcode.h"
 
-size_t pp_write (int fd, char *buf, size_t len) // apparently not static, EMS
+attribute_used static size_t pp_write (int fd, char *buf, size_t len)
 {
    size_t n = 0;
    size_t r = 0;

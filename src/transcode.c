@@ -47,8 +47,6 @@
 #include "../libsupport/getopt.h"
 #endif
 
-#include "../libioaux/framecode.h"
-
 #include "usage.h"
 
 #include "tc_func_excl.h"
