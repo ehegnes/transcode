@@ -117,7 +117,6 @@ static char *buffer = NULL;
 static int buf_field = 0;
 
 static int field_ops = 0;
-static int swap_type = 0;
 static int rgb_mode;
 
 /*****************************************************************************

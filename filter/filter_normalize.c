@@ -149,8 +149,6 @@ int tc_filter(aframe_list_t *ptr, char *options)
 
   static vob_t *vob=NULL;
 
-  static int size;
-  
   //----------------------------------
   //
   // filter init

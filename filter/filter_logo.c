@@ -43,6 +43,7 @@
 #endif
 
 #include "transcode.h"
+#include "optstr.h"
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -47,6 +47,7 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "optstr.h"
 
 typedef unsigned char T_PIXEL;
 
@@ -85,8 +86,8 @@ static int dnr_run(T_DNR_FILTER_CTX *fctx, T_PIXEL *data)
 {
   T_PIXEL       *RY1, *RY2, *RY3, *GU1, *GU2, *GU3, *BV1, *BV2, *BV3;
   int           rl, rc, w, h, update_needed, totpixels;
-  int           threshRY, threshGU, threshBV;
-  int           ry1, ry2, gu1, gu2, bv1, bv2;
+  int           threshRY, threshGU=0, threshBV=0;
+  int           ry1, ry2, gu1=0, gu2=0, bv1=0, bv2=0;
   long          totlocks = 0;  
   unsigned char *lockhistory = fctx->lockhistory;
   

@@ -55,7 +55,7 @@ static unsigned char *tbuf[MAX_FILTER];
 void smooth_yuv(unsigned char *buf, int width, int height, int maxdiff, 
     int maxldiff, int maxdist, float level, int instance)
 {
-	int i, x, y, pl, pu, cpu, cdiff;
+	int x, y, pu, cpu, cdiff;
 	int xa, ya, oval, ldiff;
 	unsigned char *bufcr, *bufcb;
 	unsigned char *tbufcr, *tbufcb, *ltbuf;

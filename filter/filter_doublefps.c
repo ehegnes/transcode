@@ -42,6 +42,7 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "optstr.h"
 
 /*-------------------------------------------------
  *
@@ -50,15 +51,13 @@
  *-------------------------------------------------*/
 
 
-static int start_with_odd = 0;
-
 int tc_filter(vframe_list_t *ptr, char *options)
 {
 
   static vob_t *vob=NULL;
   static char *lines = NULL;
   static int width, height, height_mod, codec;
-  int w, h;
+  int h;
   static int evenfirst=1;
 
 
@@ -102,7 +101,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     
     // dirty, dirty, dirty.
     //vob->ex_v_height /= 2;
-    height_mod = vob->ex_v_height;
+    //height_mod = vob->ex_v_height;
 
     if (!lines) 
 	lines = (char *) malloc (width*height*3);
@@ -112,7 +111,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	return -1;
     }
 
-    if(verbose && options) printf("[%s] options=%s\n", MOD_NAME, options);
+    if(options) {
+	if (verbose & TC_INFO) printf("[%s] options=%s\n", MOD_NAME, options);
+
+	optstr_get (options, "shiftEven",      "%d",  &evenfirst        );
+    }
 
     // filter init ok.
     if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
@@ -174,7 +177,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	      }
 	  }
 
-	  memset (p, 0, ptr->video_size/2);
+	  //memset (p, 128, ptr->video_size/2);
 
       } else {
 
@@ -200,7 +203,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 		  p +=   stride/2;
 	      }
 	  }
-	  memset (p, 0, ptr->video_size/2);
+	  //memset (p, 128, ptr->video_size/2);
 
       }
      //ptr->v_height = height_mod;

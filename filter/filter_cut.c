@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include "optstr.h"
 
 // do the mod/step XXX
 
@@ -56,7 +57,6 @@ extern int max_frame_buffer;
  *
  *-------------------------------------------------*/
 
-static int mod=0;
 
 static void help_optstr(void) 
 {

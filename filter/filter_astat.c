@@ -54,7 +54,7 @@
 static int min=0, max=0, bytes_per_sec;
 static long total=0;
 static int a_rate, a_bits, chan; 
-static double fps, fmin, fmax, frames, vol;
+static double fps, fmin, fmax, vol;
 static char *file;
 
 static void check (int v)

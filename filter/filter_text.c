@@ -365,19 +365,20 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	p = buf+mfd->posy*width+mfd->posx;
 
 	for (i=0; i<strlen(mfd->string); i++) {
-	    int n = 0;
 
 	    error = FT_Load_Char( mfd->face, mfd->string[i], FT_LOAD_RENDER);
 	    mfd->slot = mfd->face->glyph;
 
 	    if (verbose > 1) {
 		// see http://www.freetype.org/freetype2/docs/tutorial/metrics.png
+		/*
 		printf ("`%c\': rows(%2d) width(%2d) pitch(%2d) left(%2d) top(%2d) "
 			"METRIC: width(%2d) height(%2d) bearX(%2d) bearY(%2d)\n",
 			mfd->string[i], mfd->slot->bitmap.rows, mfd->slot->bitmap.width, 
 			mfd->slot->bitmap.pitch, mfd->slot->bitmap_left, mfd->slot->bitmap_top,
 			mfd->slot->metrics.width>>6, mfd->slot->metrics.height>>6,
 			mfd->slot->metrics.horiBearingX>>6, mfd->slot->metrics.horiBearingY>>6);
+			*/
 	    }
 
 	    for (h=0; h<mfd->slot->bitmap.rows; h++) {

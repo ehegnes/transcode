@@ -400,17 +400,17 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	const int		hminus3 = h - 3;
 	const int		hover2 = h / 2;
 
-	Pixel32			*src, *dst, *srcminus, *srcplus, *srcminusminus, *srcplusplus;
+	Pixel32			*src, *dst, *srcminus, *srcplus, *srcminusminus=NULL, *srcplusplus=NULL;
 	unsigned char		*moving, *movingminus, *movingplus;
 	unsigned char		*fmoving;
-	int			*saved, *sv;
-	Pixel32 		*src1, *src2, *s1, *s2;
-	Pixel32 		*dst1, *dst2, *d1, *d2;
+	int			*saved=NULL, *sv;
+	Pixel32 		*src1=NULL, *src2=NULL, *s1, *s2;
+	Pixel32 		*dst1=NULL, *dst2=NULL, *d1, *d2;
 	int			*prev;
 	int			scenechange;
 	long			count;
 	int			x, y;
-	long			prevValue, nextValue, luma, lumap, luman;
+	long			prevValue, nextValue, luma=0, lumap, luman;
 	Pixel32			p0, p1, p2;
 	long			r, g, b, rp, gp, bp, rn, gn, bn, T;
 	long			rpp, gpp, bpp, rnn, gnn, bnn, R, G, B;
@@ -715,6 +715,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
 		/* Determine whether a scene change has occurred. */
 		if ((100L * count) / (h * w) >= mfd->scenethreshold) scenechange = 1;
 		else scenechange = 0;
+
+		/*
+		printf("Frame (%04d) count (%8ld) sc (%d) calc (%02ld)\n", 
+				ptr->id, count, scenechange, (100 * count) / (h * w));
+				*/
 
 		/* Perform a denoising of the motion map if enabled. */
 		if (!scenechange && mfd->highq)
@@ -1137,5 +1142,6 @@ filter_done:
 
 	return 0;
   }
+  return 0;
 }
 

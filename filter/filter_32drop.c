@@ -103,9 +103,8 @@ static int interlace_test(char *video_buf, int width, int height, int id, int ve
 
 void merge_frames(unsigned char *f1, unsigned char *f2, int width, int height, int pw)
 {
-	int line, i;
+	int i;
 	char *cbuf1, *cbuf2;
-	int tmp;
 
 	/* In YUV, only merge the Y plane, since CrCb planes can't be discerned
 	 * due to the merger.  This lets us also reuse the code for RGB */

@@ -124,7 +124,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     if (verbose > 1) {
 	printf (" Invert Image Settings:\n");
 	printf ("             range = %u-%u\n", mfd->start, mfd->end);
-	printf ("              step = %u\n", &mfd->step);
+	printf ("              step = %u\n", mfd->step);
     }
 
     if (options)

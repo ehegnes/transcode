@@ -132,7 +132,7 @@ static void help_optstr(void)
    printf ("        'size' Size             (0-width x 0-height)    [10x10]           \n");
    printf ("        'mode' Filter Mode      (0=none, 1=solid, 2=xy) [0]               \n");
    printf ("      'border' Visible Border                                             \n");
-   printf ("     'xweight' X-Y Weight       (0%-100%)               [50]              \n");
+   printf ("     'xweight' X-Y Weight       (0%%-100%%)               [50]              \n");
    printf ("        'fill' Solid Fill Color (RRGGBB)                [000000]          \n");
    printf ("        'file' Image with alpha/shape information       []                \n");
    printf ("                                                                          \n");
@@ -336,7 +336,7 @@ void work_with_yuv_frame(char *buffer, int width, int height, int instance)
   int craddr, cbaddr;
   int xdistance, ydistance, distance_west, distance_north;
   unsigned char hcalc, vcalc;
-  int buf_off, packet_off, buf_off_xpos, buf_off_width, buf_off_ypos, buf_off_height;
+  int buf_off, packet_off=0, buf_off_xpos, buf_off_width, buf_off_ypos, buf_off_height;
   int alpha_hori, alpha_vert;
 
   craddr = (width * height);

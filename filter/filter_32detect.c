@@ -47,6 +47,7 @@
 #include "framebuffer.h"
 
 #include "filter.h"
+#include "optstr.h"
 
 // basic parameter
 

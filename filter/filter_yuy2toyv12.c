@@ -49,7 +49,7 @@
 void yuy2toyv12(char *dest, char *input, int width, int height) 
 {
 
-    int i,j,w2,w4;
+    int i,j,w2;
     char *y, *u, *v;
 
     w2 = width/2;

@@ -31,7 +31,6 @@
 
 static char *buffer;
 
-static int loop=1;
 
 /* -------------------------------------------------
  *
@@ -105,8 +104,8 @@ void xmask_yuv(unsigned char *buf, vob_t *vob, int left, int right)
 
 void xmask_rgb(unsigned char *buf, vob_t *vob, int left, int right)
 {
-	int x, y;
-	unsigned char *ptr, *ptrmax;
+	int y;
+	unsigned char *ptr;
 
 	for (y = 0; y < vob->im_v_height; y++) { 
 		ptr = &buf[(y * vob->im_v_width * 3) + (left * 3)]; 
@@ -132,7 +131,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   static vob_t *vob=NULL;
   static int lc, rc, tc, bc; 
 
-  int x, y, _rc, _bc;
+  int _rc, _bc;
 
   // API explanation:
   // ================

@@ -267,7 +267,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	Pixel32         *src, *dst;
 	int             x, y;
 	int             r, g, b, R, G, B;
-	Pixel32         p, min, max;
+	Pixel32         p, min=1000, max=-1;
 	int             luma, lumac, lumamax, lumamin, mindiff, maxdiff;
 	const int	srcpitch = ptr->v_width*sizeof(Pixel32);
 	const int	dstpitch = ptr->v_width*sizeof(Pixel32);
@@ -480,7 +480,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
 			else
 			{
 				
-				int luma1, luma2;
 				R = (src[x] >> 16) & 0xff;
 				G = (src[x] >> 8) & 0xff;
 				B = src[x] & 0xff;
@@ -508,7 +507,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	const PixDim       width = ptr->v_width;
 	const PixDim       height = ptr->v_height;
 	char               *src, *dst;
-	char               *cr, *cb;
 	int                x, y;
 	int        	   luma, lumac, lumamax, lumamin;
 	int 		   p, mindiff, maxdiff;

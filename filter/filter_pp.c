@@ -54,7 +54,6 @@ static pp_mode_t *mode[MAX_FILTER];
 static pp_context_t *context[MAX_FILTER];
 static int width[MAX_FILTER], height[MAX_FILTER];
 static int pre[MAX_FILTER];
-static char *pp_options;
 
 /*-------------------------------------------------
  *
@@ -210,7 +209,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
 {
 
   static vob_t *vob=NULL;
-  static int p;
   int instance = ptr->filter_id;
 
   

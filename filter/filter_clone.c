@@ -55,8 +55,6 @@
 int tc_filter(vframe_list_t *ptr, char *options)
 {
 
-  int pre=0, vid=0;
-
   vob_t *vob=NULL;
 
   // API explanation:

@@ -145,10 +145,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
     int width  = vob->ex_v_width;
     int width2  = width/2;
     int wh      = width*height;
-    int wh5     = width*height*5/4;
     int y;
-    char *Y1, *Cr1, Cb1;
-    char *Y2, *Cr2, Cb2;
+    char *Y1, *Cr1;
+    char *Y2, *Cr2;
 
     /*
     if (!tc_do_telecide) {

@@ -56,8 +56,6 @@ static unsigned char *f2 = NULL;
 int tc_filter(vframe_list_t *ptr, char *options)
 {
 
-  int pre=0, vid=0;
-
   static vob_t *vob=NULL;
 
   if (ptr->tag & TC_AUDIO) return 0;

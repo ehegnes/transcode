@@ -178,7 +178,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
 
-      char buf[128];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYO", "1");
 
       optstr_param (options, "luma", "Luma and chroma (un)sharpness amount", "%f", "0.0", "-2.0", "2.0" );
@@ -217,6 +216,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
     int msizeX=0, msizeY=0;
 
     if((vob = tc_get_vob())==NULL) return(-1);
+    	
+    if (vob->im_v_codec != CODEC_YUV) {
+	fprintf(stderr, "[%s] This filter is only capable of YUV mode\n", MOD_NAME);
+	return -1;
+    }
 
     mfd   = malloc( sizeof(MyFilterData) );
     memset( mfd, 0, sizeof(MyFilterData) );
@@ -301,7 +305,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
       unsigned int z;
       FilterParam *fp;
 
-      if( !mfd ) return;
+      if( !mfd ) return -1;
 
       fp = &mfd->lumaParam;
       for( z=0; z<sizeof(fp->SC)/sizeof(fp->SC[0]); z++ ) {

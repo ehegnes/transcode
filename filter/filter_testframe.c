@@ -151,8 +151,6 @@ void generate_yuv_frame(char *buffer, int width, int height)
 int tc_filter(vframe_list_t *ptr, char *options)
 {
 
-  int pre=0, vid=0;
-
   // API explanation:
   // ================
   //

@@ -71,9 +71,6 @@ static int mono     = 0;
 int tc_filter(aframe_list_t *ptr, char *options)
 {
 
-  int n;
-
-  short *s;
 
   vob_t *vob=NULL;
 

@@ -81,7 +81,7 @@ static int cut=0, status=0;
 int tc_filter(vframe_list_t *ptr, char *options)
 {
 
-  int pre=0, vid=0;
+  int pre=0;
   int i,n;
 
   char buf[64];

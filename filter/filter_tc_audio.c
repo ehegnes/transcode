@@ -42,6 +42,7 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "optstr.h"
 
 /*-------------------------------------------------
  *
@@ -167,7 +168,7 @@ int tc_filter(aframe_list_t *ptr, char *options)
 
   /* pass-through */
   if (ptr->id == 0)
-      return;
+      return 0;
 
   /* in:      T1 B1 | T2 B2 | T3 B3 | T4 B4 */
   /* out: T1 B1 | T2 B2 | T2 B3 | T3 B4 | T4 B4 */
@@ -179,7 +180,6 @@ int tc_filter(aframe_list_t *ptr, char *options)
   if(ptr->tag & TC_POST_S_PROCESS && ptr->tag & TC_AUDIO) {
     int mod = ptr->id % 4;
     int ex = vob->ex_a_size; // 6408
-    int im = vob->im_a_size; // 8008
     //    int diff = im - ex;
     int diff = ex/4;
 

@@ -46,6 +46,7 @@
 #include "transcode.h"
 #include "framebuffer.h"
 #include "mmx.h"
+#include "optstr.h"
 
 
 /*-------------------------------------------------
