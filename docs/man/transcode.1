@@ -572,11 +572,49 @@ The syntax is
 .B \-z
 flip video frame upside down [off].
 .TP
-.B \-\-accel type
-enforce experimental IA32 acceleration for type [autodetect].
+.B \-\-accel \fItype\fP
+enforce experimental IA32 acceleration for type [autodetect]. \fItype\fP may be one of
+.RS
+
+ C          No acceleration
+ ia32asm    plain x86 assembly
+ mmx
+ 3dnow      Acceleration for a specific
+ sse        SIMD extension.
+ sse2
+.RE
 .TP
-.B \-\-avi_limit N
-split output AVI file after N MB [2048].
+.B \-\-avi_limit \fIN\fP
+split/rotate output AVI file after N MB [2048].
+.TP
+.B \-\-avi_comments \fIF\fP
+Read AVI header comments from file \fIF\fP [off].
+.br
+The AVI file format supports so-called tomb-stone data. It can be
+used to write annotations into the AVI file.
+
+See the file \fBdocs/avi_comments.txt\fP for a sample input file with all tags.
+When the file is read, empty lines and lines
+starting with '#' are ignored. 
+The syntax is: "TAG<space>STRING". The order of the tags does not
+matter. If a tag has no string following it, it is ignored. That
+means, you can use the file docs/avi_comments.txt as input and only fill out
+the fields you want.
+
+A very simple example is:
+.br
+ ----------------snip----------------
+.br
+ INAM My 1st Birthday
+.br
+ ISBJ My first steps!
+.br
+ IART My proud family
+.br
+ ----------------snip----------------
+.br
+Keep in mind that there is no endless space in the AVI header,
+most likely its around 1000 bytes.
 .TP
 .B \-\-zoom_filter \fIstring\fP
 use filter string for video resampling -Z [Lanczos3]
