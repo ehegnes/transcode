@@ -1,0 +1,229 @@
+<html>
+<head>
+<title>PVN (PVB/PVG/PVP) File format specifications</title>
+</head>
+<body>
+<h1>PVN (PVB/PVG/PVP) File format specifications</h1>
+Text Revision: 20040722 <br>
+Specification Revision: 20040723 <br>
+* note: minor restriction in header as of 20040720 <br>
+  - header must conclude with a single CR/LF delimiter<br>
+* note: can now accept doubles for framerate 20040722<br>
+* Addition of PV?b signed integer format, 20040723<br>
+
+<pre>
+   * the PVN (PVB/PVG/PVP) file format described here
+     is (c) 2003,2004 Jacob (Jack) Gryn</li>
+
+   * the author grants full rights to all who wish to use
+     and distribute this information/code and the corresponding file
+     formats on the assumption that credit is given to the author if asked
+
+   * e-mail: jgryn(at)cs.yorku.ca, web: http://www.cs.yorku.ca/~jgryn/research
+
+   * download sample PVN code <a href="http://www.cs.yorku.ca/~jgryn/research/pvn20040723.tar">here</a>
+
+   * Thanks to Richard Wildes for his help and consultation towards the creation
+     of these specifications
+</pre>
+<h2>Preface:</h2>
+<pre>
+Researchers often use the PNM (PBM/PGM/PPM) file format initially developed
+by Jef Poskanzer in 1989 as an easy way to access pixel data in images.
+
+Recently, research involving video and other data making use of a series
+of images have left users with the burden of dealing with large numbers
+of PNM format images.
+
+The PVN: Portable Video aNymap - referring to any of the file formats below
+   (PVB - Portable Video Bitmap, 
+    PVG - Portable Video Greymap,
+    PVP - Portable Video Pixmap)
+file format has been created in order to ease these burdens with as many
+similarities to the PNM file format as possible (to allow easy conversion).</p>
+</pre>
+<h3>New features include:</h3>
+
+<ul>
+<li>Ability to include multiple images in a single PVN file, and specify the 
+    number of images in the header</li>
+<li>Ability to specify a frame rate in the header for video/animation playback
+    use</li>
+<li>Multiple precision levels, including:
+  <ul>
+   <li>INT (8, 16, 24, 32 bits per channel; unsigned or signed)</li>
+   <li>FLOAT (single and double precision 32/64 bit signed)</li>
+  </ul>
+</li>
+<li>Ability to specify range boundary for floating point files</li>
+<li>Easy to convert to/from PNM files</li>
+<li>Capable of streaming video</li>
+</ul>
+<h2>The specifications:</h2>
+
+<h3>The Header:</h3>
+<pre>
+The header is in plain text format for similarity to PNM; header fields can
+be annotated with comments by the use of the the '#' comment character.  All
+characters in any line (in the header) after the '#' character 
+are ignored!
+
+Comments can be entered on any line in the header <b>BEFORE</b> (but not 
+including) the line containing the FRAMERATE field.
+
+ MAGIC: (string)
+ - A  "magic number" to identify the format of the file.
+   This is 4 character string beginning with "PV". 
+   For example "PV6a" is the integer format of a colour image.
+
+   The third character is one of: [4, 5, or 6] corresponding to P4/P5/P6 images
+   in the PNM specification.  (i.e. PV4, PV5, PV6)
+   NOTE: ASCII based images (1,2,3) are NOT supported in this file format
+
+   The forth character in the MAGIC is either 'a', 'b', 'f', or 'd'
+   (note the lower case!).  'a' refers to an UNSIGNED INTEGER-based file
+   'b' refers to a SIGNED INTEGER-based file, 'f' refers to a single precision 
+   (32bit) IEEE floating point file and 'd' refers to a double precision (64bit) 
+   IEEE floating point file.
+
+ - One or more space characters (SPACE, TAB, CR/LF).
+
+ WIDTH: (unsigned integer)
+ - The width (in pixels) of the images (as an ASCII/decimal integer)
+
+ - One or more space characters (SPACE, TAB, CR/LF).
+
+ HEIGHT: (unsigned integer)
+ - The height (in pixels) of the images (as an ASCII/decimal integer)
+
+ - One or more space characters (SPACE, TAB, CR/LF).
+
+ DEPTH: (unsigned integer)
+ - The depth (or number of images) stored in the file (as an ASCII/decimal 
+   integer)
+
+ - Set this to 0 for 'streaming PVN'
+
+ - One or more space characters (SPACE, TAB, CR/LF).
+
+ MAXCOLOUR/MAXVAL (double)
+ - For integer based files, the number of bits each pixel-channel
+   requires (as ASCII/floating point number).  (i.e. a value of 8 signifies 8bpp 
+   Greyscale, or 24bpp RGB/colour data).
+
+   This value MUST always be a multiple of 8 and less than or equal to 32! 
+   (except in the case of bitmap files which should always be 1;
+    floating-point formats are also exempt from the above rule).
+
+   NOTE: This is different than PNM, as this stores the number of bits
+         while PNM stores the maximum possible value.
+         (for example, if this value is 255 in a PNM file its PVN equivalent 
+          would be 8.          MAXVAL=log(PNM_MAXVAL+1)/log(2) ).
+
+ - For floating-point based files, this specifies the range that the values
+   are to be stretched out across.  (as a POSITIVE ASCII REAL NUMBER!)
+   The range would be [-maxval,+maxval]. This can be any POSITIVE REAL NUMBER
+   (0 is invalid!!)
+
+   For example, maval=10 would give a range of [-10,10], and converting
+   an 8-bit integer into a float with maxval=10 would be as follows:
+     8bit UINT     FLOAT(maxval=10)
+      0              -10
+      127            0
+      255            +10
+
+ - One or more space characters (SPACE, TAB, CR/LF).
+
+ FRAMERATE (double)
+ - the frame rate (in Hz or frames per second) (as an ASCII/floating point number)
+ - note: negative numbers are reserved for future use, to allow videos to play
+         backwards
+
+ - A <b>SINGLE</b> CR/LF delimiter; 
+   NOTE: ending with just LF only is ok, but NOT with just a single CR, as 
+   problems may occor in the unlikely event that the first byte of data is 
+   an LF character,
+        
+ 
+</pre>
+<hr>
+<h3>The Data:</h3>
+<pre>
+The data section of PVN files begin immediately after the header ends.  
+A single CR/LF is the only delimiter between the header and the
+data.
+
+The method of storing data corresponds to the storage of data in PNM files
+(see man page on ppm/pgm/pbm (c) 1989, 1992 Jef Poskanzer for more detailed 
+specifications).
+
+In all formats, pixels in each image are stored corresponding to left-to-right 
+(in the image) then top-down.  Images are stored chronologically, from the
+oldest to the most recent.  There are no special delimiters between each image.
+
+<h4> BITMAP FILES:</h4>
+The MAGIC must be "PV4a"
+
+For PV4a files (PVN/PVB bitmap) each pixel is represented by a single bit
+with 0 = white, 1 = black.  Eight pixels are represented in a single byte
+of data with the leftmost pixel corresponding to the most significant bit.  
+Images with a width that is not a multiple of eight contain 'pad-bits' at 
+the end of each row, so that each row uses a multiple of 8 bits of data storage.
+
+PV4 Images can ONLY be stored as bitmaps; MAXCOLOUR/MAXVAL should always be 1.
+Floating point versions of PV4 are not supported as it would be redundant to
+store binary data in this fashion.
+
+<h4> INTEGER-BASED FILES:</h4>
+For UNSIGNED Integer files, the MAGIC must be prefixed with "PV?a", 
+where ? can be 5, or 6 for Greymap or (colour) Pixmap respectively.
+
+For SIGNED Integer files, the MAGIC must be prefixed with "PV?b", 
+where ? can be 5, or 6 for Greymap or (colour) Pixmap respectively.
+
+The MAXCOLOUR/MAXVAL must be a multiple of 8 and less than or equal to 32.  
+This specifies the precision in bits per pixel for each channel (i.e. a value
+of 8 signifies 8bpp Greyscale, or 24bpp RGB/colour data).
+
+Data is stored in BIG ENDIAN style (most significant byte first) as integers.  
+(No byte re-ordering is needed when MAXCOLOUR/MAXVAL = 8; however if 
+MAXCOLOR >= 16, little endian machines, such as x86 based PCs will need
+to rearrange the data before displaying, or writing to disk).
+
+For the purposes of displaying and converting PV?b files, data should be 
+converted to unsigned integers by adding 2^(MAXCOLOUR-1) to each pixel.  For 
+example, when displaying 8-bit (MAXCOLOUR=8) PV5b data, a value of 128 
+(2^7 = 2^MAXCOLOUR-1) is added to each pixel, so the signed value 0 gets 
+mapped to greylevel 128, a signed value of -128 will get mapped to 
+greylevel 0, and a signed value of +127 will get mapped to greylevel 255.
+
+With PV6a/b files, the first word (with the word-length, in bits, defined by 
+MAXCOLOUR/MAXVAL) represents RED of the first pixel, the second represents 
+GREEN, the third represents BLUE.  Each pixel contains 3 words (R, G, B), and 
+each is stored sequentially.
+
+<h4> FLOATING-POINT-BASED FILES:</h4>
+
+The MAGIC must be prefixed with "PV?f" or "PV?d" where ? can be 5, or 6 for 
+Greymap or (colour) Pixmap (respectively); 'f' represents single-precision
+IEEE floating point, and 'd' represents double-precision IEEE numbers.
+
+The MAXCOLOUR/MAXVAL should follow specifications listed for the
+'floating-point-based files' and are DIFFERENT to the specs of that variable
+for integer files.
+
+Data is stored in BIG-ENDIAN style (most significant byte first).  This entails
+that little endian machines, such as the x86/PC will need to do byte reordering
+before displaying or writing to disl.  A suggestion to convert to big-endian 
+style on a little-endian machine would be to cast a pointer to a floating point  
+number into a (char *), then read each of the 4 or 8 characters (depending on 
+the precision, 'f' = 4 byte, 'd' = 8 byte) and then reverse the order for 
+storage.
+
+Specifications for storage of PV6f/PV6d files are the same for PV6a files (R,G,B
+stored sequentially), except that the data is stored as IEEE floating point 
+numbers between -MAXVAL and +MAXVAL.  Any data outside this range shall cause 
+the file to be considered 'corrupt'.  
+</pre>
+</body>
+</html>

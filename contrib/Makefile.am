@@ -1,4 +1,7 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
+
+SUBDIRS = . pnmpvn
+
 EXTRA_DIST =  \
   V2divx.pl \
   aviplay.pl \

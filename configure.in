@@ -1270,6 +1270,7 @@ AC_OUTPUT([
            docs/html/Makefile
            docs/man/Makefile
            contrib/Makefile
+	   contrib/pnmpvn/Makefile
            tools/Makefile
            aclib/Makefile
            libsupport/Makefile

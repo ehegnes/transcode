@@ -1,0 +1,24 @@
+#DEFPARAM=-DDEBUG
+CFLAGS=-O3 ${DEFPARAM}
+GLLIBS = -L/usr/X11R6/lib -lm -lglut -lGL -lGLU -lX11 -lXmu -lXi
+#-Wall
+CC=gcc
+all:	pnm2pvn pvn2pnm pvnconvert
+
+pnm2pvn:	pnm.o pnm.h pvn.o pvn.h pnmpvn.o pnmpvn.h pnm2pvn.o pvnglobals.o pvnglobals.h
+	${CC} ${CFLAGS} -lm -o pnm2pvn pnm.o pvn.o pnmpvn.o pnm2pvn.o pvnglobals.o
+
+pvn2pnm:	pnm.h pvn.o pvn.h pnmpvn.o pnmpvn.h pvn2pnm.o pvnglobals.o pvnglobals.h
+	${CC} ${CFLAGS}  -lm -o pvn2pnm pvn.o pnm.o pnmpvn.o pvn2pnm.o pvnglobals.o
+
+pvnconvert:	pnm.h pvn.o pvn.h pvnconvert.o pvnglobals.o pvnglobals.h
+	${CC} ${CFLAGS} -lm -o pvnconvert pvnconvert.o pvn.o pvnglobals.o
+
+showpvn-Magick:	showpvn-Magick.o pvn.o pvn.h pvnglobals.o pvnglobals.h
+	${CC} ${CFLAGS} -lm -o showpvn-Magick `Magick-config --cflags --cppflags` showpvn-Magick.o pvn.o pvnglobals.o `Magick-config --ldflags --libs`
+
+showpvn:	showpvn.o pvnglobals.o pvnglobals.h pvn.o pvn.h
+	$(CC) ${CFLAGS} ${GLLIBS} -o showpvn showpvn.o pvnglobals.o pvn.o $(LOPENGL)
+
+clean:
+	rm -f *.o pnm2pvn pvn2pnm pvnconvert showpvn showpvn-Magick
