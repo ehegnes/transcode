@@ -1,7 +1,7 @@
 /*
- *  filter_clone.c
+ *  filter_slowmo.c
  *
- *  Copyright (C) Thomas Östreich - August 2002
+ *  Copyright (C) Tilmann Bitterberg - June 2003
  *
  *  This file is part of transcode, a linux video stream processing tool
  *      
@@ -22,8 +22,9 @@
  */
 
 #define MOD_NAME    "filter_doublefps.so"
-#define MOD_VERSION "v0.1 (2003-03-27)"
-#define MOD_CAP     "UNFINISHED! double frame rate with interlaced frames"
+#define MOD_VERSION "v0.2 (2003-06-23)"
+#define MOD_CAP     "double frame rate by creating frames from fields"
+#define MOD_AUTHOR  "Tilmann Bitterberg"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,7 +59,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   static char *lines = NULL;
   static int width, height, height_mod, codec;
   int h;
-  static int evenfirst=1;
+  static int evenfirst=0;
 
 
 
@@ -125,12 +126,24 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   //----------------------------------
   //
+  // filter configure
+  //
+  //----------------------------------
+
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYO", "1");
+      optstr_param (options, "shiftEven",    "Assume even field dominance",  "%d", "0", "0", "1");
+  }
+
+  //----------------------------------
+  //
   // filter close
   //
   //----------------------------------
 
   
   if(ptr->tag & TC_FILTER_CLOSE) {
+    if (lines) free(lines); lines=NULL;
     return(0);
   }
   
@@ -144,6 +157,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
 
+  // this must be POST_S_PROCESS otherwise we won't see a cloned frame again.
+  
   if(ptr->tag & TC_POST_S_PROCESS) {
       int stride = ptr->v_width*3;
       if (codec==CODEC_YUV)
