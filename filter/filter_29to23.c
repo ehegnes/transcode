@@ -2,6 +2,7 @@
  *  filter_29to23.c
  *
  *  Copyright (C) Tilmann Bitterberg - September 2002
+ *            (C) Max Alekseyev      - July 2003
  *
  *  This file is part of transcode, a linux video stream processing tool
  *      
@@ -22,8 +23,8 @@
  */
 
 #define MOD_NAME    "filter_29to23.so"
-#define MOD_VERSION "v0.2 (2003-02-01)"
-#define MOD_CAP     "frame rate conversion filter"
+#define MOD_VERSION "v0.3 (2003-07-18)"
+#define MOD_CAP     "frame rate conversion filter (video only)"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -108,61 +109,61 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //
   //----------------------------------
 
-  if(ptr->tag & TC_POST_PROCESS && vob->im_v_codec == CODEC_RGB) {
+  /* Interpolate every 5 consecutive frames with four ones
+   *
+   * Original frame/time scale:
+   * frame #: 0       1       2       3       4
+   *          *-------*-------*-------*-------*--...
+   * time:    0      .2      .4      .6      .8
+   *
+   * Interpolated frame/time scale:
+   * frame #: 0         1         2         3
+   *          *-------*-x-----*---x---*-----x-*--...
+   * time:    0        .25       .5        .75
+   *
+   * Linear interpolation suggests:
+   * NewFrame[0] = OldFrame[0]
+   * NewFrame[1] = ( 3*OldFrame[1] +   OldFrame[2] ) / 4
+   * NewFrame[2] = (   OldFrame[2] +   OldFrame[3] ) / 2
+   * NewFrame[3] = (   OldFrame[3] + 3*OldFrame[4] ) / 4
+   */
 
-      switch ((ptr->id+1)%5) {
-	  case 1:
-	      break;
-	  case 2:
-	      memcpy (f1, ptr->video_buf, ptr->v_width*ptr->v_height*3);
+  if( ptr->tag & TC_POST_PROCESS &&
+     (vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_RGB) ) {
+
+      int i;
+
+      switch ( ptr->id % 5 ) {
+
+          case 0:
+              break;
+
+          case 1:
+	      memcpy (f1, ptr->video_buf, ptr->video_size);
 	      ptr->attributes |= TC_FRAME_IS_SKIPPED;
 	      break;
-	  case 3:
-	      memcpy (f2, ptr->video_buf, ptr->v_width*ptr->v_height*3);
-	      {
-		  int i;
-		  int u, v, w;
-		  for (i = 0; i<ptr->video_size; i++) {
-		      v = (int)*(f1+i);
-		      w = (int)*(f2+i);
 
-		      u = (v + w)/2;
-
-		      if (u > 255) u = 255;
-		      if (u < 1) u = 0;
-
-		      u &= 0xff;
-
-		      *(ptr->video_buf+i) = u;
-		  }
-	      }
-
+          case 2:
+	      memcpy (f2, ptr->video_buf, ptr->video_size);
+	      for (i = 0; i<ptr->video_size; i++)
+		  ptr->video_buf[i] = (3*f1[i] + f2[i] + 1)/4;
 	      break;
-	  case 4:
-	      memcpy (f1, ptr->video_buf, ptr->v_width*ptr->v_height*3);
-	      {
-		  int i;
-		  int u, v, w;
-		  for (i = 0; i<ptr->video_size; i++) {
-		      v = (int)*(f1+i);
-		      w = (int)*(f2+i);
 
-		      u = (v + w)/2;
-		      if (u > 255) u = 255;
-		      if (u < 1) u = 0;
-		      u &= 0xff;
-
-
-		      *(ptr->video_buf+i) = u;
-		  }
-	      }
-
+          case 3:
+	      memcpy (f1, ptr->video_buf, ptr->video_size);
+	      for (i = 0; i<ptr->video_size; i++)
+		  ptr->video_buf[i] = (f1[i] + f2[i])/2;
 	      break;
-	  case 0:
+
+          case 4:
+	      //memcpy (f2, ptr->video_buf, ptr->video_size);
+	      {
+                  unsigned char *f3 = ptr->video_buf;
+		  for (i = 0; i<ptr->video_size; i++)
+		      ptr->video_buf[i] = (f1[i] + 3*f3[i] + 1)/4;
+	      }
 	      break;
       }
   }
-  
   return(0);
 }
-// vim: sw=4

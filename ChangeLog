@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-18 Max Alekseyev <relf at os2.ru>
+
+  * filter/filter_29to23.c:
+  Do more acurate linear interpolation, YUV support and cleanup
+
 2003-07-17 Tilmann Bitterberg <transcode at tibit.org>
   
   * src/{video_rgb.c video_trans.c video_trans.h video_yuv.c}:
