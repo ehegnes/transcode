@@ -33,7 +33,7 @@
 */
 
 #define MOD_NAME    "filter_smartdeinter.so"
-#define MOD_VERSION "v2.7b (2003-01-19)"
+#define MOD_VERSION "v2.7b (2003-02-01)"
 #define MOD_CAP     "VirtualDub's smart deinterlacer"
 #define MOD_AUTHOR  "Donald Graft"
 
@@ -195,6 +195,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	if (!mfd) {
 		fprintf(stderr, "No memory!\n"); return (-1);
 	}
+
+	memset (mfd, 0, sizeof(MyFilterData));
 
 	width  = vob->im_v_width;
 	height = vob->im_v_height;
@@ -419,8 +421,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	Pixel32 * dst_buf;
 	Pixel32 * src_buf;
 
-	if (mfd->codec == CODEC_YUV)
+	if (mfd->codec == CODEC_YUV) {
 	    tc_yuv2rgb_core(ptr->video_buf);
+	}
 
 	convert_rgb2argb (ptr->video_buf, mfd->convertFrameIn, ptr->v_width, ptr->v_height);
 

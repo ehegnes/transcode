@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_29to23.so"
-#define MOD_VERSION "v0.1 (2002-09-13)"
+#define MOD_VERSION "v0.2 (2003-02-01)"
 #define MOD_CAP     "frame rate conversion filter"
 
 #include <stdio.h>
@@ -116,11 +116,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	  case 1:
 	      break;
 	  case 2:
-	      memcpy (f1, ptr->video_buf, SIZE_RGB_FRAME);
+	      memcpy (f1, ptr->video_buf, ptr->v_width*ptr->v_height*3);
 	      ptr->attributes |= TC_FRAME_IS_SKIPPED;
 	      break;
 	  case 3:
-	      memcpy (f2, ptr->video_buf, SIZE_RGB_FRAME);
+	      memcpy (f2, ptr->video_buf, ptr->v_width*ptr->v_height*3);
 	      {
 		  int i;
 		  int u, v, w;
@@ -141,7 +141,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 	      break;
 	  case 4:
-	      memcpy (f1, ptr->video_buf, SIZE_RGB_FRAME);
+	      memcpy (f1, ptr->video_buf, ptr->v_width*ptr->v_height*3);
 	      {
 		  int i;
 		  int u, v, w;

@@ -21,8 +21,12 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #define MOD_NAME    "filter_pv.so"
-#define MOD_VERSION "v0.2.0 (2002-01-20)"
+#define MOD_VERSION "v0.2.1 (2002-02-01)"
 #define MOD_CAP     "xv only preview plugin"
 
 #include <stdio.h>
@@ -34,6 +38,7 @@
 #include "optstr.h"
 #include "font_xpm.h"
 #include "filter.h"
+#include "video_trans.h"
 
 static int cache_num=0;
 static int cache_ptr=0;
@@ -74,6 +79,9 @@ static int preview_delay=0;
 static int preview_skip=0, preview_skip_num=25;
 static char *undo_buffer = NULL;
 static char *run_buffer[2] = {NULL, NULL};
+static char *process_buffer[3] = {NULL, NULL, NULL};
+
+static int process_ctr_cur=0;
 
 vob_t *vob=NULL;
 
@@ -107,6 +115,28 @@ void preview_toggle_skip()
  *
  *-------------------------------------------------*/
 
+char * preview_alloc_align_buffer(size_t size)
+{
+#ifdef HAVE_GETPAGESIZE
+   int buffer_align=getpagesize();
+#else
+   int buffer_align=0;
+#endif
+   char *buf = malloc(size + buffer_align);
+
+   int adjust;
+
+   if (buf == NULL) {
+       fprintf(stderr, "(%s) out of memory", __FILE__);
+   }
+   
+   adjust = buffer_align - ((int) buf) % buffer_align;
+
+   if (adjust == buffer_align)
+      adjust = 0;
+
+   return (buf + adjust);
+}
 int tc_filter(vframe_list_t *ptr, char *options)
 {
 
@@ -205,22 +235,19 @@ int tc_filter(vframe_list_t *ptr, char *options)
     if (cache_num) {
       if(preview_cache_init()<0) return(-1);
 
-      if ((undo_buffer = (char *) malloc (size)) == NULL) {
-	  fprintf(stderr, "[%s] malloc for undo_buffer failed : %s:%d\n", 
-		  MOD_NAME, __FILE__, __LINE__);
+      if ((undo_buffer = preview_alloc_align_buffer(SIZE_RGB_FRAME)) == NULL)
 	  return (-1);
-      }
-
-      if ((run_buffer[0] = (char *) malloc (SIZE_RGB_FRAME)) == NULL) {
-	  fprintf(stderr, "[%s] malloc for run_buffer[0] failed : %s:%d\n", 
-		  MOD_NAME, __FILE__, __LINE__);
+      if ((run_buffer[0] = preview_alloc_align_buffer (SIZE_RGB_FRAME)) == NULL)
 	  return (-1);
-      }
-      if ((run_buffer[1] = (char *) malloc (SIZE_RGB_FRAME)) == NULL) {
-	  fprintf(stderr, "[%s] malloc for run_buffer[1] failed : %s:%d\n", 
-		  MOD_NAME, __FILE__, __LINE__);
+      if ((run_buffer[1] = preview_alloc_align_buffer (SIZE_RGB_FRAME)) == NULL)
 	  return (-1);
-      }
+      if ((process_buffer[0] = preview_alloc_align_buffer (SIZE_RGB_FRAME)) == NULL)
+	  return (-1);
+      if ((process_buffer[1] = preview_alloc_align_buffer (SIZE_RGB_FRAME)) == NULL)
+	  return (-1);
+      if ((process_buffer[2] = preview_alloc_align_buffer (SIZE_RGB_FRAME)) == NULL)
+	  return (-1);
+      
     }
 
     xv_init_ok=1;
@@ -266,6 +293,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
   pre = (ptr->tag & TC_POST_S_PROCESS)? 1:0;
   vid = (ptr->tag & TC_VIDEO)? 1:0;
   
+  if( (ptr->tag & TC_PRE_PROCESS) && vid) {
+      process_ctr_cur = (process_ctr_cur+1)%3;
+      memcpy (process_buffer[process_ctr_cur], ptr->video_buf, ptr->video_size);
+      return 0;
+  }
   if(pre && vid) {
     
     if(preview_skip && (ptr->id % preview_skip_num)) return(0);
@@ -338,70 +370,101 @@ int preview_filter_buffer(int frames_needed)
 {
     int current,i;
 
-    int this_filter = plugin_find_id("pv");
+    static int this_filter = -1;
+    static vframe_list_t *ptr = NULL; 
+    vob_t *vob = tc_get_vob();
+
+    if (ptr == NULL) 
+	ptr = malloc (sizeof (vframe_list_t));
+    memset (ptr, 0, sizeof (vframe_list_t));
 
     if (!cache_enabled) return 0;
 
+    if (this_filter == -1);
+	this_filter = plugin_find_id("pv");
+
     for (current = frames_needed, i = 1; current > 0; current--, i++){
 
-	vframe_list_t ptr;
-
+#undef NO_PROCESS
+#ifdef NO_PROCESS
 	memcpy (run_buffer[0], (char *)vid_buf[cache_ptr-(current-1)], size);
 	memcpy (run_buffer[1], (char *)vid_buf[cache_ptr-(current-1)], size);
+#else
+	memcpy (run_buffer[0], process_buffer[(process_ctr_cur+1)%3], SIZE_RGB_FRAME);
+	memcpy (run_buffer[1], process_buffer[(process_ctr_cur+1)%3], SIZE_RGB_FRAME);
+#endif
 
-	if (i == 1)
+	if (i == 1) {
 	    memcpy (undo_buffer, (char *)vid_buf[cache_ptr], size);
+	}
 
-	ptr.bufid = 1;
-	ptr.next = &ptr;
-	ptr.tag= TC_VIDEO | TC_POST_M_PROCESS | TC_PRE_M_PROCESS |
-	    TC_POST_S_PROCESS | TC_PRE_S_PROCESS;
+	ptr->bufid = 1;
+	ptr->next = ptr;
 
-	ptr.filter_id = 0;
-	ptr.v_codec = CODEC_YUV;
-	ptr.id  = i; // frame
-	ptr.internal_video_buf_0 = run_buffer[0];
-	ptr.internal_video_buf_1 = run_buffer[1];
+	ptr->filter_id = 0;
+	ptr->v_codec = CODEC_YUV;
+	ptr->id  = i; // frame
+	ptr->internal_video_buf_0 = run_buffer[0];
+	ptr->internal_video_buf_1 = run_buffer[1];
 
 	// RGB
-	ptr.video_buf_RGB[0]=ptr.internal_video_buf_0;
-	ptr.video_buf_RGB[1]=ptr.internal_video_buf_1;
+	ptr->video_buf_RGB[0]=ptr->internal_video_buf_0;
+	ptr->video_buf_RGB[1]=ptr->internal_video_buf_1;
 
 	//YUV
-	ptr.video_buf_Y[0] = ptr.internal_video_buf_0;
-	ptr.video_buf_Y[1] = ptr.internal_video_buf_1;
+	ptr->video_buf_Y[0] = ptr->internal_video_buf_0;
+	ptr->video_buf_Y[1] = ptr->internal_video_buf_1;
 
-	ptr.video_buf_U[0] = ptr.video_buf_Y[0]
+	ptr->video_buf_U[0] = ptr->video_buf_Y[0]
 	    + TC_MAX_V_FRAME_WIDTH * TC_MAX_V_FRAME_HEIGHT;
-	ptr.video_buf_U[1] = ptr.video_buf_Y[1]
+	ptr->video_buf_U[1] = ptr->video_buf_Y[1]
 	    + TC_MAX_V_FRAME_WIDTH * TC_MAX_V_FRAME_HEIGHT;
 
-	ptr.video_buf_V[0] = ptr.video_buf_U[0]
+	ptr->video_buf_V[0] = ptr->video_buf_U[0]
 	    + (TC_MAX_V_FRAME_WIDTH * TC_MAX_V_FRAME_HEIGHT)/4;
-	ptr.video_buf_V[1] = ptr.video_buf_U[1]
+	ptr->video_buf_V[1] = ptr->video_buf_U[1]
 	    + (TC_MAX_V_FRAME_WIDTH * TC_MAX_V_FRAME_HEIGHT)/4;
 
 	//default pointer
-	ptr.video_buf  = ptr.internal_video_buf_0;
-	ptr.video_buf2 = ptr.internal_video_buf_1;
-	ptr.free = 1;
+	ptr->video_buf  = ptr->internal_video_buf_0;
+	ptr->video_buf2 = ptr->internal_video_buf_1;
+	ptr->free = 1;
 
-	ptr.video_size = size;
-	ptr.v_width = w;
-	ptr.v_height = h;
-
+#ifdef NO_PROCESS
+	ptr->video_size = size;
+	ptr->v_width = w;
+	ptr->v_height = h;
+#else
+	ptr->v_width = vob->im_v_width;
+	ptr->v_height = vob->im_v_height;
+	ptr->video_size = vob->im_v_width*vob->im_v_height*3/2;
+#endif
 
 	// we disable this filter (filter_pv), because it does not make sense
 	// to be run in the preview loop
 	plugin_disable_id (this_filter);
-	process_vid_plugins (&ptr);
+
+	// PRE
+	ptr->tag= TC_VIDEO | TC_PRE_S_PROCESS  | TC_PRE_M_PROCESS;
+	process_vid_plugins (ptr);
+
+	// CORE
+	process_vid_frame(vob, ptr);
+
+	// POST
+	ptr->tag= TC_VIDEO | TC_POST_S_PROCESS | TC_POST_M_PROCESS;
+	process_vid_plugins (ptr);
+
 	plugin_enable_id (this_filter);
 	
-	memcpy (vid_buf[cache_ptr-current+1], ptr.video_buf, size);
+	memcpy (vid_buf[cache_ptr-current+1], ptr->video_buf, size);
 	preview_cache_draw(0);
+
+	memcpy ((char *)vid_buf[cache_ptr], undo_buffer, size);
     }
     return 0;
 }
+#if 0
 void preview_filter(void)
 {
     FILE *f;
@@ -573,6 +636,8 @@ redisplay_frame:
     return;
 
 }
+#endif
+
 void preview_cache_undo(void) 
 {
     if (!cache_enabled) return;

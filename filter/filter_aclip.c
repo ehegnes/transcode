@@ -47,7 +47,6 @@
 static int min=0, max=0, bytes_per_sec;
 static uint64_t total=0;
 static int a_rate, a_bits, chan; 
-static double fps, fmin, fmax, frames, vol;
 
 static int level=10, range=25, range_ctr=0, skip_mode=0;
 

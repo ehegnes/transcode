@@ -1142,17 +1142,11 @@ static void rgb_zoom_done_DI(void)
   free(tbuf_DI[id].tmpBuffer);
 }
 
-static void rgb_zoom_init_DI(char *image, int width, int height, int new_width, int new_height)
+static void rgb_zoom_init_DI(char *image, int width, int height, int new_width, int new_height, int id)
 {
 
-  int id;
-  
   vob_t *vob;
 
-  //get thread id:
-  
-  id=get_fthread_id(1);
-  
   tbuf_DI[id].tmpBuffer = (pixel_t*)malloc(new_width*new_height*3);
   
   zoom_setup_image(&tbuf_DI[id].srcImage, width, height, 3, image);
@@ -1177,7 +1171,7 @@ void rgb_zoom_DI(char *image, int width, int height, int new_width, int new_heig
   
   
   if (tbuf_DI[id].zoomer == NULL)
-    rgb_zoom_init_DI(image, width, height, new_width, new_height);
+    rgb_zoom_init_DI(image, width, height, new_width, new_height, id);
   
   tbuf_DI[id].srcImage.data = image;
   tbuf_DI[id].dstImage.data = tbuf_DI[id].tmpBuffer;

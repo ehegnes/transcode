@@ -227,12 +227,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
   
   if(ptr->tag & TC_PRE_M_PROCESS && ptr->tag & TC_VIDEO) {
 
-      memcpy(buffer, ptr->video_buf, SIZE_RGB_FRAME);
+      memcpy(buffer, ptr->video_buf, ptr->v_width*ptr->v_height*3);
 
       if (vob->im_v_codec == CODEC_YUV) crshift_yuv(buffer, vob, loop);
       if (vob->im_v_codec == CODEC_RGB) crshift_rgb(buffer, vob, loop);
       
-      memcpy(ptr->video_buf, buffer, SIZE_RGB_FRAME);
+      memcpy(ptr->video_buf, buffer, ptr->v_width*ptr->v_height*3);
   } 
   
   return(0);

@@ -23,7 +23,7 @@
  */
 
 #define MOD_NAME    "filter_ivtc.so"
-#define MOD_VERSION "v0.2 (2002-08-12)"
+#define MOD_VERSION "v0.3 (2003-02-01)"
 #define MOD_CAP     "NTSC inverse telecine plugin"
 
 #include <stdio.h>
@@ -45,11 +45,9 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "optstr.h"
 
 // basic parameter
-static int color_diff_threshold1 = 50;
-static int color_diff_threshold2 = 100;
-static double critical_threshold = 0.00005;
 static int show_results=0;
 
 /*-------------------------------------------------
@@ -132,7 +130,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 
     if ((ptr->tag & TC_PRE_PROCESS) && (ptr->tag & TC_VIDEO)) {
 
-	memcpy(lastFrames[frameIn], ptr->video_buf, SIZE_RGB_FRAME);
+	memcpy(lastFrames[frameIn], ptr->video_buf, ptr->v_width*ptr->v_height*3);
 	if (show_results) fprintf(stderr, "Inserted frame %d into slot %d\n", frameCount, frameIn);
 	frameIn = (frameIn+1) % FRBUFSIZ;
 	frameCount++;

@@ -1524,8 +1524,13 @@ static void yuv_zoom_done(void)
   
   id=get_fthread_id(0);
   
-  zoom_image_done(tbuf[id].zoomerY);
-  zoom_image_done(tbuf[id].zoomerUV);
+  if (tbuf[id].zoomerY)
+    zoom_image_done(tbuf[id].zoomerY);
+  tbuf[id].zoomerY  = NULL;
+
+  if (tbuf[id].zoomerUV)
+    zoom_image_done(tbuf[id].zoomerUV);
+  tbuf[id].zoomerUV = NULL;
 //  free(tbuf[id].tmpBuffer);
 }
 
@@ -1602,23 +1607,25 @@ static void yuv_zoom_done_DI(void)
   
   id=get_fthread_id(1);
   
-  zoom_image_done(tbuf_DI[id].zoomerY);
-  zoom_image_done(tbuf_DI[id].zoomerUV);
-  free(tbuf_DI[id].tmpBuffer);
+  if (tbuf_DI[id].zoomerY)
+    zoom_image_done(tbuf_DI[id].zoomerY);
+  tbuf_DI[id].zoomerY  = NULL;
+
+  if (tbuf_DI[id].zoomerUV)
+    zoom_image_done(tbuf_DI[id].zoomerUV);
+  tbuf_DI[id].zoomerUV  = NULL;
+
+  if (tbuf_DI[id].tmpBuffer)
+      free(tbuf_DI[id].tmpBuffer);
+  tbuf_DI[id].tmpBuffer = NULL;
 }
 
 
-static void yuv_zoom_init_DI(char *image, int width, int height, int new_width, int new_height)
+static void yuv_zoom_init_DI(char *image, int width, int height, int new_width, int new_height, int id)
 {
   
-  int id;
-
   vob_t *vob;
   
-  //get thread id:
-  
-  id=get_fthread_id(1);
-
   tbuf_DI[id].tmpBuffer = (pixel_t*) malloc(new_width*new_height + (new_width*new_height)/2);
 
   if(tbuf_DI[id].tmpBuffer==NULL) tc_error("out of memory\n");
@@ -1647,7 +1654,7 @@ void yuv_zoom_DI(char *image, int width, int height, int new_width, int new_heig
   id=get_fthread_id(1);
 
   if (tbuf_DI[id].zoomerY == NULL)
-    yuv_zoom_init_DI(image, width, height, new_width, new_height);
+    yuv_zoom_init_DI(image, width, height, new_width, new_height, id);
 
   tbuf_DI[id].srcImageY.data = image;
   tbuf_DI[id].dstImageY.data = tbuf_DI[id].tmpBuffer;

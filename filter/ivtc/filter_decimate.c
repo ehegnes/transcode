@@ -23,7 +23,7 @@
  */
 
 #define MOD_NAME    "filter_decimate.so"
-#define MOD_VERSION "v0.2 (2002-08-12)"
+#define MOD_VERSION "v0.3 (2003-02-01)"
 #define MOD_CAP     "NTSC decimation plugin"
 
 #include <stdio.h>
@@ -137,7 +137,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	// After frame processing, the frames must be deinterlaced 
 	// To correctly IVTC, you must use filter_ivtc before this filter,
 	// i.e. -J ivtc,decimate
-	memcpy(lastFrames[frameIn], ptr->video_buf, SIZE_RGB_FRAME);
+	memcpy(lastFrames[frameIn], ptr->video_buf, ptr->v_width*ptr->v_height*3);
 	if (show_results) fprintf(stderr, "Inserted frame %d into slot %d ", frameCount, frameIn);
 	lastFramesOK[frameIn] = 1;
 	frameIn = (frameIn+1) % FRBUFSIZ;
@@ -193,7 +193,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	    }
 
 	    if (lastFramesOK[frameOut]) {
-		memcpy(ptr->video_buf, lastFrames[frameOut], SIZE_RGB_FRAME);
+		memcpy(ptr->video_buf, lastFrames[frameOut], ptr->v_width*ptr->v_height*3);
 		if (show_results) fprintf(stderr, "giving slot %d\n", frameOut);
 	    }
 	    else {
