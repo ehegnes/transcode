@@ -316,6 +316,7 @@ MOD_init
     int tv_type;
     
     int asr=0, frc=0;
+    int bitrate=0, max_bitrate=0;
     
     char base_profile = '1'; // default MPEG1
     char *p1 = NULL;
@@ -388,6 +389,14 @@ MOD_init
     //--  '2' = MPEG2                                     --
     //--  'd' = DVD compliant
     //------------------------------------------------------
+
+
+    if (vob->divxbitrate != VBITRATE)
+	bitrate = vob->divxbitrate;
+
+    if (vob->video_max_bitrate != 0)
+	max_bitrate = vob->video_max_bitrate;
+
     if (p1 && strlen(p1))
     {  
       base_profile = tolower(*p1);
@@ -402,15 +411,15 @@ MOD_init
           tv_type = ENCODE_PAL;  
       }
       if (strchr("d", base_profile) && vob->divxbitrate==VBITRATE) {
-	  vob->divxbitrate=6000;
+	  bitrate=6000;
 	  if(vob->video_max_bitrate == 0)
-	      vob->video_max_bitrate = 9800;
+	      max_bitrate = 9800;
       }
     }
 
-    if(vob->video_max_bitrate < vob->divxbitrate) {
+    if(max_bitrate < bitrate) {
 	//tc_warn("Maximum bitrate is smaller than average bitrate, fixing.");
-	vob->video_max_bitrate = vob->divxbitrate;
+	max_bitrate = bitrate;
     }
     
     //-- parameter ("-F ?,?,<"user profile">") will be used as --
@@ -420,9 +429,9 @@ MOD_init
     asr = (vob->ex_asr<0) ? vob->im_asr:vob->ex_asr;
     
     if (p3 && strlen(p3))
-      bb_set_profile(p3, base_profile, tv_type, asr, frc, vob->pulldown, verbose_flag, vob->divxbitrate, vob->video_max_bitrate);  
+      bb_set_profile(p3, base_profile, tv_type, asr, frc, vob->pulldown, verbose_flag, bitrate, max_bitrate);  
     else
-      bb_set_profile(NULL, base_profile, tv_type, asr, frc, vob->pulldown, verbose_flag, vob->divxbitrate, vob->video_max_bitrate);
+      bb_set_profile(NULL, base_profile, tv_type, asr, frc, vob->pulldown, verbose_flag, bitrate, max_bitrate);
       
     //-- store type of mpeg (for later use) --
     //----------------------------------------
