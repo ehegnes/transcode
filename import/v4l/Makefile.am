@@ -5,10 +5,11 @@ AUTOMAKE_OPTIONS = 1.3 foreign
 AM_CPPFLAGS = \
 	-D_REENTRANT \
 	-I$(top_srcdir) \
-	-I$(top_srcdir)/src -I$(top_srcdir)/import \
-	@TCIOAUX_CFLAGS@
+	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/import \
+	$(TCIOAUX_CFLAGS)
 
-pkgdir = @MOD_PATH@
+pkgdir = $(MOD_PATH)
 
 if HAVE_V4L
 MOD = import_v4l.la import_v4l2.la 

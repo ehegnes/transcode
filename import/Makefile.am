@@ -3,29 +3,29 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
   
 AM_CPPFLAGS = \
-  	-DMOD_PATH=\"@MOD_PATH@\" \
+  	-DMOD_PATH=\"$(MOD_PATH)\" \
   	-D_REENTRANT \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
-  	@A52_CFLAGS@ \
-	@AC3_CFLAGS@ \
-  	@AVILIB_CFLAGS@ \
-  	@AVIFILE_CFLAGS@ \
-	@LIBDV_CFLAGS@ \
-  	@LIBDVDREAD_CFLAGS@ \
-	@FFMPEG_LIBS_CFLAGS@ \
-	@LAME_CFLAGS@ \
-	@LIBMPEG3_CFLAGS@ \
-	@LIBXML2_CFLAGS@ \
-	@LIBVO_CFLAGS@ \
-	@LZO_CFLAGS@ \
-	@IMAGEMAGICK_CFLAGS@ \
-	@MPEG2CVS_CFLAGS@ \
-  	@OGG_CFLAGS@ \
-	@LIBQUICKTIME_CFLAGS@ \
-  	@THEORA_CFLAGS@ \
-	@VORBIS_CFLAGS@ \
-	@XIO_CFLAGS@
+  	$(A52_CFLAGS) \
+	$(AC3_CFLAGS) \
+  	$(AVILIB_CFLAGS) \
+  	$(AVIFILE_CFLAGS) \
+	$(LIBDV_CFLAGS) \
+  	$(LIBDVDREAD_CFLAGS) \
+	$(FFMPEG_LIBS_CFLAGS) \
+	$(LAME_CFLAGS) \
+	$(LIBMPEG3_CFLAGS) \
+	$(LIBXML2_CFLAGS) \
+	$(LIBVO_CFLAGS) \
+	$(LZO_CFLAGS) \
+	$(IMAGEMAGICK_CFLAGS) \
+	$(MPEG2CVS_CFLAGS) \
+  	$(OGG_CFLAGS) \
+	$(LIBQUICKTIME_CFLAGS) \
+  	$(THEORA_CFLAGS) \
+	$(VORBIS_CFLAGS) \
+	$(XIO_CFLAGS)
 
 if HAVE_OGG
 if HAVE_VORBIS
@@ -75,7 +75,7 @@ if HAVE_SUNAU
 SUNAU_MOD = import_sunau.la
 endif
 
-pkgdir = @MOD_PATH@
+pkgdir = $(MOD_PATH)
 
 pkg_LTLIBRARIES = \
 	import_avi.la \
@@ -124,7 +124,7 @@ import_ogg_la_LDFLAGS = -module -avoid-version
 
 import_xml_la_SOURCES = import_xml.c ioxml.c probe_xml.c ../src/zoom.c
 import_xml_la_LDFLAGS = -module -avoid-version 
-import_xml_la_LIBADD = @LIBXML2_LIBS@ -lm
+import_xml_la_LIBADD = $(LIBXML2_LIBS) -lm
 
 import_yuv4mpeg_la_SOURCES = import_yuv4mpeg.c
 import_yuv4mpeg_la_LDFLAGS = -module -avoid-version 
@@ -144,19 +144,19 @@ import_xvid_la_LDFLAGS = -module -avoid-version
 
 import_ffmpeg_la_SOURCES = import_ffmpeg.c 
 import_ffmpeg_la_LDFLAGS = -module -avoid-version 
-import_ffmpeg_la_LIBADD = @FFMPEG_LIBS_LIBS@
+import_ffmpeg_la_LIBADD = $(FFMPEG_LIBS_LIBS)
 
 import_im_la_SOURCES = import_im.c
 import_im_la_LDFLAGS = -module -avoid-version 
-import_im_la_LIBADD = @IMAGEMAGICK_LIBS@ -lm 
+import_im_la_LIBADD = $(IMAGEMAGICK_LIBS) -lm 
 
 import_imlist_la_SOURCES = import_imlist.c
 import_imlist_la_LDFLAGS = -module -avoid-version 
-import_imlist_la_LIBADD = @IMAGEMAGICK_LIBS@ -lm 
+import_imlist_la_LIBADD = $(IMAGEMAGICK_LIBS) -lm 
 
 import_mov_la_SOURCES = import_mov.c
 import_mov_la_LDFLAGS = -module -avoid-version 
-import_mov_la_LIBADD = @LIBQUICKTIME_LIBS@ -lm 
+import_mov_la_LIBADD = $(LIBQUICKTIME_LIBS) -lm 
 
 import_lav_la_SOURCES = import_lav.c
 import_lav_la_LDFLAGS = -module -avoid-version 
@@ -172,7 +172,7 @@ import_mpeg2_la_LDFLAGS = -module -avoid-version
 
 import_mpeg3_la_SOURCES = import_mpeg3.c
 import_mpeg3_la_LDFLAGS = -module -avoid-version 
-import_mpeg3_la_LIBADD = @LIBMPEG3_LIBS@
+import_mpeg3_la_LIBADD = $(LIBMPEG3_LIBS)
 
 import_fraps_la_SOURCES = import_fraps.c 
 import_fraps_la_LDFLAGS = -module -avoid-version 
@@ -182,34 +182,34 @@ import_avi_la_LDFLAGS = -module -avoid-version
 
 import_ac3_la_SOURCES = import_ac3.c ioaux.c ac3scan.c
 import_ac3_la_LDFLAGS = -module -avoid-version 
-import_ac3_la_LIBADD = @AC3_LIBS@ -lm
+import_ac3_la_LIBADD = $(AC3_LIBS) -lm
 
 import_vdrac3_la_SOURCES = import_vdrac3.c ioaux.c ac3scan.c
 import_vdrac3_la_LDFLAGS = -module -avoid-version 
-import_vdrac3_la_LIBADD = @AC3_LIBS@ -lm
+import_vdrac3_la_LIBADD = $(AC3_LIBS) -lm
 
 a52_decore_la_SOURCES = a52_decore.c ioaux.c
 a52_decore_la_LDFLAGS = -module -avoid-version 
-a52_decore_la_LIBADD = ${A52_LIBS} @XIO_LIBS@
+a52_decore_la_LIBADD = $(A52_LIBS) $(XIO_LIBS)
 
 af6_decore_la_SOURCES = af6_decore.cpp ioaux.c
 af6_decore_la_LDFLAGS = -module -avoid-version 
-af6_decore_la_LIBADD = @AVIFILE_LIBS@ -lstdc++ -lm
+af6_decore_la_LIBADD = $(AVIFILE_LIBS) -lstdc++ -lm
 
 import_mp3_la_SOURCES = import_mp3.c ioaux.c
 import_mp3_la_LDFLAGS = -module -avoid-version 
 
 import_lzo_la_SOURCES = import_lzo.c 
 import_lzo_la_LDFLAGS = -module -avoid-version 
-import_lzo_la_LIBADD  = @LZO_LIBS@ -lm
+import_lzo_la_LIBADD  = $(LZO_LIBS) -lm
 
 import_vob_la_SOURCES = import_vob.c ac3scan.c clone.c ioaux.c frame_info.c ivtc.c
 import_vob_la_LDFLAGS =	-module -avoid-version
-import_vob_la_LIBADD = @AC3_LIBS@
+import_vob_la_LIBADD = $(AC3_LIBS)
 
 import_dvd_la_SOURCES = import_dvd.c ac3scan.c dvd_reader.c clone.c ioaux.c frame_info.c ivtc.c
 import_dvd_la_LDFLAGS = -module -avoid-version
-import_dvd_la_LIBADD = @LIBDVDREAD_LIBS@ @AC3_LIBS@
+import_dvd_la_LIBADD = $(LIBDVDREAD_LIBS) $(AC3_LIBS)
 
 import_dv_la_SOURCES = import_dv.c
 import_dv_la_LDFLAGS = -module -avoid-version
@@ -294,21 +294,21 @@ tcdecode_SOURCES = \
 	decode_lzo.c
 
 tcdecode_LDADD = \
-	@FFMPEG_LIBS_LIBS@ \
-	@LAME_LIBS@ \
-	@AC3_LIBS@ \
-	@MPEG2CVS_LIBS@ \
-	@LIBVO_LIBS@ \
-	@LIBDV_LIBS@ \
+	$(FFMPEG_LIBS_LIBS) \
+	$(LAME_LIBS) \
+	$(AC3_LIBS) \
+	$(MPEG2CVS_LIBS) \
+	$(LIBVO_LIBS) \
+	$(LIBDV_LIBS) \
 	$(VORBISFILE) \
-	@THEORA_LIBS@ \
-	@VORBIS_LIBS@ \
-	@OGG_LIBS@ \
-	@DLDARWINLIB@ \
-	@LIBQUICKTIME_LIBS@ \
-	@LZO_LIBS@ \
-	@XIO_LIBS@ \
-	@ACLIB_LIBS@
+	$(THEORA_LIBS) \
+	$(VORBIS_LIBS) \
+	$(OGG_LIBS) \
+	$(DLDARWINLIB) \
+	$(LIBQUICKTIME_LIBS) \
+	$(LZO_LIBS) \
+	$(XIO_LIBS) \
+	$(ACLIB_LIBS)
 
 tcdecode_CFLAGS = $(AM_CFLAGS)
 
@@ -318,8 +318,8 @@ tcdecode_CFLAGS = $(AM_CFLAGS)
 
 tcrequant_SOURCES = tcrequant.c
 tcrequant_LDADD = \
-	@XIO_LIBS@ \
-	@ACLIB_LIBS@ \
+	$(XIO_LIBS) \
+	$(ACLIB_LIBS) \
 	-lm
 
 tcrequant_CFLAGS = $(AM_CFLAGS)
@@ -341,13 +341,13 @@ tccat_SOURCES = \
 	ts_reader.c
 
 tccat_LDADD = \
-	@AVILIB_LIBS@ \
-	@LIBDVDREAD_LIBS@ \
-	@LIBDV_LIBS@ \
-	@DLDARWINLIB@ \
-	@XIO_LIBS@ \
-	@LIBXML2_LIBS@ \
-	@ACLIB_LIBS@ \
+	$(AVILIB_LIBS) \
+	$(LIBDVDREAD_LIBS) \
+	$(LIBDV_LIBS) \
+	$(DLDARWINLIB) \
+	$(XIO_LIBS) \
+	$(LIBXML2_LIBS) \
+	$(ACLIB_LIBS) \
 	-lm
 
 tccat_CFLAGS = $(AM_CFLAGS)
@@ -369,12 +369,12 @@ tcscan_SOURCES = \
 	scan_dv.c
 
 tcscan_LDADD = \
-	@LAME_LIBS@ \
-	@AC3_LIBS@ \
-	@AVILIB_LIBS@ \
-	@LIBDV_LIBS@ \
-	@XIO_LIBS@ \
-	@ACLIB_LIBS@ \
+	$(LAME_LIBS) \
+	$(AC3_LIBS) \
+	$(AVILIB_LIBS) \
+	$(LIBDV_LIBS) \
+	$(XIO_LIBS) \
+	$(ACLIB_LIBS) \
 	-lm
 
 tcscan_CFLAGS = $(AM_CFLAGS)
@@ -419,20 +419,20 @@ tcprobe_SOURCES = \
 	pvnglobals.c
 
 tcprobe_LDADD = \
-	@LAME_LIBS@ \
-	@AVILIB_LIBS@ \
-	@AC3_LIBS@ \
-	@LIBDVDREAD_LIBS@ \
-	@LIBDV_LIBS@ \
-	@IMAGEMAGICK_LIBS@ \
-	@LIBQUICKTIME_LIBS@ \
-	@VORBIS_LIBS@ \
-	@THEORA_LIBS@ \
-	@OGG_LIBS@ \
-	@DLDARWINLIB@ \
-	@XIO_LIBS@ \
-	@LIBXML2_LIBS@ \
-	@ACLIB_LIBS@ \
+	$(LAME_LIBS) \
+	$(AVILIB_LIBS) \
+	$(AC3_LIBS) \
+	$(LIBDVDREAD_LIBS) \
+	$(LIBDV_LIBS) \
+	$(IMAGEMAGICK_LIBS) \
+	$(LIBQUICKTIME_LIBS) \
+	$(VORBIS_LIBS) \
+	$(THEORA_LIBS) \
+	$(OGG_LIBS) \
+	$(DLDARWINLIB) \
+	$(XIO_LIBS) \
+	$(LIBXML2_LIBS) \
+	$(ACLIB_LIBS) \
 	-lm
 
 tcprobe_CFLAGS = $(AM_CFLAGS)
@@ -461,16 +461,16 @@ tcextract_SOURCES = \
 	extract_mxf.c
 
 tcextract_LDADD = \
-	@AC3_LIBS@ \
-	@MPEG2CVS_LIBS@ \
-	@LIBVO_LIBS@ \
-	@AVILIB_LIBS@ \
-	@LIBDV_LIBS@ \
-	@THEORA_LIBS@ \
-	@OGG_LIBS@ \
-	@VORBIS_LIBS@ \
-	@XIO_LIBS@ \
-	@ACLIB_LIBS@ \
+	$(AC3_LIBS) \
+	$(MPEG2CVS_LIBS) \
+	$(LIBVO_LIBS) \
+	$(AVILIB_LIBS) \
+	$(LIBDV_LIBS) \
+	$(THEORA_LIBS) \
+	$(OGG_LIBS) \
+	$(VORBIS_LIBS) \
+	$(XIO_LIBS) \
+	$(ACLIB_LIBS) \
 	-lm
 
 tcextract_CFLAGS = $(AM_CFLAGS)
@@ -494,15 +494,15 @@ tcdemux_SOURCES = \
 	demux_pass.c
 
 tcdemux_LDADD = \
-	@AC3_LIBS@ \
-	@MPEG2CVS_LIBS@ \
-	@LIBVO_LIBS@ \
-	@AVILIB_LIBS@ \
-	@LIBDVDREAD_LIBS@ \
-	@LIBDV_LIBS@ \
-	@DLDARWINLIB@ \
-	@XIO_LIBS@ \
-	@ACLIB_LIBS@ \
+	$(AC3_LIBS) \
+	$(MPEG2CVS_LIBS) \
+	$(LIBVO_LIBS) \
+	$(AVILIB_LIBS) \
+	$(LIBDVDREAD_LIBS) \
+	$(LIBDV_LIBS) \
+	$(DLDARWINLIB) \
+	$(XIO_LIBS) \
+	$(ACLIB_LIBS) \
 	$(PTHREAD_LIBS) \
 	-lm
 
@@ -522,10 +522,10 @@ tcxmlcheck_SOURCES = \
 	scan_dv.c
 
 tcxmlcheck_LDADD = \
-	@LIBDV_LIBS@ \
-	@XIO_LIBS@ \
-	@LIBXML2_LIBS@ \
-	@ACLIB_LIBS@ \
+	$(LIBDV_LIBS) \
+	$(XIO_LIBS) \
+	$(LIBXML2_LIBS) \
+	$(ACLIB_LIBS) \
 	-lm
 
 tcxmlcheck_CFLAGS = $(AM_CFLAGS)
