@@ -54,12 +54,12 @@ void yuv422_mirror(char *image, int width, int height)
   char u, v, y1, y2;
   int stride = 2*width;
 
-  in  = image;
-  out = image+(stride-4);
+  in  = image+stride/2;
+  out = image+stride/2 - 4;
 
   //Y
   for (y = 0; y < height; ++y) {
-      for (x = 0; x < stride/4; ++x) {
+      for (x = 0; x < width/4; ++x) {
 
 	  u  = in[0]; in[0] = out[0]; out[0] = u;
 	  y1 = in[1]; in[1] = out[3]; out[3] = y1;
@@ -69,8 +69,8 @@ void yuv422_mirror(char *image, int width, int height)
 	in+=4;
 	out-=4;
       }
-      in = image + y*stride;
-      out = image + y*stride + stride-4;
+      in += stride/2;
+      out += 3*stride/2;
   }
 
 

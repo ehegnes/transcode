@@ -3,6 +3,12 @@ transcode-0.6.13
 
 2004-01-30 Tilmann Bitterberg <transcode at tibit.org>
 
+  * src/{video_yuv.c video_yuv422.c}:
+  Fix the mirror routine (-l). It never worked before?
+  Pointed out by Robin Lee Powell.
+
+2004-01-30 Tilmann Bitterberg <transcode at tibit.org>
+
   * import/dvd_reader.c:
   Use CODEC_MP2 instead of CODEC_MP3 when probing DVDs with an
   "mpeg" audio codec. Pointed out by Marc Bevand.

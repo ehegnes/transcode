@@ -861,7 +861,7 @@ void yuv_mirror_core(char *image, int width,  int height)
       // row finished, adjust pointer for new row loop
       
       in += rowbytes/2;
-      out += rowbytes/2; 
+      out += 3*rowbytes/2; 
   }
 }
 
