@@ -74,6 +74,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_msharpen.la\
 			filter_fps.la\
 			filter_whitebalance.la\
+			filter_detectclipping.la\
 			$(F_PP) $(F_MMX) $(F_LOGO) $(F_TEXT)
 
 filter_null_la_SOURCES = filter_null.c
@@ -91,6 +92,9 @@ filter_cpaudio_la_LDFLAGS = -module -avoid-version
 filter_text_la_SOURCES = filter_text.c
 filter_text_la_LDFLAGS =  -module -avoid-version 
 filter_text_la_LIBADD  = @FT2_LIBS@
+
+filter_detectclipping_la_SOURCES = filter_detectclipping.c
+filter_detectclipping_la_LDFLAGS =  -module -avoid-version 
 
 filter_smooth_la_SOURCES = filter_smooth.c
 filter_smooth_la_LDFLAGS =  -module -avoid-version 

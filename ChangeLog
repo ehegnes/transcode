@@ -44,10 +44,23 @@ transcode-0.6.11
   Upgraded -y xvid4 to the latest API
 
 
+2003-10-17 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/extract_ac3.c:
+  Fix a segfault on MacOSX. The buffer was to large to be taken from
+  the stack.
+
+2003-10-17 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/Makefile.am filter_detectclipping.c:
+  New (non-functional) filter which is supposed to detect black
+  areas in an picture when it is done.
+
 2003-10-16 Tilmann Bitterberg <transcode at tibit.org>
 
   * filter/filter_text.c:
-  Fix a typo which effectivly disabled the filter.
+  Fix a typo which effectivly disabled the filter. Pointed out by
+  Jorg Heymans.
 
 2003-10-16 Tilmann Bitterberg <transcode at tibit.org>
 
@@ -143,7 +156,7 @@ transcode-0.6.11
   import/import_avi.c import/import_raw.c import/magic.h
   import/tcextract.c src/video_yuv422.c src/zoom.c src/Makefile.am
   src/decoder.c src/encoder.c src/frame_postprocess.c
-  src/frame_preprocess.c src/optstr.h src/probe.c src/tc_defaults.h
+  src/frame_preprocess.c src/optrstr.h src/probe.c src/tc_defaults.h
   src/transcode.c src/transcode.h src/video_trans.h
   src/video_trans.c:
   Add a new internal colorspace UYVY. This is a packed 4:2:2 format. 
