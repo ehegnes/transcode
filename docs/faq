@@ -292,3 +292,15 @@ A:	First, concatenate the VOB files into a single file all.vob .
 	This can probably be improved; I was happy enough that it
 	worked.  (meier)
 ---
+Q:	How can I save the audio track of a DVD directly to a WAVE file
+	suitable for burning onto an AudioCD?
+A:	Suppose you want the audio from title 2, all chapters and you want the
+	second audio stream:
+	<pre>
+	  transcode -x null,dvd -i /dev/dvd -T2,-1 -a 1 \\
+	  -y wav -J resample -E 44100 -o foo.wav
+
+	</pre>
+	The resampling is needed since DVD audio is usually sampled at 48
+	kHz. (tibit)
+---
