@@ -109,11 +109,13 @@ int save_read(char *buf, int bytes, off_t offset, int fdes)
   
   // rewind
   if(lseek(fdes, offset, SEEK_SET)<0) {
+    fprintf(stderr, "[%s:%d] ", __FILE__, __LINE__);
     perror("file seek error");
     return(1);
   }
   
   if(read(fdes, buf, bytes)<bytes) {
+    fprintf(stderr, "[%s:%d] ", __FILE__, __LINE__);
     perror("file read error");
     return(1);
   }

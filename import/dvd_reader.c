@@ -201,7 +201,7 @@ static void stats_video_attributes(video_attr_t *attr, probe_info_t *probe_info)
      && attr->video_format == 0 
      && attr->letterboxed == 0 
      && attr->film_mode == 0) {
-    printf("(%s) -- Unspecified --", __FILE__);
+    printf("(%s) -- Unspecified Video --\n", __FILE__);
     return;
   }
 
@@ -330,7 +330,7 @@ static void stats_audio_attributes(audio_attr_t *attr, int track, probe_info_t *
      && attr->lang_extension == 0
      && attr->unknown1 == 0
      && attr->unknown1 == 0) {
-    printf("(%s) -- Unspecified --", __FILE__);
+    printf("(%s) -- Unspecified Audio --\n", __FILE__);
     return;
   }
 
@@ -460,7 +460,7 @@ static void stats_subp_attributes(subp_attr_t *attr, int track, probe_info_t *pr
      && attr->lang_code == 0
      && attr->lang_extension == 0
      && attr->zero2 == 0) {
-    printf("(%s) -- Unspecified --", __FILE__);
+    printf("(%s) -- Unspecified Subs --\n", __FILE__);
     return;
   }
 

@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-11-12 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/dvd_reader.c import/fileinfo.c import/ioaux.c:
+  The dvd device may be a char device (for example /dev/rdisk1 on
+  OSX)
+
 2003-11-10 Edouard Gomez <ed.gomez at free.fr>
 
   * export/{export_xvid4.c xvid4.cfg xvid4.h}:

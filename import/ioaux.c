@@ -233,7 +233,12 @@ int probe_path(char *name)
       //inode exists
       
       // treat block device as absolute directory path
-      if(S_ISBLK(fbuf.st_mode)) return(2);
+      if(S_ISBLK(fbuf.st_mode) 
+#ifdef __APPLE__ // accessing through the raw device (/dev/rdiskX)
+	      || S_ISCHR(fbuf.st_mode)
+#endif
+	      )
+	   return(2);
 
       // file or directory?
       if(!S_ISDIR(fbuf.st_mode)) return(0);
