@@ -1,11 +1,11 @@
-/* globals.h 
+/* pvnglobals.h
 
    global definitions & functions used in PVN & PNM libraries
 
    PVN (PVB/PVG/PVP) Library
 
-   * the PVN (PVB/PVG/PVP) file format used in this code
-     is (c) 2003 Jacob (Jack) Gryn
+   * the PVN (PVB/PVG/PVP) file format, and this code
+     is (c) 2003,2004 Jacob (Jack) Gryn
 
    * the author grants full rights to all who wish to use
      and distribute this code and the corresponding file
@@ -14,7 +14,6 @@
 
    Jacob (Jack) Gryn
  */
-
 #ifndef PVNPNMGLOBALS_H
 #define PVNPNMGLOBALS_H
 
@@ -23,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 
 #ifdef _MSC_VER
   #include <malloc.h>
@@ -57,10 +57,11 @@
 #define UNKNOWN -4
 
 #define FORMAT_UNCHANGED 0
-#define FORMAT_INT 1
-#define FORMAT_FLOAT 2
-#define FORMAT_DOUBLE 3
-#define FORMAT_BIT 4
+#define FORMAT_UINT 1
+#define FORMAT_INT 2
+#define FORMAT_FLOAT 3
+#define FORMAT_DOUBLE 4
+#define FORMAT_BIT 5
 
 /* get the file size of file pointer *fp (must be open) */
 long filesize(FILE *fp);
@@ -119,7 +120,8 @@ int doubleToBuf(double d, unsigned char *buf);
    there must be >= maxcolour/8 bytes at *buf (prec is in bits)
 
    returns OK or ERROR */
-int intToBuf(unsigned long l, unsigned char *buf, unsigned int prec);
+int uintToBuf(unsigned long l, unsigned char *buf, unsigned int prec);
+int sintToBuf(long l, unsigned char *buf, unsigned int prec);
 
 /* take the next float from the (big-endian) buffer 
    there must be >= 4 bytes at *buf
@@ -139,16 +141,21 @@ int bufToDouble(double *d, unsigned char *buf);
    returns OK or ERROR */
 int bufToInt(unsigned long *l, unsigned char *buf, int prec);
 
-/* convert a unsigned long to a float, adjusting the range from [-maxval,+maxval]
+/* convert an unsigned long to a float, adjusting the range from [-maxval,+maxval]
    note, input_prec is in bits! */
-double lFloatAdjust(unsigned long input, int input_prec, double maxval);
+double ulFloatAdjust(unsigned long input, int input_prec, double maxval);
+
+/* convert a signed long to a float, adjusting the range from [-maxval,+maxval]
+   note, input_prec is in bits! */
+double slFloatAdjust(long input, int input_prec, double maxval);
 
 /* adjusting the range of a float/double to from [-maxval,+maxval] */
 double dFloatAdjust(double input, double old_maxval, double new_maxval);
 
 /* convert a float to a long, adjusting the range to output_prec
    note, output_prec is in bits! */
-unsigned long FloatAdjustToLong(double input, double maxval, int output_prec);
+unsigned long FloatAdjustToULong(double input, double maxval, int output_prec);
+long FloatAdjustToSLong(double input, double maxval, int output_prec);
 
 /* copy buffer inbuf with insize to outbuf with outSize */
 int bufCopy(unsigned char *inbuf,unsigned long inSize,unsigned char *outbuf,unsigned long outSize);

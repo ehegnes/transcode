@@ -1,6 +1,13 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-07-23 Jacob (Jack) Gryn <jgryn at cs dot yorku dot ca>
+  * import/(pvn.c pvn.h import_pvn.c pvnglobals.c pvnglobals.h)
+  Updated PVN libraries including support for new PV?b signed integer
+  format.
+  Update import_pvn.c to allow for PV?b
+  Bugfixes in PVN library with respect to PV4 bitmaps
+
 2004-07-21 Jacob (Jack) Gryn <jgryn at cs dot yorku dot ca>
   * import/(Makefile.am Makefile.in fileinfo.c magic.h probe_stream.c)
   * import/(probe_pvn.c pvn.c pvn.h import_pvn.c pvnglobals.c pvnglobals.h)

@@ -1,11 +1,11 @@
-/* globals.c
+/* pvnglobals.c
 
    global definitions & functions used in PVN & PNM libraries
 
    PVN (PVB/PVG/PVP) Library
 
-   * the PVN (PVB/PVG/PVP) file format used in this code
-     is (c) 2003 Jacob (Jack) Gryn
+   * the PVN (PVB/PVG/PVP) file format, and this code
+     is (c) 2003,2004 Jacob (Jack) Gryn
 
    * the author grants full rights to all who wish to use
      and distribute this code and the corresponding file
@@ -205,30 +205,37 @@ int bufConvert(unsigned char *inbuf, unsigned long inbufsize,
   unsigned long i;
   int in_prec_bytes, out_prec_bytes;
   unsigned long l_temp;
+  long sl_temp;
   float f_temp;
   double d_temp;
 
   if(outbufFormat == FORMAT_UNCHANGED)
     outbufFormat = inbufFormat;
 
-  if ((inbufFormat != FORMAT_INT) && (inbufFormat != FORMAT_FLOAT) && (inbufFormat != FORMAT_DOUBLE) && (inbufFormat != FORMAT_BIT))
+  if (outbufFormat == FORMAT_BIT)
+  {
+    fprintf(stderr, "There is currently no support for outputting to 1-BIT BITMAP (FORMAT_BIT) format\n");
+    return(ERROR);
+  }
+
+  if ((inbufFormat != FORMAT_INT) && (inbufFormat != FORMAT_UINT) && (inbufFormat != FORMAT_FLOAT) && (inbufFormat != FORMAT_DOUBLE) && (inbufFormat != FORMAT_BIT))
   {
     fprintf(stderr, "Invalid input format!\n");
     return(ERROR);
   }
 
-  if ((outbufFormat != FORMAT_INT) && (outbufFormat != FORMAT_FLOAT) && (outbufFormat != FORMAT_DOUBLE))
+  if ((outbufFormat != FORMAT_INT) && (outbufFormat != FORMAT_UINT) && (outbufFormat != FORMAT_FLOAT) && (outbufFormat != FORMAT_DOUBLE))
   {
-    fprintf(stderr, "Invalid output format %d!\n", outbufFormat);
+    fprintf(stderr, "Invalid output format!\n");
     return(ERROR);
   }
 
-  if ((inbufFormat == FORMAT_INT) && ((inbufMaxcolour > 32) || (inbufMaxcolour < 8) || ((int)inbufMaxcolour % 8 != 0)))
+  if ( ((inbufFormat == FORMAT_INT) || (inbufFormat == FORMAT_UINT)) && ((inbufMaxcolour > 32) || (inbufMaxcolour < 8) || ((int)inbufMaxcolour % 8 != 0)))
   {
     fprintf(stderr, "Input Max colour value of %d is out of range!\n", (int)inbufMaxcolour);
     return(ERROR);
   }
-  if ((outbufFormat == FORMAT_INT) && ((outbufMaxcolour > 32) || (outbufMaxcolour < 0) || ((int)outbufMaxcolour % 8 != 0)))
+  if (((outbufFormat == FORMAT_INT) || (outbufFormat == FORMAT_UINT)) && ((outbufMaxcolour > 32) || (outbufMaxcolour < 0) || ((int)outbufMaxcolour % 8 != 0)))
   {
     fprintf(stderr, "Output Max colour value of %d is out of range!\n", (int)outbufMaxcolour);
     return(ERROR);
@@ -255,7 +262,7 @@ int bufConvert(unsigned char *inbuf, unsigned long inbufsize,
     return(ERROR);
   }
 
-  if ((inbufFormat == FORMAT_BIT) && (outbufFormat == FORMAT_INT))
+  if ((inbufFormat == FORMAT_BIT) && ((outbufFormat == FORMAT_INT) || (outbufFormat == FORMAT_UINT)))
   {
     unsigned int width=(unsigned int)inbufMaxcolour;
     unsigned int columns=(unsigned int)ceil(width/8.0)*8;
@@ -276,14 +283,27 @@ int bufConvert(unsigned char *inbuf, unsigned long inbufsize,
 
         l_temp *= whiteVal;
 
-        if(intToBuf(l_temp, &(outbuf[ptr*out_prec_bytes]),(unsigned int)outbufMaxcolour)!=OK)
+        if(outbufFormat == FORMAT_INT) // if its a signed integer
         {
-          fprintf(stderr, "Error converting integer (%ld) to buffer!\n", l_temp);
-          return(ERROR);
+          sl_temp = (int)l_temp - (int)pow(2,outbufMaxcolour-1);
+          if(sintToBuf(sl_temp, &(outbuf[ptr*out_prec_bytes]),(unsigned int)outbufMaxcolour)!=OK)
+          {
+            fprintf(stderr, "Error converting integer (%ld) to buffer!\n", sl_temp);
+            return(ERROR);
+          }
+        }
+        else // FORMAT_UINT
+        {
+          if(uintToBuf(l_temp, &(outbuf[ptr*out_prec_bytes]),(unsigned int)outbufMaxcolour)!=OK)
+          {
+            fprintf(stderr, "Error converting integer (%ld) to buffer!\n", l_temp);
+            return(ERROR);
+          }
         }
         ptr++;
       }
     }
+    return(OK);
   }
 
   if ((inbufFormat == FORMAT_BIT) && ((outbufFormat == FORMAT_FLOAT) || (outbufFormat == FORMAT_DOUBLE)))
@@ -298,7 +318,7 @@ int bufConvert(unsigned char *inbuf, unsigned long inbufsize,
     else
     {
       fprintf(stderr, "This error shouldn't happen, only here to prevent -Wall warnings\n");
-      exit(1);
+      _exit(1);
     }
 
     for(i=0; i < inbufsize*8; i++)
@@ -316,14 +336,39 @@ int bufConvert(unsigned char *inbuf, unsigned long inbufsize,
         else
           f_temp = (float)outbufMaxcolour;
 
-        if(floatToBuf(f_temp, &(outbuf[ptr*out_prec_bytes]))!=OK)
+        if (outbufFormat == FORMAT_FLOAT)
         {
-          fprintf(stderr, "Error converting float to buffer!\n");
-          return(ERROR);
+          if(l_temp == 0)
+            f_temp = (float)-outbufMaxcolour;
+          else
+            f_temp = (float)outbufMaxcolour;
+          if(floatToBuf(f_temp, &(outbuf[ptr*out_prec_bytes]))!=OK)
+          {
+            fprintf(stderr, "Error converting float to buffer!\n");
+            return(ERROR);
+          }
+        }
+        else // FORMAT_DOUBLE
+        {
+          if(l_temp == 0)
+            d_temp = (double)-outbufMaxcolour;
+          else
+            d_temp = (double)outbufMaxcolour;
+          if(doubleToBuf(d_temp, &(outbuf[ptr*out_prec_bytes]))!=OK)
+          {
+            fprintf(stderr, "Error converting double to buffer!\n");
+            return(ERROR);
+          }
         }
         ptr++;
       }
     }
+    return(OK);
+  }
+
+  if ((inbufFormat == FORMAT_UINT) && (outbufFormat == FORMAT_UINT))
+  {
+    return(changeBufPrecision(inbuf, inbufsize, outbuf, outbufsize,(unsigned int)inbufMaxcolour,(unsigned int)outbufMaxcolour));
   }
 
   if ((inbufFormat == FORMAT_INT) && (outbufFormat == FORMAT_INT))
@@ -331,7 +376,39 @@ int bufConvert(unsigned char *inbuf, unsigned long inbufsize,
     return(changeBufPrecision(inbuf, inbufsize, outbuf, outbufsize,(unsigned int)inbufMaxcolour,(unsigned int)outbufMaxcolour));
   }
 
-  if ((inbufFormat == FORMAT_INT) && ((outbufFormat == FORMAT_FLOAT)||(outbufFormat == FORMAT_DOUBLE)))
+  if ((inbufFormat == FORMAT_INT) && (outbufFormat == FORMAT_UINT))
+  {
+    out_prec_bytes=(int)outbufMaxcolour/8;
+
+    if(changeBufPrecision(inbuf, inbufsize, outbuf, outbufsize,(unsigned int)inbufMaxcolour,(unsigned int)outbufMaxcolour) != OK)
+    {
+      fprintf(stderr, "Error changing buffer precision\n");
+      _exit(1);
+    }
+
+    for(i=0; i < outbufsize; i++)
+     if(i % out_prec_bytes == 0)
+       outbuf[i] += 128;  // adding 128 to the most significant byte is equivalent to adding 2^(maxcolour-1) to the entire thing
+    return(OK);
+  }
+
+  if ((inbufFormat == FORMAT_UINT) && (outbufFormat == FORMAT_INT))
+  {
+    out_prec_bytes=(int)outbufMaxcolour/8;
+
+    if(changeBufPrecision(inbuf, inbufsize, outbuf, outbufsize,(unsigned int)inbufMaxcolour,(unsigned int)outbufMaxcolour) != OK)
+    {
+      fprintf(stderr, "Error changing buffer precision\n");
+      _exit(1);
+    }
+
+    for(i=0; i < outbufsize; i++)
+     if(i % out_prec_bytes == 0) 
+       outbuf[i] -= 128;  // subtracting 128 to the most significant byte is equivalent to subtracting 2^(maxcolour-1) to the entire thing
+    return(OK);
+  }
+
+  if (((inbufFormat == FORMAT_INT) || (inbufFormat == FORMAT_UINT)) && ((outbufFormat == FORMAT_FLOAT)||(outbufFormat == FORMAT_DOUBLE)))
   {
     in_prec_bytes = (int)inbufMaxcolour/8;
     if (outbufFormat == FORMAT_FLOAT)
@@ -341,7 +418,7 @@ int bufConvert(unsigned char *inbuf, unsigned long inbufsize,
     else
     {
       fprintf(stderr, "This error shouldn't happen, only here to prevent -Wall warnings\n");
-      exit(1);
+      _exit(1);
     }
 
     if ((inbufsize / in_prec_bytes) > (outbufsize / out_prec_bytes))
@@ -360,7 +437,10 @@ int bufConvert(unsigned char *inbuf, unsigned long inbufsize,
   
       if (outbufFormat == FORMAT_FLOAT)
       {
-        f_temp=(float)lFloatAdjust(l_temp, (int)inbufMaxcolour, (double)outbufMaxcolour);
+        if(inbufFormat == FORMAT_INT)
+          f_temp=(float)slFloatAdjust(l_temp, (int)inbufMaxcolour, (double)outbufMaxcolour);
+        else if(inbufFormat == FORMAT_UINT)
+          f_temp=(float)ulFloatAdjust(l_temp, (int)inbufMaxcolour, (double)outbufMaxcolour);
         if(floatToBuf(f_temp, &(outbuf[i*out_prec_bytes]))!=OK)
         {
           fprintf(stderr, "Error converting float to buffer!\n");
@@ -369,7 +449,10 @@ int bufConvert(unsigned char *inbuf, unsigned long inbufsize,
       }
       else if (outbufFormat == FORMAT_DOUBLE)
       {
-        d_temp=lFloatAdjust(l_temp, (int)inbufMaxcolour, (double)outbufMaxcolour);
+        if(inbufFormat == FORMAT_INT)
+          d_temp=slFloatAdjust(l_temp, (int)inbufMaxcolour, (double)outbufMaxcolour);
+        else if(inbufFormat == FORMAT_UINT)
+          d_temp=ulFloatAdjust(l_temp, (int)inbufMaxcolour, (double)outbufMaxcolour);
         if(doubleToBuf(d_temp, &(outbuf[i*out_prec_bytes]))!=OK)
         {
           fprintf(stderr, "Error converting double to buffer!\n");
@@ -380,7 +463,7 @@ int bufConvert(unsigned char *inbuf, unsigned long inbufsize,
     return(OK);
   }
 
-  if (((inbufFormat == FORMAT_FLOAT) || (inbufFormat == FORMAT_DOUBLE)) && (outbufFormat == FORMAT_INT))
+  if (((inbufFormat == FORMAT_FLOAT) || (inbufFormat == FORMAT_DOUBLE)) && ((outbufFormat == FORMAT_INT) || (outbufFormat == FORMAT_UINT)))
   {
     if (inbufFormat == FORMAT_FLOAT)
       in_prec_bytes=4;
@@ -408,7 +491,10 @@ int bufConvert(unsigned char *inbuf, unsigned long inbufsize,
           fprintf(stderr, "Error converting buffer to float!\n");
           return(ERROR);
         }
-        l_temp=FloatAdjustToLong(f_temp, inbufMaxcolour, (int)outbufMaxcolour);
+        if(outbufFormat == FORMAT_INT)
+          sl_temp=FloatAdjustToSLong(f_temp, inbufMaxcolour, (int)outbufMaxcolour);
+        else
+          l_temp=FloatAdjustToULong(f_temp, inbufMaxcolour, (int)outbufMaxcolour);
       }
       else if (inbufFormat == FORMAT_DOUBLE)
       {
@@ -417,13 +503,27 @@ int bufConvert(unsigned char *inbuf, unsigned long inbufsize,
           fprintf(stderr, "Error converting buffer to float!\n");
           return(ERROR);
         }
-        l_temp=FloatAdjustToLong(d_temp, inbufMaxcolour, (int)outbufMaxcolour);
+        if(outbufFormat == FORMAT_INT)
+          sl_temp=(unsigned long)FloatAdjustToSLong(d_temp, inbufMaxcolour, (int)outbufMaxcolour);
+        else
+          l_temp=FloatAdjustToULong(d_temp, inbufMaxcolour, (int)outbufMaxcolour);
       }
 
-      if(intToBuf(l_temp, &(outbuf[i*out_prec_bytes]),(unsigned int)outbufMaxcolour)!=OK)
+      if(outbufFormat == FORMAT_INT)
       {
-        fprintf(stderr, "Error converting integer (%ld) to buffer!\n", l_temp);
-        return(ERROR);
+        if(sintToBuf(sl_temp, &(outbuf[i*out_prec_bytes]),(unsigned int)outbufMaxcolour)!=OK)
+        {
+          fprintf(stderr, "Error converting integer (%ld) to buffer!\n", l_temp);
+          return(ERROR);
+        }
+      }
+      else // FORMAT_UINT
+      {
+        if(uintToBuf(l_temp, &(outbuf[i*out_prec_bytes]),(unsigned int)outbufMaxcolour)!=OK)
+        {
+          fprintf(stderr, "Error converting integer (%ld) to buffer!\n", l_temp);
+          return(ERROR);
+        }
       }
     }
     return(OK);
@@ -589,7 +689,7 @@ int doubleToBuf(double d, unsigned char *buf)
    there must be >= prec/8 bytes at *buf (prec is in bits)
 
    returns OK or ERROR */
-int intToBuf(unsigned long l, unsigned char *buf, unsigned int prec)
+int uintToBuf(unsigned long l, unsigned char *buf, unsigned int prec)
 {
   int i;
   int prec_bytes;
@@ -608,6 +708,31 @@ int intToBuf(unsigned long l, unsigned char *buf, unsigned int prec)
   for(i=0; i < prec_bytes; i++)
   {
     buf[prec_bytes-i-1]= (unsigned char)l % 256;
+    l = l >> 8;
+  }
+
+  return(OK);
+}
+
+int sintToBuf(long l, unsigned char *buf, unsigned int prec)
+{
+  int i;
+  int prec_bytes;
+
+  if ((prec <= 0) || (prec %8 != 0) || (prec > 32))
+    return(ERROR);
+
+  prec_bytes = prec/8;
+
+  if (buf == NULL)
+    return(ERROR);
+
+  if( (l >= pow(2,prec-1)) || (l < -pow(2,prec-1)) )
+    return(ERROR);
+
+  for(i=0; i < prec_bytes; i++)
+  {
+    buf[prec_bytes-i-1]= ((unsigned char)l) % 256;
     l = l >> 8;
   }
 
@@ -702,14 +827,24 @@ int bufToInt(unsigned long *l, unsigned char *buf, int prec)
   return(OK);
 }
 
-/* convert a long to a float, adjusting the range from [-maxval,+maxval] 
+/* convert an unsigned long to a float, adjusting the range from [-maxval,+maxval] 
    note, input_prec is in bits! */
-double lFloatAdjust(unsigned long input, int input_prec, double maxval)
+double ulFloatAdjust(unsigned long input, int input_prec, double maxval)
 {
   double old_maxval = pow(2,input_prec)-1;
   double mult=(2.0*maxval)/old_maxval;
 
   return((input * mult)-maxval);
+}
+
+/* convert a signed long to a float, adjusting the range from [-maxval,+maxval] 
+   note, input_prec is in bits! */
+double slFloatAdjust(long input, int input_prec, double maxval)
+{
+  double old_maxval = pow(2,input_prec)-1;
+  double mult=(2.0*maxval)/old_maxval;
+
+  return((input+0.5) * mult);  // the 0.5 in order so that if input is minimum value, it corresponds to -maxval
 }
 
 /* adjusting the range of a float/double to from [-maxval,+maxval] */
@@ -720,12 +855,20 @@ double dFloatAdjust(double input, double old_maxval, double new_maxval)
   return(input * mult);
 }
 
-/* convert a float to a long, adjusting the range to output_prec 
+/* convert a float to an unsigned long, adjusting the range to output_prec 
    note, output_prec is in bits! */
-unsigned long FloatAdjustToLong(double input, double maxval, int output_prec)
+unsigned long FloatAdjustToULong(double input, double maxval, int output_prec)
 {
   double mult=(pow(2,output_prec)-1)/(2*maxval);
   unsigned long l = (unsigned long)((input+maxval)*mult);
+
+  return(l);
+}
+
+long FloatAdjustToSLong(double input, double maxval, int output_prec)
+{
+  double mult=(pow(2,output_prec)-1)/(2*maxval);
+  long l = (long)(input*mult);
 
   return(l);
 }
@@ -746,3 +889,4 @@ int bufCopy(unsigned char *inbuf,unsigned long inSize,unsigned char *outbuf,unsi
 
   return(OK);
 }
+

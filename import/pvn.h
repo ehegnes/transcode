@@ -1,18 +1,24 @@
 /* pvn.h by Jacob (Jack) Gryn
+
    PVN (PVB/PVG/PVP) Library
 
-   * the PVN (PVB/PVG/PVP) file format used in this code
-     is (c) 2003 Jacob (Jack) Gryn
+   * the PVN (PVB/PVG/PVP) file format, and this code
+     is (c) 2003,2004 Jacob (Jack) Gryn
 
    * the author grants full rights to all who wish to use
      and distribute this code and the corresponding file
      formats on the assumption that credit is given to
      the author if asked
-*/
+
+   Jacob (Jack) Gryn
+ */
 #include "pvnglobals.h"
 
 #ifndef PVN_H
 #define PVN_H
+
+// we need a floating point number that will very rarely get used in the framerate field
+#define UNDEF_FRAMERATE -0.99098765123
 
 #ifdef __cplusplus
   namespace std
@@ -21,7 +27,7 @@
     {                // or   extern "C++" {
 #endif
 
-typedef struct _pvnparam { char magic[5]; unsigned int width; unsigned int height; unsigned int depth; double maxcolour; unsigned int framerate; } PVNParam;
+typedef struct _pvnparam { char magic[5]; unsigned int width; unsigned int height; unsigned int depth; double maxcolour; double framerate; } PVNParam;
 
 /* calculates the size of raster data in a PVN file based on a PVNParam
    header
@@ -59,11 +65,11 @@ void showPVNHeader(PVNParam p);
 /* converts a PVN to another format of PVN
 
    infile / outfile = in/output filenames
-   framerate = new framerate
+   framerate = new framerate; if framerate = NAN, use input framerate
    format = new format
    maxcolour = new maxcolour / range value (for floats/doubles)
  */
-int pvnconvert(const char *infile, const char *outfile, int framerate, unsigned int format, double maxcolour);
+int pvnconvert(const char *infile, const char *outfile, double framerate, unsigned int format, double maxcolour);
 
 #ifdef __cplusplus
     }       // end extern

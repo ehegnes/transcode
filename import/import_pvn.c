@@ -35,7 +35,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_pvn.so"
-#define MOD_VERSION "v0.1 (2004-07-13)"
+#define MOD_VERSION "v0.11 (2004-07-23)"
 #define MOD_CODEC   "(video) PVN"
 
 static int verbose_flag=TC_QUIET;
@@ -86,19 +86,30 @@ MOD_open
     buf=(unsigned char *)malloc(bufSize);
 
     PVNParamCopy(&tmpParams, &inParams);
-    tmpParams.magic[3]='a';
-    tmpParams.maxcolour=8.0;
-    tmpBufSize=calcPVNPageSize(tmpParams);
-    tmpBuf=(unsigned char *)malloc(tmpBufSize);
 
     if(inParams.magic[3] == 'f')
       inbufFormat=FORMAT_FLOAT;
     else if(inParams.magic[3] == 'd')
       inbufFormat=FORMAT_DOUBLE;
     else if(inParams.magic[2] == '4')
+    {
       inbufFormat=FORMAT_BIT;
-    else
+      tmpParams.magic[2]='5';
+    }
+    else if(inParams.magic[3] == 'b')
       inbufFormat=FORMAT_INT;
+    else if(inParams.magic[3] == 'a')
+      inbufFormat=FORMAT_UINT;
+    else
+    {
+      fprintf(stderr, "Unknown PVN format");
+      return(TC_IMPORT_ERROR);
+    }
+
+    tmpParams.magic[3]='a';
+    tmpParams.maxcolour=8.0;
+    tmpBufSize=calcPVNPageSize(tmpParams);
+    tmpBuf=(unsigned char *)malloc(tmpBufSize);
 
     if(inParams.framerate==0)
     {
@@ -132,7 +143,9 @@ MOD_decode
     param->size=tmpBufSize;
     if(fread(buf, bufSize, 1, fd)==0) return(TC_IMPORT_ERROR);
 
-    if(bufConvert(buf, bufSize, inbufFormat, inParams.maxcolour,tmpBuf,tmpBufSize,FORMAT_INT,tmpParams.maxcolour) != OK)
+    if(inbufFormat == FORMAT_BIT)
+      inParams.maxcolour=inParams.width; // if BIT format, bufconvert requires width in the maxcolour field
+    if(bufConvert(buf, bufSize, inbufFormat, inParams.maxcolour,tmpBuf,tmpBufSize,FORMAT_UINT,tmpParams.maxcolour) != OK)
     {
       fprintf(stderr, "Buffer conversion error!\n");
       return(TC_IMPORT_ERROR);
