@@ -31,6 +31,8 @@
 #include "config.h"
 #endif
 
+#include <libdv/dv.h>
+
 #if HAVE_LIBXV
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>

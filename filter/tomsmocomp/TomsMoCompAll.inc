@@ -21,7 +21,9 @@
 //  See www.eff.org for details
 /////////////////////////////////////////////////////////////////////////////
 
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
 #include <stdio.h>
 #ifndef Q_INT64
 #define Q_INT64 int64_t

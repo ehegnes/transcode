@@ -29,7 +29,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
 
 #include "transcode.h"
 #include "framebuffer.h"

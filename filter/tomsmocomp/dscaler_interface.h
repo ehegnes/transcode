@@ -4,8 +4,11 @@
  *  Structs necessary for accessing dscaler filters
  */
 
-#include <stdint.h>
+#include "config.h"
 #include <stdlib.h>
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
 
 /* PictureFlags is a bitmask! */
 typedef enum {
