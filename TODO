@@ -55,8 +55,6 @@ More than one encoder thread
                 muxer pointing at the master transcode
 23:37 < tibit> GomGom: thats enough! ;)
 
-TEST
-
 2pass/
  - internal 2pass mode
 
