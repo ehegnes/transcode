@@ -342,7 +342,7 @@ void do_connect_socket (char *socketfile)
 int main(int argc, char *argv[])
 {
 
-    char ch;
+    int ch;
     int ret;
     char *filename=NULL;
     char modpath[]=MOD_PATH;
