@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-25 Tilmann Bitterberg <transcode at tibit.org>
+
+  * tools/Makefile.am tools/aviindex.c:
+  add xio lib to aviindex.
+
 2004-01-25 Nicolas Boos <nicolas.boos at wanadoo.fr>
 
   * configure.in avilib/Makefile.am avilib/avidump.c avilib/avilib.c

@@ -30,6 +30,8 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "xio.h"
+
 #include "avilib.h"
 #include "config.h"
 #include "transcode.h"
@@ -90,7 +92,7 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
    {
       /* Read tag and length */
 
-      if( read(AVI->fdes,data,8) != 8 ) return 0;
+      if( xio_read(AVI->fdes,data,8) != 8 ) return 0;
 
       n = PAD_EVEN(str2ulong(data+4));
 
@@ -98,113 +100,113 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
       {
 	 // deal with it to extract keyframe info
          *len = str2ulong(data+4);
-	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
+	 *pos = xio_lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 //fprintf (stderr, "Found an index chunk at %lld len %lld\n", *pos, *len);
-         if(lseek(AVI->fdes,n,SEEK_CUR)==(off_t)-1)  return 0;
+         if(xio_lseek(AVI->fdes,n,SEEK_CUR)==(off_t)-1)  return 0;
 	 return 10;
       }
 
       if(strncasecmp(data,AVI->video_tag,3) == 0)
       {
          *len = str2ulong(data+4);
-	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
+	 *pos = xio_lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
          AVI->video_pos++;
 	 rlen = (n<LEN)?n:LEN;
-	 read(AVI->fdes, buf, rlen);
-         if(lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
+	 xio_read(AVI->fdes, buf, rlen);
+         if(xio_lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
          return 1;
       }
       else if(AVI->anum>=1 && strncasecmp(data,AVI->track[0].audio_tag,4) == 0)
       {
          *len = str2ulong(data+4);
-	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
+	 *pos = xio_lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 AVI->track[0].audio_posc++;
 	 rlen = (n<LEN)?n:LEN;
-	 read(AVI->fdes, buf, rlen);
-         if(lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
+	 xio_read(AVI->fdes, buf, rlen);
+         if(xio_lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
          return 2;
          break;
       }
       else if(AVI->anum>=2 && strncasecmp(data,AVI->track[1].audio_tag,4) == 0)
       {
          *len = str2ulong(data+4);
-	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
+	 *pos = xio_lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 AVI->track[1].audio_posc++;
 	 rlen = (n<LEN)?n:LEN;
-	 read(AVI->fdes, buf, rlen);
-         if(lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
+	 xio_read(AVI->fdes, buf, rlen);
+         if(xio_lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
          return 3;
          break;
       }
       else if(AVI->anum>=3 && strncasecmp(data,AVI->track[2].audio_tag,4) == 0)
       {
          *len = str2ulong(data+4);
-	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
+	 *pos = xio_lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 AVI->track[2].audio_posc++;
 	 rlen = (n<LEN)?n:LEN;
-	 read(AVI->fdes, buf, rlen);
-         if(lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
+	 xio_read(AVI->fdes, buf, rlen);
+         if(xio_lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
          return 4;
          break;
       }
       else if(AVI->anum>=4 && strncasecmp(data,AVI->track[3].audio_tag,4) == 0)
       {
          *len = str2ulong(data+4);
-	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
+	 *pos = xio_lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 AVI->track[3].audio_posc++;
 	 rlen = (n<LEN)?n:LEN;
-	 read(AVI->fdes, buf, rlen);
-         if(lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
+	 xio_read(AVI->fdes, buf, rlen);
+         if(xio_lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
          return 5;
          break;
       }
       else if(AVI->anum>=5 && strncasecmp(data,AVI->track[4].audio_tag,4) == 0)
       {
          *len = str2ulong(data+4);
-	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
+	 *pos = xio_lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 AVI->track[4].audio_posc++;
 	 rlen = (n<LEN)?n:LEN;
-	 read(AVI->fdes, buf, rlen);
-         if(lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
+	 xio_read(AVI->fdes, buf, rlen);
+         if(xio_lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
          return 6;
          break;
       }
       else if(AVI->anum>=6 && strncasecmp(data,AVI->track[5].audio_tag,4) == 0)
       {
          *len = str2ulong(data+4);
-	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
+	 *pos = xio_lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 AVI->track[5].audio_posc++;
 	 rlen = (n<LEN)?n:LEN;
-	 read(AVI->fdes, buf, rlen);
-         if(lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
+	 xio_read(AVI->fdes, buf, rlen);
+         if(xio_lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
          return 7;
          break;
       }
       else if(AVI->anum>=7 && strncasecmp(data,AVI->track[6].audio_tag,4) == 0)
       {
          *len = str2ulong(data+4);
-	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
+	 *pos = xio_lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 AVI->track[6].audio_posc++;
 	 rlen = (n<LEN)?n:LEN;
-	 read(AVI->fdes, buf, rlen);
-         if(lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
+	 xio_read(AVI->fdes, buf, rlen);
+         if(xio_lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
          return 8;
          break;
       }
       else if(AVI->anum>=8 && strncasecmp(data,AVI->track[7].audio_tag,4) == 0)
       {
          *len = str2ulong(data+4);
-	 *pos = lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
+	 *pos = xio_lseek(AVI->fdes, 0, SEEK_CUR)-(off_t)8;
 	 AVI->track[7].audio_posc++;
 	 rlen = (n<LEN)?n:LEN;
-	 read(AVI->fdes, buf, rlen);
-         if(lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
+	 xio_read(AVI->fdes, buf, rlen);
+         if(xio_lseek(AVI->fdes,n-rlen,SEEK_CUR)==(off_t)-1)  return 0;
          return 9;
          break;
       } else {
-	  lseek(AVI->fdes,-4,SEEK_CUR);
+	  xio_lseek(AVI->fdes,-4,SEEK_CUR);
       }
-      // else if(lseek(AVI->fdes,n,SEEK_CUR)==(off_t)-1)  return 0;
+      // else if(xio_lseek(AVI->fdes,n,SEEK_CUR)==(off_t)-1)  return 0;
    }
 }
 
@@ -463,9 +465,9 @@ int main(int argc, char *argv[])
     len = (off_t)0;
     vid_chunks = 0;
 
-    lseek(avifile1->fdes, index_pos+8, SEEK_SET);
+    xio_lseek(avifile1->fdes, index_pos+8, SEEK_SET);
     while (len<index_len) {
-	read(avifile1->fdes, tag, 8);
+	xio_read(avifile1->fdes, tag, 8);
 	
 	// if its a keyframe and is a video chunk
 	if (str2ulong(tag+4) && tag[1] == '0') {
@@ -496,7 +498,7 @@ int main(int argc, char *argv[])
 		      tagn, typen, chunkn, chunkptypen, posn, lenn, 1, msn);
 	}
 
-	lseek(avifile1->fdes, 8, SEEK_CUR);
+	xio_lseek(avifile1->fdes, 8, SEEK_CUR);
 	len += 16;
     }
     
@@ -524,16 +526,16 @@ int main(int argc, char *argv[])
       pos = str2ulong(avifile1->idx[i]+ 8);
       len = str2ulong(avifile1->idx[i]+12);
 
-      lseek(avifile1->fdes,pos,SEEK_SET);
-      if(read(avifile1->fdes,data,8)!=8) return 1;
+      xio_lseek(avifile1->fdes,pos,SEEK_SET);
+      if(xio_read(avifile1->fdes,data,8)!=8) return 1;
       if( strncasecmp(data,avifile1->idx[i],4)==0 && str2ulong(data+4)==len )
       {
          idx_type = 1; /* Index from start of file */
       }
       else
       {
-         lseek(avifile1->fdes,pos+avifile1->movi_start-4,SEEK_SET);
-         if(read(avifile1->fdes,data,8)!=8) return 1;
+         xio_lseek(avifile1->fdes,pos+avifile1->movi_start-4,SEEK_SET);
+         if(xio_read(avifile1->fdes,data,8)!=8) return 1;
          if( strncasecmp(data,avifile1->idx[i],4)==0 && str2ulong(data+4)==len )
          {
             idx_type = 2; /* Index from start of movi list */

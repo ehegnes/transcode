@@ -323,7 +323,7 @@ x_includes = @x_includes@
 x_libraries = @x_libraries@
 
 AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I. @DLDARWININCL@ @TCIOAUX_CFLAGS@
+DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I. @DLDARWININCL@ @TCIOAUX_CFLAGS@ -I../libxio
 
 bin_PROGRAMS = avimerge avisplit avifix avisync aviindex tcmodinfo tcmp3cut
 

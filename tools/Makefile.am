@@ -1,7 +1,7 @@
 # # Process this file with automake to produce Makefile.in.
 
 AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I. @DLDARWININCL@ @TCIOAUX_CFLAGS@
+DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I. @DLDARWININCL@ @TCIOAUX_CFLAGS@ -I../libxio
 
 CFLAGS = -Wall -I../src -I$(srcdir)/../src @AVILIB_CFLAGS@ -I$(srcdir)/../libac3 @CFLAGS@ -DMOD_PATH=\"@MOD_PATH@\"
 
