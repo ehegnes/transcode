@@ -64,7 +64,7 @@
  ****************************************************************************/
 
 #define MOD_NAME    "export_xvid4.so"
-#define MOD_VERSION "v0.0.1 (2003-07-26)"
+#define MOD_VERSION "v0.0.1 (2003-07-30)"
 #define MOD_CODEC  \
 "(video) XviD 1.0.x series (aka API API 4.0) | (audio) MPEG/AC3/PCM"
 #define MOD_PRE xvid4_ 
@@ -297,7 +297,7 @@ MOD_open
 	if(avi_output) {
 		/* AVI Video output */
 		AVI_set_video(vob->avifile_out, vob->ex_v_width,
-			      vob->ex_v_height, vob->fps, "XVID");
+			      vob->ex_v_height, vob->ex_fps, "XVID");
 
 		if(vob->avi_comment_fd > 0)
 			AVI_set_comment_fd(vob->avifile_out,
@@ -746,12 +746,12 @@ static void set_create_struct(xvid_transcode_module_t *mod, vob_t *vob)
 	x->max_key_interval = vob->divxkeyframes;
 
 	/* FPS : we take care of non integer values */
-	if((vob->fps - (int)vob->fps) == 0) {
+	if((vob->ex_fps - (int)vob->ex_fps) == 0) {
 		x->fincr = 1;
-		x->fbase = (int)vob->fps;
+		x->fbase = (int)vob->ex_fps;
 	} else {
 		x->fincr = 1001;
-		x->fbase = (int)(1001 * vob->fps);
+		x->fbase = (int)(1001 * vob->ex_fps);
 	}
 
 	/* BFrames settings */
