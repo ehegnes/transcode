@@ -1,4 +1,10 @@
 2005-01-22 Jacob Meuser <jakemsr at jakemsr dot com>
+  * filter/pp/mangle.h filter/pp/postprocess.c
+    filter/pp/postprocess_template.c
+  update to ffmpeg's current libpostproc.  adds amd64
+  acceleration support.
+
+2005-01-22 Jacob Meuser <jakemsr at jakemsr dot com>
   * libvo/cpu_accel.c
   update arch_accel() to handle ARCH_X86_64.  also add a test
   for possible problems with SSE instructions.  taken from

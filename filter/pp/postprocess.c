@@ -77,9 +77,9 @@ try to unroll inner for(x=0 ... loop to avoid these damn if(x ... checks
 #include <stdlib.h>
 #include <string.h>
 #ifndef SYS_BSD
-# ifdef HAVE_MALLOC_H
-# include <malloc.h>
-# endif
+#ifdef HAVE_MALLOC_H
+#include <malloc.h>
+#endif
 #endif
 //#undef HAVE_MMX2
 //#define HAVE_3DNOW
@@ -88,10 +88,11 @@ try to unroll inner for(x=0 ... loop to avoid these damn if(x ... checks
 //#define DEBUG_BRIGHTNESS
 
 #include "transcode.h"
-#include "mangle.h" //FIXME should be supressed
+
 #include "postprocess.h"
 #include "postprocess_internal.h"
 
+#include "mangle.h" //FIXME should be supressed
 
 #ifdef HAVE_ALTIVEC_H
 #include <altivec.h>
@@ -124,7 +125,7 @@ try to unroll inner for(x=0 ... loop to avoid these damn if(x ... checks
 #    define always_inline inline
 #endif
 
-#ifdef ARCH_X86
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
 static uint64_t __attribute__((aligned(8))) attribute_used w05=		0x0005000500050005LL;
 static uint64_t __attribute__((aligned(8))) attribute_used w04=		0x0004000400040004LL;
 static uint64_t __attribute__((aligned(8))) attribute_used w20=		0x0020002000200020LL;
@@ -176,15 +177,14 @@ static char *replaceTable[]=
 	NULL //End Marker
 };
 
-#ifdef ARCH_X86
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
 static inline void unusedVariableWarningFixer()
 {
 	if(w05 + w04 + w20 + b00 + b01 + b02 + b08 + b80 == 0) b00=0;
 }
 #endif
 
-
-#ifdef ARCH_X86
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
 static inline void prefetchnta(void *p)
 {
 	asm volatile(	"prefetchnta (%0)\n\t"
@@ -609,7 +609,7 @@ static always_inline void do_a_deblock_C(uint8_t *src, int step, int stride, PPC
 #endif //HAVE_ALTIVEC
 #endif //ARCH_POWERPC
 
-#ifdef ARCH_X86
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
 
 #if (defined (HAVE_MMX) && !defined (HAVE_3DNOW) && !defined (HAVE_MMX2)) || defined (RUNTIME_CPUDETECT)
 #define COMPILE_MMX
@@ -628,13 +628,11 @@ static always_inline void do_a_deblock_C(uint8_t *src, int step, int stride, PPC
 #undef HAVE_MMX2
 #undef HAVE_3DNOW
 #undef HAVE_ALTIVEC
-#undef ARCH_X86
 
 #ifdef COMPILE_C
 #undef HAVE_MMX
 #undef HAVE_MMX2
 #undef HAVE_3DNOW
-#undef ARCH_X86
 #define RENAME(a) a ## _C
 #include "postprocess_template.c"
 #endif
@@ -655,7 +653,6 @@ static always_inline void do_a_deblock_C(uint8_t *src, int step, int stride, PPC
 #define HAVE_MMX
 #undef HAVE_MMX2
 #undef HAVE_3DNOW
-#define ARCH_X86
 #define RENAME(a) a ## _MMX
 #include "postprocess_template.c"
 #endif
@@ -666,7 +663,6 @@ static always_inline void do_a_deblock_C(uint8_t *src, int step, int stride, PPC
 #define HAVE_MMX
 #define HAVE_MMX2
 #undef HAVE_3DNOW
-#define ARCH_X86
 #define RENAME(a) a ## _MMX2
 #include "postprocess_template.c"
 #endif
@@ -677,7 +673,6 @@ static always_inline void do_a_deblock_C(uint8_t *src, int step, int stride, PPC
 #define HAVE_MMX
 #undef HAVE_MMX2
 #define HAVE_3DNOW
-#define ARCH_X86
 #define RENAME(a) a ## _3DNow
 #include "postprocess_template.c"
 #endif
@@ -695,7 +690,7 @@ static inline void postProcess(uint8_t src[], int srcStride, uint8_t dst[], int 
 	// difference wouldnt be messureable here but its much better because
 	// someone might exchange the cpu whithout restarting mplayer ;)
 #ifdef RUNTIME_CPUDETECT
-#ifdef ARCH_X86
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
 	// ordered per speed fasterst first
 	if(c->cpuCaps & PP_CPU_CAPS_MMX2)
 		postProcess_MMX2(src, srcStride, dst, dstStride, width, height, QPs, QPStride, isColor, c);
@@ -708,7 +703,7 @@ static inline void postProcess(uint8_t src[], int srcStride, uint8_t dst[], int 
 #else
 #ifdef ARCH_POWERPC
 #ifdef HAVE_ALTIVEC
-        else if(c->cpuCaps & PP_CPU_CAPS_ALTIVEC)
+        if(c->cpuCaps & PP_CPU_CAPS_ALTIVEC)
 		postProcess_altivec(src, srcStride, dst, dstStride, width, height, QPs, QPStride, isColor, c);
         else
 #endif
@@ -736,13 +731,7 @@ static inline void postProcess(uint8_t src[], int srcStride, uint8_t dst[], int 
 /* -pp Command line Help
 */
 char *pp_help=
-"<filterName>[:<option>[:<option>...]][[,|/][-]<filterName>[:<option>...]]...\n"
-"long form example:\n"
-"vdeblock:autoq/hdeblock:autoq/linblenddeint	default,-vdeblock\n"
-"short form example:\n"
-"vb:a/hb:a/lb					de,-vb\n"
-"more examples:\n"
-"tn:64:128:256\n"
+"Available postprocessing filters:\n"
 "Filters			Options\n"
 "short	long name	short	long option	Description\n"
 "*	*		a	autoq		CPU power dependent enabler\n"
@@ -766,11 +755,20 @@ char *pp_help=
 "ci	cubicipoldeint				cubic interpolating deinterlacer\n"
 "md	mediandeint				median deinterlacer\n"
 "fd	ffmpegdeint				ffmpeg deinterlacer\n"
+"l5	lowpass5				FIR lowpass deinterlacer\n"
 "de	default					hb:a,vb:a,dr:a\n"
 "fa	fast					h1:a,v1:a,dr:a\n"
 "tn	tmpnoise	(3 threshold)		temporal noise reducer\n"
 "			1. <= 2. <= 3.		larger -> stronger filtering\n"
 "fq	forceQuant	<quantizer>		force quantizer\n"
+"Usage:\n"
+"<filterName>[:<option>[:<option>...]][[,|/][-]<filterName>[:<option>...]]...\n"
+"long form example:\n"
+"vdeblock:autoq/hdeblock:autoq/linblenddeint	default,-vdeblock\n"
+"short form example:\n"
+"vb:a/hb:a/lb					de,-vb\n"
+"more examples:\n"
+"tn:64:128:256\n"
 ;
 
 pp_mode_t *pp_get_mode_by_name_and_quality(char *name, int quality)
