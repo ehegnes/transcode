@@ -214,7 +214,7 @@ tccat_LDADD = @DVDREAD_LIBS@ -L../avilib -lavi @DV_LIBS@  @LIBXML2_LIBS@ @DLDARW
 tcscan_SOURCES = tcscan.c fileinfo.c bitrate.c ioaux.c scan_pes.c aux_pes.c mpg123.c ac3scan.c scan_dv.c
 tcscan_LDADD = @LAME_LIBS@ $(AC3_LIB) -L../avilib -lavi @DV_LIBS@ -lm 
 
-tcprobe_SOURCES = tcprobe.c probe_stream.c fileinfo.c bitrate.c ioaux.c extract_avi.c scan_pes.c aux_pes.c mpg123.c ac3scan.c dvd_reader.c probe_dvd.c decode_dv.c extract_yuv.c probe_nuv.c probe_wav.c iodump.c probe_socket.c scan_dv.c probe_im.c probe_mov.c probe_xml.c ioxml.c probe_lav.c probe_ogg.c ts_reader.c probe_vnc.c extract_mxf.c
+tcprobe_SOURCES = tcprobe.c probe_stream.c fileinfo.c bitrate.c ioaux.c extract_avi.c scan_pes.c aux_pes.c mpg123.c ac3scan.c dvd_reader.c probe_dvd.c decode_dv.c extract_yuv.c probe_nuv.c probe_wav.c iodump.c probe_socket.c scan_dv.c probe_im.c probe_mov.c probe_xml.c ioxml.c probe_lav.c probe_ogg.c ts_reader.c probe_vnc.c extract_mxf.c probe_v4l.c
 tcprobe_LDADD = @LAME_LIBS@ -L../avilib -lavi $(AC3_LIB) @DVDREAD_LIBS@ @DV_LIBS@ @MAGICK_LIBS@ @QT_LIBS@ @LIBXML2_LIBS@ @VORBIS_LIBS@ @THEORA_LIBS@ @OGG_LIBS@ @DLDARWINLIB@ -lm
 
 tcextract_SOURCES = tcextract.c extract_ac3.c extract_mpeg2.c extract_pcm.c fileinfo.c extract_yuv.c extract_rgb.c extract_dv.c ioaux.c extract_mp3.c scan_dv.c aux_pes.c extract_ogm.c extract_lzo.c extract_mxf.c

@@ -1,7 +1,7 @@
 /*
  *  probe_v4l.c
  *
- *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Tilmann Bitterberg - January 2004
  *
  *  This file is part of transcode, a linux video stream processing tool
  *      

@@ -505,7 +505,7 @@ tccat_LDADD = @DVDREAD_LIBS@ -L../avilib -lavi @DV_LIBS@  @LIBXML2_LIBS@ @DLDARW
 tcscan_SOURCES = tcscan.c fileinfo.c bitrate.c ioaux.c scan_pes.c aux_pes.c mpg123.c ac3scan.c scan_dv.c
 tcscan_LDADD = @LAME_LIBS@ $(AC3_LIB) -L../avilib -lavi @DV_LIBS@ -lm 
 
-tcprobe_SOURCES = tcprobe.c probe_stream.c fileinfo.c bitrate.c ioaux.c extract_avi.c scan_pes.c aux_pes.c mpg123.c ac3scan.c dvd_reader.c probe_dvd.c decode_dv.c extract_yuv.c probe_nuv.c probe_wav.c iodump.c probe_socket.c scan_dv.c probe_im.c probe_mov.c probe_xml.c ioxml.c probe_lav.c probe_ogg.c ts_reader.c probe_vnc.c extract_mxf.c
+tcprobe_SOURCES = tcprobe.c probe_stream.c fileinfo.c bitrate.c ioaux.c extract_avi.c scan_pes.c aux_pes.c mpg123.c ac3scan.c dvd_reader.c probe_dvd.c decode_dv.c extract_yuv.c probe_nuv.c probe_wav.c iodump.c probe_socket.c scan_dv.c probe_im.c probe_mov.c probe_xml.c ioxml.c probe_lav.c probe_ogg.c ts_reader.c probe_vnc.c extract_mxf.c probe_v4l.c
 tcprobe_LDADD = @LAME_LIBS@ -L../avilib -lavi $(AC3_LIB) @DVDREAD_LIBS@ @DV_LIBS@ @MAGICK_LIBS@ @QT_LIBS@ @LIBXML2_LIBS@ @VORBIS_LIBS@ @THEORA_LIBS@ @OGG_LIBS@ @DLDARWINLIB@ -lm
 
 tcextract_SOURCES = tcextract.c extract_ac3.c extract_mpeg2.c extract_pcm.c fileinfo.c extract_yuv.c extract_rgb.c extract_dv.c ioaux.c extract_mp3.c scan_dv.c aux_pes.c extract_ogm.c extract_lzo.c extract_mxf.c
@@ -671,7 +671,7 @@ am_tcprobe_OBJECTS = tcprobe.$(OBJEXT) probe_stream.$(OBJEXT) \
 	probe_socket.$(OBJEXT) scan_dv.$(OBJEXT) probe_im.$(OBJEXT) \
 	probe_mov.$(OBJEXT) probe_xml.$(OBJEXT) ioxml.$(OBJEXT) \
 	probe_lav.$(OBJEXT) probe_ogg.$(OBJEXT) ts_reader.$(OBJEXT) \
-	probe_vnc.$(OBJEXT) extract_mxf.$(OBJEXT)
+	probe_vnc.$(OBJEXT) extract_mxf.$(OBJEXT) probe_v4l.$(OBJEXT)
 tcprobe_OBJECTS = $(am_tcprobe_OBJECTS)
 tcprobe_DEPENDENCIES =
 tcprobe_LDFLAGS =
@@ -763,16 +763,16 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/probe_nuv.Po ./$(DEPDIR)/probe_ogg.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/probe_socket.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/probe_stream.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/probe_vnc.Po ./$(DEPDIR)/probe_wav.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/probe_xml.Plo ./$(DEPDIR)/probe_xml.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/scan_dv.Po ./$(DEPDIR)/scan_pack.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/scan_pes.Po ./$(DEPDIR)/seqinfo.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/tccat.Po ./$(DEPDIR)/tcdecode.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/tcdemux.Po ./$(DEPDIR)/tcextract.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/tcprobe.Po ./$(DEPDIR)/tcrequant.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/tcscan.Po ./$(DEPDIR)/tcxmlcheck.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/tcxpm2rgb.Po ./$(DEPDIR)/ts_reader.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/zoom.Plo
+@AMDEP_TRUE@	./$(DEPDIR)/probe_v4l.Po ./$(DEPDIR)/probe_vnc.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/probe_wav.Po ./$(DEPDIR)/probe_xml.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/probe_xml.Po ./$(DEPDIR)/scan_dv.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/scan_pack.Po ./$(DEPDIR)/scan_pes.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/seqinfo.Po ./$(DEPDIR)/tccat.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/tcdecode.Po ./$(DEPDIR)/tcdemux.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/tcextract.Po ./$(DEPDIR)/tcprobe.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/tcrequant.Po ./$(DEPDIR)/tcscan.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/tcxmlcheck.Po ./$(DEPDIR)/tcxpm2rgb.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/ts_reader.Po ./$(DEPDIR)/zoom.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -1056,6 +1056,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/probe_ogg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/probe_socket.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/probe_stream.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/probe_v4l.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/probe_vnc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/probe_wav.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/probe_xml.Plo@am__quote@

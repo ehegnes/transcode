@@ -214,6 +214,10 @@ long read_time_stamp_long(unsigned char *s)
   return (clock_ref);
 }  
 
+#ifndef major
+# define major(dev)  (((dev) >> 8) & 0xff)
+#endif
+
 int probe_path(char *name) 
 {
     struct stat fbuf;
@@ -229,7 +233,7 @@ int probe_path(char *name)
  
     
     if(stat(name, &fbuf)==0) {
-      
+
       //inode exists
       
       // treat block device as absolute directory path
@@ -239,6 +243,17 @@ int probe_path(char *name)
 #endif
 	      )
 	   return(2);
+
+      // char device? v4l?
+      if(S_ISCHR(fbuf.st_mode)) {
+	  switch (major(fbuf.st_rdev)) {
+	      case 81: // v4l
+	      case 14: // dsp
+		  return(4);
+	      default:
+		  break;
+	  }
+      }
 
       // file or directory?
       if(!S_ISDIR(fbuf.st_mode)) return(0);
