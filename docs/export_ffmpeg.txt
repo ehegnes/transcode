@@ -1,11 +1,19 @@
-Based on mplayers DOCS/tech/libavc-option.txt
+Parts based on mplayers DOCS/tech/libavc-option.txt.
 
-Modified for transcode. Some (basic) options are supported through the
-transcode commandline and some through ffmpeg.cfg or ~/.ffmpeg.cfg
-The format of ffmpeg.cfg is simple. It can consists of several sections,
-each prefix by a header [codec] which is the same string you give to
-transcode through -F. To see all available options, have a look at
-either export/ffmpeg_cfg.c:90ff or run 'transcode -y ffmpeg -F mpeg4 -q2'
+Some (basic) options are supported through the transcode commandline and
+some through the config file ffmpeg.cfg or ~/.ffmpeg.cfg. The format of the
+config file is simple.  It can consists of several sections, each prefixed
+by a header [codec] which is the same string you give to transcode through -F.
+
+WARNING: contrary to popular belief, it's NOT possible to supply libavcodec
+OPTIONS to the ffmpeg export module using -F. The -F option is solely used
+to select the CODEC.  Libavcodec options go in the config file.
+
+To see all supported options, have a look at the output of 'transcode -y
+ffmpeg -F mpeg4 -q2'
+
+For the most up-to-date description of the options, have a look at your
+mplayer manual page. Note that not all options may be supported by transcode.
 
   --- ~/.ffmpeg.cfg ----
   [mpeg4]
@@ -81,6 +89,13 @@ vhq (high quality mode)
 	encode each MB as in all modes and choose the best (this is slow but
         better filesize/quality)
 	enabled by default
+
+	NOTE: this is option is obsolete and has been replaced by the mbd
+	option, values:
+
+	0: fast (real-time encoding) (default)
+	1: hq mode 1
+	2: hq mode 2
 
 v4mv
 	allow 4 MV per MB (little difference in filesize/quality)
