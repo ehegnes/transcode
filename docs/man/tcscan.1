@@ -82,6 +82,10 @@ prints header information about the AVI-file itself and lists details on the vid
 The command 
 .B cat audio.pcm | tcscan -x pcm -e 48000,16,2 
 simply determines the playtime lenghth of the raw audio stream.
+
+The command 
+.B tcscan -x mp3 -i input.mp3
+will print the number of chunks in the MP3 file and the average bitrate.
 .PP
 .SH AUTHORS
 .B tcscan
