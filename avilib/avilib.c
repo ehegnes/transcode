@@ -50,7 +50,8 @@
 
 // add a new riff chunk after XX MB
 //#define NEW_RIFF_THRES (1900*1024*1024)
-#define NEW_RIFF_THRES (10*1024*1024)
+#define NEW_RIFF_THRES (1900*1024*1024)
+//#define NEW_RIFF_THRES (10*1024*1024)
 
 // Maximum number of indices per stream
 #define NR_IXNN_CHUNKS 32
