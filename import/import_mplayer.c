@@ -117,8 +117,8 @@ MOD_open
         return(TC_IMPORT_ERROR);
       }
       
-      if (snprintf(import_cmd_buf, MAX_BUF, "mplayer -hardframedrop -vo null -ao pcm -nowaveheader -aofile %s \"%s\" > /dev/null 2>&1",
-          audiopipe, vob->audio_in_file) < 0) {
+      if (snprintf(import_cmd_buf, MAX_BUF, "mplayer -hardframedrop -vo null -ao pcm -nowaveheader -aofile %s %s \"%s\" > /dev/null 2>&1",
+          audiopipe, ((vob->im_a_string)?vob->im_a_string:""), vob->audio_in_file) < 0) {
         perror("command buffer overflow");
         exit(1);
       }
