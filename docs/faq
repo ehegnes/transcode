@@ -33,6 +33,7 @@ Q:	Finally, there's the questions about the justly infamous
 	they mean?
 A:	The easiest way to find out is to look at the mplayer manpage at
 	http://www.mplayerhq.hu/DOCS/man/en/manpage.html#CODEC%20SPECIFIC%20ENCODING%20OPTIONS%20(MENCODER%20ONLY) 
+	and scroll down to "lavc"<br />
 	If you\'re just going to encode to (S)VCD or DVD, you\'d better use the
 	profile support.
 	In transcode, you can put these options into a config file (use -q2 to
