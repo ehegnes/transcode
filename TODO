@@ -62,6 +62,9 @@ More than one encoder thread
  - transcode --detect modus
    choose and save tcscan information, etc
 
+filter/
+00:54 < GomGom> transcode -J help
+
 
 
 
