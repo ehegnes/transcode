@@ -38,7 +38,7 @@
 extern void import_exit(int ret);
 
 #define DV_PAL_FRAME_SIZE  144000
-#define DV_NTSC_FRAME_SIZE 122000
+#define DV_NTSC_FRAME_SIZE 120000
 
 
 /* ------------------------------------------------------------ 

@@ -3,6 +3,18 @@ transcode-0.6.12
 
 2004-01-05 Tilmann Bitterberg <transcode at tibit.org>
 
+  * import/extract_dv.c:
+  When extracting data from a raw DV file, transcode assumed an
+  incorrect NTSC DV frame size. This caused the last frame to be
+  skipped by tcdecode. Pointed out by Frederic Briere.
+
+2004-01-05 Frederic Briere <fbriere at fbriere.net>
+
+  * import/ioxml.c:
+  Transcode uses exclusive frame ranges, SMIL uses inclusive.
+
+2004-01-05 Tilmann Bitterberg <transcode at tibit.org>
+
   * libioaux/framecode.[cl]:
   double -> int conversion error, do correct rounding. (-c 0-100
   transcoded only 99 frames on an NTSC source)
