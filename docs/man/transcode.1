@@ -139,11 +139,17 @@ Filter "extsub": subtitle renderer
 .br
 Filter "extsub2": secondary subtitle renderer
 .br
+Filter "fields": Field adjustment plugin
+.br
 Filter "invert": invert the image
 .br
 Filter "ivtc": NTSC inverse telecine plugin
 .br
 Filter "logo": render image in videostream
+.br
+Filter "logoaway": remove an image from the video
+.br
+Filter "lowpass": Audio high and low pass filter
 .br
 Filter "mask": masking plugin
 .br
@@ -151,9 +157,9 @@ Filter "normalize": Volume normalizer
 .br
 Filter "null": API demo filter plugin
 .br
-Filter "pp": mplayer postprocess filters
-.br
 Filter "preview": preview filter
+.br
+Filter "pp": Interface to MPlayers postprocess filters
 .br
 Filter "pv": xv only preview filter with navigation keys
 .br
@@ -172,6 +178,10 @@ Filter "tc_audio": audio 24000/1001 -> 30000/1001 telecide filter
 Filter "tc_video": video 24000/1001 -> 30000/1001 telecide filter
 .br
 Filter "testframe": generate stream of testframes 
+.br
+Filter "text": renders text into the video stream
+.br
+Filter "videocore": Core video transformations
 .br
 Filter "xsharpen": VirtualDub's XSharpen Filter
 .br
@@ -199,6 +209,9 @@ You can specify more than one \-J argument. The order of filter arguments
 specify in which order the filters are applied. Note also, for transcode
 internally it makes no difference whether you do "\-J filter1 \-J filter2"
 or "\-J filter1,filter2"
+
+Use 'tcmodinfo -i NAME' to get more information about the filter_NAME. Not all
+filters support this but most of them.
 .RE
 .PP
 .TP
