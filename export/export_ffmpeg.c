@@ -615,7 +615,7 @@ MOD_init {
       		lavc_venc_context->gop_size = vob->divxkeyframes;
 			lavc_param_rc_min_rate= 0;
 			lavc_param_rc_max_rate = 2516;
-			lavc_param_rc_buffer_size = 112 * 8;
+			lavc_param_rc_buffer_size = 224 * 8;
 			lavc_param_rc_buffer_aggressivity = 99;
 			lavc_param_scan_offset = CODEC_FLAG_SVCD_SCAN_OFFSET;
 
