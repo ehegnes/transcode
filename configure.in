@@ -790,21 +790,13 @@ have_dvdread=no
 AM_PATH_LIBDVDREAD(AC_DEFINE([HAVE_LIBDVDREAD], 1, [Have Libdvdread support]))
 AM_CONDITIONAL(HAVE_LIBDVDREAD, test x"$have_dvdread" = "xyes")
 
-dnl
-dnl libxvidcore support
-dnl
-dnl Disabled because it was never really needed -- tibit
-dnl have_xvidcore=no
-dnl AM_PATH_LIBXVID(AC_DEFINE([HAVE_LIBXVID], 1, [Have XVID support]))
-dnl AM_CONDITIONAL(HAVE_LIBXVID, test x"$have_xvidcore" = "xyes")
-
-default_xvid="xvid2"
+default_xvid="xvid4"
 new_xvid=${default_xvid}
 
-AC_ARG_WITH(default-xvid,  AC_HELP_STRING([--with-default-xvid=xvid2],[Default xvid (xvid2)]), 
-[ 
- new_xvid=$withval 
-], )
+AC_ARG_WITH(default-xvid,
+		AC_HELP_STRING([--with-default-xvid=xvid2/xvid3/xvid4],[Default xvid version (xvid4)]),
+		[new_xvid=$withval],
+		[])
 
 XVID_DEFAULT="${new_xvid}"
 AC_SUBST(XVID_DEFAULT)
