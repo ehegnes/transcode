@@ -30,6 +30,7 @@ void decode_ac3(info_t *ipipe);
 void decode_a52(info_t *ipipe);
 void extract_ac3(info_t *ipipe);
 
+void decode_mp2(info_t *ipipe);
 void decode_mp3(info_t *ipipe);
 void extract_mp3(info_t *ipipe);
 

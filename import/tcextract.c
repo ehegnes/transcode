@@ -337,7 +337,7 @@ int main(int argc, char *argv[])
     }
 
     // MP3
-    if(strcmp(codec,"mp3")==0) {
+    if(strcmp(codec,"mp3")==0 || strcmp(codec,"mp2")==0) {
 	
 	ipipe.codec = TC_CODEC_MP3;
 	ipipe.select = TC_AUDIO;

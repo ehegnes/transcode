@@ -124,24 +124,28 @@ static int is_syncword_mp3(const void *const headerptr)
 }
 
 
-int lame_decode_initfile(FILE * fd, mp3data_struct * mp3data)
+int lame_decode_initfile(FILE * fd, mp3data_struct * mp3data, int format)
 {
     //  VBRTAGDATA pTagData;
     // int xing_header,len2,num_frames;
-    unsigned char buf[100];
+#define bufsize 100
+    unsigned char buf[bufsize];
     int     ret;
     int     len, aid_header;
     short int pcm_l[1152], pcm_r[1152];
 
     memset(mp3data, 0, sizeof(mp3data_struct));
+    memset(buf, 0, bufsize);
+
     lame_decode_init();
+    if (!format) format = 0x55;
 
     len = 4;
-    if (fread(&buf, 1, len, fd) != len)
+    if (fread(buf, 1, len, fd) != len)
         return -1;      /* failed */
     aid_header = check_aid(buf);
     if (aid_header) {
-        if (fread(&buf, 1, 2, fd) != 2)
+        if (fread(buf, 2, 1, fd) != 1)
             return -1;  /* failed */
         aid_header = (unsigned char) buf[0] + 256 * (unsigned char) buf[1];
         fprintf(stderr, "Album ID found.  length=%i \n", aid_header);
@@ -149,21 +153,30 @@ int lame_decode_initfile(FILE * fd, mp3data_struct * mp3data)
         fskip(fd, aid_header - 6, SEEK_CUR);
 
         /* read 4 more bytes to set up buffer for MP3 header check */
-        len = fread(&buf, 1, 4, fd);
+        len = fread(buf, 1, 4, fd);
     }
-
 
     /* look for valid 4 byte MPEG header  */
     if (len < 4)
         return -1;
-    while (!is_syncword_mp123(buf)) {
-        int     i;
-        for (i = 0; i < len - 1; i++)
-            buf[i] = buf[i + 1];
-        if (fread(buf + len - 1, 1, 1, fd) != 1)
-            return -1;  /* failed */
-    }
 
+    if (format == 0x55) {
+	while ( !is_syncword_mp3(buf)) {
+	    int     i;
+	    for (i = 0; i < len - 1; i++)
+		buf[i] = buf[i + 1];
+	    if (fread(buf + len - 1, 1, 1, fd) != 1)
+		return -1;  /* failed */
+	}
+    } else if (format == 0x50) {
+	while ( !is_syncword_mp123(buf)) {
+	    int     i;
+	    for (i = 0; i < len - 1; i++)
+		buf[i] = buf[i + 1];
+	    if (fread(buf + len - 1, 1, 1, fd) != 1)
+		return -1;  /* failed */
+	}
+    }
 
     // now parse the current buffer looking for MP3 headers.   
     // (as of 11/00: mpglib modified so that for the first frame where 

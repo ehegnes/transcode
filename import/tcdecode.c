@@ -306,6 +306,15 @@ int main(int argc, char *argv[])
 	done = 1;
     }
 
+    // MP2
+    if(strcmp(codec,"mp2")==0) {
+	
+	ipipe.codec = TC_CODEC_MP3;
+
+	decode_mp2(&ipipe);
+	done = 1;
+    }
+
 
     // DV
     if(strcmp(codec,"dv")==0) {

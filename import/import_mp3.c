@@ -29,7 +29,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_mp3.so"
-#define MOD_VERSION "v0.1.2 (2003-03-27)"
+#define MOD_VERSION "v0.1.3 (2003-06-10)"
 #define MOD_CODEC   "(audio) MPEG"
 
 #define MOD_PRE mp3
@@ -67,7 +67,13 @@ MOD_open
 	
     case CODEC_PCM:
 	
-	if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -a %d -i \"%s\" -x mp3 -d %d | tcdecode -x mp3 -d %d", vob->a_track, vob->audio_in_file, vob->verbose, vob->verbose)<0)) {
+	if((snprintf(import_cmd_buf, MAX_BUF, 
+			"tcextract -a %d -i \"%s\" -x %s -d %d | tcdecode -x %s -d %d", 
+			vob->a_track, vob->audio_in_file, 
+			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
+			vob->verbose, 
+			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
+			vob->verbose)<0)) {
 	    perror("command buffer overflow");
 	    return(TC_IMPORT_ERROR);
 	}

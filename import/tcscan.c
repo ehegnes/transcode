@@ -408,17 +408,22 @@ int main(int argc, char *argv[])
       int chunks = 0;
       int srate=0 , chans=0, bitrate=0;
       unsigned long bitrate_add = 0;
+      off_t pos=0;
       double ms = 0;
 
       min = 500;
       max = 0;
       
+      pos = lseek(ipipe.fd_in, 0, SEEK_CUR);
       // find mp3 header
       while ((total += read(ipipe.fd_in, header, 4))) {
 	  if ( (framesize = tc_get_mp3_header (header, &chans, &srate, &bitrate)) > 0) {
 	      break;
 	  }
+	  pos++;
+	  lseek(ipipe.fd_in, pos, SEEK_SET);
       }
+      printf("POS %lld\n", pos);
 
       // Example for _1_ mp3 chunk
       // 
@@ -554,7 +559,7 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
 #endif
 
     if((4-((newhead>>17)&3))!=3){ 
-      fprintf( stderr, "[%s] not layer-3\n", EXE); 
+      //fprintf( stderr, "[%s] not layer-3\n", EXE); 
       return -1;
     }
 

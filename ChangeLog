@@ -3,6 +3,19 @@ transcode-0.6.8
 
 2003-06-10 Tilmann Bitterberg <transcode at tibit.org>
 
+  * import/decode_mp3.c import/import_mp3.c import/mpg123.c
+  * import/mpg123.h import/tc.h import/tcdecode.c
+  * import/tcextract.c:
+  Reading mp3 which did not start with a mp3 header caused problems
+  sometimes. Sometimes -- when scanning through the file for a MP3
+  sync byte transcode found illegal ones and treated them as valid.
+  This caused a tons of messages like:
+
+   bitstream problem: resyncing...
+   fatal error. MAXFRAMESIZE not large enough.
+
+  Pointed out by Cornelius Kölbel.
+
   * filter/filter_tc_video.c:
   The telecide video filter produced wrong (not telecide but
   something else) for YUV mode and is still wrong in RGB mode.
