@@ -1323,14 +1323,18 @@ int AVI_close(avi_t *AVI)
    close(AVI->fdes);
    if(AVI->idx) free(AVI->idx);
    if(AVI->video_index) free(AVI->video_index);
-   if(AVI->video_superindex->aIndex) free(AVI->video_superindex->aIndex);
-   if(AVI->video_superindex) free(AVI->video_superindex);
+   if(AVI->video_superindex) {
+       if(AVI->video_superindex->aIndex) free(AVI->video_superindex->aIndex);
+       free(AVI->video_superindex);
+   }
 
    for (j=0; j<AVI->anum; j++) 
    {
        if(AVI->track[j].audio_index) free(AVI->track[j].audio_index);
-       if(AVI->track[j].audio_superindex->aIndex) free(AVI->track[j].audio_superindex->aIndex);
-       if(AVI->track[j].audio_superindex) free(AVI->track[j].audio_superindex);
+       if(AVI->track[j].audio_superindex) {
+	   if(AVI->track[j].audio_superindex->aIndex) free(AVI->track[j].audio_superindex->aIndex);
+	   free(AVI->track[j].audio_superindex);
+       }
    }
 
    free(AVI);
