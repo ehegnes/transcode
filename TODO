@@ -33,6 +33,19 @@ Slow filters and 30+ buffers and --nav_seek and -c:
 import/
  - fix AC3 Pass-through for PSU mode.
 
+cluster_mode+PSU
+ - make these modes go a little better together
+ 11:39 <GigaStorm> also wie gesagt, wenn man genau nach den examples geht, d.h. 
+                   nach cluster mode plus rippen einer 16:9 pal dvd, macht er 
+		   nur psu0
+
+2pass/
+ - internal 2pass mode
+
+ - transcode --detect modus
+   choose and save tcscan information, etc
+
+
 
 
 
