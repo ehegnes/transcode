@@ -583,6 +583,13 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
   }
 
   if (!(flags & XV_NOSAWINDOW)) {
+
+    if(dv_dpy->full_screen) {
+      int  screen = XDefaultScreen(dv_dpy->dpy);
+      dv_dpy->lwidth = dv_dpy->dwidth =DisplayWidth(dv_dpy->dpy, screen); 
+      dv_dpy->lheight = dv_dpy->dheight = DisplayHeight(dv_dpy->dpy, screen);
+    }
+
     dv_dpy->win = XCreateSimpleWindow(dv_dpy->dpy,
 				       dv_dpy->rwin,
 				       0, 0,
@@ -590,6 +597,18 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
 				       0,
 				       XWhitePixel(dv_dpy->dpy, scn_id),
 				       XBlackPixel(dv_dpy->dpy, scn_id));
+
+    if(dv_dpy->full_screen) {
+      static Atom           XA_WIN_STATE = None;
+      long                  propvalue[2];
+
+      XA_WIN_STATE = XInternAtom (dv_dpy->dpy, "_NET_WM_STATE", False);
+      propvalue[0] = XInternAtom (dv_dpy->dpy, "_NET_WM_STATE_FULLSCREEN", False);
+      propvalue[1] = 0;
+                
+      XChangeProperty (dv_dpy->dpy, dv_dpy->win, XA_WIN_STATE, XA_ATOM, 
+                       32, PropModeReplace, (unsigned char *)propvalue, 1);
+    }
   } else {
   }
 

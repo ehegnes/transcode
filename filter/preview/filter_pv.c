@@ -174,6 +174,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VY4O", "1");
       optstr_param (options, "cache", "Number of raw frames to cache for seeking",  "%d", "15", "15", "255");
       optstr_param (options, "skip", "display only every Nth frame",  "%d", "0", "0", "255");
+      optstr_param (options, "fullscreen", "Display in fullscreen mode","", "0");
   }
 
   //----------------------------------
@@ -215,6 +216,14 @@ int tc_filter(vframe_list_t *ptr, char *options)
     
     if(xv_player != NULL) return(-1);
     if(!(xv_player = xv_player_new())) return(-1);
+
+
+    if (options != NULL) {
+      if(optstr_get (options, "fullscreen", "") == 0)
+        xv_player->display->full_screen = 1;
+    }
+
+
 
     //init filter
     

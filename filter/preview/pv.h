@@ -44,6 +44,7 @@
 #include <X11/keysym.h>
 #include <X11/extensions/XShm.h>
 #include <X11/extensions/Xvlib.h>
+#include <X11/Xatom.h>
 
 #include "transcode.h"
 
@@ -109,7 +110,7 @@ typedef struct {
 			arg_size_val,
 			arg_xv_port;
   char			*arg_aspect_string;
-
+  char                  full_screen;
 } xv_display_t;
 
 /* Book-keeping for mmap */
