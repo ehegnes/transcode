@@ -118,6 +118,7 @@
 #define TC_MAGIC_TIFF2                 0x00004949
 #define TC_MAGIC_JPEG                  0xFFD8FFE0
 #define TC_MAGIC_BMP                   0x0000424D
+#define TC_MAGIC_SGI                   0x000001DA
 #define TC_MAGIC_PNG                   0x89504e47
 #define TC_MAGIC_GIF                   0x00474946
 #define TC_MAGIC_PPM                   0x00005036

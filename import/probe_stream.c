@@ -83,6 +83,7 @@ void tcprobe_thread(info_t *ipipe)
     case TC_MAGIC_GIF:
     case TC_MAGIC_PPM:
     case TC_MAGIC_PGM:
+    case TC_MAGIC_SGI:
       probe_im(ipipe);
 
       break;

@@ -224,6 +224,13 @@ long fileinfo(int fdes, int skip)
     goto exit;
   }
 
+  // SGI image
+
+  if (cmp_16_bits(buf, TC_MAGIC_SGI)) {
+    id = TC_MAGIC_SGI;
+    goto exit;
+  }
+
   // PPM image
   
   if (strncmp (buf, "P6", 2)==0) {
@@ -235,6 +242,13 @@ long fileinfo(int fdes, int skip)
   
   if (strncmp (buf, "P5", 2)==0) {
       id = TC_MAGIC_PGM;
+      goto exit;
+  }
+
+  // SGI image
+  
+  if (cmp_16_bits(buf, TC_MAGIC_SGI)) {
+      id = TC_MAGIC_SGI;
       goto exit;
   }
 
@@ -436,6 +450,10 @@ long fileinfo(int fdes, int skip)
   // JPEG
   if (cmp_32_bits(buf, TC_MAGIC_JPEG) &&
       strncasecmp(buf+6, "JFIF", 4) == 0) {
+    id = TC_MAGIC_JPEG;
+    goto exit;
+  }
+  if (cmp_16_bits(buf, 0xFFD8)) {
     id = TC_MAGIC_JPEG;
     goto exit;
   }
@@ -740,6 +758,7 @@ char *filetype(long magic)
   case TC_MAGIC_GIF:          return("GIF image");
   case TC_MAGIC_PPM:          return("PPM image");
   case TC_MAGIC_PGM:          return("PGM image");
+  case TC_MAGIC_SGI:          return("SGI image");
   case TC_MAGIC_RMF:          return("Real Media");
   case TC_MAGIC_XML:          return("XML file, need to and analize the content");
   case TC_MAGIC_LAV:          return("LAV Edit List");

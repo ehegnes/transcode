@@ -468,6 +468,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   case TC_MAGIC_BMP:
   case TC_MAGIC_PNG:
   case TC_MAGIC_GIF:
+  case TC_MAGIC_SGI:
       vob->vmod_probed=std_module[_im_];
       preset |= TC_VIDEO;
       break;

@@ -3,6 +3,11 @@ transcode-0.6.11
 
 2003-09-17 Tilmann Bitterberg <transcode at tibit.org>
 
+  * import/{fileinfo.c probe_stream.c magic.h} src/probe.c:
+  Probing and decoding for SGI image files via import_im
+
+2003-09-17 Tilmann Bitterberg <transcode at tibit.org>
+
   * export/{export_ffmpeg.c aud_aux.c} src/transcode.c
   import/import_ffmpeg.c:
   libavcodec is not thread-safe; We now use a mutex to protect
@@ -23,8 +28,8 @@ transcode-0.6.11
 
   * avilib/avilib.c:
   Detect if an audio track is VBR or CBR. This is important for the
-  avi* utils and makes the -b switch obsolete. Only print an error
-  when an error really happend.
+  avi* utils and makes the avi* -b switch obsolete. Only print an
+  error when an error really happend.
 
   * avilib/avidump.c:
   Remove unused function.
