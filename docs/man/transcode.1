@@ -1166,10 +1166,20 @@ Examples (assume input is a 16:9 coded file at 720x576 (PAL)):
 .fi
 
 This enables simpilified commandlines where transcode tries to set sensible
-values for mpeg export.
+values for mpeg export. When you don't specify an export module with -y,
+mpeg2enc will be used.
 
 .nf
    transcode -i vob/ -V --export_prof svcd -Z fast -o test
+.fi
+
+The ffmpeg export module `-y ffmpeg' does support profiles as well. The module
+tries to be smart and sets internal ffmpeg parameters which are otherwise quite
+tricky to find out. Usage is similar to the above
+
+.nf
+   transcode -i vob/ -V --export_prof dvd -y ffmpeg -o test -m test.ac3
+   tcmplex -m d -i test.m2v -p test.ac3 -o test.mpg
 .fi
 
 .TP

@@ -11,6 +11,9 @@ transcode-0.6.13
   filter.
   Fix a missing \n.
 
+  * docs/man/transcode.1:
+  Add description of profiles with ffmpeg
+
 2004-01-22 Erik Slagter <erik at oldconomy.com>
 
   * src/transcode.c:
