@@ -2,7 +2,7 @@
 #define __ENCORE_RGB2YUV_H
 
 #ifdef HAVE_CONFIG_H
-#include "../config.h"
+#include "config.h"
 #endif
 
 #ifdef HAVE_STDINT_H

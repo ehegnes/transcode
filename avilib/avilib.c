@@ -27,7 +27,7 @@
 
 #include "avilib.h"
 #ifdef HAVE_CONFIG_H
-#include "../config.h"
+#include "config.h"
 #else 
 #define PACKAGE "transcode"
 #define VERSION "0.6.10"

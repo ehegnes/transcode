@@ -1,6 +1,21 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-11-05 Tilmann Bitterberg <transcode at tibit.org>
+
+  * aclib/ac.h avilib/avilib.c ffmpeg/libavcodec/Makefile.am
+  filter/filter_astat.c filter/filter_detectsilence.c
+  filter/filter_lowpass.c filter/yuvdenoise/mjpeg_types.h
+  import/af6_decore.cpp import/decode_a52.c import/decode_af6.c
+  import/decode_lavc.c import/decode_lzo.c import/decode_xvid.c
+  import/extract_lzo.c import/import_divx.c import/import_xvid.c
+  libac3/debug.h libvo/rgb2yuv.h src/dl_loader.c src/filter.c
+  src/tc_defaults.h src/transcode.h src/video_yuv.c
+  src/video_yuv422.c tools/aviindex.c tools/avimerge.c
+  tools/avisync.c tools/tcmodinfo.c tools/tcmp3cut.c:
+  When doing a make distcheck, a lot of files included the wrong
+  config.h
+
 
 --------------------------------------------
 transcode-0.6.11 Tue Nov  4 13:44:55 CET 2003

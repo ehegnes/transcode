@@ -32,7 +32,7 @@ endif
 endif
 
 
-AM_CFLAGS = -O2 -g -Wall -ffast-math $(ALTIVEC) $(X86) $(MMX) -DHAVE_AV_CONFIG_H -D_GNU_SOURCE --include=../av_config.h
+AM_CFLAGS = -O2 -g -Wall -ffast-math $(ALTIVEC) $(X86) $(MMX) -DHAVE_AV_CONFIG_H -D_GNU_SOURCE --include=$(top_srcdir)/ffmpeg/av_config.h
 
 noinst_LIBRARIES = libtcavcodec.a
 

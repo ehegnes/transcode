@@ -1,5 +1,5 @@
 /*
-    $Id: mjpeg_types.h,v 1.2 2003-03-14 11:12:41 tibit Exp $
+    $Id: mjpeg_types.h,v 1.3 2003-11-05 11:02:15 tibit Exp $
 
     Copyright (C) 2000 Herbert Valerio Riedel <hvr@gnu.org>
 
@@ -22,7 +22,7 @@
 #define __MJPEG_TYPES_H__
 
 #ifdef HAVE_CONFIG_H
-#include "../../config.h"
+#include "config.h"
 #endif
 
 #ifdef HAVE_ASM_MMX

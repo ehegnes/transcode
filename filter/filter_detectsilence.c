@@ -26,7 +26,7 @@
 #define MOD_CAP     "audio silence detection with tcmp3cut commandline generation"
 
 #ifdef HAVE_CONFIG_H
-#include "../config.h"
+#include "config.h"
 #endif
 
 #ifdef HAVE_STDINT_H

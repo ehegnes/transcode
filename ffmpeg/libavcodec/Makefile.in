@@ -337,7 +337,7 @@ INCLUDES = -I../../
 @CAN_COMPILE_C_ALTIVEC_TRUE@@SYSTEM_DARWIN_FALSE@ALTIVEC = -maltivec -mabi=altivec
 @CAN_COMPILE_C_ALTIVEC_TRUE@@SYSTEM_DARWIN_TRUE@ALTIVEC = -faltivec
 
-AM_CFLAGS = -O2 -g -Wall -ffast-math $(ALTIVEC) $(X86) $(MMX) -DHAVE_AV_CONFIG_H -D_GNU_SOURCE --include=../av_config.h
+AM_CFLAGS = -O2 -g -Wall -ffast-math $(ALTIVEC) $(X86) $(MMX) -DHAVE_AV_CONFIG_H -D_GNU_SOURCE --include=$(top_srcdir)/ffmpeg/av_config.h
 
 noinst_LIBRARIES = libtcavcodec.a
 
