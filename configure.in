@@ -1122,7 +1122,7 @@ TC_PATH_PKG(imagemagick, no, IMAGEMAGICK, ImageMagick, Magick-config,
 if test x"$have_imagemagick" = x"yes" ; then
   AC_DEFINE([HAVE_IMAGEMAGICK], 1, [have ImageMagick support])
 fi
-AM_CONDITIONAL(HAVE_IMAGEMAGICK, test x"$have_ImageMagick" = x"yes")
+AM_CONDITIONAL(HAVE_IMAGEMAGICK, test x"$have_imagemagick" = x"yes")
 AC_SUBST(IMAGEMAGICK_CFLAGS)
 AC_SUBST(IMAGEMAGICK_LIBS)
 
