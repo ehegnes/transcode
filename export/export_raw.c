@@ -43,6 +43,7 @@ static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_DV|TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3|TC_CAP_AUD|TC_CAP_VID;
 
 static int info_shown=0, force_kf=0;
+static int width=0, height=0, im_v_codec=-1;
 
 /* ------------------------------------------------------------ 
  *
@@ -73,12 +74,12 @@ MOD_init
 MOD_open
 {
   
-    int width, height;
     
     double fps;
     
     char *codec;
 
+    im_v_codec = vob->im_v_codec;
 
     // open out file
     if(vob->avifile_out==NULL) 
@@ -101,6 +102,8 @@ MOD_open
 	//force keyframe
 	force_kf=1;
 	
+	width = vob->ex_v_width;
+	height = vob->ex_v_height;
 	
 	AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->fps, "RGB");
 
@@ -114,6 +117,9 @@ MOD_open
 	//force keyframe
 	force_kf=1;
 
+	width = vob->ex_v_width;
+	height = vob->ex_v_height;
+	
 	AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->fps, "YV12");
 	
 	if(!info_shown && verbose_flag) 
@@ -133,6 +139,9 @@ MOD_open
 	  //force keyframe
 	  force_kf=1;
 	  
+	  width = vob->ex_v_width;
+	  height = vob->ex_v_height;
+	
 	  AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->fps, "DVSD");
 	  
 	  if(!info_shown && verbose_flag) 
@@ -203,6 +212,7 @@ MOD_encode
 {
 
   int key;
+  int i, mod=width%4;
   
   if(param->flag == TC_VIDEO) { 
     
@@ -215,6 +225,17 @@ MOD_encode
     
     if(key) tc_outstream_rotate();
 
+    // Fixup: For uncompressed AVIs, it must be aligned at
+    // a 4-byte boundary
+    if (mod && (im_v_codec == CODEC_RGB)) {
+	for (i = height; i>0; i--) {
+	    memmove (param->buffer+(i*width*3) + mod*i,
+		     param->buffer+(i*width*3) , 
+		     width*3);
+	}
+	param->size = height*width*3 + (4-mod)*height;
+	//fprintf(stderr, "going here mod = |%d| width (%d) size (%d)||\n", mod, width, param->size);
+    }
     // write video
     if(AVI_write_frame(avifile2, param->buffer, param->size, key)<0) {
       AVI_print_error("avi video write error");

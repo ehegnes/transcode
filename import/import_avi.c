@@ -43,6 +43,7 @@ static avi_t *avifile2=NULL;
 
 static int audio_codec;
 static int aframe_count=0, vframe_count=0;
+static int width=0, height=0;
 
 
 /* ------------------------------------------------------------ 
@@ -53,7 +54,6 @@ static int aframe_count=0, vframe_count=0;
 
 MOD_open
 {
-  int width=0, height=0;
   double fps=0;
   char *codec=NULL;
   long rate=0, bitrate=0;
@@ -169,15 +169,27 @@ MOD_decode
   
   int key;
 
-  long bytes_read=0, i;
+  long bytes_read=0;
   
   if(param->flag == TC_VIDEO) {
+    int i, mod=width%4;
+
     // If we are using tccat, then do nothing here
     if (param->fd != NULL) {
       return(0);
     }
 
     param->size = AVI_read_frame(avifile2, param->buffer, &key);
+
+    // Fixup: For uncompressed AVIs, it must be aligned at
+    // a 4-byte boundary
+    if (mod && vob->im_v_codec == CODEC_RGB) {
+	for (i = 0; i<height; i++) {
+	    memmove (param->buffer+(i*width*3),
+		     param->buffer+(i*width*3) + (mod)*i,
+		     width*3);
+	}
+    }
 
     if(verbose & TC_STATS && key) printf("keyframe %d\n", vframe_count); 
     
