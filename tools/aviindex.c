@@ -1,5 +1,7 @@
 /*
- *  avisync.c
+ *  aviindex.c
+ *
+ *  extracts the index of an AVI file for easy seeking with --nav_seek
  *
  *  Copyright (C) Tilmann Bitterberg - June 2003
  *
@@ -48,8 +50,7 @@ void usage(int status)
   printf("\nUsage: %s [options]\n", EXE);
   printf("\t -o file            output file\n");
   printf("\t -i file            input file\n");
-  printf("\t -q                 be quiet\n");
-  printf("\t -a num             audio track number [0]\n");
+  printf("\t -n                 read index in \"smart\" mode\n");
   exit(status);
 }
 
@@ -249,6 +250,8 @@ int main(int argc, char *argv[])
   int vid_chunks=0, aud_chunks[AVI_MAX_TRACKS];
   off_t pos, len, key, index_pos=0, index_len=0,size=0;
   struct stat st;
+  int idx_type=0;
+  off_t ioff;
 
   if(argc==1) usage(EXIT_FAILURE);
 
@@ -479,6 +482,40 @@ int main(int argc, char *argv[])
     }
     i=0;
 
+    if(avifile1->idx)
+    {
+      off_t pos, len;
+
+      /* Search the first videoframe in the idx1 and look where
+         it is in the file */
+
+      for(i=0;i<avifile1->n_idx;i++)
+         if( strncasecmp(avifile1->idx[i],avifile1->video_tag,3)==0 ) break;
+
+      pos = str2ulong(avifile1->idx[i]+ 8);
+      len = str2ulong(avifile1->idx[i]+12);
+
+      lseek(avifile1->fdes,pos,SEEK_SET);
+      if(read(avifile1->fdes,data,8)!=8) return 1;
+      if( strncasecmp(data,avifile1->idx[i],4)==0 && str2ulong(data+4)==len )
+      {
+         idx_type = 1; /* Index from start of file */
+      }
+      else
+      {
+         lseek(avifile1->fdes,pos+avifile1->movi_start-4,SEEK_SET);
+         if(read(avifile1->fdes,data,8)!=8) return 1;
+         if( strncasecmp(data,avifile1->idx[i],4)==0 && str2ulong(data+4)==len )
+         {
+            idx_type = 2; /* Index from start of movi list */
+         }
+      }
+      /* idx_type remains 0 if neither of the two tests above succeeds */
+   }
+
+   ioff = idx_type == 1 ? 0 : avifile1->movi_start-4;
+   //fprintf(stderr, "index type (%d), ioff (%ld)\n", idx_type, (long)ioff);
+
     while (i<avifile1->n_idx) {
       memcpy(tag, avifile1->idx[i], 4);
       // tag
@@ -488,6 +525,7 @@ int main(int argc, char *argv[])
 
       // type, absolute chunk number
       fprintf(out_fd, " %c %ld", avifile1->idx[i][1]+1, i);
+      
 
       switch (avifile1->idx[i][1]) {
 	case '0':
@@ -508,9 +546,10 @@ int main(int argc, char *argv[])
 	  break;
       }
 
-
+      pos = str2ulong(avifile1->idx[i]+ 8);
+      pos += ioff;
       // pos
-      fprintf(out_fd, " %lu", str2ulong(avifile1->idx[i]+ 8));
+      fprintf(out_fd, " %llu", pos);
       // len
       fprintf(out_fd, " %lu", str2ulong(avifile1->idx[i]+12));
       // flags (keyframe?);
