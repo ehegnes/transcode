@@ -304,13 +304,13 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 			{
 				p_audiovideo->s_audio_smpte=s_limit.s_smpte;
 				p_audiovideo->s_end_a_time=s_limit.s_time;
-				p_audiovideo->s_end_audio=s_limit.s_frame;
+				p_audiovideo->s_end_audio=s_limit.s_frame+1;
 			}
 			else
 			{
 				p_audiovideo->s_video_smpte=s_limit.s_smpte;
 				p_audiovideo->s_end_v_time=s_limit.s_time;
-				p_audiovideo->s_end_video=s_limit.s_frame;
+				p_audiovideo->s_end_video=s_limit.s_frame+1;
 			}
 		        if(f_parse_tree(p_node->next,p_audiovideo))		//goto the next param.
 				s_rc=1;
