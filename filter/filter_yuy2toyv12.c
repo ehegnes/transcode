@@ -30,7 +30,6 @@
 #include "filter.h"
 #include "optstr.h"
 
-#include <inttypes.h>
 
 void yuy2toyv12(char *dest, char *input, int width, int height) 
 {

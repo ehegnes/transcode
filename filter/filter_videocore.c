@@ -32,8 +32,6 @@
 
 #include "video_trans.h"
 
-#include <inttypes.h>
-
 // basic parameter
 unsigned char gamma_table[256];
 static int gamma_table_flag;

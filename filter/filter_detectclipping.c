@@ -31,7 +31,6 @@
 #include "filter.h"
 #include "optstr.h"
 
-#include <inttypes.h>
 
 // basic parameter
 

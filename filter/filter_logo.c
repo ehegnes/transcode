@@ -38,7 +38,6 @@
 
 #include "export/vid_aux.h"
 
-#include <inttypes.h>
 
 // transcode defines this as well as ImageMagick.
 #undef PACKAGE_NAME

@@ -26,7 +26,6 @@
 #include "ioaux.h"
 #include "tc.h"
 
-#include <errno.h>
 #include <sys/mman.h>
 
 #if (HAVE_OGG && HAVE_VORBIS)

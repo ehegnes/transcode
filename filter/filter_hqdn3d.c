@@ -26,7 +26,6 @@
 #include "filter.h"
 #include "optstr.h"
 
-#include <inttypes.h>
 #include <math.h>
 
 #define PARAM1_DEFAULT 4.0

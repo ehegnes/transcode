@@ -28,7 +28,6 @@
 #include "filter.h"
 #include "optstr.h"
 
-#include <inttypes.h>
 #include <math.h>
 
 #define module "[" MOD_NAME "]: "

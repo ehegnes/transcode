@@ -26,7 +26,6 @@
 #include "filter.h"
 #include "optstr.h"
 
-#include <inttypes.h>
 #include <math.h>
 #ifndef SYS_BSD
 # ifdef HAVE_MALLOC_H

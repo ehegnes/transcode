@@ -32,8 +32,6 @@
 
 #include "video_trans.h"
 
-#include <inttypes.h>
-
 // FreeType specific includes
 #include <ft2build.h>
 #ifdef FT_FREETYPE_H

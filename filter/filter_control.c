@@ -33,7 +33,6 @@
 #include "src/socket.h"
 
 #include <ctype.h>
-#include <inttypes.h>
 
 #ifndef M_BUF_SIZE
 #define M_BUF_SIZE 8192

@@ -30,7 +30,6 @@
 #include "filter.h"
 #include "optstr.h"
 
-#include <inttypes.h>
 
 // basic parameter
 
@@ -91,13 +90,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //
   //----------------------------------
 
-
   if(ptr->tag & TC_FILTER_INIT) {
 
     if((vob = tc_get_vob())==NULL) return(-1);
 
     if((mfd = (MyFilterData *)malloc (sizeof(MyFilterData))) == NULL) return (-1);
-
 
     mfd->start=0;
     mfd->end=(unsigned int)-1;
@@ -111,7 +108,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	optstr_get (options, "range",  "%u-%u/%d",    &mfd->start, &mfd->end, &mfd->step);
 	optstr_get (options, "subst",  "%d",    &mfd->subst);
     }
-
 
     if (verbose > 1) {
 	printf (" nored Image Settings:\n");
@@ -141,7 +137,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
     // filter init ok.
     if (verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
 
-    
     return(0);
   }
 
@@ -151,7 +146,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //
   //----------------------------------
 
-  
   if(ptr->tag & TC_FILTER_CLOSE) {
 
     if (mfd) { 
