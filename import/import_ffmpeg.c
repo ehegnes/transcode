@@ -638,10 +638,12 @@ retry:
           src = 0;
           dst = 0;
           for (row=0; row<lavc_dec_context->height; row+=2) {
-            tc_memcpy(Vbuf + dst, picture.data[1] + src, lavc_dec_context->width/2);
-            tc_memcpy(Ubuf + dst, picture.data[2] + src, lavc_dec_context->width/2);
-            dst += lavc_dec_context->width/2;
-            src = row * UVls;
+			for (col=0; col<lavc_dec_context->width/2; col++) {
+			  Vbuf[dst + col] = (picture.data[1][src + col] + picture.data[1][src + UVls + col]) >> 1;
+			  Ubuf[dst + col] = (picture.data[2][src + col] + picture.data[2][src + UVls + col]) >> 1;
+			}
+            dst += lavc_dec_context->width >> 1;
+            src += UVls << 1;
           } 
 	  break;
       case PIX_FMT_YUV444P:
