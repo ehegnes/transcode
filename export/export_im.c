@@ -25,8 +25,15 @@
 #include <stdlib.h>
 
 #include "transcode.h"
-#include <magick/api.h>
 #include "yuv2rgb.h"
+
+// transcode defines this as well as ImageMagick.
+#undef PACKAGE_NAME
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+#undef PACKAGE_STRING
+
+#include <magick/api.h>
 
 #define MOD_NAME    "export_im.so"
 #define MOD_VERSION "v0.0.3 (2003-06-05)"

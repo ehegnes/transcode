@@ -53,6 +53,13 @@
 #include "framebuffer.h"
 #include "filter.h"
 #include "optstr.h"
+
+// transcode defines this as well as ImageMagick.
+#undef PACKAGE_NAME
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+#undef PACKAGE_STRING
+
 #include <magick/api.h>
 
 typedef struct pixelsMask {
