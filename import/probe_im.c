@@ -69,7 +69,8 @@ void probe_im(info_t *ipipe)
 
 	return;
 }
-#else
+
+#else   // HAVE_IMAGEMAGICK
 
 void probe_im(info_t *ipipe)
 {
@@ -77,5 +78,6 @@ void probe_im(info_t *ipipe)
 	ipipe->error=1;
 	return;
 }
+
 #endif
 

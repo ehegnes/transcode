@@ -134,7 +134,8 @@ void probe_mov(info_t *ipipe)
   
   return;
 }
-#else
+
+#else   // HAVE_LIBQUICKTIME
 
 void probe_mov(info_t *ipipe)
 {
@@ -142,5 +143,6 @@ void probe_mov(info_t *ipipe)
 	ipipe->error=1;
 	return;
 }
+
 #endif
 
