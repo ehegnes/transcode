@@ -105,6 +105,12 @@ int audio_init(vob_t *vob, int debug)
 
     if(avi_aud_chan==1) aud_mono = 1;
 
+    if (strncmp(vob->amod_probed,"null", 4) == 0) {
+	fprintf(stderr, "(%s) No amod probed, muting\n", __FILE__);
+	mute = 1;
+	return 0;
+    }
+
     if(!sample_size && i_codec != CODEC_NULL) {
 	fprintf(stderr, "(%s) invalid sample size %d detected - invalid audio format in=0x%x\n", __FILE__, sample_size, i_codec);
 	return(TC_EXPORT_ERROR); 
