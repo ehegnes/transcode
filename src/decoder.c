@@ -195,8 +195,9 @@ void import_threads_create(vob_t *vob)
 int import_init(vob_t *vob, char *a_mod, char *v_mod)
 {
 	transfer_t import_para;
-	memset(&import_para, 0, sizeof(transfer_t));
 	int cc;
+
+	memset(&import_para, 0, sizeof(transfer_t));
 
 	// load audio import module
 
