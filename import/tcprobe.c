@@ -289,8 +289,8 @@ int main(int argc, char *argv[])
       stream_magic = streaminfo(ipipe.fd_in);
     }
 
-    if(strncmp(name, "/dev/video", 10)==0) stream_magic = TC_MAGIC_V4L_VIDEO;
-    if(strncmp(name, "/dev/dsp",7)==0) stream_magic = TC_MAGIC_V4L_AUDIO;
+    if(name && *name && strlen(name)>=10 && strncmp(name, "/dev/video", 10)==0) stream_magic = TC_MAGIC_V4L_VIDEO;
+    if(name && *name && strlen(name)>=7 && strncmp(name, "/dev/dsp",7)==0) stream_magic = TC_MAGIC_V4L_AUDIO;
     
     // fill out defaults for info structure
     ipipe.fd_out = STDOUT_FILENO;
