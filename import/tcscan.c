@@ -416,10 +416,6 @@ int main(int argc, char *argv[])
       // find mp3 header
       while ((total += read(ipipe.fd_in, header, 4))) {
 	  if ( (framesize = tc_get_mp3_header (header, &chans, &srate, &bitrate)) > 0) {
-	      ++chunks;
-	      bitrate_add += bitrate;
-	      check(bitrate);
-	      ms = (framesize*1000)/(bitrate*128);
 	      break;
 	  }
       }
@@ -432,24 +428,29 @@ int main(int argc, char *argv[])
       //
       // 480 bytes = 480/20480 s/bytes = .0234 s = 23.4 ms
       //  
-      //  ms = (framesize*1000*8)/(bitrate*1024);
+      //  ms = (framesize*1000*8)/(bitrate*1000);
       //  correct? hmm -- tibit
       while (on) {
-	  if ( (bytes_read = read(ipipe.fd_in, buffer, framesize-4)) != framesize-4) on = 0;
-	  total += bytes_read;
-	  ++chunks;
-	  while ((total += read(ipipe.fd_in, header, 4))) {
-	      if ( (framesize = tc_get_mp3_header (header, &chans, &srate, &bitrate)) < 0) {
-		  fprintf(stderr, "[%s] corrupt mp3 file?\n", EXE);
-	      } else  {
-		  bitrate_add += bitrate;
-		  check(bitrate);
-		  ms += (framesize*1000)/(bitrate*128);
-		  break;
+	  if ( (bytes_read = read(ipipe.fd_in, buffer, framesize-4)) != framesize-4) { 
+	      on = 0;
+	  } else {
+	      total += bytes_read;
+	      while ((total += read(ipipe.fd_in, header, 4))) {
+		  if ( (framesize = tc_get_mp3_header (header, &chans, &srate, &bitrate)) < 0) {
+		      fprintf(stderr, "[%s] corrupt mp3 file?\n", EXE);
+		  } else  {
+		      bitrate_add += bitrate;
+		      check(bitrate);
+		      ms += (framesize*8)/(bitrate);
+		      ++chunks;
+		      break;
+		  }
 	      }
-	  }
+
 	  //printf("Found new header (%d) (framesize = %d) chan(%d) srate(%d) bitrate(%d)\n", 
 	  //	  chunks, framesize, chans, srate, bitrate);
+
+	  }
       }
       printf("[%s] found %d MP3 chunks. Average bitrate is %3.2f kbps ", 
 	      EXE, chunks, (double)bitrate_add/chunks);
@@ -458,7 +459,7 @@ int main(int argc, char *argv[])
 
       printf("[%s] AVI overhead will be max. %d*(8+16) = %d bytes (%dk)\n", 
 	      EXE, chunks, chunks*8+chunks*16, (chunks*8+chunks*16)/1024 );
-      printf("[%s] Estimated time is %lf ms (%02d:%02d:%02d.%02d)\n", 
+      printf("[%s] Estimated time is %.0lf ms (%02d:%02d:%02d.%02d)\n", 
 	      EXE, ms, 
 	         (int)(ms/1000.0/60.0/60.0), 
 	         (int)(ms/1000.0/60.0)%60, 
@@ -534,7 +535,7 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
     // head_check:
     if( (newhead & 0xffe00000) != 0xffe00000 ||  
         (newhead & 0x0000fc00) == 0x0000fc00){
-	//fprintf( stderr, "[%s] head_check failed\n", __FILE__);
+	fprintf( stderr, "[%s] head_check failed\n", __FILE__);
 	return -1;
     }
 #endif
