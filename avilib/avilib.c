@@ -26,9 +26,15 @@
  */
 
 #include "avilib.h"
+#ifdef HAVE_CONFIG_H
 #include "../config.h"
+#else 
+#define PACKAGE "transcode"
+#define VERSION "0.6.10"
+#endif
 
 #define INFO_LIST
+
 #define DEBUG_ODML
 #undef DEBUG_ODML
 
@@ -1742,7 +1748,7 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
          num_stream++;
       }
       else if(strncasecmp(hdrl_data+i,"dmlh",4) == 0) {
-	 //fprintf(stderr, "real number of frames %ld\n", str2ulong(hdrl_data+i+8));
+	 fprintf(stderr, "real number of frames %ld\n", str2ulong(hdrl_data+i+8));
 	 i += 8;
       }
       else if(strncasecmp(hdrl_data+i,"strf",4)==0)
@@ -2019,6 +2025,7 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
       int hdrl_len = sizeof (avistdindex_chunk) - sizeof (avistdindex_entry *);
       char *en, *chunk_start;
       int k = 0, audtr = 0;
+      unsigned long nrEntries = 0;
 
       AVI->video_index = NULL;
 
@@ -2045,11 +2052,15 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 	    return -1;
 	 }
 
+	 nrEntries = str2ulong(en + 12);
+#ifdef DEBUG_ODML
+	 printf("[%d:0] Video nrEntries %ld\n", j, nrEntries);
+#endif
 	 offset = str2ullong(en + 20);
 
 	 // skip header
 	 en += hdrl_len;
-	 nvi += (AVI->video_superindex->aIndex[j].dwSize - hdrl_len)/( sizeof (unsigned long) * 2);
+	 nvi += nrEntries;
 	 AVI->video_index = (video_index_entry *) realloc (AVI->video_index, nvi * sizeof (video_index_entry));
 
 	 while (k < nvi) {
@@ -2059,11 +2070,13 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 	    AVI->video_index[k].key = str2ulong_key(en); en += 4;
 
 #ifdef DEBUG_ODML
+	    /*
 	    printf("[%d] POS 0x%llX len=%d key=%s offset (%llx) (%ld)\n", k, 
 		  AVI->video_index[k].pos, 
 		  (int)AVI->video_index[k].len, 
 		  AVI->video_index[k].key?"yes":"no ", offset, 
 		  AVI->video_superindex->aIndex[j].dwSize); 
+		  */
 #endif
 
 	    k++;
@@ -2097,11 +2110,15 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 	       return -1;
 	    }
 
+	    nrEntries = str2ulong(en + 12);
+#ifdef DEBUG_ODML
+	    printf("[%d:%d] Audio nrEntries %ld\n", j, audtr, nrEntries);
+#endif
 	    offset = str2ullong(en + 20);
 
 	    // skip header
 	    en += hdrl_len;
-	    nai[audtr] += (AVI->track[audtr].audio_superindex->aIndex[j].dwSize - hdrl_len)/( sizeof (unsigned long) * 2);
+	    nai[audtr] += nrEntries;
 	    AVI->track[audtr].audio_index = (audio_index_entry *) realloc (AVI->track[audtr].audio_index, nai[audtr] * sizeof (audio_index_entry));
 
 	    while (k < nai[audtr]) {
@@ -2112,10 +2129,12 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 	       tot[audtr] += AVI->track[audtr].audio_index[k].len;
 
 #ifdef DEBUG_ODML
+	       /*
 		  printf("[%d] POS 0x%llX len=%d offset (%llx) (%ld)\n", k, 
 		  AVI->track[audtr].audio_index[k].pos, 
 		  (int)AVI->track[audtr].audio_index[k].len, 
 		  offset, AVI->track[audtr].audio_superindex->aIndex[j].dwSize); 
+		  */
 #endif
 
 	       ++k;
