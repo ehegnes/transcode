@@ -762,7 +762,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 ///////////////////////////////////////////////////////////////////////////
 
-  if(ptr->tag & TC_PRE_PROCESS && ptr->tag & TC_VIDEO && (!ptr->attributes & TC_FRAME_IS_SKIPPED)) {
+  if(ptr->tag & TC_PRE_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 	  
 	  int U  = ptr->v_width*ptr->v_height;
 	  int V  = ptr->v_width*ptr->v_height*5/4;
@@ -784,12 +784,13 @@ int tc_filter(vframe_list_t *ptr, char *options)
 			  mfd->movingV, mfd->fmovingV, clamp_UV, mfd->chromathres);
 	  } else {
 	      //pass through
-	      memcpy(mfd->buf+U, ptr->video_buf+U, ptr->v_width*ptr->v_height/2);
+	      //memcpy(mfd->buf+U, ptr->video_buf+U, ptr->v_width*ptr->v_height/2);
+	      memset(mfd->buf+U, BLACK_BYTE_UV, ptr->v_width*ptr->v_height/2);
 	  }
 
 	  /*
 	  memset(mfd->buf, BLACK_BYTE_Y, ptr->v_width*ptr->v_height);
-	  memset(mfd->buf+U, BLACK_BYTE_UV, ptr->v_width*ptr->v_height/4);
+	  memset(mfd->buf+U, BLACK_BYTE_UV, ptr->v_width*ptr->v_height/2);
 			  */
 
 	  memcpy (ptr->video_buf, mfd->buf, ptr->video_size);

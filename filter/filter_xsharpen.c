@@ -259,7 +259,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 ///////////////////////////////////////////////////////////////////////////
 
-  if(ptr->tag & TC_POST_PROCESS && ptr->tag & TC_VIDEO && (!ptr->attributes & TC_FRAME_IS_SKIPPED)) {
+  if(ptr->tag & TC_POST_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
     
      if (vob->im_v_codec == CODEC_RGB) {
 	const PixDim	width  = ptr->v_width;

@@ -257,7 +257,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   //if((ptr->tag & TC_PRE_M_PROCESS) && (ptr->tag & TC_VIDEO))  {
   if(((ptr->tag & TC_PRE_M_PROCESS  && pre[instance]) || 
-	  (ptr->tag & TC_POST_M_PROCESS && !pre[instance])) && (!ptr->attributes & TC_FRAME_IS_SKIPPED)) {
+	  (ptr->tag & TC_POST_M_PROCESS && !pre[instance])) && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
     //if (ptr->tag & TC_PRE_M_PROCESS) fprintf(stderr, "32#%d pre (%d)\n", instance, ptr->id);
     //if (ptr->tag & TC_POST_M_PROCESS) fprintf(stderr, "32#%d post (%d)\n", instance, ptr->id);

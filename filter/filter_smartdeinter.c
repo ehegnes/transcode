@@ -383,7 +383,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 ///////////////////////////////////////////////////////////////////////////
 
-      if(ptr->tag & TC_PRE_PROCESS && ptr->tag & TC_VIDEO && (!ptr->attributes & TC_FRAME_IS_SKIPPED)) {
+      if(ptr->tag & TC_PRE_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
     
 	const int		srcpitch = ptr->v_width*sizeof(Pixel32);
 	const int		srcpitchtimes2 = 2 * srcpitch;

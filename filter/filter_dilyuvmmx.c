@@ -105,7 +105,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // or after and determines video/audio context
   
   if((ptr->tag & TC_PRE_PROCESS) && (ptr->tag & TC_VIDEO) && (vob->im_v_codec==CODEC_YUV) &&
-     (!ptr->attributes & TC_FRAME_IS_SKIPPED))  {
+     !(ptr->attributes & TC_FRAME_IS_SKIPPED))  {
     
     deinterlace_bob_yuv_mmx(ptr->video_buf, ptr->video_buf, 
 			    ptr->v_width, ptr->v_height); 

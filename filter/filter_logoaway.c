@@ -736,7 +736,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //----------------------------------
 
 
-  if(ptr->tag & TC_POST_PROCESS && ptr->tag & TC_VIDEO && (!ptr->attributes & TC_FRAME_IS_SKIPPED)) {
+  if(ptr->tag & TC_POST_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
     if (ptr->id < data[instance]->start || ptr->id > data[instance]->end) return (0);
 
