@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 
-AM_CPPFLAGS = @LIBVO_CFLAGS@
+AM_CPPFLAGS = $(LIBVO_CFLAGS)
 
 noinst_LTLIBRARIES = libmpeg2cvs.la
 

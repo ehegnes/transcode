@@ -8,12 +8,7 @@ INCLUDES = \
 
 AM_CPPFLAGS = \
 	-DLINUX \
-	@LIBDV_CFLAGS@
-
-AM_CFLAGS = \
-	-g \
-	-funroll-loops \
-	-ffast-math
+	$(LIBDV_CFLAGS)
 
 noinst_LTLIBRARIES = libdvenc.la
 

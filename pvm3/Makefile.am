@@ -4,28 +4,23 @@ AUTOMAKE_OPTIONS = 1.3 foreign
 
 AM_CPPFLAGS = \
 	-D_REENTRANT \
-	-DMOD_PATH=\"@MOD_PATH@\" \
+	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
-	@PVM3_CFLAGS@ \
-	@ACLIB_CFLAGS@ \
-	@TCIOAUX_CFLAGS@
-
-AM_CFLAGS = \
-	-g \
-	-funroll-loops \
-	-ffast-math
+	$(PVM3_CFLAGS) \
+	$(ACLIB_CFLAGS) \
+	$(TCIOAUX_CFLAGS)
 
 AM_LDFLAGS = -export-dynamic
 
-pkgdir = @MOD_PATH@
+pkgdir = $(MOD_PATH)
 
 bin_PROGRAMS = tcpvmexportd
 pkg_LTLIBRARIES	= pvm_functions.la
 
 pvm_functions_la_SOURCES = pvm_functions.c 
 pvm_functions_la_LDFLAGS = -module -avoid-version 
-pvm_functions_la_LIBADD  = @PVM3_LIB@ 
+pvm_functions_la_LIBADD  = $(PVM3_LIB)
 
 tcpvmexportd_SOURCES = \
 	tcpvmexportd.c \
@@ -36,7 +31,7 @@ tcpvmexportd_SOURCES = \
 	vob_pack_unpack.c \
 	../src/tc_functions.c
 
-tcpvmexportd_LDADD = @TCIOAUX_LIBS@ @ACLIB_LIBS@ -lm
+tcpvmexportd_LDADD = $(TCIOAUX_LIBS) $(ACLIB_LIBS) -lm
 
 EXTRA_DIST = \
 	pvm_functions.h \
@@ -49,9 +44,9 @@ EXTRA_DIST = \
 
 install-data-local:
 	@$(NORMAL_INSTALL)
-	if test -h @bindir@/pvmgs; then \
-		rm @bindir@/pvmgs; \
+	if test -h $(bindir)/pvmgs; then \
+		rm $(bindir)/pvmgs; \
 	fi;
-	if test ! -e @bindir@/pvmgs; then \
-		ln -s @PVM3_PVMGS@ @bindir@/pvmgs; \
+	if test ! -e $(bindir)/pvmgs; then \
+		ln -s $(PVM3_PVMGS) $(bindir)/pvmgs; \
 	fi;

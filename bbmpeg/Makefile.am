@@ -30,10 +30,6 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	$(MMX)
 
-AM_CFLAGS = \
-	-funroll-loops \
-	-ffast-math
-
 libbbmpeg_la_SOURCES = \
 	dovideo.c \
 	params.c \

@@ -9,8 +9,8 @@ noinst_LIBRARIES = libdldarwin.a
 libdldarwin_a_SOURCES =
 EXTRA_libdldarwin_a_SOURCES = dlfcn_simple.c
 
-libdldarwin_a_DEPENDENCIES = @DLDARWINOBJECTS@
-libdldarwin_a_LIBADD = @DLDARWINOBJECTS@
+libdldarwin_a_DEPENDENCIES = $(DLDARWINOBJECTS)
+libdldarwin_a_LIBADD = $(DLDARWINOBJECTS)
 
 EXTRA_DIST = \
 	dlfcn.h \

@@ -4,7 +4,7 @@ AUTOMAKE_OPTIONS = 1.3 foreign
 
 AM_CPPFLAGS = \
 	-D_REENTRANT \
-	@LIBXML2_CFLAGS@
+	$(LIBXML2_CFLAGS)
 
 noinst_LTLIBRARIES = libxio.la
 
