@@ -23954,16 +23954,26 @@ fi
 
 
 
-have_freetype2=yes
+freetype2=yes
 echo "$as_me:$LINENO: checking wether to enable filter_text" >&5
 echo $ECHO_N "checking wether to enable filter_text... $ECHO_C" >&6
 # Check whether --enable-text or --disable-text was given.
 if test "${enable_text+set}" = set; then
   enableval="$enable_text"
 
-if test x"${enableval}" = x"yes"; then
+if test x"${enableval}" = x"no"; then
+freetype2=no
+echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+else
+freetype2=yes
     echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
+fi
+fi;
+
+
+if test x"${freetype2}" = x"yes"; then
 
 # Check whether --with-ft-prefix or --without-ft-prefix was given.
 if test "${with_ft_prefix+set}" = set; then
@@ -24150,7 +24160,7 @@ fi                 # test "$FT2_CONFIG" = "no"
 if test x$no_ft = x ; then
    echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-   have_freetype2=yes
+   freetype2=yes
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_FREETYPE2 1
@@ -24181,23 +24191,15 @@ echo "${ECHO_T}no" >&6
    fi
    FT2_CFLAGS=""
    FT2_LIBS=""
-   have_freetype2=no
+   freetype2=no
 fi
 
 
 
-else
-echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
 fi
-else
-  echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-fi;
 
 
-
-if test x"$have_freetype2" = "xyes"; then
+if test x"$freetype2" = "xyes"; then
   HAVE_FREETYPE2_TRUE=
   HAVE_FREETYPE2_FALSE='#'
 else
@@ -24207,18 +24209,22 @@ fi
 
 
 
-if test "${ac_cv_header_linux_videodev_h+set}" = set; then
-  echo "$as_me:$LINENO: checking for linux/videodev.h" >&5
-echo $ECHO_N "checking for linux/videodev.h... $ECHO_C" >&6
-if test "${ac_cv_header_linux_videodev_h+set}" = set; then
+
+for ac_header in linux/videodev.h
+do
+as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
+if eval "test \"\${$as_ac_Header+set}\" = set"; then
+  echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6
+if eval "test \"\${$as_ac_Header+set}\" = set"; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 fi
-echo "$as_me:$LINENO: result: $ac_cv_header_linux_videodev_h" >&5
-echo "${ECHO_T}$ac_cv_header_linux_videodev_h" >&6
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_Header'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_Header'}'`" >&6
 else
   # Is the header compilable?
-echo "$as_me:$LINENO: checking linux/videodev.h usability" >&5
-echo $ECHO_N "checking linux/videodev.h usability... $ECHO_C" >&6
+echo "$as_me:$LINENO: checking $ac_header usability" >&5
+echo $ECHO_N "checking $ac_header usability... $ECHO_C" >&6
 cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 /* confdefs.h.  */
@@ -24227,7 +24233,7 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 $ac_includes_default
-#include <linux/videodev.h>
+#include <$ac_header>
 _ACEOF
 rm -f conftest.$ac_objext
 if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
@@ -24253,8 +24259,8 @@ echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
 echo "${ECHO_T}$ac_header_compiler" >&6
 
 # Is the header present?
-echo "$as_me:$LINENO: checking linux/videodev.h presence" >&5
-echo $ECHO_N "checking linux/videodev.h presence... $ECHO_C" >&6
+echo "$as_me:$LINENO: checking $ac_header presence" >&5
+echo $ECHO_N "checking $ac_header presence... $ECHO_C" >&6
 cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 /* confdefs.h.  */
@@ -24262,7 +24268,7 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <linux/videodev.h>
+#include <$ac_header>
 _ACEOF
 if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
   (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
@@ -24295,10 +24301,10 @@ echo "${ECHO_T}$ac_header_preproc" >&6
 # So?  What about this header?
 case $ac_header_compiler:$ac_header_preproc in
   yes:no )
-    { echo "$as_me:$LINENO: WARNING: linux/videodev.h: accepted by the compiler, rejected by the preprocessor!" >&5
-echo "$as_me: WARNING: linux/videodev.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
-    { echo "$as_me:$LINENO: WARNING: linux/videodev.h: proceeding with the preprocessor's result" >&5
-echo "$as_me: WARNING: linux/videodev.h: proceeding with the preprocessor's result" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
+echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the preprocessor's result" >&5
+echo "$as_me: WARNING: $ac_header: proceeding with the preprocessor's result" >&2;}
     (
       cat <<\_ASBOX
 ## ------------------------------------ ##
@@ -24309,12 +24315,12 @@ _ASBOX
       sed "s/^/$as_me: WARNING:     /" >&2
     ;;
   no:yes )
-    { echo "$as_me:$LINENO: WARNING: linux/videodev.h: present but cannot be compiled" >&5
-echo "$as_me: WARNING: linux/videodev.h: present but cannot be compiled" >&2;}
-    { echo "$as_me:$LINENO: WARNING: linux/videodev.h: check for missing prerequisite headers?" >&5
-echo "$as_me: WARNING: linux/videodev.h: check for missing prerequisite headers?" >&2;}
-    { echo "$as_me:$LINENO: WARNING: linux/videodev.h: proceeding with the preprocessor's result" >&5
-echo "$as_me: WARNING: linux/videodev.h: proceeding with the preprocessor's result" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: present but cannot be compiled" >&5
+echo "$as_me: WARNING: $ac_header: present but cannot be compiled" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: check for missing prerequisite headers?" >&5
+echo "$as_me: WARNING: $ac_header: check for missing prerequisite headers?" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the preprocessor's result" >&5
+echo "$as_me: WARNING: $ac_header: proceeding with the preprocessor's result" >&2;}
     (
       cat <<\_ASBOX
 ## ------------------------------------ ##
@@ -24325,22 +24331,83 @@ _ASBOX
       sed "s/^/$as_me: WARNING:     /" >&2
     ;;
 esac
-echo "$as_me:$LINENO: checking for linux/videodev.h" >&5
-echo $ECHO_N "checking for linux/videodev.h... $ECHO_C" >&6
-if test "${ac_cv_header_linux_videodev_h+set}" = set; then
+echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6
+if eval "test \"\${$as_ac_Header+set}\" = set"; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  ac_cv_header_linux_videodev_h=$ac_header_preproc
+  eval "$as_ac_Header=$ac_header_preproc"
 fi
-echo "$as_me:$LINENO: result: $ac_cv_header_linux_videodev_h" >&5
-echo "${ECHO_T}$ac_cv_header_linux_videodev_h" >&6
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_Header'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_Header'}'`" >&6
 
 fi
-if test $ac_cv_header_linux_videodev_h = yes; then
-  v4l=yes
+if test `eval echo '${'$as_ac_Header'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+ v4l=yes
 else
   v4l=no
 fi
+
+done
+
+
+for ac_header in linux/videodev2.h
+do
+as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
+echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6
+if eval "test \"\${$as_ac_Header+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <linux/types.h>
+
+
+#include <$ac_header>
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  eval "$as_ac_Header=yes"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+eval "$as_ac_Header=no"
+fi
+rm -f conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_Header'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_Header'}'`" >&6
+if test `eval echo '${'$as_ac_Header'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+ v4l2=yes
+else
+  v4l2=no
+fi
+
+done
 
 
 
@@ -24360,7 +24427,7 @@ echo "${ECHO_T}no" >&6
 fi
 fi;
 
-if test x"${v4l}" = x"yes" ; then
+if test x"${v4l}" = x"yes" -o x"${v4l2}" = x"yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_V4L 1
@@ -24368,6 +24435,10 @@ _ACEOF
 
 echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
+   v4l=yes
+else
+echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
 fi
 
 
@@ -24379,145 +24450,6 @@ else
   HAVE_V4L_TRUE='#'
   HAVE_V4L_FALSE=
 fi
-
-
-if test "${ac_cv_header_linux_videodev2_h+set}" = set; then
-  echo "$as_me:$LINENO: checking for linux/videodev2.h" >&5
-echo $ECHO_N "checking for linux/videodev2.h... $ECHO_C" >&6
-if test "${ac_cv_header_linux_videodev2_h+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-fi
-echo "$as_me:$LINENO: result: $ac_cv_header_linux_videodev2_h" >&5
-echo "${ECHO_T}$ac_cv_header_linux_videodev2_h" >&6
-else
-  # Is the header compilable?
-echo "$as_me:$LINENO: checking linux/videodev2.h usability" >&5
-echo $ECHO_N "checking linux/videodev2.h usability... $ECHO_C" >&6
-cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-$ac_includes_default
-#include <linux/videodev2.h>
-_ACEOF
-rm -f conftest.$ac_objext
-if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
-  (eval $ac_compile) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-         { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  ac_header_compiler=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-ac_header_compiler=no
-fi
-rm -f conftest.$ac_objext conftest.$ac_ext
-echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
-echo "${ECHO_T}$ac_header_compiler" >&6
-
-# Is the header present?
-echo "$as_me:$LINENO: checking linux/videodev2.h presence" >&5
-echo $ECHO_N "checking linux/videodev2.h presence... $ECHO_C" >&6
-cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <linux/videodev2.h>
-_ACEOF
-if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
-  (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } >/dev/null; then
-  if test -s conftest.err; then
-    ac_cpp_err=$ac_c_preproc_warn_flag
-  else
-    ac_cpp_err=
-  fi
-else
-  ac_cpp_err=yes
-fi
-if test -z "$ac_cpp_err"; then
-  ac_header_preproc=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-  ac_header_preproc=no
-fi
-rm -f conftest.err conftest.$ac_ext
-echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
-echo "${ECHO_T}$ac_header_preproc" >&6
-
-# So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc in
-  yes:no )
-    { echo "$as_me:$LINENO: WARNING: linux/videodev2.h: accepted by the compiler, rejected by the preprocessor!" >&5
-echo "$as_me: WARNING: linux/videodev2.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
-    { echo "$as_me:$LINENO: WARNING: linux/videodev2.h: proceeding with the preprocessor's result" >&5
-echo "$as_me: WARNING: linux/videodev2.h: proceeding with the preprocessor's result" >&2;}
-    (
-      cat <<\_ASBOX
-## ------------------------------------ ##
-## Report this to bug-autoconf@gnu.org. ##
-## ------------------------------------ ##
-_ASBOX
-    ) |
-      sed "s/^/$as_me: WARNING:     /" >&2
-    ;;
-  no:yes )
-    { echo "$as_me:$LINENO: WARNING: linux/videodev2.h: present but cannot be compiled" >&5
-echo "$as_me: WARNING: linux/videodev2.h: present but cannot be compiled" >&2;}
-    { echo "$as_me:$LINENO: WARNING: linux/videodev2.h: check for missing prerequisite headers?" >&5
-echo "$as_me: WARNING: linux/videodev2.h: check for missing prerequisite headers?" >&2;}
-    { echo "$as_me:$LINENO: WARNING: linux/videodev2.h: proceeding with the preprocessor's result" >&5
-echo "$as_me: WARNING: linux/videodev2.h: proceeding with the preprocessor's result" >&2;}
-    (
-      cat <<\_ASBOX
-## ------------------------------------ ##
-## Report this to bug-autoconf@gnu.org. ##
-## ------------------------------------ ##
-_ASBOX
-    ) |
-      sed "s/^/$as_me: WARNING:     /" >&2
-    ;;
-esac
-echo "$as_me:$LINENO: checking for linux/videodev2.h" >&5
-echo $ECHO_N "checking for linux/videodev2.h... $ECHO_C" >&6
-if test "${ac_cv_header_linux_videodev2_h+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  ac_cv_header_linux_videodev2_h=$ac_header_preproc
-fi
-echo "$as_me:$LINENO: result: $ac_cv_header_linux_videodev2_h" >&5
-echo "${ECHO_T}$ac_cv_header_linux_videodev2_h" >&6
-
-fi
-if test $ac_cv_header_linux_videodev2_h = yes; then
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_LINUX_VIDEODEV2_H 1
-_ACEOF
-
-fi
-
 
 
 
@@ -32567,7 +32499,7 @@ libfame video encoding plugin                    $have_libfame
 quicktime dependent modules                      $have_qt
 *-*-*-*-*-*-* Filter *-*-*-*-*-*-*
 X11 dependent filter plugins                     $USE_X11
-freetype2 dependent filter (filter_text)         $have_freetype2
+freetype2 dependent filter (text, subtitler)     $freetype2
 ----------------------------------------------------------
 " >&5
 echo "${ECHO_T}
@@ -32599,7 +32531,7 @@ libfame video encoding plugin                    $have_libfame
 quicktime dependent modules                      $have_qt
 *-*-*-*-*-*-* Filter *-*-*-*-*-*-*
 X11 dependent filter plugins                     $USE_X11
-freetype2 dependent filter (filter_text)         $have_freetype2
+freetype2 dependent filter (text, subtitler)     $freetype2
 ----------------------------------------------------------
 " >&6
 if test x"$have_x86cpu" = x"true"; then
