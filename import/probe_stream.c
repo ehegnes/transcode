@@ -201,6 +201,10 @@ void tcprobe_thread(info_t *ipipe)
       probe_wav(ipipe);
       break;
 
+    case TC_MAGIC_DTS:
+	probe_dts(ipipe);
+	break;
+
     case TC_MAGIC_AC3:
 	probe_ac3(ipipe);
 	break;

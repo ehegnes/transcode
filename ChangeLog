@@ -3,6 +3,12 @@ transcode-0.6.13
 
 2004-01-31 Tilmann Bitterberg <transcode at tibit.org>
 
+  * import/{ac3scan.c ac3scan.h demuxer.h fileinfo.c magic.h
+  probe_stream.c scan_pes.c tc.h}:
+  DTS detection and probing. No decoding or pass-through supported.
+
+2004-01-31 Tilmann Bitterberg <transcode at tibit.org>
+
   * src/video_buffer.c:
   Malloc a little more than the calculated max framesize
   

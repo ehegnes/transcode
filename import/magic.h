@@ -115,6 +115,7 @@
 #define TC_MAGIC_DV_PAL                0x1f0700bf
 #define TC_MAGIC_DV_NTSC               0x1f07003f
 #define TC_MAGIC_AC3                   0x00000b77
+#define TC_MAGIC_DTS                   0x7ffe8001
 #define TC_MAGIC_LPCM                  0x00000180
 #define TC_MAGIC_MP3                   0x0000FFFB
 #define TC_MAGIC_MP2_FC                0x0000FFFC

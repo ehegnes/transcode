@@ -285,6 +285,13 @@ long fileinfo(int fdes, int skip)
   if(save_read(buf, 4, off, fdes)) goto exit;
   
   
+  // DTS
+  
+  if(cmp_32_bits(buf, TC_MAGIC_DTS)) { 
+    id = TC_MAGIC_DTS;
+    goto exit;
+  }
+
   // VOB
   
   if(cmp_32_bits(buf, TC_MAGIC_VOB)) { 
@@ -614,6 +621,13 @@ long streaminfo(int fdes)
    *
    *-------------------------------------------------------------------*/
   
+  // DTS
+  
+  if(cmp_32_bits(buf, TC_MAGIC_DTS)) { 
+    id = TC_MAGIC_DTS;
+    goto exit;
+  }
+
   // VOB
   
   if(cmp_32_bits(buf, TC_MAGIC_VOB)) { 
@@ -802,6 +816,7 @@ char *filetype(long magic)
 
   case TC_MAGIC_RAW:          return("RAW stream");
   case TC_MAGIC_AC3:          return("AC3 stream");
+  case TC_MAGIC_DTS:          return("DTS stream");
   case TC_MAGIC_MP3:          return("MPEG-1 layer-3 stream");
   case TC_MAGIC_MP3_2:        return("MPEG-2 layer-3 stream");
   case TC_MAGIC_MP3_2_5:      return("MPEG-2.5 layer-3 stream");

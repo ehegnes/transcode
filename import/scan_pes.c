@@ -866,7 +866,75 @@ void probe_pes(info_t *ipipe)
 	    //
 	    //-------------
 
-	    if((aid >= 0x80) && (aid <= 0x9F)) {
+	    if(((aid >= 0x80 && aid <= 0x88)) || (aid>=0x90 && aid<=0x9f)) {
+	      num=aid-0x80;
+	      
+	      if(!(attr[num] & PACKAGE_AUDIO_AC3) && initial_sync) {
+		
+		if(!track[num]) {
+		  ++ipipe->probe_info->num_tracks;
+		  track[num]=1;
+		  ipipe->probe_info->track[num].tid=num;
+		}
+		
+		if(!(ipipe->probe_info->track[num].attribute &
+		     PACKAGE_AUDIO_AC3)) {
+		  
+		  tmp1 +=4;
+		  
+		  //need to scan payload for more AC3 audio info
+		  ret = buf_probe_ac3(tmp1, tmp2-tmp1, &ipipe->probe_info->track[num]);
+		  if(ret==0) {
+		    ipipe->probe_info->track[num].attribute |= PACKAGE_AUDIO_AC3;
+		    memcpy(scan_buf, &buf[6], 16);
+		    has_pts_dts=get_pts_dts(scan_buf, &i_pts, &i_dts);
+		    ipipe->probe_info->track[num].pts_start=(double) i_pts/90000.;
+		    has_audio=1;
+		  }
+		}
+	      }
+	    }
+
+	    //-------------
+	    //
+	    // DTS audio
+	    //
+	    //-------------
+
+	    if((aid >= 0x89) && (aid <= 0x8f)) {
+	      num=aid-0x80;
+	      
+	      if(!(attr[num] & PACKAGE_AUDIO_DTS) && initial_sync) {
+		
+		if(!track[num]) {
+		  ++ipipe->probe_info->num_tracks;
+		  track[num]=1;
+		  ipipe->probe_info->track[num].tid=num;
+		}
+		
+		if(!(ipipe->probe_info->track[num].attribute &
+		     PACKAGE_AUDIO_DTS)) {
+
+			tmp1+=4;
+
+		  //need to scan payload for more DTS audio info
+		  ipipe->probe_info->track[num].attribute |= PACKAGE_AUDIO_DTS;
+		  buf_probe_dts(tmp1, tmp2-tmp1, &ipipe->probe_info->track[num]);
+
+		  memcpy(scan_buf, &buf[6], 16);
+		  has_pts_dts=get_pts_dts(scan_buf, &i_pts, &i_dts);
+		  ipipe->probe_info->track[num].pts_start=(double) i_pts/90000.;
+		  has_audio=1;
+	      }
+	    }
+		}
+	    //-------------
+	    //
+	    //AC3 audio
+	    //
+	    //-------------
+
+	    if((aid >= 0x80) && (aid <= 0x88)) {
 	      num=aid-0x80;
 	      
 	      if(!(attr[num] & PACKAGE_AUDIO_AC3) && initial_sync) {

@@ -63,6 +63,7 @@ void probe_yuv(info_t *ipipe);
 void probe_nuv(info_t *ipipe);
 void probe_wav(info_t *ipipe);
 void probe_ac3(info_t *ipipe);
+void probe_dts(info_t *ipipe);
 void probe_mp3(info_t *ipipe);
 void probe_avi(info_t *ipipe);
 void probe_net(info_t *ipipe);
