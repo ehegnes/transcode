@@ -88,6 +88,10 @@ int rgbswap  = 0;
 int tc_accel = -1;    //acceleration code
 int flip = 0;
 int max_frame_buffer=0;
+int tc_x_preview = 32;
+int tc_y_preview = 32;
+void tc_socket_msgchar() {}
+int tc_socket_msg_lock;
 
 int (*TCV_export)(int opt, void *para1, void *para2);
 int (*TCA_export)(int opt, void *para1, void *para2);
