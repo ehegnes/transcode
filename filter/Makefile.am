@@ -172,7 +172,7 @@ filter_xsharpen_la_SOURCES = filter_xsharpen.c
 filter_xsharpen_la_LDFLAGS =  -module -avoid-version 
 
 filter_msharpen_la_SOURCES = filter_msharpen.c
-filter_msharpen_la_LDFLAGS = -no-undefined -module -avoid-version
+filter_msharpen_la_LDFLAGS = -module -avoid-version
 filter_msharpen_la_LIBADD = -L../libvo -lvout ../export/vid_aux.lo
 
 filter_logoaway_la_SOURCES = filter_logoaway.c
