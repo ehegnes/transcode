@@ -84,7 +84,7 @@ MOD_open
 		    a[n++] = vob->video_in_file;
 		    a[n++] = NULL;
 		    if (execvp (a[0], &a[0])<0) {
-			perror ("execvp");
+			perror ("execvp vncrec. Is vncrec in your $PATH?");
 		    }
 		}
 		break;
