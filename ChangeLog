@@ -1,5 +1,5 @@
 --------------------------------------------
-transcode-0.6.8
+transcode-0.6.8 Mon Jul 7 08:36:58 CEST 2003
 
   * Terse/less technical ChangeLog:
   - Probing support for FOURCC "DX50" and "XVID"
