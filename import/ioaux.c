@@ -36,8 +36,14 @@ ssize_t p_read(int fd, char *buf, size_t len)
    while (r < len) {
       n = read (fd, buf + r, len - r);
 
-      if (n <= 0)
-	  return r;
+	  if (n == 0)
+		break;
+	  if (n < 0) {
+		if (errno == EINTR)
+		  continue;
+		else
+		  break;
+	  } 
       r += n;
    }
 
@@ -51,9 +57,12 @@ ssize_t p_write (int fd, char *buf, size_t len)
 
    while (r < len) {
       n = write (fd, buf + r, len - r);
-      if (n < 0)
-         return n;
-      
+      if (n < 0) {
+		if (errno == EINTR)
+		  continue;
+		else
+		  break;
+	  }
       r += n;
    }
    return r;
