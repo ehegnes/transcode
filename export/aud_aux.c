@@ -143,7 +143,7 @@ static void error(const char *s, ...)
 	va_start(ap, s);
 	vfprintf(stderr, s, ap);
 	va_end(ap);
-	putchar('\n');
+	fputs("\n", stderr);
 	
 	return;
 }
@@ -162,7 +162,7 @@ static void debug(const char *s, ...)
 		va_start(ap, s);
 		vfprintf(stderr, s, ap);
 		va_end(ap);
-		putchar('\n');
+		fputs("\n", stderr);
 	}
 	
 	return;
@@ -628,7 +628,11 @@ int audio_init(vob_t *vob, int v)
 
 		case CODEC_AC3:
 			debug("AC3->AC3");
-			audio_encode_function = audio_passthrough_ac3;
+			if (vob->out_flag) {
+				audio_encode_function = audio_pass_through;
+			} else {
+				audio_encode_function = audio_passthrough_ac3;
+			}
 			/*
 			 *the bitrate can only be determined in the encoder
 			 * section. `bitrate_flags' will be set to 1 after
@@ -751,7 +755,7 @@ static int audio_write(char *buffer, size_t size, avi_t *avifile)
 	{
 		if (fwrite(buffer, size, 1, fd) != 1)
 		{
-			error("Audio file write error (errno=%d).", errno);
+			error("Audio file write error (errno=%d) [%s].", errno, strerror(errno));
 			return(TC_EXPORT_ERROR);
 		}
 	} else {

@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.11
 
+2003-10-02 Tilmann Bitterberg <transcode at tibit.org>
+
+  * aud_aux.c:
+  Fix AC3 pass-through when audio is not written to a AVI file.
+  Few debug printf's cleanup
+
 2003-10-02 Guillaume Cottenceau <gc at mandrakesoft.com>
 
   * filter/{filter_whitebalance.c Makefile.am} docs/man/transcode.1:
