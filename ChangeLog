@@ -1,6 +1,37 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-08-03 Edouard Gomez <ed.gomez at free.fr>
+
+  * export/{export_xvid4.c xvid4.cfg xvid4.h}:
+  The transcode module allowed me to spot bugs in xvidcore...
+  Update you xvid-dev-api-4 snapshot to the latest and greatest.
+  Here is the changelog summary:
+  patch-9
+    Added PSNR measurement + Chroma flag bugfix.
+  patch-10
+    API updates and fix to the PSNR output.
+
+  * libioaux/{configs.c configs.h}:
+  Added a CONF_TYPE_SECTION element type to be able to modelize
+  sections directly in struct config arrays, it is convenient to
+  read various sections at a time in a config file. 
+  Added a CONF_TYPE_SECTION element type to be able to modelize
+  sections directly in struct config arrays.
+  Instead of reading the config file twice to get a section at each
+  module_read_config call, you can define an array with
+  CONF_TYPE_SECTION elements.
+
+  A CONF_TYPE_SECTION element uses the config fields as follow:
+  {"section1", "God damn i'm good", CONF_TYPE_SECTION, 0, 0, 0, NULL},
+    ^^^^^^^^^     ^^^^^^^^^^^^^^^        ^^^^^^
+  |section name | Section description | type .... not used
+
+  The section name is used while loading the settings, the section
+  description is used (when given) as a description for the
+  module_print_config function (else it uses the section name). See
+  the source code for more comments and a usage example.
+
 2003-08-03 Tilmann Bitterberg <transcode at tibit.org>
 
   * filter/filter_smartyuv.c:

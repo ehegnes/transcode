@@ -36,6 +36,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <math.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -64,9 +65,9 @@
  ****************************************************************************/
 
 #define MOD_NAME    "export_xvid4.so"
-#define MOD_VERSION "v0.0.1 (2003-07-30)"
+#define MOD_VERSION "v0.0.2 (2003-07-30)"
 #define MOD_CODEC  \
-"(video) XviD 1.0.x series (aka API API 4.0) | (audio) MPEG/AC3/PCM"
+"(video) XviD 1.0.x series (aka API 4.0) | (audio) MPEG/AC3/PCM"
 #define MOD_PRE xvid4_ 
 #include "export_def.h"
 
@@ -148,6 +149,7 @@ typedef struct _xvid_transcode_module_t
 	int cfg_chromame;
 	int cfg_vhq;
 	int cfg_motion;
+	int cfg_stats;
 
 	/* MPEG4 stream buffer */
 	int   stream_size;
@@ -158,6 +160,12 @@ typedef struct _xvid_transcode_module_t
 	 * use/initialize either the raw file descriptor or the avi file
 	 * pointer in the vob structure passed by transcode */
 	int rawfd;
+
+	/* Stats accumulators */
+	int frames;
+	long long sse_y;
+	long long sse_u;
+	long long sse_v;
 } xvid_transcode_module_t;
 
 static xvid_transcode_module_t thismod;
@@ -357,6 +365,14 @@ MOD_encode
 		return(TC_EXPORT_ERROR);
 	}
 
+	/* Extract stats info */
+	if(xvid_enc_stats.type>0 && thismod.cfg_stats) {
+		thismod.frames++;
+		thismod.sse_y += xvid_enc_stats.sse_y;
+		thismod.sse_u += xvid_enc_stats.sse_u;
+		thismod.sse_v += xvid_enc_stats.sse_v;
+	}
+
 	/* XviD Core rame buffering handling
 	* We must make sure audio A/V is still good and does not run away */
 	if(bytes == 0) {
@@ -431,6 +447,9 @@ MOD_close
  * Stop encoder
  ****************************************************************************/
 
+#define SSE2PSNR(sse, width, height) \
+((!(sse)) ? (0.0f) : (48.131f - 10*(float)log10((float)(sse)/((float)((width)*(height))))))
+
 MOD_stop
 {  
 	int ret;
@@ -464,12 +483,41 @@ MOD_stop
 		thismod.stream = NULL;
 	}
 
+	/* Print stats before resting the complete module structure */
+	if(thismod.cfg_stats) {
+		if(thismod.frames) {
+			thismod.sse_y /= thismod.frames;
+			thismod.sse_u /= thismod.frames;
+			thismod.sse_v /= thismod.frames;
+		} else {
+			thismod.sse_y = 0;
+			thismod.sse_u = 0;
+			thismod.sse_v = 0;
+		}
+		
+		fprintf(stderr, "[%s] "
+			"psnr y = %.2f dB, "
+			"psnr u = %.2f dB, "
+			"psnr v = %.2f dB\n",
+			MOD_NAME,
+			SSE2PSNR(thismod.sse_y,
+				 thismod.xvid_enc_create.width,
+				 thismod.xvid_enc_create.height),
+			SSE2PSNR(thismod.sse_u,
+				 thismod.xvid_enc_create.width,
+				 thismod.xvid_enc_create.height),
+			SSE2PSNR(thismod.sse_v,
+				 thismod.xvid_enc_create.width,
+				 thismod.xvid_enc_create.height));
+	}
+
 	/* This is the last function according to the transcode API
 	 * this should be safe to reset the module structure */
 	reset_module(&thismod);
 
 	return(TC_EXPORT_OK);
 }
+#undef SSE2PSNR
 
 /*****************************************************************************
  * Transcode module helper functions
@@ -496,6 +544,7 @@ static void reset_module(xvid_transcode_module_t *mod)
 	mod->cfg_chromame = 0;
 	mod->cfg_vhq = 0;
 	mod->cfg_motion = 6;
+	mod->cfg_stats = 0;
 	mod->cfg_quant_method = strdup("h263");
 	mod->cfg_payback_method = strdup("proportional");
 
@@ -533,6 +582,7 @@ static void read_config_file(xvid_transcode_module_t *mod)
 			{"cartoon", &mod->cfg_cartoon, CONF_TYPE_FLAG, 0, 0, 1, NULL},
 			{"hqacpred", &mod->cfg_hqacpred, CONF_TYPE_FLAG, 0, 0, 1, NULL},
 			{"frame_drop_ratio", &create->frame_drop_ratio, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
+			{"stats", &mod->cfg_stats, CONF_TYPE_FLAG, 0, 0, 1, NULL},
 			{NULL, 0, 0, 0, 0, 0, NULL}
 		};
 
@@ -640,6 +690,9 @@ static void dispatch_settings(xvid_transcode_module_t *mod)
 	if(mod->cfg_closed_gop)
 		create->global |= XVID_GLOBAL_CLOSED_GOP;
 
+	if(mod->cfg_stats)
+		create->global |= XVID_GLOBAL_EXTRASTATS_ENABLE;
+
 	if(!strcasecmp(mod->cfg_payback_method, "bias"))
 		mod->cfg_pass2.payback_method = XVID_PAYBACK_BIAS;
 	else
@@ -652,6 +705,9 @@ static void dispatch_settings(xvid_transcode_module_t *mod)
 
 	frame->vop_flags |= XVID_VOP_HALFPEL;
 	frame->motion    |= motion_presets[mod->cfg_motion];
+
+	if(mod->cfg_stats)
+		frame->vol_flags |= XVID_VOL_EXTRASTATS;
 
 	if(mod->cfg_intra_matrix_file) {
 		frame->quant_intra_matrix = (unsigned char*)read_matrix(mod->cfg_intra_matrix_file);
@@ -681,7 +737,7 @@ static void dispatch_settings(xvid_transcode_module_t *mod)
 	}
 	if(mod->cfg_gmc) {
 		frame->vol_flags |= XVID_VOL_GMC;
-		frame->motion    |= XVID_GME_REFINE;
+		frame->motion    |= XVID_ME_GME_REFINE;
 	}
 	if(mod->cfg_interlaced) {
 		frame->vol_flags |= XVID_VOL_INTERLACING;
@@ -696,23 +752,23 @@ static void dispatch_settings(xvid_transcode_module_t *mod)
 		frame->vop_flags |= XVID_VOP_INTER4V;
 	}
 	if(mod->cfg_chromame) {
-		frame->vop_flags |= XVID_ME_CHROMA16;
-		frame->vop_flags |= XVID_ME_CHROMA8;
+		frame->motion |= XVID_ME_CHROMA_PVOP;
+		frame->motion |= XVID_ME_CHROMA_BVOP;
 	}
 	if(mod->cfg_vhq >= 1) {
-		frame->vop_flags |= XVID_VOP_MODEDECISION_BITS;
+		frame->vop_flags |= XVID_VOP_MODEDECISION_RD;
 	}
 	if(mod->cfg_vhq >= 2) {
-		frame->motion |= XVID_ME_HALFPELREFINE16_BITS;
-		frame->motion |= XVID_ME_QUARTERPELREFINE16_BITS;
+		frame->motion |= XVID_ME_HALFPELREFINE16_RD;
+		frame->motion |= XVID_ME_QUARTERPELREFINE16_RD;
 	}
 	if(mod->cfg_vhq >= 3) {
-		frame->motion |= XVID_ME_HALFPELREFINE8_BITS;
-		frame->motion |= XVID_ME_QUARTERPELREFINE8_BITS;
-		frame->motion |= XVID_ME_CHECKPREDICTION_BITS;
+		frame->motion |= XVID_ME_HALFPELREFINE8_RD;
+		frame->motion |= XVID_ME_QUARTERPELREFINE8_RD;
+		frame->motion |= XVID_ME_CHECKPREDICTION_RD;
 	}
 	if(mod->cfg_vhq >= 4) {
-		frame->motion |= XVID_ME_EXTSEARCH_BITS;
+		frame->motion |= XVID_ME_EXTSEARCH_RD;
 	}
 
 	/* motion level == 0 means no motion search which is equivalent to
@@ -1052,8 +1108,8 @@ static int load_xvid(xvid_module_t *xvid, char *path)
 	memset(xvid, 0, sizeof(xvid[0]));
 
 	/* First we build all sonames we will try to load */
-	snprintf(soname[0], 4095, "%s/%s.%d", path, XVID_SHARED_LIB_NAME, 4);
-	snprintf(soname[1], 4095, "%s.%d", XVID_SHARED_LIB_NAME, 4);
+	snprintf(soname[0], 4095, "%s/%s.%d", path, XVID_SHARED_LIB_NAME, XVID_API_MAJOR(XVID_API));
+	snprintf(soname[1], 4095, "%s.%d", XVID_SHARED_LIB_NAME, XVID_API_MAJOR(XVID_API));
 	snprintf(soname[2], 4095, "%s/%s", path, XVID_SHARED_LIB_NAME);
 	snprintf(soname[3], 4095, "%s", XVID_SHARED_LIB_NAME);
 
