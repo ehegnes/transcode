@@ -1,8 +1,17 @@
 --------------------------------------------
-transcode-0.6.4.20030310 Mon Mar 10 23:27:27 CET 2003
+transcode-0.6.4.20030311 Tue Mar 11 15:09:44 CET 2003
 
 A lot of stuff has been collected over 6 weeks. A lot of critical errors
 have been fixed since 0.6.3 
+
+- New export module export_ac3.c which is a frontend for ffmpeg
+   -- Daniel Pittman
+
+- Support frame ranges in RAWDV files
+   -- Daniel Pittman
+
+- Make our scripts more portable
+   -- Steven M. Schultz <sms at TO.GD-ES.COM>
 
 - Unitialized fields in the vob_t structure 
    -- Pierre Beyssac <pb at fasterix.frmug.org>
@@ -15,6 +24,9 @@ have been fixed since 0.6.3
 
 - WAV header fix to export_mpeg2enc
    -- Luigi Capriotti
+
+- Support for -x mplayer=options,mplayer=options
+   -- Nils Petter Vaskinn <nils.petter.vaskinn at itsopen.net>
 
 - export_xvid* Module update:
   New:
@@ -30,6 +42,8 @@ have been fixed since 0.6.3
    -- Edouard Gomez
 
 - Check nasm version in configure
+
+- update to autoconf-2.57 and automake-1.7.2
 
 - Developer docs update
 
@@ -47,14 +61,12 @@ have been fixed since 0.6.3
 
 - Bug in export_raw pointed out by Loïc
 
-- Support for -x mplayer=options,mplayer=options
-   -- Nils Petter Vaskinn <nils.petter.vaskinn at itsopen.net>
-
 - Manpage and -h update for `-c' with multiple ranges. Also removed the
   --duration and --record_v4l options as they are obsolete now and broken
   anyway.
 
 - Fix a segfault (coredump) of tcmodinfo
+
 
 --------------------------------------------
 transcode-0.6.3 Thu Jan 30 20:33:26 CET 2003
