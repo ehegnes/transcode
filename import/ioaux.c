@@ -236,28 +236,34 @@ int probe_path(char *name)
 
       /* inode exists */
 
-      /* treat block device as absolute directory path */
+      /* treat DVD device as absolute directory path */
       if (S_ISBLK(fbuf.st_mode))
 	   return(TC_PROBE_PATH_ABSPATH);
 #ifdef SYS_BSD
-      if (S_ISCHR(fbuf.st_mode)) {
-	  switch (major(fbuf.st_rdev)) {
-	      case 15: // rcd (OpenBSD)
-		  return(TC_PROBE_PATH_ABSPATH);
-	      default:
-		  break;
-	  }
-      }
+# if !defined(__OpenBSD__) && !defined(__FreeBSD__)
+      if (S_ISCHR(fbuf.st_mode))
+	   return(TC_PROBE_PATH_ABSPATH);
+# endif
 #endif
 
       /* char device? v4l? bktr? sunau? */
       if(S_ISCHR(fbuf.st_mode)) {
 	  switch (major(fbuf.st_rdev)) {
 #ifdef SYS_BSD
-	      case 49: /* bktr (OpenBSD) */
-                  return(TC_PROBE_PATH_BKTR);
-              case 42: /* sunau (OpenBSD) */
+# ifdef __OpenBSD__
+	      case 15: /* rcd */
+		  return(TC_PROBE_PATH_ABSPATH);
+              case 42: /* sunau */
                   return(TC_PROBE_PATH_SUNAU);
+	      case 49: /* bktr */
+                  return(TC_PROBE_PATH_BKTR);
+# endif
+# ifdef __FreeBSD__
+              case 4: /* acd */
+                  return(TC_PROBE_PATH_ABSPATH);
+              case 229: /* bktr */
+                  return(TC_PROBE_PATH_BKTR);
+# endif
 #else
 	      case 81: /* v4l (Linux) */
                   return(TC_PROBE_PATH_V4L_VIDEO);
