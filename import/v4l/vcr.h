@@ -21,8 +21,8 @@
  *
  */
 
-#ifndef _VCR_H
-#define _VCR_H 1
+#ifndef _TC_V4L_VCR_H
+#define _TC_V4L_VCR_H 1
 
 #include <pthread.h>
 #include <sys/stat.h>

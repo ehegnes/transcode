@@ -18,5 +18,5 @@ pkg_LTLIBRARIES = $(MOD)
 import_v4l_la_SOURCES = import_v4l.c common.c video.c audio.c frequencies.c
 import_v4l_la_LDFLAGS = -no-undefined -module -avoid-version 
  
-EXTRA_DIST = audio.h channels.h common.h counter.h frequencies.h vcr.h video.h
+EXTRA_DIST = audio.h channels.h common.h counter.h frequencies.h vcr.h video.h videodev.h
 

@@ -1,7 +1,7 @@
 
 
-#ifndef _COMMON_H
-#define _COMMON_H 1
+#ifndef _TC_V4L_COMMON_H
+#define _TC_V4L_COMMON_H 1
 
 #define NAME "vcr" 
 

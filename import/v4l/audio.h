@@ -1,3 +1,6 @@
+#ifndef _TC_V4L_AUDIO_H
+#define _TC_V4L_AUDIO_H 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -9,11 +12,9 @@
 #include <errno.h>
 #include <unistd.h>
 #include <signal.h>
-#include <linux/soundcard.h>
-#include <linux/videodev.h>
+#include <sys/soundcard.h>
 
-#ifndef _AUDIO_H
-#define _AUDIO_H 1
+#include "videodev.h"
 
 struct MOVIE_PARAMS {
 

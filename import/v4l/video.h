@@ -22,10 +22,10 @@
  */
 
 
-#ifndef _VIDEO_H
-#define _VIDEO_H 1
+#ifndef _TC_V4L_VIDEO_H
+#define _TC_V4L_VIDEO_H 1
 
-#include <linux/videodev.h>
+#include "videodev.h"
 #include "vcr.h"
 
 #define GRAB_ATTR_VOLUME     1

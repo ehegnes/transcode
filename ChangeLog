@@ -1,6 +1,14 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-11-10 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/v4l/*:
+  Fix compilation of the module on a 2.6 kernel which has broken
+  videodev headers. The only solution I see so far is to include a
+  sane version of videodev.h. This is the same file which xawtv
+  uses. Pointed out by Edouard Gomez.
+
 2003-11-07 Martin Schlemmer <azarah at gentoo.org>
 
   * ffmpeg/av_config.h:
