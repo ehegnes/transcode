@@ -207,13 +207,34 @@ static vframe_list_t *vid_buf_retrieve()
     */
     
     vframe_list_t *ptr;
+    int i;
 
     ptr = vid_buf_ptr[vid_buf_next];
+
+    i = 0;
+    // find an unused ptr, the next one may already be busy
+    while (ptr->status != FRAME_NULL && i < vid_buf_max) {
+	++i;
+	++vid_buf_next;
+	vid_buf_next %= vid_buf_max;
+	ptr = vid_buf_ptr[vid_buf_next];
+    }
 
     // check, if this structure is really free to reuse
 
     if(ptr->status != FRAME_NULL) {
-      if(verbose & TC_FLIST) fprintf(stderr, "(%s) buffer=%d not empty\n", __FILE__, ptr->status);
+      if(verbose & TC_FLIST) {
+	  fprintf(stderr, "(%s) buffer=%d (at %p) not empty\n", __FILE__, ptr->status, ptr);
+	  // dump ptr list
+	  for (i=0; i<vid_buf_max; i++) {
+	      fprintf(stderr, "  (%02d) %p<-%p->%p %d %03d\n", i,
+		      vid_buf_ptr[i]->prev, vid_buf_ptr[i], vid_buf_ptr[i]->next, 
+		      vid_buf_ptr[i]->status,
+		      vid_buf_ptr[i]->id);
+	  }
+	  
+      }
+
       return(NULL);
     }
     
@@ -344,6 +365,120 @@ vframe_list_t *vframe_register(int id)
   return(ptr);
 
 }
+
+/* ------------------------------------------------------------------ */
+
+void vframe_copy_payload(vframe_list_t *dst, vframe_list_t *src)
+{
+    if (!dst || !src)
+	return;
+
+    // we can't use memcpy here because we don't want
+    // to overwrite the pointers to alloc'ed mem
+
+    dst->bufid = src->bufid;
+    dst->tag = src->tag;
+    dst->filter_id = src->filter_id;
+    dst->v_codec = src->v_codec;
+    dst->id = src->id;
+    dst->status = src->status;
+    dst->attributes = src->attributes;
+    dst->thread_id = src->thread_id;
+    dst->clone_flag = src->clone_flag;
+    dst->deinter_flag = src->deinter_flag;
+    dst->v_width = src->v_width;
+    dst->v_height = src->v_height;
+    dst->v_bpp = src->v_bpp;
+    dst->video_size = src->video_size;
+    dst->plane_mode = src->plane_mode;
+    dst->free = src->free;
+
+    // copy video data
+    memcpy(dst->video_buf, src->video_buf, dst->video_size);
+    memcpy(dst->video_buf2, src->video_buf2, dst->video_size);
+}
+
+/* ------------------------------------------------------------------ */
+
+vframe_list_t *vframe_dup(vframe_list_t *f)
+
+{
+  
+  /* objectives: 
+     ===========
+
+     duplicate a frame (for cloning) 
+
+     insert a ptr after f;
+     
+     requirements:
+     =============
+
+     thread-safe
+
+     global mutex: vframe_list_lock
+     
+  */
+
+  vframe_list_t *ptr;
+
+
+  pthread_mutex_lock(&vframe_list_lock);
+
+  //fprintf(stderr, "Duplicating (%d)\n", f->id);
+  if (!f) {
+      fprintf(stderr, "Hmm, 1 cannot find a free slot (%d)\n", f->id);
+      pthread_mutex_unlock(&vframe_list_lock);
+      return (NULL);
+  }
+
+  // retrive a valid pointer from the pool
+  
+#ifdef STATBUFFER
+  if((ptr = vid_buf_retrieve()) == NULL) {
+    pthread_mutex_unlock(&vframe_list_lock);
+    fprintf(stderr, "(%s) cannot find a free slot (%d)\n", __FILE__, f->id);
+    return(NULL);
+  }
+#else 
+  if((ptr = malloc(sizeof(vframe_list_t))) == NULL) {
+    pthread_mutex_unlock(&vframe_list_lock);
+    return(NULL);
+  }
+#endif
+  
+  vframe_copy_payload (ptr, f);
+
+  ptr->status = FRAME_WAIT;
+  ++vid_buf_wait;
+
+  ptr->next = NULL;
+  ptr->prev = NULL;
+  
+  // currently noone cares about this
+  ptr->clone_flag = f->clone_flag+1;
+
+  // insert after ptr
+  ptr->next = f->next;
+  f->next = ptr;
+  ptr->prev = f;
+
+ if(!ptr->next) {
+     // must be last ptr in the list
+     vframe_list_tail = ptr;
+ }
+  
+  // adjust fill level
+  ++vid_buf_fill;
+  
+  pthread_mutex_unlock(&vframe_list_lock);
+  
+  return(ptr);
+
+}
+
+
+/* ------------------------------------------------------------------ */
 
 
 /* ------------------------------------------------------------------ */
@@ -612,7 +747,9 @@ int vframe_fill_level(int status)
     
   //user has to lock vframe_list_lock to obtain a proper result
   
-  if(status==TC_BUFFER_FULL  && vid_buf_fill==vid_buf_max) return(1);
+  // we return "full" (to the decoder) even if there is one framebuffer
+  // left so that frames can be cloned without running out of buffers.
+  if(status==TC_BUFFER_FULL  && vid_buf_fill>=vid_buf_max-1) return(1);
   if(status==TC_BUFFER_READY && vid_buf_ready>0) return(1);
   if(status==TC_BUFFER_EMPTY && vid_buf_fill==0) return(1);
   if(status==TC_BUFFER_LOCKED && vid_buf_locked>0) return(1);

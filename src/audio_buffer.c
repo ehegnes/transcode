@@ -170,8 +170,17 @@ static aframe_list_t *aud_buf_retrieve()
     */
     
     aframe_list_t *ptr;
+    int i=0;
 
     ptr = aud_buf_ptr[aud_buf_next];
+   
+    // find an unused ptr, the next one may already be busy
+    while (ptr->status != FRAME_NULL && i < aud_buf_max) {
+	++i;
+	++aud_buf_next;
+	aud_buf_next %= aud_buf_max;
+	ptr = aud_buf_ptr[aud_buf_next];
+    }
 
     // check, if this structure is really free to reuse
 
@@ -308,9 +317,110 @@ aframe_list_t *aframe_register(int id)
 
 }
 
+/* ------------------------------------------------------------------ */
+
+void aframe_copy_payload(aframe_list_t *dst, aframe_list_t *src)
+{
+    if (!dst || !src)
+	return;
+
+    // we can't use memcpy here because we don't want
+    // to overwrite the pointers to alloc'ed mem
+
+    dst->bufid = src->bufid;
+    dst->tag = src->tag;
+    dst->filter_id = src->filter_id;
+    dst->a_codec = src->a_codec;
+    dst->id = src->id;
+    dst->status = src->status;
+    dst->attributes = src->attributes;
+    dst->thread_id = src->thread_id;
+    dst->a_rate = src->a_rate;
+    dst->a_bits = src->a_bits;
+    dst->a_chan = src->a_chan;
+    dst->audio_size = src->audio_size;
+
+    // copy video data
+    memcpy(dst->audio_buf, src->audio_buf, dst->audio_size);
+}
 
 /* ------------------------------------------------------------------ */
 
+aframe_list_t *aframe_dup(aframe_list_t *f)
+
+{
+  
+  /* objectives: 
+     ===========
+
+     duplicate a frame (for cloning) 
+
+     insert a ptr after f;
+     
+     requirements:
+     =============
+
+     thread-safe
+
+     global mutex: vframe_list_lock
+     
+  */
+
+  aframe_list_t *ptr;
+
+
+  pthread_mutex_lock(&aframe_list_lock);
+
+  //fprintf(stderr, "Duplicating (%d)\n", f->id);
+  if (!f) {
+      fprintf(stderr, "Hmm, 1 cannot find a free slot (%d)\n", f->id);
+      pthread_mutex_unlock(&aframe_list_lock);
+      return (NULL);
+  }
+
+  // retrive a valid pointer from the pool
+  
+#ifdef STATBUFFER
+  if((ptr = aud_buf_retrieve()) == NULL) {
+    pthread_mutex_unlock(&aframe_list_lock);
+    fprintf(stderr, "(%s) cannot find a free slot (%d)\n", __FILE__, f->id);
+    return(NULL);
+  }
+#else 
+  if((ptr = malloc(sizeof(aframe_list_t))) == NULL) {
+    pthread_mutex_unlock(&aframe_list_lock);
+    return(NULL);
+  }
+#endif
+  
+  aframe_copy_payload (ptr, f);
+
+  ptr->status = FRAME_WAIT;
+  ++aud_buf_wait;
+
+  ptr->next = NULL;
+  ptr->prev = NULL;
+  
+  // insert after ptr
+  ptr->next = f->next;
+  f->next = ptr;
+  ptr->prev = f;
+
+ if(!ptr->next) {
+     // must be last ptr in the list
+     aframe_list_tail = ptr;
+ }
+  
+  // adjust fill level
+  ++aud_buf_fill;
+  
+  pthread_mutex_unlock(&aframe_list_lock);
+  
+  return(ptr);
+
+}
+
+/* ------------------------------------------------------------------ */
  
 void aframe_remove(aframe_list_t *ptr)
 
@@ -574,7 +684,7 @@ int aframe_fill_level(int status)
   
   //user has to lock aframe_list_lock to obtain a proper result
   
-  if(status==TC_BUFFER_FULL  && aud_buf_fill == aud_buf_max) return(1);
+  if(status==TC_BUFFER_FULL  && aud_buf_fill >= aud_buf_max-1) return(1);
   if(status==TC_BUFFER_READY && aud_buf_ready>0) return(1);
   if(status==TC_BUFFER_EMPTY && aud_buf_fill==0) return(1);
   if(status==TC_BUFFER_LOCKED && aud_buf_locked>0) return(1);
