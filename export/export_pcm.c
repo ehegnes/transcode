@@ -28,7 +28,7 @@
 #include "avilib.h"
 
 #define MOD_NAME    "export_pcm.so"
-#define MOD_VERSION "v0.0.3 (2003-01-09)"
+#define MOD_VERSION "v0.0.4 (2003-09-30)"
 #define MOD_CODEC   "(audio) PCM (non-interleaved)"
 
 #define MOD_PRE wav
