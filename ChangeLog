@@ -1,6 +1,17 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-29 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/ac3scan.c:
+  Fix a long standing AC3 pass-through bug with multiple PSUs. The
+  problem was that with AC3 we encoded more pictures then with MP3
+  and so we were running out of audio which caused bas sync at PSU
+  boundaries. After some weeks of intensive debugging I found the
+  bug has its roots in a float to int conversion. So now we
+  correctly round and the bug is gone. Thanks go to Tyler for
+  samples.
+
 2003-07-28 Tilmann Bitterberg <transcode at tibit.org>
 
   * export/{export_ffmpeg.c ffmpeg_cfg.h ffmpeg_cfg.c}
