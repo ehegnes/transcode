@@ -20,9 +20,24 @@
 */
 
 #define MOD_NAME    "filter_denoise3d.so"
-#define MOD_VERSION "v1.0.3 (2003-11-08)"
+#define MOD_VERSION "v1.0.4 (2003-11-08)"
 #define MOD_CAP     "High speed 3D Denoiser"
 #define MOD_AUTHOR  "Daniel Moreno & A'rpi"
+
+#define module "[" MOD_NAME "]: "
+
+/*
+	set tabstop=4 for best layout
+
+	Changelog
+
+	1.0.3	EMS	first public version
+	1.0.4	EMS	added YUV422 support
+	1.0.5	EMS	added RGB support
+				large cleanup
+				added arbitrary layout support
+				denoising U&V (colour) planes now actually works
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,22 +54,71 @@
 #include "filter.h"
 #include "optstr.h"
 
-#define PARAM1_DEFAULT 4.0
-#define PARAM2_DEFAULT 3.0
-#define PARAM3_DEFAULT 6.0
+#define MAX_PLANES 3
 
-static int enable_luma = 1;
-static int enable_chroma = 1;
+#define DEFAULT_LUMA_SPATIAL 4.0
+#define DEFAULT_CHROMA_SPATIAL 3.0
+#define DEFAULT_LUMA_TEMPORAL 6.0
+#define DEFAULT_CHROMA_TEMPORAL 4.0
 
-//===========================================================================//
+typedef enum { dn3d_yuv420p, dn3d_yuv422, dn3d_rgb } dn3d_fmt_t;
+typedef enum { dn3d_planar, dn3d_packed } dn3d_basic_layout_t;
+typedef enum { dn3d_luma, dn3d_chroma, dn3d_disabled } dn3d_plane_type_t;
 
-typedef struct vf_priv_s {
-        int Coefs[4][512];
-        unsigned char *Line;
-		int pre;
-} MyFilterData;
+typedef enum
+{
+	dn3d_off_y420,	dn3d_off_u420,	dn3d_off_v420,
+	dn3d_off_y,		dn3d_off_u,		dn3d_off_v,
+	dn3d_off_r,		dn3d_off_g,		dn3d_off_b
+} dn3d_offset_t;
 
-/***************************************************************************/
+typedef struct
+{
+	dn3d_plane_type_t	plane_type;
+	dn3d_offset_t		offset;
+	int					skip;
+	int					scale_x;
+	int					scale_y;
+} dn3d_single_layout_t;
+		
+typedef struct
+{
+	int						tc_fmt;
+	dn3d_fmt_t				fmt;
+	dn3d_basic_layout_t		layout_type;
+	dn3d_single_layout_t	layout[MAX_PLANES];
+} dn3d_layout_t;
+
+typedef struct
+{
+	vob_t *			vob;
+	dn3d_layout_t	layout_data;
+
+	struct	
+	{
+		double luma_spatial;
+		double chroma_spatial;
+		double luma_temporal;
+		double chroma_temporal;
+	} parameter;
+
+	int				coefficients[4][512];
+	unsigned char *	lineant;
+	unsigned char * previous;
+	int				prefilter;
+	int				enable_luma;
+	int				enable_chroma;
+
+} dn3d_private_data_t;
+
+static dn3d_private_data_t dn3d_private_data[MAX_FILTER];
+
+static const dn3d_layout_t dn3d_layout[] = 
+{
+	{ CODEC_YUV,    dn3d_yuv420p, dn3d_planar, {{ dn3d_luma, dn3d_off_y420,  1, 1, 1 }, { dn3d_chroma, dn3d_off_u420,  1, 2, 2 }, { dn3d_chroma, dn3d_off_v420,  1, 2, 2 }}},
+	{ CODEC_YUV422, dn3d_yuv422,  dn3d_packed, {{ dn3d_luma, dn3d_off_y,     2, 1, 1 }, { dn3d_chroma, dn3d_off_u,     4, 2, 1 }, { dn3d_chroma, dn3d_off_v,     4, 2, 1 }}},
+	{ CODEC_RGB,    dn3d_rgb,     dn3d_packed, {{ dn3d_luma, dn3d_off_r,     3, 1, 1 }, { dn3d_luma,   dn3d_off_g,     3, 1, 1 }, { dn3d_luma,   dn3d_off_b,     3, 1, 1 }}}
+};
 
 #define LowPass(prev, curr, coef) (curr + coef[prev - curr])
 
@@ -63,295 +127,368 @@ static inline int ABS(int i)
     return(((i) >= 0) ? i : (0 - i));
 }
 
-static void deNoise(unsigned char *Frame,        // mpi->planes[x]
-                    unsigned char *FramePrev,    // pmpi->planes[x]
-                    unsigned char *LineAnt,      // vf->priv->Line (width bytes)
-                    int W, int H,
-                    int *Horizontal, int *Vertical, int *Temporal)
+static void deNoise(unsigned char * frame, unsigned char * frameprev, unsigned char * lineant,
+                    int w, int h,
+                    int * horizontal, int * vertical, int * temporal,
+					int offset, int skip)
 {
-    int X, Y;
-    unsigned char PixelAnt;
-    unsigned char * LineAntPtr = LineAnt;
+    int x, y;
+    unsigned char pixelant;
+    unsigned char * lineantptr = lineant;
 
-    Horizontal += 256;
-    Vertical   += 256;
-    Temporal   += 256;
+    horizontal += 256;
+    vertical   += 256;
+    temporal   += 256;
 
+	frame		+= offset;
+	frameprev	+= offset;
 
-    /* First pixel has no left nor top neighbour. Only previous frame */
+    // First pixel has no left nor top neighbour, only previous frame
 
-    *LineAntPtr = PixelAnt = *Frame;
-    *Frame++ = *FramePrev++ = LowPass(*FramePrev, *LineAntPtr, Temporal);
-    LineAntPtr++;
+    *lineantptr = pixelant = *frame;
+    *frame = *frameprev = LowPass(*(frameprev), *lineantptr, temporal);
+	frame += skip;
+	frameprev += skip;
+    lineantptr++;
 
-    /* First line has no top neighbour. Only left one for each pixel and
-     * last frame */
+    // First line has no top neighbour, only left one for each pixel and last frame
 
-    for (X = 1; X < W; X++)
+    for(x = 1; x < w; x++)
     {
-        PixelAnt = LowPass(PixelAnt, *Frame, Horizontal);
-        *LineAntPtr = PixelAnt;
-        *Frame++ = *FramePrev++ = LowPass(*FramePrev, *LineAntPtr, Temporal);
-	LineAntPtr++;
+        pixelant = LowPass(pixelant, *frame,  horizontal);
+        *lineantptr = pixelant;
+        *frame = *frameprev = LowPass(*(frameprev), *lineantptr, temporal);
+		frame += skip;
+		frameprev += skip;
+		lineantptr++;
     }
 
-    for (Y = 1; Y < H; Y++)
+    for (y = 1; y < h; y++)
     {
-	LineAntPtr = LineAnt;
+		lineantptr = lineant;
 
-        /* First pixel on each line doesn't have previous pixel */
-        PixelAnt = *Frame;
-        *LineAntPtr = LowPass(*LineAntPtr, PixelAnt, Vertical);
-        *Frame++ = *FramePrev++ = LowPass(*FramePrev, *LineAntPtr, Temporal);
-	LineAntPtr++;
+        // First pixel on each line doesn't have previous pixel
 
-        for (X = 1; X < W; X++)
+        pixelant = *frame;
+        *lineantptr = LowPass(*lineantptr, pixelant, vertical);
+        *frame = *frameprev = LowPass(*(frameprev), *lineantptr, temporal);
+		frame += skip;
+		frameprev += skip;
+		lineantptr++;
+
+        for (x = 1; x < w; x++)
         {
-            /* The rest are normal */
-            PixelAnt = LowPass(PixelAnt, *Frame, Horizontal);
-            *LineAntPtr = LowPass(*LineAntPtr, PixelAnt, Vertical);
-            *Frame++ = *FramePrev++ = LowPass(*FramePrev, *LineAntPtr, Temporal);
-	    LineAntPtr++;
+            // The rest is normal
+
+            pixelant = LowPass(pixelant, *frame,  horizontal);
+            *lineantptr = LowPass(*lineantptr, pixelant, vertical);
+            *frame = *frameprev = LowPass(*(frameprev), *lineantptr, temporal);
+			// *frame ^= 255; // debug
+			frame += skip;
+			frameprev += skip;
+	    	lineantptr++;
         }
     }
 }
 
-//===========================================================================//
-
-static void PrecalcCoefs(int *Ct, double Dist25)
+static void PrecalcCoefs(int * ct, double dist25)
 {
-    int i;
-    double Gamma, Simil, C;
+	int i;
+	double gamma, simil, c;
 
-    Gamma = log(0.25) / log(1.0 - Dist25/255.0);
+	gamma = log(0.25) / log(1.0 - dist25 / 255.0);
 
-    for (i = -256; i <= 255; i++)
-    {
-        Simil = 1.0 - (double)ABS(i) / 255.0;
-        C = pow(Simil, Gamma) * (double)i;
-        Ct[256+i] = (int)((C<0) ? (C-0.5) : (C+0.5));
-    }
+	for(i = -256; i <= 255; i++)
+	{
+		simil = 1.0 - (double)ABS(i) / 255.0;
+		c = pow(simil, gamma) * (double)i;
+		ct[256 + i] = (int)((c < 0) ? (c - 0.5) : (c + 0.5));
+	}
 }
 
 static void help_optstr()
 {
-    printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
-    printf ("* Overview\n");
-    printf ("  This filter aims to reduce image noise producing\n");
-    printf ("  smooth images and making still images really still\n");
-    printf ("  (This should enhance compressibility).\n");
-    printf ("* Options\n");
-    printf ("             luma : spatial luma strength (%f)\n", PARAM1_DEFAULT);
-    printf ("           chroma : spatial chroma strength (%f)\n", PARAM2_DEFAULT);
-    printf ("    luma_strength : temporal luma strength (%f)\n", PARAM3_DEFAULT);
-    printf ("  chroma_strength : temporal chroma strength (%f)\n", 
-	    PARAM3_DEFAULT/PARAM2_DEFAULT*PARAM1_DEFAULT);
-    printf ("              pre : run as a pre filter (0)\n");
+    fprintf(stderr, "[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+    fprintf(stderr, "* Overview\n");
+    fprintf(stderr, "  This filter aims to reduce image noise producing\n");
+    fprintf(stderr, "  smooth images and making still images really still\n");
+    fprintf(stderr, "  (This should enhance compressibility).\n");
+    fprintf(stderr, "* Options\n");
+    fprintf(stderr, "   luma:            spatial luma strength (%f)\n",		DEFAULT_LUMA_SPATIAL);
+    fprintf(stderr, "   chroma:          spatial chroma strength (%f)\n",	DEFAULT_CHROMA_SPATIAL);
+    fprintf(stderr, "   luma_strength:   temporal luma strength (%f)\n",	DEFAULT_LUMA_TEMPORAL);
+    fprintf(stderr, "   chroma_strength: temporal chroma strength (%f)\n",	DEFAULT_CHROMA_TEMPORAL);
+    fprintf(stderr, "   pre:             run as a pre filter (0)\n");
 }
 
-// main filter routine
-int tc_filter(vframe_list_t *ptr, char *options) 
+int tc_filter(vframe_list_t * vframe, char * options) 
 {
+	int instance;
+	int tag = vframe->tag;
+	dn3d_private_data_t * pd;
 
-  static vob_t *vob=NULL;
-  static MyFilterData *mfd[MAX_FILTER];
-  static char *previous[MAX_FILTER];
-  int instance = ptr->filter_id;
+	if(tag & TC_AUDIO)
+		return(0);
 
-  if(ptr->tag & TC_AUDIO)
-      return 0;
+	instance	= vframe->filter_id;
+	pd			= &dn3d_private_data[instance];
 
-  if(ptr->tag & TC_FILTER_GET_CONFIG) {
-
-      char buf[128];
-      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYMOE", "2");
-
-      snprintf(buf, 128, "%f", PARAM1_DEFAULT);
-      optstr_param (options, "luma", "spatial luma strength", "%f", buf, "0.0", "100.0" );
-
-      snprintf(buf, 128, "%f", PARAM2_DEFAULT);
-      optstr_param (options, "chroma", "spatial chroma strength", "%f", buf, "0.0", "100.0" );
-
-      snprintf(buf, 128, "%f", PARAM3_DEFAULT);
-      optstr_param (options, "luma_strength", "temporal luma strength", "%f", buf, "0.0", "100.0" );
-
-      snprintf(buf, 128, "%f", PARAM3_DEFAULT/PARAM2_DEFAULT*PARAM1_DEFAULT);
-      optstr_param (options, "chroma_strength", "temporal chroma strength", "%f", buf, "0.0", "100.0" );
-      snprintf(buf, 128, "%d", mfd[instance]->pre);
-      optstr_param (options, "pre", "run as a pre filter", "%d", buf, "0", "1" );
-
-      return 0;
-  }
-
-  if(ptr->tag & TC_FILTER_INIT) {
-
-      double LumSpac, LumTmp, ChromSpac, ChromTmp;
-      double Param1=0.0, Param2=0.0, Param3=0.0, Param4=0.0;
-	  int ix;
-
-      if((vob = tc_get_vob())==NULL) return(-1);
-      
-      if (vob->im_v_codec == CODEC_RGB) {
-	  	fprintf(stderr, "[%s] This filter is only capable of YUV mode\n", MOD_NAME);
-	  return -1;
-      }
-
-      if((mfd[instance] = malloc(sizeof(MyFilterData))))
-      	memset(mfd[instance], 0, sizeof(MyFilterData));
-
-      if (mfd[instance]) {
-	  	if((mfd[instance]->Line = malloc(TC_MAX_V_FRAME_WIDTH*sizeof(int))))
-	  		memset(mfd[instance]->Line, 0, TC_MAX_V_FRAME_WIDTH*sizeof(int));
-      }
-
-      if((previous[instance] = (char *)malloc(SIZE_RGB_FRAME)))
-      	memset(previous[instance], 0, SIZE_RGB_FRAME);
-
-      if(!mfd[instance] || !mfd[instance]->Line || !previous[instance]) {
-  	fprintf(stderr, "[%s] Malloc failed\n", MOD_NAME);
-          return -1;
-      }
-
-      // defaults
-
-      LumSpac = PARAM1_DEFAULT;
-      LumTmp = PARAM3_DEFAULT;
-
-      ChromSpac = PARAM2_DEFAULT;
-      ChromTmp = LumTmp * ChromSpac / LumSpac;
-
-      if (options) {
-
-	  if (optstr_lookup (options, "help")) {
-	      help_optstr();
-	  }
-
-	  optstr_get (options, "luma",           "%lf",    &Param1);
-	  optstr_get (options, "luma_strength",  "%lf",    &Param3);
-	  optstr_get (options, "chroma",         "%lf",    &Param2);
-	  optstr_get (options, "chroma_strength","%lf",    &Param4);
-	  optstr_get (options, "pre", "%d",    &mfd[instance]->pre);
-
-	  // recalculate only the needed params
-
-	  if(Param1 != -1 && Param3 != -1)
-	      enable_luma = 1;
-	  else
-	      enable_luma = 0;
-
-	  if(Param2 != -1 && Param4 != -1)
-	      enable_chroma = 1;
-	  else
-	      enable_chroma = 0;
-
-	  if (Param1!=0.0) {
-
-	      LumSpac = Param1;
-	      LumTmp = PARAM3_DEFAULT * Param1 / PARAM1_DEFAULT;
-
-	      ChromSpac = PARAM2_DEFAULT * Param1 / PARAM1_DEFAULT;
-	      ChromTmp = LumTmp * ChromSpac / LumSpac;
-	  } 
-	  if (Param2!=0.0) {
-
-	      ChromSpac = Param2;
-	      ChromTmp = LumTmp * ChromSpac / LumSpac;
-	  } 
-	  if (Param3!=0.0) {
-
-	      LumTmp = Param3;
-	      ChromTmp = LumTmp * ChromSpac / LumSpac;
-
-	  } 
-
-	  if (Param4!=0.0) {
-	      ChromTmp = Param4;
-	  }
-      }
-
-      PrecalcCoefs(mfd[instance]->Coefs[0], LumSpac);
-      PrecalcCoefs(mfd[instance]->Coefs[1], LumTmp);
-      PrecalcCoefs(mfd[instance]->Coefs[2], ChromSpac);
-      PrecalcCoefs(mfd[instance]->Coefs[3], ChromTmp);
-      
-      if(verbose) {
-	  printf("[%s] %s %s #%d\n", MOD_NAME, MOD_VERSION, MOD_CAP, instance);
-	  printf("[%s] Settings luma=%.2f chroma=%.2f luma_strength=%.2f chroma_strength=%.2f\n",
-		  MOD_NAME, LumSpac, ChromSpac, LumTmp, ChromTmp);
-	  printf("[%s] luma enabled: %s, chroma enabled: %s\n",
-		  MOD_NAME, enable_luma ? "yes" : "no", enable_chroma ? "yes" : "no");
-      }
-      return 0;
-  }
-
-  //----------------------------------
-  //
-  // filter close
-  //
-  //----------------------------------
-
-  
-  if(ptr->tag & TC_FILTER_CLOSE) {
-
-      if(previous[instance]) {free(previous[instance]); previous[instance]=NULL;}
-      if(mfd[instance]) {
-	  if(mfd[instance]->Line){free(mfd[instance]->Line);mfd[instance]->Line=NULL;}
-	  free(mfd[instance]);
-      }
-      mfd[instance]=NULL;
-
-      return(0);
-
-  } /* filter close */
-
-  //actually apply the filter
-
-  if(((ptr->tag & TC_PRE_PROCESS  && mfd[instance]->pre) || 
-	  (ptr->tag & TC_POST_PROCESS && !mfd[instance]->pre)) &&
-	  !(ptr->attributes & TC_FRAME_IS_SKIPPED))
-  {
-	int yplane_size     = ptr->video_size * 4 / 6;
-	int uplane_size     = ptr->video_size * 1 / 6;
-
-	int yplane_offset   = 0;
-	int u1plane_offset  = 0 + yplane_size;
-	int u2plane_offset  = 0 + yplane_size + uplane_size;
-
-	if(enable_luma)
+	if(tag & TC_FILTER_GET_CONFIG)
 	{
-		deNoise(ptr->video_buf + yplane_offset,			// Frame
-			previous[instance] + yplane_offset,		// FramePrev
-			mfd[instance]->Line,				// LineAnt
-			ptr->v_width,					// w
-			ptr->v_height,					// h
-			mfd[instance]->Coefs[0],			// horizontal
-			mfd[instance]->Coefs[0],			// vertical
-			mfd[instance]->Coefs[1]);			// temporal
+		char buf[128];
+		optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYMOE", "2");
+
+		snprintf(buf, 128, "%f", DEFAULT_LUMA_SPATIAL);
+		optstr_param(options, "luma", "spatial luma strength", "%f", buf, "0.0", "100.0" );
+
+		snprintf(buf, 128, "%f", DEFAULT_CHROMA_SPATIAL);
+		optstr_param(options, "chroma", "spatial chroma strength", "%f", buf, "0.0", "100.0" );
+
+		snprintf(buf, 128, "%f", DEFAULT_LUMA_TEMPORAL);
+		optstr_param(options, "luma_strength", "temporal luma strength", "%f", buf, "0.0", "100.0" );
+
+		snprintf(buf, 128, "%f", DEFAULT_CHROMA_TEMPORAL);
+		optstr_param(options, "chroma_strength", "temporal chroma strength", "%f", buf, "0.0", "100.0" );
+
+		snprintf(buf, 128, "%d", dn3d_private_data[instance].prefilter);
+		optstr_param(options, "pre", "run as a pre filter", "%d", buf, "0", "1" );
 	}
 
-	if(enable_chroma)
+	if(tag & TC_FILTER_INIT)
 	{
-		deNoise(ptr->video_buf + u1plane_offset,		// Frame
-			previous[instance] + u1plane_offset,		// FramePrev
-			mfd[instance]->Line,				// LineAnt
-			ptr->v_width >> 1,				// w
-			ptr->v_height >> 1,				// h
-			mfd[instance]->Coefs[2],			// horizontal
-			mfd[instance]->Coefs[2],			// vertical
-			mfd[instance]->Coefs[3]);			// temporal
+		int format_index, plane_index, found;
+		const dn3d_layout_t * lp;
+		size_t size;
+
+		if(!(pd->vob = tc_get_vob()))
+			return(TC_IMPORT_ERROR);
+
+		pd->parameter.luma_spatial		= 0;
+		pd->parameter.luma_temporal		= 0;
+		pd->parameter.chroma_spatial	= 0;
+		pd->parameter.chroma_temporal	= 0;
+
+		if(!options)
+		{
+			fprintf(stderr, module "options not set!\n");
+			return(TC_IMPORT_ERROR);
+		}
+
+		if(optstr_lookup(options, "help"))
+		{
+			help_optstr();
+			return(TC_IMPORT_ERROR);
+	  	}
+
+		optstr_get(options, "luma",				"%lf",	&pd->parameter.luma_spatial);
+		optstr_get(options, "luma_strength",	"%lf",	&pd->parameter.luma_temporal);
+		optstr_get(options, "chroma",			"%lf",	&pd->parameter.chroma_spatial);
+		optstr_get(options, "chroma_strength",	"%lf",	&pd->parameter.chroma_temporal);
+		optstr_get(options, "pre",				"%d",	&dn3d_private_data[instance].prefilter);
+
+		if((pd->parameter.luma_spatial < 0) || (pd->parameter.luma_temporal < 0))
+			pd->enable_luma = 0;
+		else
+		{
+			pd->enable_luma = 1;
+
+			if(pd->parameter.luma_spatial == 0)
+			{
+				if(pd->parameter.luma_temporal == 0)
+				{
+					pd->parameter.luma_spatial	= DEFAULT_LUMA_SPATIAL;
+					pd->parameter.luma_temporal	= DEFAULT_LUMA_TEMPORAL;
+				}
+				else
+				{
+					pd->parameter.luma_spatial = pd->parameter.luma_temporal * 3 / 2;
+				}
+			}
+			else
+			{
+				if(pd->parameter.luma_temporal == 0)
+				{
+					pd->parameter.luma_temporal = pd->parameter.luma_spatial * 2 / 3;
+				}
+			}
+		}
+
+		if((pd->parameter.chroma_spatial < 0) || (pd->parameter.chroma_temporal < 0))
+			pd->enable_chroma = 0;
+		else
+		{
+			pd->enable_chroma = 1;
 	
-		deNoise(ptr->video_buf + u2plane_offset,		// Frame
-			previous[instance] + u2plane_offset,		// FramePrev
-			mfd[instance]->Line,				// LineAnt
-			ptr->v_width >> 1,				// w
-			ptr->v_height >> 1,				// h
-			mfd[instance]->Coefs[2],			// horizontal
-			mfd[instance]->Coefs[2],			// vertical
-			mfd[instance]->Coefs[3]);			// temporal
+			if(pd->parameter.chroma_spatial == 0)
+			{
+				if(pd->parameter.chroma_temporal == 0)
+				{
+					pd->parameter.chroma_spatial	= DEFAULT_CHROMA_SPATIAL;
+					pd->parameter.chroma_temporal	= DEFAULT_CHROMA_TEMPORAL;
+				}
+				else
+				{
+					pd->parameter.chroma_spatial = pd->parameter.chroma_temporal * 3 / 2;
+				}
+			}
+			else
+			{
+				if(pd->parameter.chroma_temporal == 0)
+				{
+					pd->parameter.chroma_temporal = pd->parameter.chroma_spatial * 2 / 3;
+				}
+			}
+		}
+
+		for(format_index = 0, found = 0; format_index < (sizeof(dn3d_layout) / sizeof(*dn3d_layout)); format_index++)
+		{
+			if(pd->vob->im_v_codec == dn3d_layout[format_index].tc_fmt)
+			{
+				found = 1;
+				break;
+			}
+		}
+
+		if(!found)
+		{
+			fprintf(stderr, "[%s] This filter is only capable of YUV, YUV422 and RGB mode\n", MOD_NAME);
+	  		return(TC_IMPORT_ERROR);
+		}
+
+		lp = &dn3d_layout[format_index];
+		pd->layout_data = *lp;
+
+		for(plane_index = 0; plane_index < MAX_PLANES; plane_index++)
+		{
+			if((pd->layout_data.layout[plane_index].plane_type == dn3d_luma) && !pd->enable_luma)
+				pd->layout_data.layout[plane_index].plane_type = dn3d_disabled;
+
+			if((pd->layout_data.layout[plane_index].plane_type == dn3d_chroma) && !pd->enable_chroma)
+				pd->layout_data.layout[plane_index].plane_type = dn3d_disabled;
+		}
+
+		size = pd->vob->im_v_width * MAX_PLANES * sizeof(char) * 2;
+
+		if(!!(pd->lineant = malloc(size)))
+			memset(pd->lineant, 0, size);
+		else
+			fprintf(stderr, module "malloc failed\n");
+
+		size *= pd->vob->im_v_height * 2;
+
+		if(!!(pd->previous = malloc(size)))
+			memset(pd->previous, 0, size);
+		else
+			fprintf(stderr, module "malloc failed\n");
+
+		PrecalcCoefs(pd->coefficients[0], pd->parameter.luma_spatial);
+		PrecalcCoefs(pd->coefficients[1], pd->parameter.luma_temporal);
+		PrecalcCoefs(pd->coefficients[2], pd->parameter.chroma_spatial);
+		PrecalcCoefs(pd->coefficients[3], pd->parameter.chroma_temporal);
+      
+		if(verbose)
+		{
+			fprintf(stderr, "[%s]: %s %s #%d\n", MOD_NAME, MOD_VERSION, MOD_CAP, instance);
+			fprintf(stderr, "[%s]: Settings luma: %.2f chroma: %.2f luma_strength: %.2f chroma_strength: %.2f\n",
+				MOD_NAME,
+				pd->parameter.luma_spatial, 
+				pd->parameter.luma_temporal, 
+				pd->parameter.chroma_spatial, 
+				pd->parameter.chroma_temporal); 
+
+			printf("[%s]: luma enabled: %s, chroma enabled: %s\n",
+				MOD_NAME, pd->enable_luma ? "yes" : "no", pd->enable_chroma ? "yes" : "no");
+		}
 	}
-  }
 
-  return 0;
+	if(((tag & TC_PRE_PROCESS  && pd->prefilter) || (tag & TC_POST_PROCESS && !pd->prefilter)) &&
+		!(vframe->attributes & TC_FRAME_IS_SKIPPED))
+	{
+		int plane_index, coef[2];
+		int offset;
+		const dn3d_single_layout_t * lp;
+
+		for(plane_index = 0; plane_index < MAX_PLANES; plane_index++)
+		{
+			lp = &pd->layout_data.layout[plane_index];
+
+			if(lp->plane_type != dn3d_disabled)
+			{
+				// if(plane_index != 2) // debug
+				//	continue;
+
+				coef[0] = (lp->plane_type == dn3d_luma) ? 0 : 2;
+				coef[1] = coef[0] + 1;
+
+				switch(lp->offset)
+				{
+					case(dn3d_off_r):		offset = 0; break;
+					case(dn3d_off_g):		offset = 1; break;
+					case(dn3d_off_b):		offset = 2; break;
+
+					case(dn3d_off_y420):	offset = vframe->v_width * vframe->v_height * 0 / 4; break;
+					case(dn3d_off_u420):	offset = vframe->v_width * vframe->v_height * 4 / 4; break;
+					case(dn3d_off_v420):	offset = vframe->v_width * vframe->v_height * 5 / 4; break;
+
+					case(dn3d_off_y):		offset = 1; break;
+					case(dn3d_off_u):		offset = 0; break;
+					case(dn3d_off_v):		offset = 2; break;
+				}
+
+#if 0
+				fprintf(stderr, "buffers1: %lu, %lu, %lu\nbuffers2: %lu, %lu, %lu\n", 
+						vframe->video_buf_Y[0] - vframe->video_buf,
+						vframe->video_buf_U[0] - vframe->video_buf,
+						vframe->video_buf_V[0] - vframe->video_buf,
+						0,
+						(pd->vob->im_v_width * pd->vob->im_v_height * 4/4),
+						(pd->vob->im_v_width * pd->vob->im_v_height * 5/4));
+#endif
+
+#if 0
+				fprintf(stderr, "%d -> %p, %p, %p\n%d,%d\n%p, %p, %p\n%d, %d\n",
+						plane_index,
+					vframe->video_buf,				// frame
+					pd->previous,					// previous (saved) frame
+					pd->lineant,					// line buffer
+					vframe->v_width / lp->scale_x,	// width (pixels)
+					vframe->v_height / lp->scale_y,	// height (pixels)
+					pd->coefficients[coef[0]],		// horizontal (spatial) strength
+					pd->coefficients[coef[0]],		// vertical (spatial) strength
+					pd->coefficients[coef[1]],		// temporal strength
+					offset,							// offset in bytes of first relevant pixel in frame
+					lp->skip						// skip this amount of bytes between two pixels
+				);
+#endif
+				deNoise(vframe->video_buf,			// frame
+					pd->previous,					// previous (saved) frame
+					pd->lineant,					// line buffer
+					vframe->v_width / lp->scale_x,	// width (pixels)
+					vframe->v_height / lp->scale_y,	// height (pixels) // debug
+					pd->coefficients[coef[0]],		// horizontal (spatial) strength
+					pd->coefficients[coef[0]],		// vertical (spatial) strength
+					pd->coefficients[coef[1]],		// temporal strength
+					offset,							// offset in bytes of first relevant pixel in frame
+					lp->skip						// skip this amount of bytes between two pixels
+				);								
+			}
+		}
+	}
+
+	if(tag & TC_FILTER_CLOSE)
+	{
+		if(pd->previous)
+		{
+			free(pd->previous);
+			pd->previous = 0;
+		}
+
+		if(pd->lineant)
+		{
+			free(pd->lineant);
+			pd->lineant = 0;
+		}
+	}
+
+	return(0);
 }
-
-//===========================================================================//

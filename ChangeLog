@@ -1,6 +1,16 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-11-26 Erik Slagter <erik at oldconomy.com>
+
+  * filter/filter_denoise3d.c:
+  1.0.3   EMS first public version
+  1.0.4   EMS added YUV422 support
+  1.0.5   EMS added (experimental) RGB support
+          large cleanup
+          added arbitrary layout framework
+          denoising U&V (colour) planes now actually works
+
 2003-11-26 Tilmann Bitterberg <transcode at tibit.org>
 
   * filter/extsub/subtitle_buffer.c  filter/extsub/filter_extsub.c
