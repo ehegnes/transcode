@@ -1,0 +1,10 @@
+3 *frame_counter100,300,1000                                                              
+4 *picture60,188,1000,135,3 /root/rose.ppm
+5 Hello
+6 *picture60,188,1000,315,3 /root/rose.ppm
+7 *picture0,0,100 /root/rose.ppm  
+10 *text200,400,30 Ha die pantels!
+25 PantelCorp Presents:\\\Buenos Aires 1 2001 \\Vertaling Jan Panteltje\\\Copyright Panteltje Productions\\
+49 Cool!
+60 So here we can do a lot of things, make compositions, etc..
+70 *frame_counter300,500,100000

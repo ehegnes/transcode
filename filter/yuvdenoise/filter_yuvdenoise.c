@@ -1,0 +1,551 @@
+/*
+ *  filter_yuvdenoise.c
+ *
+ *  Copyright (C) Tilmann Bitterberg, July 2002
+ *
+ *  This file is part of transcode, a linux video stream processing tool
+ *      
+ *  transcode is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2, or (at your option)
+ *  any later version.
+ *   
+ *  transcode is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *   
+ *  You should have received a copy of the GNU General Public License
+ *  along with GNU Make; see the file COPYING.  If not, write to
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *
+ */
+
+#define MOD_NAME    "filter_yuvdenoise.so"
+#define MOD_VERSION "v0.0.4 (2002-07-30)"
+#define MOD_CAP     "mjpegs YUV denoiser"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include "optstr.h"
+
+
+/* -------------------------------------------------
+ *
+ * mandatory include files
+ *
+ *-------------------------------------------------*/
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+#include <unistd.h>
+#include <inttypes.h>
+
+#include "transcode.h"
+#include "framebuffer.h"
+
+#include "mjpeg_types.h"
+#include "mm_accel.h"
+
+#include "global.h"
+#include "motion.h"
+#include "denoise.h"
+#include "deinterlace.h"
+
+#undef HAVE_FILTER_IO_BUF
+
+/*-------------------------------------------------
+ *
+ * single function interface
+ *
+ *-------------------------------------------------*/
+
+void allc_buffers(void);
+void free_buffers(void);
+void print_settings(void);
+void turn_on_accels(void);
+void display_help(void);
+
+static uint8_t *bufalloc(size_t size);
+
+struct DNSR_GLOBAL denoiser;
+
+extern uint32_t (*calc_SAD)         (uint8_t * , uint8_t * );
+extern uint32_t (*calc_SAD_uv)      (uint8_t * , uint8_t * );
+extern uint32_t (*calc_SAD_half)    (uint8_t * , uint8_t * ,uint8_t *);
+extern void     (*deinterlace)      (void);
+
+
+static int pre = 0; /* run as a pre process filter */
+static int filter_verbose = 0;
+
+/***********************************************************
+ *                                                         *
+ ***********************************************************/
+
+int tc_filter(vframe_list_t *ptr, char *options)
+{
+  
+  static vob_t *vob=NULL;
+
+  static int frame_offset;
+  static int uninitialized = 1;
+  static int frame_offset4;
+
+  //----------------------------------
+  //
+  // filter init
+  //
+  //----------------------------------
+
+  if(ptr->tag & TC_AUDIO)
+      return 0;
+
+  if(ptr->tag & TC_FILTER_INIT) {
+    
+    if((vob = tc_get_vob())==NULL) return(-1);
+    
+    if (vob->im_v_codec == CODEC_RGB) {
+      fprintf(stderr, "[%s] error: filter is not capable for RGB-Mode !\n", MOD_NAME);
+      return(-1);
+    }
+
+    filter_verbose = verbose;
+
+    /* setup denoiser's global variables */
+    denoiser.radius          = 8;
+    denoiser.threshold       = 5; /* assume medium noise material */
+    denoiser.pp_threshold    = 4; /* same for postprocessing */
+    denoiser.delay           = 3; /* short delay for good regeneration of rapid sequences */
+    denoiser.postprocess     = 1;
+    denoiser.luma_contrast   = 100;
+    denoiser.chroma_contrast = 100;
+    denoiser.sharpen         = 125; /* very little sharpen by default */
+    denoiser.deinterlace     = 0;
+    denoiser.mode            = 0; /* initial mode is progressive */
+    denoiser.border.x        = 0;
+    denoiser.border.y        = 0;
+    denoiser.border.w        = 0;
+    denoiser.border.h        = 0;
+
+    denoiser.reset           = 0;
+    denoiser.do_reset        = 0;
+    denoiser.scene_thres     = 50;
+    denoiser.block_thres     = 1024;
+  
+
+    /* process commandline */
+    if (options) {
+	optstr_get (options, "radius",         "%d", &denoiser.radius);
+	optstr_get (options, "threshold",      "%d", &denoiser.threshold);
+	optstr_get (options, "pp_threshold",   "%d", &denoiser.pp_threshold);
+	optstr_get (options, "delay",          "%d", &denoiser.delay);
+	optstr_get (options, "postprocess",    "%d", &denoiser.postprocess);
+	optstr_get (options, "luma_contrast",  "%d", &denoiser.luma_contrast);
+	optstr_get (options, "chroma_contrast","%d", &denoiser.chroma_contrast);
+	optstr_get (options, "sharpen",        "%d", &denoiser.sharpen);
+	optstr_get (options, "deinterlace",    "%d", &denoiser.deinterlace);
+	optstr_get (options, "mode",           "%d", &denoiser.mode);
+	optstr_get (options, "pre",            "%d", &pre);
+
+	optstr_get (options, "scene_thres",    "%d%%", &denoiser.scene_thres);
+	optstr_get (options, "block_thres",    "%d", &denoiser.block_thres);
+	optstr_get (options, "do_reset",       "%d", &denoiser.do_reset);
+
+	optstr_get (options, "border",         "%dx%d-%dx%d", &denoiser.border.x,
+		&denoiser.border.y, &denoiser.border.w, &denoiser.border.h);
+
+	if (optstr_get (options, "help", "") >= 0)
+	    display_help();
+
+        if(denoiser.radius<8) {
+          denoiser.radius=8;
+  	      fprintf (stderr, "Minimum allowed search radius is 8 pixel.");
+        } else if(denoiser.radius>24) {
+  	      fprintf (stderr, "Maximum suggested search radius is 24 pixel.");
+        }
+        if(denoiser.delay<1) {
+          denoiser.delay=1;
+  	      fprintf (stderr, "Minimum allowed frame delay is 1.");
+        } else if(denoiser.delay>8) {
+  	      fprintf (stderr, "Maximum suggested frame delay is 8.");
+        }
+	//denoiser.deinterlace=0;
+    }
+
+    if (pre) {
+	denoiser.frame.w         = vob->im_v_width;
+	denoiser.frame.h         = vob->im_v_height;
+    } else {
+	denoiser.frame.w         = vob->ex_v_width;
+	denoiser.frame.h         = vob->ex_v_height;
+    }
+
+
+    frame_offset             = 32*denoiser.frame.w;
+    frame_offset4            = frame_offset/4;
+
+    if(denoiser.border.w == 0)
+    {
+	denoiser.border.x        = 0;
+	denoiser.border.y        = 0;
+	denoiser.border.w        = denoiser.frame.w;
+	denoiser.border.h        = denoiser.frame.h;
+    }
+
+    /* get enough memory for the buffers */
+    allc_buffers();
+
+    /* print denoisers settings */
+    if (verbose > 1)
+	print_settings();
+    
+    /* turn on accelerations if any */
+    turn_on_accels();
+
+    // filter init ok.
+    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    return(0);
+  }
+
+  //----------------------------------
+  //
+  // filter close
+  //
+  //----------------------------------
+
+  
+  if(ptr->tag & TC_FILTER_CLOSE) {
+      free_buffers();
+    return(0);
+  }
+  
+  //----------------------------------
+  //
+  // filter frame routine
+  //
+  //----------------------------------
+
+  // tag variable indicates, if we are called before
+  // transcodes internal video/audo frame processing routines
+  // or after and determines video/audio context
+  
+  if (vob->im_v_codec!=CODEC_YUV)
+      return 0;
+
+  if((ptr->tag & TC_PRE_PROCESS  && pre) || 
+	  (ptr->tag & TC_POST_PROCESS && !pre)) {
+      /* readability */
+      unsigned int y_size  = denoiser.frame.w*denoiser.frame.h;
+      unsigned int y_size4 = denoiser.frame.w*denoiser.frame.h>>2;
+
+#ifdef HAVE_FILTER_IO_BUF
+      /* Move into internal buffer */
+      memcpy(denoiser.frame.io[Yy], ptr->video_buf,            y_size );
+      memcpy(denoiser.frame.io[Cr], ptr->video_buf+y_size    , y_size4);
+      memcpy(denoiser.frame.io[Cb], ptr->video_buf+y_size*5/4, y_size4);
+#else
+      denoiser.frame.io[Yy] = ptr->video_buf;
+      denoiser.frame.io[Cr] = ptr->video_buf+y_size;
+      denoiser.frame.io[Cb] = ptr->video_buf+y_size*5/4;
+#endif
+
+      /* Move frame down by 32 lines into reference buffer */
+      memcpy(denoiser.frame.ref[Yy]+frame_offset , denoiser.frame.io[Yy], y_size  );
+      memcpy(denoiser.frame.ref[Cr]+frame_offset4, denoiser.frame.io[Cr], y_size4);
+      memcpy(denoiser.frame.ref[Cb]+frame_offset4, denoiser.frame.io[Cb], y_size4);
+
+      if(uninitialized) {
+	  uninitialized=0;
+
+	  memcpy(denoiser.frame.avg[Yy]+frame_offset,   denoiser.frame.io[Yy],y_size );
+	  memcpy(denoiser.frame.avg[Cr]+frame_offset4,  denoiser.frame.io[Cr],y_size4);
+	  memcpy(denoiser.frame.avg[Cb]+frame_offset4,  denoiser.frame.io[Cb],y_size4);
+	  memcpy(denoiser.frame.avg2[Yy]+frame_offset,  denoiser.frame.io[Yy],y_size );
+	  memcpy(denoiser.frame.avg2[Cr]+frame_offset4, denoiser.frame.io[Cr],y_size4);
+	  memcpy(denoiser.frame.avg2[Cb]+frame_offset4, denoiser.frame.io[Cb],y_size4);
+      }
+
+      denoise_frame();
+
+      if (denoiser.reset && denoiser.do_reset) {
+	  if (verbose)
+	      fprintf(stderr, "[%s] Scene change detected at frame %d\n", MOD_NAME, ptr->id); 
+
+	  denoiser.reset = 0;
+	  memcpy(denoiser.frame.avg[Yy]+frame_offset,   denoiser.frame.io[Yy],y_size );
+	  memcpy(denoiser.frame.avg[Cr]+frame_offset4,  denoiser.frame.io[Cr],y_size4);
+	  memcpy(denoiser.frame.avg[Cb]+frame_offset4,  denoiser.frame.io[Cb],y_size4);
+	  memcpy(denoiser.frame.avg2[Yy]+frame_offset,  denoiser.frame.io[Yy],y_size );
+	  memcpy(denoiser.frame.avg2[Cr]+frame_offset4, denoiser.frame.io[Cr],y_size4);
+	  memcpy(denoiser.frame.avg2[Cb]+frame_offset4, denoiser.frame.io[Cb],y_size4);
+      }
+
+
+      /* Move frame up by 32 lines into I/O buffer */
+      memcpy(denoiser.frame.io[Yy],denoiser.frame.avg2[Yy]+frame_offset ,y_size );
+      memcpy(denoiser.frame.io[Cr],denoiser.frame.avg2[Cr]+frame_offset4,y_size4);
+      memcpy(denoiser.frame.io[Cb],denoiser.frame.avg2[Cb]+frame_offset4,y_size4);
+
+#ifdef HAVE_FILTER_IO_BUF
+      /* move back to transcode */
+      memcpy(ptr->video_buf,           denoiser.frame.io[Yy] ,y_size );
+      memcpy(ptr->video_buf+y_size,    denoiser.frame.io[Cr] ,y_size4);
+      memcpy(ptr->video_buf+y_size*5/4,denoiser.frame.io[Cb] ,y_size4);
+#endif
+
+  }
+  
+  return(0);
+}
+
+
+static uint8_t *bufalloc(size_t size)
+{
+  uint8_t *ret = (uint8_t *)malloc(size);
+  if( ret == NULL )
+    tc_error( "Out of memory: could not allocate buffer" );
+  return ret;
+}
+
+
+
+void allc_buffers(void)
+{
+  int luma_buffsize = denoiser.frame.w * denoiser.frame.h;
+  int chroma_buffsize = (denoiser.frame.w * denoiser.frame.h) / 4;
+  
+  /* now, the MC-functions really(!) do go beyond the vertical
+   * frame limits so we need to make the buffers larger to avoid
+   * bound-checking (memory vs. speed...)
+   */
+  
+  luma_buffsize += 64*denoiser.frame.w;
+  chroma_buffsize += 64*denoiser.frame.w;
+  
+#ifdef HAVE_FILTER_IO_BUF
+  denoiser.frame.io[Yy] = bufalloc (luma_buffsize);
+  denoiser.frame.io[Cr] = bufalloc (chroma_buffsize);
+  denoiser.frame.io[Cb] = bufalloc (chroma_buffsize);
+#endif
+
+  denoiser.frame.ref[Yy] = bufalloc (luma_buffsize);
+  denoiser.frame.ref[Cr] = bufalloc (chroma_buffsize);
+  denoiser.frame.ref[Cb] = bufalloc (chroma_buffsize);
+
+  denoiser.frame.avg[Yy] = bufalloc (luma_buffsize);
+  denoiser.frame.avg[Cr] = bufalloc (chroma_buffsize);
+  denoiser.frame.avg[Cb] = bufalloc (chroma_buffsize);
+
+  denoiser.frame.dif[Yy] = bufalloc (luma_buffsize);
+  denoiser.frame.dif[Cr] = bufalloc (chroma_buffsize);
+  denoiser.frame.dif[Cb] = bufalloc (chroma_buffsize);
+
+  denoiser.frame.dif2[Yy] = bufalloc (luma_buffsize);
+  denoiser.frame.dif2[Cr] = bufalloc (chroma_buffsize);
+  denoiser.frame.dif2[Cb] = bufalloc (chroma_buffsize);
+
+  denoiser.frame.avg2[Yy] = bufalloc (luma_buffsize);
+  denoiser.frame.avg2[Cr] = bufalloc (chroma_buffsize);
+  denoiser.frame.avg2[Cb] = bufalloc (chroma_buffsize);
+
+  denoiser.frame.tmp[Yy] = bufalloc (luma_buffsize);
+  denoiser.frame.tmp[Cr] = bufalloc (chroma_buffsize);
+  denoiser.frame.tmp[Cb] = bufalloc (chroma_buffsize);
+
+  denoiser.frame.sub2ref[Yy] = bufalloc (luma_buffsize);
+  denoiser.frame.sub2ref[Cr] = bufalloc (chroma_buffsize);
+  denoiser.frame.sub2ref[Cb] = bufalloc (chroma_buffsize);
+
+  denoiser.frame.sub2avg[Yy] = bufalloc (luma_buffsize);
+  denoiser.frame.sub2avg[Cr] = bufalloc (chroma_buffsize);
+  denoiser.frame.sub2avg[Cb] = bufalloc (chroma_buffsize);
+
+  denoiser.frame.sub4ref[Yy] = bufalloc (luma_buffsize);
+  denoiser.frame.sub4ref[Cr] = bufalloc (chroma_buffsize);
+  denoiser.frame.sub4ref[Cb] = bufalloc (chroma_buffsize);
+
+  denoiser.frame.sub4avg[Yy] = bufalloc (luma_buffsize);
+  denoiser.frame.sub4avg[Cr] = bufalloc (chroma_buffsize);
+  denoiser.frame.sub4avg[Cb] = bufalloc (chroma_buffsize);
+
+}
+
+
+
+void free_buffers(void)
+{
+  int i;
+  
+  for (i = 0; i < 3; i++)
+    {
+#ifdef HAVE_FILTER_IO_BUF
+      free (denoiser.frame.io[i]);
+#endif
+      free (denoiser.frame.ref[i]);
+      free (denoiser.frame.avg[i]);
+      free (denoiser.frame.dif[i]);
+      free (denoiser.frame.dif2[i]);
+      free (denoiser.frame.avg2[i]);
+      free (denoiser.frame.tmp[i]);
+      free (denoiser.frame.sub2ref[i]);
+      free (denoiser.frame.sub2avg[i]);
+      free (denoiser.frame.sub4ref[i]);
+      free (denoiser.frame.sub4avg[i]);
+    }
+}
+
+void print_settings(void)
+{
+  fprintf (stderr, " \n");
+  fprintf (stderr, " denoiser - Settings:\n");
+  fprintf (stderr, " --------------------\n");
+  fprintf (stderr, " \n");
+  fprintf (stderr, " Mode             : %s\n",
+    (denoiser.mode==0)? "Progressive frames" : (denoiser.mode==1)? "Interlaced frames": "PASS II only");
+  fprintf (stderr, " Deinterlacer     : %s\n",(denoiser.deinterlace==0)? "Off":"On");
+  fprintf (stderr, " Postprocessing   : %s\n",(denoiser.postprocess==0)? "Off":"On");
+  fprintf (stderr, " Frame border     : x:%3i y:%3i w:%3i h:%3i\n",denoiser.border.x,denoiser.border.y,denoiser.border.w,denoiser.border.h);
+  fprintf (stderr, " Search radius    : %3i\n",denoiser.radius);
+  fprintf (stderr, " Filter delay     : %3i\n",denoiser.delay);
+  fprintf (stderr, " Filter threshold : %3i\n",denoiser.threshold);
+  fprintf (stderr, " Pass 2 threshold : %3i\n",denoiser.pp_threshold);
+  fprintf (stderr, " Y - contrast     : %3i %%\n",denoiser.luma_contrast);
+  fprintf (stderr, " Cr/Cb - contrast : %3i %%\n",denoiser.chroma_contrast);
+  fprintf (stderr, " Sharpen          : %3i %%\n",denoiser.sharpen);  
+  fprintf (stderr, " --------------------\n");
+  fprintf (stderr, " Run as pre filter: %s\n",(pre==0)? "Off":"On");  
+  fprintf (stderr, " block_threshold  : %d\n",denoiser.block_thres);  
+  fprintf (stderr, " scene_threshold  : %d%%\n",denoiser.scene_thres);  
+  fprintf (stderr, " SceneChange Reset: %s\n",(denoiser.do_reset==0)? "Off":"On");  
+  fprintf (stderr, " \n");
+
+}
+
+void turn_on_accels(void)
+{
+/* XXX: very weird effects, #undef'ed in global.h -- tibit */
+#ifdef HAVE_ASM_MMX
+  uint32_t CPU_CAP= mm_accel () | MM_ACCEL_MLIB;
+  
+  if( (CPU_CAP & MM_ACCEL_X86_MMXEXT)!=0 ||
+      (CPU_CAP & MM_ACCEL_X86_SSE   )!=0 
+    ) /* MMX+SSE */
+  {
+    calc_SAD    = &calc_SAD_mmxe;
+    calc_SAD_uv = &calc_SAD_uv_mmxe;
+    calc_SAD_half = &calc_SAD_half_mmxe;
+    deinterlace = &deinterlace_mmx;
+    if (filter_verbose)
+	fprintf (stderr, "[%s] Using extended MMX SIMD optimisations.\n", MOD_NAME);
+  }
+  else
+    if( (CPU_CAP & MM_ACCEL_X86_MMX)!=0 ) /* MMX */
+    {
+      calc_SAD    = &calc_SAD_mmx;
+      calc_SAD_uv = &calc_SAD_uv_mmx;
+      calc_SAD_half = &calc_SAD_half_mmx;
+      deinterlace = &deinterlace_mmx;
+      if (filter_verbose)
+	  fprintf (stderr, "[%s] Using MMX SIMD optimisations.\n", MOD_NAME);
+    }
+    else
+#endif
+    {
+      calc_SAD    = &calc_SAD_noaccel;
+      calc_SAD_uv = &calc_SAD_uv_noaccel;
+      calc_SAD_half = &calc_SAD_half_noaccel;
+      deinterlace = &deinterlace_noaccel;
+      if (filter_verbose)
+	  fprintf (stderr, "[%s] Sorry, no SIMD optimisations available.\n", MOD_NAME);
+    }
+}
+
+void
+display_help(void)
+{
+  fprintf(
+  stderr,
+  "\n\n"
+  "denoiser Usage:\n"
+  "===========================================================================\n"
+  "\n"
+  "threshold <0..255> denoiser threshold\n"
+  "                   accept any image-error up to +/- threshold for a single\n"
+  "                   pixel to be accepted as valid for the image. If the\n"
+  "                   absolute error is greater than this, exchange the pixel\n"
+  "                   with the according pixel of the reference image.\n"
+  "                   (default=%i)"
+  "\n"
+  "delay <1...255>    Average 'n' frames for a time-lowpassed pixel. Values\n"
+  "                   below 2 will lead to a good response to the reference\n"
+  "                   frame, while larger values will cut out more noise (and\n"
+  "                   as a drawback will lead to noticable artefacts on high\n"
+  "                   motion scenes.) Values above 8 are allowed but rather\n"
+  "                   useless. (default=%i)\n"
+  "\n"
+  "radius <8...24>    Limit the search radius to that value. Usually it will\n"
+  "                   not make sense to go higher than 16. Esp. for VCD sizes.\n"
+  "                   (default=%i)"
+  "\n"
+  "border <x>x<y>-<w>x<h> Set active image area. Every pixel outside will be set\n"
+  "                   to <16,128,128> (\"pure black\"). This can save a lot of bits\n"
+  "                   without even touching the image itself (eg. on 16:9 movies\n"
+  "                   on 4:3 (VCD and SVCD) (default=%ix%i-%ix%i)\n"
+  "\n"
+  "luma_contrast <0...255>    Set luminance contrast in percent. (default=%i)\n"
+  "\n"
+  "chroma_contrast <0...255>  Set chrominance contrast in percent. AKA \"Saturation\"\n"
+  "                           (default=%i)"
+  "\n"
+  "sharpen <0...255>  Set sharpness in percent. WARNING: do not set too high\n"
+  "                   as this will gain bit-noise. (default=%i)\n"
+  "\n"
+  "deinterlace <0..1> Force deinterlacing. By default denoise interlaced.\n"
+  "\n"
+  "mode <0..2>        [2]: Fast mode. Use only Pass II (bitnoise-reduction) for\n"
+  "                   low to very low noise material. (default off)\n"
+  "                   [1]: Interlaced material\n"
+  "                   [0]: Progressive material (default)\n"
+  "\n"
+  "pp_threshold <0...255>   Pass II threshold (same as -t).\n"
+  "                   WARNING: If set to values greater than 8 you *will* see\n"
+  "                   artefacts...(default=%i)\n"
+  "\n"
+  "postprocess <0..1> [0]: disable filter internal postprocessing\n"
+  "                   [1]: enable filter internal postprocessing (default)\n"
+  "\n"
+  "pre <0..1>         [0]: run as a post process filter (default)\n"
+  "                   [1]: run as a pre process filter (not recommended)\n"
+  "\n"
+  "do_reset <0..1>    [0]: reset the filter after a scene change\n"
+  "                   [1]: dont reset (default)\n"
+  "\n"
+  "block_thres <0..oo>   Every SAD value greater than this will be considered \"bad\" \n"
+  "                   (default=%i)\n"
+  "\n"
+  "scene_thres <0%%..100%%> Percentage of blocks where motion estimation should fail\n"
+  "                   before a scene is considered changed (default=%i%%)\n"
+  "\n",
+  denoiser.threshold,
+  denoiser.delay,
+  denoiser.radius,
+  denoiser.border.x,
+  denoiser.border.y,
+  denoiser.border.w,
+  denoiser.border.h,
+  denoiser.luma_contrast,
+  denoiser.chroma_contrast,
+  denoiser.sharpen,
+  denoiser.pp_threshold,
+  denoiser.block_thres,
+  denoiser.scene_thres
+  );
+}
+
+/* vim: sw=4 
+ */

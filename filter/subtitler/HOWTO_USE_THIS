@@ -1,0 +1,127 @@
+
+This describes how to create subtitles, and how to add these .
+*PLEASE READ CHANGES FOR THE NEW COMMANDS LIKE PICTURE INSERT ETC.!!!!*
+
+This is what I am doing, and I can only speak for that:
+
+I am recording from digital satellite with the Technisat SkyStar 1
+PC card, in Linux, with the driver -0.7.1 from www.convergence.de (links
+to Linux TV), using RedHat 6.1 and kernel 2.2.12-20.
+On a Tyan VIA based mobo, with DMA enabled, and video 4 linux disabled.
+(required for this driver).
+
+Recording is done simply with cat /dev/video0 > myfile.pva
+For one hour, expect 1.8 to 2.5 GB, filesize, depends on picture content
+and motion.
+
+Then I copy the .pva file to windows 98 SE second release (mounted in
+Linux).
+Here I convert the .pva format to .mpg (mpeg2) with Pvastrumento
+www.offeryn.de
+
+This creates a file myfile.pva.mpg
+
+Pvastrumento also fixes audio video sync (wich is broken in this
+convergence driver).
+
+Next I go back to Linux, mount the windows disk and do the following
+with transcode, make a script like this:
+Usage
+scriptname myfile.pva.mpg
+
+
+echo "Extracting sound from $1"
+transcode \
+-i $1 \
+-x mpeg2,mp3 \
+-y divx4 \
+-m sound.mp3
+
+echo "Converting sound to 11025 samples / second 16 bits mono wave file"
+# you can also use 22050 or 44100 audio, for better sound, but the files
+# will be much bigger.
+nice -n 15 mpg123 -r 11025  -w sound-11025.wav sound.mp3
+
+echo "Ready sound use sound-11025.wav as sound.wav for xste"
+echo "Select WAV audio and AUDIO SYNC in xste"
+exit
+---
+
+
+Now I use the subtitle editor xste
+www.home.zonnet.nl/panteltje/subtitles/
+with this sound file, to create text in sync with the sound.
+
+In xste, from the FILE menu select projects, enter some projectname, here
+'myproject'.
+Then double click on the created entry.
+xste will complain about non existing configuration files, but just say OK.
+
+xste has created /root/.subtitles/myproject/
+and /video/vie/myproject/
+
+In the first go your sound files, better keep your movies in the
+corresponding /video/vie/myproject/
+There are more programs using the xste file directory structure, have not
+released it all yet, like 'viplay', so for compatibility perhaps.
+
+
+Now move
+mv sound-11025-8bits.wav /root/.subtitles/myproject/sound.raw
+
+OK, in xste press AUTO, this should load the audio, and set some edit
+points.
+read the xste documentation.
+
+When finished writing text with xste, press the OUTPUT button, and exit.
+If all is well, all should now be in sync.
+
+Copy the new-timed.txt that xste generates to  /root/.subtitles/:
+cp /root/.subtitles/myproject/new-timed.txt /root/.subtitles/
+where subtitler will look for it.
+
+Then use the folowing script to create a a divx CD-R micro-dvd.
+(Here an extra offset of -2 is added to get the subtitles more precisely
+in sync with the sound, note these are REAL frames, of 40 ms each,
+so an 80 ms adjustment.
+
+echo "Starting first pass DivX codec"
+transcode \
+-i $1 \
+-x mpeg2,mp3 \
+-y divx4 \
+-V \
+-R 1 \
+-w 1550 \
+-c 0-100000 \
+-J subtitler="frame_offset=-2" \
+-I 3 \
+
+echo "Ready pass 1"
+
+#echo "Ready PASS 1<<< run pass 2 manually"
+#exit
+
+echo "Starting second pass DivX codec"
+transcode \
+-i $1 \
+-o a1-divx.avi \
+-x mpeg2,mp3 \
+-y divx4 \
+-V \
+-R 2 \
+-w 1550 \
+-I 3 \
+-J subtitler="frame_offset=-2" \
+-c 0-100000 \
+
+echo "Ready pass 2"
+exit
+
+
+
+You can use -c 3000-8000 to extract a specific part of the source mpg
+
+That is all.
+Linux mplayer can play the DivX, although I have sound problems with it,
+else to the windows disk or PC with it, and mediaplayer.

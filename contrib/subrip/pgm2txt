@@ -1,0 +1,92 @@
+#!/bin/sh
+# Call gocr to convert pgm images into ASCII text
+# (this file is part of subtitle2pgm)
+# Please modify it to your needs
+#set -x
+DB_PATH=./db/
+
+PATH_TO_LANGUAGE_FILTER=~/sourceforge/subtitleripper/src/
+GOCR_OPTIONS="-s 7 -d 0 -m 130 -m 256 -m 32"
+LANGUAGE=none 
+
+# function to print usage information
+usage()
+{
+cat << _END_
+Usage:
+    pgm2txt pgm_base_name [language]
+
+    pgm_base_name are the common first letters of your
+    subtitle pgm files. E.g. "my_movie" if all your pgm files
+    are matched by "my_movie*.pgm"
+ 
+    You can optionally specify a language filter
+    as the second option. Currently only english
+    is supported. 
+    language = {en|none}
+    Version: 0.1
+_END_
+exit 1
+}
+
+# if no argument is given display usage information
+if [ -z $1 ]; then
+    usage
+fi
+
+# set the language according to second argument
+if [ $# -eq 2 ]; then
+    LANGUAGE=$2
+fi
+    
+if [ -f ${PATH_TO_LANGUAGE_FILTER}gocrfilter_${LANGUAGE}.sed ]; then
+	FILTER_SCRIPT=${PATH_TO_LANGUAGE_FILTER}gocrfilter_${LANGUAGE}.sed
+	echo "Using ${FILTER_SCRIPT} to filter gocr output"
+else
+	echo "    ------------------------------------------------"
+	echo "    No filter file for language >${LANGUAGE}< found!"
+	echo "    Please edit PATH_TO_LANGUAGE_FILTER in pgm2txt"
+	echo "    and make sure you have choosen a valid language!"
+	echo "               No spell checking activated!         "
+	echo "    ------------------------------------------------"
+	LANGUAGE=none
+fi
+
+
+
+# create a local db file if it does'n exist
+if [ ! -d ${DB_PATH} ]; then
+    echo creating directory ${DB_PATH}
+    mkdir ${DB_PATH}
+fi
+
+if [ ! -f ${DB_PATH}/db.lst ]; then
+    echo creating empty file ${DB_PATH}/db.lst
+    touch ${DB_PATH}/db.lst
+fi
+
+# run gocr on all pgm files
+for i in $1*.pgm $1*.pgm.gz; do
+    if [ ! -f $i ]; then
+	echo "File $i not found"
+	continue
+    fi
+
+    echo "Converting $i into text"
+    #xv -quit $i &
+    if [ "none" = "${LANGUAGE}" ]; then
+	gocr ${GOCR_OPTIONS} -p ${DB_PATH}  $i > $i.txt
+    else
+	gocr ${GOCR_OPTIONS} -p ${DB_PATH}  $i | sed -f ${FILTER_SCRIPT} -  > $i.txt
+    fi
+    #killall xv
+done
+
+
+
+
+
+
+
+
+

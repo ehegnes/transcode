@@ -1,0 +1,852 @@
+# Process this file with autoconf to produce a configure script.
+AC_INIT
+AC_CONFIG_AUX_DIR(autotools)
+AM_INIT_AUTOMAKE(transcode,0.6.0)
+AC_CONFIG_SRCDIR(src/transcode.c)
+AM_CONFIG_HEADER(config.h)
+  
+AM_MAINTAINER_MODE
+
+dnl Detect the canonical host and target build environment
+AC_CANONICAL_HOST
+
+# Checks for programs.
+AC_PROG_CC
+AC_PROG_GCC_TRADITIONAL
+AC_PROG_CXX
+AC_PROG_AWK
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+
+# dnl added 2002-04-26
+AM_PROG_AS
+AS=$CC
+CCAS='$(CC)'
+AC_SUBST(CCAS)
+AC_PROG_CC
+AC_SUBST(CCASFLAGS)
+
+# functions
+AC_CHECK_FUNCS([strtol])
+AC_CHECK_FUNCS([memalign])
+
+# Checks for support lib
+enable_supportlib="no"
+AC_CHECK_FUNCS(getopt_long_only,[],[enable_supportlib="yes" 
+   SUPPORTOBJECTS="$SUPPORTOBJECTS getopt.o getopt1.o" support_fct="$support_fct getopt"])
+AC_MSG_RESULT(checking whether support lib is needed... $enable_supportlib)
+if test X"$enable_supportlib" = Xyes; then
+   SUPPORTLIB="../libsupport/libsupport.a" 
+   SUPPORTINCL="-I../libsupport/"
+   AC_SUBST(SUPPORTOBJECTS)
+   AC_SUBST(SUPPORTLIB)
+   AC_SUBST(SUPPORTINCL)
+   AC_MSG_RESULT(  building support lib for $support_fct)
+fi
+
+# Checks for libraries.
+AC_CHECK_LIB(dl, dlopen)
+AC_CHECK_FUNCS([dlopen])
+AM_DISABLE_STATIC
+
+if test X"$enable_shared" = Xyes; then
+  DLLDFLAGS=-export-dynamic
+  AC_SUBST(DLLDFLAGS)
+fi
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_HEADER_DIRENT
+AC_CHECK_HEADERS([errno.h fcntl.h stdlib.h string.h sys/time.h unistd.h])
+AC_CHECK_HEADERS([limits.h inttypes.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_HEADER_TIME
+AC_C_INLINE
+AC_TYPE_SIZE_T 
+AC_C_BIGENDIAN([big_endian=true;AC_DEFINE(WORDS_BIGENDIAN)],big_endian=false)
+AM_CONDITIONAL(BIG_ENDIAN,test x"$big_endian" = xtrue)
+AC_TYPE_OFF_T
+AC_C_ATTRIBUTE_ALIGNED
+
+# Checks for library functions.
+AC_FUNC_MALLOC
+AC_FUNC_ALLOCA
+AC_FUNC_VPRINTF
+AC_FUNC_STAT
+AC_FUNC_STRCOLL
+AC_TYPE_SIGNAL
+AC_CHECK_FUNCS([ftruncate gettimeofday memset strerror strncasecmp stat malloc])
+AC_CHECK_FUNCS([floor atexit getpagesize memmove mkfifo vsscanf])
+
+dnl Replace `main' with a function in pthread libs:
+ case "$host" in
+   *-*-freebsd*)
+    pthread_cflags="-D_REENTRANT -D_THREAD_SAFE"
+    pthread_lib="-pthread"
+    ;;
+   *-*-bsdi*)
+    pthread_cflags="-D_REENTRANT -D_THREAD_SAFE"
+    pthread_lib=""
+    ;;
+   *)
+    pthread_cflags="-D_REENTRANT"
+    pthread_lib="-lpthread"
+    ;;
+ esac
+ LIBS="$pthread_lib $LIBS"
+ AVILIBDEPLIB="$LIBS"
+ AC_MSG_CHECKING(for pthreads)
+ use_pthreads=no
+ AC_TRY_LINK([
+   #include <pthread.h>
+ ],[
+   pthread_attr_t type;
+   pthread_attr_init(&type);
+ ],[
+   use_pthreads=yes
+ ]);
+ AC_MSG_RESULT($pthread_lib $use_pthreads)
+
+AM_PATH_GLIB(0.99.7)
+
+dnl ********************************************************************
+dnl Test for MMX support, if we find an IA32 platform then check to see
+dnl if gcc and its tools can generate MMX instructions, also make sure
+dnl nasm is present for the files that need that. 
+dnl Both are checked for for the maximum flexablity.
+dnl
+dnl TODO: host = non intel, target = intel <blah> do the checks also?
+dnl       remeber we are checking that the toolchain can generate the
+dnl       code, not whether the host can execute the code, thats done
+dnl       at run time with the exception of the SSE code.
+dnl
+dnl 
+have_asm_mmx=false
+have_asm_sse=false
+have_asm_3dnow=false
+have_asm_nasm=false
+nasm=no
+have_x86cpu=false
+have_ppccpu=false
+have_ppc_altivec=false
+
+AC_MSG_CHECKING([for Intel Pentium architecture (IA32)])
+if test "$host_cpu" = "i386" -o "$host_cpu" = "i486" \
+   -o "$host_cpu" = "i586" -o "$host_cpu" = "i686" \
+   -o "$host_cpu" = "i786" ; then
+  AC_MSG_RESULT(yes)
+  have_x86cpu=true
+
+  if test "$enable_mmx_accel" != "no"; then
+   AC_DEFINE(HAVE_X86CPU)
+   AC_DEFINE(ARCH_X86)
+   AC_MSG_CHECKING([for support for gcc-style register parameters on Intel])
+   AC_TRY_COMPILE([],
+    [extern void x(
+     const unsigned char *src1,
+     const unsigned char *src2,
+     unsigned count,
+     unsigned char *dst) __attribute((regparm(3)));],
+   [AC_MSG_RESULT(yes)
+    AC_MSG_CHECKING([for support of MMX in assembly code])
+    cat > conftest.S <<EOF
+       .text
+
+       psubusb %mm3, %mm4
+EOF
+    if $CC -c conftest.S ; then
+      AC_MSG_RESULT(yes)
+      rm -f conftest.*
+      AC_DEFINE(HAVE_ASM_MMX)
+      AC_DEFINE(HAVE_MMX)
+      have_asm_mmx=true
+    else
+     AC_MSG_RESULT(no)
+     echo "configure: failed program was:" >&AC_FD_CC
+     cat conftest.S >&AC_FD_CC
+     rm -f conftest.*;
+    fi
+    AC_PATH_PROG(NASM, nasm)
+    if test x$NASM = x -o x$NASM = x'"$NASM"'; then
+      : # no nasm in the path
+    else
+     AC_DEFINE(HAVE_ASM_NASM)
+     NASMFLAGS="-f elf"
+     AC_SUBST(NASMFLAGS)
+     have_asm_nasm=true
+     nasm=yes
+    fi
+  ],
+  [AC_MSG_RESULT(no)
+   AC_MSG_WARN(*** MMX Optimizations disabled....)]);
+ else
+   AC_MSG_RESULT(no) ;
+ fi
+else
+ AC_MSG_RESULT(no)
+ AC_MSG_CHECKING([for PowerPC architecture])
+ if test "$host_cpu" = "powerpc"; then
+   AC_MSG_RESULT(yes)
+   have_ppccpu=true
+   AC_DEFINE(ARCH_PPC)
+   AC_MSG_CHECKING([for Altivec support])
+    cat > conftest.S <<EOF
+       .text
+
+      vxor 0,0,0 
+EOF
+   if $CC -c conftest.S ; then
+      AC_MSG_RESULT(yes)
+      rm -f conftest.*
+      AC_DEFINE(HAVE_PPC_ALTIVEC)
+      have_ppc_altivec=true
+   else
+     AC_MSG_RESULT(no)
+   fi
+ else
+   AC_MSG_RESULT(no)
+ fi
+fi
+dnl ************************************************************************
+dnl Check that the GCC tool chain can generate 3DNow assmebly instructions
+dnl
+AC_MSG_CHECKING([for support of 3DNow in assembly code])
+if test "$enable_3dnow_accel" != "no" ; then
+  cat > conftest.S <<EOF
+    .text
+
+    pfmul %mm3, %mm4
+EOF
+ if $CC -c conftest.S ; then
+   rm -f conftest.*
+   AC_DEFINE(HAVE_ASM_3DNOW)
+   have_asm_3dnow=true
+ else
+   echo "configure: failed program was:" >&AC_FD_CC
+   cat conftest.S >&AC_FD_CC
+   rm -f conftest.*
+ fi
+fi
+if test x$have_asm_3dnow = xtrue ; then
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+fi
+
+dnl ********************************************************************* 
+dnl This test only works on Linux machines with /proc filesystem support
+dnl enabled or on *BSD (tested under FreeBSD) where CPU information is in
+dnl /var/run/dmesg.boot (FIXME: other systems?). We have to check this 
+dnl independantly as cmov is independant of MMX and 3DNow stuff.
+dnl
+have_cmov=false
+if test x$have_x86cpu = xtrue ; then
+ AC_MSG_CHECKING(for CMOV support)
+ if test "$enable_cmov_extension" != "no" ; then
+ case "$host" in
+ *-*-freebsd*)
+  cpu_features=`grep -l CMOV /var/run/dmesg.boot`
+  if test X"$cpu_features" = X"/var/run/dmesg.boot" ; then
+    have_cmov=true
+    AC_DEFINE(HAVE_CMOV)
+  fi ;;
+ *)
+  cpu_family=`grep "cpu family" /proc/cpuinfo | awk 'BEGIN { FS = ":"; } { printf "%d", $2 + 0;}'`
+  if test "$cpu_family" -gt 5 ; then
+    have_cmov=true
+    AC_DEFINE(HAVE_CMOV)
+  fi ;;
+ esac
+ fi
+ AC_MSG_RESULT($have_cmov);
+fi
+
+dnl *********************************************************************
+dnl For x86 machines only check which code model we should use
+dnl 
+if test x$have_x86cpu = xtrue ; then
+AC_MSG_CHECKING(x86 sub-architecture settings)
+
+  if test "$enable_cmov_extension" != "no" ; then
+    arch=`uname -m`
+  else
+    arch=i586
+  fi
+  case `uname -m` in
+  i786) ARCHFLAGS="-mcpu=i786 -march=$arch"
+  ;;
+  i686) ARCHFLAGS="-mcpu=i686 -march=$arch"
+  ;;
+  i586) ARCHFLAGS="-mcpu=i586 -march=$arch"
+  ;;
+  *) 
+  ;;
+  esac
+AC_MSG_RESULT($ARCHFLAGS)
+fi
+
+dnl **********************************************************************
+dnl All the conditional stuff for the Makefiles
+dnl
+AM_CONDITIONAL(HAVE_ASM_MMX, test x$have_asm_mmx = xtrue)
+AM_CONDITIONAL(HAVE_ASM_3DNOW, test x$have_asm_3dnow = xtrue)
+AM_CONDITIONAL(HAVE_ASM_NASM, test x$have_asm_nasm = xtrue)
+AM_CONDITIONAL(HAVE_X86CPU, test x$have_x86cpu = xtrue)
+AM_CONDITIONAL(ARCH_X86, test x$have_x86cpu = xtrue)
+AM_CONDITIONAL(ARCH_PPC, test x$have_ppccpu = xtrue)
+
+
+dnl GCC-specific flags
+if test x"$GCC" = x"yes"; then
+
+    dnl -Wall -Werror moved to the end to not disturb the configure script
+
+    dnl -O3
+    changequote(<<,>>)
+    OPT_CFLAGS=`echo "$CFLAGS"|sed "s/-O[0-9]*//g;"`
+    changequote([,])
+    OPT_CFLAGS="$OPT_CFLAGS -O3"
+    AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
+
+    dnl -fomit-frame-pointer
+    OPT_CFLAGS="$CFLAGS -fomit-frame-pointer"
+    AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
+
+    dnl arch-specific flags
+    case "$host_cpu" in
+    i?86-* | k?-*)
+	AC_DEFINE([ARCH_X86],,[x86 architecture])
+dnl
+dnl FreeBSD (NetBSD? OpenBSD?) gives i386 anyway
+dnl
+    case "$host" in
+      *-*-freebsd*) OPT_FLAGS="$CFLAGS" ;;
+      *)
+	case "$host_cpu" in
+	i386-*) OPT_CFLAGS="$CFLAGS -mcpu=i386";;
+	i486-*) OPT_CFLAGS="$CFLAGS -mcpu=i486";;
+	i586-*) OPT_CFLAGS="$CFLAGS -mcpu=pentium";;
+	i686-*) OPT_CFLAGS="$CFLAGS -mcpu=pentiumpro";;
+	k6-*)   OPT_CFLAGS="$CFLAGS -mcpu=k6";;
+	esac ;;
+     esac
+	AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS]);;
+    sparc-*)
+	OPT_CFLAGS="$CFLAGS -mcpu=ultrasparc -mvis"
+	AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS]);;
+    mips-sgi-irix6.*)	dnl do we need to be that specific ?
+	OPT_CFLAGS="$CFLAGS -mabi=64"
+	AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS]);;
+    esac
+else
+    dnl non-gcc flags - we probably need exact configuration triplets here.
+    case "$host_cpu" in
+    mips-sgi-irix6.*)
+	OPT_CFLAGS="$CFLAGS -64"
+	AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS]);;
+    sparc-sun-solaris*)
+	OPT_CFLAGS="$CFLAGS -xCC -fast -xO5"
+	AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS]);;
+    esac
+fi
+
+AC_LIBTOOL_DLOPEN
+AM_PROG_LIBTOOL
+dnl AC_CONFIG_SUBDIRS(libltdl)
+
+AC_ARG_ENABLE([warnings],
+    [  --enable-warnings       treat warnings as errors])
+if test x"$enable_warnings" = x"yes" -a x"$GCC" = x"yes"; then
+    dnl compiler warnings
+    OPT_CFLAGS="$CFLAGS -Wall -Werror"
+    AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
+fi
+
+AC_SUBST(CFLAGS)
+
+LTLIBOBJS=`echo "$AC_LIBOBJ" | sed 's,.o ,.lo ,g;s,.o$,.lo,'`
+AC_SUBST(LTLIBOBJS)
+
+
+OPT_CFLAGS="$CFLAGS -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64"
+AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
+AC_SUBST(CFLAGS)
+
+dnl
+dnl static import frame buffer 
+dnl
+
+statbuf=yes
+AC_MSG_CHECKING(for internal static framebuffer support)
+AC_ARG_ENABLE(statbuffer,  [  --enable-statbuffer     enable internal static framebuffer support (yes)], 
+[
+if test x"${enableval}" = x"yes" -a x"$GCC" = x"yes"; then
+    AC_MSG_RESULT(yes)
+else
+    AC_MSG_RESULT(no)
+    statbuf=no
+fi], AC_MSG_RESULT(yes))
+
+if test x"${statbuf}" = x"yes"; then
+	AC_DEFINE_UNQUOTED(STATBUFFER)	
+fi
+AC_SUBST(STATBUFFER)
+
+dnl
+dnl experimental network streaming support
+dnl
+
+net=yes
+AC_MSG_CHECKING(for network streaming support)
+AC_ARG_ENABLE(netstream,  [  --enable-netstream      enable network streaming support (yes)], 
+[
+if test x"${enableval}" = x"yes" -a x"$GCC" = x"yes"; then
+    AC_MSG_RESULT(yes)
+    net=yes
+    AC_DEFINE_UNQUOTED(NET_STREAM)	
+else
+AC_MSG_RESULT(no)
+net=no
+fi], AC_MSG_RESULT(yes))
+AM_CONDITIONAL(NET_STREAM, test x"$net" = x"yes")
+
+if test x"${net}" = x"yes"; then
+    AC_DEFINE_UNQUOTED(NET_STREAM)	
+fi
+AC_SUBST(NET_STREAM)
+
+
+dnl
+dnl AVIFILE support
+dnl
+
+AM_PATH_AVIFILE(AC_DEFINE(HAVE_AVIFILE))
+AM_CONDITIONAL(HAVE_AVIFILE, test x"$have_avifile" = "xyes")
+
+dnl
+dnl avifile 0.6
+dnl
+
+if test x"$have_avifile" = "xyes"; then
+avibeta=yes
+AC_MSG_CHECKING(for avifile-0.6 support)
+AC_ARG_ENABLE(avifile6,  [  --enable-avifile6       enable avifile 0.6 support (yes)], 
+[
+if test x"${enableval}" = x"yes"; then
+    AC_MSG_RESULT(yes)
+    AC_DEFINE_UNQUOTED(AVIFILE_0_6)	
+else
+    AC_MSG_RESULT(no)
+avibeta=no
+fi], 
+AC_MSG_RESULT(yes) 
+AC_DEFINE_UNQUOTED(AVIFILE_0_6)
+)
+AC_SUBST(CFLAGS)
+AC_SUBST(ASFLAGS)
+AC_SUBST(AS)
+dnl AC_SUBST(AVIFILE_0_6)
+else
+avibeta=no
+fi
+
+AM_CONDITIONAL(AVIFILE_0_6, test x"$avibeta" = x"yes")
+
+
+dnl
+dnl v4l
+dnl
+
+AC_CHECK_HEADER([linux/videodev.h], v4l=yes, v4l=no)
+
+AC_MSG_CHECKING(for v4l support)
+AC_ARG_ENABLE(v4l,  [  --enable-v4l            enable experimental v4l support (no)], 
+[
+if test x"${enableval}" = x"yes" ; then
+    v4l=yes
+else
+    AC_MSG_RESULT(no)
+    v4l=no
+fi], )
+
+if test x"${v4l}" = x"yes" ; then
+AC_DEFINE(HAVE_V4L)	
+AC_MSG_RESULT(yes)
+fi
+
+AM_CONDITIONAL(HAVE_V4L, test x"${v4l}" = x"yes")
+
+dnl
+dnl lame support
+dnl
+
+AM_PATH_LAME(AC_DEFINE(HAVE_LAME))
+AM_CONDITIONAL(HAVE_LAME, test x"$have_lame" = "xyes")
+AM_CONDITIONAL(LAME_3_89, test x"$lame89" = "xyes")
+
+dnl
+dnl ogg support
+dnl
+
+AM_PATH_OGG(AC_DEFINE(HAVE_OGG))
+AM_CONDITIONAL(HAVE_OGG, test x"$have_ogg" = "xyes")
+
+dnl
+dnl vorbis support
+dnl
+
+AM_PATH_VORBIS(AC_DEFINE(HAVE_VORBIS))
+AM_CONDITIONAL(HAVE_VORBIS, test x"$have_vorbis" = "xyes")
+
+
+dnl
+dnl libdvdread support
+dnl
+
+have_dvdread=no
+AM_PATH_LIBDVDREAD(AC_DEFINE(HAVE_LIBDVDREAD))
+AM_CONDITIONAL(HAVE_LIBDVDREAD, test x"$have_dvdread" = "xyes")
+
+dnl
+dnl libmpeg3 support
+dnl
+
+AM_PATH_LIBMPEG3(AC_DEFINE(HAVE_LIBMPEG3))
+AM_CONDITIONAL(HAVE_LIBMPEG3, test x"$have_libmpeg3" = "xyes")
+
+dnl
+dnl MPlayer libpostproc
+dnl
+
+AM_PATH_POSTPROC(AC_DEFINE(HAVE_LIBPOSTPROC))
+AM_CONDITIONAL(HAVE_LIBPOSTPROC, test x"$have_libpostproc" = "xyes")
+
+dnl
+dnl libquicktime support
+dnl
+
+AM_PATH_QT(AC_DEFINE(HAVE_QT))
+AM_CONDITIONAL(HAVE_QT, test x"$have_qt" = "xyes")
+
+dnl
+dnl libquicktime support
+dnl
+
+AM_PATH_OPENQT(AC_DEFINE(HAVE_OPENQT))
+AM_CONDITIONAL(HAVE_OPENQT, test x"$have_openqt" = "xyes")
+
+dnl
+dnl DV support
+dnl
+
+AM_PATH_DV(AC_DEFINE(HAVE_DV))
+AM_CONDITIONAL(HAVE_DV, test x"$have_dv" = "xyes")
+
+dnl
+dnl A52 support
+dnl
+
+AM_PATH_A52(AC_DEFINE(HAVE_A52))
+AM_CONDITIONAL(HAVE_A52, test x"$have_a52" = "xyes")
+
+dnl
+dnl use liba52 as the default decoder 
+dnl
+
+a52_decoder=no
+
+if test x"$have_a52" = "xyes"; then
+AC_MSG_CHECKING(for liba52 as default decoder)
+AC_ARG_ENABLE(liba52,  [  --enable-liba52         liba52 as default decoder (no)], 
+[
+if test x"${enableval}" = x"yes" -a x"$GCC" = x"yes"; then
+    AC_MSG_RESULT(yes)
+    a52_decoder=yes
+else
+    AC_MSG_RESULT(no)
+    a52_decoder=no
+fi], AC_MSG_RESULT(no))
+
+if test x"${a52_decoder}" = x"yes"; then
+	AC_DEFINE_UNQUOTED(USE_LIBA52_DECODER)	
+fi
+AC_SUBST(USE_LIBA52_DECODER)
+else
+AC_MSG_CHECKING(for use libac3 as default decoder)
+AC_MSG_RESULT(yes)
+fi
+
+dnl
+dnl libxml2 support
+dnl
+
+AC_MSG_CHECKING([for libxml2 support])
+
+AC_SUBST([LIBXML2_CFLAGS])
+AC_SUBST([LIBXML2_LIBS])
+AC_CHECK_PROG([LIBXML2CONFIG],[xml2-config],[yes])
+if test x"$LIBXML2CONFIG" = x"yes"
+then
+       AC_DEFINE([HAVE_LIBXML2],,[libxml2 support])
+       LIBXML2_CFLAGS="`xml2-config --cflags`"
+       LIBXML2_LIBS="`xml2-config --libs`"
+else
+LIBXML2CONFIG=no
+fi
+
+AM_CONDITIONAL(HAVE_LIBXML2, test x"$LIBXML2CONFIG" = x"yes" )
+
+
+dnl 
+dnl mjpegtools (actually only YUV4MPEG) support
+dnl
+
+AC_MSG_CHECKING([for YUV4MPEG support])
+
+AC_SUBST([MJPEG_CFLAGS])
+AC_SUBST([MJPEG_LIBS])
+AC_CHECK_PROG([MJPEGTOOLSCONFIG],[mjpegtools-config],[yes])
+if test x"$MJPEGTOOLSCONFIG" = x"yes"
+then
+	AC_DEFINE([HAVE_MJPEGTOOLS],,[mjpegtools support])
+	AC_DEFINE(HAVE_MJPEG)
+  	MJPEG_CFLAGS="`mjpegtools-config --cflags`"
+  	MJPEG_LIBS="`mjpegtools-config --libs`"
+else
+MJPEGTOOLSCONFIG=no
+fi
+
+AM_CONDITIONAL(HAVE_MJPEG, test x"$MJPEGTOOLSCONFIG" = x"yes" )
+
+dnl ---------------------------------------------------------------------
+dnl X11 checks
+
+AC_MSG_CHECKING([whether X11 support is requested])
+dnl Default is enabled X11
+
+AC_ARG_ENABLE(x,  [  --enable-x              build X11 dependent plugins (yes)], 
+[
+if test x"${enableval}" = x"yes" ; then
+    AC_MSG_RESULT(yes)
+    USE_X11=yes
+else
+    AC_MSG_RESULT(no)
+    USE_X11=no
+fi], [
+USE_X11=yes
+AC_MSG_RESULT(yes)]
+)
+
+if test "${USE_X11}" = "yes"; then
+
+AC_PATH_XTRA
+if test "-DX_DISPLAY_MISSING" = "$X_CFLAGS"; then
+  	AC_MSG_ERROR(can not find X11)
+else
+AC_DEFINE(HAVE_X11)
+fi
+
+AC_SUBST(X_CFLAGS)
+AC_SUBST(X_PRE_LIBS)
+AC_SUBST(X_EXTRA_LIBS)
+AC_SUBST(X_LIBS)
+AC_SUBST(x_includes)
+AC_SUBST(x_libraries)
+fi
+
+AM_CONDITIONAL(HAVE_X11, test x"${USE_X11}" = "xyes")
+
+have_xv=no
+AC_CHECK_LIB(Xv, XvQueryExtension,
+[	AC_DEFINE(HAVE_LIBXV)
+	have_xv=yes
+],, $X_LIBS $X_PRE_LIBS -lXext -lX11 $X_EXTRA_LIBS)
+AM_CONDITIONAL(HAVE_LIBXV, test x"$have_xv" = "xyes")
+
+have_sdl=no
+AM_PATH_SDL(1.1.6, 
+[	AC_DEFINE(HAVE_SDL)
+	have_sdl=yes
+])
+AM_CONDITIONAL(HAVE_SDL, test x"$have_sdl" = "xyes")
+
+
+have_gtk=no
+AM_PATH_GTK(,
+[
+	AC_DEFINE(HAVE_GTK) 
+	have_gtk=yes	
+])
+AM_CONDITIONAL(HAVE_GTK, test x"$have_gtk" = "xyes")
+
+dnl
+dnl LIBFAME support
+dnl
+
+have_libfame=no
+AM_PATH_LIBFAME(,
+[
+	AC_DEFINE(HAVE_LIBFAME) 
+	have_libfame=yes	
+])
+AM_CONDITIONAL(HAVE_LIBFAME, test x"$have_libfame" = "xyes")
+
+dnl
+dnl MAGICK support
+dnl
+
+AM_PATH_MAGICK(AC_DEFINE(HAVE_MAGICK))
+AM_CONDITIONAL(HAVE_MAGICK, test x"$have_magick" = "xyes")
+
+dnl
+dnl libjpg support
+dnl
+
+AM_PATH_LIBJPEG(AC_DEFINE(HAVE_LIBJPEG))
+AM_CONDITIONAL(HAVE_LIBJPEG, test x"$have_libjpeg" = "xyes")
+
+dnl import/export module path
+
+MOD_PATH="\${prefix}/lib/transcode"
+
+AC_ARG_WITH(mod-path, [  --with-mod-path           where export/import modules are installed (${prefix}/lib/transcode)], MOD_PATH=$withval)
+AC_SUBST(MOD_PATH)
+
+dnl
+dnl Altivec support
+dnl
+
+AC_ARG_ENABLE(altivec, [  --enable-altivec            enable Altivec code portions (yes)],[case "${enableval}" in
+  yes) use_altivec=yes ;;
+  no)  use_altivec=no ;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-altivec) ;;
+esac], [if test x"$have_ppc_altivec" = x"true"; then use_altivec=yes; else use_altivec=no;fi])
+
+AM_CONDITIONAL(HAVE_PPC_ALTIVEC, test x"$use_altivec" = x"yes")
+dnl if test x"$use_altivec" = x"no" ; then
+dnl	AC_MSG_RESULT(*** All of Altivec dependent parts will be disabled ***)
+dnl fi
+
+dnl
+dnl MMX support
+dnl
+AC_ARG_ENABLE(mmx, [  --enable-mmx            enable MMX code portions (yes)],[case "${enableval}" in
+  yes) use_mmx=yes ;;
+  no)  use_mmx=no ;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-mmx) ;;
+esac], [if test x"$have_x86cpu" = x"true"; then use_mmx=yes; else use_mmx=no;fi])
+
+AM_CONDITIONAL(HAVE_MMX, test x"$use_mmx" = x"yes")
+if test x"$use_mmx" = x"no" ; then
+	AC_MSG_RESULT(*** All of mmx dependent parts will be disabled ***)
+fi
+
+dnl
+dnl SSE support
+dnl
+AC_ARG_ENABLE(sse, [  --enable-sse            enable SSE code portions (yes)],[case "${enableval}" in
+  yes) use_sse=yes ;;
+  no)  use_sse=no ;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-sse) ;;
+esac], [if test x"$have_x86cpu" = x"true"; then use_sse=yes; else use_sse=no;fi])
+
+AM_CONDITIONAL(HAVE_SSE, test x"$use_sse" = x"yes")
+if test x"$use_sse" = x"no" ; then
+	AC_MSG_RESULT(*** All of sse dependent parts will be disabled ***)
+else
+AC_DEFINE(HAVE_SSE)
+fi
+
+transcode_0_6=yes
+AC_DEFINE(TRANSCODE_0_6)
+AM_CONDITIONAL(TRANSCODE_0_6,test x"$transcode_0_6" = x"yes")
+
+X_CFLAGS=`echo $X_CFLAGS | sed -e 's/  */ /g'`
+X_PRE_LIBS=`echo $X_PRE_LIBS | sed -e 's/  */ /g'`
+X_LIBS=`echo $X_LIBS | sed -e 's/  */ /g'`
+X_EXTRA_LIBS=`echo $X_EXTRA_LIBS | sed -e 's/  */ /g'`
+
+CC=`echo $CC | sed -e 's/  */ /g'`
+CFLAGS=`echo $CFLAGS | sed -e 's/  */ /g'`
+CPPFLAGS=`echo $CPPFLAGS | sed -e 's/  */ /g'`
+CXXFLAGS=`echo $CXXFLAGS | sed -e 's/  */ /g'`
+LDFLAGS=`echo $LDFLAGS | sed -e 's/  */ /g'`
+
+AC_SUBST(CFLAGS)
+AC_SUBST(CC)
+AC_SUBST(LDFLAGS)
+
+AC_OUTPUT([
+           Makefile
+           autotools/Makefile
+           src/Makefile
+           avilib/Makefile
+           movlib/Makefile
+	   libioaux/Makefile
+           encore2/Makefile
+           libac3/Makefile
+           dvdread/Makefile
+           libvo/Makefile
+           libmpeg2/Makefile
+           libmp3lame/Makefile
+           libdvenc/Makefile
+           bbmpeg/Makefile
+           bbmpeg/tcmplex/Makefile
+           ffmpeg/Makefile
+           ffmpeg/libavcodec/Makefile
+           export/Makefile
+           import/Makefile
+           import/nuv/Makefile
+           import/af6/Makefile
+           import/net/Makefile
+           import/v4l/Makefile
+           import/yuv/Makefile
+           filter/Makefile
+           filter/subtitler/Makefile
+           filter/preview/Makefile
+           filter/divxkey/Makefile
+           filter/extsub/Makefile
+           filter/resample/Makefile
+           filter/test/Makefile
+           filter/yuvdenoise/Makefile
+           docs/Makefile
+           docs/man/Makefile
+           contrib/Makefile
+           tools/Makefile
+           aclib/Makefile
+           libsupport/Makefile
+           transcode.spec
+          ])
+
+dnl openquicktime dependent modules                  $have_openqt
+
+AC_MSG_RESULT([
+----------------------------------------------------------
+Summary for transcode 0.6.0 features:
+
+static AV-frame buffering                        $statbuf
+DVD navigation support with libdvdread           $have_dvdread
+link against local lame library (>=3.89)         $lame89
+support for network (sockets) streams            $net
+avifile dependent modules | (>0.6) support       $have_avifile | $avibeta
+libmpeg3 dependent modules                       $have_libmpeg3
+quicktime dependent modules                      $have_qt
+libdv dependent modules                          $have_dv
+liba52 audio plugin (>=0.7.3) | default decoder  $have_a52 | $a52_decoder
+libfame video encoding plugin                    $have_libfame
+nasm dependent modules                           $nasm
+ImageMagick dependent modules (>=5.4.3)          $have_magick
+libjpeg dependent modules                        $have_libjpeg
+libxml2 dependent modules                        $LIBXML2CONFIG
+mjpegtools dependent modules                     $MJPEGTOOLSCONFIG
+experimental v4l support                         $v4l
+X11 dependent filter plugins                     $USE_X11
+MPlayer libpostproc dependent filter plugin      $have_libpostproc
+experimental Ogg support | Vorbis support        $have_ogg | $have_vorbis
+----------------------------------------------------------
+])
+

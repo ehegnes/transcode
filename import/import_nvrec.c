@@ -1,0 +1,204 @@
+/*
+ *  import_nvrec.c
+ *
+ *  Copyright (C) Tilmann Bitterberg - May 2002
+ *
+ *  This file is part of transcode, a linux video stream  processing tool
+ *      
+ *  transcode is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2, or (at your option)
+ *  any later version.
+ *   
+ *  transcode is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *   
+ *  You should have received a copy of the GNU General Public License
+ *  along with GNU Make; see the file COPYING.  If not, write to
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#include "transcode.h"
+
+#define MOD_NAME    "import_nvrec.so"
+#define MOD_VERSION "v0.1.2 (2002-05-30)"
+#define MOD_CODEC   "(video) nvrec | (audio) nvrec"
+
+#define MOD_PRE nvrec
+#include "import_def.h"
+
+#define MAX_DISPLAY_PTS 25
+
+#define MAX_BUF 1024
+char import_cmd_buf[MAX_BUF];
+
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_YUV|TC_CAP_PCM;
+
+static char afile[MAX_BUF];
+static char prgname[MAX_BUF];
+
+/* ------------------------------------------------------------
+ *
+ * open stream
+ *
+ * ------------------------------------------------------------*/
+
+MOD_open
+{
+  
+  int n = 0;
+  FILE *f;
+  char buffer[MAX_BUF], *offset;
+  unsigned int nv_version = 0;
+  int ret;
+
+
+  if(param->flag == TC_AUDIO) {
+	  param->fd = NULL;
+	  return(0);
+  }
+
+  if (vob->out_flag) {
+      strncpy(afile, vob->audio_out_file, strlen(vob->audio_out_file));
+      vob->out_flag = 0;  /* XXX */
+  } else
+      strcpy(afile, "audio.avi");
+
+  strcpy(prgname, "DIVX4rec");
+
+  /* this is ugly */
+  ret = system("DIVX4rec -h >/dev/null 2>&1");
+  if (ret == 0 || ret == 65280)
+      strcpy(prgname, "DIVX4rec");
+
+  ret = system("divx4rec -h >/dev/null 2>&1");
+  if (ret == 0 || ret == 65280)
+      strcpy(prgname, "divx4rec");
+  
+  
+  if(param->flag == TC_VIDEO) {
+
+    n = snprintf(import_cmd_buf, MAX_BUF, 
+	   "%s -o raw://%s -w %u -h %u", prgname, afile, vob->im_v_width, vob->im_v_height);
+
+    if(vob->a_chan == 2)
+	n += snprintf(import_cmd_buf+n, MAX_BUF, " -s");
+
+    n += snprintf(import_cmd_buf+n, MAX_BUF, " -b %d",  vob->a_bits);
+    n += snprintf(import_cmd_buf+n, MAX_BUF, " -r %d",  vob->a_rate);
+    n += snprintf(import_cmd_buf+n, MAX_BUF, " -ab %d", vob->mp3bitrate);
+    n += snprintf(import_cmd_buf+n, MAX_BUF, " -aq %d", vob->mp3quality);
+
+    if (strncmp(vob->video_in_file, "/dev/zero", 9) == 0) {
+	fprintf (stderr, "[%s] Warning: Input v4l1/2 device assumed to be %s\n", MOD_NAME, "/dev/video");
+	n += snprintf(import_cmd_buf+n, MAX_BUF, " -v %s", "/dev/video");
+    } else {
+	n += snprintf(import_cmd_buf+n, MAX_BUF, " -v %s", vob->video_in_file);
+    }
+
+
+    if(vob->ex_v_fcc != NULL && strlen(vob->ex_v_fcc) != 0) {
+	char *a = vob->ex_v_fcc;
+	while (*a != '\0') {
+	    if (*a == '+') *a = '-';
+	    a++;
+	}
+	    
+	n += snprintf(import_cmd_buf+n, MAX_BUF, " %s", vob->ex_v_fcc);
+    }
+
+    /* Check NVrec features */
+    memset (buffer, 0, 1024);
+    sprintf (buffer, "%s -h 2>&1", prgname);
+    f = popen (buffer, "r");
+    memset (buffer, 0, 1024);
+
+    while ( fgets (buffer, MAX_BUF, f) ) {
+	offset = strstr(buffer, ", version ");
+	if (offset) {
+	    nv_version = atoi(offset+10);
+	    break;
+	}
+    }
+    if (f) pclose(f);
+
+    if (nv_version == 0) { 
+	fprintf( stderr, "Unable to detect NVrec version, trying to continue...\n");
+    } else if (0 < nv_version && nv_version < 20020513) {
+	fprintf( stderr, "Seems your NVrec doesn't support the -o raw:// option\n");
+	return(TC_IMPORT_ERROR);
+    } else if (nv_version < 20020524) {
+	/* make nvrec silent the hard way */
+	n += snprintf(import_cmd_buf+n, MAX_BUF, " 2>/dev/null");
+    } else if (nv_version >= 20020524) {
+	/* we support the -Q quiet option */
+	n += snprintf(import_cmd_buf+n, MAX_BUF, " -Q");
+    }
+
+
+    if (n<0) {
+      perror("command buffer overflow");
+      return(TC_IMPORT_ERROR);
+    }
+
+
+    
+    // print out
+    if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+
+  
+    param->fd = NULL;
+
+    // popen video
+    /* if param->fd != NULL then transcode will do read */
+    if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
+	perror("popen stream");
+	return(TC_IMPORT_ERROR);
+    }
+  
+  }
+
+  return(0);
+}
+
+/* ------------------------------------------------------------ 
+ *
+ * decode  stream
+ *
+ * ------------------------------------------------------------*/
+
+MOD_decode
+{
+    return(0);
+}
+
+/* ------------------------------------------------------------ 
+ *
+ * close stream
+ *
+ * ------------------------------------------------------------*/
+
+MOD_close
+{  
+
+    if(param->fd != NULL) pclose(param->fd);
+
+    return(0);
+}
+
+
+/* vim: sw=4
+ */

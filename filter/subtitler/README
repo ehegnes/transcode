@@ -1,0 +1,89 @@
+Mon Jan 21 21:10:52 CET 2002
+Subtitler -0.6.2
+
+Subtitler 'filter' to be used with transcode
+I do not like the name 'filter' it is scientifically incorrect,
+Subtitler does not filter (out) anything, it ADDS data (text).
+'plugin' would be better perhaps.
+
+This is Linux software.
+released under the GPL.
+
+If anything does not work, it is because I changed a 100 things,
+since I am changing things all the time, have a look at obvious things,
+or mail me.
+Subtitler has already made many hours of subtitled DivX movies.
+This distribution is just a hand made copy of some files in my transcode
+directory.
+--
+
+
+Test:
+The script 'test' uses test.c and tests for 'forgotten variables and
+functions, which would cause the module load mysteriously to fail.
+
+Subtitler looks by default at /root/.subtitles/font/font.desc.
+Copy mp-arial-iso-8859-1.zip there, unzip it, select a fontsize (28 is good),
+and copy font.desc and the .raw files to /root/.subtitles/font/.
+
+Also your subtitle file should by default be in /root/.subtitles/ ,
+in .ppml (xste)- or new-timed.ssa (substation alpha) format.
+
+Works perfectly though, reformat, center text.
+Many things defined in filter_subtitler.c etc with defines.
+
+Copy the source .h and .c files to
+/transcode/transcode-0.6.0pre1/filter/subtitler/
+
+Type 
+automake
+in transcode/transcode-0.6.0pre1/, that will create the Makefile.in
+then type
+configure
+in transcode/transcode-0.6.0pre1/, that will create the Makefile
+Then
+make install
+
+Make a directory /root/.subtitles/
+and
+/root/.subtitles/font/
+Unzip the font file in /root/.subtitles/font.
+
+copy demo.ppml, rose.ppm and sun.ppm (included here) to /root/.subtitles/
+or if elsewhere change the path in the example -J below, and in the object
+definitions at the start of demo.ppml.
+
+This version ONLY works with transcode-0.6 as the transcode API has changed.
+
+
+Call subtitler from transcode like this (see CHANGES for an example):
+-V \
+-J subtitler="subtitle_file=/root/.subtitles/demo.ppml color_depth=32"
+
+Only 720x576, 352x288, and 32 bits X tested this version in YUV 420
+(-V option). 
+
+Try uncommenting some things in the demo.ppml.
+
+NOTE:
+ONLY if you have the ImageMagick package installed, you can try xsize, ysize,
+dxsize, dysize on pictures and movies.
+Subtitler uses the 'mogrify' program from the ImageMagick distribution
+for resizing.
+
+There are other experiments of mine in the subtitler code, one removes white
+stripes from Umatic tapes (drop outs) by replacing these with data from a
+previous frame...
+None of that code is finished, so ....
+
+
+Stability:
+This thing has been running for 24 hours several days, alas without the X11
+routines I added today, .. should work OK.
+
+
+More info if available on http://www.home.zonnet.nl/panteltje/subtitles/
+
+Jan Panteltje
+panteltje@zonnet.nl
+

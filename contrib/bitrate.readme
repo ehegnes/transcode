@@ -1,0 +1,17 @@
+** Readme zum bitrate-Skript
+** Copyright 2002 bei Michael Neuendorf 
+** (michael.neuendorf@post.rwth-aachen.de)
+
+Syntax:		bitrate [Rohlinggröße]
+
+Beim Aufruf erscheint ein Prompt (Eingabeaufforderung), an dem die Filmlänge in
+Minuten eingegeben wird.
+Das Bitraten-Skript errechnet dann die maximale Bitrate, mit der ein Film in
+divx codiert werden kann, um auf ein oder zwei CDs zu passen; dabei erfolgt 
+die Ausgabe für eine und für zwei CDs simultan.
+Standardmäßig wird mit einer Rohlinggröße von 700 MB gerechnet; optional kann
+dem Skript eine andere Rohlinggröße über den Parameter vorgegeben werden.
+  Weiterhin wird die geschätzte Rechendauer angegeben, wobei eine Rechenge-
+schwindigkeit von 7 fps zugrundegelegt wird. Diese kann durch Ändern der 
+Variable FPS im Skript angepaßt werden, falls eine höhere Rechengeschwindig-
+keit erreicht wird.

@@ -1,0 +1,87 @@
+This document describe how to use import_xml module.
+It's based on a SMIL2 directive (http://www.w3.org/2001/SMIL20/Language) and, for instance, can manage kino smil output files.
+
+Below, i describe a sample of simple input file:
+
+
+<?xml version="1.0"?>
+<smil xmlns:smil2="http://www.w3.org/2001/SMIL20/Language">
+	<seq>
+		<video src="/mnt/hd/avi/mare008.avi" clipBegin="smpte=0:0:1" clipEnd="2s">
+			<param name="in-video-module" value="dv"/>
+		</video>
+		<audio src="/mnt/hd/avi/mare010.avi" clipBegin="smpte=0:0:2" clipEnd="3s">
+			<param name="in-audio-module" value="dv"/>
+		</audio>
+	</seq>
+	<seq>
+		<video src="/mnt/hd/avi/mare009.avi" clipBegin="0.40s" clipEnd="1s"/>
+		<audio src="/mnt/hd/avi/mare010.avi" clipBegin="smpte=1.40s" clipEnd="2s">
+			<param name="in-audio-module" value="avi"/>
+		</audio>
+	</seq>
+	<seq>
+		<video src="/mnt/hd/avi/mare011.avi" clipBegin="0" clipEnd="npt=20"/>
+	</seq>
+	<seq>
+		<video src="/mnt/hd/avi/mare012.avi" clipBegin="200" clipEnd="279">
+			<param name="in-video-module" value="avi"/>
+			<param name="in-audio-module" value="dv"/>
+		</video>
+	</seq>
+</smil>
+
+
+The first 2 lines define the namespace
+Each sequences are include in <seq> tag and for instance is possible to define two tag <video> and <audio>: if <audio> tag isn't present then the module try to find audio track in the video file.
+Inside the audio e video it's possible to define two properties: clipBegin and clipEnd and the metric is conform to SMIL2 directive.
+In  each <audio> and <video> tag is possible to define <param> tag: this is
+useful to pass to override some autoprobe parameter: for instance
+in-audio-module and in-video-module are defined and only dv and avi are
+actually supported.
+
+From SMIL MediaClipping Module "....
+
+Values in the clipBegin and clipEnd attribute have the following syntax: 
+Clip-value-MediaClipping ::= [ Metric "=" ] ( Clock-val | Smpte-val )
+Metric            ::= Smpte-type | "npt" 
+Smpte-type        ::= "smpte" | "smpte-30-drop" | "smpte-25"
+Smpte-val         ::= Hours ":" Minutes ":" Seconds 
+                      [ ":" Frames [ "." Subframes ]]
+Hours             ::= Digit+ 
+Minutes           ::= Digit Digit; range from 00 to 59
+Seconds           ::= Digit Digit; range from 00 to 59
+
+Frames            ::= Digit Digit; smpte range = 00-29, smpte-30-drop range = 00-29, smpte-25 range = 00-24
+Subframes         ::= Digit Digit; smpte range = 00-01, smpte-30-drop range = 00-01, smpte-25 range = 00-01
+
+
+
+
+SMPTE Timestamp 
+SMPTE time codes [SMPTE] can be used for frame-level access accuracy. The metric specifier can have the following values: 
+
+	smpte 
+
+	smpte-30-drop 
+	These values indicate the use of the "SMPTE 30 drop" format (approximately 29.97 frames per second), as defined in the SMPTE specification (also referred to as "NTSC drop frame"). 
+	The "frames" field in the time value can assume the values 0 through 29. The difference between 30 and 29.97 frames per second is handled by dropping the first two frame indices 
+	(values 00 and 01) of every minute, except every tenth minute. 
+
+	smpte-25 
+	The "frames" field in the time specification can assume the values 0 through 24. This corresponds to the PAL standard as noted in [SMPTE] 
+	The time value has the format hours:minutes:seconds:frames.subframes. If the subframe value is zero, it may be omitted. Subframes are measured in one-hundredths of a frame.
+		Examples:
+		clipBegin="smpte=10:12:33:20" 
+
+Normal Play Time
+
+	npt
+	Normal Play Time expresses time in terms of SMIL clock values. The metric specifier is "npt", and the syntax of the time value is identical to the syntax of SMIL clock values.
+		Examples:
+		clipBegin="npt=123.45s"
+		clipBegin="npt=12:05:35.3" 
+
+....."
+
+

@@ -1,0 +1,67 @@
+.TH avisync 1 "16th January 2002" "avisync(1)"
+.SH NAME
+avisync \- adjust audio synchronisation
+.SH SYNOPSIS
+.na
+.B avisync
+[
+.B -o
+.I file
+.B -i
+.IB file
+.B -q
+.B -n
+.IB num
+.B -a
+.I num
+]
+.SH COPYRIGHT
+\fBavisync\fP is Copyright (C) by Thomas Östreich.
+.SH DESCRIPTION
+.B avisync
+shift audio on frame basis.
+.SH OPTIONS
+.TP
+\fB-o\fP \fIname\fP
+Specify the name of the output file.
+.TP
+\fB-i\fP \fIfile\fP
+Specify the name of the input file.
+.TP
+\fB-q\fP
+be less verbose.
+.TP
+\fB-n\fP \fIcount\fP
+shift audio by \fIcount\fP frames. If \fIcount\fP is positive, audio 
+starts with audio frame \fIcount\fP at the beginning of the AVI-file. If
+\fIcount\fP is negative, audio is prepended \fIcount\fP padding frames.
+.TP
+\fB-a\fP \fInum\fP
+Specify the number of the audio channel to shift.
+.SH EXAMPLES
+The command
+.PP
+.B avisync -i my_file1.avi -o out.avi -n -10
+.PP
+puts 10 audio frames at the beginning of the AVI-file.
+.PP
+E.g. if the audio is delayed about 200 ms (0.2 seconds) and you're working with
+a 25 frames per second AVI-File, you need to shift the audio 200/40 = 5 frames 
+since one frame is 40 ms long.
+.SH AUTHORS
+.B avisync
+was written by Thomas Östreich
+.br
+<ostreich@theorie.physik.uni-goettingen.de> with contributions from
+many others.  See AUTHORS for details.
+.SH SEE ALSO
+.BR avifix (1),
+.BR avimerge (1),
+.BR avisplit (1),
+.BR tccat (1),
+.BR tcdecode (1),
+.BR tcdemux (1),
+.BR tcextract (1),
+.BR tcprobe (1),
+.BR tcscan (1),
+.BR transcode (1)

@@ -1,0 +1,258 @@
+<html>
+<head>
+<title> Linux Video Stream Processing Tool - Examples</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="keywords" content="DVD, digital video, DV, encoder, divx,
+DivX;-), lame, source, posix, avifile, opendivx, codec, linux, AC3,
+program stream, video, audio, transcode, decoder, stream, YV12">
+</head>
+
+<body bgcolor=#CDB5CD>
+
+
+<a name=top></a>
+<table cellspacing="10" cellpadding="0" border="0" width="100%">
+  <tr>
+    <td align=left valign="top" width=30% bgcolor="#a0a0a0">
+    <table border="0" cellpadding="10" cellspacing="3" font size=+2 bgcolor="#ffffff" width=100%>
+      <td align="left" bgcolor="#e9e9e9"> <FONT
+      FACE="Lucida,Helvetica"> <font>Frequently
+      asked questions:</font>
+    </tr>
+    <tr>
+
+      <td>
+
+	  <table>
+	    <tr>
+	      <td align=left valign="top" bgcolor="#ccffcc">
+	      <font size=+1>Run-time problems:</font></td>
+	    </tr>
+      </table>
+
+      <ul>
+	<li><i><font color=red>No frames transcoded with
+	    <i>libdv-0.9</i>. What happened?</font></i>
+	    <br>
+	    
+	    I suspect you have hit the <i>libdv-0.9</i> MMX run-time detection bug.
+	    Please install <i>libdv-0.9.5</i> or newer or downgrade to <i>libdv-0.8</i>.  If you have <i>avifile</i> + DV codecs installed, you can also use
+	    "-x af6".<p>
+
+
+<li><i><font color=red>CSS keys were printed but ripping
+    stops immedatialy. Quoting Joern Reder:</font></i>
+	    <br>
+
+   Some users had problems with ripping DVDs since they 
+upgraded from <i>transcode 0.5.3</i> to <i>transcode 0.6.0</i>.
+    One symptom was 
+that CSS keys were printed but ripping stops immedatialy after this. I 
+couldn't help with this issue, because I couldn't reproduce it on my 
+system, but now we know the solution (after a success report from Matt 
+Hutchinson): mixing transcode versions in different installation 
+directories (e.g. /usr and /usr/local) mostly doesn't work. transcode 
+dynamically loads modules and this easily fails, if several versions 
+are mixed on the system.
+<br>
+So delete transcode 0.5.3 before upgrading or make sure that the old 
+binaries are overwritten. Check for binaries named tc*, avi* and 
+transcode in /usr/bin (or /usr/local/bin - attention: not all binaries 
+called this way need to belong to transcode, so check twice) and also 
+for a library directory called transcode in /usr/lib (or /usr/local/lib).
+</ul>
+
+<table>
+	    <tr>
+	      <td align=left valign="top" bgcolor="#ccffcc">
+	      <font size=+1>Transcoding artifacts:</font></td>
+	    </tr>
+      </table>
+      
+      <ul>
+	<li><i><font color=red>I get only weired colors, faces are blue?</font></i>
+	    <br>
+	    
+	    Use the "-k" option to swap blue and red color
+	    components of the internal RGB representation.<p>
+
+	<li> <i><font color=red>Encoding to DivX/XviD picture color is somehow screwed by
+	    colored shadows. What's wrong?</font></i><br>
+
+	     The video frame size (width and height) on export
+	     must be a multiple of 16 due to internal encoder
+	     restrictions. Also do not use cropping with odd parameters,
+	     like "-j 45" in conjunction with internal Y'CbCr (YV12/I420)
+	     color space representation<p>
+
+	<li><i> <font color=red>I have strange colors artifact using recent divx codec
+	     (divx4, ffmpeg) for playing my encoded movie. They are
+	     not present using older codecs (divx3, opendivx).</font></i><br>
+Your movie dimensions are probably incorrect, try re-encoding it with 16
+	     multiple height and width.<p>
+	     
+	<li> <i><font color=red>I try to encode a DVD PCM audio stream, but the
+	    resulting stream sounds like white noise?</font></i><br>
+
+	    In most cases, DVD PCM audio tracks require swapping
+	    of audio bytes with option "-d".<p>
+      </ul>
+
+      <table>
+	<tr>
+	  <td align=left valign="top" bgcolor="#ccffcc">
+	  <font size=+1>Required packages:</font></td>
+	</tr>
+  </table>
+  <ul>
+    <li><i><font color=red>Do I need the avifile library to read and write AVI-files?</font></i>
+	<br>
+	No. transcode comes with native AVI-file support. AVI-files
+	with multiple audio tracks are also supported by transcode.<p>
+  </ul>
+
+  
+  <table>
+	<tr>
+	  <td align=left valign="top" bgcolor="#ccffcc">
+	  <font size=+1>Compilation:</font></td>
+	</tr>
+  </table>
+  
+  <ul>
+
+      <li><i><font color=red>I have avifile v0.6 installed but transcode gives me errors
+	compiling the related modules. What can I do?</font></i>
+	<br>
+	
+	You can either disable avifile support by using the configure option
+	"--with-avifile-mods=no" or use a newer working official 0.6
+	snapshot. transcode is known to compile and work with CVS
+	snapshot of 2001-12-07.<p>
+
+    <li><i><font color=red>Will transcode work with latest avifile v0.7?</font></i>
+	<br>
+	
+	Maybe. Untested.<p>
+
+    <li><i><font color=red>I have liba52 v0.7.2 installed but transcode gives me errors
+	compiling the related modules. What can I do?</font></i>
+	<br>
+	
+	Please upgrade to liba52 v0.7.3 and make sure all static and
+	dynamic libs of the old package are removed. Older versions of
+	transcode (&lt;0.6.0pre3) however require liba52 v0.7.2 but
+	do not work properly. Upgrading is recommended.<p>
+
+ <li><i><font color=red>SuSE Linux 7.3 & 8.0 - mp2enc/mpeg2enc not found.</font></i><br>
+     Obwohl das mjpegtools-Paket installiert ist, findet transcode die
+Befehle mp2enc und mpeg2enc nicht. SuSE hat bei der Erstellung des
+     RPM-Paketes diese beiden Programme "vergessen". Um diesen Fehler zu
+     beheben, einfach das vorhandene Paket deinstallieren (rpm -e paket) und
+     das Originalpaket (http://download.sourceforge.net/mjpeg/) installieren
+     (rpm -i paket). Wichtig ist, dass das vorhandene Paket deinstalliert
+     wird, da in diesem Fall das neuere Paket als aelter erkannt und nicht
+     installiert wird, obwohl es eindeutig das neuere ist. <p>
+	
+  </ul>
+
+        <table>
+	<tr>
+	  <td align=left valign="top" bgcolor="#ccffcc">
+	  <font size=+1>Audio and video synchronization issues:</font></td>
+	</tr>
+  </table>
+  <ul>
+    <li><i><font color=red>My DivX/XviD movie encoded from a NTSC DVD is out of sync. What is wrong?</font></i>
+	<br>
+
+	This is a very complex issue. I will devote this a separate
+	entry somewhere else.<p>
+
+    <li><i><font color=red>Audio-Video out of sync after merging encoded DV or VOB
+	 clips?</font></i><br>
+	 There is a fundamental problem when merging files with MP3 sound, that
+have been transcoded individually. As far as I know, it needs a certain 
+amount of raw PCM data to make a MP3 encoded frame. At the end of the 
+encoding process, this condition is almost never fullfilled. Therefore, 
+some audio data are simply not encoded, or, using option -O, PCM data 
+are padded to make a final full MP3 frame. In the former case, 
+sound is too short in time, whereas in the latter, the audio played 
+by a player exceeds the video playtime. This may be only a few milliseconds 
+but add up when merging the clips.<p>
+
+	 <li><i><font color=red>What is the advantage using option "-t" in contrast to
+	      DVD chapter mode "-U"?</font></i><br>
+	      With option "-t", the MP3 encoder is not switched off. Buffered audio data
+never get lost. After merging, audio and video are OK (in theory).
+This is also the reason, why the cluster mode must use this approach encoding
+	      the audio in a separate step, unless you want to use raw
+	      PCM audio data. The chapter mode, however, splits
+	      logical movie units, which may be useful for other reasons.
+	 
+  </ul>
+
+
+  <table>
+    <tr>
+      <td align=left valign="top" bgcolor="#ccffcc">
+      <font size=+1>Transcode tools:</font></td>
+    </tr>
+</table>
+
+ <ul>
+    
+    <li><i><font color=red>avisplit breaks AV synchronization. What happened?</font></i>
+	<br>
+	aviplit is only able to correctly split transcode generates
+	AVI-files, i.e., interleaved files with video/audio frames paired.
+	<p>
+  </ul>
+  
+  <table>
+	<tr>
+	  <td align=left valign="top" bgcolor="#ccffcc">
+	  <font size=+1>Miscellaneous:</font></td>
+	</tr>
+  </table>
+
+  <ul>
+    
+    <li><i><font color=red>Why is transcode so slow? It sucks.</font></i>
+	<br>
+	Most processor time is spent in the codec on the
+	export side. Video frame processing sometimes is slow
+	depending
+	on the complexity of the operation. However, the most
+	significant
+	speedup is achieved by switching to internal Y'CbCr (YV12/I420)
+	representation
+	by using "-V". Most modules support this color space
+	representation which speeds up everything from decoding to
+	processing and re-encoding. On the down-side, color
+	information gets lost but is barely notable. Decide for
+	yourself
+	if you need high-quality results or a quick backup copy.
+	<p>
+
+    <li><i><font color=red>I have a couple of DV AVI-file clips I want to transcode as
+	 a single movie without merging. How does it work?</font></i><br>
+	 
+	 The "directory mode" with option "-i" also works for DV AVI-files (hopefully).
+	 Try to put all clips into a directory and use the directory name
+	 to let transcode extract and merge the raw DV stream for further processing.<p>
+	 
+	 
+  </td>
+</tr>
+</table>
+</table>
+
+
+
+
+<!-- hhmts start -->
+Last modified: Thu May 23 11:17:14 CEST 2002
+<!-- hhmts end -->
+
+</body> </html>

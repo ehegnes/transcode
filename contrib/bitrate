@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# calculations are based on
+if test $1; then CD_SIZE=$1; else CD_SIZE=700; fi
+FPS=7
+AUDIO_BTR=128
+
+read -p "Duration of the movie in minutes : " duration
+
+# let's calculate
+frames=$(( $duration*60*25 )) # number of frames
+calc_time_m=$(( $frames / $FPS / 60 )) # calculation time in minutes
+calc_time_h=$(( $calc_time_m / 60 )) # calculation time in hours
+rest=$(( $calc_time_m - $calc_time_h * 60 )) # bash only does integer division
+
+duration_sec=$(( $duration*60 )) # duration in seconds
+
+one_cd_kbs=$(( $CD_SIZE * 1024 / $duration_sec * 8 )) # bitrate for one cd
+two_cd_kbs=$(( $CD_SIZE * 1024 * 2 / $duration_sec * 8 )) # bitrate for two cds
+vbr1=$(( $one_cd_kbs - $AUDIO_BTR ))
+vbr2=$(( $two_cd_kbs - $AUDIO_BTR ))
+
+# show what we worked out
+echo "======================================"
+echo "* Number of frames    : $frames"
+echo "* Bitrate for one CD  : $one_cd_kbs kb/s = i.e. $vbr1 kbs video + $AUDIO_BTR kbs audio"
+echo "* Bitrate for two CDs : $two_cd_kbs kb/s = i.e. $vbr2 kbs video + $AUDIO_BTR kbs audio"
+echo "* estimated calc-time : $calc_time_m minutes = $calc_time_h hours and $rest minutes."
+echo
+echo "Calculated based on a CD size of $CD_SIZE MB and $FPS frames per second."

@@ -1,0 +1,195 @@
+/*
+ *  import_v4l.c
+ *
+ *  Copyright (C) Thomas Östreich - February 2002
+ *
+ *  This file is part of transcode, a linux video stream processing tool
+ *      
+ *  transcode is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2, or (at your option)
+ *  any later version.
+ *   
+ *  transcode is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *   
+ *  You should have received a copy of the GNU General Public License
+ *  along with GNU Make; see the file COPYING.  If not, write to
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+
+#include "transcode.h"
+#include "vcr.h"
+
+#define MOD_NAME    "import_v4l.so"
+#define MOD_VERSION "v0.0.2 (2002-02-03)"
+#define MOD_CODEC   "(video) v4l | (audio) PCM"
+
+#define MOD_PRE v4l
+#include "import_def.h"
+
+#define MAX_DISPLAY_PTS 25
+
+static int verbose_flag=TC_QUIET;
+static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM;
+
+//static char *default_audio="/dev/dsp";
+//static char *default_video="/dev/video";
+
+static uint32_t aframe_cnt=0;
+static uint32_t vframe_cnt=0;
+
+static double aframe_pts0=0, aframe_pts=0;
+static double vframe_pts0=0, vframe_pts=0;
+
+static int audio_drop_frames=25;
+static int video_drop_frames=0;
+
+/* ------------------------------------------------------------ 
+ *
+ * open stream
+ *
+ * ------------------------------------------------------------*/
+
+MOD_open
+{
+  
+  
+  if(param->flag == TC_VIDEO) {
+    
+    // print out
+    if(verbose_flag) printf("[%s] video4linux video grabbing\n", MOD_NAME);
+    
+    param->fd = NULL;
+    
+    //set channel_id with vob->v_track 
+    //set channel with vob->station or vob->station_id 
+    //set device with vob->video_in_file
+
+    switch(vob->im_v_codec) {
+      
+    case CODEC_RGB:
+    
+      if(video_grab_init(vob->video_in_file, vob->chanid, vob->station_id, vob->im_v_width, vob->im_v_height, VIDEO_PALETTE_RGB24, verbose_flag)<0) {
+	fprintf(stderr, "error grab init\n");
+	return(TC_IMPORT_ERROR);
+      }
+
+      break;
+
+    case CODEC_YUV:
+      if(video_grab_init(vob->video_in_file, vob->chanid, vob->station_id, vob->im_v_width, vob->im_v_height, VIDEO_PALETTE_YUV420P, verbose_flag)<0) {
+	fprintf(stderr, "error grab init\n");
+	return(TC_IMPORT_ERROR);
+      }
+
+      break;
+    }
+    
+    vframe_pts0 =  vframe_pts = v4l_counter_init();
+    video_drop_frames = audio_drop_frames - (int) ((vframe_pts0-aframe_pts0)*vob->fps);
+    if(verbose_flag) printf("[%s] dropping %d video frames for AV sync\n ", MOD_NAME, video_drop_frames);
+    
+    return(0);
+  }
+  
+  if(param->flag == TC_AUDIO) {
+    
+    // print out
+    if(verbose_flag) printf("[%s] video4linux audio grabbing\n", MOD_NAME);
+    
+    //set device with vob->audio_in_file 
+    if(audio_grab_init(vob->audio_in_file, vob->a_rate, vob->a_bits, vob->a_chan, verbose_flag)<0) return(TC_IMPORT_ERROR);
+
+    aframe_pts0 = aframe_pts = v4l_counter_init();
+
+    param->fd = NULL;
+    
+    return(0);
+  }
+  
+  return(TC_IMPORT_ERROR);
+}
+
+/* ------------------------------------------------------------ 
+ *
+ * decode  stream
+ *
+ * ------------------------------------------------------------*/
+
+MOD_decode{
+  
+  if(param->flag == TC_VIDEO) {
+
+    do {
+      
+      video_grab_frame(param->buffer);
+      if((verbose & TC_STATS) && vframe_cnt<MAX_DISPLAY_PTS) v4l_counter_print("VIDEO", vframe_cnt, vframe_pts0, &vframe_pts);
+
+      ++vframe_cnt;
+      --video_drop_frames;
+      
+    } while(video_drop_frames>0);
+    
+    return(0);
+  }
+  
+  if(param->flag == TC_AUDIO) {
+    
+
+    do {
+      
+      audio_grab_frame(param->buffer, param->size);
+      if((verbose & TC_STATS) && aframe_cnt<MAX_DISPLAY_PTS) v4l_counter_print("AUDIO", aframe_cnt, aframe_pts0, &aframe_pts);
+
+      ++aframe_cnt;
+      --audio_drop_frames;
+      
+    } while(audio_drop_frames>0);
+    
+    return(0);
+ }
+ 
+ return(TC_IMPORT_ERROR);
+
+}
+
+/* ------------------------------------------------------------ 
+ *
+ * close stream
+ *
+ * ------------------------------------------------------------*/
+
+MOD_close
+{  
+
+  if(param->flag == TC_VIDEO) {
+    
+    // stop grabbing
+    video_grab_close();
+    
+    if(param->fd != NULL) pclose(param->fd);
+    return(0);
+  }
+  
+  if(param->flag == TC_AUDIO) {
+    
+    // stop grabbing
+    audio_grab_close();
+    
+    if(param->fd != NULL) pclose(param->fd);
+    return(0);
+  }
+  
+  return(TC_IMPORT_ERROR);
+}
+
+

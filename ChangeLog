@@ -1,0 +1,2759 @@
+---------------------------------------------
+transcode-0.6.0 Thu Aug  2 00:20:07 CEST 2002
+
+- This is 0.6.0 (final), fixes for rc4 provided by Tilmann Bitterberg.
+	
+- fixes for GCC-3.X compile problems with the new yuvdenoise filter.
+	
+- import_nuv fixes for directory mode.
+
+- transcode manpage updates.
+	
+- obsolete debian build support directory removed.
+
+------------------------------------------------
+transcode-0.6.0rc4 Tue Jul 30 21:13:00 CEST 2002
+	
+- last release candidate (rc4) for 0.6.0 (final).
+
+- Experimental Ogg multimedia support added by Tilmann Bitterberg.
+  This includes Ogg Vorbis audio encoding/decoding modules. 
+  For more information on creating Ogg compliant media streams see 
+  Moritz Bunkus' oggmtools:
+
+  http://www.bunkus.org/videotools/ogmtools/ 
+
+  Encode, e.g., to separate AVI XviD video / Ogg Vorbis audio stream with
+
+  $ transcode [...]  -y xvid,ogg -m audio.ogg -o video.avi 
+
+  and use oggmerge to multiplex into a n Ogg Multimedia stream. 
+  Auto-probing is also available but no demuxing. 
+  Decoding only for Ogg Vorbis single audio streams with the new import 
+  module "import_ogg.so". 
+	
+- Dominique CARON <domi@LPM.univ-montp2.fr> updated the vob2divx.pl
+  perl script in the contrib directory to v.0.9.9
+
+- Patch by alex@foogod.com should fix most of not all of the issues with 
+  auto-probing  LAV editlists.
+
+- removed the PVM_HALFPELDIAMOND8 flag from the quality levels in the 
+  XVID export modules family.
+
+- first version of a YUV denoise filter by Tilmann Bitterberg.
+  Read /docs/filter_yuvdenoise.txt for general and transcode
+  specific information. Syntax is as usual:
+
+  $ transcode [...] -q2 -J yuvdenoise=help:sharpen=100:mode=2
+  
+- Patch by Damian Ivereigh <damian@cisco.com> to fix a problem when trying 
+  to get audio from AVI files when you refer to them just by the directory 
+  name.
+
+- Patches by alex@foogod.com for the MJPEG import filter, which will allow
+  it to (correctly) read:
+
+  1) Files with interlaced MJPEG fields
+  2) Files with frames using YUV 4:2:2 and 4:4:4 representations.
+
+  Among other things, this means that import_mjpeg can now read  interlaced 
+  MJPEG files produced by lavrec (interlaced 4:2:2) directly. 
+
+- Patch by alex@foogod.com for export_divx4.c 
+  to make it work correctly with either DivX 4.x or 5.x encoder libraries. 
+  Further development will focus on DivX 5.xx.
+
+- bits per pixel info added by Tilmann Bitterberg.
+
+- new import module "import_rawlist.so" to process a file list of raw video 
+  frames. Simalr to "import_imlist.so" but only raw frames. You
+  need to supply all video data on the command line. Untested.
+	
+------------------------------------------------
+transcode-0.6.0rc3 Thu Jul 11 22:19:11 CEST 2002
+
+- this snapshot is the third release candidate (rc3) for 0.6.0 (final).
+  Not much fixes but pending patches. 
+	
+- Dominique CARON <domi@LPM.univ-montp2.fr> updated the vob2divx.pl
+  perl script in the contrib directory to v.0.8.3
+
+- new audio filter "-J normalize" by Tilmann Bitterberg 
+  <transcode@tibit.org>. 	 
+
+- improved buffered reading/writing in the popen import sequence by 
+  Tilmann Bitterberg.
+
+- the preview window "-J preview" now closes typing "q" and 
+  transcode continues to run, thanks to some patching by Tilmann.
+
+- Moritz Bunkus <moritz@bunkus.org> conributed a Mplayer plugin for import. 
+  This is mainly intended for severly broken sources, that otherwise
+  fail to encode properly with transcode. There will be no autodetection
+  of video and audio parameters. Untested.
+	
+------------------------------------------------
+transcode-0.6.0rc2 Thu Jun 20 22:15:12 CEST 2002
+
+- this snapshot is the second release candidate (rc2) for 0.6.0 (final).
+	
+- applied Tilmanns fix for the NuppelVideo import bug.
+
+- added the export_xvidraw.so module requested by Fabio Bizzi 
+  <bizzi@albacom.net>. 
+
+- header fix for export_wav.so by Tilmann.
+
+- avisync fix for muting sound by Tilmann.
+
+- ISO8601 date compliance fixed by Eduardo Perez <eperez@dei.inf.uc3m.es>
+
+- fixed tcmplex to correctly detect and multiplex MP3 audio streams, which
+  actually never worked before.
+
+- import_v4l.so patched to support percents settings for the hue, contrast, 
+  color and brightness settings in the file ~/.xawtv by Edouard Gomez 
+  <ed.gomez@wanadoo.fr>.
+
+- updates for Tilmann's "filter_logo.so" plug-in. Support for animated GIF
+  added.
+
+- finally fixed the --no_split / --psu_mode NTSC bug which caused a decoder 
+  thread to restart on full frame buffer condition and messed 
+  the encoding process. Thanks to Torsten Howard for the "Willow" donation
+  to make the debugging possible.
+
+- new option -c activated for tcmplex. Use "-c a-b" to multiplex a given
+  time interval a-b in units of seconds only. This is very convenient for
+  splitting VCD/(S)VCD/VOB into suitable chunks.
+
+- fixes for import_nvrec.so keep up to date with latest NVrec tools, submitted
+  by Tilmann.
+	
+------------------------------------------------
+transcode-0.6.0rc1 Wed Jun 12 22:16:18 CEST 2002
+
+- this snapshot is the first release candidate (rc1) for 0.6.0 (final).
+	
+- Dominique CARON <domi@LPM.univ-montp2.fr> updated the vob2divx.pl
+  perl script in the contrib directory to v. 0.7.0
+
+- Arne Driescher <driescher@mpi-magdeburg.mpg.de> updated
+  the subrip program in the contrib/subrip directory.
+
+- fixes for the odd cut filter behavior by Tilmann Bitterberg 
+  <transcode@tibit.org>.	
+
+- manpages updates by Tilmann Bitterberg.
+
+- updates for "-J 32detect". The filter now accepts a couple of options:
+
+   'threshold'  interlace detection threshold [10]
+   'equal'      threshold for equal colors [10]
+   'diff'       threshold for different colors [30]
+   'force_mode' set internal force de-interlace flag with mode -I N [0]
+                (currently only 1 and 3 are supported)
+   'verbose'    show results [off]
+
+  Example:
+  transcode -i ~/d.vob -J 32detect=diff=30:force_mode=3
+
+  The testframe generated with "-J testframe" gives a maximum of approx. 1000
+  renormalized counts but a typical interlaced video frames gives much 
+  less counts, therefore the default threshold is 10. The check is based 
+  on pixels changing color going to neighbor row (diff), while having 
+  almost equal color to next-neighbor row (equal) of same column.
+
+- Tilmann added a color inversion filter "-J invert". Use "-J invert=help"
+  to learn about options.
+
+- applied a patch by Percy Jahn <jahn@kima.mv.ad.uni-kl.de> which
+  adds some more parameters for the user profile. Untested.
+
+----------------------------------------------------------
+transcode-0.6.0pre6-20020608 Sat Jun  8 23:43:09 CEST 2002
+
+- fixes for import_xml.so by Marzio <Marzio.Malanchini@omnitelvodafone.it>.
+
+- fixes for too small buffer arrays in various export modules.
+
+- docu update for import_nvrec.so by Tilmann Bitterberg <transcode@tibit.org>.
+
+- new long option "--encode_fields" to enable field based encoding in 
+  export_xvidcvs.so.
+
+- changes in the AV re-sync algorithm. Dropping/duplicating frames for "-M 2"
+  should be much smoother now fixing the observed jerky motion on replay. 
+
+- Tilmann Bitterberg <transcode@tibit.org> added some option string parsing 
+  code for modules/filters. Quoting Tilman: 
+  
+  The string has to look like
+
+  char opt[]="flag=1:range=100-200:sound=44100,16,2:file=foo.avi"
+ 
+  The author of a module who wants to use this facility must only
+  do the following
+
+  #include "optstr.h"
+
+  optstr_get(opt, "file",  "%[^:]",    infile);
+  optstr_get(opt, "flag",  "%d",       &flag);
+  optstr_get(opt, "range", "%d-%d",    &start, &end);
+  optstr_get(opt, "sound", "%d,%d,%d", &freq,  &bits, &chan);
+
+  If one would like only test if a string is specified
+
+  if (optstr_get(opt, "flag", "") >= 0) ...
+
+  I converted my filter modules to use these functions. With this
+  i hope we will get options to import and export modules like
+
+  -x ivmod=flag=1:range=0-100,iamod=...  
+
+  Note: this is not implemented for modules yet.
+	
+----------------------------------------------------------
+transcode-0.6.0pre6-20020529 Wed May 29 23:18:46 CEST 2002
+
+- updated included ffmpeg libavcodec to 0.4.6 (CVS).
+
+- new export module "-y ffmpeg4" to encode with ffmpeg's fast
+  MPEG-4 implementation contributed by Moritz Bunkus <moritz@bunkus.org>.
+
+- fix for the -P2 bug by Tilmann Bitterberg <transcode@tibit.org>.
+
+- various updates for "-x nvrec" by Tilmann Bitterberg.
+
+- the configure script now searches for an installed libdvdread. If 
+  you have already libdvdread installed, it is prefered, otherwise
+  transcode falls back and uses the included copy. DVD navigation can be 
+  disabled with configure option "--with-dvdread=no".
+
+- new pass-through option -A for tcdemux. For example, if you want to
+  reduce a VOB to audio track 1, video and maybe the first subtitle, run:
+
+  tcdemux -i foo.vob -A 0xe0,0x81,0x20 > smaller_foo.vob
+
+- export_toolame enhanced with a high-quality sox audio resampling filter by
+  Cristian Vogelgsang <Vogelgsang@informatik.uni-erlangen.de>.
+
+- Tilmann Bitterberg <transcode@tibit.org> introduced a dummy import
+  module "auto". This module simply invokes the autoprobing of transcode
+  for video/audio.This comes in place if you only want to force a audio import
+  module and let video be probed, eg:
+
+  transcode -i file -x auto,null ...
+
+----------------------------------------------------------
+transcode-0.6.0pre6-20020524 Fri May 24 17:30:20 CEST 2002
+
+- more fixes for avisplit by Tilmann Bitterberg and Chris C. Hoover.
+  Special split mode with "-s 0" re-enabled.
+
+- long option --psu_mode no longer takes an argument. This
+  is now elegantly handled by option -o, thanks to Joern Reder and Jason Lunz.
+
+- new long option --a52_dolby_off to disable dolby surround decoding.
+  Required when using audio resampling based on bug report by 
+  Christian Vogelgsang.
+
+- small configure fixes. Disable X11 mods with "--disable-x".
+
+- renamed export_mjpeg.c to export_ffmpeg.c to make it a general ffmpeg export
+  API soon.
+
+- new export module for encoding to fourcc MJPG with libjpeg by
+  Ben Collins <bcollins@debian.org> with "-y mjpeg". Not yet tested.
+  The module is compiled if libjpeg is properly installed on your system.
+  No -V and -Q options yet implemented.
+	
+- moved some general purpose routines for libioaux.
+
+- new man pages contributed by Tilmann Bitterberg <transcode@tibit.org>.
+
+- fixes for -q 0 (quiet) option by Tilmann Bitterberg.
+
+- stdint.h now only included if HAVE_STDLIB_H also defined.
+	
+-------------------------------------------------
+transcode-0.6.0pre5 Thu May 16 13:12:52 CEST 2002
+
+- fixes for avisplit: absolute paths now working again. Enabled
+  option "-c" to merge chunks generated by "-t" option on-the-fly.
+  Infos printed on "-h" updated.
+
+- ImageMagick now hopefully detected correctly.
+
+- reorganized the off-line documentation in /docs/html/.
+
+- patch for import_mov.c for a reported audio problem by Cristian Vogelgsang 
+  <Vogelgsang@informatik.uni-erlangen.de>.
+
+- updates for "-x nvrec" by Cristian Vogelgsang. Please read the documentation
+  /docs/import_nvrec.txt for detailed changes.
+	
+----------------------------------------------------------
+transcode-0.6.0pre5-20020514 Tue May 14 16:05:03 CEST 2002
+
+- fixed unwanted chapter looping for audio only processing.
+
+- fix for broken "-T 1,-1" chapter looping in tccat.
+
+- updated the off-line documentation in /docs.
+	
+----------------------------------------------------------
+transcode-0.6.0pre5-20020513 Mon May 13 08:56:28 CEST 2002
+
+- fixed the stupid -E option check bug. However, the changing the audio bits 
+  and channels with option parameters is not yet implemented.
+
+- new core mode "--dir_mode" to work-around import modules
+  that lack the "tccat" capability to process directory contents.
+  This option enables avimerge functionality in addition with --no_split" for
+  pass-through processing without merging first.
+
+- small fix for af6_decore.cpp by Andreas Boman <aboman@nerdfest.org>.
+	
+----------------------------------------------------------
+transcode-0.6.0pre5-20020510 Fri May 10 13:43:06 CEST 2002
+
+- VDR/MPEG directory mode enabled.
+
+- fixes for encoding of chapter range with -T. Example: -T 1,2-5
+  encodes chapters 2,3,4,5 and is now working without -U option.
+
+- patch to fix option processing of -T by Kresimir Kukulj <madmax@iskon.hr>.
+
+- more BSD fixes by Steven M. Schultz <sms@2BSD.COM>.
+
+- liba52 dynamic range compression enabled by default. Switch it
+  off with new long option --a52_drc_off
+
+- new audio export module "-y pcm" for raw PCM data output. This
+  module is only useful for demultiplexing multi-channel audio, e.g.,
+  AC3/A52 in connection with required liba52. Demultiplexing is enabled with
+  new long option --a52_demux and correct import channel number.
+
+  Example: transcode [...] -e 48000,16,6 -y null,pcm --a52_demux -m track
+
+  produces 6 files:
+  track_c.pcm  track_l.pcm  track_lfe.pcm  track_ls.pcm  track_r.pcm  
+  track_rs.pcm
+	
+  It is not checked, if the import source is suitable. YMMV.
+  Note: this feature is currently not working!!!!
+
+- Tilmann Bitterberg added a new import module to connect NVrec with
+  transcode. Please read the documentation /docs/import_nvrec.txt
+  for detailed information.
+	
+----------------------------------------------------------
+transcode-0.6.0pre5-20020506 Mon May  6 16:31:37 CEST 2002
+
+- introducing pre/post processing slots for video processing.
+  Currently only -j/-Y with equivalent long options --pre_clip/--post_clip
+  is implemented.  
+	
+  (A) pre-processing (internal, fixed order, video only, single-threaded)
+      Ex: --pre_clip (NEW!)
+
+  (B) pre-processing (plug-ins, user defined order, single-threaded)
+      Flag set: TC_PRE_S_PROCESS
+      Ex: -J extsub, astat
+
+  (C) pre-processing (plug-ins, user defined order, multi-threaded)
+      Flag set: TC_PRE_M_PROCESS
+      Ex: -J mask
+
+  (D) main processing (internal, fixed order, multi-threaded)
+      Ex: -j, -I, -B, ..., -C
+
+  (E) post-processing (plug-ins, user defined order, multi-threaded)
+      Flag set: TC_POST_M_PROCESS
+
+  (F) post-processing (plug-ins, user defined order, single-threaded)
+      Flag set: TC_POST_S_PROCESS
+      Ex: -J extsub=0:0:0:0:1,preview
+
+  (G) post-processing (internal, fixed order, video only, single-threaded)
+      Ex: --post_clip (NEW!)
+
+- changes for option -T to allow encoding of a chapter range.
+  Example: -T 1,1-4 
+  encodes DVD chapters 1,2 and 3 of DVD title 1. This extended option
+  is fully backwards compatible, i.e, -T 1,2 encodes only chapter 2
+  and -T 1,-1 concatenates all chapters before encoding. The option can also 
+  be used to limit chapters for chapter (core-)mode with -U. 
+  Extended options for -T also available for tccat.
+	
+- more infos with -q2 on path of loaded external MPEG-4 codecs.
+
+- small --nav_seek bugfix by Jason Lunz.
+
+- dvenc.c libdv-CVS related fix by Stefan Lucke. 
+
+- tcprobe related bug reported by Moritz Bunkus with spaces in filenames fixed.
+
+- check for lame.h in lame/lame.h to make it compile on RH7.2
+
+- duplicated "extsub" filter to "extsub2". Currently this is the only
+  way to add 2 subtitles at the same time in case someone ever needs this
+  feature.
+
+- typo in --record_v4l option fixed thanks to Yannick Calmes.
+	
+----------------------------------------------------------
+transcode-0.6.0pre5-20020503 Fri May  3 13:55:51 CEST 2002
+
+- Andreas Neukoetter <anti@webhome.de> wrote a toolame export filter.    
+
+- changes for avisplit by Chris C. Hoover <cchoover@charter.net>.
+  The option -t is able to split an AVI-file based on time and frame 
+  parameter. Here is an example:
+
+  avisplit [...] -t ::.-12345,:.2-1:18.345
+
+  does he following. It will split a first chunk starting at
+  0 minutes, 0 seconds and 0 frames to 12345 frames. In addition, a second
+  chunk covers 0 seconds and 2 frames to 1 minutes, 18 seconds and 345 frames.
+  Sounds complicated but gives you full freedom to choose a chunk.
+  Please note, for MPEG-4 AVI-files, the cut is made at a nearby keyframes.
+
+  Another example for a single chunk:
+  avisplit [...] -t -n:m:l.k 
+  
+  means 0 hours, 0 minutes, 0 seconds and 0 frames to n hours, m minutes, 
+  l seconds and k frames. Any timecode is translated to frames based on the
+  frame rate.
+	
+- a couple of "-q 0" related bugs fixed, thanks to a report by
+  Thilo Mezger <thilo.mezger@web.de>.
+
+- AVI-files with raw YV12/I420 codec now correctly processed.
+
+- fixed the configure error on "--with-avifile-mods=no".
+
+- added 1s delay on encoder closing in chapter/psu mode. The reported 
+  segfault with --no_split has been fixed.
+
+- proper parameter initialization in export_divx(4/5).so fixed
+  by Christoph Lampert.
+  
+----------------------------------------------------------
+transcode-0.6.0pre5-20020426 Fri Apr 26 09:12:41 CEST 2002
+
+- this release does not fix any bugs or adds new features!
+
+- changes in the configure.in. Upgraded my development platform to:
+  autoconf (GNU Autoconf) 2.53
+  libtoolize (GNU libtool) 1.4.2
+  automake (GNU automake) 1.6.1
+
+----------------------------------------------------------
+transcode-0.6.0pre5-20020425 Thu Apr 25 21:53:16 CEST 2002
+
+- update for the contrib/vob2divx.pl script by
+  CARON Dominique <domi@LPM.univ-montp2.fr>. Support for dvdrip added.
+
+- experimental support for latest DivX 5.xx encoding available.
+  The export module has been contributed by Christoph Lampert 
+  <chl@math.uni-bonn.de>. If you want to make a transition to this
+  new DivX binary only codec version please use "-y divx5". If you are not 
+  planning to switch and want to stick to DivX 4.02, use "-y divx4" instead. 
+  For both major version, the encoder binary is named "libdivxencore.so".
+  The new module will not work with the older codec binary.
+	
+  In addition, the new module "export_divx5.so" now also generates a 
+  logfile for 2-pass encoding using -R3 (fixed quantizer).
+
+- fix for the giant bitrate problem and XviD encoding. The export module
+  "-y xvid" should now work with latest official XviD codec release of
+  2002-04-12.
+	
+----------------------------------------------------------
+transcode-0.6.0pre5-20020423 Tue Apr 23 21:35:44 CEST 2002
+
+- new long option "--no_split" to enable 
+	o DVD chapter mode "-U <base>" 
+	o VOB program stream unit (psu) mode "--psu_mode <base>"
+  to encode to a single outputfile, rather than splitting the
+  output for each chapter/psu. Useful for 2-pass encoding.
+
+- RGB mode extensions for 32drop/cshift/mask filter plugins and small
+  bugfixes by Chad Page <cpage@silcom.com>.
+
+- bugfix for the subrip program in contrib/subrip by Arne Driescher 
+  <driescher@mpi-magdeburg.mpg.de>.
+
+- bugfix for audio only cluster mode bug introduced in last snapshots
+  reported by Frank.Seidel@student.fh-nuernberg.de.
+
+- fixes for MPEG VOB from DVB-C, that have a PTS every second packet only.
+  Thanks to samples provided by Peter Bieringer <pb@bieringer.de>. 
+	
+----------------------------------------------------------
+transcode-0.6.0pre5-20020419 Fri Apr 19 13:43:27 CEST 2002
+
+- new long option "--cluster_chunks a-b" for convenient
+  selection of a chunk range in addition to existing cluster encoding
+  options. This is a mainly for (S)VCD/DVD cluster encoding. New
+  option works for audio and video.
+
+- new transcode core mode that is suitable for NTSC programs streams that
+  show a high fragmentation due to program stream units (PSU). It seems
+  that the PSUs, that are defined by a reset of the presentation time stamp 
+  (PTS) require also a re-synchronization of audio and video.
+  This is impossible in the current design of transcode. However, this new mode
+  takes the navigation logfile with "--nav_seek <logfile>" and can be enabled
+  by "--psu_mode <base>". Similar to DVD chapter mode, the import is 
+  restarted at every PSU, thus taking a proper re-synchronization into account,
+  whereas the audio encoding in continuous. The individual files can be 
+  merged to one or more bigger chunks. If you only need to 
+  encode a certain PSU range, use the additional new long option 
+  "--psu_chunks a-b[,c]". The third parameter is a threshold, that avoids
+  encoding units that contain less or equal c frames to skip junk units
+  without messing AV synchronization. Default is c=12.
+
+  Please note: 
+     o experimental, not yet tested on a 2h movie.
+     o this mode may show audible artifacts at the unit transitions.
+     o it can only be used with "-x vob".
+	
+- new long option "--seek_nav <logfile>" to support fast seeking
+  to a frame region with option -c using the navigation logfile produced 
+  by "tcdemux -W". Patch contributed by Jason Lunz <lunz+mlist@falooley.org>.
+  This option will only work in connection with "-x vob".
+	
+- CVS XviD module "export_xvidcvs.so" updated by Christoph Lampert 
+  <chl@math.uni-bonn.de>.
+
+- "import_divx.so" import module update to DivX 5.0 by Christoph Lampert.
+	
+- update for the subrip program in contrib/subrip by Arne Driescher 
+  <driescher@mpi-magdeburg.mpg.de>.
+
+- fixes for the spec file by Michel Alexandre Salim <salimma1@yahoo.co.uk>.
+	
+----------------------------------------------------------
+transcode-0.6.0pre5-20020416 Tue Apr 16 22:20:01 CEST 2002
+
+- more fixes for "avisplit" and "avisync" by Chris C. Hoover.
+
+- transcode is now able to detect field/frame encoded MPEG sequences 
+  and to adjust AV sync algorithm if necessary. This fixes also related
+  subtitle timing problems.
+
+- update for MPlayer libpostproc dependent filter plug-in by 
+  Tilmann Bitterberg. If you need to work with MPlayer CVS, use
+  the new "-J ppcvs". To obtain information on option parameter, 
+  try "-J ppcvs=help". The default plugin "-J pp" is compliant with the 
+  official MPlayer 0.60 libpostproc API.
+
+- small bug for -D detected by Michael Stuermer <Michael.Stuermer@mallorn.de>.
+
+- changes in the spec file by Michel Alexandre Salim <salimma1@yahoo.co.uk>.
+	
+----------------------------------------------------------
+transcode-0.6.0pre5-20020415 Mon Apr 15 09:39:42 CEST 2002
+
+- Chris C. Hoover <cchoover@charter.net> has updated the "avisplit" tool
+  and add new features.
+
+- MP2 audio detection was broken in last snapshot - fixed.
+
+- new import module for raw yuv picture import "-x yuv" by 
+  Marek Blaszkowski <mb@intercon.pl>. No auto-detection for raw frames and
+  directory mode for "-i" only. You must specify the frame parameter. 
+  See import/yuv/Readme for details.
+
+- changes to compile with libdv-0.9.5, if detected.
+
+- preliminary fixes for subtitles and -V showing shadow effects due
+  to chroma misalignement.
+	
+----------------------------------------------------------
+transcode-0.6.0pre5-20020410 Wed Apr 10 15:04:46 CEST 2002
+
+- option -f now allows "0" if frame rate code is provided.
+  Example: -f 0,1 sets framerate to 24000/1001=23.976024
+
+- fixes for non-symmetric negative vertical cropping values. Now
+  both options "-Y/-j" fully functional for positive and negative
+  arguments.
+
+- applied a patch contributed by Nicolas Vignal <nicolas.vignal@fnac.net>
+  to make transcode work with filenames that include spaces.
+
+- updates for filter_32drop.so by Chad Page <cpage@silcom.com>.
+
+- bugfix for filter_xsharpen.so by Tilmann Bitterberg.	
+
+- Chad Page <cpage@silcom.com> reintroduced mode "-F 6" for export_mpeg2enc.so   to support user specification of almost all mpeg2enc options.  
+  This allows you to set up really good (but slow) encodes.               
+
+- added "filter_logo.so" contributed by Tilmann Bitterberg. The filter
+  needs ImageMagick installed. Get some usage help with "-J logo=help".
+
+- new long option "--av_fine_ms t" for AV sync correction expressed in ms.
+  t>0 will drop audio samples equivalent of t ms to change AV sync.
+  t<0 will padd audio samples equivalent of t ms to change AV sync.
+  note: t > 1./fps will be converted to -D option parameter to yield
+  an effective t < 1./fps [ms].
+	
+- experimental support for new AV sync correction strategies "-M3/-M4"
+  for automatic/manual AV fine-tuning down to 1ms.
+
+  -M 3 (like -M 1) but invokes "-D/--av_fine_ms" options internally based
+       on "tcprobe" PTS analysis.
+  -M 4 (like -M 2) with additional frame rate enforcement (for NTSC). 
+
+- added AVI-file index printout to tcscan.
+	
+----------------------------------------------------------
+transcode-0.6.0pre5-20020404 Thu Apr  4 10:10:49 CEST 2002
+
+- new long option "--keep_asr" for smart resizing and keeping the aspect ratio
+  introduced by Tilmann Bitterberg. This option requires also use of "-Z".
+
+- updated the anti-alias routines to use integer arithmetic and lookup tables
+  for minor speedups. New long option "--antialias_para w,b" to fine tune 
+  processing. "w" (0<w<1) denotes center pixel weight (default=1/3) with
+  respect to the 8 neigbours. "b" (0<w<1) determines relative x/y weight 
+  (default=0.5). b=0 disables anti-aliasing in x-direction and b=1 disables 
+  anti-aliasing in y-direction. Option -C is now thread-safe and fully
+  working for all modes (1-3).
+
+- new long option "--duration hh:mm:ss" introduced by Chris C. Hoover which
+  limits grabbing from a v4l device.
+
+- new long option "--no_audio_adjust" to disable periodically audio frames size
+  adjustments for odd frame rates.
+
+- added option parameter for "extsub" plugin to enable overlay on
+  post-processing. This makes it possible to add black bars with "-j/-Y"
+  before adding the subtitle and avoids fonts beeing messed by other frame
+  processing routines. See "Examples" section on transcode homepage.
+	
+----------------------------------------------------------
+transcode-0.6.0pre5-20020402 Tue Apr  2 22:45:16 CEST 2002
+	
+- changes in the AV sync mode in the MPEG demuxer. Removed drop sequence in
+  favor of "-D" option, which seems to work better.
+
+- new filter plugins added by Chad Page <cpage@silcom.com>. First and last 
+  filter mostly for NTSC. Here is what he posted:
+  
+      o 32drop (no options) is like 32detect but drops frames and
+	maintains an internal frame counter so that if interlaced frames are
+        irregular the video will not fall out of sync more than 1 or 2 frames.
+
+      o mask (mask=left:right:bottom:top, sorry that's not in the right
+        order yet) is YUV only for now, and sets Y in the masked areas to 0 so
+        that you can crop out unstable captured areas from VHS tape and make
+        32drop work better.
+
+      o chroma shifter (cshift=#) is another YUV-only filter shifts the
+        chroma values by #, so that if your NTSC vhs cap has lagged colors
+        (noticable here in animation) you can partially correct it. 
+	I have found that black line areas maintain color information.
+
+- Makefile in libsupport replaced by Juergen Hennerich 
+  <s-hej4@jura.uni-tuebingen.de>.
+
+- some unused network code removed.
+	
+- fix for an "assert" problem in ifo_read.c by eperez@dei.inf.uc3m.es.
+
+- Altivec support added by Guillaume Morin <guillaume@morinfr.org>.
+
+- small BSD fixes by Steven M. Schultz <sms@2BSD.COM>.
+
+- small fixes for export_xvid(cvs).so by Christoph Lampert <chl@math.uni-bonn.de>.
+
+- new long option "--record-v4l" for grabbing based on a time interval 
+  in seconds as suggested by Chris C. Hoover <cchoover@charter.net>. 
+
+- updates for filter_extsub.so.
+
+------------------------------------------------
+transcode-0.6.0pre4 Wed Mar 27 00:08:40 CET 2002
+
+- fixes for the avifile import API provided by Christian Vogelgsang 
+  <Vogelgsang@informatik.uni-erlangen.de>. His update also enables
+  packed to planar 4:2:0 conversion if necessary and MainActor MJPEG codec
+  is now fully working.
+	
+- fixes for interlaced MJPEG codec by MainActor for the native import support.
+  In this case only one field is currently decoded.
+  Example: let 720x576 be the frame dimension detected by tcprobe. You need
+  transcode [...] -g 720x288 -k (-X 9,0 or -Z 720x576)
+  to resize the field to a full frame.
+
+- applied PPC patch contributed by Guillaume Morin <guillaume@morinfr.org>.
+  
+- bugfix for the NuppelVideo import module by
+  Christian Vogelgsang <Vogelgsang@informatik.uni-erlangen.de>.
+
+- forked the XviD export:
+  
+  o Use latest official snapshot 2002-03-17 with "-y xvid". 
+  o If you follow CVS, please use "-y xvidcvs" instead.
+	
+- small update for export_xvidcvs.c by Edouard Gomez <ed.gomez@wanadoo.fr>.
+
+- update for import_xml.so. Please see the documentation in 
+  /docs/import_xml.txt provided by Marzio Malanchini on how to use this
+  module.
+
+- avimerge progress info finally available.
+
+- added new export module "-y divx4raw". This will basically have all the
+  features of "-y divx4" but will write a raw bitstream to the filename
+  provided with "-o". You also need to supply "-m" if you want to obtain
+  the raw audio stream with your format/codec of choice.
+	
+---------------------------------------------------------
+transcode-0.6.0pre4-20020324 Sun Mar 24 20:45:52 CET 2002
+
+- updates for the MPEG export. The most important features are now documented
+  and available both for PAL and NTSC. Please see
+  http://www.theorie.physik.uni-goettingen.de/~ostreich/transcode/mpeg.html
+
+  known issues:
+  o mjpeg-tools and option --pulldown for 3:2 pulldown does not work
+  o bbtools mpeg2 encoder for frame size 352x240 broken
+  o tcmplex profile parameter "max_file_size" untested
+
+  changes:
+  profiles merged in "-y mpeg2enc", i.e., 
+	-F 0    MPEG-1
+        -F 1    standard VCD
+	-F 2    user VCD
+        -F 3    MPEG-2
+	-F 4    standard (S)VCD
+	-F 5    user (S)VCD
+  support both PAL and NTSC depending on framerate. In addition, more options
+  can be passed to "mpeg2enc" with a 2nd argument to "-F". However, for the
+  standard profiles (1+4) parameters beyond specification are ignored.
+	
+---------------------------------------------------------
+transcode-0.6.0pre4-20020322 Fri Mar 22 14:31:08 CET 2002
+	
+- progress info added to avimerge by Joern Reder.
+
+- patch by Jason Lunz <j@falooley.org> to lift frame size restriction if frame
+  resizing is only applied to one dimension (-B/-X).
+
+- Linux/Alpha patch broke bbmpeg. Fixed.
+
+- tcmplex has a new option to alter default profile settings for video/audio 
+  delay in ms. For example, the DVD profile "-m d" sometimes 
+  requires "-D 0" to adjust AV sync.
+	
+---------------------------------------------------------
+transcode-0.6.0pre4-20020321 Thu Mar 21 20:23:49 CET 2002
+
+- AV sync improvements for program streams.
+	
+- disabled auto-probing of AV shift for -M 1/2.
+	
+- quick bugfix release for the broken directory mode.
+	
+- title set number info added to tcprobe by Christian Vogelgsang.
+
+- compilation problems, if no libxml2 present, hopefully solved.
+
+- small scan_pes.c fix for not detecting MPEG video sequence headers.
+
+- included the new filters that somehow got lost.
+
+- vob2divx perl script updated by CARON Dominique <dcaron@LPM.univ-montp2.fr>
+ 	
+---------------------------------------------------------
+transcode-0.6.0pre4-20020320 Wed Mar 20 20:17:40 CET 2002
+
+- export_xvid.so updated by Edouard Gomez (alias GomGom) to support latest 
+  official XviD codec snapshot of 2002-03-17 to be found here:
+  <http://www.xvid.org/index.php?section=Download>
+
+- improved AV sync for VDR MPEG videos.
+	
+- new import module "import_xml.so" to process xml tag files
+  with further information on input files and frame range.
+  The import module can manage dv and avi audio/video.
+  This experimental module is contributed by Marzio Malanchini 
+  <Marzio.Malanchini@omnitelvodafone.it>.
+
+- frame range support for tcextract and AVI-files added by Marzio Malanchini.
+  Use this feature with the new -C option. Currently, only
+  the import_xml.so module makes use of it.
+	
+- patch by Nikita Schmidt <cetus@cnds.ucd.ie> to make transcode
+  compile on Linux/Alpha. Untested.
+
+- updates for the v4l import by Chris C. Hoover <cchoover@charter.net>.
+  Two new long options have been added. Try "--more_help import_v4l"
+  to learn about video grabbing.
+
+- new filter plugins ported from VirtualDub to transcode by 
+  Tilmann Bitterberg <bitterberg@gmx.de>:
+  (1) A new de-interlace filter, see /docs/Smart for excessive documentation 
+  in HTML format or use "-J smartdeinter=help".
+  Tilmann did some testing of de-interlace filters of transcode
+  You can view and read the result at <http://tibit.org/video/>.
+  For more information see <http://sauron.mordor.net/dgraft/smart.html>
+  (2) The filter "-J xsharpen" performs a subtle but useful sharpening effect,
+  see the examples on the above mentioned page. Get some help
+  on arguments with "-J xsharpen=help".
+  For more information see <http://sauron.mordor.net/dgraft/xsharp.html>.
+
+- changes in avimerge to enable simultaneous merging of multiple
+  AVI-files and adding another audio track with "-p". Untested.
+
+- small fix in /export/Makefile.am for libMagick support.
+	
+---------------------------------------------------------
+transcode-0.6.0pre4-20020312 Tue Mar 12 16:13:48 CET 2002
+
+- fixed a small bug in filter_extsub.c where the audio import module was 
+  accessed and caused problems with the null module.
+
+- added -N option for tcmplex to switch to NTSC mode, default is PAL.
+	
+- applied a patch by Chris C. Hoover <cchoover@charter.net> to extend
+  fixed profiles for NTSC available in "-y mpeg2enc". Untested.
+  Note: This is only a temporary solution until the MPEG export port
+        is fully tested for both PAL and NTSC.
+
+   -F 11    //Standard VCD. An MPEG1 profile NTSC at 29.97
+              //exactly to the VCD2.0 specification.
+
+   -F 12    //Standard VCD. An MPEG1  profile NTSC at 23.976
+              //exactly to the VCD2.0 specification.
+ 
+   -F 13    //Standard VCD. An MPEG2 profile NTSC at 29.97
+              //exactly to the SVCD2.0 specification.
+
+   -F 14    //Standard VCD. An MPEG2 profile NTSC at 23.976
+              //exactly to the SVCD2.0 specification.
+
+- fixed a small bug in the new percentage based cluster mode.
+  Use -W 100,100 for audio encoding.
+
+- perls script vob2divx4.pl update in the /contrib directory by 
+  CARON Dominique <domi@lpm.univ-monp2.fr>. he also contributed a cluster
+  mode script "runclust".
+
+- first set of expert options for divx encoding available via 
+  --divx_quant and --divx_rc. Changes in export_xvid.c and export_divx4.c.
+	
+---------------------------------------------------------
+transcode-0.6.0pre4-20020310 Sun Mar 10 08:35:28 CET 2002
+
+- fixes for NTSC cluster mode. The logfile generated by "tcdemux -W"
+  is now independent of the framerate. 
+
+- small long options update by Juergen Hennerich.
+
+- new configure option "--enable-liba52" to make liba52 your
+  default AC3/A52 decoder. You need the latest v0.7.3 to compile
+  the decoder plugin. Default is libac3 decoding.
+
+---------------------------------------------------------
+transcode-0.6.0pre4-20020306 Wed Mar  6 14:17:21 CET 2002
+
+- added missing user donated scripts in the contrib directory.
+
+- added INFO list to AVI file header. Currently the only entry
+  is ISFT, which identifies the name of the software package used to
+  create the file.
+	
+---------------------------------------------------------
+transcode-0.6.0pre4-20020305 Tue Mar  5 23:51:35 CET 2002
+
+- inverse cropping "-j/-Y" extended for non-symmetric option
+  parameter.
+	
+- updated Arne Driescher's /contrib/subrip/ subtitle processor
+
+- applied a patch by Juergen Hennerich <s-hej4@jura.uni-tuebingen.de> 
+  to make the long options work if not supported by the C-lib.
+
+- some changes in the frame buffer structure for upcoming
+  speed-ups. Eliminated a frame memcpy system call for -Z/-X.
+
+- new percentage based cluster mode enabled with "--cluster_percentage".
+  Contributed by by CARON Dominique <domi@lpm.univ-monp2.fr>. 
+  This option switches the meaning of -W arguments. Example:
+	-W A,B
+  means: skip A percent and encode B percent. If you have a slow and a fast 
+  machine you might want to try -W 0,20 for the slow and -W 20,80 for the 
+  fast one. You need to take care of the numbers. Untested.
+
+- added more user donated scripts in the contrib directory.
+
+- added long option "--export_asr C" where C is a suitable
+  aspect ratio code for the exported material. Used by encoders, that 
+  do support this information, e.g., "-y mpeg".
+  0=invalid, 1=1:1, 2=4:3, 3=16:9, 4=2.21:1 are common.
+
+- the AC3/A52 decoding to A52_DOLBY has been enabled by a patch
+  contributed by Joerg Sauer <js-mail@gmx.net>. According to his
+  investigation, the resulting stereo audio has matrix encoded 
+  surround channels. More user options coming soon.
+	
+---------------------------------------------------------
+transcode-0.6.0pre4-20020301 Fri Mar  1 23:04:59 CET 2002
+
+- introducing the first long option "--zoom_filter"
+  This option enables selection of a non-default filter for high-quality
+  frame rescaling (zooming) in connection with -Z.
+
+  Examples:  --zoom_filter L[anczos3]  (default, highest quality)
+  
+  others: M[itchell], B[_spline], T[riangle], H[ermite], bell, box. 
+
+  The filter functions are defined in /src/zoom.c. Feel free to add
+  your favorite filter here. The filters and methods differ in speed
+  and image quality. 
+
+- some LFS updates for the avilib directory.
+
+- Tilmann Bitterberg <bitterberg@gmx.de> has contributed a patch
+  to enable the inverse cropping "-j/-Y" for the horizontal frame 
+  dimension also. This finally enables DV export PAL/NTSC at the
+  required framesize without rescaling.
+
+- added first version of a MJPEG export module. Encoding is done
+  by ffmpeg. This is going to be a more general interface for ffmpeg
+  supported codecs, however this version is hardcoded for MJPEG.
+  I am not satisfied with the codec quality - this is alpha code.
+	
+---------------------------------------------------------
+transcode-0.6.0pre4-20020228 Thu Feb 28 22:50:36 CET 2002
+
+- updates for "import_v4l.so" by Chris C. Hoover <cchoover@charter.net>
+  to make the module process your $HOME/.xawtv file. 
+  Select a TV channel with "-a 0,X" where X is the channel id in
+  your ".xawtv" file. For example, "-a 0,E7" selects "ARD" in Germany, and
+  "-a 0,-1" does not touch the current presettings.
+  
+- started to implement long options as suggested and prepared 
+  by Juergen Hennerich <s-hej4@jura.uni-tuebingen.de>. Not used yet.
+
+- added a first version of an ImageMagick export module "export_im.c".
+  Export image codec and file format determined by "-F X". For example:
+  "-y im -F tiff" writes a sequence of TIFF images, named 
+  frame.000000.tiff, frame.000001.tiff, ...
+  Currently, "-V" is slow, because of yuv2rgb conversion. Need to fix this.
+
+- small bugfix for the subtitle plugin concerning the vertical shift option.
+  Subtitles can be arbitrarily shifted up and down. 
+
+- updated the subrip contribution to match latest subtitle header changes.
+	
+---------------------------------------------------------
+transcode-0.6.0pre4-20020227 Wed Feb 27 22:54:36 CET 2002
+
+- small bugfix for fast vertical resizing -B/-X.
+  Juergen Hennerich <s-hej4@jura.uni-tuebingen.de> contributed a patch
+  that removed some of the frame parameter restriction of -B/-X. An
+  optional 3rd parameter was added for -B/-X which must be a muliple of 8. 
+  Default is 32 for backward compatibility. Examples:
+
+  -B 1,1,8   reduces a PAL image to 712x568
+  -B 2,0,16  reduces a PAL image to 704x576 and is equivalent to 
+	     -B 1,0 or -B 4,0,8.
+
+  Note that the frame dimension must be an integral multiple of the
+  third parameter.
+
+- configure option "--disable-x" will no longer build X11 dependent
+  modules like "subtitler" and "preview".
+
+- compilation problems with liba52 solved and a52_decore.c updated.
+  You need libac52 v0.7.3 installed to make it work.
+  Switch to liba52 decoding with audio import pseudo codec "-n 0x2001".
+
+- small update for filter_testframe.so.
+	
+---------------------------------------------------------
+transcode-0.6.0pre4-20020226 Tue Feb 26 21:09:28 CET 2002
+
+- some updates for NTSC program streams to improve AV sync.
+	
+- added a new import module for image processing "import_imlist.so".
+  Same functionality as "import_im.so" except that it processes
+  a list of images given as filenames with transcode "-i" option.
+  All images must be same size and filetype. You must also provide
+  image size and requested frame rate of your movie at the commandline.
+  Example: 
+  
+  transcode -i image_list.txt -x imlist,null -g 352x288 -y divx4,null -f 1.0
+
+  produces a slide show of one image per second. You can find out the frame 
+  parameter (-g wxh) with tcprobe. 
+
+- added a shell script for mpeg2divx conversion to the contrib directory by 
+  Andreas Reichel <andreas.reichel@i-kit.de>.
+
+- added a small audio plugin for audio only processing that skips audio 
+  frames below a certain noise level. This may be useful
+  for DVD's with tracks that have the film music only but long pausing
+  during dialogs. Furthermore, a keyframe flag is set at every cut.
+  Write to an AVI-file container with "-g 0x0" and null import/export
+  video modules. Use avisplit and tcextract to obtain a set of
+  audio clips at the end. Use this module with "-J aclip=a:b", where
+  a is shreshhold (10) and b is the number of frames (25) that need to be
+  below this threshold before frames are dropped.
+	
+------------------------------------------------
+transcode-0.6.0pre3 Mon Feb 25 11:22:06 CET 2002
+
+- DVD subtitles are now anti-aliased before rendering into
+  the video frame. The option list for the filter plugin has been extended:
+  
+  -J extsub=s:h:t:f:a:b:p:q
+
+  with:
+        s   subtitle track id [0-31]
+        h   offset of subtitle with bottom of frame 
+        t   global display start time correction in msec
+        f   fast rendering (no anti-aliasing) (0=off, 1=on)
+        a   graylevel value a [0-255]
+        b   graylevel value b [0-255]
+        p   assign subtitle color p [0-3] to graylevel value a
+        q   assign subtitle color q [0-3] to graylevel value b
+
+  normally, subtitle color 0 is treated as transparent.
+  Default is -J extsub=0:0:0:0:0:0 with p and q auto-detected.
+
+- added a little audio filter plugin "-J astat" that will print the
+  "-s" option parameter for volume rescaling (normalizing) on exit.
+
+- Arne Driescher <driescher@mpi-magdeburg.mpg.de> has contributed a
+  subtitle ripper for the contrib/ directory. It uses transcode
+  to rip the subtitle packets and converts them to images, which
+  can be further converted to ASCI text and eventually be rendered
+  with custom fonts and displayed by players, that support it.
+  Please see README.subtitle2pgm for details.
+
+- fixed another core bug on import side for multiple
+  frame processing threads on a full frame buffer condition, leading
+  to shutdown for failed buffer allocation.
+
+- subtitler filter plugin updated to 0.6.3
+	
+---------------------------------------------------------
+transcode-0.6.0pre3-20020221 Thu Feb 21 15:18:38 CET 2002
+
+- more serious issues reported. Added a force exit flag for deadlock on
+  transcode termination. Fixed transcode hangs on exit problem
+  for full frame buffer or busy frame processing threads.
+
+- new de-interlace option "-I 4". This option throws away a field,
+  but unlike "-I 3", it does not zoom to full frame size again.
+
+- added a missing option for SVCD encoding with "-y mpeg2enc -F 5" reported by
+  Chad Page <cpage@silcom.com>.
+
+- the audio resample filter now does the resampling, i.e.,
+  "-J resample" forces transcode to use this re-sample filter instead
+  of the export re-sample routines (lame/ffmpeg/mp2enc). Untested.
+	
+---------------------------------------------------------
+transcode-0.6.0pre3-20020220 Wed Feb 20 21:05:21 CET 2002
+
+- one more snapshot before pre3, beacuse of broken tcdemux logfile 
+  output with option -W for cluster-mode. Fixed, hopefully.
+
+- NuppelVideo import was broken. Fixed it by duplicating
+  decoder code to make it work for audio and video in parallel.
+  No cleanup yet. 
+
+- added an audio resampling filter plugin. Use it with
+  "-J resample" and specify output sampling rate with -E. Do not use this
+  plugin with export modules, that already have an internal re-sampling
+  capability. The code has been taken from the NuppelVideo import module
+  goes back to sox code. Use this plugin for PCM audio output.
+  
+- Yannick Vignon <ye.vignon@enst-bretagne.fr> added an export module for 
+  another MPEG-4 codec, part of the libfame library. 
+  Libfame (you need CVS) can be found on sourceforge:  
+  "http://sourceforge.net/projects/fame".
+  Use it with "-y fame", options similar to OpenDivX.
+
+- fixed the DVD chapter looping audio only transcoding with "-p".
+
+- applied a patch by Charles Wilson <cwilson@ece.gatech.edu> to enable
+  build of transcode outside source directory.
+	
+---------------------------------------------------------
+transcode-0.6.0pre3-20020218 Mon Feb 18 13:11:21 CET 2002
+
+- AC3 pass-through now works on a per frame basis, i.e.,
+  AVI-file chunks contain integral number of AC3-frames, usually 1-2.
+
+- frame reduction option "-r" now accepts 2 arguments for
+  independent rescaling of height and width. As usual,
+  "-r 2" corresponds to "-r 2,2". Use "1" for no change, i.e.,
+  "-r 2,1" will only keep every 2 row, columns unchanged.
+
+- changes in the internal subtitle header structure, thanks
+  to suggestion by Arne Driescher <driescher@mpi-magdeburg.mpg.de>.
+
+- a small perl script for automatic audio rescaling/re-encoding of
+  AVI-files was added in the contrib directory by
+  Steffen Klupsch <steffen@informatik.tu-darmstadt.de>.
+
+- DVD subtitle support for NTSC enabled. Extended arguments for
+	-J extsub="s:h:t:a:b"
+  "t" will add a constant shift in milliseconds to the beginning of
+  the subtitle display. Subtitles may lag a little behind. 
+  "a","b" changes color parameter (not color). There are 4 "colors" (0-3)
+  available. More infos on that soon.
+	
+- audio export info messages for MPEG layer-II request cleanup up.
+
+- no channel selection for -a 0,-1 to enable recording from
+  currently active channel set by, e.g., xawtv.
+  Fixed problem to set grabbing frame size with -g.
+
+- audio export with "-y *,mp2enc" now allows setting export bitrate
+  and sampling rate. As a consequence, for VCD compliant audio 
+  the options "-E 44100 -b 224" are now mandatory.
+
+- enabled audio re-sampling for "-y mpeg", which was not activated and
+  causes slowing down of audio for sample rates not equal the input
+  sample rate.
+
+- transcode server thread now only started in connection with "-y net".
+	
+---------------------------------------------------------
+transcode-0.6.0pre3-20020214 Thu Feb 14 15:15:01 CET 2002
+
+- transcode option -f expanded to provide the frame rate code information
+  for improved precision. The frame rate code overwrites the first parameter.
+  Use "-f 0,1" for setting the frame rate to 24000/1001.  
+
+- changed AVI-header (strh) size from 64 to 56 bytes to avoid 
+  "aviplay" complaining. Maybe this fixes also "kino" problems.
+
+- wait for termination of frame processing threads before buffer
+  release re-enabled.
+
+- export_ppm.so now exports grayscale images along with option "-K"
+  and suffix "pgm" for use with "pgmfindclip" written by Christian Vogelgsang.
+	
+---------------------------------------------------------
+transcode-0.6.0pre3-20020213 Wed Feb 13 14:16:46 CET 2002
+	
+- mostly core cleanups for upcoming pre3. Proper locking when
+  issuing a signal for a condition variable. This may fix
+  the Negative buffer counter problem. 
+
+- removed debugging code in avimerge.
+
+- fixed a small bug in probe.c detected by Christoph Lampert.
+	
+---------------------------------------------------------
+transcode-0.6.0pre3-20020211 Mon Feb 11 12:18:43 CET 2002
+
+- bugfix for subtitle plugin buffer release notification.
+
+- more core changes, cleaner frame processing thread termination, bugfix.
+	
+---------------------------------------------------------
+transcode-0.6.0pre3-20020209 Sat Feb  9 18:49:03 CET 2002
+
+- some core cleanup for encoding/decoding. Cleaner handling
+  of buffer requests and queuing. Negative buffer indicator problem 
+  still unresolved.
+
+- added import audio bitrate display.
+
+- patch for "-x v4l" to enable grabbing in YUV mode, thanks to a patch
+  by Tilmann Bitterberg <tilmann@bitterberg.de>. 
+  Watch and record from TV with an ultra-fast de-interlace filter
+
+  Example:
+  transcode -i /dev/video -p /dev/dsp -V -y xvid -o q.avi -a 0,5 
+	    -g 400x300 -H 0 -x v4l -u 100 -J pp=lb,preview
+
+  Replace the frame size by values supported by your hardware for real-time
+  encoding. Auto-probing for v4l still broken. 
+	
+- !!Alpha!! code for DVD subtitle support enabled. Subtitles are added with
+
+  -J extsub="n:s"
+
+  where "n" is the subtitle stream number (0-31) and "s" denotes a vertical 
+  shift in the subtitle position. Default is "0:0", which places the subtitle 
+  lined up with the bottom of the frame, usually filled with a black bar.
+  Currently, this feature works only with import module "-x vob", i.e., not 
+  with direct DVD transcoding. It's also only tested with PAL, NTSC may 
+  not work, maybe only if -M1 also works for you.  
+  This module is only for direct rendering the subtitle onto the video
+  frame. Other methods will be added in the near future.
+  
+  KNOWN BUGS: 
+  o A reset of the PTS within the stream will break the subtitles.
+  o You need to figure out yourself, what subtitles are available.
+    Use "tcprobe -i my.vob -H N" with N=10-20 to detect the total number 
+    of subtitles within the stream.
+  o If you do not start with the very first VOB chunks, it may take
+    some time before the first subtitle is displayed.
+
+- added custom mode (pseudo profile) "6" for "-y mpeg2enc" to use with
+  -F "6,<string>"
+  where string is directly passed to "mpeg2enc". This mode was suggested
+  by <Marzio.Malanchini@omnitelvodafone.it>.
+	
+---------------------------------------------------------
+transcode-0.6.0pre3-20020206 Wed Feb  6 15:15:12 CET 2002
+
+- fixed v4l configure/build bug.
+
+- minor cleanup in export_mp2enc.c, -E disabled by default.
+
+- added synchronous filter pre/post processing. Some filter
+  simply are unable to run in parallel.
+	
+---------------------------------------------------------
+transcode-0.6.0pre3-20020205 Tue Feb  5 10:21:46 CET 2002
+
+- quick bugfix release
+	
+- fix for broken "-F" option in export_mpeg.c.
+
+- patch for streaming wav by Andrew Maltsev <am@amsoft.ru>.
+	
+---------------------------------------------------------
+transcode-0.6.0pre3-20020204 Mon Feb  4 10:53:16 CET 2002
+
+- updates for MPEG encoding / NTSC framerate precision by Gerhard Monzel
+  based on suggestions and patches from the ML.
+
+- configure changes ImageMagick related suggested by Markus Plail, but
+  the problems are most likely due to a broken "Magick-config".
+
+- export to Quicktime movies improved by Christian Vogelgsang.
+  Use it with "-y mov". It replaces the old Quicktime export modules "qt,mov".
+  All codecs by the quicktime4linux library are enabled with option 
+  string for -F. Examples:
+            -F "mjpa,ima4" (default) 
+  The IMA4 compressor reduces 16 bit audio data to 1/4 size, with very 
+  good quality and MJPA stores each frame as two JPEGs interlaced.
+  Thanks to Christian for completing the quicktime4linux import/export
+  capabilities of transcode.
+	
+- fatal bug in avisync corrected.
+
+- new audio only export module interface to mjpegtools mp2enc program 
+  contributed by Georg Ludwig <email@georg-ludwig.de>. 
+  This is the companion module for MPEG video encoding with mpeg2enc, so
+  you probably use it with "-y mpeg2enc,mp2enc".
+  I have added the capability to pipe the audio stream through sox for
+  resampling. Use this feature with "-E". Untested.
+
+- new import module "-x v4l". This module enables very primitive
+  audio and video grabbing form a video4linux device. Added this
+  for my personal pleasure and to make use of my old vcr-like 
+  grabbing code, probably based on the great xawtv program.
+  It enables realtime encoding to divx/mp3 at 352x288
+  resolution and 25fps on my CII533@800. Do not use this experimental module.
+  Currently works only in RGB mode. Examples:
+
+  (1) record MPEG audio stream from /dev/dsp at (48000Hz,16bits,2ch)
+  transcode -p /dev/dsp -y null,raw -o sound.mp3
+
+  (2) record TV show (PAL), grabbing is at 360x288, but encoder needs 352x288,
+      from preset station 2:
+  transcode -i /dev/video -p /dev/dsp -a 0,2 -j 0,4 -y xvid -o show.avi
+
+- DV type-1 AVI-files supported for import via directory mode
+  of option "-i". No auto-probing available. You need to switch it off 
+  completely with "-H 0" and provide video/audio parameter.
+  Alternatively, extract the raw DV stream with "tccat" providing
+  the directory name as input.
+	
+---------------------------------------------------------
+transcode-0.6.0pre3-20020130 Wed Jan 30 09:51:31 CET 2002
+
+- patch applied to avisync for quiet operation donated by
+  Tilmann Bitterberg.
+
+- import_mov.so has been improved by 
+  Christian Vogelgsang <Vogelgsang@informatik.uni-erlangen.de>.
+
+- QuickeTime files are now processed by tcprobe. However, only
+  a few codecs are actually supported.
+
+- avimerge bug for multiple audio tracks has been fixed.
+
+- patches by Vladimir Kushnir <vkushnir@alfacom.net> applied to
+  make transcode compile and work on FreeBSD.
+
+- audio pass-through mode has been fixed.
+
+- import divx speedup for pass-through mode.
+
+- pass-through mode now allocates 50 frame buffer. Overwrite with -u.
+	
+---------------------------------------------------------
+transcode-0.6.0pre3-20020126 Sat Jan 26 16:23:04 CET 2002
+
+- added some README files to the /docs directory, based
+  on the first week of mailing list discussion.
+
+- inverse vertical cropping enabled for -j (pre-processing).	
+
+- changes in tcdemux option -S default configuration. Streaming
+  is started at unit N for -S N and all following units, if no
+  (finite) sequence intervall is provided. This change was necessary, because
+  trancodes chooses start unit on tcprobe recommendation.
+	
+- zero byte video frame size enabled for fast audio track encoding.
+
+- added multiple audio track feature to transcode's avilib code. 
+  However, adding more audio tracks to an AVI file has to be done separately.
+  transcode supports reading from multi-track AVI-files but output is
+  single audio. "avimerge" has a new option -p to add an additional
+  audio track to an existing AVI-file. This feature has been requested
+  frequently. Thanks to Rainer Lay for providing me a sample.
+
+  Example: first session gives you movie.avi with a single audio track.
+
+  second session:
+	
+  (1) transcode the second audio track into an AVI container file:
+  For a VOB stream, this looks like:
+	
+  transcode -i (...) -x null,vob -g 0x0 -y raw -a 1 -o add-on.avi	
+  	
+  The resulting file is only a temporary file. Replace "vob" if you encode
+  from DVD. Video import module set to null. If all goes well, 
+  both files should be identical with respect to the number of frames. 
+  Choose the proper audio track etc.
+
+  (2) merge this track into movie.avi
+
+  avimerge -i movie.avi -o dualaudiomovie.avi -p add-on.avi 	
+  
+- updated /tools and various other files to support the new multiple audio 
+  track feature. 
+
+- minor fixes in /bbmpeg by Gerhard Monzel.
+
+- minor fix for import_im.c.
+
+- improved NTSC frame rate detection based on tff/rff flags.
+
+------------------------------------------------
+transcode-0.6.0pre2 Tue Jan 22 10:38:14 CET 2002
+
+- final pre-release #2. Issues not fixed must wait for pre3.
+	
+- Christoph Lampert <chl@math.uni-bonn.de> updated the export to XviD.
+  You need to install a recent snapshot of the OpenSource XviD codec.
+  The codec file loaded at runtime has been renamed to "libxvidcore.so".
+
+- added rgb2yuv conversion to export with "mpeg,mpeg2enc,yuv4mpeg", in case
+  the decoder (import) is unable to decode to YV12/I420.
+
+- updated export_mpeg2enc.c to use the new mjpegtools stream header IO API.
+
+- fixed a problem with avifile stdout pollution by loading avifile code
+  only on demand.
+
+- updated "avisync", decided to keep it for awhile. Recycled old frames
+  as padding frames for proper timing. Good for small delays, but makes 
+  no sense for large delay. You need to cut afterwards.
+	
+- post-processing option -Y now allows for adding symmetrical black bars 
+  on top and bottom of video frame (inverse cropping). Based to a 
+  suggestion by Julio Sanchez Fernandez.
+	
+- more Makefile fixes by Steven M. Schultz.
+
+- more Manual-pages added by Dirk Gouders.
+	
+- subtitler filter plugin updated to 0.6.
+
+- expanded volume gain option "-s" for AC3 down-mixing provided by
+  German Gomez Garcia <german@piraos.com>. 
+
+	-s gain,center,front,rear
+
+  gain is an overall scaling factor applied to both stereo channels.	
+  The rest of options are only valid for AC3 streams, they are
+  used while down-mixing several channels into stereo sound. The
+  most common use is to amplify the center channel used for voice,
+  a value of 3.0 is usually right for most common movies with high
+  density of sound effects that make people whisper. Anyway
+  experiment with different values and see for yourself.
+  All four option parameter are positive floats. Import modules "ac3,dvd,vob"
+  updated.
+
+- import module "-x lav" updated to work with directories containing
+  multiple streams.
+
+- AVI file header updated (written to disk), whenever video/audio 
+  parameter are set. If transcode or hardware crashes, the truncated file 
+  is in most cases playable for advanced players. 
+  Repairing the file is also possible via pass-through option "-P3".
+  Example:  "transcode -i crashed.avi -o new.avi -P3 -u X"
+  Option "-u X" with X>>10 enhances pass-through speed.
+
+- more fixes for the cluster option "-W". 
+
+- option "-H n" now takes an argument. It is passed to tcprobe and
+  determines the amount of MB seeked into the source file for auto-probing.
+
+---------------------------------------------------------
+transcode-0.6.0pre2-20020115 Tue Jan 15 23:27:16 CET 2002
+
+- this snapshot adds a couple of new features:
+	
+- a manpage for transcode has been contributed. Thanks to
+  Dirk Gouders <gouders@et.bocholt.fh-ge.de>.
+
+- port to BSD/OS 4.3, thanks to a patch by Steven M. Schultz <sms@2BSD.COM>.
+  Untested.
+	
+- fixed a bug for the cluster mode -W were a frame was missing at
+  certain chunks, thanks to a report by Henning Weber.
+	
+- changed tccat option -P default behavior. A complete DVD title can
+  be streamed for backup purpose. Note the essential differences between
+  "-T" and "-P":
+
+  "-T N,-1,A" streams the title N starting with chapter 1 and so on for
+  a single viewing angle A. The resulting file/stream can be viewed by a player
+  or is used for transcode's single file / directory mode with option "-i". 
+  DVD navigation with the stream is no longer possible. To stream only a single
+  chapter M, use "-T N,M,A".
+	
+  "-P N" streams the complete set of VOB files from the DVD for the selected
+  title including mulitple angle scenes and navigation packs on a per 2kB 
+  sector basis. Copy the IFO files by hand and the stream/files can be used for
+  DVD navigation, provided proper renaming. Chapter and Angle parameter do not
+  make any sense here. A progress meter is also available.
+	
+- added the "-D_LARGEFILE_SOURCE" compiler option.
+	
+- updates for "import_vdrac3.so". The hack enables reading of incorrect
+  AC3 packets with useless track ids in VDR streams for transcode.
+
+- Gerhard Monzel added export module "export_mpeg2enc.so", based on a 
+  suggestion by Andrew Stevens <andrew.stevens@nexgo.de> to enable
+  use of mjpegtools MPEG/(S)VCD encoding capabilty. This requires
+  the new mjpegtools-1.6.0 installed on your system. 
+  Currently, predefined profiles are passed to the module via -F n.
+  Check the mpeg2enc manpage for the corresponding option "-f".
+  In addition, use "-b" for the encoder maximium bitrate and let transcode
+  do the resizing. Only PAL for now.
+  
+   "-F n" supported profiles:
+	
+      0 = Generic MPEG-1 (default)
+      1 = Standard VCD. An MPEG1 profile exactly to the VCD2.0 specification.
+      2 = User VCD. 
+      3 = Generic MPEG-2
+      4 = Standard SVCD. An MPEG-2 profile exactly to the SVCD2.0 specification
+      5 = User SVCD.
+      6-8 yet unsupported.
+	
+  Note: (1) and (4) have predefined bitrates and option -b has no effect.
+	
+- changes for the audio MP3 encoding option "-b". Third argument is passed
+  to the lame library for setting the encoding quality=[0-9] with 
+  0=best (very slow) up to 9=worst, the default is 5.
+
+- added native support for AVI-files with MJPG video codec. Decoding is done
+  via ffmpeg. If auto-detections fails, use "-x mjpeg".
+	
+- updated divx import module "-x divx". Now supported is 
+  pass-through mode with the capability to detect intra (key) frames. 
+
+  Example 1: remux old DivX;-) AVI-file with interleaved MP3 audio
+
+  transcode -i old.avi -P 3 -x divx,avi -y raw -o new.avi
+
+  Example 2: audio transcode old DivX;-) AVI-file with non-interleaved 
+             MP3 audio
+
+  transcode -i old.avi -P 1 -x divx,mp3 -y raw -o new.avi       
+
+  the resulting files are suitable for avisplit. 
+  Fixed the bug that prevented re-export to DivX.
+	
+- small changes in avisplit. Added option "-o base" to choose a basename for
+  splitting to base-%04d.avi instead of in_file-%04d (optional).
+  Using -s 0 will now dechunk the AVI file into the smallest available
+  units based on the keyframe info. Each chunk has only a single keyframe.
+	
+- transcode's progress meter now thread safe.
+
+---------------------------------------------------------
+transcode-0.6.0pre2-20020112 Sat Jan 12 21:16:47 CET 2002
+
+- Gerhard Monzel updated the bbmpeg directory and also
+  the export to MPEG with "-y mpeg". This hopefully fixes
+  a segfault after 11 frames with (S)VCD export "-F s".
+
+- added divx import module "-x divx". Currently, this
+  module requires the DivX 4.xx codec "libdivxdecore.so" installed on your 
+  system. The module does not work with divx re-export for yet unknown
+  reasons, but MPEG/PPM export should be fine.
+
+- added import module "import_vdrac3.so" for certain digital video
+  capture cards producing incorrect AC3 packets (track 1) in addition to
+  MP2 audio track 0.
+  No autoprobing yet, usage example (relevant parameter in bracket)
+  "transcode (-x vob,vdrac3 -H -M 0 -a 1) -i ... -y ... -o ..."
+	
+- DVD subtitle packets can be now be ripped with tcextract.
+  Example: "tcextract -x ps1 -t vob -a 0x20 -i file.vob"
+  dumps subtitle id=0 packets encapsulated in private stream 1 (-x ps1)
+  to stdout. Subtitles id's range from 0x20-0x3F. Check with tcprobe,
+  if your stream comes with subtitle. Hopefully, someone will
+  write a filter plugin for DVD subtitles.
+
+- Andrew Stevens <andrew.stevens@nexgo.de> (mjpegtools) has contributed
+  a patch to make the export_yuvmpeg.so module (-y yuv4mpeg) use the new
+  YUV4MPEG2 header. You must have mjpegtools-1.6.0 installed.
+	
+- added quicktime export module for RGB/YV12 raw video and 
+  PCM audio "-y mov". This module is only useful, if you
+  plan some post-processing with Broadcast or encoding with
+  RealProducer under linux. Currently xmovie plays the files, but the
+  sound is broken and Broadcast does not recognize the file.
+  STATUS: unusable - for developers only.
+	
+- added quicktime import module for RGB/YV12 raw video and 
+  PCM audio "-x mov". Not yet tested. STATUS: unusable - for developers only.
+
+- minor fixes in tcscan.
+
+- minor fixes in import_yuvmpeg.c.
+	
+---------------------------------------------------------
+transcode-0.6.0pre2-20020107 Mon Jan  7 17:57:37 CET 2002
+
+- some configure.in changes.
+
+- fixed another tcprobe bug with DVD bitrate calculation.
+
+- preliminary openquicktime support (configure only, no modules yet).
+
+- ImageMagick interface added by Gregory Brauer <greg@wildbrain.com>
+  and Philipp Zerelles <philipp@moongate.de>.
+  The import module is invoked by "-x im" and transcode needs
+  the first image of the sequence with option "-i". 
+  Currently, the frame display time (default is 1 fps) is a constant for 
+  all frames.
+
+- fixed hardcoded "libdvdcss" access in dvd_reader.c, thanks to a hint by
+  Steffen Kremser.
+
+- new direct streaming option "-P N" for tccat, to linearly rip a complete
+  single angle DVD title. 
+
+- new option "-S n" for tccat, to seek to file offset n*2kB for VOB streams.
+  Works also for directory mode. This option is mainly used by transcode
+  for cluster encoding.
+
+- support for cluster batch encoding with transcode's new options "-L" and "-W"
+  for VOB processing. For more information, see the related documentation
+  on the transcode homepage or the file cluster-guide.txt in the /docs 
+  directory. Patch from Joern Reder applied.
+
+- Gerhard Monzel added filter plugin interface to MPlayer postprocessing 
+  routines. Use this filter with "-J pp". You need to specify the MPlayer build
+  directory with "--with-libpostproc-builddir" to enable compilation of
+  the plugin. See MPlayer for module options. For example, a high quality
+  de-interlace routine is available with "-J pp=lb".
+	
+- skip MMX filter on non-MMX machines.
+
+- some updates for MPEG encoding with "-y mpeg" by Gerhard Monzel.
+  Some documentation for user profile parameter has been added, see
+  file template.cfg.doc. 
+	
+- some info updates in tcscan for program streams.
+
+- the subtitler filter plugin has been updated to 0.5.7.
+	
+- removed the old libmpeg directory, only CVS code available now.
+	
+---------------------------------------------------------
+transcode-0.6.0pre2-20011223 Sun Dec 23 18:52:59 CET 2001
+
+- pre-release development snapshot (some features unfinished)
+ 	
+- fixed tcprobe problem with data initialization for gcc-2.96.
+
+- fixed zero byte bogus write error in decode.c/aud_aux.c, which
+  broke a couple of things both on import and export.
+
+- fixed broken yuv4mpeg import.
+        
+- fixed core bug in connection with "-M 2" "-x dvd" and "-y ppm" and "-c"
+  parameter combination.
+
+- fixed missing MP2 codec handling in "-x vob" and "-x dvd".
+        
+- fixed AC3 frame auto-probing issue related to incorrect probing of
+  truncated packs. 
+
+- changes in the auto-probing. tcprobe now resets collected information
+  in program streams if a reset of the SCR (system clock reference) is 
+  detected. Example: There may be a few seconds of junk without audio 
+  prepended to the main presentation. This information is passed to transcode
+  via the "-S" option. If you encounter a problem with this change, overwrite
+  it at the command-line with "-S 0" to establish the old (<0.5.3) behavior.
+  This should improve trancoding of NTSC sources. Direct DVD probing is 
+  not affected, since IFO files are read.
+
+- added option "-H n" for tcprobe for increasing the default the search 
+  range for audio and video tracks. Default is 1 MB (n=1), suggested 
+  by Christoph Lampert. 
+
+- added "-V" capability to PPM export module, i.e., yuv2rgb conversion.
+
+- added preview filter plugin "-J preview=Y", where Y={xv,gtk,sdl}
+  to take a look at the export picture before encoding.
+  Code borrowed from libdv.
+
+- added filter "-J dixvkey" that scans divx frames for encoding parameters,
+  mostly to detect keyframes for pass-through mode, not working yet.
+	
+- new import module "-x tiff" for reading sequences of (identical) tiff files
+  and making nice animations. 
+  Contributed by Philipp Zerelles <philipp@matrix-computer.com> 
+
+- new import module for reading the lav format of mjpegtools.
+  Contributed by German Gomez Garcia <german@piraos.com>. 
+	
+------------------------------------------------
+transcode-0.6.0pre1 Fri Dec 14 15:17:12 CET 2001
+
+- development branch with major feature enhancements:
+
+  NOTE: new features are highly experimental
+  and may not work as advertised, but in most cases the 
+  results are promising and usable.
+
+  What's new in 0.6.0pre1:
+	
+- Gerhard Monzel finally added a module for transcoding to MPEG-1/2. 
+  Included are the sources of his port of bbmpeg to linux.
+  This code is still under development but usable. Use with "-y mpeg"
+  and option string provided with "-F":
+   
+  Option "-F" is analyzed as follows:
+  -F "<base-profile>,<resizer-mode>,<filename of user-profile>" 
+  with
+	base-profile:   1 = mpeg1 vbr, buffer 46Kb (*** default XVCD)
+                        b = mpeg1 vbr, buffer 224Kb (experimental)
+                        2 = mpeg2 vbr
+                        d = DVD
+                        s = SVCD
+                        v = VCD
+        resizer-mode:   0 = no resizing
+                        1 = resizing to 352x288
+                        2 = resizing to 480x480
+                        3 = resizing to 480x576
+  filename of user-profile: see ./bbmpeg/template.cfg for details
+
+  Option -o name produces two files:
+  1) name.m1v or name name.m2v depending on the base-profile
+  2) name.mpa MP2 audio stream
+  The raw streams can be multiplexed with the new tool "tcmplex" which
+  is merely a frontend to mplex code based on original work of Christoph Moar.
+  Additional documentation will be provided by Gerhard. 
+  You need "nasm" installed to compile the libraries.
+  Currently, only PAL frame rate supported.
+	
+- added the encoder/decoder core library of ffmpeg-0.4.5 by Gerard Lantau. 
+  Currently, this is only used to provide MP2 audio streams with "-y mpeg".
+
+- transcode core changes:
+  import of audio and video is now decoupled with independent threads 
+  and buffers. This move prevents a deadlock with the new net stream
+  features. Note: breaks the 0.5.x filter interface.
+  Status: Almost working with no problems. 
+
+- transcode progress bar now displays information on the internal video buffer
+  status like for example "(10,2,0)".
+  This means, 10 frames are loaded in the buffer chain, 2 frames are currently
+  locked by the frame processing threads and no frame is waiting for the
+  encoder. In most cases, all frames are queued in the encoder waiting room, 
+  i.e., "(0,0,12)". The sum of all different buffer numbers should be a 
+  constant. Play around with option "-u" to fine-tune transcode.
+
+- added "net" import/export modules. What is it good for? 
+  The export module "-y net" writes raw video and audio frames on host A 
+  to network sockets, instead of calling the encoder. Unless a transcode 
+  instance reads from this sockets, the process is waiting. Start transcode 
+  on host B with "-i A -x net" to read the raw streams over the network.
+  Use "tcprobe -i A" to query host A for details of the raw stream.
+  Now, host B might be used for further frame processing. Use "-y net"
+  to pipe the streams to the network sockets on host B and start transcode
+  on host C to pick up the streams for encoding. 
+  Note: Unless you have a high-speed network connection, this feature
+  is totally useless due to the amount of raw data. However, if frame 
+  processing is consuming most of your time and you do not want to split
+  encoding the basic way, you are able to chain an arbitrary number of
+  transcode instances on a cluster. Status: Highly experimental.
+
+- added a daemon thread that communicates with tcprobe.
+	
+--------------------------------------------
+transcode-0.5.2 Fri Dec 14 11:22:30 CET 2001
+
+- minor bugfixes and feature enhancements:
+
+- added a filter "filter_testframe.so" module for developers and
+  debugging. This plugin module generates alternating pattern of black and 
+  white rows (mode=0) or vertical columns (mode=1). Useful for testing frame 
+  resizing/deinterlacing routines.
+
+- preliminary bugfix for the fast horizontal frame resize routine. 
+
+- support for the new mjpeg-tools YUV4MPEG2 stream header format for import
+  thanks to a hint by Tomi Ollila.
+
+- fixed a bug with odd file permission in export_yuv4mpeg.c.
+
+- fixed a bug in dvd_reader.c, where wrong title IFO files were selected.
+	
+- raw DV to AVI type2 conversion via pass-through mode "-P 1" added.
+  Restriction: The stream has to be detected properly as a DV stream.
+
+- improved DV auto-detection.
+
+- auto-detection now distinguishes between MP3 and MP2 audio.
+	
+- subtitler (filter) plugin upgraded to version 0.4.
+
+- added plain WAVE audio export module for PCM sound "-y wav".
+
+- lame vbr encoding mode set as second argument to "-b". Default is CBR.
+	
+- export to raw DV stream "-y dvraw" (audio interleaved) or AVI-file with 
+  DV video and audio on separate track in transcode's supported formats 
+  (MPEG/PCM/AC3) with "-y dv".
+	
+- zero video frame problems with pass-through mode fixed.
+
+- cut filter stops transcode after last cut region processing. 
+
+- sub-command-line options for dynamic noise filter "-J dnr" added
+  by Gerhard Monzel.
+
+- fixed avilib checking 4G limit on "dev/null" thanks to a bug report
+  by Gert-Jan op XP by setting frame size to 0, if no video import detected. 
+
+- debian specific build files added.
+	
+--------------------------------------------
+transcode-0.5.1 Fri Nov 30 12:47:50 CET 2001
+
+- minor bugfixes and some improvements.
+
+- extended AVI-file size limit to 4GB and up to (1<<20) frames for
+  convenient on file encoding.
+
+- fixes in the avifile export module "-y af6" made by Gerhard Monzel.
+  Proper DivX encoder parameter settings has been reestablished. In addition,
+  a parameter file "export_af6.conf" has been added to the module 
+  directory for pre-setting of other parameters supported by avifile. 
+  Currently, only a few DivX codecs are supported, c.f. config file.
+  Users can put a modified configuration file into "~/.transcode/", which
+  will be prefered.
+
+- new export module to support XviD Open-Source codec, which is the successor
+  to OpenDivX, called "export_xvid.so", enabled with "-y xvid".
+  You need to compile the codec yourself and put the binary
+  file named "libxvidencore.so" in your lib search path. 
+  Extended options for this codec are also available, thanks to
+  extensive work by Christoph Lampert. Not tested yet.
+  Visit http://www.videocoding.de for more information.
+
+- setting keyframes at proper position in "export_af6.conf" should work now.
+	
+- fixed a bug in the MPEG video frame size detection. This
+  bug affected proper MPEG-1 video auto-probing and more aspect ratio codes 
+  for MPEG added. New file format RIFF data CDXA properly recognized.
+	
+- support for zero padding source files (2 byte boundaries only).
+	
+- more autoprobe fixes. Support for libmpeg3 unofficial framerates.
+
+- some fine-tuning of AV sync in the demuxer.
+
+- limited support for broken streams. Try to skip data until next 
+  valid stream packet in MPEG video.
+	
+- small changes in the filter interface. An option string is
+  supported and passed to the filter modules. This is done as follows:
+
+  Example: -J my_filter="fonts=3 position=55 -v"
+
+  In this example, the filter module "filter_my_filter.so" is loaded and 
+  the string "fonts=3 position=55 -v" is passed as a second argument to 
+  the filter routine at the initialization call. 
+  Two restrictions apply: please avoid filter names containing a "=" 
+  and the character "," in the options string or write a better parser.
+
+- a subtitle filter has been added by Jan Panteltje. Untested.
+  This filter is mainly for adding text subtitles from a file.
+  For details, visit http://www.home.zonnet.nl/panteltje/subtitles/ 
+
+- a frame skip filter has been added based on a suggestion by Udo Wolter.
+  Use like in the following example
+	-J skip="10-15 30-190"	
+  to skip encoding (but decoding) of frames 10-15 and 30-190 for example.
+  Note: like the -c option, frames 15 and 190 are not skipped.
+
+- a frame selection filter has been added based on a suggestion 
+  by Udo Wolter. Use like in the following example
+	-J cut="10-15 30-190"	
+  to encode only frames 10-15 and 30-190 for example.
+  Note: like the -c option, frames 15 and 190 are not encoded.
+
+- a filer for dynamic noise reduction of video frames has been added
+  by Gerhard Monzel. Support for changing default parameter via
+  filter sub-commandline will be added later. Use filter with "-J dnr".
+	
+- new single-pass mode "-R 3" for DivX 4.xx "-y divx4" by Gerhard Monzel. 
+  This mode allows for encoding with constant quality. You need to specific
+  the quantizer with the bitrate option -w. Allowed values are 1-31 with 
+  decreasing quality for higher quantizer. Not tested. 
+  Default setting is "-w 10" for this mode.
+
+- enabled frame processing threads. Default was no thread, which
+  was supposed to be 1.
+	
+- added a copy of "examples.html" to the doc directory.
+
+- updated libmpeg2-0.2.1-cvs with latest snapshot. 
+	
+--------------------------------------------
+transcode-0.5.0 Thu Nov 15 09:59:02 CET 2001
+
+- after over 3 months and countless pre-releases, this is the official release
+  of transcode-0.5.0. Cleanups and minor bugfixes since 20011109:
+
+- the import module "import_af6.so" enabled with "-x af6" is now
+  fully functional. Decode any audio/video codec and fileformat supported 
+  by avifile to to any video codec provided by the avifile library.
+  Currently audio export "-y af6" is restricted to transcode's audio export.
+  If you want to use this module, you must supply "-x af6". 
+	
+- respect umask settings when creating video/audio output file.
+
+- DVD encoder bitrate calculation done also by "tcprobe" without 
+  scanning the full DVD. Information on max titles, chapters
+  for selected title and viewing angles printed.
+  Note: A VOB chunks with more than 1 angle can only be transcoded
+  with "-x dvd". You need the *.IFO files in place.
+  If you prefer the directory mode, use tccat for DVD copy, since
+  only a single angle stream of your choice is extracted. 
+
+- export_ppm.so with option "-o foo" now writes frames to foo%05d.ppm
+  or falls back to frame%05d.ppm.
+
+- support for Digital Video YUY2 codec via option "-V". Frames
+  are downsampled to YV12 before processing. 
+  This results in faster processing (2x), especially when de-interlaced 
+  with "-I 3". Note: PAL DV decoded to YV12 by libdv, when configured 
+  with "--with-pal-yuv=YV12" seems to be broken.
+
+- fixed a bug in the AC3 pass-through mode "-A -N 0x2000" in connection with
+  multiple output files setting incorrect bitrate.
+
+- cleanup in the avilib library. Fixed a bug, where the video codec 
+  information is falsely read from the stream header information, instead 
+  of the bitmapinfoheader structure. The latter is required, whereas the former
+  is only optional.
+
+- fixed a bug in the import_avi.so module occuring for processing audio in 
+  non-transcode produced AVI files.
+	
+- avicodec utility replaced by a more general new "avifix" utility.
+  avifix allows to rewrite the most important AVI header information. 
+  If you need to repair a truncated AVI-file, try transcode' "-P 3" 
+  pass-through mode instead.
+
+- disable compilation agianst avifile library with configure option "--with-avifile-mods=no".
+	
+-----------------------------------------------------
+transcode-0.5.0-20011109 Fri Nov  9 12:35:47 CET 2001
+
+- autoprobe fixes. Fixed NuppelVideo samplerate typo.
+  AVI-files with Digital Video mapped to "-x dv,X", were
+  X=raw for PCM, X=ac3 for AC3 and X=mp3 for MPEG audio sound track.
+
+- fixed a bug in the audio export module, where lame changed 
+  the audio samplerate without notice, leading to a mismatch
+  in the AVI-file header and the encoded stream.
+	
+- maximum import/processing frame size is now 1024x768.
+
+- avisplit now also accepts 0 frames AVI-files, as reported by the header,
+  thanks to samples provided by Matija Grabnar.
+
+- Digital Video import fix. Ignores invalid frame header.
+  This will prevent a decoder stop but will resuse previous frame
+  header information. Thanks to Henrik Wann Jensen for the sample.
+
+- tccat now also extracts the audio stream in directory mode for AVI-files
+  with option "-a".
+
+- tcscan tries to detect codec or filetype, if option -i is provided.
+  If you pipe into tcscan, you must use the codec identification.
+	
+- avidump utility phased out. Functionality taken over by:
+          tcprobe -i f.avi                 (avidump -i f.avi)
+	  tcscan -i f.avi                  (avidump -s f.avi)
+          tcextract -i f.avi -t avi        (avidump -v f.avi)
+	  tcextract -i f.avi -t avi -x aud (avidump -a f.avi)
+
+- the directory "contrib" contains 2 perl scripts for automatic
+  encoding of DVDs, thanks to contribution by Roland Seuhs.
+
+- last minute export module addition by ken@hero.com.
+  Use with "-y qt" and export to mjpeg/ima4 quicktime movies.
+  Currently, only 24fps, 48000, 2chan, 16bit is supported.
+  You need quicktime4linux installed on your system. Untested.
+
+- minor fix in tcscan for bitrate calculation of oversize movies.
+	
+-----------------------------------------------------
+transcode-0.5.0-20011105 Mon Nov  5 21:13:38 CET 2001
+
+- minor autoprobe fixes. Fixed failure to detect block device,
+  thanks to a report by Joern Reder. Added subtitle detection. 
+
+- support for LPCM DVD audio sub-streams added. This
+  is autodetected by default. You can force LPCM import by -n 0x10001.
+  Option "-d" for byte swapping may be required.
+
+- fixes in the new export_yuv4mpeg.so module.
+
+- replaced read/write by p_read/p_write in avilib to fix problems 
+  related to avimerging over NFS.
+	
+-----------------------------------------------------
+transcode-0.5.0-20011103 Sat Nov  3 08:53:14 CET 2001
+
+- most important final new feature is a user-friendly auto-probing of the 
+  input source. This will make it more convenient to transcode a movie, 
+  taking care of most audio and video import parameters as well as the 
+  appropriate choice of the required modules. Of course, command line 
+  parameter will overwrite the pre-selection
+
+- new option "-H" to disable autoprobing of sources provided with
+  "-i" and "-p".
+
+- tcprobe finally probes the source for video and audio contents. For
+  probing a DVD, you need to provide the absolute path (required by libdvdread)
+  to the device/link or directory containing a DVD copy. 
+
+- fixed a bug in the demuxer, that caused severe frame dropping after 
+  approximately 1000s with option "-M 2". Thanks to a hint by Markus Sand.
+
+- zooming with "-Z" and "-I 3" is now thread-safe, thanks to hint by
+  Raphael Manfredi. This resolves some frame processing glitches on SMP
+  machines.
+	
+- option "-n" now takes only a single argument, denoting the input
+  audio format. New Option "-N" for audio export format selection.
+
+- option "-Q" takes a second argument to choose decoding quality.
+  Currently only supported by "-x dv" and libdv.
+
+- tcframe utility phased out. Functionality taken over by new (non-AVI)
+  export modules "export_ppm.so" and "export_yuv4mpeg.so".
+	
+- added checks for odd user provided frame parameter to avoid DivX 4.xx
+  or OpenDivX encoder crash.
+
+- added checks for odd clip parameter in Y'CbCr processing mode.
+	
+- added more checks for broken frames in libac3, audio is muted for pcm data
+  of the frame, thanks to a bug report of Matthias Riese.
+
+- added includes of "strings.h" to overcome compile problems, thanks to 
+  a hint by Fergal Daly.
+
+- fixed segfault when using two zooming instances with "-Z" and "-I 3",
+  thanks to hint by Udo Wolter.
+
+- enabled DVD mode for separate audio file with option "-p". Useful for
+  pass-through sessions.
+	
+--------------------------------------------------
+transcode-0.5.0-pre8 Thu Oct 25 09:58:30 CEST 2001
+
+- last pre-release with more bugfixes, cleanups and improvements 
+  for 0.5.0-final.
+
+- established pre4 AC3 decoding core after reports of audio corruption
+  problems. 
+
+- improved demuxer modes "-M 1" (default) and "-M 2". AV synchronization
+  is now locked to audio track id, rather than MPEG/AC3 audio packet.
+  Option "-M 2" now drops video frames, if selected audio track is behind.
+  This occurs only at the beginning of the movie and may resolve issues
+  with certain PAL DVDs reported not to work with "-M 1", resulting in
+  a constant AV offset. Thanks to Raphael Manfredi and Christian Worm
+  for providing me with samples.
+
+- Fix for a segfault in chapter mode "-U" and "-M 2", thanks to a hint
+  by Chris C. Hoover. This was caused by a reentrance problem in clone.c.
+	
+- maximum import/processing frame size is now 768x576, i.e., zooming (out)
+  encoded frames at 720x576 to proper aspect ration 4:3 possible. 
+
+- new option "-X" similar to "-B", but increasing the frame size
+  by a multiple of 32 rows/columns up to the maximum frame size of 768x576.
+  This is useful for, e.g., resizing NTSC frames 720x480 for required 
+  aspect ration 4:3 to 720x544 resolution with "-X 2". 
+  Use "-Z" for better quality or more precise frame dimension requirements, 
+  but this is slower. Video frame operations ordering update:
+  "-j -I -X -B -Z -Y -r -z -l -k -K -G -C".	
+
+- tcscan, in addition, dumps information on the audio AC3/MPEG tracks found in
+  program streams with option "-x vob". Thanks to Julia Weissbrot for providing
+  me with a sample containing only a single audio track, that had to be
+  enabled with "-a 2".
+	
+- added an import module "import_nuv.so" for NuppelVideo contributed
+  by Andreas Påhlsson. You need to provide the options "-V -e 44100" 
+  to make it work, as well as the proper frame size. 
+
+- Not working yet, but added code for import module "import_af6.so" 
+  to enable import of more codecs and AVI file types supported by avifile-0.6.
+  Maybe this will enable ASF file format for reading.
+
+- patch provided by Oliver Bausinger to compile against latest official avilib
+  CVS snapshot avifile-0.6.0.20011018.
+	
+- minor transcode core improvements. Video/Audio frame processing is now
+  managed by a thread pool. Default is a single thread, but can be changed with
+  the second argument for option "-u". Maybe useful for SMP machines.
+  Theses changes are based on suggestions by Peter Zijlstra.
+	
+- from pre8 on, you need liba52 installed to enable audio decoding support 
+  using this library, instead of libac3, and option "-n 2001". 
+  Fixed small unknown symbol bug. Status: Not working reliable yet.
+
+- Added support for reverting a possible 3:2 pulldown of NTSC videos 
+  with demuxer mode "-M 2".
+  The pulldown is autodetected by checking for interlaced video frames in 
+  certain MPEG sequences. The reconstruction will not always be successful, 
+  due to week (=barely noticeable) interlace effects, but the AV 
+  synchronization should be ok. I also changed the import of sync 
+  infos produced by tcdemux to avoid program hangs on import. Still problems 
+  on SMP machines reported, though.
+
+- final changes in the clipping option "-j". Pre-processing
+  frame region selection works like "-Y". with up to 4 parameter.
+  If you supply less than 4, transcode default behavior is like that: 
+  -j 80      is expanded to -j 80,0,80,0 (top,left,bottom,right)
+  -j 80,8    is expanded to -j 80,8,80,8
+  -j 80,8,10 is expanded to -j 80,8,10,8
+  same applies for "-Y". Note: bottom maybe top for flipped frames.
+
+- changes in the import/export API. Modules are able to provide limited
+  information on frame attributes. Useful and applied to pass-through mode,
+  where key-frame information got is now passed to the export module and
+  avilib.
+
+- fixed the "last chapter missing" bug in tccat.
+
+- added interlace option mode "-I 3", where the frame field is expanded
+  with the internal high-quality zooming. This is slow, but may
+  give better results.
+
+- changes in the filter API: Take at look at the examples. Added an "init" and 
+  "close" call for convenience.
+	
+- added test filter "filter_32detect.so", which actually only tries to
+  detect interlaced video frames. Just to play around.
+
+- added YUY2->YV12 converter filter "filter_yuy2toyv12.so". 
+
+- added deinterlace filter "filter_dilyuvmmx.so" for YV12 and MMX,
+  code ported from the DScaler Project by the xine project.
+
+- anti-alias option for Y'CbCr colorspace frame processing enabled.
+  Not yet tested.
+
+- some minor changes in the frame buffer core. Static video buffer
+  is now aligned at page boundaries.
+	
+- included libdvdread library updated to v0.9.2.
+	
+- OpenDivX module forced to include proper encore2.h.
+
+- minor small bug fixed in clipping routines.
+
+- small bug in avilib fixed, thanks to patch by Sergei Golubchik.
+	
+- renamed pread/pwrite to avoid name conflicts with system routines.
+
+- display of correct video frame aspect ratio on status info messages. 
+	
+--------------------------------------------------
+transcode-0.5.0-pre7 Wed Oct 10 13:56:02 CEST 2001	
+
+- more bugfixes and cleanups for 0.5.0-final:
+
+- the OpenDivX memory leak was tracked down thanks to Martin Miels who
+  also provided a fix. As suspected, the bug was in the encoder core.
+
+- the fast resizing with option "-B" has been improved in speed by 
+  switching to integer arithmetic, thanks to a patch by Carsten Geckeler.
+
+- improved gamma correction (option "-G") implemented by Carsten Geckeler
+  for Y'CbCr and RGB colorspace. Try to stay between 0.5 and 2.0.
+	
+- changes in the export section to make transcode work with the latest
+  avifile-0.6.0.20011003 CVS snapshot, thanks to patches submitted
+  by Oliver Bausinger and Kurt Huwig. The snapshot contains some 
+  annoying debugging code. You might want to comment out lines 227 and 234
+  in file avifile-0.6.0.20011003/plugins/libwin32/videocodec/VideoEncoder.cpp.
+
+- fixed a dump bug in the Cr/Cb swap routine for option "-k".
+
+- import module "import_yuv4mpeg.so" now supports "-V" turbo and "-i" directory mode.
+
+- changes in the frame drop/clone decision alogorithm "-M 2" to prevent 
+  small amplitude fluctuations of +1/-1 frames to be corrected. 
+  Some people reported jerky playback.
+
+- the included libdvdread has been renamed to avoid linking against a
+  locally installed version of libdvdread.
+
+- DVD chapter mode encoding (option "-U") possible running out of audio samples
+  at the end fixed.
+
+- new option "-O" to change MPEG audio encoding internal cleanup. 
+  This option enables lame >=3.89 to flush the internal mp3 buffer
+  when the AVI file, not the encoder, is closed. In addition, these mp3 
+  frames are appended to the last audio "frame" of the interleaved AVI file. 
+  Do not use this option unless you think you really need it or you do not
+  want to "avimerge" your encoded DVD chapters.
+
+- import module "import_mp3.so" now supports audio extraction from AVI-files.
+	
+--------------------------------------------------
+transcode-0.5.0-pre6 Tue Oct  2 12:55:25 CEST 2001
+
+- this pre-release fixes couple of bugs and reorganizes the configure script:
+
+- all previously marked as "experimental" features are now enabled by default. 
+  You need to explicitly disable them, if you encounter problems. 
+  The configure script now tries to detect and use a local installation 
+  of lame. If it fails, the included "libmp3lame" based on version 3.87 is 
+  used. If you cannot get trancode to compile with your avifile installation,
+  use "--with-avifile-mods=no" to disable build of "export_af6.so".
+  avifile-0.53 is considered to be obsolete, but can be enabled with 
+  "--enable-avifile6=no".
+	
+- import_dvd.so: 
+  A wrong assumption on the layout of DVDs has lead to 
+  incomplete extraction of DVD chapters with "-x dvd". Most
+  DVDs work, e.g., "The Matrix" (PAL) did not. This bug was fixed.
+  I also reintroduced a finite time delay (3 secs) between access to the 
+  DVD device for audio and video stream extraction. 
+
+- export_af6.so:  
+  Now works with the latest avifile-0.6.0.20010928 snapshot,
+  thanks to a patch by Oliver Bausinger.
+
+- a small bug for odd frame parameter disabled frame processing. Fixed,
+  but most encoders do not work with odd frame width or height anyway.
+	
+- broken directory mode "-i" fixed with a patch by Harm van der Heijden.
+
+- the audio encoder wrongly flushed the buffer with mp3-frames and 
+  transcode options "-U" or "-t" and lame 3.89  enabled when the files are 
+  closed. Reestablished pre4 behavior.
+	
+- a small bug in clone_clode(), leading to segfaults on ^C in connection 
+  with "-M2" has been fixed.
+	
+- hidden debug mode "-q 128" for interested users prints out some 
+  information on the synchronization process with option "-M 2":
+  
+  Displayed are:
+  (1) total stream frame number (as encoded in the stream) 
+  (2) current MPEG sequence number
+  (3) total number of frames dropped (<0) or cloned (>0) so far
+  (4) current AV sync delay with respect to provided "-f" frame rate
+  (5) current PTS based frame rate / provided fps ratio  
+  (6) current MPEG sequence header PTS 
+
+  What can you expect: 
+  If your provided frame rate "-f" is OK, the calculated fps ratio (5)
+  should go to 1 and the total number of frames dropped/cloned should stay 
+  constant at some point. The AV sync delay will always be close to 0, 
+  if the algorithm can adjust within its given limits, e.g., a sequence
+  can only drop every second frame. Play around by varying "-f".
+  You will find that PAL program streams are "encoded" at a constant
+  frame display time of 0.04 seconds, correspoding to 25 fps.
+  Note for NTSC "users": In order to obtain relaiable results, decode well 
+  into the actal movie, since trailer and list of cast may be encoded
+  at different speeds. Example: "Highlander I".
+
+- new option "-G" for a gamma correction in RGB based video frames.
+	
+--------------------------------------------------
+transcode-0.5.0-pre5 Fri Sep 28 13:44:09 CEST 2001	
+
+- this pre-release is mainly intended for interested users. It adds more 
+  missing features and changes in the default behavior of transcode
+  that have to make it into 0.5.0-final. Not perfect and well tested yet, 
+  but mostly usable. Maybe one more pre-release to come.
+
+- change in the order of how video frame operations are applied:
+  It's  "-j -I -B -Z -Y -r -z -l -k -K -C". 
+  All operations are displayed with a short status information. 
+  For the new "-Y" option, s. below.
+
+- if you want to try out the latest libmpeg2-0.2.1 CVS snapshot 2001/09/26,
+  configure with "--enable-libmpeg2cvs".
+
+- change in the default behavior of the "-S" option. 
+  All units beginning with 0 are processed by default if no
+  "-S" option is provided.
+  If you provide a unit argument "-S N", processing starts at this
+  unit N until the end of the stream.
+  If you provide additional sequence arguments "-S N,s1-s2, only this 
+  selected chunk is processed.
+  This option is passed directly to "tcdemux"
+	
+- new option "-M mode" that controls the processing of program
+  streams handled by "tcdemux". 
+
+  mode=0: pass-through, do not mess with the stream, switch off
+	  any synchronization/demuxing process. 
+  mode=1: (default mode) Synchronize video and audio by inspecting
+	  PTS/DTS time stamps of audio and video and dump to stdout
+	  depending on the selected payload.
+	  Preferred mode for PAL VOB streams and DVDs.
+  mode=2: new very experimental (=alpha) NTSC VOB stream synchronization 
+	  feature. This mode generates synchronization information for 
+	  transcode by analyzing the frame display time. As a result, 
+	  a strict frame rate will be enforced, which matches the audio and
+	  has to be provided by the user with option "-f".
+	  Do not expect this mode to work!!!!! Use chapter mode for DVD's
+	  for testing. Occasional encoding lock-ups still have to be resolved. 
+
+  Currently, only import_vob.c and import_dvd.c support this option,
+  which is passed directly to "tcdemux".
+	
+- support for MP3 decoding has been added. However, you need to have
+  the newest lame-3.89 library installed on your system. Enable linking
+  against lame-3.89, instead of the included version, with "--enable-lame89"
+  and provide the prefix to the directory tree of the installed library and 
+  include files. I will eventually switch to lame-3.89 as a completely 
+  external library. 
+  The "-n" option changed and now takes 2 arguments. The first denotes 
+  the codec of the audio track or stream. The second argument will be the 
+  codec of the audio of the encoded movie, if transcode supports it.
+  Enable MP(123)->PCM->MP3 re-encoding with the following two argument 
+  "-n 0x55,0x55" which allows audio frame processing before re-encoding to MP3.
+  Use "tscan" for program streams to obtain information about available audio 
+  tracks. No pass-through for MPEG audio yet. The default is "-n 0x2000,0x55" 
+  for AC3->MP3. A new import module "import_mp3.so" was added to decode
+  raw MP3 audio stream. For program streams, use "-x dvd" or "-x vob", which
+  are updated to support MP3.
+	
+- new video frame clip option "-Y". This option enables post-processing
+  clipping of frames and takes up to 4 arguments. 
+  For Example, "-Y 80,100,10,40" cuts 80 pixel rows from the top, 
+  100 columns from the left, 10 rows from the bottom and 40 columns from the 
+  right of your frame. This clipping is the final video frame operation
+  and enables cutting out an arbitrary region of the frame.
+
+- fault tolerant AC3 decoding, thanks to a patch by Vaclav Slavik, who
+  updated the libac3 related stuff. This should prevent transcode crashing  
+  on broken AC3 frames. I also changed the extraction routine for AC3 
+  streams to support non-strict MPEG format.	
+
+- experimental support for liba52, a free ATSC A/52 stream decoder, successor 
+  to libac3 and ac3dec. Enable decoding (pseudo format id 0x2001) and 
+  encoding to MP3 with "-n 0x2001,0x55".
+
+- improved support for MPEG-1 video streams. Most streams can be transcoded
+  with import modules "-x (vob mpeg2 mpeg3)".
+	
+- new universal frontend for extraction only with the utility "tccat".
+  The utility extracts chapters from DVD's, concatenates VOB/DV/raw-stream 
+  chunks from a directory, extracts and concatenates video from a directory 
+  containing AVI files, and more to come. Replaced "cat" and "ls"
+  commands with system library call in the directory mode. DVD chapter
+  extraction with option "-T" now handled by "tccat".
+
+- reorganized source preparation for import and updated import modules:
+	
+  tccat - tcdemux - tcextract - tcdecode
+  |       |         |           |
+  ^extraction of multiplexed streams from filesystem/device
+	  |         |           |
+	  ^synchronize stream and separate video/audio packets
+	            |           |
+		    ^extract elementary stream from packets/container-file
+		                |
+				^decode into suitable raw format for processing
+
+- bugfix in the audio encoder to enable processing of mono streams 
+  (lame-3.89 only).
+	
+--------------------------------------------------
+transcode-0.5.0-pre4 Wed Sep 12 12:00:00 CEST 2001
+
+- this pre-release contains some new features and new options:
+
+- "tcdemux" rewritten and improved. It now features a more advanced 
+  audio/video synchronization processing core for MPEG2 program streams.
+	
+- new option "-S" to navigate somehow in a program stream. In combination with
+  "-x vob", this option allows to seek and process a single presentation unit. 
+  A new presentation unit is defined by a reset of the 
+  PTS (presentation time stamp) in the packet header. A second, optional 
+  argument (s1-s2) lets you seek to the beginning of a package containing 
+  MPEG sequence header s1 and process the stream until MPEG sequence header s2.
+  This option and arguments are passed directly to "tcextract/tcdemux".
+  The default is unit 0 and all sequences within a unit. Use "tcscan"
+  see below for more information on your VOB stream before you use this
+  option, since "tcdemux" may seek forever. Useful if (1) you cannot use 
+  DVD navigation with "-x dvd", or (2) need to cut a chunk out of a 
+  VOB stream, or (3) if you have an NTSC video with some non-audio or junk 
+  units prepended to the main presentation unit, which prevents basic 
+  synchronization of audio and video.
+
+- "tcscan" accepts pseudo codec "-x vob" to scan a program stream for 
+  presentation units and MPEG sequences.
+
+- new option "-Z" for arbitrary high-quality frame resizing, i.e., zooming.
+  This patch is contributed by Vaclav Slavik, who ported the original
+  code of Ray Gardener, Daylon Graphics Ltd, from Graphics Gems III, adapted 
+  and optimized for use in transcode. 
+
+- a bug, that affected audio encoding with non-PAL frame rates was fixed, 
+  thanks to a hint by Markus Sand.
+
+- new option "-E" for down-sampling the audio rate for export, provided
+  by Vaclav Slavik. Down-sampling is done with "lame".
+
+- upgraded to "libdvdread-0.9.0". This version also uses "libdvdcss"
+  in replacement of "libcss" to access an encrypted DVD. 
+  This fixes some problems with DVD images. Option "-i" should now
+  also work with a directory/mountpoint for DVD navigation with "-x dvd".
+  Take care to provide an absolute path in this case. 
+
+- a bug in "tcscan", where audio packets were wrongly scanned for MPEG 
+  video sequence headers was fixed.
+
+- a progress meter for option "-c" was added by Vaclav Slavik.
+	
+--------------------------------------------------
+transcode-0.5.0-pre3 Wed Aug 22 12:00:00 CEST 2001
+
+- this pre-release fixes a few bugs and addresses the import section:
+
+- reduced transcode's default encoder bitrate to 1800 kbps, since
+  avifile 0.6 and DivX 4.0/OpenDivX now pay more attention to provided values.
+
+- new utility "avisplit". It tries to split large AVI-files at keyframe
+  boundaries into approximte chunks of your choice of size. It currently 
+  only works as intended for DivX 4.0/OpenDivX or raw AVI files.
+
+- new video only import module "import_mpeg3.so", based on 
+  libmpeg3. You need to have libmpeg3 installed or provide
+  a path to the library and include files. Enable/disable build of the module
+  with configure option "--with-libmpeg3", which is the default. Not
+  tested much yet but is meant to be an interface to all file formats
+  supported by libmpeg3. Audio decoding to be done.
+	
+- transcode/tcextract now accept DVD chapter value "-1", which means that
+  the DVD is treated as a single huge program stream (VOB) chunk. This
+  makes some more transcode options, e.g. "-c" or "-t", work for DVDs.
+
+- tcscan estimates the optimum encoder bitrate after a PCM scan of the source
+  with option "-x pcm" for a 1-2 CD burn. The bitrate calculator can also be
+  called directly with option "-w X", with the number of frames of the movie
+  and "-b" for the MP3 audio bitrate. 
+
+- obsolete modules "cat", "yuv" and "mpeg3cat" removed. Functionality of 
+  import module import_yuv.so now included in "import_raw.so".
+
+- fixed a bug that disabled RGB output of import_mpeg2.so".
+
+- fixed a segfault for "-R 2" in cases where the (pass-1) logfile is not found.
+	
+--------------------------------------------------
+transcode-0.5.0-pre2 Fri Aug 17 12:00:00 CEST 2001
+
+- this pre-release addresses the export section and speed improvements:
+
+- experimental "avifile-0.6" support added. Configure with "--enable-avifile6".
+  The corresponding new export module is "export_af6.so", use option
+  "-y af6" and optionally "-F STRING", where STRING is a valid avifile
+  codec string. Default is "DivX ;-) low-motion".
+	
+- Y'CbCr color space support expanded. Most important frame processing 
+  operations do accept YV12 internal codec enabled with option 
+  "-V". This will boost encoding speed up to 30%!!! depending on the
+  frame operations applied.
+
+- 2-pass encoding option "-R" flags 1+2 enabled for DivX 4.0 Beta "-y divx4".
+  Two-pass-code from OpenDivX ported by Christoph Lampert.
+  Not yet tested but working. 
+  
+- changes in the export API. The initialization of the
+  encoder is done only once. The "open" and "close" routines
+  are called, if a new AVI output file is needed, 
+  enclosing the encoder core loop. This is much cleaner, but breaks 
+  the obsolete export_divx2.so. This may also fix a memory leak in the 
+  OpenDivX export module.
+
+- export module "divx2" has been phased out, use "divx" instead.
+
+- export module "iv50" updated and enabled multiple audio output option.
+	
+- option "-w" now accepts crispness 0-100 as a third video encoder argument.
+
+- the quality option -Q x (x=1-5) is translated to x*2000 for
+  the old Divx;-) dll codec in "-y divx".
+
+- introducing limited support for a filter-plugin facility with option "-J".
+  see /filter/filter_null.c for more hints how to use and write
+  your own plugin for video/audio raw data manipulation.
+  Currently, frame manipulations are not allowed to change the frame size.
+	
+--------------------------------------------------
+transcode-0.5.0-pre1 Fri Aug 10 12:00:00 CEST 2001
+	
+- encoding using DivX 4.0 Beta enabled with new the export module
+  "export_divx4.so". Currently, only single-pass encoding is available.
+  Use the new option "-Q x", with x=(1=fastest-5=best) for quality
+  setting.
+  Note: transcode dynamically loads the codec file "libdivxencore.so".
+	This file must either be located in the MOD_PATH directory
+	or in your default library search path. 
+
+- multi-pass encoding for "-y divx4" will be added later.  
+
+---------------------------------------------
+transcode-0.4.2 Thu Aug  9 10:53:50 CEST 2001
+
+- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  Note: this release contains the unofficial pre-release of v0.5.0 
+  experimental major feature enhancements;-). Use at your own risk!
+  If you want to try it out, use configure with "--enable-dvdread" option.
+  You also need "libcss-0.1.0" (not included) as a dynamical library 
+  installed in your default library search path to enable usage of the new 
+  import_dvd.so module "-x dvd" and to extract or transcode a single 
+  encrypted DVD on-the-fly with the included new libdvdread library.
+
+  !!However, transcoding of complete DVDs is not yet tested very well. 
+  It may smoke your DVD drive and I do not take any responsibility!!
+  
+  New option "-T" to enable transcoding of a single chapter of a
+  selected DVD title stream, and selection of a specific viewing angle,
+  if the DVD is mastered with a multi-angle feature. 
+  
+  New option "-U" for encoding a full DVD title, each chapter into a separate 
+  file. 
+
+  Option "-i" needs the !!full absolute path to your DVD block device!!,
+  the mountpoint will not work correctly with libdvdread v0.8.0! 
+  This will, hopefully, be fixed in v0.5.0.
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	
+- added more audio export options to export_opendivx.so and export_raw.so 
+  modules. "divx", "raw" and "opendivx" now share a common audio encoding 
+  interface with PCM->MPEG, PCM->PCM and AC3->AC3.
+
+- single VOB chunk encoding no longer suffers from audio/video sync problems,
+  which makes option "-D" obsolete.
+
+- DV-NTSC encoding frame size bug fixed and much faster de-interlacing. 
+
+- rewrite of import_avi.so module. Import of interleaved AVI files with
+  any audio/video codec for new pass-through option "-P" enabled.
+	
+- transcode will now pass-through any unsupported compressed audio/video 
+  frames from AVI files with new experimental option "-P" and import 
+  module import_avi.so. This allows for audio "-P 2" or video "-P 1" only
+  transcoding with export module export_raw.so. Using "-P 3" should 
+  simply copy your input AVI file.
+
+- new helper tool "tcdemux". Currently it can only handle program streams.
+  Video and audio program stream packets can be filtered out. Options "-o O"
+  and "-s num" seeks to packets with video payload and 
+  sequence start code num and pipes the remaining of the VOB chunk to stdout.
+  tcdemux will eventually split audio and video contents of a multiplexed 
+  input stream and send the output streams to a socket pair or named pipes for 
+  remote transcoding.
+	
+- tcscan now analyses MPEG video stream for sequence header information
+  with option "-x mpeg2".
+
+- transcode verbosity flag is passed on to tcextract, tcdecode, ... 
+  No more annoying error messages at the end of import streams. Use "-q 2" 
+  debug mode first, if you have any problems transcoding.
+	
+- bugfix audio import that affected modules not doing the actual reading
+  of the byte stream.
+
+- import of AC3 audio also possible with "-x vob" and "-x dvd".
+	
+- enabled writing audio to separate files with option "-m".
+
+- transcode core changes, to enable DVD chapter mode.
+	 
+---------------------------------------------
+transcode-0.4.1 Sat Jul 28 19:11:51 CEST 2001
+
+- this is only a bugfix release, no new features.
+
+- export_divx.cpp now initializes lame encoder only at the very first call 
+  and keeps it  open because avifile drops a few mp3 frames on closing 
+  the encoder at the end.  This should solve audio/video sync problems 
+  for encoding split to smaller AVI files with option "-t". A cleaner
+  fix is scheduled for v0.4.2. 
+	
+- a bug (race condition) in the decoder thread was fixed, that affected the
+  seeking option "-c", or in rare instances, encoding on ultra fast machines.
+
+- a bug in export_divx.cpp was fixed related to the output to "/dev/null".
+	
+- minor changes related to the extraction of AC3 streams. Import aborted if
+  no AC3 sync frame found within 1 MB stream data. 
+
+- default audio codec id for MPEG is now layer-3, 0x55.
+	
+- minor cleanups in the tools directory.
+
+- tcscan now also has a frame rate option "-f".
+	
+---------------------------------------------
+transcode-0.4.0 Mon Jul 23 11:26:15 CEST 2001
+
+- transcode now accepts a directory name as input file (option -i)
+  containing, e.g., the chunks of a ripped DVD. The VOB streams are
+  concatenated for processing, thus appearing as a single
+  stream - this way, almost perfect audio/video synchronization is achieved.
+
+- new option -B to enable resizing and changing the aspect ratio
+  of the encoded frame. Some restrictions apply, e.g. reduction only by 
+  integral values of 32 rows/cols possible. Good for anamorphic DVDs.
+  Example with PAL input: "-j 80,8 -B 3,0" yields 704x320 frame size
+  and an aspect ratio of 2.20:1
+
+- new option -A to enable pass-through of AC3 audio frames.
+  Use "-x mpeg2,ac3 -y divx -A -n 0x2000" to transcode to DivX;-) 
+  AVI files with AC3 sound. No encoding or processing yet, your source 
+  must already be AC3. Works with mplayer and Windows Mediaplayer. 
+
+- bugfix: outdated code in the libvo removed that prevented users from
+  processing non-PAL VOB streams. Thanks to Udo Wolter for giving me the hint.
+
+- bugfix: counter shows 0 fps for option -t from second file on,
+  bug introduced in v0.3.3-pre3.
+	
+- new option -I enables de-interlacing of video frames (simple bob),
+  most useful for full screen processing of Digital Video.
+
+- new option -C enables anti-aliasing of video frame.
+      mode=1: only rows are processed, that have been altered by
+      previous frame operations.
+      mode=2: full frame anti-aliasing (slow).
+	
+- note: turning on the debug mode "-q 2" produces white dots
+  where anti-aliasing "-C" has altered the original frame. 
+
+- new option -K for removing color of video frame (b/w mode), useful
+  for previews and who knows what.
+	
+- new option -V to enable pass-through of YUV (YV12) video frames.
+  Currently, only export_raw.so exports to uncompressed AVI files for xanim.
+
+- new tool "tcscan" replaces pcmscan. Does some simple
+  audio stream checks (ac3/pcm).	
+
+- tcextract converts AC3 stream with padding bytes or junk between frames 
+  as extracted, e.g., from VOB files to a clean connected sequence of AC3 
+  frames: "tcextract -i file.VOB -x ac3 | tcextract -x ac3"
+	
+- some cleanups in the configure script. Added "-lm" for SuSe et al. users.
+
+- small changes in the API for import/export
+  (1) transcode now respects amount of bytes read per frame in input modules. 
+      Useful for AC3/YUV frames.
+  (2) transcode tries to query import/export capability flag. For useful
+      values s. tc_defaults.h
+  Changes in vob_t structure, external modules need to be recompiled. 
+	
+---------------------------------------------
+transcode-0.3.2 Tue Jul 10 22:54:08 CEST 2001
+
+- new option -D to synchronize audio and video. A positive number N means
+  start at audio frame N for video frame 0. A negative number inserts
+  |N| silent audio frames at the start of the movie. 
+
+- new tool "avisync" tries to sync the already finished AVI file similar
+  to the -D option of transcode by shifting audio and video by N frames. 
+  N>0 works but most player ignore 0 byte audio frames. This can be improved
+  later.
+
+- added a transcode.spec file kindly provided by Volker Moell <moell@gmx.de>. 
+  This is certainly useful for building custom RPMs. Some binary RPMs are now
+  available which only need the "avifile-0.53.*" library installed
+  to get the DivX;-) export modules working.
+	
+---------------------------------------------
+transcode-0.3.1 Sun Jul  8 22:33:55 CEST 2001
+
+- fixed error messages in tcdecode that slipped into the raw streams. 
+  This broke, e.g., the pcmscan tool. 
+
+- reading from a FIFO with option (-i) should now work, except for DV and
+  AVI files which use lseek in low level routines.
+	
+- more warnings issued if codec options (-x/-y) or filename options (-i,-o) 
+  are missing in the command line.
+
+- added output raw stream codec option -y for tcdecode. For example,
+  tcdecode -x dv -y (rgb,yv12,pcm) decodes raw DV frames into
+  raw RGB,YV12 (video) or PCM (audio) stream.
+
+- Digital Video now handled by tcdecode and tcextract. No more patching
+  of libdv required. You still need libdv installed on your system.
+  However, sound extraction in libdv seems to be broken. Use "-x dv,raw"
+  if you have an AVI file containing the DV frames.
+
+- tcframe now transforms YUV raw stream into YUV4MPEG stream (stdout) 
+  for viewing stream with, e.g., "yuvplay".
+
+- renamed: libvoppm -> libvo and libvoppm.a -> libvout.a
+  added yuv output option in libvo. 
+
+- added Intel Indeo 5 export module FourCC=IV50, but avifile support
+  seems to be broken.
+	
+- some changes in the configure.in script for libdv and lame.
+	
+---------------------------------------------
+transcode-0.3.0 Tue Jul  3 12:48:46 CEST 2001
+
+- (1) import feature enhancements:
+	
+- package now includes ac3dec (0.6.1), mpeg2dec (0.2.0), lame (3.87),
+  no more patches for MPEG VOB files / unencrypted DVD's required.
+
+- new import modules (some with overlapping functionality with older modules) 
+	"vob"        MPEG2/AC3 program stream only (*.VOB)
+  	"yuv"        reads raw yuv (YV12) video stream and converts it to raw RGB
+	"yuv4mpeg"   mjpeg-tools yuv video stream format / wav pcm audio 
+	             (not tested very well)
+	"raw"        raw rgb/pcm from RIFF AVI/WAVE files, or raw streams with
+	             autodetect feature provided by "tcextract" s. below.
+		     (combines functionality of "cat" and "avi" modules,
+                      s. also transcode homepage for module description) 
+	"null"       dummy module, if no audio stream will be processed.
+	
+- new helper programs for easy building/debugging of new import modules:
+
+	"tcextract" handy extractor frontend transcode, extracts from different
+	 file formats and stdin, output goes to stdout
+
+	"tcdecode" handy decoder frontend for transcode, decodes raw stream 
+         from file or stdin into rgb stream for stdout 
+        
+	"tcframe" reads raw rgb stream from file or stdin and produces a 
+	 sequence of ppm files for debugging or still images.
+
+- some old import modules switched to use included "tcextract" and "tcdecode"
+  binaries. Minor updates.
+	
+- added "avicodec" in tools subdirectory to change video/audio codec 
+  in header of AVI files
+
+- (2) transcode core bugfixes/changes:
+
+- fixed encoder segfault on import close on instances 
+  with no valid first frame
+
+- fixed race condition with import thread on exit where encoder was not
+  properly closed	
+
+- transcode now uses "-i /dev/zero -x null -o /dev/null -y null" as defaults
+  if no input/output files or codecs are provided. 	
+	
+- (3) export feature enhancements: none, minor code cleanup.
+
+- changes in the configure file for auto-detection of MMX, ...
+	
+---------------------------------------------
+transcode-0.2.2 Thu Jun 21 22:46:25 CEST 2001
+
+- divxbitrate problem solved for export_divx.so	
+
+- feature enhancements:
+   -cut columns in frame at left and right side with option -j                
+   -mirror image of frame with new option -l
+   -add keyframe interval parameter with option -w
+
+- added "avimerge" in tools subdirectory: works with mplayer
+  but aviplay "clicks" at movie transition	
+	
+- more video processing infos displayed
+	
+- added static frame buffers for import thread (configure with --statbuffer) 
+  to avoid alloc/free cycles. 
+
+- changes in the video/audio processing core module. All video/audio
+  transformations are performed on actual frame buffer
+
+- _vob_t structure changes -- external modules need to be recompiled!	
+
+- minor language cleanups	
+
+---------------------------------------------	
+transcode-0.2.1 Sun Jun 17 19:55:39 CEST 2001
+
+- added mp3bitrate, proper audiocodec and interleaved flag in avilib.c.
+  videos produced by export_divx.so now playable by "aviplay"
+  and "mplayer". 	
+
+- fixed AVI file corruption bug in dl_loader.c, where program
+  aborted on input stream error rather than performing proper cleanup
+
+- removed required output file if -t option is given
+
+- moved encoder init and stop calls from transcode.c to encoder.c
+
+- added pcmscan and vobscan.sh in tools subdirectory to
+  estimate the maximum volume increase for audio stream, in case
+  you do not have "sox"	.
+
+- fix for segfault on mp3bitrate < 192 kbs in export_divx2.so
+
+---------------------------------------------	
+transcode-0.2.0 Thu Jun 14 00:05:04 CEST 2001
+
+- initial public release
+	

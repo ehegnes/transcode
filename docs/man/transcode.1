@@ -1,0 +1,671 @@
+.TH transcode 1 "31 July 2002" "transcode(1)"
+.SH NAME
+transcode \- LINUX video stream processing tool
+.SH SYNOPSIS
+.na
+.B transcode
+[
+.B options
+] ...
+.SH COPYRIGHT
+\fBtranscode\fP is Copyright (C) by Thomas Östreich.
+.SH DESCRIPTION
+.LP
+\fItranscode\fP is a linux text-console utility for video stream
+processing, running on a platform that supports shared libraries and
+threads.
+.LP
+Decoding and encoding is done by loading modules that are responsible
+for feeding transcode with raw video/audio streams (import modules)
+and encoding the frames (export modules).
+.LP
+It supports elementary video and audio frame transformations,
+including de-interlacing or fast resizing of video frames and loading
+of external filters.
+.LP
+A number of modules are included to enable import of DVDs on-the-fly,
+MPEG elementary (ES) or program streams (VOB), MPEG video, Digital
+Video (DV), YUV4MPEG streams, NuppelVideo file format and raw or
+compressed (pass-through) video frames and export modules for writing
+DivX;-), OpenDivX, DivX 4.xx or uncompressed AVI files with MPEG, AC3
+(pass-through) or PCM audio.
+.LP
+Additional export modules to write single frames (PPM) or YUV4MPEG
+streams are available, as well as an interface import module to the
+avifile library.
+.LP
+It's modular concept is intended to provide flexibility and easy user
+extensibility to include other video/audio codecs or filetypes. A set
+of tools is included to demux (tcdemux), extract (tcextract) and
+decode (tcdecode) the sources into raw video/audio streams for import,
+probing (tcprobe) and scanning (tcscan) your sources and to enable
+post-processing of AVI files, fixing AVI file header information
+(avifix), merging multiple files (avimerge) or splitting large AVI
+files (avisplit) to fit on a CD.
+.SH OPTIONS
+.TP
+.B \-A
+use AC3 as internal audio codec [off].
+.br
+Only pass-through supported.
+.TP
+.B \-B \fIn\fP[\fI,m\fP[,\fIM\fP]
+resize to height-\fIn\fP*\fIM\fP rows [,width-\fIm\fP*\fIM\fP] columns [off,32].
+.TP
+.B \-C \fImode\fP
+enable anti-aliasing mode (1-3) [off].
+.TP
+.B \-D \fInum\fP
+sync video start with audio frame num [0].
+.TP
+.B \-E \fIsamplerate\fP
+audio output samplerate [as input].
+.TP
+.B \-F \fIcodec\fP
+encoder parameter strings [module dependent]
+.TP
+.B \-G \fIval\fP
+gamma correction (0.0-10.0) [off].
+.TP
+.B \-H \fIn\fP
+auto-probe \fIn\fP MB of source (0=disable) default [1]
+.TP
+.B \-I \fImode\fP
+enable de-interlacing mode (1-3) [off].
+.TP
+.B \-J \fIfilter1\fP[\fI,filter2\fP[\fI,...\fP]]
+apply external filter plugins [off].  A full-blown transcode has the
+following filter modules:
+.IP
+Filter "32detect": 3:2 pulldown detection plugin
+.br
+Filter "32drop": 3:2 inverse telecine removal plugin
+.br
+Filter "astat": audio statistics filter plugin
+.br
+Filter "cshift": chroma-lag shifter
+.br
+Filter "cut": encode only listed frames
+.br
+Filter "dilyuvmmx": yuv de-interlace filter plugin
+.br
+Filter "dnr": dynamic noise reduction
+.br
+Filter "invert": invert the image
+.br
+Filter "logo": render image in videostream
+.br
+Filter "mask": masking plugin
+.br
+Filter "normalize": Volume normalizer
+.br
+Filter "null": demo filter plugin
+.br
+Filter "pp": mplayer postprocess filters
+.br
+Filter "ppcvs": mplayer (CVS) postprocess filters (npp syntax)
+.br
+Filter "skip": skip all listed frames
+.br
+Filter "smartdeinter": VirtualDub's smart deinterlacer
+.br
+Filter "testframe": generate stream of testframes
+.br
+Filter "xharpen": VirtualDub's XSharpen Filter
+.br
+Filter "yuy2tov12": YUY2 to YV12 converter plugin
+.br
+Filter "yuvdenoise": mjpegs YUV denoiser
+.br
+.IP
+To see what your transcode has, do a  
+.br
+.B ls -1 $TRANSCODE_MOD_PATH/filter*.so
+.PP
+Example:
+.RS 
+transcode .. -J 32detect=force_mode=3,normalize,cut="0-100 300-400"
+
+Will load the 32detect filter plugin with parameter force_mode=3, the
+volume normalizer and the cut filter. Some of the filter plugins have
+additional documentation in /docs/filter_*.txt
+.RE
+.PP
+Warning:
+.RS
+You can only specify one \-J argument. If you specify more than one, 
+the last -J argument takes precedence over the previous ones.
+.RE
+.PP
+.TP
+.B \-L \fIn\fP
+seek to VOB stream offset \fIn\fPx2kB default [0]
+.B \-K
+enable b/w mode [off].
+.TP
+.B \-M \fImode\fP
+demuxer PES AV sync modes (0-4) [1].
+.PP
+.RS
+0      pass-through, do not mess with the stream, switch off
+       any synchronization/demuxing process. 
+
+1      PTS only (default)
+       Synchronize video and audio by inspecting PTS/DTS
+       time stamps of audio and video. Preferred mode for
+       PAL VOB streams and DVDs.
+
+2      NTSC VOB stream synchronization 
+       feature. This mode generates synchronization
+       information for transcode by analyzing the frame
+       display time.
+
+3      (like -M 1) but invokes "-D/--av_fine_ms" options
+       internally based on "tcprobe" PTS analysis.
+
+4      (like -M 2) with additional frame rate enforcement
+       (for NTSC).
+.RE
+.TP
+.B \-N \fI0xnn\fP
+export audio format id [0x55].
+.RS
+Available format IDs are:
+
+0x1    PCM uncompressed audio
+
+0x50   MPEG layer-2 aka MP2 (only with -y *,mpeg)
+
+0x55   MPEG layer-3 aka MP3
+
+0x2000 AC3 audio (only with -A)
+
+0xfffe OGG/Vorbis audio
+.RE
+.TP
+.B \-O
+flush lame mp3 buffer on encoder stop [off].
+.TP
+.B \-P \fIflag\fP
+pass-through flag (0=off|1=V|2=A|3=A+V) [0].
+.TP
+.B \-Q \fIn\fP[\fI,m\fP]
+encoding[,decoding] quality (0=fastest-5=best) [5,5].
+.TP
+.B \-R \fIn\fP[\fI,f1\fP[\fI,f2\fP]]
+enable multi-pass encoding (0-3) [0,divx4.log,pcm.log].
+.TP
+.B \-S \fIunit\fP[\fI,s1-s2\fP]
+process program stream unit[,s1-s2] sequences [0,all].
+.TP
+.B \-T \fIt\fP[\fI,c\fP[\fI,a\fP]]
+select DVD title[,chapter[,angle]] [1,1,1]. Only a single chapter
+is transcoded. Use -T 1,-1 to trancode all chapters in a row. You can
+even specify chapter ranges.
+.TP
+.B \-U \fIbase\fP
+process DVD in chapter mode to base-ch%02d.avi [off].
+.TP
+.B \-V
+use YV12/I420 as internal video codec [off]. This is usually much
+faster than RGB processing but some import modules may not support this
+format. Always use this option when possible
+.TP
+.B \-W \fIn\fP,\fIm\fP[,\fInav_file\fP] 
+autosplit and process part \fIn\fP of \fIm\fP (VOB only) [off]
+.TP
+.B \-X \fIn\fP[,\fIm\fP,[\fIM\fP]]
+resize to height+\fIn\fP*\fIM\fP rows [,width+\fIm\fP*\fIM\fP] columns [off,32].
+.TP
+.B \-Y \fItop\fP[\fI,left\fP[\fI,bottom\fP[\fI,right\fP]]]
+select (encoder) frame region by clipping border [off].
+.TP
+.B \-Z \fIwidth\fPx\fIheight\fP
+resize to \fIwidht\fP columns, \fIheight\fP rows with filtering [off].
+.TP
+.B \-a \fIach\fP[\fI,vch\fP]
+extract audio[,video] track for encoding.
+.TP
+.B \-b \fIb\fP[,\fIvbr\fP,[\fIq\fP]]
+audio encoder bitrate kBits/s[,vbr[,quality]] [128,0,5]
+.TP
+.B \-c \fIf1\fP-\fIf2\fP
+encode only frames \fIf1-f2\fP [all]. Use this and you'll get
+statistics about remaining encoding time.
+.TP
+.B \-d
+swap bytes in audio stream [off]. In most cases, DVD PCM audio tracks require
+swapping of audio bytes
+.TP
+.B \-e \fIr\fP[\fI,b\fP[\fI,c\fP]]
+PCM audio stream parameter. Sample rate [Hz], bits per sample and
+number of channels [48000,16,2].
+.TP
+.B \-f \fIrate\fP,[\fIfrc\fP]
+output video frame rate[,frc] [25.000,0].
+.TP
+.B \-g \fIwidth\fPx\fIheight\fP
+video stream frame size [720x576].
+.TP
+.B \-h
+print out usage information.
+.TP
+.B \-i \fIname\fP
+input file/directory/device/mountpoint/host name. default [/dev/zero]
+.TP
+.B \-j \fItop\fP[\fI,left\fP[\fI,bottom\fP[\fI,right\fP]]]
+select frame region by clipping border [off].
+.TP
+.B \-k
+swap red/blue (Cb/Cr) in video frame [off].
+.TP
+.B \-l
+mirror video frame [off].
+.TP
+.B \-m \fIfile\fP
+write audio stream to separate file [off].
+.TP
+.B \-n \fI0xnn\fP
+import audio format id [0x2000].
+.TP
+.B \-o \fIfile\fP
+output file name. default [/dev/null]
+.TP
+.B \-p \fIfile\fP
+read audio stream from separate file [off].
+.TP
+.B \-q \fIlevel\fP
+verbosity (0=quiet,1=info,2=debug) [1].
+.TP
+.B \-r \fIn\fP[,\fIm\fP]
+reduce video height/width by n[,m] [off].
+.TP
+.B \-s \fIgain\fP,[\fIcenter\fP,[\fIfront\fP,[\fIrear\fP]]]
+increase volume of audio stream by gain[center,front,rear] default [off,1,1,1].
+.TP
+.B \-t \fIn\fP,\fIbase\fP
+split output to \fIbase\fP%03d.avi with \fIn\fP frames [off].
+.TP
+.B \-u \fIm\fP[\fI,n\fP]
+use \fIm\fP framebuffer[,\fIn\fP threads] for AV processing [10,1].
+.TP
+.B \-v
+print version.
+.TP
+.B \-w \fIb\fP[\fI,k\fP[\fI,c\fP]]
+encoder bitrate[,keyframes[,crispness]] [1800,250,100].
+.TP
+.B \-x \fIvmod[,amod]\fP
+video[,audio] import modules [auto,auto]. If omitted, transcode will probe
+for appropriate import modules. A full-blown transcode has the following
+import modules:
+.IP
+Module "ac3": (audio) AC3
+.br
+Module "avi": (video) * | (audio) *
+.br
+Module "divx": (video) DivX;-)/XviD/OpenDivX/DivX 4.xx/5.xx
+.br
+Module "dv": (video) DV | (audio) PCM
+.br
+Module "dvd": (video) DVD | (audio) MPEG/AC3/PCM
+.br
+Module "im": (video) RGB
+.br
+Module "imlist": (video) RGB
+.br
+Module "lav": (video) LAV | (audio) WAVE
+.br
+Module "mjpeg": (video) MJPEG
+.br
+Module "mov": (video) * | (audio) *
+.br
+Module "mp3": (audio) MPEG
+.br
+Module "mpeg2": (video) MPEG2
+.br
+Module "mpeg3": (video) MPEG2
+.br
+Module "mplayer": (video) rendered by mplayer | (audio) rendered by mplayer
+.br
+Module "null": (video) null | (audio) null
+.br
+Module "nvrec": (video) nvrec | (audio) nvrec
+.br
+Module "ogg": (audio) OGG Vorbis
+.br
+Module "raw": (video) RGB/YUV | (audio) PCM
+.br
+Module "rawlist": (video) YUV/RGB raw frames
+.br
+Module "vdrac3": (audio) VDR-AC3
+.br
+Module "vob": (video) MPEG-2 | (audio) MPEG/AC3/PCM | (subtitle)
+.br
+Module "xml": (video) * | (audio) *
+.br
+Module "yuv4mpeg": (video) YUV4MPEGx | (audio) WAVE
+.IP
+To see what your transcode has, do a  
+.br
+.B ls -1 $TRANSCODE_MOD_PATH/import*.so
+.TP
+.B \-y \fIvmod[,amod]\fP
+video[,audio] export modules [null].  If omitted, transcode will encode to
+the \fInull\fP module. A full-blown transcode has the following
+export modules:
+.IP
+Module "af6": (video) Win32 dll | (audio) MPEG/AC3/PCM
+.br
+Module "divx4": (video) DivX 4.xx | (audio) MPEG/AC3/PCM
+.br
+Module "divx4raw": (video) DivX 4.xx (ES) | (audio) MPEG/AC3/PCM
+.br
+Module "divx5": (video) DivX 5.xx | (audio) MPEG/AC3/PCM
+.br
+Module "divx": (video) DivX;-) | (audio) MPEG/AC3/PCM
+.br
+Module "dv": (video) Digital Video | (audio) MPEG/AC3/PCM
+.br
+Module "dvraw": (video) Digital Video | (audio) PCM
+.br
+Module "fame": (video) MPEG-4 | (audio) MPEG/AC3/PCM
+.br
+Module "ffmpeg4": (video) MPEG4 | (audio) MPEG/AC3/PCM
+.br
+Module "ffmpeg": (video) ffmpeg API | (audio) MPEG/AC3/PCM
+.br
+Module "im": (video) *
+.br
+Module "iv50": (video) Indeo Video 5.0 | (audio) MPEG/AC3/PCM
+.br
+Module "mjpeg": (video) Motion JPEG | (audio) MPEG/AC3/PCM
+.br
+Module "mov": (video) * | (audio) *
+.br
+Module "mp2enc": (audio) MPEG 1/2
+.br
+Module "mpeg2enc": (video) MPEG 1/2
+.br
+Module "mpeg": (video) MPEG 1/2 | (audio) MPEG 1 Layer II
+.br
+Module "net": (video) RGB/YUV | (audio) PCM/AC3
+.br
+Module "null": (video) null | (audio) null
+.br
+Module "opendivx": (video) OpenDivX | (audio) MPEG/AC3/PCM
+.br
+Module "pac": (audio) PCM (non-interleaved)
+.br
+Module "ppm": (video) PPM/PGM | (audio) MPEG/AC3/PCM
+.br
+Module "ogg": (video) null | (audio) OGG Vorbis
+.br
+Module "raw": (video) * | (audio) MPEG/AC3/PCM
+.br
+Module "toolame": (audio) MPEG 1/2
+.br
+Module "wav": (audio) WAVE PCM
+.br
+Module "xvid": (video) XviD API 1.0 and 2.0 | (audio) MPEG/AC3/PCM
+.br
+Module "xvidcvs": (video) Xvid API 1.0 and 2.0 (CVS) | (audio) MPEG/AC3/PCM
+.br
+Module "yuv4mpeg": (video) YUV4MPEG2 | (audio) MPEG/AC3/PCM
+.IP
+To see what your transcode has, do a  
+.br
+.B ls -1 $TRANSCODE_MOD_PATH/export*.so
+.TP
+.B \-z
+flip video frame upside down [off].
+.TP
+.B \-\-zoom_filter \fIstring\fP
+use filter string for video resampling -Z [Lanczos3]
+.TP
+.B \-\-cluster_percentage
+use percentage mode for cluster encoding -W [off]
+.TP
+.B \-\-cluster_chunks \fIa-b\fP
+process chunk range instead of selected chunk [off]
+.TP
+.B \-\-export_asr \fIC\fP
+set export aspect ratio code \fIC\fP [as input]
+.TP
+.B \-\-keep_asr
+try to keep aspect ratio (only with -Z) [off]
+.TP
+.B \-\-export_frc \fIF\fP
+set export frame rate code \fIF\fP [as input]
+.TP
+.B \-\-divx_quant \fImin,max\fP
+divx encoder min/max quantizer [2,31]
+.TP
+.B \-\-divx_rc \fIp\fP,\fIrp\fP,\fIrr\fP
+divx encoder rate control parameter [2000,10,20]
+.TP
+.B \-\-import_v4l \fIn\fP[,\fIid\fP]
+channel number and station number or name [0]
+.TP
+.B \-\-record_v4l \fIa-b\fP
+recording time interval in seconds [off]
+.TP
+.B \-\-duration \fIhh:mm:ss\fP
+limit v4l recording to this duration [off]
+.TP
+.B \-\-pulldown
+set MPEG 3:2 pulldown flags on export [off]
+.TP
+.B \-\-antialias_para \fIw,b\fP
+center pixel weight, xy-bias [0.333,0.500]
+.TP
+.B \-\-no_audio_adjust
+disable audio frame sample adjustment [off]
+.TP
+.B \-\-av_fine_ms \fIt\fP
+AV fine-tuning shift \fIt\fP in millisecs [autodetect]
+.TP
+.B \-\-nav_seek \fIfile\fP
+use VOB navigation file [off]
+.TP
+.B \-\-psu_mode
+process VOB in PSU, -o is a filemask incl. %d [off]
+.TP
+.B \-\-psu_chunks \fIa-b\fP
+process only selected units \fIa-b\fP for PSU mode [all]
+.TP
+.B \-\-no_split
+encode to single file in chapter/psu mode [off]
+.TP
+.B \-\-pre_clip t[,l[,b[,r]]]
+select initial frame region by clipping border [off]
+.TP
+.B \-\-post_clip t[,l[,b[,r]]]
+select final frame region by clipping border [off]
+.TP
+.B \-\-a52_drc_off
+disable liba52 dynamic range compression [enabled]
+.TP
+.B \-\-a52_demux
+demux AC3/A52 to separate channels [off]
+.TP
+.B \-\-a52_dolby_off
+disable liba52 dolby surround [enabled]
+.TP
+.B \-\-dir_mode \fIbase\fP
+process directory contents to base-%03d.avi [off]
+.TP
+.B \-\-frame_interval \fIN\fP
+select only every \fIN\fPth frame to be exported [1]
+.TP
+.B \-\-encode_fields
+enable field based encoding (if supported) [off]
+.TP
+.B \-\-more_help \fIparam\fP
+more help on named parameter (if supported)
+.SH NOTES
+.TP
+*
+Most source material parameter are auto-detected.
+.TP
+*
+Clipping region options are expanded symmetrically.  Examples:
+.RS
+.LP
+-j 80 will be expanded to -j 80,0,80,0
+.LP
+-j 80,8 will be expanded to -j 80,8,80,8
+.LP
+-j 80,8,10 will be expanded to -j 80,8,10,8
+.RE
+.TP
+*
+maximum image size is 1024x768. 
+.TP
+*
+The video frame operations ordering is fixed: "-j -I -X -B -Z -Y -r -z
+-l -k -K -G -C" (executed from left to right).
+.TP
+*
+Shrinking the image with '-B' is not possible if the image
+width/height is not a multiple of 8, 16 or 32.
+.TP
+*
+Expanding the image with '-X' is not possible if the image
+width/height is not a multiple of 8, 16 or 32.
+.TP
+*
+The final frame width/height should be a multiple of 8. (to avoid
+encoding problems with some codecs)  
+.RS
+.IP 1.
+Reducing the video height/width by 2,4,8 Option '-r factor' can be
+used to shrink the video image by a constant factor, this factor can
+be 2,4 or 8.
+.IP 2.
+Clipping and changing the aspect ratio
+.I transcode 
+uses 3 steps to produce the input image for the export modules 
+.RS
+.IP 1.
+Clipping of the input image. 
+.IP 2.
+Changing the aspect ratio of the 1) output. 
+.IP 3.
+Clipping of the 2) output. 
+.RE
+.RE
+.TP
+*
+.I Bits per pixel
+(bits/pixel) is a value transcode calculates and prints when starting up. It is
+mainly useful when encoding to divx. You'll see line like 
+.RS
+
+[transcode] V: bits/pixel       | 0.237
+
+Simplified said, bits/pixel quantifies how good an encode will be. Although
+this value depends heavily on the used input material, as a general rule of
+thump it can be said that values greater or close to 0.2 will result in good
+encodes, encodes with values less than 0.15 will have noticeable artifacts.
+
+.I Bits per pixel 
+depends on the resolution, bitrate and frames per second. If you have a low
+value ( < 0.15), you might want to raise the bitrate or encode at a lower
+resolution. The exact formula is
+
+           bitrate*1000
+  bpp =  ----------------
+         width*height*fps
+
+.SH EXAMPLES
+The following command will read it's input from the DVD drive (I
+assume \fI/dev/dvd\fP is a symbolic link to the actual DVD device) and
+produce a splitted divx4 movie according to the chapter information on
+the DVD medium.  The output files will be named
+\fImy_movie-ch00.avi\fP, \fImy_movie-ch01.avi\fP ...
+.LP
+.PD 0
+\fBtranscode -i /dev/dvd/ -x dvd -V -j 16,0 -B 5,0 \\\fP
+.RS
+.TP
+.B -Y 40,8 -s 4.47 -U my_movie -y divx4 -w 1618
+.RE
+.PD 1
+.LP
+Option 
+.B -V
+tells \fItranscode\fP to use YUV as internal video
+colorspace, which saves a lot of CPU/PCI bandwidth.
+.LP
+Option
+.B -j 16,0
+will be expanded to
+.B -j 16,0,16,0
+and results in 16 rows from the top and the bottom of the image to be
+cut off.  This may be usefull if the source consists of black top and
+bottom bars.
+.LP
+Option
+.B -B 5,0
+tells \fItranscode\fP to shrink the resulting image by 5*32=160 rows
+in height.
+.LP
+Option
+.B -Y 40,8
+will be expanded to
+.B -Y 40,8,40,8
+and tells \fItranscode\fP to ...
+.LP
+Option
+.B -s 4.47
+tells \fItranscode\fP to increase audio volume by a factor 4.47.
+.LP
+Option
+.B -U my_movie
+tells \fItranscode\fP to operate in chapter mode and produce output
+to files named \fImy_movie-ch00.avi\fP, \fImy_movie-ch01.avi\fP...
+.LP
+Option
+.B -y divx4
+tells \fItranscode\fP to use the export module export_divx4.so.
+.LP
+Option
+.B -w 1618
+tells \fItranscode\fP to set the encoder bitrate to 1618 which is
+lower than the default of 1800 and results in smaller files with the
+loss of visual quality.
+.SH AUTHORS
+.I transcode
+was written by Thomas Östreich
+.br
+<ostreich@theorie.physik.uni-goettingen.de> with contributions from
+many others.  See \fIAUTHORS\fP for details.
+.SH SEE ALSO
+.BR avifix (1),
+.BR avimerge (1),
+.BR avisplit (1),
+.BR tccat (1),
+.BR tcdemux (1),
+.BR tcextract (1),
+.BR tcdecode (1),
+.BR tcscan (1),
+.BR tcprobe (1),
+.br
+.SH WWW
+Frequently asked questions (FAQ) at
+.br
+.UR
+http://www.theorie.physik.uni-goettingen.de/~ostreich/transcode/html/faq.html
+.UE
+.br
+Example transcode sessions
+.br
+.UR
+http://www.theorie.physik.uni-goettingen.de/~ostreich/transcode/html/index.html
+.UE
+.SH BUGS
+see 
+.UR
+http://www.theorie.physik.uni-goettingen.de/~ostreich/transcode/pending.html
+.UE

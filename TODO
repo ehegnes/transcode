@@ -1,0 +1,42 @@
+WISHLIST for v0.6.X
+-------------------
+
+- threads scheduling priority changes
+	(postponed)
+- add full LFS 
+	(postponed)
+- DVD subtitle support, via filter plugin facility
+	(done - beta 0.6.0pre4
+- openquicktime import/export modules
+	(postponed)
+- multiple audio track AVI-file support
+	(done - beta 0.6.0pre3)
+- quicktime import/export modules
+	(done - beta 0.6.0pre3)	
+- write AVI file header first
+	(done - beta 0.6.0pre2)	
+- add some RGBtoYV12 conversion for MPEG export
+	(done - beta 0.6.0pre2)	 
+- divx decoding 
+	(done - beta 0.6.0pre2)
+- divx keyframe detection "filter_divxkey.so" for pass-through mode and 
+  splitting.
+	(done - beta 0.6.0pre2 - splitting dropped)
+- support for cluster encoding
+	(done - batch encoding only in beta 0.6.0pre2)
+- suport for network streams
+	(done - beta 0.6.0pre1)
+- asynchronous AV import
+	(done - beta 0.6.0pre1)
+
+WISHLIST for v0.5.X
+-------------------
+
+- more intelligent (automatic) audio/video synchronization for program streams
+	(done - maybe not intelligent, but some NTSC support)
+- SSE optimizations for video frame operation 
+	(not yet, but heavy optimizations for -B and -X)	
+- support for encrypted DVDs 	
+	(done)
+- source autodetection
+	(done)
