@@ -28,7 +28,8 @@
 #include "transcode.h"
 
 static int verbose_flag = TC_QUIET;
-static int capability_flag = TC_CAP_PCM | TC_CAP_YUV | TC_CAP_RGB | TC_CAP_AUD | TC_CAP_VID;
+static int capability_flag = TC_CAP_PCM | TC_CAP_YUV | TC_CAP_RGB |
+                             TC_CAP_AUD | TC_CAP_VID;
 
 #define MOD_PRE lzo
 #include "import_def.h"
@@ -65,18 +66,19 @@ MOD_open
   int width=0, height=0;
   double fps=0;
   char *codec=NULL;
-  
+
   param->fd = NULL;
-  
+
   if(param->flag == TC_AUDIO) return(TC_IMPORT_ERROR);
-  
+
   if(param->flag == TC_VIDEO) {
-    
+
     param->fd = NULL;
-    
+
     if(avifile2==NULL) {
       if(vob->nav_seek_file) {
-	if(NULL == (avifile2 = AVI_open_input_indexfile(vob->video_in_file,0,vob->nav_seek_file))){
+	if(NULL == (avifile2 = AVI_open_input_indexfile(vob->video_in_file,
+                                                      0,vob->nav_seek_file))){
 	  AVI_print_error("avi open error");
 	  return(TC_IMPORT_ERROR); 
 	} 
@@ -87,21 +89,21 @@ MOD_open
 	}
       }
     }
-    
+
     // vob->offset contains the last keyframe
     if (!done_seek && vob->vob_offset>0) {
 	AVI_set_video_position(avifile2, vob->vob_offset);
 	done_seek=1;
     }
-    
+
     //read all video parameter from input file
     width  =  AVI_video_width(avifile2);
     height =  AVI_video_height(avifile2);
     
     fps    =  AVI_frame_rate(avifile2);
     codec  =  AVI_video_compressor(avifile2);
-    
-    
+
+
     fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
 	    MOD_NAME, codec, fps, width, height);
 
@@ -109,7 +111,7 @@ MOD_open
     /*
      * Step 1: initialize the LZO library
      */
-    
+
     if (lzo_init() != LZO_E_OK) {
       printf("[%s] lzo_init() failed\n", MOD_NAME);
       return(TC_IMPORT_ERROR); 
@@ -117,15 +119,15 @@ MOD_open
 
     wrkmem = (lzo_bytep) lzo_malloc(LZO1X_1_MEM_COMPRESS);
     out = (lzo_bytep) lzo_malloc(BUFFER_SIZE);
-    
+
     if (wrkmem == NULL || out == NULL) {
       printf("[%s] out of memory\n", MOD_NAME);
       return(TC_IMPORT_ERROR); 
     }
-    
-    return(0);
+
+    return(TC_IMPORT_OK);
   }
-  
+
   return(TC_IMPORT_ERROR);
 }
 
@@ -138,59 +140,59 @@ MOD_open
 
 MOD_decode 
 {
-  
+
   int key;
 
   long bytes_read=0;
-  
+
   if(param->flag == TC_VIDEO) {
     // If we are using tccat, then do nothing here
     if (param->fd != NULL) {
-      return(0);
+      return(TC_IMPORT_OK);
     }
 
     out_len = AVI_read_frame(avifile2, out, &key);
-    
+
     if(verbose & TC_STATS && key) printf("keyframe %d\n", vframe_count); 
-    
+
     if(out_len<=0) {
       if(verbose & TC_DEBUG) AVI_print_error("AVI read video frame");
       return(TC_IMPORT_ERROR);
     }
-    
+
     r = lzo1x_decompress(out, out_len, param->buffer, &param->size, wrkmem);
-    
+
     if (r == LZO_E_OK) {
       if(verbose & TC_DEBUG) printf("decompressed %lu bytes into %lu bytes\n",
 				    (long) out_len, (long) param->size);
     } else {
-      
+
       /* this should NEVER happen */
       printf("[%s] internal error - decompression failed: %d\n", MOD_NAME, r);
       return(TC_IMPORT_ERROR); 
     }
-   
+
     //transcode v.0.5.0-pre8 addition
     if(key) param->attributes |= TC_FRAME_IS_KEYFRAME;
 
     ++vframe_count;
-    
-    return(0);
+
+    return(TC_IMPORT_OK);
   }
-  
+
   if(param->flag == TC_AUDIO) {
 
     switch(audio_codec) {
-      
+
     case CODEC_RAW:
-    
+
       bytes_read = AVI_audio_size(avifile1, aframe_count);
 
       if(bytes_read<=0) {
 	if(verbose & TC_DEBUG) AVI_print_error("AVI audio read frame");
 	return(TC_IMPORT_ERROR);
       }
-      
+
       if(AVI_read_audio(avifile1, param->buffer, bytes_read) < 0) {
 	AVI_print_error("AVI audio read frame");
 	return(TC_IMPORT_ERROR);
@@ -198,24 +200,24 @@ MOD_decode
 
       param->size = bytes_read;
       ++aframe_count;
-      
+
       break;
-      
+
     default:
-      
+
       bytes_read = AVI_read_audio(avifile1, param->buffer, param->size);
-      
+
       if(bytes_read<0) {
 	if(verbose & TC_DEBUG) AVI_print_error("AVI audio read frame");
 	return(TC_IMPORT_ERROR);
       }
-      
+
       if(bytes_read < param->size) param->size=bytes_read;
     }
-    
-    return(0);
+
+    return(TC_IMPORT_OK);
   }
-  
+
   return(TC_IMPORT_ERROR);
 }
 
@@ -227,25 +229,23 @@ MOD_decode
 
 MOD_close
 {  
-  
+
   if(param->fd != NULL) pclose(param->fd);
-  
+
   if(param->flag == TC_AUDIO) return(TC_IMPORT_ERROR);
-  
+
   if(param->flag == TC_VIDEO) {
-    
+
     lzo_free(wrkmem);
     lzo_free(out);
-    
+
     if(avifile2!=NULL) {
       AVI_close(avifile2);
       avifile2=NULL;
     }
     done_seek = 0;
-    return(0);
+    return(TC_IMPORT_OK);
   }
-  
+
   return(TC_IMPORT_ERROR);
 }
-
-
