@@ -106,6 +106,26 @@ void plugin_fix_id(void)
 }
   
 
+// removes \\ from ,
+int filter_unquote_options(char *options)
+{
+    char *a, *b;
+
+    if (!options) return 1;
+
+    a = options+1;
+    b = options+1;
+
+    while (*a) {
+	if (*a == ',' && *(a-1) == '\\')
+	   --b;
+	*b++ = *a++;
+    }
+    *b = '\0';
+
+    return 0;
+}
+
 int load_plugin(char *path) {
 #if defined(__FreeBSD__) || defined (__APPLE__)
   const
@@ -129,6 +149,8 @@ int load_plugin(char *path) {
       break;
     }
   }
+
+  filter_unquote_options(filter[id].options);
 
   // delete instance
   c = filter[id].name;
@@ -340,15 +362,26 @@ int load_single_plugin (char *mfilter_string)
 
 char *get_next_filter_name(char *name, char *string)
 {
-  char *res;
+  char *res = string;
 
   if(string[0]=='\0') return(NULL);
 
-  if((res=strchr(string, ','))==NULL) {
-    strcpy(name, string);
-    //return pointer to '\0'
-    return(string+strlen(string));
+  while (1) {
+      if((res=strchr(res, ','))==NULL) {
+	  strcpy(name, string);
+	  //return pointer to '\0'
+	  return(string+strlen(string));
+      }
+
+      if ( (res-1) && *(res-1) && (*(res-1) == '\\') ) {
+	  // This is a quoted ',' do not use this as a separator
+	  res++;
+	  continue;
+      }
+
+      break;
   }
+
   
   memcpy(name, string, (int)(res-string));
   
