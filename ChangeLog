@@ -1,6 +1,20 @@
 --------------------------------------------
 transcode-0.6.8
 
+2003-06-04 marrq <marrq at ugcs.caltech.edu>
+
+  * export/export_debugppm.c:
+  This module aids debugging with writing out raw frames.
+  If using rgb color, three grayscale pgm's will be made                                          
+  so one can look at a colormap of each separate color.                                           
+  Names end in _{r,g,b).pgm                                                                       
+                                                                                                        
+  If using yuv color, one pgm with 3 sub images within it                                         
+  will be written.  The large sub image is the original                                           
+  image resolution and the luminance data.  Beneath that,                                         
+  at 1/4 size are two images for each chrominance.  The                                           
+  first chrominance following Y data is on the left.
+
 2003-06-18 Tilmann Bitterberg <transcode at tibit.org>
 
   * avilib/avilib.{c,h}:
