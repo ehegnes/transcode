@@ -57,6 +57,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_hqdn3d.la\
 			filter_29to23.la\
 			filter_smooth.la\
+			filter_unsharp.la\
 			$(F_PP) $(F_MMX) $(F_LOGO) $(F_TEXT)
 
 filter_null_la_SOURCES = filter_null.c
@@ -77,6 +78,9 @@ filter_text_la_LIBADD  = @FT2_LIBS@
 
 filter_smooth_la_SOURCES = filter_smooth.c
 filter_smooth_la_LDFLAGS =  -module -avoid-version 
+
+filter_unsharp_la_SOURCES = filter_unsharp.c
+filter_unsharp_la_LDFLAGS =  -module -avoid-version 
 
 filter_hqdn3d_la_SOURCES = filter_hqdn3d.c
 filter_hqdn3d_la_LDFLAGS =  -module -avoid-version 

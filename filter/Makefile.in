@@ -349,6 +349,7 @@ pkg_LTLIBRARIES = filter_null.la\
 			filter_hqdn3d.la\
 			filter_29to23.la\
 			filter_smooth.la\
+			filter_unsharp.la\
 			$(F_PP) $(F_MMX) $(F_LOGO) $(F_TEXT)
 
 
@@ -370,6 +371,9 @@ filter_text_la_LIBADD = @FT2_LIBS@
 
 filter_smooth_la_SOURCES = filter_smooth.c
 filter_smooth_la_LDFLAGS = -module -avoid-version 
+
+filter_unsharp_la_SOURCES = filter_unsharp.c
+filter_unsharp_la_LDFLAGS = -module -avoid-version 
 
 filter_hqdn3d_la_SOURCES = filter_hqdn3d.c
 filter_hqdn3d_la_LDFLAGS = -module -avoid-version 
@@ -564,6 +568,9 @@ filter_testframe_la_OBJECTS = $(am_filter_testframe_la_OBJECTS)
 filter_text_la_DEPENDENCIES =
 am_filter_text_la_OBJECTS = filter_text.lo
 filter_text_la_OBJECTS = $(am_filter_text_la_OBJECTS)
+filter_unsharp_la_LIBADD =
+am_filter_unsharp_la_OBJECTS = filter_unsharp.lo
+filter_unsharp_la_OBJECTS = $(am_filter_unsharp_la_OBJECTS)
 filter_videocore_la_LIBADD =
 am_filter_videocore_la_OBJECTS = filter_videocore.lo
 filter_videocore_la_OBJECTS = $(am_filter_videocore_la_OBJECTS)
@@ -608,6 +615,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/filter_tc_video.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_testframe.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_text.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/filter_unsharp.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_videocore.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_xsharpen.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_yuy2toyv12.Plo
@@ -633,8 +641,8 @@ DIST_SOURCES = $(filter_29to23_la_SOURCES) $(filter_32detect_la_SOURCES) \
 	$(filter_smartdeinter_la_SOURCES) $(filter_smooth_la_SOURCES) \
 	$(filter_tc_audio_la_SOURCES) $(filter_tc_video_la_SOURCES) \
 	$(filter_testframe_la_SOURCES) $(filter_text_la_SOURCES) \
-	$(filter_videocore_la_SOURCES) $(filter_xsharpen_la_SOURCES) \
-	$(filter_yuy2toyv12_la_SOURCES)
+	$(filter_unsharp_la_SOURCES) $(filter_videocore_la_SOURCES) \
+	$(filter_xsharpen_la_SOURCES) $(filter_yuy2toyv12_la_SOURCES)
 
 RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 	ps-recursive install-info-recursive uninstall-info-recursive \
@@ -644,7 +652,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 DIST_COMMON = Makefile.am Makefile.in
 DIST_SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc preview \
 	subtitler
-SOURCES = $(filter_29to23_la_SOURCES) $(filter_32detect_la_SOURCES) $(filter_32drop_la_SOURCES) $(filter_aclip_la_SOURCES) $(filter_astat_la_SOURCES) $(filter_clone_la_SOURCES) $(filter_cpaudio_la_SOURCES) $(filter_cshift_la_SOURCES) $(filter_cut_la_SOURCES) $(filter_dilyuvmmx_la_SOURCES) $(filter_dnr_la_SOURCES) $(filter_doublefps_la_SOURCES) $(filter_fields_la_SOURCES) $(filter_hqdn3d_la_SOURCES) $(filter_invert_la_SOURCES) $(filter_logo_la_SOURCES) $(filter_logoaway_la_SOURCES) $(filter_lowpass_la_SOURCES) $(filter_mask_la_SOURCES) $(filter_nored_la_SOURCES) $(filter_normalize_la_SOURCES) $(filter_null_la_SOURCES) $(filter_pp_la_SOURCES) $(filter_skip_la_SOURCES) $(filter_smartdeinter_la_SOURCES) $(filter_smooth_la_SOURCES) $(filter_tc_audio_la_SOURCES) $(filter_tc_video_la_SOURCES) $(filter_testframe_la_SOURCES) $(filter_text_la_SOURCES) $(filter_videocore_la_SOURCES) $(filter_xsharpen_la_SOURCES) $(filter_yuy2toyv12_la_SOURCES)
+SOURCES = $(filter_29to23_la_SOURCES) $(filter_32detect_la_SOURCES) $(filter_32drop_la_SOURCES) $(filter_aclip_la_SOURCES) $(filter_astat_la_SOURCES) $(filter_clone_la_SOURCES) $(filter_cpaudio_la_SOURCES) $(filter_cshift_la_SOURCES) $(filter_cut_la_SOURCES) $(filter_dilyuvmmx_la_SOURCES) $(filter_dnr_la_SOURCES) $(filter_doublefps_la_SOURCES) $(filter_fields_la_SOURCES) $(filter_hqdn3d_la_SOURCES) $(filter_invert_la_SOURCES) $(filter_logo_la_SOURCES) $(filter_logoaway_la_SOURCES) $(filter_lowpass_la_SOURCES) $(filter_mask_la_SOURCES) $(filter_nored_la_SOURCES) $(filter_normalize_la_SOURCES) $(filter_null_la_SOURCES) $(filter_pp_la_SOURCES) $(filter_skip_la_SOURCES) $(filter_smartdeinter_la_SOURCES) $(filter_smooth_la_SOURCES) $(filter_tc_audio_la_SOURCES) $(filter_tc_video_la_SOURCES) $(filter_testframe_la_SOURCES) $(filter_text_la_SOURCES) $(filter_unsharp_la_SOURCES) $(filter_videocore_la_SOURCES) $(filter_xsharpen_la_SOURCES) $(filter_yuy2toyv12_la_SOURCES)
 
 all: all-recursive
 
@@ -743,6 +751,8 @@ filter_testframe.la: $(filter_testframe_la_OBJECTS) $(filter_testframe_la_DEPEND
 	$(LINK) -rpath $(pkgdir) $(filter_testframe_la_LDFLAGS) $(filter_testframe_la_OBJECTS) $(filter_testframe_la_LIBADD) $(LIBS)
 filter_text.la: $(filter_text_la_OBJECTS) $(filter_text_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_text_la_LDFLAGS) $(filter_text_la_OBJECTS) $(filter_text_la_LIBADD) $(LIBS)
+filter_unsharp.la: $(filter_unsharp_la_OBJECTS) $(filter_unsharp_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(filter_unsharp_la_LDFLAGS) $(filter_unsharp_la_OBJECTS) $(filter_unsharp_la_LIBADD) $(LIBS)
 filter_videocore.la: $(filter_videocore_la_OBJECTS) $(filter_videocore_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_videocore_la_LDFLAGS) $(filter_videocore_la_OBJECTS) $(filter_videocore_la_LIBADD) $(LIBS)
 filter_xsharpen.la: $(filter_xsharpen_la_OBJECTS) $(filter_xsharpen_la_DEPENDENCIES) 
@@ -807,6 +817,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_tc_video.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_testframe.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_text.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_unsharp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_videocore.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_xsharpen.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_yuy2toyv12.Plo@am__quote@
