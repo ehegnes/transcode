@@ -644,6 +644,7 @@ void seq_close()
 {
   
   if(_sfd != 0) close(_sfd);
+  _sfd=0;
   
   return;
 }
