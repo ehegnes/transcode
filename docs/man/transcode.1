@@ -54,6 +54,11 @@ resize to height-\fIn\fP*\fIM\fP rows [,width-\fIm\fP*\fIM\fP] columns [off,32].
 .TP
 .B \-C \fImode\fP
 enable anti-aliasing mode (1-3) [off].
+.RS
+1   "de-interlace effects only"
+2   "resize effects only"
+3   "process full frame (slow)"
+.RE
 .TP
 .B \-D \fInum\fP
 sync video start with audio frame num [0].
@@ -72,6 +77,35 @@ auto-probe \fIn\fP MB of source (0=disable) default [1]
 .TP
 .B \-I \fImode\fP
 enable de-interlacing mode (1-5) [off].
+.RS
+
+1   "interpolate scanlines" 
+    linear interpolation (takes the average of the
+    surronding even rows to determine the odd rows), 
+    and copies the even rows as is.
+
+2   "handled by encoder"
+    tells the encoding code to handle the fact that the
+    frames are interlaced. Most codecs do not handle this.
+
+3   "zoom to full frame" 
+    drops to to half size, then zooms out. This can cause 
+    excessive blurring which is not always unwanted. On
+    the other hand results are quite good.
+
+4   "drop field / half height"
+    drop every other field and keep half height.
+
+5   "interpolate scanlines / blend frames" 
+    linear blend (similar to -vop pp=lb in mplayer) this,
+    like linear blend calculates the odd rows as the
+    average of the surronding even rows, and also
+    calculates the even rows as an average of the
+    original even rows and also calculates the even rows
+    as an average of the original odd rows and averages
+    the calculated and original rows.
+
+.RE
 .TP
 .B \-J \fIfilter1\fP[\fI,filter2\fP[\fI,...\fP]]
 apply external filter plugins [off].  A full-blown transcode installation has the following filter modules:
