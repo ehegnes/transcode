@@ -352,6 +352,11 @@ changes its meaning, it now takes the quantizer ranging from 1 to 31.
 .TP
 .B \-S \fIunit\fP[\fI,s1-s2\fP]
 process program stream unit[,s1-s2] sequences [0,all].
+.br
+This option is a bit redundant to --psu*. This option lets you specify which
+units you want to have decoded or skipped. At a programm stream unit boundary,
+all (internal) mpeg timers are reset to 0. tcprobe will tell you how many units
+are in one file.
 .TP
 .B \-T \fIt\fP[\fI,c\fP[\fI,a\fP]]
 select DVD title[,chapter[,angle]] [1,1,1]. Only a single chapter
