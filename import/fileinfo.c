@@ -210,6 +210,17 @@ long fileinfo(int fdes, int skip)
     goto exit;
   }
 
+  if ( ((((buf[0]<<8)&0xff00)|buf[1])&0xfff8) == 0xfff0) {
+      if ( (buf[1]&0x02) == 0x02) {
+	  id = TC_MAGIC_MP3;
+	  goto exit;
+      }
+      if ( (buf[1]&0x01) == 0x01) {
+	  id = TC_MAGIC_MP2;
+	  goto exit;
+      }
+  }
+
   // TIFF image
 
   if (cmp_16_bits(buf, TC_MAGIC_TIFF1)) {
