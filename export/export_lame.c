@@ -106,11 +106,15 @@ MOD_open
     /* need conversion? */
     if(ofreq!=ifreq) {
       /* add sox for conversion */
-      sprintf(buf,"sox %s -r %d -c %d -t raw - -r %d -t wav - polyphase "
-	      "2>/dev/null | ",
-	      (vob->dm_bits==16)?"-w -s":"-b -u", 
-	      ifreq, ochan, ofreq);
-      ptr = buf + strlen(buf);
+      if (tc_test_program("sox") != 0) {
+        return(TC_EXPORT_ERROR);
+      } else {
+          snprintf(buf, sizeof(buf), "sox %s -r %d -c %d -t raw - -r %d -t raw - polyphase "
+                   "2>/dev/null | ",
+	            (vob->dm_bits==16)?"-w -s":"-b -u", 
+	            ifreq, ochan, ofreq);
+          ptr = buf + strlen(buf);
+      }
     }
 
     /* convert output frequency to fixed point */
@@ -126,23 +130,24 @@ MOD_open
     switch(vob->a_vbr) {
 
     case 1:
-      sprintf(br, "--abr %d", orate);
+      snprintf(br, sizeof(br), "--abr %d", orate);
       break;
 
     case 2:
-      sprintf(br, "--vbr-new -b %d -B %d -V %d", orate-64, orate+64, (int) vob->mp3quality);
+      snprintf(br, sizeof(br), "--vbr-new -b %d -B %d -V %d", orate-64, orate+64, (int) vob->mp3quality);
       break;
 
     case 3:
-      sprintf(br, "--r3mix");
+      snprintf(br, sizeof(br), "--r3mix");
       break;
 
     default:
-      sprintf(br, "--cbr -b %d", orate);
+      snprintf(br, sizeof(br), "--cbr -b %d", orate);
       break;
     }      
-    
-    sprintf(ptr, "lame %s %s -s %d.%03d -m %c - \"%s.mp3\" 2>/dev/null %s", 
+
+    /* ptr is a pointer to buf */
+    snprintf(ptr, sizeof(buf), "lame %s %s -s %d.%03d -m %c - \"%s.mp3\" 2>/dev/null %s", 
 	    swap_bytes, br, ofreq_int, ofreq_dec, chan, vob->audio_out_file, (vob->ex_a_string?vob->ex_a_string:""));
     
     fprintf (stderr,"[%s] cmd=%s\n", MOD_NAME, buf);
