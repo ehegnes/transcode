@@ -24,6 +24,12 @@
  */
 
 // ----------------- Changes 
+// 0.7 -> 0.8: Tilmann Bitterberg
+//		make mode=1 the default
+// 0.6 -> 0.7: marrq
+//		make mode=1 independant of frame numbers, and modified verbose
+//		mode to make a bit more sense given the conditionals
+//		modified "todo" to reflect this
 // 0.5 -> 0.6: Tilmann Bitterberg
 //             Make mode=0 independent of the Frame number transcode
 //             gives us.
@@ -37,23 +43,17 @@
 //             Fix a bug related to scanrange.
 
 // ----------------- TODO
-//	BUG
-//	make this work with at least -c and hopefully filters cut and skip as well.
-//	Currently, when using -c our counters are at 0, which means if we're
-//	dropping frames, we choose to play catch up instead of dropping
-//	and similar if we clone
-//
 //	feature:
-//	Be able to do something fance when cloning.  I'm thinking of four things,
+//	Be able to do something fancy when cloning.  I'm thinking of four things,
 // 	1. interpolate field of frame which was cloned with frame that
-//	   follows it.
+//	   follows it (probably best for interlaced displays)
 //	2. evenly merge/average frames.
 //	3. weighted average, so more intence luminance is stronger seen (think
 //	   of phosphors on a TV
 //	4. temporal weighted average
 
 #define MOD_NAME    "filter_modfps.so"
-#define MOD_VERSION "v0.6 (2003-08-01)"
+#define MOD_VERSION "v0.7 (2003-08-13)"
 #define MOD_CAP     "plugin to modify framerate"
 #define MOD_AUTHOR  "Marrq"
 //#define DEBUG 1
@@ -88,7 +88,7 @@ static int show_results=0;
  *
  *-------------------------------------------------*/
 
-static int mode=0;
+static int mode=1;
 static double infps  = 29.97;
 static int infrc  = 0;
 // default settings for NTSC 29.97 -> 23.976
@@ -180,7 +180,7 @@ static int memory_init(vframe_list_t * ptr){
 int tc_filter(vframe_list_t * ptr, char *options)
 {
     static vob_t *vob = NULL;
-    static int frameCount = 0;
+    static int framesin = 0;
     static int init = 1;
     static int cloneq = 0; // queue'd clones ;)
     static int outframes = 0;
@@ -297,25 +297,28 @@ int tc_filter(vframe_list_t * ptr, char *options)
     if ((ptr->tag & runnow) && (ptr->tag & TC_VIDEO)) {
       if (mode == 0){
         if (show_results){
-          printf("[%s] mycount=%5d id=%5d calc=%06.3lf ",MOD_NAME,frameCount,ptr->id,(double)frameCount*infps/outfps);
+          printf("[%s] in=%5d out=%5d win=%05.3f wout=%05.3f ",MOD_NAME,framesin,outframes,(double)framesin/infps,outframes/outfps);
 	} 
         if (infps < outfps){
 	  // Notes; since we currently only can clone frames (and just clone
 	  // them once, we can at most double the input framerate.
-	    if (!(ptr->attributes & TC_FRAME_WAS_CLONED)) frameCount++;
-	  if ((double)frameCount/infps > (double)++outframes/outfps){
+	  if (ptr->attributes & TC_FRAME_WAS_CLONED){
+	    // we can't clone it again, so we'll record the outframe and exit
+	    ++outframes;
+	    if (show_results){
+	      printf("\n");
+	    }
+	    return 0;
+	  } // else 
+	  if ((double)framesin++/infps > (double)outframes++/outfps){
 	    if (show_results){
 	      printf("FRAME IS CLONED");
 	    }
-	    if ((ptr->attributes & TC_FRAME_IS_CLONED) || (ptr->attributes & TC_FRAME_WAS_CLONED)){
-	      printf("Ack, this frame was cloned!\n");
-	    }
-
 	    ptr->attributes |= TC_FRAME_IS_CLONED;
 	  }
 	} else {
-	  if ((double)++frameCount/infps > outframes / outfps){
-	       outframes++; 
+	  if ((double)framesin++/infps > outframes / outfps){
+	       ++outframes; 
 	  } else {
 	    if (show_results){
 	      printf("FRAME IS SKIPPED");
@@ -338,7 +341,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	  }
 	}
 	if (show_results){
-          printf("[%s] frameIn=%d frameOut=%d mycount=%5d id=%5d calc=%06.3lf ",MOD_NAME,frameIn,frameOut,frameCount-numSample,ptr->id-numSample-cloneq,(double)(frameCount-numSample)*infps/outfps);
+          printf("[%s] frameIn=%d frameOut=%d in=%5d out=%5d win=%05.3f wout=%05.3f ",MOD_NAME,frameIn,frameOut,framesin-numSample,outframes+cloneq,(double)(framesin-numSample)/infps,(double)(outframes+cloneq)/outfps);
 	}
 	if (ptr->attributes & TC_FRAME_WAS_CLONED){
 	  // don't do anything.  Since it's cloned, we don't
@@ -349,7 +352,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	  if (framesOK[(frameIn+0)%frbufsize]){
 	    fprintf(stderr, "[%s] Oppps, this frame wasn't cloned but we thought it was\n",MOD_NAME);
 	  }
-	  ++frameCount;
+	  ++outframes;
 	  --cloneq;
 	  if (show_results){
 	    printf("no slot needed for clones\n");
@@ -359,12 +362,12 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	memcpy(frames[frameIn], ptr->video_buf, ptr->video_size);
 	framesOK[frameIn] = 1;
 #ifdef DEBUG
-	printf("Inserted frame %d into slot %d \n",frameCount, frameIn);
+	printf("Inserted frame %d into slot %d \n",framesin, frameIn);
 #endif // DEBUG
 
 	// Now let's look and see if we should compute a frame's
 	// score.
-	if (frameCount > 0){
+	if (framesin > 0){
 	  char *t1, *t2;
 	  int *score,t;
 	  t=(frameIn+numSample)%frbufsize;
@@ -387,10 +390,10 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	// the first frbufsize-1 frames are not processed; only buffered
 	// so that we might be able to effectively see the future frames
 	// when deciding about a frame.
-	if(frameCount < frbufsize-1){
+	if(framesin < frbufsize-1){
 	  ptr->attributes |= TC_FRAME_IS_SKIPPED;
 	  frameIn = (frameIn+1) % frbufsize;
-	  ++frameCount;
+	  ++framesin;
 	  if (show_results){
 	    printf("\n");
 	  }
@@ -401,7 +404,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	// are ready to clone/skip a frame.  If we are, we look for the frame to skip
 	// in the buffer
 	if (infps < outfps){
-	  if ((double)(frameCount-numSample)*infps/outfps < (double)(ptr->id-numSample-cloneq)){
+	  if ((double)(framesin-numSample)/infps > (double)(cloneq+outframes++)/outfps){
 	    // we have to find a frame to clone
 	    int diff=-1, mod=-1;
 #ifdef DEBUG
@@ -421,7 +424,6 @@ int tc_filter(vframe_list_t * ptr, char *options)
 		}
 	      }
 	    }
-	    fflush(stdout);
 	    if (mod == -1){
 	      fprintf(stderr,"[%s] Error calculating frame to clone\n",MOD_NAME);
 	      return -1;
@@ -446,7 +448,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	  frameOut = (frameOut+1) % frbufsize;
 	} else {
 	  // check to skip frames
-	  if ((double)(frameCount-numSample)*infps/outfps > (double)(ptr->id-numSample)){
+	  if ((double)(framesin-numSample)/infps < (double)(outframes)/outfps){
 	    int diff=INT_MAX, mod=-1;
 
 	    // since we're skipping, we look for the frame with the lowest
@@ -467,8 +469,9 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	      fprintf(stderr,"[%s] Error calculating frame to skip\n",MOD_NAME);
 	      return -1;
 	    }
-	    --frameCount;
 	    framesOK[mod] = 0;
+	  } else {
+	    ++outframes;
 	  }
 	  if (framesOK[frameOut]){
 	    memcpy(ptr->video_buf,frames[frameOut],ptr->video_size);
@@ -484,7 +487,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
 	  frameOut = (frameOut+1) % frbufsize;
 	}
 	frameIn = (frameIn+1) % frbufsize;
-	++frameCount;
+	++framesin;
 	return 0;
       }
       fprintf(stderr, "[%s] Oppps, currently only 2 modes of operation\n",MOD_NAME);

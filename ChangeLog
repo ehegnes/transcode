@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-13 marrq <marrq at ugcs.caltech.edu>
+  
+  * filter_modfps.c:
+  Make the filter independant of the start frame and add a better
+  mode=1 (which is now the default).
+
 2003-08-12 Tilmann Bitterberg <transcode at tibit.org>
 
   * avilib/avilib.c import/import_ffmpeg.c:
