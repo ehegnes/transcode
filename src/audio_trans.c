@@ -203,7 +203,7 @@ int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
     s = (short *)ptr->audio_buf + ptr->audio_size;
     b = (char *)ptr->audio_buf + ptr->audio_size;
     for (n = 0; n < ptr->audio_size; n++) *--s = ((short)*--b - 0x80) * 0x100;
-    ptr->audio_size /= 2;
+    ptr->audio_size *= 2;
   }
 
   //-----------------------------------------------------------------

@@ -1,3 +1,8 @@
+2004-12-04 Jacob Meuser <jakemsr at jakemsr dot com>
+  * src/audio_trans.c
+  Fix audio conversion from 8 to 16 bit.  16 is twice 8, not half.
+  Problem reported by Andrew Schulman on transcode-users.
+
 2004-11-30 Alexander Graf <alex at csgraf dot de>
   * filter/filter_text.c
   If no 'string' is specified, this filter renders the date into the
