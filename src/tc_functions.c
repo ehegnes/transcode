@@ -47,12 +47,14 @@ void tc_error(char *fmt, ...)
   va_list ap;
 
   // munge format
-  int size = strlen(fmt)+2*strlen(RED)+2*strlen(GRAY)+strlen(PACKAGE)+strlen("[] critical: \n")+1;
+  int size = strlen(fmt) + 2*strlen(RED) + 2*strlen(GRAY) +
+             strlen(PACKAGE) + strlen("[] critical: \n") + 1;
   char *a = malloc (size);
 
   version();
 
-  snprintf(a, size, "[%s%s%s] %scritical%s: %s\n", RED, PACKAGE, GRAY, RED, GRAY, fmt);
+  snprintf(a, size, "[%s%s%s] %scritical%s: %s\n",
+                     RED, PACKAGE, GRAY, RED, GRAY, fmt);
 
   va_start(ap, fmt);
   vfprintf (stderr, a, ap);
@@ -69,12 +71,14 @@ void tc_warn(char *fmt, ...)
   va_list ap;
 
   // munge format
-  int size = strlen(fmt)+2*strlen(BLUE)+2*strlen(GRAY)+strlen(PACKAGE)+strlen("[]  warning: \n")+1;
+  int size = strlen(fmt) + 2*strlen(BLUE) + 2*strlen(GRAY) +
+             strlen(PACKAGE) + strlen("[]  warning: \n") + 1;
   char *a = malloc (size);
 
   version();
 
-  snprintf(a, size, "[%s%s%s] %swarning%s : %s\n", RED, PACKAGE, GRAY, YELLOW, GRAY, fmt);
+  snprintf(a, size, "[%s%s%s] %swarning%s : %s\n",
+                     RED, PACKAGE, GRAY, YELLOW, GRAY, fmt);
 
   va_start(ap, fmt);
   vfprintf (stderr, a, ap);
@@ -89,7 +93,8 @@ void tc_info(char *fmt, ...)
   va_list ap;
 
   // munge format
-  int size = strlen(fmt)+strlen(BLUE)+strlen(GRAY)+strlen(PACKAGE)+strlen("[] \n")+1;
+  int size = strlen(fmt) + strlen(BLUE) + strlen(GRAY) +
+             strlen(PACKAGE) + strlen("[] \n") + 1;
   char *a = malloc (size);
 
   version();
@@ -195,3 +200,19 @@ int tc_test_program(char *name)
 
 #undef local_alloc
 #undef local_free
+
+
+int tc_test_string(char *file, int line, int limit, int ret, int errnum)
+{
+    if (ret < 0) {
+        fprintf(stderr, "[%s:%d] string error: %s\n",
+                        file, line, strerror(errnum));
+        return(1);
+    }
+    if (ret >= limit) {
+        fprintf(stderr, "[%s:%d] truncated %d characters\n",
+                        file, line, (ret - limit) + 1);
+        return(1);
+    }
+    return(0);
+}

@@ -36,4 +36,14 @@ void tc_warn(char *fmt, ...);
 
 int tc_test_program(char *name);
 
+/*
+ * Check the return value of snprintf, strlcpy, and strlcat.
+ *   return value < 0 is an internal error.
+ *   return value >= limit means characters were truncated.
+ * Returns 0 if not problems, 1 if error.
+ * If error, prints reason.
+ */
+
+int tc_test_string(char *file, int line, int limit, int ret, int errnum);
+
 #endif
