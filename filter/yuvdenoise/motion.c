@@ -139,6 +139,7 @@ calc_SAD_mmx (uint8_t * frm, uint8_t * ref)
 {
   static uint16_t a[4];
   
+#ifdef ARCH_X86
 #ifdef HAVE_ASM_MMX
   __asm__ __volatile__
     (
@@ -166,6 +167,7 @@ calc_SAD_mmx (uint8_t * frm, uint8_t * ref)
     :"S" (frm), "D" (ref), "c" (denoiser.frame.w)
     );
 #endif
+#endif
 
   return (uint32_t)(a[0]+a[1]+a[2]+a[3]);
 }
@@ -181,6 +183,7 @@ calc_SAD_mmxe (uint8_t * frm, uint8_t * ref)
 {
   static uint32_t a;
   
+#ifdef ARCH_X86
 #ifdef HAVE_ASM_MMX
   __asm__ __volatile__
     (
@@ -198,6 +201,7 @@ calc_SAD_mmxe (uint8_t * frm, uint8_t * ref)
     :"=g" (a)     
     :"S" (frm), "D" (ref), "c" (denoiser.frame.w)
     );
+#endif
 #endif
   return a;
 }
@@ -237,6 +241,7 @@ calc_SAD_uv_mmx (uint8_t * frm, uint8_t * ref)
 {
   static uint16_t a[4];
   
+#ifdef ARCH_X86
 #ifdef HAVE_ASM_MMX
   __asm__ __volatile__
     (
@@ -264,6 +269,7 @@ calc_SAD_uv_mmx (uint8_t * frm, uint8_t * ref)
     :"S" (frm), "D" (ref), "c" (denoiser.frame.w/2)
     );
 #endif
+#endif
   return (uint32_t)(a[0]+a[1]+a[2]+a[3]);
 }
 
@@ -278,6 +284,7 @@ calc_SAD_uv_mmxe (uint8_t * frm, uint8_t * ref)
 {
   static uint32_t a;
 
+#ifdef ARCH_X86
 #ifdef HAVE_ASM_MMX
   __asm__ __volatile__
     (
@@ -296,6 +303,7 @@ calc_SAD_uv_mmxe (uint8_t * frm, uint8_t * ref)
     :"=g" (a)     
     :"S" (frm), "D" (ref), "c" (denoiser.frame.w/2)
     );
+#endif
 #endif
   return a;
 }
@@ -333,6 +341,7 @@ uint32_t
 calc_SAD_half_mmx (uint8_t * ref, uint8_t * frm1, uint8_t * frm2) 
 {
   static uint32_t a;
+#ifdef ARCH_X86
 #ifdef HAVE_ASM_MMX
 
   __asm__ __volatile__
@@ -367,6 +376,7 @@ calc_SAD_half_mmx (uint8_t * ref, uint8_t * frm1, uint8_t * frm2)
 	  :"S" (frm1),"D" (frm2), "a" (ref), "c" (denoiser.frame.w)
 	  );
 #endif
+#endif
   return a;
 }
 
@@ -381,6 +391,7 @@ calc_SAD_half_mmxe (uint8_t * ref, uint8_t * frm1, uint8_t * frm2)
 {
   static uint32_t a;
 
+#ifdef ARCH_X86
 #ifdef HAVE_ASM_MMX
   __asm__ __volatile__
       (
@@ -402,6 +413,7 @@ calc_SAD_half_mmxe (uint8_t * ref, uint8_t * frm1, uint8_t * frm2)
 	  :"=g" (a)     
 	  :"S" (frm1),"D" (frm2), "a" (ref), "c" (denoiser.frame.w)
 	  );
+#endif
 #endif
   return a;
 }

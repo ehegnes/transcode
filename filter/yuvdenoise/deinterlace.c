@@ -114,8 +114,10 @@ void
 deinterlace_mmx(void)
 {
   uint32_t d=0;
+#ifdef ARCH_X86
 #ifdef HAVE_ASM_MMX
   uint16_t a[4]={0,0,0,0};
+#endif
 #endif
   unsigned int min;
   register int x;
@@ -149,7 +151,8 @@ deinterlace_mmx(void)
               ref1=denoiser.frame.ref[0]+x+y*W;      /* not displaced */
               ref2=denoiser.frame.ref[0]+x+y*W+W*2;  /* not displaced two lines below */
               ref3=denoiser.frame.ref[0]+x+y*W+W+xx; /* displaced one line below */
-              
+
+              #ifdef ARCH_X86
               #ifdef HAVE_ASM_MMX
               __asm__ __volatile__
                 (
@@ -192,7 +195,8 @@ deinterlace_mmx(void)
               
               d=a[0]+a[1]+a[2]+a[3];
               #endif
-              
+              #endif
+
               /* if SAD reaches a minimum store the position */
               if (min > d)
                 {
