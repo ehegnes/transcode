@@ -2312,7 +2312,6 @@ int main(int argc, char *argv[]) {
       // check if this is an AVIIDX1 file
       if (fgets(buf, sizeof(buf), fp)) {
 	if(strncasecmp(buf, "AVIIDX1", 7) == 0) is_aviindex=1;
-	tc_info("Found an AVI index file!");
 	fseek(fp, 0, SEEK_SET);
       } else {
 	tc_error("An error happend while reading the nav_seek file");
