@@ -1,4 +1,25 @@
 --------------------------------------------
+transcode-0.6.10
+
+2003-08-06 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/transcode.c:
+  New option --nice which renices transcode to the given positive or
+  negative value. -10 sets a high priority; +10 a low priority.
+  This might be useful for cluster mode. Pointed out by GigaStorm.
+
+  * src/decoder.c:
+  Fix a thread race condition. The frame threads were able to pick up
+  a frame although it hadn't be processed by the synchronous
+  filters leading to image distortion.
+ 
+2003-08-05 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/export_jpg.c:
+  Native YUV mode encoding; there will be no more an rgb2yuv
+  transform needed so its considerable faster.
+  
+--------------------------------------------
 transcode-0.6.9 Tue Aug  5 09:22:09 CEST 2003
 
   * Terse/less technical ChangeLog:
@@ -49,7 +70,7 @@ transcode-0.6.9 Tue Aug  5 09:22:09 CEST 2003
   - ./configure's lame detection improved
   - print the correct PCM bitrate
   - Nicer/correct printout for -r
-  - xml import moudle can read all af6 supported codecs
+  - xml import module can read all af6 supported codecs
 
 
 2003-08-05 Tilmann Bitterberg <transcode at tibit.org>

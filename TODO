@@ -39,6 +39,23 @@ cluster_mode+PSU
                    nach cluster mode plus rippen einer 16:9 pal dvd, macht er 
 		   nur psu0
 
+More than one encoder thread
+23:35 < GigaStorm> tibit: hmm, so i could install a real clustering system, and 
+                   let transcode do the rest
+23:35 < GomGom> tibit: write a XML-RPC interface and you do the first Internet 
+                service based video encoder :))
+23:35 < GigaStorm> would be nice hehe
+23:35 < tibit> I'll probably need a real muxer api for that
+23:37 < tibit> So an encoder thread pics up an uncompressed frame from the list 
+               and writes back the encoded data
+23:37 < GigaStorm> and it would be nice to transport the encoders output+input 
+                   via an own pipe from the nodes to server, without using nfs 
+                   or similar things :P
+23:37 < GomGom> yep with the muxer API, transcode's nodes would use a network 
+                muxer pointing at the master transcode
+23:37 < tibit> GomGom: thats enough! ;)
+
+
 2pass/
  - internal 2pass mode
 

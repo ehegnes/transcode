@@ -110,7 +110,7 @@ export_wav_la_LIBADD = -L../avilib -lavi -lm
 
 export_jpg_la_SOURCES = export_jpg.c
 export_jpg_la_LDFLAGS =  -module -avoid-version 
-export_jpg_la_LIBADD = @LIBJPEG_LIBS@ -L../libvo -lvout -lm
+export_jpg_la_LIBADD = @LIBJPEG_LIBS@ -lm
 
 export_pcm_la_SOURCES = export_pcm.c
 export_pcm_la_LDFLAGS =  -module -avoid-version 
