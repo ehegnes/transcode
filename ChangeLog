@@ -43,6 +43,12 @@ transcode-0.6.11
   Upgraded included libavcodec to 0.4.8 (4683)
   Upgraded -y xvid4 to the latest API
 
+2003-10-23 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/ffmpeg_cfg.c:
+  Fixed a typo: rc_min_rate != rc_buffer_size. Pointed out by Erik
+  Slagter.
+
 2003-10-22 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/Makefile.am src/transcode.c import/Makefile.am:
