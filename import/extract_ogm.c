@@ -17,8 +17,10 @@
 # include <errno.h>
 #endif
 
+#if !defined(SYSTEM_DARWIN)
 #ifdef HAVE_MALLOC_H
 # include <malloc.h>
+#endif
 #endif
 
 #include <stdio.h>
