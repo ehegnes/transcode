@@ -47,6 +47,8 @@
 #include <inttypes.h>
 
 #define BUFFER_SIZE 188
+#define TS_PACK BUFFER_SIZE
+
 static uint8_t buffer[BUFFER_SIZE];
 static FILE * in_file;
 static int demux_track = 0xe0;
@@ -54,6 +56,146 @@ static int demux_pid = 0;
 static int demux_pva = 0;
 
 static int fd_in;
+
+
+
+#define TRANS_ERROR    0x80
+#define PAY_START      0x40
+#define TRANS_PRIO     0x20
+#define PID_MASK_HI    0x1F
+//flags
+#define TRANS_SCRMBL1  0x80
+#define TRANS_SCRMBL2  0x40
+#define ADAPT_FIELD    0x20
+#define PAYLOAD        0x10
+#define COUNT_MASK     0x0F
+
+// adaptation flags
+#define DISCON_IND     0x80
+#define RAND_ACC_IND   0x40
+#define ES_PRI_IND     0x20
+#define PCR_FLAG       0x10
+#define OPCR_FLAG      0x08
+#define SPLICE_FLAG    0x04
+#define TRANS_PRIV     0x02
+#define ADAP_EXT_FLAG  0x01
+
+// adaptation extension flags
+#define LTW_FLAG       0x80
+#define PIECE_RATE     0x40
+#define SEAM_SPLICE    0x20
+
+typedef struct  ts_packet_{
+    uint8_t pid[2];
+    uint8_t flags;
+    uint8_t count;
+    uint8_t data[184];
+    uint8_t adapt_length;
+    uint8_t adapt_flags;
+    uint8_t pcr[6];
+    uint8_t opcr[6];
+    uint8_t splice_count;
+    uint8_t priv_dat_len;
+    uint8_t *priv_dat;
+    uint8_t adapt_ext_len;
+    uint8_t adapt_eflags;
+    uint8_t ltw[2];
+    uint8_t piece_rate[3];
+    uint8_t dts[5];
+    int rest;
+    uint8_t stuffing;
+} ts_packet;
+
+void init_ts(ts_packet *p)
+{
+	p->pid[0] = 0;
+	p->pid[1] = 0;
+	p->flags = 0;
+	p->count = 0;
+	p->adapt_length = 0;
+	p->adapt_flags = 0;
+	p->splice_count = 0;
+	p->priv_dat_len = 0;
+	p->priv_dat = NULL;
+	p->adapt_ext_len = 0;
+	p->adapt_eflags = 0;
+	p->rest = 0;
+	p->stuffing = 0;
+}
+
+
+uint16_t get_pid(uint8_t *pid)
+{
+	uint16_t pp = 0;
+
+	pp = (pid[0] & PID_MASK_HI)<<8;
+	pp |= pid[1];
+
+	return pp;
+}
+
+// tibit
+void probe_ts(info_t *ipipe) 
+{
+    int i;
+    int found=0, doit=1;
+    uint8_t sync = 0;
+    ts_packet p;
+    ssize_t size=0;
+
+#define MAX_PID 20
+    int pid[MAX_PID];
+    int npid=0;
+
+    // look for a syncword
+    while (!found && doit) {
+	i = p_read(ipipe->fd_in, (char *)&sync, 1);
+	if (sync == 0x47) found = 1;
+	if (i == 0) doit = 0;
+    }
+
+    for (i=0 ; i<MAX_PID; i++)
+	pid[i] = -1;
+
+    printf("(%s) Pids: ", __FILE__);
+    while (size < ipipe->factor*1024*1024) {
+
+	if((i=p_read(ipipe->fd_in, buffer, TS_PACK-1)) != TS_PACK-1) {
+	    fprintf(stderr, "(%s) end of stream\n", __FILE__);
+	    return;    
+	}
+	size += i;
+	
+	init_ts (&p);
+	memcpy (&p, buffer, 3);
+
+	found = 0;
+	for (i=0;i<npid;i++){
+	    if ( get_pid (buffer) == pid[i] )
+		found = 1;
+	}
+
+	if (!found) {
+	    printf("0x%x ", get_pid (buffer));
+	    pid[npid] = get_pid (buffer);
+	    npid++;
+	    if (npid >= MAX_PID) { 
+		fprintf(stderr, "(%s) Too many pids\n", __FILE__);
+		return;
+	    }
+	}
+
+
+	// read away syncword
+	if((i=p_read(ipipe->fd_in, (char *)&sync, 1)) != 1) {
+	    fprintf(stderr, "(%s) end of stream\n", __FILE__);
+	    return;    
+	}
+	size += i;
+    }
+    printf("%s\n", (npid>0?"":"none"));
+
+}
 
 #define DEMUX_PAYLOAD_START 1
 
@@ -362,8 +504,6 @@ static void pva_loop (void)
     } while (end == buffer + BUFFER_SIZE);
 }
 
-#define TS_PACK BUFFER_SIZE
-
 static void ts_loop (void)
 {
 #define PACKETS (BUFFER_SIZE / 188)
@@ -378,7 +518,7 @@ static void ts_loop (void)
       
       if((i=p_read(fd_in, buffer, TS_PACK)) != TS_PACK) {
 	fprintf(stderr, "(%s) end of stream\n", __FILE__);
-	return(-1);    
+	return;    
       }
  
 
@@ -425,5 +565,6 @@ int ts_read(int _fd_in, int fd_out, int _demux_pid)
   fd_in = _fd_in;
 
   ts_loop();
+  return 0;
 
 }

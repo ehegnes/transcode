@@ -79,6 +79,8 @@ long read_time_stamp_long(unsigned char *s);
 int fps2frc(double _fps);
 void import_info(int code, char *EXE);
 
+
+void probe_ts(info_t *ipipe);
 int ts_read(int fd_in, int fd_out, int demux_pid);
 
 #define VOB_PACKET_SIZE   0x800

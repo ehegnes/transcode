@@ -195,7 +195,7 @@ void tcprobe_thread(info_t *ipipe)
       //break;
       
     case TC_MAGIC_TS:
-      //not yet implemented
+      probe_ts(ipipe);
       break;
 
     case TC_MAGIC_WAV:
