@@ -89,7 +89,6 @@ pkg_LTLIBRARIES = \
 	export_xvid2.la \
 	export_xvid3.la \
 	export_xvid4.la \
-	$(MODS_ASM_NASM) \
 	$(MODS_AVIFILE) \
 	$(MODS_LIBDV) \
 	$(MODS_LIBFAME) \
