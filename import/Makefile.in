@@ -329,17 +329,17 @@ pkgdir = @MOD_PATH@
 pkg_LTLIBRARIES = import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la import_dv.la import_vob.la import_raw.la import_nvrec.la import_yuv4mpeg.la import_lav.la import_null.la import_divx.la $(A52_MOD) $(MP123_MOD) $(DVD_MOD) $(MPEG3) $(IM_MOD) $(MODQT) af6_decore.la $(LIBXML2_MOD) import_mplayer.la import_rawlist.la import_ogg.la import_xvid.la import_ffmpeg.la $(LZO_MOD)
 
 import_null_la_SOURCES = import_null.c
-import_null_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_null_la_LDFLAGS = -module -avoid-version 
 
 import_ogg_la_SOURCES = import_ogg.c
-import_ogg_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_ogg_la_LDFLAGS = -module -avoid-version 
 
 import_xml_la_SOURCES = import_xml.c ioxml.c probe_xml.c
-import_xml_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_xml_la_LDFLAGS = -module -avoid-version 
 import_xml_la_LIBADD = -lm @LIBXML2_LIBS@
 
 import_yuv4mpeg_la_SOURCES = import_yuv4mpeg.c
-import_yuv4mpeg_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_yuv4mpeg_la_LDFLAGS = -module -avoid-version 
 
 import_mplayer_la_SOURCES = import_mplayer.c
 import_mplayer_la_LDFLAGS = -module -avoid-version 
@@ -348,83 +348,83 @@ import_rawlist_la_SOURCES = import_rawlist.c ioaux.c
 import_rawlist_la_LDFLAGS = -module -avoid-version -lm
 
 import_divx_la_SOURCES = import_divx.c
-import_divx_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_divx_la_LDFLAGS = -module -avoid-version 
 import_divx_la_LIBADD = -L../avilib -lavi 
 
 import_xvid_la_SOURCES = import_xvid.c
-import_xvid_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_xvid_la_LDFLAGS = -module -avoid-version 
 import_xvid_la_LIBADD = -L../avilib -lavi 
 
 import_ffmpeg_la_SOURCES = import_ffmpeg.c 
-import_ffmpeg_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_ffmpeg_la_LDFLAGS = -module -avoid-version 
 import_ffmpeg_la_LIBADD = -L../ffmpeg/libavcodec/ -lavcodec -L../avilib -lavi -L../libvo -lvout -lm
 
 import_im_la_SOURCES = import_im.c
-import_im_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_im_la_LDFLAGS = -module -avoid-version 
 import_im_la_LIBADD = @MAGICK_LIBS@ -lm 
 
 import_imlist_la_SOURCES = import_imlist.c
-import_imlist_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_imlist_la_LDFLAGS = -module -avoid-version 
 import_imlist_la_LIBADD = @MAGICK_LIBS@ -lm 
 
 import_mov_la_SOURCES = import_mov.c
-import_mov_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_mov_la_LDFLAGS = -module -avoid-version 
 import_mov_la_LIBADD = @QT_LIBS@ -lm 
 
 import_lav_la_SOURCES = import_lav.c
-import_lav_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_lav_la_LDFLAGS = -module -avoid-version 
 
 import_raw_la_SOURCES = import_raw.c
-import_raw_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_raw_la_LDFLAGS = -module -avoid-version 
 
 import_nvrec_la_SOURCES = import_nvrec.c
-import_nvrec_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_nvrec_la_LDFLAGS = -module -avoid-version 
 
 import_mpeg2_la_SOURCES = import_mpeg2.c
-import_mpeg2_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_mpeg2_la_LDFLAGS = -module -avoid-version 
 
 import_mpeg3_la_SOURCES = import_mpeg3.c
-import_mpeg3_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_mpeg3_la_LDFLAGS = -module -avoid-version 
 import_mpeg3_la_LIBADD = @LIBMPEG3_LIBS@
 
 import_avi_la_SOURCES = import_avi.c 
-import_avi_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_avi_la_LDFLAGS = -module -avoid-version 
 import_avi_la_LIBADD = -L../avilib -lavi 
 
 import_ac3_la_SOURCES = import_ac3.c ioaux.c ac3scan.c
-import_ac3_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_ac3_la_LDFLAGS = -module -avoid-version 
 import_ac3_la_LIBADD = $(AC3_LIB) -lm
 
 import_vdrac3_la_SOURCES = import_vdrac3.c ioaux.c ac3scan.c
-import_vdrac3_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_vdrac3_la_LDFLAGS = -module -avoid-version 
 import_vdrac3_la_LIBADD = $(AC3_LIB) -lm
 
 a52_decore_la_SOURCES = a52_decore.c ioaux.c
-a52_decore_la_LDFLAGS = -no-undefined -module -avoid-version 
+a52_decore_la_LDFLAGS = -module -avoid-version 
 a52_decore_la_LIBADD = ${A52_LIBS} -lm
 
 af6_decore_la_SOURCES = af6_decore.cpp ioaux.c
-af6_decore_la_LDFLAGS = -no-undefined -module -avoid-version 
+af6_decore_la_LDFLAGS = -module -avoid-version 
 af6_decore_la_LIBADD = @AVIFILE_LIBS@ -lstdc++ -lm
 
 import_mp3_la_SOURCES = import_mp3.c ioaux.c mpg123.c
-import_mp3_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_mp3_la_LDFLAGS = -module -avoid-version 
 import_mp3_la_LIBADD = $(MP123_LIB) -lm
 
 import_lzo_la_SOURCES = import_lzo.c 
-import_lzo_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_lzo_la_LDFLAGS = -module -avoid-version 
 import_lzo_la_LIBADD = -L../avilib -lavi @LZO_LIBS@ -lm
 
 import_vob_la_SOURCES = import_vob.c ac3scan.c clone.c ioaux.c frame_info.c ivtc.c
-import_vob_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_vob_la_LDFLAGS = -module -avoid-version 
 import_vob_la_LIBADD = $(AC3_LIB) -lm
 
 import_dvd_la_SOURCES = import_dvd.c ac3scan.c dvd_reader.c clone.c ioaux.c frame_info.c ivtc.c
-import_dvd_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_dvd_la_LDFLAGS = -module -avoid-version 
 import_dvd_la_LIBADD = @DVDREAD_LIBS@ $(AC3_LIB) -lm
 
 import_dv_la_SOURCES = import_dv.c 
-import_dv_la_LDFLAGS = -no-undefined -module -avoid-version 
+import_dv_la_LDFLAGS = -module -avoid-version 
 
 EXTRA_DIST = *.h
 

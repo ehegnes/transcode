@@ -53,97 +53,97 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			$(F_PP) $(F_MMX) $(F_LOGO)
 
 filter_null_la_SOURCES = filter_null.c
-filter_null_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_null_la_LDFLAGS =  -module -avoid-version 
 
 filter_doublefps_la_SOURCES = filter_doublefps.c
-filter_doublefps_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_doublefps_la_LDFLAGS =  -module -avoid-version 
 
 filter_clone_la_SOURCES = filter_clone.c
-filter_clone_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_clone_la_LDFLAGS =  -module -avoid-version 
 
 filter_smooth_la_SOURCES = filter_smooth.c
-filter_smooth_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_smooth_la_LDFLAGS =  -module -avoid-version 
 
 filter_29to23_la_SOURCES = filter_29to23.c
-filter_29to23_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_29to23_la_LDFLAGS =  -module -avoid-version 
 
 filter_tc_video_la_SOURCES = filter_tc_video.c
-filter_tc_video_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_tc_video_la_LDFLAGS =  -module -avoid-version 
 
 filter_tc_audio_la_SOURCES = filter_tc_audio.c
-filter_tc_audio_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_tc_audio_la_LDFLAGS =  -module -avoid-version 
 
 filter_skip_la_SOURCES = filter_skip.c
-filter_skip_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_skip_la_LDFLAGS =  -module -avoid-version 
 
 filter_cut_la_SOURCES = filter_cut.c
-filter_cut_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_cut_la_LDFLAGS =  -module -avoid-version 
 
 filter_mask_la_SOURCES = filter_mask.c
-filter_mask_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_mask_la_LDFLAGS =  -module -avoid-version 
 
 filter_dnr_la_SOURCES = filter_dnr.c
-filter_dnr_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_dnr_la_LDFLAGS =  -module -avoid-version 
 filter_dnr_la_LIBADD = -lm
 
 filter_testframe_la_SOURCES = filter_testframe.c
-filter_testframe_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_testframe_la_LDFLAGS =  -module -avoid-version 
 
 filter_astat_la_SOURCES = filter_astat.c
-filter_astat_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_astat_la_LDFLAGS =  -module -avoid-version 
 
 filter_lowpass_la_SOURCES = filter_lowpass.c
-filter_lowpass_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_lowpass_la_LDFLAGS =  -module -avoid-version 
 
 filter_aclip_la_SOURCES = filter_aclip.c
-filter_aclip_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_aclip_la_LDFLAGS =  -module -avoid-version 
 
 filter_videocore_la_SOURCES = filter_videocore.c
-filter_videocore_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_videocore_la_LDFLAGS =  -module -avoid-version 
 
 filter_32detect_la_SOURCES = filter_32detect.c
-filter_32detect_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_32detect_la_LDFLAGS =  -module -avoid-version 
 
 filter_32drop_la_SOURCES = filter_32drop.c
-filter_32drop_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_32drop_la_LDFLAGS =  -module -avoid-version 
 
 filter_cshift_la_SOURCES = filter_cshift.c
-filter_cshift_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_cshift_la_LDFLAGS =  -module -avoid-version 
 
 filter_yuy2toyv12_la_SOURCES = filter_yuy2toyv12.c
-filter_yuy2toyv12_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_yuy2toyv12_la_LDFLAGS =  -module -avoid-version 
 
 filter_smartdeinter_la_SOURCES = filter_smartdeinter.c
-filter_smartdeinter_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_smartdeinter_la_LDFLAGS =  -module -avoid-version 
 filter_smartdeinter_la_LIBADD = -L../libvo -lvout ../export/vid_aux.lo
 
 filter_normalize_la_SOURCES = filter_normalize.c
-filter_normalize_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_normalize_la_LDFLAGS =  -module -avoid-version 
 filter_normalize_la_LIBADD = -lm
 
 filter_logo_la_SOURCES = filter_logo.c
-filter_logo_la_LDFLAGS = -no-undefined -module -avoid-version
+filter_logo_la_LDFLAGS =  -module -avoid-version
 filter_logo_la_LIBADD = @MAGICK_LIBS@ -L../libvo -lvout ../export/vid_aux.lo
 
 filter_xsharpen_la_SOURCES = filter_xsharpen.c
-filter_xsharpen_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_xsharpen_la_LDFLAGS =  -module -avoid-version 
 
 filter_logoaway_la_SOURCES = filter_logoaway.c
-filter_logoaway_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_logoaway_la_LDFLAGS =  -module -avoid-version 
 filter_logoaway_la_LIBADD = @MAGICK_LIBS@
 
 filter_invert_la_SOURCES = filter_invert.c
-filter_invert_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_invert_la_LDFLAGS =  -module -avoid-version 
 
 filter_pp_la_SOURCES = filter_pp.c
-filter_pp_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_pp_la_LDFLAGS =  -module -avoid-version 
 filter_pp_la_LIBADD = @LIBPOSTPROC_LIBS@
 
 filter_dilyuvmmx_la_SOURCES = filter_dilyuvmmx.c deinterlace.c
-filter_dilyuvmmx_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_dilyuvmmx_la_LDFLAGS =  -module -avoid-version 
 
 filter_fields_la_SOURCES = filter_fields.c
-filter_fields_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_fields_la_LDFLAGS =  -module -avoid-version 
 
 
 EXTRA_DIST = *.h parse_csv.awk filter_list.awk

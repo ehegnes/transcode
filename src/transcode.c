@@ -896,7 +896,9 @@ int main(int argc, char *argv[]) {
       tc_error("failed to start signal handler thread");
 
     // close all threads at exit
+#if !defined(__APPLE__)
     atexit(safe_exit);
+#endif
     
     /* ------------------------------------------------------------ 
      *
@@ -1953,6 +1955,7 @@ int main(int argc, char *argv[]) {
 	}
     }
 
+#if !defined (__APPLE__)
     if(optind < argc) {
       fprintf(stderr, "warning: unused command line parameter detected (%d/%d)\n", optind, argc);
       
@@ -1961,6 +1964,7 @@ int main(int argc, char *argv[]) {
       if(optind==1) short_usage(EXIT_SUCCESS);
       
     }
+#endif
 
     if ( psu_mode ) {
       

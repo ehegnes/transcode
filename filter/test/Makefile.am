@@ -12,6 +12,6 @@ pkgdir=@MOD_PATH@
 pkg_LTLIBRARIES = filter_test.la 
 
 filter_test_la_SOURCES = filter_test.c
-filter_test_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_test_la_LDFLAGS =  -module -avoid-version 
 filter_test_la_LIBADD = -L../../aclib/ -lac
 

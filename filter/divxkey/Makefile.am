@@ -16,7 +16,7 @@ pkgdir=@MOD_PATH@
 pkg_LTLIBRARIES = filter_divxkey.la 
 
 filter_divxkey_la_SOURCES = filter_divxkey.c bitstream.c
-filter_divxkey_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_divxkey_la_LDFLAGS =  -module -avoid-version 
 
 EXTRA_DIST = *.h 
 

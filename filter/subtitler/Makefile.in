@@ -319,7 +319,7 @@ external_programs.c \
 color_processor.c
 
 
-filter_subtitler_la_LDFLAGS = -no-undefined -module -avoid-version 
+filter_subtitler_la_LDFLAGS = -module -avoid-version 
 filter_subtitler_la_LIBADD = $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(X_EXTRA_LIBS) -lXpm -lXt -lXaw -lm 
 
 EXTRA_DIST = *.h HOWTO* *.ppm *.txt README.* *.ppml
