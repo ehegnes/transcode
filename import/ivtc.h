@@ -24,10 +24,6 @@
 #ifndef _IVTC_H
 #define _IVTC_H
 
-void merge_yuv_fields(unsigned char *src1, unsigned char *src2, int width, int height);
-
-void merge_rgb_fields(unsigned char *src1, unsigned char *src2, int width, int height);
-
 int interlace_test(char *video_buf, int width, int height);
 void yuv_deinterlace(char *image, int width, int height);
 void rgb_deinterlace(char *image, int width, int height);

@@ -31,7 +31,7 @@ static int color_diff_threshold1=50;
 static int color_diff_threshold2=100;
 static double critical_threshold=0.00001;
 
-void merge_yuv_fields(unsigned char *src1, unsigned char *src2, int width, int height)
+static void merge_yuv_fields(unsigned char *src1, unsigned char *src2, int width, int height)
 {
   
     char *in, *out;
@@ -56,8 +56,8 @@ void merge_yuv_fields(unsigned char *src1, unsigned char *src2, int width, int h
     block = width/2;
 
     //Cb
-    in  = src2 + height*height + block;
-    out = src1 + height*height + block;
+    in  = src2 + width*height + block;
+    out = src1 + width*height + block;
 
     //move every second row
     for (i=0; i<height/2; i=i+2) {
@@ -69,8 +69,8 @@ void merge_yuv_fields(unsigned char *src1, unsigned char *src2, int width, int h
 
 
     //Cr
-    in  = src2 + height*height*5/4 + block;
-    out = src1 + height*height*5/4 + block;
+    in  = src2 + width*height*5/4 + block;
+    out = src1 + width*height*5/4 + block;
 
     //move every second row
     for (i=0; i<height/2; i=i+2) {
@@ -81,7 +81,7 @@ void merge_yuv_fields(unsigned char *src1, unsigned char *src2, int width, int h
     }
 }
 
-void merge_rgb_fields(unsigned char *src1, unsigned char *src2, int width, int height)
+static void merge_rgb_fields(unsigned char *src1, unsigned char *src2, int width, int height)
 {
   
     char *in, *out;
