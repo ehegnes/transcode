@@ -31,17 +31,10 @@ A:	As the api of libavcodec is sometimes changing, the
 Q:	Finally, there's the questions about the justly infamous
 	ffmpeg.cfg file. What are all the parameters and what do
 	they mean?
-A:	Ooops.... Nobody knows I am afraid. The good news is
-	that most of them you don't need actually. The guru
-	says that you should leave most of them alone. BTW
-	I still have this wild plan to add pseudo-codecs to
-	the ffmpeg export module like "dvd" and "svcd" that
-	will set all necessary parameters. I think that's a
-	prerequisite for a module actually usable by normal
-	users. BTW2 have a look at the manual page of mplayer,
-	it does spend a few words on the options. This list is
-	also included as readme in the transcode package, but
-	it might be outdated. (ems)
+A:	The easiest way to find out is to look at the mplayer manpage at
+	http://www.mplayerhq.hu/DOCS/man/en/manpage.html#CODEC%20SPECIFIC%20ENCODING%20OPTIONS%20(MENCODER%20ONLY) 
+	In transcode, you can put these options into a config file (use -q2 to
+	generate one) called ffmpeg.cfg (ems, tibit)
 ---
 Q:	What's the difference between -j and -Y?
 A:	This one I know. The difference between -j and -Y is only
