@@ -78,7 +78,7 @@ static int mm_support(void)
         return 0; /* CPUID not supported */
 
     /* highest cpuid is 0, no standard features */
-    if (eax == 0)
+    if (a == 0)
         return rval;
     
     cpuid(0, max_std_level, ebx, ecx, edx);
