@@ -1292,10 +1292,10 @@ AC_SUBST(CFLAGS)
 
 dnl import/export module path
 dnl
-MOD_PATH="\${prefix}/lib/transcode"
+MOD_PATH="\${libdir}/transcode"
 AC_ARG_WITH(mod-path,
   AC_HELP_STRING([--with-mod-path],
-    [where export/import modules are installed (${prefix}/lib/transcode)]),
+    [where export/import modules are installed (${libdir}/transcode)]),
   MOD_PATH=$withval)
 AC_SUBST(MOD_PATH)
 
