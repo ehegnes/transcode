@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-28 Tilmann Bitterberg <transcode at tibit.org>
+
+  * avilib/avilib.c:
+  Don't check for errors you can't handle
+
 2004-01-27 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/transcode.c:
