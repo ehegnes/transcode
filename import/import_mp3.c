@@ -29,7 +29,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_mp3.so"
-#define MOD_VERSION "v0.1.3 (2003-06-10)"
+#define MOD_VERSION "v0.1.4 (2003-08-04)"
 #define MOD_CODEC   "(audio) MPEG"
 
 #define MOD_PRE mp3
@@ -50,6 +50,20 @@ static int decoded_frames=0;
 static int offset=0;
 static int last_percent=0;
 
+static int scan(char *name) 
+{
+  struct stat fbuf;
+  
+  if(stat(name, &fbuf)) {
+    fprintf(stderr, "(%s) invalid file \"%s\"\n", __FILE__, name);
+    exit(1);
+  }
+  
+  // file or directory?
+  
+  if(S_ISDIR(fbuf.st_mode)) return(1);
+  return(0);
+}
 
 /* ------------------------------------------------------------ 
  *
@@ -59,9 +73,16 @@ static int last_percent=0;
 
 MOD_open
 {
+    int is_dir=0;
 
     // audio only
     if(param->flag != TC_AUDIO) return(TC_IMPORT_ERROR);
+
+    if (scan(vob->audio_in_file)) {
+	is_dir = 1;
+    } else {
+	is_dir = 0;
+    }
     
     codec = vob->im_a_codec;
     count = 0;
@@ -73,7 +94,7 @@ MOD_open
     case CODEC_PCM:
 	
 	if (offset && vob->nav_seek_file) {
-	if((snprintf(import_cmd_buf, MAX_BUF, 
+	  if((snprintf(import_cmd_buf, MAX_BUF, 
 			"tcextract -a %d -i \"%s\" -x %s -d %d -f %s -C %d-%d | tcdecode -x %s -d %d", 
 			vob->a_track, vob->audio_in_file, 
 			(vob->fixme_a_codec==0x50?"mp2":"mp3"), vob->verbose, 
@@ -81,9 +102,21 @@ MOD_open
 			(vob->fixme_a_codec==0x50?"mp2":"mp3"), vob->verbose)<0)) {
 	    perror("command buffer overflow");
 	    return(TC_IMPORT_ERROR);
-	}
+	  }
 	} else {
-	if((snprintf(import_cmd_buf, MAX_BUF, 
+	  if (is_dir) {
+	    if((snprintf(import_cmd_buf, MAX_BUF, 
+			"tccat -a -i %s | tcextract -a %d -x %s -d %d | tcdecode -x %s -d %d", 
+			vob->audio_in_file, vob->a_track,
+			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
+			vob->verbose, 
+			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
+			vob->verbose)<0)) {
+	      perror("command buffer overflow");
+	      return(TC_IMPORT_ERROR);
+	    }
+	  } else {
+	    if((snprintf(import_cmd_buf, MAX_BUF, 
 			"tcextract -a %d -i \"%s\" -x %s -d %d | tcdecode -x %s -d %d", 
 			vob->a_track, vob->audio_in_file, 
 			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
@@ -92,7 +125,8 @@ MOD_open
 			vob->verbose)<0)) {
 	    perror("command buffer overflow");
 	    return(TC_IMPORT_ERROR);
-	}
+	    }
+	  }
 	}
 	
 	if(verbose_flag) printf("[%s] MP3->PCM\n", MOD_NAME);

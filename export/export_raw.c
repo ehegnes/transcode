@@ -28,9 +28,10 @@
 #include "avilib.h"
 #include "aud_aux.h"
 #include "../import/magic.h"
+#include "../src/iodir.h"
 
 #define MOD_NAME    "export_raw.so"
-#define MOD_VERSION "v0.3.11 (2003-07-24)"
+#define MOD_VERSION "v0.3.12 (2003-08-04)"
 #define MOD_CODEC   "(video) * | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE raw
@@ -44,6 +45,22 @@ static int capability_flag=TC_CAP_DV|TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3
 
 static int info_shown=0, force_kf=0;
 static int width=0, height=0, im_v_codec=-1;
+
+static int scan(char *name) 
+{
+  struct stat fbuf;
+  
+  if(stat(name, &fbuf)) {
+    fprintf(stderr, "(%s) invalid file \"%s\"\n", __FILE__, name);
+    exit(1);
+  }
+  
+  // file or directory?
+  
+  if(S_ISDIR(fbuf.st_mode)) return(1);
+  return(0);
+}
+
 
 /* ------------------------------------------------------------ 
  *
@@ -78,6 +95,8 @@ MOD_open
     double fps;
     
     char *codec;
+    char *dir_name = NULL;
+    char *to_open;
 
     im_v_codec = vob->im_v_codec;
 
@@ -157,9 +176,23 @@ MOD_open
 	  // pass-through mode is the default, works only with import_avi.so
 	  
 	  if(vob->pass_flag & TC_VIDEO) {
+
+	    to_open = vob->video_in_file;
+
+	    if (scan(vob->video_in_file)) { 
+
+	      dir_name = vob->video_in_file;
+	      if((tc_open_directory(dir_name))<0) { 
+		tc_error("unable to open directory \"%s\"", dir_name);
+	      }
+	      to_open = tc_scan_directory(dir_name);
+
+	      tc_close_directory();
+	    }
+
 	    if(avifile1==NULL) 
-	      if(NULL == (avifile1 = AVI_open_input_file(vob->video_in_file,1))) {
-		AVI_print_error("avi open error");
+	      if(NULL == (avifile1 = AVI_open_input_file(to_open,1))) {
+		AVI_print_error("avi open error in export_raw");
 		return(TC_EXPORT_ERROR); 
 	      }
 	    

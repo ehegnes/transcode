@@ -10,6 +10,14 @@ transcode-0.6.9
   a symlink from xvidN to xvid so that one can continue to use -y
   xvid.
 
+  * import/import_mp3.c:
+  Enable a native directory mode with tccat.
+
+  * export/export_raw.c:
+  Enable directory mode for pass-through AVI files, its now possible
+  to do: transcode -i dir/ -P1 -o x.avi -x dv,null -y raw,null
+  Pointed out by Frederic Briere. (In dir/ are DVSD AVI files)
+
 2003-08-04 Edouard Gomez <ed.gomez at free.fr>
 
   * export/export_xvid4.c:
