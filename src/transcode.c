@@ -396,7 +396,7 @@ int source_check(char *import_file)
 #endif
 
     if(import_file==NULL) { 
-      tc_warn("invalid filename \"%s\"", import_file);
+      tc_error("invalid filename \"%s\"", import_file);
       return(1);
     }
     
@@ -404,9 +404,9 @@ int source_check(char *import_file)
     
 #ifdef NET_STREAM    
     if((hp = gethostbyname(import_file)) != NULL) return(0);
-    tc_warn("invalid filename or host \"%s\"", import_file);
+    tc_error("invalid filename or host \"%s\"", import_file);
 #else
-    tc_warn("invalid filename \"%s\"", import_file);
+    tc_error("invalid filename \"%s\"", import_file);
 #endif
     return(1);
 }
