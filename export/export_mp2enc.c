@@ -35,8 +35,10 @@
 #include "probe_export.h"
 
 #define MOD_NAME    "export_mp2enc.so"
-#define MOD_VERSION "v1.0.9 (2003-10-30)"
+#define MOD_VERSION "v1.0.10 (2004-09-27)"
 #define MOD_CODEC   "(audio) MPEG 1/2"
+
+#define CLAMP(x,l,h) x > h ? h : x < l ? l : x
 
 static int 			verbose_flag	= TC_QUIET;
 static int 			capability_flag	= TC_CAP_PCM;
@@ -65,8 +67,12 @@ MOD_open
     if (param->flag == TC_AUDIO) 
     {
         char buf [PATH_MAX];
+	char mono[] = "-m";
+	char stereo[] = "-s";
 	int srate, brate;
 	char *chan;
+	int def_srate, def_brate;
+	char *def_chan;
 
 	mpa = audio_ext;
 
@@ -79,7 +85,48 @@ MOD_open
 
 	srate = (vob->mp3frequency != 0) ? vob->mp3frequency : vob->a_rate;
 	brate = vob->mp3bitrate;
-	chan = (vob->dm_chan>=2) ? "-s": "-m";
+	chan = (vob->dm_chan>=2) ? stereo : mono;
+
+	def_srate = srate;
+	def_brate = brate;
+	def_chan = chan;
+
+	// default profile values, authority: videohelp and dvdfaq
+	switch(vob->mpeg_profile) {
+	case VCD_PAL: case VCD_NTSC: case VCD: 
+	  def_srate = 44100;
+	  def_brate = 224;
+	  def_chan = stereo;
+	  break;
+	case SVCD_PAL: case SVCD_NTSC: case SVCD:
+	  def_srate = 44100;
+	  def_brate = CLAMP (brate, 64, 384);
+	  def_chan = stereo;
+	  break;
+	case DVD_PAL: case DVD_NTSC: case DVD:
+	  def_srate = 48000;
+	  def_brate = CLAMP (brate, 64, 384);
+	  def_chan = stereo;
+	case PROF_NONE:
+	  break;
+	}
+
+	// encoding values, let commandline override profile
+	if(!(probe_export_attributes & TC_PROBE_NO_EXPORT_ARATE))
+	  if (srate != def_srate) {
+            printf("[%s] export profile changed samplerate: %d -> %d Hz.\n", MOD_NAME, srate, def_srate); 
+	    srate = def_srate;
+	  }
+	if(!(probe_export_attributes & TC_PROBE_NO_EXPORT_ABITRATE))
+	  if (brate != def_brate) {
+            printf("[%s] export profile changed bitrate: %d -> %d kbps.\n", MOD_NAME, brate, def_brate); 
+	    brate = def_brate;
+	  }
+	if(!(probe_export_attributes & TC_PROBE_NO_EXPORT_ACHANS))
+	  if (chan != def_chan) {
+            printf("[%s] export profile changed channels: mono -> stereo.\n", MOD_NAME); 
+	    chan = def_chan;
+	  }
 	
 	if(((unsigned)snprintf(buf, PATH_MAX, "mp2enc -v %d -r %d -b %d %s -o \"%s%s\" %s", verb, srate, brate, chan, vob->audio_out_file, mpa, (vob->ex_a_string?vob->ex_a_string:""))>=PATH_MAX)) {
 	  perror("cmd buffer overflow");

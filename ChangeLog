@@ -1,5 +1,15 @@
 transcode-0.13-pre2 EMS
 
+2004-09-29 Peter Chiocchetti <pch14 at myzel dot net>
+  * export_mp2enc.c:
+  export profile support for mp2enc.
+  attached patch now uses the probe_export facility; its not as
+  verbose as the ffmpeg one - it only warns, if values actually
+  are changed.
+  it will not debate the guru's command(line) - not with a single
+  word!  if she deliberately requests an out of range parameter,
+  she ought to know how to fight ensuing mayhem.
+
 2004-09-28 Stefan Scheffler <stefanscheffler at gmx dot net>
   * filter/resample/(Makefile.am filter_resample.c):
   Removed obsolete code that segfaults every now and then,
