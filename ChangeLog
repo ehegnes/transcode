@@ -30,12 +30,82 @@ transcode-0.6.8
   - New filter slowmo; poor man's slow-motion effect
   - New filter smartyuv; smartdeinter for YUV mode.
   - Upgrade included libavcodec to 4669
+  - New utility aviindex; generates index of AVI file.
+  - Experimental seeking/fast skipping support in AVI files with --nav_seek
 
 2003-06-25 Tilmann Bitterberg <transcode at tibit.org>
   
-  * export_ffmpeg.c ffmpeg_cfg.c ffmpeg_cfg.h ffmpeg/*:
-  Upgrade to ffmpeg-cvs-2003-06-24 4669 and modify export module to
+  * tools/aviindex.c docs/man/aviindex.1:
+  New tool with verbose documentation. Extract from the manpage:
+
+  aviindex reads the AVI file ifile and writes the index into ofile. This
+  can either happen in "dumb" mode where aviindex looks for an existing
+  index (and trusts this index!)  in the file and dumps this index into a
+  human readable form. The "dumb" mode is used, when -n is NOT specified
+  or when the filesize of the input file is smaller than 2 GB.
+
+  In "smart" mode, aviindex scans through the complete AVI file and
+  searches for chunks (may that video or audio) and reconstructs the
+  index based on the information found. If an index chunk is found acci-
+  dently, aviindex will use the information in this index to recover the
+  keyframe information, which is important. aviindex will use smart mode,
+  if given the -n option OR if the AVI file is larger than 2 GB. If the
+  file is large, the index chunk cannot be found the usual way so one
+  must use -n but it is possible that there is an index chunk in this
+  file. Cross fingers.
+
+  The generated index file serves different purposes.
+
+    - The library which handles AVI files in transcode(1) can read
+      such index files and use this file to rebuild the index instead
+      of scanning through the whole AVI file over and over again.
+      Reading the index from the index file is *much* faster than
+      scanning through the AVI.
+
+    - It can be used as a seeking file. When given to transcode via
+      the --nav_seek switch, transcode will use the file to seek
+      directly to the position you specified via -c. This also works
+      for multiple -c ranges.
+
+ 
+  Example:
+     $ aviindex -i 3GBfile.avi -o 3GB.index
+  generates and index of the large file 3GBfile.avi. You can use the
+  file 3GB.index to tell transcode to read the index from this file
+  and not from the avi. This leads to much faster startup time.
+
+  Suppose 3GBfile.avi has MPEG4 video and PCM sound and you want to
+  encode several ranges.
+
+    $ transcode -V -i 3GBfile.avi --nav_seek 3GB.index -x xvid,avi \
+      -c 5000-6000,0:20:00-0:21:00,100000-100001 \
+      -y xvid --lame_preset standard -o out.avi
+
+  * export/{export_ffmpeg.c ffmpeg_cfg.c ffmpeg_cfg.h} ffmpeg/*:
+  Upgrade to ffmpeg-cvs-2003-06-24 (4669) and modify export module to
   understand all the new parameters.
+
+  * avilib/avilib.{c,h}:
+  Routine for reading the index of an AVI from a separate file.
+
+  * import/tcprobe.c:
+  Accept a nav_seek_file on the commandline and pass it through to
+  the selected probing routine for all modules which deal with AVIs.
+  If the AVI which is to be probed has no index and an index file is
+  specified on the commandline, this will lead to much faster
+  probing time.
+
+  * src/probe.c:
+  Pass nav_seek_file down to tcprobe if specified.
+
+  * src/transcode.c, src/transcode.h:
+  New field in the vob structure for the the nav_seek_file. This
+  allows the import modules which have do deal with AVI files
+  to directly jump to a posion in the AVI file given by transcodes
+  -L option.
+
+  * import/`grep -l AVI_open *.c`:
+  At opening time, seek to the correct position in th AVI file.
 
 2003-06-23 Tilmann Bitterberg <transcode at tibit.org>
   
