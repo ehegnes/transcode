@@ -142,12 +142,17 @@ static inline void swap_cmplx(complex_t *a, complex_t *b)
 
 
 
+float float_mult (float a, float b)
+{
+    return (a*b);
+}
+
 static inline complex_t cmplx_mult(complex_t a, complex_t b)
 {
 	complex_t ret;
 
-	ret.real = a.real * b.real - a.imag * b.imag;
-	ret.imag = a.real * b.imag + a.imag * b.real;
+	ret.real = float_mult(a.real,b.real) - float_mult(a.imag,b.imag);
+	ret.imag = float_mult(a.real,b.imag) + float_mult(a.imag,b.real);
 
 	return ret;
 }

@@ -1,6 +1,22 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-22 Max Kliche <max at kliche.org>
+
+  * libac3/imdct.c:
+  Found a way to free a register so that the code compiles with
+  "-march=pentium3 -mfpmath=sse -msse". Pointed out by Brian Hall.
+
+2003-07-22 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export_mpeg2enc.c:
+  Support for --encode_fields
+
+  * src/{audio_buffer.c video_buffer.c}:
+  add Xframe_dup functions to insert a copy of the current frame
+  after the current frame. The new frame will be a complete copy
+  with all its attribute and payload.
+
 2003-07-21 William Hawkins <whawkins at vt.edu>
 
   * import/import_dvd.c:
