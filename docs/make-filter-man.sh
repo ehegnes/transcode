@@ -30,6 +30,7 @@ filter_cshift.so
 filter_cut.so
 filter_decimate.so
 filter_detectsilence.so
+filter_detectclipping.so
 filter_dilyuvmmx.so
 filter_divxkey.so
 filter_dnr.so
@@ -92,7 +93,7 @@ for i in $filter_list;
 do 
     name=`echo $i | sed -e 's/[^_]*_//' -e 's/\.so//'`
     echo -n "Processing $name .."
-    rm -f $name.1 $name.txt
+    # rm -f $name.1 $name.txt
     tcmodinfo -i $name 2>&1| sed -n '/^START/,/^END/p' | 
     sed '
 /START/{
