@@ -381,6 +381,7 @@ EXTRA_DIST = motion_est_template.c \
 	     wmv2.c \
 	     svq3.c \
 	     faad.c \
+	     mdec.c \
 	     amr.c
 
 
