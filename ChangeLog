@@ -1,3 +1,13 @@
+2005-02-18 Jacob Meuser <jakemsr at jakemsr dot com>
+  * configure.in
+  Enable optimized assembly (--enable-mmx, --enable-3dnow, --enable-sse
+  --enable-sse2) on amd64 by default.  There is still a bit of code that
+  could be ported to amd64, but this is a decent start.
+
+2005-02-18 Jacob Meuser <jakemsr at jakemsr dot com>
+  * libvo/yuv2rgb.c
+  Allow transcode to build if --enable-mmx is off at configure time.
+
 2005-02-16 Jacob Meuser <jakemsr at jakemsr dot com>
   * filter/filter_29to23.c filter/filter_32detect.c filter/filter_32drop.c
     filter/filter_aclip.c filter/filter_ascii.c filter/filter_astat.c
