@@ -3,6 +3,11 @@ transcode-0.6.11
 
 2003-10-06 Tilmann Bitterberg <transcode at tibit.org>
 
+  * export/export_raw.c:
+  Fix a segfault when not doing m2v pass-thru.
+
+2003-10-06 Tilmann Bitterberg <transcode at tibit.org>
+
   * filter/Makefile.am filter/filter_smartyuv.c:
   Small Altivec-optimised parts, gives about 3 fps on a ppc
   platform. Changed the padding of the moving map to be always a

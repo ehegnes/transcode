@@ -104,15 +104,14 @@ MOD_open
 
     // open out file
     if(param->flag==TC_AUDIO && vob->out_flag) goto further; 
-    if(param->flag==TC_VIDEO && vob->codec_flag == TC_CODEC_MPEG2) goto further;
-    if(vob->avifile_out==NULL)
-      if(NULL == (vob->avifile_out = 
-	  AVI_open_output_file( (param->flag&TC_VIDEO)?
-		  vob->video_out_file:
-		  vob->audio_out_file))) {
+    if(param->flag==TC_VIDEO && vob->codec_flag == TC_CODEC_MPEG2 && (vob->pass_flag & TC_VIDEO)) goto further;
+    if(vob->avifile_out==NULL) {
+      if(NULL == (vob->avifile_out = AVI_open_output_file( 
+	      (param->flag==TC_VIDEO)?  vob->video_out_file: vob->audio_out_file))) {
 	AVI_print_error("avi open error");
 	exit(TC_EXPORT_ERROR);
       }
+    }
 
 further:
     
