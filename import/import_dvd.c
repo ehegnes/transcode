@@ -200,7 +200,31 @@ MOD_open
     return(0);
   }
   
-  
+  if(param->flag == TC_SUBEX) {  
+    
+    sprintf(dem_buf, "-M %d", vob->demuxer);
+    
+    codec = vob->im_a_codec;
+    syncf = vob->sync;
+    if((snprintf(import_cmd_buf, MAX_BUF, "tccat -T %s -i \"%s\" -t dvd -d %d -S %d | tcdemux -a %d -x ps1 %s %s -d %d | tcextract -t vob -a 0x%x -x ps1 -d %d", cha_buf, vob->audio_in_file, vob->verbose, vob->vob_offset, vob->s_track, seq_buf, dem_buf, vob->verbose, (vob->s_track+0x20), vob->verbose)<0)) {
+      perror("command buffer overflow");
+	  return(TC_IMPORT_ERROR);
+    }
+    
+    if(verbose_flag & TC_DEBUG) printf("[%s] subtitle extraction\n", MOD_NAME);
+    
+    // print out
+    if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+    
+    // popen
+    if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
+      perror("popen subtitle stream");
+      return(TC_IMPORT_ERROR);
+    }
+    
+    return(0);
+  }
+ 
   if(param->flag == TC_VIDEO) {
     
     if(query==0) {
@@ -332,6 +356,8 @@ MOD_decode
     
     return(0);
   }
+
+  if (param->flag == TC_SUBEX) return(0);
   
   if(param->flag == TC_AUDIO) {
 
