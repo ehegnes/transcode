@@ -51,6 +51,7 @@ static uint16_t id;
 static uint32_t stream[256], track[TC_MAX_AUD_TRACKS], attr[TC_MAX_AUD_TRACKS];
 
 static int tot_seq_ctr=0, tot_unit_ctr=0;
+static unsigned int tot_bitrate=0, min_bitrate=(unsigned int)-1, max_bitrate=0;
 
 //count packs for each presntation unit
 static uint32_t unit_pack_cnt[256], unit_pack_cnt_index=0;
@@ -93,6 +94,9 @@ void unit_summary()
     fprintf(stderr, "%d packetized elementary stream(s) PES packets found\n", pes_total); 
     
     fprintf(stderr, "presentation unit PU [%d] contains %d MPEG video sequence(s)\n", unit_ctr, seq_ctr);
+    fprintf(stderr, "Average Bitrate is %u. Min Bitrate is %u, max is %u (%s)\n", 
+	((tot_bitrate*400)/1000)/seq_ctr, min_bitrate*400/1000, max_bitrate*400/1000,
+	(max_bitrate==min_bitrate)?"CBR":"VBR");
 
     ++tot_unit_ctr;
     tot_seq_ctr+=seq_ctr;
@@ -378,7 +382,17 @@ void scan_pes(int verbose, FILE *in_file)
 		      if(cmp_32_bits(buf+n, TC_MAGIC_M2V)) {
 			stats_sequence(buf+n+4, &si);
 			show_seq_info=1;
+			break;
 		      }
+		    }
+		  }
+		  for(n=0; n<100; ++n) {
+		    if(cmp_32_bits(buf+n, TC_MAGIC_M2V)) {
+		      stats_sequence_silent(buf+n+4, &si);
+		      if (si.brv>max_bitrate) max_bitrate=si.brv;
+		      if (si.brv<min_bitrate) min_bitrate=si.brv;
+		      tot_bitrate += si.brv;
+		      break;
 		    }
 		  }
 

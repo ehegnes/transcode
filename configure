@@ -24520,7 +24520,11 @@ echo $ECHO_N "checking lame version... $ECHO_C" >&6
 	ac_save_CFLAGS="$CFLAGS"
 	ac_save_LIBS="$LIBS"
 	CFLAGS="$CFLAGS -I$with_lame_i"
-	LIBS="-L$with_lame_l -lmp3lame -lm $LIBS -Wl,-rpath -Wl,$with_lame_l"
+	if test x"$is_osx" = x"true"; then
+	  LIBS="-L$with_lame_l -lmp3lame -lm $LIBS"
+	else
+	  LIBS="-L$with_lame_l -lmp3lame -lm $LIBS -Wl,-rpath -Wl,$with_lame_l"
+	fi
 	if test "$cross_compiling" = yes; then
   { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
 See \`config.log' for more details." >&5

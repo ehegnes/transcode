@@ -85,6 +85,45 @@ static char * frame_rate_str[16] = {
 };
 
 
+int stats_sequence_silent(uint8_t * buffer, seq_info_t *seq_info)
+{
+  
+  int horizontal_size;
+  int vertical_size;
+  int aspect_ratio_information;
+  int frame_rate_code;
+  int bit_rate_value;
+  
+  vertical_size = (buffer[0] << 16) | (buffer[1] << 8) | buffer[2];
+  horizontal_size = ((vertical_size >> 12) + 15) & ~15;
+  vertical_size = ((vertical_size & 0xfff) + 15) & ~15;
+
+  aspect_ratio_information = buffer[3] >> 4;
+  frame_rate_code = buffer[3] & 15;
+  bit_rate_value = (buffer[4] << 10) | (buffer[5] << 2) | (buffer[6] >> 6);
+  if(aspect_ratio_information < 0 || aspect_ratio_information>15) {
+    fprintf(stderr, "error: ****** invalid MPEG sequence header detected (%d/%d|%d/%d) ******\n", 
+	    aspect_ratio_information, 16, frame_rate_code, 16);
+    return(-1);
+  }
+  
+  if(frame_rate_code < 0 || frame_rate_code>15) {
+    fprintf(stderr, "error: ****** invalid MPEG sequence header detected (%d/%d|%d/%d) ******\n", 
+	    frame_rate_code, 16, aspect_ratio_information, 8);
+    return(-1);
+  }
+  
+  //fill out user structure
+  
+  seq_info->w = horizontal_size;
+  seq_info->h = vertical_size;
+  seq_info->ari = aspect_ratio_information;
+  seq_info->frc = frame_rate_code;
+  seq_info->brv = bit_rate_value;
+  
+  return(0);
+  
+}
 int stats_sequence(uint8_t * buffer, seq_info_t *seq_info)
 {
   

@@ -2,6 +2,12 @@
 transcode-0.6.11
 
 2003-10-02 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * import/{aux_pes.c aux_pes.h scan_pes.c}:
+  Have tcscan -x mpeg2 print the min, max and average bitrate of an
+  mpeg2 file. Useful when you try to figure out the requant factor.
+
+2003-10-02 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/import_{dvd mpeg2 vob}:
   Support for mpeg2 pass-through. If needed, the modules will
@@ -44,7 +50,7 @@ transcode-0.6.11
 2003-09-30 Tilmann Bitterberg <transcode at tibit.org>
 
   * configure.in:
-  Make the X11 dependent plugins really dependand on X11. Pointed
+  Make the X11 depending plugins really dependend on X11. Pointed
   out by Nicolas Boos.
   Nicer printout for lame.
 
