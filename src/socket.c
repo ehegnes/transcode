@@ -43,8 +43,6 @@
 #include <fcntl.h>
 #include <pthread.h>
 
-#define M_BUF_SIZE 8192
-
 extern char* socket_file; // transcode.c
 
 unsigned int tc_socket_msgchar = 0;

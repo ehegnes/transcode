@@ -28,6 +28,8 @@
 
 #define MAX_FILTER 16
 
+#define M_BUF_SIZE 8192
+
 typedef struct filter_s {
   
   int id;

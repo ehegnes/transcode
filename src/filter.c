@@ -164,7 +164,7 @@ int load_plugin(char *path) {
       c++;
   }
       
-  sprintf(module, "%s/filter_%s.so", path, filter[id].name);
+  snprintf(module, sizeof(module), "%s/filter_%s.so", path, filter[id].name);
   //fprintf(stderr, "[%s] next free ID (%d) is (%d)\n", __FILE__, filter_next_free_id(), id);
   
   // try transcode's module directory
@@ -415,6 +415,10 @@ int plugin_disable_id (int id)
   return 0;
 }
 
+/* the plugin_list_{disabled,enabled,loaded} functions are only
+ * called from socket.c.  there, buf has been memset M_BUF_IZE bytes.
+ * that's where the M_BUF_SIZE comes from in the snprintfs here.
+ */
 int plugin_list_disabled(char *buf)
 {
     int n, pos=0;
@@ -422,13 +426,13 @@ int plugin_list_disabled(char *buf)
     for (n=0; n<MAX_FILTER; n++) {
 	if ( (filter[n].status == 0) && filter[n].name && strlen(filter[n].name)) {
 	    if (pos == 0) { // first
-		pos = sprintf(buf, "\"%s\"", filter[n].name);
+		pos = snprintf(buf, M_BUF_SIZE, "\"%s\"", filter[n].name);
 	    } else {
-		pos += sprintf(buf+pos, ", \"%s\"", filter[n].name);
+		pos += snprintf(buf+pos, M_BUF_SIZE - pos, ", \"%s\"", filter[n].name);
 	    }
 	}
     }
-    sprintf(buf+pos, "\n");
+    snprintf(buf+pos, M_BUF_SIZE - pos, "\n");
     return 0;
 }
 
@@ -439,13 +443,13 @@ int plugin_list_enabled(char *buf)
     for (n=0; n<MAX_FILTER; n++) {
 	if ( (filter[n].status == 1) && filter[n].name && strlen(filter[n].name)) {
 	    if (pos == 0) { // first
-		pos = sprintf(buf, "\"%s\"", filter[n].name);
+		pos = snprintf(buf, M_BUF_SIZE, "\"%s\"", filter[n].name);
 	    } else {
-		pos += sprintf(buf+pos, ", \"%s\"", filter[n].name);
+		pos += snprintf(buf+pos, M_BUF_SIZE - pos, ", \"%s\"", filter[n].name);
 	    }
 	}
     }
-    sprintf(buf+pos, "\n");
+    snprintf(buf+pos, M_BUF_SIZE - pos, "\n");
     return 0;
 }
 
@@ -456,13 +460,13 @@ int plugin_list_loaded(char *buf)
     for (n=0; n<MAX_FILTER; n++) {
 	if (filter[n].name && strlen(filter[n].name)) {
 	    if (pos == 0) { // first
-		pos = sprintf(buf, "\"%s\"", filter[n].name);
+		pos = snprintf(buf, M_BUF_SIZE, "\"%s\"", filter[n].name);
 	    } else {
-		pos += sprintf(buf+pos, ", \"%s\"", filter[n].name);
+		pos += snprintf(buf+pos, M_BUF_SIZE - pos, ", \"%s\"", filter[n].name);
 	    }
 	}
     }
-    sprintf(buf+pos, "\n");
+    snprintf(buf+pos, M_BUF_SIZE - pos, "\n");
     return 0;
 }
 
