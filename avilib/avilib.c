@@ -1192,6 +1192,109 @@ avi_t *AVI_open_fd(int fd, int getIndex)
       return AVI;
 }
 
+int AVI_has_index(char *filename)
+{
+  long  n;
+  char data[256];
+  int fdes = open (filename, O_RDONLY);
+  if(fdes < 0) {
+      AVI_errno = AVI_ERR_OPEN;
+      return 0;
+  }
+  
+  /* Read first 12 bytes and check that this is an AVI file */
+
+   if( avi_read(fdes,data,12) != 12 ) { AVI_errno = AVI_ERR_READ; close (fdes); return 0; }
+
+   if( strncasecmp(data  ,"RIFF",4) !=0 ||
+       strncasecmp(data+8,"AVI ",4) !=0 ) { AVI_errno = AVI_ERR_NO_AVI; close (fdes); return 0;}
+
+   /* Go through the AVI file and extract the header list,
+      the start position of the 'movi' list and an optionally
+      present idx1 tag */
+
+   while(1)
+   {
+      if( avi_read(fdes,data,8) != 8 ) break; /* We assume it's EOF */
+
+      n = str2ulong(data+4);
+      n = PAD_EVEN(n);
+
+      if(strncasecmp(data,"LIST",4) == 0)
+      {
+         if( avi_read(fdes,data,4) != 4 ) { AVI_errno = AVI_ERR_READ; close (fdes); return 0; }
+         n -= 4;
+         if(strncasecmp(data,"hdrl",4) == 0)
+         {
+            lseek(fdes,n,SEEK_CUR);
+         }
+         else if(strncasecmp(data,"movi",4) == 0)
+         {
+            lseek(fdes,n,SEEK_CUR);
+         }
+         else
+            lseek(fdes,n,SEEK_CUR);
+      }
+      else if(strncasecmp(data,"idx1",4) == 0)
+      {
+	close(fdes);
+	return 1;
+      }
+      else
+         lseek(fdes,n,SEEK_CUR);
+   }
+   close(fdes);
+   return 0;
+}
+
+int AVI_has_index_fd(int fdes)
+{
+  long  n=0;
+  char data[256];
+  
+  /* Read first 12 bytes and check that this is an AVI file */
+
+   if( avi_read(fdes,data,12) != 12 ) { AVI_errno = AVI_ERR_READ; return 0; }
+
+   if( strncasecmp(data  ,"RIFF",4) !=0 ||
+       strncasecmp(data+8,"AVI ",4) !=0 ) { AVI_errno = AVI_ERR_NO_AVI; return 0;}
+
+   /* Go through the AVI file and extract the header list,
+      the start position of the 'movi' list and an optionally
+      present idx1 tag */
+
+   while(1)
+   {
+      if( avi_read(fdes,data,8) != 8 ) break; /* We assume it's EOF */
+
+      n = str2ulong(data+4);
+      n = PAD_EVEN(n);
+
+      if(strncasecmp(data,"LIST",4) == 0)
+      {
+         if( avi_read(fdes,data,4) != 4 ) { AVI_errno = AVI_ERR_READ; return 0; }
+         n -= 4;
+         if(strncasecmp(data,"hdrl",4) == 0)
+         {
+            lseek(fdes,n,SEEK_CUR);
+         }
+         else if(strncasecmp(data,"movi",4) == 0)
+         {
+            lseek(fdes,n,SEEK_CUR);
+         }
+         else
+            lseek(fdes,n,SEEK_CUR);
+      }
+      else if(strncasecmp(data,"idx1",4) == 0)
+      {
+	return 1;
+      }
+      else
+         lseek(fdes,n,SEEK_CUR);
+   }
+   return 0;
+}
+
 int avi_parse_input_file(avi_t *AVI, int getIndex)
 {
   long i, n, rate, scale, idx_type;

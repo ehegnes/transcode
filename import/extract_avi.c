@@ -40,7 +40,6 @@
  *
  * ------------------------------------------------------------*/
 
-
 void extract_avi(info_t *ipipe)
 {
   AVI_dump(ipipe->name, ipipe->select);
