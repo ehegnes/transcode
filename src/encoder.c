@@ -487,6 +487,16 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
       // now we do the post processing ... this way, if just a video frame is
       // skipped, we'll know.
 
+      // we have to check to make sure that before we do any processing
+      // that this frame isn't out of range (if it is, and one is using
+      // the "-t" split option, we'll see this frame again.
+
+      if(fid >= frame_b){
+        if(verbose & TC_DEBUG) fprintf(stderr, "\n(%s) encoder last frame finished\n", __FILE__);
+	// we don't need to go to aretry, because we'll eventually get it
+	return;
+      }
+
       if(have_vframe_threads==0) {
 	pthread_mutex_lock(&vbuffer_im_fill_lock);
 	--vbuffer_im_fill_ctr;
@@ -497,7 +507,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	pthread_mutex_unlock(&vbuffer_xx_fill_lock);
 
 	// external plugin pre-processing
-	vptr->tag = TC_VIDEO|TC_PRE_PROCESS;
+	vptr->tag = TC_VIDEO|TC_PRE_M_PROCESS;
 	process_vid_plugins(vptr);
 	
 	// internal processing of video
@@ -505,9 +515,8 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	process_vid_frame(vob, vptr);
 	  
 	// external plugin post-processing
-	vptr->tag = TC_VIDEO|TC_POST_PROCESS;
+	vptr->tag = TC_VIDEO|TC_POST_M_PROCESS;
 	process_vid_plugins(vptr);
-	postprocess_vid_frame(vob, vptr);
 	  
 	pthread_mutex_lock(&vbuffer_xx_fill_lock);
 	--vbuffer_xx_fill_ctr;
@@ -767,13 +776,8 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	tc_update_frames_encoded(1); 
 	
       } else {
-	
-	// finished?
-	if(fid >= frame_b) {
-	  if(verbose & TC_DEBUG) fprintf(stderr, "\n(%s) encoder last frame finished\n", __FILE__);
-	  
-	  return;
-	}
+        // we know we're not finished yet, because we did a quick
+	// check before processing the frame
 	
 	if(have_aframe_threads==0) {
 	  

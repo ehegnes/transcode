@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-20 marrq <marrq at ugcs.caltech.edu>
+   
+   * src/encoder.c:
+   Fix a bug where a frame gets (post)processed twice mostly
+   noteable in split mode (-t)
+
 2003-08-19 Tilmann Bitterberg <transcode at tibit.org>
 
    * export/tc_lzo.h import/decode_lzo.c import/extract_lzo.c
