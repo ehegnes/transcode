@@ -252,7 +252,7 @@ void extract_pcm(info_t *ipipe)
 
   avi_t *avifile;
      
-  long frames, bytes, padding, n;
+  unsigned long frames, bytes, padding, n;
 
   int error=0;
 
