@@ -54,4 +54,23 @@ void extract_mxf(info_t *ipipe)
 /* Probing */
 void probe_mxf(info_t *ipipe)
 {
+    
+    verbose = ipipe->verbose;
+
+    ipipe->probe_info->frames = 0;
+    ipipe->probe_info->width = 0;
+    ipipe->probe_info->height = 0;
+    ipipe->probe_info->fps = 0;
+    ipipe->probe_info->num_tracks = 0;
+
+    // for each audio track
+    ipipe->probe_info->track[0].chan = 0;
+    ipipe->probe_info->track[0].bits = 0;
+    ipipe->probe_info->track[0].samplerate = 0;
+    ipipe->probe_info->track[0].format = 0x1;
+
+    ipipe->probe_info->magic = TC_MAGIC_MXF;
+    ipipe->probe_info->codec = TC_CODEC_UNKNOWN;
+    ipipe->probe_info->frc = 0;
+
 }
