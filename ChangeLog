@@ -9,6 +9,9 @@ transcode-0.6.4.HEAD
 
 - update import_ffmpeg and export_ffmpeg to use new ffmpeg
 
+- Fix (longstanding) bug where transcode failed to probe some mpeg
+  streams in connection with -q2
+
 --------------------------------------------
 transcode-0.6.4.20030311 Tue Mar 11 15:09:44 CET 2003
 

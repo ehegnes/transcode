@@ -157,6 +157,9 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   paob = (probe_info_t *) malloc(sizeof(probe_info_t));  
   pvob = (probe_info_t *) malloc(sizeof(probe_info_t));
 
+  memset (paob, 0, sizeof(probe_info_t));
+  memset (pvob, 0, sizeof(probe_info_t));
+
   title=vob->dvd_title;
   verb = (verbose > TC_DEBUG) ? verbose : 0;
 

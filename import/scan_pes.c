@@ -81,23 +81,23 @@ void unit_summary()
 
     int pes_total=0;
     
-    printf("------------- presentation unit [%d] ---------------\n", unit_ctr);
+    fprintf(stderr, "------------- presentation unit [%d] ---------------\n", unit_ctr);
 
     for(n=0; n<256; ++n) {
-	if(stream[n] && n != 0xba) printf("stream id [0x%x] %6d\n", n, stream[n]);
+	if(stream[n] && n != 0xba) fprintf(stderr, "stream id [0x%x] %6d\n", n, stream[n]);
 	
 	if(n != 0xba) pes_total+=stream[n];
 	stream[n]=0; //reset or next unit
     }
     
-    printf("%d packetized elementary stream(s) PES packets found\n", pes_total); 
+    fprintf(stderr, "%d packetized elementary stream(s) PES packets found\n", pes_total); 
     
-    printf("presentation unit PU [%d] contains %d MPEG video sequence(s)\n", unit_ctr, seq_ctr);
+    fprintf(stderr, "presentation unit PU [%d] contains %d MPEG video sequence(s)\n", unit_ctr, seq_ctr);
 
     ++tot_unit_ctr;
     tot_seq_ctr+=seq_ctr;
 
-    printf("---------------------------------------------------\n");
+    fprintf(stderr, "---------------------------------------------------\n");
 
     //reset counters
     seq_ctr=0;
@@ -167,7 +167,7 @@ void scan_pes(int verbose, FILE *in_file)
 	  
 	case 0xb9:	/* program end code */
 
-	    printf("found program end code [0x%x]\n", buf[3] & 0xff);
+	    fprintf(stderr, "found program end code [0x%x]\n", buf[3] & 0xff);
 
 	    goto summary;
 	  
@@ -177,7 +177,7 @@ void scan_pes(int verbose, FILE *in_file)
 	    pack_header_inc = pack_header_pos - pack_header_last;
 
 	    if (pack_header_inc==0) {
-		printf("found first packet header at stream offset 0x%#x\n", 0);
+		fprintf(stderr, "found first packet header at stream offset 0x%#x\n", 0);
 	    } else {
 		if((pack_header_inc-((pack_header_inc>>11)<<11))) printf ("pack header out of sequence at %#lx (+%#lx)\n", pack_header_ctr, pack_header_inc);
 	    }
@@ -206,7 +206,7 @@ void scan_pes(int verbose, FILE *in_file)
 	    
 	case 0xbd:	/* private stream 1 */
 	  
-	  if(!stream[id]) printf("found %s stream [0x%x]\n", "private_stream_1", buf[3] & 0xff);
+	  if(!stream[id]) fprintf(stderr, "found %s stream [0x%x]\n", "private_stream_1", buf[3] & 0xff);
 
 	  ++stream[id];
 	  
@@ -227,10 +227,10 @@ void scan_pes(int verbose, FILE *in_file)
 	    tmp1 += mpeg1_skip_table [*tmp1 >> 4];
 	  }
 	  
-	  if(verbose & TC_DEBUG) printf("[0x%x] (sub_id=0x%02x)\n", buf[3] & 0xff, *tmp1);
+	  if(verbose & TC_DEBUG) fprintf(stderr, "[0x%x] (sub_id=0x%02x)\n", buf[3] & 0xff, *tmp1);
 	  
 	  if((*tmp1-0x80) >= 0 && (*tmp1-0x80)<TC_MAX_AUD_TRACKS && !track[*tmp1-0x80] ) {
-	    printf("found AC3 audio track %d [0x%x]\n", *tmp1-0x80, *tmp1);
+	    fprintf(stderr, "found AC3 audio track %d [0x%x]\n", *tmp1-0x80, *tmp1);
 	    track[*tmp1-0x80]=1;
 	  }
 	  
@@ -240,7 +240,7 @@ void scan_pes(int verbose, FILE *in_file)
 	  
 	case 0xbf:
 
-	  if(!stream[id]) printf("found %s [0x%x]\n", "navigation pack", buf[3] & 0xff);
+	  if(!stream[id]) fprintf(stderr, "found %s [0x%x]\n", "navigation pack", buf[3] & 0xff);
 	  
 	  ++stream[id];
 	  
@@ -254,7 +254,7 @@ void scan_pes(int verbose, FILE *in_file)
 	  
 	case 0xbe:
 	  
-	  if(!stream[id]) printf("found %s stream [0x%x]\n", "padding", buf[3] & 0xff);
+	  if(!stream[id]) fprintf(stderr, "found %s stream [0x%x]\n", "padding", buf[3] & 0xff);
 	  
 	  ++stream[id];
 	  
@@ -268,7 +268,7 @@ void scan_pes(int verbose, FILE *in_file)
 	  
 	case 0xbb:
 	  
-	  if(!stream[id]) printf("found %s stream [0x%x]\n", "unknown", buf[3] & 0xff);
+	  if(!stream[id]) fprintf(stderr, "found %s stream [0x%x]\n", "unknown", buf[3] & 0xff);
 	  
 	  ++stream[id];
 	  
@@ -316,7 +316,7 @@ void scan_pes(int verbose, FILE *in_file)
 	case 0xde:
 	case 0xdf:
 
-	    if(!stream[id]) printf("found %s track %d [0x%x]\n", "ISO/IEC 13818-3 or 11172-3 MPEG audio", (buf[3] & 0xff) - 0xc0, buf[3] & 0xff);
+	    if(!stream[id]) fprintf(stderr, "found %s track %d [0x%x]\n", "ISO/IEC 13818-3 or 11172-3 MPEG audio", (buf[3] & 0xff) - 0xc0, buf[3] & 0xff);
 		
 	    ++stream[id];
 
@@ -352,7 +352,7 @@ void scan_pes(int verbose, FILE *in_file)
 		/* mpeg2 */
 		tmp1 = buf + 9 + buf[8];
 		
-		if(!stream[id]) printf("found %s stream [0x%x]\n", "ISO/IEC 13818-2 or 11172-2 MPEG video", buf[3] & 0xff);
+		if(!stream[id]) fprintf(stderr, "found %s stream [0x%x]\n", "ISO/IEC 13818-2 or 11172-2 MPEG video", buf[3] & 0xff);
 		++stream[id];
 
 		mpeg_version=2;
@@ -385,7 +385,7 @@ void scan_pes(int verbose, FILE *in_file)
 	    } else {
 	      /* mpeg1 */
 	      
-	      if(!stream[id]) printf("found %s stream [0x%x]\n", "MPEG-1 video", buf[3] & 0xff);
+	      if(!stream[id]) fprintf(stderr, "found %s stream [0x%x]\n", "MPEG-1 video", buf[3] & 0xff);
 	      ++stream[id];
 
 	      mpeg_version=1;
@@ -433,8 +433,8 @@ void scan_pes(int verbose, FILE *in_file)
 
 	case 0xb3:
 	    
-	    printf("found MPEG sequence start code [0x%x]\n", buf[3] & 0xff);
-	    printf("(%s) looks like an elementary stream - not program stream\n", __FILE__);
+	    fprintf(stderr, "found MPEG sequence start code [0x%x]\n", buf[3] & 0xff);
+	    fprintf(stderr, "(%s) looks like an elementary stream - not program stream\n", __FILE__);
 	    
 	    stats_sequence(&buf[4], &si);
 	    
@@ -445,7 +445,7 @@ void scan_pes(int verbose, FILE *in_file)
 	  
 	default:
 	    if (buf[3] < 0xb9) {
-		printf("(%s) looks like an elementary stream - not program stream\n", __FILE__);
+		fprintf(stderr, "(%s) looks like an elementary stream - not program stream\n", __FILE__);
 		
 		return;
 	    }
@@ -469,13 +469,13 @@ void scan_pes(int verbose, FILE *in_file)
       
     } while (end == buffer + BUFFER_SIZE);
     
-    printf("end of stream reached\n");
+    fprintf(stderr, "end of stream reached\n");
 
  summary:
 
     unit_summary();
 
-    printf("(%s) detected a total of %d presentation unit(s) PU and %d sequence(s)\n", __FILE__, tot_unit_ctr, tot_seq_ctr);
+    fprintf(stderr, "(%s) detected a total of %d presentation unit(s) PU and %d sequence(s)\n", __FILE__, tot_unit_ctr, tot_seq_ctr);
 
 }
 
@@ -596,13 +596,13 @@ void probe_pes(info_t *ipipe)
 	    pack_ppp = read_time_stamp(scan_buf);
 
 	    if(pack_pts_2 == pack_pts_1) 
-	      if(ipipe->verbose & TC_DEBUG) printf("SCR=%8ld (%8ld) unit=%d @ offset %10.4f (sec)\n", pack_pts_2, pack_pts_1, ipipe->probe_info->unit_cnt, pack_pts_1/90000.0);
+	      if(ipipe->verbose & TC_DEBUG) fprintf(stderr, "SCR=%8ld (%8ld) unit=%d @ offset %10.4f (sec)\n", pack_pts_2, pack_pts_1, ipipe->probe_info->unit_cnt, pack_pts_1/90000.0);
 	    
 	    if(pack_pts_2 < pack_pts_1) {
 
 	      pack_pts_3 += pack_pts_1;
 	      
-	      if(ipipe->verbose & TC_DEBUG) printf("SCR=%8ld (%8ld) unit=%d @ offset %10.4f (sec)\n", pack_pts_2, pack_pts_1, ipipe->probe_info->unit_cnt+1, pack_pts_3/90000.0);
+	      if(ipipe->verbose & TC_DEBUG) fprintf(stderr, "SCR=%8ld (%8ld) unit=%d @ offset %10.4f (sec)\n", pack_pts_2, pack_pts_1, ipipe->probe_info->unit_cnt+1, pack_pts_3/90000.0);
 	      
 	      ++unit_pack_cnt_index;
 
@@ -997,7 +997,7 @@ void probe_pes(info_t *ipipe)
 	  
 	default:
 	    if (buf[3] < 0xb9) {
-		printf("(%s) looks like an elementary stream - not program stream\n", __FILE__);
+		fprintf(stderr, "(%s) looks like an elementary stream - not program stream\n", __FILE__);
 		ipipe->probe_info->codec=TC_CODEC_MPEG;
 		if ((buf[6] & 0xc0) == 0x80) ipipe->probe_info->codec=TC_CODEC_MPEG2;
 		return;
