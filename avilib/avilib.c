@@ -866,6 +866,7 @@ static int avi_close_output_file(avi_t *AVI)
 	 unsigned long nBlockAlign;
 	   
 	 sampsize = avi_sampsize(AVI, j);
+	 sampsize = AVI->track[j].a_fmt==0x1?sampsize*4:sampsize;
 
 	 nBlockAlign = (AVI->track[j].a_rate<32000)?576:1152;
 	 /*
