@@ -44,6 +44,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_testframe.la\
 			filter_fields.la\
 			filter_clone.la\
+			filter_doublefps.la\
 			filter_videocore.la\
 			filter_tc_video.la\
 			filter_tc_audio.la\
@@ -53,6 +54,9 @@ pkg_LTLIBRARIES = 	filter_null.la\
 
 filter_null_la_SOURCES = filter_null.c
 filter_null_la_LDFLAGS = -no-undefined -module -avoid-version 
+
+filter_doublefps_la_SOURCES = filter_doublefps.c
+filter_doublefps_la_LDFLAGS = -no-undefined -module -avoid-version 
 
 filter_clone_la_SOURCES = filter_clone.c
 filter_clone_la_LDFLAGS = -no-undefined -module -avoid-version 
@@ -148,7 +152,11 @@ if HAVE_DV
 ADD1=preview 
 endif
 
+if HAVE_XAW_SIMPLE
+if HAVE_LIBXPM
 ADD2=subtitler
+endif
+endif
 
 if HAVE_X11
 SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc $(ADD1) $(ADD2)

@@ -1,14 +1,16 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT
+
+AC_INIT(transcode,0.6.4.HEAD)
 AC_CONFIG_AUX_DIR(autotools)
-AM_INIT_AUTOMAKE(transcode,0.6.4.20030325)
 AC_CONFIG_SRCDIR(src/transcode.c)
+
+dnl Detect the canonical host and target build environment
+AC_CANONICAL_SYSTEM
+
+AM_INIT_AUTOMAKE(transcode,0.6.4.HEAD)
 AM_CONFIG_HEADER(config.h)
   
 AM_MAINTAINER_MODE
-
-dnl Detect the canonical host and target build environment
-AC_CANONICAL_HOST
 
 # Checks for programs.
 AC_PROG_CC
@@ -30,9 +32,24 @@ AC_SUBST(CCASFLAGS)
 ASFLAGS="$CCASFLAGS"
 AC_SUBST(ASFLAGS)
 
+case "x${target_os}" in
+   xdarwin*)
+    CFLAGS_save="${CFLAGS_save} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"; CFLAGS="${CFLAGS_save}"
+    CXXFLAGS_save="${CXXFLAGS_save} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"; CXXFLAGS="${CXXFLAGS_save}"
+    OBJCFLAGS_save="${OBJCFLAGS_save} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"; OBJCFLAGS="${OBJCFLAGS_save}"
+    LDFLAGS="${LDFLAGS} -all_load"
+    AC_DEFINE([SYSTEM_DARWIN], 1, [Define if this is Darwin / MacOSX OS])
+    ;;
+esac
+
+ 
 # functions
-AC_CHECK_FUNCS([strtol])
-AC_CHECK_FUNCS([memalign])
+AC_CHECK_FUNCS([strtol memalign])
+
+# Checks for libraries.
+AC_CHECK_LIB(dl, dlopen)
+AC_CHECK_FUNCS([dlopen])
+AM_DISABLE_STATIC
 
 # Checks for support lib
 enable_supportlib="no"
@@ -48,15 +65,24 @@ if test X"$enable_supportlib" = Xyes; then
    AC_MSG_RESULT(  building support lib for $support_fct)
 fi
 
-# Checks for libraries.
-AC_CHECK_LIB(dl, dlopen)
-AC_CHECK_FUNCS([dlopen])
-AM_DISABLE_STATIC
+if test X"$ac_cv_lib_dl_dlopen" = Xno; then
+   case x${target_os} in
+      xdarwin*)
+      DLDARWINOBJECTS="$DLDARWINOBJECTS dlfcn_simple.o"
+      DLDARWINLIB="../libdldarwin/libdldarwin.a" 
+      DLDARWININCL="-I../libdldarwin/"
+      AC_SUBST(DLDARWINOBJECTS)
+      AC_SUBST(DLDARWINLIB)
+      AC_SUBST(DLDARWININCL)
+      ;;
+   esac
+fi
 
 if test X"$enable_shared" = Xyes; then
   DLLDFLAGS=-export-dynamic
   AC_SUBST(DLLDFLAGS)
 fi
+
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -140,16 +166,28 @@ have_x86cpu=false
 have_ppccpu=false
 have_ppc_altivec=false
 
-AC_MSG_CHECKING([for Intel Pentium architecture (IA32)])
-if test "$host_cpu" = "i386" -o "$host_cpu" = "i486" \
-   -o "$host_cpu" = "i586" -o "$host_cpu" = "i686" \
-   -o "$host_cpu" = "i786" ; then
-  AC_MSG_RESULT(yes)
+case x"$host_cpu" in 
+  xi?86*|xk6*)
+  AC_MSG_CHECKING([for Intel Pentium architecture (IA32)])
   have_x86cpu=true
-
-  if test "$enable_mmx_accel" != "no"; then
+  AC_MSG_RESULT(yes)
+if test "$enable_mmx_accel" != "no"; then
    AC_DEFINE([HAVE_X86CPU], 1, [Define if you have and X86 based CPU])
    AC_DEFINE([ARCH_X86], 1, [Define if your machine is X86 based])
+   AC_CACHE_CHECK([if \$CC groks MMX inline assembly],
+		  [have_asm_mmx],
+		  [CFLAGS="${CFLAGS_save}"
+		   AC_TRY_COMPILE(,[void *p;asm volatile("packuswb %%mm1,%%mm2"::"r"(p));],
+		   have_asm_mmx=yes, have_asm_mmx=no)])
+   if test "x${have_asm_mmx}" != "xno"; then
+      AC_DEFINE([HAVE_ASM_MMX], 1, [Define if your CPU understands ASM MMX instructions])
+      AC_DEFINE([HAVE_MMX], 1, [Define if your CPU understands MMX instructions])
+      have_asm_mmx=true
+      AC_MSG_RESULT([yes])
+   else
+      AC_MSG_RESULT([no])
+   fi
+
    AC_MSG_CHECKING([for support for gcc-style register parameters on Intel])
    AC_TRY_COMPILE([],
     [extern void x(
@@ -158,24 +196,7 @@ if test "$host_cpu" = "i386" -o "$host_cpu" = "i486" \
      unsigned count,
      unsigned char *dst) __attribute((regparm(3)));],
    [AC_MSG_RESULT(yes)
-    AC_MSG_CHECKING([for support of MMX in assembly code])
-    cat > conftest.S <<EOF
-       .text
 
-       psubusb %mm3, %mm4
-EOF
-    if $CC -c conftest.S ; then
-      AC_MSG_RESULT(yes)
-      rm -f conftest.*
-      AC_DEFINE([HAVE_ASM_MMX], 1, [Define if your CPU understands ASM MMX instructions])
-      AC_DEFINE([HAVE_MMX], 1, [Define if your CPU understands MMX instructions])
-      have_asm_mmx=true
-    else
-     AC_MSG_RESULT(no)
-     echo "configure: failed program was:" >&AC_FD_CC
-     cat conftest.S >&AC_FD_CC
-     rm -f conftest.*;
-    fi
     AC_PATH_PROG(NASM, nasm, no)
     case "${NASM}" in
 no)
@@ -202,31 +223,59 @@ esac
  else
    AC_MSG_RESULT(no) ;
  fi
-else
- AC_MSG_RESULT(no)
- AC_MSG_CHECKING([for PowerPC architecture])
- if test "$host_cpu" = "powerpc"; then
+  ;;
+xpowerpc*)
+   AC_MSG_CHECKING([for PowerPC architecture])
    AC_MSG_RESULT(yes)
    have_ppccpu=true
-   AC_DEFINE(ARCH_PPC, 1, [Define if your CPU is PPC])
-   AC_MSG_CHECKING([for Altivec support])
-    cat > conftest.S <<EOF
-       .text
 
-      vxor 0,0,0 
-EOF
-   if $CC -c conftest.S ; then
-      AC_MSG_RESULT(yes)
-      rm -f conftest.*
-      AC_DEFINE([HAVE_PPC_ALTIVEC], 1, [Define if your CPU understands altivec intstructions])
-      have_ppc_altivec=true
-   else
-     AC_MSG_RESULT(no)
-   fi
- else
-   AC_MSG_RESULT(no)
- fi
+   AC_DEFINE(ARCH_PPC, 1, [Define if your CPU is PPC])
+
+AC_CACHE_CHECK([if \$CC groks AltiVec inline assembly],
+    [ac_cv_altivec_inline],
+    [CFLAGS="${CFLAGS_save}"
+     AC_TRY_COMPILE(,[asm volatile("vperm 0,1,2,3");],
+         ac_cv_altivec_inline=yes,
+         [CFLAGS="${CFLAGS_save} -Wa,-m7400"
+          AC_TRY_COMPILE(,[asm volatile("vperm 0,1,2,3");],
+            [ac_cv_altivec_inline="-Wa,-m7400"],
+            ac_cv_altivec_inline=no)
+         ])])
+
+if test "x${ac_cv_altivec_inline}" != "xno"; then
+  AC_DEFINE(HAVE_PPC_ALTIVEC, 1, Define if \$CC groks AltiVec inline assembly.)
+  if test "x${ac_cv_altivec_inline}" != "xyes"; then
+     use_altivec=yes
+  fi
 fi
+
+AC_CACHE_CHECK([if \$CC groks AltiVec C extensions],
+    [ac_cv_c_altivec],
+    [CFLAGS="${CFLAGS_save} -faltivec"
+     # Darwin test
+     AC_TRY_COMPILE(,[vec_mtvscr((vector unsigned int)(0));],
+        ac_cv_c_altivec=-faltivec, [
+        # Linux/PPC test
+        CFLAGS="${CFLAGS_save} ${CFLAGS_idctaltivec} -fvec"
+        AC_TRY_COMPILE(,[vec_mtvscr((vector unsigned int)(0));],
+            [ac_cv_c_altivec="-fvec"], ac_cv_c_altivec=no)
+        ])
+     CFLAGS="${CFLAGS_save}"])
+if test "x${ac_cv_c_altivec}" != "xno"; then
+  AC_DEFINE(CAN_COMPILE_C_ALTIVEC, 1, Define if your compiler groks C AltiVec extensions.)
+fi
+
+AC_CACHE_CHECK([if linker needs -framework vecLib],
+    [ac_cv_ld_altivec],
+    [LDFLAGS="${LDFLAGS} -framework vecLib"
+     AC_TRY_LINK([],,ac_cv_ld_altivec=yes,ac_cv_ld_altivec=no)
+     LDFLAGS="${LDFLAGS_save}"
+    ])
+if test "x${ac_cv_ld_altivec}" != "xno"; then
+  LDFLAGS="${LDFLAGS_save} -framework vecLib"
+fi
+esac
+  
 dnl ************************************************************************
 dnl Check that the GCC tool chain can generate 3DNow assmebly instructions
 dnl
@@ -305,6 +354,7 @@ AC_MSG_CHECKING(x86 sub-architecture settings)
 AC_MSG_RESULT($ARCHFLAGS)
 fi
 
+
 dnl **********************************************************************
 dnl All the conditional stuff for the Makefiles
 dnl
@@ -314,6 +364,7 @@ AM_CONDITIONAL(HAVE_ASM_NASM, test x$have_asm_nasm = xtrue)
 AM_CONDITIONAL(HAVE_X86CPU, test x$have_x86cpu = xtrue)
 AM_CONDITIONAL(ARCH_X86, test x$have_x86cpu = xtrue)
 AM_CONDITIONAL(ARCH_PPC, test x$have_ppccpu = xtrue)
+AM_CONDITIONAL(CAN_COMPILE_C_ALTIVEC, test x${ac_cv_c_altivec} = xtrue)
 
 
 dnl GCC-specific flags
@@ -679,6 +730,20 @@ AC_CHECK_LIB(Xv, XvQueryExtension,
 ],, $X_LIBS $X_PRE_LIBS -lXext -lX11 $X_EXTRA_LIBS)
 AM_CONDITIONAL(HAVE_LIBXV, test x"$have_xv" = "xyes")
 
+have_xaw_simple=false
+AC_CHECK_HEADERS([X11/Xaw/Simple.h], 
+		 [have_xaw_simple=true
+		  AC_DEFINE([HAVE_XAW_SIMPLE], 1, [Have the Xaw Simple.h file support])
+		  ], [have_xaw_simple=false])
+AM_CONDITIONAL(HAVE_XAW_SIMPLE, test x"$have_xaw_simple" = x"true" )
+
+have_xpm=no
+AC_CHECK_LIB(Xpm, XpmFreeAttributes,
+	     AC_DEFINE([HAVE_LIBXPM], 1, [Have libXpm support]) 
+	     have_xpm=yes, , 
+	     [$X_LIBS $X_PRE_LIBS -lXext -lX11 $X_EXTRA_LIBS])
+AM_CONDITIONAL(HAVE_LIBXPM, test x"$have_xpm" = "xyes")
+
 have_sdl=no
 AM_PATH_SDL(1.1.6, 
 [	AC_DEFINE([HAVE_SDL], 1, [Have libsdl support])
@@ -835,6 +900,7 @@ AC_OUTPUT([
            tools/Makefile
            aclib/Makefile
            libsupport/Makefile
+           libdldarwin/Makefile
            transcode.spec
           ])
 
@@ -844,28 +910,31 @@ AC_MSG_RESULT([
 ----------------------------------------------------------
 Summary for transcode $VERSION features:
 
+*-*-*-*-*-*-* Core *-*-*-*-*-*-*
 static AV-frame buffering                        $statbuf
+support for network (sockets) streams            $net
 DVD navigation support with libdvdread           $have_dvdread
 link against local lame library (>=3.89) | 3.92  $lame89 | $lame92
-support for network (sockets) streams            $net
-avifile API support                              $have_avifile
-libmpeg3 dependent modules                       $have_libmpeg3
-quicktime dependent modules                      $have_qt
+*-*-*-*-*-*-* Codec *-*-*-*-*-*-*
+nasm dependent modules (bbmpeg)                  $nasm
+mjpegtools dependent modules                     $MJPEGTOOLSCONFIG
 libdv dependent modules                          $have_dv
+Ogg support | Vorbis support                     $have_ogg | $have_vorbis
+XVID support with libxvidcore                    $have_xvidcore
 liba52 audio plugin (>=0.7.3) | default decoder  $have_a52 | $a52_decoder
-libfame video encoding plugin                    $have_libfame
-nasm dependent modules                           $nasm
+avifile API support                              $have_avifile
 ImageMagick dependent modules (>=5.4.3)          $have_magick
 libjpeg dependent modules | mmx accel            $have_libjpeg | $have_libjpegmmx
+liblzo dependent modules 			 $have_lzo
 libxml2 dependent modules                        $LIBXML2CONFIG
-mjpegtools dependent modules                     $MJPEGTOOLSCONFIG
 experimental v4l support                         $v4l
 experimental lve support                         $have_liblve
-X11 dependent filter plugins                     $USE_X11
-liblzo dependent modules 			 $have_lzo
+libmpeg3 dependent modules                       $have_libmpeg3
+libfame video encoding plugin                    $have_libfame
+quicktime dependent modules                      $have_qt
+*-*-*-*-*-*-* Filter *-*-*-*-*-*-*
 libpostproc dependent filter plugin      	 $have_libpostproc
-experimental Ogg support | Vorbis support        $have_ogg | $have_vorbis
-XVID support with libxvidcore                    $have_xvidcore
+X11 dependent filter plugins                     $USE_X11
 ----------------------------------------------------------
 ])
 if test x"$have_x86cpu" = x"true"; then

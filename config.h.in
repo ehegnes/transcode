@@ -9,6 +9,9 @@
 /* maximum supported data alignment */
 #undef ATTRIBUTE_ALIGNED_MAX
 
+/* Define if your compiler groks C AltiVec extensions. */
+#undef CAN_COMPILE_C_ALTIVEC
+
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */
@@ -121,6 +124,9 @@
 /* libxml2 support */
 #undef HAVE_LIBXML2
 
+/* Have libXpm support */
+#undef HAVE_LIBXPM
+
 /* Have libxv support */
 #undef HAVE_LIBXV
 
@@ -181,7 +187,7 @@
 /* Have openquicktime support */
 #undef HAVE_OPENQT
 
-/* Define if your CPU understands altivec intstructions */
+/* Define if \$CC groks AltiVec inline assembly. */
 #undef HAVE_PPC_ALTIVEC
 
 /* Have quicktime support */
@@ -263,8 +269,14 @@
 /* Have X11 support */
 #undef HAVE_X11
 
+/* Define to 1 if you have the <X11/Xaw/Simple.h> header file. */
+#undef HAVE_X11_XAW_SIMPLE_H
+
 /* Define if you have and X86 based CPU */
 #undef HAVE_X86CPU
+
+/* Have the Xaw Simple.h file support */
+#undef HAVE_XAW_SIMPLE
 
 /* Have Lame-3.89 or newer */
 #undef LAME_3_89
@@ -316,6 +328,9 @@
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
+
+/* Define if this is Darwin / MacOSX OS */
+#undef SYSTEM_DARWIN
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
