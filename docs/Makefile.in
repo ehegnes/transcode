@@ -152,6 +152,8 @@ HAVE_OPENQT_FALSE = @HAVE_OPENQT_FALSE@
 HAVE_OPENQT_TRUE = @HAVE_OPENQT_TRUE@
 HAVE_PPC_ALTIVEC_FALSE = @HAVE_PPC_ALTIVEC_FALSE@
 HAVE_PPC_ALTIVEC_TRUE = @HAVE_PPC_ALTIVEC_TRUE@
+HAVE_PVM3_FALSE = @HAVE_PVM3_FALSE@
+HAVE_PVM3_TRUE = @HAVE_PVM3_TRUE@
 HAVE_QT_FALSE = @HAVE_QT_FALSE@
 HAVE_QT_TRUE = @HAVE_QT_TRUE@
 HAVE_SDL_FALSE = @HAVE_SDL_FALSE@
@@ -230,6 +232,8 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PVM3_CFLAGS = @PVM3_CFLAGS@
+PVM3_LIB = @PVM3_LIB@
 QT_CFLAGS = @QT_CFLAGS@
 QT_LIBS = @QT_LIBS@
 RANLIB = @RANLIB@
@@ -312,6 +316,8 @@ docsdir = $(datadir)/doc/transcode
 docs_DATA = \
                     clone.txt \
                     export_mpeg.txt \
+                    export_pvm.txt \
+                    pvm.cfg \
                     export_ffmpeg.txt \
                     filter_dnr.txt \
                     filter_logo.txt \
