@@ -34,8 +34,6 @@
 
 #include "transcode.h"
 
-#include <regex.h>
-
 // transcode defines this as well as ImageMagick.
 #undef PACKAGE_NAME
 #undef PACKAGE_TARNAME
@@ -45,7 +43,7 @@
 #include <magick/api.h>
 
 #define MOD_NAME    "import_imlist.so"
-#define MOD_VERSION "v0.0.1 (2002-02-26)"
+#define MOD_VERSION "v0.0.2 (2003-11-13)"
 #define MOD_CODEC   "(video) RGB"
 
 #define MOD_PRE im
@@ -56,10 +54,6 @@ char import_cmd_buf[MAX_BUF];
 
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_RGB|TC_CAP_VID|TC_CAP_AUD;
-
-char
-    *head = NULL,
-    *tail = NULL;
 
 int
     first_frame = 0,
@@ -120,8 +114,7 @@ MOD_decode {
         *pixel_packet;
 
     char
-        *filename = NULL,
-        *frame = NULL;
+        *filename = NULL;
 
     int
         column,
@@ -144,8 +137,11 @@ MOD_decode {
     (void) strcpy(image_info->filename, filename);
 
     image=ReadImage(image_info, &exception_info);
-    if (image == (Image *) NULL)
+    if (image == (Image *) NULL) {
         MagickError(exception_info.severity,exception_info.reason,exception_info.description);
+	// skipping
+	return 0;
+    }
 
     /*
      * Copy the pixels into a buffer in RGB order
@@ -169,7 +165,7 @@ MOD_decode {
     //free(pixel_packet);
     DestroyImage(image);
     DestroyImageInfo(image_info);
-    free(frame);
+    DestroyExceptionInfo(&exception_info);
 
     return(0);
 }
@@ -185,10 +181,11 @@ MOD_close
 
   if(param->flag == TC_VIDEO) {
     
-    if(fd != NULL) fclose(fd);
-    if (param->fd != NULL) pclose(param->fd);
-    if (head != NULL) free(head);
-    if (tail != NULL) free(tail);
+    if(fd != NULL) fclose(fd); fd = NULL;
+
+    // This is very necessary
+    DestroyMagick();
+
     
     return(0);
   }

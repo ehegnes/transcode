@@ -232,10 +232,13 @@ MOD_decode {
     image_info=CloneImageInfo((ImageInfo *) NULL);
     (void) strcpy(image_info->filename, filename);
     image=ReadImage(image_info,&exception_info);
-    if (image == (Image *) NULL)
+    if (image == (Image *) NULL) {
         MagickError(exception_info.severity,
                     exception_info.reason,
                     exception_info.description);
+	// skip
+	return (TC_IMPORT_ERROR);
+    }
 
     /*
      * Copy the pixels into a buffer in RGB order
@@ -271,6 +274,7 @@ MOD_decode {
     //free(pixel_packet);
     DestroyImage(image);
     DestroyImageInfo(image_info);
+    DestroyExceptionInfo(&exception_info);
     free(filename);
     free(frame);
 
@@ -288,6 +292,8 @@ MOD_close
   if (param->fd != NULL) pclose(param->fd);
   if (head != NULL) free(head);
   if (tail != NULL) free(tail);
+
+  DestroyMagick();
 
   return(0);
 }

@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-11-12 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/import_imlist.c import/import_im.c:
+  Fix a segfault at closing time. Pointed out by Guido Mocken.
+  
 2003-11-12 Erik Slagter <erik at oldconomy.com>
   
   * import/v4l/import_v4l2.h videodev2.h docs/import_v4l2.txt:
