@@ -25832,13 +25832,159 @@ EXTRA_LIBS="-lm"
 
 if test x$with_libmpeg3 = "x"yes ; then
 
-	if test x$libmpeg3_includes != "x" ; then
-	    with_libmpeg3_i="$libmpeg3_includes/include/libmpeg3"
-        else
-	    with_libmpeg3_i="/usr/include/libmpeg3"
-        fi
+		if test x$libmpeg3_includes != "x" ; then
+        	as_ac_File=`echo "ac_cv_file_$libmpeg3_includes/include/libmpeg3/libmpeg3.h" | $as_tr_sh`
+echo "$as_me:$LINENO: checking for $libmpeg3_includes/include/libmpeg3/libmpeg3.h" >&5
+echo $ECHO_N "checking for $libmpeg3_includes/include/libmpeg3/libmpeg3.h... $ECHO_C" >&6
+if eval "test \"\${$as_ac_File+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "$libmpeg3_includes/include/libmpeg3/libmpeg3.h"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+  libmpeg3_inc=yes
+fi
 
-        if test x$libmpeg3_libs != x ; then
+        	if test x$libmpeg3_inc = "x"; then
+                	with_libmpeg3_i="$libmpeg3_includes/include/libmpeg3"
+		fi
+		as_ac_File=`echo "ac_cv_file_$libmpeg3_includes/include/mpeg3/libmpeg3.h" | $as_tr_sh`
+echo "$as_me:$LINENO: checking for $libmpeg3_includes/include/mpeg3/libmpeg3.h" >&5
+echo $ECHO_N "checking for $libmpeg3_includes/include/mpeg3/libmpeg3.h... $ECHO_C" >&6
+if eval "test \"\${$as_ac_File+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "$libmpeg3_includes/include/mpeg3/libmpeg3.h"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+  libmpeg3_inc=yes
+fi
+
+        	if test x$libmpeg3_inc = "x"; then
+        		with_libmpeg3_i="$libmpeg3_includes/include/mpeg3"
+        	fi
+	else
+		as_ac_File=`echo "ac_cv_file_$libmpeg3_includes/include/libmpeg3/libmpeg3.h" | $as_tr_sh`
+echo "$as_me:$LINENO: checking for $libmpeg3_includes/include/libmpeg3/libmpeg3.h" >&5
+echo $ECHO_N "checking for $libmpeg3_includes/include/libmpeg3/libmpeg3.h... $ECHO_C" >&6
+if eval "test \"\${$as_ac_File+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "$libmpeg3_includes/include/libmpeg3/libmpeg3.h"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+  libmpeg3_inc=yes
+fi
+
+		if test x$libmpeg3_inc != "x"; then
+			with_libmpeg3_i="/usr/include/libmpeg3"
+		fi
+        	echo "$as_me:$LINENO: checking for /usr/include/mpeg3/libmpeg3.h" >&5
+echo $ECHO_N "checking for /usr/include/mpeg3/libmpeg3.h... $ECHO_C" >&6
+if test "${ac_cv_file__usr_include_mpeg3_libmpeg3_h+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "/usr/include/mpeg3/libmpeg3.h"; then
+  ac_cv_file__usr_include_mpeg3_libmpeg3_h=yes
+else
+  ac_cv_file__usr_include_mpeg3_libmpeg3_h=no
+fi
+fi
+echo "$as_me:$LINENO: result: $ac_cv_file__usr_include_mpeg3_libmpeg3_h" >&5
+echo "${ECHO_T}$ac_cv_file__usr_include_mpeg3_libmpeg3_h" >&6
+if test $ac_cv_file__usr_include_mpeg3_libmpeg3_h = yes; then
+  libmpeg3_inc=yes
+fi
+
+		if test x$libmpeg3_inc != "x"; then
+	        	with_libmpeg3_i="/usr/include/mpeg3"
+		fi
+
+		echo "$as_me:$LINENO: checking for /usr/local/include/libmpeg3/libmpeg3.h" >&5
+echo $ECHO_N "checking for /usr/local/include/libmpeg3/libmpeg3.h... $ECHO_C" >&6
+if test "${ac_cv_file__usr_local_include_libmpeg3_libmpeg3_h+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "/usr/local/include/libmpeg3/libmpeg3.h"; then
+  ac_cv_file__usr_local_include_libmpeg3_libmpeg3_h=yes
+else
+  ac_cv_file__usr_local_include_libmpeg3_libmpeg3_h=no
+fi
+fi
+echo "$as_me:$LINENO: result: $ac_cv_file__usr_local_include_libmpeg3_libmpeg3_h" >&5
+echo "${ECHO_T}$ac_cv_file__usr_local_include_libmpeg3_libmpeg3_h" >&6
+if test $ac_cv_file__usr_local_include_libmpeg3_libmpeg3_h = yes; then
+  libmpeg3_inc=yes
+fi
+
+		if test x$libmpeg3_inc = "x"; then
+        		with_libmpeg3_i="/usr/local/include/libmpeg3"
+		fi
+        	echo "$as_me:$LINENO: checking for /usr/local/include/mpeg3/libmpeg3.h" >&5
+echo $ECHO_N "checking for /usr/local/include/mpeg3/libmpeg3.h... $ECHO_C" >&6
+if test "${ac_cv_file__usr_local_include_mpeg3_libmpeg3_h+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "/usr/local/include/mpeg3/libmpeg3.h"; then
+  ac_cv_file__usr_local_include_mpeg3_libmpeg3_h=yes
+else
+  ac_cv_file__usr_local_include_mpeg3_libmpeg3_h=no
+fi
+fi
+echo "$as_me:$LINENO: result: $ac_cv_file__usr_local_include_mpeg3_libmpeg3_h" >&5
+echo "${ECHO_T}$ac_cv_file__usr_local_include_mpeg3_libmpeg3_h" >&6
+if test $ac_cv_file__usr_local_include_mpeg3_libmpeg3_h = yes; then
+  libmpeg3_inc=yes
+fi
+
+		if test x$libmpeg3_inc = "x"; then
+        		with_libmpeg3_i="/usr/local/include/mpeg3"
+		fi
+	fi
+
+	if test x$libmpeg3_libs != x ; then
             with_libmpeg3_l="$libmpeg3_libs/lib"
         else
             with_libmpeg3_l="/usr${deflib}"
@@ -25900,20 +26046,31 @@ echo "$as_me:$LINENO: result: $ac_cv_lib_mpeg3_mpeg3_open" >&5
 echo "${ECHO_T}$ac_cv_lib_mpeg3_mpeg3_open" >&6
 if test $ac_cv_lib_mpeg3_mpeg3_open = yes; then
 
-LIBMPEG3_CFLAGS="-I$with_libmpeg3_i -I/usr/local/include/libmpeg3"
-LIBMPEG3_LIBS="-L$with_libmpeg3_l -lmpeg3 ${EXTRA_LIBS}"
-cat >>confdefs.h <<\_ACEOF
+	LIBMPEG3_CFLAGS="-I$with_libmpeg3_i"
+	LIBMPEG3_LIBS="-L$with_libmpeg3_l -lmpeg3 ${EXTRA_LIBS}"
+	cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBMPEG3 1
 _ACEOF
- have_libmpeg3=yes
+
+	have_libmpeg3=yes
 
 else
   have_libmpeg3=no
 fi
 
 
+
 else
     have_libmpeg3=no
+fi
+
+
+if test x$libmpeg3_inc = "x"; then
+if test $have_libmpeg3="yes"; then
+        echo "*** Found libmpeg3 but no mpeg3 includes, if they are installed somewhere"
+        echo "*** nonstandart, try '--with-libmpeg3-includes=<prefix-of-your-libmpeg3-installation>'"
+fi
+        have_libmpeg3=no
 fi
 
 
@@ -26442,7 +26599,7 @@ else
   qt_libs=""
 fi;
 
-EXTRA_LIBS="-lpng -lz -lpthread -lglib -ldl -lm -ldv"
+EXTRA_LIBS="-lpng -lz -lpthread -ldl -lm $DV_LIBS"
 
 if test x$with_qt = "x"yes ; then
 
@@ -26514,7 +26671,7 @@ echo "$as_me:$LINENO: result: $ac_cv_lib_quicktime_quicktime_open" >&5
 echo "${ECHO_T}$ac_cv_lib_quicktime_quicktime_open" >&6
 if test $ac_cv_lib_quicktime_quicktime_open = yes; then
 
-QT_CFLAGS="-I$with_qt_i -I/usr/local/include/quicktime"
+QT_CFLAGS="-I$with_qt_i -I/usr/local/include/quicktime $DV_CFLAGS "
 QT_LIBS="-L$with_qt_l -lquicktime ${EXTRA_LIBS}"
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_QT 1
@@ -26580,7 +26737,7 @@ else
   openqt_libs=""
 fi;
 
-EXTRA_LIBS="-lpng -lz -lpthread -lglib -ldl -lm"
+EXTRA_LIBS="-lpng -lz -lpthread $GLIB_LIBS -ldl -lm"
 
 if test x$with_openqt = "x"yes ; then
 
@@ -26652,7 +26809,7 @@ echo "$as_me:$LINENO: result: $ac_cv_lib_openquicktime_quicktime_init" >&5
 echo "${ECHO_T}$ac_cv_lib_openquicktime_quicktime_init" >&6
 if test $ac_cv_lib_openquicktime_quicktime_init = yes; then
 
-OPENQT_CFLAGS="-I$with_openqt_i -I/usr/local/include"
+OPENQT_CFLAGS="-I$with_openqt_i -I/usr/local/include $GLIB_CFLAGS "
 OPENQT_LIBS="-L$with_openqt_l -lopenquicktime ${EXTRA_LIBS}"
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_OPENQT 1

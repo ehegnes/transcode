@@ -1,7 +1,13 @@
 --------------------------------------------
 transcode-0.6.13
 
-2004-01-15 Gordon Talge <gtalge@pe.net>
+2004-01-15 Stefan Scheffler <stefanscheffler at gmx.net>
+
+  * acinclude.m4:
+  Fix detection of newer libmpeg3 versions and better check for
+  quicktime.
+
+2004-01-15 Gordon Talge <gtalge at pe.net>
 
   * export/export_af6.cpp:
   Revert to 0.6.11 inclusion of creators.h instead of avm_creators.h

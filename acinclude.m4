@@ -847,13 +847,37 @@ EXTRA_LIBS="-lm"
 
 if test x$with_libmpeg3 = "x"yes ; then
 
+	dnl check for libmpeg3.h
 	if test x$libmpeg3_includes != "x" ; then
-	    with_libmpeg3_i="$libmpeg3_includes/include/libmpeg3"
-        else
-	    with_libmpeg3_i="/usr/include/libmpeg3"
-        fi
+        	AC_CHECK_FILE($libmpeg3_includes/include/libmpeg3/libmpeg3.h, [libmpeg3_inc=yes])
+        	if test x$libmpeg3_inc = "x"; then
+                	with_libmpeg3_i="$libmpeg3_includes/include/libmpeg3"
+		fi        
+		AC_CHECK_FILE($libmpeg3_includes/include/mpeg3/libmpeg3.h, [libmpeg3_inc=yes])
+        	if test x$libmpeg3_inc = "x"; then        
+        		with_libmpeg3_i="$libmpeg3_includes/include/mpeg3"
+        	fi
+	else
+		AC_CHECK_FILE($libmpeg3_includes/include/libmpeg3/libmpeg3.h, [libmpeg3_inc=yes])
+		if test x$libmpeg3_inc != "x"; then
+			with_libmpeg3_i="/usr/include/libmpeg3"
+		fi
+        	AC_CHECK_FILE(/usr/include/mpeg3/libmpeg3.h, [libmpeg3_inc=yes])
+		if test x$libmpeg3_inc != "x"; then
+	        	with_libmpeg3_i="/usr/include/mpeg3"
+		fi
 
-        if test x$libmpeg3_libs != x ; then
+		AC_CHECK_FILE(/usr/local/include/libmpeg3/libmpeg3.h, [libmpeg3_inc=yes])
+		if test x$libmpeg3_inc = "x"; then
+        		with_libmpeg3_i="/usr/local/include/libmpeg3"
+		fi
+        	AC_CHECK_FILE(/usr/local/include/mpeg3/libmpeg3.h, [libmpeg3_inc=yes])
+		if test x$libmpeg3_inc = "x"; then
+        		with_libmpeg3_i="/usr/local/include/mpeg3"
+		fi   
+	fi
+
+	if test x$libmpeg3_libs != x ; then
             with_libmpeg3_l="$libmpeg3_libs/lib"
         else
             with_libmpeg3_l="/usr${deflib}"
@@ -861,14 +885,25 @@ if test x$with_libmpeg3 = "x"yes ; then
 
      AC_CHECK_LIB(mpeg3, mpeg3_open,
       [
-LIBMPEG3_CFLAGS="-I$with_libmpeg3_i -I/usr/local/include/libmpeg3"
-LIBMPEG3_LIBS="-L$with_libmpeg3_l -lmpeg3 ${EXTRA_LIBS}" 
-AC_DEFINE(HAVE_LIBMPEG3) have_libmpeg3=yes
-      ], have_libmpeg3=no, 
-	-L$with_libmpeg3_l -lmpeg3 ${EXTRA_LIBS})
+	LIBMPEG3_CFLAGS="-I$with_libmpeg3_i"
+	LIBMPEG3_LIBS="-L$with_libmpeg3_l -lmpeg3 ${EXTRA_LIBS}" 
+	AC_DEFINE(HAVE_LIBMPEG3) 
+	have_libmpeg3=yes
+      ], have_libmpeg3=no, -L$with_libmpeg3_l -lmpeg3 ${EXTRA_LIBS})
+
 
 else
     have_libmpeg3=no
+fi
+
+
+dnl give user a hint :)
+if test x$libmpeg3_inc = "x"; then 
+if test $have_libmpeg3="yes"; then
+        echo "*** Found libmpeg3 but no mpeg3 includes, if they are installed somewhere"
+        echo "*** nonstandart, try '--with-libmpeg3-includes=<prefix-of-your-libmpeg3-installation>'" 
+fi
+        have_libmpeg3=no
 fi
 
 AC_SUBST(LIBMPEG3_LIBS)
@@ -1011,7 +1046,7 @@ AC_ARG_WITH(qt-includes,AC_HELP_STRING([--with-qt-includes=PFX],[prefix where lo
 AC_ARG_WITH(qt-libs,AC_HELP_STRING([--with-qt-libs=PFX],[prefix where local quicktime libs are installed (optional)]),
 	  qt_libs="$withval", qt_libs="")
 
-EXTRA_LIBS="-lpng -lz -lpthread -lglib -ldl -lm -ldv"
+EXTRA_LIBS="-lpng -lz -lpthread -ldl -lm $DV_LIBS"
 
 if test x$with_qt = "x"yes ; then
 
@@ -1029,8 +1064,8 @@ if test x$with_qt = "x"yes ; then
 
      AC_CHECK_LIB(quicktime, quicktime_open,
       [
-QT_CFLAGS="-I$with_qt_i -I/usr/local/include/quicktime"
-QT_LIBS="-L$with_qt_l -lquicktime ${EXTRA_LIBS}" 
+QT_CFLAGS="-I$with_qt_i -I/usr/local/include/quicktime $DV_CFLAGS "
+QT_LIBS="-L$with_qt_l -lquicktime ${EXTRA_LIBS}"
 AC_DEFINE(HAVE_QT) have_qt=yes
       ], have_qt=no, 
 	-L$with_qt_l -lquicktime ${EXTRA_LIBS})
@@ -1065,7 +1100,7 @@ AC_ARG_WITH(openqt-includes,AC_HELP_STRING([--with-openqt-includes=PFX],[prefix 
 AC_ARG_WITH(openqt-libs,AC_HELP_STRING([--with-openqt-libs=PFX],[prefix where local openquicktime libs are installed (optional)]),
 	  openqt_libs="$withval", openqt_libs="")
 
-EXTRA_LIBS="-lpng -lz -lpthread -lglib -ldl -lm"
+EXTRA_LIBS="-lpng -lz -lpthread $GLIB_LIBS -ldl -lm"
 
 if test x$with_openqt = "x"yes ; then
 
@@ -1083,7 +1118,7 @@ if test x$with_openqt = "x"yes ; then
 
      AC_CHECK_LIB(openquicktime, quicktime_init,
       [
-OPENQT_CFLAGS="-I$with_openqt_i -I/usr/local/include"
+OPENQT_CFLAGS="-I$with_openqt_i -I/usr/local/include $GLIB_CFLAGS "
 OPENQT_LIBS="-L$with_openqt_l -lopenquicktime ${EXTRA_LIBS}" 
 AC_DEFINE(HAVE_OPENQT) have_openqt=yes
       ], have_openqt=no, 
