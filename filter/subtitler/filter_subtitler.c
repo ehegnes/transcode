@@ -22,12 +22,14 @@
  *
  */
 
-#include "subtitler.h"
-//#include "src/framebuffer.h"
 
 #define MOD_NAME    "filter_subtitler.so"
 #define MOD_VERSION "v0.8.1 (2003/10/25)"
 #define MOD_CAP     "subtitle filter"
+#define MOD_AUTHOR  "Jan Panteltje"
+
+#include "subtitler.h"
+//#include "src/framebuffer.h"
 
 /* for YUV to RGB in X11 */
 #define LIMIT(x) ((((x)>0xffffff)?0xff0000:(((x)<=0xffff)?0:(x)&0xff0000))>>16)

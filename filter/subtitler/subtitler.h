@@ -22,6 +22,28 @@
 #ifndef _SUBTITLER_H_
 #define _SUBTITLER_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <inttypes.h>
+#include <string.h>
+#include <stddef.h>
+#include <pwd.h>
+#include <ctype.h>
+#include <errno.h>
+#include <math.h>
+#include <limits.h>
+#include <pthread.h>
+
+#include "transcode.h"
+#include "framebuffer.h"
+#include "load_font.h"
+#include "frame_list.h"
+#include "object_list.h"
+#include "optstr.h"
+
+
 /* maximum movie length in frames */
 #define MAX_FRAMES	300000
 
@@ -72,30 +94,10 @@ YUV_MASK is used to prevent picture areas to be cut out.
 #define OBJECT_STATUS_HAVE_Y_DEST	8
 #define OBJECT_STATUS_HAVE_Z_DEST	16
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <inttypes.h>
-#include <string.h>
-#include <stddef.h>
-#include <pwd.h>
-#include <ctype.h>
-#include <errno.h>
-#include <math.h>
-#include <limits.h>
-#include <pthread.h>
+/* maximum number of movie objects that can be inserted */
+#define MAX_MOVIES	1024
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include "transcode.h"
-#include "framebuffer.h"
-#include "load_font.h"
-#include "frame_list.h"
-#include "object_list.h"
-#include "optstr.h"
+#define SUBTITLER_VERSION "-0.8.4"
 
 extern int debug_flag;
 extern font_desc_t *vo_font;
@@ -149,8 +151,6 @@ extern double default_subtitle_thickness;
 // extern int color_depth;
 /* end x11 stuff */
 
-/* maximum number of movie objects that can be inserted */
-#define MAX_MOVIES	1024
 /* threads for other instances of transcode in insert movie */
 // extern pthread_t *movie_thread[MAX_MOVIES];
 // pthread_attr_t *attributes;
@@ -178,8 +178,6 @@ extern int default_subtitle_font_symbols;
 
 /* this last, so proto knows about structure definitions etc. */
 #include "subtitler_proto.h"
-
-#define SUBTITLER_VERSION "-0.8.4"
 
 #endif /* _SUBTITLER_H_ */
 
