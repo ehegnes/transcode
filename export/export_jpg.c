@@ -32,11 +32,9 @@
 #endif
 
 #include "transcode.h"
-#include "yuv2rgb.h"
-
 
 #define MOD_NAME    "export_jpg.so"
-#define MOD_VERSION "v0.1.0 (2003-06-05)"
+#define MOD_VERSION "v0.2.1 (2003-08-06)"
 #define MOD_CODEC   "(video) *"
 
 #define MOD_PRE jpg
@@ -47,18 +45,18 @@ static int capability_flag=TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AUD;
 
 static char buf2[PATH_MAX];
 
-static uint8_t tmp_buffer[SIZE_RGB_FRAME];
-
-static int codec, width, height, row_bytes;
+static int codec, width, height;
 
 static int counter=0;
 static char *prefix="frame.";
 static int jpeg_quality =0;
+#define JPEG_DEFAULT_QUALITY 85
 
 static int interval=1;
 static unsigned int int_counter=0;
 
 JSAMPLE * image_buffer;	/* Points to large array of R,G,B-order data */
+static unsigned char **line[3];
 
 /* ------------------------------------------------------------ 
  *
@@ -66,7 +64,74 @@ JSAMPLE * image_buffer;	/* Points to large array of R,G,B-order data */
  *
  * ------------------------------------------------------------*/
 
-void write_JPEG_file (char * filename, int quality, int width, int height)
+// native YUV jpeg encoder code based on encode_JPEG of the quicktime4linux lib
+//
+static void write_yuv_JPEG_file(char *filename, int quality,
+		       unsigned char **input,
+		       int _width, int _height)
+{
+  int width2, i, j, k;
+  int width 	= _width;
+  int height 	= _height;
+  unsigned char *base[3];
+  struct jpeg_compress_struct encinfo;
+  struct jpeg_error_mgr jerr;
+  FILE * outfile;		/* target file */
+
+  jpeg_create_compress(&encinfo);
+
+  encinfo.err = jpeg_std_error(&jerr);
+ 
+  if ((outfile = fopen(filename, "wb")) == NULL) {
+    fprintf(stderr, "can't open %s\n", filename);
+    exit(1);
+  }
+  jpeg_stdio_dest(&encinfo, outfile);
+
+  encinfo.image_width = width;
+  encinfo.image_height = height;
+  encinfo.input_components = 3;
+
+  jpeg_set_defaults(&encinfo);
+  encinfo.dct_method = JDCT_FASTEST;
+
+  jpeg_set_quality(&encinfo, JPEG_DEFAULT_QUALITY, TRUE);
+  encinfo.raw_data_in = TRUE;
+  encinfo.in_color_space = JCS_YCbCr;
+
+  encinfo.comp_info[0].h_samp_factor = 2;
+  encinfo.comp_info[0].v_samp_factor = 2;
+  encinfo.comp_info[1].h_samp_factor = 1;
+  encinfo.comp_info[1].v_samp_factor = 1;
+  encinfo.comp_info[2].h_samp_factor = 1;
+  encinfo.comp_info[2].v_samp_factor = 1;
+
+  jpeg_start_compress(&encinfo, TRUE);
+  width2 = width>>1;
+
+  base[0] = input[0];
+  base[1] = input[1];
+  base[2] = input[2];
+
+  for (i = 0; i < height; i += 2*DCTSIZE) {
+    for (j=0, k=0; j<2*DCTSIZE;j+=2, k++) {
+
+      line[0][j]   = base[0]; base[0] += width;
+      line[0][j+1] = base[0]; base[0] += width;
+      line[1][k]   = base[1]; base[1] += width2;
+      line[2][k]   = base[2]; base[2] += width2;
+    }
+    jpeg_write_raw_data(&encinfo, line, 2*DCTSIZE);
+  }
+  jpeg_finish_compress(&encinfo);
+
+  fclose(outfile);
+
+  jpeg_destroy_compress(&encinfo);
+
+}
+
+static void write_rgb_JPEG_file (char * filename, int quality, int width, int height)
 {
   struct jpeg_compress_struct cinfo;
   struct jpeg_error_mgr jerr;
@@ -150,11 +215,11 @@ MOD_init
       codec = (vob->im_v_codec == CODEC_YUV) ? CODEC_YUV:CODEC_RGB;
 
       if(vob->im_v_codec == CODEC_YUV) {
-	yuv2rgb_init (vob->v_bpp, MODE_RGB);
-	row_bytes = vob->v_bpp/8 * vob->ex_v_width;
+	line[0] = malloc(height*sizeof(char*));
+	line[1] = malloc(height*sizeof(char*)/2);
+	line[2] = malloc(height*sizeof(char*)/2);
       }
-      
-      
+
       return(0);
     }
 
@@ -196,7 +261,7 @@ MOD_open
 
 	if(vob->ex_v_fcc != NULL && strlen(vob->ex_v_fcc) != 0) {
 	  jpeg_quality=atoi(vob->ex_v_fcc);
-	  if (jpeg_quality<=0) jpeg_quality = 75;
+	  if (jpeg_quality<=0) jpeg_quality = JPEG_DEFAULT_QUALITY;
 	  if (jpeg_quality>100) jpeg_quality = 100;
 	} else {
 	  jpeg_quality=75;
@@ -235,18 +300,18 @@ MOD_encode
     } 
     
     if(codec==CODEC_YUV) {
-      yuv2rgb (tmp_buffer, 
-	       param->buffer, 
-	       param->buffer+5*width*height/4, 
-	       param->buffer+width*height, 
-	       width, height, row_bytes, width, width/2);
+      unsigned char *base[3];
+      base[0] = param->buffer;
+      base[2] = param->buffer + width*height;
+      base[1] = param->buffer + width*height*5/4;
+      write_yuv_JPEG_file(buf2, jpeg_quality, base, width, height);
       
-      out_buffer = tmp_buffer;
+      //out_buffer = tmp_buffer;
+    } else {
+      image_buffer = out_buffer;
+      write_rgb_JPEG_file(buf2, jpeg_quality, width, height);
     }
-    
-    image_buffer = out_buffer;
-    write_JPEG_file(buf2, jpeg_quality, width, height);
-    
+
     return(0);
   }
   
@@ -290,3 +355,4 @@ MOD_close
     
 }
 
+      //yuv2rgb (tmp_buffer, param->buffer, param->buffer+5*width*height/4, param->buffer+width*height, width, height, row_bytes, width, width/2);
