@@ -38,11 +38,11 @@
 #include <avifile-0.7/avifile.h>
 #include <avifile-0.7/image.h>
 #include <avifile-0.7/aviplay.h>
-#include <avifile-0.7/cpuinfo.h>
+#include <avifile-0.7/avm_cpuinfo.h>
 #include <avifile-0.7/utils.h>
 #include <avifile-0.7/version.h>
 #include <avifile-0.7/renderer.h>
-#include <avifile-0.7/creators.h>
+#include <avifile-0.7/avm_creators.h>
 #elif HAVE_AVIFILE_INCLUDES == 0
 #include <avifile/avm_fourcc.h>
 #include <avifile/avifile.h>
@@ -401,9 +401,9 @@ extern "C" {
 	/* by default ipipe->frame_limit[0]=0 and ipipe->frame_limit[1]=LONG_MAX so all bytes are decoded */
 	if ((s_byte_read >= ipipe->frame_limit[0]) && (s_byte_read <= ipipe->frame_limit[1])) //added to enable the -C option of tcdecode
 	{
-		if (s_byte_read - ret_size <ipipe->frame_limit[0])
+		if ( s_byte_read - ret_size <(unsigned int)ipipe->frame_limit[0])
 		{
-			if((unsigned int)p_write(ipipe->fd_out,buffer+(ret_size-(s_byte_read-ipipe->frame_limit[0])),(s_byte_read-ipipe->frame_limit[0]))!=(s_byte_read-ipipe->frame_limit[0])) 
+			if((unsigned int)p_write(ipipe->fd_out,buffer+(ret_size-(s_byte_read-ipipe->frame_limit[0])),(s_byte_read-ipipe->frame_limit[0]))!=(unsigned int)(s_byte_read-ipipe->frame_limit[0])) 
 			{
 				ipipe->error=1;
 			  	break;
@@ -418,15 +418,15 @@ extern "C" {
 			}
 		}
 	}
-	else if ((s_byte_read> ipipe->frame_limit[0]) && (s_byte_read - ret_size <=ipipe->frame_limit[1]))
+	else if ((s_byte_read> ipipe->frame_limit[0]) && (s_byte_read - ret_size <=(unsigned int)ipipe->frame_limit[1]))
 	{
-		if((unsigned int)p_write(ipipe->fd_out,buffer,(s_byte_read-ipipe->frame_limit[1]))!=(s_byte_read-ipipe->frame_limit[1])) 
+		if((unsigned int)p_write(ipipe->fd_out,buffer,(s_byte_read-ipipe->frame_limit[1]))!=(unsigned int)(s_byte_read-ipipe->frame_limit[1])) 
 		{
 		  	ipipe->error=1;
 		 	break;
 		}
 	}
-	else if (s_byte_read - ret_size >ipipe->frame_limit[1])
+	else if (s_byte_read - ret_size >(unsigned int)ipipe->frame_limit[1])
 	{
 		break;
 	}

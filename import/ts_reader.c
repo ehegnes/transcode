@@ -48,10 +48,9 @@
 #define TS_PACK BUFFER_SIZE
 
 static uint8_t buffer[BUFFER_SIZE];
-static FILE * in_file;
 static int demux_track = 0xe0;
 static int demux_pid = 0;
-static int demux_pva = 0;
+//static int demux_pva = 0;
 
 static int fd_in;
 
@@ -405,6 +404,7 @@ static int demux (uint8_t * buf, uint8_t * end, int flags)
     }
 }
 
+#if 0
 static void ps_loop (void)
 {
     uint8_t * end;
@@ -498,7 +498,9 @@ static int pva_demux (uint8_t * buf, uint8_t * end)
 	}
     }
 }
+#endif
 
+#if 0
 static void pva_loop (void)
 {
     uint8_t * end;
@@ -508,6 +510,7 @@ static void pva_loop (void)
 	pva_demux (buffer, end);
     } while (end == buffer + BUFFER_SIZE);
 }
+#endif
 
 static void ts_loop (void)
 {
@@ -556,12 +559,6 @@ static void ts_loop (void)
 int ts_read(int _fd_in, int fd_out, int _demux_pid)
 {
   
-  uint8_t * buf;
-  uint8_t * data;
-  uint8_t * end;
-  
-  int pid, i;
-
 #ifdef HAVE_IO_H
   setmode (fileno (stdout), O_BINARY);
 #endif

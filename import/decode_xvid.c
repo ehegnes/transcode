@@ -122,8 +122,6 @@ static int xvid2_init(char *path) {
 
 }
 
-static int pass_through=0;
-
 //temporary video buffer
 static char *in_buffer;
 static char *out_buffer;

@@ -43,6 +43,7 @@ int verbose;
 
 static int demux_track=0xc0;
 
+#if 0
 static int aud_chunk_from_vid_frame (char *file, int vidframe, int audtrack, off_t *fpos)
 {
     char buf[100];
@@ -112,6 +113,7 @@ static int aud_chunk_from_vid_frame (char *file, int vidframe, int audtrack, off
     fclose (f);
     return ret;
 }
+#endif // 0
 
 
 static void ps_loop (void)

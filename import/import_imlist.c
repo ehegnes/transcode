@@ -35,6 +35,13 @@
 #include "transcode.h"
 
 #include <regex.h>
+
+// transcode defines this as well as ImageMagick.
+#undef PACKAGE_NAME
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+#undef PACKAGE_STRING
+
 #include <magick/api.h>
 
 #define MOD_NAME    "import_imlist.so"

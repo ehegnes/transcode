@@ -477,7 +477,7 @@ int main(int argc, char *argv[])
 
       printf("[%s] AVI overhead will be max. %d*(8+16) = %d bytes (%dk)\n", 
 	      EXE, chunks, chunks*8+chunks*16, (chunks*8+chunks*16)/1024 );
-      printf("[%s] Estimated time is %.0lf ms (%02d:%02d:%02d.%02d)\n", 
+      printf("[%s] Estimated time is %.0f ms (%02d:%02d:%02d.%02d)\n", 
 	      EXE, ms, 
 	         (int)(ms/1000.0/60.0/60.0), 
 	         (int)(ms/1000.0/60.0)%60, 
