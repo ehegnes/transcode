@@ -2774,6 +2774,14 @@ int main(int argc, char *argv[]) {
       }
     }
     
+    // Do not run out of audio-data
+    // import_ac3 now correctly probes the channels of the ac3 stream
+    // (previous versions always returned "2"). This breakes transcode
+    // when doing -A --tibit
+    if (vob->im_a_codec == CODEC_AC3)
+      vob->a_chan = vob->a_chan>2?2:vob->a_chan;
+
+    
     // --a52_demux
 
     if((vob->a52_mode & TC_A52_DEMUX) && (verbose & TC_INFO))
