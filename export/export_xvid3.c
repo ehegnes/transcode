@@ -413,7 +413,6 @@ MOD_open
 MOD_encode
 {
 	int xerr;
-	static int fr=0;
 
 	XVID_ENC_FRAME xframe;
 	XVID_ENC_STATS xstats;
@@ -585,7 +584,7 @@ MOD_stop
 
 static int xvid2_init(char *path)
 {
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__APPLE__)
 	const
 #endif    
 		char *error;

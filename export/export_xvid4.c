@@ -1141,7 +1141,7 @@ static void print_matrix(unsigned char *matrix)
 
 static int load_xvid(xvid_module_t *xvid, char *path)
 {
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__APPLE__)
 	const char *error;
 #else
 	char *error;

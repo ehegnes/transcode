@@ -2,6 +2,12 @@
 transcode-0.6.10
 
 2003-09-03 Tilmann Bitterberg <transcode at tibit.org>
+
+   * export/{export_xvid[234].c}:
+   Fixes for MacOSX (dlerror must be const) and verbose debugging
+   for export_xvid2
+
+2003-09-03 Tilmann Bitterberg <transcode at tibit.org>
   
    * filter/extsub/filter_extsub.c tools/tcmodinfo:
    Enable option string interface in the subtitle filter.
