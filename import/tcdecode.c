@@ -62,7 +62,7 @@ void usage(int status)
   fprintf(stderr,"\t -i file           input file [stdin]\n");
   fprintf(stderr,"\t -x codec          source codec (required)\n");
   fprintf(stderr,"\t -g wxh            stream frame size [autodetect]\n");
-  fprintf(stderr,"\t -y codec          output raw stream codec [rgb]\n");
+  fprintf(stderr,"\t -y format         output raw stream format [rgb]\n");
   fprintf(stderr,"\t -Q mode           decoding quality (0=fastest-5=best) [%d]\n", VQUALITY);
   fprintf(stderr,"\t -d mode           verbosity mode\n");
   fprintf(stderr,"\t -s c,f,r          audio gain for ac3 downmixing [1,1,1]\n");
@@ -249,6 +249,8 @@ int main(int argc, char *argv[])
     if(strcmp(format,"yuy2")==0) ipipe.format = TC_CODEC_YUY2;
     
     if(strcmp(format,"pcm")==0)  ipipe.format = TC_CODEC_PCM;
+
+    if(strcmp(format,"raw")==0)  ipipe.format = TC_CODEC_RAW;
 
     /* ------------------------------------------------------------ 
      *
