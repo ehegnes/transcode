@@ -93,6 +93,7 @@ static char *im_aud_mod = NULL, *im_vid_mod = NULL;
 static char *ex_aud_mod = NULL, *ex_vid_mod = NULL;
 
 static pthread_t thread_signal, thread_server, thread_socket;
+int tc_signal_thread     =  0;
 
 void socket_thread(); // socket.c
 
@@ -587,7 +588,7 @@ int transcoder(int mode, vob_t *vob)
 void safe_exit (void) {
     void *thread_status;
 
-    if (thread_signal) {
+    if (tc_signal_thread) {
        pthread_cancel(thread_signal);
        pthread_join(thread_signal, &thread_status);
     }
@@ -980,6 +981,7 @@ int main(int argc, char *argv[]) {
     // start the signal handler thread     
     if(pthread_create(&thread_signal, NULL, (void *) signal_thread, NULL)!=0)
       tc_error("failed to start signal handler thread");
+    tc_signal_thread=1;
 
     // close all threads at exit
 #if !defined(__APPLE__)
@@ -3245,6 +3247,7 @@ int main(int argc, char *argv[]) {
 	
 	int ret;
 
+	memset(buf, 0, sizeof buf);
 	if(!no_split) {
 	  // create new filename 
 	  sprintf(buf, psubase, ch1);
@@ -3642,17 +3645,21 @@ int main(int argc, char *argv[]) {
     if(verbose & TC_INFO) { printf(" frame threads |"); fflush(stdout); }
 
     // unload all external modules
-    transcoder(TC_OFF, NULL); 
+    transcoder(TC_OFF, NULL);
     if(verbose & TC_INFO) { printf(" unload modules |");fflush(stdout); }
 
     // cancel no longer used internal signal handler threads
-    pthread_cancel(thread_signal);
-    pthread_join(thread_signal, &thread_status);
+    if (tc_signal_thread) {
+      pthread_cancel(thread_signal);
+      pthread_join(thread_signal, &thread_status);
+      tc_signal_thread=0;
+    }
     
     // cancel optional server thread
     if(tc_server_thread) {
       pthread_cancel(thread_server);
       pthread_join(thread_server, &thread_status);
+      tc_server_thread=0;
     }
     
     if(verbose & TC_INFO) { printf(" internal threads |");fflush(stdout); }
