@@ -33,7 +33,7 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
 #include <sys/errno.h>
 #include <errno.h>
 #include <unistd.h>
-
+#include <xio.h>
 #include "transcode.h"
 #include "ioaux.h"
 #include "tc.h"
@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
     
     if(file_check(name)) exit(1);
     
-    if((ipipe.fd_in = open(name, O_RDONLY))<0) {
+    if((ipipe.fd_in = xio_open(name, O_RDONLY))<0) {
       perror("open file");
       exit(1);
     } 
@@ -621,3 +621,5 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
 
     return framesize;
 }
+
+#include "../libxio/static_xio.h"

@@ -115,6 +115,9 @@
 /* Have GTK support */
 #undef HAVE_GTK
 
+/* ipb and lors support */
+#undef HAVE_IBP
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 

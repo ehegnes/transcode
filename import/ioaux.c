@@ -23,6 +23,7 @@
 
 
 #include "ioaux.h"
+#include <xio.h>
 
 #define MAX_BUF 4096
 static char buffer[MAX_BUF];
@@ -34,7 +35,7 @@ ssize_t p_read(int fd, char *buf, size_t len)
    ssize_t r = 0;
 
    while (r < len) {
-      n = read (fd, buf + r, len - r);
+      n = xio_read (fd, buf + r, len - r);
 
 	  if (n == 0)
 		break;
@@ -56,7 +57,7 @@ ssize_t p_write (int fd, char *buf, size_t len)
    ssize_t r = 0;
 
    while (r < len) {
-      n = write (fd, buf + r, len - r);
+      n = xio_write (fd, buf + r, len - r);
       if (n < 0) {
 		if (errno == EINTR)
 		  continue;
@@ -97,7 +98,7 @@ int file_check(char *file)
 
     struct stat fbuf;
     
-    if(stat(file, &fbuf) || file==NULL){
+    if(xio_stat(file, &fbuf) || file==NULL){
 	fprintf(stderr, "(%s) invalid file \"%s\"\n", __FILE__, file);
 	return(1);
     }
@@ -232,7 +233,7 @@ int probe_path(char *name)
     }
  
     
-    if(stat(name, &fbuf)==0) {
+    if(xio_stat(name, &fbuf)==0) {
 
       //inode exists
       

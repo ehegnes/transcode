@@ -28,7 +28,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <limits.h>
-
+#include <xio.h>
 #include "config.h"
 #include "transcode.h"
 #include "ioaux.h"
@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
       
       if(file_check(name)) exit(1);
       
-      if((ipipe.fd_in = open(name, O_RDONLY))<0) {
+      if((ipipe.fd_in = xio_open(name, O_RDONLY))<0) {
 	perror("file open");
 	return(-1);
       }
@@ -424,8 +424,9 @@ int main(int argc, char *argv[])
 	exit(1);
     }    
     
-    if(ipipe.fd_in != STDIN_FILENO) close(ipipe.fd_in);
+    if(ipipe.fd_in != STDIN_FILENO) xio_close(ipipe.fd_in);
     
     return(0);
 }
 
+#include "../libxio/static_xio.h"

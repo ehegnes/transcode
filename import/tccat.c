@@ -31,7 +31,7 @@
 #include <sys/errno.h>
 #include <errno.h>
 #include <unistd.h>
-
+#include <xio.h>
 #include "transcode.h"
 #include "ioaux.h"
 #include "tc.h"
@@ -334,7 +334,7 @@ int main(int argc, char *argv[])
     
   case IS_TS:
 
-    if((ipipe.fd_in = open(name, O_RDONLY))<0) {
+    if((ipipe.fd_in = xio_open(name, O_RDONLY))<0) {
       perror("file open");
       exit(1);
     }
@@ -343,7 +343,7 @@ int main(int argc, char *argv[])
 
     tccat_thread(&ipipe);
     
-    close(ipipe.fd_in);
+    xio_close(ipipe.fd_in);
     
     break;
 
@@ -443,3 +443,4 @@ int main(int argc, char *argv[])
   return(0);
 }
 
+#include "../libxio/static_xio.h"

@@ -1,11 +1,11 @@
 # # Process this file with automake to produce Makefile.in.
 
 AUTOMAKE_OPTIONS = 1.3 foreign
-DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
+DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I. 
 
 noinst_LIBRARIES = libavi.a
 
-INCLUDES = -I./
+INCLUDES = -I./ -I../libxio
 
 CFLAGS=-funroll-loops -ffast-math -DLINUX -Wall @CFLAGS@
 libavi_a_SOURCES = avilib.c avidump.c avimisc.c

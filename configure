@@ -462,7 +462,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM AWK SET_MAKE am__leading_dot MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP EGREP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE LN_S CCAS CCASFLAGS ASFLAGS SYSTEM_DARWIN_TRUE SYSTEM_DARWIN_FALSE SUPPORTOBJECTS SUPPORTLIB SUPPORTINCL DLDARWINOBJECTS DLDARWINLIB DLDARWININCL DLLDFLAGS BIG_ENDIAN_TRUE BIG_ENDIAN_FALSE LIBOBJS ALLOCA GLIB_CONFIG GLIB_CFLAGS GLIB_LIBS HAVE_PPC_ALTIVEC_TRUE HAVE_PPC_ALTIVEC_FALSE HAVE_MMX_TRUE HAVE_MMX_FALSE HAVE_SSE_TRUE HAVE_SSE_FALSE NASM NASMFLAGS HAVE_ASM_MMX_TRUE HAVE_ASM_MMX_FALSE HAVE_ASM_3DNOW_TRUE HAVE_ASM_3DNOW_FALSE HAVE_ASM_NASM_TRUE HAVE_ASM_NASM_FALSE HAVE_X86CPU_TRUE HAVE_X86CPU_FALSE ARCH_X86_TRUE ARCH_X86_FALSE ARCH_PPC_TRUE ARCH_PPC_FALSE CAN_COMPILE_C_ALTIVEC_TRUE CAN_COMPILE_C_ALTIVEC_FALSE ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL LTLIBOBJS STATBUFFER NET_STREAM_TRUE NET_STREAM_FALSE NET_STREAM AVIFILE_CONFIG AVIFILE_CFLAGS AVIFILE_LIBS HAVE_AVIFILE_TRUE HAVE_AVIFILE_FALSE FT2_CONFIG FT2_CFLAGS FT2_LIBS HAVE_FREETYPE2_TRUE HAVE_FREETYPE2_FALSE HAVE_V4L_TRUE HAVE_V4L_FALSE LAME_3_89 LAME_CFLAGS LAME_LIBS HAVE_LAME_TRUE HAVE_LAME_FALSE LAME_3_89_TRUE LAME_3_89_FALSE OGG_CFLAGS OGG_LIBS HAVE_OGG_TRUE HAVE_OGG_FALSE VORBIS_CFLAGS VORBIS_LIBS HAVE_VORBIS_TRUE HAVE_VORBIS_FALSE THEORA_CFLAGS THEORA_LIBS HAVE_THEORA_TRUE HAVE_THEORA_FALSE DVDREAD_CFLAGS DVDREAD_LIBS HAVE_LIBDVDREAD_TRUE HAVE_LIBDVDREAD_FALSE XVID_DEFAULT LIBMPEG3_LIBS LIBMPEG3_CFLAGS HAVE_LIBMPEG3_TRUE HAVE_LIBMPEG3_FALSE LIBLVE_LIBS LIBLVE_CFLAGS HAVE_LIBLVE_TRUE HAVE_LIBLVE_FALSE PVM3_CFLAGS PVM3_LIB PVM3_PVMGS HAVE_PVM3_TRUE HAVE_PVM3_FALSE QT_LIBS QT_CFLAGS HAVE_QT_TRUE HAVE_QT_FALSE OPENQT_LIBS OPENQT_CFLAGS HAVE_OPENQT_TRUE HAVE_OPENQT_FALSE DV_LIBS DV_EXTRA_LIBS DV_CFLAGS HAVE_DV_TRUE HAVE_DV_FALSE LZO_LIBS LZO_EXTRA_LIBS LZO_CFLAGS HAVE_LZO_TRUE HAVE_LZO_FALSE A52_LIBS A52_CFLAGS HAVE_A52_TRUE HAVE_A52_FALSE USE_LIBA52_DECODER LIBXML2_CFLAGS LIBXML2_LIBS LIBXML2CONFIG HAVE_LIBXML2_TRUE HAVE_LIBXML2_FALSE MJPEG_CFLAGS MJPEG_LIBS MJPEGTOOLSCONFIG HAVE_MJPEG_TRUE HAVE_MJPEG_FALSE X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS x_includes x_libraries HAVE_X11_TRUE HAVE_X11_FALSE HAVE_LIBXV_TRUE HAVE_LIBXV_FALSE HAVE_XAW_SIMPLE_TRUE HAVE_XAW_SIMPLE_FALSE HAVE_LIBXPM_TRUE HAVE_LIBXPM_FALSE SDL_CONFIG SDL_CFLAGS SDL_LIBS HAVE_SDL_TRUE HAVE_SDL_FALSE HAVE_DIVX_DECORE_TRUE HAVE_DIVX_DECORE_FALSE HAVE_DIVX_ENCORE2_TRUE HAVE_DIVX_ENCORE2_FALSE GTK_CONFIG GTK_CFLAGS GTK_LIBS HAVE_GTK_TRUE HAVE_GTK_FALSE LIBFAME_CONFIG LIBFAME_CFLAGS LIBFAME_LIBS HAVE_LIBFAME_TRUE HAVE_LIBFAME_FALSE MAGICK_CONFIG MAGICK_CFLAGS MAGICK_LIBS HAVE_MAGICK_TRUE HAVE_MAGICK_FALSE LIBJPEG_CFLAGS LIBJPEG_LIBS HAVE_LIBJPEG_TRUE HAVE_LIBJPEG_FALSE MOD_PATH TRANSCODE_0_6_TRUE TRANSCODE_0_6_FALSE'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM AWK SET_MAKE am__leading_dot MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP EGREP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE LN_S CCAS CCASFLAGS ASFLAGS SYSTEM_DARWIN_TRUE SYSTEM_DARWIN_FALSE SUPPORTOBJECTS SUPPORTLIB SUPPORTINCL DLDARWINOBJECTS DLDARWINLIB DLDARWININCL DLLDFLAGS BIG_ENDIAN_TRUE BIG_ENDIAN_FALSE LIBOBJS ALLOCA GLIB_CONFIG GLIB_CFLAGS GLIB_LIBS HAVE_PPC_ALTIVEC_TRUE HAVE_PPC_ALTIVEC_FALSE HAVE_MMX_TRUE HAVE_MMX_FALSE HAVE_SSE_TRUE HAVE_SSE_FALSE NASM NASMFLAGS HAVE_ASM_MMX_TRUE HAVE_ASM_MMX_FALSE HAVE_ASM_3DNOW_TRUE HAVE_ASM_3DNOW_FALSE HAVE_ASM_NASM_TRUE HAVE_ASM_NASM_FALSE HAVE_X86CPU_TRUE HAVE_X86CPU_FALSE ARCH_X86_TRUE ARCH_X86_FALSE ARCH_PPC_TRUE ARCH_PPC_FALSE CAN_COMPILE_C_ALTIVEC_TRUE CAN_COMPILE_C_ALTIVEC_FALSE ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL LTLIBOBJS STATBUFFER NET_STREAM_TRUE NET_STREAM_FALSE NET_STREAM AVIFILE_CONFIG AVIFILE_CFLAGS AVIFILE_LIBS HAVE_AVIFILE_TRUE HAVE_AVIFILE_FALSE FT2_CONFIG FT2_CFLAGS FT2_LIBS HAVE_FREETYPE2_TRUE HAVE_FREETYPE2_FALSE HAVE_V4L_TRUE HAVE_V4L_FALSE LAME_3_89 LAME_CFLAGS LAME_LIBS HAVE_LAME_TRUE HAVE_LAME_FALSE LAME_3_89_TRUE LAME_3_89_FALSE OGG_CFLAGS OGG_LIBS HAVE_OGG_TRUE HAVE_OGG_FALSE VORBIS_CFLAGS VORBIS_LIBS HAVE_VORBIS_TRUE HAVE_VORBIS_FALSE THEORA_CFLAGS THEORA_LIBS HAVE_THEORA_TRUE HAVE_THEORA_FALSE DVDREAD_CFLAGS DVDREAD_LIBS HAVE_LIBDVDREAD_TRUE HAVE_LIBDVDREAD_FALSE XVID_DEFAULT LIBMPEG3_LIBS LIBMPEG3_CFLAGS HAVE_LIBMPEG3_TRUE HAVE_LIBMPEG3_FALSE LIBLVE_LIBS LIBLVE_CFLAGS HAVE_LIBLVE_TRUE HAVE_LIBLVE_FALSE PVM3_CFLAGS PVM3_LIB PVM3_PVMGS HAVE_PVM3_TRUE HAVE_PVM3_FALSE QT_LIBS QT_CFLAGS HAVE_QT_TRUE HAVE_QT_FALSE OPENQT_LIBS OPENQT_CFLAGS HAVE_OPENQT_TRUE HAVE_OPENQT_FALSE DV_LIBS DV_EXTRA_LIBS DV_CFLAGS HAVE_DV_TRUE HAVE_DV_FALSE LZO_LIBS LZO_EXTRA_LIBS LZO_CFLAGS HAVE_LZO_TRUE HAVE_LZO_FALSE A52_LIBS A52_CFLAGS HAVE_A52_TRUE HAVE_A52_FALSE USE_LIBA52_DECODER LIBXML2_CFLAGS LIBXML2_LIBS LIBXML2CONFIG HAVE_LIBXML2_TRUE HAVE_LIBXML2_FALSE IBP_LIBS HAVE_IBP_TRUE HAVE_IBP_FALSE MJPEG_CFLAGS MJPEG_LIBS MJPEGTOOLSCONFIG HAVE_MJPEG_TRUE HAVE_MJPEG_FALSE X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS x_includes x_libraries HAVE_X11_TRUE HAVE_X11_FALSE HAVE_LIBXV_TRUE HAVE_LIBXV_FALSE HAVE_XAW_SIMPLE_TRUE HAVE_XAW_SIMPLE_FALSE HAVE_LIBXPM_TRUE HAVE_LIBXPM_FALSE SDL_CONFIG SDL_CFLAGS SDL_LIBS HAVE_SDL_TRUE HAVE_SDL_FALSE HAVE_DIVX_DECORE_TRUE HAVE_DIVX_DECORE_FALSE HAVE_DIVX_ENCORE2_TRUE HAVE_DIVX_ENCORE2_FALSE GTK_CONFIG GTK_CFLAGS GTK_LIBS HAVE_GTK_TRUE HAVE_GTK_FALSE LIBFAME_CONFIG LIBFAME_CFLAGS LIBFAME_LIBS HAVE_LIBFAME_TRUE HAVE_LIBFAME_FALSE MAGICK_CONFIG MAGICK_CFLAGS MAGICK_LIBS HAVE_MAGICK_TRUE HAVE_MAGICK_FALSE LIBJPEG_CFLAGS LIBJPEG_LIBS HAVE_LIBJPEG_TRUE HAVE_LIBJPEG_FALSE MOD_PATH TRANSCODE_0_6_TRUE TRANSCODE_0_6_FALSE'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1052,6 +1052,8 @@ Optional Features:
                           a test FreeType program
   --enable-v4l            enable experimental v4l support (no)
   --enable-liba52         liba52 as default decoder (no)
+
+  --enable-ibp		  enable ibp support (no)
   --enable-mjpeg          build mjpeg dependent plugins (yes)
   --disable-sdltest       Do not try to compile and run a test SDL program
   --disable-gtktest       Do not try to compile and run a test GTK program
@@ -1142,6 +1144,12 @@ Optional Packages:
                           (optional)
   --with-a52-libs=PFX     prefix where local liba52 libs are installed
                           (optional)
+  --with-libfdr=DIR       base directory for libfdr
+  --with-libibp=DIR    	  base directory for libibp
+  --with-libexnode=DIR    base directory for libexnode
+  --with-liblbone=DIR     base directory for liblbone
+  --with-libend2end=DIR   base directory for libend2end
+  --with-liblors=DIR      base directory for liblors
   --with-x                use the X Window System
   --with-sdl-prefix=PFX   Prefix where SDL is installed (optional)
   --with-sdl-exec-prefix=PFX Exec prefix where SDL is installed (optional)
@@ -9866,7 +9874,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 9869 "configure"' > conftest.$ac_ext
+  echo '#line 9877 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -10483,7 +10491,7 @@ fi
 
 
 # Provide some information about the compiler.
-echo "$as_me:10486:" \
+echo "$as_me:10494:" \
      "checking for Fortran 77 compiler version" >&5
 ac_compiler=`set X $ac_compile; echo $2`
 { (eval echo "$as_me:$LINENO: \"$ac_compiler --version </dev/null >&5\"") >&5
@@ -11488,11 +11496,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11491: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11499: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:11495: \$? = $ac_status" >&5
+   echo "$as_me:11503: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -11720,11 +11728,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11723: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11731: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:11727: \$? = $ac_status" >&5
+   echo "$as_me:11735: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -11787,11 +11795,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11790: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11798: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:11794: \$? = $ac_status" >&5
+   echo "$as_me:11802: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13806,7 +13814,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 13809 "configure"
+#line 13817 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -13904,7 +13912,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 13907 "configure"
+#line 13915 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -16036,11 +16044,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16039: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16047: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16043: \$? = $ac_status" >&5
+   echo "$as_me:16051: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -16103,11 +16111,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16106: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16114: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16110: \$? = $ac_status" >&5
+   echo "$as_me:16118: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -17353,7 +17361,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 17356 "configure"
+#line 17364 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -17451,7 +17459,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 17454 "configure"
+#line 17462 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -18273,11 +18281,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:18276: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:18284: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:18280: \$? = $ac_status" >&5
+   echo "$as_me:18288: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -18340,11 +18348,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:18343: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:18351: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:18347: \$? = $ac_status" >&5
+   echo "$as_me:18355: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -20287,11 +20295,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:20290: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:20298: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:20294: \$? = $ac_status" >&5
+   echo "$as_me:20302: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -20519,11 +20527,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:20522: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:20530: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:20526: \$? = $ac_status" >&5
+   echo "$as_me:20534: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -20586,11 +20594,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:20589: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:20597: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:20593: \$? = $ac_status" >&5
+   echo "$as_me:20601: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -22605,7 +22613,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 22608 "configure"
+#line 22616 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -22703,7 +22711,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 22706 "configure"
+#line 22714 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -27597,6 +27605,478 @@ else
 fi
 
 
+have_ibp=no
+OLD_LIBS="$LIBS"
+# Check whether --enable-ibp or --disable-ibp was given.
+if test "${enable_ibp+set}" = set; then
+  enableval="$enable_ibp"
+
+else
+  enable_ibp=no
+fi;
+echo "$as_me:$LINENO: checking for use ibp and lors" >&5
+echo $ECHO_N "checking for use ibp and lors... $ECHO_C" >&6
+
+if test "x$enable_ibp" = "xyes"
+then
+if test x"$LIBXML2CONFIG" = x"yes"
+then
+
+# Check whether --with-libfdr or --without-libfdr was given.
+if test "${with_libfdr+set}" = set; then
+  withval="$with_libfdr"
+  CPPFLAGS="-I$with_libfdr/include $CPPFLAGS",
+	     LIBFDR=yes,
+             IBP_LIBS1="-L$with_libfdr/lib -lfdr $LIBS"
+else
+  echo "$as_me:$LINENO: checking for jval_v in -lfdr" >&5
+echo $ECHO_N "checking for jval_v in -lfdr... $ECHO_C" >&6
+if test "${ac_cv_lib_fdr_jval_v+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lfdr  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char jval_v ();
+int
+main ()
+{
+jval_v ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_fdr_jval_v=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_fdr_jval_v=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_fdr_jval_v" >&5
+echo "${ECHO_T}$ac_cv_lib_fdr_jval_v" >&6
+if test $ac_cv_lib_fdr_jval_v = yes; then
+  IBP_LIBS1="-lfdr"
+else
+  { { echo "$as_me:$LINENO: error: unable to locate libfdr" >&5
+echo "$as_me: error: unable to locate libfdr" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+fi;
+
+
+# Check whether --with-libibp or --without-libibp was given.
+if test "${with_libibp+set}" = set; then
+  withval="$with_libibp"
+  CPPFLAGS="-I$with_libibp/include $CPPFLAGS",
+	     LIBIBP=yes,
+             IBP_LIBS1="-L$with_libibp/lib -libp -lpthread $IBP_LIBS1"
+else
+  LIBS="-lpthread $IBP_LIBS1"
+             echo "$as_me:$LINENO: checking for IBP_allocate in -libp" >&5
+echo $ECHO_N "checking for IBP_allocate in -libp... $ECHO_C" >&6
+if test "${ac_cv_lib_ibp_IBP_allocate+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-libp  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char IBP_allocate ();
+int
+main ()
+{
+IBP_allocate ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_ibp_IBP_allocate=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_ibp_IBP_allocate=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_ibp_IBP_allocate" >&5
+echo "${ECHO_T}$ac_cv_lib_ibp_IBP_allocate" >&6
+if test $ac_cv_lib_ibp_IBP_allocate = yes; then
+  IBP_LIBS1="-libp -lpthread $IBP_LIBS1"
+else
+  { { echo "$as_me:$LINENO: error: unable to locate libibp" >&5
+echo "$as_me: error: unable to locate libibp" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+fi;
+
+
+# Check whether --with-libexnode or --without-libexnode was given.
+if test "${with_libexnode+set}" = set; then
+  withval="$with_libexnode"
+  CPPFLAGS="-I$with_libexnode/include/libexnode $CPPFLAGS",
+	     LIBEXNODE=yes,
+             IBP_LIBS1="-L$with_libexnode/lib -lexnode $IBP_LIBS1"
+else
+  LIBS="$IBP_LIBS1"
+	      echo "$as_me:$LINENO: checking for exnodeCreateExnode in -lexnode" >&5
+echo $ECHO_N "checking for exnodeCreateExnode in -lexnode... $ECHO_C" >&6
+if test "${ac_cv_lib_exnode_exnodeCreateExnode+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lexnode $IBP_LIBS1
+			   $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char exnodeCreateExnode ();
+int
+main ()
+{
+exnodeCreateExnode ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_exnode_exnodeCreateExnode=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_exnode_exnodeCreateExnode=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_exnode_exnodeCreateExnode" >&5
+echo "${ECHO_T}$ac_cv_lib_exnode_exnodeCreateExnode" >&6
+if test $ac_cv_lib_exnode_exnodeCreateExnode = yes; then
+  IBP_LIBS1="-lexnode $IBP_LIBS1"
+else
+  { { echo "$as_me:$LINENO: error: unable to locate libexnode" >&5
+echo "$as_me: error: unable to locate libexnode" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+fi;
+
+
+# Check whether --with-liblbone or --without-liblbone was given.
+if test "${with_liblbone+set}" = set; then
+  withval="$with_liblbone"
+  CPPFLAGS="-I$with_liblbone/include $CPPFLAGS",
+	     LIBLBONE=yes,
+             IBP_LIBS1="-L$with_liblbone/lib -llbone $IBP_LIBS1"
+else
+  LIBS="$IBP_LIBS1"
+	     echo "$as_me:$LINENO: checking for lbone_checkDepots in -llbone" >&5
+echo $ECHO_N "checking for lbone_checkDepots in -llbone... $ECHO_C" >&6
+if test "${ac_cv_lib_lbone_lbone_checkDepots+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-llbone  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char lbone_checkDepots ();
+int
+main ()
+{
+lbone_checkDepots ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_lbone_lbone_checkDepots=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_lbone_lbone_checkDepots=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_lbone_lbone_checkDepots" >&5
+echo "${ECHO_T}$ac_cv_lib_lbone_lbone_checkDepots" >&6
+if test $ac_cv_lib_lbone_lbone_checkDepots = yes; then
+  IBP_LIBS1="-llbone $IBP_LIBS1"
+else
+  { { echo "$as_me:$LINENO: error: unable to locate liblbone" >&5
+echo "$as_me: error: unable to locate liblbone" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+fi;
+
+# Check whether --with-libend2end or --without-libend2end was given.
+if test "${with_libend2end+set}" = set; then
+  withval="$with_libend2end"
+  CPPFLAGS="-I$with_libend2end/include $CPPFLAGS",
+	     LIBE2E=yes,
+             IBP_LIBS1="-L$with_libend2end/lib -lend2end -lmd5 -ldes -laes $IBP_LIBS1"
+else
+  LIBS="-lmd5 -ldes -laes $IBP_LIBS1 -lz"
+             echo "$as_me:$LINENO: checking for ConditionMapping in -lend2end" >&5
+echo $ECHO_N "checking for ConditionMapping in -lend2end... $ECHO_C" >&6
+if test "${ac_cv_lib_end2end_ConditionMapping+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lend2end  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char ConditionMapping ();
+int
+main ()
+{
+ConditionMapping ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_end2end_ConditionMapping=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_end2end_ConditionMapping=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_end2end_ConditionMapping" >&5
+echo "${ECHO_T}$ac_cv_lib_end2end_ConditionMapping" >&6
+if test $ac_cv_lib_end2end_ConditionMapping = yes; then
+  IBP_LIBS1="-lend2end -lmd5 -ldes -laes $IBP_LIBS1"
+else
+  { { echo "$as_me:$LINENO: error: unable to locate libend2end" >&5
+echo "$as_me: error: unable to locate libend2end" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+fi;
+
+
+# Check whether --with-liblors or --without-liblors was given.
+if test "${with_liblors+set}" = set; then
+  withval="$with_liblors"
+  CPPFLAGS="-I$with_liblors/include $CPPFLAGS",
+	     LIBLORS=yes,
+             IBP_LIBS1="-L$with_liblors/lib -llors $IBP_LIBS1"
+else
+  LIBS="$IBP_LIBS1 $LIBXML2_LIBS -lz"
+	     echo "$as_me:$LINENO: checking for lorsExnodeCreate in -llors" >&5
+echo $ECHO_N "checking for lorsExnodeCreate in -llors... $ECHO_C" >&6
+if test "${ac_cv_lib_lors_lorsExnodeCreate+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-llors  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char lorsExnodeCreate ();
+int
+main ()
+{
+lorsExnodeCreate ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_lors_lorsExnodeCreate=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_lors_lorsExnodeCreate=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_lors_lorsExnodeCreate" >&5
+echo "${ECHO_T}$ac_cv_lib_lors_lorsExnodeCreate" >&6
+if test $ac_cv_lib_lors_lorsExnodeCreate = yes; then
+  IBP_LIBS1="-llors $IBP_LIBS1"
+else
+  { { echo "$as_me:$LINENO: error: unable to locate liblors" >&5
+echo "$as_me: error: unable to locate liblors" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+fi;
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_IBP 1
+_ACEOF
+
+IBP_LIBS="$IBP_LIBS1"
+have_ibp=yes
+fi
+fi
+LIBS="$OLD_LIBS"
+
+
+if test x"$have_ibp" = x"yes" ; then
+  HAVE_IBP_TRUE=
+  HAVE_IBP_FALSE='#'
+else
+  HAVE_IBP_TRUE='#'
+  HAVE_IBP_FALSE=
+fi
+
 
 mjepgtools=yes
 
@@ -30912,7 +31392,7 @@ LDFLAGS=`echo $LDFLAGS | sed -e 's/  */ /g'`
 
 
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ac_config_files="$ac_config_files Makefile autotools/Makefile src/Makefile avilib/Makefile movlib/Makefile libioaux/Makefile libac3/Makefile libvo/Makefile libmpeg2/Makefile libmp3lame/Makefile libdvenc/Makefile bbmpeg/Makefile bbmpeg/tcmplex/Makefile ffmpeg/Makefile ffmpeg/libavcodec/Makefile ffmpeg/libavcodec/i386/Makefile ffmpeg/libavcodec/ppc/Makefile export/Makefile import/Makefile import/nuv/Makefile import/af6/Makefile import/net/Makefile import/v4l/Makefile import/lve/Makefile import/yuv/Makefile filter/Makefile filter/pp/Makefile filter/subtitler/Makefile filter/preview/Makefile filter/divxkey/Makefile filter/extsub/Makefile filter/resample/Makefile filter/test/Makefile filter/ivtc/Makefile filter/yuvdenoise/Makefile pvm3/Makefile docs/Makefile docs/html/Makefile docs/man/Makefile contrib/Makefile tools/Makefile aclib/Makefile libsupport/Makefile libdldarwin/Makefile transcode.spec"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ac_config_files="$ac_config_files Makefile libxio/Makefile autotools/Makefile src/Makefile avilib/Makefile movlib/Makefile libioaux/Makefile libac3/Makefile libvo/Makefile libmpeg2/Makefile libmp3lame/Makefile libdvenc/Makefile bbmpeg/Makefile bbmpeg/tcmplex/Makefile ffmpeg/Makefile ffmpeg/libavcodec/Makefile ffmpeg/libavcodec/i386/Makefile ffmpeg/libavcodec/ppc/Makefile export/Makefile import/Makefile import/nuv/Makefile import/af6/Makefile import/net/Makefile import/v4l/Makefile import/lve/Makefile import/yuv/Makefile filter/Makefile filter/pp/Makefile filter/subtitler/Makefile filter/preview/Makefile filter/divxkey/Makefile filter/extsub/Makefile filter/resample/Makefile filter/test/Makefile filter/ivtc/Makefile filter/yuvdenoise/Makefile pvm3/Makefile docs/Makefile docs/html/Makefile docs/man/Makefile contrib/Makefile tools/Makefile aclib/Makefile libsupport/Makefile libdldarwin/Makefile transcode.spec"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -31253,6 +31733,13 @@ if test -z "${HAVE_LIBXML2_TRUE}" && test -z "${HAVE_LIBXML2_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"HAVE_LIBXML2\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"HAVE_LIBXML2\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${HAVE_IBP_TRUE}" && test -z "${HAVE_IBP_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"HAVE_IBP\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"HAVE_IBP\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -31791,6 +32278,7 @@ do
   case "$ac_config_target" in
   # Handling of arguments.
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
+  "libxio/Makefile" ) CONFIG_FILES="$CONFIG_FILES libxio/Makefile" ;;
   "autotools/Makefile" ) CONFIG_FILES="$CONFIG_FILES autotools/Makefile" ;;
   "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
   "avilib/Makefile" ) CONFIG_FILES="$CONFIG_FILES avilib/Makefile" ;;
@@ -32114,6 +32602,9 @@ s,@LIBXML2_LIBS@,$LIBXML2_LIBS,;t t
 s,@LIBXML2CONFIG@,$LIBXML2CONFIG,;t t
 s,@HAVE_LIBXML2_TRUE@,$HAVE_LIBXML2_TRUE,;t t
 s,@HAVE_LIBXML2_FALSE@,$HAVE_LIBXML2_FALSE,;t t
+s,@IBP_LIBS@,$IBP_LIBS,;t t
+s,@HAVE_IBP_TRUE@,$HAVE_IBP_TRUE,;t t
+s,@HAVE_IBP_FALSE@,$HAVE_IBP_FALSE,;t t
 s,@MJPEG_CFLAGS@,$MJPEG_CFLAGS,;t t
 s,@MJPEG_LIBS@,$MJPEG_LIBS,;t t
 s,@MJPEGTOOLSCONFIG@,$MJPEGTOOLSCONFIG,;t t
@@ -32808,6 +33299,7 @@ Summary for transcode $VERSION features:
 *-*-*-*-*-*-* Core *-*-*-*-*-*-*
 static AV-frame buffering                        $statbuf
 support for network (sockets) streams            $net
+support for IBP storage				 $have_ibp
 DVD navigation support with libdvdread           $have_dvdread
 link against local lame library (>=3.89) | ver   $lame89 | $lame_print
 pvm3 support					 $have_pvm3
@@ -32840,6 +33332,7 @@ Summary for transcode $VERSION features:
 *-*-*-*-*-*-* Core *-*-*-*-*-*-*
 static AV-frame buffering                        $statbuf
 support for network (sockets) streams            $net
+support for IBP storage				 $have_ibp
 DVD navigation support with libdvdread           $have_dvdread
 link against local lame library (>=3.89) | ver   $lame89 | $lame_print
 pvm3 support					 $have_pvm3

@@ -28,7 +28,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
-
+#include <xio.h>
 #include "ioaux.h"
 #include "tc.h"
 
@@ -108,13 +108,13 @@ int save_read(char *buf, int bytes, off_t offset, int fdes)
   // returns 0 if ok, 1 on failure to read first bytes 
   
   // rewind
-  if(lseek(fdes, offset, SEEK_SET)<0) {
+  if(xio_lseek(fdes, offset, SEEK_SET)<0) {
     fprintf(stderr, "[%s:%d] ", __FILE__, __LINE__);
     perror("file seek error");
     return(1);
   }
   
-  if(read(fdes, buf, bytes)<bytes) {
+  if(xio_read(fdes, buf, bytes)<bytes) {
     fprintf(stderr, "[%s:%d] ", __FILE__, __LINE__);
     perror("file read error");
     return(1);
@@ -139,7 +139,7 @@ long fileinfo(int fdes, int skip)
   // assume this is a valid file descriptor
 
   // are we at offset defined by skip?
-  if((offset = lseek(fdes, skip, SEEK_CUR)) < 0) {
+  if((offset = xio_lseek(fdes, skip, SEEK_CUR)) < 0) {
     if(errno==ESPIPE) return(TC_MAGIC_PIPE);
     return(TC_MAGIC_ERROR);
   }
@@ -550,7 +550,7 @@ long fileinfo(int fdes, int skip)
   
  exit:
   // reset file pointer
-  lseek(fdes, 0, SEEK_SET);    
+  xio_lseek(fdes, 0, SEEK_SET);    
   return(id);
 }
 

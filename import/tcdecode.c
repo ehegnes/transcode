@@ -32,7 +32,7 @@
 #include "transcode.h"
 #include "ioaux.h"
 #include "tc.h"
-
+#include <xio.h>
 #define EXE "tcdecode"
 
 extern long fileinfo(int fd, int skip);
@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
     // do not try to mess with the stream
     if (decode.stype != TC_STYPE_STDIN) {
 	if (file_check(decode.name)) exit(1);
-	if ((decode.fd_in = open(decode.name, O_RDONLY)) < 0) {
+	if ((decode.fd_in = xio_open(decode.name, O_RDONLY)) < 0) {
 	    perror("open file");
 	    exit(1);
 	} 
@@ -362,8 +362,9 @@ int main(int argc, char *argv[])
 	exit(1);
     }
     
-    if (decode.fd_in != STDIN_FILENO) close(decode.fd_in);
+    if (decode.fd_in != STDIN_FILENO) xio_close(decode.fd_in);
     
     return 0;
 }
 
+#include "../libxio/static_xio.h"

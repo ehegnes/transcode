@@ -81,7 +81,7 @@ void tc_outstream_rotate(void)
   sprintf(buf, "%s-%03d", base, rotate_ctr++);
 
   //rename old outputfile
-  if(rename(base, buf)<0) tc_error("failed to rename output file\n");
+  if(xio_rename(base, buf)<0) tc_error("failed to rename output file\n");
 
   // reopen output
   if(encoder_open(&export_para, vob)<0) 

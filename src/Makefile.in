@@ -67,7 +67,7 @@ CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
 
-CFLAGS = -D_REENTRANT -Wall -funroll-loops -ffast-math -finline-functions @DLDARWININCL@ @SUPPORTINCL@ -I../export -I../import -I$(srcdir)/../export -I$(srcdir)/../import -export-dynamic -I../aclib -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@
+CFLAGS = -D_REENTRANT -Wall -funroll-loops -ffast-math -finline-functions @DLDARWININCL@ @SUPPORTINCL@ -I../libxio -I../export -I../import -I$(srcdir)/../export -I$(srcdir)/../import -export-dynamic -I../aclib -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
@@ -123,6 +123,8 @@ HAVE_FREETYPE2_FALSE = @HAVE_FREETYPE2_FALSE@
 HAVE_FREETYPE2_TRUE = @HAVE_FREETYPE2_TRUE@
 HAVE_GTK_FALSE = @HAVE_GTK_FALSE@
 HAVE_GTK_TRUE = @HAVE_GTK_TRUE@
+HAVE_IBP_FALSE = @HAVE_IBP_FALSE@
+HAVE_IBP_TRUE = @HAVE_IBP_TRUE@
 HAVE_LAME_FALSE = @HAVE_LAME_FALSE@
 HAVE_LAME_TRUE = @HAVE_LAME_TRUE@
 HAVE_LIBDVDREAD_FALSE = @HAVE_LIBDVDREAD_FALSE@
@@ -175,6 +177,7 @@ HAVE_X86CPU_FALSE = @HAVE_X86CPU_FALSE@
 HAVE_X86CPU_TRUE = @HAVE_X86CPU_TRUE@
 HAVE_XAW_SIMPLE_FALSE = @HAVE_XAW_SIMPLE_FALSE@
 HAVE_XAW_SIMPLE_TRUE = @HAVE_XAW_SIMPLE_TRUE@
+IBP_LIBS = @IBP_LIBS@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -321,7 +324,7 @@ bin_PROGRAMS = transcode
 
 
 #AM_LDFLAGS=`ar t ../ffmpeg/libavcodec/libtcavcodec.a | sed -e '/^__/d' -e 's@^@../ffmpeg/libavcodec/@' | tr '\n' ' '` `ar t ../avilib/libavi.a | sed -e '/^__/d' -e 's@^@../avilib/@' | tr '\n' ' '`
-transcode_LDADD = @DLDARWINLIB@ @SUPPORTLIB@ -L../libioaux -ltcioaux -L../aclib -lac -L../ffmpeg/libavcodec -ltcavcodec -L../avilib -lavi -L../libvo -lvout -lm 
+transcode_LDADD = @DLDARWINLIB@ @SUPPORTLIB@ -L../libioaux -ltcioaux -L../aclib -lac -L../ffmpeg/libavcodec -ltcavcodec -L../avilib -lavi -L../libvo -lvout -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@ -lm 
 
 EXTRA_DIST = \
    audio_trans.h \

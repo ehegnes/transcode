@@ -23,7 +23,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <xio.h>
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
@@ -52,7 +52,7 @@ static int scan(char *name)
 {
   struct stat fbuf;
   
-  if(stat(name, &fbuf)) {
+  if(xio_stat(name, &fbuf)) {
     fprintf(stderr, "(%s) invalid file \"%s\"\n", __FILE__, name);
     exit(1);
   }

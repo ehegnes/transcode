@@ -27,6 +27,7 @@
 #include <string.h>
 #include "avilib.h"
 #include "transcode.h"
+#include <xio.h>
 
 #define MOD_NAME    "import_avi.so"
 #define MOD_VERSION "v0.4.2 (2002-05-24)"
@@ -70,7 +71,7 @@ MOD_open
     // Is the input file actually a directory - if so use
     // tccat to dump out the audio. N.B. This isn't going
     // to work if a particular track is needed
-    if((stat(vob->audio_in_file, &fbuf))==0 && S_ISDIR(fbuf.st_mode)) {
+    if((xio_stat(vob->audio_in_file, &fbuf))==0 && S_ISDIR(fbuf.st_mode)) {
       sprintf(import_cmd_buf, "tccat -a -i \"%s\" -d %d", vob->video_in_file, vob->verbose);
       if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
       if ((param->fd = popen(import_cmd_buf, "r"))== NULL) {

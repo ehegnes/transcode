@@ -21,6 +21,9 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include "../config.h"
+#endif
 #include "transcode.h"
 #include "dl_loader.h"
 #include "framebuffer.h"
@@ -91,6 +94,9 @@ void tc_import_stop()
 //
 //-------------------------------------------------------------------------
 
+#ifdef HAVE_IBP
+extern pthread_mutex_t xio_lock;
+#endif
 
 void import_threads_cancel()
 {
@@ -98,6 +104,10 @@ void import_threads_cancel()
   void *status=NULL;
 
   int cc1, cc2;
+
+#ifdef HAVE_IBP
+  pthread_mutex_lock(&xio_lock);
+#endif
 
   if (tc_decoder_delay)
       printf("\n(%s) sleeping for %d seconds to cool down\n", __FILE__, 2*tc_decoder_delay);
@@ -122,12 +132,18 @@ void import_threads_cancel()
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
   pthread_cond_signal(&vframe_list_full_cv);
 #endif
+#ifdef HAVE_IBP
+      pthread_mutex_unlock(&xio_lock);
+#endif
   cc1=pthread_join(vthread, &status);
   
   if(verbose & TC_DEBUG) fprintf(stderr, "(%s) video thread exit (ret_code=%d) (status_code=%d)\n", __FILE__, cc1, (int) status);
   
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
   pthread_cond_signal(&aframe_list_full_cv);
+#endif
+#ifdef HAVE_IBP
+      pthread_mutex_unlock(&xio_lock);
 #endif
   cc2=pthread_join(athread, &status);
   
@@ -143,7 +159,7 @@ void import_threads_cancel()
   
   if(verbose & TC_DEBUG) fprintf(stderr, "(%s) aframe_list_lock=%s\n", __FILE__, (cc2==EBUSY)? "BUSY":"0");
   pthread_mutex_unlock(&aframe_list_lock);
-  
+
   return;
 
 }

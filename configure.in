@@ -861,6 +861,79 @@ fi
 
 AM_CONDITIONAL(HAVE_LIBXML2, test x"$LIBXML2CONFIG" = x"yes" )
 
+have_ibp=no
+dnl
+dnl lors support
+dnl
+OLD_LIBS="$LIBS"
+AC_ARG_ENABLE(ibp,[
+  --enable-ibp		  enable ibp support (no)], ,enable_ibp=no)
+AC_MSG_CHECKING(for use ibp and lors)
+AC_SUBST([IBP_LIBS])
+if test "x$enable_ibp" = "xyes"
+then
+if test x"$LIBXML2CONFIG" = x"yes"
+then
+AC_ARG_WITH(libfdr,[  --with-libfdr=DIR       base directory for libfdr],
+            [CPPFLAGS="-I$with_libfdr/include $CPPFLAGS",
+	     LIBFDR=yes,
+             IBP_LIBS1="-L$with_libfdr/lib -lfdr $LIBS"],
+             [AC_CHECK_LIB(fdr,jval_v,
+                           [IBP_LIBS1="-lfdr"],
+                           AC_MSG_ERROR(unable to locate libfdr))])
+
+AC_ARG_WITH(libibp,[  --with-libibp=DIR    	  base directory for libibp],
+            [CPPFLAGS="-I$with_libibp/include $CPPFLAGS",
+	     LIBIBP=yes,
+             IBP_LIBS1="-L$with_libibp/lib -libp -lpthread $IBP_LIBS1"],
+            [LIBS="-lpthread $IBP_LIBS1"
+             AC_CHECK_LIB(ibp,IBP_allocate,
+                          [IBP_LIBS1="-libp -lpthread $IBP_LIBS1"],
+                          AC_MSG_ERROR(unable to locate libibp))])
+
+AC_ARG_WITH(libexnode,[  --with-libexnode=DIR    base directory for libexnode],
+            [CPPFLAGS="-I$with_libexnode/include/libexnode $CPPFLAGS",
+	     LIBEXNODE=yes,
+             IBP_LIBS1="-L$with_libexnode/lib -lexnode $IBP_LIBS1"],
+            [LIBS="$IBP_LIBS1"
+	      AC_CHECK_LIB(exnode,exnodeCreateExnode,
+                          [IBP_LIBS1="-lexnode $IBP_LIBS1"],
+                          AC_MSG_ERROR(unable to locate libexnode),
+			  $IBP_LIBS1
+			  )])
+
+AC_ARG_WITH(liblbone,[  --with-liblbone=DIR     base directory for liblbone],
+            [CPPFLAGS="-I$with_liblbone/include $CPPFLAGS",
+	     LIBLBONE=yes,
+             IBP_LIBS1="-L$with_liblbone/lib -llbone $IBP_LIBS1"],
+            [LIBS="$IBP_LIBS1"
+	     AC_CHECK_LIB(lbone,lbone_checkDepots,
+                          [IBP_LIBS1="-llbone $IBP_LIBS1"],
+                          AC_MSG_ERROR(unable to locate liblbone))])
+AC_ARG_WITH(libend2end,[  --with-libend2end=DIR   base directory for libend2end],
+            [CPPFLAGS="-I$with_libend2end/include $CPPFLAGS",
+	     LIBE2E=yes,
+             IBP_LIBS1="-L$with_libend2end/lib -lend2end -lmd5 -ldes -laes $IBP_LIBS1"],
+            [LIBS="-lmd5 -ldes -laes $IBP_LIBS1 -lz"
+             AC_CHECK_LIB(end2end,ConditionMapping,
+                          [IBP_LIBS1="-lend2end -lmd5 -ldes -laes $IBP_LIBS1"],
+                          AC_MSG_ERROR(unable to locate libend2end))])
+
+AC_ARG_WITH(liblors,[  --with-liblors=DIR      base directory for liblors],
+            [CPPFLAGS="-I$with_liblors/include $CPPFLAGS",
+	     LIBLORS=yes,
+             IBP_LIBS1="-L$with_liblors/lib -llors $IBP_LIBS1"],
+            [LIBS="$IBP_LIBS1 $LIBXML2_LIBS -lz"
+	     AC_CHECK_LIB(lors,lorsExnodeCreate,
+                          [IBP_LIBS1="-llors $IBP_LIBS1"],
+                          AC_MSG_ERROR(unable to locate liblors))])
+AC_DEFINE([HAVE_IBP],1 ,[ipb and lors support])
+IBP_LIBS="$IBP_LIBS1"
+have_ibp=yes
+fi 
+fi
+LIBS="$OLD_LIBS"
+AM_CONDITIONAL(HAVE_IBP, test x"$have_ibp" = x"yes" )
 
 dnl 
 dnl mjpegtools (actually only YUV4MPEG) support
@@ -1051,6 +1124,7 @@ AC_SUBST(LDFLAGS)
 
 AC_OUTPUT([
            Makefile
+	   libxio/Makefile
            autotools/Makefile
            src/Makefile
            avilib/Makefile
@@ -1114,6 +1188,7 @@ Summary for transcode $VERSION features:
 *-*-*-*-*-*-* Core *-*-*-*-*-*-*
 static AV-frame buffering                        $statbuf
 support for network (sockets) streams            $net
+support for IBP storage				 $have_ibp
 DVD navigation support with libdvdread           $have_dvdread
 link against local lame library (>=3.89) | ver   $lame89 | $lame_print
 pvm3 support					 $have_pvm3

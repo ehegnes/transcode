@@ -6,7 +6,7 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 AC3_LIB=-L../libac3 -lac3_tc
 AC3_INC=-I../libac3 -I$(srcdir)/../libac3
 
-INCLUDES = -I./ -I../ -I$(srcdir)/.. -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ @LAME_CFLAGS@ $(AC3_INC) @QT_CFLAGS@ -Wall @DV_CFLAGS@ -I../libvo -I$(srcdir)/../libvo @MJPEG_CFLAGS@ @LIBFAME_CFLAGS@ @MAGICK_CFLAGS@ @LIBJPEG_CFLAGS@ -I../libioaux -I$(srcdir)/../libioaux @LZO_CFLAGS@ @PVM3_CFLAGS@ -I../pvm3
+INCLUDES = -I./ -I../ -I$(srcdir)/.. -I../src -I$(srcdir)/../src -I../avilib -I../libxio -I$(srcdir)/../libxio -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ @LAME_CFLAGS@ $(AC3_INC) @QT_CFLAGS@ -Wall @DV_CFLAGS@ -I../libvo -I$(srcdir)/../libvo @MJPEG_CFLAGS@ @LIBFAME_CFLAGS@ @MAGICK_CFLAGS@ @LIBJPEG_CFLAGS@ -I../libioaux -I$(srcdir)/../libioaux @LZO_CFLAGS@ @PVM3_CFLAGS@ -I../pvm3
 
 CFLAGS = -D_REENTRANT -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@
 

@@ -2019,3 +2019,5 @@ int main (int argc, char *argv[])
 	// keeps gcc happy
 	return 0;
 }
+
+#include "../libxio/static_xio.h"

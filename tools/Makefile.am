@@ -8,23 +8,23 @@ CFLAGS = -Wall -I../src -I../avilib -I$(srcdir)/../src -I$(srcdir)/../avilib -I$
 bin_PROGRAMS = avimerge avisplit avifix avisync aviindex tcmodinfo tcmp3cut
  
 avisync_SOURCES = avisync.c buffer.c buffer.h aud_scan.c aud_scan.h
-avisync_LDADD = -L../avilib -lavi
+avisync_LDADD = -L../avilib -lavi  -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@ 
 
 avimerge_SOURCES = avimerge.c aud_scan.c aud_scan.h
-avimerge_LDADD = -L../avilib -lavi
+avimerge_LDADD = -L../avilib -lavi  -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@
 
 avifix_SOURCES = avifix.c aud_scan.c aud_scan.h
-avifix_LDADD = -L../avilib -lavi
+avifix_LDADD = -L../avilib -lavi  -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@
 
 aviindex_SOURCES = aviindex.c aud_scan.c aud_scan.h
-aviindex_LDADD = -L../avilib -lavi
+aviindex_LDADD = -L../avilib -lavi  -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@
 
 avisplit_SOURCES = avisplit.c aud_scan.c aud_scan.h
-avisplit_LDADD = -L../avilib -lavi -L../libioaux -ltcioaux
+avisplit_LDADD = -L../avilib -lavi -L../libioaux -ltcioaux  -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@
 
 tcmodinfo_SOURCES = tcmodinfo.c
-tcmodinfo_LDADD = @DLDARWINLIB@ -lm ../src/optstr.o
-tcmodinfo_LDFLAGS = -rdynamic
+tcmodinfo_LDADD = @DLDARWINLIB@ -ldl -lm ../src/optstr.o
+tcmodinfo_LDFLAGS = -rdynamic 
 
 tcmp3cut_SOURCES = tcmp3cut.c
 

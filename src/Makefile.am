@@ -2,7 +2,7 @@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
-CFLAGS = -D_REENTRANT -Wall -funroll-loops -ffast-math -finline-functions @DLDARWININCL@ @SUPPORTINCL@ -I../export -I../import -I$(srcdir)/../export -I$(srcdir)/../import -export-dynamic -I../aclib -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@
+CFLAGS = -D_REENTRANT -Wall -funroll-loops -ffast-math -finline-functions @DLDARWININCL@ @SUPPORTINCL@ -I../libxio -I../export -I../import -I$(srcdir)/../export -I$(srcdir)/../import -export-dynamic -I../aclib -DMOD_PATH=\"@MOD_PATH@\" @CFLAGS@
 
 bin_PROGRAMS = transcode
 
@@ -13,7 +13,7 @@ endif
 
 #AM_LDFLAGS=`ar t ../ffmpeg/libavcodec/libtcavcodec.a | sed -e '/^__/d' -e 's@^@../ffmpeg/libavcodec/@' | tr '\n' ' '` `ar t ../avilib/libavi.a | sed -e '/^__/d' -e 's@^@../avilib/@' | tr '\n' ' '`
 
-transcode_LDADD= @DLDARWINLIB@ @SUPPORTLIB@ -L../libioaux -ltcioaux -L../aclib -lac -L../ffmpeg/libavcodec -ltcavcodec -L../avilib -lavi -L../libvo -lvout -lm 
+transcode_LDADD= @DLDARWINLIB@ @SUPPORTLIB@ -L../libioaux -ltcioaux -L../aclib -lac -L../ffmpeg/libavcodec -ltcavcodec -L../avilib -lavi -L../libvo -lvout -L../libxio -lxio @IBP_LIBS@ @LIBXML2_LIBS@ -lm 
 
 EXTRA_DIST =  \
    audio_trans.h \

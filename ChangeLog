@@ -1,6 +1,22 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-24 Lukas Hejtmanek <xhejtman at mail.muni.cz>
+
+  * Makefile.am avilib/Makefile.am avilib/avidump.c avilib/avilib.c
+  avilib/avimisc.c config.h.in configure.in docs/ibp_support.txt
+  export/Makefile.am export/export_raw.c import/Makefile.am import/fileinfo.c
+  import/import_avi.c import/import_dv.c import/import_mp3.c import/ioaux.c
+  import/tccat.c import/tcdecode.c import/tcdemux.c import/tcextract.c
+  import/tcprobe.c import/tcrequant.c import/tcscan.c libxio/Makefile.am
+  libxio/libxio.c libxio/static_xio.h libxio/xio.h src/Makefile.am src/callback.c
+  src/decoder.c src/transcode.c tools/Makefile.am:
+  IBP support for transcode.
+  This is the web page about IBP and related tools
+  http://loci.cs.utk.edu/
+
+  For more information look at docs/ibp_support.txt
+
 2004-01-23 Caron Dominique <caron at LPM.univ-montp2.fr>
 
   * contrib/V2divx.pl:

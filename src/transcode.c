@@ -40,6 +40,7 @@
 #include "split.h"
 #include "iodir.h"
 #include "aclib/ac.h"
+#include <xio.h>
 
 #ifdef HAVE_GETOPT_LONG_ONLY
 #include <getopt.h>
@@ -458,7 +459,7 @@ int source_check(char *import_file)
 
     if(import_file[0] == '!') return(0);
     
-    if(stat(import_file, &fbuf)==0) return(0);
+    if(xio_stat(import_file, &fbuf)==0) return(0);
     
 #ifdef NET_STREAM    
     if((hp = gethostbyname(import_file)) != NULL) return(0);
@@ -2210,7 +2211,7 @@ int main(int argc, char *argv[]) {
 	case AVI_COMMENTS:
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 
-	  if ( (vob->avi_comment_fd = open(optarg, O_RDONLY)) == -1)
+	  if ( (vob->avi_comment_fd = xio_open(optarg, O_RDONLY)) == -1)
 	    tc_error ("Cannot open comment file \"%s\"", optarg);
 	    
 
