@@ -30,6 +30,8 @@
 #include "counter.h"
 #include "frequencies.h"
 
+#include "../../src/filter.h"
+
 struct fgdevice fg;
 
 static int fh;
@@ -43,6 +45,7 @@ static struct video_picture     pict;
 static struct video_tuner	tuner;
 
 static int v4l_max_buffer=0;
+static int filter_yuv2toyv12 = -1;
 
 #define cf_get_named_key(x,y,z) cf_get_named_section_value_of_key(x,y,z)
 
@@ -53,7 +56,8 @@ int video_grab_init(
   int w,                 // image width
   int h,                 // image height
   int fmt,               // pixel format
-  int verb              // verbosity flag
+  int verb,             // verbosity flag
+  int do_audio           // init audio or not?
   )
 {
   int i, j, channel_has_tuner = 0;
@@ -343,6 +347,7 @@ dont_touch:
       (channels[chanid].type & VIDEO_TYPE_TV)     ? "tv "     : "",
       (channels[chanid].type & VIDEO_TYPE_CAMERA) ? "camera " : "");
 	
+      if (do_audio) {
 	// audio parameter
 	if (-1 == ioctl(fh,VIDIOCGAUDIO,&audio)) {
 	  perror("ioctl VIDIOCGAUDIO");
@@ -358,11 +363,12 @@ dont_touch:
 	if (audio.flags & VIDEO_AUDIO_VOLUME)
 	  if(verb) printf("volume=%2.0f%s ",(float)audio.volume/65535*100, "%");
   
-  if (audio.flags & VIDEO_AUDIO_BASS)
-    if(verb) printf("bass=%2.0f%s ",(float)audio.bass/65535*100, "%");
+	if (audio.flags & VIDEO_AUDIO_BASS)
+	    if(verb) printf("bass=%2.0f%s ",(float)audio.bass/65535*100, "%");
   
-  if (audio.flags & VIDEO_AUDIO_TREBLE)
-    if(verb) printf("treble=%2.0f%s\n",(float)audio.treble/65535*100, "%");
+	if (audio.flags & VIDEO_AUDIO_TREBLE)
+	    if(verb) printf("treble=%2.0f%s\n",(float)audio.treble/65535*100, "%");
+      }
 
   // picture parameter
   if (-1 == ioctl(fh, VIDIOCGPICT,&pict)) {
@@ -382,14 +388,16 @@ dont_touch:
    *
    */
 
-  // turn on audio
-  grab_setattr(GRAB_ATTR_MUTE, 0);
+  if (do_audio) {
+      // turn on audio
+      grab_setattr(GRAB_ATTR_MUTE, 0);
 
-  // turn on stereo mode
-  grab_setattr(GRAB_ATTR_MODE, 1);
+      // turn on stereo mode
+      grab_setattr(GRAB_ATTR_MODE, 1);
   
-  // reduce output volume to 7/8 of maximum
-  grab_setattr(GRAB_ATTR_VOLUME, 57344);
+      // reduce output volume to 7/8 of maximum
+      grab_setattr(GRAB_ATTR_VOLUME, 57344);
+  }
 
   if( chanid >= 0 ) {
     // set input channel
@@ -433,6 +441,41 @@ dont_touch:
   fg.height = h;
   
   fg.format = fmt;
+
+  if (fmt == VIDEO_PALETTE_RGB24) {
+      pict.palette = fmt;
+      pict.depth = 24;
+      if (-1 == ioctl(fh, VIDIOCSPICT,&pict)) {
+	  printf("(%s) Cannot not set RGB picture attributes\n", __FILE__);
+	  perror("ioctl VIDIOCSPICT");
+	  return(-1);
+      }
+  }
+
+  /*
+  if (fmt == VIDEO_PALETTE_YUV420P) {
+      pict.palette = fmt;
+      if (-1 == ioctl(fh, VIDIOCSPICT,&pict)) {
+	  printf("(%s) Cannot not set YUV picture attributes\n", __FILE__);
+	  perror("ioctl VIDIOCSPICT");
+	  return(-1);
+      }
+  }
+  */
+
+  if (fmt == VIDEO_PALETTE_YUV422) {
+      pict.palette = fmt;
+      if (-1 == ioctl(fh, VIDIOCSPICT,&pict)) {
+	  printf("(%s) Cannot not set YUV 2 picture attributes\n", __FILE__);
+	  perror("ioctl VIDIOCSPICT");
+	  //return(-1);
+      }
+      // loading yuv422 to yv12 conversion filter
+      if (filter_yuv2toyv12 == -1)
+	  if ( (filter_yuv2toyv12 = plugin_find_id("yuy2toyv12")) == -1)
+	      filter_yuv2toyv12 = plugin_get_handle("yuy2toyv12");
+
+  }
   
   // retrieve buffer size and offsets 
   
@@ -480,6 +523,12 @@ dont_touch:
   case VIDEO_PALETTE_YUV420P:
     fg.image_pixels = w*h;
     fg.image_size   = (fg.image_pixels * 3) / 2;
+    break;
+
+  case VIDEO_PALETTE_YUV422:
+    fg.image_pixels = w*h;
+    fg.image_size   = (fg.image_pixels * 3) ;
+    
     
     break;
   }
@@ -504,14 +553,16 @@ dont_touch:
 }
 
 
-int video_grab_close()
+int video_grab_close(int do_audio)
 {
   
   // turn off audio
-  grab_setattr(GRAB_ATTR_MUTE, 1);
+  if (do_audio)
+      grab_setattr(GRAB_ATTR_MUTE, 1);
 
   // video device
-  close(fh);
+  munmap(fg.video_map, fg.vid_mbuf.size);
+  close(fg.video_dev);
 
   return(0);
 
@@ -624,6 +675,11 @@ int video_grab_frame(char *buffer)
     memcpy (buffer, p, fg.image_pixels); 
     memcpy (buffer+fg.image_pixels, p+(fg.image_pixels*10/8), fg.image_pixels>>2); 
     memcpy (buffer+(fg.image_pixels*10/8),p+fg.image_pixels, fg.image_pixels>>2); 
+
+    break;
+
+  case VIDEO_PALETTE_YUV422:
+    memcpy(buffer, p, fg.image_size);
 
     break;
   }

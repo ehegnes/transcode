@@ -30,7 +30,7 @@
 #include "vcr.h"
 
 #define MOD_NAME    "import_v4l.so"
-#define MOD_VERSION "v0.0.2 (2002-02-03)"
+#define MOD_VERSION "v0.0.3 (2003-05-07)"
 #define MOD_CODEC   "(video) v4l | (audio) PCM"
 
 #define MOD_PRE v4l
@@ -52,6 +52,7 @@ static double vframe_pts0=0, vframe_pts=0;
 
 static int audio_drop_frames=25;
 static int video_drop_frames=0;
+static int do_audio = 1;
 
 /* ------------------------------------------------------------ 
  *
@@ -61,6 +62,7 @@ static int video_drop_frames=0;
 
 MOD_open
 {
+    int fmt = VIDEO_PALETTE_YUV420P;
   
   
   if(param->flag == TC_VIDEO) {
@@ -74,11 +76,19 @@ MOD_open
     //set channel with vob->station or vob->station_id 
     //set device with vob->video_in_file
 
+    //printf("vob->amod_probed (%s)\n", vob->amod_probed);
+
+    if ((vob->amod_probed && strlen(vob->amod_probed)>=4 && !strncmp(vob->amod_probed, "null", 4)) 
+	    || !vob->amod_probed) {
+	printf("NO AUDIO\n");
+	do_audio = 0;
+    }
+
     switch(vob->im_v_codec) {
       
     case CODEC_RGB:
     
-      if(video_grab_init(vob->video_in_file, vob->chanid, vob->station_id, vob->im_v_width, vob->im_v_height, VIDEO_PALETTE_RGB24, verbose_flag)<0) {
+      if(video_grab_init(vob->video_in_file, vob->chanid, vob->station_id, vob->im_v_width, vob->im_v_height, VIDEO_PALETTE_RGB24, verbose_flag, do_audio)<0) {
 	fprintf(stderr, "error grab init\n");
 	return(TC_IMPORT_ERROR);
       }
@@ -86,7 +96,13 @@ MOD_open
       break;
 
     case CODEC_YUV:
-      if(video_grab_init(vob->video_in_file, vob->chanid, vob->station_id, vob->im_v_width, vob->im_v_height, VIDEO_PALETTE_YUV420P, verbose_flag)<0) {
+
+      if (vob->im_v_string && strlen (vob->im_v_string)>0) {
+	  if ( (strcmp (vob->im_v_string, "yuv422")) == 0)
+	      fmt = VIDEO_PALETTE_YUV422;
+      }
+
+      if(video_grab_init(vob->video_in_file, vob->chanid, vob->station_id, vob->im_v_width, vob->im_v_height, fmt, verbose_flag, do_audio)<0) {
 	fprintf(stderr, "error grab init\n");
 	return(TC_IMPORT_ERROR);
       }
@@ -95,7 +111,8 @@ MOD_open
     }
     
     vframe_pts0 =  vframe_pts = v4l_counter_init();
-    video_drop_frames = audio_drop_frames - (int) ((vframe_pts0-aframe_pts0)*vob->fps);
+    if (do_audio)
+	video_drop_frames = audio_drop_frames - (int) ((vframe_pts0-aframe_pts0)*vob->fps);
     if(verbose_flag) printf("[%s] dropping %d video frames for AV sync\n ", MOD_NAME, video_drop_frames);
     
     return(0);
@@ -174,9 +191,8 @@ MOD_close
   if(param->flag == TC_VIDEO) {
     
     // stop grabbing
-    video_grab_close();
+    video_grab_close(do_audio);
     
-    if(param->fd != NULL) pclose(param->fd);
     return(0);
   }
   
@@ -185,7 +201,6 @@ MOD_close
     // stop grabbing
     audio_grab_close();
     
-    if(param->fd != NULL) pclose(param->fd);
     return(0);
   }
   

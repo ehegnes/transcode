@@ -39,9 +39,9 @@
 
 #define NUM_ATTR (sizeof(grab_attr)/sizeof(struct GRAB_ATTR))
 
-int video_grab_init(char *device, int chanid, char * station_id, int w, int h, int fmt, int verb);
+int video_grab_init(char *device, int chanid, char * station_id, int w, int h, int fmt, int verb, int do_audio);
 int video_grab_frame(char *buffer);
-int video_grab_close();
+int video_grab_close(int do_audio);
 
 int grab_setattr(int id, int val);
 int grab_getattr(int id);
