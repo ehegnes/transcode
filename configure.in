@@ -591,6 +591,17 @@ dnl have_xvidcore=no
 dnl AM_PATH_LIBXVID(AC_DEFINE([HAVE_LIBXVID], 1, [Have XVID support]))
 dnl AM_CONDITIONAL(HAVE_LIBXVID, test x"$have_xvidcore" = "xyes")
 
+default_xvid="xvid2"
+new_xvid=${default_xvid}
+
+AC_ARG_WITH(default-xvid,  AC_HELP_STRING([--with-default-xvid=xvid2],[Default xvid (xvid2)]), 
+[ 
+ new_xvid=$withval 
+], )
+
+XVID_DEFAULT="${new_xvid}"
+AC_SUBST(XVID_DEFAULT)
+
 dnl
 dnl libmpeg3 support
 dnl
@@ -967,6 +978,7 @@ nasm dependent modules (bbmpeg)                  $nasm
 mjpegtools dependent modules                     $MJPEGTOOLSCONFIG
 libdv dependent modules			         $have_dv
 Ogg support | Vorbis support | Theora support    $have_ogg | $have_vorbis | $have_theora
+Default xvid export module                       $XVID_DEFAULT
 liba52 audio plugin (>=0.7.3) | default decoder  $have_a52 | $a52_decoder
 avifile API support                              $have_avifile
 ImageMagick dependent modules (>=5.4.3)          $have_magick

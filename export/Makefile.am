@@ -235,3 +235,8 @@ EXTRA_DIST = \
   xvid3.cfg \
   xvid4.cfg \
   xvid_vbr.h
+
+
+install-exec-hook:
+	@rm -f $(MOD_PATH)/export_xvid.so
+	@$(LN_S) export_$(XVID_DEFAULT).so $(MOD_PATH)/export_xvid.so

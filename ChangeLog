@@ -1,7 +1,16 @@
 --------------------------------------------
 transcode-0.6.9
 
-2003-08-03 Edouard Gomez <ed.gomez at free.fr>
+2003-08-04 Tilmann Bitterberg <transcode at tibit.org>
+
+  * configure.in export/Makefile.am:
+  New configure switch:
+    --with-default-xvid=xvid2   Default xvid (xvid2)
+  Because there is no export_xvid module anymore this option creates
+  a symlink from xvidN to xvid so that one can continue to use -y
+  xvid.
+
+2003-08-04 Edouard Gomez <ed.gomez at free.fr>
 
   * export/export_xvid4.c:
   patch-11
@@ -46,7 +55,7 @@ transcode-0.6.9
   Significant speed increase by doing careful plain C optimizations.
   On my system, the filter now runs at 24.5 fps instead of 16.8 fps.
 
-2003-08-02  Benjamin Riefenstahl  <Benjamin.Riefenstahl@epost.de>
+2003-08-02  Benjamin Riefenstahl  <Benjamin.Riefenstahl at epost.de>
 
   * filter/extsub/filter_extsub.c, filter/extsub/subtitle_buffer.c,
   import/clone.c, import/packets.c, src/decoder.c, 

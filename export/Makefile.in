@@ -256,6 +256,7 @@ USE_LIBA52_DECODER = @USE_LIBA52_DECODER@
 VERSION = @VERSION@
 VORBIS_CFLAGS = @VORBIS_CFLAGS@
 VORBIS_LIBS = @VORBIS_LIBS@
+XVID_DEFAULT = @XVID_DEFAULT@
 X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
 X_LIBS = @X_LIBS@
@@ -1068,6 +1069,8 @@ info-am:
 install-data-am: install-pkgDATA install-pkgLTLIBRARIES
 
 install-exec-am:
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-exec-hook
 
 install-info: install-info-am
 
@@ -1108,6 +1111,10 @@ uninstall-am: uninstall-info-am uninstall-pkgDATA \
 	pdf-am ps ps-am tags uninstall uninstall-am uninstall-info-am \
 	uninstall-pkgDATA uninstall-pkgLTLIBRARIES
 
+
+install-exec-hook:
+	@rm -f $(MOD_PATH)/export_xvid.so
+	@$(LN_S) export_$(XVID_DEFAULT).so $(MOD_PATH)/export_xvid.so
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
