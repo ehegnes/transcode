@@ -130,9 +130,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
     if(options != NULL) sscanf(options,"%d:%d", &loop, &ac);
 
-    //print available multimedia extensions
-    ac_cputest();
-      
     return(0);
   }
   
