@@ -31,18 +31,20 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include <sys/soundcard.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <sys/time.h>
+
 #include <linux/types.h>
 
 #ifdef HAVE_LINUX_VIDEODEV2_H
+#define _LINUX_TIME_H
 #include <linux/videodev2.h>
 #else
 #include "videodev2.h"
 #endif
 
-#include <sys/soundcard.h>
-#include <sys/ioctl.h>
-#include <sys/mman.h>
-#include <sys/time.h>
 
 #include "transcode.h"
 #include "aclib/ac.h"

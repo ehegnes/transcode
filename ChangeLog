@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-11-28 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/v4l2/import_v4l2.c configure.in:
+  Add improved configure check for linux/videodev2.h
+  Fix freetype2 detection
+
 2003-11-28 Christopher Cramer <crayc at pyro.net>
 
   * src/transcode.h:

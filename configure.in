@@ -535,26 +535,35 @@ dnl
 dnl freetype
 dnl
 
-have_freetype2=yes
+freetype2=yes
 AC_MSG_CHECKING(wether to enable filter_text)
 AC_ARG_ENABLE(text,  AC_HELP_STRING([--enable-text], [enable the text filter (yes)]),
 [
-if test x"${enableval}" = x"yes"; then
-    AC_MSG_RESULT(yes)
-    AC_CHECK_FT2([9.2.0],[have_freetype2=yes
-	      AC_DEFINE([HAVE_FREETYPE2], 1, [Define if you  have the freetype2 lib])
-	      ],[have_freetype2=no])
-else
+if test x"${enableval}" = x"no"; then
+freetype2=no
 AC_MSG_RESULT(no)
-fi], AC_MSG_RESULT(yes))
+else
+freetype2=yes
+    AC_MSG_RESULT(yes)
+fi], )
 
-AM_CONDITIONAL(HAVE_FREETYPE2,test x"$have_freetype2" = "xyes")
+
+if test x"${freetype2}" = x"yes"; then
+    AC_CHECK_FT2([9.2.0],[freetype2=yes
+	      AC_DEFINE([HAVE_FREETYPE2], 1, [Define if you  have the freetype2 lib])
+	      ],[freetype2=no])
+fi
+AM_CONDITIONAL(HAVE_FREETYPE2,test x"$freetype2" = "xyes")
 
 dnl
 dnl v4l
 dnl
 
-AC_CHECK_HEADER([linux/videodev.h], v4l=yes, v4l=no)
+AC_CHECK_HEADERS([linux/videodev.h], [v4l=yes], [v4l=no])
+AC_CHECK_HEADERS([linux/videodev2.h], [v4l2=yes], [v4l2=no], [
+#include <linux/types.h>
+])
+
 
 
 AC_MSG_CHECKING(for v4l support)
@@ -567,14 +576,15 @@ else
     v4l=no
 fi], )
 
-if test x"${v4l}" = x"yes" ; then
+if test x"${v4l}" = x"yes" -o x"${v4l2}" = x"yes"; then
 AC_DEFINE([HAVE_V4L], 1, [Have Video4linux headers])	
 AC_MSG_RESULT(yes)
+   v4l=yes
+else
+AC_MSG_RESULT(no)
 fi
 
 AM_CONDITIONAL(HAVE_V4L, test x"${v4l}" = x"yes")
-
-AC_CHECK_HEADER([linux/videodev2.h], AC_DEFINE([HAVE_LINUX_VIDEODEV2_H], 1, [Define if you have the videodev2.h file]))
 
 dnl
 dnl lame support
@@ -1062,7 +1072,7 @@ libfame video encoding plugin                    $have_libfame
 quicktime dependent modules                      $have_qt
 *-*-*-*-*-*-* Filter *-*-*-*-*-*-*
 X11 dependent filter plugins                     $USE_X11
-freetype2 dependent filter (filter_text)         $have_freetype2
+freetype2 dependent filter (text, subtitler)     $freetype2
 ----------------------------------------------------------
 ])
 if test x"$have_x86cpu" = x"true"; then
