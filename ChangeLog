@@ -67,6 +67,10 @@ transcode-0.6.9
   * import/import_rawlist.c:
   Add a few more colorspace conversions.
 
+  * src/filter.c:
+  The filters now return if they don't want skipped frames so there
+  is no need anymore for the filter core to skip the filters
+
 2003-07-29 Christopher Cramer <crayc at asuka.halfassedprojects.com>
 
   * filter/filter_fps.c:
