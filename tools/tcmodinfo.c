@@ -279,12 +279,19 @@ int main(int argc, char *argv[])
 
   if(filename==NULL) usage();
 
+  // some arbitrary values for the filters
+  vob.fps        = 25.0;
   vob.im_v_width = 32;
   vob.ex_v_width = 32;
   vob.im_v_height= 32;
   vob.ex_v_height= 32;
   vob.im_v_codec = CODEC_YUV;
 
+  vob.a_rate          = 44100; 
+  vob.mp3frequency    = 44100;
+  vob.a_chan          = 2;
+  vob.a_bits          = 16;
+  
   //fprintf(stderr, "Module is (%s/filter_%s) (%d)\n", modpath, filename, getpid());
 
   snprintf (filter[0].name, 256, "%s", filename);
