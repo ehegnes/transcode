@@ -1,6 +1,20 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-08-02 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/{filter_32detect.c filter_aclip.c filter_astat.c
+  filter_compare.c filter_cpaudio.c filter_cshift.c
+  filter_dilyuvmmx.c filter_dnr.c filter_hqdn3d.c filter_invert.c
+  filter_logo.c filter_logoaway.c filter_mask.c filter_nored.c
+  filter_normalize.c filter_pp.c filter_skip.c
+  filter_smartdeinter.c filter_smartyuv.c filter_smooth.c
+  filter_testframe.c filter_unsharp.c filter_videocore.c
+  filter_xsharpen.c filter_yuy2toyv12.c ivtc/filter_decimate.c
+  ivtc/filter_ivtc.c yuvdenoise/filter_yuvdenoise.c
+  yuvdenoise/filter_yuvmedian.c}:
+  Fix a typo; (!ptr->attributes & FLAG) != !(ptr->attributes & FLAG)
+
 2003-07-31 marrq <marrq at ugcs.caltech.edu>
   
   * src/encoder.c:
