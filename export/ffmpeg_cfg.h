@@ -4,25 +4,6 @@
 #include "../libioaux/configs.h"
 #include "../ffmpeg/libavcodec/avcodec.h"
 
-#define FFMPEG_CONFIG_FILE "ffmpeg.cfg"
-
-#define CONF_TYPE_FLAG		0
-#define CONF_TYPE_INT		1
-#define CONF_TYPE_FLOAT		2
-#define CONF_TYPE_STRING	3
-
-#define CONF_MIN		(1<<0)
-#define CONF_MAX		(1<<1)
-#define CONF_RANGE		(CONF_MIN|CONF_MAX)
-
-struct config {
-  char *name;
-  void *p;
-  unsigned int type, flags;
-  float min, max;
-  void *dummy;
-};
-
 //extern int lavc_param_vbitrate;
 extern int lavc_param_vrate_tolerance;
 extern int lavc_param_vhq; /* default is NOT realtime encoding! */
@@ -99,10 +80,5 @@ extern int lavc_param_coder;
 extern int lavc_param_context;
 
 extern struct config lavcopts_conf[];
-
-int ffmpeg_read_config(char *section, char *prefix, struct config *conf);
-int ffmpeg_read_values(CF_ROOT_TYPE *p_root, CF_SECTION_TYPE *p_section,
-                       char *prefix, struct config *conf);
-int ffmpeg_print_config(char *prefix, struct config *conf);
 
 #endif

@@ -10,10 +10,15 @@
 
 */
 
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "configs.h"
 
@@ -2367,3 +2372,194 @@ cf_sntoupper( char * pString, int num )
 	return upper;
 }
 
+int module_read_config(char *section, char *prefix, char *module, struct config *conf) {
+  CF_ROOT_TYPE    *p_root;
+  CF_SECTION_TYPE *p_section;
+  struct stat      statfile;
+  char             buffer[1024];
+  char             conffile[256];
+
+  snprintf(conffile, 255, "./%s.cfg", module);
+  
+// search for the config file called module.cfg
+  if (stat(conffile, &statfile) != 0) {
+    char *home = getenv("HOME");
+    
+    if (home != NULL) {
+      snprintf(buffer, 1023, "%s/.transcode/%s.cfg", home, module);
+      if (stat(buffer, &statfile) != 0) {
+        fprintf(stderr, "[%s] Neither './%s.cfg' nor '~/.transcode/%s.cfg' found. Falling back "
+                "to hardcoded defaults.\n", prefix, module, module);
+        return 0;
+      }
+    } else {
+      return 0;
+    }
+  } else {
+    strcpy(buffer, conffile);
+  }
+
+  fprintf(stderr, "[%s] Reading configuration from '%s'\n", prefix, buffer);
+  
+  if (!S_ISREG(statfile.st_mode)) {
+    fprintf(stderr, "[%s] '%s' is not a regular file. Falling back to hardcoded"
+            " defaults.\n", prefix, buffer);
+    return 0;
+  }
+
+  p_root = cf_read(buffer);
+  if (p_root == NULL) {
+    fprintf(stderr, "[%s] Error reading configuration file '%s'. Falling back "
+            "to hardcoded defaults.\n", prefix, buffer);
+    return 0;
+  }
+
+  p_section = cf_get_section(p_root);
+  while (p_section != NULL) {
+    if (!strcmp(p_section->name, section)) {
+      module_read_values(p_root, p_section, prefix, conf);
+      CF_FREE_ROOT(p_root);
+      return 1;
+    }
+    p_section = cf_get_next_section(p_root, p_section);
+  }
+  
+  CF_FREE_ROOT(p_root);
+  
+  fprintf(stderr, "[%s] No section named '%s' found in '%s'. Falling "
+          "back to hardcoded defaults.\n", prefix, section,
+          conffile);
+
+  return 0;
+}
+
+int module_read_values(CF_ROOT_TYPE *p_root, CF_SECTION_TYPE *p_section,
+                        char *prefix, struct config *conf) {
+  CF_KEYVALUE_TYPE *kv;
+  struct config    *cur_config;
+  char             *value, *error;
+  int               i;
+  float             f;
+
+  cur_config = conf;
+
+  while (cur_config->name != NULL) {
+    value = cf_get_named_section_value_of_key(p_root, p_section->name,
+                                              cur_config->name);
+    if (value != NULL) {
+      errno = 0;
+      switch (cur_config->type) {
+        case CONF_TYPE_INT:
+          i = strtol(value, &error, 10);
+          if ((errno != 0) || (i == LONG_MIN) || (i == LONG_MAX) ||
+              ((error != NULL) && (*error != 0)))
+            fprintf(stderr, "[%s] Option '%s' must be an integer.\n",
+                    prefix, cur_config->name);
+          else if ((cur_config->flags & CONF_MIN) && (i < cur_config->min))
+            fprintf(stderr, "[%s] Option '%s' has a value that is too low "
+                    "(%d < %d).\n", prefix, cur_config->name, i,
+                    (int)cur_config->min);
+          else if ((cur_config->flags & CONF_MAX) && (i > cur_config->max))
+            fprintf(stderr, "[%s] Option '%s' has a value that is too high "
+                    "(%d > %d).\n", prefix, cur_config->name, i,
+                    (int)cur_config->max);
+          else
+            *((int *)cur_config->p) = i;
+          break;
+        case CONF_TYPE_FLAG:
+          i = atoi(value);
+          if (errno != 0)
+            fprintf(stderr, "[%s] Option '%s' is a flag. The only values "
+                    "allowed for it are '0' and '1'.\n", prefix,
+                    cur_config->name);
+          else if ((i != 1) && (i != 0))
+            fprintf(stderr, "[%s] Option '%s' is a flag. The only values "
+                    "allowed for it are '0' and '1'.\n", prefix,
+                    cur_config->name);
+          else
+            *((int *)cur_config->p) = (i?(int)cur_config->max:0);
+          break;
+        case CONF_TYPE_FLOAT:
+          f = strtod(value, NULL);
+          if (errno != 0)
+            fprintf(stderr, "[%s] Option '%s' must be a float.\n",
+                    prefix, cur_config->name);
+          else if ((cur_config->flags & CONF_MIN) && (f < cur_config->min))
+            fprintf(stderr, "[%s] Option '%s' has a value that is too low "
+                    "(%f < %f).\n", prefix, cur_config->name, f,
+                    cur_config->min);
+          else if ((cur_config->flags & CONF_MAX) && (f > cur_config->max))
+            fprintf(stderr, "[%s] Option '%s' has a value that is too high "
+                    "(%f > %f).\n", prefix, cur_config->name, f,
+                    cur_config->max);
+          else
+            *((float *)cur_config->p) = f;
+          break;
+        case CONF_TYPE_STRING:
+          *((char **)cur_config->p) = strdup(value);
+          break;
+        default:
+          fprintf(stderr, "[%s] Unsupported config type '%d' for '%s'.\n",
+                  prefix, cur_config->type, cur_config->name);
+      }
+    }
+  
+    cur_config++;
+  }
+  
+  kv = cf_get_named_section_keyvalue(p_root, p_section->name);
+  while (kv != NULL) {
+    cur_config = conf;
+    i = 0;
+    while (cur_config->name != NULL) {
+      if (!strcmp(kv->key, cur_config->name)) {
+        i = 1;
+        break;
+      }
+      cur_config++;
+    }
+    if (!i)
+      fprintf(stderr, "[%s] Key '%s' is not a valid option.\n", prefix,
+              kv->key);
+    kv = cf_get_named_section_next_keyvalue(p_root, p_section->name, kv);
+  }
+  
+  return 0;
+}
+
+int module_print_config(char *prefix, struct config *conf) {
+  struct config *cur_config;
+  char          *s;
+  
+  cur_config = conf;
+  
+  while (cur_config->name != NULL) {
+    switch (cur_config->type) {
+      case CONF_TYPE_INT:
+        fprintf(stderr, "%s%s = %d\n", prefix, cur_config->name, 
+                *((int *)cur_config->p));
+        break;
+      case CONF_TYPE_FLAG:
+        fprintf(stderr, "%s%s = %d\n", prefix, cur_config->name, 
+                *((int *)cur_config->p) ? 1 : 0);
+        break;
+      case CONF_TYPE_FLOAT:
+        fprintf(stderr, "%s%s = %f\n", prefix, cur_config->name, 
+                *((float *)cur_config->p));
+        break;
+      case CONF_TYPE_STRING:
+        s = *((char **)cur_config->p);
+        fprintf(stderr, "%s%s%s = %s\n", prefix,
+                s == NULL ? "#" : (*s == 0 ? "#" : ""),
+                cur_config->name,
+                s == NULL ? "" : s);
+        break;
+      default:
+        fprintf(stderr, "%s#%s = <UNSUPPORTED FORMAT>\n", prefix,
+                cur_config->name);
+    }
+    cur_config++;
+  }
+  
+  return 0;
+}

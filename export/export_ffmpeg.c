@@ -3,7 +3,7 @@
  *    based heavily on mplayers ve_lavc.c
  *
  *  Copyright (C) Moritz Bunkus - October 2002
- *    UpToDate by Tilmann Bitterberg - March 2003
+ *    UpToDate by Tilmann Bitterberg - July 2003
  *
  *  This file is part of transcode, a linux video stream processing tool
  *      
@@ -53,7 +53,7 @@
 #endif
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.3.4 (2003-07-24)"
+#define MOD_VERSION "v0.3.5 (2003-07-28)"
 #define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
                     ") | (audio) MPEG/AC3/PCM"
 #define MOD_PRE ffmpeg
@@ -276,11 +276,11 @@ MOD_init {
     }
 
 	
-    ffmpeg_read_config(codec->name, MOD_NAME, lavcopts_conf);
+    module_read_config(codec->name, MOD_NAME, "ffmpeg", lavcopts_conf);
     if (verbose_flag & TC_DEBUG) {
       fprintf(stderr, "[%s] Using the following FFMPEG parameters:\n",
               MOD_NAME);
-      ffmpeg_print_config("", lavcopts_conf);
+      module_print_config("", lavcopts_conf);
     }
     
     if (lavc_param_vhq)

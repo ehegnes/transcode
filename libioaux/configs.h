@@ -185,6 +185,42 @@ typedef union cf_value cfv_t;
 */
 
 /*
+ * the top top level api ;)
+ * merged in from export_ffmpeg
+ */
+#define CONF_TYPE_FLAG		0
+#define CONF_TYPE_INT		1
+#define CONF_TYPE_FLOAT		2
+#define CONF_TYPE_STRING	3
+
+#define CONF_MIN		(1<<0)
+#define CONF_MAX		(1<<1)
+#define CONF_RANGE		(CONF_MIN|CONF_MAX)
+
+struct config {
+  char *name;
+  void *p;
+  unsigned int type, flags;
+  float min, max;
+  void *dummy;
+};
+
+int module_read_config(char *section, char *prefix, char *module, struct config *conf);
+int module_read_values(CF_ROOT_TYPE *p_root, CF_SECTION_TYPE *p_section,
+                       char *prefix, struct config *conf);
+int module_print_config(char *prefix, struct config *conf);
+
+/* 
+ * fill the config structure in this way:
+
+struct config module_conf[] = {
+    {"vcodec", &lavc_param_vcodec, CONF_TYPE_STRING, 0, 0, 0, NULL},
+    {"vbitrate", &lavc_param_vbitrate, CONF_TYPE_INT, CONF_RANGE, 4, 24000000, NULL},
+    {NULL, NULL, 0, 0, 0, 0, NULL}
+  };
+  */
+
+/*
  * the top level api.
  */
 cfr_t * cf_read( char * filename );
