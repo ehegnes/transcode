@@ -2,6 +2,11 @@
 transcode-0.6.12
 
 2004-01-03 Erik Slagter <erik at oldconomy.com>
+  
+  * filter/filter_denoise3d.c:
+  Fix typo.
+
+2004-01-03 Erik Slagter <erik at oldconomy.com>
 
   * import/v4l/import_v4l2.c:
   - New approach to initial a/v sync. Audio (which appears to always start

@@ -20,7 +20,7 @@
 */
 
 #define MOD_NAME    "filter_denoise3d.so"
-#define MOD_VERSION "v1.0.4 (2003-11-08)"
+#define MOD_VERSION "v1.0.6 (2003-12-20)"
 #define MOD_CAP     "High speed 3D Denoiser"
 #define MOD_AUTHOR  "Daniel Moreno & A'rpi"
 
@@ -37,6 +37,7 @@
 				large cleanup
 				added arbitrary layout support
 				denoising U&V (colour) planes now actually works
+	1.0.6	EMS	fixed annoying typo
 */
 
 #include <stdio.h>
@@ -389,7 +390,7 @@ int tc_filter(vframe_list_t * vframe, char * options)
 		if(verbose)
 		{
 			fprintf(stderr, "[%s]: %s %s #%d\n", MOD_NAME, MOD_VERSION, MOD_CAP, instance);
-			fprintf(stderr, "[%s]: Settings luma: %.2f chroma: %.2f luma_strength: %.2f chroma_strength: %.2f\n",
+			fprintf(stderr, "[%s]: Settings luma (spatial): %.2f luma_strength (temporal): %.2f chroma (spatial): %.2f chroma_strength (temporal): %.2f\n",
 				MOD_NAME,
 				pd->parameter.luma_spatial, 
 				pd->parameter.luma_temporal, 
