@@ -1205,7 +1205,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
       char buf[255];
-      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYE", "1");
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYE", "1");
 
       sprintf (buf, "%d", mfd->motionOnly);
       optstr_param (options, "motionOnly", "Show motion areas only, blacking out static areas" ,"%d", buf, "0", "1");

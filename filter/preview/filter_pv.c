@@ -37,6 +37,7 @@
 #define MOD_NAME    "filter_pv.so"
 #define MOD_VERSION "v0.2.2 (2003-02-27)"
 #define MOD_CAP     "xv only preview plugin"
+#define MOD_AUTHOR  "Thomas Oestreich, Tilmann Bitterberg"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -169,6 +170,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //
   // (6) filter is last time with TC_FILTER_CLOSE flag set
 
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYO", "1");
+      optstr_param (options, "cache", "Number of raw frames to cache for seeking",  "%d", "15", "15", "255");
+      optstr_param (options, "skip", "display only every Nth frame",  "%d", "0", "0", "255");
+  }
 
   //----------------------------------
   //
@@ -198,6 +204,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
       }
 
       optstr_get (options, "skip", "%d", &preview_skip_num);
+      if (optstr_lookup(options, "help")) return -1;
 
     }
 

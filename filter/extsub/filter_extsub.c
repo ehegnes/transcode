@@ -428,8 +428,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
       optstr_param (options, "pre",   "Run as a pre filter",    "%d",    "1", "0", "1");
       optstr_param (options, "color1", "Make a subtitle color visible with given intensity", "%d",  "0", "0", "255");
       optstr_param (options, "color2", "Make a subtitle color visible with given intensity", "%d",  "0", "0", "255");
-      optstr_param (options, "ca",   " Shuffle the color assignment by choosing another subtitle color",    "%d", "0", "0", "3");
-      optstr_param (options, "cb",   " Shuffle the color assignment by choosing another subtitle color",    "%d", "0", "0", "3");
+      optstr_param (options, "ca",   "Shuffle the color assignment by choosing another subtitle color",    "%d", "0", "0", "3");
+      optstr_param (options, "cb",   "Shuffle the color assignment by choosing another subtitle color",    "%d", "0", "0", "3");
 
       return 0;
   }

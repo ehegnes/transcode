@@ -24,6 +24,7 @@
 #define MOD_NAME    "filter_preview.so"
 #define MOD_VERSION "v0.1.4 (2002-10-08)"
 #define MOD_CAP     "xv/sdl/gtk preview plugin"
+#define MOD_AUTHOR  "Thomas Oestreich"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,6 +45,7 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "optstr.h"
 
 static char buffer[128];
 static int size=0;
@@ -104,6 +106,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //
   // (6) filter is last time with TC_FILTER_CLOSE flag set
 
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYO", "1");
+  }
 
   //----------------------------------
   //
@@ -134,6 +139,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     dv_player->display->arg_display=0;
 
     if(options!=NULL) {
+      if(strcasecmp(options,"help")==0) return -1;
       if(strcasecmp(options,"gtk")==0) dv_player->display->arg_display=1;
       if(strcasecmp(options,"sdl")==0) dv_player->display->arg_display=3;
       if(strcasecmp(options,"xv")==0)  dv_player->display->arg_display=2;
