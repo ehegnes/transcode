@@ -1,6 +1,45 @@
 --------------------------------------------
 transcode-0.6.7
 
+2003-05-28 Hendrik Scholz <hscholz at raisdorf.net>
+  
+  Various BSD stuff from various authors
+
+  * import/ioaux.c: 
+  Repeat the read() if failed and error is EINTR.
+  
+  * filter/preview/pv.c: 
+  Fix FreeBSD on_exit hack
+
+  * filter/preview/display.h:
+  Remove SDL/ path from includes. sdl-config --cflags returns the
+  include-path with SDL/.
+
+  * bbmpeg/mplex.h:
+  include <sys/types.h>
+
+  * filter/subtitler/frame_list.c:
+  Remove declaration of malloc.
+
+2003-05-28 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * export/aud_aux.c:
+  Again memory corruption when encoding with lame which happend with
+  only with small audio buffer sizes. Also a speed improvement by
+  100% (reduced memmove usage). Thanks go to marrq for pointing it
+  out and provided sample files to reproduce it.
+
+  * configure.in:
+  remove double check for malloc().
+
+  * acinclude.m4:
+  remove duplicated SDL check.
+  
+2003-05-28 mpd <mpd at rochester.rr.com>
+
+  * import/clone.c:
+  have clone_fifo return logfile instead of name
+
 2003-05-24 Tilmann Bitterberg <transcode at tibit.org>
 
   * acinclude.m4:
