@@ -153,6 +153,7 @@ typedef struct _xvid_transcode_module_t
 	int cfg_motion;
 	int cfg_stats;
 	int cfg_greyscale;
+	int cfg_turbo;
 
 	/* MPEG4 stream buffer */
 	int   stream_size;
@@ -452,7 +453,7 @@ MOD_close
  ****************************************************************************/
 
 #define SSE2PSNR(sse, width, height) \
-((!(sse)) ? (0.0f) : (48.131f - 10*(float)log10((float)(sse)/((float)((width)*(height))))))
+((!(sse)) ? (99.0f) : (48.131f - 10*(float)log10((float)(sse)/((float)((width)*(height))))))
 
 MOD_stop
 {  
@@ -534,7 +535,7 @@ static void reset_module(xvid_transcode_module_t *mod)
 	mod->rawfd = -1;
 
 	/* Default options */
-	mod->cfg_packed = 0;
+	mod->cfg_packed = 1;
 	mod->cfg_closed_gop = 1;
 	mod->cfg_interlaced = 0;
 	mod->cfg_quarterpel = 0;
@@ -542,15 +543,14 @@ static void reset_module(xvid_transcode_module_t *mod)
 	mod->cfg_trellis = 0;
 	mod->cfg_cartoon = 0;
 	mod->cfg_hqacpred = 1;
-	mod->cfg_chromame = 0;
-	mod->cfg_vhq = 0;
+	mod->cfg_chromame = 1;
+	mod->cfg_vhq = 1;
 	mod->cfg_motion = 6;
+	mod->cfg_turbo = 0;
 	mod->cfg_stats = 0;
 	mod->cfg_greyscale = 0;
 	mod->cfg_quant_method = strdup("h263");
-
-	/* No bframes by default but ratio and offset have to be initialized */
-	mod->cfg_create.max_bframes = 0;
+	mod->cfg_create.max_bframes = 2;
 	mod->cfg_create.bquant_ratio = 150;
 	mod->cfg_create.bquant_offset = 100;
 
@@ -643,6 +643,7 @@ static void read_config_file(xvid_transcode_module_t *mod)
 			{"frame_drop_ratio", &create->frame_drop_ratio, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
 			{"stats", &mod->cfg_stats, CONF_TYPE_FLAG, 0, 0, 1, NULL},
 			{"greyscale", &mod->cfg_greyscale, CONF_TYPE_FLAG, 0, 0, 1, NULL},
+			{"turbo", &mod->cfg_turbo, CONF_TYPE_FLAG, 0, 0, 1, NULL},
 
 			/* section [quantizer] */
 			{"quantizer", "Quantizer settings", CONF_TYPE_SECTION, 0, 0, 0, NULL},
@@ -801,7 +802,14 @@ static void dispatch_settings(xvid_transcode_module_t *mod)
 	if(mod->cfg_vhq >= 4) {
 		frame->motion |= XVID_ME_EXTSEARCH_RD;
 	}
-	
+	if (mod->cfg_turbo) {
+		frame->motion |= XVID_ME_FASTREFINE16;
+		frame->motion |= XVID_ME_FASTREFINE8;
+		frame->motion |= XVID_ME_SKIP_DELTASEARCH;
+		frame->motion |= XVID_ME_FAST_MODEINTERPOLATE;
+		frame->motion |= XVID_ME_BFRAME_EARLYSTOP;
+	}
+
 	/* motion level == 0 means no motion search which is equivalent to
 	 * intra coding only */
 	if(mod->cfg_motion == 0) {
@@ -1012,12 +1020,12 @@ static void set_frame_struct(xvid_transcode_module_t *mod, vob_t *vob, transfer_
 	x->quant_intra_matrix = xcfg->quant_intra_matrix;
 	x->quant_inter_matrix = xcfg->quant_inter_matrix;
 
-	/* pixel aspect ratio */
-	/* transcode.c uses 0 for EXT instead of 15 */
-	x->par = vob->ex_par==0?XVID_PAR_EXT:vob->ex_par;
+	/* pixel aspect ratio
+	 * transcode.c uses 0 for EXT instead of 15 */
+	x->par = (vob->ex_par==0)? XVID_PAR_EXT: vob->ex_par;
 	x->par_width = vob->ex_par_width;
 	x->par_height = vob->ex_par_height;
-	
+
 	return;
 }
 

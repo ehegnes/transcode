@@ -1,6 +1,29 @@
 --------------------------------------------
 transcode-0.6.12
 
+2004-01-03 Edouard Gomez <ed.gomez at free.fr>
+
+  * export/{export_xvid4.c xvid4.h xvid4.cfg}:
+
+    Summary:
+      Beta3 syncing.
+    Revision:
+      transcode-xvidmodule--devapi4--1.0--patch-2
+
+    - Added turbo mode support
+    - Updated xvid4.cfg defaults
+    - Synced xvid4.h with xvid.h CVS version
+    - Reworked some parameter descriptions.
+
+    Summary:
+      Synced with transcode CVS.
+    Revision:
+      transcode-xvidmodule--devapi4--1.0--patch-1
+
+    From Tilmann Bitterberg (actually by chl):
+     - fixed unitialized greyscale field
+     - added PAR support through transcode cmd line option.
+
 2004-01-03 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/transcode.c docs/man/transcode.1:
