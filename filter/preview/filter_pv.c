@@ -26,7 +26,7 @@
 #endif
 
 #define MOD_NAME    "filter_pv.so"
-#define MOD_VERSION "v0.2.1 (2002-02-01)"
+#define MOD_VERSION "v0.2.2 (2003-02-27)"
 #define MOD_CAP     "xv only preview plugin"
 
 #include <stdio.h>
@@ -293,7 +293,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   pre = (ptr->tag & TC_POST_S_PROCESS)? 1:0;
   vid = (ptr->tag & TC_VIDEO)? 1:0;
   
-  if( (ptr->tag & TC_PRE_PROCESS) && vid) {
+  if( (ptr->tag & TC_PRE_PROCESS) && vid && cache_enabled) {
       process_ctr_cur = (process_ctr_cur+1)%3;
       memcpy (process_buffer[process_ctr_cur], ptr->video_buf, ptr->video_size);
       return 0;
