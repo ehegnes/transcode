@@ -327,12 +327,12 @@ pkgdir = @MOD_PATH@
 
 @HAVE_AVIFILE_TRUE@@HAVE_LAME_TRUE@MODS1 = export_af6.la
 
-@HAVE_DV_FALSE@MODS5 = 
-
 @HAVE_DV_TRUE@MODS5 = export_dvraw.la
 
-@HAVE_DV_TRUE@@HAVE_LAME_TRUE@MODS6 = export_dv.la 
+@HAVE_DV_FALSE@MODS5 = 
 @HAVE_DV_TRUE@@HAVE_LAME_FALSE@MODS6 = 
+
+@HAVE_DV_TRUE@@HAVE_LAME_TRUE@MODS6 = export_dv.la 
 
 @HAVE_LAME_TRUE@MODS2 = export_raw.la export_divx4.la export_divx4raw.la export_divx5raw.la export_debugppm.la export_ppm.la export_divx5.la export_ffmpeg.la export_lame.la
 
