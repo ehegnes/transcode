@@ -16,10 +16,10 @@ Features
  * Check external programs' existence before starting them. This gives
    much more informative error messages;
 
- * Transcode now uses an optimised (asm, mx, sse, sse2) version of memcpy
+ * Transcode now uses an optimised (asm, mmx, sse, sse2) version of memcpy
    when possible. This gives 10% - 20% speed increase;
 
- * New filter to detect field order of interlaced video: filter_tomsmocomp;
+ * New video deinterlacing filter: filter_tomsmocomp;
 
  * New import module ffbin that uses the "ffmpeg" executable to decode
    video or audio, much like the "mplayer" import module;
@@ -86,7 +86,7 @@ Bugs
    tends make transcode dump core) by similar functionality from
    libavcodec (ffmpeg);
 
- * The supplied mp3lame lib was also stone-aged so it has been inactivated.
+ * The supplied mp3lame lib was also stone-aged so it has been removed.
    Use an external version instead.
 
 === IMPORTANT ===
