@@ -112,14 +112,14 @@ int tc_filter(aframe_list_t *ptr, char *options)
 	fch = vob->a_rate/NTSC_FILM;
 
 	// bytes per audio frame
-	vob->im_a_size = (int)(fch * (vob->a_bits/8) * vob->a_chan);
+	vob->im_a_size = (int)(fch * (vob->dm_bits/8) * vob->dm_chan);
 	vob->im_a_size =  (vob->im_a_size>>2)<<2;
 
 	// rest:
-	fch *= (vob->a_bits/8) * vob->a_chan;
+	fch *= (vob->dm_bits/8) * vob->dm_chan;
 
 	leap_bytes1 = TC_LEAP_FRAME * (fch - vob->im_a_size);
-	leap_bytes2 = - leap_bytes1 + TC_LEAP_FRAME * (vob->a_bits/8) * vob->a_chan;
+	leap_bytes2 = - leap_bytes1 + TC_LEAP_FRAME * (vob->dm_bits/8) * vob->dm_chan;
 	leap_bytes1 = (leap_bytes1 >>2)<<2;
 	leap_bytes2 = (leap_bytes2 >>2)<<2;
 
@@ -127,7 +127,7 @@ int tc_filter(aframe_list_t *ptr, char *options)
 	  vob->a_leap_bytes = leap_bytes1;
 	} else {
 	  vob->a_leap_bytes = -leap_bytes2;
-	  vob->im_a_size += (vob->a_bits/8) * vob->a_chan;
+	  vob->im_a_size += (vob->dm_bits/8) * vob->dm_chan;
 	}
     }
 

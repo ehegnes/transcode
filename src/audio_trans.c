@@ -82,7 +82,7 @@ int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
   short *s, *d, uu, uu1, uu2;
   int n;
 
-  char *b;
+  unsigned char *b, *a;
 
   int trans=TC_FALSE;
   struct fc_time *t=vob->ttime;
@@ -108,7 +108,10 @@ int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
   
   // check if a frame transformation is requested:
   
-  if (vob->volume > 0.0 || pcmswap) trans = TC_TRUE;
+  if (vob->volume > 0.0 || pcmswap
+    || vob->a_chan == 1 && vob->dm_chan == 2
+    || vob->a_chan == 2 && vob->dm_chan == 1
+    || vob->a_bits != vob->dm_bits) trans = TC_TRUE;
 
   if(vob->im_a_codec != CODEC_PCM) {
 
@@ -165,7 +168,7 @@ int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
   //
   // flag: vob->volume>0
 
-  if(vob->volume > 0.0) {
+  if(vob->volume > 0.0 && vob->a_bits == 16) {
     
     s=(short *) ptr->audio_buf;
     
@@ -174,31 +177,6 @@ int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
       *s++ = uu;
     }
   }
-  
-  //-----------------------------------------------------------------
-  //
-  // transformation: convert 16 bit / 2 channel interleaved stereo to mono
-  //
-  // flag: vob->dm_chan = 1
-
-  if(vob->dm_chan == 1 && vob->a_chan == 2 && vob->a_bits == 16) {
-     
-    s=(short *) ptr->audio_buf;
-    d=s;
-    
-    for(n=0; n<ptr->audio_size>>2; ++n) {
-      
-      uu1 = (*s++>>1);
-      uu2 = (*s++>>1);
-      
-      *d++ = uu1+uu2;
-      
-    }
-    
-    ptr->audio_size = ptr->audio_size>>1;
-    
-  }
-  
   
   //-----------------------------------------------------------------
   //
@@ -211,15 +189,69 @@ int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
   if(vob->dm_bits == 8 && vob->a_bits == 16) {
     
     s = (short *) ptr->audio_buf;
-    b = (char *) s;
+    b = (unsigned char *) s;
     
-    for(n=0; n<ptr->audio_size>>1; ++n) (*b++) = (char) ((*s++)/256+0x80);
+    for(n=0; n<ptr->audio_size>>1; ++n) *b++ = *s++/256+0x80;
     ptr->audio_size = ptr->audio_size>>1;
     
   }
   
+  // convert 8 bit to 16 bit
+  // as above, assume 8 bit unsigned and 16 bit signed
+
+  if (vob->dm_bits == 16 && vob->a_bits == 8) {
+    s = (short *)ptr->audio_buf + ptr->audio_size;
+    b = (char *)ptr->audio_buf + ptr->audio_size;
+    for (n = 0; n < ptr->audio_size; n++) *--s = ((short)*--b - 0x80) * 0x100;
+    ptr->audio_size /= 2;
+  }
+
+  //-----------------------------------------------------------------
+  //
+  // transformation: convert 16 bit / 2 channel interleaved stereo to mono
+  //
+  // flag: vob->dm_chan = 1
+
+  if (vob->dm_chan == 1 && vob->a_chan == 2) {
+    if (vob->dm_bits == 16) {
+      d=s=(short *) ptr->audio_buf;
+      for (n = 0; n < ptr->audio_size / 4; ++n) {
+        uu1 = *s++ / 2;
+        uu2 = *s++ / 2;
+        *d++ = uu1 + uu2;
+      }
+      ptr->audio_size /= 2;
+    } else if (vob->dm_bits == 8) {
+      a = b = (unsigned char *)ptr->audio_buf;
+      for (n = 0; n < ptr->audio_size / 2; n++) {
+	*a++ = b[0] / 2 + b[1] / 2;
+	b += 2;
+      }
+      ptr->audio_size /= 2;
+    }
+  }
+
+  // convert mono to stereo
+  
+  if (vob->dm_chan == 2 && vob->a_chan == 1) {
+    if (vob->dm_bits == 16) {
+      s = (short *)ptr->audio_buf + ptr->audio_size / 2;
+      d = (short *)ptr->audio_buf + ptr->audio_size;
+      for (n = 0; n < ptr->audio_size / 2; n++) {
+	*--d = *--s;
+	*--d = *s;
+      }
+      ptr->audio_size *= 2;
+    } else if (vob->dm_bits == 8) {
+      a = (unsigned char *)ptr->audio_buf + ptr->audio_size;
+      b = (unsigned char *)ptr->audio_buf + ptr->audio_size * 2;
+      for (n = 0; n < ptr->audio_size; n++) {
+	 *--b = *--a;
+	 *--b = *a;
+      }
+      ptr->audio_size *= 2;
+    }
+  }
 
   return(0);
 }
-
-

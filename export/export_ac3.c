@@ -78,9 +78,9 @@ MOD_open
 
         result = snprintf (buf, PATH_MAX,
                            "ffmpeg -y -f s%dle -ac %d -ar %d -i - -ab %d -acodec ac3 %s%s",
-                           vob->a_bits,
-                           vob->a_chan,
-                           vob->a_rate,
+                           vob->dm_bits,
+                           vob->dm_chan,
+                           vob->mp3frequency,
                            vob->mp3bitrate,
                            out_fname,
                            vob->verbose > 1 ? "" : " >&/dev/null");

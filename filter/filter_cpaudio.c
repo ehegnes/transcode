@@ -108,7 +108,7 @@ int tc_filter(aframe_list_t *ptr, char *options)
     if ((vob = tc_get_vob()) == NULL)
         return (-1);
 
-    if (vob->a_bits != 16)
+    if (vob->dm_bits != 16)
     {
       fprintf (stderr, "This filter only works for 16 bit samples\n");
       return (-1);

@@ -90,7 +90,7 @@ MOD_open
     ofreq = vob->mp3frequency;
     ifreq = vob->a_rate;
     orate = vob->mp3bitrate;
-    ochan = (vob->dm_chan != vob->a_chan) ? vob->dm_chan : vob->a_chan;
+    ochan = vob->dm_chan;
     chan = (ochan==2) ? 'j':'m';
 
     /* default out freq */
@@ -102,7 +102,7 @@ MOD_open
       /* add sox for conversion */
       sprintf(buf,"sox %s -r %d -c %d -t raw - -r %d -t wav - polyphase "
 	      "2>/dev/null | ",
-	      (vob->a_bits==16)?"-w -s":"-b -u", 
+	      (vob->dm_bits==16)?"-w -s":"-b -u", 
 	      ifreq, ochan, ofreq);
       ptr = buf + strlen(buf);
     }

@@ -257,7 +257,7 @@ MOD_open
       tc_warn("[export_dvraw] export module also being dvraw");
       return (TC_EXPORT_ERROR);
     }
-    chans = (vob->dm_chan != vob->a_chan) ? vob->dm_chan : vob->a_chan;
+    chans = vob->dm_chan;
     //re-sampling only with -J resample possible
     rate = vob->a_rate;
 

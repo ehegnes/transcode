@@ -70,11 +70,7 @@ MOD_open
 
 	srate = (vob->mp3frequency != 0) ? vob->mp3frequency : vob->a_rate;
 	brate = vob->mp3bitrate;
-	chan = (vob->a_chan>=2) ? "-s": "-m";
-	/* allow for forced stereo output */
-	if ((vob->a_chan == 1) && (vob->dm_chan == 2)){
-	  chan = "-s";
-	}
+	chan = (vob->dm_chan>=2) ? "-s": "-m";
 	
 	if(((unsigned)snprintf(buf, PATH_MAX, "mp2enc -v %d -r %d -b %d %s -o \"%s\"%s %s", verb, srate, brate, chan, vob->audio_out_file, mpa, (vob->ex_a_string?vob->ex_a_string:""))>=PATH_MAX)) {
 	  perror("cmd buffer overflow");
@@ -126,10 +122,10 @@ MOD_init
 	
         rtf.common.wFormatTag        = CODEC_PCM;
         rtf.common.dwSamplesPerSec   = vob->a_rate;
-        rtf.common.dwAvgBytesPerSec  = vob->a_chan*vob->a_rate*vob->a_bits/8;
-        rtf.common.wChannels         = vob->a_chan;
-        rtf.common.wBitsPerSample    = vob->a_bits;
-        rtf.common.wBlockAlign       = vob->a_chan*vob->a_bits/8;
+        rtf.common.dwAvgBytesPerSec  = vob->dm_chan*vob->a_rate*vob->dm_bits/8;
+        rtf.common.wChannels         = vob->dm_chan;
+        rtf.common.wBitsPerSample    = vob->dm_bits;
+        rtf.common.wBlockAlign       = vob->dm_chan*vob->dm_bits/8;
 
         strncpy(rtf.data.id, "data",4);
 	  

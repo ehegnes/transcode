@@ -43,6 +43,34 @@ transcode-0.6.11
   Upgraded included libavcodec to 0.4.8 (4683)
   Upgraded -y xvid4 to the latest API
 
+2003-10-23 Christopher Cramer <crayc at pyro.net>
+
+  What this patch does is make the -E option more consistent.
+  With this, the output bits and channels will match the -E
+  option regardless of which export module is used.
+
+  * export/aud_aux.c export/export_ac3 export/export_lame.c,
+  export/export_mov.c export/export_mp2enc.c export/export_mpeg.c
+  export/export_ogg.c export/export_pcm.c export/export_toolame.c
+  filter/filter_cpaudio.c filter/filter_tc_audio.c:
+  Use dm_chan/dm_bits instead of a_chan/a_bits.
+
+  * export/export_dvraw.c export/export_lame.c
+  export/export_toolame.c:
+  Remove redundant code.
+
+  * export/export_mp2enc.c:
+  Remove mono->stereo conversion; it's now in audio_trans.c.
+
+  * src/audio_trans.c:
+  Don't do 16-bit volume transform on 8-bit data.
+  Put bit-size transform before channel transform, saving
+  one bit in the case of an 8-bit/stereo to 16-bit/mono
+  conversion.
+  Add mono to stereo transform.
+  Add 8-bit to 16-bit transform.
+  Use unsigned char instead of char for 8-bit data.
+
 2003-10-23 Tilmann Bitterberg <transcode at tibit.org>
 
   * export/ffmpeg_cfg.c:

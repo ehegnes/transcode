@@ -266,13 +266,13 @@ MOD_open
       //--------------------------------------------------------
       memset(&mpa_ctx, 0, sizeof(mpa_ctx));       // default all
       mpa_ctx.bit_rate = vob->mp3bitrate * 1000;  // bitrate dest.
-      mpa_ctx.channels = vob->a_chan;             // channels
+      mpa_ctx.channels = vob->dm_chan;            // channels
       if (!vob->mp3frequency)                     // sample-rate dest.
         mpa_ctx.sample_rate = vob->a_rate;        
       else {
 	//ThOe added ffmpeg re-sampling capability
         mpa_ctx.sample_rate = vob->mp3frequency;
-	ReSamplectx = audio_resample_init(vob->a_chan, vob->a_chan,
+	ReSamplectx = audio_resample_init(vob->dm_chan, vob->dm_chan,
 					  vob->mp3frequency, vob->a_rate);
       }
 
@@ -285,7 +285,7 @@ MOD_open
       }
     
       //-- bytes per sample and bytes per frame --
-      mpa_bytes_ps = mpa_ctx.channels * vob->a_bits/8;
+      mpa_bytes_ps = mpa_ctx.channels * vob->dm_bits/8;
       mpa_bytes_pf = mpa_ctx.frame_size * mpa_bytes_ps;
     
       //-- create buffer to hold 1 frame --

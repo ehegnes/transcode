@@ -91,16 +91,16 @@ MOD_open
 	}
 	if (vob->mp3bitrate == 0)
 	    result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -q %.2f %s -Q -o \"%s\" %s -",
-		vob->a_bits,
-		vob->a_chan,
+		vob->dm_bits,
+		vob->dm_chan,
 		vob->mp3quality,
 		resample,
 		vob->audio_out_file?vob->audio_out_file:"/dev/null",
 		(vob->ex_a_string?vob->ex_a_string:""));
 	else
 	    result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -b %d %s -Q -o \"%s\" %s -",
-		vob->a_bits,
-		vob->a_chan,
+		vob->dm_bits,
+		vob->dm_chan,
 		vob->mp3bitrate,
 		resample,
 		vob->audio_out_file?vob->audio_out_file:"/dev/null",

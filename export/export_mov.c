@@ -202,13 +202,13 @@ MOD_init
     char *qt_codec;
     
     /* check given audio format */
-    if((vob->a_chan!=1)&&(vob->a_chan!=2)) {
+    if((vob->dm_chan!=1)&&(vob->dm_chan!=2)) {
       fprintf(stderr,"[%s] Only mono or stereo audio supported\n",
 	      MOD_NAME);
       return(TC_EXPORT_ERROR);
     }
-    channels = vob->a_chan;
-    bits = vob->a_bits;
+    channels = vob->dm_chan;
+    bits = vob->dm_bits;
 
     /* fetch qt codec from -F switch */
     qt_codec = vob->ex_a_fcc;
