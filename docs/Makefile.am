@@ -11,6 +11,7 @@ docs_DATA = \
                     export_mpeg.txt \
                     filter_dnr.txt \
                     filter_logo.txt \
+                    filter_logoaway.txt \
                     filter_yuvdenoise.txt \
                     import_nvrec.txt \
                     import-xml.txt \

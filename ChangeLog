@@ -1,4 +1,9 @@
 --------------------------------------------
+transcode-0.6.4.HEAD
+
+- added docs/filter_logoaway.txt 
+
+--------------------------------------------
 transcode-0.6.4.20030318 Tue Mar 18 13:29:39 CET 2003
 
 - bug in yuv_merge_fields which is called when one uses the -M2 or -M4
