@@ -147,7 +147,7 @@ int tc_test_program(char *name)
 			tok_path = strtok_r((char *)0, ":", strtokbuf))
 	{
 		compl_path = local_alloc((strlen(tok_path) + strlen(name) + 2) * sizeof(char));
-		sprintf(compl_path, "%s/%s", tok_path, name);
+		snprintf(compl_path, strlen(tok_path) + strlen(name) + 2, "%s/%s", tok_path, name);
  
 		if(access(compl_path, X_OK) == 0)
 		{

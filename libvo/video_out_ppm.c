@@ -114,7 +114,7 @@ static int internal_setup (vo_instance_t * _instance, int width, int height,
     instance->width = width;
     instance->height = height;
 
-    sprintf (instance->header, "P6\n#ThOe \n%d %d 255\n", width, height);
+    snprintf (instance->header, 1024, "P6\n#ThOe \n%d %d 255\n", width, height);
 
     instance->rgbstride = width * instance->bpp / 8;
     instance->rgbdata = malloc (instance->rgbstride * height);
@@ -132,7 +132,7 @@ static void ppm_draw_frame (vo_frame_t * frame)
     instance = (ppm_instance_t *) frame->instance;
     if (++(instance->framenum) < 0)
 	return;
-    sprintf (instance->filename, "%06d.ppm", instance->framenum);
+    snprintf (instance->filename, 128, "%06d.ppm", instance->framenum);
     file = fopen (instance->filename, "wb");
     if (!file)
 	return;

@@ -4065,7 +4065,7 @@ int main(int argc, char *argv[]) {
 	if (!base || !strlen(base)) strncpy(base, vob->video_out_file, TC_BUF_MIN);
 	
 	// create new filename 
-	sprintf(buf, "%s%03d%s", base, ch1++, video_ext);
+	snprintf(buf, sizeof(buf), "%s%03d%s", base, ch1++, video_ext);
 	
 	// update vob structure
 	vob->video_out_file = buf;
@@ -4141,7 +4141,7 @@ int main(int argc, char *argv[]) {
 	memset(buf, 0, sizeof buf);
 	if(!no_split) {
 	  // create new filename 
-	  sprintf(buf, psubase, ch1);
+	  snprintf(buf, sizeof(buf), psubase, ch1);
 	  
 	  // update vob structure
 	  vob->video_out_file = buf;
@@ -4278,7 +4278,7 @@ int main(int argc, char *argv[]) {
       if(no_split) {
 	
 	// create single output filename 
-	sprintf(buf, "%s%s", dirbase, video_ext);
+	snprintf(buf, sizeof(buf), "%s%s", dirbase, video_ext);
 	
 	// update vob structure
 	if(dir_audio) {
@@ -4286,7 +4286,7 @@ int main(int argc, char *argv[]) {
 	  switch(vob->ex_a_codec) {
 	    
 	  case CODEC_MP3:
-	    sprintf(buf, "%s-%03d%s", dirbase, dir_fcnt, audio_ext);
+	    snprintf(buf, sizeof(buf), "%s-%03d%s", dirbase, dir_fcnt, audio_ext);
 	    break;
 	  }
 
@@ -4314,7 +4314,7 @@ int main(int argc, char *argv[]) {
 
 	if(!no_split) {
 	  // create new filename 
-	  sprintf(buf, "%s-%03d%s", dirbase, dir_fcnt, video_ext);
+	  snprintf(buf, sizeof(buf), "%s-%03d%s", dirbase, dir_fcnt, video_ext);
 	  
 	  // update vob structure
 	  if(dir_audio) {
@@ -4322,7 +4322,7 @@ int main(int argc, char *argv[]) {
 	    switch(vob->ex_a_codec) {
 	      
 	    case CODEC_MP3:
-	      sprintf(buf, "%s-%03d%s", dirbase, dir_fcnt, audio_ext);
+	      snprintf(buf, sizeof(buf), "%s-%03d%s", dirbase, dir_fcnt, audio_ext);
 	      break;
 	    }
 
@@ -4422,7 +4422,7 @@ int main(int argc, char *argv[]) {
       if(no_split) {
 	
 	// create new filename 
-	sprintf(buf, "%s%s", chbase, video_ext);
+	snprintf(buf, sizeof(buf), "%s%s", chbase, video_ext);
 	
 	// update vob structure
 	vob->video_out_file = buf;
@@ -4452,7 +4452,7 @@ int main(int argc, char *argv[]) {
 	
 	if(!no_split) {
 	  // create new filename 
-	  sprintf(buf, "%s-ch%02d%s", chbase, ch1, video_ext);
+	  snprintf(buf, sizeof(buf), "%s-ch%02d%s", chbase, ch1, video_ext);
 	  
 	  // update vob structure
 	  vob->video_out_file = buf;

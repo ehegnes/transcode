@@ -68,7 +68,7 @@ int s_write (int sock, void *buf, size_t count)
 
 int tc_socket_version(char *buf)
 {
-    sprintf(buf, "%s%s", VERSION, "\n");
+    snprintf(buf, M_BUF_SIZE, "%s%s", VERSION, "\n");
     return 0;
 }
 
@@ -472,7 +472,7 @@ int tc_socket_load(char *buf)
 
 int tc_socket_help(char *buf)
 {
-    sprintf(buf, "%s",
+    snprintf(buf, M_BUF_SIZE, "%s",
 	    "load <filter> <initial string>\n"
 	    "config <filter> <string>\n"
 	    "parameters <filter>\n"
@@ -682,9 +682,9 @@ void socket_thread(void)
 		    break;
 	    }
 	    if (ret>0)
-		sprintf(rbuf+strlen(rbuf), "%s", "OK\n");
+		snprintf(rbuf+strlen(rbuf), M_BUF_SIZE - strlen(rbuf), "%s", "OK\n");
 	    else 
-		sprintf(rbuf, "%s", "FAILED\n");
+		snprintf(rbuf, M_BUF_SIZE, "%s", "FAILED\n");
 
 	    if (msgsock > 0)
 		s_write (msgsock,  rbuf, strlen(rbuf));
