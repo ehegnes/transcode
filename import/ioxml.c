@@ -338,8 +338,12 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 					case IN_VIDEO_CODEC:
 						if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"rgb") == 0)
 							p_audiovideo->s_v_codec=CODEC_RGB;	
+						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"yuv2") == 0)
+							p_audiovideo->s_v_codec=CODEC_YUV;	
 						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"yv12") == 0)
 							p_audiovideo->s_v_codec=CODEC_YUV;	
+						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"yuy2") == 0)
+							p_audiovideo->s_v_codec=CODEC_YUY2;	
 						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"raw") == 0)
 							p_audiovideo->s_v_codec=CODEC_RAW;	
 						else

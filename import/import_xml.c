@@ -28,7 +28,7 @@
 #include "transcode.h"
 
 #define MOD_NAME    "import_xml.so"
-#define MOD_VERSION "v0.0.5 (2003-05-10)"
+#define MOD_VERSION "v0.0.6 (2003-05-28)"
 #define MOD_CODEC   "(video) * | (audio) *"
 
 #define MOD_PRE xml
@@ -86,7 +86,10 @@ MOD_open
 		}
 		if(p_video->s_v_codec == TC_CODEC_UNKNOWN) 
 		{
-			s_v_codec=vob->im_v_codec;
+			if (vob->dv_yuy2_mode == TC_TRUE)
+		    		s_v_codec=CODEC_YUY2;
+			else
+				s_v_codec=vob->im_v_codec;
 		}
 		else
 		{
@@ -107,6 +110,13 @@ MOD_open
 						return(TC_IMPORT_ERROR);
 					}
 				break;
+				case CODEC_YUY2:
+					s_frame_size = (vob->im_v_width * vob->im_v_height * 3)/2;
+					if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x dv -d %d -C %ld-%ld | tcdecode -x dv -y yv12 -Y -d %d -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video,vob->verbose, vob->quality)<0))
+					{
+						perror("command buffer overflow");
+						return(TC_IMPORT_ERROR);
+					}
 				case CODEC_YUV:
 					s_frame_size = (vob->im_v_width * vob->im_v_height * 3)/2;
 					if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x dv -d %d -C %ld-%ld | tcdecode -x dv -y yv12 -d %d -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video,vob->verbose, vob->quality)<0))
@@ -379,7 +389,10 @@ MOD_decode
 			{
 				if(p_video->s_v_codec == TC_CODEC_UNKNOWN) 
 				{
-				  	s_v_codec=vob->im_v_codec;
+					if (vob->dv_yuy2_mode == TC_TRUE)
+		    				s_v_codec=CODEC_YUY2;
+					else
+						s_v_codec=vob->im_v_codec;
 				}
 				else
 				{
@@ -398,6 +411,12 @@ MOD_decode
 								return(TC_IMPORT_ERROR);
 							}
 						break;
+						case CODEC_YUY2:
+							if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x dv -d %d -C %ld-%ld | tcdecode -x dv -y yv12 -Y -d %d -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video,vob->verbose, vob->quality)<0))
+							{
+								perror("command buffer overflow");
+								return(TC_IMPORT_ERROR);
+							}
 						case CODEC_YUV:
 							if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x dv -d %d -C %ld-%ld | tcdecode -x dv -y yv12 -d %d -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video,vob->verbose, vob->quality)<0))
 							{
