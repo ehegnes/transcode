@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-03-02 Erik Slagter <erik at oldconomy.com>
+
+  * export/export_ffmpeg.c:
+  fix threading support
+
 2004-03-01 Tilmann Bitterberg <transcode at tibit.org>
 
   * configure.in:

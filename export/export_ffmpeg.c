@@ -80,11 +80,14 @@
 				cleaned up aspect ratio code to be more intuitive
 				streamlined logging
 
+0.3.13	EMS		add threading support
+0.3.14	EMS		fixed threading support ;-)
+
 my tab settings: se ts=4, sw=4
 */
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.3.13 (2004-02-15)"
+#define MOD_VERSION "v0.3.14 (2004-02-29)"
 #define MOD_CODEC   "(video) " LIBAVCODEC_IDENT \
                     " | (audio) MPEG/AC3/PCM"
 
@@ -744,12 +747,11 @@ MOD_init {
     lavc_venc_context->inter_threshold    = lavc_param_inter_threshold;
 
 #if LIBAVCODEC_BUILD > 4701
+    if((lavc_param_threads < 1) || (lavc_param_threads > 7))
+		ff_error("Thread count out of range (should be [1-7])\n");
     lavc_venc_context->thread_count = lavc_param_threads;
-
-    if((lavc_venc_context->thread_count < 1) || (lavc_venc_context->thread_count > 7))
-		lavc_venc_context->thread_count = 1;
-
 	ff_info("Starting %d threads\n", lavc_venc_context->thread_count);
+	avcodec_thread_init(lavc_venc_context, lavc_param_threads);
 #endif
 
     if (lavc_param_intra_matrix)
