@@ -408,20 +408,6 @@ if test x"$dvdread_inc" != xyes; then
 AC_CHECK_FILE(/usr/local/include/dvdread/dvd_reader.h, [AC_DEFINE([HAVE_LIBDVDREAD_INC], 1, [Have Libdvdread includes in separate path]) dvdread_inc=yes])
 fi
 
-if test x"$have_dvdread" != "xyes"; then
-	
-	dnl use included lib
-
-	with_dvdread_i="../dvdread"		
-	with_dvdread_l="../dvdread"	
-     
-	AC_CHECK_FILE(./dvdread/dvd_reader.h, 
-	[AC_DEFINE(HAVE_LIBDVDREAD)
-        have_dvdread=yes
-        DVDREAD_CFLAGS="-I$with_dvdread_i" 
-        DVDREAD_LIBS="-L$with_dvdread_l -ldvdread_tc"], have_dvdread=no)
-fi
-
 fi
 
 AC_SUBST(DVDREAD_CFLAGS)

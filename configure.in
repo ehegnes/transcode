@@ -890,7 +890,6 @@ AC_OUTPUT([
            movlib/Makefile
 	   libioaux/Makefile
            libac3/Makefile
-           dvdread/Makefile
            libvo/Makefile
            libmpeg2/Makefile
            libmp3lame/Makefile

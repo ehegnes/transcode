@@ -15380,43 +15380,6 @@ fi
 
 fi
 
-if test x"$have_dvdread" != "xyes"; then
-
-
-	with_dvdread_i="../dvdread"
-	with_dvdread_l="../dvdread"
-
-	echo "$as_me:$LINENO: checking for ./dvdread/dvd_reader.h" >&5
-echo $ECHO_N "checking for ./dvdread/dvd_reader.h... $ECHO_C" >&6
-if test "${ac_cv_file___dvdread_dvd_reader_h+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  test "$cross_compiling" = yes &&
-  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
-echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
-   { (exit 1); exit 1; }; }
-if test -r "./dvdread/dvd_reader.h"; then
-  ac_cv_file___dvdread_dvd_reader_h=yes
-else
-  ac_cv_file___dvdread_dvd_reader_h=no
-fi
-fi
-echo "$as_me:$LINENO: result: $ac_cv_file___dvdread_dvd_reader_h" >&5
-echo "${ECHO_T}$ac_cv_file___dvdread_dvd_reader_h" >&6
-if test $ac_cv_file___dvdread_dvd_reader_h = yes; then
-  cat >>confdefs.h <<\_ACEOF
-#define HAVE_LIBDVDREAD 1
-_ACEOF
-
-        have_dvdread=yes
-        DVDREAD_CFLAGS="-I$with_dvdread_i"
-        DVDREAD_LIBS="-L$with_dvdread_l -ldvdread_tc"
-else
-  have_dvdread=no
-fi
-
-fi
-
 fi
 
 
@@ -20134,7 +20097,7 @@ LDFLAGS=`echo $LDFLAGS | sed -e 's/  */ /g'`
 
 
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                        ac_config_files="$ac_config_files Makefile autotools/Makefile src/Makefile avilib/Makefile movlib/Makefile libioaux/Makefile libac3/Makefile dvdread/Makefile libvo/Makefile libmpeg2/Makefile libmp3lame/Makefile libdvenc/Makefile bbmpeg/Makefile bbmpeg/tcmplex/Makefile ffmpeg/Makefile ffmpeg/libavcodec/Makefile ffmpeg/libavcodec/i386/Makefile ffmpeg/libavcodec/ppc/Makefile export/Makefile import/Makefile import/nuv/Makefile import/af6/Makefile import/net/Makefile import/v4l/Makefile import/lve/Makefile import/yuv/Makefile filter/Makefile filter/subtitler/Makefile filter/preview/Makefile filter/divxkey/Makefile filter/extsub/Makefile filter/resample/Makefile filter/test/Makefile filter/ivtc/Makefile filter/yuvdenoise/Makefile docs/Makefile docs/html/Makefile docs/man/Makefile contrib/Makefile tools/Makefile aclib/Makefile libsupport/Makefile libdldarwin/Makefile transcode.spec"
+                                                                                                                                                                                                                                                                                                                                                                                                                                              ac_config_files="$ac_config_files Makefile autotools/Makefile src/Makefile avilib/Makefile movlib/Makefile libioaux/Makefile libac3/Makefile libvo/Makefile libmpeg2/Makefile libmp3lame/Makefile libdvenc/Makefile bbmpeg/Makefile bbmpeg/tcmplex/Makefile ffmpeg/Makefile ffmpeg/libavcodec/Makefile ffmpeg/libavcodec/i386/Makefile ffmpeg/libavcodec/ppc/Makefile export/Makefile import/Makefile import/nuv/Makefile import/af6/Makefile import/net/Makefile import/v4l/Makefile import/lve/Makefile import/yuv/Makefile filter/Makefile filter/subtitler/Makefile filter/preview/Makefile filter/divxkey/Makefile filter/extsub/Makefile filter/resample/Makefile filter/test/Makefile filter/ivtc/Makefile filter/yuvdenoise/Makefile docs/Makefile docs/html/Makefile docs/man/Makefile contrib/Makefile tools/Makefile aclib/Makefile libsupport/Makefile libdldarwin/Makefile transcode.spec"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -21012,7 +20975,6 @@ do
   "movlib/Makefile" ) CONFIG_FILES="$CONFIG_FILES movlib/Makefile" ;;
   "libioaux/Makefile" ) CONFIG_FILES="$CONFIG_FILES libioaux/Makefile" ;;
   "libac3/Makefile" ) CONFIG_FILES="$CONFIG_FILES libac3/Makefile" ;;
-  "dvdread/Makefile" ) CONFIG_FILES="$CONFIG_FILES dvdread/Makefile" ;;
   "libvo/Makefile" ) CONFIG_FILES="$CONFIG_FILES libvo/Makefile" ;;
   "libmpeg2/Makefile" ) CONFIG_FILES="$CONFIG_FILES libmpeg2/Makefile" ;;
   "libmp3lame/Makefile" ) CONFIG_FILES="$CONFIG_FILES libmp3lame/Makefile" ;;
