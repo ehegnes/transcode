@@ -1,5 +1,11 @@
 transcode-0.13-pre2 EMS
 
+2004-08-18 Erik Slagter <erik at oldconomy dot com>
+  * export/export_ac3.c:
+  Fixed zero length output file which is caused by lacking
+  sample rate parameter. Added error when it's missing.
+  Also add warning to use -N 0x2000 instead.
+
 2004-08-17 Erik Slagter <erik at oldconomy dot com>
   * acinclude.m4 configure.in:
   Added --enable-ffmpeg-libs-static to configure to have
