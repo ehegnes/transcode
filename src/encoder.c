@@ -37,6 +37,7 @@ static void *export_ahandle, *export_vhandle;
 
 long frames_encoded = 0;
 long frames_dropped = 0;
+long frames_skipped = 0;
 long frames_cloned  = 0;
 static pthread_mutex_t frame_counter_lock=PTHREAD_MUTEX_INITIALIZER;
 
@@ -109,6 +110,23 @@ void tc_update_frames_dropped(long cc)
   return;
 }
 
+long tc_get_frames_skipped()
+{
+  long cc;
+  pthread_mutex_lock(&frame_counter_lock);
+  cc=frames_skipped;
+  pthread_mutex_unlock(&frame_counter_lock);
+  return(cc);
+}
+
+void tc_update_frames_skipped(long cc)
+{
+  pthread_mutex_lock(&frame_counter_lock);
+  frames_skipped +=cc;
+  pthread_mutex_unlock(&frame_counter_lock);
+  return;
+}
+
 long tc_get_frames_cloned()
 {
   long cc;
@@ -125,6 +143,17 @@ void tc_update_frames_cloned(long cc)
   pthread_mutex_unlock(&frame_counter_lock);
   return;
 }
+
+long tc_get_frames_skipped_cloned()
+{
+  long cc,cc2;
+  pthread_mutex_lock(&frame_counter_lock);
+  cc=frames_skipped;
+  cc2=frames_cloned;
+  pthread_mutex_unlock(&frame_counter_lock);
+  return(-cc+cc2);
+}
+
 
 void tc_set_force_exit()
 {
@@ -428,7 +457,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	pthread_mutex_unlock(&vframe_list_lock);
 	
 	if((vptr = vframe_retrieve())!=NULL) {
-	  fid = vptr->id;
+	  fid = vptr->id+tc_get_frames_skipped_cloned();
 	  goto cont1;
 	}
 	
@@ -466,7 +495,6 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	pthread_mutex_unlock(&aframe_list_lock);
 	
 	if((aptr = aframe_retrieve())!=NULL) {
-	  
 	  goto cont2;
 	}
 	
@@ -558,7 +586,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	
 	export_para.flag   = TC_VIDEO;
 
-	if( !(vptr->attributes & TC_FRAME_IS_SKIPPED) && tcv_export(TC_EXPORT_ENCODE, &export_para, vob)<0) {
+	if(tcv_export(TC_EXPORT_ENCODE, &export_para, vob)<0) {
 	  tc_warn("error encoding video frame");
 	  exit_on_encoder_error=1;
 	}
@@ -620,7 +648,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	    aptr->attributes |= TC_FRAME_IS_CLONED; 
 	    fprintf(stderr, "[%s] Delaying audio (%d)\n", __FILE__, vob->video_frames_delay);
 	} else {
-	    if( !(aptr->attributes & TC_FRAME_IS_SKIPPED) && tca_export(TC_EXPORT_ENCODE, &export_para, vob)<0) {
+	    if(tca_export(TC_EXPORT_ENCODE, &export_para, vob)<0) {
 		tc_warn("error encoding audio frame\n");
 		exit_on_encoder_error=1;
 	    }
@@ -691,6 +719,10 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
       } // frame processing loop
       
       // release frame buffer memory
+
+      if(vptr!=NULL && (vptr->attributes & TC_FRAME_WAS_CLONED)) {
+	tc_update_frames_cloned(1);
+      }
       
       if(vptr!=NULL && !(vptr->attributes & TC_FRAME_IS_CLONED)) {
 	
@@ -722,7 +754,7 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	pthread_mutex_unlock(&vbuffer_ex_fill_lock);
 
 	// update counter
-	tc_update_frames_cloned(1);
+	//tc_update_frames_cloned(1);
       }
       
       if(aptr!=NULL && !(aptr->attributes & TC_FRAME_IS_CLONED)) {
