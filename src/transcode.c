@@ -838,6 +838,10 @@ int main(int argc, char *argv[]) {
     vob->vob_psu_num2     = INT_MAX;
     vob->vob_info_file    = NULL;
     vob->vob_percentage   = 0;
+    vob->im_a_string      = NULL;
+    vob->im_v_string      = NULL;
+    vob->ex_a_string      = NULL;
+    vob->ex_v_string      = NULL;
 
     vob->reduce_h         = 1;
     vob->reduce_w         = 1;
