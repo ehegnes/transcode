@@ -298,6 +298,7 @@ typedef struct _vob_t {
   int mp3bitrate;
   int mp3frequency;
   float mp3quality;         //0=best (very slow).  9=worst (default=5)
+  int mp3mode;              //0=joint-stereo, 1=full-stereo, 2=mono
 
   int bitreservoir;
   char *lame_preset;

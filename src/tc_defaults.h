@@ -95,6 +95,7 @@
 #define ABITRATE       128
 #define AQUALITY         5
 #define AVBR             0
+#define AMODE            0
 
 //debug modes
 #define TC_QUIET         0

@@ -353,8 +353,19 @@ resize to \fIwidth\fP columns, \fIheight\fP rows with filtering [off].
 .B \-a \fIach\fP[\fI,vch\fP]
 extract audio[,video] track for encoding.
 .TP
-.B \-b \fIb\fP[,\fIvbr\fP,[\fIq\fP]]
-audio encoder bitrate kBits/s[,vbr[,quality]] [128,0,5]
+.B \-b \fIb\fP[,\fIv\fP,[\fIq\fP,[\fIm\fP]]]
+audio encoder bitrate kBits/s[,vbr[,quality[,mode]]] [128,0,5,0]
+
+The \fImode\fP parameter specifies which modus lame should use for encoding.
+Available modes are:
+.RS
+0   Joint Stereo (default)
+.br
+1   Full stereo
+.br
+2   Mono
+.br
+.RE
 .TP
 .B \-c \fIf1\fP\-\fIf2\fP[,\fIf3\fP\-\fIf4\fP[, ... ] ]
 encode only frames \fIf1\-f2\fP [and \fIf3\-f4\fP]. Default is to encode

@@ -198,6 +198,11 @@ int audio_init(vob_t *vob, int debug)
 	  //jstereo/mono
 	  lame_set_mode(lgf, (avi_aud_chan>1 ? JOINT_STEREO:MONO)); 
 
+	  if (vob->mp3mode==1)
+	      lame_set_mode(lgf, STEREO); 
+	  if (vob->mp3mode==2)
+	      lame_set_mode(lgf, MONO); 
+
           //sample rate
 	  lame_set_out_samplerate(lgf, avi_aud_rate);
 

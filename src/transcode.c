@@ -228,7 +228,7 @@ void usage(int status)
   printf(" -E r[,b[,c]]      audio output samplerate, bits, channels [as input]\n"); 
   printf(" -n 0xnn           import audio format id [0x%x]\n", CODEC_AC3);
   printf(" -N 0xnn           export audio format id [0x%x]\n", CODEC_MP3);
-  printf(" -b b[,vbr[,q]]    audio encoder bitrate kBits/s[,vbr[,quality]] [%d,%d,%d]\n", ABITRATE, AVBR, AQUALITY);
+  printf(" -b b[,v[,q[,m]]]  audio encoder bitrate kBits/s[,vbr[,quality[,mode]]] [%d,%d,%d,%d]\n", ABITRATE, AVBR, AQUALITY, AMODE);
   printf("--no_audio_adjust  disable audio frame sample adjustment [off]\n");
   printf("--no_bitreservoir  disable lame bitreservoir [off]\n");
   printf("--lame_preset name[,fast]  use lame preset with name. [off]\n");
@@ -864,6 +864,7 @@ int main(int argc, char *argv[]) {
     vob->mp3bitrate       = ABITRATE;
     vob->mp3frequency     = 0;
     vob->mp3quality       = AQUALITY;
+    vob->mp3mode          = AMODE;
     vob->a_rate           = RATE;
     vob->a_stream_bitrate = 0;
     vob->a_bits           = BITS;
@@ -1289,9 +1290,9 @@ int main(int argc, char *argv[]) {
 	  
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  
-	  n = sscanf(optarg,"%d,%d,%f", &vob->mp3bitrate, &vob->a_vbr, &vob->mp3quality);
+	  n = sscanf(optarg,"%d,%d,%f,%d", &vob->mp3bitrate, &vob->a_vbr, &vob->mp3quality, &vob->mp3mode);
 
-	if(n<0 || vob->mp3bitrate < 0|| vob->a_vbr<0 || vob->mp3quality<0) 
+	if(n<0 || vob->mp3bitrate < 0|| vob->a_vbr<0 || vob->mp3quality<0 || vob->mp3mode<0) 
 	  tc_error("invalid bitrate for option -b");
 	
 	break;

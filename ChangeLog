@@ -28,6 +28,15 @@ transcode-0.6.9
   A very simple utility which can split MP3 files at given
   millisecond positions.
 
+  * src/transcode.c export/aud_aux.c:
+  New option for lame. Option -b now takes a 4th argument which
+  controls which mode lame will use for encoding. Mono will be used
+  when dealing with mono audio streams. Available modes are:
+      0   Joint Stereo (default)
+      1   Full stereo
+      2   Mono
+
+
 2003-07-26 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/tccat.c:
