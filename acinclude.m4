@@ -203,7 +203,7 @@ fi
 	ac_save_CFLAGS="$CFLAGS"
 	ac_save_LIBS="$LIBS"
 	CFLAGS="$CFLAGS -I$with_lame_i"
-	LIBS="-L$with_lame_l -lmp3lame -lm $LIBS"
+	LIBS="-L$with_lame_l -lmp3lame -lm $LIBS -Wl,-rpath -Wl,$with_lame_l"
 	AC_TRY_RUN([
 #include <stdio.h>
 
