@@ -2982,7 +2982,7 @@ int main(int argc, char *argv[]) {
     // -f
 
     if(verbose & TC_INFO) 
-      printf("[%s] V: %-16s | %.3f (%d)\n", PACKAGE, "decoding fps", vob->fps, vob->im_frc);
+      printf("[%s] V: %-16s | %.3f,%d\n", PACKAGE, "decoding fps,frc", vob->fps, vob->im_frc);
    
     // -R
     
@@ -3145,7 +3145,7 @@ int main(int argc, char *argv[]) {
     // --export_fps
 
     if(verbose & TC_INFO) 
-      printf("[%s] V: %-16s | %.3f (%d)\n", PACKAGE, "encoding fps", vob->ex_fps, vob->ex_frc);
+      printf("[%s] V: %-16s | %.3f,%d\n", PACKAGE, "encoding fps,frc", vob->ex_fps, vob->ex_frc);
     
 
     //printf("FPS: %f,%d | %f,%d\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
