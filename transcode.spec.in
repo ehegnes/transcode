@@ -7,9 +7,7 @@ URL: http://zebra.fh-weingarten.de/~transcode/
 License: GPL
 Group: Applications/Multimedia
 Packager: Lenz Grimmer <lenz@grimmer.com>
-
 Source: %{name}-%{version}.tar.gz
-
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
 
 %description
@@ -53,12 +51,9 @@ See the file COPYING for license details.
 %prep
 %setup -n %{name}-%{version}
 
-
 %build
 CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%{_prefix} --mandir=%{_mandir}
-
 make
-
 
 %install
 #------------- ab hier bald unnuetz -------------
@@ -69,35 +64,26 @@ make install prefix=$RPM_BUILD_ROOT%{_prefix} \
     pkgdir=$RPM_BUILD_ROOT%{_libdir}/%{name} \
     mandir=$RPM_BUILD_ROOT%{_mandir} \
     docsdir=$RPM_BUILD_ROOT%{_defaultdocdir}/%{name}
+install -m 644 AUTHORS COPYING ChangeLog README TODO $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}
 
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
 
-
-# hier kommen Scripte hin, die vor/nach der Installation/Deinstallation
-# aufgerufen werden.
-%pre
-#echo "Vor der Installation :-)"
-%post
-#echo "Nach der Installation :-)"
-%preun
-#echo "Vor der De-Installation :-)"
-%postun
-#echo "Nach der De-Installation :-)"
-
-
 %files
 %defattr(-,root,root)
-%doc AUTHORS COPYING ChangeLog README TODO
-%doc docs/OPTIMIZERS docs/README.* docs/*.txt
-%doc docs/html/*.txt docs/html/*.html docs/html/*.php docs/html/*.png
+%doc %{_defaultdocdir}/%{name}
 %doc %{_mandir}/man1/*
 %{_bindir}/*
 %{_libdir}/transcode
 
 %changelog
+* Fri Aug 08 2003 Lenz Grimmer <lenz@grimmer.com>
+- fixed docs installation (current spec file did not work on Red Hat 9)
+- minor cleanups
+
 * Thu Jul 31 2003 Lenz Grimmer <lenz@grimmer.com>
 - fixed file list, use more macros (_mandir, _libdir), added URL
+- updated package description
 
 * Tue Dec 10 2002 Rainer Lay <rainer.lay@cs.fau.de> 0.6.3.20021205-1
 - removed extra man in files section

@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-08-09 Lenz Grimmer <lenz at grimmer.com>
+
+  * transcode.spec.in:
+  fixed docs installation (current spec file did not work on Red Hat
+  9); minor cleanups.
+
 2003-08-07 Tilmann Bitterberg <transcode at tibit.org>
 
   * export/export_xvid4.c:
@@ -18,7 +24,7 @@ transcode-0.6.10
   tcdecode to decode all formats libavcodec can decode. Use the -t
   option to tell tcdecode you want "lavc" and then use -x for the
   codec (tcextract -i sample.avi -x yv12 | tcdecode -g 512x384 -x
-  divx -y yv12).
+  divx -t lavc -y yv12).
 
   * import/import_mplayer.c:
   Make the module respect transcode's -k.
