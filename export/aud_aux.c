@@ -481,6 +481,9 @@ int audio_open(vob_t *vob, avi_t *avifile)
     AVI_set_audio(avifile, avi_aud_chan, avi_aud_rate, avi_aud_bits, avi_aud_codec, avi_aud_bitrate);
     AVI_set_audio_vbr(avifile, vob->a_vbr);
 
+    if (vob->avi_comment_fd>0)
+	AVI_set_comment_fd(avifile, vob->avi_comment_fd);
+
     if(avifile2==NULL) avifile2 = avifile; //save for close
     
     if((verbose & TC_DEBUG) && (!info_shown))

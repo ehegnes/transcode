@@ -66,7 +66,7 @@
 #include "vbr.h"
 
 #define MOD_NAME    "export_divx5.so"
-#define MOD_VERSION "v0.1.5 (2003-04-08)"
+#define MOD_VERSION "v0.1.6 (2003-06-09)"
 #define MOD_CODEC   "(video) DivX 5.xx | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE divx5
@@ -467,6 +467,9 @@ MOD_open
 		  vob->fps, "DIVX");
 #endif
     
+    if (vob->avi_comment_fd>0)
+	AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
+
     //do not force key frame at the very beginning of encoding, since
     //first frame will be a key fame anayway. Therefore key.quantizer
     //is well defined for any frame to follow

@@ -30,7 +30,7 @@
 #include "../import/magic.h"
 
 #define MOD_NAME    "export_raw.so"
-#define MOD_VERSION "v0.3.9 (2002-11-21)"
+#define MOD_VERSION "v0.3.10 (2003-06-09)"
 #define MOD_CODEC   "(video) * | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE raw
@@ -106,6 +106,9 @@ MOD_open
 	height = vob->ex_v_height;
 	
 	AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->fps, "RGB");
+
+	if (vob->avi_comment_fd>0)
+	    AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
 
 	if(!info_shown && verbose_flag) 
 	  fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 

@@ -72,7 +72,7 @@
  ****************************************************************************/
 
 #define MOD_NAME    "export_xvidcvs.so"
-#define MOD_VERSION "v0.3.9 (2003-04-08)"
+#define MOD_VERSION "v0.3.10 (2003-06-09)"
 #define MOD_CODEC  \
 "(video) XviD (CVS 2003-03-16)  | (audio) MPEG/AC3/PCM"
 #define MOD_PRE xvidcvs_ 
@@ -371,6 +371,9 @@ MOD_open
 		/* Video */
 		AVI_set_video(vob->avifile_out, vob->ex_v_width,
 			      vob->ex_v_height, vob->fps, "XVID");
+
+		if (vob->avi_comment_fd>0)
+		    AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
 
 		return(0);
 

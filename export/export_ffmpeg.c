@@ -48,7 +48,7 @@
 #endif
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.3.1 (2003-04-01)"
+#define MOD_VERSION "v0.3.2 (2003-06-09)"
 #define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
                     ") | (audio) MPEG/AC3/PCM"
 #define MOD_PRE ffmpeg
@@ -537,6 +537,9 @@ MOD_open
     } else {
       AVI_set_video(avifile, vob->ex_v_width, vob->ex_v_height, vob->fps,
                     codec->fourCC);
+
+      if (vob->avi_comment_fd>0)
+	  AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
     }
     
     return 0;

@@ -34,7 +34,7 @@
 #include "aud_aux.h"
 
 #define MOD_NAME    "export_fame.so"
-#define MOD_VERSION "v0.9.0 (2003-03-30)"
+#define MOD_VERSION "v0.9.1 (2003-06-09)"
 #define MOD_CODEC   "(video) MPEG-4 | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE fame
@@ -140,6 +140,10 @@ MOD_open
 
     AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, 
 		  vob->fps, "DIVX");
+
+    if (vob->avi_comment_fd>0)
+	AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
+
     return(0);
   }
 

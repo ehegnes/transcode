@@ -73,7 +73,7 @@
  ****************************************************************************/
 
 #define MOD_NAME    "export_xvid.so"
-#define MOD_VERSION "v0.3.7 (2003-04-08)"
+#define MOD_VERSION "v0.3.8 (2003-06-09)"
 #define MOD_CODEC   "(video) XviD (Stable)  | (audio) MPEG/AC3/PCM"
 #define MOD_PRE xvid_ 
 #include "export_def.h"
@@ -405,6 +405,9 @@ MOD_open
 		/* Video */
 		AVI_set_video(vob->avifile_out, vob->ex_v_width,
 			      vob->ex_v_height, vob->fps, "DIVX");
+
+		if (vob->avi_comment_fd>0)
+		    AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
 
 		return(0);
 

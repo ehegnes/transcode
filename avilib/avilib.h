@@ -118,6 +118,7 @@ typedef struct
   
   int anum;            // total number of audio tracks 
   int aptr;            // current audio working track 
+  int comment_fd;      // Read avi header comments from this fd
   
 } avi_t;
 
@@ -264,6 +265,9 @@ int AVI_audio_tracks(avi_t *AVI);
 
 void AVI_set_audio_vbr(avi_t *AVI, long is_vbr);
 long AVI_get_audio_vbr(avi_t *AVI);
+
+void AVI_set_comment_fd(avi_t *AVI, int fd);
+int  AVI_get_comment_fd(avi_t *AVI);
 
 struct riff_struct 
 {

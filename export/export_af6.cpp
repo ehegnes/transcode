@@ -69,7 +69,7 @@ extern "C" {
   static  int force_keyframe = -1;
   
 #define MOD_NAME    "export_af6.so"
-#define MOD_VERSION "v0.2.2 (2002-01-31)"
+#define MOD_VERSION "v0.2.3 (2003-06-09)"
 #define MOD_CODEC   "(video) Win32 dll | (audio) MPEG/AC3/PCM"
   
 #define MOD_PRE af6
@@ -106,6 +106,9 @@ extern "C" {
         // set video parameter for AVI file
 	AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, 
 		      vob->fps, (char*) id);      
+
+	if (vob->avi_comment_fd>0)
+	    AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
 
         //do not force key frame at the very beginning of encoding, since
         //first frame will be a key fame anayway. Therefore key.quantizer

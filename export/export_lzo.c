@@ -35,7 +35,7 @@
 #endif
 
 #define MOD_NAME    "export_lzo.so"
-#define MOD_VERSION "v0.0.4 (2002-11-26)"
+#define MOD_VERSION "v0.0.5 (2003-06-09)"
 #define MOD_CODEC   "(video) LZO real-time compression | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE lzo
@@ -121,6 +121,9 @@ MOD_open
       force_kf=1;
       
       AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->fps, "LZO1");
+
+      if (vob->avi_comment_fd>0)
+	  AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
       
       if(!info_shown && verbose_flag) 
 	fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 

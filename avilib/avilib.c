@@ -562,6 +562,143 @@ int avi_update_header(avi_t *AVI)
    return 0;
 }
 
+static int valid_info_tag(char *c)
+{
+    if      (!strncmp(c, "IARL", 4)) return 1; 
+    else if (!strncmp(c, "IART", 4)) return 1; 
+    else if (!strncmp(c, "ICMS", 4)) return 1; 
+    else if (!strncmp(c, "ICMT", 4)) return 1; 
+    else if (!strncmp(c, "ICOP", 4)) return 1; 
+    else if (!strncmp(c, "ICRD", 4)) return 1; 
+    else if (!strncmp(c, "ICRP", 4)) return 1; 
+    else if (!strncmp(c, "IDIM", 4)) return 1; 
+    else if (!strncmp(c, "IDPI", 4)) return 1; 
+    else if (!strncmp(c, "IENG", 4)) return 1; 
+    else if (!strncmp(c, "IGNR", 4)) return 1; 
+    else if (!strncmp(c, "IKEY", 4)) return 1; 
+    else if (!strncmp(c, "ILGT", 4)) return 1; 
+    else if (!strncmp(c, "IMED", 4)) return 1; 
+    else if (!strncmp(c, "INAM", 4)) return 1; 
+    else if (!strncmp(c, "IPLT", 4)) return 1; 
+    else if (!strncmp(c, "IPRD", 4)) return 1; 
+    else if (!strncmp(c, "ISBJ", 4)) return 1; 
+    else if (!strncmp(c, "ISHP", 4)) return 1; 
+    else if (!strncmp(c, "ISRC", 4)) return 1; 
+    else if (!strncmp(c, "ISRF", 4)) return 1; 
+    else if (!strncmp(c, "ITCH", 4)) return 1;
+    else return 0;
+
+    return 0;
+}
+// see ../docs/avi_comments.txt
+// returns the length of written stream (-1 on error)
+static int avi_parse_comments (int fd, char *buf, int space_left) 
+{
+    int len=0, readlen=0, k;
+    char *data, *c, *d;
+    struct stat st;
+    
+    // safety checks
+    if (fd<=0 || !buf || space_left<=0)
+	return -1;
+
+    memset (buf, 0, space_left);
+    if (fstat (fd, &st) == -1) {
+	perror ("stat");
+	return -1;
+    }
+
+    if ( !(data = malloc(st.st_size*sizeof(char)+1)) ) {
+	printf("malloc failed\n"); 
+	return -1;
+    }
+
+    readlen = avi_read ( fd, data, st.st_size);
+
+    printf("Read %d bytes from %d\n", readlen, fd);
+
+    c = data;
+    space_left--;
+    
+    while (len < space_left) {
+	if ( !c || *c == '\0')
+	    break; // eof;
+	else if (*c == '#') { // comment, ignore
+	    c = strchr(c, '\n')+1;
+	}
+	else if (*c == '\n') { // empty, ignore
+	    c++;
+	}
+	else if (*c == 'I') {
+
+	    // do not write ISFT -- this is written by transcode
+	    // and important for debugging.
+	    if (!valid_info_tag(c)) {
+		// skip this line
+		while (c && *c && *c != '\n' ) {
+		    c++;
+		}
+		continue;
+	    }
+
+	    // set d after TAG
+	    d = c+4;
+
+	    // find first non-blank (!space or !TAB)
+	    while ( d && *d && (*d == ' ' || *d == '	')) ++d;
+	    if (!d) break;
+
+	    // TAG without argument is fine but ignored
+	    if (*d == '\n' || *d == '\r') { 
+		c = d+1; 
+		if (*c == '\n') ++c; 
+		continue; 
+	    }
+ 
+	    k = 0;
+	    while (d[k] != '\r' && d[k] != '\n' && d[k] != '\0') ++k;
+	    if (k>=space_left) return len;
+
+	    // write TAG
+	    memcpy(buf+len,c,4); 
+	    len += 4;
+
+	    // write len
+	    long2str(buf+len, k); len += 4;
+
+	    // write comment string
+	    memcpy (buf+len, d, k);
+	    // must be null terminated
+	    *(buf+len+k+1) = '\0';
+
+	    // PAD
+	    if ((k+1)&1) {
+		k++;
+		*(buf+len+k+1) = '\0';
+	    }
+	    len += k+1;
+  
+	    // advance c
+	    while (*c != '\n' && *c != '\0') ++c;
+	    if (*c != '\0') ++c;
+	    else break;
+
+	} else {
+
+	    // ignore junk lines
+	    while (c && *c && *c != '\n' ) {
+		if (*c == ' ' || *c == '	') { c++; break; }
+		c++;
+	    }
+	    if (!c) break;
+	}
+
+    }
+    free(data);
+
+    return len;
+}
+
 /*
   Write the header of an AVI file and close it.
   returns 0 on success, -1 on write error.
@@ -578,6 +715,8 @@ static int avi_close_output_file(avi_t *AVI)
 
 #ifdef INFO_LIST
    long info_len;
+   long id_len;
+   long info_start_pos;
 //   time_t calptr;
 #endif
 
@@ -844,26 +983,34 @@ static int avi_close_output_file(avi_t *AVI)
 #ifdef INFO_LIST
    OUT4CC ("LIST");
    
-   //FIXME
+   info_start_pos = nhb;
    info_len = MAX_INFO_STRLEN + 12;
-   OUTLONG(info_len);
+   OUTLONG(info_len); // rewritten later
    OUT4CC ("INFO");
 
-//   OUT4CC ("INAM");
-//   OUTLONG(MAX_INFO_STRLEN);
-
-//   sprintf(id_str, "\t");
-//   memset(AVI_header+nhb, 0, MAX_INFO_STRLEN);
-//   memcpy(AVI_header+nhb, id_str, strlen(id_str));
-//   nhb += MAX_INFO_STRLEN;
-
    OUT4CC ("ISFT");
-   OUTLONG(MAX_INFO_STRLEN);
+   //OUTLONG(MAX_INFO_STRLEN);
 
    sprintf(id_str, "%s-%s", PACKAGE, VERSION);
-   memset(AVI_header+nhb, 0, MAX_INFO_STRLEN);
-   memcpy(AVI_header+nhb, id_str, strlen(id_str));
-   nhb += MAX_INFO_STRLEN;
+   id_len = strlen(id_str)+1;
+
+   OUTLONG(id_len);
+
+   memset(AVI_header+nhb, 0, id_len);
+   memcpy(AVI_header+nhb, id_str, id_len);
+   nhb += id_len;
+
+   //if (AVI->comment_fd>0) {
+       info_len = avi_parse_comments (AVI->comment_fd, AVI_header+nhb, HEADERBYTES - nhb - 8 - 12);
+   //}
+   if (info_len <= 0) info_len=0;
+
+   // write correct len
+   long2str(AVI_header+info_start_pos, info_len + id_len + 4+4+4);
+
+   // XXX:
+   printf("Got len (%ld)\n", info_len);
+   nhb += info_len;
 
 //   OUT4CC ("ICMT");
 //   OUTLONG(MAX_INFO_STRLEN);
@@ -1087,6 +1234,15 @@ long AVI_get_audio_vbr(avi_t *AVI)
     return(AVI->track[AVI->aptr].a_vbr);
 }
 
+void AVI_set_comment_fd(avi_t *AVI, int fd)
+{
+    AVI->comment_fd = fd;
+}
+int  AVI_get_comment_fd(avi_t *AVI)
+{
+    return AVI->comment_fd;
+}
+
 
 /*******************************************************************
  *                                                                 *
@@ -1108,6 +1264,9 @@ int AVI_close(avi_t *AVI)
 
    /* Even if there happened an error, we first clean up */
 
+   if (AVI->comment_fd>0)
+       close(AVI->comment_fd);
+   AVI->comment_fd = -1;
    close(AVI->fdes);
    if(AVI->idx) free(AVI->idx);
    if(AVI->video_index) free(AVI->video_index);

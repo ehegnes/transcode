@@ -148,6 +148,7 @@ enum {
   DV_YUY2_MODE,
   LAME_PRESET,
   COLOR_LEVEL,
+  AVI_COMMENTS,
 };
 
 int print_counter_interval = 1;
@@ -244,6 +245,7 @@ void usage(int status)
 	 TC_DEFAULT_EXPORT_VIDEO);
   printf(" -F codec          encoder parameter strings [module dependent]\n");
   printf(" --avi_limit N     split output AVI file after N MB [%d]\n", AVI_FILE_LIMIT);
+  printf(" --avi_comments F  Read AVI header comments from file F (see transcode(1)) [off]\n");
   printf("\n");
 
   //audio effects
@@ -764,6 +766,7 @@ int main(int argc, char *argv[]) {
       {"lame_preset", required_argument, NULL, LAME_PRESET},
       {"color", required_argument, NULL, COLOR_LEVEL},
       {"colour", required_argument, NULL, COLOR_LEVEL},
+      {"avi_comments", required_argument, NULL, AVI_COMMENTS},
       {0,0,0,0}
     };
     
@@ -841,6 +844,7 @@ int main(int argc, char *argv[]) {
     vob->video_out_file   = "/dev/null";
     vob->avifile_in       = NULL;
     vob->avifile_out      = NULL;
+    vob->avi_comment_fd   = -1;
     vob->out_flag         = 0;
     vob->audio_in_file    = "/dev/zero";
     vob->video_in_file    = "/dev/zero";
@@ -1999,6 +2003,16 @@ int main(int argc, char *argv[]) {
 	  tc_avi_limit=atoi(optarg);
 
 	    break;
+
+	case AVI_COMMENTS:
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+
+	  if ( (vob->avi_comment_fd = open(optarg, O_RDONLY)) == -1)
+	    tc_error ("Cannot open comment file \"%s\"", optarg);
+	    
+
+	    break;
+
 
 	case DEBUG_MODE: 
 

@@ -264,6 +264,7 @@ typedef struct _vob_t {
 
   avi_t *avifile_in;
   avi_t *avifile_out;
+  int avi_comment_fd; // text file to read avi header comments from
 
   int out_flag;
 
