@@ -21,7 +21,7 @@
 */
 
 #define MOD_NAME    "filter_smartyuv.so"
-#define MOD_VERSION "0.0.1 (2003-06-19)"
+#define MOD_VERSION "0.0.2 (2003-08-04)"
 #define MOD_CAP     "Motion-adaptive deinterlacing"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
@@ -49,7 +49,9 @@ static vob_t *vob=NULL;
 
 ///////////////////////////////////////////////////////////////////////////
 
+// this value is "hardcoded" in the optimized code for speed reasons
 #define DENOISE_DIAMETER 5
+
 #define DENOISE_THRESH 7
 #define BLACK_BYTE_Y 16
 #define BLACK_BYTE_UV 128
@@ -153,6 +155,7 @@ static void inline Blendline_c (uint8_t *dst, uint8_t *src, uint8_t *srcminus, u
     } while(++x < w);
 }
 
+// this works fine on OSX too
 #define ABS_u8(a) (((a)^((a)>>7))-((a)>>7))
 
 static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int _height, 
