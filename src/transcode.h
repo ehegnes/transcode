@@ -57,6 +57,27 @@ typedef unsigned int uint32_t;
 #include "tc_functions.h"
 
 /* ----------------------------
+ * 
+ * mpeg profiles for setting
+ * sensible defaults
+ *
+ * ----------------------------*/
+
+typedef enum {
+  NONE = 0,
+  VCD,
+  VCD_PAL,
+  VCD_NTSC,
+  SVCD,
+  SVCD_PAL,
+  SVCD_NTSC,
+  DVD,
+  DVD_PAL,
+  DVD_NTSC,
+} mpeg_profile_t;
+
+
+/* ----------------------------
  *
  * global information structure
  *
@@ -343,6 +364,8 @@ typedef struct _vob_t {
 
   int video_frames_delay; // delay audio by N frames, (video is late)
   float m2v_requant;    // Requantize Factor for mpeg2 video streams
+
+  mpeg_profile_t mpeg_profile;
   
 } vob_t;
 

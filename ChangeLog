@@ -3,6 +3,23 @@ transcode-0.6.12
 
 2004-01-05 Tilmann Bitterberg <transcode at tibit.org>
 
+  * src/transcode.[ch] docs/man/transcode.1:
+  New commandline option --export_prof. This option takes an
+  argument. This is basically the same which was availiable under -Z
+  for about 0.5 weeks in CVS.
+  Available settings are vcd, vcd-pal, vcd-ntsc, svcd, svcd-pal,
+  svcd-ntsc, dvd, dvd-pal, dvd-ntsc.
+  Example when encoding a 720x576 @ 16:9 file in a 4:3 letterbox'ed
+  NTSC SVCD using fast mode: --export_prof ntsc-svcd -Z fast will
+  calculate --pre_clip -96,0,-96,0 -B 36,30,8 --export_asr 2.
+
+2004-01-05 Romildo <romildo at uber.com.br>
+
+  * filter/subtitler/*:
+  Update to upstream version 0.8.2
+
+2004-01-05 Tilmann Bitterberg <transcode at tibit.org>
+
   * import/extract_dv.c:
   When extracting data from a raw DV file, transcode assumed an
   incorrect NTSC DV frame size. This caused the last frame to be

@@ -181,6 +181,7 @@ enum {
   DVD_ACCESS_DELAY,
   EXTENSIONS,
   EX_PIXEL_ASPECT,
+  EXPORT_PROF,
 };
 
 int print_counter_interval = 1;
@@ -415,6 +416,7 @@ void usage(int status)
   printf("--dv_yuy2_mode       libdv YUY2 mode (default is YV12) [off]\n");
   printf("--config_dir dir     Assume config files are in this dir [off]\n");
   printf("--ext vid,aud        Use these file extensions [%s,%s]\n", video_ext, audio_ext);
+  printf("--export_prof S      Export profile {vcd, svcd, dvd} [none]\n");
 
   printf("\n");
 
@@ -623,19 +625,6 @@ void safe_exit (void) {
  *
  * ------------------------------------------------------------*/
 
-typedef enum {
-  NONE = 0,
-  VCD,
-  VCD_PAL,
-  VCD_NTSC,
-  SVCD,
-  SVCD_PAL,
-  SVCD_NTSC,
-  DVD,
-  DVD_PAL,
-  DVD_NTSC,
-} mpeg_profile_t;
-
 int main(int argc, char *argv[]) {
 
 #ifdef HAVE_LIBXML2
@@ -706,8 +695,6 @@ int main(int argc, char *argv[]) {
     int sync_seconds=0;
 
     int no_audio_adjust=TC_FALSE, no_split=TC_FALSE;
-
-    mpeg_profile_t mpeg_profile = NONE;
 
     static struct option long_options[] =
     {
@@ -820,6 +807,7 @@ int main(int argc, char *argv[]) {
       {"dvd_access_delay", required_argument, NULL, DVD_ACCESS_DELAY},
       {"ext", required_argument, NULL, EXTENSIONS},
       {"export_par", required_argument, NULL, EX_PIXEL_ASPECT},
+      {"export_prof", required_argument, NULL, EXPORT_PROF},
       {0,0,0,0}
     };
     
@@ -1042,6 +1030,7 @@ int main(int argc, char *argv[]) {
 
     vob->dv_yuy2_mode     = 0;
     vob->hard_fps_flag    = 0;
+    vob->mpeg_profile     = NONE;
 
     // prepare for SIGINT to catch
     
@@ -1675,41 +1664,14 @@ int main(int argc, char *argv[]) {
 	vob->zoom_width  = 0;
 	vob->zoom_height = 0;
 
-	if          (strncasecmp(optarg, "vcd", 3) == 0) {
-	  mpeg_profile = VCD; // need to guess later if pal or ntsc
-	  vob->zoom_width  = 352;
-	  if        (strncasecmp(optarg, "vcd-pal", 7) == 0) {
-	    mpeg_profile = VCD_PAL;
-	    vob->zoom_height = 288;
-	  } else if (strncasecmp(optarg, "vcd-ntsc", 7) == 0) {
-	    mpeg_profile = VCD_NTSC;
-	    vob->zoom_height = 240;
-	  }
-	} else  if  (strncasecmp(optarg, "svcd", 4) == 0) {
-	  mpeg_profile = SVCD;
-	  vob->zoom_width  = 480;
-	  if        (strncasecmp(optarg, "svcd-pal", 7) == 0) {
-	    mpeg_profile = SVCD_PAL;
-	    vob->zoom_height = 576;
-	  } else if (strncasecmp(optarg, "svcd-ntsc", 7) == 0) {
-	    mpeg_profile = SVCD_NTSC;
-	    vob->zoom_height = 480;
-	  }
-	} else  if  (strncasecmp(optarg, "dvd", 3) == 0) {
-	  mpeg_profile = DVD;
-	  vob->zoom_width  = 720;
-	  if        (strncasecmp(optarg, "dvd-pal", 7) == 0) {
-	    mpeg_profile = DVD_PAL;
-	    vob->zoom_height = 576;
-	  } else if (strncasecmp(optarg, "dvd-ntsc", 7) == 0) {
-	    mpeg_profile = DVD_NTSC;
-	    vob->zoom_height = 480;
-	  }
-	} else if (isdigit(*optarg) || *optarg == 'x') {
+	if (isdigit(*optarg) || *optarg == 'x') {
 
 	  if (c && *c && *(c+1)) vob->zoom_height = atoi (c+1);
 	  if (*optarg != 'x')    vob->zoom_width = atoi(optarg);
+	  zoom = TC_TRUE;
 
+	} else if (*optarg == 'f') {
+	  fast_resize = TC_TRUE;
 	} else {
 	  tc_error("invalid setting for option -Z");
 	}
@@ -1721,8 +1683,6 @@ int main(int argc, char *argv[]) {
 
 	c = strchr(optarg, ',');
 	if (c && *c && *(c+1) && !strncmp(c+1, "fast", 1)) fast_resize = TC_TRUE;
-
-	zoom=TC_TRUE;
 
 	}
 
@@ -2354,6 +2314,35 @@ int main(int argc, char *argv[]) {
 	    if ( !strcmp(audio_ext, "null")) audio_ext = "";
 	    
 	  }
+	  break;
+
+	case EXPORT_PROF:
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+
+	if          (strncasecmp(optarg, "vcd", 3) == 0) {
+	  vob->mpeg_profile = VCD; // need to guess later if pal or ntsc
+	  if        (strncasecmp(optarg, "vcd-pal", 7) == 0) {
+	    vob->mpeg_profile = VCD_PAL;
+	  } else if (strncasecmp(optarg, "vcd-ntsc", 7) == 0) {
+	    vob->mpeg_profile = VCD_NTSC;
+	  }
+	} else  if  (strncasecmp(optarg, "svcd", 4) == 0) {
+	  vob->mpeg_profile = SVCD;
+	  if        (strncasecmp(optarg, "svcd-pal", 7) == 0) {
+	    vob->mpeg_profile = SVCD_PAL;
+	  } else if (strncasecmp(optarg, "svcd-ntsc", 7) == 0) {
+	    vob->mpeg_profile = SVCD_NTSC;
+	  }
+	} else  if  (strncasecmp(optarg, "dvd", 3) == 0) {
+	  vob->mpeg_profile = DVD;
+	  if        (strncasecmp(optarg, "dvd-pal", 7) == 0) {
+	    vob->mpeg_profile = DVD_PAL;
+	  } else if (strncasecmp(optarg, "dvd-ntsc", 7) == 0) {
+	    vob->mpeg_profile = DVD_NTSC;
+	  }
+	} else {
+	  tc_error("invalid setting for option --export_prof");
+	}
 			
 
 	  break;
@@ -2784,9 +2773,9 @@ int main(int argc, char *argv[]) {
     tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
 
     // calc clip settings for encoding to mpeg (vcd,svcd,dvd)
-    // -Z {vcd,vcd-pal,vcd-ntsc,svcd,svcd-pal,svcd-ntsc,dvd,dvd-pal,dvd-ntsc}
+    // --export_prof {vcd,vcd-pal,vcd-ntsc,svcd,svcd-pal,svcd-ntsc,dvd,dvd-pal,dvd-ntsc}
    
-    if (mpeg_profile) {
+    if (vob->mpeg_profile != NONE) {
       typedef struct ratio_t { int t, b; } ratio_t;
       ratio_t asrs[] = { {1, 1}, {1, 1}, {4, 3}, {16, 9}, {221, 100} };
       ratio_t imasr = asrs[0];
@@ -2799,24 +2788,38 @@ int main(int argc, char *argv[]) {
       if (vob->im_v_height == 288 || vob->im_v_height == 576) impal = 1;
       if ((int)vob->fps == 25 || vob->im_frc == 3) impal = 1;
 
-      switch (mpeg_profile) {
+      if (vob->mpeg_profile == VCD_PAL || 
+	  vob->mpeg_profile == SVCD_PAL || 
+	  vob->mpeg_profile == DVD_PAL)
+	impal = 1;
+
+      // choose height dependent on pal or NTSC.
+      switch (vob->mpeg_profile) {
+	case VCD_PAL: case VCD_NTSC:
 	case VCD: vob->zoom_height = impal?288:240;
 		  break;
-	case SVCD:
+
+	case SVCD_PAL: case SVCD_NTSC: case SVCD:
+	case DVD_PAL: case DVD_NTSC:
 	case DVD: vob->zoom_height = impal?576:480;
 		  break;
+
 	default:
 		  break;
       }
 
-      switch (mpeg_profile) {
+      // choose width if not set by user.
+      switch (vob->mpeg_profile) {
 	case VCD_PAL: case VCD_NTSC: case VCD: 
+	  if (!vob->zoom_width) vob->zoom_width = 352;
 	  vob->ex_asr = 2;
 	  break;
 	case SVCD_PAL: case SVCD_NTSC: case SVCD:
+	  if (!vob->zoom_width) vob->zoom_width = 480;
 	  vob->ex_asr = 2;
 	  break;
 	case DVD_PAL: case DVD_NTSC: case DVD:
+	  if (!vob->zoom_width) vob->zoom_width = 720;
 	  if (vob->ex_asr <= 0) vob->ex_asr = 2; // assume 4:3
 		  break;
 	default:
@@ -2866,12 +2869,42 @@ int main(int argc, char *argv[]) {
       }
 
       /*
-      printf("%d: --pre_clip %d,0,%d,0\n", mpeg_profile, 
+      printf("%d: --pre_clip %d,0,%d,0\n", vob->mpeg_profile, 
 	  vob->pre_im_clip_top, vob->pre_im_clip_bottom);
 	  */
 
+      if (vob->im_v_width != vob->zoom_width || vob->im_v_height != vob->zoom_width) zoom = TC_TRUE;
+      if (pre_im_clip) tc_warn("I have overwritten your --pre_clip settings, I win!\n");
       if (pre_clip) pre_im_clip = TC_TRUE;
 
+      // shall we really go this far?
+      // If yes, there can be much more settings adjusted.
+      if (ex_vid_mod == NULL) {
+#ifdef HAVE_MJPEGTOOLS
+	no_v_out_codec=0;
+	ex_vid_mod = "mpeg2enc";
+	if(!vob->ex_v_fcc) {
+	  switch (vob->mpeg_profile) {
+	    case VCD_PAL: case VCD_NTSC: case VCD: 
+	      vob->ex_v_fcc = "1";
+	      break;
+	    case SVCD_PAL: case SVCD_NTSC: case SVCD:
+	      vob->ex_v_fcc = "4";
+	      break;
+	    case DVD_PAL: case DVD_NTSC: case DVD:
+	      vob->ex_v_fcc = "8";
+	      break;
+	    default: break;
+	  }
+	}
+#endif
+      }
+      if (ex_aud_mod == NULL) {
+#ifdef HAVE_MJPEGTOOLS
+	  no_a_out_codec=0;
+	  ex_aud_mod = "mp2enc";
+#endif
+	}
     }
 
 

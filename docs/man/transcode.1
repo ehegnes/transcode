@@ -26,7 +26,8 @@ n ] [  --import_v4l n[,id] ] [  --pulldown  ] [  --encode_fields  ] [
 --ts_pid 0xnn ] [  --a52_drc_off  ] [  --a52_demux  ] [  --a52_dolby_off  ] [
 --print_status N[,r] ] [  --progress_off  ] [  --color N ] [  --write_pid file
 ] [  --nice N ] [  --accel type ] [  --socket file ] [  --dv_yuy2_mode  ] [
---config_dir dir ] [  --ext vid,aud ] [  -q level ] [  -h  ] [  -v  ]  
+--config_dir dir ] [  --ext vid,aud ] [ --export_prof S ] [  -q level ] [  -h
+] [  -v  ]  
 .SH COPYRIGHT
 \fBtranscode\fP is Copyright (C) 2001-2003 by Thomas Östreich, 2003 Tilmann
 Bitterberg.
@@ -465,30 +466,8 @@ Examples (assume input is a 16:9 coded file at 720x576):
    -Z x328          guess 576 and do filtered zoom.
 .fi
 
-Instead of entering the the desired target image size you may also use a
-placeholder which can be one of
-{vcd, vcd-pal, vcd-ntsc, svcd, svcd-pal, svcd-ntsc, dvd, dvd-pal, dvd-ntsc}.
-
-When one of the above is used, transcode will calculate the needed clipping and
-resizing values for you based on the import and export aspect ratio. This is
-especially handy if you want to encode a 16:9 DVD into a 4:3 SVCD for example.
-Transcode internally then sets --pre_clip to add the black bars ("letterboxing").
-
-If you use "vcd" instead of "vcd-pal" or "vcd-ntsc", transcode will make an
-educated guess if PAL or NTSC vcd is wanted. The same is true for "svcd" and
-"dvd". When the input file has no aspect ratio information at all, transcode
-guesses it based on the import frame sizes. You can set the import aspect ratio
-by giving --import_asr CODE.
-
-Examples (assume input is a 16:9 coded file at 720x576 (PAL)):
-.nf
-   -Z svcd,fast     clip top/bot -96; resizes to 480x576
-                    (--pre_clip -96,0,-96,0 
-                      -B 24,30,8 --export_asr 2)
-   -Z vcd-ntsc      clip top/bot -96; resizes to 352x240
-                    (--pre_clip -96,0,-96,0
-                      -Z 352x240 --export_asr 2)
-.fi
+If you also set --export_prof, you can use just "fast" to indicate that fast
+resizing is wanted. 
 
 .TP
 .B \-a \fIach\fP[\fI,vch\fP]
@@ -1157,8 +1136,45 @@ _
 .RE
 
 .TP
+.B \-\-export_prof \fIS\fP
+Select an export profile {vcd, svcd, dvd} [none]
+.br
+If you set this meta option to one of the values below, transcode will adjust
+some internal paramaters as well as geometry and clipping. If no export modules
+are specified, mpeg2enc for video and mp2enc for audio are used when compiled
+with mjpegtools support.
+
+Valid values for \fIS\fP are vcd, vcd-pal, vcd-ntsc, svcd, svcd-pal, svcd-ntsc,
+dvd, dvd-pal and dvd-ntsc.
+
+When one of the above is used, transcode will calculate the needed clipping and
+resizing values for you based on the import and export aspect ratio. This is
+especially handy if you want to encode a 16:9 DVD into a 4:3 SVCD for example.
+Transcode internally then sets --pre_clip to add the black bars ("letterboxing").
+
+If you use "vcd" instead of "vcd-pal" or "vcd-ntsc", transcode will make an
+educated guess if PAL or NTSC vcd is wanted. The same is true for "svcd" and
+"dvd". When the input file has no aspect ratio information at all, transcode
+guesses it based on the import frame sizes. You can set the import aspect ratio
+by giving --import_asr CODE.
+
+Examples (assume input is a 16:9 coded file at 720x576 (PAL)):
+
+.nf
+   --export_prof svcd      clip top/bot -96; resizes to 480x576
+   --export_prof vcd-ntsc  clip top/bot -96; resizes to 352x240
+.fi
+
+This enables simpilified commandlines where transcode tries to set sensible
+values for mpeg export.
+
+.nf
+   transcode -i vob/ -V --export_prof svcd -Z fast -o test
+.fi
+
+.TP
 .B \-\-export_par \fIC\fP[,\fIN\fP]
-set export pixel aspect ratio \fIC\fP[,\fIN\fP]
+set export pixel aspect ratio to \fIC\fP[,\fIN\fP]
 .br
 To encode anamorphic material, transcode can encode the target pixel aspect
 ratio into the file. This is NOT the actual aspect ratio of the image, but only
