@@ -1,7 +1,7 @@
 /*
  *	import_v4l2.c
  *
- *	By Erik Slagter Sept 2003
+ *	By Erik Slagter <erik@slagter.name> Sept 2003
  * 
  *	This file is part of transcode, a linux video stream processing tool
  *
@@ -53,7 +53,7 @@
 #include "filter/mmx.h"
 
 #define MOD_NAME		"import_v4l2.so"
-#define MOD_VERSION		"v1.3.4 (2004-08-25)"
+#define MOD_VERSION		"v1.3.5 (2005-03-11)"
 #define MOD_CODEC		"(video) v4l2 | (audio) pcm"
 
 static int verbose_flag		= TC_QUIET;
@@ -104,6 +104,8 @@ static int capability_flag	= TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_PC
 			EMS added experimental code to make sa7134 survive sync glitches
 	1.3.3	EMS adapted fast memcpy to new default transcode method
 	1.3.4	EMS fixed RGB24 capturing bug when using saa7134.
+	1.3.5	EMS test with unrestricted cloning/dropping of frames using resync_interval=0
+	            adjusted saa7134 audio message to make clear the user must take action
 
 	TODO
 
@@ -148,7 +150,7 @@ static v4l2_fmt_t		v4l2_fmt;
 static v4l2_resync_op	v4l2_video_resync_op = resync_none;
 
 static int	v4l2_saa7134_audio = 0;
-static int	v4l2_overrun_guard = 1;
+static int	v4l2_overrun_guard = 0;
 static int 	v4l2_resync_margin_frames = 0;
 static int 	v4l2_resync_interval_frames = 0;
 static int 	v4l2_buffers_count;
@@ -657,7 +659,7 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 
 	if(verbose_flag & TC_INFO)
 	{
-		if(v4l2_resync_margin_frames == 0 || v4l2_resync_interval_frames == 0)
+		if(v4l2_resync_margin_frames == 0)
 			fprintf(stderr, module "%s", "resync disabled\n");
 		else
 			fprintf(stderr, module "resync enabled, margin = %d frames, interval = %d frames, \n",
@@ -1076,9 +1078,10 @@ int	v4l2_video_get_frame(size_t size, char * data)
 
 	v4l2_video_resync_op = resync_none;
 
-	if(((v4l2_resync_margin_frames != 0) && (v4l2_resync_interval_frames != 0)) &&
-			((v4l2_video_sequence % v4l2_resync_interval_frames) == 0) &&
-			(v4l2_video_sequence != 0) && (v4l2_audio_sequence != 0))
+	if(		(v4l2_resync_margin_frames != 0)	&&
+			(v4l2_video_sequence != 0)			&&
+			(v4l2_audio_sequence != 0)			&&
+			((v4l2_resync_interval_frames == 0) || (v4l2_video_sequence % v4l2_resync_interval_frames) == 0)	)
 	{
 		if(abs(v4l2_audio_sequence - v4l2_video_sequence) > v4l2_resync_margin_frames)
 		{
@@ -1193,7 +1196,7 @@ int v4l2_audio_init(const char * device, int rate, int bits, int channels)
 	if(v4l2_saa7134_audio)
 	{
 		if(verbose_flag & TC_INFO)
-			fprintf(stderr, module "Audio input from saa7134 detected, audio sample rate fixed at 32 Khz\n");
+			fprintf(stderr, module "Audio input from saa7134 detected, you should set audio sample rate to 32 Khz using -e\n");
 	}
 	else
 	{

@@ -883,7 +883,7 @@ transcode-0.13-pre1 EMS
 
 2004-08-09 Erik Slagter <erik at oldconomy dot com>
   * **/*:
-  Created branch for 0.6.13 release on erik.oldconomy.com
+  Created branch for 0.6.13 release on erik.slagter.name
   (andromeda)
 
 2004-08-09 Stefan Scheffler <stefanscheffler at gmx dot net>
@@ -1331,7 +1331,7 @@ transcode-0.6.13
   Added a dump option to write the selection to a png file; only in
   RGB mode. The filter is now a PRE filter. Updated documentation.
 
-2004-03-02 Erik Slagter <erik at oldconomy.com>
+2004-03-02 Erik Slagter <erik at slagter.name>
 
   * export/export_ffmpeg.c:
   fix threading support
@@ -1400,7 +1400,7 @@ transcode-0.6.13
   * export/export_ac3.c:
   Bourne Shell compatibility
 
-2004-02-24 Erik Slagter <erik at oldconomy.com>
+2004-02-24 Erik Slagter <erik at slagter.name>
 
   * export/{export_ffmpeg.c ffmpeg_cfg.[ch]}:
   Support for using libavcodec threads via the "threads" entry in
@@ -1638,7 +1638,7 @@ transcode-0.6.13
   When splitting large OpenDML AVI files the keyframe bits was
   messed up. Reported by Thomas Heiserowski
 
-2004-01-23 Erik Slagter <erik at oldconomy.com>
+2004-01-23 Erik Slagter <erik at slagter.name>
 
   * docs/faq:
   Start of a FAQ (frequently asked questions)
@@ -1657,7 +1657,7 @@ transcode-0.6.13
   * docs/man/transcode.1:
   Add description of profiles with ffmpeg
 
-2004-01-22 Erik Slagter <erik at oldconomy.com>
+2004-01-22 Erik Slagter <erik at slagter.name>
 
   * src/transcode.c:
   export_ffmpeg glue in transcode.c
@@ -1667,7 +1667,7 @@ transcode-0.6.13
     already set by the user, do not overwrite it.
   - hack for 704xXXX dvd encoding.
 
-2004-01-20 Erik Slagter <erik at oldconomy.com>
+2004-01-20 Erik Slagter <erik at slagter.name>
 
   * export/{export_ffmpeg.c ffmpeg_cfg.c ffmpeg_cfg.h}:
   Profile support for ffmpeg. For details see the changelog and the
@@ -1682,7 +1682,7 @@ transcode-0.6.13
   Encoding video and audio to dvd with ffmpeg should need only 
   "-y ffmpeg --export_profile dvd" on the command line.
 
-2004-01-20 Erik Slagter <erik at oldconomy.com>
+2004-01-20 Erik Slagter <erik at slagter.name>
 
   * import/v4l/import_v4l2.c:
   Small fixes and updates.
@@ -2010,7 +2010,7 @@ transcode-0.6.12 Fri Jan  8 23:59:59 CET 2004
   Be more tolerant when reading a FRAME header. Pointed out by
   Robert W. Fuller.
 
-2004-01-03 Erik Slagter <erik at oldconomy.com>
+2004-01-03 Erik Slagter <erik at slagter.name>
 
   * export/{export_ffmpeg.c ffmpeg_cfg.c ffmpeg_cfg.h}:
   - check whether libavcodec actually has lmin,lmax struct members
@@ -2026,12 +2026,12 @@ transcode-0.6.12 Fri Jan  8 23:59:59 CET 2004
   - a little extra patch, needed for interlaced encoding, that
     didn't get there the first time, for no apparent reason.
 
-2004-01-03 Erik Slagter <erik at oldconomy.com>
+2004-01-03 Erik Slagter <erik at slagter.name>
   
   * filter/filter_denoise3d.c:
   Fix typo.
 
-2004-01-03 Erik Slagter <erik at oldconomy.com>
+2004-01-03 Erik Slagter <erik at slagter.name>
 
   * import/v4l/import_v4l2.c:
   - New approach to initial a/v sync. Audio (which appears to always start
@@ -2385,7 +2385,7 @@ transcode-0.6.12 Fri Jan  8 23:59:59 CET 2004
   * import/v4l2/import_v4l2.c configure.in:
   Add configure check for linux/videodev2.h
 
-2003-11-26 Erik Slagter <erik at oldconomy.com>
+2003-11-26 Erik Slagter <erik at slagter.name>
   
   * import/v4l2/import_v4l2.c:
   1.0.1   EMS   added YUV422 and RGB support
@@ -2397,7 +2397,7 @@ transcode-0.6.12 Fri Jan  8 23:59:59 CET 2004
   1.0.3	  EMS   changed "videodev2.h" back to <linux/videodev2.h>,
 		it doesn't work with linux 2.6.0, #defines are wrong.
 
-2003-11-26 Erik Slagter <erik at oldconomy.com>
+2003-11-26 Erik Slagter <erik at slagter.name>
 
   * filter/filter_denoise3d.c:
   1.0.3   EMS first public version
@@ -2457,7 +2457,7 @@ transcode-0.6.12 Fri Jan  8 23:59:59 CET 2004
   * import/import_imlist.c import/import_im.c:
   Fix a segfault at closing time. Pointed out by Guido Mocken.
   
-2003-11-12 Erik Slagter <erik at oldconomy.com>
+2003-11-12 Erik Slagter <erik at slagter.name>
   
   * import/v4l/import_v4l2.h videodev2.h docs/import_v4l2.txt:
   New v4l2 import module. Please see /docs/import_v4l2.txt
@@ -2515,7 +2515,7 @@ transcode-0.6.12 Fri Jan  8 23:59:59 CET 2004
   * docs/man/transcode.1 docs/make-filter-man.sh:
   Add documentation for filter_denoise3d to the manpage
 
-2003-11-10 Erik Slagter <erik at oldconomy.com>
+2003-11-10 Erik Slagter <erik at slagter.name>
 
   * filter/filter_denoise3d.c:
   What
