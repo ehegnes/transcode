@@ -1,6 +1,23 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-20 Andrew Church <achurch at achurch.org>
+
+  * bbmpeg/mplex.h bbmpeg/tcmplex/{multplex.c systems.c}:
+  tcmplex in transcode 0.6.12 has two bugs in counting syncwords
+  for packet headers.  One is a simple logic error (0x0B 0x0B 0x77
+  is skipped, causing undercounts), but the other is that the code
+  does not check whether a supposed syncword (0x0B 0x77) is
+  actually the beginning of a new access unit or audio data inside
+  the previous unit--unlike MPEG audio, AC3 allows data equal to
+  the syncword inside a packet, and there is no 100% failsafe way
+  to determine whether a syncword is real or fake.  (The AC3
+  standard, section 6.1.2, notes that a 0x0B 0x77 found in a stream
+  has a 2.5% chance of _not_ being a syncword.)  This latter bug
+  causes overcounts of access units, resulting in "audio pts moves
+  backwards" errors when the multiplexed output is passed to
+  dvdauthor.
+
 2004-01-20 Tilmann Bitterberg <transcode at tibit.org>
 
   * configure.in:

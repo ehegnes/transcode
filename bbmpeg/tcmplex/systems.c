@@ -32,10 +32,12 @@ unsigned int     write_broken_link,
 unsigned int     write_seq_end,
 unsigned int     write_seq_hdr,
 unsigned int     sh_length,
-unsigned char    *seq_hdr)
+unsigned char    *seq_hdr,
+unsigned int     nsyncwords,
+unsigned int     firstsync)
 {
-  int i, j, data_bytes, numFound, syncFound, firstOffset, pad_size;
-  unsigned char *index, *tmpPtr=NULL;
+  int i, j, data_bytes, pad_size;
+  unsigned char *index;
   unsigned int data_size, stuff_size, k;
   unsigned int l;
 
@@ -329,41 +331,14 @@ unsigned char    *seq_hdr)
     if (type == PRIVATE_STREAM1)
     {
       *(index++) = subtype;
-      tmpPtr = index; // remember for AC3 data
-      *(index++) = 0; // num of AC3 syncwords in packet
-      *(index++) = 0; // hi offset of first AC3 syncword
-      *(index++) = 0; // lo offset of first AC3 syncword (starting at 1)
+      *(index++) = nsyncwords;        // num of AC3 syncwords in packet
+      *(index++) = firstsync >> 8;    // hi offset of first AC3 syncword
+                                      //   (starting at 1)
+      *(index++) = firstsync & 0xFF;  // lo offset of first AC3 syncword
       data_bytes -= 4;
     }
 
     memcpy(index, data_buffer, data_bytes);
-    if (type == PRIVATE_STREAM1)
-    {
-      numFound = 0;
-      syncFound = 0;
-      firstOffset = 0;
-      for (j = 0; j < data_bytes; j++)
-      {
-        switch (syncFound)
-        {
-          case 0:
-            if (index[j] == 0x0b)
-              syncFound = 1;
-            break;
-          case 1:
-            if (index[j] == 0x77)
-            {
-              numFound++;
-              if (numFound == 1)
-                firstOffset = j;
-            }
-            syncFound = 0;
-        }
-      }
-      tmpPtr[0] = (unsigned char) numFound;
-      tmpPtr[1] = (unsigned char) (firstOffset >> 8);
-      tmpPtr[2] = (unsigned char) (firstOffset & 0xff);
-    }
     index += data_bytes;
 
     if (type == PRIVATE_STREAM1)

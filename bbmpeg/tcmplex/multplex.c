@@ -1787,7 +1787,7 @@ unsigned char *seq_hdr)
                 istream_v, VIDEO_STR_0, 0, 1, video_buffer_size/1024,
                 video_PSTD, &PTSsave, &DTSsave, timestamps, which_streams, 0, i,
                 do_broken_link, (start_new_file || stop_output) && write_end_codes,
-                do_sequence_header, sh_length, seq_hdr))
+                do_sequence_header, sh_length, seq_hdr, 0, 0))
     return FALSE;
 
 
@@ -1899,6 +1899,7 @@ char *audio_restart_output)
   Timecode_struc PTSsave;
   int eos, tcfound;
   char tmpStr[100];
+  unsigned int nsyncwords, firstsync;  /* firstsync is 1-based */
 
   if (marker_pack)
   {
@@ -1938,6 +1939,8 @@ char *audio_restart_output)
 
   tcfound = 0;
   eos = 0;
+  nsyncwords = 0;
+  firstsync = 0;
   /* Let's generate packet					*/
 
   /* does a audio frame start in this packet?			*/
@@ -1945,6 +1948,8 @@ char *audio_restart_output)
   /* CASE: packet starts with new access unit			*/
   if (*audio_frame_start)
   {
+    nsyncwords++;
+    firstsync = 1;
     timestamps = (mplex_type > MPEG_VCD) ? MPEG2_TIMESTAMPS_PTS : MPEG1_TIMESTAMPS_PTS;
     PTSsave = audio_au->PTS;
     tcfound = 1;
@@ -1979,6 +1984,9 @@ char *audio_restart_output)
         *audio_counter = *audio_counter + 1;
         if ((!restart_output && !stop_output) || (get_timecode(&audio_au->PTS) < start_video_PTS))
         {
+	  nsyncwords++;
+	  if (!firstsync)
+	      firstsync = temp + 1;
           add_to_timecode(SCR_delay, &audio_au->PTS);
           if (temp + audio_au->length > packet_data_size)
           {
@@ -2023,7 +2031,8 @@ char *audio_restart_output)
   if (!create_sector(&sector, pack_ptr, sys_header_ptr,
 		packet_data_size, temp,
 		istream_a, aid, audio_subid, abuffer_scale, abuffer_size,
-		audio_PSTD, &PTSsave, NULL, timestamps, which_streams, k, 0, 0, 0, 0, 0, NULL))
+		audio_PSTD, &PTSsave, NULL, timestamps, which_streams, k, 0, 0, 0, 0, 0, NULL,
+		nsyncwords, firstsync))
      return FALSE;
 
   *audio_frame_start = FALSE;
@@ -2186,7 +2195,7 @@ unsigned int which_streams)
 		i, i,
 		NULL, PADDING_STR, 0, 0, 0,
 		FALSE, NULL, NULL,
-		TIMESTAMPS_NO, j, k, 0, 0, 0, 0, 0, NULL);
+		TIMESTAMPS_NO, j, k, 0, 0, 0, 0, 0, NULL, 0, 0);
 
   if (output_on)
   {

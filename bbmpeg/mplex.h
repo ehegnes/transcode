@@ -364,7 +364,9 @@ int create_sector	  (  /* erstellt einen Sector		*/
   unsigned int     write_seq_end,
   unsigned int     write_seq_hdr,
   unsigned int     sh_length,
-  unsigned char    *seq_hdr);
+  unsigned char    *seq_hdr,
+  unsigned int     nsyncwords,
+  unsigned int     firstsync);
 
 void create_sys_header	  (	/* erstellt einen System Header		*/
    Sys_header_struc *sys_header,
