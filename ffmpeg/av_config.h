@@ -19,13 +19,14 @@
 #  define CONFIG_HAVE_DLFCN 1
 #endif
 
-#define HAVE_VHOOK 1
 #define CONFIG_ENCODERS 1
 #define CONFIG_DECODERS 1
 #define CONFIG_MPEGAUDIO_HP 1
 #define CONFIG_VIDEO4LINUX 1
 #define CONFIG_AUDIO_OSS 1
 #define CONFIG_NETWORK 1
+
+#define CONFIG_RISKY 1
 
 #define CONFIG_ZLIB 1
 #define SIMPLE_IDCT 1
