@@ -75,10 +75,10 @@ MOD_open
   if(param->flag == TC_VIDEO) {
 
     //directory mode?
-    (scan(vob->video_in_file)) ? sprintf(cat_buf, "tccat") : ((vob->im_v_string) ? sprintf(cat_buf, "tcextract -x dv %s", vob->im_v_string):sprintf(cat_buf, "tcextract -x dv"));
+    (scan(vob->video_in_file)) ? snprintf(cat_buf, sizeof(cat_buf), "tccat") : ((vob->im_v_string) ? snprintf(cat_buf, sizeof(cat_buf), "tcextract -x dv %s", vob->im_v_string) : snprintf(cat_buf, sizeof(cat_buf), "tcextract -x dv"));
     
     //yuy2 mode?
-    (vob->dv_yuy2_mode) ? sprintf(yuv_buf, "-y yv12 -Y") : sprintf(yuv_buf, "-y yv12");
+    (vob->dv_yuy2_mode) ? snprintf(yuv_buf, sizeof(yuv_buf), "-y yv12 -Y") : snprintf(yuv_buf, sizeof(yuv_buf), "-y yv12");
     
     param->fd = NULL;
 
@@ -177,7 +177,7 @@ MOD_open
   if(param->flag == TC_AUDIO) {
 
     //directory mode?
-    (scan(vob->audio_in_file)) ? sprintf(cat_buf, "tccat") : ((vob->im_a_string) ? sprintf(cat_buf, "tcextract -x dv %s", vob->im_a_string):sprintf(cat_buf, "tcextract -x dv"));
+    (scan(vob->audio_in_file)) ? snprintf(cat_buf, sizeof(cat_buf), "tccat") : ((vob->im_a_string) ? snprintf(cat_buf, sizeof(cat_buf), "tcextract -x dv %s", vob->im_a_string) : snprintf(cat_buf, sizeof(cat_buf), "tcextract -x dv"));
     
     if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d | tcdecode -x dv -y pcm -d %d", cat_buf, vob->audio_in_file, vob->verbose, vob->verbose)<0)) {
       perror("command buffer overflow");

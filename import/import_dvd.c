@@ -87,7 +87,7 @@ MOD_open
   
   int off=0;
 
-  (vob->ps_seq1 != 0 || vob->ps_seq2 != INT_MAX) ? snprintf(seq_buf, TMP_BUF_SIZE, "-S %d,%d-%d", vob->ps_unit, vob->ps_seq1, vob->ps_seq2) : sprintf(seq_buf, "-S %d", vob->ps_unit);
+  (vob->ps_seq1 != 0 || vob->ps_seq2 != INT_MAX) ? snprintf(seq_buf, TMP_BUF_SIZE, "-S %d,%d-%d", vob->ps_unit, vob->ps_seq1, vob->ps_seq2) : snprintf(seq_buf, sizeof(seq_buf), "-S %d", vob->ps_unit);
   
   //new chapter range feature
   (vob->dvd_chapter2 == -1) ? snprintf(cha_buf, TMP_BUF_SIZE, "%d,%d,%d", vob->dvd_title, vob->dvd_chapter1,  vob->dvd_angle): snprintf(cha_buf, 16, "%d,%d-%d,%d", vob->dvd_title, vob->dvd_chapter1, vob->dvd_chapter2, vob->dvd_angle);
@@ -120,7 +120,7 @@ MOD_open
       query=1;
     }
     
-    sprintf(dem_buf, "-M %d", vob->demuxer);
+    snprintf(dem_buf, sizeof(dem_buf), "-M %d", vob->demuxer);
     
     codec = vob->im_a_codec;
     syncf = vob->sync;
@@ -219,7 +219,7 @@ MOD_open
   
   if(param->flag == TC_SUBEX) {  
     
-    sprintf(dem_buf, "-M %d", vob->demuxer);
+    snprintf(dem_buf, sizeof(dem_buf), "-M %d", vob->demuxer);
     
     codec = vob->im_a_codec;
     syncf = vob->sync;
@@ -274,8 +274,8 @@ MOD_open
 	printf("[%s] failed to create a temporary pipe\n", MOD_NAME);
 	return(TC_IMPORT_ERROR);
       } 
-      sprintf(dem_buf, "-M %d -f %f -P %s", vob->demuxer, vob->fps, logfile);
-    } else sprintf(dem_buf, "-M %d", vob->demuxer);
+      snprintf(dem_buf, sizeof(dem_buf), "-M %d -f %f -P %s", vob->demuxer, vob->fps, logfile);
+    } else snprintf(dem_buf, sizeof(dem_buf), "-M %d", vob->demuxer);
     
     //determine subtream id for sync adjustment
     //default is off=0x80
