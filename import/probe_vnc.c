@@ -15,9 +15,9 @@ void probe_vnc(info_t *ipipe)
     }
     ipipe->probe_info->width  = ( ((buf[0x19]<<8)&0xff00) | (buf[0x1A]&0xff) ) & 0xffff;
     ipipe->probe_info->height = ( ((buf[0x1B]<<8)&0xff00) | (buf[0x1C]&0xff) ) & 0xffff;
-    if (!ipipe->probe_info->width)
+    if (ipipe->probe_info->width<0 || ipipe->probe_info->width>2060 )
 	ipipe->probe_info->width  = ( ((buf[45]<<8)&0xff00) | (buf[46]&0xff) ) & 0xffff;
-    if (!ipipe->probe_info->height)
+    if (ipipe->probe_info->height<0 || ipipe->probe_info->height>2000)
 	ipipe->probe_info->height = ( ((buf[47]<<8)&0xff00) | (buf[48]&0xff) ) & 0xffff;
     ipipe->probe_info->fps = 25.;
     ipipe->probe_info->frc = 3;

@@ -19,6 +19,9 @@ transcode-0.6.13
   * avilib/avilib.c:
   Internal error checks, casts.
 
+  * import/probe_vnc.c:
+  Safety checks
+
 2004-01-16 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/{iodump.c probe_stream.c probe_v4l.c tc.h tcprobe.c}:
