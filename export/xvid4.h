@@ -19,7 +19,7 @@
  *  along with this program ; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- * $Id: xvid4.h,v 1.3 2003-08-23 22:36:40 tibit Exp $
+ * $Id: xvid4.h,v 1.4 2003-10-13 14:44:03 tibit Exp $
  *
  ****************************************************************************/
 
@@ -49,9 +49,9 @@ extern "C" {
 	*/
 
 #define XVID_MAKE_VERSION(a,b,c) ((((a)&0xff)<<16) | (((b)&0xff)<<8) | ((c)&0xff))
-#define XVID_VERSION_MAJOR(a)    (((a)>>16) & 0xff)
-#define XVID_VERSION_MINOR(a)    (((a)>> 8) & 0xff)
-#define XVID_VERSION_PATCH(a)    (((a)>> 0) & 0xff)
+#define XVID_VERSION_MAJOR(a)    ((char)(((a)>>16) & 0xff))
+#define XVID_VERSION_MINOR(a)    ((char)(((a)>> 8) & 0xff))
+#define XVID_VERSION_PATCH(a)    ((char)(((a)>> 0) & 0xff))
 
 #define XVID_MAKE_API(a,b)       ((((a)&0xff)<<16) | (((b)&0xff)<<0))
 #define XVID_API_MAJOR(a)        (((a)>>16) & 0xff)
@@ -62,10 +62,10 @@ extern "C" {
 
 #define XVID_UNSTABLE
 
-/* Bitstream Version 
- * this will be writen into the bitstream to allow easy detection of xvid 
- * encoder bugs in the decoder, without this it might not possible to 
- * automatically distinquish between a file which has been encoded with an 
+/* Bitstream Version
+ * this will be writen into the bitstream to allow easy detection of xvid
+ * encoder bugs in the decoder, without this it might not possible to
+ * automatically distinquish between a file which has been encoded with an
  * old & buggy XVID from a file which has been encoded with a bugfree version
  * see the infamous interlacing bug ...
  *
@@ -73,7 +73,7 @@ extern "C" {
  * doesnt hurt but not increasing it could cause difficulty for decoders in the
  * future
  */
-#define XVID_BS_VERSION "0017"
+#define XVID_BS_VERSION "0020"
 
 
 /*****************************************************************************
@@ -138,7 +138,7 @@ typedef struct {
 #define XVID_PROFILE_AS_L4   0xf4
 
 /* aspect ratios */
-#define XVID_PAR_11_VGA    1 /* 1:1 vga (square) */
+#define XVID_PAR_11_VGA    1 /* 1:1 vga (square), default if AR is not precised (ie: ==0) */
 #define XVID_PAR_43_PAL    2 /* 4:3 pal (12:11 625-line) */
 #define XVID_PAR_43_NTSC   3 /* 4:3 ntsc (10:11 525-line) */
 #define XVID_PAR_169_PAL   4 /* 16:9 pal (16:11 625-line) */
@@ -159,7 +159,7 @@ typedef struct {
  * xvid_global()
  ****************************************************************************/
 
-/* cpu_flags definitions */
+/* cpu_flags definitions (make sure to sync this with cpuid.asm for ia32) */
 
 #define XVID_CPU_FORCE    (1<<31) /* force passed cpu flags */
 #define XVID_CPU_ASM      (1<< 7) /* native assembly */
@@ -217,7 +217,6 @@ typedef struct {
 #define XVID_GBL_INIT    0 /* initialize xvidcore; must be called before using xvid_decore, or xvid_encore) */
 #define XVID_GBL_INFO    1 /* return some info about xvidcore, and the host computer */
 #define XVID_GBL_CONVERT 2 /* colorspace conversion utility */
-#define XVID_GBL_TEST    3 /* testing.. */
 
 int xvid_global(void *handle, int opt, void *param1, void *param2);
 
@@ -232,7 +231,7 @@ int xvid_global(void *handle, int opt, void *param1, void *param2);
 
 int xvid_decore(void *handle, int opt, void *param1, void *param2);
 
-/* XVID_DEC_CREATE param 1	
+/* XVID_DEC_CREATE param 1
 	image width & height may be specified here when the dimensions are
 	known in advance. */
 typedef struct {
@@ -360,7 +359,7 @@ typedef struct
 	int version;
 
 	xvid_enc_zone_t * zone; /* [out] current zone */
-	
+
 	int width;              /* [out] */
 	int height;             /* [out] */
 	int mb_width;           /* [out] */
@@ -370,7 +369,7 @@ typedef struct
 
 	int min_quant[3];       /* [out] */
 	int max_quant[3];       /* [out] */
-	
+
 	xvid_image_t reference; /* [out] -> [out] */
 	xvid_image_t current;   /* [out] -> [in,out] */
 	xvid_image_t original;  /* [out] after: points the original (uncompressed) copy of the current frame */
@@ -410,7 +409,7 @@ typedef struct
   plugins[0].param = NULL;
   plugins[1].func = xvid_cbr_func;
   plugins[1].param = &cbr_data;
-  
+
   create.num_plugins = 2;
   create.plugins = plugins;
 
@@ -463,9 +462,9 @@ typedef struct {
 
 	int bitrate;                  /* [in] bits per second */
 	char * filename;              /* [in] first pass stats filename */
-	
+
 	int keyframe_boost;           /* [in] keyframe boost percentage: [0..100] */
-	int payback_method;           /* [in] Payback method: see XVID_PAYBACK flags */ 
+	int payback_method;           /* [in] Payback method: see XVID_PAYBACK flags */
 	int bitrate_payback_delay;    /* [in] Payback delay expressed in number of frames */
 	int curve_compression_high;   /* [in] percentage of compression performed on the high part of the curve (above average) */
 	int curve_compression_low;    /* [in] percentage of compression performed on the low  part of the curve (below average) */
@@ -531,6 +530,7 @@ int xvid_encore(void *handle, int opt, void *param1, void *param2);
 /* only valid for vol_flags|=XVID_VOL_REDUCED_ENABLED */
 #define XVID_VOP_REDUCED         (1<<11) /* reduced resolution vop */
 
+#define XVID_VOP_FAST_MODEDECISION_RD (1<< 12) /* use simplified R-D mode decision */
 
 
 
@@ -539,22 +539,22 @@ int xvid_encore(void *handle, int opt, void *param1, void *param2);
 #define XVID_ME_ADVANCEDDIAMOND8      (1<< 1) /* use advdiamond for XVID_ME_EXTSEARCH8 */
 #define XVID_ME_USESQUARES16          (1<< 2) /* use squares instead of diamonds as search pattern */
 #define XVID_ME_USESQUARES8           (1<< 3) /* use square for XVID_ME_EXTSEARCH8 */
-#define XVID_ME_HALFPELREFINE16       (1<< 4) 
-#define XVID_ME_HALFPELREFINE8        (1<< 6) 
-#define XVID_ME_QUARTERPELREFINE16    (1<< 7) 
-#define XVID_ME_QUARTERPELREFINE8     (1<< 8) 
-#define XVID_ME_GME_REFINE            (1<< 9) 
+#define XVID_ME_HALFPELREFINE16       (1<< 4)
+#define XVID_ME_HALFPELREFINE8        (1<< 6)
+#define XVID_ME_QUARTERPELREFINE16    (1<< 7)
+#define XVID_ME_QUARTERPELREFINE8     (1<< 8)
+#define XVID_ME_GME_REFINE            (1<< 9)
 #define XVID_ME_EXTSEARCH16           (1<<10) /* extend PMV by more searches */
 #define XVID_ME_EXTSEARCH8            (1<<11) /* use diamond/square for extended 8x8 search */
 #define XVID_ME_CHROMA_PVOP           (1<<12) /* also use chroma for P_VOP/S_VOP ME */
 #define XVID_ME_CHROMA_BVOP           (1<<13) /* also use chroma for B_VOP ME */
 
 /* Motion search using DCT. use XVID_VOP_MODEDECISION_BITS to enable */
-#define XVID_ME_HALFPELREFINE16_RD    (1<<14) /* perform DCT-based halfpel refinement */
-#define XVID_ME_HALFPELREFINE8_RD     (1<<15) /* perform DCT-based halfpel refinement for 8x8 mode */
-#define XVID_ME_QUARTERPELREFINE16_RD (1<<16) /* perform DCT-based qpel refinement */
-#define XVID_ME_QUARTERPELREFINE8_RD  (1<<17) /* perform DCT-based qpel refinement for 8x8 mode */
-#define XVID_ME_EXTSEARCH_RD          (1<<18) /* perform DCT-based search using square pattern enable XVID_ME_EXTSEARCH8 to do this in 8x8 search as well */
+#define XVID_ME_HALFPELREFINE16_RD    (1<<14) /* perform RD-based halfpel refinement */
+#define XVID_ME_HALFPELREFINE8_RD     (1<<15) /* perform RD-based halfpel refinement for 8x8 mode */
+#define XVID_ME_QUARTERPELREFINE16_RD (1<<16) /* perform RD-based qpel refinement */
+#define XVID_ME_QUARTERPELREFINE8_RD  (1<<17) /* perform RD-based qpel refinement for 8x8 mode */
+#define XVID_ME_EXTSEARCH_RD          (1<<18) /* perform RD-based search using square pattern enable XVID_ME_EXTSEARCH8 to do this in 8x8 search as well */
 #define XVID_ME_CHECKPREDICTION_RD    (1<<19) /* always check vector equal to prediction */
 
 #define XVID_ME_UNRESTRICTED16        (1<<20) /* unrestricted ME, not implemented */
@@ -562,7 +562,8 @@ int xvid_encore(void *handle, int opt, void *param1, void *param2);
 #define XVID_ME_UNRESTRICTED8         (1<<22) /* unrestricted ME, not implemented */
 #define XVID_ME_OVERLAPPING8          (1<<23) /* overlapping ME, not implemented */
 
-
+#define XVID_ME_DETECT_STATIC_MOTION  (1<<24) /* speed-up ME by detecting stationary scenes */
+#define XVID_ME_FASTREFINE16		  (1<<25) /* use low-complexity refinement functions */
 
 /* XVID_ENC_CREATE param1 */
 typedef struct {
@@ -625,7 +626,7 @@ typedef struct {
 	int motion;                        /* [in] ME options */
 
 	xvid_image_t input;                /* [in] input image (read from) */
-	
+
 	int type;                          /* [in:opt] coding type */
 	int quant;                         /* [in] frame quantizer; if <=0, automatic (ratecontrol) */
 	int bframe_threshold;
@@ -638,9 +639,9 @@ typedef struct {
 
 
 /* XVID_ENC_ENCODE param2 (optional)
-	xvid_enc_stats_t describes individual frame details 
-	
-	coding_type==XVID_TYPE_NOTHING if the stats are not given 
+	xvid_enc_stats_t describes individual frame details
+
+	coding_type==XVID_TYPE_NOTHING if the stats are not given
 */
 typedef struct {
 	int version;

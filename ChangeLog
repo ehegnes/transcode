@@ -37,9 +37,19 @@ transcode-0.6.11
   New: Pass-thru mode for MPEG2 files (with opt. requantize).
   Removed -y sampeg; never did anything useful.
   Upgraded included libavcodec to 0.4.8 (4683)
+  Upgraded -y xvid4 to the latest API
 
 
-2003-10-12 Tilmann Bitterberg <transcode at tibit.org>
+2003-10-13 Edouard Gomez <ed.gomez at free.fr>
+
+  * export/xvid4.h export/xvid4.cfg:
+  Some adjustments for the xvid4.h file were needed to be in sync
+  with upstream xvid. This fixes the way the XviD version is
+  extracted from a packed version number.
+
+  More help messages to the xvid4.cfg file.
+
+2003-10-13 Tilmann Bitterberg <transcode at tibit.org>
   
   * filter/filter_smartyuv.c:
   Fix a segfault pointed out by LethalWP.
