@@ -9,7 +9,8 @@ AM_CPPFLAGS = \
 	$(LAME_CFLAGS) \
 	$(AC3_CFLAGS) \
 	$(IMAGEMAGICK_CFLAGS) \
-	$(FT2_CFLAGS)
+	$(FT2_CFLAGS) \
+	$(FFMPEG_LIBS_CFLAGS)
 
 pkgdir = $(MOD_PATH)
 
@@ -63,6 +64,7 @@ pkg_LTLIBRARIES = \
 	filter_cpaudio.la \
 	filter_cshift.la \
 	filter_cut.la \
+	filter_decimate.la \
 	filter_denoise3d.la \
 	filter_detectclipping.la \
 	filter_detectsilence.la \
@@ -74,6 +76,7 @@ pkg_LTLIBRARIES = \
 	filter_fps.la \
 	filter_hqdn3d.la \
 	filter_invert.la \
+	filter_ivtc.la \
 	filter_levels.la \
 	filter_lowpass.la \
 	filter_mask.la \
@@ -82,6 +85,7 @@ pkg_LTLIBRARIES = \
 	filter_nored.la \
 	filter_normalize.la \
 	filter_null.la \
+	filter_resample.la \
 	filter_skip.la \
 	filter_slowmo.la \
 	filter_smartbob.la \
@@ -90,6 +94,7 @@ pkg_LTLIBRARIES = \
 	filter_smooth.la \
 	filter_tc_audio.la \
 	filter_tc_video.la \
+	filter_test.la \
 	filter_testframe.la \
 	filter_unsharp.la \
 	filter_videocore.la \
@@ -134,6 +139,9 @@ filter_cshift_la_LDFLAGS = -module -avoid-version
 filter_cut_la_SOURCES = filter_cut.c
 filter_cut_la_LDFLAGS = -module -avoid-version 
 
+filter_decimate_la_SOURCES = filter_decimate.c
+filter_decimate_la_LDFLAGS = -module -avoid-version
+
 filter_denoise3d_la_SOURCES = filter_denoise3d.c
 filter_denoise3d_la_LDFLAGS = -module -avoid-version 
 
@@ -165,6 +173,9 @@ filter_fps_la_LDFLAGS = -module -avoid-version
 
 filter_hqdn3d_la_SOURCES = filter_hqdn3d.c
 filter_hqdn3d_la_LDFLAGS = -module -avoid-version 
+
+filter_ivtc_la_SOURCES = filter_ivtc.c
+filter_ivtc_la_LDFLAGS = -module -avoid-version
 
 filter_invert_la_SOURCES = filter_invert.c
 filter_invert_la_LDFLAGS = -module -avoid-version 
@@ -199,6 +210,10 @@ filter_null_la_LDFLAGS = -module -avoid-version
 filter_skip_la_SOURCES = filter_skip.c
 filter_skip_la_LDFLAGS = -module -avoid-version 
 
+filter_resample_la_SOURCES = filter_resample.c
+filter_resample_la_LDFLAGS = -module -avoid-version
+filter_resample_la_LIBADD = $(FFMPEG_LIBS_LIBS)
+
 filter_slowmo_la_SOURCES = filter_slowmo.c
 filter_slowmo_la_LDFLAGS = -module -avoid-version 
 
@@ -221,6 +236,10 @@ filter_tc_audio_la_LDFLAGS = -module -avoid-version
 
 filter_tc_video_la_SOURCES = filter_tc_video.c
 filter_tc_video_la_LDFLAGS = -module -avoid-version 
+
+filter_test_la_SOURCES = filter_test.c
+filter_test_la_LDFLAGS = -module -avoid-version
+filter_test_la_LIBADD = $(ACLIB_LIBS)
 
 filter_testframe_la_SOURCES = filter_testframe.c
 filter_testframe_la_LDFLAGS = -module -avoid-version 
@@ -290,10 +309,7 @@ SUBDIRS = \
 	pp \
 	divxkey \
 	extsub \
-	resample \
-	test \
 	yuvdenoise \
-	ivtc \
 	$(F_TOMSMOCOMP) \
 	preview \
 	$(ADD2)
@@ -302,10 +318,7 @@ SUBDIRS = \
 	pp \
 	divxkey \
 	extsub \
-	resample \
-	test \
 	yuvdenoise \
-	ivtc \
 	$(F_TOMSMOCOMP)
 endif
 
