@@ -4,20 +4,15 @@ AUTOMAKE_OPTIONS = 1.3 foreign
 
 AM_CPPFLAGS = \
 	-D_REENTRANT \
-	-DMOD_PATH=\"@MOD_PATH@\" \
+	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/export \
 	-I$(top_srcdir)/import \
-	@XIO_CFLAGS@ \
-	@ACLIB_CFLAGS@ \
-	@FFMPEG_LIBS_CFLAGS@ \
-	@DLDARWININCL@ \
-	@SUPPORT_INCLUDES@
-
-AM_CFLAGS = \
-	-funroll-loops \
-	-ffast-math \
-	-finline-functions
+	$(XIO_CFLAGS) \
+	$(ACLIB_CFLAGS) \
+	$(FFMPEG_LIBS_CFLAGS) \
+	$(DLDARWININCL) \
+	$(SUPPORT_INCLUDES)
 
 AM_LDFLAGS = -export-dynamic
 
@@ -28,15 +23,15 @@ transcode_LDFLAGS = -Xlinker -m
 endif
 
 transcode_LDADD = \
-	@DLDARWINLIB@ \
-	@SUPPORT_LIBS@ \
-	@TCIOAUX_LIBS@ \
-	@ACLIB_LIBS@ \
-	@AVILIB_LIBS@ \
-	@LIBVO_LIBS@ \
-	@XIO_LIBS@ \
-	@LIBXML2_LIBS@ \
-	@PTHREAD_LIBS@ \
+	$(DLDARWINLIB) \
+	$(SUPPORT_LIBS) \
+	$(TCIOAUX_LIBS) \
+	$(ACLIB_LIBS) \
+	$(AVILIB_LIBS) \
+	$(LIBVO_LIBS) \
+	$(XIO_LIBS) \
+	$(LIBXML2_LIBS) \
+	$(PTHREAD_LIBS) \
 	-lm
 
 EXTRA_DIST = \

@@ -102,8 +102,8 @@ EXTRA_DIST = \
 
 SUBDIRS = . tcmplex
 
-ASM = @NASM@
-ASMFLAGS = @NASMFLAGS@
+ASM = $(NASM)
+ASMFLAGS = $(NASMFLAGS)
 
 # these nasm objects are OK for libraries in linux and BSD variants,
 # but libtool doesn't know that, so we fake it.

@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = 1.3 foreign
 
-AM_CPPFLAGS = @XIO_CFLAGS@
+AM_CPPFLAGS = $(XIO_CFLAGS)
 
 noinst_LTLIBRARIES = libavi.la
 

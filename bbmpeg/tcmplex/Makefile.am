@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = 1.3 foreign
 
-INCLUDES = @BBMPEG_CFLAGS@
+INCLUDES = $(BBMPEG_CFLAGS)
 
 bin_PROGRAMS = tcmplex
 
@@ -18,5 +18,5 @@ tcmplex_SOURCES = \
 	timecode.c
 
 tcmplex_LDADD = \
-	@BBMPEG_LIBS@ \
+	$(BBMPEG_LIBS) \
 	-lm
