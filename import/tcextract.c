@@ -42,7 +42,7 @@ static int verbose=TC_INFO;
 
 void import_exit(int code) 
 {
-  if(verbose & TC_DEBUG) import_info(code, EXE);
+  if(verbose & TC_DEBUG) { fprintf (stderr, "[%s] (pid=%d) exit ", EXE, (int) getpid()); import_info(code, EXE); }
   exit(code);
 }
 
@@ -66,6 +66,7 @@ void usage(int status)
   fprintf(stderr,"\t -x codec          source codec\n");
   fprintf(stderr,"\t -d mode           verbosity mode\n");
   fprintf(stderr,"\t -C s-e            process only (video frame/audio byte) range [all]\n");
+  fprintf(stderr,"\t -f seekfile       seek/index file [off]\n");
   fprintf(stderr,"\t -v                print version\n");
 
   exit(status);
@@ -100,7 +101,7 @@ int main(int argc, char *argv[])
     ipipe.frame_limit[1]=LONG_MAX;
 
     
-    while ((ch = getopt(argc, argv, "d:x:i:a:vt:C:?h")) != -1) {
+    while ((ch = getopt(argc, argv, "d:x:i:f:a:vt:C:?h")) != -1) {
 	
 	switch (ch) {
 	    
@@ -124,6 +125,13 @@ int main(int argc, char *argv[])
 	  codec = optarg;
 	  break;
 	  
+	case 'f': 
+	  
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+	  ipipe.nav_seek_file = optarg;
+
+	  break;
+
 	case 't': 
 	  
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
@@ -193,6 +201,9 @@ int main(int argc, char *argv[])
       if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (pid=%d) %s\n", EXE, getpid(), filetype(stream_magic));
       
     } else ipipe.fd_in = STDIN_FILENO;
+
+    if(verbose & TC_DEBUG) 
+	fprintf(stderr, "[%s] (pid=%d) starting, doing %s\n", EXE, getpid(), codec);
     
     // fill out defaults for info structure
     ipipe.fd_out = STDOUT_FILENO;
