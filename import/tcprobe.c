@@ -406,6 +406,9 @@ int main(int argc, char *argv[])
     
     for(n=0; n<TC_MAX_AUD_TRACKS; ++n) {
       
+      int D_arg=0, D_arg_ms=0;
+      double pts_diff=0.;
+
       if(ipipe.probe_info->track[n].format !=0 && ipipe.probe_info->track[n].chan>0) {
 	
 	c_ptr=c_old;
@@ -413,6 +416,7 @@ int main(int argc, char *argv[])
 	
 	printf("%18s -a %d [0] -e %d,%d,%d [%d,%d,%d] -n 0x%x [0x%x] %s\n", "audio track:", ipipe.probe_info->track[n].tid, ipipe.probe_info->track[n].samplerate, ipipe.probe_info->track[n].bits,  ipipe.probe_info->track[n].chan, RATE, BITS, CHANNELS, ipipe.probe_info->track[n].format, CODEC_AC3, c_ptr);
 	
+
 	if(ipipe.probe_info->track[n].pts_start 
 	   && ipipe.probe_info->track[n].bitrate)
 	  
@@ -425,6 +429,17 @@ int main(int argc, char *argv[])
 	if(ipipe.probe_info->track[n].pts_start==0 
 	   && ipipe.probe_info->track[n].bitrate)
 	  printf("%18s bitrate=%d kbps\n", " ", ipipe.probe_info->track[n].bitrate);
+
+	if( ipipe.probe_info->pts_start>0 && 
+	    ipipe.probe_info->track[n].pts_start>0 &&
+	    ipipe.probe_info->fps!=0) {
+	  pts_diff = ipipe.probe_info->pts_start - ipipe.probe_info->track[n].pts_start;
+	  D_arg = (int) (pts_diff * ipipe.probe_info->fps);
+	  D_arg_ms = (int) ((pts_diff - D_arg/ipipe.probe_info->fps)*1000);
+
+	  printf("%18s -D %d --av_fine_ms %d (frames & ms) [0] [0]\n", " ", D_arg, D_arg_ms);
+	}
+
 	
       }
     }
