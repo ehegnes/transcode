@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-02-24 Christopher Cramer <crayc at pyro.net>
+
+  * filter/filter_fps.c:
+  Add missing string termination in parse_options().
+  Add pre and post options to parse_options().
+
 2004-02-20 Tilmann Bitterberg <transcode at tibit.org>
 
   * libioaux/framecode.[lc]:

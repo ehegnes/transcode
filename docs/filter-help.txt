@@ -137,6 +137,16 @@ best (but slower) results, use RGB mode for field shifting.
 options: <input fps>:<output fps>
 example: -J fps=25:29.97 will convert from PAL to NTSC
 If no options are given, defaults or -f/--export_fps/--export_frc will be used.
+Some examples:
+
+	-J fps=10:5:pre		convert from 10 fps to 5 fps, preprocess
+	-J fps=10:post:12	convert from 10 to 12, postprocess
+	-J fps=pre=1:7:5	convert from 7 to 5, postprocess
+	-J fps=9:3.1:post=-0x7	convert from 9 to 3.1, postprocess
+
+If that last one is confusing you, remember that 0 is false and everything
+else is true. Of course, octal and hexadecimal numbers are supported too.
+This is intended to be backward compatible with the old format.
 <----------------------|
 
 ---------------------->[ hqdn3d.help ]
