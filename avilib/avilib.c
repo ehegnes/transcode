@@ -187,7 +187,7 @@ static int avi_add_chunk(avi_t *AVI, unsigned char *tag, unsigned char *data, in
 
    /* Update file position */
 
-   AVI->pos += 8 + length;
+   AVI->pos += 8 + PAD_EVEN(length);
 
    //fprintf(stderr, "pos=%lu %s\n", AVI->pos, tag);
 
