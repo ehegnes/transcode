@@ -65,10 +65,13 @@ static void pes_lpcm_loop (void)
     unsigned i;
     unsigned left_over;
 
+#ifdef WORDS_BIGENDIAN
+    static const unsigned lpcm_bebe16[4] = { 0,1, 2,3 };
+    static const unsigned lpcm_bebe24[12] = { 0,1,8, 2,3,9 ,4,5,10, 6,7,11 };
+#else
     static const unsigned lpcm_bele16[4] = { 1,0, 3,2 };
-    //static const unsigned lpcm_bebe16[4] = { 0,1, 2,3 };
-    //static const unsigned lpcm_bebe24[12] = { 0,1,8, 2,3,9 ,4,5,10, 6,7,11 };
     static const unsigned lpcm_bele24[12] = { 8,1,0, 9,3,2 ,10,5,4, 11,7,6 };
+#endif
 
     complain_loudly = 1;
     buf = buffer;
