@@ -1044,7 +1044,7 @@ Optional Features:
   --enable-warnings       treat warnings as errors
   --enable-statbuffer     enable internal static framebuffer support (yes)
   --enable-netstream      enable network streaming support (yes)
-  --enable-text           enable the text filter (no)
+  --enable-text           enable the text filter (yes)
   --disable-freetypetest  Do not try to compile and run
                           a test FreeType program
   --enable-v4l            enable experimental v4l support (no)
@@ -23949,7 +23949,7 @@ fi
 
 
 
-have_freetype2=no
+have_freetype2=yes
 echo "$as_me:$LINENO: checking wether to enable filter_text" >&5
 echo $ECHO_N "checking wether to enable filter_text... $ECHO_C" >&6
 # Check whether --enable-text or --disable-text was given.
@@ -24036,7 +24036,7 @@ echo "${ECHO_T}no" >&6
 fi
 
 
-min_ft_version=6.1.0
+min_ft_version=9.2.0
 echo "$as_me:$LINENO: checking for FreeType - version >= $min_ft_version" >&5
 echo $ECHO_N "checking for FreeType - version >= $min_ft_version... $ECHO_C" >&6
 no_ft=""
