@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 
-#if defined(COMP_MSC)
+#if !defined(COMP_MSC)
 #include <unistd.h>
 #include <inttypes.h>
 #endif
@@ -163,13 +163,7 @@ typedef struct
   uint32_t  bi_clr_important;
 } alBITMAPINFOHEADER;
 
-#if __GNUC__ == 2
-#pragma pack(1)
-#else
-#pragma pack(push,1)
-#endif
-
-typedef struct
+typedef struct __attribute__((__packed__))
 {
   uint16_t  w_format_tag;
   uint16_t  n_channels;
@@ -180,13 +174,7 @@ typedef struct
   uint16_t  cb_size;
 } alWAVEFORMATEX;
 
-#if __GNUC__ == 2
-#pragma pack(4)
-#else
-#pragma pack(pop)
-#endif
-
-typedef struct
+typedef struct __attribute__((__packed__))
 {
   uint32_t fcc_type; 
   uint32_t fcc_handler; 

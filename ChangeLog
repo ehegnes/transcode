@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-11-17 Tilmann Bitterberg <transcode at tibit.org>
+
+  * avilib/{avilib.h avilib.c}:
+  Tiny typos and a small bug
+
 2003-11-14 Tilmann Bitterberg <transcode at tibit.org>
 
   * export/export_im.c docs/man/transcode.1:
