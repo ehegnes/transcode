@@ -2,6 +2,22 @@
 transcode-0.6.12
 
 2003-11-10 Edouard Gomez <ed.gomez at free.fr>
+
+  * export/{export_xvid4.c xvid4.cfg xvid4.h}:
+
+  patch-21
+
+  Summary:
+    New 2pass API + missing cartoon code.
+  Revision:
+    transcode-xvidmodule--devapi4--1.0--patch-21
+
+  - Cartoon setting was already part of the configuration options
+    but there was no code handling it. Fixed.
+  - Updated the 2pass API to match recent xvid4 cvs changes (dated
+    2003-11-09)
+
+2003-11-10 Edouard Gomez <ed.gomez at free.fr>
   
   * import/{decode_xvid.c import_xvid.c}:
   This patch should fix problems when using the xvid import module.

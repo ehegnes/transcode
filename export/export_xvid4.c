@@ -140,7 +140,6 @@ typedef struct _xvid_transcode_module_t
 	char *cfg_intra_matrix_file;
 	char *cfg_inter_matrix_file;
 	char *cfg_quant_method;
-	char *cfg_payback_method;
 	int cfg_packed;
 	int cfg_closed_gop;
 	int cfg_interlaced;
@@ -548,7 +547,6 @@ static void reset_module(xvid_transcode_module_t *mod)
 	mod->cfg_motion = 6;
 	mod->cfg_stats = 0;
 	mod->cfg_quant_method = strdup("h263");
-	mod->cfg_payback_method = strdup("proportional");
 
 	/* No bframes by default but ratio and offset have to be initialized */
 	mod->cfg_create.max_bframes = 0;
@@ -665,13 +663,11 @@ static void read_config_file(xvid_transcode_module_t *mod)
 			/* section [cbr] */
 			{"vbr", "VBR settings", CONF_TYPE_SECTION, 0, 0, 0, NULL},
 			{"keyframe_boost", &pass2->keyframe_boost, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
-			{"payback_method", &mod->cfg_payback_method, CONF_TYPE_STRING, 0, 0, 0, NULL},
-			{"bitrate_payback_delay", &pass2->bitrate_payback_delay, CONF_TYPE_INT, CONF_MIN, 0, 0, NULL},
 			{"curve_compression_high", &pass2->curve_compression_high, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
 			{"curve_compression_low", &pass2->curve_compression_low, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
+			{"overflow_control_strength", &pass2->overflow_control_strength, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
 			{"max_overflow_improvement", &pass2->max_overflow_improvement, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
 			{"max_overflow_degradation", &pass2->max_overflow_degradation, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
-			{"kftreshold", &pass2->kftreshold, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
 			{"kfreduction", &pass2->kfreduction, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
 			{"min_key_interval", &pass2->min_key_interval, CONF_TYPE_INT, CONF_MIN, 0, 0, NULL},
 			{"container_frame_overhead", &pass2->container_frame_overhead, CONF_TYPE_INT, CONF_MIN, 0, 0, NULL},
@@ -724,11 +720,6 @@ static void dispatch_settings(xvid_transcode_module_t *mod)
 	if(mod->cfg_stats)
 		create->global |= XVID_GLOBAL_EXTRASTATS_ENABLE;
 
-	if(!strcasecmp(mod->cfg_payback_method, "bias"))
-		mod->cfg_pass2.payback_method = XVID_PAYBACK_BIAS;
-	else
-		mod->cfg_pass2.payback_method = XVID_PAYBACK_PROP;
-
 	/* Dispatch all settings having an impact on the "frame" structure */
 	frame->vol_flags = 0;
 	frame->vop_flags = 0;
@@ -742,6 +733,11 @@ static void dispatch_settings(xvid_transcode_module_t *mod)
 
 	if(mod->cfg_greyscale)
 		frame->vop_flags |= XVID_VOP_GREYSCALE;
+
+	if(mod->cfg_cartoon) {
+		frame->vop_flags |= XVID_VOP_CARTOON;
+		frame->motion |= XVID_ME_DETECT_STATIC_MOTION;
+	}
 
 	if(mod->cfg_intra_matrix_file) {
 		frame->quant_intra_matrix = (unsigned char*)read_matrix(mod->cfg_intra_matrix_file);
@@ -908,13 +904,11 @@ static void set_create_struct(xvid_transcode_module_t *mod, vob_t *vob)
 		/* Apply config file settings if any, or all 0s which lets XviD
 		 * apply its defaults */
 		pass2->keyframe_boost = pass2cfg->keyframe_boost;
-		pass2->payback_method = pass2cfg->payback_method;
-		pass2->bitrate_payback_delay = pass2cfg->bitrate_payback_delay;
 		pass2->curve_compression_high = pass2cfg->curve_compression_high;
 		pass2->curve_compression_low = pass2cfg->curve_compression_low;
+		pass2->overflow_control_strength = pass2cfg->overflow_control_strength;
 		pass2->max_overflow_improvement = pass2cfg->max_overflow_improvement;
 		pass2->max_overflow_degradation = pass2cfg->max_overflow_degradation;
-		pass2->kftreshold = pass2cfg->kftreshold;
 		pass2->kfreduction = pass2cfg->kfreduction;
 		pass2->min_key_interval = pass2cfg->min_key_interval;
 		pass2->container_frame_overhead = pass2cfg->container_frame_overhead;
