@@ -22,7 +22,8 @@ FF_SRC_PPC = ppc/dsputil_ppc.c ppc/mpegvideo_ppc.c
 endif
 
 if HAVE_PPC_ALTIVEC
-FF_SRC_ALTIVEC = ppc/dsputil_altivec.c ppc/mpegvideo_altivec.c ppc/idct_altivec.c
+FF_SRC_ALTIVEC = ppc/dsputil_altivec.c ppc/mpegvideo_altivec.c ppc/idct_altivec.c \
+		 ppc/fft_altivec.c ppc/gmc_altivec.c
 ALTIVEC=-faltivec
 endif
 
@@ -31,13 +32,14 @@ AM_CFLAGS = -O3 -g -Wall -ffast-math $(ALTIVEC) $(X86) $(MMX) -DHAVE_AV_CONFIG_H
 noinst_LIBRARIES = libavcodec.a
 
 libavcodec_a_SOURCES = \
- common.c utils.c mem.c allcodecs.c \
-      mpegvideo.c h263.c jrevdct.c jfdctfst.c jfdctint.c\
+      common.c utils.c mem.c allcodecs.c \
+      mpegvideo.c jrevdct.c jfdctfst.c jfdctint.c\
       mpegaudio.c ac3enc.c mjpeg.c resample.c dsputil.c \
-      motion_est.c imgconvert.c imgresample.c msmpeg4.c \
-      mpeg12.c h263dec.c svq1.c rv10.c mpegaudiodec.c pcm.c simple_idct.c \
+      motion_est.c imgconvert.c imgresample.c \
+      mpeg12.c mpegaudiodec.c pcm.c simple_idct.c \
       ratecontrol.c adpcm.c eval.c dv.c error_resilience.c \
-      wmadec.c fft.c mdct.c mace.c \
+      h263.c msmpeg4.c h263dec.c svq1.c rv10.c wmadec.c
+      fft.c mdct.c mace.c \
       huffyuv.c $(FF_SRC_MMX) $(FF_SRC_PPC) $(FF_SRC_ALTIVEC)
 
 noinst_HEADERS = *.h

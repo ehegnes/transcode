@@ -17,18 +17,12 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#include <math.h>
-#include "common.h"
 #include "avcodec.h"
 #include "dsputil.h"
 #include "mpegvideo.h"
 
 #undef NDEBUG // allways check asserts, the speed effect is far too small to disable them
 #include <assert.h>
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 
 #ifndef M_E
 #define M_E 2.718281828
@@ -446,11 +440,13 @@ static double predict_size(Predictor *p, double q, double var)
      return p->coeff*var / (q*p->count);
 }
 
+/*
 static double predict_qp(Predictor *p, double size, double var)
 {
 //printf("coeff:%f, count:%f, var:%f, size:%f//\n", p->coeff, p->count, var, size);
      return p->coeff*var / (size*p->count);
 }
+*/
 
 static void update_predictor(Predictor *p, double q, double var, double size)
 {
@@ -705,7 +701,7 @@ static int init_pass2(MpegEncContext *s)
     uint64_t all_available_bits= (uint64_t)(s->bit_rate*(double)rcc->num_entries/fps);
     double rate_factor=0;
     double step;
-    int last_i_frame=-10000000;
+    //int last_i_frame=-10000000;
     const int filter_size= (int)(s->qblur*4) | 1;  
     double expected_bits;
     double *qscale, *blured_qscale;
@@ -755,8 +751,8 @@ static int init_pass2(MpegEncContext *s)
     }
 //printf("%lld %lld %lld %lld\n", available_bits[I_TYPE], available_bits[P_TYPE], available_bits[B_TYPE], all_available_bits);
         
-    qscale= malloc(sizeof(double)*rcc->num_entries);
-    blured_qscale= malloc(sizeof(double)*rcc->num_entries);
+    qscale= av_malloc(sizeof(double)*rcc->num_entries);
+    blured_qscale= av_malloc(sizeof(double)*rcc->num_entries);
 
     for(step=256*256; step>0.0000001; step*=0.5){
         expected_bits=0;
@@ -813,8 +809,8 @@ static int init_pass2(MpegEncContext *s)
 //        printf("%f %d %f\n", expected_bits, (int)all_available_bits, rate_factor);
         if(expected_bits > all_available_bits) rate_factor-= step;
     }
-    free(qscale);
-    free(blured_qscale);
+    av_free(qscale);
+    av_free(blured_qscale);
 
     if(abs(expected_bits/all_available_bits - 1.0) > 0.01 ){
         fprintf(stderr, "Error: 2pass curve failed to converge\n");

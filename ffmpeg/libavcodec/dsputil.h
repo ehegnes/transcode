@@ -25,6 +25,7 @@
 //#define DEBUG
 /* dct code */
 typedef short DCTELEM;
+//typedef int DCTELEM;
 
 void fdct_ifast (DCTELEM *data);
 void ff_jpeg_fdct_islow (DCTELEM *data);
@@ -69,7 +70,23 @@ void clear_blocks_c(DCTELEM *blocks);
 typedef void (*op_pixels_func)(UINT8 *block/*align width (8 or 16)*/, const UINT8 *pixels/*align 1*/, int line_size, int h);
 typedef void (*qpel_mc_func)(UINT8 *dst/*align width (8 or 16)*/, UINT8 *src/*align 1*/, int stride);
 
+#define DEF_OLD_QPEL(name)\
+void ff_put_        ## name (UINT8 *dst/*align width (8 or 16)*/, UINT8 *src/*align 1*/, int stride);\
+void ff_put_no_rnd_ ## name (UINT8 *dst/*align width (8 or 16)*/, UINT8 *src/*align 1*/, int stride);\
+void ff_avg_        ## name (UINT8 *dst/*align width (8 or 16)*/, UINT8 *src/*align 1*/, int stride);
 
+DEF_OLD_QPEL(qpel16_mc11_old_c)
+DEF_OLD_QPEL(qpel16_mc31_old_c)
+DEF_OLD_QPEL(qpel16_mc12_old_c)
+DEF_OLD_QPEL(qpel16_mc32_old_c)
+DEF_OLD_QPEL(qpel16_mc13_old_c)
+DEF_OLD_QPEL(qpel16_mc33_old_c)
+DEF_OLD_QPEL(qpel8_mc11_old_c)
+DEF_OLD_QPEL(qpel8_mc31_old_c)
+DEF_OLD_QPEL(qpel8_mc12_old_c)
+DEF_OLD_QPEL(qpel8_mc32_old_c)
+DEF_OLD_QPEL(qpel8_mc13_old_c)
+DEF_OLD_QPEL(qpel8_mc33_old_c)
 
 #define CALL_2X_PIXELS(a, b, n)\
 static void a(uint8_t *block, const uint8_t *pixels, int line_size, int h){\
@@ -79,13 +96,10 @@ static void a(uint8_t *block, const uint8_t *pixels, int line_size, int h){\
 
 /* motion estimation */
 
-typedef int (*op_pixels_abs_func)(UINT8 *blk1/*align width (8 or 16)*/, UINT8 *blk2/*align 1*/, int line_size);
-/*
-int pix_abs16x16_c(UINT8 *blk1, UINT8 *blk2, int lx);
-int pix_abs16x16_x2_c(UINT8 *blk1, UINT8 *blk2, int lx);
-int pix_abs16x16_y2_c(UINT8 *blk1, UINT8 *blk2, int lx);
-int pix_abs16x16_xy2_c(UINT8 *blk1, UINT8 *blk2, int lx);
-*/
+typedef int (*op_pixels_abs_func)(UINT8 *blk1/*align width (8 or 16)*/, UINT8 *blk2/*align 1*/, int line_size)/* __attribute__ ((const))*/;
+
+typedef int (*me_cmp_func)(void /*MpegEncContext*/ *s, UINT8 *blk1/*align width (8 or 16)*/, UINT8 *blk2/*align 1*/, int line_size)/* __attribute__ ((const))*/;
+
 typedef struct DSPContext {
     /* pixel ops : interface with DCT */
     void (*get_pixels)(DCTELEM *block/*align 16*/, const UINT8 *pixels/*align 8*/, int line_size);
@@ -98,7 +112,19 @@ typedef struct DSPContext {
     void (*clear_blocks)(DCTELEM *blocks/*align 16*/);
     int (*pix_sum)(UINT8 * pix, int line_size);
     int (*pix_norm1)(UINT8 * pix, int line_size);
-    int (*pix_norm)(UINT8 * pix1, UINT8 * pix2, int line_size);
+    me_cmp_func sad[2]; /* identical to pix_absAxA except additional void * */
+    me_cmp_func sse[2];
+    me_cmp_func hadamard8_diff[2];
+    me_cmp_func dct_sad[2];
+    me_cmp_func quant_psnr[2];
+    me_cmp_func bit[2];
+    me_cmp_func rd[2];
+    int (*hadamard8_abs )(uint8_t *src, int stride, int mean);
+
+    me_cmp_func me_pre_cmp[11];
+    me_cmp_func me_cmp[11];
+    me_cmp_func me_sub_cmp[11];
+    me_cmp_func mb_cmp[11];
 
     /* maybe create an array for 16/8 functions */
     op_pixels_func put_pixels_tab[2][4];
@@ -109,6 +135,7 @@ typedef struct DSPContext {
     qpel_mc_func avg_qpel_pixels_tab[2][16];
     qpel_mc_func put_no_rnd_qpel_pixels_tab[2][16];
     qpel_mc_func avg_no_rnd_qpel_pixels_tab[2][16];
+    qpel_mc_func put_mspel_pixels_tab[8];
 
     op_pixels_abs_func pix_abs16x16;
     op_pixels_abs_func pix_abs16x16_x2;
@@ -120,9 +147,8 @@ typedef struct DSPContext {
     op_pixels_abs_func pix_abs8x8_xy2;
     
     /* huffyuv specific */
-    //FIXME note: alignment isnt guranteed currently but could be if needed
     void (*add_bytes)(uint8_t *dst/*align 16*/, uint8_t *src/*align 16*/, int w);
-    void (*diff_bytes)(uint8_t *dst/*align 16*/, uint8_t *src1/*align 16*/, uint8_t *src2/*align 16*/,int w);
+    void (*diff_bytes)(uint8_t *dst/*align 16*/, uint8_t *src1/*align 16*/, uint8_t *src2/*align 1*/,int w);
 } DSPContext;
 
 void dsputil_init(DSPContext* p, unsigned mask);
@@ -131,9 +157,13 @@ void dsputil_init(DSPContext* p, unsigned mask);
  * permute block according to permuatation.
  * @param last last non zero element in scantable order
  */
-void ff_block_permute(INT16 *block, UINT8 *permutation, const UINT8 *scantable, int last);
+void ff_block_permute(DCTELEM *block, UINT8 *permutation, const UINT8 *scantable, int last);
 
 #define emms_c()
+
+/* should be defined by architectures supporting
+   one or more MultiMedia extension */
+int mm_support(void);
 
 #if defined(HAVE_MMX)
 
@@ -147,7 +177,6 @@ void ff_block_permute(INT16 *block, UINT8 *permutation, const UINT8 *scantable, 
 
 extern int mm_flags;
 
-int mm_support(void);
 void add_pixels_clamped_mmx(const DCTELEM *block, UINT8 *pixels, int line_size);
 void put_pixels_clamped_mmx(const DCTELEM *block, UINT8 *pixels, int line_size);
 
@@ -155,6 +184,7 @@ static inline void emms(void)
 {
     __asm __volatile ("emms;":::"memory");
 }
+
 
 #define emms_c() \
 {\
@@ -193,6 +223,10 @@ void dsputil_init_alpha(DSPContext* c, unsigned mask);
 #define MM_ALTIVEC    0x0001 /* standard AltiVec */
 
 extern int mm_flags;
+
+#if defined(HAVE_ALTIVEC) && !defined(CONFIG_DARWIN)
+#include <altivec.h>
+#endif
 
 #define __align8 __attribute__ ((aligned (16)))
 
@@ -257,6 +291,8 @@ int fft_init(FFTContext *s, int nbits, int inverse);
 void fft_permute(FFTContext *s, FFTComplex *z);
 void fft_calc_c(FFTContext *s, FFTComplex *z);
 void fft_calc_sse(FFTContext *s, FFTComplex *z);
+void fft_calc_altivec(FFTContext *s, FFTComplex *z);
+
 static inline void fft_calc(FFTContext *s, FFTComplex *z)
 {
     s->fft_calc(s, z);
@@ -281,13 +317,26 @@ void ff_mdct_calc(MDCTContext *s, FFTSample *out,
                const FFTSample *input, FFTSample *tmp);
 void ff_mdct_end(MDCTContext *s);
 
+#define WARPER88_1616(name8, name16)\
+static int name16(void /*MpegEncContext*/ *s, uint8_t *dst, uint8_t *src, int stride){\
+    return name8(s, dst           , src           , stride)\
+          +name8(s, dst+8         , src+8         , stride)\
+          +name8(s, dst  +8*stride, src  +8*stride, stride)\
+          +name8(s, dst+8+8*stride, src+8+8*stride, stride);\
+}
+
 #ifndef HAVE_LRINTF
 /* XXX: add ISOC specific test to avoid specific BSD testing. */
 /* better than nothing implementation. */
 /* btw, rintf() is existing on fbsd too -- alex */
 static inline long int lrintf(float x)
 {
+#ifdef CONFIG_WIN32
+    /* XXX: incorrect, but make it compile */
+    return (int)(x);
+#else
     return (int)(rint(x));
+#endif
 }
 #endif
 
