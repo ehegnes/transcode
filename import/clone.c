@@ -54,6 +54,7 @@ static double fps;
 static pthread_t thread;
 
 static int clone_read_thread_flag=0;
+static int clone_have_thread=0;
 
 static pthread_mutex_t buffer_fill_lock=PTHREAD_MUTEX_INITIALIZER;
 static int buffer_fill_ctr;
@@ -103,6 +104,7 @@ int clone_init(FILE *fd)
       return(-1);
   }
   
+  clone_have_thread = 1;
   vob = tc_get_vob();
   fps = vob->fps;
   width = vob->im_v_width;
@@ -273,8 +275,11 @@ void clone_close()
     void *status;
 
     // cancel the thread
-    pthread_cancel(thread);
-    pthread_join(thread, &status);
+    if (clone_have_thread) {
+      pthread_cancel(thread);
+      pthread_join(thread, &status);
+      clone_have_thread = 0;
+    }
 
     //reentrance safe
   
@@ -292,6 +297,9 @@ void clone_close()
 	free(logfile);
 	sfd=0;
     }
+
+    if (pfd) pclose(pfd);
+    pfd = NULL;
 }
 
 char *clone_fifo() 

@@ -228,9 +228,9 @@ MOD_open
       
       // popen
       if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
-      perror("popen RGB stream");
-      return(TC_IMPORT_ERROR);
-    }
+	perror("popen RGB stream");
+	return(TC_IMPORT_ERROR);
+      }
 
       if (vob->demuxer==TC_DEMUX_SEQ_FSYNC || vob->demuxer==TC_DEMUX_SEQ_FSYNC2) {
 	
@@ -351,14 +351,18 @@ MOD_decode
 
 MOD_close
 {  
-    if(param->fd != NULL) pclose(param->fd);
     
+    if(param->fd) { 
+	pclose(param->fd);
+    }
+    param->fd = NULL;
+
     if(param->flag == TC_VIDEO) {
-	
+
 	//safe
       clone_close();
 	
-	return(0);
+      return(0);
     }
     
     if(param->flag == TC_SUBEX) return(0);
