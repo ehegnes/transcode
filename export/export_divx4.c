@@ -102,7 +102,7 @@ static char module[TC_BUF_MAX];
 #define MODULE_V "libdivxencore.so.0"
 
 static int divx_init(char *path) {
-#ifdef __FreeBSD__ /* Just in case ProjectMayo will release FreeBSD library :-) */  
+#if defined(__FreeBSD__) || defined(__APPLE__) /* Just in case ProjectMayo will release FreeBSD library :-) */  
   const
 #endif  
   char *error;

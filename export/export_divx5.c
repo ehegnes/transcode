@@ -100,6 +100,7 @@ static int (*divx5_encore)(void *para0, int opt, void *para1, void *para2);
 static void *handle;
 static char module[TC_BUF_MAX];
 
+#if ENCORE_VERSION >= 20021024
 static char * prof2name(int n)
 {
     switch (n) {
@@ -111,12 +112,13 @@ static char * prof2name(int n)
 	default: return "Free/No profile";
     }
 }
+#endif
 
 
 #define MODULE "libdivxencore.so.0"
 
 static int divx5_init(char *path) {
-#ifdef __FreeBSD__ /* Just in case ProjectMayo will release FreeBSD library :-) */  
+#if defined(__FreeBSD__) || defined(__APPLE__) /* Just in case ProjectMayo will release FreeBSD library :-) */  
   const
 #endif  
   char *error;

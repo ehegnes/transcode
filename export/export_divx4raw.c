@@ -103,7 +103,7 @@ static int p_write (int fd, char *buf, size_t len)
 
 
 static int divx4_init(char *path) {
-#ifdef __FreeBSD__ /* Just in case ProjectMayo will release FreeBSD library :-) */  
+#if defined(__FreeBSD__) || defined(__APPLE__) /* Just in case ProjectMayo will release FreeBSD library :-) */  
   const
 #endif  
   char *error;
