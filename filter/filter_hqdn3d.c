@@ -152,7 +152,7 @@ static void help_optstr()
     printf ("    luma_strength : temporal luma strength (%f)\n", PARAM3_DEFAULT);
     printf ("  chroma_strength : temporal chroma strength (%f)\n", 
 	    PARAM3_DEFAULT/PARAM2_DEFAULT*PARAM1_DEFAULT);
-    printf ("              pre : run as a pre filter (off)\n");
+    printf ("              pre : run as a pre filter (0)\n");
 }
 
 // main filter routine
@@ -184,6 +184,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
       snprintf(buf, 128, "%f", PARAM3_DEFAULT/PARAM2_DEFAULT*PARAM1_DEFAULT);
       optstr_param (options, "chroma_strength", "temporal chroma strength", "%f", buf, "0.0", "100.0" );
+      snprintf(buf, 128, "%d", mfd[instance]->pre);
+      optstr_param (options, "pre", "run as a pre filter", "%d", buf, "0", "1" );
 
       return 0;
   }
