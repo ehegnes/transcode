@@ -24,6 +24,10 @@
  */
 
 // ----------------- Changes 
+// 0.9 -> 0.10: marrq
+//		added scene change detection code courtesy of Tilmann Bitterberg
+//		so we won't blend if there's a change of scene (we'll still interpolate)
+//		added clone_phosphor_average
 // 0.8 -> 0.9: marrq
 //		added fancy_clone and associated functions
 // 0.7 -> 0.8: Tilmann Bitterberg
@@ -44,12 +48,8 @@
 //             flags.
 //             Fix a bug related to scanrange.
 
-// ----------------- TODO
-//	feature:
-//	finish phosphor-merge for clones
-
 #define MOD_NAME    "filter_modfps.so"
-#define MOD_VERSION "v0.9 (2003-08-14)"
+#define MOD_VERSION "v0.10 (2003-08-18)"
 #define MOD_CAP     "plugin to modify framerate"
 #define MOD_AUTHOR  "Marrq"
 //#define DEBUG 1
@@ -58,6 +58,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 /* -------------------------------------------------
  *
@@ -124,18 +125,109 @@ static void help_optstr()
     printf ("\tbuffer : number of frames to buffer [%d]\n",numSample);
     printf ("\tsubsample : number of pixels to subsample when examining buffers [%d]\n",offset);
     printf ("\tclonetype : when cloning and mode=1 do something special [%d]\n",clonetype);
-    printf ("\t\t     0 = none\n");
-    printf ("\t\t     1 = merge fields, cloned frame first(good for interlaced displays\n");
-    printf ("\t\t     2 = merge fields, cloned frame 2nd (good for interlaced displays\n");
-    printf ("\t\t     3 = evenly merge frame\n");
-    printf ("\t\t     4 = temporally merge frame\n");
-    printf ("\t\t     5 = pseudo-phosphor average (YUV only) (currently unimplemented)\n");
+    printf ("\t\t    0 = none\n");
+    printf ("\t\t    1 = merge fields, cloned frame first(good for interlaced displays)\n");
+    printf ("\t\t    2 = merge fields, cloned frame 2nd (good for interlaced displays)\n");
+    printf ("\t\t    3 = average frames\n");
+    printf ("\t\t    4 = temporally average frame\n");
+    printf ("\t\t    5 = pseudo-phosphor average frames (YUV only) (slow)\n");
     printf ("\tverbose : 0 = not verbose, 1 is verbose [%d]\n",show_results);
 }
 
-static void clone_average(unsigned char *clone, unsigned char*next, vframe_list_t *ptr){
+#define ABS_u8(a) (((a)^((a)>>7))-((a)>>7))
+
+static int yuv_detect_scenechange(uint8_t *_src, uint8_t *_prev, const int _threshold,
+		const int _scenethreshold, int _width, const int _height, const int srcpitch){
+  uint8_t *src, *src_buf, *srcminus, *prev;
+  const int w=_width;
+  const int h=_height;
+  const int hminus1 = h-1;
+  int x,y,count=0,scenechange=0;
+
+  /* Skip first and last lines, they'll get a free ride. */
+  src_buf = _src;
+  src = src_buf + srcpitch;
+  srcminus = src - srcpitch;
+  prev = _prev + srcpitch;
+
+  for (y = 1; y < hminus1; y++){
+    if (y & 1){
+      for (x=0; x<w; x++) {
+        int luma = *src++;
+	int p0 = luma - (*(srcminus+x));
+	int p1 = luma - (*(prev));
+
+	count += ((ABS_u8(p0) > _threshold) & (ABS_u8(p1) > _threshold));
+	++prev;
+      }
+    } else {
+      for (x=0; x<w; x++) {
+        int luma = *src++ & 0xff;
+	int p0 = luma - (*(prev+w)&0xff);
+	int p1 = luma - (*(prev)&0xff);
+
+	count += ((ABS_u8(p0) > _threshold) & (ABS_u8(p1) > _threshold));
+	++prev;
+      }
+    }
+
+    srcminus += srcpitch;
+  }
+
+  if ((100L * count) / (h * w) >= _scenethreshold){
+    scenechange = 1;
+  } else {
+    scenechange = 0;
+  }
+
+  return scenechange;
+}
+
+static int tc_detect_scenechange(unsigned char*clone, unsigned char *next, vframe_list_t *ptr){
+  const int thresh = 14;
+  const int scenethresh = 31;
+  if(ptr->v_codec == CODEC_YUV){
+    return yuv_detect_scenechange((uint8_t *)next, (uint8_t *)clone, thresh, scenethresh,
+    				ptr->v_width, ptr->v_height, ptr->v_width);
+  } else {
+    // implement RGB and YUY2
+    return 0;
+  }
+}
+/**********
+ * phosphor average will likely only make sense for YUV data.
+ * we'll do a straight average for the UV data, but for the Y
+ * data, we'll cube the pixel, average them and take the cube root
+ * of that.  This way, brightness (and hopefully motion) is easily
+ * noticed by the eye
+ **********/
+static void clone_phosphor_average(unsigned char *clone, unsigned char *next, vframe_list_t *ptr){
   int i;
 
+  // let's not blend if there's a scenechange
+  if (tc_detect_scenechange(clone,next,ptr)){
+    return;
+  } // else 
+  for(i=0;i<(ptr->v_width*ptr->v_height);i++){
+    //ptr->video_buf[i] = (unsigned char)lrint(pow( ( pow((double)clone[i], 3.0) +
+    //					      pow((double)next[i],  3.0) ) / 2.0,
+    //					      1.0/3.0));
+    ptr->video_buf[i] = (unsigned char)lrint(pow((double) (( clone[i]*clone[i]*clone[i] +
+    					      next[i]*next[i]*next[i]) >> 1),
+					      1.0/3.0));
+  }
+  for(; i<ptr->video_size; i++){
+    ptr->video_buf[i] = (unsigned char)( ((short int)clone[i] + (short int)next[i]) >> 1);
+  }
+}
+
+static void clone_average(unsigned char *clone, unsigned char *next, vframe_list_t *ptr){
+  int i;
+
+  // let's not blend if there's a scenechange
+  if (tc_detect_scenechange(clone,next,ptr)){
+    return;
+  } // else 
   for(i=0;i<ptr->video_size;i++){
     ptr->video_buf[i] = (unsigned char)( ((short int)clone[i] + (short int)next[i]) >> 1);
   }
@@ -182,6 +274,11 @@ static void clone_temporal_average(unsigned char *clone, unsigned char*next, vfr
     return;
   } // else
   
+  // let's not blend if there's a scenechange
+  if (tc_detect_scenechange(clone,next,ptr)){
+    return;
+  } // else 
+
   if (weight1 > 1.0 || weight2 > 1.0){
     fprintf(stderr, "[%s] clone_temporal_average: error: weights are out of range, w1=%f w2=%f\n", MOD_NAME,weight1,weight2);
     return;
@@ -259,6 +356,7 @@ static void fancy_clone(char* clone, char* next, vframe_list_t *ptr, int tin, in
   //printf("[%s] fancy_clone clonetype: %d tin=%4d tout=%4d\n",MOD_NAME,clonetype,tin,tout);
   switch (clonetype){
     case 0:
+      memcpy(ptr->video_buf,clone,ptr->video_size);
       break;
     case 1:
       clone_interpolate(clone,next,ptr);
@@ -271,6 +369,13 @@ static void fancy_clone(char* clone, char* next, vframe_list_t *ptr, int tin, in
       break;
     case 4:
       clone_temporal_average(clone,next,ptr,tin,tout);
+      break;
+    case 5:
+      if (ptr->v_codec != CODEC_YUV){
+        printf("[%s] Erroor, phosphor merge only implemented for YUV data\n",MOD_NAME);
+	return;
+      }
+      clone_phosphor_average(clone,next,ptr);
       break;
     default:
       printf("[%s] Error, unimplemented clonetype\n",MOD_NAME);
