@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-03-13 James MacLean <macleajb at EDnet.NS.CA>
+
+  * src/transcode.c:
+  Let users overwrite mpeg2enc parameters
+
 2004-03-13 Tilmann Bitterberg <transcode at tibit.org>
   
   * export/export_yuv4mpeg.c:
