@@ -53,11 +53,11 @@
 
 // altivec does not give much, about 1 fps
 
-#ifdef HAVE_MMX
+#ifdef HAVE_ASM_MMX
 # include "mmx.h"
 #endif
 
-#ifndef HAVE_MMX
+#ifndef HAVE_ASM_MMX
 # define emms() do{}while(0)
 #endif
 
@@ -220,7 +220,9 @@ static void Erode_Dilate (uint8_t *_moving, uint8_t *_fmoving, int width, int he
     int sum, x, y;
     uint8_t  *m, *fmoving, *moving, *p;
     int w4 = width+PAD;
+#ifdef HAVE_ASM_MMX
     int can_use_mmx = !(width%4);
+#endif
 
     // Erode.
     fmoving = _fmoving;
@@ -229,7 +231,7 @@ static void Erode_Dilate (uint8_t *_moving, uint8_t *_fmoving, int width, int he
 
     for (y = 0; y < height; y++)
     {
-#ifdef HAVE_MMX
+#ifdef HAVE_ASM_MMX
 	/*
 	 * The motion map as either 1 or 0.
 	 * moving[x] is the current position.
@@ -406,8 +408,12 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	unsigned char		fiMotion;
 	int			cubic = mfd->cubic;
 	static int 		counter=0;
+#ifdef HAVE_ASM_MMX
 	const int		can_use_mmx = !(w%8); // width must a multiple of 8
-	// const int		can_use_altivec = !(w%16); // width must a multiple of 16
+#endif
+#ifdef CAN_COMPILE_C_ALTIVEC
+	const int		can_use_altivec = !(w%16); // width must a multiple of 16
+#endif
 
 
 	char * dst_buf;
@@ -432,7 +438,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	{
 		if (mfd->diffmode == FRAME_ONLY) {
 
-#ifdef HAVE_MMX
+#ifdef HAVE_ASM_MMX
 		  if (can_use_mmx) {
 
 		    uint64_t mask1 = 0x00FF00FF00FF00FFULL;
@@ -580,7 +586,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 
 		} else if (mfd->diffmode == FRAME_AND_FIELD) {
 
-#ifdef HAVE_MMX
+#ifdef HAVE_ASM_MMX
 		  if (can_use_mmx) {
 
 		    uint64_t mask1 = 0x00FF00FF00FF00FFULL;
@@ -1096,7 +1102,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	    // linear blend, see Blendline_c for a plainC version
 	    for (y = 1; y < hminus1; y++)
 	    {
-#ifdef HAVE_MMX
+#ifdef HAVE_ASM_MMX
 	      if (can_use_mmx) {
 
 		uint64_t scmask = (scenechange<<24) | (scenechange<<16) | (scenechange<<8) | scenechange;
@@ -1438,7 +1444,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	// filter init ok.
 
 	if(verbose) printf("[%s] "
-#ifdef HAVE_MMX
+#ifdef HAVE_ASM_MMX
 		"(MMX) "
 #endif
 #ifdef CAN_COMPILE_C_ALTIVEC
