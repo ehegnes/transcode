@@ -386,7 +386,7 @@ static int avi_add_odml_index_entry(avi_t *AVI, unsigned char *tag, long flags, 
 
 	if (!AVI->video_superindex) {
 	    if (avi_init_super_index(AVI, "ix00", &AVI->video_superindex) < 0) return -1;
-
+             AVI->video_superindex->nEntriesInUse++;
 	    cur_std_idx = AVI->video_superindex->nEntriesInUse-1;
 
 	    if (avi_add_std_index (AVI, "ix00", "00db", AVI->video_superindex->stdindex[ cur_std_idx ]) < 0) 
@@ -418,6 +418,7 @@ static int avi_add_odml_index_entry(avi_t *AVI, unsigned char *tag, long flags, 
 
     towrite = 0;
     if (AVI->video_superindex) {
+
 	cur_std_idx = AVI->video_superindex->nEntriesInUse-1;
 	towrite += AVI->video_superindex->stdindex[cur_std_idx]->nEntriesInUse*8 
 	    + 4+4+2+1+1+4+4+8+4;
