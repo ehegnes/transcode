@@ -140,15 +140,15 @@ int tc_filter(aframe_list_t *ptr, char *options)
     if((vob = tc_get_vob())==NULL) return(-1);
 
     //len += sprintf(cmd, "tcmp3cut -i %s -o %s ", vob->audio_in_file, vob->audio_out_file?vob->audio_out_file:vob->audio_in_file);
-    len += sprintf(cmd, "tcmp3cut -i in.mp3 -o base ");
+    len += snprintf(cmd, sizeof(cmd), "tcmp3cut -i in.mp3 -o base ");
     printf("\n ********** Songs ***********\n");
     if (next>0) {
       printf("%d", songs[0]);
-      len += sprintf(cmd+len, "-t %d", songs[0]);
+      len += snprintf(cmd+len, sizeof(cmd) - len, "-t %d", songs[0]);
     }
     for (i=1; i<next; i++) {
       printf(",%d", songs[i]);
-      len += sprintf(cmd+len, ",%d", songs[i]);
+      len += snprintf(cmd+len, sizeof(cmd) - len, ",%d", songs[i]);
     }
     printf("\n");
     printf("Execute: %s\n", cmd);
