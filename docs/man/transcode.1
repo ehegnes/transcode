@@ -120,7 +120,13 @@ The \-F parameter has different meanings for different export modules.
   The quality of the JPEG encode in percent. Example values are '-F 75' (default) or '-F 100'
 
 -y \fImov\fP:
-  The name of the quicktime codec. Example values are '-F mjpa' (default) '-F cvid'
+  Syntax: -F "<vcodec>,<acodec>[,<parameters>]"
+    <vcodec> = Videocodec to encode with. Default: "mjpa"
+    <acodec> = Audiocodec to encode with. Default: "ima4"
+    <parameters> = A comma seperated list of parameters 
+                   to be passed to the codec.
+
+Note: You can use "list" instead of a video/audiocodec or parameter to get a list of supported options.
 
 -y \fImp1e\fP:
   Syntax: -F "<base-profile>[,<options_string>]"
