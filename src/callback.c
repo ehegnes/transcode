@@ -53,6 +53,9 @@ void tc_outstream_rotate()
   //reset flag to avoid re-entry
   rotate_flag=0;
 
+  // do not try to rename /dev/null
+  if(strcmp(vob->video_out_file, "/dev/null") == 0) return;
+
   // get current outfile basename
   base=strdup(vob->video_out_file);
 
