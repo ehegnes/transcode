@@ -643,7 +643,7 @@ MOD_init {
 
 		case(pc_none): // leave everything alone, prevent gcc warning
 		{
-			ff_info("No profile selected");
+			ff_info("No profile selected\n");
 			break;
 		}
 	}
@@ -1244,6 +1244,10 @@ MOD_init {
 				{
 					if(vob->a_rate == rate && vob->mp3frequency == rate)
 						ff_info("Set audio sample rate to %d Hz\n", rate);
+					else if (vob->a_rate == rate && vob->mp3frequency == 0) {
+						vob->mp3frequency = rate;
+						ff_info("No audio resampling necessary, using %d Hz\n", rate);
+					}
 					else
 					{
 						vob->mp3frequency = rate;
@@ -1321,7 +1325,7 @@ MOD_open
   // open output file
   
   /* Open file */
-  if ( (param->flag == TC_VIDEO && !is_mpegvideo) || (param->flag == TC_AUDIO)) {
+  if ( (param->flag == TC_VIDEO && !is_mpegvideo) || (param->flag == TC_AUDIO && !vob->out_flag)) {
     if (vob->avifile_out==NULL) {
 
       vob->avifile_out = AVI_open_output_file(vob->video_out_file);
@@ -1348,16 +1352,16 @@ MOD_open
 		if(probe_export_attributes & TC_PROBE_NO_EXPORT_VEXT)
 			ext = video_ext;
 		else
-			ext = is_mpegvideo == 1 ? "m1v" : "m2v";
+			ext = is_mpegvideo == 1 ? ".m1v" : ".m2v";
 		
 		buf = malloc(strlen (vob->video_out_file)+1+strlen(ext));
-		sprintf(buf, "%s.%s", vob->video_out_file, ext);
+		sprintf(buf, "%s%s", vob->video_out_file, ext);
 		mpeg1fd = fopen(buf, "wb");
 
 		if (!mpeg1fd)
 		{
-			fprintf(stderr, "Can not open |%s|\n", buf); 
-			return TC_EXPORT_ERROR;
+			ff_warning("Can not open file \"%s\" using /dev/null\n", buf); 
+			mpeg1fd = fopen("/dev/null", "wb");
 		}
 
 		free (buf);

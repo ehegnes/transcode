@@ -1,6 +1,16 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-22 Tilmann Bitterberg <transcode at tibit.org>
+
+  * export/export_ffmpeg.c:
+  Do not write to /dev/null.m1v
+  Do not open an AVI file when the audio is going a separate file
+  anyway.
+  If the export frequency is not set, we don't need the resampling
+  filter.
+  Fix a missing \n.
+
 2004-01-22 Erik Slagter <erik at oldconomy.com>
 
   * src/transcode.c:
