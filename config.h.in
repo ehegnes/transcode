@@ -23,6 +23,9 @@
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
 
+/* Define if your system lacks uint_fast64_t */
+#undef EMULATE_FAST_INT
+
 /* Have liba52 support */
 #undef HAVE_A52
 

@@ -25,8 +25,10 @@
 # endif
 #endif
 
+#if 0
 #if !defined(COMP_CYGWIN)
 #include <stdint.h>
 #endif // !COMP_CYGWIN
+#endif
 
 #endif

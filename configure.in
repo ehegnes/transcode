@@ -494,6 +494,23 @@ AC_TRY_CXXFLAGS([$OPT_CXXFLAGS],[CXXFLAGS=$OPT_CXXFLAGS])
 AC_SUBST(CXXFLAGS)
 
 dnl
+dnl fast integers
+dnl
+AC_MSG_CHECKING(if fast integers are available)
+AC_TRY_COMPILE([
+#include <inttypes.h>
+], [
+volatile uint_fast64_t i=0x01234567;
+return 0
+], [
+AC_MSG_RESULT([yes])
+], [
+AC_DEFINE(EMULATE_FAST_INT, 1, [Define if your system lacks uint_fast64_t])
+AC_MSG_RESULT([no])
+])
+
+
+dnl
 dnl static import frame buffer 
 dnl
 
@@ -995,6 +1012,7 @@ if test x"$use_sse" = x"no" ; then
 else
 AC_DEFINE([HAVE_SSE], 1, [Define if your CPU understands SSE instructions])
 fi
+
 
 transcode_0_6=yes
 AC_DEFINE([TRANSCODE_0_6], 1, [Define for transcode_0_6])
