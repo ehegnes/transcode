@@ -495,7 +495,8 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
       // the "-t" split option, we'll see this frame again.
 
       if(fid >= frame_b){
-        if(verbose & TC_DEBUG) fprintf(stderr, "\n(%s) encoder last frame finished\n", __FILE__);
+        if(verbose & TC_DEBUG) fprintf(stderr, "\n(%s) encoder last frame finished (%d/%d)\n", __FILE__,
+		fid, frame_b);
 	// we don't need to go to aretry, because we'll eventually get it
 	return;
       }
