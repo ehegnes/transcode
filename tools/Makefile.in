@@ -366,7 +366,7 @@ avisplit_SOURCES = avisplit.c aud_scan.c aud_scan.h
 avisplit_LDADD = @AVILIB_LIBS@ @TCIOAUX_LIBS@ @XIO_LIBS@
 
 tcmodinfo_SOURCES = tcmodinfo.c
-tcmodinfo_LDADD = @DLDARWINLIB@ -ldl -lm $(top_builddir)/src/optstr.o
+tcmodinfo_LDADD = @DLDARWINLIB@ -lm $(top_builddir)/src/optstr.o
 tcmodinfo_LDFLAGS = -rdynamic 
 
 tcmp3cut_SOURCES = tcmp3cut.c
