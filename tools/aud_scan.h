@@ -34,3 +34,10 @@ int tc_probe_audio_header(unsigned char* buf, int buflen);
 int tc_format_ms_supported(int format);
 void tc_format_mute(unsigned char *buf, int buflen, int format);
 
+// ------------------------
+// You must set the requested audio before entering this function
+// the AVI file out must be filled with correct values.
+// ------------------------
+
+int sync_audio_video_avi2avi (double vid_ms, double *aud_ms, avi_t *in, avi_t *out);
+int sync_audio_video_avi2avi_ro (double vid_ms, double *aud_ms, avi_t *in);

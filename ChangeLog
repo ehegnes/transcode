@@ -2,6 +2,14 @@
 transcode-0.6.11
 
 2003-09-17 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * tools/{aud_scan.[ch] avimerge.c avisplit.c Makefile.*}:
+  Big code cleanup, its much more readable now. Automate VBR/CBR
+  stuff. Fix a bug in avimerge with multiple input files and a
+  separate audio track. Make detection of raw MP3 and AC3 more
+  robust. Better sync algorithm for avisplit.
+
+2003-09-17 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/{fileinfo.c probe_stream.c magic.h} src/probe.c:
   Probing and decoding for SGI image files via import_im

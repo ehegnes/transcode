@@ -36,7 +36,7 @@
 
 void version()
 {
-  printf("%s (%s v%s) (C) 2001-2003 Thomas Oestreich\n", EXE, PACKAGE, VERSION);
+  printf("%s (%s v%s) (C) 2001-2003 Thomas Oestreich, T. Bitterberg\n", EXE, PACKAGE, VERSION);
 }
 
 void usage(int status)
@@ -47,30 +47,45 @@ void usage(int status)
     printf("\t -i file1 [file2 [...]]    input file(s)\n");
     printf("\t -p file                   multiplex additional audio track from file\n");
     printf("\t -a num                    audio track number [0]\n");
-    printf("\t -b n                      handle vbr audio [1] (should not hurt)\n");
+    printf("\t -b n                      handle vbr audio [autodetect]\n");
     printf("\t -f FILE                   read AVI comments from FILE [off]\n");
+    printf("\t -x FILE                   read AVI index from FILE [off] (see aviindex(1))\n");
     exit(status);
 }
 
 static char data[SIZE_RGB_FRAME];
 static char *comfile = NULL;
+static char *indexfile = NULL;
 long sum_frames = 0;
 int is_vbr=1;
+
 
 int merger(avi_t *out, char *file)
 {
     avi_t *in;
-    long frames, n, bytes, mp3rate;
-    int key, chan, j, aud_tracks;
-    int aud_bitrate=0, format;
+    long frames, n, bytes;
+    int key, j, aud_tracks;
+    static int init = 0;
+    static int vid_chunks = 0;
 
-    double vid_ms = 0.0, fps;
-    double aud_ms[AVI_MAX_TRACKS];
+    double fps;
+    static double vid_ms;
+    static double aud_ms[AVI_MAX_TRACKS];
+    int have_printed=0;
 
-    for (j=0; j<AVI_MAX_TRACKS; j++) 
-	aud_ms[j] = 0.0;
+    if (!init) {
+	for (j=0; j<AVI_MAX_TRACKS; j++) 
+	    aud_ms[j] = 0.0;
+	vid_ms = 0;
+	vid_chunks = 0;
+	init = 1;
+    }
     
-    if(NULL == (in = AVI_open_input_file(file,1))) {
+    if(indexfile && (NULL == (in = AVI_open_input_indexfile(file, 0, indexfile)))) {
+	AVI_print_error("AVI open with indexfile");
+	return(-1);
+    }
+    else if(NULL == (in = AVI_open_input_file(file,1))) {
 	AVI_print_error("AVI open");
 	return(-1);
     }
@@ -95,78 +110,36 @@ int merger(avi_t *out, char *file)
 	return(-1);
       }
 
-      
-      vid_ms = (n+1)*1000.0/fps;
-      
+      ++vid_chunks;
+      vid_ms = vid_chunks*1000.0/fps;
+
       for(j=0; j<aud_tracks; ++j) {
 	  
-	int rate, bits;
+	  int ret;
+	  double old_ms = aud_ms[j];
+
 	  AVI_set_audio_track(in, j);
-          format =  AVI_audio_format(in);
-	  
-	  // audio
-	  chan = AVI_audio_channels(in);
-	  rate = AVI_audio_rate(in);
-	  bits = AVI_audio_bits(in);
-	  bits = bits==0?16:bits;
-	  mp3rate = AVI_audio_mp3rate(in);
 	  AVI_set_audio_track(out, j);
-	  
-	  if(chan) {
-	      if (tc_format_ms_supported(format)) {
 
-		  while (aud_ms[j] < vid_ms) {
-
-		      aud_bitrate = (format==0x1||format==0x2000)?1:0;
-
-		      if( (bytes = AVI_read_audio_chunk(in, data)) < 0) {
-			  AVI_print_error("AVI audio read frame");
-			  aud_ms[j] = vid_ms;
-			  break;
-		      }      
-		      //fprintf(stderr, "len (%ld)\n", bytes);
-
-		      if(AVI_write_audio(out, data, bytes)<0) {
-			  AVI_print_error("AVI write audio frame");
-			  return(-1);
+	  ret = sync_audio_video_avi2avi (vid_ms, &aud_ms[j], in, out);
+	  if (ret<0) {
+	      if (ret==-2) {
+		  if (aud_ms[j] == old_ms) {
+		      if (!have_printed) {
+			  fprintf(stderr, "No audiodata left for track %d->%d (%.2f=%.2f) continuing ..\n", 
+			      AVI_get_audio_track(in), AVI_get_audio_track(out), 
+			      old_ms, aud_ms[j]);
+			  have_printed++;
 		      }
-
-		      if (bytes == 0) {
-			  aud_ms[j] = vid_ms;
-			  break;
-		      }
-
-		      if ( !aud_bitrate && tc_get_audio_header(data, bytes, format, NULL, NULL, &aud_bitrate)<0) {
-			  // if this is the last frame of the file, slurp in audio chunks
-			  if (n == frames-1) continue;
-			  aud_ms[j] = vid_ms;
-		      } else 
-			  aud_ms[j] += 
-			      (bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):
-					  (format==0x2000?(double)(mp3rate):aud_bitrate));
-		      /*
-		      fprintf(stderr, "%s track (%d) %8.0lf->%8.0lf len (%ld) rate (%ld)\n", 
-			      format==0x55?"MP3":format==0x1?"PCM":"AC3", 
-			      j, vid_ms, aud_ms[j], bytes, mp3rate); 
-			      */
 		  }
 	      } else {
-		  do {
-		      if ( (bytes = AVI_read_audio_chunk(in, data) ) < 0) { 
-			  AVI_print_error("AVI audio read frame"); 
-		      }
- 
-		      if(AVI_write_audio(out, data, bytes)<0) {
-			  AVI_print_error("AVI write audio frame");
-			  return(-1);
-		      } 
-		  } while (AVI_can_read_audio(in));
+		  fprintf(stderr, "An error happend at frame %ld track %d\n", n, j);
 	      }
-	      
 	  }
+	  
       }
       // progress
-      fprintf(stderr, "[%s] (%06ld-%06ld)\r", file, sum_frames, sum_frames + n);
+      fprintf(stderr, "[%s] (%06ld-%06ld) (%.2f <-> %.2f)\r", file, sum_frames, sum_frames + n, vid_ms, aud_ms[0]);
     }
     fprintf(stderr, "\n");
     
@@ -189,13 +162,13 @@ int main(int argc, char *argv[])
   long rate, mp3rate;
   
   int j, ch, cc=0, track_num=0;
-  int width, height, format=0, format_add, chan, bits;
+  int width, height, format=0, format_add, chan, bits, aud_error=0;
   
   double fps;
   
   char *codec;
   
-  long offset, frames, n, bytes;
+  long offset, frames, n, bytes, aud_offset=0;
   
   int key;
   
@@ -213,7 +186,7 @@ int main(int argc, char *argv[])
   
   if(argc==1) usage(EXIT_FAILURE);
   
-  while ((ch = getopt(argc, argv, "a:b:i:o:p:f:?h")) != -1) {
+  while ((ch = getopt(argc, argv, "a:b:i:o:p:f:x:?hv")) != -1) {
     
     switch (ch) {
       
@@ -263,6 +236,17 @@ int main(int argc, char *argv[])
 
       break;
       
+
+    case 'x':
+      
+      if(optarg[0]=='-') usage(EXIT_FAILURE);
+      indexfile = optarg;
+
+      break;
+      
+    case 'v':
+      version();
+      exit(0);
     case 'h':
       usage(EXIT_SUCCESS);
     default:
@@ -275,9 +259,12 @@ int main(int argc, char *argv[])
   printf("scanning file %s for video/audio parameter\n", infile);
   
   // open first file for video/audio info read only
-  if(NULL == (avifile1 = AVI_open_input_file(infile,1))) {
-    AVI_print_error("AVI open");
-    exit(1);
+  if(indexfile && (NULL == (avifile1 = AVI_open_input_indexfile(infile,0,indexfile)))) {
+    AVI_print_error("AVI open with index file");
+  }  
+  else if(NULL == (avifile1 = AVI_open_input_file(infile,1))) {
+      AVI_print_error("AVI open");
+      exit(1);
   }
   
   AVI_info(avifile1);
@@ -313,7 +300,7 @@ int main(int argc, char *argv[])
   
   // read video info;
   
-  width =  AVI_video_width(avifile1);
+  width  =  AVI_video_width(avifile1);
   height =  AVI_video_height(avifile1);
   
   fps    =  AVI_frame_rate(avifile1);
@@ -338,11 +325,12 @@ int main(int argc, char *argv[])
     
       format =  AVI_audio_format(avifile1);
       mp3rate=  AVI_audio_mp3rate(avifile1);
+      printf("TRACK %d MP3RATE %ld VBR %ld\n", j, mp3rate, AVI_get_audio_vbr(avifile1));
       
       //set next track of output file
       AVI_set_audio_track(avifile, j);
       AVI_set_audio(avifile, chan, rate, bits, format, mp3rate);
-      AVI_set_audio_vbr(avifile, is_vbr);
+      AVI_set_audio_vbr(avifile, AVI_get_audio_vbr(avifile1));
   }
   
   if(audfile!=NULL) goto audio_merge;
@@ -393,14 +381,20 @@ int main(int argc, char *argv[])
   
   // open audio file read only
   if(NULL == (avifile2 = AVI_open_input_file(audfile,1))) {
-    int f=open(audfile, O_RDONLY);
-    char head[8];
-    if (f>0 && ( 8 == read(f, head, 8)) ) {
-      if (tc_probe_audio_header(head, 8) > 0) {
-	close(f);
-	goto merge_mp3;
+    int f=open(audfile, O_RDONLY), ret=0;
+    char head[1024], *c;
+    c = head;
+    if (f>0 && (1024 == read(f, head, 1024)) ) {
+      while ((c-head<1024-8) && (ret = tc_probe_audio_header(c, 8))<=0 ) {
+	c++;
       }
       close(f);
+
+      if (ret > 0) {
+	aud_offset = c-head;
+	//printf("found atrack 0x%x off=%ld\n", ret, aud_offset);
+	goto merge_mp3;
+      }
     }
     
     AVI_print_error("AVI open");
@@ -425,7 +419,7 @@ int main(int argc, char *argv[])
   //set next track
   AVI_set_audio_track(avifile, aud_tracks);
   AVI_set_audio(avifile, chan, rate, bits, format, mp3rate);
-  AVI_set_audio_vbr(avifile, is_vbr);
+  AVI_set_audio_vbr(avifile, AVI_get_audio_vbr(avifile2));
   
   AVI_seek_start(avifile1);
   frames =  AVI_video_frames(avifile1);
@@ -458,157 +452,25 @@ int main(int argc, char *argv[])
       
       AVI_set_audio_track(avifile1, j);
       AVI_set_audio_track(avifile, j);
-      format = AVI_audio_format(avifile1);
-      rate   = AVI_audio_rate(avifile1);
       chan   = AVI_audio_channels(avifile1);
-      bits   = AVI_audio_bits(avifile1);
-      bits   = bits==0?16:bits;
-      mp3rate = AVI_audio_mp3rate(avifile1);
       
       // audio
       chan = AVI_audio_channels(avifile1);
       if(chan) {
-	if (tc_format_ms_supported(format)) {
-	  while (aud_ms_w[j] < vid_ms) {
-
-	    mp3rate_i = (format==0x1||format==0x2000)?1:0;
-
-	    if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
-	      AVI_print_error("AVI audio read frame");
-	      aud_ms_w[j] = vid_ms;
-	      break;
-	    }      
-
-	    if(AVI_write_audio(avifile, data, bytes)<0) {
-	      AVI_print_error("AVI write audio frame");
-	      return(-1);
-	    }
-
-	    if (bytes == 0) {
-	      aud_ms_w[j] = vid_ms;
-	      break;
-	    }
-	    if ( !mp3rate_i && tc_get_audio_header(data, bytes, format, NULL, NULL, &mp3rate_i)<0) { 
-	      // if this is the last frame of the file, slurp in audio chunks
-	      if (n == frames-1) continue;
-	      aud_ms_w[j] = vid_ms;
-	    } else {
-	      aud_ms_w[j] += (bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):
-					  (format==0x2000?(double)(mp3rate):mp3rate_i));
-	    }
-
-	    /*
-	       fprintf(stderr, "%s track (%d) %8.0lf->%8.0lf len (%ld) rate (%d)\n", 
-		    format==0x55?"MP3":format==0x1?"PCM":"AC3", 
-	       j, vid_ms, aud_ms_w[j], bytes, mp3rate_i); 
-	       */
-	  }
-	} else { // fallback solution
-	  do {
-
-	    if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
-	      AVI_print_error("AVI audio read frame");
-	      return(-1);
-	    }
-
-
-	    if(AVI_write_audio(avifile, data, bytes)<0) {
-	      AVI_print_error("AVI write audio frame");
-		return(-1);
-	      } 
-	    } while (AVI_can_read_audio(avifile1));
-
-	} // else
-      } // chan
-
+	  sync_audio_video_avi2avi(vid_ms, &aud_ms_w[j], avifile1, avifile);
+      }
     }
     
     
     // merge additional track
     
-    //bytes = AVI_read_frame(avifile2, data, &key);
-    
     // audio
     chan = AVI_audio_channels(avifile2);
     AVI_set_audio_track(avifile, aud_tracks);
-    format = AVI_audio_format(avifile2);
-    rate   = AVI_audio_rate(avifile2);
-    bits   = AVI_audio_bits(avifile2);
-    bits   = bits==0?16:bits;
-    mp3rate = AVI_audio_mp3rate(avifile2);
-      
-      if(chan) {
-	if (tc_format_ms_supported(format)) {
-	  while (aud_ms < vid_ms) {
 
-	    mp3rate_i = (format==0x1||format==0x2000)?1:0;
-
-	    if( (bytes = AVI_read_audio_chunk(avifile2, data)) < 0) {
-	      AVI_print_error("AVI audio read frame");
-	      aud_ms = vid_ms;
-	      break;
-	    }      
-
-	    if(AVI_write_audio(avifile, data, bytes)<0) {
-	      AVI_print_error("AVI write audio frame");
-	      return(-1);
-	    }
-
-	    if (bytes == 0) {
-	      aud_ms = vid_ms;
-	      break;
-	    }
-
-	    if ( !mp3rate_i && tc_get_audio_header(data, bytes, format, NULL, NULL, &mp3rate_i)<0) { 
-	      // if this is the last frame of the file, slurp in audio chunks
-	      if (n == frames-1) continue;
-	      aud_ms = vid_ms;
-	    } else {
-	      aud_ms += (bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):
-	                            (format==0x2000?(double)(mp3rate):mp3rate_i));
-	    }
-
-	    /*
-	       fprintf(stderr, "%s track (%d) %8.0lf->%8.0lf len (%ld) rate (%d)\n", 
-	       (format==0x55)?"MP3":"AC3", 
-	       j, vid_ms, aud_ms, bytes, mp3rate_i); 
-	       */
-	  }
-	} else { // fallback solution
-	  do {
-
-	    if( (bytes = AVI_read_audio_chunk(avifile2, data)) < 0) {
-	      AVI_print_error("AVI audio read frame");
-	      return(-1);
-	    }
-
-
-	    if(AVI_write_audio(avifile, data, bytes)<0) {
-	      AVI_print_error("AVI write audio frame");
-	      return(-1);
-	    } 
-	  } while (AVI_can_read_audio(avifile1));
-
-	} // else
-      } // chan
-#if 0
     if(chan) {
-      do {
-      
-	if( (bytes = AVI_read_audio_chunk(avifile2, data)) < 0) {
-	  AVI_print_error("AVI audio read frame");
-	  return(-1);
-	}
-      
-      
-	if(AVI_write_audio(avifile, data, bytes)<0) {
-	  AVI_print_error("AVI write audio frame");
-	  return(-1);
-	} 
-      } while (AVI_can_read_audio(avifile2));
-	  
+	sync_audio_video_avi2avi(vid_ms, &aud_ms, avifile2, avifile);
     }
-#endif
 
     // progress
     fprintf(stderr, "[%s] (%06ld-%06ld)\r", outfile, offset, offset + n);
@@ -649,140 +511,30 @@ int main(int argc, char *argv[])
 	AVI_print_error("AVI write video frame");
 	return(-1);
       }
+
+      ++vid_chunks;
+      vid_ms = vid_chunks*1000.0/fps;
       
+      // audio
       for(j=0; j<aud_tracks; ++j) {
 	
 	AVI_set_audio_track(avifile1, j);
 	AVI_set_audio_track(avifile, j);
-	format = AVI_audio_format(avifile1);
 	
-	// audio
 	chan   = AVI_audio_channels(avifile1);
-	rate   = AVI_audio_rate(avifile1);
-	bits   = AVI_audio_bits(avifile1);
-	bits   = bits==0?16:bits;
-	mp3rate = AVI_audio_mp3rate(avifile1);
 
 	if(chan) {
-	  if (tc_format_ms_supported(format)) {
-	    while (aud_ms_w[j] < vid_ms) {
-
-	      mp3rate_i = (format==0x1||format==0x2000)?1:0;
-
-	      if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
-		AVI_print_error("AVI audio read frame");
-		aud_ms_w[j] = vid_ms;
-		break;
-	      }      
-
-	      if(AVI_write_audio(avifile, data, bytes)<0) {
-		AVI_print_error("AVI write audio frame");
-		return(-1);
-	      }
-
-	      if (bytes == 0) {
-		aud_ms_w[j] = vid_ms;
-		break;
-	      }
-	      
-	      if ( !mp3rate_i && tc_get_audio_header(data, bytes, format, NULL, NULL, &mp3rate_i)<0) { 
-		// if this is the last frame of the file, slurp in audio chunks
-		if (n == frames-1) continue;
-		aud_ms_w[j] = vid_ms;
-	      } else {
-		aud_ms_w[j] += (bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):
-	                            (format==0x2000?(double)(mp3rate):mp3rate_i));
-	      }
-
-	      /*
-		 fprintf(stderr, "%s track (%d) %8.0lf->%8.0lf len (%ld) rate (%d)\n", 
-		 (format==0x55)?"MP3":"AC3", 
-		 j, vid_ms, aud_ms_w[j], bytes, mp3rate_i); 
-	       */
-	    }
-	  } else { // fallback solution
-	    do {
-
-	      if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
-		AVI_print_error("AVI audio read frame");
-		return(-1);
-	      }
-
-
-	      if(AVI_write_audio(avifile, data, bytes)<0) {
-		AVI_print_error("AVI write audio frame");
-		return(-1);
-	      } 
-	    } while (AVI_can_read_audio(avifile1));
-
-	  } // else
-	} // chan
-      } // aud_tracks
+	  sync_audio_video_avi2avi(vid_ms, &aud_ms_w[j], avifile1, avifile);
+	}
+      }
       
       // merge additional track
-      // audio
       
       chan   = AVI_audio_channels(avifile2);
-      format = AVI_audio_format(avifile2);
       AVI_set_audio_track(avifile, aud_tracks);
-      rate   = AVI_audio_rate(avifile2);
-      bits   = AVI_audio_bits(avifile2);
-      bits   = bits==0?16:bits;
-      mp3rate = AVI_audio_mp3rate(avifile2);
       
       if(chan) {
-	if (tc_format_ms_supported(format)) {
-	  while (aud_ms < vid_ms) {
-
-	    mp3rate_i = (format == 0x1)?1:0;
-	    mp3rate_i = (format == 0x2000)?1:0;
-
-	    if( (bytes = AVI_read_audio_chunk(avifile2, data)) < 0) {
-	      AVI_print_error("AVI audio read frame");
-	      aud_ms = vid_ms;
-	      break;
-	    }      
-
-	    if(AVI_write_audio(avifile, data, bytes)<0) {
-	      AVI_print_error("AVI write audio frame");
-	      return(-1);
-	    }
-
-	    if (bytes == 0) {
-	      aud_ms = vid_ms;
-	      break;
-	    }
-	    if ( !mp3rate_i && tc_get_audio_header(data, bytes, format, NULL, NULL, &mp3rate_i)<0) { 
-	      // if this is the last frame of the file, slurp in audio chunks
-	      if (n == frames-1) continue;
-	      aud_ms = vid_ms;
-	    } else {
-	      aud_ms += (bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):
-	                            (format==0x2000?(double)(mp3rate):mp3rate_i));
-	    }
-
-	    /*
-	       fprintf(stderr, "%s track (%d) %8.0lf->%8.0lf len (%ld) rate (%d)\n", 
-	       (format==0x55)?"MP3":"AC3", 
-	       j, vid_ms, aud_ms, bytes, mp3rate_i); 
-	       */
-	  }
-	} else { // fallback solution
-	  do {
-
-	    if( (bytes = AVI_read_audio_chunk(avifile2, data)) < 0) {
-	      AVI_print_error("AVI audio read frame");
-	      return(-1);
-	    }
-
-
-	    if(AVI_write_audio(avifile, data, bytes)<0) {
-	      AVI_print_error("AVI write audio frame");
-	      return(-1);
-	    } 
-	  } while (AVI_can_read_audio(avifile1));
-
-	} // else
+	  sync_audio_video_avi2avi(vid_ms, &aud_ms, avifile2, avifile);
       } // chan
       
       // progress
@@ -816,12 +568,13 @@ merge_mp3:
   f = fopen(audfile,"rb");
   if (!f) { perror ("fopen"); exit(1); }
 
+  fseek(f, aud_offset, SEEK_SET);
   len = fread(head, 1, 8, f);
   format_add  = tc_probe_audio_header(head, len);
   headlen = tc_get_audio_header(head, len, format_add, &chan_i, &rate_i, &mp3rate_i);
   fprintf(stderr, "... this looks like a %s track ...\n", (format_add==0x55)?"MP3":"AC3");
 
-  fseek(f, 0L, SEEK_SET);
+  fseek(f, aud_offset, SEEK_SET);
 
   //set next track
   AVI_set_audio_track(avifile, aud_tracks);
@@ -857,88 +610,32 @@ merge_mp3:
 
       AVI_set_audio_track(avifile1, j);
       AVI_set_audio_track(avifile, j);
-      format = AVI_audio_format(avifile1);
       chan   = AVI_audio_channels(avifile1);
-      rate   = AVI_audio_rate(avifile1);
-      bits   = AVI_audio_bits(avifile1);
-      bits   = bits==0?16:bits;
-      mp3rate = AVI_audio_mp3rate(avifile1);
-
-      // audio
-      chan = AVI_audio_channels(avifile1);
 
       if(chan) {
-	if (tc_format_ms_supported(format)) {
-	  while (aud_ms_w[j] < vid_ms) {
-
-	    mp3rate_i = (format==0x1||format==0x2000)?1:0;
-
-	    if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
-		AVI_print_error("AVI audio read frame");
-		aud_ms_w[j] = vid_ms;
-		break;
-	    }      
-
-	    if(AVI_write_audio(avifile, data, bytes)<0) {
-	      AVI_print_error("AVI write audio frame");
-	      return(-1);
-	    }
-
-	    if (bytes == 0) {
-	      aud_ms_w[j] = vid_ms;
-	      break;
-	    }
-	    if ( !mp3rate_i && tc_get_audio_header(data, bytes, format, NULL, NULL, &mp3rate_i)<0) { 
-	      // if this is the last frame of the file, slurp in audio chunks
-	      if (n == frames-1) continue;
-	      aud_ms_w[j] = vid_ms;
-	    } else {
-	      aud_ms_w[j] += (bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):
-	                            (format==0x2000?(double)(mp3rate):mp3rate_i));
-	    }
-
-	    /*
-	       fprintf(stderr, "%s track (%d) %8.0lf->%8.0lf len (%ld) rate (%d)\n", 
-	       (format==0x55)?"MP3":"AC3", 
-	       j, vid_ms, aud_ms_w[j], bytes, mp3rate_i); 
-	    */
-	  }
-	} else { // fallback solution
-	  do {
-
-	    if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
-	      AVI_print_error("AVI audio read frame");
-	      return(-1);
-	    }
-
-
-	    if(AVI_write_audio(avifile, data, bytes)<0) {
-	      AVI_print_error("AVI write audio frame");
-	      return(-1);
-	    } 
-	  } while (AVI_can_read_audio(avifile1));
-
-	} // else
-      } // chan
-    } // aud_tracks
+	sync_audio_video_avi2avi(vid_ms, &aud_ms_w[j], avifile1, avifile);
+      }
+    }
 
 
     // merge additional track
 
-    if(headlen>4) {
+    if(headlen>4 && !aud_error) {
       while (aud_ms < vid_ms) {
 	//printf("reading Audio Chunk ch(%ld) vms(%lf) ams(%lf)\n", vid_chunks, vid_ms, aud_ms);
 	pos = ftell(f);
 
 	len = fread (head, 1, 8, f);
 	if (len<=0) { //eof
-	  goto finish2;
+	  fprintf(stderr, "EOF in %s; continuing ..\n", audfile);
+	  aud_error=1;
+	  break;
 	}
 
 	if ( (headlen = tc_get_audio_header(head, len, format_add, NULL, NULL, &mp3rate_i))<0) {
-	  fprintf(stderr, "Broken %s track #(%d)?\n", (format_add==0x55?"MP3":"AC3"), aud_tracks); 
+	  fprintf(stderr, "Broken %s track #(%d)? skipping\n", (format_add==0x55?"MP3":"AC3"), aud_tracks); 
 	  aud_ms = vid_ms;
-	  goto finish2;
+	  aud_error=1;
 	} else { // look in import/tcscan.c for explanation
 	  aud_ms += (headlen*8.0)/(mp3rate_i);
 	}
@@ -947,7 +644,9 @@ merge_mp3:
 
 	len = fread (data, headlen, 1, f);
 	if (len<=0) { //eof
-	  goto finish2;
+	  fprintf(stderr, "EOF in %s; continuing ..\n", audfile);
+	  aud_error=1;
+	  break;
 	}
 
 	AVI_set_audio_track(avifile, aud_tracks);
@@ -999,96 +698,35 @@ merge_mp3:
       vid_chunks++;
       vid_ms = vid_chunks*1000.0/fps;
 
-
       for(j=0; j<aud_tracks; ++j) {
 
 	AVI_set_audio_track(avifile1, j);
 	AVI_set_audio_track(avifile, j);
-	format = AVI_audio_format(avifile1);
 	chan   = AVI_audio_channels(avifile1);
-	format = AVI_audio_format(avifile1);
-	rate   = AVI_audio_rate(avifile1);
-	bits   = AVI_audio_bits(avifile1);
-	bits   = bits==0?16:bits;
-	mp3rate = AVI_audio_mp3rate(avifile1);
-
-	// audio
-	chan = AVI_audio_channels(avifile1);
 
 	if(chan) {
-	  if (tc_format_ms_supported(format)) {
-	    while (aud_ms_w[j] < vid_ms) {
-
-	      mp3rate_i = (format == 0x1)?1:0;
-	      mp3rate_i = (format == 0x2000)?1:0;
-
-	      if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
-		AVI_print_error("AVI 1 audio read frame");
-		aud_ms_w[j] = vid_ms;
-		break;
-	      }      
-
-	      if(AVI_write_audio(avifile, data, bytes)<0) {
-		AVI_print_error("AVI write audio frame");
-		return(-1);
-	      }
-
-	      if (bytes == 0) {
-		aud_ms_w[j] = vid_ms;
-		break;
-	      }
-	      if (!mp3rate_i &&  tc_get_audio_header(data, bytes, format, NULL, NULL, &mp3rate_i)<0) { 
-		// if this is the last frame of the file, slurp in audio chunks
-		if (n == frames-1) continue;
-		aud_ms_w[j] = vid_ms;
-	      } else {
-		aud_ms_w[j] += (bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):
-	                                  (format==0x2000?(double)(mp3rate):mp3rate_i));
-	      }
-
-	      /*
-		 fprintf(stderr, " XX %s track (%d) %8.0lf->%8.0lf len (%ld) rate (%d)\n", 
-		 (format==0x55)?"MP3":"AC3", 
-		 j, vid_ms, aud_ms_w[j], bytes, mp3rate_i); 
-		 */
-	    }
-	  } else { // fallback solution
-	    do {
-
-	      if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
-		AVI_print_error("AVI audio read frame");
-		return(-1);
-	      }
-
-	      AVI_set_audio_track(avifile, j);
-
-	      if(AVI_write_audio(avifile, data, bytes)<0) {
-		AVI_print_error("AVI write audio frame");
-		return(-1);
-	      }
-	    } while (AVI_can_read_audio(avifile1));
-
-	  } //else format
-	} // chan
-      } // aud_tracks
+	  sync_audio_video_avi2avi(vid_ms, &aud_ms_w[j], avifile1, avifile);
+	}
+      }
 
       // merge additional track
       // audio
 
-      if(headlen>4) {
+      if(headlen>4 && !aud_error) {
 	while (aud_ms < vid_ms) {
 	  //printf("reading Audio Chunk ch(%ld) vms(%lf) ams(%lf)\n", vid_chunks, vid_ms, aud_ms);
 	  pos = ftell(f);
 
 	  len = fread (head, 8, 1, f);
 	  if (len<=0) { //eof
-	    goto finish2;
+	    fprintf(stderr, "EOF in %s; continuing ..\n", audfile);
+	    aud_error=1; break;
 	  }
 
 	  if ( (headlen = tc_get_audio_header(head, len, format_add, NULL, NULL, &mp3rate_i))<0) {
 	    fprintf(stderr, "Broken %s track #(%d)?\n", (format_add==0x55?"MP3":"AC3"), aud_tracks); 
 	    aud_ms = vid_ms;
-	    goto finish2;
+	    aud_error=1;
 	  } else { // look in import/tcscan.c for explanation
 	    aud_ms += (headlen*8.0)/(mp3rate_i);
 	  }
@@ -1097,7 +735,8 @@ merge_mp3:
 
 	  len = fread (data, headlen, 1, f);
 	  if (len<=0) { //eof
-	    goto finish2;
+	    fprintf(stderr, "EOF in %s; continuing ..\n", audfile);
+	    aud_error=1; break;
 	  }
 
 	  AVI_set_audio_track(avifile, aud_tracks);
@@ -1120,8 +759,6 @@ merge_mp3:
     AVI_close(avifile1);
   }
 
-
-finish2:
 
   if (f) fclose(f);
 
