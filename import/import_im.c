@@ -46,8 +46,7 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_VID;
 #include <magick/api.h>
 
 
-#define MAX_BUF 1024
-char import_cmd_buf[MAX_BUF];
+extern int errno;
 
 char
     *head = NULL,
@@ -58,7 +57,7 @@ int
     last_frame = 0,
     current_frame = 0,
     pad = 0;
- 
+
   
 /* ------------------------------------------------------------ 
  *
@@ -69,7 +68,9 @@ int
 MOD_open
 {
   int
-    result;
+    result,
+    string_length,
+    sret;
 
   char
       *regex,
@@ -86,9 +87,9 @@ MOD_open
       pmatch[4];
 
   if(param->flag == TC_AUDIO) {
-      return(0);
+      return(TC_IMPORT_OK);
   }
-  
+
   if(param->flag == TC_VIDEO) {
 
     param->fd = NULL;
@@ -141,12 +142,16 @@ MOD_open
         // find the last frame by trying to open files
         last_frame = first_frame; 
         filename = malloc(strlen(head) + pad + strlen(tail) + 1);
-        frame = malloc(pad + 1);
+        /* why remalloc frame? */
+        /* frame = malloc(pad + 1); */
         do {
             last_frame++;
             snprintf(printfspec, sizeof(printfspec), "%%s%%0%dd%%s", pad);
-            snprintf(filename, strlen(head) + pad + strlen(tail) + 1,
-                     printfspec, head, last_frame, tail);
+            string_length = strlen(head) + pad + strlen(tail) + 1;
+            sret = snprintf(filename, string_length, printfspec, head,
+                                                      last_frame, tail);
+            if (tc_test_string(__FILE__, __LINE__, string_length, sret, errno))
+              return(TC_IMPORT_ERROR);
         } while (close(open(filename, O_RDONLY)) != -1); 
         last_frame--;
         free(filename);
@@ -158,9 +163,9 @@ MOD_open
     // initialize ImageMagick
     InitializeMagick("");
 
-    return(0);
+    return(TC_IMPORT_OK);
   }
- 
+
   return(TC_IMPORT_ERROR);
 }
 
@@ -205,6 +210,7 @@ MOD_decode {
         framespec = malloc(10);
         snprintf(framespec, 10, "%%0%dd", pad);
         snprintf(frame, pad+1, framespec, current_frame);
+        free(framespec);
         frame[pad] = '\0';
     }
     else if (first_frame >= 0) {
@@ -248,11 +254,14 @@ MOD_decode {
            * the low and high byte.
            */
           param->buffer[(row * image->columns + column) * 3 + 0] =
-               (char) (pixel_packet[(image->rows - row - 1) * image->columns + column].blue >> 8);
+               (char) (pixel_packet[(image->rows - row - 1) * image->columns +
+                                                            column].blue >> 8);
           param->buffer[(row * image->columns + column) * 3 + 1] =
-               (char) (pixel_packet[(image->rows - row - 1) * image->columns + column].green >> 8);
+               (char) (pixel_packet[(image->rows - row - 1) * image->columns +
+                                                           column].green >> 8);
           param->buffer[(row * image->columns + column) * 3 + 2] =
-               (char) (pixel_packet[(image->rows - row - 1) * image->columns + column].red >> 8);
+               (char) (pixel_packet[(image->rows - row - 1) * image->columns +
+                                                             column].red >> 8);
         }
     }
 
@@ -270,7 +279,7 @@ MOD_decode {
     free(filename);
     free(frame);
 
-    return(0);
+    return(TC_IMPORT_OK);
 }
 
 /* ------------------------------------------------------------ 
@@ -287,7 +296,7 @@ MOD_close
 
   DestroyMagick();
 
-  return(0);
+  return(TC_IMPORT_OK);
 }
 
 
