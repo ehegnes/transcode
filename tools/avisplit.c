@@ -31,6 +31,7 @@
 #include "config.h"
 #include "transcode.h"
 #include "libioaux/framecode.h"
+#include "aud_scan.h"
 
 #define EXE "avisplit"
 #define MBYTE (1<<20)
@@ -110,6 +111,12 @@ int main(int argc, char *argv[])
   int first_frame=1;
   int num_frames;
   int didread = 0;
+
+  int aud_bitrate=0;
+  double aud_ms = 0.0;
+
+  int vid_chunks=0;
+  double vid_ms = 0.0;
 
   char separator[] = ",";
 
@@ -275,8 +282,11 @@ int main(int argc, char *argv[])
 
 
       // progress
-      if(avifile2)
-        fprintf(stderr, "[%s] (%06ld-%06d), size %4.1f MB\r", out_file, i, n, ((double) AVI_bytes_written(avifile2))/MBYTE);
+      if(avifile2) {
+	vid_ms = vid_chunks*1000/fps;
+
+	fprintf(stderr, "[%s] (%06ld-%06d), size %4.1f MB. (V/A) (%.0lf/%.0lf)ms\r", out_file, i, n-1, ((double) AVI_bytes_written(avifile2))/MBYTE, vid_ms, aud_ms);
+      }
 
       if (split_next == 0) {
 	  if(avifile1 != NULL)
@@ -334,13 +344,40 @@ int main(int argc, char *argv[])
         return(-1);
       }
     
+      vid_chunks++;
+      vid_ms = vid_chunks*1000.0/fps;
 
       //audio
       for(k=0; k< AVI_audio_tracks(avifile1); ++k) {
 
         AVI_set_audio_track(avifile1, k);
         AVI_set_audio_track(avifile2, k);
-	do {
+
+	if (format == 0x55) {
+	  while (aud_ms < vid_ms) {
+	    if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
+		AVI_print_error("AVI audio read frame");
+		break;
+	    }      
+  
+	    if (bytes>4) {
+	    if(AVI_write_audio(avifile2, data, bytes)<0) {
+		AVI_print_error("AVI write audio frame");
+		return(-1);
+	    }
+	    }
+
+	    if (tc_get_mp3_header(data, NULL, NULL, &aud_bitrate)<0) {
+	      fprintf(stderr, "Corrupt MP3 track (%d)?\n", k); 
+	      aud_ms = vid_ms;
+	      break;
+	    } else {
+	      aud_ms += (bytes*8.0)/(aud_bitrate);
+
+	    }
+	  }
+	} else { // format != 0x55 (MP3)
+	 do {  // test me!
 	    if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
 		AVI_print_error("AVI audio read frame");
 		break;
@@ -350,22 +387,26 @@ int main(int argc, char *argv[])
 		AVI_print_error("AVI write audio frame");
 		return(-1);
 	    }
-	} while (AVI_can_read_audio(avifile1));
+	 } while (AVI_can_read_audio(avifile1));
+	}
       } 
+
     }//process all frames
 
     if(avifile1 != NULL)
       AVI_close(avifile1);
 
     size = AVI_bytes_written(avifile2);
+    vid_ms = vid_chunks/fps;
 
-    fprintf(stderr, "[%s] (%06ld-%06d), size %4.1f MB\n", out_file, i, n-1, ((double) AVI_bytes_written(avifile2))/MBYTE);
+    fprintf(stderr, "[%s] (%06ld-%06d), size %4.1f MB. vid=%lf ms aud=%lf ms\n", out_file, i, n-1, ((double) AVI_bytes_written(avifile2))/MBYTE, vid_ms, aud_ms);
 
     if(avifile2 != NULL)
       AVI_close(avifile2);
 
     break;
 
+    // XXX: use aud_ms like above
   case SPLIT_BY_TIME:
 
     if( parse_fc_time_string( argcopy, fps, separator, 1, &ttime ) == -1 )

@@ -307,20 +307,20 @@ x_libraries = @x_libraries@
 AUTOMAKE_OPTIONS = 1.3 foreign
 DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I. @DLDARWININCL@ -I../libioaux -I$(srcdir)/../../libioaux 
 
-EXTRA_DIST = buffer.h
+EXTRA_DIST = buffer.h aud_scan.h
 
 bin_PROGRAMS = avimerge avisplit avifix avisync tcmodinfo
 
-avisync_SOURCES = avisync.c buffer.c
+avisync_SOURCES = avisync.c buffer.c aud_scan.c
 avisync_LDADD = -L../avilib -lavi
 
-avimerge_SOURCES = avimerge.c 
+avimerge_SOURCES = avimerge.c aud_scan.c
 avimerge_LDADD = -L../avilib -lavi
 
-avifix_SOURCES = avifix.c 
+avifix_SOURCES = avifix.c aud_scan.c
 avifix_LDADD = -L../avilib -lavi
 
-avisplit_SOURCES = avisplit.c
+avisplit_SOURCES = avisplit.c aud_scan.c 
 avisplit_LDADD = -L../avilib -lavi -L../libioaux -ltcioaux
 
 tcmodinfo_SOURCES = tcmodinfo.c
@@ -334,19 +334,20 @@ bin_PROGRAMS = avimerge$(EXEEXT) avisplit$(EXEEXT) avifix$(EXEEXT) \
 	avisync$(EXEEXT) tcmodinfo$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 
-am_avifix_OBJECTS = avifix.$(OBJEXT)
+am_avifix_OBJECTS = avifix.$(OBJEXT) aud_scan.$(OBJEXT)
 avifix_OBJECTS = $(am_avifix_OBJECTS)
 avifix_DEPENDENCIES =
 avifix_LDFLAGS =
-am_avimerge_OBJECTS = avimerge.$(OBJEXT)
+am_avimerge_OBJECTS = avimerge.$(OBJEXT) aud_scan.$(OBJEXT)
 avimerge_OBJECTS = $(am_avimerge_OBJECTS)
 avimerge_DEPENDENCIES =
 avimerge_LDFLAGS =
-am_avisplit_OBJECTS = avisplit.$(OBJEXT)
+am_avisplit_OBJECTS = avisplit.$(OBJEXT) aud_scan.$(OBJEXT)
 avisplit_OBJECTS = $(am_avisplit_OBJECTS)
 avisplit_DEPENDENCIES =
 avisplit_LDFLAGS =
-am_avisync_OBJECTS = avisync.$(OBJEXT) buffer.$(OBJEXT)
+am_avisync_OBJECTS = avisync.$(OBJEXT) buffer.$(OBJEXT) \
+	aud_scan.$(OBJEXT)
 avisync_OBJECTS = $(am_avisync_OBJECTS)
 avisync_DEPENDENCIES =
 avisync_LDFLAGS =
@@ -355,9 +356,10 @@ tcmodinfo_OBJECTS = $(am_tcmodinfo_OBJECTS)
 tcmodinfo_DEPENDENCIES = ../src/optstr.o
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/avifix.Po ./$(DEPDIR)/avimerge.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/avisplit.Po ./$(DEPDIR)/avisync.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/buffer.Po ./$(DEPDIR)/tcmodinfo.Po
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/aud_scan.Po ./$(DEPDIR)/avifix.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/avimerge.Po ./$(DEPDIR)/avisplit.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/avisync.Po ./$(DEPDIR)/buffer.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/tcmodinfo.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -430,6 +432,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/aud_scan.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avifix.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avimerge.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avisplit.Po@am__quote@

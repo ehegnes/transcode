@@ -5,20 +5,20 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I. @DLDARWININ
 
 CFLAGS = -Wall -I../src -I../avilib -I../libac3 -I$(srcdir)/../src -I$(srcdir)/../avilib -I$(srcdir)/../libac3 @CFLAGS@ -DMOD_PATH=\"@MOD_PATH@\"
 
-EXTRA_DIST = buffer.h
+EXTRA_DIST = buffer.h aud_scan.h
 
 bin_PROGRAMS = avimerge avisplit avifix avisync tcmodinfo
  
-avisync_SOURCES = avisync.c buffer.c
+avisync_SOURCES = avisync.c buffer.c aud_scan.c
 avisync_LDADD = -L../avilib -lavi
 
-avimerge_SOURCES = avimerge.c 
+avimerge_SOURCES = avimerge.c aud_scan.c
 avimerge_LDADD = -L../avilib -lavi
 
-avifix_SOURCES = avifix.c 
+avifix_SOURCES = avifix.c aud_scan.c
 avifix_LDADD = -L../avilib -lavi
 
-avisplit_SOURCES = avisplit.c
+avisplit_SOURCES = avisplit.c aud_scan.c 
 avisplit_LDADD = -L../avilib -lavi -L../libioaux -ltcioaux
 
 tcmodinfo_SOURCES = tcmodinfo.c
