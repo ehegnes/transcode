@@ -22,8 +22,8 @@
  */
 
 #define MOD_NAME    "filter_slowmo.so"
-#define MOD_VERSION "v0.2 (2003-06-23)"
-#define MOD_CAP     "slow-motion effect"
+#define MOD_VERSION "v0.3 (2003-29-11)"
+#define MOD_CAP     "very cheap slow-motion effect"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
 #include <stdio.h>
@@ -176,7 +176,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // 14 <-
   // 15 = 14
 
-  if(ptr->tag & TC_PRE_PROCESS && ptr->tag & TC_VIDEO) {
+  if(ptr->tag & TC_PRE_S_PROCESS && ptr->tag & TC_VIDEO) {
     
     if(!(ptr->tag & TC_FRAME_WAS_CLONED) && do_clone(ptr->id))  {
 	//fprintf(stderr, "cloning frame %d\n", ptr->id);
