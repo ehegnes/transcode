@@ -3525,15 +3525,15 @@ int main(int argc, char *argv[]) {
      * ------------------------------------------------------------*/  
 
     // shutdown
-    if(verbose & TC_INFO) printf("\nclean up |");
+    if(verbose & TC_INFO) { printf("\nclean up |"); fflush(stdout); }
 
     // stop and cancel frame processing threads
     frame_threads_close(); 
-    if(verbose & TC_INFO) printf(" frame threads |");
+    if(verbose & TC_INFO) { printf(" frame threads |"); fflush(stdout); }
 
     // unload all external modules
     transcoder(TC_OFF, NULL); 
-    if(verbose & TC_INFO) printf(" unload modules |");
+    if(verbose & TC_INFO) { printf(" unload modules |");fflush(stdout); }
 
     // cancel no longer used internal signal handler threads
     pthread_cancel(thread_signal);
@@ -3545,7 +3545,7 @@ int main(int argc, char *argv[]) {
       pthread_join(thread_server, &thread_status);
     }
     
-    if(verbose & TC_INFO) printf(" internal threads |");
+    if(verbose & TC_INFO) { printf(" internal threads |");fflush(stdout); }
 
     // all done
     if(verbose & TC_INFO) printf(" done\n");
