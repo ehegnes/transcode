@@ -2032,9 +2032,12 @@ void dsputil_init_mmx(DSPContext* c, AVCodecContext *avctx)
 
 #ifdef CONFIG_ENCODERS
         if(dct_algo==FF_DCT_AUTO || dct_algo==FF_DCT_MMX){
+#ifdef CAN_COMPILE_SSE2
             if(mm_flags & MM_SSE2){
                 c->fdct = ff_fdct_sse2;
-	    }else if(mm_flags & MM_MMXEXT){
+	    }else 
+#endif
+		if(mm_flags & MM_MMXEXT){
                 c->fdct = ff_fdct_mmx2;
             }else{
                 c->fdct = ff_fdct_mmx;

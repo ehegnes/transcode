@@ -336,6 +336,7 @@ static always_inline void fdct_col(const int16_t *in, int16_t *out, int offset)
 
 static always_inline void fdct_row_sse2(const int16_t *in, int16_t *out)
 {
+#if CAN_COMPILE_SSE2
     asm volatile(
         ".macro FDCT_ROW_SSE2_H1 i t   \n\t"
 	"movq      \\i(%0), %%xmm2     \n\t"
@@ -394,6 +395,7 @@ static always_inline void fdct_row_sse2(const int16_t *in, int16_t *out)
 	:
 	: "r" (in), "r" (tab_frw_01234567_sse2), "r" (fdct_r_row_sse2), "i" (SHIFT_FRW_ROW), "r" (out)
     );
+#endif
 }
 
 static always_inline void fdct_row_mmx2(const int16_t *in, int16_t *out, const int16_t *table)

@@ -15,6 +15,9 @@
 /* Define if your compiler groks C AltiVec extensions. */
 #undef CAN_COMPILE_C_ALTIVEC
 
+/* Define if your compiler can compile SSE2 inline asm */
+#undef CAN_COMPILE_SSE2
+
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */

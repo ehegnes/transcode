@@ -259,6 +259,18 @@ else
 AC_DEFINE([HAVE_SSE], 1, [Define if your CPU understands SSE instructions])
 fi
 
+can_compile_sse2=no
+
+AC_CACHE_CHECK([if \$CC can handle SSE2 inline asm],
+    [ac_cv_can_compile_sse2],
+    [ AC_TRY_COMPILE(,
+      [void *p; asm volatile("movdqa    %%xmm2, %%xmm3"::"r"(p));],
+      ac_cv_can_compile_sse2=true, ac_cv_can_compile_sse2=no)])
+if test "x${ac_cv_can_compile_sse2}" != "xno"; then
+  AC_DEFINE(CAN_COMPILE_SSE2, 1, Define if your compiler can compile SSE2 inline asm)
+  can_compile_sse2=true
+fi
+
 
 
 case x"$host_cpu" in 

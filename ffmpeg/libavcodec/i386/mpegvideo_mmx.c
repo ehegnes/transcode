@@ -624,6 +624,7 @@ static void  denoise_dct_sse2(MpegEncContext *s, DCTELEM *block){
 
     s->dct_count[intra]++;
 
+#ifdef CAN_COMPILE_SSE2
     asm volatile(
         "pxor %%xmm7, %%xmm7		\n\t"
         "1:				\n\t"
@@ -669,6 +670,7 @@ static void  denoise_dct_sse2(MpegEncContext *s, DCTELEM *block){
         : "+r" (block), "+r" (sum), "+r" (offset)
         : "r"(block+64)
     );
+#endif
 }
 
 #undef HAVE_MMX2
@@ -703,16 +705,22 @@ void MPV_common_init_mmx(MpegEncContext *s)
 
         draw_edges = draw_edges_mmx;
         
+#if CAN_COMPILE_SSE2
         if (mm_flags & MM_SSE2) {
 	    s->denoise_dct= denoise_dct_sse2;
-	} else {
+	} else 
+#endif
+	{
     	    s->denoise_dct= denoise_dct_mmx;
 	}
 
         if(dct_algo==FF_DCT_AUTO || dct_algo==FF_DCT_MMX){
+#if CAN_COMPILE_SSE2
             if(mm_flags & MM_SSE2){
                 s->dct_quantize= dct_quantize_SSE2;
-            } else if(mm_flags & MM_MMXEXT){
+            } else 
+#endif
+		if(mm_flags & MM_MMXEXT){
                 s->dct_quantize= dct_quantize_MMX2;
             } else {
                 s->dct_quantize= dct_quantize_MMX;
