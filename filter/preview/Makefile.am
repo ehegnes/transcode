@@ -1,16 +1,12 @@
 # # Process this file with automake to produce Makefile.in.
 
-AUTOMAKE_OPTIONS = 1.3 foreign
-
-INCLUDES = \
+AM_CPPFLAGS = \
+	$(PTHREAD_CFLAGS) \
+	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/filter \
 	-I$(top_srcdir)/src \
-	$(DLDARWININCL)
-
-AM_CPPFLAGS = \
-	-D_REENTRANT \
-	-DMOD_PATH=\"$(MOD_PATH)\" \
+	$(DLDARWININCL) \
 	$(LIBDV_CFLAGS) \
 	$(X_CFLAGS) \
 	$(GTK_CFLAGS) \

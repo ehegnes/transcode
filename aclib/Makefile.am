@@ -1,8 +1,8 @@
 # # Process this file with automake to produce Makefile.in.
 
-AUTOMAKE_OPTIONS = 1.3 foreign
-
-AM_CPPFLAGS = -DLINUX
+AM_CPPFLAGS = \
+	$(PTHREAD_CFLAGS) \
+	-DLINUX
 
 noinst_LTLIBRARIES = libac.la
 

@@ -1,8 +1,8 @@
 # # Process this file with automake to produce Makefile.in.
 
-AUTOMAKE_OPTIONS = 1.3 foreign
-
-INCLUDES = $(BBMPEG_CFLAGS)
+AM_CPPFLAGS = \
+	$(PTHREAD_CFLAGS) \
+	$(BBMPEG_CFLAGS)
 
 bin_PROGRAMS = tcmplex
 

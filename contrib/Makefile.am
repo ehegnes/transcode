@@ -1,7 +1,5 @@
 # # Process this file with automake to produce Makefile.in.
 
-AUTOMAKE_OPTIONS = 1.3 foreign
-
 EXTRA_DIST = \
 	V2divx.pl \
 	aviplay.pl \
@@ -16,4 +14,5 @@ EXTRA_DIST = \
 	vob2avi \
 	tccomplete.source
 
-SUBDIRS = . pnmpvn
+SUBDIRS = \
+	pnmpvn

@@ -1,8 +1,8 @@
 # # Process this file with automake to produce Makefile.in.
 
-AUTOMAKE_OPTIONS = 1.3 foreign
-
-AM_CPPFLAGS = $(XIO_CFLAGS)
+AM_CPPFLAGS = \
+	$(PTHREAD_CFLAGS) \
+	$(XIO_CFLAGS)
 
 noinst_LTLIBRARIES = libavi.la
 

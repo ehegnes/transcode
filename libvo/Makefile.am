@@ -1,8 +1,8 @@
 # # Process this file with automake to produce Makefile.in.
 
-AUTOMAKE_OPTIONS = 1.3 foreign
-
-AM_CPPFLAGS = $(MPEG2CVS_CFLAGS)
+AM_CPPFLAGS = \
+	$(PTHREAD_CFLAGS) \
+	$(MPEG2CVS_CFLAGS)
 
 noinst_LTLIBRARIES = libvout.la
 

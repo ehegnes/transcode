@@ -1,16 +1,12 @@
 # # Process this file with automake to produce Makefile.in.
 
-AUTOMAKE_OPTIONS = 1.3 foreign
-
-INCLUDES = \
+AM_CPPFLAGS = \
+	$(PTHREAD_CFLAGS) \
+	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/import \
 	-I$(top_srcdir)/src \
 	$(LVE_CFLAGS)
- 
-AM_CPPFLAGS = \
-	-DMOD_PATH=\"$(MOD_PATH)\" \
-	-D_REENTRANT
 
 pkgdir = $(MOD_PATH)
 pkg_LTLIBRARIES = import_lve.la

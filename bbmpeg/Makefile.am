@@ -1,7 +1,5 @@
 # # Process this file with automake to produce Makefile.in.
 
-AUTOMAKE_OPTIONS = 1.3 foreign
-
 noinst_LTLIBRARIES = libbbmpeg.la
 
 if HAVE_ASM_NASM
@@ -27,6 +25,7 @@ BB_SRC3 = predict_sse.S
 endif
 
 AM_CPPFLAGS = \
+	$(PTHREAD_CFLAGS) \
 	-I$(top_srcdir) \
 	$(MMX)
 

@@ -1,4 +1,11 @@
 2004-12-15 Jacob Meuser <jakemsr at jakemsr dot com>
+  * Makefile.am */Makefile.am */*/Makefile.am
+  Use PTHREAD_CFLAGS everywhere.  Tested for quite some time on
+  OpenBSD and a bit on FreeBSD.  Hopefully this will fix some of the
+  remaining thread issues.  PLEASE let me know if this causes problems
+  somewhere!
+
+2004-12-15 Jacob Meuser <jakemsr at jakemsr dot com>
   * configure.in
   Define PTHREAD_CFLAGS.
   Allow user to override both PTHREAD_CFLAGS and PTHREAD_LIBS by having

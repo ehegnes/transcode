@@ -1,14 +1,10 @@
 # # Process this file with automake to produce Makefile.in.
 
-AUTOMAKE_OPTIONS = 1.3 foreign
-
-INCLUDES = \
+AM_CPPFLAGS = \
+	$(PTHREAD_CFLAGS) \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/filter \
-	-I$(top_srcdir)/src
-
-AM_CPPFLAGS = \
-	-D_REENTRANT \
+	-I$(top_srcdir)/src \
 	$(X_CFLAGS) \
 	$(FT2_CFLAGS) \
 	$(LIBICONV_CFLAGS)

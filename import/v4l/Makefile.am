@@ -1,9 +1,7 @@
 # # Process this file with automake to produce Makefile.in.
 
-AUTOMAKE_OPTIONS = 1.3 foreign
-
 AM_CPPFLAGS = \
-	-D_REENTRANT \
+	$(PTHREAD_CFLAGS) \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/import \
@@ -15,7 +13,7 @@ if HAVE_V4L
 MOD = import_v4l.la import_v4l2.la 
 endif
 
-pkg_LTLIBRARIES = $(MOD) 
+pkg_LTLIBRARIES = $(MOD)
 
 import_v4l_la_SOURCES = import_v4l.c common.c video.c audio.c frequencies.c
 import_v4l_la_LDFLAGS = -no-undefined -module -avoid-version 

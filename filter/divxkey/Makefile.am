@@ -1,19 +1,15 @@
 # # Process this file with automake to produce Makefile.in.
 
-AUTOMAKE_OPTIONS = 1.3 foreign
-
-INCLUDES = \
-	-I$(top_srcdir) \
-	-I$(top_srcdir)/filter \
-	-I$(top_srcdir)/src
-
 if WORDS_BIGENDIAN
 BG = -DBIG_ENDIAN
 endif
 
 AM_CPPFLAGS = \
-	-D_REENTRANT \
-	$(BG)
+	$(PTHREAD_CFLAGS) \
+	$(BG) \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/filter \
+	-I$(top_srcdir)/src
 
 pkgdir = $(MOD_PATH)
 
