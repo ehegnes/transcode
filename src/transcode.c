@@ -976,7 +976,8 @@ int main(int argc, char *argv[]) {
     
     sigaddset(&sigs_to_block,  SIGINT);
     sigaddset(&sigs_to_block,  SIGTERM);
-    sigaddset(&sigs_to_block,  SIGPIPE);
+    // enabling this breaks the import_vob module.
+    //sigaddset(&sigs_to_block,  SIGPIPE);
     
     pthread_sigmask(SIG_BLOCK, &sigs_to_block, NULL);
     
@@ -3148,6 +3149,7 @@ int main(int argc, char *argv[]) {
         tstart = tstart->next;
 	// see if we're using vob_offset
 	if ((tstart != NULL) && (tstart->vob_offset != 0)){
+	  printf("going here!!!!\n"); fflush(stdout);
 	  import_threads_cancel();
 	  import_close(vob);
 	  aframe_flush();
