@@ -462,7 +462,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM AWK SET_MAKE am__leading_dot MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP EGREP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE LN_S CCAS CCASFLAGS ASFLAGS SYSTEM_DARWIN_TRUE SYSTEM_DARWIN_FALSE SUPPORTOBJECTS SUPPORTLIB SUPPORTINCL DLDARWINOBJECTS DLDARWINLIB DLDARWININCL DLLDFLAGS BIG_ENDIAN_TRUE BIG_ENDIAN_FALSE LIBOBJS ALLOCA GLIB_CONFIG GLIB_CFLAGS GLIB_LIBS HAVE_PPC_ALTIVEC_TRUE HAVE_PPC_ALTIVEC_FALSE HAVE_MMX_TRUE HAVE_MMX_FALSE HAVE_SSE_TRUE HAVE_SSE_FALSE NASM NASMFLAGS HAVE_ASM_MMX_TRUE HAVE_ASM_MMX_FALSE HAVE_ASM_3DNOW_TRUE HAVE_ASM_3DNOW_FALSE HAVE_ASM_NASM_TRUE HAVE_ASM_NASM_FALSE HAVE_X86CPU_TRUE HAVE_X86CPU_FALSE ARCH_X86_TRUE ARCH_X86_FALSE ARCH_PPC_TRUE ARCH_PPC_FALSE CAN_COMPILE_C_ALTIVEC_TRUE CAN_COMPILE_C_ALTIVEC_FALSE ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL LTLIBOBJS STATBUFFER NET_STREAM_TRUE NET_STREAM_FALSE NET_STREAM AVIFILE_CONFIG AVIFILE_CFLAGS AVIFILE_LIBS HAVE_AVIFILE_TRUE HAVE_AVIFILE_FALSE FT2_CONFIG FT2_CFLAGS FT2_LIBS HAVE_FREETYPE2_TRUE HAVE_FREETYPE2_FALSE HAVE_V4L_TRUE HAVE_V4L_FALSE LAME_3_89 LAME_CFLAGS LAME_LIBS HAVE_LAME_TRUE HAVE_LAME_FALSE LAME_3_89_TRUE LAME_3_89_FALSE OGG_CFLAGS OGG_LIBS HAVE_OGG_TRUE HAVE_OGG_FALSE VORBIS_CFLAGS VORBIS_LIBS HAVE_VORBIS_TRUE HAVE_VORBIS_FALSE THEORA_CFLAGS THEORA_LIBS HAVE_THEORA_TRUE HAVE_THEORA_FALSE DVDREAD_CFLAGS DVDREAD_LIBS HAVE_LIBDVDREAD_TRUE HAVE_LIBDVDREAD_FALSE XVID_DEFAULT LIBMPEG3_LIBS LIBMPEG3_CFLAGS HAVE_LIBMPEG3_TRUE HAVE_LIBMPEG3_FALSE LIBLVE_LIBS LIBLVE_CFLAGS HAVE_LIBLVE_TRUE HAVE_LIBLVE_FALSE PVM3_CFLAGS PVM3_LIB PVM3_PVMGS HAVE_PVM3_TRUE HAVE_PVM3_FALSE QT_LIBS QT_CFLAGS HAVE_QT_TRUE HAVE_QT_FALSE OPENQT_LIBS OPENQT_CFLAGS HAVE_OPENQT_TRUE HAVE_OPENQT_FALSE DV_LIBS DV_EXTRA_LIBS DV_CFLAGS HAVE_DV_TRUE HAVE_DV_FALSE LZO_LIBS LZO_EXTRA_LIBS LZO_CFLAGS HAVE_LZO_TRUE HAVE_LZO_FALSE A52_LIBS A52_CFLAGS HAVE_A52_TRUE HAVE_A52_FALSE USE_LIBA52_DECODER LIBXML2_CFLAGS LIBXML2_LIBS LIBXML2CONFIG HAVE_LIBXML2_TRUE HAVE_LIBXML2_FALSE IBP_LIBS HAVE_IBP_TRUE HAVE_IBP_FALSE MJPEG_CFLAGS MJPEG_LIBS MJPEGTOOLSCONFIG HAVE_MJPEG_TRUE HAVE_MJPEG_FALSE X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS x_includes x_libraries HAVE_X11_TRUE HAVE_X11_FALSE HAVE_LIBXV_TRUE HAVE_LIBXV_FALSE HAVE_XAW_SIMPLE_TRUE HAVE_XAW_SIMPLE_FALSE HAVE_LIBXPM_TRUE HAVE_LIBXPM_FALSE SDL_CONFIG SDL_CFLAGS SDL_LIBS HAVE_SDL_TRUE HAVE_SDL_FALSE HAVE_DIVX_DECORE_TRUE HAVE_DIVX_DECORE_FALSE HAVE_DIVX_ENCORE2_TRUE HAVE_DIVX_ENCORE2_FALSE GTK_CONFIG GTK_CFLAGS GTK_LIBS HAVE_GTK_TRUE HAVE_GTK_FALSE LIBFAME_CONFIG LIBFAME_CFLAGS LIBFAME_LIBS HAVE_LIBFAME_TRUE HAVE_LIBFAME_FALSE MAGICK_CONFIG MAGICK_CFLAGS MAGICK_LIBS HAVE_MAGICK_TRUE HAVE_MAGICK_FALSE LIBJPEG_CFLAGS LIBJPEG_LIBS HAVE_LIBJPEG_TRUE HAVE_LIBJPEG_FALSE AVILIB_CFLAGS AVILIB_LIBS TCIOAUX_CFLAGS TCIOAUX_LIBS AC3_CFLAGS AC3_LIBS MOD_PATH TRANSCODE_0_6_TRUE TRANSCODE_0_6_FALSE'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM AWK SET_MAKE am__leading_dot MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP EGREP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE LN_S CCAS CCASFLAGS ASFLAGS SYSTEM_DARWIN_TRUE SYSTEM_DARWIN_FALSE SUPPORTOBJECTS SUPPORTLIB SUPPORTINCL DLDARWINOBJECTS DLDARWINLIB DLDARWININCL DLLDFLAGS BIG_ENDIAN_TRUE BIG_ENDIAN_FALSE LIBOBJS ALLOCA GLIB_CONFIG GLIB_CFLAGS GLIB_LIBS HAVE_PPC_ALTIVEC_TRUE HAVE_PPC_ALTIVEC_FALSE HAVE_MMX_TRUE HAVE_MMX_FALSE HAVE_SSE_TRUE HAVE_SSE_FALSE NASM NASMFLAGS HAVE_ASM_MMX_TRUE HAVE_ASM_MMX_FALSE HAVE_ASM_3DNOW_TRUE HAVE_ASM_3DNOW_FALSE HAVE_ASM_NASM_TRUE HAVE_ASM_NASM_FALSE HAVE_X86CPU_TRUE HAVE_X86CPU_FALSE ARCH_X86_TRUE ARCH_X86_FALSE ARCH_PPC_TRUE ARCH_PPC_FALSE CAN_COMPILE_C_ALTIVEC_TRUE CAN_COMPILE_C_ALTIVEC_FALSE ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL LTLIBOBJS STATBUFFER NET_STREAM_TRUE NET_STREAM_FALSE NET_STREAM AVIFILE_CONFIG AVIFILE_CFLAGS AVIFILE_LIBS HAVE_AVIFILE_TRUE HAVE_AVIFILE_FALSE FT2_CONFIG FT2_CFLAGS FT2_LIBS HAVE_FREETYPE2_TRUE HAVE_FREETYPE2_FALSE HAVE_V4L_TRUE HAVE_V4L_FALSE LAME_3_89 LAME_CFLAGS LAME_LIBS HAVE_LAME_TRUE HAVE_LAME_FALSE LAME_3_89_TRUE LAME_3_89_FALSE OGG_CFLAGS OGG_LIBS HAVE_OGG_TRUE HAVE_OGG_FALSE VORBIS_CFLAGS VORBIS_LIBS HAVE_VORBIS_TRUE HAVE_VORBIS_FALSE THEORA_CFLAGS THEORA_LIBS HAVE_THEORA_TRUE HAVE_THEORA_FALSE DVDREAD_CFLAGS DVDREAD_LIBS HAVE_LIBDVDREAD_TRUE HAVE_LIBDVDREAD_FALSE XVID_DEFAULT LIBMPEG3_LIBS LIBMPEG3_CFLAGS HAVE_LIBMPEG3_TRUE HAVE_LIBMPEG3_FALSE LIBLVE_LIBS LIBLVE_CFLAGS HAVE_LIBLVE_TRUE HAVE_LIBLVE_FALSE PVM3_CFLAGS PVM3_LIB PVM3_PVMGS HAVE_PVM3_TRUE HAVE_PVM3_FALSE DV_LIBS DV_EXTRA_LIBS DV_CFLAGS HAVE_DV_TRUE HAVE_DV_FALSE QT_LIBS QT_CFLAGS HAVE_QT_TRUE HAVE_QT_FALSE OPENQT_LIBS OPENQT_CFLAGS HAVE_OPENQT_TRUE HAVE_OPENQT_FALSE LZO_LIBS LZO_EXTRA_LIBS LZO_CFLAGS HAVE_LZO_TRUE HAVE_LZO_FALSE A52_LIBS A52_CFLAGS HAVE_A52_TRUE HAVE_A52_FALSE USE_LIBA52_DECODER LIBXML2_CFLAGS LIBXML2_LIBS LIBXML2CONFIG HAVE_LIBXML2_TRUE HAVE_LIBXML2_FALSE IBP_LIBS HAVE_IBP_TRUE HAVE_IBP_FALSE MJPEG_CFLAGS MJPEG_LIBS MJPEGTOOLSCONFIG HAVE_MJPEG_TRUE HAVE_MJPEG_FALSE X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS x_includes x_libraries HAVE_X11_TRUE HAVE_X11_FALSE HAVE_LIBXV_TRUE HAVE_LIBXV_FALSE HAVE_XAW_SIMPLE_TRUE HAVE_XAW_SIMPLE_FALSE HAVE_LIBXPM_TRUE HAVE_LIBXPM_FALSE SDL_CONFIG SDL_CFLAGS SDL_LIBS HAVE_SDL_TRUE HAVE_SDL_FALSE HAVE_DIVX_DECORE_TRUE HAVE_DIVX_DECORE_FALSE HAVE_DIVX_ENCORE2_TRUE HAVE_DIVX_ENCORE2_FALSE GTK_CONFIG GTK_CFLAGS GTK_LIBS HAVE_GTK_TRUE HAVE_GTK_FALSE LIBFAME_CONFIG LIBFAME_CFLAGS LIBFAME_LIBS HAVE_LIBFAME_TRUE HAVE_LIBFAME_FALSE MAGICK_CONFIG MAGICK_CFLAGS MAGICK_LIBS HAVE_MAGICK_TRUE HAVE_MAGICK_FALSE LIBJPEG_CFLAGS LIBJPEG_LIBS HAVE_LIBJPEG_TRUE HAVE_LIBJPEG_FALSE AVILIB_CFLAGS AVILIB_LIBS TCIOAUX_CFLAGS TCIOAUX_LIBS AC3_CFLAGS AC3_LIBS MOD_PATH TRANSCODE_0_6_TRUE TRANSCODE_0_6_FALSE'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1118,6 +1118,11 @@ Optional Packages:
   --with-pvm3             Enable pvm3 code (yes)
   --with-pvm3-lib=PFX     prefix where local pvm3 libraries are installed
   --with-pvm3-include=PFX prefix where local pvm3 includes are installed
+  --with-dv               build libdv dependent modules (yes)
+  --with-dv-includes=PFX  prefix where local libdv includes are installed
+                          (optional)
+  --with-dv-libs=PFX      prefix where local libdv libs are installed
+                          (optional)
   --with-qt               build quicktime dependent module (no)
   --with-qt-includes=PFX  prefix where local quicktime includes are installed
                           (optional)
@@ -1128,11 +1133,6 @@ Optional Packages:
                           prefix where local openquicktime includes are
                           installed (optional)
   --with-openqt-libs=PFX  prefix where local openquicktime libs are installed
-                          (optional)
-  --with-dv               build libdv dependent modules (yes)
-  --with-dv-includes=PFX  prefix where local libdv includes are installed
-                          (optional)
-  --with-dv-libs=PFX      prefix where local libdv libs are installed
                           (optional)
   --with-lzo              build liblzo dependent modules (yes)
   --with-lzo-includes=PFX prefix where local liblzo includes are installed
@@ -25970,9 +25970,11 @@ echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
 echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
 if test `eval echo '${'$as_ac_File'}'` = yes; then
   libmpeg3_inc=yes
+else
+  libmpeg3_inc=no
 fi
 
-        	if test x$libmpeg3_inc = "x"; then
+        	if test x$libmpeg3_inc = "x"yes; then
                 	with_libmpeg3_i="$libmpeg3_includes/include/libmpeg3"
 		fi
 		as_ac_File=`echo "ac_cv_file_$libmpeg3_includes/include/mpeg3/libmpeg3.h" | $as_tr_sh`
@@ -25995,35 +25997,38 @@ echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
 echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
 if test `eval echo '${'$as_ac_File'}'` = yes; then
   libmpeg3_inc=yes
+else
+  libmpeg3_inc=no
 fi
 
-        	if test x$libmpeg3_inc = "x"; then
+        	if test x$libmpeg3_inc = "x"yes; then
         		with_libmpeg3_i="$libmpeg3_includes/include/mpeg3"
         	fi
 	else
-		as_ac_File=`echo "ac_cv_file_$libmpeg3_includes/include/libmpeg3/libmpeg3.h" | $as_tr_sh`
-echo "$as_me:$LINENO: checking for $libmpeg3_includes/include/libmpeg3/libmpeg3.h" >&5
-echo $ECHO_N "checking for $libmpeg3_includes/include/libmpeg3/libmpeg3.h... $ECHO_C" >&6
-if eval "test \"\${$as_ac_File+set}\" = set"; then
+		echo "$as_me:$LINENO: checking for /usr/include/libmpeg3/libmpeg3.h" >&5
+echo $ECHO_N "checking for /usr/include/libmpeg3/libmpeg3.h... $ECHO_C" >&6
+if test "${ac_cv_file__usr_include_libmpeg3_libmpeg3_h+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   test "$cross_compiling" = yes &&
   { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
 echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
    { (exit 1); exit 1; }; }
-if test -r "$libmpeg3_includes/include/libmpeg3/libmpeg3.h"; then
-  eval "$as_ac_File=yes"
+if test -r "/usr/include/libmpeg3/libmpeg3.h"; then
+  ac_cv_file__usr_include_libmpeg3_libmpeg3_h=yes
 else
-  eval "$as_ac_File=no"
+  ac_cv_file__usr_include_libmpeg3_libmpeg3_h=no
 fi
 fi
-echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
-echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
-if test `eval echo '${'$as_ac_File'}'` = yes; then
+echo "$as_me:$LINENO: result: $ac_cv_file__usr_include_libmpeg3_libmpeg3_h" >&5
+echo "${ECHO_T}$ac_cv_file__usr_include_libmpeg3_libmpeg3_h" >&6
+if test $ac_cv_file__usr_include_libmpeg3_libmpeg3_h = yes; then
   libmpeg3_inc=yes
+else
+  libmpeg3_inc=no
 fi
 
-		if test x$libmpeg3_inc != "x"; then
+		if test x$libmpeg3_inc = "x"yes; then
 			with_libmpeg3_i="/usr/include/libmpeg3"
 		fi
         	echo "$as_me:$LINENO: checking for /usr/include/mpeg3/libmpeg3.h" >&5
@@ -26045,9 +26050,11 @@ echo "$as_me:$LINENO: result: $ac_cv_file__usr_include_mpeg3_libmpeg3_h" >&5
 echo "${ECHO_T}$ac_cv_file__usr_include_mpeg3_libmpeg3_h" >&6
 if test $ac_cv_file__usr_include_mpeg3_libmpeg3_h = yes; then
   libmpeg3_inc=yes
+else
+  libmpeg3_inc=no
 fi
 
-		if test x$libmpeg3_inc != "x"; then
+		if test x$libmpeg3_inc = "x"yes; then
 	        	with_libmpeg3_i="/usr/include/mpeg3"
 		fi
 
@@ -26070,9 +26077,11 @@ echo "$as_me:$LINENO: result: $ac_cv_file__usr_local_include_libmpeg3_libmpeg3_h
 echo "${ECHO_T}$ac_cv_file__usr_local_include_libmpeg3_libmpeg3_h" >&6
 if test $ac_cv_file__usr_local_include_libmpeg3_libmpeg3_h = yes; then
   libmpeg3_inc=yes
+else
+  libmpeg3_inc=no
 fi
 
-		if test x$libmpeg3_inc = "x"; then
+		if test x$libmpeg3_inc = "x"yes; then
         		with_libmpeg3_i="/usr/local/include/libmpeg3"
 		fi
         	echo "$as_me:$LINENO: checking for /usr/local/include/mpeg3/libmpeg3.h" >&5
@@ -26094,9 +26103,11 @@ echo "$as_me:$LINENO: result: $ac_cv_file__usr_local_include_mpeg3_libmpeg3_h" >
 echo "${ECHO_T}$ac_cv_file__usr_local_include_mpeg3_libmpeg3_h" >&6
 if test $ac_cv_file__usr_local_include_mpeg3_libmpeg3_h = yes; then
   libmpeg3_inc=yes
+else
+  libmpeg3_inc=no
 fi
 
-		if test x$libmpeg3_inc = "x"; then
+		if test x$libmpeg3_inc = "x"yes; then
         		with_libmpeg3_i="/usr/local/include/mpeg3"
 		fi
 	fi
@@ -26182,7 +26193,7 @@ else
 fi
 
 
-if test x$libmpeg3_inc = "x"; then
+if test x$with_libmpeg3_i = "x"; then
 if test $have_libmpeg3="yes"; then
         echo "*** Found libmpeg3 but no mpeg3 includes, if they are installed somewhere"
         echo "*** nonstandart, try '--with-libmpeg3-includes=<prefix-of-your-libmpeg3-installation>'"
@@ -26684,282 +26695,6 @@ fi
 
 
 
-# Check whether --with-qt or --without-qt was given.
-if test "${with_qt+set}" = set; then
-  withval="$with_qt"
-  case "${withval}" in
-  yes) ;;
-  no)  ;;
-  *) { { echo "$as_me:$LINENO: error: bad value ${withval} for --with-qt" >&5
-echo "$as_me: error: bad value ${withval} for --with-qt" >&2;}
-   { (exit 1); exit 1; }; } ;;
-esac
-else
-  with_qt=no
-fi;
-
-
-# Check whether --with-qt-includes or --without-qt-includes was given.
-if test "${with_qt_includes+set}" = set; then
-  withval="$with_qt_includes"
-  qt_includes="$withval"
-else
-  qt_includes=""
-fi;
-
-
-# Check whether --with-qt-libs or --without-qt-libs was given.
-if test "${with_qt_libs+set}" = set; then
-  withval="$with_qt_libs"
-  qt_libs="$withval"
-else
-  qt_libs=""
-fi;
-
-EXTRA_LIBS="-lpng -lz -lpthread -ldl -lm $DV_LIBS"
-
-if test x$with_qt = "x"yes ; then
-
-	if test x$qt_includes != "x" ; then
-	    with_qt_i="$qt_includes/include/quicktime"
-        else
-	    with_qt_i="/usr/include/quicktime"
-        fi
-
-        if test x$qt_libs != x ; then
-            with_qt_l="$qt_libs/lib"
-        else
-            with_qt_l="/usr${deflib}"
-        fi
-
-     echo "$as_me:$LINENO: checking for quicktime_open in -lquicktime" >&5
-echo $ECHO_N "checking for quicktime_open in -lquicktime... $ECHO_C" >&6
-if test "${ac_cv_lib_quicktime_quicktime_open+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lquicktime -L$with_qt_l -lquicktime ${EXTRA_LIBS} $LIBS"
-cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-/* Override any gcc2 internal prototype to avoid an error.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-/* We use char because int might match the return type of a gcc2
-   builtin and then its argument prototype would still apply.  */
-char quicktime_open ();
-int
-main ()
-{
-quicktime_open ();
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
-  (eval $ac_link) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-         { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  ac_cv_lib_quicktime_quicktime_open=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-ac_cv_lib_quicktime_quicktime_open=no
-fi
-rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-echo "$as_me:$LINENO: result: $ac_cv_lib_quicktime_quicktime_open" >&5
-echo "${ECHO_T}$ac_cv_lib_quicktime_quicktime_open" >&6
-if test $ac_cv_lib_quicktime_quicktime_open = yes; then
-
-QT_CFLAGS="-I$with_qt_i -I/usr/local/include/quicktime $DV_CFLAGS "
-QT_LIBS="-L$with_qt_l -lquicktime ${EXTRA_LIBS}"
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_QT 1
-_ACEOF
- have_qt=yes
-
-else
-  have_qt=no
-fi
-
-
-else
-    have_qt=no
-fi
-
-
-
-
-
-
-if test x"$have_qt" = "xyes"; then
-  HAVE_QT_TRUE=
-  HAVE_QT_FALSE='#'
-else
-  HAVE_QT_TRUE='#'
-  HAVE_QT_FALSE=
-fi
-
-
-
-
-
-
-# Check whether --with-openqt or --without-openqt was given.
-if test "${with_openqt+set}" = set; then
-  withval="$with_openqt"
-  case "${withval}" in
-  yes) ;;
-  no)  ;;
-  *) { { echo "$as_me:$LINENO: error: bad value ${withval} for --with-openqt" >&5
-echo "$as_me: error: bad value ${withval} for --with-openqt" >&2;}
-   { (exit 1); exit 1; }; } ;;
-esac
-else
-  with_openqt=no
-fi;
-
-
-# Check whether --with-openqt-includes or --without-openqt-includes was given.
-if test "${with_openqt_includes+set}" = set; then
-  withval="$with_openqt_includes"
-  openqt_includes="$withval"
-else
-  openqt_includes=""
-fi;
-
-
-# Check whether --with-openqt-libs or --without-openqt-libs was given.
-if test "${with_openqt_libs+set}" = set; then
-  withval="$with_openqt_libs"
-  openqt_libs="$withval"
-else
-  openqt_libs=""
-fi;
-
-EXTRA_LIBS="-lpng -lz -lpthread $GLIB_LIBS -ldl -lm"
-
-if test x$with_openqt = "x"yes ; then
-
-	if test x$openqt_includes != "x" ; then
-	    with_openqt_i="$openqt_includes/include"
-        else
-	    with_openqt_i="/usr/include"
-        fi
-
-        if test x$openqt_libs != x ; then
-            with_openqt_l="$openqt_libs/lib"
-        else
-            with_openqt_l="/usr${deflib}"
-        fi
-
-     echo "$as_me:$LINENO: checking for quicktime_init in -lopenquicktime" >&5
-echo $ECHO_N "checking for quicktime_init in -lopenquicktime... $ECHO_C" >&6
-if test "${ac_cv_lib_openquicktime_quicktime_init+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lopenquicktime -L$with_openqt_l -lopenquicktime ${EXTRA_LIBS} $LIBS"
-cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-/* Override any gcc2 internal prototype to avoid an error.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-/* We use char because int might match the return type of a gcc2
-   builtin and then its argument prototype would still apply.  */
-char quicktime_init ();
-int
-main ()
-{
-quicktime_init ();
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
-  (eval $ac_link) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-         { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  ac_cv_lib_openquicktime_quicktime_init=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-ac_cv_lib_openquicktime_quicktime_init=no
-fi
-rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-echo "$as_me:$LINENO: result: $ac_cv_lib_openquicktime_quicktime_init" >&5
-echo "${ECHO_T}$ac_cv_lib_openquicktime_quicktime_init" >&6
-if test $ac_cv_lib_openquicktime_quicktime_init = yes; then
-
-OPENQT_CFLAGS="-I$with_openqt_i -I/usr/local/include $GLIB_CFLAGS "
-OPENQT_LIBS="-L$with_openqt_l -lopenquicktime ${EXTRA_LIBS}"
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_OPENQT 1
-_ACEOF
- have_openqt=yes
-
-else
-  have_openqt=no
-fi
-
-
-else
-    have_openqt=no
-fi
-
-
-
-
-
-
-if test x"$have_openqt" = "xyes"; then
-  HAVE_OPENQT_TRUE=
-  HAVE_OPENQT_FALSE='#'
-else
-  HAVE_OPENQT_TRUE='#'
-  HAVE_OPENQT_FALSE=
-fi
-
-
-
-
-
-
 # Check whether --with-dv or --without-dv was given.
 if test "${with_dv+set}" = set; then
   withval="$with_dv"
@@ -27222,6 +26957,282 @@ if test x"$have_dv" = "xyes"; then
 else
   HAVE_DV_TRUE='#'
   HAVE_DV_FALSE=
+fi
+
+
+
+
+
+
+# Check whether --with-qt or --without-qt was given.
+if test "${with_qt+set}" = set; then
+  withval="$with_qt"
+  case "${withval}" in
+  yes) ;;
+  no)  ;;
+  *) { { echo "$as_me:$LINENO: error: bad value ${withval} for --with-qt" >&5
+echo "$as_me: error: bad value ${withval} for --with-qt" >&2;}
+   { (exit 1); exit 1; }; } ;;
+esac
+else
+  with_qt=no
+fi;
+
+
+# Check whether --with-qt-includes or --without-qt-includes was given.
+if test "${with_qt_includes+set}" = set; then
+  withval="$with_qt_includes"
+  qt_includes="$withval"
+else
+  qt_includes=""
+fi;
+
+
+# Check whether --with-qt-libs or --without-qt-libs was given.
+if test "${with_qt_libs+set}" = set; then
+  withval="$with_qt_libs"
+  qt_libs="$withval"
+else
+  qt_libs=""
+fi;
+
+EXTRA_LIBS="$GLIB_LIBS -lpng -lz -lpthread -ldl -lm $DV_LIBS"
+
+if test x$with_qt = "x"yes ; then
+
+	if test x$qt_includes != "x" ; then
+	    with_qt_i="$qt_includes/include/quicktime"
+        else
+	    with_qt_i="/usr/include/quicktime"
+        fi
+
+        if test x$qt_libs != x ; then
+            with_qt_l="$qt_libs/lib"
+        else
+            with_qt_l="/usr${deflib}"
+        fi
+
+     echo "$as_me:$LINENO: checking for quicktime_open in -lquicktime" >&5
+echo $ECHO_N "checking for quicktime_open in -lquicktime... $ECHO_C" >&6
+if test "${ac_cv_lib_quicktime_quicktime_open+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lquicktime -L$with_qt_l -lquicktime ${EXTRA_LIBS} $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char quicktime_open ();
+int
+main ()
+{
+quicktime_open ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_quicktime_quicktime_open=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_quicktime_quicktime_open=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_quicktime_quicktime_open" >&5
+echo "${ECHO_T}$ac_cv_lib_quicktime_quicktime_open" >&6
+if test $ac_cv_lib_quicktime_quicktime_open = yes; then
+
+QT_CFLAGS="-I$with_qt_i -I/usr/local/include/quicktime $DV_CFLAGS "
+QT_LIBS="-L$with_qt_l -lquicktime ${EXTRA_LIBS}"
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_QT 1
+_ACEOF
+ have_qt=yes
+
+else
+  have_qt=no
+fi
+
+
+else
+    have_qt=no
+fi
+
+
+
+
+
+
+if test x"$have_qt" = "xyes"; then
+  HAVE_QT_TRUE=
+  HAVE_QT_FALSE='#'
+else
+  HAVE_QT_TRUE='#'
+  HAVE_QT_FALSE=
+fi
+
+
+
+
+
+
+# Check whether --with-openqt or --without-openqt was given.
+if test "${with_openqt+set}" = set; then
+  withval="$with_openqt"
+  case "${withval}" in
+  yes) ;;
+  no)  ;;
+  *) { { echo "$as_me:$LINENO: error: bad value ${withval} for --with-openqt" >&5
+echo "$as_me: error: bad value ${withval} for --with-openqt" >&2;}
+   { (exit 1); exit 1; }; } ;;
+esac
+else
+  with_openqt=no
+fi;
+
+
+# Check whether --with-openqt-includes or --without-openqt-includes was given.
+if test "${with_openqt_includes+set}" = set; then
+  withval="$with_openqt_includes"
+  openqt_includes="$withval"
+else
+  openqt_includes=""
+fi;
+
+
+# Check whether --with-openqt-libs or --without-openqt-libs was given.
+if test "${with_openqt_libs+set}" = set; then
+  withval="$with_openqt_libs"
+  openqt_libs="$withval"
+else
+  openqt_libs=""
+fi;
+
+EXTRA_LIBS="-lpng -lz -lpthread $GLIB_LIBS -ldl -lm"
+
+if test x$with_openqt = "x"yes ; then
+
+	if test x$openqt_includes != "x" ; then
+	    with_openqt_i="$openqt_includes/include"
+        else
+	    with_openqt_i="/usr/include"
+        fi
+
+        if test x$openqt_libs != x ; then
+            with_openqt_l="$openqt_libs/lib"
+        else
+            with_openqt_l="/usr${deflib}"
+        fi
+
+     echo "$as_me:$LINENO: checking for quicktime_init in -lopenquicktime" >&5
+echo $ECHO_N "checking for quicktime_init in -lopenquicktime... $ECHO_C" >&6
+if test "${ac_cv_lib_openquicktime_quicktime_init+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lopenquicktime -L$with_openqt_l -lopenquicktime ${EXTRA_LIBS} $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char quicktime_init ();
+int
+main ()
+{
+quicktime_init ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_openquicktime_quicktime_init=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_openquicktime_quicktime_init=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_openquicktime_quicktime_init" >&5
+echo "${ECHO_T}$ac_cv_lib_openquicktime_quicktime_init" >&6
+if test $ac_cv_lib_openquicktime_quicktime_init = yes; then
+
+OPENQT_CFLAGS="-I$with_openqt_i -I/usr/local/include $GLIB_CFLAGS "
+OPENQT_LIBS="-L$with_openqt_l -lopenquicktime ${EXTRA_LIBS}"
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_OPENQT 1
+_ACEOF
+ have_openqt=yes
+
+else
+  have_openqt=no
+fi
+
+
+else
+    have_openqt=no
+fi
+
+
+
+
+
+
+if test x"$have_openqt" = "xyes"; then
+  HAVE_OPENQT_TRUE=
+  HAVE_OPENQT_FALSE='#'
+else
+  HAVE_OPENQT_TRUE='#'
+  HAVE_OPENQT_FALSE=
 fi
 
 
@@ -31712,6 +31723,13 @@ echo "$as_me: error: conditional \"HAVE_PVM3\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
+if test -z "${HAVE_DV_TRUE}" && test -z "${HAVE_DV_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"HAVE_DV\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"HAVE_DV\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
 if test -z "${HAVE_QT_TRUE}" && test -z "${HAVE_QT_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"HAVE_QT\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
@@ -31723,13 +31741,6 @@ if test -z "${HAVE_OPENQT_TRUE}" && test -z "${HAVE_OPENQT_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"HAVE_OPENQT\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"HAVE_OPENQT\" was never defined.
-Usually this means the macro was only invoked conditionally." >&2;}
-   { (exit 1); exit 1; }; }
-fi
-if test -z "${HAVE_DV_TRUE}" && test -z "${HAVE_DV_FALSE}"; then
-  { { echo "$as_me:$LINENO: error: conditional \"HAVE_DV\" was never defined.
-Usually this means the macro was only invoked conditionally." >&5
-echo "$as_me: error: conditional \"HAVE_DV\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -32591,6 +32602,11 @@ s,@PVM3_LIB@,$PVM3_LIB,;t t
 s,@PVM3_PVMGS@,$PVM3_PVMGS,;t t
 s,@HAVE_PVM3_TRUE@,$HAVE_PVM3_TRUE,;t t
 s,@HAVE_PVM3_FALSE@,$HAVE_PVM3_FALSE,;t t
+s,@DV_LIBS@,$DV_LIBS,;t t
+s,@DV_EXTRA_LIBS@,$DV_EXTRA_LIBS,;t t
+s,@DV_CFLAGS@,$DV_CFLAGS,;t t
+s,@HAVE_DV_TRUE@,$HAVE_DV_TRUE,;t t
+s,@HAVE_DV_FALSE@,$HAVE_DV_FALSE,;t t
 s,@QT_LIBS@,$QT_LIBS,;t t
 s,@QT_CFLAGS@,$QT_CFLAGS,;t t
 s,@HAVE_QT_TRUE@,$HAVE_QT_TRUE,;t t
@@ -32599,11 +32615,6 @@ s,@OPENQT_LIBS@,$OPENQT_LIBS,;t t
 s,@OPENQT_CFLAGS@,$OPENQT_CFLAGS,;t t
 s,@HAVE_OPENQT_TRUE@,$HAVE_OPENQT_TRUE,;t t
 s,@HAVE_OPENQT_FALSE@,$HAVE_OPENQT_FALSE,;t t
-s,@DV_LIBS@,$DV_LIBS,;t t
-s,@DV_EXTRA_LIBS@,$DV_EXTRA_LIBS,;t t
-s,@DV_CFLAGS@,$DV_CFLAGS,;t t
-s,@HAVE_DV_TRUE@,$HAVE_DV_TRUE,;t t
-s,@HAVE_DV_FALSE@,$HAVE_DV_FALSE,;t t
 s,@LZO_LIBS@,$LZO_LIBS,;t t
 s,@LZO_EXTRA_LIBS@,$LZO_EXTRA_LIBS,;t t
 s,@LZO_CFLAGS@,$LZO_CFLAGS,;t t

@@ -1,6 +1,14 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-29 Stefan Scheffler <stefanscheffler at gmx.net>
+
+  * configure.in acinclude.m4:
+  I fscked up a some comparisons in the libmpeg3 detection and a few
+  other things. fixed the case where quicktime requires glib but
+  libdv was not found
+  put the libdv before the quicktime check
+
 2004-01-28 Tilmann Bitterberg <transcode at tibit.org>
 
   * avilib/avilib.c:

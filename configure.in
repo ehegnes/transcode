@@ -780,6 +780,13 @@ AM_PATH_PVM3(AC_DEFINE([HAVE_PVM3], 1, [Have pvm3 support]))
 AM_CONDITIONAL(HAVE_PVM3, test x"$have_pvm3" = "xyes")
 
 dnl
+dnl DV support
+dnl
+
+AM_PATH_DV(AC_DEFINE([HAVE_DV], 1, [Have dv support]))
+AM_CONDITIONAL(HAVE_DV, test x"$have_dv" = "xyes")
+
+dnl
 dnl libquicktime support
 dnl
 
@@ -792,13 +799,6 @@ dnl
 
 AM_PATH_OPENQT(AC_DEFINE([HAVE_OPENQT], 1, [Have openquicktime support]))
 AM_CONDITIONAL(HAVE_OPENQT, test x"$have_openqt" = "xyes")
-
-dnl
-dnl DV support
-dnl
-
-AM_PATH_DV(AC_DEFINE([HAVE_DV], 1, [Have dv support]))
-AM_CONDITIONAL(HAVE_DV, test x"$have_dv" = "xyes")
 
 dnl
 dnl LZO support

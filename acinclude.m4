@@ -849,30 +849,30 @@ if test x$with_libmpeg3 = "x"yes ; then
 
 	dnl check for libmpeg3.h
 	if test x$libmpeg3_includes != "x" ; then
-        	AC_CHECK_FILE($libmpeg3_includes/include/libmpeg3/libmpeg3.h, [libmpeg3_inc=yes])
-        	if test x$libmpeg3_inc = "x"; then
+        	AC_CHECK_FILE($libmpeg3_includes/include/libmpeg3/libmpeg3.h, [libmpeg3_inc=yes],[libmpeg3_inc=no])
+        	if test x$libmpeg3_inc = "x"yes; then
                 	with_libmpeg3_i="$libmpeg3_includes/include/libmpeg3"
 		fi        
-		AC_CHECK_FILE($libmpeg3_includes/include/mpeg3/libmpeg3.h, [libmpeg3_inc=yes])
-        	if test x$libmpeg3_inc = "x"; then        
+		AC_CHECK_FILE($libmpeg3_includes/include/mpeg3/libmpeg3.h, [libmpeg3_inc=yes],[libmpeg3_inc=no])
+        	if test x$libmpeg3_inc = "x"yes; then        
         		with_libmpeg3_i="$libmpeg3_includes/include/mpeg3"
         	fi
 	else
-		AC_CHECK_FILE($libmpeg3_includes/include/libmpeg3/libmpeg3.h, [libmpeg3_inc=yes])
-		if test x$libmpeg3_inc != "x"; then
+		AC_CHECK_FILE(/usr/include/libmpeg3/libmpeg3.h, [libmpeg3_inc=yes],[libmpeg3_inc=no])
+		if test x$libmpeg3_inc = "x"yes; then
 			with_libmpeg3_i="/usr/include/libmpeg3"
 		fi
-        	AC_CHECK_FILE(/usr/include/mpeg3/libmpeg3.h, [libmpeg3_inc=yes])
-		if test x$libmpeg3_inc != "x"; then
+        	AC_CHECK_FILE(/usr/include/mpeg3/libmpeg3.h, [libmpeg3_inc=yes],[libmpeg3_inc=no])
+		if test x$libmpeg3_inc = "x"yes; then
 	        	with_libmpeg3_i="/usr/include/mpeg3"
 		fi
 
-		AC_CHECK_FILE(/usr/local/include/libmpeg3/libmpeg3.h, [libmpeg3_inc=yes])
-		if test x$libmpeg3_inc = "x"; then
+		AC_CHECK_FILE(/usr/local/include/libmpeg3/libmpeg3.h, [libmpeg3_inc=yes],[libmpeg3_inc=no])
+		if test x$libmpeg3_inc = "x"yes; then
         		with_libmpeg3_i="/usr/local/include/libmpeg3"
 		fi
-        	AC_CHECK_FILE(/usr/local/include/mpeg3/libmpeg3.h, [libmpeg3_inc=yes])
-		if test x$libmpeg3_inc = "x"; then
+        	AC_CHECK_FILE(/usr/local/include/mpeg3/libmpeg3.h,[libmpeg3_inc=yes],[libmpeg3_inc=no])
+		if test x$libmpeg3_inc = "x"yes; then
         		with_libmpeg3_i="/usr/local/include/mpeg3"
 		fi   
 	fi
@@ -898,7 +898,7 @@ fi
 
 
 dnl give user a hint :)
-if test x$libmpeg3_inc = "x"; then 
+if test x$with_libmpeg3_i = "x"; then 
 if test $have_libmpeg3="yes"; then
         echo "*** Found libmpeg3 but no mpeg3 includes, if they are installed somewhere"
         echo "*** nonstandart, try '--with-libmpeg3-includes=<prefix-of-your-libmpeg3-installation>'" 
@@ -1046,7 +1046,7 @@ AC_ARG_WITH(qt-includes,AC_HELP_STRING([--with-qt-includes=PFX],[prefix where lo
 AC_ARG_WITH(qt-libs,AC_HELP_STRING([--with-qt-libs=PFX],[prefix where local quicktime libs are installed (optional)]),
 	  qt_libs="$withval", qt_libs="")
 
-EXTRA_LIBS="-lpng -lz -lpthread -ldl -lm $DV_LIBS"
+EXTRA_LIBS="$GLIB_LIBS -lpng -lz -lpthread -ldl -lm $DV_LIBS"
 
 if test x$with_qt = "x"yes ; then
 
