@@ -54,10 +54,13 @@ endif
 endif
 
 pkgdir=@MOD_PATH@
-pkg_LTLIBRARIES=import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la import_dv.la import_vob.la import_raw.la import_nvrec.la import_yuv4mpeg.la import_lav.la import_null.la import_divx.la $(A52_MOD) $(MP123_MOD) $(DVD_MOD) $(MPEG3) $(IM_MOD) $(MODQT) af6_decore.la $(LIBXML2_MOD) import_mplayer.la import_rawlist.la import_ogg.la import_xvid.la import_ffmpeg.la $(LZO_MOD) import_vnc.la import_fraps.la
+pkg_LTLIBRARIES=import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la import_dv.la import_vob.la import_raw.la import_nvrec.la import_yuv4mpeg.la import_lav.la import_null.la import_sh.la import_divx.la $(A52_MOD) $(MP123_MOD) $(DVD_MOD) $(MPEG3) $(IM_MOD) $(MODQT) af6_decore.la $(LIBXML2_MOD) import_mplayer.la import_rawlist.la import_ogg.la import_xvid.la import_ffmpeg.la $(LZO_MOD) import_vnc.la import_fraps.la
 
 import_null_la_SOURCES = import_null.c
 import_null_la_LDFLAGS =  -module -avoid-version 
+
+import_sh_la_SOURCES = import_sh.c
+import_sh_la_LDFLAGS =  -module -avoid-version 
 
 import_ogg_la_SOURCES = import_ogg.c
 import_ogg_la_LDFLAGS =  -module -avoid-version 

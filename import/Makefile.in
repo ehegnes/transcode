@@ -343,10 +343,13 @@ INCLUDES = -Wall -I./ -I../src -I../avilib $(AC3_INC) $(MPEG2_INC) -I../libvo -I
 @HAVE_OGG_TRUE@@HAVE_VORBIS_TRUE@VORBISFILE = -lvorbisfile
 
 pkgdir = @MOD_PATH@
-pkg_LTLIBRARIES = import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la import_dv.la import_vob.la import_raw.la import_nvrec.la import_yuv4mpeg.la import_lav.la import_null.la import_divx.la $(A52_MOD) $(MP123_MOD) $(DVD_MOD) $(MPEG3) $(IM_MOD) $(MODQT) af6_decore.la $(LIBXML2_MOD) import_mplayer.la import_rawlist.la import_ogg.la import_xvid.la import_ffmpeg.la $(LZO_MOD) import_vnc.la import_fraps.la
+pkg_LTLIBRARIES = import_avi.la import_mpeg2.la import_vdrac3.la import_ac3.la import_dv.la import_vob.la import_raw.la import_nvrec.la import_yuv4mpeg.la import_lav.la import_null.la import_sh.la import_divx.la $(A52_MOD) $(MP123_MOD) $(DVD_MOD) $(MPEG3) $(IM_MOD) $(MODQT) af6_decore.la $(LIBXML2_MOD) import_mplayer.la import_rawlist.la import_ogg.la import_xvid.la import_ffmpeg.la $(LZO_MOD) import_vnc.la import_fraps.la
 
 import_null_la_SOURCES = import_null.c
 import_null_la_LDFLAGS = -module -avoid-version 
+
+import_sh_la_SOURCES = import_sh.c
+import_sh_la_LDFLAGS = -module -avoid-version 
 
 import_ogg_la_SOURCES = import_ogg.c
 import_ogg_la_LDFLAGS = -module -avoid-version 
@@ -597,6 +600,9 @@ import_raw_la_OBJECTS = $(am_import_raw_la_OBJECTS)
 import_rawlist_la_LIBADD =
 am_import_rawlist_la_OBJECTS = import_rawlist.lo ioaux.lo
 import_rawlist_la_OBJECTS = $(am_import_rawlist_la_OBJECTS)
+import_sh_la_LIBADD =
+am_import_sh_la_OBJECTS = import_sh.lo
+import_sh_la_OBJECTS = $(am_import_sh_la_OBJECTS)
 import_vdrac3_la_DEPENDENCIES =
 am_import_vdrac3_la_OBJECTS = import_vdrac3.lo ioaux.lo ac3scan.lo
 import_vdrac3_la_OBJECTS = $(am_import_vdrac3_la_OBJECTS)
@@ -741,6 +747,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/import_ogg.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/import_raw.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/import_rawlist.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/import_sh.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/import_vdrac3.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/import_vnc.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/import_vob.Plo \
@@ -792,13 +799,13 @@ DIST_SOURCES = $(a52_decore_la_SOURCES) $(af6_decore_la_SOURCES) \
 	$(import_mpeg3_la_SOURCES) $(import_mplayer_la_SOURCES) \
 	$(import_null_la_SOURCES) $(import_nvrec_la_SOURCES) \
 	$(import_ogg_la_SOURCES) $(import_raw_la_SOURCES) \
-	$(import_rawlist_la_SOURCES) $(import_vdrac3_la_SOURCES) \
-	$(import_vnc_la_SOURCES) $(import_vob_la_SOURCES) \
-	$(import_xml_la_SOURCES) $(import_xvid_la_SOURCES) \
-	$(import_yuv4mpeg_la_SOURCES) $(tccat_SOURCES) \
-	$(tcdecode_SOURCES) $(tcdemux_SOURCES) $(tcextract_SOURCES) \
-	$(tcprobe_SOURCES) $(tcrequant_SOURCES) $(tcscan_SOURCES) \
-	$(tcxmlcheck_SOURCES) $(tcxpm2rgb_SOURCES)
+	$(import_rawlist_la_SOURCES) $(import_sh_la_SOURCES) \
+	$(import_vdrac3_la_SOURCES) $(import_vnc_la_SOURCES) \
+	$(import_vob_la_SOURCES) $(import_xml_la_SOURCES) \
+	$(import_xvid_la_SOURCES) $(import_yuv4mpeg_la_SOURCES) \
+	$(tccat_SOURCES) $(tcdecode_SOURCES) $(tcdemux_SOURCES) \
+	$(tcextract_SOURCES) $(tcprobe_SOURCES) $(tcrequant_SOURCES) \
+	$(tcscan_SOURCES) $(tcxmlcheck_SOURCES) $(tcxpm2rgb_SOURCES)
 
 RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 	ps-recursive install-info-recursive uninstall-info-recursive \
@@ -807,7 +814,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 	check-recursive installcheck-recursive
 DIST_COMMON = $(srcdir)/Makefile.in Makefile.am
 DIST_SUBDIRS = nuv af6 lve net v4l yuv
-SOURCES = $(a52_decore_la_SOURCES) $(af6_decore_la_SOURCES) $(import_ac3_la_SOURCES) $(import_avi_la_SOURCES) $(import_divx_la_SOURCES) $(import_dv_la_SOURCES) $(import_dvd_la_SOURCES) $(import_ffmpeg_la_SOURCES) $(import_fraps_la_SOURCES) $(import_im_la_SOURCES) $(import_imlist_la_SOURCES) $(import_lav_la_SOURCES) $(import_lzo_la_SOURCES) $(import_mov_la_SOURCES) $(import_mp3_la_SOURCES) $(import_mpeg2_la_SOURCES) $(import_mpeg3_la_SOURCES) $(import_mplayer_la_SOURCES) $(import_null_la_SOURCES) $(import_nvrec_la_SOURCES) $(import_ogg_la_SOURCES) $(import_raw_la_SOURCES) $(import_rawlist_la_SOURCES) $(import_vdrac3_la_SOURCES) $(import_vnc_la_SOURCES) $(import_vob_la_SOURCES) $(import_xml_la_SOURCES) $(import_xvid_la_SOURCES) $(import_yuv4mpeg_la_SOURCES) $(tccat_SOURCES) $(tcdecode_SOURCES) $(tcdemux_SOURCES) $(tcextract_SOURCES) $(tcprobe_SOURCES) $(tcrequant_SOURCES) $(tcscan_SOURCES) $(tcxmlcheck_SOURCES) $(tcxpm2rgb_SOURCES)
+SOURCES = $(a52_decore_la_SOURCES) $(af6_decore_la_SOURCES) $(import_ac3_la_SOURCES) $(import_avi_la_SOURCES) $(import_divx_la_SOURCES) $(import_dv_la_SOURCES) $(import_dvd_la_SOURCES) $(import_ffmpeg_la_SOURCES) $(import_fraps_la_SOURCES) $(import_im_la_SOURCES) $(import_imlist_la_SOURCES) $(import_lav_la_SOURCES) $(import_lzo_la_SOURCES) $(import_mov_la_SOURCES) $(import_mp3_la_SOURCES) $(import_mpeg2_la_SOURCES) $(import_mpeg3_la_SOURCES) $(import_mplayer_la_SOURCES) $(import_null_la_SOURCES) $(import_nvrec_la_SOURCES) $(import_ogg_la_SOURCES) $(import_raw_la_SOURCES) $(import_rawlist_la_SOURCES) $(import_sh_la_SOURCES) $(import_vdrac3_la_SOURCES) $(import_vnc_la_SOURCES) $(import_vob_la_SOURCES) $(import_xml_la_SOURCES) $(import_xvid_la_SOURCES) $(import_yuv4mpeg_la_SOURCES) $(tccat_SOURCES) $(tcdecode_SOURCES) $(tcdemux_SOURCES) $(tcextract_SOURCES) $(tcprobe_SOURCES) $(tcrequant_SOURCES) $(tcscan_SOURCES) $(tcxmlcheck_SOURCES) $(tcxpm2rgb_SOURCES)
 
 all: all-recursive
 
@@ -892,6 +899,8 @@ import_raw.la: $(import_raw_la_OBJECTS) $(import_raw_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkgdir) $(import_raw_la_LDFLAGS) $(import_raw_la_OBJECTS) $(import_raw_la_LIBADD) $(LIBS)
 import_rawlist.la: $(import_rawlist_la_OBJECTS) $(import_rawlist_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(import_rawlist_la_LDFLAGS) $(import_rawlist_la_OBJECTS) $(import_rawlist_la_LIBADD) $(LIBS)
+import_sh.la: $(import_sh_la_OBJECTS) $(import_sh_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(import_sh_la_LDFLAGS) $(import_sh_la_OBJECTS) $(import_sh_la_LIBADD) $(LIBS)
 import_vdrac3.la: $(import_vdrac3_la_OBJECTS) $(import_vdrac3_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(import_vdrac3_la_LDFLAGS) $(import_vdrac3_la_OBJECTS) $(import_vdrac3_la_LIBADD) $(LIBS)
 import_vnc.la: $(import_vnc_la_OBJECTS) $(import_vnc_la_DEPENDENCIES) 
@@ -1024,6 +1033,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/import_ogg.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/import_raw.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/import_rawlist.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/import_sh.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/import_vdrac3.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/import_vnc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/import_vob.Plo@am__quote@
