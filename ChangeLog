@@ -1,5 +1,10 @@
 transcode-0.13-pre2 EMS
 
+2004-08-25 Stefan Scheffler <stefanscheffler at gmx dot net>
+  * export/Makefile.am import/import_mov.c:
+  - swap u/v planes in import_mov
+  - workaround another name clash. This time between opendivx and libvo. *sigh*
+
 2004-08-25 Erik Slagter <erik at oldconomy dot com>
   * import/mplayer.c:
   Fixed U/V swapped colours when using YUV.

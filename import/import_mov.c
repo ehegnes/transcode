@@ -300,9 +300,9 @@ MOD_decode
               /* setup row pointers for YUV420P: inverse! */
               row_ptr[0] = mem;
               mem = mem + (h*w);
-              row_ptr[1] = mem;
-              mem = mem + (h*w)/4;
               row_ptr[2] = mem;
+              mem = mem + (h*w)/4;
+              row_ptr[1] = mem;
 		            
               param->size = (h*w*3)/2;
               break;

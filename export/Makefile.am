@@ -232,7 +232,7 @@ export_ppm_la_SOURCES = export_ppm.c aud_aux.c
 export_ppm_la_LDFLAGS =  -module -avoid-version
 export_ppm_la_LIBADD = @LAME_LIBS@ @AC3_LIBS@ @FFMPEG_LIBS_LIBS@ @LIBVO_LIBS@
 
-export_mov_la_SOURCES = export_mov.c vid_aux.c
+export_mov_la_SOURCES = export_mov.c
 export_mov_la_LDFLAGS =  -module -avoid-version
 export_mov_la_LIBADD = @QT_LIBS@ -lm
 

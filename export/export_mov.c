@@ -29,7 +29,6 @@
 #include <stdlib.h>
 #include "import/magic.h"
 #include "transcode.h"
-#include "vid_aux.h"
 
 #define MOD_NAME    "export_mov.so"
 #define MOD_VERSION "v0.1.2 (2004-01-19)"
@@ -145,6 +144,22 @@ static int list(char *list_type)
     }
 
 return 1;
+}
+
+/* stolen from vid_aux.c */
+/* due to a name clash between libvo and lqt, vid_aux can't be used */
+void qt_uyvytoyuy2(char *input, char *output, int width, int height)
+{
+  int i;
+  
+  for (i=0; i<width*height*2; i+=4) {
+      /* packed YUV 4:2:2 is Y[i] U[i] Y[i+1] V[i] (YUY2)*/
+      /* packed YUV 4:2:2 is U[i] Y[i] V[i] Y[i+1] (UYVY)*/
+      output[i] = input[i+1];
+      output[i+1] = input[i];
+      output[i+2] = input[i+3];
+      output[i+3] = input[i+2];
+  }
 }
 
 /* ------------------------------------------------------------ 
@@ -426,7 +441,6 @@ MOD_init
         quicktime_set_parameter(qtfile, "bit_rate_tolerance", &div3_bitrate_tolerance);
 
         min_bitrate = vob->divxbitrate - div3_bitrate_tolerance;
-        quicktime_set_parameter(qtfile, "rc_min_rate", &min_bitrate);
         quicktime_set_parameter(qtfile, "rc_max_rate", &vob->video_max_bitrate);        
         quicktime_set_parameter(qtfile, "qmax", &vob->max_quantizer);
         quicktime_set_parameter(qtfile, "qmin", &vob->min_quantizer);
@@ -638,7 +652,7 @@ MOD_encode
                 sl = w*2;                        
                 if (qt_cm != CODEC_YUY2){
                     /* convert uyvy to yuy2 */   /* find out if lqt supports uyvy byteorder */ 
-                    uyvytoyuy2(ptr, tmp_buf, w, h);
+                    qt_uyvytoyuy2(ptr, tmp_buf, w, h);
                     ptr = tmp_buf;
                 }
                 for(iy=0;iy<h;iy++){
