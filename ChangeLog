@@ -5,22 +5,33 @@ transcode-0.6.11
   Bugfix audio core; fix AC3 pass-thru.
   Bugfix audio core; undefined symbol in lame lib.
   Bugfix for --accel on PPC (not supported)
-  Bugfix for -J hqdn3d; fix typo and default value printout.
   Bugfix for -J extsub; fix vertical shifting up.
+  Bugfix for -J hqdn3d; fix typo and default value printout.
+  Bugfix for -J logo; flipping with animated images
+  Bugfix for -J subtitler; shift was broken.
+  Bugfix for -J text; enable the filter core
+  Bugfix for -x ffmpeg; deals with NULL frames
   Bugfix for -x im; handle 16bit image files.
   Bugfix for -x xml; fix DV import.
   Bugfix for -y dvraw; Pass-thru video but not audio did not work.
   Bugfix for -y ffmpeg; make it thread-safe.
   Bugfix for -y ffmpeg; vhq is gone, use mdb=0-9.
   Bugfix for -y pcm; fixed floating point division.
+  Bugfix for MacOSX; lots of stack thrashing fixes
   Bugfix for avitools; fix audio syncing (again!)
   Bugfix for avitools; pass-thru 0byte frames
+  Bugfix for dvd_reader, keeps tcprobe from crashing
+  Bugfix for export audio; -E is now used consistently
   Bugfix for tcprobe; segfault reading chapter table.
+  Bugfix for tcprobe; segfault when reading data from stdin
   CHANGE: ffmpeg is now used to decode MPEG4 video.
+  CHANGE: how the PTS is probed from a vob
   CHANGE: with pass-thru, suggest -y raw,raw.
   Docu; Description of UYVY colorspace.
   Docu; tcprobe(1) uptodate
   Docu; transcode(1) uptodate with additions to various options.
+  Improved -J smartyuv; altivec support and fixes
+  Improved -J subtitler; upgrade to latest upstream version
   Improved -x im; probing and reading SGI image files.
   Improved -x/-y pvm; support for more codecs.
   Improved -y ffmpeg; enable altivec support on Macs.
@@ -31,17 +42,23 @@ transcode-0.6.11
   Improved binary filesize; libavcodec only linked once.
   Improved configure; Fix X11 detection.
   Improved configure; debug option --enable-maintainer-mode.
+  Improved export module documentation
+  Improved option -Z; much smarter now (see manpage)
   Improved split mode; the base can be taken from output file.
   Improved tcscan -x mpeg2; print bitrate information.
   Improved transcode help; Looks more nice.
+  New Pass-thru mode for MPEG2 files (with opt. requantize).
+  New filter -J detectclipping; find black areas
   New filter -J whitebalance; corrects broken white balance.
   New internal colorspace UYVY for higher quality
-  New util tcrequant; requantize an MPEG2-ES stream.
-  New Pass-thru mode for MPEG2 files (with opt. requantize).
   New option --dvd_access_delay; increase if you have problems.
+  New option --ext to set the filename extension(s)
+  New option --uyvy; support for a native 4:2:2 format
+  New util tcrequant; requantize an MPEG2-ES stream.
   Removed -y sampeg; never did anything useful.
-  Upgraded included libavcodec to 0.4.8 (4683)
   Upgraded -y xvid4 to the latest API
+  Upgraded included libavcodec to 0.4.8 (4683)
+  
 
 2003-11-02 Tilmann Bitterberg <transcode at tibit.org>
 
