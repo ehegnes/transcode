@@ -71,6 +71,7 @@ void usage(int status)
   fprintf(stderr,"\t -s n           skip first n bytes of stream [0]\n");
   fprintf(stderr,"\t -T title       probe for DVD title [off]\n");
   fprintf(stderr,"\t -b bitrate     audio encoder bitrate kBits/s [%d]\n", ABITRATE);
+  fprintf(stderr,"\t -f seekfile    seek/index file [off]\n");
   fprintf(stderr,"\t -d verbosity   verbosity mode [1]\n");
   fprintf(stderr,"\t -v             print version\n");
 
@@ -99,6 +100,7 @@ int main(int argc, char *argv[])
 
     int dvd_title=1;
     char *name=NULL;
+    char *nav_seek_file=NULL;
 
     char *c_ptr=NULL, *c_new="(*)", *c_old="";
 
@@ -109,7 +111,7 @@ int main(int argc, char *argv[])
     //proper initialization
     memset(&ipipe, 0, sizeof(info_t));
 
-    while ((ch = getopt(argc, argv, "i:vBd:T:b:s:H:?h")) != -1) {
+    while ((ch = getopt(argc, argv, "i:vBd:T:f:b:s:H:?h")) != -1) {
       
 	switch (ch) {
 
@@ -129,6 +131,13 @@ int main(int argc, char *argv[])
 	  
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  name = optarg;
+	  
+	  break;
+	  
+	case 'f': 
+	  
+	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+	  nav_seek_file = optarg;
 	  
 	  break;
 	  
@@ -292,6 +301,7 @@ int main(int argc, char *argv[])
     ipipe.name = name;
     ipipe.dvd_title = dvd_title;
     ipipe.factor = probe_factor;
+    ipipe.nav_seek_file = nav_seek_file;
 
     /* ------------------------------------------------------------ 
      *

@@ -103,12 +103,16 @@ char *get_audio_module(int f, int flag)
   }
 }
 
-int probe_source_core(probe_info_t *pvob, int range, char *file)
+int probe_source_core(probe_info_t *pvob, int range, char *file, char *nav_seek_file)
 {
   
   FILE *fd;
 
-  if((snprintf(probe_cmd_buf, PMAX_BUF, "tcprobe -B -i \"%s\" -T %d -d %d -H %d", file, title, verb, range)<0)) return(-1);
+  if(nav_seek_file) {
+    if((snprintf(probe_cmd_buf, PMAX_BUF, "tcprobe -B -i \"%s\" -T %d -d %d -H %d -f \"%s\"", file, title, verb, range, nav_seek_file)<0)) return(-1);
+  } else {
+    if((snprintf(probe_cmd_buf, PMAX_BUF, "tcprobe -B -i \"%s\" -T %d -d %d -H %d", file, title, verb, range)<0)) return(-1);
+  }
 
   
   // popen
@@ -163,7 +167,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
 
   if(vid_file!=NULL) {
 
-    if(probe_source_core(pvob, range, vid_file)<0) {
+    if(probe_source_core(pvob, range, vid_file, vob->nav_seek_file)<0) {
       *flag = TC_PROBE_ERROR;
 
       if(verbose & TC_DEBUG) printf("(%s) failed to probe video source\n", __FILE__);	
@@ -176,7 +180,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
 
   if(aud_file != NULL) {
     //probe audio file
-    if(probe_source_core(paob, range, aud_file)<0) {
+    if(probe_source_core(paob, range, aud_file, vob->nav_seek_file)<0) {
       *flag = TC_PROBE_ERROR;
       if(verbose & TC_DEBUG) printf("(%s) failed to probe audio source\n", __FILE__);	
 
