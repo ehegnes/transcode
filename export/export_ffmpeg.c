@@ -176,6 +176,40 @@ static int					interlacing_top_first = 0;
 // We can't declare lavc_param_psnr static so save it to this variable
 static int                  do_psnr = 0;
 
+/* convert 420p to 422p */
+static void yv12to422p(char *dest, char *input, int width, int height) {
+	int row, col;
+	char *u, *_u, *v, *_v;
+
+	/* copy Y' */
+	tc_memcpy(dest, input, width * height);
+
+	/* copy the data we've got */
+
+	v = dest + width * height;
+	u = dest + width * height * 3/2;
+
+	_v = input + width * height;
+	_u = input + width * height * 5 / 4;
+
+	for (row = 0; row < height / 2; row++ ) {
+		for (col = 0; col < width / 2; col++ ) {
+			*v = *_v;
+			*u = *_u;
+			
+			/* duplicate each U & V line */
+			/* FIXME: causes flicker sometimes */
+			*(v + width / 2) = *_v++;
+			*(u + width / 2) = *_u++;
+			
+			u++;
+			v++;
+		}
+		v += width / 2;
+		u += width / 2 ;
+	}
+}
+
 // make a planar version
 static void uyvyto422p(char *dest, char *input, int width, int height) 
 {
@@ -432,24 +466,21 @@ MOD_init {
       fprintf(stderr, "[%s] Could not allocate enough memory.\n", MOD_NAME);
       return TC_EXPORT_ERROR;
     }
-    
-    if (vob->im_v_codec == CODEC_YUV)
-      pix_fmt = PIX_FMT_YUV420P;
-    else if (vob->im_v_codec == CODEC_RGB) {
-      pix_fmt = PIX_FMT_RGB24;
-    } else if (vob->im_v_codec == CODEC_YUV422) {
-      pix_fmt = PIX_FMT_YUV422;
-      yuv42xP_buffer = malloc(size);
-      if (!yuv42xP_buffer) {
-        fprintf(stderr, "[%s] yuv42xP_buffer allocation failed.\n", MOD_NAME);
-        return TC_EXPORT_ERROR;
-      }
-    } else {
-      fprintf(stderr, "[%s] Unknown color space %d.\n", MOD_NAME,
-              vob->im_v_codec);
-      return TC_EXPORT_ERROR;
-    }
 
+	pix_fmt = vob->im_v_codec;
+	
+	if (! (pix_fmt == CODEC_RGB || pix_fmt == CODEC_YUV || pix_fmt == CODEC_YUV422)) {
+		fprintf(stderr, "[%s] Unknown color space %d.\n", MOD_NAME,
+				pix_fmt);
+        return TC_EXPORT_ERROR;
+	}
+	if (pix_fmt == CODEC_YUV422 || is_huffyuv) {
+		yuv42xP_buffer = malloc(size);
+	      if (!yuv42xP_buffer) {
+    	    fprintf(stderr, "[%s] yuv42xP_buffer allocation failed.\n", MOD_NAME);
+        	return TC_EXPORT_ERROR;
+	      }
+	}
     lavc_venc_context->width              = vob->ex_v_width;
     lavc_venc_context->height             = vob->ex_v_height;
     lavc_venc_context->qmin               = vob->min_quantizer;
@@ -1163,8 +1194,8 @@ MOD_init {
       fprintf(stderr, "[%s]             frame rate: %.2f\n", MOD_NAME,
               vob->ex_fps);
       fprintf(stderr, "[%s]            color space: %s\n", MOD_NAME,
-              (vob->im_v_codec==CODEC_RGB) ? "RGB24":
-             ((vob->im_v_codec==CODEC_YUV) ? "YV12" : "YUV422"));
+              (pix_fmt == CODEC_RGB) ? "RGB24":
+             ((pix_fmt == CODEC_YUV) ? "YV12" : "YUV422"));
       fprintf(stderr, "[%s]             quantizers: %d/%d\n", MOD_NAME,
               lavc_venc_context->qmin, lavc_venc_context->qmax);
     }
@@ -1440,54 +1471,59 @@ MOD_encode
 	lavc_venc_frame->interlaced_frame = interlacing_active;
 	lavc_venc_frame->top_field_first = interlacing_top_first;
 
-    if (pix_fmt == PIX_FMT_YUV420P) {
-      lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
-      lavc_venc_frame->linesize[0] = lavc_venc_context->width;     
-      lavc_venc_frame->linesize[1] = lavc_venc_context->width / 2;
-      lavc_venc_frame->linesize[2] = lavc_venc_context->width / 2;
+	switch (pix_fmt) {
+		case CODEC_YUV:
+			lavc_venc_frame->linesize[0] = lavc_venc_context->width;     
+			lavc_venc_frame->linesize[1] = lavc_venc_context->width / 2;
+			lavc_venc_frame->linesize[2] = lavc_venc_context->width / 2;
+			lavc_venc_frame->data[0]     = param->buffer;
+		
+			if (is_huffyuv) {
+				lavc_venc_context->pix_fmt     = PIX_FMT_YUV422P;
+				yv12to422p(yuv42xP_buffer, param->buffer,
+						lavc_venc_context->width, lavc_venc_context->height);
+				avpicture_fill((AVPicture *)lavc_venc_frame, yuv42xP_buffer,
+						PIX_FMT_YUV422P, lavc_venc_context->width, lavc_venc_context->height);
+			}
+			else {
+				lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
+				lavc_venc_frame->data[2]     = param->buffer +
+					lavc_venc_context->width * lavc_venc_context->height;
+				lavc_venc_frame->data[1]     = param->buffer +
+					(lavc_venc_context->width * lavc_venc_context->height*5)/4;
+			}
+			break;
+		case CODEC_YUV422:
+			if (is_huffyuv) {
+				lavc_venc_context->pix_fmt     = PIX_FMT_YUV422P;
+				uyvyto422p(yuv42xP_buffer, param->buffer,
+						lavc_venc_context->width, lavc_venc_context->height);
+				avpicture_fill((AVPicture *)lavc_venc_frame, yuv42xP_buffer,
+						PIX_FMT_YUV422P, lavc_venc_context->width, lavc_venc_context->height);
+			} else {
+				lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
+				uyvytoyv12(yuv42xP_buffer, param->buffer,
+						lavc_venc_context->width, lavc_venc_context->height);
 
-      lavc_venc_frame->data[0]     = param->buffer;
-      lavc_venc_frame->data[2]     = param->buffer +
-        lavc_venc_context->width * lavc_venc_context->height;
-      lavc_venc_frame->data[1]     = param->buffer +
-        (lavc_venc_context->width * lavc_venc_context->height*5)/4;
-    } else if (pix_fmt == PIX_FMT_YUV422) {
+				avpicture_fill((AVPicture *)lavc_venc_frame, yuv42xP_buffer,
+						PIX_FMT_YUV420P, lavc_venc_context->width, lavc_venc_context->height);
+			}
+			break;
+		case CODEC_RGB:
+			avpicture_fill((AVPicture *)lavc_convert_frame, param->buffer,
+					PIX_FMT_RGB24, lavc_venc_context->width, lavc_venc_context->height);
 
-      if (is_huffyuv) {
-	lavc_venc_context->pix_fmt     = PIX_FMT_YUV422P;
-	uyvyto422p(yuv42xP_buffer, param->buffer, lavc_venc_context->width, lavc_venc_context->height);
+			avpicture_fill((AVPicture *)lavc_venc_frame, tmp_buffer,
+					PIX_FMT_YUV420P, lavc_venc_context->width, lavc_venc_context->height);
 
-	avpicture_fill((AVPicture *)lavc_venc_frame, yuv42xP_buffer,
-	    PIX_FMT_YUV422P, lavc_venc_context->width, lavc_venc_context->height);
-
-      } else {
-
-	lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
-	uyvytoyv12(yuv42xP_buffer, param->buffer, lavc_venc_context->width, lavc_venc_context->height);
-
-	avpicture_fill((AVPicture *)lavc_venc_frame, yuv42xP_buffer,
-	    PIX_FMT_YUV420P, lavc_venc_context->width, lavc_venc_context->height);
-      }
-
-
-
-    } else if (pix_fmt == PIX_FMT_RGB24) {
-
-      avpicture_fill((AVPicture *)lavc_convert_frame, param->buffer,
-	  PIX_FMT_RGB24, lavc_venc_context->width, lavc_venc_context->height);
-
-      avpicture_fill((AVPicture *)lavc_venc_frame, tmp_buffer,
-	  PIX_FMT_YUV420P, lavc_venc_context->width, lavc_venc_context->height);
-
-      lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
-      img_convert((AVPicture *)lavc_venc_frame, PIX_FMT_YUV420P,
-	          (AVPicture *)lavc_convert_frame, PIX_FMT_RGB24, 
-		  lavc_venc_context->width, lavc_venc_context->height);
-
-    } else {
-      fprintf(stderr, "[%s] Unknown pixel format %d.\n", MOD_NAME,
-              lavc_venc_context->pix_fmt);
-      return TC_EXPORT_ERROR;
+			lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
+			img_convert((AVPicture *)lavc_venc_frame, PIX_FMT_YUV420P,
+					(AVPicture *)lavc_convert_frame, PIX_FMT_RGB24, 
+					lavc_venc_context->width, lavc_venc_context->height);
+			break;
+		default:
+      		fprintf(stderr, "[%s] Unknown pixel format %d.\n", MOD_NAME, pix_fmt);
+      		return TC_EXPORT_ERROR;
     }
 
 
