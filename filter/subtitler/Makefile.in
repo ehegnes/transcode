@@ -337,9 +337,7 @@ text_processing.c \
 load_pictures.c \
 parser.c \
 external_programs.c \
-color_processor.c \
-subtitle_fontname_list.c \
-subfont.c
+color_processor.c
 
 
 filter_subtitler_la_LDFLAGS = -module -avoid-version 
@@ -372,8 +370,7 @@ filter_subtitler_la_DEPENDENCIES =
 am_filter_subtitler_la_OBJECTS = filter_subtitler.lo load_ppml_file.lo \
 	load_font.lo frame_list.lo object_list.lo x11.lo \
 	text_processing.lo load_pictures.lo parser.lo \
-	external_programs.lo color_processor.lo \
-	subtitle_fontname_list.lo subfont.lo
+	external_programs.lo color_processor.lo
 filter_subtitler_la_OBJECTS = $(am_filter_subtitler_la_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
@@ -385,8 +382,6 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/load_pictures.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/load_ppml_file.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/object_list.Plo ./$(DEPDIR)/parser.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/subfont.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/subtitle_fontname_list.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/text_processing.Plo ./$(DEPDIR)/x11.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -454,8 +449,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/load_ppml_file.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/object_list.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parser.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/subfont.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/subtitle_fontname_list.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/text_processing.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/x11.Plo@am__quote@
 

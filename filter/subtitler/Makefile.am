@@ -22,9 +22,7 @@ text_processing.c \
 load_pictures.c \
 parser.c \
 external_programs.c \
-color_processor.c \
-subtitle_fontname_list.c \
-subfont.c
+color_processor.c
  
 
 filter_subtitler_la_LDFLAGS =  -module -avoid-version 
