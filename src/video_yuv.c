@@ -1537,6 +1537,9 @@ void yuv_deinterlace_linear_blend(char *image, char *tmp, int width, int height)
   
   //process only Y component
   yuv_deinterlace_linear_blend_core(image, tmp, width, height);
+  // cr/cb
+  yuv_deinterlace_linear_blend_core(image+width*height, tmp, width/2, height/2);
+  yuv_deinterlace_linear_blend_core(image+width*height*5/4, tmp, width/2, height/2);
 
   clear_mmx();
 }
