@@ -9,6 +9,9 @@ transcode-0.6.4.HEAD
 
 - update import_ffmpeg and export_ffmpeg to use new ffmpeg
 
+- When encoding with -F mpeg1video, set the gop_size to 12 and not
+  to the default keyframes (which is 250) pointed out by Nicolas Boos
+
 - Fix (longstanding) bug where transcode failed to probe some mpeg
   streams in connection with -q2
 

@@ -32,7 +32,7 @@
 #include "../ffmpeg/libavcodec/avcodec.h"
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.2.4 (2003-03-12)"
+#define MOD_VERSION "v0.2.5 (2003-03-14)"
 #define MOD_CODEC   "(video) FFMPEG API (build " LIBAVCODEC_BUILD_STR \
                     ") | (audio) MPEG/AC3/PCM"
 #define MOD_PRE ffmpeg
@@ -197,6 +197,14 @@ MOD_init {
       lavc_venc_context->gop_size = vob->divxkeyframes;
     else
       lavc_venc_context->gop_size = 250; /* default */
+
+    if (!strcmp (vob->ex_v_fcc, "mpeg1video") && vob->divxkeyframes == 250) {
+	// set a sensible gop_size
+	lavc_venc_context->gop_size = 12;
+	fprintf(stderr, "[%s] setting gop_size to 12 for mpeg1video\n", MOD_NAME);
+    }
+
+	
     
     ffmpeg_read_config(codec->name, MOD_NAME, lavcopts_conf);
     if (verbose_flag & TC_DEBUG) {
