@@ -13,7 +13,6 @@ docs_DATA =  \
 	export_fame.php \
 	export_ogg.php \
 	export_opendivx.php \
-	export_raw.html \
 	export_xvid.php \
 	filter.html \
 	import_ac3.html \
