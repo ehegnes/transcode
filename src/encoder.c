@@ -605,9 +605,10 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	export_para.attributes = aptr->attributes;
 	export_para.flag   = TC_AUDIO;
 	
-	pthread_mutex_lock(&delay_video_frames_lock);
 	if (video_frames_delay>0) {
+	    pthread_mutex_lock(&delay_video_frames_lock);
 	    --video_frames_delay;
+	    pthread_mutex_unlock(&delay_video_frames_lock);
 	    aptr->attributes |= TC_FRAME_IS_CLONED; 
 	    fprintf(stderr, "[%s] Delaying audio (%d)\n", __FILE__, vob->video_frames_delay);
 	} else {
@@ -620,7 +621,6 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
 	    aptr->attributes = export_para.attributes;
 	
 	}
-	pthread_mutex_unlock(&delay_video_frames_lock);
 
 	pthread_mutex_lock(&abuffer_ex_fill_lock);
 	--abuffer_ex_fill_ctr;
