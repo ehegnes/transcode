@@ -35,7 +35,7 @@
 #define MOD_NAME    "filter_smartdeinter.so"
 #define MOD_VERSION "v2.7b (2003-02-01)"
 #define MOD_CAP     "VirtualDub's smart deinterlacer"
-#define MOD_AUTHOR  "Donald Graft"
+#define MOD_AUTHOR  "Donald Graft, Tilmann Bitterberg"
 
 #include <stdio.h>
 #include <string.h>
@@ -48,10 +48,6 @@
  * mandatory include files
  *
  *-------------------------------------------------*/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "transcode.h"
 #include "framebuffer.h"
