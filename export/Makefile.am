@@ -89,8 +89,7 @@ pkg_LTLIBRARIES = export_null.la \
 		  export_wav.la \
 		  export_pcm.la \
 		  $(MODS1) $(MODS2) $(MODS3) $(MODS4) $(MODS5) $(MODS6) $(MODS7) $(MODS8) $(MOD9) $(MODS10) export_ogg.la \
-		  export_toolame.la \
-		  export_sampeg.la $(MODS11) $(MODS12) $(MODS13) $(MODS14) $(MODS15)
+		  export_toolame.la $(MODS11) $(MODS12) $(MODS13) $(MODS14) $(MODS15)
 
 export_null_la_SOURCES = export_null.c
 export_null_la_LDFLAGS =  -module -avoid-version 
@@ -213,10 +212,6 @@ export_mjpeg_la_LIBADD = @LIBJPEG_LIBS@ @LAME_LIBS@ -L../ffmpeg/libavcodec -ltca
 export_mpeg2enc_la_SOURCES = export_mpeg2enc.c vid_aux.c
 export_mpeg2enc_la_LDFLAGS =  -module -avoid-version 
 export_mpeg2enc_la_LIBADD = @MJPEG_LIBS@ -L../libvo -lvout -lm
-
-export_sampeg_la_SOURCES = export_sampeg.c vid_aux.c
-export_sampeg_la_LDFLAGS =  -module -avoid-version 
-export_sampeg_la_LIBADD = -L../libvo -lvout -L../avilib -lavi -lm
 
 export_im_la_SOURCES = export_im.c vid_aux.c
 export_im_la_LDFLAGS =  -module -avoid-version 
