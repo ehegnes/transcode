@@ -67,7 +67,7 @@ int read_stats(fame_frame_statistics_t *stats)
 	 &stats->target_bits,
 	 &stats->actual_bits,
 	 &stats->spatial_activity,
-	 &stats->quant_scale);
+	 (int*)&stats->quant_scale);
 
   return 0;
 }
@@ -82,7 +82,7 @@ void print_stats(fame_frame_statistics_t *stats)
 	 stats->target_bits,
 	 stats->actual_bits,
 	 stats->spatial_activity,
-	 stats->quant_scale);
+	 (int)stats->quant_scale);
 }
 
 
