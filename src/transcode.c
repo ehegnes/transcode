@@ -717,6 +717,7 @@ int main(int argc, char *argv[]) {
       {"increase_volume", required_argument, NULL, 's'},
       {"use_ac3", no_argument, NULL, 'A'},
       {"use_yuv", no_argument, NULL, 'V'},
+      {"use_rgb", no_argument, NULL, '1'},
       {"external_filter", required_argument, NULL, 'J'},
       {"pass-through", required_argument, NULL, 'P'},
       {"av_sync_offset", required_argument, NULL, 'D'},
@@ -936,9 +937,10 @@ int main(int argc, char *argv[]) {
     vob->deinterlace      = 0;
     vob->decolor          = 0;
     vob->im_a_codec       = CODEC_PCM; //PCM audio frames requested
-    vob->im_v_codec       = CODEC_RGB; //RGB video frames requested
+    // vob->im_v_codec       = CODEC_RGB; //RGB video frames requested
+    vob->im_v_codec       = CODEC_YUV;
     vob->core_a_format    = CODEC_PCM; //PCM 
-    vob->core_v_format    = CODEC_RGB; //RGB 
+    vob->core_v_format    = CODEC_RGB; //RGB  // never used, EMS
     vob->mod_path         = MOD_PATH;
     vob->audiologfile     = NULL;
     vob->divxlogfile      = NULL;
@@ -1057,7 +1059,7 @@ int main(int argc, char *argv[]) {
      *
      * ------------------------------------------------------------*/
 
-    while ((ch1 = getopt_long_only(argc, argv, "n:m:y:h?u:i:o:a:t:p:f:zdkr:j:w:b:c:x:s:e:g:q:vlD:AVB:Z:C:I:KP:T:U:L:Q:R:J:F:E:S:M:Y:G:OX:H:N:W:", long_options, &option_index)) != -1) {
+    while ((ch1 = getopt_long_only(argc, argv, "n:m:y:h?u:i:o:a:t:p:f:zdkr:j:w:b:c:x:s:e:g:q:vlD:AV1B:Z:C:I:KP:T:U:L:Q:R:J:F:E:S:M:Y:G:OX:H:N:W:", long_options, &option_index)) != -1) {
 
 	switch (ch1) {
 	  
@@ -1183,7 +1185,17 @@ int main(int argc, char *argv[]) {
 	  break;
 	  
 	case 'V': 
-	  vob->im_v_codec=CODEC_YUV;
+	  fprintf(stderr, "*** WARNING: The option -V is depricated. ***\n"
+	      "*** Transcode internal frame handling is now in YV12 / YUV420 ***\n"
+	      "*** format by default because most codecs can only handle this format, ***\n"
+	      "*** otherwise leading to unnecessary time and quality wasting conversions. ***\n"
+	      "*** If you want to have to \"old\" behaviour (RGB24 as internal format), ***\n"
+	      "*** then please use the new -1/--use_rgb option ***\n");
+	  // vob->im_v_codec=CODEC_YUV;
+	  break;
+
+	case '1': 
+	  vob->im_v_codec = CODEC_RGB;
 	  break;
 	  
 	case 'l': 
@@ -2813,8 +2825,8 @@ int main(int argc, char *argv[]) {
       int impal = 0;
       int pre_clip;
 
-      if(vob->im_v_codec == CODEC_RGB)
-	vob->im_v_codec = CODEC_YUV; // mpeg is always YUV // will this always do?
+      //if(vob->im_v_codec == CODEC_RGB)
+	// vob->im_v_codec = CODEC_YUV; // mpeg is always YUV // will this always do?
 
       // Make an educated guess if this is pal or ntsc
       if (vob->im_v_height == 288 || vob->im_v_height == 576) impal = 1;
