@@ -176,12 +176,12 @@ static aframe_list_t *aud_buf_retrieve()
     // check, if this structure is really free to reuse
 
     if(ptr->status != FRAME_NULL) {
-      if(verbose & TC_FLIST) fprintf(stderr, "(%s) buffer=%d not empty\n", __FILE__, ptr->status);
+      if(verbose & TC_FLIST) fprintf(stderr, "(%s) A buffer=%d not empty\n", __FILE__, ptr->status);
       return(NULL);
     }
     
     // ok
-    if(verbose & TC_FLIST) printf("alloc  =%d [%d]\n", aud_buf_next, ptr->bufid);
+    if(verbose & TC_FLIST) printf("A alloc  =%d [%d]\n", aud_buf_next, ptr->bufid);
 
     ++aud_buf_next;
     aud_buf_next %= aud_buf_max;
@@ -212,11 +212,11 @@ static int aud_buf_release(aframe_list_t *ptr)
   if(ptr == NULL) return(-1);
   
   if(ptr->status != FRAME_EMPTY) {
-    fprintf(stderr, "(%s) internal error (%d)\n", __FILE__, ptr->status);
+    fprintf(stderr, "A (%s) internal error (%d)\n", __FILE__, ptr->status);
     return(-1);
   } else {
     
-    if(verbose & TC_FLIST) printf("release=%d [%d]\n", aud_buf_next, ptr->bufid);
+    if(verbose & TC_FLIST) printf("A release=%d [%d]\n", aud_buf_next, ptr->bufid);
     ptr->status = FRAME_NULL;
   }
   
@@ -265,7 +265,7 @@ aframe_list_t *aframe_register(int id)
   // retrive a valid pointer from the pool
   
 #ifdef STATBUFFER
-  if(verbose & TC_FLIST) printf("frameid=%d\n", id);
+  if(verbose & TC_FLIST) printf("A frameid=%d\n", id);
   if((ptr = aud_buf_retrieve()) == NULL) {
     pthread_mutex_unlock(&aframe_list_lock);
     return(NULL);
