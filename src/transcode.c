@@ -2273,6 +2273,7 @@ int main(int argc, char *argv[]) {
 
       frame_a = vob->ttime->stf;
       frame_b = vob->ttime->etf;
+      vob->ttime->vob_offset = 0;
 
       tstart=vob->ttime;
       counter_set_range(frame_a, frame_b);
@@ -2281,6 +2282,7 @@ int main(int argc, char *argv[]) {
       vob->ttime = new_fc_time();
       frame_a = vob->ttime->stf = TC_FRAME_FIRST;
       frame_b = vob->ttime->etf = TC_FRAME_LAST;
+      vob->ttime->vob_offset = 0;
       tstart = vob->ttime;
       tstart->next = NULL;
     }
