@@ -281,7 +281,7 @@ transcode-0.6.11
   Add new filter capability: 4. Use, when a filter can handle YUV422
   data.
 
-2003-10-10 Stuart Cunningham <stuartc at rd.bbc.co.uk>
+2003-10-10 Stuart Cunningham <stuart_hc at users.sourceforge.net>
 
   * export/export_dvraw.c:
   Make audio export work with an unpatched version of libdv.
@@ -289,7 +289,7 @@ transcode-0.6.11
   and do _NOT_ apply the libdv-0.99 patch from the transcode
   homepage.
 
-2003-10-10 Stuart Cunningham <stuartc at rd.bbc.co.uk>
+2003-10-10 Stuart Cunningham <stuart_hc at users.sourceforge.net>
 
   * export/export_dvraw.c:
   Set the aspect ratio correctly depending on --export_asr.
