@@ -513,6 +513,14 @@ MOD_init {
     lavc_venc_context->p_masking             = lavc_param_p_masking;
     lavc_venc_context->dark_masking          = lavc_param_dark_masking;
 
+    /* XXX: This version of ffmpeg has no sample aspect ratio setting
+    if (vob->ex_par_width>0 && vob->ex_par_height>0) {
+	fprintf(stderr, "[%s] Setting aspect to %d:%d\n", MOD_NAME, vob->ex_par_width, vob->ex_par_height);
+	lavc_venc_context->aspect_ratio= (float)(vob->ex_par_width) / 
+	    (float)(vob->ex_par_height);
+    }
+    */
+
     if (lavc_param_aspect != NULL)
     {
 	int par_width, par_height, e;
@@ -533,8 +541,18 @@ MOD_init {
 	    return TC_EXPORT_ERROR; 
 	}
     }
-    else if (lavc_param_autoaspect)
-	lavc_venc_context->aspect_ratio = (float)vob->ex_v_width/vob->ex_v_height;
+    else if (lavc_param_autoaspect) {
+	switch (vob->ex_asr) {
+	    case 1: lavc_venc_context->aspect_ratio = 1./1.; break;
+	    case 2: lavc_venc_context->aspect_ratio = 4./3.; break;
+	    case 3: lavc_venc_context->aspect_ratio = 16.9/9.; break;
+	    case 4: lavc_venc_context->aspect_ratio = 2.21/1.; break;
+	    case 0:
+	    default:
+		    lavc_venc_context->aspect_ratio = (float)vob->ex_v_width/vob->ex_v_height;
+		    break;
+	}
+    }
 
     lavc_venc_context->me_cmp     = lavc_param_me_cmp;
     lavc_venc_context->me_sub_cmp = lavc_param_me_sub_cmp;
