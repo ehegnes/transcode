@@ -1,6 +1,15 @@
 transcode-0.13-pre2 EMS
 
-2004-08-25 Stefan Scheffler <stefanscheffler at gmx dot net>
+2004-08-26 Erik Slagter <erik at oldconomy dot com>
+  * aclib/tcmemcpy.c:
+  Engaged memcpy_mmx for tc_memcpy now it works.
+
+2004-08-26 Andrew Church <achurch at achurch.org>
+  * aclib/memcpy.s:
+  Fixed mmx memcpy by copying the amdmmx memcpy and get rid of
+  the mmxext instructions.
+
+2004-08-26 Stefan Scheffler <stefanscheffler at gmx dot net>
   * src/probe.c:
   Yuv4mpeg detection is wrong, tc wants to decode y4m streams as "raw"
 

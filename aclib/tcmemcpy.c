@@ -12,8 +12,16 @@ void tc_memcpy_init(int verbose, int mmflags)
 #ifdef ARCH_X86
 	if((accel & MM_MMXEXT) || (accel & MM_SSE))
 	{
-		method = "amdmmx";
+		method = "mmxext";
 		tc_memcpy = ac_memcpy_amdmmx;
+	}
+	else
+	{
+		if(accel & MM_MMX)
+		{
+			method = "mmx";
+			tc_memcpy = ac_memcpy_mmx;
+		}
 	}
 #endif
 

@@ -44,65 +44,105 @@ section .text
 	;;
 
 cglobal  ac_memcpy_mmx
+extern memcpy
+
+%define PENTIUM_LINE_SIZE 32	; PMMX/PII cache line size
+%define PENTIUM_CACHE_SIZE 8192	; PMMX/PII total cache size
+; Leave room because writes may touch the cache too (PII)
+%define PENTIUM_CACHE_BLOCK (PENTIUM_CACHE_SIZE - PENTIUM_LINE_SIZE*2)
 
 align 16
 ac_memcpy_mmx:
 
 	push ebx
-	push ecx
-	push edi
+	push ebp
 	push esi
+	push edi
 
-	mov ebx, [esp+20]	; dest
-	mov eax, [esp+24]	; src	
-	mov ecx, [esp+28]	; bytes 
+	mov edi, [esp+16+4]	; dest
+	mov esi, [esp+16+8]	; src
+	mov ecx, [esp+16+12]	; bytes
 
-.64entry:	
-	mov esi, ecx
-	shr esi, 6		; /64
-	jz .rest
-	
-.64loop:		
-	movq mm0, [eax   ]
-	movq mm1, [eax+ 8]
-	movq mm2, [eax+16]
-	movq mm3, [eax+24]
-	movq mm4, [eax+32]
-	movq mm5, [eax+40]
-	movq mm6, [eax+48]
-	movq mm7, [eax+56]						
-		
-	movq [ebx   ], mm0
-	movq [ebx+ 8], mm1
-	movq [ebx+16], mm2
-	movq [ebx+24], mm3
-	movq [ebx+32], mm4
-	movq [ebx+40], mm5
-	movq [ebx+48], mm6
-	movq [ebx+56], mm7	
+	mov ebp, 64		; constant
 
-	add eax, 64
-	add ebx, 64
-	sub ecx, 64
-	dec esi
-	jg .64loop
+	mov eax, -64
+	and eax, ecx
+	jz near .lastcopy		; Just rep movs if <64 bytes
 
-.rest:
-	mov esi, eax
-	mov edi, ebx
-	std
+	; Align destination pointer to a multiple of 8 bytes
+	mov edx, ecx
+	xor ecx, ecx
+	mov cl, 7
+	and ecx, edi
+	jz .blockloop		; already aligned (edi%8 == 0)
+	neg cl
+	and cl, 7		; ecx = 8 - edi%8
+	sub edx, ecx		; subtract from count
+	rep movsb		; and copy
+
+.blockloop:
+	mov ebx, edx
+	shr ebx, 6
+	jz .lastcopy		; <64 bytes left
+	cmp ebx, PENTIUM_CACHE_BLOCK/64
+	jb .small
+	mov ebx, PENTIUM_CACHE_BLOCK/64
+.small:
+	mov ecx, ebx
+	shl ecx, 6
+	sub edx, ecx
+	add esi, ecx
+.loop1:
+	test eax, [esi-32]	; touch each cache line in reverse order
+	test eax, [esi-64]
+	sub esi, ebp
+	dec ebx
+	jnz .loop1
+	shr ecx, 6
+.loop2:
+	movq mm0, [esi   ]
+	movq mm1, [esi+ 8]
+	movq mm2, [esi+16]
+	movq mm3, [esi+24]
+	movq mm4, [esi+32]
+	movq mm5, [esi+40]
+	movq mm6, [esi+48]
+	movq mm7, [esi+56]
+	movq [edi   ], mm0
+	movq [edi+ 8], mm1
+	movq [edi+16], mm2
+	movq [edi+24], mm3
+	movq [edi+32], mm4
+	movq [edi+40], mm5
+	movq [edi+48], mm6
+	movq [edi+56], mm7
+	add esi, ebp
+	add edi, ebp
+	dec ecx
+	jnz .loop2
+	jmp .blockloop
+
+.lastcopy:
+	mov ecx, edx
+	shr ecx, 2
+	jz .lastcopy2
+	rep movsd
+.lastcopy2:
+	xor ecx, ecx
+	mov cl, 3
+	and ecx, edx
+	jz .end
 	rep movsb
-	
-.exit:		
-	; xor eax, eax		; exit
-	mov eax, [esp+20]	; dest
 
-	pop esi
+.end:
+	; return dest
+	emms
 	pop edi
-	pop ecx
+	pop esi
+	pop ebp
 	pop ebx
-	
-	ret			
+	mov eax, [esp+4]
+	ret
 
 
 	;; 
@@ -236,7 +276,7 @@ ac_memcpy_sse2:
 ;;
 
 ;; Code taken from AMD's Athlon Processor x86 Code Optimization Guide
-;; "Use MMX™Instructions for Block Copies and Block Fills"
+;; "Use MMX Instructions for Block Copies and Block Fills"
 
 %define TINY_BLOCK_COPY 	64
 %define IN_CACHE_COPY 		64 * 1024
