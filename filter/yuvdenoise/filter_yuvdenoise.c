@@ -306,8 +306,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
   if (vob->im_v_codec!=CODEC_YUV)
       return 0;
 
-  if((ptr->tag & TC_PRE_PROCESS  && pre) || 
-	  (ptr->tag & TC_POST_PROCESS && !pre)) {
+  if(((ptr->tag & TC_PRE_PROCESS  && pre) || 
+	  (ptr->tag & TC_POST_PROCESS && !pre)) &&
+	  (!ptr->attributes & TC_FRAME_IS_SKIPPED)) {
       /* readability */
       unsigned int y_size  = denoiser.frame.w*denoiser.frame.h;
       unsigned int y_size4 = denoiser.frame.w*denoiser.frame.h>>2;

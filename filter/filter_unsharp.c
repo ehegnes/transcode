@@ -357,8 +357,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
   }
 
 
-  if((ptr->tag & TC_PRE_PROCESS  && mfd->pre) || 
-	  (ptr->tag & TC_POST_PROCESS && !mfd->pre)) {
+  if(((ptr->tag & TC_PRE_PROCESS  && mfd->pre) || 
+	  (ptr->tag & TC_POST_PROCESS && !mfd->pre)) &&
+	  (!ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
       int off = ptr->v_width * ptr->v_height;
       int h2  = ptr->v_height>>1, w2 = ptr->v_width>>1;

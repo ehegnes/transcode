@@ -127,7 +127,7 @@ int tc_filter(vframe_list_t * ptr, char *options)
     // transcodes internal video/audio frame processing routines
     // or after and determines video/audio context
 
-    if ((ptr->tag & TC_PRE_PROCESS) && (ptr->tag & TC_VIDEO)) {
+    if ((ptr->tag & TC_PRE_S_PROCESS) && (ptr->tag & TC_VIDEO)) {
 
 	memcpy(	lastFrames[frameIn], 
 		ptr->video_buf, 

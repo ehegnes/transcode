@@ -140,7 +140,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
   
-  if((ptr->tag & TC_PRE_PROCESS) && (ptr->tag & TC_VIDEO) && vob->im_v_codec==CODEC_YUV)  {
+  if((ptr->tag & TC_PRE_PROCESS) && (ptr->tag & TC_VIDEO) && vob->im_v_codec==CODEC_YUV &&
+  	(!ptr->attributes & TC_FRAME_IS_SKIPPED))  {
     
     bytes = ptr->v_width * ptr->v_height * 3/2;
     

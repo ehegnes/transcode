@@ -170,7 +170,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
   
-  if(ptr->tag & TC_PRE_PROCESS) pre=1;
+  if(ptr->tag & TC_PRE_S_PROCESS) pre=1;
   
   if(pre==0) return(0);
 

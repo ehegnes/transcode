@@ -338,8 +338,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
   
-  if((ptr->tag & TC_PRE_M_PROCESS  && pre[instance]) || 
-	  (ptr->tag & TC_POST_M_PROCESS && !pre[instance]))
+  if(((ptr->tag & TC_PRE_M_PROCESS  && pre[instance]) || 
+	  (ptr->tag & TC_POST_M_PROCESS && !pre[instance])) &&
+	  (!ptr->attributes & TC_FRAME_IS_SKIPPED))
   {
     unsigned char *pp_page[3];
     int ppStride[3];

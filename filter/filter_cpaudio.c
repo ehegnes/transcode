@@ -152,7 +152,7 @@ int tc_filter(aframe_list_t *ptr, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
  
-  if(ptr->tag & TC_POST_PROCESS && ptr->tag & TC_AUDIO)
+  if(ptr->tag & TC_POST_PROCESS && ptr->tag & TC_AUDIO && (!ptr->attributes & TC_FRAME_IS_SKIPPED))
   {
     int16_t* data = (int16_t *)ptr->audio_buf;
     int len = ptr->audio_size / 2; // 16 bits samples

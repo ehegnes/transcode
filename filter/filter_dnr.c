@@ -629,7 +629,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
   
-  if((ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO))  
+  if((ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO) && (!ptr->attributes & TC_FRAME_IS_SKIPPED))  
   {
     dnr_run(my_fctx, ptr->video_buf);
     
