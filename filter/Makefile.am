@@ -26,7 +26,7 @@ F_TEXT=filter_text.la
 endif
 
 if HAVE_MAGICK
-F_LOGO=filter_logo.la filter_logoaway.la
+F_LOGO=filter_logo.la filter_logoaway.la filter_compare.la
 endif
 
 pkg_LTLIBRARIES = 	filter_null.la\
@@ -154,6 +154,10 @@ filter_smartdeinter_la_LIBADD = -L../libvo -lvout ../export/vid_aux.lo
 filter_normalize_la_SOURCES = filter_normalize.c
 filter_normalize_la_LDFLAGS =  -module -avoid-version 
 filter_normalize_la_LIBADD = -lm
+
+filter_compare_la_SOURCES = filter_compare.c
+filter_compare_la_LDFLAGS =  -module -avoid-version
+filter_compare_la_LIBADD = @MAGICK_LIBS@ -L../libvo -lvout ../export/vid_aux.lo
 
 filter_logo_la_SOURCES = filter_logo.c
 filter_logo_la_LDFLAGS =  -module -avoid-version

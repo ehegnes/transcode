@@ -1,6 +1,13 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-18 Antonio Beamud Montero <antonio.beamud at linkend.com>
+  
+  * filter/filter_compare.c:
+  This filter looks for a pattern in the video stream. When it finds
+  one, it notes that in a log file. See tcmodinfo -i compare for
+  help.
+
 2003-07-18 Max Alekseyev <relf at os2.ru>
 
   * filter/filter_29to23.c:

@@ -323,7 +323,7 @@ pkgdir = @MOD_PATH@
 
 @HAVE_FREETYPE2_TRUE@F_TEXT = filter_text.la
 
-@HAVE_MAGICK_TRUE@F_LOGO = filter_logo.la filter_logoaway.la
+@HAVE_MAGICK_TRUE@F_LOGO = filter_logo.la filter_logoaway.la filter_compare.la
 
 pkg_LTLIBRARIES = filter_null.la\
 			filter_invert.la\
@@ -452,6 +452,10 @@ filter_normalize_la_SOURCES = filter_normalize.c
 filter_normalize_la_LDFLAGS = -module -avoid-version 
 filter_normalize_la_LIBADD = -lm
 
+filter_compare_la_SOURCES = filter_compare.c
+filter_compare_la_LDFLAGS = -module -avoid-version
+filter_compare_la_LIBADD = @MAGICK_LIBS@ -L../libvo -lvout ../export/vid_aux.lo
+
 filter_logo_la_SOURCES = filter_logo.c
 filter_logo_la_LDFLAGS = -module -avoid-version
 filter_logo_la_LIBADD = @MAGICK_LIBS@ -L../libvo -lvout ../export/vid_aux.lo
@@ -511,6 +515,9 @@ filter_astat_la_OBJECTS = $(am_filter_astat_la_OBJECTS)
 filter_clone_la_LIBADD =
 am_filter_clone_la_OBJECTS = filter_clone.lo
 filter_clone_la_OBJECTS = $(am_filter_clone_la_OBJECTS)
+filter_compare_la_DEPENDENCIES = ../export/vid_aux.lo
+am_filter_compare_la_OBJECTS = filter_compare.lo
+filter_compare_la_OBJECTS = $(am_filter_compare_la_OBJECTS)
 filter_cpaudio_la_LIBADD =
 am_filter_cpaudio_la_OBJECTS = filter_cpaudio.lo
 filter_cpaudio_la_OBJECTS = $(am_filter_cpaudio_la_OBJECTS)
@@ -615,6 +622,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/filter_aclip.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_astat.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_clone.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/filter_compare.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_cpaudio.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_cshift.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter_cut.Plo \
@@ -656,22 +664,22 @@ LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 DIST_SOURCES = $(filter_29to23_la_SOURCES) $(filter_32detect_la_SOURCES) \
 	$(filter_32drop_la_SOURCES) $(filter_aclip_la_SOURCES) \
 	$(filter_astat_la_SOURCES) $(filter_clone_la_SOURCES) \
-	$(filter_cpaudio_la_SOURCES) $(filter_cshift_la_SOURCES) \
-	$(filter_cut_la_SOURCES) $(filter_dilyuvmmx_la_SOURCES) \
-	$(filter_dnr_la_SOURCES) $(filter_doublefps_la_SOURCES) \
-	$(filter_fields_la_SOURCES) $(filter_hqdn3d_la_SOURCES) \
-	$(filter_invert_la_SOURCES) $(filter_logo_la_SOURCES) \
-	$(filter_logoaway_la_SOURCES) $(filter_lowpass_la_SOURCES) \
-	$(filter_mask_la_SOURCES) $(filter_nored_la_SOURCES) \
-	$(filter_normalize_la_SOURCES) $(filter_null_la_SOURCES) \
-	$(filter_pp_la_SOURCES) $(filter_skip_la_SOURCES) \
-	$(filter_slowmo_la_SOURCES) $(filter_smartbob_la_SOURCES) \
-	$(filter_smartdeinter_la_SOURCES) $(filter_smartyuv_la_SOURCES) \
-	$(filter_smooth_la_SOURCES) $(filter_tc_audio_la_SOURCES) \
-	$(filter_tc_video_la_SOURCES) $(filter_testframe_la_SOURCES) \
-	$(filter_text_la_SOURCES) $(filter_unsharp_la_SOURCES) \
-	$(filter_videocore_la_SOURCES) $(filter_xsharpen_la_SOURCES) \
-	$(filter_yuy2toyv12_la_SOURCES)
+	$(filter_compare_la_SOURCES) $(filter_cpaudio_la_SOURCES) \
+	$(filter_cshift_la_SOURCES) $(filter_cut_la_SOURCES) \
+	$(filter_dilyuvmmx_la_SOURCES) $(filter_dnr_la_SOURCES) \
+	$(filter_doublefps_la_SOURCES) $(filter_fields_la_SOURCES) \
+	$(filter_hqdn3d_la_SOURCES) $(filter_invert_la_SOURCES) \
+	$(filter_logo_la_SOURCES) $(filter_logoaway_la_SOURCES) \
+	$(filter_lowpass_la_SOURCES) $(filter_mask_la_SOURCES) \
+	$(filter_nored_la_SOURCES) $(filter_normalize_la_SOURCES) \
+	$(filter_null_la_SOURCES) $(filter_pp_la_SOURCES) \
+	$(filter_skip_la_SOURCES) $(filter_slowmo_la_SOURCES) \
+	$(filter_smartbob_la_SOURCES) $(filter_smartdeinter_la_SOURCES) \
+	$(filter_smartyuv_la_SOURCES) $(filter_smooth_la_SOURCES) \
+	$(filter_tc_audio_la_SOURCES) $(filter_tc_video_la_SOURCES) \
+	$(filter_testframe_la_SOURCES) $(filter_text_la_SOURCES) \
+	$(filter_unsharp_la_SOURCES) $(filter_videocore_la_SOURCES) \
+	$(filter_xsharpen_la_SOURCES) $(filter_yuy2toyv12_la_SOURCES)
 
 RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 	ps-recursive install-info-recursive uninstall-info-recursive \
@@ -681,7 +689,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 DIST_COMMON = Makefile.am Makefile.in
 DIST_SUBDIRS = . divxkey extsub resample test yuvdenoise ivtc preview \
 	subtitler
-SOURCES = $(filter_29to23_la_SOURCES) $(filter_32detect_la_SOURCES) $(filter_32drop_la_SOURCES) $(filter_aclip_la_SOURCES) $(filter_astat_la_SOURCES) $(filter_clone_la_SOURCES) $(filter_cpaudio_la_SOURCES) $(filter_cshift_la_SOURCES) $(filter_cut_la_SOURCES) $(filter_dilyuvmmx_la_SOURCES) $(filter_dnr_la_SOURCES) $(filter_doublefps_la_SOURCES) $(filter_fields_la_SOURCES) $(filter_hqdn3d_la_SOURCES) $(filter_invert_la_SOURCES) $(filter_logo_la_SOURCES) $(filter_logoaway_la_SOURCES) $(filter_lowpass_la_SOURCES) $(filter_mask_la_SOURCES) $(filter_nored_la_SOURCES) $(filter_normalize_la_SOURCES) $(filter_null_la_SOURCES) $(filter_pp_la_SOURCES) $(filter_skip_la_SOURCES) $(filter_slowmo_la_SOURCES) $(filter_smartbob_la_SOURCES) $(filter_smartdeinter_la_SOURCES) $(filter_smartyuv_la_SOURCES) $(filter_smooth_la_SOURCES) $(filter_tc_audio_la_SOURCES) $(filter_tc_video_la_SOURCES) $(filter_testframe_la_SOURCES) $(filter_text_la_SOURCES) $(filter_unsharp_la_SOURCES) $(filter_videocore_la_SOURCES) $(filter_xsharpen_la_SOURCES) $(filter_yuy2toyv12_la_SOURCES)
+SOURCES = $(filter_29to23_la_SOURCES) $(filter_32detect_la_SOURCES) $(filter_32drop_la_SOURCES) $(filter_aclip_la_SOURCES) $(filter_astat_la_SOURCES) $(filter_clone_la_SOURCES) $(filter_compare_la_SOURCES) $(filter_cpaudio_la_SOURCES) $(filter_cshift_la_SOURCES) $(filter_cut_la_SOURCES) $(filter_dilyuvmmx_la_SOURCES) $(filter_dnr_la_SOURCES) $(filter_doublefps_la_SOURCES) $(filter_fields_la_SOURCES) $(filter_hqdn3d_la_SOURCES) $(filter_invert_la_SOURCES) $(filter_logo_la_SOURCES) $(filter_logoaway_la_SOURCES) $(filter_lowpass_la_SOURCES) $(filter_mask_la_SOURCES) $(filter_nored_la_SOURCES) $(filter_normalize_la_SOURCES) $(filter_null_la_SOURCES) $(filter_pp_la_SOURCES) $(filter_skip_la_SOURCES) $(filter_slowmo_la_SOURCES) $(filter_smartbob_la_SOURCES) $(filter_smartdeinter_la_SOURCES) $(filter_smartyuv_la_SOURCES) $(filter_smooth_la_SOURCES) $(filter_tc_audio_la_SOURCES) $(filter_tc_video_la_SOURCES) $(filter_testframe_la_SOURCES) $(filter_text_la_SOURCES) $(filter_unsharp_la_SOURCES) $(filter_videocore_la_SOURCES) $(filter_xsharpen_la_SOURCES) $(filter_yuy2toyv12_la_SOURCES)
 
 all: all-recursive
 
@@ -732,6 +740,8 @@ filter_astat.la: $(filter_astat_la_OBJECTS) $(filter_astat_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkgdir) $(filter_astat_la_LDFLAGS) $(filter_astat_la_OBJECTS) $(filter_astat_la_LIBADD) $(LIBS)
 filter_clone.la: $(filter_clone_la_OBJECTS) $(filter_clone_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_clone_la_LDFLAGS) $(filter_clone_la_OBJECTS) $(filter_clone_la_LIBADD) $(LIBS)
+filter_compare.la: $(filter_compare_la_OBJECTS) $(filter_compare_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pkgdir) $(filter_compare_la_LDFLAGS) $(filter_compare_la_OBJECTS) $(filter_compare_la_LIBADD) $(LIBS)
 filter_cpaudio.la: $(filter_cpaudio_la_OBJECTS) $(filter_cpaudio_la_DEPENDENCIES) 
 	$(LINK) -rpath $(pkgdir) $(filter_cpaudio_la_LDFLAGS) $(filter_cpaudio_la_OBJECTS) $(filter_cpaudio_la_LIBADD) $(LIBS)
 filter_cshift.la: $(filter_cshift_la_OBJECTS) $(filter_cshift_la_DEPENDENCIES) 
@@ -828,6 +838,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_aclip.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_astat.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_clone.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_compare.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_cpaudio.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_cshift.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_cut.Plo@am__quote@
