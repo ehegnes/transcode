@@ -148,7 +148,7 @@ static void gray2rgb(char *dest, char *input, int width, int height)
 
     int i;
     
-    for (i=0; i<height*height; i++) {
+    for (i=0; i<width*height; i++) {
 	*dest++ = *input;
 	*dest++ = *input;
 	*dest++ = *input++;
@@ -160,6 +160,79 @@ static void gray2yuv(char *dest, char *input, int width, int height)
     memcpy (dest, input, height*width);
     memset (dest+height*width, 128, height*width/2);
 }
+
+static void argb2rgb(char *dest, char *input, int width, int height) 
+{
+	int run;
+	int size = width*height;
+
+	for (run = 0; run < size; run++) {
+
+	        input++; // skip alpha
+		*dest++ = *input++;
+		*dest++ = *input++;
+		*dest++ = *input++;
+	}
+}
+static void ayuvtoyv12(char *dest, char *input, int width, int height) 
+{
+
+    int i,j,w2;
+    char *y, *u, *v, *n = input;
+
+    w2 = width/2;
+
+    //I420
+    y = dest;
+    v = dest+width*height;
+    u = dest+width*height*5/4;
+    
+    for (i=0; i<height*width/4; i++) {
+#if 0
+	*v++ = *input++;
+	*u++ = *input++;
+	*y++ = *input++;
+	input++; // a
+#endif
+
+	for (j=0; j<4; j++) {
+	    input++;
+	    input++;
+	    *y++ = *input++;
+	    input++;
+	}
+	*u++= 128;
+	*v++= 128;
+
+    }
+#if 0
+    printf("y-dest (%d) v-orig (%d) u-orig (%d) input-i (%d)\n", (int)(y-dest),
+	    (int)(v-(dest+width*height)), (int)(u-(dest+width*height*5/4)), (int)(input-n));
+
+    for (i=0; i<height; i+=2) {
+      for (j=0; j<w2; j++) {
+	
+	/* packed YUV 444 is: V[i] U[i] Y[i] a[i] */
+	*(v++) = *(input++);
+	*(u++) = *(input++);
+	*(y++) = *(input++);
+	input++;
+      }
+      
+      //down sampling
+      
+      for (j=0; j<w2; j++) {
+	/* skip every second line for U and V */
+	input++;
+	input++;
+	*(y++) = *(input++);
+	input++;
+      }
+    }
+#endif
+}
+
+
 
 MOD_open
 {
@@ -195,8 +268,16 @@ MOD_open
 	    convfkt = uyvy2toyv12;
 	    bytes = vob->im_v_width * vob->im_v_height * 2;
 	    alloc_buffer = 1;
+	} else if (!strcasecmp(vob->im_v_string, "argb")) {
+	    convfkt = argb2rgb;
+	    bytes = vob->im_v_width * vob->im_v_height * 4;
+	    alloc_buffer = 1;
+	} else if (!strcasecmp(vob->im_v_string, "ayuv")) {
+	    convfkt = ayuvtoyv12;
+	    bytes = vob->im_v_width * vob->im_v_height * 4;
+	    alloc_buffer = 1;
 	} else {
-	    tc_error("Unknown format {rgb, gray, yv12, i420, yuy2, uyvy}");
+	    tc_error("Unknown format {rgb, gray, argb, ayuv, yv12, i420, yuy2, uyvy}");
 	}
     }
 

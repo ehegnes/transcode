@@ -7,6 +7,9 @@ transcode-0.6.9
   Fix a compile error. Do not use new structures with old codec.
   Pointed out by Edouard Gomez.
 
+  * import/import_rawlist.c:
+  Add a few more colorspace conversions.
+
 2003-07-29 Christopher Cramer <crayc at asuka.halfassedprojects.com>
 
   * filter/filter_fps.c:
