@@ -6,6 +6,9 @@ transcode-0.6.4.HEAD
 - Finished import_avi/export_raw fix for uncompressed RGB avifiles. They
   must be aligned on a 4 byte boundary.
 
+- This time really: bug in yuv_merge_fields noticed and fixed again by
+   -- marrq <marrq at ugcs.caltech.edu>
+
 --------------------------------------------
 transcode-0.6.4.20030318 Tue Mar 18 13:29:39 CET 2003
 
