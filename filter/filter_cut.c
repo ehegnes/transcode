@@ -70,6 +70,7 @@ static void help_optstr(void)
 int tc_filter(vframe_list_t *ptr, char *options)
 {
   static struct fc_time *list;
+  static double avoffset=1.0;
   char separator[] = " ";
 
   vob_t *vob=NULL;
@@ -120,6 +121,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	    return (-1);
 	}
     }
+    avoffset = vob->fps/vob->ex_fps;
 
     return(0);
   }
@@ -145,7 +147,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // transcodes internal video/audio frame processing routines
   // or after and determines video/audio context
   
-  if(ptr->tag & TC_PRE_S_PROCESS) {
+  if((ptr->tag & TC_PRE_S_PROCESS) && (ptr->tag & TC_VIDEO)) {
 
       // fc_frame_in_time returns the step frequency
       int ret = fc_frame_in_time(list, ptr->id);
@@ -157,6 +159,15 @@ int tc_filter(vframe_list_t *ptr, char *options)
       // last cut region finished?
       if (tail_fc_time(list)->etf+max_frame_buffer < ptr->id)
 	  tc_import_stop();
+  } else if ((ptr->tag & TC_PRE_S_PROCESS) && (ptr->tag & TC_AUDIO)){
+    int ret;
+    int tmp_id;
+
+    tmp_id = (int)((double)ptr->id*avoffset);
+    ret = fc_frame_in_time(list, tmp_id);
+    if (!(ret && !(tmp_id%ret))){
+      ptr->attributes |= TC_FRAME_IS_SKIPPED;
+    }
   }
   
 
