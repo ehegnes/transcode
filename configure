@@ -15352,7 +15352,7 @@ if test "${ac_cv_lib_theora_theora_info_init+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-ltheora -L$with_theora_l -ltheora $LIBS"
+LIBS="-ltheora -L$with_theora_l -ltheora -logg -lm $LIBS"
 cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 /* confdefs.h.  */
@@ -15402,7 +15402,7 @@ echo "$as_me:$LINENO: result: $ac_cv_lib_theora_theora_info_init" >&5
 echo "${ECHO_T}$ac_cv_lib_theora_theora_info_init" >&6
 if test $ac_cv_lib_theora_theora_info_init = yes; then
   THEORA_CFLAGS="-I$with_theora_i -I/usr/local/include"
-         THEORA_LIBS="-L$with_theora_l -ltheora -lm"
+         THEORA_LIBS="-L$with_theora_l -ltheora -logg -lm"
        	cat >>confdefs.h <<\_ACEOF
 #define HAVE_THEORA 1
 _ACEOF
@@ -15414,9 +15414,9 @@ else
 fi
 
 fi
-as_ac_File=`echo "ac_cv_file_$with_theora_i/theora/codec.h" | $as_tr_sh`
-echo "$as_me:$LINENO: checking for $with_theora_i/theora/codec.h" >&5
-echo $ECHO_N "checking for $with_theora_i/theora/codec.h... $ECHO_C" >&6
+as_ac_File=`echo "ac_cv_file_$with_theora_i/theora/theora.h" | $as_tr_sh`
+echo "$as_me:$LINENO: checking for $with_theora_i/theora/theora.h" >&5
+echo $ECHO_N "checking for $with_theora_i/theora/theora.h... $ECHO_C" >&6
 if eval "test \"\${$as_ac_File+set}\" = set"; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
@@ -15424,7 +15424,7 @@ else
   { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
 echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
    { (exit 1); exit 1; }; }
-if test -r "$with_theora_i/theora/codec.h"; then
+if test -r "$with_theora_i/theora/theora.h"; then
   eval "$as_ac_File=yes"
 else
   eval "$as_ac_File=no"
@@ -15437,24 +15437,24 @@ if test `eval echo '${'$as_ac_File'}'` = yes; then
 fi
 
 if test x"$theora_inc" != xyes; then
-echo "$as_me:$LINENO: checking for /usr/local/include/theora/codec.h" >&5
-echo $ECHO_N "checking for /usr/local/include/theora/codec.h... $ECHO_C" >&6
-if test "${ac_cv_file__usr_local_include_theora_codec_h+set}" = set; then
+echo "$as_me:$LINENO: checking for /usr/local/include/theora/theora.h" >&5
+echo $ECHO_N "checking for /usr/local/include/theora/theora.h... $ECHO_C" >&6
+if test "${ac_cv_file__usr_local_include_theora_theora_h+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   test "$cross_compiling" = yes &&
   { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
 echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
    { (exit 1); exit 1; }; }
-if test -r "/usr/local/include/theora/codec.h"; then
-  ac_cv_file__usr_local_include_theora_codec_h=yes
+if test -r "/usr/local/include/theora/theora.h"; then
+  ac_cv_file__usr_local_include_theora_theora_h=yes
 else
-  ac_cv_file__usr_local_include_theora_codec_h=no
+  ac_cv_file__usr_local_include_theora_theora_h=no
 fi
 fi
-echo "$as_me:$LINENO: result: $ac_cv_file__usr_local_include_theora_codec_h" >&5
-echo "${ECHO_T}$ac_cv_file__usr_local_include_theora_codec_h" >&6
-if test $ac_cv_file__usr_local_include_theora_codec_h = yes; then
+echo "$as_me:$LINENO: result: $ac_cv_file__usr_local_include_theora_theora_h" >&5
+echo "${ECHO_T}$ac_cv_file__usr_local_include_theora_theora_h" >&6
+if test $ac_cv_file__usr_local_include_theora_theora_h = yes; then
   theora_inc=yes
 fi
 

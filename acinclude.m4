@@ -498,15 +498,15 @@ if test x$with_theora = "x"yes ; then
 
 	AC_CHECK_LIB(theora, theora_info_init,
        	[THEORA_CFLAGS="-I$with_theora_i -I/usr/local/include" 
-         THEORA_LIBS="-L$with_theora_l -ltheora -lm"
+         THEORA_LIBS="-L$with_theora_l -ltheora -logg -lm"
        	AC_DEFINE(HAVE_THEORA) 
 	hav_theora=yes
 	have_theora=yes], [have_theora=no], 
-       	-L$with_theora_l -ltheora)
+       	-L$with_theora_l -ltheora -logg -lm)
 fi   
-AC_CHECK_FILE($with_theora_i/theora/codec.h, [theora_inc=yes])
+AC_CHECK_FILE($with_theora_i/theora/theora.h, [theora_inc=yes])
 if test x"$theora_inc" != xyes; then 
-AC_CHECK_FILE(/usr/local/include/theora/codec.h, [theora_inc=yes])
+AC_CHECK_FILE(/usr/local/include/theora/theora.h, [theora_inc=yes])
 fi
 AC_SUBST(THEORA_CFLAGS)
 AC_SUBST(THEORA_LIBS)

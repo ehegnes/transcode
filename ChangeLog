@@ -2,6 +2,11 @@
 transcode-0.6.10
 
 2003-08-31 Markus Linnala <maage at sauna.ton.tut.fi>
+  
+   * acinclude.m4:
+   Better check for theora.
+
+2003-08-31 Markus Linnala <maage at sauna.ton.tut.fi>
 
    * export/export_ogg.c:
    Use oggenc --resample if ifreq is not ofreq (and if the resample
