@@ -1039,6 +1039,14 @@ Valid codes for \fIC\fP are:
      4     2.21:1
 .RE
 .TP
+.B \-\-ext \fIvid\fP,\fIaud\fP
+Use these file extensions [.avi,.mp3]
+.br
+When this option is not given, transcode will use a file extension dependend on the export module. For the mpeg export modules  this is ".m2v" resp ".m1v" and ".mpa" for audio.
+.br
+To clean up this mess, the option --ext was introduced without breaking exising
+behaviour. Use \fB--ext \fP\fInone\fP,\fInone\fP to disable filename extension. 
+.TP
 .B \-\-keep_asr
 try to keep aspect ratio (only with -Z) [off]
 .RS
