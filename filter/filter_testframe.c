@@ -135,6 +135,32 @@ void generate_yuv_frame(char *buffer, int width, int height)
       for(n=0; n<height*width; ++n) buffer[n]=(n&1)?255 & 0xff:0;
       
       break;
+
+  case 5: // from libavformat
+      {
+	  static int indx = 0;
+	  int x, y;
+	  unsigned char 
+	      *Y = buffer, 
+	      *U=buffer+width*height, 
+	      *V=buffer+width*height*5/4;
+
+	  for(y=0;y<height;y++) {
+	      for(x=0;x<width;x++) {
+		  Y[y * width + x] = x + y + indx * 3;
+	      }
+	  }
+    
+	  /* Cb and Cr */
+	  for(y=0;y<height/2;y++) {
+	      for(x=0;x<width/2;x++) {
+		  U[y * width/2 + x] = 128 + y + indx * 2;
+		  V[y * height + x] = 64 + x + indx * 5;
+	      }
+	  }
+	  indx++;
+      }
+      break;
   }
 }
 
