@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.10
 
+2003-09-03 Nicolas Laurent <nl at gnu.org>
+   
+   * export/aud_aux.c: 
+   Completely rewritten audio export core. There should be no user
+   visible changes.
+
 2003-09-02 Tilmann Bitterberg <transcode at tibit.org>
 
    * import/{Makefile.am Makefile.in fileinfo.c ioaux.c magic.h
