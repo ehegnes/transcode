@@ -97,7 +97,7 @@ bitstream_buffer_frame(uint_32 frame_size)
 static inline void
 bitstream_fill_current()
 {
-	current_word = *(buffer_start)++;
+	current_word = *((uint_32*)buffer_start)++;
 	current_word = swab32(current_word);
 }
 
