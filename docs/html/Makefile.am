@@ -7,7 +7,6 @@ docsdir = \
 docs_DATA =  \
 	dv.html \
 	dvd.html \
-	export_af6.html \
 	export_divx.html \
 	export_divx4.php \
 	export_divx5.php \
