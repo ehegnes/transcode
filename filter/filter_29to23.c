@@ -24,7 +24,7 @@
 
 #define MOD_NAME    "filter_29to23.so"
 #define MOD_VERSION "v0.3 (2003-07-18)"
-#define MOD_CAP     "frame rate conversion filter"
+#define MOD_CAP     "frame rate conversion filter (interpolating 29 to 23)"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,6 +67,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //
   //----------------------------------
 
+  if(ptr->tag & TC_FILTER_GET_CONFIG && options) {
+
+    optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Max Alekseyev, Tilmann Bitterberg", "VRYE", "1");
+
+    return 0;
+  }
 
   if(ptr->tag & TC_FILTER_INIT) {
     

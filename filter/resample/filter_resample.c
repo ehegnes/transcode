@@ -49,6 +49,7 @@ static int error;
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "optstr.h"
 
 /*-------------------------------------------------
  *
@@ -87,6 +88,11 @@ int tc_filter(aframe_list_t *ptr, char *options)
   //
   //----------------------------------
 
+
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Thomas Oestreich", "AE", "1");
+      return 0;
+  }
 
   if(ptr->tag & TC_FILTER_INIT) {
     

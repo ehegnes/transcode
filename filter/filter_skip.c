@@ -108,6 +108,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //
   // (6) filter is last time with TC_FILTER_CLOSE flag set
 
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Thomas Oestreich", "VAE", "1");
+      optstr_param (options, "fstart1-fend1 [ fstart2-fend2 [ .. ] ]", "apply filter [start-end] frames", "%s", "");
+      return 0;
+  }
+
 
   //----------------------------------
   //

@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_yuy2tov12.so"
-#define MOD_VERSION "v0.0.1 (2001-10-18)"
+#define MOD_VERSION "v0.0.2 (2003-09-04)"
 #define MOD_CAP     "YUY2 to YV12 converter plugin"
 
 #include <stdio.h>
@@ -94,6 +94,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
   
   static vob_t *vob=NULL;
   int bytes;
+
+  if(ptr->tag & TC_FILTER_GET_CONFIG && options) {
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Thomas Oestreich", "VYE", "1");
+      return 0;
+  }
 
   //----------------------------------
   //

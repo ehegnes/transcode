@@ -127,6 +127,13 @@ int tc_filter(vframe_list_t *ptr, char *options)
   static char *lastframe, *lastiframe;
   static int linum = -1, lfnum = -1, fnum = 0, isint = 0, dcnt = 0, dfnum = 0;
 
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+
+    optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Thomas Oestreich", "VRYE", "1");
+
+    return 0;
+  }
+
   //----------------------------------
   //
   // filter init

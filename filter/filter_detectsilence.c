@@ -23,7 +23,7 @@
 
 #define MOD_NAME    "filter_detectsilence.so"
 #define MOD_VERSION "v0.0.1 (2003-07-26)"
-#define MOD_CAP     "audio silence detection"
+#define MOD_CAP     "audio silence detection with tcmp3cut commandline generation"
 
 #ifdef HAVE_CONFIG_H
 #include "../config.h"
@@ -95,6 +95,9 @@ int tc_filter(aframe_list_t *ptr, char *options)
   //
   // (6) filter is last time with TC_FILTER_CLOSE flag set
 
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Tilmann Bitterberg", "AE", "1");
+  }
 
   //----------------------------------
   //

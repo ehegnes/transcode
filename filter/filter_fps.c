@@ -23,7 +23,7 @@
 
 #define MOD_NAME    "filter_fps.so"
 #define MOD_VERSION "v0.2 (2003-08-10)"
-#define MOD_CAP     "convert video frame rate"
+#define MOD_CAP     "convert video frame rate, gets defaults from -f and --export_fps"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,6 +37,7 @@
 
 #include "transcode.h"
 #include "framebuffer.h"
+#include "optstr.h"
 
 static int
 parse_options(char *options, double *infps, double *outfps)
@@ -82,6 +83,11 @@ tc_filter(vframe_list_t *ptr, char *options)
 {
 	static double		infps, outfps;
 	static unsigned long	framesin = 0, framesout = 0;
+
+	if(ptr->tag & TC_FILTER_GET_CONFIG) {
+	    optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Christopher Cramer", "VRYEO", "1");
+	    return 0;
+	}
 
 	if(ptr->tag & TC_FILTER_INIT) {
 		if (verbose) printf("[%s] %s %s\n",

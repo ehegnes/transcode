@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_astat.so"
-#define MOD_VERSION "v0.1.2 (2002-02-26)"
+#define MOD_VERSION "v0.1.3 (2003-09-04)"
 #define MOD_CAP     "audio statistics filter plugin"
 
 #ifdef HAVE_CONFIG_H
@@ -75,6 +75,11 @@ static void check (int v)
  *
  *-------------------------------------------------*/
 
+static int is_optstr(char *a) {
+    if (strlen(a)>4) if (strncmp(a,"help",4)==0) return 1;
+    if (strchr(a, '=')) return 1;
+    return 0;
+}
 
 int tc_filter(aframe_list_t *ptr, char *options)
 {
@@ -104,6 +109,12 @@ int tc_filter(aframe_list_t *ptr, char *options)
   // (6) filter is last time with TC_FILTER_CLOSE flag set
 
 
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Thomas Oestreich", "AE", "1");
+      optstr_param (options, "file", "File to save the calculated volume rescale number to", "%s", ""); 
+      return 0;
+  }
+
   //----------------------------------
   //
   // filter init
@@ -122,9 +133,14 @@ int tc_filter(aframe_list_t *ptr, char *options)
     /* extract file name */
     file = NULL;
     if(options!=NULL) {
-      file = strdup(options);
+      if (!is_optstr(options)) {
+	file = strdup(options);
+      } else  {
+	file = malloc(1024);
+	optstr_get(options, "file", "%[^:]", file);
+      }
       if(verbose) 
-	printf("[%s] saving audio scale value to '%s'\n", MOD_NAME, options);
+	printf("[%s] saving audio scale value to '%s'\n", MOD_NAME, file);
     }
 
     fps=vob->fps;

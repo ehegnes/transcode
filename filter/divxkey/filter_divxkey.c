@@ -44,6 +44,7 @@
 #include "framebuffer.h"
 #include "import/magic.h"
 #include "bitstream.h"
+#include "optstr.h"
 
 static char buffer[128];
 
@@ -136,6 +137,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
   // (6) filter is last time with TC_FILTER_CLOSE flag set
 
 
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Thomas Oestreich", "VE", "1");
+      return 0;
+  }
+
+
   //----------------------------------
   //
   // filter init
@@ -157,7 +164,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     
     //init filter
 
-    if(verbose) printf("[%s] divxkey", MOD_NAME);
+    if(verbose) printf("[%s] divxkey\n", MOD_NAME);
 
     return(0);
   }

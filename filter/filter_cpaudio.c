@@ -32,7 +32,7 @@
 
 #define MOD_NAME    "filter_cpaudio.so"
 #define MOD_VERSION "v0.1 (2003-04-30)"
-#define MOD_CAP     "copy audio filter plugin"
+#define MOD_CAP     "copy one audio channel to the other channel filter plugin"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -92,6 +92,12 @@ int tc_filter(aframe_list_t *ptr, char *options)
   // (5) see framebuffer.h for a complete list of frame_list_t variables.
   //
   // (6) filter is called last time with TC_FILTER_CLOSE flag set
+
+  if (ptr->tag & TC_FILTER_GET_CONFIG) {
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "William H Wittig", "AO", "1");
+      optstr_param (options, "source", "Source channel (l=left, r=right)", "%c", "l", "l", "r");
+      return 0;
+  }
 
   //----------------------------------
   // filter init

@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_aclip.so"
-#define MOD_VERSION "v0.1.0 (02/26/02)"
+#define MOD_VERSION "v0.1.1 (2003-09-04)"
 #define MOD_CAP     "generate audio clips from source"
 
 #include <stdio.h>
@@ -44,6 +44,8 @@
 #include "transcode.h"
 #include "framebuffer.h"
 
+#include "optstr.h"
+
 static uint64_t total=0;
 
 static int level=10, range=25, range_ctr=0, skip_mode=0;
@@ -54,6 +56,12 @@ static int level=10, range=25, range_ctr=0, skip_mode=0;
  *
  *-------------------------------------------------*/
 
+static int is_optstr(char *a)
+{
+    if (strchr(a, '=')) return 1;
+    if (strchr(a, 'h')) return 1;
+    return 0;
+}
 
 int tc_filter(aframe_list_t *ptr, char *options)
 {
@@ -83,6 +91,13 @@ int tc_filter(aframe_list_t *ptr, char *options)
   //
   // (6) filter is last time with TC_FILTER_CLOSE flag set
 
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Thomas Oestreich", "AE", "1");
+      optstr_param (options, "level", "The audio must be under this level to be skipped", "%d", "10", "0", "255");
+      optstr_param (options, "range", "Number of samples over level will be keyframes", "%d", "25", "0", "255");
+      return 0;
+  }
+
 
   //----------------------------------
   //
@@ -90,6 +105,7 @@ int tc_filter(aframe_list_t *ptr, char *options)
   //
   //----------------------------------
 
+  
 
   if(ptr->tag & TC_FILTER_INIT) {
     
@@ -101,7 +117,14 @@ int tc_filter(aframe_list_t *ptr, char *options)
     
     if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
 
-    if(options!=NULL) n=sscanf(options,"%d:%d", &level, &range);
+    if(options!=NULL) {
+	if (!is_optstr(options)) {
+	    n=sscanf(options,"%d:%d", &level, &range);
+	} else {
+	    optstr_get (options, "level", "%d", &level);
+	    optstr_get (options, "range", "%d", &range);
+	}
+    }
 
     range_ctr=range;
     

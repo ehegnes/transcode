@@ -22,8 +22,8 @@
  */
 
 #define MOD_NAME    "filter_null.so"
-#define MOD_VERSION "v0.1 (2001-08-17)"
-#define MOD_CAP     "demo filter plugin"
+#define MOD_VERSION "v0.2 (2003-09-04)"
+#define MOD_CAP     "demo filter plugin; does nothing"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -77,6 +77,10 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //
   // (6) filter is last time with TC_FILTER_CLOSE flag set
 
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Thomas Oestreich", "VAEO", "1");
+      return 0;
+  }
 
   //----------------------------------
   //

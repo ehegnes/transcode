@@ -90,6 +90,11 @@ API explanation:
 (6) filter is last time with TC_FILTER_CLOSE flag set
 */
 
+if (pfl->tag & TC_FILTER_GET_CONFIG) {
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Panteltje", "VRYO", "1");
+      return 0;
+}
+
 /* filter init */
 if(pfl->tag & TC_FILTER_INIT)
 	{
@@ -242,7 +247,8 @@ if(pfl->tag & TC_FILTER_INIT)
 				print_options();
 
 				/* error exit */
-				exit(1);
+				return 0;
+				//exit(1);
 				}	
 			 else if(strncmp(token, "subtitle_file=", 14) == 0)
 				{

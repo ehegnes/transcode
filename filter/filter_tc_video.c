@@ -24,6 +24,7 @@
 #define MOD_NAME    "filter_tc_video.so"
 #define MOD_VERSION "v0.2 (2003-06-10)"
 #define MOD_CAP     "video 23.9 -> 29.9 telecide filter"
+#define MOD_AUTHOR  "Tilmann Bitterberg"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,6 +61,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   static vob_t *vob=NULL;
   static char *video_buf[2] = {NULL, NULL};
+
+  if (ptr->tag & TC_FILTER_GET_CONFIG) {
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYE", "1");
+      return 0;
+  }
 
   if (ptr->tag & TC_AUDIO)
 	  return (0);

@@ -149,6 +149,15 @@ int tc_filter(aframe_list_t *ptr, char *options)
 
   static vob_t *vob=NULL;
 
+  if(ptr->tag & TC_FILTER_GET_CONFIG) {
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "pl, Tilmann Bitterberg", "AE", "1");
+      optstr_param (options, "smooth", "Value for smoothing ]0.0 1.0[", "%f", "0.06", "0.0", "1.0");
+      optstr_param (options, "smoothlast", "Value for smoothing last sample ]0.0, 1.0[", "%f", "0.06", "0.0", "1.0");
+      optstr_param (options, "algo", "Algorithm to use (1 or 2). 1=uses a 1 value memory and coefficients new=a*old+b*cur (with a+b=1).   2=uses several samples to smooth the variations (standard weighted mean on past samples)", "%d", "1", "1", "2");
+      return 0;
+  }
+
+
   //----------------------------------
   //
   // filter init
