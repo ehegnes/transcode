@@ -28,4 +28,5 @@ EXTRA_DIST =  \
   tc_rescale_audio.pl \
   vob2avi.readme \
   bitrate \
+  mpipe.c \
   vob2avi
