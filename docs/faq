@@ -101,7 +101,29 @@ PA:	(Partial answer) In this form, your question cannot
 	your question a get a proper answer ;-) (ems)
 ---
 Q:	How do I use a CVS version of ffmpeg with transcode?
-A:
+A:	There are two ways: Q&D (but tested by me) and the more official way.
+	For this to work you also need transcode from CVS!
+
+	Q&D works like this:
+	<ul>
+	<li>make a new directory, not in de transcode directory for ffmpeg</li>
+	<li>get the latest cvs version of ffmpeg and unpack it there</li>
+	<li>configure and compile it</li>
+	<li>go to the transcode source directory</li>
+	<li>remove everything under ffmpeg</li>
+	<li>make a new directory ffmpeg/libavcodec with a couple of links into</li>
+	your ffmpeg-cvs directory something like this:
+	<pre>
+        avcodec.h -> ../../../ffmpeg/ffmpeg/libavcodec/avcodec.h
+        common.h -> ../../../ffmpeg/ffmpeg/libavcodec/common.h
+        libtcavcodec.a -> ../../../ffmpeg/ffmpeg/libavcodec/libavcodec.a
+        rational.h -> ../../../ffmpeg/ffmpeg/libavcodec/rational.h
+	</pre>
+	<li>now you can go to the top of the transcode source directory and type
+	configure & make.</li>
+	</ul></p><p>
+	The other way is replace all the files in the ffmpeg directory with the
+	respective files from ffmpeg cvs (which may be some work ;-)) (ems)
 ---
 Q:	Peoples' faces are purple!
 A1:	This probably means that the u and v planes (Cr/Cb) are
@@ -118,7 +140,10 @@ A:      Use -z. (tibit)
 Q:	I have installed latest transcode tool from source and
 	then from rpm. Whenever I run program it falls over as
 	it cannot find export_mp2enc.so.
-A:
+A:	RPM packages of some distributions are not complete. This is a
+	general problem. If you want to use the mpeg2enc export module, you
+	will have to compile transcode yourself, or try to find a complete rpm
+	on the net. (ems)
 ---
 Q:	Do I need the avifile library to write AVI files?
 A:	No. Transcode has its own library for writing AVI files. The avifile
@@ -134,12 +159,15 @@ A:	This is not necessarily a bad thing. transcode has configure checks
 	does not find it, have a look at config.log to find out the reason. (tibit)
 ---
 Q:	When trying to read a DVD I get something like
-	<tt> (dvd_reader.c) no support for DVD reading configured - exit.
-	</tt>
+	<tt> (dvd_reader.c) no support for DVD reading configured - exit. </tt>
 	What am I missing, ie what do I need to do to fix it?
 A:	You have probably installed transcode from source and you are missing
 	the dvdread library. This library (including the -devel packages) must be
 	installed at compile time and transcode must find it. If transcode
 	found it, it will print <tt>"DVD navigation support with libdvdread
 	yes"</tt> at the end of the configure run. (tibit)
-----
+---
+Q:	I am missing the mp3 import module (import_mp3.so)!
+A:	You need to have a recent lame library installed. Including all header
+	files (-devel package) (tibit)
+---
