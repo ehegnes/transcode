@@ -48,6 +48,7 @@
 #ifdef FT_FREETYPE_H
 #include FT_FREETYPE_H
 
+
 #include "transcode.h"
 #include "framebuffer.h"
 #include "optstr.h"
@@ -111,7 +112,7 @@ typedef struct MyFilterData {
 	FT_GlyphSlot  slot;
 
 } MyFilterData;
-	
+
 static MyFilterData *mfd = NULL;
 
 static void help_optstr(void) 
