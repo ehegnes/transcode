@@ -39,7 +39,7 @@ static int fh;
 long int v_startsec, v_startusec;
 
 static struct video_capability  capability;
-static struct video_channel     *channels;
+static struct video_channel     *channels = NULL;
 static struct video_audio       audio;
 static struct video_picture     pict;
 static struct video_tuner	tuner;
@@ -92,19 +92,21 @@ int video_grab_init(
     return(-1);
   }
 
-  channels = malloc(sizeof(struct video_channel)*capability.channels);
+  if (chanid < 0)
+      goto dont_touch;
+
+  if (!channels) {
+      channels = malloc(sizeof(struct video_channel)*capability.channels);
+  }
   
   channels[chanid].channel = chanid;
 
-  if( chanid >= 0 ){ 
-    if( -1 == ioctl( fh, VIDIOCGCHAN, & channels[ chanid ] ) ) {
+  if( -1 == ioctl( fh, VIDIOCGCHAN, & channels[ chanid ] ) ) {
       perror( "invalid channel" );
       return( -1 );
-    }
-
-    snprintf( pNorm, TC_BUF_MIN - 1, "%s", channels[ chanid ].name );
   }
-  else goto dont_touch;
+
+  snprintf( pNorm, TC_BUF_MIN - 1, "%s", channels[ chanid ].name );
 
   if( channels[ chanid ].flags & VIDEO_VC_TUNER ) {
 		channel_has_tuner = 1;
@@ -341,7 +343,6 @@ int video_grab_init(
 		}
 	}
 
-dont_touch:
 
 	// print channel capability
 	if(verb) printf("(%s) %s: input #%d, %s%s%s%s\n", __FILE__,
@@ -351,6 +352,8 @@ dont_touch:
       (channels[chanid].type & VIDEO_TYPE_TV)     ? "tv "     : "",
       (channels[chanid].type & VIDEO_TYPE_CAMERA) ? "camera " : "");
 	
+dont_touch:
+
       if (do_audio) {
 	// audio parameter
 	if (-1 == ioctl(fh,VIDIOCGAUDIO,&audio)) {
