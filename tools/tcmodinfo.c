@@ -128,6 +128,10 @@ void tc_info(char *fmt, ...)
       fprintf(stderr, "critical error: %s - exit\n", fmt);
 }
 
+int tc_test_program(char *name)
+{
+	return 0;
+}
 
 void *load_module(char *mod_name, char *mod_path, int mode)
 {
