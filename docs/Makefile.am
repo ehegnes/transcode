@@ -9,6 +9,7 @@ docsdir = $(datadir)/doc/transcode
 docs_DATA = \
                     clone.txt \
                     export_mpeg.txt \
+                    export_ffmpeg.txt \
                     filter_dnr.txt \
                     filter_logo.txt \
                     filter_logoaway.txt \
