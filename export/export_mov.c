@@ -44,19 +44,20 @@ static int capability_flag=
  TC_CAP_PCM| /* pcm audio */
  /* video formats */
  TC_CAP_RGB|  /* rgb frames */
- TC_CAP_YUV|  /* chunky YUV 4:2:0 */
+ TC_CAP_YUV|  /* YUV 4:2:0 */
  TC_CAP_YUY2|
  TC_CAP_VID|
- TC_CAP_YUV422; /* chunky YUV 4:2:2 */
+ TC_CAP_YUV422; /* YUV 4:2:2 */
 
 #define MOD_PRE mov
 #include "export_def.h"
 
 #include <quicktime.h>
+#include <colormodels.h>
 #include <lqt.h>
 
-#define QT_LIST_AUDIO "audio"
-#define QT_LIST_VIDEO "video"
+#define QT_LIST_AUDIO "audio codec"
+#define QT_LIST_VIDEO "video codec"
 #define QT_LIST_PARM "parameters"
 
 /* exported quicktime file */
@@ -66,18 +67,13 @@ static quicktime_t *qtfile = NULL;
 static unsigned char** row_ptr = NULL;
 
 /* temporary buffer*/
-char *tmp_buf;
+static char *tmp_buf;
 
 /* toggle for raw frame export */
 static int rawVideo = 0;
 static int rawAudio = 0;
 
-/* 
-color model to export to
-yuv420 is planar == BC_YUV420P  == 7
-rgb is packed == BC_RGB888 == 9
-yuy422 is packed == BC_YUV422 == 19
-*/
+/* qt colormodel */
 static int qt_cm = 0;
 
 /* store frame dimension */
@@ -93,102 +89,61 @@ static int bits = 0;
 static int16_t* audbuf0 = NULL;
 static int16_t* audbuf1 = NULL;
 
-/* defaults for codec parameters */
-int fix_bitrate = 0; 
-int div3_interlaced = 0;
-int div3_bitrate_tolerance = 500000;
-int use_float =0;
-int divx_use_deblocking = 0;
-
-int vorbis_max_bitrate = 192;        
-int vorbis_min_bitrate = 128;
-
 struct qt_codec_list {
-  char *name;
-  char *internal_name;
-  char *comments;
+    char *name;
+    char *internal_name;
+    char *comments;
 };
 
-/* lists might be outdated */
-/*
+/* special paramters not retrievable from lqt */
 struct qt_codec_list qt_param_list[] = {
-  {"divx_bitrate", "","DIVX bitrate (default: -w <b>)"},
-  {"divx_rc_period", "","DIVX rate control (def: --divx_rc <p>"},  
-  {"divx_rc_reaction_period", "","DIVX rate control (def: --divx_rc ,<rp>"},
-  {"divx_rc_reaction_ratio", "", "DIVX rate control (def: --divx_rc ,,<rr>"},
-  {"divx_max_key_interval", "", "DIVX max keyframe interval (def: -w ,<k>"},
-  {"divx_max_quantizer", "", "DIVX maximum quantizer <0-32>"}, 
-  {"", "", "    (default: --divx_quant ,<max>)"},  
-  {"divx_min_quantizer", "", "DIVX minimum quantizer <0-32>"},
-  {"", "", "    (default: --divx_quant <min>)"},
-  {"divx_quality", "", "DIVX encoding quality (def: -Q <n>"},
-  {"quantizer", "", "DIVX quant. for vbr (divx_fix_bitrate=0)"},
-  {"", "", "    (default: --divx_quant <min>)"},
-  {"divx_fix_bitrate", "", "DIVX fixed br. encoding <1/0> (def: 0)"},
-  {"divx_use_deblocking", "", "DIVX deblocking <1/0> (def: 0)"},
-  {"jpeg_quality", "", "JPEG quality <1-100> (def: -Q * 20)"},
-  {"jpeg_usefloat", "", "JPEG use float <1/0> (def: 0)"},
-  {"mp3bitrate", "", "MP3 bitrate (default: -b <b>)"},
-  {"mp3quality", "", "MP3 quality (default: -b ,,<g>)"},
-  {"vorbis_bitrate", "", "Vorbis bitrate (default: -b <b>)"},
-  {"vorbis_vbr", "", "Vorbis vbr mode (default: -b ,<v>)"},
-  {"vorbis_max_bitrate", "", "Vorbis max. br. for vbr (def: 192)"},
-  {"vorbis_min_bitrate", "", "Vorbis min. br. for vbr (def: 128)"},
-  {"dv_anamorphic16x9", "", "??? (default: 0)"}, 
-  {"dv_vlc_encode_passes", "",  "??? (default: 3)"},
+  {"", "",  ""},
+  {"Special Parameters:", "",  ""},
   {"copyright", "",  "Copyright string (no '=' or ',' allowed)"},
   {"name", "",  "Name string (no '=' or ',' allowed) "},
+  {"info", "",  "Info string (no '=' or ',' allowed) "},
   {NULL, NULL, NULL}};
-*/
-int list_was_called = 0;
-int do_cs_conv = 0;
-
 
 
 /* print list of things. Shamelessly stolen from export_ffmpeg.c */ 
 static int list(char *list_type) 
 {
-int cod = 0;
-int i = 0;
+    int cod = 0;
+    int i = 0;
+    
+    lqt_codec_info_t ** qi = NULL;
 
-lqt_codec_info_t ** qi = NULL;
 
-
-if (list_type == QT_LIST_VIDEO) qi = lqt_query_registry(0, 1, 1, 0);
-else if (list_type == QT_LIST_AUDIO) qi = lqt_query_registry(1, 0, 1, 0);
-else
-{
-qi = lqt_query_registry(1, 1, 1, 0);
-
-}
-
-      fprintf(stderr, "[%s] List of supported %s:\n"
-              "[%s] Name                    comments\n"
-              "[%s] ---------------         ---------------------------"
-              "--------\n", MOD_NAME, list_type,  MOD_NAME, MOD_NAME);
-      while(qi[cod] != NULL)
+    if (list_type == QT_LIST_VIDEO) qi = lqt_query_registry(0, 1, 1, 0);
+    else if (list_type == QT_LIST_AUDIO) qi = lqt_query_registry(1, 0, 1, 0);
+    else {
+        qi = lqt_query_registry(1, 1, 1, 0);
+    }
+    
+    fprintf(stderr, "[%s] List of supported %s:\n"
+                    "[%s] Name                    comments\n"
+                    "[%s] ---------------         ---------------------------"
+                    "--------\n", MOD_NAME, list_type, MOD_NAME, MOD_NAME);
+    while(qi[cod] != NULL)
         {       
-        if (list_type == QT_LIST_PARM) { 
-
-              fprintf(stderr, "[%s]\n[%s] %s:\n", MOD_NAME, MOD_NAME,
-                  qi[cod]->name);
-              for(i = 0; i < qi[cod]->num_encoding_parameters; i++) {
-              if (qi[cod]->encoding_parameters[i].type != LQT_PARAMETER_SECTION) {
-                fprintf(stderr, "[%s] %-23s %s\n", MOD_NAME,
+        if (list_type == QT_LIST_PARM) {
+            fprintf(stderr, "[%s]\n[%s] %s:\n", MOD_NAME, MOD_NAME,
+                qi[cod]->name);
+            for(i = 0; i < qi[cod]->num_encoding_parameters; i++) {
+                if (qi[cod]->encoding_parameters[i].type != LQT_PARAMETER_SECTION) {
+                    fprintf(stderr, "[%s]  %-23s %s\n", MOD_NAME,
                         qi[cod]->encoding_parameters[i].name, 
                         qi[cod]->encoding_parameters[i].real_name);
-                i++;
-              }
-          }
+                }
+            }
         }
         else {
-          fprintf(stderr, "[%s] %-23s %s\n", MOD_NAME,
-                  qi[cod]->name, 
-                  qi[cod]->description);
-          
-          }
-       cod++;
-      }
+            fprintf(stderr, "[%s] %-23s %s\n", MOD_NAME,
+                qi[cod]->name, 
+                qi[cod]->description);
+        }
+        cod++;
+    }
 
 return 1;
 }
@@ -218,9 +173,14 @@ MOD_open
 
 MOD_init
 {
-  lqt_codec_info_t ** qt_codec_info = 0;
-  int jpeg_quality = 0;
 
+  int list_was_called = 0;
+
+  /* for codec parameters */  
+  int jpeg_quality = 0;
+  int div3_bitrate_tolerance = 500000;
+  int vorbis_max_bitrate = 192;        
+  int vorbis_min_bitrate = 128;
 
   /* overwriting empty parameters now saves trouble later */
   if (vob->ex_v_fcc == NULL) vob->ex_v_fcc = "";
@@ -229,14 +189,27 @@ MOD_init
 
   if (!strcasecmp(vob->ex_v_fcc, "list")) list_was_called = list(QT_LIST_VIDEO);
   if (!strcasecmp(vob->ex_a_fcc, "list")) list_was_called = list(QT_LIST_AUDIO);
-  if (!strcasecmp(vob->ex_profile_name, "list")) list_was_called = list(QT_LIST_PARM);
+  if (!strcasecmp(vob->ex_profile_name, "list")) {
+    int i;
+    
+    list_was_called = list(QT_LIST_PARM);
+
+    /* list special paramters at the end */
+    for(i = 0; qt_param_list[i].name != NULL; i++) {
+        fprintf(stderr, "[%s]  %-23s %s\n", MOD_NAME,
+            qt_param_list[i].name, 
+            qt_param_list[i].comments);
+    }
+  }
 
   if (list_was_called) {
-//return 0;
     return(TC_EXPORT_ERROR);
   }
   /* video setup -------------------------------------------------- */
   if(param->flag == TC_VIDEO) {
+
+    lqt_codec_info_t ** qt_codec_info = NULL;
+
     char *qt_codec;
     int divx_bitrate;
     
@@ -247,141 +220,122 @@ MOD_init
     /* fetch qt codec from -F switch */
     qt_codec =  strdup(vob->ex_v_fcc);
     
-    /* change codec to internal name and make  case insensitive */
-    /*while (qt_vcodecs_list[bla].name != NULL) {
-        if (!strcasecmp(vob->ex_v_fcc, qt_vcodecs_list[bla].name)) strcpy(vob->ex_v_fcc, qt_vcodecs_list[bla].internal_name);
-    bla++;
-    }    
-    */
     /* open target file for writing */
     if(NULL == (qtfile = quicktime_open(vob->video_out_file, 0, 1)) ){
-      fprintf(stderr,"[%s] error opening qt file '%s'\n",
-	      MOD_NAME,vob->video_out_file);
-      return(TC_EXPORT_ERROR);
+        fprintf(stderr,"[%s] error opening qt file '%s'\n",
+            MOD_NAME,vob->video_out_file);
+        return(TC_EXPORT_ERROR);
     }
 
     /* set qt codecs */
     /* not needed for passthrough*/
     if (vob->im_v_codec != CODEC_RAW && vob->im_v_codec != CODEC_RAW_YUV && vob->im_v_codec != CODEC_RAW_RGB) {
         if(qt_codec == NULL || strlen(qt_codec)==0) {
-          /* default */     
-          qt_codec = "mjpa";
-          if (verbose_flag != TC_QUIET) fprintf(stderr,"[%s] INFO: empty qt codec name - switching to %s use '-F list'\n[%s]       to get a list of supported codec \n", MOD_NAME, qt_codec, MOD_NAME);
-        }
-        
-        /* check frame format */
-        if (!strcmp(qt_codec, "cvid")){
-                if( ((w%16)!=0) || ((h%16)!=0) ) {
-                    fprintf(stderr,"[%s] width/height must be multiples of 16\n",
-                            MOD_NAME);
-                    fprintf(stderr,"[%s] Try the -j option\n",
-        	            MOD_NAME);
-                    return(TC_EXPORT_ERROR);
-                }
+            /* default */     
+            qt_codec = "mjpa";
+            if (verbose_flag != TC_QUIET) {
+                fprintf(stderr, "[%s] INFO: Empty qt codec name. Switching to %s use '-F list'\n"
+                                "[%s]       to get a list of supported codec. \n", 
+                    MOD_NAME, qt_codec, MOD_NAME);
+            }
         }
 
-
-        /* check if we can encode with this codec */    
+        /* check if we can encode with this codec */
         qt_codec_info = lqt_find_video_codec_by_name(qt_codec);
-        if (!qt_codec_info){
-        fprintf(stderr,"[%s] qt video codec '%s' unsupported\n",
+        if (!qt_codec_info) {
+        fprintf(stderr,"[%s] qt video codec '%s' not supported!\n",
             MOD_NAME,qt_codec);
             return(TC_EXPORT_ERROR);
         }
 
         /* set proposed video codec */
-        lqt_set_video(qtfile, 1, w, h, vob->ex_fps,qt_codec_info[0]); 
-
-
+        lqt_set_video(qtfile, 1, w, h, vob->ex_fps,qt_codec_info[0]);
     }
 
     /* set color model */
     switch(vob->im_v_codec) {
         case CODEC_RGB:
-              /* use raw mode when possible */                      /* not working */
-              /*if (strcmp(qt_codec, "raw ")) rawVideo=1; */
-              quicktime_set_cmodel(qtfile, 9); qt_cm = 9;
-              break;
+            quicktime_set_cmodel(qtfile, BC_RGB888); qt_cm = BC_RGB888;
+            break;
               
         case CODEC_YUV:
-              /* use raw mode when possible */                      /* not working*/
-              /* if (strcmp(qt_codec, "yv12")) rawVideo=1; */       
-              /*fprintf(stderr," using yuv420\n");*/
-              quicktime_set_cmodel(qtfile, 7); qt_cm = 7;        
-              break;
+            /*fprintf(stderr," using yuv420\n");*/
+            quicktime_set_cmodel(qtfile, BC_YUV420P); qt_cm = BC_YUV420P;
+            break;
 
         case CODEC_YUV422:
-              /*fprintf(stderr," using yuv422\n"); */                 
-              quicktime_set_cmodel(qtfile, 19); qt_cm = 19;
-              break;
+            /*fprintf(stderr," using yuv422\n"); */
+            quicktime_set_cmodel(qtfile, BC_YUV422); qt_cm = BC_YUV422;
+            break;
                          
         case CODEC_YUY2:
-              /*fprintf(stderr," using yuy2\n");*/
-              quicktime_set_cmodel(qtfile, 19); qt_cm = CODEC_YUY2;
-              break;                         
-         
+            /*fprintf(stderr," using yuy2\n");*/
+            quicktime_set_cmodel(qtfile, BC_YUV422); qt_cm = CODEC_YUY2;
+            break;
+
          /* passthrough */
-         case CODEC_RAW_RGB:
-         case CODEC_RAW_YUV:
-         case CODEC_RAW:
-                            fprintf(stderr,"INFO: codec '%lx' used for pass-through\n", vob->codec_flag);
-                /* set out output codec to input codec */ 
-                if(qt_codec == NULL || strlen(qt_codec)==0) {         
-                    switch (vob->codec_flag){
-                        case TC_CODEC_MJPG:
-                            quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"jpeg"); 
-                            break;
+        case CODEC_RAW_RGB:
+        case CODEC_RAW_YUV:
+        case CODEC_RAW:
+            /* set out output codec to input codec */ 
+            if(qt_codec == NULL || strlen(qt_codec)==0) {
+                switch (vob->codec_flag) {
+                    case TC_CODEC_MJPG:
+                        quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"jpeg");
+                        break;
 
-                        case TC_CODEC_MPEG:
-                            quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"mpeg"); 
-                            break;
-                        
-                        case TC_CODEC_DV:
-                            quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"dvc "); 
-                            break;
+                    case TC_CODEC_MPEG:
+                        quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"mpeg");
+                        break;
 
-                        case TC_CODEC_SVQ1:
-                            quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"SVQ1"); 
-                            break;            
-            
-                        case TC_CODEC_SVQ3:
-                            quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"SVQ3"); 
-                            break;        
+                    case TC_CODEC_DV:
+                        quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"dvc ");
+                        break;
 
-                        case TC_CODEC_YV12:
-                            quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"yv12"); 
-                            break;
-                            
-                        case TC_CODEC_RGB:
-                            quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"raw "); 
-                            break;
-                            
-                        case TC_CODEC_YUV2: /* test this */
-                            quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"yuv2"); 
-                            break;
-                            
-                        case TC_CODEC_DIVX3:                        
-                        case TC_CODEC_DIVX4:                        
-                        case TC_CODEC_DIVX5:
-                            quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"DIVX"); 
-                            break;
-                        
-                        default:
-                            fprintf(stderr,"[%s] ERROR: codec '%lx' not supported for pass-through\n",
-                                MOD_NAME,   vob->codec_flag);
-                            fprintf(stderr,"[%s]        If you really know what you are doing you can force \n[%s]        a codec via -F <vc>, '-F list' gives you a list\n", MOD_NAME, MOD_NAME);                            
-                            return(TC_EXPORT_ERROR);
-                            break;
-                    }
+                    case TC_CODEC_SVQ1:
+                        quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"SVQ1");
+                        break;
+
+                    case TC_CODEC_SVQ3:
+                        quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"SVQ3");
+                        break;
+
+                    case TC_CODEC_YV12:
+                        quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"yv12");
+                        break;
+
+                    case TC_CODEC_RGB:
+                        quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"raw ");
+                        break;
+
+                    case TC_CODEC_YUV2: /* test this */
+                        quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"yuv2");
+                        break;
+
+                    case TC_CODEC_DIVX3:
+                    case TC_CODEC_DIVX4:
+                    case TC_CODEC_DIVX5:
+                        quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"DIVX");
+                        break;
+
+                    default:
+                        fprintf(stderr, "[%s] ERROR: codec '%lx' not supported for pass-through\n"
+                                        "[%s]        If you really know what you are doing you can force \n"
+                                        "[%s]        a codec via -F <vc>, '-F list' returns a list\n", 
+                            MOD_NAME, vob->codec_flag, MOD_NAME, MOD_NAME);
+                        return(TC_EXPORT_ERROR);
+                        break;
                 }
-                else {
-                        fprintf(stderr,"[%s] WARNING: Overriding the output codec is almost never a good idea\n",
-                            MOD_NAME);
-                        quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,qt_codec);                        
-                }
-              /*fprintf(stderr," using vid\n"); */ 
-              rawVideo = 1;
-              break;
+            }
+            else {
+                fprintf(stderr,"[%s] WARNING: Overriding the output codec is almost never a good idea\n",
+                    MOD_NAME);
+                quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,qt_codec);
+            }
+
+            /*fprintf(stderr," using vid\n"); */
+            rawVideo = 1;
+            break;
               
         default:
             /* unsupported internal format */
@@ -389,169 +343,174 @@ MOD_init
                 MOD_NAME,vob->ex_v_codec);
             return(TC_EXPORT_ERROR);
             break;
-       }
+    }
     
-        /* Inform user about qt's internal cs conversation */
-        /* not required for pass through */
-        if (vob->im_v_codec != CODEC_RAW && vob->im_v_codec != CODEC_RAW_YUV && vob->im_v_codec != CODEC_RAW_RGB) {        
-            if (quicktime_writes_cmodel(qtfile, qt_cm ,0) != 1){ 
-                    if (verbose_flag != TC_QUIET) fprintf(stderr,"[%s] INFO: Colorspace conversation required you may want to try\n[%s]       a different mode (rgb, yuv, uyvy) to speed up encoding\n", MOD_NAME, MOD_NAME);
-            }
+    /* Inform user about lqts internal cs conversation */
+    /* not required for pass through */
+    if (vob->im_v_codec != CODEC_RAW && vob->im_v_codec != CODEC_RAW_YUV && vob->im_v_codec != CODEC_RAW_RGB) {
+        if (quicktime_writes_cmodel(qtfile, qt_cm ,0) != 1) { 
+                if (verbose_flag != TC_QUIET)
+                    fprintf(stderr,"[%s] INFO: Colorspace conversation required you may want to try\n"
+                                   "[%s]       a different mode (rgb, yuv, uyvy) to speed up encoding\n", 
+                        MOD_NAME, MOD_NAME);
         }
-        
+    }
 
-        // TODO: port this to lqt api
+    /* set codec parameters */
+    /* tc uses kb */
+    divx_bitrate = vob->divxbitrate * 1000; 
+    /* if max bitrate > bitrate  use difference for bitrate tolerance */        
+    if (vob->video_max_bitrate > vob->divxbitrate) div3_bitrate_tolerance = (vob->video_max_bitrate - vob->divxbitrate) * 1000;
 
-        /* set codec parameters */
-        divx_bitrate = vob->divxbitrate * 1000; /* tc uses kb */
+    
+    /* Audio */    
+    /* must be changed when it's changed in lqt; "bit_rate" conflicts with ffmpeg video codec */
+    if (strcmp(qt_codec,"ffmpeg_mp2") == 0||
+        strcmp(qt_codec,"ffmpeg_mp3") == 0||
+        strcmp(qt_codec,"ffmpeg_ac3") == 0) 
+        quicktime_set_parameter(qtfile, "bit_rate", &vob->mp3bitrate);
+    
+    if (strcmp(qt_codec,"lame") == 0)
+        quicktime_set_parameter(qtfile, "mp3_bitrate", &vob->mp3bitrate);
+    
+    /* have to check this */
+    if (strcmp(qt_codec,"vorbis") == 0) {
+        quicktime_set_parameter(qtfile, "vorbis_bitrate", &vob->mp3bitrate);
+        quicktime_set_parameter(qtfile, "vorbis_max_bitrate", &vorbis_max_bitrate);
+        quicktime_set_parameter(qtfile, "vorbis_min_bitrate", &vorbis_min_bitrate);
+        quicktime_set_parameter(qtfile, "vorbis_vbr", &vob->a_vbr);
+    }
+    
+    /* Video */    
+    /* jpeg_quality == 0-100 ; tc quality setting (-Q) ==  1-5 */
+    jpeg_quality = 20 * vob->divxquality;
+    
+    if (strcmp(qt_codec,"mjpa") == 0||
+        strcmp(qt_codec,"jpeg") == 0)
+        quicktime_set_parameter(qtfile, "jpeg_quality", &jpeg_quality);
+    
+    /* looks terrible :/*/ 
+    if (strcmp(qt_codec,"ffmpeg_mjpg") == 0|| 
+        strcmp(qt_codec,"ffmpeg_h263p") == 0||
+        strcmp(qt_codec,"ffmpeg_h263") == 0||
+        strcmp(qt_codec,"ffmpeg_msmpeg4v3") == 0||
+        strcmp(qt_codec,"ffmpeg_msmpeg4v2") == 0|| 
+        strcmp(qt_codec,"ffmpeg_msmpeg4v1") == 0|| 
+        strcmp(qt_codec,"ffmpeg_msmpg1") == 0||
+        strcmp(qt_codec,"ffmpeg_mpg4") == 0){
+    
+        int min_bitrate = 0;
+    
+        quicktime_set_parameter(qtfile, "flags_gray", &vob->decolor); /* set format different for this */
+      
+        switch (vob->decolor) {
+        case 1:
+            quicktime_set_parameter(qtfile, "aspect_ratio_info", "Square");
+            break;
+      
+        case 2:
+            quicktime_set_parameter(qtfile, "aspect_ratio_info", "4:3");
+            break;
+            
+        case 3:
+            quicktime_set_parameter(qtfile, "aspect_ratio_info", "16:9");
+            break;
+      
+        default:
+            fprintf(stderr, "[%s] WARNING: Given aspect ratio not supported, using default \n",
+                MOD_NAME);
+            break;
+        }
+    
+        quicktime_set_parameter(qtfile, "flags_gray", &vob->decolor);  
+        quicktime_set_parameter(qtfile, "bit_rate", &vob->divxbitrate);
+        quicktime_set_parameter(qtfile, "bit_rate_tolerance", &div3_bitrate_tolerance);
 
-        /* if max bitrate > bitrate  use difference for bitrate tolerance */        
-        if (vob->video_max_bitrate > vob->divxbitrate) div3_bitrate_tolerance = (vob->video_max_bitrate - vob->divxbitrate) * 1000;
+        min_bitrate = vob->divxbitrate - div3_bitrate_tolerance;
+        quicktime_set_parameter(qtfile, "rc_min_rate", &min_bitrate);
+        quicktime_set_parameter(qtfile, "rc_max_rate", &vob->video_max_bitrate);        
+        quicktime_set_parameter(qtfile, "qmax", &vob->max_quantizer);
+        quicktime_set_parameter(qtfile, "qmin", &vob->min_quantizer);
 
-//        dv_anamorphic16x9 = ((vob->ex_asr<0) ? vob->im_asr:vob->ex_asr) == 3;
-
-
-/* Audio */
-if (strcmp(qt_codec,"ffmpeg_mp2") == 0||
-    strcmp(qt_codec,"ffmpeg_mp3") == 0||
-    strcmp(qt_codec,"ffmpeg_ac3") == 0)
-  quicktime_set_parameter(qtfile, "bit_rate", &vob->mp3bitrate);
-
-
-if (strcmp(qt_codec,"lame") == 0)
-  quicktime_set_parameter(qtfile, "mp3_bitrate", &vob->mp3bitrate);
-
-
-/* Video */
-  jpeg_quality = 20 * vob->divxquality;
-
-if (strcmp(qt_codec,"mjpa") == 0 ||
-    strcmp(qt_codec,"jpeg") == 0){
-
-  quicktime_set_parameter(qtfile, "jpeg_quality", &jpeg_quality);
-}
-
-
-/*if (strcmp(qt_codec,"png"))
-  quicktime_set_parameter(qtfile, "png_compression_level", 2 * vob->divxquality);
-*/
-
-/* looks terrible :/*/ 
-if (strcmp(qt_codec,"ffmpeg_mjpg") == 0|| 
-    strcmp(qt_codec,"ffmpeg_h263p") == 0||
-    strcmp(qt_codec,"ffmpeg_h263") == 0||
-    strcmp(qt_codec,"ffmpeg_msmpeg4v3") == 0||
-    strcmp(qt_codec,"ffmpeg_msmpeg4v2") == 0|| 
-    strcmp(qt_codec,"ffmpeg_msmpeg4v1") == 0|| 
-    strcmp(qt_codec,"ffmpeg_msmpg1") == 0||
-    strcmp(qt_codec,"ffmpeg_mpg4") == 0){
-
-  int min_bitrate = 0;
-
-  quicktime_set_parameter(qtfile, "flags_gray", &vob->decolor); // probably set format different here
-  
-  switch (vob->decolor) {
-  case 1:
-          quicktime_set_parameter(qtfile, "aspect_ratio_info", "Square");
-          break;
-  
-  case 2:
-          quicktime_set_parameter(qtfile, "aspect_ratio_info", "4:3");
-          break;
-  
-  case 3:
-          quicktime_set_parameter(qtfile, "aspect_ratio_info", "16:9");
-          break;
-  
-  default:
-          fprintf(stderr, "[%s] WARNING: Given aspect ratio not supported, using default \n",
-                              MOD_NAME);
-          break;
-  }
-  
-
-  quicktime_set_parameter(qtfile, "flags_gray", &vob->decolor);  
-  quicktime_set_parameter(qtfile, "bit_rate", &vob->divxbitrate);
-
-
-  min_bitrate = vob->divxbitrate - div3_bitrate_tolerance;
-  quicktime_set_parameter(qtfile, "rc_min_rate", &min_bitrate);
-  quicktime_set_parameter(qtfile, "qmax", &vob->max_quantizer);
-  
-  if (!strcmp(qt_codec,"ffmpeg_mjpg"))
-    quicktime_set_parameter(qtfile, "gob_size", &vob->divxkeyframes);
-}
-
-if (strcmp(vob->ex_v_fcc,"opendivx") == 0) {
+      
+        if (!strcmp(qt_codec,"ffmpeg_mjpg"))
+            quicktime_set_parameter(qtfile, "gob_size", &vob->divxkeyframes);
+    }
+    
+    if (strcmp(vob->ex_v_fcc,"opendivx") == 0) {
         quicktime_set_parameter(qtfile, "divx_bitrate", &divx_bitrate);
+        quicktime_set_parameter(qtfile, "divx_rc_period", &vob->rc_period);
+        quicktime_set_parameter(qtfile, "divx_rc_reaction_period", &vob->rc_reaction_period);
         quicktime_set_parameter(qtfile, "divx_rc_reaction_ratio", &vob->rc_reaction_ratio);
         quicktime_set_parameter(qtfile, "divx_max_key_interval", &vob->divxkeyframes);
         quicktime_set_parameter(qtfile, "divx_min_quantizer", &vob->min_quantizer);
+        quicktime_set_parameter(qtfile, "divx_max_quantizer", &vob->max_quantizer);
+        quicktime_set_parameter(qtfile, "divx_quantizer", &vob->min_quantizer);
         quicktime_set_parameter(qtfile, "divx_quality", &vob->quality);
-}
-
-
-if (strcmp(qt_codec,"rtjpeg") == 0)
+    }
+    
+    if (strcmp(qt_codec,"rtjpeg") == 0)
         quicktime_set_parameter(qtfile, "rtjpeg_quality", &jpeg_quality);
 
-if (strcmp(qt_codec,"vorbis") == 0){
-        quicktime_set_parameter(qtfile, "vorbis_bitrate", &vob->mp3bitrate);
-        quicktime_set_parameter(qtfile, "vorbis_max_bitrate", &vorbis_max_bitrate);     
-        quicktime_set_parameter(qtfile, "vorbis_min_bitrate", &vorbis_min_bitrate); 
-        quicktime_set_parameter(qtfile, "vorbis_vbr", &vob->a_vbr);
-}
 
-        /* set extended parameters */
-        if (vob->ex_profile_name != NULL) {  /* check for extended option */
-            char  param[strlen(vob->ex_profile_name)], 
-                     qtvalue[strlen(vob->ex_profile_name)]; 
+    /* set extended parameters */
+    if (vob->ex_profile_name != NULL) {  /* check for extended option */
+        char param[strlen(vob->ex_profile_name)], 
+             qtvalue[strlen(vob->ex_profile_name)]; 
             
-            int j = 0; int i,k = 0; int qtvalue_i = 0;
+        int k = 0;
+        int i, j = 0;
+        int qtvalue_i = 0; /* for int values */ 
             
-            for(i=0;i<=strlen(vob->ex_profile_name);i++,j++) {
-                /* try to catch bad input */
-                if ( vob->ex_profile_name[i] == ',' ){
-                  fprintf(stderr,"[%s] bad -F option found \n", MOD_NAME);
-                  fprintf(stderr,"[%s] try something like this: \"-F vc,ac,opt1=val,opt2=val...\"\n",MOD_NAME);
+        for(i=0;i<=strlen(vob->ex_profile_name);i++,j++) {
+            /* try to catch bad input */
+            if (vob->ex_profile_name[i] == ','){
+                fprintf(stderr, "[%s] bad -F option found \n"
+                                "[%s] try something like this: \"-F vc,ac,opt1=val,opt2=val...\"\n",
+                    MOD_NAME, MOD_NAME);
                 return(TC_EXPORT_ERROR);
-                break;          
-                }
-                if ( vob->ex_profile_name[i] == '=' ) {
-                    param[j] = (char)NULL;
-                    j=-1; /* set to 0 by for loop above */
-                        for(i++,k=0;i<=strlen(vob->ex_profile_name), vob->ex_profile_name[i] != (char)NULL ;i++,k++) {
-                            /* try to catch bad input */        
-                            if ( vob->ex_profile_name[i] == '=' ){
-                              fprintf(stderr,"[%s] bad -F option found, aborting ...\n",MOD_NAME);
-                              fprintf(stderr,"[%s] try something like this: \"-F vc,ac,opt1=val,opt2=val...\"\n",MOD_NAME);
-                            return(TC_EXPORT_ERROR);
-                            break;
-                            }
-                            if ( vob->ex_profile_name[i] != ',' ) qtvalue[k] = vob->ex_profile_name[i];
-                            else break;
-                        }
-                        
-                    qtvalue[k] = (char)NULL;
-                    /* exception for copyright, name, info */
-                    if (strcmp(param, "copyright") == 0 || strcmp(param, "name") == 0) { /* everything else is assumed to be int */
-                        /* odd ... copyright and name are switched and info overwrites everything  "scratches head" */
-                        if (strcmp(param, "name")) quicktime_set_copyright(qtfile, qtvalue);
-                        if (strcmp(param, "copyright")) quicktime_set_name(qtfile, qtvalue);                    
-                        /*if (strcmp(param, "info")) quicktime_set_info(qtfile, qtvalue);*/   
+                break;
+            }
+            if (vob->ex_profile_name[i] == '=') {
+                param[j] = (char)NULL;
+                j=-1; /* set to 0 by for loop above */
+                
+                for(i++,k=0;i<=strlen(vob->ex_profile_name), vob->ex_profile_name[i] != (char)NULL;i++,k++) {
+                    /* try to catch bad input */        
+                    if (vob->ex_profile_name[i] == '=') {
+                        fprintf(stderr, "[%s] bad -F option found, aborting ...\n"
+                                        "[%s] try something like this: \"-F vc,ac,opt1=val,opt2=val...\"\n",
+                            MOD_NAME, MOD_NAME);
+                        return(TC_EXPORT_ERROR);
+                        break;
                     }
-                    else {
-                        qtvalue_i = atoi(qtvalue);
-                        quicktime_set_parameter(qtfile, param, &qtvalue_i);                 
-                    }
+                    if (vob->ex_profile_name[i] != ',') qtvalue[k] = vob->ex_profile_name[i];
+                    else break;
                 }
-                else param[j] = vob->ex_profile_name[i];
-            } /* for */
-        } /* if ex opt == 0*/
+
+                qtvalue[k] = (char)NULL;
+                /* exception for copyright, name, info */
+                /* everything else is assumed to be of type int */
+                if (strcmp(param, "copyright") == 0||
+                    strcmp(param, "name") == 0||
+                    strcmp(param, "info") == 0) { 
+                    if (strcmp(param, "name") == 0) quicktime_set_name(qtfile, qtvalue);
+                    if (strcmp(param, "copyright") == 0) quicktime_set_copyright(qtfile, qtvalue);                    
+                    if (strcmp(param, "info") == 0) quicktime_set_info(qtfile, qtvalue);
+                }
+                else {
+                    qtvalue_i = atoi(qtvalue);
+                    quicktime_set_parameter(qtfile, param, &qtvalue_i);                 
+                }
+            }
+            else param[j] = vob->ex_profile_name[i];
+        }
+    }
 
     /* alloc row pointers for frame encoding */
     row_ptr = malloc (sizeof(char *) * h);        
 
-    /* same for temp buffer*/
+    /* same for temp buffer ... used during yuy2 encoding*/
     tmp_buf = malloc (w*h*2);
 
     /* verbose */
@@ -566,14 +525,14 @@ if (strcmp(qt_codec,"vorbis") == 0){
     char *qt_codec;
     lqt_codec_info_t ** qt_codec_info = 0;
 
-    /* no audio setup if we don't have any channels (checking size == 0 might be better?)*/
+    /* no audio setup if we don't have any channels (size == 0 might be better?)*/
     if(vob->dm_chan==0) return 0;
-   
+
     /* check given audio format */
     if((vob->dm_chan!=1)&&(vob->dm_chan!=2)) {
-      fprintf(stderr,"[%s] Only mono or stereo audio supported\n",
-	      MOD_NAME);
-      return(TC_EXPORT_ERROR);
+        fprintf(stderr, "[%s] Only mono or stereo audio supported\n",
+            MOD_NAME);
+        return(TC_EXPORT_ERROR);
     }
     channels = vob->dm_chan;
     bits = vob->dm_bits;
@@ -581,34 +540,38 @@ if (strcmp(qt_codec,"vorbis") == 0){
     /* fetch qt codec from -F switch */
     qt_codec = vob->ex_a_fcc;
     if(qt_codec == NULL || strlen(qt_codec)==0) {
-      qt_codec = "ima4";
-      if (verbose_flag != TC_QUIET) fprintf(stderr,"[%s] INFO: empty qt codec name - switching to %s use '-F ,list'\n[%s]       to get a list of supported codec \n", MOD_NAME, qt_codec, MOD_NAME);
+        qt_codec = "ima4";
+        if (verbose_flag != TC_QUIET) {
+            fprintf(stderr, "[%s] INFO: empty qt codec name - switching to %s use '-F ,list'\n"
+                            "[%s]       to get a list of supported codec \n", 
+                MOD_NAME, qt_codec, MOD_NAME);
+        }
     }
      
      
     /* check encoder mode */
     switch(vob->im_a_codec) {
-    case CODEC_PCM:
-      /* allocate sample buffers */
-      audbuf0 = (int16_t*)malloc(vob->ex_a_size);
-      audbuf1 = (int16_t*)malloc(vob->ex_a_size);
+        case CODEC_PCM:
+            /* allocate sample buffers */
+            audbuf0 = (int16_t*)malloc(vob->ex_a_size);
+            audbuf1 = (int16_t*)malloc(vob->ex_a_size);
 
-      /* need to encode audio */
-      rawAudio = 0;
-      break;
+            /* need to encode audio */
+            rawAudio = 0;
+            break;
 
-    default:
-      /* unsupported internal format */
-      fprintf(stderr,"[%s] unsupported internal audio format %x\n",
-	      MOD_NAME,vob->ex_v_codec);
-      return(TC_EXPORT_ERROR);
-      break;
+        default:
+            /* unsupported internal format */
+            fprintf(stderr,"[%s] unsupported internal audio format %x\n",
+                MOD_NAME,vob->ex_v_codec);
+            return(TC_EXPORT_ERROR);
+            break;
     }
 
     qt_codec_info = lqt_find_audio_codec_by_name(qt_codec);
     if (!qt_codec_info){
-    fprintf(stderr,"[%s] qt audio codec '%s' unsupported\n",
-        MOD_NAME,qt_codec);
+        fprintf(stderr,"[%s] qt audio codec '%s' unsupported\n",
+            MOD_NAME,qt_codec);
         return(TC_EXPORT_ERROR);
     }
 
@@ -638,44 +601,44 @@ MOD_encode
     /* raw mode is easy */
     if(rawVideo) {
         /* add divx keyframes if needed */
- //       if(quicktime_mpeg4_is_key(param->buffer, param->size, "DIVX") == 1) quicktime_insert_keyframe(qtfile, (int)tc_get_frames_encoded, 0);
+        if(quicktime_divx_is_key(param->buffer, param->size) == 1) quicktime_insert_keyframe(qtfile, (int)tc_get_frames_encoded, 0);
         if(quicktime_write_frame(qtfile,param->buffer,param->size,0)<0) {
             fprintf(stderr, "[%s] error writing raw video frame\n",
-		      MOD_NAME);
+                MOD_NAME);
             return(TC_EXPORT_ERROR);
         }
     }
+
     /* encode frame */
     else {
         char *ptr = param->buffer;
-        int iy,sl;      
+        int iy,sl;
 
         switch(qt_cm) {
-        case 9:
+            case BC_RGB888:
                 /* setup row pointers for RGB: inverse! */
-                sl = w*3; 
+                sl = w*3;
                 for(iy=0;iy<h;iy++){
                     row_ptr[iy] = ptr;
                     ptr += sl;
                 }
                 break;
-                
-        case 7: {
+
+            case BC_YUV420P:
                 /* setup row pointers for YUV420P: inverse! */
                 row_ptr[0] = ptr;
                 ptr = ptr + (h * w);
-                row_ptr[1] = ptr;  
+                row_ptr[2] = ptr;  
                 ptr = ptr + (h * w )/4;
-                row_ptr[2] = ptr;
+                row_ptr[1] = ptr;
                 break;
-                }
-              
-        case CODEC_YUY2:
-        case 19:
-                /* setup row pointers for YUV422: inverse */
+
+            case CODEC_YUY2:
+            case BC_YUV422:
+                /* setup row pointers for YUV422: inverse ?*/
                 sl = w*2;                        
                 if (qt_cm != CODEC_YUY2){
-                    /* convert uyvy to yuy2 */   /* nts find out if qt supports uyvy byteorder */ 
+                    /* convert uyvy to yuy2 */   /* find out if lqt supports uyvy byteorder */ 
                     uyvytoyuy2(ptr, tmp_buf, w, h);
                     ptr = tmp_buf;
                 }
@@ -686,68 +649,73 @@ MOD_encode
                 break;
         }
 
-  if(quicktime_encode_video(qtfile, row_ptr, 0)<0) {
-	fprintf(stderr, "[%s] error encoding video frame\n",MOD_NAME);
-	return(TC_EXPORT_ERROR);
-      }
+        if(quicktime_encode_video(qtfile, row_ptr, 0)<0) {
+            fprintf(stderr, "[%s] error encoding video frame\n",MOD_NAME);
+            return(TC_EXPORT_ERROR);
+        }
     }
+
     return(0);
   }  
   /* audio -------------------------------------------------------- */
   if(param->flag == TC_AUDIO){
     /* raw mode is easy */
     if(rawAudio) {
-      if(quicktime_write_frame(qtfile,
-			       param->buffer,param->size,0)<0) {
-	fprintf(stderr, "[%s] error writing raw audio frame\n",
-		MOD_NAME);
-	return(TC_EXPORT_ERROR);
-      }
+        if(quicktime_write_frame(qtfile,
+            param->buffer,param->size,0)<0) {
+            fprintf(stderr, "[%s] error writing raw audio frame\n",
+                MOD_NAME);
+            return(TC_EXPORT_ERROR);
+        }
     }
     /* encode audio */
     else {
-      int s,t;
-      int16_t *aptr[2] = { audbuf0, audbuf1 };
+        int s,t;
+        int16_t *aptr[2] = { audbuf0, audbuf1 };
 
-      /* calc number of samples */
-      int samples = param->size;
+        /* calc number of samples */
+        int samples = param->size;
 
-      if (samples == 0) return 0;
-      if(bits==16)
-	samples >>= 1;
-      if(channels==2)
-	samples >>= 1;
+        /* no audio */
+        if (samples == 0) return 0;
 
-      /* fill audio buffer */
-      if(bits==8) {
-	/* UNTESTED: please verify :) */
-	if(channels==1) {
-	  for(s=0;s<samples;s++) 
-	    audbuf0[s] = ((((int16_t)param->buffer[s]) << 8)-0x8000);
-	} else /* stereo */ {
-	  for(s=0,t=0;s<samples;s++,t+=2) {
-	    audbuf0[s] = ((((int16_t)param->buffer[t]) << 8)-0x8000);
-	    audbuf1[s] = ((((int16_t)param->buffer[t+1]) << 8)-0x8000);
-	  }
-	}
-      }
-      else /* 16 bit */ {
-	if(channels==1) {
-	  aptr[0] = (int16_t *)param->buffer;
-	} else /* stereo */ {
-	  /* decouple channels */
-	  for(s=0,t=0;s<samples;s++,t+=2) {
-	    audbuf0[s] = ((int16_t *)param->buffer)[t];
-	    audbuf1[s] = ((int16_t *)param->buffer)[t+1];
-	  }
-	}
-      }
+        if(bits==16)
+            samples >>= 1;
+        if(channels==2)
+            samples >>= 1;
 
-      /* encode audio samples */
-      if ((quicktime_encode_audio(qtfile, aptr, NULL, samples)<0)){
-	fprintf(stderr,"[%s] error encoding audio frame\n",MOD_NAME);
-	return(TC_EXPORT_ERROR);
-      }
+        /* fill audio buffer */
+        if(bits==8) {
+            /* UNTESTED: please verify :) */
+            if(channels==1) {
+                for(s=0;s<samples;s++) 
+                    audbuf0[s] = ((((int16_t)param->buffer[s]) << 8)-0x8000);
+            } 
+            else /* stereo */ {
+                for(s=0,t=0;s<samples;s++,t+=2) {
+                    audbuf0[s] = ((((int16_t)param->buffer[t]) << 8)-0x8000);
+                    audbuf1[s] = ((((int16_t)param->buffer[t+1]) << 8)-0x8000);
+                }
+            }
+        }
+        else /* 16 bit */ {
+            if(channels==1) {
+                aptr[0] = (int16_t *)param->buffer;
+            } 
+            else /* stereo */ {
+                /* decouple channels */
+                for(s=0,t=0;s<samples;s++,t+=2) {
+                    audbuf0[s] = ((int16_t *)param->buffer)[t];
+                    audbuf1[s] = ((int16_t *)param->buffer)[t+1];
+                }
+            }
+        }
+        
+        /* encode audio samples */
+        if ((quicktime_encode_audio(qtfile, aptr, NULL, samples)<0)){
+            fprintf(stderr,"[%s] error encoding audio frame\n",MOD_NAME);
+            return(TC_EXPORT_ERROR);
+        }
     }
         
     return(0);
@@ -769,16 +737,16 @@ MOD_stop
   if(param->flag == TC_VIDEO) {
     /* free row pointers */
     if(row_ptr!=NULL)
-      free(row_ptr);
+        free(row_ptr);
     return(0);
   }
   
   if(param->flag == TC_AUDIO) {
     /* free audio buffers */
     if(audbuf0!=NULL)
-      free(audbuf0);
+        free(audbuf0);
     if(audbuf1!=NULL)
-      free(audbuf1);
+        free(audbuf1);
     return(0);
   }
   
@@ -807,6 +775,3 @@ MOD_close
   return(TC_EXPORT_ERROR);
   
 }
-
-
-

@@ -1,5 +1,17 @@
 transcode-0.13-pre2 EMS
 
+2004-08-14 Stefan Scheffler <stefanscheffler at gmx dot net>
+  * export/export.mov.c:
+  The promised cleanup. It's quite large but the changes are mostly 
+  cosmetical (indentions, line breaks etc. ).
+  
+  - get rid of a lot of cruft from the qt4l days
+  - corrections in the parameter listing
+  - corrections in the parameter assignment
+  - copyright, name, info fields assignment fixed
+  - swap u/v planes in yuv mode. Libquicktime seems to prefer that.
+  - and few more minor things that I can't remember
+
 transcode-0.13-pre1 EMS
 
 2004-08-13 Jacob Meuser <jakemsr at jakemsr dot com>
