@@ -688,7 +688,17 @@ void probe_pes(info_t *ipipe)
 		
 		if(has_pts_dts) {
 		  
+		  /* 
+		   I have no idea why the has_audio==0 is there. It seems to
+		   cause problems at least for:
+		   http://lists.exit1.org/pipermail/transcode-devel/2003-October/000004.html
+		   I'll remove it until someone complains -- tibit
+		   */
+#if 0
 		  if(ipipe->probe_info->pts_start==0 || has_audio==0) {
+#else
+		  if(ipipe->probe_info->pts_start==0) {
+#endif
 		    ipipe->probe_info->pts_start=(double)i_pts/90000.0;
 		    initial_sync=1;
 		  }

@@ -42,6 +42,12 @@ transcode-0.6.11
   Upgraded -y xvid4 to the latest API
 
 
+2003-10-14 Helge Klein <hklein at como.com>
+
+  * import/scan_pes.c:
+  Change the way the timestamps (PTS) are probed for a vob file
+  If it breaks for you, please complain.
+
 2003-10-14 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/transcode.c:
