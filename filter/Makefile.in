@@ -69,7 +69,7 @@ CCAS = @CCAS@
 CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
 
-CFLAGS = -D_REENTRANT @CFLAGS@
+CFLAGS = -D_REENTRANT @CFLAGS@ $(ALTIVEC)
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
@@ -333,6 +333,9 @@ pkgdir = @MOD_PATH@
 @HAVE_FREETYPE2_TRUE@F_TEXT = filter_text.la
 
 @HAVE_MAGICK_TRUE@F_LOGO = filter_logo.la filter_logoaway.la filter_compare.la
+@CAN_COMPILE_C_ALTIVEC_TRUE@@SYSTEM_DARWIN_FALSE@ALTIVEC = -maltivec -mabi=altivec
+
+@CAN_COMPILE_C_ALTIVEC_TRUE@@SYSTEM_DARWIN_TRUE@ALTIVEC = -faltivec
 
 pkg_LTLIBRARIES = filter_null.la\
 			filter_invert.la\

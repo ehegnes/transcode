@@ -1,6 +1,14 @@
 --------------------------------------------
 transcode-0.6.11
 
+2003-10-06 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/Makefile.am filter/filter_smartyuv.c:
+  Small Altivec-optimised parts, gives about 3 fps on a ppc
+  platform. Changed the padding of the moving map to be always a
+  multiple of 16 which might give speed enhancements on other
+  platforms as well.
+
 2003-10-06 Wolfgang Hoffmann <woho at woho.de>
 
   * import/import_xml.c:

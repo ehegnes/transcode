@@ -5,8 +5,6 @@ DEFAULT_INCLUDES = -I$(top_srcdir) -I$(srcdir) -I$(top_builddir) -I.
 
 INCLUDES = -I./ -I../src -I$(srcdir)/../src -I../avilib -I$(srcdir)/../avilib @AVIFILE_CFLAGS@ @LAME_CFLAGS@ -I../libac3 -I$(srcdir)/../libac3 @LIBPOSTPROC_CFLAGS@ @MAGICK_CFLAGS@ @FT2_CFLAGS@
 
-CFLAGS = -D_REENTRANT @CFLAGS@
-
 pkgdir=@MOD_PATH@
 
 if HAVE_LIBPOSTPROC
@@ -28,6 +26,16 @@ endif
 if HAVE_MAGICK
 F_LOGO=filter_logo.la filter_logoaway.la filter_compare.la
 endif
+
+if CAN_COMPILE_C_ALTIVEC
+if SYSTEM_DARWIN
+ALTIVEC=-faltivec
+else
+ALTIVEC=-maltivec -mabi=altivec
+endif
+endif
+
+CFLAGS = -D_REENTRANT @CFLAGS@ $(ALTIVEC)
 
 pkg_LTLIBRARIES = 	filter_null.la\
 			filter_invert.la\

@@ -21,7 +21,7 @@
 */
 
 #define MOD_NAME    "filter_smartyuv.so"
-#define MOD_VERSION "0.1.2 (2003-08-28)"
+#define MOD_VERSION "0.1.3 (2003-10-05)"
 #define MOD_CAP     "Motion-adaptive deinterlacing"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
@@ -46,9 +46,12 @@
 #include "optstr.h"
 
 //#undef HAVE_MMX
+//#undef CAN_COMPILE_C_ALTIVEC
 
 // mmx gives a speedup of about 3 fps
 // when running without highq, mmx gives 12 fps
+
+// altivec does not give much, about 1 fps
 
 #ifdef HAVE_MMX
 # include "mmx.h"
@@ -59,6 +62,7 @@
 #endif
 
 #define rdtscll(val) __asm__ __volatile__("rdtsc" : "=A" (val))
+
 
 static vob_t *vob=NULL;
 
@@ -80,11 +84,56 @@ static vob_t *vob=NULL;
 #define CHROMA_THRESHOLD 7
 #define SCENE_THRESHOLD 31
 
+// We pad the moving maps with 16 pixels left and right, to make sure
+// that we always can do aligned loads and stores at a multiple of 16.
+// this is especially important when doing altivec but might help in 
+// other cases as well.
+#define PAD 32
+
 static unsigned char clamp_Y(unsigned char x) {
 	return (x>MAX_Y?MAX_Y:(x<MIN_Y?MIN_Y:x));
 }
 static unsigned char clamp_UV(unsigned char x) {
 	return (x);
+}
+
+
+/*
+size: 1-32
+count: 1-256
+stride: -32000 - 320000
+*/
+
+static unsigned int get_prefetch_const (int blocksize_in_vectors, int block_count, int block_stride) 
+{
+    return ((blocksize_in_vectors<<24)&0x1F000000) | 
+	   ((block_count<<16)&0x00FF0000)          |
+	    (block_stride&0xFFFF);
+}
+
+static unsigned char *bufalloc(size_t size)
+{
+
+#ifdef HAVE_GETPAGESIZE
+   int buffer_align=getpagesize();
+#else
+   int buffer_align=16;
+#endif
+
+   char *buf = malloc(size + buffer_align);
+
+   int adjust;
+
+   if (buf == NULL) {
+       fprintf(stderr, "(%s) out of memory", __FILE__);
+   }
+   
+   adjust = buffer_align - ((int) buf) % buffer_align;
+
+   if (adjust == buffer_align)
+      adjust = 0;
+
+   return (unsigned char *) (buf + adjust);
 }
 
 static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int _height, 
@@ -152,12 +201,11 @@ static void help_optstr(void)
    printf ("     'verbose' Verbose mode (0=off 1=on) [1]\n");
 
 }
-
 static void Erode_Dilate (uint8_t *_moving, uint8_t *_fmoving, int width, int height)
 {
     int sum, x, y;
     uint8_t  *m, *fmoving, *moving, *p;
-    int w4 = width+4;
+    int w4 = width+PAD;
     int can_use_mmx = !(width%4);
 
     // Erode.
@@ -232,9 +280,9 @@ static void Erode_Dilate (uint8_t *_moving, uint8_t *_fmoving, int width, int he
 		p += 4;
 
 	    }
-	    fmoving += 4;
-	    moving += 4;
-	    p += 4;
+	    fmoving += PAD;
+	    moving += PAD;
+	    p += PAD;
 	} else 
 #endif
 	{
@@ -345,6 +393,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	int			cubic = mfd->cubic;
 	static int 		counter=0;
 	const int		can_use_mmx = !(w%8); // width must a multiple of 8
+	const int		can_use_altivec = !(w%16); // width must a multiple of 16
 
 
 	char * dst_buf;
@@ -361,8 +410,9 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	src = src_buf + srcpitch;
 	srcminus = src - srcpitch;
 	srcplus = src + srcpitch;
-	moving = _moving + w+4;
+	moving = _moving + w+PAD;
 	prev = _prev + w;
+	//printf("Aligned src %p prev %p moving %p\n", src, prev, moving);
 
 	if (mfd->diffmode == FRAME_ONLY || mfd->diffmode == FRAME_AND_FIELD)
 	{
@@ -426,11 +476,69 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 
 			}
 
-			moving += 4;
+			moving += PAD;
 		    }
 		    emms();
 
 		  }  else  // cannot use mmx
+#elif CAN_COMPILE_C_ALTIVEC
+		  if (can_use_altivec) {
+#if 0
+		      typedef union {
+			  vector unsigned char v;
+			  unsigned char e[16];
+		      } uchar_t;
+		      uchar_t res;
+		      //printf("mov: "); for (i=0; i<16;i++) printf("%02x ", res.e[i]&0xff);  printf("\n");
+#endif
+
+		      vector unsigned char vthres;
+		      vector unsigned char shift = vec_splat_u8(7);
+		      unsigned char __attribute__ ((aligned(16))) tdata[16];
+		      int i;
+		      memset(tdata, _threshold, 16);
+		      vthres = vec_ld(0, tdata);
+
+		      count = 0;
+		      for (y = 1; y < hminus1; y++)
+		      {
+			  for (x=0; x<w; x+=16) {
+
+			      vector unsigned char luma = vec_ld(0, (unsigned char *)src);
+			      vector unsigned char prv = vec_ld(0, (unsigned char *)prev);
+			      vector unsigned char vmov;
+			      vmov = vec_sub (vec_max (luma, prv), vec_min(luma, prv));
+
+			      // FF -> 01
+			      vmov = (vector unsigned char)vec_cmpgt(vmov, vthres);
+			      vmov = vec_sr(vmov, shift);
+
+			      vec_st(vmov, 0, (unsigned char *)moving);
+
+			      /* Keep a count of the number of moving pixels for the
+				 scene change detection. */
+			      for (i=0; i<16; i++) {
+				  count += *moving++;
+				  *prev++ = *src++;
+			      }
+
+			  }
+
+			  moving += PAD;
+		    }
+#if 0
+		    {
+			FILE *f = fopen("mov.dat", "w");
+			printf ("COUNT %d size1 (%d) size2 (%d)\n", count, sizeof (*moving), sizeof (unsigned char));
+			fwrite (_moving, h*w, 1, f);
+			fclose (f);
+			exit(0);
+		    }
+#endif
+
+
+		      
+		  } else
 #endif
 		  {
 		    count = 0;
@@ -452,8 +560,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 				
 			}
 
-			srcminus += srcpitch;
-			moving += 4;
+			moving += PAD;
 		    }
 		  } // cannot use mmx
 
@@ -598,15 +705,95 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 				count += *moving++;
 
 			    }
-			    srcminus += srcpitch;
 
 			}
-			moving += 4;
+			srcminus += srcpitch;
+			moving += PAD;
 		    }
 
 		    emms();
 
 		  } else // cannot use mmx
+#elif CAN_COMPILE_C_ALTIVEC_FIXME_BROKEN
+		  if (can_use_altivec) {
+
+		    vector unsigned char vthres;
+		    vector unsigned char shift = vec_splat_u8(7);
+		    unsigned char __attribute__ ((aligned(16))) tdata[16];
+		    int i;
+		    memset(tdata, _threshold, 16);
+		    vthres = vec_ld(0, tdata);
+
+		    count = 0;
+		    //printf ("Align: %p %p %p\n", src, srcminus, prev);
+		    for (y = 1; y < hminus1; y++)
+		    {
+			if (y & 1) { // odd lines
+
+			    for (x=0; x<w; x+=16) {
+
+				vector unsigned char luma = vec_ld(0, (unsigned char *)src);
+				vector unsigned char p0 = vec_ld(x, (unsigned char *)srcminus);
+				vector unsigned char p1 = vec_ld(0, (unsigned char *)prev);
+				vector unsigned char vmov;
+
+				p0 = vec_sub (vec_max (luma, p0), vec_min (luma, p0));
+				p1 = vec_sub (vec_max (luma, p1), vec_min (luma, p1));
+				p0 = (vector unsigned char)vec_cmpgt(p0, vthres);
+				p1 = (vector unsigned char)vec_cmpgt(p1, vthres);
+				vmov = vec_and(p0, p1);
+
+				// FF -> 01
+				vmov = vec_sr(vmov, shift);
+
+				vec_st(vmov, 0, (unsigned char *)moving);
+
+				/* Keep a count of the number of moving pixels for the
+				   scene change detection. */
+				for (i=0; i<16; i++) {
+				    count += *moving++;
+				    *prev++ = *src++;
+				}
+
+			    }
+
+			} else { // even lines
+
+			    for (x=0; x<w; x+=16) {
+
+				vector unsigned char luma = vec_ld(0, (unsigned char *)src);
+				vector unsigned char p0 = vec_ld(w, (unsigned char *)prev);
+				vector unsigned char p1 = vec_ld(0, (unsigned char *)prev);
+				vector unsigned char vmov;
+
+				p0 = vec_sub (vec_max (luma, p0), vec_min (luma, p0));
+				p1 = vec_sub (vec_max (luma, p1), vec_min (luma, p1));
+				vmov = vec_and(
+					(vector unsigned char)vec_cmpgt(p0, vthres), 
+					(vector unsigned char)vec_cmpgt(p1, vthres));
+
+				// FF -> 01
+				vmov = vec_sr(vmov, shift);
+
+				vec_st(vmov, 0, (unsigned char *)moving);
+
+				/* Keep a count of the number of moving pixels for the
+				   scene change detection. */
+				for (i=0; i<16; i++) {
+				    count += *moving++;
+				    *prev++ = *src++;
+				}
+			    }
+			} // odd vs. even
+
+			srcminus += srcpitch;
+			moving += PAD;
+
+		    } // height
+
+		    printf ("COUNT %d|\n", count);
+
+		  } else
 #endif
 		  {
 		    count = 0;
@@ -643,9 +830,10 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 			    } while(++x < w);
 			}
 
-			moving += 4;
+			moving += PAD;
 			srcminus += srcpitch;
 		    }
+		    //printf ("XXXCOUNT %d|\n", count);
 		  }
 		}
 
@@ -703,7 +891,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 			src = src + srcpitch;
 			srcminus = srcminus + srcpitch;
 			srcplus = srcplus + srcpitch;
-			moving += (w+4);
+			moving += (w+PAD);
 		}
 
 		/* Determine whether a scene change has occurred. */
@@ -726,7 +914,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 			{
 				for (x = 0; x < w; x++)
 				{
-					if (!((_moving + y * (w+4))[x]))
+					if (!((_moving + y * (w+PAD))[x]))
 					{
 						fmoving[x] = 0;	
 						continue;
@@ -735,7 +923,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 					xhi = x + Nover2; if (xhi >= w) xhi = wminus1;
 					ylo = y - Nover2; if (ylo < 0) ylo = 0;
 					yhi = y + Nover2; if (yhi >= h) yhi = hminus1;
-					m = _moving + ylo * (w+4);
+					m = _moving + ylo * (w+PAD);
 					sum = 0;
 					for (u = ylo; u <= yhi; u++)
 					{
@@ -750,7 +938,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 					else
 						fmoving[x] = 0;
 				}
-				fmoving += (w+4);
+				fmoving += (w+PAD);
 			}
 
 			// Dilate.
@@ -761,7 +949,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 			{
 				for (x = 0; x < w; x++)
 				{
-					if (!((_fmoving + y * (w+4))[x]))
+					if (!((_fmoving + y * (w+PAD))[x]))
 					{
 						moving[x] = 0;	
 						continue;
@@ -770,17 +958,17 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 					xhi = x + Nover2; if (xhi >= w) xhi = wminus1;
 					ylo = y - Nover2; if (ylo < 0) ylo = 0;
 					yhi = y + Nover2; if (yhi >= h) yhi = hminus1;
-					m = _moving + ylo * (w+4);
+					m = _moving + ylo * (w+PAD);
 					for (u = ylo; u <= yhi; u++)
 					{
 						for (v = xlo; v <= xhi; v++)
 						{
 							m[v] = 1;
 						}
-						m += (w+4);
+						m += (w+PAD);
 					}
 				}
-				moving += (w+4);
+				moving += (w+PAD);
 			}		
 		}
 	}
@@ -805,9 +993,9 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	}
 
 	dst = dst_buf + dstpitch;
-	moving = _moving + w+4;
+	moving = _moving + w+PAD;
 	movingminus = _moving;
-	movingplus = moving + w+4;
+	movingplus = moving + w+PAD;
 
 	/*
 	*/
@@ -875,9 +1063,9 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		}
 
 		dst = dst + dstpitch;
-		moving += (w+4);
-		movingminus += (w+4);
-		movingplus += (w+4);
+		moving += (w+PAD);
+		movingminus += (w+PAD);
+		movingplus += (w+PAD);
 	    }
 	    // The last line gets a free ride.
 	    memcpy(dst, src, w);
@@ -960,6 +1148,41 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 
 		}
 	      } else // cannot use mmx
+#elif CAN_COMPILE_C_ALTIVEC
+	      if (can_use_altivec) {
+		  unsigned char tdata[16];
+		  memset (tdata, scenechange, 16);
+		  vector unsigned char vscene = vec_ld(0, tdata);
+		  vector unsigned char vmov, vsrc2, vdest;
+		  vector unsigned char vsrc, vsrcminus, vsrcplus;
+		  vector unsigned char zero = vec_splat_u8(0);
+		  vector unsigned char ones = vec_splat_u8(1);
+		  vector unsigned char twos = vec_splat_u8(2);
+
+
+		  for (x=0; x<w; x+=16) {
+		      vmov = vec_xor(vmov, vmov);
+		      vmov = vec_or (vmov, vec_ld(x, moving));
+		      vsrc = vec_ld(x, (unsigned char *)src);
+		      vmov = vec_or (vmov, vec_ld(x, movingminus));
+		      vsrcminus = vec_ld(x-w, (unsigned char *)src);
+		      vmov = vec_or (vmov, vec_ld(x, movingplus));
+		      vsrcplus = vec_ld(x+w, (unsigned char *)src);
+		      vmov = vec_or(vmov, vscene);
+
+		      vsrc2 = vec_sr(vsrc, ones);
+		      vsrc2 = vec_add(vsrc2, vec_sr(vsrcminus, twos));
+		      vsrc2 = vec_add(vsrc2, vec_sr(vsrcplus, twos));
+		      vmov = (vector unsigned char)vec_cmpgt (vmov, zero);
+		 vdest = vec_or (vec_sel(vsrc, zero, vmov), vec_sel (vsrc2, zero, vec_nor(vmov, vmov)));
+		      vec_st(vdest, x, (unsigned char *)dst);
+		  }
+
+
+
+
+
+	      } else 
 #endif
 	      {
 		Blendline_c (dst, src, srcminus, srcplus, moving, movingminus, movingplus, w, scenechange);
@@ -970,9 +1193,9 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		srcplus += srcpitch;
 
 		dst += dstpitch;
-		moving += (w+4);
-		movingminus += (w+4);
-		movingplus += (w+4);
+		moving += (w+PAD);
+		movingminus += (w+PAD);
+		movingplus += (w+PAD);
 	    }
 	}
 	emms();
@@ -1022,9 +1245,9 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	    }
 
 	    dst += dstpitch;
-	    moving += (w+4);
-	    movingminus += (w+4);
-	    movingplus += (w+4);
+	    moving += (w+PAD);
+	    movingminus += (w+PAD);
+	    movingplus += (w+PAD);
 	}
 
 	// The last line gets a free ride.
@@ -1121,18 +1344,18 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 
 
-	mfd->buf =  malloc (width*height*3);
-	mfd->prevFrame =  malloc (width*height*3);
+	mfd->buf =  bufalloc (width*height*3);
+	mfd->prevFrame =  bufalloc (width*height*3);
 
-	msize = width*height + 4*(width+4) + 4*height;
-	mfd->movingY = (unsigned char *) malloc(sizeof(unsigned char)*msize);
-	mfd->fmovingY = (unsigned char *) malloc(sizeof(unsigned char)*msize);
+	msize = width*height + 4*(width+PAD) + PAD*height;
+	mfd->movingY = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
+	mfd->fmovingY = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
 
-	msize = width*height/4 + 4*(width+4) + 4*height;
-	mfd->movingU  = (unsigned char *) malloc(sizeof(unsigned char)*msize);
-	mfd->movingV  = (unsigned char *) malloc(sizeof(unsigned char)*msize);
-	mfd->fmovingU = (unsigned char *) malloc(sizeof(unsigned char)*msize);
-	mfd->fmovingV = (unsigned char *) malloc(sizeof(unsigned char)*msize);
+	msize = width*height/4 + 4*(width+PAD) + PAD*height;
+	mfd->movingU  = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
+	mfd->movingV  = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
+	mfd->fmovingU = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
+	mfd->fmovingV = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
 
 	if ( !mfd->movingY || !mfd->movingU || !mfd->movingV || !mfd->fmovingY || 
 	      !mfd->fmovingU || !mfd->fmovingV || !mfd->buf || !mfd->prevFrame) {
@@ -1146,11 +1369,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	memset(mfd->buf, BLACK_BYTE_Y, width*height);
 	memset(mfd->buf+width*height, BLACK_BYTE_UV, width*height/2);
 
-	msize = width*height + 4*(width+4) + 4*height;
+	msize = width*height + 4*(width+PAD) + PAD*height;
 	memset(mfd->movingY,  0, msize);
 	memset(mfd->fmovingY, 0, msize);
 
-	msize = width*height/4 + 4*(width+4) + 4*height;
+	msize = width*height/4 + 4*(width+PAD) + PAD*height;
 	memset(mfd->movingU,  0, msize);
 	memset(mfd->movingV,  0, msize);
 	memset(mfd->fmovingU, 0, msize);
@@ -1195,6 +1418,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	if(verbose) printf("[%s] "
 #ifdef HAVE_MMX
 		"(MMX) "
+#endif
+#ifdef CAN_COMPILE_C_ALTIVEC
+		"(ALTIVEC) "
 #endif
 		"%s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
 
@@ -1268,8 +1494,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	  int V  = ptr->v_width*ptr->v_height*5/4;
 	  int w2 = ptr->v_width/2;
 	  int h2 = ptr->v_height/2;
-	  int msize = ptr->v_width*ptr->v_height + 4*(ptr->v_width+4) + 4*ptr->v_height;
-	  int off = 2*(ptr->v_width+4)+2;
+	  int msize = ptr->v_width*ptr->v_height + 4*(ptr->v_width+PAD) + PAD*ptr->v_height;
+	  int off = 2*(ptr->v_width+PAD)+PAD/2;
 
 	  memset(mfd->movingY,  0, msize);
 	  memset(mfd->fmovingY, 0, msize);
@@ -1283,8 +1509,8 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
 
 	  if (mfd->doChroma) {
-	      msize = ptr->v_width*ptr->v_height/4 + 4*(ptr->v_width+4) + 4*ptr->v_height;
-	      off = 2*(ptr->v_width/2+4)+2;
+	      msize = ptr->v_width*ptr->v_height/4 + 4*(ptr->v_width+PAD) + PAD*ptr->v_height;
+	      off = 2*(ptr->v_width/2+PAD)+PAD/2;
 
 	      memset(mfd->movingU,  0, msize);
 	      memset(mfd->fmovingU, 0, msize);
