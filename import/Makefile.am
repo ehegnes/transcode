@@ -60,7 +60,7 @@ import_null_la_LDFLAGS =  -module -avoid-version
 import_ogg_la_SOURCES = import_ogg.c
 import_ogg_la_LDFLAGS =  -module -avoid-version 
 
-import_xml_la_SOURCES = import_xml.c ioxml.c probe_xml.c
+import_xml_la_SOURCES = import_xml.c ioxml.c probe_xml.c ../src/zoom.c
 import_xml_la_LDFLAGS =  -module -avoid-version 
 import_xml_la_LIBADD = -lm @LIBXML2_LIBS@
 

@@ -45,7 +45,89 @@ void probe_xml(info_t *ipipe)
 extern int binary_dump;
 
 
+int f_check_video_H_W(audiovideo_t *p_audio_video)
+{
+	audiovideo_t *p_temp;
+	int s_rc=0,s_video_tg_height=0,s_video_tg_width=0,s_v_height=0,s_v_width=0;
 
+	for (p_temp=p_audio_video;p_temp != NULL;p_temp=p_temp->p_next)
+	{
+		if (s_v_height == 0)
+			s_v_height=p_temp->s_v_height;	
+		else if (s_v_height != p_temp->s_v_height)
+			s_rc|=0x01;
+		if (s_v_width == 0)
+			s_v_width=p_temp->s_v_width;	
+		else if (s_v_width != p_temp->s_v_width)
+			s_rc|=0x02;
+		if ((p_temp->s_v_tg_height != 0) && (s_video_tg_height==0))
+			s_video_tg_height=p_temp->s_v_tg_height;
+		else if (p_temp->s_v_tg_height != 0)
+		{
+			if (p_temp->s_v_tg_height != s_video_tg_height==0)
+			{
+				fprintf(stderr,"(%s) Warning: setting target height to %d (the target must be the same for all statements)\n",__FILE__,s_video_tg_height);
+				p_temp->s_v_tg_height=s_video_tg_height;
+			}
+		}
+		if ((p_temp->s_v_tg_width != 0) && (s_video_tg_width==0))
+			s_video_tg_width=p_temp->s_v_tg_width;
+		else if (p_temp->s_v_tg_width != 0)
+		{
+			if (p_temp->s_v_tg_width != s_video_tg_width==0)
+			{
+				fprintf(stderr,"(%s) Warning: setting target width to %d (the target must be the same for all statements)\n",__FILE__,s_video_tg_width);
+				p_temp->s_v_tg_width=s_video_tg_width;
+			}
+		}
+	}
+	if (s_rc !=0)
+	{
+		if ((s_rc == 0x03) && (s_video_tg_height == 0) && (s_video_tg_width == 0))
+		{
+			fprintf(stderr,"(%s) error: the height and the width of the video tracks are different. Please specify target-width and target-height if you want to process the xml file\n",__FILE__);
+			return(1);
+		}
+		else if ((s_rc == 0x01) && (s_video_tg_height == 0))
+		{
+			fprintf(stderr,"(%s) error: the height of the video tracks are different. Please specify target-height if you want to process the xml file\n",__FILE__);
+			return(1);
+		}
+		else if ((s_rc == 0x02) && (s_video_tg_width == 0))
+		{
+			fprintf(stderr,"(%s) error: the width of the video tracks are different. Please specify target-height if you want to process the xml file\n",__FILE__);
+			return(1);
+		}
+	}
+	for (p_temp=p_audio_video;p_temp != NULL;p_temp=p_temp->p_next) //initialize all unset codec
+	{
+		if (s_video_tg_height!=0)
+			p_temp->s_v_tg_height=s_video_tg_height;	
+		if (s_video_tg_width!=0)
+			p_temp->s_v_tg_width=s_video_tg_width;	
+	}
+	return(0);
+}
+
+void f_det_totale_video_frame(audiovideo_t *p_audio_video)
+{
+	if ((p_audio_video->s_video_smpte==smpte)||(p_audio_video->s_video_smpte==smpte25))
+		p_audio_video->s_fps=25.00;
+	else if (p_audio_video->s_video_smpte==smpte30drop)
+		p_audio_video->s_fps=29.97;
+	p_audio_video->s_start_video+=(long)p_audio_video->s_start_v_time * p_audio_video->s_fps;
+	p_audio_video->s_end_video+=(long)p_audio_video->s_end_v_time * p_audio_video->s_fps;
+}
+
+void f_det_totale_audio_frame(audiovideo_t *p_audio_video)
+{
+	if ((p_audio_video->s_audio_smpte==smpte)||(p_audio_video->s_audio_smpte==smpte25))
+		p_audio_video->s_fps=25.00;
+	else if (p_audio_video->s_audio_smpte==smpte30drop)
+		p_audio_video->s_fps=29.97;
+	p_audio_video->s_start_audio+=(long)p_audio_video->s_start_a_time * p_audio_video->s_fps;
+	p_audio_video->s_end_audio+=(long)p_audio_video->s_end_a_time * p_audio_video->s_fps;
+}
 
 
 int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_first_audio,probe_info_t *p_first_video,long *s_tot_frames_audio, long *s_tot_frames_video)
@@ -107,11 +189,17 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
 				}
 				pclose(p_fd);
 				p_audio_video->s_v_real_codec=s_other_video.codec;
+				p_audio_video->s_v_width=s_other_video.width;
+				p_audio_video->s_v_height=s_other_video.height;
 				p_audio_video->s_a_real_codec=s_other_video.track[0].format;
+				p_audio_video->s_a_rate=s_other_video.track[0].samplerate;
+				p_audio_video->s_a_bits=s_other_video.track[0].bits;
+				p_audio_video->s_a_chan=s_other_video.track[0].chan;
+				p_audio_video->s_fps=s_other_video.fps;
 				if(s_other_video.magic == TC_MAGIC_UNKNOWN || s_other_video.magic == TC_MAGIC_PIPE || s_other_video.magic == TC_MAGIC_ERROR)
 				{
 					fprintf(stderr,"\n\nerror: this version of transcode supports only\n");
-					fprintf(stderr,"xml file who containing files of identical file type.\n");
+					fprintf(stderr,"xml file who containing dv avi or mov file type.\n");
 					fprintf(stderr,"Please clean up the %s file and restart.\n", ipipe->name);
 					fprintf(stderr,"file %s with filetype %s is invalid for this operation mode.\n", p_audio_video->p_nome_video, filetype(s_other_video.magic));
 					ipipe->error=1;
@@ -131,6 +219,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
 					s_first_element|=0x02;
 					memcpy(p_first_video,&s_other_video,sizeof(probe_info_t));
 				}
+				f_det_totale_video_frame(p_audio_video);
 				if (p_audio_video->s_start_video > p_audio_video->s_end_video)
 				{
 					fprintf(stderr,"\n\nerror: start frame is greater than end frame in file %s\n",p_audio_video->p_nome_video); 
@@ -179,10 +268,13 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
 				}
 				pclose(p_fd);
 				p_audio_video->s_a_real_codec=s_other_audio.track[0].format;
+				p_audio_video->s_a_rate=s_other_video.track[0].samplerate;
+				p_audio_video->s_a_bits=s_other_video.track[0].bits;
+				p_audio_video->s_a_chan=s_other_video.track[0].chan;
 				if(s_other_audio.magic == TC_MAGIC_UNKNOWN || s_other_audio.magic == TC_MAGIC_PIPE || s_other_audio.magic == TC_MAGIC_ERROR)
 				{
 					fprintf(stderr,"\n\nerror: this version of transcode supports only\n");
-					fprintf(stderr,"xml file who containing files of identical file type.\n");
+					fprintf(stderr,"xml file who containing dv avi or mov file type.\n");
 					fprintf(stderr,"Please clean up the %s file and restart.\n", ipipe->name);
 					fprintf(stderr,"file %s with filetype %s is invalid for this operation mode.\n", p_audio_video->p_nome_audio, filetype(s_other_audio.magic));
 					ipipe->error=1;
@@ -202,6 +294,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
 					s_first_element|=0x01;
 					memcpy(p_first_audio,&s_other_audio,sizeof(probe_info_t));
 				}
+				f_det_totale_audio_frame(p_audio_video);
 				if (p_audio_video->s_start_audio > p_audio_video->s_end_audio)
 				{
 					fprintf(stderr,"\n\nerror: start frame is greater than end frame in file %s\n",p_audio_video->p_nome_video); 
@@ -211,7 +304,16 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
 			}
 		}
 	}
-
+	if (p_audiovideo->p_next !=NULL)
+	{
+		if ((ipipe->error=f_check_video_H_W(p_audiovideo->p_next)) == 0)		//check height and width compatibility
+		{
+			if (p_audiovideo->p_next->s_v_tg_height !=0)
+				p_first_video->height=p_audiovideo->p_next->s_v_tg_height;	//force height to target-height
+			if (p_audiovideo->p_next->s_v_tg_width !=0)
+				p_first_video->width=p_audiovideo->p_next->s_v_tg_width;	//force width to target-width
+		}
+	}
 	return(s_first_element);
 }
 

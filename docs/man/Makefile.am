@@ -8,6 +8,7 @@ man_MANS = 	transcode.1\
 		tcextract.1\
 		tcdecode.1\
 		tcmodinfo.1\
+		tcxmlcheck.1\
 		avisplit.1\
 		avimerge.1\
 		avifix.1\

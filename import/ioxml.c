@@ -37,15 +37,19 @@
 #define IN_AUDIO_CODEC 		0x02
 #define IN_VIDEO_MAGIC 		0x03
 #define IN_AUDIO_MAGIC 		0x04
+#define OUT_VIDEO_HEIGHT 	0x05
+#define OUT_VIDEO_WIDTH  	0x06
+#define OUT_VIDEO_RES_FILTER	0x07
 
 
 audiovideo_limit_t f_det_time(char *p_options)
 {
    char *p_data,*p_temp,*p_temp1;
-   double s_hh,s_mm,s_ss,s_fr,s_app;
+   double s_hh,s_mm,s_ss,s_app;
    audiovideo_limit_t	s_limit;
 
-	s_hh=s_mm=s_ss=s_fr=0;
+	s_hh=s_mm=s_ss=0;
+	s_limit.s_frame=0;
 	if (strcasecmp(p_options,"smpte") == 0)
 		s_limit.s_smpte=smpte;
 	else if (strcasecmp(p_options,"smpte-25") == 0)
@@ -72,12 +76,8 @@ audiovideo_limit_t f_det_time(char *p_options)
 			if ((p_temp = strtok(NULL,":")) != NULL)
 				s_ss=strtod(p_temp,NULL);
 			if ((p_temp = strtok(NULL,":")) != NULL)
-				s_fr=strtod(p_temp,NULL);
+				s_limit.s_frame=strtod(p_temp,NULL);
 			s_limit.s_time=3600*s_hh+60*s_mm+s_ss;
-			if ((s_limit.s_smpte==smpte)||(s_limit.s_smpte==smpte25)||(s_limit.s_smpte==npt))
-				s_limit.s_time=s_limit.s_time*25+s_fr;
-			else if (s_limit.s_smpte==smpte30drop)
-				s_limit.s_time=s_limit.s_time*29.97+s_fr;
 		}
 		else
 		{
@@ -89,21 +89,21 @@ audiovideo_limit_t f_det_time(char *p_options)
 				case 'm':
 					s_app*=60;
 				case 's':
-					if ((s_limit.s_smpte==smpte)||(s_limit.s_smpte==smpte25)||(s_limit.s_smpte==npt))
-						s_app*=25;
-					else if (s_limit.s_smpte==smpte30drop)
-						s_app*=29.97;
+					s_limit.s_time=(long)s_app;
+					s_limit.s_frame=0;
 				break;
 				default:
+					s_limit.s_time=0;
+					s_limit.s_frame=(long)s_app;
 					;;
 			}
-			s_limit.s_time=(long)s_app;
 		}
 	}
 	else
 	{
 		fprintf(stderr,"Invalid parameter %s force default",p_options);
 		s_limit.s_time=-1;
+		s_limit.s_frame=0;
 	}
 	return(s_limit);
 }
@@ -141,6 +141,10 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 			s_type=AUDIO_VIDEO_UNKNOWN;
 			p_temp=(audiovideo_t *)malloc(sizeof(audiovideo_t));
 			memset(p_temp,'\0',sizeof(audiovideo_t));
+			p_temp->s_end_a_time=-1;
+			p_temp->s_end_v_time=-1;
+			p_temp->s_start_a_time=-1;
+			p_temp->s_start_v_time=-1;
 			p_temp->s_end_audio=-1;
 			p_temp->s_end_video=-1;
 			p_temp->s_start_audio=-1;
@@ -153,6 +157,15 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 			p_temp->s_v_codec=TC_CODEC_UNKNOWN;
 			p_temp->s_a_magic=TC_MAGIC_UNKNOWN;
 			p_temp->s_v_magic=TC_MAGIC_UNKNOWN;
+			p_temp->s_a_rate=0;
+                        p_temp->s_a_bits=0;
+                        p_temp->s_a_chan=0;
+                        p_temp->s_v_width=0;
+                        p_temp->s_v_height=0;
+                        p_temp->s_v_tg_width=0;
+                        p_temp->s_v_tg_height=0;
+			p_temp->s_v_tg_width=0;		//target width
+			p_temp->s_v_tg_height=0;	//target height
 			if(p_audiovideo == NULL)
 				p_audiovideo=p_temp;
 			else
@@ -168,6 +181,10 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 			{
 				p_temp=(audiovideo_t *)malloc(sizeof(audiovideo_t));
 				memset(p_temp,'\0',sizeof(audiovideo_t));
+				p_temp->s_end_a_time=-1;
+				p_temp->s_end_v_time=-1;
+				p_temp->s_start_a_time=-1;
+				p_temp->s_start_v_time=-1;
 				p_temp->s_end_audio=-1;
 				p_temp->s_end_video=-1;
 				p_temp->s_start_audio=-1;
@@ -180,6 +197,13 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 				p_temp->s_v_real_codec=TC_CODEC_UNKNOWN;
 				p_temp->s_a_magic=TC_MAGIC_UNKNOWN;
 				p_temp->s_v_magic=TC_MAGIC_UNKNOWN;
+				p_temp->s_a_rate=0;
+				p_temp->s_a_bits=0;
+				p_temp->s_a_chan=0;
+				p_temp->s_v_width=0;
+				p_temp->s_v_height=0;
+				p_temp->s_v_tg_width=0;		//target width
+				p_temp->s_v_tg_height=0;	//target height
 				if(p_audiovideo != NULL)
 					p_audiovideo->p_next=p_temp;
 				p_audiovideo=p_temp;
@@ -198,6 +222,10 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 			{
 				p_temp=(audiovideo_t *)malloc(sizeof(audiovideo_t));
 				memset(p_temp,'\0',sizeof(audiovideo_t));
+				p_temp->s_end_a_time=-1;
+				p_temp->s_end_v_time=-1;
+				p_temp->s_start_a_time=-1;
+				p_temp->s_start_v_time=-1;
 				p_temp->s_end_audio=-1;
 				p_temp->s_end_video=-1;
 				p_temp->s_start_audio=-1;
@@ -210,6 +238,13 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 				p_temp->s_v_real_codec=TC_CODEC_UNKNOWN;
 				p_temp->s_a_magic=TC_MAGIC_UNKNOWN;
 				p_temp->s_v_magic=TC_MAGIC_UNKNOWN;
+				p_temp->s_a_rate=0;
+				p_temp->s_a_bits=0;
+				p_temp->s_a_chan=0;
+				p_temp->s_v_width=0;
+				p_temp->s_v_height=0;
+				p_temp->s_v_tg_width=0;		//target width
+				p_temp->s_v_tg_height=0;	//target height
 				if(p_audiovideo != NULL)
 					p_audiovideo->p_next=p_temp;
 				p_audiovideo=p_temp;
@@ -250,12 +285,14 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 			if (s_type==AUDIO_ITEM)
 			{
 				p_audiovideo->s_audio_smpte=s_limit.s_smpte;
-				p_audiovideo->s_start_audio=s_limit.s_time;
+				p_audiovideo->s_start_a_time=s_limit.s_time;
+				p_audiovideo->s_start_audio=s_limit.s_frame;
 			}
 			else
 			{
 				p_audiovideo->s_video_smpte=s_limit.s_smpte;
-				p_audiovideo->s_start_video=s_limit.s_time;
+				p_audiovideo->s_start_v_time=s_limit.s_time;
+				p_audiovideo->s_start_video=s_limit.s_frame;
 			}
 		        if(f_parse_tree(p_node->next,p_audiovideo))		//goto the next param.
 				s_rc=1;
@@ -266,12 +303,14 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 			if (s_type==AUDIO_ITEM)
 			{
 				p_audiovideo->s_audio_smpte=s_limit.s_smpte;
-				p_audiovideo->s_end_audio=s_limit.s_time;
+				p_audiovideo->s_end_a_time=s_limit.s_time;
+				p_audiovideo->s_end_audio=s_limit.s_frame;
 			}
 			else
 			{
 				p_audiovideo->s_video_smpte=s_limit.s_smpte;
-				p_audiovideo->s_end_video=s_limit.s_time;
+				p_audiovideo->s_end_v_time=s_limit.s_time;
+				p_audiovideo->s_end_video=s_limit.s_frame;
 			}
 		        if(f_parse_tree(p_node->next,p_audiovideo))		//goto the next param.
 				s_rc=1;
@@ -286,6 +325,12 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 				s_param=IN_VIDEO_CODEC;
 			else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"in-audio-codec") == 0) 
 				s_param=IN_AUDIO_CODEC;
+			else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"target-height") == 0) 
+				s_param=OUT_VIDEO_HEIGHT;
+			else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"target-width") == 0) 
+				s_param=OUT_VIDEO_WIDTH;
+			else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"resize-filter") == 0) 
+				s_param=OUT_VIDEO_RES_FILTER;
 			else
 				s_param=UNSUPPORTED_PARAM;
 
@@ -294,15 +339,31 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 	        }
 		else if (xmlStrcmp(p_node->name, (const xmlChar*)"value") == 0) 
 		{
-			if ((s_type==AUDIO_ITEM) && (s_param == IN_VIDEO_MAGIC))
+			if ((s_type==AUDIO_ITEM) && ((s_param==IN_VIDEO_CODEC)||(s_param==IN_VIDEO_MAGIC)||(s_param==OUT_VIDEO_HEIGHT)||(s_param==OUT_VIDEO_WIDTH)))
 			{
-				fprintf(stderr,"(%s) The in-video-module parameter cannot be used in audio item, %s skipped.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
+				if (s_param==OUT_VIDEO_HEIGHT)
+					fprintf(stderr,"(%s) The target-height parameter cannot be used in audio item, %s skipped.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
+				else if (s_param==OUT_VIDEO_WIDTH)
+					fprintf(stderr,"(%s) The target-width parameter cannot be used in audio item, %s skipped.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
+				else if (s_param==IN_VIDEO_MAGIC)
+					fprintf(stderr,"(%s) The in-video-module parameter cannot be used in audio item, %s skipped.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
+				else if (s_param==IN_VIDEO_CODEC)
+					fprintf(stderr,"(%s) The in-video-codec parameter cannot be used in audio item, %s skipped.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
 				s_rc=1;
 			}
 			else
 			{
 				switch(s_param)
 				{
+					case OUT_VIDEO_RES_FILTER:
+						p_audiovideo->p_v_resize_filter=p_node->xmlChildrenNode->content;
+					break;
+					case OUT_VIDEO_HEIGHT:
+						p_audiovideo->s_v_tg_height=atoi((char *)p_node->xmlChildrenNode->content);
+					break;
+					case OUT_VIDEO_WIDTH:
+						p_audiovideo->s_v_tg_width=atoi((char *)p_node->xmlChildrenNode->content);
+					break;
 					case IN_VIDEO_MAGIC:
 						if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"dv") == 0)
 							p_audiovideo->s_v_magic=TC_MAGIC_DV_PAL;	//the same for PAL and NTSC
@@ -310,7 +371,6 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 							p_audiovideo->s_v_magic=TC_MAGIC_AVI;
 						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"mov") == 0)
 							p_audiovideo->s_v_magic=TC_MAGIC_AVI;
-
 					break;
 					case IN_AUDIO_MAGIC:
 						if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"dv") == 0)
@@ -320,21 +380,6 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"mov") == 0)
 							p_audiovideo->s_v_magic=TC_MAGIC_AVI;
 					break;
-					case UNSUPPORTED_PARAM:
-						fprintf(stderr,"(%s) The %s parameter isn't yet supported.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
-						s_rc=1;
-					break;
-				}
-			}
-			if ((s_type==AUDIO_ITEM) && (s_param == IN_VIDEO_CODEC))
-			{
-				fprintf(stderr,"(%s) The in-video-codec parameter cannot be used in audio item, %s skipped.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
-				s_rc=1;
-			}
-			else
-			{
-				switch(s_param)
-				{
 					case IN_VIDEO_CODEC:
 						if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"rgb") == 0)
 							p_audiovideo->s_v_codec=CODEC_RGB;	
@@ -375,6 +420,7 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 							s_rc=1;
 						}
 					break;
+
 					case UNSUPPORTED_PARAM:
 						fprintf(stderr,"(%s) The %s parameter isn't yet supported.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
 						s_rc=1;
@@ -436,51 +482,66 @@ int f_complete_tree(audiovideo_t *p_audiovideo)
 
 	for (p_temp=p_audiovideo->p_next;p_temp != NULL;p_temp=p_temp->p_next)
 	{
-		if (p_temp->s_start_video == -1)
+		if (p_temp->p_nome_video != NULL)
 		{
-			p_temp->s_start_video=0;
+			if (p_temp->s_start_v_time == -1)
+			{
+				p_temp->s_start_video=0;
+				p_temp->s_start_v_time=0;
+			}
+			if (p_temp->s_end_v_time == -1)
+			{
+				p_temp->s_end_video=LONG_MAX;
+				p_temp->s_end_v_time=0;
+			}
+			if (p_audiovideo->s_v_codec != TC_CODEC_UNKNOWN)
+			{
+				if ((s_video_codec!=TC_CODEC_UNKNOWN) && (p_audiovideo->s_v_codec != s_video_codec))
+				{
+					fprintf(stderr,"(%s) The file must contain the same video codec (found 0x%lx but 0x%x is already define)", __FILE__,p_audiovideo->s_v_codec,s_video_codec);
+					return(1);
+				}
+				s_video_codec=p_audiovideo->s_v_codec;	
+			}
 		}
-		if (p_temp->s_end_video == -1)
+		if (p_temp->p_nome_audio != NULL)
 		{
-			p_temp->s_end_video=LONG_MAX;
+			if (p_temp->s_start_a_time == -1)
+			{
+				p_temp->s_start_audio=0;
+				p_temp->s_start_a_time=0;
+			}
+			if (p_temp->s_end_a_time == -1)
+			{
+				p_temp->s_end_audio=LONG_MAX;
+				p_temp->s_end_a_time=0;
+			}
+			if (p_audiovideo->s_a_codec != TC_CODEC_UNKNOWN)
+			{
+				if ((s_audio_codec!=TC_CODEC_UNKNOWN) && (p_audiovideo->s_a_codec != s_audio_codec))
+				{
+					fprintf(stderr,"(%s) The file must contain the same audio codec (found 0x%lx but 0x%x is already define)", __FILE__,p_audiovideo->s_a_codec,s_audio_codec);
+					return(1);
+				}
+				s_audio_codec=p_audiovideo->s_a_codec;	
+			}
 		}
-		if (p_temp->p_nome_audio == NULL)
+		else
 		{
-			p_temp->p_nome_audio=p_temp->p_nome_video;	//force audio to has the same input file of video 
+			p_temp->p_nome_audio=p_temp->p_nome_video;      //force audio to has the same input file of video
 			p_temp->s_start_audio=p_temp->s_start_video;
 			p_temp->s_end_audio=p_temp->s_end_video;
-		}
-		if (p_temp->s_start_audio == -1)
-		{
-			p_temp->s_start_audio=0;
-		}
-		if (p_temp->s_end_audio == -1)
-		{
-			p_temp->s_end_audio=LONG_MAX;
-		}
-		if (p_audiovideo->s_v_codec != TC_CODEC_UNKNOWN)
-		{
-			if ((s_video_codec!=TC_CODEC_UNKNOWN) && (p_audiovideo->s_v_codec != s_video_codec))
-			{
-				fprintf(stderr,"(%s) The file must contain the same video codec (found 0x%lx but 0x%x is already define)", __FILE__,p_audiovideo->s_v_codec,s_video_codec);
-				return(1);
-			}
-			s_video_codec=p_audiovideo->s_v_codec;	
-		}
-		if (p_audiovideo->s_a_codec != TC_CODEC_UNKNOWN)
-		{
-			if ((s_audio_codec!=TC_CODEC_UNKNOWN) && (p_audiovideo->s_a_codec != s_audio_codec))
-			{
-				fprintf(stderr,"(%s) The file must contain the same audio codec (found 0x%lx but 0x%x is already define)", __FILE__,p_audiovideo->s_a_codec,s_audio_codec);
-				return(1);
-			}
-			s_audio_codec=p_audiovideo->s_a_codec;	
+			p_temp->s_end_a_time=p_temp->s_end_v_time;
+			p_temp->s_start_a_time=p_temp->s_start_v_time;
+
 		}
 	}
 	for (p_temp=p_audiovideo->p_next;p_temp != NULL;p_temp=p_temp->p_next) //initialize all unset codec
 	{
-		p_audiovideo->s_v_codec=s_video_codec;	
-		p_audiovideo->s_a_codec=s_audio_codec;	
+		if (p_temp->p_nome_video != NULL)
+			p_audiovideo->s_v_codec=s_video_codec;	
+		if (p_temp->p_nome_audio != NULL)
+			p_audiovideo->s_a_codec=s_audio_codec;	
 	}
 	return(0);
 

@@ -342,7 +342,7 @@ import_null_la_LDFLAGS = -module -avoid-version
 import_ogg_la_SOURCES = import_ogg.c
 import_ogg_la_LDFLAGS = -module -avoid-version 
 
-import_xml_la_SOURCES = import_xml.c ioxml.c probe_xml.c
+import_xml_la_SOURCES = import_xml.c ioxml.c probe_xml.c ../src/zoom.c
 import_xml_la_LDFLAGS = -module -avoid-version 
 import_xml_la_LIBADD = -lm @LIBXML2_LIBS@
 
@@ -564,7 +564,7 @@ am_import_vob_la_OBJECTS = import_vob.lo ac3scan.lo clone.lo ioaux.lo \
 	frame_info.lo ivtc.lo
 import_vob_la_OBJECTS = $(am_import_vob_la_OBJECTS)
 import_xml_la_DEPENDENCIES =
-am_import_xml_la_OBJECTS = import_xml.lo ioxml.lo probe_xml.lo
+am_import_xml_la_OBJECTS = import_xml.lo ioxml.lo probe_xml.lo zoom.lo
 import_xml_la_OBJECTS = $(am_import_xml_la_OBJECTS)
 import_xvid_la_DEPENDENCIES =
 am_import_xvid_la_OBJECTS = import_xvid.lo
@@ -701,7 +701,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/tcdecode.Po ./$(DEPDIR)/tcdemux.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/tcextract.Po ./$(DEPDIR)/tcprobe.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/tcscan.Po ./$(DEPDIR)/tcxmlcheck.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ts_reader.Po
+@AMDEP_TRUE@	./$(DEPDIR)/ts_reader.Po ./$(DEPDIR)/zoom.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -980,6 +980,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcscan.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcxmlcheck.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ts_reader.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zoom.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)
@@ -1016,6 +1017,39 @@ distclean-depend:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ `test -f '$<' || echo '$(srcdir)/'`$<
+
+zoom.o: ../src/zoom.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT zoom.o -MD -MP -MF "$(DEPDIR)/zoom.Tpo" \
+@am__fastdepCC_TRUE@	  -c -o zoom.o `test -f '../src/zoom.c' || echo '$(srcdir)/'`../src/zoom.c; \
+@am__fastdepCC_TRUE@	then mv "$(DEPDIR)/zoom.Tpo" "$(DEPDIR)/zoom.Po"; \
+@am__fastdepCC_TRUE@	else rm -f "$(DEPDIR)/zoom.Tpo"; exit 1; \
+@am__fastdepCC_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../src/zoom.c' object='zoom.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/zoom.Po' tmpdepfile='$(DEPDIR)/zoom.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o zoom.o `test -f '../src/zoom.c' || echo '$(srcdir)/'`../src/zoom.c
+
+zoom.obj: ../src/zoom.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT zoom.obj -MD -MP -MF "$(DEPDIR)/zoom.Tpo" \
+@am__fastdepCC_TRUE@	  -c -o zoom.obj `if test -f '../src/zoom.c'; then $(CYGPATH_W) '../src/zoom.c'; else $(CYGPATH_W) '$(srcdir)/../src/zoom.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv "$(DEPDIR)/zoom.Tpo" "$(DEPDIR)/zoom.Po"; \
+@am__fastdepCC_TRUE@	else rm -f "$(DEPDIR)/zoom.Tpo"; exit 1; \
+@am__fastdepCC_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../src/zoom.c' object='zoom.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/zoom.Po' tmpdepfile='$(DEPDIR)/zoom.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o zoom.obj `if test -f '../src/zoom.c'; then $(CYGPATH_W) '../src/zoom.c'; else $(CYGPATH_W) '$(srcdir)/../src/zoom.c'; fi`
+
+zoom.lo: ../src/zoom.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT zoom.lo -MD -MP -MF "$(DEPDIR)/zoom.Tpo" \
+@am__fastdepCC_TRUE@	  -c -o zoom.lo `test -f '../src/zoom.c' || echo '$(srcdir)/'`../src/zoom.c; \
+@am__fastdepCC_TRUE@	then mv "$(DEPDIR)/zoom.Tpo" "$(DEPDIR)/zoom.Plo"; \
+@am__fastdepCC_TRUE@	else rm -f "$(DEPDIR)/zoom.Tpo"; exit 1; \
+@am__fastdepCC_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../src/zoom.c' object='zoom.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/zoom.Plo' tmpdepfile='$(DEPDIR)/zoom.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o zoom.lo `test -f '../src/zoom.c' || echo '$(srcdir)/'`../src/zoom.c
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" \

@@ -37,18 +37,30 @@ enum
 	smpte25
 };
 
+
+typedef struct _video_filter_t {
+                		double (*f_zoom_filter)(double);
+                		double	s_zoom_support;
+                		char	*p_zoom_filter;
+                        } video_filter_t;
+
 typedef struct _audiovideo_limit_t {
 					int 	s_smpte;
                                 	long	s_time;
+                                	long	s_frame;
                         } audiovideo_limit_t;
 
 typedef struct _audiovideo_t {
                                 char				*p_nome_audio;
                                 char				*p_nome_video;
                                 long				s_start_audio;
+                                long				s_start_a_time;
                                 long				s_end_audio;
+                                long				s_end_a_time;
                                 long				s_start_video;
+                                long				s_start_v_time;
                                 long				s_end_video;
+                                long				s_end_v_time;
 				int				s_video_smpte;
 				int				s_audio_smpte;
                                 struct _audiovideo_t	        *p_next;
@@ -58,6 +70,15 @@ typedef struct _audiovideo_t {
 				long				s_v_codec;
 				long				s_a_magic;
 				long				s_v_magic;
+				double				s_fps;
+				int				s_a_rate;
+				int 				s_a_bits;
+				int				s_a_chan;
+				int 				s_v_width;
+				int				s_v_height;
+				int 				s_v_tg_width;
+				int				s_v_tg_height;
+				char				*p_v_resize_filter;
                         } audiovideo_t;
 
 void f_free_tree(audiovideo_t *p_node);

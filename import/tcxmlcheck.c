@@ -76,7 +76,9 @@ int binary_dump = 1;		//force to use the binary dump in probe_xml
 int f_complete_vob_info(vob_t *p_vob,int s_type_check)
 {
 	audiovideo_t s_audiovideo;
+	int s_rc;
 
+	s_rc=0;
 	if ((s_type_check & VIDEO_MODE) !=0)
 	{
 		if( p_vob->video_in_file != NULL)
@@ -87,10 +89,12 @@ int f_complete_vob_info(vob_t *p_vob,int s_type_check)
 				(void) f_manage_input_xml(NULL,0,&s_audiovideo);
 				return(1);
 			}
-			if (s_audiovideo.s_v_codec != TC_CODEC_UNKNOWN)
-				p_vob->im_v_codec=s_audiovideo.s_v_codec;	
-			if (s_audiovideo.s_a_codec != TC_CODEC_UNKNOWN)
-				p_vob->im_a_codec=s_audiovideo.s_a_codec;	
+			if (s_audiovideo.p_next->s_v_codec != TC_CODEC_UNKNOWN)
+				p_vob->im_v_codec=s_audiovideo.p_next->s_v_codec;	
+			if (s_audiovideo.p_next->s_a_codec != TC_CODEC_UNKNOWN)
+				p_vob->im_a_codec=s_audiovideo.p_next->s_a_codec;	
+			if ((s_audiovideo.p_next->s_v_tg_height !=0) || (s_audiovideo.p_next->s_v_tg_width !=0))
+				s_rc=2;
 			(void) f_manage_input_xml(NULL,0,&s_audiovideo);
 		}
 	}
@@ -104,12 +108,12 @@ int f_complete_vob_info(vob_t *p_vob,int s_type_check)
 				(void) f_manage_input_xml(NULL,0,&s_audiovideo);
 				return(1);
 			}
-			if (s_audiovideo.s_a_codec != TC_CODEC_UNKNOWN)
-				p_vob->im_a_codec=s_audiovideo.s_a_codec;	
+			if (s_audiovideo.p_next->s_a_codec != TC_CODEC_UNKNOWN)
+				p_vob->im_a_codec=s_audiovideo.p_next->s_a_codec;	
 			(void) f_manage_input_xml(NULL,0,&s_audiovideo);
 		}
 	}
-	return(0);
+	return(s_rc);
 }
 
 /* ------------------------------------------------------------ 
@@ -125,7 +129,7 @@ int main(int argc, char *argv[])
 	char s_cmd,*p_in_v_file="/dev/stdin",*p_in_a_file=NULL,*p_audio_tmp,*p_video_tmp;
 	pid_t s_pid;
 	int s_bin_dump=0,s_type_check=VIDEO_MODE|AUDIO_MODE,s_shmem=0;
-	int s_shm;
+	int s_shm,s_rc;
 	key_t s_key=0x00112233;
 	
 	//proper initialization
@@ -253,7 +257,7 @@ int main(int argc, char *argv[])
 	 * start with the program              
 	 *
 	 * ------------------------------------------------------------*/
-	if (f_complete_vob_info(&s_vob,s_type_check))
+	if ((s_rc=f_complete_vob_info(&s_vob,s_type_check)) == 1)
 		return(1);
 	else
 	{
@@ -262,6 +266,11 @@ int main(int argc, char *argv[])
 			s_vob.video_in_file=p_video_tmp;
 			s_vob.audio_in_file=p_audio_tmp;
 			if(p_write(STDOUT_FILENO, (char *) &s_vob, sizeof(vob_t)) != sizeof(vob_t))
+			{
+				fprintf(stderr,"(%s) Error writing data to stdout\n",EXE);
+				exit(1);
+			}
+			if(p_write(STDOUT_FILENO, &s_rc, sizeof(int)) != sizeof(int))
 			{
 				fprintf(stderr,"(%s) Error writing data to stdout\n",EXE);
 				exit(1);

@@ -613,6 +613,7 @@ void safe_exit (void) {
 int main(int argc, char *argv[]) {
 
     FILE *p_fd_tcxmlcheck;
+    int s_tcxmlcheck_resize;
     char *p_tcxmlcheck_buffer;
     // v4l capture
     int chanid = -1;
@@ -2217,6 +2218,27 @@ int main(int argc, char *argv[]) {
 		  fprintf(stderr,"[%s] Error reading data to stdout\n",PACKAGE);
 		  exit(1);
 		}
+		if ((read(fileno(p_fd_tcxmlcheck),&s_tcxmlcheck_resize,sizeof(int)))!=sizeof(int))
+		{
+		  fprintf(stderr,"[%s] Error reading data to stdout\n",PACKAGE);
+		  exit(1);
+		}
+		if (s_tcxmlcheck_resize == 2)	//if the xml force the resize i need to disable the parameter passed from command line
+		{
+			resize1=TC_FALSE;	
+			resize2=TC_FALSE;
+			zoom=TC_FALSE;
+			vob->resize1_mult     = 32;
+			vob->vert_resize1     = 0;
+			vob->hori_resize1     = 0;
+			vob->resize2_mult     = 32;
+			vob->vert_resize2     = 0;
+			vob->hori_resize2     = 0;
+			vob->zoom_width       = 0;
+			vob->zoom_height      = 0;
+			vob->zoom_filter      = Lanczos3_filter;
+			vob->zoom_support     = Lanczos3_support;
+		}
 		free(p_tcxmlcheck_buffer);
     	}
     }
@@ -2252,6 +2274,11 @@ int main(int argc, char *argv[]) {
 		  exit(1);
 		}
 		if ((read(fileno(p_fd_tcxmlcheck),(char *)vob,sizeof(vob_t)))!=sizeof(vob_t))
+		{
+		  fprintf(stderr,"[%s] Error reading data to stdout\n",PACKAGE);
+		  exit(1);
+		}
+		if ((read(fileno(p_fd_tcxmlcheck),&s_tcxmlcheck_resize,sizeof(int)))!=sizeof(int))
 		{
 		  fprintf(stderr,"[%s] Error reading data to stdout\n",PACKAGE);
 		  exit(1);
