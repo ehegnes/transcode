@@ -408,7 +408,7 @@ void usage(int status)
   printf("--color N            level of color in transcodes output [1]\n");
   printf("--write_pid file     write pid of signal thread to \"file\" [off]\n");
   printf("--nice N             set niceness to N [off]\n");
-#ifdef ARCH_X86
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
   printf("--accel type         enforce IA32 acceleration for type [autodetect]\n");
 #endif
   printf("--socket file        socket file for run-time control [no file]\n");
@@ -661,7 +661,7 @@ int main(int argc, char *argv[]) {
       abuf1[TC_BUF_MIN], vbuf1[TC_BUF_MIN], 
       abuf2[TC_BUF_MIN], vbuf2[TC_BUF_MIN];
 
-#ifdef ARCH_X86
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
     char
       *accel=NULL;
 #endif
@@ -1015,7 +1015,7 @@ int main(int argc, char *argv[]) {
     vob->ttime            = NULL;
     vob->ttime_current    = 0;
 
-#ifdef ARCH_X86
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
     vob->accel            = ac_mmflag();
 #else
     vob->accel            = 0;
@@ -2179,7 +2179,7 @@ int main(int argc, char *argv[]) {
 	  
 	  break;
 
-#ifdef ARCH_X86
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
 	case ACCEL_MODE: 
 	  
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
@@ -3862,7 +3862,7 @@ int main(int argc, char *argv[]) {
 	counter_set_range(frame_a, frame_b);
     }
 
-#ifdef ARCH_X86
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
     // --accel
     if(tc_accel==-1) tc_accel = ac_mmflag();
 
