@@ -1,6 +1,16 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-16 Tilmann Bitterberg <transcode at tibit.org>
+
+  * import/{iodump.c probe_stream.c probe_v4l.c tc.h tcprobe.c}:
+  Probing a Video4linux device. Untested as I currently don't have
+  any hardware. Tries to detect a v4l2 device first and if that
+  fails, goes for v4l1.
+
+  * import/decode_a52.c:
+  Rename a function.
+
 2004-01-15 Stefan Scheffler <stefanscheffler at gmx.net>
 
   * acinclude.m4:

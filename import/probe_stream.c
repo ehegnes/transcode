@@ -94,21 +94,8 @@ void tcprobe_thread(info_t *ipipe)
       break;
 
     case TC_MAGIC_V4L_VIDEO:
-	ipipe->probe_info->magic = TC_MAGIC_V4L_VIDEO;
-	ipipe->probe_info->width  = 352;
-	ipipe->probe_info->height = 288;
-
-	break;
-
     case TC_MAGIC_V4L_AUDIO:
-	ipipe->probe_info->magic = TC_MAGIC_V4L_AUDIO;
-
-	ipipe->probe_info->track[0].samplerate = 48000;
-	ipipe->probe_info->track[0].chan = 2;
-	ipipe->probe_info->track[0].bits = 16;
-	ipipe->probe_info->track[0].format = CODEC_PCM;
-	ipipe->probe_info->num_tracks = 1;
-
+        probe_v4l(ipipe);
 	break;
 
     case TC_MAGIC_OGG:

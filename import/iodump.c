@@ -37,6 +37,8 @@
 #include "dvd_reader.h"
 #endif
 
+int dvd_read(int arg_title, int arg_chapter, int arg_angle);
+
 #if defined(__bsdi__) || defined(__FreeBSD__) || defined(__APPLE__)
 typedef	off_t off64_t;
 #define	lseek64 lseek
