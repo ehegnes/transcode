@@ -1,6 +1,17 @@
 --------------------------------------------
 transcode-0.6.12
 
+2004-01-03 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/transcode.c docs/man/transcode.1:
+  Mpeg profile/template support. The idea is to specify -Z vcd and
+  transcode will figure out all clipping parameters and such.
+  Available settings are vcd, vcd-pal, vcd-ntsc, svcd, svcd-pal,
+  svcd-ntsc, dvd, dvd-pal, dvd-ntsc.
+  Example when encoding a 720x576 @ 16:9 file in a 4:3 letterbox'ed
+  NTSC SVCD using fast mode: -Z svcd-ntsc,fast will calculate
+  --pre_clip -96,0,-96,0 -B 36,30,8 --export_asr 2.
+
 2004-01-02 Tilmann Bitterberg <transcode at tibit.org>
 
   * avilib/avilib.c tools/avimerge.c:
@@ -31,12 +42,6 @@ transcode-0.6.12
 
   * import/import_ffmpeg.c:
   Some codecs need extra data.
-
-2003-12-29 Tilmann Bitterberg <transcode at tibit.org>
-
-  * src/transcode.c:
-  Unfinished mpeg profile support. The idea is to specify -Z vcd and
-  transcode will figure out all clipping parameters and such.
 
 2003-12-29 Tilmann Bitterberg <transcode at tibit.org>
 

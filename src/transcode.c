@@ -26,6 +26,7 @@
 #endif
 
 #include <ctype.h>
+#include <math.h>
 
 #include "transcode.h"
 #include "decoder.h"
@@ -2782,6 +2783,98 @@ int main(int argc, char *argv[]) {
     //2003-01-13 
     tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
 
+    // calc clip settings for encoding to mpeg (vcd,svcd,dvd)
+    // -Z {vcd,vcd-pal,vcd-ntsc,svcd,svcd-pal,svcd-ntsc,dvd,dvd-pal,dvd-ntsc}
+   
+    if (mpeg_profile) {
+      typedef struct ratio_t { int t, b; } ratio_t;
+      ratio_t asrs[] = { {1, 1}, {1, 1}, {4, 3}, {16, 9}, {221, 100} };
+      ratio_t imasr = asrs[0];
+      ratio_t exasr = asrs[0];
+
+      int impal = 0;
+      int pre_clip;
+
+      // Make an educated guess if this is pal or ntsc
+      if (vob->im_v_height == 288 || vob->im_v_height == 576) impal = 1;
+      if ((int)vob->fps == 25 || vob->im_frc == 3) impal = 1;
+
+      switch (mpeg_profile) {
+	case VCD: vob->zoom_height = impal?288:240;
+		  break;
+	case SVCD:
+	case DVD: vob->zoom_height = impal?576:480;
+		  break;
+	default:
+		  break;
+      }
+
+      switch (mpeg_profile) {
+	case VCD_PAL: case VCD_NTSC: case VCD: 
+	  vob->ex_asr = 2;
+	  break;
+	case SVCD_PAL: case SVCD_NTSC: case SVCD:
+	  vob->ex_asr = 2;
+	  break;
+	case DVD_PAL: case DVD_NTSC: case DVD:
+	  if (vob->ex_asr <= 0) vob->ex_asr = 2; // assume 4:3
+		  break;
+	default:
+		  break;
+      }
+
+
+      // an input file without any aspect ratio setting (an AVI maybe?)
+      // so make a guess.
+
+      if (vob->im_asr == 0) {
+
+	int i, mini=0;
+	ratio_t *r = &asrs[1];
+	double diffs[4];
+	double mindiff = 2.0;
+
+	memset (diffs, 0, sizeof(diffs));
+	
+	for (i=0; i<4; i++) {
+	  diffs[i] = (double)(r->b*vob->im_v_width) / (double)(r->t*vob->im_v_height);
+	  r++;
+	}
+
+	// look for the diff which is closest to 1.0
+
+	for (i=0; i<4; i++) {
+	  double a = fabs(1.0 - diffs[i]);
+	  if (a < mindiff) {
+	    mindiff = a;
+	    mini = i+1;
+	  }
+	}
+	vob->im_asr = mini;
+      }
+
+
+      imasr = asrs[vob->im_asr];
+      exasr = asrs[vob->ex_asr];
+
+      pre_clip = vob->im_v_height - (vob->im_v_height * imasr.t * exasr.b ) / (imasr.b * exasr.t );
+      if (pre_clip%2 != 0) {
+	vob->pre_im_clip_top = pre_clip/2+1;
+	vob->pre_im_clip_bottom = pre_clip/2-1;
+      } else {
+	vob->pre_im_clip_bottom = vob->pre_im_clip_top = pre_clip/2;
+      }
+
+      /*
+      printf("%d: --pre_clip %d,0,%d,0\n", mpeg_profile, 
+	  vob->pre_im_clip_top, vob->pre_im_clip_bottom);
+	  */
+
+      if (pre_clip) pre_im_clip = TC_TRUE;
+
+    }
+
+
     // --PRE_CLIP
     
     if(pre_im_clip) {
@@ -2797,7 +2890,10 @@ int main(int argc, char *argv[]) {
       vob->ex_v_height -= (vob->pre_im_clip_top + vob->pre_im_clip_bottom);
       vob->ex_v_width  -= (vob->pre_im_clip_left + vob->pre_im_clip_right);
       
-      if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d\n", PACKAGE, "pre clip frame", vob->ex_v_width, vob->ex_v_height);
+      if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d (%d,%d,%d,%d)\n", PACKAGE, 
+	  "pre clip frame", vob->ex_v_width, vob->ex_v_height,
+	  vob->pre_im_clip_top, vob->pre_im_clip_left, 
+	  vob->pre_im_clip_bottom, vob->pre_im_clip_right);
     
       //2003-01-13 
       tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
@@ -2861,42 +2957,6 @@ int main(int argc, char *argv[]) {
     
     if(vob->deinterlace==4) vob->ex_v_height /= 2;
  
-    // calc clip settings for encoding to mpeg (vcd,svcd,dvd)
-    // -Z {vcd,vcd-pal,vcd-ntsc,svcd,svcd-pal,svcd-ntsc,dvd,dvd-pal,dvd-ntsc}
-   
-    if (mpeg_profile) {
-      int pal = 0;
-
-      // Make an educated guess if this is pal or ntsc
-      if (vob->im_v_height == 288 || vob->im_v_height == 576) pal = 1;
-      if ((int)vob->fps == 25 || vob->im_frc == 3) pal = 1;
-
-      switch (mpeg_profile) {
-	case VCD: vob->zoom_height = pal?288:240;
-		  break;
-	case SVCD:
-	case DVD: vob->zoom_height = pal?576:480;
-		  break;
-	default:
-		  break;
-      }
-      switch (mpeg_profile) {
-	case VCD_PAL: case VCD_NTSC: case VCD: 
-	  vob->ex_asr = 2;
-	  break;
-	case SVCD_PAL: case SVCD_NTSC: case SVCD:
-	  vob->ex_asr = 2;
-	  break;
-	case DVD_PAL: case DVD_NTSC: case DVD:
-	  if (vob->ex_asr == 0) vob->ex_asr = 2; // assume 4:3
-		  break;
-	default:
-		  break;
-      }
-      
-    }
-
-
     // Calculate the missing w or h based on the ASR
     if (zoom && (vob->zoom_width == 0 || vob->zoom_height == 0)) {
 

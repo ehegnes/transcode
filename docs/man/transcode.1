@@ -452,7 +452,7 @@ In fast mode, a faster but less precise resizing algorithm will be used
 resulting in a slightly less good quality. Beside this (small) drawback, it is
 worth a try.
 
-It is also possible to omit \fIwidth\fP or \fIheight\fP. In this case,
+It is also possible to omit \fIwidth\fP OR \fIheight\fP. In this case,
 transcode will calculate the missing value using the import aspect ratio. The
 new value will be aligned to be a multiple of 8. Using an additional \fIfast\fP
 is also possible.
@@ -463,6 +463,31 @@ Examples (assume input is a 16:9 coded file at 720x576):
    -Z 576x328,fast  uses fast zoom.
    -Z 576x,fast     guess 328 and do fast zoom.
    -Z x328          guess 576 and do filtered zoom.
+.fi
+
+Instead of entering the the desired target image size you may also use a
+placeholder which can be one of
+{vcd, vcd-pal, vcd-ntsc, svcd, svcd-pal, svcd-ntsc, dvd, dvd-pal, dvd-ntsc}.
+
+When one of the above is used, transcode will calculate the needed clipping and
+resizing values for you based on the import and export aspect ratio. This is
+especially handy if you want to encode a 16:9 DVD into a 4:3 SVCD for example.
+Transcode internally then sets --pre_clip to add the black bars ("letterboxing").
+
+If you use "vcd" instead of "vcd-pal" or "vcd-ntsc", transcode will make an
+educated guess if PAL or NTSC vcd is wanted. The same is true for "svcd" and
+"dvd". When the input file has no aspect ratio information at all, transcode
+guesses it based on the import frame sizes. You can set the import aspect ratio
+by giving --import_asr CODE.
+
+Examples (assume input is a 16:9 coded file at 720x576 (PAL)):
+.nf
+   -Z svcd,fast     clip top/bot -96; resizes to 480x576
+                    (--pre_clip -96,0,-96,0 
+                      -B 24,30,8 --export_asr 2)
+   -Z vcd-ntsc      clip top/bot -96; resizes to 352x240
+                    (--pre_clip -96,0,-96,0
+                      -Z 352x240 --export_asr 2)
 .fi
 
 .TP
