@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-06-09 Christopher Cramer <crayc at pyro.net>
+
+  * filter/filter_fps.c:
+  Last update had broken logic (and a missing int i, but that was fixed
+  for me). Now it really works.
+
 2004-06-09 Bryan Mayland <bmayland at leoninedev.com>
 
   * src/transcode.c:

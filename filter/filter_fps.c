@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_fps.so"
-#define MOD_VERSION "v1.0 (2004-02-19)"
+#define MOD_VERSION "v1.1 (2004-05-01)"
 #define MOD_CAP     "convert video frame rate, gets defaults from -f and --export_fps"
 
 #include <stdio.h>
@@ -143,17 +143,21 @@ tc_filter(vframe_list_t *ptr, char *options)
 		return 0;
 	}
 
-	if (pre && ptr->tag & TC_PRE_S_PROCESS && ptr->tag & TC_VIDEO) {
-		if ((double)++framesin / infps > (double)framesout / outfps)
-			framesout++;
-		else ptr->attributes |= TC_FRAME_IS_SKIPPED;
-		return 0;
-	}
-
-	if (!pre && ptr->tag & TC_POST_S_PROCESS && ptr->tag & TC_VIDEO) {
-		if (!(ptr->attributes & TC_FRAME_WAS_CLONED)) framesin++;
-		if ((double)framesin / infps > (double)++framesout / outfps)
-			ptr->attributes |= TC_FRAME_IS_CLONED;
+	if (ptr->tag & TC_VIDEO && ((pre && ptr->tag & TC_PRE_S_PROCESS)
+			|| (!pre && ptr->tag & TC_POST_S_PROCESS))) {
+		if (infps > outfps) {
+			if ((double)++framesin / infps >
+					(double)framesout / outfps)
+				framesout++;
+			else ptr->attributes |= TC_FRAME_IS_SKIPPED;
+			return 0;
+		} else if (infps < outfps) {
+			if (!(ptr->attributes & TC_FRAME_WAS_CLONED))
+				framesin++;
+			if ((double)framesin / infps >
+				(double)++framesout / outfps)
+				ptr->attributes |= TC_FRAME_IS_CLONED;
+		}
 	}
 
 	return 0;
