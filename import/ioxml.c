@@ -29,8 +29,9 @@
 #include "tc.h"
 #include "ioxml.h"
 
-#define VIDEO_ITEM 		0x00
+#define AUDIO_VIDEO_UNKNOWN	0x00
 #define AUDIO_ITEM 		0x01
+#define VIDEO_ITEM 		0x02
 #define UNSUPPORTED_PARAM 	0x00
 #define IN_VIDEO_CODEC 		0x01
 #define IN_AUDIO_CODEC 		0x02
@@ -121,7 +122,7 @@ void f_free_tree(audiovideo_t *p_node)
 
 int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 {
-	audiovideo_t *p_temp;
+	static audiovideo_t *p_temp;
 	audiovideo_limit_t s_limit;
 	static int s_type,s_param;
 	int s_rc;
@@ -137,6 +138,7 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 	        }
 	        else if (xmlStrcmp(p_node->name, (const xmlChar*)"seq") == 0) 
 		{
+			s_type=AUDIO_VIDEO_UNKNOWN;
 			p_temp=(audiovideo_t *)malloc(sizeof(audiovideo_t));
 			memset(p_temp,'\0',sizeof(audiovideo_t));
 			p_temp->s_end_audio=-1;
@@ -160,6 +162,24 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 	        } 
 		else if (xmlStrcmp(p_node->name, (const xmlChar*)"video") == 0)
 		{
+			if (s_type!=AUDIO_VIDEO_UNKNOWN)
+			{
+				p_temp=(audiovideo_t *)malloc(sizeof(audiovideo_t));
+				memset(p_temp,'\0',sizeof(audiovideo_t));
+				p_temp->s_end_audio=-1;
+				p_temp->s_end_video=-1;
+				p_temp->s_start_audio=-1;
+				p_temp->s_start_video=-1;
+				p_temp->s_video_smpte=npt;	//force npt
+				p_temp->s_audio_smpte=npt;	//force npt
+				p_temp->s_a_codec=TC_CODEC_UNKNOWN;
+				p_temp->s_v_codec=TC_CODEC_UNKNOWN;
+				p_temp->s_a_magic=TC_MAGIC_UNKNOWN;
+				p_temp->s_v_magic=TC_MAGIC_UNKNOWN;
+				if(p_audiovideo != NULL)
+					p_audiovideo->p_next=p_temp;
+				p_audiovideo=p_temp;
+			}	
 			s_type=VIDEO_ITEM;	//set origin to video
 		        if(f_parse_tree((xmlNodePtr)p_node->properties,p_audiovideo)) //visit the properties
 				s_rc=1;
@@ -170,6 +190,24 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 	        }
 		else if (xmlStrcmp(p_node->name, (const xmlChar*)"audio") == 0)
 		{
+			if (s_type!=AUDIO_VIDEO_UNKNOWN)
+			{
+				p_temp=(audiovideo_t *)malloc(sizeof(audiovideo_t));
+				memset(p_temp,'\0',sizeof(audiovideo_t));
+				p_temp->s_end_audio=-1;
+				p_temp->s_end_video=-1;
+				p_temp->s_start_audio=-1;
+				p_temp->s_start_video=-1;
+				p_temp->s_video_smpte=npt;	//force npt
+				p_temp->s_audio_smpte=npt;	//force npt
+				p_temp->s_a_codec=TC_CODEC_UNKNOWN;
+				p_temp->s_v_codec=TC_CODEC_UNKNOWN;
+				p_temp->s_a_magic=TC_MAGIC_UNKNOWN;
+				p_temp->s_v_magic=TC_MAGIC_UNKNOWN;
+				if(p_audiovideo != NULL)
+					p_audiovideo->p_next=p_temp;
+				p_audiovideo=p_temp;
+			}	
 			s_type=AUDIO_ITEM;	//set origin to audio
 		        if(f_parse_tree((xmlNodePtr)p_node->properties,p_audiovideo)) //visit the properties
 				s_rc=1;

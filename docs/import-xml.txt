@@ -37,6 +37,16 @@ Below, i describe a sample of simple input file:
 			<param name="in-audio-codec" value="pcm"/>
 		</video>
 	</seq>
+	<seq>
+		<video src="/mnt/hd/avi/mare015.dv" clipBegin="10" clipEnd="60"/>
+		<video src="/mnt/hd/avi/mare016.dv" clipBegin="10" clipEnd="60"/>
+		<video src="/mnt/hd/avi/mare014.dv" clipBegin="10" clipEnd="60">
+			<param name="in-video-module" value="dv"/>
+			<param name="in-audio-module" value="dv"/>
+			<param name="in-video-codec" value="rgb"/>
+			<param name="in-audio-codec" value="pcm"/>
+		</video>
+	</seq>
 </smil>
 
 
