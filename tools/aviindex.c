@@ -51,9 +51,15 @@ void usage(int status)
 {
   version();
   printf("\nUsage: %s [options]\n", EXE);
-  printf("\t -o file            output file\n");
-  printf("\t -i file            input file\n");
-  printf("\t -n                 read index in \"smart\" mode\n");
+  printf("\t -o file   output file\n");
+  printf("\t -i file   input file\n");
+  printf("\t -f        force the use of the existing index\n");
+  printf("\t           only to use when avi > 2GB, because\n");
+  printf("\t           the default is to -n with big files\n");
+  printf("\t -n        read index in \"smart\" mode: don't use the existing index\n");
+  printf("\t -x        don't use the existing index to generate the keyframes\n");
+  printf("\t           this flag forces -n\n");
+  printf("\t -v        print version\n");
   exit(status);
 }
 
@@ -443,7 +449,7 @@ int main(int argc, char *argv[])
   int aud_bitrate = 0;
 
   FILE *out_fd    = NULL;
-  int open_without_index=0;
+  int open_without_index=0,index_keyframes=0;
   int force_with_index=0;
 
   double vid_ms = 0.0, print_ms = 0.0;
@@ -499,6 +505,13 @@ int main(int argc, char *argv[])
 	case 'n':
 
 	    open_without_index=1;
+	
+	    break;
+
+	case 'x':
+
+	    open_without_index=1;
+	    index_keyframes=1;
 	
 	    break;
 
@@ -558,7 +571,8 @@ int main(int argc, char *argv[])
       if (!force_with_index) open_without_index = 1;
 
   if (open_without_index) 
-      fprintf(stderr, "[%s] Open \"%s\" without index\n",EXE, in_file);
+      if (index_keyframes) fprintf(stderr, "[%s] Open \"%s\" without index and don't use index for keyframes info\n",EXE, in_file);
+      else fprintf(stderr, "[%s] Open \"%s\" without index but use index (if any) for keyframes info\n",EXE, in_file);
   else
       fprintf(stderr, "[%s] Open \"%s\" with index (fast)\n", EXE, in_file);
 
@@ -654,7 +668,7 @@ int main(int argc, char *argv[])
     fprintf(stderr, "\n");
 
     // check if we have found an index chunk to restore keyframe info
-    if (!index_pos || !index_len)
+    if (!index_pos || !index_len || index_keyframes)
 	goto aviout;
 
     fprintf(stderr, "[%s] Found an index chunk. Using it to regenerate keyframe info.\n", EXE);
