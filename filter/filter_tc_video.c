@@ -138,7 +138,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
       return 0;
   /* in:      T1 B1 | T2 B2 | T3 B3 | T4 B4 */
   /* out: T1 B1 | T2 B2 | T2 B3 | T3 B4 | T4 B4 */
-  if(ptr->tag & TC_POST_S_PROCESS && ptr->tag & TC_VIDEO) {
+  if(ptr->tag & TC_PRE_PROCESS && ptr->tag & TC_VIDEO) {
   if (vob->im_v_codec == CODEC_YUV) {
     int mod = ptr->id % 4;
     int height = vob->ex_v_height;
@@ -157,6 +157,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     }
     */
 
+    //fprintf(stderr, "Doing operations on frame %d\n", ptr->id);
     switch (mod) {
       case 1:
 	/* nothing, pass frame through */
@@ -246,7 +247,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
 		Cr1 += width;
 		Cr2 += width;
 	    }
-	    break;
 	} else {
 	    /* restore frame4 = frame 5 */
 	    // this is the cloned frame
