@@ -305,7 +305,9 @@ void tc_memcpy_init(int verbose, int mmflags)
 {
 	const char * method = "libc";
 	
+#if defined(ARCH_X86)
 	int accel = mmflags == -1 ? ac_mmflag() : mmflags;
+#endif
 
 #ifdef ARCH_X86
 	if((accel & MM_MMXEXT) || (accel & MM_SSE))
