@@ -23,7 +23,11 @@ CFLAGS = -D_REENTRANT @CFLAGS@
 
 pkgdir=@MOD_PATH@
 
-pkg_LTLIBRARIES = filter_preview.la filter_pv.la 
+if HAVE_DV
+MOD1=filter_preview.la
+endif
+
+pkg_LTLIBRARIES = $(MOD1) filter_pv.la 
 
 filter_preview_la_SOURCES = filter_preview.c display.c 
 filter_preview_la_LDFLAGS =  -module -avoid-version 
