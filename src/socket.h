@@ -24,10 +24,6 @@
 #ifndef __TC_SOCKET_H
 #define __TC_SOCKET_H
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <pthread.h>
 
 enum TC_SOCKET_RETURN {
