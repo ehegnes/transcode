@@ -174,9 +174,10 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 {
 	static int initialized=0;
 	
+	if (!initialized) fprintf(stderr, "Audio: using new version\n");
+
 	if(initialized==0)
 	{
-		fprintf(stderr, "Audio: using new version\n");
 #ifdef LAME_3_89
 		int preset = 0;
 		
@@ -343,8 +344,7 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 		lgf->out_samplerate=vob->mp3frequency;
 	  
 		lame_init_params(lgf);
-		if (lame_get_VBR(lgf != vbr_off))
-			vbr = 1;
+		//if (lame_get_VBR(lgf != vbr_off)) vbr = 1;
 
 		if(verbose)
 			fprintf(stderr,"Audio: using lame-%s (static)\n",
