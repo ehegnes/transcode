@@ -140,6 +140,7 @@ MOD_init
     target = bufalloc(TC_FRAME_DV_PAL);
     vbuf = bufalloc(SIZE_RGB_FRAME);
 
+#ifdef LIBDV_095
     if(vob->dv_yuy2_mode) {
       tmp_buf = bufalloc(PAL_W*PAL_H*2); //max frame
       dv_yuy2_mode=1;
@@ -150,7 +151,6 @@ MOD_init
       dv_uyvy_mode=1;
     }
     
-#ifdef LIBDV_095
     encoder = dv_encoder_new(FALSE, FALSE, FALSE);
 #else
     dvenc_init();
