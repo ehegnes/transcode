@@ -47,6 +47,7 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_smartdeinter.la\
 			filter_normalize.la\
 			filter_testframe.la\
+			filter_slowmo.la\
 			filter_fields.la\
 			filter_clone.la\
 			filter_doublefps.la\
@@ -58,6 +59,8 @@ pkg_LTLIBRARIES = 	filter_null.la\
 			filter_29to23.la\
 			filter_smooth.la\
 			filter_unsharp.la\
+			filter_smartbob.la\
+			filter_smartyuv.la\
 			$(F_PP) $(F_MMX) $(F_LOGO) $(F_TEXT)
 
 filter_null_la_SOURCES = filter_null.c
@@ -78,6 +81,9 @@ filter_text_la_LIBADD  = @FT2_LIBS@
 
 filter_smooth_la_SOURCES = filter_smooth.c
 filter_smooth_la_LDFLAGS =  -module -avoid-version 
+
+filter_smartyuv_la_SOURCES = filter_smartyuv.c
+filter_smartyuv_la_LDFLAGS =  -module -avoid-version 
 
 filter_unsharp_la_SOURCES = filter_unsharp.c
 filter_unsharp_la_LDFLAGS =  -module -avoid-version 
@@ -110,6 +116,9 @@ filter_dnr_la_LIBADD = -lm
 filter_testframe_la_SOURCES = filter_testframe.c
 filter_testframe_la_LDFLAGS =  -module -avoid-version 
 
+filter_slowmo_la_SOURCES = filter_slowmo.c
+filter_slowmo_la_LDFLAGS =  -module -avoid-version 
+
 filter_astat_la_SOURCES = filter_astat.c
 filter_astat_la_LDFLAGS =  -module -avoid-version 
 
@@ -133,6 +142,10 @@ filter_cshift_la_LDFLAGS =  -module -avoid-version
 
 filter_yuy2toyv12_la_SOURCES = filter_yuy2toyv12.c
 filter_yuy2toyv12_la_LDFLAGS =  -module -avoid-version 
+
+filter_smartbob_la_SOURCES = filter_smartbob.c
+filter_smartbob_la_LDFLAGS =  -module -avoid-version 
+filter_smartbob_la_LIBADD = -L../libvo -lvout ../export/vid_aux.lo
 
 filter_smartdeinter_la_SOURCES = filter_smartdeinter.c
 filter_smartdeinter_la_LDFLAGS =  -module -avoid-version 
