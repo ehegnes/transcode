@@ -326,6 +326,7 @@ docs_DATA = \
 		    README.Inverse.Telecine.txt \
                     template.cfg.txt\
 		    filter-socket.txt\
+		    avi_comments.txt\
 		    filter-API.txt export-API.txt import-API.txt \
 		    OPTIMIZERS
 
