@@ -73,7 +73,7 @@
  ****************************************************************************/
 
 #define MOD_NAME    "export_xvid.so"
-#define MOD_VERSION "v0.3.6 (2002-12-30)"
+#define MOD_VERSION "v0.3.7 (2003-04-08)"
 #define MOD_CODEC   "(video) XviD (Stable)  | (audio) MPEG/AC3/PCM"
 #define MOD_PRE xvid_ 
 #include "export_def.h"
@@ -503,6 +503,10 @@ MOD_encode
 	vbrUpdate(&vbr_state, xstats.quant, xframe.intra, xstats.hlength,
 		  xframe.length, xstats.kblks, xstats.mblks, xstats.ublks);
 
+
+	/* split the AVI */
+	if((uint32_t)(AVI_bytes_written(avifile)+xframe.length+16+8)>>20 >= tc_avi_limit) 
+	    tc_outstream_rotate_request();
 
 	/* 0.6.2: switch outfile on "C" and -J pv */
 	if(xframe.intra) tc_outstream_rotate();

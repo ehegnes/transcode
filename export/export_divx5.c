@@ -60,7 +60,7 @@
 #include "vbr.h"
 
 #define MOD_NAME    "export_divx5.so"
-#define MOD_VERSION "v0.1.4 (2002-10-10)"
+#define MOD_VERSION "v0.1.5 (2003-04-08)"
 #define MOD_CODEC   "(video) DivX 5.xx | (audio) MPEG/AC3/PCM"
 
 #define MOD_PRE divx5
@@ -447,6 +447,10 @@ MOD_encode
     }
 
     // write bitstream
+
+    /* split the AVI */
+    if((uint32_t)(AVI_bytes_written(avifile)+encode.length+16+8)>>20 >= tc_avi_limit) 
+	tc_outstream_rotate_request();
 
     //0.6.2: switch outfile on "C" and -J pv
     if(key.is_key_frame) tc_outstream_rotate();

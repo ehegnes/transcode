@@ -72,7 +72,7 @@
  ****************************************************************************/
 
 #define MOD_NAME    "export_xvidcvs.so"
-#define MOD_VERSION "v0.3.8 (2003-03-16)"
+#define MOD_VERSION "v0.3.9 (2003-04-08)"
 #define MOD_CODEC  \
 "(video) XviD (CVS 2003-03-16)  | (audio) MPEG/AC3/PCM"
 #define MOD_PRE xvidcvs_ 
@@ -434,6 +434,10 @@ MOD_encode
 		  xstats.kblks,
 		  xstats.mblks,
 		  xstats.ublks);
+
+	/* split the AVI */
+	if((uint32_t)(AVI_bytes_written(avifile)+xframe.length+16+8)>>20 >= tc_avi_limit) 
+	    tc_outstream_rotate_request();
 
 	/*
 	 * Ported from an anonymous(?) change in export_xvid.c
