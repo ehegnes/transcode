@@ -857,6 +857,7 @@ int main(int argc, char *argv[]) {
     vob->avifile_in       = NULL;
     vob->avifile_out      = NULL;
     vob->avi_comment_fd   = -1;
+    vob->nav_seek_file    = NULL;
     vob->out_flag         = 0;
     vob->audio_in_file    = "/dev/zero";
     vob->video_in_file    = "/dev/zero";
@@ -1965,7 +1966,7 @@ int main(int argc, char *argv[]) {
 	  break;
 	  
 	case NAV_SEEK:
-	  nav_seek_file = optarg;
+	  vob->nav_seek_file = nav_seek_file = optarg;
 	  break;
 	  
 	case NO_SPLIT:
@@ -2294,6 +2295,7 @@ int main(int argc, char *argv[]) {
       char buf[80];
       int line_count;
       int flag = 0;
+      int is_aviindex = 0;
       
       if(vob->vob_offset) {
 	tc_warn("-L and --nav_seek are incompatible.");
@@ -2306,6 +2308,17 @@ int main(int argc, char *argv[]) {
 
       tmptime = vob->ttime;
       line_count = 0;
+
+      // check if this is an AVIIDX1 file
+      if (fgets(buf, sizeof(buf), fp)) {
+	if(strncasecmp(buf, "AVIIDX1", 7) == 0) is_aviindex=1;
+	tc_info("Found an AVI index file!");
+	fseek(fp, 0, SEEK_SET);
+      } else {
+	tc_error("An error happend while reading the nav_seek file");
+      }
+
+      if (!is_aviindex) {
       while(tmptime){
         flag=0;
         if(verbose & TC_DEBUG) printf("searching %s for frame %d\n", nav_seek_file, tmptime->stf);
@@ -2326,6 +2339,50 @@ int main(int argc, char *argv[]) {
   	  }
         }
 	tmptime = tmptime->next;
+      }
+      } else { // is_aviindex==1
+
+      fgets(buf, sizeof(buf), fp); // magic
+      fgets(buf, sizeof(buf), fp); // comment
+
+      while(tmptime){
+	int new_frame_a, type, key;
+	long chunk, chunkptype, last_keyframe=0;
+	off_t pos, len;
+	char tag[4];
+	double ms=0.0;
+        flag=0;
+	  
+        if(verbose & TC_DEBUG) printf("searching %s for frame %d\n", nav_seek_file, tmptime->stf);
+        for(; fgets(buf, sizeof(buf), fp); line_count++) {
+    	
+	  // TAG TYPE CHUNK CHUNK/TYPE POS LEN KEY MS
+	  if(sscanf(buf, "%s %d %ld %ld %lld %lld %d %lf", 
+		      tag, &type, &chunk, &chunkptype, &pos, &len, &key, &ms))
+	  {
+	    if (type!=1) continue;
+	    if(key) {
+	      //printf("type (%d) key (%d) chunkptype(%ld)\n", type, key, chunkptype);
+	      last_keyframe = chunkptype;
+	    }
+	    if(chunkptype == tmptime->stf) {
+	      int lenf = tmptime->etf - tmptime->stf;
+	      new_frame_a = chunkptype - last_keyframe;
+	      //if(verbose & TC_DEBUG) 
+		printf("%s: -c %d-%d -> -L %ld -c %d-%d\n", 
+		    nav_seek_file, tmptime->stf, tmptime->etf, last_keyframe, new_frame_a, new_frame_a+lenf);
+	      tmptime->stf = frame_a = new_frame_a;
+	      tmptime->etf = frame_b = new_frame_a + lenf;
+	      tmptime->vob_offset = last_keyframe;
+	      flag=1;
+	      ++line_count;
+	      break;
+	    }
+	  }
+	}
+	tmptime = tmptime->next;
+      }
+
       }
       fclose(fp);
 

@@ -90,6 +90,8 @@ typedef struct _vob_t {
   char *video_in_file;       // video source
   char *audio_in_file;       // audio source
   
+  char *nav_seek_file;        // seek/index information
+
   int in_flag;
 
   int has_audio;           // stream has probably no audio 
@@ -438,6 +440,7 @@ typedef struct _info_t {
   int fd_log;
 
   char *name;     // source name as supplied with -i option
+  char *nav_seek_file; // seek/index file
 
   int probe;      // flag for probe only mode
   int factor;     // amount of MB to probe
