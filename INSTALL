@@ -4,13 +4,21 @@ HOW TO COMPILE:
 Transcode compiles even if you have no additional libs installed. You do
 not *need* to have a "yes" on every configure check. Transcode comes
 with the most important libs included. That is libmpeg2 for decoding
-MPEG-2 files, libdvdread for reading DVDs and libavcodec for decoding
-and encoding MPEG-4 (DivX) video (use -x ffmpeg as import module).
+MPEG-2 files, libdvdread for reading DVDs, a library to read AVI files and
+libavcodec for decoding and encoding MPEG-4 (DivX) video (use -x ffmpeg as
+import module).
 
 Its recommended, that you have a recent nasm installed (>=0.98.35) if
 you are on an x86 based platform. A recent version of lame is a good
-thing to have installed, too.
+thing to have installed, too. Depending on what you want to do with
+transcode you may need additional packages installed. You probably want
+to install the mjpegtools package so you can encoded MPEG-2 files. You
+can also encode MPEG files with bbmpeg included in transcode. For
+decoding dv files, you can either install libdv or use -x ffmpeg.
 
+If you have installed the packages in standard locations, the standard
+./configure and make cycle should set you going. Again: you really do
+not need to have a "yes" on every check.
 
 ./configure --help 
 ./configure && make all
