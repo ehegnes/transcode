@@ -36,7 +36,7 @@ MODS5 =
 endif
 
 if HAVE_LAME
-MODS2 = export_raw.la export_divx4.la export_divx4raw.la export_divx5raw.la export_ppm.la export_divx5.la export_ffmpeg.la export_lame.la
+MODS2 = export_raw.la export_divx4.la export_divx4raw.la export_divx5raw.la export_debugppm.la export_ppm.la export_divx5.la export_ffmpeg.la export_lame.la
 endif
 
 if HAVE_LIBFAME
@@ -172,6 +172,10 @@ export_raw_la_LIBADD = @LAME_LIBS@ -L../avilib -lavi $(AC3_LIB) -lm
 export_lzo_la_SOURCES = export_lzo.c aud_aux.c
 export_lzo_la_LDFLAGS =  -module -avoid-version 
 export_lzo_la_LIBADD = @LAME_LIBS@ @LZO_LIBS@ -L../avilib -lavi $(AC3_LIB) -lm
+
+export_debugppm_la_SOURCES = export_debugppm.c aud_aux.c
+export_debugppm_la_LDFLAGS =  -module -avoid-version 
+export_debugppm_la_LIBADD = @LAME_LIBS@ -L../avilib -lavi $(AC3_LIB) -L../libvo -lvout -lm
 
 export_ppm_la_SOURCES = export_ppm.c aud_aux.c
 export_ppm_la_LDFLAGS =  -module -avoid-version 
