@@ -472,7 +472,7 @@ int main(int argc, char *argv[])
 		    return(-1);
 		} 
 
-		fprintf(status_fd, "V [%05d][%08.2lf] | A [%05d][%08.2lf] [%05ld]\n", n, vid_ms, aud_chunks, aud_ms[track_num], bytes);
+		fprintf(status_fd, "V [%05d][%08.2f] | A [%05d][%08.2f] [%05ld]\n", n, vid_ms, aud_chunks, aud_ms[track_num], bytes);
 
 		if (bytes == 0) {
 		    aud_ms[track_num] = vid_ms + shift_ms;
@@ -560,7 +560,7 @@ int main(int argc, char *argv[])
 		    return(-1);
 		} 
 
-		fprintf(status_fd, " V [%05d][%08.2lf] | A [%05d][%08.2lf] [%05ld]\n", n, vid_ms, n+shift, aud_ms[track_num], bytes);
+		fprintf(status_fd, " V [%05d][%08.2f] | A [%05d][%08.2f] [%05ld]\n", n, vid_ms, n+shift, aud_ms[track_num], bytes);
 
 		if ( !aud_bitrate && tc_get_audio_header(ptrdata, ptrlen, format, NULL, NULL, &aud_bitrate)<0) {
 		    //if (n == frames-1) continue;

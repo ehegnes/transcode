@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
       if(avifile2) {
 	vid_ms = vid_chunks*1000.0/fps;
 
-	fprintf(stderr, "[%s] (%06ld-%06d), size %4.1f MB. (V/A) (%.0lf/%.0lf)ms\r", out_file, i, n-1, ((double) AVI_bytes_written(avifile2))/MBYTE, vid_ms, aud_ms [0]);
+	fprintf(stderr, "[%s] (%06ld-%06d), size %4.1f MB. (V/A) (%.0f/%.0f)ms\r", out_file, i, n-1, ((double) AVI_bytes_written(avifile2))/MBYTE, vid_ms, aud_ms [0]);
       }
 
       if (split_next == 0) {
@@ -410,7 +410,7 @@ int main(int argc, char *argv[])
 	    }
 	    /*
 	    printf(" 0 frame_read len=%ld (A/V) (%8.2f/%8.2f)\n", bytes, aud_ms[k], vid_ms);
-	    fprintf(stderr, "%s track (%d) %8.0lf->%8.0lf len (%ld) frsize (%d) rate (%d)\n", 
+	    fprintf(stderr, "%s track (%d) %8.0f->%8.0f len (%ld) frsize (%d) rate (%d)\n", 
 		    format==0x55?"MP3":format==0x1?"PCM":"AC3", 
 		  k, vid_ms, aud_ms[k], bytes, framesize, aud_bitrate); 
 	    */
@@ -439,7 +439,7 @@ int main(int argc, char *argv[])
     size = AVI_bytes_written(avifile2);
     vid_ms = vid_chunks*1000.0/fps;
 
-    fprintf(stderr, "[%s] (%06ld-%06d), size %4.1f MB. vid=%8.2lf ms aud=%8.2lf ms\n", out_file, i, n-1, ((double) AVI_bytes_written(avifile2))/MBYTE, vid_ms, aud_ms[0]);
+    fprintf(stderr, "[%s] (%06ld-%06d), size %4.1f MB. vid=%8.2f ms aud=%8.2f ms\n", out_file, i, n-1, ((double) AVI_bytes_written(avifile2))/MBYTE, vid_ms, aud_ms[0]);
 
     if(avifile2 != NULL)
       AVI_close(avifile2);
@@ -690,7 +690,7 @@ int main(int argc, char *argv[])
 	    // count the frame which will be written also this, too
 	    vid_ms = vid_ms_w+1000.0/fps;
 
-	    //printf("start_frame (%d) (%lf) (%lf)\n", n, vid_ms, aud_ms[0]);
+	    //printf("start_frame (%d) (%f) (%f)\n", n, vid_ms, aud_ms[0]);
 
             first_frame = 0;
           }
@@ -706,7 +706,7 @@ int main(int argc, char *argv[])
 	  vid_ms_w = vid_chunks*1000.0/fps;
 	  */
 
-	  //printf("Before Enter (%d) (%lf) (%lf)\n", n, vid_ms, aud_ms[0]);
+	  //printf("Before Enter (%d) (%f) (%f)\n", n, vid_ms, aud_ms[0]);
           for( k = 0; k < AVI_audio_tracks( avifile1 ); k++ ) {
 	    int frsize=0;
 
