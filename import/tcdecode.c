@@ -270,6 +270,8 @@ int main(int argc, char *argv[])
 	if(!strcmp(codec,"mpeg2")) ipipe.codec = TC_CODEC_MPEG2;
 	if(!strcmp(codec,"divx3")) ipipe.codec = TC_CODEC_DIVX3;
 	if(!strcmp(codec,"divx")) ipipe.codec = TC_CODEC_DIVX4;
+	if(!strcmp(codec,"divx4")) ipipe.codec = TC_CODEC_DIVX4;
+	if(!strcmp(codec,"mp42")) ipipe.codec = TC_CODEC_MP42;
 	if(!strcmp(codec,"mjpg")) ipipe.codec = TC_CODEC_MJPG;
 	if(!strcmp(codec,"rv10")) ipipe.codec = TC_CODEC_RV10;
 	if(!strcmp(codec,"svq1")) ipipe.codec = TC_CODEC_SVQ1;
