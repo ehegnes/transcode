@@ -3,31 +3,142 @@
 transcode \- LINUX video stream processing tool
 .SH SYNOPSIS
 .B transcode
-[ -i name ] [  -H n ] [  -p file ] [  -x vmod[,amod] ] [  -a a[,v] ] [
---dvd_access_delay N ] [  -e r[,b[,c]] ] [  -E r[,b[,c]] ] [  -n 0xnn ] [  -N
-0xnn ] [  -b b[,v[,q[,m]]] ] [  --no_audio_adjust  ] [  --no_bitreservoir  ] [
---lame_preset name[,fast] ] [  -g wxh ] [  --import_asr C ] [  --export_asr C ]
-[  --export_par N,D ] [  --keep_asr  ] [  -f rate[,frc] ] [  --export_fps f[,c]
-] [  --export_frc F ] [  --hard_fps  ] [  -o file ] [  -m file ] [  -y
-vmod[,amod] ] [  -F codec ] [  --avi_limit N ] [  --avi_comments F ] [  -d  ] [
--s g[,c[,f[,r]]] ] [  -u m[,n] ] [  -A  ] [  -V  ] [  --uyvy  ] [  -J
-f1[,f2[,...]] ] [  -P flag ] [  -D num ] [  --av_fine_ms t ] [  -M mode ] [  -O
-] [  -r n[,m] ] [  -B n[,m[,M]] ] [  -X n[,m[,M]] ] [  -Z wxh[,fast] ] [
---zoom_filter str ] [  -C mode ] [  --antialias_para w,b ] [  -I mode ] [  -K
-] [  -G val ] [  -z  ] [  -l  ] [  -k  ] [  -j t[,l[,b[,r]]] ] [  -Y
-t[,l[,b[,r]]] ] [  --pre_clip t[,l[,b[,r]]] ] [  --post_clip t[,l[,b[,r]]] ] [
--w b[,k[,c]] ] [  --video_max_bitrate  ] [  -R n[,f1[,f2]] ] [  -Q n[,m] ] [
---divx_quant min,max ] [  --divx_rc p,rp,rr ] [  --divx_vbv_prof N ] [
---divx_vbv br,sz,oc ] [  -c f1-f2[,f3-f4] ] [  -t n,base ] [  --dir_mode base ]
-[  --frame_interval N ] [  -U base ] [  -T t[,c[-d][,a]] ] [  -W n,m[,file] ] [
---cluster_percentage use ] [  --cluster_chunks a-b ] [  -S unit[,s1-s2] ] [  -L
-n ] [  --import_v4l n[,id] ] [  --pulldown  ] [  --encode_fields  ] [
---nav_seek file ] [  --psu_mode  ] [  --psu_chunks a-b ] [  --no_split  ] [
---ts_pid 0xnn ] [  --a52_drc_off  ] [  --a52_demux  ] [  --a52_dolby_off  ] [
---print_status N[,r] ] [  --progress_off  ] [  --color N ] [  --write_pid file
-] [  --nice N ] [  --accel type ] [  --socket file ] [  --dv_yuy2_mode  ] [
---config_dir dir ] [  --ext vid,aud ] [ --export_prof S ] [  -q level ] [  -h
-] [  -v  ]  
+[ -i name ]
+[ -H n ]
+[ -p file ]
+.br
+[ -x vmod[,amod] ]
+[ -a a[,v] ]
+[ --dvd_access_delay N ]
+.br
+[ -e r[,b[,c]] ]
+[ -E r[,b[,c]] ]
+[ -n 0xnn ]
+[ -N 0xnn ]
+.br
+[ -b b[,v[,q[,m]]] ]
+[ --no_audio_adjust ]
+.br
+[ --no_bitreservoir ]
+[ --lame_preset name[,fast] ]
+.br
+[ -g wxh ]
+[ --import_asr C ]
+[ --export_asr C ]
+.br
+[ --export_par N,D ]
+[ --keep_asr ]
+[ -f rate[,frc] ]
+.br
+[ --export_fps f[,c] ]
+[ --export_frc F ]
+[ --hard_fps  ]
+.br
+[ -o file ]
+[ -m file ]
+[ -y vmod[,amod] ]
+[ -F codec ]
+.br
+[ --avi_limit N ]
+[ --avi_comments F ]
+[ -d ]
+.br
+[ -s g[,c[,f[,r]]] ]
+[ -u m[,n] ]
+[ -A ]
+[ -V ]
+[ --uyvy ]
+.br
+[ --use_rgb ]
+[ -J f1[,f2[,...]] ]
+[ -P flag ]
+[ -D num ]
+.br
+[ --av_fine_ms t ]
+[ -M mode ]
+[ -O ]
+[ -r n[,m] ]
+.br
+[ -B n[,m[,M]] ]
+[ -X n[,m[,M]] ]
+[ -Z wxh[,fast] ]
+.br
+[ --zoom_filter str ]
+[ -C mode ]
+[ --antialias_para w,b ]
+.br
+[ -I mode ]
+[ -K ]
+[ -G val ]
+[ -z ]
+[ -l ]
+[ -k ]
+.br
+[ -j t[,l[,b[,r]]] ]
+[ -Y t[,l[,b[,r]]] ]
+.br
+[ --pre_clip t[,l[,b[,r]]] ]
+[ --post_clip t[,l[,b[,r]]] ]
+.br
+[ -w b[,k[,c]] ]
+[ --video_max_bitrate ]
+.br
+[ -R n[,f1[,f2]] ]
+[ -Q n[,m] ]
+[ --divx_quant min,max ]
+.br
+[ --divx_rc p,rp,rr ]
+[ --divx_vbv_prof N ]
+.br
+[ --divx_vbv br,sz,oc ]
+[ -c f1-f2[,f3-f4] ]
+[ -t n,base ]
+.br
+[ --dir_mode base ]
+[ --frame_interval N ]
+[ -U base ]
+.br
+[ -T t[,c[-d][,a]] ]
+[ -W n,m[,file] ]
+.br
+[ --cluster_percentage use ]
+[ --cluster_chunks a-b ]
+.br
+[ -S unit[,s1-s2] ]
+[ -L n ]
+[ --import_v4l n[,id] ]
+.br
+[ --pulldown ]
+[ --encode_fields ]
+[ --nav_seek file ]
+.br
+[ --psu_mode ]
+[ --psu_chunks a-b ]
+[ --no_split ]
+.br
+[ --ts_pid 0xnn ]
+[ --a52_drc_off ]
+[ --a52_demux ]
+.br
+[ --a52_dolby_off ]
+[ --print_status N[,r] ]
+.br
+[ --progress_off ]
+[ --color N ]
+[ --write_pid file ]
+.br
+[ --nice N ]
+[ --accel type ]
+[ --socket file ]
+.br
+[ --dv_yuy2_mode ]
+[ --config_dir dir ]
+[ --ext vid,aud ]
+.br
+[ --export_prof S ]
+[ -q level ]
+[ -h ]
+[ -v ]  
 .SH COPYRIGHT
 \fBtranscode\fP is Copyright (C) 2001-2003 by Thomas Östreich, 2003-2004 Tilmann
 Bitterberg.
@@ -85,12 +196,15 @@ want to calculate \fIn\fP and \fIm\fP yourself.
 .B \-C \fImode\fP
 enable anti-aliasing mode (1-3) [off].
 .RS
-.TS
-li l.
-1	de-interlace effects only
-2	resize effects only
-3	process full frame (slow)
-.TE
+.TP 4
+.I 1
+de-interlace effects only
+.TP
+.I 2
+resize effects only
+.TP
+.I 3
+process full frame (slow)
 .RE
 
 .TP
@@ -320,19 +434,23 @@ with additional frame rate enforcement (for NTSC).
 export audio format id [0x55].
 .RS
 Available format IDs are:
-.TS
-ri l.
-0x1	PCM uncompressed audio
-0x50	MPEG layer-2 aka MP2
-0x55	T{
-.na
+.TP 8
+.I 0x1
+PCM uncompressed audio
+.TP
+.I 0x50
+MPEG layer-2 aka MP2
+.TP
+.I 0x55
 MPEG layer-3 aka MP3.
 Also have a look at --lame_preset
 if you intend to do VBR audio.
-T}
-0x2000	AC3 audio
-0xfffe	OGG/Vorbis audio
-.TE
+.TP
+.I 0x2000
+AC3 audio
+.TP
+.I 0xfffe
+OGG/Vorbis audio
 .RE
 
 .TP
@@ -496,12 +614,15 @@ audio encoder bitrate kBits/s[,vbr[,quality[,mode]]] [128,0,5,0]
 The \fImode\fP parameter specifies which modus lame should use for encoding.
 Available modes are:
 .RS 8
-.TS
-r3 l.
-0	Joint Stereo (default)
-1	Full stereo
-2	Mono
-.TE
+.TP 4
+.I 0
+Joint Stereo (default)
+.TP
+.I 1
+Full stereo
+.TP
+.I 2
+Mono
 .RE
 
 .TP
@@ -538,28 +659,47 @@ number of channels [48000,16,2]. Normally this is autodetected.
 .B \-f \fIrate\fP[,\fIfrc\fP]
 import video frame rate[,frc] [25.000,0]. If \fIfrc\fP (frame rate code) is specified,
 transcode will calculate the precise frames per second internally. Valid values
-for \fIfrc\fP are
-.RS
-
-.TS
-l l
-r| l.
-frc	rate
-_
-1	23.976 (24000/1001.0)
-2	24
-3	25
-4	29.970 (30000/1001.0)
-5	30
-6	50
-7	59.940 (2 * 29.970)
-8	60
-9	1
-10	5
-11	10
-12	12
-13	15
-.TE
+for \fIfrc\fP are:
+.RS 8
+.TP 4
+.I 1
+23.976 (24000/1001.0)
+.TP
+.I 2
+24
+.TP
+.I 3
+25
+.TP
+.I 4
+29.970 (30000/1001.0)
+.TP
+.I 5
+30
+.TP
+.I 6
+50
+.TP
+.I 7
+59.940 (2 * 29.970)
+.TP
+.I 8
+60
+.TP
+.I 9
+1
+.TP
+.I 10
+5
+.TP
+.I 11
+10
+.TP
+.I 12
+12
+.TP
+.I 13
+15
 .RE
 
 .TP
@@ -604,20 +744,38 @@ read audio stream from separate file [off].
 
 .TP
 .B \-q \fIdebuglevel\fP
+possible values for debuglevel:
 .RS
-.TS
-l r.
-QUIET	0
-INFO	1
-DEBUG	2
-STATS	4
-WATCH	8
-FLIST	16
-VIDCORE	32
-SYNC	64
-COUNTER	128
-PRIVATE	256
-.TE
+.TP 4
+.I 0
+QUIET
+.TP
+.I 1
+INFO
+.TP
+.I 2
+DEBUG
+.TP
+.I 4
+STATS
+.TP
+.I 8
+WATCH
+.TP
+.I 16
+FLIST
+.TP
+.I 32
+VIDCORE
+.TP
+.I 64
+SYNC
+.TP
+.I 128
+COUNTER
+.TP
+.I 256
+PRIVATE
 .RE
 
 .TP
@@ -653,62 +811,439 @@ Use \fIb\fP as maximal bitrate when encoding variable bitrate MPEG-2 streams
 .B \-x \fIvmod\fP[\fI,amod\fP]
 video[,audio] import modules [auto,auto]. If omitted, transcode will probe
 for appropriate import modules. A full-blown transcode installation has the following import modules:
-.IP
-Module "ac3": (audio) AC3
+.RS
+.\" Here starts the generated import part, produced by make-module-man.sed
+.TP 4
+\fBac3\fP \- (audio) AC3
 .br
-Module "af6": (video) Win32 dll | (audio) PCM
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+decodes AC3 audio from MPEG program streams or raw streams.
 .br
-Module "avi": (video) * | (audio) *
+Supported processing formats: audio - PCM AC3, video - none
+.RE
+.TP 4
+\fBaf6\fP \- (video) Win32 dll | (audio) PCM
 .br
-Module "divx": (video) DivX;-)/XviD/OpenDivX/DivX 4.xx/5.xx
+At compile-time avifile must be available.
+At run-time avifile and win32codecs must be present.
+Support for this module is fair.
+.RS 8
+interface to avifile library supported codecs and file formats.
 .br
-Module "dv": (video) DV | (audio) PCM
+Supported processing formats: audio - PCM, video - RGB YUV
+.RE
+.TP 4
+\fBavi\fP \- (video) * | (audio) *
 .br
-Module "dvd": (video) DVD | (audio) MPEG/AC3/PCM
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+RGB/PCM from RIFF AVI files.
 .br
-Module "ffmpeg": (video) FFMPEG API (build 4631) | MS MPEG4v1-3/MPEG4/MJPEG
+Supported processing formats: audio - RAW (pass-through) PCM, video - RAW (pass-through) RGB YUV YUV420
+.RE
+.TP 4
+\fBbktr\fP \- (video) bktr
 .br
-Module "im": (video) RGB
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+grabs video frames from bktr(4) devices on BSD systems
 .br
-Module "imlist": (video) RGB
+Supported processing formats: audio - none, video - RGB YUV YUV420
+.RE
+.TP 4
+\fBdivx\fP \- (video) DivX;-)/XviD/OpenDivX/DivX 4.xx/5.xx
 .br
-Module "lav": (video) LAV | (audio) WAVE
+This module has no compile-time dependencies.
+At run-time libdivxencode must be present.
+Support for this module is poor.
+.RS 8
+decoding support for AVI-files with DivX, OpendivX, DivX 4.xx/5.xx, XviD video using the DivX codec.
 .br
-Module "lzo": (video)
+Supported processing formats: audio - none, video - RAW (pass-through) RGB YUV
+.RE
+.TP 4
+\fBdv\fP \- (video) DV | (audio) PCM
 .br
-Module "mjpeg": (video) MJPEG
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+Digital Video and PCM audio from RIFF AVI-files or raw streams.
 .br
-Module "mov": (video) * | (audio) *
+Supported processing formats: audio - PCM, video - RAW (pass-through) RGB YUV DV YUV420
+.RE
+.TP 4
+\fBdvd\fP \- (video) DVD | (audio) MPEG/AC3/PCM
 .br
-Module "mp3": (audio) MPEG
+At compile-time libdvdread must be available.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+on-the-fly DVD transcoding.
 .br
-Module "mpeg2": (video) MPEG2
+Supported processing formats: audio - PCM AC3, video - RGB YUV
+.RE
+.TP 4
+\fBffbin\fP \- (video) rendered by ffmpeg binary | (audio) rendered by ffmpeg binary
 .br
-Module "mpeg3": (video) MPEG2
+This module has no compile-time dependencies.
+At run-time ffmpeg binary must be present.
+Support for this module is good.
+.RS 8
+audio and video decoded by the ffmpeg binary.
 .br
-Module "mplayer": (video) rendered by mplayer | (audio) rendered by mplayer
+Supported processing formats: processing modes: audio - PCM, video - RAW (pass-through) RGB YUV
+.RE
+.TP 4
+\fBffmpeg\fP \- (video) FFmpeg: MSMPEG/MPEG/MJPEG
 .br
-Module "null": (video) null | (audio) null
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+interface to ffmpeg library supported video codecs and file formats
 .br
-Module "nvrec": (video) nvrec - v4l | (audio) nvrec - dsp
+Supported processing formats: audio - none, video - RAW (pass-through) RGB YUV
+.RE
+.TP 4
+\fBfraps\fP \- (video) * 
 .br
-Module "ogg": (video) * | (audio) Ogg Vorbis
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is poor.
+.RS 8
+decodes fraps, FPS1, a packed form of YUV420
 .br
-Module "raw": (video) RGB/YUV | (audio) PCM
+Supported processing formats: audio - none, video - YUV
+.RE
+.TP 4
+\fBim\fP \- (video) RGB
 .br
-Module "rawlist": (video) YUV/RGB raw frames
+At compile-time ImageMagick must be available.
+At run-time ImageMagick must be present.
+Support for this module is fair.
+.RS 8
+interface to ImageMagick library supported picture codecs and file formats for making animations. Reads images with a counter pattern.
 .br
-Module "vdrac3": (audio) VDR-AC3
+Supported processing formats: audio - none, video - RAW (pass-through) RGB
+.RE
+.TP 4
+\fBimlist\fP \- (video) RGB
 .br
-Module "vob": (video) MPEG-2 | (audio) MPEG/AC3/PCM | (subtitle)
+At compile-time ImageMagick must be available.
+At run-time ImageMagick must be present.
+Support for this module is fair.
+.RS 8
+interface to ImageMagick library supported picture codecs and file formats for making animations. Reads images from a list.
 .br
-Module "v4l": (video) YUV/RGB | (audio) PCM
+Supported processing formats: audio - RAW (pass-through), video - RAW (pass-through) RGB
+.RE
+.TP 4
+\fBlav\fP \- (video) LAV | (audio) WAVE
 .br
-Module "xml": (video) * | (audio) *
+This module has no compile-time dependencies.
+At run-time mjpegtools must be present.
+Support for this module is good.
+.RS 8
+interface to mjpegtools (YUV4MPEG) streams produced by lav2yuv and lav2wav.
 .br
-Module "xvid":  (video) XviD/OpenDivX/DivX 4.xx/5.xx
+Supported processing formats: audio - PCM, video - RGB YUV
+.RE
+.TP 4
+\fBlve\fP \- (video/audio) MPEG/VOB/LVE
 .br
-Module "yuv4mpeg": (video) YUV4MPEGx | (audio) WAVE
+At compile-time liblve must be available.
+This module has no run-time dependencies.
+Support for this module is fair.
+.RS 8
+imports video from an LVE edit list
+.br
+Supported processing formats: audio - PCM, video - YUV
+.RE
+.TP 4
+\fBlzo\fP \- (video) LZO
+.br
+At compile-time lzo must be available.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+imports AVI-files with LZO loss-less compression for video.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM, video - RAW (pass-through) RGB YUV
+.RE
+.TP 4
+\fBmov\fP \- (video) * | (audio) *
+.br
+At compile-time libquicktime must be available.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+Quicktime file format, audio/video codecs supported by quicktime4linux.
+.br
+Supported processing formats: audio - PCM, video - RAW (pass-through) RGB YUV
+.RE
+.TP 4
+\fBmp3\fP \- (audio) MPEG
+.br
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+MPEG audio from program streams or raw streams.
+.br
+Supported processing formats: audio - PCM, video - none
+.RE
+.TP 4
+\fBmpeg2\fP \- (video) MPEG2
+.br
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+video track from MPEG program streams or raw streams, extracted and decoded by mpeg2dec.
+.br
+Supported processing formats: audio - none, video - RAW (pass-through) RGB YUV
+.RE
+.TP 4
+\fBmpeg3\fP \- (video) MPEG2 | (audio) MPEG/AC3/PCM
+.br
+At compile-time libmpeg3 must be available.
+At run-time libmpeg3 must be present.
+Support for this module is fair.
+.RS 8
+video track from MPEG program streams or raw streams extracted and decoded by libmpeg3.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM, video - RGB YUV
+.RE
+.TP 4
+\fBmplayer\fP \- (video) rendered by mplayer | (audio) rendered by mplayer
+.br
+This module has no compile-time dependencies.
+At run-time mplayer must be present.
+Support for this module is fair.
+.RS 8
+interface to Mplayer for decoding unsupported codecs, exotic file formats or more ore less broken sources.
+.br
+Supported processing formats: audio - PCM, video - RAW (pass-through) RGB YUV
+.RE
+.TP 4
+\fBnet\fP \- (video) RGB/YUV | (audio) PCM
+.br
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is poor.
+.RS 8
+read raw video/audio streams from sockets.
+.br
+Supported processing formats: audio - PCM, video - RGB YUV
+.RE
+.TP 4
+\fBnull\fP \- (video) null | (audio) null
+.br
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is fair.
+.RS 8
+dummy module, reads from /dev/zero.
+.br
+Supported processing formats: audio - none, video - none
+.RE
+.TP 4
+\fBnuv\fP \- (video) YUV | (audio) PCM
+.br
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is fair.
+.RS 8
+interface to NuppelVideo file format.
+.br
+Supported processing formats: audio - PCM, video - YUV
+.RE
+.TP 4
+\fBnvrec\fP \- (video) nvrec | (audio) nvrec
+.br
+This module has no compile-time dependencies.
+At run-time nvrec must be present.
+Support for this module is fair.
+.RS 8
+interface to NVrec video recorder program.
+.br
+Supported processing formats: audio - PCM, video - YUV
+.RE
+.TP 4
+\fBogg\fP \- (video) all | (audio) Ogg Vorbis
+.br
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+decodes Ogg Vorbis audio streams.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM, video - RAW (pass-through) RGB YUV
+.RE
+.TP 4
+\fBpvn\fP \- (video) PVN
+.br
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is fair.
+.RS 8
+imports video in the PVN format.
+.br
+Supported processing formats: audio - RAW (pass-through), video - RAW (pass-through) RGB
+.RE
+.TP 4
+\fBraw\fP \- (video) RGB/YUV | (audio) PCM
+.br
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is fair.
+.RS 8
+RGB/PCM from RIFF AVI/WAVE files or raw streams.
+.br
+Supported processing formats: audio - PCM, video - RGB YUV YUV420
+.RE
+.TP 4
+\fBrawlist\fP \- (video) YUV/RGB raw frames
+.br
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is fair.
+.RS 8
+reads images from a list. Native support for raw image formats only.
+.br
+Supported processing formats: audio - RAW (pass-through), video - RGB YUV YUV420
+.RE
+.TP 4
+\fBsh\fP \- (video) * | (audio) *
+.br
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is fair.
+.RS 8
+runs commands and reads from stdin.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RAW (pass-through) RGB YUV YUV420
+.RE
+.TP 4
+\fBsunau\fP \- (audio) pcm
+.br
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+grabs raw PCM audio from audio(4) devices on some BSD systems
+.br
+Supported processing formats: audio - PCM, video - none
+.RE
+.TP 4
+\fBv4l\fP \- (video) v4l | (audio) PCM
+.br
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is fair.
+.RS 8
+interface for grabbing sound/video from v4l devices on linux systems.
+.br
+Supported processing formats: audio - PCM, video - RGB YUV
+.RE
+.TP 4
+\fBv4l2\fP \- (video) v4l2 | (audio) pcm
+.br
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+interface for grabbing sound/video from v4l2 devices on linux systems. prefered over import_v4l.
+.br
+Supported processing formats: audio - PCM, video - RGB YUV YUV420
+.RE
+.TP 4
+\fBvdrac3\fP \- (audio) VDR-AC3
+.br
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is fair.
+.RS 8
+AC3 audio with invalid AC3 audio stream header from MPEG streams produced by digital capture cards.
+.br
+Supported processing formats: audio - PCM AC3, video - none
+.RE
+.TP 4
+\fBvnc\fP \- (video) VNC
+.br
+This module has no compile-time dependencies.
+At run-time vncrec must be present.
+Support for this module is fair.
+.RS 8
+imports video from the vncrec program.
+.br
+Supported processing formats: audio - none, video - RAW (pass-through) RGB YUV
+.RE
+.TP 4
+\fBvob\fP \- (video) MPEG-2 | (audio) MPEG/AC3/PCM | (subtitle)
+.br
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+MPEG/AC3 program streams in VOB files (found on unencrypted/ripped DVDs).
+.br
+Supported processing formats: audio - PCM AC3, video - RAW (pass-through) RGB YUV
+.RE
+.TP 4
+\fBxml\fP \- (video) * | (audio) *
+.br
+At compile-time libxml2 must be available.
+At run-time libxml2 must be present.
+Support for this module is fair.
+.RS 8
+interface to XML files with file listing and frame range produced by kino.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM, video - RAW (pass-through) RGB YUV DV
+.RE
+.TP 4
+\fBxvid\fP \- (video) XviD/OpenDivX/DivX 4.xx/5.xx
+.br
+This module has no compile-time dependencies.
+At run-time libxvidcore must be present.
+Support for this module is fair.
+.RS 8
+decoding support for AVI-files with DivX, OpendivX, DivX 4.xx/5.xx, XviD video using the XviD codec.
+.br
+Supported processing formats: audio - none, video - RAW (pass-through) RGB YUV
+.RE
+.TP 4
+\fByuv\fP \- (video) YUV files 
+.br
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is fair.
+.RS 8
+imports directories of files containing single YUV frames.
+.br
+Supported processing formats: audio - none, video - YUV
+.RE
+.TP 4
+\fByuv4mpeg\fP \- (video) YUV4MPEGx | (audio) WAVE
+.br
+This module has no compile-time dependencies.
+This module has no run-time dependencies.
+Support for this module is good.
+.RS 8
+YUV from video streams produced by mjpegtools (YUV4MPEG) and RIFF WAVE pcm audio.
+.br
+Supported processing formats: audio - PCM, video - RGB YUV
+.RE
+.\" Here ends the generated import part, produced by make-module-man.sed
+.RE
 .IP
 To see what your transcode has, do a
 .nf
@@ -733,6 +1268,7 @@ video[,audio] export modules [null].  If omitted, transcode will encode to
 the \fInull\fP module. A full-blown transcode installation has the following
 export modules:
 .RS
+.\" Here starts the generated export part, produced by make-module-man.sed
 .TP 4
 \fBac3\fP \- (video) null | (audio) ac3
 .br
@@ -740,180 +1276,185 @@ This module has no compile-time dependencies.
 At run-time ffmpeg must be present.
 Support for this module is good.
 .RS 8
-Lets you encode audio (raw PCM) to AC3 via the ffmpeg binary.
+Encodes audio (raw PCM) to AC3 via the ffmpeg binary.
+.br
+Supported processing formats: audio - PCM, video - none
 .RE
 .TP 4
 \fBaf6\fP \- (video) Win32 dll | (audio) MPEG/AC3/PCM
 .br
-At compile-time libavifile must be available and avifile support must
-be enabled.
+At compile-time libavifile must be available.
 At run-time libavifile and win32codecs must be present.
 Support for this module is good.
 .RS 8
 Interface to the avifile library which allows the use of win32codec on the linux-x86 platform.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 .RE
 .TP 4
 \fBdebugppm\fP \- (video) debugPPM/PGM | (audio) MPEG/AC3/PCM
 .br
-For MPEG audio encoding, libmp3lame must be available and lame support
-must be enabled at compile-time, and libmp3lame must be available at
-run-time.
+At compile-time libmp3lame (only for MPEG audio layer III) must be available.
+This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
-Especially usefull when one want to try to find bugs in YUV mode. It encodes the three planes as seperate images. In RGB mode, the 3 color planes get encoded seperatly.
+Especially usefull when debugging in YUV mode. Encodes the three planes as separate images. In RGB mode, the 3 color planes get encoded separatly.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 .RE
 .TP 4
 \fBdivx4\fP \- (video) DivX 4.xx | (audio) MPEG/AC3/PCM
 .br
-For MPEG audio encoding, libmp3lame must be available and lame support
-must be enabled at compile-time, and libmp3lame must be available at
-run-time.
-At run-time divx4linux (old) and libdivxencore.so must be present.
+At compile-time libmp3lame (only for MPEG audio layer III) must be available.
+At run-time divx4linux (old) libdivxencore.so must be present.
 Support for this module is fair.
 .RS 8
 Encodes MPEG4 video using the closed-source binaries from divx.com to an AVI container.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 .RE
 .TP 4
 \fBdivx4raw\fP \- (video) DivX 4.xx (ES) | (audio) MPEG/AC3/PCM
 .br
-For MPEG audio encoding, libmp3lame must be available and lame support
-must be enabled at compile-time, and libmp3lame must be available at
-run-time.
-At run-time divx4linux (old) and libdivxencore.so must be present.
+At compile-time libmp3lame (only for MPEG audio layer III) must be available.
+At run-time divx4linux (old) libdivxencore.so must be present.
 Support for this module is fair.
 .RS 8
 Encodes MPEG4 video using the closed-source binaries from divx.com into no file container at all. It writes out the raw bitstream.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 .RE
 .TP 4
 \fBdivx5\fP \- (video) DivX 5.xx | (audio) MPEG/AC3/PCM
 .br
-For MPEG audio encoding, libmp3lame must be available and lame support
-must be enabled at compile-time, and libmp3lame must be available at
-run-time.
+At compile-time libmp3lame (only for MPEG audio layer III) must be available.
 At run-time divx4linux (new) and libdivxencore.so must be present.
 Support for this module is good.
 .RS 8
 Encodes MPEG4 video using the closed-source binaries from divx.com to an AVI container.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 .RE
 .TP 4
 \fBdivx5raw\fP \- (video) DivX 5.xx (ES) | (audio) MPEG/AC3/PCM
 .br
-For MPEG audio encoding, libmp3lame must be available and lame support
-must be enabled at compile-time, and libmp3lame must be available at
-run-time.
+At compile-time libmp3lame (only for MPEG audio layer III) must be available.
 At run-time divx4linux (new) and libdivxencore.so must be present.
 Support for this module is fair.
 .RS 8
 Encodes MPEG4 video using the closed-source binaries from divx.com into no file container at all. It writes out the raw bitstream.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 .RE
 .TP 4
 \fBdv\fP \- (video) Digital Video | (audio) MPEG/AC3/PCM
 .br
-At compile-time libdv must be available and libdv support must be
-enabled.
+At compile-time libdv and libmp3lame (only for MPEG audio layer III) must be available.
 At run-time libdv must be present.
-For MPEG audio encoding, libmp3lame must be available and lame support
-must be enabled at compile-time, and libmp3lame must be available at
-run-time.
 Support for this module is good.
 .RS 8
 Encodes DV into an AVI container. DV is a codec developed by Sony and is often used in digital camcorders.
+.br
+Supported processing formats: audio - PCM AC3, video - RGB YUV
 .RE
 .TP 4
 \fBdvraw\fP \- (video) Digital Video | (audio) PCM
 .br
-At compile-time libdv must be available and libdv support must be enabled.
+At compile-time libdv must be available.
 At run-time libdv must be present.
 Support for this module is good.
 .RS 8
 Encodes DV into a DV file. DV is a codec developed by Sony and is often used in digital camcorders. A raw DV file can be played back into the camcorder.
 .br
-For faster encoding, the option "=qno=n" may be added, with a value n of 1 to be used on sharp, and one of 2 on noisy sources.
+Supported processing formats: audio - PCM, video - RAW (pass-through) RGB YUV YUV422
 .RE
 .TP 4
 \fBfame\fP \- (video) MPEG-4 | (audio) MPEG/AC3/PCM
 .br
-At compile-time libfame must be available and libfame support must be
-enabled.
+At compile-time libfame must be available.
 This module has no run-time dependencies.
 Support for this module is poor.
 .RS 8
 Fame is yet another MPEG4 encoder. It encodes to a raw file.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM AC3, video - YUV
 .RE
 .TP 4
 \fBffmpeg\fP \- (video) * | (audio) MPEG/AC3/PCM
 .br
-For MPEG audio encoding, libmp3lame must be available and lame support
-must be enabled at compile-time, and libmp3lame must be available at
-run-time.
+At compile-time libmp3lame (only for MPEG audio layer III) must be available.
 This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
 Encodes many different formats to both AVI and raw. Supported are mpeg1video, mpeg2video, mpeg4, mjpeg, h263, h263p, wmv1, wmv2, rv10, msmpeg4, msmpeg4v2, huffyuv and dvvideo.
+.br
+Supported processing formats: audio RAW (pass-through) PCM AC3, video - RGB YUV YUV422
 .RE
 .TP 4
 \fBim\fP \- (video) * | (audio) MPEG/AC3/PCM
 .br
-At compile-time libImageMagick must be available and ImageMagick support
-must be enabled.
+At compile-time libImageMagick must be available.
 This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
-Encodes image sequences by using the ImageMagick library. ImageMagick is able to handle a lot of different image formats among are png, jpg, miff, tiff, etc. Use -F to select the desired format.
+Encodes image sequences by using the ImageMagick library. ImageMagick is able to handle a lot of different image formats such as png, jpg, miff, tiff, etc. Use -F to select the desired format.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM, video - RGB YUV
 .RE
 .TP 4
 \fBjpg\fP \- (video) * | (audio) MPEG/AC3/PCM
 .br
-At compile-time libjpeg or libjpegmmx must be available and libjpeg
-support must be enabled.
+At compile-time libjpeg must be available.
 This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
 Encodes jpg image sequences using libjpeg. Faster than ImageMagick. Use -F to select the compression quality.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM, video - RGB YUV
 .RE
 .TP 4
 \fBlame\fP \- (audio) MPEG 1/2
 .br
-This module has no compile-time dependencies.
+At compile-time libmp3lame (only for MPEG audio layer III) must be available.
 At run-time lame and sox must be present.
 Support for this module is good.
 .RS 8
 An audio-only encoder which drives the lame binary. The tool sox is used to do resampling if required. Encodes to a MP3 file.
+.br
+Supported processing formats: audio - PCM, video - none
 .RE
 .TP 4
 \fBlzo\fP \- (video) LZO real-time compression | (audio) MPEG/AC3/PCM
 .br
-At compile-time liblzo must be available and lzo support must be enabled.
-For MPEG audio encoding, libmp3lame must be available and lame support
-must be enabled at compile-time, and libmp3lame must be available at
-run-time.
-This module has no run-time dependencies except libmp3lame for MPEG audio
-encoding.
+At compile-time liblzo and libmp3lame (only for MPEG audio layer III) must be available.
+This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
 Encodes video using a loss-less real-time LZO codec. This codec is a homegrown invention of transcode and is intended as an intermediate storage format. MPlayer can playback LZO-based AVI files as well.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RAW (pass-through) RGB YUV DV
 .RE
 .TP 4
 \fBmjpeg\fP \- (video) Motion JPEG | (audio) MPEG/AC3/PCM
 .br
-For MPEG audio encoding, libmp3lame must be available and lame support
-must be enabled at compile-time, and libmp3lame must be available at
-run-time.
-This module has no run-time dependencies except libmp3lame for MPEG audio
-encoding.
+At compile-time libjpeg and libmp3lame (only for MPEG audio layer III) must be available.
+This module has no run-time dependencies.
 Support for this module is poor.
 .RS 8
 Encodes MJPEG based AVI files using a homegrown algorithm based on libjpeg. Using ffmpeg -F mjpeg for this task is a good idea.
+.br
+Supported processing formats: audio - PCM AC3, video - RGB YUV
 .RE
 .TP 4
 \fBmov\fP \- (video) * | (audio) *
 .br
-At compile-time libquicktime must be available and libquicktime support
-must be enabled.
+At compile-time libquicktime must be available.
 At run-time libquicktime must be present.
 Support for this module is fair.
 .RS 8
 Interface to the quicktime library.
+.br
+Supported processing formats: audio - PCM, video - RAW (pass-through) RGB YUV YUV422 YUY2
 .RE
 .TP 4
 \fBmp1e\fP \- (video) MPEG1 video | (audio) MPEG1-Layer
@@ -923,16 +1464,30 @@ At run-time mp1e must be present.
 Support for this module is good.
 .RS 8
 Drives the mp1e binary and writes an mpeg1 file to disc. It can also encode vcd compliant streams. Note: it writes an intermediate wav file for audio due to a limitation of mp1e.
+.br
+Supported processing formats: audio - PCM, video - RGB YUV YUV422
+.RE
+.TP 4
+\fBmp2\fP \- (video) null | (audio) MPEG 1/2
+.br
+This module has no compile-time dependencies.
+At run-time ffmpeg and sox must be present.
+Support for this module is good.
+.RS 8
+Encodes audio (raw PCM) to MPEG 1 Layer 2 audio aka mp2. Additionaly it can change the speed of the audio stream by a factor you can specify. See docs/export_mp2.txt.
+.br
+Supported processing formats: audio - PCM, video - none
 .RE
 .TP 4
 \fBmp2enc\fP \- (audio) MPEG 1/2
 .br
-At compile-time mjpegtools must be available and mjpegtools support must
-be enabled.
+At compile-time mjpegtools must be available.
 At run-time mp2enc must be present.
 Support for this module is good.
 .RS 8
 Drives the mp2enc binary and writes an MP2 (MPEG1-Layer2) file. Useful for when encoding to SVCD to be multiplexed with mplex after encoding.
+.br
+Supported processing formats: audio - PCM, video - none
 .RE
 .TP 4
 \fBmpeg\fP \- (video) MPEG 1/2 | (audio) MPEG 1 Layer II
@@ -942,26 +1497,30 @@ This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
 Interface to the bbmpeg library (included in transcode). It can encode generic mpeg1, VCD, SVCD, MPEG2 and DVD type video. Encoded video goes into a elementary file to be multiplexed with the corresponding audio file after encoding.
+.br
+Supported processing formats: audio - PCM, video - RGB YUV
 .RE
 .TP 4
 \fBmpeg2enc\fP \- (video) MPEG 1/2
 .br
-At compile-time mjpegtools must be available and mjpegtools support must
-be enabled.
+At compile-time mjpegtools must be available.
 At run-time mpeg2enc must be present.
 Support for this module is good.
 .RS 8
 Drives the mpeg2enc binary. mpeg2enc is a very feature rich MPEG encoder, have a look at its manpage. Encodes generic mpeg1, VCD, SVCD, MPEG2 and DVD type video.
+.br
+Supported processing formats: audio - none, video - RGB YUV
 .RE
 .TP 4
 \fBnet\fP \- (video) RGB/YUV | (audio) PCM/AC3
 .br
-At compile-time net-support must be available and net support must be
-enabled.
+At compile-time net-support must be available.
 This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
 Transfers video data over a network between various transcodes. Useful if you have multiple systems connected via a fast network.
+.br
+Supported processing formats: audio - PCM AC3, video - RGB YUV
 .RE
 .TP 4
 \fBnull\fP \- (video) null | (audio) null
@@ -971,6 +1530,8 @@ This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
 Data sink. Does nothing else than discarding data.
+.br
+Supported processing formats: audio - none, video - none
 .RE
 .TP 4
 \fBogg\fP \- (video) null | (audio) ogg
@@ -980,6 +1541,8 @@ At run-time oggenc must be present.
 Support for this module is good.
 .RS 8
 Drives the oggenc binary. Encodes an Ogg/Vorbis file. Resamples.
+.br
+Supported processing formats: audio - PCM, video - none
 .RE
 .TP 4
 \fBpcm\fP \- (audio) PCM (non-interleaved)
@@ -989,6 +1552,8 @@ This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
 Writes each audio channel to a WAVE PCM file.
+.br
+Supported processing formats: audio - PCM, video - RAW (pass-through) RGB YUV
 .RE
 .TP 4
 \fBppm\fP \- (video) PPM/PGM | (audio) MPEG/AC3/PCM
@@ -998,16 +1563,30 @@ This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
 Writes an image sequence of PGM or PPM files. PPM is an old format and there are several tools around to manipulate such files.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 .RE
 .TP 4
 \fBpvm\fP \- (video) * | (audio) *
 .br
-At compile-time libpvm3 must be available and pvm3 support must be
-enabled.
+At compile-time libpvm3 must be available.
 At run-time pvm must be present.
 Support for this module is good.
 .RS 8
 Meta module. It allows transcode to be used in a PVM cluster. See docs/export_pvm.txt
+.br
+Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RAW (pass-through) RGB YUV DV YUV422 YUY2
+.RE
+.TP 4
+\fBpvn\fP \- (video) PVN | (audio) MPEG/AC3/PCM
+.br
+This module has no compile-time dependencies.
+At run-time pvm must be present.
+Support for this module is good.
+.RS 8
+Writes PVN video. See contrib/pnmpvn/pvnspecs.html
+.br
+Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 .RE
 .TP 4
 \fBraw\fP \- (video) * | (audio) MPEG/AC3/PCM
@@ -1017,6 +1596,8 @@ This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
 Can write uncompressed streams to an AVI file as well as raw mpeg2 files in pass-through mode.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RAW (pass-through) RGB YUV DV YUV422
 .RE
 .TP 4
 \fBtoolame\fP \- (audio) MPEG 1/2
@@ -1026,6 +1607,8 @@ At run-time toolame and sox must be present.
 Support for this module is good.
 .RS 8
 Drives the toolame binary to create MP2 audio tracks. Sox is used for resampling if requested.
+.br
+Supported processing formats: audio - PCM, video - none
 .RE
 .TP 4
 \fBwav\fP \- (audio) WAVE PCM
@@ -1035,50 +1618,54 @@ This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
 Creates WAVE PCM files with interleaved audio for stereo.
+.br
+Supported processing formats: audio - PCM, video - RAW (pass-through) RGB YUV
 .RE
 .TP 4
 \fBxvid2\fP \- (video) XviD 0.9.x (aka API 2.1 series)  | (audio) MPEG/AC3/PCM
 .br
-For MPEG audio encoding, libmp3lame must be available and lame support
-must be enabled at compile-time, and libmp3lame must be available at
-run-time.
+At compile-time libmp3lame (only for MPEG audio layer III) must be available.
 At run-time libxvidencore.so.2 must be present.
 Support for this module is good.
 .RS 8
-Encodes MPEG4 video using the library available form xvid.org. Check out the library from xvidcvs using cvs -d :pserver:anonymous@cvs.xvid.org:/xvid co -rrelease-0_9_2 xvidcore. The output can either be an AVI file or a MPEG4 elementary stream (with -F raw).
+Encodes MPEG4 video using the library available from xvid.org. Check out the library from xvidcvs using cvs -d :pserver:anonymous@cvs.xvid.org:/xvid co -rrelease-0_9_2 xvidcore. The output can either be an AVI file or a MPEG4 elementary stream (with -F raw).
+.br
+Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV YUV422
 .RE
 .TP 4
 \fBxvid3\fP \- (video) XviD nonumber series (aka API 3.0)  | (audio) MPEG/AC3/PCM
 .br
-For MPEG audio encoding, libmp3lame must be available and lame support
-must be enabled at compile-time, and libmp3lame must be available at
-run-time.
+At compile-time libmp3lame (only for MPEG audio layer III) must be available.
 At run-time libxvidcore.so.3 must be present.
 Support for this module is good.
 .RS 8
-Encodes MPEG4 video using the library available form xvid.org. Check out the library from xvidcvs using cvs -d :pserver:anonymous@cvs.xvid.org:/xvid co -rHEAD xvidcore. The output can either be an AVI file or a MPEG4 elementary stream (with -F raw).
+Encodes MPEG4 video using the library available from xvid.org. Check out the library from xvidcvs using cvs -d :pserver:anonymous@cvs.xvid.org:/xvid co -rHEAD xvidcore. The output can either be an AVI file or a MPEG4 elementary stream (with -F raw).
+.br
+Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV YUV422
 .RE
 .TP 4
 \fBxvid4\fP \- (video) XviD 1.0.x series (aka API 4.0) | (audio) MPEG/AC3/PCM
 .br
-For MPEG audio encoding, libmp3lame must be available and lame support
-must be enabled at compile-time, and libmp3lame must be available at
-run-time.
+At compile-time libmp3lame (only for MPEG audio layer III) must be available.
 At run-time libxvidcore.so.4 must be present.
 Support for this module is good.
 .RS 8
-Encodes MPEG4 video using the library available form xvid.org. Check out the library from xvidcvs using cvs -d :pserver:anonymous@cvs.xvid.org:/xvid co -rdev-api-4 xvidcore. There is also a tool available to create configuration files for this xvid version at http://zebra.fh-weingarten.de/transcode/xvid4conf. The output can either be an AVI file or a MPEG4 elementary stream (with -F raw).
+Encodes MPEG4 video using the library available from xvid.org. Check out the library from xvidcvs using cvs -d :pserver:anonymous@cvs.xvid.org:/xvid co -rdev-api-4 xvidcore. There is also a tool available to create configuration files for this xvid version at http://zebra.fh-weingarten.de/transcode/xvid4conf. The output can either be an AVI file or a MPEG4 elementary stream (with -F raw).
+.br
+Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV YUV422
 .RE
 .TP 4
 \fByuv4mpeg\fP \- (video) YUV4MPEG2 | (audio) MPEG/AC3/PCM
 .br
-At compile-time mjpegtools must be available and mjpegtools support must
-be enabled.
+At compile-time mjpegtools must be available.
 This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
 Writes the uncompressed raw YUV data in a YUV4MPEG format as used by the lav* and mjpeg* tools.
+.br
+Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 .RE
+.\" Here ends the generated export part, produced by make-module-man.sed
 .RE
 .IP
 To see what your transcode has, do a
@@ -1100,19 +1687,20 @@ flip video frame upside down [off].
 .B \-\-accel \fItype\fP
 enforce experimental IA32 acceleration for type [autodetect]. \fItype\fP may be one of
 .RS
-.TS
-box;
-li l.
-C	No acceleration
-ia32asm	plain x86 assembly
-_
-mmx
-3dnow	T{
-Acceleration for a specific SIMD extension
-T}
-sse
-sse2
-.TE
+.TP 8
+.I C
+No acceleration
+.TP
+.I ia32asm
+plain x86 assembly
+.TP
+.I mmx
+.TP
+.I 3dnow
+.TP
+.I sse
+.TP
+.I sse2
 .RE
 
 .TP
@@ -1178,17 +1766,20 @@ process chunk range instead of selected chunk [off]
 .TP
 .B \-\-export_asr \fIC\fP
 set export aspect ratio code \fIC\fP [as input]
+Valid codes for \fIC\fP are:
 .RS 8
-.TS
-c s
-l3 r.
-Valid codes for \fIC\fP are
-_
-1	1:1
-2	4:3
-3	16:9
-4	2.21:1
-.TE
+.TP
+.I 1
+1:1
+.TP
+.I 2
+4:3
+.TP
+.I 3
+16:9
+.TP
+.I 4
+2.21:1
 .RE
 
 .TP
@@ -1254,34 +1845,44 @@ normal size after deinterlacing by dropping every second line).
 If \fIC\fP and \fIN\fP are specified, the value set for \fIC\fP does give the
 pixel aspect ratio of the width and \fIN\fP the one for the height
 If only \fIC\fP is specified, the table below applies.
-.RS 8
-.TS
-c s s
-r3 c6 l.
+.RS
+.TP 4
 Valid codes for \fIC\fP are
-_
-1	1:1	No stretching
-2	12:11	5:4 image to 4:3  (ex: 720x576 ->  768x576)
-3	10:11	3:2 image to 4:3  (ex: 720x480 ->  640x480)
-4	16:11	5:4 image to 16:9 (ex: 720x576 -> 1024x576)
-5	40:33	3:2 image to 16:9 (ex: 720x480 ->  872x480)
-.TE
+.TP
+.I 1
+1:1	No stretching
+.TP
+.I 2
+12:11	5:4 image to 4:3  (ex: 720x576 ->  768x576)
+.TP
+.I 3
+10:11	3:2 image to 4:3  (ex: 720x480 ->  640x480)
+.TP
+.I 4
+16:11	5:4 image to 16:9 (ex: 720x576 -> 1024x576)
+.TP
+.I 5
+40:33	3:2 image to 16:9 (ex: 720x480 ->  872x480)
 .RE
 
 .TP
 .B \-\-import_asr \fIC\fP
 set import aspect ratio code \fIC\fP [autoprobed]
-.RS 8
-.TS
-c s
-l3 r.
+.RS
+.TP 4
 Valid codes for \fIC\fP are
-_
-1	1:1
-2	4:3
-3	16:9
-4	2.21:1
-.TE
+.TP
+.I 1
+1:1
+.TP
+.I 2
+4:3
+.TP
+.I 3
+16:9
+.TP
+.I 4
+2.21:1
 .RE
 
 .TP
@@ -1329,18 +1930,23 @@ Sets a predefined profile for the Video Bitrate Verifier. If \fIN\fP is set to
 zero, no profile is applied and the user specified values from
 \fB\-\-divx_vbv\fP are used.
 .RS
-.TS
-c s s s s s s s
-r l r r s s c l
-r l r r r r r l.
+.TP 4
 Valid profiles
-_
-0	Free/No profile	(	Use supplied values	)
-1	Handheld	(	320,	16,	3072	)
-2	Portable	(	1920,	64,	12288	)
-3	Home Theatre	(	10000,	192,	36864	)
-4	High Definition	(	20000,	384,	73728	)
-.TE
+.TP
+.I 0
+Free/No profile	( Use supplied values )
+.TP
+.I 1
+Handheld	( 320, 16, 3072 )
+.TP
+.I 2
+Portable	( 1920, 64, 12288 )
+.TP
+.I 3
+Home Theatre	( 10000, 192, 36864 )
+.TP
+.I 4
+High Definition	( 20000, 384, 73728 )
 .RE
 
 .TP
@@ -1357,25 +1963,47 @@ values are multiples of what the encoder library wants.
 set export frame rate (and code) [as input].Valid values
 for \fIfrc\fP are
 .RS
-.TS
-l l s
-r| n l.
+.TP 4
 frc	rate
-_
-1	23.976	(24000/1001.0)
-2	24
-3	25
-4	29.970	(30000/1001.0)
-5	30
-6	50
-7	59.940	(2 * 29.970)
-8	60
-9	1
-10	5
-11	10
-12	12
-13	15
-.TE
+.TP
+.I 1
+23.976	(24000/1001.0)
+.TP
+.I 2
+24
+.TP
+.I 3
+25
+.TP
+.I 4
+29.970	(30000/1001.0)
+.TP
+.I 5
+30
+.TP
+.I 6
+50
+.TP
+.I 7
+59.940	(2 * 29.970)
+.TP
+.I 8
+60
+.TP
+.I 9
+1
+.TP
+.I 10
+5
+.TP
+.I 11
+10
+.TP
+.I 12
+12
+.TP
+.I 13
+15
 .RE
 
 .TP
@@ -1677,7 +2305,7 @@ comma `,' is possible but must be extra quoted. For the text filter that is
 \-J text=string="Hello\\, World"
 .fi
 .RE
-.\" Here starts the generated part, produced by make-filter-man.sh
+.\" Here starts the generated filter part, produced by make-filter-man.sh
 .TP 4
 \fB29to23\fP - \fBframe rate conversion filter (interpolating 29 to 23)\fP
 \fB29to23\fP was written by Max Alekseyev, Tilmann Bitterberg. The version documented here is v0.3 (2003-07-18). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
@@ -1686,57 +2314,57 @@ comma `,' is possible but must be extra quoted. For the text filter that is
 \fB32detect\fP was written by Thomas. The version documented here is v0.2.4 (2003-07-22). This is a video filter. It can handle RGB and YUV mode. It supports multiple instances and can run as a pre-processing and/or as a post-processing filter.
 .IP
 .RS
-\(bu
-.I threshold
-= \fI%d\fP  [default \fI9\fP]
+\(bu 
+.I threshold 
+= \fI%d\fP  [default \fI9\fP] 
 .RS 3
 Interlace detection threshold
 .RE
-\(bu
-.I chromathres
-= \fI%d\fP  [default \fI4\fP]
+\(bu 
+.I chromathres 
+= \fI%d\fP  [default \fI4\fP] 
 .RS 3
 Interlace detection chroma threshold
 .RE
-\(bu
-.I equal
-= \fI%d\fP  [default \fI10\fP]
+\(bu 
+.I equal 
+= \fI%d\fP  [default \fI10\fP] 
 .RS 3
 threshold for equal colors
 .RE
-\(bu
-.I chromaeq
-= \fI%d\fP  [default \fI5\fP]
+\(bu 
+.I chromaeq 
+= \fI%d\fP  [default \fI5\fP] 
 .RS 3
 threshold for equal chroma
 .RE
-\(bu
-.I diff
-= \fI%d\fP  [default \fI30\fP]
+\(bu 
+.I diff 
+= \fI%d\fP  [default \fI30\fP] 
 .RS 3
 threshold for different colors
 .RE
-\(bu
-.I chromadi
-= \fI%d\fP  [default \fI15\fP]
+\(bu 
+.I chromadi 
+= \fI%d\fP  [default \fI15\fP] 
 .RS 3
 threshold for different chroma
 .RE
-\(bu
-.I force_mode
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I force_mode 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 set internal force de-interlace flag with mode -I N
 .RE
-\(bu
-.I pre
-= \fI%d\fP  [default \fI1\fP]
+\(bu 
+.I pre 
+= \fI%d\fP  [default \fI1\fP] 
 .RS 3
 run as pre filter
 .RE
-\(bu
-.I verbose
-(bool)
+\(bu 
+.I verbose 
+(bool) 
 .RS 3
 show results
 .RE
@@ -1752,15 +2380,15 @@ Subsequent de-interlacing with transcode can be enforced with 'force_mode' optio
 \fBaclip\fP was written by Thomas Oestreich. The version documented here is v0.1.1 (2003-09-04). This is a audio filter. It is a pre-processing only filter.
 .IP
 .RS
-\(bu
-.I level
-= \fI%d\fP  [default \fI10\fP]
+\(bu 
+.I level 
+= \fI%d\fP  [default \fI10\fP] 
 .RS 3
 The audio must be under this level to be skipped
 .RE
-\(bu
-.I range
-= \fI%d\fP  [default \fI25\fP]
+\(bu 
+.I range 
+= \fI%d\fP  [default \fI25\fP] 
 .RS 3
 Number of samples over level will be keyframes
 .RE
@@ -1770,11 +2398,12 @@ Number of samples over level will be keyframes
 \fBastat\fP was written by Thomas Oestreich. The version documented here is v0.1.3 (2003-09-04). This is a audio filter. It is a pre-processing only filter.
 .IP
 .RS
-\(bu
-.I file
+\(bu 
+.I file 
 = \fI%s\fP
 .RS 3
 File to save the calculated volume rescale number to
+.RE
 .RE
 .RE
 .TP 4
@@ -1782,44 +2411,27 @@ File to save the calculated volume rescale number to
 \fBcompare\fP was written by Antonio Beamud. The version documented here is v0.1.2 (2003-08-29). This is a video filter. It can handle RGB and YUV mode. It supports multiple instances. It is a post-processing only filter.
 .IP
 .RS
-\(bu
-.I pattern
+\(bu 
+.I pattern 
 = \fI%s\fP
 .RS 3
 Pattern image file path
 .RE
-\(bu
-.I results
+\(bu 
+.I results 
 = \fI%s\fP
 .RS 3
 Results file path
 .RE
-\(bu
-.I delta
-= \fI%f\fP  [default \fI45.000000\fP]
+\(bu 
+.I delta 
+= \fI%f\fP  [default \fI45.000000\fP] 
 .RS 3
 Delta error
 .RE
 .IP
 Generate a file in with information about the times, frame, etc the pattern
 defined in the image parameter is observed.
-.RE
-.TP 4
-\fBcontrol\fP - \fBapply a filter control list\fP
-\fBcontrol\fP was written by Tilmann Bitterberg. The version documented here is v0.0.1 (2003-11-29). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
-.IP
-.RS
-\(bu
-.I file
-= \fI%s\fP
-.RS 3
-read commands to apply from file.
-.RE
-\(bu
-.I ofile
-= \fI%s\fP
-.RS 3
-write output of commands to output file
 .RE
 .IP
 The format of the command file is framenumber followed by at least one whitespace followed
@@ -1833,15 +2445,16 @@ Empty lines and lines starting with a `#' are ignored. The frame numbers must be
       20 configure smooth=strength=0.9
       99 disable smooth
 
+      
 .RE
 .TP 4
 \fBcpaudio\fP - \fBcopy one audio channel to the other channel filter plugin\fP
 \fBcpaudio\fP was written by William H Wittig. The version documented here is v0.1 (2003-04-30). This is a audio filter. It is a post-processing only filter.
 .IP
 .RS
-\(bu
-.I source
-= \fI%c\fP  [default \fIl\fP]
+\(bu 
+.I source 
+= \fI%c\fP  [default \fIl\fP] 
 .RS 3
 Source channel (l=left, r=right)
 .RE
@@ -1853,9 +2466,9 @@ Copies audio from one channel to another
 \fBcshift\fP was written by Thomas Östreich, Chad Page. The version documented here is v0.2.1 (2003-01-21). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
 .IP
 .RS
-\(bu
-.I shift
-= \fI%d\fP  [default \fI1\fP]
+\(bu 
+.I shift 
+= \fI%d\fP  [default \fI1\fP] 
 .RS 3
 Shift chroma(color) to the left
 .RE
@@ -1865,8 +2478,8 @@ Shift chroma(color) to the left
 \fBcut\fP was written by Thomas Oestreich. The version documented here is v0.1.0 (2003-05-03). This is a video and audio filter. It is a pre-processing only filter.
 .IP
 .RS
-\(bu
-.I HH:MM:SS.f-HH:MM:SS.f/step
+\(bu 
+.I HH:MM:SS.f-HH:MM:SS.f/step 
 = \fI%s\fP
 .RS 3
 apply filter [start-end] frames [0-oo/1]
@@ -1877,9 +2490,9 @@ apply filter [start-end] frames [0-oo/1]
 \fBdecimate\fP was written by Thanassis Tsiodras. The version documented here is v0.4 (2003-04-22). This is a video filter. It can handle YUV mode only. It is a post-processing only filter.
 .IP
 .RS
-\(bu
-.I verbose
-(bool)
+\(bu 
+.I verbose 
+(bool) 
 .RS 3
 print verbose information
 .RE
@@ -1888,36 +2501,36 @@ see /docs/README.Inverse.Telecine.txt
 .RE
 .TP 4
 \fBdenoise3d\fP - \fBHigh speed 3D Denoiser\fP
-\fBdenoise3d\fP was written by Daniel Moreno & A'rpi. The version documented here is v1.0.3 (2003-11-08). This is a video filter. It can handle YUV mode only. It supports multiple instances. It can be used as a pre-processing or as a post-processing filter.
+\fBdenoise3d\fP was written by Daniel Moreno & A'rpi. The version documented here is v1.0.6 (2003-12-20). This is a video filter. It can handle YUV mode only. It supports multiple instances. It can be used as a pre-processing or as a post-processing filter.
 .IP
 .RS
-\(bu
-.I luma
-= \fI%f\fP  [default \fI4.000000\fP]
+\(bu 
+.I luma 
+= \fI%f\fP  [default \fI4.000000\fP] 
 .RS 3
 spatial luma strength
 .RE
-\(bu
-.I chroma
-= \fI%f\fP  [default \fI3.000000\fP]
+\(bu 
+.I chroma 
+= \fI%f\fP  [default \fI3.000000\fP] 
 .RS 3
 spatial chroma strength
 .RE
-\(bu
-.I luma_strength
-= \fI%f\fP  [default \fI6.000000\fP]
+\(bu 
+.I luma_strength 
+= \fI%f\fP  [default \fI6.000000\fP] 
 .RS 3
 temporal luma strength
 .RE
-\(bu
-.I chroma_strength
-= \fI%f\fP  [default \fI8.000000\fP]
+\(bu 
+.I chroma_strength 
+= \fI%f\fP  [default \fI4.000000\fP] 
 .RS 3
 temporal chroma strength
 .RE
-\(bu
-.I pre
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I pre 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 run as a pre filter
 .RE
@@ -1945,35 +2558,34 @@ still short on CPU cycles, try disabling the luma filter, this will not make
 much difference in the effectiveness of the filter!
 .RE
 .TP 4
-\fBdetectsilence\fP - \fBaudio silence detection with tcmp3cut commandline generation\fP
-\fBdetectsilence\fP was written by Tilmann Bitterberg. The version documented here is v0.0.1 (2003-07-26). This is a audio filter. It is a pre-processing only filter.
-.TP 4
 \fBdetectclipping\fP - \fBdetect clipping parameters (-j or -Y)\fP
-\fBdetectclipping\fP was written by Tilmann Bitterberg, A'rpi. The version documented here is v0.1.0 (2003-11-01). This is a video filter. It can handle RGB and YUV mode. It can be used as a pre-processing or as a post-processing filter.
+\fBdetectclipping\fP was written by Tilmann Bitterberg, A'rpi. The version documented here is v0.1.0 (2003-11-01). This is a video filter. It can handle RGB and YUV mode. It supports multiple instances and can run as a pre-processing and/or as a post-processing filter.
 .IP
 .RS
-\(bu
-.I range
-= \fI%u-%u/%d\fP  [default \fI0-4294967295/1\fP]
+\(bu 
+.I range 
+= \fI%u-%u/%d\fP  [default \fI0-4294967295/1\fP] 
 .RS 3
 apply filter to [start-end]/step frames
 .RE
-\(bu
-.I limit
-= \fI%d\fP  [default \fI24\fP]
+\(bu 
+.I limit 
+= \fI%d\fP  [default \fI24\fP] 
 .RS 3
 the sum of a line must be below this limit to be considered as black
 .RE
-\(bu
-.I post
-(bool)
+\(bu 
+.I post 
+(bool) 
 .RS 3
 run as a POST filter (calc -Y instead of the default -j)
 .RE
 .IP
 Detect black regions on top, bottom, left and right of an image.  It is suggested that the filter is run for around 100 frames.  It will print its detected parameters every frame. If you don't notice any change in the printout for a while, the filter probably won't find any other values.  The filter converges, meaning it will learn.
 .RE
-.RE
+.TP 4
+\fBdetectsilence\fP - \fBaudio silence detection with tcmp3cut commandline generation\fP
+\fBdetectsilence\fP was written by Tilmann Bitterberg. The version documented here is v0.0.1 (2003-07-26). This is a audio filter. It is a pre-processing only filter.
 .TP 4
 \fBdilyuvmmx\fP - \fByuv de-interlace filter plugin\fP
 \fBdilyuvmmx\fP was written by Thomas Oestreich. The version documented here is v0.1.1 (2002-02-21). This is a video filter. It can handle YUV mode only. It is a pre-processing only filter.
@@ -1985,33 +2597,33 @@ Detect black regions on top, bottom, left and right of an image.  It is suggeste
 \fBdnr\fP was written by Gerhard Monzel. The version documented here is v0.2 (2003-01-21). This is a video filter. It can handle RGB and YUV mode. It is a post-processing only filter.
 .IP
 .RS
-\(bu
-.I lt
-= \fI%d\fP  [default \fI10\fP]
+\(bu 
+.I lt 
+= \fI%d\fP  [default \fI10\fP] 
 .RS 3
 Threshold to blend luma/red
 .RE
-\(bu
-.I ll
-= \fI%d\fP  [default \fI4\fP]
+\(bu 
+.I ll 
+= \fI%d\fP  [default \fI4\fP] 
 .RS 3
 Threshold to lock luma/red
 .RE
-\(bu
-.I ct
-= \fI%d\fP  [default \fI16\fP]
+\(bu 
+.I ct 
+= \fI%d\fP  [default \fI16\fP] 
 .RS 3
 Threshold to blend croma/green+blue
 .RE
-\(bu
-.I cl
-= \fI%d\fP  [default \fI8\fP]
+\(bu 
+.I cl 
+= \fI%d\fP  [default \fI8\fP] 
 .RS 3
 Threshold to lock croma/green+blue
 .RE
-\(bu
-.I sc
-= \fI%d\fP  [default \fI30\fP]
+\(bu 
+.I sc 
+= \fI%d\fP  [default \fI30\fP] 
 .RS 3
 Percentage of picture difference (scene change)
 .RE
@@ -2023,9 +2635,9 @@ see /docs/filter_dnr.txt (german only)
 \fBdoublefps\fP was written by Tilmann Bitterberg. The version documented here is v0.2 (2003-06-23). This is a video filter. It can handle RGB and YUV mode. It is a post-processing only filter.
 .IP
 .RS
-\(bu
-.I shiftEven
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I shiftEven 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Assume even field dominance
 .RE
@@ -2035,59 +2647,113 @@ Assume even field dominance
 \fBextsub\fP was written by Thomas Oestreich. The version documented here is 0.3.5 (2003-10-15). This is a video filter. It can handle RGB and YUV mode. It can be used as a pre-processing or as a post-processing filter.
 .IP
 .RS
-\(bu
-.I track
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I track 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Subtitle track to render
 .RE
-\(bu
-.I vertshift
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I vertshift 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 offset of subtitle with respect to bottom of frame in rows
 .RE
-\(bu
-.I timeshift
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I timeshift 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 global display start time correction in msec
 .RE
-\(bu
-.I antialias
-= \fI%d\fP  [default \fI1\fP]
+\(bu 
+.I antialias 
+= \fI%d\fP  [default \fI1\fP] 
 .RS 3
 anti-aliasing the rendered text (0=off,1=on)
 .RE
-\(bu
-.I pre
-= \fI%d\fP  [default \fI1\fP]
+\(bu 
+.I pre 
+= \fI%d\fP  [default \fI1\fP] 
 .RS 3
 Run as a pre filter
 .RE
-\(bu
-.I color1
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I color1 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Make a subtitle color visible with given intensity
 .RE
-\(bu
-.I color2
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I color2 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Make a subtitle color visible with given intensity
 .RE
-\(bu
-.I ca
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I ca 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Shuffle the color assignment by choosing another subtitle color
 .RE
-\(bu
-.I cb
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I cb 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Shuffle the color assignment by choosing another subtitle color
+.RE
+.RE
+.TP 4
+\fBfieldanalysis\fP - \fBField analysis for detecting interlace and telecine\fP
+\fBfieldanalysis\fP was written by Matthias Hopf. The version documented here is v1.0 pl1 (2004-08-13). This is a video filter. It can handle RGB,YUV and YUV422 mode. It is a pre-processing only filter.
+.IP
+.RS
+\(bu 
+.I interlacediff 
+= \fI%f\fP  [default \fI1.1\fP] 
+.RS 3
+Minimum temporal inter-field difference for detecting interlaced video
+.RE
+\(bu 
+.I unknowndiff 
+= \fI%f\fP  [default \fI1.5\fP] 
+.RS 3
+Maximum inter-frame change vs. detail differences for neglecting interlaced video
+.RE
+\(bu 
+.I progressivediff 
+= \fI%f\fP  [default \fI8\fP] 
+.RS 3
+Minimum inter-frame change vs. detail differences for detecting progressive video
+.RE
+\(bu 
+.I progressivechange 
+= \fI%f\fP  [default \fI0.2\fP] 
+.RS 3
+Minimum temporal change needed for detecting progressive video
+.RE
+\(bu 
+.I changedifmore 
+= \fI%f\fP  [default \fI10\fP] 
+.RS 3
+Minimum temporal change for detecting truly changed frames
+.RE
+\(bu 
+.I forcetelecinedetect 
+= \fI%d\fP  [default \fI0\fP] 
+.RS 3
+Detect telecine even on non-NTSC (29.97fps) video
+.RE
+\(bu 
+.I verbose 
+= \fI%d\fP  [default \fI0\fP] 
+.RS 3
+Output analysis for every frame
+.RE
+\(bu 
+.I outdiff 
+= \fI%d\fP  [default \fI0\fP] 
+.RS 3
+Output internal debug frames as luminance of YUV video (see source)
 .RE
 .RE
 .TP 4
@@ -2095,21 +2761,21 @@ Shuffle the color assignment by choosing another subtitle color
 \fBfields\fP was written by Alex Stewart. The version documented here is v0.1.1 (2003-01-21). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
 .IP
 .RS
-\(bu
-.I flip
-(bool)
+\(bu 
+.I flip 
+(bool) 
 .RS 3
 Exchange the top field and bottom field of each frame
 .RE
-\(bu
-.I shift
-(bool)
+\(bu 
+.I shift 
+(bool) 
 .RS 3
 Shift the video by one field
 .RE
-\(bu
-.I flip_first
-(bool)
+\(bu 
+.I flip_first 
+(bool) 
 .RS 3
 Normally shifting is performed before flipping, this option reverses that
 .RE
@@ -2164,46 +2830,56 @@ best (but slower) results, use RGB mode for field shifting.
 .RE
 .TP 4
 \fBfps\fP - \fBconvert video frame rate, gets defaults from -f and --export_fps\fP
-\fBfps\fP was written by Christopher Cramer. The version documented here is v0.2 (2003-08-10). This is a video filter. It can handle RGB and YUV mode. It can be used as a pre-processing or as a post-processing filter.
+\fBfps\fP was written by Christopher Cramer. The version documented here is v1.1 (2004-05-01). This is a video filter. It can handle RGB and YUV mode. It can be used as a pre-processing or as a post-processing filter.
 .IP
 .RS
 .IP
 options: <input fps>:<output fps>
 example: -J fps=25:29.97 will convert from PAL to NTSC
 If no options are given, defaults or -f/--export_fps/--export_frc will be used.
+Some examples:
+
+	-J fps=10:5:pre		convert from 10 fps to 5 fps, preprocess
+	-J fps=10:post:12	convert from 10 to 12, postprocess
+	-J fps=pre=1:7:5	convert from 7 to 5, postprocess
+	-J fps=9:3.1:post=-0x7	convert from 9 to 3.1, postprocess
+
+If that last one is confusing you, remember that 0 is false and everything
+else is true. Of course, octal and hexadecimal numbers are supported too.
+This is intended to be backward compatible with the old format.
 .RE
 .TP 4
 \fBhqdn3d\fP - \fBHigh Quality 3D Denoiser\fP
 \fBhqdn3d\fP was written by Daniel Moreno & A'rpi. The version documented here is v1.0.2 (2003-08-15). This is a video filter. It can handle YUV mode only. It supports multiple instances. It can be used as a pre-processing or as a post-processing filter.
 .IP
 .RS
-\(bu
-.I luma
-= \fI%f\fP  [default \fI4.000000\fP]
+\(bu 
+.I luma 
+= \fI%f\fP  [default \fI4.000000\fP] 
 .RS 3
 spatial luma strength
 .RE
-\(bu
-.I chroma
-= \fI%f\fP  [default \fI3.000000\fP]
+\(bu 
+.I chroma 
+= \fI%f\fP  [default \fI3.000000\fP] 
 .RS 3
 spatial chroma strength
 .RE
-\(bu
-.I luma_strength
-= \fI%f\fP  [default \fI6.000000\fP]
+\(bu 
+.I luma_strength 
+= \fI%f\fP  [default \fI6.000000\fP] 
 .RS 3
 temporal luma strength
 .RE
-\(bu
-.I chroma_strength
-= \fI%f\fP  [default \fI4.500000\fP]
+\(bu 
+.I chroma_strength 
+= \fI%f\fP  [default \fI4.500000\fP] 
 .RS 3
 temporal chroma strength
 .RE
-\(bu
-.I pre
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I pre 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 run as a pre filter
 .RE
@@ -2215,9 +2891,9 @@ This filter aims to reduce image noise producing smooth images and making still 
 \fBinvert\fP was written by Tilmann Bitterberg. The version documented here is v0.1.4 (2003-10-12). This is a video filter. It can handle RGB,YUV and YUV422 mode. It is a post-processing only filter.
 .IP
 .RS
-\(bu
-.I range
-= \fI%u-%u/%d\fP  [default \fI0-4294967295/1\fP]
+\(bu 
+.I range 
+= \fI%u-%u/%d\fP  [default \fI0-4294967295/1\fP] 
 .RS 3
 apply filter to [start-end]/step frames
 .RE
@@ -2249,55 +2925,79 @@ perform magic? (0=no 1=yes)
 see /docs/README.Inverse.Telecine.txt
 .RE
 .TP 4
-\fBlogo\fP - \fBrender image in videostream\fP
-\fBlogo\fP was written by Tilmann Bitterberg. The version documented here is v0.9 (2003-04-09). This is a video filter. It can handle RGB and YUV mode. It is a post-processing only filter.
+\fBlevels\fP - \fBLuminosity level scaler\fP
+\fBlevels\fP was written by Bryan Mayland. The version documented here is v1.0.0 (2004-06-09). This is a video filter. It can handle YUV mode only. It supports multiple instances. It is a post-processing only filter.
 .IP
 .RS
-\(bu
-.I file
+\(bu 
+.I input 
+= \fI%d-%d\fP  [default \fI0-255\fP] 
+.RS 3
+input luma range (black-white)
+.RE
+\(bu 
+.I gamma 
+= \fI%f\fP  [default \fI1.000000\fP] 
+.RS 3
+input luma gamma
+.RE
+\(bu 
+.I output 
+= \fI%d-%d\fP  [default \fI0-255\fP] 
+.RS 3
+output luma range (black-white)
+.RE
+.RE
+.TP 4
+\fBlogo\fP - \fBrender image in videostream\fP
+\fBlogo\fP was written by Tilmann Bitterberg. The version documented here is v0.10 (2003-10-16). This is a video filter. It can handle RGB and YUV mode. It is a post-processing only filter.
+.IP
+.RS
+\(bu 
+.I file 
 = \fI%s\fP
 .RS 3
 Image filename
 .RE
-\(bu
-.I posdef
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I posdef 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Position (0=None, 1=TopL, 2=TopR, 3=BotL, 4=BotR, 5=Center)
 .RE
-\(bu
-.I pos
-= \fI%dx%d\fP  [default \fI0x0\fP]
+\(bu 
+.I pos 
+= \fI%dx%d\fP  [default \fI0x0\fP] 
 .RS 3
 Position (0-width x 0-height)
 .RE
-\(bu
-.I range
-= \fI%u-%u\fP  [default \fI0-0\fP]
+\(bu 
+.I range 
+= \fI%u-%u\fP  [default \fI0-0\fP] 
 .RS 3
 Restrict rendering to framerange
 .RE
-\(bu
-.I ignoredelay
-(bool)
+\(bu 
+.I ignoredelay 
+(bool) 
 .RS 3
 Ignore delay specified in animations
 .RE
-\(bu
-.I rgbswap
-(bool)
+\(bu 
+.I rgbswap 
+(bool) 
 .RS 3
 Swap red/blue colors
 .RE
-\(bu
-.I grayout
-(bool)
+\(bu 
+.I grayout 
+(bool) 
 .RS 3
 YUV only: don't write Cb and Cr, makes a nice effect
 .RE
-\(bu
-.I flip
-(bool)
+\(bu 
+.I flip 
+(bool) 
 .RS 3
 Mirror image
 .RE
@@ -2311,60 +3011,66 @@ see /docs/filter_logo.txt
 .RE
 .TP 4
 \fBlogoaway\fP - \fBremove an image from the video\fP
-\fBlogoaway\fP was written by Thomas Wehrspann <thomas@wehrspann.de>. The version documented here is v0.4 (2003-09-03). This is a video filter. It can handle RGB and YUV mode. It is a post-processing only filter. It supports multiple instances.
+\fBlogoaway\fP was written by Thomas Wehrspann <thomas@wehrspann.de>. The version documented here is v0.5 (2004-03-07). This is a video filter. It can handle RGB and YUV mode. It is a post-processing only filter. It supports multiple instances.
 .IP
 .RS
-\(bu
-.I range
-= \fI%d-%d\fP  [default \fI0-4294967295\fP]
+\(bu 
+.I range 
+= \fI%d-%d\fP  [default \fI0-4294967295\fP] 
 .RS 3
 Frame Range
 .RE
-\(bu
-.I pos
-= \fI%dx%d\fP  [default \fI0x0\fP]
+\(bu 
+.I pos 
+= \fI%dx%d\fP  [default \fI-1x-1\fP] 
 .RS 3
 Position of logo
 .RE
-\(bu
-.I size
-= \fI%dx%d\fP  [default \fI10x10\fP]
+\(bu 
+.I size 
+= \fI%dx%d\fP  [default \fI-2x-2\fP] 
 .RS 3
 Size of logo
 .RE
-\(bu
-.I mode
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I mode 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Filter Mode (0=none,1=solid,2=xy,3=shape)
 .RE
-\(bu
-.I border
-(bool)
+\(bu 
+.I border 
+(bool) 
 .RS 3
 Visible Border
 .RE
-\(bu
-.I xweight
-= \fI%d\fP  [default \fI50\fP]
+\(bu 
+.I dump 
+(bool) 
+.RS 3
+Dump filterarea to file
+.RE
+\(bu 
+.I xweight 
+= \fI%d\fP  [default \fI50\fP] 
 .RS 3
 X-Y Weight(0%-100%)
 .RE
-\(bu
-.I fill
-= \fI%2x%2x%2x\fP  [default \fI000\fP]
+\(bu 
+.I fill 
+= \fI%2x%2x%2x\fP  [default \fI000\fP] 
 .RS 3
 Solid Fill Color(RGB)
 .RE
-\(bu
-.I file
+\(bu 
+.I file 
 = \fI%s\fP
 .RS 3
 Image with alpha/shape information
 .RE
 .IP
 This filter removes an image in a user specified area from the video.  You can
-choose from different methods.
+choose from different methods.                                
 
 see /docs/filter_logoaway.txt
 .RE
@@ -2373,9 +3079,9 @@ see /docs/filter_logoaway.txt
 \fBlowpass\fP was written by Tilmann Bitterberg. The version documented here is v0.1.0 (2002-02-26). This is a audio filter. It is a pre-processing only filter.
 .IP
 .RS
-\(bu
-.I taps
-= \fI%d\fP  [default \fI30\fP]
+\(bu 
+.I taps 
+= \fI%d\fP  [default \fI30\fP] 
 .RS 3
 strength (may be negative)
 .RE
@@ -2385,15 +3091,15 @@ strength (may be negative)
 \fBmask\fP was written by Thomas Östreich, Chad Page. The version documented here is v0.2.3 (2003-10-12). This is a video filter. It can handle RGB,YUV and YUV422 mode. It is a pre-processing only filter.
 .IP
 .RS
-\(bu
-.I lefttop
-= \fI%dx%d\fP  [default \fI0x0\fP]
+\(bu 
+.I lefttop 
+= \fI%dx%d\fP  [default \fI0x0\fP] 
 .RS 3
 Upper left corner of the box
 .RE
-\(bu
-.I rightbot
-= \fI%dx%d\fP  [default \fI32x32\fP]
+\(bu 
+.I rightbot 
+= \fI%dx%d\fP  [default \fI32x32\fP] 
 .RS 3
 Lower right corner of the box
 .RE
@@ -2405,45 +3111,45 @@ This filter applies an rectangular mask to the video.  Everything outside the ma
 \fBmodfps\fP was written by Marrq. The version documented here is v0.10 (2003-08-18). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
 .IP
 .RS
-\(bu
-.I mode
-= \fI%d\fP  [default \fI1\fP]
+\(bu 
+.I mode 
+= \fI%d\fP  [default \fI1\fP] 
 .RS 3
 mode of operation
 .RE
-\(bu
-.I infps
-= \fI%f\fP  [default \fI25.000000\fP]
+\(bu 
+.I infps 
+= \fI%f\fP  [default \fI25.000000\fP] 
 .RS 3
 Original fps
 .RE
-\(bu
-.I infrc
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I infrc 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Original frc
 .RE
-\(bu
-.I examine
-= \fI%d\fP  [default \fI5\fP]
+\(bu 
+.I examine 
+= \fI%d\fP  [default \fI5\fP] 
 .RS 3
 How many frames to buffer
 .RE
-\(bu
-.I subsample
-= \fI%d\fP  [default \fI32\fP]
+\(bu 
+.I subsample 
+= \fI%d\fP  [default \fI32\fP] 
 .RS 3
 How many pixels to subsample
 .RE
-\(bu
-.I clonetype
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I clonetype 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 How to clone frames
 .RE
-\(bu
-.I verbose
-= \fI%d\fP  [default \fI1\fP]
+\(bu 
+.I verbose 
+= \fI%d\fP  [default \fI1\fP] 
 .RS 3
 run in verbose mode
 .RE
@@ -2466,27 +3172,27 @@ see /docs/README.filter.modfps
 \fBmsharpen\fP was written by Donald Graft, William Hawkins. The version documented here is (1.0) (2003-07-17). This is a video filter. It can handle RGB and YUV mode. It is a post-processing only filter.
 .IP
 .RS
-\(bu
-.I strength
-= \fI%d\fP  [default \fI100\fP]
+\(bu 
+.I strength 
+= \fI%d\fP  [default \fI100\fP] 
 .RS 3
 How much  of the effect
 .RE
-\(bu
-.I threshold
-= \fI%d\fP  [default \fI10\fP]
+\(bu 
+.I threshold 
+= \fI%d\fP  [default \fI10\fP] 
 .RS 3
 How close a pixel must be to the brightest or dimmest pixel to be mapped
 .RE
-\(bu
-.I highq
-= \fI%d\fP  [default \fI1\fP]
+\(bu 
+.I highq 
+= \fI%d\fP  [default \fI1\fP] 
 .RS 3
 Tradeoff speed for quality of detail detection
 .RE
-\(bu
-.I mask
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I mask 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Areas to be sharpened are shown in white
 .RE
@@ -2510,15 +3216,15 @@ edges without amplifying noise.
 \fBnored\fP was written by Tilmann Bitterberg. The version documented here is v0.1.3 (2003-01-26). This is a video filter. It can handle YUV mode only. It is a pre-processing only filter.
 .IP
 .RS
-\(bu
-.I range
-= \fI%u-%u/%d\fP  [default \fI0x4294967295/1\fP]
+\(bu 
+.I range 
+= \fI%u-%u/%d\fP  [default \fI0x4294967295/1\fP] 
 .RS 3
 apply filter to [start-end]/step frames
 .RE
-\(bu
-.I subst
-= \fI%d\fP  [default \fI2\fP]
+\(bu 
+.I subst 
+= \fI%d\fP  [default \fI2\fP] 
 .RS 3
 substract N red from Cr
 .RE
@@ -2528,21 +3234,21 @@ substract N red from Cr
 \fBnormalize\fP was written by pl, Tilmann Bitterberg. The version documented here is v0.1.1 (2002-06-18). This is a audio filter. It is a pre-processing only filter.
 .IP
 .RS
-\(bu
-.I smooth
-= \fI%f\fP  [default \fI0.06\fP]
+\(bu 
+.I smooth 
+= \fI%f\fP  [default \fI0.06\fP] 
 .RS 3
 Value for smoothing ]0.0 1.0[
 .RE
-\(bu
-.I smoothlast
-= \fI%f\fP  [default \fI0.06\fP]
+\(bu 
+.I smoothlast 
+= \fI%f\fP  [default \fI0.06\fP] 
 .RS 3
 Value for smoothing last sample ]0.0, 1.0[
 .RE
-\(bu
-.I algo
-= \fI%d\fP  [default \fI1\fP]
+\(bu 
+.I algo 
+= \fI%d\fP  [default \fI1\fP] 
 .RS 3
 Algorithm to use (1 or 2). 1=uses a 1 value memory and coefficients new=a*old+b*cur (with a+b=1).   2=uses several samples to smooth the variations (standard weighted mean on past samples)
 .RE
@@ -2555,99 +3261,99 @@ Algorithm to use (1 or 2). 1=uses a 1 value memory and coefficients new=a*old+b*
 \fBpp\fP was written by Michael Niedermayer et al, Gerhard Monzel. The version documented here is v1.2.4 (2003-01-24). This is a video filter. It can handle YUV mode only. It supports multiple instances. It can be used as a pre-processing or as a post-processing filter.
 .IP
 .RS
-\(bu
-.I hb
-= \fI%d:%d\fP  [default \fI64:40\fP]
+\(bu 
+.I hb 
+= \fI%d:%d\fP  [default \fI64:40\fP] 
 .RS 3
 Horizontal deblocking filter
 .RE
-\(bu
-.I vb
-= \fI%d:%d\fP  [default \fI64:40\fP]
+\(bu 
+.I vb 
+= \fI%d:%d\fP  [default \fI64:40\fP] 
 .RS 3
 Vertical deblocking filter
 .RE
-\(bu
-.I h1
-(bool)
+\(bu 
+.I h1 
+(bool) 
 .RS 3
 Experimental h deblock filter 1
 .RE
-\(bu
-.I v1
-(bool)
+\(bu 
+.I v1 
+(bool) 
 .RS 3
 Experimental v deblock filter 1
 .RE
-\(bu
-.I dr
-(bool)
+\(bu 
+.I dr 
+(bool) 
 .RS 3
 Deringing filter
 .RE
-\(bu
-.I al
-(bool)
+\(bu 
+.I al 
+(bool) 
 .RS 3
 Automatic brightness / contrast
 .RE
-\(bu
-.I f
-(bool)
+\(bu 
+.I f 
+(bool) 
 .RS 3
 Stretch luminance to (0..255)
 .RE
-\(bu
-.I lb
-(bool)
+\(bu 
+.I lb 
+(bool) 
 .RS 3
 Linear blend deinterlacer
 .RE
-\(bu
-.I li
-(bool)
+\(bu 
+.I li 
+(bool) 
 .RS 3
 Linear interpolating deinterlace
 .RE
-\(bu
-.I ci
-(bool)
+\(bu 
+.I ci 
+(bool) 
 .RS 3
 Cubic interpolating deinterlacer
 .RE
-\(bu
-.I md
-(bool)
+\(bu 
+.I md 
+(bool) 
 .RS 3
 Median deinterlacer
 .RE
-\(bu
-.I de
-(bool)
+\(bu 
+.I de 
+(bool) 
 .RS 3
 Default preset (hb:a/vb:a/dr:a/al)
 .RE
-\(bu
-.I fa
-(bool)
+\(bu 
+.I fa 
+(bool) 
 .RS 3
 Fast preset (h1:a/v1:a/dr:a/al)
 .RE
-\(bu
-.I tn
-= \fI%d:%d:%d\fP  [default \fI64:128:256\fP]
+\(bu 
+.I tn 
+= \fI%d:%d:%d\fP  [default \fI64:128:256\fP] 
 .RS 3
 Temporal Noise Reducer (1<=2<=3)
 .RE
-\(bu
-.I fq
-= \fI%d\fP  [default \fI15\fP]
+\(bu 
+.I fq 
+= \fI%d\fP  [default \fI15\fP] 
 .RS 3
 Force quantizer
 .RE
-\(bu
-.I pre
-(bool)
+\(bu 
+.I pre 
+(bool) 
 .RS 3
 Run as a PRE filter
 .RE
@@ -2677,6 +3383,12 @@ Number of raw frames to cache for seeking
 .RS 3
 display only every Nth frame
 .RE
+\(bu 
+.I fullscreen 
+(bool) 
+.RS 3
+Display in fullscreen mode
+.RE
 .IP
 The filter listens to mouse and key strokes. If you click into the preview
 window, the first time say near the upper left corner and the second time near
@@ -2692,27 +3404,52 @@ the socket.
 transcode -i file.avi -V -J pv=cache=30 --socket /tmp/sock
 .fi
 
-.TS
-c s s
-l l l
-l l l.
+.RS
+.TP 8
 Available Commands
+.TP
 Key	Socket*	Effect
-_
-RET	draw	Redraws the image, applying filters.
-u	undo	goes to image before draw.
-SPACE	pause	pause the preview (and transcode).
-UP	fastfw	In pause mode, step forward 5 frames.
-RIGHT	slowfw	In pause mode, step forward 1 frame.
-DOWN	fastbw	In pause mode, step back 5 frames.
-LEFT	slowbw	In pause mode, step back 1 frame.
-q	display	Toggle display of frames
-s	slower	slow down
-f	faster	speed up
-y	toggle	toggle displaying only every 5 frames
-j	grab	Save a JPEG
-r	rotate	Rotate AVI file after next keyframe
-.TE
+.TP
+.I RET
+draw	redraws the image, applying filters.
+.TP
+.I u
+undo	goes to image before draw
+.TP
+.I SPACE
+pause	pause the preview (and transcode)
+.TP
+.I UP
+fastfw	in pause mode, step forward 5 frames
+.TP
+.I RIGHT
+slowfw	in pause mode, step forward 1 frame
+.TP
+.I DOWN
+fastbw	in pause mode, step back 5 frames
+.TP
+.I LEFT
+slowbw	in pause mode, step back 1 frame
+.TP
+.I q
+display	toggle display of frames
+.TP
+.I s
+slower	slow down
+.TP
+.I f
+faster	speed up
+.TP
+.I y
+toggle	toggle displaying only every 5 frames
+.TP
+.I j
+grab	save a JPEG
+.TP
+.I r
+rotate	rotate AVI file after next keyframe
+.TP
+.RE
 (*) all commands must be prefixed with "preview ".
 .RE
 .TP 4
@@ -2723,16 +3460,16 @@ r	rotate	Rotate AVI file after next keyframe
 \fBskip\fP was written by Thomas Oestreich. The version documented here is v0.0.1 (2001-11-27). This is a video and audio filter. It is a pre-processing only filter.
 .IP
 .RS
-\(bu
-.I fstart1-fend1 [ fstart2-fend2 [ .. ] ]
+\(bu 
+.I fstart1-fend1 [ fstart2-fend2 [ .. ] ] 
 = \fI%s\fP
 .RS 3
 apply filter [start-end] frames
 .RE
 .RE
 .TP 4
-\fBslowmo\fP - \fBslow-motion effect\fP
-\fBslowmo\fP was written by Tilmann Bitterberg. The version documented here is v0.2 (2003-06-23). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
+\fBslowmo\fP - \fBvery cheap slow-motion effect\fP
+\fBslowmo\fP was written by Tilmann Bitterberg. The version documented here is v0.3 (2003-29-11). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
 .IP
 .RS
 .IP
@@ -2746,36 +3483,36 @@ quite well. The filter has no options.
 \fBsmartbob\fP was written by Donald Graft, Tilmann Bitterberg. The version documented here is v1.1beta2 (2003-06-23). This is a video filter. It can handle RGB and YUV mode. It is a post-processing only filter.
 .IP
 .RS
-\(bu
-.I motionOnly
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I motionOnly 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Show motion areas only
 .RE
-\(bu
-.I shiftEven
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I shiftEven 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Blend instead of interpolate in motion areas
 .RE
-\(bu
-.I threshold
-= \fI%d\fP  [default \fI12\fP]
+\(bu 
+.I threshold 
+= \fI%d\fP  [default \fI12\fP] 
 .RS 3
 Motion Threshold
 .RE
-\(bu
-.I denoise
-= \fI%d\fP  [default \fI1\fP]
+\(bu 
+.I denoise 
+= \fI%d\fP  [default \fI1\fP] 
 .RS 3
 Phase shift
 .RE
 .IP
 This filter only makes sence when fed by -J doublefps.
 It will take the field-frames which filter_doublefps
-produces and generates full-sized motion adaptive deinterlaced
+produces and generates full-sized motion adaptive deinterlaced 
 output at the double import framerate.
-If you force reading the imput file twice its actual frames
+If you force reading the imput file twice its actual frames 
 per second, A/V will stay in sync (for PAL):
 -f 50 -J doublefps=shiftEven=1,smartbob=denoise=1:threshold=12
 .RE
@@ -2784,75 +3521,75 @@ per second, A/V will stay in sync (for PAL):
 \fBsmartdeinter\fP was written by Donald Graft. The version documented here is v2.7b (2003-02-01). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
 .IP
 .RS
-\(bu
-.I motionOnly
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I motionOnly 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Show motion areas only
 .RE
-\(bu
-.I Blend
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I Blend 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Blend instead of interpolate in motion areas
 .RE
-\(bu
-.I threshold
-= \fI%d\fP  [default \fI15\fP]
+\(bu 
+.I threshold 
+= \fI%d\fP  [default \fI15\fP] 
 .RS 3
 Motion Threshold
 .RE
-\(bu
-.I scenethreshold
-= \fI%d\fP  [default \fI100\fP]
+\(bu 
+.I scenethreshold 
+= \fI%d\fP  [default \fI100\fP] 
 .RS 3
 Scene Change Threshold
 .RE
-\(bu
-.I fieldShift
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I fieldShift 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Phase shift
 .RE
-\(bu
-.I inswap
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I inswap 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Field swap before phase shift
 .RE
-\(bu
-.I outswap
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I outswap 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Field swap after phase shift
 .RE
-\(bu
-.I noMotion
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I noMotion 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Disable motion processing
 .RE
-\(bu
-.I highq
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I highq 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Motion map denoising for field-only
 .RE
-\(bu
-.I diffmode
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I diffmode 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Motion Detection (0=frame, 1=field, 2=both)
 .RE
-\(bu
-.I colordiff
-= \fI%d\fP  [default \fI1\fP]
+\(bu 
+.I colordiff 
+= \fI%d\fP  [default \fI1\fP] 
 .RS 3
 Compare color channels instead of luma
 .RE
-\(bu
-.I cubic
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I cubic 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Use cubic for interpolation
 .RE
@@ -2867,63 +3604,63 @@ moving areas, deinterlacing is performed
 \fBsmartyuv\fP was written by Tilmann Bitterberg. The version documented here is 0.1.4 (2003-10-13). This is a video filter. It can handle YUV mode only. It is a pre-processing only filter.
 .IP
 .RS
-\(bu
-.I motionOnly
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I motionOnly 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Show motion areas only, blacking out static areas
 .RE
-\(bu
-.I diffmode
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I diffmode 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Motion Detection (0=frame, 1=field, 2=both)
 .RE
-\(bu
-.I threshold
-= \fI%d\fP  [default \fI14\fP]
+\(bu 
+.I threshold 
+= \fI%d\fP  [default \fI14\fP] 
 .RS 3
 Motion Threshold (luma)
 .RE
-\(bu
-.I chromathres
-= \fI%d\fP  [default \fI7\fP]
+\(bu 
+.I chromathres 
+= \fI%d\fP  [default \fI7\fP] 
 .RS 3
 Motion Threshold (chroma)
 .RE
-\(bu
-.I scenethres
-= \fI%d\fP  [default \fI31\fP]
+\(bu 
+.I scenethres 
+= \fI%d\fP  [default \fI31\fP] 
 .RS 3
 Threshold for detecting scenechanges
 .RE
-\(bu
-.I highq
-= \fI%d\fP  [default \fI1\fP]
+\(bu 
+.I highq 
+= \fI%d\fP  [default \fI1\fP] 
 .RS 3
 High-Quality processing (motion Map denoising)
 .RE
-\(bu
-.I cubic
-= \fI%d\fP  [default \fI1\fP]
+\(bu 
+.I cubic 
+= \fI%d\fP  [default \fI1\fP] 
 .RS 3
 Do cubic interpolation
 .RE
-\(bu
-.I Blend
-= \fI%d\fP  [default \fI1\fP]
+\(bu 
+.I Blend 
+= \fI%d\fP  [default \fI1\fP] 
 .RS 3
 Blend the frames for deinterlacing
 .RE
-\(bu
-.I doChroma
-= \fI%d\fP  [default \fI1\fP]
+\(bu 
+.I doChroma 
+= \fI%d\fP  [default \fI1\fP] 
 .RS 3
 Enable chroma processing (slower but more accurate)
 .RE
-\(bu
-.I verbose
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I verbose 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Verbose mode
 .RE
@@ -2954,27 +3691,27 @@ Here is a sample commandline
 \fBsmooth\fP was written by Chad Page. The version documented here is v0.2.3 (2003-03-27). This is a video filter. It can handle YUV mode only. It is a pre-processing only filter. It supports multiple instances.
 .IP
 .RS
-\(bu
-.I strength
-= \fI%f\fP  [default \fI0.25\fP]
+\(bu 
+.I strength 
+= \fI%f\fP  [default \fI0.25\fP] 
 .RS 3
 Blending factor
 .RE
-\(bu
-.I cdiff
-= \fI%d\fP  [default \fI6\fP]
+\(bu 
+.I cdiff 
+= \fI%d\fP  [default \fI6\fP] 
 .RS 3
 Max difference in chroma values
 .RE
-\(bu
-.I ldiff
-= \fI%d\fP  [default \fI8\fP]
+\(bu 
+.I ldiff 
+= \fI%d\fP  [default \fI8\fP] 
 .RS 3
 Max difference in luma value
 .RE
-\(bu
-.I range
-= \fI%d\fP  [default \fI4\fP]
+\(bu 
+.I range 
+= \fI%d\fP  [default \fI4\fP] 
 .RS 3
 Search Range
 .RE
@@ -2984,11 +3721,6 @@ next or the previous frame for operation. Usually smoothing is done by talking
 the data of previous frames into account to see which parts of the picture can
 be "safely" smoothed, this filter only needs one frame.
 .RE
-.TP 4
-\fBsubtitler\fP - \fBsubtitle filter\fP
-\fBsubtitler\fP was written by Panteltje. The version documented here is v0.4 (2002-02-19). This is a video filter. It can handle RGB and YUV mode. It is a post-processing only filter.
-.IP
-.RS
 .IP
 Usage -J subtitler="[no_objects] [subtitle_file=s]
 [color_depth=n]
@@ -3015,6 +3747,7 @@ debug                prints debug messages (off).
 .br
 help                 prints this list and exit.
 .RE
+.RE
 .TP 4
 \fBtc_video\fP - \fBvideo 23.9 -> 29.9 telecide filter\fP
 \fBtc_video\fP was written by Tilmann Bitterberg. The version documented here is v0.2 (2003-06-10). This is a video filter. It can handle YUV mode only. It is a pre-processing only filter.
@@ -3024,75 +3757,75 @@ help                 prints this list and exit.
 \fBtestframe\fP was written by Thomas Oestreich. The version documented here is v0.1.3 (2003-09-04). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
 .IP
 .RS
-\(bu
-.I mode
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I mode 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Choose the test pattern (0-4 interlaced, 5 colorfull)
 .RE
 .RE
 .TP 4
 \fBtext\fP - \fBwrite text in the image\fP
-\fBtext\fP was written by Tilmann Bitterberg. The version documented here is v0.1.2 (2003-06-27). This is a video filter. It can handle RGB and YUV mode. It is a post-processing only filter.
+\fBtext\fP was written by Tilmann Bitterberg. The version documented here is v0.1.4 (2004-02-14). This is a video filter. It can handle RGB and YUV mode. It is a post-processing only filter.
 .IP
 .RS
-\(bu
-.I range
-= \fI%u-%u/%d\fP  [default \fI0-4294967295/1\fP]
+\(bu 
+.I range 
+= \fI%u-%u/%d\fP  [default \fI0-4294967295/1\fP] 
 .RS 3
 apply filter to [start-end]/step frames
 .RE
-\(bu
-.I string
+\(bu 
+.I string 
 = \fI%s\fP
 .RS 3
 text to display (no ':') [defaults to `date`]
 .RE
-\(bu
-.I font
+\(bu 
+.I font 
 = \fI%s\fP
 .RS 3
 full path to font file [defaults to arial.ttf]
 .RE
-\(bu
-.I points
-= \fI%d\fP  [default \fI25\fP]
+\(bu 
+.I points 
+= \fI%d\fP  [default \fI25\fP] 
 .RS 3
 size of font (in points)
 .RE
-\(bu
-.I dpi
-= \fI%d\fP  [default \fI96\fP]
+\(bu 
+.I dpi 
+= \fI%d\fP  [default \fI96\fP] 
 .RS 3
 resolution of font (in dpi)
 .RE
-\(bu
-.I fade
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I fade 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 fade in/out (0=off, 1=slow, 10=fast)
 .RE
-\(bu
-.I antialias
-= \fI%d\fP  [default \fI1\fP]
+\(bu 
+.I antialias 
+= \fI%d\fP  [default \fI1\fP] 
 .RS 3
 Anti-Alias text (0=off 1=on)
 .RE
-\(bu
-.I pos
-= \fI%dx%d\fP  [default \fI0x0\fP]
+\(bu 
+.I pos 
+= \fI%dx%d\fP  [default \fI0x0\fP] 
 .RS 3
 Position (0-width x 0-height)
 .RE
-\(bu
-.I posdef
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I posdef 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Position (0=None 1=TopL 2=TopR 3=BotL 4=BotR 5=Cent 6=BotCent)
 .RE
-\(bu
-.I notransparent
-(bool)
+\(bu 
+.I notransparent 
+(bool) 
 .RS 3
 disable transparency (enables block box)
 .RE
@@ -3100,49 +3833,79 @@ disable transparency (enables block box)
 see /docs/filter_text.txt
 .RE
 .TP 4
+\fBtomsmocomp\fP - \fBTom's MoComp deinterlacing filter\fP
+\fBtomsmocomp\fP was written by Tom Barry et al.. The version documented here is v0.1 (2004-07-31). This is a video filter. It can handle YUV and YUV422 mode. It is a pre-processing only filter.
+.IP
+.RS
+\(bu 
+.I TopFirst 
+= \fI%d\fP  [default \fI1\fP] 
+.RS 3
+Assume the top field should be displayed first
+.RE
+\(bu 
+.I SearchEffort 
+= \fI%d\fP  [default \fI15\fP] 
+.RS 3
+CPU time used to find moved pixels
+.RE
+\(bu 
+.I UseStrangeBob 
+= \fI%d\fP  [default \fI0\fP] 
+.RS 3
+?Unknown?
+.RE
+\(bu 
+.I CpuFlags 
+= \fI%x\fP  [default \fI5f\fP] 
+.RS 3
+Manual specification of CPU capabilities
+.RE
+.RE
+.TP 4
 \fBunsharp\fP - \fBunsharp mask & gaussian blur\fP
 \fBunsharp\fP was written by Rémi Guyomarch. The version documented here is v1.0.1 (2003-10-27). This is a video filter. It can handle YUV mode only. It is a post-processing only filter.
 .IP
 .RS
-\(bu
-.I amount
-= \fI%f\fP  [default \fI0.0\fP]
+\(bu 
+.I amount 
+= \fI%f\fP  [default \fI0.0\fP] 
 .RS 3
 Luma and chroma (un)sharpness amount
 .RE
-\(bu
-.I matrix
-= \fI%dx%d\fP  [default \fI0x0\fP]
+\(bu 
+.I matrix 
+= \fI%dx%d\fP  [default \fI0x0\fP] 
 .RS 3
 Luma and chroma search matrix size
 .RE
-\(bu
-.I luma
-= \fI%f\fP  [default \fI0.0\fP]
+\(bu 
+.I luma 
+= \fI%f\fP  [default \fI0.0\fP] 
 .RS 3
 Luma (un)sharpness amount
 .RE
-\(bu
-.I chroma
-= \fI%f\fP  [default \fI0.0\fP]
+\(bu 
+.I chroma 
+= \fI%f\fP  [default \fI0.0\fP] 
 .RS 3
 Chroma (un)sharpness amount
 .RE
-\(bu
-.I luma_matrix
-= \fI%dx%d\fP  [default \fI0x0\fP]
+\(bu 
+.I luma_matrix 
+= \fI%dx%d\fP  [default \fI0x0\fP] 
 .RS 3
 Luma search matrix size
 .RE
-\(bu
-.I chroma_matrix
-= \fI%dx%d\fP  [default \fI0x0\fP]
+\(bu 
+.I chroma_matrix 
+= \fI%dx%d\fP  [default \fI0x0\fP] 
 .RS 3
 Chroma search matrix size
 .RE
-\(bu
-.I pre
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I pre 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 run as a pre filter
 .RE
@@ -3168,45 +3931,45 @@ luma=0.8:luma_matrix=7x5:chroma=-0.2:chroma_matrix=3x3
 \fBvideocore\fP was written by Thomas, Tilmann. The version documented here is v0.0.4 (2003-02-01). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
 .IP
 .RS
-\(bu
-.I deinterlace
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I deinterlace 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 same as -I
 .RE
-\(bu
-.I flip
-(bool)
+\(bu 
+.I flip 
+(bool) 
 .RS 3
 same as -z
 .RE
-\(bu
-.I mirror
-(bool)
+\(bu 
+.I mirror 
+(bool) 
 .RS 3
 same as -l
 .RE
-\(bu
-.I rgbswap
-(bool)
+\(bu 
+.I rgbswap 
+(bool) 
 .RS 3
 same as -k
 .RE
-\(bu
-.I decolor
-(bool)
+\(bu 
+.I decolor 
+(bool) 
 .RS 3
 same as -K
 .RE
-\(bu
-.I dgamma
-= \fI%f\fP  [default \fI0.000000\fP]
+\(bu 
+.I dgamma 
+= \fI%f\fP  [default \fI0.000000\fP] 
 .RS 3
 same as -G
 .RE
-\(bu
-.I antialias
-= \fI%d/%f/%f\fP  [default \fI0/0.33/0.50\fP]
+\(bu 
+.I antialias 
+= \fI%d/%f/%f\fP  [default \fI0/0.33/0.50\fP] 
 .RS 3
 same as -C/weight/bias
 .RE
@@ -3216,36 +3979,35 @@ same as -C/weight/bias
 \fBwhitebalance\fP was written by Guillaume Cottenceau. The version documented here is v0.1 (2003-10-01). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
 .IP
 .RS
-\(bu
-.I level
-= \fI%d\fP  [default \fI40\fP]
+\(bu 
+.I level 
+= \fI%d\fP  [default \fI40\fP] 
 .RS 3
-Strength of filter (may also be negative for opposite effect)
+Level of blue-to-yellow white balance shifting (can be negative)
 .RE
-\(bu
-.I limit
-= \fI%s\fP  [default disabled]
+\(bu 
+.I limit 
+= \fI%s\fP
 .RS 3
-A string containing a series of frame numbers prepended by '-' to switch off or '+' to switch on (for example, -50+80-120 will disable from frame number 50 to number 80, then disable from 120 to the end)
+Limit to specified ranges (+fnumber toggles on, -fnumber toggles off)
 .RE
 .IP
-This filter allows correcting movies with a broken white balance (e.g.
-bluish movie, for example).
+This filter allows correcting movies with a broken white balance, e.g. bluish movies.
 .RE
 .TP 4
 \fBxharpen\fP - \fBVirtualDub's XSharpen Filter\fP
 \fBxharpen\fP was written by Donald Graft, Tilmann Bitterberg. The version documented here is (1.0b2) (2003-02-12). This is a video filter. It can handle RGB and YUV mode. It is a post-processing only filter.
 .IP
 .RS
-\(bu
-.I strength
-= \fI%d\fP  [default \fI200\fP]
+\(bu 
+.I strength 
+= \fI%d\fP  [default \fI200\fP] 
 .RS 3
 How much  of the effect
 .RE
-\(bu
-.I threshold
-= \fI%d\fP  [default \fI255\fP]
+\(bu 
+.I threshold 
+= \fI%d\fP  [default \fI255\fP] 
 .RS 3
 How close a pixel must be to the brightest or dimmest pixel to be mapped
 .RE
@@ -3266,105 +4028,105 @@ files processed with this filter tend to compress to smaller files.
 \fByuvdenoise\fP was written by Stefan Fendt, Tilmann Bitterberg. The version documented here is v0.2.1 (2003-11-26). This is a video filter. It can handle YUV mode only. It can be used as a pre-processing or as a post-processing filter.
 .IP
 .RS
-\(bu
-.I radius
-= \fI%d\fP  [default \fI8\fP]
+\(bu 
+.I radius 
+= \fI%d\fP  [default \fI8\fP] 
 .RS 3
 Search radius
 .RE
-\(bu
-.I threshold
-= \fI%d\fP  [default \fI5\fP]
+\(bu 
+.I threshold 
+= \fI%d\fP  [default \fI5\fP] 
 .RS 3
 Denoiser threshold
 .RE
-\(bu
-.I pp_threshold
-= \fI%d\fP  [default \fI4\fP]
+\(bu 
+.I pp_threshold 
+= \fI%d\fP  [default \fI4\fP] 
 .RS 3
 Pass II threshold
 .RE
-\(bu
-.I delay
-= \fI%d\fP  [default \fI3\fP]
+\(bu 
+.I delay 
+= \fI%d\fP  [default \fI3\fP] 
 .RS 3
 Average 'n' frames for a time-lowpassed pixel
 .RE
-\(bu
-.I postprocess
-= \fI%d\fP  [default \fI1\fP]
+\(bu 
+.I postprocess 
+= \fI%d\fP  [default \fI1\fP] 
 .RS 3
 Filter internal postprocessing
 .RE
-\(bu
-.I luma_contrast
-= \fI%d\fP  [default \fI100\fP]
+\(bu 
+.I luma_contrast 
+= \fI%d\fP  [default \fI100\fP] 
 .RS 3
 Luminance contrast in percent
 .RE
-\(bu
-.I chroma_contrast
-= \fI%d\fP  [default \fI100\fP]
+\(bu 
+.I chroma_contrast 
+= \fI%d\fP  [default \fI100\fP] 
 .RS 3
 Chrominance contrast in percent.
 .RE
-\(bu
-.I sharpen
-= \fI%d\fP  [default \fI125\fP]
+\(bu 
+.I sharpen 
+= \fI%d\fP  [default \fI125\fP] 
 .RS 3
 Sharpness in percent
 .RE
-\(bu
-.I deinterlace
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I deinterlace 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Force deinterlacing
 .RE
-\(bu
-.I mode
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I mode 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 [0]: Progressive [1]: Interlaced [2]: Fast
 .RE
-\(bu
-.I scene_thres
-= \fI%d%%\fP  [default \fI50\fP]
+\(bu 
+.I scene_thres 
+= \fI%d%%\fP  [default \fI50\fP] 
 .RS 3
 Blocks where motion estimation should fail before scenechange
 .RE
-\(bu
-.I block_thres
-= \fI%d\fP  [default \fI1024\fP]
+\(bu 
+.I block_thres 
+= \fI%d\fP  [default \fI1024\fP] 
 .RS 3
 Every SAD value greater than this will be considered bad
 .RE
-\(bu
-.I do_reset
-= \fI%d\fP  [default \fI2\fP]
+\(bu 
+.I do_reset 
+= \fI%d\fP  [default \fI2\fP] 
 .RS 3
 Reset the filter for `n' frames after a scene
 .RE
-\(bu
-.I increment_cr
-= \fI%d\fP  [default \fI2\fP]
+\(bu 
+.I increment_cr 
+= \fI%d\fP  [default \fI2\fP] 
 .RS 3
 Increment Cr with constant
 .RE
-\(bu
-.I increment_cb
-= \fI%d\fP  [default \fI2\fP]
+\(bu 
+.I increment_cb 
+= \fI%d\fP  [default \fI2\fP] 
 .RS 3
 Increment Cb with constant
 .RE
-\(bu
-.I border
-= \fI%dx%d-%dx%d\fP  [default \fI0x0-32x32\fP]
+\(bu 
+.I border 
+= \fI%dx%d-%dx%d\fP  [default \fI0x0-32x32\fP] 
 .RS 3
 Active image area
 .RE
-\(bu
-.I pre
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I pre 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 run this filter as a pre-processing filter
 .RE
@@ -3376,39 +4138,39 @@ see /docs/filter_yuvdenoise.txt
 \fByuvmedian\fP was written by Mike Bernson, Tilmann Bitterberg. The version documented here is v0.1.0 (2003-01-24). This is a video filter. It can handle YUV mode only. It can be used as a pre-processing or as a post-processing filter.
 .IP
 .RS
-\(bu
-.I radius_luma
-= \fI%d\fP  [default \fI2\fP]
+\(bu 
+.I radius_luma 
+= \fI%d\fP  [default \fI2\fP] 
 .RS 3
 Radius for median (luma)
 .RE
-\(bu
-.I radius_chroma
-= \fI%d\fP  [default \fI2\fP]
+\(bu 
+.I radius_chroma 
+= \fI%d\fP  [default \fI2\fP] 
 .RS 3
 Radius for median (chroma)
 .RE
-\(bu
-.I threshold_luma
-= \fI%d\fP  [default \fI2\fP]
+\(bu 
+.I threshold_luma 
+= \fI%d\fP  [default \fI2\fP] 
 .RS 3
 Trigger threshold (luma)
 .RE
-\(bu
-.I threshold_chroma
-= \fI%d\fP  [default \fI2\fP]
+\(bu 
+.I threshold_chroma 
+= \fI%d\fP  [default \fI2\fP] 
 .RS 3
 Trigger threshold (chroma)
 .RE
-\(bu
-.I interlace
-= \fI%d\fP  [default \fI0\fP]
+\(bu 
+.I interlace 
+= \fI%d\fP  [default \fI0\fP] 
 .RS 3
 Treat input as interlaced
 .RE
-\(bu
-.I pre
-= \fI%d\fP  [default \fI1\fP]
+\(bu 
+.I pre 
+= \fI%d\fP  [default \fI1\fP] 
 .RS 3
 Run as a PRE filter
 .RE
@@ -3416,6 +4178,7 @@ Run as a PRE filter
 .TP 4
 \fByuy2tov12\fP - \fBYUY2 to YV12 converter plugin\fP
 \fByuy2tov12\fP was written by Thomas Oestreich. The version documented here is v0.0.2 (2003-09-04). This is a video filter. It can handle YUV mode only. It is a pre-processing only filter.
+.\" Here ends the generated filter part, produced by make-filter-man.sh
 .PP
 .SH NOTES
 .TP
