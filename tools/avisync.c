@@ -298,6 +298,38 @@ int main(int argc, char *argv[])
       return(-1);
     }
     
+
+    // Pass-through all other audio tracks.
+    for(j=0; j<aud_tracks; ++j) {
+
+	// skip track we want to modify
+	if (j == track_num) continue;
+
+	// switch to track
+	AVI_set_audio_track(avifile1, j);
+	AVI_set_audio_track(avifile2, j);
+
+	bytes = AVI_audio_size(avifile1, n);
+	if(bytes > SIZE_RGB_FRAME) {
+	    fprintf(stderr, "invalid frame size\n"); return(-1);
+	}
+	  
+	if(AVI_read_audio(avifile1, data, bytes) < 0) {
+	    AVI_print_error("AVI audio read frame"); return(-1);
+	}
+	if(AVI_write_audio(avifile2, data, bytes) < 0) {
+	  AVI_print_error("AVI write audio frame"); return(-1);
+	} 
+
+    }
+
+    //switch to requested audio_channel
+    if(AVI_set_audio_track(avifile1, track_num)<0) {
+	fprintf(stderr, "invalid auto track\n");
+    }
+    AVI_set_audio_track(avifile2, track_num);
+    
+    
     
     if(shift>0) {
       

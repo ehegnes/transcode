@@ -52,19 +52,6 @@ static char data[SIZE_RGB_FRAME];
 
 long sum_frames = 0;
 
-int AVI_can_read_audio(avi_t *AVI)
-{
-   if(AVI->mode==AVI_MODE_WRITE) { return -1; }
-   if(!AVI->video_index)         { return -1; }
-   if(!AVI->track[AVI->aptr].audio_index)         { return -1; }      
-
-   if (AVI->track[AVI->aptr].audio_posc>=AVI->track[AVI->aptr].audio_chunks-1) return 0;
-   if (AVI->video_pos >= AVI->video_frames) return 1;
-   
-   if (AVI->track[AVI->aptr].audio_index[AVI->track[AVI->aptr].audio_posc].pos < AVI->video_index[AVI->video_pos].pos) return 1;
-   else return 0;
-}
-
 int merger(avi_t *out, char *file)
 {
     avi_t *in;

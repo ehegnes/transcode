@@ -214,6 +214,7 @@ int  AVI_audio_format(avi_t *AVI);
 long AVI_audio_rate(avi_t *AVI);
 long AVI_audio_bytes(avi_t *AVI);
 long AVI_audio_chunks(avi_t *AVI);
+int  AVI_can_read_audio(avi_t *AVI);
 
 long AVI_max_video_chunk(avi_t *AVI);
 
