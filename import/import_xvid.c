@@ -41,7 +41,7 @@
 #include "transcode.h"
 #include "avilib.h"
 
-#include "../export/xvidcvs.h"
+#include "../export/xvid3.h"
 
 #define MOD_NAME    "import_xvid.so"
 #define MOD_VERSION "v0.0.1 (2002-09-10)"
