@@ -32,7 +32,7 @@
 #include "avilib.h"
 
 #define MOD_NAME    "import_ffmpeg.so"
-#define MOD_VERSION "v0.1.7 (2003-10-10)"
+#define MOD_VERSION "v0.1.8 (2003-11-03)"
 #define MOD_CODEC   "(video)  " LIBAVCODEC_IDENT \
                     ": MS MPEG4v1-3/MPEG4/MJPEG"
 #define MOD_PRE ffmpeg
@@ -97,6 +97,7 @@ static AVCodec            *lavc_dec_codec = NULL;
 static AVCodecContext     *lavc_dec_context;
 static int                 x_dim = 0, y_dim = 0;
 static int                 pix_fmt, frame_size = 0, bpp;
+static char                *frame = NULL;
 static struct ffmpeg_codec *codec;
 
 static struct ffmpeg_codec *find_ffmpeg_codec(char *fourCC) {
@@ -306,6 +307,13 @@ MOD_open {
         break;
     }
     
+    if (!frame) {
+        frame = calloc(frame_size, 1);
+        if (!frame) {
+            perror("out of memory");
+            return TC_IMPORT_ERROR;
+        }
+    }
     
     //----------------------------------------
     //
@@ -342,7 +350,6 @@ MOD_decode {
   long       bytes_read = 0;
   int        got_picture, UVls, src, dst, row, col;
   char      *Ybuf, *Ubuf, *Vbuf;
-  static long old_bytes = 0;
   int        retry;
   AVFrame  picture;
 
@@ -352,11 +359,6 @@ MOD_decode {
     if (bytes_read < 0) {
       return TC_IMPORT_ERROR;
     }
-
-    if (bytes_read>0) old_bytes = bytes_read;
-
-    // recycle read buffer
-    if (bytes_read == 0) bytes_read = old_bytes;
     
     if (key) {
       param->attributes |= TC_FRAME_IS_KEYFRAME;
@@ -391,6 +393,13 @@ MOD_decode {
       return TC_IMPORT_OK;
     }
 
+    if (bytes_read == 0) {
+        // repeat last frame
+        memcpy(param->buffer, frame, frame_size);
+        param->size = frame_size;
+        return 0;
+    }
+
     // ------------      
     // decode frame
     // ------------
@@ -414,7 +423,7 @@ MOD_decode {
       return TC_IMPORT_ERROR;
     }
 
-    Ybuf = param->buffer;
+    Ybuf = frame;
     Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
     Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
     UVls = picture.linesize[1];
@@ -424,9 +433,6 @@ MOD_decode {
         // Result is in YUV 4:2:0 (YV12) format, but each line ends with
         // an edge which we must skip
         if (pix_fmt == CODEC_YUV) {
-          Ybuf = param->buffer;
-          Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
-          Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
           edge_width = (picture.linesize[0] - lavc_dec_context->width) / 2;
           for (i = 0; i < lavc_dec_context->height; i++) {
             memcpy(Ybuf + i * lavc_dec_context->width,
@@ -462,7 +468,7 @@ MOD_decode {
                    picture.data[2] + i * picture.linesize[2],// + edge_width / 2,
                    lavc_dec_context->width / 2);
           }
-          yuv2rgb(param->buffer, yuv2rgb_buffer,
+          yuv2rgb(frame, yuv2rgb_buffer,
                   yuv2rgb_buffer +
                     lavc_dec_context->width * lavc_dec_context->height, 
                   yuv2rgb_buffer +
@@ -506,9 +512,6 @@ MOD_decode {
 	  // Planar YUV 4:1:1 (1 Cr & Cb sample per 4x1 Y samples)
 	  // 4:1:1 -> 4:2:0
 
-          Ybuf = param->buffer;
-          Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
-          Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
           for (i = 0; i < lavc_dec_context->height; i++) {
             memcpy(Ybuf + i * lavc_dec_context->width,
                    picture.data[0] + i * picture.linesize[0], 
@@ -535,7 +538,7 @@ MOD_decode {
 		  Ubuf[i/2 * lavc_dec_context->width/2 + j] = *(picture.data[2] + i * picture.linesize[2] + j/2);
 	      }
           }
-          yuv2rgb(param->buffer, yuv2rgb_buffer,
+          yuv2rgb(frame, yuv2rgb_buffer,
                   yuv2rgb_buffer +
                     lavc_dec_context->width * lavc_dec_context->height, 
                   yuv2rgb_buffer +
@@ -553,7 +556,7 @@ MOD_decode {
 	return TC_IMPORT_ERROR;
     }
 
-    //set size
+    memcpy(param->buffer, frame, frame_size);
     param->size = frame_size;
 
     return 0;

@@ -89,6 +89,12 @@ transcode-0.6.11
   * import/extract_mp3.c:
   Again a buffer was too hard on the stack, malloc it dynamically.
 
+2003-10-31 Christopher Cramer <crayc at pyro.net>
+
+  * import/import_ffmpeg.c:
+  Output last decoded frame when input frame is empty (NULL frame
+  problem with some divx)
+
 2003-10-28 Tilmann Bitterberg <transcode at tibit.org>
 
   * src/transcode.c export/export_{mp2enc.c mpeg.c mpeg2enc.c}
