@@ -52,6 +52,8 @@ typedef struct _audiovideo_t {
 				int				s_video_smpte;
 				int				s_audio_smpte;
                                 struct _audiovideo_t	        *p_next;
+				long				s_a_real_codec;
+				long				s_v_real_codec;
 				long				s_a_codec;
 				long				s_v_codec;
 				long				s_a_magic;

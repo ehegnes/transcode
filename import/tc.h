@@ -55,6 +55,7 @@ void decode_af6(info_t *ipipe);
 
 void decode_divx(info_t *ipipe);
 void decode_xvid(info_t *ipipe);
+void decode_mov(info_t *ipipe);
 
 void probe_yuv(info_t *ipipe);
 void probe_nuv(info_t *ipipe);

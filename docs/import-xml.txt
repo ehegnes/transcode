@@ -47,6 +47,9 @@ Below, i describe a sample of simple input file:
 			<param name="in-audio-codec" value="pcm"/>
 		</video>
 	</seq>
+	<seq>
+		<video src="/mnt/hd/avi/mare029.mov" clipBegin="40" clipEnd="101"/>
+	</seq>
 </smil>
 
 
@@ -58,8 +61,8 @@ useful to pass to override some autoprobe parameter:
 in-audio-module and in-video-module: define the module that will be used by the
 import_xml module; only dv and avi are actually supported.
 in-audio-codec and in-video-codec: define the codec that will be used by the
-import_xml module; only rgb yu12 e raw for video and pcm for audio are actually supported.
-It's possible to use in the same xml file different file type (i.e. avi e dv).
+import_xml module; only yuv2 rgb yu12 e raw for video and pcm for audio are actually supported.
+It's possible to use in the same xml file different file type (i.e. avi, dv, mov).
 There is a new program to check the the xml file tcxmlcheck: most of the
 options are used by transcode.
 

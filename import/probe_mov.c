@@ -26,6 +26,8 @@
 
 #ifdef HAVE_QT
 
+extern int binary_dump;
+
 #include <quicktime.h>
 
 void probe_mov(info_t *ipipe)
@@ -65,7 +67,8 @@ void probe_mov(info_t *ipipe)
     if(strcasecmp(codec,QUICKTIME_IMA4)==0)
       ipipe->probe_info->track[j].format = CODEC_IMA4;
     
-    fprintf(stderr, "[%s] codec=%s\n", __FILE__, codec);
+    if (! binary_dump)
+    	fprintf(stderr, "[%s] audio codec=%s\n", __FILE__, codec);
     
     if(ipipe->probe_info->track[j].chan>0) ++ipipe->probe_info->num_tracks;
   }
@@ -87,6 +90,9 @@ void probe_mov(info_t *ipipe)
     if(strlen(codec)==0) {
       ipipe->probe_info->codec=TC_CODEC_RGB;
     } else {
+      
+      if(strcasecmp(codec,QUICKTIME_DV)==0)
+	ipipe->probe_info->codec=TC_CODEC_DV;
       
       if(strcasecmp(codec,"dvsd")==0)
 	ipipe->probe_info->codec=TC_CODEC_DV;
@@ -110,6 +116,8 @@ void probe_mov(info_t *ipipe)
   } else
     ipipe->probe_info->codec=TC_CODEC_UNKNOWN;
   
+  if (! binary_dump)
+  	fprintf(stderr, "[%s] video codec=%s\n", __FILE__, codec);
   ipipe->probe_info->magic=TC_MAGIC_MOV;
   ipipe->probe_info->frc=fps2frc(ipipe->probe_info->fps);
   

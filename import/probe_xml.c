@@ -106,6 +106,8 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
 					break;
 				}
 				pclose(p_fd);
+				p_audio_video->s_v_real_codec=s_other_video.codec;
+				p_audio_video->s_a_real_codec=s_other_video.track[0].format;
 				if(s_other_video.magic == TC_MAGIC_UNKNOWN || s_other_video.magic == TC_MAGIC_PIPE || s_other_video.magic == TC_MAGIC_ERROR)
 				{
 					fprintf(stderr,"\n\nerror: this version of transcode supports only\n");
@@ -176,6 +178,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
 					break;
 				}
 				pclose(p_fd);
+				p_audio_video->s_a_real_codec=s_other_audio.track[0].format;
 				if(s_other_audio.magic == TC_MAGIC_UNKNOWN || s_other_audio.magic == TC_MAGIC_PIPE || s_other_audio.magic == TC_MAGIC_ERROR)
 				{
 					fprintf(stderr,"\n\nerror: this version of transcode supports only\n");

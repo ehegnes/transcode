@@ -156,8 +156,8 @@ EXTRA_DIST = *.h
 
 bin_PROGRAMS = tcextract tcdecode tcscan tcdemux tccat tcprobe tcxmlcheck
 
-tcdecode_SOURCES = tcdecode.c decode_ac3.c decode_mpeg2.c decode_yuv.c fileinfo.c ioaux.c decode_dv.c decode_mp3.c mpg123.c decode_a52.c decode_af6.c scan_dv.c decode_divx.c decode_xvid.c decode_ogg.c
-tcdecode_LDADD = @LAME_LIBS@ $(AC3_LIB) $(MPEG2_LIB) -L../libvo -lvout @DV_LIBS@ $(VORBISFILE) @VORBIS_LIBS@ @OGG_LIBS@ @DLDARWINLIB@ -lm
+tcdecode_SOURCES = tcdecode.c decode_ac3.c decode_mpeg2.c decode_yuv.c fileinfo.c ioaux.c decode_dv.c decode_mp3.c mpg123.c decode_a52.c decode_af6.c scan_dv.c decode_divx.c decode_xvid.c decode_ogg.c decode_mov.c
+tcdecode_LDADD = @LAME_LIBS@ $(AC3_LIB) $(MPEG2_LIB) -L../libvo -lvout @DV_LIBS@ $(VORBISFILE) @VORBIS_LIBS@ @OGG_LIBS@ @DLDARWINLIB@ @QT_LIBS@ -lm
 
 tccat_SOURCES = tccat.c dvd_reader.c fileinfo.c ioaux.c iodump.c scan_dv.c extract_avi.c ioxml.c ts_reader.c
 tccat_LDADD = @DVDREAD_LIBS@ -L../avilib -lavi @DV_LIBS@  @LIBXML2_LIBS@ @DLDARWINLIB@ -lm

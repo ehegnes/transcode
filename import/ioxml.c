@@ -147,6 +147,8 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 			p_temp->s_start_video=-1;
 			p_temp->s_video_smpte=npt;	//force npt
 			p_temp->s_audio_smpte=npt;	//force npt
+			p_temp->s_a_real_codec=TC_CODEC_UNKNOWN;
+			p_temp->s_v_real_codec=TC_CODEC_UNKNOWN;
 			p_temp->s_a_codec=TC_CODEC_UNKNOWN;
 			p_temp->s_v_codec=TC_CODEC_UNKNOWN;
 			p_temp->s_a_magic=TC_MAGIC_UNKNOWN;
@@ -174,6 +176,8 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 				p_temp->s_audio_smpte=npt;	//force npt
 				p_temp->s_a_codec=TC_CODEC_UNKNOWN;
 				p_temp->s_v_codec=TC_CODEC_UNKNOWN;
+				p_temp->s_a_real_codec=TC_CODEC_UNKNOWN;
+				p_temp->s_v_real_codec=TC_CODEC_UNKNOWN;
 				p_temp->s_a_magic=TC_MAGIC_UNKNOWN;
 				p_temp->s_v_magic=TC_MAGIC_UNKNOWN;
 				if(p_audiovideo != NULL)
@@ -202,6 +206,8 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 				p_temp->s_audio_smpte=npt;	//force npt
 				p_temp->s_a_codec=TC_CODEC_UNKNOWN;
 				p_temp->s_v_codec=TC_CODEC_UNKNOWN;
+				p_temp->s_a_real_codec=TC_CODEC_UNKNOWN;
+				p_temp->s_v_real_codec=TC_CODEC_UNKNOWN;
 				p_temp->s_a_magic=TC_MAGIC_UNKNOWN;
 				p_temp->s_v_magic=TC_MAGIC_UNKNOWN;
 				if(p_audiovideo != NULL)
@@ -302,12 +308,16 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 							p_audiovideo->s_v_magic=TC_MAGIC_DV_PAL;	//the same for PAL and NTSC
 						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"avi") == 0)
 							p_audiovideo->s_v_magic=TC_MAGIC_AVI;
+						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"mov") == 0)
+							p_audiovideo->s_v_magic=TC_MAGIC_AVI;
 
 					break;
 					case IN_AUDIO_MAGIC:
 						if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"dv") == 0)
 							p_audiovideo->s_v_magic=TC_MAGIC_DV_PAL;	//the same for PAL and NTSC
 						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"avi") == 0)
+							p_audiovideo->s_v_magic=TC_MAGIC_AVI;
+						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"mov") == 0)
 							p_audiovideo->s_v_magic=TC_MAGIC_AVI;
 					break;
 					case UNSUPPORTED_PARAM:

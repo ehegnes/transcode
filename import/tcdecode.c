@@ -244,6 +244,8 @@ int main(int argc, char *argv[])
 
     if(strcmp(format,"yv12")==0) ipipe.format = TC_CODEC_YV12;
 
+    if(strcmp(format,"yuv2")==0) ipipe.format = TC_CODEC_YUV2;
+
     if(strcmp(format,"yuy2")==0) ipipe.format = TC_CODEC_YUY2;
     
     if(strcmp(format,"pcm")==0)  ipipe.format = TC_CODEC_PCM;
@@ -357,6 +359,13 @@ int main(int argc, char *argv[])
       ipipe.select = TC_VIDEO;
       
       decode_xvid(&ipipe);
+      done = 1;
+    }
+    
+    // MOV 
+    if(strcmp(codec,"mov")==0) {
+      
+      decode_mov(&ipipe);
       done = 1;
     }
     
