@@ -46,10 +46,20 @@
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_YUV|TC_CAP_PCM|TC_CAP_AC3|TC_CAP_AUD|TC_CAP_RGB;
 
+#ifndef DAR_4_3
+# define DAR_4_3      {   4, 3   }
+# define DAR_16_9     {  16, 9   }
+# define DAR_221_100  { 221, 100 }
+# define SAR_UNKNOWN  {   0, 0   }
+#endif
+
+static const y4m_ratio_t dar_4_3 = DAR_4_3;
+static const y4m_ratio_t dar_16_9 = DAR_16_9;
+static const y4m_ratio_t dar_221_100 = DAR_221_100;
+static const y4m_ratio_t sar_UNKNOWN = SAR_UNKNOWN;
+
 
 static int fd, size;
-
-float framerates[] = { 0, 23.976, 24.0, 25.0, 29.970, 30.0, 50.0, 59.940, 60.0 };
 
 static y4m_stream_info_t y4mstream;
 
@@ -100,11 +110,11 @@ MOD_init
 void asrcode2asrratio(int asr, y4m_ratio_t *r)
 {
     switch (asr) {
-    case 2: *r = y4m_dar_4_3; break;
-    case 3: *r = y4m_dar_16_9; break;
-    case 4: *r = y4m_dar_221_100; break;
+    case 2: *r = dar_4_3; break;
+    case 3: *r = dar_16_9; break;
+    case 4: *r = dar_221_100; break;
     case 1: r->n = 1; r->d = 1; break;
-    case 0: default: *r = y4m_sar_UNKNOWN; break;
+    case 0: default: *r = sar_UNKNOWN; break;
     }
 }
 
@@ -196,7 +206,7 @@ MOD_encode
 	    return(TC_EXPORT_ERROR);
 	}     
 	
-	//do not trust para->size
+	//do not trust param->size
 	if(p_write(fd, param->buffer, size) != size) {    
 	    perror("write frame");
 	    return(TC_EXPORT_ERROR);
