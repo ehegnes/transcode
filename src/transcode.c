@@ -222,7 +222,7 @@ void version()
 {
   /* id string */
   if(tcversion++) return;
-  fprintf(stderr, "%s v%s (C) 2001-2003 Thomas Oestreich, 2003 T. Bitterberg\n", PACKAGE, VERSION);
+  fprintf(stderr, "%s v%s (C) 2001-2003 Thomas Oestreich, 2003-2004 T. Bitterberg\n", PACKAGE, VERSION);
 }
 
 
@@ -3074,12 +3074,14 @@ int main(int argc, char *argv[]) {
 	if (Bw == 0 && Bh == 0) resize1 = TC_FALSE;
 	if (Xw == 0 && Xh == 0) resize2 = TC_FALSE;
 
+	if(verbose & TC_INFO)
 	printf("[%s] V: %-16s | Using -B %d,%d,8 -X %d,%d,8\n", 
 	    PACKAGE, "fast resize", Bh, Bw, Xh, Xw);
 
 	zoom = TC_FALSE;
 
       } else {
+	if(verbose & TC_INFO)
 	printf("[%s] V: %-16s | requested but can't be used (W or H mod 8 != 0)\n", 
 	    PACKAGE, "fast resize");
       }
