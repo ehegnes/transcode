@@ -41,6 +41,10 @@
 #include <ogg/ogg.h>
 #include <vorbis/codec.h>
 
+#ifdef HAVE_THEORA
+#include <theora/theora.h>
+#endif
+
 #include "ogmstreams.h"
 
 #define MAX_AUDIO_TRACKS 255
@@ -56,12 +60,14 @@ struct demux_t {
     ogg_stream_state state;
 };
 
-enum { none, Vorbis, DirectShow, StreamHeader };
+enum { none, Vorbis, Theora, DirectShow, StreamHeader };
 
 int ogm_packet_type (ogg_packet pack) 
 {
     if ((pack.bytes >= 7) && ! strncmp(&pack.packet[1], "vorbis", 6))
 	return Vorbis;
+    else if ((pack.bytes >= 7) && ! strncmp(&pack.packet[1], "theora", 6))
+	return Theora;
     else if ((pack.bytes >= 142) &&
 	    !strncmp(&pack.packet[1],"Direct Show Samples embedded in Ogg", 35) )
 	return DirectShow;
@@ -171,6 +177,28 @@ void probe_ogg(info_t *ipipe)
 			natracks++;
 		    }
 		    break;
+#ifdef HAVE_THEORA
+		case Theora:
+		{
+		    theora_info ti;
+
+		    theora_decode_header(&ti, &pack);
+		    
+		    ipipe->probe_info->width  =  ti.width;
+		    ipipe->probe_info->height =  ti.height;
+		    ipipe->probe_info->fps    =  (double)ti.fps_numerator/ti.fps_denominator;
+		    ipipe->probe_info->frc    =  fps2frc(ipipe->probe_info->fps);
+
+		    ipipe->probe_info->codec=TC_CODEC_THEORA;
+
+		    idx = natracks + MAX_AUDIO_TRACKS;
+
+		    streams[idx].serial = sno;
+		    memcpy(&streams[idx].state, &sstate, sizeof(sstate));
+		    nvtracks++;
+		    break;
+	        }
+#endif
 		case DirectShow:
 		    if ((*(int32_t*)(pack.packet+96) == 0x05589f80) &&
 			    (pack.bytes >= 184)) {

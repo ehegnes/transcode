@@ -43,7 +43,8 @@ static char *std_module[] = {"null",
 			     "xml",
 			     "lav",
 			     "lzo",
-			     "ts"
+			     "ts",
+			     "mplayer"
 };
 
 enum _std_module {_null_, 
@@ -62,7 +63,8 @@ enum _std_module {_null_,
 		  _xml_,
 		  _lav_,
 		  _lzo_,
-		  _ts_
+		  _ts_,
+		  _theora_
 };
 
 static int title, verb;
@@ -639,6 +641,16 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
 
     break;
 
+  case TC_CODEC_THEORA:
+    if (probe_further_for_codec) {
+	vob->vmod_probed=std_module[_theora_];
+	preset |= TC_VIDEO;
+	if(preset & TC_AUDIO) break;
+    }
+    vob->amod_probed=get_audio_module(vob->fixme_a_codec, vob->has_audio);
+    preset |= TC_AUDIO;
+    break;
+    
   case TC_CODEC_DIVX3:
   case TC_CODEC_DIVX4:
   case TC_CODEC_DIVX5:

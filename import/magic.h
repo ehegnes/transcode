@@ -27,6 +27,7 @@
 // codecs:
 #define TC_CODEC_ERROR                 0xFFFFFFFF
 #define TC_CODEC_UNKNOWN               0x00000000
+#define TC_CODEC_RAW                   0xFEFEFEFE
 #define TC_CODEC_PCM                   0x00000001
 #define TC_CODEC_RGB                   0x00000024
 #define TC_CODEC_AC3                   0x00002000
@@ -55,6 +56,7 @@
 #define TC_CODEC_VORBIS                0x0000FFFE
 #define TC_CODEC_LZO1                  0x0001FFFE
 #define TC_CODEC_RV10                  0x0002FFFE
+#define TC_CODEC_THEORA                0x00001234
 
 // file/device magic:
 #define TC_MAGIC_ERROR                 0xFFFFFFFF
