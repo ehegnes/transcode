@@ -1,6 +1,65 @@
 --------------------------------------------
 transcode-0.6.9
 
+2003-07-25 Tilmann Bitterberg <transcode at tibit.org>
+
+  * src/transcode.[ch]:
+  support for ex_fps. Its use will be explained in a separate
+  document. The export fps are set to the import fps if not
+  specified.
+
+  * src/encoder.c:
+  maintain a counter for skipped frames.
+
+  * filter/filter_29to23.c:
+  Move the filter the PRE_S since skipping frames in POST_S is not
+  possible.
+
+  * src/video_trans.c src/audio_trans.c src/filter.c
+  src/frame_postprocess.c src/frame_preprocess.c:
+  Support for new frame attribute TC_FRAME_IS_OUT_OF_RANGE.
+
+  * src/frame_threads.c:
+  Support for generic cloning (not only in encoder) and reenable the
+  skipping in frame_threads. This is now possible because transcode
+  can differentiate between frames which are skipped and frames
+  which are not to be encoded because they do not fit in a range by
+  -c.
+
+2003-07-24 Tilmann Bitterberg <transcode at tibit.org>
+
+  * filter/filter_32detect.c:
+  New options for setting different thresholds for chroma than for
+  luma. This is useful when looking for frames which were missed by
+  the ivtc and only have chroma interlaced but not luma. The
+  thresholds for chroma need to be about the half of luma (which is
+  the default). See "tcmodinfo -i 32detect" for all options.
+
+  * export/export*.c:
+  Replace all uses of vob->fps with vob->ex_fps
+
+  * import/{demuxer.c import_vob.c seqinfo.c seqinfo.h tcdemux.c}:
+  support for tcdemux' new option -H which disables "smooth"
+  demuxing mode. This is needed for variable fps input mpegs. The
+  switch -H means "hard sync".
+
+  * src/{Makefile.am Makefile.in}:
+  remove a bogus file.
+
+  * src/video_yuv.c:
+  When doing the linear blend deinterlacer (-I5) deinterlace chroma
+  too, not only luma.
+
+  * src/tc_defaults.h:
+  New frame attribute: OUT_OF_RANGE. This attribute alles the frame
+  processing threads and the encode do differ between (single)
+  skipped frames and frames which do not fall in the region given
+  by -c.
+
+  * src/frame_buffer.h:
+  Headers for the cloning frames functions which are already
+  committed.
+
 2003-07-23 William Hawkins <whawkins at vt.edu>
   
   * filter/filter_msharpen.c:

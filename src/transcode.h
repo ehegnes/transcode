@@ -175,7 +175,9 @@ typedef struct _vob_t {
   
   double fps;               // defaults to PAL: 25 fps
   int im_frc;               // import frame rate code
+  double ex_fps;            // defaults to PAL: 25 fps
   int ex_frc;               // export frame rate code
+  int hard_fps_flag;        // if this is set, disable smooth drop in demuxer
 
   int pulldown;             // set 3:2 pulldown flags on MPEG export
 
@@ -455,6 +457,7 @@ typedef struct _info_t {
   long frame_limit[3];
 
   int dv_yuy2_mode;
+  int hard_fps_flag;    // if this is set, disable smooth drop in demuxer
 
 } info_t;
 
@@ -484,6 +487,7 @@ long tc_get_frames_encoded(void);
 long tc_get_frames_dropped(void);
 long tc_get_frames_cloned(void);
 void tc_update_frames_dropped(long cc);
+void tc_update_frames_skipped(long cc);
 void tc_update_frames_encoded(long cc);
 void tc_update_frames_cloned(long cc);
 void tc_set_force_exit(void);

@@ -92,7 +92,7 @@ static int sig_tstp  = 0;
 static char *im_aud_mod = NULL, *im_vid_mod = NULL;
 static char *ex_aud_mod = NULL, *ex_vid_mod = NULL;
 
-static pthread_t thread_signal, thread_server, thread_socket;
+static pthread_t thread_signal=(pthread_t)0, thread_server=(pthread_t)0, thread_socket=(pthread_t)0;
 int tc_signal_thread     =  0;
 sigset_t sigs_to_block;
 
@@ -113,6 +113,8 @@ enum {
   EXPORT_ASR,
   IMPORT_ASR,
   EXPORT_FRC,
+  EXPORT_FPS,
+  HARD_FPS,
   DIVX_QUANT,
   DIVX_RC,
   IMPORT_V4L,
@@ -239,6 +241,8 @@ void usage(int status)
   printf("--keep_asr         try to keep aspect ratio (only with -Z) [off]\n");
   printf(" -f rate[,frc]     output video frame rate[,frc] [%.3f,0] fps\n", PAL_FPS);
   printf("--export_frc F     set export frame rate code F [as input]\n");
+  printf("--export_fps f[,c] set export frame rate[,code] [as input] [%0.3f,3]\n", PAL_FPS);
+  printf("--hard_fps         disable smooth dropping (for variable fps clips) [off]\n");
   printf("\n");
 
   //output
@@ -440,6 +444,7 @@ void signal_thread()
   for (;;) {
     
     sigwait(&sigs_to_block, &caught);
+    pthread_testcancel();
     
     switch (caught) {
     case SIGINT:  signame = "SIGINT"; break;
@@ -463,6 +468,8 @@ void signal_thread()
       tc_export_stop_nolock();
 
       if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (sighandler) export cancelation submitted\n", PACKAGE);
+
+      pthread_testcancel();
 
     }
   }
@@ -738,6 +745,7 @@ int main(int argc, char *argv[]) {
       {"export_asr", required_argument, NULL, EXPORT_ASR},
       {"import_asr", required_argument, NULL, IMPORT_ASR},
       {"export_frc", required_argument, NULL, EXPORT_FRC},
+      {"export_fps", required_argument, NULL, EXPORT_FPS},
       {"divx_quant", required_argument, NULL, DIVX_QUANT},
       {"divx_rc", required_argument, NULL, DIVX_RC},
       {"import_v4l", required_argument, NULL, IMPORT_V4L},
@@ -778,6 +786,7 @@ int main(int argc, char *argv[]) {
       {"avi_comments", required_argument, NULL, AVI_COMMENTS},
       {"divx_vbv_prof", required_argument, NULL, DIVX5_VBV_PROF},
       {"divx_vbv", required_argument, NULL, DIVX5_VBV},
+      {"hard_fps", no_argument, NULL, HARD_FPS},
       {0,0,0,0}
     };
     
@@ -874,6 +883,7 @@ int main(int argc, char *argv[]) {
     vob->ex_a_fcc         = NULL;
     vob->ex_profile_name  = NULL;
     vob->fps              = PAL_FPS;
+    vob->ex_fps           = PAL_FPS;
     vob->im_frc           = 0;
     vob->ex_frc           = 0;
     vob->pulldown         = 0;
@@ -989,6 +999,7 @@ int main(int argc, char *argv[]) {
     vob->video_frames_delay = 0;
 
     vob->dv_yuy2_mode     = 0;
+    vob->hard_fps_flag    = 0;
 
     // prepare for SIGINT to catch
     
@@ -1803,6 +1814,23 @@ int main(int argc, char *argv[]) {
 	    
 	    break;
 
+	case EXPORT_FPS:
+
+	    if(optarg[0]=='-') usage(EXIT_FAILURE);
+	    n = sscanf(optarg,"%lf,%d", &vob->ex_fps, &vob->ex_frc);
+
+	    if(n==2) vob->ex_fps=MIN_FPS; //will be overwritten later
+
+	    if(vob->ex_fps < MIN_FPS || n < 0) tc_error("invalid parameter for option --export_fps");
+	
+	    if(n==2) {
+	      if(vob->ex_frc < 0 || vob->ex_frc > 15) tc_error("invalid frame rate code for option --export_fps");
+	  
+	      vob->ex_fps = frc_table[vob->ex_frc];
+	    }
+	
+	    break;
+	  
 	case EXPORT_FRC:
 
 	    if(optarg[0]=='-') usage(EXIT_FAILURE);
@@ -1886,6 +1914,10 @@ int main(int argc, char *argv[]) {
 
 	case ENCODE_FIELDS:
 	  vob->encode_fields = TC_TRUE;
+	  break;
+
+	case HARD_FPS:
+	  vob->hard_fps_flag = TC_TRUE;
 	  break;
 
 	case DV_YUY2_MODE:
@@ -3071,6 +3103,31 @@ int main(int argc, char *argv[]) {
       vob->a_chan = vob->a_chan>2?2:vob->a_chan;
 
     
+    if (vob->im_frc == 0) {
+      if (vob->fps-0.01 < 00.010 && 00.010 < vob->fps+0.01) vob->im_frc =  0;
+      if (vob->fps-0.01 < 23.976 && 23.976 < vob->fps+0.01) vob->im_frc =  1;
+      if (vob->fps-0.01 < 24.000 && 24.000 < vob->fps+0.01) vob->im_frc =  2;
+      if (vob->fps-0.01 < 25.000 && 25.000 < vob->fps+0.01) vob->im_frc =  3;
+      if (vob->fps-0.01 < 29.970 && 29.970 < vob->fps+0.01) vob->im_frc =  4;
+      if (vob->fps-0.01 < 30.000 && 30.000 < vob->fps+0.01) vob->im_frc =  5;
+      if (vob->fps-0.01 < 50.000 && 50.000 < vob->fps+0.01) vob->im_frc =  6;
+      if (vob->fps-0.01 < 59.940 && 59.940 < vob->fps+0.01) vob->im_frc =  7;
+      if (vob->fps-0.01 < 60.000 && 60.000 < vob->fps+0.01) vob->im_frc =  8;
+      if (vob->fps-0.01 <  1.000 &&  1.000 < vob->fps+0.01) vob->im_frc =  9;
+      if (vob->fps-0.01 <  5.000 &&  5.000 < vob->fps+0.01) vob->im_frc = 10;
+      if (vob->fps-0.01 < 10.000 && 10.000 < vob->fps+0.01) vob->im_frc = 11;
+      if (vob->fps-0.01 < 12.000 && 12.000 < vob->fps+0.01) vob->im_frc = 12;
+      if (vob->fps-0.01 < 15.000 && 15.000 < vob->fps+0.01) vob->im_frc = 13;
+    }
+
+    if (vob->ex_frc==0 && vob->im_frc) {
+      vob->ex_frc = vob->im_frc;
+    }
+
+    // XXX: conditional
+    vob->ex_fps  = frc_table[vob->ex_frc];
+    printf("XXX: frc (%d) fps (%f)\n", vob->ex_frc, vob->ex_fps);
+    
     // --a52_demux
 
     if((vob->a52_mode & TC_A52_DEMUX) && (verbose & TC_INFO))
@@ -3084,7 +3141,7 @@ int main(int argc, char *argv[]) {
     // may have changed
     
     // samples per audio frame
-    fch = vob->a_rate/vob->fps;
+    fch = vob->a_rate/vob->ex_fps;
 
     // bytes per audio frame
     vob->im_a_size = (int)(fch * (vob->a_bits/8) * vob->a_chan);
@@ -3128,13 +3185,13 @@ int main(int argc, char *argv[]) {
 
     // -D
 
-    if(vob->sync_ms >= (int) (1000.0/vob->fps) 
-       || vob->sync_ms <= - (int) (1000.0/vob->fps)) {
-      vob->sync     = (int) (vob->sync_ms/1000.0*vob->fps);
-      vob->sync_ms -= vob->sync * (int) (1000.0/vob->fps);
+    if(vob->sync_ms >= (int) (1000.0/vob->ex_fps) 
+       || vob->sync_ms <= - (int) (1000.0/vob->ex_fps)) {
+      vob->sync     = (int) (vob->sync_ms/1000.0*vob->ex_fps);
+      vob->sync_ms -= vob->sync * (int) (1000.0/vob->ex_fps);
     }
 
-    if((vob->sync || vob->sync_ms) &&(verbose & TC_INFO)) printf("[%s] A: %-16s | %d ms [ %d (A) | %d ms ]\n", PACKAGE, "AV shift", vob->sync * (int) (1000.0/vob->fps) + vob->sync_ms, vob->sync, vob->sync_ms);
+    if((vob->sync || vob->sync_ms) &&(verbose & TC_INFO)) printf("[%s] A: %-16s | %d ms [ %d (A) | %d ms ]\n", PACKAGE, "AV shift", vob->sync * (int) (1000.0/vob->ex_fps) + vob->sync_ms, vob->sync, vob->sync_ms);
     
     // -d
 
@@ -3216,27 +3273,6 @@ int main(int argc, char *argv[]) {
 
     
     if(verbose & TC_DEBUG) printf("[%s] encoder delay = decode=%d encode=%d usec\n", PACKAGE, tc_buffer_delay_dec, tc_buffer_delay_enc);    
-    
-    if (vob->im_frc == 0) {
-      if (vob->fps-0.01 < 00.010 && 00.010 < vob->fps+0.01) vob->im_frc =  0;
-      if (vob->fps-0.01 < 23.976 && 23.976 < vob->fps+0.01) vob->im_frc =  1;
-      if (vob->fps-0.01 < 24.000 && 24.000 < vob->fps+0.01) vob->im_frc =  2;
-      if (vob->fps-0.01 < 25.000 && 25.000 < vob->fps+0.01) vob->im_frc =  3;
-      if (vob->fps-0.01 < 29.970 && 29.970 < vob->fps+0.01) vob->im_frc =  4;
-      if (vob->fps-0.01 < 30.000 && 30.000 < vob->fps+0.01) vob->im_frc =  5;
-      if (vob->fps-0.01 < 50.000 && 50.000 < vob->fps+0.01) vob->im_frc =  6;
-      if (vob->fps-0.01 < 59.940 && 59.940 < vob->fps+0.01) vob->im_frc =  7;
-      if (vob->fps-0.01 < 60.000 && 60.000 < vob->fps+0.01) vob->im_frc =  8;
-      if (vob->fps-0.01 <  1.000 &&  1.000 < vob->fps+0.01) vob->im_frc =  9;
-      if (vob->fps-0.01 <  5.000 &&  5.000 < vob->fps+0.01) vob->im_frc = 10;
-      if (vob->fps-0.01 < 10.000 && 10.000 < vob->fps+0.01) vob->im_frc = 11;
-      if (vob->fps-0.01 < 12.000 && 12.000 < vob->fps+0.01) vob->im_frc = 12;
-      if (vob->fps-0.01 < 15.000 && 15.000 < vob->fps+0.01) vob->im_frc = 13;
-    }
-
-    if (vob->ex_frc==0 && vob->im_frc) {
-      vob->ex_frc = vob->im_frc;
-    }
 
     if (socket_file) {
       if(pthread_create(&thread_socket, NULL, (void *) socket_thread, NULL)!=0)
@@ -3854,8 +3890,14 @@ int main(int argc, char *argv[]) {
 
     // cancel no longer used internal signal handler threads
     if (tc_signal_thread) {
-      pthread_cancel(thread_signal);
-      pthread_join(thread_signal, &thread_status);
+      if(verbose & TC_INFO) { printf(" cancel signal |");fflush(stdout); }
+      if (thread_signal) {
+	pthread_cancel(thread_signal);
+	// put the signal thread out of sigwait()
+	kill(writepid, SIGINT);
+	pthread_join(thread_signal, &thread_status);
+      }
+      thread_signal=(pthread_t)0;
       tc_signal_thread=0;
     }
     
