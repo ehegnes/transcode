@@ -127,6 +127,8 @@ beer
   s/R.*Y.*4/It can handle rgb,yuv and yuv422 mode. /
   s/R.*Y/It can handle rgb and yuv mode. /
   s/Y.*R/It can handle rgb and yuv mode. /
+  s/Y.*4/It can handle yuv and yuv422 mode. /
+  s/4.*Y/It can handle yuv and yuv422 mode. /
   s/R/It can handle rgb mode only. /
   s/Y/It can handle yuv mode only. /
   s/M.*E.*O/It supports multiple instances and can run as a pre and\/or as a post filter. /
