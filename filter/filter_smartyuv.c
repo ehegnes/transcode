@@ -199,7 +199,6 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	/* Not much deinterlacing to do if there aren't at least 2 lines. */
 	if (h < 2) return;
 
-	count = 0;
 	if (mfd->diffmode == FRAME_ONLY || mfd->diffmode == FRAME_AND_FIELD)
 	{
 		/* Skip first and last lines, they'll get a free ride. */
@@ -208,24 +207,24 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		prev = _prev + w;
 		moving = _moving + w+4;
 		if (mfd->diffmode == FRAME_ONLY) {
+		    count = 0;
 		    for (y = 1; y < hminus1; y++)
 		    {
-			x = 0;
-			do
-			{
+			for (x=0; x<w; x++) {
 				// First check frame motion.
 				// Set the moving flag if the diff exceeds the configured
 				// threshold.
 				int luma = *src++&0xff;
-				int p0 = luma - (*(prev)&0xff);
-
-				*moving = ((ABS_u8(p0) > _threshold));
+				int p0 = luma - (*prev&0xff);
 
 				*prev++ = luma;
+				*moving = ((ABS_u8(p0) > _threshold));
+
 				/* Keep a count of the number of moving pixels for the
 				   scene change detection. */
 				count += *moving++;
-			} while(++x < w);
+				
+			}
 
 			srcminus += srcpitch;
 			moving += 4;
@@ -242,12 +241,11 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 
 				int luma = *src++&0xff;
 				int p0 = luma - (*(srcminus+x)&0xff);
-				int p1 = luma - (*(prev)&0xff);
+				int p1 = luma - (*prev&0xff);
 				/* 15:11 < GomGom> abs can be replaced by i^(i>>31)-(i>>31) */
 
-				*moving = ((ABS_u8(p0) > _threshold) & (ABS_u8(p1) > _threshold));
-
 				*prev++ = luma;
+				*moving = ((ABS_u8(p0) > _threshold) & (ABS_u8(p1) > _threshold));
 				count += *moving++;
 
 			    } while(++x < w);
@@ -258,11 +256,10 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 
 				int luma = *src++ & 0xff;
 				int p0 = luma - (*(prev+w)&0xff);
-				int p1 = luma - (*(prev)&0xff);
-
-				*moving = ((ABS_u8(p0) > _threshold) & (ABS_u8(p1) > _threshold));
+				int p1 = luma - (*prev&0xff);
 
 				*prev++ = luma;
+				*moving = ((ABS_u8(p0) > _threshold) & (ABS_u8(p1) > _threshold));
 				count += *moving++;
 
 			    } while(++x < w);
