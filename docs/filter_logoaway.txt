@@ -13,6 +13,10 @@ Requirements:
 
 Configuration:                     (possible values)        [default]
   Options:
+      'help' Short Help
+              Get a short description of all the logoaway options
+              
+
      'range' Frame Range           (0-oo)                   [0-end]
               The frame region were the filter is active.
               The default is the whole video.
@@ -46,11 +50,17 @@ Configuration:                     (possible values)        [default]
                          specify the color with the 'fill' option (see below).
               2=xy     - In this mode the border pixels of the remove area are
                          used to interpolate the area between them. Interpolation
-                         is done horizontally an vertically at the same time, the
+                         is done horizontally and vertically at the same time, the
                          sum of them is used. With the 'xweight' option (see below)
                          you can specify how much of the horizontally
                          interpolation is used. 50% xweight (=>50% yweight) gives
                          mostly the best results.
+              3=shape  - This mode is basically the same as the xy above. An 
+                         alpha/shape file (see below) is needed for getting the
+                         information where to render and which pixels to use
+                         for interpolation. This mode is slower than xy and
+                         was made for logos with holes in it or other forms that
+                         are badly covered by a rectangle or circle.
 
 
     'border' Visible Border
@@ -73,11 +83,22 @@ Configuration:                     (possible values)        [default]
 
       'file' Image with alpha/shape information             []
               A grayscale image file with the alpha mask, that tells the filter where and
-              how much to render.
+              how much to render. In shape mode it also used to get the position of the
+              pixels for the interpolation. The first white pixels around a render position
+              are used.
               The size have to be exacly the same as given with the 'size' option
               Color index   0     (black) - video pixel fully replaced with the interpolation.
               Color index   1-254 (gray)  - calculated and original values are blended together.
               Color index 255     (white) - video pixel left unchanged.
+
+                000000000
+                000###000   0 - White (255)
+                00##0##+0   # - Alpha value
+                0##00+#@+   @ - example pixel
+                0##000##0   + - white pixels whose position
+                00##0##+0       is used to get the pixel in
+                000###000       the video for interpolation
+                000000000       of @
 
               
 Examples:

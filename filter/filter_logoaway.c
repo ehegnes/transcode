@@ -1,7 +1,7 @@
 /*
  *  filter_logoaway.c
  *
- *  Copyright (C) Thomas Wehrspann - November/December 2002
+ *  Copyright (C) Thomas Wehrspann - 2002/2003
  *
  *  This plugin is based on ideas of Krzysztof Wojdon's
  *  logoaway filter for VirtualDub
@@ -23,12 +23,11 @@
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
- 
+
  /*
   * TODO:
-  *   -alpha mask               - DONE
-  *   -coordinates in RGB=YUV   -
-  *   -shape mode               -
+  *   -coordinates in RGB=YUV   - DONE
+  *   -shape mode               - DONE
   *   -blur                     -
  */
 
@@ -43,7 +42,7 @@
  * v0.2 (2003-01-15) Thomas Wehrspann <thomas@wehrspann.de>
  *    -Fixed RGB-SOLID-mode
  *    -Added alpha channel
- *      now you need ImageMagick at compile time
+ *      now you need ImageMagick
  *    -Documentation added
  *
  * v0.2 (2003-01-21) Tilmann Bitterberg
@@ -51,10 +50,16 @@
  *
  * v0.2 (2003-04-08) Tilmann Bitterberg
  *    -change include order to avoid warnings from Magick
+ *
+ * v0.3 (2003-04-24) Thomas Wehrspann <thomas@wehrspann.de>
+ *    -Fixed bug with multiple instances
+ *    -coordinates in RGB=YUV
+ *    -Added SHAPE-mode
+ *    -Documentation updated
  */
 
 #define MOD_NAME    "filter_logoaway.so"
-#define MOD_VERSION "v0.2 (2003-04-08)"
+#define MOD_VERSION "v0.3 (2003-04-24)"
 #define MOD_CAP     "remove an image from the video"
 #define MOD_AUTHOR  "Thomas Wehrspann <thomas@wehrspann.de>"
 
@@ -81,57 +86,87 @@
 #include <magick/api.h>
 
 static vob_t *vob=NULL;
-static int instance;
 
 static char *modes[] = {"NONE", "SOLID", "XY", "SHAPE"};
 
 typedef struct logoaway_data {
-  unsigned int start, end;
-  int xpos, ypos;
-  int width, height;
-  int mode;
-  int border;
-  int xweight, yweight;
-  int rcolor, gcolor, bcolor;
-  int ycolor, ucolor, vcolor;
-  char file[PATH_MAX];
+  unsigned int  start, end;
+  int           xpos, ypos;
+  int           width, height;
+  int           mode;
+  int           border;
+  int           xweight, yweight;
+  int           rcolor, gcolor, bcolor;
+  int           ycolor, ucolor, vcolor;
+  char          file[PATH_MAX];
 
-  int alpha;
+  int           alpha;
+
   ExceptionInfo exception_info;
-  Image *image;
-  ImageInfo *image_info;
-  PixelPacket *pixel_packet;
+  Image         *image;
+  ImageInfo     *image_info;
+  PixelPacket   *pixel_packet;
 } logoaway_data;
 
 static logoaway_data *data[MAX_FILTER];
 
+
+/*********************************************************
+ * help text
+ * this function prints out a small description
+ * of this filter and the commandline options,
+ * when the "help" option is given
+ * @param   void      nothing
+ * @return  void      nothing
+ *********************************************************/
 static void help_optstr(void)
 {
-   printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
-   printf ("* Overview\n");
-   printf ("    This filter removes an image in a user specified area from the video.\n");
-   printf ("    You can choose from different methods.\n");
-
-   printf ("* Options\n");
-   printf ("       'range' Frame Range      (0-oo)                  [0-end] \n");
-   printf ("         'pos' Position         (0-width x 0-height)    [0x0]   \n");
-   printf ("        'size' Size             (0-width x 0-height)    [0x0]   \n");
-   printf ("        'mode' Filter Mode      (0=none, 1=solid, 2=xy) [0]     \n");
-   printf ("      'border' Visible Border                                   \n");
-   printf ("     'xweight' X-Y Weight       (0%-100%)               [50]    \n");
-   printf ("        'fill' Solid Fill Color (RRGGBB)                [000000]\n");
-   printf ("        'file' Image with alpha/shape information       []      \n");
+   printf ("[%s] (%s) help                                                            \n", MOD_NAME, MOD_CAP);
+   printf ("* Overview                                                                \n");
+   printf ("    This filter removes an image in a user specified area from the video. \n");
+   printf ("    You can choose from different methods.                                \n");
+   printf ("                                                                          \n");
+   printf ("* Options                                                                 \n");
+   printf ("       'range' Frame Range      (0-oo)                  [0-end]           \n");
+   printf ("         'pos' Position         (0-width x 0-height)    [0x0]             \n");
+   printf ("        'size' Size             (0-width x 0-height)    [10x10]           \n");
+   printf ("        'mode' Filter Mode      (0=none, 1=solid, 2=xy) [0]               \n");
+   printf ("      'border' Visible Border                                             \n");
+   printf ("     'xweight' X-Y Weight       (0%-100%)               [50]              \n");
+   printf ("        'fill' Solid Fill Color (RRGGBB)                [000000]          \n");
+   printf ("        'file' Image with alpha/shape information       []                \n");
+   printf ("                                                                          \n");
 }
 
+
+/*********************************************************
+ * blend two pixel
+ * this function blends two pixel with the given
+ * weight
+ * @param   srcPixel        source pixel value
+ *          destPixel       source pixel value
+ *          alpha           weight
+ * @return  unsigned char   new pixel value
+ *********************************************************/
 unsigned char alpha_blending(unsigned char srcPixel, unsigned char destPixel, int alpha)
 {
-  // result = ( ALPHA * ( srcPixel - destPixel ) ) / 256 + destPixel
   return ( ( ( alpha * ( srcPixel - destPixel ) ) >> 8 ) + destPixel );
 }
 
-void work_with_rgb_frame(char *buffer, int width, int height)
+
+/*********************************************************
+ * processing of the video frame (RGB codec)
+ * processes the actual frame depending on the
+ * selected mode
+ * @param   buffer      video buffer
+ *          width       video width
+ *          height      video height
+ *          instance    filter instance
+ * @return  void        nothing
+ *********************************************************/
+void work_with_rgb_frame(char *buffer, int width, int height, int instance)
 {
-  int row, col;
+  int row, col, i;
   int xdistance, ydistance, distance_west, distance_north;
   unsigned char hcalc, vcalc;
   int buf_off, packet_off, buf_off_xpos, buf_off_width, buf_off_ypos, buf_off_height;
@@ -148,8 +183,7 @@ void work_with_rgb_frame(char *buffer, int width, int height)
       for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
         for(col=data[instance]->xpos; col<data[instance]->width; ++col) {
 
-
-          buf_off = (row*width+col) * 3;
+          buf_off = ((height-row)*width+col) * 3;
           packet_off = (row-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col-data[instance]->xpos);
 
           /* R */
@@ -171,20 +205,20 @@ void work_with_rgb_frame(char *buffer, int width, int height)
       ydistance = 256 / (data[instance]->height - data[instance]->ypos);
       for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
         distance_north = data[instance]->height - row;
-        
+
         alpha_vert = ydistance * distance_north;
 
-        buf_off_xpos = (row*width+data[instance]->xpos) * 3;
-        buf_off_width = (row*width+data[instance]->width) * 3;
+        buf_off_xpos = ((height-row)*width+data[instance]->xpos) * 3;
+        buf_off_width = ((height-row)*width+data[instance]->width) * 3;
 
         for(col=data[instance]->xpos; col<data[instance]->width; ++col) {
           distance_west  = data[instance]->width - col;
 
           alpha_hori = xdistance * distance_west;
 
-          buf_off_ypos = (data[instance]->ypos*width+col) * 3;
-          buf_off_height = (data[instance]->height*width+col) * 3;
-          buf_off = (row*width+col) * 3;
+          buf_off_ypos = ((height-data[instance]->ypos)*width+col) * 3;
+          buf_off_height = ((height-data[instance]->height)*width+col) * 3;
+          buf_off = ((height-row)*width+col) * 3;
 
           packet_off = (row-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col-data[instance]->xpos);
 
@@ -209,6 +243,57 @@ void work_with_rgb_frame(char *buffer, int width, int height)
 
   case 3: // SHAPE
 
+      xdistance = 256 / (data[instance]->width - data[instance]->xpos);
+      ydistance = 256 / (data[instance]->height - data[instance]->ypos);
+      for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
+        distance_north = data[instance]->height - row;
+
+        alpha_vert = ydistance * distance_north;
+
+        for(col=data[instance]->xpos; col<data[instance]->width; ++col) {
+          distance_west  = data[instance]->width - col;
+
+          alpha_hori = xdistance * distance_west;
+
+          buf_off = ((height-row)*width+col) * 3;
+          packet_off = (row-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col-data[instance]->xpos);
+
+          buf_off_xpos = ((height-row)*width+data[instance]->xpos) * 3;
+          buf_off_width = ((height-row)*width+data[instance]->width) * 3;
+          buf_off_ypos = ((height-data[instance]->ypos)*width+col) * 3;
+          buf_off_height = ((height-data[instance]->height)*width+col) * 3;
+
+          i=0;
+          while( (data[instance]->pixel_packet[packet_off-i].red != 65535) && (col-i>data[instance]->xpos) ) i++;   // FIXME : ImageMagick MaxRGB=256 oder 65536
+          buf_off_xpos   = ((height-row)*width + col-i) * 3;
+          i=0;
+          while( (data[instance]->pixel_packet[packet_off+i].red != 65535) && (col+i<data[instance]->width) ) i++;
+          buf_off_width  = ((height-row)*width + col+i) * 3;
+
+          i=0;
+          while( (data[instance]->pixel_packet[packet_off-i*(data[instance]->width-data[instance]->xpos)].red != 65535) && (row-i>data[instance]->ypos) ) i++;
+          buf_off_ypos   = (height*width*3)-((row-i)*width - col) * 3;
+          i=0;
+          while( (data[instance]->pixel_packet[packet_off+i*(data[instance]->width-data[instance]->xpos)].red != 65535) && (row+i<data[instance]->height) ) i++;
+          buf_off_height = (height*width*3)-((row+i)*width - col) * 3;
+
+          /* R */
+          hcalc = alpha_blending( buffer[buf_off_xpos +0], buffer[buf_off_width  +0], alpha_hori );
+          vcalc = alpha_blending( buffer[buf_off_ypos +0], buffer[buf_off_height +0], alpha_vert );
+          buffer[buf_off +0] = data[instance]->alpha?alpha_blending( buffer[buf_off +0], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+
+          /* G */
+          hcalc = alpha_blending( buffer[buf_off_xpos +1], buffer[buf_off_width  +1], alpha_hori );
+          vcalc = alpha_blending( buffer[buf_off_ypos +1], buffer[buf_off_height +1], alpha_vert );
+          buffer[buf_off +1] = data[instance]->alpha?alpha_blending( buffer[buf_off +1], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+
+          /* B */
+          hcalc = alpha_blending( buffer[buf_off_xpos +2], buffer[buf_off_width  +2], alpha_hori );
+          vcalc = alpha_blending( buffer[buf_off_ypos +2], buffer[buf_off_height +2], alpha_vert );
+          buffer[buf_off +2] = data[instance]->alpha?alpha_blending( buffer[buf_off +2], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+        }
+      }
+
       break;
 
   }
@@ -216,26 +301,38 @@ void work_with_rgb_frame(char *buffer, int width, int height)
   if(data[instance]->border) { // BORDER
     for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
       if((row == data[instance]->ypos) || (row==data[instance]->height-1)) {
-        for(col=data[instance]->xpos*3; col<data[instance]->width*3; ++col) if(col&1) buffer[row*width*3+col] = 255 & 0xff;
+        for(col=data[instance]->xpos*3; col<data[instance]->width*3; ++col) if(col&1) buffer[((height-row)*width*3+col)] = 255 & 0xff;
       }
       if(row&1) {
-        buffer[row*width*3+data[instance]->xpos*3 +0] = 255;
-        buffer[row*width*3+data[instance]->xpos*3 +1] = 255;
-        buffer[row*width*3+data[instance]->xpos*3 +2] = 255;
+        buf_off = ((height-row)*width+data[instance]->xpos)*3;
+        buffer[buf_off +0] = 255;
+        buffer[buf_off +1] = 255;
+        buffer[buf_off +2] = 255;
       }
       if(row&1) {
-        buffer[row*width*3+data[instance]->width*3 +0] = 255;
-        buffer[row*width*3+data[instance]->width*3 +1] = 255;
-        buffer[row*width*3+data[instance]->width*3 +2] = 255;
+        buf_off = ((height-row)*width+data[instance]->width)*3;
+        buffer[buf_off +0] = 255;
+        buffer[buf_off +1] = 255;
+        buffer[buf_off +2] = 255;
       }
     }
   }
-
 }
 
-void work_with_yuv_frame(char *buffer, int width, int height)
+
+/*********************************************************
+ * processing of the video frame (YUV codec)
+ * processes the actual frame depend on the
+ * selected mode
+ * @param   buffer      video buffer
+ *          width       video width
+ *          height      video height
+ *          instance    filter instance
+ * @return  void        nothing
+ *********************************************************/
+void work_with_yuv_frame(char *buffer, int width, int height, int instance)
 {
-  int row, col;
+  int row, col, i;
   int craddr, cbaddr;
   int xdistance, ydistance, distance_west, distance_north;
   unsigned char hcalc, vcalc;
@@ -248,7 +345,6 @@ void work_with_yuv_frame(char *buffer, int width, int height)
   switch(data[instance]->mode) {
 
   case 0: // NONE
-
 
       break;
 
@@ -286,7 +382,7 @@ void work_with_yuv_frame(char *buffer, int width, int height)
       ydistance = 256 / (data[instance]->height - data[instance]->ypos);
       for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
         distance_north = data[instance]->height - row;
-        
+
         alpha_vert = ydistance * distance_north;
 
         buf_off_xpos = row*width+data[instance]->xpos;
@@ -314,12 +410,12 @@ void work_with_yuv_frame(char *buffer, int width, int height)
       ydistance = 512 / (data[instance]->height - data[instance]->ypos);
       for (row=data[instance]->ypos/2+1; row<data[instance]->height/2; ++row) {
         distance_north = data[instance]->height/2 - row;
-        
+
         alpha_vert = ydistance * distance_north;
 
         buf_off_xpos = row*width/2+data[instance]->xpos/2;
         buf_off_width = row*width/2+data[instance]->width/2;
-        
+
         for (col=data[instance]->xpos/2+1; col<data[instance]->width/2; ++col) {
           distance_west  = data[instance]->width/2 - col;
 
@@ -345,11 +441,93 @@ void work_with_yuv_frame(char *buffer, int width, int height)
 
   case 3: // SHAPE
 
+      xdistance = 256 / (data[instance]->width - data[instance]->xpos);
+      ydistance = 256 / (data[instance]->height - data[instance]->ypos);
+      for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
+        distance_north = data[instance]->height - row;
+
+        alpha_vert = ydistance * distance_north;
+
+        for(col=data[instance]->xpos; col<data[instance]->width; ++col) {
+          distance_west  = data[instance]->width - col;
+
+          alpha_hori = xdistance * distance_west;
+
+          buf_off = (row*width+col);
+          packet_off = (row-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col-data[instance]->xpos);
+
+          i=0;
+          while( (data[instance]->pixel_packet[packet_off-i].red != 65535) && (col-i>data[instance]->xpos) ) i++;   // FIXME : ImageMagick MaxRGB=256 oder 65536
+          buf_off_xpos   = (row*width + col-i);
+          i=0;
+          while( (data[instance]->pixel_packet[packet_off+i].red != 65535) && (col+i<data[instance]->width) ) i++;
+          buf_off_width  = (row*width + col+i);
+
+          i=0;
+          while( (data[instance]->pixel_packet[packet_off-i*(data[instance]->width-data[instance]->xpos)].red != 65535) && (row-i>data[instance]->ypos) ) i++;
+          buf_off_ypos   = ((row-i)*width + col);
+          i=0;
+          while( (data[instance]->pixel_packet[packet_off+i*(data[instance]->width-data[instance]->xpos)].red != 65535) && (row+i<data[instance]->height) ) i++;
+          buf_off_height = ((row+i)*width + col);
+
+          hcalc = alpha_blending( buffer[buf_off_xpos], buffer[buf_off_width],  alpha_hori );
+          vcalc = alpha_blending( buffer[buf_off_ypos], buffer[buf_off_height], alpha_vert );
+          buffer[buf_off] = data[instance]->alpha?alpha_blending( buffer[buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+        }
+      }
+
+      /* Cb, Cr */
+      xdistance = 512 / (data[instance]->width - data[instance]->xpos);
+      ydistance = 512 / (data[instance]->height - data[instance]->ypos);
+      for (row=data[instance]->ypos/2+1; row<data[instance]->height/2; ++row) {
+        distance_north = data[instance]->height/2 - row;
+
+        alpha_vert = ydistance * distance_north;
+
+        for (col=data[instance]->xpos/2+1; col<data[instance]->width/2; ++col) {
+          distance_west  = data[instance]->width/2 - col;
+
+          alpha_hori = xdistance * distance_west;
+
+          i=0;
+          while( (data[instance]->pixel_packet[packet_off-i].red != 65535) && (col-i>data[instance]->xpos) ) i++;   // FIXME : ImageMagick MaxRGB=256 oder 65536
+          buf_off_xpos   = (row*width/2 + col-i);
+          i=0;
+          while( (data[instance]->pixel_packet[packet_off+i].red != 65535) && (col+i<data[instance]->width) ) i++;
+          buf_off_width  = (row*width/2 + col+i);
+
+          i=0;
+          while( (data[instance]->pixel_packet[packet_off-i*(data[instance]->width-data[instance]->xpos)].red != 65535) && (row-i>data[instance]->ypos) ) i++;
+          buf_off_ypos   = ((row-i)*width/2 + col);
+          i=0;
+          while( (data[instance]->pixel_packet[packet_off+i*(data[instance]->width-data[instance]->xpos)].red != 65535) && (row+i<data[instance]->height) ) i++;
+          buf_off_height = ((row+i)*width/2 + col);
+
+          buf_off = row*width/2+col;
+          buf_off_ypos = data[instance]->ypos/2*width/2+col;
+          buf_off_height = data[instance]->height/2*width/2+col;
+
+          packet_off = (row*2-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col*2-data[instance]->xpos);
+
+          hcalc = alpha_blending( buffer[craddr + buf_off_xpos], buffer[craddr + buf_off_width],  alpha_hori );
+          vcalc = alpha_blending( buffer[craddr + buf_off_ypos], buffer[craddr + buf_off_height], alpha_vert );
+          buffer[craddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[craddr + buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+
+          hcalc = alpha_blending( buffer[cbaddr + buf_off_xpos], buffer[cbaddr + buf_off_width],  alpha_hori );
+          vcalc = alpha_blending( buffer[cbaddr + buf_off_ypos], buffer[cbaddr + buf_off_height], alpha_vert );
+          buffer[cbaddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[cbaddr + buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+        }
+      }
+
       break;
+          buf_off_xpos = (row*width+data[instance]->xpos);
+          buf_off_width = (row*width+data[instance]->width);
+          buf_off_ypos = (data[instance]->ypos*width+col);
+          buf_off_height = (data[instance]->height*width+col);
 
   }
 
-  if(data[instance]->border) { // border
+  if(data[instance]->border) { // BORDER
     for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
       if((row == data[instance]->ypos) || (row==data[instance]->height-1)) {
         for(col=data[instance]->xpos; col<data[instance]->width; ++col) if(col&1) buffer[row*width+col] = 255 & 0xff;
@@ -372,25 +550,7 @@ void work_with_yuv_frame(char *buffer, int width, int height)
 int tc_filter(vframe_list_t *ptr, char *options)
 {
 
-  instance=ptr->filter_id;
-
-  // API explanation:
-  // ================
-  //
-  // (1) need more infos, than get pointer to transcode global
-  //     information structure vob_t as defined in transcode.h.
-  //
-  // (2) 'tc_get_vob' and 'verbose' are exported by transcode.
-  //
-  // (3) filter is called first time with TC_FILTER_INIT flag set.
-  //
-  // (4) make sure to exit immediately if context (video/audio) or
-  //     placement of call (pre/post) is not compatible with the filters
-  //     intended purpose, since the filter is called 4 times per frame.
-  //
-  // (5) see framebuffer.h for a complete list of frame_list_t variables.
-  //
-  // (6) filter is last time with TC_FILTER_CLOSE flag set
+  int instance=ptr->filter_id;
 
 
   //----------------------------------
@@ -406,28 +566,29 @@ int tc_filter(vframe_list_t *ptr, char *options)
     optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYOM", "1");
 
     sprintf (buf, "%u-%u", data[instance]->start, data[instance]->end);
-    optstr_param (options, "range",  "Frame Range",  "%d-%d", buf, "0", "oo", "0", "oo");
+    optstr_param (options, "range",  "Frame Range",                         "%d-%d",     buf, "0", "oo",    "0", "oo");
 
     sprintf (buf, "%dx%d", data[instance]->xpos, data[instance]->ypos);
-    optstr_param (options, "pos",    "Position of logo",  "%dx%d", buf, "0", "width", "0", "height");
+    optstr_param (options, "pos",    "Position of logo",                    "%dx%d",     buf, "0", "width", "0", "height");
 
     sprintf (buf, "%dx%d", data[instance]->width, data[instance]->height);
-    optstr_param (options, "size",   "Size of logo", "%dx%d", buf, "0", "widht",  "0", "height");
+    optstr_param (options, "size",   "Size of logo",                        "%dx%d",     buf, "0", "width", "0", "height");
 
     sprintf (buf, "%d", data[instance]->mode);
-    optstr_param (options, "mode",   "Filter Mode (0=none, 1=solid, 2=xy)", "%d", buf, "0", "2");
+    optstr_param (options, "mode",   "Filter Mode (0=none, 1=solid, 2=xy)", "%d",        buf, "0", "2");
 
     sprintf (buf, "%d",  data[instance]->border);
-    optstr_param (options, "border", "Visible Border", "", buf);
+    optstr_param (options, "border", "Visible Border",                      "",          buf);
 
     sprintf (buf, "%d", data[instance]->xweight);
-    optstr_param (options, "xweight","X-Y Weight(0%-100%)", "%d", buf, "0", "100");
+    optstr_param (options, "xweight","X-Y Weight(0%-100%)",                 "%d",        buf, "0", "100");
 
     sprintf (buf, "%x%x%x", data[instance]->rcolor, data[instance]->gcolor, data[instance]->bcolor);
-    optstr_param (options, "fill",   "Solid Fill Color(RGB)", "%x%x%x", buf, "0", "255", "0", "255", "0", "255");
+    optstr_param (options, "fill",   "Solid Fill Color(RGB)",               "%2x%2x%2x", buf, "00", "FF",   "00", "FF", "00", "FF");
 
     sprintf (buf, "%s",  data[instance]->file);
-    optstr_param (options, "file",   "Image with alpha/shape information", "%s", buf);
+    optstr_param (options, "file",   "Image with alpha/shape information",  "%s",        buf);
+
     return 0;
   }
 
@@ -445,23 +606,23 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
     if((data[instance] = (logoaway_data *)malloc (sizeof(logoaway_data))) == NULL) return (-1);
 
-    data[instance]->start   = 0;
-    data[instance]->end     = (unsigned int)-1;
-    data[instance]->xpos    = 0;
-    data[instance]->ypos    = 0;
-    data[instance]->width   = 10;
-    data[instance]->height  = 10;
-    data[instance]->mode    = 0;
-    data[instance]->border  = 0;
-    data[instance]->xweight = 50;
-    data[instance]->yweight = 50;
-    data[instance]->rcolor  = 0;
-    data[instance]->gcolor  = 0;
-    data[instance]->bcolor  = 0;
-    data[instance]->ycolor  = 16;
-    data[instance]->ucolor  = 128;
-    data[instance]->vcolor  = 128;
-    data[instance]->alpha   = 0;
+    data[instance]->start    = 0;
+    data[instance]->end      = (unsigned int)-1;
+    data[instance]->xpos     = 0;
+    data[instance]->ypos     = 0;
+    data[instance]->width    = 10;
+    data[instance]->height   = 10;
+    data[instance]->mode     = 0;
+    data[instance]->border   = 0;
+    data[instance]->xweight  = 50;
+    data[instance]->yweight  = 50;
+    data[instance]->rcolor   = 0;
+    data[instance]->gcolor   = 0;
+    data[instance]->bcolor   = 0;
+    data[instance]->ycolor   = 16;
+    data[instance]->ucolor   = 128;
+    data[instance]->vcolor   = 128;
+    data[instance]->alpha    = 0;
 
     // filter init ok.
 
@@ -487,15 +648,6 @@ int tc_filter(vframe_list_t *ptr, char *options)
         data[instance]->alpha = 1;
     }
 
-    if( (data[instance]->xpos > vob->ex_v_width) || (data[instance]->ypos > vob->ex_v_height) ) {
-      fprintf(stderr, "[%s] ERROR invalid position\n", MOD_NAME);
-      return(-1);
-    }
-    if( (data[instance]->width > vob->ex_v_width) || (data[instance]->height > vob->ex_v_height) ) {
-      fprintf(stderr, "[%s] ERROR invalid size\n", MOD_NAME);
-      return(-1);
-    }
-
     if(verbose) printf("[%s] instance(%d) options=%s\n", MOD_NAME, instance, options);
     if(verbose > 1) {
       printf (" LogoAway Filter Settings: \n");
@@ -508,7 +660,26 @@ int tc_filter(vframe_list_t *ptr, char *options)
       printf ("           file = %s       \n", data[instance]->file);
     }
 
-    if(data[instance]->mode <0) return(-1);
+    if( (data[instance]->xpos > vob->ex_v_width) || (data[instance]->ypos > vob->ex_v_height) ) {
+      fprintf(stderr, "[%s] ERROR invalid position\n", MOD_NAME);
+      return(-1);
+    }
+    if( (data[instance]->width > vob->ex_v_width) || (data[instance]->height > vob->ex_v_height) ) {
+      fprintf(stderr, "[%s] ERROR invalid size\n", MOD_NAME);
+      return(-1);
+    }
+    if( (data[instance]->xweight > 100) || (data[instance]->xweight < 0) ) {
+      fprintf(stderr, "[%s] ERROR invalid x weight\n", MOD_NAME);
+      return(-1);
+    }
+    if( (data[instance]->mode < 0) || (data[instance]->mode > 3) ) {
+      fprintf(stderr, "[%s] ERROR invalid mode\n", MOD_NAME);
+      return(-1);
+    }
+    if( (data[instance]->mode == 3) && (data[instance]->alpha == 0) ) {
+      fprintf(stderr, "[%s] ERROR alpha/shape file needed for SHAPE-mode\n", MOD_NAME);
+      return(-1);
+    }
 
     if(data[instance]->alpha) {
       InitializeMagick("");
@@ -535,6 +706,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     return(0);
   }
 
+
   //----------------------------------
   //
   // filter close
@@ -556,24 +728,22 @@ int tc_filter(vframe_list_t *ptr, char *options)
     return(0);
   }
 
+
   //----------------------------------
   //
   // filter frame routine
   //
   //----------------------------------
 
-  // tag variable indicates, if we are called before
-  // transcodes internal video/audo frame processing routines
-  // or after and determines video/audio context
 
   if(ptr->tag & TC_POST_PROCESS && ptr->tag & TC_VIDEO) {
 
     if (ptr->id < data[instance]->start || ptr->id > data[instance]->end) return (0);
 
     if(vob->im_v_codec==CODEC_RGB) {
-      work_with_rgb_frame(ptr->video_buf, vob->ex_v_width, vob->ex_v_height);
+      work_with_rgb_frame(ptr->video_buf, vob->ex_v_width, vob->ex_v_height, instance);
     } else {
-      work_with_yuv_frame(ptr->video_buf, vob->ex_v_width, vob->ex_v_height);
+      work_with_yuv_frame(ptr->video_buf, vob->ex_v_width, vob->ex_v_height, instance);
     }
   }
   return(0);
