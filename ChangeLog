@@ -44,6 +44,15 @@ transcode-0.6.11
   Upgraded -y xvid4 to the latest API
 
 
+2003-10-17 Edouard Gomez <ed.gomez at free.fr>
+
+  * export/export_xvid2.c export/export_xvid3.c
+  export/export_xvid4.c export/xvid4.cfg:
+  Small sync patch.
+  - Removed heavy debug stuff from export_xvid2.c
+  - Fixed a typo in xvid4.cfg
+  - Use space indents (only) for the capabilities.
+
 2003-10-17 Tilmann Bitterberg <transcode at tibit.org>
 
   * import/{Makefile.am Makefile.in fileinfo.c magic.h

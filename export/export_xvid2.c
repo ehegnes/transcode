@@ -72,7 +72,6 @@
  * Transcode module binding functions and strings
  ****************************************************************************/
 
-#define NAME        "xvid2"
 #define MOD_NAME    "export_xvid2.so"
 #define MOD_VERSION "v0.3.10 (2003-07-30)"
 #define MOD_CODEC   "(video) XviD 0.9.x (aka API 2.1 series)  | (audio) MPEG/AC3/PCM"
@@ -103,7 +102,7 @@ static int capability_flag = TC_CAP_PCM |
                              TC_CAP_RGB |
                              TC_CAP_YUV |
                              TC_CAP_AC3 |
-			     TC_CAP_YUV422 |
+                             TC_CAP_YUV422 |
                              TC_CAP_AUD;
 
 /*****************************************************************************
@@ -176,19 +175,17 @@ MOD_init
 			(vob->ex_fps * vob->ex_v_width * vob->ex_v_height);
     
 		if((buffer = malloc(BUFFER_SIZE))==NULL) {
-			perror("["NAME"] out of memory");
+			perror("out of memory");
 			return(TC_EXPORT_ERROR); 
 		} else {
 			memset(buffer, 0, BUFFER_SIZE);  
 		}
-		if (verbose & TC_DEBUG) fprintf(stderr, "[%s] After malloc\n", NAME);
 
 		/* Load the codec */
 		if(xvid2_init(vob->mod_path)<0) {
-			fprintf(stderr, "[%s] Failed to init XviD codec", NAME);
+			fprintf(stderr, "Failed to init XviD codec");
 			return(TC_EXPORT_ERROR); 
 		}
-		if (verbose & TC_DEBUG) fprintf(stderr, "[%s] After xvid2_init\n", NAME);
 
 		VbrMode = vob->divxmultipass;
 
@@ -199,8 +196,6 @@ MOD_init
 
 		/* Set VBR control defaults */
 		vbrSetDefaults(&vbr_state);
-		
-		if (verbose & TC_DEBUG) fprintf(stderr, "[%s] After vbrSetDefaults\n", NAME);
 
 		/* Read the config file or set defaults */
 		xvid_config(&global_init,
@@ -209,11 +204,8 @@ MOD_init
 			    &vbr_state,
 			    quality);
 
-		if (verbose & TC_DEBUG) fprintf(stderr, "[%s] After config\n", NAME);
 		/* Initialize XviD */
 		XviD_init(NULL, 0, &global_init, NULL);
-
-		if (verbose & TC_DEBUG) fprintf(stderr, "[%s] After XviD_init\n", NAME);
 
 		/* Set values for the unitialized members */
 		global_param.width  = vob->ex_v_width;
@@ -233,7 +225,6 @@ MOD_init
 			/* Disabling rate-control for all vbr modes */
 			global_param.rc_bitrate = 0;
 		}
-		if (verbose & TC_DEBUG) fprintf(stderr, "[%s] After fps stuff\n", NAME);
 
 		/*
 		 * These settings are passed through the command line and are
@@ -275,11 +266,9 @@ MOD_init
 		xerr = XviD_encore(NULL, XVID_ENC_CREATE, &global_param, NULL);
 
 		if(xerr == XVID_ERR_FAIL) {
-			fprintf(stderr, "[%s] codec open error", NAME);
+			fprintf(stderr, "codec open error");
 			return(TC_EXPORT_ERROR); 
 		}
-
-		if (verbose & TC_DEBUG) fprintf(stderr, "[%s] After XviD_encore\n", NAME);
 
 		/* Here is our XviD handle which identify our instance */
 		XviD_encore_handle = global_param.handle;
@@ -342,8 +331,6 @@ MOD_init
 			break;
 		}
 
-		if (verbose & TC_DEBUG) fprintf(stderr, "[%s] After vbr stuff\n", NAME);
-
 		/* Prepare things for Hinted ME */
 		if(global_frame.general & (XVID_HINTEDME_SET|XVID_HINTEDME_GET)) {
 			char *rights = "rb";
@@ -358,18 +345,14 @@ MOD_init
 			/* Open the hint file */
 			hints_file = fopen(HINT_FILE, rights);
 			if(hints_file == NULL) {
-				fprintf(stderr, "[%s] Error opening input file %s\n", NAME, HINT_FILE);
+				fprintf(stderr, "Error opening input file %s\n", HINT_FILE);
 				return(TC_EXPORT_ERROR);
 			}
 		}
 
 		/* Init the vbr state */
-		if(vbrInit(&vbr_state) != 0) {
-			fprintf(stderr, "[%s] Error doing vbrInit\n", NAME);
+		if(vbrInit(&vbr_state) != 0)
 			return(TC_EXPORT_ERROR);
-		}
-
-		if (verbose & TC_DEBUG) fprintf(stderr, "[%s] After vbr state\n", NAME);
 
 		/* Print debug info if required */
 		if(verbose_flag & TC_DEBUG) {
@@ -385,8 +368,6 @@ MOD_init
 
 			if(VbrMode == 2) xvid_print_vbr(&vbr_state);
 		}
-
-		if (verbose & TC_DEBUG) fprintf(stderr, "[%s] After print config\n", NAME);
     
 		return(TC_EXPORT_OK);
 
@@ -692,8 +673,7 @@ static int xvid2_init(char *path)
 	}
 
 	/* None of the modules were available */
-	error = dlerror();
-	fprintf(stderr, "[%s] %s\n", NAME, error);
+	fprintf(stderr, dlerror());
 	return(-1);
 
  so_loaded:
@@ -706,7 +686,7 @@ static int xvid2_init(char *path)
     
 	/* Something went wrong */
 	if((error = dlerror()) != NULL)  {
-		fprintf(stderr, "[%s] (xvid_init) %s", NAME, error);
+		fprintf(stderr, error);
 		return(-1);
 	}
 
@@ -715,7 +695,7 @@ static int xvid2_init(char *path)
 
 	/* Something went wrong */
 	if((error = dlerror()) != NULL)  {
-		fprintf(stderr, "[%s] (xvid_encore) %s", NAME, error);
+		fprintf(stderr, error);
 		return(-1);
 	}
 
@@ -824,21 +804,20 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 					return(0);
 				}
 			} else {
-				fprintf(stderr, "[%s] Unable to get HOME\n", NAME);
 				return(0);
 			}
 
 		} else {
-			fprintf(stderr, "[%s] Error: %s\nFalling back to hardcoded"
-				" defaults\n", NAME, strerror(errno));
+			fprintf(stderr, "Error: %s\nFalling back to hardcoded"
+				" defaults\n", strerror(errno));
 			return(0);
 		}
 
 	}
 
 	if(!S_ISREG(statfile.st_mode)) {
-		fprintf(stderr, "[%s] %s file is not a regular file ! Falling back"
-			" to defaults\n", NAME, buffer);
+		fprintf(stderr, "%s file is not a regular file ! Falling back"
+			" to defaults\n", buffer);
 		return(0);
 	}
 
@@ -847,7 +826,7 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 	 * section
 	 */
 	if(( pRoot = cf_read( buffer ) ) == NULL ) {
-		fprintf(stderr, "[%s] Error reading configuration file\n", NAME);
+		fprintf(stderr, "Error reading configuration file\n");
 		return(0);
 	}
 

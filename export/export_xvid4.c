@@ -86,7 +86,7 @@ static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_PCM |
                              TC_CAP_RGB |
                              TC_CAP_YUV |
-			     TC_CAP_YUV422 |
+                             TC_CAP_YUV422 |
                              TC_CAP_AC3 |
                              TC_CAP_AUD;
 
