@@ -1,6 +1,14 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-03-11 Tilmann Bitterberg <transcode at tibit.org>
+
+  * avilib/avidump.c:
+  Add dump features for tcscan of opendml based index chunks
+
+  * avilib/avilib.c:
+  Write a buffersize suggestion in the header
+
 2004-03-07 Loic Le Loarer <lll_tr at m4x.org>
 
   * import/v4l/video.c:

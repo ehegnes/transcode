@@ -49,7 +49,8 @@
 #define INFO_LIST
 
 // add a new riff chunk after XX MB
-#define NEW_RIFF_THRES (1900*1024*1024)
+//#define NEW_RIFF_THRES (1900*1024*1024)
+#define NEW_RIFF_THRES (10*1024*1024)
 
 // Maximum number of indices per stream
 #define NR_IXNN_CHUNKS 32
@@ -1321,7 +1322,7 @@ static int avi_close_output_file(avi_t *AVI)
    OUTLONG(frate);              /* Rate: Rate/Scale == samples/second */
    OUTLONG(0);                  /* Start */
    OUTLONG(AVI->video_frames);  /* Length */
-   OUTLONG(0);                  /* SuggestedBufferSize */
+   OUTLONG(AVI->max_len);       /* SuggestedBufferSize */
    OUTLONG(0);                  /* Quality */
    OUTLONG(0);                  /* SampleSize */
    OUTLONG(0);                  /* Frame */
@@ -1458,7 +1459,7 @@ static int avi_close_output_file(avi_t *AVI)
 	     OUTLONG(AVI->track[j].a_rate);          /* Rate */
 	     OUTLONG(0);                             /* Start */
 	     OUTLONG(AVI->track[j].audio_chunks);    /* Length */
-	     OUTLONG(0);                             /* SuggestedBufferSize */
+	     OUTLONG(0);                      /* SuggestedBufferSize */
 	     OUTLONG(0);                             /* Quality */
 	     OUTLONG(0);                             /* SampleSize */
 	     OUTLONG(0);                             /* Frame */
