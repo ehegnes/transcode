@@ -230,4 +230,6 @@
 
 #define AVI_FILE_LIMIT 2048
 
+#define M2V_REQUANT_FACTOR  1.00f
+
 #endif

@@ -334,6 +334,7 @@ typedef struct _vob_t {
   int accel;
 
   int video_frames_delay; // delay audio by N frames, (video is late)
+  float m2v_requant;    // Requantize Factor for mpeg2 video streams
   
 } vob_t;
 

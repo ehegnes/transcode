@@ -599,9 +599,11 @@ void safe_exit (void) {
 
 int main(int argc, char *argv[]) {
 
+#ifdef HAVE_LIBXML2
     FILE *p_fd_tcxmlcheck;
     int s_tcxmlcheck_resize;
     char *p_tcxmlcheck_buffer;
+#endif
     // v4l capture
     int chanid = -1;
     char station_id[TC_BUF_MIN];
@@ -810,6 +812,7 @@ int main(int argc, char *argv[]) {
     vob->divxquality      = VQUALITY;
     vob->divxmultipass    = VMULTIPASS;
     vob->divxcrispness    = VCRISPNESS;
+    vob->m2v_requant      = M2V_REQUANT_FACTOR;
 
     vob->min_quantizer    = VMINQUANTIZER;
     vob->max_quantizer    = VMAXQUANTIZER; 
@@ -1301,11 +1304,13 @@ int main(int argc, char *argv[]) {
 	break;
 	
       case 'w': 
-	
+	{	
+	float ratefact = 1.0f;
+
 	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	
-	n = sscanf(optarg,"%d,%d,%d", &vob->divxbitrate, &vob->divxkeyframes, &vob->divxcrispness);
-	
+	n = sscanf(optarg,"%f,%d,%d", &ratefact, &vob->divxkeyframes, &vob->divxcrispness);
+
 	switch (n) {
 	  
 	  // allow divxkeyframes=-1
@@ -1314,6 +1319,10 @@ int main(int argc, char *argv[]) {
 	    tc_error("invalid crispness parameter for option -w");
 	case 2:
 	case 1:
+
+	  vob->divxbitrate = (int)ratefact;
+	  vob->m2v_requant =      ratefact;
+	
 	  if(vob->divxbitrate < 0)
 	    tc_error("invalid bitrate parameter for option -w");
 	  
@@ -1324,6 +1333,7 @@ int main(int argc, char *argv[]) {
 	
 	break;
 
+	}
       case VIDEO_MAX_BITRATE:
 	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	n = sscanf(optarg, "%d", &vob->video_max_bitrate);

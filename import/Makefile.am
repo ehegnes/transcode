@@ -176,9 +176,11 @@ EXTRA_DIST =  \
    packets.h \
    probe_xml.h \
    seqinfo.h \
+   putvlc.h \
+   getvlc.h \
    tc.h
 
-bin_PROGRAMS = tcextract tcdecode tcscan tcdemux tccat tcprobe tcxmlcheck tcxpm2rgb
+bin_PROGRAMS = tcextract tcdecode tcscan tcdemux tccat tcprobe tcxmlcheck tcxpm2rgb tcrequant
 
 tcdecode_SOURCES = tcdecode.c      \
 		   decode_ac3.c    \
@@ -199,6 +201,9 @@ tcdecode_SOURCES = tcdecode.c      \
 		   decode_lzo.c
 
 tcdecode_LDADD = -L../ffmpeg/libavcodec -ltcavcodec @LAME_LIBS@ $(AC3_LIB) $(MPEG2_LIB) -L../libvo -lvout @DV_LIBS@ $(VORBISFILE) @THEORA_LIBS@ @VORBIS_LIBS@ @OGG_LIBS@ @DLDARWINLIB@ @QT_LIBS@ @LZO_LIBS@ -lm
+
+tcrequant_SOURCES = tcrequant.c
+tcrequant_LDADD = -lm 
 
 tccat_SOURCES = tccat.c dvd_reader.c fileinfo.c ioaux.c iodump.c scan_dv.c extract_avi.c ioxml.c ts_reader.c
 tccat_LDADD = @DVDREAD_LIBS@ -L../avilib -lavi @DV_LIBS@  @LIBXML2_LIBS@ @DLDARWINLIB@ -lm

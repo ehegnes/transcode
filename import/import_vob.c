@@ -41,11 +41,12 @@
 char import_cmd_buf[MAX_BUF];
 
 static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM|TC_CAP_AC3;
+static int capability_flag=TC_CAP_VID|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM|TC_CAP_AC3;
 
 static int codec, syncf=0;
 static int pseudo_frame_size=0, real_frame_size=0, effective_frame_size=0;
 static int ac3_bytes_to_go=0;
+static int m2v_passthru=0;
 static FILE *fd;
 
 /* ------------------------------------------------------------
@@ -198,6 +199,7 @@ MOD_open
   
   if(param->flag == TC_VIDEO) {
 
+      char requant_buf[256];
 
       if (vob->demuxer==TC_DEMUX_SEQ_FSYNC || vob->demuxer==TC_DEMUX_SEQ_FSYNC2) {
 	
@@ -221,6 +223,28 @@ MOD_open
       
       switch(vob->im_v_codec) {
 	
+      case CODEC_RAW:
+      case CODEC_RAW_YUV:
+	
+	memset(requant_buf, 0, sizeof (requant_buf)); 
+	if (vob->m2v_requant > M2V_REQUANT_FACTOR) {
+	  snprintf (requant_buf, 256, " | tcrequant -d %d -f %f ", vob->verbose, vob->m2v_requant);
+	}
+	m2v_passthru=1;
+
+	if((snprintf(import_cmd_buf, MAX_BUF, 
+		"tccat -i \"%s\" -t vob -d %d -S %d"
+		" | tcdemux -s 0x%x -x mpeg2 %s %s -d %d"
+		" | tcextract -t vob -a %d -x mpeg2 -d %d"
+		"%s", 
+		vob->video_in_file, vob->verbose, vob->vob_offset, 
+		(vob->a_track+off), seq_buf, dem_buf, vob->verbose, 
+		vob->v_track, vob->verbose, 
+		requant_buf)<0)) {
+	  perror("command buffer overflow");
+	  return(TC_IMPORT_ERROR);
+	}
+	break;
       case CODEC_RGB:
 	
 	if((snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -s 0x%x -x mpeg2 %s %s -d %d | tcextract -t vob -a %d -x mpeg2 -d %d | tcdecode -x mpeg2 -d %d", vob->video_in_file, vob->verbose, vob->vob_offset, (vob->a_track+off), seq_buf, dem_buf, vob->verbose, vob->v_track, vob->verbose, vob->verbose)<0)) {
@@ -238,6 +262,15 @@ MOD_open
 	}
 	
 	break;
+
+      default:
+
+	fprintf(stderr, "Don't know anything about Codec 0x%x\n", vob->im_v_codec);
+	if((snprintf(import_cmd_buf, MAX_BUF, "cat /dev/null")<0)) {
+	  perror("command buffer overflow");
+	  return(TC_IMPORT_ERROR);
+	}
+
       }
       
       // print out
@@ -288,6 +321,48 @@ MOD_decode
       } 
     }
     
+#if 0
+    if (m2v_passthru) {
+	    static char *vbuf = NULL;
+	    static int offset = 0, last_pos=0;
+	    char *c = param->buffer;
+	    int s=0, i, found=0;
+	    int ID=0, pict;
+
+	    if (!vbuf) vbuf = malloc (SIZE_RGB_FRAME<<1);
+
+look_again:
+	    while (!found && (s+4)<param->size) {
+		    if (c[s]==0 && c[s+1]==0 && c[s+2]==1) found=1;
+		    else s++;
+	    }
+	    if (!found) {
+		    fprintf(stderr, "internal error, no sync word found\n");
+		    return TC_IMPORT_ERROR;
+	    }
+	    found=0;
+
+	    ID=c[s+3]&0xff;
+	    fprintf(stderr, "ID = 0x%x\n", ID);
+	    switch (ID) {
+	      case 0xB3: // seq header
+		      last_pos = s;
+		      break;
+	      case 0x00: // pic header
+		      pict = (c[s+5] >> 3) & 0x7;
+		      if (pict<1 || pict>3)
+			 fprintf(stderr, "Invalid Picture type found (corrupt stream)?\n");
+		      if (pict==1) goto look_again;
+		      else {
+		      }
+		      break;
+	      default:
+		      break;
+	    }
+
+    }
+#endif
+
     return(0);
   }
   

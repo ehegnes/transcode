@@ -1,6 +1,48 @@
 --------------------------------------------
 transcode-0.6.11
 
+2003-09-30 Tilmann Bitterberg <transcode at tibit.org>
+   
+   * import/{tcrequant.c getvlc.h putvlc.h Makefile.am}:
+   New tool tcrequant which can requantize an mpeg2 elementary
+   stream. Based on code by Antoine Missout. It can be used as a
+   standalone tool to make mpeg2 video streams smaller, for eg
+
+    tccat -i vobs/ -t vob | \
+    tcdemux -s 0x80 -x mpeg2 -M 1 | \
+    tcextract -t vob -a 0 -x mpeg2 | \
+    tcrequant -f 1.500000 > ofile.m2v
+
+  Extract the audio (eg an AC3 track) with -A -N0x2000 -m audio.ac3
+  and remultiplex the streams using mplex.
+
+  Integration into transcode is a bit flaky currently. This will
+  sort out in the next few days.
+
+  * import/import_vob.c src/transcode.c export/export_raw.c:
+  When used in pass-through mode (new), the util tcrequant will be
+  used. Syntax is easy:
+  
+   transcode -P1 -i vobs -x vob,null -w 1.5 -o test.m2v
+
+  The -w 1.5 gives the requant factor. Please note its not possible
+  to do audio at the same time, because the frame count is messed
+  up.
+
+2003-09-30 Tilmann Bitterberg <transcode at tibit.org>
+
+   * import/import_ffmpeg.c:
+   Add keyframe detection stuff and cleanup.
+
+   * src/probe.c:
+   Now the default import module for mpeg4 video is -x ffmpeg since
+   -x divx is not available on all platforms.
+
+2003-09-30 Tilmann Bitterberg <transcode at tibit.org>
+
+   * export/aud_aux.c:
+   Fix a bug when compiled with included lame
+
 2003-09-29 Tilmann Bitterberg <transcode at tibit.org>
    
    * import/clone.c src/decoder.c:

@@ -45,6 +45,8 @@ static int capability_flag=TC_CAP_DV|TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3
 
 static int info_shown=0, force_kf=0;
 static int width=0, height=0, im_v_codec=-1;
+static int mpeg_passthru;
+static FILE *mpeg_f = NULL;
 
 static int scan(char *name) 
 {
@@ -101,7 +103,7 @@ MOD_open
     im_v_codec = vob->im_v_codec;
 
     // open out file
-    if(vob->avifile_out==NULL) 
+    if(vob->avifile_out==NULL && !(vob->codec_flag == TC_CODEC_MPEG2 && param->flag == TC_VIDEO))
       if(NULL == (vob->avifile_out = AVI_open_output_file(vob->video_out_file))) {
 	AVI_print_error("avi open error");
 	exit(TC_EXPORT_ERROR);
@@ -153,6 +155,22 @@ MOD_open
       case CODEC_RAW:
       case CODEC_RAW_YUV:
 
+	if (vob->codec_flag == TC_CODEC_MPEG2) {
+	    fprintf(stderr, "[%s] icodec (0x%08x) and codec_flag (0x%08lx)\n", MOD_NAME,
+		    vob->im_v_codec, vob->codec_flag);
+
+	    if (vob->pass_flag & TC_VIDEO) {
+		mpeg_passthru = 1;
+
+		mpeg_f = fopen(vob->video_out_file, "w+b");
+		if (!mpeg_f) {
+		    tc_warn("[%s] Cannot open outfile \"%s\": %s", MOD_NAME, vob->video_out_file,
+			strerror(errno));
+		    return (TC_EXPORT_ERROR);
+		}
+	    }
+	}
+	else
 	switch(vob->format_flag) {
 	  
 	case TC_MAGIC_DV_PAL:
@@ -221,7 +239,8 @@ MOD_open
 	
       default:
 	
-	fprintf(stderr, "[%s] codec not supported\n", MOD_NAME);
+	fprintf(stderr, "[%s] codec (0x%08x) and format (0x%08lx)not supported\n", MOD_NAME,
+		vob->im_v_codec, vob->format_flag);
 	return(TC_EXPORT_ERROR); 
 	
 	break;
@@ -251,6 +270,15 @@ MOD_encode
   int i, mod=width%4;
   
   if(param->flag == TC_VIDEO) { 
+
+    if (mpeg_f) {
+      if (fwrite (param->buffer, 1, param->size, mpeg_f) != param->size) {
+	tc_warn("[%s] Cannot write data: %s", MOD_NAME, strerror(errno));
+	return(TC_EXPORT_ERROR); 
+      }
+      return (TC_EXPORT_OK);
+    }
+      
     
     //0.5.0-pre8:
     key = ((param->attributes & TC_FRAME_IS_KEYFRAME) || force_kf) ? 1:0;
@@ -314,6 +342,11 @@ MOD_close
 {  
 
   vob_t *vob = tc_get_vob();
+
+  if (mpeg_f) {
+    fclose (mpeg_f);
+    mpeg_f = NULL;
+  }
 
   //inputfile
   if(avifile1!=NULL) {
