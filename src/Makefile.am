@@ -8,7 +8,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/import \
 	$(XIO_CFLAGS) \
 	$(ACLIB_CFLAGS) \
-	$(FFMPEG_LIBS_CFLAGS) \
+	$(LIBAVCODEC_CFLAGS) \
 	$(DLDARWININCL) \
 	$(SUPPORT_INCLUDES)
 

@@ -9,8 +9,8 @@ AM_CPPFLAGS = \
 	$(LAME_CFLAGS) \
 	$(AC3_CFLAGS) \
 	$(IMAGEMAGICK_CFLAGS) \
-	$(FT2_CFLAGS) \
-	$(FFMPEG_LIBS_CFLAGS)
+	$(FREETYPE2_CFLAGS) \
+	$(LIBAVCODEC_CFLAGS)
 
 pkgdir = $(MOD_PATH)
 
@@ -212,7 +212,7 @@ filter_skip_la_LDFLAGS = -module -avoid-version
 
 filter_resample_la_SOURCES = filter_resample.c
 filter_resample_la_LDFLAGS = -module -avoid-version
-filter_resample_la_LIBADD = $(FFMPEG_LIBS_LIBS)
+filter_resample_la_LIBADD = $(LIBAVCODEC_LIBS)
 
 filter_slowmo_la_SOURCES = filter_slowmo.c
 filter_slowmo_la_LDFLAGS = -module -avoid-version 
@@ -286,7 +286,7 @@ filter_dilyuvmmx_la_LDFLAGS = -module -avoid-version
 
 filter_text_la_SOURCES = filter_text.c
 filter_text_la_LDFLAGS = -module -avoid-version 
-filter_text_la_LIBADD  = $(FT2_LIBS)
+filter_text_la_LIBADD  = $(FREETYPE2_LIBS)
 
 
 EXTRA_DIST =  \
@@ -297,7 +297,7 @@ EXTRA_DIST =  \
 if HAVE_FREETYPE2
 if HAVE_XAW_SIMPLE
 if HAVE_LIBXPM
-if HAVE_LIBICONV
+if HAVE_ICONV
 ADD2 = subtitler
 endif
 endif

@@ -9,7 +9,7 @@ AM_CPPFLAGS = \
 	$(AC3_CFLAGS) \
 	$(AVILIB_CFLAGS) \
 	$(LIBDV_CFLAGS) \
-	$(FFMPEG_LIBS_CFLAGS) \
+	$(LIBAVCODEC_CFLAGS) \
 	$(LIBVO_CFLAGS) \
 	$(TCIOAUX_CFLAGS) \
 	$(XIO_CFLAGS) \
@@ -106,27 +106,27 @@ export_ac3_la_LDFLAGS = -module -avoid-version
 
 export_debugppm_la_SOURCES = export_debugppm.c aud_aux.c
 export_debugppm_la_LDFLAGS = -module -avoid-version
-export_debugppm_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(FFMPEG_LIBS_LIBS) $(LIBVO_LIBS)
+export_debugppm_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS) $(LIBVO_LIBS)
 
 export_divx4_la_SOURCES = export_divx4.c aud_aux.c divx4_vbr.c
 export_divx4_la_LDFLAGS = -module -avoid-version
-export_divx4_la_LIBADD = $(LAME_LIBS) $(FFMPEG_LIBS_LIBS) $(AC3_LIBS)
+export_divx4_la_LIBADD = $(LAME_LIBS) $(LIBAVCODEC_LIBS) $(AC3_LIBS)
 
 export_divx4raw_la_SOURCES = export_divx4raw.c aud_aux.c divx4_vbr.c ../import/ioaux.c
 export_divx4raw_la_LDFLAGS = -module -avoid-version
-export_divx4raw_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(FFMPEG_LIBS_LIBS)
+export_divx4raw_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
 export_divx5_la_SOURCES = export_divx5.c aud_aux.c divx4_vbr.c
 export_divx5_la_LDFLAGS = -module -avoid-version
-export_divx5_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(FFMPEG_LIBS_LIBS)
+export_divx5_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
 export_divx5raw_la_SOURCES = export_divx5raw.c aud_aux.c divx4_vbr.c ../import/ioaux.c
 export_divx5raw_la_LDFLAGS = -module -avoid-version
-export_divx5raw_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(FFMPEG_LIBS_LIBS)
+export_divx5raw_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
 export_ffmpeg_la_SOURCES = export_ffmpeg.c aud_aux.c ffmpeg_cfg.c vid_aux.c
 export_ffmpeg_la_LDFLAGS = -module -avoid-version
-export_ffmpeg_la_LIBADD = $(LAME_LIBS) $(LIBVO_LIBS) $(AC3_LIBS) $(FFMPEG_LIBS_LIBS)
+export_ffmpeg_la_LIBADD = $(LAME_LIBS) $(LIBVO_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
 export_lame_la_SOURCES = export_lame.c
 export_lame_la_LDFLAGS = -module -avoid-version
@@ -150,15 +150,15 @@ export_pcm_la_LIBADD = -lm
 
 export_ppm_la_SOURCES = export_ppm.c aud_aux.c
 export_ppm_la_LDFLAGS = -module -avoid-version
-export_ppm_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(FFMPEG_LIBS_LIBS) $(LIBVO_LIBS)
+export_ppm_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS) $(LIBVO_LIBS)
 
 export_pvn_la_SOURCES = export_pvn.c aud_aux.c
 export_pvn_la_LDFLAGS = -module -avoid-version
-export_pvn_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBVO_LIBS) $(FFMPEG_LIBS_LIBS)
+export_pvn_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBVO_LIBS) $(LIBAVCODEC_LIBS)
 
 export_raw_la_SOURCES = export_raw.c aud_aux.c
 export_raw_la_LDFLAGS = -module -avoid-version
-export_raw_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(FFMPEG_LIBS_LIBS)
+export_raw_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
 export_toolame_la_SOURCES = export_toolame.c
 export_toolame_la_LDFLAGS = -module -avoid-version
@@ -169,15 +169,15 @@ export_wav_la_LIBADD = -lm
 
 export_xvid2_la_SOURCES = export_xvid2.c aud_aux.c xvid_vbr.c ../import/ioaux.c
 export_xvid2_la_LDFLAGS = -module -avoid-version
-export_xvid2_la_LIBADD = $(FFMPEG_LIBS_LIBS) $(LAME_LIBS) $(AC3_LIBS)
+export_xvid2_la_LIBADD = $(LIBAVCODEC_LIBS) $(LAME_LIBS) $(AC3_LIBS)
 
 export_xvid3_la_SOURCES = export_xvid3.c aud_aux.c xvid_vbr.c ../import/ioaux.c
 export_xvid3_la_LDFLAGS = -module -avoid-version
-export_xvid3_la_LIBADD = $(FFMPEG_LIBS_LIBS) $(LAME_LIBS) $(AC3_LIBS)
+export_xvid3_la_LIBADD = $(LIBAVCODEC_LIBS) $(LAME_LIBS) $(AC3_LIBS)
 
 export_xvid4_la_SOURCES = export_xvid4.c aud_aux.c ../import/ioaux.c
 export_xvid4_la_LDFLAGS = -module -avoid-version
-export_xvid4_la_LIBADD = $(FFMPEG_LIBS_LIBS) $(LAME_LIBS) $(AC3_LIBS)
+export_xvid4_la_LIBADD = $(LIBAVCODEC_LIBS) $(LAME_LIBS) $(AC3_LIBS)
 
 # MODS_AVIFILE
 export_af6_la_SOURCES = export_af6.cpp af6_aux.cpp aud_aux.c
@@ -192,7 +192,7 @@ export_im_la_LIBADD = $(IMAGEMAGICK_LIBS) $(LIBVO_LIBS) -lm
 # MODS_LIBDV
 export_dv_la_SOURCES = export_dv.c aud_aux.c vid_aux.c
 export_dv_la_LDFLAGS = -module -avoid-version 
-export_dv_la_LIBADD = $(LAME_LIBS) $(LIBDV_LIBS) $(AC3_LIBS) $(FFMPEG_LIBS_LIBS) $(LIBVO_LIBS)
+export_dv_la_LIBADD = $(LAME_LIBS) $(LIBDV_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS) $(LIBVO_LIBS)
 
 export_dvraw_la_SOURCES = export_dvraw.c vid_aux.c ../import/ioaux.c
 export_dvraw_la_LDFLAGS = -module -avoid-version
@@ -201,7 +201,7 @@ export_dvraw_la_LIBADD = $(LIBDV_LIBS) $(LIBVO_LIBS) -lm
 # MODS_LIBFAME
 export_fame_la_SOURCES = export_fame.c aud_aux.c
 export_fame_la_LDFLAGS = -module -avoid-version
-export_fame_la_LIBADD = $(LAME_LIBS) $(LIBFAME_LIBS) $(AC3_LIBS) $(FFMPEG_LIBS_LIBS)
+export_fame_la_LIBADD = $(LAME_LIBS) $(LIBFAME_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
 # MODS_LIBJPEG
 export_jpg_la_SOURCES = export_jpg.c
@@ -210,7 +210,7 @@ export_jpg_la_LIBADD = $(LIBJPEG_LIBS) -lm
 
 export_mjpeg_la_SOURCES = export_mjpeg.c vid_aux.c aud_aux.c
 export_mjpeg_la_LDFLAGS = -module -avoid-version
-export_mjpeg_la_LIBADD = $(LIBJPEG_LIBS) $(LAME_LIBS) $(LIBVO_LIBS) $(AC3_LIBS) $(FFMPEG_LIBS_LIBS)
+export_mjpeg_la_LIBADD = $(LIBJPEG_LIBS) $(LAME_LIBS) $(LIBVO_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
 # MODS_LIBQUICKTIME
 export_mov_la_SOURCES = export_mov.c
@@ -220,7 +220,7 @@ export_mov_la_LIBADD = $(LIBQUICKTIME_LIBS) -lm
 # MODS_LZO
 export_lzo_la_SOURCES = export_lzo.c aud_aux.c
 export_lzo_la_LDFLAGS = -module -avoid-version
-export_lzo_la_LIBADD = $(LAME_LIBS) $(LZO_LIBS) $(AC3_LIBS) $(FFMPEG_LIBS_LIBS)
+export_lzo_la_LIBADD = $(LAME_LIBS) $(LZO_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
 # MODS_MJPEGTOOLS
 export_mp2enc_la_SOURCES = export_mp2enc.c
@@ -233,7 +233,7 @@ export_mpeg2enc_la_LIBADD = $(MJPEGTOOLS_LIBS) $(LIBVO_LIBS) -lm
 
 export_yuv4mpeg_la_SOURCES = export_yuv4mpeg.c aud_aux.c vid_aux.c ../import/ioaux.c
 export_yuv4mpeg_la_LDFLAGS = -module -avoid-version
-export_yuv4mpeg_la_LIBADD = $(LAME_LIBS) $(MJPEGTOOLS_LIBS) $(LIBVO_LIBS) $(AC3_LIBS) $(FFMPEG_LIBS_LIBS)
+export_yuv4mpeg_la_LIBADD = $(LAME_LIBS) $(MJPEGTOOLS_LIBS) $(LIBVO_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
 # MODS_NET_STREAM
 export_net_la_SOURCES = export_net.c ../import/ioaux.c

@@ -6,8 +6,8 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/filter \
 	-I$(top_srcdir)/src \
 	$(X_CFLAGS) \
-	$(FT2_CFLAGS) \
-	$(LIBICONV_CFLAGS)
+	$(FREETYPE2_CFLAGS) \
+	$(ICONV_CFLAGS)
 
 pkgdir = $(MOD_PATH)
 
@@ -38,8 +38,8 @@ filter_subtitler_la_LIBADD = \
 	-lXaw \
 	-lXt \
 	-lm \
-	$(FT2_LIBS) \
-	$(LIBICONV_LIBS)
+	$(FREETYPE2_LIBS) \
+	$(ICONV_LIBS)
 
 EXTRA_DIST = \
 	HOWTO_USE_THIS \

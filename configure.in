@@ -594,21 +594,21 @@ AC_CHECK_LIB(m, sin,
 dnl
 dnl libavcodec
 dnl
-AC_ARG_ENABLE(ffmpeg-libs-static,
-  AC_HELP_STRING([--enable-ffmpeg-libs-static],
-    [link binaries and modules statically to ffmpeg-libs WARNING: creates huge binaries WARNING: only tested on linux x86]),
+AC_ARG_ENABLE(libavcodec-static,
+  AC_HELP_STRING([--enable-libavcodec-static],
+    [link binaries and modules statically to libavcodec WARNING: creates huge binaries WARNING: only tested on linux x86]),
   [case "${enableval}" in
     yes) ;;
     no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-ffmpeg-libs-static) ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-libavcodec-static) ;;
   esac],
-  [enable_ffmpeg_libs_static=no])
-FFMPEG_LIBS_EXTRA_LIBS="$FFMPEG_LIBS_EXTRA_LIBS -lm -lz $PTHREAD_LIBS"
-TC_PATH_PKG(ffmpeg_libs, yes, FFMPEG_LIBS, ffmpeg_libs, no,
+  [enable_libavcodec_static=no])
+LIBAVCODEC_EXTRA_LIBS="$LIBAVCODEC_EXTRA_LIBS -lm -lz $PTHREAD_LIBS"
+TC_PATH_PKG(libavcodec, yes, LIBAVCODEC, libavcodec, no,
   [ffmpeg/avcodec.h], avcodec, avcodec_thread_init)
-if test x"$have_ffmpeg_libs" = x"yes" ; then
+if test x"$have_libavcodec" = x"yes" ; then
   save_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS $FFMPEG_LIBS_CFLAGS"
+  CPPFLAGS="$CPPFLAGS $LIBAVCODEC_CFLAGS"
   AC_TRY_RUN([
 #include <stdio.h>
 #include <ffmpeg/avcodec.h>
@@ -626,25 +626,25 @@ main()
   return(0);
 }
 ],
-    [FFMPEG_LIBS_VERSION="`./conftest$ac_exeext | sed -ne 's,VER=\(.*\),\1,p'`"
-      FFMPEG_LIBS_BUILD="`./conftest$ac_exeext | sed -ne 's,BUILD=\(.*\),\1,p'`"],
+    [LIBAVCODEC_VERSION="`./conftest$ac_exeext | sed -ne 's,VER=\(.*\),\1,p'`"
+      LIBAVCODEC_BUILD="`./conftest$ac_exeext | sed -ne 's,BUILD=\(.*\),\1,p'`"],
     [AC_MSG_ERROR([FFmpeg (libavcodec) required, but cannot compile ffmpeg/avcodec.h])],
     [echo $ac_n "cross compiling; assumed OK... $ac_c"
-      FFMPEG_LIBS_VERSION=""
-      FFMPEG_LIBS_BUILD=""])
-  if test x"$enable_ffmpeg_libs_static" = x"yes" ; then
+      LIBAVCODEC_VERSION=""
+      LIBAVCODEC_BUILD=""])
+  if test x"$enable_libavcodec_static" = x"yes" ; then
     if test x"$deplibs_check_method" != x"pass_all" ; then
       AC_MSG_ERROR([linking static archives into shared objects not supported on this platform]) 
     fi
     save_LIBS="$LIBS"
-    LIBS="$LIBS $w_ffmpeg_libs_l${deflib}/libavcodec.a $FFMPEG_LIBS_EXTRA_LIBS"
+    LIBS="$LIBS $w_libavcodec_l${deflib}/libavcodec.a $LIBAVCODEC_EXTRA_LIBS"
     AC_TRY_LINK([
 #include <ffmpeg/avcodec.h>
 ],[
 AVCodecContext *ctx = (void *)0;
 avcodec_thread_init(ctx, 0);
 ],
-      [FFMPEG_LIBS_LIBS="$w_ffmpeg_libs_l${deflib}/libavcodec.a $FFMPEG_LIBS_EXTRA_LIBS"],
+      [LIBAVCODEC_LIBS="$w_libavcodec_l${deflib}/libavcodec.a $LIBAVCODEC_EXTRA_LIBS"],
       [AC_MSG_ERROR([cannot link statically with libavcodec])])
     LIBS="$save_LIBS"
   fi
@@ -652,10 +652,10 @@ avcodec_thread_init(ctx, 0);
 else
   AC_MSG_ERROR(libavcodec required!)
 fi
-AC_SUBST(FFMPEG_LIBS_VERSION)
-AC_SUBST(FFMPEG_LIBS_BUILD)
-AC_SUBST(FFMPEG_LIBS_CFLAGS)
-AC_SUBST(FFMPEG_LIBS_LIBS)
+AC_SUBST(LIBAVCODEC_VERSION)
+AC_SUBST(LIBAVCODEC_BUILD)
+AC_SUBST(LIBAVCODEC_CFLAGS)
+AC_SUBST(LIBAVCODEC_LIBS)
 
 
 dnl
@@ -1136,61 +1136,55 @@ TC_PATH_LIBJPEG(AC_DEFINE([HAVE_LIBJPEG], 1, [Have libjpeg support]))
 AM_CONDITIONAL(HAVE_LIBJPEG, test x"$have_libjpeg" = x"yes")
 
 dnl
-dnl ffmpeg binary
-dnl
-TC_PATH_FFMPEG(AC_DEFINE([HAVE_FFMPEG], 1, [Have ffmpeg binary support]))
-AM_CONDITIONAL(HAVE_FFMPEG, test x"$have_ffmpeg" = x"yes")
-
-dnl
 dnl libiconv
 dnl
-TC_PATH_PKG(libiconv, yes, LIBICONV, libiconv, no,
+TC_PATH_PKG(iconv, yes, ICONV, iconv, no,
   iconv.h, none, none)
-if test x"$have_libiconv" = x"yes" ; then
+if test x"$have_iconv" = x"yes" ; then
 
   save_LDFLAGS="$LDFLAGS"
-  LDFLAGS="$LDFLAGS $libiconv_ll"
+  LDFLAGS="$LDFLAGS $iconv_ll"
   AC_CHECK_LIB(iconv, iconv_open,
     [],
-    [have_libiconv="no"],
-    [$LIBICONV_EXTRA_LIBS])
+    [have_iconv="no"],
+    [$ICONV_EXTRA_LIBS])
   LDFLAGS="$save_LDFLAGS"
 
-  if test x"$have_libiconv" = x"no" ; then
+  if test x"$have_iconv" = x"no" ; then
     save_LDFLAGS="$LDFLAGS"
-    LDFLAGS="$LDFLAGS $libiconv_ll"
+    LDFLAGS="$LDFLAGS $iconv_ll"
     AC_CHECK_LIB(iconv, libiconv_open,
-      [have_libiconv="yes"],
-      [have_libiconv="no"],
-      [$LIBICONV_EXTRA_LIBS])
+      [have_iconv="yes"],
+      [have_iconv="no"],
+      [$ICONV_EXTRA_LIBS])
     LDFLAGS="$save_LDFLAGS"
   fi
 
   # see if iconv_open is in (g)libc
   have_libc_iconv="no"
-  if test x"$have_libiconv" = x"no" ; then
+  if test x"$have_iconv" = x"no" ; then
     save_LDFLAGS="$LDFLAGS"
-    LDFLAGS="$LDFLAGS $libiconv_ll"
+    LDFLAGS="$LDFLAGS $iconv_ll"
     AC_CHECK_LIB(c, iconv_open,
-      [have_libiconv="yes" have_libc_iconv="yes"],
-      [have_libiconv="no"],
-      [$LIBICONV_EXTRA_LIBS])
+      [have_iconv="yes" have_libc_iconv="yes"],
+      [have_iconv="no"],
+      [$ICONV_EXTRA_LIBS])
     LDFLAGS="$save_LDFLAGS"
   fi
 
-  if test x"$have_libiconv" = x"yes" ; then
+  if test x"$have_iconv" = x"yes" ; then
     if test x"$have_libc_iconv" != x"yes" ; then
-      LIBICONV_LIBS="$libiconv_ll -liconv $LIBICONV_EXTRA_LIBS"
+      ICONV_LIBS="$iconv_ll -liconv $ICONV_EXTRA_LIBS"
     fi
   else
-    AC_MSG_ERROR([libiconv requested, but cannot link against libiconv])
+    AC_MSG_ERROR([iconv requested, but cannot link find iconv_open])
   fi
 
-  AC_DEFINE([HAVE_LIBICONV], 1, [have libiconv support])
+  AC_DEFINE([HAVE_ICONV], 1, [have iconv support])
 fi
-AM_CONDITIONAL(HAVE_LIBICONV, test x"$have_libiconv" = x"yes")
-AC_SUBST(LIBICONV_CFLAGS)
-AC_SUBST(LIBICONV_LIBS)
+AM_CONDITIONAL(HAVE_ICONV, test x"$have_iconv" = x"yes")
+AC_SUBST(ICONV_CFLAGS)
+AC_SUBST(ICONV_LIBS)
 
 
 
@@ -1372,11 +1366,11 @@ support for network (sockets) streams            $enable_netstream
 DVD navigation support with libdvdread           $have_libdvdread
 experimental xio | support for IBP storage       $libxio | $have_ibp
 pvm3 support                                     $have_pvm3
-ffmpeg libs headers                              $FFMPEG_LIBS_CFLAGS
-ffmpeg libs libraries                            $FFMPEG_LIBS_LIBS
-ffmpeg libs build                                $FFMPEG_LIBS_BUILD
-ffmpeg libs version                              $FFMPEG_LIBS_VERSION
-ffmpeg libs statically linked                    $enable_ffmpeg_libs_static
+ffmpeg libs headers                              $LIBAVCODEC_CFLAGS
+ffmpeg libs libraries                            $LIBAVCODEC_LIBS
+ffmpeg libs build                                $LIBAVCODEC_BUILD
+ffmpeg libs version                              $LIBAVCODEC_VERSION
+ffmpeg libs statically linked                    $enable_libavcodec_static
 *-*-*-*-*-*-* Codec *-*-*-*-*-*-*
 lame support (>=3.89) | ver                      $have_lame | $lame_version
 mjpegtools dependent modules                     $have_mjpegtools
@@ -1394,7 +1388,6 @@ experimental lve support                         $have_liblve
 libmpeg3 dependent modules                       $have_libmpeg3
 libfame video encoding plugin                    $have_libfame
 libquicktime dependent modules                   $have_libquicktime
-FFmpeg binary module                             $have_ffmpeg
 bktr video device import module                  $have_bktr
 sunau audio device import module                 $have_sunau
 SDL support                                      $have_sdl

@@ -60,7 +60,7 @@ AC_DEFUN([AC_COMPILE_CHECK_SIZEOF],
 # Configure paths for FreeType2
 # Marcelo Magallon 2001-10-26, based on gtk.m4 by Owen Taylor
 dnl TC_PATH_FT2([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
-dnl Test for FreeType2, and define FT2_CFLAGS and FT2_LIBS
+dnl Test for FreeType2, and define FREETYPE2_CFLAGS and FREETYPE2_LIBS
 dnl
 AC_DEFUN([TC_PATH_FT2],
 [
@@ -96,30 +96,30 @@ have_freetype2=no
 
 if test x"$enable_freetype2" = x"yes" ; then
 
-  AC_PATH_PROG(FT2_CONFIG, freetype-config, no)
+  AC_PATH_PROG(FREETYPE2_CONFIG, freetype-config, no)
   if test x"$ft_config_exec_prefix" != x"" ; then
     ft_config_args="$ft_config_args --exec-prefix=$ft_config_exec_prefix"
-    if test x"${FT2_CONFIG}" = x"no" ; then
-      FT2_CONFIG=$ft_config_exec_prefix/bin/freetype-config
+    if test x"${FREETYPE2_CONFIG}" = x"no" ; then
+      FREETYPE2_CONFIG=$ft_config_exec_prefix/bin/freetype-config
     fi
   fi
   if test x"$ft_config_prefix" != x"" ; then
     ft_config_args="$ft_config_args --prefix=$ft_config_prefix"
-    if test x"${FT2_CONFIG}" = x"no" ; then
-      FT2_CONFIG=$ft_config_prefix/bin/freetype-config
+    if test x"${FREETYPE2_CONFIG}" = x"no" ; then
+      FREETYPE2_CONFIG=$ft_config_prefix/bin/freetype-config
     fi
   fi
 
   min_ft_version=ifelse([$1], ,6.1.0,$1)
   AC_MSG_CHECKING(for FreeType - version >= $min_ft_version)
-  if test x"$FT2_CONFIG" != x"no" ; then
-    FT2_CFLAGS=`$FT2_CONFIG $ft_config_args --cflags`
-    FT2_LIBS=`$FT2_CONFIG $ft_config_args --libs`
-    ft_config_major_version=`$FT2_CONFIG $ft_config_args --version | \
+  if test x"$FREETYPE2_CONFIG" != x"no" ; then
+    FREETYPE2_CFLAGS=`$FREETYPE2_CONFIG $ft_config_args --cflags`
+    FREETYPE2_LIBS=`$FREETYPE2_CONFIG $ft_config_args --libs`
+    ft_config_major_version=`$FREETYPE2_CONFIG $ft_config_args --version | \
          sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
-    ft_config_minor_version=`$FT2_CONFIG $ft_config_args --version | \
+    ft_config_minor_version=`$FREETYPE2_CONFIG $ft_config_args --version | \
          sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
-    ft_config_micro_version=`$FT2_CONFIG $ft_config_args --version | \
+    ft_config_micro_version=`$FREETYPE2_CONFIG $ft_config_args --version | \
          sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
     ft_min_major_version=`echo $min_ft_version | \
          sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
@@ -147,8 +147,8 @@ if test x"$enable_freetype2" = x"yes" ; then
       if test x$ft_config_is_lt != xyes ; then
         ac_save_CFLAGS="$CFLAGS"
         ac_save_LIBS="$LIBS"
-        CFLAGS="$CFLAGS $FT2_CFLAGS"
-        LIBS="$FT2_LIBS $LIBS"
+        CFLAGS="$CFLAGS $FREETYPE2_CFLAGS"
+        LIBS="$FREETYPE2_LIBS $LIBS"
 dnl
 dnl Sanity checks for the results of freetype-config to some extent
 dnl
@@ -185,23 +185,23 @@ main()
     else               # test x$enable_fttest = xyes
       have_freetype2=yes
     fi
-  fi                 # test "$FT2_CONFIG" = "no"
+  fi                 # test "$FREETYPE2_CONFIG" = "no"
   if test x"$have_freetype2" = x"yes" ; then
     AC_MSG_RESULT(yes)
     ifelse([$2], , :, [$2])
   else
     AC_MSG_RESULT(no)
-    if test x"$FT2_CONFIG" = x"no" ; then
+    if test x"$FREETYPE2_CONFIG" = x"no" ; then
       echo "*** The freetype-config script installed by FreeType 2 could not be found."
       echo "*** If FreeType 2 was installed in PREFIX, make sure PREFIX/bin is in"
-      echo "*** your path, or set the FT2_CONFIG environment variable to the"
+      echo "*** your path, or set the FREETYPE2_CONFIG environment variable to the"
       echo "*** full path to freetype-config."
     else
       if test x"$ft_config_is_lt" = x"yes" ; then
         echo "*** Your installed version of the FreeType 2 library is too old."
         echo "*** If you have different versions of FreeType 2, make sure that"
         echo "*** correct values for --with-ft-prefix or --with-ft-exec-prefix"
-        echo "*** are used, or set the FT2_CONFIG environment variable to the"
+        echo "*** are used, or set the FREETYPE2_CONFIG environment variable to the"
         echo "*** full path to freetype-config."
       else
         echo "*** The FreeType test program failed to run.  If your system uses"
@@ -210,18 +210,18 @@ main()
         echo "*** (or whatever is appropiate for your system) is correctly set."
       fi
     fi
-    FT2_CFLAGS=""
-    FT2_LIBS=""
+    FREETYPE2_CFLAGS=""
+    FREETYPE2_LIBS=""
     AC_MSG_ERROR([freetype2 support is requested, but not found])
     ifelse([$3], , :, [$3])
   fi
 else
-  FT2_CFLAGS=""
-  FT2_LIBS=""
+  FREETYPE2_CFLAGS=""
+  FREETYPE2_LIBS=""
   ifelse([$3], , :, [$3])
 fi
-AC_SUBST(FT2_CFLAGS)
-AC_SUBST(FT2_LIBS)
+AC_SUBST(FREETYPE2_CFLAGS)
+AC_SUBST(FREETYPE2_LIBS)
 ])
 
 

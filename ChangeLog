@@ -1,3 +1,15 @@
+2005-03-06 Jacob Meuser <jakemsr at jakemsr dot com>
+  * acinclude.m4 configure.in export/Makefile.am filter/Makefile.am
+    filter/subtitler/Makefile.am import/Makefile.am src/Makefile.am
+  Use 'libavcodec' instead of 'ffmpeg_libs' when referring to
+  libavcodec libraries and headers, since we may want to separately
+  use libavformat and libpostproc in the future.  Use 'iconv'
+  instead of 'libiconv' when referring to iconv functions, because
+  iconv functions could be part of libc, and then there is no
+  libiconv.  Use freetype2 instead of ft2 to be more clear.
+  More configure related patches, including necessary changes to
+  INSTALL coming soon.
+
 2005-03-09 Andrew Church <achurch at achurch dot org>
   * aclib/ac.h aclib/average.c aclib/cputest.c aclib/rescale.c
     aclib/swap.c aclib/tcmemcpy.c src/transcode.c src/video_rgb.c

@@ -11,7 +11,7 @@ AM_CPPFLAGS = \
   	$(AVIFILE_CFLAGS) \
 	$(LIBDV_CFLAGS) \
   	$(LIBDVDREAD_CFLAGS) \
-	$(FFMPEG_LIBS_CFLAGS) \
+	$(LIBAVCODEC_CFLAGS) \
 	$(LAME_CFLAGS) \
 	$(LIBMPEG3_CFLAGS) \
 	$(LIBXML2_CFLAGS) \
@@ -57,10 +57,6 @@ endif
 
 if HAVE_LIBXML2
 LIBXML2_MOD = import_xml.la
-endif
-
-if HAVE_FFMPEG
-FFBIN_MOD = import_ffbin.la
 endif
 
 if HAVE_BKTR
@@ -120,7 +116,7 @@ pkg_LTLIBRARIES = \
 	import_vnc.la \
 	import_fraps.la \
 	import_pvn.la \
-	$(FFBIN_MOD) \
+	import_ffbin.la \
 	$(BKTR_MOD) \
 	$(SUNAU_MOD) \
 	$(NET_MOD) \
@@ -157,7 +153,7 @@ import_xvid_la_LDFLAGS = -module -avoid-version
 
 import_ffmpeg_la_SOURCES = import_ffmpeg.c 
 import_ffmpeg_la_LDFLAGS = -module -avoid-version 
-import_ffmpeg_la_LIBADD = $(FFMPEG_LIBS_LIBS)
+import_ffmpeg_la_LIBADD = $(LIBAVCODEC_LIBS)
 
 import_im_la_SOURCES = import_im.c
 import_im_la_LDFLAGS = -module -avoid-version 
@@ -317,7 +313,7 @@ tcdecode_SOURCES = \
 	decode_lzo.c
 
 tcdecode_LDADD = \
-	$(FFMPEG_LIBS_LIBS) \
+	$(LIBAVCODEC_LIBS) \
 	$(LAME_LIBS) \
 	$(AC3_LIBS) \
 	$(MPEG2CVS_LIBS) \
