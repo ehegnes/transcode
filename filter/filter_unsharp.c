@@ -69,6 +69,32 @@ typedef struct vf_priv_s {
 } MyFilterData;
 
 
+static void *bufalloc(size_t size)
+{
+
+#ifdef HAVE_GETPAGESIZE
+   int buffer_align=getpagesize();
+#else
+   int buffer_align=16;
+#endif
+
+   char *buf = malloc(size + buffer_align);
+
+   int adjust;
+
+   if (buf == NULL) {
+       fprintf(stderr, "(%s) out of memory", __FILE__);
+   }
+   
+   adjust = buffer_align - ((int) buf) % buffer_align;
+
+   if (adjust == buffer_align)
+      adjust = 0;
+
+   return (void *) (buf + adjust);
+}
+
+
 //===========================================================================//
 
 /* This code is based on :
@@ -286,7 +312,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     stepsX = fp->msizeX/2;
     stepsY = fp->msizeY/2;
     for( z=0; z<2*stepsY; z++ )
-	fp->SC[z] = memalign( 16, sizeof(*(fp->SC[z])) * (width+2*stepsX) );
+	fp->SC[z] = bufalloc(sizeof(*(fp->SC[z])) * (width+2*stepsX) );
 
     fp = &mfd->chromaParam;
     effect = fp->amount == 0 ? "don't touch" : fp->amount < 0 ? "blur" : "sharpen";
@@ -295,7 +321,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     stepsX = fp->msizeX/2;
     stepsY = fp->msizeY/2;
     for( z=0; z<2*stepsY; z++ )
-	fp->SC[z] = memalign( 16, sizeof(*(fp->SC[z])) * (width+2*stepsX) );
+	fp->SC[z] = bufalloc( sizeof(*(fp->SC[z])) * (width+2*stepsX) );
 
 
     if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
