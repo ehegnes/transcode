@@ -34,6 +34,10 @@ Copies audio from one channel to another
 see /docs/README.Inverse.Telecine.txt
 <----------------------|
 
+---------------------->[ detectclipping.help ]
+Detect black regions on top, bottom, left and right of an image.  It is suggested that the filter is run for around 100 frames.  It will print its detected parameters every frame. If you don't notice any change in the printout for a while, the filter probably won't find any other values.  The filter converges, meaning it will learn.
+<----------------------|
+
 ---------------------->[ dnr.help ]
 see /docs/filter_dnr.txt (german only)
 <----------------------|
@@ -263,6 +267,10 @@ It sometimes makes sense to sharpen the sharpen the
 luma and to blur the chroma. Sample string is:
 
 luma=0.8:luma_matrix=7x5:chroma=-0.2:chroma_matrix=3x3
+<----------------------|
+
+---------------------->[ whitebalance.help ]
+This filter allows correcting movies with a broken white balance, e.g. bluish movies.
 <----------------------|
 
 ---------------------->[ xsharpen.help ]
