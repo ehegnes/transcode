@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-23 Tilmann Bitterberg <transcode at tibit.org>
+
+  * avilib/avilib.c:
+  When splitting large OpenDML AVI files the keyframe bits was
+  messed up. Reported by Thomas Heiserowski
+
 2004-01-23 Erik Slagter <erik at oldconomy.com>
 
   * docs/faq:

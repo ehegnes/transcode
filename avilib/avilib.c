@@ -165,10 +165,13 @@ static uint32_t str2ulong_len (unsigned char *str)
 }
 
 
-// if bit 31 is not 0, its a keyframe
+// if bit 31 is 0, its a keyframe
 static uint32_t str2ulong_key (unsigned char *str)
 {
-   return (str2ulong(str) & 0x80000000)?0:0x10;
+  uint32_t c = str2ulong(str);
+  c &= 0x80000000;
+  if (c == 0) return 0x10;
+  else return 0;
 }
 
 /* Calculate audio sample size from number of bits and number of channels.
@@ -360,7 +363,9 @@ static int avi_add_odml_index_entry_core(avi_t *AVI, long flags, off_t pos, unsi
     if(len>AVI->max_len) AVI->max_len=len;
 
     // if bit 31 is set, it is NOT a keyframe
-    if (flags != 0x10) len |= (1 << 30) & 0x80000000;
+    if (flags != 0x10) {
+	len |= 0x80000000;
+    }
 
     si->aIndex [ cur_chunk_idx ].dwSize = len;
     si->aIndex [ cur_chunk_idx ].dwOffset = 
