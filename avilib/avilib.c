@@ -165,7 +165,8 @@ static int avi_sampsize(avi_t *AVI, int j)
 static int avi_add_chunk(avi_t *AVI, unsigned char *tag, unsigned char *data, int length)
 {
    unsigned char c[8];
-
+   char p=0;
+   
    /* Copy tag and length int c, so that we need only 1 write system call
       for these two values */
 
@@ -175,10 +176,9 @@ static int avi_add_chunk(avi_t *AVI, unsigned char *tag, unsigned char *data, in
    /* Output tag, length and data, restore previous position
       if the write fails */
 
-   length = PAD_EVEN(length);
-
    if( avi_write(AVI->fdes,c,8) != 8 ||
-       avi_write(AVI->fdes,data,length) != length )
+       avi_write(AVI->fdes,data,length) != length ||
+       avi_write(AVI->fdes,&p,length&1) != (length&1)) // if len is uneven, write a pad byte
    {
       lseek(AVI->fdes,AVI->pos,SEEK_SET);
       AVI_errno = AVI_ERR_WRITE;
