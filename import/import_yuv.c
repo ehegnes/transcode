@@ -71,11 +71,11 @@ MOD_open
 {
 
     if(param->flag == TC_VIDEO) {
-      
-	if(verbose_flag & TC_DEBUG)	printf("yuv start MOD_open video\n");
+        if(verbose_flag & TC_DEBUG)
+            fprintf(stderr, "[%s] yuv start MOD_open video\n", MOD_NAME);
 	frm=0;
-    param->fd = NULL;
-    return(0);
+        param->fd = NULL;
+        return(0);
     }
   
   return(TC_IMPORT_ERROR);
@@ -90,30 +90,37 @@ MOD_open
 
 MOD_decode {
 
-  if(param->flag == TC_VIDEO) {
-    
-   // if(verbose_flag & TC_DEBUG) printf("(V) read yuv ");
-	sprintf(fname,"%s/%04d.yuv",vob->video_in_file,frm);	
-	 if (!(fd = fopen(fname,"rb"))){
-	 	if(verbose_flag & TC_DEBUG)	fprintf(stderr,
-							"warning: missing frame %d, searching next...",frm);
-			while (frm < MAXFRM){ 
-					frm++;
-					sprintf(fname,"%s/%04d.yuv",vob->video_in_file,frm);
-					fd=fopen(fname,"rb");
-		 			if(fd){
-				if(verbose_flag & TC_DEBUG)	fprintf(stderr,"found %d \n",frm);
-						 goto cont;
-					}
-			}
-	return(TC_IMPORT_ERROR);
+    if(param->flag == TC_VIDEO) {
+
+        if(verbose_flag & TC_STATS)
+            fprintf(stderr, "[%s] (V) read yuv", MOD_NAME);
+
+        sprintf(fname,"%s/%04d.yuv",vob->video_in_file,frm);	
+
+        if (!(fd = fopen(fname,"rb"))) {
+
+            if(verbose_flag & TC_DEBUG)
+                fprintf(stderr, "[%s] warning: missing frame %d, searching next...", MOD_NAME, frm);
+
+            while (frm < MAXFRM){ 
+		frm++;
+		sprintf(fname,"%s/%04d.yuv",vob->video_in_file,frm);
+		fd=fopen(fname,"rb");
+		if (fd) {
+		    if(verbose_flag & TC_DEBUG)
+			fprintf(stderr,"[%s] found %d \n", MOD_NAME, frm);
+		    goto cont;
+		}
+	    }
+	    return(TC_IMPORT_ERROR);
 	}
 cont:
 	fread(param->buffer,param->size,1,fd);	
 	frm++;
-	if(fd)fclose(fd);
-    return(0);
-  }
+	if(fd)
+            fclose(fd);
+        return(0);
+    }
   
   return(TC_IMPORT_ERROR);
 }

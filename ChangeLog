@@ -1,3 +1,7 @@
+2004-11-26 Jacob Meuser <jakemsr at jakemsr dot com>
+  * import/import_yuv.c
+  clean this up a bit.
+
 2004-11-23 Jacob Meuser <jakemsr at jakemsr dot com>
   * src/Makefile.am src/dl_loader.c src/dl_loader.h
     src/frame_threads.h src/video_trans.c src/video_trans.h 
