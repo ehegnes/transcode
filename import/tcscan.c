@@ -72,6 +72,11 @@ static void check (int v)
  *
  * ------------------------------------------------------------*/
 
+static double frc_table[16] = {0,
+			       NTSC_FILM, 24, 25, NTSC_VIDEO, 30, 50, 
+			       (2*NTSC_VIDEO), 60,
+			       1, 5, 10, 12, 15, 
+			       0, 0};
 
 
 void usage(int status)
@@ -83,7 +88,7 @@ void usage(int status)
   fprintf(stderr,"\t -i file           input file name [stdin]\n");
   fprintf(stderr,"\t -x codec          source codec\n");
   fprintf(stderr,"\t -e r[,b[,c]]      PCM audio stream parameter [%d,%d,%d]\n", RATE, BITS, CHANNELS);
-  fprintf(stderr,"\t -f rate           frame rate [%.3f]\n", PAL_FPS);
+  fprintf(stderr,"\t -f rate,frc       frame rate [%.3f][,frc]\n", PAL_FPS);
   fprintf(stderr,"\t -w num            estimate bitrate for num frames\n");
   fprintf(stderr,"\t -b bitrate        audio encoder bitrate kBits/s [%d]\n", ABITRATE);
   fprintf(stderr,"\t -c cdsize         user defined CD size in MB [0]\n");
@@ -127,6 +132,8 @@ int main(int argc, char *argv[])
   char buffer[CHUNK_SIZE];
   
   double fps=PAL_FPS, frames, fmin, fmax, vol=0.0;
+
+  int frc;
 
   int pseudo_frame_size=0;
 
@@ -195,10 +202,13 @@ int main(int argc, char *argv[])
     case 'f': 
       
       if(optarg[0]=='-') usage(EXIT_FAILURE);
-      fps = atof(optarg);      
+      n = sscanf(optarg,"%lf,%d", &fps, &frc);
+
+      if (n == 2 && (frc > 0 && frc <= 0x10))
+	  fps = frc_table[frc];
 
       if(fps<=0) {
-	fprintf(stderr,"invalid frame rate for option -f");
+	fprintf(stderr,"invalid frame rate for option -f\n");
 	exit(1);
       }
       break;
@@ -209,7 +219,7 @@ int main(int argc, char *argv[])
       bframes = atoi(optarg);      
 
       if(bframes <=0) {
-	fprintf(stderr,"invalid parameter for option -w");
+	fprintf(stderr,"invalid parameter for option -w\n");
 	exit(1);
       }
       break;
@@ -398,6 +408,7 @@ int main(int argc, char *argv[])
       int chunks = 0;
       int srate=0 , chans=0, bitrate=0;
       unsigned long bitrate_add = 0;
+      double ms = 0;
 
       min = 500;
       max = 0;
@@ -408,10 +419,21 @@ int main(int argc, char *argv[])
 	      ++chunks;
 	      bitrate_add += bitrate;
 	      check(bitrate);
+	      ms = (framesize*1000)/(bitrate*128);
 	      break;
 	  }
       }
 
+      // Example for _1_ mp3 chunk
+      // 
+      // fps       = 25
+      // framesize = 480 bytes
+      // bitrate   = 160 kbit/s == 20 kbytes/s == 20480 bytes/s == 819.20 bytes / frame
+      //
+      // 480 bytes = 480/20480 s/bytes = .0234 s = 23.4 ms
+      //  
+      //  ms = (framesize*1000*8)/(bitrate*1024);
+      //  correct? hmm -- tibit
       while (on) {
 	  if ( (bytes_read = read(ipipe.fd_in, buffer, framesize-4)) != framesize-4) on = 0;
 	  total += bytes_read;
@@ -422,6 +444,7 @@ int main(int argc, char *argv[])
 	      } else  {
 		  bitrate_add += bitrate;
 		  check(bitrate);
+		  ms += (framesize*1000)/(bitrate*128);
 		  break;
 	      }
 	  }
@@ -435,6 +458,12 @@ int main(int argc, char *argv[])
 
       printf("[%s] AVI overhead will be max. %d*(8+16) = %d bytes (%dk)\n", 
 	      EXE, chunks, chunks*8+chunks*16, (chunks*8+chunks*16)/1024 );
+      printf("[%s] Estimated time is %lf ms (%02d:%02d:%02d.%02d)\n", 
+	      EXE, ms, 
+	         (int)(ms/1000.0/60.0/60.0), 
+	         (int)(ms/1000.0/60.0)%60, 
+		 (int)(ms/1000)%60, 
+		 (int)(ms)%(1000) );
       return(0);
   }
   
