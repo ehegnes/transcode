@@ -43,7 +43,7 @@
 #include "yuv2rgb.h"
 
 #define BUFFER_SIZE SIZE_RGB_FRAME
-#define READ_BUFFER_SIZE (1024*1024)
+#define READ_BUFFER_SIZE (10*1024*1024)
 #define MOD_NAME "decode_ffmpeg"
 
 #define MAX_BUF 1024
@@ -59,9 +59,9 @@ struct ffmpeg_codec {
 
 // fourCC to ID mapping taken from MPlayer's codecs.conf
 static struct ffmpeg_codec ffmpeg_codecs[] = {
-  {CODEC_ID_MSMPEG4V1, TC_CODEC_ERROR, "msmpeg4v1",
+  {CODEC_ID_MSMPEG4V1, TC_CODEC_ERROR, "mp41",
     {"MP41", "DIV1", ""}},
-  {CODEC_ID_MSMPEG4V2, TC_CODEC_MP42, "msmpeg4v2",
+  {CODEC_ID_MSMPEG4V2, TC_CODEC_MP42, "mp42",
     {"MP42", "DIV2", ""}},
   {CODEC_ID_MSMPEG4V3, TC_CODEC_DIVX3, "msmpeg4",
     {"DIV3", "DIV5", "AP41", "MPG3", "MP43", ""}},
@@ -77,19 +77,22 @@ static struct ffmpeg_codec ffmpeg_codecs[] = {
     {"WMV1", ""}},
   {CODEC_ID_WMV2, TC_CODEC_WMV2, "wmv2",
     {"WMV2", ""}},
-  {CODEC_ID_HUFFYUV, TC_CODEC_HFYU, "HuffYUV",
+  {CODEC_ID_HUFFYUV, TC_CODEC_HFYU, "hfyu",
     {"HFYU", ""}},
-  {CODEC_ID_H263I, TC_CODEC_H263I, "h263",
+  {CODEC_ID_H263I, TC_CODEC_H263I, "h263i",
     {"I263", ""}},
   {CODEC_ID_H263P, TC_CODEC_H263P, "h263p",
     {"H263", "U263", "VIV1", ""}},
   {CODEC_ID_RV10, TC_CODEC_RV10, "rv10",
     {"RV10", "RV13", ""}},
-  {CODEC_ID_SVQ1, TC_CODEC_SVQ1, "Sorenson Video v1",
+  {CODEC_ID_SVQ1, TC_CODEC_SVQ1, "svq1",
     {"SVQ1", ""}},
-  {CODEC_ID_SVQ3, TC_CODEC_SVQ3, "Sorenson Video v3",
+  {CODEC_ID_SVQ3, TC_CODEC_SVQ3, "svq3",
     {"SVQ3", ""}},
+  {CODEC_ID_MPEG2VIDEO, TC_CODEC_MPEG2, "mpeg2video",
+    {"MPG2", ""}},
   {0, TC_CODEC_UNKNOWN, NULL, {""}}};
+
 
 static struct ffmpeg_codec *find_ffmpeg_codec_id(unsigned int transcode_id) {
   struct ffmpeg_codec *cdc;
@@ -104,6 +107,7 @@ static struct ffmpeg_codec *find_ffmpeg_codec_id(unsigned int transcode_id) {
   return NULL;
 }
 
+#if 0
 static struct ffmpeg_codec *find_ffmpeg_codec(char *fourCC) {
   int i;
   struct ffmpeg_codec *cdc;
@@ -121,6 +125,7 @@ static struct ffmpeg_codec *find_ffmpeg_codec(char *fourCC) {
   
   return NULL;
 }
+#endif
 
 static unsigned char *bufalloc(size_t size) {
 #ifdef HAVE_GETPAGESIZE
@@ -170,14 +175,12 @@ void decode_lavc(decode_t *decode)
   int run=0;
 
   // decoder
-  int        len = 0, i, edge_width;
+  int        len = 0, i, j,  edge_width;
   long       bytes_read = 0;
   int        UVls, src, dst, row, col;
   char      *Ybuf, *Ubuf, *Vbuf;
 
   verbose_flag = decode->verbose;
-
-  fprintf(stderr, "width (%d), height (%d)\n", decode->width, decode->height);
 
   x_dim = decode->width;
   y_dim = decode->height;
@@ -199,6 +202,9 @@ void decode_lavc(decode_t *decode)
 	      decode->codec);
       goto decoder_error;
   }
+  if (decode->verbose & TC_DEBUG) {
+      fprintf(stderr, "[%s] Using Codec %s id 0x%x\n", MOD_NAME , codec->name, codec->tc_id);
+  }
 
   lavc_dec_codec = avcodec_find_decoder(codec->id);
   if (!lavc_dec_codec) {
@@ -206,7 +212,7 @@ void decode_lavc(decode_t *decode)
 	      fourCC);
       goto decoder_error;
   }
- 
+
   // Set these to the expected values so that ffmpeg's decoder can
   // properly detect interlaced input.
   lavc_dec_context = avcodec_alloc_context();
@@ -235,7 +241,7 @@ void decode_lavc(decode_t *decode)
         break;
       case TC_CODEC_RGB:
         frame_size = x_dim * y_dim * 3;
-        bpp = 8;
+        bpp = 24;
         yuv2rgb_init(bpp, MODE_RGB);
 
         if (yuv2rgb_buffer == NULL) yuv2rgb_buffer = bufalloc(BUFFER_SIZE);
@@ -296,6 +302,7 @@ void decode_lavc(decode_t *decode)
 	      fprintf(stderr, "[%s] frame decoding failed\n", MOD_NAME);
 	      goto decoder_error;
 	  }
+	  //fprintf (stderr, "here frame pic %d run %d len %d\n", got_picture, run, len);
 	  if (run++>10000) { fprintf(stderr, "[%s] Fatal decoder error\n", MOD_NAME); goto decoder_error; }
       } while (!got_picture);
       run = 0;
@@ -388,6 +395,54 @@ void decode_lavc(decode_t *decode)
 		  }
 		  src += UVls;
 	      }
+	      break;
+	  case PIX_FMT_YUV411P:
+	      if (pix_fmt == TC_CODEC_YV12) {
+		  // Planar YUV 4:1:1 (1 Cr & Cb sample per 4x1 Y samples)
+		  // 4:1:1 -> 4:2:0
+
+		  for (i = 0; i < lavc_dec_context->height; i++) {
+		      memcpy(Ybuf + i * lavc_dec_context->width,
+			      picture.data[0] + i * picture.linesize[0], 
+			      lavc_dec_context->width);
+		  }
+		  for (i = 0; i < lavc_dec_context->height; i++) {
+		      for (j=0; j < lavc_dec_context->width / 2; j++) {
+			  Vbuf[i/2 * lavc_dec_context->width/2 + j] = 
+			      *(picture.data[1] + i * picture.linesize[1] + j/2);
+			  Ubuf[i/2 * lavc_dec_context->width/2 + j] = 
+			      *(picture.data[2] + i * picture.linesize[2] + j/2);
+		      }
+		  }
+	      } else { // RGB
+		  Ybuf = yuv2rgb_buffer;
+		  Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
+		  Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
+		  for (i = 0; i < lavc_dec_context->height; i++) {
+		      memcpy(Ybuf + i * lavc_dec_context->width,
+			      picture.data[0] + i * picture.linesize[0], 
+			      lavc_dec_context->width);
+		  }
+		  for (i = 0; i < lavc_dec_context->height; i++) {
+		      for (j=0; j < lavc_dec_context->width / 2; j++) {
+			  Vbuf[i/2 * lavc_dec_context->width/2 + j] = 
+			      *(picture.data[1] + i * picture.linesize[1] + j/2);
+			  Ubuf[i/2 * lavc_dec_context->width/2 + j] = 
+			      *(picture.data[2] + i * picture.linesize[2] + j/2);
+		      }
+		  }
+		  yuv2rgb(out_buffer, yuv2rgb_buffer,
+			  yuv2rgb_buffer +
+			  lavc_dec_context->width * lavc_dec_context->height, 
+			  yuv2rgb_buffer +
+			  5 * lavc_dec_context->width * lavc_dec_context->height / 4, 
+			  lavc_dec_context->width,
+			  lavc_dec_context->height, 
+			  lavc_dec_context->width * bpp / 8,
+			  lavc_dec_context->width,
+			  lavc_dec_context->width / 2);
+	      }
+
 	      break;
 	  default:
 	      fprintf(stderr, "[%s] Unsupported decoded frame format", MOD_NAME);

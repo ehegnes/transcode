@@ -234,11 +234,14 @@ int main(int argc, char *argv[])
     // FFMPEG can decode a lot
     if(!strcmp(magic, "ffmpeg") || !strcmp(magic, "lavc")) {
 	if (!strcmp(codec, "mpeg2")) decode.codec = TC_CODEC_MPEG2;
+	else if (!strcmp(codec, "mpeg2video")) decode.codec = TC_CODEC_MPEG2;
+	else if (!strcmp(codec, "mpeg1video")) decode.codec = TC_CODEC_MPEG1;
 	else if (!strcmp(codec, "divx3")) decode.codec = TC_CODEC_DIVX3;
 	else if (!strcmp(codec, "divx")) decode.codec = TC_CODEC_DIVX4;
 	else if (!strcmp(codec, "divx4")) decode.codec = TC_CODEC_DIVX4;
 	else if (!strcmp(codec, "mp42")) decode.codec = TC_CODEC_MP42;
 	else if (!strcmp(codec, "mjpg")) decode.codec = TC_CODEC_MJPG;
+	else if (!strcmp(codec, "mjpeg")) decode.codec = TC_CODEC_MJPG;
 	else if (!strcmp(codec, "rv10")) decode.codec = TC_CODEC_RV10;
 	else if (!strcmp(codec, "svq1")) decode.codec = TC_CODEC_SVQ1;
 	else if (!strcmp(codec, "svq3")) decode.codec = TC_CODEC_SVQ3;
@@ -250,6 +253,8 @@ int main(int argc, char *argv[])
 	else if (!strcmp(codec, "indeo3")) decode.codec = TC_CODEC_INDEO3;
 	else if (!strcmp(codec, "h263p")) decode.codec = TC_CODEC_H263P;
 	else if (!strcmp(codec, "h263i")) decode.codec = TC_CODEC_H263I;
+	else if (!strcmp(codec, "dvvideo")) decode.codec = TC_CODEC_DV;
+	else if (!strcmp(codec, "dv")) decode.codec = TC_CODEC_DV;
 
 	decode_lavc(&decode);
     }

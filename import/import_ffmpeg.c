@@ -30,9 +30,10 @@
 #include "../ffmpeg/libavcodec/avcodec.h"
 #include "yuv2rgb.h"
 #include "avilib.h"
+#include "magic.h"
 
 #define MOD_NAME    "import_ffmpeg.so"
-#define MOD_VERSION "v0.1.8 (2003-11-03)"
+#define MOD_VERSION "v0.1.9 (2003-12-07)"
 #define MOD_CODEC   "(video)  " LIBAVCODEC_IDENT \
                     ": MS MPEG4v1-3/MPEG4/MJPEG"
 #define MOD_PRE ffmpeg
@@ -53,39 +54,48 @@ static int done_seek=0;
 
 struct ffmpeg_codec {
   int   id;
+  unsigned int tc_id;
   char *name;
   char  fourCCs[10][5];
 };
 
 // fourCC to ID mapping taken from MPlayer's codecs.conf
 static struct ffmpeg_codec ffmpeg_codecs[] = {
-  {CODEC_ID_MSMPEG4V1, "msmpeg4v1",
+  {CODEC_ID_MSMPEG4V1, TC_CODEC_ERROR, "mp41",
     {"MP41", "DIV1", ""}},
-  {CODEC_ID_MSMPEG4V2, "msmpeg4v2",
+  {CODEC_ID_MSMPEG4V2, TC_CODEC_MP42, "mp42",
     {"MP42", "DIV2", ""}},
-  {CODEC_ID_MSMPEG4V3, "msmpeg4",
+  {CODEC_ID_MSMPEG4V3, TC_CODEC_DIVX3, "msmpeg4",
     {"DIV3", "DIV5", "AP41", "MPG3", "MP43", ""}},
-  {CODEC_ID_MPEG4, "mpeg4",
+  {CODEC_ID_MPEG4, TC_CODEC_DIVX4, "mpeg4",
     {"DIVX", "XVID", "MP4S", "M4S2", "MP4V", "UMP4", "DX50", ""}},
-  {CODEC_ID_MJPEG, "mjpeg",
+  {CODEC_ID_MJPEG, TC_CODEC_MJPG, "mjpeg",
     {"MJPG", "AVRN", "AVDJ", "JPEG", "MJPA", "JFIF", ""}},
-  {CODEC_ID_MPEG1VIDEO, "mpeg1video",
+  {CODEC_ID_MPEG1VIDEO, TC_CODEC_MPG1, "mpeg1video",
     {"MPG1", ""}},
-  {CODEC_ID_MPEG1VIDEO, "mpeg2video",
-    {"MPG2", ""}},
-  {CODEC_ID_DVVIDEO, "dvvideo",
+  {CODEC_ID_DVVIDEO, TC_CODEC_DV, "dvvideo",
     {"DVSD", ""}},
-  {CODEC_ID_WMV1, "wmv1",
+  {CODEC_ID_WMV1, TC_CODEC_WMV1, "wmv1",
     {"WMV1", ""}},
-  {CODEC_ID_WMV2, "wmv2",
+  {CODEC_ID_WMV2, TC_CODEC_WMV2, "wmv2",
     {"WMV2", ""}},
-  {CODEC_ID_H263I, "h263",
+  {CODEC_ID_HUFFYUV, TC_CODEC_HFYU, "hfyu",
+    {"HFYU", ""}},
+  {CODEC_ID_H263I, TC_CODEC_H263I, "h263i",
     {"I263", ""}},
-  {CODEC_ID_H263P, "h263p",
+  {CODEC_ID_H263P, TC_CODEC_H263P, "h263p",
     {"H263", "U263", "VIV1", ""}},
-  {CODEC_ID_RV10, "rv10",
+  {CODEC_ID_RV10, TC_CODEC_RV10, "rv10",
     {"RV10", "RV13", ""}},
-  {0, NULL, {""}}};
+  {CODEC_ID_SVQ1, TC_CODEC_SVQ1, "svq1",
+    {"SVQ1", ""}},
+  {CODEC_ID_SVQ3, TC_CODEC_SVQ3, "svq3",
+    {"SVQ3", ""}},
+  {CODEC_ID_MPEG2VIDEO, TC_CODEC_MPEG2, "mpeg2video",
+    {"MPG2", ""}},
+  {CODEC_ID_MPEG2VIDEO, TC_CODEC_MPEG, "mpeg2video",
+    {"MPG2", ""}},
+  {0, TC_CODEC_UNKNOWN, NULL, {""}}};
 
 #define BUFFER_SIZE SIZE_RGB_FRAME
 
@@ -98,6 +108,7 @@ static AVCodecContext     *lavc_dec_context;
 static int                 x_dim = 0, y_dim = 0;
 static int                 pix_fmt, frame_size = 0, bpp;
 static char                *frame = NULL;
+static unsigned long       format_flag;
 static struct ffmpeg_codec *codec;
 
 static struct ffmpeg_codec *find_ffmpeg_codec(char *fourCC) {
@@ -117,6 +128,35 @@ static struct ffmpeg_codec *find_ffmpeg_codec(char *fourCC) {
   
   return NULL;
 }
+
+static struct ffmpeg_codec *find_ffmpeg_codec_id(unsigned int transcode_id) {
+  struct ffmpeg_codec *cdc;
+  
+  cdc = &ffmpeg_codecs[0];
+  while (cdc->name != NULL) {
+      if (cdc->tc_id == transcode_id)
+	  return cdc;
+    cdc++;
+  }
+  
+  return NULL;
+}
+
+int scan(char *name) 
+{
+  struct stat fbuf;
+  
+  if(stat(name, &fbuf)) {
+    fprintf(stderr, "[%s] invalid file \"%s\"\n", MOD_NAME, name);
+    exit(1);
+  }
+  
+  // file or directory?
+  
+  if(S_ISDIR(fbuf.st_mode)) return(1);
+  return(0);
+}
+
 
 inline static int stream_read_char(char *d)
 {
@@ -199,6 +239,22 @@ MOD_open {
 
   if (param->flag == TC_VIDEO) {
     
+    format_flag = vob->format_flag;
+
+    if (scan(vob->video_in_file)) goto do_dv;
+
+    if (format_flag == TC_MAGIC_AVI) {
+      goto do_avi;
+    } else if ( format_flag==TC_MAGIC_DV_PAL || format_flag==TC_MAGIC_DV_NTSC) {
+      fprintf(stderr, "Format 0x%lX DV!!\n", format_flag);
+      goto do_dv;
+    } else {
+      fprintf(stderr, "[%s] Format 0x%lX not supported\n", MOD_NAME, format_flag);
+      return(TC_IMPORT_ERROR); 
+    }
+    fprintf(stderr, "[%s] Format 0x%lX\n", MOD_NAME, format_flag);
+
+do_avi:
     if(avifile==NULL) {
       if(vob->nav_seek_file) {
 	if(NULL == (avifile = AVI_open_input_indexfile(vob->video_in_file,0,vob->nav_seek_file))){
@@ -220,12 +276,6 @@ MOD_open {
     }
 
     //important parameter
-
-    //x_dim = AVI_video_width(avifile);
-    //y_dim = AVI_video_height(avifile);
-    //fps = AVI_frame_rate(avifile);
-
-    // use what transcode gives us.
     x_dim = vob->im_v_width;
     y_dim = vob->im_v_height;
     fps   = vob->fps;
@@ -333,6 +383,57 @@ MOD_open {
     param->fd = NULL;
 
     return 0;
+do_dv: 
+    x_dim = vob->im_v_width;
+    y_dim = vob->im_v_height;
+
+    {
+      char yuv_buf[255];
+      //char ext_buf[255];
+      struct ffmpeg_codec *codec;
+      
+      switch (vob->im_v_codec) {
+	case CODEC_RGB:
+	  sprintf(yuv_buf, "rgb");
+	  break;
+	case CODEC_YUV:
+	  sprintf(yuv_buf, "yv12");
+	  break;
+      }
+
+      codec = find_ffmpeg_codec_id (vob->codec_flag);
+      if (codec == NULL) {
+	fprintf(stderr, "[%s] No codec is known the TAG '%lx'.\n", MOD_NAME,
+	    vob->codec_flag);
+	return TC_IMPORT_ERROR;
+      }
+
+      //printf ("FFMPEG: codec->name = %s ->id = 0x%x\n", codec->name, codec->id);
+
+      snprintf (import_cmd_buf, MAX_BUF, 
+	  "tccat -i \"%s\" -d %d"
+	  " | tcextract -x dv -d %d"
+	  " | tcdecode -x %s -t lavc -y %s -g %dx%d -Q %d -d %d"
+	  ,
+	  vob->video_in_file, vob->verbose,
+	  vob->verbose,
+	  codec->name, yuv_buf, x_dim, y_dim, vob->quality, vob->verbose);
+    }
+      
+    // print out
+    if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+
+    // set to NULL if we handle read
+    param->fd = NULL;
+
+    // popen
+    if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
+      perror("popen LAVC stream");
+      return(TC_IMPORT_ERROR);
+    }
+
+    return 0;
+
   }
   
   return TC_IMPORT_ERROR;
@@ -346,6 +447,13 @@ MOD_open {
  * ------------------------------------------------------------*/
 
 MOD_decode {
+
+  /*
+   * When using directory mode or dvraw etc, we don't enter here 
+   * (transcode-core does the reading) so there is no need to protect this
+   * stuff by and if() or something.
+   */
+
   int        key,len, i, edge_width, j;
   long       bytes_read = 0;
   int        got_picture, UVls, src, dst, row, col;
@@ -519,8 +627,10 @@ MOD_decode {
           }
           for (i = 0; i < lavc_dec_context->height; i++) {
 	      for (j=0; j < lavc_dec_context->width / 2; j++) {
-		  Vbuf[i/2 * lavc_dec_context->width/2 + j] = *(picture.data[1] + i * picture.linesize[1] + j/2);
-		  Ubuf[i/2 * lavc_dec_context->width/2 + j] = *(picture.data[2] + i * picture.linesize[2] + j/2);
+		  Vbuf[i/2 * lavc_dec_context->width/2 + j] = 
+		    *(picture.data[1] + i * picture.linesize[1] + j/2);
+		  Ubuf[i/2 * lavc_dec_context->width/2 + j] = 
+		    *(picture.data[2] + i * picture.linesize[2] + j/2);
 	      }
           }
         } else { // RGB
@@ -586,6 +696,9 @@ MOD_close {
 
     }
     
+    if (param->fd) pclose(param->fd);
+    param->fd = NULL;
+
     // do not free buffer and yuv2rgb_buffer!!
     
     if(avifile!=NULL) {
