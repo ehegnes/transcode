@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 
           if(optarg[0]=='-') usage(EXIT_FAILURE);
           if (2 != sscanf(optarg,"%ld-%ld", &ipipe.frame_limit[0], &ipipe.frame_limit[1])) usage(EXIT_FAILURE);
-          if (ipipe.frame_limit[0] >= ipipe.frame_limit[1])
+          if (ipipe.frame_limit[0] > ipipe.frame_limit[1])
           {
                 fprintf(stderr,"Invalid -C options\n");
                 usage(EXIT_FAILURE);
