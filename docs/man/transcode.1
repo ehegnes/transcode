@@ -873,6 +873,16 @@ select final frame region by clipping border [off]
 .TP
 .B \-\-a52_drc_off
 disable liba52 dynamic range compression [enabled]
+.br
+If you dont specify this option, liba52 will provide the default behaviour, which is to
+apply the full dynamic range compression as specified in the A/52 stream. This
+basically makes the loud sounds softer, and the soft sounds louder, so you can
+more easily listen to the stream in a noisy environment without disturbing
+anyone.
+
+If you let it enabled this this will totally disable the dynamic range
+compression and provide a playback more adapted to a movie theater or a
+listening room.
 .TP
 .B \-\-a52_demux
 demux AC3/A52 to separate channels [off]
