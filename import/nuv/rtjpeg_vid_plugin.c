@@ -55,6 +55,7 @@ extern "C" {
 #endif
 #include "minilzo.h"
 
+static struct region  regions[MAXREGIONS];
 
 /*
   int    rtjpeg_vid_file;
@@ -85,6 +86,7 @@ int rtjpeg_vid_open(char *tplorg)
   char   ctype;
   char   ftype;
   char   *space;
+  int    editmode=0;
 
   sprintf(editfname,"%s.%s", tplorg, "edit");
   editfile = fopen(editfname, "r");
