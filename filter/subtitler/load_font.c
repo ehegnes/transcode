@@ -24,7 +24,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 //#define NEW_DESC
 
 /*
-taken from mplayer, slightly modified by Jan Panteltje,
+Byte swapping routines taken directly from ffmpeg/libavcodec/bswap.h.
 Should rewritten to put data directly in struct font_desc_t,
 and also make a windows 4 bit bitmap, really.
 */
@@ -44,32 +44,41 @@ Artur Zaprzala <zybi@fanthom.irc.pl>
 #include <string.h>
 #include <libgen.h>
 
-#ifndef __BSWAP_H__
-#define __BSWAP_H__
-
 // FreeType specific includes
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
 #include <freetype/ftglyph.h>
 
+/**
+ * @file bswap.h
+ * byte swap.
+ */
+
+#ifndef __BSWAP_H__
+#define __BSWAP_H__
+
 #ifdef HAVE_BYTESWAP_H
 #include <byteswap.h>
 #else
 
-#include <inttypes.h>
+#ifdef ARCH_X86_64
+#  define LEGACY_REGS "=Q"
+#else
+#  define LEGACY_REGS "=q"
+#endif
 
-#ifdef ARCH_X86
-inline static unsigned short ByteSwap16(unsigned short x)
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
+static inline uint16_t ByteSwap16(uint16_t x)
 {
   __asm("xchgb %b0,%h0"	:
-        "=q" (x)	:
+        LEGACY_REGS (x)	:
         "0" (x));
     return x;
 }
 #define bswap_16(x) ByteSwap16(x)
 
-inline static unsigned int ByteSwap32(unsigned int x)
+static inline uint32_t ByteSwap32(uint32_t x)
 {
 #if __CPU__ > 386
  __asm("bswap	%0":
@@ -78,21 +87,61 @@ inline static unsigned int ByteSwap32(unsigned int x)
  __asm("xchgb	%b0,%h0\n"
       "	rorl	$16,%0\n"
       "	xchgb	%b0,%h0":
-      "=q" (x)		:
+      LEGACY_REGS (x)		:
 #endif
       "0" (x));
   return x;
 }
 #define bswap_32(x) ByteSwap32(x)
 
-inline static unsigned long long int ByteSwap64(unsigned long long int x)
+static inline uint64_t ByteSwap64(uint64_t x)
 {
-  register union { __extension__ unsigned long long int __ll;
-          unsigned long int __l[2]; } __x;
+#ifdef ARCH_X86_64
+  __asm("bswap	%0":
+        "=r" (x)     :
+        "0" (x));
+  return x;
+#else
+  register union { __extension__ uint64_t __ll;
+          uint32_t __l[2]; } __x;
   asm("xchgl	%0,%1":
       "=r"(__x.__l[0]),"=r"(__x.__l[1]):
-      "0"(bswap_32((unsigned long)x)),"1"(bswap_32((unsigned long)(x>>32))));
+      "0"(bswap_32((uint32_t)x)),"1"(bswap_32((uint32_t)(x>>32))));
   return __x.__ll;
+#endif
+}
+#define bswap_64(x) ByteSwap64(x)
+
+#elif defined(ARCH_SH4)
+
+static inline uint16_t ByteSwap16(uint16_t x) {
+	__asm__("swap.b %0,%0":"=r"(x):"0"(x));
+	return x;
+}
+
+static inline uint32_t ByteSwap32(uint32_t x) {
+	__asm__(
+	"swap.b %0,%0\n"
+	"swap.w %0,%0\n"
+	"swap.b %0,%0\n"
+	:"=r"(x):"0"(x));
+	return x;
+}
+
+#define bswap_16(x) ByteSwap16(x)
+#define bswap_32(x) ByteSwap32(x)
+
+static inline uint64_t ByteSwap64(uint64_t x)
+{
+    union { 
+        uint64_t ll;
+        struct {
+           uint32_t l,h;
+        } l;
+    } r;
+    r.l.l = bswap_32 (x);
+    r.l.h = bswap_32 (x>>32);
+    return r.ll;
 }
 #define bswap_64(x) ByteSwap64(x)
 
@@ -106,14 +155,19 @@ inline static unsigned long long int ByteSwap64(unsigned long long int x)
      ((((x) & 0xff000000) >> 24) | (((x) & 0x00ff0000) >>  8) | \
       (((x) & 0x0000ff00) <<  8) | (((x) & 0x000000ff) << 24))
 
-#define bswap_64(x) \
-     (__extension__						\
-      ({ union { __extension__ unsigned long long int __ll;	\
-                 unsigned long int __l[2]; } __w, __r;		\
-         __w.__ll = (x);					\
-         __r.__l[0] = bswap_32 (__w.__l[1]);			\
-         __r.__l[1] = bswap_32 (__w.__l[0]);			\
-         __r.__ll; }))
+static inline uint64_t ByteSwap64(uint64_t x)
+{
+    union { 
+        uint64_t ll;
+        uint32_t l[2]; 
+    } w, r;
+    w.ll = x;
+    r.l[0] = bswap_32 (w.l[1]);
+    r.l[1] = bswap_32 (w.l[0]);
+    return r.ll;
+}
+#define bswap_64(x) ByteSwap64(x)
+
 #endif	/* !ARCH_X86 */
 
 #endif	/* !HAVE_BYTESWAP_H */
@@ -137,8 +191,7 @@ inline static unsigned long long int ByteSwap64(unsigned long long int x)
 #define le2me_64(x) (x)
 #endif
 
-#endif
-
+#endif /* __BSWAP_H__ */
 
 
 int sub_unicode = 0;
