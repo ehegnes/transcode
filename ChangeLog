@@ -2,6 +2,11 @@
 transcode-0.6.11
 
 2003-09-30 Tilmann Bitterberg <transcode at tibit.org>
+  
+  * export/export_pcm.c:
+  Fix a floating point exception pointed out by Nicolas Boos
+
+2003-09-30 Tilmann Bitterberg <transcode at tibit.org>
    
   * import/{tcrequant.c getvlc.h putvlc.h Makefile.am}:
   New tool tcrequant which can requantize an mpeg2 elementary

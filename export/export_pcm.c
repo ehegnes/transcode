@@ -87,6 +87,15 @@ MOD_init
     rtf.common.wBitsPerSample=vob->a_bits;
     rtf.common.wBlockAlign=vob->a_chan*vob->a_bits/8;
 
+    if (!vob->fixme_a_codec ||
+        !rtf.common.wChannels || 
+	!rtf.common.dwSamplesPerSec ||
+	!rtf.common.wBitsPerSample ||
+	!rtf.common.wBlockAlign) {
+	    tc_warn("Cannot export PCM, invalid format (no audio track at all?)");
+	    return TC_EXPORT_ERROR;
+    }
+
     rtf.riff.len=0x7FFFFFFF;
     rtf.data.len=0x7FFFFFFF;
 
@@ -197,10 +206,9 @@ MOD_open
 
 MOD_encode
 {
-    
-  int size = (int) (param->size/rtf.common.wChannels);
 
   if(param->flag == TC_AUDIO) { 
+    int size = (int) (param->size/rtf.common.wChannels);
     
     switch(rtf.common.wChannels) {
       
