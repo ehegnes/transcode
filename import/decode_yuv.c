@@ -95,7 +95,7 @@ static int outstream(char *framebuffer, int bytes)
  *
  * ------------------------------------------------------------*/
 
-void decode_yuv(info_t *ipipe)
+void decode_yuv(decode_t *decode)
 {
   
   vo_instance_t *output;
@@ -111,8 +111,8 @@ void decode_yuv(info_t *ipipe)
   vo_accel(accel);
   output = vo_open(output_open, outstream);
 
-  in_file = fdopen(ipipe->fd_in, "r");
-  out_file = fdopen(ipipe->fd_out, "w");
+  in_file = fdopen(decode->fd_in, "r");
+  out_file = fdopen(decode->fd_out, "w");
 
   // allocate space
 
@@ -121,8 +121,8 @@ void decode_yuv(info_t *ipipe)
   yuv[2] = (char *)calloc(1, PAL_W/2 * PAL_H/2);  
 
   // frame/stream parameter
-  width = ipipe->width;
-  height = ipipe->height;
+  width = decode->width;
+  height = decode->height;
 
   if(width==0 || height ==0) fprintf(stderr,"(%s) invalid frame parameter %dx%d\n", __FILE__, width, height);
   
@@ -131,7 +131,7 @@ void decode_yuv(info_t *ipipe)
   
   // read frame by frame - decode into BRG - pipe to stdout
   
-  while(yuv_read_frame(ipipe->fd_in, yuv, width, height)) 
+  while(yuv_read_frame(decode->fd_in, yuv, width, height)) 
     directdraw_rgb(output, yuv);
   
   // ends

@@ -83,23 +83,23 @@ static int outstream(char *framebuffer, int bytes)
  *
  * ------------------------------------------------------------*/
 
-void decode_mpeg2(info_t *ipipe)
+void decode_mpeg2(decode_t *decode)
 {
   
   vo_instance_t *output=NULL;
   uint32_t accel;
 
-  verbose = ipipe->verbose;
+  verbose = decode->verbose;
 
   accel = mm_accel () | MM_ACCEL_MLIB;
   vo_accel(accel);
 
 
-  if(ipipe->format == TC_CODEC_YV12) output = vo_open(vo_yuvpipe_open, outstream);
-  if(ipipe->format == TC_CODEC_RGB) output = vo_open(vo_ppmpipe_open, outstream);
+  if(decode->format == TC_CODEC_YV12) output = vo_open(vo_yuvpipe_open, outstream);
+  if(decode->format == TC_CODEC_RGB) output = vo_open(vo_ppmpipe_open, outstream);
 
-  in_file = fdopen(ipipe->fd_in, "r");
-  out_file = fdopen(ipipe->fd_out, "w");
+  in_file = fdopen(decode->fd_in, "r");
+  out_file = fdopen(decode->fd_out, "w");
    
   mpeg2_init(&mpeg2dec, accel, output);
 

@@ -47,7 +47,7 @@ static unsigned char *bufalloc(size_t size)
 {
    int buffer_align=getpagesize();
  
-   char *buf = malloc(size + buffer_align);
+   unsigned char *buf = malloc(size + buffer_align);
 
    int adjust;
 
@@ -60,7 +60,7 @@ static unsigned char *bufalloc(size_t size)
    if (adjust == buffer_align)
       adjust = 0;
 
-   return (unsigned char *) (buf + adjust);
+   return buf + adjust;
 }
 
 void yuy2toyv12(char *_y, char *_u, char *_v, char *input, int width, int height) 
@@ -108,26 +108,21 @@ void yuy2toyv12(char *_y, char *_u, char *_v, char *input, int width, int height
  * ------------------------------------------------------------*/
 
 
-void decode_dv(info_t *ipipe)
+void decode_dv(decode_t *decode)
 {
 
 #ifdef HAVE_DV
 
   int i, j, bytes=0, ch, cc;
-  
   int samples=0, channels=0;
-
   static dv_decoder_t *dv_decoder=NULL;
-
-  int error=0, dvinfo=0, quality=DV_QUALITY_BEST; 
-
+  int error=0, dvinfo=0; 
   unsigned char  *buf, *source;
   unsigned char  *video[3];
-
   int16_t *audio_buffers[4], *audio;  
   uint16_t pitches[3];  //do not change to signed! (ThOe) libdv BUG! 
 
-  verbose = ipipe->verbose;
+  verbose = decode->verbose;
 
   // Initialize DV decoder
 
@@ -144,9 +139,7 @@ void decode_dv(info_t *ipipe)
   dv_init();
 #endif
   
-  quality = ipipe->quality;
- 
-  switch(quality) {
+  switch (decode->quality) {
       
   case 1:
       dv_decoder->quality = DV_QUALITY_FASTEST;
@@ -202,9 +195,8 @@ void decode_dv(info_t *ipipe)
   dv_decoder->prev_frame_decoded = 0;
 
   for (;;) {
-      
       // read min dv frame (NTSC)
-      if((bytes=p_read(ipipe->fd_in, (char*) buf, DV_NTSC_SIZE))
+      if((bytes=p_read(decode->fd_in, (char*) buf, DV_NTSC_SIZE))
 	 != DV_NTSC_SIZE) {
 	  if(verbose & TC_DEBUG)  fprintf(stderr, "(%s) end of stream\n", __FILE__);
 	  import_exit(1);
@@ -224,21 +216,21 @@ void decode_dv(info_t *ipipe)
       if(dv_decoder->system==e_dv_system_625_50) {
 	  
 	// read rest of PAL dv frame
-	if((bytes=p_read(ipipe->fd_in, (char*) buf+DV_NTSC_SIZE, DV_PAL_SIZE-DV_NTSC_SIZE)) != DV_PAL_SIZE-DV_NTSC_SIZE) {
+	if((bytes=p_read(decode->fd_in, (char*) buf+DV_NTSC_SIZE, DV_PAL_SIZE-DV_NTSC_SIZE)) != DV_PAL_SIZE-DV_NTSC_SIZE) {
 	  if(verbose & TC_DEBUG)  fprintf(stderr, "(%s) end of stream\n", __FILE__);
 	  import_exit(1);
 	}
-      } else ipipe->dv_yuy2_mode=1;
+      } else decode->dv_yuy2_mode=1;
 
       // print info:
-      if(!dvinfo && verbose && (ipipe->format != TC_CODEC_PCM)) {
+      if(!dvinfo && verbose && (decode->format != TC_CODEC_PCM)) {
 	fprintf(stderr, "(%s) %s video: %dx%d framesize=%d sampling=%d\n", __FILE__, ((dv_decoder->system==e_dv_system_625_50)?"PAL":"NTSC"), dv_decoder->width, dv_decoder->height, dv_decoder->frame_size, dv_decoder->sampling);
 	dvinfo=1;
       }
       
       // decode
       
-      if(ipipe->format == TC_CODEC_RGB) {
+      if (decode->format == TC_CODEC_RGB) {
 	  
 	pitches[0]  = dv_decoder->width * 3;
 	pitches[1]  = 0;
@@ -249,21 +241,19 @@ void decode_dv(info_t *ipipe)
 	  
 	bytes = 3 * dv_decoder->width * dv_decoder->height;
 	
-	if(p_write (ipipe->fd_out, video[0], bytes)!= bytes) {
+	if(p_write (decode->fd_out, video[0], bytes)!= bytes) {
 	  error=1;
 	  goto error;
 	}
       }
 
-      if(ipipe->format == TC_CODEC_YV12) {
-	
+      if (decode->format == TC_CODEC_YV12) {
 	switch(dv_decoder->sampling) {
-	  
 	case e_dv_sample_420:
 	case e_dv_sample_411:
 	case e_dv_sample_422:
 
-	  if(ipipe->dv_yuy2_mode==0) {	  
+	  if (decode->dv_yuy2_mode==0) {	  
 
 	    pitches[0]  = dv_decoder->width;
 	    pitches[1]  = pitches[0]/2;
@@ -296,9 +286,9 @@ void decode_dv(info_t *ipipe)
 	bytes = dv_decoder->width * dv_decoder->height;
 	
 	// Y
-	source = (ipipe->dv_yuy2_mode==0) ? video[0]:video[3];
+	source = (decode->dv_yuy2_mode==0) ? video[0]:video[3];
 	
-	if(p_write (ipipe->fd_out, source, bytes)!= bytes) {
+	if (p_write (decode->fd_out, source, bytes) != bytes) {
 	  error=1;
 	  goto error;
 	}
@@ -306,19 +296,19 @@ void decode_dv(info_t *ipipe)
 	bytes /=4;
 	
 	// U
-	if(p_write(ipipe->fd_out, video[1], bytes)!= bytes) {
+	if(p_write(decode->fd_out, video[1], bytes)!= bytes) {
 	  error=1;
 	  goto error;
 	}
 	
 	// V
-	if(p_write(ipipe->fd_out, video[2], bytes)!= bytes) {
+	if(p_write(decode->fd_out, video[2], bytes)!= bytes) {
 	  error=1;
 	  goto error;
 	}
       }	
       
-      if(ipipe->format == TC_CODEC_PCM) {
+      if (decode->format == TC_CODEC_PCM) {
 	
 	// print info:
 	if(!dvinfo && verbose) {
@@ -341,7 +331,7 @@ void decode_dv(info_t *ipipe)
 	bytes = samples * channels * 2;
 
 	// write out
-	if(p_write (ipipe->fd_out, (char*) audio, bytes)!= bytes) {     
+	if (p_write(decode->fd_out, (char*) audio, bytes) != bytes) {     
 	  error=1;
 	  goto error;
 	}
@@ -359,7 +349,6 @@ void decode_dv(info_t *ipipe)
 
 void probe_dv(info_t *ipipe)
 {
-
 
 #ifdef HAVE_DV
 

@@ -59,7 +59,7 @@ inline static void str2long(unsigned char *bb, long *bytes)
     *bytes = (bb[0]<<24) | (bb[1]<<16) | (bb[2]<<8) | (bb[3]);
 }
 
-void decode_lzo(info_t *ipipe)
+void decode_lzo(decode_t *decode)
 {
     long bytes;
     ssize_t ss;
@@ -85,10 +85,10 @@ void decode_lzo(info_t *ipipe)
 
     r = 0;
     out_len = 0;
-    verbose = ipipe->verbose;
+    verbose = decode->verbose;
 
     for (;;) {
-	if ( (ss=p_read (ipipe->fd_in, (char *)&h, sizeof(h))) != sizeof(h)) {
+	if ( (ss=p_read (decode->fd_in, (char *)&h, sizeof(h))) != sizeof(h)) {
 	    //fprintf(stderr," (%s) failed to read frame size: EOF. expected (%ld) got (%d)\n", __FILE__, 4L, ss);
 	    goto decoder_out;
 	}
@@ -104,7 +104,7 @@ void decode_lzo(info_t *ipipe)
 
 	if (verbose & TC_DEBUG) 
 	    fprintf (stderr, "got bytes (%ld)\n", bytes); 
-	if ( (ss=p_read (ipipe->fd_in, inbuf, bytes))!=bytes) {
+	if ( (ss=p_read (decode->fd_in, inbuf, bytes))!=bytes) {
 	    fprintf(stderr," (%s) failed to read frame: expected (%ld) got (%d)\n", __FILE__, bytes, ss);
 	    goto decoder_error;
 	}
@@ -123,7 +123,7 @@ void decode_lzo(info_t *ipipe)
 	    goto decoder_error;
 	}
 
-	if ( (ss = p_write (ipipe->fd_out, out, out_len)) != out_len) {
+	if ( (ss = p_write (decode->fd_out, out, out_len)) != out_len) {
 	    fprintf(stderr," (%s) failed to write frame: expected (%ld) wrote (%d)\n", __FILE__, bytes, ss);
 	    goto decoder_error;
 	}
@@ -150,7 +150,7 @@ decoder_error:
 
 #else /* HAVE_LZO */
 
-void decode_lzo(info_t *ipipe)
+void decode_lzo(decode_t *decode)
 {
     fprintf(stderr, "No support for LZO configured -- exiting\n");
     import_exit(1);

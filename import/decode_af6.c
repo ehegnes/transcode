@@ -49,7 +49,7 @@ static char *mod_path=MOD_PATH;
 #define MODULE "af6_decore.so"
 
 // dl stuff
-static int (*af6_decore)(info_t *ipipe);
+static int (*af6_decore)(decode_t *decode);
 static void *handle;
 static char module[TC_BUF_MAX];
 
@@ -90,10 +90,9 @@ int af6_init(char *path) {
  * ------------------------------------------------------------*/
 
 
-void decode_af6(info_t *ipipe)
+void decode_af6(decode_t *decode)
 {
-
-  verbose = ipipe->verbose;
+  verbose = decode->verbose;
   
   //load the codec
   if(af6_init(mod_path)<0) {
@@ -101,7 +100,7 @@ void decode_af6(info_t *ipipe)
     import_exit(1);
   }
   
-  af6_decore(ipipe);
+  af6_decore(decode);
   
   //remove codec
   dlclose(handle);

@@ -114,14 +114,14 @@ int decode_ogg_file(int fdin, int fdout)
 #endif // HAVE_OGG
 
 
-void decode_ogg(info_t *ipipe)
+void decode_ogg(decode_t *decode)
 {
   
 #if (HAVE_OGG && HAVE_VORBIS) 
   
-  quiet = ipipe->verbose;
-  //bits = ipipe->a_bits;
-  decode_ogg_file(ipipe->fd_in, ipipe->fd_out);
+  quiet = decode->verbose;
+  //bits = decode->a_bits;
+  decode_ogg_file(decode->fd_in, decode->fd_out);
 
   import_exit(0);
 
@@ -133,5 +133,3 @@ void decode_ogg(info_t *ipipe)
 #endif
   
 }
-
-  

@@ -68,25 +68,25 @@ static void fill_buffer(uint8_t **start, uint8_t **end)
  * ------------------------------------------------------------*/
 
 
-void decode_ac3(info_t *ipipe)
+void decode_ac3(decode_t *decode)
 {
     ac3_frame_t *ac3_frame;
     ac3_config_t ac3_config;
 
-    verbose = ipipe->verbose;
+    verbose = decode->verbose;
     
     if(verbose & TC_DEBUG) banner=1;
 
-    in_file = fdopen(ipipe->fd_in, "r");
-    out_file = fdopen(ipipe->fd_out, "w");
+    in_file = fdopen(decode->fd_in, "r");
+    out_file = fdopen(decode->fd_out, "w");
  
     ac3_config.fill_buffer_callback = fill_buffer;
     ac3_config.num_output_ch = 2;
     ac3_config.flags = 0;
     ac3_config.flags = 0;
-    ac3_config.ac3_gain[0] = ipipe->ac3_gain[0];
-    ac3_config.ac3_gain[1] = ipipe->ac3_gain[1];
-    ac3_config.ac3_gain[2] = ipipe->ac3_gain[2];
+    ac3_config.ac3_gain[0] = decode->ac3_gain[0];
+    ac3_config.ac3_gain[1] = decode->ac3_gain[1];
+    ac3_config.ac3_gain[2] = decode->ac3_gain[2];
 #ifdef HAVE_MMX
     ac3_config.flags |= AC3_MMX_ENABLE;
 #endif

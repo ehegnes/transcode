@@ -74,7 +74,6 @@ void usage(int status)
   fprintf(stderr,"\t -v                print version\n");
 
   exit(status);
-  
 }
 
 /* ------------------------------------------------------------ 
@@ -85,77 +84,59 @@ void usage(int status)
 
 int main(int argc, char *argv[])
 {
+    decode_t decode;
+    int ch, done=0;
+    char *codec=NULL, *format="rgb", *magic="none";
 
-    info_t ipipe;
-
-    long 
-	stream_stype = TC_STYPE_UNKNOWN, 
-	stream_magic = TC_MAGIC_UNKNOWN, 
-	stream_codec = TC_CODEC_UNKNOWN;
-
-    int width=0, height=0;
-
-    int ch, done=0, quality=VQUALITY, a52_mode=0;
-    char *codec=NULL, *name=NULL, *format="rgb", *magic="none";
-
-    //proper initialization
-    memset(&ipipe, 0, sizeof(info_t));
-    // default ac3_gain
-    ipipe.ac3_gain[0] = ipipe.ac3_gain[1] = ipipe.ac3_gain[2] = 1.0;
-    ipipe.frame_limit[0]=0; 
-    ipipe.frame_limit[1]=LONG_MAX; 
+    memset(&decode, 0, sizeof(decode));
+    decode.magic = TC_MAGIC_UNKNOWN;
+    decode.stype = TC_STYPE_UNKNOWN;
+    decode.quality = VQUALITY;
+    decode.ac3_gain[0] = decode.ac3_gain[1] = decode.ac3_gain[2] = 1.0;
+    decode.frame_limit[0]=0; 
+    decode.frame_limit[1]=LONG_MAX; 
 
     while ((ch = getopt(argc, argv, "Q:t:d:x:i:a:g:vy:s:YC:A:z:?h")) != -1) {
-	
 	switch (ch) {
 	    
 	case 'i': 
-	    
-	  if(optarg[0]=='-') usage(EXIT_FAILURE);
-	  name = optarg;
+	  if (optarg[0]=='-') usage(EXIT_FAILURE);
+	  decode.name = optarg;
 	  break;
 
-
 	case 'd': 
-	    
-	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+	  if (optarg[0]=='-') usage(EXIT_FAILURE);
 	  verbose = atoi(optarg);
 	  break;
 
 	case 'Q': 
-	    
-	  if(optarg[0]=='-') usage(EXIT_FAILURE);
-	  quality = atoi(optarg);
+	  if (optarg[0]=='-') usage(EXIT_FAILURE);
+	  decode.quality = atoi(optarg);
 	  break;
 
 	case 'A': 
-	    
-	  if(optarg[0]=='-') usage(EXIT_FAILURE);
-	  a52_mode = atoi(optarg);
+	  if (optarg[0]=='-') usage(EXIT_FAILURE);
+	  decode.a52_mode = atoi(optarg);
 	  break;
 		  
 	case 'x': 
-	  
-	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+	  if (optarg[0]=='-') usage(EXIT_FAILURE);
 	  codec = optarg;
 	  break;
 
 	case 't': 
-	  
-	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+	  if (optarg[0]=='-') usage(EXIT_FAILURE);
 	  magic = optarg;
 	  break;
 
 	case 'y': 
-	  
-	  if(optarg[0]=='-') usage(EXIT_FAILURE);
+	  if (optarg[0]=='-') usage(EXIT_FAILURE);
 	  format = optarg;
 	  break;
 	  
 	case 'g': 
-	  
-	  if(optarg[0]=='-') usage(EXIT_FAILURE);
-	  if (2 != sscanf(optarg,"%dx%d", &width, &height)) usage(EXIT_FAILURE);
+	  if (optarg[0]=='-') usage(EXIT_FAILURE);
+	  if (2 != sscanf(optarg,"%dx%d", &decode.width, &decode.height)) usage(EXIT_FAILURE);
 	  break;
 	  
 	case 'v': 
@@ -164,20 +145,18 @@ int main(int argc, char *argv[])
 	  break;
 
 	case 'Y': 
-	  ipipe.dv_yuy2_mode=1;
+	  decode.dv_yuy2_mode=1;
 	  break;
 
 	case 's': 
-	  
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
-	  if (3 != sscanf(optarg,"%lf,%lf,%lf", &ipipe.ac3_gain[0], &ipipe.ac3_gain[1], &ipipe.ac3_gain[2])) usage(EXIT_FAILURE);
+	  if (3 != sscanf(optarg,"%lf,%lf,%lf", &decode.ac3_gain[0], &decode.ac3_gain[1], &decode.ac3_gain[2])) usage(EXIT_FAILURE);
 	  break;
 	  
 	case 'C': 
-	  
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
-	  if (2 != sscanf(optarg,"%ld,%ld", &ipipe.frame_limit[0], &ipipe.frame_limit[1])) usage(EXIT_FAILURE);
- 	  if (ipipe.frame_limit[0] >= ipipe.frame_limit[1])
+	  if (2 != sscanf(optarg,"%ld,%ld", &decode.frame_limit[0], &decode.frame_limit[1])) usage(EXIT_FAILURE);
+ 	  if (decode.frame_limit[0] >= decode.frame_limit[1])
 	  {
   		fprintf(stderr,"Invalid -C options\n");
 		usage(EXIT_FAILURE);
@@ -185,9 +164,8 @@ int main(int argc, char *argv[])
 	  break;
 
 	case 'z':
-	  
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
-	  ipipe.padrate = atoi(optarg);
+	  decode.padrate = atoi(optarg);
 	  break;
 	  
 	case 'h':
@@ -204,7 +182,7 @@ int main(int argc, char *argv[])
      * ------------------------------------------------------------*/
     
     // assume defaults
-    if(name==NULL) stream_stype=TC_STYPE_STDIN;
+    if(decode.name==NULL) decode.stype=TC_STYPE_STDIN;
     
     // no autodetection yet
     if(codec==NULL) {
@@ -213,39 +191,24 @@ int main(int argc, char *argv[])
     }
     
     // do not try to mess with the stream
-    if(stream_stype!=TC_STYPE_STDIN) {
-	
-	if(file_check(name)) exit(1);
-	
-	if((ipipe.fd_in = open(name, O_RDONLY))<0) {
+    if (decode.stype != TC_STYPE_STDIN) {
+	if (file_check(decode.name)) exit(1);
+	if ((decode.fd_in = open(decode.name, O_RDONLY)) < 0) {
 	    perror("open file");
 	    exit(1);
 	} 
 	
 	// try to find out the filetype
+	decode.magic = fileinfo(decode.fd_in, 0);
+	if (verbose) fprintf(stderr, "[%s] (pid=%d) %s\n", EXE, getpid(), filetype(decode.magic));
 	
-	stream_magic=fileinfo(ipipe.fd_in, 0);
-
-	if(verbose) fprintf(stderr, "[%s] (pid=%d) %s\n", EXE, getpid(), filetype(stream_magic));
-	
-    } else ipipe.fd_in = STDIN_FILENO;
+    } else decode.fd_in = STDIN_FILENO;
     
-    // fill out defaults for info structure
-    ipipe.fd_out = STDOUT_FILENO;
-    
-    ipipe.magic = stream_magic;
-    ipipe.stype = stream_stype;
-    ipipe.codec = stream_codec;
-
-    ipipe.verbose = verbose;
-    ipipe.quality = quality;
-
-    ipipe.name=name;
-
-    ipipe.width  = (width > 0)  ? width  : 0;
-    ipipe.height = (height > 0) ? height : 0;
-
-    ipipe.a52_mode = a52_mode;
+    decode.fd_out = STDOUT_FILENO;
+    decode.codec = TC_CODEC_UNKNOWN;
+    decode.verbose = verbose;
+    if (decode.width < 0) decode.width = 0;
+    if (decode.height < 0) decode.height = 0;
 
     /* ------------------------------------------------------------ 
      *
@@ -253,17 +216,12 @@ int main(int argc, char *argv[])
      *
      * ------------------------------------------------------------*/
 
-    if(strcmp(format,"rgb")==0)  ipipe.format = TC_CODEC_RGB;
-
-    if(strcmp(format,"yv12")==0) ipipe.format = TC_CODEC_YV12;
-
-    if(strcmp(format,"yuv2")==0) ipipe.format = TC_CODEC_YUV2;
-
-    if(strcmp(format,"yuy2")==0) ipipe.format = TC_CODEC_YUY2;
-    
-    if(strcmp(format,"pcm")==0)  ipipe.format = TC_CODEC_PCM;
-
-    if(strcmp(format,"raw")==0)  ipipe.format = TC_CODEC_RAW;
+    if (!strcmp(format, "rgb")) decode.format = TC_CODEC_RGB;
+    else if (!strcmp(format, "yv12")) decode.format = TC_CODEC_YV12;
+    else if (!strcmp(format, "yuv2")) decode.format = TC_CODEC_YUV2;
+    else if (!strcmp(format, "yuy2")) decode.format = TC_CODEC_YUY2;
+    else if (!strcmp(format, "pcm")) decode.format = TC_CODEC_PCM;
+    else if (!strcmp(format, "raw")) decode.format = TC_CODEC_RAW;
 
     /* ------------------------------------------------------------ 
      *
@@ -274,153 +232,123 @@ int main(int argc, char *argv[])
      * ------------------------------------------------------------*/
 
     // FFMPEG can decode a lot
-    if(strcmp(magic, "ffmpeg")==0 || !strcmp(magic, "lavc")) {
-	if(!strcmp(codec,"mpeg2")) ipipe.codec = TC_CODEC_MPEG2;
-	if(!strcmp(codec,"divx3")) ipipe.codec = TC_CODEC_DIVX3;
-	if(!strcmp(codec,"divx")) ipipe.codec = TC_CODEC_DIVX4;
-	if(!strcmp(codec,"divx4")) ipipe.codec = TC_CODEC_DIVX4;
-	if(!strcmp(codec,"mp42")) ipipe.codec = TC_CODEC_MP42;
-	if(!strcmp(codec,"mjpg")) ipipe.codec = TC_CODEC_MJPG;
-	if(!strcmp(codec,"rv10")) ipipe.codec = TC_CODEC_RV10;
-	if(!strcmp(codec,"svq1")) ipipe.codec = TC_CODEC_SVQ1;
-	if(!strcmp(codec,"svq3")) ipipe.codec = TC_CODEC_SVQ3;
-	if(!strcmp(codec,"vp3")) ipipe.codec = TC_CODEC_VP3;
-	if(!strcmp(codec,"4xm")) ipipe.codec = TC_CODEC_4XM;
-	if(!strcmp(codec,"wmv1")) ipipe.codec = TC_CODEC_WMV1;
-	if(!strcmp(codec,"wmv2")) ipipe.codec = TC_CODEC_WMV2;
-	if(!strcmp(codec,"hfyu")) ipipe.codec = TC_CODEC_HFYU;
-	if(!strcmp(codec,"indeo3")) ipipe.codec = TC_CODEC_INDEO3;
-	if(!strcmp(codec,"h263p")) ipipe.codec = TC_CODEC_H263P;
-	if(!strcmp(codec,"h263i")) ipipe.codec = TC_CODEC_H263I;
+    if(!strcmp(magic, "ffmpeg") || !strcmp(magic, "lavc")) {
+	if (!strcmp(codec, "mpeg2")) decode.codec = TC_CODEC_MPEG2;
+	else if (!strcmp(codec, "divx3")) decode.codec = TC_CODEC_DIVX3;
+	else if (!strcmp(codec, "divx")) decode.codec = TC_CODEC_DIVX4;
+	else if (!strcmp(codec, "divx4")) decode.codec = TC_CODEC_DIVX4;
+	else if (!strcmp(codec, "mp42")) decode.codec = TC_CODEC_MP42;
+	else if (!strcmp(codec, "mjpg")) decode.codec = TC_CODEC_MJPG;
+	else if (!strcmp(codec, "rv10")) decode.codec = TC_CODEC_RV10;
+	else if (!strcmp(codec, "svq1")) decode.codec = TC_CODEC_SVQ1;
+	else if (!strcmp(codec, "svq3")) decode.codec = TC_CODEC_SVQ3;
+	else if (!strcmp(codec, "vp3")) decode.codec = TC_CODEC_VP3;
+	else if (!strcmp(codec, "4xm")) decode.codec = TC_CODEC_4XM;
+	else if (!strcmp(codec, "wmv1")) decode.codec = TC_CODEC_WMV1;
+	else if (!strcmp(codec, "wmv2")) decode.codec = TC_CODEC_WMV2;
+	else if (!strcmp(codec, "hfyu")) decode.codec = TC_CODEC_HFYU;
+	else if (!strcmp(codec, "indeo3")) decode.codec = TC_CODEC_INDEO3;
+	else if (!strcmp(codec, "h263p")) decode.codec = TC_CODEC_H263P;
+	else if (!strcmp(codec, "h263i")) decode.codec = TC_CODEC_H263I;
 
-	decode_lavc(&ipipe);
+	decode_lavc(&decode);
     }
     
     // MPEG2
-    if(strcmp(codec,"mpeg2")==0) { 
-
-	ipipe.codec = TC_CODEC_MPEG2;
-
-	decode_mpeg2(&ipipe);
+    if (!strcmp(codec, "mpeg2")) { 
+	decode.codec = TC_CODEC_MPEG2;
+	decode_mpeg2(&decode);
 	done = 1;
     }
-
-    
     
     // OGG
-    if(strcmp(codec,"ogg")==0) {
-	
-	ipipe.codec = TC_CODEC_VORBIS;
-
-	decode_ogg(&ipipe);
+    if (!strcmp(codec, "ogg")) {
+	decode.codec = TC_CODEC_VORBIS;
+	decode_ogg(&decode);
 	done = 1;
     }
 
     // AC3
-    if(strcmp(codec,"ac3")==0) {
-	
-	ipipe.codec = TC_CODEC_AC3;
-
-	decode_ac3(&ipipe);
+    if (!strcmp(codec, "ac3")) {
+	decode.codec = TC_CODEC_AC3;
+	decode_ac3(&decode);
 	done = 1;
     }
 
     // A52
-    if(strcmp(codec,"a52")==0) {
-	
-	ipipe.codec = TC_CODEC_A52;
-
-	decode_a52(&ipipe);
+    if (!strcmp(codec, "a52")) {
+	decode.codec = TC_CODEC_A52;
+	decode_a52(&decode);
 	done = 1;
     }
 
     // MP3
-    if(strcmp(codec,"mp3")==0) {
-	
-	ipipe.codec = TC_CODEC_MP3;
-
-	decode_mp3(&ipipe);
+    if (!strcmp(codec, "mp3")) {
+	decode.codec = TC_CODEC_MP3;
+	decode_mp3(&decode);
 	done = 1;
     }
 
     // MP2
-    if(strcmp(codec,"mp2")==0) {
-	
-	ipipe.codec = TC_CODEC_MP3;
-
-	decode_mp2(&ipipe);
+    if (!strcmp(codec, "mp2")) {
+	decode.codec = TC_CODEC_MP3;
+	decode_mp2(&decode);
 	done = 1;
     }
-
 
     // DV
-    if(strcmp(codec,"dv")==0) {
-	
-	ipipe.codec = TC_CODEC_DV;
-
-	decode_dv(&ipipe);
+    if (!strcmp(codec, "dv")) {
+	decode.codec = TC_CODEC_DV;
+	decode_dv(&decode);
 	done = 1;
     }
 
-
     // YV12
-    if(strcmp(codec,"yv12")==0) { 
-	
-	ipipe.codec = TC_CODEC_YV12;
-
-	decode_yuv(&ipipe);
+    if (!strcmp(codec, "yv12")) { 
+	decode.codec = TC_CODEC_YV12;
+	decode_yuv(&decode);
 	done = 1;
     }
 
     // AF6 audio
-    if(strcmp(codec,"af6audio")==0) {
-      
-      ipipe.select = TC_AUDIO;
-
-      decode_af6(&ipipe);
+    if (!strcmp(codec, "af6audio")) {
+      decode.select = TC_AUDIO;
+      decode_af6(&decode);
       done = 1;
     }
     
     // AF6 video
-    if(strcmp(codec,"af6video")==0) {
-      
-      ipipe.select = TC_VIDEO;
-      
-      decode_af6(&ipipe);
+    if (!strcmp(codec, "af6video")) {
+      decode.select = TC_VIDEO;
+      decode_af6(&decode);
       done = 1;
     }
     
 #if 0
     // DivX Video
-    if(strcmp(codec,"divx")==0) {
-      
-      ipipe.select = TC_VIDEO;
-      
-      decode_divx(&ipipe);
+    if (!strcmp(codec, "divx")) {
+      decode.select = TC_VIDEO;
+      decode_divx(&decode);
       done = 1;
     }
 #endif
     
-    // DivX Video
-    if(strcmp(codec,"xvid")==0) {
-      
-      ipipe.select = TC_VIDEO;
-      
-      decode_xvid(&ipipe);
+    // XviD Video
+    if (!strcmp(codec, "xvid")) {
+      decode.select = TC_VIDEO;
+      decode_xvid(&decode);
       done = 1;
     }
     
     // MOV 
-    if(strcmp(codec,"mov")==0) {
-      
-      decode_mov(&ipipe);
+    if (!strcmp(codec, "mov")) {
+      decode_mov(&decode);
       done = 1;
     }
     
     // LZO
-    if(strcmp(codec,"lzo")==0) {
-      
-      decode_lzo(&ipipe);
+    if (!strcmp(codec, "lzo")) {
+      decode_lzo(&decode);
       done = 1;
     }
     
@@ -429,8 +357,8 @@ int main(int argc, char *argv[])
 	exit(1);
     }
     
-    if(ipipe.fd_in != STDIN_FILENO) close(ipipe.fd_in);
+    if (decode.fd_in != STDIN_FILENO) close(decode.fd_in);
     
-    return(0);
+    return 0;
 }
 

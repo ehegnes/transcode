@@ -36,7 +36,6 @@
 #include <inttypes.h>
 #include <unistd.h>
 
-
 #include "transcode.h"
 #include "ioaux.h"
 
@@ -151,7 +150,7 @@ static unsigned char *bufalloc(size_t size) {
  *
  * ------------------------------------------------------------*/
 
-void decode_lavc(info_t *ipipe)
+void decode_lavc(decode_t *decode)
 {
   char               *out_buffer = NULL;
   int                 pass_through = 0;
@@ -170,20 +169,18 @@ void decode_lavc(info_t *ipipe)
   int buf_len=0;
   int run=0;
 
-
-
   // decoder
   int        len = 0, i, edge_width;
   long       bytes_read = 0;
   int        UVls, src, dst, row, col;
   char      *Ybuf, *Ubuf, *Vbuf;
 
-  verbose_flag = ipipe->verbose;
+  verbose_flag = decode->verbose;
 
-  fprintf(stderr, "width (%d), height (%d)\n", ipipe->width, ipipe->height);
+  fprintf(stderr, "width (%d), height (%d)\n", decode->width, decode->height);
 
-  x_dim = ipipe->width;
-  y_dim = ipipe->height;
+  x_dim = decode->width;
+  y_dim = decode->height;
 
   fourCC="DIVX";
 
@@ -196,10 +193,10 @@ void decode_lavc(info_t *ipipe)
   avcodec_init();
   avcodec_register_all();
 
-  codec = find_ffmpeg_codec_id(ipipe->codec);
+  codec = find_ffmpeg_codec_id(decode->codec);
   if (codec == NULL) {
       fprintf(stderr, "[%s] No codec is known the TAG '%lx'.\n", MOD_NAME,
-	      ipipe->codec);
+	      decode->codec);
       goto decoder_error;
   }
 
@@ -230,7 +227,7 @@ void decode_lavc(info_t *ipipe)
       goto decoder_error;
   }
     
-  pix_fmt = ipipe->format;
+  pix_fmt = decode->format;
     
   switch (pix_fmt) {
       case TC_CODEC_YV12:
@@ -271,7 +268,7 @@ void decode_lavc(info_t *ipipe)
 
   // DECODE MAIN LOOP
 
-  bytes_read = p_read(ipipe->fd_in, (char*) buffer, READ_BUFFER_SIZE);
+  bytes_read = p_read(decode->fd_in, (char*) buffer, READ_BUFFER_SIZE);
 
   if (bytes_read < 0) {
       fprintf(stderr, "[%s] EOF?\n", MOD_NAME);
@@ -407,7 +404,7 @@ void decode_lavc(info_t *ipipe)
 	      memmove(buffer, buffer+buf_len, READ_BUFFER_SIZE-buf_len);
 
 	  /* read new data */
-	  if ( (bytes_read = p_read(ipipe->fd_in, (char*) (buffer+(READ_BUFFER_SIZE-buf_len)), buf_len) )  != buf_len) {
+	  if ( (bytes_read = p_read(decode->fd_in, (char*) (buffer+(READ_BUFFER_SIZE-buf_len)), buf_len) )  != buf_len) {
 	      //fprintf(stderr, "read failed read (%ld) should (%d)\n", bytes_read, buf_len);
 	      flush = 1;
 	      mp4_size -= buf_len;
@@ -422,7 +419,7 @@ void decode_lavc(info_t *ipipe)
 	  break;
       }
 
-      if (p_write(ipipe->fd_out, out_buffer, frame_size) != frame_size) {
+      if (p_write(decode->fd_out, out_buffer, frame_size) != frame_size) {
 	  goto decoder_error;
       }
 

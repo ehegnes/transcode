@@ -163,7 +163,7 @@ static unsigned char *bufalloc(size_t size)
  *
  * ------------------------------------------------------------*/
 
-void decode_xvid(info_t *ipipe)
+void decode_xvid(decode_t *decode)
 {
     XVID_INIT_PARAM xinit;
     XVID_DEC_PARAM xparam;
@@ -200,8 +200,8 @@ void decode_xvid(info_t *ipipe)
     XviD_init(NULL, 0, &xinit, NULL);
 
     //important parameter
-    xparam.width = ipipe->width;
-    xparam.height = ipipe->height;
+    xparam.width = decode->width;
+    xparam.height = decode->height;
     x_dim = xparam.width;
     y_dim = xparam.height;
 
@@ -213,7 +213,7 @@ void decode_xvid(info_t *ipipe)
     }
     XviD_decore_handle=xparam.handle;
 
-    switch(ipipe->format) {
+    switch(decode->format) {
 	case TC_CODEC_RGB:
 	    global_colorspace = XVID_CSP_RGB24 | XVID_CSP_VFLIP;
 	    frame_size = xparam.width * xparam.height * 3;
@@ -244,7 +244,7 @@ void decode_xvid(info_t *ipipe)
      * ------------------------------------------------------------*/
 
 
-    bytes_read = p_read(ipipe->fd_in, (char*) in_buffer, BUFFER_SIZE);
+    bytes_read = p_read(decode->fd_in, (char*) in_buffer, BUFFER_SIZE);
     mp4_ptr = in_buffer;
 
     do {
@@ -268,7 +268,7 @@ void decode_xvid(info_t *ipipe)
 	    mp4_ptr = in_buffer; 
 
 	    /* read new data */
-	    if ( (bytes_read = p_read(ipipe->fd_in, (char*) (in_buffer+rest), BUFFER_SIZE - rest) ) < 0) {
+	    if ( (bytes_read = p_read(decode->fd_in, (char*) (in_buffer+rest), BUFFER_SIZE - rest) ) < 0) {
 		fprintf(stderr, "read failed read (%ld) should (%d)\n", bytes_read, BUFFER_SIZE - rest);
 		import_exit(1);
 	    }
@@ -292,7 +292,7 @@ void decode_xvid(info_t *ipipe)
 
 //	fprintf(stderr, "[%s] decoded frame (%ld) (%d)\n", MOD_NAME, frame_length, frame_size);
 
-	if (p_write (ipipe->fd_out, (char *)out_buffer, frame_size) != frame_size) {
+	if (p_write (decode->fd_out, (char *)out_buffer, frame_size) != frame_size) {
 	    fprintf(stderr, "writeout failed\n");
 	    goto error;
 	}
@@ -313,7 +313,5 @@ out:
     dlclose(handle);
 
     import_exit(0); 
-
-    import_exit(1);
 }
 

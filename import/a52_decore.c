@@ -89,28 +89,19 @@ static void float2s16 (float * _f, int16_t * s16)
 
 static unsigned char buf[FRAME_SIZE];
 
-int a52_decore(info_t *ipipe) {
+int a52_decore(decode_t *decode) {
   
   int i, s=0, pcm_size, frame_size;
-
   int k, n, bytes_read, bytes_wrote, sample_rate, bit_rate, flags;
-
   unsigned short sync_word = 0;
-  int pass_through = ipipe->format==TC_CODEC_RAW?1:0;
-
+  int pass_through = decode->format==TC_CODEC_RAW?1:0;
   a52_state_t *state;
   sample_t level=1, bias=384;
-
   sample_t *samples;
-
   int chans = -1;  
-
-
   int16_t pcm_buf[256 * A52_BLOCKS];  
-
   uint32_t accel = MM_ACCEL_DJBFFT;
-
-  verbose = ipipe->verbose;
+  verbose = decode->verbose;
 
 #ifdef HAVE_MMX
   accel |= MM_ACCEL_X86_MMX;
@@ -137,7 +128,7 @@ int a52_decore(info_t *ipipe) {
 
     for (;;) {
       
-      if (p_read(ipipe->fd_in, &buf[s], 1) !=1) {
+      if (p_read(decode->fd_in, &buf[s], 1) !=1) {
 	//ac3 sync frame scan failed
 	return(-1);
       }
@@ -161,7 +152,7 @@ int a52_decore(info_t *ipipe) {
     buf[0] = (sync_word >> 8) & 0xff;
     buf[1] = (sync_word) & 0xff;
 
-    bytes_read=p_read(ipipe->fd_in, &buf[2], HEADER_LEN-2);
+    bytes_read=p_read(decode->fd_in, &buf[2], HEADER_LEN-2);
     
     if(bytes_read< HEADER_LEN-2) {
       if(verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) read error (%d/%d)\n", __FILE__, __LINE__, bytes_read, HEADER_LEN-2);
@@ -182,18 +173,18 @@ int a52_decore(info_t *ipipe) {
     }
 
     // read the rest of the frame
-    if((bytes_read=p_read(ipipe->fd_in, &buf[HEADER_LEN], frame_size-HEADER_LEN)) < frame_size-HEADER_LEN) {
+    if((bytes_read=p_read(decode->fd_in, &buf[HEADER_LEN], frame_size-HEADER_LEN)) < frame_size-HEADER_LEN) {
       if(verbose & TC_DEBUG) 
 	fprintf (stderr, "(%s@%d) read error (%d/%d)\n", __FILE__, __LINE__, bytes_read, frame_size-HEADER_LEN);
       return(-1);
     }
 
     // decoder start
-    flags = (ipipe->a52_mode & TC_A52_DOLBY_OFF) ? A52_STEREO:A52_DOLBY;
-    flags = (ipipe->a52_mode & TC_A52_DEMUX) ? (A52_3F2R | A52_LFE) : flags;
+    flags = (decode->a52_mode & TC_A52_DOLBY_OFF) ? A52_STEREO:A52_DOLBY;
+    flags = (decode->a52_mode & TC_A52_DEMUX) ? (A52_3F2R | A52_LFE) : flags;
     
     a52_frame(state, buf, &flags, &level, bias);
-    if(ipipe->a52_mode & TC_A52_DRC_OFF) a52_dynrng (state, NULL, NULL);
+    if(decode->a52_mode & TC_A52_DRC_OFF) a52_dynrng (state, NULL, NULL);
     
     flags &= A52_CHANNEL_MASK | A52_LFE;
 
@@ -227,9 +218,9 @@ int a52_decore(info_t *ipipe) {
       pcm_size = 256 * sizeof (int16_t)*chans;
       
       //fprintf (stderr, "(%s@%d) write (%d) bytes\n", __FILE__, __LINE__, pcm_size);
-      (ipipe->a52_mode & TC_A52_DEMUX) ? float2s16((float *)samples, (int16_t *)&pcm_buf) : float2s16_2((float *)samples, (int16_t *)&pcm_buf);  
+      (decode->a52_mode & TC_A52_DEMUX) ? float2s16((float *)samples, (int16_t *)&pcm_buf) : float2s16_2((float *)samples, (int16_t *)&pcm_buf);  
       
-	if((bytes_wrote=p_write(ipipe->fd_out, (char*) pcm_buf, pcm_size)) < pcm_size) {
+	if((bytes_wrote=p_write(decode->fd_out, (char*) pcm_buf, pcm_size)) < pcm_size) {
 	  if(verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) write error (%d/%d)\n", __FILE__, __LINE__, bytes_wrote, pcm_size);
 	  return(-1);
 	}
@@ -247,9 +238,9 @@ int a52_decore(info_t *ipipe) {
       pcm_size = 256 * sizeof (int16_t)*chans;
       
       //fprintf (stderr, "(%s@%d) write (%d) bytes\n", __FILE__, __LINE__, pcm_size);
-      (ipipe->a52_mode & TC_A52_DEMUX) ? float2s16((float *)samples, (int16_t *)&pcm_buf) : float2s16_2((float *)samples, (int16_t *)&pcm_buf);  
+      (decode->a52_mode & TC_A52_DEMUX) ? float2s16((float *)samples, (int16_t *)&pcm_buf) : float2s16_2((float *)samples, (int16_t *)&pcm_buf);  
     } //end pcm data output
-    if((bytes_wrote=p_write(ipipe->fd_out, buf, bytes_read+HEADER_LEN)) < bytes_read+HEADER_LEN) {
+    if((bytes_wrote=p_write(decode->fd_out, buf, bytes_read+HEADER_LEN)) < bytes_read+HEADER_LEN) {
 	if(verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) write error (%d/%d)\n", 
 	    __FILE__, __LINE__, bytes_wrote, bytes_read+HEADER_LEN);
 	return(-1);
@@ -262,6 +253,5 @@ int a52_decore(info_t *ipipe) {
   } //end frame processing
   
   // should not get here
-  return(0);
-  
+  return 0;
 }

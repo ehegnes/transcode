@@ -49,7 +49,7 @@ static char *mod_path=MOD_PATH;
 #define MODULE "a52_decore.so"
 
 // dl stuff
-static int (*a52_decore)(info_t *ipipe);
+static int (*a52_decore)(decode_t *decode);
 static void *handle;
 static char module[TC_BUF_MAX];
 
@@ -65,16 +65,10 @@ int a52_init(char *path) {
 	fprintf(stderr, "loading external module %s\n", module); 
 
     // try transcode's module directory
-
     handle = dlopen(module, RTLD_NOW); 
-    
-    
     if (!handle) {
-      
       //try the default:
-
       //      handle = dlopen(MODULE, RTLD_GLOBAL| RTLD_LAZY);
-
       if (!handle) {
 	fputs (dlerror(), stderr);
 	return(-1);
@@ -82,7 +76,6 @@ int a52_init(char *path) {
     }
     
     a52_decore = dlsym(handle, "a52_decore");   
-    
     if ((error = dlerror()) != NULL)  {
       fputs(error, stderr);
       return(-1);
@@ -97,11 +90,9 @@ int a52_init(char *path) {
  *
  * ------------------------------------------------------------*/
 
-
-void decode_a52(info_t *ipipe)
+void decode_a52(decode_t *decode)
 {
-
-  verbose = ipipe->verbose;
+  verbose = decode->verbose;
   
   //load the codec
   if(a52_init(mod_path)<0) {
@@ -109,10 +100,7 @@ void decode_a52(info_t *ipipe)
     import_exit(1);
   }
   
-  a52_decore(ipipe);
-  
-  //remove codec
+  a52_decore(decode);
   dlclose(handle);
-  
   import_exit(0);
 }

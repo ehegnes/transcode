@@ -1,6 +1,21 @@
 --------------------------------------------
 transcode-0.6.12
 
+2003-11-28 Christopher Cramer <crayc at pyro.net>
+
+  * src/transcode.h:
+  Remove decoder-only fields from info_t.
+  Introduce decode_t.
+
+  * import/a52_decore.c import/af6_decore.cpp import/decode_a52.c
+  import/decode_ac3.c import/decode_af6.c import/decode_dv.c
+  import/decode_lavc.c import/decode_lzo.c import/decode_mov.c
+  import/decode_mp3.c import/decode_mpeg2.c import/decode_ogg.c
+  import/decode_xvid.c import/decode_yuv.c import/tc.h
+  import/tcdecode.c:
+  Remove assignments to ipipe->error (which was unused by decoder).
+  Switch from info_t to decode_t.
+
 2003-11-26 Tilmann Bitterberg <transcode at tibit.org>
 
   * filter/yuvdenoise/filter_yuvdenoise.c docs/man/transcode.1:

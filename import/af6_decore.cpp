@@ -67,15 +67,15 @@ extern "C" {
 #include "transcode.h"
 #include "ioaux.h"
   
-  void af6_decore(info_t *ipipe)
+  void af6_decore(decode_t *decode)
   {
     int verbose_flag=TC_QUIET;
     static char *sync_str="Taf6"; 
 
-    verbose_flag=ipipe->verbose;
+    verbose_flag=decode->verbose;
 
     /* ----- AF6 VIDEO ----- */
-    if(ipipe->select == TC_VIDEO) {
+    if(decode->select == TC_VIDEO) {
 
       IAviReadStream *vrs   = NULL;
       IAviReadFile   *vfile = NULL;
@@ -94,13 +94,12 @@ extern "C" {
       long s_tot_frame,s_init_frame;
 
       /* create a new file reader */
-      vfile = CreateIAviReadFile(ipipe->name);
+      vfile = CreateIAviReadFile(decode->name);
       
       /* setup decoder */
       vrs = vfile->GetStream(0, AviStream::Video);
       if((vrs==0) || (vrs->StartStreaming()!=0)) {
 	fprintf(stderr, "(%s) ERROR: unable to decode movie\n", __FILE__);
-	ipipe->error=1;
 	return;
       }
 
@@ -118,7 +117,7 @@ extern "C" {
       /* now check decoder capabilities */
       IVideoDecoder::CAPS caps = vrs->GetDecoder()->GetCapabilities();
       codec_error=0;
-      switch (ipipe->format) {
+      switch (decode->format) {
       case TC_CODEC_RGB:
 	do_yuv = 0;
 	fprintf(stderr, "(%s) input: RGB\n", __FILE__);
@@ -180,7 +179,6 @@ extern "C" {
       }
       if(codec_error) {
 	fprintf(stderr, "(%s) ERROR: codec not supported!!!\n", __FILE__);
-	ipipe->error=1;
 	return;
       }
 
@@ -197,7 +195,6 @@ extern "C" {
 	pack_buffer = (char *)malloc(pack_size);
 	if(pack_buffer==0) {
 	  fprintf(stderr,"(%s) ERROR: No memory for buffer!!!\n",__FILE__);
-	  ipipe->error=1;
 	  return;
 	}
 	packY = pack_buffer;
@@ -206,9 +203,9 @@ extern "C" {
       }
       
       s_tot_frame=vrs->GetLength();	//get the total number of the frames
-      if (ipipe->frame_limit[1] < s_tot_frame) //added to enable the -C option of tcdecode
+      if (decode->frame_limit[1] < s_tot_frame) //added to enable the -C option of tcdecode
       {
-             s_tot_frame=ipipe->frame_limit[1];
+             s_tot_frame=decode->frame_limit[1];
       }
       
       /* start at the beginning */
@@ -216,17 +213,17 @@ extern "C" {
 
       /* send sync token */
       fflush(stdout);
-      p_write(ipipe->fd_out, sync_str, sizeof(sync_str));
+      p_write(decode->fd_out, sync_str, sizeof(sync_str));
 
       /* frame serve loop */
-      /* by default ipipe->frame_limit[0]=0 and ipipe->frame_limit[1]=LONG_MAX so all frames are decoded */
+      /* by default decode->frame_limit[0]=0 and ipipe->frame_limit[1]=LONG_MAX so all frames are decoded */
       for(s_init_frame=0;(s_init_frame<=s_tot_frame)||(!vrs->Eof());s_init_frame++) { 
 	/* fetch a frame */
 	vrs->ReadFrame();
 	CImage *imsrc = vrs->GetFrame();
 	char *buf = (char *)imsrc->Data();
 
-	if (s_init_frame >= ipipe->frame_limit[0]) //added to enable the -C option of tcdecode
+	if (s_init_frame >= decode->frame_limit[0]) //added to enable the -C option of tcdecode
 	{
 		if(unpack) {
 		  /* unpack and write unpacked data */
@@ -271,16 +268,14 @@ extern "C" {
 		    }
 		  }
 		  /* write unpacked frame */
-		  if(p_write(ipipe->fd_out, pack_buffer, pack_size)!= pack_size) {
+		  if(p_write(decode->fd_out, pack_buffer, pack_size)!= pack_size) {
 		    fprintf(stderr,"(%s) ERROR: Pipe write error!\n",__FILE__);
-		    ipipe->error=1;
 		    break;
 		  }
 		} else {
 		  /* directly write raw frame */
-		  if(p_write(ipipe->fd_out, buf, buffer_size)!= buffer_size) {
+		  if(p_write(decode->fd_out, buf, buffer_size)!= buffer_size) {
 		    fprintf(stderr,"(%s) ERROR: Pipe write error!\n",__FILE__);
-		    ipipe->error=1;
 		    break;
 		  }
 		}
@@ -294,7 +289,7 @@ extern "C" {
     }
 
     /* ----- AF6 AUDIO ----- */
-    if(ipipe->select == TC_AUDIO) {
+    if (decode->select == TC_AUDIO) {
 	
       IAviReadStream *ars = NULL;
       IAviReadFile   *afile= NULL;
@@ -307,13 +302,12 @@ extern "C" {
       long s_byte_read=0;
 
       /* create AVI audio file reader */
-      afile = CreateIAviReadFile(ipipe->name);
+      afile = CreateIAviReadFile(decode->name);
       
       /* setup decoder */
       ars = afile->GetStream(0, AviStream::Audio);
       if((ars==0)||(ars->StartStreaming()!=0)) {
 	fprintf(stderr, "(%s) ERROR: invalid audio stream!!!\n", __FILE__);
-	ipipe->error=1;
 	return;
       }
 
@@ -321,7 +315,6 @@ extern "C" {
       WAVEFORMATEX wvFmt;
       if (ars->GetAudioFormatInfo(&wvFmt, 0) != 0) {
 	fprintf(stderr, "(%s) ERROR: can't fetch audio format!!!\n", __FILE__);
-	ipipe->error=1;
 	return;
       }
       fprintf(stderr, 
@@ -343,7 +336,6 @@ extern "C" {
       if(fmt.wFormatTag!=WAVE_FORMAT_PCM) {
 	fprintf(stderr,"(%s) ERROR: currently only PCM audio supported!!!\n",
 		__FILE__);
-	ipipe->error=1;
 	return;
       }
 
@@ -371,13 +363,12 @@ extern "C" {
       buffer = (char *)malloc(buffer_size);
       if(buffer==0) {
 	fprintf(stderr,"(%s) ERROR: No memory for buffer!!!\n",__FILE__);
-	ipipe->error=1;
 	return;
       }
 
       /* send sync token */
       fflush(stdout);
-      p_write(ipipe->fd_out, sync_str, sizeof(sync_str));
+      p_write(decode->fd_out, sync_str, sizeof(sync_str));
       
       /* sample server loop */
       while(!ars->Eof()) { 
@@ -389,7 +380,6 @@ extern "C" {
 			ret_samples, ret_size)) {
 	  fprintf(stderr, "(%s) error calling ars->ReadFrames(..,)\n",
 		  __FILE__);
-	  ipipe->error=1;
 	  return;
 	}
 	
@@ -398,35 +388,26 @@ extern "C" {
 		  __FILE__, samples, ret_samples);
 
 	s_byte_read+=ret_size;
-	/* by default ipipe->frame_limit[0]=0 and ipipe->frame_limit[1]=LONG_MAX so all bytes are decoded */
-	if ((s_byte_read >= ipipe->frame_limit[0]) && (s_byte_read <= ipipe->frame_limit[1])) //added to enable the -C option of tcdecode
+	/* by default decode->frame_limit[0]=0 and decode->frame_limit[1]=LONG_MAX so all bytes are decoded */
+	if ((s_byte_read >= decode->frame_limit[0]) && (s_byte_read <= decode->frame_limit[1])) //added to enable the -C option of tcdecode
 	{
-		if ( s_byte_read - ret_size <(unsigned int)ipipe->frame_limit[0])
+		if ( s_byte_read - ret_size <(unsigned int)decode->frame_limit[0])
 		{
-			if((unsigned int)p_write(ipipe->fd_out,buffer+(ret_size-(s_byte_read-ipipe->frame_limit[0])),(s_byte_read-ipipe->frame_limit[0]))!=(unsigned int)(s_byte_read-ipipe->frame_limit[0])) 
-			{
-				ipipe->error=1;
+			if((unsigned int)p_write(decode->fd_out,buffer+(ret_size-(s_byte_read-decode->frame_limit[0])),(s_byte_read-decode->frame_limit[0]))!=(unsigned int)(s_byte_read-decode->frame_limit[0])) 
 			  	break;
-			}
 		}
 		else
 		{
-			if((unsigned int)p_write(ipipe->fd_out,buffer,ret_size)!=ret_size) 
-			{
-			  ipipe->error=1;
+			if((unsigned int)p_write(decode->fd_out,buffer,ret_size)!=ret_size) 
 			  break;
-			}
 		}
 	}
-	else if ((s_byte_read> ipipe->frame_limit[0]) && (s_byte_read - ret_size <=(unsigned int)ipipe->frame_limit[1]))
+	else if ((s_byte_read> decode->frame_limit[0]) && (s_byte_read - ret_size <=(unsigned int)decode->frame_limit[1]))
 	{
-		if((unsigned int)p_write(ipipe->fd_out,buffer,(s_byte_read-ipipe->frame_limit[1]))!=(unsigned int)(s_byte_read-ipipe->frame_limit[1])) 
-		{
-		  	ipipe->error=1;
+		if((unsigned int)p_write(decode->fd_out,buffer,(s_byte_read-decode->frame_limit[1]))!=(unsigned int)(s_byte_read-decode->frame_limit[1])) 
 		 	break;
-		}
 	}
-	else if (s_byte_read - ret_size >(unsigned int)ipipe->frame_limit[1])
+	else if (s_byte_read - ret_size >(unsigned int)decode->frame_limit[1])
 	{
 		break;
 	}
@@ -457,10 +438,9 @@ extern "C" {
 #include "transcode.h"
 #include "ioaux.h"
 
-void af6_decore(info_t *ipipe)
+void af6_decore(info_t *decode)
 {
   fprintf(stderr, "(%s) no support for avifile library configured - exit.\n", __FILE__);
-  ipipe->error=1;
   return;
 }
 #ifdef __cplusplus

@@ -56,7 +56,7 @@ static int verbose;
  *
  * ------------------------------------------------------------*/
 
-void decode_mp3(info_t *ipipe)
+void decode_mp3(decode_t *decode)
 {
   
 #ifdef LAME_3_89
@@ -67,7 +67,7 @@ void decode_mp3(info_t *ipipe)
   
   FILE *in_file;
 
-  verbose = ipipe->verbose;
+  verbose = decode->verbose;
 
   // init decoder
   
@@ -83,7 +83,7 @@ void decode_mp3(info_t *ipipe)
     exit(1);
   }
   
-  in_file = fdopen(ipipe->fd_in, "r");
+  in_file = fdopen(decode->fd_in, "r");
 
   while (!(c = fgetc(in_file))) padding++;
   if (c != EOF) ungetc(c, in_file);
@@ -93,16 +93,16 @@ void decode_mp3(info_t *ipipe)
   if (verbose)
     fprintf(stderr, "(%s) channels=%d, samplerate=%d Hz, bitrate=%d kbps, (%d)\n", __FILE__, mp3data->stereo, mp3data->samplerate, mp3data->bitrate, mp3data->framesize);
 
-  if (ipipe->padrate > 0) {
-    padding = (int)((double)padding / (double)ipipe->padrate * mp3data->samplerate)
+  if (decode->padrate > 0) {
+    padding = (int)((double)padding / (double)decode->padrate * mp3data->samplerate)
       * mp3data->stereo * 2;
     memset(buffer, 0, sizeof(buffer));
     while (padding >= sizeof(buffer)) {
-      if (p_write(ipipe->fd_out, (char *)buffer, sizeof(buffer)) < 0)
-        import_exit(0);
+      if (p_write(decode->fd_out, (char *)buffer, sizeof(buffer)) < 0)
+        import_exit(1);
       padding -= sizeof(buffer);
     }
-    if (padding && p_write(ipipe->fd_out, (char *)buffer, padding) < 0)
+    if (padding && p_write(decode->fd_out, (char *)buffer, padding) < 0)
       import_exit(0);
   }
   
@@ -130,7 +130,7 @@ void decode_mp3(info_t *ipipe)
     
     bytes = samples * channels * sizeof(short);
 
-    if (p_write(ipipe->fd_out, (char*) buffer, bytes) < 0)
+    if (p_write(decode->fd_out, (char*) buffer, bytes) < 0)
       break; /* broken pipe */
   }
 
@@ -138,14 +138,12 @@ void decode_mp3(info_t *ipipe)
   
 #endif
 
-  verbose = ipipe->verbose;
-  
   fprintf(stderr, "(%s) no support for MP123 decoding configured - exit.\n", __FILE__);
   import_exit(1);
   
 }
 
-void decode_mp2(info_t *ipipe)
+void decode_mp2(decode_t *decode)
 {
   
 #ifdef LAME_3_89
@@ -156,7 +154,7 @@ void decode_mp2(info_t *ipipe)
   
   FILE *in_file;
 
-  verbose = ipipe->verbose;
+  verbose = decode->verbose;
 
   // init decoder
   
@@ -172,7 +170,7 @@ void decode_mp2(info_t *ipipe)
     exit(1);
   }
   
-  in_file = fdopen(ipipe->fd_in, "r");
+  in_file = fdopen(decode->fd_in, "r");
 
   samples=lame_decode_initfile(in_file, mp3data, 0x50);
 
@@ -203,7 +201,7 @@ void decode_mp2(info_t *ipipe)
     
     bytes = samples * channels * sizeof(short);
 
-    if (p_write(ipipe->fd_out, (char*) buffer, bytes) < 0)
+    if (p_write(decode->fd_out, (char*) buffer, bytes) < 0)
       break; /* broken pipe */
   }
 
@@ -211,10 +209,7 @@ void decode_mp2(info_t *ipipe)
   
 #endif
 
-  verbose = ipipe->verbose;
-  
   fprintf(stderr, "(%s) no support for MP123 decoding configured - exit.\n", __FILE__);
   import_exit(1);
-  
 }
   

@@ -26,25 +26,25 @@
 
 #include "config.h"
 
-void decode_ac3(info_t *ipipe);
-void decode_a52(info_t *ipipe);
+void decode_ac3(decode_t *decode);
+void decode_a52(decode_t *decode);
 void extract_ac3(info_t *ipipe);
 
-void decode_mp2(info_t *ipipe);
-void decode_mp3(info_t *ipipe);
+void decode_mp2(decode_t *decode);
+void decode_mp3(decode_t *decode);
 void extract_mp3(info_t *ipipe);
 
-void decode_mpeg2(info_t *ipipe);
+void decode_mpeg2(decode_t *decode);
 void extract_mpeg2(info_t *ipipe);
 
-void decode_yuv(info_t *ipipe);
+void decode_yuv(decode_t *decode);
 void extract_yuv(info_t *ipipe);
 
 void extract_pcm(info_t *ipipe);
 void extract_rgb(info_t *ipipe);
 
 void extract_dv(info_t *ipipe);
-void decode_dv(info_t *ipipe);
+void decode_dv(decode_t *decode);
 void probe_dv(info_t *ipipe);
 
 void tccat_thread(info_t *ipipe);
@@ -52,12 +52,12 @@ void tcdemux_thread(info_t *ipipe);
 void tcprobe_thread(info_t *ipipe);
 
 void extract_avi(info_t *ipipe);
-void decode_af6(info_t *ipipe);
+void decode_af6(decode_t *decode);
 
-void decode_lavc(info_t *ipipe);
-void decode_xvid(info_t *ipipe);
-void decode_mov(info_t *ipipe);
-void decode_lzo(info_t *ipipe);
+void decode_lavc(decode_t *decode);
+void decode_xvid(decode_t *decode);
+void decode_mov(decode_t *decode);
+void decode_lzo(decode_t *decode);
 
 void probe_yuv(info_t *ipipe);
 void probe_nuv(info_t *ipipe);
@@ -73,7 +73,7 @@ void probe_xml(info_t *ipipe);
 void probe_lav(info_t *ipipe);
 void probe_ogg(info_t *ipipe);
 void extract_ogm(info_t *ipipe);
-void decode_ogg(info_t *ipipe);
+void decode_ogg(decode_t *decode);
 void probe_vnc(info_t *ipipe);
 
 void probe_mxf(info_t *ipipe);

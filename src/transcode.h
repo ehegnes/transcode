@@ -413,16 +413,8 @@ typedef struct _info_t {
   
   long magic;     // specifies file magic for extract thread
   int track;      // extract this track
-  
-  int width;      // logical stream parameter
-  int height;     // logical stream parameter
-
-  int padrate;    // zero padding rate
-  
   long stype;     // specifies stream type for extract thread
-  long codec;     // specifies codec for decoder thread
-  
-  long format;    // specifies raw stream format for decoder output
+  long codec;     // specifies codec for extract thread
   int verbose;    // verbosity
 
   int dvd_title;
@@ -431,8 +423,6 @@ typedef struct _info_t {
 
   int vob_offset;
 
-  int a52_mode;
- 
   int ps_unit;
   int ps_seq1;
   int ps_seq2;
@@ -444,7 +434,7 @@ typedef struct _info_t {
   int demux;      // demux or debug
   int select;     // selected packet payload type
   int subid;      // selected packet substream id
-  int keep_seq;   // do not drop firsat sequence (cluster mode)
+  int keep_seq;   // do not drop first sequence (cluster mode)
 
   double fps;
 
@@ -461,13 +451,30 @@ typedef struct _info_t {
   int quality;
   int error;
 
-  double ac3_gain[3];
   long frame_limit[3];
-
-  int dv_yuy2_mode;
   int hard_fps_flag;    // if this is set, disable smooth drop in demuxer
 
 } info_t;
+
+typedef struct {
+  int fd_in;      // input stream file descriptor
+  int fd_out;     // output stream file descriptor
+  double ac3_gain[3];
+  long frame_limit[3];
+  int dv_yuy2_mode;
+  int padrate;    // zero padding rate
+  long magic;     // specifies file magic
+  long stype;     // specifies stream type
+  long codec;     // specifies codec for
+  int verbose;    // verbosity
+  int quality;
+  char *name;     // source name as supplied with -i option
+  int width;      // logical stream parameter
+  int height;     // logical stream parameter
+  int a52_mode;
+  long format;    // specifies raw stream format for output
+  int select;     // selected packet payload type
+} decode_t;
 
 typedef struct subtitle_header_s {
 
