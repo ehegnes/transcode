@@ -45,11 +45,18 @@ static int yuv_readwrite_frame (int in_fd, int out_fd, char *buffer, int bytes)
       } else break;
     }
 
-    if (strncmp (magic, "FRAME\n", 6)) {
-	magic[6] = '\0';
-	fprintf (stderr, "\nStart of frame is not \"FRAME\\n\"\n");
+    for(;;) {
+      if (p_read (in_fd, magic, 5) != 5)
 	return 0;
+      
+      // Check for extra header in case input was tccat'ed
+      if (strncmp (magic, "FRAME", 5) == 0) {
+	do {
+	  if (p_read (in_fd, magic, 1) < 1) return 0;
+	} while(magic[0] != '\n');
+      } else break;
     }
+
 
     padding = bytes % MAX_BUF;
     blocks  = bytes / MAX_BUF;

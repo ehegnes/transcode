@@ -1,6 +1,12 @@
 --------------------------------------------
 transcode-0.6.12
 
+2004-01-03 Tilmann Bitterberg <transcode at tibit.org>
+
+   * import/extract_yuv.c:
+   Be more tolerant when reading a FRAME header. Pointed out by
+   Robert W. Fuller.
+
 2004-01-03 Erik Slagter <erik at oldconomy.com>
 
   * export/{export_ffmpeg.c ffmpeg_cfg.c ffmpeg_cfg.h}:
