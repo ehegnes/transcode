@@ -1362,10 +1362,6 @@ AC_OUTPUT([
            transcode.spec
           ])
 
-dnl openquicktime dependent modules                  $have_openqt
-dnl XVID support with libxvidcore                    $have_xvidcore
-dnl libpostproc dependent filter plugin      	 yes
-
 if test x${lame_version} = x1; then
   lame_print="static"
 else

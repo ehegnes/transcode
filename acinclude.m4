@@ -810,12 +810,12 @@ AC_CHECK_LIB(z,
 		[])
 
 AC_CHECK_LIB(m,
-		_LIB_VERSION,
+		sin,
 		[],
 		[echo "*** Transcode depends on libm (>= 2.0) libraries and headers ***"
 		 exit 1
 		]
-		[])
+		[-lc])
 
 AC_SUBST(FFMPEG_LIBS_CFLAGS)
 AC_SUBST(FFMPEG_LIBS_LIBS)
@@ -1137,7 +1137,6 @@ AC_SUBST(LIBLVE_CFLAGS)
 
 dnl 
 dnl qt
-dnl 
 dnl 
 
 AC_DEFUN([AM_PATH_QT],
