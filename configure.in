@@ -199,12 +199,74 @@ have_ppc_altivec=false
 
 #don't enable mmx for amd64, won't work yet
 
+dnl
+dnl Altivec support
+dnl
+
+AC_ARG_ENABLE(altivec, AC_HELP_STRING([--enable-altivec], [enable Altivec code portions (yes)]),[case "${enableval}" in
+  yes) use_altivec=yes ;;
+  no)  use_altivec=no ;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-altivec) ;;
+esac], [if test x"$have_ppc_altivec" = x"true"; then use_altivec=yes; else use_altivec=no;fi])
+
+AM_CONDITIONAL(HAVE_PPC_ALTIVEC, test x"$use_altivec" = x"yes")
+dnl if test x"$use_altivec" = x"no" ; then
+dnl	AC_MSG_RESULT(*** All of Altivec dependent parts will be disabled ***)
+dnl fi
+
+use_mmx=no
+use_sse=no
+
 case x"$host_cpu" in 
   xi?86*|xk6*)
   AC_MSG_CHECKING([for Intel Pentium architecture (IA32)])
   have_x86cpu=true
   AC_MSG_RESULT(yes)
-if test "$enable_mmx_accel" != "no"; then
+  # assume we should use them. test later if we _can_ use them
+  use_mmx=yes
+  use_sse=yes
+  ;;
+esac
+
+dnl
+dnl MMX support
+dnl
+
+AC_ARG_ENABLE(mmx, AC_HELP_STRING([--enable-mmx], [enable MMX code portions (yes)]),[case "${enableval}" in
+  yes) use_mmx=yes ;;
+  no)  use_mmx=no ;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-mmx) ;;
+esac], [if test x"$have_x86cpu" = x"true"; then use_mmx=yes; else use_mmx=no;fi])
+
+AM_CONDITIONAL(HAVE_MMX, test x"$use_mmx" = x"yes")
+if test x"$use_mmx" = x"no" ; then
+	AC_MSG_RESULT(*** All of mmx dependent parts will be disabled ***)
+fi
+
+dnl
+dnl SSE support
+dnl
+AC_ARG_ENABLE(sse, AC_HELP_STRING([--enable-sse], [enable SSE code portions (yes)]),[case "${enableval}" in
+  yes) use_sse=yes ;;
+  no)  use_sse=no ;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-sse) ;;
+esac], [if test x"$have_x86cpu" = x"true"; then use_sse=yes; else use_sse=no;fi])
+
+AM_CONDITIONAL(HAVE_SSE, test x"$use_sse" = x"yes")
+if test x"$use_sse" = x"no" ; then
+	AC_MSG_RESULT(*** All of sse dependent parts will be disabled ***)
+else
+AC_DEFINE([HAVE_SSE], 1, [Define if your CPU understands SSE instructions])
+fi
+
+
+
+case x"$host_cpu" in 
+  xi?86*|xk6*)
+  AC_MSG_CHECKING([for Intel Pentium architecture (IA32)])
+  have_x86cpu=true
+  AC_MSG_RESULT(yes)
+if test "$use_mmx" != "no"; then
    AC_DEFINE([HAVE_X86CPU], 1, [Define if you have and X86 based CPU])
    AC_DEFINE([ARCH_X86], 1, [Define if your machine is X86 based])
    AC_CACHE_CHECK([if \$CC groks MMX inline assembly],
@@ -219,7 +281,7 @@ if test "$enable_mmx_accel" != "no"; then
       AC_MSG_RESULT([yes])
    else
       AC_MSG_RESULT([no])
-   fi
+   fi # have_asm_mmx
 
    AC_MSG_CHECKING([for support for gcc-style register parameters on Intel])
    AC_TRY_COMPILE([],
@@ -967,52 +1029,6 @@ MOD_PATH="\${prefix}/lib/transcode"
 
 AC_ARG_WITH(mod-path, AC_HELP_STRING([--with-mod-path], [where export/import modules are installed (${prefix}/lib/transcode)]), MOD_PATH=$withval)
 AC_SUBST(MOD_PATH)
-
-dnl
-dnl Altivec support
-dnl
-
-AC_ARG_ENABLE(altivec, AC_HELP_STRING([--enable-altivec], [enable Altivec code portions (yes)]),[case "${enableval}" in
-  yes) use_altivec=yes ;;
-  no)  use_altivec=no ;;
-  *) AC_MSG_ERROR(bad value ${enableval} for --enable-altivec) ;;
-esac], [if test x"$have_ppc_altivec" = x"true"; then use_altivec=yes; else use_altivec=no;fi])
-
-AM_CONDITIONAL(HAVE_PPC_ALTIVEC, test x"$use_altivec" = x"yes")
-dnl if test x"$use_altivec" = x"no" ; then
-dnl	AC_MSG_RESULT(*** All of Altivec dependent parts will be disabled ***)
-dnl fi
-
-dnl
-dnl MMX support
-dnl
-AC_ARG_ENABLE(mmx, AC_HELP_STRING([--enable-mmx], [enable MMX code portions (yes)]),[case "${enableval}" in
-  yes) use_mmx=yes ;;
-  no)  use_mmx=no ;;
-  *) AC_MSG_ERROR(bad value ${enableval} for --enable-mmx) ;;
-esac], [if test x"$have_x86cpu" = x"true"; then use_mmx=yes; else use_mmx=no;fi])
-
-AM_CONDITIONAL(HAVE_MMX, test x"$use_mmx" = x"yes")
-if test x"$use_mmx" = x"no" ; then
-	AC_MSG_RESULT(*** All of mmx dependent parts will be disabled ***)
-fi
-
-dnl
-dnl SSE support
-dnl
-AC_ARG_ENABLE(sse, AC_HELP_STRING([--enable-sse], [enable SSE code portions (yes)]),[case "${enableval}" in
-  yes) use_sse=yes ;;
-  no)  use_sse=no ;;
-  *) AC_MSG_ERROR(bad value ${enableval} for --enable-sse) ;;
-esac], [if test x"$have_x86cpu" = x"true"; then use_sse=yes; else use_sse=no;fi])
-
-AM_CONDITIONAL(HAVE_SSE, test x"$use_sse" = x"yes")
-if test x"$use_sse" = x"no" ; then
-	AC_MSG_RESULT(*** All of sse dependent parts will be disabled ***)
-else
-AC_DEFINE([HAVE_SSE], 1, [Define if your CPU understands SSE instructions])
-fi
-
 
 transcode_0_6=yes
 AC_DEFINE([TRANSCODE_0_6], 1, [Define for transcode_0_6])

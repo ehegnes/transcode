@@ -1,6 +1,11 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-20 Tilmann Bitterberg <transcode at tibit.org>
+
+  * configure.in:
+  let the user really disable mmx
+
 2004-01-20 Stefan Scheffler <stefanscheffler at gmx.net>
 
   * export/export_mov.c:
