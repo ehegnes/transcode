@@ -76,6 +76,7 @@ void counter_print(int pida, int pidn, char *s, long int t1, long int t2, char *
   double fps;
 
   if(tc_progress_meter == TC_OFF) return;
+  if(!print_counter_interval) return;
   if((pidn % print_counter_interval) != 0) return;
 
   if(gettimeofday(&tv,&tz)<0) return;
