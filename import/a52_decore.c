@@ -93,9 +93,10 @@ int a52_decore(info_t *ipipe) {
   
   int i, s=0, pcm_size, frame_size;
 
-  int k, n, bytes_read, sample_rate, bit_rate, flags;
+  int k, n, bytes_read, bytes_wrote, sample_rate, bit_rate, flags;
 
   unsigned short sync_word = 0;
+  int pass_through = ipipe->format==TC_CODEC_RAW?1:0;
 
   a52_state_t *state;
   sample_t level=1, bias=384;
@@ -103,6 +104,7 @@ int a52_decore(info_t *ipipe) {
   sample_t *samples;
 
   int chans = -1;  
+
 
   int16_t pcm_buf[256 * A52_BLOCKS];  
 
@@ -130,6 +132,8 @@ int a52_decore(info_t *ipipe) {
     memset(buf, 0, HEADER_LEN); 
     s=0;
     sync_word = 0;
+    bytes_read = 0;
+    bytes_wrote = 0;
 
     for (;;) {
       
@@ -179,7 +183,8 @@ int a52_decore(info_t *ipipe) {
 
     // read the rest of the frame
     if((bytes_read=p_read(ipipe->fd_in, &buf[HEADER_LEN], frame_size-HEADER_LEN)) < frame_size-HEADER_LEN) {
-      if(verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) read error (%d/%d)\n", __FILE__, __LINE__, bytes_read, frame_size-HEADER_LEN);
+      if(verbose & TC_DEBUG) 
+	fprintf (stderr, "(%s@%d) read error (%d/%d)\n", __FILE__, __LINE__, bytes_read, frame_size-HEADER_LEN);
       return(-1);
     }
 
@@ -210,6 +215,7 @@ int a52_decore(info_t *ipipe) {
     }
 
     // decode frame
+    if (!pass_through) {
     for(i=0; i<A52_BLOCKS; ++i) {
       
       a52_block(state);
@@ -223,13 +229,21 @@ int a52_decore(info_t *ipipe) {
       //fprintf (stderr, "(%s@%d) write (%d) bytes\n", __FILE__, __LINE__, pcm_size);
       (ipipe->a52_mode & TC_A52_DEMUX) ? float2s16((float *)samples, (int16_t *)&pcm_buf) : float2s16_2((float *)samples, (int16_t *)&pcm_buf);  
       
-      if((bytes_read=p_write(ipipe->fd_out, (char*) pcm_buf, pcm_size)) < pcm_size) {
-	if(verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) write error (%d/%d)\n", __FILE__, __LINE__, bytes_read, pcm_size);
+	if((bytes_wrote=p_write(ipipe->fd_out, (char*) pcm_buf, pcm_size)) < pcm_size) {
+	  if(verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) write error (%d/%d)\n", __FILE__, __LINE__, bytes_wrote, pcm_size);
+	  return(-1);
+	}
+    } //end pcm data output
+    } else {
+      if((bytes_wrote=p_write(ipipe->fd_out, buf, bytes_read+HEADER_LEN)) < bytes_read+HEADER_LEN) {
+	if(verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) write error (%d/%d)\n", 
+	    __FILE__, __LINE__, bytes_wrote, bytes_read+HEADER_LEN);
 	return(-1);
       }
-    } //end pcm data output
+    }
     
   skip_frame:
+    continue;
     
   } //end frame processing
   
