@@ -594,7 +594,7 @@ else
     }
 
 header[10] = height>>8;	header[11] = (unsigned char)height;
-header[12] = colors>>8;	header[13] = (unsigned char)colors;
+header[12] = colors>>8;	header[13] = (unsigned char)(colors&0xff);
 
 for (i = 32; i<800; ++i) header[i] = (i - 32) / 3;
 
@@ -969,8 +969,8 @@ FT_ULong decode_char(char c)
 FT_ULong o;
 char *inbuf = &c;
 char *outbuf = (char*)&o;
-int inbytesleft = 1;
-int outbytesleft = sizeof(FT_ULong);
+size_t inbytesleft = 1;
+size_t outbytesleft = sizeof(FT_ULong);
 
 size_t count = iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
 
