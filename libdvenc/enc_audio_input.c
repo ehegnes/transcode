@@ -37,7 +37,7 @@ static dv_enc_audio_info_t *audio_info;
 static void (*audio_converter)(unsigned char* in_buf, unsigned char* out_buf,
 			       int num_samples) = NULL;
 
-static void convert_u8(unsigned char* in_buf, unsigned char* out_buf,
+attribute_used static void convert_u8(unsigned char* in_buf, unsigned char* out_buf,
 		       int num_samples)
 {
 	int i;
@@ -49,7 +49,7 @@ static void convert_u8(unsigned char* in_buf, unsigned char* out_buf,
 }
 
 
-static void convert_s16_le(unsigned char* in_buf, unsigned char* out_buf,
+attribute_used static void convert_s16_le(unsigned char* in_buf, unsigned char* out_buf,
 			   int num_samples)
 {
 	int i;
@@ -60,13 +60,13 @@ static void convert_s16_le(unsigned char* in_buf, unsigned char* out_buf,
 	}
 }
 
-static void convert_s16_be(unsigned char* in_buf, unsigned char* out_buf,
+attribute_used static void convert_s16_be(unsigned char* in_buf, unsigned char* out_buf,
 			   int num_samples)
 {
 	tc_memcpy(out_buf, in_buf, 2*num_samples);
 }
 
-static void convert_u16_le(unsigned char* in_buf, unsigned char* out_buf,
+attribute_used static void convert_u16_le(unsigned char* in_buf, unsigned char* out_buf,
 			   int num_samples)
 {
 	int i;
@@ -78,7 +78,7 @@ static void convert_u16_le(unsigned char* in_buf, unsigned char* out_buf,
 	}
 }
 
-static void convert_u16_be(unsigned char* in_buf, unsigned char* out_buf,
+attribute_used static void convert_u16_be(unsigned char* in_buf, unsigned char* out_buf,
 			   int num_samples)
 {
 	int i;
