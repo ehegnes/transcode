@@ -2905,7 +2905,7 @@ files processed with this filter tend to compress to smaller files.
 .RE
 .TP 4
 \fByuvdenoise\fP - \fBmjpegs YUV denoiser\fP
-\fByuvdenoise\fP was written by Stefan Fendt, Tilmann Bitterberg. The version documented here is v0.2.0 (2003-03-14). This is a video filter. It can handle YUV mode only. It is a post-processing only filter.
+\fByuvdenoise\fP was written by Stefan Fendt, Tilmann Bitterberg. The version documented here is v0.2.1 (2003-11-26). This is a video filter. It can handle YUV mode only. It can be used as a pre-processing or as a post-processing filter.
 .IP
 .RS
 \(bu 
@@ -3003,6 +3003,12 @@ Increment Cb with constant
 = \fI%dx%d-%dx%d\fP  [default \fI0x0-32x32\fP] 
 .RS 3
 Active image area
+.RE
+\(bu 
+.I pre 
+= \fI%d\fP  [default \fI0\fP] 
+.RS 3
+run this filter as a pre-processing filter
 .RE
 .IP
 see /docs/filter_yuvdenoise.txt

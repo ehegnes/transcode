@@ -3,6 +3,11 @@ transcode-0.6.12
 
 2003-11-26 Tilmann Bitterberg <transcode at tibit.org>
 
+  * filter/yuvdenoise/filter_yuvdenoise.c docs/man/transcode.1:
+  Document the undocumented option pre.
+
+2003-11-26 Tilmann Bitterberg <transcode at tibit.org>
+
   * import/v4l2/import_v4l2.c configure.in:
   Add configure check for linux/videodev2.h
 

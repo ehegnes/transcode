@@ -23,7 +23,7 @@
  */
 
 #define MOD_NAME    "filter_yuvdenoise.so"
-#define MOD_VERSION "v0.2.0 (2003-03-14)"
+#define MOD_VERSION "v0.2.1 (2003-11-26)"
 #define MOD_CAP     "mjpegs YUV denoiser"
 #define MOD_AUTHOR  "Stefan Fendt, Tilmann Bitterberg"
 
@@ -110,7 +110,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
       char buf[255];
 
       sprintf (buf, "%d", denoiser.delay); // frames_needed
-      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYO", buf);
+      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYEO", buf);
 
       sprintf (buf, "%d", denoiser.radius);
       optstr_param (options, "radius",         "Search radius", "%d", buf, "8", "24");
@@ -160,6 +160,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
       sprintf (buf, "%dx%d-%dx%d", 
 	denoiser.border.x, denoiser.border.y, denoiser.border.w, denoiser.border.h);
       optstr_param (options, "border",         "Active image area", "%dx%d-%dx%d", buf, "0", "W", "0", "H", "0", "W", "0", "H");
+
+      optstr_param (options, "pre",   "run this filter as a pre-processing filter","%d", "0", "0", "1"  );
+
 
       return 0;
   }
