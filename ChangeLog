@@ -1,6 +1,16 @@
 --------------------------------------------
 transcode-0.6.13
 
+2004-01-22 Erik Slagter <erik at oldconomy.com>
+
+  * src/transcode.c:
+  export_ffmpeg glue in transcode.c
+  - added mpeg profile support for ffmpeg, using "pseudo" codec (e.g.
+    dvd instead of mpeg2video)
+  - added check for zooming with mpeg profile code; if pre_clip is
+    already set by the user, do not overwrite it.
+  - hack for 704xXXX dvd encoding.
+
 2004-01-20 Erik Slagter <erik at oldconomy.com>
 
   * export/{export_ffmpeg.c ffmpeg_cfg.c ffmpeg_cfg.h}:

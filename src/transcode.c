@@ -416,7 +416,7 @@ void usage(int status)
   printf("--dv_yuy2_mode       libdv YUY2 mode (default is YV12) [off]\n");
   printf("--config_dir dir     Assume config files are in this dir [off]\n");
   printf("--ext vid,aud        Use these file extensions [%s,%s]\n", video_ext, audio_ext);
-  printf("--export_prof S      Export profile {vcd, svcd, dvd} [none]\n");
+  printf("--export_prof S      Export profile {vcd, svcd, dvd}[-pal|-ntsc] [none]\n");
 
   printf("\n");
 
@@ -2817,6 +2817,9 @@ int main(int argc, char *argv[]) {
       int impal = 0;
       int pre_clip;
 
+      if(vob->im_v_codec == CODEC_RGB)
+	vob->im_v_codec = CODEC_YUV; // mpeg is always YUV // will this always do?
+
       // Make an educated guess if this is pal or ntsc
       if (vob->im_v_height == 288 || vob->im_v_height == 576) impal = 1;
       if ((int)vob->fps == 25 || vob->im_frc == 3) impal = 1;
@@ -2889,26 +2892,31 @@ int main(int argc, char *argv[]) {
 	vob->im_asr = mini;
       }
 
-
       imasr = asrs[vob->im_asr];
       exasr = asrs[vob->ex_asr];
 
       pre_clip = vob->im_v_height - (vob->im_v_height * imasr.t * exasr.b ) / (imasr.b * exasr.t );
-      if (pre_clip%2 != 0) {
-	vob->pre_im_clip_top = pre_clip/2+1;
-	vob->pre_im_clip_bottom = pre_clip/2-1;
-      } else {
-	vob->pre_im_clip_bottom = vob->pre_im_clip_top = pre_clip/2;
+
+      if(pre_im_clip == TC_FALSE) {
+
+	if (pre_clip%2 != 0) {
+	  vob->pre_im_clip_top = pre_clip/2+1;
+	  vob->pre_im_clip_bottom = pre_clip/2-1;
+	} else {
+	  vob->pre_im_clip_bottom = vob->pre_im_clip_top = pre_clip/2;
+	}
       }
 
-      /*
-      printf("%d: --pre_clip %d,0,%d,0\n", vob->mpeg_profile, 
-	  vob->pre_im_clip_top, vob->pre_im_clip_bottom);
-	  */
+      //FIXME hack, kludge, etc. EMS
+      if( (vob->im_v_height != vob->zoom_height) || 
+	  ((vob->im_v_width != vob->zoom_width) && (vob->ex_v_width != 704)))
+	zoom = TC_TRUE;
+      else 
+	zoom = TC_FALSE;
 
-      if (vob->im_v_width != vob->zoom_width || vob->im_v_height != vob->zoom_width) zoom = TC_TRUE;
-      if (pre_im_clip) tc_warn("I have overwritten your --pre_clip settings, I win!\n");
       if (pre_clip) pre_im_clip = TC_TRUE;
+
+      printf("XXX: zoom=%s pre_clip=%s\n", zoom?"yes":"no", pre_im_clip?"yes":"no");
 
       // shall we really go this far?
       // If yes, there can be much more settings adjusted.
@@ -2931,14 +2939,33 @@ int main(int argc, char *argv[]) {
 	  }
 	}
 #endif
-      }
+      } else if(!strcmp(ex_vid_mod, "ffmpeg")) {
+
+	if(!ex_aud_mod)
+	  ex_aud_mod = "ffmpeg";
+
+	switch(vob->mpeg_profile)
+	{
+	  case(VCD):		vob->ex_v_fcc = "vcd";		break;
+	  case(VCD_PAL):	vob->ex_v_fcc = "vcd-pal";	break;
+	  case(VCD_NTSC):	vob->ex_v_fcc = "vcd-ntsc";	break;
+	  case(SVCD):		vob->ex_v_fcc = "svcd";		break;
+	  case(SVCD_PAL):	vob->ex_v_fcc = "svcd-pal";	break;
+	  case(SVCD_NTSC):	vob->ex_v_fcc = "svcd-ntsc";	break;
+	  case(DVD):		vob->ex_v_fcc = "dvd";		break;
+	  case(DVD_PAL):	vob->ex_v_fcc = "dvd-pal";	break;
+	  case(DVD_NTSC):	vob->ex_v_fcc = "dvd-ntsc";	break;
+	  case(PROF_NONE):					break;
+	}
+      } // ffmpeg
+
       if (ex_aud_mod == NULL) {
 #ifdef HAVE_MJPEGTOOLS
 	  no_a_out_codec=0;
 	  ex_aud_mod = "mp2enc";
 #endif
 	}
-    }
+    } // mpeg_profile != PROF_NONE
 
 
     // --PRE_CLIP
@@ -4562,5 +4589,5 @@ void dummy_libvout(void) {
 
 
 }
-/* vim: sw=2
+/* vim: sw=2 ts=8 
  */
