@@ -127,7 +127,7 @@ void decode_dv(decode_t *decode)
   // Initialize DV decoder
 
 #ifdef LIBDV_095    
-  if((dv_decoder = dv_decoder_new(TRUE, FALSE, FALSE))==NULL) {
+  if((dv_decoder = dv_decoder_new(FALSE, FALSE, FALSE))==NULL) {
     fprintf(stderr, "(%s) dv decoder init failed\n", __FILE__);
     import_exit(1);
   }
