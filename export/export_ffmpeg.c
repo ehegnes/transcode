@@ -126,6 +126,8 @@ struct ffmpeg_codec ffmpeg_codecs[] = {
     {"mpeg2video", "mpg2", "MPEG2 compliant video", 1},
     {"h263",       "h263", "H263", 0},
     {"h263p",      "h263", "H263 plus", 1},
+    {"h264",       "h264", "H264 (avc)", 1},
+    {"avc",        "h264", "H264 (avc)", 1},
     {"wmv1",       "WMV1", "Windows Media Video v1", 1},
     {"wmv2",       "WMV2", "Windows Media Video v2", 1},
     {"rv10",       "RV10", "old RealVideo codec", 1},
@@ -177,6 +179,7 @@ static int                  frames = 0;
 static struct ffmpeg_codec *codec;
 static int                  is_mpegvideo = 0;
 static int                  is_huffyuv = 0;
+static int					is_mjpeg = 0;
 static FILE                *mpeg1fd = NULL;
 static int                  interlacing_active = 0;
 static int                  interlacing_top_first = 0;
@@ -386,7 +389,19 @@ MOD_init {
     if (!strcmp(user_codec_string, "huffyuv"))
         is_huffyuv = 1;
 
-    free(user_codec_string);
+	if(!strcmp(user_codec_string, "mjpeg") || !strcmp(user_codec_string, "ljpeg"))
+	{
+		int handle;
+
+		ff_info("output is mjpeg or ljpeg, extending range from YUV420P to YUVJ420P (full range)\n");
+
+		is_mjpeg = 1;
+
+		if((handle = plugin_get_handle("levels=input=16-240:output=0:255") == -1))
+			ff_warning("cannot load levels filter\n");
+	}
+
+	free(user_codec_string);
     user_codec_string = 0;
 
     if ((p = strrchr(real_codec, '-'))) { /* chop off -ntsc/-pal and set type */
@@ -478,6 +493,7 @@ MOD_init {
             return TC_EXPORT_ERROR;
         }
     }
+
     lavc_venc_context->width              = vob->ex_v_width;
     lavc_venc_context->height             = vob->ex_v_height;
     lavc_venc_context->qmin               = vob->min_quantizer;
@@ -1039,6 +1055,7 @@ MOD_init {
 
     lavc_venc_context->prediction_method = lavc_param_prediction_method;
 
+#if 0 // obsolete this
     /* this changed to an int */
     if (!strcasecmp(lavc_param_format, "YV12"))
         lavc_venc_context->pix_fmt = PIX_FMT_YUV420P;
@@ -1058,10 +1075,42 @@ MOD_init {
         fprintf(stderr, "%s is not a supported format\n", lavc_param_format);
         return TC_IMPORT_ERROR;
     }
+#endif
 
-    if (is_huffyuv) {
-        lavc_venc_context->pix_fmt = PIX_FMT_YUV422P;
-    }
+	if(is_huffyuv)
+		lavc_venc_context->pix_fmt = PIX_FMT_YUV422P;
+	else
+	{
+		switch(pix_fmt)
+		{
+			case(CODEC_YUV):
+			case CODEC_RGB:
+			{
+				if(is_mjpeg)
+					lavc_venc_context->pix_fmt = PIX_FMT_YUVJ420P;
+				else
+					lavc_venc_context->pix_fmt = PIX_FMT_YUV420P;
+
+				break;
+			}
+
+			case(CODEC_YUV422):
+			{
+				if(is_mjpeg)
+					lavc_venc_context->pix_fmt = PIX_FMT_YUVJ422P;
+				else
+					lavc_venc_context->pix_fmt = PIX_FMT_YUV422P;
+	
+				break;
+			}
+
+			default:
+			{
+				fprintf(stderr, "[%s] Unknown pixel format %d.\n", MOD_NAME, pix_fmt);
+				return TC_EXPORT_ERROR;
+			}
+		}
+	}
 
     switch (vob->divxmultipass) {
       case 1:
@@ -1440,37 +1489,40 @@ MOD_encode
     lavc_venc_frame->interlaced_frame = interlacing_active;
     lavc_venc_frame->top_field_first = interlacing_top_first;
 
-    switch (pix_fmt) {
+    switch (pix_fmt)
+	{
         case CODEC_YUV:
             lavc_venc_frame->linesize[0] = lavc_venc_context->width;     
             lavc_venc_frame->linesize[1] = lavc_venc_context->width / 2;
             lavc_venc_frame->linesize[2] = lavc_venc_context->width / 2;
             lavc_venc_frame->data[0]     = param->buffer;
         
-            if (is_huffyuv) {
-                lavc_venc_context->pix_fmt     = PIX_FMT_YUV422P;
+            if(is_huffyuv)
+			{
                 yv12to422p(yuv42xP_buffer, param->buffer,
                         lavc_venc_context->width, lavc_venc_context->height);
                 avpicture_fill((AVPicture *)lavc_venc_frame, yuv42xP_buffer,
                         PIX_FMT_YUV422P, lavc_venc_context->width, lavc_venc_context->height);
             }
-            else {
-                lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
+            else
+			{
                 lavc_venc_frame->data[2]     = param->buffer +
                     lavc_venc_context->width * lavc_venc_context->height;
                 lavc_venc_frame->data[1]     = param->buffer +
                     (lavc_venc_context->width * lavc_venc_context->height*5)/4;
             }
             break;
+
         case CODEC_YUV422:
-            if (is_huffyuv) {
-                lavc_venc_context->pix_fmt     = PIX_FMT_YUV422P;
+			if(is_huffyuv)
+			{
                 uyvyto422p(yuv42xP_buffer, param->buffer,
                         lavc_venc_context->width, lavc_venc_context->height);
                 avpicture_fill((AVPicture *)lavc_venc_frame, yuv42xP_buffer,
                         PIX_FMT_YUV422P, lavc_venc_context->width, lavc_venc_context->height);
-            } else {
-                lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
+			}
+			else
+			{
                 uyvytoyv12(yuv42xP_buffer, param->buffer,
                         lavc_venc_context->width, lavc_venc_context->height);
 
@@ -1478,6 +1530,7 @@ MOD_encode
                         PIX_FMT_YUV420P, lavc_venc_context->width, lavc_venc_context->height);
             }
             break;
+
         case CODEC_RGB:
             avpicture_fill((AVPicture *)lavc_convert_frame, param->buffer,
                     PIX_FMT_RGB24, lavc_venc_context->width, lavc_venc_context->height);
@@ -1485,11 +1538,11 @@ MOD_encode
             avpicture_fill((AVPicture *)lavc_venc_frame, tmp_buffer,
                     PIX_FMT_YUV420P, lavc_venc_context->width, lavc_venc_context->height);
 
-            lavc_venc_context->pix_fmt     = PIX_FMT_YUV420P;
             img_convert((AVPicture *)lavc_venc_frame, PIX_FMT_YUV420P,
                     (AVPicture *)lavc_convert_frame, PIX_FMT_RGB24, 
                     lavc_venc_context->width, lavc_venc_context->height);
             break;
+
         default:
               fprintf(stderr, "[%s] Unknown pixel format %d.\n", MOD_NAME, pix_fmt);
               return TC_EXPORT_ERROR;
