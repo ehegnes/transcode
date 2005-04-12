@@ -1,3 +1,15 @@
+2005-04-11 Jacob Meuser <jakemsr at jakemsr dot com>
+  * Makefile.am configure.in filter/filter_logoaway.c
+    pvm3/Makefile.am pvm3/tcpvmexportd.c src/Makefile.am
+    src/transcode.c src/transcode.h 
+    Added Files:
+    libtc/Makefile.am libtc/libtc.h libtc/strlcat.c 
+    libtc/strlcpy.c libtc/tc_func_excl.h libtc/tc_functions.c 
+    Removed Files:
+    src/tc_func_excl.h src/tc_functions.c src/tc_functions.h 
+  Enter libtc, a library for common transcode functions.
+  Populate it with src/tc_func*, and remove those files.
+
 2005-03-15 Jacob Meuser <jakemsr at jakemsr dot com>
   * configure.in src/tc_functions.c src/tc_functions.h
   Move the test for getopt_long_only out of the middle of the OSX
