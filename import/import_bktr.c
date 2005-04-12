@@ -59,8 +59,8 @@ static const struct {
     char *name;
     u_int format;
 } formats[] = {
-    { "ntsc", METEOR_FMT_NTSC },
-    { "pal",  METEOR_FMT_PAL },
+    { "ntsc",		METEOR_FMT_NTSC },
+    { "pal",		METEOR_FMT_PAL },
     { 0 }
 };
 
@@ -68,11 +68,11 @@ static const struct {
     char *name;
     u_int vsource;
 } vsources[] = {
-    { "composite",   METEOR_INPUT_DEV0 },
-    { "tuner",       METEOR_INPUT_DEV1 },
-    { "svideo_comp", METEOR_INPUT_DEV2 },
-    { "svideo",      METEOR_INPUT_DEV_SVIDEO },
-    { "input3",      METEOR_INPUT_DEV3 },
+    { "composite",	METEOR_INPUT_DEV0 },
+    { "tuner",		METEOR_INPUT_DEV1 },
+    { "svideo_comp",	METEOR_INPUT_DEV2 },
+    { "svideo",		METEOR_INPUT_DEV_SVIDEO },
+    { "input3",		METEOR_INPUT_DEV3 },
     { 0 }
 };
 
@@ -80,9 +80,9 @@ static const struct {
     char *name;
     u_int asource;
 } asources[] = {
-    { "tuner", AUDIO_TUNER },
-    { "external",  AUDIO_EXTERN },
-    { "internal",  AUDIO_INTERN },
+    { "tuner",		AUDIO_TUNER },
+    { "external",	AUDIO_EXTERN },
+    { "internal",	AUDIO_INTERN },
     { 0 }
 };
 
@@ -96,20 +96,25 @@ static void copy_buf_yuv422(char *, size_t);
 static void copy_buf_yuv(char *, size_t);
 static void copy_buf_rgb(char *, size_t);
 
-unsigned char *bktr_buffer;
-size_t bktr_buffer_size;
-static int bktr_vfd = -1;
-static int bktr_tfd = -1;
-char bktr_tuner[128] = "/dev/tuner0";
-int bktr_convert;
+
+volatile sig_atomic_t bktr_frame_waiting;
+
+sigset_t sa_mask;
+
+uint8_t	*bktr_buffer;
+size_t	 bktr_buffer_size;
+static	 int bktr_vfd = -1;
+static	 int bktr_tfd = -1;
+char	 bktr_tuner[128] = "/dev/tuner0";
+int	 bktr_convert;
 #define BKTR2RGB 0
 #define BKTR2YUV422 1
 #define BKTR2YUV 2
-u_int bktr_format = 0;
-u_int bktr_vsource = 0;
-u_int bktr_asource = 0;
-int bktr_hwfps = 0;
-int bktr_mute = 0;
+u_int	 bktr_format = 0;
+u_int	 bktr_vsource = METEOR_INPUT_DEV1;  /* tuner */
+u_int	 bktr_asource = AUDIO_TUNER;
+int	 bktr_hwfps = 0;
+int	 bktr_mute = 0;
 
 
 void bktr_usage(void)
@@ -222,8 +227,8 @@ int bktr_parse_options(char *options)
 
 static void catchsignal(int signal)
 {
-    if (signal == SIGALRM)
-        fprintf(stderr, "[%s]: sigalrm\n", MOD_NAME);
+    if (signal == SIGUSR1)
+        bktr_frame_waiting = 1;
 }
 
 int bktr_init(int video_codec, const char *video_device,
@@ -265,14 +270,44 @@ int bktr_init(int video_codec, const char *video_device,
         return(1);
     }
 
-    /* open the device, start setting parameters */
+    /* set the audio via the tuner.  opening the device unmutes it. */
+    /* closing the device mutes it again.  so we hold it open */
+
+    bktr_tfd = open(bktr_tuner, O_RDONLY);
+    if (bktr_tfd < 0) {
+        perror("open tuner");
+        return(1);
+    }
+
+    if (ioctl(bktr_tfd, BT848_SAUDIO, &bktr_asource) < 0) {
+        perror("BT848_SAUDIO asource");
+        return(1);
+    }
+
+    if (bktr_mute) {
+        i = AUDIO_MUTE;
+        if (ioctl(bktr_tfd, BT848_SAUDIO, &i) < 0) {
+            perror("BT848_SAUDIO AUDIO_MUTE");
+            return(1);
+        }
+    } else {
+        i = AUDIO_UNMUTE;
+        if (ioctl(bktr_tfd, BT848_SAUDIO, &i) < 0) {
+            perror("BT848_SAUDIO AUDIO_UNMUTE");
+            return(1);
+        }
+    }
+
+    /* open the video device */
+
     bktr_vfd = open(video_device, O_RDONLY);
     if (bktr_vfd < 0) {
         perror(video_device);
         return(1);
     }
 
-    /* get the index of the formats we want from the driver */
+    /* get the indices of supported formats that transcode can use */
+
     for (i = 0; ; i++) {
         pxf.index = i;
         if (ioctl(bktr_vfd, METEORGSUPPIXFMT, &pxf) < 0) {
@@ -305,6 +340,7 @@ int bktr_init(int video_codec, const char *video_device,
     }
 
     /* set format, conversion function, and buffer size */
+
     switch(video_codec) {
       case CODEC_RGB:
         i = rgb_idx;
@@ -333,19 +369,12 @@ int bktr_init(int video_codec, const char *video_device,
         return(1);
     }
 
+    /* set the geometry */
+
     geo.rows = height;
     geo.columns = width;
     geo.frames = 1;
     geo.oformat = 0;
-
-    /* switch from interlaced capture to single field capture if  */
-    /* the grab height is less that half the normal TV height     */
-    /* this gives better quality captures when the object in the  */
-    /* TV picture is moving                                       */
-
-    if (height <= h_max / 2) {
-        geo.oformat |= METEOR_GEO_ODD_ONLY;
-    }
 
     if (verbose_flag & TC_DEBUG) {
         fprintf(stderr,
@@ -360,16 +389,18 @@ int bktr_init(int video_codec, const char *video_device,
         return(1);
     }
 
-    if (bktr_format) {
-        if (ioctl(bktr_vfd, METEORSFMT, &bktr_format) < 0) {
-            perror("METEORSFMT");
-            return(1);
-        }
-    }
+    /* extra options */
 
     if (bktr_vsource) {
         if (ioctl(bktr_vfd, METEORSINPUT, &bktr_vsource) < 0) {
             perror("METEORSINPUT");
+            return(1);
+        }
+    }
+
+    if (bktr_format) {
+        if (ioctl(bktr_vfd, METEORSFMT, &bktr_format) < 0) {
+            perror("METEORSFMT");
             return(1);
         }
     }
@@ -381,53 +412,19 @@ int bktr_init(int video_codec, const char *video_device,
         }
     }
 
-    i = METEOR_CAP_CONTINOUS;
-    if (ioctl(bktr_vfd, METEORCAPTUR, &i) < 0) {
-        perror("METEORCAPTUR");
-        return(1);
-    }
-
-    i = SIGUSR1;
-    if (ioctl(bktr_vfd, METEORSSIGNAL, &i) < 0) {
-        perror("METEORSSIGNAL");
-        return(1);
-    }
-
-    /* set the tuner */
-
-    bktr_tfd = open(bktr_tuner, O_RDONLY);
-    if (bktr_tfd < 0) {
-        perror("open tuner");
-        return(1);
-    }
-
-    if (ioctl(bktr_tfd, BT848_SAUDIO, &bktr_asource) < 0) {
-        perror("BT848_SAUDIO asource");
-        return(1);
-    }
-
-    if (bktr_mute) {
-        i = AUDIO_MUTE;
-        if (ioctl(bktr_tfd, BT848_SAUDIO, &i) < 0) {
-            perror("BT848_SAUDIO AUDIO_MUTE");
-            return(1);
-        }
-    } else {
-        i = AUDIO_UNMUTE;
-        if (ioctl(bktr_tfd, BT848_SAUDIO, &i) < 0) {
-            perror("BT848_SAUDIO AUDIO_UNMUTE");
-            return(1);
-        }
-    }
-
     /* mmap the buffer */
-    bktr_buffer = (unsigned char *)mmap((caddr_t)0, bktr_buffer_size,
-        PROT_READ, MAP_SHARED, bktr_vfd, (off_t)0);
 
-    if (bktr_buffer == (unsigned char *)MAP_FAILED) {
-        perror("mmap");
+    bktr_buffer = mmap(0, bktr_buffer_size, PROT_READ, MAP_SHARED, bktr_vfd, 0);
+
+    if (bktr_buffer == MAP_FAILED) {
+        perror("mmap bktr_buffer");
         return(1);
     }
+
+    /* for sigsuspend() */
+    sigfillset(&sa_mask);
+    sigdelset(&sa_mask, SIGUSR1);
+    sigdelset(&sa_mask, SIGALRM);
 
     /* signal handler to know when data is ready to be read() */
 
@@ -437,51 +434,64 @@ int bktr_init(int video_codec, const char *video_device,
     sigaction(SIGUSR1, &act, NULL);
     sigaction(SIGALRM, &act, NULL);
 
-    return(0);
-}
+    i = SIGUSR1;
+    if (ioctl(bktr_vfd, METEORSSIGNAL, &i) < 0) {
+        perror("METEORSSIGNAL");
+        return(1);
+    }
 
-int bktr_grab(size_t size, char * dest)
-{
-    sigset_t sa_mask;
+    /* let `er rip! */
 
-    /* if not yet received "buffer full" signal, wait but not */
-    /* longer than a second                                   */
-
-    alarm(1);
-    sigfillset(&sa_mask);
-    sigdelset(&sa_mask, SIGUSR1);
-    sigdelset(&sa_mask, SIGALRM);
-    sigsuspend(&sa_mask);
-    alarm(0);
-
-    if (dest) {
-        if (verbose_flag & TC_DEBUG) {
-            fprintf(stderr,
-                "[%s] copying %lu bytes, buffer size is %lu\n",
-                MOD_NAME, (unsigned long)size, (unsigned long)bktr_buffer_size);
-        }
-        switch (bktr_convert) {
-          case BKTR2RGB:    copy_buf_rgb(dest, size);  break;
-          case BKTR2YUV422: copy_buf_yuv422(dest, size); break;
-          case BKTR2YUV:    copy_buf_yuv(dest, size);    break;
-          default:
-            fprintf(stderr,
-                "[%s] unrecognized video conversion request\n",
-                MOD_NAME);
-            return(1);
-            break;
-        }
-    } else {
-        fprintf(stderr,
-            "[%s] no destination buffer to copy frames to\n",
-            MOD_NAME);
+    i = METEOR_CAP_CONTINOUS;
+    if (ioctl(bktr_vfd, METEORCAPTUR, &i) < 0) {
+        perror("METEORCAPTUR");
         return(1);
     }
 
     return(0);
 }
 
-static void copy_buf_yuv422(char * dest, size_t size)
+int bktr_grab(size_t size, char *dest)
+{
+    /* wait for a "buffer full" signal, but longer than 1 second */
+
+    alarm(1);
+    sigsuspend(&sa_mask);
+    alarm(0);
+
+    if (bktr_frame_waiting) {
+        bktr_frame_waiting = 0;
+        if (dest) {
+            if (verbose_flag & TC_DEBUG) {
+                fprintf(stderr, "[%s] copying %lu bytes, buffer size is %lu\n",
+                                 MOD_NAME, (unsigned long)size,
+                                 (unsigned long)bktr_buffer_size);
+            }
+            switch (bktr_convert) {
+              case BKTR2RGB:    copy_buf_rgb(dest, size);    break;
+              case BKTR2YUV422: copy_buf_yuv422(dest, size); break;
+              case BKTR2YUV:    copy_buf_yuv(dest, size);    break;
+              default:
+                fprintf(stderr,
+                    "[%s] unrecognized video conversion request\n",
+                    MOD_NAME);
+                return(1);
+                break;
+            }
+        } else {
+            fprintf(stderr,
+                "[%s] no destination buffer to copy frames to\n",
+                MOD_NAME);
+            return(1);
+        }
+    } else {  /* bktr_frame_waiting */
+        fprintf(stderr, "[%s]: sigalrm\n", MOD_NAME);
+    }
+
+    return(0);
+}
+
+static void copy_buf_yuv422(char *dest, size_t size)
 {
     if (bktr_buffer_size != size)
         fprintf(stderr,
@@ -491,7 +501,7 @@ static void copy_buf_yuv422(char * dest, size_t size)
     tc_memcpy(dest, bktr_buffer, size);
 }
 
-static void copy_buf_yuv(char * dest, size_t size)
+static void copy_buf_yuv(char *dest, size_t size)
 {
     int y_size = bktr_buffer_size * 4 / 6;
     int u_size = bktr_buffer_size * 1 / 6;
@@ -510,13 +520,13 @@ static void copy_buf_yuv(char * dest, size_t size)
     tc_memcpy(dest + u2_offset, bktr_buffer + u1_offset, u_size);
 }
 
-static void copy_buf_rgb(char * dest, size_t size)
+static void copy_buf_rgb(char *dest, size_t size)
 {
-    int i, j;
+    int i;
 
     /* 24 bit RGB packed into 32 bits (NULL, R, G, B) */
 
-    if (bktr_buffer_size * 3 / 4 != size)
+    if ((bktr_buffer_size * 3 / 4) != size)
         fprintf(stderr,
             "[%s] buffer sizes do not match (input %lu != output %lu)\n",
             MOD_NAME, (unsigned long)bktr_buffer_size * 3 / 4, (unsigned long)size);
@@ -524,9 +534,9 @@ static void copy_buf_rgb(char * dest, size_t size)
     /* bktr_buffer_size was set to width * height * 4 (32 bits) */
     /* so width * height = bktr_buffer_size / 4                 */
     for (i = 0; i < bktr_buffer_size / 4; i++) {
-        for (j = 0; j < 3; j++) {
-            dest[(i * 3) + j] = bktr_buffer[(i * 4) + j + 1];
-        }
+        dest[(i * 3)    ] = bktr_buffer[(i * 4)     + 1];
+        dest[(i * 3) + 1] = bktr_buffer[(i * 4) + 1 + 1];
+        dest[(i * 3) + 2] = bktr_buffer[(i * 4) + 2 + 1];
     }
 }
 
@@ -535,17 +545,21 @@ int bktr_stop()
 {
     int c;
 
+    /* shutdown signals first */
+
+    c = METEOR_SIG_MODE_MASK;
+    ioctl(bktr_vfd, METEORSSIGNAL, &c);
+
+    alarm(0);
+
+    c = METEOR_CAP_STOP_CONT;
+    ioctl(bktr_vfd, METEORCAPTUR, &c);
+
     c = AUDIO_MUTE;
     if (ioctl(bktr_tfd, BT848_SAUDIO, &c) < 0) {
         perror("BT848_SAUDIO AUDIO_MUTE");
         return(1);
     }
-
-    c = METEOR_CAP_STOP_CONT;
-    ioctl(bktr_vfd, METEORCAPTUR, &c);
-
-    c = METEOR_SIG_MODE_MASK;
-    ioctl(bktr_vfd, METEORSSIGNAL, &c);
 
     if (bktr_vfd > 0) {
         close(bktr_vfd);
@@ -557,7 +571,7 @@ int bktr_stop()
         bktr_tfd = -1;
     }
 
-    munmap((caddr_t)bktr_buffer, bktr_buffer_size);
+    munmap(bktr_buffer, bktr_buffer_size);
 
     return(0);
 }
@@ -658,6 +672,7 @@ MOD_close
         fprintf(stderr,
             "[%s] unsupported request (close audio)\n",
             MOD_NAME);
+        ret = TC_IMPORT_ERROR;
         break;
       default:
         fprintf(stderr,
