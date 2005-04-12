@@ -42,6 +42,8 @@ static int socket_fd=-1;
 
 pthread_mutex_t tc_socket_msg_lock=PTHREAD_MUTEX_INITIALIZER;
 
+extern int errno;
+
 int s_write (int sock, void *buf, size_t count) 
 {
     int retval=0;
@@ -325,6 +327,7 @@ int tc_socket_parameter(char *buf)
 {
     char *c = buf, *d;
     int filter_id;
+    size_t sret;
 
     c = strchr (buf, ' ');
     while (c && *c == ' ')
@@ -341,7 +344,14 @@ int tc_socket_parameter(char *buf)
     if ((d = filter_single_readconf(filter_id)) == NULL)
 	return 1;
 
-    strcpy (buf, d);
+    /* tc_socket_parameter() is only called with originating *buf of */
+    /* size M_BUF_SIZE */
+
+    sret = strlcpy(buf, d, M_BUF_SIZE);
+    if (tc_test_string(__FILE__, __LINE__, M_BUF_SIZE, sret, errno)) {
+        free(d);
+        return(1);
+    }
 
     free (d);
     return 0;
@@ -557,6 +567,7 @@ void socket_thread(void)
 {
     int retval, msgsock;
     int thisfd;
+    size_t sret;
 
     // too hard on the stack?
     char rbuf[M_BUF_SIZE];
@@ -572,7 +583,11 @@ void socket_thread(void)
     }
 
     server.sun_family = AF_UNIX;
-    strcpy(server.sun_path, socket_file);
+
+    /* sun_path is always array of length 1024? */
+    sret = strlcpy(server.sun_path, socket_file, sizeof(server.sun_path));
+    if (tc_test_string(__FILE__, __LINE__, sizeof(server.sun_path), sret, errno))
+        return;
 
     if (bind(thisfd, (struct sockaddr *) &server, sizeof(struct sockaddr_un))) {
 	perror("binding stream socket");

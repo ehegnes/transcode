@@ -60,6 +60,8 @@ static char module[TC_BUF_MAX];
 
 filter_t filter[MAX_FILTER];
 
+extern int errno;
+
 int filter_next_free_id(void)
 {
   int n;
@@ -347,12 +349,15 @@ int load_single_plugin (char *mfilter_string)
 {
   int id = filter_next_free_id()+1;
   vob_t *vob = tc_get_vob();
+  size_t sret;
 
   fprintf(stderr, "[%s] Loading (%s) ..\n", __FILE__, mfilter_string);
 
   filter[id].namelen = strlen(mfilter_string);
   filter[id].name    = (char *) malloc (filter[id].namelen+1);
-  strcpy(filter[id].name, mfilter_string);
+  sret = strlcpy(filter[id].name, mfilter_string, MAX_FILTER_NAME_LEN);
+  if (tc_test_string(__FILE__, __LINE__, MAX_FILTER_NAME_LEN, sret, errno))
+    return(1);
 
   if (load_plugin(vob->mod_path)==0)  {
     plugins++;
