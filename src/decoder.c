@@ -21,9 +21,6 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 #include "transcode.h"
 #include "dl_loader.h"
 #include "framebuffer.h"
