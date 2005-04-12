@@ -76,7 +76,7 @@ typedef unsigned int uint32_t;
 #endif
 
 #include "tc_defaults.h"
-#include "tc_functions.h"
+#include "libtc/libtc.h"
 
 // Uglyness from libavcodec - common.h
 // Don't use these except when your code won't work without it, 
@@ -571,7 +571,7 @@ typedef struct subtitle_header_s {
 void tc_progress(char *string);
 void tc_import_stop_nolock(void);
 void tc_export_stop_nolock(void);
-/* these function are in tc_functions.{ch}
+/* these function are in libtc
 void tc_error(char *fmt, ...);
 void tc_info(char *fmt, ...);
 void tc_warn(char *fmt, ...);

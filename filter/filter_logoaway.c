@@ -72,7 +72,7 @@
 #include "filter.h"
 #include "optstr.h"
 
-#include "tc_func_excl.h"
+#include "libtc/tc_func_excl.h"
 
 // transcode defines this as well as ImageMagick.
 #undef PACKAGE_NAME

@@ -6,6 +6,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/export \
 	-I$(top_srcdir)/import \
+	$(LIBTC_CFLAGS) \
 	$(XIO_CFLAGS) \
 	$(ACLIB_CFLAGS) \
 	$(LIBAVCODEC_CFLAGS) \
@@ -18,6 +19,7 @@ bin_PROGRAMS = transcode
 
 transcode_LDADD = \
 	$(DLDARWINLIB) \
+	$(LIBTC_LIBS) \
 	$(SUPPORT_LIBS) \
 	$(TCIOAUX_LIBS) \
 	$(ACLIB_LIBS) \
@@ -46,8 +48,6 @@ EXTRA_DIST = \
 	transcode.h \
 	usage.h \
 	video_trans.h \
-	tc_functions.h \
-	tc_func_excl.h \
 	probe_export.h \
 	zoom.h
 
@@ -75,5 +75,4 @@ transcode_SOURCES = \
 	callback.c \
 	socket.c \
 	optstr.c \
-	tc_functions.c \
 	info_server.c

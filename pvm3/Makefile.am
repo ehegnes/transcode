@@ -26,10 +26,13 @@ tcpvmexportd_SOURCES = \
 	pvm_interface.c \
 	pvm_parser.c \
 	external_codec.c \
-	vob_pack_unpack.c \
-	../src/tc_functions.c
+	vob_pack_unpack.c
 
-tcpvmexportd_LDADD = $(TCIOAUX_LIBS) $(ACLIB_LIBS) -lm
+tcpvmexportd_LDADD = \
+	$(LIBTC_LIBS) \
+	$(TCIOAUX_LIBS) \
+	$(ACLIB_LIBS) \
+	-lm
 
 EXTRA_DIST = \
 	pvm_functions.h \

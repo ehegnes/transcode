@@ -7,6 +7,7 @@ PVM3 = pvm3
 endif
 
 SUBDIRS = \
+	libtc \
 	libxio \
 	docs \
 	contrib \
