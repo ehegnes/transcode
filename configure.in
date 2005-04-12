@@ -59,7 +59,7 @@ esac
 
 
 AM_CONDITIONAL([SYSTEM_DARWIN], test x"$is_osx" = x"true")
- 
+
 # Checks for libraries.
 AC_CHECK_LIB(dl, dlopen)
 AC_CHECK_FUNCS([dlopen])
@@ -466,12 +466,13 @@ if test x"$ld_altivec" = x"yes" ; then
   LDFLAGS="$LDFLAGS -framework vecLib"
 fi
 
+
 dnl
 dnl gcc stuff
 dnl
 AM_CONDITIONAL(HAVE_GCC, test x"$GCC" = x"yes")
 
-dnl XXX hack! filter/pp needs -fomit-fame-pointer with gcc
+dnl XXX hack! filter/pp needs -fomit-frame-pointer with gcc
 have_fomit_fp="no"
 if test x"$GCC" = x"yes" ; then
   if echo "$CFLAGS" | grep -vq -- '-fomit-frame-pointer' ; then
@@ -495,9 +496,6 @@ AM_CONDITIONAL(HAVE_GCC2, test x"$gcc2" = x"yes")
 
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
-dnl AC_CONFIG_SUBDIRS(libltdl)
-dnl LTLIBOBJS=`echo "$AC_LIBOBJ" | sed 's,.o ,.lo ,g;s,.o$,.lo,'`
-dnl AC_SUBST(LTLIBOBJS)
 
 OPT_CFLAGS="-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 $CFLAGS"
 AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
@@ -1235,6 +1233,14 @@ dnl The following come with transcode
 dnl
 
 dnl
+dnl libtc
+dnl
+LIBTC_CFLAGS="-I\$(top_srcdir)/libtc"
+LIBTC_LIBS="\$(top_builddir)/libtc/libtc.la"
+AC_SUBST(LIBTC_CFLAGS)
+AC_SUBST(LIBTC_LIBS)
+
+dnl
 dnl libxio
 dnl
 AC_MSG_CHECKING([whether internal libxio support is requested])
@@ -1381,6 +1387,7 @@ AC_OUTPUT([
 	libioaux/Makefile
 	libmpeg2/Makefile
 	libsupport/Makefile
+	libtc/Makefile
 	libvo/Makefile
 	libxio/Makefile
 	pvm3/Makefile
