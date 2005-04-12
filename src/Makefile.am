@@ -6,7 +6,6 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/export \
 	-I$(top_srcdir)/import \
-	$(LIBTC_CFLAGS) \
 	$(XIO_CFLAGS) \
 	$(ACLIB_CFLAGS) \
 	$(LIBAVCODEC_CFLAGS) \
