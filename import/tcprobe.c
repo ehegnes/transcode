@@ -21,10 +21,11 @@
  *
  */
 
+#include "transcode.h"
+
 #include <sys/errno.h>
 #include <math.h>
 #include "xio.h"
-#include "transcode.h"
 #include "ioaux.h"
 #include "tc.h"
 #include "demuxer.h"

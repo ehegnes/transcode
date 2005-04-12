@@ -38,9 +38,10 @@
 
 
 // includes
+#include "transcode.h"
+
 #include <assert.h>
 #include <math.h>
-#include "transcode.h"
 
 // useful constants
 #define I_TYPE 1

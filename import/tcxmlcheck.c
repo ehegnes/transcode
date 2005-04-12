@@ -21,11 +21,13 @@
  *
  */
 
+#include "transcode.h"
+
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/errno.h>
 #include <math.h>
-#include "transcode.h"
+
 #include "ioxml.h"
 #include "ioaux.h"
 #include "magic.h"

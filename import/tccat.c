@@ -21,9 +21,10 @@
  *
  */
 
+#include "transcode.h"
+
 #include <sys/errno.h>
 #include "xio.h"
-#include "transcode.h"
 #include "ioaux.h"
 #include "tc.h"
 #include "dvd_reader.h"
