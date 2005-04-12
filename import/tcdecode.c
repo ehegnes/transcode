@@ -21,18 +21,14 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/errno.h>
-#include <errno.h>
-#include <unistd.h>
 #include <limits.h>
 
 #include "transcode.h"
 #include "ioaux.h"
 #include "tc.h"
-#include <xio.h>
+#include "xio.h"
+
 #define EXE "tcdecode"
 
 extern long fileinfo(int fd, int skip);

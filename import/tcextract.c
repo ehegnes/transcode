@@ -21,18 +21,13 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/errno.h>
-#include <errno.h>
-#include <unistd.h>
 #include <limits.h>
-#include <xio.h>
-#include "config.h"
+#include "xio.h"
 #include "transcode.h"
 #include "ioaux.h"
 #include "tc.h"
+
 
 #define EXE "tcextract"
 

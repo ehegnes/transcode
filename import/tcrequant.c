@@ -36,20 +36,10 @@
 // - intra blocks quantiser is incremented two step
 // - drop a few coefficients but always keep the first one
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 // includes
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
 #include <assert.h>
-#include <unistd.h>
 #include <math.h>
-#include <fcntl.h>
-
 #include "transcode.h"
 
 // useful constants

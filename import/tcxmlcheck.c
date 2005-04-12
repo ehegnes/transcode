@@ -21,21 +21,14 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
 #include <sys/errno.h>
-#include <errno.h>
-#include <unistd.h>
 #include <math.h>
-
-#include "config.h"
 #include "transcode.h"
 #include "ioxml.h"
 #include "ioaux.h"
 #include "magic.h"
-#include <sys/ipc.h>
-#include <sys/shm.h>
 
 #define EXE "tcxmlcheck"
 
