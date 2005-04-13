@@ -125,6 +125,7 @@ int tc_test_program(char *name)
 	char *tmp_path;
 	char **strtokbuf;
 	char done;
+	size_t pathlen, sret;
 	int error = 0;
 
 	if(!name)
@@ -140,10 +141,12 @@ int tc_test_program(char *name)
 		return(ENOENT);
 	}
 
-	tmp_path	= local_alloc((strlen(path) + 1) * sizeof(char));
-	strtokbuf	= local_alloc((strlen(path) + 1) * sizeof(char));
+	pathlen		= strlen(path) + 1;
+	tmp_path	= local_alloc(pathlen * sizeof(char));
+	strtokbuf	= local_alloc(pathlen * sizeof(char));
 
-	strcpy(tmp_path, path);
+	sret = strlcpy(tmp_path, path, pathlen);
+	tc_test_string(__FILE__, __LINE__, pathlen, sret, errno);
 
 	/* iterate through PATH tokens */
 
@@ -151,9 +154,11 @@ int tc_test_program(char *name)
 			!done && tok_path;
 			tok_path = strtok_r((char *)0, ":", strtokbuf))
 	{
-		compl_path = local_alloc((strlen(tok_path) + strlen(name) + 2) * sizeof(char));
-		snprintf(compl_path, strlen(tok_path) + strlen(name) + 2, "%s/%s", tok_path, name);
- 
+		pathlen = strlen(tok_path) + strlen(name) + 2;
+		compl_path = local_alloc(pathlen * sizeof(char));
+		sret = snprintf(compl_path, pathlen, "%s/%s", tok_path, name);
+ 		tc_test_string(__FILE__, __LINE__, pathlen, sret, errno);
+
 		if(access(compl_path, X_OK) == 0)
 		{
 			error	= 0;
