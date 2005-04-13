@@ -25,8 +25,12 @@
 #include "counter.h"
 #include "frame_threads.h"
 
+#define ENCODER_PROG_STR_MAX 128
+
 static int encoder_progress_flag=0;
-static char encoder_progress_str[128];
+static char encoder_progress_str[ENCODER_PROG_STR_MAX];
+
+extern int errno;
 
 void tc_encoder_progress()
 {
@@ -130,7 +134,7 @@ void counter_print(int pida, int pidn, char *s, long int t1, long int t2, char *
 
 void tc_progress(char *string) 
 {
-
+    size_t sret;
     encoder_progress_flag=0;
    
     //off
@@ -138,7 +142,8 @@ void tc_progress(char *string)
 
     //on, only in debug mode
     if(verbose & TC_DEBUG) {
-	strncpy(encoder_progress_str, string, 128);
+	sret = strlcpy(encoder_progress_str, string, ENCODER_PROG_STR_MAX);
+        tc_test_string(__FILE__, __LINE__, ENCODER_PROG_STR_MAX, sret, errno);
 	encoder_progress_flag=1;
     } 
     
