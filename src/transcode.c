@@ -45,6 +45,8 @@
 
 #include "usage.h"
 
+extern int errno;
+
 #include "libtc/tc_func_excl.h"
 /* imported from libtc/tc_func_excl.h
 #define COL(x)  "\033[" #x ";1m"
@@ -111,6 +113,7 @@ void socket_thread(); // socket.c
 
 char *socket_file = NULL;
 char *plugins_string = NULL;
+size_t size_plugstr = 0;
 char *tc_config_dir = NULL;
 pid_t writepid = 0;
 pthread_mutex_t writepid_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -696,6 +699,8 @@ int main(int argc, char *argv[]) {
     int sync_seconds=0;
 
     int no_audio_adjust=TC_FALSE, no_split=TC_FALSE;
+
+    size_t sret;  /* used for string function return values */
 
     static struct option long_options[] =
     {
@@ -1496,21 +1501,25 @@ int main(int argc, char *argv[]) {
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 
 	  if (!plugins_string) {
-	    if (NULL == (plugins_string = (char *)malloc((strlen(optarg)+2)*sizeof(char) )))
+            size_plugstr = strlen(optarg) + 2;
+	    if (NULL == (plugins_string = (char *)malloc(size_plugstr)))
 	      tc_error("Malloc failed for filter string");
 
-	    memset(plugins_string, '\0', strlen(optarg)+2);
-	    strncpy (plugins_string, optarg, strlen(optarg));
+	    memset(plugins_string, '\0', size_plugstr);
+	    sret = strlcpy(plugins_string, optarg, size_plugstr);
+            tc_test_string(__FILE__, __LINE__, size_plugstr, sret, errno);
 	  } else {
 	    char *curpos;
+            size_plugstr = strlen(optarg) + 2 + strlen(plugins_string) + 2;
 	    if (NULL == (plugins_string = (char *)realloc(plugins_string, 
-		    (strlen(optarg)+2+strlen(plugins_string)+2)*sizeof(char) )))
+								size_plugstr)))
 	      tc_error("Realloc failed for filter string");
 
 	    curpos = plugins_string+strlen(plugins_string);
 	    *(curpos) = ',';
 	    *(curpos+1) = '\0';
-	    strncat(plugins_string, optarg, strlen(optarg));
+	    sret = strlcat(plugins_string, optarg, size_plugstr);
+	    tc_test_string(__FILE__, __LINE__, size_plugstr, sret, errno);
 	    //fprintf(stderr, "\nFILTER 2 = (%s) (%s)\n", plugins_string, optarg);
 	  }
 
