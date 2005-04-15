@@ -304,9 +304,15 @@ endif
 endif
 endif
 
+if HAVE_LIBPOSTPROC
+PP = pp
+else
+PP =
+endif
+
 if HAVE_X11
 SUBDIRS = \
-	pp \
+	$(PP) \
 	divxkey \
 	extsub \
 	yuvdenoise \
@@ -315,7 +321,7 @@ SUBDIRS = \
 	$(ADD2)
 else
 SUBDIRS = \
-	pp \
+	$(PP) \
 	divxkey \
 	extsub \
 	yuvdenoise \

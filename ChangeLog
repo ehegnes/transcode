@@ -1,3 +1,8 @@
+2005-04-14 Jacob Meuser <jakemsr at jakemsr dot com>
+  * INSTALL configure.in filter/Makefile.am filter/pp/*
+  Sources for libpostproc are no longer part of transcode.  The 'pp'
+  filter now relies on an external libpostproc.
+
 2005-04-11 Jacob Meuser <jakemsr at jakemsr dot com>
   * Makefile.am configure.in filter/filter_logoaway.c
     pvm3/Makefile.am pvm3/tcpvmexportd.c src/Makefile.am

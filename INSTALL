@@ -6,9 +6,10 @@ read AVI files.
 
 You will need to have libavcodec (also known as ffmpeg libraries)
 installed somewhere on your computer. Without libavcodec transcode
-doesn't compile. The best way to accomplish this is to get ffmpeg from
+doesn't compile. The best way to accomplish this is to get FFmpeg from
 cvs (www.ffmpeg.org), configure it with at least --enable-shared
-and --enable-pthreads compile and install it. A package of some kind
+and --enable-pthreads compile and install it. (Also see the notes below
+about libpostproc if you plan to use filter_pp.) A package of some kind
 that includes libavcodec.so and the headers will do as well. If the
 files are installed in a non-default location (transcode assumes prefix:
 /usr), then you will need to tell transcode where they live. Very
@@ -110,7 +111,7 @@ Mandatory packages:
   libm
     (these generally come with any and all OSes)
 
-  FFmpeg (libavcodec) >= 0.9.1pre1  http://ffmpeg.sourceforge.net/
+  libavcodec from FFmpeg >= 0.9.1pre1  http://ffmpeg.sourceforge.net/
     related options:
       --with-libavcodec-prefix=PFX (/usr)
           prefix where libavcodec is installed
@@ -120,8 +121,8 @@ Mandatory packages:
           prefix where libavcodec libraries files are installed
       --enable-libavcodec-static (disabled)
           link binaries and modules statically to libavcodec
-        WARNING: creates huge binaries
-        WARNING: only tested on linux x86
+          WARNING: creates huge binaries
+          WARNING: only tested on linux x86
 
 OS dependent packages:
 
@@ -131,15 +132,14 @@ OS dependent packages:
           if enabled, builds v4l and v4l2 modules, which imports video
           from video capture hardware on Linux using the Video4Linux(2)
           API.
-            please note: use import_v4l2 if possible; v4l is depricated.
+            please note: use import_v4l2 if possible; v4l is deprecated.
     affected modues: import_v4l.so import_v4l2.so
 
   bktr
     related options:
       --enable-bktr (disabled)
           if enabled, builds bktr inport module, which imports video
-          from video capture hardware on *BSD using the bktr(4)
-          API.
+          from video capture hardware on *BSD using the bktr(4) API.
     affected modues: import_bktr.so
 
   sunau
@@ -150,6 +150,21 @@ OS dependent packages:
     affected modues: import_sunau.so
 
 Optional packages:
+
+  libpostproc (part of FFmpeg) http://www.ffmpeg.org/
+    related options:
+      --enable-libpostproc (disabled)
+          build with libpostproc support for video processing
+      --with-libpostproc-prefix=PFX (/usr)
+          prefix where libpostproc is installed
+      --with-libpostproc-includes=DIR (/usr/include)
+          directory where libpostproc header is installed
+      --with-libpostproc-libs=DIR (/usr/lib)
+          directory where libpostproc library is installed
+    affected modules: filter_pp.so
+    NOTE: It is highly recommended to use a share libpostproc.  To
+          build a shared libpostproc, build FFmpeg with
+          '--enable-pp --enable-shared-pp'.
 
   FreeType2  http://freetype.sourceforge.net/
     related options:

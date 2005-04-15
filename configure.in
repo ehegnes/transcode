@@ -764,6 +764,13 @@ TC_PATH_IBP(AC_DEFINE([HAVE_IBP], 1, [ibp and lors support]))
 AM_CONDITIONAL(HAVE_IBP, test x"$have_ibp" = x"yes")
 
 dnl
+dnl libpostproc
+dnl
+TC_PKG_CHECK(libpostproc, no, LIBPOSTPROC, no, postprocess.h,
+  postproc, pp_postprocess, FFmpeg, [http://www.ffmpeg.org/])
+TC_PKG_HAVE(libpostproc, LIBPOSTPROC)
+
+dnl
 dnl freetype2
 dnl
 TC_PKG_CHECK(freetype2, no, FREETYPE2, freetype-config, ft2build.h,
