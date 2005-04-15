@@ -35,8 +35,6 @@
 
 static char buffer[128];
 
-vob_t *vob=NULL;
-
 static DECODER dec;
 static BITSTREAM bs;
 
@@ -100,6 +98,8 @@ int quicktime_divx3_is_key(char *d)
 
 int tc_filter(vframe_list_t *ptr, char *options)
 {
+
+  vob_t *vob=NULL;
 
   int pre=0, vid=0;
   

@@ -39,8 +39,6 @@ static char *undo_buffer = NULL;
 
 static int preview_delay=0;
 
-vob_t *vob=NULL;
-
 /* global variables */
 
 static dv_player_t *dv_player = NULL;
@@ -70,6 +68,8 @@ dv_player_t *dv_player_new(void)
 
 int tc_filter(vframe_list_t *ptr, char *options)
 {
+
+  vob_t *vob=NULL;
 
   int pre=0, vid=0;
 

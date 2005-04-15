@@ -74,7 +74,6 @@ static char *process_buffer[3] = {NULL, NULL, NULL};
 
 static int process_ctr_cur=0;
 
-vob_t *vob=NULL;
 
 /* global variables */
 
@@ -128,8 +127,11 @@ char * preview_alloc_align_buffer(size_t size)
 
    return (buf + adjust);
 }
+
 int tc_filter(vframe_list_t *ptr, char *options)
 {
+
+  vob_t *vob=NULL;
 
   int pre=0, vid=0;
 
