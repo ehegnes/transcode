@@ -74,10 +74,6 @@ int sunau_init(const char *audio_device,
     audio_if.record.encoding = encoding;
 
     audio_if.mode = AUMODE_RECORD;
-    audio_if.play.open = 0;
-    audio_if.play.pause = 1;
-    audio_if.record.open = 1;
-    audio_if.record.pause = 0;
 
     if ((sunau_fd = open(audio_device, O_RDONLY)) < 0) {
         perror(MOD_NAME "open audio device");
