@@ -789,13 +789,14 @@ char **char2bmp(char c) {
     return NULL;
 }
 
-int preview_grab_jpeg(void) 
+int preview_grab_jpeg(void)
 {
 #ifdef SYS_BSD
     const
 #endif  
     char *error;
     char *prefix = "preview_grab-";
+    vob_t *vob = tc_get_vob();
     static vob_t *mvob;
     static void *jpeg_vhandle = NULL;
     static int (*JPEG_export)(int opt, void *para1, void *para2);
