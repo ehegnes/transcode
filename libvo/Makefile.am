@@ -9,7 +9,7 @@ noinst_LTLIBRARIES = libvout.la
 libvout_la_SOURCES = \
 	cpu_accel.c \
 	mm_accel.h \
-	mmx.h \
+	attributes.h mmx.h \
 	rgb2yuv.c \
 	rgb2yuv.h \
 	video_out.c \
