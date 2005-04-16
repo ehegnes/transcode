@@ -18,7 +18,6 @@ SUBDIRS = \
 	avilib \
 	libac3 \
 	libvo \
-	libmpeg2 \
 	import \
 	export \
 	filter \

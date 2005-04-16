@@ -25,7 +25,7 @@
 #include "tc.h"
 
 #include "video_out.h"
-#include "mpeg2.h"
+#include <mpeg2dec/mpeg2.h>
 
 #include "mm_accel.h"
 

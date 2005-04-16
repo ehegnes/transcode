@@ -1,8 +1,5 @@
 Transcode compiles even if you do not have all additional libs
 installed. You do not *need* to have a "yes" on every configure check.
-Transcode comes with some of the libraries included. That is libmpeg2
-for decoding MPEG-2 files, libdvdread for reading DVDs, a library to
-read AVI files.
 
 You will need to have libavcodec (also known as ffmpeg libraries)
 installed somewhere on your computer. Without libavcodec transcode
@@ -116,13 +113,22 @@ Mandatory packages:
       --with-libavcodec-prefix=PFX (/usr)
           prefix where libavcodec is installed
       --with-libavcodec-includes=DIR (/usr/include)
-          directory where libavcodec headers are installed
+          directory where libavcodec headers [ffmpeg/avcodec.h] are installed
       --with-libavcodec-libs=DIR (/usr/lib)
-          prefix where libavcodec libraries files are installed
+          prefix where libavcodec libraries [libavcodec.so] are installed
       --enable-libavcodec-static (disabled)
           link binaries and modules statically to libavcodec
           WARNING: creates huge binaries
           WARNING: only tested on linux x86
+
+  libmpeg2 from mpeg2dec >= 0.4.0b  http://libmpeg2.sourceforge.net/
+    related options:
+      --with-libmpeg2-prefix=PFX (/usr)
+          prefix where libmpeg2 is installed
+      --with-libmpeg2-includes=DIR (/usr/include)
+          directory where libmpeg2 headers [mpeg2dec/mpeg2.h] are installed
+      --with-libmpeg2-libs=DIR (/usr/lib)
+          prefix where libmpeg2 libraries [libmpeg2.so] are installed
 
 OS dependent packages:
 
@@ -158,9 +164,9 @@ Optional packages:
       --with-libpostproc-prefix=PFX (/usr)
           prefix where libpostproc is installed
       --with-libpostproc-includes=DIR (/usr/include)
-          directory where libpostproc header is installed
+          directory where libpostproc header [postprocess.h] is installed
       --with-libpostproc-libs=DIR (/usr/lib)
-          directory where libpostproc library is installed
+          directory where libpostproc library [libpostproc.so] is installed
     affected modules: filter_pp.so
     NOTE: It is highly recommended to use a share libpostproc.  To
           build a shared libpostproc, build FFmpeg with
@@ -173,9 +179,9 @@ Optional packages:
       --with-freetype2-prefix=PFX (/usr)
           prefix where FreeType is installed
       --with-freetype2-includes=DIR (/usr/include)
-          directory where FreeType headers are installed
+          directory where FreeType headers [ft2build.h] are installed
       --with-freetype2-libs=DIR (/usr/lib)
-          directory where FreeType libraries are installed
+          directory where FreeType libraries [libfreetype.so] are installed
     affected modules: filter_text.so, filter_subtitler.so
 
   liba52  http://liba52.sourceforge.net/
@@ -256,9 +262,9 @@ Optional packages:
       --with-avifile-prefix=PFX (/usr)
           prefix where avifile is installed
       --with-avifile-includes=DIR (/usr/include)
-          directory where avifile headers are installed
+          directory where avifile headers [avifile.h] are installed
       --with-avifile-libs=DIR (/usr/lib)
-          directory where avifile libraries are installed
+          directory where avifile libraries [libaviplay.so] are installed
     affected modules: export_af6.so, af6_decore.so
 
   ogg  http://www.xiph.org/ogg/
@@ -268,9 +274,9 @@ Optional packages:
       --with-ogg-prefix=PFX (/usr)
           prefix where ogg is installed
       --with-ogg-includes=DIR (/usr/include)
-          directory where ogg headers are installed
+          directory where ogg headers [ogg/ogg.h] are installed
       --with-ogg-libs=DIR (/usr/lib)
-          directory where ogg libraries are installed
+          directory where ogg libraries [libogg.so] are installed
     affect modules: none
 
   vorbis  http://www.xiph.org/ogg/vorbis/
@@ -280,9 +286,9 @@ Optional packages:
       --with-vorbis-prefix=PFX (/usr)
           prefix where vorbis is installed
       --with-vorbis-includes=DIR (/usr/include)
-          directory where vorbis headers are installed
+          directory where vorbis headers [vorbis/codec.h] are installed
       --with-vorbis-libs=DIR (/usr/lib)
-          directory where vorbis libraries are installed
+          directory where vorbis libraries [libvorbis.so] are installed
       affected modules: none
 
   theora  http://www.theora.org/
@@ -292,9 +298,9 @@ Optional packages:
       --with-theora-prefix=PFX (/usr)
           prefix where theora is installed
       --with-theora-includes=DIR (/usr/include)
-          directory where theora headers are installed
+          directory where theora headers [theora/theora.h] are installed
       --with-theora-libs=DIR (/usr/lib)
-          directory where theora libraries are installed
+          directory where theora libraries [libtheora.so] are installed
       affected modules: none
 
   libdvdread  http://www.dtek.chalmers.se/groups/dvd/
@@ -304,9 +310,9 @@ Optional packages:
       --with-libdvdread-prefix=PFX (/usr)
           prefix where libdvdread is installed
       --with-libdvdread-includes=DIR (/usr/include)
-          directory where libdvdread headers are installed
+          directory where libdvdread headers [dvd_reader.h] are installed
       --with-libdvdread-libs=DIR (/usr/lib)
-          directory where libdvdread libraries are installed
+          directory where libdvdread libraries [libdvdread.so] are installed
     affected modules: import_dvd.so
 
   libmpeg3  http://heroinewarrior.com/libmpeg3.php3
@@ -316,9 +322,9 @@ Optional packages:
       --with-libmpeg3-prefix=PFX (/usr)
           prefix where libmpeg3 is installed
       --with-libmpeg3-includes=DIR (/usr/include)
-          directory where libmpeg3 headers are installed
+          directory where libmpeg3 headers [libmpeg3.h] are installed
       --with-libmpeg3-libs=DIR (/usr/lib)
-          directory where libmpeg3 libraries are installed
+          directory where libmpeg3 libraries [libmpeg3.so] are installed
     affected modules: import_mpeg3.so
 
   liblve >= 040322  http://lvempeg.sourceforge.net/
@@ -328,9 +334,9 @@ Optional packages:
       --with-liblve-prefix=PFX (/usr)
           prefix where liblve is installed
       --with-liblve-includes=DIR (/usr/include)
-          directory where liblve headers are installed
+          directory where liblve headers [lve_read.h] are installed
       --with-liblve-libs=DIR (/usr/lib)
-          directory where liblve libraries are installed
+          directory where liblve libraries [liblve.so] are installed
     affected modules: import_lve.so
 
   PVM3  http://www.netlib.org/pvm3/
@@ -340,9 +346,9 @@ Optional packages:
       --with-pvm3-prefix=PFX (/usr)
           prefix where pvm3 is installed
       --with-pvm3-includes=DIR (/usr/include)
-          directory where pvm3 headers are installed
+          directory where pvm3 headers [pvm3.h] are installed
       --with-pvm3-libs=DIR (/usr/lib)
-          directory where pvm3 libraries are installed
+          directory where pvm3 libraries [libpvm3.so] are installed
     affected modules: export_pvm.so
 
   libdv  http://libdv.sourceforge.net/
@@ -352,9 +358,9 @@ Optional packages:
       --with-libdv-prefix=PFX (/usr)
           prefix where libdv is installed
       --with-libdv-includes=DIR (/usr/include)
-          directory where libdv headers are installed
+          directory where libdv headers [libdv/dv.h] are installed
       --with-libdv-libs=DIR (/usr/lib)
-          directory where libdv libraries are installed
+          directory where libdv libraries [libdv.so] are installed
     affected modules: export_dvraw.so, export_dv.so, filter_preview.so
 
   libquicktime  http://libquicktime.sourceforge.net/
@@ -364,9 +370,9 @@ Optional packages:
       --with-libquicktime-prefix=PFX (/usr)
           prefix where libquicktime is installed
       --with-libquicktime-includes=DIR (/usr/include)
-          directory where libquicktime headers are installed
+          directory where libquicktime headers [quicktime/lqt.h]  are installed
       --with-libquicktime-libs=DIR (/usr/lib)
-          directory where libquicktime libraries are installed
+          directory where libquicktime libraries [libquicktime.so] are installed
     affected modules: export_mov.so, import_mov.so
 
   lzo  http://www.oberhumer.com/opensource/lzo/
@@ -376,9 +382,9 @@ Optional packages:
       --with-lzo-prefix=PFX (/usr)
           prefix where lzo is installed
       --with-lzo-includes=DIR (/usr/include)
-          directory where lzo headers are installed
+          directory where lzo headers [lzo1x.h] are installed
       --with-lzo-libs=DIR (/usr/lib)
-          directory where lzo libraries are installed
+          directory where lzo libraries [liblzo.so] are installed
     affected modules: export_lzo.so, import_lzo.so
 
   libxml2  http://xmlsoft.org/
@@ -388,9 +394,9 @@ Optional packages:
       --with-libxml2-prefix=PFX (/usr)
           directory where libxml2 is installed
       --with-libxml2-includes=DIR (/usr/include)
-          directory where libxml2 headers are installed
+          directory where libxml2 headers [libxml/parser.h]  are installed
       --with-libxml2-libs=DIR (/usr/lib)
-          directory where libxml2 libraries are installed
+          directory where libxml2 libraries [libxml2.so] are installed
     affected modules: import_xml.so
 
   gtk  http://www.gtk.org/
@@ -400,9 +406,9 @@ Optional packages:
       --with-gtk-prefix=PFX (/usr)
           directory where gtk is installed
       --with-gtk-includes=DIR (/usr/include)
-          directory where gtk headers are installed
+          directory where gtk headers [gtk/gtk.h] are installed
       --with-gtk-libs=DIR (/usr/lib)
-          directory where gtk libraries are installed
+          directory where gtk libraries [libgtk.so] are installed
     affected modules: filter_preview.so
 
   ImageMagick  http://www.imagemagick.com/
@@ -412,9 +418,9 @@ Optional packages:
       --with-imagemagick-prefix=PFX (/usr)
           prefix where imagemagick is installed
       --with-imagemagick-includes=DIR (/usr/include)
-          directory where imagemagick headers are installed
+          directory where imagemagick headers [magick/api.h] are installed
       --with-imagemagick-libs=DIR (/usr/lib)
-          directory where imagemagick libraries are installed
+          directory where imagemagick libraries [libMagick.so] are installed
     affected modules: export_im.so, import_im.so, import_imlist.so,
       filter_logo.so, filter_logoaway.so, filter_compare.so
 
@@ -425,9 +431,9 @@ Optional packages:
       --with-libjpeg-prefix=PFX (/usr)
           prefix where libjpeg is installed
       --with-libjpeg-includes=DIR (/usr/include)
-          directory where libjpeg headers are installed
+          directory where libjpeg headers [jpeglib.h] are installed
       --with-libjpeg-libs=DIR (/usr/lib)
-          directory where libjpeg libraries are installed
+          directory where libjpeg libraries [libjpeg.so] are installed
     affected modules: export_mjpeg.so, export_jpg.so
 
   LoRS/IBP  http://loci.cs.utk.edu/

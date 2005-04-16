@@ -657,6 +657,14 @@ AC_SUBST(LIBAVCODEC_BUILD)
 AC_SUBST(LIBAVCODEC_CFLAGS)
 AC_SUBST(LIBAVCODEC_LIBS)
 
+dnl
+dnl libmpeg2
+dnl
+LIBMPEG2_EXTRA_LIBS="$LIBMPEG2_EXTRA_LIBS -lmpeg2convert"
+TC_PKG_CHECK(libmpeg2, required, LIBMPEG2, no, mpeg2dec/mpeg2.h,
+  mpeg2, mpeg2_init, mpeg2dec, [http://libmpeg2.sourceforge.net/])
+TC_PKG_HAVE(libmpeg2, LIBMPEG2)
+
 
 dnl
 dnl build options
@@ -1033,7 +1041,7 @@ TC_PKG_HAVE(a52, A52)
 dnl
 dnl GM's lve
 dnl
-LIBLVE_EXTRA_LIBS="$LIBLVE_EXTRA_LIBS $LIBAVCODEC_LIBS $A52_LIBS -lmpeg2"
+LIBLVE_EXTRA_LIBS="$LIBLVE_EXTRA_LIBS $LIBAVCODEC_LIBS $A52_LIBS $LIBMPEG2_LIBS"
 AC_LANG_PUSH([C++])
 TC_PKG_CHECK(liblve, no, LIBLVE, no, lve_read.h, lve, lr_init, lve,
   [http://lvempeg.sourceforge.net/])
@@ -1301,14 +1309,6 @@ AC_SUBST(AC3_CFLAGS)
 AC_SUBST(AC3_LIBS)
 
 dnl
-dnl libmpeg2
-dnl
-MPEG2CVS_CFLAGS="-I\$(top_srcdir)/libmpeg2"
-MPEG2CVS_LIBS="\$(top_builddir)/libmpeg2/libmpeg2cvs.la"
-AC_SUBST(MPEG2CVS_CFLAGS)
-AC_SUBST(MPEG2CVS_LIBS)
-
-dnl
 dnl libvo
 dnl
 LIBVO_CFLAGS="-I\$(top_srcdir)/libvo"
@@ -1392,7 +1392,6 @@ AC_OUTPUT([
 	libac3/Makefile
 	libdldarwin/Makefile
 	libioaux/Makefile
-	libmpeg2/Makefile
 	libsupport/Makefile
 	libtc/Makefile
 	libvo/Makefile

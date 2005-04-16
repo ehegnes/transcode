@@ -22,7 +22,9 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,50 +34,13 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <unistd.h>
+#include <mpeg2dec/mpeg2.h>
+#include <mpeg2dec/mpeg2convert.h>
 
 #include "ioaux.h"
-#include "video_out.h"
-#include "mpeg2.h"
-#include "mm_accel.h"
-
-extern vo_open_t vo_ppmpipe_open;
-extern vo_open_t vo_yuvpipe_open;
-extern vo_open_t vo_yuv_open;
-
-extern void mpeg2_mc_info(uint32_t accel);
-extern void mpeg2_idct_info(uint32_t accel);
 
 #define BUFFER_SIZE 262144
 static uint8_t buffer[BUFFER_SIZE];
-
-static FILE *in_file;
-static FILE *out_file;
-
-static mpeg2dec_t mpeg2dec;
-
-static int verbose;
-
-static void es_loop(void)
-{
-  uint8_t * end;
-  
-  do {
-    end = buffer + fread (buffer, 1, BUFFER_SIZE, in_file);
-    
-    mpeg2_decode_data (&mpeg2dec, buffer, end);
-    
-  } while (end == buffer + BUFFER_SIZE);
-}
-
-
-static int outstream(char *framebuffer, int bytes)
-{
-    if (fwrite(framebuffer, bytes, 1, out_file)!= 1) {
-	fprintf(stderr, "(%s) video write failed.\n", __FILE__);
-	import_exit(0);
-  }
-  return(1);
-}
 
 /* ------------------------------------------------------------ 
  *
@@ -83,35 +48,91 @@ static int outstream(char *framebuffer, int bytes)
  *
  * ------------------------------------------------------------*/
 
+static void
+show_accel(uint32_t mp_ac) {
+	fprintf (stderr, "[%s] libmpeg2 acceleration: ", __FILE__);
+	if (mp_ac & MPEG2_ACCEL_X86_3DNOW)
+		fprintf (stderr, "3dnow\n");
+	else if (mp_ac & MPEG2_ACCEL_X86_MMXEXT)
+		fprintf (stderr, "mmxext\n");
+	else if(mp_ac & MPEG2_ACCEL_X86_MMX)
+		fprintf (stderr, "mmx\n");
+	else
+		fprintf (stderr, "none (plain C)\n");
+}
+
+
 void decode_mpeg2(decode_t *decode)
 {
-  
-  vo_instance_t *output=NULL;
-  uint32_t accel;
+    mpeg2dec_t * decoder;
+    const mpeg2_info_t * info;
+    const mpeg2_sequence_t * sequence;
+    mpeg2_state_t state;
+    size_t size;
+    int framenum = 0, len = 0;
+    uint32_t ac;
 
-  verbose = decode->verbose;
+#ifndef RELEASE    
+    fprintf (stderr, "[%s] libmpeg2 0.4.0b loop decoder\n", 
+		    __FILE__);
+    
+    ac = mpeg2_accel (MPEG2_ACCEL_X86_MMXEXT);
+#else
+    ac = mpeg2_accel (MPEG2_ACCEL_DETECT);
+    // this seems to be the faster acceleration on athlon*
+#endif    
+    show_accel (ac);
+    
+    decoder = mpeg2_init ();
+    if (decoder == NULL) {
+	fprintf (stderr, "Could not allocate a decoder object.\n");
+	import_exit(1);
+    }
+    info = mpeg2_info (decoder);
 
-  accel = mm_accel () | MM_ACCEL_MLIB;
-  vo_accel(accel);
+    size = (size_t)-1;
+    do {
+	state = mpeg2_parse (decoder);
+	sequence = info->sequence;
+	switch (state) {
+	case STATE_BUFFER:
+	    size = p_read (decode->fd_in, buffer, BUFFER_SIZE);
+	    mpeg2_buffer (decoder, buffer, buffer + size);
+	    break;
+	case STATE_SEQUENCE:
+    	    if(decode->format == TC_CODEC_RGB) {
+	        mpeg2_convert (decoder, mpeg2convert_rgb24, NULL);
+	    }	    
+	    break;
+	case STATE_SLICE:
+	case STATE_END:
+	case STATE_INVALID_END:
+	    if (info->display_fbuf) {
+		if (decode->verbose >= 4) {
+			fprintf (stderr, "[%s] decoded frame #%09i\r", 
+					__FILE__, framenum++);
+		}
+		len = sequence->width * sequence->height;
+		if(len != p_write (decode->fd_out, info->display_fbuf->buf[0], len)) {
+			fprintf (stderr, "failed to write Y plane of frame");
+			import_exit (1);
+		}
+		len = sequence->chroma_width * sequence->chroma_height;
+		if (len != p_write (decode->fd_out, info->display_fbuf->buf[2], len)) {
+			fprintf (stderr, "failed to write U plane of frame");
+			import_exit (1);
+		}
+		if (len != p_write (decode->fd_out, info->display_fbuf->buf[1], len)) {
+			fprintf (stderr, "failed to write V plane of frame");
+			import_exit (1);
+		}
+	    }
+	    break;
+	default:
+	    break;
+	}
+    } while (size);
 
-  if(decode->format == TC_CODEC_YV12) output = vo_open(vo_yuvpipe_open, outstream);
-  if(decode->format == TC_CODEC_RGB) output = vo_open(vo_ppmpipe_open, outstream);
-
-  in_file = fdopen(decode->fd_in, "r");
-  out_file = fdopen(decode->fd_out, "w");
-   
-  mpeg2_init(&mpeg2dec, accel, output);
-
-  if(verbose & TC_DEBUG) {
-      mpeg2_mc_info(accel);
-      mpeg2_idct_info(accel);
-  }
-
-  es_loop();
-  
-  mpeg2_close(&mpeg2dec);
-  
-  vo_close(output);
-  
-  import_exit(0);
+    mpeg2_close (decoder);
+    import_exit(0);
 }
