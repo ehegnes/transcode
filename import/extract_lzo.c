@@ -126,7 +126,9 @@ void extract_lzo(info_t *ipipe)
 	      __FILE__, filetype(TC_MAGIC_RAW));
     
     
-    error=p_readwrite(ipipe->fd_in, ipipe->fd_out);
+    error = p_readwrite(ipipe->fd_in, ipipe->fd_out);
+    if (error < 0)
+        error = 1;
     
     break;
   }
