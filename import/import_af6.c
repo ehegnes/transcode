@@ -49,7 +49,7 @@ FILE *vfd, *afd;
 
 MOD_open
 {
-    int sret;
+    long sret;
 
     if(param->flag == TC_AUDIO) {
 

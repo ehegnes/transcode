@@ -52,7 +52,7 @@ static FILE *audiopipefd = NULL;
 
 MOD_open
 {
-  int sret;
+  long sret;
 
   /* check for mplayer */
   if (tc_test_program("mplayer") != 0) return (TC_EXPORT_ERROR);  

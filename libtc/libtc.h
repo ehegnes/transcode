@@ -68,6 +68,6 @@ size_t strlcat(char *dst, const char *src, size_t size);
  * If error, prints reason.
  */
 
-int tc_test_string(char *file, int line, int limit, int ret, int errnum);
+int tc_test_string(char *file, int line, int limit, long ret, int errnum);
 
 #endif  /* _LIBTC_H */

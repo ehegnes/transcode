@@ -69,7 +69,9 @@ MOD_open
 {
   int
     result,
-    string_length,
+    string_length;
+
+  long
     sret;
 
   char

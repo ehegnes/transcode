@@ -53,7 +53,7 @@ static int ac3_bytes_to_go=0;
 
 MOD_open
 {
-    int sret;
+    long sret;
 
     // audio only
     if(param->flag != TC_AUDIO) return(TC_IMPORT_ERROR);

@@ -327,7 +327,7 @@ int tc_socket_parameter(char *buf)
 {
     char *c = buf, *d;
     int filter_id;
-    size_t sret;
+    long sret;
 
     c = strchr (buf, ' ');
     while (c && *c == ' ')
@@ -567,7 +567,7 @@ void socket_thread(void)
 {
     int retval, msgsock;
     int thisfd;
-    size_t sret;
+    long sret;
 
     // too hard on the stack?
     char rbuf[M_BUF_SIZE];

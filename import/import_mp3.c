@@ -71,7 +71,7 @@ static int scan(char *name)
 MOD_open
 {
     int is_dir=0;
-    int sret;
+    long sret;
 
     // audio only
     if(param->flag != TC_AUDIO) return(TC_IMPORT_ERROR);

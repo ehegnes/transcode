@@ -82,7 +82,7 @@ MOD_open
 {
   char *logfile="sync.log";
   int n;
-  int sret;
+  long sret;
 
   int off=0;
 

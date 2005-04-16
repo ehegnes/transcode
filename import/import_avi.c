@@ -59,7 +59,7 @@ MOD_open
   int format=0, chan=0, bits=0;
   struct stat fbuf;
   char import_cmd_buf[TC_BUF_MAX];
-  int sret;
+  long sret;
   extern int errno;
 
   param->fd = NULL;

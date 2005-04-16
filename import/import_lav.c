@@ -47,7 +47,7 @@ char import_cmd_buf[TC_BUF_MAX];
 MOD_open
 {
   int i;
-  int sret;
+  long sret;
 
   i = strlen(vob->video_in_file);
   if(vob->video_in_file[i-1] == '/')

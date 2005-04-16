@@ -345,7 +345,7 @@ int load_single_plugin (char *mfilter_string)
 {
   int id = filter_next_free_id()+1;
   vob_t *vob = tc_get_vob();
-  size_t sret;
+  long sret;
 
   fprintf(stderr, "[%s] Loading (%s) ..\n", __FILE__, mfilter_string);
 

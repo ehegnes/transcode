@@ -60,7 +60,7 @@ MOD_open
 {
   
   char requant_buf[256];
-  int sret;
+  long sret;
 
   if(param->flag != TC_VIDEO) return(TC_IMPORT_ERROR);
   

@@ -68,7 +68,7 @@ MOD_open
 
   char cat_buf[TC_BUF_MAX];
   char yuv_buf[16];
-  int sret;
+  long sret;
 
   if(param->flag == TC_VIDEO) {
 

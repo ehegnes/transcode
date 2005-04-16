@@ -125,7 +125,8 @@ int tc_test_program(char *name)
 	char *tmp_path;
 	char **strtokbuf;
 	char done;
-	size_t pathlen, sret;
+	size_t pathlen;
+	long sret;
 	int error = 0;
 
 	if(!name)
@@ -207,7 +208,7 @@ int tc_test_program(char *name)
 #undef local_free
 
 
-int tc_test_string(char *file, int line, int limit, int ret, int errnum)
+int tc_test_string(char *file, int line, int limit, long ret, int errnum)
 {
     if (ret < 0) {
         fprintf(stderr, "[%s:%d] string error: %s\n",
@@ -215,7 +216,7 @@ int tc_test_string(char *file, int line, int limit, int ret, int errnum)
         return(1);
     }
     if (ret >= limit) {
-        fprintf(stderr, "[%s:%d] truncated %d characters\n",
+        fprintf(stderr, "[%s:%d] truncated %ld characters\n",
                         file, line, (ret - limit) + 1);
         return(1);
     }

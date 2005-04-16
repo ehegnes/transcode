@@ -244,7 +244,7 @@ MOD_open {
   char   *fourCC = NULL;
   double  fps = 0;
   int extra_data_size = 0;
-  int sret;
+  long sret;
 
   if (param->flag == TC_VIDEO) {
 

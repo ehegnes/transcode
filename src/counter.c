@@ -134,7 +134,7 @@ void counter_print(int pida, int pidn, char *s, long int t1, long int t2, char *
 
 void tc_progress(char *string) 
 {
-    size_t sret;
+    long sret;
     encoder_progress_flag=0;
    
     //off

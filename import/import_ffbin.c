@@ -57,7 +57,7 @@ static FILE *audiopipefd = NULL;
 
 MOD_open
 {
-  int sret;
+  long sret;
 
   /* check for ffmpeg */
   if (tc_test_program("ffmpeg") != 0) return (TC_EXPORT_ERROR);

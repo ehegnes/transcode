@@ -694,7 +694,7 @@ int main(int argc, char *argv[]) {
 
     int no_audio_adjust=TC_FALSE, no_split=TC_FALSE;
 
-    size_t sret;  /* used for string function return values */
+    long sret;  /* used for string function return values */
 
     static struct option long_options[] =
     {

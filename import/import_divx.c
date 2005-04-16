@@ -180,7 +180,7 @@ static int divx_init(char *path) {
     const
 #endif    
     char *error;
-    int sret;
+    long sret;
 
     handle = NULL;
 
