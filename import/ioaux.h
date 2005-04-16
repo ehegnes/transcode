@@ -27,11 +27,8 @@
 #include "transcode.h"
 #include "magic.h"
 
-#include <errno.h>
-#include <inttypes.h>
 
-
-// this exit is provided by the import module or frontend
+/* this exit is provided by the import module or frontend */
 extern void import_exit(int ret);
 
 int file_check(char *file);
