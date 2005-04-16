@@ -133,8 +133,9 @@ MOD_open
 	}
 
     result = snprintf (ptr, PATH_MAX - strlen(buf),
-                           "ffmpeg -y -f s%dle -ac %d -ar %d -i - -ab %d -ar %d -f mp2 %s%s",
+                           "ffmpeg -y -f s%d%s -ac %d -ar %d -i - -ab %d -ar %d -f mp2 %s%s",
                            vob->dm_bits,
+                           ((vob->dm_bits > 8) ? "le" : ""),
                            vob->dm_chan,
                            vob->a_rate,
                            vob->mp3bitrate,
