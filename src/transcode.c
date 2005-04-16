@@ -481,16 +481,10 @@ void signal_thread()
   if (writepid > 0)
     pthread_cond_signal(&writepid_cond);
   pthread_mutex_unlock(&writepid_mutex);
-
-  /*
-  sigemptyset(&sigs_to_block);
-  sigaddset(&sigs_to_block, SIGINT);
-  sigaddset(&sigs_to_block, SIGTERM);
-  sigaddset(&sigs_to_block, SIGPIPE);
-  */
   
   for (;;) {
-    
+
+    /* sigs_to_block were blocked in main() */    
     sigwait(&sigs_to_block, &caught);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
     pthread_testcancel();
