@@ -26,8 +26,10 @@
 #include <xio.h>
 
 #define MAX_BUF 4096
-static char buffer[MAX_BUF];
-char filename[1024];
+static char buffer[MAX_BUF];  /* only used in p_readwrite() */
+
+extern int errno;
+
 
 ssize_t p_read(int fd, char *buf, size_t len)
 {
@@ -35,58 +37,70 @@ ssize_t p_read(int fd, char *buf, size_t len)
    ssize_t r = 0;
 
    while (r < len) {
-      n = xio_read (fd, buf + r, len - r);
 
-	  if (n == 0)
-		break;
-	  if (n < 0) {
-		if (errno == EINTR)
-		  continue;
-		else
-		  break;
-	  } 
+      n = xio_read(fd, buf + r, len - r);
+
+      if (n == 0)  /* EOF */
+          break;
+      if (n < 0) {
+          if (errno == EINTR)
+              continue;
+          else
+              break;
+      }
+
       r += n;
    }
-
    return r;
 }
 
-ssize_t p_write (int fd, char *buf, size_t len)
+
+ssize_t p_write(int fd, char *buf, size_t len)
 {
    ssize_t n = 0;
    ssize_t r = 0;
 
    while (r < len) {
-      n = xio_write (fd, buf + r, len - r);
+
+      n = xio_write(fd, buf + r, len - r);
+
       if (n < 0) {
-		if (errno == EINTR)
-		  continue;
-		else
-		  break;
-	  }
+          if (errno == EINTR)
+              continue;
+          else
+              break;
+      }
+
       r += n;
    }
    return r;
 }
 
+
 int p_readwrite(int fd_in, int fd_out)
 {
     ssize_t bytes;
-    int error=0;
+    int error = 0;
 
     do {
-	
-	bytes=p_read(fd_in, buffer, MAX_BUF);
 
-	// error on read?
-	if(bytes<0) return(-1);
-	
-	// read stream end?
-	if(bytes!=MAX_BUF) error=1;
-	
-	// write stream problems?
-	if(p_write(fd_out, buffer, bytes)!= bytes) error=1;
-    } while(!error);
+	bytes = p_read(fd_in, buffer, MAX_BUF);
+
+	/* error on read? */
+	if (bytes < 0)
+            return(-1);
+
+	/* read stream end? */
+	if (bytes != MAX_BUF)
+            error = 1;
+
+        if (bytes) {
+            /* write stream problems? */
+            if (p_write(fd_out, buffer, bytes) != bytes)
+                error = 1;
+        }
+
+    } while (!error);
  
     return(0);
 }
@@ -94,11 +108,11 @@ int p_readwrite(int fd_in, int fd_out)
 
 int file_check(char *file)
 {
-    // checks for sane file
+    /* checks for sane file */
 
     struct stat fbuf;
-    
-    if(xio_stat(file, &fbuf) || file==NULL){
+
+    if (xio_stat(file, &fbuf) || file == NULL) {
 	fprintf(stderr, "(%s) invalid file \"%s\"\n", __FILE__, file);
 	return(1);
     }
@@ -106,16 +120,18 @@ int file_check(char *file)
     return(0);
 }
 
+
 void version(char *exe)
 {
-    // print id string to stderr
-    fprintf(stderr, "%s (%s v%s) (C) 2001-2003 Thomas Oestreich\n", exe, PACKAGE, VERSION);
+    /* print id string to stderr */
+    fprintf(stderr, "%s (%s v%s) (C) 2001-2003 Thomas Oestreich\n",
+                    exe, PACKAGE, VERSION);
 }
 
 
 void import_info(int code, char *EXE) 
 {
-  fprintf(stderr, "[%s] exit code (%d)\n", EXE, code);
+    fprintf(stderr, "[%s] exit code (%d)\n", EXE, code);
 }
 
 
@@ -123,25 +139,27 @@ unsigned int stream_read_int16(unsigned char *s)
 { 
   unsigned int a, b, result;
   
-  a=s[0];
-  b=s[1];
+  a = s[0];
+  b = s[1];
   
-  result = ( a << 8) | b;
+  result = (a << 8) | b;
   return result;
 }
+
 
 unsigned int stream_read_int32(unsigned char *s)
 { 
   unsigned int a, b, c, d, result;
   
-  a=s[0];
-  b=s[1];
-  c=s[2];
-  d=s[3];
+  a = s[0];
+  b = s[1];
+  c = s[2];
+  d = s[3];
   
   result = (a << 24) | (b << 16) | (c << 8) | d;
   return result;
 }
+
 
 double read_time_stamp(unsigned char *s)
 {
