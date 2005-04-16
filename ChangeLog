@@ -1,3 +1,10 @@
+2005-04-15 Francesco Romani <francesco dot romani at email dot it>
+  * INSTALL Makefile.am configure.in import/Makefile.am
+    import/decode_mpeg2.c import/decode_yuv.c libvo/Makefile.am
+    libmpeg2/*
+  Use an external libmpeg2-0.4.0b instead of an old local copy
+  of libmpeg2.
+
 2005-04-14 Jacob Meuser <jakemsr at jakemsr dot com>
   * INSTALL configure.in filter/Makefile.am filter/pp/*
   Sources for libpostproc are no longer part of transcode.  The 'pp'
