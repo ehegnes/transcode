@@ -107,8 +107,12 @@ MOD_open
     result = regexec(&preg, vob->video_in_file, 4, pmatch, 0);
     if (result) {
         fprintf(stderr, "Regex match failed: no image sequence\n");
-        head = malloc(strlen(vob->video_in_file) + 1);
-	head = strcpy(head, vob->video_in_file);
+	string_length = strlen(vob->video_in_file) + 1;
+        if ((head = malloc(string_length)) == NULL) {
+	    perror("filename head");
+	    return(TC_IMPORT_ERROR);
+	}
+	strlcpy(head, vob->video_in_file, string_length);
         tail = malloc(1);
         tail[0] = 0;
         first_frame = -1;
@@ -116,17 +120,19 @@ MOD_open
     }
     else {
         // split the name into head, frame number, and tail
-        head = malloc(pmatch[1].rm_eo - pmatch[1].rm_so + 1);
-        head = strncpy(head, 
-                       vob->video_in_file, 
-                       pmatch[1].rm_eo - pmatch[1].rm_so);
-        head[pmatch[1].rm_eo - pmatch[1].rm_so] = '\0';
+        string_length = pmatch[1].rm_eo - pmatch[1].rm_so + 1;
+        if ((head = malloc(string_length)) == NULL) {
+            perror("filename head");
+            return(TC_IMPORT_ERROR);
+        }
+        strlcpy(head, vob->video_in_file, string_length);
 
-        frame = malloc(pmatch[2].rm_eo - pmatch[2].rm_so + 1);
-        frame = strncpy(frame, 
-                        vob->video_in_file + pmatch[2].rm_so, 
-                        pmatch[2].rm_eo - pmatch[2].rm_so);
-        frame[pmatch[2].rm_eo - pmatch[2].rm_so] = '\0';
+        string_length = pmatch[2].rm_eo - pmatch[2].rm_so + 1;
+        if ((frame = malloc(string_length)) == NULL) {
+            perror("filename frame");
+            return(TC_IMPORT_ERROR);
+        }
+        strlcpy(frame, vob->video_in_file + pmatch[2].rm_so, string_length);
 
         // If the frame number is padded with zeros, record how many digits 
         // are actually being used.
@@ -135,11 +141,12 @@ MOD_open
         }
         first_frame = atoi(frame);
 
-        tail = malloc(pmatch[3].rm_eo - pmatch[3].rm_so + 1);
-        tail = strncpy(tail, 
-               vob->video_in_file + pmatch[3].rm_so, 
-               pmatch[3].rm_eo - pmatch[3].rm_so);
-        tail[pmatch[3].rm_eo - pmatch[3].rm_so] = '\0';
+        string_length = pmatch[3].rm_eo - pmatch[3].rm_so + 1;
+        if ((tail = malloc(string_length)) == NULL) {
+            perror("filename tail");
+            return(TC_IMPORT_ERROR);
+        }
+        strlcpy(tail, vob->video_in_file + pmatch[3].rm_so, string_length);
 
         // find the last frame by trying to open files
         last_frame = first_frame; 
@@ -199,14 +206,16 @@ MOD_decode {
 
     int
         column,
-        row;
+        row,
+        string_length;
 
 
     if (current_frame > last_frame)
         return(TC_IMPORT_ERROR);
 
     // build the filename for the current frame
-    filename = malloc(strlen(head) + pad + strlen(tail) + 1);
+    string_length = strlen(head) + pad + strlen(tail) + 1;
+    filename = malloc(string_length);
     if (pad) {
         frame = malloc(pad+1);
         framespec = malloc(10);
@@ -219,18 +228,18 @@ MOD_decode {
         frame = malloc(10);
         snprintf(frame, 10, "%d", current_frame);
     }
-    strcpy(filename, head);
+    strlcpy(filename, head, string_length);
     if (frame != NULL) {
-        strcpy(filename + strlen(head), frame);
-        strcpy(filename + strlen(head) + strlen(frame), tail);
+        strlcat(filename, frame, string_length);
+        free(frame);
+        frame = NULL;
     }
-    else
-        strcpy(filename + strlen(head), tail);
+    strlcat(filename, tail, string_length);
 
     // Have ImageMagick open the file and read in the image data.
     GetExceptionInfo(&exception_info);
     image_info=CloneImageInfo((ImageInfo *) NULL);
-    (void) strcpy(image_info->filename, filename);
+    (void) strlcpy(image_info->filename, filename, MaxTextExtent);
     image=ReadImage(image_info,&exception_info);
     if (image == (Image *) NULL) {
         MagickError(exception_info.severity,
@@ -279,7 +288,6 @@ MOD_decode {
     DestroyImageInfo(image_info);
     DestroyExceptionInfo(&exception_info);
     free(filename);
-    free(frame);
 
     return(TC_IMPORT_OK);
 }
