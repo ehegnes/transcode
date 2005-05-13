@@ -107,6 +107,8 @@
 #define TC_MAGIC_V4L2_VIDEO            0xF0F0F0F5
 #define TC_MAGIC_V4L2_AUDIO            0xF0F0F0F6
 
+#define TC_MAGIC_OSS_AUDIO	       0xF0F0F0F7
+
 #define TC_MAGIC_BKTR_VIDEO	       0xB5D00001
 #define TC_MAGIC_SUNAU_AUDIO	       0xB5D00002
 

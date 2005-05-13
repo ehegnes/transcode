@@ -139,21 +139,28 @@ OS dependent packages:
           from video capture hardware on Linux using the Video4Linux(2)
           API.
             please note: use import_v4l2 if possible; v4l is deprecated.
-    affected modues: import_v4l.so import_v4l2.so
+    affected modules: import_v4l.so import_v4l2.so
+
+  OSS
+    related options:
+      --enable-oss (disabled)
+          if enabled, builds OSS import module, which imports audio
+          from audio hardware on several platforms using the OSS API.
+    affected modules: import_oss.so
 
   bktr
     related options:
       --enable-bktr (disabled)
-          if enabled, builds bktr inport module, which imports video
+          if enabled, builds bktr import module, which imports video
           from video capture hardware on *BSD using the bktr(4) API.
-    affected modues: import_bktr.so
+    affected modules: import_bktr.so
 
   sunau
     related options:
       --enable-sunau (disabled)
           if enabled, builds sunau import module, which imports raw PCM
           audio from hardware on *BSD using the audio(4) API.
-    affected modues: import_sunau.so
+    affected modules: import_sunau.so
 
 Optional packages:
 

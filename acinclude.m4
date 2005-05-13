@@ -341,6 +341,40 @@ fi
 ])
 
 
+dnl TC_CHECK_OSS([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
+dnl Test for OSS headers
+dnl
+AC_DEFUN([TC_CHECK_OSS],
+[
+AC_MSG_CHECKING([whether OSS support is requested])
+AC_ARG_ENABLE(oss,
+  AC_HELP_STRING([--enable-oss],
+    [enable OSS audio support (no)]), 
+  [case "${enableval}" in
+    yes) ;;
+    no)  ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-oss) ;;
+  esac],
+  [enable_oss=no])
+AC_MSG_RESULT($enable_oss)
+
+have_oss="no"
+if test x"$enable_oss" = x"yes" ; then
+  AC_CHECK_HEADERS([sys/soundcard.h], [have_oss="yes"])
+  if test x"$have_oss" = x"no" ; then
+    AC_CHECK_HEADERS([soundcard.h], [have_oss="yes"])
+  fi
+
+  if test x"$have_oss" = x"yes" ; then
+    have_oss="yes"
+    ifelse([$1], , :, [$1])
+  else
+    AC_MSG_ERROR([OSS is requested, but cannot find headers])
+  fi
+fi
+])
+
+
 dnl TC_PATH_IBP([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for ibp libraries, and define IBP_LIBS
 dnl

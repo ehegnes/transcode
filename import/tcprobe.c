@@ -273,6 +273,11 @@ int main(int argc, char *argv[])
           stream_magic = TC_MAGIC_SUNAU_AUDIO;
           break;
 
+        case TC_PROBE_PATH_OSS:	/* OSS device */
+          ipipe.seek_allowed = 0;
+          stream_magic = TC_MAGIC_OSS_AUDIO;
+          break;
+
         case TC_PROBE_PATH_V4L_VIDEO:	/* v4l video device */
           ipipe.seek_allowed = 0;
           stream_magic = TC_MAGIC_V4L_VIDEO;

@@ -860,6 +860,7 @@ char *filetype(long magic)
   case TC_MAGIC_V4L_VIDEO:    return("V4L video device");
   case TC_MAGIC_BKTR_VIDEO:   return("bktr video device");
   case TC_MAGIC_SUNAU_AUDIO:  return("sunau audio device");
+  case TC_MAGIC_OSS_AUDIO:    return("OSS audio device");
   case TC_MAGIC_PIPE:         return("pipe/fifo (not seekable)");
   case TC_MAGIC_ERROR:        return("error");
   case TC_MAGIC_UNKNOWN: 

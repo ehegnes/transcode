@@ -67,6 +67,10 @@ if HAVE_SUNAU
 SUNAU_MOD = import_sunau.la
 endif
 
+if HAVE_OSS
+OSS_MOD = import_oss.la
+endif
+
 if HAVE_AVIFILE
 AF6_MOD = import_af6.la
 endif
@@ -115,6 +119,7 @@ pkg_LTLIBRARIES = \
 	import_ffbin.la \
 	$(BKTR_MOD) \
 	$(SUNAU_MOD) \
+	$(OSS_MOD) \
 	$(NET_MOD) \
 	import_yuv.la
 
@@ -233,6 +238,9 @@ import_bktr_la_LDFLAGS = -module -avoid-version
 
 import_sunau_la_SOURCES = import_sunau.c 
 import_sunau_la_LDFLAGS = -module -avoid-version 
+
+import_oss_la_SOURCES = import_oss.c 
+import_oss_la_LDFLAGS = -module -avoid-version 
 
 import_af6_la_SOURCES = import_af6.c
 import_af6_la_LDFLAGS = -module -avoid-version
@@ -431,6 +439,7 @@ tcprobe_SOURCES = \
 	probe_v4l.c \
 	probe_bktr.c \
 	probe_sunau.c \
+	probe_oss.c \
 	probe_pvn.c \
 	pvn.c \
 	pvnglobals.c

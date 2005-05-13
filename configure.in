@@ -730,6 +730,12 @@ dnl
 TC_CHECK_SUNAU(AC_DEFINE([HAVE_SUNAU], 1, [Have Sun style audio(4)]))
 AM_CONDITIONAL(HAVE_SUNAU, test x"$have_sunau" = x"yes")
 
+dnl
+dnl OSS
+dnl
+TC_CHECK_OSS(AC_DEFINE([HAVE_OSS], 1, [Have OSS audio]))
+AM_CONDITIONAL(HAVE_OSS, test x"$have_oss" = x"yes")
+
 
 dnl
 dnl optional 3rd party package support
@@ -1419,6 +1425,7 @@ statically linked              $enable_libavcodec_static
 hardware support
 ----------------------------------------
 v4l/v4l2                       $have_v4l
+OSS                            $have_oss
 bktr                           $have_bktr
 sunau                          $have_sunau
 

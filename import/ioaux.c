@@ -276,6 +276,8 @@ int probe_path(char *name)
                   return(TC_PROBE_PATH_ABSPATH);
               case 229: /* bktr */
                   return(TC_PROBE_PATH_BKTR);
+              case 0: /* OSS */
+                  return(TC_PROBE_PATH_OSS);
 # endif
               default: /* libdvdread uses "raw" disk devices here */
                   return(TC_PROBE_PATH_ABSPATH);
@@ -284,6 +286,8 @@ int probe_path(char *name)
                   return(TC_PROBE_PATH_V4L_VIDEO);
 	      case 14: /* dsp (Linux) */
                   return(TC_PROBE_PATH_V4L_AUDIO);
+              case 0: /* OSS */
+                  return(TC_PROBE_PATH_OSS);
 	      default:
 		  break;
 #endif

@@ -1,5 +1,11 @@
 2005-05-12 Jacob Meuser <jakemsr at jakemsr dot com>
-  * ChangeLog INSTALL configure.in import/Makefile.am import/lve/*
+  * INSTALL acinclude.m4 configure.in import/Makefile.am import/fileinfo.c
+    import/ioaux.c import/ioaux.h import/magic.h import/probe_stream.c
+    import/tc.h import/tcprobe.c import/import_oss.c import/probe_oss.c
+  Initial cut at OSS audio import module.
+
+2005-05-12 Jacob Meuser <jakemsr at jakemsr dot com>
+  * INSTALL configure.in import/Makefile.am import/lve/*
   Remove support for LVE.
 
 2005-04-15 Francesco Romani <francesco dot romani at email dot it>

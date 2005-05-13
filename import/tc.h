@@ -77,6 +77,7 @@ void probe_vnc(info_t *ipipe);
 void probe_v4l(info_t *ipipe);
 void probe_bktr(info_t *ipipe);
 void probe_sunau(info_t *ipipe);
+void probe_oss(info_t *ipipe);
 
 void probe_mxf(info_t *ipipe);
 void extract_mxf(info_t *ipipe);

@@ -114,5 +114,6 @@ typedef struct sync_info_s {
 #define TC_PROBE_PATH_SUNAU	6
 #define TC_PROBE_PATH_V4L_VIDEO	7
 #define TC_PROBE_PATH_V4L_AUDIO	8
+#define TC_PROBE_PATH_OSS	9
 
 #endif   /* _IOAUX_H */
