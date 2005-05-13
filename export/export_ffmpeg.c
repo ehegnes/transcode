@@ -696,6 +696,51 @@ MOD_init {
     }
 
     switch (vob->ex_frc) {
+#if LIBAVCODEC_BUILD >= 4754
+    case 1: /* 23.976 */
+        lavc_venc_context->time_base.den = 24000;
+        lavc_venc_context->time_base.num = 1001;
+        break;
+    case 2: /* 24.000 */
+        lavc_venc_context->time_base.den = 24000;
+        lavc_venc_context->time_base.num = 1000;
+        break;
+    case 3: /* 25.000 */
+        lavc_venc_context->time_base.den = 25000;
+        lavc_venc_context->time_base.num = 1000;
+        break;
+    case 4: /* 29.970 */
+        lavc_venc_context->time_base.den = 30000;
+        lavc_venc_context->time_base.num = 1001;
+        break;
+    case 5: /* 30.000 */
+        lavc_venc_context->time_base.den = 30000;
+        lavc_venc_context->time_base.num = 1000;
+        break;
+    case 6: /* 50.000 */
+        lavc_venc_context->time_base.den = 50000;
+        lavc_venc_context->time_base.num = 1000;
+        break;
+    case 7: /* 59.940 */
+        lavc_venc_context->time_base.den = 60000;
+        lavc_venc_context->time_base.num = 1001;
+        break;
+    case 8: /* 60.000 */
+        lavc_venc_context->time_base.den = 60000;
+        lavc_venc_context->time_base.num = 1000;
+        break;
+    case 0: /* not set */
+    default:
+        if ((vob->ex_fps > 29) && (vob->ex_fps < 30)) {
+            lavc_venc_context->time_base.den = 30000;
+            lavc_venc_context->time_base.num = 1001;
+        } else {
+            lavc_venc_context->time_base.den = (int)(vob->ex_fps * 1000.0);
+            lavc_venc_context->time_base.num = 1000;
+        }
+        break;
+    }
+#else
     case 1: /* 23.976 */
         lavc_venc_context->frame_rate      = 24000;
         lavc_venc_context->frame_rate_base = 1001;
@@ -739,6 +784,7 @@ MOD_init {
         }
         break;
     }
+#endif
 
     module_read_config(codec->name, MOD_NAME, "ffmpeg", lavcopts_conf, tc_config_dir);
     if (verbose_flag & TC_DEBUG) {
@@ -750,6 +796,47 @@ MOD_init {
     /* this overrides transcode settings */
     if (lavc_param_fps_code > 0) {
         switch (lavc_param_fps_code) {
+#if LIBAVCODEC_BUILD >= 4754
+        case 1: /* 23.976 */
+            lavc_venc_context->time_base.den = 24000;
+            lavc_venc_context->time_base.num = 1001;
+            break;
+        case 2: /* 24.000 */
+            lavc_venc_context->time_base.den = 24000;
+            lavc_venc_context->time_base.num = 1000;
+            break;
+        case 3: /* 25.000 */
+            lavc_venc_context->time_base.den = 25000;
+            lavc_venc_context->time_base.num = 1000;
+            break;
+        case 4: /* 29.970 */
+            lavc_venc_context->time_base.den = 30000;
+            lavc_venc_context->time_base.num = 1001;
+            break;
+        case 5: /* 30.000 */
+            lavc_venc_context->time_base.den = 30000;
+            lavc_venc_context->time_base.num = 1000;
+            break;
+        case 6: /* 50.000 */
+            lavc_venc_context->time_base.den = 50000;
+            lavc_venc_context->time_base.num = 1000;
+            break;
+        case 7: /* 59.940 */
+            lavc_venc_context->time_base.den = 60000;
+            lavc_venc_context->time_base.num = 1001;
+            break;
+        case 8: /* 60.000 */
+            lavc_venc_context->time_base.den = 60000;
+            lavc_venc_context->time_base.num = 1000;
+            break;
+        case 0: /* not set */
+        default:
+            /*
+             *  lavc_venc_context->time_base.den = (int)(vob->ex_fps * 1000.0);
+             *  lavc_venc_context->time_base.num = 1000;
+             */
+            break;
+#else
         case 1: /* 23.976 */
             lavc_venc_context->frame_rate      = 24000;
             lavc_venc_context->frame_rate_base = 1001;
@@ -789,6 +876,7 @@ MOD_init {
              *  lavc_venc_context->frame_rate_base = 1000;
              */
             break;
+#endif
         }
     }
 
