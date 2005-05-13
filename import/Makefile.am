@@ -332,7 +332,8 @@ tcdecode_LDADD = \
 	$(LIBQUICKTIME_LIBS) \
 	$(LZO_LIBS) \
 	$(XIO_LIBS) \
-	$(ACLIB_LIBS)
+	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS)
 
 tcdecode_CFLAGS = $(AM_CFLAGS)
 
@@ -344,6 +345,7 @@ tcrequant_SOURCES = tcrequant.c
 tcrequant_LDADD = \
 	$(XIO_LIBS) \
 	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS) \
 	-lm
 
 tcrequant_CFLAGS = $(AM_CFLAGS)
@@ -365,7 +367,6 @@ tccat_SOURCES = \
 	ts_reader.c
 
 tccat_LDADD = \
-	$(LIBTC_LIBS) \
 	$(AVILIB_LIBS) \
 	$(LIBDVDREAD_LIBS) \
 	$(LIBDV_LIBS) \
@@ -373,6 +374,7 @@ tccat_LDADD = \
 	$(XIO_LIBS) \
 	$(LIBXML2_LIBS) \
 	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS) \
 	-lm
 
 tccat_CFLAGS = $(AM_CFLAGS)
@@ -400,6 +402,7 @@ tcscan_LDADD = \
 	$(LIBDV_LIBS) \
 	$(XIO_LIBS) \
 	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS) \
 	-lm
 
 tcscan_CFLAGS = $(AM_CFLAGS)
@@ -461,6 +464,7 @@ tcprobe_LDADD = \
 	$(XIO_LIBS) \
 	$(LIBXML2_LIBS) \
 	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS) \
 	-lm
 
 tcprobe_CFLAGS = $(AM_CFLAGS)
@@ -498,6 +502,7 @@ tcextract_LDADD = \
 	$(VORBIS_LIBS) \
 	$(XIO_LIBS) \
 	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS) \
 	-lm
 
 tcextract_CFLAGS = $(AM_CFLAGS)
@@ -529,6 +534,7 @@ tcdemux_LDADD = \
 	$(DLDARWINLIB) \
 	$(XIO_LIBS) \
 	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS) \
 	$(PTHREAD_LIBS) \
 	-lm
 
@@ -541,7 +547,7 @@ tcdemux_CFLAGS = $(AM_CFLAGS)
 
 tcxmlcheck_SOURCES = \
 	tcxmlcheck.c \
-   	probe_xml.c \
+	probe_xml.c \
 	ioxml.c \
 	ioaux.c \
 	fileinfo.c \
@@ -552,6 +558,7 @@ tcxmlcheck_LDADD = \
 	$(XIO_LIBS) \
 	$(LIBXML2_LIBS) \
 	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS) \
 	-lm
 
 tcxmlcheck_CFLAGS = $(AM_CFLAGS)

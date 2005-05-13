@@ -29,7 +29,8 @@ avisync_SOURCES = \
 avisync_LDADD = \
 	$(AVILIB_LIBS) \
 	$(XIO_LIBS) \
-	$(ACLIB_LIBS)
+	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS)
 
 avimerge_SOURCES = \
 	avimerge.c \
@@ -38,7 +39,8 @@ avimerge_SOURCES = \
 avimerge_LDADD = \
 	$(AVILIB_LIBS) \
 	$(XIO_LIBS) \
-	$(ACLIB_LIBS)
+	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS)
 
 avifix_SOURCES = \
 	avifix.c \
@@ -47,7 +49,8 @@ avifix_SOURCES = \
 avifix_LDADD = \
 	$(AVILIB_LIBS) \
 	$(XIO_LIBS) \
-	$(ACLIB_LIBS)
+	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS)
 
 aviindex_SOURCES = \
 	aviindex.c \
@@ -56,7 +59,8 @@ aviindex_SOURCES = \
 aviindex_LDADD = \
 	$(AVILIB_LIBS) \
 	$(XIO_LIBS) \
-	$(ACLIB_LIBS)
+	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS)
 
 avisplit_SOURCES = \
 	avisplit.c \
@@ -66,12 +70,14 @@ avisplit_LDADD = \
 	$(AVILIB_LIBS) \
 	$(TCIOAUX_LIBS) \
 	$(XIO_LIBS) \
-	$(ACLIB_LIBS)
+	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS)
 
 tcmodinfo_SOURCES = tcmodinfo.c ../src/optstr.c
 tcmodinfo_LDADD = \
 	$(DLDARWINLIB) \
 	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS) \
 	-lm
 tcmodinfo_LDFLAGS = -export-dynamic 
 
