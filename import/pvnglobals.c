@@ -129,12 +129,12 @@ int genFileName(const char *prefix, const char *suffix, char filename[MAX_FILENA
     return(ERROR);
   }
 
-  strcpy(filename, prefix);
+  strlcpy(filename, prefix, MAX_FILENAME_LENGTH);
 
 #if 0
   for (i=0; i < (digits-used_digits); i++)
   {
-    strcat(filename, "0");
+    strlcat(filename, "0", MAX_FILENAME_LENGTH);
   }
 
   sprintf(&filename[strlen(filename)], "%d%s", val,suffix);
@@ -145,8 +145,8 @@ int genFileName(const char *prefix, const char *suffix, char filename[MAX_FILENA
     return(ERROR);
   }
   snprintf(digits_buf, digits + 1, format_buf, val);
-  strcat(filename, digits_buf);
-  strcat(filename, suffix);
+  strlcat(filename, digits_buf, MAX_FILENAME_LENGTH);
+  strlcat(filename, suffix, MAX_FILENAME_LENGTH);
   free(digits_buf);
 #endif
 
