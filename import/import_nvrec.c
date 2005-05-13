@@ -66,21 +66,21 @@ MOD_open
   }
 
   if (vob->out_flag) {
-      strncpy(afile, vob->audio_out_file, strlen(vob->audio_out_file));
+      strlcpy(afile, vob->audio_out_file, sizeof(afile));
       vob->out_flag = 0;  /* XXX */
   } else
-      strcpy(afile, "audio.avi");
+      strlcpy(afile, "audio.avi", sizeof(afile));
 
-  strcpy(prgname, "DIVX4rec");
+  strlcpy(prgname, "DIVX4rec", sizeof(prgname));
 
   /* this is ugly */
   ret = system("DIVX4rec -h >/dev/null 2>&1");
   if (ret == 0 || ret == 65280)
-      strcpy(prgname, "DIVX4rec");
+      strlcpy(prgname, "DIVX4rec", sizeof(prgname));
 
   ret = system("divx4rec -h >/dev/null 2>&1");
   if (ret == 0 || ret == 65280)
-      strcpy(prgname, "divx4rec");
+      strlcpy(prgname, "divx4rec", sizeof(prgname));
 
   /* make this even more ugly. Add another check for prgname */
   if (tc_test_program(prgname) != 0) return (TC_EXPORT_ERROR);
