@@ -327,18 +327,6 @@ Optional packages:
           directory where libmpeg3 libraries [libmpeg3.so] are installed
     affected modules: import_mpeg3.so
 
-  liblve >= 040322  http://lvempeg.sourceforge.net/
-    related options:
-      --enable-liblve (disabled)
-          build with support for LVE edit lists
-      --with-liblve-prefix=PFX (/usr)
-          prefix where liblve is installed
-      --with-liblve-includes=DIR (/usr/include)
-          directory where liblve headers [lve_read.h] are installed
-      --with-liblve-libs=DIR (/usr/lib)
-          directory where liblve libraries [liblve.so] are installed
-    affected modules: import_lve.so
-
   PVM3  http://www.netlib.org/pvm3/
     related options:
       --enable-pvm3 (disabled)

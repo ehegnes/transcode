@@ -78,11 +78,7 @@ endif
 
 pkgdir = $(MOD_PATH)
 
-if HAVE_LIBLVE
-LVEDIR = lve
-endif
-
-SUBDIRS = nuv v4l $(LVEDIR)
+SUBDIRS = nuv v4l
 
 pkg_LTLIBRARIES = \
 	import_avi.la \

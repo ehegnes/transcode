@@ -1039,16 +1039,6 @@ fi
 TC_PKG_HAVE(a52, A52)
 
 dnl
-dnl GM's lve
-dnl
-LIBLVE_EXTRA_LIBS="$LIBLVE_EXTRA_LIBS $LIBAVCODEC_LIBS $A52_LIBS $LIBMPEG2_LIBS"
-AC_LANG_PUSH([C++])
-TC_PKG_CHECK(liblve, no, LIBLVE, no, lve_read.h, lve, lr_init, lve,
-  [http://lvempeg.sourceforge.net/])
-AC_LANG_POP([C++])
-TC_PKG_HAVE(liblve, LIBLVE)
-
-dnl
 dnl libmpeg3
 dnl
 LIBMPEG3_EXTRA_LIBS="$LIBMPEG3_EXTRA_LIBS $A52_LIBS -lm $PTHREAD_LIBS"
@@ -1386,7 +1376,6 @@ AC_OUTPUT([
 	filter/tomsmocomp/Makefile
 	filter/yuvdenoise/Makefile
 	import/Makefile
-	import/lve/Makefile
 	import/nuv/Makefile
 	import/v4l/Makefile
 	libac3/Makefile

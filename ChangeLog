@@ -1,3 +1,7 @@
+2005-05-12 Jacob Meuser <jakemsr at jakemsr dot com>
+  * ChangeLog INSTALL configure.in import/Makefile.am import/lve/*
+  Remove support for LVE.
+
 2005-04-15 Francesco Romani <francesco dot romani at email dot it>
   * INSTALL Makefile.am configure.in import/Makefile.am
     import/decode_mpeg2.c import/decode_yuv.c libvo/Makefile.am
