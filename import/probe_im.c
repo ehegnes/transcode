@@ -44,7 +44,7 @@ void probe_im(info_t *ipipe)
 
 	GetExceptionInfo(&exception_info);
 	image_info = CloneImageInfo((ImageInfo*)NULL);
-	strcpy(image_info->filename, ipipe->name);
+	strlcpy(image_info->filename, ipipe->name, MaxTextExtent);
 	image = ReadImage(image_info, &exception_info);
 	if (image == NULL)
 	{

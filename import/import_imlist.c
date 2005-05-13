@@ -122,7 +122,7 @@ MOD_decode {
     // Have ImageMagick open the file and read in the image data.
     GetExceptionInfo(&exception_info);
     image_info=CloneImageInfo((ImageInfo *) NULL);
-    (void) strcpy(image_info->filename, filename);
+    (void) strlcpy(image_info->filename, filename, MaxTextExtent);
 
     image=ReadImage(image_info, &exception_info);
     if (image == (Image *) NULL) {

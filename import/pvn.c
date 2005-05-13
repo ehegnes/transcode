@@ -103,7 +103,7 @@ int PVNParamCopy(PVNParam *dest, PVNParam *src)
   }
   else
   {
-    strcpy(dest->magic, src->magic);
+    strlcpy(dest->magic, src->magic, 5);
     dest->width=src->width;
     dest->height=src->height;
     dest->depth=src->depth;
