@@ -36,6 +36,8 @@ char buf[MAX_BUF];
 
 static int verbose=TC_INFO;
 
+extern int errno;
+
 void import_exit(int code) 
 {
   if(verbose & TC_DEBUG) import_info(code, EXE);
@@ -107,7 +109,9 @@ int main(int argc, char *argv[])
   struct hostent *hp;
 #endif
   info_t ipipe;
-  
+  size_t namelen;
+  long sret;
+
   int user=0, source=0;
   
   int end_chapter, start_chapter;
@@ -304,8 +308,14 @@ int main(int argc, char *argv[])
   ipipe.vob_offset = vob_offset;
 
   if (name) {
-      ipipe.name = malloc(strlen(name)+3);
-      strcpy(ipipe.name, name);
+      namelen = strlen(name) + 1;
+      if ((ipipe.name = malloc(namelen)) == NULL) {
+          fprintf(stderr, "(%s) could not allocate memory\n", __FILE__);
+          exit(1);
+      }
+      sret = strlcpy(ipipe.name, name, namelen);
+      if (tc_test_string(__FILE__, __LINE__, namelen, sret, errno))
+          exit(1);
   } else {
       ipipe.name = NULL;
   }

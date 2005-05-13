@@ -228,6 +228,7 @@ int main (int argc, char *argv[])
     char *out = NULL, *d;
     char *outfile = NULL, *infile=NULL;
     color_t *colormap;
+    long sret;
 
     while ((ch = getopt(argc, argv, "i:o:vh?")) != -1) {
 	
@@ -335,11 +336,16 @@ int main (int argc, char *argv[])
 
     for (j=0; j<colors; j++) {
 	p = clist[j];
+
 	keys[j] = malloc(bwidth+1); // a bit stupid since bwidth is usually just 1 or 2
 	keys[j][bwidth]='\0';
 
-	strncpy(keys[j], p, bwidth);
-	strcpy(target,"gray");
+	sret = strlcpy(keys[j], p, bwidth+1);
+	tc_test_string(__FILE__, __LINE__, bwidth+1, sret, errno);
+
+	sret = strlcpy(target, "gray", sizeof(target));
+	tc_test_string(__FILE__, __LINE__, sizeof(target), sret, errno);
+
 	q = ParseColor (p+bwidth);
 	if (q != (char *) NULL)
 	{

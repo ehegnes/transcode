@@ -5,6 +5,7 @@ AM_CPPFLAGS = \
 	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
+	$(LIBTC_CFLAGS) \
 	$(A52_CFLAGS) \
 	$(AC3_CFLAGS) \
 	$(AVILIB_CFLAGS) \
@@ -364,6 +365,7 @@ tccat_SOURCES = \
 	ts_reader.c
 
 tccat_LDADD = \
+	$(LIBTC_LIBS) \
 	$(AVILIB_LIBS) \
 	$(LIBDVDREAD_LIBS) \
 	$(LIBDV_LIBS) \
@@ -560,5 +562,7 @@ tcxmlcheck_CFLAGS = $(AM_CFLAGS)
 # ----------------- # 
 
 tcxpm2rgb_SOURCES = tcxpm2rgb.c
+
+tcxpm2rgb_LDADD = $(LIBTC_LIBS)
 
 tcxpm2rgb_CFLAGS = $(AM_CFLAGS)
