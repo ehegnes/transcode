@@ -49,8 +49,7 @@ extern int errno;
 
 extern int errno;
 
-#include "libtc/tc_func_excl.h"
-/* imported from libtc/tc_func_excl.h
+/* imported from libtc
 #define COL(x)  "\033[" #x ";1m"
 char *RED    = COL(31);
 char *GREEN  = COL(32);

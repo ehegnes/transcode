@@ -39,6 +39,14 @@ void tc_error(char *fmt, ...);
 void tc_info(char *fmt, ...);
 void tc_warn(char *fmt, ...);
 
+extern char *RED;
+extern char *GREEN;
+extern char *YELLOW;
+extern char *BLUE;
+extern char *WHITE;
+extern char *GRAY;
+
+
 /*
  * Find program <name> in $PATH
  * returns 0 if found, ENOENT if not and the value of errno of the first 

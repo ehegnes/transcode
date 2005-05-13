@@ -36,7 +36,6 @@
 #include "aclib/ac.h"
 #include "export_pvm_slave.h"
 #include "external_codec.h"
-#include "libtc/tc_func_excl.h"
 
 #define EXE "tcpvmexportd"
 

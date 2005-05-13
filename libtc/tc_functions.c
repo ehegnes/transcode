@@ -33,6 +33,7 @@
 #include <errno.h>
 
 #include "libtc.h"
+#include "tc_func_excl.h"
 
 #if defined(HAVE_ALLOCA_H)
 #include <alloca.h>
