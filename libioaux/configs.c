@@ -936,12 +936,12 @@ CF_NEW_ROOT( char * name, CF_SECTION_TYPE * pSection, CF_COMMENT_TYPE * pComment
 		pCfr->comment = NULL;
 
 		if( name != NULL ) {
-			if( ( pCfr->name = MALLOC( strlen( name ) + 1 ) ) == NULL ) {
+			if ((pCfr->name = MALLOC(strlen(name) + 1)) == NULL) {
 				CF_FREE_ROOT( pCfr );
 				return NULL;
 			}
 
-			if( strncpy( pCfr->name, name, strlen( name ) + 1 ) != pCfr->name ) {
+			if (strlcpy(pCfr->name, name, strlen(name) + 1) > strlen(name) ) {
 				CF_FREE_ROOT( pCfr );
 				return NULL;
 			}
@@ -1024,13 +1024,13 @@ CF_NEW_SECTION( char * name, CF_KEYVALUE_TYPE * pKeyvalue, CF_SUBSECTION_TYPE * 
 		pCfs->next = NULL;
 
 		if( name != NULL ) {
-			if( ( pCfs->name = MALLOC( strlen( name ) + 1 ) ) == NULL ) {
-				CF_FREE_SECTION( pCfs );
+			if ((pCfs->name = MALLOC(strlen(name) + 1)) == NULL) {
+				CF_FREE_SECTION(pCfs);
 				return NULL;
 			}
 
-			if( strncpy( pCfs->name, name, strlen( name ) + 1 ) != pCfs->name ) {
-				CF_FREE_SECTION( pCfs );
+			if (strlcpy(pCfs->name, name, strlen(name) + 1) > strlen(name)) {
+				CF_FREE_SECTION(pCfs);
 				return NULL;
 			}
 		}
@@ -1223,13 +1223,13 @@ CF_NEW_SUBSECTION( char * name, CF_KEYVALUE_TYPE * pKeyvalue, char * pComment )
 		pCfu->next = NULL;
 
 		if( name != NULL ) {
-			if( ( pCfu->name = MALLOC( strlen( name ) + 1 ) ) == NULL ) {
-				CF_FREE_SUBSECTION( pCfu );
+			if ((pCfu->name = MALLOC(strlen(name) + 1)) == NULL) {
+				CF_FREE_SUBSECTION(pCfu);
 				return NULL;
 			}
 
-			if( strncpy( pCfu->name, name, strlen( name ) + 1 ) != pCfu->name ) {
-				CF_FREE_SUBSECTION( pCfu );
+			if (strlcpy(pCfu->name, name, strlen(name) + 1) > strlen(name)) {
+				CF_FREE_SUBSECTION(pCfu);
 				return NULL;
 			}
 		}
@@ -1425,7 +1425,7 @@ CF_NEW_KEYVALUE( char * pKey, char * pVal, CF_VALUE_TYPE vtype, char * pComment 
 			/*
 			 * stuff the string.
 			 */
-			if( strncpy( pK, pKey, strlen( pKey ) + 1 ) != pK )
+			if (strlcpy(pK, pKey, strlen(pKey) + 1) > strlen(pKey))
 				return NULL;
 			/*
 			 * fill in the key part.
@@ -1449,7 +1449,7 @@ CF_NEW_KEYVALUE( char * pKey, char * pVal, CF_VALUE_TYPE vtype, char * pComment 
 			/*
 			 * stuff the string.
 			 */
-			if( strncpy( pV, pVal, strlen( pVal ) + 1 ) != pV )
+			if (strlcpy(pV, pVal, strlen(pVal) + 1) > strlen(pVal))
 				return NULL;
 			/*
 			 * fill in the value part.
@@ -1741,13 +1741,13 @@ CF_NEW_COMMENT( char * pComment )
 		pCfc->next = NULL;
 
 		if( pComment != NULL ) {
-			if( ( pCfc->comment = MALLOC( strlen( pComment ) + 1 ) ) == NULL ) {
-				CF_FREE_COMMENT( pCfc );
+			if ((pCfc->comment = MALLOC(strlen(pComment) + 1)) == NULL ) {
+				CF_FREE_COMMENT(pCfc);
 				pCfc = NULL;
 			}
 
-			if( strncpy( pCfc->comment, pComment, strlen( pComment ) + 1 ) != pCfc->comment ) {
-				CF_FREE_COMMENT( pCfc );
+			if (strlcpy(pCfc->comment, pComment, strlen(pComment) + 1 ) > strlen(pComment) ) {
+				CF_FREE_COMMENT(pCfc);
 				pCfc = NULL;
 			}
 		}
@@ -2148,32 +2148,32 @@ cf_split( char * pString, char ** pKeyP, char ** pValP, cf_t * pType, char ** pC
 	/*
 	 * first copy the String to newString.
 	 */
-	if( strncpy( newString, pString, CF_BUFSIZE ) != newString )
+	if( strlcpy( newString, pString, CF_BUFSIZE ) >= CF_BUFSIZE )
 		return NULL;
 	/*
 	 * next find the '=' in newString that marks a key-value pair.
 	 * if found, copy the key and value to newKey and newValue.
 	 */
 	if( ( pSplit = strchr( newString, '=' ) ) != NULL ) {
-		if( strncpy( newVal, pSplit + 1, CF_BUFSIZE ) != newVal )
+		if( strlcpy( newVal, pSplit + 1, CF_BUFSIZE ) >= CF_BUFSIZE )
 			return NULL;
 
 		* pSplit = '\0';
 
-		if( strncpy( newKey, newString, CF_BUFSIZE ) != newKey )
+		if( strlcpy( newKey, newString, CF_BUFSIZE ) >= CF_BUFSIZE )
 			return NULL;
 	}
 	/*
 	 * if not then copy newString to newKey and newVal.
 	 */
 	else {
-		if( strncpy( newKey, newString, CF_BUFSIZE ) != newKey )
+		if( strlcpy( newKey, newString, CF_BUFSIZE ) >= CF_BUFSIZE )
 			return NULL;
 
-		if( strncpy( newVal, newString, CF_BUFSIZE ) != newVal )
+		if( strlcpy( newVal, newString, CF_BUFSIZE ) >= CF_BUFSIZE )
 			return NULL;
 
-		if( strncpy( newComment, newString + 1, CF_BUFSIZE ) != newComment )
+		if( strlcpy( newComment, newString + 1, CF_BUFSIZE ) >= CF_BUFSIZE )
 			return NULL;
 	}
 	/*
@@ -2186,7 +2186,7 @@ cf_split( char * pString, char ** pKeyP, char ** pValP, cf_t * pType, char ** pC
 	 * the comment.
 	 */
 	if( ( pSplit = strchr( newVal, '~' ) ) != NULL ) {
-		if( strncpy( newComment, pSplit + 1, CF_BUFSIZE ) != newComment )
+		if( strlcpy( newComment, pSplit + 1, CF_BUFSIZE ) >= CF_BUFSIZE )
 			return NULL;
 		/*
 		 * this key-value pair has a type.
@@ -2214,7 +2214,7 @@ cf_split( char * pString, char ** pKeyP, char ** pValP, cf_t * pType, char ** pC
 		 * the string could still have a comment even though it
 		 * has no type.
 		 */
-		if( strncpy( newComment, pString + 1, CF_BUFSIZE ) != newComment )
+		if( strlcpy( newComment, pString + 1, CF_BUFSIZE ) >= CF_BUFSIZE )
 			return NULL;
 	}
 	/*
@@ -2225,7 +2225,7 @@ cf_split( char * pString, char ** pKeyP, char ** pValP, cf_t * pType, char ** pC
 		/*
 		 * this key-value pair has a comment.
 		 */
-		if( strncpy( newComment, pSplit, CF_BUFSIZE ) != newComment )
+		if( strlcpy( newComment, pSplit, CF_BUFSIZE ) >= CF_BUFSIZE )
 			return NULL;
 
 		* pCmtP = newComment;
@@ -2302,7 +2302,7 @@ cf_isolate( CF_STATE_TYPE state, char * pString, char ** pCmtP )
 	/*
 	 * step over the front character.
 	 */
-	if( strncpy( newString, pString + 1, CF_BUFSIZE ) != newString )
+	if( strlcpy( newString, pString + 1, CF_BUFSIZE ) >= CF_BUFSIZE )
 		return NULL;
 	/*
 	 * now find and kill the back character.
@@ -2328,7 +2328,7 @@ cf_isolate( CF_STATE_TYPE state, char * pString, char ** pCmtP )
 			/*
 			 * this section or subsection has a comment.
 			 */
-			if( strncpy( newComment, pSplit, CF_BUFSIZE ) != newComment )
+			if( strlcpy( newComment, pSplit, CF_BUFSIZE ) >= CF_BUFSIZE )
 				return NULL;
 
 			* pCmtP = newComment;
@@ -2358,7 +2358,7 @@ cf_sntoupper( char * pString, int num )
 	if( pString == NULL || num <= 0 || num > CF_BUFSIZE )
 		return NULL;
 
-	if( strncpy( upper, pString, CF_BUFSIZE ) != upper )
+	if( strlcpy( upper, pString, CF_BUFSIZE ) >= CF_BUFSIZE )
 		return NULL;
 
 	if( num < CF_BUFSIZE )
@@ -2485,9 +2485,9 @@ int module_read_config(char *section, char *prefix, char *module, struct config 
   char	      conffile[256];
 
   if (configdir) {
-      snprintf(conffile, 255, "%s/%s.cfg", configdir, module);
+      snprintf(conffile, sizeof(conffile), "%s/%s.cfg", configdir, module);
   } else {
-      snprintf(conffile, 255, "./%s.cfg", module);
+      snprintf(conffile, sizeof(conffile), "./%s.cfg", module);
   }
   
   /* Search for the config file called module.cfg */
@@ -2495,7 +2495,7 @@ int module_read_config(char *section, char *prefix, char *module, struct config 
     char *home = getenv("HOME");
     
     if (home != NULL) {
-      snprintf(buffer, 1023, "%s/.transcode/%s.cfg", home, module);
+      snprintf(buffer, sizeof(buffer), "%s/.transcode/%s.cfg", home, module);
       if (stat(buffer, &statfile) != 0) {
         fprintf(stderr, "[%s] Neither './%s.cfg' nor '~/.transcode/%s.cfg'\n"
                 "[%s] found. Default settings will be used instead.\n",
@@ -2506,7 +2506,7 @@ int module_read_config(char *section, char *prefix, char *module, struct config 
       return 0;
     }
   } else {
-    strcpy(buffer, conffile);
+    strlcpy(buffer, conffile, sizeof(buffer));
   }
 
   fprintf(stderr, "[%s] Reading configuration from '%s'\n", prefix, buffer);
