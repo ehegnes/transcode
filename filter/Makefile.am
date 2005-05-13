@@ -239,7 +239,6 @@ filter_tc_video_la_LDFLAGS = -module -avoid-version
 
 filter_test_la_SOURCES = filter_test.c
 filter_test_la_LDFLAGS = -module -avoid-version
-filter_test_la_LIBADD = $(ACLIB_LIBS)
 
 filter_testframe_la_SOURCES = filter_testframe.c
 filter_testframe_la_LDFLAGS = -module -avoid-version 
