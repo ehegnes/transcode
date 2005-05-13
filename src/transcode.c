@@ -43,6 +43,8 @@
 #include "libsupport/getopt.h"
 #endif
 
+extern int errno;
+
 #include "usage.h"
 
 extern int errno;
@@ -4085,7 +4087,8 @@ int main(int argc, char *argv[]) {
       
       do { 
 
-	if (!base || !strlen(base)) strncpy(base, vob->video_out_file, TC_BUF_MIN);
+	if (!base || !strlen(base))
+	  strlcpy(base, vob->video_out_file, TC_BUF_MIN);
 	
 	// create new filename 
 	snprintf(buf, sizeof(buf), "%s%03d%s", base, ch1++, video_ext);
