@@ -2,7 +2,8 @@
 
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
-	-DLINUX
+	-DLINUX \
+	-I$(top_srcdir)
 
 noinst_LTLIBRARIES = libac.la
 

@@ -240,15 +240,15 @@ char *ac_mmstr(int flag, int mode)
 
   //return full capability list
   if(mode==1) {
-    if(cc & MM_SSE3) strcat(mmstr, "sse3 ");
-    if(cc & MM_SSE2) strcat(mmstr, "sse2 ");
-    if(cc & MM_SSE) strcat(mmstr, "sse "); 
-    if(cc & MM_3DNOWEXT) strcat(mmstr, "3dnowext "); 
-    if(cc & MM_3DNOW) strcat(mmstr, "3dnow "); 
-    if(cc & MM_MMXEXT) strcat(mmstr, "mmxext "); 
-    if(cc & MM_MMX) strcat(mmstr, "mmx "); 
-    if(cc & (MM_AMD64ASM|MM_IA32ASM)) strcat(mmstr, "asm ");
-    strcat(mmstr, "C");
+    if(cc & MM_SSE3) strlcat(mmstr, "sse3 ", sizeof(mmstr));
+    if(cc & MM_SSE2) strlcat(mmstr, "sse2 ", sizeof(mmstr));
+    if(cc & MM_SSE) strlcat(mmstr, "sse ", sizeof(mmstr)); 
+    if(cc & MM_3DNOWEXT) strlcat(mmstr, "3dnowext ", sizeof(mmstr)); 
+    if(cc & MM_3DNOW) strlcat(mmstr, "3dnow ", sizeof(mmstr)); 
+    if(cc & MM_MMXEXT) strlcat(mmstr, "mmxext ", sizeof(mmstr)); 
+    if(cc & MM_MMX) strlcat(mmstr, "mmx ", sizeof(mmstr)); 
+    if(cc & (MM_AMD64ASM|MM_IA32ASM)) strlcat(mmstr, "asm ", sizeof(mmstr));
+    strlcat(mmstr, "C", sizeof(mmstr));
     return(mmstr);
   }
 

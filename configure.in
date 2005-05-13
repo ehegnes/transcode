@@ -1316,7 +1316,7 @@ dnl
 dnl aclib
 dnl
 ACLIB_CFLAGS="-I\$(top_srcdir)/aclib"
-ACLIB_LIBS="\$(top_builddir)/aclib/libac.la"
+ACLIB_LIBS="\$(top_builddir)/aclib/libac.la \$(LIBTC_LIBS)"
 AC_SUBST(ACLIB_CFLAGS)
 AC_SUBST(ACLIB_LIBS)
 

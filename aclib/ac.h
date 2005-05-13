@@ -24,11 +24,13 @@
 #ifndef _AC_H
 #define _AC_H
 
-#include <unistd.h>
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include <unistd.h>
+
+#include "libtc/libtc.h"
 
 #ifdef __bsdi__
 typedef unsigned int uint32_t;
