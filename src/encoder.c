@@ -44,7 +44,7 @@ static pthread_mutex_t frame_counter_lock=PTHREAD_MUTEX_INITIALIZER;
 static int export = 0;
 static pthread_mutex_t export_lock=PTHREAD_MUTEX_INITIALIZER;
 
-static int force_exit=0;
+static volatile int force_exit=0;
 static pthread_mutex_t force_exit_lock=PTHREAD_MUTEX_INITIALIZER;
 
 pthread_mutex_t delay_video_frames_lock=PTHREAD_MUTEX_INITIALIZER;
