@@ -20,7 +20,6 @@ filter_tomsmocomp_la_SOURCES = \
 	tomsmocompfilter_sse.c
 
 filter_tomsmocomp_la_LDFLAGS = -module -avoid-version
-filter_tomsmocomp_la_LIBADD = $(ACLIB_LIBS)
 
 EXTRA_DIST = \
 	Readme_TomsMoComp.txt \
