@@ -1,7 +1,8 @@
 # # Process this file with automake to produce Makefile.in.
 
 AM_CPPFLAGS = \
-	$(PTHREAD_CFLAGS)
+	$(PTHREAD_CFLAGS) \
+	-I$(top_srcdir)
 
 noinst_LTLIBRARIES = libtcioaux.la
 
