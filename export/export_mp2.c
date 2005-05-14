@@ -63,6 +63,8 @@ static int   capability_flag=TC_CAP_PCM;
 #define MOD_PRE mp2
 #include "export_def.h"
 
+extern int errno;
+
 static FILE *pFile = NULL;
 static double speed = 0.0;
 
@@ -101,8 +103,8 @@ MOD_open
         char out_fname [PATH_MAX];
         char *ptr = buf;
 
-        strcpy(out_fname, vob->audio_out_file);
-        strcat(out_fname, ".mpa");
+        strlcpy(out_fname, vob->audio_out_file, sizeof(out_fname));
+        strlcat(out_fname, ".mpa", sizeof(out_fname));
 
 	if (vob->mp3bitrate == 0) {
             fprintf (stderr, "[%s] Audio bitrate 0 is not valid, cannot cope.\n", MOD_NAME);
@@ -124,11 +126,9 @@ MOD_open
                             vob->a_rate,
                             vob->a_rate,
                             speed);
-
-    	if (result < 0) {
-    	    perror("command buffer overflow");
+	if (tc_test_string(__FILE__, __LINE__, PATH_MAX, result, errno))
 	        return(TC_EXPORT_ERROR);
-        }
+
         ptr = buf + strlen(buf);
 	}
 
@@ -143,10 +143,8 @@ MOD_open
                            out_fname,
                            vob->verbose > 1 ? "" : " >&/dev/null");
 
-	if (result < 0) {
-	    perror("command buffer overflow");
-	    return(TC_EXPORT_ERROR);
-	}
+    if (tc_test_string(__FILE__, __LINE__, PATH_MAX - strlen(buf), result, errno))
+        return(TC_EXPORT_ERROR);
 
     if (verbose > 0)
         fprintf (stderr, "[%s] %s\n", MOD_NAME, buf);
