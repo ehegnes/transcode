@@ -273,7 +273,7 @@ if(!f)
 	return NULL;
 	}
 
-strcpy(temp, fname);
+strlcpy(temp, fname, sizeof(temp));
 ptr = strstr(temp, "font.desc");
 if(! ptr)
 	{
@@ -359,7 +359,7 @@ while( fgets(sor, 1020, f) )
 		int len = strlen(p[0]);
 		if(len && len < 63 && p[0][len - 1] == ']')
 			{
-			strcpy(section, p[0]);
+			strlcpy(section, p[0], sizeof(section));
 			if(debug_flag)
 				{
 				printf("font: Reading section: %s\n",section);

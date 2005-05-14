@@ -394,13 +394,13 @@ if(debug_flag)
 	fprintf(stdout, "movie_routine(): arg helper_flags=%s\n", helper_flags);
 	}
 
-strcpy(helper_program, "transcode"); /* program name */
+strlcpy(helper_program, "transcode", sizeof(helper_program)); /* program name */
 
 /*
 fill in the multidimensional argument array for execv()
 the first one is the helper program its self
 */
-strcpy(execv_args[0], helper_program);
+strlcpy(execv_args[0], helper_program, 1024);
 k = 0;
 i = 1;
 quote_flag = 0;
