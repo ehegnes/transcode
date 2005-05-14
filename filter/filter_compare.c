@@ -174,7 +174,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 			
 			if (strlen(results_name) == 0) {
 				// Ponemos el nombre del fichero al original con extension dat
-				strcpy(results_name,"/tmp/compare.dat");
+				strlcpy(results_name, "/tmp/compare.dat", sizeof(results_name));
 				
 			}
 			if (!(compare[instance]->results = fopen(results_name, "w")))
@@ -187,7 +187,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 				
 			GetExceptionInfo(&exception_info);
 			image_info = CloneImageInfo ((ImageInfo *) NULL);
-			strcpy(image_info->filename,pattern_name);
+			strlcpy(image_info->filename, pattern_name, MaxTextExtent);
 			if (verbose > 1)
 			     printf("Trying to open image\n");
 			orig = ReadImage(image_info,
@@ -197,7 +197,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 				MagickWarning(exception_info.severity,
 					      exception_info.reason,
 					      exception_info.description);
-				strcpy(pattern_name, "/dev/null");
+				strlcpy(pattern_name, "/dev/null", sizeof(pattern_name));
 			}else{
 			       if (verbose > 1)
 			       		printf("[%s] Image loaded successfully\n", MOD_NAME);
