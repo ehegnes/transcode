@@ -17,9 +17,7 @@
 #ifndef PVNPNMGLOBALS_H
 #define PVNPNMGLOBALS_H
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "src/transcode.h"
 
 #include <stdio.h>
 #include <string.h>
