@@ -32,6 +32,8 @@
 #define MOD_VERSION "v0.1 (2003-02-26)"
 #define MOD_CODEC   "(video) null | (audio) ac3"
 
+extern int errno;
+
 static int   verbose_flag=TC_QUIET;
 static int   capability_flag=TC_CAP_PCM;
 
@@ -73,12 +75,12 @@ MOD_open
 	char buf [PATH_MAX];
         char out_fname [PATH_MAX];
 
-        strcpy(out_fname, vob->audio_out_file);
+        strlcpy(out_fname, vob->audio_out_file, sizeof(out_fname));
 
 	if(probe_export_attributes & TC_PROBE_NO_EXPORT_AEXT)
-	    strcat(out_fname, audio_ext);
+	    strlcat(out_fname, audio_ext, sizeof(out_fname));
 	else
-            strcat(out_fname, ".ac3");
+            strlcat(out_fname, ".ac3", sizeof(out_fname));
 
 	if (vob->mp3bitrate == 0) {
             fprintf (stderr, "[%s] Please set the export audio bitrate\n", MOD_NAME);
@@ -101,10 +103,9 @@ MOD_open
                            vob->mp3bitrate,
                            out_fname,
                            vob->verbose > 1 ? "" : " >/dev/null 2>&1");
-	if (result < 0) {
-	    perror("command buffer overflow");
-	    return(TC_EXPORT_ERROR); 
-	}
+
+	if (tc_test_string(__FILE__, __LINE__, PATH_MAX, result, errno))
+            return(TC_EXPORT_ERROR);
 
         if (verbose > 0)
 	    fprintf (stderr, "[%s] %s\n", MOD_NAME, buf);
