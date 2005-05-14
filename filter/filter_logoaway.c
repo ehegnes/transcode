@@ -728,7 +728,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
       if(data[instance]->alpha) {
         data[instance]->image_info = CloneImageInfo((ImageInfo *) NULL);
   
-        strcpy(data[instance]->image_info->filename, data[instance]->file);
+        strlcpy(data[instance]->image_info->filename, data[instance]->file, MaxTextExtent);
         data[instance]->image = ReadImage(data[instance]->image_info, &data[instance]->exception_info);
         if (data[instance]->image == (Image *) NULL) {
           fprintf(stderr, "[%s] ERROR: ", MOD_NAME);

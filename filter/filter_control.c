@@ -207,7 +207,7 @@ init_e_out:
 	// there may be more actions per frame
 	while (ptr->id == flist->frame) {
 
-	    strcpy (buf, flist->line);
+	    strlcpy (buf, flist->line, sizeof(buf));
 	    ret = flist->cmd->action(buf);
 
 	    if (buf[strlen(buf)-1] == '\n') {

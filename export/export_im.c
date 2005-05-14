@@ -191,7 +191,7 @@ MOD_encode
     
     image=ConstituteImage (width, height, "RGB", CharPixel, out_buffer, &exception_info);
     
-    strcpy(image->filename, buf2);
+    strlcpy(image->filename, buf2, MaxTextExtent);
     
     WriteImage(image_info, image);
     DestroyImage(image);

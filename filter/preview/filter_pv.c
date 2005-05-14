@@ -492,7 +492,7 @@ void preview_filter(void)
     fgets(buf, 1024, f);
     // delete newline
     buf[strlen(buf)-1] = '\0';
-    strcpy (filter_name, buf);
+    strlcpy (filter_name, buf, sizeof(filter_name));
 
     // (c)onfig or (d)isable
     memset (buf, 0, 1024);

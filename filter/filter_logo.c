@@ -152,7 +152,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
     if((mfd = (MyFilterData *)malloc (sizeof(MyFilterData))) == NULL) return (-1);
 
     //mfd->file = filename;
-    strcpy (mfd->file, "logo.png");
+    strlcpy (mfd->file, "logo.png", PATH_MAX);
     mfd->yuv   = NULL;
     mfd->flip  = 0;
     mfd->pos   = 0;
@@ -200,12 +200,12 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
     GetExceptionInfo (&exception_info);
     image_info = CloneImageInfo ((ImageInfo *) NULL);
-    strcpy(image_info->filename, mfd->file);
+    strlcpy(image_info->filename, mfd->file, MaxTextExtent);
 
     image = ReadImage (image_info, &exception_info);
     if (image == (Image *) NULL) {
         MagickWarning (exception_info.severity, exception_info.reason, exception_info.description);
-	strcpy(mfd->file, "/dev/null");
+	strlcpy(mfd->file, "/dev/null", PATH_MAX);
 	return 0;
     }
 

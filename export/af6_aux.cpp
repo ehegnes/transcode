@@ -381,7 +381,7 @@ int setup_codec_byFile(char *mod_name, const CodecInfo *info, vob_t *vob, int ve
 
   //-- try to open config-file --
   //-----------------------------  
-  strcpy(fname, "~/.transcode/export_af6.conf");
+  strlcpy(fname, "~/.transcode/export_af6.conf", sizeof(fname));
   cfg_file = fopen(fname, "r");
   if (!cfg_file) 
   {
@@ -445,7 +445,7 @@ int setup_codec_byFile(char *mod_name, const CodecInfo *info, vob_t *vob, int ve
         if ( !strlen(line) || !strlen(pstr) ) continue;
 
         //-- get name and value of parameter entry --
-        strcpy(param_name, line);
+        strlcpy(param_name, line, sizeof(param_name));
         param_val = atoi(pstr);
         
         //-- count parameter --
