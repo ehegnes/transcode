@@ -282,7 +282,7 @@ void do_connect_socket (char *socketfile)
 	exit(1); 
     }  
     server.sun_family = AF_UNIX;  
-    strcpy(server.sun_path, socketfile);
+    strlcpy(server.sun_path, socketfile, sizeof(server.sun_path));
 
     if (connect(sock, (struct sockaddr *) &server, sizeof(struct sockaddr_un)) < 0)
     {  
