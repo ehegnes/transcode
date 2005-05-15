@@ -9,13 +9,7 @@
   or visit http://www.gnu.org/copyleft/gpl.html
 */
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
-
-#ifdef HAVE_ERRNO_H
-# include <errno.h>
-#endif
+#include "transcode.h"
 
 #ifndef SYS_BSD
 # ifdef HAVE_MALLOC_H
@@ -23,14 +17,7 @@
 # endif
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
-
-#include "transcode.h"
 
 #include "ioaux.h"
 #include "tc.h"
