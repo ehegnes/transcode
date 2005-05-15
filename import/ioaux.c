@@ -26,12 +26,12 @@
 #include <xio.h>
 
 #define MAX_BUF 4096
-static char buffer[MAX_BUF];  /* only used in p_readwrite() */
+static uint8_t buffer[MAX_BUF];  /* only used in p_readwrite() */
 
 extern int errno;
 
 
-ssize_t p_read(int fd, char *buf, size_t len)
+ssize_t p_read(int fd, uint8_t *buf, size_t len)
 {
    ssize_t n = 0;
    ssize_t r = 0;
@@ -55,7 +55,7 @@ ssize_t p_read(int fd, char *buf, size_t len)
 }
 
 
-ssize_t p_write(int fd, char *buf, size_t len)
+ssize_t p_write(int fd, uint8_t *buf, size_t len)
 {
    ssize_t n = 0;
    ssize_t r = 0;
