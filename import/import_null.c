@@ -34,9 +34,6 @@ static int capability_flag = -1;
 #include "import_def.h"
 
 
-#define MAX_BUF 1024
-char import_cmd_buf[MAX_BUF];
-
 /* ------------------------------------------------------------ 
  *
  * open stream
