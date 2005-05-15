@@ -34,7 +34,7 @@
 
 #define MAX_BUF 1024
 
-static int verbose=TC_INFO;
+int verbose=TC_INFO;
 
 void import_exit(int code) 
 {

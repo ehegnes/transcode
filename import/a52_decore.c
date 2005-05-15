@@ -40,8 +40,6 @@
 #include <a52dec/a52.h>
 #include <a52dec/mm_accel.h> 
 
-static int verbose;
-
 #define FRAME_SIZE 3840
 #define HEADER_LEN    8
 #define A52_BLOCKS    6
@@ -92,7 +90,7 @@ int a52_decore(decode_t *decode) {
   int chans = -1;  
   int16_t pcm_buf[256 * A52_BLOCKS];  
   uint32_t accel = MM_ACCEL_DJBFFT;
-  verbose = decode->verbose;
+
 
 #ifdef HAVE_MMX
   accel |= MM_ACCEL_X86_MMX;
@@ -146,7 +144,7 @@ int a52_decore(decode_t *decode) {
     bytes_read=p_read(decode->fd_in, &buf[2], HEADER_LEN-2);
     
     if(bytes_read< HEADER_LEN-2) {
-      if(verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) read error (%d/%d)\n", __FILE__, __LINE__, bytes_read, HEADER_LEN-2);
+      if(decode->verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) read error (%d/%d)\n", __FILE__, __LINE__, bytes_read, HEADER_LEN-2);
       return(-1);
     }
     
@@ -165,7 +163,7 @@ int a52_decore(decode_t *decode) {
 
     // read the rest of the frame
     if((bytes_read=p_read(decode->fd_in, &buf[HEADER_LEN], frame_size-HEADER_LEN)) < frame_size-HEADER_LEN) {
-      if(verbose & TC_DEBUG) 
+      if(decode->verbose & TC_DEBUG) 
 	fprintf (stderr, "(%s@%d) read error (%d/%d)\n", __FILE__, __LINE__, bytes_read, frame_size-HEADER_LEN);
       return(-1);
     }
@@ -212,7 +210,7 @@ int a52_decore(decode_t *decode) {
       (decode->a52_mode & TC_A52_DEMUX) ? float2s16((float *)samples, (int16_t *)&pcm_buf) : float2s16_2((float *)samples, (int16_t *)&pcm_buf);  
       
 	if((bytes_wrote=p_write(decode->fd_out, (char*) pcm_buf, pcm_size)) < pcm_size) {
-	  if(verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) write error (%d/%d)\n", __FILE__, __LINE__, bytes_wrote, pcm_size);
+	  if(decode->verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) write error (%d/%d)\n", __FILE__, __LINE__, bytes_wrote, pcm_size);
 	  return(-1);
 	}
     } //end pcm data output
@@ -232,7 +230,7 @@ int a52_decore(decode_t *decode) {
       (decode->a52_mode & TC_A52_DEMUX) ? float2s16((float *)samples, (int16_t *)&pcm_buf) : float2s16_2((float *)samples, (int16_t *)&pcm_buf);  
     } //end pcm data output
     if((bytes_wrote=p_write(decode->fd_out, buf, bytes_read+HEADER_LEN)) < bytes_read+HEADER_LEN) {
-	if(verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) write error (%d/%d)\n", 
+	if(decode->verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) write error (%d/%d)\n", 
 	    __FILE__, __LINE__, bytes_wrote, bytes_read+HEADER_LEN);
 	return(-1);
     }

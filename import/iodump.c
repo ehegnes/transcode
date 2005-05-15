@@ -50,7 +50,7 @@ typedef	off_t off64_t;
 #define IO_BUF_SIZE 1024
 #define DVD_VIDEO_LB_LEN 2048
 
-static int verbose=TC_QUIET;
+static int verbose_flag=TC_QUIET;
 
 static DIR *dir=NULL;
 
@@ -215,7 +215,7 @@ void tccat_thread(info_t *ipipe)
 
 #endif
 
-  verbose = ipipe->verbose;
+  verbose_flag = ipipe->verbose;
   vob_offset = ipipe->vob_offset;
 
   switch(ipipe->magic) {
@@ -223,7 +223,7 @@ void tccat_thread(info_t *ipipe)
   case TC_MAGIC_DVD_PAL:
   case TC_MAGIC_DVD_NTSC:
     
-    if(verbose & TC_DEBUG) fprintf(stderr, "(%s) %s\n", __FILE__, filetype(ipipe->magic));
+    if(verbose_flag & TC_DEBUG) fprintf(stderr, "(%s) %s\n", __FILE__, filetype(ipipe->magic));
     
     dvd_read(ipipe->dvd_title, ipipe->dvd_chapter, ipipe->dvd_angle);
     break;
@@ -235,7 +235,7 @@ void tccat_thread(info_t *ipipe)
 
   case TC_MAGIC_RAW:
 
-    if(verbose & TC_DEBUG) fprintf(stderr, "(%s) %s\n", __FILE__, filetype(ipipe->magic));
+    if(verbose_flag & TC_DEBUG) fprintf(stderr, "(%s) %s\n", __FILE__, filetype(ipipe->magic));
    
     if(vob_offset>0) {
       
@@ -329,7 +329,7 @@ void tccat_thread(info_t *ipipe)
     if((open_directory(ipipe->name))<0) { 
       fprintf(stderr, "(%s) unable to open directory \"%s\"\n", __FILE__, ipipe->name);
       exit(1);
-    } else if(verbose & TC_DEBUG) 
+    } else if(verbose_flag & TC_DEBUG) 
       fprintf(stderr, "(%s) scanning directory \"%s\"\n", __FILE__, ipipe->name);
     
     while((name=scan_directory(ipipe->name))!=NULL) {	
@@ -391,7 +391,7 @@ void tccat_thread(info_t *ipipe)
     if(!found) {
       fprintf(stderr,"\nerror: no valid files found in %s\n", name);
       exit(1);
-    } else if(verbose & TC_DEBUG) 
+    } else if(verbose_flag & TC_DEBUG) 
       fprintf(stderr, "(%s) %s\n", __FILE__, filetype(type));
       
 
@@ -413,7 +413,7 @@ void tccat_thread(info_t *ipipe)
       if((ipipe->fd_in = open(name, O_RDONLY))<0) {
 	perror("file open");
 	exit(1);
-      } else if(verbose & TC_STATS) 
+      } else if(verbose_flag & TC_STATS) 
 	fprintf(stderr, "(%s) processing %s\n", __FILE__, name);
       
       
@@ -498,7 +498,7 @@ int fileinfo_dir(char *dname, int *fd, long *magic)
     if((open_directory(dname))<0) { 
 	fprintf(stderr, "(%s) unable to open directory \"%s\"\n", __FILE__, dname);
 	exit(1);
-    } else if(verbose & TC_DEBUG) 
+    } else if(verbose_flag & TC_DEBUG) 
 	
 	fprintf(stderr, "(%s) scanning directory \"%s\"\n", __FILE__, dname);
     

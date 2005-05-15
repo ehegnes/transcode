@@ -43,7 +43,7 @@ static lzo_byte *out;
 static lzo_byte *inbuf;
 static lzo_byte *wrkmem;
 static lzo_uint out_len;
-static int verbose;
+
 
 inline static void str2long(unsigned char *bb, long *bytes)
 {

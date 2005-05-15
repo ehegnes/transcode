@@ -40,7 +40,7 @@ static int sbuf_next=  0;
 static packet_list_t **sbuf_ptr; char *sbuf_mem;
 
 //important internal parameter and counter
-static int verbose=TC_QUIET;
+static int verbose_flag=TC_QUIET;
 static int pack_ctr, pack_fill_ctr=0;
 static int ifd=0;
 
@@ -77,7 +77,7 @@ packet_list_t *packet_register(int id)
   // retrieve a valid pointer from the pool
   
 #ifdef STATBUFFER
-  if(verbose & TC_FLIST) printf("packet id=%d\n", id);
+  if(verbose_flag & TC_FLIST) printf("packet id=%d\n", id);
   if((ptr = sbuf_retrieve()) == NULL) {
     pthread_mutex_unlock(&packet_list_lock);
     return(NULL);
@@ -290,7 +290,7 @@ packet_list_t *sbuf_retrieve()
 
     // ok
 
-    if(verbose & TC_FLIST) printf("alloc  =%d [%d]\n", sbuf_next, ptr->bufid);
+    if(verbose_flag & TC_FLIST) printf("alloc  =%d [%d]\n", sbuf_next, ptr->bufid);
     ++sbuf_next;
     sbuf_next %= sbuf_max;
     
@@ -323,7 +323,7 @@ int sbuf_release(packet_list_t *ptr)
 	return(-1);
     } else {
 	
-	if(verbose & TC_FLIST) printf("release=%d [%d]\n", sbuf_next, ptr->bufid);
+	if(verbose_flag & TC_FLIST) printf("release=%d [%d]\n", sbuf_next, ptr->bufid);
 	ptr->status = PACKET_NULL;
 	
     }
@@ -366,7 +366,7 @@ int packet_buffer_flush()
   pthread_mutex_lock(&pack_ctr_lock);   
   
   //info: 
-  if(verbose & TC_SYNC) fprintf(stderr, "packet buffer status (%03d/%03d) [%.1f%%]\n", pack_ctr, pack_fill_ctr, (double) 100*pack_fill_ctr/FLUSH_BUFFER_MAX);
+  if(verbose_flag & TC_SYNC) fprintf(stderr, "packet buffer status (%03d/%03d) [%.1f%%]\n", pack_ctr, pack_fill_ctr, (double) 100*pack_fill_ctr/FLUSH_BUFFER_MAX);
   pthread_mutex_unlock(&pack_ctr_lock);   
 
   if(ptr==NULL) {
@@ -376,7 +376,7 @@ int packet_buffer_flush()
 
   n = p_write(ifd, ptr->buffer, ptr->size);
   
-  if((verbose & TC_SYNC)) fprintf(stderr, "done writing packet (%d/%03d)\n", ptr->id, pack_ctr);
+  if((verbose_flag & TC_SYNC)) fprintf(stderr, "done writing packet (%d/%03d)\n", ptr->id, pack_ctr);
   
   // no release, if not set!
   ptr->status = PACKET_EMPTY;
@@ -427,19 +427,19 @@ int flush_buffer_init(int _ifd, int _verbose)
 {
     
     ifd=_ifd;
-    verbose = _verbose;
+    verbose_flag = _verbose;
 
     pack_fill_ctr=0;
   
 #ifdef STATBUFFER
   // allocate buffer
-  if(verbose & TC_DEBUG) fprintf(stderr, "[%s] allocating %d framebuffer (static)\n", __FILE__, FLUSH_BUFFER_MAX);
+  if(verbose_flag & TC_DEBUG) fprintf(stderr, "[%s] allocating %d framebuffer (static)\n", __FILE__, FLUSH_BUFFER_MAX);
   if(sbuf_alloc(FLUSH_BUFFER_MAX)<0) {
     fprintf(stderr, "static framebuffer allocation failed\n");
     exit(1);
   }
 #else
-  if(verbose & TC_DEBUG) fprintf(stderr, "[%s] %d framebuffer (dynamical) requested\n", __FILE__, FLUSH_BUFFER_MAX);
+  if(verbose_flag & TC_DEBUG) fprintf(stderr, "[%s] %d framebuffer (dynamical) requested\n", __FILE__, FLUSH_BUFFER_MAX);
 #endif
 
 
@@ -447,7 +447,7 @@ int flush_buffer_init(int _ifd, int _verbose)
   if(pthread_create(&packet_thread, NULL, (void *) flush_buffer_thread, NULL)!=0) {
     fprintf(stderr,"(%s) failed to start packet flush thread\n", __FILE__);
     return(-1);
-  } else if(verbose & TC_SYNC) fprintf(stderr, "[%s] flush buffer thread started\n", __FILE__);
+  } else if(verbose_flag & TC_SYNC) fprintf(stderr, "[%s] flush buffer thread started\n", __FILE__);
   
   return(0);
 }
@@ -487,7 +487,7 @@ int flush_buffer_write(int fd_out, char*buffer, int packet_size)
     ++pack_fill_ctr;
 
     //info: buffer status
-    if(verbose & TC_SYNC) fprintf(stderr, "packet submitted to flush buffer (%03d/%03d) [%.1f%%]\n", pack_ctr, pack_fill_ctr, (double) 100*pack_fill_ctr/FLUSH_BUFFER_MAX);
+    if(verbose_flag & TC_SYNC) fprintf(stderr, "packet submitted to flush buffer (%03d/%03d) [%.1f%%]\n", pack_ctr, pack_fill_ctr, (double) 100*pack_fill_ctr/FLUSH_BUFFER_MAX);
     
     pthread_mutex_unlock(&pack_ctr_lock);
 

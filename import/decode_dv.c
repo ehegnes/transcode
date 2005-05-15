@@ -41,7 +41,6 @@ static const int frame_size_525_60 = 10 * 150 * 80;
 static const int frame_size_625_50 = 12 * 150 * 80;
 #endif
 
-static int verbose=TC_QUIET;
 
 #ifdef HAVE_LIBDV
 static unsigned char *bufalloc(size_t size)

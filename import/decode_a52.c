@@ -35,7 +35,6 @@
 
 #include "ioaux.h"
 
-static int verbose;
 static char *mod_path=MOD_PATH;
 
 #define MODULE "a52_decore.so"

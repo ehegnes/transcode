@@ -34,7 +34,7 @@
 #define MAX_BUF 1024
 char buf[MAX_BUF];
 
-static int verbose=TC_INFO;
+int verbose=TC_INFO;
 
 extern int errno;
 

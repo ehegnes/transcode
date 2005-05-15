@@ -127,7 +127,6 @@ int is_nav_pack( unsigned char *buffer )
     return ( buffer[ 41 ] == 0xbf && buffer[ 1027 ] == 0xbf );
 }
 
-static int verbose;
 static dvd_reader_t *dvd=NULL;
 static unsigned char *data=NULL;
 

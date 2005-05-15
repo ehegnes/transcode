@@ -45,8 +45,6 @@
 static uint8_t *buffer = NULL;
 static FILE *in_file, *out_file;
 
-static int verbose;
-
 static unsigned int track_code=0, vdr_work_around=0;
 
 static int get_pts=0;

@@ -38,7 +38,7 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
 
 #define EXE "tcscan"
 
-static int verbose=TC_QUIET;
+int verbose=TC_QUIET;
 
 void import_exit(int code) 
 {

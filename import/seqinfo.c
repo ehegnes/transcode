@@ -34,7 +34,6 @@ seq_list_t *seq_list_tail=NULL;
 static int _sfd=0;
 
 static double fps;
-static int verbose;
 static int seq_ctr=0, drop_ctr=0;
 
 seq_list_t *seq_register(int id)
@@ -635,7 +634,6 @@ int seq_init(char *logfile, int _ext_sfd, double _fps, int _verbose)
     }
   }
   
-  verbose = _verbose;
   fps = _fps;
 
   //done

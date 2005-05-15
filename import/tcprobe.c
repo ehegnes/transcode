@@ -35,7 +35,7 @@
 
 #define MAX_BUF 1024
 
-static int verbose=TC_INFO;
+int verbose=TC_INFO;
 
 int bitrate=ABITRATE;
 int binary_dump=0;

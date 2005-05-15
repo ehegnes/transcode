@@ -32,7 +32,7 @@ unsigned char *xtext = NULL;
 int no[3];
 int      xraw = 0;
 
-int verbose = 0;
+static int verbose_flag = TC_QUIET;
 
 #if (HAVE_OGG && HAVE_VORBIS) 
 
@@ -122,7 +122,7 @@ void flush_pages(stream_t *stream, ogg_packet *op) {
   while (ogg_stream_flush(&stream->outstate, &page)) {
     ih = write(stream->fd, page.header, page.header_len);
     ib = write(stream->fd, page.body, page.body_len);
-    if (verbose > 1)
+    if (verbose_flag & TC_DEBUG)
       fprintf(stderr, "(%s) x/a%d: %d + %d written\n", __FILE__, stream->sno,
               ih, ib);
   }
@@ -135,7 +135,7 @@ void write_pages(stream_t *stream, ogg_packet *op) {
   while (ogg_stream_pageout(&stream->outstate, &page)) {
     ih = write(stream->fd, page.header, page.header_len);
     ib = write(stream->fd, page.body, page.body_len);
-    if (verbose > 1)
+    if (verbose_flag & TC_DEBUG)
       fprintf(stderr, "(%s) x/a%d: %d + %d written\n", __FILE__, stream->sno,
               ih, ib);
   }
@@ -188,7 +188,7 @@ void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
         return;
       i = write(stream->fd, (char *)&pack->packet[hdrlen + 1],
 	  pack->bytes - 1 - hdrlen);
-      if (verbose > 1)
+      if (verbose_flag & TC_DEBUG)
         fprintf(stderr, "(%s) x/v%d: %d written\n", __FILE__, stream->sno, i);
       break;
     case 't':
@@ -199,7 +199,7 @@ void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
       if (xraw) {
         i = write(stream->fd, (char *)&pack->packet[hdrlen + 1],
                   pack->bytes - 1 - hdrlen);
-        if (verbose > 1)
+        if (verbose_flag & TC_DEBUG)
           fprintf(stderr, "(%s) x/t%d: %d written\n", __FILE__,
                   stream->sno, i);
         return;
@@ -228,7 +228,7 @@ void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
         i += write(stream->fd, sub, strlen(sub));
         i += write(stream->fd, "\r\n\r\n", 4);
         stream->subnr++;
-        if (verbose > 1)
+        if (verbose_flag & TC_DEBUG)
           fprintf(stderr, "(%s) x/t%d: %d written\n", __FILE__,
                   stream->sno, i);
       }
@@ -242,7 +242,7 @@ void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
             else
               i = write(stream->fd, (char *)&pack->packet[1],
                         pack->bytes - 1);
-            if (verbose > 1)
+            if (verbose_flag & TC_DEBUG)
               fprintf(stderr, "(%s) x/a%d: %d written\n", __FILE__,
                       stream->sno, i);
             return;
@@ -266,7 +266,7 @@ void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
           i = write(stream->fd, pack->packet + 1 + hdrlen,
                     pack->bytes - 1 - hdrlen);
           stream->bwritten += i;
-          if (verbose > 1)
+          if (verbose_flag & TC_DEBUG)
             fprintf(stderr, "(%s) x/a%d: %d written\n", __FILE__,
                     stream->sno, i);
           break;
@@ -301,7 +301,7 @@ void process_ogm(int fdin, int fdout)
         return;
       }
       if ((nread = read(fdin, buf, BLOCK_SIZE)) <= 0) {
-        if (verbose > 0)
+        if (verbose_flag & TC_INFO)
           fprintf(stderr, "(%s) end of stream 1\n", __FILE__);
         return;
       }
@@ -330,7 +330,7 @@ void process_ogm(int fdin, int fdout)
         }
 
         memset(stream, 0, sizeof(stream_t));
-        if (verbose > 0) {
+        if (verbose_flag & TC_INFO) {
           vorbis_info_init(&vi);
           vorbis_comment_init(&vc);
           if (vorbis_synthesis_headerin(&vi, &vc, &pack) >= 0) {
@@ -358,7 +358,7 @@ void process_ogm(int fdin, int fdout)
           }
           if (!xraw)
             ogg_stream_init(&stream->outstate, rand());
-          if (verbose > 0)
+          if (verbose_flag & TC_INFO)
             fprintf(stderr, "(%s) Extracting a%d to \"%s\".\n", __FILE__,
                     nastreams + 1, "new_name");
           do
@@ -379,7 +379,7 @@ void process_ogm(int fdin, int fdout)
           fprintf(stderr, "(%s) (a%d/%d) Found old audio header. Not " \
                   "supported.\n", __FILE__, nastreams + 1, numstreams + 1);
         } else {
-          if (verbose > 0)
+          if (verbose_flag & TC_INFO)
             fprintf(stderr, "(%s) OGG stream %d has an old header with an " \
                     "unknown type.", __FILE__, numstreams + 1);
         }
@@ -393,7 +393,7 @@ void process_ogm(int fdin, int fdout)
           ccodec[4] = 0;
           codec = (sth->subtype[0] << 24) + 
             (sth->subtype[1] << 16) + (sth->subtype[2] << 8) + sth->subtype[3]; 
-          if (verbose > 0)
+          if (verbose_flag & TC_INFO)
             fprintf(stderr, "(%s) (v%d/%d) fps: %.3f width height: %dx%d " \
                     "codec: %p (%s)\n", __FILE__, nvstreams + 1,
                     numstreams + 1,
@@ -413,7 +413,7 @@ void process_ogm(int fdin, int fdout)
           if (extraction_requested(xvideo, nvstreams + 1, NOVIDEO)) {
 	    stream->fd = fdout;
             
-            if (verbose > 0)
+            if (verbose_flag & TC_INFO)
               fprintf(stderr, "(%s) Extracting v%d to \"%s\".\n", __FILE__,
                       nvstreams + 1, "new_name");
             do {
@@ -429,7 +429,7 @@ void process_ogm(int fdin, int fdout)
           tc_memcpy(buf, sth->subtype, 4);
           buf[4] = 0;
           codec = strtoul(buf, NULL, 16);
-          if (verbose > 0) {
+          if (verbose_flag & TC_INFO) {
             fprintf(stderr, "(%s) (a%d/%d) codec: %d (0x%04x) (%s), bits per " \
                     "sample: %d channels: %hd  samples per second: %lld",
                     __FILE__, nastreams + 1, numstreams + 1, codec, codec,
@@ -461,7 +461,7 @@ void process_ogm(int fdin, int fdout)
                       codec == ACAC3 ? "ac3" : "audio");
 		      */
             stream->fd = fdout;
-            if (verbose > 0)
+            if (verbose_flag & TC_INFO)
               fprintf(stderr, "(%s) Extracting a%d to \"%s\".\n", __FILE__,
                       nastreams + 1, "new_name");
             do {
@@ -472,7 +472,7 @@ void process_ogm(int fdin, int fdout)
           nastreams++;
           numstreams++;
         } else if (!strncmp(sth->streamtype, "text", 4)) {
-          if (verbose > 0)
+          if (verbose_flag & TC_INFO)
             fprintf(stderr, "(%s) (t%d/%d) text/subtitle stream\n", __FILE__,
                     ntstreams + 1, numstreams + 1);
           stream = (stream_t *)malloc(sizeof(stream_t));
@@ -504,7 +504,7 @@ void process_ogm(int fdin, int fdout)
                       __FILE__, new_name, errno, strerror(errno));
               exit(1);
             }
-            if (verbose > 0)
+            if (verbose_flag & TC_INFO)
               fprintf(stderr, "(%s) Extracting t%d to \"%s\".\n", __FILE__,
                       ntstreams + 1, new_name);
             do
@@ -531,11 +531,11 @@ void process_ogm(int fdin, int fdout)
     sno = ogg_page_serialno(&page);
     stream = find_stream(sno);
     if (stream == NULL) {
-      if (verbose > 1)
+      if (verbose_flag & TC_DEBUG)
         fprintf(stderr, "(%s) Encountered packet for an unknown serial " \
                 "%d !?\n", __FILE__, sno);
     } else {
-      if (verbose > 1)
+      if (verbose_flag & TC_DEBUG)
         fprintf(stderr, "(%s) %c%d: NEW PAGE\n",
                 __FILE__, stream->stype, stream->sno);
                 
@@ -582,7 +582,7 @@ void process_ogm(int fdin, int fdout)
           }
           stream = stream->next;
         }
-        if (verbose > 0)
+        if (verbose_flag & TC_INFO)
           fprintf(stderr, "(%s) end of stream\n", __FILE__);
         endofstream = 1;
         break;
@@ -605,7 +605,7 @@ void extract_ogm (info_t *ipipe)
   xvideo = malloc (16); xaudio = malloc (16); xtext = malloc (16);
   memset (xvideo, 0, 16); memset (xaudio, 0, 16); memset (xtext, 0, 16);
 
-  verbose = ipipe->verbose;
+  verbose_flag = ipipe->verbose;
 
   if (ipipe->select == TC_VIDEO) {
 

@@ -57,7 +57,7 @@
 	#define unlikely(x) (x)
 #endif
 
-static int verbose = 0;
+int verbose = TC_QUIET;
 #define EXE "tcrequant"
 
 #ifndef PACKAGE

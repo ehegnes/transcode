@@ -37,7 +37,7 @@ uint8_t buf[CHUNK_SIZE];
 static FILE *in_file;
 static FILE *out_file;
 
-static int verbose, banner=0;
+static int banner=0;
 
 static void fill_buffer(uint8_t **start, uint8_t **end)
 {
