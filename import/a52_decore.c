@@ -22,18 +22,10 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "transcode.h"
 
 #include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/errno.h>
-#include <errno.h>
-#include <unistd.h>
-#include <inttypes.h>
 
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
@@ -43,7 +35,6 @@
 # endif
 #endif
 
-#include "transcode.h"
 #include "ioaux.h"
 
 #include <a52dec/a52.h>
