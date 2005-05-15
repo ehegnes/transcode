@@ -21,16 +21,9 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "transcode.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/errno.h>
-#include <errno.h>
-#include <unistd.h>
 
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
@@ -40,7 +33,6 @@
 # endif
 #endif
 
-#include "transcode.h"
 #include "ioaux.h"
 
 static int verbose;
