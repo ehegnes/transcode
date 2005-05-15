@@ -21,9 +21,7 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "transcode.h"
 
 #include <sys/types.h>
 #include <dirent.h>
@@ -41,7 +39,6 @@
 #include "dvd_reader.h"
 #endif
 
-#include "transcode.h"
 
 int dvd_read(int arg_title, int arg_chapter, int arg_angle);
 
