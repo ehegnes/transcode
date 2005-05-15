@@ -22,16 +22,11 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "transcode.h"
+
 #include <sys/errno.h>
-#include <errno.h>
-#include <unistd.h>
 
 #include "ac3.h"
-
-#include "transcode.h"
 #include "ioaux.h"
 
 #define CHUNK_SIZE 2047

@@ -23,20 +23,8 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/time.h>
-#include <signal.h>
-#include <string.h>
-#include <errno.h>
-#include <inttypes.h>
-#include <unistd.h>
-
 #include "transcode.h"
+
 #include "ioaux.h"
 
 // FIXME

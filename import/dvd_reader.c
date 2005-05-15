@@ -22,15 +22,10 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <unistd.h>
 #include "transcode.h"
+
+#include <assert.h>
+
 #include "ioaux.h"
 
 #ifdef HAVE_LIBDVDREAD

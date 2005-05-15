@@ -21,14 +21,7 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
+#include "transcode.h"
 
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
@@ -38,7 +31,6 @@
 # endif
 #endif
 
-#include "transcode.h"
 #include "ioaux.h"
 
 #include "export/xvid2.h"

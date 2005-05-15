@@ -21,20 +21,14 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/errno.h>
-#include <errno.h>
-#include <unistd.h>
+#include "transcode.h"
 
-#include "config.h"
+#include <sys/errno.h>
 
 #ifdef HAVE_LIBDV
 #include <libdv/dv.h>
 #endif
 
-#include "transcode.h"
 #include "ioaux.h"
 
 #define DV_PAL_SIZE    frame_size_625_50

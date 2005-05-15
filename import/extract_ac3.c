@@ -30,14 +30,9 @@
 #undef DDBUG
 //#define DDBUG
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "transcode.h"
+
 #include <stdarg.h>
-#include <unistd.h>
-#include <string.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <sys/stat.h>
 #include <sys/mman.h>
 #include <limits.h>
 
@@ -45,7 +40,6 @@
 #include "ioaux.h"
 #include "aux_pes.h"
 #include "tc.h"
-#include "transcode.h"
 
 #define BUFFER_SIZE 262144
 static uint8_t *buffer = NULL;
