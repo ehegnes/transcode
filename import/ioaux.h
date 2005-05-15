@@ -45,8 +45,8 @@ void scan_pes(int verbose, FILE *fd);
 void probe_pes(info_t *ipipe);
 int probe_dvd(info_t *ipipe);
 
-ssize_t p_read(int fd, char *buf, size_t len);
-ssize_t p_write(int fd, char *buf, size_t len);
+ssize_t p_read(int fd, uint8_t *buf, size_t len);
+ssize_t p_write(int fd, uint8_t *buf, size_t len);
 int p_readwrite(int in, int out);
 
 int open_dir(char *name, int *fd, long *stype);
