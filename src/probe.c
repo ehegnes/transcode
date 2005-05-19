@@ -50,7 +50,8 @@ static char *std_module[] = {
   "fraps",
   "mplayer",
   "bktr",
-  "sunau"
+  "sunau",
+  "oss"
 };
 
 enum _std_module {
@@ -76,7 +77,8 @@ enum _std_module {
   _fraps_,
   _theora_,
   _bktr_,
-  _sunau_
+  _sunau_,
+  _oss_
 };
 
 static int title, verb;
@@ -577,6 +579,11 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
       
   case TC_MAGIC_SUNAU_AUDIO:
       vob->amod_probed=std_module[_sunau_];
+      preset |= TC_AUDIO;
+      break;
+
+  case TC_MAGIC_OSS_AUDIO:
+      vob->amod_probed=std_module[_oss_];
       preset |= TC_AUDIO;
       break;
       
