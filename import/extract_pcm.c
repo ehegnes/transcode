@@ -21,15 +21,11 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
+#include <transcode.h>
+
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#include <unistd.h>
-#include <string.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <sys/stat.h>
+#endif
 #include <sys/mman.h>
 
 #include "ioaux.h"
