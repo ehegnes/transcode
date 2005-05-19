@@ -29,7 +29,6 @@
 #include "aux_pes.h"
 #include "tc.h"
 
-static int verbose;
 
 /* ------------------------------------------------------------ 
  *
