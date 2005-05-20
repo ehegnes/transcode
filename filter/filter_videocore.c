@@ -34,7 +34,6 @@
 
 // basic parameter
 unsigned char gamma_table[256];
-static int gamma_table_flag;
 
 typedef struct MyFilterData {
 	int deinterlace;
