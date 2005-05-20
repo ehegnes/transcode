@@ -24,16 +24,6 @@
 #ifndef _TC_V4L_VCR_H
 #define _TC_V4L_VCR_H 1
 
-#include <pthread.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <sys/time.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <fcntl.h>
 #include <sys/ioctl.h>
 
 #include "transcode.h"
