@@ -21,18 +21,10 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/errno.h>
-#include <errno.h>
-#include <unistd.h>
-
 #include "transcode.h"
+
+#include <sys/errno.h>
+
 #include "framebuffer.h"
 
 int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate);
