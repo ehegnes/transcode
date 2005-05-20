@@ -43,7 +43,8 @@ int hori_table_8_flag=0;
 int hori_table_8_up_flag=0;
 
 unsigned char gamma_table[256];
-static int gamma_table_flag = 0;
+/* can't be static */
+int gamma_table_flag = 0;
 
 static unsigned long *aa_table;
 static int aa_table_flag = 0;
