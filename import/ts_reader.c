@@ -25,24 +25,15 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <string.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <sys/stat.h>
+#include "transcode.h"
+
 #include <sys/mman.h>
 
 #include "ioaux.h"
-#include "transcode.h"
 
 #ifdef HAVE_IO_H
 #include <io.h>
 #endif
-
-#include <inttypes.h>
 
 #define BUFFER_SIZE 188
 #define TS_PACK BUFFER_SIZE

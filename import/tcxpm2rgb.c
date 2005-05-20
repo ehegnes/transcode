@@ -21,20 +21,10 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#else
-# define PACKAGE "transcode"
-# define VERSION "unknown"
-#endif
-
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
 #include "transcode.h"
+
+#include <ctype.h>
+
 
 /* ParseColor and QueryColorDatabase are from ImageMagick */
 
