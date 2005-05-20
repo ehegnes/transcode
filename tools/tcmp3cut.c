@@ -32,7 +32,7 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
 
 #define EXE "tcmp3cut"
 
-static int verbose=TC_QUIET;
+int verbose=TC_QUIET;
 
 #define CHUNK_SIZE 4096
 
