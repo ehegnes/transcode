@@ -24,8 +24,6 @@
 #ifndef _DEV_READER_H
 #define _DEV_READER_H
 
-
-#include "config.h"
 #include "transcode.h"
 
 int dvd_init(char *dvd_path, int *arg_title, int verb);

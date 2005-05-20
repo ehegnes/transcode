@@ -21,8 +21,6 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "transcode.h"
 
 static int cd[] = {650, 700, 1300, 1400};

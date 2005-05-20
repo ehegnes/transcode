@@ -28,8 +28,6 @@
 #include "ioaux.h"
 #include "tc.h"
 
-#include <errno.h>
-#include <inttypes.h>
 
 typedef struct _seq_info_t {
   

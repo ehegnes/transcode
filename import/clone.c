@@ -24,10 +24,6 @@
 //undef if you experience lock ups!
 #define USE_FIFO_LOGFILE 1
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
 #include "transcode.h"
 #include "ioaux.h"
 #include "clone.h"
