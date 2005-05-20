@@ -7,6 +7,7 @@ double du, dv;
 double dcolor, dsaturation;
 double dsine;
 double dsat;
+int tmp_int;
 
 if(debug_flag)
 	{
@@ -70,8 +71,10 @@ dcolor += (degrees * M_PI) / 180.0;
 dsaturation *= dsat;
 
 /* demodulate :) our quadrature demodulator */
-(int)*u = sin(dcolor) * dsaturation;
-(int)*v = cos(dcolor) * dsaturation;
+tmp_int = sin(dcolor) * dsaturation;
+*u = tmp_int;
+tmp_int = cos(dcolor) * dsaturation;
+*v = tmp_int;
 
 /* and do this for each pixel...... */
 
