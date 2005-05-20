@@ -1,5 +1,5 @@
 /*
- *  import_yuv.c
+ *  import_nuv.c
  *
  *  Copyright (C) Thomas Östreich - June 2001
  *  NUV-code by Andreas Påhlsson
@@ -24,12 +24,8 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-
 #include "transcode.h"
+
 #include "rtjpeg_vid_plugin.h"
 #include "rtjpeg_aud_plugin.h"
 

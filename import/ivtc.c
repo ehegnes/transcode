@@ -21,8 +21,6 @@
  *
  */
 
-#include <stdlib.h>
-#include <unistd.h>
 #include "transcode.h"
 #include "ioaux.h"
 
