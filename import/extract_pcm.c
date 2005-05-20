@@ -21,7 +21,7 @@
  *
  */
 
-#include <transcode.h>
+#include "transcode.h"
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
