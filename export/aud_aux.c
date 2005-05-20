@@ -73,7 +73,7 @@ static int            mpa_bytes_ps, mpa_bytes_pf;
 
 #define MP3_CHUNK_SZ (2*1152)
 
-static int verbose=TC_DEBUG;
+static int verbose_flag=TC_DEBUG;
 #define IS_AUDIO_MONO	(avi_aud_chan == 1)
 #ifdef HAVE_LAME
 #define IS_VBR		(lame_get_VBR(lgf) != vbr_off)
@@ -161,7 +161,7 @@ static void error(const char *s, ...)
  */
 static void debug(const char *s, ...)
 {
-	if (verbose & TC_DEBUG)
+	if (verbose_flag & TC_DEBUG)
 	{
 		va_list ap;
 
@@ -202,9 +202,9 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 			return(TC_EXPORT_ERROR);
 		}
 
-		if(!(verbose & TC_DEBUG)) lame_set_msgf  (lgf, no_debug);
-		if(!(verbose & TC_DEBUG)) lame_set_debugf(lgf, no_debug);
-		if(!(verbose & TC_DEBUG)) lame_set_errorf(lgf, no_debug);
+		if(!(verbose_flag & TC_DEBUG)) lame_set_msgf  (lgf, no_debug);
+		if(!(verbose_flag & TC_DEBUG)) lame_set_debugf(lgf, no_debug);
+		if(!(verbose_flag & TC_DEBUG)) lame_set_errorf(lgf, no_debug);
 
 		lame_set_bWriteVbrTag(lgf, 0);
 		lame_set_quality(lgf, vob->mp3quality);
@@ -321,7 +321,7 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 
 		/* Init Lame ! */
 		lame_init_params(lgf);
-		if(verbose)
+		if(verbose_flag)
 			fprintf(stderr,"Audio: using lame-%s\n",
 				get_lame_version());
 		debug("Lame config: PCM -> %s",
@@ -481,7 +481,7 @@ int audio_init(vob_t *vob, int v)
 {
 	int ret=TC_EXPORT_OK;
 	int sample_size;
-	verbose=v;	
+	verbose_flag=v;	
 
 	/* Default */
 	avi_aud_bitrate = vob->mp3bitrate;	
