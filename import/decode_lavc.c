@@ -1,5 +1,5 @@
 /*
- *  decode_divx.c
+ *  decode_lavc.c
  *
  *  Copyright (C) Tilmann Bitterberg - March 2003
  *  Copyright (C) Thomas Östreich - June 2001
