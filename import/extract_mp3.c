@@ -21,14 +21,10 @@
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
  *
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/errno.h>
-#include <errno.h>
-#include <unistd.h>
-
 #include "transcode.h"
+
+#include <sys/errno.h>
+
 #include "avilib.h"
 #include "ioaux.h"
 #include "tc.h"
