@@ -21,21 +21,23 @@
  *
  */
 
+#define MOD_NAME		"import_v4l2.so"
+#define MOD_VERSION		"v1.3.5 (2005-03-11)"
+#define MOD_CODEC		"(video) v4l2 | (audio) pcm"
+
+#include "transcode.h"
+
+static int verbose_flag		= TC_QUIET;
+static int capability_flag	= TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_PCM;
+
+#define MOD_PRE			v4l2
+#include "import_def.h"
+
 #define _ISOC9X_SOURCE 1
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <pthread.h>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 #include <sys/soundcard.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include <sys/time.h>
 
 #include <linux/types.h>
 
@@ -49,18 +51,8 @@
 #include "videodev2.h"
 #endif
 
-#include "transcode.h"
 #include "filter/mmx.h"
 
-#define MOD_NAME		"import_v4l2.so"
-#define MOD_VERSION		"v1.3.5 (2005-03-11)"
-#define MOD_CODEC		"(video) v4l2 | (audio) pcm"
-
-static int verbose_flag		= TC_QUIET;
-static int capability_flag	= TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_PCM;
-
-#define MOD_PRE			v4l2
-#include "import_def.h"
 
 /*
 	use se ts=4 for correct layout
