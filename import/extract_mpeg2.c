@@ -31,7 +31,6 @@
 static uint8_t buffer[BUFFER_SIZE];
 static FILE *in_file, *out_file;
 
-int verbose;
 
 static void ps_loop (void)
 {
