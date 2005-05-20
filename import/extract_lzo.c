@@ -1,5 +1,5 @@
 /*
- *  decode_lzo.c
+ *  extract_lzo.c
  *
  *  Copyright (C) Tilmann Bitterberg - 2003
  *
@@ -21,15 +21,6 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-
 #include "transcode.h"
 #include "ioaux.h"
 #include "avilib.h"
@@ -40,8 +31,6 @@
 #if (LZO_VERSION > 0x1070)
 #  include <lzoutil.h>
 #endif
-
-#define MOD_NAME    "decode_lzo"
 
 #define BUFFER_SIZE SIZE_RGB_FRAME<<1
 
