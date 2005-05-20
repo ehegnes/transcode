@@ -35,8 +35,6 @@
 static uint8_t buffer[BUFFER_SIZE];
 static FILE *in_file, *out_file;
 
-int verbose;
-
 static int demux_track=0xc0;
 
 #if 0
