@@ -171,8 +171,8 @@ int tc_filter(vframe_list_t *vframe, char *options)
 			(pd->prefilter) ?"pre" :"post");
 	}  /* if INIT */
 
-    if(((tag & TC_POST_PROCESS) && !pd->prefilter) && !(vframe->attributes & TC_FRAME_IS_SKIPPED) ||
-       ((tag & TC_PRE_PROCESS) && pd->prefilter) && !(vframe->attributes & TC_FRAME_IS_SKIPPED))
+    if((((tag & TC_POST_PROCESS) && !pd->prefilter) && !(vframe->attributes & TC_FRAME_IS_SKIPPED)) ||
+       (((tag & TC_PRE_PROCESS) && pd->prefilter) && !(vframe->attributes & TC_FRAME_IS_SKIPPED)))
         doColorScale(pd, vframe->video_buf, vframe->v_width, vframe->v_height);
 
 	return(0);
