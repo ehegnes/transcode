@@ -1193,6 +1193,15 @@ else
 fi
 TC_PKG_HAVE(libjpeg, LIBJPEG)
 
+
+dnl
+dnl bsdav
+dnl
+TC_PKG_CHECK(bsdav, no, BSDAV, no, bsdav.h, bsdav,
+  bsdav_read_stream_header, bsdav, [http://www.jakemsr.com/bsdav/])
+TC_PKG_HAVE(bsdav, BSDAV)
+
+
 dnl
 dnl iconv
 dnl

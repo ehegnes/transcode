@@ -112,6 +112,8 @@
 #define TC_MAGIC_BKTR_VIDEO	       0xB5D00001
 #define TC_MAGIC_SUNAU_AUDIO	       0xB5D00002
 
+#define TC_MAGIC_BSDAV                 0xB5D00003
+
 //raw streams concatenated frames:
 #define TC_MAGIC_M2V                   0x000001b3
 #define TC_MAGIC_PICEXT                0x000001b5

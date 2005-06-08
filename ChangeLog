@@ -1,3 +1,9 @@
+2005-06-08 Jacob Meuser <jakemsr at jakemsr dot com>
+  * configure.in import/Makefile.am import/fileinfo.c import/magic.h
+    import/probe_stream.c import/import_bsdav.c import/probe_bsdav.c
+    import/tc.h src/probe.c
+  Add support for bsdav file format http://www.jakemsr.com/bsdav/.
+
 2005-05-12 Jacob Meuser <jakemsr at jakemsr dot com>
   * INSTALL acinclude.m4 configure.in import/Makefile.am import/fileinfo.c
     import/ioaux.c import/ioaux.h import/magic.h import/probe_stream.c

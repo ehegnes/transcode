@@ -104,6 +104,10 @@ void tcprobe_thread(info_t *ipipe)
         probe_sunau(ipipe);
 	break;
 
+    case TC_MAGIC_BSDAV:
+        probe_bsdav(ipipe);
+	break;
+
     case TC_MAGIC_OSS_AUDIO:
         probe_oss(ipipe);
 	break;

@@ -24,7 +24,8 @@ AM_CPPFLAGS = \
 	$(LIBQUICKTIME_CFLAGS) \
 	$(THEORA_CFLAGS) \
 	$(VORBIS_CFLAGS) \
-	$(XIO_CFLAGS)
+	$(XIO_CFLAGS) \
+	$(BSDAV_CFLAGS)
 
 if HAVE_OGG
 if HAVE_VORBIS
@@ -80,6 +81,8 @@ if NET_STREAM
 NET_MOD = import_net.la
 endif
 
+BSDAV_MOD = import_bsdav.la
+
 
 pkgdir = $(MOD_PATH)
 
@@ -121,6 +124,7 @@ pkg_LTLIBRARIES = \
 	$(BKTR_MOD) \
 	$(SUNAU_MOD) \
 	$(OSS_MOD) \
+	$(BSDAV_MOD) \
 	$(NET_MOD) \
 	import_yuv.la
 
@@ -242,6 +246,9 @@ import_sunau_la_LDFLAGS = -module -avoid-version
 
 import_oss_la_SOURCES = import_oss.c 
 import_oss_la_LDFLAGS = -module -avoid-version 
+
+import_bsdav_la_SOURCES = import_bsdav.c 
+import_bsdav_la_LDFLAGS = -module -avoid-version 
 
 import_af6_la_SOURCES = import_af6.c
 import_af6_la_LDFLAGS = -module -avoid-version
@@ -445,6 +452,7 @@ tcprobe_SOURCES = \
 	probe_bktr.c \
 	probe_sunau.c \
 	probe_oss.c \
+	probe_bsdav.c \
 	probe_pvn.c \
 	pvn.c \
 	pvnglobals.c
@@ -463,6 +471,7 @@ tcprobe_LDADD = \
 	$(DLDARWINLIB) \
 	$(XIO_LIBS) \
 	$(LIBXML2_LIBS) \
+	$(BSDAV_LIBS) \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS) \
 	-lm

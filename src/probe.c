@@ -51,7 +51,8 @@ static char *std_module[] = {
   "mplayer",
   "bktr",
   "sunau",
-  "oss"
+  "oss",
+  "bsdav"
 };
 
 enum _std_module {
@@ -78,7 +79,8 @@ enum _std_module {
   _theora_,
   _bktr_,
   _sunau_,
-  _oss_
+  _oss_,
+  _bsdav_
 };
 
 static int title, verb;
@@ -462,6 +464,12 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     preset=(TC_AUDIO|TC_VIDEO);
     break;
     
+  case TC_MAGIC_BSDAV:
+    if(!(preset & TC_VIDEO) && vob->im_v_codec==CODEC_RGB) vob->im_v_codec = CODEC_YUV;
+    vob->vmod_probed=std_module[_bsdav_];
+    preset=(TC_AUDIO|TC_VIDEO);
+    break;
+    
   case TC_MAGIC_NUV:
     if(vob->im_v_codec==CODEC_RGB) vob->im_v_codec=CODEC_YUV;
     if(!(preset & TC_VIDEO)) vob->vmod_probed=std_module[_nuv_];
@@ -584,6 +592,11 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
 
   case TC_MAGIC_OSS_AUDIO:
       vob->amod_probed=std_module[_oss_];
+      preset |= TC_AUDIO;
+      break;
+      
+  case TC_MAGIC_BSDAV:
+      vob->amod_probed=std_module[_bsdav_];
       preset |= TC_AUDIO;
       break;
       

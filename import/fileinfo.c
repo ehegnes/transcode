@@ -421,6 +421,13 @@ long fileinfo(int fdes, int skip)
     goto exit;
   }
   
+  // BSDAV
+
+  if (strncmp (buf, "BSDAV", 5)==0) {
+    id = TC_MAGIC_BSDAV;
+    goto exit;
+  }
+  
   // MOV
 
   if(strncasecmp(buf+4,"moov", 4) ==0 ||
@@ -860,6 +867,7 @@ char *filetype(long magic)
   case TC_MAGIC_V4L_VIDEO:    return("V4L video device");
   case TC_MAGIC_BKTR_VIDEO:   return("bktr video device");
   case TC_MAGIC_SUNAU_AUDIO:  return("sunau audio device");
+  case TC_MAGIC_BSDAV:        return("bsdav stream");
   case TC_MAGIC_OSS_AUDIO:    return("OSS audio device");
   case TC_MAGIC_PIPE:         return("pipe/fifo (not seekable)");
   case TC_MAGIC_ERROR:        return("error");
@@ -893,6 +901,7 @@ char *filemagic(long magic)
   case TC_MAGIC_XML:      return("xml");
   case TC_MAGIC_LAV:      return("lav");
   case TC_MAGIC_OGG:      return("ogg");
+  case TC_MAGIC_BSDAV:    return("bsdav");
   case TC_MAGIC_ERROR:    return("error");
   case TC_MAGIC_UNKNOWN: 
   default:                return("unknown file type");
