@@ -35,6 +35,7 @@
 #define DEFAULT_IN_GAMMA   1.0
 #define DEFAULT_OUT_BLACK  0
 #define DEFAULT_OUT_WHITE  255
+#define DEFAULT_PRE        0
 
 typedef struct
 {
@@ -49,7 +50,7 @@ typedef struct
 	} parameter;
 
     unsigned char lumamap[256];
-
+    int prefilter;
 } levels_private_data_t;
 
 static levels_private_data_t levels_private_data[MAX_FILTER];
@@ -93,6 +94,7 @@ static void help_optstr()
     fprintf(stderr, "   input:   luma range of input (%d-%d)\n", DEFAULT_IN_BLACK, DEFAULT_IN_WHITE);
     fprintf(stderr, "   gamma:   gamma ramp to apply to input luma (%f)\n", DEFAULT_IN_GAMMA);
     fprintf(stderr, "   output:  luma range of output (%d-%d)\n", DEFAULT_OUT_BLACK, DEFAULT_OUT_WHITE);
+    fprintf(stderr, "   pre:     act as pre processing filter (0)\n");
 }
 
 int tc_filter(vframe_list_t *vframe, char *options)
@@ -108,7 +110,7 @@ int tc_filter(vframe_list_t *vframe, char *options)
 	if(tag & TC_FILTER_GET_CONFIG)
 	{
 		char buf[64];
-		optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYMO", "1");
+		optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYMEO", "1");
 
 		snprintf(buf, 64, "%d-%d", DEFAULT_IN_BLACK, DEFAULT_IN_WHITE );
 		optstr_param(options, "input", "input luma range (black-white)", "%d-%d", buf, "0", "255", "0", "255" );
@@ -118,6 +120,9 @@ int tc_filter(vframe_list_t *vframe, char *options)
 
 		snprintf(buf, 64, "%d-%d", DEFAULT_OUT_BLACK, DEFAULT_OUT_WHITE );
 		optstr_param(options, "output", "output luma range (black-white)", "%d-%d", buf, "0", "255", "0", "255" );
+        
+		snprintf(buf, 64, "%i", DEFAULT_PRE );
+	        optstr_param(options, "pre", "pre processing filter", "%i", buf, "0", "1" );
 	}
 
 	if(tag & TC_FILTER_INIT)
@@ -132,6 +137,7 @@ int tc_filter(vframe_list_t *vframe, char *options)
 		pd->parameter.in_gamma   = DEFAULT_IN_GAMMA;
 		pd->parameter.out_black  = DEFAULT_OUT_BLACK;
 		pd->parameter.out_white  = DEFAULT_OUT_WHITE;
+		pd->prefilter = DEFAULT_PRE;
 
         if (options) {
             if(optstr_lookup(options, "help")) {
@@ -142,6 +148,7 @@ int tc_filter(vframe_list_t *vframe, char *options)
             optstr_get(options, "input",   "%d-%d", &pd->parameter.in_black, &pd->parameter.in_white );
             optstr_get(options, "gamma",   "%f",    &pd->parameter.in_gamma );
             optstr_get(options, "output",  "%d-%d", &pd->parameter.out_black, &pd->parameter.out_white );
+	    optstr_get(options, "pre",     "%d", &pd->prefilter);
         }  /* if options */
 
 		if(vob->im_v_codec != CODEC_YUV)
@@ -160,9 +167,12 @@ int tc_filter(vframe_list_t *vframe, char *options)
                         pd->parameter.in_gamma,
                         pd->parameter.out_black, pd->parameter.out_white
                        );
+		fprintf(stderr, "[%s]: %s-processing filter\n", MOD_NAME, 
+			(pd->prefilter) ?"pre" :"post");
 	}  /* if INIT */
 
-    if((tag & TC_POST_PROCESS) && !(vframe->attributes & TC_FRAME_IS_SKIPPED))
+    if(((tag & TC_POST_PROCESS) && !pd->prefilter) && !(vframe->attributes & TC_FRAME_IS_SKIPPED) ||
+       ((tag & TC_PRE_PROCESS) && pd->prefilter) && !(vframe->attributes & TC_FRAME_IS_SKIPPED))
         doColorScale(pd, vframe->video_buf, vframe->v_width, vframe->v_height);
 
 	return(0);

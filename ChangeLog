@@ -1,3 +1,7 @@
+2005-06-08 Francesco Romani <francesco dot romani at email dot it>
+  * filter/filter_levels.c
+  Allow to be used as a pre-filter.
+
 2005-06-08 Jacob Meuser <jakemsr at jakemsr dot com>
   * configure.in import/Makefile.am import/fileinfo.c import/magic.h
     import/probe_stream.c import/import_bsdav.c import/probe_bsdav.c
