@@ -22,10 +22,11 @@
  */
 
 #define MOD_NAME    "import_ffmpeg.so"
-#define MOD_VERSION "v0.1.11 (2004-02-29)"
+#define MOD_VERSION "v0.1.12 (2004-05-07)"
 #define MOD_CODEC   "(video) ffmpeg: MS MPEG4v1-3/MPEG4/MJPEG"
 
 #include "transcode.h"
+#include "filter.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID;
@@ -52,6 +53,7 @@ char import_cmd_buf[TC_BUF_MAX];
 extern pthread_mutex_t init_avcodec_lock;
 
 static int done_seek=0;
+static int levels_handle=-1;
 
 struct ffmpeg_codec {
   int   id;
@@ -234,6 +236,13 @@ static unsigned char *bufalloc(size_t size) {
   return (unsigned char *) (buf + adjust);
 }
 
+static void enable_levels_filter() 
+{
+  tc_info("input is mjpeg, reducing range from YUVJ420P to YUV420P");
+  if((levels_handle = plugin_get_handle("levels=output=16-240:pre=1") == -1))
+    tc_warn("cannot load levels filter");
+}
+
 /* ------------------------------------------------------------ 
  *
  * open stream
@@ -374,6 +383,11 @@ do_avi:
     switch (pix_fmt) {
       case CODEC_YUV:
         frame_size = (x_dim * y_dim * 3)/2;
+
+	// we adapt the color space
+        if(codec->id == CODEC_ID_MJPEG) {
+	  enable_levels_filter();
+        }
         break;
       case CODEC_RGB:
         frame_size = x_dim * y_dim * 3;
@@ -444,6 +458,11 @@ do_dv:
 	fprintf(stderr, "[%s] No codec is known the TAG '%lx'.\n", MOD_NAME,
 	    vob->codec_flag);
 	return TC_IMPORT_ERROR;
+      }
+	
+      // we adapt the color space
+      if(codec->id == CODEC_ID_MJPEG) {
+        enable_levels_filter();
       }
 
       //printf ("FFMPEG: codec->name = %s ->id = 0x%x\n", codec->name, codec->id);
@@ -584,6 +603,7 @@ retry:
     UVls = picture.linesize[1];
     
     switch (lavc_dec_context->pix_fmt) {
+      case PIX_FMT_YUVJ420P:
       case PIX_FMT_YUV420P:
         // Result is in YUV 4:2:0 (YV12) format, but each line ends with
         // an edge which we must skip
@@ -635,6 +655,7 @@ retry:
                   lavc_dec_context->width / 2);
         }
         break;
+      case PIX_FMT_YUVJ422P:
       case PIX_FMT_YUV422P:
           // Result is in YUV 4:2:2 format (subsample UV vertically for YV12):
           for (i = 0; i < lavc_dec_context->height; i++) {
@@ -656,6 +677,7 @@ retry:
             src += UVls << 1;
           }
 	  break;
+      case PIX_FMT_YUVJ444P:
       case PIX_FMT_YUV444P:
           // Result is in YUV 4:4:4 format (subsample UV h/v for YV12):
 	  tc_memcpy(Ybuf, picture.data[0],

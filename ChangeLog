@@ -1,4 +1,9 @@
 2005-06-08 Francesco Romani <francesco dot romani at email dot it>
+  * import/import_ffmpeg.c
+  Use the new filter_levels pre-filter capability to scale JPEG
+  color ranges to YUV ranges.
+
+2005-06-08 Francesco Romani <francesco dot romani at email dot it>
   * filter/filter_levels.c
   Allow to be used as a pre-filter.
 
