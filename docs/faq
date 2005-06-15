@@ -1,14 +1,51 @@
 ----
-Q:	I am using version 0.6.x where x < 11, and I'm having
-	trouble with A/V synchronicity
-A:	Upgrade to 0.6.12 (or newer or cvs). (ems)
----
-Q:	How do I make a copy of a DVD-9
-A:	For german reading users here is a link http://linuxwiki.de/DvdAuthoring (felix)
+Q:	I am using version 0.6.x where x <= 14, and I'm having
+	some sort of problem
+A:	Upgrade to the CVS version, this is the only version
+	that is supported.
 ---
 Q:	How do I obtain transcode from CVS
 A:	There are instructions available at
-	http://transcoding.org/#cvs (tibit)
+	http://www.transcoding.org/#cvs (tibit)
+---
+Q:	I now got transcode from CVS, how do I compile
+	and install it?
+A:	See the INSTALL file.
+---
+Q:	So I got transcode from CVS and compiled it according
+	to the directions in the INSTALL file, and now I (still)
+	have some sort of problem
+A:	Join the transcode-users mailing list 
+	(see www.transcoding.org) and check the archive if
+	your problem has been discussed at the mailing list before.
+---
+Q:	I still have a problem and it hasn't been discussed before.
+A:	If your problem is that transcode "hangs" without doing anything,
+	that is a known problem which is hard to solve. Often running
+	transcode this way: "env LD_ASSUME_KERNEL=2.4.0 transcode ..."
+	seems to help.
+---
+Q:	I still have a problem and it's not that transcode
+	hangs.
+A:	If your problem is that transcode is killed by a signal
+	(e.g. segmentation fault), perform these steps (carefully!)
+	- recompile transcode for debugging (see the INSTALL file
+	  for details)
+	- install it
+	- start transcode from within gdb like this:
+	  $ gdb transcode
+	  (gdb) <transcode command line options>
+	- when gdb stops, type these commands:
+	  (gdb) where
+	  (gdb) bt full
+	- now file a bug report in transcode-users, including:
+	  * the complete transcode command line your're using
+	  * the complete output of the transcode run, with option -q 2
+	  * the output of gdb 
+	- only with a full bug report we can do ANYTHING at all.
+---
+Q:	How do I make a copy of a DVD-9
+A:	For german reading users here is a link http://linuxwiki.de/DvdAuthoring (felix)
 ---
 Q:	Talking of ffmpeg, I seem to be suffering for having an
 	almost infinite number of copies of it. For example, it

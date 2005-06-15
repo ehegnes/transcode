@@ -45,7 +45,13 @@ and building with *gcc*, you can invoke configure like this:
 
  $ env CFLAGS="-O3 -march=pentium4" ./configure ...
 
-to create an optimised build.
+to create an optimised build,
+
+or 
+
+ $ env CFLAGS="-g" ./configure ...
+
+to build transcode for debugging.
 
 Don't forget the relevant configure options, described below.
 
@@ -120,6 +126,7 @@ Mandatory packages:
           link binaries and modules statically to libavcodec
           WARNING: creates huge binaries
           WARNING: only tested on linux x86
+          WARNING: not supported at all, don't complain
 
   libmpeg2 from mpeg2dec >= 0.4.0b  http://libmpeg2.sourceforge.net/
     related options:
