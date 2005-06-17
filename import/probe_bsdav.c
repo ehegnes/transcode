@@ -74,6 +74,17 @@ void probe_bsdav(info_t *ipipe)
     if (ipipe->probe_info->track[0].chan > 0)
         ipipe->probe_info->num_tracks = 1;
 
+    if (fseek(file, 0, SEEK_SET) != 0) {
+        fprintf(stderr, "(%s) failed to fseek bsdav stream\n", __FILE__);
+        ipipe->error = 1;
+        return;
+    }
+
+    ipipe->probe_info->fps = bsdav_probe_frame_rate(file,
+      ipipe->factor * 1024 * 1024);
+
+    ipipe->probe_info->frc = tc_guess_frc(ipipe->probe_info->fps);
+
     return;
 }
 
