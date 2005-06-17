@@ -55,6 +55,9 @@ extern char *GRAY;
 
 int tc_test_program(char *name);
 
+/* guess the frame rate code from the frames per second */
+int tc_guess_frc(double fps);
+
 /*
  * Safer string functions from OpenBSD, since these are not in all
  * libc implementations.

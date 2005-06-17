@@ -522,26 +522,6 @@ void signal_thread()
 
 vob_t *tc_get_vob() {return(vob);}
  
-#define delta 0.05
-int tc_guess_frc(double fps)
-{
-  if (fps-delta < 00.010 && 00.010 < fps+delta) return 0;
-  if (fps-delta < 23.976 && 23.976 < fps+delta) return 1;
-  if (fps-delta < 24.000 && 24.000 < fps+delta) return 2;
-  if (fps-delta < 25.000 && 25.000 < fps+delta) return 3;
-  if (fps-delta < 29.970 && 29.970 < fps+delta) return 4;
-  if (fps-delta < 30.000 && 30.000 < fps+delta) return 5;
-  if (fps-delta < 50.000 && 50.000 < fps+delta) return 6;
-  if (fps-delta < 59.940 && 59.940 < fps+delta) return 7;
-  if (fps-delta < 60.000 && 60.000 < fps+delta) return 8;
-  if (fps-delta <  1.000 &&  1.000 < fps+delta) return 9;
-  if (fps-delta <  5.000 &&  5.000 < fps+delta) return 10;
-  if (fps-delta < 10.000 && 10.000 < fps+delta) return 11;
-  if (fps-delta < 12.000 && 12.000 < fps+delta) return 12;
-  if (fps-delta < 15.000 && 15.000 < fps+delta) return 13;
-  return -1;
-}
-#undef delta
 
 /* ------------------------------------------------------------ 
  *
