@@ -376,7 +376,7 @@ static int is_optstr (char *buf) {
 int tc_filter(vframe_list_t *ptr, char *options)
 {
 
-  vob_t *vob=NULL;
+  static vob_t *vob=NULL;
 
   int pre=0, vid=0;
   
