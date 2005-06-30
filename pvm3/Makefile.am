@@ -29,9 +29,9 @@ tcpvmexportd_SOURCES = \
 	vob_pack_unpack.c
 
 tcpvmexportd_LDADD = \
-	$(LIBTC_LIBS) \
 	$(TCIOAUX_LIBS) \
 	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS) \
 	-lm
 
 EXTRA_DIST = \
