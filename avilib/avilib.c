@@ -29,7 +29,7 @@
 #include "config.h"
 #else 
 #define PACKAGE "transcode"
-#define VERSION "0.6.12"
+#define VERSION "1.0.0"
 #endif
 
 #include "os.h"

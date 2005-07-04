@@ -65,7 +65,7 @@ int verbose = TC_QUIET;
 #endif
 
 #ifndef VERSION
-# define VERSION "0.6.11"
+# define VERSION "1.0.0"
 #endif
 
 
