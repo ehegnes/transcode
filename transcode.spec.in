@@ -2,8 +2,8 @@
 Name: @PACKAGE@
 Version: @VERSION@
 Release: 1
-Summary: A linux video stream processing utility
-URL: http://zebra.fh-weingarten.de/~transcode/
+Summary: A video stream processing utility
+URL: http://www.transcoding.org/
 License: GPL
 Group: Applications/Multimedia
 Packager: Lenz Grimmer <lenz@grimmer.com>
@@ -11,7 +11,7 @@ Source: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
 
 %description
-transcode is a linux text-console utility for video stream processing,
+transcode is a text-console utility for video stream processing,
 running on a platform that supports shared libraries and threads.  Decoding
 and encoding is done by loading modules that are responsible for feeding
 transcode with raw video/audio streams (import modules) and encoding the
@@ -45,7 +45,7 @@ home page at
 
 Written by Thomas Östreich <ostreich@theorie.physik.uni-goettingen.de>
 Currently maintained by Tilmann Bitterberg <transcode@tibit.org>
-See the Authors file for contributions from the linux community.
+See the Authors file for contributions from the transcode community.
 See the file COPYING for license details.
 
 %prep
