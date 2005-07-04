@@ -483,17 +483,23 @@ fi
 AM_CONDITIONAL(HAVE_FOMIT_FP, test x"$have_fomit_fp" = x"yes")
 
 dnl Check for gcc2, which doesn't seem to handle asm templates
+dnl And check for gcc4, which also has problems with filter_tomsmocomp
 dnl
 gcc2=no
+gcc4=no
 if test x"$GCC" = x"yes" ; then
   gcc_ver="`LANG=C $CC -dumpversion`"
   if test x"$gcc_ver" != x"" ; then
     if echo $gcc_ver | grep -q ^2 ; then
       gcc2=yes
     fi
+    if echo $gcc_ver | grep -q ^4 ; then
+      gcc4=yes
+    fi
   fi
 fi
 AM_CONDITIONAL(HAVE_GCC2, test x"$gcc2" = x"yes")
+AM_CONDITIONAL(HAVE_GCC4, test x"$gcc4" = x"yes")
 
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
