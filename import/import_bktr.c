@@ -381,7 +381,7 @@ int bktr_init(int video_codec, const char *video_device,
             "[%s] geo.rows = %d, geo.columns = %d\n"
             "[%s] geo.frames = %d, geo.oformat = %ld\n",
             MOD_NAME, geo.rows, geo.columns,
-            MOD_NAME, geo.frames, geo.oformat);
+            MOD_NAME, geo.frames, (long)geo.oformat);
     }
 
     if (ioctl(bktr_vfd, METEORSETGEO, &geo) < 0) {
