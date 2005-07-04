@@ -354,12 +354,12 @@ AC_ARG_WITH($1-prefix,
 
 AC_ARG_WITH($1-includes,
   AC_HELP_STRING([--with-$1-includes=DIR],
-    [directory where $1 headers are installed (/usr/include)]),
+    [directory where $1 headers ($5) are installed (/usr/include)]),
   w_$1_i="$withval", w_$1_i="")
 
 AC_ARG_WITH($1-libs,
   AC_HELP_STRING([--with-$1-libs=DIR],
-    [directory where $1 libararies are installed (/usr/lib)]),
+    [directory where $1 libararies (lib$6.so) are installed (/usr/lib)]),
   w_$1_l="$withval", w_$1_l="")
 
 have_$1="no"
