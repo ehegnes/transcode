@@ -9,7 +9,7 @@
  *  constant quantizer extensions "-R 3" by Gerhard Monzel 
  *  <gerhard.monzel@sap.com>
  *
- *  This file is part of transcode, a linux video stream processing tool
+ *  This file is part of transcode, a video stream processing tool
  *      
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

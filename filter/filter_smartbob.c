@@ -1,7 +1,7 @@
 /*
     filter_smartbob.c
     
-    This file is part of transcode, a linux video stream processing tool
+    This file is part of transcode, a video stream processing tool
     
     Smart Bob Filter for VirtualDub -- Break fields into frames using
     a motion-adaptive algorithm. Copyright (C) 1999-2001 Donald A. Graft

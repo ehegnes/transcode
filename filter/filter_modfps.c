@@ -3,7 +3,7 @@
  *
  *  Copyright (C) Marrq - July 2003
  *
- *  This file is part of transcode, a linux video stream processing tool
+ *  This file is part of transcode, a video stream processing tool
  *  Based on the excellent work of Donald Graft in Decomb and of
  *  Thanassis Tsiodras of transcode's decimate filter and Tilmann Bitterberg
  *      

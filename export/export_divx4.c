@@ -11,7 +11,7 @@
  *
  *  divx4/divx5 unification by Alex Stewart <alex@foogod.com>
  *
- *  This file is part of transcode, a linux video stream processing tool
+ *  This file is part of transcode, a video stream processing tool
  *      
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

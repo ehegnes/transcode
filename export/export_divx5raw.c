@@ -12,7 +12,7 @@
  *  This module is derived from export_divx4raw.c, minor modification by
  *  Loïc Le Loarer <lll_tr@m4x.org>
  *  
- *  This file is part of transcode, a linux video stream processing tool
+ *  This file is part of transcode, a video stream processing tool
  *      
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

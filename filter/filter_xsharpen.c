@@ -4,7 +4,7 @@
     Copyright (C) 1999-2000 Donald A. Graft
       modified 2002 by Tilmann Bitterberg for use with transcode
    
-    This file is part of transcode, a linux video stream processing tool
+    This file is part of transcode, a video stream processing tool
 
     Xsharpen Filter for VirtualDub -- sharpen by mapping pixels
     to the closest of window max or min. 

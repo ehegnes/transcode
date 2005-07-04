@@ -1,7 +1,7 @@
 /*
     filter_smartdeinter.c
     
-    This file is part of transcode, a linux video stream processing tool
+    This file is part of transcode, a video stream processing tool
     
     Smart Deinterlacing Filter for VirtualDub -- performs deinterlacing only
     in moving picture areas, allowing full resolution in static areas.

@@ -10,7 +10,7 @@
  *                         Thanks go to Thomas for such nice code for ripping <g>
  *  0.0.2    May 11 2004   Gave the video pipe a regular random name, like the audio pipe
  *
- *  This file made for transcode, a linux video stream  processing tool
+ *  This file made for transcode, a video stream  processing tool
  *      
  *  this file is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

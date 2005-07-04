@@ -6,7 +6,7 @@
  *  Filtered Image Rescaling by Dale Schumacher
  *  2001/08/22: Modified by Vaclav Slavik for inclusion in transcode
  *
- *  This file is part of transcode, a linux video stream processing tool
+ *  This file is part of transcode, a video stream processing tool
  *      
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

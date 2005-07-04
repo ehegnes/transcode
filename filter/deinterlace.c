@@ -1,7 +1,7 @@
 /*
  * Copyright (C) Thomas Östreich - June 2001
  *
- * This file is part of transcode, a linux video stream processing tool
+ * This file is part of transcode, a video stream processing tool
  *
  * Code taken from the xine project:
  * Copyright (C) 2001 the xine project

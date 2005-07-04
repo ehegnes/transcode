@@ -1,9 +1,9 @@
 
 ---------------------------------------------------
-transcode - a linux video stream processing utility
+transcode - a video stream processing utility
 ---------------------------------------------------
 
-transcode is a linux text-console utility for video stream processing,
+transcode is a text-console utility for video stream processing,
 running on a platform that supports shared libraries and threads.
 Decoding and encoding is done by loading modules that are responsible 
 for feeding transcode with raw video/audio streams (import modules) 
@@ -33,7 +33,7 @@ AVI files, including header fixing, merging multiple files or splitting
 large AVI files to fit on a CD.
 
 Written by Thomas Östreich (ostreich@theorie.physik.uni-goettingen.de)
-See the Authors file for contributions from the linux community.
+See the Authors file for contributions from the community.
 See the file COPYING for license details.
 
 

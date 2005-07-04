@@ -5,7 +5,7 @@
  *  Base code taken from DScaler's tomsmocomp filter (c) 2002 Tom Barry,
  *  ported by Dirk Ziegelmeier for kdetv.
  *
- *  This file is part of transcode, a linux video stream processing tool
+ *  This file is part of transcode, a video stream processing tool
  *      
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

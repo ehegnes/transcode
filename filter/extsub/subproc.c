@@ -6,7 +6,7 @@
  *  code based on ExtSub - A subtitle extractor for VOB files Version 1.00
  *  by Sham Gardner (risctaker@risctaker.de)
  *
- *  This file is part of transcode, a linux video stream processing tool
+ *  This file is part of transcode, a video stream processing tool
  *      
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

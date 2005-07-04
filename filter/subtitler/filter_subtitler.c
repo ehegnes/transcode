@@ -3,7 +3,7 @@
  *
  *  Copyright (C) Jan Panteltje  2001
  *
- *  This file is part of transcode, a linux video stream processing tool
+ *  This file is part of transcode, a video stream processing tool
  *  Font reading etc from Linux mplayer
  *
  *  transcode is free software; you can redistribute it and/or modify

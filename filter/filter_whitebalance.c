@@ -1,7 +1,7 @@
 /*
     filter_whitebalance.c
     
-    This file is part of transcode, a linux video stream processing tool
+    This file is part of transcode, a video stream processing tool
     
     White Balance Filter - correct images with a broken white balance
     (typically, images from a dv camcorder with an unset white balance or

@@ -3,7 +3,7 @@
  *
  *  Copyright (C) Thanassis Tsiodras - August 2002
  *
- *  This file is part of transcode, a linux video stream processing tool
+ *  This file is part of transcode, a video stream processing tool
  *  Based on the excellent work of Donald Graft in Decomb.
  *      
  *  transcode is free software; you can redistribute it and/or modify
