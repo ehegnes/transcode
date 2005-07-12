@@ -397,7 +397,7 @@ MOD_init {
 
 		is_mjpeg = 1;
 
-		if((handle = plugin_get_handle("levels=input=16-240:output=0:255") == -1))
+		if((handle = plugin_get_handle("levels=input=16-240") == -1))
 			ff_warning("cannot load levels filter\n");
 	}
 
