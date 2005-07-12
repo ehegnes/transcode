@@ -45,9 +45,6 @@ EXTRA_DIST = \
 
 install-data-local:
 	@$(NORMAL_INSTALL)
-	if test -h $(bindir)/pvmgs; then \
-		rm $(bindir)/pvmgs; \
-	fi;
 	if test ! -e $(bindir)/pvmgs; then \
 		ln -s $(PVM3_PVMGS) $(bindir)/pvmgs; \
 	fi;
