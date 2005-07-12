@@ -88,8 +88,8 @@ extern "C" {
       /* unpacker stuff */
       int unpack = 0;
       int lumi_first = 0;
-      char *pack_buffer = 0;
-      char *packY=0,*packU=0,*packV=0;
+      uint8_t *pack_buffer = 0;
+      uint8_t *packY=0,*packU=0,*packV=0;
       ssize_t pack_size = 0;
       long s_tot_frame,s_init_frame;
 
@@ -192,7 +192,7 @@ extern "C" {
       /* prepare unpacker */
       if(unpack) {
 	pack_size = (plane_size * 3)/2; /* target is 4:2:0 */
-	pack_buffer = (char *)malloc(pack_size);
+	pack_buffer = (uint8_t *)malloc(pack_size);
 	if(pack_buffer==0) {
 	  fprintf(stderr,"(%s) ERROR: No memory for buffer!!!\n",__FILE__);
 	  return;
@@ -213,7 +213,7 @@ extern "C" {
 
       /* send sync token */
       fflush(stdout);
-      p_write(decode->fd_out, sync_str, sizeof(sync_str));
+      p_write(decode->fd_out, (uint8_t *)sync_str, sizeof(sync_str));
 
       /* frame serve loop */
       /* by default decode->frame_limit[0]=0 and ipipe->frame_limit[1]=LONG_MAX so all frames are decoded */
@@ -221,15 +221,15 @@ extern "C" {
 	/* fetch a frame */
 	vrs->ReadFrame();
 	CImage *imsrc = vrs->GetFrame();
-	char *buf = (char *)imsrc->Data();
+	uint8_t *buf = imsrc->Data();
 
 	if (s_init_frame >= decode->frame_limit[0]) //added to enable the -C option of tcdecode
 	{
 		if(unpack) {
 		  /* unpack and write unpacked data */
-		  char *Y = packY;
-		  char *U = packU;
-		  char *V = packV;
+		  uint8_t *Y = packY;
+		  uint8_t *U = packU;
+		  uint8_t *V = packV;
 		  int x,y;
 		  int subw = bh.biWidth >> 1;
 		  int subh = bh.biHeight >> 1;
@@ -298,7 +298,7 @@ extern "C" {
       unsigned int buffer_size;
       unsigned int sample_size = 0;
       unsigned int samples;
-      char *buffer;
+      uint8_t *buffer;
       long s_byte_read=0;
 
       /* create AVI audio file reader */
@@ -360,7 +360,7 @@ extern "C" {
       if (ars->GetFrameSize() > buffer_size) {
 	buffer_size = ars->GetFrameSize();
       }
-      buffer = (char *)malloc(buffer_size);
+      buffer = (uint8_t *)malloc(buffer_size);
       if(buffer==0) {
 	fprintf(stderr,"(%s) ERROR: No memory for buffer!!!\n",__FILE__);
 	return;
@@ -368,7 +368,7 @@ extern "C" {
 
       /* send sync token */
       fflush(stdout);
-      p_write(decode->fd_out, sync_str, sizeof(sync_str));
+      p_write(decode->fd_out, (uint8_t *)sync_str, sizeof(sync_str));
       
       /* sample server loop */
       while(!ars->Eof()) { 
