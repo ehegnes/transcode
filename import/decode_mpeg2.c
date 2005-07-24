@@ -72,15 +72,11 @@ void decode_mpeg2(decode_t *decode)
     int framenum = 0, len = 0;
     uint32_t ac;
 
-#ifndef RELEASE    
     fprintf (stderr, "[%s] libmpeg2 0.4.0b loop decoder\n", 
 		    __FILE__);
     
-    ac = mpeg2_accel (MPEG2_ACCEL_X86_MMXEXT);
-#else
     ac = mpeg2_accel (MPEG2_ACCEL_DETECT);
-    // this seems to be the faster acceleration on athlon*
-#endif    
+    
     show_accel (ac);
     
     decoder = mpeg2_init ();
