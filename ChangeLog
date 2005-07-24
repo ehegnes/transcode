@@ -1,4 +1,8 @@
 2005-07-23 Bryan Mayland <bmayland at leoninedev dot com>
+  * src/video_yuv.c
+  Make sure alignment is usable when choosing acceleration style.
+
+2005-07-23 Bryan Mayland <bmayland at leoninedev dot com>
   * aclib/average.c
   Don't clobber esi register.
 
