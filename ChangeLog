@@ -1,4 +1,8 @@
 2005-07-23 Jacob Meuser <jakemsr at jakemsr dot com>
+  * filter/filter_videocore.c tools/tcmodinfo.c
+  Add unused, but missing symbols.
+
+2005-07-23 Jacob Meuser <jakemsr at jakemsr dot com>
   * filter/Makefile.am filter/filter_logoaway.c
   Need to include libtc/tc_func_excl.h here.
 

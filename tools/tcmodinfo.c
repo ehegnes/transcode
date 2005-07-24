@@ -90,6 +90,7 @@ int flip = 0;
 int max_frame_buffer=0;
 int tc_x_preview = 32;
 int tc_y_preview = 32;
+int gamma_table_flag = 0;
 void tc_socket_msgchar() {}
 int tc_socket_msg_lock;
 void tc_socket_config() {}
@@ -100,6 +101,9 @@ void tc_socket_load() {}
 void tc_socket_parameter() {}
 void tc_socket_preview() {}
 
+#ifndef HAVE_STRLCPY
+size_t strlcpy(char *dst, const char *src, size_t size) { return(0); }
+#endif
 
 int (*TCV_export)(int opt, void *para1, void *para2);
 int (*TCA_export)(int opt, void *para1, void *para2);
