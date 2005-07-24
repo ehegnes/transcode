@@ -140,6 +140,7 @@ sse.8loop:								\n\
 sse.exit:								\n\
     " : /* no outputs */
       : "a" (row1), "d" (row2), "D" (out), "c" (bytes)
+      : "%esi"
     );
     return 0;
 }
@@ -220,6 +221,7 @@ sse2.8loop:								\n\
 sse2.exit:								\n\
     " : /* no outputs */
       : "a" (row1), "d" (row2), "D" (out), "c" (bytes)
+      : "%esi"
     );
     return 0;
 }
