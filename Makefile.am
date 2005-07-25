@@ -26,7 +26,7 @@ SUBDIRS = \
 	$(PVM3) \
 	testsuite
 
-EXTRA_DIST = transcode.spec README-0.6.14
+EXTRA_DIST = transcode.spec README-1.0.1
 
 docsdir = $(datadir)/doc/transcode
 docs_DATA = ChangeLog
