@@ -683,7 +683,7 @@ MOD_init {
 
         lavc_venc_context->gop_size = vob->divxkeyframes;
         lavc_param_rc_min_rate = 0;
-        lavc_param_rc_max_rate = 9000;
+		lavc_param_rc_max_rate = 6000;  /*FIXME: ffmpeg exceeds maxrate in 2-pass*/
         lavc_param_rc_buffer_size = 224 * 8;
         lavc_param_rc_buffer_aggressivity = 99;
 
