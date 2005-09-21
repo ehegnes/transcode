@@ -1,3 +1,7 @@
+2005-09-21 Francesco Romani <fromani at gmail dot com>
+  * libxio/static_xio.h
+  Add temporary struct stat variable to make gcc happier
+
 2005-07-23 Jacob Meuser <jakemsr at jakemsr dot com>
   * filter/filter_videocore.c tools/tcmodinfo.c
   Add unused, but missing symbols.
