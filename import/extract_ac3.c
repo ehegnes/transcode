@@ -315,6 +315,8 @@ int ac3scan(int infd, int outfd)
   
   uint16_t sync_word = 0;
 
+  ssize_t bytes_read;
+
   if (!buffer) {
     fprintf(stderr, "%s:%d no memory\n", __FILE__, __LINE__);
     return 1;
@@ -327,11 +329,14 @@ int ac3scan(int infd, int outfd)
     k=0;
     
     for(;;) {
-      
-      if (p_read(infd, &buffer[s], 1) !=1) {
+      bytes_read = p_read(infd, &buffer[s], 1);
+      if (bytes_read <= 0) {
 	//ac3 sync frame scan failed
 	free (buffer);
-	return(ERROR_INVALID_HEADER);
+	if (bytes_read == 0)  /* EOF */
+	  return(0);
+	else
+	  return(ERROR_INVALID_HEADER);
       }
       
       sync_word = (sync_word << 8) + (uint8_t) buffer[s]; 
@@ -401,7 +406,7 @@ int ac3scan(int infd, int outfd)
   }
   
   free (buffer);
-  return(1);
+  return(0);
 }
 
 

@@ -137,7 +137,7 @@ void decode_dv(decode_t *decode)
   static dv_decoder_t *dv_decoder=NULL;
   int error=0, dvinfo=0; 
   unsigned char  *buf, *source;
-  unsigned char  *video[3];
+  unsigned char  *video[4];
   int16_t *audio_buffers[4], *audio;  
   uint16_t pitches[3];  //do not change to signed! (ThOe) libdv BUG! 
 
