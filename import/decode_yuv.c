@@ -21,41 +21,81 @@
  *
  */
 
-#include "ioaux.h"
-#include "tc.h"
+#include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <inttypes.h>
 
-#include "video_out.h"
-#include <mpeg2dec/mpeg2.h>
-
+#include "video_out.h" // only for vo_accel() legacy
 #include "mm_accel.h"
 
-extern vo_open_t vo_ppmpipe_open;
+#include "ioaux.h"
 
-static FILE *in_file;
-static FILE *out_file;
+#include "yuv2rgb.h"
 
-static vo_open_t *output_open = vo_ppmpipe_open;
-extern void directdraw_rgb(vo_instance_t *output, char *yuv[3]);
-extern vo_open_t vo_ppmpipe_open;
-// extern int vo_setup (vo_instance_t *, int, int);
-// extern vo_instance_t * vo_open(vo_open_t, int (*)(char *, int));
+#include "transcode.h"
+#include "tc.h"
 
-static int yuv_read_frame (int fd, char *yuv[3], int width, int height)
+/*
+ * About this code:
+ *
+ * based on video_out.h, video_out.c, video_out_ppm.c
+ * 
+ * Copyright (C) 1999-2001 Aaron Holtzman <aholtzma@ess.engr.uvic.ca>
+ * Stripped and rearranged for transcode by
+ * Francesco Romani <fromani@gmail.com> - July 2005
+ *
+ * This file is part of mpeg2dec, a free MPEG-2 video stream decoder.
+ *
+ * What?
+ * Basically, this code does only a colorspace conversion from ingress frames
+ * (YV12) to egress frames (RGB). It uses basically the same routines of libvo
+ * and old decode_yuv.c
+ * 
+ * Why?
+ * decode_yuv was the one and the only transcode module which uses the main
+ * libvo routines, not the colorspace conversion ones. It not make sense to me
+ * to have an extra library just for one module, so I stripped down to minimum
+ * the libvo code used by decode_yuv.c and I moved it here.
+ * This code has only few things recalling it's ancestor, but I'm still remark
+ * it's origin.
+ */
+
+typedef struct vo_s {
+    // frame size
+    unsigned int width;
+    unsigned int height;
+    
+    // needed by yuv2rgb routines
+    int rgbstride;
+    int bpp;
+    
+    // internal frame buffers
+    uint8_t *rgb;
+    uint8_t *yuv[3];
+} vo_t;
+
+#define vo_convert(instp) \
+	yuv2rgb((instp)->rgb, (instp)->yuv[0], (instp)->yuv[1], (instp)->yuv[2], \
+	     (instp)->width, (instp)->height, (instp)->rgbstride, \
+	     (instp)->width, (instp)->width >> 1);
+
+/* 
+ * legacy (and working :) ) code: 
+ * read one YV12 plane at time from file descriptor (pipe, usually)
+ * and store it in internal buffer
+ */
+int vo_read_yuv (vo_t *vo, int fd)
 {
-
-   int v, h, i;
-
-   int bytes;
-
-
-   h = width;
-   v = height;
+   unsigned int v = vo->height, h = vo->width;
+   int i, bytes;
 
    /* Read luminance scanlines */
 
    for (i = 0; i < v; i++)
-       if ((bytes=p_read (fd, yuv[0] + i * h, h)) != h) {
-	   if(bytes<0)  fprintf(stderr,"(%s) read failed", __FILE__);
+       if ((bytes = p_read (fd, vo->yuv[0] + i * h, h)) != h) {
+	   if (bytes < 0)
+	      fprintf(stderr,"(%s) read failed", __FILE__);
 	   return 0;
        }
 
@@ -65,30 +105,111 @@ static int yuv_read_frame (int fd, char *yuv[3], int width, int height)
    /* Read chrominance scanlines */
 
    for (i = 0; i < v; i++)
-       if ((bytes=p_read (fd, yuv[1] + i * h, h)) != h) {
-	  if(bytes<0)  fprintf(stderr,"(%s) read failed", __FILE__);
-	   return 0;
+       if ((bytes = p_read (fd, vo->yuv[1] + i * h, h)) != h) {
+	  if (bytes < 0) 
+	     fprintf(stderr,"(%s) read failed", __FILE__);
+	  return 0;
        }
 
    for (i = 0; i < v; i++)
-       if ((bytes=p_read (fd, yuv[2] + i * h, h)) != h) {
-	   if(bytes<0)  fprintf(stderr,"(%s) read failed", __FILE__);
+       if ((bytes = p_read (fd, vo->yuv[2] + i * h, h)) != h) {
+	   if (bytes < 0)
+	      fprintf(stderr,"(%s) read failed", __FILE__);
 	   return 0;
        }
    
    return 1;
 }
 
-static int outstream(char *framebuffer, int bytes)
+/*
+ * simpler than above:
+ * write the whole RGB buffer in to file descriptor (pipe, usually).
+ * WARNING: caller must ensure that RGB buffer holds valid data
+ * invoking vo_convert *before* to invoke this function
+ */
+int vo_write_rgb (vo_t *vo, int fd)
 {
-
-  if (fwrite(framebuffer, bytes, 1, out_file)!= 1) {
-      fprintf(stderr,"(%s) video write failed.\n", __FILE__);
-    import_exit(0);
-  }
-
-  return(0);
+   int framesize = vo->rgbstride * vo->height, bytes = 0;
+   bytes = p_write (fd, vo->rgb, framesize);
+   if (bytes != framesize) {
+      if (bytes < 0) 
+         fprintf(stderr,"(%s) read failed", __FILE__);
+      return 0;
+   }
+   return 1;
 }
+
+/*
+ * finalize a vo structure, free()ing it's internal buffers.
+ * WARNING: DO NOT cause a buffer flush, you must do it manually.
+ */
+void vo_clean (vo_t *vo)
+{
+    free (vo->yuv[0]);
+    free (vo->yuv[1]);
+    free (vo->yuv[2]);
+    free (vo->rgb);
+}
+
+/*
+ * initialize a vo structure, allocate internal buffers
+ * and so on
+ */
+int vo_alloc (vo_t *vo, int width, int height)
+{
+    uint32_t accel = mm_accel() | MM_ACCEL_MLIB;
+    
+    if (width <= 0 || height <= 0) {
+        return -1;
+    }
+
+    // this in fact sets up *yuv2rgb* acceleration
+    vo_accel (accel);
+    
+    vo->width = (unsigned int)width;
+    vo->height = (unsigned int)height;
+    vo->bpp = BPP;
+
+    vo->rgbstride = width * vo->bpp / 8;
+
+    vo->yuv[0] = calloc (1, PAL_W * PAL_H);
+    if (!vo->yuv[0]) {
+        fprintf (stderr, "(%s) out of memory\n", __FILE__);
+	return -1;
+    }
+    vo->yuv[1] = calloc (1, PAL_W/2 * PAL_H/2);  
+    if (!vo->yuv[1]) {
+        fprintf (stderr, "(%s) out of memory\n", __FILE__);
+	free (vo->yuv[0]);
+	return -1;
+    }
+    vo->yuv[2] = calloc (1, PAL_W/2 * PAL_H/2);  
+    if(!vo->yuv[2]) {
+        fprintf (stderr, "(%s) out of memory\n", __FILE__);
+	free (vo->yuv[0]);
+	free (vo->yuv[1]);
+	return -1;
+    }
+    
+    vo->rgb = calloc (1, vo->rgbstride * height);
+    if(!vo->rgb) {
+        fprintf (stderr, "(%s) out of memory\n", __FILE__);
+	free (vo->yuv[0]);
+	free (vo->yuv[1]);
+	free (vo->yuv[2]);
+        return -1;
+    }
+    
+#if 0
+    yuv2rgb_init (vo->bpp, MODE_BGR);
+// EMS: this fixes RGB output, probably breaks ppm output...
+#else
+    yuv2rgb_init (vo->bpp, MODE_RGB);
+#endif
+    
+    return 0;
+}
+
 
 /* ------------------------------------------------------------ 
  *
@@ -98,45 +219,25 @@ static int outstream(char *framebuffer, int bytes)
 
 void decode_yuv(decode_t *decode)
 {
+  vo_t vo;
   
-  vo_instance_t *output;
-
-  uint32_t accel;
-
-  char *yuv[3];
-
-  int width, height;
-
-  accel = mm_accel () | MM_ACCEL_MLIB;
+  if(decode->width <= 0 || decode->height <= 0) {
+     fprintf(stderr,"(%s) invalid frame parameter %dx%d\n", 
+		    __FILE__, decode->width, decode->height);
+     import_exit(1);
+  }
   
-  vo_accel(accel);
-  output = vo_open(output_open, outstream);
-
-  in_file = fdopen(decode->fd_in, "r");
-  out_file = fdopen(decode->fd_out, "w");
-
-  // allocate space
-
-  yuv[0] = (char *)calloc(1, PAL_W*PAL_H);  
-  yuv[1] = (char *)calloc(1, PAL_W/2 * PAL_H/2);  
-  yuv[2] = (char *)calloc(1, PAL_W/2 * PAL_H/2);  
-
-  // frame/stream parameter
-  width = decode->width;
-  height = decode->height;
-
-  if(width==0 || height ==0) fprintf(stderr,"(%s) invalid frame parameter %dx%d\n", __FILE__, width, height);
-  
-  // decoder init
-  vo_setup(output, width, height);
+  vo_alloc(&vo, decode->width, decode->height);
   
   // read frame by frame - decode into BRG - pipe to stdout
   
-  while(yuv_read_frame(decode->fd_in, yuv, width, height)) 
-    directdraw_rgb(output, yuv);
+  while(vo_read_yuv(&vo, decode->fd_in)) {
+    vo_convert(&vo);
+    vo_write_rgb(&vo, decode->fd_out);
+  }
   
   // ends
-  vo_close(output);
+  vo_clean(&vo);
   
   import_exit(0);
 }

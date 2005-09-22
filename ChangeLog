@@ -1,9 +1,12 @@
+2005-09-22 Francesco Romani <fromani at gmail dot com>
+  * import/decpde_yuv.c
+  libvo removal part1: make decode_yuv independent from libvo
+
 2005-09-21 Francesco Romani <fromani at gmail dot com>
   * libxio/static_xio.h import/extract_ac3.c import/decode_dv.c
   Add temporary struct stat variable in static_xio.h to make gcc happier
   Applied a patch from Jacob: extract_ac3 should not always fail
   Applied a patch form Andrew: fix an off-by-one error in decode_dv
-  
 
 2005-07-23 Jacob Meuser <jakemsr at jakemsr dot com>
   * filter/filter_videocore.c tools/tcmodinfo.c
