@@ -28,11 +28,11 @@
 
 #include "ioaux.h"
 
-#include "yuv2rgb.h"
+#include "aclib/yuv2rgb.h"
+#include "aclib/ac.h"
 
 #include "transcode.h"
 #include "tc.h"
-#include "ac.h"
 
 /*
  * About this code:

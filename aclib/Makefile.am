@@ -16,14 +16,15 @@ libac_la_SOURCES = \
 	swap.c \
 	rgb2yuv.c \
 	rgb2yuv.h \
-	yuv2rgb.c yuv2rgb.h \
+	yuv2rgb.c \
+	yuv2rgb.h \
 	yuv2rgb_mmx.c \
 	yuv2rgb_mlib.c
 
 EXTRA_DIST = \
 	ac.h \
 	cputest.h \
-	attributes.h mmx.h \
+	mmx.h \
 	movtest.c \
 	actest.c \
 	make.sh \
