@@ -32,7 +32,6 @@ docs_DATA = \
 	export-API.txt \
 	export_ffmpeg.txt \
 	export_mp2.txt \
-	export_mpeg.txt \
 	export_pvm.txt \
 	filter-API.txt \
 	filter-socket.txt \

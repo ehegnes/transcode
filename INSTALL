@@ -13,10 +13,9 @@ files are installed in a non-default location (transcode assumes prefix:
 important: you _need_ both the header files _and_ libavcodec.so files.
 The libavcodec.a file won't do!
 
-It is recommended, that you have a recent nasm installed (>=0.98.35) if
-you are on an x86 based platform. A recent version of lame is a good
-thing to have installed, too. Depending on what you want to do with
-transcode you may need additional packages installed.
+Depending on what you want to do with transcode you may need additional
+packages installed. In particular, a recent version of lame is needed
+for encoding MP2/MP3 audio.
 
 If you obtained transcode using CVS, you will need to generate the
 "configure" script yourself while in the snapshot tarballs it's
@@ -29,7 +28,7 @@ Now run
 
  ./configure --help
 
-To get some idea of the many optional packages that can be incorporated.
+to get some idea of the many optional packages that can be incorporated.
 Note the *--enable-$$$* and *--with-$$$* flags.
 
 ONLY PACKAGES THAT ARE ENABLED EXPLICITLY USING CONFIGURE ARE ACTUALLY
@@ -55,7 +54,7 @@ to build transcode for debugging.
 
 Don't forget the relevant configure options, described below.
 
-then:
+Then:
 
   make
   make install

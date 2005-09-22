@@ -166,14 +166,6 @@ S: +
 I: Drives the mp2enc binary and writes an MP2 (MPEG1-Layer2) file. Useful for when encoding to SVCD to be multiplexed with mplex after encoding.
 P: audio - PCM, video - none
 
-M: export_mpeg.c
-D: (video) MPEG 1/2 | (audio) MPEG 1 Layer II
-C: nasm
-R: none
-S: +
-I: Interface to the bbmpeg library (included in transcode). It can encode generic mpeg1, VCD, SVCD, MPEG2 and DVD type video. Encoded video goes into a elementary file to be multiplexed with the corresponding audio file after encoding.
-P: audio - PCM, video - RGB YUV
-
 M: export_mpeg2enc.c
 D: (video) MPEG 1/2
 C: mjpegtools
