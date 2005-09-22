@@ -26,9 +26,7 @@
 #include <inttypes.h>
 
 #include "yuv2rgb.h"
-#include "mm_accel.h"
-#include "video_out.h"
-#include "video_out_internal.h"
+#include "ac.h"
 
 uint32_t matrix_coefficients = 6;
 
@@ -68,17 +66,17 @@ static void yuv2rgb_c (void * dst, uint8_t * py,
     } while (--height);
 }
 
-void yuv2rgb_init (int bpp, int mode) 
+void yuv2rgb_init (int mm_accel, int bpp, int mode) 
 {
     yuv2rgb = NULL;
 #ifdef HAVE_MMX
 # if defined(ARCH_X86) || defined(ARCH_X86_64)
-    if ((yuv2rgb == NULL) && (vo_mm_accel & MM_ACCEL_X86_MMXEXT)) {
+    if ((yuv2rgb == NULL) && (mm_accel & MM_MMXEXT)) {
 	yuv2rgb = yuv2rgb_init_mmxext (bpp, mode);
 	if (yuv2rgb != NULL)
 	    fprintf (stderr, "Using MMXEXT for colorspace transform\n");
     }
-    if ((yuv2rgb == NULL) && (vo_mm_accel & MM_ACCEL_X86_MMX)) {
+    if ((yuv2rgb == NULL) && (mm_accel & MM_MMX)) {
 	yuv2rgb = yuv2rgb_init_mmx (bpp, mode);
 	if (yuv2rgb != NULL)
 	    fprintf (stderr, "Using MMX for colorspace transform\n");
@@ -86,7 +84,7 @@ void yuv2rgb_init (int bpp, int mode)
 # endif
 #endif
 #ifdef LIBVO_MLIB
-    if ((yuv2rgb == NULL) && (vo_mm_accel & MM_ACCEL_MLIB)) {
+    if ((yuv2rgb == NULL) && (mm_accel & MM_MLIB)) {
 	yuv2rgb = yuv2rgb_init_mlib (bpp, mode);
 	if (yuv2rgb != NULL)
 	    fprintf (stderr, "Using mlib for colorspace transform\n");

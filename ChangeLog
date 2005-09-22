@@ -1,4 +1,18 @@
 2005-09-22 Francesco Romani <fromani at gmail dot com>
+  * Added files:
+    aclib/AUTHORS.libvo aclib/COPYING.libvo aclib/README.libvo aclib/ac.h
+    aclib/mmx.h aclib/rgb2yuv.c aclib/rgb2yuv.h aclib/yuv2rgb.c 
+    aclib/yuv2rgb.h aclib/yuv2rgb_mlib.c aclib/yuv2rgb_mmx.c 
+    Removed files:
+    libvo/AUTHORS libvo/COPYING libvo/Makefile.am libvo/README 
+    libvo/attributes.h libvo/cpu_accel.c libvo/mm_accel.h libvo/mmx.h 
+    libvo/rgb2yuv.c  libvo/rgb2yuv.h libvo/video_out.c libvo/video_out.h 
+    libvo/video_out_internal.h libvo/video_out_ppm.c libvo/video_out_yuv.c
+    libvo/yuv2rgb.c libvo/yuv2rgb.h libvo/yuv2rgb_mlib.c libvo/yuv2rgb_mmx.c
+  Move and integrate colorspace conversion code from libvo to aclib and drop
+  the other code, since nobody in transcode uses it.
+
+2005-09-22 Francesco Romani <fromani at gmail dot com>
   * import/decpde_yuv.c
   libvo removal part1: make decode_yuv independent from libvo
 

@@ -49,6 +49,10 @@ typedef unsigned int uint32_t;
 #define MM_3DNOWEXT 0x0100 //AMD 3DNow! ext.
 #define MM_SSE3     0x0200 //Prescott SSE3
 
+// FIXME (from libvo merge)
+/* generic accelerations */
+#define MM_MLIB	    0x8000
+
 extern void * (*tc_memcpy)(void *, const void *, size_t);
 extern void tc_memcpy_init(int verbose, int mmflags);
 

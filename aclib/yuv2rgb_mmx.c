@@ -30,7 +30,6 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
-#include "attributes.h"
 #include "mmx.h"
 #include "yuv2rgb.h"
 

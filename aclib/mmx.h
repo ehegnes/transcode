@@ -1,29 +1,40 @@
 /*
- * mmx.h
+ * Copyright (C) Thomas Östreich - June 2001
+ *
+ * This file is part of transcode, a video stream processing tool
+ *
+ * --> mmx.h definitions
  * Copyright (C) 1997-2001 H. Dietz and R. Fisher
- *
- * This file is part of mpeg2dec, a free MPEG-2 video stream decoder.
- *
- * mpeg2dec is free software; you can redistribute it and/or modify
+ * 
+ * transcode is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
- * mpeg2dec is distributed in the hope that it will be useful,
+ * xine is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
  */
+
+#ifndef __MMX_H__
+#define __MMX_H__
 
 /*
  * The type of an value that fits in an MMX register (note that long
  * long constant values MUST be suffixed by LL and unsigned long long
  * values by ULL, lest they be truncated by the compiler)
  */
+
+#ifdef ATTRIBUTE_ALIGNED_MAX
+#define ATTR_ALIGN(align) __attribute__ ((__aligned__ ((ATTRIBUTE_ALIGNED_MAX <align) ? ATTRIBUTE_ALIGNED_MAX : align)))
+#else
+#define ATTR_ALIGN(align)
+#endif
 
 typedef	union {
 	long long		q;	/* Quadword (64-bit) value */
@@ -253,3 +264,5 @@ typedef	union {
 #define	pshufw_r2r(regs,regd,imm)	mmx_r2ri(pshufw, regs, regd, imm)
 
 #define	sfence() __asm__ __volatile__ ("sfence\n\t")
+
+#endif // __MMX_H__
