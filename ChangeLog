@@ -1,4 +1,12 @@
-2005-09-22 Andrew Church <achurch@achurch.org>
+2005-09-22 Andrew Church <achurch at achurch dot org>
+  * aclib/rescale.c
+  Fix crash caused by GCC optimization.
+
+  * aclib/tcmemcpy.c
+  Fix bug in SSE-optimized memcpy causing incorrect copies with certain
+  block sizes.
+
+2005-09-22 Andrew Church <achurch at achurch dot org>
   * INSTALL
   Get rid of the nasm note (we don't use nasm anymore) and fix a couple of
   typos.

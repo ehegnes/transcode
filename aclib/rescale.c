@@ -148,7 +148,7 @@ mmx.rescale:								\n\
 									\n\
 	pop %%ebx							\n\
     " : /* no outputs */
-      : "S" (&args)
+      : "S" (&args), "m" (args)
       : "%eax", "%ecx", "%edx", "%edi"
     );
     return 0;
@@ -275,7 +275,7 @@ sse.rescale:								\n\
 	sfence								\n\
 	pop %%ebx							\n\
     " : /* no outputs */
-      : "S" (&args)
+      : "S" (&args), "m" (args)
       : "%eax", "%ecx", "%edx", "%edi"
     );
     return 0;
@@ -434,7 +434,7 @@ sse2.rescale:								\n\
 	sfence								\n\
 	pop "EBX"							\n\
     " : /* no outputs */
-      : "S" (&args)
+      : "S" (&args), "m" (args)
 #ifdef ARCH_X86_64
       : "%rax", "%rcx", "%rdx", "%rdi"
 #else

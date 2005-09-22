@@ -200,7 +200,9 @@ sse.memcpy_small:		# Small block copy routine--no prefetch	\n"
 	and $0b11, %%edx						\n\
 	shr $2, %%ecx		# ECX <- ECX >> 2			\n\
 	rep movsl		# Copy away!				\n\
-	jmp sse.memcpy_last						\n\
+	mov %%edx, %%ecx	# Take care of last 0-3 bytes		\n\
+	rep movsb							\n\
+	jmp sse.memcpy_end	# And exit				\n\
 									\n\
 	.align 16							\n\
 	nop								\n\
@@ -261,13 +263,14 @@ sse.memcpy_last:							\n\
 	movsd								\n\
 	movsd								\n\
 0:	and $0b11, %%ecx	# ECX <- ECX & 3			\n\
-	lea 0f, %%edx							\n\
+	lea sse.memcpy_end, %%edx					\n\
 	sub %%ecx, %%edx						\n\
 	jmp *%%edx		# Execute 0-3 MOVSB's			\n\
 	movsb								\n\
 	movsb								\n\
 	movsb								\n\
-0:									\n\
+									\n\
+sse.memcpy_end:								\n\
 	# All done!							\n\
 	emms			# Clean up after MMX instructions	\n\
 	sfence			# Flush the write buffer		\n\
