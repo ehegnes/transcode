@@ -34,7 +34,7 @@
 #include <inttypes.h>
 
 #include "mjpeg_types.h"
-#include "libvo/mm_accel.h"
+#include "aclib/ac.h"
 
 #include "global.h"
 #include "motion.h"
@@ -525,12 +525,14 @@ void print_settings(void)
 
 void turn_on_accels(void)
 {
-/* XXX: very weird effects, #undef'ed in global.h -- tibit */
+/* XXX: very weird effects, #undef'ed in global.h -- tibit 
+ * XXX: why do not use standard tc_accel? -- fromani */
 #ifdef HAVE_ASM_MMX
-  uint32_t CPU_CAP= mm_accel () | MM_ACCEL_MLIB;
+//  uint32_t CPU_CAP = ac_mmflag ();
+  uint32_t CPU_CAP = tc_accel;
   
-  if( (CPU_CAP & MM_ACCEL_X86_MMXEXT)!=0 ||
-      (CPU_CAP & MM_ACCEL_X86_SSE   )!=0 
+  if( (CPU_CAP & MM_MMXEXT)!=0 ||
+      (CPU_CAP & MM_SSE   )!=0 
     ) /* MMX+SSE */
   {
     calc_SAD    = &calc_SAD_mmxe;
@@ -541,7 +543,7 @@ void turn_on_accels(void)
 	fprintf (stderr, "[%s] Using extended MMX SIMD optimisations.\n", MOD_NAME);
   }
   else
-    if( (CPU_CAP & MM_ACCEL_X86_MMX)!=0 ) /* MMX */
+    if( (CPU_CAP & MM_MMX)!=0 ) /* MMX */
     {
       calc_SAD    = &calc_SAD_mmx;
       calc_SAD_uv = &calc_SAD_uv_mmx;

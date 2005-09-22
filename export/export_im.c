@@ -81,7 +81,7 @@ MOD_init
       codec = (vob->im_v_codec == CODEC_YUV) ? CODEC_YUV:CODEC_RGB;
 
       if(vob->im_v_codec == CODEC_YUV) {
-	yuv2rgb_init (vob->v_bpp, MODE_RGB);
+	yuv2rgb_init (tc_accel, vob->v_bpp, MODE_RGB);
 	row_bytes = vob->v_bpp/8 * vob->ex_v_width;
       }
       

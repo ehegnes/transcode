@@ -102,7 +102,7 @@ MOD_init
 
       /* this supports output of 4:1:1 YUV material, ie CODEC_YUV */
       if(vob->im_v_codec == CODEC_YUV) {
-	yuv2rgb_init (vob->v_bpp, MODE_BGR); 
+	yuv2rgb_init (tc_accel, vob->v_bpp, MODE_BGR); 
 
 	width = vob->ex_v_width;
 	height = vob->ex_v_height;
@@ -117,7 +117,7 @@ MOD_init
 
       /* this supports output of 4:2:2 YUV material, ie CODEC_YUV422 */
       if(vob->im_v_codec == CODEC_YUV422) {
-	yuv2rgb_init (vob->v_bpp, MODE_RGB); 
+	yuv2rgb_init (tc_accel, vob->v_bpp, MODE_RGB); 
 
 	/* size of the exported image */
 	width = vob->ex_v_width;

@@ -32,7 +32,7 @@
 #undef EMULATE_FAST_INT
 #endif
 #include <ffmpeg/avcodec.h>
-#include "yuv2rgb.h"
+#include "aclib/yuv2rgb.h"
 
 #define READ_BUFFER_SIZE (10*1024*1024)
 #define MOD_NAME "decode_ffmpeg"
@@ -214,7 +214,7 @@ void decode_lavc(decode_t *decode)
       case TC_CODEC_RGB:
         frame_size = x_dim * y_dim * 3;
         bpp = 24;
-        yuv2rgb_init(bpp, MODE_RGB);
+        yuv2rgb_init(ac_mmflag(), bpp, MODE_RGB);
 
         if (yuv2rgb_buffer == NULL)
 	    yuv2rgb_buffer = bufalloc(frame_size);

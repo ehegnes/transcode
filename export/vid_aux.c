@@ -37,7 +37,7 @@ int tc_yuv2rgb_init(int width, int height)
     if(convert) tc_yuv2rgb_close();
     
     // XXX: 24
-    yuv2rgb_init(24, MODE_BGR);
+    yuv2rgb_init(ac_mmflag(), BPP, MODE_BGR);
     
     if ((frame_bufferY = malloc(width*height*3))==NULL) return(-1);
     

@@ -4644,9 +4644,9 @@ void dummy_libioaux(void) {
   append_fc_time( NULL, NULL);
 }
 
-#include "libvo/yuv2rgb.h"
+#include "aclib/yuv2rgb.h"
 void dummy_libvout(void) {
-        yuv2rgb_init(24, MODE_RGB);
+        yuv2rgb_init(tc_accel, BPP, MODE_RGB);
 	yuv2rgb(NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0);
 }
 

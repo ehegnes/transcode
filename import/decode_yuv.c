@@ -26,15 +26,13 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
-#include "video_out.h" // only for vo_accel() legacy
-#include "mm_accel.h"
-
 #include "ioaux.h"
 
 #include "yuv2rgb.h"
 
 #include "transcode.h"
 #include "tc.h"
+#include "ac.h"
 
 /*
  * About this code:
@@ -157,15 +155,10 @@ void vo_clean (vo_t *vo)
  */
 int vo_alloc (vo_t *vo, int width, int height)
 {
-    uint32_t accel = mm_accel() | MM_ACCEL_MLIB;
-    
     if (width <= 0 || height <= 0) {
         return -1;
     }
 
-    // this in fact sets up *yuv2rgb* acceleration
-    vo_accel (accel);
-    
     vo->width = (unsigned int)width;
     vo->height = (unsigned int)height;
     vo->bpp = BPP;
@@ -204,7 +197,7 @@ int vo_alloc (vo_t *vo, int width, int height)
     yuv2rgb_init (vo->bpp, MODE_BGR);
 // EMS: this fixes RGB output, probably breaks ppm output...
 #else
-    yuv2rgb_init (vo->bpp, MODE_RGB);
+    yuv2rgb_init (ac_mmflag(), vo->bpp, MODE_RGB);
 #endif
     
     return 0;

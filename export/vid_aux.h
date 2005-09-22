@@ -26,8 +26,9 @@
 
 #include "transcode.h"
 
-#include "libvo/rgb2yuv.h"
-#include "libvo/yuv2rgb.h"
+#include "aclib/ac.h"
+#include "aclib/rgb2yuv.h"
+#include "aclib/yuv2rgb.h"
 
 int tc_rgb2yuv_init(int width, int height);
 int tc_rgb2yuv_core(char *buffer);

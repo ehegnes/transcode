@@ -1,4 +1,11 @@
 2005-09-22 Francesco Romani <fromani at gmail dot com>
+  * export/export_im.c export/export_ppm.c export/export_pvn.c 
+    export/vid_aux.c export/vid_aux.h filter/yuvdenoise/filter_yuvdenoise.c
+    import/decode_lavc.c import/decode_yuv.c import/import_ffmpeg.c
+    src/transcode.c
+  update client code to use colorspace conversion code now in acliv
+
+2005-09-22 Francesco Romani <fromani at gmail dot com>
   * Added files:
     aclib/AUTHORS.libvo aclib/COPYING.libvo aclib/README.libvo aclib/ac.h
     aclib/mmx.h aclib/rgb2yuv.c aclib/rgb2yuv.h aclib/yuv2rgb.c 
