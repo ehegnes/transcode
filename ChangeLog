@@ -1,4 +1,18 @@
 2005-09-22 Francesco Romani <fromani at gmail dot com>
+  * filter/mmx.h
+  filter/mmx.h is an exact duplicate of aclib/mmx.h, so the copy
+  on filter/ should include the one in aclib/ instead of duoplicate
+  it. filter/mmx.h it's still provided for legacy purposes, but
+  should go away in the future
+
+2005-09-22 Francesco Romani <fromani at gmail dot com>
+  * Makefile.am configure.in aclib/Makefile.am export/Makefile.am
+    filter/Makefile.am filter/pp/Makefile.am filter/pp/Makefile.am
+    filter/yuvdenoise/Makefile.am import/Makefile.am src/Makefile.am
+  update Makefiles and configure stuff to use aclib instead of libvo
+  where is needed
+
+2005-09-22 Francesco Romani <fromani at gmail dot com>
   * export/export_im.c export/export_ppm.c export/export_pvn.c 
     export/vid_aux.c export/vid_aux.h filter/yuvdenoise/filter_yuvdenoise.c
     import/decode_lavc.c import/decode_yuv.c import/import_ffmpeg.c
