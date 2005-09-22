@@ -1,3 +1,15 @@
+2005-09-22 Andrew Church <achurch@achurch.org>
+  * INSTALL
+  Get rid of the nasm note (we don't use nasm anymore) and fix a couple of
+  typos.
+
+  * docs/Makefile.am docs/export-mods.txt docs/faq docs/html/modules.html
+    docs/man/transcode.1
+  Get rid of references to the (deleted) export_mpeg module.
+
+  * docs/export_mpeg.txt
+  Remove.
+
 2005-09-22 Francesco Romani <fromani at gmail dot com>
   * filter/mmx.h
   filter/mmx.h is an exact duplicate of aclib/mmx.h, so the copy
