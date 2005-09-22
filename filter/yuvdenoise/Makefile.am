@@ -5,7 +5,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/filter \
 	-I$(top_srcdir)/src \
-	$(LIBVO_CFLAGS)
+	$(ACLIB_CFLAGS)
 
 pkgdir = $(MOD_PATH)
 
@@ -19,7 +19,7 @@ filter_yuvdenoise_la_SOURCES = \
 	denoise.c \
 	motion.c
 filter_yuvdenoise_la_LDFLAGS = -module -avoid-version
-filter_yuvdenoise_la_LIBADD = $(LIBVO_LIBS)
+filter_yuvdenoise_la_LIBADD = $(ACLIB_LIBS)
 
 filter_yuvmedian_la_SOURCES = filter_yuvmedian.c
 filter_yuvmedian_la_LDFLAGS = -module -avoid-version

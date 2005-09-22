@@ -17,7 +17,6 @@ SUBDIRS = \
 	aclib \
 	avilib \
 	libac3 \
-	libvo \
 	import \
 	export \
 	filter \

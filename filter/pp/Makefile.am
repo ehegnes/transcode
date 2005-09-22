@@ -5,7 +5,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/filter \
 	-I$(top_srcdir)/src \
-	$(LIBVO_CFLAGS) \
+	$(ACLIB_CFLAGS) \
 	$(LIBPOSTPROC_CFLAGS)
 
 pkgdir = $(MOD_PATH)

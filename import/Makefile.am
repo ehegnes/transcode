@@ -16,7 +16,6 @@ AM_CPPFLAGS = \
 	$(LAME_CFLAGS) \
 	$(LIBMPEG3_CFLAGS) \
 	$(LIBXML2_CFLAGS) \
-	$(LIBVO_CFLAGS) \
 	$(LZO_CFLAGS) \
 	$(IMAGEMAGICK_CFLAGS) \
 	$(LIBMPEG2_CFLAGS) \
@@ -329,7 +328,6 @@ tcdecode_LDADD = \
 	$(LIBMPEG2_LIBS) \
 	$(LAME_LIBS) \
 	$(AC3_LIBS) \
-	$(LIBVO_LIBS) \
 	$(LIBDV_LIBS) \
 	$(VORBISFILE) \
 	$(THEORA_LIBS) \
@@ -503,7 +501,6 @@ tcextract_SOURCES = \
 
 tcextract_LDADD = \
 	$(AC3_LIBS) \
-	$(LIBVO_LIBS) \
 	$(AVILIB_LIBS) \
 	$(LIBDV_LIBS) \
 	$(THEORA_LIBS) \
@@ -536,7 +533,6 @@ tcdemux_SOURCES = \
 
 tcdemux_LDADD = \
 	$(AC3_LIBS) \
-	$(LIBVO_LIBS) \
 	$(AVILIB_LIBS) \
 	$(LIBDVDREAD_LIBS) \
 	$(LIBDV_LIBS) \

@@ -23,7 +23,6 @@ transcode_LDADD = \
 	$(TCIOAUX_LIBS) \
 	$(ACLIB_LIBS) \
 	$(AVILIB_LIBS) \
-	$(LIBVO_LIBS) \
 	$(XIO_LIBS) \
 	$(LIBXML2_LIBS) \
 	$(PTHREAD_LIBS) \

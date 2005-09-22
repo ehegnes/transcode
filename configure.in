@@ -1321,14 +1321,6 @@ AC_SUBST(AC3_CFLAGS)
 AC_SUBST(AC3_LIBS)
 
 dnl
-dnl libvo
-dnl
-LIBVO_CFLAGS="-I\$(top_srcdir)/libvo"
-LIBVO_LIBS="\$(top_builddir)/libvo/libvout.la"
-AC_SUBST(LIBVO_CFLAGS)
-AC_SUBST(LIBVO_LIBS)
-
-dnl
 dnl aclib
 dnl
 ACLIB_CFLAGS="-I\$(top_srcdir)/aclib"
@@ -1405,7 +1397,6 @@ AC_OUTPUT([
 	libioaux/Makefile
 	libsupport/Makefile
 	libtc/Makefile
-	libvo/Makefile
 	libxio/Makefile
 	pvm3/Makefile
 	src/Makefile
