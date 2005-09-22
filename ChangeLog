@@ -1,8 +1,8 @@
 2005-09-22 Francesco Romani <fromani at gmail dot com>
   * filter/mmx.h
   filter/mmx.h is an exact duplicate of aclib/mmx.h, so the copy
-  on filter/ should include the one in aclib/ instead of duoplicate
-  it. filter/mmx.h it's still provided for legacy purposes, but
+  on filter/ should include the one in aclib/ instead of duplicate
+  it. filter/mmx.h is still provided for legacy purposes, but
   should go away in the future
 
 2005-09-22 Francesco Romani <fromani at gmail dot com>
@@ -34,7 +34,7 @@
   the other code, since nobody in transcode uses it.
 
 2005-09-22 Francesco Romani <fromani at gmail dot com>
-  * import/decpde_yuv.c
+  * import/decode_yuv.c
   libvo removal part1: make decode_yuv independent from libvo
 
 2005-09-21 Francesco Romani <fromani at gmail dot com>
