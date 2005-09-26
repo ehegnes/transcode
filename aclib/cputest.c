@@ -23,7 +23,7 @@ int mm_flag=-1;
 /* ebx saving is necessary for PIC. gcc seems unable to see it alone */
 #define cpuid(index,eax,ebx,ecx,edx)\
     __asm __volatile\
-	("mov %%"REG_b", %%"REG_S"\n\t"\
+        ("mov %%"REG_b", %%"REG_S"\n\t"\
          "cpuid\n\t"\
          "xchg %%"REG_b", %%"REG_S\
          : "=a" (eax), "=S" (ebx),\
@@ -86,59 +86,41 @@ static int mm_support(void)
     *(int *)&vendor[4] = edx;
     *(int *)&vendor[8] = ecx;
 
-    if(max_std_level >= 1){
+    if (max_std_level >= 1){
         cpuid(1, eax, ebx, std_caps2, std_caps);
-	if (std_caps & (1<<15))
-	    rval |= MM_CMOVE;
+        if (std_caps & (1<<15))
+            rval |= MM_CMOVE;
         if (std_caps & (1<<23))
             rval |= MM_MMX;
         if (std_caps & (1<<25)) 
             rval |= MM_MMXEXT | MM_SSE;
         if (std_caps & (1<<26)) 
             rval |= MM_SSE2;
-	if (std_caps & (1<<0))
-	    rval |= MM_SSE3;
     }
 
     cpuid(0x80000000, max_ext_level, ebx, ecx, edx);
 
-    if(max_ext_level >= 0x80000001){
+    if (max_ext_level >= 0x80000001) {
         cpuid(0x80000001, eax, ebx, ecx, ext_caps);
+    }
+
+    cpuid(0, eax, ebx, ecx, edx);
+    if (strcmp(vendor, "AuthenticAMD") == 0) {
+        /* AMD */
+        if (ext_caps & (1<<22))
+            rval |= MM_MMXEXT;
         if (ext_caps & (1<<31))
             rval |= MM_3DNOW;
         if (ext_caps & (1<<30))
             rval |= MM_3DNOWEXT;
-        if (ext_caps & (1<<23))
-            rval |= MM_MMX;
-    }
-
-    cpuid(0, eax, ebx, ecx, edx);
-    if (       ebx == 0x68747541 &&
-               edx == 0x69746e65 &&
-               ecx == 0x444d4163) {
-        /* AMD */
-        if(ext_caps & (1<<22))
-            rval |= MM_MMXEXT;
-    } else if (ebx == 0x746e6543 &&
-               edx == 0x48727561 &&
-               ecx == 0x736c7561) {  /*  "CentaurHauls" */
+        if (std_caps2 & (1<<0))
+            rval |= MM_SSE3;
+    } else if (strcmp(vendor, "CentaurHauls") == 0) {
         /* VIA C3 */
-	if(ext_caps & (1<<24))
-	  rval |= MM_MMXEXT;
-    } else if (ebx == 0x69727943 &&
-               edx == 0x736e4978 &&
-               ecx == 0x64616574) {
-        /* Cyrix Section */
-        /* See if extended CPUID level 80000001 is supported */
-        /* The value of CPUID/80000001 for the 6x86MX is undefined
-           according to the Cyrix CPU Detection Guide (Preliminary
-           Rev. 1.01 table 1), so we'll check the value of eax for
-           CPUID/0 to see if standard CPUID level 2 is supported.
-           According to the table, the only CPU which supports level
-           2 is also the only one which supports extended CPUID levels.
-        */
-        if (eax < 2) 
-            return rval;
+        if (ext_caps & (1<<24))
+            rval |= MM_MMXEXT;
+    } else if (strcmp(vendor, "CyrixInstead") == 0) {
+        /* Cyrix */
         if (ext_caps & (1<<24))
             rval |= MM_MMXEXT;
     }

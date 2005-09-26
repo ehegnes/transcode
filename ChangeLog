@@ -1,3 +1,12 @@
+2005-09-26 Andrew Church <achurch at achurch dot org>
+  * aclib/cputest.c
+  Fix CPU feature detection (notably misdetection of SSE3 on just about
+  everything).
+
+  * src/transcode.c
+  Fix parsing of --accel option, and use "asm" instead of ia32asm/amd64asm
+  to match aclib output.
+
 2005-09-22 Andrew Church <achurch at achurch dot org>
   * aclib/rescale.c
   Fix crash caused by GCC optimization.

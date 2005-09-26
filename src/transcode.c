@@ -2181,12 +2181,16 @@ int main(int argc, char *argv[]) {
 	  if(accel==NULL) usage(EXIT_FAILURE);
 
 	  if(strncasecmp(accel, "C", 1)==0) tc_accel=MM_C;
-	  if(strncasecmp(accel, "ia32asm", 1)==0) tc_accel=MM_IA32ASM;
-	  if(strncasecmp(accel, "amd64asm", 1)==0) tc_accel=MM_AMD64ASM;
+#ifdef ARCH_X86
+	  if(strncasecmp(accel, "asm", 3)==0) tc_accel=MM_IA32ASM;
+#endif
+#ifdef ARCH_X86_64
+	  if(strncasecmp(accel, "asm", 3)==0) tc_accel=MM_AMD64ASM;
+#endif
 	  if(strncasecmp(accel, "mmx", 3)==0) tc_accel=MM_MMX;
 	  if(strncasecmp(accel, "mmxext", 6)==0) tc_accel=MM_MMXEXT;
 	  if(strncasecmp(accel, "3dnow", 5)==0) tc_accel=MM_3DNOW;
-	  if(strncasecmp(accel, "3dnowext", 5)==0) tc_accel=MM_3DNOWEXT;
+	  if(strncasecmp(accel, "3dnowext", 8)==0) tc_accel=MM_3DNOWEXT;
 	  if(strncasecmp(accel, "sse", 3)==0) tc_accel=MM_SSE;
 	  if(strncasecmp(accel, "sse2", 4)==0) tc_accel=MM_SSE2;
 	  if(strncasecmp(accel, "sse3", 4)==0) tc_accel=MM_SSE3;
