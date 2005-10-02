@@ -1,3 +1,7 @@
+2005-10-02 Jacob Meuser <jakemsr at jakemsr dot com>
+  * configure.in
+  Catch up with a change in TC_PKG_ERROR macro.
+
 2005-09-26 Andrew Church <achurch at achurch dot org>
   * aclib/cputest.c
   Fix CPU feature detection (notably misdetection of SSE3 on just about

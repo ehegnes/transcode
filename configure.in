@@ -637,7 +637,7 @@ main()
 ],
     [LIBAVCODEC_VERSION="`./conftest$ac_exeext | sed -ne 's,VER=\(.*\),\1,p'`"
       LIBAVCODEC_BUILD="`./conftest$ac_exeext | sed -ne 's,BUILD=\(.*\),\1,p'`"],
-    [TC_PKG_ERROR(ffmpeg/avcodec.h, required, FFmpeg, [http://www.ffmpeg.org],
+    [TC_PKG_ERROR(libavcodec, ffmpeg/avcodec.h, required, FFmpeg, [http://www.ffmpeg.org],
       [cannot compile ffmpeg/avcodec.h])],
     [echo $ac_n "cross compiling; assumed OK... $ac_c"
       LIBAVCODEC_VERSION=""
@@ -836,7 +836,7 @@ if test x"$have_lame" = x"yes" ; then
   fi
   if test x"$lame_inc" = x"no" ; then
     have_lame="no"
-    TC_PKG_ERROR(lame.h, yes, lame, [http://www.mp3dev.org/],
+    TC_PKG_ERROR(lame, lame.h, yes, lame, [http://www.mp3dev.org/],
       [cannot compile lame.h])
   else
     LAME_CFLAGS="$lame_ii"
@@ -866,7 +866,7 @@ int main () {
 }
 ],
     [lame_version="`./conftest$ac_exeext`"],
-    [TC_PKG_ERROR(lame, yes, lame, [http://www.mp3dev.org/],
+    [TC_PKG_ERROR(lame, lame.h, yes, lame, [http://www.mp3dev.org/],
       [cannot compile and run a test program])],,
     [echo $ac_n "cross compiling; assumed OK... $ac_c"])
   CFLAGS="$ac_save_CFLAGS"
@@ -874,7 +874,7 @@ int main () {
 
   if test $lame_version -lt 389 ; then
     have_lame="no"
-    TC_PKG_ERROR(lame, yes, lame, [http://www.mp3dev.org/],
+    TC_PKG_ERROR(lame, lame.h, yes, lame, [http://www.mp3dev.org/],
       [lame version < 3.89])
   fi
   if test x"$have_lame" = x"yes" ; then
@@ -927,7 +927,7 @@ if test x"$have_libdvdread" = x"yes" ; then
   CPPFLAGS="$save_CPPFLAGS"
   if test x"$libdvdread_inc" = x"no" ; then
     have_libdvdread="no"
-    TC_PKG_ERROR(dvd_reader.h, yes, libdvdread,
+    TC_PKG_ERROR(libdvdread, dvd_reader.h, yes, libdvdread,
       [http://www.dtek.chalmers.se/groups/dvd/downloads.shtml],
       [cannot compile dvd_reader.h])
   else
@@ -1079,7 +1079,7 @@ if test x"$have_libmpeg3" = x"yes" ; then
   CPPFLAGS="$save_CPPFLAGS"
   if test x"$libmpeg3_inc" = x"no" ; then
     have_libmpeg3="no"
-    TC_PKG_ERROR(libmpeg3.h, no, libmpeg3, [http://heroinewarrior.com/libmpeg3/],
+    TC_PKG_ERROR(libmpeg3, libmpeg3.h, no, libmpeg3, [http://heroinewarrior.com/libmpeg3/],
       [cannot compile libmpeg3.h])
   fi
 fi
@@ -1249,7 +1249,7 @@ if test x"$have_iconv" = x"yes" ; then
       ICONV_LIBS="$iconv_ll -liconv $ICONV_EXTRA_LIBS"
     fi
   else
-    TC_PKG_ERROR([iconv_open()], yes, libiconv,
+    TC_PKG_ERROR(iconv, [iconv_open()], yes, libiconv,
       [http://www.gnu.org/software/libiconv/],
       [cannot find either iconv_open() or libiconv_open()])
   fi
