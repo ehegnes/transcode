@@ -1004,7 +1004,7 @@ dnl
 dnl libquicktime
 dnl
 LIBQUICKTIME_EXTRA_LIBS="$LIBQUICKTIME_EXTRA_LIBS -lpng -lz $PTHREAD_LIBS -lm $LIBDV_LIBS"
-TC_PKG_CHECK(libquicktime, no, LIBQUICKTIME, lqt-config, [quicktime/lqt.h],
+TC_PKG_CHECK(libquicktime, no, LIBQUICKTIME, lqt-config, [quicktime.h],
  quicktime, quicktime_open, libquicktime,
  [http://libquicktime.sourceforge.net/])
 if test x"$have_libquicktime" = x"yes" ; then

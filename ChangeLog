@@ -1,4 +1,10 @@
 2005-10-02 Jacob Meuser <jakemsr at jakemsr dot com>
+  * configure.in export/export_mov.c import/decode_mov.c
+    import/import_mov.c import/probe_mov.c
+  Change in libquicktime header installation path.  Tested with
+  libquicktime-0.9.3 and libquicktime-0.9.7.
+
+2005-10-02 Jacob Meuser <jakemsr at jakemsr dot com>
   * pvm3/Makefile.am
   Fix a typo that kept pvm3 libraries from getting linked properly.
 

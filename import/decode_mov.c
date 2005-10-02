@@ -26,7 +26,7 @@
 #include <sys/errno.h>
 
 #ifdef HAVE_LIBQUICKTIME
-#include <quicktime/quicktime.h>
+#include <quicktime.h>
 #endif
 
 #include "ioaux.h"

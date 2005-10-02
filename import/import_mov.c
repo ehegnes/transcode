@@ -34,9 +34,9 @@ static int capability_flag = TC_CAP_PCM | TC_CAP_RGB | TC_CAP_YUV | TC_CAP_VID;
 #define MOD_PRE mov
 #include "import_def.h"
 
-#include <quicktime/quicktime.h>
-#include <quicktime/colormodels.h>
-#include <quicktime/lqt.h>
+#include <quicktime.h>
+#include <colormodels.h>
+#include <lqt.h>
 #include "magic.h"
 
 

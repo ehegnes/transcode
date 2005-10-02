@@ -28,7 +28,7 @@
 
 extern int binary_dump;
 
-#include <quicktime/quicktime.h>
+#include <quicktime.h>
 
 void probe_mov(info_t *ipipe)
 {
