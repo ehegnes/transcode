@@ -1,3 +1,7 @@
+2005-10-02 Jacob Meuser <jakemsr at jakemsr dot com>
+  * import/extract_ac3.c
+  Only exit with error status when there really was an error.
+
 2005-10-02 Andrew Church <achurch at achurch dot org>
   * import/decode_dv.c
   Fix an off-by-one in initialization.
