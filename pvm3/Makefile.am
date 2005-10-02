@@ -18,7 +18,7 @@ pkg_LTLIBRARIES	= pvm_functions.la
 
 pvm_functions_la_SOURCES = pvm_functions.c 
 pvm_functions_la_LDFLAGS = -module -avoid-version 
-pvm_functions_la_LIBADD  = $(PVM3_LIB)
+pvm_functions_la_LIBADD  = $(PVM3_LIBS)
 
 tcpvmexportd_SOURCES = \
 	tcpvmexportd.c \
