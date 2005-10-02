@@ -50,9 +50,9 @@ static int capability_flag=
 #define MOD_PRE mov
 #include "export_def.h"
 
-#include <quicktime/quicktime.h>
-#include <quicktime/colormodels.h>
-#include <quicktime/lqt.h>
+#include <quicktime.h>
+#include <colormodels.h>
+#include <lqt.h>
 
 #define QT_LIST_AUDIO "audio codec"
 #define QT_LIST_VIDEO "video codec"
