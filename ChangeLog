@@ -1,4 +1,8 @@
 2005-10-02 Jacob Meuser <jakemsr at jakemsr dot com>
+  * pvm3/Makefile.am
+  Fix a typo that kept the right pvm3 libraries from getting linked.
+
+2005-10-02 Jacob Meuser <jakemsr at jakemsr dot com>
   * configure.in
   Catch up with a change in TC_PKG_ERROR macro.
 
