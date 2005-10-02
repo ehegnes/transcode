@@ -6,6 +6,26 @@
   Fix bug in SSE-optimized memcpy causing incorrect copies with certain
   block sizes.
 
+2005-07-24 Jacob Meuser <jakemsr at jakemsr dot com>
+  * filter/filter_videocore.c tools/tcmodinfo.c
+  Add unused, but missing symbols.
+
+2005-07-24 Jacob Meuser <jakemsr at jakemsr dot com>
+  * filter/Makefile.am filter/filter_logoaway.c
+  Need to include libtc/tc_func_excl.h here.
+
+2005-07-24 Francesco Romani <francesco dot romani at email dot it>
+  * import/decode_mpeg2.c
+  Allow accelleraction auto-detection to work.
+
+2005-07-24 Bryan Mayland <bmayland at leoninedev dot com>
+  * src/video_yuv.c
+  Make sure alignment is usable when choosing acceleration style.
+
+2005-07-24 Bryan Mayland <bmayland at leoninedev dot com>
+  * aclib/average.c
+  Don't clobber esi register.
+
 2005-06-08 Francesco Romani <francesco dot romani at email dot it>
   * import/import_ffmpeg.c
   Use the new filter_levels pre-filter capability to scale JPEG
