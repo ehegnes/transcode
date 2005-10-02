@@ -1,3 +1,7 @@
+2005-10-02 Jacob Meuser <jakemsr at jakemsr dot com>
+  * configure.in
+  Catch up with a change in TC_PKG_ERROR macro.
+
 2005-10-02 Andrew Church <achurch at achurch dot org>
   * aclib/cputest.c
   Fix CPU feature detection (notably misdetection of SSE3 on just about
@@ -42,6 +46,11 @@
 2005-07-24 Bryan Mayland <bmayland at leoninedev dot com>
   * aclib/average.c
   Don't clobber esi register.
+
+
+2005-07-12
+  * 1.0.0 release
+
 
 2005-06-08 Francesco Romani <francesco dot romani at email dot it>
   * import/import_ffmpeg.c
