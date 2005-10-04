@@ -264,12 +264,17 @@ static void yv12_rgb24_mmx(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
 			   int rgb_stride, int y_stride, int uv_stride)
 {
     int x, y;
+    u_int8_t *dest_orig = dest;
+    u_int8_t *srcY_orig = srcY;
+    u_int8_t *srcU_orig = srcU;
+    u_int8_t *srcV_orig = srcV;
 
     for (y = 0; y < height; y++) {
-	for (x = 0; x < width; x += 8) {
+	for (x = 0; x < (width & ~7); x += 8) {
 	    mmx_yv12_to_rgb(srcY+x, srcU+x/2, srcV+x/2);
 	    mmx_store_rgb24(dest+x*3);
 	}
+	if (x < width)
 	dest += rgb_stride;
 	srcY += y_stride;
 	if (y%2) {
@@ -278,6 +283,11 @@ static void yv12_rgb24_mmx(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
 	}
     }
     asm("emms");
+    if (width & 7) {
+	x = width & ~7;
+	yv12_rgb24_c(dest_orig+x*3, srcY_orig+x, srcU_orig+x/2, srcV_orig+x/2,
+		     width-x, height, rgb_stride, y_stride, uv_stride);
+    }
 }
 
 
@@ -384,7 +394,6 @@ static inline void mmx_store_rgb24(u_int8_t *dest)
 	movl %%ebx, 16(%%edi)						\n\
 	movl %%ecx, 20(%%edi)						\n\
 	popl %%ebx							\n\
-	emms								\n\
 	"
 	: /* no outputs */
 	: "D" (dest)
@@ -412,9 +421,13 @@ static void yv12_rgb24_sse2(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
 			    int rgb_stride, int y_stride, int uv_stride)
 {
     int x, y;
+    u_int8_t *dest_orig = dest;
+    u_int8_t *srcY_orig = srcY;
+    u_int8_t *srcU_orig = srcU;
+    u_int8_t *srcV_orig = srcV;
 
     for (y = 0; y < height; y++) {
-	for (x = 0; x < width; x += 16) {
+	for (x = 0; x < (width & ~15); x += 16) {
 	    sse2_yv12_to_rgb(srcY+x, srcU+x/2, srcV+x/2);
 	    sse2_store_rgb24(dest+x*3);
 	}
@@ -426,6 +439,11 @@ static void yv12_rgb24_sse2(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
 	}
     }
     asm("emms");
+    if (width & 15) {
+	x = width & ~15;
+	yv12_rgb24_c(dest_orig+x*3, srcY_orig+x, srcU_orig+x/2, srcV_orig+x/2,
+		     width-x, height, rgb_stride, y_stride, uv_stride);
+    }
 }
 
 static void rgb24_yv12_sse2(u_int8_t *destY, u_int8_t *destU, u_int8_t *destV,
@@ -433,9 +451,13 @@ static void rgb24_yv12_sse2(u_int8_t *destY, u_int8_t *destU, u_int8_t *destV,
 			    int rgb_stride, int y_stride, int uv_stride)
 {
     int x, y;
+    u_int8_t *destY_orig = destY;
+    u_int8_t *destU_orig = destU;
+    u_int8_t *destV_orig = destV;
+    u_int8_t *src_orig = src;
 
     for (y = 0; y < height; y++) {
-	for (x = 0; x < width; x += 8) {
+	for (x = 0; x < (width & ~7); x += 8) {
 	    sse2_load_rgb24(src+x*3);
 	    if (y%2 == 0)
 		sse2_rgb_to_yv12_yu(destY+x, destU+x/2);
@@ -450,6 +472,12 @@ static void rgb24_yv12_sse2(u_int8_t *destY, u_int8_t *destU, u_int8_t *destV,
 	}
     }
     asm("emms");
+    if (width & 7) {
+	x = width & ~7;
+	rgb24_yv12_c(destY_orig+x, destU_orig+x/2, destV_orig+x/2,
+		     src_orig+x*3, width-x, height,
+		     rgb_stride, y_stride, uv_stride);
+    }
 }
 
 
