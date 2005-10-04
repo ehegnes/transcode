@@ -116,7 +116,6 @@ MOD_open
     vob->im_v_height = inParams.height;
     vob->im_v_width  = inParams.width;
     vob->im_v_size   = tmpBufSize;
-    vob->v_bpp    = 8; // may need to leave this out
     return(0);
   }
 
