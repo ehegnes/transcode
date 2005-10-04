@@ -1,3 +1,15 @@
+2005-10-04 Andrew Church <achurch at achurch dot org>
+  * Changed files: aclib/Makefile.am export/export_im.c export/export_ppm.c
+      export/export_pvn.c export/vid_aux.c export/vid_aux.h
+      import/decode_lavc.c import/decode_yuv.c import/import_ffmpeg.c
+      src/transcode.c
+    Added files: aclib/colorspace.c aclib/colorspace.h
+    Removed files: aclib/AUTHORS.libvo aclib/COPYING.libvo
+      aclib/README.libvo aclib/rgb2yuv.c aclib/rgb2yuv.h aclib/yuv2rgb.c
+      aclib/yuv2rgb.h aclib/yuv2rgb_mlib.c aclib/yuv2rgb_mmx.c
+  Replace libvo colorspace conversion code with a new from-scratch
+  implementation.
+
 2005-10-02 Jacob Meuser <jakemsr at jakemsr dot com>
   * configure.in export/export_mov.c import/decode_mov.c
     import/import_mov.c import/probe_mov.c

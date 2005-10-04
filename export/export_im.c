@@ -25,7 +25,7 @@
 #include <stdlib.h>
 
 #include "transcode.h"
-#include "yuv2rgb.h"
+#include "aclib/colorspace.h"
 
 // transcode defines this as well as ImageMagick.
 #undef PACKAGE_NAME
@@ -81,7 +81,7 @@ MOD_init
       codec = (vob->im_v_codec == CODEC_YUV) ? CODEC_YUV:CODEC_RGB;
 
       if(vob->im_v_codec == CODEC_YUV) {
-	yuv2rgb_init (tc_accel, vob->v_bpp, MODE_RGB);
+	colorspace_init (tc_accel);
 	row_bytes = vob->v_bpp/8 * vob->ex_v_width;
       }
       

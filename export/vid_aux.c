@@ -33,11 +33,9 @@ static char *rgb_outY;
 
 int tc_yuv2rgb_init(int width, int height)
 {
-    
     if(convert) tc_yuv2rgb_close();
-    
-    // XXX: 24
-    yuv2rgb_init(ac_mmflag(), BPP, MODE_BGR);
+
+    colorspace_init(tc_accel);
     
     if ((frame_bufferY = malloc(width*height*3))==NULL) return(-1);
     
@@ -71,7 +69,6 @@ int tc_yuv2rgb_core(char *buffer)
     tc_memcpy(buffer, rgb_outY, y_dim*x_dim*3);
     
     return(0);
-    
 }
 
 
@@ -89,10 +86,7 @@ int tc_yuv2rgb_close()
 
 int tc_rgb2yuv_init(int width, int height)
 {
-    
     if(convert) tc_rgb2yuv_close();
-    
-    init_rgb2yuv();
     
     if ((frame_buffer = malloc(width*height*3))==NULL) return(-1);
     
@@ -115,42 +109,17 @@ int tc_rgb2yuv_init(int width, int height)
 
 int tc_rgb2yuv_core(char *buffer)
 {	  
-    int cc=0, flip=0;
-    
     if(!convert) return(0);
     
     //conversion
     
-    cc=RGB2YUV(x_dim, y_dim, buffer, y_out,
-		  u_out, v_out, x_dim, flip);
-    
-    if(cc!=0) return(-1);
+    rgb2yuv(y_out, u_out, v_out, buffer, x_dim, y_dim,
+            x_dim, x_dim/2, x_dim/2);
     
     //put it back
     tc_memcpy(buffer, frame_buffer, (y_dim*x_dim*3)/2);
     
     return(0);
-    
-}
-
-int tc_rgb2yuv_core_flip(char *buffer)
-{	  
-    int cc=0, flip=1;
-    
-    if(!convert) return(0);
-    
-    //conversion
-    
-    cc=RGB2YUV(x_dim, y_dim, buffer, y_out,
-		  u_out, v_out, x_dim, flip);
-    
-    if(cc!=0) return(-1);
-    
-    //put it back
-    tc_memcpy(buffer, frame_buffer, (y_dim*x_dim*3)/2);
-    
-    return(0);
-    
 }
 
 int tc_rgb2yuv_close()
@@ -167,7 +136,6 @@ int tc_rgb2yuv_close()
 
 void uyvytoyuy2(char *input, char *output, int width, int height) 
 {
-
     int i;
     
     for (i=0; i<width*height*2; i+=4) {
@@ -179,13 +147,10 @@ void uyvytoyuy2(char *input, char *output, int width, int height)
 	output[i+2] = input[i+3];
 	output[i+3] = input[i+2];
     }
-
-
 }
 
 void yv12toyuy2(char *_y, char *_u, char *_v, char *output, int width, int height) 
 {
-
     int i,j;
     char *y, *u, *v;
 

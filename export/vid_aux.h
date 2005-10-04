@@ -27,12 +27,10 @@
 #include "transcode.h"
 
 #include "aclib/ac.h"
-#include "aclib/rgb2yuv.h"
-#include "aclib/yuv2rgb.h"
+#include "aclib/colorspace.h"
 
 int tc_rgb2yuv_init(int width, int height);
 int tc_rgb2yuv_core(char *buffer);
-int tc_rgb2yuv_core_flip(char *buffer);
 int tc_rgb2yuv_close();
 
 int tc_yuv2rgb_init(int width, int height);

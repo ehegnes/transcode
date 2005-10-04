@@ -38,7 +38,7 @@ static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID;
 #undef EMULATE_FAST_INT
 #include <ffmpeg/avcodec.h>
 
-#include "aclib/yuv2rgb.h"
+#include "aclib/colorspace.h"
 #include "avilib/avilib.h"
 #include "magic.h"
 
@@ -391,7 +391,7 @@ do_avi:
         break;
       case CODEC_RGB:
         frame_size = x_dim * y_dim * 3;
-        yuv2rgb_init(tc_accel, vob->v_bpp, MODE_RGB);
+	colorspace_init(tc_accel);
         bpp = vob->v_bpp;
 
         if (yuv2rgb_buffer == NULL) yuv2rgb_buffer = bufalloc(BUFFER_SIZE);

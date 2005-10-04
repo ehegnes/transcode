@@ -411,7 +411,7 @@ void usage(int status)
   printf("--write_pid file     write pid of signal thread to \"file\" [off]\n");
   printf("--nice N             set niceness to N [off]\n");
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
-  printf("--accel type         enforce IA32/AMD64 acceleration for type [autodetect]\n");
+  printf("--accel type[,...]   override CPU acceleration flags (for debugging)\n");
 #endif
   printf("--socket file        socket file for run-time control [no file]\n");
   printf("--dv_yuy2_mode       libdv YUY2 mode (default is YV12) [off]\n");
@@ -2172,31 +2172,46 @@ int main(int argc, char *argv[]) {
 	  break;
 
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
-	case ACCEL_MODE: 
-	  
-	  if(optarg[0]=='-') usage(EXIT_FAILURE);
-	  
-	  accel=optarg;
+	case ACCEL_MODE:
+	  accel = optarg;
+	  if(accel == NULL) usage(EXIT_FAILURE);
+	  if(accel[0] == '-') usage(EXIT_FAILURE);
 
-	  if(accel==NULL) usage(EXIT_FAILURE);
-
-	  if(strncasecmp(accel, "C", 1)==0) tc_accel=MM_C;
+	  tc_accel = 0;
+	  while (accel) {
+	    char *comma = strchr(accel, ',');
+	    if(comma)
+	      *comma++ = 0;
+	    if(strcasecmp(accel, "C") == 0)
+	      tc_accel |= MM_C;
 #ifdef ARCH_X86
-	  if(strncasecmp(accel, "asm", 3)==0) tc_accel=MM_IA32ASM;
+	    else if(strcasecmp(accel, "asm"     ) == 0)
+	      tc_accel |= MM_IA32ASM;
 #endif
 #ifdef ARCH_X86_64
-	  if(strncasecmp(accel, "asm", 3)==0) tc_accel=MM_AMD64ASM;
+	    else if(strcasecmp(accel, "asm"     ) == 0)
+	      tc_accel |= MM_AMD64ASM;
 #endif
-	  if(strncasecmp(accel, "mmx", 3)==0) tc_accel=MM_MMX;
-	  if(strncasecmp(accel, "mmxext", 6)==0) tc_accel=MM_MMXEXT;
-	  if(strncasecmp(accel, "3dnow", 5)==0) tc_accel=MM_3DNOW;
-	  if(strncasecmp(accel, "3dnowext", 8)==0) tc_accel=MM_3DNOWEXT;
-	  if(strncasecmp(accel, "sse", 3)==0) tc_accel=MM_SSE;
-	  if(strncasecmp(accel, "sse2", 4)==0) tc_accel=MM_SSE2;
-	  if(strncasecmp(accel, "sse3", 4)==0) tc_accel=MM_SSE3;
-	  
-	  if(tc_accel==-1) usage(EXIT_FAILURE);
-
+	    else if(strcasecmp(accel, "mmx"     ) == 0)
+	      tc_accel |= MM_MMX;
+	    else if(strcasecmp(accel, "mmxext"  ) == 0)
+	      tc_accel |= MM_MMXEXT;
+	    else if(strcasecmp(accel, "3dnow"   ) == 0)
+	      tc_accel |= MM_3DNOW;
+	    else if(strcasecmp(accel, "3dnowext") == 0)
+	      tc_accel |= MM_3DNOWEXT;
+	    else if(strcasecmp(accel, "sse"     ) == 0)
+	      tc_accel |= MM_SSE;
+	    else if(strcasecmp(accel, "sse2"    ) == 0)
+	      tc_accel |= MM_SSE2;
+	    else if(strcasecmp(accel, "sse3"    ) == 0)
+	      tc_accel |= MM_SSE3;
+	    else {
+	      fprintf(stderr, "bad --accel type, valid types: C asm mmx mmxext 3dnow 3dnowext sse sse2 sse3\n\n");
+	      short_usage(EXIT_FAILURE);
+	    }
+	    accel = comma;
+	  }
 	  break;
 #else
 	case ACCEL_MODE: 
@@ -4648,9 +4663,9 @@ void dummy_libioaux(void) {
   append_fc_time( NULL, NULL);
 }
 
-#include "aclib/yuv2rgb.h"
+#include "aclib/colorspace.h"
 void dummy_libvout(void) {
-        yuv2rgb_init(tc_accel, BPP, MODE_RGB);
+        colorspace_init(tc_accel);
 	yuv2rgb(NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0);
 }
 

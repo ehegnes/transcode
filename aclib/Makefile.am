@@ -13,16 +13,12 @@ libac_la_SOURCES = \
 	cputest.c \
 	rescale.c \
 	average.c \
-	swap.c \
-	rgb2yuv.c \
-	rgb2yuv.h \
-	yuv2rgb.c \
-	yuv2rgb.h \
-	yuv2rgb_mmx.c \
-	yuv2rgb_mlib.c
+	colorspace.c \
+	swap.c
 
 EXTRA_DIST = \
 	ac.h \
+	colorspace.h \
 	cputest.h \
 	mmx.h \
 	movtest.c \

@@ -28,8 +28,8 @@
 
 #include "ioaux.h"
 
-#include "aclib/yuv2rgb.h"
 #include "aclib/ac.h"
+#include "aclib/colorspace.h"
 
 #include "transcode.h"
 #include "tc.h"
@@ -193,12 +193,7 @@ int vo_alloc (vo_t *vo, int width, int height)
         return -1;
     }
     
-#if 0
-    yuv2rgb_init (vo->bpp, MODE_BGR);
-// EMS: this fixes RGB output, probably breaks ppm output...
-#else
-    yuv2rgb_init (ac_mmflag(), vo->bpp, MODE_RGB);
-#endif
+    colorspace_init(ac_mmflag());
     
     return 0;
 }
