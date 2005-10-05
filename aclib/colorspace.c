@@ -10,28 +10,29 @@
 
 /*************************************************************************/
 
-static void yv12_rgb24_c(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
-			 u_int8_t *srcV, int width, int height,
-			 int rgb_stride, int y_stride, int uv_stride);
-static void rgb24_yv12_c(u_int8_t *destY, u_int8_t *destU, u_int8_t *destV,
-			 u_int8_t *src, int width, int height,
-			 int rgb_stride, int y_stride, int uv_stride);
-static void yv12_rgb24_mmx(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
-			   u_int8_t *srcV, int width, int height,
-			   int rgb_stride, int y_stride, int uv_stride);
-static void yv12_rgb24_sse2(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
+static void yuv420p_rgb24_c(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
 			    u_int8_t *srcV, int width, int height,
 			    int rgb_stride, int y_stride, int uv_stride);
-static void rgb24_yv12_sse2(u_int8_t *destY, u_int8_t *destU, u_int8_t *destV,
+static void rgb24_yuv420p_c(u_int8_t *destY, u_int8_t *destU, u_int8_t *destV,
 			    u_int8_t *src, int width, int height,
 			    int rgb_stride, int y_stride, int uv_stride);
+static void yuv420p_rgb24_mmx(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
+			      u_int8_t *srcV, int width, int height,
+			      int rgb_stride, int y_stride, int uv_stride);
+static void yuv420p_rgb24_sse2(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
+			       u_int8_t *srcV, int width, int height,
+			       int rgb_stride, int y_stride, int uv_stride);
+static void rgb24_yuv420p_sse2(u_int8_t *destY, u_int8_t *destU,
+			       u_int8_t *destV, u_int8_t *src, int width,
+			       int height, int rgb_stride, int y_stride,
+			       int uv_stride);
 
 /*************************************************************************/
 /*************************************************************************/
 
 /* The actual conversion functions.  Default to C (non-optimized) versions. */
-yuv2rgb_func yuv2rgb = yv12_rgb24_c;
-rgb2yuv_func rgb2yuv = rgb24_yv12_c;
+yuv2rgb_func yuv2rgb = yuv420p_rgb24_c;
+rgb2yuv_func rgb2yuv = rgb24_yuv420p_c;
 
 /* Initialization routine.  Selects an appropriate optimized routine (if
  * available) depending on the acceleration flags given.
@@ -39,10 +40,10 @@ rgb2yuv_func rgb2yuv = rgb24_yv12_c;
 void colorspace_init(int accel)
 {
     if (accel & MM_SSE2) {
-	yuv2rgb = yv12_rgb24_sse2;
-	rgb2yuv = rgb24_yv12_sse2;
+	yuv2rgb = yuv420p_rgb24_sse2;
+	rgb2yuv = rgb24_yuv420p_sse2;
     } else if (accel & MM_MMX) {
-	yuv2rgb = yv12_rgb24_mmx;
+	yuv2rgb = yuv420p_rgb24_mmx;
     }
 }
 
@@ -61,11 +62,11 @@ void colorspace_init(int accel)
 
 /*************************************************************************/
 
-/* YV12 to RGB */
+/* YUV420P to RGB */
 
-static void yv12_rgb24_c(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
-			 u_int8_t *srcV, int width, int height,
-			 int rgb_stride, int y_stride, int uv_stride)
+static void yuv420p_rgb24_c(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
+			    u_int8_t *srcV, int width, int height,
+			    int rgb_stride, int y_stride, int uv_stride)
 {
 #ifdef LIBVO_EXACT
     const int cY  =  76309;
@@ -155,11 +156,11 @@ static void yv12_rgb24_c(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
 
 /*************************************************************************/
 
-/* RGB to YV12 */
+/* RGB to YUV420P */
 
-static void rgb24_yv12_c(u_int8_t *destY, u_int8_t *destU, u_int8_t *destV,
-			 u_int8_t *src, int width, int height,
-			 int rgb_stride, int y_stride, int uv_stride)
+static void rgb24_yuv420p_c(u_int8_t *destY, u_int8_t *destU, u_int8_t *destV,
+			    u_int8_t *src, int width, int height,
+			    int rgb_stride, int y_stride, int uv_stride)
 {
     int x, y;
 
@@ -171,7 +172,7 @@ static void rgb24_yv12_c(u_int8_t *destY, u_int8_t *destU, u_int8_t *destV,
 	    destY[x] = ((17988*r + 35314*g + 6858*b) >> 16) + 16;
 	    if (!((x|y) & 1))
 		destU[x/2] = ((-10367*r - 20353*g + 30720*b) >> 16) + 128;
-	    if ((x&y) & 1)  /* 411p style: take Cb/Cr from opposite corners */
+	    if ((x&y) & 1)  /* take Cb/Cr from opposite corners */
 		destV[x/2] = (( 30720*r - 25724*g -  4996*b) >> 16) + 128;
 	}
 	src += rgb_stride;
@@ -255,13 +256,13 @@ static struct { u_int16_t n[96]; } __attribute__((aligned(16))) rgb_data = {{
 
 /* MMX */
 
-static inline void mmx_yv12_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
-				   u_int8_t *srcV);
+static inline void mmx_yuv420p_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
+				      u_int8_t *srcV);
 static inline void mmx_store_rgb24(u_int8_t *dest);
 
-static void yv12_rgb24_mmx(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
-			   u_int8_t *srcV, int width, int height,
-			   int rgb_stride, int y_stride, int uv_stride)
+static void yuv420p_rgb24_mmx(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
+			      u_int8_t *srcV, int width, int height,
+			      int rgb_stride, int y_stride, int uv_stride)
 {
     int x, y;
     u_int8_t *dest_orig = dest;
@@ -271,7 +272,7 @@ static void yv12_rgb24_mmx(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
 
     for (y = 0; y < height; y++) {
 	for (x = 0; x < (width & ~7); x += 8) {
-	    mmx_yv12_to_rgb(srcY+x, srcU+x/2, srcV+x/2);
+	    mmx_yuv420p_to_rgb(srcY+x, srcU+x/2, srcV+x/2);
 	    mmx_store_rgb24(dest+x*3);
 	}
 	if (x < width)
@@ -285,14 +286,15 @@ static void yv12_rgb24_mmx(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
     asm("emms");
     if (width & 7) {
 	x = width & ~7;
-	yv12_rgb24_c(dest_orig+x*3, srcY_orig+x, srcU_orig+x/2, srcV_orig+x/2,
-		     width-x, height, rgb_stride, y_stride, uv_stride);
+	yuv420p_rgb24_c(dest_orig+x*3, srcY_orig+x, srcU_orig+x/2,
+			srcV_orig+x/2, width-x, height, rgb_stride, y_stride,
+			uv_stride);
     }
 }
 
 
-static inline void mmx_yv12_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
-				   u_int8_t *srcV)
+static inline void mmx_yuv420p_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
+				      u_int8_t *srcV)
 {
     asm("\
 	# Load data, bias and expand to 16 bits				\n\
@@ -409,16 +411,16 @@ static inline void mmx_store_rgb24(u_int8_t *dest)
 
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
 
-static inline void sse2_yv12_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
-				    u_int8_t *srcV);
+static inline void sse2_yuv420p_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
+				       u_int8_t *srcV);
 static inline void sse2_store_rgb24(u_int8_t *dest);
 static inline void sse2_load_rgb24(u_int8_t *src);
-static inline void sse2_rgb_to_yv12_yu(u_int8_t *destY, u_int8_t *destU);
-static inline void sse2_rgb_to_yv12_yv(u_int8_t *destY, u_int8_t *destV);
+static inline void sse2_rgb_to_yuv420p_yu(u_int8_t *destY, u_int8_t *destU);
+static inline void sse2_rgb_to_yuv420p_yv(u_int8_t *destY, u_int8_t *destV);
 
-static void yv12_rgb24_sse2(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
-			    u_int8_t *srcV, int width, int height,
-			    int rgb_stride, int y_stride, int uv_stride)
+static void yuv420p_rgb24_sse2(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
+			       u_int8_t *srcV, int width, int height,
+			       int rgb_stride, int y_stride, int uv_stride)
 {
     int x, y;
     u_int8_t *dest_orig = dest;
@@ -428,7 +430,7 @@ static void yv12_rgb24_sse2(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
 
     for (y = 0; y < height; y++) {
 	for (x = 0; x < (width & ~15); x += 16) {
-	    sse2_yv12_to_rgb(srcY+x, srcU+x/2, srcV+x/2);
+	    sse2_yuv420p_to_rgb(srcY+x, srcU+x/2, srcV+x/2);
 	    sse2_store_rgb24(dest+x*3);
 	}
 	dest += rgb_stride;
@@ -441,14 +443,16 @@ static void yv12_rgb24_sse2(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
     asm("emms");
     if (width & 15) {
 	x = width & ~15;
-	yv12_rgb24_c(dest_orig+x*3, srcY_orig+x, srcU_orig+x/2, srcV_orig+x/2,
-		     width-x, height, rgb_stride, y_stride, uv_stride);
+	yuv420p_rgb24_c(dest_orig+x*3, srcY_orig+x, srcU_orig+x/2,
+			srcV_orig+x/2, width-x, height, rgb_stride, y_stride,
+			uv_stride);
     }
 }
 
-static void rgb24_yv12_sse2(u_int8_t *destY, u_int8_t *destU, u_int8_t *destV,
-			    u_int8_t *src, int width, int height,
-			    int rgb_stride, int y_stride, int uv_stride)
+static void rgb24_yuv420p_sse2(u_int8_t *destY, u_int8_t *destU,
+			       u_int8_t *destV, u_int8_t *src, int width,
+			       int height, int rgb_stride, int y_stride,
+			       int uv_stride)
 {
     int x, y;
     u_int8_t *destY_orig = destY;
@@ -460,9 +464,9 @@ static void rgb24_yv12_sse2(u_int8_t *destY, u_int8_t *destU, u_int8_t *destV,
 	for (x = 0; x < (width & ~7); x += 8) {
 	    sse2_load_rgb24(src+x*3);
 	    if (y%2 == 0)
-		sse2_rgb_to_yv12_yu(destY+x, destU+x/2);
+		sse2_rgb_to_yuv420p_yu(destY+x, destU+x/2);
 	    else
-		sse2_rgb_to_yv12_yv(destY+x, destV+x/2);
+		sse2_rgb_to_yuv420p_yv(destY+x, destV+x/2);
 	}
 	src += rgb_stride;
 	destY += y_stride;
@@ -474,15 +478,15 @@ static void rgb24_yv12_sse2(u_int8_t *destY, u_int8_t *destU, u_int8_t *destV,
     asm("emms");
     if (width & 7) {
 	x = width & ~7;
-	rgb24_yv12_c(destY_orig+x, destU_orig+x/2, destV_orig+x/2,
-		     src_orig+x*3, width-x, height,
-		     rgb_stride, y_stride, uv_stride);
+	rgb24_yuv420p_c(destY_orig+x, destU_orig+x/2, destV_orig+x/2,
+			src_orig+x*3, width-x, height,
+			rgb_stride, y_stride, uv_stride);
     }
 }
 
 
-static inline void sse2_yv12_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
-				    u_int8_t *srcV)
+static inline void sse2_yuv420p_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
+				       u_int8_t *srcV)
 {
     asm("\
 	# Load data, bias and expand to 16 bits				\n\
@@ -683,7 +687,7 @@ static inline void sse2_load_rgb24(u_int8_t *src)
     );
 }
 
-static inline void sse2_rgb_to_yv12_yu(u_int8_t *destY, u_int8_t *destU)
+static inline void sse2_rgb_to_yuv420p_yu(u_int8_t *destY, u_int8_t *destU)
 {
     asm("\
 	# Make RGB data into 8.6 fixed-point				\n\
@@ -730,7 +734,7 @@ static inline void sse2_rgb_to_yv12_yu(u_int8_t *destY, u_int8_t *destU)
     );
 }
 
-static inline void sse2_rgb_to_yv12_yv(u_int8_t *destY, u_int8_t *destV)
+static inline void sse2_rgb_to_yuv420p_yv(u_int8_t *destY, u_int8_t *destV)
 {
     asm("\
 	# Make RGB data into 8.6 fixed-point				\n\
