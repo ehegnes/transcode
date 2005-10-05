@@ -23,7 +23,4 @@ EXTRA_DIST = \
 	mmx.h \
 	movtest.c \
 	actest.c \
-	make.sh \
-	COPYING.libvo \
-	AUTHORS.libvo \
-	README.libvo
+	make.sh
