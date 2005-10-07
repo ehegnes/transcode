@@ -1,4 +1,10 @@
 2005-10-07 Andrew Church <achurch at achurch dot org>
+  * Makefile.am export/Makefile.am filter/Makefile.am import/Makefile.am
+    src/Makefile.am
+  Rearrange source/module/directory listings to compile in roughly
+  alphabetical order.
+
+2005-10-07 Andrew Church <achurch at achurch dot org>
   * Changed files:
     aclib/Makefile.am docs/OPTIMIZERS export/* filter/filter_cshift.c
     import/* src/probe.c src/transcode.c src/transcode.h

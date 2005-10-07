@@ -7,23 +7,23 @@ PVM3 = pvm3
 endif
 
 SUBDIRS = \
-	libtc \
-	libxio \
-	docs \
-	contrib \
-	libdldarwin \
-	libsupport \
-	libioaux \
 	aclib \
 	avilib \
 	libac3 \
-	import \
+	libdldarwin \
+	libsupport \
+	libioaux \
+	libtc \
+	libxio \
 	export \
 	filter \
-	src \
-	tools \
+	import \
 	$(PVM3) \
-	testsuite
+	src \
+	testsuite \
+	tools \
+	contrib \
+	docs
 
 EXTRA_DIST = transcode.spec
 

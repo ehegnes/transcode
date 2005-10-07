@@ -33,54 +33,54 @@ endif
 endif
 
 if HAVE_LIBQUICKTIME
-MODQT = import_mov.la
+IMPORT_MOV = import_mov.la
 endif
 
 if HAVE_LIBDVDREAD
-DVD_MOD = import_dvd.la
+IMPORT_DVD = import_dvd.la
 endif
 
 if HAVE_LIBMPEG3
-MPEG3 = import_mpeg3.la
+IMPORT_MPEG3 = import_mpeg3.la
 endif
 
 if HAVE_A52
-A52_MOD = a52_decore.la
+IMPORT_A52 = a52_decore.la
 endif
 
 if HAVE_LZO
-LZO_MOD = import_lzo.la
+IMPORT_LZO = import_lzo.la
 endif
 
 if HAVE_IMAGEMAGICK
-IM_MOD = import_im.la import_imlist.la
+IMPORT_IM = import_im.la import_imlist.la
 endif
 
 if HAVE_LIBXML2
-LIBXML2_MOD = import_xml.la
+IMPORT_XML = import_xml.la
 endif
 
 if HAVE_BKTR
-BKTR_MOD = import_bktr.la
+IMPORT_BKTR = import_bktr.la
 endif
 
 if HAVE_SUNAU
-SUNAU_MOD = import_sunau.la
+IMPORT_SUNAU = import_sunau.la
 endif
 
 if HAVE_OSS
-OSS_MOD = import_oss.la
+IMPORT_OSS = import_oss.la
 endif
 
 if HAVE_AVIFILE
-AF6_MOD = import_af6.la
+IMPORT_AF6 = import_af6.la
 endif
 
 if NET_STREAM
-NET_MOD = import_net.la
+IMPORT_NET = import_net.la
 endif
 
-BSDAV_MOD = import_bsdav.la
+IMPORT_BSDAV = import_bsdav.la
 
 
 pkgdir = $(MOD_PATH)
@@ -88,44 +88,44 @@ pkgdir = $(MOD_PATH)
 SUBDIRS = nuv v4l
 
 pkg_LTLIBRARIES = \
-	import_avi.la \
-	import_mpeg2.la \
-	import_vdrac3.la \
-	import_ac3.la \
-	import_dv.la \
-	import_vob.la \
-	import_raw.la \
-	import_nvrec.la \
-	import_yuv4mpeg.la \
-	import_lav.la \
-	import_null.la \
-	import_sh.la \
-	import_divx.la \
-	$(A52_MOD) \
-	import_mp3.la \
-	$(DVD_MOD) \
-	$(MPEG3) \
-	$(IM_MOD) \
-	$(MODQT) \
 	af6_decore.la \
-	$(AF6_MOD) \
-	$(LIBXML2_MOD) \
-	import_mplayer.la \
-	import_rawlist.la \
-	import_ogg.la \
-	import_xvid.la \
-	import_ffmpeg.la \
-	$(LZO_MOD) \
-	import_vnc.la \
-	import_fraps.la \
-	import_pvn.la \
+	$(IMPORT_A52) \
+	import_ac3.la \
+	$(IMPORT_AF6) \
+	import_avi.la \
+	$(IMPORT_BKTR) \
+	$(IMPORT_BSDAV) \
+	import_divx.la \
+	import_dv.la \
+	$(IMPORT_DVD) \
 	import_ffbin.la \
-	$(BKTR_MOD) \
-	$(SUNAU_MOD) \
-	$(OSS_MOD) \
-	$(BSDAV_MOD) \
-	$(NET_MOD) \
-	import_yuv.la
+	import_ffmpeg.la \
+	import_fraps.la \
+	$(IMPORT_IM) \
+	import_lav.la \
+	$(IMPORT_LZO) \
+	$(IMPORT_MOV) \
+	import_mp3.la \
+	import_mpeg2.la \
+	$(IMPORT_MPEG3) \
+	import_mplayer.la \
+	$(IMPORT_NET) \
+	import_null.la \
+	import_nvrec.la \
+	import_ogg.la \
+	$(IMPORT_OSS) \
+	import_pvn.la \
+	import_raw.la \
+	import_rawlist.la \
+	import_sh.la \
+	$(IMPORT_SUNAU) \
+	import_vdrac3.la \
+	import_vnc.la \
+	import_vob.la \
+	$(IMPORT_XML) \
+	import_xvid.la \
+	import_yuv.la \
+	import_yuv4mpeg.la
 
 import_null_la_SOURCES = import_null.c
 import_null_la_LDFLAGS = -module -avoid-version 
@@ -306,22 +306,22 @@ bin_PROGRAMS = \
 
 tcdecode_SOURCES = \
 	tcdecode.c \
-	decode_ac3.c \
-	decode_mpeg2.c \
-	decode_yuv.c \
 	fileinfo.c \
 	ioaux.c \
-	decode_dv.c \
-	decode_mp3.c \
 	mpg123.c \
-	decode_a52.c \
-	decode_af6.c \
 	scan_dv.c \
+	decode_a52.c \
+	decode_ac3.c \
+	decode_af6.c \
+	decode_dv.c \
 	decode_lavc.c \
-	decode_xvid.c \
-	decode_ogg.c \
+	decode_lzo.c \
 	decode_mov.c \
-	decode_lzo.c
+	decode_mp3.c \
+	decode_mpeg2.c \
+	decode_ogg.c \
+	decode_xvid.c \
+	decode_yuv.c
 
 tcdecode_LDADD = \
 	$(LIBAVCODEC_LIBS) \
@@ -363,12 +363,12 @@ tcrequant_CFLAGS = $(AM_CFLAGS)
 tccat_SOURCES = \
 	tccat.c \
 	dvd_reader.c \
+	extract_avi.c \
 	fileinfo.c \
 	ioaux.c \
 	iodump.c \
-	scan_dv.c \
-	extract_avi.c \
 	ioxml.c \
+	scan_dv.c \
 	ts_reader.c
 
 tccat_LDADD = \
@@ -391,14 +391,14 @@ tccat_CFLAGS = $(AM_CFLAGS)
 
 tcscan_SOURCES = \
 	tcscan.c \
-	fileinfo.c \
-	bitrate.c \
-	ioaux.c \
-	scan_pes.c \
-	aux_pes.c \
-	mpg123.c \
 	ac3scan.c \
-	scan_dv.c
+	aux_pes.c \
+	bitrate.c \
+	fileinfo.c \
+	ioaux.c \
+	mpg123.c \
+	scan_dv.c \
+	scan_pes.c
 
 tcscan_LDADD = \
 	$(LAME_LIBS) \
@@ -419,41 +419,41 @@ tcscan_CFLAGS = $(AM_CFLAGS)
 
 tcprobe_SOURCES = \
 	tcprobe.c \
-	probe_stream.c \
-	fileinfo.c \
-	bitrate.c \
-	ioaux.c \
-	extract_avi.c \
-	scan_pes.c \
-	aux_pes.c \
-	mpg123.c \
 	ac3scan.c \
+	aux_pes.c \
+	bitrate.c \
 	dvd_reader.c \
-	probe_dvd.c \
-	decode_dv.c \
-	extract_yuv.c \
-	probe_nuv.c \
-	probe_wav.c \
+	fileinfo.c \
+	ioaux.c \
 	iodump.c \
-	probe_socket.c \
-	scan_dv.c \
-	probe_im.c \
-	probe_mov.c \
-	probe_xml.c \
 	ioxml.c \
-	probe_lav.c \
-	probe_ogg.c \
-	ts_reader.c \
-	probe_vnc.c \
-	extract_mxf.c \
-	probe_v4l.c \
-	probe_bktr.c \
-	probe_sunau.c \
-	probe_oss.c \
-	probe_bsdav.c \
-	probe_pvn.c \
+	mpg123.c \
 	pvn.c \
-	pvnglobals.c
+	pvnglobals.c \
+	scan_dv.c \
+	scan_pes.c \
+	ts_reader.c \
+	decode_dv.c \
+	extract_avi.c \
+	extract_mxf.c \
+	extract_yuv.c \
+	probe_bktr.c \
+	probe_bsdav.c \
+	probe_dvd.c \
+	probe_im.c \
+	probe_lav.c \
+	probe_mov.c \
+	probe_nuv.c \
+	probe_ogg.c \
+	probe_oss.c \
+	probe_pvn.c \
+	probe_socket.c \
+	probe_stream.c \
+	probe_sunau.c \
+	probe_v4l.c \
+	probe_vnc.c \
+	probe_wav.c \
+	probe_xml.c
 
 tcprobe_LDADD = \
 	$(LAME_LIBS) \
@@ -483,21 +483,21 @@ tcprobe_CFLAGS = $(AM_CFLAGS)
 
 tcextract_SOURCES = \
 	tcextract.c \
-	extract_ac3.c \
-	extract_mpeg2.c \
-	extract_pcm.c \
-	fileinfo.c \
-	extract_yuv.c \
-	extract_rgb.c \
-	extract_dv.c \
-	ioaux.c \
-	extract_mp3.c \
-	scan_dv.c \
 	aux_pes.c \
+	fileinfo.c \
+	ioaux.c \
+	scan_dv.c \
+	extract_ac3.c \
 	extract_avi.c \
-	extract_ogm.c \
+	extract_dv.c \
 	extract_lzo.c \
-	extract_mxf.c
+	extract_mp3.c \
+	extract_mpeg2.c \
+	extract_mxf.c \
+	extract_ogm.c \
+	extract_pcm.c \
+	extract_rgb.c \
+	extract_yuv.c
 
 tcextract_LDADD = \
 	$(AC3_LIBS) \
@@ -519,17 +519,17 @@ tcextract_CFLAGS = $(AM_CFLAGS)
 # ------------- #
 
 tcdemux_SOURCES = \
+	aux_pes.c \
 	tcdemux.c \
+	demux_pass.c \
+	demuxer.c \
+	dvd_reader.c \
 	fileinfo.c \
 	ioaux.c \
-	dvd_reader.c \
-	seqinfo.c \
-	demuxer.c \
-	aux_pes.c \
 	packets.c \
-	scan_pack.c \
 	scan_dv.c \
-	demux_pass.c
+	scan_pack.c \
+	seqinfo.c
 
 tcdemux_LDADD = \
 	$(AC3_LIBS) \
@@ -552,10 +552,10 @@ tcdemux_CFLAGS = $(AM_CFLAGS)
 
 tcxmlcheck_SOURCES = \
 	tcxmlcheck.c \
-	probe_xml.c \
-	ioxml.c \
-	ioaux.c \
 	fileinfo.c \
+	ioaux.c \
+	ioxml.c \
+	probe_xml.c \
 	scan_dv.c
 
 tcxmlcheck_LDADD = \

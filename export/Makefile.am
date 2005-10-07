@@ -70,19 +70,28 @@ endif
 
 pkg_LTLIBRARIES = \
 	export_ac3.la \
+	$(MODS_AVIFILE) \
 	export_debugppm.la \
 	export_divx4.la \
 	export_divx4raw.la \
 	export_divx5.la \
 	export_divx5raw.la \
+	$(MODS_LIBDV) \
+	$(MODS_LIBFAME) \
 	export_ffmpeg.la \
+	$(MODS_IMAGEMAGICK) \
+	$(MODS_LIBJPEG) \
 	export_lame.la \
+	$(MODS_LZO) \
+	$(MODS_LIBQUICKTIME) \
 	export_mp1e.la \
 	export_mp2.la \
+	$(MODS_NET_STREAM) \
 	export_null.la \
 	export_ogg.la \
 	export_pcm.la \
 	export_ppm.la \
+	$(MODS_PVM3) \
 	export_pvn.la \
 	export_raw.la \
 	export_toolame.la \
@@ -90,16 +99,7 @@ pkg_LTLIBRARIES = \
 	export_xvid2.la \
 	export_xvid3.la \
 	export_xvid4.la \
-	$(MODS_AVIFILE) \
-	$(MODS_LIBDV) \
-	$(MODS_LIBFAME) \
-	$(MODS_LIBJPEG) \
-	$(MODS_LIBQUICKTIME) \
-	$(MODS_MJPEGTOOLS) \
-	$(MODS_NET_STREAM) \
-	$(MODS_IMAGEMAGICK) \
-	$(MODS_LZO) \
-	$(MODS_PVM3)
+	$(MODS_MJPEGTOOLS)
 
 export_ac3_la_SOURCES = export_ac3.c
 export_ac3_la_LDFLAGS = -module -avoid-version

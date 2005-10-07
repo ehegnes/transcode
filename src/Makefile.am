@@ -51,26 +51,26 @@ EXTRA_DIST = \
 
 transcode_SOURCES = \
 	transcode.c \
-	iodir.c \
-	decoder.c \
-	encoder.c \
-	dl_loader.c \
-	frame_threads.c \
-	video_buffer.c \
 	audio_buffer.c \
-	frame_preprocess.c \
-	frame_postprocess.c \
-	video_trans.c \
 	audio_trans.c \
+	callback.c \
+	counter.c \
+	decoder.c \
+	dl_loader.c \
+	encoder.c \
+	filter.c \
+	frame_postprocess.c \
+	frame_preprocess.c \
+	frame_threads.c \
+	info_server.c \
+	iodir.c \
+	optstr.c \
+	probe.c \
+	socket.c \
+	split.c \
+	video_buffer.c \
 	video_rgb.c \
+	video_trans.c \
 	video_yuv.c \
 	video_yuv422.c \
-	filter.c \
-	counter.c \
-	zoom.c \
-	probe.c \
-	split.c \
-	callback.c \
-	socket.c \
-	optstr.c \
-	info_server.c
+	zoom.c

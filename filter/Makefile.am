@@ -16,17 +16,17 @@ AM_CPPFLAGS = \
 pkgdir = $(MOD_PATH)
 
 if HAVE_MMX
-F_MMX = filter_dilyuvmmx.la 
+FILTER_DILYUVMMX = filter_dilyuvmmx.la 
 else
-F_MMX=
+FILTER_DILYUVMMX=
 endif
 
 if HAVE_FREETYPE2
-F_TEXT = filter_text.la
+FILTER_TEXT = filter_text.la
 endif
 
 if HAVE_IMAGEMAGICK
-F_LOGO = filter_logo.la filter_logoaway.la filter_compare.la
+FILTER_LOGO = filter_logo.la filter_logoaway.la filter_compare.la
 endif
 
 if CAN_COMPILE_C_ALTIVEC
@@ -73,6 +73,7 @@ pkg_LTLIBRARIES = \
 	filter_denoise3d.la \
 	filter_detectclipping.la \
 	filter_detectsilence.la \
+	$(FILTER_DILYUVMMX) \
 	filter_dnr.la \
 	filter_doublefps.la \
 	filter_facemask.la \
@@ -83,6 +84,7 @@ pkg_LTLIBRARIES = \
 	filter_invert.la \
 	filter_ivtc.la \
 	filter_levels.la \
+	$(FILTER_LOGO) \
 	filter_lowpass.la \
 	filter_mask.la \
 	filter_modfps.la \
@@ -101,14 +103,12 @@ pkg_LTLIBRARIES = \
 	filter_tc_video.la \
 	filter_test.la \
 	filter_testframe.la \
+	$(FILTER_TEXT) \
 	filter_unsharp.la \
 	filter_videocore.la \
 	filter_whitebalance.la \
 	filter_xsharpen.la \
-	filter_yuy2toyv12.la \
-	$(F_LOGO) \
-	$(F_MMX) \
-	$(F_TEXT)
+	filter_yuy2toyv12.la
 
 filter_29to23_la_SOURCES = filter_29to23.c
 filter_29to23_la_LDFLAGS = -module -avoid-version 
@@ -265,7 +265,7 @@ filter_yuy2toyv12_la_SOURCES = filter_yuy2toyv12.c
 filter_yuy2toyv12_la_LDFLAGS = -module -avoid-version 
 
 
-# F_LOGO = filter_logo.la filter_logoaway.la filter_compare.la
+# FILTER_LOGO = filter_logo.la filter_logoaway.la filter_compare.la
 
 filter_logo_la_SOURCES = filter_logo.c ../export/vid_aux.c
 filter_logo_la_LDFLAGS = -module -avoid-version
@@ -280,13 +280,13 @@ filter_compare_la_LDFLAGS = -module -avoid-version
 filter_compare_la_LIBADD = $(IMAGEMAGICK_LIBS) $(ACLIB_LIBS)
 
 
-# F_MMX = filter_dilyuvmmx.la 
+# FILTER_DILYUVMMX = filter_dilyuvmmx.la 
 
 filter_dilyuvmmx_la_SOURCES = filter_dilyuvmmx.c deinterlace.c
 filter_dilyuvmmx_la_LDFLAGS = -module -avoid-version 
 
 
-# F_TEXT = filter_text.la
+# FILTER_TEXT = filter_text.la
 
 filter_text_la_SOURCES = filter_text.c
 filter_text_la_LDFLAGS = -module -avoid-version 
@@ -316,20 +316,20 @@ endif
 
 if HAVE_X11
 SUBDIRS = \
-	$(PP) \
 	divxkey \
 	extsub \
-	yuvdenoise \
-	$(F_TOMSMOCOMP) \
+	$(PP) \
 	preview \
-	$(ADD2)
+	$(ADD2) \
+	$(F_TOMSMOCOMP) \
+	yuvdenoise
 else
 SUBDIRS = \
-	$(PP) \
 	divxkey \
 	extsub \
-	yuvdenoise \
-	$(F_TOMSMOCOMP)
+	$(PP) \
+	$(F_TOMSMOCOMP) \
+	yuvdenoise
 endif
 
 pkg_SCRIPTS = \
