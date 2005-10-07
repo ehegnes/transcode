@@ -48,6 +48,7 @@ typedef	int		PixDim;
 typedef	int		PixOffset;
 
 
+#warning **************** FIXME ****************** use imgconvert
 #define R_MASK  (0x00ff0000)
 #define G_MASK  (0x0000ff00)
 #define B_MASK  (0x000000ff)
@@ -56,7 +57,7 @@ typedef	int		PixOffset;
 #define B_SHIFT          (0)
 
 /* convert transcode RGB (3*8 Bit) to vdub ARGB (32Bit) */
-void convert_rgb2argb (char * in, Pixel32 *out, int width, int height) 
+static void convert_rgb2argb (char * in, Pixel32 *out, int width, int height) 
 {
 	int run;
 	int size = width*height;
@@ -72,7 +73,7 @@ void convert_rgb2argb (char * in, Pixel32 *out, int width, int height)
 }
 
 /* convert vdub ARGB (32Bit) to transcode RGB (3*8 Bit) */
-void convert_argb2rgb (Pixel32 *in, char * out, int width, int height)
+static void convert_argb2rgb (Pixel32 *in, char * out, int width, int height)
 {
 	int run;
 	int size = width*height;
@@ -138,8 +139,9 @@ static void help_optstr(void)
    printf ("    false for maximum speed.\n");
 }
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
 
   //----------------------------------
   //

@@ -92,17 +92,14 @@ static myfilter_t *myf_global = NULL;
 enum { IS_UNKNOWN = -1, IS_FALSE = 0, IS_TRUE = 1 };
 
 
-/* API */
-extern int tc_filter (vframe_list_t *ptr, char *options);
-
-
 /*
  * transcoders Any -> Luminance
  */
+#warning ************* FIXME ************* use imgconvert
 
 /* packed YUV 4:2:2 is Y[i] U[i] Y[i+1] V[i] (YUY2)*/
 /* packed YUV 4:2:2 is U[i] Y[i] V[i] Y[i+1] (UYVY)*/
-void uyvytoy (uint8_t *input, uint8_t *output, int width, int height)
+static void uyvytoy (uint8_t *input, uint8_t *output, int width, int height)
 {
     int i;
     for (i = width*height/2; i; i--) {
@@ -111,7 +108,7 @@ void uyvytoy (uint8_t *input, uint8_t *output, int width, int height)
 	input += 4;
     }
 }
-void yuy2toy (uint8_t *input, uint8_t *output, int width, int height)
+static void yuy2toy (uint8_t *input, uint8_t *output, int width, int height)
 {
     int i;
     for (i = width*height/2; i; i--) {
@@ -120,7 +117,7 @@ void yuy2toy (uint8_t *input, uint8_t *output, int width, int height)
 	input += 4;
     }
 }
-void rgbtoy (uint8_t *input, uint8_t *output, int width, int height)
+static void rgbtoy (uint8_t *input, uint8_t *output, int width, int height)
 {
     int i;
     for (i = width*height; i; i--) {
@@ -135,7 +132,7 @@ void rgbtoy (uint8_t *input, uint8_t *output, int width, int height)
  */
 
 /* bob a single field */
-void bob_field (uint8_t *in, uint8_t *out, int width, int height) {
+static void bob_field (uint8_t *in, uint8_t *out, int width, int height) {
     int i, j, w2 = 2*width;
     for (i = 0; i < height; i++) {
 	/* First bob (average lines) */
@@ -150,7 +147,7 @@ void bob_field (uint8_t *in, uint8_t *out, int width, int height) {
 
 /* compare images: calc squared 2-norm of difference image
  * maximum difference is 255^2 = 65025 */
-double pic_compare (uint8_t *p1, uint8_t *p2, int width, int height,
+static double pic_compare (uint8_t *p1, uint8_t *p2, int width, int height,
                     int modulo) {
     long long res = 0;
     int i, j;
@@ -166,7 +163,7 @@ double pic_compare (uint8_t *p1, uint8_t *p2, int width, int height,
 }
 
 /* create scaled difference image (for outdiff) */
-void pic_diff (uint8_t *p1, uint8_t *p2, uint8_t *dest, int size, int scale) {
+static void pic_diff (uint8_t *p1, uint8_t *p2, uint8_t *dest, int size, int scale) {
     int i;
     for (i = size ; i; i--) {
 	int d = scale * (((int)*p1++) - ((int)*p2++));
@@ -178,7 +175,7 @@ void pic_diff (uint8_t *p1, uint8_t *p2, uint8_t *dest, int size, int scale) {
 /*
  * main function: check interlace state
  */
-void check_interlace (myfilter_t *myf, int id) {
+static void check_interlace (myfilter_t *myf, int id) {
     
     double pixDiff, pixShiftChangedT, pixShiftChangedB;
     double pixLastT, pixLastB, pixLast;
@@ -421,8 +418,9 @@ void check_interlace (myfilter_t *myf, int id) {
 /*
  * transcode API
  */
-int tc_filter (vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
+    vframe_list_t *ptr = (vframe_list_t *)ptr_;
     vob_t *vob = NULL;
     myfilter_t *myf = myf_global;
 

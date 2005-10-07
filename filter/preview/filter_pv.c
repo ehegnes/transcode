@@ -82,30 +82,24 @@ static xv_player_t *xv_player = NULL;
 
 #define ONE_SECOND 1000000 // in units of usec
 
-void inc_preview_delay()
+void inc_preview_delay(void)
 {
   preview_delay+=ONE_SECOND/10;
   if(preview_delay>ONE_SECOND) preview_delay=ONE_SECOND;
 }
 
-void dec_preview_delay()
+void dec_preview_delay(void)
 {
   preview_delay-=ONE_SECOND/10;
   if(preview_delay<0) preview_delay=0;
 }
 
-void preview_toggle_skip()
+void preview_toggle_skip(void)
 {
   preview_skip = (preview_skip>0) ? 0: preview_skip_num; 
 }
 
-/*-------------------------------------------------
- *
- * single function interface
- *
- *-------------------------------------------------*/
-
-char * preview_alloc_align_buffer(size_t size)
+static char * preview_alloc_align_buffer(size_t size)
 {
 #ifdef HAVE_GETPAGESIZE
    long buffer_align=getpagesize();
@@ -128,9 +122,15 @@ char * preview_alloc_align_buffer(size_t size)
    return (buf + adjust);
 }
 
-int tc_filter(vframe_list_t *ptr, char *options)
-{
+/*-------------------------------------------------
+ *
+ * single function interface
+ *
+ *-------------------------------------------------*/
 
+int tc_filter(frame_list_t *ptr_, char *options)
+{
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   vob_t *vob=NULL;
 
   int pre=0, vid=0;
@@ -321,7 +321,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   return(0);
 }
 
-int preview_cache_init() {
+int preview_cache_init(void) {
   
   //size must be know!
   
@@ -640,6 +640,7 @@ void preview_cache_undo(void)
     tc_memcpy((char *)vid_buf[cache_ptr], undo_buffer, size);
     preview_cache_draw(0);
 }
+
 void preview_cache_draw(int next) {
 
   if(!cache_enabled) return;

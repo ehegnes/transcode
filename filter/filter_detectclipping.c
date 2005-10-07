@@ -96,9 +96,9 @@ static int checkline(unsigned char* src,int stride,int len,int bpp){
     return total;
 }
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
 
   if (ptr->tag & TC_AUDIO)

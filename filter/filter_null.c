@@ -79,10 +79,10 @@ static void help_optstr(void)
  *
  * @return 0, if everything went OK.
  *********************************************************/
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   int pre=0, vid=0;
-
   vob_t *vob=NULL;
 
   // API explanation:

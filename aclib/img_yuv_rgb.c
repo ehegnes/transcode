@@ -71,7 +71,7 @@ static void yuv420p_create_tables(void) { }
 } while (0)
 #endif
 
-static int yuv420p_rgb24(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv420p_rgb24(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
@@ -84,7 +84,7 @@ static int yuv420p_rgb24(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int yuv411p_rgb24(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv411p_rgb24(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
@@ -97,7 +97,7 @@ static int yuv411p_rgb24(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int yuv422p_rgb24(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv422p_rgb24(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
@@ -110,7 +110,7 @@ static int yuv422p_rgb24(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int yuv444p_rgb24(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv444p_rgb24(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
@@ -132,7 +132,7 @@ static int yuv444p_rgb24(u_int8_t **src, u_int8_t **dest, int width, int height)
 #define RGB2V(uvofs) \
     (dest[2][(uvofs)]   = ((28784*r - 24103*g -  4681*b + 32768) >> 16) + 128)
 
-static int rgb24_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int rgb24_yuv420p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
@@ -151,7 +151,7 @@ static int rgb24_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int rgb24_yuv411p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int rgb24_yuv411p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
@@ -170,7 +170,7 @@ static int rgb24_yuv411p(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int rgb24_yuv422p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int rgb24_yuv422p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
@@ -189,7 +189,7 @@ static int rgb24_yuv422p(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int rgb24_yuv444p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int rgb24_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
@@ -211,7 +211,7 @@ static int rgb24_yuv444p(u_int8_t **src, u_int8_t **dest, int width, int height)
 /* All YUV planar formats convert to grayscale the same way */
 
 #ifdef USE_LOOKUP_TABLES
-static u_int8_t graylut[256];
+static uint8_t graylut[256];
 static int graylut_created = 0;
 static void gray8_create_tables(void)
 {
@@ -230,7 +230,7 @@ static void gray8_create_tables(void)
 }
 #endif
 
-static int yuvp_gray8(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuvp_gray8(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
 
@@ -248,7 +248,7 @@ static int yuvp_gray8(u_int8_t **src, u_int8_t **dest, int width, int height)
 
 /*************************************************************************/
 
-static int gray8_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int gray8_yuv420p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height; i++)
@@ -260,7 +260,7 @@ static int gray8_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int height)
 
 #define gray8_yuv411p gray8_yuv420p  /* U/V planes are the same size */
 
-static int gray8_yuv422p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int gray8_yuv422p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height; i++)
@@ -270,7 +270,7 @@ static int gray8_yuv422p(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int gray8_yuv444p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int gray8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height; i++)
@@ -352,11 +352,11 @@ static struct { u_int16_t n[96]; } __attribute__((aligned(16))) rgb_data = {{
 
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
 
-static inline void mmx_yuv42Xp_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
-				      u_int8_t *srcV);
-static inline void mmx_store_rgb24(u_int8_t *dest);
+static inline void mmx_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
+				      uint8_t *srcV);
+static inline void mmx_store_rgb24(uint8_t *dest);
 
-static int yuv420p_rgb24_mmx(u_int8_t **src, u_int8_t **dest,
+static int yuv420p_rgb24_mmx(uint8_t **src, uint8_t **dest,
 			     int width, int height)
 {
     int x, y;
@@ -378,7 +378,7 @@ static int yuv420p_rgb24_mmx(u_int8_t **src, u_int8_t **dest,
     return 1;
 }
 
-static int yuv422p_rgb24_mmx(u_int8_t **src, u_int8_t **dest,
+static int yuv422p_rgb24_mmx(uint8_t **src, uint8_t **dest,
 			     int width, int height)
 {
     int x, y;
@@ -401,8 +401,8 @@ static int yuv422p_rgb24_mmx(u_int8_t **src, u_int8_t **dest,
 }
 
 
-static inline void mmx_yuv42Xp_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
-				      u_int8_t *srcV)
+static inline void mmx_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
+				      uint8_t *srcV)
 {
     asm("\
 	# Load data, bias and expand to 16 bits				\n\
@@ -459,7 +459,7 @@ static inline void mmx_yuv42Xp_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
     );
 }
 
-static inline void mmx_store_rgb24(u_int8_t *dest)
+static inline void mmx_store_rgb24(uint8_t *dest)
 {
     /* It looks like it's fastest to go to RGB32 first, then shift the
      * result to merge the 24-bit pixels together. */
@@ -519,18 +519,18 @@ static inline void mmx_store_rgb24(u_int8_t *dest)
 
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
 
-static inline void sse2_yuv42Xp_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
-				       u_int8_t *srcV);
-static inline void sse2_store_rgb24(u_int8_t *dest);
-static inline void sse2_load_rgb24(u_int8_t *src);
-static inline void sse2_rgb_to_yuv420p_yu(u_int8_t *destY, u_int8_t *destU);
-static inline void sse2_rgb_to_yuv420p_yv(u_int8_t *destY, u_int8_t *destV);
-static inline void sse2_rgb_to_yuv422p(u_int8_t *destY, u_int8_t *destU,
-				       u_int8_t *destV);
-static inline void sse2_rgb_to_yuv444p(u_int8_t *destY, u_int8_t *destU,
-				       u_int8_t *destV);
+static inline void sse2_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
+				       uint8_t *srcV);
+static inline void sse2_store_rgb24(uint8_t *dest);
+static inline void sse2_load_rgb24(uint8_t *src);
+static inline void sse2_rgb_to_yuv420p_yu(uint8_t *destY, uint8_t *destU);
+static inline void sse2_rgb_to_yuv420p_yv(uint8_t *destY, uint8_t *destV);
+static inline void sse2_rgb_to_yuv422p(uint8_t *destY, uint8_t *destU,
+				       uint8_t *destV);
+static inline void sse2_rgb_to_yuv444p(uint8_t *destY, uint8_t *destU,
+				       uint8_t *destV);
 
-static int yuv420p_rgb24_sse2(u_int8_t **src, u_int8_t **dest,
+static int yuv420p_rgb24_sse2(uint8_t **src, uint8_t **dest,
 			      int width, int height)
 {
     int x, y;
@@ -552,7 +552,7 @@ static int yuv420p_rgb24_sse2(u_int8_t **src, u_int8_t **dest,
     return 1;
 }
 
-static int yuv422p_rgb24_sse2(u_int8_t **src, u_int8_t **dest,
+static int yuv422p_rgb24_sse2(uint8_t **src, uint8_t **dest,
 			      int width, int height)
 {
     int x, y;
@@ -574,7 +574,7 @@ static int yuv422p_rgb24_sse2(u_int8_t **src, u_int8_t **dest,
     return 1;
 }
 
-static int rgb24_yuv420p_sse2(u_int8_t **src, u_int8_t **dest,
+static int rgb24_yuv420p_sse2(uint8_t **src, uint8_t **dest,
 			      int width, int height)
 {
     int x, y;
@@ -605,7 +605,7 @@ static int rgb24_yuv420p_sse2(u_int8_t **src, u_int8_t **dest,
     return 1;
 }
 
-static int rgb24_yuv422p_sse2(u_int8_t **src, u_int8_t **dest,
+static int rgb24_yuv422p_sse2(uint8_t **src, uint8_t **dest,
 			      int width, int height)
 {
     int x, y;
@@ -633,7 +633,7 @@ static int rgb24_yuv422p_sse2(u_int8_t **src, u_int8_t **dest,
     return 1;
 }
 
-static int rgb24_yuv444p_sse2(u_int8_t **src, u_int8_t **dest,
+static int rgb24_yuv444p_sse2(uint8_t **src, uint8_t **dest,
 			      int width, int height)
 {
     int x, y;
@@ -660,8 +660,8 @@ static int rgb24_yuv444p_sse2(u_int8_t **src, u_int8_t **dest,
 }
 
 
-static inline void sse2_yuv42Xp_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
-				       u_int8_t *srcV)
+static inline void sse2_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
+				       uint8_t *srcV)
 {
     asm("\
 	# Load data, bias and expand to 16 bits				\n\
@@ -718,7 +718,7 @@ static inline void sse2_yuv42Xp_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
     );
 }
 
-static inline void sse2_store_rgb24(u_int8_t *dest)
+static inline void sse2_store_rgb24(uint8_t *dest)
 {
     /* It looks like it's fastest to go to RGB32 first, then shift the
      * result to merge the 24-bit pixels together. */
@@ -790,7 +790,7 @@ static inline void sse2_store_rgb24(u_int8_t *dest)
     );
 }
 
-static inline void sse2_load_rgb24(u_int8_t *src)
+static inline void sse2_load_rgb24(uint8_t *src)
 {
     asm("\
 	pushl %%ebx							\n\
@@ -862,7 +862,7 @@ static inline void sse2_load_rgb24(u_int8_t *src)
     );
 }
 
-static inline void sse2_rgb_to_yuv420p_yu(u_int8_t *destY, u_int8_t *destU)
+static inline void sse2_rgb_to_yuv420p_yu(uint8_t *destY, uint8_t *destU)
 {
     asm("\
 	# Make RGB data into 8.6 fixed-point				\n\
@@ -908,7 +908,7 @@ static inline void sse2_rgb_to_yuv420p_yu(u_int8_t *destY, u_int8_t *destU)
     );
 }
 
-static inline void sse2_rgb_to_yuv420p_yv(u_int8_t *destY, u_int8_t *destV)
+static inline void sse2_rgb_to_yuv420p_yv(uint8_t *destY, uint8_t *destV)
 {
     asm("\
 	# Make RGB data into 8.6 fixed-point				\n\
@@ -954,8 +954,8 @@ static inline void sse2_rgb_to_yuv420p_yv(u_int8_t *destY, u_int8_t *destV)
     );
 }
 
-static inline void sse2_rgb_to_yuv422p(u_int8_t *destY, u_int8_t *destU,
-				       u_int8_t *destV)
+static inline void sse2_rgb_to_yuv422p(uint8_t *destY, uint8_t *destU,
+				       uint8_t *destV)
 {
     asm("\
 	# Make RGB data into 8.6 fixed-point				\n\
@@ -1017,8 +1017,8 @@ static inline void sse2_rgb_to_yuv422p(u_int8_t *destY, u_int8_t *destU,
     );
 }
 
-static inline void sse2_rgb_to_yuv444p(u_int8_t *destY, u_int8_t *destU,
-				       u_int8_t *destV)
+static inline void sse2_rgb_to_yuv444p(uint8_t *destY, uint8_t *destU,
+				       uint8_t *destV)
 {
     asm("\
 	# Make RGB data into 8.6 fixed-point				\n\

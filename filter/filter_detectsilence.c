@@ -46,11 +46,10 @@ static int a_rate, a_bits, chan;
 #define SILENCE_FRAMES  4
 #define MAX_SONGS      50
 
-int tc_filter(aframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
+  aframe_list_t *ptr = (aframe_list_t *)ptr_;
   int n;
-
   short *s;
   int sum;
   double p;

@@ -60,7 +60,8 @@ static char **rbuf_ptr;
 
 static int nfiles=0, findex=0, buffered=0;  
 
-int open_directory(char	*dir_name)
+#warning ************* FIXME **************** is this a copy of src/iodir.c?
+static int open_directory(char *dir_name)
 {
   if((dir = opendir(dir_name))==NULL) return(-1);
   return(0);
@@ -119,20 +120,18 @@ static char *scan_directory(char *dir_name)
 }
 
 
-static int compare_name(char **file1_ptr, char **file2_ptr)
+static int compare_name(const void *file1_ptr, const void *file2_ptr)
 {
-    return strcoll(*file1_ptr, *file2_ptr);
+    return strcoll(*(const char **)file1_ptr, *(const char **)file2_ptr);
 }
 
 
-int sortbuf_directory(char *dir_name)
+static int sortbuf_directory(char *dir_name)
 { 
   struct dirent *dent;
   char *end_of_dir;
   int n, len;
 
-  int (*func) ();
-  
   if (dir_name == 0) return(-1);
   if (dir == 0) return(-1);
   if(nfiles == 0) return(-1);
@@ -165,9 +164,7 @@ int sortbuf_directory(char *dir_name)
   
   // sorting
 
-  func = compare_name;
-
-  qsort(rbuf_ptr, nfiles, sizeof(char *), func);
+  qsort(rbuf_ptr, nfiles, sizeof(char *), compare_name);
 
   buffered=1;
   findex=0;
@@ -176,13 +173,13 @@ int sortbuf_directory(char *dir_name)
 }
 
 
-void close_directory()
+static void close_directory(void)
 {
     if(dir!=NULL) closedir(dir);
     dir=NULL;
 }
 
-void freebuf_directory()
+static void freebuf_directory(void)
 {
     free(rbuf_ptr);
 }

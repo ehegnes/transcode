@@ -50,7 +50,6 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_VID;
 #endif
 
 
-extern int errno;
 char import_cmd_buf[TC_BUF_MAX];
 
 static int codec, frame_size=0;
@@ -118,7 +117,7 @@ inline static unsigned int stream_read_dword(char *s)
 }
 
 // Determine of the compressed frame is a keyframe for direct copy
-int divx4_is_key(unsigned char *data, long size)
+static int divx4_is_key(unsigned char *data, long size)
 {
         int result = 0;
         int i;
@@ -140,7 +139,7 @@ int divx4_is_key(unsigned char *data, long size)
         return result;
 }
 
-int divx3_is_key(char *d)
+static int divx3_is_key(char *d)
 {
     int32_t c=0;
 

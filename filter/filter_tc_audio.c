@@ -39,9 +39,9 @@
 
 // telecine filter
 
-int tc_filter(aframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
+  aframe_list_t *ptr = (aframe_list_t *)ptr_;
   static vob_t *vob=NULL;
   static char *audio_buf[2] = {NULL, NULL};
   double fch;

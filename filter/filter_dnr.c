@@ -458,7 +458,7 @@ static T_DNR_FILTER_CTX *dnr_init(int src_w, int src_h, int isYUV)
 }
 
 // old or new syntax?
-int is_optstr (char *buf) {
+static int is_optstr (char *buf) {
     if (strchr(buf, '='))
 	return 1;
     if (strchr(buf, 'l'))
@@ -473,8 +473,9 @@ int is_optstr (char *buf) {
  *
  *-------------------------------------------------*/
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
+  vframe_list_t           *ptr     = (vframe_list_t *)ptr_;
   static vob_t            *vob     = NULL;
   static T_DNR_FILTER_CTX *my_fctx = NULL;
   

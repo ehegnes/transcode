@@ -30,16 +30,10 @@
 #include "filter.h"
 #include "optstr.h"
 
-/*-------------------------------------------------
- *
- * single function interface
- *
- *-------------------------------------------------*/
-
 static unsigned char *tbuf[MAX_FILTER];
 
-void smooth_yuv(unsigned char *buf, int width, int height, int maxdiff, 
-    int maxldiff, int maxdist, float level, int instance)
+static void smooth_yuv(unsigned char *buf, int width, int height, int maxdiff, 
+		       int maxldiff, int maxdist, float level, int instance)
 {
 	int x, y, pu, cpu, cdiff;
 	int xa, ya, oval, ldiff;
@@ -115,9 +109,15 @@ void smooth_yuv(unsigned char *buf, int width, int height, int maxdiff,
 	}
 }
 
-int tc_filter(vframe_list_t *ptr, char *options)
-{
+/*-------------------------------------------------
+ *
+ * single function interface
+ *
+ *-------------------------------------------------*/
 
+int tc_filter(frame_list_t *ptr_, char *options)
+{
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
   static int cdiff[MAX_FILTER], ldiff[MAX_FILTER], range[MAX_FILTER];
   static float strength[MAX_FILTER];

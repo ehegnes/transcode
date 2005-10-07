@@ -88,7 +88,7 @@ static int interlace_test(char *video_buf, int width, int height, int id, int ve
     return(cc);
 }
 
-void merge_frames(unsigned char *f1, unsigned char *f2, int width, int height, int pw)
+static void merge_frames(unsigned char *f1, unsigned char *f2, int width, int height, int pw)
 {
 	int i;
 	char *cbuf1, *cbuf2;
@@ -107,9 +107,9 @@ void merge_frames(unsigned char *f1, unsigned char *f2, int width, int height, i
 	}
 }
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
   static char *lastframe, *lastiframe;
   static int linum = -1, lfnum = -1, fnum = 0, isint = 0, dcnt = 0, dfnum = 0;

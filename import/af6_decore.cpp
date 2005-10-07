@@ -90,7 +90,7 @@ extern "C" {
 
       /* for unpacking: */
       unsigned int unpack_size = 0;
-      u_int8_t *unpack_buffer = 0, *unpack[3];
+      uint8_t *unpack_buffer = 0, *unpack[3];
 
       /* create a new file reader */
       vfile = CreateIAviReadFile(decode->name);
@@ -188,7 +188,7 @@ extern "C" {
       /* prepare unpacker */
       if(srcfmt) {
 	unpack_size = (plane_size * 3) / 2; /* target is 4:2:0 */
-	unpack_buffer = (u_int8_t *)malloc(unpack_size);
+	unpack_buffer = (uint8_t *)malloc(unpack_size);
 	if(unpack_buffer==0) {
 	  fprintf(stderr,"(%s) ERROR: No memory for buffer!!!\n",__FILE__);
 	  return;

@@ -142,8 +142,9 @@ void do_deinterlace (tomsmocomp_t *tmc) {
  *
  *-------------------------------------------------*/
 
-int tc_filter (vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
+    vframe_list_t *ptr = (vframe_list_t *)ptr_;
     vob_t *vob = NULL;
     tomsmocomp_t *tmc = tmc_global;
 

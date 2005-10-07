@@ -56,9 +56,9 @@ typedef enum {
 extern int ac_imgconvert_init(int accel);
 
 /* Conversion routine.  Returns 1 on success, 0 on failure. */
-extern int ac_imgconvert(u_int8_t **src,	/* Array of source planes */
+extern int ac_imgconvert(uint8_t **src,		/* Array of source planes */
 			 ImageFormat srcfmt,	/* Source image format */
-			 u_int8_t **dest,	/* Array of dest planes */
+			 uint8_t **dest,	/* Array of dest planes */
 			 ImageFormat destfmt,	/* Destination image format */
 			 int width,		/* Image width in pixels */
 			 int height		/* Image height in pixels */

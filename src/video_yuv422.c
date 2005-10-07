@@ -283,7 +283,7 @@ void yuv422_gamma(char *image, int len)
 }
 
 // works
-void yuv422_rescale_core(char *image, int width, int height, int reduce_h, int reduce_w)
+static void yuv422_rescale_core(char *image, int width, int height, int reduce_h, int reduce_w)
 {
   
   char *in, *out;
@@ -753,7 +753,7 @@ inline int yuv422_merge_C(char *row1, char *row2, char *out, int bytes,
     return(0);
 }
 
-inline int yuv422_average_C(char *row1, char *row2, char *out, int bytes)
+static inline int yuv422_average_C(char *row1, char *row2, char *out, int bytes)
 {
   
   //calculate the average of each color entry in two arrays and return
@@ -964,7 +964,7 @@ void yuv422_hresize_8_up(char *image, char *tmp_image, int width, int height, in
     return;
 }
 
-inline void yuv422_deinterlace_core(char *image, int width, int height)
+static inline void yuv422_deinterlace_core(char *image, int width, int height)
 {
     char *in, *out;
     
@@ -990,7 +990,7 @@ inline void yuv422_deinterlace_core(char *image, int width, int height)
     return;
 }
 
-inline void yuv422_deinterlace_linear_blend_core(char *image, char *tmp, int width, int height)
+static inline void yuv422_deinterlace_linear_blend_core(char *image, char *tmp, int width, int height)
 {
   char *in, *out;
   

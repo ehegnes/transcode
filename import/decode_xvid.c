@@ -32,6 +32,7 @@
 #endif
 
 #include "ioaux.h"
+#include "tc.h"
 
 #include "export/xvid2.h"
 

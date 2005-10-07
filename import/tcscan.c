@@ -29,7 +29,6 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
 
 #include "transcode.h"
 
-#include <sys/errno.h>
 #include "xio.h"
 #include "ioaux.h"
 #include "tc.h"
@@ -75,9 +74,17 @@ static double frc_table[16] = {0,
 			       0, 0};
 
 
-void usage(int status)
+void version(void)
 {
-  version(EXE);
+    /* print id string to stderr */
+    fprintf(stderr, "%s (%s v%s) (C) 2001-2003 Thomas Oestreich\n",
+                    EXE, PACKAGE, VERSION);
+}
+
+
+static void usage(int status)
+{
+  version();
 
   fprintf(stderr,"\nUsage: %s [options]\n", EXE);
 
@@ -235,7 +242,7 @@ int main(int argc, char *argv[])
 
       
     case 'v': 
-      version(EXE);
+      version();
       exit(0);
       break;
       

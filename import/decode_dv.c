@@ -24,13 +24,12 @@
 #include "transcode.h"
 #include "aclib/imgconvert.h"
 
-#include <sys/errno.h>
-
 #ifdef HAVE_LIBDV
 #include <libdv/dv.h>
 #endif
 
 #include "ioaux.h"
+#include "tc.h"
 
 #define DV_PAL_SIZE    frame_size_625_50
 #define DV_NTSC_SIZE   frame_size_525_60

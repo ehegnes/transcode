@@ -16,19 +16,19 @@
 
 /* Identity transformations, all work when src==dest */
 
-static int rgb24_copy(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int rgb24_copy(uint8_t **src, uint8_t **dest, int width, int height)
 {
     tc_memcpy(dest[0], src[0], width*height*3);
     return 1;
 }
 
-static int argb32_copy(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int argb32_copy(uint8_t **src, uint8_t **dest, int width, int height)
 {
     tc_memcpy(dest[0], src[0], width*height*4);
     return 1;
 }
 
-static int gray8_copy(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int gray8_copy(uint8_t **src, uint8_t **dest, int width, int height)
 {
     tc_memcpy(dest[0], src[0], width*height);
     return 1;
@@ -36,7 +36,7 @@ static int gray8_copy(u_int8_t **src, u_int8_t **dest, int width, int height)
 
 /*************************************************************************/
 
-static int rgb24_argb32(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int rgb24_argb32(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height; i++) {
@@ -48,7 +48,7 @@ static int rgb24_argb32(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int rgb24_gray8(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int rgb24_gray8(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height; i++) {
@@ -63,7 +63,7 @@ static int rgb24_gray8(u_int8_t **src, u_int8_t **dest, int width, int height)
 
 /*************************************************************************/
 
-static int argb32_rgb24(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int argb32_rgb24(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height; i++) {
@@ -74,7 +74,7 @@ static int argb32_rgb24(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int argb32_gray8(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int argb32_gray8(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height; i++) {
@@ -89,7 +89,7 @@ static int argb32_gray8(u_int8_t **src, u_int8_t **dest, int width, int height)
 
 /*************************************************************************/
 
-static int gray8_rgb24(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int gray8_rgb24(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height; i++) {
@@ -100,7 +100,7 @@ static int gray8_rgb24(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int gray8_argb32(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int gray8_argb32(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height; i++) {

@@ -43,7 +43,6 @@ static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID;
 #include "magic.h"
 
 
-extern int errno;
 char import_cmd_buf[TC_BUF_MAX];
 
 // libavcodec is not thread-safe. We must protect concurrent access to it.
@@ -111,12 +110,12 @@ static struct ffmpeg_codec ffmpeg_codecs[] = {
 static avi_t              *avifile = NULL;
 static int                 pass_through = 0;
 static char               *buffer =  NULL;
-static u_int8_t           *yuv2rgb_buffer = NULL;
+static uint8_t           *yuv2rgb_buffer = NULL;
 static AVCodec            *lavc_dec_codec = NULL;
 static AVCodecContext     *lavc_dec_context = NULL;
 static int                 x_dim = 0, y_dim = 0;
 static int                 pix_fmt, frame_size = 0, bpp;
-static u_int8_t           *frame = NULL;
+static uint8_t           *frame = NULL;
 static unsigned long       format_flag;
 static struct ffmpeg_codec *codec;
 
@@ -151,7 +150,7 @@ static struct ffmpeg_codec *find_ffmpeg_codec_id(unsigned int transcode_id) {
   return NULL;
 }
 
-int scan(char *name) 
+static int scan(char *name) 
 {
   struct stat fbuf;
   
@@ -183,7 +182,7 @@ inline static unsigned int stream_read_dword(char *s)
 }
 
 // Determine of the compressed frame is a keyframe for direct copy
-int mpeg4_is_key(unsigned char *data, long size)
+static int mpeg4_is_key(unsigned char *data, long size)
 {
         int result = 0;
         int i;
@@ -205,7 +204,7 @@ int mpeg4_is_key(unsigned char *data, long size)
         return result;
 }
 
-int divx3_is_key(char *d)
+static int divx3_is_key(char *d)
 {
     int32_t c=0;
     
@@ -236,7 +235,7 @@ static unsigned char *bufalloc(size_t size) {
   return (unsigned char *) (buf + adjust);
 }
 
-static void enable_levels_filter() 
+static void enable_levels_filter(void)
 {
   tc_info("input is mjpeg, reducing range from YUVJ420P to YUV420P");
   if((levels_handle = plugin_get_handle("levels=output=16-240:pre=1") == -1))
@@ -514,10 +513,10 @@ MOD_decode {
    * stuff by and if() or something.
    */
 
-  int        key,len, i, edge_width, j;
+  int        key, len;
   long       bytes_read = 0;
   int        got_picture;
-  u_int8_t  *planes[3];
+  uint8_t  *planes[3];
   AVFrame    picture;
 
   if (param->flag == TC_VIDEO) {

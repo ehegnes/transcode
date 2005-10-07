@@ -111,7 +111,7 @@ int clone_init(FILE *fd)
 
 static frame_info_list_t *fiptr=NULL;
 
-int buffered_p_read(char *s) 
+static int buffered_p_read(char *s) 
 {
 
     pthread_mutex_lock(&buffer_fill_lock);
@@ -142,7 +142,7 @@ int buffered_p_read(char *s)
     return(sizeof(sync_info_t));
 }
 
-int get_next_frame(char *buffer, int size)
+static int get_next_frame(char *buffer, int size)
 {
 
   int clone_flag;

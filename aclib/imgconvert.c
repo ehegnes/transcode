@@ -43,8 +43,8 @@ int ac_imgconvert_init(int accel)
  * destfmt specify the source and destination image formats (IMG_*).
  * width and height are in pixels.  Returns 1 on success, 0 on failure. */
 
-int ac_imgconvert(u_int8_t **src, ImageFormat srcfmt,
-		  u_int8_t **dest, ImageFormat destfmt,
+int ac_imgconvert(uint8_t **src, ImageFormat srcfmt,
+		  uint8_t **dest, ImageFormat destfmt,
 		  int width, int height)
 {
     int i;

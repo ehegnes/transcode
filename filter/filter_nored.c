@@ -60,9 +60,9 @@ static void help_optstr(void)
    printf ("    'range' apply filter to [start-end]/step frames [0-oo/1]\n");
 }
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
 
   static int width, height;

@@ -94,7 +94,7 @@ typedef struct  ts_packet_{
     uint8_t stuffing;
 } ts_packet;
 
-void init_ts(ts_packet *p)
+static void init_ts(ts_packet *p)
 {
 	p->pid[0] = 0;
 	p->pid[1] = 0;
@@ -112,7 +112,7 @@ void init_ts(ts_packet *p)
 }
 
 
-uint16_t get_pid(uint8_t *pid)
+static uint16_t get_pid(uint8_t *pid)
 {
 	uint16_t pp = 0;
 

@@ -25,7 +25,6 @@
 
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#include <sys/errno.h>
 #include <math.h>
 
 #include "ioxml.h"
@@ -38,9 +37,16 @@
 #define VIDEO_MODE 0x01
 #define AUDIO_MODE 0x02
 
-void usage(int status)
+void version(void)
 {
-	version(EXE);
+    /* print id string to stderr */
+    fprintf(stderr, "%s (%s v%s) (C) 2001-2003 Thomas Oestreich\n",
+                    EXE, PACKAGE, VERSION);
+}
+
+static void usage(int status)
+{
+	version();
 	fprintf(stderr,"\nUsage: %s [options] [-]\n", EXE);
 #ifdef HAVE_LIBXML2
 	fprintf(stderr,"\t -i name        input video/audio xml file [stdin]\n");
@@ -162,7 +168,7 @@ int main(int argc, char *argv[])
 		  		s_shmem = 1;
 		  	break;
 			case 'v': 
-		  		version(EXE);
+		  		version();
 		  		exit(0);
 		  	break;
 			case 'h':

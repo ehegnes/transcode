@@ -70,8 +70,9 @@ static void help_optstr(void)
  *
  * @return 0, if everything went OK.
  *********************************************************/
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static struct fc_time *list;
   static double avoffset=1.0;
   char separator[] = " ";

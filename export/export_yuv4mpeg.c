@@ -110,7 +110,7 @@ MOD_init
     return(TC_EXPORT_ERROR); 
 }
 
-void asrcode2asrratio(int asr, y4m_ratio_t *r)
+static void asrcode2asrratio(int asr, y4m_ratio_t *r)
 {
     switch (asr) {
     case 2: *r = dar_4_3; break;

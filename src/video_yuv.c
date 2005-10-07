@@ -48,7 +48,7 @@
  * ------------------------------------------------------------*/
 
 
-void yuv_rescale_core(char *image, int width, int height, int reduce_h, int reduce_w)
+static void yuv_rescale_core(char *image, int width, int height, int reduce_h, int reduce_w)
 {
   
   char *in, *out;
@@ -110,7 +110,7 @@ void yuv_rescale(char *image, int width, int height, int resize_h, int resize_w)
 }
 
 
-void yuv_flip_core(char *image, int width, int height)
+static void yuv_flip_core(char *image, int width, int height)
 {
 
   char *in, *out;
@@ -825,7 +825,7 @@ void yuv_clip_top_bottom(char *image, char *dest, int _width, int _height, int _
 }
 
 
-void yuv_mirror_core(char *image, int width,  int height)
+static void yuv_mirror_core(char *image, int width,  int height)
 {
 
   char *in, *out;
@@ -921,7 +921,7 @@ inline int yuv_merge_C(char *row1, char *row2, char *out, int bytes,
     return(0);
 }
 
-inline int yuv_average_C(char *row1, char *row2, char *out, int bytes)
+static inline int yuv_average_C(char *row1, char *row2, char *out, int bytes)
 {
   
   // average of each color entry in two arrays and return
@@ -939,7 +939,7 @@ inline int yuv_average_C(char *row1, char *row2, char *out, int bytes)
 }
 
 
-void yuv_vresize_8_Y(char *image, int width, int height, int resize)
+static void yuv_vresize_8_Y(char *image, int width, int height, int resize)
 {
   
   char *in, *out;
@@ -978,7 +978,7 @@ void yuv_vresize_8_Y(char *image, int width, int height, int resize)
 }
 
 
-void yuv_vresize_8_up_Y(char *dest, char *image, int width, int height, int resize)
+static void yuv_vresize_8_up_Y(char *dest, char *image, int width, int height, int resize)
 {
   
   char *in, *out, *last_row;
@@ -1034,7 +1034,7 @@ void yuv_vresize_8_up_Y(char *dest, char *image, int width, int height, int resi
 }
 
 
-void yuv_vresize_16_CbCr(char *image, int width, int height, int resize)
+static void yuv_vresize_16_CbCr(char *image, int width, int height, int resize)
 {
   
   char *in, *out;
@@ -1074,7 +1074,7 @@ void yuv_vresize_16_CbCr(char *image, int width, int height, int resize)
   return;
 }
 
-void yuv_vresize_16_up_CbCr(char *dest, char *image, int width, int height, int resize)
+static void yuv_vresize_16_up_CbCr(char *dest, char *image, int width, int height, int resize)
 {
   
   char *in, *out, *last_row;
@@ -1178,7 +1178,7 @@ void yuv_vresize_8_up(char *image, char *tmp_image, int width, int height, int r
 }
 
 
-void yuv_hresize_8_Y(char *image, int width, int height, int resize)
+static void yuv_hresize_8_Y(char *image, int width, int height, int resize)
 {
     
     char *in, *out;
@@ -1217,7 +1217,7 @@ void yuv_hresize_8_Y(char *image, int width, int height, int resize)
     return;
 }
 
-void yuv_hresize_8_up_Y(char * dest, char *image, int width, int height, int resize)
+static void yuv_hresize_8_up_Y(char * dest, char *image, int width, int height, int resize)
 {
     
     char *in, *out;
@@ -1258,7 +1258,7 @@ void yuv_hresize_8_up_Y(char * dest, char *image, int width, int height, int res
 }
 
 
-void yuv_hresize_16_CrCb(char *image, int width, int height, int resize)
+static void yuv_hresize_16_CrCb(char *image, int width, int height, int resize)
 {
     
     char *in, *out;
@@ -1297,7 +1297,7 @@ void yuv_hresize_16_CrCb(char *image, int width, int height, int resize)
 }
 
 
-void yuv_hresize_16_up_CrCb(char *dest, char *image, int width, int height, int resize)
+static void yuv_hresize_16_up_CrCb(char *dest, char *image, int width, int height, int resize)
 {
     
     char *in, *out;
@@ -1399,7 +1399,7 @@ static int (*yuv_average) (char *row1, char *row2, char *out, int bytes);
 // }
 
 
-inline void yuv_deinterlace_linear_core(char *image, int width, int height)
+static inline void yuv_deinterlace_linear_core(char *image, int width, int height)
 {
     char *in, *out;
     
@@ -1429,7 +1429,7 @@ inline void yuv_deinterlace_linear_core(char *image, int width, int height)
     return;
 }
 
-inline void yuv_deinterlace_linear_blend_core(char *image, char *tmp, int width, int height)
+static inline void yuv_deinterlace_linear_blend_core(char *image, char *tmp, int width, int height)
 {
   char *in, *out;
   
@@ -1840,58 +1840,6 @@ void deinterlace_yuv_nozoom(unsigned char *src, int width, int height)
       out += block;
     }
 }
-
-
-void merge_yuv_fields(unsigned char *src1, unsigned char *src2, int width, int height)
-{
-  
-    char *in, *out;
-
-    int i, block;
-
-    block = width;
-
-    in  = src2 + block;
-    out = src1 + block;
-
-    //move every second row
-    //Y
-    for (i=0; i<height; i=i+2) {
-	
-	tc_memcpy(out, in, block);
-	in  += 2*block;
-	out += 2*block;
-    }
-
-
-    block = width/2;
-
-    //Cb
-    in  = src2 + width*height + block;
-    out = src1 + width*height + block;
-
-    //move every second row
-    for (i=0; i<height/2; i=i+2) {
-	
-	tc_memcpy(out, in, block);
-	in  += 2*block;
-	out += 2*block;
-    }
-
-
-    //Cr
-    in  = src2 + width*height*5/4 + block;
-    out = src1 + width*height*5/4 + block;
-
-    //move every second row
-    for (i=0; i<height/2; i=i+2) {
-	
-	tc_memcpy(out, in, block);
-	in  += 2*block;
-	out += 2*block;
-    }
-}
-
 
 
 inline static int samecolor(char *color1, char *color2)

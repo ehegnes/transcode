@@ -31,7 +31,8 @@
 #include "optstr.h"
 
 
-void yuy2toyv12(char *dest, char *input, int width, int height) 
+#warning *********** FIXME ************* use imgconvert
+static void yuy2toyv12(char *dest, char *input, int width, int height) 
 {
 
     int i,j,w2;
@@ -74,9 +75,9 @@ void yuy2toyv12(char *dest, char *input, int width, int height)
 
 static  char *video_buffer=NULL;
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-  
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
   int bytes;
 

@@ -132,7 +132,7 @@ static int aud_buf_alloc(int ex_num)
     
 /* ------------------------------------------------------------------ */
 
-static void aud_buf_free()
+static void aud_buf_free(void)
 {
     
     /* objectives: 
@@ -156,7 +156,7 @@ static void aud_buf_free()
     
 /* ------------------------------------------------------------------ */
 
-static aframe_list_t *aud_buf_retrieve()
+static aframe_list_t *aud_buf_retrieve(void)
 {
     
     /* objectives: 
@@ -319,7 +319,7 @@ aframe_list_t *aframe_register(int id)
 
 /* ------------------------------------------------------------------ */
 
-void aframe_copy_payload(aframe_list_t *dst, aframe_list_t *src)
+static void aframe_copy_payload(aframe_list_t *dst, aframe_list_t *src)
 {
     if (!dst || !src)
 	return;

@@ -203,9 +203,9 @@ static void font_render(int width, int height, int size, int codec, int w, int h
  *
  *-------------------------------------------------*/
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
 
   static int width=0, height=0;

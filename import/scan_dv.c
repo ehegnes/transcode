@@ -22,8 +22,7 @@
  */
 
 #include "transcode.h"
-
-#include <sys/errno.h>
+#include "tc.h"
 
 #ifdef HAVE_LIBDV
 #include <libdv/dv.h>

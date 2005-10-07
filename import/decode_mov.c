@@ -23,14 +23,13 @@
 
 #include "transcode.h"
 
-#include <sys/errno.h>
-
 #ifdef HAVE_LIBQUICKTIME
 #include <quicktime.h>
 #endif
 
 #include "ioaux.h"
 #include "magic.h"
+#include "tc.h"
 
 
 /* ------------------------------------------------------------ 

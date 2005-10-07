@@ -43,11 +43,7 @@
 #include "libsupport/getopt.h"
 #endif
 
-extern int errno;
-
 #include "usage.h"
-
-extern int errno;
 
 /* imported from libtc
 #define COL(x)  "\033[" #x ";1m"
@@ -110,7 +106,7 @@ pthread_mutex_t init_avcodec_lock=PTHREAD_MUTEX_INITIALIZER;
 // for initializing export_pvm
 pthread_mutex_t s_channel_lock=PTHREAD_MUTEX_INITIALIZER;
 
-void socket_thread(); // socket.c
+void socket_thread(void); // socket.c
 
 char *socket_file = NULL;
 char *plugins_string = NULL;
@@ -219,7 +215,7 @@ pthread_t tc_pthread_main;
  *
  * ------------------------------------------------------------*/
 
-void version()
+void version(void)
 {
   /* id string */
   if(tcversion++) return;
@@ -227,7 +223,7 @@ void version()
 }
 
 
-void usage(int status)
+static void usage(int status)
 {
   version();
 
@@ -433,7 +429,7 @@ void usage(int status)
   
 }
 
-void short_usage(int status)
+static void short_usage(int status)
 {
   version();
 
@@ -444,7 +440,7 @@ void short_usage(int status)
 }
 
 
-int source_check(char *import_file)
+static int source_check(char *import_file)
 {
     // check for existent file, directory or host
     struct stat fbuf;
@@ -471,7 +467,7 @@ int source_check(char *import_file)
 }
 
 
-void signal_thread()
+static void signal_thread(void)
 {      
   
   int caught;
@@ -529,7 +525,7 @@ vob_t *tc_get_vob() {return(vob);}
  *
  * ------------------------------------------------------------*/
 
-int transcoder(int mode, vob_t *vob) 
+static int transcoder(int mode, vob_t *vob) 
 {
     
     switch(mode) {
@@ -571,7 +567,7 @@ int transcoder(int mode, vob_t *vob)
       filter_close();
       
       // and unload plugin
-      plugin_close(vob);
+      plugin_close();
       
       // unload export modules
       export_shutdown();
@@ -586,7 +582,8 @@ int transcoder(int mode, vob_t *vob)
 }
 
 // for atexit
-void safe_exit (void) {
+static void safe_exit (void)
+{
     void *thread_status;
 
     if (tc_signal_thread) {
@@ -4037,7 +4034,7 @@ int main(int argc, char *argv[]) {
 	if ((tstart != NULL) && (tstart->vob_offset != 0)){
 	  tc_decoder_delay=3;
 	  import_threads_cancel();
-	  import_close(vob);
+	  import_close();
 	  aframe_flush();
 	  vframe_flush();
 	  vob->vob_offset = tstart->vob_offset;
@@ -4057,7 +4054,7 @@ int main(int argc, char *argv[]) {
       import_threads_cancel(); 
 
       // stop decoder and close the source     
-      import_close(vob);
+      import_close();
 
       break;
       
@@ -4124,7 +4121,7 @@ int main(int argc, char *argv[]) {
       import_threads_cancel(); 
 
       // stop decoder and close the source     
-      import_close(vob);
+      import_close();
       
       break;
 
@@ -4224,7 +4221,7 @@ int main(int argc, char *argv[]) {
 	  import_threads_cancel(); 
 
 	  // stop decoder and close the source     
-	  import_close(vob);
+	  import_close();
 	  
 	  // flush all buffers before we proceed to next PSU
 	  aframe_flush();
@@ -4511,7 +4508,7 @@ int main(int argc, char *argv[]) {
 	import_threads_cancel(); 
 	
 	// stop decoder and close the source     
-	import_close(vob);
+	import_close();
 	
 	// flush all buffers before we proceed
 	aframe_flush();
@@ -4628,27 +4625,8 @@ int main(int argc, char *argv[]) {
 // it is just there to trick the linker to not remove
 // unneeded object files from a .a file.
 
-#if 0
-#include <ffmpeg/avcodec.h>
-
-void dummy_avcodec(void) {
-  AVCodecContext *ctx = NULL;
-  AVFrame *fr = NULL;
-  AVCodec *codec = NULL;
-
-  avcodec_init();
-  avcodec_register_all();
-  avcodec_thread_init(ctx, 0);
-  ctx = avcodec_alloc_context();
-  fr = avcodec_alloc_frame();
-  avcodec_open(ctx, codec);
-  avcodec_encode_video(NULL, NULL, 0, NULL);
-  avcodec_encode_audio(NULL, NULL, 0, NULL);
-  avcodec_close(ctx);
-}
-#endif
-
 #include "avilib/avilib.h"
+void dummy_avilib(void);
 void dummy_avilib(void) {
   avi_t *file;
   file = AVI_open_input_file((char *)NULL, 1);
@@ -4658,6 +4636,7 @@ void dummy_avilib(void) {
 }
 
 #include "libioaux/configs.h"
+void dummy_libioaux(void);
 void dummy_libioaux(void) {
   module_read_config(NULL, NULL, NULL, NULL, NULL);
   append_fc_time( NULL, NULL);

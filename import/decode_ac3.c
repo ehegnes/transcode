@@ -24,10 +24,9 @@
 
 #include "transcode.h"
 
-#include <sys/errno.h>
-
 #include "ac3.h"
 #include "ioaux.h"
+#include "tc.h"
 
 #define CHUNK_SIZE 2047
 uint8_t buf[CHUNK_SIZE];

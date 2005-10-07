@@ -77,7 +77,7 @@ static unsigned int color1=0, color2=255;
 //
 //-------------------------------------------------------------------
 
-int subtitle_retrieve()
+static int subtitle_retrieve(void)
 {
 
   sframe_list_t *sptr = NULL;
@@ -155,7 +155,7 @@ static int skip_anti_alias=0;
 
 static unsigned int ca=2, cb=3; 
 
-static void get_subtitle_colors() {
+static void get_subtitle_colors(void) {
   
   int y;
   
@@ -193,7 +193,7 @@ static void get_subtitle_colors() {
 //
 //-------------------------------------------------------------------
 
-void anti_alias_subtitle(int black) {
+static void anti_alias_subtitle(int black) {
   
   int back_col=black;
   int n;
@@ -249,7 +249,7 @@ static void subtitle_overlay_yuv(char *vid_frame, int w, int h)
   if(verbose & TC_STATS) 
     printf("SUBTITLE id=%d, x=%d, y=%d, w=%d, h=%d, t=%f\n", sub_id, sub_xpos, sub_ypos, sub_xlen, sub_ylen, sub_pts2-sub_pts1);
   
-  if(color_set_done==0) get_subtitle_colors(&ca, &cb);
+  if(color_set_done==0) get_subtitle_colors();
   
   //check:
   eff_sub_ylen = (sub_ylen+vshift>h) ?  h-vshift:sub_ylen;
@@ -313,7 +313,7 @@ static void subtitle_overlay_rgb(char *vid_frame, int w, int h)
   if(verbose & TC_STATS) 
     printf("SUBTITLE id=%d, x=%d, y=%d, w=%d, h=%d, t=%f\n", sub_id, sub_xpos, sub_ypos, sub_xlen, sub_ylen, sub_pts2-sub_pts1);
   
-  if(color_set_done==0) get_subtitle_colors(&ca, &cb);
+  if(color_set_done==0) get_subtitle_colors();
   
   n=0;
 
@@ -354,7 +354,7 @@ static void subtitle_overlay_rgb(char *vid_frame, int w, int h)
 //
 //-------------------------------------------------------------------
 
-void subtitle_overlay(char *vid_frame, int w, int h)
+static void subtitle_overlay(char *vid_frame, int w, int h)
 {
   if(codec == CODEC_RGB) subtitle_overlay_rgb(vid_frame, w, h);
   if(codec == CODEC_YUV) subtitle_overlay_yuv(vid_frame, w, h);
@@ -373,15 +373,12 @@ static int is_optstr (char *buf) {
     return 0;
 }
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
-
   int pre=0, vid=0;
-  
   int subtitles=0;
-
   int n=0;
 
   if (ptr->tag & TC_FILTER_GET_CONFIG) {

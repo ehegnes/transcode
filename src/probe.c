@@ -87,7 +87,7 @@ static int title, verb;
 
 
 
-char *get_audio_module(int f, int flag)
+static char *get_audio_module(int f, int flag)
 {
   
   if(!flag) return(std_module[_null_]);
@@ -121,7 +121,7 @@ char *get_audio_module(int f, int flag)
   }
 }
 
-int probe_source_core(probe_info_t *pvob, int range, char *file, char *nav_seek_file)
+static int probe_source_core(probe_info_t *pvob, int range, char *file, char *nav_seek_file)
 {
   
   FILE *fd;

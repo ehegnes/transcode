@@ -65,13 +65,11 @@ static int is_optstr(char *a) {
     return 0;
 }
 
-int tc_filter(aframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
+  aframe_list_t *ptr = (aframe_list_t *)ptr_;
   int n;
-
   short *s;
-
   vob_t *vob=NULL;
 
   if(ptr->tag & TC_FILTER_GET_CONFIG) {

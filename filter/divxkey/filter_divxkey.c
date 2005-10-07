@@ -58,7 +58,7 @@ inline static unsigned int stream_read_dword(char *s)
 }
 
 // Determine of the compressed frame is a keyframe for direct copy
-int quicktime_divx4_is_key(unsigned char *data, long size)
+static int quicktime_divx4_is_key(unsigned char *data, long size)
 {
         int result = 0;
         int i;
@@ -80,7 +80,7 @@ int quicktime_divx4_is_key(unsigned char *data, long size)
         return result;
 }
 
-int quicktime_divx3_is_key(char *d)
+static int quicktime_divx3_is_key(char *d)
 {
     int32_t c=0;
     
@@ -96,9 +96,9 @@ int quicktime_divx3_is_key(char *d)
  *
  *-------------------------------------------------*/
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   vob_t *vob=NULL;
 
   int pre=0, vid=0;

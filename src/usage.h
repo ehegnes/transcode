@@ -21,12 +21,12 @@
  *
  */
 
-#ifndef _USEAGE_H
-#define _USEAGE_H
+#ifndef _USAGE_H
+#define _USAGE_H
 
 //Chris C. Hoover <cchoover@charter.net>
 
-void import_v4l_usage(void)
+static void import_v4l_usage(void)
 {
   printf( "  The v4l import feature allows you to capture audio and video from\n" );
   printf( "  the video for linux device you specify with the -i input file\n" );
@@ -57,7 +57,7 @@ void import_v4l_usage(void)
   exit( 0 );
 }
 
-void duration_usage(void)
+static void duration_usage(void)
 {
   printf( "Use the --duration hh:mm:ss option to limit the length of an import_v4l\n");
   printf( "recording to hh hours, mm minutes and ss seconds. (see: --more_help import_v4l)\n");

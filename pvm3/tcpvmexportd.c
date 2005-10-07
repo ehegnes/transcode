@@ -68,13 +68,14 @@ int s_divxmultipass=0,s_internal_multipass=0;
 void version()
 {
   /* id string */
-  fprintf(stderr, "%s (%s v%s) (C) 2001-2003 Thomas Östreich\n",EXE,PACKAGE,VERSION);
+  fprintf(stderr, "%s (%s v%s) (C) 2001-2003 Thomas Oestreich\n",
+	  EXE, PACKAGE, VERSION);
 }
 
 
 void usage(int status)
 {
-	version(EXE);
+	version();
 	fprintf(stderr,"\nUsage: %s -s|-m [options]\n", EXE);
 	fprintf(stderr,"\t -s             start %s in slave mode [default]\n",EXE);
 	fprintf(stderr,"\t -m             start %s in master mode [off]\n",EXE);
@@ -265,7 +266,7 @@ int main(int argc,char **argv)
 		  		p_param3=strtok(optarg,"\"");	/*Third parameter*/
 		  	break;
 			case 'v': 
-		  		version(EXE);
+		  		version();
 		  		exit(0);
 		  	break;
 			case 'h':

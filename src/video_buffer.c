@@ -169,7 +169,7 @@ static int vid_buf_alloc(int ex_num)
     
 /* ------------------------------------------------------------------ */
 
-static void vid_buf_free()
+static void vid_buf_free(void)
 {
     
     /* objectives: 
@@ -194,7 +194,7 @@ static void vid_buf_free()
     
 /* ------------------------------------------------------------------ */
 
-static vframe_list_t *vid_buf_retrieve()
+static vframe_list_t *vid_buf_retrieve(void)
 {
     
     /* objectives: 
@@ -369,7 +369,7 @@ vframe_list_t *vframe_register(int id)
 
 /* ------------------------------------------------------------------ */
 
-void vframe_copy_payload(vframe_list_t *dst, vframe_list_t *src)
+static void vframe_copy_payload(vframe_list_t *dst, vframe_list_t *src)
 {
     if (!dst || !src)
 	return;

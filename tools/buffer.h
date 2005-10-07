@@ -49,7 +49,7 @@ typedef struct buffer_list {
 
 buffer_list_t *buffer_register(int id);
 void buffer_remove(buffer_list_t *ptr);
-buffer_list_t *buffer_retrieve();
+buffer_list_t *buffer_retrieve(void);
 
 extern buffer_list_t *buffer_list_head;
 extern buffer_list_t *buffer_list_tail;

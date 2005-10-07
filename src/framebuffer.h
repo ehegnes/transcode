@@ -109,43 +109,42 @@ typedef struct vframe_list {
 
   
   //pointer to current buffer
-  char *video_buf;
+  uint8_t *video_buf;
 
   //pointer to backup buffer
-  char *video_buf2;
+  uint8_t *video_buf2;
 
   //flag
   int free;
 
   //RGB 
-  char *video_buf_RGB[2];
+  uint8_t *video_buf_RGB[2];
   
   //YUV planes
-  char *video_buf_Y[2];
-  char *video_buf_U[2];
-  char *video_buf_V[2];
+  uint8_t *video_buf_Y[2];
+  uint8_t *video_buf_U[2];
+  uint8_t *video_buf_V[2];
 
 #ifdef STATBUFFER
-  char *internal_video_buf_0;
-  char *internal_video_buf_1;
+  uint8_t *internal_video_buf_0;
+  uint8_t *internal_video_buf_1;
 #else
-  char internal_video_buf_0[SIZE_RGB_FRAME];
-  char internal_video_buf_1[SIZE_RGB_FRAME];
+  uint8_t internal_video_buf_0[SIZE_RGB_FRAME];
+  uint8_t internal_video_buf_1[SIZE_RGB_FRAME];
 #endif
 
 } vframe_list_t;
 
 vframe_list_t *vframe_register(int id);
 void vframe_remove(vframe_list_t *ptr);
-vframe_list_t *vframe_retrieve();
+vframe_list_t *vframe_retrieve(void);
 vframe_list_t *vframe_dup(vframe_list_t *f);
 vframe_list_t *vframe_retrieve_status(int old_status, int new_status);
 void vframe_set_status(vframe_list_t *ptr, int status);
 int vframe_alloc(int num);
-void vframe_free();
-void vframe_flush();
+void vframe_free(void);
+void vframe_flush(void);
 int vframe_fill_level(int status);
-void vframe_fill_print();
 void vframe_fill_print(int r);
 
 extern pthread_mutex_t vframe_list_lock;
@@ -183,22 +182,22 @@ typedef struct aframe_list {
   struct aframe_list *prev;
 
 #ifdef STATBUFFER
-  char *audio_buf;
+  uint8_t *audio_buf;
 #else
-  char audio_buf[SIZE_PCM_FRAME<<2];
+  uint8_t audio_buf[SIZE_PCM_FRAME<<2];
 #endif
 
 } aframe_list_t;
 
 aframe_list_t *aframe_register(int id);
 void aframe_remove(aframe_list_t *ptr);
-aframe_list_t *aframe_retrieve();
+aframe_list_t *aframe_retrieve(void);
 aframe_list_t *aframe_dup(aframe_list_t *f);
 aframe_list_t *aframe_retrieve_status(int old_status, int new_status);
 void aframe_set_status(aframe_list_t *ptr, int status);
 int aframe_alloc(int num);
-void aframe_free();
-void aframe_flush();
+void aframe_free(void);
+void aframe_flush(void);
 int aframe_fill_level(int status);
 void aframe_fill_print(int r);
 

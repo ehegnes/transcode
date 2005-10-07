@@ -23,9 +23,8 @@
 
 #include "transcode.h"
 
-#include <sys/errno.h>
-
 #include "ioaux.h"
+#include "tc.h"
 
 #if (HAVE_OGG && HAVE_VORBIS) 
 #include <vorbis/vorbisfile.h>
@@ -41,7 +40,7 @@ static int sign = 1;
  *
  * ------------------------------------------------------------*/
 
-int decode_ogg_file(int fdin, int fdout)
+static int decode_ogg_file(int fdin, int fdout)
 {
     FILE *in, *out=NULL;
     OggVorbis_File vf;

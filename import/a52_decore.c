@@ -25,7 +25,6 @@
 #include "transcode.h"
 
 #include <limits.h>
-#include <sys/errno.h>
 
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>

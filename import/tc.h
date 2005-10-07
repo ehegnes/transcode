@@ -55,6 +55,8 @@ void decode_af6(decode_t *decode);
 void decode_lavc(decode_t *decode);
 void decode_xvid(decode_t *decode);
 void decode_mov(decode_t *decode);
+
+void extract_lzo(info_t *ipipe);
 void decode_lzo(decode_t *decode);
 
 void probe_yuv(info_t *ipipe);
@@ -82,6 +84,8 @@ void probe_oss(info_t *ipipe);
 
 void probe_mxf(info_t *ipipe);
 void extract_mxf(info_t *ipipe);
+
+void probe_pvn(info_t *ipipe);
 
 int scan_header_dv(char *buf);
 

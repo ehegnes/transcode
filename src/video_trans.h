@@ -87,6 +87,8 @@ void init_table_8(redtab_t *table, int length, int resize);
 void init_table_8_up(redtab_t *table, int length, int resize);
 void init_gamma_table(unsigned char *table, double gamma);
 
+void check_clip_para(int p);
+
 void yuv_rescale(char *image, int width, int height, int reduce_h, int reduce_w);
 void yuv_flip(char *image, int width, int height);
 void yuv_hclip(char *image, int width, int height, int cols);
@@ -157,7 +159,7 @@ extern unsigned long *aa_table_x;
 extern unsigned long *aa_table_d;	    
 extern unsigned long *aa_table_y;
 
-extern void clear_mmx();
+extern void clear_mmx(void);
 
 # define d_threshold 25
 # define s_threshold 25

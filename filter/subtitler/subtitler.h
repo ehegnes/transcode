@@ -22,11 +22,8 @@
 #ifndef _SUBTITLER_H_
 #define _SUBTITLER_H_
 
-#include <inttypes.h>
-#include <stddef.h>
 #include <pwd.h>
 #include <ctype.h>
-#include <errno.h>
 #include <math.h>
 #include <limits.h>
 

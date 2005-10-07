@@ -1,4 +1,8 @@
 2005-10-07 Andrew Church <achurch at achurch dot org>
+  * aclib/* export/* filter/* import/* libioaux/configs.c libtc/libtc.h
+    libtc/tc_functions.c pvm3/tcpvmexportd.c src/* tools/*
+  Clean up compiler warnings and various other tidbits.
+
   * Makefile.am export/Makefile.am filter/Makefile.am import/Makefile.am
     src/Makefile.am
   Rearrange source/module/directory listings to compile in roughly

@@ -125,9 +125,9 @@ static int interlace_test(char *video_buf, int width, int height, int id, int in
     return(flag);
 }
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
 
   int is_interlaced = 0;

@@ -296,7 +296,7 @@ FILE *fd;
 char audio[MAX_BUF];
 
 
-int ac3scan(int infd, int outfd)
+static int ac3scan(int infd, int outfd)
 {
   
   int pseudo_frame_size=0, j=0, i=0, s=0;

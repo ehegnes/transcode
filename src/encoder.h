@@ -34,7 +34,7 @@ int encoder_stop(transfer_t *export_para);
 int encoder_open(transfer_t *export_para, vob_t *vob);
 int encoder_close(transfer_t *export_para);
 
-int export_status();
-void export_shutdown();
+int export_status(void);
+void export_shutdown(void);
 
 #endif

@@ -21,17 +21,11 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-
-#include <fame.h>
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
+
+#include <fame.h>
 
 #define MOD_NAME    "export_fame.so"
 #define MOD_VERSION "v0.9.1 (2003-07-24)"

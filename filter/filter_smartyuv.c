@@ -1264,8 +1264,9 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	return;
 }
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
 
   //----------------------------------
   //

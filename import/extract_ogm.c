@@ -74,7 +74,7 @@ stream_t *first;
 int      nastreams = 0, nvstreams = 0, ntstreams = 0, numstreams = 0;
 char basename[] = "stdout";
 
-void add_stream(stream_t *ndmx) {
+static void add_stream(stream_t *ndmx) {
   stream_t *cur = first;
   
   if (first == NULL) {
@@ -89,7 +89,7 @@ void add_stream(stream_t *ndmx) {
   }
 }
 
-stream_t *find_stream(int fserial) {
+static stream_t *find_stream(int fserial) {
   stream_t *cur = first;
   
   while (cur != NULL) {
@@ -103,7 +103,7 @@ stream_t *find_stream(int fserial) {
 
 double highest_ts = 0;
 
-int extraction_requested(unsigned char *s, int stream, int type) {
+static int extraction_requested(unsigned char *s, int stream, int type) {
   int i;
   
   if (no[type])
@@ -117,7 +117,7 @@ int extraction_requested(unsigned char *s, int stream, int type) {
   return 0;
 }
 
-void flush_pages(stream_t *stream, ogg_packet *op) {
+static void flush_pages(stream_t *stream, ogg_packet *op) {
   ogg_page page;
   int ih, ib;
 
@@ -130,7 +130,7 @@ void flush_pages(stream_t *stream, ogg_packet *op) {
   }
 }
 
-void write_pages(stream_t *stream, ogg_packet *op) {
+static void write_pages(stream_t *stream, ogg_packet *op) {
   ogg_page page;
   int ih, ib;
 
@@ -143,7 +143,7 @@ void write_pages(stream_t *stream, ogg_packet *op) {
   }
 }
 
-void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
+static void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
   int i, hdrlen, end;
   long long lenbytes;
   char *sub;
@@ -277,7 +277,7 @@ void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
   }
 }
 
-void process_ogm(int fdin, int fdout)
+static void process_ogm(int fdin, int fdout)
 {
   ogg_sync_state    sync;
   ogg_page          page;

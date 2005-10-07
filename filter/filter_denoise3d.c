@@ -198,7 +198,7 @@ static void PrecalcCoefs(int * ct, double dist25)
 	}
 }
 
-static void help_optstr()
+static void help_optstr(void)
 {
     fprintf(stderr, "[%s] (%s) help\n", MOD_NAME, MOD_CAP);
     fprintf(stderr, "* Overview\n");
@@ -213,8 +213,9 @@ static void help_optstr()
     fprintf(stderr, "   pre:             run as a pre filter (0)\n");
 }
 
-int tc_filter(vframe_list_t * vframe, char * options) 
+int tc_filter(frame_list_t *vframe_, char * options) 
 {
+	vframe_list_t *vframe = (vframe_list_t *)vframe_;
 	int instance;
 	int tag = vframe->tag;
 	dn3d_private_data_t * pd;

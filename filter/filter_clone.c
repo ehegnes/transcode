@@ -38,9 +38,9 @@
 
 // demo filter, it does nothing!
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static int mycount=0;
   static int ofps=25;
   vob_t *vob=NULL;

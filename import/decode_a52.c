@@ -23,8 +23,6 @@
 
 #include "transcode.h"
 
-#include <sys/errno.h>
-
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
 #else
@@ -34,6 +32,7 @@
 #endif
 
 #include "ioaux.h"
+#include "tc.h"
 
 static char *mod_path=MOD_PATH;
 
@@ -44,7 +43,7 @@ static int (*a52_decore)(decode_t *decode);
 static void *handle;
 static char module[TC_BUF_MAX];
 
-int a52_do_init(char *path) {
+static int a52_do_init(char *path) {
 #ifdef SYS_BSD
     const
 #endif    

@@ -1,5 +1,5 @@
 /*
-    $Id: mjpeg_types.h,v 1.4 2004-10-17 22:03:14 jacob Exp $
+    $Id: mjpeg_types.h,v 1.5 2005-10-07 14:22:57 achurch Exp $
 
     Copyright (C) 2000 Herbert Valerio Riedel <hvr@gnu.org>
 
@@ -41,7 +41,7 @@
 # include <inttypes.h>
 #elif defined(__CYGWIN__)
 # include <sys/types.h>
-typedef u_int8_t uint8_t;
+typedef uint8_t uint8_t;
 typedef u_int16_t uint16_t;
 typedef u_int32_t uint32_t;
 typedef u_int64_t uint64_t;

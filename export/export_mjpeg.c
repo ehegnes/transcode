@@ -144,16 +144,16 @@ static struct jpeg_error_mgr jerr;
 static struct jpeg_destination_mgr dest;
 
 /* called by the jpeg lib; not to be used by mjpeg api caller */
-void mjpeg_init_destination(j_compress_ptr cinfo) {
+static void mjpeg_init_destination(j_compress_ptr cinfo) {
   cinfo->dest->next_output_byte=outbuf;
   cinfo->dest->free_in_buffer=MAXFRAMESIZE;
 }
-boolean mjpeg_empty_output_buffer(j_compress_ptr cinfo) {
+static boolean mjpeg_empty_output_buffer(j_compress_ptr cinfo) {
   /* this should never occur! */
   fprintf(stderr, "[%s] empty_output_buffer was called!\n", MOD_NAME);
   exit(1);
 }
-void mjpeg_term_destination(j_compress_ptr cinfo) {
+static void mjpeg_term_destination(j_compress_ptr cinfo) {
   AVI_write_frame(avifile,outbuf,MAXFRAMESIZE-(cinfo->dest->free_in_buffer),1);
 }
 

@@ -47,7 +47,7 @@ static char buffer[PATH_MAX+2];
 
 static int bytes=0;
 static int out_bytes=0;
-static char *video_buffer=NULL;
+static uint8_t *video_buffer=NULL;
   
 /* ------------------------------------------------------------ 
  *
@@ -138,7 +138,7 @@ MOD_open
 	break;
     }
 
-    if((video_buffer = (char *)calloc(1, out_bytes)) == NULL) {
+    if((video_buffer = (uint8_t *)calloc(1, out_bytes)) == NULL) {
 	fprintf(stderr, "(%s) out of memory", __FILE__);
 	return(TC_IMPORT_ERROR);
     }

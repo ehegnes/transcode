@@ -30,11 +30,11 @@
 #include "aclib/imgconvert.h"
 
 int tc_rgb2yuv_init(int width, int height);
-int tc_rgb2yuv_core(u_int8_t *buffer);
-int tc_rgb2yuv_close();
+int tc_rgb2yuv_core(uint8_t *buffer);
+int tc_rgb2yuv_close(void);
 
 int tc_yuv2rgb_init(int width, int height);
-int tc_yuv2rgb_core(u_int8_t *buffer);
-int tc_yuv2rgb_close();
+int tc_yuv2rgb_core(uint8_t *buffer);
+int tc_yuv2rgb_close(void);
 
 #endif

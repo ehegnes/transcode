@@ -54,7 +54,7 @@ struct demux_t {
 
 enum { none, Vorbis, Theora, DirectShow, StreamHeader };
 
-int ogm_packet_type (ogg_packet pack) 
+static int ogm_packet_type (ogg_packet pack) 
 {
     if ((pack.bytes >= 7) && ! strncmp(&pack.packet[1], "vorbis", 6))
 	return Vorbis;
@@ -242,9 +242,8 @@ void probe_ogg(info_t *ipipe)
 			    if(strcasecmp(vid_codec,"dvsd")==0)
 				ipipe->probe_info->codec=TC_CODEC_DV;
 
-#warning *************************** FIXME ************************* (YV12)
-//			    if(strcasecmp(vid_codec,"yv12")==0)
-//				ipipe->probe_info->codec=TC_CODEC_YV12;
+			    if(strcasecmp(vid_codec,"yv12")==0)
+				ipipe->probe_info->codec=TC_CODEC_YV12;
 
 			    if(strcasecmp(vid_codec,"DIV3")==0)
 				ipipe->probe_info->codec=TC_CODEC_DIVX3;

@@ -70,9 +70,9 @@ static int filter_verbose = 0;
  *                                                         *
  ***********************************************************/
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-  
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
 
   static int frame_offset;

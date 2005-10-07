@@ -24,6 +24,7 @@
 #include "transcode.h"
 #include "ioaux.h"
 #include "avilib.h"
+#include "tc.h"
 
 #ifdef HAVE_LZO
 

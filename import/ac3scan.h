@@ -30,5 +30,7 @@ int ac3scan(FILE *fd, char *buffer, int size, int *ac_off, int *ac_bytes, int *p
 
 int buf_probe_ac3(unsigned char *_buf, int len, pcm_t *pcm);
 int buf_probe_dts(unsigned char *_buf, int len, pcm_t *pcm);
+void probe_ac3(info_t *ipipe);
+void probe_dts(info_t *ipipe);
 
 #endif

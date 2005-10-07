@@ -16,7 +16,7 @@
 
 /* Identity transformations */
 
-static int yuv420p_copy(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv420p_copy(uint8_t **src, uint8_t **dest, int width, int height)
 {
     tc_memcpy(dest[0], src[0], width*height);
     tc_memcpy(dest[1], src[1], width*height/4);
@@ -24,7 +24,7 @@ static int yuv420p_copy(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int yuv411p_copy(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv411p_copy(uint8_t **src, uint8_t **dest, int width, int height)
 {
     tc_memcpy(dest[0], src[0], width*height);
     tc_memcpy(dest[1], src[1], width/4*height);
@@ -32,7 +32,7 @@ static int yuv411p_copy(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int yuv422p_copy(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv422p_copy(uint8_t **src, uint8_t **dest, int width, int height)
 {
     tc_memcpy(dest[0], src[0], width*height);
     tc_memcpy(dest[1], src[1], width*height/2);
@@ -40,7 +40,7 @@ static int yuv422p_copy(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int yuv444p_copy(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv444p_copy(uint8_t **src, uint8_t **dest, int width, int height)
 {
     tc_memcpy(dest[0], src[0], width*height);
     tc_memcpy(dest[1], src[1], width*height);
@@ -52,7 +52,7 @@ static int yuv444p_copy(u_int8_t **src, u_int8_t **dest, int width, int height)
 
 /* Used for YUV420P->YV12 and YV12->YUV420P */
 
-static int yuv420p_swap(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv420p_swap(uint8_t **src, uint8_t **dest, int width, int height)
 {
     tc_memcpy(dest[0], src[0], width*height);
     tc_memcpy(dest[2], src[1], width*height/4);
@@ -62,7 +62,7 @@ static int yuv420p_swap(u_int8_t **src, u_int8_t **dest, int width, int height)
 
 /*************************************************************************/
 
-static int yuv420p_yuv411p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv420p_yuv411p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
     tc_memcpy(dest[0], src[0], width*height);
@@ -79,7 +79,7 @@ static int yuv420p_yuv411p(u_int8_t **src, u_int8_t **dest, int width, int heigh
     return 1;
 }
 
-static int yuv420p_yuv422p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv420p_yuv422p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int y;
     tc_memcpy(dest[0], src[0], width*height);
@@ -92,7 +92,7 @@ static int yuv420p_yuv422p(u_int8_t **src, u_int8_t **dest, int width, int heigh
     return 1;
 }
 
-static int yuv420p_yuv444p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv420p_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
     tc_memcpy(dest[0], src[0], width*height);
@@ -111,7 +111,7 @@ static int yuv420p_yuv444p(u_int8_t **src, u_int8_t **dest, int width, int heigh
 
 /*************************************************************************/
 
-static int yuv411p_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv411p_yuv420p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
     tc_memcpy(dest[0], src[0], width*height);
@@ -128,7 +128,7 @@ static int yuv411p_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int heigh
     return 1;
 }
 
-static int yuv411p_yuv422p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv411p_yuv422p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
     tc_memcpy(dest[0], src[0], width*height);
@@ -143,7 +143,7 @@ static int yuv411p_yuv422p(u_int8_t **src, u_int8_t **dest, int width, int heigh
     return 1;
 }
 
-static int yuv411p_yuv444p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv411p_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
     tc_memcpy(dest[0], src[0], width*height);
@@ -164,7 +164,7 @@ static int yuv411p_yuv444p(u_int8_t **src, u_int8_t **dest, int width, int heigh
 
 /*************************************************************************/
 
-static int yuv422p_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv422p_yuv420p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
     tc_memcpy(dest[0], src[0], width*height);
@@ -179,7 +179,7 @@ static int yuv422p_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int heigh
     return 1;
 }
 
-static int yuv422p_yuv411p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv422p_yuv411p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
     tc_memcpy(dest[0], src[0], width*height);
@@ -194,7 +194,7 @@ static int yuv422p_yuv411p(u_int8_t **src, u_int8_t **dest, int width, int heigh
     return 1;
 }
 
-static int yuv422p_yuv444p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv422p_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
     tc_memcpy(dest[0], src[0], width*height);
@@ -211,7 +211,7 @@ static int yuv422p_yuv444p(u_int8_t **src, u_int8_t **dest, int width, int heigh
 
 /*************************************************************************/
 
-static int yuv444p_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv444p_yuv420p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
     tc_memcpy(dest[0], src[0], width*height);
@@ -230,7 +230,7 @@ static int yuv444p_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int heigh
     return 1;
 }
 
-static int yuv444p_yuv411p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv444p_yuv411p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
     tc_memcpy(dest[0], src[0], width*height);
@@ -249,7 +249,7 @@ static int yuv444p_yuv411p(u_int8_t **src, u_int8_t **dest, int width, int heigh
     return 1;
 }
 
-static int yuv444p_yuv422p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv444p_yuv422p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
     tc_memcpy(dest[0], src[0], width*height);

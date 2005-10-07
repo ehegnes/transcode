@@ -22,22 +22,12 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "transcode.h"
+#include "ioaux.h"
+#include "tc.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/time.h>
-#include <signal.h>
-#include <string.h>
-#include <errno.h>
-#include <inttypes.h>
-#include <unistd.h>
 #include <mpeg2dec/mpeg2.h>
 #include <mpeg2dec/mpeg2convert.h>
-
-#include "ioaux.h"
 
 #define BUFFER_SIZE 262144
 static uint8_t buffer[BUFFER_SIZE];

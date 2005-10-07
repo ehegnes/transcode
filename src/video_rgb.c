@@ -21,18 +21,11 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <string.h>
-
+#include "transcode.h"
 #include "framebuffer.h"
 #include "video_trans.h"
 #include "zoom.h"
 #include "aclib/ac.h"
-
-#include "transcode.h"
 
 #define BLACK_BYTE 0
 
@@ -507,7 +500,7 @@ inline int rgb_merge_C(char *row1, char *row2, char *out, int bytes,
     return(0);
 }
 
-inline int rgb_average_C(char *row1, char *row2, char *out, int bytes)
+static inline int rgb_average_C(char *row1, char *row2, char *out, int bytes)
 {
   
   //calculate the average of each color entry in two arrays and return
@@ -713,7 +706,7 @@ inline static int memcpy_C(char *dest, char *source, int bytes)
 }
 
 
-inline void rgb_deinterlace_core(char *image, int width, int height)
+static inline void rgb_deinterlace_core(char *image, int width, int height)
 {
     char *in, *out;
     
@@ -739,7 +732,7 @@ inline void rgb_deinterlace_core(char *image, int width, int height)
     return;
 }
 
-inline void rgb_deinterlace_linear_blend_core(char *image, char *tmp, int width, int height)
+static inline void rgb_deinterlace_linear_blend_core(char *image, char *tmp, int width, int height)
 {
   char *in, *out;
   
@@ -923,7 +916,7 @@ inline static int diffcolor(char *color, char *color1, char *color2, int bytes)
 #define WEST  (src_ptr - bpp)
 
 
-void antialias(char *inrow, char *outrow, int pixels)
+static void antialias(char *inrow, char *outrow, int pixels)
 {
     
   // bytes per pixel
@@ -1275,25 +1268,3 @@ void deinterlace_rgb_nozoom(unsigned char *src, int width, int height)
 	out += block;
     }
 }
-
-void merge_rgb_fields(unsigned char *src1, unsigned char *src2, int width, int height)
-{
-  
-    char *in, *out;
-
-    int i, block;
-
-    block = 3*width;
-
-    in  = src2 + block;
-    out = src1 + block;
-
-    //move every second row
-    for (i=0; i<height; i=i+2) {
-	
-	tc_memcpy(out, in, block);
-	in  += 2*block;
-	out += 2*block;
-    }
-}
-

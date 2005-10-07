@@ -23,8 +23,6 @@
 
 #include "transcode.h"
 
-#include <sys/errno.h>
-
 #include "ioaux.h"
 #include "aux_pes.h"
 #include "seqinfo.h"

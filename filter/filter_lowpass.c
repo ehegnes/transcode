@@ -50,10 +50,9 @@ static int mono     = 0;
  *-------------------------------------------------*/
 
 
-int tc_filter(aframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
-
+  aframe_list_t *ptr = (aframe_list_t *)ptr_;
   vob_t *vob=NULL;
 
   //----------------------------------

@@ -21,15 +21,7 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <string.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
+#include "transcode.h"
 
 #include "ioaux.h"
 #include "avilib.h"

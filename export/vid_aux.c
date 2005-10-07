@@ -26,8 +26,8 @@
 static int convert=0, convertY=0;
 static int x_dim=0, y_dim=0;
 static int x_dimY=0, y_dimY=0;
-static u_int8_t *frame_buffer=NULL, *planes[3];
-static u_int8_t *frame_bufferY=NULL, *rgb_outY;
+static uint8_t *frame_buffer=NULL, *planes[3];
+static uint8_t *frame_bufferY=NULL, *rgb_outY;
 
 
 
@@ -53,9 +53,9 @@ int tc_yuv2rgb_init(int width, int height)
     return(0);
 }
 
-int tc_yuv2rgb_core(u_int8_t *buffer)
+int tc_yuv2rgb_core(uint8_t *buffer)
 {
-    u_int8_t *planesY[3];
+    uint8_t *planesY[3];
 
     if(!convertY)
 	return(-1);
@@ -113,7 +113,7 @@ int tc_rgb2yuv_init(int width, int height)
     return(0);
 }
 
-int tc_rgb2yuv_core(u_int8_t *buffer)
+int tc_rgb2yuv_core(uint8_t *buffer)
 {
     if(!convert)
 	return(-1);

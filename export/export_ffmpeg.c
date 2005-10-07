@@ -1487,7 +1487,7 @@ MOD_encode
         
             if(is_huffyuv)
             {
-                u_int8_t *src[3];
+                uint8_t *src[3];
                 src[0] = param->buffer;
                 src[1] = src[0] + lavc_venc_context->width*lavc_venc_context->height;
                 src[2] = src[1] + lavc_venc_context->width*lavc_venc_context->height/4;

@@ -51,8 +51,8 @@ typedef struct packet_list {
 
 packet_list_t *packet_register(int id);
 void packet_remove(packet_list_t *ptr);
-packet_list_t *packet_retrieve();
-int packet_buffer_flush();
+packet_list_t *packet_retrieve(void);
+int packet_buffer_flush(void);
 
 extern pthread_mutex_t packet_list_lock;
 
@@ -60,13 +60,13 @@ extern packet_list_t *packet_list_head;
 extern packet_list_t *packet_list_tail;
 
 int sbuf_alloc(int num);
-void sbuf_free();
-packet_list_t *sbuf_retrieve();
+void sbuf_free(void);
+packet_list_t *sbuf_retrieve(void);
 int sbuf_release(packet_list_t *ptr);
 
 int flush_buffer_write(int fd, char*buffer, int size);
-int flush_buffer_close();
-int flush_buffer_empty();
+int flush_buffer_close(void);
+int flush_buffer_empty(void);
 int flush_buffer_init(int fd, int verb);
 
 #endif

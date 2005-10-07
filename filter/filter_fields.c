@@ -282,8 +282,10 @@ static int filter_fields_close(void) {
  *                            Filter Entry Point                             *
  *****************************************************************************/
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
+
   if(ptr->tag & TC_FILTER_INIT) {
     return filter_fields_init(options);
   }

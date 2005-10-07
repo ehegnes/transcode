@@ -56,14 +56,14 @@ static int counter_skipping=0;
 static long startsec;
 static long startusec;
 
-void tc_export_stop_nolock()
+void tc_export_stop_nolock(void)
 {
   force_exit=1;
   return;
 }
 
 
-int export_status()
+int export_status(void)
 {
   pthread_mutex_lock(&export_lock);
 
@@ -76,7 +76,7 @@ int export_status()
   return(0);
 }
 
-long tc_get_frames_encoded()
+long tc_get_frames_encoded(void)
 {
   long cc;
   pthread_mutex_lock(&frame_counter_lock);
@@ -93,7 +93,7 @@ void tc_update_frames_encoded(long cc)
   return;
 }
 
-long tc_get_frames_dropped()
+long tc_get_frames_dropped(void)
 {
   long cc;
   pthread_mutex_lock(&frame_counter_lock);
@@ -110,7 +110,7 @@ void tc_update_frames_dropped(long cc)
   return;
 }
 
-long tc_get_frames_skipped()
+long tc_get_frames_skipped(void)
 {
   long cc;
   pthread_mutex_lock(&frame_counter_lock);
@@ -127,7 +127,7 @@ void tc_update_frames_skipped(long cc)
   return;
 }
 
-long tc_get_frames_cloned()
+long tc_get_frames_cloned(void)
 {
   long cc;
   pthread_mutex_lock(&frame_counter_lock);
@@ -144,7 +144,7 @@ void tc_update_frames_cloned(long cc)
   return;
 }
 
-long tc_get_frames_skipped_cloned()
+static long tc_get_frames_skipped_cloned(void)
 {
   long cc,cc2;
   pthread_mutex_lock(&frame_counter_lock);
@@ -155,14 +155,14 @@ long tc_get_frames_skipped_cloned()
 }
 
 
-void tc_set_force_exit()
+void tc_set_force_exit(void)
 {
   pthread_mutex_lock(&force_exit_lock);
   force_exit=1;
   pthread_mutex_unlock(&force_exit_lock);
 }
 
-int tc_get_force_exit()
+int tc_get_force_exit(void)
 {
   int cc=0;
 

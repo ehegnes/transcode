@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "ioaux.h"
 
 static int cd[] = {650, 700, 1300, 1400};
 

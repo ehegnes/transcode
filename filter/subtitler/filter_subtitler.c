@@ -104,8 +104,9 @@ extern int execute(char *);
 subtitle 'filter',
 it adds objects as described in a file in .ppml format,
 */
-int tc_filter(vframe_list_t *pfl, char *options)
+int tc_filter(frame_list_t *pfl_, char *options)
 {
+vframe_list_t *pfl = (vframe_list_t *)pfl_;
 int a, i, x;
 double da, db;
 int pre = 0;

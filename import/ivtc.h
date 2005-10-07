@@ -25,8 +25,6 @@
 #define _IVTC_H
 
 int interlace_test(char *video_buf, int width, int height);
-void yuv_deinterlace(char *image, int width, int height);
-void rgb_deinterlace(char *image, int width, int height);
 
 int ivtc(int *cflag, int pflag, char *buffer, char *pulldown_buffer, int width, int height, int size, int vcodec, int verbose);
 #endif

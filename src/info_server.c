@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "probe.h"
 
 #ifdef NET_STREAM
 static size_t pp_write (int fd, char *buf, size_t len)

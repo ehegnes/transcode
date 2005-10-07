@@ -576,9 +576,9 @@ void work_with_yuv_frame(char *buffer, int width, int height, int instance)
  *-------------------------------------------------*/
 
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   int instance=ptr->filter_id;
 
 

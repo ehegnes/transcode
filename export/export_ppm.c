@@ -175,7 +175,7 @@ MOD_encode
     
     
     if(codec==CODEC_YUV) {
-      u_int8_t *planes[3];
+      uint8_t *planes[3];
       YUV_INIT_PLANES(planes, param->buffer, IMG_YUV_DEFAULT, width, height);
       ac_imgconvert(planes, IMG_YUV_DEFAULT, &tmp_buffer, IMG_RGB24,
 		    width, height);
@@ -186,7 +186,7 @@ MOD_encode
     if(codec==CODEC_YUV422) {
 #warning ******************* FIXME ********************* 2-step conversion
       /* convert the buffer from YUV422 packed to YUV422 planar */
-      u_int8_t *planes[3];
+      uint8_t *planes[3];
       convbuff = malloc(width*height*2);
       YUV_INIT_PLANES(planes, convbuff, IMG_YUV422P, width, height);
       ac_imgconvert(&param->buffer, IMG_YUY2, planes, IMG_YUV422P,

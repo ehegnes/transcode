@@ -74,7 +74,7 @@ int (*yuv422_merge)(char *row1, char *row2, char *out, int bytes,
 		 unsigned long weight1, unsigned long weight2);
 
 
-void yuv_vert_resize_init(int width)
+static void yuv_vert_resize_init(int width)
 {
   
   yuv_vert_resize_init_flag=1;
@@ -119,7 +119,7 @@ void yuv_vert_resize_init(int width)
 }
 
 
-void yuv422_vert_resize_init()
+static void yuv422_vert_resize_init(void)
 {
   
   yuv422_vert_resize_init_flag=1;
@@ -152,7 +152,7 @@ void yuv422_vert_resize_init()
   return;
 }
 
-void rgb_vert_resize_init()
+static void rgb_vert_resize_init(void)
 {
   
   rgb_vert_resize_init_flag=1;
@@ -185,6 +185,7 @@ void rgb_vert_resize_init()
 
 inline void clear_mmx()
 {
+#warning ******************** FIXME ************************ go to aclib, do not pass go, do not collect $200 (and bring all this init stuff with you)
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
 #ifdef HAVE_MMX
   __asm __volatile ("emms;":::"memory");    
@@ -322,7 +323,7 @@ void init_aa_table(double aa_weight, double aa_bias)
   aa_table_flag = 1; 
 }
 
-int process_yuv422_frame(vob_t *vob, vframe_list_t *ptr)
+static int process_yuv422_frame(vob_t *vob, vframe_list_t *ptr)
 {
     
   /* ------------------------------------------------------------ 
@@ -445,7 +446,7 @@ int process_yuv422_frame(vob_t *vob, vframe_list_t *ptr)
   
   if(resize2 && vob->vert_resize2) {
 
-    if(!yuv422_vert_resize_init_flag) yuv422_vert_resize_init(ptr->v_width);
+    if(!yuv422_vert_resize_init_flag) yuv422_vert_resize_init();
     
     if(!vert_table_8_up_flag) {
       init_table_8_up(vert_table_8_up, ptr->v_height, vob->vert_resize2);
@@ -495,7 +496,7 @@ int process_yuv422_frame(vob_t *vob, vframe_list_t *ptr)
 
   if(resize1 && vob->vert_resize1) {
 
-    if(!yuv422_vert_resize_init_flag) yuv422_vert_resize_init(ptr->v_width);
+    if(!yuv422_vert_resize_init_flag) yuv422_vert_resize_init();
 
     if(!vert_table_8_flag) {
       init_table_8(vert_table_8, ptr->v_height, vob->vert_resize1);
@@ -712,7 +713,7 @@ int process_yuv422_frame(vob_t *vob, vframe_list_t *ptr)
   return(0);
 }
    
-int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
+static int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
 {
     
   /* ------------------------------------------------------------ 
@@ -1124,7 +1125,7 @@ int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
 
 
 
-int process_rgb_frame(vob_t *vob, vframe_list_t *ptr)
+static int process_rgb_frame(vob_t *vob, vframe_list_t *ptr)
 {
 
 

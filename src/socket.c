@@ -42,9 +42,7 @@ static int socket_fd=-1;
 
 pthread_mutex_t tc_socket_msg_lock=PTHREAD_MUTEX_INITIALIZER;
 
-extern int errno;
-
-int s_write (int sock, void *buf, size_t count) 
+static int s_write (int sock, void *buf, size_t count) 
 {
     int retval=0;
     do {
@@ -59,7 +57,7 @@ int s_write (int sock, void *buf, size_t count)
     return retval;
 }
 
-int tc_socket_version(char *buf)
+static int tc_socket_version(char *buf)
 {
     snprintf(buf, M_BUF_SIZE, "%s%s", VERSION, "\n");
     return 0;
@@ -69,7 +67,7 @@ int tc_socket_version(char *buf)
     n = snprintf (buf, M_BUF_SIZE, "%20s = "fmt"\n", #field, vob->field); \
     s_write (socket_fd, buf, n)
 
-int tc_socket_dump_vob(char *buf) 
+static int tc_socket_dump_vob(char *buf) 
 {
     vob_t *vob = tc_get_vob();
     int n;
@@ -471,7 +469,7 @@ int tc_socket_load(char *buf)
     return load_single_plugin(d);
 }
 
-int tc_socket_help(char *buf)
+static int tc_socket_help(char *buf)
 {
     snprintf(buf, M_BUF_SIZE, "%s",
 	    "load <filter> <initial string>\n"
@@ -496,7 +494,7 @@ int tc_socket_help(char *buf)
     return 0;
 }
 
-int tc_socket_handle(char *buf)
+static int tc_socket_handle(char *buf)
 {
     int ret = TC_SOCK_FAILED;
 

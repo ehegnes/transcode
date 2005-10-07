@@ -348,7 +348,8 @@ int get_pts_dts(char *buffer, unsigned long *pts, unsigned long *dts)
   return(has_pts_dts);
 }
 
-unsigned long read_ts(char *_s)
+#if 0  // unused
+static unsigned long read_ts(char *_s)
 {
 
   unsigned long pts;
@@ -366,6 +367,7 @@ unsigned long read_ts(char *_s)
 
   return pts;
 }
+#endif
 
 typedef struct timecode_struc	/* Time_code Struktur laut MPEG		*/
 {   unsigned long msb;		/* fuer SCR, DTS, PTS			*/
@@ -377,7 +379,7 @@ typedef struct timecode_struc	/* Time_code Struktur laut MPEG		*/
 #define MAX_FFFFFFFF 4294967295.0 	/* = 0xffffffff in hex.	*/
 
 
-void make_timecode (double timestamp, Timecode_struc *pointer)
+static void make_timecode (double timestamp, Timecode_struc *pointer)
 {
     double temp_ts;
     

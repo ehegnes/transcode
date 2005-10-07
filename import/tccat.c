@@ -23,7 +23,6 @@
 
 #include "transcode.h"
 
-#include <sys/errno.h>
 #include "xio.h"
 #include "ioaux.h"
 #include "tc.h"
@@ -35,8 +34,6 @@
 char buf[MAX_BUF];
 
 int verbose=TC_INFO;
-
-extern int errno;
 
 void import_exit(int code) 
 {
@@ -52,9 +49,17 @@ void import_exit(int code)
  * ------------------------------------------------------------*/
 
 
-void usage(int status)
+void version(void)
 {
-  version(EXE);
+    /* print id string to stderr */
+    fprintf(stderr, "%s (%s v%s) (C) 2001-2003 Thomas Oestreich\n",
+                    EXE, PACKAGE, VERSION);
+}
+
+
+static void usage(int status)
+{
+  version();
   
   fprintf(stderr,"\nUsage: %s [options]\n", EXE);
 #ifdef HAVE_LIBDVDREAD
@@ -229,7 +234,7 @@ int main(int argc, char *argv[])
       
       
     case 'v': 
-      version(EXE);
+      version();
       exit(0);
       break;
       

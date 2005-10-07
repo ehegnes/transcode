@@ -102,7 +102,7 @@ static int cmp_16_bits(char *buf, long x)
   return 0;
 }
 
-int save_read(char *buf, int bytes, off_t offset, int fdes)
+static int save_read(char *buf, int bytes, off_t offset, int fdes)
 {
   
   // returns 0 if ok, 1 on failure to read first bytes 

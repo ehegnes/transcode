@@ -48,7 +48,7 @@ typedef struct frame_info_list {
 
 frame_info_list_t *frame_info_register(int id);
 void frame_info_remove(frame_info_list_t *ptr);
-frame_info_list_t *frame_info_retrieve();
+frame_info_list_t *frame_info_retrieve(void);
 frame_info_list_t *frame_info_retrieve_status(int old_status, int new_status);
 void frame_info_set_status(frame_info_list_t *ptr, int status);
 

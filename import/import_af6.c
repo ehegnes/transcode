@@ -34,7 +34,6 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_PCM;
 #include "import_def.h"
 
 
-extern int errno;
 char import_cmd_buf[TC_BUF_MAX];
 
 static int codec;

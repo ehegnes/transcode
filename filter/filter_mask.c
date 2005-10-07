@@ -39,26 +39,26 @@ static char *buffer;
  *
  *-------------------------------------------------*/
 
-void ymask_yuv(unsigned char *buf, vob_t *vob, int top, int bottom)
+static void ymask_yuv(unsigned char *buf, vob_t *vob, int top, int bottom)
 {
 	int i;
-	unsigned char *bufcr, *bufcb;
+	unsigned char *bufcb, *bufcr;
 	int w2 = vob->im_v_width / 2;
 
 	// printf("%d %d\n", top, bottom);
 
-	bufcr = buf + vob->im_v_width * vob->im_v_height;
-	bufcb = buf + vob->im_v_width * vob->im_v_height * 5/ 4;
+	bufcb = buf + vob->im_v_width * vob->im_v_height;
+	bufcr = buf + vob->im_v_width * vob->im_v_height * 5/ 4;
 
 	for (i = top; i <= bottom; i+=2) {
 		memset(&buf[i * vob->im_v_width], 0x10, vob->im_v_width); 
 		memset(&buf[(i + 1) * vob->im_v_width], 0x10, vob->im_v_width); 
-	    	memset(&bufcr[(i / 2) * w2], 128, w2); 
 	    	memset(&bufcb[(i / 2) * w2], 128, w2); 
+	    	memset(&bufcr[(i / 2) * w2], 128, w2); 
 	}
 }
 
-void ymask_yuv422(unsigned char *buf, vob_t *vob, int top, int bottom)
+static void ymask_yuv422(unsigned char *buf, vob_t *vob, int top, int bottom)
 {
 	int i,j;
 	unsigned char *t;
@@ -69,7 +69,7 @@ void ymask_yuv422(unsigned char *buf, vob_t *vob, int top, int bottom)
 		*t++ = (j&1)?0x10:0x80;
 	}
 }
-void ymask_rgb(unsigned char *buf, vob_t *vob, int top, int bottom)
+static void ymask_rgb(unsigned char *buf, vob_t *vob, int top, int bottom)
 {
 	int i;
 
@@ -78,16 +78,16 @@ void ymask_rgb(unsigned char *buf, vob_t *vob, int top, int bottom)
 	}
 }
 
-void xmask_yuv(unsigned char *buf, vob_t *vob, int left, int right)
+static void xmask_yuv(unsigned char *buf, vob_t *vob, int left, int right)
 {
 	int i;
-	unsigned char *bufcr, *bufcb;
+	unsigned char *bufcb, *bufcr;
 	unsigned char *ptr, *ptrmax;
 
 	// printf("%d %d\n", left, right);
 
-	bufcr = buf + vob->im_v_width * vob->im_v_height;
-	bufcb = buf + vob->im_v_width * vob->im_v_height * 5/ 4;
+	bufcb = buf + vob->im_v_width * vob->im_v_height;
+	bufcr = buf + vob->im_v_width * vob->im_v_height * 5/ 4;
 
 	/* Y */
 	for (i = left; i < right; i++) {
@@ -99,9 +99,9 @@ void xmask_yuv(unsigned char *buf, vob_t *vob, int left, int right)
 		}
 	}	
 
-	/* Cr */
+	/* Cb */
 	for (i = left; i < right; i++) {
-		ptr = &bufcr[i/2]; 
+		ptr = &bufcb[i/2]; 
 		ptrmax = &bufcr[i/2 + (vob->im_v_height/2 * vob->im_v_width/2)]; 
 		while (ptr < ptrmax) {
 			*ptr = 128;
@@ -109,9 +109,9 @@ void xmask_yuv(unsigned char *buf, vob_t *vob, int left, int right)
 		}
 	}	
 
-	/* Cb */
+	/* Cr */
 	for (i = left; i < right; i++) {
-		ptr = &bufcb[i/2]; 
+		ptr = &bufcr[i/2]; 
 		ptrmax = &bufcb[i/2 + (vob->im_v_height/2 * vob->im_v_width/2)]; 
 		while (ptr < ptrmax) {
 			*ptr = 128;
@@ -120,20 +120,19 @@ void xmask_yuv(unsigned char *buf, vob_t *vob, int left, int right)
 	}	
 }
 
-void xmask_yuv422(unsigned char *buf, vob_t *vob, int left, int right)
+static void xmask_yuv422(unsigned char *buf, vob_t *vob, int left, int right)
 {
-	int y, j;
-	unsigned short *t;
-	unsigned short mask = ((0x80 << 8)&0xff00) | ((0x10)&0xff);
+	int x, y;
 
 	for (y = 0; y < vob->im_v_height; y++) { 
-	    t = (unsigned short *)(buf + y * vob->im_v_width * 2 + left*2);
-	    for (j=0; j<(right-left); j++)
-		*t++ = mask;
+	    for (x = left; x < right; x++) {
+		buf[(y*vob->im_v_width+x)*2  ] = 16;
+		buf[(y*vob->im_v_width+x)*2+1] = 128;
+	    }
 	}
 }
 
-void xmask_rgb(unsigned char *buf, vob_t *vob, int left, int right)
+static void xmask_rgb(unsigned char *buf, vob_t *vob, int left, int right)
 {
 	int y;
 	unsigned char *ptr;
@@ -156,7 +155,7 @@ static int is_optstr (char *buf) {
     return 0;
 }
 
-static void help_optstr()
+static void help_optstr(void)
 {
    printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
    printf ("* Overview\n");
@@ -168,9 +167,9 @@ static void help_optstr()
 
 }
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
   static int lc, rc, tc, bc; 
 

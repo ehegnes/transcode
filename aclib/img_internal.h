@@ -7,7 +7,7 @@
 #define ACLIB_IMG_INTERNAL_H
 
 /* Type of a conversion function */
-typedef int (*ConversionFunc)(u_int8_t **src, u_int8_t **dest,
+typedef int (*ConversionFunc)(uint8_t **src, uint8_t **dest,
 			      int width, int height);
 
 /* Function to register a conversion */

@@ -23,8 +23,6 @@
  */
 #include "transcode.h"
 
-#include <sys/errno.h>
-
 #include "avilib.h"
 #include "ioaux.h"
 #include "tc.h"
@@ -257,7 +255,7 @@ static void ps_loop (void)
     } while (end == buffer + BUFFER_SIZE);
 }
 
-int mp3scan(int infd, int outfd)
+static int mp3scan(int infd, int outfd)
 {
   
   int j=0, i=0, s=0;

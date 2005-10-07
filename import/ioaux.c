@@ -28,8 +28,6 @@
 #define MAX_BUF 4096
 static uint8_t buffer[MAX_BUF];  /* only used in p_readwrite() */
 
-extern int errno;
-
 
 ssize_t p_read(int fd, uint8_t *buf, size_t len)
 {
@@ -118,14 +116,6 @@ int file_check(char *file)
     }
     
     return(0);
-}
-
-
-void version(char *exe)
-{
-    /* print id string to stderr */
-    fprintf(stderr, "%s (%s v%s) (C) 2001-2003 Thomas Oestreich\n",
-                    exe, PACKAGE, VERSION);
 }
 
 

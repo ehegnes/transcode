@@ -30,9 +30,7 @@
 static int encoder_progress_flag=0;
 static char encoder_progress_str[ENCODER_PROG_STR_MAX];
 
-extern int errno;
-
-void tc_encoder_progress()
+static void tc_encoder_progress(void)
 {
     printf("%s\r", encoder_progress_str);
     fflush(stdout);

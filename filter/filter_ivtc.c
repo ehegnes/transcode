@@ -34,7 +34,7 @@
 
 static int show_results=0;
 
-void ivtc_copy_field (unsigned char *dest, unsigned char *src, vframe_list_t * ptr, int field) {
+static void ivtc_copy_field (unsigned char *dest, unsigned char *src, vframe_list_t * ptr, int field) {
     int y;
 
     if (field == 1) {
@@ -69,9 +69,9 @@ void ivtc_copy_field (unsigned char *dest, unsigned char *src, vframe_list_t * p
 
 #define FRBUFSIZ 3
 
-int tc_filter(vframe_list_t * ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
+    vframe_list_t *ptr = (vframe_list_t *)ptr_;
     static vob_t *vob = NULL;
     static char *lastFrames[FRBUFSIZ];
     static int frameIn = 0;

@@ -23,7 +23,6 @@
 
 #include "transcode.h"
 
-#include <sys/errno.h>
 #include "xio.h"
 #include "ioaux.h"
 #include "tc.h"
@@ -54,9 +53,16 @@ void import_exit(int code)
  *
  * ------------------------------------------------------------*/
 
-void usage(int status)
+void version(void)
 {
-  version(EXE);
+    /* print id string to stderr */
+    fprintf(stderr, "%s (%s v%s) (C) 2001-2003 Thomas Oestreich\n",
+                    EXE, PACKAGE, VERSION);
+}
+
+static void usage(int status)
+{
+  version();
 
   fprintf(stderr,"\nUsage: %s [options]\n", EXE);
 
@@ -283,7 +289,7 @@ int main(int argc, char *argv[])
 
    
       case 'v': 
-	version(EXE);
+	version();
 	exit(0);
 	break;
 

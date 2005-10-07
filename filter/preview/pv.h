@@ -144,13 +144,13 @@ extern "C" {
 
   void preview_filter(void);
   int preview_filter_buffer(int frames_needed);
-  void dec_preview_delay();
-  void inc_preview_delay();
-  void preview_cache_undo();
-  void preview_toggle_skip();  
+  void dec_preview_delay(void);
+  void inc_preview_delay(void);
+  void preview_cache_undo(void);
+  void preview_toggle_skip(void);
   void preview_cache_draw(int d);
   void preview_cache_submit(char *buf, int n, int flag);
-  int preview_cache_init();
+  int preview_cache_init(void);
   int preview_grab_jpeg(void);
 
   char **char2bmp(char c);

@@ -69,12 +69,12 @@ typedef struct sframe_list {
 
 sframe_list_t *sframe_register(int id);
 void sframe_remove(sframe_list_t *ptr);
-sframe_list_t *sframe_retrieve();
+sframe_list_t *sframe_retrieve(void);
 sframe_list_t *sframe_retrieve_status(int old_status, int new_status);
 void sframe_set_status(sframe_list_t *ptr, int status);
 int sframe_alloc(int num, FILE *fd);
-void sframe_free();
-void sframe_flush();
+void sframe_free(void);
+void sframe_flush(void);
 int sframe_fill_level(int status);
 
 extern pthread_mutex_t sframe_list_lock;
@@ -83,6 +83,6 @@ extern pthread_cond_t sframe_list_empty_cv;
 extern sframe_list_t *sframe_list_head;
 extern sframe_list_t *sframe_list_tail;
 
-void subtitle_reader();
+void subtitle_reader(void);
 
 #endif

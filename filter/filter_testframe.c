@@ -33,7 +33,7 @@
 static int mode=0;
 static vob_t *vob=NULL;
 
-void generate_rgb_frame(char *buffer, int width, int height)
+static void generate_rgb_frame(char *buffer, int width, int height)
 {
   int n, j, row_bytes;
   
@@ -94,7 +94,7 @@ void generate_rgb_frame(char *buffer, int width, int height)
   }
 }
 
-void generate_yuv_frame(char *buffer, int width, int height)
+static void generate_yuv_frame(char *buffer, int width, int height)
 {
   int n, j, row_bytes;
   
@@ -109,7 +109,7 @@ void generate_yuv_frame(char *buffer, int width, int height)
       for(n=0; n<height; ++n) {
 	  
 	  if(n & 1) {
-	      for(j=0; j<row_bytes; ++j) buffer[n*row_bytes+j]   = 255 & 0xff;
+	      for(j=0; j<row_bytes; ++j) buffer[n*row_bytes+j]   = 255;
 	  } else { 
 	      for(j=0; j<row_bytes; ++j) buffer[n*row_bytes+j]   = 0;
 	  }
@@ -119,7 +119,7 @@ void generate_yuv_frame(char *buffer, int width, int height)
       
   case 1:
       
-      for(n=0; n<height*width; ++n) buffer[n]=(n&1)?255 & 0xff:0;
+      for(n=0; n<height*width; ++n) buffer[n]=(n&1)?255:0;
       
       break;
 
@@ -167,8 +167,9 @@ static int is_optstr(char *options)
     return 0;
 }
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
 
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
 

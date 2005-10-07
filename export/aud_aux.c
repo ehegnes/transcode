@@ -121,8 +121,6 @@ static void debug(const char *s, ...);
 static int audio_init_ffmpeg(vob_t *vob, int o_codec);
 static int audio_init_lame(vob_t *vob, int o_codec);
 static int audio_init_raw(vob_t *vob);
-int audio_init(vob_t *vob, int v);
-int audio_open(vob_t *vob, avi_t *avifile);
 static int audio_write(char *buffer, size_t size, avi_t *avifile);
 static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile);
 static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile);
@@ -130,9 +128,6 @@ static int audio_pass_through(char *aud_buffer, int aud_size, avi_t *avifile);
 static int audio_pass_through_ac3(char *aud_buffer, int aud_size, avi_t *avifile);
 static int audio_pass_through_pcm(char *aud_buffer, int aud_size, avi_t *avifile);
 static int audio_mute(char *aud_buffer, int aud_size, avi_t *avifile);
-int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile);
-int audio_close();
-int audio_stop();
 static char * lame_error2str(int error);
 #ifdef HAVE_LAME
 static void no_debug(const char *format, va_list ap) {return;}

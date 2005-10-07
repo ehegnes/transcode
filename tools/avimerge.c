@@ -33,12 +33,12 @@
 
 #define EXE "avimerge"
 
-void version()
+void version(void)
 {
   printf("%s (%s v%s) (C) 2001-2004 Thomas Oestreich, T. Bitterberg\n", EXE, PACKAGE, VERSION);
 }
 
-void usage(int status)
+static void usage(int status)
 {
     version();
     printf("\nUsage: %s [options]\n", EXE);
@@ -62,7 +62,7 @@ int is_vbr=1;
 int drop_video=0;
 
 
-int merger(avi_t *out, char *file)
+static int merger(avi_t *out, char *file)
 {
     avi_t *in;
     long frames, n, bytes;

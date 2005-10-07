@@ -51,14 +51,11 @@
 
 static int plugins_loaded=0, plugins=0;
 
-int (*tc_filter)(void *ptr, void *opt);
 static char module[TC_BUF_MAX];
 
 filter_t filter[MAX_FILTER];
 
-extern int errno;
-
-int filter_next_free_id(void)
+static int filter_next_free_id(void)
 {
   int n;
 
@@ -75,7 +72,7 @@ int filter_next_free_id(void)
   return n-1;
 }
 
-void plugin_fix_id(void)
+static void plugin_fix_id(void)
 {
   int n;
   char *offset;
@@ -105,7 +102,7 @@ void plugin_fix_id(void)
   
 
 // removes \\ from ,
-int filter_unquote_options(char *options)
+static int filter_unquote_options(char *options)
 {
     char *a, *b;
 
@@ -124,7 +121,7 @@ int filter_unquote_options(char *options)
     return 0;
 }
 
-int load_plugin(char *path) {
+static int load_plugin(char *path) {
 #ifdef SYS_BSD
   const
 #endif    
@@ -193,7 +190,7 @@ int load_plugin(char *path) {
   return(0);
 }
 
-int filter_single_init(int id)
+static int filter_single_init(int id)
 {
   frame_list_t ptr;
 
@@ -245,7 +242,7 @@ char * filter_single_readconf(int id)
   return NULL;
 }
 
-int filter_single_close(int id)
+static int filter_single_close(int id)
 {
     frame_list_t ptr;
 
@@ -368,7 +365,7 @@ int load_single_plugin (char *mfilter_string)
   return 0;
 }
 
-char *get_next_filter_name(char **name, int *namelen, char *string)
+static char *get_next_filter_name(char **name, int *namelen, char *string)
 {
   char *res = string;
   int len = 0;
@@ -490,7 +487,8 @@ int plugin_get_handle (char *name)
   return id;
 
 }
-int init_plugin(vob_t *vob)
+
+static int init_plugin(vob_t *vob)
 {
 
   int n, j=0;
@@ -631,7 +629,8 @@ int plugin_single_close(int id)
 
     return (0);
 }
-int plugin_close()
+
+int plugin_close(void)
 {
     
     int n;

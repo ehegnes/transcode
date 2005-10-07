@@ -70,7 +70,7 @@ typedef struct vo_s {
 } vo_t;
 
 #define vo_convert(instp) \
-	ac_imgconvert((instp)->yuv, IMG_YUV420P, (instp)->rgb, IMG_RGB24, \
+	ac_imgconvert((instp)->yuv, IMG_YUV420P, &(instp)->rgb, IMG_RGB24, \
 		      (instp)->width, (instp)->height)
 
 /* 
@@ -78,7 +78,7 @@ typedef struct vo_s {
  * read one YUV420P plane at time from file descriptor (pipe, usually)
  * and store it in internal buffer
  */
-int vo_read_yuv (vo_t *vo, int fd)
+static int vo_read_yuv (vo_t *vo, int fd)
 {
    unsigned int v = vo->height, h = vo->width;
    int i, bytes;
@@ -120,7 +120,7 @@ int vo_read_yuv (vo_t *vo, int fd)
  * WARNING: caller must ensure that RGB buffer holds valid data by
  * invoking vo_convert *before* invoking this function
  */
-int vo_write_rgb (vo_t *vo, int fd)
+static int vo_write_rgb (vo_t *vo, int fd)
 {
    int framesize = vo->width * vo->height * 3, bytes = 0;
    bytes = p_write (fd, vo->rgb, framesize);
@@ -136,7 +136,7 @@ int vo_write_rgb (vo_t *vo, int fd)
  * finalize a vo structure, free()ing it's internal buffers.
  * WARNING: DOES NOT cause a buffer flush, you must do it manually.
  */
-void vo_clean (vo_t *vo)
+static void vo_clean (vo_t *vo)
 {
     free (vo->yuv[0]);
     free (vo->yuv[1]);
@@ -148,7 +148,7 @@ void vo_clean (vo_t *vo)
  * initialize a vo structure, allocate internal buffers
  * and so on
  */
-int vo_alloc (vo_t *vo, int width, int height)
+static int vo_alloc (vo_t *vo, int width, int height)
 {
     if (width <= 0 || height <= 0) {
         return -1;

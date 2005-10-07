@@ -150,7 +150,7 @@ MOD_open
 
 MOD_encode
 {
-  char *out_buffer = param->buffer;
+  uint8_t *out_buffer = param->buffer;
   int n, out_size = param->size;
   
   if ((++int_counter-1) % interval != 0)
@@ -160,12 +160,12 @@ MOD_encode
     
     
     if(codec==CODEC_YUV) {
-      u_int8_t *planes[3];
+      uint8_t *planes[3];
       YUV_INIT_PLANES(planes, param->buffer, IMG_YUV_DEFAULT, width, height);
-      ac_imgconvert(planes, IMG_YUV_DEFAULT, tmp_buffer, IMG_RGB24,
-		    width, height);
       out_buffer = tmp_buffer;
-      out_size = height * 3 *width;
+      ac_imgconvert(planes, IMG_YUV_DEFAULT, &out_buffer, IMG_RGB24,
+		    width, height);
+      out_size = width*height*3;
     }
     
     if(strncmp(type, "PV5a", 4)==0) 

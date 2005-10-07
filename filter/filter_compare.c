@@ -98,10 +98,10 @@ static void help_optstr(void)
 }
 
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
+	vframe_list_t *ptr = (vframe_list_t *)ptr_;
 	int instance = ptr->filter_id;
-	
 	Image *pattern, *resized, *orig = 0;
 	ImageInfo *image_info;
 	

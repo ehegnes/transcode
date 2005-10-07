@@ -109,8 +109,9 @@ parse_options(char *options, int *pre, double *infps, double *outfps)
 }
 
 int
-tc_filter(vframe_list_t *ptr, char *options)
+tc_filter(frame_list_t *ptr_, char *options)
 {
+	vframe_list_t *ptr = (vframe_list_t *)ptr_;
 	static double		infps, outfps;
 	static unsigned long	framesin = 0, framesout = 0;
 	static int		pre = 0;

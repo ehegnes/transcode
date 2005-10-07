@@ -39,6 +39,8 @@ void tc_error(char *fmt, ...);
 void tc_info(char *fmt, ...);
 void tc_warn(char *fmt, ...);
 
+/* Provided by caller */
+extern void version(void);
 extern char *RED;
 extern char *GREEN;
 extern char *YELLOW;

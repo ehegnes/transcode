@@ -40,13 +40,13 @@
 
 #define EXE "aviindex"
 
-void version()
+void version(void)
 {
   printf("%s (%s v%s) (C) 2003-2004 Tilmann Bitterberg\n", EXE, PACKAGE, VERSION);
 }
 
 
-void usage(int status)
+static void usage(int status)
 {
   version();
   printf("\nUsage: %s [options]\n", EXE);
@@ -134,7 +134,7 @@ typedef struct {
     uint32_t dwChunkLength;
 } AVIINDEXENTRY;
 
-int aviidx1_to_mpidx1(char *in_file, FILE *out_fd)
+static int aviidx1_to_mpidx1(char *in_file, FILE *out_fd)
 {
     char *data;
     FILE *in;
@@ -187,7 +187,8 @@ int aviidx1_to_mpidx1(char *in_file, FILE *out_fd)
     fclose(out_fd);
     return 0;
 }
-int mpidx1_to_aviidx1(char *in_file, FILE *out_fd)
+
+static int mpidx1_to_aviidx1(char *in_file, FILE *out_fd)
 {
     char head[10];
     char *data;
@@ -236,7 +237,7 @@ int mpidx1_to_aviidx1(char *in_file, FILE *out_fd)
 }
 
 // data is only 8 bytes long
-int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key, char *data)
+static int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key, char *data)
 {
 
 /*
@@ -389,7 +390,7 @@ int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off_t *key
    }
 }
 
-int is_key(unsigned char *data, long size, char *codec) 
+static int is_key(unsigned char *data, long size, char *codec) 
 {
     if (strncasecmp(codec, "div3", 4) == 0) {
 

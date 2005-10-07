@@ -30,7 +30,7 @@
 void frame_threads_init(vob_t *vob, int vworkers, int aworkers);
 void process_vframe(vob_t *vob);
 void process_aframe(vob_t *vob);
-void frame_threads_close();
+void frame_threads_close(void);
 int get_fthread_id(int flag);
 void frame_threads_notify(int what);
 

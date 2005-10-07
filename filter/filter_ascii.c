@@ -71,7 +71,7 @@ static void help_optstr(void){
 	printf ("  'buffer':\tUse `aart` internal buffer for output (recommended off)\n");
 } 
 
-int write_tmpfile(char* header, char* content, int content_size, int slot_id){
+static int write_tmpfile(char* header, char* content, int content_size, int slot_id){
 	FILE* 	tmp = NULL;
 	int 	i = 0;
 	char*	filename = NULL;
@@ -102,7 +102,7 @@ int write_tmpfile(char* header, char* content, int content_size, int slot_id){
 	return 0;
 } 
 
-int parse_stream_header(FILE* stream, int width){
+static int parse_stream_header(FILE* stream, int width){
 	char	cursor = 0;
 	int		aart_width = 0;
 
@@ -137,7 +137,7 @@ int parse_stream_header(FILE* stream, int width){
 	return aart_width;
 }
 
-int aart_render(char* buffer, int width, int height, int slot_id, char* font, char* pallete, int threads, int buffer_option){
+static int aart_render(char* buffer, int width, int height, int slot_id, char* font, char* pallete, int threads, int buffer_option){
 	char 	pnm_header[255] = "", 
 			cmd_line[MAX_LENGTH] = "",
 			buffer_option_string[PATH_MAX] = "";
@@ -184,7 +184,7 @@ int aart_render(char* buffer, int width, int height, int slot_id, char* font, ch
 	return 0;
 }
 
-int clean_parameter(char* parameter){
+static int clean_parameter(char* parameter){
 	/* Purges extra character from parameter string */
 	int i=0;
 	
@@ -197,14 +197,14 @@ int clean_parameter(char* parameter){
 	return 0;
 }
 
-int init_slots(int slots[]){
+static int init_slots(int slots[]){
 	int i = 0;
 	for (i=0; i<TC_FRAME_THREADS_MAX; i++)
 		slots[i] = 0;
 	return 0;
 }
 
-int find_empty_slot(int frame_id, int *slots){
+static int find_empty_slot(int frame_id, int *slots){
 	int i = 0;
 	while((slots[i]!=0)&&(i<TC_FRAME_THREADS_MAX))
 		i++;
@@ -215,7 +215,7 @@ int find_empty_slot(int frame_id, int *slots){
 	return i;
 }
 
-int free_slot(int frame_id, int *slots){
+static int free_slot(int frame_id, int *slots){
 	int i = 0;
 	while ((slots[i]!=frame_id)&&(i<TC_FRAME_THREADS_MAX))
 		i++;
@@ -233,8 +233,8 @@ int free_slot(int frame_id, int *slots){
 	return 0;
 }
 
-int tc_filter(vframe_list_t *ptr, char *options){
-
+int tc_filter(frame_list_t *ptr_, char *options){
+	vframe_list_t *		ptr = (vframe_list_t *)ptr_;
 	int 			frame_slot = 0;
 	static 			vob_t *vob=NULL;
 	static int		slots[TC_FRAME_THREADS_MAX];

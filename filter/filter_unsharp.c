@@ -167,7 +167,7 @@ static void unsharp( uint8_t *dst, uint8_t *src, int dstStride, int srcStride, i
 
 //===========================================================================//
 
-static void help_optstr()
+static void help_optstr(void)
 {
     printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
     printf ("* Overview\n");
@@ -197,9 +197,9 @@ static void help_optstr()
 
 //===========================================================================//
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
   static MyFilterData *mfd=NULL;
   static char *buffer;

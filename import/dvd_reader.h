@@ -31,7 +31,7 @@ int dvd_probe(int title, probe_info_t *info);
 int dvd_query(int arg_title, int *arg_chapter, int *arg_angle);
 int dvd_read(int arg_title, int arg_chapter, int arg_angle);
 int dvd_stream(int arg_title,int arg_chapid);
-int dvd_close();
+int dvd_close(void);
 int dvd_verify(char *path);
 
 #endif

@@ -15,14 +15,14 @@
 /*************************************************************************/
 
 /* Identity transformation, works when src==dest */
-static int yuv16_copy(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv16_copy(uint8_t **src, uint8_t **dest, int width, int height)
 {
     tc_memcpy(dest[0], src[0], width*height*2);
     return 1;
 }
 
 /* Used for YUY2->UYVY and UYVY->YUY2, works when src==dest */
-static int yuv16_swap16(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv16_swap16(uint8_t **src, uint8_t **dest, int width, int height)
 {
     u_int16_t *srcp  = (u_int16_t *)src[0];
     u_int16_t *destp = (u_int16_t *)dest[0];
@@ -33,11 +33,11 @@ static int yuv16_swap16(u_int8_t **src, u_int8_t **dest, int width, int height)
 }
 
 /* Used for YUY2->YVYU and YVYU->YUY2, works when src==dest */
-static int yuv16_swapuv(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv16_swapuv(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height/2; i++) {
-	u_int8_t tmp   = src[0][i*4+1];
+	uint8_t tmp   = src[0][i*4+1];
 	dest[0][i*4  ] = src[0][i*4  ];
 	dest[0][i*4+1] = src[0][i*4+3];
 	dest[0][i*4+2] = src[0][i*4+2];
@@ -48,7 +48,7 @@ static int yuv16_swapuv(u_int8_t **src, u_int8_t **dest, int width, int height)
 
 /*************************************************************************/
 
-static int uyvy_yvyu(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int uyvy_yvyu(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height/2; i++) {
@@ -60,7 +60,7 @@ static int uyvy_yvyu(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int yvyu_uyvy(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yvyu_uyvy(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height/2; i++) {

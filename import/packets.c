@@ -48,7 +48,7 @@ pthread_cond_t packet_pop_cv=PTHREAD_COND_INITIALIZER;
 pthread_cond_t packet_push_cv=PTHREAD_COND_INITIALIZER;
 static pthread_t packet_thread;
 
-extern int seq_info_delay();
+extern int seq_info_delay(void);
 
 packet_list_t *packet_register(int id)
 
@@ -388,7 +388,7 @@ int packet_buffer_flush()
 
 /* ------------------------------------------------------------------ */
 
-void flush_buffer_thread()
+static void flush_buffer_thread(void)
 {
 
     int tt;

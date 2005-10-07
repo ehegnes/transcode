@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "split.h"
 
 #define PMAX_BUF 1024
 char split_cmd_buf[PMAX_BUF];
@@ -47,7 +48,7 @@ static long unit_offset[MAX_UNITS];
 
 #define debug_return {return(-1);}
 
-int split_stream_core(char *file, char *source)
+static int split_stream_core(char *file, char *source)
 {
     
     FILE *fd;
@@ -115,7 +116,7 @@ int split_stream_core(char *file, char *source)
 }
 
 
-long int get_frame_index(int unit, long frame_inc)
+static long get_frame_index(int unit, long frame_inc)
 {
     //first entry is unique
     

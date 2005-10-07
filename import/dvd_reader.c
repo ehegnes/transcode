@@ -27,6 +27,7 @@
 #include <assert.h>
 
 #include "ioaux.h"
+#include "dvd_reader.h"
 
 #ifdef HAVE_LIBDVDREAD
 
@@ -50,8 +51,7 @@ static char lock_file[] = "/tmp/LCK..dvd";
 /*
  * lock - create a lock file for the device
  */
-int
-lock(void)
+static int lock(void)
 {
     char lock_buffer[12];
     int fd, pid, n;
@@ -108,8 +108,7 @@ lock(void)
 /*
  * unlock - remove our lockfile
  */
-void
-unlock( void )
+static void unlock(void)
 {
 	unlink(lock_file);
 }
@@ -122,7 +121,7 @@ static long playtime=0;
  * and sometimes we incorrectly think that valid other packs are NAV packs.  I
  * need to make this stronger.
  */
-int is_nav_pack( unsigned char *buffer )
+static int is_nav_pack( unsigned char *buffer )
 {
     return ( buffer[ 41 ] == 0xbf && buffer[ 1027 ] == 0xbf );
 }
@@ -759,7 +758,7 @@ int dvd_init(char *dvd_path, int *titles, int verb)
     return(0);
 }
 
-int dvd_close()
+int dvd_close(void)
 {
     if(data!=NULL) {
 	free(data);
@@ -1036,7 +1035,7 @@ static void rip_counter_init(long int *t1, long int *t2)
   
 }
 
-static void rip_counter_close()
+static void rip_counter_close(void)
 {
     fprintf(stderr,"\n");
 }

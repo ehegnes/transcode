@@ -181,7 +181,7 @@ MOD_encode
     } 
     
     if(codec==CODEC_YUV) {
-      u_int8_t *planes[3];
+      uint8_t *planes[3];
       YUV_INIT_PLANES(planes, param->buffer, IMG_YUV_DEFAULT, width, height);
       ac_imgconvert(planes, IMG_YUV_DEFAULT, &tmp_buffer, IMG_RGB24,
 		    width, height);

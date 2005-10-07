@@ -36,6 +36,8 @@
 #endif
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
+#else
+extern int errno;
 #endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
@@ -135,8 +137,8 @@ typedef struct _transfer_t {
   
   int size;
 
-  u_int8_t *buffer;
-  u_int8_t *buffer2;
+  uint8_t *buffer;
+  uint8_t *buffer2;
 
   int attributes;
 
@@ -566,6 +568,11 @@ typedef struct subtitle_header_s {
 
 } subtitle_header_t;
 
+// module functions
+
+int tc_import(int opt, void *para1, void *para2);
+int tc_export(int opt, void *para1, void *para2);
+
 // some functions exported by transcode
 
 void tc_progress(char *string);
@@ -577,8 +584,9 @@ void tc_info(char *fmt, ...);
 void tc_warn(char *fmt, ...);
 */
 vob_t *tc_get_vob(void); 
-long tc_get_frames_encoded(void);
 long tc_get_frames_dropped(void);
+long tc_get_frames_skipped(void);
+long tc_get_frames_encoded(void);
 long tc_get_frames_cloned(void);
 void tc_update_frames_dropped(long cc);
 void tc_update_frames_skipped(long cc);

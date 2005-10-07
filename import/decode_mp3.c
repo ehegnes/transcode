@@ -23,9 +23,8 @@
 
 #include "transcode.h"
 
-#include <sys/errno.h>
-
 #include "ioaux.h"
+#include "tc.h"
 
 #ifdef HAVE_LAME
 #include "mpg123.h"

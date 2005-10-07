@@ -158,34 +158,6 @@ void zoom_setup_image(image_t *img, int w, int h, int depth, pixel_t *data)
     img->data = data;
 }
 
-image_t *new_image(int xsize, int ysize)  /* create a blank image */
-{
-    image_t *image;
-
-    if((image = (image_t *)malloc(sizeof(image_t))))
-    {
-        if((image->data = (pixel_t *)calloc(ysize, xsize)))
-        {
-            image->xsize = xsize;
-            image->ysize = ysize;
-            image->span = xsize;
-        }
-        else
-        {
-            free(image);
-            image = NULL;
-        }
-    }
-    return image;
-}
-
-void free_image(image_t *image)
-{
-    free(image->data);
-    free(image);
-}
-
-
 
 
 /*

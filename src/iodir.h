@@ -29,7 +29,7 @@
 int tc_open_directory(char *dir_name);
 int tc_sortbuf_directory(char *dir_name);
 char *tc_scan_directory(char *dir_name);
-void tc_close_directory();
-void tc_freebuf_directory();
+void tc_close_directory(void);
+void tc_freebuf_directory(void);
 
 #endif

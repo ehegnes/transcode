@@ -33,7 +33,7 @@ char *codec2str(int f);
 char *asr2str(int c);
 void server_thread(vob_t *vob);
 
-static double frc_table[16] = {0,
+__attribute__((unused)) static double frc_table[16] = {0,
 			       NTSC_FILM, 24, 25, NTSC_VIDEO, 30, 50, 
 			       (2*NTSC_VIDEO), 60,
 			       1, 5, 10, 12, 15, 

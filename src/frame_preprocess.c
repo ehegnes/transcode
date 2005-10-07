@@ -25,14 +25,13 @@
 #include "framebuffer.h"
 #include "video_trans.h"
 
-extern void check_clip_para(int p);
-
-int preprocess_yuv422_frame(vob_t *vob, vframe_list_t *ptr)
+static int preprocess_yuv422_frame(vob_t *vob, vframe_list_t *ptr)
 {
+#warning ******************* FIXME ******************* not implemented
     return 0;
 }
 
-int preprocess_yuv_frame(vob_t *vob, vframe_list_t *ptr)
+static int preprocess_yuv_frame(vob_t *vob, vframe_list_t *ptr)
 {
     
   /* ------------------------------------------------------------ 
@@ -92,7 +91,7 @@ int preprocess_yuv_frame(vob_t *vob, vframe_list_t *ptr)
 
 
 
-int preprocess_rgb_frame(vob_t *vob, vframe_list_t *ptr)
+static int preprocess_rgb_frame(vob_t *vob, vframe_list_t *ptr)
 {
 
   

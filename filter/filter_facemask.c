@@ -71,7 +71,7 @@ static void help_optstr(void){
 	printf ("  'ydim':\t\tHeight of the mask (= m*yresolution)\n");
 }
 
-int check_parameters(int x, int y, int w, int h, int W, int H, vob_t *vob){
+static int check_parameters(int x, int y, int w, int h, int W, int H, vob_t *vob){
 	
 	/* First, we check if the face-zone is contained in the picture */
 	if ((x+W) > vob->im_v_width){
@@ -95,7 +95,7 @@ int check_parameters(int x, int y, int w, int h, int W, int H, vob_t *vob){
 	return 0;
 }
 
-int average_neighbourhood(int x, int y, int w, int h, unsigned char *buffer, int width){
+static int average_neighbourhood(int x, int y, int w, int h, unsigned char *buffer, int width){
 	unsigned int 	red=0, green=0, blue=0;
 	int 			i=0,j=0;
 	
@@ -121,7 +121,7 @@ int average_neighbourhood(int x, int y, int w, int h, unsigned char *buffer, int
 	return 0;
 }
 
-int print_mask(int x, int y, int w, int h, int W, int H, vframe_list_t *ptr){
+static int print_mask(int x, int y, int w, int h, int W, int H, vframe_list_t *ptr){
 	int				i=0,j=0;
 	for (j=y; j<=y+H; j+=h)
 		for (i=x; i<=x+W; i+=w)
@@ -129,8 +129,8 @@ int print_mask(int x, int y, int w, int h, int W, int H, vframe_list_t *ptr){
 	return 0;
 }
 
-int tc_filter(vframe_list_t *ptr, char *options){
-
+int tc_filter(frame_list_t *ptr_, char *options){
+	vframe_list_t *ptr = (vframe_list_t *)ptr_;
 	static 			vob_t *vob=NULL;
 
   

@@ -25,7 +25,6 @@
 #include "ioaux.h"
 #include "dvd_reader.h"
 
-#include <sys/errno.h>
 
 int probe_dvd(info_t *ipipe)
 {

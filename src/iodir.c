@@ -21,9 +21,9 @@
  *
  */
 
-#include <sys/types.h>
+#include "transcode.h"
 #include <dirent.h>
-#include "ioaux.h"
+#include "iodir.h"
 
 #ifdef SYS_BSD
 typedef	off_t off64_t;
@@ -98,9 +98,9 @@ char *tc_scan_directory(char *dir_name)
 }
 
 
-static int compare_name(char **file1_ptr, char **file2_ptr)
+static int compare_name(const void *file1_ptr, const void *file2_ptr)
 {
-  return strcoll(*file1_ptr, *file2_ptr);
+  return strcoll(*(const char **)file1_ptr, *(const char **)file2_ptr);
 }
 
 
@@ -110,8 +110,6 @@ int tc_sortbuf_directory(char *dir_name)
   char *end_of_dir;
   int n, len;
 
-  int (*func) ();
-  
   if (dir_name == 0) return(-1);
   if (dir == 0) return(-1);
   if(nfiles == 0) return(-1);
@@ -144,9 +142,7 @@ int tc_sortbuf_directory(char *dir_name)
   
   // sorting
 
-  func = compare_name;
-
-  qsort(rbuf_ptr, nfiles, sizeof(char *), func);
+  qsort(rbuf_ptr, nfiles, sizeof(char *), compare_name);
 
   buffered=1;
   findex=0;
@@ -155,13 +151,13 @@ int tc_sortbuf_directory(char *dir_name)
 }
 
 
-void tc_close_directory()
+void tc_close_directory(void)
 {
   if(dir!=NULL) closedir(dir);
   dir=NULL;
 }
 
-void tc_freebuf_directory()
+void tc_freebuf_directory(void)
 {
   free(rbuf_ptr);
 }

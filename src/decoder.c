@@ -70,7 +70,7 @@ void tc_import_stop_nolock()
 //
 //--------------------------------------------------------------------------
 
-void tc_import_stop()
+static void tc_import_stop(void)
 {
   
   vimport_stop();
@@ -373,7 +373,7 @@ int import_open(vob_t *vob)
 //
 //-------------------------------------------------------------------------
 
-int import_close()
+int import_close(void)
 {
 
     int ret;
@@ -419,7 +419,7 @@ int import_close()
 //-------------------------------------------------------------------------
 
 
-static int vimport_test_shutdown()
+static int vimport_test_shutdown(void)
 {
 
   pthread_mutex_lock(&import_v_lock);
@@ -1006,16 +1006,6 @@ int aimport_status()
   
   pthread_mutex_unlock(&aframe_list_lock);
   return(cc);
-}
-
-void aimport_notify()
-{
-  
-  //notify sleeping import thread
-  pthread_mutex_lock(&aframe_list_lock);
-  pthread_cond_signal(&aframe_list_full_cv);
-  pthread_mutex_unlock(&aframe_list_lock);
-
 }
 
 //-------------------------------------------------------------------------

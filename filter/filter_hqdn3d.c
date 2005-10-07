@@ -130,7 +130,7 @@ static void PrecalcCoefs(int *Ct, double Dist25)
     }
 }
 
-static void help_optstr()
+static void help_optstr(void)
 {
     printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
     printf ("* Overview\n");
@@ -147,9 +147,9 @@ static void help_optstr()
 }
 
 // main filter routine
-int tc_filter(vframe_list_t *ptr, char *options) 
+int tc_filter(frame_list_t *ptr_, char *options) 
 {
-
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
   static MyFilterData *mfd[MAX_FILTER];
   static char *buffer[MAX_FILTER];

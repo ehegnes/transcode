@@ -69,7 +69,7 @@ static int cmp_32_bits(char *buf, long x)
   return 1;
 }
   
-void unit_summary()
+static void unit_summary(void)
 {
     int n;
 

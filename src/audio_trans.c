@@ -45,7 +45,7 @@ static short aclip(int v, int *cclip)
   return ((short) v);
 }
 
-void pcm_swap(char *buffer, int len)
+static void pcm_swap(char *buffer, int len)
 {
   char *in, *out;
 

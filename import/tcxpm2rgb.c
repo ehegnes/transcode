@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "ioaux.h"
 
 #include <ctype.h>
 
@@ -185,16 +186,17 @@ static unsigned int QueryColorDatabase(const char *name,
 #define EXE "tcxpm2rgb"
 #define MAX_BUF     1024
 
-void version(char *exe)
+void version(void)
 {
     // print id string to stderr
-    fprintf(stderr, "%s (%s v%s) (C) 2003 Tilmann Bitterberg\n", exe, PACKAGE, VERSION);
+    fprintf(stderr, "%s (%s v%s) (C) 2003 Tilmann Bitterberg\n",
+	    EXE, PACKAGE, VERSION);
 }
 
 
-void usage(int status)
+static void usage(int status)
 {
-  version(EXE);
+  version();
    
   fprintf(stderr,"\n%s converts a XPM file to rgb24 format\n", EXE);
   fprintf(stderr,"Usage: %s [options]\n", EXE);
@@ -239,7 +241,7 @@ int main (int argc, char *argv[])
 	break;
 
       case 'v':
-	version(EXE);
+	version();
 	exit(EXIT_SUCCESS);
 	break;
       case '?':

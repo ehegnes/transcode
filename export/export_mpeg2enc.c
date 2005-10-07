@@ -109,7 +109,7 @@ static int y4m_write_stream_header2(FILE *fd, y4m_stream_info_t *i)
 
 }
 
-int y4m_write_frame_header2(FILE *fd, y4m_frame_info_t *i)
+static int y4m_write_frame_header2(FILE *fd, y4m_frame_info_t *i)
 {
   char s[Y4M_LINE_MAX+1];
   int n;

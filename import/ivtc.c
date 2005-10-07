@@ -23,6 +23,7 @@
 
 #include "transcode.h"
 #include "ioaux.h"
+#include "ivtc.h"
 
 // basic parameter
 static int color_diff_threshold1=50;

@@ -47,7 +47,7 @@ const char *fifoname = "audio-mp1e.wav";
 static int audio_open_done = 0;
 static int do_audio = 0;
 
-static u_int8_t *yuy2buf = NULL;
+static uint8_t *yuy2buf = NULL;
 static int v_codec = 0;
 static int width = 0;
 static int height = 0;

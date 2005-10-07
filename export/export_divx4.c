@@ -184,7 +184,7 @@ static int divx_init(char *path) {
 
 DIVX4_ENC_PARAM *divx4 = NULL;
 
-int divx_v4_init_codec(ENC_PARAM *params) {
+static int divx_v4_init_codec(ENC_PARAM *params) {
   int result;
 
   if ((divx4 = malloc(sizeof(*divx4)+DIVX_STRUCT_PADDING))==NULL) {
@@ -230,7 +230,7 @@ int divx_v4_init_codec(ENC_PARAM *params) {
 // The structure for version 5 is what we're using by default, so no additional
 // fiddling is required here.
 
-int divx_v5_init_codec(ENC_PARAM *params) {
+static int divx_v5_init_codec(ENC_PARAM *params) {
   return divx_encore(NULL, ENC_OPT_INIT, params, NULL);
 }
 

@@ -25,14 +25,15 @@
 
 #include "transcode.h"
 
+#include "aclib/imgconvert.h"
 #include "ioaux.h"
+#include "tc.h"
 
 // FIXME
 #ifdef EMULATE_FAST_INT
 #undef EMULATE_FAST_INT
 #endif
 #include <ffmpeg/avcodec.h>
-#include "aclib/imgconvert.h"
 
 #define READ_BUFFER_SIZE (10*1024*1024)
 #define MOD_NAME "decode_ffmpeg"
@@ -126,7 +127,7 @@ static unsigned char *bufalloc(size_t size) {
 
 void decode_lavc(decode_t *decode)
 {
-  u_int8_t           *out_buffer = NULL;
+  uint8_t           *out_buffer = NULL;
   int                 pass_through = 0;
   char               *buffer =  NULL;
   char               *yuv2rgb_buffer = NULL;
@@ -144,9 +145,9 @@ void decode_lavc(decode_t *decode)
   int run=0;
 
   // decoder
-  int        len = 0, i, j;
+  int        len = 0;
   long       bytes_read = 0;
-  u_int8_t   *planes[3];
+  uint8_t   *planes[3];
 
   ac_imgconvert_init(ac_mmflag());
 

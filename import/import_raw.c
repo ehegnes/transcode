@@ -38,7 +38,7 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_PCM | TC_CAP_YUV42
 char import_cmd_buf[MAX_BUF];
 static int codec;
 
-int scan(char *name) 
+static int scan(char *name) 
 {
   struct stat fbuf;
   

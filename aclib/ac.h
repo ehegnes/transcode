@@ -28,13 +28,10 @@
 #include "config.h"
 #endif
 
+#include <stdint.h>
 #include <unistd.h>
 
 #include "libtc/libtc.h"
-
-#ifdef __bsdi__
-typedef unsigned int uint32_t;
-#endif
 
 //mm_support
 #define MM_C        0x0000 //plain C (default)
@@ -49,21 +46,17 @@ typedef unsigned int uint32_t;
 #define MM_3DNOWEXT 0x0100 //AMD 3DNow! ext.
 #define MM_SSE3     0x0200 //Prescott SSE3
 
-// FIXME (from libvo merge)
-/* generic accelerations */
-#define MM_MLIB	    0x8000
-
 extern void * (*tc_memcpy)(void *, const void *, size_t);
 extern void tc_memcpy_init(int verbose, int mmflags);
 
 extern int mm_flags;
-int ac_mmflag();
-void ac_mmtest();
+int ac_mmflag(void);
+void ac_mmtest(void);
 char *ac_mmstr(int flag, int mode);
 
 //ac_memcpy
 void * ac_memcpy_mmx(void *dest, const void *src, size_t bytes);
-void * ac_memcpy_amdmmx(void *dest, const void *src, size_t bytes);
+void * ac_memcpy_sse(void *dest, const void *src, size_t bytes);
 void * ac_memcpy_amd64(void *dest, const void *src, size_t bytes);
 
 //average (simple average over 2 rows)

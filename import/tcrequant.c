@@ -313,7 +313,7 @@ static inline uint Copy_Bits(uint n)
 	return Val;
 }
 
-static inline void flush_read_buffer()
+static inline void flush_read_buffer(void)
 {
 	int i = inbitcnt & 0x7;
 	if (i)
@@ -331,7 +331,7 @@ static inline void flush_read_buffer()
 	inbitcnt = 0;
 }
 
-static inline void flush_write_buffer()
+static inline void flush_write_buffer(void)
 {
 	if (outbitcnt != 8) putbits(0, outbitcnt);
 }
@@ -466,7 +466,7 @@ static inline int isNotEmpty(RunLevel *blk)
 #include "putvlc.h"
 
 // return != 0 if error
-int putAC(int run, int signed_level, int vlcformat)
+static int putAC(int run, int signed_level, int vlcformat)
 {
 	int level, len;
 	const VLCtable *ptab = NULL;
@@ -528,7 +528,7 @@ static inline int putACfirst(int run, int val)
 	else return putAC(run,val,0);
 }
 
-void putnonintrablk(RunLevel *blk)
+static void putnonintrablk(RunLevel *blk)
 {
 	assert(blk->level);
 	
@@ -549,7 +549,7 @@ static inline void putcbp(int cbp)
 	putbits(cbptable[cbp].code,cbptable[cbp].len);
 }
 
-void putmbtype(int mb_type)
+static void putmbtype(int mb_type)
 {
 	putbits(mbtypetab[picture_coding_type-1][mb_type].code,
 			mbtypetab[picture_coding_type-1][mb_type].len);
@@ -566,7 +566,7 @@ static int non_linear_quantizer_scale [] =
     56, 64, 72, 80, 88, 96, 104, 112
 };
 
-static inline int get_macroblock_modes ()
+static inline int get_macroblock_modes(void)
 {
     int macroblock_modes;
     const MBtab * tab;
@@ -664,7 +664,7 @@ static inline int get_macroblock_modes ()
 
 }
 
-static inline int get_quantizer_scale ()
+static inline int get_quantizer_scale(void)
 {
     int quantizer_scale_code;
 
@@ -731,7 +731,7 @@ static inline int get_motion_delta (const int f_code)
 }
 
 
-static inline int get_dmv ()
+static inline int get_dmv(void)
 {
     const DMVtab * tab;
 
@@ -740,7 +740,7 @@ static inline int get_dmv ()
     return tab->dmv;
 }
 
-static inline int get_coded_block_pattern ()
+static inline int get_coded_block_pattern(void)
 {
 #define bit_buf (inbitbuf)
     const CBPtab * tab;
@@ -759,7 +759,7 @@ static inline int get_coded_block_pattern ()
     }
 }
 
-static inline int get_luma_dc_dct_diff ()
+static inline int get_luma_dc_dct_diff(void)
 {
 #define bit_buf (inbitbuf)
     const DCtab * tab;
@@ -796,7 +796,7 @@ static inline int get_luma_dc_dct_diff ()
     }
 }
 
-static inline int get_chroma_dc_dct_diff ()
+static inline int get_chroma_dc_dct_diff(void)
 {
 #define bit_buf (inbitbuf)
 
@@ -833,7 +833,7 @@ static inline int get_chroma_dc_dct_diff ()
     }
 }
 
-static void get_intra_block_B14 ()
+static void get_intra_block_B14(void)
 {
 #define bit_buf (inbitbuf)
 	int q = quantizer_scale, nq = new_quantizer_scale, tst = (nq / q) + ((nq % q) ? 1 : 0);
@@ -920,7 +920,7 @@ static void get_intra_block_B14 ()
 	COPYBITS (bit_buf, bits, 2);	/* end of block code */
 }
 
-static void get_intra_block_B15 ()
+static void get_intra_block_B15(void)
 {
 #define bit_buf (inbitbuf)
 	int q = quantizer_scale, nq = new_quantizer_scale, tst = (nq / q) + ((nq % q) ? 1 : 0);
@@ -1258,13 +1258,13 @@ static inline void slice_non_intra_DCT (int cur_block)
 	else get_non_intra_block_rq(block[cur_block]);
 }
 
-static void motion_fr_frame ( uint f_code[2] )
+static void motion_fr_frame(uint f_code[2])
 {
 	get_motion_delta (f_code[0]);
 	get_motion_delta (f_code[1]);
 }
 
-static void motion_fr_field ( uint f_code[2] )
+static void motion_fr_field(uint f_code[2])
 {
     COPYBITS (bit_buf, bits, 1);
 
@@ -1277,7 +1277,7 @@ static void motion_fr_field ( uint f_code[2] )
 	get_motion_delta (f_code[1]);
 }
 
-static void motion_fr_dmv ( uint f_code[2] )
+static void motion_fr_dmv(uint f_code[2])
 {
     get_motion_delta (f_code[0]);
 	get_dmv ();
@@ -1287,7 +1287,7 @@ static void motion_fr_dmv ( uint f_code[2] )
 }
 
 /* like motion_frame, but parsing without actual motion compensation */
-static void motion_fr_conceal ( )
+static void motion_fr_conceal(void)
 {
 	get_motion_delta (f_code[0][0]);
 	get_motion_delta (f_code[0][1]);
@@ -1295,7 +1295,7 @@ static void motion_fr_conceal ( )
     COPYBITS (bit_buf, bits, 1); /* remove marker_bit */
 }
 
-static void motion_fi_field ( uint f_code[2] )
+static void motion_fi_field(uint f_code[2])
 {
     COPYBITS (bit_buf, bits, 1);
 
@@ -1303,7 +1303,7 @@ static void motion_fi_field ( uint f_code[2] )
 	get_motion_delta (f_code[1]);
 }
 
-static void motion_fi_16x8 ( uint f_code[2] )
+static void motion_fi_16x8(uint f_code[2])
 {
     COPYBITS (bit_buf, bits, 1);
 
@@ -1316,7 +1316,7 @@ static void motion_fi_16x8 ( uint f_code[2] )
 	get_motion_delta (f_code[1]);
 }
 
-static void motion_fi_dmv ( uint f_code[2] )
+static void motion_fi_dmv(uint f_code[2])
 {
 	get_motion_delta (f_code[0]);
     get_dmv ();
@@ -1325,7 +1325,7 @@ static void motion_fi_dmv ( uint f_code[2] )
 	get_dmv ();
 }
 
-static void motion_fi_conceal ()
+static void motion_fi_conceal(void)
 {
     COPYBITS (bit_buf, bits, 1); /* remove field_select */
 
@@ -1354,7 +1354,7 @@ do {															\
     }															\
 } while (0)
 
-void putmbdata(int macroblock_modes)
+static void putmbdata(int macroblock_modes)
 {
 		putmbtype(macroblock_modes & 0x1F);
 		
@@ -1475,7 +1475,7 @@ static inline int slice_init (int code)
 
 }
 
-void mpeg2_slice ( const int code )
+static void mpeg2_slice(const int code)
 {
 #define bit_buf (inbitbuf)
 
@@ -1677,15 +1677,16 @@ void mpeg2_slice ( const int code )
 	return -1;
 
 
-void version(char *exe)
+void version(void)
 {
-    // print id string to stderr
-    fprintf(stderr, "%s (%s v%s) (C) 2003 Antoine Missout\n", exe, PACKAGE, VERSION);
+    /* print id string to stderr */
+    fprintf(stderr, "%s (%s v%s) (C) 2001-2003 Antoine Missout\n",
+                    EXE, PACKAGE, VERSION);
 }
 
-void usage(int status)
+static void usage(int status)
 {
-  version(EXE);
+  version();
 
   fprintf(stderr,"\nUsage: %s [options]\n", EXE);
   fprintf(stderr,"\t -i name           input file name [stdin]\n");
@@ -1753,7 +1754,7 @@ int main (int argc, char *argv[])
 		break;
 
 	    case 'v':
-		version(EXE);
+		version();
 		exit(0);
 		break;
 

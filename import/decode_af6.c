@@ -23,8 +23,6 @@
 
 #include "transcode.h"
 
-#include <sys/errno.h>
-
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
 #else
@@ -33,7 +31,9 @@
 # endif
 #endif
 
+#include "aclib/imgconvert.h"
 #include "ioaux.h"
+#include "tc.h"
 
 static char *mod_path=MOD_PATH;
 
@@ -44,7 +44,7 @@ static int (*af6_decore)(decode_t *decode);
 static void *handle;
 static char module[TC_BUF_MAX];
 
-int af6_init(char *path) {
+static int af6_init(char *path) {
 #ifdef SYS_BSD
     const
 #endif    

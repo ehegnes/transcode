@@ -129,7 +129,7 @@ static int sub_buf_alloc(int ex_num)
     
 /* ------------------------------------------------------------------ */
 
-static void sub_buf_free()
+static void sub_buf_free(void)
 {
     
     /* objectives: 
@@ -153,7 +153,7 @@ static void sub_buf_free()
     
 /* ------------------------------------------------------------------ */
 
-static sframe_list_t *sub_buf_retrieve()
+static sframe_list_t *sub_buf_retrieve(void)
 {
     
     /* objectives: 

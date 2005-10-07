@@ -43,7 +43,7 @@ static int preview_delay=0;
 
 static dv_player_t *dv_player = NULL;
 
-dv_player_t *dv_player_new(void) 
+static dv_player_t *dv_player_new(void) 
 {
     dv_player_t *result;
   
@@ -66,9 +66,9 @@ dv_player_t *dv_player_new(void)
  *
  *-------------------------------------------------*/
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   vob_t *vob=NULL;
 
   int pre=0, vid=0;

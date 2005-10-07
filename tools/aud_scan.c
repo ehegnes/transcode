@@ -29,6 +29,7 @@
 #include <inttypes.h>
 
 #include "avilib.h"
+#include "aud_scan.h"
 
 // MP3
 
@@ -185,7 +186,7 @@ static const struct frmsize_s frmsizecod_tbl[] =
 
 #define fscd_tbl_entries (sizeof(frmsizecod_tbl)/sizeof(frmsize_t))
 
-unsigned long get_ac3_header(unsigned char *buf) 
+static unsigned long get_ac3_header(unsigned char *buf) 
 {
   int i=0;
   unsigned long tmp=0;
@@ -197,7 +198,7 @@ unsigned long get_ac3_header(unsigned char *buf)
   return(tmp);
 }
 
-int get_ac3_framesize(unsigned char *buf) 
+static int get_ac3_framesize(unsigned char *buf) 
 {
   int fscod, frmsizecod;
   unsigned long tmp = 0;
@@ -215,7 +216,7 @@ int get_ac3_framesize(unsigned char *buf)
 }
 
 // tibit
-int get_ac3_nfchans(unsigned char *buf) 
+static int get_ac3_nfchans(unsigned char *buf) 
 {
   int acmod = 0;
 
@@ -229,7 +230,7 @@ int get_ac3_nfchans(unsigned char *buf)
 }
 
 
-int get_ac3_bitrate(unsigned char *buf) 
+static int get_ac3_bitrate(unsigned char *buf) 
 {
   int frmsizecod;
   unsigned long tmp = 0;
@@ -244,7 +245,7 @@ int get_ac3_bitrate(unsigned char *buf)
 }
 
 
-int get_ac3_samplerate(unsigned char *buf) 
+static int get_ac3_samplerate(unsigned char *buf) 
 {
   int fscod, sampling_rate;
   unsigned long tmp = 0;

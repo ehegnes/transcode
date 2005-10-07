@@ -60,7 +60,6 @@ MOD_open
   struct stat fbuf;
   char import_cmd_buf[TC_BUF_MAX];
   long sret;
-  extern int errno;
 
   param->fd = NULL;
 

@@ -32,7 +32,6 @@
 extern void import_exit(int ret);
 
 int file_check(char *file);
-void version(char *s);
 
 long fileinfo(int fd, int skipy);
 int fileinfo_dir(char *name, int *fd, long *cc);

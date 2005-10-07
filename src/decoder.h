@@ -26,24 +26,24 @@
 
 // import API
 int import_init(vob_t *vob, char *a_mod, char *v_mod);
-void import_shutdown();
+void import_shutdown(void);
 
-void aimport_stop();
-void vimport_stop();
+void aimport_stop(void);
+void vimport_stop(void);
 
-void aimport_start();
-void vimport_start();
+void aimport_start(void);
+void vimport_start(void);
 
 int import_open(vob_t *vob);
-int import_close();
+int import_close(void);
 
-void import_threads_create();
-void import_threads_cancel();
+void import_threads_create(vob_t *vob);
+void import_threads_cancel(void);
 
-int import_status();
+int import_status(void);
 
-int aimport_status();
-int vimport_status();
+int aimport_status(void);
+int vimport_status(void);
 
 // threads
 void aimport_thread(vob_t *vob);

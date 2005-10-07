@@ -32,12 +32,13 @@
 #include "aclib/imgconvert.h"
 
 static int shift = 1;
-static u_int8_t *buffer;
+static uint8_t *buffer;
 
-void cshift_yuv(u_int8_t *buffer, vob_t *vob, int shift, ImageFormat format)
+static void cshift_yuv(uint8_t *buffer, vob_t *vob, int shift,
+		       ImageFormat format)
 {
     int x, y, w, h;
-    u_int8_t *cbaddr, *craddr;
+    uint8_t *cbaddr, *craddr;
 
     if (format == IMG_YUV420P) {
 	w = vob->im_v_width/2;
@@ -71,7 +72,7 @@ void cshift_yuv(u_int8_t *buffer, vob_t *vob, int shift, ImageFormat format)
  *-------------------------------------------------*/
 
 // old or new syntax?
-int is_optstr (char *buf) {
+static int is_optstr (char *buf) {
     if (strchr(buf, '='))
 	return 1;
     if (strchr(buf, 's'))
@@ -81,9 +82,9 @@ int is_optstr (char *buf) {
     return 0;
 }
 
-int tc_filter(vframe_list_t *ptr, char *options)
+int tc_filter(frame_list_t *ptr_, char *options)
 {
-
+  vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
 
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
@@ -157,7 +158,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
       if (vob->im_v_codec == CODEC_YUV) {
 	  cshift_yuv(ptr->video_buf, vob, shift, IMG_YUV_DEFAULT);
       } else if (vob->im_v_codec == CODEC_RGB) {
-	  u_int8_t *planes[3];
+	  uint8_t *planes[3];
 	  planes[0] = buffer;
 	  planes[1] = buffer + ptr->v_width*ptr->v_height;
 	  planes[2] = buffer + 2*ptr->v_width*ptr->v_height;

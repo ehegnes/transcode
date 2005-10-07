@@ -46,12 +46,12 @@ static int min=0, max=0;
  *
  * ------------------------------------------------------------*/
 
-void version()
+void version(void)
 {
     printf("%s (%s v%s) (C) 2003 Tilmann Bitterberg\n", EXE, PACKAGE, VERSION);
 }
 
-void usage(int status)
+static void usage(int status)
 {
   version();
 

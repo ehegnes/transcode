@@ -25,6 +25,7 @@
 #include "config.h"
 #endif
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -43,9 +44,11 @@
 # endif
 #endif
 
+#include "dl_loader.h"
 #include "framebuffer.h"
 #include "transcode.h"
 #include "filter.h"
+#include "video_trans.h"
 
 #define EXE "tcmodinfo"
 #define SIZE 8192 //Buffersize
@@ -55,12 +58,12 @@
 #define TYPE_FI 0x2
 #define TYPE_EX 0x4
 
-void version()
+void version(void)
 {
     printf("%s (%s v%s) (C) 2001-2003 Tilmann Bitterberg\n", EXE, PACKAGE, VERSION);
 }
 
-void usage()
+static void usage(int status)
 {
     version();
     fprintf(stderr, "\nUsage: %s [options]\n", EXE);
@@ -71,11 +74,10 @@ void usage()
     //fprintf(stderr, "\t -t type           Type of module (filter, import, export)\n");
     //fprintf(stderr, "\t -f flavour        Flavour of module (video, audio)\n");
     fprintf(stderr, "\n");
-    exit(0);
+    exit(status);
 }
 
 
-int (*tc_filter)(void *ptr, void *opt);
 static char module[TC_BUF_MAX];
 filter_t filter[MAX_FILTER];
 vob_t vob;
@@ -91,15 +93,22 @@ int max_frame_buffer=0;
 int tc_x_preview = 32;
 int tc_y_preview = 32;
 int gamma_table_flag = 0;
-void tc_socket_msgchar() {}
+int tc_socket_msgchar;
 int tc_socket_msg_lock;
-void tc_socket_config() {}
-void tc_socket_disable() {}
-void tc_socket_enable() {}
-void tc_socket_list() {}
-void tc_socket_load() {}
-void tc_socket_parameter() {}
-void tc_socket_preview() {}
+void tc_socket_config(void);
+void tc_socket_disable(void);
+void tc_socket_enable(void);
+void tc_socket_list(void);
+void tc_socket_load(void);
+void tc_socket_parameter(void);
+void tc_socket_preview(void);
+void tc_socket_config(void) {}
+void tc_socket_disable(void) {}
+void tc_socket_enable(void) {}
+void tc_socket_list(void) {}
+void tc_socket_load(void) {}
+void tc_socket_parameter(void) {}
+void tc_socket_preview(void) {}
 
 #ifndef HAVE_STRLCPY
 size_t strlcpy(char *dst, const char *src, size_t size) { return(0); }
@@ -113,6 +122,7 @@ int (*TCA_import)(int opt, void *para1, void *para2);
 int tcv_import(int a, void *b, void *c) {
     return 0;
 }
+
 void init_aa_table(double a, double b) {
     return;
 }
@@ -137,7 +147,7 @@ int tc_test_program(char *name)
 	return 0;
 }
 
-void *load_module(char *mod_name, char *mod_path, int mode)
+static void *tcmodinfo_load_module(char *mod_name, char *mod_path, int mode)
 {
 #ifdef SYS_BSD
   const
@@ -222,7 +232,7 @@ void *load_module(char *mod_name, char *mod_path, int mode)
 }
 
 
-int load_plugin(char *path, int id) {
+static int load_plugin(char *path, int id) {
 #ifdef SYS_BSD
   const
 #endif    
@@ -270,7 +280,7 @@ int load_plugin(char *path, int id) {
   return(0);
 }
 
-void do_connect_socket (char *socketfile)
+static void do_connect_socket (char *socketfile)
 {
 #ifdef NET_STREAM
     int sock, retval;  
@@ -370,7 +380,7 @@ int main(int argc, char *argv[])
 
 	tc_memcpy_init(0, -1);
 
-    if(argc==1) usage();
+    if(argc==1) usage(1);
 
     while ((ch = getopt(argc, argv, "i:?vhpm:s:t:f:")) != -1)
     {
@@ -379,7 +389,7 @@ int main(int argc, char *argv[])
 
 	case 'i':
 
-	    if(optarg[0]=='-') usage();
+	    if(optarg[0]=='-') usage(1);
 	    filename = optarg;
 	    break;
 
@@ -388,7 +398,7 @@ int main(int argc, char *argv[])
 	    break;
 
 	case 'f':
-	    if (!optarg) { usage(1); exit(0);}
+	    if (!optarg) { usage(1); }
 
 	    if      (!strcmp(optarg, "audio"))
 		flags = TC_AUDIO;
@@ -399,7 +409,7 @@ int main(int argc, char *argv[])
 	    break;
 	    
 	case 't':
-	    if (!optarg) { usage(1); exit(0);}
+	    if (!optarg) { usage(1); }
 
 	    if      (!strcmp(optarg, "filter"))
 		mod_type = TYPE_FI;
@@ -412,7 +422,7 @@ int main(int argc, char *argv[])
 	    break;
 
 	case 's':
-	    if(optarg[0]=='-') usage();
+	    if(optarg[0]=='-') usage(1);
 	    connect_socket = 1;
 	    socketfile = optarg;
 	    break;
@@ -429,7 +439,7 @@ int main(int argc, char *argv[])
 	case '?':
 	case 'h':
 	default:
-	    usage();
+	    usage(0);
 	    exit(0);
 	}
     }
@@ -449,7 +459,7 @@ int main(int argc, char *argv[])
       fprintf(stderr, "[%s] Unknown Type (not in filter, import, export)\n", EXE);
   }
 
-  if (filename==NULL) usage();
+  if (filename==NULL) usage(1);
 
   // some arbitrary values for the filters
   vob.fps        = 25.0;
@@ -512,7 +522,7 @@ int main(int argc, char *argv[])
       // start audio stream
       import_para.flag=flags;
 
-      if ( (handle = load_module( filename, (newmodpath?newmodpath:modpath), TC_IMPORT | flags)) == 0){
+      if ( (handle = tcmodinfo_load_module( filename, (newmodpath?newmodpath:modpath), TC_IMPORT | flags)) == 0){
 	  return 1;
       } else
 	  printf("Na hallo -- ok\n");

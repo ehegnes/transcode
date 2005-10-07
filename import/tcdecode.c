@@ -23,7 +23,6 @@
 
 #include "transcode.h"
 
-#include <sys/errno.h>
 #include <limits.h>
 
 #include "ioaux.h"
@@ -50,9 +49,17 @@ void import_exit(int code)
  * ------------------------------------------------------------*/
 
 
-void usage(int status)
+void version(void)
 {
-  version(EXE);
+    /* print id string to stderr */
+    fprintf(stderr, "%s (%s v%s) (C) 2001-2003 Thomas Oestreich\n",
+                    EXE, PACKAGE, VERSION);
+}
+
+
+static void usage(int status)
+{
+  version();
 
   fprintf(stderr,"\nUsage: %s [options]\n", EXE);
 
@@ -139,7 +146,7 @@ int main(int argc, char *argv[])
 	  break;
 	  
 	case 'v': 
-	  version(EXE);
+	  version();
 	  exit(0);
 	  break;
 
@@ -217,9 +224,7 @@ int main(int argc, char *argv[])
 
     if (!strcmp(format, "rgb")) decode.format = TC_CODEC_RGB;
     else if (!strcmp(format, "yuv420p")) decode.format = TC_CODEC_YUV420P;
-#warning ************************** FIXME ************************* (YV12)
-else if (!strcmp(format, "yv12")) {void exit(int); fprintf(stderr, "********* yv12 BROKEN **********\n"); exit(1);}
-//    else if (!strcmp(format, "yv12")) decode.format = TC_CODEC_YV12;
+    else if (!strcmp(format, "yv12")) decode.format = TC_CODEC_YV12;
     else if (!strcmp(format, "yuv2")) decode.format = TC_CODEC_YUV2;
     else if (!strcmp(format, "yuy2")) decode.format = TC_CODEC_YUY2;
     else if (!strcmp(format, "pcm")) decode.format = TC_CODEC_PCM;

@@ -39,8 +39,6 @@
 #include <alloca.h>
 #endif
 
-extern void version();
-extern char *RED,*GREEN,*YELLOW,*BLUE,*WHITE,*GRAY;
 
 void tc_error(char *fmt, ...)
 {

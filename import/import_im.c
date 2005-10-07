@@ -46,8 +46,6 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_VID;
 #include <magick/api.h>
 
 
-extern int errno;
-
 char
     *head = NULL,
     *tail = NULL;

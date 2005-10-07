@@ -160,7 +160,7 @@ seq_list_t *seq_retrieve()
 /* ------------------------------------------------------------------ */
 
 
-void seq_flush_thread()
+static void seq_flush_thread(void)
 {
 
   seq_list_t *ptr, *tmp;

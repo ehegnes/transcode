@@ -18,8 +18,8 @@
 /* Note: we rely on YUY2<->{UYVY,YVYU} working for src==dest */
 /* FIXME: when converting from UYVY/YVYU, src is destroyed! */
 
-static int uyvy_yvyu_wrapper(u_int8_t **src, ImageFormat srcfmt,
-			     u_int8_t **dest, ImageFormat destfmt,
+static int uyvy_yvyu_wrapper(uint8_t **src, ImageFormat srcfmt,
+			     uint8_t **dest, ImageFormat destfmt,
 			     int width, int height)
 {
     if (srcfmt == IMG_UYVY || srcfmt == IMG_YVYU)
@@ -30,57 +30,57 @@ static int uyvy_yvyu_wrapper(u_int8_t **src, ImageFormat srcfmt,
 	    && ac_imgconvert(dest, IMG_YUY2, dest, destfmt, width, height);
 }
 
-static int yuv420p_uyvy(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv420p_uyvy(uint8_t **src, uint8_t **dest, int width, int height)
 { return uyvy_yvyu_wrapper(src, IMG_YUV420P, dest, IMG_UYVY, width, height); }
 
-static int yuv420p_yvyu(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv420p_yvyu(uint8_t **src, uint8_t **dest, int width, int height)
 { return uyvy_yvyu_wrapper(src, IMG_YUV420P, dest, IMG_YVYU, width, height); }
 
-static int yuv411p_uyvy(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv411p_uyvy(uint8_t **src, uint8_t **dest, int width, int height)
 { return uyvy_yvyu_wrapper(src, IMG_YUV411P, dest, IMG_UYVY, width, height); }
 
-static int yuv411p_yvyu(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv411p_yvyu(uint8_t **src, uint8_t **dest, int width, int height)
 { return uyvy_yvyu_wrapper(src, IMG_YUV411P, dest, IMG_YVYU, width, height); }
 
-static int yuv422p_uyvy(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv422p_uyvy(uint8_t **src, uint8_t **dest, int width, int height)
 { return uyvy_yvyu_wrapper(src, IMG_YUV422P, dest, IMG_UYVY, width, height); }
 
-static int yuv422p_yvyu(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv422p_yvyu(uint8_t **src, uint8_t **dest, int width, int height)
 { return uyvy_yvyu_wrapper(src, IMG_YUV422P, dest, IMG_YVYU, width, height); }
 
-static int yuv444p_uyvy(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv444p_uyvy(uint8_t **src, uint8_t **dest, int width, int height)
 { return uyvy_yvyu_wrapper(src, IMG_YUV444P, dest, IMG_UYVY, width, height); }
 
-static int yuv444p_yvyu(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv444p_yvyu(uint8_t **src, uint8_t **dest, int width, int height)
 { return uyvy_yvyu_wrapper(src, IMG_YUV444P, dest, IMG_YVYU, width, height); }
 
-static int uyvy_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int uyvy_yuv420p(uint8_t **src, uint8_t **dest, int width, int height)
 { return uyvy_yvyu_wrapper(src, IMG_UYVY, dest, IMG_YUV420P, width, height); }
 
-static int yvyu_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yvyu_yuv420p(uint8_t **src, uint8_t **dest, int width, int height)
 { return uyvy_yvyu_wrapper(src, IMG_YVYU, dest, IMG_YUV420P, width, height); }
 
-static int uyvy_yuv411p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int uyvy_yuv411p(uint8_t **src, uint8_t **dest, int width, int height)
 { return uyvy_yvyu_wrapper(src, IMG_UYVY, dest, IMG_YUV411P, width, height); }
 
-static int yvyu_yuv411p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yvyu_yuv411p(uint8_t **src, uint8_t **dest, int width, int height)
 { return uyvy_yvyu_wrapper(src, IMG_YVYU, dest, IMG_YUV411P, width, height); }
 
-static int uyvy_yuv422p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int uyvy_yuv422p(uint8_t **src, uint8_t **dest, int width, int height)
 { return uyvy_yvyu_wrapper(src, IMG_UYVY, dest, IMG_YUV422P, width, height); }
 
-static int yvyu_yuv422p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yvyu_yuv422p(uint8_t **src, uint8_t **dest, int width, int height)
 { return uyvy_yvyu_wrapper(src, IMG_YVYU, dest, IMG_YUV422P, width, height); }
 
-static int uyvy_yuv444p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int uyvy_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 { return uyvy_yvyu_wrapper(src, IMG_UYVY, dest, IMG_YUV444P, width, height); }
 
-static int yvyu_yuv444p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yvyu_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 { return uyvy_yvyu_wrapper(src, IMG_YVYU, dest, IMG_YUV444P, width, height); }
 
 /*************************************************************************/
 
-static int yuv420p_yuy2(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv420p_yuy2(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
@@ -95,7 +95,7 @@ static int yuv420p_yuy2(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int yuv411p_yuy2(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv411p_yuy2(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
@@ -110,7 +110,7 @@ static int yuv411p_yuy2(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int yuv422p_yuy2(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv422p_yuy2(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height/2; i++) {
@@ -122,7 +122,7 @@ static int yuv422p_yuy2(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int yuv444p_yuy2(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuv444p_yuy2(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height/2; i++) {
@@ -136,7 +136,7 @@ static int yuv444p_yuy2(u_int8_t **src, u_int8_t **dest, int width, int height)
 
 /*************************************************************************/
 
-static int yuy2_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuy2_yuv420p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
@@ -158,7 +158,7 @@ static int yuy2_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int yuy2_yuv411p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuy2_yuv411p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
     for (y = 0; y < height; y++) {
@@ -176,7 +176,7 @@ static int yuy2_yuv411p(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int yuy2_yuv422p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuy2_yuv422p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height/2; i++) {
@@ -188,7 +188,7 @@ static int yuy2_yuv422p(u_int8_t **src, u_int8_t **dest, int width, int height)
     return 1;
 }
 
-static int yuy2_yuv444p(u_int8_t **src, u_int8_t **dest, int width, int height)
+static int yuy2_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height; i += 2) {

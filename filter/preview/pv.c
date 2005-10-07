@@ -131,7 +131,7 @@ void xv_display_exit(xv_display_t *dv_dpy) {
 
 static int xv_pause=0;
 
-void xv_window_close(xv_display_t *dv_dpy) 
+static void xv_window_close(xv_display_t *dv_dpy) 
 {
     dv_dpy->dontdraw = 1;
 

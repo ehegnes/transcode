@@ -26,8 +26,6 @@
 #include "tc.h"
 #include "aux_pes.h"
 
-#include <sys/errno.h>
-
 
 static probe_info_t probe_info;
 void probe_pvn(info_t *ipipe);

@@ -30,6 +30,7 @@
 
 #include "ioaux.h"
 #include "avilib.h"
+#include "tc.h"
 
 #define MAX_BUF 4096
 char audio[MAX_BUF];

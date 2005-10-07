@@ -32,8 +32,6 @@
 #define MOD_VERSION "v0.1 (2003-02-26)"
 #define MOD_CODEC   "(video) null | (audio) ac3"
 
-extern int errno;
-
 static int   verbose_flag=TC_QUIET;
 static int   capability_flag=TC_CAP_PCM;
 

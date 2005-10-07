@@ -39,7 +39,7 @@
 int audio_init(vob_t *vob, int debug);
 int audio_open(vob_t *vob, avi_t *avifile);
 int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile);
-int audio_stop();
-int audio_close();
+int audio_stop(void);
+int audio_close(void);
 
 #endif

@@ -66,8 +66,8 @@ static void doColorScale(levels_private_data_t *pd, unsigned char *data,
     }
 }
 
-void build_map(unsigned char *map, int inlow, int inhigh, float ingamma,
-              int outlow, int outhigh)
+static void build_map(unsigned char *map, int inlow, int inhigh,
+		      float ingamma, int outlow, int outhigh)
 {
    int i;
    float f;
@@ -83,7 +83,7 @@ void build_map(unsigned char *map, int inlow, int inhigh, float ingamma,
    }  /* for i 0-255 */
 }
 
-static void help_optstr()
+static void help_optstr(void)
 {
     fprintf(stderr, "[%s] (%s) help\n", MOD_NAME, MOD_CAP);
     fprintf(stderr, "* Overview\n");
@@ -97,9 +97,10 @@ static void help_optstr()
     fprintf(stderr, "   pre:     act as pre processing filter (0)\n");
 }
 
-int tc_filter(vframe_list_t *vframe, char *options)
+int tc_filter(frame_list_t *vframe_, char *options)
 {
-	levels_private_data_t *pd;
+    vframe_list_t *vframe = (vframe_list_t *)vframe_;
+    levels_private_data_t *pd;
     int tag = vframe->tag;
 
 	if(tag & TC_AUDIO)
