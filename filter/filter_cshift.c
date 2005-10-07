@@ -29,80 +29,39 @@
 #include "transcode.h"
 #include "filter.h"
 #include "optstr.h"
+#include "aclib/imgconvert.h"
 
-static char *buffer;
+static int shift = 1;
+static u_int8_t *buffer;
 
-static int loop=1;
-
-void crshift_yuv(char * buffer, vob_t *vob, int shift)
+void cshift_yuv(u_int8_t *buffer, vob_t *vob, int shift, ImageFormat format)
 {
-	int x, y;
-	char * craddr;
-	char * cbaddr;
-	char * addr;
+    int x, y, w, h;
+    u_int8_t *cbaddr, *craddr;
 
-	craddr = &buffer[(vob->im_v_width * vob->im_v_height)];
-	cbaddr = &buffer[(vob->im_v_width * vob->im_v_height) * 5 / 4];
+    if (format == IMG_YUV420P) {
+	w = vob->im_v_width/2;
+	h = vob->im_v_height/2;
+    } else if (format == IMG_YUV422P) {
+	w = vob->im_v_width/4;
+	h = vob->im_v_height;
+    } else if (format == IMG_YUV444P) {
+	w = vob->im_v_width/4;
+	h = vob->im_v_height;
+	shift *= 2;
+    } else {
+	tc_error("unsupported image format %d in cshift_yuv()", format);
+	return;
+    }
+    cbaddr = buffer + w*h;
+    craddr = buffer + 2*w*h;
 
-	for (y = 0; y < (vob->im_v_height / 2); y++) {
-		for (x = 0; x < ((vob->im_v_width / 2) - shift); x++) {
-			addr = &craddr[(y * (vob->im_v_width / 2)) + x]; 
-			*addr = addr[shift];
-			addr = &cbaddr[(y * (vob->im_v_width / 2)) + x]; 
-			*addr = addr[shift];
-		}	
+    for (y = 0; y < h; y++) {
+	for (x = 0; x < w-shift; x++) {
+	    cbaddr[y*w+x] = cbaddr[y*w+x+shift];
+	    craddr[y*w+x] = cbaddr[y*w+x+shift];
 	}
-}
-
-void rgb2yuv(unsigned char *out, unsigned char *in, int width)
-{
-	int i, r, g, b;
-
-	/* i = Y, i+1 = Cr, i+2 = Cb */
-
-	for (i = 0; i < (width * 3); i+=3) {
-		r = in[i]; g = in[i+1]; b = in[i+2];
-		out[i] = (r * 299 / 1000) + (g * 587 / 1000) + (b * 115 / 1000);	
-		out[i+1] = (-(r * 169 / 1000) - (g * 331 / 1000) + (b / 2)) + 128;
-		out[i+2] = ((r / 2) - (g * 418 / 1000) - (b * 816 / 10000)) + 128;
-	}
-}
-
-void yuv2rgb(unsigned char *out, unsigned char *in, int width)
-{
-	int i, r, g, b;
-
-	/* i = Y, i+1 = Cr, i+2 = Cb */
-	for (i = 0; i < (width * 3); i+=3) {
-		b = in[i] + ((in[i+1] - 128) * 14022 / 10000);
-		g = in[i] - ((in[i+2] - 128) * 3456 / 10000) - ((in[i+1] - 128.0) * 7145 / 10000);
-		r = in[i] + ((in[i+2] - 128) * 1771 / 1000);
-		if (r < 0) r = 0;
-		if (g < 0) g = 0;
-		if (b < 0) b = 0;
-		if (r > 255) r = 255;
-		if (g > 255) g = 255;
-		if (b > 255) b = 255;
-		out[i] = r;
-		out[i+1] = g;
-		out[i+2] = b;
-	}
-}
-
-void crshift_rgb(unsigned char * buffer, vob_t *vob, int shift)
-{
-	unsigned char buffer_yuv[4096]; 
-	int y, x;
-
-	for (y = 0; y < vob->im_v_height; y++) {
-		rgb2yuv(buffer_yuv, &buffer[y * (vob->im_v_width * 3)], vob->im_v_width);
-		for (x = 0; x < ((vob->im_v_width - shift) * 3); x+=3) {
-			buffer_yuv[x + 1] = buffer_yuv[x + ((shift * 3) + 1)]; 
-			buffer_yuv[x + 2] = buffer_yuv[x + ((shift * 3) + 2)]; 
-		}
-		yuv2rgb(&buffer[y * (vob->im_v_width * 3)], buffer_yuv, vob->im_v_width);
-	}
-
+    }
 }
 
 /*-------------------------------------------------
@@ -131,7 +90,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
       char buf[32];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYE", "1");
 
-      snprintf(buf, 32, "%d", loop);
+      snprintf(buf, 32, "%d", shift);
       optstr_param (options, "shift", "Shift chroma(color) to the left", "%d", buf, "0", "width");
       return 0;
   }
@@ -144,9 +103,11 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
   if(ptr->tag & TC_FILTER_INIT) {
     
-    if((vob = tc_get_vob())==NULL) return(-1);
+    if((vob = tc_get_vob()) == NULL) return(-1);
     
     // filter init ok.
+
+    ac_imgconvert_init(tc_accel);
     
     if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
     
@@ -157,9 +118,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
 
     if(options != NULL) {
 	if (!is_optstr(options)) { // old syntax
-	    loop=atoi(options);
+	    shift = atoi(options);
 	} else {
-	    optstr_get (options, "shift", "%d", &loop);
+	    optstr_get (options, "shift", "%d", &shift);
 	}
     }
       
@@ -188,17 +149,24 @@ int tc_filter(vframe_list_t *ptr, char *options)
   //----------------------------------
     
   // tag variable indicates, if we are called before
-  // transcodes internal video/audo frame processing routines
+  // transcodes internal video/audio frame processing routines
   // or after and determines video/audio context
   
   if(ptr->tag & TC_PRE_M_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
-      tc_memcpy(buffer, ptr->video_buf, ptr->v_width*ptr->v_height*3);
-
-      if (vob->im_v_codec == CODEC_YUV) crshift_yuv(buffer, vob, loop);
-      if (vob->im_v_codec == CODEC_RGB) crshift_rgb(buffer, vob, loop);
-      
-      tc_memcpy(ptr->video_buf, buffer, ptr->v_width*ptr->v_height*3);
+      if (vob->im_v_codec == CODEC_YUV) {
+	  cshift_yuv(ptr->video_buf, vob, shift, IMG_YUV_DEFAULT);
+      } else if (vob->im_v_codec == CODEC_RGB) {
+	  u_int8_t *planes[3];
+	  planes[0] = buffer;
+	  planes[1] = buffer + ptr->v_width*ptr->v_height;
+	  planes[2] = buffer + 2*ptr->v_width*ptr->v_height;
+	  ac_imgconvert(&ptr->video_buf, IMG_RGB_DEFAULT, planes, IMG_YUV444P,
+			ptr->v_width, ptr->v_height);
+	  cshift_yuv(buffer, vob, shift, IMG_YUV444P);
+	  ac_imgconvert(planes, IMG_YUV444P, &ptr->video_buf, IMG_RGB_DEFAULT,
+			ptr->v_width, ptr->v_height);
+      }
   } 
   
   return(0);

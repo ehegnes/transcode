@@ -216,8 +216,8 @@ MOD_encode
         width_yuv = cinfo.image_width>>1;
 
         base[0] = param->buffer;
-        base[2] = param->buffer + cinfo.image_width*cinfo.image_height;
-        base[1] = param->buffer + cinfo.image_width*cinfo.image_height*5/4;
+        base[1] = param->buffer + cinfo.image_width*cinfo.image_height;
+        base[2] = param->buffer + cinfo.image_width*cinfo.image_height*5/4;
 
         for (i = 0; i < cinfo.image_height; i += 2*DCTSIZE) {
           for (j=0, k=0; j<2*DCTSIZE;j+=2, k++) {

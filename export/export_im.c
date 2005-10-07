@@ -25,7 +25,7 @@
 #include <stdlib.h>
 
 #include "transcode.h"
-#include "aclib/colorspace.h"
+#include "aclib/imgconvert.h"
 
 // transcode defines this as well as ImageMagick.
 #undef PACKAGE_NAME
@@ -75,13 +75,14 @@ MOD_init
     if(param->flag == TC_VIDEO) {
       int quality = 75;
 
+      ac_imgconvert_init(tc_accel);
+
       width = vob->ex_v_width;
       height = vob->ex_v_height;
       
-      codec = (vob->im_v_codec == CODEC_YUV) ? CODEC_YUV:CODEC_RGB;
+      codec = (vob->im_v_codec == CODEC_YUV) ? CODEC_YUV : CODEC_RGB;
 
       if(vob->im_v_codec == CODEC_YUV) {
-	colorspace_init (tc_accel);
 	row_bytes = vob->v_bpp/8 * vob->ex_v_width;
       }
       
@@ -180,12 +181,10 @@ MOD_encode
     } 
     
     if(codec==CODEC_YUV) {
-      yuv2rgb (tmp_buffer, 
-	       param->buffer, 
-	       param->buffer+5*width*height/4, 
-	       param->buffer+width*height, 
-	       width, height, row_bytes, width, width/2);
-      
+      u_int8_t *planes[3];
+      YUV_INIT_PLANES(planes, param->buffer, IMG_YUV_DEFAULT, width, height);
+      ac_imgconvert(planes, IMG_YUV_DEFAULT, &tmp_buffer, IMG_RGB24,
+		    width, height);
       out_buffer = tmp_buffer;
     }
     

@@ -65,7 +65,7 @@ MOD_open
 		break;
 
 	    case CODEC_YUV:
-		color = "yv12";
+		color = "yuv420p";
 		break;
 
 	    default:
@@ -92,7 +92,7 @@ MOD_open
 		break;
 
 	    case TC_CODEC_RGB:
-	    case TC_CODEC_YV12:
+	    case TC_CODEC_YUV420P:
 	    default:
 		codec = "raw";
 		magic = "";

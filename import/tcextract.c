@@ -371,10 +371,10 @@ int main(int argc, char *argv[])
 	done = 1;
     }
 
-    // YV12
-    if(strcmp(codec,"yv12")==0) { 
+    // YUV420P
+    if(strcmp(codec,"yuv420p")==0) { 
 	
-	ipipe.codec = TC_CODEC_YV12;
+	ipipe.codec = TC_CODEC_YUV420P;
 
 	if(strcmp(magic, "avi")==0) ipipe.magic = TC_MAGIC_AVI;
 	if(strcmp(magic, "raw")==0) ipipe.magic = TC_MAGIC_RAW;
@@ -384,10 +384,25 @@ int main(int argc, char *argv[])
 	done = 1;
     }
 
+#warning ************************** FIXME *************************** YV12
     // YV12
+    if(strcmp(codec,"yv12")==0) { 
+void exit(int);fprintf(stderr,"********* ERROR yv12 not support ***********\n");exit(1);
+	
+//	ipipe.codec = TC_CODEC_YV12;
+
+	if(strcmp(magic, "avi")==0) ipipe.magic = TC_MAGIC_AVI;
+	if(strcmp(magic, "raw")==0) ipipe.magic = TC_MAGIC_RAW;
+	if(strcmp(magic, "yuv4mpeg")==0) ipipe.magic = TC_MAGIC_YUV4MPEG;
+	
+	extract_yuv(&ipipe);
+	done = 1;
+    }
+
+    // UYVY
     if(strcmp(codec,"uyvy")==0) { 
 	
-	ipipe.codec = TC_CODEC_YV12;
+	ipipe.codec = TC_CODEC_UYVY;
 
 	if(strcmp(magic, "avi")==0) ipipe.magic = TC_MAGIC_AVI;
 	if(strcmp(magic, "raw")==0) ipipe.magic = TC_MAGIC_RAW;
@@ -400,7 +415,7 @@ int main(int argc, char *argv[])
     // LZO
     if(strcmp(codec,"lzo")==0) { 
 	
-	ipipe.codec = TC_CODEC_YV12;
+	ipipe.codec = TC_CODEC_YUV420P;
 
 	if(strcmp(magic, "avi")==0) ipipe.magic = TC_MAGIC_AVI;
 	if(strcmp(magic, "raw")==0) ipipe.magic = TC_MAGIC_RAW;

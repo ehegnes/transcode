@@ -26,6 +26,7 @@
 #define MOD_CODEC   "(video) YUV/RGB raw frames"
 
 #include "transcode.h"
+#include "aclib/imgconvert.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_AUD | TC_CAP_YUV422;
@@ -47,313 +48,102 @@ static char buffer[PATH_MAX+2];
 static int bytes=0;
 static int out_bytes=0;
 static char *video_buffer=NULL;
-static int alloc_buffer;
   
 /* ------------------------------------------------------------ 
  *
  * open stream
  *
  * ------------------------------------------------------------*/
-static void dummyconvert(char *dest, char *input, int width, int height) { }
 
-static void (*convfkt)(char *, char *, int, int) = dummyconvert;
-
-static void uyvy2toyv12(char *dest, char *input, int width, int height) 
-{
-
-    int i,j,w2;
-    char *y, *u, *v;
-
-    w2 = width/2;
-
-    //I420
-    y = dest;
-    v = dest+width*height;
-    u = dest+width*height*5/4;
-    
-    for (i=0; i<height; i+=2) {
-      for (j=0; j<w2; j++) {
-	
-	/* UYVY.  The byte order is CbY'CrY' */
-	*u++ = *input++;
-	*y++ = *input++;
-	*v++ = *input++;
-	*y++ = *input++;
-      }
-
-      //down sampling
-      u -= w2;
-      v -= w2;
-      
-      /* average every second line for U and V */
-      for (j=0; j<w2; j++) {
-	  int un = *u & 0xff;
-	  int vn = *v & 0xff; 
-
-	  un += *input++ & 0xff;
-	  *u++ = un>>1;
-
-	  *y++ = *input++;
-
-	  vn += *input++ & 0xff;
-	  *v++ = vn>>1;
-
-	  *y++ = *input++;
-      }
-    }
-}
-static void yuy2toyv12(char *dest, char *input, int width, int height) 
-{
-
-    int i,j,w2;
-    char *y, *u, *v;
-
-    w2 = width/2;
-
-    //I420
-    y = dest;
-    v = dest+width*height;
-    u = dest+width*height*5/4;
-    
-    for (i=0; i<height; i+=2) {
-      for (j=0; j<w2; j++) {
-	
-	/* packed YUV 422 is: Y[i] U[i] Y[i+1] V[i] */
-	*(y++) = *(input++);
-	*(u++) = *(input++);
-	*(y++) = *(input++);
-	*(v++) = *(input++);
-      }
-      
-      //down sampling
-      
-      for (j=0; j<w2; j++) {
-	/* skip every second line for U and V */
-	*(y++) = *(input++);
-	input++;
-	*(y++) = *(input++);
-	input++;
-      }
-    }
-}
-static void gray2rgb(char *dest, char *input, int width, int height) 
-{
-
-    int i;
-    
-    for (i=0; i<width*height; i++) {
-	*dest++ = *input;
-	*dest++ = *input;
-	*dest++ = *input++;
-    }
-}
-
-static void gray2yuv(char *dest, char *input, int width, int height) 
-{
-    tc_memcpy (dest, input, height*width);
-    memset (dest+height*width, 128, height*width/2);
-}
-
-static void argb2rgb(char *dest, char *input, int width, int height) 
-{
-	int run;
-	int size = width*height;
-
-	for (run = 0; run < size; run++) {
-
-	        input++; // skip alpha
-		*dest++ = *input++;
-		*dest++ = *input++;
-		*dest++ = *input++;
-	}
-}
-
-// untested
-static void yuy2touyvy(char *dest, char *src, int width, int height) 
-{
-
-    int i;
-    
-    for (i=0; i<width*height*2; i+=4) {
-
-	/* packed YUV 4:2:2 is Y[i] U[i] Y[i+1] V[i] (YUY2)*/
-	/* packed YUV 4:2:2 is U[i] Y[i] V[i] Y[i+1] (UYVY)*/
-
-	dest[i] = src[i+1];
-	dest[i+1] = src[i];
-	dest[i+2] = src[i+3];
-	dest[i+3] = src[i+2];
-    }
-}
-
-#if 0 // works, but is unneeded
-static void uyvytoyuy2(char *dest, char *src, int width, int height) 
-{
-
-    int i;
-    
-    for (i=0; i<width*height*2; i+=4) {
-
-	/* packed YUV 4:2:2 is Y[i] U[i] Y[i+1] V[i] (YUY2)*/
-	/* packed YUV 4:2:2 is U[i] Y[i] V[i] Y[i+1] (UYVY)*/
-
-	dest[i] = src[i+1];
-	dest[i+1] = src[i];
-	dest[i+2] = src[i+3];
-	dest[i+3] = src[i+2];
-    }
-}
-#endif
-
-static void ayuvtoyv12(char *dest, char *input, int width, int height) 
-{
-
-    int i,j,w2;
-    char *y, *u, *v;
-
-    w2 = width/2;
-
-    //I420
-    y = dest;
-    v = dest+width*height;
-    u = dest+width*height*5/4;
-    
-    for (i=0; i<height*width/4; i++) {
-#if 0
-	*v++ = *input++;
-	*u++ = *input++;
-	*y++ = *input++;
-	input++; // a
-#endif
-
-	for (j=0; j<4; j++) {
-	    input++;
-	    input++;
-	    *y++ = *input++;
-	    input++;
-	}
-	*u++= 128;
-	*v++= 128;
-
-    }
-#if 0
-    printf("y-dest (%d) v-orig (%d) u-orig (%d) input-i (%d)\n", (int)(y-dest),
-	    (int)(v-(dest+width*height)), (int)(u-(dest+width*height*5/4)), (int)(input-n));
-
-    for (i=0; i<height; i+=2) {
-      for (j=0; j<w2; j++) {
-	
-	/* packed YUV 444 is: V[i] U[i] Y[i] a[i] */
-	*(v++) = *(input++);
-	*(u++) = *(input++);
-	*(y++) = *(input++);
-	input++;
-      }
-      
-      //down sampling
-      
-      for (j=0; j<w2; j++) {
-	/* skip every second line for U and V */
-	input++;
-	input++;
-	*(y++) = *(input++);
-	input++;
-      }
-    }
-#endif
-}
-
-
+static ImageFormat srcfmt = IMG_RGB24, destfmt = IMG_RGB24;
 
 MOD_open
 {
-  if(param->flag == TC_AUDIO) {
-      return(0);
-  }
-  
-  if(param->flag == TC_VIDEO) {
+    if (param->flag == TC_AUDIO) {
+	return(0);
+    }
+    if (param->flag != TC_VIDEO) {
+	return(TC_IMPORT_ERROR);
+    }
+
+    ac_imgconvert_init(tc_accel);
 
     param->fd = NULL;
 
     if (vob->im_v_string) {
 	if        (!strcasecmp(vob->im_v_string, "RGB")) {
-	    convfkt = dummyconvert;
-	    bytes=vob->im_v_width * vob->im_v_height * 3;
-	} else if (!strcasecmp(vob->im_v_string, "yv12") || 
+	    srcfmt = IMG_RGB24;
+	    destfmt = IMG_RGB_DEFAULT;
+	    bytes = vob->im_v_width * vob->im_v_height * 3;
+	} else if (!strcasecmp(vob->im_v_string, "yuv420p") || 
 		   !strcasecmp(vob->im_v_string, "i420")) {
-	    convfkt = dummyconvert;
+	    srcfmt = IMG_YUV420P;
+	    destfmt = IMG_YUV_DEFAULT;
+	    bytes = vob->im_v_width * vob->im_v_height * 3 / 2;
+	} else if (!strcasecmp(vob->im_v_string, "yv12")) {
+	    srcfmt = IMG_YV12;
+	    destfmt = IMG_YUV_DEFAULT;
 	    bytes = vob->im_v_width * vob->im_v_height * 3 / 2;
 	} else if (!strcasecmp(vob->im_v_string, "gray") || 
 		   !strcasecmp(vob->im_v_string, "grey")) {
-	    bytes = vob->im_v_width * vob->im_v_height;
+	    srcfmt = IMG_GRAY8;
 	    if (vob->im_v_codec == CODEC_RGB)
-		convfkt = gray2rgb;
+		destfmt = IMG_RGB_DEFAULT;
 	    else 
-		convfkt = gray2yuv;
-	    alloc_buffer = 1;
+		destfmt = IMG_YUV_DEFAULT;
+	    bytes = vob->im_v_width * vob->im_v_height;
 	} else if (!strcasecmp(vob->im_v_string, "yuy2")) {
+	    srcfmt = IMG_YUY2;
 	    if (vob->im_v_codec == CODEC_YUV422) {
-		convfkt = yuy2touyvy;
+		destfmt = IMG_UYVY;
 	    } else {
-		convfkt = yuy2toyv12;
+		destfmt = IMG_YUV_DEFAULT;
 	    }
 	    bytes = vob->im_v_width * vob->im_v_height * 2;
-	    alloc_buffer = 1;
-
 	} else if (!strcasecmp(vob->im_v_string, "uyvy")) {
-	    if (vob->im_v_codec != CODEC_YUV422) {
-		convfkt = uyvy2toyv12;
-		bytes = vob->im_v_width * vob->im_v_height * 2;
-		alloc_buffer = 1;
+	    srcfmt = IMG_UYVY;
+	    if (vob->im_v_codec == CODEC_YUV422) {
+		destfmt = IMG_UYVY;
+	    } else {
+		destfmt = IMG_YUV_DEFAULT;
 	    }
+	    bytes = vob->im_v_width * vob->im_v_height * 2;
 	} else if (!strcasecmp(vob->im_v_string, "argb")) {
-	    convfkt = argb2rgb;
+	    srcfmt = IMG_ARGB32;
+	    destfmt = IMG_RGB24;
 	    bytes = vob->im_v_width * vob->im_v_height * 4;
-	    alloc_buffer = 1;
 	} else if (!strcasecmp(vob->im_v_string, "ayuv")) {
-	    convfkt = ayuvtoyv12;
-	    bytes = vob->im_v_width * vob->im_v_height * 4;
-	    alloc_buffer = 1;
+	    tc_error("ayuv not supported");
+	    return(TC_IMPORT_ERROR);
 	} else {
 	    tc_error("Unknown format {rgb, gray, argb, ayuv, yv12, i420, yuy2, uyvy}");
+	    return(TC_IMPORT_ERROR);
 	}
     }
 
     if((fd = fopen(vob->video_in_file, "r"))==NULL) {
-	    tc_error("You need to specify a filelist as input");
-	    return(TC_IMPORT_ERROR);
+	tc_error("You need to specify a filelist as input");
+	return(TC_IMPORT_ERROR);
     }
 
     switch(vob->im_v_codec) {
-      
-    case CODEC_RGB:
-      if (!bytes)
-	  bytes=vob->im_v_width * vob->im_v_height * 3;
-      out_bytes=vob->im_v_width * vob->im_v_height * 3;
-      break;
-      
-    case CODEC_YUV:
-      if (!bytes)
-	  bytes=(vob->im_v_width * vob->im_v_height * 3)/2;
-      out_bytes=(vob->im_v_width * vob->im_v_height * 3)/2;
-      break;
-
-    case CODEC_YUV422:
-      if (!bytes)
-	  bytes=(vob->im_v_width * vob->im_v_height * 2);
-      out_bytes=(vob->im_v_width * vob->im_v_height * 2);
+      case CODEC_RGB:
+	out_bytes = vob->im_v_width * vob->im_v_height * 3;
+	break;
+      case CODEC_YUV:
+	out_bytes = (vob->im_v_width * vob->im_v_height * 3) / 2;
+	break;
+      case CODEC_YUV422:
+	out_bytes = (vob->im_v_width * vob->im_v_height * 2);
+	break;
     }
 
-    if (alloc_buffer)
-      if((video_buffer = (char *)calloc(1, out_bytes))==NULL) {
+    if((video_buffer = (char *)calloc(1, out_bytes)) == NULL) {
 	fprintf(stderr, "(%s) out of memory", __FILE__);
 	return(TC_IMPORT_ERROR);
-      }
+    }
     
     return(0);
-  }
- 
-  return(TC_IMPORT_ERROR);
 }
 
 
@@ -392,31 +182,23 @@ retry:
     goto retry;
   } 
   
-  if (alloc_buffer) {
-    if(p_read(fd_in, param->buffer, bytes) != bytes) { 
-      perror("image parameter mismatch");
-      close(fd_in);
-      goto retry;
-    }
-
-    convfkt(video_buffer, param->buffer, vob->im_v_width, vob->im_v_height);
-    tc_memcpy(param->buffer, video_buffer, out_bytes);
-  
-  } else  {
-    if(p_read(fd_in, param->buffer, bytes) != bytes) { 
-      perror("image parameter mismatch");
-      close(fd_in);
-      goto retry;
-    }
+  if(p_read(fd_in, param->buffer, bytes) != bytes) { 
+    perror("image parameter mismatch");
+    close(fd_in);
+    goto retry;
   }
-  
+
+  if(srcfmt != destfmt) {
+    ac_imgconvert(&param->buffer, srcfmt, &video_buffer, destfmt,
+		  vob->im_v_width, vob->im_v_height);
+    tc_memcpy(param->buffer, video_buffer, out_bytes);
+  }
   
   param->size=out_bytes;
   param->attributes |= TC_FRAME_IS_KEYFRAME;
 
   close(fd_in);
 
-  
   return(0);
 }
 

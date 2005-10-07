@@ -227,7 +227,7 @@ MOD_init
 	fprintf(stderr, "[%s]      bitrate [kBits/s]: %d\n", MOD_NAME, fame_params.bitrate/1000);
 	fprintf(stderr, "[%s]              crispness: %d\n", MOD_NAME, vob->divxcrispness);
 	fprintf(stderr, "[%s]             frame rate: %.2f\n", MOD_NAME, vob->ex_fps);
-	fprintf(stderr, "[%s]            color space: %s\n", MOD_NAME, (vob->im_v_codec==CODEC_RGB) ? "RGB24":"YV12");
+	fprintf(stderr, "[%s]            color space: %s\n", MOD_NAME, (vob->im_v_codec==CODEC_RGB) ? "RGB24" : "YUV420P");
     }
 
     return(0);
@@ -264,8 +264,8 @@ MOD_encode
     yuv.h = fame_params.height;
     yuv.p = fame_params.width;
     yuv.y = param->buffer;
-    yuv.v = yuv.y + yuv.w*yuv.h;
-    yuv.u = yuv.v + yuv.w*yuv.h/4;
+    yuv.u = yuv.y + yuv.w*yuv.h;
+    yuv.v = yuv.u + yuv.w*yuv.h/4;
 
     fame_start_frame(fame_context, &yuv, NULL);
     // segfaults here

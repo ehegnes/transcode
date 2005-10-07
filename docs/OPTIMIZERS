@@ -31,8 +31,8 @@ Here is an overview of filters which would be glad about a speedup
 
 * filter_cshift.c
   A chroma-lag shifter. It shifts the color components of the video to
-  the left or right. For RGB mode, the filter implements its own rgb2yuv
-  conversion.
+  the left or right.  For RGB mode, the filter converts the data to YUV and
+  back again.
 
 * filter_dnr.c
   A denoiser with no SIMD optimizations It uses a different algorithm
@@ -71,7 +71,7 @@ Here is an overview of filters which would be glad about a speedup
   The filter was written for VirtualDub by Donald Graft. It produces
   very good results. It was written with the RGB colorspace in mind. To
   use it in transcode with YUV mode enabled a yuv2rgb and rgb2yuv
-  wrapper has been build around this filter. It would speed up a lot, if
+  wrapper has been built around this filter. It would speed up a lot, if
   rewritten for native YUV mode. There are probably other areas in this
   filter which are a candidate for a speedup.
 
@@ -125,17 +125,17 @@ The memory layout is
     Pixel(0,0)        Pixel(1,0)
 
 * YUV (4:2:0)
-This is actually YV12 or Y420 with 1+1/2 byte per pixel. It is a planar
-format meaning first all Y data then Cr and then Cb.
+This is actually YUV420P (I420) with 1+1/2 byte per pixel. It is a planar
+format meaning first all Y data then Cb and then Cr.
 The memory layout is
 
  __________________ ...  ______  ...  _____
-|__Y__|__Y__|__Y__| ... |__Cr_|  ... |__Cb_| ....
+|__Y__|__Y__|__Y__| ... |__Cb_|  ... |__Cr_| ....
  \___/ \___/ \___/     
  (0,0) (1,0) (2,0)
 
-There are Width*Height Y bytes, Width*Height/4 Cr bytes and
-Width*Height/4 Cb bytes. The size of the image is Width*Height*3/2
+There are Width*Height Y bytes, Width*Height/4 Cb bytes and
+Width*Height/4 Cr bytes. The size of the image is Width*Height*3/2.
 
 
 * YUV (4:2:2)
@@ -149,4 +149,4 @@ This is UYVY 8-bit packed.
 Size of the image is 2*W*H.
 
 (c) 2003 Tilmann Bitterberg <transcode@tibit.org>
-Modified: Tue Oct 14 10:35:46 CEST 2003
+Modified: $Date: 2005-10-07 08:30:51 $

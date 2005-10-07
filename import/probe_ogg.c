@@ -242,8 +242,9 @@ void probe_ogg(info_t *ipipe)
 			    if(strcasecmp(vid_codec,"dvsd")==0)
 				ipipe->probe_info->codec=TC_CODEC_DV;
 
-			    if(strcasecmp(vid_codec,"yv12")==0)
-				ipipe->probe_info->codec=TC_CODEC_YV12;
+#warning *************************** FIXME ************************* (YV12)
+//			    if(strcasecmp(vid_codec,"yv12")==0)
+//				ipipe->probe_info->codec=TC_CODEC_YV12;
 
 			    if(strcasecmp(vid_codec,"DIV3")==0)
 				ipipe->probe_info->codec=TC_CODEC_DIVX3;

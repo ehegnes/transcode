@@ -3,10 +3,11 @@
 
 #define TC_LZO_MAGIC 0x4C5A4F32   /* LZO2 */
 
-#define TC_LZO_FORMAT_YV12    1
+#define TC_LZO_FORMAT_YV12    1  /* obsolete */
 #define TC_LZO_FORMAT_RGB24   2
 #define TC_LZO_FORMAT_YUY2    4
 #define TC_LZO_NOT_COMPRESSIBLE   8
+#define TC_LZO_FORMAT_YUV420P 16
 
 typedef struct tc_lzo_header_t {
     unsigned int magic;

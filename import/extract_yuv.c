@@ -321,6 +321,6 @@ void probe_yuv(info_t *ipipe)
 	ipipe->probe_info->frc=code;
     }
  
-    ipipe->probe_info->codec=TC_CODEC_YV12;
+    ipipe->probe_info->codec=TC_CODEC_YUV420P;
     ipipe->probe_info->magic=TC_MAGIC_YUV4MPEG;
 }

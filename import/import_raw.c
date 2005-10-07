@@ -105,7 +105,7 @@ MOD_open
 	    case CODEC_RGB: co = "-x rgb"; break;
 	    case CODEC_YUV422: co = "-x uyvy"; break;
 	    case CODEC_YUV: 
-	    default: co = "-x yv12"; break;
+	    default: co = "-x yuv420p"; break;
 	}
       }
       
@@ -133,7 +133,7 @@ MOD_open
       case CODEC_YUV:
       default:
 	
-	if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x yv12 -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose)<0)) {
+	if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x yuv420p -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose)<0)) {
 	  perror("cmd buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}

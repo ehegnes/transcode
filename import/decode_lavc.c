@@ -32,7 +32,7 @@
 #undef EMULATE_FAST_INT
 #endif
 #include <ffmpeg/avcodec.h>
-#include "aclib/colorspace.h"
+#include "aclib/imgconvert.h"
 
 #define READ_BUFFER_SIZE (10*1024*1024)
 #define MOD_NAME "decode_ffmpeg"
@@ -126,7 +126,7 @@ static unsigned char *bufalloc(size_t size) {
 
 void decode_lavc(decode_t *decode)
 {
-  char               *out_buffer = NULL;
+  u_int8_t           *out_buffer = NULL;
   int                 pass_through = 0;
   char               *buffer =  NULL;
   char               *yuv2rgb_buffer = NULL;
@@ -144,10 +144,11 @@ void decode_lavc(decode_t *decode)
   int run=0;
 
   // decoder
-  int        len = 0, i, j,  edge_width;
+  int        len = 0, i, j;
   long       bytes_read = 0;
-  int        UVls, src, dst, row, col;
-  char      *Ybuf, *Ubuf, *Vbuf;
+  u_int8_t   *planes[3];
+
+  ac_imgconvert_init(ac_mmflag());
 
   verbose_flag = decode->verbose;
 
@@ -207,22 +208,21 @@ void decode_lavc(decode_t *decode)
   frame_size = (x_dim * y_dim * 3)/2;
   switch (pix_fmt)
   {
-      case TC_CODEC_YV12:
+      case TC_CODEC_YUV420P:
         frame_size = (x_dim * y_dim * 3)/2;
         break;
 
       case TC_CODEC_RGB:
         frame_size = x_dim * y_dim * 3;
         bpp = 24;
-        colorspace_init(ac_mmflag());
 
         if (yuv2rgb_buffer == NULL)
 	    yuv2rgb_buffer = bufalloc(frame_size);
 	
         if (yuv2rgb_buffer == NULL)
 	{
-          perror("out of memory");
-          goto decoder_error;
+            perror("out of memory");
+            goto decoder_error;
         }
 	else
 	    memset(yuv2rgb_buffer, 0, frame_size);  
@@ -285,156 +285,37 @@ void decode_lavc(decode_t *decode)
 
       buf_len += len;
 
-      Ybuf = out_buffer;
-      Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
-      Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
-      UVls = picture.linesize[1];
+      YUV_INIT_PLANES(planes, out_buffer, IMG_YUV420P,
+		      lavc_dec_context->width, lavc_dec_context->height);
 
-      switch (lavc_dec_context->pix_fmt)
-      {
-	  case PIX_FMT_YUV420P:
-	      // Result is in YUV 4:2:0 (YV12) format, but each line ends with
-	      // an edge which we must skip
-	      if (pix_fmt == TC_CODEC_YV12)
-	      {
-		  Ybuf = out_buffer;
-		  Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
-		  Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
-		  edge_width = (picture.linesize[0] - lavc_dec_context->width) / 2;
-		  for (i = 0; i < lavc_dec_context->height; i++) {
-		      tc_memcpy(Ybuf + i * lavc_dec_context->width,
-			      picture.data[0] + i * picture.linesize[0], //+ edge_width,
-			      lavc_dec_context->width);
-		  }
-		  for (i = 0; i < lavc_dec_context->height / 2; i++) {
-		      tc_memcpy(Vbuf + i * lavc_dec_context->width / 2,
-			      picture.data[1] + i * picture.linesize[1],// + edge_width / 2,
-			      lavc_dec_context->width / 2);
-		      tc_memcpy(Ubuf + i * lavc_dec_context->width / 2,
-			      picture.data[2] + i * picture.linesize[2],// + edge_width / 2,
-			      lavc_dec_context->width / 2);
-		  }
-	      }
-	      else
-	      {
-		  Ybuf = yuv2rgb_buffer;
-		  Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
-		  Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
-		  edge_width = (picture.linesize[0] - lavc_dec_context->width) / 2;
-		  for (i = 0; i < lavc_dec_context->height; i++) {
-		      tc_memcpy(Ybuf + (lavc_dec_context->height - i - 1) *
-			      lavc_dec_context->width,
-			      picture.data[0] + i * picture.linesize[0], //+ edge_width,
-			      lavc_dec_context->width);
-		  }
-		  for (i = 0; i < lavc_dec_context->height / 2; i++) {
-		      tc_memcpy(Vbuf + (lavc_dec_context->height / 2 - i - 1) *
-			      lavc_dec_context->width / 2,
-			      picture.data[1] + i * picture.linesize[1],// + edge_width / 2,
-			      lavc_dec_context->width / 2);
-		      tc_memcpy(Ubuf + (lavc_dec_context->height / 2 - i - 1) *
-			      lavc_dec_context->width / 2,
-			      picture.data[2] + i * picture.linesize[2],// + edge_width / 2,
-			      lavc_dec_context->width / 2);
-		  }
-		  yuv2rgb(out_buffer, yuv2rgb_buffer,
-			  yuv2rgb_buffer +
-			  lavc_dec_context->width * lavc_dec_context->height, 
-			  yuv2rgb_buffer +
-			  5 * lavc_dec_context->width * lavc_dec_context->height / 4, 
-			  lavc_dec_context->width,
-			  lavc_dec_context->height, 
-			  lavc_dec_context->width * bpp / 8,
-			  lavc_dec_context->width,
-			  lavc_dec_context->width / 2);
-	      }
-	      break;
-	  case PIX_FMT_YUV422P:
-	      // Result is in YUV 4:2:2 format (subsample UV vertically for YV12):
-	      tc_memcpy(Ybuf, picture.data[0], picture.linesize[0] * lavc_dec_context->height);
-	      src = 0;
-	      dst = 0;
-	      for (row=0; row<lavc_dec_context->height; row+=2) {
-		  tc_memcpy(Ubuf + dst, picture.data[1] + src, UVls);
-		  tc_memcpy(Vbuf + dst, picture.data[2] + src, UVls);
-		  dst += UVls;
-		  src = dst << 1;
-	      }
-	      break;
-	  case PIX_FMT_YUV444P:
-	      // Result is in YUV 4:4:4 format (subsample UV h/v for YV12):
-	      tc_memcpy(Ybuf, picture.data[0], picture.linesize[0] * lavc_dec_context->height);
-	      src = 0;
-	      dst = 0;
-	      for (row=0; row<lavc_dec_context->height; row+=2) {
-		  for (col=0; col<lavc_dec_context->width; col+=2) {
-		      Ubuf[dst] = picture.data[1][src];
-		      Vbuf[dst] = picture.data[2][src];
-		      dst++;
-		      src += 2;
-		  }
-		  src += UVls;
-	      }
-	      break;
-	  case PIX_FMT_YUV411P:
-	      if (pix_fmt == TC_CODEC_YV12) {
-		  // Planar YUV 4:1:1 (1 Cr & Cb sample per 4x1 Y samples)
-		  // 4:1:1 -> 4:2:0
-
-		  for (i = 0; i < lavc_dec_context->height; i++) {
-		      tc_memcpy(Ybuf + i * lavc_dec_context->width,
-			      picture.data[0] + i * picture.linesize[0], 
-			      lavc_dec_context->width);
-		  }
-		  for (i = 0; i < lavc_dec_context->height; i++) {
-		      for (j=0; j < lavc_dec_context->width / 2; j++) {
-			  Vbuf[i/2 * lavc_dec_context->width/2 + j] = 
-			      *(picture.data[1] + i * picture.linesize[1] + j/2);
-			  Ubuf[i/2 * lavc_dec_context->width/2 + j] = 
-			      *(picture.data[2] + i * picture.linesize[2] + j/2);
-		      }
-		  }
-	      }
-	      else
-	      { // RGB
-
-		  Ybuf = yuv2rgb_buffer;
-		  Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
-		  Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
-
-		  for (i = 0; i < lavc_dec_context->height; i++)
-		  {
-		      tc_memcpy(Ybuf + i * lavc_dec_context->width,
-			      picture.data[0] + i * picture.linesize[0], 
-			      lavc_dec_context->width);
-		  }
-
-		  for (i = 0; i < lavc_dec_context->height; i++)
-		  {
-		      for (j=0; j < lavc_dec_context->width / 2; j++)
-		      {
-			  Vbuf[i/2 * lavc_dec_context->width/2 + j] = 
-			      *(picture.data[1] + i * picture.linesize[1] + j/2);
-			  Ubuf[i/2 * lavc_dec_context->width/2 + j] = 
-			      *(picture.data[2] + i * picture.linesize[2] + j/2);
-		      }
-		  }
-
-		  yuv2rgb(out_buffer,
-			  yuv2rgb_buffer,
-			  yuv2rgb_buffer + lavc_dec_context->width * lavc_dec_context->height, 
-			  yuv2rgb_buffer + 5 * lavc_dec_context->width * lavc_dec_context->height / 4, 
-			  lavc_dec_context->width,
-			  lavc_dec_context->height, 
-			  lavc_dec_context->width * bpp / 8,
-			  lavc_dec_context->width,
-			  lavc_dec_context->width / 2);
-	      }
-
-	      break;
-	  default:
-	      fprintf(stderr, "[%s] Unsupported decoded frame format", MOD_NAME);
-	      goto decoder_error;
+      // Convert avcodec image to the requested YUV or RGB format
+      switch (lavc_dec_context->pix_fmt) {
+	case PIX_FMT_YUVJ420P:
+	case PIX_FMT_YUV420P:
+	    ac_imgconvert(picture.data, IMG_YUV420P, planes,
+			  pix_fmt==TC_CODEC_YUV420P ? IMG_YUV420P : IMG_RGB_DEFAULT,
+			  lavc_dec_context->width, lavc_dec_context->height);
+	    break;
+	case PIX_FMT_YUVJ422P:
+	case PIX_FMT_YUV422P:
+	    ac_imgconvert(picture.data, IMG_YUV422P, planes,
+			  pix_fmt==TC_CODEC_YUV420P ? IMG_YUV420P : IMG_RGB_DEFAULT,
+			  lavc_dec_context->width, lavc_dec_context->height);
+	    break;
+	case PIX_FMT_YUVJ444P:
+	case PIX_FMT_YUV444P:
+	    ac_imgconvert(picture.data, IMG_YUV444P, planes,
+			  pix_fmt==TC_CODEC_YUV420P ? IMG_YUV420P : IMG_RGB_DEFAULT,
+			  lavc_dec_context->width, lavc_dec_context->height);
+	    break;
+	case PIX_FMT_YUV411P:
+	    ac_imgconvert(picture.data, IMG_YUV411P, planes,
+			  pix_fmt==TC_CODEC_YUV420P ? IMG_YUV420P : IMG_RGB_DEFAULT,
+			  lavc_dec_context->width, lavc_dec_context->height);
+	    break;
+	default:
+	    fprintf(stderr, "[%s] Unsupported decoded frame format", MOD_NAME);
+	    goto decoder_error;
       }
 
       /* buffer more than half empty -> Fill it */

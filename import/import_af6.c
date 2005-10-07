@@ -92,7 +92,7 @@ MOD_open
       case CODEC_YUV:
 
 	sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-                        "tcdecode -i \"%s\" -x af6video -y yv12 -d %d",
+                        "tcdecode -i \"%s\" -x af6video -y yuv420p -d %d",
                         vob->video_in_file, vob->verbose);
         if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
 	    return(TC_IMPORT_ERROR);

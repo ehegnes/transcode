@@ -1,12 +1,36 @@
+2005-10-07 Andrew Church <achurch at achurch dot org>
+  * Changed files:
+    aclib/Makefile.am docs/OPTIMIZERS export/* filter/filter_cshift.c
+    import/* src/probe.c src/transcode.c src/transcode.h
+    Added files:
+    aclib/imgconvert.c aclib/imgconvert.h aclib/img_internal.h
+    aclib/img_rgb_packed.c aclib/img_yuv_mixed.c aclib/img_yuv_packed.c
+    aclib/img_yuv_planar.c aclib/img_yuv_rgb.c
+    Removed files:
+    aclib/colorspace.c aclib/colorspace.h
+  Complete rewrite of image format and colorspace handling.
+  - Internal YUV format is now YCbCr (YUV420P/I420), not YCrCb (YV12).
+    Fixes the blue-faces problem when converting to/from RGB.
+  - All image conversion, both pixel format and colorspace (YUV/RGB), is
+    now done through ac_imgconvert() in aclib (see aclib/imgconvert.c).
+  - Import and export modules which call ac_imgconvert() to convert from or
+    to an external file/library format should use IMG_YUV_DEFAULT if the
+    transcode image format is CODEC_YUV, and IMG_RGB_DEFAULT if the format
+    is CODEC_RGB; this will simplify things in the future if the default
+    colorspace is changed (e.g. to YUV444).
+
 2005-10-04 Andrew Church <achurch at achurch dot org>
-  * Changed files: aclib/Makefile.am export/export_im.c export/export_ppm.c
-      export/export_pvn.c export/vid_aux.c export/vid_aux.h
-      import/decode_lavc.c import/decode_yuv.c import/import_ffmpeg.c
-      src/transcode.c
-    Added files: aclib/colorspace.c aclib/colorspace.h
-    Removed files: aclib/AUTHORS.libvo aclib/COPYING.libvo
-      aclib/README.libvo aclib/rgb2yuv.c aclib/rgb2yuv.h aclib/yuv2rgb.c
-      aclib/yuv2rgb.h aclib/yuv2rgb_mlib.c aclib/yuv2rgb_mmx.c
+  * Changed files:
+    aclib/Makefile.am export/export_im.c export/export_ppm.c
+    export/export_pvn.c export/vid_aux.c export/vid_aux.h
+    import/decode_lavc.c import/decode_yuv.c import/import_ffmpeg.c
+    src/transcode.c
+    Added files:
+    aclib/colorspace.c aclib/colorspace.h
+    Removed files:
+    aclib/AUTHORS.libvo aclib/COPYING.libvo aclib/README.libvo
+    aclib/rgb2yuv.c aclib/rgb2yuv.h aclib/yuv2rgb.c aclib/yuv2rgb.h
+    aclib/yuv2rgb_mlib.c aclib/yuv2rgb_mmx.c
   Replace libvo colorspace conversion code with a new from-scratch
   implementation.
 

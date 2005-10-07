@@ -65,8 +65,6 @@ MOD_open
   switch (param->flag) {
     case TC_VIDEO:
 
-      rgbswap = !rgbswap; // needed!
-
       if (!(mktemp(videopipe) && videopipe)) {
         perror("mktemp videopipe failed");
         return(TC_IMPORT_ERROR);
@@ -92,13 +90,13 @@ MOD_open
 
       if (vob->im_v_codec == CODEC_YUV) {
         sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-               "tcextract -i %s -x yv12 -t yuv4mpeg", videopipe);
+               "tcextract -i %s -x yuv420p -t yuv4mpeg", videopipe);
         if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
           return(TC_IMPORT_ERROR);
       } else {
         sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-               "tcextract -i %s -x yv12 -t yuv4mpeg |"
-               " tcdecode -x yv12 -g %dx%d",
+               "tcextract -i %s -x yuv420p -t yuv4mpeg |"
+               " tcdecode -x yuv420p -g %dx%d",
                videopipe, vob->im_v_width, vob->im_v_height);
         if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
           return(TC_IMPORT_ERROR);

@@ -241,8 +241,8 @@ void decode_xvid(decode_t *decode)
 	    global_colorspace = XVID_CSP_RGB24 | XVID_CSP_VFLIP;
 	    frame_size = xparam.width * xparam.height * 3;
 	    break;
-	case TC_CODEC_YV12:
-	    global_colorspace = XVID_CSP_YV12;
+	case TC_CODEC_YUV420P:
+	    global_colorspace = XVID_CSP_I420;
 	    frame_size = (xparam.width * xparam.height * 3)/2;
 	    break;
     }

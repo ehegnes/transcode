@@ -1007,7 +1007,7 @@ static void set_frame_struct(xvid_transcode_module_t *mod, vob_t *vob, transfer_
 		x->input.csp       = XVID_CSP_UYVY;
 		x->input.stride[0] = vob->ex_v_width*2;
 	} else {
-		x->input.csp       = XVID_CSP_YV12;
+		x->input.csp       = XVID_CSP_I420;
 		x->input.stride[0] = vob->ex_v_width;
 	}
 

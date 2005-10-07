@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include "import/magic.h"
 #include "transcode.h"
+#include "aclib/imgconvert.h"
 
 #define MOD_NAME    "export_mov.so"
 #define MOD_VERSION "v0.1.2 (2004-01-19)"
@@ -160,22 +161,6 @@ static int list(char *list_type)
 return 1;
 }
 
-/* stolen from vid_aux.c */
-/* due to a name clash between libvo and lqt, vid_aux can't be used */
-void qt_uyvytoyuy2(char *input, char *output, int width, int height)
-{
-  int i;
-  
-  for (i=0; i<width*height*2; i+=4) {
-      /* packed YUV 4:2:2 is Y[i] U[i] Y[i+1] V[i] (YUY2)*/
-      /* packed YUV 4:2:2 is U[i] Y[i] V[i] Y[i+1] (UYVY)*/
-      output[i] = input[i+1];
-      output[i+1] = input[i];
-      output[i+2] = input[i+3];
-      output[i+3] = input[i+2];
-  }
-}
-
 /* ------------------------------------------------------------ 
  *
  * open outputfile
@@ -241,6 +226,8 @@ MOD_init
     char *qt_codec;
     int divx_bitrate;
     
+    ac_imgconvert_init(tc_accel); 
+
     /* fetch frame size */
     w = vob->ex_v_width;
     h = vob->ex_v_height;
@@ -336,7 +323,8 @@ MOD_init
                         quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"SVQ3");
                         break;
 
-                    case TC_CODEC_YV12:
+#warning ************** FIXME ************** check quicktime tag
+                    case TC_CODEC_YUV420P:  /* FIXME: should this be "i420"? */
                         quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"yv12");
                         break;
 
@@ -651,7 +639,7 @@ MOD_encode
 
         switch(qt_cm) {
             case BC_RGB888:
-                /* setup row pointers for RGB: inverse! */
+                /* setup row pointers for RGB */
                 sl = w*3;
                 for(iy=0;iy<h;iy++){
                     row_ptr[iy] = ptr;
@@ -660,21 +648,21 @@ MOD_encode
                 break;
 
             case BC_YUV420P:
-                /* setup row pointers for YUV420P: inverse! */
+                /* setup row pointers for YUV420P */
                 row_ptr[0] = ptr;
                 ptr = ptr + (h * w);
-                row_ptr[2] = ptr;  
+                row_ptr[1] = ptr;  
                 ptr = ptr + (h * w )/4;
-                row_ptr[1] = ptr;
+                row_ptr[2] = ptr;
                 break;
 
             case CODEC_YUY2:
             case BC_YUV422:
-                /* setup row pointers for YUV422: inverse ?*/
+                /* setup row pointers for YUV422 */
                 sl = w*2;                        
                 if (qt_cm != CODEC_YUY2){
                     /* convert uyvy to yuy2 */   /* find out if lqt supports uyvy byteorder */ 
-                    qt_uyvytoyuy2(ptr, tmp_buf, w, h);
+                    ac_imgconvert(&ptr, IMG_UYVY, &tmp_buf, IMG_YUY2, w, h);
                     ptr = tmp_buf;
                 }
                 for(iy=0;iy<h;iy++){

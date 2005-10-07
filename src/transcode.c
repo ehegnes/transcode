@@ -4663,12 +4663,5 @@ void dummy_libioaux(void) {
   append_fc_time( NULL, NULL);
 }
 
-#include "aclib/colorspace.h"
-void dummy_libvout(void) {
-        colorspace_init(tc_accel);
-	yuv2rgb(NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0);
-}
-
-
 /* vim: sw=2 ts=8 
  */

@@ -29,7 +29,7 @@
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
-#include "aclib/colorspace.h"
+#include "aclib/imgconvert.h"
 
 #define MOD_NAME    "export_pvn.so"
 #define MOD_VERSION "v0.1 (2004-07-12)"
@@ -67,9 +67,9 @@ MOD_init
 
     if(param->flag == TC_VIDEO) {
 
-      if(vob->im_v_codec == CODEC_YUV) {
-	colorspace_init (tc_accel);
+      ac_imgconvert_init(tc_accel);
 
+      if(vob->im_v_codec == CODEC_YUV) {
 	width = vob->ex_v_width;
 	height = vob->ex_v_height;
 	
@@ -160,11 +160,10 @@ MOD_encode
     
     
     if(codec==CODEC_YUV) {
-      yuv2rgb (tmp_buffer, 
-	       param->buffer, param->buffer+width*height, 
-	       param->buffer+5*width*height/4, 
-	       width, height, row_bytes, width, width/2);
-      
+      u_int8_t *planes[3];
+      YUV_INIT_PLANES(planes, param->buffer, IMG_YUV_DEFAULT, width, height);
+      ac_imgconvert(planes, IMG_YUV_DEFAULT, tmp_buffer, IMG_RGB24,
+		    width, height);
       out_buffer = tmp_buffer;
       out_size = height * 3 *width;
     }

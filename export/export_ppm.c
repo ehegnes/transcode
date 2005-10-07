@@ -27,7 +27,7 @@
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
-#include "aclib/colorspace.h"
+#include "aclib/imgconvert.h"
 
 #define MOD_NAME    "export_ppm.so"
 #define MOD_VERSION "v0.1.1 (2002-02-14)"
@@ -52,40 +52,6 @@ static char *type;
 static int interval=1;
 static unsigned int int_counter=0;
 
-/*
- * Utility function
- *
- * yuv422toyuv422pl
- * Convert YUV422 (YUV 4:2:2 Packed) to YUV422pl (Planar)
- *   input:  [Y][U][Y][V]
- *   output: [Y-frame][U-frame][V-frame]
- */
-
-void yuv422toyuv422pl( char *out, char *in, int width, int height )
-{
-	int src, ydst, udst, vdst;
-	int uloc, vloc;
-
-	uloc = (width*height);  /* U starts straight after the Y frame */
-	vloc = (width*height)+((width*height)/2); /* V starts half the */
-				/* length of the Y frame after U...    */
-	ydst=0; /* set output counters */
-	udst=0;
-	vdst=0;
-	/* move through the input buffer in 4-byte steps */
-	for( src=0;src<height*width*2; src+=4 )
-	{
-		out[ydst]=in[src];	/* first byte of Y */
-		out[ydst+1]=in[src+2];  /* second byte of Y */
-		out[(uloc+udst)]=in[src+1];   /* U byte */
-		out[(vloc+vdst)]=in[src+3];   /* V byte */
-		ydst+=2;  /* we've moved forward by two bytes of Y */
-		udst++;   /* and one each of U and V...            */
-		vdst++;
-	}
-	/* done */
-}
-
 /* ------------------------------------------------------------ 
  *
  * init codec
@@ -94,16 +60,15 @@ void yuv422toyuv422pl( char *out, char *in, int width, int height )
 
 MOD_init
 {
-    
+    ac_imgconvert_init (tc_accel); 
+
     /* set the 'spit-out-frame' interval */
     interval = vob->frame_interval;
 
     if(param->flag == TC_VIDEO) {
 
-      /* this supports output of 4:1:1 YUV material, ie CODEC_YUV */
+      /* this supports output of 4:2:0 YUV material, ie CODEC_YUV */
       if(vob->im_v_codec == CODEC_YUV) {
-	colorspace_init (tc_accel); 
-
 	width = vob->ex_v_width;
 	height = vob->ex_v_height;
 	
@@ -117,8 +82,6 @@ MOD_init
 
       /* this supports output of 4:2:2 YUV material, ie CODEC_YUV422 */
       if(vob->im_v_codec == CODEC_YUV422) {
-	colorspace_init (tc_accel); 
-
 	/* size of the exported image */
 	width = vob->ex_v_width;
 	height = vob->ex_v_height;
@@ -212,39 +175,29 @@ MOD_encode
     
     
     if(codec==CODEC_YUV) {
-      yuv2rgb (tmp_buffer, 
-	       param->buffer, param->buffer+width*height, 
-	       param->buffer+5*width*height/4, 
-	       width, height, row_bytes, width, width/2);
-      
+      u_int8_t *planes[3];
+      YUV_INIT_PLANES(planes, param->buffer, IMG_YUV_DEFAULT, width, height);
+      ac_imgconvert(planes, IMG_YUV_DEFAULT, &tmp_buffer, IMG_RGB24,
+		    width, height);
       out_buffer = tmp_buffer;
       out_size = height * 3 *width;
     }
 
-    /* YUV422 Support: */
-    /* OK, so how does yuv2rgb work? */
-    /* first, pointer to the output buffer */
-    /* second, pointer to the start of the input Y data */
-    /* third, pointer to the start of the U data */
-    /* fourth, pointer to the start of the V data */
-    /* fifth, sixth - dimensions of the image */
-    /* seventh, bytes per pixel * length of a line */
-    /* eighth, size of the y samples */
-    /* ninth, size of the u & v samples */ 
     if(codec==CODEC_YUV422) {
+#warning ******************* FIXME ********************* 2-step conversion
       /* convert the buffer from YUV422 packed to YUV422 planar */
-      convbuff = malloc( width*height*4 ); 
-      yuv422toyuv422pl(convbuff, param->buffer, width, height );
-      /* now we have the planar version, we can call yuv2rgb to */
-      /* produce the RGB needed by the PPM output code...       */
-      yuv2rgb (tmp_buffer,
-               convbuff, convbuff+width*height,
-               convbuff+6*width*height/4,
-               width, height, row_bytes, width, width);
-
+      u_int8_t *planes[3];
+      convbuff = malloc(width*height*2);
+      YUV_INIT_PLANES(planes, convbuff, IMG_YUV422P, width, height);
+      ac_imgconvert(&param->buffer, IMG_YUY2, planes, IMG_YUV422P,
+		    width, height);
+      /* now we have the planar version, we can convert it to RGB as needed
+       * by the PPM code */
+      ac_imgconvert(planes, IMG_YUV422P, &tmp_buffer, IMG_RGB24,
+		    width, height);
       out_buffer = tmp_buffer;
       out_size = height * 3 *width;
-      free( convbuff );		/* release the memory used during convert */
+      free(convbuff);		/* release the memory used during convert */
     }
     
     if(strncmp(type, "P5", 2)==0) {   

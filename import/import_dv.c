@@ -85,8 +85,8 @@ MOD_open
 
     //yuy2 mode?
     (vob->dv_yuy2_mode) ?
-        snprintf(yuv_buf, 16, "-y yv12 -Y") :
-        snprintf(yuv_buf, 16, "-y yv12");
+        snprintf(yuv_buf, 16, "-y yuv420p -Y") :
+        snprintf(yuv_buf, 16, "-y yuv420p");
 
     param->fd = NULL;
 

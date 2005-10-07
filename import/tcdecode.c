@@ -216,7 +216,10 @@ int main(int argc, char *argv[])
      * ------------------------------------------------------------*/
 
     if (!strcmp(format, "rgb")) decode.format = TC_CODEC_RGB;
-    else if (!strcmp(format, "yv12")) decode.format = TC_CODEC_YV12;
+    else if (!strcmp(format, "yuv420p")) decode.format = TC_CODEC_YUV420P;
+#warning ************************** FIXME ************************* (YV12)
+else if (!strcmp(format, "yv12")) {void exit(int); fprintf(stderr, "********* yv12 BROKEN **********\n"); exit(1);}
+//    else if (!strcmp(format, "yv12")) decode.format = TC_CODEC_YV12;
     else if (!strcmp(format, "yuv2")) decode.format = TC_CODEC_YUV2;
     else if (!strcmp(format, "yuy2")) decode.format = TC_CODEC_YUY2;
     else if (!strcmp(format, "pcm")) decode.format = TC_CODEC_PCM;
@@ -307,9 +310,9 @@ int main(int argc, char *argv[])
 	done = 1;
     }
 
-    // YV12
-    if (!strcmp(codec, "yv12")) { 
-	decode.codec = TC_CODEC_YV12;
+    // YUV420P
+    if (!strcmp(codec, "yuv420p")) { 
+	decode.codec = TC_CODEC_YUV420P;
 	decode_yuv(&decode);
 	done = 1;
     }

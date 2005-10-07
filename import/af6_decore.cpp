@@ -65,6 +65,7 @@ extern "C" {
 #endif
 
 #include "transcode.h"
+#include "aclib/imgconvert.h"
 #include "ioaux.h"
   
   void af6_decore(decode_t *decode)
@@ -83,15 +84,13 @@ extern "C" {
       ssize_t buffer_size = 0;
       int codec_error = 0;
       fourcc_t fcc = 0;
+      ImageFormat srcfmt = IMG_NONE;
       int do_yuv = 0;
-
-      /* unpacker stuff */
-      int unpack = 0;
-      int lumi_first = 0;
-      uint8_t *pack_buffer = 0;
-      uint8_t *packY=0,*packU=0,*packV=0;
-      ssize_t pack_size = 0;
       long s_tot_frame,s_init_frame;
+
+      /* for unpacking: */
+      unsigned int unpack_size = 0;
+      u_int8_t *unpack_buffer = 0, *unpack[3];
 
       /* create a new file reader */
       vfile = CreateIAviReadFile(decode->name);
@@ -124,46 +123,43 @@ extern "C" {
 	buffer_size = plane_size * 3;
 	break;
 	
-      case TC_CODEC_YV12:
+      case TC_CODEC_YUV420P:
 	do_yuv = 1;
 	// Decide on AVI target format
 	// see http://www.webartz.com/fourcc/fccyuv.htm
 
 	// YUV 4:2:0 planar formats are supported directly:
-	// YV12 = Y plane + V subplane + U subplane
-	if(caps & IVideoDecoder::CAP_YV12) {
-	  fcc=fccYV12;
-	  fprintf(stderr, "(%s) input: YVU 4:2:0 planar data\n", __FILE__);
-	  buffer_size = (plane_size * 3)/2;
-	} 
 	// I420 = IYUV = Y plane + U subplane + V subplane
 	else if(caps & (IVideoDecoder::CAP_I420|IVideoDecoder::CAP_IYUV)) {
-	  fcc=fccI420;
+	  fcc = fccI420;
 	  fprintf(stderr, "(%s) input: YUV 4:2:0 planar data\n", __FILE__);
+	  buffer_size = (plane_size * 3)/2;
+	} 
+	// YV12 = Y plane + V subplane + U subplane
+	if(caps & IVideoDecoder::CAP_YV12) {
+	  fcc = fccYV12;
+	  fprintf(stderr, "(%s) input: YVU 4:2:0 planar data\n", __FILE__);
 	  buffer_size = (plane_size * 3)/2;
 	} 
     
 	// YUV 4:2:2 packed formats are supported via conversion:
 	// YUY2 = Y0 U0 Y1 V0  Y2 U2 Y3 V2  ...
 	else if(caps & IVideoDecoder::CAP_YUY2) {
-	  fcc=fccYUY2;
+	  fcc = fccI420;
+	  srcfmt = IMG_YUY2;
 	  fprintf(stderr, "(%s) input: YUYV 4:2:2 packed data\n", __FILE__);
-	  unpack=1;
-	  lumi_first=1;
 	}
 	// UYVY = U0 Y0 V0 Y1  U2 Y2 V2 Y3  ...
 	else if(caps & IVideoDecoder::CAP_UYVY) {
-	  fcc=fccUYVY;
+	  fcc = fccI420;
+	  srcfmt = IMG_UYVY;
 	  fprintf(stderr, "(%s) input: UYVY 4:2:2 packed data\n", __FILE__);
-	  unpack=1;
-	  lumi_first=0;
 	}
 	// YVYU = Y0 V0 Y1 U0  Y2 V2 Y3 U2  ...
 	else if(caps & IVideoDecoder::CAP_YVYU) {
-	  fcc=fccYVYU;
+	  fcc = fccI420;
+	  srcfmt = IMG_YVYU;
 	  fprintf(stderr, "(%s) input: YVYU 4:2:2 packed data\n", __FILE__);
-	  unpack=1;
-	  lumi_first=1;
 	}
 	// Hmm... unknown codec capability!
 	else {
@@ -190,22 +186,22 @@ extern "C" {
       }
 
       /* prepare unpacker */
-      if(unpack) {
-	pack_size = (plane_size * 3)/2; /* target is 4:2:0 */
-	pack_buffer = (uint8_t *)malloc(pack_size);
-	if(pack_buffer==0) {
+      if(srcfmt) {
+	unpack_size = (plane_size * 3) / 2; /* target is 4:2:0 */
+	unpack_buffer = (u_int8_t *)malloc(unpack_size);
+	if(unpack_buffer==0) {
 	  fprintf(stderr,"(%s) ERROR: No memory for buffer!!!\n",__FILE__);
 	  return;
 	}
-	packY = pack_buffer;
-	packU = pack_buffer + plane_size;
-	packV = pack_buffer + plane_size + (plane_size >> 2);
+	unpack[0] = unpack_buffer;
+	unpack[1] = unpack_buffer + plane_size;
+	unpack[2] = unpack_buffer + plane_size + (plane_size >> 2);
       }
       
       s_tot_frame=vrs->GetLength();	//get the total number of the frames
       if (decode->frame_limit[1] < s_tot_frame) //added to enable the -C option of tcdecode
       {
-             s_tot_frame=decode->frame_limit[1];
+        s_tot_frame=decode->frame_limit[1];
       }
       
       /* start at the beginning */
@@ -225,67 +221,28 @@ extern "C" {
 
 	if (s_init_frame >= decode->frame_limit[0]) //added to enable the -C option of tcdecode
 	{
-		if(unpack) {
-		  /* unpack and write unpacked data */
-		  uint8_t *Y = packY;
-		  uint8_t *U = packU;
-		  uint8_t *V = packV;
-		  int x,y;
-		  int subw = bh.biWidth >> 1;
-		  int subh = bh.biHeight >> 1;
-
-		  /* 4:2:2 packed -> 4:2:0 planar -- SLOW! MMX anyone???? :) */
-		  if(lumi_first) {
-
-		    for(y=0;y<subh;y++) {
-		      for(x=0;x<subw;x++) {
-			*(Y++) = *(buf++);
-			*(U++) = *(buf++);
-			*(Y++) = *(buf++);
-			*(V++) = *(buf++);
-		      }
-		      for(x=0;x<subw;x++) {
-			*(Y++) = *(buf++);
-			buf++;
-			*(Y++) = *(buf++);
-			buf++;
-		      }
-		    }
-		  } else {
-		    for(y=0;y<subh;y++) {
-		      for(x=0;x<subw;x++) {
-			*(U++) = *(buf++);
-			*(Y++) = *(buf++);
-			*(V++) = *(buf++);
-			*(Y++) = *(buf++);
-		      }
-		      for(x=0;x<subw;x++) {
-			buf++;
-			*(Y++) = *(buf++);
-			buf++;
-			*(Y++) = *(buf++);
-		      }
-		    }
-		  }
-		  /* write unpacked frame */
-		  if(p_write(decode->fd_out, pack_buffer, pack_size)!= pack_size) {
-		    fprintf(stderr,"(%s) ERROR: Pipe write error!\n",__FILE__);
-		    break;
-		  }
-		} else {
-		  /* directly write raw frame */
-		  if(p_write(decode->fd_out, buf, buffer_size)!= buffer_size) {
-		    fprintf(stderr,"(%s) ERROR: Pipe write error!\n",__FILE__);
-		    break;
-		  }
-		}
+	  if(srcfmt) {
+	    /* unpack and write unpacked data */
+	    ac_imgconvert(&buf, srcfmt, unpack, IMG_YUV420P,
+	                  bh.biWidth, bh.biHeight);
+	    if(p_write(decode->fd_out, pack_buffer, pack_size)!= pack_size) {
+	      fprintf(stderr,"(%s) ERROR: Pipe write error!\n",__FILE__);
+	      break;
+	    }
+	  } else {
+	    /* directly write raw frame */
+	    if(p_write(decode->fd_out, buf, buffer_size)!= buffer_size) {
+	      fprintf(stderr,"(%s) ERROR: Pipe write error!\n",__FILE__);
+	      break;
+	    }
+	  }
 	}
       }
       
       /* cleanup */
       delete vfile;
-      if(pack_buffer!=0)
-	free(pack_buffer);
+      if(unpack_buffer!=0)
+	free(unpack_buffer);
     }
 
     /* ----- AF6 AUDIO ----- */
@@ -391,25 +348,25 @@ extern "C" {
 	/* by default decode->frame_limit[0]=0 and decode->frame_limit[1]=LONG_MAX so all bytes are decoded */
 	if ((s_byte_read >= decode->frame_limit[0]) && (s_byte_read <= decode->frame_limit[1])) //added to enable the -C option of tcdecode
 	{
-		if ( s_byte_read - ret_size <(unsigned int)decode->frame_limit[0])
-		{
-			if((unsigned int)p_write(decode->fd_out,buffer+(ret_size-(s_byte_read-decode->frame_limit[0])),(s_byte_read-decode->frame_limit[0]))!=(unsigned int)(s_byte_read-decode->frame_limit[0])) 
-			  	break;
-		}
-		else
-		{
-			if((unsigned int)p_write(decode->fd_out,buffer,ret_size)!=ret_size) 
-			  break;
-		}
+	  if ( s_byte_read - ret_size <(unsigned int)decode->frame_limit[0])
+	  {
+	    if((unsigned int)p_write(decode->fd_out,buffer+(ret_size-(s_byte_read-decode->frame_limit[0])),(s_byte_read-decode->frame_limit[0]))!=(unsigned int)(s_byte_read-decode->frame_limit[0])) 
+	      break;
+	  }
+	  else
+	  {
+	    if((unsigned int)p_write(decode->fd_out,buffer,ret_size)!=ret_size) 
+	      break;
+	  }
 	}
 	else if ((s_byte_read> decode->frame_limit[0]) && (s_byte_read - ret_size <=(unsigned int)decode->frame_limit[1]))
 	{
-		if((unsigned int)p_write(decode->fd_out,buffer,(s_byte_read-decode->frame_limit[1]))!=(unsigned int)(s_byte_read-decode->frame_limit[1])) 
-		 	break;
+	  if((unsigned int)p_write(decode->fd_out,buffer,(s_byte_read-decode->frame_limit[1]))!=(unsigned int)(s_byte_read-decode->frame_limit[1])) 
+	    break;
 	}
 	else if (s_byte_read - ret_size >(unsigned int)decode->frame_limit[1])
 	{
-		break;
+	  break;
 	}
 	
       }

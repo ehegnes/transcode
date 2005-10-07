@@ -28,6 +28,7 @@
 
 #include "transcode.h"
 #include "vid_aux.h"
+#include "aclib/imgconvert.h"
 
 #define MOD_NAME    "export_mp1e.so"
 #define MOD_VERSION "v0.0.1 (2003-12-18)"
@@ -46,7 +47,7 @@ const char *fifoname = "audio-mp1e.wav";
 static int audio_open_done = 0;
 static int do_audio = 0;
 
-static char *yuy2buf = NULL;
+static u_int8_t *yuy2buf = NULL;
 static int v_codec = 0;
 static int width = 0;
 static int height = 0;
@@ -70,7 +71,8 @@ static int audio_frames_written =0;
 
 MOD_open
 {
-    
+    ac_imgconvert_init (tc_accel); 
+
     /* check for mp1e program */
     if (tc_test_program("mp1e") != 0) return (TC_EXPORT_ERROR);
 
@@ -311,20 +313,18 @@ MOD_encode
 	    char *U = param->buffer+Ysize;
 	    char *V = U + UVsize;
 	    fwrite(param->buffer, Ysize, 1, pFile);
-	    fwrite(V, UVsize, 1, pFile);
 	    fwrite(U, UVsize, 1, pFile);
+	    fwrite(V, UVsize, 1, pFile);
 	} else if (v_codec == CODEC_YUV422) {
-	    uyvytoyuy2(param->buffer, yuy2buf, width, height);
+	    ac_imgconvert(&param->buffer, IMG_UYVY, &yuy2buf, IMG_YUY2,
+			  width, height);
 	    fwrite(yuy2buf, param->size, 1, pFile);
 	} else if (v_codec == CODEC_RGB) {
-
 	    if(tc_rgb2yuv_core(param->buffer)<0) {
 		fprintf(stderr, "[%s] rgb2yuv conversion failed\n", MOD_NAME);
 		return(TC_EXPORT_ERROR);
 	    }
-
 	    fwrite(param->buffer, width*height*3/2, 1, pFile);
-      
 	}
     }
     if (param->flag == TC_AUDIO)  {

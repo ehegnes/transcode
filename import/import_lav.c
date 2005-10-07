@@ -66,8 +66,8 @@ MOD_open
 
       sret = snprintf(import_cmd_buf, TC_BUF_MAX,
                       "lav2yuv \"%s\"%s |"
-                      " tcextract -x yv12 -t yuv4mpeg |"
-                      " tcdecode -x yv12 -g %dx%d",
+                      " tcextract -x yuv420p -t yuv4mpeg |"
+                      " tcdecode -x yuv420p -g %dx%d",
                       vob->video_in_file, i ? "*" : "",
                       vob->im_v_width, vob->im_v_height);
       if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
@@ -79,7 +79,7 @@ MOD_open
 
       sret = snprintf(import_cmd_buf, TC_BUF_MAX,
                       "lav2yuv \"%s\"%s |"
-                      " tcextract -x yv12 -t yuv4mpeg",
+                      " tcextract -x yuv420p -t yuv4mpeg",
                       vob->video_in_file, i ? "*" : "");
       if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
 	return(TC_IMPORT_ERROR);

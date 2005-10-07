@@ -83,7 +83,7 @@ MOD_open
 
       sret = snprintf(import_cmd_buf, TC_BUF_MAX,
                       "tcextract -x mpeg2 -i \"%s\" -d %d |"
-                      " tcdecode -x mpeg2 -d %d -y yv12",
+                      " tcdecode -x mpeg2 -d %d -y yuv420p",
                       vob->video_in_file, vob->verbose, vob->verbose);
       if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
 	return(TC_IMPORT_ERROR);
@@ -131,7 +131,7 @@ MOD_open
       sret = snprintf(import_cmd_buf, TC_BUF_MAX,
                       "tccat -i \"%s\" -d %d -n 0x%x |"
                       " tcextract -x mpeg2 -t m2v -d %d |"
-                      " tcdecode -x mpeg2 -d %d -y yv12",
+                      " tcdecode -x mpeg2 -d %d -y yuv420p",
                       vob->video_in_file, vob->verbose,vob->ts_pid1,
                       vob->verbose, vob->verbose);
       if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))

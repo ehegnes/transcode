@@ -259,15 +259,15 @@ MOD_init
 			break;
 		case CODEC_YUV:
 			global_framesize = fsize*3/2;
-			global_colorspace = XVID_CSP_YV12;
+			global_colorspace = XVID_CSP_I420;
 			break;
 		case CODEC_YUV422:
 			global_framesize = fsize*2;
 			global_colorspace = XVID_CSP_UYVY;
 			break;
-		default: /* down know... simply use YV12, too... */
+		default: /* unknown, default to YUV420P (I420) */
 			global_framesize = fsize*3/2;
-			global_colorspace = XVID_CSP_YV12;
+			global_colorspace = XVID_CSP_I420;
 			break;
 		}			
 

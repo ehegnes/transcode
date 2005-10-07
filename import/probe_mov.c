@@ -100,8 +100,9 @@ void probe_mov(info_t *ipipe)
       if(strcasecmp(codec,"dvsd")==0)
 	ipipe->probe_info->codec=TC_CODEC_DV;
       
-      if(strcasecmp(codec,"yv12")==0)
-	ipipe->probe_info->codec=TC_CODEC_YV12;
+#warning *********************** FIXME ************************ (YV12)
+//      if(strcasecmp(codec,"yv12")==0)
+//	ipipe->probe_info->codec=TC_CODEC_YV12;
       
       if(strcasecmp(codec,"DIV3")==0)
 	ipipe->probe_info->codec=TC_CODEC_DIVX3;

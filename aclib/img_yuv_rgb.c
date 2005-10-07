@@ -1,100 +1,39 @@
 /*
- * colorspace.c - colorspace conversion routines
+ * img_yuv_rgb.c - YUV<->RGB image format conversion routines
  * Written by Andrew Church <achurch@achurch.org>
  */
 
-#include <string.h>
-#include <stdio.h>
 #include "ac.h"
-#include "colorspace.h"
+#include "imgconvert.h"
+#include "img_internal.h"
 
-/*************************************************************************/
-
-static void yuv420p_rgb24_c(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
-			    u_int8_t *srcV, int width, int height,
-			    int rgb_stride, int y_stride, int uv_stride);
-static void rgb24_yuv420p_c(u_int8_t *destY, u_int8_t *destU, u_int8_t *destV,
-			    u_int8_t *src, int width, int height,
-			    int rgb_stride, int y_stride, int uv_stride);
-static void yuv420p_rgb24_mmx(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
-			      u_int8_t *srcV, int width, int height,
-			      int rgb_stride, int y_stride, int uv_stride);
-static void yuv420p_rgb24_sse2(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
-			       u_int8_t *srcV, int width, int height,
-			       int rgb_stride, int y_stride, int uv_stride);
-static void rgb24_yuv420p_sse2(u_int8_t *destY, u_int8_t *destU,
-			       u_int8_t *destV, u_int8_t *src, int width,
-			       int height, int rgb_stride, int y_stride,
-			       int uv_stride);
+#define USE_LOOKUP_TABLES  /* for YUV420P->RGB24 */
 
 /*************************************************************************/
 /*************************************************************************/
 
-/* The actual conversion functions.  Default to C (non-optimized) versions. */
-yuv2rgb_func yuv2rgb = yuv420p_rgb24_c;
-rgb2yuv_func rgb2yuv = rgb24_yuv420p_c;
+/* Standard C implementations */
 
-/* Initialization routine.  Selects an appropriate optimized routine (if
- * available) depending on the acceleration flags given.
- */
-void colorspace_init(int accel)
-{
-    if (accel & MM_SSE2) {
-	yuv2rgb = yuv420p_rgb24_sse2;
-	rgb2yuv = rgb24_yuv420p_sse2;
-    } else if (accel & MM_MMX) {
-	yuv2rgb = yuv420p_rgb24_mmx;
-    }
-}
-
-/*************************************************************************/
-/*************************************************************************/
-
-/* Default C (unoptimized) versions of colorspace routines. */
-
-//#define LIBVO_EXACT	/* Define this for output exactly equal to libvo C */
-
-#ifdef LIBVO_EXACT
-# define LIBVO_DIV_ROUND(n,d) ((n)<0 ? -(-(n)+(d)/2) / (d) : ((n)+(d)/2) / (d))
-#else
-# define USE_LOOKUP_TABLES	/* Define to enable use of lookup tables */
-#endif
+const int cY  =  76309;
+const int crV = 104597;
+const int cgU = -25675;
+const int cgV = -53279;
+const int cbU = 132201;
 
 /*************************************************************************/
 
-/* YUV420P to RGB */
-
-static void yuv420p_rgb24_c(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
-			    u_int8_t *srcV, int width, int height,
-			    int rgb_stride, int y_stride, int uv_stride)
-{
-#ifdef LIBVO_EXACT
-    const int cY  =  76309;
-    const int crV = 104597;
-    const int cgU = -25675;
-    const int cgV = -53279;
-    const int cbU = 132201;
-#else
-    const int cY  =  71392;
-    const int crV =  98007;
-    const int cgU = -24057;
-    const int cgV = -51842;
-    const int cbU = 123872;
-#endif
 #ifdef USE_LOOKUP_TABLES
 # define TABLE_SCALE 4   /* scale factor for Y */
-    static int tables_created = 0;
-    static int Ylutbase[768*TABLE_SCALE];
-    static int *Ylut = Ylutbase+256*TABLE_SCALE;
-    static int rVlut[256];
-    static int gUlut[256];
-    static int gVlut[256];
-    static int bUlut[256];
-#endif
-    int x, y;
-
-#ifdef USE_LOOKUP_TABLES
-    if (!tables_created) {
+static int yuv_tables_created = 0;
+static int Ylutbase[768*TABLE_SCALE];
+static int *Ylut = Ylutbase+256*TABLE_SCALE;
+static int rVlut[256];
+static int gUlut[256];
+static int gVlut[256];
+static int bUlut[256];
+static void yuv_create_tables(void)
+{
+    if (!yuv_tables_created) {
 	int i;
 	for (i = -256*TABLE_SCALE; i < 512*TABLE_SCALE; i++) {
 	    int v = ((cY*(i-16*TABLE_SCALE)/TABLE_SCALE) + 32768) >> 16;
@@ -106,82 +45,239 @@ static void yuv420p_rgb24_c(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
 	    gVlut[i] = (cgV * (i-128)) * TABLE_SCALE / cY;
 	    bUlut[i] = (cbU * (i-128)) * TABLE_SCALE / cY;
 	}
-	tables_created = 1;
+	yuv_tables_created = 1;
     }
+}
+#define YUV2RGB(uvofs) do {					\
+    int Y = src[0][y*width+x] * TABLE_SCALE;			\
+    int U = src[1][(uvofs)];					\
+    int V = src[2][(uvofs)];					\
+    dest[0][(y*width+x)*3  ] = Ylut[Y+rVlut[V]];		\
+    dest[0][(y*width+x)*3+1] = Ylut[Y+gUlut[U]+gVlut[V]];	\
+    dest[0][(y*width+x)*3+2] = Ylut[Y+bUlut[U]];		\
+} while (0)
+#else  /* !USE_LOOKUP_TABLES */
+static void yuv420p_create_tables(void) { }
+#define YUV2RGB(uvofs) do {					\
+    int Y = cY * (src[0][y*width+x] - 16);			\
+    int U = src[1][(uvofs)] - 128;				\
+    int V = src[2][(uvofs)] - 128;				\
+    int r = (Y + crV*V + 32768) >> 16;				\
+    int g = (Y + cgU*U + cgV*V + 32768) >> 16;			\
+    int b = (Y + cbU*U + 32768) >> 16;				\
+    dest[0][(y*width+x)*3  ] = r<0 ? 0 : r>255 ? 255 : r;	\
+    dest[0][(y*width+x)*3+1] = g<0 ? 0 : g>255 ? 255 : g;	\
+    dest[0][(y*width+x)*3+2] = b<0 ? 0 : b>255 ? 255 : b;	\
+} while (0)
 #endif
 
+static int yuv420p_rgb24(u_int8_t **src, u_int8_t **dest, int width, int height)
+{
+    int x, y;
+
+    yuv_create_tables();
     for (y = 0; y < height; y++) {
 	for (x = 0; x < width; x++) {
-#ifdef LIBVO_EXACT
-	    u_int8_t Y = srcY[x];
-	    u_int8_t U = srcU[x/2];
-	    u_int8_t V = srcV[x/2];
-	    int rV = LIBVO_DIV_ROUND(crV * (V-128), cY);
-	    int gU = LIBVO_DIV_ROUND(cgU * (U-128), cY);
-	    int gV = LIBVO_DIV_ROUND(cgV * (V-128), cY);
-	    int bU = LIBVO_DIV_ROUND(cbU * (U-128), cY);
-	    int r = (cY * (Y+rV-16) + 32768) >> 16;
-	    int g = (cY * (Y+gU+gV-16) + 32768) >> 16;
-	    int b = (cY * (Y+bU-16) + 32768) >> 16;
-	    dest[x*3  ] = r<0 ? 0 : r>255 ? 255 : r;
-	    dest[x*3+1] = g<0 ? 0 : g>255 ? 255 : g;
-	    dest[x*3+2] = b<0 ? 0 : b>255 ? 255 : b;
-#elif defined(USE_LOOKUP_TABLES)
-	    int Y = srcY[x] * TABLE_SCALE;
-	    int U = srcU[x/2];
-	    int V = srcV[x/2];
-	    dest[x*3  ] = Ylut[Y+rVlut[V]];
-	    dest[x*3+1] = Ylut[Y+gUlut[U]+gVlut[V]];
-	    dest[x*3+2] = Ylut[Y+bUlut[U]];
-#else
-	    int Y = cY * (srcY[x] - 16);
-	    int U = srcU[x/2] - 128;
-	    int V = srcV[x/2] - 128;
-	    int r = (Y + crV*V + 32768) >> 16;
-	    int g = (Y + cgU*U + cgV*V + 32768) >> 16;
-	    int b = (Y + cbU*U + 32768) >> 16;
-	    dest[x*3  ] = r<0 ? 0 : r>255 ? 255 : r;
-	    dest[x*3+1] = g<0 ? 0 : g>255 ? 255 : g;
-	    dest[x*3+2] = b<0 ? 0 : b>255 ? 255 : b;
-#endif
-	}
-	dest += rgb_stride;
-	srcY += y_stride;
-	if (y%2) {
-	    srcU += uv_stride;
-	    srcV += uv_stride;
+	    YUV2RGB((y/2)*(width/2)+(x/2));
 	}
     }
+    return 1;
+}
+
+static int yuv411p_rgb24(u_int8_t **src, u_int8_t **dest, int width, int height)
+{
+    int x, y;
+
+    yuv_create_tables();
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < width; x++) {
+	    YUV2RGB(y*(width/4)+(x/4));
+	}
+    }
+    return 1;
+}
+
+static int yuv422p_rgb24(u_int8_t **src, u_int8_t **dest, int width, int height)
+{
+    int x, y;
+
+    yuv_create_tables();
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < width; x++) {
+	    YUV2RGB(y*(width/2)+(x/2));
+	}
+    }
+    return 1;
+}
+
+static int yuv444p_rgb24(u_int8_t **src, u_int8_t **dest, int width, int height)
+{
+    int x, y;
+
+    yuv_create_tables();
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < width; x++) {
+	    YUV2RGB(y*width+x);
+	}
+    }
+    return 1;
 }
 
 /*************************************************************************/
 
-/* RGB to YUV420P */
+#define RGB2Y() \
+    (dest[0][y*width+x] = ((16829*r + 33039*g +  6416*b + 32768) >> 16) + 16)
+#define RGB2U(uvofs) \
+    (dest[1][(uvofs)]   = ((-9714*r - 19070*g + 28784*b + 32768) >> 16) + 128)
+#define RGB2V(uvofs) \
+    (dest[2][(uvofs)]   = ((28784*r - 24103*g -  4681*b + 32768) >> 16) + 128)
 
-static void rgb24_yuv420p_c(u_int8_t *destY, u_int8_t *destU, u_int8_t *destV,
-			    u_int8_t *src, int width, int height,
-			    int rgb_stride, int y_stride, int uv_stride)
+static int rgb24_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int height)
 {
     int x, y;
 
     for (y = 0; y < height; y++) {
 	for (x = 0; x < width; x++) {
-	    int r = src[x*3  ];
-	    int g = src[x*3+1];
-	    int b = src[x*3+2];
-	    destY[x] = ((17988*r + 35314*g + 6858*b) >> 16) + 16;
+	    int r = src[0][(y*width+x)*3  ];
+	    int g = src[0][(y*width+x)*3+1];
+	    int b = src[0][(y*width+x)*3+2];
+	    RGB2Y();
 	    if (!((x|y) & 1))
-		destU[x/2] = ((-10367*r - 20353*g + 30720*b) >> 16) + 128;
+		RGB2U((y/2)*(width/2)+x/2);
 	    if ((x&y) & 1)  /* take Cb/Cr from opposite corners */
-		destV[x/2] = (( 30720*r - 25724*g -  4996*b) >> 16) + 128;
-	}
-	src += rgb_stride;
-	destY += y_stride;
-	if (y%2) {
-	    destU += uv_stride;
-	    destV += uv_stride;
+		RGB2V((y/2)*(width/2)+x/2);
 	}
     }
+    return 1;
+}
+
+static int rgb24_yuv411p(u_int8_t **src, u_int8_t **dest, int width, int height)
+{
+    int x, y;
+
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < width; x++) {
+	    int r = src[0][(y*width+x)*3  ];
+	    int g = src[0][(y*width+x)*3+1];
+	    int b = src[0][(y*width+x)*3+2];
+	    RGB2Y();
+	    if (!(x & 3))
+		RGB2U(y*(width/4)+x/4);
+	    if (!((x^2) & 3))  /* take Cb/Cr from pixels 2 points apart */
+		RGB2V(y*(width/4)+x/4);
+	}
+    }
+    return 1;
+}
+
+static int rgb24_yuv422p(u_int8_t **src, u_int8_t **dest, int width, int height)
+{
+    int x, y;
+
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < width; x++) {
+	    int r = src[0][(y*width+x)*3  ];
+	    int g = src[0][(y*width+x)*3+1];
+	    int b = src[0][(y*width+x)*3+2];
+	    RGB2Y();
+	    if (!(x & 1))
+		RGB2U(y*(width/2)+x/2);
+	    if (x & 1)  /* take Cb/Cr from separate pixels */
+		RGB2V(y*(width/2)+x/2);
+	}
+    }
+    return 1;
+}
+
+static int rgb24_yuv444p(u_int8_t **src, u_int8_t **dest, int width, int height)
+{
+    int x, y;
+
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < width; x++) {
+	    int r = src[0][(y*width+x)*3  ];
+	    int g = src[0][(y*width+x)*3+1];
+	    int b = src[0][(y*width+x)*3+2];
+	    RGB2Y();
+	    RGB2U(y*width+x);
+	    RGB2V(y*width+x);
+	}
+    }
+    return 1;
+}
+
+/*************************************************************************/
+
+/* All YUV planar formats convert to grayscale the same way */
+
+#ifdef USE_LOOKUP_TABLES
+static u_int8_t graylut[256];
+static int graylut_created = 0;
+static void gray8_create_tables(void)
+{
+    if (!graylut_created) {
+	int i;
+	for (i = 0; i < 256; i++) {
+	    if (i <= 16)
+		graylut[i] = 0;
+	    else if (i >= 235)
+		graylut[i] = 255;
+	    else
+		graylut[i] = (i-16) * 255 / 219;
+	}
+	graylut_created = 1;
+    }
+}
+#endif
+
+static int yuvp_gray8(u_int8_t **src, u_int8_t **dest, int width, int height)
+{
+    int i;
+
+#ifdef USE_LOOKUP_TABLES
+    gray8_create_tables();
+    for (i = 0; i < width*height; i++)
+	dest[0][i] = graylut[src[0][i]];
+#else
+    for (i = 0; i < width*height; i++)
+	dest[0][i] = (src[0][i]<16 ? 0 :
+		      src[0][i]>=235 ? 255 : (src[0][i]-16)*256/219);
+#endif
+    return 1;
+}
+
+/*************************************************************************/
+
+static int gray8_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int height)
+{
+    int i;
+    for (i = 0; i < width*height; i++)
+	dest[0][i] = src[0][i]*219/255 + 16;
+    memset(dest[1], 128, width*height/4);
+    memset(dest[2], 128, width*height/4);
+    return 1;
+}
+
+#define gray8_yuv411p gray8_yuv420p  /* U/V planes are the same size */
+
+static int gray8_yuv422p(u_int8_t **src, u_int8_t **dest, int width, int height)
+{
+    int i;
+    for (i = 0; i < width*height; i++)
+	dest[0][i] = src[0][i]*219/255 + 16;
+    memset(dest[1], 128, width*height/2);
+    memset(dest[2], 128, width*height/2);
+    return 1;
+}
+
+static int gray8_yuv444p(u_int8_t **src, u_int8_t **dest, int width, int height)
+{
+    int i;
+    for (i = 0; i < width*height; i++)
+	dest[0][i] = src[0][i]*219/256 + 16;
+    memset(dest[1], 128, width*height);
+    memset(dest[2], 128, width*height);
+    return 1;
 }
 
 /*************************************************************************/
@@ -197,23 +293,23 @@ static struct { u_int16_t n[64]; } __attribute__((aligned(16))) yuv_data = {{
     0x00FF,0x00FF,0x00FF,0x00FF,0x00FF,0x00FF,0x00FF,0x00FF, /* for odd/even */
     0x0010,0x0010,0x0010,0x0010,0x0010,0x0010,0x0010,0x0010, /* for Y -16    */
     0x0080,0x0080,0x0080,0x0080,0x0080,0x0080,0x0080,0x0080, /* for U/V -128 */
-    0x45B8,0x45B8,0x45B8,0x45B8,0x45B8,0x45B8,0x45B8,0x45B8, /* Y constant   */
-    0x5FB6,0x5FB6,0x5FB6,0x5FB6,0x5FB6,0x5FB6,0x5FB6,0x5FB6, /* rV constant  */
-    0xE882,0xE882,0xE882,0xE882,0xE882,0xE882,0xE882,0xE882, /* gU constant  */
-    0xCD60,0xCD60,0xCD60,0xCD60,0xCD60,0xCD60,0xCD60,0xCD60, /* gV constant  */
-    0x78F8,0x78F8,0x78F8,0x78F8,0x78F8,0x78F8,0x78F8,0x78F8, /* bU constant  */
+    0x2543,0x2543,0x2543,0x2543,0x2543,0x2543,0x2543,0x2543, /* Y constant   */
+    0x3313,0x3313,0x3313,0x3313,0x3313,0x3313,0x3313,0x3313, /* rV constant  */
+    0xF377,0xF377,0xF377,0xF377,0xF377,0xF377,0xF377,0xF377, /* gU constant  */
+    0xE5FC,0xE5FC,0xE5FC,0xE5FC,0xE5FC,0xE5FC,0xE5FC,0xE5FC, /* gV constant  */
+    0x408D,0x408D,0x408D,0x408D,0x408D,0x408D,0x408D,0x408D, /* bU constant  */
 }};
 /* Note that the Y factors are halved because G->Y exceeds 0x7FFF */
 static struct { u_int16_t n[96]; } __attribute__((aligned(16))) rgb_data = {{
-    0x2322,0x2322,0x2322,0x2322,0x2322,0x2322,0x2322,0x2322, /* R->Y * 0.5   */
-    0x44F9,0x44F9,0x44F9,0x44F9,0x44F9,0x44F9,0x44F9,0x44F9, /* G->Y * 0.5   */
-    0x0D65,0x0D65,0x0D65,0x0D65,0x0D65,0x0D65,0x0D65,0x0D65, /* B->Y * 0.5   */
-    0xD781,0xD781,0xD781,0xD781,0xD781,0xD781,0xD781,0xD781, /* R->U         */
-    0xB07F,0xB07F,0xB07F,0xB07F,0xB07F,0xB07F,0xB07F,0xB07F, /* G->U         */
-    0x7800,0x7800,0x7800,0x7800,0x7800,0x7800,0x7800,0x7800, /* B->U         */
-    0x7800,0x7800,0x7800,0x7800,0x7800,0x7800,0x7800,0x7800, /* R->V         */
-    0x9B84,0x9B84,0x9B84,0x9B84,0x9B84,0x9B84,0x9B84,0x9B84, /* G->V         */
-    0xEC7C,0xEC7C,0xEC7C,0xEC7C,0xEC7C,0xEC7C,0xEC7C,0xEC7C, /* B->V         */
+    0x20DF,0x20DF,0x20DF,0x20DF,0x20DF,0x20DF,0x20DF,0x20DF, /* R->Y * 0.5   */
+    0x4087,0x4087,0x4087,0x4087,0x4087,0x4087,0x4087,0x4087, /* G->Y * 0.5   */
+    0x0C88,0x0C88,0x0C88,0x0C88,0x0C88,0x0C88,0x0C88,0x0C88, /* B->Y * 0.5   */
+    0xDA0E,0xDA0E,0xDA0E,0xDA0E,0xDA0E,0xDA0E,0xDA0E,0xDA0E, /* R->U         */
+    0xB582,0xB582,0xB582,0xB582,0xB582,0xB582,0xB582,0xB582, /* G->U         */
+    0x7070,0x7070,0x7070,0x7070,0x7070,0x7070,0x7070,0x7070, /* B->U         */
+    0x7070,0x7070,0x7070,0x7070,0x7070,0x7070,0x7070,0x7070, /* R->V         */
+    0xA1D9,0xA1D9,0xA1D9,0xA1D9,0xA1D9,0xA1D9,0xA1D9,0xA1D9, /* G->V         */
+    0xEDB7,0xEDB7,0xEDB7,0xEDB7,0xEDB7,0xEDB7,0xEDB7,0xEDB7, /* B->V         */
     0x0420,0x0420,0x0420,0x0420,0x0420,0x0420,0x0420,0x0420, /* Y +16.5      */
     0x2020,0x2020,0x2020,0x2020,0x2020,0x2020,0x2020,0x2020, /* U/V +128.5   */
     0x00FF,0x00FF,0x00FF,0x00FF,0x00FF,0x00FF,0x00FF,0x00FF, /* for odd/even */
@@ -252,48 +348,60 @@ static struct { u_int16_t n[96]; } __attribute__((aligned(16))) rgb_data = {{
 
 /*************************************************************************/
 
+/* MMX routines */
+
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
 
-/* MMX */
-
-static inline void mmx_yuv420p_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
+static inline void mmx_yuv42Xp_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
 				      u_int8_t *srcV);
 static inline void mmx_store_rgb24(u_int8_t *dest);
 
-static void yuv420p_rgb24_mmx(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
-			      u_int8_t *srcV, int width, int height,
-			      int rgb_stride, int y_stride, int uv_stride)
+static int yuv420p_rgb24_mmx(u_int8_t **src, u_int8_t **dest,
+			     int width, int height)
 {
     int x, y;
-    u_int8_t *dest_orig = dest;
-    u_int8_t *srcY_orig = srcY;
-    u_int8_t *srcU_orig = srcU;
-    u_int8_t *srcV_orig = srcV;
 
+    yuv_create_tables();
     for (y = 0; y < height; y++) {
 	for (x = 0; x < (width & ~7); x += 8) {
-	    mmx_yuv420p_to_rgb(srcY+x, srcU+x/2, srcV+x/2);
-	    mmx_store_rgb24(dest+x*3);
+	    mmx_yuv42Xp_to_rgb(src[0]+y*width+x,
+			       src[1]+(y/2)*(width/2)+x/2,
+			       src[2]+(y/2)*(width/2)+x/2);
+	    mmx_store_rgb24(dest[0]+(y*width+x)*3);
 	}
-	if (x < width)
-	dest += rgb_stride;
-	srcY += y_stride;
-	if (y%2) {
-	    srcU += uv_stride;
-	    srcV += uv_stride;
+	while (x < width) {
+	    YUV2RGB((y/2)*(width/2)+(x/2));
+	    x++;
 	}
     }
     asm("emms");
-    if (width & 7) {
-	x = width & ~7;
-	yuv420p_rgb24_c(dest_orig+x*3, srcY_orig+x, srcU_orig+x/2,
-			srcV_orig+x/2, width-x, height, rgb_stride, y_stride,
-			uv_stride);
+    return 1;
+}
+
+static int yuv422p_rgb24_mmx(u_int8_t **src, u_int8_t **dest,
+			     int width, int height)
+{
+    int x, y;
+
+    yuv_create_tables();
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < (width & ~7); x += 8) {
+	    mmx_yuv42Xp_to_rgb(src[0]+y*width+x,
+			       src[1]+y*(width/2)+x/2,
+			       src[2]+y*(width/2)+x/2);
+	    mmx_store_rgb24(dest[0]+(y*width+x)*3);
+	}
+	while (x < width) {
+	    YUV2RGB(y*(width/2)+(x/2));
+	    x++;
+	}
     }
+    asm("emms");
+    return 1;
 }
 
 
-static inline void mmx_yuv420p_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
+static inline void mmx_yuv42Xp_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
 				      u_int8_t *srcV)
 {
     asm("\
@@ -311,10 +419,10 @@ static inline void mmx_yuv420p_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
 	psubw 16(%%esi), %%mm7	# MM7: subtract 16			\n\
 	psubw 32(%%esi), %%mm2	# MM2: subtract 128			\n\
 	psubw 32(%%esi), %%mm3	# MM3: subtract 128			\n\
-	psllw $2, %%mm6		# MM6: convert to fixed point 8.2	\n\
-	psllw $2, %%mm7		# MM7: convert to fixed point 8.2	\n\
-	psllw $2, %%mm2		# MM2: convert to fixed point 8.2	\n\
-	psllw $2, %%mm3		# MM3: convert to fixed point 8.2	\n\
+	psllw $3, %%mm6		# MM6: convert to fixed point 8.3	\n\
+	psllw $3, %%mm7		# MM7: convert to fixed point 8.3	\n\
+	psllw $3, %%mm2		# MM2: convert to fixed point 8.3	\n\
+	psllw $3, %%mm3		# MM3: convert to fixed point 8.3	\n\
 	# Multiply by constants						\n\
 	pmulhw 48(%%esi), %%mm6	# MM6: -cY6- -cY4- -cY2- -cY0-		\n\
 	pmulhw 48(%%esi), %%mm7	# MM6: -cY7- -cY5- -cY3- -cY1-		\n\
@@ -411,81 +519,148 @@ static inline void mmx_store_rgb24(u_int8_t *dest)
 
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
 
-static inline void sse2_yuv420p_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
+static inline void sse2_yuv42Xp_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
 				       u_int8_t *srcV);
 static inline void sse2_store_rgb24(u_int8_t *dest);
 static inline void sse2_load_rgb24(u_int8_t *src);
 static inline void sse2_rgb_to_yuv420p_yu(u_int8_t *destY, u_int8_t *destU);
 static inline void sse2_rgb_to_yuv420p_yv(u_int8_t *destY, u_int8_t *destV);
+static inline void sse2_rgb_to_yuv422p(u_int8_t *destY, u_int8_t *destU,
+				       u_int8_t *destV);
+static inline void sse2_rgb_to_yuv444p(u_int8_t *destY, u_int8_t *destU,
+				       u_int8_t *destV);
 
-static void yuv420p_rgb24_sse2(u_int8_t *dest, u_int8_t *srcY, u_int8_t *srcU,
-			       u_int8_t *srcV, int width, int height,
-			       int rgb_stride, int y_stride, int uv_stride)
+static int yuv420p_rgb24_sse2(u_int8_t **src, u_int8_t **dest,
+			      int width, int height)
 {
     int x, y;
-    u_int8_t *dest_orig = dest;
-    u_int8_t *srcY_orig = srcY;
-    u_int8_t *srcU_orig = srcU;
-    u_int8_t *srcV_orig = srcV;
 
+    yuv_create_tables();
     for (y = 0; y < height; y++) {
 	for (x = 0; x < (width & ~15); x += 16) {
-	    sse2_yuv420p_to_rgb(srcY+x, srcU+x/2, srcV+x/2);
-	    sse2_store_rgb24(dest+x*3);
+	    sse2_yuv42Xp_to_rgb(src[0]+y*width+x,
+				src[1]+(y/2)*(width/2)+x/2,
+				src[2]+(y/2)*(width/2)+x/2);
+	    sse2_store_rgb24(dest[0]+(y*width+x)*3);
 	}
-	dest += rgb_stride;
-	srcY += y_stride;
-	if (y%2) {
-	    srcU += uv_stride;
-	    srcV += uv_stride;
+	while (x < width) {
+	    YUV2RGB((y/2)*(width/2)+(x/2));
+	    x++;
 	}
     }
     asm("emms");
-    if (width & 15) {
-	x = width & ~15;
-	yuv420p_rgb24_c(dest_orig+x*3, srcY_orig+x, srcU_orig+x/2,
-			srcV_orig+x/2, width-x, height, rgb_stride, y_stride,
-			uv_stride);
-    }
+    return 1;
 }
 
-static void rgb24_yuv420p_sse2(u_int8_t *destY, u_int8_t *destU,
-			       u_int8_t *destV, u_int8_t *src, int width,
-			       int height, int rgb_stride, int y_stride,
-			       int uv_stride)
+static int yuv422p_rgb24_sse2(u_int8_t **src, u_int8_t **dest,
+			      int width, int height)
 {
     int x, y;
-    u_int8_t *destY_orig = destY;
-    u_int8_t *destU_orig = destU;
-    u_int8_t *destV_orig = destV;
-    u_int8_t *src_orig = src;
+
+    yuv_create_tables();
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < (width & ~15); x += 16) {
+	    sse2_yuv42Xp_to_rgb(src[0]+y*width+x,
+				src[1]+y*(width/2)+x/2,
+				src[2]+y*(width/2)+x/2);
+	    sse2_store_rgb24(dest[0]+(y*width+x)*3);
+	}
+	while (x < width) {
+	    YUV2RGB(y*(width/2)+(x/2));
+	    x++;
+	}
+    }
+    asm("emms");
+    return 1;
+}
+
+static int rgb24_yuv420p_sse2(u_int8_t **src, u_int8_t **dest,
+			      int width, int height)
+{
+    int x, y;
 
     for (y = 0; y < height; y++) {
 	for (x = 0; x < (width & ~7); x += 8) {
-	    sse2_load_rgb24(src+x*3);
+	    sse2_load_rgb24(src[0]+(y*width+x)*3);
 	    if (y%2 == 0)
-		sse2_rgb_to_yuv420p_yu(destY+x, destU+x/2);
+		sse2_rgb_to_yuv420p_yu(dest[0]+y*width+x,
+				       dest[1]+(y/2)*(width/2)+x/2);
 	    else
-		sse2_rgb_to_yuv420p_yv(destY+x, destV+x/2);
+		sse2_rgb_to_yuv420p_yv(dest[0]+y*width+x,
+				       dest[2]+(y/2)*(width/2)+x/2);
 	}
-	src += rgb_stride;
-	destY += y_stride;
-	if (y%2) {
-	    destU += uv_stride;
-	    destV += uv_stride;
+	while (x < width) {
+	    int r = src[0][(y*width+x)*3  ];
+	    int g = src[0][(y*width+x)*3+1];
+	    int b = src[0][(y*width+x)*3+2];
+	    RGB2Y();
+	    if (!((x|y) & 1))
+		RGB2U((y/2)*(width/2)+x/2);
+	    if ((x&y) & 1)  /* take Cb/Cr from opposite corners */
+		RGB2V((y/2)*(width/2)+x/2);
+	    x++;
 	}
     }
     asm("emms");
-    if (width & 7) {
-	x = width & ~7;
-	rgb24_yuv420p_c(destY_orig+x, destU_orig+x/2, destV_orig+x/2,
-			src_orig+x*3, width-x, height,
-			rgb_stride, y_stride, uv_stride);
+    return 1;
+}
+
+static int rgb24_yuv422p_sse2(u_int8_t **src, u_int8_t **dest,
+			      int width, int height)
+{
+    int x, y;
+
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < (width & ~7); x += 8) {
+	    sse2_load_rgb24(src[0]+(y*width+x)*3);
+	    sse2_rgb_to_yuv422p(dest[0]+y*width+x,
+				dest[1]+y*(width/2)+x/2,
+				dest[2]+y*(width/2)+x/2);
+	}
+	while (x < width) {
+	    int r = src[0][(y*width+x)*3  ];
+	    int g = src[0][(y*width+x)*3+1];
+	    int b = src[0][(y*width+x)*3+2];
+	    RGB2Y();
+	    if (!(x & 1))
+		RGB2U(y*(width/2)+x/2);
+	    if (x & 1)  /* take Cb/Cr from separate pixels */
+		RGB2V(y*(width/2)+x/2);
+	    x++;
+	}
     }
+    asm("emms");
+    return 1;
+}
+
+static int rgb24_yuv444p_sse2(u_int8_t **src, u_int8_t **dest,
+			      int width, int height)
+{
+    int x, y;
+
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < (width & ~7); x += 8) {
+	    sse2_load_rgb24(src[0]+(y*width+x)*3);
+	    sse2_rgb_to_yuv444p(dest[0]+y*width+x,
+				dest[1]+y*width+x,
+				dest[2]+y*width+x);
+	}
+	while (x < width) {
+	    int r = src[0][(y*width+x)*3  ];
+	    int g = src[0][(y*width+x)*3+1];
+	    int b = src[0][(y*width+x)*3+2];
+	    RGB2Y();
+	    RGB2U(y*width+x);
+	    RGB2V(y*width+x);
+	    x++;
+	}
+    }
+    asm("emms");
+    return 1;
 }
 
 
-static inline void sse2_yuv420p_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
+static inline void sse2_yuv42Xp_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
 				       u_int8_t *srcV)
 {
     asm("\
@@ -503,10 +678,10 @@ static inline void sse2_yuv420p_to_rgb(u_int8_t *srcY, u_int8_t *srcU,
 	psubw 16(%%esi), %%xmm7	# XMM7: subtract 16			\n\
 	psubw 32(%%esi), %%xmm2	# XMM2: subtract 128			\n\
 	psubw 32(%%esi), %%xmm3	# XMM3: subtract 128			\n\
-	psllw $2, %%xmm6	# XMM6: convert to fixed point 8.2	\n\
-	psllw $2, %%xmm7	# XMM7: convert to fixed point 8.2	\n\
-	psllw $2, %%xmm2	# XMM2: convert to fixed point 8.2	\n\
-	psllw $2, %%xmm3	# XMM3: convert to fixed point 8.2	\n\
+	psllw $3, %%xmm6	# XMM6: convert to fixed point 8.3	\n\
+	psllw $3, %%xmm7	# XMM7: convert to fixed point 8.3	\n\
+	psllw $3, %%xmm2	# XMM2: convert to fixed point 8.3	\n\
+	psllw $3, %%xmm3	# XMM3: convert to fixed point 8.3	\n\
 	# Multiply by constants						\n\
 	pmulhw 48(%%esi),%%xmm6	# XMM6: cYE.................cY0		\n\
 	pmulhw 48(%%esi),%%xmm7	# XMM6: cYF.................cY1		\n\
@@ -701,36 +876,35 @@ static inline void sse2_rgb_to_yuv420p_yu(u_int8_t *destY, u_int8_t *destU)
 	psllw $1, %%xmm3	# Because Y multipliers are halved	\n\
 	psllw $1, %%xmm6						\n\
 	psllw $1, %%xmm7						\n\
-	pmulhw (%%edx), %%xmm3						\n\
-	pmulhw 16(%%edx), %%xmm6					\n\
-	pmulhw 32(%%edx), %%xmm7					\n\
+	pmulhw (%%edi), %%xmm3						\n\
+	pmulhw 16(%%edi), %%xmm6					\n\
+	pmulhw 32(%%edi), %%xmm7					\n\
 	paddw %%xmm6, %%xmm3	# No possibility of overflow		\n\
 	paddw %%xmm7, %%xmm3						\n\
-	paddw 144(%%edx), %%xmm3					\n\
+	paddw 144(%%edi), %%xmm3					\n\
 	# Create 8.6 fixed-point U data in XMM0				\n\
-	pmulhw 48(%%edx), %%xmm0					\n\
-	pmulhw 64(%%edx), %%xmm1					\n\
-	pmulhw 80(%%edx), %%xmm2					\n\
+	pmulhw 48(%%edi), %%xmm0					\n\
+	pmulhw 64(%%edi), %%xmm1					\n\
+	pmulhw 80(%%edi), %%xmm2					\n\
 	paddw %%xmm1, %%xmm0						\n\
 	paddw %%xmm2, %%xmm0						\n\
-	paddw 160(%%edx), %%xmm0					\n\
+	paddw 160(%%edi), %%xmm0					\n\
 	# Shift back down to 8-bit values				\n\
 	psrlw $6, %%xmm3						\n\
-	psrlw $6, %%xmm4						\n\
-	psrlw $6, %%xmm5						\n\
+	psrlw $6, %%xmm0						\n\
 	# Pack into bytes						\n\
 	pxor %%xmm7, %%xmm7						\n\
 	packuswb %%xmm7, %%xmm3						\n\
 	packuswb %%xmm7, %%xmm0						\n\
 	# Remove every odd U value					\n\
-	pand 176(%%edx), %%xmm0						\n\
+	pand 176(%%edi), %%xmm0						\n\
 	packuswb %%xmm7, %%xmm0						\n\
 	# Store into destination pointers				\n\
-	movdqu %%xmm3, (%%eax)						\n\
-	movq %%xmm0, (%%ecx)						\n\
+	movq %%xmm3, (%%eax)						\n\
+	movd %%xmm0, (%%ecx)						\n\
 	"
 	: /* no outputs */
-	: "a" (destY), "c" (destU), "d" (&rgb_data), "m" (rgb_data)
+	: "a" (destY), "c" (destU), "D" (&rgb_data), "m" (rgb_data)
     );
 }
 
@@ -748,23 +922,22 @@ static inline void sse2_rgb_to_yuv420p_yv(u_int8_t *destY, u_int8_t *destV)
 	psllw $1, %%xmm3	# Because Y multipliers are halved	\n\
 	psllw $1, %%xmm6						\n\
 	psllw $1, %%xmm7						\n\
-	pmulhw (%%edx), %%xmm3						\n\
-	pmulhw 16(%%edx), %%xmm6					\n\
-	pmulhw 32(%%edx), %%xmm7					\n\
+	pmulhw (%%edi), %%xmm3						\n\
+	pmulhw 16(%%edi), %%xmm6					\n\
+	pmulhw 32(%%edi), %%xmm7					\n\
 	paddw %%xmm6, %%xmm3	# No possibility of overflow		\n\
 	paddw %%xmm7, %%xmm3						\n\
-	paddw 144(%%edx), %%xmm3					\n\
+	paddw 144(%%edi), %%xmm3					\n\
 	# Create 8.6 fixed-point V data in XMM0				\n\
-	pmulhw 96(%%edx), %%xmm0					\n\
-	pmulhw 112(%%edx), %%xmm1					\n\
-	pmulhw 128(%%edx), %%xmm2					\n\
+	pmulhw 96(%%edi), %%xmm0					\n\
+	pmulhw 112(%%edi), %%xmm1					\n\
+	pmulhw 128(%%edi), %%xmm2					\n\
 	paddw %%xmm1, %%xmm0						\n\
 	paddw %%xmm2, %%xmm0						\n\
-	paddw 160(%%edx), %%xmm0					\n\
+	paddw 160(%%edi), %%xmm0					\n\
 	# Shift back down to 8-bit values				\n\
 	psrlw $6, %%xmm3						\n\
-	psrlw $6, %%xmm4						\n\
-	psrlw $6, %%xmm5						\n\
+	psrlw $6, %%xmm0						\n\
 	# Pack into bytes						\n\
 	pxor %%xmm7, %%xmm7						\n\
 	packuswb %%xmm7, %%xmm3						\n\
@@ -773,14 +946,186 @@ static inline void sse2_rgb_to_yuv420p_yv(u_int8_t *destY, u_int8_t *destV)
 	psrlw $8, %%xmm0						\n\
 	packuswb %%xmm7, %%xmm0						\n\
 	# Store into destination pointers				\n\
-	movdqu %%xmm3, (%%eax)						\n\
-	movq %%xmm0, (%%ecx)						\n\
+	movq %%xmm3, (%%eax)						\n\
+	movd %%xmm0, (%%ecx)						\n\
 	"
 	: /* no outputs */
-	: "a" (destY), "c" (destV), "d" (&rgb_data), "m" (rgb_data)
+	: "a" (destY), "c" (destV), "D" (&rgb_data), "m" (rgb_data)
+    );
+}
+
+static inline void sse2_rgb_to_yuv422p(u_int8_t *destY, u_int8_t *destU,
+				       u_int8_t *destV)
+{
+    asm("\
+	# Make RGB data into 8.6 fixed-point				\n\
+	psllw $6, %%xmm0						\n\
+	psllw $6, %%xmm1						\n\
+	psllw $6, %%xmm2						\n\
+	# Create 8.6 fixed-point Y data in XMM3				\n\
+	movdqa %%xmm0, %%xmm3						\n\
+	movdqa %%xmm1, %%xmm6						\n\
+	movdqa %%xmm2, %%xmm7						\n\
+	psllw $1, %%xmm3	# Because Y multipliers are halved	\n\
+	psllw $1, %%xmm6						\n\
+	psllw $1, %%xmm7						\n\
+	pmulhw (%%edi), %%xmm3						\n\
+	pmulhw 16(%%edi), %%xmm6					\n\
+	pmulhw 32(%%edi), %%xmm7					\n\
+	paddw %%xmm6, %%xmm3	# No possibility of overflow		\n\
+	paddw %%xmm7, %%xmm3						\n\
+	paddw 144(%%edi), %%xmm3					\n\
+	# Create 8.6 fixed-point U data in XMM4				\n\
+	movdqa %%xmm0, %%xmm4						\n\
+	movdqa %%xmm1, %%xmm6						\n\
+	movdqa %%xmm2, %%xmm7						\n\
+	pmulhw 48(%%edi), %%xmm4					\n\
+	pmulhw 64(%%edi), %%xmm6					\n\
+	pmulhw 80(%%edi), %%xmm7					\n\
+	paddw %%xmm6, %%xmm4						\n\
+	paddw %%xmm7, %%xmm4						\n\
+	paddw 160(%%edi), %%xmm4					\n\
+	# Create 8.6 fixed-point V data in XMM0				\n\
+	pmulhw 96(%%edi), %%xmm0					\n\
+	pmulhw 112(%%edi), %%xmm1					\n\
+	pmulhw 128(%%edi), %%xmm2					\n\
+	paddw %%xmm1, %%xmm0						\n\
+	paddw %%xmm2, %%xmm0						\n\
+	paddw 160(%%edi), %%xmm0					\n\
+	# Shift back down to 8-bit values				\n\
+	psrlw $6, %%xmm3						\n\
+	psrlw $6, %%xmm4						\n\
+	psrlw $6, %%xmm0						\n\
+	# Pack into bytes						\n\
+	pxor %%xmm7, %%xmm7						\n\
+	packuswb %%xmm7, %%xmm3						\n\
+	packuswb %%xmm7, %%xmm0						\n\
+	# Remove every odd U value					\n\
+	pand 176(%%edi), %%xmm4						\n\
+	packuswb %%xmm7, %%xmm4						\n\
+	# Remove every even V value					\n\
+	psrlw $8, %%xmm0						\n\
+	packuswb %%xmm7, %%xmm0						\n\
+	# Store into destination pointers				\n\
+	movq %%xmm3, (%%eax)						\n\
+	movd %%xmm4, (%%ecx)						\n\
+	movd %%xmm0, (%%edx)						\n\
+	"
+	: /* no outputs */
+	: "a" (destY), "c" (destU), "d" (destV),
+	  "D" (&rgb_data), "m" (rgb_data)
+    );
+}
+
+static inline void sse2_rgb_to_yuv444p(u_int8_t *destY, u_int8_t *destU,
+				       u_int8_t *destV)
+{
+    asm("\
+	# Make RGB data into 8.6 fixed-point				\n\
+	psllw $6, %%xmm0						\n\
+	psllw $6, %%xmm1						\n\
+	psllw $6, %%xmm2						\n\
+	# Create 8.6 fixed-point Y data in XMM3				\n\
+	movdqa %%xmm0, %%xmm3						\n\
+	movdqa %%xmm1, %%xmm6						\n\
+	movdqa %%xmm2, %%xmm7						\n\
+	psllw $1, %%xmm3	# Because Y multipliers are halved	\n\
+	psllw $1, %%xmm6						\n\
+	psllw $1, %%xmm7						\n\
+	pmulhw (%%edi), %%xmm3						\n\
+	pmulhw 16(%%edi), %%xmm6					\n\
+	pmulhw 32(%%edi), %%xmm7					\n\
+	paddw %%xmm6, %%xmm3	# No possibility of overflow		\n\
+	paddw %%xmm7, %%xmm3						\n\
+	paddw 144(%%edi), %%xmm3					\n\
+	# Create 8.6 fixed-point U data in XMM4				\n\
+	movdqa %%xmm0, %%xmm4						\n\
+	movdqa %%xmm1, %%xmm6						\n\
+	movdqa %%xmm2, %%xmm7						\n\
+	pmulhw 48(%%edi), %%xmm4					\n\
+	pmulhw 64(%%edi), %%xmm6					\n\
+	pmulhw 80(%%edi), %%xmm7					\n\
+	paddw %%xmm6, %%xmm4						\n\
+	paddw %%xmm7, %%xmm4						\n\
+	paddw 160(%%edi), %%xmm4					\n\
+	# Create 8.6 fixed-point V data in XMM0				\n\
+	pmulhw 96(%%edi), %%xmm0					\n\
+	pmulhw 112(%%edi), %%xmm1					\n\
+	pmulhw 128(%%edi), %%xmm2					\n\
+	paddw %%xmm1, %%xmm0						\n\
+	paddw %%xmm2, %%xmm0						\n\
+	paddw 160(%%edi), %%xmm0					\n\
+	# Shift back down to 8-bit values				\n\
+	psrlw $6, %%xmm3						\n\
+	psrlw $6, %%xmm4						\n\
+	psrlw $6, %%xmm0						\n\
+	# Pack into bytes						\n\
+	pxor %%xmm7, %%xmm7						\n\
+	packuswb %%xmm7, %%xmm3						\n\
+	packuswb %%xmm7, %%xmm0						\n\
+	# Store into destination pointers				\n\
+	movq %%xmm3, (%%eax)						\n\
+	movq %%xmm4, (%%ecx)						\n\
+	movq %%xmm0, (%%edx)						\n\
+	"
+	: /* no outputs */
+	: "a" (destY), "c" (destU), "d" (destV),
+	  "D" (&rgb_data), "m" (rgb_data)
     );
 }
 
 #endif  /* ARCH_X86 || ARCH_X86_64 */
+
+/*************************************************************************/
+/*************************************************************************/
+
+/* Initialization */
+
+int ac_imgconvert_init_yuv_rgb(int accel)
+{
+    if (!register_conversion(IMG_YUV420P, IMG_RGB24,   yuv420p_rgb24)
+     || !register_conversion(IMG_YUV411P, IMG_RGB24,   yuv411p_rgb24)
+     || !register_conversion(IMG_YUV422P, IMG_RGB24,   yuv422p_rgb24)
+     || !register_conversion(IMG_YUV444P, IMG_RGB24,   yuv444p_rgb24)
+
+     || !register_conversion(IMG_RGB24,   IMG_YUV420P, rgb24_yuv420p)
+     || !register_conversion(IMG_RGB24,   IMG_YUV411P, rgb24_yuv411p)
+     || !register_conversion(IMG_RGB24,   IMG_YUV422P, rgb24_yuv422p)
+     || !register_conversion(IMG_RGB24,   IMG_YUV444P, rgb24_yuv444p)
+
+     || !register_conversion(IMG_YUV420P, IMG_GRAY8,   yuvp_gray8)
+     || !register_conversion(IMG_YUV411P, IMG_GRAY8,   yuvp_gray8)
+     || !register_conversion(IMG_YUV422P, IMG_GRAY8,   yuvp_gray8)
+     || !register_conversion(IMG_YUV444P, IMG_GRAY8,   yuvp_gray8)
+
+     || !register_conversion(IMG_GRAY8,   IMG_YUV420P, gray8_yuv420p)
+     || !register_conversion(IMG_GRAY8,   IMG_YUV411P, gray8_yuv411p)
+     || !register_conversion(IMG_GRAY8,   IMG_YUV422P, gray8_yuv422p)
+     || !register_conversion(IMG_GRAY8,   IMG_YUV444P, gray8_yuv444p)
+    ) {
+	return 0;
+    }
+
+    if (accel & MM_MMX) {
+	if (!register_conversion(IMG_YUV420P, IMG_RGB24,   yuv420p_rgb24_mmx)
+	 || !register_conversion(IMG_YUV422P, IMG_RGB24,   yuv422p_rgb24_mmx)
+	) {
+	    return 0;
+	}
+    }
+
+    if (accel & MM_SSE2) {
+	if (!register_conversion(IMG_YUV420P, IMG_RGB24,   yuv420p_rgb24_sse2)
+	 || !register_conversion(IMG_YUV422P, IMG_RGB24,   yuv422p_rgb24_sse2)
+	 || !register_conversion(IMG_RGB24,   IMG_YUV420P, rgb24_yuv420p_sse2)
+	 || !register_conversion(IMG_RGB24,   IMG_YUV422P, rgb24_yuv422p_sse2)
+	 || !register_conversion(IMG_RGB24,   IMG_YUV444P, rgb24_yuv444p_sse2)
+	) {
+	    return 0;
+	}
+    }
+
+    return 1;
+}
 
 /*************************************************************************/

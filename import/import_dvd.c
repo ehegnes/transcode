@@ -400,7 +400,7 @@ MOD_open
                       "tccat -T %s -i \"%s\" -t dvd -d %d |"
                       " tcdemux -s 0x%x -x mpeg2 %s %s -d %d |"
                       " tcextract -t vob -a %d -x mpeg2 -d %d |"
-                      " tcdecode -x mpeg2 -d %d -y yv12",
+                      " tcdecode -x mpeg2 -d %d -y yuv420p",
                       cha_buf, vob->video_in_file, vob->verbose,
                       (vob->a_track + off), seq_buf, dem_buf,
                       vob->verbose, vob->v_track, vob->verbose, vob->verbose);

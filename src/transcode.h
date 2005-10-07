@@ -130,13 +130,13 @@ typedef enum {
 
 typedef struct _transfer_t {
 
-  int   flag;
-  FILE   *fd;
+  int flag;
+  FILE *fd;
   
-  int   size;
+  int size;
 
-  char *buffer;
-  char *buffer2;
+  u_int8_t *buffer;
+  u_int8_t *buffer2;
 
   int attributes;
 

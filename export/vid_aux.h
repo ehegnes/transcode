@@ -27,17 +27,14 @@
 #include "transcode.h"
 
 #include "aclib/ac.h"
-#include "aclib/colorspace.h"
+#include "aclib/imgconvert.h"
 
 int tc_rgb2yuv_init(int width, int height);
-int tc_rgb2yuv_core(char *buffer);
+int tc_rgb2yuv_core(u_int8_t *buffer);
 int tc_rgb2yuv_close();
 
 int tc_yuv2rgb_init(int width, int height);
-int tc_yuv2rgb_core(char *buffer);
+int tc_yuv2rgb_core(u_int8_t *buffer);
 int tc_yuv2rgb_close();
-
-void yv12toyuy2(char *_y, char *_u, char *_v, char *output, int width, int height); 
-void uyvytoyuy2(char *input, char *output, int width, int height);
 
 #endif

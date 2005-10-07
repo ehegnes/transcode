@@ -38,7 +38,7 @@ static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID;
 #undef EMULATE_FAST_INT
 #include <ffmpeg/avcodec.h>
 
-#include "aclib/colorspace.h"
+#include "aclib/imgconvert.h"
 #include "avilib/avilib.h"
 #include "magic.h"
 
@@ -111,12 +111,12 @@ static struct ffmpeg_codec ffmpeg_codecs[] = {
 static avi_t              *avifile = NULL;
 static int                 pass_through = 0;
 static char               *buffer =  NULL;
-static char               *yuv2rgb_buffer = NULL;
+static u_int8_t           *yuv2rgb_buffer = NULL;
 static AVCodec            *lavc_dec_codec = NULL;
 static AVCodecContext     *lavc_dec_context = NULL;
 static int                 x_dim = 0, y_dim = 0;
 static int                 pix_fmt, frame_size = 0, bpp;
-static char                *frame = NULL;
+static u_int8_t           *frame = NULL;
 static unsigned long       format_flag;
 static struct ffmpeg_codec *codec;
 
@@ -257,6 +257,9 @@ MOD_open {
 
   if (param->flag == TC_VIDEO) {
 
+    if (!ac_imgconvert_init(tc_accel))
+      return TC_IMPORT_ERROR;
+
     format_flag = vob->format_flag;
 
     sret = scan(vob->video_in_file);
@@ -382,7 +385,7 @@ do_avi:
     frame_size = x_dim * y_dim * 3;
     switch (pix_fmt) {
       case CODEC_YUV:
-        frame_size = (x_dim * y_dim * 3)/2;
+        frame_size = x_dim*y_dim + 2*UV_PLANE_SIZE(IMG_YUV_DEFAULT,x_dim,y_dim);
 
 	// we adapt the color space
         if(codec->id == CODEC_ID_MJPEG) {
@@ -391,7 +394,6 @@ do_avi:
         break;
       case CODEC_RGB:
         frame_size = x_dim * y_dim * 3;
-	colorspace_init(tc_accel);
         bpp = vob->v_bpp;
 
         if (yuv2rgb_buffer == NULL) yuv2rgb_buffer = bufalloc(BUFFER_SIZE);
@@ -449,7 +451,7 @@ do_dv:
 	  snprintf(yuv_buf, sizeof(yuv_buf), "rgb");
 	  break;
 	case CODEC_YUV:
-	  snprintf(yuv_buf, sizeof(yuv_buf), "yv12");
+	  snprintf(yuv_buf, sizeof(yuv_buf), "yuv420p");
 	  break;
       }
 
@@ -514,9 +516,9 @@ MOD_decode {
 
   int        key,len, i, edge_width, j;
   long       bytes_read = 0;
-  int        got_picture, UVls, src, dst, row, col;
-  char      *Ybuf, *Ubuf, *Vbuf;
-  AVFrame  picture;
+  int        got_picture;
+  u_int8_t  *planes[3];
+  AVFrame    picture;
 
   if (param->flag == TC_VIDEO) {
     bytes_read = AVI_read_frame(avifile, buffer, &key);
@@ -597,155 +599,38 @@ retry:
       }
     } while (0);
 
-    Ybuf = frame;
-    Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
-    Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
-    UVls = picture.linesize[1];
-    
+    YUV_INIT_PLANES(planes, frame, IMG_YUV_DEFAULT,
+		    lavc_dec_context->width, lavc_dec_context->height);
+
+    // Convert avcodec image to our internal YUV or RGB format
     switch (lavc_dec_context->pix_fmt) {
       case PIX_FMT_YUVJ420P:
       case PIX_FMT_YUV420P:
-        // Result is in YUV 4:2:0 (YV12) format, but each line ends with
-        // an edge which we must skip
-        if (pix_fmt == CODEC_YUV) {
-          edge_width = (picture.linesize[0] - lavc_dec_context->width) / 2;
-          for (i = 0; i < lavc_dec_context->height; i++) {
-            tc_memcpy(Ybuf + i * lavc_dec_context->width,
-                   picture.data[0] + i * picture.linesize[0], //+ edge_width,
-                   lavc_dec_context->width);
-          }
-          for (i = 0; i < lavc_dec_context->height / 2; i++) {
-            tc_memcpy(Vbuf + i * lavc_dec_context->width / 2,
-                   picture.data[1] + i * picture.linesize[1], // + edge_width / 2,
-                   lavc_dec_context->width / 2);
-            tc_memcpy(Ubuf + i * lavc_dec_context->width / 2,
-                   picture.data[2] + i * picture.linesize[2], // + edge_width / 2,
-                   lavc_dec_context->width / 2);
-          }
-        } else {
-          Ybuf = yuv2rgb_buffer;
-          Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
-          Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
-          edge_width = (picture.linesize[0] - lavc_dec_context->width) / 2;
-          for (i = 0; i < lavc_dec_context->height; i++) {
-            tc_memcpy(Ybuf + (lavc_dec_context->height - i - 1) *
-                     lavc_dec_context->width,
-                   picture.data[0] + i * picture.linesize[0], //+ edge_width,
-                   lavc_dec_context->width);
-          }
-          for (i = 0; i < lavc_dec_context->height / 2; i++) {
-            tc_memcpy(Vbuf + (lavc_dec_context->height / 2 - i - 1) *
-                     lavc_dec_context->width / 2,
-                   picture.data[1] + i * picture.linesize[1], // + edge_width / 2,
-                   lavc_dec_context->width / 2);
-            tc_memcpy(Ubuf + (lavc_dec_context->height / 2 - i - 1) *
-                     lavc_dec_context->width / 2,
-                   picture.data[2] + i * picture.linesize[2], // + edge_width / 2,
-                   lavc_dec_context->width / 2);
-          }
-          yuv2rgb(frame, yuv2rgb_buffer,
-                  yuv2rgb_buffer +
-                    lavc_dec_context->width * lavc_dec_context->height, 
-                  yuv2rgb_buffer +
-                    5 * lavc_dec_context->width * lavc_dec_context->height / 4, 
-                  lavc_dec_context->width,
-                  lavc_dec_context->height,
-                  lavc_dec_context->width * bpp / 8,
-                  lavc_dec_context->width,
-                  lavc_dec_context->width / 2);
-        }
-        break;
+	  ac_imgconvert(picture.data, IMG_YUV420P, planes,
+			pix_fmt==CODEC_YUV ? IMG_YUV_DEFAULT : IMG_RGB_DEFAULT,
+			lavc_dec_context->width, lavc_dec_context->height);
+	  break;
       case PIX_FMT_YUVJ422P:
       case PIX_FMT_YUV422P:
-          // Result is in YUV 4:2:2 format (subsample UV vertically for YV12):
-          for (i = 0; i < lavc_dec_context->height; i++) {
-            tc_memcpy(Ybuf + i * lavc_dec_context->width,
-                   picture.data[0] + i * picture.linesize[0], //+ edge_width,
-                   lavc_dec_context->width);
-          }
-
-          src = 0;
-          dst = 0;
-          for (row=0; row<lavc_dec_context->height; row+=2) {
-			for (col=0; col<lavc_dec_context->width/2; col++) {
-			  Vbuf[dst + col] = (picture.data[1][src + col] +
-                                       picture.data[1][src + UVls + col]) >> 1;
-			  Ubuf[dst + col] = (picture.data[2][src + col] +
-                                       picture.data[2][src + UVls + col]) >> 1;
-			}
-            dst += lavc_dec_context->width >> 1;
-            src += UVls << 1;
-          }
+	  ac_imgconvert(picture.data, IMG_YUV422P, planes,
+			pix_fmt==CODEC_YUV ? IMG_YUV_DEFAULT : IMG_RGB_DEFAULT,
+			lavc_dec_context->width, lavc_dec_context->height);
 	  break;
       case PIX_FMT_YUVJ444P:
       case PIX_FMT_YUV444P:
-          // Result is in YUV 4:4:4 format (subsample UV h/v for YV12):
-	  tc_memcpy(Ybuf, picture.data[0],
-                             picture.linesize[0] * lavc_dec_context->height);
-          src = 0;
-          dst = 0;
-          for (row = 0; row < lavc_dec_context->height; row += 2) {
-            for (col = 0; col < lavc_dec_context->width; col += 2) {
-              Ubuf[dst] = picture.data[1][src];
-              Vbuf[dst] = picture.data[2][src];
-              dst++;
-              src += 2;
-            }
-            src += UVls;
-          }
-          break;
+	  ac_imgconvert(picture.data, IMG_YUV444P, planes,
+			pix_fmt==CODEC_YUV ? IMG_YUV_DEFAULT : IMG_RGB_DEFAULT,
+			lavc_dec_context->width, lavc_dec_context->height);
+	  break;
       case PIX_FMT_YUV411P:
-        if (pix_fmt == CODEC_YUV) {
-	  // Planar YUV 4:1:1 (1 Cr & Cb sample per 4x1 Y samples)
-	  // 4:1:1 -> 4:2:0
-
-          for (i = 0; i < lavc_dec_context->height; i++) {
-            tc_memcpy(Ybuf + i * lavc_dec_context->width,
-                   picture.data[0] + i * picture.linesize[0], 
-                   lavc_dec_context->width);
-          }
-          for (i = 0; i < lavc_dec_context->height; i++) {
-	      for (j=0; j < lavc_dec_context->width / 2; j++) {
-		  Vbuf[i/2 * lavc_dec_context->width/2 + j] = 
-		    *(picture.data[1] + i * picture.linesize[1] + j/2);
-		  Ubuf[i/2 * lavc_dec_context->width/2 + j] = 
-		    *(picture.data[2] + i * picture.linesize[2] + j/2);
-	      }
-          }
-        } else { // RGB
-          Ybuf = yuv2rgb_buffer;
-          Ubuf = Ybuf + lavc_dec_context->width * lavc_dec_context->height;
-          Vbuf = Ubuf + lavc_dec_context->width * lavc_dec_context->height / 4;
-          for (i = 0; i < lavc_dec_context->height; i++) {
-            tc_memcpy(Ybuf + i * lavc_dec_context->width,
-                   picture.data[0] + i * picture.linesize[0], 
-                   lavc_dec_context->width);
-          }
-          for (i = 0; i < lavc_dec_context->height; i++) {
-	      for (j=0; j < lavc_dec_context->width / 2; j++) {
-		  Vbuf[i/2 * lavc_dec_context->width/2 + j] =
-                            *(picture.data[1] + i * picture.linesize[1] + j/2);
-		  Ubuf[i/2 * lavc_dec_context->width/2 + j] =
-                            *(picture.data[2] + i * picture.linesize[2] + j/2);
-	      }
-          }
-          yuv2rgb(frame, yuv2rgb_buffer,
-                  yuv2rgb_buffer +
-                    lavc_dec_context->width * lavc_dec_context->height, 
-                  yuv2rgb_buffer +
-                    5 * lavc_dec_context->width * lavc_dec_context->height / 4, 
-                  lavc_dec_context->width,
-                  lavc_dec_context->height, 
-                  lavc_dec_context->width * bpp / 8,
-                  lavc_dec_context->width,
-                  lavc_dec_context->width / 2);
-        }
-
+	  ac_imgconvert(picture.data, IMG_YUV411P, planes,
+			pix_fmt==CODEC_YUV ? IMG_YUV_DEFAULT : IMG_RGB_DEFAULT,
+			lavc_dec_context->width, lavc_dec_context->height);
 	  break;
       default:
-	tc_warn("[%s] Unsupported decoded frame format: %d",
-                 MOD_NAME, lavc_dec_context->pix_fmt);
-	return TC_IMPORT_ERROR;
+	  tc_warn("[%s] Unsupported decoded frame format: %d",
+		  MOD_NAME, lavc_dec_context->pix_fmt);
+	  return TC_IMPORT_ERROR;
     }
 
     tc_memcpy(param->buffer, frame, frame_size);

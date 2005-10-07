@@ -29,7 +29,7 @@
 #include "ioaux.h"
 
 #include "aclib/ac.h"
-#include "aclib/colorspace.h"
+#include "aclib/imgconvert.h"
 
 #include "transcode.h"
 #include "tc.h"
@@ -64,23 +64,18 @@ typedef struct vo_s {
     unsigned int width;
     unsigned int height;
     
-    // needed by yuv2rgb routines
-    int rgbstride;
-    int bpp;
-    
     // internal frame buffers
     uint8_t *rgb;
     uint8_t *yuv[3];
 } vo_t;
 
 #define vo_convert(instp) \
-	yuv2rgb((instp)->rgb, (instp)->yuv[0], (instp)->yuv[1], (instp)->yuv[2], \
-	     (instp)->width, (instp)->height, (instp)->rgbstride, \
-	     (instp)->width, (instp)->width >> 1);
+	ac_imgconvert((instp)->yuv, IMG_YUV420P, (instp)->rgb, IMG_RGB24, \
+		      (instp)->width, (instp)->height)
 
 /* 
  * legacy (and working :) ) code: 
- * read one YV12 plane at time from file descriptor (pipe, usually)
+ * read one YUV420P plane at time from file descriptor (pipe, usually)
  * and store it in internal buffer
  */
 int vo_read_yuv (vo_t *vo, int fd)
@@ -122,12 +117,12 @@ int vo_read_yuv (vo_t *vo, int fd)
 /*
  * simpler than above:
  * write the whole RGB buffer in to file descriptor (pipe, usually).
- * WARNING: caller must ensure that RGB buffer holds valid data
- * invoking vo_convert *before* to invoke this function
+ * WARNING: caller must ensure that RGB buffer holds valid data by
+ * invoking vo_convert *before* invoking this function
  */
 int vo_write_rgb (vo_t *vo, int fd)
 {
-   int framesize = vo->rgbstride * vo->height, bytes = 0;
+   int framesize = vo->width * vo->height * 3, bytes = 0;
    bytes = p_write (fd, vo->rgb, framesize);
    if (bytes != framesize) {
       if (bytes < 0) 
@@ -139,7 +134,7 @@ int vo_write_rgb (vo_t *vo, int fd)
 
 /*
  * finalize a vo structure, free()ing it's internal buffers.
- * WARNING: DO NOT cause a buffer flush, you must do it manually.
+ * WARNING: DOES NOT cause a buffer flush, you must do it manually.
  */
 void vo_clean (vo_t *vo)
 {
@@ -161,22 +156,19 @@ int vo_alloc (vo_t *vo, int width, int height)
 
     vo->width = (unsigned int)width;
     vo->height = (unsigned int)height;
-    vo->bpp = BPP;
 
-    vo->rgbstride = width * vo->bpp / 8;
-
-    vo->yuv[0] = calloc (1, PAL_W * PAL_H);
+    vo->yuv[0] = calloc (1, width * height);
     if (!vo->yuv[0]) {
         fprintf (stderr, "(%s) out of memory\n", __FILE__);
 	return -1;
     }
-    vo->yuv[1] = calloc (1, PAL_W/2 * PAL_H/2);  
+    vo->yuv[1] = calloc (1, (width/2) * (height/2));
     if (!vo->yuv[1]) {
         fprintf (stderr, "(%s) out of memory\n", __FILE__);
 	free (vo->yuv[0]);
 	return -1;
     }
-    vo->yuv[2] = calloc (1, PAL_W/2 * PAL_H/2);  
+    vo->yuv[2] = calloc (1, (width/2) * (height/2));
     if(!vo->yuv[2]) {
         fprintf (stderr, "(%s) out of memory\n", __FILE__);
 	free (vo->yuv[0]);
@@ -184,7 +176,7 @@ int vo_alloc (vo_t *vo, int width, int height)
 	return -1;
     }
     
-    vo->rgb = calloc (1, vo->rgbstride * height);
+    vo->rgb = calloc (1, width * height * 3);
     if(!vo->rgb) {
         fprintf (stderr, "(%s) out of memory\n", __FILE__);
 	free (vo->yuv[0]);
@@ -193,7 +185,7 @@ int vo_alloc (vo_t *vo, int width, int height)
         return -1;
     }
     
-    colorspace_init(ac_mmflag());
+    ac_imgconvert_init(ac_mmflag());
     
     return 0;
 }
@@ -217,7 +209,7 @@ void decode_yuv(decode_t *decode)
   
   vo_alloc(&vo, decode->width, decode->height);
   
-  // read frame by frame - decode into BRG - pipe to stdout
+  // read frame by frame - decode into RGB - pipe to stdout
   
   while(vo_read_yuv(&vo, decode->fd_in)) {
     vo_convert(&vo);

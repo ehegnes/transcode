@@ -28,6 +28,7 @@
 #include "vid_aux.h"
 #include "optstr.h"
 #include "ioaux.h"
+#include "aclib/imgconvert.h"
 
 #define MOD_NAME    "export_dvraw.so"
 #define MOD_VERSION "v0.4 (2003-10-14)"
@@ -133,6 +134,7 @@ MOD_init
   int i;
   
   if(param->flag == TC_VIDEO) {
+    ac_imgconvert_init(tc_accel);
     
     target = bufalloc(TC_FRAME_DV_PAL);
     vbuf = bufalloc(PAL_W*PAL_H*3);
@@ -195,19 +197,16 @@ MOD_open
       
     case CODEC_RGB:
       format=0;
-
       if(verbose & TC_DEBUG) fprintf(stderr, "[%s] raw format is RGB\n", MOD_NAME);
       break;
       
     case CODEC_YUV:
       format=1;
-      
-      if(verbose & TC_DEBUG) fprintf(stderr, "[%s] raw format is YV12\n", MOD_NAME);
+      if(verbose & TC_DEBUG) fprintf(stderr, "[%s] raw format is YUV420P\n", MOD_NAME);
       break;
 
     case CODEC_YUV422:
       format=1;
-      
       if(verbose & TC_DEBUG) fprintf(stderr, "[%s] raw format is UYVY\n", MOD_NAME);
       break;
       
@@ -219,11 +218,8 @@ MOD_open
       break;
       
     default:
-      
       fprintf(stderr, "[%s] codec not supported\n", MOD_NAME);
       return(TC_EXPORT_ERROR); 
-      
-      break;
     }
     
     // for reading
@@ -302,21 +298,23 @@ MOD_encode
       pixels[0] = (char *) vbuf;
       
       if(encoder->isPAL) {
-	pixels[2]=(char *) vbuf + PAL_W*PAL_H;
-	pixels[1]=(char *) vbuf + (PAL_W*PAL_H*5)/4;
+	pixels[1]=(char *) vbuf + PAL_W*PAL_H;
+	pixels[2]=(char *) vbuf + (PAL_W*PAL_H*5)/4;
       } else {
-	pixels[2]=(char *) vbuf + NTSC_W*NTSC_H;
-	pixels[1]=(char *) vbuf + (NTSC_W*NTSC_H*5)/4;
+	pixels[1]=(char *) vbuf + NTSC_W*NTSC_H;
+	pixels[2]=(char *) vbuf + (NTSC_W*NTSC_H*5)/4;
       }
       
-      if(dv_yuy2_mode && !dv_uyvy_mode) {	
-	yv12toyuy2(pixels[0], pixels[1], pixels[2], tmp_buf, PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
+      if(dv_yuy2_mode && !dv_uyvy_mode) {
+	ac_imgconvert(pixels, IMG_YUV420P, &tmp_buf, IMG_YUY2,
+		      PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
 	pixels[0]=tmp_buf;
       }
 
       if (dv_uyvy_mode) {
-	  uyvytoyuy2(pixels[0], tmp_buf, PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
-	  pixels[0]=tmp_buf;
+	ac_imgconvert(pixels, IMG_YUV420P, &tmp_buf, IMG_UYVY,
+		      PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
+	pixels[0]=tmp_buf;
       }
       
       dv_encode_full_frame(encoder, pixels, (format)?e_dv_color_yuv:e_dv_color_rgb, target);

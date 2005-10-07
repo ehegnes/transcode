@@ -28,6 +28,7 @@
 #include "avilib.h"
 #include "aud_aux.h"
 #include "vid_aux.h"
+#include "aclib/imgconvert.h"
 
 #define MOD_NAME    "export_dv.so"
 #define MOD_VERSION "v0.5 (2003-07-24)"
@@ -86,6 +87,7 @@ MOD_init
 {
     
     if(param->flag == TC_VIDEO) {
+      ac_imgconvert_init(tc_accel);
 
       target = bufalloc(TC_FRAME_DV_PAL);
 
@@ -186,15 +188,16 @@ MOD_encode
       pixels[0] = (char *) param->buffer;
 	
       if(encoder->isPAL) {
-	pixels[2]=(char *) param->buffer + PAL_W*PAL_H;
-	pixels[1]=(char *) param->buffer + (PAL_W*PAL_H*5)/4;
+	pixels[1]=(char *) param->buffer + PAL_W*PAL_H;
+	pixels[2]=(char *) param->buffer + (PAL_W*PAL_H*5)/4;
       } else {
-	pixels[2]=(char *) param->buffer + NTSC_W*NTSC_H;
-	pixels[1]=(char *) param->buffer + (NTSC_W*NTSC_H*5)/4;
+	pixels[1]=(char *) param->buffer + NTSC_W*NTSC_H;
+	pixels[2]=(char *) param->buffer + (NTSC_W*NTSC_H*5)/4;
       }
       
       if(dv_yuy2_mode) {
-	yv12toyuy2(pixels[0], pixels[1], pixels[2], tmp_buf, PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
+	ac_imgconvert(pixels, IMG_YUV420P, &tmp_buf, IMG_YUY2,
+		      PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
 	pixels[0]=tmp_buf;
       }
       

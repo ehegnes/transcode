@@ -204,7 +204,7 @@ MOD_encode
     h.method = 1;
     h.level = 1;
     h.flags = 0;
-    h.flags |= ((codec==CODEC_RGB)?TC_LZO_FORMAT_RGB24:TC_LZO_FORMAT_YV12);
+    h.flags |= ((codec==CODEC_RGB)?TC_LZO_FORMAT_RGB24:TC_LZO_FORMAT_YUV420P);
 
     // XXX
     tc_memcpy (out, &h, sizeof(h));

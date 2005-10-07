@@ -212,7 +212,7 @@ MOD_init
       width = vob->ex_v_width;
       height = vob->ex_v_height;
       
-      codec = (vob->im_v_codec == CODEC_YUV) ? CODEC_YUV:CODEC_RGB;
+      codec = (vob->im_v_codec == CODEC_YUV) ? CODEC_YUV : CODEC_RGB;
 
       if(vob->im_v_codec == CODEC_YUV) {
 	line[0] = malloc(height*sizeof(char*));
@@ -302,8 +302,8 @@ MOD_encode
     if(codec==CODEC_YUV) {
       unsigned char *base[3];
       base[0] = param->buffer;
-      base[2] = param->buffer + width*height;
-      base[1] = param->buffer + width*height*5/4;
+      base[1] = param->buffer + width*height;
+      base[2] = param->buffer + width*height*5/4;
       write_yuv_JPEG_file(buf2, jpeg_quality, base, width, height);
       
       //out_buffer = tmp_buffer;
@@ -354,5 +354,3 @@ MOD_close
     return(TC_EXPORT_ERROR);  
     
 }
-
-      //yuv2rgb (tmp_buffer, param->buffer, param->buffer+5*width*height/4, param->buffer+width*height, width, height, row_bytes, width, width/2);

@@ -89,7 +89,7 @@ void probe_net(info_t *ipipe)
 
   if(ipipe->probe_info->track[0].chan>0) ipipe->probe_info->num_tracks=1;
 
-  ipipe->probe_info->codec = (ivob->im_v_codec==CODEC_RGB) ? TC_CODEC_RGB:TC_CODEC_YV12;
+  ipipe->probe_info->codec = (ivob->im_v_codec==CODEC_RGB) ? TC_CODEC_RGB:TC_CODEC_YUV420P;
   
   free(ivob);
 

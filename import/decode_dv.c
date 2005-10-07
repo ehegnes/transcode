@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "aclib/imgconvert.h"
 
 #include <sys/errno.h>
 
@@ -62,60 +63,6 @@ static unsigned char *bufalloc(size_t size)
 
    return buf + adjust;
 }
-
-void yuy2toyv12(char *_y, char *_u, char *_v, char *input, int width, int height) 
-{
-
-    int i,j,w2;
-    char *y, *u, *v;
-
-    w2 = width/2;
-
-    //I420
-    y = _y;
-    v = _v;
-    u = _u;
-    
-    for (i=0; i<height; i+=2) {
-      for (j=0; j<w2; j++) {
-	
-	/* packed YUV 422 is: Y[i] U[i] Y[i+1] V[i] */
-	*(y++) = *(input++);
-        *(u++) = *(input++);
-        *(y++) = *(input++);
-        *(v++) = *(input++);
-   
-
-      }
-      
-      //down sampling
-      
-      for (j=0; j<w2; j++) {
-	/* skip every second line for U and V */
-	*(y++) = *(input++);
-	input++;
-	*(y++) = *(input++);
-	input++;
-      }
-    }
-}
-
-void yuy2touyvy(char *dest, char *src, int width, int height)
-{
-
-    int i;
-
-    for (i=0; i<width*height*2; i+=4) {
-
-        /* packed YUV 4:2:2 is Y[i] U[i] Y[i+1] V[i] (YUY2)*/
-        /* packed YUV 4:2:2 is U[i] Y[i] V[i] Y[i+1] (UYVY)*/
-
-        dest[i] = src[i+1];
-        dest[i+1] = src[i];
-        dest[i+2] = src[i+3];
-        dest[i+3] = src[i+2];
-    }
-}
 #endif
 
 
@@ -136,12 +83,14 @@ void decode_dv(decode_t *decode)
   int samples=0, channels=0;
   static dv_decoder_t *dv_decoder=NULL;
   int error=0, dvinfo=0; 
-  unsigned char  *buf, *source;
+  unsigned char  *buf;
   unsigned char  *video[4];
   int16_t *audio_buffers[4], *audio;  
   uint16_t pitches[3];  //do not change to signed! (ThOe) libdv BUG! 
 
   verbose = decode->verbose;
+
+  ac_imgconvert_init(ac_mmflag());
 
   // Initialize DV decoder
 
@@ -269,22 +218,19 @@ void decode_dv(decode_t *decode)
 	dv_decoder->prev_frame_decoded = 1;
 	  
 	bytes = 2 * dv_decoder->width * dv_decoder->height;
-	// untested
-
-	yuy2touyvy(video[3], video[0], dv_decoder->width,  dv_decoder->height);
-	if(p_write (decode->fd_out, video[3], bytes)!= bytes) {
+	if(p_write (decode->fd_out, video[0], bytes)!= bytes) {
 	  error=1;
 	  goto error;
 	}
       }
 
-      if (decode->format == TC_CODEC_YV12) {
+      if (decode->format == TC_CODEC_YUV420P) {
 	switch(dv_decoder->sampling) {
 	case e_dv_sample_420:
 	case e_dv_sample_411:
 	case e_dv_sample_422:
 
-	  if (decode->dv_yuy2_mode==0) {	  
+	  if (decode->dv_yuy2_mode==0) {
 
 	    pitches[0]  = dv_decoder->width;
 	    pitches[1]  = pitches[0]/2;
@@ -298,10 +244,11 @@ void decode_dv(decode_t *decode)
 	    pitches[1]  = 0;
 	    pitches[2]  = 0;
 	    
-	    dv_decode_full_frame(dv_decoder, buf, e_dv_color_yuv, (unsigned char **) video, (int *)pitches);
+	    dv_decode_full_frame(dv_decoder, buf, e_dv_color_yuv, (unsigned char **) &video[3], (int *)pitches);
 	    
-	    //downsample to YV12:	  
-	    yuy2toyv12(video[3], video[2], video[1], video[0], dv_decoder->width, dv_decoder->height);
+	    //downsample to 420P:
+	    ac_imgconvert(&video[3], IMG_YUY2, video, IMG_YUV420P,
+			  dv_decoder->width, dv_decoder->height);
 	  }
 	  
 	  break;
@@ -317,9 +264,7 @@ void decode_dv(decode_t *decode)
 	bytes = dv_decoder->width * dv_decoder->height;
 	
 	// Y
-	source = (decode->dv_yuy2_mode==0) ? video[0]:video[3];
-	
-	if (p_write (decode->fd_out, source, bytes) != bytes) {
+	if (p_write (decode->fd_out, video[0], bytes) != bytes) {
 	  error=1;
 	  goto error;
 	}

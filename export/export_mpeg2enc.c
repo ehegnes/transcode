@@ -415,8 +415,8 @@ MOD_encode
       }     
       
       fwrite(param->buffer, sa_size_l, 1, sa_ip);
-      fwrite(param->buffer + sa_size_l + sa_size_c, sa_size_c, 1, sa_ip);
       fwrite(param->buffer + sa_size_l, sa_size_c, 1, sa_ip); 
+      fwrite(param->buffer + sa_size_l + sa_size_c, sa_size_c, 1, sa_ip);
       return (0); 
   }
   
