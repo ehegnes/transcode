@@ -117,10 +117,10 @@ static int yuv411p_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int heigh
     tc_memcpy(dest[0], src[0], width*height);
     for (y = 0; y < height; y += 2) {
 	for (x = 0; x < width/2; x += 2) {
-	    src[1][(y/2)*(width/2)+x] = (dest[1][y*(width/4)+x/2]
-				       + dest[1][(y+1)*(width/4)+x/2]) / 2;
-	    src[2][(y/2)*(width/2)+x] = (dest[2][y*(width/4)+x/2]
-				       + dest[2][(y+1)*(width/4)+x/2]) / 2;
+	    dest[1][(y/2)*(width/2)+x] = (src[1][y*(width/4)+x/2]
+				        + src[1][(y+1)*(width/4)+x/2]) / 2;
+	    dest[2][(y/2)*(width/2)+x] = (src[2][y*(width/4)+x/2]
+				        + src[2][(y+1)*(width/4)+x/2]) / 2;
 	    src[1][(y/2)*(width/2)+x+1] = src[1][(y/2)*(width/2)+x];
 	    src[2][(y/2)*(width/2)+x+1] = src[2][(y/2)*(width/2)+x];
 	}
@@ -134,10 +134,10 @@ static int yuv411p_yuv422p(u_int8_t **src, u_int8_t **dest, int width, int heigh
     tc_memcpy(dest[0], src[0], width*height);
     for (y = 0; y < height; y++) {
 	for (x = 0; x < width/2; x += 2) {
-	    src[1][y*(width/2)+x  ] = dest[1][y*(width/4)+x/2];
-	    src[1][y*(width/2)+x+1] = dest[1][y*(width/4)+x/2];
-	    src[2][y*(width/2)+x  ] = dest[2][y*(width/4)+x/2];
-	    src[2][y*(width/2)+x+1] = dest[2][y*(width/4)+x/2];
+	    dest[1][y*(width/2)+x  ] = src[1][y*(width/4)+x/2];
+	    dest[1][y*(width/2)+x+1] = src[1][y*(width/4)+x/2];
+	    dest[2][y*(width/2)+x  ] = src[2][y*(width/4)+x/2];
+	    dest[2][y*(width/2)+x+1] = src[2][y*(width/4)+x/2];
 	}
     }
     return 1;
@@ -149,14 +149,14 @@ static int yuv411p_yuv444p(u_int8_t **src, u_int8_t **dest, int width, int heigh
     tc_memcpy(dest[0], src[0], width*height);
     for (y = 0; y < height; y++) {
 	for (x = 0; x < width; x += 4) {
-	    src[1][y*width+x  ] = dest[1][y*(width/4)+x/4];
-	    src[1][y*width+x+1] = dest[1][y*(width/4)+x/4];
-	    src[1][y*width+x+2] = dest[1][y*(width/4)+x/4];
-	    src[1][y*width+x+3] = dest[1][y*(width/4)+x/4];
-	    src[2][y*width+x  ] = dest[2][y*(width/4)+x/4];
-	    src[2][y*width+x+1] = dest[2][y*(width/4)+x/4];
-	    src[2][y*width+x+2] = dest[2][y*(width/4)+x/4];
-	    src[2][y*width+x+3] = dest[2][y*(width/4)+x/4];
+	    dest[1][y*width+x  ] = src[1][y*(width/4)+x/4];
+	    dest[1][y*width+x+1] = src[1][y*(width/4)+x/4];
+	    dest[1][y*width+x+2] = src[1][y*(width/4)+x/4];
+	    dest[1][y*width+x+3] = src[1][y*(width/4)+x/4];
+	    dest[2][y*width+x  ] = src[2][y*(width/4)+x/4];
+	    dest[2][y*width+x+1] = src[2][y*(width/4)+x/4];
+	    dest[2][y*width+x+2] = src[2][y*(width/4)+x/4];
+	    dest[2][y*width+x+3] = src[2][y*(width/4)+x/4];
 	}
     }
     return 1;
@@ -170,10 +170,10 @@ static int yuv422p_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int heigh
     tc_memcpy(dest[0], src[0], width*height);
     for (y = 0; y < height; y += 2) {
 	for (x = 0; x < width/2; x++) {
-	    src[1][(y/2)*(width/2)+x] = (dest[1][y*(width/2)+x]
-				       + dest[1][(y+1)*(width/2)+x]) / 2;
-	    src[2][(y/2)*(width/2)+x] = (dest[2][y*(width/2)+x]
-				       + dest[2][(y+1)*(width/2)+x]) / 2;
+	    dest[1][(y/2)*(width/2)+x] = (src[1][y*(width/2)+x]
+				        + src[1][(y+1)*(width/2)+x]) / 2;
+	    dest[2][(y/2)*(width/2)+x] = (src[2][y*(width/2)+x]
+				        + src[2][(y+1)*(width/2)+x]) / 2;
 	}
     }
     return 1;
@@ -185,10 +185,10 @@ static int yuv422p_yuv411p(u_int8_t **src, u_int8_t **dest, int width, int heigh
     tc_memcpy(dest[0], src[0], width*height);
     for (y = 0; y < height; y++) {
 	for (x = 0; x < width/2; x++) {
-	    src[1][y*(width/4)+x] = (dest[1][y*(width/2)+x]
-				   + dest[1][y*(width/2)+x+1]) / 2;
-	    src[2][y*(width/4)+x] = (dest[2][y*(width/2)+x]
-				   + dest[2][y*(width/2)+x+1]) / 2;
+	    dest[1][y*(width/4)+x/2] = (src[1][y*(width/2)+x]
+				      + src[1][y*(width/2)+x+1]) / 2;
+	    dest[2][y*(width/4)+x/2] = (src[2][y*(width/2)+x]
+				      + src[2][y*(width/2)+x+1]) / 2;
 	}
     }
     return 1;
@@ -200,10 +200,10 @@ static int yuv422p_yuv444p(u_int8_t **src, u_int8_t **dest, int width, int heigh
     tc_memcpy(dest[0], src[0], width*height);
     for (y = 0; y < height; y++) {
 	for (x = 0; x < width; x += 2) {
-	    src[1][y*width+x  ] = dest[1][y*(width/2)+x/2];
-	    src[1][y*width+x+1] = dest[1][y*(width/2)+x/2];
-	    src[2][y*width+x  ] = dest[2][y*(width/2)+x/2];
-	    src[2][y*width+x+1] = dest[2][y*(width/2)+x/2];
+	    dest[1][y*width+x  ] = src[1][y*(width/2)+x/2];
+	    dest[1][y*width+x+1] = src[1][y*(width/2)+x/2];
+	    dest[2][y*width+x  ] = src[2][y*(width/2)+x/2];
+	    dest[2][y*width+x+1] = src[2][y*(width/2)+x/2];
 	}
     }
     return 1;
@@ -217,14 +217,14 @@ static int yuv444p_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int heigh
     tc_memcpy(dest[0], src[0], width*height);
     for (y = 0; y < height; y += 2) {
 	for (x = 0; x < width; x += 2) {
-	    src[1][(y/2)*(width/2)+x/2] = (dest[1][y*width+x]
-				         + dest[1][y*width+x+1]
-				         + dest[1][(y+1)*width+x]
-				         + dest[1][(y+1)*width+x+1]) / 4;
-	    src[2][(y/2)*(width/2)+x/2] = (dest[2][y*width+x]
-				         + dest[2][y*width+x+1]
-				         + dest[2][(y+1)*width+x]
-				         + dest[2][(y+1)*width+x+1]) / 4;
+	    dest[1][(y/2)*(width/2)+x/2] = (src[1][y*width+x]
+				          + src[1][y*width+x+1]
+				          + src[1][(y+1)*width+x]
+				          + src[1][(y+1)*width+x+1]) / 4;
+	    dest[2][(y/2)*(width/2)+x/2] = (src[2][y*width+x]
+				          + src[2][y*width+x+1]
+				          + src[2][(y+1)*width+x]
+				          + src[2][(y+1)*width+x+1]) / 4;
 	}
     }
     return 1;
@@ -236,14 +236,14 @@ static int yuv444p_yuv411p(u_int8_t **src, u_int8_t **dest, int width, int heigh
     tc_memcpy(dest[0], src[0], width*height);
     for (y = 0; y < height; y++) {
 	for (x = 0; x < width; x += 4) {
-	    src[1][y*(width/4)+x/4] = (dest[1][y*width+x]
-				     + dest[1][y*width+x+1]
-				     + dest[1][y*width+x+2]
-				     + dest[1][y*width+x+3]) / 4;
-	    src[2][y*(width/4)+x/4] = (dest[2][y*width+x]
-				     + dest[2][y*width+x+1]
-				     + dest[2][y*width+x+2]
-				     + dest[2][y*width+x+3]) / 4;
+	    dest[1][y*(width/4)+x/4] = (src[1][y*width+x]
+				      + src[1][y*width+x+1]
+				      + src[1][y*width+x+2]
+				      + src[1][y*width+x+3]) / 4;
+	    dest[2][y*(width/4)+x/4] = (src[2][y*width+x]
+				      + src[2][y*width+x+1]
+				      + src[2][y*width+x+2]
+				      + src[2][y*width+x+3]) / 4;
 	}
     }
     return 1;
@@ -255,10 +255,10 @@ static int yuv444p_yuv422p(u_int8_t **src, u_int8_t **dest, int width, int heigh
     tc_memcpy(dest[0], src[0], width*height);
     for (y = 0; y < height; y++) {
 	for (x = 0; x < width; x += 2) {
-	    src[1][y*(width/2)+x/2] = (dest[1][y*width+x]
-				     + dest[1][y*width+x+1]) / 2;
-	    src[2][y*(width/2)+x/2] = (dest[2][y*width+x]
-				     + dest[2][y*width+x+1]) / 2;
+	    dest[1][y*(width/2)+x/2] = (src[1][y*width+x]
+				      + src[1][y*width+x+1]) / 2;
+	    dest[2][y*(width/2)+x/2] = (src[2][y*width+x]
+				      + src[2][y*width+x+1]) / 2;
 	}
     }
     return 1;
