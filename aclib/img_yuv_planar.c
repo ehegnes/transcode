@@ -121,8 +121,8 @@ static int yuv411p_yuv420p(u_int8_t **src, u_int8_t **dest, int width, int heigh
 				        + src[1][(y+1)*(width/4)+x/2]) / 2;
 	    dest[2][(y/2)*(width/2)+x] = (src[2][y*(width/4)+x/2]
 				        + src[2][(y+1)*(width/4)+x/2]) / 2;
-	    src[1][(y/2)*(width/2)+x+1] = src[1][(y/2)*(width/2)+x];
-	    src[2][(y/2)*(width/2)+x+1] = src[2][(y/2)*(width/2)+x];
+	    dest[1][(y/2)*(width/2)+x+1] = dest[1][(y/2)*(width/2)+x];
+	    dest[2][(y/2)*(width/2)+x+1] = dest[2][(y/2)*(width/2)+x];
 	}
     }
     return 1;
