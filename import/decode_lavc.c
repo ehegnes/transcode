@@ -288,28 +288,88 @@ void decode_lavc(decode_t *decode)
       YUV_INIT_PLANES(planes, out_buffer, IMG_YUV420P,
 		      lavc_dec_context->width, lavc_dec_context->height);
 
+#warning ******************** FIXME ******************** use strides in imgconvert
       // Convert avcodec image to the requested YUV or RGB format
       switch (lavc_dec_context->pix_fmt) {
 	case PIX_FMT_YUVJ420P:
 	case PIX_FMT_YUV420P:
+	    // Remove "dead space" at right edge of planes, if any
+	    if (picture.linesize[0] != lavc_dec_context->width) {
+		int y;
+		for (y = 0; y < lavc_dec_context->height; y++) {
+		    tc_memcpy(picture.data[0] + y*lavc_dec_context->width,
+			      picture.data[0] + y*picture.linesize[0],
+			      lavc_dec_context->width);
+		    if (y%2 == 0) {
+			tc_memcpy(picture.data[1] + y*(lavc_dec_context->width/2),
+				  picture.data[1] + y*picture.linesize[1],
+				  lavc_dec_context->width/2);
+			tc_memcpy(picture.data[2] + y*(lavc_dec_context->width/2),
+				  picture.data[2] + y*picture.linesize[2],
+				  lavc_dec_context->width/2);
+		    }
+		}
+	    }
 	    ac_imgconvert(picture.data, IMG_YUV420P, planes,
+			  pix_fmt==TC_CODEC_YUV420P ? IMG_YUV420P : IMG_RGB_DEFAULT,
+			  lavc_dec_context->width, lavc_dec_context->height);
+	    break;
+	case PIX_FMT_YUV411P:
+	    if (picture.linesize[0] != lavc_dec_context->width) {
+		int y;
+		for (y = 0; y < lavc_dec_context->height; y++) {
+		    tc_memcpy(picture.data[0] + y*lavc_dec_context->width,
+			      picture.data[0] + y*picture.linesize[0],
+			      lavc_dec_context->width);
+		    tc_memcpy(picture.data[1] + y*(lavc_dec_context->width/4),
+			      picture.data[1] + y*picture.linesize[1],
+			      lavc_dec_context->width/4);
+		    tc_memcpy(picture.data[2] + y*(lavc_dec_context->width/4),
+			      picture.data[2] + y*picture.linesize[2],
+			      lavc_dec_context->width/4);
+		}
+	    }
+	    ac_imgconvert(picture.data, IMG_YUV411P, planes,
 			  pix_fmt==TC_CODEC_YUV420P ? IMG_YUV420P : IMG_RGB_DEFAULT,
 			  lavc_dec_context->width, lavc_dec_context->height);
 	    break;
 	case PIX_FMT_YUVJ422P:
 	case PIX_FMT_YUV422P:
+	    if (picture.linesize[0] != lavc_dec_context->width) {
+		int y;
+		for (y = 0; y < lavc_dec_context->height; y++) {
+		    tc_memcpy(picture.data[0] + y*lavc_dec_context->width,
+			      picture.data[0] + y*picture.linesize[0],
+			      lavc_dec_context->width);
+		    tc_memcpy(picture.data[1] + y*(lavc_dec_context->width/2),
+			      picture.data[1] + y*picture.linesize[1],
+			      lavc_dec_context->width/2);
+		    tc_memcpy(picture.data[2] + y*(lavc_dec_context->width/2),
+			      picture.data[2] + y*picture.linesize[2],
+			      lavc_dec_context->width/2);
+		}
+	    }
 	    ac_imgconvert(picture.data, IMG_YUV422P, planes,
 			  pix_fmt==TC_CODEC_YUV420P ? IMG_YUV420P : IMG_RGB_DEFAULT,
 			  lavc_dec_context->width, lavc_dec_context->height);
 	    break;
 	case PIX_FMT_YUVJ444P:
 	case PIX_FMT_YUV444P:
+	    if (picture.linesize[0] != lavc_dec_context->width) {
+		int y;
+		for (y = 0; y < lavc_dec_context->height; y++) {
+		    tc_memcpy(picture.data[0] + y*lavc_dec_context->width,
+			      picture.data[0] + y*picture.linesize[0],
+			      lavc_dec_context->width);
+		    tc_memcpy(picture.data[1] + y*lavc_dec_context->width,
+			      picture.data[1] + y*picture.linesize[1],
+			      lavc_dec_context->width);
+		    tc_memcpy(picture.data[2] + y*lavc_dec_context->width,
+			      picture.data[2] + y*picture.linesize[2],
+			      lavc_dec_context->width);
+		}
+	    }
 	    ac_imgconvert(picture.data, IMG_YUV444P, planes,
-			  pix_fmt==TC_CODEC_YUV420P ? IMG_YUV420P : IMG_RGB_DEFAULT,
-			  lavc_dec_context->width, lavc_dec_context->height);
-	    break;
-	case PIX_FMT_YUV411P:
-	    ac_imgconvert(picture.data, IMG_YUV411P, planes,
 			  pix_fmt==TC_CODEC_YUV420P ? IMG_YUV420P : IMG_RGB_DEFAULT,
 			  lavc_dec_context->width, lavc_dec_context->height);
 	    break;
