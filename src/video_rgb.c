@@ -594,9 +594,12 @@ void rgb_hresize_8(char *image, int width, int height, int resize)
 	in  = image + j * blocks * 3 + hori_table_8[i].source * 3;
 	out = image + m;
 
-#warning ************************ FIXME ********************** not fast
-	ac_rescale(in, in+3, out, 3,
-		   hori_table_8[i].weight1, hori_table_8[i].weight2);
+	out[0] = (in[0] * hori_table_8[i].weight1
+		+ in[3] * hori_table_8[i].weight2 + 32768) >> 16;
+	out[1] = (in[1] * hori_table_8[i].weight1
+		+ in[4] * hori_table_8[i].weight2 + 32768) >> 16;
+	out[2] = (in[2] * hori_table_8[i].weight1
+		+ in[5] * hori_table_8[i].weight2 + 32768) >> 16;
 
 	m+=3;
       }
@@ -639,10 +642,14 @@ void rgb_hresize_8_up(char *image, char *tmp_image, int width, int height, int r
 	
 	if (((incr+1) % width) == 0)
 	    ac_memcpy(out, in, 3);
-	else
-#warning ************************ FIXME ********************** not fast
-	    ac_rescale(in, in+3, out, 3,
-		       hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
+	else {
+	    out[0] = (in[0] * hori_table_8[i].weight1
+		    + in[3] * hori_table_8[i].weight2 + 32768) >> 16;
+	    out[1] = (in[1] * hori_table_8[i].weight1
+		    + in[4] * hori_table_8[i].weight2 + 32768) >> 16;
+	    out[2] = (in[2] * hori_table_8[i].weight1
+		    + in[5] * hori_table_8[i].weight2 + 32768) >> 16;
+	}
 
 	m+=3;
       }
@@ -746,7 +753,6 @@ void rgb_deinterlace_linear_blend(char *image, char *tmp, int width, int height)
 
 inline void rgb_decolor(char *image, int bytes)
 {
-#warning ************************** FIXME *********************** use aclib
     unsigned int y;
     unsigned short tmp;
     

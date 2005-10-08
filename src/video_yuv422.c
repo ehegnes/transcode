@@ -863,9 +863,14 @@ void yuv422_hresize_8(char *image, int width, int height, int resize)
 	in  = image + j * blocks * 4 + hori_table_8[i].source * 4;
 	out = image + m;
 	
-#warning ************************* FIXME ************************* not fast
-	ac_rescale(in, in+4, out, 4,
-		   hori_table_8[i].weight1, hori_table_8[i].weight2);
+	out[0] = (in[0] * hori_table_8[i].weight1
+		+ in[4] * hori_table_8[i].weight2 + 32768) >> 16;
+	out[1] = (in[1] * hori_table_8[i].weight1
+		+ in[5] * hori_table_8[i].weight2 + 32768) >> 16;
+	out[2] = (in[2] * hori_table_8[i].weight1
+		+ in[6] * hori_table_8[i].weight2 + 32768) >> 16;
+	out[3] = (in[3] * hori_table_8[i].weight1
+		+ in[7] * hori_table_8[i].weight2 + 32768) >> 16;
 
 	m+=4;
       }
@@ -909,10 +914,16 @@ void yuv422_hresize_8_up(char *image, char *tmp_image, int width, int height, in
 	
 	if (((incr+1) % width) == 0)
 	    ac_memcpy(out, in, 4);
-	else
-#warning ************************* FIXME ************************* not fast
-	    ac_rescale(in, in+4, out, 4, 
-		       hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
+	else {
+	    out[0] = (in[0] * hori_table_8[i].weight1
+		    + in[4] * hori_table_8[i].weight2 + 32768) >> 16;
+	    out[1] = (in[1] * hori_table_8[i].weight1
+		    + in[5] * hori_table_8[i].weight2 + 32768) >> 16;
+	    out[2] = (in[2] * hori_table_8[i].weight1
+		    + in[6] * hori_table_8[i].weight2 + 32768) >> 16;
+	    out[3] = (in[3] * hori_table_8[i].weight1
+		    + in[7] * hori_table_8[i].weight2 + 32768) >> 16;
+	}
 
 	m+=4;
       }
