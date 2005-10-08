@@ -27,7 +27,10 @@ typedef enum {
     IMG_RGB_BASE = 0x2000,
     IMG_RGB24,		/* RGB packed, 8 bits per component, R:G:B */
     IMG_BGR24,		/* RGB packed, 8 bits per component, B:G:R */
+    IMG_RGBA32,		/* RGB+alpha packed, 8 bits per component, R:G:B:A */
+    IMG_ABGR32,		/* RGB+alpha packed, 8 bits per component, A:B:G:R */
     IMG_ARGB32,		/* RGB+alpha packed, 8 bits per component, A:R:G:B */
+    IMG_BGRA32,		/* RGB+alpha packed, 8 bits per component, B:G:R:A */
     IMG_GRAY8,		/* Grayscale 8-bit data */
     IMG_RGB_LAST,
 } ImageFormat;
