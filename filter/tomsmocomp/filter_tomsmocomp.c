@@ -72,7 +72,7 @@ static void help_optstr (void) {
 	    "    (0 / 1)  Default: 0\n"
 	    "\n"
 	    "  cpuflags - Manually set CPU capabilities (expert only) (hex)\n"
-	    "    (0x02 MMX  0x08 3DNOW  0x10 SSE)  Default: autodetect\n"
+	    "    (0x08 MMX  0x20 3DNOW  0x80 SSE)  Default: autodetect\n"
 	    "\n"
 	    "* Known issues and limitations:\n"
 	    "  1) Assumes YUV (YUY2 or YV12) Frame Based input.\n"
