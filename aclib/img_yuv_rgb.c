@@ -33,8 +33,7 @@ static int rVlut[256];
 static int gUlut[256];
 static int gVlut[256];
 static int bUlut[256];
-static void yuv_create_tables(void)
-{
+static void yuv_create_tables(void) {
     if (!yuv_tables_created) {
 	int i;
 	for (i = -256*TABLE_SCALE; i < 512*TABLE_SCALE; i++) {
@@ -50,7 +49,7 @@ static void yuv_create_tables(void)
 	yuv_tables_created = 1;
     }
 }
-#define YUV2RGB(uvofs) do {					\
+# define YUV2RGB(uvofs) do {					\
     int Y = src[0][y*width+x] * TABLE_SCALE;			\
     int U = src[1][(uvofs)];					\
     int V = src[2][(uvofs)];					\
@@ -59,8 +58,8 @@ static void yuv_create_tables(void)
     dest[0][(y*width+x)*3+2] = Ylut[Y+bUlut[U]];		\
 } while (0)
 #else  /* !USE_LOOKUP_TABLES */
-static void yuv420p_create_tables(void) { }
-#define YUV2RGB(uvofs) do {					\
+# define yuv_create_tables() /*nothing*/
+# define YUV2RGB(uvofs) do {					\
     int Y = cY * (src[0][y*width+x] - 16);			\
     int U = src[1][(uvofs)] - 128;				\
     int V = src[2][(uvofs)] - 128;				\
@@ -213,7 +212,7 @@ static int rgb24_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 /* All YUV planar formats convert to grayscale the same way */
 
 #ifdef USE_LOOKUP_TABLES
-static uint8_t graylut[256];
+static uint8_t graylut[2][256];
 static int graylut_created = 0;
 static void gray8_create_tables(void)
 {
@@ -221,64 +220,139 @@ static void gray8_create_tables(void)
 	int i;
 	for (i = 0; i < 256; i++) {
 	    if (i <= 16)
-		graylut[i] = 0;
+		graylut[0][i] = 0;
 	    else if (i >= 235)
-		graylut[i] = 255;
+		graylut[0][i] = 255;
 	    else
-		graylut[i] = (i-16) * 255 / 219;
+		graylut[0][i] = (i-16) * 255 / 219;
+	    graylut[1][i] = 16 + i*219/255;
 	}
 	graylut_created = 1;
     }
 }
+# define Y2GRAY(val) (graylut[0][(val)])
+# define GRAY2Y(val) (graylut[1][(val)])
+#else
+# define gray8_create_tables() /*nothing*/
+# define Y2GRAY(val) ((val)<16 ? 0 : (val)>=235 ? 255 : ((val)-16)*256/219)
+# define GRAY2Y(val) (16 + (val)*219/255)
 #endif
 
 static int yuvp_gray8(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
-
-#ifdef USE_LOOKUP_TABLES
     gray8_create_tables();
     for (i = 0; i < width*height; i++)
-	dest[0][i] = graylut[src[0][i]];
-#else
+	dest[0][i] = Y2GRAY(src[0][i]);
+    return 1;
+}
+
+static int yuy2_gray8(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int i;
+    gray8_create_tables();
     for (i = 0; i < width*height; i++)
-	dest[0][i] = (src[0][i]<16 ? 0 :
-		      src[0][i]>=235 ? 255 : (src[0][i]-16)*256/219);
-#endif
+	dest[0][i] = Y2GRAY(src[0][i*2]);
+    return 1;
+}
+
+static int uyvy_gray8(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int i;
+    gray8_create_tables();
+    for (i = 0; i < width*height; i++)
+	dest[0][i] = Y2GRAY(src[0][i*2+1]);
     return 1;
 }
 
 /*************************************************************************/
 
-static int gray8_yuv420p(uint8_t **src, uint8_t **dest, int width, int height)
+static int gray8_y8(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
+    gray8_create_tables();
     for (i = 0; i < width*height; i++)
-	dest[0][i] = src[0][i]*219/255 + 16;
-    memset(dest[1], 128, width*height/4);
-    memset(dest[2], 128, width*height/4);
+	dest[0][i] = GRAY2Y(src[0][i]);
     return 1;
 }
 
-#define gray8_yuv411p gray8_yuv420p  /* U/V planes are the same size */
+static int gray8_yuv420p(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    gray8_y8(src, dest, width, height);
+    memset(dest[1], 128, (width/2)*(height/2));
+    memset(dest[2], 128, (width/2)*(height/2));
+    return 1;
+}
+
+static int gray8_yuv411p(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    gray8_y8(src, dest, width, height);
+    memset(dest[1], 128, (width/4)*height);
+    memset(dest[2], 128, (width/4)*height);
+    return 1;
+}
 
 static int gray8_yuv422p(uint8_t **src, uint8_t **dest, int width, int height)
 {
-    int i;
-    for (i = 0; i < width*height; i++)
-	dest[0][i] = src[0][i]*219/255 + 16;
-    memset(dest[1], 128, width*height/2);
-    memset(dest[2], 128, width*height/2);
+    gray8_y8(src, dest, width, height);
+    memset(dest[1], 128, (width/2)*height);
+    memset(dest[2], 128, (width/2)*height);
     return 1;
 }
 
 static int gray8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 {
-    int i;
-    for (i = 0; i < width*height; i++)
-	dest[0][i] = src[0][i]*219/256 + 16;
+    gray8_y8(src, dest, width, height);
     memset(dest[1], 128, width*height);
     memset(dest[2], 128, width*height);
+    return 1;
+}
+
+static int gray8_yuy2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int i;
+    gray8_create_tables();
+    for (i = 0; i < width*height; i++) {
+	dest[0][i*2  ] = GRAY2Y(src[0][i]);
+	dest[0][i*2+1] = 128;
+    }
+    return 1;
+}
+
+static int gray8_uyvy(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int i;
+    gray8_create_tables();
+    for (i = 0; i < width*height; i++) {
+	dest[0][i*2  ] = 128;
+	dest[0][i*2+1] = GRAY2Y(src[0][i]);
+    }
+    return 1;
+}
+
+/*************************************************************************/
+
+static int y8_rgb24(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int i;
+    gray8_create_tables();
+    for (i = 0; i < width*height; i++)
+	dest[0][i*3] = dest[0][i*3+1] = dest[0][i*3+2] = Y2GRAY(src[0][i]);
+    return 1;
+}
+
+static int rgb24_y8(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int x, y;
+
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < width; x++) {
+	    int r = src[0][(y*width+x)*3  ];
+	    int g = src[0][(y*width+x)*3+1];
+	    int b = src[0][(y*width+x)*3+2];
+	    RGB2Y();
+	}
+    }
     return 1;
 }
 
@@ -1106,21 +1180,31 @@ int ac_imgconvert_init_yuv_rgb(int accel)
      || !register_conversion(IMG_YUV411P, IMG_RGB24,   yuv411p_rgb24)
      || !register_conversion(IMG_YUV422P, IMG_RGB24,   yuv422p_rgb24)
      || !register_conversion(IMG_YUV444P, IMG_RGB24,   yuv444p_rgb24)
+     || !register_conversion(IMG_Y8,      IMG_RGB24,   y8_rgb24)
 
      || !register_conversion(IMG_RGB24,   IMG_YUV420P, rgb24_yuv420p)
      || !register_conversion(IMG_RGB24,   IMG_YUV411P, rgb24_yuv411p)
      || !register_conversion(IMG_RGB24,   IMG_YUV422P, rgb24_yuv422p)
      || !register_conversion(IMG_RGB24,   IMG_YUV444P, rgb24_yuv444p)
+     || !register_conversion(IMG_RGB24,   IMG_Y8,      rgb24_y8)
 
      || !register_conversion(IMG_YUV420P, IMG_GRAY8,   yuvp_gray8)
      || !register_conversion(IMG_YUV411P, IMG_GRAY8,   yuvp_gray8)
      || !register_conversion(IMG_YUV422P, IMG_GRAY8,   yuvp_gray8)
      || !register_conversion(IMG_YUV444P, IMG_GRAY8,   yuvp_gray8)
+     || !register_conversion(IMG_YUY2,    IMG_GRAY8,   yuy2_gray8)
+     || !register_conversion(IMG_UYVY,    IMG_GRAY8,   uyvy_gray8)
+     || !register_conversion(IMG_YVYU,    IMG_GRAY8,   yuy2_gray8)
+     || !register_conversion(IMG_Y8,      IMG_GRAY8,   yuvp_gray8)
 
      || !register_conversion(IMG_GRAY8,   IMG_YUV420P, gray8_yuv420p)
      || !register_conversion(IMG_GRAY8,   IMG_YUV411P, gray8_yuv411p)
      || !register_conversion(IMG_GRAY8,   IMG_YUV422P, gray8_yuv422p)
      || !register_conversion(IMG_GRAY8,   IMG_YUV444P, gray8_yuv444p)
+     || !register_conversion(IMG_GRAY8,   IMG_YUY2,    gray8_yuy2)
+     || !register_conversion(IMG_GRAY8,   IMG_UYVY,    gray8_uyvy)
+     || !register_conversion(IMG_GRAY8,   IMG_YVYU,    gray8_yuy2)
+     || !register_conversion(IMG_GRAY8,   IMG_Y8,      gray8_y8)
     ) {
 	return 0;
     }

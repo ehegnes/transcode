@@ -203,6 +203,44 @@ static int yuy2_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 }
 
 /*************************************************************************/
+
+static int y8_yuy2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int i;
+    for (i = 0; i < width*height; i++) {
+	dest[0][i*2  ] = src[0][i];
+	dest[0][i*2+1] = 128;
+    }
+    return 1;
+}
+
+static int y8_uyvy(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int i;
+    for (i = 0; i < width*height; i++) {
+	dest[0][i*2  ] = 128;
+	dest[0][i*2+1] = src[0][i];
+    }
+    return 1;
+}
+
+static int yuy2_y8(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int i;
+    for (i = 0; i < width*height; i++)
+	src[0][i] = dest[0][i*2];
+    return 1;
+}
+
+static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int i;
+    for (i = 0; i < width*height; i++)
+	src[0][i] = dest[0][i*2+1];
+    return 1;
+}
+
+/*************************************************************************/
 /*************************************************************************/
 
 /* Initialization */
@@ -213,27 +251,33 @@ int ac_imgconvert_init_yuv_mixed(int accel)
      || !register_conversion(IMG_YUV411P, IMG_YUY2,    yuv411p_yuy2)
      || !register_conversion(IMG_YUV422P, IMG_YUY2,    yuv422p_yuy2)
      || !register_conversion(IMG_YUV444P, IMG_YUY2,    yuv444p_yuy2)
+     || !register_conversion(IMG_Y8,      IMG_YUY2,    y8_yuy2)
      || !register_conversion(IMG_YUV420P, IMG_UYVY,    yuv420p_uyvy)
      || !register_conversion(IMG_YUV411P, IMG_UYVY,    yuv411p_uyvy)
      || !register_conversion(IMG_YUV422P, IMG_UYVY,    yuv422p_uyvy)
      || !register_conversion(IMG_YUV444P, IMG_UYVY,    yuv444p_uyvy)
+     || !register_conversion(IMG_Y8,      IMG_UYVY,    y8_uyvy)
      || !register_conversion(IMG_YUV420P, IMG_YVYU,    yuv420p_yvyu)
      || !register_conversion(IMG_YUV411P, IMG_YVYU,    yuv411p_yvyu)
      || !register_conversion(IMG_YUV422P, IMG_YVYU,    yuv422p_yvyu)
      || !register_conversion(IMG_YUV444P, IMG_YVYU,    yuv444p_yvyu)
+     || !register_conversion(IMG_Y8,      IMG_YVYU,    y8_yuy2)
 
      || !register_conversion(IMG_YUY2,    IMG_YUV420P, yuy2_yuv420p)
      || !register_conversion(IMG_YUY2,    IMG_YUV411P, yuy2_yuv411p)
      || !register_conversion(IMG_YUY2,    IMG_YUV422P, yuy2_yuv422p)
      || !register_conversion(IMG_YUY2,    IMG_YUV444P, yuy2_yuv444p)
+     || !register_conversion(IMG_YUY2,    IMG_Y8,      yuy2_y8)
      || !register_conversion(IMG_UYVY,    IMG_YUV420P, uyvy_yuv420p)
      || !register_conversion(IMG_UYVY,    IMG_YUV411P, uyvy_yuv411p)
      || !register_conversion(IMG_UYVY,    IMG_YUV422P, uyvy_yuv422p)
      || !register_conversion(IMG_UYVY,    IMG_YUV444P, uyvy_yuv444p)
+     || !register_conversion(IMG_UYVY,    IMG_Y8,      uyvy_y8)
      || !register_conversion(IMG_YVYU,    IMG_YUV420P, yvyu_yuv420p)
      || !register_conversion(IMG_YVYU,    IMG_YUV411P, yvyu_yuv411p)
      || !register_conversion(IMG_YVYU,    IMG_YUV422P, yvyu_yuv422p)
      || !register_conversion(IMG_YVYU,    IMG_YUV444P, yvyu_yuv444p)
+     || !register_conversion(IMG_YVYU,    IMG_Y8,      yuy2_y8)
     ) {
 	return 0;
     }

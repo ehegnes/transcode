@@ -7,6 +7,8 @@
 #include "imgconvert.h"
 #include "img_internal.h"
 
+#include <string.h>
+
 /*************************************************************************/
 /*************************************************************************/
 
@@ -45,6 +47,12 @@ static int yuv444p_copy(uint8_t **src, uint8_t **dest, int width, int height)
     ac_memcpy(dest[0], src[0], width*height);
     ac_memcpy(dest[1], src[1], width*height);
     ac_memcpy(dest[2], src[2], width*height);
+    return 1;
+}
+
+static int y8_copy(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ac_memcpy(dest[0], src[0], width*height);
     return 1;
 }
 
@@ -265,6 +273,48 @@ static int yuv444p_yuv422p(uint8_t **src, uint8_t **dest, int width, int height)
 }
 
 /*************************************************************************/
+
+/* We treat Y8 as a planar format */
+
+static int yuvp_y8(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ac_memcpy(dest[0], src[0], width*height);
+    return 1;
+}
+
+static int y8_yuv420p(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ac_memcpy(dest[0], src[0], width*height);
+    memset(dest[1], 128, (width/2)*(height/2));
+    memset(dest[2], 128, (width/2)*(height/2));
+    return 1;
+}
+
+static int y8_yuv411p(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ac_memcpy(dest[0], src[0], width*height);
+    memset(dest[1], 128, (width/4)*height);
+    memset(dest[2], 128, (width/4)*height);
+    return 1;
+}
+
+static int y8_yuv422p(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ac_memcpy(dest[0], src[0], width*height);
+    memset(dest[1], 128, (width/2)*height);
+    memset(dest[2], 128, (width/2)*height);
+    return 1;
+}
+
+static int y8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ac_memcpy(dest[0], src[0], width*height);
+    memset(dest[1], 128, width*height);
+    memset(dest[2], 128, width*height);
+    return 1;
+}
+
+/*************************************************************************/
 /*************************************************************************/
 
 /* Initialization */
@@ -276,6 +326,7 @@ int ac_imgconvert_init_yuv_planar(int accel)
      || !register_conversion(IMG_YUV420P, IMG_YUV411P, yuv420p_yuv411p)
      || !register_conversion(IMG_YUV420P, IMG_YUV422P, yuv420p_yuv422p)
      || !register_conversion(IMG_YUV420P, IMG_YUV444P, yuv420p_yuv444p)
+     || !register_conversion(IMG_YUV420P, IMG_Y8,      yuvp_y8)
 
      || !register_conversion(IMG_YV12,    IMG_YUV420P, yuv420p_swap)
      || !register_conversion(IMG_YV12,    IMG_YV12,    yuv420p_copy)
@@ -284,16 +335,25 @@ int ac_imgconvert_init_yuv_planar(int accel)
      || !register_conversion(IMG_YUV411P, IMG_YUV411P, yuv411p_copy)
      || !register_conversion(IMG_YUV411P, IMG_YUV422P, yuv411p_yuv422p)
      || !register_conversion(IMG_YUV411P, IMG_YUV444P, yuv411p_yuv444p)
+     || !register_conversion(IMG_YUV411P, IMG_Y8,      yuvp_y8)
 
      || !register_conversion(IMG_YUV422P, IMG_YUV420P, yuv422p_yuv420p)
      || !register_conversion(IMG_YUV422P, IMG_YUV411P, yuv422p_yuv411p)
      || !register_conversion(IMG_YUV422P, IMG_YUV422P, yuv422p_copy)
      || !register_conversion(IMG_YUV422P, IMG_YUV444P, yuv422p_yuv444p)
+     || !register_conversion(IMG_YUV422P, IMG_Y8,      yuvp_y8)
 
      || !register_conversion(IMG_YUV444P, IMG_YUV420P, yuv444p_yuv420p)
      || !register_conversion(IMG_YUV444P, IMG_YUV411P, yuv444p_yuv411p)
      || !register_conversion(IMG_YUV444P, IMG_YUV422P, yuv444p_yuv422p)
      || !register_conversion(IMG_YUV444P, IMG_YUV444P, yuv444p_copy)
+     || !register_conversion(IMG_YUV444P, IMG_Y8,      yuvp_y8)
+
+     || !register_conversion(IMG_Y8,      IMG_YUV420P, y8_yuv420p)
+     || !register_conversion(IMG_Y8,      IMG_YUV411P, y8_yuv411p)
+     || !register_conversion(IMG_Y8,      IMG_YUV422P, y8_yuv422p)
+     || !register_conversion(IMG_Y8,      IMG_YUV444P, y8_yuv444p)
+     || !register_conversion(IMG_Y8,      IMG_Y8,      y8_copy)
     ) {
 	return 0;
     }
