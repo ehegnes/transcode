@@ -75,6 +75,8 @@ int ac_endian(void)
 const char *ac_flagstotext(int accel)
 {
     static char retbuf[1000];
+    if (!accel)
+	return "none";
     snprintf(retbuf, sizeof(retbuf), "%s%s%s%s%s%s%s%s%s",
 	     accel & AC_SSE3                  ? " sse3"     : "",
 	     accel & AC_SSE2                  ? " sse2"     : "",
