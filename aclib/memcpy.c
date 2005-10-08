@@ -463,6 +463,8 @@ amd64.memcpy_last:							\n\
 
 int ac_memcpy_init(int accel)
 {
+    memcpy_ptr = memcpy;
+
 #if defined(ARCH_X86)
     if (HAS_ACCEL(accel, AC_MMX))
 	memcpy_ptr = memcpy_mmx;

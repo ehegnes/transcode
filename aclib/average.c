@@ -198,6 +198,8 @@ static void average_sse2(const uint8_t *src1, const uint8_t *src2,
 
 int ac_average_init(int accel)
 {
+    average_ptr = average;
+
 #if defined(ARCH_X86)
     if (HAS_ACCEL(accel, AC_MMX))
 	average_ptr = average_mmx;

@@ -219,6 +219,8 @@ static void rescale_sse2(const uint8_t *src1, const uint8_t *src2,
 
 int ac_rescale_init(int accel)
 {
+    rescale_ptr = rescale;
+
 #if defined(ARCH_X86)
     if (HAS_ACCEL(accel, AC_MMX))
 	rescale_ptr = rescale_mmx;
