@@ -1,6 +1,12 @@
 2005-10-08 Andrew Church <achurch at achurch dot org>
+  * Changed: docs/OPTIMIZERS docs/make-filter-man.sh docs/man/transcode.1
+    filter/Makefile.am
+    Removed: filter/filter_yuy2toyv12.c
+  Remove unused (and possibly broken) filter module yuy2toyv12.
+
   * filter/filter_msharpen.c filter/filter_smartbob.c
     filter/filter_smartdeinter.c filter/filter_xsharpen.c
+    filter/v4l/video.c
   Replace redundant implementations of image conversion code with calls
   to ac_imgconvert().
 

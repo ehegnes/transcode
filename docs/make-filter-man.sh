@@ -78,7 +78,6 @@ filter_whitebalance.so
 filter_xsharpen.so
 filter_yuvdenoise.so
 filter_yuvmedian.so
-filter_yuy2toyv12.so
 "
 
 text=""

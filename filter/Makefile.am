@@ -107,8 +107,7 @@ pkg_LTLIBRARIES = \
 	filter_unsharp.la \
 	filter_videocore.la \
 	filter_whitebalance.la \
-	filter_xsharpen.la \
-	filter_yuy2toyv12.la
+	filter_xsharpen.la
 
 filter_29to23_la_SOURCES = filter_29to23.c
 filter_29to23_la_LDFLAGS = -module -avoid-version 
@@ -260,9 +259,6 @@ filter_whitebalance_la_LIBADD = $(ACLIB_LIBS) -lm
 
 filter_xsharpen_la_SOURCES = filter_xsharpen.c
 filter_xsharpen_la_LDFLAGS = -module -avoid-version
-
-filter_yuy2toyv12_la_SOURCES = filter_yuy2toyv12.c
-filter_yuy2toyv12_la_LDFLAGS = -module -avoid-version 
 
 
 # FILTER_LOGO = filter_logo.la filter_logoaway.la filter_compare.la

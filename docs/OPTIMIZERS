@@ -102,10 +102,6 @@ Here is an overview of filters which would be glad about a speedup
   This filter comes from the mjpeg tools and smoothes the video by
   appying a median algorithm. It is CPU intensive.
 
-* filter_yuy2toyv12.c
-  This filter does a colorspace conversion from YUY2 to YV12. A speedup
-  would be possible by optimizing the downsample algorithm.
-
 
 /* ****************************************************************** */
 
@@ -149,4 +145,4 @@ This is UYVY 8-bit packed.
 Size of the image is 2*W*H.
 
 (c) 2003 Tilmann Bitterberg <transcode@tibit.org>
-Modified: $Date: 2005-10-07 08:30:51 $
+Modified: $Date: 2005-10-08 07:18:52 $
