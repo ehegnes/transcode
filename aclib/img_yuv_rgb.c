@@ -25,8 +25,7 @@ const int cbU = 132201;
 /*************************************************************************/
 
 #ifdef USE_LOOKUP_TABLES
-# define TABLE_SCALE 4   /* scale factor for Y */
-static int yuv_tables_created = 0;
+# define TABLE_SCALE 16   /* scale factor for Y */
 static int Ylutbase[768*TABLE_SCALE];
 static int *Ylut = Ylutbase+256*TABLE_SCALE;
 static int rVlut[256];
@@ -34,6 +33,7 @@ static int gUlut[256];
 static int gVlut[256];
 static int bUlut[256];
 static void yuv_create_tables(void) {
+    static int yuv_tables_created = 0;
     if (!yuv_tables_created) {
 	int i;
 	for (i = -256*TABLE_SCALE; i < 512*TABLE_SCALE; i++) {
@@ -41,10 +41,10 @@ static void yuv_create_tables(void) {
 	    Ylut[i] = v<0 ? 0 : v>255 ? 255 : v;
 	}
 	for (i = 0; i < 256; i++) {
-	    rVlut[i] = (crV * (i-128)) * TABLE_SCALE / cY;
-	    gUlut[i] = (cgU * (i-128)) * TABLE_SCALE / cY;
-	    gVlut[i] = (cgV * (i-128)) * TABLE_SCALE / cY;
-	    bUlut[i] = (cbU * (i-128)) * TABLE_SCALE / cY;
+	    rVlut[i] = ((crV * (i-128)) * TABLE_SCALE + cY/2) / cY;
+	    gUlut[i] = ((cgU * (i-128)) * TABLE_SCALE + cY/2) / cY;
+	    gVlut[i] = ((cgV * (i-128)) * TABLE_SCALE + cY/2) / cY;
+	    bUlut[i] = ((cbU * (i-128)) * TABLE_SCALE + cY/2) / cY;
 	}
 	yuv_tables_created = 1;
     }
@@ -365,7 +365,7 @@ static int rgb24_y8(uint8_t **src, uint8_t **dest, int width, int height)
 
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
 
-static struct { uint16_t n[64]; } __attribute__((aligned(16))) yuv_data = {{
+static struct { uint16_t n[72]; } __attribute__((aligned(16))) yuv_data = {{
     0x00FF,0x00FF,0x00FF,0x00FF,0x00FF,0x00FF,0x00FF,0x00FF, /* for odd/even */
     0x0010,0x0010,0x0010,0x0010,0x0010,0x0010,0x0010,0x0010, /* for Y -16    */
     0x0080,0x0080,0x0080,0x0080,0x0080,0x0080,0x0080,0x0080, /* for U/V -128 */
@@ -374,8 +374,10 @@ static struct { uint16_t n[64]; } __attribute__((aligned(16))) yuv_data = {{
     0xF377,0xF377,0xF377,0xF377,0xF377,0xF377,0xF377,0xF377, /* gU constant  */
     0xE5FC,0xE5FC,0xE5FC,0xE5FC,0xE5FC,0xE5FC,0xE5FC,0xE5FC, /* gV constant  */
     0x408D,0x408D,0x408D,0x408D,0x408D,0x408D,0x408D,0x408D, /* bU constant  */
+    0x0008,0x0008,0x0008,0x0008,0x0008,0x0008,0x0008,0x0008, /* for rounding */
 }};
-/* Note that G->Y exceeds 0x7FFF, so be careful to treat it as unsigned */
+/* Note that G->Y exceeds 0x7FFF, so be careful to treat it as unsigned
+ * (the rest of the values are signed) */
 static struct { uint16_t n[96]; } __attribute__((aligned(16))) rgb_data = {{
     0x41BD,0x41BD,0x41BD,0x41BD,0x41BD,0x41BD,0x41BD,0x41BD, /* R->Y         */
     0x810F,0x810F,0x810F,0x810F,0x810F,0x810F,0x810F,0x810F, /* G->Y         */
@@ -495,10 +497,10 @@ static inline void mmx_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
 	psubw 16(%%esi), %%mm7	# MM7: subtract 16			\n\
 	psubw 32(%%esi), %%mm2	# MM2: subtract 128			\n\
 	psubw 32(%%esi), %%mm3	# MM3: subtract 128			\n\
-	psllw $3, %%mm6		# MM6: convert to fixed point 8.3	\n\
-	psllw $3, %%mm7		# MM7: convert to fixed point 8.3	\n\
-	psllw $3, %%mm2		# MM2: convert to fixed point 8.3	\n\
-	psllw $3, %%mm3		# MM3: convert to fixed point 8.3	\n\
+	psllw $7, %%mm6		# MM6: convert to fixed point 8.7	\n\
+	psllw $7, %%mm7		# MM7: convert to fixed point 8.7	\n\
+	psllw $7, %%mm2		# MM2: convert to fixed point 8.7	\n\
+	psllw $7, %%mm3		# MM3: convert to fixed point 8.7	\n\
 	# Multiply by constants						\n\
 	pmulhw 48(%%esi), %%mm6	# MM6: -cY6- -cY4- -cY2- -cY0-		\n\
 	pmulhw 48(%%esi), %%mm7	# MM6: -cY7- -cY5- -cY3- -cY1-		\n\
@@ -512,13 +514,21 @@ static inline void mmx_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
 	movq %%mm3, %%mm0	# MM0:  -r3-  -r2-  -r1-  -r0-		\n\
 	movq %%mm4, %%mm1	# MM1:  -g3-  -g2-  -g1-  -g0-		\n\
 	movq %%mm2, %%mm5	# MM5:  -b3-  -b2-  -b1-  -b0-		\n\
-	# Add intermediate results to get R/G/B values			\n\
+	# Add intermediate results and round/shift to get R/G/B values	\n\
+	paddw 128(%%esi), %%mm6	# Add rounding value (0.5 @ 8.4 fixed)	\n\
+	paddw 128(%%esi), %%mm7						\n\
 	paddw %%mm6, %%mm0	# MM0:  -R6-  -R4-  -R2-  -R0-		\n\
+	psraw $4, %%mm0		# Shift back to 8.0 fixed		\n\
 	paddw %%mm6, %%mm1	# MM1:  -G6-  -G4-  -G2-  -G0-		\n\
+	psraw $4, %%mm1							\n\
 	paddw %%mm6, %%mm2	# MM2:  -B6-  -B4-  -B2-  -B0-		\n\
+	psraw $4, %%mm2							\n\
 	paddw %%mm7, %%mm3	# MM3:  -R7-  -R5-  -R3-  -R1-		\n\
+	psraw $4, %%mm3							\n\
 	paddw %%mm7, %%mm4	# MM4:  -G7-  -G5-  -G3-  -G1-		\n\
+	psraw $4, %%mm4							\n\
 	paddw %%mm7, %%mm5	# MM5:  -B7-  -B5-  -B3-  -B1-		\n\
+	psraw $4, %%mm5							\n\
 	# Saturate to 0-255 and pack into bytes				\n\
 	packuswb %%mm0, %%mm0	# MM0: R6 R4 R2 R0 R6 R4 R2 R0		\n\
 	packuswb %%mm1, %%mm1	# MM1: G6 G4 G2 G0 G6 G4 G2 G0		\n\
@@ -754,10 +764,10 @@ static inline void sse2_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
 	psubw 16(%%esi), %%xmm7	# XMM7: subtract 16			\n\
 	psubw 32(%%esi), %%xmm2	# XMM2: subtract 128			\n\
 	psubw 32(%%esi), %%xmm3	# XMM3: subtract 128			\n\
-	psllw $3, %%xmm6	# XMM6: convert to fixed point 8.3	\n\
-	psllw $3, %%xmm7	# XMM7: convert to fixed point 8.3	\n\
-	psllw $3, %%xmm2	# XMM2: convert to fixed point 8.3	\n\
-	psllw $3, %%xmm3	# XMM3: convert to fixed point 8.3	\n\
+	psllw $7, %%xmm6	# XMM6: convert to fixed point 8.7	\n\
+	psllw $7, %%xmm7	# XMM7: convert to fixed point 8.7	\n\
+	psllw $7, %%xmm2	# XMM2: convert to fixed point 8.7	\n\
+	psllw $7, %%xmm3	# XMM3: convert to fixed point 8.7	\n\
 	# Multiply by constants						\n\
 	pmulhw 48(%%esi),%%xmm6	# XMM6: cYE.................cY0		\n\
 	pmulhw 48(%%esi),%%xmm7	# XMM6: cYF.................cY1		\n\
@@ -771,13 +781,21 @@ static inline void sse2_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
 	movdqa %%xmm3, %%xmm0	# XMM0: r7 r6 r5 r4 r3 r2 r1 r0		\n\
 	movdqa %%xmm4, %%xmm1	# XMM1: g7 g6 g5 g4 g3 g2 g1 g0		\n\
 	movdqa %%xmm2, %%xmm5	# XMM5: b7 b6 b5 b4 b3 b2 b1 b0		\n\
-	# Add intermediate results to get R/G/B values			\n\
+	# Add intermediate results and round/shift to get R/G/B values	\n\
+	paddw 128(%%esi),%%xmm6 # Add rounding value (0.5 @ 8.4 fixed)	\n\
+	paddw 128(%%esi),%%xmm7						\n\
 	paddw %%xmm6, %%xmm0	# XMM0: RE RC RA R8 R6 R4 R2 R0		\n\
+	psraw $4, %%xmm0	# Shift back to 8.0 fixed		\n\
 	paddw %%xmm6, %%xmm1	# XMM1: GE GC GA G8 G6 G4 G2 G0		\n\
+	psraw $4, %%xmm1						\n\
 	paddw %%xmm6, %%xmm2	# XMM2: BE BC BA B8 B6 B4 B2 B0		\n\
+	psraw $4, %%xmm2						\n\
 	paddw %%xmm7, %%xmm3	# XMM3: RF RD RB R9 R7 R5 R3 R1		\n\
+	psraw $4, %%xmm3						\n\
 	paddw %%xmm7, %%xmm4	# XMM4: GF GD GB G9 G7 G5 G3 G1		\n\
+	psraw $4, %%xmm4						\n\
 	paddw %%xmm7, %%xmm5	# XMM5: BF BD BB B9 B7 B5 B3 B1		\n\
+	psraw $4, %%xmm5						\n\
 	# Saturate to 0-255 and pack into bytes				\n\
 	packuswb %%xmm0, %%xmm0	# XMM0: RE.......R0 RE.......R0		\n\
 	packuswb %%xmm1, %%xmm1	# XMM1: GE.......G0 GE.......G0		\n\
@@ -967,10 +985,8 @@ static inline void sse2_load_rgb24(uint8_t *src)
     );
 }
 
-static inline void sse2_rgb_to_yuv420p_yu(uint8_t *destY, uint8_t *destU)
-{
-    asm("\
-	# Make RGB data into 8.6 fixed-point				\n\
+#define SSE2_RGB2Y \
+	"# Make RGB data into 8.6 fixed-point				\n\
 	psllw $6, %%xmm0						\n\
 	psllw $6, %%xmm1						\n\
 	psllw $6, %%xmm2						\n\
@@ -983,24 +999,68 @@ static inline void sse2_rgb_to_yuv420p_yu(uint8_t *destY, uint8_t *destU)
 	pmulhuw 32(%%edi), %%xmm7					\n\
 	paddw %%xmm6, %%xmm3	# No possibility of overflow		\n\
 	paddw %%xmm7, %%xmm3						\n\
-	paddw 144(%%edi), %%xmm3					\n\
-	# Create 8.6 fixed-point U data in XMM0				\n\
+	paddw 144(%%edi), %%xmm3"
+#define SSE2_RGB2U \
+	"# Create 8.6 fixed-point U data in XMM4			\n\
+	movdqa %%xmm0, %%xmm4						\n\
+	movdqa %%xmm1, %%xmm6						\n\
+	movdqa %%xmm2, %%xmm7						\n\
+	pmulhw 48(%%edi), %%xmm4					\n\
+	pmulhw 64(%%edi), %%xmm6					\n\
+	pmulhw 80(%%edi), %%xmm7					\n\
+	paddw %%xmm6, %%xmm4						\n\
+	paddw %%xmm7, %%xmm4						\n\
+	paddw 160(%%edi), %%xmm4"
+#define SSE2_RGB2U0 \
+	"# Create 8.6 fixed-point U data in XMM0			\n\
 	pmulhw 48(%%edi), %%xmm0					\n\
 	pmulhw 64(%%edi), %%xmm1					\n\
 	pmulhw 80(%%edi), %%xmm2					\n\
 	paddw %%xmm1, %%xmm0						\n\
 	paddw %%xmm2, %%xmm0						\n\
-	paddw 160(%%edi), %%xmm0					\n\
-	# Shift back down to 8-bit values				\n\
-	psrlw $6, %%xmm3						\n\
-	psrlw $6, %%xmm0						\n\
+	paddw 160(%%edi), %%xmm0"
+#define SSE2_RGB2V \
+	"# Create 8.6 fixed-point V data in XMM0			\n\
+	pmulhw 96(%%edi), %%xmm0					\n\
+	pmulhw 112(%%edi), %%xmm1					\n\
+	pmulhw 128(%%edi), %%xmm2					\n\
+	paddw %%xmm1, %%xmm0						\n\
+	paddw %%xmm2, %%xmm0						\n\
+	paddw 160(%%edi), %%xmm0"
+#define SSE2_PACKYU \
+	"# Shift back down to 8-bit values				\n\
+	psraw $6, %%xmm3						\n\
+	psraw $6, %%xmm0						\n\
 	# Pack into bytes						\n\
 	pxor %%xmm7, %%xmm7						\n\
 	packuswb %%xmm7, %%xmm3						\n\
-	packuswb %%xmm7, %%xmm0						\n\
-	# Remove every odd U value					\n\
-	pand 176(%%edi), %%xmm0						\n\
-	packuswb %%xmm7, %%xmm0						\n\
+	packuswb %%xmm7, %%xmm0"
+#define SSE2_PACKYUV \
+	"# Shift back down to 8-bit values				\n\
+	psraw $6, %%xmm3						\n\
+	psraw $6, %%xmm4						\n\
+	psraw $6, %%xmm0						\n\
+	# Pack into bytes						\n\
+	pxor %%xmm7, %%xmm7						\n\
+	packuswb %%xmm7, %%xmm3						\n\
+	packuswb %%xmm7, %%xmm4						\n\
+	packuswb %%xmm7, %%xmm0"
+#define SSE2_STRIPU(N) \
+	"# Remove every odd U value					\n\
+	pand 176(%%edi), %%xmm"#N"					\n\
+	packuswb %%xmm7, %%xmm"#N
+#define SSE2_STRIPV \
+	"# Remove every even V value					\n\
+	psrlw $8, %%xmm0						\n\
+	packuswb %%xmm7, %%xmm0"
+
+static inline void sse2_rgb_to_yuv420p_yu(uint8_t *destY, uint8_t *destU)
+{
+    asm("\
+	"SSE2_RGB2Y"							\n\
+	"SSE2_RGB2U0"							\n\
+	"SSE2_PACKYU"							\n\
+	"SSE2_STRIPU(0)"						\n\
 	# Store into destination pointers				\n\
 	movq %%xmm3, (%%eax)						\n\
 	movd %%xmm0, (%%ecx)						\n\
@@ -1013,37 +1073,10 @@ static inline void sse2_rgb_to_yuv420p_yu(uint8_t *destY, uint8_t *destU)
 static inline void sse2_rgb_to_yuv420p_yv(uint8_t *destY, uint8_t *destV)
 {
     asm("\
-	# Make RGB data into 8.6 fixed-point				\n\
-	psllw $6, %%xmm0						\n\
-	psllw $6, %%xmm1						\n\
-	psllw $6, %%xmm2						\n\
-	# Create 8.6 fixed-point Y data in XMM3				\n\
-	movdqa %%xmm0, %%xmm3						\n\
-	movdqa %%xmm1, %%xmm6						\n\
-	movdqa %%xmm2, %%xmm7						\n\
-	pmulhuw (%%edi), %%xmm3						\n\
-	pmulhuw 16(%%edi), %%xmm6					\n\
-	pmulhuw 32(%%edi), %%xmm7					\n\
-	paddw %%xmm6, %%xmm3	# No possibility of overflow		\n\
-	paddw %%xmm7, %%xmm3						\n\
-	paddw 144(%%edi), %%xmm3					\n\
-	# Create 8.6 fixed-point V data in XMM0				\n\
-	pmulhw 96(%%edi), %%xmm0					\n\
-	pmulhw 112(%%edi), %%xmm1					\n\
-	pmulhw 128(%%edi), %%xmm2					\n\
-	paddw %%xmm1, %%xmm0						\n\
-	paddw %%xmm2, %%xmm0						\n\
-	paddw 160(%%edi), %%xmm0					\n\
-	# Shift back down to 8-bit values				\n\
-	psrlw $6, %%xmm3						\n\
-	psrlw $6, %%xmm0						\n\
-	# Pack into bytes						\n\
-	pxor %%xmm7, %%xmm7						\n\
-	packuswb %%xmm7, %%xmm3						\n\
-	packuswb %%xmm7, %%xmm0						\n\
-	# Remove every even V value					\n\
-	psrlw $8, %%xmm0						\n\
-	packuswb %%xmm7, %%xmm0						\n\
+	"SSE2_RGB2Y"							\n\
+	"SSE2_RGB2V"							\n\
+	"SSE2_PACKYU"							\n\
+	"SSE2_STRIPV"							\n\
 	# Store into destination pointers				\n\
 	movq %%xmm3, (%%eax)						\n\
 	movd %%xmm0, (%%ecx)						\n\
@@ -1057,51 +1090,12 @@ static inline void sse2_rgb_to_yuv422p(uint8_t *destY, uint8_t *destU,
 				       uint8_t *destV)
 {
     asm("\
-	# Make RGB data into 8.6 fixed-point				\n\
-	psllw $6, %%xmm0						\n\
-	psllw $6, %%xmm1						\n\
-	psllw $6, %%xmm2						\n\
-	# Create 8.6 fixed-point Y data in XMM3				\n\
-	movdqa %%xmm0, %%xmm3						\n\
-	movdqa %%xmm1, %%xmm6						\n\
-	movdqa %%xmm2, %%xmm7						\n\
-	pmulhuw (%%edi), %%xmm3						\n\
-	pmulhuw 16(%%edi), %%xmm6					\n\
-	pmulhuw 32(%%edi), %%xmm7					\n\
-	paddw %%xmm6, %%xmm3	# No possibility of overflow		\n\
-	paddw %%xmm7, %%xmm3						\n\
-	paddw 144(%%edi), %%xmm3					\n\
-	# Create 8.6 fixed-point U data in XMM4				\n\
-	movdqa %%xmm0, %%xmm4						\n\
-	movdqa %%xmm1, %%xmm6						\n\
-	movdqa %%xmm2, %%xmm7						\n\
-	pmulhw 48(%%edi), %%xmm4					\n\
-	pmulhw 64(%%edi), %%xmm6					\n\
-	pmulhw 80(%%edi), %%xmm7					\n\
-	paddw %%xmm6, %%xmm4						\n\
-	paddw %%xmm7, %%xmm4						\n\
-	paddw 160(%%edi), %%xmm4					\n\
-	# Create 8.6 fixed-point V data in XMM0				\n\
-	pmulhw 96(%%edi), %%xmm0					\n\
-	pmulhw 112(%%edi), %%xmm1					\n\
-	pmulhw 128(%%edi), %%xmm2					\n\
-	paddw %%xmm1, %%xmm0						\n\
-	paddw %%xmm2, %%xmm0						\n\
-	paddw 160(%%edi), %%xmm0					\n\
-	# Shift back down to 8-bit values				\n\
-	psrlw $6, %%xmm3						\n\
-	psrlw $6, %%xmm4						\n\
-	psrlw $6, %%xmm0						\n\
-	# Pack into bytes						\n\
-	pxor %%xmm7, %%xmm7						\n\
-	packuswb %%xmm7, %%xmm3						\n\
-	packuswb %%xmm7, %%xmm0						\n\
-	# Remove every odd U value					\n\
-	pand 176(%%edi), %%xmm4						\n\
-	packuswb %%xmm7, %%xmm4						\n\
-	# Remove every even V value					\n\
-	psrlw $8, %%xmm0						\n\
-	packuswb %%xmm7, %%xmm0						\n\
+	"SSE2_RGB2Y"							\n\
+	"SSE2_RGB2U"							\n\
+	"SSE2_RGB2V"							\n\
+	"SSE2_PACKYUV"							\n\
+	"SSE2_STRIPU(4)"						\n\
+	"SSE2_STRIPV"							\n\
 	# Store into destination pointers				\n\
 	movq %%xmm3, (%%eax)						\n\
 	movd %%xmm4, (%%ecx)						\n\
@@ -1117,45 +1111,10 @@ static inline void sse2_rgb_to_yuv444p(uint8_t *destY, uint8_t *destU,
 				       uint8_t *destV)
 {
     asm("\
-	# Make RGB data into 8.6 fixed-point				\n\
-	psllw $6, %%xmm0						\n\
-	psllw $6, %%xmm1						\n\
-	psllw $6, %%xmm2						\n\
-	# Create 8.6 fixed-point Y data in XMM3				\n\
-	movdqa %%xmm0, %%xmm3						\n\
-	movdqa %%xmm1, %%xmm6						\n\
-	movdqa %%xmm2, %%xmm7						\n\
-	pmulhuw (%%edi), %%xmm3						\n\
-	pmulhuw 16(%%edi), %%xmm6					\n\
-	pmulhuw 32(%%edi), %%xmm7					\n\
-	paddw %%xmm6, %%xmm3	# No possibility of overflow		\n\
-	paddw %%xmm7, %%xmm3						\n\
-	paddw 144(%%edi), %%xmm3					\n\
-	# Create 8.6 fixed-point U data in XMM4				\n\
-	movdqa %%xmm0, %%xmm4						\n\
-	movdqa %%xmm1, %%xmm6						\n\
-	movdqa %%xmm2, %%xmm7						\n\
-	pmulhw 48(%%edi), %%xmm4					\n\
-	pmulhw 64(%%edi), %%xmm6					\n\
-	pmulhw 80(%%edi), %%xmm7					\n\
-	paddw %%xmm6, %%xmm4						\n\
-	paddw %%xmm7, %%xmm4						\n\
-	paddw 160(%%edi), %%xmm4					\n\
-	# Create 8.6 fixed-point V data in XMM0				\n\
-	pmulhw 96(%%edi), %%xmm0					\n\
-	pmulhw 112(%%edi), %%xmm1					\n\
-	pmulhw 128(%%edi), %%xmm2					\n\
-	paddw %%xmm1, %%xmm0						\n\
-	paddw %%xmm2, %%xmm0						\n\
-	paddw 160(%%edi), %%xmm0					\n\
-	# Shift back down to 8-bit values				\n\
-	psrlw $6, %%xmm3						\n\
-	psrlw $6, %%xmm4						\n\
-	psrlw $6, %%xmm0						\n\
-	# Pack into bytes						\n\
-	pxor %%xmm7, %%xmm7						\n\
-	packuswb %%xmm7, %%xmm3						\n\
-	packuswb %%xmm7, %%xmm0						\n\
+	"SSE2_RGB2Y"							\n\
+	"SSE2_RGB2U"							\n\
+	"SSE2_RGB2V"							\n\
+	"SSE2_PACKYUV"							\n\
 	# Store into destination pointers				\n\
 	movq %%xmm3, (%%eax)						\n\
 	movq %%xmm4, (%%ecx)						\n\
