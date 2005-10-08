@@ -421,7 +421,7 @@ static int process_sub(unsigned char *data, unsigned int size, int block, unsign
       buffer.size=0 ;
   }
   
-  tc_memcpy(buffer.data+buffer.size, data, size) ;
+  ac_memcpy(buffer.data+buffer.size, data, size) ;
   buffer.size += size ;
   
   buffer.pts=pts;

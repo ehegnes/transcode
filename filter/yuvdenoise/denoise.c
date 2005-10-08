@@ -659,9 +659,9 @@ denoise_frame(void)
     sharpen_frame();
     black_border();
     
-    tc_memcpy(denoiser.frame.avg[Yy],denoiser.frame.tmp[Yy],denoiser.frame.w*(denoiser.frame.h+64));
-    tc_memcpy(denoiser.frame.avg[Cr],denoiser.frame.tmp[Cr],denoiser.frame.w*(denoiser.frame.h+64)/4);
-    tc_memcpy(denoiser.frame.avg[Cb],denoiser.frame.tmp[Cb],denoiser.frame.w*(denoiser.frame.h+64)/4);
+    ac_memcpy(denoiser.frame.avg[Yy],denoiser.frame.tmp[Yy],denoiser.frame.w*(denoiser.frame.h+64));
+    ac_memcpy(denoiser.frame.avg[Cr],denoiser.frame.tmp[Cr],denoiser.frame.w*(denoiser.frame.h+64)/4);
+    ac_memcpy(denoiser.frame.avg[Cb],denoiser.frame.tmp[Cb],denoiser.frame.w*(denoiser.frame.h+64)/4);
     break;
     }
     
@@ -722,9 +722,9 @@ denoise_frame(void)
       sharpen_frame();
       black_border();
     
-      tc_memcpy(denoiser.frame.avg[0],denoiser.frame.tmp[0],denoiser.frame.w*(denoiser.frame.h+64));
-      tc_memcpy(denoiser.frame.avg[1],denoiser.frame.tmp[1],denoiser.frame.w*(denoiser.frame.h+64)/4);
-      tc_memcpy(denoiser.frame.avg[2],denoiser.frame.tmp[2],denoiser.frame.w*(denoiser.frame.h+64)/4);
+      ac_memcpy(denoiser.frame.avg[0],denoiser.frame.tmp[0],denoiser.frame.w*(denoiser.frame.h+64));
+      ac_memcpy(denoiser.frame.avg[1],denoiser.frame.tmp[1],denoiser.frame.w*(denoiser.frame.h+64)/4);
+      ac_memcpy(denoiser.frame.avg[2],denoiser.frame.tmp[2],denoiser.frame.w*(denoiser.frame.h+64)/4);
       break;
     }
     
@@ -734,9 +734,9 @@ denoise_frame(void)
       if(denoiser.deinterlace) deinterlace();
       
       /* as the normal denoising functions are not used we need to copy ... */
-      tc_memcpy(denoiser.frame.tmp[0],denoiser.frame.ref[0],denoiser.frame.w*(denoiser.frame.h+64));
-      tc_memcpy(denoiser.frame.tmp[1],denoiser.frame.ref[1],denoiser.frame.w*(denoiser.frame.h+64)/4);
-      tc_memcpy(denoiser.frame.tmp[2],denoiser.frame.ref[2],denoiser.frame.w*(denoiser.frame.h+64)/4);
+      ac_memcpy(denoiser.frame.tmp[0],denoiser.frame.ref[0],denoiser.frame.w*(denoiser.frame.h+64));
+      ac_memcpy(denoiser.frame.tmp[1],denoiser.frame.ref[1],denoiser.frame.w*(denoiser.frame.h+64)/4);
+      ac_memcpy(denoiser.frame.tmp[2],denoiser.frame.ref[2],denoiser.frame.w*(denoiser.frame.h+64)/4);
       
       denoise_frame_pass2();
       sharpen_frame();

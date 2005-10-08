@@ -290,7 +290,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   
   if( (ptr->tag & TC_PRE_PROCESS) && vid && cache_enabled) {
       process_ctr_cur = (process_ctr_cur+1)%3;
-      tc_memcpy (process_buffer[process_ctr_cur], ptr->video_buf, ptr->video_size);
+      ac_memcpy (process_buffer[process_ctr_cur], ptr->video_buf, ptr->video_size);
       return 0;
   }
   if(pre && vid) {
@@ -300,7 +300,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if(!xv_player->display->dontdraw) {
       
       //0.6.2 (secondaray buffer for pass-through mode)
-      (use_secondary_buffer) ? tc_memcpy(xv_player->display->pixels[0], (char*) ptr->video_buf2, size) : tc_memcpy(xv_player->display->pixels[0], (char*) ptr->video_buf, size); 
+      (use_secondary_buffer) ? ac_memcpy(xv_player->display->pixels[0], (char*) ptr->video_buf2, size) : ac_memcpy(xv_player->display->pixels[0], (char*) ptr->video_buf, size); 
       
       //display video frame
       xv_display_show(xv_player->display);
@@ -354,7 +354,7 @@ void preview_cache_submit(char *buf, int id, int flag) {
 
   cache_ptr = (cache_ptr+1)%cache_num;
   
-  tc_memcpy((char*) vid_buf[cache_ptr], buf, size);
+  ac_memcpy((char*) vid_buf[cache_ptr], buf, size);
   
   (flag & TC_FRAME_IS_KEYFRAME) ? snprintf(string, sizeof(string), "%u *", id) : snprintf(string, sizeof(string), "%u", id);
   
@@ -382,15 +382,15 @@ int preview_filter_buffer(int frames_needed)
 
 #undef NO_PROCESS
 #ifdef NO_PROCESS
-	tc_memcpy (run_buffer[0], (char *)vid_buf[cache_ptr-(current-1)], size);
-	tc_memcpy (run_buffer[1], (char *)vid_buf[cache_ptr-(current-1)], size);
+	ac_memcpy (run_buffer[0], (char *)vid_buf[cache_ptr-(current-1)], size);
+	ac_memcpy (run_buffer[1], (char *)vid_buf[cache_ptr-(current-1)], size);
 #else
-	tc_memcpy (run_buffer[0], process_buffer[(process_ctr_cur+1)%3], SIZE_RGB_FRAME);
-	tc_memcpy (run_buffer[1], process_buffer[(process_ctr_cur+1)%3], SIZE_RGB_FRAME);
+	ac_memcpy (run_buffer[0], process_buffer[(process_ctr_cur+1)%3], SIZE_RGB_FRAME);
+	ac_memcpy (run_buffer[1], process_buffer[(process_ctr_cur+1)%3], SIZE_RGB_FRAME);
 #endif
 
 	if (i == 1) {
-	    tc_memcpy (undo_buffer, (char *)vid_buf[cache_ptr], size);
+	    ac_memcpy (undo_buffer, (char *)vid_buf[cache_ptr], size);
 	}
 
 	ptr->bufid = 1;
@@ -452,10 +452,10 @@ int preview_filter_buffer(int frames_needed)
 
 	plugin_enable_id (this_filter);
 	
-	tc_memcpy (vid_buf[cache_ptr-current+1], ptr->video_buf, size);
+	ac_memcpy (vid_buf[cache_ptr-current+1], ptr->video_buf, size);
 	preview_cache_draw(0);
 
-	tc_memcpy ((char *)vid_buf[cache_ptr], undo_buffer, size);
+	ac_memcpy ((char *)vid_buf[cache_ptr], undo_buffer, size);
     }
     return 0;
 }
@@ -575,10 +575,10 @@ redisplay_frame:
 	vframe_list_t ptr;
 
 	if (!disable)
-	    tc_memcpy (undo_buffer, (char *)vid_buf[cache_ptr], size);
+	    ac_memcpy (undo_buffer, (char *)vid_buf[cache_ptr], size);
 
-	tc_memcpy (run_buffer[0], (char *)vid_buf[cache_ptr-(current-1)], size);
-	tc_memcpy (run_buffer[1], (char *)vid_buf[cache_ptr-(current-1)], size);
+	ac_memcpy (run_buffer[0], (char *)vid_buf[cache_ptr-(current-1)], size);
+	ac_memcpy (run_buffer[1], (char *)vid_buf[cache_ptr-(current-1)], size);
 
 	ptr.bufid = 1;
 	ptr.next = &ptr;
@@ -625,7 +625,7 @@ redisplay_frame:
 	process_vid_plugins (&ptr);
 	plugin_enable_id (this_filter);
 	
-	tc_memcpy (vid_buf[cache_ptr-current+1], ptr.video_buf, size);
+	ac_memcpy (vid_buf[cache_ptr-current+1], ptr.video_buf, size);
 	preview_cache_draw(0);
     }
     return;
@@ -637,7 +637,7 @@ void preview_cache_undo(void)
 {
     if (!cache_enabled) return;
 
-    tc_memcpy((char *)vid_buf[cache_ptr], undo_buffer, size);
+    ac_memcpy((char *)vid_buf[cache_ptr], undo_buffer, size);
     preview_cache_draw(0);
 }
 
@@ -653,7 +653,7 @@ void preview_cache_draw(int next) {
   
   cache_ptr%=cache_num;
 
-  tc_memcpy(xv_player->display->pixels[0], (char*) vid_buf[cache_ptr], size);
+  ac_memcpy(xv_player->display->pixels[0], (char*) vid_buf[cache_ptr], size);
 
   //display video frame
   xv_display_show(xv_player->display);
@@ -826,7 +826,7 @@ int preview_grab_jpeg(void)
 	ret = JPEG_export(TC_EXPORT_NAME, &export_para, NULL);
 
 	mvob = malloc(sizeof(vob_t));
-	tc_memcpy (mvob, vob, sizeof(vob_t));
+	ac_memcpy (mvob, vob, sizeof(vob_t));
 	mvob->video_out_file = prefix;
 
 	export_para.flag = TC_VIDEO;

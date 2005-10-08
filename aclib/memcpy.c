@@ -1,12 +1,24 @@
 /*
- * tcmemcpy.c - optimized memcpy() routines for transcode
+ * memcpy.c - optimized memcpy() routines for aclib
  * Written by Andrew Church <achurch@achurch.org>
  */
 
-#include <string.h>
-#include <stdio.h>
 #include "ac.h"
+#include "ac_internal.h"
+#include <string.h>
 
+static void *(*memcpy_ptr)(void *, const void *, size_t) = memcpy;
+
+/*************************************************************************/
+
+/* External interface */
+
+void *ac_memcpy(void *dest, const void *src, size_t size)
+{
+    return (*memcpy_ptr)(dest, src, size);
+}
+
+/*************************************************************************/
 /*************************************************************************/
 
 #if defined(ARCH_X86)
@@ -16,7 +28,7 @@
  *     (CPUID.MMX)   MOVQ
  */
 
-void *ac_memcpy_mmx(void *dest, const void *src, size_t bytes)
+static void *memcpy_mmx(void *dest, const void *src, size_t bytes)
 {
     asm("\
 PENTIUM_LINE_SIZE = 32		# PMMX/PII cache line size		\n\
@@ -142,7 +154,7 @@ mmx.memcpy_last:							\n\
  *     (CPUID.SSE)   MOVNTQ
  */
 
-void *ac_memcpy_sse(void *dest, const void *src, size_t bytes)
+static void *memcpy_sse(void *dest, const void *src, size_t bytes)
 {
     asm("\
 	push %%ebx		# Save PIC register			\n\
@@ -336,7 +348,7 @@ sse.memcpy_end:								\n\
 	cmp $64, %%rcx		# At least one cache line left?		\n\
 	jae 0b			# Yup, loop				\n"
 
-void *ac_memcpy_amd64(void *dest, const void *src, size_t bytes)
+static void *memcpy_amd64(void *dest, const void *src, size_t bytes)
 {
     asm("\
 	push %%rdi		# Save destination for return value	\n\
@@ -447,37 +459,23 @@ amd64.memcpy_last:							\n\
 
 /*************************************************************************/
 
-void * (*tc_memcpy)(void *, const void *, size_t) = memcpy;
+/* Initialization routine. */
 
-void tc_memcpy_init(int verbose, int mmflags)
+int ac_memcpy_init(int accel)
 {
-	const char * method = "libc";
-	
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
-	int accel = mmflags == -1 ? ac_mmflag() : mmflags;
-#endif
-
 #if defined(ARCH_X86)
-	if((accel & MM_CMOVE) && (accel & MM_SSE))
-	{
-		method = "sse";
-		tc_memcpy = ac_memcpy_sse;
-	}
-	else if(accel & MM_MMX)
-	{
-		method = "mmx";
-		tc_memcpy = ac_memcpy_mmx;
-	}
+    if (HAS_ACCEL(accel, AC_MMX))
+	memcpy_ptr = memcpy_mmx;
+    if (HAS_ACCEL(accel, AC_CMOVE|AC_SSE))
+	memcpy_ptr = memcpy_sse;
 #endif
 
 #if defined(ARCH_X86_64)
-	if((accel & MM_CMOVE) && (accel & MM_SSE2))
-	{
-		method = "amd64";
-		tc_memcpy = ac_memcpy_amd64;
-	}
+    if (HAS_ACCEL(accel, AC_CMOVE|AC_SSE2))
+	memcpy_ptr = memcpy_amd64;
 #endif
 
-	if(verbose)
-		fprintf(stderr, "tc_memcpy: using %s for memcpy\n", method);
+    return 1;
 }
+
+/*************************************************************************/

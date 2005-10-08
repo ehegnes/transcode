@@ -113,19 +113,19 @@ void do_deinterlace (tomsmocomp_t *tmc) {
 
     /* Call dscaler code */
 #ifdef HAVE_SSE
-    if (tmc->cpuflags & MM_SSE) {
+    if (tmc->cpuflags & AC_SSE) {
 	filterDScaler_SSE (&tmc->DSinfo,
 			   tmc->SearchEffort, tmc->UseStrangeBob);
     } else
 #endif
 #ifdef HAVE_3DNOW
-    if (tmc->cpuflags & MM_3DNOW) {
+    if (tmc->cpuflags & AC_3DNOW) {
 	filterDScaler_3DNOW (&tmc->DSinfo,
 			     tmc->SearchEffort, tmc->UseStrangeBob);
     } else
 #endif
 #ifdef HAVE_MMX
-    if (tmc->cpuflags & MM_MMX) {
+    if (tmc->cpuflags & AC_MMX) {
 	filterDScaler_MMX (&tmc->DSinfo,
 			   tmc->SearchEffort, tmc->UseStrangeBob);
     } else
@@ -184,7 +184,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	tmc->width     = vob->im_v_width;
 	tmc->height    = vob->im_v_height;
 	tmc->size      = vob->im_v_width * vob->im_v_height * 2;
-	tmc->cpuflags  = ac_mmflag ();
+	tmc->cpuflags  = tc_accel;
 
 	tmc->rowsize   = vob->im_v_width * 2;
 
@@ -219,17 +219,17 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	tmc->DSinfo.FieldHeight  = tmc->height / 2;
 	tmc->DSinfo.InputPitch   = 2* tmc->rowsize;
 
-	tmc->DSinfo.pMemcpy = tc_memcpy;
+	tmc->DSinfo.pMemcpy = ac_memcpy;
 	
 	if (verbose) {
 	    printf("[%s] topfirst %s,  searcheffort %d,  usestrangebob %s\n",
 		   MOD_NAME, tmc->TopFirst ? "True":"False", tmc->SearchEffort,
 		   tmc->UseStrangeBob ? "True":"False");
 	    printf("[%s] cpuflags%s%s%s%s\n", MOD_NAME,
-		   tmc->cpuflags & MM_SSE ? " SSE":"",
-		   tmc->cpuflags & MM_3DNOW ? " 3DNOW":"",
-		   tmc->cpuflags & MM_MMX ? " MMX":"",
-		   !(tmc->cpuflags & (MM_SSE|MM_3DNOW|MM_MMX)) ? " None":"");
+		   tmc->cpuflags & AC_SSE ? " SSE":"",
+		   tmc->cpuflags & AC_3DNOW ? " 3DNOW":"",
+		   tmc->cpuflags & AC_MMX ? " MMX":"",
+		   !(tmc->cpuflags & (AC_SSE|AC_3DNOW|AC_MMX)) ? " None":"");
 	}
 	
 	return 0;
@@ -277,7 +277,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	/* Convert / Copy to yuy2 */
 	switch (tmc->codec) {
 	case CODEC_YUY2:
-	    tc_memcpy (tmc->frameIn, ptr->video_buf, tmc->size);
+	    ac_memcpy (tmc->frameIn, ptr->video_buf, tmc->size);
 	    break;
 	case CODEC_YUV:
 	    yv12toyuy2 (vid_y, vid_u, vid_v, tmc->frameIn,
@@ -296,7 +296,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    /* Now convert back */
 	    switch (tmc->codec) {
 	    case CODEC_YUY2:
-		tc_memcpy (ptr->video_buf, tmc->frameOut, tmc->size);
+		ac_memcpy (ptr->video_buf, tmc->frameOut, tmc->size);
 		break;
 	    case CODEC_YUV:
 		yuy2toyv12 (vid_y, vid_u, vid_v, tmc->frameOut,

@@ -256,9 +256,6 @@ MOD_open {
 
   if (param->flag == TC_VIDEO) {
 
-    if (!ac_imgconvert_init(tc_accel))
-      return TC_IMPORT_ERROR;
-
     format_flag = vob->format_flag;
 
     sret = scan(vob->video_in_file);
@@ -552,14 +549,14 @@ MOD_decode {
                   MOD_NAME, key, bkey);
 
       param->size = (int) bytes_read;
-      tc_memcpy(param->buffer, buffer, bytes_read); 
+      ac_memcpy(param->buffer, buffer, bytes_read); 
 
       return TC_IMPORT_OK;
     }
 
     if (bytes_read == 0) {
         // repeat last frame
-        tc_memcpy(param->buffer, frame, frame_size);
+        ac_memcpy(param->buffer, frame, frame_size);
         param->size = frame_size;
         return TC_IMPORT_OK;
     }
@@ -591,7 +588,7 @@ retry:
 	} else {
 
 	  // repeat last frame
-	  tc_memcpy(param->buffer, frame, frame_size);
+	  ac_memcpy(param->buffer, frame, frame_size);
 	  param->size = frame_size;
 	  return TC_IMPORT_OK;
 	}
@@ -610,14 +607,14 @@ retry:
 	  if (picture.linesize[0] != lavc_dec_context->width) {
 	      int y;
 	      for (y = 0; y < lavc_dec_context->height; y++) {
-		  tc_memcpy(picture.data[0] + y*lavc_dec_context->width,
+		  ac_memcpy(picture.data[0] + y*lavc_dec_context->width,
 			    picture.data[0] + y*picture.linesize[0],
 			    lavc_dec_context->width);
 		  if (y%2 == 0) {
-		      tc_memcpy(picture.data[1] + y*(lavc_dec_context->width/2),
+		      ac_memcpy(picture.data[1] + y*(lavc_dec_context->width/2),
 				picture.data[1] + y*picture.linesize[1],
 				lavc_dec_context->width/2);
-		      tc_memcpy(picture.data[2] + y*(lavc_dec_context->width/2),
+		      ac_memcpy(picture.data[2] + y*(lavc_dec_context->width/2),
 				picture.data[2] + y*picture.linesize[2],
 				lavc_dec_context->width/2);
 		  }
@@ -631,13 +628,13 @@ retry:
 	  if (picture.linesize[0] != lavc_dec_context->width) {
 	      int y;
 	      for (y = 0; y < lavc_dec_context->height; y++) {
-		  tc_memcpy(picture.data[0] + y*lavc_dec_context->width,
+		  ac_memcpy(picture.data[0] + y*lavc_dec_context->width,
 			    picture.data[0] + y*picture.linesize[0],
 			    lavc_dec_context->width);
-		  tc_memcpy(picture.data[1] + y*(lavc_dec_context->width/4),
+		  ac_memcpy(picture.data[1] + y*(lavc_dec_context->width/4),
 			    picture.data[1] + y*picture.linesize[1],
 			    lavc_dec_context->width/4);
-		  tc_memcpy(picture.data[2] + y*(lavc_dec_context->width/4),
+		  ac_memcpy(picture.data[2] + y*(lavc_dec_context->width/4),
 			    picture.data[2] + y*picture.linesize[2],
 			    lavc_dec_context->width/4);
 	      }
@@ -651,13 +648,13 @@ retry:
 	  if (picture.linesize[0] != lavc_dec_context->width) {
 	      int y;
 	      for (y = 0; y < lavc_dec_context->height; y++) {
-		  tc_memcpy(picture.data[0] + y*lavc_dec_context->width,
+		  ac_memcpy(picture.data[0] + y*lavc_dec_context->width,
 			    picture.data[0] + y*picture.linesize[0],
 			    lavc_dec_context->width);
-		  tc_memcpy(picture.data[1] + y*(lavc_dec_context->width/2),
+		  ac_memcpy(picture.data[1] + y*(lavc_dec_context->width/2),
 			    picture.data[1] + y*picture.linesize[1],
 			    lavc_dec_context->width/2);
-		  tc_memcpy(picture.data[2] + y*(lavc_dec_context->width/2),
+		  ac_memcpy(picture.data[2] + y*(lavc_dec_context->width/2),
 			    picture.data[2] + y*picture.linesize[2],
 			    lavc_dec_context->width/2);
 	      }
@@ -671,13 +668,13 @@ retry:
 	  if (picture.linesize[0] != lavc_dec_context->width) {
 	      int y;
 	      for (y = 0; y < lavc_dec_context->height; y++) {
-		  tc_memcpy(picture.data[0] + y*lavc_dec_context->width,
+		  ac_memcpy(picture.data[0] + y*lavc_dec_context->width,
 			    picture.data[0] + y*picture.linesize[0],
 			    lavc_dec_context->width);
-		  tc_memcpy(picture.data[1] + y*lavc_dec_context->width,
+		  ac_memcpy(picture.data[1] + y*lavc_dec_context->width,
 			    picture.data[1] + y*picture.linesize[1],
 			    lavc_dec_context->width);
-		  tc_memcpy(picture.data[2] + y*lavc_dec_context->width,
+		  ac_memcpy(picture.data[2] + y*lavc_dec_context->width,
 			    picture.data[2] + y*picture.linesize[2],
 			    lavc_dec_context->width);
 	      }
@@ -692,7 +689,7 @@ retry:
 	  return TC_IMPORT_ERROR;
     }
 
-    tc_memcpy(param->buffer, frame, frame_size);
+    ac_memcpy(param->buffer, frame, frame_size);
     param->size = frame_size;
 
     return TC_IMPORT_OK;

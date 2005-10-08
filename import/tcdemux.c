@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
     //defaults:
     int unit_seek=0, resync_seq1=0, resync_seq2=INT_MAX;
 
-	tc_memcpy_init(verbose & TC_INFO, -1);
+    ac_init(AC_ALL);
 
     //proper initialization
     memset(&ipipe, 0, sizeof(info_t));

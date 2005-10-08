@@ -156,9 +156,9 @@ MOD_decode
         }
 
         if (size < width * height)
-            tc_memcpy(buffer, save_buffer, width * height * 3 / 2 + 8);
+            ac_memcpy(buffer, save_buffer, width * height * 3 / 2 + 8);
         else
-            tc_memcpy(save_buffer, buffer, width * height * 3 / 2 + 8);
+            ac_memcpy(save_buffer, buffer, width * height * 3 / 2 + 8);
 
         /* right? */
         version = buffer[0] & 0xff;
@@ -180,10 +180,10 @@ MOD_decode
             e = param->buffer + (y + 1) * width;
 
             for (x = 0; x < width; x += 8) {
-                tc_memcpy(d, c + 0,  8);
-                tc_memcpy(e, c + 8,  8);
-                tc_memcpy(u, c + 16, 4);
-                tc_memcpy(v, c + 20, 4);
+                ac_memcpy(d, c + 0,  8);
+                ac_memcpy(e, c + 8,  8);
+                ac_memcpy(u, c + 16, 4);
+                ac_memcpy(v, c + 20, 4);
                 c += 24;
                 d += 8;
                 e += 8;

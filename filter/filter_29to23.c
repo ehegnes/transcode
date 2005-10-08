@@ -133,24 +133,24 @@ int tc_filter(frame_list_t *ptr_, char *options)
               break;
 
           case 1:
-	      tc_memcpy (f1, ptr->video_buf, ptr->video_size);
+	      ac_memcpy (f1, ptr->video_buf, ptr->video_size);
 	      ptr->attributes |= TC_FRAME_IS_SKIPPED;
 	      break;
 
           case 2:
-	      tc_memcpy (f2, ptr->video_buf, ptr->video_size);
+	      ac_memcpy (f2, ptr->video_buf, ptr->video_size);
 	      for (i = 0; i<ptr->video_size; i++)
 		  ptr->video_buf[i] = (3*f1[i] + f2[i] + 1)/4;
 	      break;
 
           case 3:
-	      tc_memcpy (f1, ptr->video_buf, ptr->video_size);
+	      ac_memcpy (f1, ptr->video_buf, ptr->video_size);
 	      for (i = 0; i<ptr->video_size; i++)
 		  ptr->video_buf[i] = (f1[i] + f2[i])/2;
 	      break;
 
           case 4:
-	      //tc_memcpy (f2, ptr->video_buf, ptr->video_size);
+	      //ac_memcpy (f2, ptr->video_buf, ptr->video_size);
               f3 = ptr->video_buf;
 	      for (i = 0; i<ptr->video_size; i++)
 		  ptr->video_buf[i] = (f1[i] + 3*f3[i] + 1)/4;

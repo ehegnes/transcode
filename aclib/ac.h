@@ -1,79 +1,71 @@
 /*
- *  ac.h
- *
- *  Copyright (C) Thomas Östreich - November 2002
- *
- *  This file is part of transcode, a video stream processing tool
- *      
- *  transcode is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2, or (at your option)
- *  any later version.
- *   
- *  transcode is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *   
- *  You should have received a copy of the GNU General Public License
- *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
- *
+ * ac.h -- main aclib include
+ * Written by Andrew Church <achurch@achurch.org>
  */
 
-#ifndef _AC_H
-#define _AC_H
+#ifndef ACLIB_AC_H
+#define ACLIB_AC_H
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+# include "config.h"
 #endif
 
+#include <stddef.h>
 #include <stdint.h>
-#include <unistd.h>
 
-#include "libtc/libtc.h"
+/*************************************************************************/
 
-//mm_support
-#define MM_C        0x0000 //plain C (default)
-#define MM_IA32ASM  0x0001 //32-bit assembler optimized code (non-MMX)
-#define MM_AMD64ASM 0x0002 //64-bit assembler optimized code (non-MMX)
-#define MM_CMOVE    0x0004 //CMOVcc instruction
-#define MM_MMX      0x0008 //standard MMX 
-#define MM_MMXEXT   0x0010 //SSE integer functions or AMD MMX ext
-#define MM_3DNOW    0x0020 //AMD 3DNOW 
-#define MM_SSE      0x0040 //SSE functions 
-#define MM_SSE2     0x0080 //PIV SSE2 functions 
-#define MM_3DNOWEXT 0x0100 //AMD 3DNow! ext.
-#define MM_SSE3     0x0200 //Prescott SSE3
+/* CPU acceleration support flags, for use with ac_init(): */
 
-extern void * (*tc_memcpy)(void *, const void *, size_t);
-extern void tc_memcpy_init(int verbose, int mmflags);
+#define AC_IA32ASM	0x0001	/* x86-32: standard assembly (no MMX) */
+#define AC_AMD64ASM	0x0002	/* x86-64: standard assembly (no MMX) */
+#define AC_CMOVE	0x0004	/* x86: CMOVcc instruction */
+#define AC_MMX		0x0008	/* x86: MMX instructions */
+#define AC_MMXEXT	0x0010	/* x86: MMX extended instructions (AMD) */
+#define AC_3DNOW	0x0020	/* x86: 3DNow! instructions (AMD) */
+#define AC_3DNOWEXT	0x0040	/* x86: 3DNow! instructions (AMD) */
+#define AC_SSE		0x0080	/* x86: SSE instructions */
+#define AC_SSE2		0x0100	/* x86: SSE2 instructions */
+#define AC_SSE3		0x0200	/* x86: SSE3 instructions */
 
-extern int mm_flags;
-int ac_mmflag(void);
-void ac_mmtest(void);
-char *ac_mmstr(int flag, int mode);
+#define AC_NONE		0	/* No acceleration (vanilla C functions) */
+#define AC_ALL		(~0)	/* All available acceleration */
 
-//ac_memcpy
-void * ac_memcpy_mmx(void *dest, const void *src, size_t bytes);
-void * ac_memcpy_sse(void *dest, const void *src, size_t bytes);
-void * ac_memcpy_amd64(void *dest, const void *src, size_t bytes);
+/*************************************************************************/
 
-//average (simple average over 2 rows)
-int ac_average_mmx(char *row1, char *row2, char *out, int bytes);
-int ac_average_sse(char *row1, char *row2, char *out, int bytes);
-int ac_average_sse2(char *row1, char *row2, char *out, int bytes);
+/* Library initialization function--MUST be called before any other aclib
+ * functions are used!  `accel' selects the accelerations to enable:
+ * AC_NONE, AC_ALL, or a combination of the other AC_* flags above.  The
+ * value will always be masked to the acceleration options available on the
+ * actual CPU, as returned by ac_cpuinfo().  Returns 1 on success, 0 on
+ * failure. */
+extern int ac_init(int accel);
 
-//swap
-int ac_swap_rgb2bgr_asm(char *im, int bytes);
-int ac_swap_rgb2bgr_asm64(char *im, int pixels);
+/* Returns the set of acceleration features supported by this CPU. */
+extern int ac_cpuinfo(void);
 
-//rescale
-int ac_rescale_mmxext(char *row1, char *row2, char *out, int bytes, 
-		      unsigned long weight1, unsigned long weight2);
-int ac_rescale_sse(char *row1, char *row2, char *out, int bytes, 
-		   unsigned long weight1, unsigned long weight2);
-int ac_rescale_sse2(char *row1, char *row2, char *out, int bytes, 
-		    unsigned long weight1, unsigned long weight2);
+/* Utility routine to convert a set of flags to a descriptive string.  The
+ * string is stored in a static buffer overwritten each call. */
+extern const char *ac_flagstotext(int accel);
 
-#endif
+/*************************************************************************/
+
+/* Acceleration-enabled functions: */
+
+/* Optimized memcpy() */
+extern void *ac_memcpy(void *dest, const void *src, size_t size);
+
+/* Average of two sets of data */
+extern void ac_average(const uint8_t *src1, const uint8_t *src2,
+		       uint8_t *dest, int bytes);
+
+/* Weighted average of two sets of data (weight1+weight2 should be 65536) */
+extern void ac_rescale(const uint8_t *src1, const uint8_t *src2,
+		       uint8_t *dest, int bytes,
+		       uint32_t weight1, uint32_t weight2);
+
+/* Image format manipulation is available in aclib/imgconvert.h */
+
+/*************************************************************************/
+
+#endif  /* ACLIB_AC_H */

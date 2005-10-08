@@ -34,7 +34,6 @@
 #include "video_trans.h"
 
 #include "zoom.h"
-#include "aclib/ac.h"
 
 #include "transcode.h"
 
@@ -87,10 +86,10 @@ void yuv_rescale(char *image, int width, int height, int resize_h, int resize_w)
     // Y 
     yuv_rescale_core(image, width, height, resize_h, resize_w);
     
-    // Cr
+    // Cb
     yuv_rescale_core(image + width*height, width/2, height/2, resize_h, resize_w);
     
-    // Cb
+    // Cr
     yuv_rescale_core(image + width*height + ((width*height)>>2), 
 		     width/2, height/2, resize_h, resize_w);
 
@@ -101,10 +100,10 @@ void yuv_rescale(char *image, int width, int height, int resize_h, int resize_w)
     
     bytes = (n_height*n_width)>>2;
 
-    // Cr
-    tc_memcpy(image + n_height * n_width, image + width * height, bytes);
     // Cb
-    tc_memcpy(image + n_height * n_width + bytes, image + width*height + ((width*height)>>2), bytes);
+    ac_memcpy(image + n_height * n_width, image + width * height, bytes);
+    // Cr
+    ac_memcpy(image + n_height * n_width + bytes, image + width*height + ((width*height)>>2), bytes);
 
     return;
 }
@@ -127,9 +126,9 @@ static void yuv_flip_core(char *image, int width, int height)
   
   for (y = height; y > height/2; y--) {
 
-    tc_memcpy(rowbuffer, out, block);
-    tc_memcpy(out, in, block);
-    tc_memcpy(in, rowbuffer, block);
+    ac_memcpy(rowbuffer, out, block);
+    ac_memcpy(out, in, block);
+    ac_memcpy(in, rowbuffer, block);
     
     out = out + block; 
     in  = in - block;
@@ -167,7 +166,7 @@ void yuv_hclip(char *image, int width, int height, int cols)
   
     for (y = 0; y < height; y++) {
       
-	tc_memcpy(out, in, block);
+	ac_memcpy(out, in, block);
 
 	// advance to next row
 
@@ -176,7 +175,7 @@ void yuv_hclip(char *image, int width, int height, int cols)
     }
 
 
-    // Cr
+    // Cb
 
     new = (width-2*cols)*height;
 
@@ -189,7 +188,7 @@ void yuv_hclip(char *image, int width, int height, int cols)
 
     for (y = 0; y < height/2; y++) {
       
-	tc_memcpy(out, in, block);
+	ac_memcpy(out, in, block);
 
 	// advance to next row
 
@@ -198,7 +197,7 @@ void yuv_hclip(char *image, int width, int height, int cols)
     }
 
 
-    // Cb
+    // Cr
 
     new += (width/2-cols)*height/2;
 
@@ -211,7 +210,7 @@ void yuv_hclip(char *image, int width, int height, int cols)
   
     for (y = 0; y < height/2; y++) {
       
-	tc_memcpy(out, in, block);
+	ac_memcpy(out, in, block);
 
 	// advance to next row
 
@@ -250,7 +249,7 @@ void yuv_hclip(char *image, int width, int height, int cols)
       out += block;
   }
 
-  // Cr
+  // Cb
 
   new = (width+2*cols)*height;
   rowbytes = width/2;
@@ -272,7 +271,7 @@ void yuv_hclip(char *image, int width, int height, int cols)
       out += block;
   }
   
-  // Cb
+  // Cr
 
   new += (width/2 + cols)*height/2;
   in  = image + pixeltoins + width*height + width*height/4;
@@ -314,7 +313,7 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
   
     for (y = 0; y < height; y++) {
       
-	tc_memcpy(out, in, block);
+	ac_memcpy(out, in, block);
       
 	// advance to next row
       
@@ -323,7 +322,7 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
     }
 
 
-    // Cr
+    // Cb
 
     new = (width-(cols_right+cols_left))*height;
 
@@ -336,7 +335,7 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
   
     for (y = 0; y < height/2; y++) {
       
-	tc_memcpy(out, in, block);
+	ac_memcpy(out, in, block);
       
 	// advance to next row
       
@@ -345,7 +344,7 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
     }
 
 
-    // Cb
+    // Cr
 
     new += (width/2-(cols_right+cols_left)/2)*height/2;
 
@@ -358,7 +357,7 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
   
     for (y = 0; y < height/2; y++) {
       
-	tc_memcpy(out, in, block);
+	ac_memcpy(out, in, block);
       
 	// advance to next row
       
@@ -401,7 +400,7 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
 	out += block;
     }
 
-    // Cr
+    // Cb
 
     new = (width+cols_left+cols_right)*height;
     rowbytes = width/2;
@@ -424,7 +423,7 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
 	out += block;
     }
   
-    // Cb
+    // Cr
 
     /* read: new += (width/2 + (cols_left+cols_right)/2)*height/2; */
     new += (width + cols_left+cols_right)*height/4;
@@ -478,7 +477,7 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
 	out += block;
     }
 
-    // Cr
+    // Cb
 
     new = (width+cols_left-cols_right)*height;
 
@@ -501,7 +500,7 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
 	out += block;
     }
   
-    // Cb
+    // Cr
 
     /* read: new += (width/2 + (cols_left-cols_right)/2)*height/2; */
     new += (width + cols_left-cols_right) * height/4;
@@ -555,7 +554,7 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
 	out += block;
     }
 
-    // Cr
+    // Cb
 
     new = (width-cols_left+cols_right)*height;
 
@@ -578,7 +577,7 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
 	out += block;
     }
   
-    // Cb
+    // Cr
 
     /* read: new += (width/2 + (-cols_left+cols_right)/2)*height/2; */
     new += (width - cols_left+cols_right) * height/4;
@@ -618,27 +617,27 @@ void yuv_vclip(char *image, int width, int height, int lines)
       in   =  image + block * lines;
       out  =  image;
       
-      tc_memcpy(out, in, block*(height - 2*lines));
+      ac_memcpy(out, in, block*(height - 2*lines));
       
       block = width/2;
       
-      // Cr
+      // Cb
       
       offset = width*(height-2*lines);
       
       in   =  image + width*height + block * lines/2;
       out  =  image + offset;
       
-      tc_memcpy(out, in, block*(height/2 - lines));
+      ac_memcpy(out, in, block*(height/2 - lines));
       
-      // Cb
+      // Cr
       
       offset += width/2*(height/2 - lines);
       
       in   =  image + width*height + ((width*height)>>2) + block * lines/2;
       out  =  image + offset;
       
-      tc_memcpy(out, in, block*(height/2 - lines));
+      ac_memcpy(out, in, block*(height/2 - lines));
       
       return;
   }
@@ -649,7 +648,7 @@ void yuv_vclip(char *image, int width, int height, int lines)
   bar = (- lines * width)/4; //>0
   block = (width * height) /4;
 
-  //Cb  
+  //Cr  
   
   in  = image + (4+1)*block;
   out = image + (4+1)*block + (8+2+1) * bar;
@@ -658,7 +657,7 @@ void yuv_vclip(char *image, int width, int height, int lines)
   memset(out-bar, BLACK_BYTE_UV, bar);
   memset(out + block, BLACK_BYTE_UV, bar);
 
-  //Cr  
+  //Cb  
 
   in  = image + 4*block;
   out = image + 4*block + (8+1) * bar;
@@ -737,7 +736,7 @@ void yuv_clip_top_bottom(char *image, char *dest, int _width, int _height, int _
   }
 
   //transfer
-  tc_memcpy(out, in, bytes);
+  ac_memcpy(out, in, bytes);
 
   height       = _height/2;
   width        = _width/2;
@@ -746,7 +745,7 @@ void yuv_clip_top_bottom(char *image, char *dest, int _width, int _height, int _
 
   block = width;
 
-  // Cr
+  // Cb
   offset += _width*_height;
   
   if(lines_top>=0 && lines_bottom>=0) { 
@@ -783,9 +782,9 @@ void yuv_clip_top_bottom(char *image, char *dest, int _width, int _height, int _
 
   
   //transfer
-  tc_memcpy(out, in, bytes);
+  ac_memcpy(out, in, bytes);
 
-  // Cb
+  // Cr
   offset += (_width*_height)/4;
 
   if(lines_top>=0 && lines_bottom>=0) { 
@@ -821,7 +820,7 @@ void yuv_clip_top_bottom(char *image, char *dest, int _width, int _height, int _
   }
 
   //transfer
-  tc_memcpy(out, in, bytes);
+  ac_memcpy(out, in, bytes);
 }
 
 
@@ -900,44 +899,6 @@ void yuv_swap(char *image, int width, int height)
   }
 }
 
-inline int yuv_merge_C(char *row1, char *row2, char *out, int bytes, 
-		      unsigned long weight1, unsigned long weight2)
-{
-  // blend each color entry in two arrays and return
-  // result in char *out
-
-    unsigned int y;
-    unsigned long tmp;
-    register unsigned long w1 = weight1;
-    register unsigned long w2 = weight2;
-
-    for (y = bytes-1; y; --y) {
-      tmp = w2 * (unsigned char) row2[y] + w1 *(unsigned char) row1[y];
-      out[y] = (tmp>>16) & 0xff;
-    }
-    tmp = w2 * (unsigned char) row2[0] + w1 *(unsigned char) row1[0];
-    out[0] = (tmp>>16) & 0xff;
-
-    return(0);
-}
-
-static inline int yuv_average_C(char *row1, char *row2, char *out, int bytes)
-{
-  
-  // average of each color entry in two arrays and return
-  // result in char *out
-  
-  unsigned int y;
-  unsigned short tmp;
-  
-  for (y = 0; y<bytes; ++y) {
-    tmp = ((unsigned char) row2[y] + (unsigned char) row1[y])>>1;
-    out[y] = tmp & 0xff;
-  }
-  
-  return(0);
-}
-
 
 static void yuv_vresize_8_Y(char *image, int width, int height, int resize)
 {
@@ -968,7 +929,8 @@ static void yuv_vresize_8_Y(char *image, int width, int height, int resize)
       in = image + j*chunk +  vert_table_8[i].source * row_bytes;
       out = image + m * row_bytes;
       
-      yuv_merge_16(in, in+row_bytes, out, row_bytes, vert_table_8[i].weight1, vert_table_8[i].weight2);
+      ac_rescale(in, in+row_bytes, out, row_bytes,
+		 vert_table_8[i].weight1, vert_table_8[i].weight2);
       
       ++m;
     }
@@ -1011,8 +973,8 @@ static void yuv_vresize_8_up_Y(char *dest, char *image, int width, int height, i
       in = image + j*chunk +  vert_table_8_up[i].source * row_bytes;
       out = dest + m * row_bytes;
       
-      yuv_merge_16(in, in+row_bytes, out, row_bytes, vert_table_8_up[i].weight1,
-      		   vert_table_8_up[i].weight2);
+      ac_rescale(in, in+row_bytes, out, row_bytes,
+		 vert_table_8_up[i].weight1, vert_table_8_up[i].weight2);
       ++m;
     }
   }      
@@ -1022,10 +984,10 @@ static void yuv_vresize_8_up_Y(char *dest, char *image, int width, int height, i
     out = dest + m * row_bytes;
 
     if (in >= last_row){
-      tc_memcpy(out,last_row,row_bytes);
+      ac_memcpy(out,last_row,row_bytes);
     } else {
-      yuv_merge_16(in, in+row_bytes, out, row_bytes, vert_table_8_up[i].weight1,
-      		   vert_table_8_up[i].weight2);
+      ac_rescale(in, in+row_bytes, out, row_bytes,
+		 vert_table_8_up[i].weight1, vert_table_8_up[i].weight2);
     }
     ++m;
   }
@@ -1065,7 +1027,8 @@ static void yuv_vresize_16_CbCr(char *image, int width, int height, int resize)
       in = image + j*chunk +  vert_table_8[i].source * row_bytes;
       out = image + m * row_bytes;
       
-      yuv_merge_8(in, in+row_bytes, out, row_bytes, vert_table_8[i].weight1, vert_table_8[i].weight2);
+      ac_rescale(in, in+row_bytes, out, row_bytes,
+		 vert_table_8[i].weight1, vert_table_8[i].weight2);
 
       ++m;
     }
@@ -1106,7 +1069,8 @@ static void yuv_vresize_16_up_CbCr(char *dest, char *image, int width, int heigh
       in = image + j*chunk +  vert_table_8_up[i].source * row_bytes;
       out = dest + m * row_bytes;
       
-      yuv_merge_8(in, in+row_bytes, out, row_bytes, vert_table_8_up[i].weight1, vert_table_8_up[i].weight2);
+      ac_rescale(in, in+row_bytes, out, row_bytes,
+		 vert_table_8_up[i].weight1, vert_table_8_up[i].weight2);
 
       ++m;
     }
@@ -1117,10 +1081,10 @@ static void yuv_vresize_16_up_CbCr(char *dest, char *image, int width, int heigh
     out = dest + m * row_bytes;
 
     if (in >= last_row){
-      tc_memcpy(out,last_row,row_bytes);
+      ac_memcpy(out,last_row,row_bytes);
     } else {
-      yuv_merge_8(in, in+row_bytes, out, row_bytes, vert_table_8_up[i].weight1,
-      		  vert_table_8_up[i].weight2);
+      ac_rescale(in, in+row_bytes, out, row_bytes,
+		 vert_table_8_up[i].weight1, vert_table_8_up[i].weight2);
     }
     ++m;
   }
@@ -1136,10 +1100,10 @@ void yuv_vresize_8(char *image, int width, int height, int resize)
     // Y 
     yuv_vresize_8_Y(image, width, height, resize);
     
-    // Cr
+    // Cb
     yuv_vresize_16_CbCr(image + width*height, width/2, height/2, resize);
     
-    // Cb
+    // Cr
     yuv_vresize_16_CbCr(image + width*height + ((width*height)>>2), 
 			width/2, height/2, resize);
 
@@ -1148,10 +1112,10 @@ void yuv_vresize_8(char *image, int width, int height, int resize)
     n_height = height - (resize<<3);
     bytes = (n_height*width)>>2;
     
-    // Cr
-    tc_memcpy(image + n_height * width, image + width * height, bytes);
     // Cb
-    tc_memcpy(image + n_height * width + bytes, image + width*height + ((width*height)>>2), bytes);
+    ac_memcpy(image + n_height * width, image + width * height, bytes);
+    // Cr
+    ac_memcpy(image + n_height * width + bytes, image + width*height + ((width*height)>>2), bytes);
 
     return;
 }
@@ -1167,11 +1131,11 @@ void yuv_vresize_8_up(char *image, char *tmp_image, int width, int height, int r
     // Y 
     yuv_vresize_8_up_Y(tmp_image, image, width, height, resize);
     
-    // Cr
+    // Cb
     yuv_vresize_16_up_CbCr(tmp_image + width*n_height, image + width*height, 
 			   width/2, height/2, resize);
     
-    // Cb
+    // Cr
     yuv_vresize_16_up_CbCr(tmp_image + width*n_height * 5/4, image + width*height*5/4, width/2, height/2, resize);
 
     return;
@@ -1181,9 +1145,7 @@ void yuv_vresize_8_up(char *image, char *tmp_image, int width, int height, int r
 static void yuv_hresize_8_Y(char *image, int width, int height, int resize)
 {
     
-    char *in, *out;
-    
-    unsigned int m, cols, i, j, pixels, n_width, blocks; 
+    unsigned int m, cols, i, j, pixels, n_width, blocks, incr;
     
     // resize output video 
     
@@ -1205,10 +1167,9 @@ static void yuv_hresize_8_Y(char *image, int width, int height, int resize)
       
       for (i = 0; i < cols; i++) {
 	
-	in  = image + j * blocks + hori_table_8[i].source;
-	out = image + m;
-	
-	yuv_merge_C(in, in+1, out, 1, hori_table_8[i].weight1, hori_table_8[i].weight2);
+	incr = j * blocks + hori_table_8_up[i].source;
+	image[m] = (image[incr  ] * hori_table_8[i].weight1
+		  + image[incr+1] * hori_table_8[i].weight2 + 32768) >> 16;
 
 	m+=1;
       }
@@ -1220,9 +1181,7 @@ static void yuv_hresize_8_Y(char *image, int width, int height, int resize)
 static void yuv_hresize_8_up_Y(char * dest, char *image, int width, int height, int resize)
 {
     
-    char *in, *out;
-    
-    unsigned int m, cols, i, j, pixels, n_width, blocks, incr; 
+    unsigned int m, cols, i, j, pixels, n_width, blocks, incr;
     
     // resize output video 
     
@@ -1245,10 +1204,12 @@ static void yuv_hresize_8_up_Y(char * dest, char *image, int width, int height, 
       for (i = 0; i < cols; i++) {
 	
 	incr = j * blocks + hori_table_8_up[i].source;
-	in  = image + incr;
-	out = dest + m;
-	
-	(!((incr+1)%width)) ? *out=*in : yuv_merge_C(in, in+1, out, 1, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
+
+	if (((incr+1) % width) == 0)
+	    dest[m] = image[incr];
+	else
+	    dest[m] = (image[incr  ] * hori_table_8_up[i].weight1
+	             + image[incr+1] * hori_table_8_up[i].weight2 + 32768)>>16;
 
 	m+=1;
       }
@@ -1258,12 +1219,10 @@ static void yuv_hresize_8_up_Y(char * dest, char *image, int width, int height, 
 }
 
 
-static void yuv_hresize_16_CrCb(char *image, int width, int height, int resize)
+static void yuv_hresize_16_CbCr(char *image, int width, int height, int resize)
 {
     
-    char *in, *out;
-    
-    unsigned int m, cols, i, j, pixels, n_width, blocks; 
+    unsigned int m, cols, i, j, pixels, n_width, blocks, incr;
     
     // resize output video 
     
@@ -1285,10 +1244,10 @@ static void yuv_hresize_16_CrCb(char *image, int width, int height, int resize)
       
       for (i = 0; i < cols; i++) {
 	
-	in  = image + j * blocks + hori_table_8[i].source;
-	out = image + m;
-	
-	yuv_merge_C(in, in+1, out, 1, hori_table_8[i].weight1, hori_table_8[i].weight2);
+	incr = j * blocks + hori_table_8_up[i].source;
+	image[m] = (image[incr  ] * hori_table_8[i].weight1
+		  + image[incr+1] * hori_table_8[i].weight2 + 32768) >> 16;
+
 	m+=1;
       }
     }      
@@ -1297,12 +1256,10 @@ static void yuv_hresize_16_CrCb(char *image, int width, int height, int resize)
 }
 
 
-static void yuv_hresize_16_up_CrCb(char *dest, char *image, int width, int height, int resize)
+static void yuv_hresize_16_up_CbCr(char *dest, char *image, int width, int height, int resize)
 {
     
-    char *in, *out;
-    
-    unsigned int m, cols, i, j, pixels, n_width, blocks, incr; 
+    unsigned int m, cols, i, j, pixels, n_width, blocks, incr;
     
     // resize output video 
     
@@ -1324,10 +1281,11 @@ static void yuv_hresize_16_up_CrCb(char *dest, char *image, int width, int heigh
       for (i = 0; i < cols; i++) {
 	
 	incr = j * blocks + hori_table_8_up[i].source;
-	in  = image + incr;
-	out = dest + m;
-	
-	(!((incr+1)%width)) ? *out=*in : yuv_merge_C(in, in+1, out, 1, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
+	if (((incr+1) % width) == 0)
+	    dest[m] = image[incr];
+	else
+	    dest[m] = (image[incr  ] * hori_table_8_up[i].weight1
+	             + image[incr+1] * hori_table_8_up[i].weight2 + 32768)>>16;
 
 	m+=1;
       }
@@ -1344,11 +1302,11 @@ void yuv_hresize_8(char *image, int width, int height, int resize)
     // Y 
     yuv_hresize_8_Y(image, width, height, resize);
     
-    // Cr
-    yuv_hresize_16_CrCb(image + width*height, width/2, height/2, resize);
-    
     // Cb
-    yuv_hresize_16_CrCb(image + width*height + ((width*height)>>2), 
+    yuv_hresize_16_CbCr(image + width*height, width/2, height/2, resize);
+    
+    // Cr
+    yuv_hresize_16_CbCr(image + width*height + ((width*height)>>2), 
 			width/2, height/2, resize);
 
     // shift fields:
@@ -1356,10 +1314,10 @@ void yuv_hresize_8(char *image, int width, int height, int resize)
     n_width = width - (resize<<3);
     bytes = (n_width * height)>>2;
     
-    // Cr
-    tc_memcpy(image + n_width * height, image + width * height, bytes);
     // Cb
-    tc_memcpy(image + n_width * height + bytes, image + width*height + ((width*height)>>2), bytes);
+    ac_memcpy(image + n_width * height, image + width * height, bytes);
+    // Cr
+    ac_memcpy(image + n_width * height + bytes, image + width*height + ((width*height)>>2), bytes);
 
     return;
 }
@@ -1375,59 +1333,18 @@ void yuv_hresize_8_up(char *image, char *tmp_image, int width, int height, int r
     // Y 
     yuv_hresize_8_up_Y(tmp_image, image, width, height, resize);
     
-    // Cr
-    yuv_hresize_16_up_CrCb(tmp_image + n_width*height, image +width*height,
+    // Cb
+    yuv_hresize_16_up_CbCr(tmp_image + n_width*height, image +width*height,
 			   width/2, height/2, resize);
     
-    // Cb
-    yuv_hresize_16_up_CrCb(tmp_image + n_width*height*5/4, 
+    // Cr
+    yuv_hresize_16_up_CbCr(tmp_image + n_width*height*5/4, 
 			   image + width*height*5/4,
 			   width/2, height/2, resize);
     
     return;
 }
 
-static int (*yuv_average) (char *row1, char *row2, char *out, int bytes);
-
-// EMS
-// static int (*tc_memcpy_accel) (char *dest, char *source, int bytes);
-
-// inline static int memcpy_C(char *dest, char *source, int bytes)
-// {
-  // memcpy(dest, source, bytes);
-  // return(0);
-// }
-
-
-static inline void yuv_deinterlace_linear_core(char *image, int width, int height)
-{
-    char *in, *out;
-    
-    unsigned int y, block; 
-    
-    block = width;
-
-    in  = image;
-    out = image;
-    
-    // convert half frame to full frame by simple interpolation
-      
-    out +=block;
-    
-    for (y = 0; y < (height>>1)-1; y++) {
-      
-      yuv_average(in, in+(block<<1), out, block);
-      
-      in  += block<<1;
-      out += block<<1;
-    }
-    
-    // clone last row
-    
-    tc_memcpy(out, in, block);
-
-    return;
-}
 
 static inline void yuv_deinterlace_linear_blend_core(char *image, char *tmp, int width, int height)
 {
@@ -1441,7 +1358,7 @@ static inline void yuv_deinterlace_linear_blend_core(char *image, char *tmp, int
   //copy frame to 2. internal frame buffer
 
   //memcpy_accel(tmp, image, width*height); // EMS
-  tc_memcpy(tmp, image, width*height); // EMS
+  ac_memcpy(tmp, image, width*height); // EMS
 
   //(2)
   //convert first field to full frame by simple interpolation
@@ -1457,7 +1374,7 @@ static inline void yuv_deinterlace_linear_blend_core(char *image, char *tmp, int
   
   for (y = 0; y < (height>>1)-1; y++) {
     
-    yuv_average(in, in+(block<<1), out, block);
+    ac_average(in, in+(block<<1), out, block);
     
     in  += block<<1;
     out += block<<1;
@@ -1476,7 +1393,7 @@ static inline void yuv_deinterlace_linear_blend_core(char *image, char *tmp, int
   
   for (y = 0; y < (height>>1)-1; y++) {
     
-    yuv_average(in, in+(block<<1), out, block);
+    ac_average(in, in+(block<<1), out, block);
     
     in  += block<<1;
     out += block<<1;
@@ -1484,69 +1401,44 @@ static inline void yuv_deinterlace_linear_blend_core(char *image, char *tmp, int
   
   //(4)
   //blend both frames
-  yuv_average(image, tmp, image, width*height);
-  
-  return;
+  ac_average(image, tmp, image, width*height);
 }
 
 void yuv_deinterlace_linear(char *image, int width, int height)
 {
-  //default ia32 C mode:
-  yuv_average =  yuv_average_C;
-  
-#ifdef ARCH_X86 
-  if(tc_accel & MM_MMX)  yuv_average = ac_average_mmx;  
-  if(tc_accel & MM_SSE && (width % 8 == 0))  yuv_average = ac_average_sse;
-  if(tc_accel & MM_SSE2 && (width % 16 == 0)) yuv_average = ac_average_sse2;
-#endif
-#ifdef ARCH_X86_64
-  if(tc_accel & MM_SSE2 && (width % 16 == 0)) yuv_average = ac_average_sse2;
-#endif
-  
-  //process only Y component
-  yuv_deinterlace_linear_core(image, width, height);
+    char *in, *out;
+    
+    unsigned int y, block; 
+    
+    block = width;
 
-  clear_mmx();
+    in  = image;
+    out = image;
+    
+    // convert half frame to full frame by simple interpolation
+      
+    out +=block;
+    
+    for (y = 0; y < (height>>1)-1; y++) {
+      
+      ac_average(in, in+(block<<1), out, block);
+      
+      in  += block<<1;
+      out += block<<1;
+    }
+    
+    // clone last row
+    ac_memcpy(out, in, block);
 }
 
 
 void yuv_deinterlace_linear_blend(char *image, char *tmp, int width, int height)
 {
-
-  //default ia32 C mode:
-  yuv_average =  yuv_average_C;
-//   memcpy_accel = memcpy_C; // EMS
-  
-#ifdef ARCH_X86 
-  if(tc_accel & MM_MMX) {
-    yuv_average = ac_average_mmx;  
-    // memcpy_accel = ac_memcpy_mmx; // EMS
-  }
-  // Note that we need width/2 to be properly aligned since we're going
-  // to be doing the half-resolution chroma planes too
-  if(tc_accel & MM_SSE && (width % 16 == 0)) {  
-    yuv_average = ac_average_sse;
-    // memcpy_accel = ac_memcpy_sse; // EMS
-  }
-  if(tc_accel & MM_SSE2 && (width % 32 == 0)) {
-    yuv_average = ac_average_sse2;
-    // memcpy_accel = ac_memcpy_sse2; // EMS
-  }
-#endif
-#ifdef ARCH_X86_64
-  if(tc_accel & MM_SSE2 && (width % 32 == 0)) {
-    yuv_average = ac_average_sse2;
-    // memcpy_accel = ac_memcpy_sse2; // EMS
-  }
-#endif
-  
-  //process only Y component
+  // Y
   yuv_deinterlace_linear_blend_core(image, tmp, width, height);
-  // cr/cb
+  // Cb/Cr
   yuv_deinterlace_linear_blend_core(image+width*height, tmp, width/2, height/2);
   yuv_deinterlace_linear_blend_core(image+width*height*5/4, tmp, width/2, height/2);
-
-  clear_mmx();
 }
 
 
@@ -1638,7 +1530,7 @@ void yuv_zoom(char *image, char *_tmp_buf, int width, int height, int new_width,
   tbuf[id].dstImageUV.data = tmp_buf + new_width*new_height + ((new_width*new_height)>>2);
   zoom_image_process(tbuf[id].zoomerUV);
   
-  //  tc_memcpy(image, tbuf[id].tmpBuffer, new_width*new_height + (new_width*new_height)/2);
+  //  ac_memcpy(image, tbuf[id].tmpBuffer, new_width*new_height + (new_width*new_height)/2);
 
 }
 
@@ -1713,7 +1605,7 @@ void yuv_zoom_DI(char *image, int width, int height, int new_width, int new_heig
   tbuf_DI[id].dstImageUV.data = tbuf_DI[id].tmpBuffer + new_width*new_height + ((new_width*new_height)>>2);
   zoom_image_process(tbuf_DI[id].zoomerUV);
   
-  tc_memcpy(image, tbuf_DI[id].tmpBuffer, new_width*new_height + (new_width*new_height)/2);
+  ac_memcpy(image, tbuf_DI[id].tmpBuffer, new_width*new_height + (new_width*new_height)/2);
 }
 
 
@@ -1751,7 +1643,7 @@ void deinterlace_yuv_zoom(unsigned char *src, int width, int height)
     //move every second row
     for (i=0; i<height; i=i+2) {
 	
-      tc_memcpy(out, in, block);
+      ac_memcpy(out, in, block);
       in  += 2*block;
       out += block;
     }
@@ -1766,7 +1658,7 @@ void deinterlace_yuv_zoom(unsigned char *src, int width, int height)
     //move every second row
     for (i=0; i<height/2; i=i+2) {
       
-      tc_memcpy(out, in, block);
+      ac_memcpy(out, in, block);
       in  += 2*block;
       out += block;
     }
@@ -1779,7 +1671,7 @@ void deinterlace_yuv_zoom(unsigned char *src, int width, int height)
     //move every second row
     for (i=0; i<height/2; i=i+2) {
       
-      tc_memcpy(out, in, block);
+      ac_memcpy(out, in, block);
       in  += 2*block;
       out += block;
     }
@@ -1807,7 +1699,7 @@ void deinterlace_yuv_nozoom(unsigned char *src, int width, int height)
     //move every second row
     for (i=0; i<height; i=i+2) {
 	
-      tc_memcpy(out, in, block);
+      ac_memcpy(out, in, block);
       in  += 2*block;
       out += block;
     }
@@ -1822,7 +1714,7 @@ void deinterlace_yuv_nozoom(unsigned char *src, int width, int height)
     //move every second row
     for (i=0; i<height/2; i=i+2) {
       
-      tc_memcpy(out, in, block);
+      ac_memcpy(out, in, block);
       in  += 2*block;
       out += block;
     }
@@ -1835,7 +1727,7 @@ void deinterlace_yuv_nozoom(unsigned char *src, int width, int height)
     //move every second row
     for (i=0; i<height/2; i=i+2) {
       
-      tc_memcpy(out, in, block);
+      ac_memcpy(out, in, block);
       in  += 2*block;
       out += block;
     }
@@ -1961,7 +1853,7 @@ void yuv_antialias(char *image, char *dest, int width, int height, int mode)
 		*(out+pixels+1) = *(in+pixels+1); 
 	    } else 
 	      //copy untouched row
-	      tc_memcpy(out, in, width);
+	      ac_memcpy(out, in, width);
 	}
 	
 	break;
@@ -1979,7 +1871,7 @@ void yuv_antialias(char *image, char *dest, int width, int height, int mode)
 	    antialias(in+1, out+1, pixels);
 
 	    //copy untouched row
-	    tc_memcpy(out+block, in+block, width);
+	    ac_memcpy(out+block, in+block, width);
 
 	    in  += block<<1;
 	    out += block<<1;
@@ -2011,8 +1903,8 @@ void yuv_antialias(char *image, char *dest, int width, int height, int mode)
     }
     
     //first and last row untouched
-    tc_memcpy(dest, image, pixels+2);
-    tc_memcpy(dest+(height-1)*width, image+(height-1)*width, pixels+2);
+    ac_memcpy(dest, image, pixels+2);
+    ac_memcpy(dest+(height-1)*width, image+(height-1)*width, pixels+2);
     
     return;
 }

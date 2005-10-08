@@ -29,8 +29,6 @@
 #include "transcode.h"
 #include "filter.h"
 
-#include "aclib/ac.h"
-
 static char *buffer;
 
 static int ac=0, loop=0;
@@ -124,9 +122,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     for(n=0; n<loop; ++n)
 	{
-	    tc_memcpy(buffer, ptr->video_buf, ptr->video_size);
+	    ac_memcpy(buffer, ptr->video_buf, ptr->video_size);
 	    memset(ptr->video_buf, 0, ptr->video_size);
-	    tc_memcpy(ptr->video_buf, buffer, ptr->video_size);
+	    ac_memcpy(ptr->video_buf, buffer, ptr->video_size);
     } //loop
 
   } //slot 

@@ -207,7 +207,7 @@ MOD_encode
     h.flags |= ((codec==CODEC_RGB)?TC_LZO_FORMAT_RGB24:TC_LZO_FORMAT_YUV420P);
 
     // XXX
-    tc_memcpy (out, &h, sizeof(h));
+    ac_memcpy (out, &h, sizeof(h));
 #else
     r = lzo1x_1_compress(param->buffer, param->size, out, &out_len, wrkmem);
 #endif

@@ -195,7 +195,7 @@ int tc_decoder_delay     =  0;
 int tc_x_preview         =  0;
 int tc_y_preview         =  0;
 int tc_progress_meter    =  1;
-int tc_accel             = -1;    //acceleration code
+int tc_accel             = AC_ALL;    //acceleration code
 unsigned int tc_avi_limit = (unsigned int)-1;
 pid_t tc_probe_pid       = 0;
 int tc_frame_width_max   = 0;
@@ -994,11 +994,8 @@ int main(int argc, char *argv[]) {
     vob->ttime            = NULL;
     vob->ttime_current    = 0;
 
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
-    vob->accel            = ac_mmflag();
-#else
-    vob->accel            = 0;
-#endif
+    vob->accel            = ac_cpuinfo();
+
     vob->psu_offset       = 0.0f;
     vob->bitreservoir     = TC_TRUE;
     vob->lame_preset      = NULL;
@@ -2179,30 +2176,30 @@ int main(int argc, char *argv[]) {
 	    char *comma = strchr(accel, ',');
 	    if(comma)
 	      *comma++ = 0;
-	    if(strcasecmp(accel, "C") == 0)
-	      tc_accel |= MM_C;
+	    if(strcasecmp(accel, "C") == 0)  // dummy for "no accel"
+	      tc_accel |= 0;
 #ifdef ARCH_X86
 	    else if(strcasecmp(accel, "asm"     ) == 0)
-	      tc_accel |= MM_IA32ASM;
+	      tc_accel |= AC_IA32ASM;
 #endif
 #ifdef ARCH_X86_64
 	    else if(strcasecmp(accel, "asm"     ) == 0)
-	      tc_accel |= MM_AMD64ASM;
+	      tc_accel |= AC_AMD64ASM;
 #endif
 	    else if(strcasecmp(accel, "mmx"     ) == 0)
-	      tc_accel |= MM_MMX;
+	      tc_accel |= AC_MMX;
 	    else if(strcasecmp(accel, "mmxext"  ) == 0)
-	      tc_accel |= MM_MMXEXT;
+	      tc_accel |= AC_MMXEXT;
 	    else if(strcasecmp(accel, "3dnow"   ) == 0)
-	      tc_accel |= MM_3DNOW;
+	      tc_accel |= AC_3DNOW;
 	    else if(strcasecmp(accel, "3dnowext") == 0)
-	      tc_accel |= MM_3DNOWEXT;
+	      tc_accel |= AC_3DNOWEXT;
 	    else if(strcasecmp(accel, "sse"     ) == 0)
-	      tc_accel |= MM_SSE;
+	      tc_accel |= AC_SSE;
 	    else if(strcasecmp(accel, "sse2"    ) == 0)
-	      tc_accel |= MM_SSE2;
+	      tc_accel |= AC_SSE2;
 	    else if(strcasecmp(accel, "sse3"    ) == 0)
-	      tc_accel |= MM_SSE3;
+	      tc_accel |= AC_SSE3;
 	    else {
 	      fprintf(stderr, "bad --accel type, valid types: C asm mmx mmxext 3dnow 3dnowext sse sse2 sse3\n\n");
 	      short_usage(EXIT_FAILURE);
@@ -3882,14 +3879,13 @@ int main(int argc, char *argv[]) {
 	counter_set_range(frame_a, frame_b);
     }
 
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
     // --accel
-    if(tc_accel==-1) tc_accel = ac_mmflag();
 
-    if(verbose & TC_INFO) printf("[%s] V: IA32/AMD64 accel | %s (%s)\n", PACKAGE, ac_mmstr(tc_accel, 0), ac_mmstr(-1, 1));
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
+    if(verbose & TC_INFO) printf("[%s] V: IA32/AMD64 accel | %s \n", PACKAGE, ac_flagstotext(tc_accel & ac_cpuinfo()));
 #endif
 
-    tc_memcpy_init(verbose & TC_INFO, tc_accel);
+    ac_init(tc_accel);
 
     // more checks with warnings
     

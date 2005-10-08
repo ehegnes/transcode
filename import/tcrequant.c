@@ -234,7 +234,7 @@ static uint64 cnt_b_i, cnt_b_ni;
 		assert(cbuf + x < orbuf + BUF_SIZE); \
 		assert(cbuf + x >= orbuf); \
 		assert(wbuf + x >= orbuf); \
-		tc_memcpy(wbuf, cbuf, x);\
+		ac_memcpy(wbuf, cbuf, x);\
 		cbuf += x; \
 		wbuf += x;
 
@@ -1962,7 +1962,7 @@ int main (int argc, char *argv[])
 					ID, cbuf - inTemp, wbuf - outTemp, (wbuf - outTemp) - (cbuf - inTemp));*/
 				
 					// in this case, we'll just use the original slice !
-					tc_memcpy(outTemp, inTemp, cbuf - inTemp);
+					ac_memcpy(outTemp, inTemp, cbuf - inTemp);
 					wbuf = outTemp + (cbuf - inTemp);
 					
 					// adjust outbytecnt

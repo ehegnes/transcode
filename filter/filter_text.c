@@ -616,7 +616,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    p = ptr->video_buf + 3*(height-mfd->posy)*width + 3*mfd->posx;
 	    q =            buf + 3*(height-mfd->posy)*width + 3*mfd->posx;
 
-	    //tc_memcpy(ptr->video_buf, buf, 3*width*height);
+	    //ac_memcpy(ptr->video_buf, buf, 3*width*height);
 
 	    for (h=0; h>-mfd->boundY; h--) {
 		for (w=0; w<mfd->boundX; w++)  {

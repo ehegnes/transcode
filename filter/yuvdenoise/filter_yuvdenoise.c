@@ -34,7 +34,6 @@
 #include <inttypes.h>
 
 #include "mjpeg_types.h"
-#include "aclib/ac.h"
 
 #include "global.h"
 #include "motion.h"
@@ -301,9 +300,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 #ifdef HAVE_FILTER_IO_BUF
       /* Move into internal buffer */
-      tc_memcpy(denoiser.frame.io[Yy], ptr->video_buf,            y_size );
-      tc_memcpy(denoiser.frame.io[Cr], ptr->video_buf+y_size    , y_size4);
-      tc_memcpy(denoiser.frame.io[Cb], ptr->video_buf+y_size*5/4, y_size4);
+      ac_memcpy(denoiser.frame.io[Yy], ptr->video_buf,            y_size );
+      ac_memcpy(denoiser.frame.io[Cr], ptr->video_buf+y_size    , y_size4);
+      ac_memcpy(denoiser.frame.io[Cb], ptr->video_buf+y_size*5/4, y_size4);
 
       /* pre-fixup for non-greenish look --tibit */
       {
@@ -336,19 +335,19 @@ int tc_filter(frame_list_t *ptr_, char *options)
 #endif
 
       /* Move frame down by 32 lines into reference buffer */
-      tc_memcpy(denoiser.frame.ref[Yy]+frame_offset , denoiser.frame.io[Yy], y_size  );
-      tc_memcpy(denoiser.frame.ref[Cr]+frame_offset4, denoiser.frame.io[Cr], y_size4);
-      tc_memcpy(denoiser.frame.ref[Cb]+frame_offset4, denoiser.frame.io[Cb], y_size4);
+      ac_memcpy(denoiser.frame.ref[Yy]+frame_offset , denoiser.frame.io[Yy], y_size  );
+      ac_memcpy(denoiser.frame.ref[Cr]+frame_offset4, denoiser.frame.io[Cr], y_size4);
+      ac_memcpy(denoiser.frame.ref[Cb]+frame_offset4, denoiser.frame.io[Cb], y_size4);
 
       if(uninitialized) {
 	  uninitialized=0;
 
-	  tc_memcpy(denoiser.frame.avg[Yy]+frame_offset,   denoiser.frame.io[Yy],y_size );
-	  tc_memcpy(denoiser.frame.avg[Cr]+frame_offset4,  denoiser.frame.io[Cr],y_size4);
-	  tc_memcpy(denoiser.frame.avg[Cb]+frame_offset4,  denoiser.frame.io[Cb],y_size4);
-	  tc_memcpy(denoiser.frame.avg2[Yy]+frame_offset,  denoiser.frame.io[Yy],y_size );
-	  tc_memcpy(denoiser.frame.avg2[Cr]+frame_offset4, denoiser.frame.io[Cr],y_size4);
-	  tc_memcpy(denoiser.frame.avg2[Cb]+frame_offset4, denoiser.frame.io[Cb],y_size4);
+	  ac_memcpy(denoiser.frame.avg[Yy]+frame_offset,   denoiser.frame.io[Yy],y_size );
+	  ac_memcpy(denoiser.frame.avg[Cr]+frame_offset4,  denoiser.frame.io[Cr],y_size4);
+	  ac_memcpy(denoiser.frame.avg[Cb]+frame_offset4,  denoiser.frame.io[Cb],y_size4);
+	  ac_memcpy(denoiser.frame.avg2[Yy]+frame_offset,  denoiser.frame.io[Yy],y_size );
+	  ac_memcpy(denoiser.frame.avg2[Cr]+frame_offset4, denoiser.frame.io[Cr],y_size4);
+	  ac_memcpy(denoiser.frame.avg2[Cb]+frame_offset4, denoiser.frame.io[Cb],y_size4);
       }
 
       if(!denoiser.reset) { denoise_frame(); emms(); }
@@ -357,12 +356,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  if(verbose && denoiser.reset==denoiser.do_reset)
 	    fprintf(stderr, "[%s] Scene change detected at frame <%d>\n", MOD_NAME, ptr->id); 
         
-	  tc_memcpy(denoiser.frame.avg[Yy]+frame_offset,   denoiser.frame.io[Yy],y_size );
-	  tc_memcpy(denoiser.frame.avg[Cr]+frame_offset4,  denoiser.frame.io[Cr],y_size4);
-	  tc_memcpy(denoiser.frame.avg[Cb]+frame_offset4,  denoiser.frame.io[Cb],y_size4);
-	  tc_memcpy(denoiser.frame.avg2[Yy]+frame_offset,  denoiser.frame.io[Yy],y_size );
-	  tc_memcpy(denoiser.frame.avg2[Cr]+frame_offset4, denoiser.frame.io[Cr],y_size4);
-	  tc_memcpy(denoiser.frame.avg2[Cb]+frame_offset4, denoiser.frame.io[Cb],y_size4);
+	  ac_memcpy(denoiser.frame.avg[Yy]+frame_offset,   denoiser.frame.io[Yy],y_size );
+	  ac_memcpy(denoiser.frame.avg[Cr]+frame_offset4,  denoiser.frame.io[Cr],y_size4);
+	  ac_memcpy(denoiser.frame.avg[Cb]+frame_offset4,  denoiser.frame.io[Cb],y_size4);
+	  ac_memcpy(denoiser.frame.avg2[Yy]+frame_offset,  denoiser.frame.io[Yy],y_size );
+	  ac_memcpy(denoiser.frame.avg2[Cr]+frame_offset4, denoiser.frame.io[Cr],y_size4);
+	  ac_memcpy(denoiser.frame.avg2[Cb]+frame_offset4, denoiser.frame.io[Cb],y_size4);
 
 	  denoise_frame();
 	  emms();
@@ -371,15 +370,15 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 
       /* Move frame up by 32 lines into I/O buffer */
-      tc_memcpy(denoiser.frame.io[Yy],denoiser.frame.avg2[Yy]+frame_offset ,y_size );
-      tc_memcpy(denoiser.frame.io[Cr],denoiser.frame.avg2[Cr]+frame_offset4,y_size4);
-      tc_memcpy(denoiser.frame.io[Cb],denoiser.frame.avg2[Cb]+frame_offset4,y_size4);
+      ac_memcpy(denoiser.frame.io[Yy],denoiser.frame.avg2[Yy]+frame_offset ,y_size );
+      ac_memcpy(denoiser.frame.io[Cr],denoiser.frame.avg2[Cr]+frame_offset4,y_size4);
+      ac_memcpy(denoiser.frame.io[Cb],denoiser.frame.avg2[Cb]+frame_offset4,y_size4);
 
 #ifdef HAVE_FILTER_IO_BUF
       /* move back to transcode */
-      tc_memcpy(ptr->video_buf,           denoiser.frame.io[Yy] ,y_size );
-      tc_memcpy(ptr->video_buf+y_size,    denoiser.frame.io[Cr] ,y_size4);
-      tc_memcpy(ptr->video_buf+y_size*5/4,denoiser.frame.io[Cb] ,y_size4);
+      ac_memcpy(ptr->video_buf,           denoiser.frame.io[Yy] ,y_size );
+      ac_memcpy(ptr->video_buf+y_size,    denoiser.frame.io[Cr] ,y_size4);
+      ac_memcpy(ptr->video_buf+y_size*5/4,denoiser.frame.io[Cb] ,y_size4);
 #endif
 
   }
@@ -525,14 +524,12 @@ void print_settings(void)
 
 void turn_on_accels(void)
 {
-/* XXX: very weird effects, #undef'ed in global.h -- tibit 
- * XXX: why do not use standard tc_accel? -- fromani */
+/* XXX: very weird effects, #undef'ed in global.h -- tibit */
 #ifdef HAVE_ASM_MMX
-//  uint32_t CPU_CAP = ac_mmflag ();
   uint32_t CPU_CAP = tc_accel;
   
-  if( (CPU_CAP & MM_MMXEXT)!=0 ||
-      (CPU_CAP & MM_SSE   )!=0 
+  if( (CPU_CAP & AC_MMXEXT)!=0 ||
+      (CPU_CAP & AC_SSE   )!=0 
     ) /* MMX+SSE */
   {
     calc_SAD    = &calc_SAD_mmxe;
@@ -543,7 +540,7 @@ void turn_on_accels(void)
 	fprintf (stderr, "[%s] Using extended MMX SIMD optimisations.\n", MOD_NAME);
   }
   else
-    if( (CPU_CAP & MM_MMX)!=0 ) /* MMX */
+    if( (CPU_CAP & AC_MMX)!=0 ) /* MMX */
     {
       calc_SAD    = &calc_SAD_mmx;
       calc_SAD_uv = &calc_SAD_uv_mmx;

@@ -1,3 +1,13 @@
+2005-10-08 Andrew Church <achurch at achurch dot org>
+  * Changed: aclib/* export/* filter/* import/* pvm3/tcpvmexportd.c src/*
+    Added: aclib/ac_internal.h aclib/accore.c
+    Renamed: aclib/tcmemcpy.c -> aclib/memcpy.c
+    Removed: aclib/cputest.c aclib/cputest.h aclib/swap.c
+  Rewrote (everything else in) aclib from scratch, naming all exported
+  functions as ac_XXX; e.g. tc_memcpy -> ac_memcpy.  Moved RGB/BGR swap
+  functionality to imgconvert (RGB24->BGR24).  Note that mmx.h has been
+  left alone for the moment, but new code should avoid using it.
+
 2005-10-07 Andrew Church <achurch at achurch dot org>
   * aclib/* export/* filter/* import/* libioaux/configs.c libtc/libtc.h
     libtc/tc_functions.c pvm3/tcpvmexportd.c src/* tools/*

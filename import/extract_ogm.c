@@ -350,7 +350,7 @@ static void process_ogm(int fdin, int fdout)
         stream->sample_rate = -1;
         stream->sno = nastreams + 1;
         stream->stype = 'a';
-        tc_memcpy(&stream->instate, &sstate, sizeof(sstate));
+        ac_memcpy(&stream->instate, &sstate, sizeof(sstate));
         if (extraction_requested(xaudio, nastreams + 1, NOAUDIO)) {
 	  stream->fd = fdout;
           if (stream->fd == -1) {
@@ -411,7 +411,7 @@ static void process_ogm(int fdin, int fdout)
           stream->serial = sno;
           stream->sample_rate = (double)10000000 / (double)sth->time_unit;
           stream->sno = nvstreams + 1;
-          tc_memcpy(&stream->instate, &sstate, sizeof(sstate));
+          ac_memcpy(&stream->instate, &sstate, sizeof(sstate));
           if (extraction_requested(xvideo, nvstreams + 1, NOVIDEO)) {
 	    stream->fd = fdout;
             
@@ -428,7 +428,7 @@ static void process_ogm(int fdin, int fdout)
         } else if (!strncmp(sth->streamtype, "audio", 5)) {
           int codec;
           char buf[5];
-          tc_memcpy(buf, sth->subtype, 4);
+          ac_memcpy(buf, sth->subtype, 4);
           buf[4] = 0;
           codec = strtoul(buf, NULL, 16);
           if (verbose_flag & TC_INFO) {
@@ -454,7 +454,7 @@ static void process_ogm(int fdin, int fdout)
                                 sth->sh.audio.channels;
           stream->serial = sno;
           stream->acodec = codec;
-          tc_memcpy(&stream->instate, &sstate, sizeof(sstate));
+          ac_memcpy(&stream->instate, &sstate, sizeof(sstate));
           if (extraction_requested(xaudio, nastreams + 1, NOAUDIO)) {
               
 	    /*
@@ -486,7 +486,7 @@ static void process_ogm(int fdin, int fdout)
           stream->stype = 't';
           stream->sample_rate = (double)10000000 / (double)sth->time_unit;
           stream->serial = sno;
-          tc_memcpy(&stream->instate, &sstate, sizeof(sstate));
+          ac_memcpy(&stream->instate, &sstate, sizeof(sstate));
           if (extraction_requested(xtext, ntstreams + 1, NOTEXT)) {
             new_name = malloc(strlen(basename) + 20);
             if (!new_name) {

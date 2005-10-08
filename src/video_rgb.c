@@ -25,7 +25,7 @@
 #include "framebuffer.h"
 #include "video_trans.h"
 #include "zoom.h"
-#include "aclib/ac.h"
+#include "aclib/imgconvert.h"
 
 #define BLACK_BYTE 0
 
@@ -57,7 +57,7 @@ void rgb_rescale(char *image, int width, int height, int reduce_h, int reduce_w)
     {
       for (x = 0; x < n_width; x++)
 	{
-	  tc_memcpy (out, in, 3);
+	  ac_memcpy (out, in, 3);
 	  
 	  out = out + 3; 
 	  in  = in + 3 * reduce_w;
@@ -85,9 +85,9 @@ void rgb_flip(char *image, int width, int height)
   for (y = height; y > height/2; y--)
     {
 
-      tc_memcpy (rowbuffer, out, block);
-      tc_memcpy (out, in, block);
-      tc_memcpy (in, rowbuffer, block);
+      ac_memcpy (rowbuffer, out, block);
+      ac_memcpy (out, in, block);
+      ac_memcpy (in, rowbuffer, block);
       
       out = out + block; 
       in  = in - block;
@@ -112,7 +112,7 @@ void rgb_hclip(char *image, int width, int height, int cols)
 
     for (y = 0; y < height; y++) {
 
-      tc_memcpy(out, in, block);
+      ac_memcpy(out, in, block);
 
       // advance to next row
 
@@ -173,7 +173,7 @@ void rgb_clip_left_right(char *image, int width, int height, int cols_left, int 
 
     for (y = 0; y < height; y++) {
 
-        tc_memcpy(out, in, block);
+        ac_memcpy(out, in, block);
 
         // advance to next row
 
@@ -309,7 +309,7 @@ void rgb_vclip(char *image, int width, int height, int lines)
       
       for (y = 0; y < height - 2*lines ; y++) {
 	  
-	  tc_memcpy(out, in, block);
+	  ac_memcpy(out, in, block);
 	  
 	  in  += block;
 	  out += block;
@@ -380,7 +380,7 @@ void rgb_clip_top_bottom(char *image, char *dest, int width, int height, int _li
   }
 
   //transfer
-  tc_memcpy(out, in, bytes);
+  ac_memcpy(out, in, bytes);
 }
 
 
@@ -432,51 +432,16 @@ void rgb_mirror(char *image, int width,  int height)
   }
 }
 
-static int (*rgb_swap_core) (char *image, int pixels);
-
-static int rgb_swap_C(char *image, int pixels)
+void rgb_swap(uint8_t *image, int pixels)
 {
-
-  char *in, *out;
-
-  int n;
-
-  char tt;
-
-  in  = image;
-  out = image;
-
-  for(n=0; n<pixels; n++) {
-    
-    tt = *(in+2); 
-    *(out+2) = *in;
-    *out = tt;
-
-    // transfer green
-    *(out+1) = *(in+1);
-
-    in = in+3;
-    out = out+3;
+  uint8_t *tmp = malloc(pixels*3);
+  if (!tmp) {
+    tc_error("no memory for RGB swap");
+    return;
   }
-
-  return(0);
-
-}
-
-void rgb_swap(char *image, int pixels)
-{
-
-  rgb_swap_core = rgb_swap_C;
-
-#ifdef ARCH_X86
-  if(tc_accel>0) rgb_swap_core = ac_swap_rgb2bgr_asm;
-#endif
-#ifdef ARCH_X86_64
-  if(tc_accel>0) rgb_swap_core = ac_swap_rgb2bgr_asm64;
-#endif
-
-  rgb_swap_core(image, pixels);
-
+  ac_imgconvert(&image, IMG_RGB24, &tmp, IMG_BGR24, pixels, 1);
+  ac_memcpy(image, tmp, pixels*3);
+  free(tmp);
 }
 
 
@@ -498,23 +463,6 @@ inline int rgb_merge_C(char *row1, char *row2, char *out, int bytes,
     }
 
     return(0);
-}
-
-static inline int rgb_average_C(char *row1, char *row2, char *out, int bytes)
-{
-  
-  //calculate the average of each color entry in two arrays and return
-  //result in char *out
-  
-  unsigned int y=0;
-  unsigned short tmp;
-  
-  for (y = 0; y<bytes; ++y) {
-    tmp = ((unsigned char) row2[y] + (unsigned char) row1[y])>>1;
-    out[y] = tmp & 0xff;
-  }
-  
-  return(0);
 }
 
 
@@ -548,7 +496,8 @@ void rgb_vresize_8(char *image, int width, int height, int resize)
       in = image + j*chunk +  vert_table_8[i].source * row_bytes;
       out = image + m * row_bytes;
       
-      rgb_merge(in, in+row_bytes, out, row_bytes, vert_table_8[i].weight1, vert_table_8[i].weight2);
+      ac_rescale(in, in+row_bytes, out, row_bytes,
+		 vert_table_8[i].weight1, vert_table_8[i].weight2);
       ++m;
     }
   }      
@@ -590,7 +539,8 @@ void rgb_vresize_8_up(char *image, char *tmp_image, int width, int height, int r
       in = image + j * chunk +  vert_table_8_up[i].source * row_bytes;
       out = tmp_image + m * row_bytes;
       
-      rgb_merge(in, in+row_bytes, out, row_bytes, vert_table_8_up[i].weight1, vert_table_8_up[i].weight2);
+      ac_rescale(in, in+row_bytes, out, row_bytes,
+		 vert_table_8_up[i].weight1, vert_table_8_up[i].weight2);
 
       ++m;
     }
@@ -601,15 +551,15 @@ void rgb_vresize_8_up(char *image, char *tmp_image, int width, int height, int r
     out = tmp_image + m * row_bytes;
 
     if (in >= last_row){
-      tc_memcpy(out,in,row_bytes);
+      ac_memcpy(out,in,row_bytes);
     } else {
-      rgb_merge(in, in+row_bytes, out, row_bytes, vert_table_8_up[i].weight1,
-      		vert_table_8_up[i].weight2);
+      ac_rescale(in, in+row_bytes, out, row_bytes,
+		 vert_table_8_up[i].weight1, vert_table_8_up[i].weight2);
     }
     ++m;
   }
 
-  tc_memcpy(image, tmp_image, n_height*width*3);
+  ac_memcpy(image, tmp_image, n_height*width*3);
   return;
 }
 
@@ -643,8 +593,10 @@ void rgb_hresize_8(char *image, int width, int height, int resize)
 	
 	in  = image + j * blocks * 3 + hori_table_8[i].source * 3;
 	out = image + m;
-	
-	rgb_merge_C(in, in+3, out, 3, hori_table_8[i].weight1, hori_table_8[i].weight2);
+
+#warning ************************ FIXME ********************** not fast
+	ac_rescale(in, in+3, out, 3,
+		   hori_table_8[i].weight1, hori_table_8[i].weight2);
 
 	m+=3;
       }
@@ -685,28 +637,28 @@ void rgb_hresize_8_up(char *image, char *tmp_image, int width, int height, int r
 	in  = image + incr *3;
 	out = tmp_image + m;
 	
-	(!((incr+1)%width)) ? (void)tc_memcpy(out, in, 3):rgb_merge_C(in, in+3, out, 3, hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
+	if (((incr+1) % width) == 0)
+	    ac_memcpy(out, in, 3);
+	else
+#warning ************************ FIXME ********************** not fast
+	    ac_rescale(in, in+3, out, 3,
+		       hori_table_8_up[i].weight1, hori_table_8_up[i].weight2);
 
 	m+=3;
       }
     }      
     
-    tc_memcpy(image, tmp_image, height*n_width*3);    
+    ac_memcpy(image, tmp_image, height*n_width*3);    
     return;
 }
 
-static int (*rgb_average) (char *row1, char *row2, char *out, int bytes);
-// EMS
-// static int (*memcpy_accel) (char *dest, char *source, int bytes);
 
-inline static int memcpy_C(char *dest, char *source, int bytes)
+static inline void rgb_deinterlace_linear_blend_core(char *image, char *tmp, int width, int height)
 {
-  memcpy(dest, source, bytes);
-  return(0);
 }
 
 
-static inline void rgb_deinterlace_core(char *image, int width, int height)
+void rgb_deinterlace_linear(char *image, int width, int height)
 {
     char *in, *out;
     
@@ -723,16 +675,14 @@ static inline void rgb_deinterlace_core(char *image, int width, int height)
     
     for (y = 0; y < (height>>1)-1; y++) {
       
-      rgb_average(in, in+(block<<1), out, block);
+      ac_average(in, in+(block<<1), out, block);
       
       in  += block<<1;
       out += block<<1;
     }
-    
-    return;
 }
 
-static inline void rgb_deinterlace_linear_blend_core(char *image, char *tmp, int width, int height)
+void rgb_deinterlace_linear_blend(char *image, char *tmp, int width, int height)
 {
   char *in, *out;
   
@@ -745,7 +695,7 @@ static inline void rgb_deinterlace_linear_blend_core(char *image, char *tmp, int
 
   // EMS
   // memcpy_accel(tmp, image, block*height);
-  tc_memcpy(tmp, image, block*height);
+  ac_memcpy(tmp, image, block*height);
 
   //(2)
   //convert first field to full frame by simple interpolation
@@ -761,7 +711,7 @@ static inline void rgb_deinterlace_linear_blend_core(char *image, char *tmp, int
   
   for (y = 0; y < (height>>1)-1; y++) {
     
-    rgb_average(in, in+(block<<1), out, block);
+    ac_average(in, in+(block<<1), out, block);
     
     in  += block<<1;
     out += block<<1;
@@ -780,7 +730,7 @@ static inline void rgb_deinterlace_linear_blend_core(char *image, char *tmp, int
   
   for (y = 0; y < (height>>1)-1; y++) {
     
-    rgb_average(in, in+(block<<1), out, block);
+    ac_average(in, in+(block<<1), out, block);
     
     in  += block<<1;
     out += block<<1;
@@ -788,70 +738,15 @@ static inline void rgb_deinterlace_linear_blend_core(char *image, char *tmp, int
   
   //(4)
   //blend both frames
-  rgb_average(image, tmp, image, block*height);
+  ac_average(image, tmp, image, block*height);
   
   return;
 }
 
 
-void rgb_deinterlace_linear(char *image, int width, int height)
-{
-
-  //default ia32 C mode:
-  rgb_average =  rgb_average_C;
-  
-#ifdef ARCH_X86 
-  if(tc_accel & MM_MMX)  rgb_average = ac_average_mmx;
-  if(tc_accel & MM_SSE)  rgb_average = ac_average_sse;
-  if(tc_accel & MM_SSE2) rgb_average = ac_average_sse2;
-#endif
-#ifdef ARCH_X86_64
-  if(tc_accel & MM_SSE2) rgb_average = ac_average_sse2;
-#endif
-
-  rgb_deinterlace_core(image, width, height);
-  
-  clear_mmx();
-}
-
-void rgb_deinterlace_linear_blend(char *image, char *tmp, int width, int height)
-{
-
-  //default ia32 C mode:
-  rgb_average =  rgb_average_C;
-
-  // memcpy_accel = memcpy_C; // EMS
-  
-#ifdef ARCH_X86 
-  if(tc_accel & MM_MMX) {
-    rgb_average = ac_average_mmx;  
-    // memcpy_accel = ac_memcpy_mmx; // EMS
-  }
-  if(tc_accel & MM_SSE) {
-    rgb_average = ac_average_sse;
-    // memcpy_accel = ac_memcpy_sse; // EMS
-  }
-  if(tc_accel & MM_SSE2) {
-    rgb_average = ac_average_sse2;
-    // memcpy_accel = ac_memcpy_sse2; // EMS
-  }
-#endif
-#ifdef ARCH_X86_64
-  if(tc_accel & MM_SSE2) {
-    rgb_average = ac_average_sse2;
-    // memcpy_accel = ac_memcpy_sse2; // EMS
-  }
-#endif
-  
-  //process only Y component
-  rgb_deinterlace_linear_blend_core(image, tmp, width, height);
-
-  clear_mmx();
-}
-
 inline void rgb_decolor(char *image, int bytes)
 {
-
+#warning ************************** FIXME *********************** use aclib
     unsigned int y;
     unsigned short tmp;
     
@@ -968,7 +863,7 @@ static void antialias(char *inrow, char *outrow, int pixels)
 	
     } else { //elseif not aliasing 
 	
-	tc_memcpy(dest_ptr, src_ptr, bpp);
+	ac_memcpy(dest_ptr, src_ptr, bpp);
 	dest_ptr +=bpp;
 	src_ptr  +=bpp;
 	
@@ -1023,7 +918,7 @@ void rgb_antialias(char *image, char *dest, int width, int height, int mode)
 	      *(out+(pixels+1)*3+2) = *(in+(pixels+1)*3+2); 
 	    } else 
 	      //copy untouched row
-	      tc_memcpy(out, in, width*3);
+	      ac_memcpy(out, in, width*3);
 	}
 	
 	break;
@@ -1044,7 +939,7 @@ void rgb_antialias(char *image, char *dest, int width, int height, int mode)
 	    *(out+(pixels+1)*3+2) = *(in+(pixels+1)*3+2);
 	    
 	    //copy untouched row
-	    tc_memcpy(out+block, in+block, width*3);
+	    ac_memcpy(out+block, in+block, width*3);
 
 	    in  += block<<1;
 	    out += block<<1;
@@ -1079,8 +974,8 @@ void rgb_antialias(char *image, char *dest, int width, int height, int mode)
     }
 
     //first and last row untouched
-    tc_memcpy(dest, image, width*3);
-    tc_memcpy(dest+(height-1)*width*3, image+(height-1)*width*3, width*3);
+    ac_memcpy(dest, image, width*3);
+    ac_memcpy(dest+(height-1)*width*3, image+(height-1)*width*3, width*3);
     
     return;
 }
@@ -1144,7 +1039,7 @@ void rgb_zoom(char *image, int width, int height, int new_width, int new_height)
   tbuf[id].dstImage.data++;
   zoom_image_process(tbuf[id].zoomer);
   
-  tc_memcpy(image, tbuf[id].tmpBuffer, new_width*new_height*3);
+  ac_memcpy(image, tbuf[id].tmpBuffer, new_width*new_height*3);
 }
 
 static void rgb_zoom_done_DI(void)
@@ -1200,7 +1095,7 @@ void rgb_zoom_DI(char *image, int width, int height, int new_width, int new_heig
   tbuf_DI[id].dstImage.data++;
   zoom_image_process(tbuf_DI[id].zoomer);
   
-  tc_memcpy(image, tbuf_DI[id].tmpBuffer, new_width*new_height*3);
+  ac_memcpy(image, tbuf_DI[id].tmpBuffer, new_width*new_height*3);
 }
 
 
@@ -1236,7 +1131,7 @@ void deinterlace_rgb_zoom(unsigned char *src, int width, int height)
     //move every second row
     for (i=0; i<height; i=i+2) {
 	
-	tc_memcpy(out, in, block);
+	ac_memcpy(out, in, block);
 	in  += 2*block;
 	out += block;
     }
@@ -1263,7 +1158,7 @@ void deinterlace_rgb_nozoom(unsigned char *src, int width, int height)
     //move every second row
     for (i=0; i<height; i=i+2) {
 	
-	tc_memcpy(out, in, block);
+	ac_memcpy(out, in, block);
 	in  += 2*block;
 	out += block;
     }

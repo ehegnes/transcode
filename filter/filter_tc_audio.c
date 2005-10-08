@@ -151,19 +151,19 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     switch (mod) {
       case 1:
-	  tc_memcpy (audio_buf[0], ptr->audio_buf+ex, 1*diff);
+	  ac_memcpy (audio_buf[0], ptr->audio_buf+ex, 1*diff);
 	  ptr->audio_size=ex;
 	break;
       case 2:
-	  tc_memcpy (audio_buf[0]+1*diff , ptr->audio_buf           , ex-1*diff);
-	  tc_memcpy (audio_buf[1]        , ptr->audio_buf+ex-1*diff , 2*diff);
-	  tc_memcpy (ptr->audio_buf      , audio_buf[0]             , ex);
+	  ac_memcpy (audio_buf[0]+1*diff , ptr->audio_buf           , ex-1*diff);
+	  ac_memcpy (audio_buf[1]        , ptr->audio_buf+ex-1*diff , 2*diff);
+	  ac_memcpy (ptr->audio_buf      , audio_buf[0]             , ex);
 	  ptr->audio_size=ex;
 	break;
       case 3:
-	  tc_memcpy (audio_buf[1]+2*diff , ptr->audio_buf          , ex-2*diff);
-	  tc_memcpy (audio_buf[0]        , ptr->audio_buf+ex-2*diff, 3*diff);
-	  tc_memcpy (ptr->audio_buf      , audio_buf[1]            , ex);
+	  ac_memcpy (audio_buf[1]+2*diff , ptr->audio_buf          , ex-2*diff);
+	  ac_memcpy (audio_buf[0]        , ptr->audio_buf+ex-2*diff, 3*diff);
+	  ac_memcpy (ptr->audio_buf      , audio_buf[1]            , ex);
 	  ptr->audio_size=ex;
 	break;
       case 0:
@@ -173,13 +173,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    if (verbose & TC_DEBUG)
 	      printf("[A] frame cloned (%d)\n", ptr->id);
 
-	    tc_memcpy (audio_buf[0]+3*diff , ptr->audio_buf          , ex-3*diff);
-	    tc_memcpy (audio_buf[1]        , ptr->audio_buf+ex-3*diff, 4*diff);
-	    tc_memcpy (ptr->audio_buf      , audio_buf[0]            , ex);
+	    ac_memcpy (audio_buf[0]+3*diff , ptr->audio_buf          , ex-3*diff);
+	    ac_memcpy (audio_buf[1]        , ptr->audio_buf+ex-3*diff, 4*diff);
+	    ac_memcpy (ptr->audio_buf      , audio_buf[0]            , ex);
 	    ptr->audio_size=ex;
 	} else {
-	  //	    tc_memcpy (audio_buf[1]+4*diff , ptr->audio_buf          , ex-4*diff);
-	    tc_memcpy (ptr->audio_buf      , audio_buf[1]            , ex);
+	  //	    ac_memcpy (audio_buf[1]+4*diff , ptr->audio_buf          , ex-4*diff);
+	    ac_memcpy (ptr->audio_buf      , audio_buf[1]            , ex);
 	    ptr->audio_size=ex;
 	  
 	}

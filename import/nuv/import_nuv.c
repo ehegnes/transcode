@@ -128,9 +128,9 @@ MOD_decode
 
     // Do the shuffle... yuv => yvu
 
-    tc_memcpy(param->buffer, videobuf1, y_size);
-    tc_memcpy(param->buffer + v_offset, videobuf1 + u_offset, u_size);
-    tc_memcpy(param->buffer + u_offset, videobuf1 + v_offset, v_size);
+    ac_memcpy(param->buffer, videobuf1, y_size);
+    ac_memcpy(param->buffer + v_offset, videobuf1 + u_offset, u_size);
+    ac_memcpy(param->buffer + u_offset, videobuf1 + v_offset, v_size);
 
     videoframe++;
 
@@ -152,7 +152,7 @@ MOD_decode
     }
 
     param->size = audiolen2; 
-    tc_memcpy(param->buffer, audiobuf2, audiolen2);
+    ac_memcpy(param->buffer, audiobuf2, audiolen2);
 
     audioframe++;
     

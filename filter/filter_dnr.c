@@ -82,7 +82,7 @@ static int dnr_run(T_DNR_FILTER_CTX *fctx, T_PIXEL *data)
   //-- frame, just make a copy.         -- 
   if (fctx->is_first_frame) 
   { 
-    tc_memcpy(fctx->lastframe, fctx->src_data, fctx->img_size);
+    ac_memcpy(fctx->lastframe, fctx->src_data, fctx->img_size);
     fctx->undo_data      = fctx->lastframe;
     fctx->is_first_frame = 0;
   
@@ -91,7 +91,7 @@ static int dnr_run(T_DNR_FILTER_CTX *fctx, T_PIXEL *data)
   
   //-- make sure to preserve the existing frame --
   //-- in case this is a scene change           --
-  tc_memcpy(fctx->origframe, fctx->src_data, fctx->img_size);
+  ac_memcpy(fctx->origframe, fctx->src_data, fctx->img_size);
   
   if (fctx->isYUV)
   {
@@ -619,7 +619,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     dnr_run(my_fctx, ptr->video_buf);
     
     if (my_fctx->undo) 
-      tc_memcpy(ptr->video_buf, my_fctx->undo_data, my_fctx->img_size);
+      ac_memcpy(ptr->video_buf, my_fctx->undo_data, my_fctx->img_size);
   }
   
   return(0);

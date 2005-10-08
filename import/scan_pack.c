@@ -168,7 +168,7 @@ void scan_pack_payload(char *video, int n, int verbose)
     // scan payload
     
     // time stamp:
-    tc_memcpy(buf, &video[4], 6);
+    ac_memcpy(buf, &video[4], 6);
     pts = read_time_stamp(buf);
 
     //    printf("PTS=%ld %d %f %ld\n",  read_time_stamp_long(buf),read_ts(buf), read_ts(buf)/90000., parse_pts(buf, 2));
@@ -187,7 +187,7 @@ void scan_pack_payload(char *video, int n, int verbose)
 	    
 	    
 	    //read packet header 
-	    tc_memcpy(buf, &video[20], 16);
+	    ac_memcpy(buf, &video[20], 16);
 	    get_pts_dts(buf, &i_pts, &i_dts);
 	    
 	    printf( "\tPTS=%f DTS=%f\n", (double) i_pts / 90000., (double) i_dts / 90000.);
@@ -233,7 +233,7 @@ void scan_pack_payload(char *video, int n, int verbose)
 	      uint8_t *tmp=ibuf + 9 + ibuf[8];
 
 	      //read packet header 
-	      tc_memcpy(buf, &video[20], 16);
+	      ac_memcpy(buf, &video[20], 16);
 	      get_pts_dts(buf, &i_pts, &i_dts);
 	      
 	      printf("\t[%s] substream PTS=%f [0x%x]\n", __FILE__, (double) i_pts / 90000., *tmp);
@@ -256,7 +256,7 @@ void scan_pack_payload(char *video, int n, int verbose)
     if((video[17] & 0xff) >= 0xc0 && (video[17] & 0xff) <= 0xdf) {
 
       //read packet header 
-      tc_memcpy(buf, &video[20], 16);
+      ac_memcpy(buf, &video[20], 16);
       get_pts_dts(buf, &i_pts, &i_dts);
       
       printf("\tMPEG audio PTS=%f [0x%x]\n", (double) i_pts / 90000., (video[17] & 0xff));

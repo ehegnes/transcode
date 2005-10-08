@@ -163,7 +163,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		if (state) {
 			if (vob->im_v_codec == CODEC_YUV)
 				tc_yuv2rgb_core(ptr->video_buf);
-			tc_memcpy(buffer, ptr->video_buf, ptr->v_width*ptr->v_height*3);
+			ac_memcpy(buffer, ptr->video_buf, ptr->v_width*ptr->v_height*3);
 			
 			
 			for (y = 0; y < vob->im_v_height; y++) {
@@ -176,7 +176,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			}
 			
 			
-			tc_memcpy(ptr->video_buf, buffer, ptr->v_width*ptr->v_height*3);
+			ac_memcpy(ptr->video_buf, buffer, ptr->v_width*ptr->v_height*3);
 			if (vob->im_v_codec == CODEC_YUV)
 				tc_rgb2yuv_core(ptr->video_buf);
 		}

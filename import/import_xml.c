@@ -275,11 +275,11 @@ void f_mod_video_frame(transfer_t *param,audiovideo_t *p_temp,int s_codec,int s_
 				zoom_image_done(p_zoomer_UV);
 			break;
 		}
-		tc_memcpy(param->buffer,p_pixel_tmp,param->size);	//copy the new image buffer
+		ac_memcpy(param->buffer,p_pixel_tmp,param->size);	//copy the new image buffer
 	}
 	else
 	{
-		tc_memcpy(param->buffer,p_vframe_buffer,param->size);	//only copy the original buffer
+		ac_memcpy(param->buffer,p_vframe_buffer,param->size);	//only copy the original buffer
 	}
 }
 

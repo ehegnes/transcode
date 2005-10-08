@@ -66,7 +66,7 @@ void rgb_clip_top_bottom(char *image, char *dest, int width, int height, int lin
 void rgb_hclip(char *image, int width, int height, int cols);
 void rgb_vclip(char *image, int width, int height, int lines);
 void rgb_mirror(char *image, int width,  int height);
-void rgb_swap(char *image, int pixels);
+void rgb_swap(uint8_t *image, int pixels);
 int rgb_merge_C(char *row1, char *row2, char *out, int bytes, 
 		unsigned long weight1, unsigned long weight2);
 void rgb_vresize_8(char *image, int width, int height, int resize);

@@ -75,9 +75,9 @@ void deinterlace_bob_yuv_mmx(uint8_t *pdst, uint8_t *psrc,
 
   // copy first even line no matter what, and the first odd line if we're
   // processing an odd field.
-  tc_memcpy(pdst, pEvenLines, LineLength);
+  ac_memcpy(pdst, pEvenLines, LineLength);
   if (IsOdd)
-    tc_memcpy(pdst + LineLength, pOddLines, LineLength);
+    ac_memcpy(pdst + LineLength, pOddLines, LineLength);
 
   height = height / 2;
   for (Line = 0; Line < height - 1; ++Line)
@@ -106,7 +106,7 @@ void deinterlace_bob_yuv_mmx(uint8_t *pdst, uint8_t *psrc,
     // half the time this function is called, those words' meanings will invert.
 
     // Copy the odd line to the overlay verbatim.
-    tc_memcpy((char *)Dest + LineLength, YVal3, LineLength);
+    ac_memcpy((char *)Dest + LineLength, YVal3, LineLength);
 
     n = LineLength >> 3;
     while( n-- )
@@ -171,7 +171,7 @@ void deinterlace_bob_yuv_mmx(uint8_t *pdst, uint8_t *psrc,
   // Copy last odd line if we're processing an even field.
   if (! IsOdd)
   {
-    tc_memcpy(pdst + (height * 2 - 1) * LineLength,
+    ac_memcpy(pdst + (height * 2 - 1) * LineLength,
                       pOddLines + (height - 1) * Pitch,
                       LineLength);
   }

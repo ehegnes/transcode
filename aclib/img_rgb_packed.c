@@ -18,23 +18,38 @@
 
 static int rgb24_copy(uint8_t **src, uint8_t **dest, int width, int height)
 {
-    tc_memcpy(dest[0], src[0], width*height*3);
+    ac_memcpy(dest[0], src[0], width*height*3);
     return 1;
 }
 
+#define bgr24_copy rgb24_copy
+
 static int argb32_copy(uint8_t **src, uint8_t **dest, int width, int height)
 {
-    tc_memcpy(dest[0], src[0], width*height*4);
+    ac_memcpy(dest[0], src[0], width*height*4);
     return 1;
 }
 
 static int gray8_copy(uint8_t **src, uint8_t **dest, int width, int height)
 {
-    tc_memcpy(dest[0], src[0], width*height);
+    ac_memcpy(dest[0], src[0], width*height);
     return 1;
 }
 
 /*************************************************************************/
+
+static int rgb24_bgr24(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int i;
+    for (i = 0; i < width*height; i++) {
+	dest[0][i*3  ] = src[0][i*3  ];
+	dest[0][i*3+1] = src[0][i*3+1];
+	dest[0][i*3+2] = src[0][i*3+2];
+    }
+    return 1;
+}
+
+#define bgr24_rgb24 rgb24_bgr24
 
 static int rgb24_argb32(uint8_t **src, uint8_t **dest, int width, int height)
 {
@@ -120,8 +135,12 @@ static int gray8_argb32(uint8_t **src, uint8_t **dest, int width, int height)
 int ac_imgconvert_init_rgb_packed(int accel)
 {
     if (!register_conversion(IMG_RGB24,   IMG_RGB24,   rgb24_copy)
+     || !register_conversion(IMG_RGB24,   IMG_BGR24,   rgb24_bgr24)
      || !register_conversion(IMG_RGB24,   IMG_ARGB32,  rgb24_argb32)
      || !register_conversion(IMG_RGB24,   IMG_GRAY8,   rgb24_gray8)
+
+     || !register_conversion(IMG_BGR24,   IMG_BGR24,   bgr24_copy)
+     || !register_conversion(IMG_BGR24,   IMG_BGR24,   bgr24_rgb24)
 
      || !register_conversion(IMG_ARGB32,  IMG_RGB24,   argb32_rgb24)
      || !register_conversion(IMG_ARGB32,  IMG_ARGB32,  argb32_copy)

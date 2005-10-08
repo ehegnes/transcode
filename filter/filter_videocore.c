@@ -236,7 +236,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
        init_aa_table(vob->aa_weight, vob->aa_bias);
 
        //UV components unchanged
-       tc_memcpy(ptr->video_buf_Y[ptr->free]+ptr->v_width*ptr->v_height, 
+       ac_memcpy(ptr->video_buf_Y[ptr->free]+ptr->v_width*ptr->v_height, 
 	      ptr->video_buf + ptr->v_width*ptr->v_height, 
 	      ptr->v_width*ptr->v_height/2);
     

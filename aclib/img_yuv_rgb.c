@@ -7,6 +7,8 @@
 #include "imgconvert.h"
 #include "img_internal.h"
 
+#include <string.h>
+
 #define USE_LOOKUP_TABLES  /* for YUV420P->RGB24 */
 
 /*************************************************************************/
@@ -289,7 +291,7 @@ static int gray8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
 
-static struct { u_int16_t n[64]; } __attribute__((aligned(16))) yuv_data = {{
+static struct { uint16_t n[64]; } __attribute__((aligned(16))) yuv_data = {{
     0x00FF,0x00FF,0x00FF,0x00FF,0x00FF,0x00FF,0x00FF,0x00FF, /* for odd/even */
     0x0010,0x0010,0x0010,0x0010,0x0010,0x0010,0x0010,0x0010, /* for Y -16    */
     0x0080,0x0080,0x0080,0x0080,0x0080,0x0080,0x0080,0x0080, /* for U/V -128 */
@@ -300,7 +302,7 @@ static struct { u_int16_t n[64]; } __attribute__((aligned(16))) yuv_data = {{
     0x408D,0x408D,0x408D,0x408D,0x408D,0x408D,0x408D,0x408D, /* bU constant  */
 }};
 /* Note that the Y factors are halved because G->Y exceeds 0x7FFF */
-static struct { u_int16_t n[96]; } __attribute__((aligned(16))) rgb_data = {{
+static struct { uint16_t n[96]; } __attribute__((aligned(16))) rgb_data = {{
     0x20DF,0x20DF,0x20DF,0x20DF,0x20DF,0x20DF,0x20DF,0x20DF, /* R->Y * 0.5   */
     0x4087,0x4087,0x4087,0x4087,0x4087,0x4087,0x4087,0x4087, /* G->Y * 0.5   */
     0x0C88,0x0C88,0x0C88,0x0C88,0x0C88,0x0C88,0x0C88,0x0C88, /* B->Y * 0.5   */
@@ -1106,7 +1108,8 @@ int ac_imgconvert_init_yuv_rgb(int accel)
 	return 0;
     }
 
-    if (accel & MM_MMX) {
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
+    if (accel & AC_MMX) {
 	if (!register_conversion(IMG_YUV420P, IMG_RGB24,   yuv420p_rgb24_mmx)
 	 || !register_conversion(IMG_YUV422P, IMG_RGB24,   yuv422p_rgb24_mmx)
 	) {
@@ -1114,7 +1117,7 @@ int ac_imgconvert_init_yuv_rgb(int accel)
 	}
     }
 
-    if (accel & MM_SSE2) {
+    if (accel & AC_SSE2) {
 	if (!register_conversion(IMG_YUV420P, IMG_RGB24,   yuv420p_rgb24_sse2)
 	 || !register_conversion(IMG_YUV422P, IMG_RGB24,   yuv422p_rgb24_sse2)
 	 || !register_conversion(IMG_RGB24,   IMG_YUV420P, rgb24_yuv420p_sse2)
@@ -1124,6 +1127,7 @@ int ac_imgconvert_init_yuv_rgb(int accel)
 	    return 0;
 	}
     }
+#endif
 
     return 1;
 }

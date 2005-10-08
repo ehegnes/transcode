@@ -443,7 +443,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 					dst1 = dst_buf;
 					for (y = 0; y < h; y++)
 					{
-						tc_memcpy(dst1, src1, wtimes4);
+						ac_memcpy(dst1, src1, wtimes4);
 						src1 = (Pixel *)((char *)src1 + srcpitch);
 						dst1 = (Pixel *)((char *)dst1 + dstpitch);
 					}
@@ -461,7 +461,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				saved = mfd->saveFrame + w;
 				for (y = 0; y < hover2; y++)
 				{					
-					tc_memcpy(saved, src1, wtimes4);
+					ac_memcpy(saved, src1, wtimes4);
 					src1 = (Pixel *)((char *)src1 + srcpitchtimes2);
 					saved += wtimes2;
 				}
@@ -469,7 +469,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				dst1 = (Pixel32 *)((char *)dst_buf+ dstpitch);
 				for (y = 0; y < hover2; y++)
 				{					
-					tc_memcpy(dst1, src1, wtimes4);
+					ac_memcpy(dst1, src1, wtimes4);
 					src1 = (Pixel *)((char *)src1 + srcpitchtimes2);
 					dst1 = (Pixel *)((char *)dst1 + dstpitchtimes2);
 				}
@@ -477,7 +477,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				saved = mfd->saveFrame + w;
 				for (y = 0; y < hover2; y++)
 				{					
-					tc_memcpy(dst1, saved, wtimes4);
+					ac_memcpy(dst1, saved, wtimes4);
 					dst1 = (Pixel *)((char *)dst1 + dstpitchtimes2);
 					saved += wtimes2;
 				}
@@ -526,7 +526,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			d1 = dst1;
 			for (y = 0; y < hover2; y++)
 			{
-				tc_memcpy(d1, s1, wtimes4);
+				ac_memcpy(d1, s1, wtimes4);
 				s1 = (Pixel *)((char *)s1 + srcpitchtimes2);
 				d1 = (Pixel *)((char *)d1 + dstpitchtimes2);
 			}
@@ -541,7 +541,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				d2 = dst2;
 				for (y = 0; y < hover2; y++)
 				{
-					tc_memcpy(d2, s1, wtimes4);
+					ac_memcpy(d2, s1, wtimes4);
 					s1 = (Pixel *)((char *)s1 + srcpitchtimes2);
 					d2 = (Pixel *)((char *)d2 + dstpitchtimes2);
 				}
@@ -552,7 +552,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				sv = saved;
 				for (y = 0; y < hover2; y++)
 				{
-					tc_memcpy(d2, sv, wtimes4);
+					ac_memcpy(d2, sv, wtimes4);
 					sv += wtimes2;
 					d2 = (Pixel *)((char *)d2 + dstpitchtimes2);
 				}
@@ -563,7 +563,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			sv = saved;
 			for (y = 0; y < hover2; y++)
 			{
-				tc_memcpy(sv, s2, wtimes4);
+				ac_memcpy(sv, s2, wtimes4);
 				sv += wtimes2;
 				s2 = (Pixel *)((char *)s2 + srcpitchtimes2);
 			}
@@ -578,7 +578,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			dst1 = src_buf;
 			for (y = 0; y < h; y++)
 			{
-				tc_memcpy(dst1, src1, wtimes4);
+				ac_memcpy(dst1, src1, wtimes4);
 				src1 = (Pixel *)((char *)src1 + srcpitch);
 				dst1 = (Pixel *)((char *)dst1 + dstpitch);
 			}
@@ -592,7 +592,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		dst1 = dst_buf;
 		for (y = 0; y < h; y++)
 		{
-			tc_memcpy(dst1, src1, srcpitch);
+			ac_memcpy(dst1, src1, srcpitch);
 			src1 = (Pixel *)((char *)src1 + srcpitch);
 			dst1 = (Pixel *)((char *)dst1 + dstpitch);
 		}
@@ -936,7 +936,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     // The first line gets a free ride.
 	src = src_buf;
 	dst = dst_buf;
-	tc_memcpy(dst, src, wtimes4);
+	ac_memcpy(dst, src, wtimes4);
 	src = (Pixel *)((char *)src_buf + srcpitch);
 	srcminus = (Pixel *)((char *)src - srcpitch);
 	srcplus = (Pixel *)((char *)src + srcpitch);
@@ -1101,7 +1101,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				else
 				{
 					// Even line; pass it through.
-					tc_memcpy(dst, src, wtimes4);
+					ac_memcpy(dst, src, wtimes4);
 				}
 			}
 		}
@@ -1120,7 +1120,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 	
 	// The last line gets a free ride.
-	tc_memcpy(dst, src, wtimes4);
+	ac_memcpy(dst, src, wtimes4);
 
 filter_done:
 	convert_argb2rgb (mfd->convertFrameOut, ptr->video_buf, ptr->v_width, ptr->v_height);

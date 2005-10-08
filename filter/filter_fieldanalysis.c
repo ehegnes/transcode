@@ -36,13 +36,6 @@
 #include "filter.h"
 #include "optstr.h"
 
-#if 0
-#include "aclib/ac.h"
-#endif
-
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#endif
 #include <assert.h>
 
 
@@ -139,7 +132,7 @@ static void bob_field (uint8_t *in, uint8_t *out, int width, int height) {
 	for (j = 0; j < width; j++)
 	    out[j] = (((short)in[j]) + ((short)in[j+w2])) >>1;
 	/* Then copy original line */
-	tc_memcpy (out+width, in+w2, width);
+	ac_memcpy (out+width, in+w2, width);
 	in  += w2;
 	out += w2;
     }
@@ -635,7 +628,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    yuy2toy (ptr->video_buf, myf->lumIn, myf->width, myf->height);
 	    break;
 	case CODEC_YUV:
-	    tc_memcpy (myf->lumIn, ptr->video_buf, myf->size);
+	    ac_memcpy (myf->lumIn, ptr->video_buf, myf->size);
 	    break;
 	case CODEC_YUV422:
 	    uyvytoy (ptr->video_buf, myf->lumIn, myf->width, myf->height);
@@ -647,7 +640,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	/* Bob Top field */
 	bob_field (myf->lumIn, myf->lumInT, myf->width, myf->height/2-1);
 	/* Bob Bottom field */
-	tc_memcpy (myf->lumInB, myf->lumIn + myf->width, myf->width);
+	ac_memcpy (myf->lumInB, myf->lumIn + myf->width, myf->width);
 	bob_field (myf->lumIn + myf->width, myf->lumInB + myf->width,
 	           myf->width, myf->height/2-1);
 	/* last copied line is ignored, buffer is large enough */
@@ -662,7 +655,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	/* only works with YUV data correctly */
 	switch (myf->outDiff) {
 	case 1:				/* lumIn */
-	    tc_memcpy (ptr->video_buf, myf->lumIn, myf->size);
+	    ac_memcpy (ptr->video_buf, myf->lumIn, myf->size);
 	    break;
 	case 2:				/* field shift */
 	    for (i = 0 ; i < myf->height-2; i += 2)
@@ -674,16 +667,16 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		}
 	    break;
 	case 3:				/* lumInT */
-	    tc_memcpy (ptr->video_buf, myf->lumInT, myf->size);
+	    ac_memcpy (ptr->video_buf, myf->lumInT, myf->size);
 	    break;
 	case 4:				/* lumInB */
-	    tc_memcpy (ptr->video_buf, myf->lumInB, myf->size);
+	    ac_memcpy (ptr->video_buf, myf->lumInB, myf->size);
 	    break;
 	case 5:				/* lumPrevT */
-	    tc_memcpy (ptr->video_buf, myf->lumPrevT, myf->size);
+	    ac_memcpy (ptr->video_buf, myf->lumPrevT, myf->size);
 	    break;
 	case 6:				/* lumPrevB */
-	    tc_memcpy (ptr->video_buf, myf->lumPrevB, myf->size);
+	    ac_memcpy (ptr->video_buf, myf->lumPrevB, myf->size);
 	    break;
 	case 7:				/* pixDiff */
 	    pic_diff (myf->lumInT, myf->lumInB,   ptr->video_buf, myf->size,4);

@@ -36,8 +36,6 @@ int tc_yuv2rgb_init(int width, int height)
     if(convertY)
 	tc_yuv2rgb_close();
 
-    if (!ac_imgconvert_init(tc_accel))
-	return(-1);
     if ((frame_bufferY = malloc(width*height*3)) == NULL)
 	return(-1);
     memset(frame_bufferY, 0, width*height*3);
@@ -69,7 +67,7 @@ int tc_yuv2rgb_core(uint8_t *buffer)
 	return(-1);
 
     //put it back
-    tc_memcpy(buffer, rgb_outY, x_dimY*y_dimY*3);
+    ac_memcpy(buffer, rgb_outY, x_dimY*y_dimY*3);
 
     return(0);
 }
@@ -124,7 +122,7 @@ int tc_rgb2yuv_core(uint8_t *buffer)
 	return(-1);
 
     //put it back
-    tc_memcpy(buffer, frame_buffer,
+    ac_memcpy(buffer, frame_buffer,
 	      x_dim*y_dim + 2*UV_PLANE_SIZE(IMG_YUV_DEFAULT, x_dim, y_dim));
 
     return(0);

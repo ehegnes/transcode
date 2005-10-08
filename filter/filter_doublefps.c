@@ -134,21 +134,21 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	  ptr->attributes |= TC_FRAME_IS_CLONED;
 
-	  tc_memcpy (lines, ptr->video_buf, ptr->video_size);
+	  ac_memcpy (lines, ptr->video_buf, ptr->video_size);
 
 	  for (h = 0; h < height/2; h++) {
-	      tc_memcpy (p, s, stride);
+	      ac_memcpy (p, s, stride);
 	      s += 2*stride;
 	      p +=   stride;
 	  }
 	  if (codec==CODEC_YUV) {
 	      for (h = 0; h < height/4; h++) {
-		  tc_memcpy (p, s, stride/2);
+		  ac_memcpy (p, s, stride/2);
 		  s += 2*stride/2;
 		  p +=   stride/2;
 	      }
 	      for (h = 0; h < height/4; h++) {
-		  tc_memcpy (p, s, stride/2);
+		  ac_memcpy (p, s, stride/2);
 		  s += 2*stride/2;
 		  p +=   stride/2;
 	      }
@@ -163,19 +163,19 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	 // printf("WAS cloned\n");
 
 	  for (h = 0; h < height/2; h++) {
-	      tc_memcpy (p, s, stride);
+	      ac_memcpy (p, s, stride);
 	      s += 2*stride;
 	      p +=   stride;
 	  }
 
 	  if (codec==CODEC_YUV) {
 	      for (h = 0; h < height/4; h++) {
-		  tc_memcpy (p, s, stride/2);
+		  ac_memcpy (p, s, stride/2);
 		  s += 2*stride/2;
 		  p +=   stride/2;
 	      }
 	      for (h = 0; h < height/4; h++) {
-		  tc_memcpy (p, s, stride/2);
+		  ac_memcpy (p, s, stride/2);
 		  s += 2*stride/2;
 		  p +=   stride/2;
 	      }

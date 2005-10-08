@@ -137,7 +137,7 @@ static int buffered_p_read(char *s)
     
     fiptr=frame_info_retrieve();
     
-    tc_memcpy(s, fiptr->sync_info, sizeof(sync_info_t));
+    ac_memcpy(s, fiptr->sync_info, sizeof(sync_info_t));
     
     return(sizeof(sync_info_t));
 }
@@ -236,7 +236,7 @@ int clone_frame(char *buffer, int size)
     
     //copy already buffered frame
     
-    tc_memcpy(buffer, video_buffer, size);
+    ac_memcpy(buffer, video_buffer, size);
     
     --clone_ctr;
     return(0);
@@ -257,7 +257,7 @@ int clone_frame(char *buffer, int size)
       
       //frame will be cloned. We need to get a copy first
       
-      tc_memcpy(video_buffer, buffer, size);
+      ac_memcpy(video_buffer, buffer, size);
       
       clone_ctr=i-1;
       return(0);

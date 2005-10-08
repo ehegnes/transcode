@@ -366,7 +366,7 @@ void scan_pes(int verbose, FILE *in_file)
 		mpeg_version=2;
 
 		// get pts time stamp:
-		tc_memcpy(scan_buf, &buf[6], 16);
+		ac_memcpy(scan_buf, &buf[6], 16);
 		has_pts_dts=get_pts_dts(scan_buf, &i_pts, &i_dts);
 		
 		if(has_pts_dts) {
@@ -419,7 +419,7 @@ void scan_pes(int verbose, FILE *in_file)
 	      }
 
 	      // get pts time stamp:
-	      tc_memcpy(scan_buf, &buf[6], 16);
+	      ac_memcpy(scan_buf, &buf[6], 16);
 	      has_pts_dts=get_pts_dts(scan_buf, &i_pts, &i_dts);
 	      
 	      if(has_pts_dts) {
@@ -609,7 +609,7 @@ void probe_pes(info_t *ipipe)
 	    
 	    // get PPP - starts
 	    
-	    tc_memcpy(scan_buf, &buf[4], 16);
+	    ac_memcpy(scan_buf, &buf[4], 16);
 	    pack_pts_2 = read_time_stamp_long(scan_buf);
 	    pack_ppp = read_time_stamp(scan_buf);
 
@@ -678,7 +678,7 @@ void probe_pes(info_t *ipipe)
 		ipipe->probe_info->codec=TC_CODEC_MPEG2;
 
 		// get pts time stamp:
-		tc_memcpy(scan_buf, &buf[6], 16);
+		ac_memcpy(scan_buf, &buf[6], 16);
 		has_pts_dts=get_pts_dts(scan_buf, &i_pts, &i_dts);
 		
 		if(has_pts_dts) {
@@ -762,7 +762,7 @@ void probe_pes(info_t *ipipe)
 	      }
 
 	      // get pts time stamp:
-	      tc_memcpy(scan_buf, &buf[6], 16);
+	      ac_memcpy(scan_buf, &buf[6], 16);
 	      has_pts_dts=get_pts_dts(scan_buf, &i_pts, &i_dts);
 
 	      if(has_pts_dts) {
@@ -847,7 +847,7 @@ void probe_pes(info_t *ipipe)
 		  ipipe->probe_info->track[num].attribute |= PACKAGE_SUBTITLE;
 
 		  // get pts time stamp:
-		  tc_memcpy(scan_buf, &buf[6], 16);
+		  ac_memcpy(scan_buf, &buf[6], 16);
 		  has_pts_dts=get_pts_dts(scan_buf, &i_pts, &i_dts);
 		}
 	      }
@@ -879,7 +879,7 @@ void probe_pes(info_t *ipipe)
 		  ret = buf_probe_ac3(tmp1, tmp2-tmp1, &ipipe->probe_info->track[num]);
 		  if(ret==0) {
 		    ipipe->probe_info->track[num].attribute |= PACKAGE_AUDIO_AC3;
-		    tc_memcpy(scan_buf, &buf[6], 16);
+		    ac_memcpy(scan_buf, &buf[6], 16);
 		    has_pts_dts=get_pts_dts(scan_buf, &i_pts, &i_dts);
 		    ipipe->probe_info->track[num].pts_start=(double) i_pts/90000.;
 		    has_audio=1;
@@ -914,7 +914,7 @@ void probe_pes(info_t *ipipe)
 		  ipipe->probe_info->track[num].attribute |= PACKAGE_AUDIO_DTS;
 		  buf_probe_dts(tmp1, tmp2-tmp1, &ipipe->probe_info->track[num]);
 
-		  tc_memcpy(scan_buf, &buf[6], 16);
+		  ac_memcpy(scan_buf, &buf[6], 16);
 		  has_pts_dts=get_pts_dts(scan_buf, &i_pts, &i_dts);
 		  ipipe->probe_info->track[num].pts_start=(double) i_pts/90000.;
 		  has_audio=1;
@@ -947,7 +947,7 @@ void probe_pes(info_t *ipipe)
 		  ret = buf_probe_ac3(tmp1, tmp2-tmp1, &ipipe->probe_info->track[num]);
 		  if(ret==0) {
 		    ipipe->probe_info->track[num].attribute |= PACKAGE_AUDIO_AC3;
-		    tc_memcpy(scan_buf, &buf[6], 16);
+		    ac_memcpy(scan_buf, &buf[6], 16);
 		    has_pts_dts=get_pts_dts(scan_buf, &i_pts, &i_dts);
 		    ipipe->probe_info->track[num].pts_start=(double) i_pts/90000.;
 		    has_audio=1;
@@ -1007,7 +1007,7 @@ void probe_pes(info_t *ipipe)
 		      * ipipe->probe_info->track[num].chan / 1000;
 		  ipipe->probe_info->track[num].format=CODEC_LPCM;
 
-		  tc_memcpy(scan_buf, &buf[6], 16);
+		  ac_memcpy(scan_buf, &buf[6], 16);
 		  has_pts_dts=get_pts_dts(scan_buf, &i_pts, &i_dts);
 		  ipipe->probe_info->track[num].pts_start=(double) i_pts/90000.;
 		  has_audio=1;
@@ -1097,7 +1097,7 @@ void probe_pes(info_t *ipipe)
 	    ipipe->probe_info->track[num].tid=num;
 #endif
 	    
-	    tc_memcpy(scan_buf, &buf[6], 16);
+	    ac_memcpy(scan_buf, &buf[6], 16);
 	    has_pts_dts=get_pts_dts(scan_buf, &i_pts, &i_dts);
 	    
 	    if(has_pts_dts) {

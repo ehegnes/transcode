@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     int ch, done=0, track=0;
     char *magic=NULL, *codec=NULL, *name=NULL;
 
-	tc_memcpy_init(verbose & TC_INFO, -1);
+    ac_init(AC_ALL);
 
     //proper initialization
     memset(&ipipe, 0, sizeof(info_t));

@@ -46,7 +46,7 @@ static void merge_yuv_fields(unsigned char *src1, unsigned char *src2, int width
     //Y
     for (i=0; i<height; i=i+2) {
 	
-	tc_memcpy(out, in, block);
+	ac_memcpy(out, in, block);
 	in  += 2*block;
 	out += 2*block;
     }
@@ -61,7 +61,7 @@ static void merge_yuv_fields(unsigned char *src1, unsigned char *src2, int width
     //move every second row
     for (i=0; i<height/2; i=i+2) {
 	
-	tc_memcpy(out, in, block);
+	ac_memcpy(out, in, block);
 	in  += 2*block;
 	out += 2*block;
     }
@@ -74,7 +74,7 @@ static void merge_yuv_fields(unsigned char *src1, unsigned char *src2, int width
     //move every second row
     for (i=0; i<height/2; i=i+2) {
 	
-	tc_memcpy(out, in, block);
+	ac_memcpy(out, in, block);
 	in  += 2*block;
 	out += 2*block;
     }
@@ -95,7 +95,7 @@ static void merge_rgb_fields(unsigned char *src1, unsigned char *src2, int width
     //move every second row
     for (i=0; i<height; i=i+2) {
 	
-	tc_memcpy(out, in, block);
+	ac_memcpy(out, in, block);
 	in  += 2*block;
 	out += 2*block;
     }
@@ -186,7 +186,7 @@ static void yuv_deinterlace(char *image, int width, int height)
     
     // clone last row
     
-    tc_memcpy(out, in, block);
+    ac_memcpy(out, in, block);
 
     return;
 }
@@ -217,7 +217,7 @@ static void rgb_deinterlace(char *image, int width, int height)
     
     // clone last row
     
-    tc_memcpy(out, in, block);
+    ac_memcpy(out, in, block);
 
     return;
 }
@@ -258,7 +258,7 @@ int ivtc(int *flag, int pflag, char *buffer, char *pulldown_buffer, int width, i
 
       if(verbose & TC_STATS) printf( "COPY: (%2d)\n", pulldown_frame_ctr);
       
-      tc_memcpy(pulldown_buffer, buffer, size);
+      ac_memcpy(pulldown_buffer, buffer, size);
       pulldown_buffer_flag=1;
       clone_flag=0; //drop frame
       ++pulldown_drop_ctr;

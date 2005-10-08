@@ -28,10 +28,8 @@
 
 #include "ioaux.h"
 
-#include "aclib/ac.h"
-#include "aclib/imgconvert.h"
-
 #include "transcode.h"
+#include "aclib/imgconvert.h"
 #include "tc.h"
 
 /*
@@ -184,8 +182,6 @@ static int vo_alloc (vo_t *vo, int width, int height)
 	free (vo->yuv[2]);
         return -1;
     }
-    
-    ac_imgconvert_init(ac_mmflag());
     
     return 0;
 }

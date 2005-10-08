@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     int ch, done=0;
     char *codec=NULL, *format="rgb", *magic="none";
 
-	tc_memcpy_init(verbose & TC_INFO, -1);
+    ac_init(AC_ALL);
 
     memset(&decode, 0, sizeof(decode));
     decode.magic = TC_MAGIC_UNKNOWN;

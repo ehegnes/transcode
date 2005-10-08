@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
   uint16_t sync_word = 0;
   int cdsize = 0;
 
-  tc_memcpy_init(verbose & TC_INFO, -1);
+  ac_init(AC_ALL);
 
   //proper initialization
   memset(&ipipe, 0, sizeof(info_t));

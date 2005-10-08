@@ -108,8 +108,6 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
 
-    ac_imgconvert_init(tc_accel);
-    
     if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
     
     if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);

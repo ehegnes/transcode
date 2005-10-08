@@ -17,15 +17,15 @@
 /* Identity transformation, works when src==dest */
 static int yuv16_copy(uint8_t **src, uint8_t **dest, int width, int height)
 {
-    tc_memcpy(dest[0], src[0], width*height*2);
+    ac_memcpy(dest[0], src[0], width*height*2);
     return 1;
 }
 
 /* Used for YUY2->UYVY and UYVY->YUY2, works when src==dest */
 static int yuv16_swap16(uint8_t **src, uint8_t **dest, int width, int height)
 {
-    u_int16_t *srcp  = (u_int16_t *)src[0];
-    u_int16_t *destp = (u_int16_t *)dest[0];
+    uint16_t *srcp  = (uint16_t *)src[0];
+    uint16_t *destp = (uint16_t *)dest[0];
     int i;
     for (i = 0; i < width*height; i++)
 	destp[i] = srcp[i]>>8 | srcp[i]<<8;

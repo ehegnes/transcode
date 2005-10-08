@@ -26,7 +26,6 @@
 
 #include "transcode.h"
 
-#include "aclib/ac.h"
 #include "aclib/imgconvert.h"
 
 int tc_rgb2yuv_init(int width, int height);

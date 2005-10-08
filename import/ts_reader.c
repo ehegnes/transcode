@@ -155,7 +155,7 @@ void probe_ts(info_t *ipipe)
 	size += i;
 	
 	init_ts (&p);
-	tc_memcpy (&p, buffer, 3);
+	ac_memcpy (&p, buffer, 3);
 
 	found = 0;
 	for (i=0;i<npid;i++){
@@ -235,16 +235,16 @@ static int demux (uint8_t * buf, uint8_t * end, int flags)
 	if (missing > 0) {					\
 	    if (header == head_buf) {				\
 		if (missing <= end - buf) {			\
-		    tc_memcpy (header + bytes, buf, missing);	\
+		    ac_memcpy (header + bytes, buf, missing);	\
 		    buf += missing;				\
 		    bytes = (x);				\
 		} else {					\
-		    tc_memcpy (header + bytes, buf, end - buf);	\
+		    ac_memcpy (header + bytes, buf, end - buf);	\
 		    state_bytes = bytes + end - buf;		\
 		    return 0;					\
 		}						\
 	    } else {						\
-		tc_memcpy (head_buf, header, bytes);		\
+		ac_memcpy (head_buf, header, bytes);		\
 		state = DEMUX_HEADER;				\
 		state_bytes = bytes;				\
 		return 0;					\

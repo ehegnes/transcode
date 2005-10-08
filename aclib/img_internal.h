@@ -14,7 +14,8 @@ typedef int (*ConversionFunc)(uint8_t **src, uint8_t **dest,
 extern int register_conversion(ImageFormat srcfmt, ImageFormat destfmt,
 			       ConversionFunc function);
 
-/* Initialization subfunctions */
+/* Initialization routines */
+extern int ac_imgconvert_init(int accel);
 extern int ac_imgconvert_init_yuv_planar(int accel);
 extern int ac_imgconvert_init_yuv_packed(int accel);
 extern int ac_imgconvert_init_yuv_mixed(int accel);

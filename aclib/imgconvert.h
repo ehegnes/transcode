@@ -20,10 +20,12 @@ typedef enum {
     IMG_YUY2,		/* YUV packed, 1 U/V per 2x1 Y pixels, Y:U:Y:V */
     IMG_UYVY,		/* YUV packed, 1 U/V per 2x1 Y pixels, U:Y:V:Y */
     IMG_YVYU,		/* YUV packed, 1 U/V per 2x1 Y pixels, Y:V:Y:U */
+    IMG_Y8,		/* Y-only 8-bit data */
     /* RGB formats */
     IMG_RGB24,		/* RGB packed, 8 bits per component, R:G:B */
+    IMG_BGR24,		/* RGB packed, 8 bits per component, B:G:R */
     IMG_ARGB32,		/* RGB+alpha packed, 8 bits per component, A:R:G:B */
-    IMG_GRAY8,		/* Grayscale 8 bits */
+    IMG_GRAY8,		/* Grayscale 8-bit data */
 } ImageFormat;
 
 /* Alias */
@@ -49,6 +51,15 @@ typedef enum {
     ((planes)[0] = (buffer),                   \
      (planes)[1] = (planes)[0] + (w)*(h),      \
      (planes)[2] = (planes)[1] + UV_PLANE_SIZE((fmt),(w),(h)))
+
+/* Structure describing an image.  FIXME: not currently used--this should
+ * eventually replace the (planes,format) pairs passed to ac_imgconvert. */
+typedef struct {
+    ImageFormat format;  /* Format of image data */
+    int width, height;   /* Size of image */
+    uint8_t *planes[4];  /* Data planes (use planes[0] for packed data) */
+    int stride[4];       /* Length of one row in each plane, incl. padding */
+} Image;
 
 /*************************************************************************/
 

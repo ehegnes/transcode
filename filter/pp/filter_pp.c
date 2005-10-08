@@ -30,8 +30,6 @@
 #include "filter.h"
 #include "optstr.h"
 
-#include "aclib/ac.h"
-
 #include <ctype.h>
 #include <inttypes.h>
 
@@ -264,11 +262,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
       return(-1);
     }
     
-    if(tc_accel & MM_MMXEXT) 
+    if(tc_accel & AC_MMXEXT) 
       context[instance] = pp_get_context(width[instance], height[instance], PP_CPU_CAPS_MMX2);
-    else if(tc_accel & MM_3DNOW) 
+    else if(tc_accel & AC_3DNOW) 
       context[instance] = pp_get_context(width[instance], height[instance], PP_CPU_CAPS_3DNOW);
-    else if(tc_accel & MM_MMX) 
+    else if(tc_accel & AC_MMX) 
       context[instance] = pp_get_context(width[instance], height[instance], PP_CPU_CAPS_MMX);
     else 
       context[instance] = pp_get_context(width[instance], height[instance], 0);

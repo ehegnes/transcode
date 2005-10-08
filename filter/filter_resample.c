@@ -152,7 +152,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if(ptr->audio_size<0) ptr->audio_size=0;
     
-    tc_memcpy(ptr->audio_buf, resample_buffer, ptr->audio_size);
+    ac_memcpy(ptr->audio_buf, resample_buffer, ptr->audio_size);
     }
   } 
   

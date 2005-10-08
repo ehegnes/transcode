@@ -498,7 +498,7 @@ static void copy_buf_yuv422(char *dest, size_t size)
             "[%s] buffer sizes do not match (input %lu != output %lu)\n",
             MOD_NAME, (unsigned long)bktr_buffer_size, (unsigned long)size);
 
-    tc_memcpy(dest, bktr_buffer, size);
+    ac_memcpy(dest, bktr_buffer, size);
 }
 
 static void copy_buf_yuv(char *dest, size_t size)
@@ -515,9 +515,9 @@ static void copy_buf_yuv(char *dest, size_t size)
             MOD_NAME, (unsigned long)bktr_buffer_size, (unsigned long)size);
 
     /* switch Cb and Cr */
-    tc_memcpy(dest + y_offset,  bktr_buffer + y_offset,  y_size);
-    tc_memcpy(dest + u1_offset, bktr_buffer + u2_offset, u_size);
-    tc_memcpy(dest + u2_offset, bktr_buffer + u1_offset, u_size);
+    ac_memcpy(dest + y_offset,  bktr_buffer + y_offset,  y_size);
+    ac_memcpy(dest + u1_offset, bktr_buffer + u2_offset, u_size);
+    ac_memcpy(dest + u2_offset, bktr_buffer + u1_offset, u_size);
 }
 
 static void copy_buf_rgb(char *dest, size_t size)

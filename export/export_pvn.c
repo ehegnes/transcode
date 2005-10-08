@@ -67,8 +67,6 @@ MOD_init
 
     if(param->flag == TC_VIDEO) {
 
-      ac_imgconvert_init(tc_accel);
-
       if(vob->im_v_codec == CODEC_YUV) {
 	width = vob->ex_v_width;
 	height = vob->ex_v_height;

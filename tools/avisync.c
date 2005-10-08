@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
   int aud_bitrate = 0;
   int aud_chunks = 0;
 
-  tc_memcpy_init(0, -1);
+  ac_init(AC_ALL);
 
   if(argc==1) usage(EXIT_FAILURE);
   
@@ -450,7 +450,7 @@ int main(int argc, char *argv[])
 			break;
 		    }
 
-		    tc_memcpy(ptr->data, data, bytes);
+		    ac_memcpy(ptr->data, data, bytes);
 		    ptr->size = bytes;
 		    ptr->status = BUFFER_READY;
 		}
@@ -490,7 +490,7 @@ int main(int argc, char *argv[])
 		    break;
 		}
 	  
-		tc_memcpy(ptr->data, data, bytes);
+		ac_memcpy(ptr->data, data, bytes);
 		ptr->size = bytes;
 		ptr->status = BUFFER_READY;
 	    }
@@ -503,7 +503,7 @@ int main(int argc, char *argv[])
 	
 	if (!ptrlen) {
 	    ptr = buffer_retrieve();
-	    tc_memcpy (ptrdata, ptr->data, ptr->size);
+	    ac_memcpy (ptrdata, ptr->data, ptr->size);
 	    ptrlen = ptr->size;
 	}
 
@@ -609,7 +609,7 @@ int main(int argc, char *argv[])
 	    break;
 	  }
      
-	  tc_memcpy(ptr->data, data, bytes);
+	  ac_memcpy(ptr->data, data, bytes);
 	  ptr->size = bytes;
 	  ptr->status = BUFFER_READY;
 
@@ -644,7 +644,7 @@ int main(int argc, char *argv[])
 	      return(-1);
 	    } 
 	    bytes = ptr->size;
-	    tc_memcpy (data, ptr->data, bytes);
+	    ac_memcpy (data, ptr->data, bytes);
 	
 	    fprintf(status_fd, "V [%05d] | A [%05d]\r", n, ptr->id);
 	
@@ -695,7 +695,7 @@ int main(int argc, char *argv[])
 	break;
       }
       
-      tc_memcpy(ptr->data, data, bytes);
+      ac_memcpy(ptr->data, data, bytes);
       ptr->size = bytes;
       ptr->status = BUFFER_READY;
       

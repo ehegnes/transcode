@@ -149,8 +149,6 @@ void decode_lavc(decode_t *decode)
   long       bytes_read = 0;
   uint8_t   *planes[3];
 
-  ac_imgconvert_init(ac_mmflag());
-
   verbose_flag = decode->verbose;
 
   x_dim = decode->width;
@@ -298,14 +296,14 @@ void decode_lavc(decode_t *decode)
 	    if (picture.linesize[0] != lavc_dec_context->width) {
 		int y;
 		for (y = 0; y < lavc_dec_context->height; y++) {
-		    tc_memcpy(picture.data[0] + y*lavc_dec_context->width,
+		    ac_memcpy(picture.data[0] + y*lavc_dec_context->width,
 			      picture.data[0] + y*picture.linesize[0],
 			      lavc_dec_context->width);
 		    if (y%2 == 0) {
-			tc_memcpy(picture.data[1] + y*(lavc_dec_context->width/2),
+			ac_memcpy(picture.data[1] + y*(lavc_dec_context->width/2),
 				  picture.data[1] + y*picture.linesize[1],
 				  lavc_dec_context->width/2);
-			tc_memcpy(picture.data[2] + y*(lavc_dec_context->width/2),
+			ac_memcpy(picture.data[2] + y*(lavc_dec_context->width/2),
 				  picture.data[2] + y*picture.linesize[2],
 				  lavc_dec_context->width/2);
 		    }
@@ -319,13 +317,13 @@ void decode_lavc(decode_t *decode)
 	    if (picture.linesize[0] != lavc_dec_context->width) {
 		int y;
 		for (y = 0; y < lavc_dec_context->height; y++) {
-		    tc_memcpy(picture.data[0] + y*lavc_dec_context->width,
+		    ac_memcpy(picture.data[0] + y*lavc_dec_context->width,
 			      picture.data[0] + y*picture.linesize[0],
 			      lavc_dec_context->width);
-		    tc_memcpy(picture.data[1] + y*(lavc_dec_context->width/4),
+		    ac_memcpy(picture.data[1] + y*(lavc_dec_context->width/4),
 			      picture.data[1] + y*picture.linesize[1],
 			      lavc_dec_context->width/4);
-		    tc_memcpy(picture.data[2] + y*(lavc_dec_context->width/4),
+		    ac_memcpy(picture.data[2] + y*(lavc_dec_context->width/4),
 			      picture.data[2] + y*picture.linesize[2],
 			      lavc_dec_context->width/4);
 		}
@@ -339,13 +337,13 @@ void decode_lavc(decode_t *decode)
 	    if (picture.linesize[0] != lavc_dec_context->width) {
 		int y;
 		for (y = 0; y < lavc_dec_context->height; y++) {
-		    tc_memcpy(picture.data[0] + y*lavc_dec_context->width,
+		    ac_memcpy(picture.data[0] + y*lavc_dec_context->width,
 			      picture.data[0] + y*picture.linesize[0],
 			      lavc_dec_context->width);
-		    tc_memcpy(picture.data[1] + y*(lavc_dec_context->width/2),
+		    ac_memcpy(picture.data[1] + y*(lavc_dec_context->width/2),
 			      picture.data[1] + y*picture.linesize[1],
 			      lavc_dec_context->width/2);
-		    tc_memcpy(picture.data[2] + y*(lavc_dec_context->width/2),
+		    ac_memcpy(picture.data[2] + y*(lavc_dec_context->width/2),
 			      picture.data[2] + y*picture.linesize[2],
 			      lavc_dec_context->width/2);
 		}
@@ -359,13 +357,13 @@ void decode_lavc(decode_t *decode)
 	    if (picture.linesize[0] != lavc_dec_context->width) {
 		int y;
 		for (y = 0; y < lavc_dec_context->height; y++) {
-		    tc_memcpy(picture.data[0] + y*lavc_dec_context->width,
+		    ac_memcpy(picture.data[0] + y*lavc_dec_context->width,
 			      picture.data[0] + y*picture.linesize[0],
 			      lavc_dec_context->width);
-		    tc_memcpy(picture.data[1] + y*lavc_dec_context->width,
+		    ac_memcpy(picture.data[1] + y*lavc_dec_context->width,
 			      picture.data[1] + y*picture.linesize[1],
 			      lavc_dec_context->width);
-		    tc_memcpy(picture.data[2] + y*lavc_dec_context->width,
+		    ac_memcpy(picture.data[2] + y*lavc_dec_context->width,
 			      picture.data[2] + y*picture.linesize[2],
 			      lavc_dec_context->width);
 		}

@@ -293,7 +293,7 @@ MOD_decode
 		if (result) return TC_IMPORT_ERROR;
 	    }
 	} 
-	tc_memcpy (param->buffer, 
+	ac_memcpy (param->buffer, 
 		(char *)prefetch_buffer + 
                            (framenum % FRAMES_TO_PREFETCH) * vob->im_a_size, 
 		vob->im_a_size);
@@ -316,7 +316,7 @@ MOD_decode
       param->size = block * height;
     
       for(i=0; i<height; ++i) 
-	tc_memcpy(param->buffer+(i-1)*block,rowptr[height-i-1], block);
+	ac_memcpy(param->buffer+(i-1)*block,rowptr[height-i-1], block);
 
       break;
 
@@ -327,7 +327,7 @@ MOD_decode
           return(TC_IMPORT_ERROR);
 
       param->size = (width * height * 3)>>1;
-      tc_memcpy(param->buffer, framebuffer,param->size);
+      ac_memcpy(param->buffer, framebuffer,param->size);
       break;
     }
     return(TC_IMPORT_OK);

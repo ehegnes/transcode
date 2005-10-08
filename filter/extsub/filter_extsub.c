@@ -226,7 +226,7 @@ static void anti_alias_subtitle(int black) {
   //use transcode's anti-alias routine (full frame mode = 3)
   if(!skip_anti_alias) {
     yuv_antialias(sub_frame, tmp_frame, sub_xlen, sub_ylen, 3);
-    tc_memcpy(sub_frame, tmp_frame, sub_xlen * sub_ylen);
+    ac_memcpy(sub_frame, tmp_frame, sub_xlen * sub_ylen);
   }
 
   anti_alias_done=1;

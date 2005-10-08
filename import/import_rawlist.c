@@ -66,8 +66,6 @@ MOD_open
 	return(TC_IMPORT_ERROR);
     }
 
-    ac_imgconvert_init(tc_accel);
-
     param->fd = NULL;
 
     if (vob->im_v_string) {
@@ -191,7 +189,7 @@ retry:
   if(srcfmt != destfmt) {
     ac_imgconvert(&param->buffer, srcfmt, &video_buffer, destfmt,
 		  vob->im_v_width, vob->im_v_height);
-    tc_memcpy(param->buffer, video_buffer, out_bytes);
+    ac_memcpy(param->buffer, video_buffer, out_bytes);
   }
   
   param->size=out_bytes;

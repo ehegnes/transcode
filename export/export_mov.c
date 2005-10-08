@@ -226,8 +226,6 @@ MOD_init
     char *qt_codec;
     int divx_bitrate;
     
-    ac_imgconvert_init(tc_accel); 
-
     /* fetch frame size */
     w = vob->ex_v_width;
     h = vob->ex_v_height;

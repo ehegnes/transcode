@@ -378,7 +378,7 @@ static char *get_next_filter_name(char **name, int *namelen, char *string)
 	  len = *namelen;
 	  *name = (char *)malloc(len+2);
 	  memset(*name, 0, len+2);
-	  tc_memcpy(*name, string, len);
+	  ac_memcpy(*name, string, len);
 
 	  //return pointer to '\0'
 	  return(string+strlen(string));
@@ -397,7 +397,7 @@ static char *get_next_filter_name(char **name, int *namelen, char *string)
   *name = (char *)malloc(len+2);
 
   memset(*name, 0, len+2);
-  tc_memcpy(*name, string, len);
+  ac_memcpy(*name, string, len);
   
   return(res+1);
 }

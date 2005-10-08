@@ -718,19 +718,19 @@ video_grab_frame (char *buffer)
   switch (fg.format) {
 
   case VIDEO_PALETTE_RGB24:
-    tc_memcpy (buffer, p, fg.image_size);
+    ac_memcpy (buffer, p, fg.image_size);
 
     break;
 
   case VIDEO_PALETTE_YUV420P:
-    tc_memcpy (buffer, p, fg.image_pixels);
-    tc_memcpy (buffer + fg.image_pixels, p + (fg.image_pixels * 10 / 8), fg.image_pixels >> 2);
-    tc_memcpy (buffer + (fg.image_pixels * 10 / 8), p + fg.image_pixels, fg.image_pixels >> 2);
+    ac_memcpy (buffer, p, fg.image_pixels);
+    ac_memcpy (buffer + fg.image_pixels, p + (fg.image_pixels * 10 / 8), fg.image_pixels >> 2);
+    ac_memcpy (buffer + (fg.image_pixels * 10 / 8), p + fg.image_pixels, fg.image_pixels >> 2);
 
     break;
 
   case VIDEO_PALETTE_YUV422:
-    tc_memcpy (buffer, p, fg.image_size);
+    ac_memcpy (buffer, p, fg.image_size);
 
     break;
   }

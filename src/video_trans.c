@@ -24,7 +24,6 @@
 #include "transcode.h"
 #include "framebuffer.h"
 #include "video_trans.h"
-#include "aclib/ac.h"
 
 /* ------------------------------------------------------------ 
  *
@@ -57,141 +56,6 @@ unsigned long *aa_table_d;
 char *tmp_image=NULL;
 
 
-static int yuv_vert_resize_init_flag=0;
-static int rgb_vert_resize_init_flag=0;
-static int yuv422_vert_resize_init_flag=0;
-
-int (*yuv_merge_8)(char *row1, char *row2, char *out, int bytes, 
-		   unsigned long weight1, unsigned long weight2);
-
-int (*yuv_merge_16)(char *row1, char *row2, char *out, int bytes, 
-		    unsigned long weight1, unsigned long weight2);
-
-int (*rgb_merge)(char *row1, char *row2, char *out, int bytes, 
-		 unsigned long weight1, unsigned long weight2);
-
-int (*yuv422_merge)(char *row1, char *row2, char *out, int bytes, 
-		 unsigned long weight1, unsigned long weight2);
-
-
-static void yuv_vert_resize_init(int width)
-{
-  
-  yuv_vert_resize_init_flag=1;
-
-  yuv_merge_8  = yuv_merge_C;
-  yuv_merge_16 = yuv_merge_C;
-
-#ifdef ARCH_X86
-  
-  if(((width>>1) % 16) == 0) {
-    if(tc_accel & MM_MMXEXT) yuv_merge_8 = ac_rescale_mmxext;
-    if(tc_accel & MM_SSE) yuv_merge_8 = ac_rescale_sse;
-    if(tc_accel & MM_SSE2) yuv_merge_8 = ac_rescale_sse2; 
-  } else {
-    if(tc_accel & MM_SSE2 || tc_accel & MM_SSE || tc_accel & MM_MMXEXT)
-      yuv_merge_8 = ac_rescale_mmxext;
-  }
-  
-  if((width % 16) == 0) {
-    if(tc_accel & MM_MMXEXT) yuv_merge_16=ac_rescale_mmxext;
-    if(tc_accel & MM_SSE) yuv_merge_16=ac_rescale_sse;
-    if(tc_accel & MM_SSE2) yuv_merge_16=ac_rescale_sse2; 
-  } else {
-    if(tc_accel & MM_SSE2 || tc_accel & MM_SSE || tc_accel & MM_MMXEXT) {
-      yuv_merge_16 = ac_rescale_mmxext;
-      yuv_merge_8 = yuv_merge_C;
-    }
-  }
-  
-#endif
-
-#ifdef ARCH_X86_64
-  if(((width>>1) % 16) == 0) {
-    if(tc_accel & MM_SSE2) yuv_merge_8 = ac_rescale_sse2; 
-  }
-  if((width % 16) == 0) {
-    if(tc_accel & MM_SSE2) yuv_merge_16=ac_rescale_sse2; 
-  }
-#endif
-  
-  return;
-}
-
-
-static void yuv422_vert_resize_init(void)
-{
-  
-  yuv422_vert_resize_init_flag=1;
-  
-#if 0
-#ifdef ARCH_X86
-  if(tc_accel & MM_SSE2) {
-    yuv422_merge=ac_rescale_sse2;
-    return;
-  }
-  if(tc_accel & MM_SSE) {
-    yuv422_merge=ac_rescale_sse;
-    return;
-  }
-  if(tc_accel & MM_MMXEXT) {
-    yuv422_merge=ac_rescale_mmxext;
-    return;
-  }
-#endif
-#if ARCH_X86_64
-  if(tc_accel & MM_SSE2) {
-    yuv422_merge=ac_rescale_sse2;
-    return;
-  }
-#endif
-#endif // 0
-  
-  yuv422_merge=yuv422_merge_C;
-  
-  return;
-}
-
-static void rgb_vert_resize_init(void)
-{
-  
-  rgb_vert_resize_init_flag=1;
-  
-#ifdef ARCH_X86
-  if(tc_accel & MM_SSE2) {
-    rgb_merge=ac_rescale_sse2;
-    return;
-  }
-  if(tc_accel & MM_SSE) {
-    rgb_merge=ac_rescale_sse;
-    return;
-  }
-  if(tc_accel & MM_MMXEXT) {
-    rgb_merge=ac_rescale_mmxext;
-    return;
-  }
-#endif
-#ifdef ARCH_X86_64
-  if(tc_accel & MM_SSE2) {
-    rgb_merge=ac_rescale_sse2;
-    return;
-  }
-#endif
-  
-  rgb_merge=rgb_merge_C;
-  
-  return;
-}
-
-inline void clear_mmx()
-{
-#warning ******************** FIXME ************************ go to aclib, do not pass go, do not collect $200 (and bring all this init stuff with you)
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
-#ifdef HAVE_MMX
-  __asm __volatile ("emms;":::"memory");    
-#endif
-#endif
-}
 
 void init_table_8(redtab_t *table, int length, int resize)
 {
@@ -446,8 +310,6 @@ static int process_yuv422_frame(vob_t *vob, vframe_list_t *ptr)
   
   if(resize2 && vob->vert_resize2) {
 
-    if(!yuv422_vert_resize_init_flag) yuv422_vert_resize_init();
-    
     if(!vert_table_8_up_flag) {
       init_table_8_up(vert_table_8_up, ptr->v_height, vob->vert_resize2);
       vert_table_8_up_flag=1;
@@ -460,8 +322,6 @@ static int process_yuv422_frame(vob_t *vob, vframe_list_t *ptr)
     
     ptr->v_height += vob->vert_resize2<<3;    
     ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2 *3;
-
-    clear_mmx();
 
   }
  
@@ -496,8 +356,6 @@ static int process_yuv422_frame(vob_t *vob, vframe_list_t *ptr)
 
   if(resize1 && vob->vert_resize1) {
 
-    if(!yuv422_vert_resize_init_flag) yuv422_vert_resize_init();
-
     if(!vert_table_8_flag) {
       init_table_8(vert_table_8, ptr->v_height, vob->vert_resize1);
       vert_table_8_flag=1;
@@ -509,8 +367,6 @@ static int process_yuv422_frame(vob_t *vob, vframe_list_t *ptr)
     
     ptr->v_height -= vob->vert_resize1<<3;
     ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2 *3;
-
-    clear_mmx();
 
   }
   
@@ -834,8 +690,6 @@ static int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
   
   if(resize2 && vob->vert_resize2) {
 
-    if(!yuv_vert_resize_init_flag) yuv_vert_resize_init(ptr->v_width);
-    
     if(!vert_table_8_up_flag) {
       init_table_8_up(vert_table_8_up, ptr->v_height, vob->vert_resize2);
       vert_table_8_up_flag=1;
@@ -848,8 +702,6 @@ static int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
 
     ptr->v_height += vob->vert_resize2<<3;    
     ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2;
-
-    clear_mmx();
 
   }
  
@@ -884,8 +736,6 @@ static int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
 
   if(resize1 && vob->vert_resize1) {
 
-    if(!yuv_vert_resize_init_flag) yuv_vert_resize_init(ptr->v_width);
-
     if(!vert_table_8_flag) {
       init_table_8(vert_table_8, ptr->v_height, vob->vert_resize1);
       vert_table_8_flag=1;
@@ -897,8 +747,6 @@ static int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
     
     ptr->v_height -= vob->vert_resize1<<3;
     ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8/2;
-
-    clear_mmx();
 
   }
   
@@ -1108,7 +956,7 @@ static int process_yuv_frame(vob_t *vob, vframe_list_t *ptr)
     if(!aa_table_flag) init_aa_table(vob->aa_weight, vob->aa_bias);
     
     //UV components unchanged
-    tc_memcpy(ptr->video_buf_Y[ptr->free]+ptr->v_width*ptr->v_height, ptr->video_buf + ptr->v_width*ptr->v_height, ptr->v_width*ptr->v_height/2);
+    ac_memcpy(ptr->video_buf_Y[ptr->free]+ptr->v_width*ptr->v_height, ptr->video_buf + ptr->v_width*ptr->v_height, ptr->v_width*ptr->v_height/2);
     
     yuv_antialias(ptr->video_buf, ptr->video_buf_Y[ptr->free], ptr->v_width, ptr->v_height, vob->antialias);
     
@@ -1237,8 +1085,6 @@ static int process_rgb_frame(vob_t *vob, vframe_list_t *ptr)
    
    if(resize2 && vob->vert_resize2) {
      
-     if(!rgb_vert_resize_init_flag) rgb_vert_resize_init();
-     
     if(!vert_table_8_up_flag) {
       init_table_8_up(vert_table_8_up, ptr->v_height, vob->vert_resize2);
       vert_table_8_up_flag=1;
@@ -1253,7 +1099,6 @@ static int process_rgb_frame(vob_t *vob, vframe_list_t *ptr)
     ptr->v_height += vob->vert_resize2<<3;    
     ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8;
 
-    clear_mmx();
   }
   
   /* ------------------------------------------------------------ 
@@ -1287,8 +1132,6 @@ static int process_rgb_frame(vob_t *vob, vframe_list_t *ptr)
   
   if(resize1 && vob->vert_resize1) {
 
-    if(!rgb_vert_resize_init_flag) rgb_vert_resize_init();
-    
     if(!vert_table_8_flag) {
       init_table_8(vert_table_8, ptr->v_height, vob->vert_resize1);
       vert_table_8_flag=1;
@@ -1300,8 +1143,6 @@ static int process_rgb_frame(vob_t *vob, vframe_list_t *ptr)
     
     ptr->v_height -= vob->vert_resize1<<3;
     ptr->video_size = ptr->v_height *  ptr->v_width * ptr->v_bpp/8;
-
-    clear_mmx();
     
   }
 

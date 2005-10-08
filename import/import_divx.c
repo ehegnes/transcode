@@ -598,7 +598,7 @@ MOD_decode {
 #endif
 
       param->size = frame_size;
-      tc_memcpy(param->buffer, working_frame, frame_size);
+      ac_memcpy(param->buffer, working_frame, frame_size);
     }
 
     //for preview/pass-through feature
@@ -625,7 +625,7 @@ MOD_decode {
 	  return(TC_IMPORT_ERROR); 
       }
 #endif
-      tc_memcpy(param->buffer2, working_frame, frame_size);
+      ac_memcpy(param->buffer2, working_frame, frame_size);
     }
 
     return(TC_IMPORT_OK);

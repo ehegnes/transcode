@@ -33,7 +33,6 @@
 #include "pvm_parser.h"
 
 #include "transcode.h"
-#include "aclib/ac.h"
 #include "export_pvm_slave.h"
 #include "external_codec.h"
 
@@ -144,7 +143,7 @@ int f_init_func(char *p_option,char *p_mod)
 	{
 		if (p_mod!=NULL)
 		{
-			tc_accel = ac_mmflag();			/*det the properties of cpu*/
+			tc_accel = ac_cpuinfo();
 			memset((char *)&s_module,'\0',MAX_BUF);
 			snprintf(s_module, sizeof(s_module), "%s/export_%s.so", p_modpath,p_mod);
 			f_ext_handle=dlopen(s_module, RTLD_GLOBAL|RTLD_LAZY);

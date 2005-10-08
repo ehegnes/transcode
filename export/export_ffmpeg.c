@@ -243,8 +243,6 @@ MOD_init {
 
     if (param->flag == TC_VIDEO) {
 
-	ac_imgconvert_init (tc_accel); 
-
         /* Check if the user used '-F codecname' and abort if not. */
 
         if (vob->ex_v_fcc) {

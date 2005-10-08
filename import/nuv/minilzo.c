@@ -513,7 +513,7 @@ extern "C" {
 #if !defined(__LZO_DOS16) && !defined(__LZO_WIN16)
 
 #define MEMCPY8_DS(dest,src,len) \
-    tc_memcpy(dest,src,len); \
+    ac_memcpy(dest,src,len); \
     dest += len; \
     src += len
 

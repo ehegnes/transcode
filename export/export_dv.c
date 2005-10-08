@@ -87,8 +87,6 @@ MOD_init
 {
     
     if(param->flag == TC_VIDEO) {
-      ac_imgconvert_init(tc_accel);
-
       target = bufalloc(TC_FRAME_DV_PAL);
 
       if(vob->dv_yuy2_mode) {

@@ -130,7 +130,7 @@ static inline void copy_field(char *to, char *from, int width, int height) {
 
   height >>= 1;
   while (height--) {
-    tc_memcpy(to, from, width);
+    ac_memcpy(to, from, width);
     to += increment;
     from += increment;
   }
@@ -144,9 +144,9 @@ static inline void swap_fields(char *f1, char *f2, int width, int height) {
 
   height >>= 1;
   while (height--) {
-    tc_memcpy(buffer, f1, width);
-    tc_memcpy(f1, f2, width);
-    tc_memcpy(f2, buffer, width);
+    ac_memcpy(buffer, f1, width);
+    ac_memcpy(f1, f2, width);
+    ac_memcpy(f2, buffer, width);
     f1 += increment;
     f2 += increment;
   }

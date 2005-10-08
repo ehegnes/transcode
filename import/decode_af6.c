@@ -50,8 +50,6 @@ static int af6_init(char *path) {
 #endif    
     char *error;
 
-    ac_imgconvert_init(ac_mmflag());
-
     snprintf(module, sizeof(module), "%s/%s", path, MODULE);
   
     if(verbose & TC_DEBUG) 

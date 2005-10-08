@@ -71,7 +71,7 @@ void probe_vnc(info_t *ipipe)
     }
 
     /* Check VNCREC magic */
-    tc_memcpy(matchingBuffer, &buf[index], VNCREC_MAGIC_SIZE);
+    ac_memcpy(matchingBuffer, &buf[index], VNCREC_MAGIC_SIZE);
     matchingBuffer[VNCREC_MAGIC_SIZE] = 0;
     if(strcmp(matchingBuffer, VNCREC_MAGIC_STRING)) { /* NOT EQUAL */
 	fprintf(stderr, "(%s) unsupported version of vncrec (\"%s\")\n",
@@ -83,7 +83,7 @@ void probe_vnc(info_t *ipipe)
 
 
     /* Ensure RFB protocol is valid */
-    tc_memcpy(matchingBuffer, &buf[index], VNC_RFB_PROTO_VERSION_SIZE);
+    ac_memcpy(matchingBuffer, &buf[index], VNC_RFB_PROTO_VERSION_SIZE);
     matchingBuffer[VNC_RFB_PROTO_VERSION_SIZE] = 0;
     if(sscanf(matchingBuffer, VNC_RFB_PROTOCOL_SCANF_FORMAT, &major, &minor) != 2) {
 	fprintf(stderr, "(%s) unknown RFB protocol (\"%s\")\n", __FILE__,

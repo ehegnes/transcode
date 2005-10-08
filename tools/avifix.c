@@ -30,7 +30,6 @@
 #include <string.h>
 
 #include "transcode.h"
-
 #include "config.h"
 #include "avilib.h"
 
@@ -81,7 +80,7 @@ int main(int argc, char *argv[])
 
   char *filename=NULL;
 
-  tc_memcpy_init(0, -1);
+  ac_init(AC_ALL);
 
   if(argc==1) usage(EXIT_FAILURE);
   

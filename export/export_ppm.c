@@ -60,8 +60,6 @@ static unsigned int int_counter=0;
 
 MOD_init
 {
-    ac_imgconvert_init (tc_accel); 
-
     /* set the 'spit-out-frame' interval */
     interval = vob->frame_interval;
 

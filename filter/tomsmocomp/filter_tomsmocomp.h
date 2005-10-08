@@ -27,8 +27,6 @@
 #include "filter.h"
 #include "optstr.h"
 
-#include "aclib/ac.h"
-
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif

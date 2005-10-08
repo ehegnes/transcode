@@ -75,8 +75,6 @@ MOD_init
     if(param->flag == TC_VIDEO) {
       int quality = 75;
 
-      ac_imgconvert_init(tc_accel);
-
       width = vob->ex_v_width;
       height = vob->ex_v_height;
       

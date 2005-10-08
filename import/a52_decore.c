@@ -92,11 +92,13 @@ int a52_decore(decode_t *decode) {
 
 
 #ifdef HAVE_MMX
-  accel |= MM_ACCEL_X86_MMX;
+  if (ac_cpuinfo() & AC_MMX)
+    accel |= MM_ACCEL_X86_MMX;
 #endif
 
 #ifdef HAVE_ASM_3DNOW
-  accel |= MM_ACCEL_X86_3DNOW;
+  if (ac_cpuinfo() & AC_3DNOW)
+    accel |= MM_ACCEL_X86_3DNOW;
 #endif
 
   state = a52_init(accel);
@@ -149,7 +151,7 @@ int a52_decore(decode_t *decode) {
     
     // FIXME:
     // save header 
-    // tc_memcpy(header, &buf[2], 5);
+    // ac_memcpy(header, &buf[2], 5);
 
     // valid AC3 frame?
 

@@ -373,14 +373,14 @@ void tcdemux_thread(info_t *ipipe)
 	  //first valid audio packet!
 	  
 	  // get pts time stamp:
-	  tc_memcpy(buf, &buffer[20], 16);
+	  ac_memcpy(buf, &buffer[20], 16);
 	  has_pts_dts=get_pts_dts(buf, &i_pts, &i_dts);
 	  
 	  if(has_pts_dts) {
 	    track_initial_pts=(double)i_pts/90000.;
 	  } else {
 	    //fallback to scr time stamp:
-	    tc_memcpy(buf, &buffer[4], 6);
+	    ac_memcpy(buf, &buffer[4], 6);
 	    track_initial_pts = read_time_stamp(buf);
 	  }
 	  
@@ -416,7 +416,7 @@ void tcdemux_thread(info_t *ipipe)
 	
 	if(flag_av_fine_tune == 0) {
 	  // get pts time stamp:
-	  tc_memcpy(buf, &buffer[20], 16);
+	  ac_memcpy(buf, &buffer[20], 16);
 	  has_pts_dts=get_pts_dts(buf, &i_pts, &i_dts);
 	  
 	  if(av_fine_pts1<0) {
@@ -448,14 +448,14 @@ void tcdemux_thread(info_t *ipipe)
 	if(flag_avsync) {
 		
 	  // get pts time stamp:
-	  tc_memcpy(buf, &buffer[20], 16);
+	  ac_memcpy(buf, &buffer[20], 16);
 	  has_pts_dts=get_pts_dts(buf, &i_pts, &i_dts);
 
 	  if(has_pts_dts) {
 	    pts=(double)i_pts/90000.;
 	  } else {
 	    //fallback to scr time stamp:
-	    tc_memcpy(buf, &buffer[4], 6);
+	    ac_memcpy(buf, &buffer[4], 6);
 	    pts = read_time_stamp(buf);
 	  }
 		
@@ -484,14 +484,14 @@ void tcdemux_thread(info_t *ipipe)
 	  //need to flush a few audio packets, if video ahead
 		
 	  // get pts time stamp:
-	  tc_memcpy(buf, &buffer[20], 16);
+	  ac_memcpy(buf, &buffer[20], 16);
 	  has_pts_dts=get_pts_dts(buf, &i_pts, &i_dts);
 	  
 	  if(has_pts_dts) {
 	    pts=(double)i_pts/90000.;
 	  } else {
 	    //fallback to scr time stamp:
-	    tc_memcpy(buf, &buffer[4], 6);
+	    ac_memcpy(buf, &buffer[4], 6);
 	    pts = read_time_stamp(buf);
 	  }
 	  
@@ -526,14 +526,14 @@ void tcdemux_thread(info_t *ipipe)
 	payload_id=PACKAGE_NAV;
 	
 	// get pts time stamp:
-	tc_memcpy(buf, &buffer[20], 16);
+	ac_memcpy(buf, &buffer[20], 16);
 	has_pts_dts=get_pts_dts(buf, &i_pts, &i_dts);
 	
 	if(has_pts_dts) {
 	  pts=(double)i_pts/90000.;
 	} else {
 	  //fallback to scr time stamp:
-	  tc_memcpy(buf, &buffer[4], 6);
+	  ac_memcpy(buf, &buffer[4], 6);
 	  pts = read_time_stamp(buf);
 	}
 	
@@ -553,11 +553,11 @@ void tcdemux_thread(info_t *ipipe)
 	payload_id = PACKAGE_VIDEO;
 	
 	// get pts time stamp:
-	tc_memcpy(buf, &buffer[4], 6);
+	ac_memcpy(buf, &buffer[4], 6);
 	pts = read_time_stamp(buf);
 	
 	//read full packet header 
-	tc_memcpy(buf, &buffer[20], 16);
+	ac_memcpy(buf, &buffer[20], 16);
 	has_pts_dts=get_pts_dts(buf, &i_pts, &i_dts);
 
 	//need frame/field encoding information
@@ -623,7 +623,7 @@ void tcdemux_thread(info_t *ipipe)
 	  if(seq_seek==0) {
 	    
 	    //re read packet header 
-	    tc_memcpy(buf, &buffer[20], 16);
+	    ac_memcpy(buf, &buffer[20], 16);
 	    get_pts_dts(buf, &i_pts, &i_dts);
 
 	    resync_pts = (double) i_pts / 90000;

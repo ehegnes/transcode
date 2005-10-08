@@ -67,7 +67,7 @@ parse_options(char *options, int *pre, double *infps, double *outfps)
 
 	len = strlen(options);
 	p = alloca(len + 1);
-	tc_memcpy(p, options, len);
+	ac_memcpy(p, options, len);
 	p[len] = '\0';
 
 	i = 0;

@@ -224,7 +224,7 @@ static void v4l2_convert_uyvy_yuv422(const char * source, char * dest, size_t si
 	if(mysize != size)
 		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
 
-	tc_memcpy(dest, source, mysize);
+	ac_memcpy(dest, source, mysize);
 }
 
 static void v4l2_convert_yuyv_yuv422(const char * source, char * dest, size_t size, int xsize, int ysize)
@@ -385,7 +385,7 @@ static void v4l2_convert_yvu420_yuv420(const char * source, char * dest, size_t 
 	if(mysize != size)
 		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
 
-	tc_memcpy(dest, source, mysize);
+	ac_memcpy(dest, source, mysize);
 }
 
 static void v4l2_convert_yuv420_yuv420(const char * source, char * dest, size_t size, int xsize, int ysize)
@@ -401,9 +401,9 @@ static void v4l2_convert_yuv420_yuv420(const char * source, char * dest, size_t 
 	if(mysize != size)
 		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
 
-	tc_memcpy(dest + yplane_offset,  source + yplane_offset,  yplane_size);
-	tc_memcpy(dest + u1plane_offset, source + u2plane_offset, uplane_size);
-	tc_memcpy(dest + u2plane_offset, source + u1plane_offset, uplane_size);
+	ac_memcpy(dest + yplane_offset,  source + yplane_offset,  yplane_size);
+	ac_memcpy(dest + u1plane_offset, source + u2plane_offset, uplane_size);
+	ac_memcpy(dest + u2plane_offset, source + u1plane_offset, uplane_size);
 }
 
 /* ============================================================ 
@@ -434,7 +434,7 @@ static int v4l2_video_clone_frame(char *dest, size_t size)
 	if(!v4l2_resync_previous_frame)
 		memset(dest, 0, size);
 	else
-		tc_memcpy(dest, v4l2_resync_previous_frame, size);
+		ac_memcpy(dest, v4l2_resync_previous_frame, size);
 
 	return(1);
 }
@@ -444,7 +444,7 @@ static void v4l2_save_frame(const char * source, size_t length)
 	if(!v4l2_resync_previous_frame)
 		v4l2_resync_previous_frame = malloc(length);
 
-	tc_memcpy(v4l2_resync_previous_frame, source, length);
+	ac_memcpy(v4l2_resync_previous_frame, source, length);
 }
 
 static int v4l2_video_grab_frame(char * dest, size_t length)

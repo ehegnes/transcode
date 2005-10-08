@@ -183,9 +183,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    unsigned int y_size  = ptr->v_width*ptr->v_height;
 	    unsigned int y_size4 = ptr->v_width*ptr->v_height>>2;
 
-	    tc_memcpy(input_frame[0], ptr->video_buf,            y_size );
-	    tc_memcpy(input_frame[1], ptr->video_buf+y_size    , y_size4);
-	    tc_memcpy(input_frame[2], ptr->video_buf+y_size*5/4, y_size4);
+	    ac_memcpy(input_frame[0], ptr->video_buf,            y_size );
+	    ac_memcpy(input_frame[1], ptr->video_buf+y_size    , y_size4);
+	    ac_memcpy(input_frame[2], ptr->video_buf+y_size*5/4, y_size4);
 	    
 	    output_frame[0] = ptr->video_buf;
 	    output_frame[1] = ptr->video_buf+y_size;

@@ -71,8 +71,6 @@ static int audio_frames_written =0;
 
 MOD_open
 {
-    ac_imgconvert_init (tc_accel); 
-
     /* check for mp1e program */
     if (tc_test_program("mp1e") != 0) return (TC_EXPORT_ERROR);
 

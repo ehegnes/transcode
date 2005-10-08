@@ -255,7 +255,7 @@ static void clone_temporal_average(unsigned char *clone, unsigned char*next, vfr
     if (show_results){
       printf("[%s] temporal_clone: w1 is weak, copying next frame\n",MOD_NAME);
     }
-    tc_memcpy(ptr->video_buf,next,ptr->video_size);
+    ac_memcpy(ptr->video_buf,next,ptr->video_size);
     return;
   } // else
   if (weight2 < 0.0){
@@ -302,11 +302,11 @@ static void clone_interpolate(char *clone, char *next, vframe_list_t *ptr){
   s1 = clone;
   s2 = next+width;
   for(i=0;i<height;i++){
-    tc_memcpy(dest,s1,width);
+    ac_memcpy(dest,s1,width);
     dest += width;
     // check to make sure we don't have an odd number of rows;
     if (++i < height){
-      tc_memcpy(dest,s2,width);
+      ac_memcpy(dest,s2,width);
       dest += width;
       s1 += width<<1;
       s2 += width<<1;
@@ -323,11 +323,11 @@ static void clone_interpolate(char *clone, char *next, vframe_list_t *ptr){
     // we don't have to divide the height by 2 because we've
     // got two colors, we'll handle them in one sweep.
     for(i=0;i<height;i++){
-      tc_memcpy(dest,s1,width);
+      ac_memcpy(dest,s1,width);
       dest+=width;
       // check to make sure we don't have an odd number of rows;
       if(++i < height){
-        tc_memcpy(dest,s2,width);
+        ac_memcpy(dest,s2,width);
 	dest += width;
 	s1 += width<<1;
 	s2 += width<<1;
@@ -349,7 +349,7 @@ static void fancy_clone(char* clone, char* next, vframe_list_t *ptr, int tin, in
   //printf("[%s] fancy_clone clonetype: %d tin=%4d tout=%4d\n",MOD_NAME,clonetype,tin,tout);
   switch (clonetype){
     case 0:
-      tc_memcpy(ptr->video_buf,clone,ptr->video_size);
+      ac_memcpy(ptr->video_buf,clone,ptr->video_size);
       break;
     case 1:
       clone_interpolate(clone,next,ptr);
@@ -611,7 +611,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  fancy_clone(frames[frameIn],frames[(frameIn+1)%frbufsize],ptr,framesin-numSample,outframes+cloneq+1);
 	  return 0;
 	} // else 
-	tc_memcpy(frames[frameIn], ptr->video_buf, ptr->video_size);
+	ac_memcpy(frames[frameIn], ptr->video_buf, ptr->video_size);
 	framesOK[frameIn] = 1;
 #ifdef DEBUG
 	printf("Inserted frame %d into slot %d \n",framesin, frameIn);
@@ -686,7 +686,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    ++cloneq;
 	    framesOK[mod] = 0;
 	  }
-	  tc_memcpy(ptr->video_buf,frames[frameOut],ptr->video_size);
+	  ac_memcpy(ptr->video_buf,frames[frameOut],ptr->video_size);
 	  if (framesOK[frameOut]){
 	    if (show_results){
 	      printf("giving   slot %2d frame %6d\n",frameOut,ptr->id);
@@ -726,7 +726,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    ++outframes;
 	  }
 	  if (framesOK[frameOut]){
-	    tc_memcpy(ptr->video_buf,frames[frameOut],ptr->video_size);
+	    ac_memcpy(ptr->video_buf,frames[frameOut],ptr->video_size);
 	    if (show_results){
 	      printf("giving   slot %2d frame %6d\n",frameOut,ptr->id);
 	    }

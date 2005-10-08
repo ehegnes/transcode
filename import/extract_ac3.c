@@ -131,7 +131,7 @@ static void pes_ac3_loop (void)
 	  }
 	  
 	  // get pts time stamp:
-	  tc_memcpy(pack_buf, &buf[6], 16);
+	  ac_memcpy(pack_buf, &buf[6], 16);
 	  
 	  if(get_pts_dts(pack_buf, &i_pts, &i_dts)) {
 	    pack_rpts = (double) i_pts/90000.;
@@ -154,7 +154,7 @@ static void pes_ac3_loop (void)
 	case 0xba:	/* pack header */
 	  
 	  if(get_pts) {
-	    tc_memcpy(pack_buf, &buf[4], 6);
+	    ac_memcpy(pack_buf, &buf[4], 6);
 	    pack_lpts = read_tc_time_stamp(pack_buf);
 	  }
 
@@ -207,7 +207,7 @@ static void pes_ac3_loop (void)
 	      if (tmp1 < tmp2) {
 		
 		// get pts time stamp:
-		  tc_memcpy(pack_buf, &buf[6], 16);
+		  ac_memcpy(pack_buf, &buf[6], 16);
 
 		  if(get_pts_dts(pack_buf, &i_pts, &i_dts)) {
 		    pack_sub_rpts = (double) i_pts/90000.;
@@ -252,7 +252,7 @@ static void pes_ac3_loop (void)
 		
 		//test
 		if(0) {
-		    tc_memcpy(pack_buf, &buf[6], 16);
+		    ac_memcpy(pack_buf, &buf[6], 16);
 		    get_pts_dts(pack_buf, &i_pts, &i_dts);
 		    fprintf(stderr, "AC3 PTS=%f\n", (double) i_pts/90000.);
 		}

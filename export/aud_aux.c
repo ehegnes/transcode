@@ -35,7 +35,6 @@
 
 #include "aud_aux.h"
 #include "ac3.h"
-#include "aclib/ac.h"
 
 #include "transcode.h"
 
@@ -246,13 +245,13 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 
 #	if TC_LAME_VERSION >= 392
 		/* Optimisations */
-		if(tc_accel & MM_MMX)
+		if(tc_accel & AC_MMX)
 			lame_set_asm_optimizations(lgf, MMX, 1);
 
-		if(tc_accel & MM_3DNOW)
+		if(tc_accel & AC_3DNOW)
 			lame_set_asm_optimizations(lgf, AMD_3DNOW, 1);
 
-		if(tc_accel & MM_SSE)
+		if(tc_accel & AC_SSE)
 			lame_set_asm_optimizations(lgf, SSE, 1);
 
 	  
@@ -780,7 +779,7 @@ static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 	 * Apend the new incoming audio to the already available but not yet
 	 * consumed.
 	 */
-        tc_memcpy (input+input_len, aud_buffer, aud_size);
+        ac_memcpy (input+input_len, aud_buffer, aud_size);
 	input_len += aud_size;
 	debug("audio_encode_mp3: input buffer size=%d", input_len);
 	
@@ -896,7 +895,7 @@ static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
       //------------------------------
       if ( bytes_avail >= bytes_needed ) {
 	
-	tc_memcpy(&mpa_buf[mpa_buf_ptr], in_buf, bytes_needed);
+	ac_memcpy(&mpa_buf[mpa_buf_ptr], in_buf, bytes_needed);
 	
 	pthread_mutex_lock(&init_avcodec_lock);
 	out_size = avcodec_encode_audio(&mpa_ctx, (unsigned char *)output, 
@@ -914,7 +913,7 @@ static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
       //--------------------------------------------------------------- 
       else {
 	
-	tc_memcpy(&mpa_buf[mpa_buf_ptr], aud_buffer, bytes_avail);
+	ac_memcpy(&mpa_buf[mpa_buf_ptr], aud_buffer, bytes_avail);
         mpa_buf_ptr += bytes_avail;
         return (0);
       }
@@ -941,7 +940,7 @@ static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
     //--------------------------------------
     if (in_size > 0) {
       mpa_buf_ptr = in_size; 
-      tc_memcpy(mpa_buf, in_buf, mpa_buf_ptr);
+      ac_memcpy(mpa_buf, in_buf, mpa_buf_ptr);
     }
     
     return (TC_EXPORT_OK);

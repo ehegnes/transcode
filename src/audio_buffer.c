@@ -341,7 +341,7 @@ static void aframe_copy_payload(aframe_list_t *dst, aframe_list_t *src)
     dst->audio_size = src->audio_size;
 
     // copy video data
-    tc_memcpy(dst->audio_buf, src->audio_buf, dst->audio_size);
+    ac_memcpy(dst->audio_buf, src->audio_buf, dst->audio_size);
 }
 
 /* ------------------------------------------------------------------ */

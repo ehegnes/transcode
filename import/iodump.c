@@ -459,7 +459,7 @@ void tccat_thread(info_t *ipipe)
 	
 	//extract and concatenate streams
 
-	tc_memcpy(&ipipe_avi, ipipe, sizeof(info_t));
+	ac_memcpy(&ipipe_avi, ipipe, sizeof(info_t));
 	
 	//real AVI file name
 	ipipe_avi.name = name;

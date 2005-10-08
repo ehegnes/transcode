@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
   double aud_ms = 0.0, vid_ms = 0.0;
   double aud_ms_w[AVI_MAX_TRACKS];
 
-  tc_memcpy_init(0, -1);
+  ac_init(AC_ALL);
 
   if(argc==1) usage(EXIT_FAILURE);
   

@@ -35,7 +35,6 @@
 
 #include "config.h"
 #include "transcode.h"
-
 #include "aud_scan.h"
 
 #define EXE "aviindex"
@@ -466,7 +465,7 @@ int main(int argc, char *argv[])
   ftype_t ftype;
   FILE *idxfile;
 
-  tc_memcpy_init(0, -1);
+  ac_init(AC_ALL);
 
   if(argc==1) usage(EXIT_FAILURE);
 
@@ -626,7 +625,7 @@ int main(int argc, char *argv[])
       }
 
       switch (ret) {
-	case 1: tc_memcpy(tag, fcclen, 4);
+	case 1: ac_memcpy(tag, fcclen, 4);
 		print_ms = vid_ms = (avifile1->video_pos)*1000.0/fps;
 		chunk = avifile1->video_pos;
 		key = is_key(data, len, codec);
@@ -635,7 +634,7 @@ int main(int argc, char *argv[])
 	case 4: case 5:
 	case 6: case 7:
 	case 8:
-	case 9: tc_memcpy(tag, fcclen, 4);
+	case 9: ac_memcpy(tag, fcclen, 4);
 		print_ms = aud_ms[audtr];
 		chunk = avifile1->track[audtr].audio_posc;
 		break;
@@ -768,7 +767,7 @@ int main(int argc, char *argv[])
 
     //printf("nr idx: %d\n", avifile1->n_idx);
     while (i<avifile1->n_idx) {
-      tc_memcpy(tag, avifile1->idx[i], 4);
+      ac_memcpy(tag, avifile1->idx[i], 4);
       // tag
       fprintf(out_fd, "%c%c%c%c", 
 	  avifile1->idx[i][0], avifile1->idx[i][1],

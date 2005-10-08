@@ -378,7 +378,7 @@ int main(int argc, char *argv[])
     memset (&vob, 0, sizeof(vob));
     memset (&ptr, 0, sizeof(ptr));
 
-	tc_memcpy_init(0, -1);
+    ac_init(AC_ALL);
 
     if(argc==1) usage(1);
 

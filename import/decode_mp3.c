@@ -110,7 +110,7 @@ void decode_mp3(decode_t *decode)
     j=0;
     switch (channels) {
     case 1: // mono
-      tc_memcpy (buffer, ch1, samples*sizeof(short));
+      ac_memcpy (buffer, ch1, samples*sizeof(short));
       break;
     case 2: // stereo
     for(i=0; i < samples; i++) {
@@ -182,7 +182,7 @@ void decode_mp2(decode_t *decode)
     j=0;
     switch (channels) {
     case 1: // mono
-      tc_memcpy (buffer, ch1, samples*sizeof(short));
+      ac_memcpy (buffer, ch1, samples*sizeof(short));
       break;
     case 2: // stereo
     for(i=0; i < samples; i++) {

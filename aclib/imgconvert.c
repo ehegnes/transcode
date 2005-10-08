@@ -3,10 +3,12 @@
  * Written by Andrew Church <achurch@achurch.org>
  */
 
-#include <stdlib.h>
 #include "ac.h"
 #include "imgconvert.h"
 #include "img_internal.h"
+
+#include <stdio.h>
+#include <stdlib.h>
 
 /*************************************************************************/
 
@@ -17,25 +19,6 @@ static struct {
 static int n_conversions = 0;
 
 /*************************************************************************/
-/*************************************************************************/
-
-/* Initialization routine.  Call with the desired acceleration flags (from
- * ac.h) before calling ac_imgconvert(). */
-
-int ac_imgconvert_init(int accel)
-{
-    if (!ac_imgconvert_init_yuv_planar(accel)
-     || !ac_imgconvert_init_yuv_packed(accel)
-     || !ac_imgconvert_init_yuv_mixed(accel)
-     || !ac_imgconvert_init_yuv_rgb(accel)
-     || !ac_imgconvert_init_rgb_packed(accel)
-    ) {
-	tc_error("ac_imgconvert_init() failed");
-	return 0;
-    }
-    return 1;
-}
-
 /*************************************************************************/
 
 /* Image conversion routine.  src and dest are arrays of pointers to planes
@@ -80,6 +63,20 @@ int ac_imgconvert(uint8_t **src, ImageFormat srcfmt,
 
 /* Internal use only! */
 
+int ac_imgconvert_init(int accel)
+{
+    if (!ac_imgconvert_init_yuv_planar(accel)
+     || !ac_imgconvert_init_yuv_packed(accel)
+     || !ac_imgconvert_init_yuv_mixed(accel)
+     || !ac_imgconvert_init_yuv_rgb(accel)
+     || !ac_imgconvert_init_rgb_packed(accel)
+    ) {
+	fprintf(stderr, "ac_imgconvert_init() failed");
+	return 0;
+    }
+    return 1;
+}
+
 int register_conversion(ImageFormat srcfmt, ImageFormat destfmt,
 			ConversionFunc function)
 {
@@ -94,7 +91,7 @@ int register_conversion(ImageFormat srcfmt, ImageFormat destfmt,
 
     if (!(conversions = realloc(conversions,
 				(n_conversions+1) * sizeof(*conversions)))) {
-	tc_error("register_conversion(): out of memory");
+	fprintf(stderr, "register_conversion(): out of memory\n");
 	return 0;
     }
     conversions[n_conversions].srcfmt  = srcfmt;

@@ -89,8 +89,6 @@ void decode_dv(decode_t *decode)
 
   verbose = decode->verbose;
 
-  ac_imgconvert_init(ac_mmflag());
-
   // Initialize DV decoder
 
   if((dv_decoder = dv_decoder_new(FALSE, FALSE, FALSE))==NULL) {

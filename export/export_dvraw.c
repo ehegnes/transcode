@@ -134,8 +134,6 @@ MOD_init
   int i;
   
   if(param->flag == TC_VIDEO) {
-    ac_imgconvert_init(tc_accel);
-    
     target = bufalloc(TC_FRAME_DV_PAL);
     vbuf = bufalloc(PAL_W*PAL_H*3);
 
@@ -277,9 +275,9 @@ MOD_encode
   if(param->flag == TC_VIDEO) { 
     
     if(pass_through) {
-      tc_memcpy(target, param->buffer, frame_size);
+      ac_memcpy(target, param->buffer, frame_size);
     } else { 
-      tc_memcpy(vbuf, param->buffer, param->size);
+      ac_memcpy(vbuf, param->buffer, param->size);
     }
     
     if(verbose & TC_STATS) fprintf(stderr, "[%s] ---V---\n", MOD_NAME);

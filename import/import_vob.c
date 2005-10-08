@@ -381,7 +381,7 @@ MOD_decode
 	      param->size = tbuf.off-start_seq;
 
 	      // spit frame out
-	      tc_memcpy(param->buffer, tbuf.d+start_seq, param->size);
+	      ac_memcpy(param->buffer, tbuf.d+start_seq, param->size);
 	      memmove(tbuf.d, tbuf.d+param->size, tbuf.len-param->size);
 	      tbuf.off = 0;
 	      tbuf.len -= param->size;
@@ -429,7 +429,7 @@ MOD_decode
 	      if (pic_type == 2) param->attributes |= TC_FRAME_IS_P_FRAME;
 	      if (pic_type == 3) param->attributes |= TC_FRAME_IS_B_FRAME;
 
-	      tc_memcpy(param->buffer, tbuf.d+start_pic, param->size);
+	      ac_memcpy(param->buffer, tbuf.d+start_pic, param->size);
 	      memmove(tbuf.d, tbuf.d+param->size, tbuf.len-param->size);
 	      tbuf.off = 0;
 	      tbuf.len -= param->size;
@@ -448,7 +448,7 @@ MOD_decode
 		 if (pic_type == 2) param->attributes |= TC_FRAME_IS_P_FRAME;
 		 if (pic_type == 3) param->attributes |= TC_FRAME_IS_B_FRAME;
 
-		 tc_memcpy(param->buffer, tbuf.d+start_pic, param->size);
+		 ac_memcpy(param->buffer, tbuf.d+start_pic, param->size);
 		 memmove(tbuf.d, tbuf.d+param->size, tbuf.len-param->size);
 		 tbuf.off = 0;
 		 tbuf.len -= param->size;

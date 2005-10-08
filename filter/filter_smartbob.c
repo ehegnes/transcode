@@ -464,7 +464,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		if((ptr->tag & TC_FRAME_WAS_CLONED) == iOddEven)
 		{
 			/* Shift this frame's output up by one line. */
-			tc_memcpy(dst, src, ptr->v_width * sizeof(Pixel32));
+			ac_memcpy(dst, src, ptr->v_width * sizeof(Pixel32));
 			dst = (Pixel32 *)((char *)dst + pitch);
 			prev = mfd->prevFrame + w;
 		}
@@ -476,7 +476,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		for (y = 0; y < hminus; y++)
 		{
 			/* Even output line. Pass it through. */
-			tc_memcpy(dst, src, ptr->v_width * sizeof(Pixel32));
+			ac_memcpy(dst, src, ptr->v_width * sizeof(Pixel32));
 			dst = (Pixel32 *)((char *)dst + pitch);
 			/* Odd output line. Synthesize it. */
 			for (x = 0; x < w; x++)
@@ -537,11 +537,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		}
 		/* Copy through the last source line. */
 
-		tc_memcpy(dst, src, ptr->v_width * sizeof(Pixel32));
+		ac_memcpy(dst, src, ptr->v_width * sizeof(Pixel32));
 		if((ptr->tag & TC_FRAME_WAS_CLONED)!= iOddEven)
 		{
 			dst = (Pixel32 *)((char *)dst + pitch);
-			tc_memcpy(dst, src, ptr->v_width * sizeof(Pixel32));
+			ac_memcpy(dst, src, ptr->v_width * sizeof(Pixel32));
 		}
 	}
 	else
@@ -576,7 +576,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	prev = mfd->prevFrame;
 	for (y = 0; y < h; y++)
 	{
-		tc_memcpy(prev, src, w * sizeof(Pixel32));
+		ac_memcpy(prev, src, w * sizeof(Pixel32));
 		src = (Pixel32 *)((char *)src + pitch);
 		prev += w;
 	}
