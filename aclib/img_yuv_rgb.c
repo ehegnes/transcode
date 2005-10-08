@@ -301,11 +301,11 @@ static struct { uint16_t n[64]; } __attribute__((aligned(16))) yuv_data = {{
     0xE5FC,0xE5FC,0xE5FC,0xE5FC,0xE5FC,0xE5FC,0xE5FC,0xE5FC, /* gV constant  */
     0x408D,0x408D,0x408D,0x408D,0x408D,0x408D,0x408D,0x408D, /* bU constant  */
 }};
-/* Note that the Y factors are halved because G->Y exceeds 0x7FFF */
+/* Note that G->Y exceeds 0x7FFF, so be careful to treat it as unsigned */
 static struct { uint16_t n[96]; } __attribute__((aligned(16))) rgb_data = {{
-    0x20DF,0x20DF,0x20DF,0x20DF,0x20DF,0x20DF,0x20DF,0x20DF, /* R->Y * 0.5   */
-    0x4087,0x4087,0x4087,0x4087,0x4087,0x4087,0x4087,0x4087, /* G->Y * 0.5   */
-    0x0C88,0x0C88,0x0C88,0x0C88,0x0C88,0x0C88,0x0C88,0x0C88, /* B->Y * 0.5   */
+    0x41BD,0x41BD,0x41BD,0x41BD,0x41BD,0x41BD,0x41BD,0x41BD, /* R->Y         */
+    0x810F,0x810F,0x810F,0x810F,0x810F,0x810F,0x810F,0x810F, /* G->Y         */
+    0x1910,0x1910,0x1910,0x1910,0x1910,0x1910,0x1910,0x1910, /* B->Y         */
     0xDA0E,0xDA0E,0xDA0E,0xDA0E,0xDA0E,0xDA0E,0xDA0E,0xDA0E, /* R->U         */
     0xB582,0xB582,0xB582,0xB582,0xB582,0xB582,0xB582,0xB582, /* G->U         */
     0x7070,0x7070,0x7070,0x7070,0x7070,0x7070,0x7070,0x7070, /* B->U         */
@@ -811,9 +811,9 @@ static inline void sse2_load_rgb24(uint8_t *src)
 	movl %%edx, 12(%%esp)						\n\
 	movdqu (%%esp), %%xmm4	# XMM4: 0BGR3 0BGR2 0BGR1 0BGR0		\n\
 	# Repeat for pixels 4-7 (to XMM6)				\n\
-	movl (%%esi), %%eax	# EAX: R5 B4 G4 R4			\n\
-	movl 4(%%esi), %%ebx	# EBX: G6 R6 B5 G5			\n\
-	movl 8(%%esi), %%ecx	# ECX: B7 G7 R7 B6			\n\
+	movl 12(%%esi), %%eax	# EAX: R5 B4 G4 R4			\n\
+	movl 16(%%esi), %%ebx	# EBX: G6 R6 B5 G5			\n\
+	movl 20(%%esi), %%ecx	# ECX: B7 G7 R7 B6			\n\
 	# Convert to RGB32						\n\
 	"IA32_RGB24_TO_RGB32"						\n\
 	# Store in XMM0							\n\
@@ -836,27 +836,56 @@ static inline void sse2_load_rgb24(uint8_t *src)
 	# Sort into XMM0/1/2 by color					\n\
 	pshufd $0xD8, %%xmm5, %%xmm2	# XMM2: 00 B3 00 B2 G3 R3 G2 R2	\n\
 	pshufd $0x8D, %%xmm4, %%xmm4	# XMM4: G1 R1 G0 R0 00 B1 00 B0	\n\
-	movq %%xmm4, %%xmm2		# XMM2: 00 B3 00 B2 00 B1 00 B0	\n\
+	# watch out!! Intel manual claims movq between XMM regs doesn't	\n\
+	# clear the upper 64 bits, but it does!				\n\
+	#movq %%xmm4, %%xmm2						\n\
+	xorl %%eax, %%eax		# prepare to clear low quadword	\n\
+	decl %%eax							\n\
+	pushl %%eax							\n\
+	pushl %%eax							\n\
+	incl %%eax							\n\
+	pushl %%eax							\n\
+	pushl %%eax							\n\
+	movdqu (%%esp), %%xmm3						\n\
+	pand %%xmm3, %%xmm2						\n\
+	movq %%xmm4, %%xmm3						\n\
+	por %%xmm3, %%xmm2		# XMM2: 00 B3 00 B2 00 B1 00 B0	\n\
 	pshufd $0xD8, %%xmm7, %%xmm1	# XMM1: 00 B7 00 B6 G7 R7 G6 R6	\n\
 	pshufd $0x8D, %%xmm6, %%xmm6	# XMM6: G5 R5 G4 R4 00 B5 00 B4	\n\
-	movq %%xmm6, %%xmm1		# XMM1: 00 B7 00 B6 00 B5 00 B4	\n\
+	movdqu (%%esp), %%xmm3						\n\
+	pand %%xmm3, %%xmm1						\n\
+	movq %%xmm6, %%xmm3						\n\
+	por %%xmm3, %%xmm1		# XMM1: 00 B7 00 B6 00 B5 00 B4	\n\
 	packuswb %%xmm1, %%xmm2		# XMM2: B7 B6 B5 B4 B3 B2 B1 B0	\n\
 	psrldq $8, %%xmm4		# XMM4:             G1 R1 G0 R0	\n\
 	pshufd $0x8D, %%xmm5, %%xmm5	# XMM5: G3 R3 G2 R2 00 B3 00 B2	\n\
-	movq %%xmm4, %%xmm5		# XMM5: G3 R3 G2 R2 G1 R1 G0 R0	\n\
+	movdqu (%%esp), %%xmm3						\n\
+	pand %%xmm3, %%xmm5						\n\
+	movq %%xmm4, %%xmm3						\n\
+	por %%xmm3, %%xmm5		# XMM5: G3 R3 G2 R2 G1 R1 G0 R0	\n\
 	pshuflw $0xD8, %%xmm5, %%xmm5	# XMM5: G3 R3 G2 R2 G1 G0 R1 R0	\n\
 	pshufhw $0xD8, %%xmm5, %%xmm5	# XMM5: G3 G2 R3 R2 G1 G0 R1 R0	\n\
-	psrldq $8, %%xmm4		# XMM6:             G5 R5 G4 R4	\n\
-	pshufd $0x8D, %%xmm5, %%xmm5	# XMM7: G7 R7 G6 R6 00 B7 00 B6	\n\
-	movq %%xmm6, %%xmm7		# XMM7: G7 R7 G6 R6 G5 R5 G4 R4	\n\
+	psrldq $8, %%xmm6		# XMM6:             G5 R5 G4 R4	\n\
+	pshufd $0x8D, %%xmm7, %%xmm7	# XMM7: G7 R7 G6 R6 00 B7 00 B6	\n\
+	movdqu (%%esp), %%xmm3						\n\
+	pand %%xmm3, %%xmm7						\n\
+	movq %%xmm6, %%xmm3						\n\
+	por %%xmm3, %%xmm7		# XMM7: G7 R7 G6 R6 G5 R5 G4 R4	\n\
 	pshuflw $0xD8, %%xmm7, %%xmm7	# XMM7: G7 R7 G6 R6 G5 G4 R5 R4	\n\
 	pshufhw $0xD8, %%xmm7, %%xmm7	# XMM7: G7 G6 R6 R7 G5 G4 R5 R4	\n\
 	pshufd $0xD8, %%xmm7, %%xmm1	# XMM1: G7 G6 G5 G4 R7 R6 R5 R4	\n\
 	pshufd $0x8D, %%xmm5, %%xmm5	# XMM5: R3 R2 R1 R0 G3 G2 G1 G0	\n\
-	movq %%xmm5, %%xmm1		# XMM1: G7 G6 G5 G4 G3 G2 G1 G0	\n\
+	movdqu (%%esp), %%xmm3						\n\
+	pand %%xmm3, %%xmm1						\n\
+	movq %%xmm5, %%xmm3						\n\
+	por %%xmm3, %%xmm1		# XMM1: G7 G6 G5 G4 G3 G2 G1 G0	\n\
 	pshufd $0x8D, %%xmm7, %%xmm0	# XMM0: R7 R6 R5 R4 G7 G6 G5 G4	\n\
 	psrldq $8, %%xmm5		# XMM5:             R3 R2 R1 R0	\n\
-	movq %%xmm5, %%xmm0		# XMM0: R7 R6 R5 R4 R3 R2 R1 R0	\n\
+	movdqu (%%esp), %%xmm3						\n\
+	pand %%xmm3, %%xmm0						\n\
+	movq %%xmm5, %%xmm3						\n\
+	por %%xmm3, %%xmm0		# XMM0: R7 R6 R5 R4 R3 R2 R1 R0	\n\
+	addl $16, %%esp			# clean up from movq workaround	\n\
 	"
 	: /* no outputs */
 	: "S" (src)
@@ -875,12 +904,9 @@ static inline void sse2_rgb_to_yuv420p_yu(uint8_t *destY, uint8_t *destU)
 	movdqa %%xmm0, %%xmm3						\n\
 	movdqa %%xmm1, %%xmm6						\n\
 	movdqa %%xmm2, %%xmm7						\n\
-	psllw $1, %%xmm3	# Because Y multipliers are halved	\n\
-	psllw $1, %%xmm6						\n\
-	psllw $1, %%xmm7						\n\
-	pmulhw (%%edi), %%xmm3						\n\
-	pmulhw 16(%%edi), %%xmm6					\n\
-	pmulhw 32(%%edi), %%xmm7					\n\
+	pmulhuw (%%edi), %%xmm3						\n\
+	pmulhuw 16(%%edi), %%xmm6					\n\
+	pmulhuw 32(%%edi), %%xmm7					\n\
 	paddw %%xmm6, %%xmm3	# No possibility of overflow		\n\
 	paddw %%xmm7, %%xmm3						\n\
 	paddw 144(%%edi), %%xmm3					\n\
@@ -921,12 +947,9 @@ static inline void sse2_rgb_to_yuv420p_yv(uint8_t *destY, uint8_t *destV)
 	movdqa %%xmm0, %%xmm3						\n\
 	movdqa %%xmm1, %%xmm6						\n\
 	movdqa %%xmm2, %%xmm7						\n\
-	psllw $1, %%xmm3	# Because Y multipliers are halved	\n\
-	psllw $1, %%xmm6						\n\
-	psllw $1, %%xmm7						\n\
-	pmulhw (%%edi), %%xmm3						\n\
-	pmulhw 16(%%edi), %%xmm6					\n\
-	pmulhw 32(%%edi), %%xmm7					\n\
+	pmulhuw (%%edi), %%xmm3						\n\
+	pmulhuw 16(%%edi), %%xmm6					\n\
+	pmulhuw 32(%%edi), %%xmm7					\n\
 	paddw %%xmm6, %%xmm3	# No possibility of overflow		\n\
 	paddw %%xmm7, %%xmm3						\n\
 	paddw 144(%%edi), %%xmm3					\n\
@@ -968,12 +991,9 @@ static inline void sse2_rgb_to_yuv422p(uint8_t *destY, uint8_t *destU,
 	movdqa %%xmm0, %%xmm3						\n\
 	movdqa %%xmm1, %%xmm6						\n\
 	movdqa %%xmm2, %%xmm7						\n\
-	psllw $1, %%xmm3	# Because Y multipliers are halved	\n\
-	psllw $1, %%xmm6						\n\
-	psllw $1, %%xmm7						\n\
-	pmulhw (%%edi), %%xmm3						\n\
-	pmulhw 16(%%edi), %%xmm6					\n\
-	pmulhw 32(%%edi), %%xmm7					\n\
+	pmulhuw (%%edi), %%xmm3						\n\
+	pmulhuw 16(%%edi), %%xmm6					\n\
+	pmulhuw 32(%%edi), %%xmm7					\n\
 	paddw %%xmm6, %%xmm3	# No possibility of overflow		\n\
 	paddw %%xmm7, %%xmm3						\n\
 	paddw 144(%%edi), %%xmm3					\n\
@@ -1031,12 +1051,9 @@ static inline void sse2_rgb_to_yuv444p(uint8_t *destY, uint8_t *destU,
 	movdqa %%xmm0, %%xmm3						\n\
 	movdqa %%xmm1, %%xmm6						\n\
 	movdqa %%xmm2, %%xmm7						\n\
-	psllw $1, %%xmm3	# Because Y multipliers are halved	\n\
-	psllw $1, %%xmm6						\n\
-	psllw $1, %%xmm7						\n\
-	pmulhw (%%edi), %%xmm3						\n\
-	pmulhw 16(%%edi), %%xmm6					\n\
-	pmulhw 32(%%edi), %%xmm7					\n\
+	pmulhuw (%%edi), %%xmm3						\n\
+	pmulhuw 16(%%edi), %%xmm6					\n\
+	pmulhuw 32(%%edi), %%xmm7					\n\
 	paddw %%xmm6, %%xmm3	# No possibility of overflow		\n\
 	paddw %%xmm7, %%xmm3						\n\
 	paddw 144(%%edi), %%xmm3					\n\
