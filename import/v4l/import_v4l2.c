@@ -193,7 +193,7 @@ static v4l2_format_convert_table_t v4l2_format_convert_table[] =
 	{ V4L2_PIX_FMT_YYUV,    IMG_YUV422P, IMG_YUV_DEFAULT, "YUV422 [planar] -> YUV420 [planar]" },
 	{ V4L2_PIX_FMT_Y41P,    IMG_YUV411P, IMG_YUV_DEFAULT, "YUV411 [planar] -> YUV420 [planar]" },
 	{ V4L2_PIX_FMT_UYVY,    IMG_UYVY,    IMG_YUV_DEFAULT, "UYVY [packed] -> YUV420 [planar]" },
-	{ V4L2_PIX_FMT_YUYV,    IMG_YUYV,    IMG_YUV_DEFAULT, "YUY2 [packed] -> YUV420 [planar]" },
+	{ V4L2_PIX_FMT_YUYV,    IMG_YUY2,    IMG_YUV_DEFAULT, "YUY2 [packed] -> YUV420 [planar]" },
 	{ V4L2_PIX_FMT_GREY,    IMG_GRAY8,   IMG_YUV_DEFAULT, "8-bit grayscale -> YUV420 [planar]" },
 };
 
