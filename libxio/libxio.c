@@ -42,6 +42,8 @@ char *strndup(const char *s, size_t n);
 #include <sys/errno.h>
 #include <stdarg.h>
 
+#include "xio.h"
+
 struct xio_handle_t {
 
 	ssize_t (*xio_read_v)(void *stream, void *buf, size_t count);
@@ -621,7 +623,7 @@ ibp_fstat(void *stream, struct stat *buf)
 #endif
 
 static int
-io_init()
+io_init(void)
 {
         int i;
 

@@ -5,8 +5,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-void
-dummy()
+void dummy(void);
+void dummy(void)
 {
 	int i;
 	struct stat tmp;
