@@ -39,64 +39,11 @@
 
 static vob_t *vob=NULL;
 
-/* vdub compat */
-typedef unsigned int	Pixel;
-typedef unsigned int	Pixel32;
-typedef unsigned char	Pixel8;
-typedef int		PixCoord;
-typedef	int		PixDim;
-typedef	int		PixOffset;
-
-
-#warning **************** FIXME ****************** use imgconvert
-#define R_MASK  (0x00ff0000)
-#define G_MASK  (0x0000ff00)
-#define B_MASK  (0x000000ff)
-#define R_SHIFT         (16)
-#define G_SHIFT          (8)
-#define B_SHIFT          (0)
-
-/* convert transcode RGB (3*8 Bit) to vdub ARGB (32Bit) */
-static void convert_rgb2argb (char * in, Pixel32 *out, int width, int height) 
-{
-	int run;
-	int size = width*height;
-
-	for (run = 0; run < size; run++) {
-		*out = (((((Pixel32) *(in+0)) & 0xff) << R_SHIFT) | 
-		        ((((Pixel32) *(in+1)) & 0xff) << G_SHIFT)  | 
-			((((Pixel32) *(in+2)) & 0xff)))      & 0x00ffffff;
-
-		out++;
-		in += 3;
-	}
-}
-
-/* convert vdub ARGB (32Bit) to transcode RGB (3*8 Bit) */
-static void convert_argb2rgb (Pixel32 *in, char * out, int width, int height)
-{
-	int run;
-	int size = width*height;
-
-	for (run = 0; run < size; run++) {
-
-		*(out+0) = ((*in & R_MASK) >> R_SHIFT);
-		*(out+1) = ((*in & G_MASK) >> G_SHIFT);
-		*(out+2) = (*in) & B_MASK;
-
-		in++;
-		out += 3;
-	}
-
-}
-
-
-
 ///////////////////////////////////////////////////////////////////////////
 
 typedef struct MyFilterData {
-        Pixel32                 *convertFrameIn;
-        Pixel32                 *convertFrameOut;
+        uint8_t                 *convertFrameIn;
+        uint8_t                 *convertFrameOut;
 	unsigned char		*blur;
 	unsigned char		*work;
 	int 		       	strength;
@@ -206,17 +153,17 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if (!mfd->work){
                 fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
 	}
-	mfd->convertFrameIn = (Pixel32 *) malloc (width*height*sizeof(Pixel32));
+	mfd->convertFrameIn = (uint8_t *) malloc (width*height*4);
 	if (!mfd->convertFrameIn) {
 		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
 	}
-	memset(mfd->convertFrameIn, 0, width*height*sizeof(Pixel32));
+	memset(mfd->convertFrameIn, 0, width*height*4);
 
-	mfd->convertFrameOut = (Pixel32 *) malloc (width*height*sizeof(Pixel32));
+	mfd->convertFrameOut = (uint8_t *) malloc (width*height*4);
 	if (!mfd->convertFrameOut) {
 		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
 	}
-	memset(mfd->convertFrameOut, 0, width*height*sizeof(Pixel32));
+	memset(mfd->convertFrameOut, 0, width*height*4);
 
 	if (vob->im_v_codec == CODEC_YUV) {
 	  tc_rgb2yuv_init(width, height);
@@ -286,28 +233,30 @@ int tc_filter(frame_list_t *ptr_, char *options)
   if(ptr->tag & TC_POST_PROCESS && ptr->tag & TC_VIDEO) {
     
     
-	const PixDim	width  = ptr->v_width;
-	const PixDim	height = ptr->v_height;
-	const long	pitch = ptr->v_width*sizeof(Pixel32);
+	const int	width  = ptr->v_width;
+	const int	height = ptr->v_height;
+	const long	pitch = ptr->v_width*4;
 	int		bwidth = 4 * width;
-	unsigned char   *src;
-	unsigned char   *dst;
-	unsigned char   *srcpp, *srcp, *srcpn, *workp, *blurp, *blurpn, *dstp;
+	uint8_t         *src;
+	uint8_t         *dst;
+	uint8_t         *srcpp, *srcp, *srcpn, *workp, *blurp, *blurpn, *dstp;
 	int r1, r2, r3, r4, g1, g2, g3, g4, b1, b2, b3, b4;
 	int x, y, max;
 	int strength = mfd->strength, invstrength = 255 - strength;
 	int threshold = mfd->threshold;
-	// const int	srcpitch = ptr->v_width*sizeof(Pixel32);
-	const int	dstpitch = ptr->v_width*sizeof(Pixel32);
+	// const int	srcpitch = ptr->v_width*4;
+	const int	dstpitch = ptr->v_width*4;
 
 	if (vob->im_v_codec == CODEC_YUV) {
 	  tc_yuv2rgb_core(ptr->video_buf);
 	}
 
-	convert_rgb2argb (ptr->video_buf, mfd->convertFrameIn, ptr->v_width, ptr->v_height);
+	ac_imgconvert(&ptr->video_buf, IMG_RGB24,
+		      &mfd->convertFrameIn, IMG_BGRA32,
+		      ptr->v_width, ptr->v_height);
 
-	src = (unsigned char *)mfd->convertFrameIn;
-	dst = (unsigned char *)mfd->convertFrameOut; 
+	src = mfd->convertFrameIn;
+	dst = mfd->convertFrameOut; 
 
 	/* Blur the source image prior to detail detection. Separate
 	   dimensions for speed. */
@@ -532,7 +481,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		blurp += bwidth;
 	}
 
-	convert_argb2rgb (mfd->convertFrameOut, ptr->video_buf, ptr->v_width, ptr->v_height);
+	ac_imgconvert(&mfd->convertFrameOut, IMG_BGRA32,
+		      &ptr->video_buf, IMG_RGB24,
+		      ptr->v_width, ptr->v_height);
 
 	if (vob->im_v_codec == CODEC_YUV) {
 	  tc_rgb2yuv_core(ptr->video_buf);

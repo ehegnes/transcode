@@ -87,51 +87,6 @@ typedef struct MyFilterData {
 
 static MyFilterData *mfd;
 
-#warning **************** FIXME ****************** use imgconvert
-/*
- * Colorspace conversions
- */
-
-#define R_MASK  (0x00ff0000)
-#define G_MASK  (0x0000ff00)
-#define B_MASK  (0x000000ff)
-#define R_SHIFT         (16)
-#define G_SHIFT          (8)
-#define B_SHIFT          (0)
-
-/* convert transcode RGB (3*8 Bit) to vdub ARGB (32Bit) */
-static void convert_rgb2argb (char * in, Pixel32 *out, int width, int height) 
-{
-	int run;
-	int size = width*height;
-
-	for (run = 0; run < size; run++) {
-		*out = (((((Pixel32) *(in+0)) & 0xff) << R_SHIFT) | 
-		        ((((Pixel32) *(in+1)) & 0xff) << G_SHIFT) | 
-			((((Pixel32) *(in+2)) & 0xff)))      & 0x00ffffff;
-
-		out++;
-		in += 3;
-	}
-}
-
-/* convert vdub ARGB (32Bit) to transcode RGB (3*8 Bit) */
-static void convert_argb2rgb (Pixel32 *in, char * out, int width, int height)
-{
-	int run;
-	int size = width*height;
-
-	for (run = 0; run < size; run++) {
-
-		*(out+0) = ((*in & R_MASK) >> R_SHIFT)&0xff;
-		*(out+1) = ((*in & G_MASK) >> G_SHIFT)&0xff;
-		*(out+2) = (*in) & B_MASK;
-
-		in++;
-		out += 3;
-	}
-}
-
 static void help_optstr(void) 
 {
    printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
@@ -320,13 +275,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    tc_yuv2rgb_core(ptr->video_buf);
 	}
 
-	convert_rgb2argb (ptr->video_buf, mfd->convertFrameIn, ptr->v_width, ptr->v_height/2);
+	ac_imgconvert(&ptr->video_buf, IMG_RGB24,
+		      (uint8_t **)&mfd->convertFrameIn,
+		      ac_endian()==AC_LITTLE_ENDIAN ? IMG_BGRA32 : IMG_ARGB32,
+		      ptr->v_width, ptr->v_height);
 
 	src_buf = mfd->convertFrameIn;
 	dst_buf = mfd->convertFrameOut;
 
-#if 0
-#endif
 	/* Calculate the motion map. */
 	moving = mfd->moving;
 	/* Threshold 0 means treat all areas as moving, i.e., dumb bob. */
@@ -582,7 +538,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 
 
-	convert_argb2rgb (mfd->convertFrameOut, ptr->video_buf, ptr->v_width, ptr->v_height);
+	ac_imgconvert((uint8_t **)&mfd->convertFrameOut,
+		      ac_endian()==AC_LITTLE_ENDIAN ? IMG_BGRA32 : IMG_ARGB32,
+		      &ptr->video_buf, IMG_RGB24,
+		      ptr->v_width, ptr->v_height);
 
 	if (mfd->codec == CODEC_YUV)
 	    tc_rgb2yuv_core(ptr->video_buf);
