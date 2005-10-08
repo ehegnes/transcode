@@ -35,6 +35,7 @@
 #include "transcode.h"
 #include "filter.h"
 #include "optstr.h"
+#include "aclib/imgconvert.h"
 
 #include <assert.h>
 
@@ -84,41 +85,6 @@ static myfilter_t *myf_global = NULL;
 /* Internal state flag values */
 enum { IS_UNKNOWN = -1, IS_FALSE = 0, IS_TRUE = 1 };
 
-
-/*
- * transcoders Any -> Luminance
- */
-#warning ************* FIXME ************* use imgconvert
-
-/* packed YUV 4:2:2 is Y[i] U[i] Y[i+1] V[i] (YUY2)*/
-/* packed YUV 4:2:2 is U[i] Y[i] V[i] Y[i+1] (UYVY)*/
-static void uyvytoy (uint8_t *input, uint8_t *output, int width, int height)
-{
-    int i;
-    for (i = width*height/2; i; i--) {
-	*output++ = input[1];
-	*output++ = input[3];
-	input += 4;
-    }
-}
-static void yuy2toy (uint8_t *input, uint8_t *output, int width, int height)
-{
-    int i;
-    for (i = width*height/2; i; i--) {
-	*output++ = input[0];
-	*output++ = input[2];
-	input += 4;
-    }
-}
-static void rgbtoy (uint8_t *input, uint8_t *output, int width, int height)
-{
-    int i;
-    for (i = width*height; i; i--) {
-	/* This is a rough approximation of (0.3)(r) + (0.59)(g) + (0.11)(b) */
-	*output++ = (((short)input[0]) * 5 + ((short)input[1]) * 9 + ((short)input[2]) * 2) >> 4;
-	input += 3;
-    }
-}
 
 /*
  * Helper functions
@@ -622,16 +588,22 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	/* Convert / Copy to luminance only */
 	switch (myf->codec) {
 	case CODEC_RGB:
-	    rgbtoy (ptr->video_buf, myf->lumIn, myf->width, myf->height);
+	    ac_imgconvert(&ptr->video_buf, IMG_RGB_DEFAULT,
+			  &myf->lumIn, IMG_Y8,
+			  myf->width, myf->height);
 	    break;
 	case CODEC_YUY2:
-	    yuy2toy (ptr->video_buf, myf->lumIn, myf->width, myf->height);
+	    ac_imgconvert(&ptr->video_buf, IMG_YUY2,
+			  &myf->lumIn, IMG_Y8,
+			  myf->width, myf->height);
 	    break;
 	case CODEC_YUV:
 	    ac_memcpy (myf->lumIn, ptr->video_buf, myf->size);
 	    break;
 	case CODEC_YUV422:
-	    uyvytoy (ptr->video_buf, myf->lumIn, myf->width, myf->height);
+	    ac_imgconvert(&ptr->video_buf, IMG_UYVY,
+			  &myf->lumIn, IMG_Y8,
+			  myf->width, myf->height);
 	    break;
 	default:
 	    assert (0);

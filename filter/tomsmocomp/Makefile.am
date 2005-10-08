@@ -14,7 +14,6 @@ pkg_LTLIBRARIES = filter_tomsmocomp.la
 
 filter_tomsmocomp_la_SOURCES = \
 	filter_tomsmocomp.c \
-	transcoders.c \
 	tomsmocompfilter_mmx.c \
 	tomsmocompfilter_3dnow.c \
 	tomsmocompfilter_sse.c
@@ -42,5 +41,4 @@ EXTRA_DIST = \
 	dscaler_interface.h \
 	filter_tomsmocomp.h \
 	tomsmocompfilter.h \
-	tomsmocompmacros.h \
-	transcoders.h
+	tomsmocompmacros.h

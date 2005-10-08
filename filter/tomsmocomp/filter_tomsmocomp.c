@@ -32,7 +32,7 @@
 #define DS_HISTORY_SIZE 4		/* Need 4 fields(!) for tomsmocomp */
 
 #include "filter_tomsmocomp.h"
-#include "transcoders.h"
+#include "aclib/imgconvert.h"
 #include <assert.h>
 
 static tomsmocomp_t *tmc_global = NULL;
@@ -272,7 +272,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if ((ptr->tag & TC_PRE_S_PROCESS) && (ptr->tag & TC_VIDEO)) {
 
 	uint8_t *tmp;
-	uint8_t *vid_y = ptr->video_buf, *vid_u = vid_y + tmc->size/2, *vid_v = vid_u + tmc->size/8;
+	uint8_t *planes;
+	YUV_INIT_PLANES(planes, ptr->video_buf, IMG_YUV_DEFAULT,
+			tmc->width, tmc->height);
  
 	/* Convert / Copy to yuy2 */
 	switch (tmc->codec) {
@@ -280,11 +282,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    ac_memcpy (tmc->frameIn, ptr->video_buf, tmc->size);
 	    break;
 	case CODEC_YUV:
-	    yv12toyuy2 (vid_y, vid_u, vid_v, tmc->frameIn,
-		        tmc->width, tmc->height);
+	    ac_imgconvert (planes, IMG_YUV_DEFAULT, &tmc->frameIn, IMG_YUY2,
+			   tmc->width, tmc->height);
 	    break;
 	case CODEC_YUV422:
-	    uyvytoyuy2 (ptr->video_buf, tmc->frameIn, tmc->width, tmc->height);
+	    ac_imgconvert (&ptr->video_buf, IMG_UYVY, &tmc->frameIn, IMG_YUY2,
+			   tmc->width, tmc->height);
 	    break;
 	}
 
@@ -299,12 +302,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		ac_memcpy (ptr->video_buf, tmc->frameOut, tmc->size);
 		break;
 	    case CODEC_YUV:
-		yuy2toyv12 (vid_y, vid_u, vid_v, tmc->frameOut,
-			    tmc->width, tmc->height);
+		ac_imgconvert (&tmc->frameOut, IMG_YUY2,
+			       planes, IMG_YUV_DEFAULT,
+			       tmc->width, tmc->height);
 		break;
 	    case CODEC_YUV422:
-		yuy2touyvy (ptr->video_buf, tmc->frameOut,
-			    tmc->width, tmc->height);
+		ac_imgconvert (&tmc->frameOut, IMG_YUY2,
+			       &ptr->video_buf, IMG_UYVY,
+			       tmc->width, tmc->height);
 		break;
 	    default:
 		fprintf (stderr, "codec: %x\n", tmc->codec);

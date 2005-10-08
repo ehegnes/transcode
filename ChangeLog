@@ -4,9 +4,11 @@
     Removed: filter/filter_yuy2toyv12.c
   Remove unused (and possibly broken) filter module yuy2toyv12.
 
-  * filter/filter_msharpen.c filter/filter_smartbob.c
-    filter/filter_smartdeinter.c filter/filter_xsharpen.c
+  * Changed: filter/filter_fieldanalysis.c filter/filter_msharpen.c
+    filter/filter_smartbob.c filter/filter_smartdeinter.c
+    filter/filter_xsharpen.c filter/tomsmocomp/filter_tomsmocomp.c
     filter/v4l/video.c
+    Removed: filter/tomsmocomp/transcoders.c filter/tomsmocomp/transcoders.h
   Replace redundant implementations of image conversion code with calls
   to ac_imgconvert().
 
@@ -23,6 +25,9 @@
   * aclib/ac.h aclib/accore.c
   Add ac_endian() function and AC_{BIG,LITTLE}_ENDIAN constants for
   determining the CPU's endianness.
+
+  * aclib/img_yuv_mixed.c aclib/img_yuv_planar.c aclib/img_yuv_rgb.c
+  Add image conversion functions for Y8 (grayscale YUV).
 
   * Changed: aclib/Makefile.am
     Added: aclib/rgb-yuv-conv.pl aclib/test-memcpy.c aclib/test-memcpy-speed.c
