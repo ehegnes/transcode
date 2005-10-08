@@ -33,6 +33,7 @@
 #include "src/filter.h"
 
 #include "transcode.h"
+#include "aclib/imgconvert.h"
 
 struct fgdevice fg;
 
@@ -47,7 +48,6 @@ static struct video_picture pict;
 static struct video_tuner tuner;
 
 static int v4l_max_buffer = 0;
-static int filter_yuv2toyv12 = -1;
 
 int do_audio = 0;
 
@@ -489,13 +489,8 @@ dont_touch:
     if (-1 == ioctl (fh, VIDIOCSPICT, &pict)) {
       printf ("(%s) Cannot not set YUV 2 picture attributes\n", __FILE__);
       perror ("ioctl VIDIOCSPICT");
-      //return(-1);
+      return(-1);
     }
-    // loading yuv422 to yv12 conversion filter
-    if (filter_yuv2toyv12 == -1)
-      if ((filter_yuv2toyv12 = plugin_find_id ("yuy2toyv12")) == -1)
-        filter_yuv2toyv12 = plugin_get_handle ("yuy2toyv12");
-
   }
 
   // retrieve buffer size and offsets 
@@ -701,7 +696,7 @@ grab_setattr (int id, int val)
 int
 video_grab_frame (char *buffer)
 {
-  char *p;
+  uint8_t *p;
 
   // advance grab-frame number 
   fg.current_grab_number = ((fg.current_grab_number + 1) % v4l_max_buffer);
@@ -729,10 +724,13 @@ video_grab_frame (char *buffer)
 
     break;
 
-  case VIDEO_PALETTE_YUV422:
-    ac_memcpy (buffer, p, fg.image_size);
+  case VIDEO_PALETTE_YUV422: {
+    uint8_t *planes[3];
+    YUV_INIT_PLANES(planes, buffer, IMG_YUV_DEFAULT, fg.width, fg.height);
+    ac_imgconvert(&p, IMG_YUY2, planes, IMG_YUV_DEFAULT, fg.width, fg.height);
 
     break;
+  }
   }
 
   fg.totalframecount++;
