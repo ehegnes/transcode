@@ -26,5 +26,6 @@ EXTRA_DIST = \
 	img_internal.h
 	mmx.h \
 	rgb-yuv-conv.pl \
+	test-imgconvert.c \
 	test-memcpy.c \
 	test-memcpy-speed.c
