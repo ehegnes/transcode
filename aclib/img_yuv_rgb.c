@@ -746,44 +746,60 @@ static int rgb24_yuv444p_sse2(uint8_t **src, uint8_t **dest,
 }
 
 
+#ifdef ARCH_X86_64
+# define EAX "%%rax"
+# define ECX "%%rcx"
+# define EDX "%%rdx"
+# define ESI "%%rsi"
+# define EDI "%%rdi"
+# define ESP "%%rsp"
+#else
+# define EAX "%%eax"
+# define ECX "%%ecx"
+# define EDX "%%edx"
+# define ESI "%%esi"
+# define EDI "%%edi"
+# define ESP "%%esp"
+#endif
+
 static inline void sse2_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
 				       uint8_t *srcV)
 {
     asm("\
 	# Load data, bias and expand to 16 bits				\n\
 	pxor %%xmm4, %%xmm4	# XMM4: 00 00 00 00 00 00 00 00		\n\
-	movdqu (%%eax), %%xmm6	# XMM6: YF...................Y0		\n\
-	movq (%%ecx), %%xmm2	# XMM2:             U7.......U0		\n\
-	movq (%%edx), %%xmm3	# XMM3:             V7.......V0		\n\
+	movdqu ("EAX"), %%xmm6	# XMM6: YF...................Y0		\n\
+	movq ("ECX"), %%xmm2	# XMM2:             U7.......U0		\n\
+	movq ("EDX"), %%xmm3	# XMM3:             V7.......V0		\n\
 	movdqa %%xmm6, %%xmm7	# XMM7: YF...................Y0		\n\
-	pand (%%esi), %%xmm6	# XMM6: YE YC YA Y8 Y6 Y4 Y2 Y0		\n\
+	pand ("ESI"), %%xmm6	# XMM6: YE YC YA Y8 Y6 Y4 Y2 Y0		\n\
 	psrlw $8, %%xmm7	# XMM7: YF YD YB Y9 Y7 Y5 Y3 Y1		\n\
 	punpcklbw %%xmm4,%%xmm2	# XMM2: U7 U6 U5 U4 U3 U2 U1 U0		\n\
 	punpcklbw %%xmm4,%%xmm3	# XMM3: V7 V6 V5 V4 V3 V2 V1 V0		\n\
-	psubw 16(%%esi), %%xmm6	# XMM6: subtract 16			\n\
-	psubw 16(%%esi), %%xmm7	# XMM7: subtract 16			\n\
-	psubw 32(%%esi), %%xmm2	# XMM2: subtract 128			\n\
-	psubw 32(%%esi), %%xmm3	# XMM3: subtract 128			\n\
+	psubw 16("ESI"), %%xmm6	# XMM6: subtract 16			\n\
+	psubw 16("ESI"), %%xmm7	# XMM7: subtract 16			\n\
+	psubw 32("ESI"), %%xmm2	# XMM2: subtract 128			\n\
+	psubw 32("ESI"), %%xmm3	# XMM3: subtract 128			\n\
 	psllw $7, %%xmm6	# XMM6: convert to fixed point 8.7	\n\
 	psllw $7, %%xmm7	# XMM7: convert to fixed point 8.7	\n\
 	psllw $7, %%xmm2	# XMM2: convert to fixed point 8.7	\n\
 	psllw $7, %%xmm3	# XMM3: convert to fixed point 8.7	\n\
 	# Multiply by constants						\n\
-	pmulhw 48(%%esi),%%xmm6	# XMM6: cYE.................cY0		\n\
-	pmulhw 48(%%esi),%%xmm7	# XMM6: cYF.................cY1		\n\
-	movdqa 80(%%esi),%%xmm4	# XMM4: gU constant			\n\
-	movdqa 96(%%esi),%%xmm5	# XMM5: gV constant			\n\
+	pmulhw 48("ESI"),%%xmm6	# XMM6: cYE.................cY0		\n\
+	pmulhw 48("ESI"),%%xmm7	# XMM6: cYF.................cY1		\n\
+	movdqa 80("ESI"),%%xmm4	# XMM4: gU constant			\n\
+	movdqa 96("ESI"),%%xmm5	# XMM5: gV constant			\n\
 	pmulhw %%xmm2, %%xmm4	# XMM4: gU7.................gU0		\n\
 	pmulhw %%xmm3, %%xmm5	# XMM5: gV7.................gV0		\n\
 	paddw %%xmm5, %%xmm4	# XMM4: g7 g6 g5 g4 g3 g2 g1 g0		\n\
-	pmulhw 64(%%esi),%%xmm3	# XMM3: r7 r6 r5 r4 r3 r2 r1 r0		\n\
-	pmulhw 112(%%esi),%%xmm2 #XMM2: b7 b6 b5 b4 b3 b2 b1 b0		\n\
+	pmulhw 64("ESI"),%%xmm3	# XMM3: r7 r6 r5 r4 r3 r2 r1 r0		\n\
+	pmulhw 112("ESI"),%%xmm2 #XMM2: b7 b6 b5 b4 b3 b2 b1 b0		\n\
 	movdqa %%xmm3, %%xmm0	# XMM0: r7 r6 r5 r4 r3 r2 r1 r0		\n\
 	movdqa %%xmm4, %%xmm1	# XMM1: g7 g6 g5 g4 g3 g2 g1 g0		\n\
 	movdqa %%xmm2, %%xmm5	# XMM5: b7 b6 b5 b4 b3 b2 b1 b0		\n\
 	# Add intermediate results and round/shift to get R/G/B values	\n\
-	paddw 128(%%esi),%%xmm6 # Add rounding value (0.5 @ 8.4 fixed)	\n\
-	paddw 128(%%esi),%%xmm7						\n\
+	paddw 128("ESI"),%%xmm6 # Add rounding value (0.5 @ 8.4 fixed)	\n\
+	paddw 128("ESI"),%%xmm7						\n\
 	paddw %%xmm6, %%xmm0	# XMM0: RE RC RA R8 R6 R4 R2 R0		\n\
 	psraw $4, %%xmm0	# Shift back to 8.0 fixed		\n\
 	paddw %%xmm6, %%xmm1	# XMM1: GE GC GA G8 G6 G4 G2 G0		\n\
@@ -840,9 +856,9 @@ static inline void sse2_store_rgb24(uint8_t *dest)
 	psrldq $4, %%xmm0	# XMM0: 00000 00000 00000 0BGR3		\n\
 	movd %%xmm0, %%edx	# EDX: 00 B3 G3 R3			\n\
 	"IA32_RGB32_TO_RGB24"						\n\
-	movl %%eax, (%%edi)						\n\
-	movl %%ebx, 4(%%edi)						\n\
-	movl %%ecx, 8(%%edi)						\n\
+	movl %%eax, ("EDI")						\n\
+	movl %%ebx, 4("EDI")						\n\
+	movl %%ecx, 8("EDI")						\n\
 	movd %%xmm1, %%eax	# EAX: 00 B4 G4 R4			\n\
 	psrldq $4, %%xmm1	# XMM1: 00000 0BGR7 0BGR6 0BGR5		\n\
 	movd %%xmm1, %%ebx	# EBX: 00 B5 G5 R5			\n\
@@ -851,9 +867,9 @@ static inline void sse2_store_rgb24(uint8_t *dest)
 	psrldq $4, %%xmm1	# XMM1: 00000 00000 00000 0BGR7		\n\
 	movd %%xmm1, %%edx	# EDX: 00 B7 G7 R7			\n\
 	"IA32_RGB32_TO_RGB24"						\n\
-	movl %%eax, 12(%%edi)						\n\
-	movl %%ebx, 16(%%edi)						\n\
-	movl %%ecx, 20(%%edi)						\n\
+	movl %%eax, 12("EDI")						\n\
+	movl %%ebx, 16("EDI")						\n\
+	movl %%ecx, 20("EDI")						\n\
 	movd %%xmm2, %%eax	# EAX: 00 B8 G8 R8			\n\
 	psrldq $4, %%xmm2	# XMM2: 00000 0BGRB 0BGRA 0BGR9		\n\
 	movd %%xmm2, %%ebx	# EBX: 00 B9 G9 R9			\n\
@@ -862,9 +878,9 @@ static inline void sse2_store_rgb24(uint8_t *dest)
 	psrldq $4, %%xmm2	# XMM2: 00000 00000 00000 0BGRB		\n\
 	movd %%xmm2, %%edx	# EDX: 00 BB GB RB			\n\
 	"IA32_RGB32_TO_RGB24"						\n\
-	movl %%eax, 24(%%edi)						\n\
-	movl %%ebx, 28(%%edi)						\n\
-	movl %%ecx, 32(%%edi)						\n\
+	movl %%eax, 24("EDI")						\n\
+	movl %%ebx, 28("EDI")						\n\
+	movl %%ecx, 32("EDI")						\n\
 	movd %%xmm3, %%eax	# EAX: 00 BC GC RC			\n\
 	psrldq $4, %%xmm3	# XMM3: 00000 0BGRF 0BGRE 0BGRD		\n\
 	movd %%xmm3, %%ebx	# EBX: 00 BD GD RD			\n\
@@ -873,9 +889,9 @@ static inline void sse2_store_rgb24(uint8_t *dest)
 	psrldq $4, %%xmm3	# XMM3: 00000 00000 00000 0BGRF		\n\
 	movd %%xmm3, %%edx	# EDX: 00 BF GF RF			\n\
 	"IA32_RGB32_TO_RGB24"						\n\
-	movl %%eax, 36(%%edi)						\n\
-	movl %%ebx, 40(%%edi)						\n\
-	movl %%ecx, 44(%%edi)						\n\
+	movl %%eax, 36("EDI")						\n\
+	movl %%ebx, 40("EDI")						\n\
+	movl %%ecx, 44("EDI")						\n\
 	popl %%ebx							\n\
 	"
 	: /* no outputs */
@@ -891,29 +907,29 @@ static inline void sse2_load_rgb24(uint8_t *src)
 	# Make stack space for loading XMM registers			\n\
 	subl $16, %%esp							\n\
 	# Read in source pixels 0-3					\n\
-	movl (%%esi), %%eax	# EAX: R1 B0 G0 R0			\n\
-	movl 4(%%esi), %%ebx	# EBX: G2 R2 B1 G1			\n\
-	movl 8(%%esi), %%ecx	# ECX: B3 G3 R3 B2			\n\
+	movl ("ESI"), %%eax	# EAX: R1 B0 G0 R0			\n\
+	movl 4("ESI"), %%ebx	# EBX: G2 R2 B1 G1			\n\
+	movl 8("ESI"), %%ecx	# ECX: B3 G3 R3 B2			\n\
 	# Convert to RGB32						\n\
 	"IA32_RGB24_TO_RGB32"						\n\
 	# Store in XMM4							\n\
-	movl %%eax, (%%esp)						\n\
-	movl %%ebx, 4(%%esp)						\n\
-	movl %%ecx, 8(%%esp)						\n\
-	movl %%edx, 12(%%esp)						\n\
-	movdqu (%%esp), %%xmm4	# XMM4: 0BGR3 0BGR2 0BGR1 0BGR0		\n\
+	movl %%eax, ("ESP")						\n\
+	movl %%ebx, 4("ESP")						\n\
+	movl %%ecx, 8("ESP")						\n\
+	movl %%edx, 12("ESP")						\n\
+	movdqu ("ESP"), %%xmm4	# XMM4: 0BGR3 0BGR2 0BGR1 0BGR0		\n\
 	# Repeat for pixels 4-7 (to XMM6)				\n\
-	movl 12(%%esi), %%eax	# EAX: R5 B4 G4 R4			\n\
-	movl 16(%%esi), %%ebx	# EBX: G6 R6 B5 G5			\n\
-	movl 20(%%esi), %%ecx	# ECX: B7 G7 R7 B6			\n\
+	movl 12("ESI"), %%eax	# EAX: R5 B4 G4 R4			\n\
+	movl 16("ESI"), %%ebx	# EBX: G6 R6 B5 G5			\n\
+	movl 20("ESI"), %%ecx	# ECX: B7 G7 R7 B6			\n\
 	# Convert to RGB32						\n\
 	"IA32_RGB24_TO_RGB32"						\n\
 	# Store in XMM0							\n\
-	movl %%eax, (%%esp)						\n\
-	movl %%ebx, 4(%%esp)						\n\
-	movl %%ecx, 8(%%esp)						\n\
-	movl %%edx, 12(%%esp)						\n\
-	movdqu (%%esp), %%xmm6	# XMM6: 0BGR7 0BGR6 0BGR5 0BGR4		\n\
+	movl %%eax, ("ESP")						\n\
+	movl %%ebx, 4("ESP")						\n\
+	movl %%ecx, 8("ESP")						\n\
+	movl %%edx, 12("ESP")						\n\
+	movdqu ("ESP"), %%xmm6	# XMM6: 0BGR7 0BGR6 0BGR5 0BGR4		\n\
 	# Restore stack and EBX						\n\
 	addl $16, %%esp							\n\
 	popl %%ebx							\n\
@@ -938,20 +954,20 @@ static inline void sse2_load_rgb24(uint8_t *src)
 	incl %%eax							\n\
 	pushl %%eax							\n\
 	pushl %%eax							\n\
-	movdqu (%%esp), %%xmm3						\n\
+	movdqu ("ESP"), %%xmm3						\n\
 	pand %%xmm3, %%xmm2						\n\
 	movq %%xmm4, %%xmm3						\n\
 	por %%xmm3, %%xmm2		# XMM2: 00 B3 00 B2 00 B1 00 B0	\n\
 	pshufd $0xD8, %%xmm7, %%xmm1	# XMM1: 00 B7 00 B6 G7 R7 G6 R6	\n\
 	pshufd $0x8D, %%xmm6, %%xmm6	# XMM6: G5 R5 G4 R4 00 B5 00 B4	\n\
-	movdqu (%%esp), %%xmm3						\n\
+	movdqu ("ESP"), %%xmm3						\n\
 	pand %%xmm3, %%xmm1						\n\
 	movq %%xmm6, %%xmm3						\n\
 	por %%xmm3, %%xmm1		# XMM1: 00 B7 00 B6 00 B5 00 B4	\n\
 	packuswb %%xmm1, %%xmm2		# XMM2: B7 B6 B5 B4 B3 B2 B1 B0	\n\
 	psrldq $8, %%xmm4		# XMM4:             G1 R1 G0 R0	\n\
 	pshufd $0x8D, %%xmm5, %%xmm5	# XMM5: G3 R3 G2 R2 00 B3 00 B2	\n\
-	movdqu (%%esp), %%xmm3						\n\
+	movdqu ("ESP"), %%xmm3						\n\
 	pand %%xmm3, %%xmm5						\n\
 	movq %%xmm4, %%xmm3						\n\
 	por %%xmm3, %%xmm5		# XMM5: G3 R3 G2 R2 G1 R1 G0 R0	\n\
@@ -959,7 +975,7 @@ static inline void sse2_load_rgb24(uint8_t *src)
 	pshufhw $0xD8, %%xmm5, %%xmm5	# XMM5: G3 G2 R3 R2 G1 G0 R1 R0	\n\
 	psrldq $8, %%xmm6		# XMM6:             G5 R5 G4 R4	\n\
 	pshufd $0x8D, %%xmm7, %%xmm7	# XMM7: G7 R7 G6 R6 00 B7 00 B6	\n\
-	movdqu (%%esp), %%xmm3						\n\
+	movdqu ("ESP"), %%xmm3						\n\
 	pand %%xmm3, %%xmm7						\n\
 	movq %%xmm6, %%xmm3						\n\
 	por %%xmm3, %%xmm7		# XMM7: G7 R7 G6 R6 G5 R5 G4 R4	\n\
@@ -967,13 +983,13 @@ static inline void sse2_load_rgb24(uint8_t *src)
 	pshufhw $0xD8, %%xmm7, %%xmm7	# XMM7: G7 G6 R6 R7 G5 G4 R5 R4	\n\
 	pshufd $0xD8, %%xmm7, %%xmm1	# XMM1: G7 G6 G5 G4 R7 R6 R5 R4	\n\
 	pshufd $0x8D, %%xmm5, %%xmm5	# XMM5: R3 R2 R1 R0 G3 G2 G1 G0	\n\
-	movdqu (%%esp), %%xmm3						\n\
+	movdqu ("ESP"), %%xmm3						\n\
 	pand %%xmm3, %%xmm1						\n\
 	movq %%xmm5, %%xmm3						\n\
 	por %%xmm3, %%xmm1		# XMM1: G7 G6 G5 G4 G3 G2 G1 G0	\n\
 	pshufd $0x8D, %%xmm7, %%xmm0	# XMM0: R7 R6 R5 R4 G7 G6 G5 G4	\n\
 	psrldq $8, %%xmm5		# XMM5:             R3 R2 R1 R0	\n\
-	movdqu (%%esp), %%xmm3						\n\
+	movdqu ("ESP"), %%xmm3						\n\
 	pand %%xmm3, %%xmm0						\n\
 	movq %%xmm5, %%xmm3						\n\
 	por %%xmm3, %%xmm0		# XMM0: R7 R6 R5 R4 R3 R2 R1 R0	\n\
@@ -994,39 +1010,39 @@ static inline void sse2_load_rgb24(uint8_t *src)
 	movdqa %%xmm0, %%xmm3						\n\
 	movdqa %%xmm1, %%xmm6						\n\
 	movdqa %%xmm2, %%xmm7						\n\
-	pmulhuw (%%edi), %%xmm3						\n\
-	pmulhuw 16(%%edi), %%xmm6					\n\
-	pmulhuw 32(%%edi), %%xmm7					\n\
+	pmulhuw ("EDI"), %%xmm3						\n\
+	pmulhuw 16("EDI"), %%xmm6					\n\
+	pmulhuw 32("EDI"), %%xmm7					\n\
 	paddw %%xmm6, %%xmm3	# No possibility of overflow		\n\
 	paddw %%xmm7, %%xmm3						\n\
-	paddw 144(%%edi), %%xmm3"
+	paddw 144("EDI"), %%xmm3"
 #define SSE2_RGB2U \
 	"# Create 8.6 fixed-point U data in XMM4			\n\
 	movdqa %%xmm0, %%xmm4						\n\
 	movdqa %%xmm1, %%xmm6						\n\
 	movdqa %%xmm2, %%xmm7						\n\
-	pmulhw 48(%%edi), %%xmm4					\n\
-	pmulhw 64(%%edi), %%xmm6					\n\
-	pmulhw 80(%%edi), %%xmm7					\n\
+	pmulhw 48("EDI"), %%xmm4					\n\
+	pmulhw 64("EDI"), %%xmm6					\n\
+	pmulhw 80("EDI"), %%xmm7					\n\
 	paddw %%xmm6, %%xmm4						\n\
 	paddw %%xmm7, %%xmm4						\n\
-	paddw 160(%%edi), %%xmm4"
+	paddw 160("EDI"), %%xmm4"
 #define SSE2_RGB2U0 \
 	"# Create 8.6 fixed-point U data in XMM0			\n\
-	pmulhw 48(%%edi), %%xmm0					\n\
-	pmulhw 64(%%edi), %%xmm1					\n\
-	pmulhw 80(%%edi), %%xmm2					\n\
+	pmulhw 48("EDI"), %%xmm0					\n\
+	pmulhw 64("EDI"), %%xmm1					\n\
+	pmulhw 80("EDI"), %%xmm2					\n\
 	paddw %%xmm1, %%xmm0						\n\
 	paddw %%xmm2, %%xmm0						\n\
-	paddw 160(%%edi), %%xmm0"
+	paddw 160("EDI"), %%xmm0"
 #define SSE2_RGB2V \
 	"# Create 8.6 fixed-point V data in XMM0			\n\
-	pmulhw 96(%%edi), %%xmm0					\n\
-	pmulhw 112(%%edi), %%xmm1					\n\
-	pmulhw 128(%%edi), %%xmm2					\n\
+	pmulhw 96("EDI"), %%xmm0					\n\
+	pmulhw 112("EDI"), %%xmm1					\n\
+	pmulhw 128("EDI"), %%xmm2					\n\
 	paddw %%xmm1, %%xmm0						\n\
 	paddw %%xmm2, %%xmm0						\n\
-	paddw 160(%%edi), %%xmm0"
+	paddw 160("EDI"), %%xmm0"
 #define SSE2_PACKYU \
 	"# Shift back down to 8-bit values				\n\
 	psraw $6, %%xmm3						\n\
@@ -1047,7 +1063,7 @@ static inline void sse2_load_rgb24(uint8_t *src)
 	packuswb %%xmm7, %%xmm0"
 #define SSE2_STRIPU(N) \
 	"# Remove every odd U value					\n\
-	pand 176(%%edi), %%xmm"#N"					\n\
+	pand 176("EDI"), %%xmm"#N"					\n\
 	packuswb %%xmm7, %%xmm"#N
 #define SSE2_STRIPV \
 	"# Remove every even V value					\n\
@@ -1062,8 +1078,8 @@ static inline void sse2_rgb_to_yuv420p_yu(uint8_t *destY, uint8_t *destU)
 	"SSE2_PACKYU"							\n\
 	"SSE2_STRIPU(0)"						\n\
 	# Store into destination pointers				\n\
-	movq %%xmm3, (%%eax)						\n\
-	movd %%xmm0, (%%ecx)						\n\
+	movq %%xmm3, ("EAX")						\n\
+	movd %%xmm0, ("ECX")						\n\
 	"
 	: /* no outputs */
 	: "a" (destY), "c" (destU), "D" (&rgb_data), "m" (rgb_data)
@@ -1078,8 +1094,8 @@ static inline void sse2_rgb_to_yuv420p_yv(uint8_t *destY, uint8_t *destV)
 	"SSE2_PACKYU"							\n\
 	"SSE2_STRIPV"							\n\
 	# Store into destination pointers				\n\
-	movq %%xmm3, (%%eax)						\n\
-	movd %%xmm0, (%%ecx)						\n\
+	movq %%xmm3, ("EAX")						\n\
+	movd %%xmm0, ("ECX")						\n\
 	"
 	: /* no outputs */
 	: "a" (destY), "c" (destV), "D" (&rgb_data), "m" (rgb_data)
@@ -1097,9 +1113,9 @@ static inline void sse2_rgb_to_yuv422p(uint8_t *destY, uint8_t *destU,
 	"SSE2_STRIPU(4)"						\n\
 	"SSE2_STRIPV"							\n\
 	# Store into destination pointers				\n\
-	movq %%xmm3, (%%eax)						\n\
-	movd %%xmm4, (%%ecx)						\n\
-	movd %%xmm0, (%%edx)						\n\
+	movq %%xmm3, ("EAX")						\n\
+	movd %%xmm4, ("ECX")						\n\
+	movd %%xmm0, ("EDX")						\n\
 	"
 	: /* no outputs */
 	: "a" (destY), "c" (destU), "d" (destV),
@@ -1116,9 +1132,9 @@ static inline void sse2_rgb_to_yuv444p(uint8_t *destY, uint8_t *destU,
 	"SSE2_RGB2V"							\n\
 	"SSE2_PACKYUV"							\n\
 	# Store into destination pointers				\n\
-	movq %%xmm3, (%%eax)						\n\
-	movq %%xmm4, (%%ecx)						\n\
-	movq %%xmm0, (%%edx)						\n\
+	movq %%xmm3, ("EAX")						\n\
+	movq %%xmm4, ("ECX")						\n\
+	movq %%xmm0, ("EDX")						\n\
 	"
 	: /* no outputs */
 	: "a" (destY), "c" (destU), "d" (destV),
@@ -1168,7 +1184,7 @@ int ac_imgconvert_init_yuv_rgb(int accel)
 	return 0;
     }
 
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
+#if defined(ARCH_X86)
     if (accel & AC_MMX) {
 	if (!register_conversion(IMG_YUV420P, IMG_RGB24,   yuv420p_rgb24_mmx)
 	 || !register_conversion(IMG_YUV422P, IMG_RGB24,   yuv422p_rgb24_mmx)
@@ -1176,7 +1192,9 @@ int ac_imgconvert_init_yuv_rgb(int accel)
 	    return 0;
 	}
     }
+#endif
 
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
     if (accel & AC_SSE2) {
 	if (!register_conversion(IMG_YUV420P, IMG_RGB24,   yuv420p_rgb24_sse2)
 	 || !register_conversion(IMG_YUV422P, IMG_RGB24,   yuv422p_rgb24_sse2)
