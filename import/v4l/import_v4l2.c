@@ -102,7 +102,7 @@ static int capability_flag	= TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_PC
 
 */
 
-#define module "[" MOD_NAME "]: "
+#define module "[" MOD_NAME "] "
 
 typedef enum { resync_none, resync_clone, resync_drop } v4l2_resync_op;
 typedef enum { v4l2_param_int, v4l2_param_string, v4l2_param_fp } v4l2_param_type_t;
