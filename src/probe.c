@@ -776,9 +776,6 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     preset |= TC_AUDIO;  
     break;
 
-#warning *************************** FIXME *************************** YV12
-//  case TC_CODEC_YV12:
-//    fprintf(stderr,"**************** ERROR no yv12! ***************\n");exit(1);
   case TC_CODEC_YUV420P:
     vob->im_v_codec=CODEC_YUV;
 

@@ -59,10 +59,6 @@ void probe_bsdav(info_t *ipipe)
     case BSDAV_VIDFMT_I420:
         ipipe->probe_info->codec = TC_CODEC_YUV420P;
         break;
-#warning ********************** FIXME ********************* (YV12)
-//    case BSDAV_VIDFMT_YV12:
-//        ipipe->probe_info->codec = TC_CODEC_YV12;
-//        break;
     case BSDAV_VIDFMT_YUY2:
         ipipe->probe_info->codec = TC_CODEC_YUY2;
         break;

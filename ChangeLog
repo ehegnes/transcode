@@ -1,4 +1,24 @@
 2005-10-08 Andrew Church <achurch at achurch dot org>
+  * filter/filter_msharpen.c filter/filter_smartbob.c
+    filter/filter_smartdeinter.c filter/filter_xsharpen.c
+  Replace redundant implementations of image conversion code with calls
+  to ac_imgconvert().
+
+  * import/extract_avi.c import/magic.h import/probe_bsdav.c
+    import/probe_mov.c import/probe_ogg.c import/tcdecode.c
+    import/tcextract.c src/probe.c
+  Remove remaining references to TC_CODEC_YV12.  As a result, transcode can
+  no longer read raw (uncompressed) YV12 AVIs or MOVs directly; use
+  -x mplayer,mplayer to transcode them.
+
+  * src/video_rgb.c src/video_yuv422.c
+  Avoid calling ac_rescale() for every pixel when rescaling horizontally.
+
+  * aclib/ac.h aclib/accore.c
+  Add ac_endian() function and AC_{BIG,LITTLE}_ENDIAN constants for
+  determining the CPU's endianness.
+
+2005-10-08 Andrew Church <achurch at achurch dot org>
   * Changed: aclib/* export/* filter/* import/* pvm3/tcpvmexportd.c src/*
     Added: aclib/ac_internal.h aclib/accore.c
     Renamed: aclib/tcmemcpy.c -> aclib/memcpy.c
