@@ -300,6 +300,137 @@ static int gray8_argb32(uint8_t **src, uint8_t **dest, int width, int height)
 /*************************************************************************/
 /*************************************************************************/
 
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
+
+#define DEFINE_MASK_DATA
+#include "img_x86_common.h"
+
+/*************************************************************************/
+
+/* Basic assembly routines */
+
+/* RGBA<->ABGR and ARGB<->BGRA: reverse byte order */
+static int rgba_swapall_x86(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_REV32_X86(width*height);
+    return 1;
+}
+
+/* RGBA<->BGRA: swap bytes 0 and 2 */
+static int rgba_swap02_x86(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_SWAP32_02_X86(width*height);
+    return 1;
+}
+
+/* ARGB<->ABGR: swap bytes 1 and 3 */
+static int rgba_swap13_x86(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_SWAP32_13_X86(width*height);
+    return 1;
+}
+
+/* RGBA->ARGB and BGRA->ABGR: alpha moves from byte 3 to byte 0 */
+static int rgba_alpha30_x86(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_ROL32_X86(width*height);
+    return 1;
+}
+
+/* ARGB->RGBA and ABGR->BGRA: alpha moves from byte 0 to byte 3 */
+static int rgba_alpha03_x86(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_ROR32_X86(width*height);
+    return 1;
+}
+
+/*************************************************************************/
+
+/* MMX-optimized routines */
+
+/* RGBA<->ABGR and ARGB<->BGRA: reverse byte order */
+static int rgba_swapall_mmx(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_REV32_MMX(width*height);
+    return 1;
+}
+
+/* RGBA<->BGRA: swap bytes 0 and 2 */
+static int rgba_swap02_mmx(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_SWAP32_02_MMX(width*height);
+    return 1;
+}
+
+/* ARGB<->ABGR: swap bytes 1 and 3 */
+static int rgba_swap13_mmx(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_SWAP32_13_MMX(width*height);
+    return 1;
+}
+
+/* RGBA->ARGB and BGRA->ABGR: alpha moves from byte 3 to byte 0 */
+static int rgba_alpha30_mmx(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_ROL32_MMX(width*height);
+    return 1;
+}
+
+/* ARGB->RGBA and ABGR->BGRA: alpha moves from byte 0 to byte 3 */
+static int rgba_alpha03_mmx(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_ROR32_MMX(width*height);
+    return 1;
+}
+
+/*************************************************************************/
+
+/* SSE2-optimized routines */
+/* These are just copies of the MMX routines with registers and data sizes
+ * changed. */
+
+/* RGBA<->ABGR and ARGB<->BGRA: reverse byte order */
+static int rgba_swapall_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_REV32_SSE2(width*height);
+    return 1;
+}
+
+/* RGBA<->BGRA: swap bytes 0 and 2 */
+static int rgba_swap02_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_SWAP32_02_SSE2(width*height);
+    return 1;
+}
+
+/* ARGB<->ABGR: swap bytes 1 and 3 */
+static int rgba_swap13_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_SWAP32_13_SSE2(width*height);
+    return 1;
+}
+
+/* RGBA->ARGB and BGRA->ABGR: alpha moves from byte 3 to byte 0 */
+static int rgba_alpha30_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_ROL32_SSE2(width*height);
+    return 1;
+}
+
+/* ARGB->RGBA and ABGR->BGRA: alpha moves from byte 0 to byte 3 */
+static int rgba_alpha03_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_ROR32_SSE2(width*height);
+    return 1;
+}
+
+/*************************************************************************/
+
+#endif  /* ARCH_X86 || ARCH_X86_64 */
+
+/*************************************************************************/
+/*************************************************************************/
+
 /* Initialization */
 
 int ac_imgconvert_init_rgb_packed(int accel)
@@ -337,10 +468,10 @@ int ac_imgconvert_init_rgb_packed(int accel)
      || !register_conversion(IMG_ARGB32,  IMG_GRAY8,   argb32_gray8)
 
      || !register_conversion(IMG_BGRA32,  IMG_RGB24,   bgra32_rgb24)
-     || !register_conversion(IMG_BGRA32,  IMG_RGBA32,  rgba_alpha03)
-     || !register_conversion(IMG_BGRA32,  IMG_ABGR32,  rgba_swap13)
-     || !register_conversion(IMG_BGRA32,  IMG_ARGB32,  rgba_copy)
-     || !register_conversion(IMG_BGRA32,  IMG_BGRA32,  rgba_swapall)
+     || !register_conversion(IMG_BGRA32,  IMG_RGBA32,  rgba_swap02)
+     || !register_conversion(IMG_BGRA32,  IMG_ABGR32,  rgba_alpha30)
+     || !register_conversion(IMG_BGRA32,  IMG_ARGB32,  rgba_swapall)
+     || !register_conversion(IMG_BGRA32,  IMG_BGRA32,  rgba_copy)
      || !register_conversion(IMG_BGRA32,  IMG_GRAY8,   argb32_gray8)
 
      || !register_conversion(IMG_GRAY8,   IMG_RGB24,   gray8_rgb24)
@@ -350,6 +481,74 @@ int ac_imgconvert_init_rgb_packed(int accel)
     ) {
 	return 0;
     }
+
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
+
+    if (accel & (AC_IA32ASM | AC_AMD64ASM)) {
+	if (!register_conversion(IMG_RGBA32,  IMG_ABGR32,  rgba_swapall_x86)
+	 || !register_conversion(IMG_RGBA32,  IMG_ARGB32,  rgba_alpha30_x86)
+	 || !register_conversion(IMG_RGBA32,  IMG_BGRA32,  rgba_swap02_x86)
+
+	 || !register_conversion(IMG_ABGR32,  IMG_RGBA32,  rgba_swapall_x86)
+	 || !register_conversion(IMG_ABGR32,  IMG_ARGB32,  rgba_swap13_x86)
+	 || !register_conversion(IMG_ABGR32,  IMG_BGRA32,  rgba_alpha03_x86)
+
+	 || !register_conversion(IMG_ARGB32,  IMG_RGBA32,  rgba_alpha03_x86)
+	 || !register_conversion(IMG_ARGB32,  IMG_ABGR32,  rgba_swap13_x86)
+	 || !register_conversion(IMG_ARGB32,  IMG_BGRA32,  rgba_swapall_x86)
+
+	 || !register_conversion(IMG_BGRA32,  IMG_RGBA32,  rgba_swap02_x86)
+	 || !register_conversion(IMG_BGRA32,  IMG_ABGR32,  rgba_alpha30_x86)
+	 || !register_conversion(IMG_BGRA32,  IMG_ARGB32,  rgba_swapall_x86)
+	) {
+	    return 0;
+	}
+    }
+
+    if (accel & AC_MMX) {
+	if (!register_conversion(IMG_RGBA32,  IMG_ABGR32,  rgba_swapall_mmx)
+	 || !register_conversion(IMG_RGBA32,  IMG_ARGB32,  rgba_alpha30_mmx)
+	 || !register_conversion(IMG_RGBA32,  IMG_BGRA32,  rgba_swap02_mmx)
+
+	 || !register_conversion(IMG_ABGR32,  IMG_RGBA32,  rgba_swapall_mmx)
+	 || !register_conversion(IMG_ABGR32,  IMG_ARGB32,  rgba_swap13_mmx)
+	 || !register_conversion(IMG_ABGR32,  IMG_BGRA32,  rgba_alpha03_mmx)
+
+	 || !register_conversion(IMG_ARGB32,  IMG_RGBA32,  rgba_alpha03_mmx)
+	 || !register_conversion(IMG_ARGB32,  IMG_ABGR32,  rgba_swap13_mmx)
+	 || !register_conversion(IMG_ARGB32,  IMG_BGRA32,  rgba_swapall_mmx)
+
+	 || !register_conversion(IMG_BGRA32,  IMG_RGBA32,  rgba_swap02_mmx)
+	 || !register_conversion(IMG_BGRA32,  IMG_ABGR32,  rgba_alpha30_mmx)
+	 || !register_conversion(IMG_BGRA32,  IMG_ARGB32,  rgba_swapall_mmx)
+	) {
+	    return 0;
+	}
+    }
+
+    if (accel & AC_SSE2) {
+	if (!register_conversion(IMG_RGBA32,  IMG_ABGR32,  rgba_swapall_sse2)
+	 || !register_conversion(IMG_RGBA32,  IMG_ARGB32,  rgba_alpha30_sse2)
+	 || !register_conversion(IMG_RGBA32,  IMG_BGRA32,  rgba_swap02_sse2)
+
+	 || !register_conversion(IMG_ABGR32,  IMG_RGBA32,  rgba_swapall_sse2)
+	 || !register_conversion(IMG_ABGR32,  IMG_ARGB32,  rgba_swap13_sse2)
+	 || !register_conversion(IMG_ABGR32,  IMG_BGRA32,  rgba_alpha03_sse2)
+
+	 || !register_conversion(IMG_ARGB32,  IMG_RGBA32,  rgba_alpha03_sse2)
+	 || !register_conversion(IMG_ARGB32,  IMG_ABGR32,  rgba_swap13_sse2)
+	 || !register_conversion(IMG_ARGB32,  IMG_BGRA32,  rgba_swapall_sse2)
+
+	 || !register_conversion(IMG_BGRA32,  IMG_RGBA32,  rgba_swap02_sse2)
+	 || !register_conversion(IMG_BGRA32,  IMG_ABGR32,  rgba_alpha30_sse2)
+	 || !register_conversion(IMG_BGRA32,  IMG_ARGB32,  rgba_swapall_sse2)
+	) {
+	    return 0;
+	}
+    }
+
+#endif
+
     return 1;
 }
 
