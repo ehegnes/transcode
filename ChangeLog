@@ -18,6 +18,12 @@
   Add ac_endian() function and AC_{BIG,LITTLE}_ENDIAN constants for
   determining the CPU's endianness.
 
+  * Changed: aclib/Makefile.am
+    Added: aclib/rgb-yuv-conv.pl aclib/test-memcpy.c aclib/test-memcpy-speed.c
+    Removed: aclib/actest.c aclib/movtest.c
+  Replace old test programs with updated ones, and add script to calculate
+  RGB/YUV conversion matrices.
+
 2005-10-08 Andrew Church <achurch at achurch dot org>
   * Changed: aclib/* export/* filter/* import/* pvm3/tcpvmexportd.c src/*
     Added: aclib/ac_internal.h aclib/accore.c
