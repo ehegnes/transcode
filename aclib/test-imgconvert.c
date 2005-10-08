@@ -86,6 +86,7 @@ int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt, int accel
 	return sigsave==SIGILL ? -8 : -7;
     }
 
+    ac_memcpy_init(0);
     if (!ac_imgconvert_init(0))
 	return -2;
     ac_memcpy(srcbuf, srcimage, sizeof(srcbuf));
@@ -98,6 +99,7 @@ int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt, int accel
     if (!ac_imgconvert(src, srcfmt, dest, destfmt, WIDTH, HEIGHT))
 	return -4;
 
+    ac_memcpy_init(accel);
     if (!ac_imgconvert_init(accel))
 	return -3;
     // currently src can get destroyed--see img_yuv_mixed.c
@@ -144,14 +146,14 @@ struct { ImageFormat fmt; const char *name; } fmtlist[] = {
     { IMG_YUY2,    "YUY2" },
     { IMG_UYVY,    "UYVY" },
     { IMG_YVYU,    "YVYU" },
-    { IMG_Y8,      " Y8 " },
+//    { IMG_Y8,      " Y8 " },
     { IMG_RGB24,   "RGB " },
     { IMG_BGR24,   "BGR " },
     { IMG_RGBA32,  "RGBA" },
-//    { IMG_ABGR32,  "ABGR" },
+    { IMG_ABGR32,  "ABGR" },
     { IMG_ARGB32,  "ARGB" },
-//    { IMG_BGRA32,  "BGRA" },
-    { IMG_GRAY8,   "GRAY" },
+    { IMG_BGRA32,  "BGRA" },
+//    { IMG_GRAY8,   "GRAY" },
     { IMG_NONE,    NULL }
 };
 
@@ -200,7 +202,6 @@ int main(int argc, char **argv)
     srandom(0);  /* to give a standard "image" */
     for (i = 0; i < sizeof(srcbuf); i++)
 	srcbuf[i] = random();
-    ac_memcpy_init(accel);
 
     printf("Acceleration flags:%s%s%s%s%s%s%s%s%s%s\n",
 	   !accel                ? " none"     : "",
@@ -214,7 +215,7 @@ int main(int argc, char **argv)
 	   (accel & AC_SSE2    ) ? " sse2"     : "",
 	   (accel & AC_SSE3    ) ? " sse3"     : "");
     if (compare)
-	printf("Units: conversions/time (unaccelerated = 100)\n");
+	printf("Units: conversions/time (unaccelerated = 100)\n\n");
     else
 	printf("Units: conversions/sec (frame size: %dx%d)\n\n", WIDTH, HEIGHT);
     printf("     |");
