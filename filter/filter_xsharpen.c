@@ -36,6 +36,7 @@
 #include "transcode.h"
 #include "filter.h"
 #include "optstr.h"
+#include "aclib/imgconvert.h"
 
 static vob_t *vob=NULL;
 
