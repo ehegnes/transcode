@@ -31,6 +31,11 @@
 #define AC_NONE		0	/* No acceleration (vanilla C functions) */
 #define AC_ALL		(~0)	/* All available acceleration */
 
+
+/* Endianness flag: */
+#define AC_LITTLE_ENDIAN	1
+#define AC_BIG_ENDIAN		2
+
 /*************************************************************************/
 
 /* Library initialization function--MUST be called before any other aclib
@@ -43,6 +48,9 @@ extern int ac_init(int accel);
 
 /* Returns the set of acceleration features supported by this CPU. */
 extern int ac_cpuinfo(void);
+
+/* Returns the endianness of this CPU (AC_BIG_ENDIAN or AC_LITTLE_ENDIAN). */
+extern int ac_endian(void);
 
 /* Utility routine to convert a set of flags to a descriptive string.  The
  * string is stored in a static buffer overwritten each call. */

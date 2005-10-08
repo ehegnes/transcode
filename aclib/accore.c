@@ -53,6 +53,21 @@ int ac_cpuinfo(void)
 
 /*************************************************************************/
 
+/* Returns the endianness of this CPU (AC_BIG_ENDIAN or AC_LITTLE_ENDIAN). */
+
+int ac_endian(void)
+{
+    volatile int test;
+
+    test = 1;
+    if (*((uint8_t *)&test))
+	return AC_LITTLE_ENDIAN;
+    else
+	return AC_BIG_ENDIAN;
+}
+
+/*************************************************************************/
+
 /* Utility routine to convert a set of flags to a descriptive string.  The
  * string is stored in a static buffer overwritten each call.  `filter'
  * selects whether to filter out flags not supported by the CPU. */
