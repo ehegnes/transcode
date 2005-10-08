@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME		"import_v4l2.so"
-#define MOD_VERSION		"v1.3.5 (2005-03-11)"
+#define MOD_VERSION		"v1.4.0 (2005-10-08)"
 #define MOD_CODEC		"(video) v4l2 | (audio) pcm"
 
 #include "transcode.h"
@@ -51,7 +51,7 @@ static int capability_flag	= TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_PC
 #include "videodev2.h"
 #endif
 
-#include "filter/mmx.h"
+#include "aclib/imgconvert.h"
 
 
 /*
@@ -98,24 +98,20 @@ static int capability_flag	= TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_PC
 	1.3.4	EMS fixed RGB24 capturing bug when using saa7134.
 	1.3.5	EMS test with unrestricted cloning/dropping of frames using resync_interval=0
 	            adjusted saa7134 audio message to make clear the user must take action
+	1.4.0	AC  switch to aclib for image conversion
 
-	TODO
-
-	- add more conversion schemes
-	- use more mmx/sse/3dnow
 */
 
 #define module "[" MOD_NAME "]: "
 
 typedef enum { resync_none, resync_clone, resync_drop } v4l2_resync_op;
-typedef enum { v4l2_fmt_rgb, v4l2_fmt_yuv422packed, v4l2_fmt_yuv420planar } v4l2_fmt_t;
 typedef enum { v4l2_param_int, v4l2_param_string, v4l2_param_fp } v4l2_param_type_t;
 
 typedef struct
 {
-	int				from;
-	v4l2_fmt_t		to;
-	void			(*convert)(const char *, char *, size_t size, int xsize, int ysize);
+	int				v4l_format;
+	ImageFormat		from;
+	ImageFormat		to;
 	const char *	description;
 } v4l2_format_convert_table_t;
 
@@ -138,7 +134,7 @@ static struct
 } * v4l2_buffers;
 
 static char *			v4l2_device;
-static v4l2_fmt_t		v4l2_fmt;
+static ImageFormat		v4l2_fmt;
 static v4l2_resync_op	v4l2_video_resync_op = resync_none;
 
 static int	v4l2_saa7134_audio = 0;
@@ -166,15 +162,6 @@ static char *	v4l2_resync_previous_frame = 0;
 static char		v4l2_crop_parm[128] = "";
 static char		v4l2_format_string[128] = "";
 
-static void		(*v4l2_format_convert)(const char *, char *, size_t, int, int) = 0;
-
-static void v4l2_convert_bgr24_rgb(const char *, char *, size_t, int, int);
-static void v4l2_convert_uyvy_yuv422(const char *, char *, size_t, int, int);
-static void v4l2_convert_yuyv_yuv422(const char *, char *, size_t, int, int);
-static void v4l2_convert_yuyv_yuv420(const char *, char *, size_t, int, int);
-static void v4l2_convert_yvu420_yuv420(const char *, char *, size_t, int, int);
-static void v4l2_convert_yuv420_yuv420(const char *, char *, size_t, int, int);
-
 static v4l2_parameter_t v4l2_parameters[] =
 {
 	{ v4l2_param_int, 		"resync_margin",	0,							{ .integer	= &v4l2_resync_margin_frames }},
@@ -187,223 +174,49 @@ static v4l2_parameter_t v4l2_parameters[] =
 
 static v4l2_format_convert_table_t v4l2_format_convert_table[] = 
 {
-	{ V4L2_PIX_FMT_BGR24, v4l2_fmt_rgb, v4l2_convert_bgr24_rgb, "BGR24 [packed] -> RGB [packed] (slow conversion)" },
+	{ V4L2_PIX_FMT_RGB24,   IMG_RGB24,   IMG_RGB_DEFAULT, "RGB24 [packed] -> RGB [packed] (no conversion" },
+	{ V4L2_PIX_FMT_BGR24,   IMG_BGR24,   IMG_RGB_DEFAULT, "BGR24 [packed] -> RGB [packed]" },
+	{ V4L2_PIX_FMT_RGB32,   IMG_RGBA32,  IMG_RGB_DEFAULT, "RGB32 [packed] -> RGB [packed]" },
+	{ V4L2_PIX_FMT_BGR32,   IMG_BGRA32,  IMG_RGB_DEFAULT, "BGR32 [packed] -> RGB [packed]" },
+	{ V4L2_PIX_FMT_GREY,    IMG_GRAY8,   IMG_RGB_DEFAULT, "8-bit grayscale -> RGB [packed]" },
 
-	{ V4L2_PIX_FMT_UYVY, v4l2_fmt_yuv422packed, v4l2_convert_uyvy_yuv422, "UYVY [packed] -> YUV422 [packed] (no conversion)" },
-	{ V4L2_PIX_FMT_YUYV, v4l2_fmt_yuv422packed, v4l2_convert_yuyv_yuv422, "YUYV [packed] -> YUV422 [packed] (slow conversion) " },
+	{ V4L2_PIX_FMT_UYVY,    IMG_UYVY,    IMG_UYVY,        "UYVY [packed] -> YUV422 [packed] (no conversion)" },
+	{ V4L2_PIX_FMT_YUYV,    IMG_YUY2,    IMG_UYVY,        "YUY2 [packed] -> YUV422 [packed]" },
+	{ V4L2_PIX_FMT_YUV420,  IMG_YUV420P, IMG_UYVY,        "YUV420 [planar] -> YUV420 [packed]" },
+	{ V4L2_PIX_FMT_YVU420,  IMG_YV12,    IMG_UYVY,        "YVU420 [planar] -> YUV420 [packed]" },
+	{ V4L2_PIX_FMT_YYUV,    IMG_YUV422P, IMG_UYVY,        "YUV422 [planar] -> YUV420 [packed]" },
+	{ V4L2_PIX_FMT_Y41P,    IMG_YUV411P, IMG_UYVY,        "YUV411 [planar] -> YUV420 [packed]" },
+	{ V4L2_PIX_FMT_GREY,    IMG_GRAY8,   IMG_UYVY,        "8-bit grayscale -> YUV422 [packed]" },
 
-	{ V4L2_PIX_FMT_YVU420, v4l2_fmt_yuv420planar, v4l2_convert_yvu420_yuv420, "YVU420 [planar] -> YUV420 [planar] (no conversion)" },
-	{ V4L2_PIX_FMT_YUV420, v4l2_fmt_yuv420planar, v4l2_convert_yuv420_yuv420, "YUV420 [planar] -> YUV420 [planar] (fast conversion)" },
-	{ V4L2_PIX_FMT_UYVY,   v4l2_fmt_yuv420planar, v4l2_convert_yuyv_yuv420,   "UYVY [packed] -> YUV420 [planar] (slow conversion) " },
+	{ V4L2_PIX_FMT_YUV420,  IMG_YUV420P, IMG_YUV_DEFAULT, "YUV420 [planar] -> YUV420 [planar] (no conversion)" },
+	{ V4L2_PIX_FMT_YVU420,  IMG_YV12,    IMG_YUV_DEFAULT, "YVU420 [planar] -> YUV420 [planar]" },
+	{ V4L2_PIX_FMT_YYUV,    IMG_YUV422P, IMG_YUV_DEFAULT, "YUV422 [planar] -> YUV420 [planar]" },
+	{ V4L2_PIX_FMT_Y41P,    IMG_YUV411P, IMG_YUV_DEFAULT, "YUV411 [planar] -> YUV420 [planar]" },
+	{ V4L2_PIX_FMT_UYVY,    IMG_UYVY,    IMG_YUV_DEFAULT, "UYVY [packed] -> YUV420 [planar]" },
+	{ V4L2_PIX_FMT_YUYV,    IMG_YUYV,    IMG_YUV_DEFAULT, "YUY2 [packed] -> YUV420 [planar]" },
+	{ V4L2_PIX_FMT_GREY,    IMG_GRAY8,   IMG_YUV_DEFAULT, "8-bit grayscale -> YUV420 [planar]" },
 };
 
 /* ============================================================ 
- * CONVERSION ROUTINES
+ * IMAGE FORMAT CONVERSION ROUTINE
  * ============================================================*/
 
-static void v4l2_convert_bgr24_rgb(const char * source, char * dest, size_t size, int xsize, int ysize)
+static void v4l2_format_convert(uint8_t *source, uint8_t *dest,
+                                int width, int height)
 {
-	size_t mysize = xsize * ysize * 3;
-	int offset;
+    v4l2_format_convert_table_t *conv;
+    uint8_t *srcplanes[3], *destplanes[3];
 
-	if(mysize != size)
-		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
-
-	for(offset = 0; offset < mysize; offset += 3)
-	{
-		dest[offset + 0] = source[offset + 2];
-		dest[offset + 1] = source[offset + 1];
-		dest[offset + 2] = source[offset + 0];
-	}
-}
-
-static void v4l2_convert_uyvy_yuv422(const char * source, char * dest, size_t size, int xsize, int ysize)
-{
-	size_t mysize = xsize * ysize * 2;
-
-	if(mysize != size)
-		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
-
-	ac_memcpy(dest, source, mysize);
-}
-
-static void v4l2_convert_yuyv_yuv422(const char * source, char * dest, size_t size, int xsize, int ysize)
-{
-	size_t mysize = xsize * ysize * 2;
-	size_t mmxsize;
-	int offset;
-
-	if(mysize != size)
-		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
-
-	mmxsize = mysize/32;
-
-#ifdef HAVE_MMX
-	/* 
-	 * I am not using masks to clear out the unneeded Y resp. U/V values
-	 * because it would occupy registers and the shifts don't cost much.
-	 * To fullfill that w*h*2 is a multiple of 32, either w and h must be a
-	 * multple of 4 or w must be a multiple of 8 and h a multiple of 2. I think
-	 * thats reasonable.
-	 *
-	 * CPU cycles:
-	 *  C:    7200410 cycles (avg)
-	 *  MMX:  3503287 cycles (avg)
-	 * 
-	 * I know that there should be "collection" of these routines somewhere
-	 * else in the transcode dir but before that happens, I use this place
-	 * here as a temporary location. --tibit
-	 */
-
-	do {
-
-		/* u0 y0 v0 y1 u1 y2 v1 y3 HAVE*/
-		/*  \ /   \ /   \ /   \ /      */ 
-		/*   x     x     x     x       */ 
-		/*  / \   / \   / \   / \      */ 
-		/* y0 u0 y1 v0 y2 u1 y3 v1 WANT*/
-
-		movq_m2r(*(source+ 0), mm0); /* u0 y0 v0 y1 u1 y2 v1 y3 */
-		movq_m2r(*(source+ 8), mm2);
-		movq_m2r(*(source+16), mm4);
-		movq_m2r(*(source+24), mm6);
-
-		movq_r2r(mm0, mm1);
-		movq_r2r(mm2, mm3);
-		movq_r2r(mm4, mm5);
-		movq_r2r(mm6, mm7);
-
-		psllw_i2r(8, mm0);  /* y0 00 y1 00 y2 00 y3 00 */
-		psllw_i2r(8, mm2);
-		psllw_i2r(8, mm4);
-		psllw_i2r(8, mm6);
-
-		psrlw_i2r(8, mm1);  /* 00 u0 00 v0 00 u1 00 v1 */
-		psrlw_i2r(8, mm3);
-		psrlw_i2r(8, mm5);
-		psrlw_i2r(8, mm7);
-
-		por_r2r(mm1, mm0);  /* y0 u0 y1 v0 y2 u1 y3 v1 */
-		por_r2r(mm3, mm2);
-		por_r2r(mm5, mm4);
-		por_r2r(mm7, mm6);
-
-		movq_r2m(mm0, *(dest+ 0));
-		movq_r2m(mm2, *(dest+ 8));
-		movq_r2m(mm4, *(dest+16));
-		movq_r2m(mm6, *(dest+24));
-
-		source+=32;
-		dest+=32;
-
-	} while (mmxsize--);
-
-	emms();
-	
-	// catch the rest of pixels (if there are any)
-
-	mmxsize  = mysize/32;
-	mmxsize *= 32;
-	mysize  -= mmxsize;
-
-	// mysize should now be 0, if not ...
-
-	for(offset = 0; offset < mysize; offset += 4)
-	{
-		dest[offset + 0] = source[offset + 1];
-		dest[offset + 1] = source[offset + 0];
-		dest[offset + 2] = source[offset + 3];
-		dest[offset + 3] = source[offset + 2];
-	}
-
-#else
-	for(offset = 0; offset < mysize; offset += 4)
-	{
-		dest[offset + 0] = source[offset + 1];
-		dest[offset + 1] = source[offset + 0];
-		dest[offset + 2] = source[offset + 3];
-		dest[offset + 3] = source[offset + 2];
-	}
-#endif
-
-}
-
-static void v4l2_convert_yuyv_yuv420(const char * source, char * dest, size_t dest_size, int xsize, int ysize)
-{
-	int i, j, w2;
-	char * y, * u, * v;
-
-    w2 = xsize / 2;
-
-    // I420
-
-	y = dest;
-	v = dest + xsize * ysize;
-	u = dest + xsize * ysize * 5 / 4;
-
-	for(i = 0; i < ysize; i += 2)
-	{
-		for (j = 0; j < w2; j++)
-		{
-			/* UYVY.  The byte order is CbY'CrY' */
-
-			*u++ = *source++;
-			*y++ = *source++;
-			*v++ = *source++;
-			*y++ = *source++;
-		}
-
-		//downsampling
-
-		u -= w2;
-		v -= w2;
-
-		/* average every second line for U and V */
-
-		for(j = 0; j < w2; j++)
-		{
-			int un = *u & 0xff;
-			int vn = *v & 0xff;
-
-			un += *source++ & 0xff;
-			*u++ = un>>1;
-
-			*y++ = *source++;
-
-			vn += *source++ & 0xff;
-			*v++ = vn>>1;
-
-			*y++ = *source++;
-		}
-	}
-}
-
-static void v4l2_convert_yvu420_yuv420(const char * source, char * dest, size_t size, int xsize, int ysize)
-{
-	size_t mysize = xsize * ysize * 3 / 2;
-
-	if(mysize != size)
-		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
-
-	ac_memcpy(dest, source, mysize);
-}
-
-static void v4l2_convert_yuv420_yuv420(const char * source, char * dest, size_t size, int xsize, int ysize)
-{
-	size_t mysize = xsize * ysize * 3 / 2;
-	int yplane_size		= mysize * 4 / 6;
-	int uplane_size		= mysize * 1 / 6;
-
-	int yplane_offset	= 0;
-	int u1plane_offset	= yplane_size + 0;
-	int u2plane_offset	= yplane_size + uplane_size;
-
-	if(mysize != size)
-		fprintf(stderr, module "buffer sizes do not match (%d != %d)\n", (int)size, (int)mysize);
-
-	ac_memcpy(dest + yplane_offset,  source + yplane_offset,  yplane_size);
-	ac_memcpy(dest + u1plane_offset, source + u2plane_offset, uplane_size);
-	ac_memcpy(dest + u2plane_offset, source + u1plane_offset, uplane_size);
+    if (v4l2_convert_index < 0)
+        return;
+    conv = &v4l2_format_convert_table[v4l2_convert_index];
+    srcplanes[0] = source;
+    destplanes[0] = dest;
+    if (IS_YUV_FORMAT(conv->from))
+        YUV_INIT_PLANES(srcplanes, source, conv->from, width, height);
+    if (IS_YUV_FORMAT(conv->to))
+        YUV_INIT_PLANES(destplanes, dest, conv->to, width, height);
+    ac_imgconvert(srcplanes, conv->from, destplanes, conv->to, width, height);
 }
 
 /* ============================================================ 
@@ -496,8 +309,9 @@ static int v4l2_video_grab_frame(char * dest, size_t length)
 
 	// copy frame
 
-	if(dest)
-		v4l2_format_convert(v4l2_buffers[ix].start, dest, length, v4l2_width, v4l2_height);
+	if(dest) {
+		v4l2_format_convert(v4l2_buffers[ix].start, dest, v4l2_width, v4l2_height);
+	}
 	
 	// enqueue buffer again
 
@@ -628,9 +442,9 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 
 	switch(layout)
 	{
-		case(CODEC_RGB): 	v4l2_fmt = v4l2_fmt_rgb;			break;
-		case(CODEC_YUV): 	v4l2_fmt = v4l2_fmt_yuv420planar;	break;
-		case(CODEC_YUV422): v4l2_fmt = v4l2_fmt_yuv422packed;	break;
+		case(CODEC_RGB):    v4l2_fmt = IMG_RGB_DEFAULT; break;
+		case(CODEC_YUV):    v4l2_fmt = IMG_YUV_DEFAULT; break;
+		case(CODEC_YUV422): v4l2_fmt = IMG_UYVY;        break;
 
 		default:
 		{
@@ -705,14 +519,14 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 		format.type					= V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		format.fmt.pix.width		= width;
 		format.fmt.pix.height		= height;
-		format.fmt.pix.pixelformat	= fcp[ix].from;
+		format.fmt.pix.pixelformat	= fcp[ix].v4l_format;
 
 		if(ioctl(v4l2_video_fd, VIDIOC_S_FMT, &format) < 0)
 			perror(module "VIDIOC_S_FMT: ");
 		else
 		{
-			v4l2_format_convert = fcp[ix].convert;
 			fprintf(stderr, module "Pixel format conversion: %s\n", fcp[ix].description);
+			v4l2_convert_index = ix;
 			found = 1;
 			break;
 		}
