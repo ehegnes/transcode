@@ -67,9 +67,10 @@ static void clear_signals(void)
  *   -7: SIGSEGV
  *   -8: SIGILL
  */
-int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt, int accel)
+int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt,
+	   int accel, int verbose)
 {
-    static uint8_t srcbuf[WIDTH*HEIGHT*4], destbuf[WIDTH*HEIGHT*4], cmpbuf[WIDTH*HEIGHT*4];
+    static __attribute__((aligned(16))) uint8_t srcbuf[WIDTH*HEIGHT*4], destbuf[WIDTH*HEIGHT*4], cmpbuf[WIDTH*HEIGHT*4];
     uint8_t *src[3], *dest[3];
     long long tdiff;
     unsigned long long start, stop;
@@ -113,12 +114,23 @@ int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt, int accel
     tdiff = 0;
     for (i = 0; i < sizeof(destbuf); i++) {
 	int diff = (int)destbuf[i] - (int)cmpbuf[i];
-	if (diff < -1 || diff > 1)
+	if (diff < -1 || diff > 1) {
+	    if (verbose) {
+		fprintf(stderr, "*** compare error: at %d (want=%d have=%d)\n",
+			i, cmpbuf[i], destbuf[i]);
+	    }
 	    return -6;
+	}
 	tdiff += diff*diff;
     }
-    if (tdiff >= WIDTH*HEIGHT/2)
+    if (tdiff >= WIDTH*HEIGHT/2) {
+	if (verbose) {
+	    fprintf(stderr, 
+		    "*** compare error: total difference too great (%lld)\n",
+		   tdiff);
+	}
 	return -6;
+    }
 
     getrusage(RUSAGE_SELF, &ru);
     start = ru.ru_utime.tv_sec * 1000000ULL + ru.ru_utime.tv_usec;
@@ -135,9 +147,8 @@ int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt, int accel
     return (stop-start + icnt/2) / icnt;
 }
 
-/* Order of formats to test, with name strings; comment out ones you're
- * not interested in */
-struct { ImageFormat fmt; const char *name; } fmtlist[] = {
+/* Order of formats to test, with name strings */
+struct { ImageFormat fmt; const char *name; int disabled; } fmtlist[] = {
     { IMG_YUV420P, "420P" },
     { IMG_YV12,    "YV12" },
     { IMG_YUV411P, "411P" },
@@ -146,32 +157,46 @@ struct { ImageFormat fmt; const char *name; } fmtlist[] = {
     { IMG_YUY2,    "YUY2" },
     { IMG_UYVY,    "UYVY" },
     { IMG_YVYU,    "YVYU" },
-//    { IMG_Y8,      " Y8 " },
+    { IMG_Y8,      " Y8 ", 1 },  /* disabled by default */
     { IMG_RGB24,   "RGB " },
     { IMG_BGR24,   "BGR " },
     { IMG_RGBA32,  "RGBA" },
     { IMG_ABGR32,  "ABGR" },
     { IMG_ARGB32,  "ARGB" },
     { IMG_BGRA32,  "BGRA" },
-//    { IMG_GRAY8,   "GRAY" },
+    { IMG_GRAY8,   "GRAY", 1 },  /* disabled by default */
     { IMG_NONE,    NULL }
 };
 
 int main(int argc, char **argv)
 {
     static uint8_t srcbuf[WIDTH*HEIGHT*4];
-    int accel = 0, compare = 0;
+    int accel = 0, compare = 0, verbose = 0;
     int i, j;
 
     while (argc > 1) {
 	if (strcmp(argv[--argc],"-h") == 0) {
-	    fprintf(stderr, "Usage: %s [-c] [accel-name...]", argv[0]);
+	    fprintf(stderr, "Usage: %s [-c] [-v] [=conv-name[,conv-name...]] [accel-name...]", argv[0]);
 	    fprintf(stderr, "-c: compare with non-accelerated versions and report percentage speedup\n");
+	    fprintf(stderr, "-v: verbose (report details of comparison failures)\n");
+	    fprintf(stderr, "=: select formats to test");
+	    fprintf(stderr, "   conv-name can be:");
+	    for (i = 0; fmtlist[i].fmt != IMG_NONE; i++) {
+		char buf[16], *s;
+		snprintf(buf, sizeof(buf), "%s", fmtlist[i].name);
+		while (*buf && buf[strlen(buf)-1]==' ')
+		    buf[strlen(buf)-1] = 0;
+		s = buf + strspn(buf," ");
+		fprintf(stderr," %s", s);
+	    }
+	    fprintf(stderr, "\n");
 	    fprintf(stderr, "accel-name can be ia32asm, amd64asm, cmove, mmx, ...\n");
 	    return 0;
 	}
 	if (strcmp(argv[argc],"-c") == 0)
 	    compare = 1;
+	else if (strcmp(argv[argc],"-v") == 0)
+	    verbose = 1;
 	else if (strcmp(argv[argc],"ia32asm") == 0)
 	    accel |= AC_IA32ASM;
 	else if (strcmp(argv[argc],"amd64asm") == 0)
@@ -192,7 +217,32 @@ int main(int argc, char **argv)
 	    accel |= AC_SSE2;
 	else if (strcmp(argv[argc],"sse3") == 0)
 	    accel |= AC_SSE3;
-	else {
+	else if (argv[argc][0] == '=') {
+	    char *s = argv[argc]+1;
+	    for (i = 0; fmtlist[i].fmt != IMG_NONE; i++) {
+		fmtlist[i].disabled = 1;
+	    }
+	    for (s = strtok(s,","); s; s = strtok(NULL,",")) {
+		for (i = 0; fmtlist[i].fmt != IMG_NONE; i++) {
+		    const char *t = fmtlist[i].name;
+		    int l;
+		    while (*t == ' ')
+			t++;
+		    l = strlen(t);
+		    while (l > 1 && t[l-1] == ' ')
+			l--;
+		    if (strlen(s) == l && memcmp(s,t,l) == 0) {
+			fmtlist[i].disabled = 0;
+			break;
+		    }
+		}
+		if (fmtlist[i].fmt == IMG_NONE) {
+		    fprintf(stderr, "Unknown image format `%s'\n", s);
+		    fprintf(stderr, "`%s -h' for help.\n", argv[0]);
+		    return 1;
+		}
+	    }
+	} else {
 	    fprintf(stderr, "Unknown accel type `%s'\n", argv[argc]);
 	    fprintf(stderr, "`%s -h' for help.\n", argv[0]);
 	    return 1;
@@ -219,18 +269,26 @@ int main(int argc, char **argv)
     else
 	printf("Units: conversions/sec (frame size: %dx%d)\n\n", WIDTH, HEIGHT);
     printf("     |");
-    for (i = 0; fmtlist[i].fmt != IMG_NONE; i++)
-	printf("%-4s|", fmtlist[i].name);
+    for (i = 0; fmtlist[i].fmt != IMG_NONE; i++) {
+	if (!fmtlist[i].disabled)
+	    printf("%-4s|", fmtlist[i].name);
+    }
     printf("\n-----+");
-    for (i = 0; fmtlist[i].fmt != IMG_NONE; i++)
-	printf("----+");
+    for (i = 0; fmtlist[i].fmt != IMG_NONE; i++) {
+	if (!fmtlist[i].disabled)
+	    printf("----+");
+    }
     printf("\n");
 
     for (i = 0; fmtlist[i].fmt != IMG_NONE; i++) {
+	if (fmtlist[i].disabled)
+	    continue;
 	printf("%-5s|", fmtlist[i].name);
 	fflush(stdout);
 	for (j = 0; fmtlist[j].fmt != IMG_NONE; j++) {
-	    int res = testit(srcbuf, fmtlist[i].fmt, fmtlist[j].fmt, accel);
+	    if (fmtlist[j].disabled)
+		continue;
+	    int res = testit(srcbuf, fmtlist[i].fmt, fmtlist[j].fmt, accel, verbose);
 	    switch (res) {
 	        case -1:
 	        case -2:
@@ -243,7 +301,7 @@ int main(int argc, char **argv)
 	        default:
 		    if (compare) {
 			int res0 = testit(srcbuf, fmtlist[i].fmt,
-					  fmtlist[j].fmt, 0);
+					  fmtlist[j].fmt, 0, 0);
 			if (res0 < 0)
 			    printf("****|");
 			else
