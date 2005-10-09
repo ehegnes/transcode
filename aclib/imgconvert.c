@@ -37,24 +37,6 @@ int ac_imgconvert(uint8_t **src, ImageFormat srcfmt,
 	    return (*conversions[i].func)(src, dest, width, height);
     }
 
-/* FIXME: the below logic should probably be in a separate function that
- *        has an init that allocates a temp buffer as needed */
-#if 0  /* FIXME: need temp buffer */
-    if (IS_YUV_FORMAT(srcfmt) && IS_YUV_FORMAT(destfmt)) {
-	if (srcfmt == IMG_YUV_DEFAULT || destfmt == IMG_YUV_DEFAULT)
-	    return 0;  /* can't convert */
-	return ac_imgconvert(src, srcfmt, tmp, IMG_YUV_DEFAULT, width, height)
-	    && ac_imgconvert(tmp, IMG_YUV_DEFAULT, dest, destfmt, width, height);
-    }
-
-    if (IS_RGB_FORMAT(srcfmt) && IS_RGB_FORMAT(destfmt)) {
-	if (srcfmt == IMG_RGB_DEFAULT || destfmt == IMG_RGB_DEFAULT)
-	    return 0;  /* can't convert */
-	return ac_imgconvert(src, srcfmt, tmp, IMG_RGB_DEFAULT, width, height)
-	    && ac_imgconvert(tmp, IMG_RGB_DEFAULT, dest, destfmt, width, height);
-    }
-#endif
-
     return 0;
 }
 
