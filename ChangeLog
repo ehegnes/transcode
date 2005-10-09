@@ -1,3 +1,12 @@
+2005-10-09 Andrew Church <achurch at achurch dot org>
+  * aclib/test-imgconvert.c
+  Various additions to make the test program more useful.
+
+  * Changed: img_rgb_packed.c img_yuv_packed.c img_yuv_planar.c img_yuv_rgb.c
+    Added: aclib/img_x86_common.c
+  Added x86-optimized versions of most image conversion functions, and
+  improved conversion accuracy (and fixed bugs) for a few conversions.
+
 2005-10-08 Andrew Church <achurch at achurch dot org>
   * Changed: docs/OPTIMIZERS docs/make-filter-man.sh docs/man/transcode.1
     filter/Makefile.am
@@ -30,7 +39,8 @@
   Add image conversion functions for Y8 (grayscale YUV).
 
   * Changed: aclib/Makefile.am
-    Added: aclib/rgb-yuv-conv.pl aclib/test-memcpy.c aclib/test-memcpy-speed.c
+    Added: aclib/rgb-yuv-conv.pl aclib/test-imgconvert.c aclib/test-memcpy.c
+    aclib/test-memcpy-speed.c
     Removed: aclib/actest.c aclib/movtest.c
   Replace old test programs with updated ones, and add script to calculate
   RGB/YUV conversion matrices.

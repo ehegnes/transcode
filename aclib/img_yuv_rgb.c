@@ -572,7 +572,7 @@ static inline void mmx_store_rgb24(uint8_t *dest)
 	psrlq $32, %%mm5	# MM5: 00 00 00 00 00 B3 G3 R3		\n\
 	psrlq $32, %%mm6	# MM6: 00 00 00 00 00 B5 G5 R5		\n\
 	psrlq $32, %%mm7	# MM7: 00 00 00 00 00 B7 G7 R7		\n\
-	pushl %%ebx							\n\
+	push "EBX"							\n\
 	movd %%mm0, %%eax	# EAX: 00 B0 G0 R0			\n\
 	movd %%mm4, %%ebx	# EBX: 00 B1 G1 R1			\n\
 	movd %%mm1, %%ecx	# ECX: 00 B2 G2 R2			\n\
@@ -589,7 +589,7 @@ static inline void mmx_store_rgb24(uint8_t *dest)
 	movl %%eax, 12(%%edi)						\n\
 	movl %%ebx, 16(%%edi)						\n\
 	movl %%ecx, 20(%%edi)						\n\
-	popl %%ebx							\n\
+	pop "EBX"							\n\
 	"
 	: /* no outputs */
 	: "D" (dest)
@@ -601,16 +601,22 @@ static inline void mmx_store_rgb24(uint8_t *dest)
 
 /*************************************************************************/
 
-/* SSE2 */
+/* SSE2 routines */
 
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
 
 static inline void sse2_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
 				       uint8_t *srcV);
+static inline void sse2_yuv411p_to_rgb(uint8_t *srcY, uint8_t *srcU,
+				       uint8_t *srcV);
+static inline void sse2_yuv444p_to_rgb(uint8_t *srcY, uint8_t *srcU,
+				       uint8_t *srcV);
 static inline void sse2_store_rgb24(uint8_t *dest);
 static inline void sse2_load_rgb24(uint8_t *src);
 static inline void sse2_rgb_to_yuv420p_yu(uint8_t *destY, uint8_t *destU);
 static inline void sse2_rgb_to_yuv420p_yv(uint8_t *destY, uint8_t *destV);
+static inline void sse2_rgb_to_yuv411p(uint8_t *destY, uint8_t *destU,
+				       uint8_t *destV);
 static inline void sse2_rgb_to_yuv422p(uint8_t *destY, uint8_t *destU,
 				       uint8_t *destV);
 static inline void sse2_rgb_to_yuv444p(uint8_t *destY, uint8_t *destU,
@@ -631,6 +637,28 @@ static int yuv420p_rgb24_sse2(uint8_t **src, uint8_t **dest,
 	}
 	while (x < width) {
 	    YUV2RGB((y/2)*(width/2)+(x/2));
+	    x++;
+	}
+    }
+    asm("emms");
+    return 1;
+}
+
+static int yuv411p_rgb24_sse2(uint8_t **src, uint8_t **dest,
+			      int width, int height)
+{
+    int x, y;
+
+    yuv_create_tables();
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < (width & ~15); x += 16) {
+	    sse2_yuv411p_to_rgb(src[0]+y*width+x,
+				src[1]+y*(width/4)+x/4,
+				src[2]+y*(width/4)+x/4);
+	    sse2_store_rgb24(dest[0]+(y*width+x)*3);
+	}
+	while (x < width) {
+	    YUV2RGB(y*(width/4)+(x/4));
 	    x++;
 	}
     }
@@ -660,6 +688,29 @@ static int yuv422p_rgb24_sse2(uint8_t **src, uint8_t **dest,
     return 1;
 }
 
+static int yuv444p_rgb24_sse2(uint8_t **src, uint8_t **dest,
+			      int width, int height)
+{
+    int x, y;
+
+    yuv_create_tables();
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < (width & ~15); x += 16) {
+	    sse2_yuv444p_to_rgb(src[0]+y*width+x,
+				src[1]+y*width+x,
+				src[2]+y*width+x);
+	    sse2_store_rgb24(dest[0]+(y*width+x)*3);
+	}
+	while (x < width) {
+	    YUV2RGB(y*width+x);
+	    x++;
+	}
+    }
+    asm("emms");
+    return 1;
+}
+
+
 static int rgb24_yuv420p_sse2(uint8_t **src, uint8_t **dest,
 			      int width, int height)
 {
@@ -684,6 +735,34 @@ static int rgb24_yuv420p_sse2(uint8_t **src, uint8_t **dest,
 		RGB2U((y/2)*(width/2)+x/2);
 	    if ((x&y) & 1)  /* take Cb/Cr from opposite corners */
 		RGB2V((y/2)*(width/2)+x/2);
+	    x++;
+	}
+    }
+    asm("emms");
+    return 1;
+}
+
+static int rgb24_yuv411p_sse2(uint8_t **src, uint8_t **dest,
+			      int width, int height)
+{
+    int x, y;
+
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < (width & ~7); x += 8) {
+	    sse2_load_rgb24(src[0]+(y*width+x)*3);
+	    sse2_rgb_to_yuv411p(dest[0]+y*width+x,
+				dest[1]+y*(width/4)+x/4,
+				dest[2]+y*(width/4)+x/4);
+	}
+	while (x < width) {
+	    int r = src[0][(y*width+x)*3  ];
+	    int g = src[0][(y*width+x)*3+1];
+	    int b = src[0][(y*width+x)*3+2];
+	    RGB2Y();
+	    if (!(x & 3))
+		RGB2U(y*(width/2)+x/2);
+	    if (!((x^2) & 3))  /* take Cb/Cr from pixels 2 points apart */
+		RGB2V(y*(width/2)+x/2);
 	    x++;
 	}
     }
@@ -746,21 +825,7 @@ static int rgb24_yuv444p_sse2(uint8_t **src, uint8_t **dest,
 }
 
 
-#ifdef ARCH_X86_64
-# define EAX "%%rax"
-# define ECX "%%rcx"
-# define EDX "%%rdx"
-# define ESI "%%rsi"
-# define EDI "%%rdi"
-# define ESP "%%rsp"
-#else
-# define EAX "%%eax"
-# define ECX "%%ecx"
-# define EDX "%%edx"
-# define ESI "%%esi"
-# define EDI "%%edi"
-# define ESP "%%esp"
-#endif
+#include "img_x86_common.h"
 
 static inline void sse2_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
 				       uint8_t *srcV)
@@ -777,19 +842,19 @@ static inline void sse2_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
 	punpcklbw %%xmm4,%%xmm2	# XMM2: U7 U6 U5 U4 U3 U2 U1 U0		\n\
 	punpcklbw %%xmm4,%%xmm3	# XMM3: V7 V6 V5 V4 V3 V2 V1 V0		\n\
 	psubw 16("ESI"), %%xmm6	# XMM6: subtract 16			\n\
-	psubw 16("ESI"), %%xmm7	# XMM7: subtract 16			\n\
-	psubw 32("ESI"), %%xmm2	# XMM2: subtract 128			\n\
-	psubw 32("ESI"), %%xmm3	# XMM3: subtract 128			\n\
 	psllw $7, %%xmm6	# XMM6: convert to fixed point 8.7	\n\
+	psubw 16("ESI"), %%xmm7	# XMM7: subtract 16			\n\
 	psllw $7, %%xmm7	# XMM7: convert to fixed point 8.7	\n\
+	psubw 32("ESI"), %%xmm2	# XMM2: subtract 128			\n\
 	psllw $7, %%xmm2	# XMM2: convert to fixed point 8.7	\n\
+	psubw 32("ESI"), %%xmm3	# XMM3: subtract 128			\n\
 	psllw $7, %%xmm3	# XMM3: convert to fixed point 8.7	\n\
 	# Multiply by constants						\n\
 	pmulhw 48("ESI"),%%xmm6	# XMM6: cYE.................cY0		\n\
-	pmulhw 48("ESI"),%%xmm7	# XMM6: cYF.................cY1		\n\
+	pmulhw 48("ESI"),%%xmm7	# XMM7: cYF.................cY1		\n\
 	movdqa 80("ESI"),%%xmm4	# XMM4: gU constant			\n\
-	movdqa 96("ESI"),%%xmm5	# XMM5: gV constant			\n\
 	pmulhw %%xmm2, %%xmm4	# XMM4: gU7.................gU0		\n\
+	movdqa 96("ESI"),%%xmm5	# XMM5: gV constant			\n\
 	pmulhw %%xmm3, %%xmm5	# XMM5: gV7.................gV0		\n\
 	paddw %%xmm5, %%xmm4	# XMM4: g7 g6 g5 g4 g3 g2 g1 g0		\n\
 	pmulhw 64("ESI"),%%xmm3	# XMM3: r7 r6 r5 r4 r3 r2 r1 r0		\n\
@@ -828,6 +893,147 @@ static inline void sse2_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
     );
 }
 
+static inline void sse2_yuv411p_to_rgb(uint8_t *srcY, uint8_t *srcU,
+				       uint8_t *srcV)
+{
+    asm("\
+	# Load data, bias and expand to 16 bits				\n\
+	pxor %%xmm4, %%xmm4	# XMM4: 00 00 00 00 00 00 00 00		\n\
+	movdqu ("EAX"), %%xmm6	# XMM6: YF...................Y0		\n\
+	movd ("ECX"), %%xmm2	# XMM2:                   U3.U0		\n\
+	punpcklbw %%xmm2,%%xmm2	# XMM2:             U3 U3.U0 U0		\n\
+	movd ("EDX"), %%xmm3	# XMM3:                   V3.V0		\n\
+	punpcklbw %%xmm3,%%xmm3	# XMM2:             V3 V3.V0 V0		\n\
+	movdqa %%xmm6, %%xmm7	# XMM7: YF...................Y0		\n\
+	pand ("ESI"), %%xmm6	# XMM6: YE YC YA Y8 Y6 Y4 Y2 Y0		\n\
+	psrlw $8, %%xmm7	# XMM7: YF YD YB Y9 Y7 Y5 Y3 Y1		\n\
+	punpcklbw %%xmm4,%%xmm2	# XMM2: U3 U3 U2 U2 U1 U1 U0 U0		\n\
+	punpcklbw %%xmm4,%%xmm3	# XMM3: V3 V3 V2 V2 V1 V1 V0 V0		\n\
+	psubw 16("ESI"), %%xmm6	# XMM6: subtract 16			\n\
+	psllw $7, %%xmm6	# XMM6: convert to fixed point 8.7	\n\
+	psubw 16("ESI"), %%xmm7	# XMM7: subtract 16			\n\
+	psllw $7, %%xmm7	# XMM7: convert to fixed point 8.7	\n\
+	psubw 32("ESI"), %%xmm2	# XMM2: subtract 128			\n\
+	psllw $7, %%xmm2	# XMM2: convert to fixed point 8.7	\n\
+	psubw 32("ESI"), %%xmm3	# XMM3: subtract 128			\n\
+	psllw $7, %%xmm3	# XMM3: convert to fixed point 8.7	\n\
+	# Multiply by constants						\n\
+	pmulhw 48("ESI"),%%xmm6	# XMM6: cYE.................cY0		\n\
+	pmulhw 48("ESI"),%%xmm7	# XMM7: cYF.................cY1		\n\
+	movdqa 80("ESI"),%%xmm4	# XMM4: gU constant			\n\
+	pmulhw %%xmm2, %%xmm4	# XMM4: gU3 gU3.........gU0 gU0		\n\
+	movdqa 96("ESI"),%%xmm5	# XMM5: gV constant			\n\
+	pmulhw %%xmm3, %%xmm5	# XMM5: gV3 gV3.........gV0 gV0		\n\
+	paddw %%xmm5, %%xmm4	# XMM4: g7 g6 g5 g4 g3 g2 g1 g0		\n\
+	pmulhw 64("ESI"),%%xmm3	# XMM3: r7 r6 r5 r4 r3 r2 r1 r0		\n\
+	pmulhw 112("ESI"),%%xmm2 #XMM2: b7 b6 b5 b4 b3 b2 b1 b0		\n\
+	movdqa %%xmm3, %%xmm0	# XMM0: r7 r6 r5 r4 r3 r2 r1 r0		\n\
+	movdqa %%xmm4, %%xmm1	# XMM1: g7 g6 g5 g4 g3 g2 g1 g0		\n\
+	movdqa %%xmm2, %%xmm5	# XMM5: b7 b6 b5 b4 b3 b2 b1 b0		\n\
+	# Add intermediate results and round/shift to get R/G/B values	\n\
+	paddw 128("ESI"),%%xmm6 # Add rounding value (0.5 @ 8.4 fixed)	\n\
+	paddw 128("ESI"),%%xmm7						\n\
+	paddw %%xmm6, %%xmm0	# XMM0: RE RC RA R8 R6 R4 R2 R0		\n\
+	psraw $4, %%xmm0	# Shift back to 8.0 fixed		\n\
+	paddw %%xmm6, %%xmm1	# XMM1: GE GC GA G8 G6 G4 G2 G0		\n\
+	psraw $4, %%xmm1						\n\
+	paddw %%xmm6, %%xmm2	# XMM2: BE BC BA B8 B6 B4 B2 B0		\n\
+	psraw $4, %%xmm2						\n\
+	paddw %%xmm7, %%xmm3	# XMM3: RF RD RB R9 R7 R5 R3 R1		\n\
+	psraw $4, %%xmm3						\n\
+	paddw %%xmm7, %%xmm4	# XMM4: GF GD GB G9 G7 G5 G3 G1		\n\
+	psraw $4, %%xmm4						\n\
+	paddw %%xmm7, %%xmm5	# XMM5: BF BD BB B9 B7 B5 B3 B1		\n\
+	psraw $4, %%xmm5						\n\
+	# Saturate to 0-255 and pack into bytes				\n\
+	packuswb %%xmm0, %%xmm0	# XMM0: RE.......R0 RE.......R0		\n\
+	packuswb %%xmm1, %%xmm1	# XMM1: GE.......G0 GE.......G0		\n\
+	packuswb %%xmm2, %%xmm2	# XMM2: BE.......B0 BE.......B0		\n\
+	packuswb %%xmm3, %%xmm3	# XMM3: RF.......R1 RF.......R1		\n\
+	packuswb %%xmm4, %%xmm4	# XMM4: GF.......G1 GF.......G1		\n\
+	packuswb %%xmm5, %%xmm5	# XMM5: BF.......B1 BF.......B1		\n\
+	punpcklbw %%xmm3,%%xmm0	# XMM0: RF...................R0		\n\
+	punpcklbw %%xmm4,%%xmm1	# XMM1: GF...................G0		\n\
+	punpcklbw %%xmm5,%%xmm2	# XMM2: BF...................B0		\n\
+	"
+	: /* no outputs */
+	: "a" (srcY), "c" (srcU), "d" (srcV), "S" (&yuv_data), "m" (yuv_data)
+    );
+}
+
+static inline void sse2_yuv444p_to_rgb(uint8_t *srcY, uint8_t *srcU,
+				       uint8_t *srcV)
+{
+    asm("\
+	# Load data, bias and expand to 16 bits				\n\
+	pxor %%xmm4, %%xmm4	# XMM4: 00 00 00 00 00 00 00 00		\n\
+	movdqu ("EAX"), %%xmm6	# XMM6: YF...................Y0		\n\
+	movdqu ("ECX"), %%xmm2	# XMM2: UF...................U0		\n\
+	movdqu ("EDX"), %%xmm0	# XMM0: VF...................V0		\n\
+	movdqa %%xmm6, %%xmm7	# XMM7: YF...................Y0		\n\
+	punpcklbw %%xmm4,%%xmm6	# XMM6: Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0		\n\
+	punpckhbw %%xmm4,%%xmm7	# XMM7: YF YE YD YC YB YA Y9 Y8		\n\
+	movdqa %%xmm2, %%xmm5	# XMM5: UF...................U0		\n\
+	punpcklbw %%xmm4,%%xmm2	# XMM2: U7 U6 U5 U4 U3 U2 U1 U0		\n\
+	punpckhbw %%xmm4,%%xmm5	# XMM5: UF UE UD UC UB UA U9 U8		\n\
+	movdqa %%xmm0, %%xmm3	# XMM3: VF...................V0		\n\
+	punpcklbw %%xmm4,%%xmm0	# XMM0: V7 V6 V5 V4 V3 V2 V1 V0		\n\
+	punpckhbw %%xmm4,%%xmm3	# XMM3: VF VE VD VC VB VA V9 V8		\n\
+	psubw 16("ESI"), %%xmm6	# XMM6: subtract 16			\n\
+	psllw $7, %%xmm6	# XMM6: convert to fixed point 8.7	\n\
+	psubw 16("ESI"), %%xmm7	# XMM7: subtract 16			\n\
+	psllw $7, %%xmm7	# XMM7: convert to fixed point 8.7	\n\
+	psubw 32("ESI"), %%xmm2	# XMM2: subtract 128			\n\
+	psllw $7, %%xmm2	# XMM2: convert to fixed point 8.7	\n\
+	psubw 32("ESI"), %%xmm5	# XMM5: subtract 128			\n\
+	psllw $7, %%xmm5	# XMM5: convert to fixed point 8.7	\n\
+	psubw 32("ESI"), %%xmm0	# XMM0: subtract 128			\n\
+	psllw $7, %%xmm0	# XMM0: convert to fixed point 8.7	\n\
+	psubw 32("ESI"), %%xmm3	# XMM3: subtract 128			\n\
+	psllw $7, %%xmm3	# XMM3: convert to fixed point 8.7	\n\
+	# Multiply by constants						\n\
+	pmulhw 48("ESI"),%%xmm6	# XMM6: cY7.................cY0		\n\
+	movdqa 80("ESI"),%%xmm1	# XMM1: gU constant			\n\
+	pmulhw %%xmm2, %%xmm1	# XMM1: gU7.................gU0		\n\
+	movdqa 96("ESI"),%%xmm4	# XMM4: gV constant			\n\
+	pmulhw %%xmm0, %%xmm4	# XMM4: gV7.................gV0		\n\
+	paddw %%xmm4, %%xmm1	# XMM1: g7 g6 g5 g4 g3 g2 g1 g0		\n\
+	pmulhw 64("ESI"),%%xmm0	# XMM0: r7 r6 r5 r4 r3 r2 r1 r0		\n\
+	pmulhw 112("ESI"),%%xmm2 #XMM2: b7 b6 b5 b4 b3 b2 b1 b0		\n\
+	# Add intermediate results and round/shift to get R/G/B values	\n\
+	paddw 128("ESI"),%%xmm6 # Add rounding value (0.5 @ 8.4 fixed)	\n\
+	paddw %%xmm6, %%xmm0	# XMM0: R7 R6 R5 R4 R3 R2 R1 R0		\n\
+	psraw $4, %%xmm0	# Shift back to 8.0 fixed		\n\
+	paddw %%xmm6, %%xmm1	# XMM1: G7 G6 G5 G4 G3 G2 G1 G0		\n\
+	psraw $4, %%xmm1						\n\
+	paddw %%xmm6, %%xmm2	# XMM2: B7 B6 B5 B4 B3 B2 B1 B0		\n\
+	psraw $4, %%xmm2						\n\
+	# Do it all over again for pixels 8-15				\n\
+	pmulhw 48("ESI"),%%xmm7	# XMM7: cYF.................cY8		\n\
+	movdqa 80("ESI"),%%xmm6	# XMM6: gU constant			\n\
+	pmulhw %%xmm5, %%xmm6	# XMM6: gUF.................gU8		\n\
+	movdqa 96("ESI"),%%xmm4	# XMM4: gV constant			\n\
+	pmulhw %%xmm3, %%xmm4	# XMM4: gVF.................gV8		\n\
+	paddw %%xmm6, %%xmm4	# XMM4: gF gE gD gC gB gA g9 g8		\n\
+	pmulhw 64("ESI"),%%xmm3	# XMM3: rF rE rD rC rB rA r9 r8		\n\
+	pmulhw 112("ESI"),%%xmm5 #XMM5: bF bE bD bC bB bA b9 b8		\n\
+	paddw 128("ESI"),%%xmm7 # Add rounding value (0.5 @ 8.4 fixed)	\n\
+	paddw %%xmm7, %%xmm3	# XMM3: RF RE RD RC RB RA R9 R8		\n\
+	psraw $4, %%xmm3						\n\
+	paddw %%xmm7, %%xmm4	# XMM4: GF GE GD GC GB GA G9 G8		\n\
+	psraw $4, %%xmm4						\n\
+	paddw %%xmm7, %%xmm5	# XMM5: BF BE BD BC BB BA B9 B8		\n\
+	psraw $4, %%xmm5						\n\
+	# Saturate to 0-255 and pack into bytes				\n\
+	packuswb %%xmm3, %%xmm0	# XMM0: RF...................R0		\n\
+	packuswb %%xmm4, %%xmm1	# XMM1: GF...................G0		\n\
+	packuswb %%xmm5, %%xmm2	# XMM2: BF...................B0		\n\
+	"
+	: /* no outputs */
+	: "a" (srcY), "c" (srcU), "d" (srcV), "S" (&yuv_data), "m" (yuv_data)
+    );
+}
+
 static inline void sse2_store_rgb24(uint8_t *dest)
 {
     /* It looks like it's fastest to go to RGB32 first, then shift the
@@ -847,7 +1053,7 @@ static inline void sse2_store_rgb24(uint8_t *dest)
 	movdqa %%xmm3, %%xmm2	# XMM2: GF RF.............G8 R8		\n\
 	punpcklwd %%xmm5,%%xmm2	# XMM2: 0BGRB 0BGRA 0BGR9 0BGR8		\n\
 	punpckhwd %%xmm5,%%xmm3	# XMM3: 0BGRF 0BGRE 0BGRD 0BGRC		\n\
-	pushl %%ebx							\n\
+	push "EBX"							\n\
 	movd %%xmm0, %%eax	# EAX: 00 B0 G0 R0			\n\
 	psrldq $4, %%xmm0	# XMM0: 00000 0BGR3 0BGR2 0BGR1		\n\
 	movd %%xmm0, %%ebx	# EBX: 00 B1 G1 R1			\n\
@@ -892,7 +1098,7 @@ static inline void sse2_store_rgb24(uint8_t *dest)
 	movl %%eax, 36("EDI")						\n\
 	movl %%ebx, 40("EDI")						\n\
 	movl %%ecx, 44("EDI")						\n\
-	popl %%ebx							\n\
+	pop "EBX"							\n\
 	"
 	: /* no outputs */
 	: "D" (dest)
@@ -903,97 +1109,33 @@ static inline void sse2_store_rgb24(uint8_t *dest)
 static inline void sse2_load_rgb24(uint8_t *src)
 {
     asm("\
-	pushl %%ebx							\n\
+	push "EBX"							\n\
 	# Make stack space for loading XMM registers			\n\
-	subl $16, %%esp							\n\
-	# Read in source pixels 0-3					\n\
-	movl ("ESI"), %%eax	# EAX: R1 B0 G0 R0			\n\
-	movl 4("ESI"), %%ebx	# EBX: G2 R2 B1 G1			\n\
-	movl 8("ESI"), %%ecx	# ECX: B3 G3 R3 B2			\n\
-	# Convert to RGB32						\n\
-	"IA32_RGB24_TO_RGB32"						\n\
-	# Store in XMM4							\n\
-	movl %%eax, ("ESP")						\n\
-	movl %%ebx, 4("ESP")						\n\
-	movl %%ecx, 8("ESP")						\n\
-	movl %%edx, 12("ESP")						\n\
-	movdqu ("ESP"), %%xmm4	# XMM4: 0BGR3 0BGR2 0BGR1 0BGR0		\n\
-	# Repeat for pixels 4-7 (to XMM6)				\n\
-	movl 12("ESI"), %%eax	# EAX: R5 B4 G4 R4			\n\
-	movl 16("ESI"), %%ebx	# EBX: G6 R6 B5 G5			\n\
-	movl 20("ESI"), %%ecx	# ECX: B7 G7 R7 B6			\n\
-	# Convert to RGB32						\n\
-	"IA32_RGB24_TO_RGB32"						\n\
-	# Store in XMM0							\n\
-	movl %%eax, ("ESP")						\n\
-	movl %%ebx, 4("ESP")						\n\
-	movl %%ecx, 8("ESP")						\n\
-	movl %%edx, 12("ESP")						\n\
-	movdqu ("ESP"), %%xmm6	# XMM6: 0BGR7 0BGR6 0BGR5 0BGR4		\n\
-	# Restore stack and EBX						\n\
-	addl $16, %%esp							\n\
-	popl %%ebx							\n\
-	# Expand byte R/G/B values into words				\n\
-	pxor %%xmm3, %%xmm3		# XMM3: 00...................00	\n\
-	movdqa %%xmm4, %%xmm5		# XMM5: 0BGR3 0BGR2 0BGR1 0BGR0	\n\
-	movdqa %%xmm6, %%xmm7		# XMM7: 0BGR7 0BGR6 0BGR5 0BGR4	\n\
-	punpcklbw %%xmm3, %%xmm4	# XMM4: 00 B1 G1 R1 00 B0 G0 R0	\n\
-	punpckhbw %%xmm3, %%xmm5	# XMM5: 00 B3 G3 R3 00 B2 G2 R2	\n\
-	punpcklbw %%xmm3, %%xmm6	# XMM6: 00 B5 G5 R5 00 B4 G4 R4	\n\
-	punpckhbw %%xmm3, %%xmm7	# XMM7: 00 B7 G7 R7 00 B6 G6 R6	\n\
-	# Sort into XMM0/1/2 by color					\n\
-	pshufd $0xD8, %%xmm5, %%xmm2	# XMM2: 00 B3 00 B2 G3 R3 G2 R2	\n\
-	pshufd $0x8D, %%xmm4, %%xmm4	# XMM4: G1 R1 G0 R0 00 B1 00 B0	\n\
-	# watch out!! Intel manual claims movq between XMM regs doesn't	\n\
-	# clear the upper 64 bits, but it does!				\n\
-	#movq %%xmm4, %%xmm2						\n\
-	xorl %%eax, %%eax		# prepare to clear low quadword	\n\
-	decl %%eax							\n\
-	pushl %%eax							\n\
-	pushl %%eax							\n\
-	incl %%eax							\n\
-	pushl %%eax							\n\
-	pushl %%eax							\n\
-	movdqu ("ESP"), %%xmm3						\n\
-	pand %%xmm3, %%xmm2						\n\
-	movq %%xmm4, %%xmm3						\n\
-	por %%xmm3, %%xmm2		# XMM2: 00 B3 00 B2 00 B1 00 B0	\n\
-	pshufd $0xD8, %%xmm7, %%xmm1	# XMM1: 00 B7 00 B6 G7 R7 G6 R6	\n\
-	pshufd $0x8D, %%xmm6, %%xmm6	# XMM6: G5 R5 G4 R4 00 B5 00 B4	\n\
-	movdqu ("ESP"), %%xmm3						\n\
-	pand %%xmm3, %%xmm1						\n\
-	movq %%xmm6, %%xmm3						\n\
-	por %%xmm3, %%xmm1		# XMM1: 00 B7 00 B6 00 B5 00 B4	\n\
-	packuswb %%xmm1, %%xmm2		# XMM2: B7 B6 B5 B4 B3 B2 B1 B0	\n\
-	psrldq $8, %%xmm4		# XMM4:             G1 R1 G0 R0	\n\
-	pshufd $0x8D, %%xmm5, %%xmm5	# XMM5: G3 R3 G2 R2 00 B3 00 B2	\n\
-	movdqu ("ESP"), %%xmm3						\n\
-	pand %%xmm3, %%xmm5						\n\
-	movq %%xmm4, %%xmm3						\n\
-	por %%xmm3, %%xmm5		# XMM5: G3 R3 G2 R2 G1 R1 G0 R0	\n\
-	pshuflw $0xD8, %%xmm5, %%xmm5	# XMM5: G3 R3 G2 R2 G1 G0 R1 R0	\n\
-	pshufhw $0xD8, %%xmm5, %%xmm5	# XMM5: G3 G2 R3 R2 G1 G0 R1 R0	\n\
-	psrldq $8, %%xmm6		# XMM6:             G5 R5 G4 R4	\n\
-	pshufd $0x8D, %%xmm7, %%xmm7	# XMM7: G7 R7 G6 R6 00 B7 00 B6	\n\
-	movdqu ("ESP"), %%xmm3						\n\
-	pand %%xmm3, %%xmm7						\n\
-	movq %%xmm6, %%xmm3						\n\
-	por %%xmm3, %%xmm7		# XMM7: G7 R7 G6 R6 G5 R5 G4 R4	\n\
-	pshuflw $0xD8, %%xmm7, %%xmm7	# XMM7: G7 R7 G6 R6 G5 G4 R5 R4	\n\
-	pshufhw $0xD8, %%xmm7, %%xmm7	# XMM7: G7 G6 R6 R7 G5 G4 R5 R4	\n\
-	pshufd $0xD8, %%xmm7, %%xmm1	# XMM1: G7 G6 G5 G4 R7 R6 R5 R4	\n\
-	pshufd $0x8D, %%xmm5, %%xmm5	# XMM5: R3 R2 R1 R0 G3 G2 G1 G0	\n\
-	movdqu ("ESP"), %%xmm3						\n\
-	pand %%xmm3, %%xmm1						\n\
-	movq %%xmm5, %%xmm3						\n\
-	por %%xmm3, %%xmm1		# XMM1: G7 G6 G5 G4 G3 G2 G1 G0	\n\
-	pshufd $0x8D, %%xmm7, %%xmm0	# XMM0: R7 R6 R5 R4 G7 G6 G5 G4	\n\
-	psrldq $8, %%xmm5		# XMM5:             R3 R2 R1 R0	\n\
-	movdqu ("ESP"), %%xmm3						\n\
-	pand %%xmm3, %%xmm0						\n\
-	movq %%xmm5, %%xmm3						\n\
-	por %%xmm3, %%xmm0		# XMM0: R7 R6 R5 R4 R3 R2 R1 R0	\n\
-	addl $16, %%esp			# clean up from movq workaround	\n\
+	sub $24, "ESP"							\n\
+	# Copy source pixels to appropriate positions in stack (this	\n\
+	# seems to be the fastest way to get them where we want them)	\n\
+	movl $8, %%ebx							\n\
+	movl $24, %%edx							\n\
+	0:								\n\
+	movb -3("ESI","EDX"), %%al					\n\
+	movb %%al, 0-1("ESP","EBX")					\n\
+	movb -2("ESI","EDX"), %%al					\n\
+	movb %%al, 8-1("ESP","EBX")					\n\
+	movb -1("ESI","EDX"), %%al					\n\
+	movb %%al, 16-1("ESP","EBX")					\n\
+	subl $3, %%edx							\n\
+	subl $1, %%ebx							\n\
+	jnz 0b								\n\
+	# Load XMM0-XMM2 with R/G/B values and expand to 16-bit		\n\
+	pxor %%xmm7, %%xmm7						\n\
+	movq ("ESP"), %%xmm0						\n\
+	punpcklbw %%xmm7, %%xmm0					\n\
+	movq 8("ESP"), %%xmm1						\n\
+	punpcklbw %%xmm7, %%xmm1					\n\
+	movq 16("ESP"), %%xmm2						\n\
+	punpcklbw %%xmm7, %%xmm2					\n\
+	add $24, "ESP"							\n\
+	pop "EBX"							\n\
 	"
 	: /* no outputs */
 	: "S" (src)
@@ -1002,16 +1144,16 @@ static inline void sse2_load_rgb24(uint8_t *src)
 }
 
 #define SSE2_RGB2Y \
-	"# Make RGB data into 8.6 fixed-point				\n\
+	"# Make RGB data into 8.6 fixed-point, then create 8.6		\n\
+	# fixed-point Y data in XMM3					\n\
 	psllw $6, %%xmm0						\n\
-	psllw $6, %%xmm1						\n\
-	psllw $6, %%xmm2						\n\
-	# Create 8.6 fixed-point Y data in XMM3				\n\
 	movdqa %%xmm0, %%xmm3						\n\
-	movdqa %%xmm1, %%xmm6						\n\
-	movdqa %%xmm2, %%xmm7						\n\
 	pmulhuw ("EDI"), %%xmm3						\n\
+	psllw $6, %%xmm1						\n\
+	movdqa %%xmm1, %%xmm6						\n\
 	pmulhuw 16("EDI"), %%xmm6					\n\
+	psllw $6, %%xmm2						\n\
+	movdqa %%xmm2, %%xmm7						\n\
 	pmulhuw 32("EDI"), %%xmm7					\n\
 	paddw %%xmm6, %%xmm3	# No possibility of overflow		\n\
 	paddw %%xmm7, %%xmm3						\n\
@@ -1019,10 +1161,10 @@ static inline void sse2_load_rgb24(uint8_t *src)
 #define SSE2_RGB2U \
 	"# Create 8.6 fixed-point U data in XMM4			\n\
 	movdqa %%xmm0, %%xmm4						\n\
-	movdqa %%xmm1, %%xmm6						\n\
-	movdqa %%xmm2, %%xmm7						\n\
 	pmulhw 48("EDI"), %%xmm4					\n\
+	movdqa %%xmm1, %%xmm6						\n\
 	pmulhw 64("EDI"), %%xmm6					\n\
+	movdqa %%xmm2, %%xmm7						\n\
 	pmulhw 80("EDI"), %%xmm7					\n\
 	paddw %%xmm6, %%xmm4						\n\
 	paddw %%xmm7, %%xmm4						\n\
@@ -1095,10 +1237,35 @@ static inline void sse2_rgb_to_yuv420p_yv(uint8_t *destY, uint8_t *destV)
 	"SSE2_STRIPV"							\n\
 	# Store into destination pointers				\n\
 	movq %%xmm3, ("EAX")						\n\
-	movd %%xmm0, ("ECX")						\n\
+	movd %%xmm0, ("EDX")						\n\
 	"
 	: /* no outputs */
-	: "a" (destY), "c" (destV), "D" (&rgb_data), "m" (rgb_data)
+	: "a" (destY), "d" (destV), "D" (&rgb_data), "m" (rgb_data)
+    );
+}
+
+static inline void sse2_rgb_to_yuv411p(uint8_t *destY, uint8_t *destU,
+				       uint8_t *destV)
+{
+    asm("\
+	"SSE2_RGB2Y"							\n\
+	"SSE2_RGB2U"							\n\
+	"SSE2_RGB2V"							\n\
+	"SSE2_PACKYUV"							\n\
+	"SSE2_STRIPU(4)"						\n\
+	"SSE2_STRIPU(4)"						\n\
+	"SSE2_STRIPU(0)"						\n\
+	"SSE2_STRIPV"							\n\
+	# Store into destination pointers				\n\
+	movq %%xmm3, ("EAX")						\n\
+	movd %%xmm4, %%eax						\n\
+	movw %%ax, ("ECX")						\n\
+	movd %%xmm0, %%eax						\n\
+	movw %%ax, ("EDX")						\n\
+	"
+	: /* no outputs */
+	: "a" (destY), "c" (destU), "d" (destV),
+	  "D" (&rgb_data), "m" (rgb_data)
     );
 }
 
@@ -1197,8 +1364,11 @@ int ac_imgconvert_init_yuv_rgb(int accel)
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
     if (accel & AC_SSE2) {
 	if (!register_conversion(IMG_YUV420P, IMG_RGB24,   yuv420p_rgb24_sse2)
+	 || !register_conversion(IMG_YUV411P, IMG_RGB24,   yuv411p_rgb24_sse2)
 	 || !register_conversion(IMG_YUV422P, IMG_RGB24,   yuv422p_rgb24_sse2)
+	 || !register_conversion(IMG_YUV444P, IMG_RGB24,   yuv444p_rgb24_sse2)
 	 || !register_conversion(IMG_RGB24,   IMG_YUV420P, rgb24_yuv420p_sse2)
+	 || !register_conversion(IMG_RGB24,   IMG_YUV411P, rgb24_yuv411p_sse2)
 	 || !register_conversion(IMG_RGB24,   IMG_YUV422P, rgb24_yuv422p_sse2)
 	 || !register_conversion(IMG_RGB24,   IMG_YUV444P, rgb24_yuv444p_sse2)
 	) {

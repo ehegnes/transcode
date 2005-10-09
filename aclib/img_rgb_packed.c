@@ -116,14 +116,12 @@ static int rgb24_bgr24(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height; i++) {
-	dest[0][i*3  ] = src[0][i*3  ];
+	dest[0][i*3  ] = src[0][i*3+2];
 	dest[0][i*3+1] = src[0][i*3+1];
-	dest[0][i*3+2] = src[0][i*3+2];
+	dest[0][i*3+2] = src[0][i*3  ];
     }
     return 1;
 }
-
-#define bgr24_rgb24 rgb24_bgr24
 
 static int rgb24_rgba32(uint8_t **src, uint8_t **dest, int width, int height)
 {
@@ -181,6 +179,19 @@ static int rgb24_gray8(uint8_t **src, uint8_t **dest, int width, int height)
 	int r = src[0][i*3  ];
 	int g = src[0][i*3+1];
 	int b = src[0][i*3+2];
+	dest[0][i] = (19595*r + 38470*g + 7471*b + 32768) >> 16;
+    }
+    return 1;
+}
+
+static int bgr24_gray8(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int i;
+    for (i = 0; i < width*height; i++) {
+	/* Use the Y part of a YUV transformation, scaled to 0..255 */
+	int r = src[0][i*3+2];
+	int g = src[0][i*3+1];
+	int b = src[0][i*3  ];
 	dest[0][i] = (19595*r + 38470*g + 7471*b + 32768) >> 16;
     }
     return 1;
@@ -346,7 +357,7 @@ static int rgba_alpha03_x86(uint8_t **src, uint8_t **dest, int width, int height
 
 /*************************************************************************/
 
-/* MMX-optimized routines */
+/* MMX routines */
 
 /* RGBA<->ABGR and ARGB<->BGRA: reverse byte order */
 static int rgba_swapall_mmx(uint8_t **src, uint8_t **dest, int width, int height)
@@ -385,9 +396,121 @@ static int rgba_alpha03_mmx(uint8_t **src, uint8_t **dest, int width, int height
 
 /*************************************************************************/
 
-/* SSE2-optimized routines */
-/* These are just copies of the MMX routines with registers and data sizes
- * changed. */
+/* SSE2 routines */
+
+static const struct { uint32_t n[4]; } __attribute__((aligned(16))) rgb_bgr_data = {{
+    0xFF0000FF, 0x00FF0000, 0x0000FF00, 0x00000000
+}};
+
+#define SHIFT_RBSWAP \
+	"movdqa %%xmm6, %%xmm2		# XMM2: low bytes mask		\n\
+	pand %%xmm0, %%xmm2		# XMM2: R/B bytes		\n\
+	pshuflw $0xB1, %%xmm2, %%xmm2	# XMM2: swap R and B (low quad)	\n\
+	pand %%xmm7, %%xmm0		# XMM0: G bytes			\n\
+	pshufhw $0xB1, %%xmm2, %%xmm2	# XMM2: swap R and B (high quad)\n\
+	por %%xmm2, %%xmm0		# XMM0: data now in BGRA32	\n"
+
+#define SHIFT_AFIRST \
+	"pslldq $1, %%xmm0		# XMM0: move A first		\n"
+
+#define SHIFT_ALAST \
+	"psrldq $1, %%xmm0		# XMM0: move A last		\n"
+
+#define RGB24TO32(ROFS,GOFS,BOFS,AOFS,SHIFT) \
+    asm("pcmpeqd %%xmm5, %%xmm5						\n\
+	movdqa %%xmm5, %%xmm6						\n\
+	psrldq $13, %%xmm5		# XMM5: 24-bit mask		\n\
+	movdqa %%xmm6, %%xmm7						\n\
+	psrlw $8, %%xmm6		# XMM6: low bytes mask		\n\
+	psllw $8, %%xmm7		# XMM7: high bytes mask		\n"\
+	SIMD_LOOP_WRAPPER(						\
+	/* blocksize */ 4,						\
+	/* push_regs */ "",						\
+	/* pop_regs  */ "",						\
+	/* small_loop */						\
+	"lea ("ECX","ECX",2),"EDX"					\n\
+	movb -3("ESI","EDX"), %%al					\n\
+	movb %%al, ("#ROFS"-4)("EDI","ECX",4)				\n\
+	movb -2("ESI","EDX"), %%al					\n\
+	movb %%al, ("#GOFS"-4)("EDI","ECX",4)				\n\
+	movb -1("ESI","EDX"), %%al					\n\
+	movb %%al, ("#BOFS"-4)("EDI","ECX",4)				\n\
+	movb $0, ("#AOFS"-4)("EDI","ECX",4)",				\
+	/* main_loop */							\
+	"lea ("ECX","ECX",2),"EDX"					\n\
+	# We can't just movdqu, because we might run over the edge	\n\
+	movd -12("ESI","EDX"), %%xmm1					\n\
+	movq -8("ESI","EDX"), %%xmm0					\n\
+	pshufd $0xD3, %%xmm0, %%xmm0	# shift left by 4 bytes		\n\
+	por %%xmm1, %%xmm0		# XMM0: original RGB24 data	\n\
+	pshufd $0xF3, %%xmm5, %%xmm2	# XMM2: pixel 1 mask		\n\
+	movdqa %%xmm5, %%xmm1		# XMM1: pixel 0 mask		\n\
+	pshufd $0xCF, %%xmm5, %%xmm3	# XMM3: pixel 2 mask		\n\
+	pand %%xmm0, %%xmm1		# XMM1: pixel 0			\n\
+	pslldq $1, %%xmm0						\n\
+	pand %%xmm0, %%xmm2		# XMM2: pixel 1			\n\
+	pshufd $0x3F, %%xmm5, %%xmm4	# XMM4: pixel 3 mask		\n\
+	por %%xmm2, %%xmm1		# XMM1: pixels 0 and 1		\n\
+	pslldq $1, %%xmm0						\n\
+	pand %%xmm0, %%xmm3		# XMM3: pixel 2			\n\
+	por %%xmm3, %%xmm1		# XMM1: pixels 0, 1, and 2	\n\
+	pslldq $1, %%xmm0						\n\
+	pand %%xmm4, %%xmm0		# XMM0: pixel 3			\n\
+	por %%xmm1, %%xmm0		# XMM0: RGBA32 data		\n\
+	"SHIFT"				# shift bytes to target position\n\
+	movntdq %%xmm0, -16("EDI","ECX",4)",				\
+	/* emms */ "emms; sfence")					\
+	: /* no outputs */						\
+	: "S" (src[0]), "D" (dest[0]), "c" (width*height),		\
+	  "d" (&rgb_bgr_data), "m" (rgb_bgr_data)			\
+	: "eax");
+
+#define RGB32TO24(ROFS,GOFS,BOFS,AOFS,SHIFT) \
+    asm("pcmpeqd %%xmm5, %%xmm5						\n\
+	movdqa %%xmm5, %%xmm6						\n\
+	psrldq $13, %%xmm5		# 24-bit mask			\n\
+	movdqa %%xmm6, %%xmm7						\n\
+	psrlw $8, %%xmm6		# low bytes mask		\n\
+	psllw $8, %%xmm7		# high bytes mask		\n"\
+	SIMD_LOOP_WRAPPER(						\
+	/* blocksize */ 4,						\
+	/* push_regs */ "",						\
+	/* pop_regs  */ "",						\
+	/* small_loop */						\
+	"lea ("ECX","ECX",2),"EDX"					\n\
+	movb ("#ROFS"-4)("ESI","ECX",4), %%al				\n\
+	movb %%al, -3("EDI","EDX")					\n\
+	movb ("#GOFS"-4)("ESI","ECX",4), %%al				\n\
+	movb %%al, -2("EDI","EDX")					\n\
+	movb ("#BOFS"-4)("ESI","ECX",4), %%al				\n\
+	movb %%al, -1("EDI","EDX")",					\
+	/* main_loop */							\
+	"lea ("ECX","ECX",2),"EDX"					\n\
+	movdqu -16("ESI","ECX",4), %%xmm0				\n\
+	"SHIFT"				# shift source data to RGBA	\n\
+	pshufd $0xF3, %%xmm5, %%xmm1	# XMM1: pixel 1 mask		\n\
+	pshufd $0xCF, %%xmm5, %%xmm2	# XMM2: pixel 2 mask		\n\
+	pshufd $0x3F, %%xmm5, %%xmm3	# XMM3: pixel 3 mask		\n\
+	pand %%xmm0, %%xmm3		# XMM3: pixel 3			\n\
+	psrldq $1, %%xmm3						\n\
+	pand %%xmm0, %%xmm2		# XMM2: pixel 2			\n\
+	por %%xmm3, %%xmm2		# XMM2: pixels 2 and 3		\n\
+	psrldq $1, %%xmm2						\n\
+	pand %%xmm0, %%xmm1		# XMM1: pixel 1			\n\
+	pand %%xmm5, %%xmm0		# XMM0: pixel 0			\n\
+	por %%xmm2, %%xmm1		# XMM1: pixels 1, 2, and 3	\n\
+	psrldq $1, %%xmm1						\n\
+	por %%xmm1, %%xmm0		# XMM0: RGB24 data		\n\
+	# We can't just movntdq, because we might run over the edge	\n\
+	movd %%xmm0, -12("EDI","EDX")	# store low 4 bytes		\n\
+	pshufd $0xF9, %%xmm0, %%xmm0	# shift right 4 bytes		\n\
+	movq %%xmm0, -8("EDI","EDX")	# store high 8 bytes		\n",\
+	/* emms */ "emms; sfence")					\
+	: /* no outputs */						\
+	: "S" (src[0]), "D" (dest[0]), "c" (width*height),		\
+	  "d" (&rgb_bgr_data), "m" (rgb_bgr_data)			\
+	: "eax");
+
 
 /* RGBA<->ABGR and ARGB<->BGRA: reverse byte order */
 static int rgba_swapall_sse2(uint8_t **src, uint8_t **dest, int width, int height)
@@ -424,6 +547,108 @@ static int rgba_alpha03_sse2(uint8_t **src, uint8_t **dest, int width, int heigh
     return 1;
 }
 
+/* RGB<->BGR */
+static int rgb24_bgr24_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    asm("movdqa ("EDX"), %%xmm5		# byte 0 mask			\n\
+	pshufd $0xD2, %%xmm5, %%xmm6	# byte 1 mask			\n\
+	pshufd $0xC9, %%xmm5, %%xmm7	# byte 2 mask			\n"
+	SIMD_LOOP_WRAPPER(
+	/* blocksize */ 4,
+	/* push_regs */ "",
+	/* pop_regs  */ "",
+	/* small_loop */
+	"leal ("ECX","ECX",2),"EDX"					\n\
+	movb -3("ESI","EDX"), %%al					\n\
+	movb -2("ESI","EDX"), %%ah					\n\
+	movb %%ah, -2("EDI","EDX")					\n\
+	movb -1("ESI","EDX"), %%ah					\n\
+	movb %%ah, -3("EDI","EDX")					\n\
+	movb %%al, -1("EDI","EDX")",
+	/* main_loop */
+	"leal ("ECX","ECX",2),"EDX"					\n\
+	# We can't just movdqu, because we might run over the edge	\n\
+	movd -12("ESI","EDX"), %%xmm1					\n\
+	movq -8("ESI","EDX"), %%xmm0					\n\
+	pshufd $0xD3, %%xmm0, %%xmm0	# shift left by 4 bytes		\n\
+	por %%xmm1, %%xmm0		# XMM0: original data		\n\
+	movdqa %%xmm5, %%xmm2						\n\
+	movdqa %%xmm6, %%xmm3						\n\
+	movdqa %%xmm7, %%xmm4						\n\
+	pand %%xmm0, %%xmm2		# XMM2: byte 0			\n\
+	pslldq $2, %%xmm2		# shift to byte 2 position	\n\
+	pand %%xmm0, %%xmm3		# XMM3: byte 1			\n\
+	pand %%xmm0, %%xmm4		# XMM4: byte 2			\n\
+	psrldq $2, %%xmm4		# shift to byte 0 position	\n\
+	por %%xmm2, %%xmm3						\n\
+	por %%xmm4, %%xmm3		# XMM3: reversed data		\n\
+	movd %%xmm3, -12("EDI","EDX")	# avoid running over the edge	\n\
+	pshufd $0xF9, %%xmm3, %%xmm3	# shift right by 4 bytes	\n\
+	movq %%xmm3, -8("EDI","EDX")",
+	/* emms */ "emms; sfence")
+	: /* no outputs */
+	: "S" (src[0]), "D" (dest[0]), "c" (width*height),
+	  "d" (&rgb_bgr_data), "m" (rgb_bgr_data)
+	: "eax");
+    return 1;
+}
+
+/* RGB->RGBA */
+static int rgb24_rgba32_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    RGB24TO32(0,1,2,3, "");
+    return 1;
+}
+
+/* RGB->ABGR */
+static int rgb24_abgr32_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    RGB24TO32(3,2,1,0, SHIFT_RBSWAP SHIFT_AFIRST);
+    return 1;
+}
+
+/* RGB->ARGB */
+static int rgb24_argb32_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    RGB24TO32(1,2,3,0, SHIFT_AFIRST);
+    return 1;
+}
+
+/* RGB->BGRA */
+static int rgb24_bgra32_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    RGB24TO32(2,1,0,3, SHIFT_RBSWAP);
+    return 1;
+}
+
+/* RGBA->RGB */
+static int rgba32_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    RGB32TO24(0,1,2,3, "");
+    return 1;
+}
+
+/* ABGR->RGB */
+static int abgr32_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    RGB32TO24(3,2,1,0, SHIFT_ALAST SHIFT_RBSWAP);
+    return 1;
+}
+
+/* ARGB->RGB */
+static int argb32_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    RGB32TO24(1,2,3,0, SHIFT_ALAST);
+    return 1;
+}
+
+/* BGRA->RGB */
+static int bgra32_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    RGB32TO24(2,1,0,3, SHIFT_RBSWAP);
+    return 1;
+}
+
 /*************************************************************************/
 
 #endif  /* ARCH_X86 || ARCH_X86_64 */
@@ -444,9 +669,15 @@ int ac_imgconvert_init_rgb_packed(int accel)
      || !register_conversion(IMG_RGB24,   IMG_GRAY8,   rgb24_gray8)
 
      || !register_conversion(IMG_BGR24,   IMG_BGR24,   rgb_copy)
-     || !register_conversion(IMG_BGR24,   IMG_BGR24,   bgr24_rgb24)
+     || !register_conversion(IMG_BGR24,   IMG_RGB24,   rgb24_bgr24)
+     || !register_conversion(IMG_BGR24,   IMG_RGBA32,  rgb24_bgra32)
+     || !register_conversion(IMG_BGR24,   IMG_ABGR32,  rgb24_argb32)
+     || !register_conversion(IMG_BGR24,   IMG_ARGB32,  rgb24_abgr32)
+     || !register_conversion(IMG_BGR24,   IMG_BGRA32,  rgb24_rgba32)
+     || !register_conversion(IMG_BGR24,   IMG_GRAY8,   bgr24_gray8)
 
      || !register_conversion(IMG_RGBA32,  IMG_RGB24,   rgba32_rgb24)
+     || !register_conversion(IMG_RGBA32,  IMG_BGR24,   bgra32_rgb24)
      || !register_conversion(IMG_RGBA32,  IMG_RGBA32,  rgba_copy)
      || !register_conversion(IMG_RGBA32,  IMG_ABGR32,  rgba_swapall)
      || !register_conversion(IMG_RGBA32,  IMG_ARGB32,  rgba_alpha30)
@@ -454,6 +685,7 @@ int ac_imgconvert_init_rgb_packed(int accel)
      || !register_conversion(IMG_RGBA32,  IMG_GRAY8,   rgba32_gray8)
 
      || !register_conversion(IMG_ABGR32,  IMG_RGB24,   abgr32_rgb24)
+     || !register_conversion(IMG_ABGR32,  IMG_BGR24,   argb32_rgb24)
      || !register_conversion(IMG_ABGR32,  IMG_RGBA32,  rgba_swapall)
      || !register_conversion(IMG_ABGR32,  IMG_ABGR32,  rgba_copy)
      || !register_conversion(IMG_ABGR32,  IMG_ARGB32,  rgba_swap13)
@@ -461,6 +693,7 @@ int ac_imgconvert_init_rgb_packed(int accel)
      || !register_conversion(IMG_ABGR32,  IMG_GRAY8,   argb32_gray8)
 
      || !register_conversion(IMG_ARGB32,  IMG_RGB24,   argb32_rgb24)
+     || !register_conversion(IMG_ARGB32,  IMG_BGR24,   abgr32_rgb24)
      || !register_conversion(IMG_ARGB32,  IMG_RGBA32,  rgba_alpha03)
      || !register_conversion(IMG_ARGB32,  IMG_ABGR32,  rgba_swap13)
      || !register_conversion(IMG_ARGB32,  IMG_ARGB32,  rgba_copy)
@@ -468,6 +701,7 @@ int ac_imgconvert_init_rgb_packed(int accel)
      || !register_conversion(IMG_ARGB32,  IMG_GRAY8,   argb32_gray8)
 
      || !register_conversion(IMG_BGRA32,  IMG_RGB24,   bgra32_rgb24)
+     || !register_conversion(IMG_BGRA32,  IMG_BGR24,   rgba32_rgb24)
      || !register_conversion(IMG_BGRA32,  IMG_RGBA32,  rgba_swap02)
      || !register_conversion(IMG_BGRA32,  IMG_ABGR32,  rgba_alpha30)
      || !register_conversion(IMG_BGRA32,  IMG_ARGB32,  rgba_swapall)
@@ -475,8 +709,11 @@ int ac_imgconvert_init_rgb_packed(int accel)
      || !register_conversion(IMG_BGRA32,  IMG_GRAY8,   argb32_gray8)
 
      || !register_conversion(IMG_GRAY8,   IMG_RGB24,   gray8_rgb24)
+     || !register_conversion(IMG_GRAY8,   IMG_BGR24,   gray8_rgb24)
      || !register_conversion(IMG_GRAY8,   IMG_RGBA32,  gray8_rgba32)
+     || !register_conversion(IMG_GRAY8,   IMG_ABGR32,  gray8_argb32)
      || !register_conversion(IMG_GRAY8,   IMG_ARGB32,  gray8_argb32)
+     || !register_conversion(IMG_GRAY8,   IMG_BGRA32,  gray8_rgba32)
      || !register_conversion(IMG_GRAY8,   IMG_GRAY8,   gray8_copy)
     ) {
 	return 0;
@@ -527,18 +764,38 @@ int ac_imgconvert_init_rgb_packed(int accel)
     }
 
     if (accel & AC_SSE2) {
-	if (!register_conversion(IMG_RGBA32,  IMG_ABGR32,  rgba_swapall_sse2)
+	if (!register_conversion(IMG_RGB24,   IMG_BGR24,   rgb24_bgr24_sse2)
+	 || !register_conversion(IMG_RGB24,   IMG_RGBA32,  rgb24_rgba32_sse2)
+	 || !register_conversion(IMG_RGB24,   IMG_ABGR32,  rgb24_abgr32_sse2)
+	 || !register_conversion(IMG_RGB24,   IMG_ARGB32,  rgb24_argb32_sse2)
+	 || !register_conversion(IMG_RGB24,   IMG_BGRA32,  rgb24_bgra32_sse2)
+
+	 || !register_conversion(IMG_BGR24,   IMG_RGB24,   rgb24_bgr24_sse2)
+	 || !register_conversion(IMG_BGR24,   IMG_RGBA32,  rgb24_bgra32_sse2)
+	 || !register_conversion(IMG_BGR24,   IMG_ABGR32,  rgb24_argb32_sse2)
+	 || !register_conversion(IMG_BGR24,   IMG_ARGB32,  rgb24_abgr32_sse2)
+	 || !register_conversion(IMG_BGR24,   IMG_BGRA32,  rgb24_rgba32_sse2)
+
+	 || !register_conversion(IMG_RGBA32,  IMG_RGB24,   rgba32_rgb24_sse2)
+	 || !register_conversion(IMG_RGBA32,  IMG_BGR24,   bgra32_rgb24_sse2)
+	 || !register_conversion(IMG_RGBA32,  IMG_ABGR32,  rgba_swapall_sse2)
 	 || !register_conversion(IMG_RGBA32,  IMG_ARGB32,  rgba_alpha30_sse2)
 	 || !register_conversion(IMG_RGBA32,  IMG_BGRA32,  rgba_swap02_sse2)
 
+	 || !register_conversion(IMG_ABGR32,  IMG_RGB24,   abgr32_rgb24_sse2)
+	 || !register_conversion(IMG_ABGR32,  IMG_BGR24,   argb32_rgb24_sse2)
 	 || !register_conversion(IMG_ABGR32,  IMG_RGBA32,  rgba_swapall_sse2)
 	 || !register_conversion(IMG_ABGR32,  IMG_ARGB32,  rgba_swap13_sse2)
 	 || !register_conversion(IMG_ABGR32,  IMG_BGRA32,  rgba_alpha03_sse2)
 
+	 || !register_conversion(IMG_ARGB32,  IMG_RGB24,   argb32_rgb24_sse2)
+	 || !register_conversion(IMG_ARGB32,  IMG_BGR24,   abgr32_rgb24_sse2)
 	 || !register_conversion(IMG_ARGB32,  IMG_RGBA32,  rgba_alpha03_sse2)
 	 || !register_conversion(IMG_ARGB32,  IMG_ABGR32,  rgba_swap13_sse2)
 	 || !register_conversion(IMG_ARGB32,  IMG_BGRA32,  rgba_swapall_sse2)
 
+	 || !register_conversion(IMG_BGRA32,  IMG_RGB24,   bgra32_rgb24_sse2)
+	 || !register_conversion(IMG_BGRA32,  IMG_BGR24,   rgba32_rgb24_sse2)
 	 || !register_conversion(IMG_BGRA32,  IMG_RGBA32,  rgba_swap02_sse2)
 	 || !register_conversion(IMG_BGRA32,  IMG_ABGR32,  rgba_alpha30_sse2)
 	 || !register_conversion(IMG_BGRA32,  IMG_ARGB32,  rgba_swapall_sse2)

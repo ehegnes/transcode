@@ -119,7 +119,7 @@ static int yvyu_uyvy_x86(uint8_t **src, uint8_t **dest, int width, int height)
 
 /*************************************************************************/
 
-/* MMX-optimized routines */
+/* MMX routines */
 
 static int yuv16_swap16_mmx(uint8_t **src, uint8_t **dest, int width, int height)
 {
@@ -155,7 +155,7 @@ static int yvyu_uyvy_mmx(uint8_t **src, uint8_t **dest, int width, int height)
 
 /*************************************************************************/
 
-/* SSE2-optimized routines */
+/* SSE2 routines */
 
 static int yuv16_swap16_sse2(uint8_t **src, uint8_t **dest, int width, int height)
 {
