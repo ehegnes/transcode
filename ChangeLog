@@ -1,3 +1,9 @@
+2005-10-11 Andrew Church <achurch at achurch dot org>
+  * Changed: aclib/Makefile.am filter/mmx.h
+  * Removed: aclib/mmx.h
+  Move aclib/mmx.h contents back to filter/mmx.h, since most of the code
+  that uses it is in filter/.
+
 2005-10-10 Andrew Church <achurch at achurch dot org>
   * aclib/img_yuv_rgb.c export/export_ppm.c
   Add a direct conversion from YUV packed to RGB packed, and use it in
