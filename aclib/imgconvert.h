@@ -49,6 +49,7 @@ typedef enum {
 /* U/V plane size for YUV planar formats (Y plane size is always w*h) */
 #define UV_PLANE_SIZE(fmt,w,h) \
     ((fmt)==IMG_YUV420P ? ((w)/2)*((h)/2) : \
+     (fmt)==IMG_YV12    ? ((w)/2)*((h)/2) : \
      (fmt)==IMG_YUV411P ? ((w)/4)* (h)    : \
      (fmt)==IMG_YUV422P ? ((w)/2)* (h)    : \
      (fmt)==IMG_YUV444P ?  (w)   * (h)    : 0)
