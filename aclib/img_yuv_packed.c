@@ -91,6 +91,7 @@ static int yuv16_swap16_x86(uint8_t **src, uint8_t **dest, int width, int height
     if (width*height % 1)
 	((uint16_t *)(dest[0]))[width*height-1] =
 	    src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
+    return 1;
 }
 
 static int yuv16_swapuv_x86(uint8_t **src, uint8_t **dest, int width, int height)
@@ -127,6 +128,7 @@ static int yuv16_swap16_mmx(uint8_t **src, uint8_t **dest, int width, int height
     if (width*height % 1)
 	((uint16_t *)(dest[0]))[width*height-1] =
 	    src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
+    return 1;
 }
 
 static int yuv16_swapuv_mmx(uint8_t **src, uint8_t **dest, int width, int height)
@@ -163,6 +165,7 @@ static int yuv16_swap16_sse2(uint8_t **src, uint8_t **dest, int width, int heigh
     if (width*height % 1)
 	((uint16_t *)(dest[0]))[width*height-1] =
 	    src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
+    return 1;
 }
 
 static int yuv16_swapuv_sse2(uint8_t **src, uint8_t **dest, int width, int height)

@@ -520,7 +520,7 @@ static int yuv420p_yuv411p_sse2(uint8_t **src, uint8_t **dest, int width, int he
 
 static int yuv420p_yuv444p_sse2(uint8_t **src, uint8_t **dest, int width, int height)
 {
-    int x, y;
+    int y;
     ac_memcpy(dest[0], src[0], width*height);
     for (y = 0; y < height; y += 2) {
 	REP_2H(src[1]+(y/2)*(width/2), dest[1]+y*width, width/2);
