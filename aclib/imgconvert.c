@@ -22,7 +22,7 @@ static int n_conversions = 0;
 /*************************************************************************/
 
 /* Image conversion routine.  src and dest are arrays of pointers to planes
- * (for packed formats with only one plane, just use &data); srcfmt and
+ * (for packed formats with only one plane, just use `&data'); srcfmt and
  * destfmt specify the source and destination image formats (IMG_*).
  * width and height are in pixels.  Returns 1 on success, 0 on failure. */
 
@@ -31,6 +31,24 @@ int ac_imgconvert(uint8_t **src, ImageFormat srcfmt,
 		  int width, int height)
 {
     int i;
+
+    /* Hack to handle YV12 easily, because conversion routines don't get
+     * format tags */
+    uint8_t *newsrc[3], *newdest[3];
+    if (srcfmt == IMG_YV12) {
+	srcfmt = IMG_YUV420P;
+	newsrc[0] = src[0];
+	newsrc[1] = src[2];
+	newsrc[2] = src[1];
+	src = newsrc;
+    }
+    if (destfmt == IMG_YV12) {
+	destfmt = IMG_YUV420P;
+	newdest[0] = dest[0];
+	newdest[1] = dest[2];
+	newdest[2] = dest[1];
+	dest = newdest;
+    }
 
     for (i = 0; i < n_conversions; i++) {
 	if (conversions[i].srcfmt==srcfmt && conversions[i].destfmt==destfmt)

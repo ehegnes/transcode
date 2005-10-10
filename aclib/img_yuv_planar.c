@@ -58,18 +58,6 @@ static int y8_copy(uint8_t **src, uint8_t **dest, int width, int height)
 
 /*************************************************************************/
 
-/* Used for YUV420P->YV12 and YV12->YUV420P */
-
-static int yuv420p_swap(uint8_t **src, uint8_t **dest, int width, int height)
-{
-    ac_memcpy(dest[0], src[0], width*height);
-    ac_memcpy(dest[2], src[1], width*height/4);
-    ac_memcpy(dest[1], src[2], width*height/4);
-    return 1;
-}
-
-/*************************************************************************/
-
 static int yuv420p_yuv411p(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
@@ -702,14 +690,10 @@ static int yuv444p_yuv422p_sse2(uint8_t **src, uint8_t **dest, int width, int he
 int ac_imgconvert_init_yuv_planar(int accel)
 {
     if (!register_conversion(IMG_YUV420P, IMG_YUV420P, yuv420p_copy)
-     || !register_conversion(IMG_YUV420P, IMG_YV12,    yuv420p_swap)
      || !register_conversion(IMG_YUV420P, IMG_YUV411P, yuv420p_yuv411p)
      || !register_conversion(IMG_YUV420P, IMG_YUV422P, yuv420p_yuv422p)
      || !register_conversion(IMG_YUV420P, IMG_YUV444P, yuv420p_yuv444p)
      || !register_conversion(IMG_YUV420P, IMG_Y8,      yuvp_y8)
-
-     || !register_conversion(IMG_YV12,    IMG_YUV420P, yuv420p_swap)
-     || !register_conversion(IMG_YV12,    IMG_YV12,    yuv420p_copy)
 
      || !register_conversion(IMG_YUV411P, IMG_YUV420P, yuv411p_yuv420p)
      || !register_conversion(IMG_YUV411P, IMG_YUV411P, yuv411p_copy)
