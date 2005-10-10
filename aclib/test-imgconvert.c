@@ -150,21 +150,21 @@ int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt,
 /* Order of formats to test, with name strings */
 struct { ImageFormat fmt; const char *name; int disabled; } fmtlist[] = {
     { IMG_YUV420P, "420P" },
-    { IMG_YV12,    "YV12" },
+    { IMG_YV12,    "YV12", 1 },  /* disabled by default */
     { IMG_YUV411P, "411P" },
     { IMG_YUV422P, "422P" },
     { IMG_YUV444P, "444P" },
     { IMG_YUY2,    "YUY2" },
     { IMG_UYVY,    "UYVY" },
     { IMG_YVYU,    "YVYU" },
-    { IMG_Y8,      " Y8 ", 1 },  /* disabled by default */
+    { IMG_Y8,      " Y8 " },
     { IMG_RGB24,   "RGB " },
     { IMG_BGR24,   "BGR " },
     { IMG_RGBA32,  "RGBA" },
     { IMG_ABGR32,  "ABGR" },
     { IMG_ARGB32,  "ARGB" },
     { IMG_BGRA32,  "BGRA" },
-    { IMG_GRAY8,   "GRAY", 1 },  /* disabled by default */
+    { IMG_GRAY8,   "GRAY" },
     { IMG_NONE,    NULL }
 };
 
@@ -268,12 +268,12 @@ int main(int argc, char **argv)
 	printf("Units: conversions/time (unaccelerated = 100)\n\n");
     else
 	printf("Units: conversions/sec (frame size: %dx%d)\n\n", WIDTH, HEIGHT);
-    printf("     |");
+    printf("    |");
     for (i = 0; fmtlist[i].fmt != IMG_NONE; i++) {
 	if (!fmtlist[i].disabled)
 	    printf("%-4s|", fmtlist[i].name);
     }
-    printf("\n-----+");
+    printf("\n----+");
     for (i = 0; fmtlist[i].fmt != IMG_NONE; i++) {
 	if (!fmtlist[i].disabled)
 	    printf("----+");
@@ -283,7 +283,7 @@ int main(int argc, char **argv)
     for (i = 0; fmtlist[i].fmt != IMG_NONE; i++) {
 	if (fmtlist[i].disabled)
 	    continue;
-	printf("%-5s|", fmtlist[i].name);
+	printf("%-4s|", fmtlist[i].name);
 	fflush(stdout);
 	for (j = 0; fmtlist[j].fmt != IMG_NONE; j++) {
 	    if (fmtlist[j].disabled)
