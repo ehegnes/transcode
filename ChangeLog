@@ -1,10 +1,23 @@
+2005-10-10 Andrew Church <achurch at achurch dot org>
+  * aclib/average.c aclib/img_rgb_packed.c aclib/img_x86_common.h
+    aclib/img_yuv_mixed.c aclib/img_yuv_planar.c aclib/img_yuv_rgb.c
+    aclib/rescale.c
+  Add x86-accelerated versions of more conversion functions, and fix bugs
+  in processing odd-size/unaligned images.
+
+  * aclib/imgconvert.c aclib/imgconvert.h aclib/img_yuv_planar.c
+  Handle YV12<->anything automagically, and fix a bug in YV12 conversion.
+
+  * aclib/test-imgconvert.c
+  More touching-up of the tester.
+
 2005-10-09 Andrew Church <achurch at achurch dot org>
   * aclib/test-imgconvert.c
   Various additions to make the test program more useful.
 
   * Changed: img_rgb_packed.c img_yuv_packed.c img_yuv_planar.c img_yuv_rgb.c
     Added: aclib/img_x86_common.c
-  Added x86-optimized versions of most image conversion functions, and
+  Added x86-accelerated versions of most image conversion functions, and
   improved conversion accuracy (and fixed bugs) for a few conversions.
 
 2005-10-08 Andrew Church <achurch at achurch dot org>

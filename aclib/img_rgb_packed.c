@@ -234,6 +234,19 @@ static int rgba32_gray8(uint8_t **src, uint8_t **dest, int width, int height)
     return 1;
 }
 
+static int bgra32_gray8(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int i;
+    for (i = 0; i < width*height; i++) {
+	/* Use the Y part of a YUV transformation, scaled to 0..255 */
+	int r = src[0][i*4+2];
+	int g = src[0][i*4+1];
+	int b = src[0][i*4  ];
+	dest[0][i] = (19595*r + 38470*g + 7471*b + 32768) >> 16;
+    }
+    return 1;
+}
+
 /*************************************************************************/
 
 static int argb32_rgb24(uint8_t **src, uint8_t **dest, int width, int height)
@@ -266,6 +279,19 @@ static int argb32_gray8(uint8_t **src, uint8_t **dest, int width, int height)
 	int r = src[0][i*4+1];
 	int g = src[0][i*4+2];
 	int b = src[0][i*4+3];
+	dest[0][i] = (19595*r + 38470*g + 7471*b + 32768) >> 16;
+    }
+    return 1;
+}
+
+static int abgr32_gray8(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int i;
+    for (i = 0; i < width*height; i++) {
+	/* Use the Y part of a YUV transformation, scaled to 0..255 */
+	int r = src[0][i*4+3];
+	int g = src[0][i*4+2];
+	int b = src[0][i*4+1];
 	dest[0][i] = (19595*r + 38470*g + 7471*b + 32768) >> 16;
     }
     return 1;
@@ -651,6 +677,233 @@ static int bgra32_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int heigh
 
 /*************************************************************************/
 
+#define R_GRAY	19595
+#define G_GRAY	38470
+#define B_GRAY	 7471
+#define INIT_GRAY8 \
+	"pxor %%xmm4, %%xmm4		# XMM4: all 0's			\n\
+	movl %3, %%eax							\n\
+	movd %%eax, %%xmm5						\n\
+	pshuflw $0x00, %%xmm5, %%xmm5					\n\
+	pshufd $0x00, %%xmm5, %%xmm5	# XMM5: R->gray constant	\n\
+	movl %4, %%eax							\n\
+	movd %%eax, %%xmm6						\n\
+	pshuflw $0x00, %%xmm6, %%xmm6					\n\
+	pshufd $0x00, %%xmm6, %%xmm6	# XMM6: G->gray constant	\n\
+	movl %5, %%eax							\n\
+	movd %%eax, %%xmm7						\n\
+	pshuflw $0x00, %%xmm7, %%xmm7					\n\
+	pshufd $0x00, %%xmm7, %%xmm7	# XMM7: B->gray constant	\n\
+	pcmpeqd %%xmm3, %%xmm3						\n\
+	psllw $15, %%xmm3						\n\
+	psrlw $8, %%xmm3		# XMM3: 0x0080*8 (for rounding)	\n"
+#define SINGLE_GRAY8(idx,ofsR,ofsG,ofsB) \
+	"movzbl "#ofsR"("ESI","idx"), %%eax	# retrieve red byte	\n\
+	imull %3, %%eax			# multiply by red->gray factor	\n\
+	movzbl "#ofsG"("ESI","idx"), %%edx	# retrieve green byte	\n\
+	imull %4, %%edx			# multiply by green->gray factor\n\
+	addl %%edx, %%eax		# add to total			\n\
+	movzbl "#ofsB"("ESI","idx"), %%edx	# retrieve blue byte	\n\
+	imull %5, %%edx			# multiply by blue->gray factor	\n\
+	addl %%edx, %%eax		# add to total			\n\
+	addl $0x8000, %%eax		# round				\n\
+	shrl $16, %%eax			# shift back down		\n\
+	movb %%al, -1("EDI","ECX")	# and store			\n"
+#define STORE_GRAY8 \
+	"psllw $8, %%xmm0		# XMM0: add 8 bits of precision	\n\
+	pmulhuw %%xmm5, %%xmm0		# XMM0: r7 r6 r5 r4 r3 r2 r1 r0	\n\
+	psllw $8, %%xmm1		# XMM1: add 8 bits of precision	\n\
+	pmulhuw %%xmm6, %%xmm1		# XMM1: g7 g6 g5 g4 g3 g2 g1 g0	\n\
+	paddw %%xmm3, %%xmm0		# XMM0: add rounding constant	\n\
+	psllw $8, %%xmm2		# XMM2: add 8 bits of precision	\n\
+	pmulhuw %%xmm7, %%xmm2		# XMM2: b7 b6 b5 b4 b3 b2 b1 b0	\n\
+	paddw %%xmm1, %%xmm0		# XMM0: add green part		\n\
+	paddw %%xmm2, %%xmm0		# XMM0: add blue part		\n\
+	psrlw $8, %%xmm0		# XMM0: shift back to bytes	\n\
+	packuswb %%xmm4, %%xmm0		# XMM0: gray7..gray0 packed	\n\
+	movq %%xmm0, -8("EDI","ECX")					\n"
+
+#define ASM_RGB24_GRAY(ofsR,ofsG,ofsB,load) \
+    asm(INIT_GRAY8							\
+	"push "EBX"							\n\
+	leal ("ECX","ECX",2),"EBX"					\n"\
+	SIMD_LOOP_WRAPPER(						\
+	/* blocksize  */ 8,						\
+	/* push_regs  */ "",						\
+	/* pop_regs   */ "",						\
+	/* small_loop */ SINGLE_GRAY8(EBX, ofsR,ofsG,ofsB) "subl $3, %%ebx;",\
+	/* main_loop  */ load(4) STORE_GRAY8 "subl $24, %%ebx;",	\
+	/* emms */ "emms")						\
+	"pop "EBX							\
+	: /* no outputs */						\
+	: "S" (src[0]), "D" (dest[0]), "c" (width*height),		\
+	  "i" (R_GRAY), "i" (G_GRAY), "i" (B_GRAY)			\
+	: "eax", "edx")
+
+#define ASM_RGB32_GRAY(ofsR,ofsG,ofsB,load) \
+    asm(INIT_GRAY8							\
+	SIMD_LOOP_WRAPPER(						\
+	/* blocksize  */ 8,						\
+	/* push_regs  */ "",						\
+	/* pop_regs   */ "",						\
+	/* small_loop */ SINGLE_GRAY8(ECX",4", ofsR,ofsG,ofsB),		\
+	/* main_loop  */ load(4) STORE_GRAY8,				\
+	/* emms */ "emms")						\
+	: /* no outputs */						\
+	: "S" (src[0]), "D" (dest[0]), "c" (width*height),		\
+	  "i" (R_GRAY), "i" (G_GRAY), "i" (B_GRAY)			\
+	: "eax", "edx")
+
+
+static int rgb24_gray8_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_RGB24_GRAY(-3,-2,-1, SSE2_LOAD_RGB24);
+    return 1;
+}
+
+static int bgr24_gray8_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_RGB24_GRAY(-1,-2,-3, SSE2_LOAD_BGR24);
+    return 1;
+}
+
+static int rgba32_gray8_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_RGB32_GRAY(-4,-3,-2, SSE2_LOAD_RGBA32);
+    return 1;
+}
+
+static int bgra32_gray8_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_RGB32_GRAY(-2,-3,-4, SSE2_LOAD_BGRA32);
+    return 1;
+}
+
+static int argb32_gray8_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_RGB32_GRAY(-3,-2,-1, SSE2_LOAD_ARGB32);
+    return 1;
+}
+
+static int abgr32_gray8_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    ASM_RGB32_GRAY(-1,-2,-3, SSE2_LOAD_ABGR32);
+    return 1;
+}
+
+/*************************************************************************/
+
+static int gray8_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    asm("# Store all 0's in XMM4					\n\
+	pxor %%xmm4, %%xmm4						\n\
+	# Generate mask in XMM7 to select bytes 0,3,6,9 of an XMM register\n\
+	pcmpeqd %%xmm7, %%xmm7		# XMM7: all 1's			\n\
+	psrlw $8, %%xmm7		# XMM7: 0x00FF * 8		\n\
+	pcmpeqd %%xmm6, %%xmm6		# XMM6: all 1's			\n\
+	psllw $8, %%xmm6		# XMM6: 0xFF00 * 8		\n\
+	pslldq $8, %%xmm6						\n\
+	psrldq $8, %%xmm7						\n\
+	por %%xmm6, %%xmm7		# XMM7: 0xFF00*4, 0x00FF*4	\n\
+	pshufd $0xCC, %%xmm7, %%xmm7	# XMM7: {0xFF00*2, 0x00FF*2} * 2\n\
+	pshuflw $0xC0, %%xmm7, %%xmm7	# XMM7.l: FF0000FF00FF00FF	\n\
+	psrldq $4, %%xmm7		# XMM7: 0x00000000FF00FF00	\n\
+					#         00FF00FFFF0000FF	\n\
+	pshufd $0xEC, %%xmm7, %%xmm7	# XMM7: 0x00000000FF00FF00	\n\
+					#         00000000FF0000FF	\n\
+	pshuflw $0x24, %%xmm7, %%xmm7	# XMM7.l: 00FF0000FF0000FF	\n\
+	pshufhw $0xFC, %%xmm7, %%xmm7	# XMM7.h: 000000000000FF00	\n\
+	# Load ECX*3 into EDX ahead of time				\n\
+	leal ("ECX","ECX",2), "EDX"					\n"
+	SIMD_LOOP_WRAPPER(
+	/* blocksize */ 4,
+	/* push_regs */ "",
+	/* pop_regs  */ "",
+	/* small_loop */ "\
+	movb -1("ESI","ECX"), %%al	# retrieve gray byte		\n\
+	movb %%al, -3("EDI","EDX")	# and store 3 times		\n\
+	movb %%al, -2("EDI","EDX")					\n\
+	movb %%al, -1("EDI","EDX")					\n\
+	subl $3, %%edx							\n",
+	/* main_loop */ "\
+	movd -4("ESI","ECX"), %%xmm0	# XMM0: G3..G0			\n\
+	pshufd $0xCC, %%xmm0, %%xmm0	# XMM0: {0,0,0,0,G3..G0} * 2	\n\
+	pshuflw $0x50, %%xmm0, %%xmm0	# X0.l: G3 G2 G3 G2 G1 G0 G1 G0	\n\
+	pshufhw $0x55, %%xmm0, %%xmm0	# X0.h: G3 G2 G3 G2 G3 G2 G3 G2	\n\
+	pand %%xmm7, %%xmm0		# XMM0: ------3--2--1--0	\n\
+	movdqa %%xmm0, %%xmm1		# XMM1: ------3--2--1--0	\n\
+	pslldq $1, %%xmm1		# XMM1: -----3--2--1--0-	\n\
+	movdqa %%xmm0, %%xmm2		# XMM2: ------3--2--1--0	\n\
+	pslldq $2, %%xmm2		# XMM2: ----3--2--1--0--	\n\
+	por %%xmm1, %%xmm0		# XMM0: -----33-22-11-00	\n\
+	por %%xmm2, %%xmm0		# XMM0: ----333222111000	\n\
+	movd %%xmm0, -12("EDI","EDX")					\n\
+	pshufd $0xC9, %%xmm0, %%xmm0					\n\
+	movq %%xmm0, -8("EDI","EDX")					\n\
+	subl $12, %%edx							\n",
+	/* emms */ "emms")
+	: /* no outputs */
+	: "S" (src[0]), "D" (dest[0]), "c" (width*height)
+	: "eax", "edx");
+    return 1;
+}
+
+static int gray8_rgba32_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    asm("pxor %%xmm4, %%xmm4		# XMM4: all 0's			\n"
+	SIMD_LOOP_WRAPPER(
+	/* blocksize */ 4,
+	/* push_regs */ "",
+	/* pop_regs  */ "",
+	/* small_loop */ "\
+	movb -1("ESI","ECX"), %%al	# retrieve gray byte		\n\
+	movb %%al, -4("EDI","ECX",4)	# and store 3 times		\n\
+	movb %%al, -3("EDI","ECX",4)					\n\
+	movb %%al, -2("EDI","ECX",4)					\n\
+	movb $0, -1("EDI","ECX",4)	# clear A byte			\n",
+	/* main_loop */ "\
+	movd -4("ESI","ECX"), %%xmm0	# XMM0: 00 00 00 00 G3 G2 G1 G0	\n\
+	movdqa %%xmm0, %%xmm1		# XMM1: 00 00 00 00 G3 G2 G1 G0	\n\
+	punpcklbw %%xmm0, %%xmm0	# XMM0: G3 G3 G2 G2 G1 G1 G0 G0	\n\
+	punpcklbw %%xmm4, %%xmm1	# XMM1: 00 G3 00 G2 00 G1 00 G0	\n\
+	punpcklbw %%xmm1, %%xmm0	# XMM0: 0GGG3 0GGG2 0GGG1 0GGG0	\n\
+	movdqu %%xmm0, -16("EDI","ECX",4)				\n",
+	/* emms */ "emms")
+	: /* no outputs */
+	: "S" (src[0]), "D" (dest[0]), "c" (width*height)
+	: "eax");
+    return 1;
+}
+
+static int gray8_argb32_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    asm("pxor %%xmm4, %%xmm4		# XMM4: all 0's			\n"
+	SIMD_LOOP_WRAPPER(
+	/* blocksize */ 4,
+	/* push_regs */ "",
+	/* pop_regs  */ "",
+	/* small_loop */ "\
+	movb -1("ESI","ECX"), %%al	# retrieve gray byte		\n\
+	movb %%al, -3("EDI","ECX",4)	# and store 3 times		\n\
+	movb %%al, -2("EDI","ECX",4)					\n\
+	movb %%al, -1("EDI","ECX",4)					\n\
+	movb $0, -4("EDI","ECX",4)	# clear A byte			\n",
+	/* main_loop */ "\
+	movd -4("ESI","ECX"), %%xmm0	# XMM0: 00 00 00 00 G3 G2 G1 G0	\n\
+	movdqa %%xmm4, %%xmm1		# XMM1: 00 00 00 00 00 00 00 00	\n\
+	punpcklbw %%xmm0, %%xmm1	# XMM1: G3 00 G2 00 G1 00 G0 00	\n\
+	punpcklbw %%xmm0, %%xmm0	# XMM0: G3 G3 G2 G2 G1 G1 G0 G0	\n\
+	punpcklbw %%xmm0, %%xmm1	# XMM0: GGG03 GGG02 GGG01 GGG00	\n\
+	movdqu %%xmm1, -16("EDI","ECX",4)				\n",
+	/* emms */ "emms")
+	: /* no outputs */
+	: "S" (src[0]), "D" (dest[0]), "c" (width*height)
+	: "eax");
+    return 1;
+}
+
+/*************************************************************************/
+
 #endif  /* ARCH_X86 || ARCH_X86_64 */
 
 /*************************************************************************/
@@ -690,7 +943,7 @@ int ac_imgconvert_init_rgb_packed(int accel)
      || !register_conversion(IMG_ABGR32,  IMG_ABGR32,  rgba_copy)
      || !register_conversion(IMG_ABGR32,  IMG_ARGB32,  rgba_swap13)
      || !register_conversion(IMG_ABGR32,  IMG_BGRA32,  rgba_alpha03)
-     || !register_conversion(IMG_ABGR32,  IMG_GRAY8,   argb32_gray8)
+     || !register_conversion(IMG_ABGR32,  IMG_GRAY8,   abgr32_gray8)
 
      || !register_conversion(IMG_ARGB32,  IMG_RGB24,   argb32_rgb24)
      || !register_conversion(IMG_ARGB32,  IMG_BGR24,   abgr32_rgb24)
@@ -706,7 +959,7 @@ int ac_imgconvert_init_rgb_packed(int accel)
      || !register_conversion(IMG_BGRA32,  IMG_ABGR32,  rgba_alpha30)
      || !register_conversion(IMG_BGRA32,  IMG_ARGB32,  rgba_swapall)
      || !register_conversion(IMG_BGRA32,  IMG_BGRA32,  rgba_copy)
-     || !register_conversion(IMG_BGRA32,  IMG_GRAY8,   argb32_gray8)
+     || !register_conversion(IMG_BGRA32,  IMG_GRAY8,   bgra32_gray8)
 
      || !register_conversion(IMG_GRAY8,   IMG_RGB24,   gray8_rgb24)
      || !register_conversion(IMG_GRAY8,   IMG_BGR24,   gray8_rgb24)
@@ -769,36 +1022,49 @@ int ac_imgconvert_init_rgb_packed(int accel)
 	 || !register_conversion(IMG_RGB24,   IMG_ABGR32,  rgb24_abgr32_sse2)
 	 || !register_conversion(IMG_RGB24,   IMG_ARGB32,  rgb24_argb32_sse2)
 	 || !register_conversion(IMG_RGB24,   IMG_BGRA32,  rgb24_bgra32_sse2)
+	 || !register_conversion(IMG_RGB24,   IMG_GRAY8,   rgb24_gray8_sse2)
 
 	 || !register_conversion(IMG_BGR24,   IMG_RGB24,   rgb24_bgr24_sse2)
 	 || !register_conversion(IMG_BGR24,   IMG_RGBA32,  rgb24_bgra32_sse2)
 	 || !register_conversion(IMG_BGR24,   IMG_ABGR32,  rgb24_argb32_sse2)
 	 || !register_conversion(IMG_BGR24,   IMG_ARGB32,  rgb24_abgr32_sse2)
 	 || !register_conversion(IMG_BGR24,   IMG_BGRA32,  rgb24_rgba32_sse2)
+	 || !register_conversion(IMG_BGR24,   IMG_GRAY8,   bgr24_gray8_sse2)
 
 	 || !register_conversion(IMG_RGBA32,  IMG_RGB24,   rgba32_rgb24_sse2)
 	 || !register_conversion(IMG_RGBA32,  IMG_BGR24,   bgra32_rgb24_sse2)
 	 || !register_conversion(IMG_RGBA32,  IMG_ABGR32,  rgba_swapall_sse2)
 	 || !register_conversion(IMG_RGBA32,  IMG_ARGB32,  rgba_alpha30_sse2)
 	 || !register_conversion(IMG_RGBA32,  IMG_BGRA32,  rgba_swap02_sse2)
+	 || !register_conversion(IMG_RGBA32,  IMG_GRAY8,   rgba32_gray8_sse2)
 
 	 || !register_conversion(IMG_ABGR32,  IMG_RGB24,   abgr32_rgb24_sse2)
 	 || !register_conversion(IMG_ABGR32,  IMG_BGR24,   argb32_rgb24_sse2)
 	 || !register_conversion(IMG_ABGR32,  IMG_RGBA32,  rgba_swapall_sse2)
 	 || !register_conversion(IMG_ABGR32,  IMG_ARGB32,  rgba_swap13_sse2)
 	 || !register_conversion(IMG_ABGR32,  IMG_BGRA32,  rgba_alpha03_sse2)
+	 || !register_conversion(IMG_ABGR32,  IMG_GRAY8,   abgr32_gray8_sse2)
 
 	 || !register_conversion(IMG_ARGB32,  IMG_RGB24,   argb32_rgb24_sse2)
 	 || !register_conversion(IMG_ARGB32,  IMG_BGR24,   abgr32_rgb24_sse2)
 	 || !register_conversion(IMG_ARGB32,  IMG_RGBA32,  rgba_alpha03_sse2)
 	 || !register_conversion(IMG_ARGB32,  IMG_ABGR32,  rgba_swap13_sse2)
 	 || !register_conversion(IMG_ARGB32,  IMG_BGRA32,  rgba_swapall_sse2)
+	 || !register_conversion(IMG_ARGB32,  IMG_GRAY8,   argb32_gray8_sse2)
 
 	 || !register_conversion(IMG_BGRA32,  IMG_RGB24,   bgra32_rgb24_sse2)
 	 || !register_conversion(IMG_BGRA32,  IMG_BGR24,   rgba32_rgb24_sse2)
 	 || !register_conversion(IMG_BGRA32,  IMG_RGBA32,  rgba_swap02_sse2)
 	 || !register_conversion(IMG_BGRA32,  IMG_ABGR32,  rgba_alpha30_sse2)
 	 || !register_conversion(IMG_BGRA32,  IMG_ARGB32,  rgba_swapall_sse2)
+	 || !register_conversion(IMG_BGRA32,  IMG_GRAY8,   bgra32_gray8_sse2)
+
+	 || !register_conversion(IMG_GRAY8,   IMG_RGB24,   gray8_rgb24_sse2)
+	 || !register_conversion(IMG_GRAY8,   IMG_BGR24,   gray8_rgb24_sse2)
+	 || !register_conversion(IMG_GRAY8,   IMG_RGBA32,  gray8_rgba32_sse2)
+	 || !register_conversion(IMG_GRAY8,   IMG_ABGR32,  gray8_argb32_sse2)
+	 || !register_conversion(IMG_GRAY8,   IMG_ARGB32,  gray8_argb32_sse2)
+	 || !register_conversion(IMG_GRAY8,   IMG_BGRA32,  gray8_rgba32_sse2)
 	) {
 	    return 0;
 	}

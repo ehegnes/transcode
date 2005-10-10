@@ -225,7 +225,7 @@ static const struct { uint32_t n[64]; } __attribute__((aligned(16))) mask_data =
 	emms"; "							\
 	/* Restore ECX and finish */					\
 	"2: "								\
-	"pop "ECX
+	"pop "ECX";"
 
 /*************************************************************************/
 
@@ -431,6 +431,150 @@ static const struct { uint32_t n[64]; } __attribute__((aligned(16))) mask_data =
 	: /* no outputs */						\
 	: "S" (src[0]), "D" (dest[0]), "c" (size)			\
 	: "eax")
+
+/*************************************************************************/
+
+/* SSE2 macros to load 8 24- or 32-bit RGB pixels into XMM0/1/2 (R/G/B) as
+ * 16-bit values, used for RGB->YUV and RGB->grayscale conversions.
+ * ZERO is the number of the XMM register containing all zeroes. */
+
+#define SSE2_LOAD_RGB24(ZERO) \
+	"movl -21("ESI","EBX"), %%eax					\n\
+	movd %%eax, %%xmm0		# XMM0: ----- ----- ----- xBGR1	\n\
+	pshufd $0x39, %%xmm0, %%xmm0	# XMM0: xBGR1 ----- ----- -----	\n\
+	movl -18("ESI","EBX"), %%eax					\n\
+	movd %%eax, %%xmm2						\n\
+	por %%xmm2, %%xmm0		# XMM0: xBGR1 ----- ----- xBGR2	\n\
+	pshufd $0x39, %%xmm0, %%xmm0	# XMM0: xBGR2 xBGR1 ----- -----	\n\
+	movl -15("ESI","EBX"), %%eax					\n\
+	movd %%eax, %%xmm2						\n\
+	por %%xmm2, %%xmm0		# XMM0: xBGR2 xBGR1 ----- xBGR3	\n\
+	pshufd $0x39, %%xmm0, %%xmm0	# XMM0: xBGR3 xBGR2 xBGR1 -----	\n\
+	movl -24("ESI","EBX"), %%eax					\n\
+	movd %%eax, %%xmm2						\n\
+	por %%xmm2, %%xmm0		# XMM0: xBGR3 xBGR2 xBGR1 xBGR0	\n\
+	movl -9("ESI","EBX"), %%eax					\n\
+	movd %%eax, %%xmm1		# XMM1: ----- ----- ----- xBGR5	\n\
+	pshufd $0x39, %%xmm1, %%xmm1	# XMM1: xBGR5 ----- ----- -----	\n\
+	movl -6("ESI","EBX"), %%eax					\n\
+	movd %%eax, %%xmm2						\n\
+	por %%xmm2, %%xmm1		# XMM1: xBGR5 ----- ----- xBGR6	\n\
+	pshufd $0x39, %%xmm1, %%xmm1	# XMM1: xBGR6 xBGR5 ----- -----	\n\
+	movl -3("ESI","EBX"), %%eax					\n\
+	movd %%eax, %%xmm2						\n\
+	por %%xmm2, %%xmm1		# XMM1: xBGR6 xBGR5 ----- xBGR7	\n\
+	pshufd $0x39, %%xmm1, %%xmm1	# XMM1: xBGR7 xBGR6 xBGR5 -----	\n\
+	movl -12("ESI","EBX"), %%eax					\n\
+	movd %%eax, %%xmm2						\n\
+	por %%xmm2, %%xmm1		# XMM1: xBGR7 xBGR6 xBGR5 xBGR4	\n"\
+	SSE2_MASSAGE_RGBA32(ZERO)
+
+#define SSE2_LOAD_BGR24(ZERO) \
+	"movl -21("ESI","EBX"), %%eax					\n\
+	movd %%eax, %%xmm0		# XMM0: ----- ----- ----- xRGB1	\n\
+	pshufd $0x39, %%xmm0, %%xmm0	# XMM0: xRGB1 ----- ----- -----	\n\
+	movl -18("ESI","EBX"), %%eax					\n\
+	movd %%eax, %%xmm2						\n\
+	por %%xmm2, %%xmm0		# XMM0: xRGB1 ----- ----- xRGB2	\n\
+	pshufd $0x39, %%xmm0, %%xmm0	# XMM0: xRGB2 xRGB1 ----- -----	\n\
+	movl -15("ESI","EBX"), %%eax					\n\
+	movd %%eax, %%xmm2						\n\
+	por %%xmm2, %%xmm0		# XMM0: xRGB2 xRGB1 ----- xRGB3	\n\
+	pshufd $0x39, %%xmm0, %%xmm0	# XMM0: xRGB3 xRGB2 xRGB1 -----	\n\
+	movl -24("ESI","EBX"), %%eax					\n\
+	movd %%eax, %%xmm2						\n\
+	por %%xmm2, %%xmm0		# XMM0: xRGB3 xRGB2 xRGB1 xRGB0	\n\
+	movl -9("ESI","EBX"), %%eax					\n\
+	movd %%eax, %%xmm1		# XMM1: ----- ----- ----- xRGB5	\n\
+	pshufd $0x39, %%xmm1, %%xmm1	# XMM1: xRGB5 ----- ----- -----	\n\
+	movl -6("ESI","EBX"), %%eax					\n\
+	movd %%eax, %%xmm2						\n\
+	por %%xmm2, %%xmm1		# XMM1: xRGB5 ----- ----- xRGB6	\n\
+	pshufd $0x39, %%xmm1, %%xmm1	# XMM1: xRGB6 xRGB5 ----- -----	\n\
+	movl -3("ESI","EBX"), %%eax					\n\
+	movd %%eax, %%xmm2						\n\
+	por %%xmm2, %%xmm1		# XMM1: xRGB6 xRGB5 ----- xRGB7	\n\
+	pshufd $0x39, %%xmm1, %%xmm1	# XMM1: xRGB7 xRGB6 xRGB5 -----	\n\
+	movl -12("ESI","EBX"), %%eax					\n\
+	movd %%eax, %%xmm2						\n\
+	por %%xmm2, %%xmm1		# XMM1: xRGB7 xRGB6 xRGB5 xRGB4	\n"\
+	SSE2_MASSAGE_BGRA32(ZERO)
+
+#define SSE2_LOAD_RGBA32(ZERO) "\
+	movdqu -32("ESI","ECX",4),%%xmm0 #XMM0: ABGR3 ABGR2 ABGR1 ABGR0	\n\
+	movdqu -16("ESI","ECX",4),%%xmm1 #XMM1: ABGR7 ABGR6 ABGR5 ABGR4	\n"\
+	SSE2_MASSAGE_RGBA32(ZERO)
+#define SSE2_MASSAGE_RGBA32(ZERO) "\
+	movdqa %%xmm0, %%xmm2		# XMM2: ABGR3 ABGR2 ABGR1 ABGR0	\n\
+	punpcklbw %%xmm1, %%xmm0	# X0.l: A4 A0 B4 B0 G4 G0 R4 R0	\n\
+	punpckhbw %%xmm1, %%xmm2	# X2.l: A6 A2 B6 B2 G6 G2 R6 R2	\n\
+	movdqa %%xmm0, %%xmm1		# X1.l: A4 A0 B4 B0 G4 G0 R4 R0	\n\
+	punpcklbw %%xmm2, %%xmm0	# X0.l: G6 G4 G2 G0 R6 R4 R2 R0	\n\
+	punpckhbw %%xmm2, %%xmm1	# X1.l: G7 G5 G3 G1 R7 R5 R3 R1	\n\
+	movdqa %%xmm0, %%xmm2		# X2.l: G6 G4 G2 G0 R6 R4 R2 R0	\n\
+	punpcklbw %%xmm1, %%xmm0	# XMM0: G7.......G0 R7.......R0	\n\
+	punpckhbw %%xmm1, %%xmm2	# XMM2: A7.......A0 B7.......B0	\n\
+	movdqa %%xmm0, %%xmm1		# XMM1: G7.......G0 R7.......R0	\n\
+	punpcklbw %%xmm4, %%xmm0	# XMM0: R7 R6 R5 R4 R3 R2 R1 R0	\n\
+	punpckhbw %%xmm4, %%xmm1	# XMM1: G7 G6 G5 G4 G3 G2 G1 G0	\n\
+	punpcklbw %%xmm4, %%xmm2	# XMM2: B7 B6 B5 B4 B3 B2 B1 B0	\n"
+
+#define SSE2_LOAD_BGRA32(ZERO) "\
+	movdqu -32("ESI","ECX",4),%%xmm0 #XMM0: ARGB3 ARGB2 ARGB1 ARGB0	\n\
+	movdqu -16("ESI","ECX",4),%%xmm1 #XMM1: ARGB7 ARGB6 ARGB5 ARGB4	\n"\
+	SSE2_MASSAGE_BGRA32(ZERO)
+#define SSE2_MASSAGE_BGRA32(ZERO) "\
+	movdqa %%xmm0, %%xmm2		# XMM2: ARGB3 ARGB2 ARGB1 ARGB0	\n\
+	punpcklbw %%xmm1, %%xmm2	# X2.l: A4 A0 R4 R0 G4 G0 B4 B0	\n\
+	punpckhbw %%xmm1, %%xmm0	# X0.l: A6 A2 R6 R2 G6 G2 B6 B2	\n\
+	movdqa %%xmm2, %%xmm1		# X1.l: A4 A0 R4 R0 G4 G0 B4 B0	\n\
+	punpcklbw %%xmm0, %%xmm2	# X2.l: G6 G4 G2 G0 B6 B4 B2 B0	\n\
+	punpckhbw %%xmm0, %%xmm1	# X1.l: G7 G5 G3 G1 B7 B5 B3 B1	\n\
+	movdqa %%xmm2, %%xmm0		# X0.l: G6 G4 G2 G0 B6 B4 B2 B0	\n\
+	punpcklbw %%xmm1, %%xmm2	# XMM2: G7.......G0 B7.......B0	\n\
+	punpckhbw %%xmm1, %%xmm0	# XMM0: A7.......A0 R7.......R0	\n\
+	movdqa %%xmm2, %%xmm1		# XMM1: G7.......G0 B7.......B0	\n\
+	punpcklbw %%xmm4, %%xmm0	# XMM0: R7 R6 R5 R4 R3 R2 R1 R0	\n\
+	punpckhbw %%xmm4, %%xmm1	# XMM1: G7 G6 G5 G4 G3 G2 G1 G0	\n\
+	punpcklbw %%xmm4, %%xmm2	# XMM2: B7 B6 B5 B4 B3 B2 B1 B0	\n"
+
+#define SSE2_LOAD_ARGB32(ZERO) "\
+	movdqu -32("ESI","ECX",4),%%xmm0 #XMM0: BGRA3 BGRA2 BGRA1 BGRA0	\n\
+	movdqu -16("ESI","ECX",4),%%xmm1 #XMM1: BGRA7 BGRA6 BGRA5 BGRA4	\n"\
+	SSE2_MASSAGE_ARGB32(ZERO)
+#define SSE2_MASSAGE_ARGB32(ZERO) "\
+	movdqa %%xmm0, %%xmm2		# XMM2: BGRA3 BGRA2 BGRA1 BGRA0	\n\
+	punpcklbw %%xmm1, %%xmm0	# X0.l: B4 B0 G4 G0 R4 R0 A4 A0	\n\
+	punpckhbw %%xmm1, %%xmm2	# X2.l: B6 B2 G6 G2 R6 R2 A6 A2	\n\
+	movdqa %%xmm0, %%xmm1		# X1.l: B4 B0 G4 G0 R4 R0 A4 A0	\n\
+	punpcklbw %%xmm2, %%xmm0	# X0.l: R6 R4 R2 R0 A6 A4 A2 A0	\n\
+	punpckhbw %%xmm2, %%xmm1	# X1.l: R7 R5 R3 R1 A7 A5 A3 A1	\n\
+	movdqa %%xmm0, %%xmm2		# X2.l: R6 R4 R2 R0 A6 A4 A2 A0	\n\
+	punpcklbw %%xmm1, %%xmm0	# XMM0: R7.......G0 A7.......A0	\n\
+	punpckhbw %%xmm1, %%xmm2	# XMM2: B7.......G0 G7.......G0	\n\
+	movdqa %%xmm2, %%xmm1		# XMM1: B7.......B0 G7.......G0	\n\
+	punpckhbw %%xmm4, %%xmm0	# XMM0: R7 R6 R5 R4 R3 R2 R1 R0	\n\
+	punpcklbw %%xmm4, %%xmm1	# XMM1: G7 G6 G5 G4 G3 G2 G1 G0	\n\
+	punpckhbw %%xmm4, %%xmm2	# XMM2: B7 B6 B5 B4 B3 B2 B1 B0	\n"
+
+#define SSE2_LOAD_ABGR32(ZERO) "\
+	movdqu -32("ESI","ECX",4),%%xmm0 #XMM0: RGBA3 RGBA2 RGBA1 RGBA0	\n\
+	movdqu -16("ESI","ECX",4),%%xmm1 #XMM1: RGBA7 RGBA6 RGBA5 RGBA4	\n"\
+	SSE2_MASSAGE_ABGR32(ZERO)
+#define SSE2_MASSAGE_ABGR32(ZERO) "\
+	movdqa %%xmm0, %%xmm2		# XMM2: RGBA3 RGBA2 RGBA1 RGBA0	\n\
+	punpcklbw %%xmm1, %%xmm2	# X2.l: R4 R0 G4 G0 B4 B0 A4 A0	\n\
+	punpckhbw %%xmm1, %%xmm0	# X0.l: R6 R2 G6 G2 B6 B2 A6 A2	\n\
+	movdqa %%xmm2, %%xmm1		# X1.l: R4 R0 G4 G0 B4 B0 A4 A0	\n\
+	punpcklbw %%xmm0, %%xmm2	# X2.l: B6 B4 B2 B0 A6 A4 A2 A0	\n\
+	punpckhbw %%xmm0, %%xmm1	# X1.l: B7 B5 B3 B1 A7 A5 A3 A1	\n\
+	movdqa %%xmm2, %%xmm0		# X0.l: B6 B4 B2 B0 A6 A4 A2 A0	\n\
+	punpcklbw %%xmm1, %%xmm2	# XMM2: B7.......B0 A7.......A0	\n\
+	punpckhbw %%xmm1, %%xmm0	# XMM0: R7.......R0 G7.......G0	\n\
+	movdqa %%xmm0, %%xmm1		# XMM1: R7.......R0 G7.......G0	\n\
+	punpckhbw %%xmm4, %%xmm0	# XMM0: R7 R6 R5 R4 R3 R2 R1 R0	\n\
+	punpcklbw %%xmm4, %%xmm1	# XMM1: G7 G6 G5 G4 G3 G2 G1 G0	\n\
+	punpckhbw %%xmm4, %%xmm2	# XMM2: B7 B6 B5 B4 B3 B2 B1 B0	\n"
 
 /*************************************************************************/
 
