@@ -161,10 +161,12 @@ static void average_sse2(const uint8_t *src1, const uint8_t *src2,
 	    pavgb %%xmm6, %%xmm2					\n\
 	    movdqu 48("EDX","EAX"), %%xmm7				\n\
 	    pavgb %%xmm7, %%xmm3					\n\
-	    movntdq %%xmm0, ("EDI","EAX")				\n\
-	    movntdq %%xmm1, 16("EDI","EAX")				\n\
-	    movntdq %%xmm2, 32("EDI","EAX")				\n\
-	    movntdq %%xmm3, 48("EDI","EAX")				\n\
+	    # Note that movntdq requires 16-byte alignment, which we're	\n\
+	    # not guaranteed						\n\
+	    movdqu %%xmm0, ("EDI","EAX")				\n\
+	    movdqu %%xmm1, 16("EDI","EAX")				\n\
+	    movdqu %%xmm2, 32("EDI","EAX")				\n\
+	    movdqu %%xmm3, 48("EDI","EAX")				\n\
 	    subl $64, %%eax						\n\
 	    testl $~0x3F, %%eax						\n\
 	    jnz	0b							\n\
@@ -174,12 +176,11 @@ static void average_sse2(const uint8_t *src1, const uint8_t *src2,
 	    movq ("ESI","EAX"), %%mm0					\n\
 	    movq ("EDX","EAX"), %%mm1					\n\
 	    pavgb %%mm1, %%mm0						\n\
-	    movntq %%mm0, ("EDI","EAX")					\n\
+	    movq %%mm0, ("EDI","EAX")					\n\
 	    subl $8, %%eax						\n\
 	    jnz 1b							\n\
 	    2:								\n\
-	    emms							\n\
-	    sfence"
+	    emms"
 	    : /* no outputs */
 	    : "S" (src1), "d" (src2), "D" (dest), "a" ((bytes & ~7) - 8));
     }

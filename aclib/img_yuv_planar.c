@@ -334,7 +334,7 @@ static int y8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 	pavgw %%xmm1, %%xmm0		# XMM0:  w v u t s r q p (avgs)	\n\
 	packuswb %%xmm0, %%xmm0		# XMM0: wvutsrqpwvutsrqp	\n\
 	movq %%xmm0, -8("EDI","ECX")",					\
-	/* emms */ "emms; sfence")					\
+	/* emms */ "emms")						\
 	: /* no outputs */						\
 	: "S" (src), "D" (dest), "c" (count)				\
 	: "eax")
@@ -373,7 +373,7 @@ static int y8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 	packuswb %%xmm0, %%xmm0		# XMM0:  s r q p s r q p	\n\
 	packuswb %%xmm0, %%xmm0		# XMM0: srqpsrqpsrqpsrqp	\n\
 	movd %%xmm0, -4("EDI","ECX")",					\
-	/* emms */ "emms; sfence")					\
+	/* emms */ "emms")						\
 	: /* no outputs */						\
 	: "S" (src), "D" (dest), "c" (count)				\
 	: "eax")
@@ -391,8 +391,8 @@ static int y8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 	/* main_loop */							\
 	"movq -8("ESI","ECX"), %%xmm0	# XMM0:         76543210	\n\
 	punpcklbw %%xmm0, %%xmm0	# XMM0: 7766554433221100	\n\
-	movntdq %%xmm0, -16("EDI","ECX",2)",				\
-	/* emms */ "emms; sfence")					\
+	movdqu %%xmm0, -16("EDI","ECX",2)",				\
+	/* emms */ "emms")						\
 	: /* no outputs */						\
 	: "S" (src), "D" (dest), "c" (count)				\
 	: "eax")
@@ -414,8 +414,8 @@ static int y8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 	"movd -4("ESI","ECX"), %%xmm0	# XMM0:             3210	\n\
 	punpcklbw %%xmm0, %%xmm0	# XMM0:         33221100	\n\
 	punpcklwd %%xmm0, %%xmm0	# XMM0: 3333222211110000	\n\
-	movntdq %%xmm0, -16("EDI","ECX",4)",				\
-	/* emms */ "emms; sfence")					\
+	movdqu %%xmm0, -16("EDI","ECX",4)",				\
+	/* emms */ "emms")						\
 	: /* no outputs */						\
 	: "S" (src), "D" (dest), "c" (count)				\
 	: "eax", "edx")
@@ -438,8 +438,8 @@ static int y8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 	movq -8("EDX","ECX"), %%xmm1					\n\
 	pavgb %%xmm1, %%xmm0						\n\
 	punpcklbw %%xmm0, %%xmm0					\n\
-	movntdq %%xmm0, -16("EDI","ECX",2)",				\
-	/* emms */ "emms; sfence")					\
+	movdqu %%xmm0, -16("EDI","ECX",2)",				\
+	/* emms */ "emms")						\
 	: /* no outputs */						\
 	: "S" (src1), "d" (src2), "D" (dest), "c" (count)		\
 	: "eax")
@@ -460,8 +460,8 @@ static int y8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 	"movdqu -16("ESI","ECX"), %%xmm0				\n\
 	movdqu -16("EDX","ECX"), %%xmm1					\n\
 	pavgb %%xmm1, %%xmm0						\n\
-	movntdq %%xmm0, -16("EDI","ECX")",				\
-	/* emms */ "emms; sfence")					\
+	movdqu %%xmm0, -16("EDI","ECX")",				\
+	/* emms */ "emms")						\
 	: /* no outputs */						\
 	: "S" (src1), "d" (src2), "D" (dest), "c" (count)		\
 	: "eax")
@@ -493,7 +493,7 @@ static int y8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 	pavgw %%xmm2, %%xmm0						\n\
 	packuswb %%xmm0, %%xmm0						\n\
 	movq %%xmm0, -8("EDI","ECX")",					\
-	/* emms */ "emms; sfence")					\
+	/* emms */ "emms")						\
 	: /* no outputs */						\
 	: "S" (src1), "d" (src2), "D" (dest), "c" (count))
 

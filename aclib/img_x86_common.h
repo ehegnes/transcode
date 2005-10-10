@@ -235,30 +235,42 @@ static const struct { uint32_t n[64]; } __attribute__((aligned(16))) mask_data =
  * macros. */
 
 #define ASM_SIMD_MMX(name,size) \
-    name((size), 64,					\
-         "movq", "movq", "movq", "",			\
-         "%%mm0", "%%mm1", "%%mm2", "%%mm3",		\
+    name((size), 64,				\
+         "movq", "movq", "movq", "",		\
+         "%%mm0", "%%mm1", "%%mm2", "%%mm3",	\
          "%%mm4", "%%mm5", "%%mm6", "%%mm7")
 #define ASM_SIMD_SSE2(name,size) \
-    name((size), 128,					\
-         "movdqu", "movdqa", "movntdq", "sfence",	\
-         "%%xmm0", "%%xmm1", "%%xmm2", "%%xmm3",	\
+    name((size), 128,				\
+         "movdqu", "movdqa", "movdqu", "",	\
+         "%%xmm0", "%%xmm1", "%%xmm2", "%%xmm3",\
+         "%%xmm4", "%%xmm5", "%%xmm6", "%%xmm7")
+#define ASM_SIMD_SSE2_ALIGNED(name,size) \
+    name((size), 128,				\
+         "movdqa", "movdqa", "movntdq", "sfence",\
+         "%%xmm0", "%%xmm1", "%%xmm2", "%%xmm3",\
          "%%xmm4", "%%xmm5", "%%xmm6", "%%xmm7")
 
 #define ASM_SWAP16_2_MMX(size)    ASM_SIMD_MMX(ASM_SWAP16_2_SIMD,(size))
 #define ASM_SWAP16_2_SSE2(size)   ASM_SIMD_SSE2(ASM_SWAP16_2_SIMD,(size))
+#define ASM_SWAP16_2_SSE2A(size)  ASM_SIMD_SSE2_ALIGNED(ASM_SWAP16_2_SIMD,(size))
 #define ASM_SWAP32_MMX(size)      ASM_SIMD_MMX(ASM_SWAP32_SIMD,(size))
 #define ASM_SWAP32_SSE2(size)     ASM_SIMD_SSE2(ASM_SWAP32_SIMD,(size))
+#define ASM_SWAP32_SSE2A(size)    ASM_SIMD_SSE2_ALIGNED(ASM_SWAP32_SIMD,(size))
 #define ASM_SWAP32_02_MMX(size)   ASM_SIMD_MMX(ASM_SWAP32_02_SIMD,(size))
 #define ASM_SWAP32_02_SSE2(size)  ASM_SIMD_SSE2(ASM_SWAP32_02_SIMD,(size))
+#define ASM_SWAP32_02_SSE2A(size) ASM_SIMD_SSE2_ALIGNED(ASM_SWAP32_02_SIMD,(size))
 #define ASM_SWAP32_13_MMX(size)   ASM_SIMD_MMX(ASM_SWAP32_13_SIMD,(size))
 #define ASM_SWAP32_13_SSE2(size)  ASM_SIMD_SSE2(ASM_SWAP32_13_SIMD,(size))
+#define ASM_SWAP32_13_SSE2A(size) ASM_SIMD_SSE2_ALIGNED(ASM_SWAP32_13_SIMD,(size))
 #define ASM_REV32_MMX(size)       ASM_SIMD_MMX(ASM_REV32_SIMD,(size))
 #define ASM_REV32_SSE2(size)      ASM_SIMD_SSE2(ASM_REV32_SIMD,(size))
+#define ASM_REV32_SSE2A(size)     ASM_SIMD_SSE2_ALIGNED(ASM_REV32_SIMD,(size))
 #define ASM_ROL32_MMX(size)       ASM_SIMD_MMX(ASM_ROL32_SIMD,(size))
 #define ASM_ROL32_SSE2(size)      ASM_SIMD_SSE2(ASM_ROL32_SIMD,(size))
+#define ASM_ROL32_SSE2A(size)     ASM_SIMD_SSE2_ALIGNED(ASM_ROL32_SIMD,(size))
 #define ASM_ROR32_MMX(size)       ASM_SIMD_MMX(ASM_ROR32_SIMD,(size))
 #define ASM_ROR32_SSE2(size)      ASM_SIMD_SSE2(ASM_ROR32_SIMD,(size))
+#define ASM_ROR32_SSE2A(size)     ASM_SIMD_SSE2_ALIGNED(ASM_ROR32_SIMD,(size))
 
 /*************************************************************************/
 

@@ -196,11 +196,10 @@ static void rescale_sse2(const uint8_t *src1, const uint8_t *src2,
 	    paddw %%xmm2, %%xmm0					\n\
 	    paddw %%xmm3, %%xmm1					\n\
 	    packuswb %%xmm1, %%xmm0					\n\
-	    movntdq %%xmm0, ("EDI","EAX")				\n\
+	    movdqu %%xmm0, ("EDI","EAX")				\n\
 	    subl $16, %%eax						\n\
 	    jnz	0b							\n\
-	    emms							\n\
-	    sfence"
+	    emms"
 	    : /* no outputs */
 	    : "S" (src1), "d" (src2), "D" (dest), "a" ((bytes & ~15) - 16));
     }

@@ -272,9 +272,9 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	movdqa %%xmm0, %%xmm1		# XMM1: YF YE YD ..... Y2 Y1 Y0	\n\
 	punpcklbw %%xmm2, %%xmm0	# XMM0: V3 Y7 U3 ..... Y1 U0 Y0	\n\
 	punpckhbw %%xmm2, %%xmm1	# XMM1: V7 YF U7 ..... Y9 U4 Y8	\n\
-	movntdq %%xmm0, -32("EDI","ECX",4)				\n\
-	movntdq %%xmm1, -16("EDI","ECX",4)",				\
-	/* emms */ "emms; sfence")
+	movdqu %%xmm0, -32("EDI","ECX",4)				\n\
+	movdqu %%xmm1, -16("EDI","ECX",4)",				\
+	/* emms */ "emms")
 
 /* YUV411P -> YUY2 */
 #define YUV411P_YUY2 \
@@ -305,9 +305,9 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	movdqa %%xmm0, %%xmm1		# XMM1: YF YE YD ..... Y2 Y1 Y0	\n\
 	punpcklbw %%xmm2, %%xmm0	# XMM0: V1 Y7 U1 ..... Y1 U0 Y0	\n\
 	punpckhbw %%xmm2, %%xmm1	# XMM1: V3 YF U3 ..... Y9 U2 Y8	\n\
-	movntdq %%xmm0, -32("EDI","ECX",8)				\n\
-	movntdq %%xmm1, -16("EDI","ECX",8)",				\
-	/* emms */ "emms; sfence")
+	movdqu %%xmm0, -32("EDI","ECX",8)				\n\
+	movdqu %%xmm1, -16("EDI","ECX",8)",				\
+	/* emms */ "emms")
 
 /* YUV444P -> YUY2 */
 #define YUV444P_YUY2 \
@@ -349,9 +349,9 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	movdqa %%xmm0, %%xmm1		# XMM1: YF YE YD ..... Y2 Y1 Y0	\n\
 	punpcklbw %%xmm2, %%xmm0	# XMM0: v3 Y7 u3 ..... Y1 u0 Y0	\n\
 	punpckhbw %%xmm2, %%xmm1	# XMM1: v7 YF u7 ..... Y9 u4 Y8	\n\
-	movntdq %%xmm0, -32("EDI","ECX",4)				\n\
-	movntdq %%xmm1, -16("EDI","ECX",4)",				\
-	/* emms */ "emms; sfence")
+	movdqu %%xmm0, -32("EDI","ECX",4)				\n\
+	movdqu %%xmm1, -16("EDI","ECX",4)",				\
+	/* emms */ "emms")
 
 /* YUY2 -> YUV420P (U row) */
 #define YUY2_YUV420P_U \
@@ -385,7 +385,7 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	packuswb %%xmm1, %%xmm1		# XMM1:             u3 u2 u1 u0	\n\
 	movq %%xmm0, -8("EDI","ECX",2)					\n\
 	movd %%xmm1, -4("EDX","ECX")",					\
-	/* emms */ "emms; sfence")
+	/* emms */ "emms")
 
 /* YUY2 -> YUV420P (V row) */
 #define YUY2_YUV420P_V \
@@ -419,7 +419,7 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	packuswb %%xmm2, %%xmm2		# XMM2:             v3 v2 v1 v0	\n\
 	movq %%xmm0, -8("EDI","ECX",2)					\n\
 	movd %%xmm2, -4("EDX","ECX")",					\
-	/* emms */ "emms; sfence")
+	/* emms */ "emms")
 
 /* YUY2 -> YUV411P */
 #define YUY2_YUV411P \
@@ -474,7 +474,7 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	movw %%bx, -2("EAX","ECX")					\n\
 	shrl $16, %%ebx;						\n\
 	movw %%bx, -2("EDX","ECX")",					\
-	/* emms */ "emms; sfence")
+	/* emms */ "emms")
 
 /* YUY2 -> YUV422P */
 #define YUY2_YUV422P \
@@ -508,7 +508,7 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	movq %%xmm0, -8("EDI","ECX",2)					\n\
 	movd %%xmm1, -4("EAX","ECX")					\n\
 	movd %%xmm2, -4("EDX","ECX")",					\
-	/* emms */ "emms; sfence")
+	/* emms */ "emms")
 
 /* YUY2 -> YUV444P */
 #define YUY2_YUV444P \
@@ -548,7 +548,7 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	movq %%xmm0, -8("EDI","ECX",2)					\n\
 	movq %%xmm1, -8("EAX","ECX",2)					\n\
 	movq %%xmm2, -8("EDX","ECX",2)",				\
-	/* emms */ "emms; sfence")
+	/* emms */ "emms")
 
 
 /* Y8 -> YUY2/YVYU */
@@ -567,10 +567,10 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	"movdqu -16("ESI","ECX"),%%xmm0	# XMM0: YF YE YD ..... Y2 Y1 Y0	\n\
 	movdqa %%xmm0, %%xmm1		# XMM1: YF YE YD ..... Y2 Y1 Y0	\n\
 	punpcklbw %%xmm7, %%xmm0	# XMM0: 80 Y7 80 ..... Y1 80 Y0	\n\
-	movntdq %%xmm0, -32("EDI","ECX",2)				\n\
+	movdqu %%xmm0, -32("EDI","ECX",2)				\n\
 	punpckhbw %%xmm7, %%xmm1	# XMM1: 80 YF 80 ..... Y9 80 Y8	\n\
-	movntdq %%xmm1, -16("EDI","ECX",2)",				\
-	/* emms */ "emms; sfence")
+	movdqu %%xmm1, -16("EDI","ECX",2)",				\
+	/* emms */ "emms")
 
 /* Y8 -> UYVY */
 #define Y8_UYVY \
@@ -588,11 +588,11 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	"movdqu -16("ESI","ECX"),%%xmm0	# XMM0: YF YE YD ..... Y2 Y1 Y0	\n\
 	movdqa %%xmm7, %%xmm1		# XMM1: 80 80 80 ..... 80 80 80	\n\
 	punpcklbw %%xmm0, %%xmm1	# XMM1: Y7 80 Y6 ..... 80 Y0 80	\n\
-	movntdq %%xmm1, -32("EDI","ECX",2)				\n\
+	movdqu %%xmm1, -32("EDI","ECX",2)				\n\
 	movdqa %%xmm7, %%xmm2		# XMM2: 80 80 80 ..... 80 80 80	\n\
 	punpckhbw %%xmm0, %%xmm2	# XMM0: YF 80 YE ..... 80 Y8 80	\n\
-	movntdq %%xmm2, -16("EDI","ECX",2)",				\
-	/* emms */ "emms; sfence")
+	movdqu %%xmm2, -16("EDI","ECX",2)",				\
+	/* emms */ "emms")
 
 /* YUY2/YVYU -> Y8 */
 #define YUY2_Y8 \
@@ -610,7 +610,7 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	pand %%xmm7, %%xmm0		# XMM0: -- Y7 -- ..... Y1 -- Y0	\n\
 	packuswb %%xmm0, %%xmm0		# XMM0: Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0	\n\
 	movq %%xmm0, -8("EDI","ECX")",					\
-	/* emms */ "emms; sfence")
+	/* emms */ "emms")
 
 /* UYVY -> Y8 */
 #define UYVY_Y8 \
@@ -626,7 +626,7 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	psrlw $8, %%xmm0		# XMM0: -- Y7 -- ..... Y1 -- Y0	\n\
 	packuswb %%xmm0, %%xmm0		# XMM0: Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0	\n\
 	movq %%xmm0, -8("EDI","ECX")",					\
-	/* emms */ "emms; sfence")
+	/* emms */ "emms")
 
 /*************************************************************************/
 

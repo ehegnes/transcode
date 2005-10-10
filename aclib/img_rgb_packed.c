@@ -458,8 +458,8 @@ static const struct { uint32_t n[4]; } __attribute__((aligned(16))) rgb_bgr_data
 	pand %%xmm4, %%xmm0		# XMM0: pixel 3			\n\
 	por %%xmm1, %%xmm0		# XMM0: RGBA32 data		\n\
 	"SHIFT"				# shift bytes to target position\n\
-	movntdq %%xmm0, -16("EDI","ECX",4)",				\
-	/* emms */ "emms; sfence")					\
+	movdqu %%xmm0, -16("EDI","ECX",4)",				\
+	/* emms */ "emms")						\
 	: /* no outputs */						\
 	: "S" (src[0]), "D" (dest[0]), "c" (width*height),		\
 	  "d" (&rgb_bgr_data), "m" (rgb_bgr_data)			\
@@ -501,11 +501,11 @@ static const struct { uint32_t n[4]; } __attribute__((aligned(16))) rgb_bgr_data
 	por %%xmm2, %%xmm1		# XMM1: pixels 1, 2, and 3	\n\
 	psrldq $1, %%xmm1						\n\
 	por %%xmm1, %%xmm0		# XMM0: RGB24 data		\n\
-	# We can't just movntdq, because we might run over the edge	\n\
+	# We can't just movdqu, because we might run over the edge	\n\
 	movd %%xmm0, -12("EDI","EDX")	# store low 4 bytes		\n\
 	pshufd $0xF9, %%xmm0, %%xmm0	# shift right 4 bytes		\n\
 	movq %%xmm0, -8("EDI","EDX")	# store high 8 bytes		\n",\
-	/* emms */ "emms; sfence")					\
+	/* emms */ "emms")						\
 	: /* no outputs */						\
 	: "S" (src[0]), "D" (dest[0]), "c" (width*height),		\
 	  "d" (&rgb_bgr_data), "m" (rgb_bgr_data)			\
@@ -585,7 +585,7 @@ static int rgb24_bgr24_sse2(uint8_t **src, uint8_t **dest, int width, int height
 	movd %%xmm3, -12("EDI","EDX")	# avoid running over the edge	\n\
 	pshufd $0xF9, %%xmm3, %%xmm3	# shift right by 4 bytes	\n\
 	movq %%xmm3, -8("EDI","EDX")",
-	/* emms */ "emms; sfence")
+	/* emms */ "emms")
 	: /* no outputs */
 	: "S" (src[0]), "D" (dest[0]), "c" (width*height),
 	  "d" (&rgb_bgr_data), "m" (rgb_bgr_data)
