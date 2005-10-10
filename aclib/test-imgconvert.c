@@ -68,17 +68,18 @@ static void clear_signals(void)
  *   -8: SIGILL
  */
 int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt,
-	   int accel, int verbose)
+	   int width, int height, int accel, int verbose)
 {
-    static __attribute__((aligned(16))) uint8_t srcbuf[WIDTH*HEIGHT*4], destbuf[WIDTH*HEIGHT*4], cmpbuf[WIDTH*HEIGHT*4];
+    static __attribute__((aligned(16))) uint8_t srcbuf[WIDTH*HEIGHT*4],
+	destbuf[WIDTH*HEIGHT*4], cmpbuf[WIDTH*HEIGHT*4];
     uint8_t *src[3], *dest[3];
     long long tdiff;
     unsigned long long start, stop;
     struct rusage ru;
     int i, icnt;
 
-    memset(destbuf, 0, sizeof(destbuf));
     memset(cmpbuf, 0, sizeof(cmpbuf));
+    memset(destbuf, 0, sizeof(destbuf));
 
     sigsave = 0;
     set_signals();
@@ -93,11 +94,11 @@ int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt,
     ac_memcpy(srcbuf, srcimage, sizeof(srcbuf));
     src[0] = srcbuf;
     if (IS_YUV_FORMAT(srcfmt))
-	YUV_INIT_PLANES(src, srcbuf, srcfmt, WIDTH, HEIGHT);
+	YUV_INIT_PLANES(src, srcbuf, srcfmt, width, height);
     dest[0] = cmpbuf;
     if (IS_YUV_FORMAT(destfmt))
-	YUV_INIT_PLANES(dest, cmpbuf, destfmt, WIDTH, HEIGHT);
-    if (!ac_imgconvert(src, srcfmt, dest, destfmt, WIDTH, HEIGHT))
+	YUV_INIT_PLANES(dest, cmpbuf, destfmt, width, height);
+    if (!ac_imgconvert(src, srcfmt, dest, destfmt, width, height))
 	return -4;
 
     ac_memcpy_init(accel);
@@ -107,8 +108,8 @@ int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt,
     ac_memcpy(srcbuf, srcimage, sizeof(srcbuf));
     dest[0] = destbuf;
     if (IS_YUV_FORMAT(destfmt))
-	YUV_INIT_PLANES(dest, destbuf, destfmt, WIDTH, HEIGHT);
-    if (!ac_imgconvert(src, srcfmt, dest, destfmt, WIDTH, HEIGHT))
+	YUV_INIT_PLANES(dest, destbuf, destfmt, width, height);
+    if (!ac_imgconvert(src, srcfmt, dest, destfmt, width, height))
 	return -5;
 
     tdiff = 0;
@@ -123,7 +124,7 @@ int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt,
 	}
 	tdiff += diff*diff;
     }
-    if (tdiff >= WIDTH*HEIGHT/2) {
+    if (tdiff >= width*height/2) {
 	if (verbose) {
 	    fprintf(stderr, 
 		    "*** compare error: total difference too great (%lld)\n",
@@ -137,7 +138,7 @@ int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt,
     icnt = 0;
     do {
 	for (i = 0; i < ITERATIONS; i++)
-	    ac_imgconvert(src, srcfmt, dest, destfmt, WIDTH, HEIGHT);
+	    ac_imgconvert(src, srcfmt, dest, destfmt, width, height);
 	getrusage(RUSAGE_SELF, &ru);
 	stop = ru.ru_utime.tv_sec * 1000000ULL + ru.ru_utime.tv_usec;
 	icnt += ITERATIONS;
@@ -171,16 +172,16 @@ struct { ImageFormat fmt; const char *name; int disabled; } fmtlist[] = {
 int main(int argc, char **argv)
 {
     static uint8_t srcbuf[WIDTH*HEIGHT*4];
-    int accel = 0, compare = 0, verbose = 0;
+    int accel = 0, compare = 0, verbose = 0, width = WIDTH, height = HEIGHT;
     int i, j;
 
     while (argc > 1) {
 	if (strcmp(argv[--argc],"-h") == 0) {
-	    fprintf(stderr, "Usage: %s [-c] [-v] [=conv-name[,conv-name...]] [accel-name...]", argv[0]);
+	    fprintf(stderr, "Usage: %s [-c] [-v] [=fmt-name[,fmt-name...]] [@WIDTHxHEIGHT] [accel-name...]\n", argv[0]);
 	    fprintf(stderr, "-c: compare with non-accelerated versions and report percentage speedup\n");
 	    fprintf(stderr, "-v: verbose (report details of comparison failures)\n");
 	    fprintf(stderr, "=: select formats to test");
-	    fprintf(stderr, "   conv-name can be:");
+	    fprintf(stderr, "   fmt-name can be:");
 	    for (i = 0; fmtlist[i].fmt != IMG_NONE; i++) {
 		char buf[16], *s;
 		snprintf(buf, sizeof(buf), "%s", fmtlist[i].name);
@@ -190,6 +191,8 @@ int main(int argc, char **argv)
 		fprintf(stderr," %s", s);
 	    }
 	    fprintf(stderr, "\n");
+	    fprintf(stderr, "@: set image size (default/max %dx%d)\n",
+		    WIDTH, HEIGHT);
 	    fprintf(stderr, "accel-name can be ia32asm, amd64asm, cmove, mmx, ...\n");
 	    return 0;
 	}
@@ -242,6 +245,20 @@ int main(int argc, char **argv)
 		    return 1;
 		}
 	    }
+	} else if (argv[argc][0] == '@') {
+	    if (sscanf(argv[argc]+1, "%dx%d", &width, &height) != 2
+	     || width <= 0 || height <= 0
+	    ) {
+		fprintf(stderr, "Invalid image size `%s'\n", argv[argc]+1);
+		fprintf(stderr, "`%s -h' for help.\n", argv[0]);
+		return 1;
+	    }
+	    if (width > WIDTH || height > HEIGHT) {
+		fprintf(stderr, "Image size too large (max %dx%d)\n",
+			WIDTH, HEIGHT);
+		fprintf(stderr, "`%s -h' for help.\n", argv[0]);
+		return 1;
+	    }
 	} else {
 	    fprintf(stderr, "Unknown accel type `%s'\n", argv[argc]);
 	    fprintf(stderr, "`%s -h' for help.\n", argv[0]);
@@ -267,7 +284,7 @@ int main(int argc, char **argv)
     if (compare)
 	printf("Units: conversions/time (unaccelerated = 100)\n\n");
     else
-	printf("Units: conversions/sec (frame size: %dx%d)\n\n", WIDTH, HEIGHT);
+	printf("Units: conversions/sec (frame size: %dx%d)\n\n", width, height);
     printf("    |");
     for (i = 0; fmtlist[i].fmt != IMG_NONE; i++) {
 	if (!fmtlist[i].disabled)
@@ -288,7 +305,8 @@ int main(int argc, char **argv)
 	for (j = 0; fmtlist[j].fmt != IMG_NONE; j++) {
 	    if (fmtlist[j].disabled)
 		continue;
-	    int res = testit(srcbuf, fmtlist[i].fmt, fmtlist[j].fmt, accel, verbose);
+	    int res = testit(srcbuf, fmtlist[i].fmt, fmtlist[j].fmt,
+			     width, height, accel, verbose);
 	    switch (res) {
 	        case -1:
 	        case -2:
@@ -301,7 +319,7 @@ int main(int argc, char **argv)
 	        default:
 		    if (compare) {
 			int res0 = testit(srcbuf, fmtlist[i].fmt,
-					  fmtlist[j].fmt, 0, 0);
+					  fmtlist[j].fmt, width, height, 0, 0);
 			if (res0 < 0)
 			    printf("****|");
 			else
