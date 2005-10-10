@@ -4,13 +4,17 @@ gcc -O3 -g "$0" -DARCH_X86
 exit $?
 */
 
-/* Time all ac_imgconvert() implementations. */
+/*
+ * test-imgconvert.c - test/time image conversion routines
+ * Written by Andrew Church <achurch@achurch.org>
+ */
 
-#define WIDTH		768
-#define HEIGHT		512
+#define WIDTH		768	/* Maximum/default width */
+#define HEIGHT		512	/* Maximum/default height */
 #define ITERATIONS	50	/* Minimum # of iterations */
-#define MINTIME		100	/* Minmum msec to iterate */
+#define MINTIME		100	/* Minimum msec to iterate */
 
+/*************************************************************************/
 
 #define _GNU_SOURCE
 
@@ -31,13 +35,40 @@ exit $?
 #include "img_yuv_rgb.c"
 #include "memcpy.c"  /* used by some conversion functions */
 
-
 #ifndef LINUX
 typedef void (*sighandler_t)(int);
 #endif
 static sighandler_t old_SIGSEGV, old_SIGILL;
 static int sigsave;
 static sigjmp_buf env;
+
+/* Order of formats to test, with name strings */
+static struct {
+    ImageFormat fmt;
+    const char *name;
+    int width_unit, height_unit;  /* minimum meaningful unit in X and Y */
+    int disabled;
+} fmtlist[] = {
+    { IMG_YUV420P, "420P", 2, 2 },
+    { IMG_YV12,    "YV12", 2, 2, 1 },  /* disabled by default */
+    { IMG_YUV411P, "411P", 4, 1 },
+    { IMG_YUV422P, "422P", 2, 1 },
+    { IMG_YUV444P, "444P", 1, 1 },
+    { IMG_YUY2,    "YUY2", 2, 1 },
+    { IMG_UYVY,    "UYVY", 2, 1 },
+    { IMG_YVYU,    "YVYU", 2, 1 },
+    { IMG_Y8,      " Y8 ", 1, 1 },
+    { IMG_RGB24,   "RGB ", 1, 1 },
+    { IMG_BGR24,   "BGR ", 1, 1 },
+    { IMG_RGBA32,  "RGBA", 1, 1 },
+    { IMG_ABGR32,  "ABGR", 1, 1 },
+    { IMG_ARGB32,  "ARGB", 1, 1 },
+    { IMG_BGRA32,  "BGRA", 1, 1 },
+    { IMG_GRAY8,   "GRAY", 1, 1 },
+    { IMG_NONE,    NULL }
+};
+
+/*************************************************************************/
 
 static void sighandler(int sig)
 {
@@ -66,9 +97,10 @@ static void clear_signals(void)
  *   -6: compare failed
  *   -7: SIGSEGV
  *   -8: SIGILL
+ * If `check' is nonzero, just checks for accuracy and returns error or 0.
  */
-int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt,
-	   int width, int height, int accel, int verbose)
+static int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt,
+		  int width, int height, int accel, int verbose, int check)
 {
     static __attribute__((aligned(16))) uint8_t srcbuf[WIDTH*HEIGHT*4],
 	destbuf[WIDTH*HEIGHT*4], cmpbuf[WIDTH*HEIGHT*4];
@@ -133,6 +165,9 @@ int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt,
 	return -6;
     }
 
+    if (check)
+	return 0;
+
     getrusage(RUSAGE_SELF, &ru);
     start = ru.ru_utime.tv_sec * 1000000ULL + ru.ru_utime.tv_usec;
     icnt = 0;
@@ -148,36 +183,60 @@ int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt,
     return (stop-start + icnt/2) / icnt;
 }
 
-/* Order of formats to test, with name strings */
-struct { ImageFormat fmt; const char *name; int disabled; } fmtlist[] = {
-    { IMG_YUV420P, "420P" },
-    { IMG_YV12,    "YV12", 1 },  /* disabled by default */
-    { IMG_YUV411P, "411P" },
-    { IMG_YUV422P, "422P" },
-    { IMG_YUV444P, "444P" },
-    { IMG_YUY2,    "YUY2" },
-    { IMG_UYVY,    "UYVY" },
-    { IMG_YVYU,    "YVYU" },
-    { IMG_Y8,      " Y8 " },
-    { IMG_RGB24,   "RGB " },
-    { IMG_BGR24,   "BGR " },
-    { IMG_RGBA32,  "RGBA" },
-    { IMG_ABGR32,  "ABGR" },
-    { IMG_ARGB32,  "ARGB" },
-    { IMG_BGRA32,  "BGRA" },
-    { IMG_GRAY8,   "GRAY" },
-    { IMG_NONE,    NULL }
-};
+/*************************************************************************/
+
+/* Check all routines, and return 0 (no failures) or 1 (some failures) */
+
+#define TRYIT(w,h) \
+	    if (testit(srcimage, fmtlist[i].fmt, fmtlist[j].fmt,	\
+		       (w), (h), accel, 1, 1) < -5			\
+	    ) {								\
+		printf("FAIL: %s -> %s @ %dx%d\n",			\
+		       fmtlist[i].name, fmtlist[j].name, (w), (h));	\
+		failures++;						\
+	    }
+
+static int checkall(uint8_t *srcimage, int accel)
+{
+    int i, j;
+    int failures = 0;
+
+    for (i = 0; fmtlist[i].fmt != IMG_NONE; i++) {
+	for (j = 0; fmtlist[j].fmt != IMG_NONE; j++) {
+	    int width_unit  = fmtlist[i].width_unit;
+	    int height_unit = fmtlist[i].height_unit;
+	    if (fmtlist[j].width_unit  > width_unit)
+		width_unit  = fmtlist[j].width_unit;
+	    if (fmtlist[j].height_unit > height_unit)
+		height_unit = fmtlist[j].height_unit;
+	    TRYIT(WIDTH,            HEIGHT);
+	    TRYIT(WIDTH-width_unit, HEIGHT);
+	    TRYIT(WIDTH,            HEIGHT-height_unit);
+	    TRYIT(WIDTH-width_unit, HEIGHT-height_unit);
+	}
+    }
+    if (failures) {
+	printf("%d conversions failed.\n", failures);
+	return 1;
+    } else {
+	printf("All conversions succeeded.\n");
+	return 0;
+    }
+}
+
+/*************************************************************************/
 
 int main(int argc, char **argv)
 {
     static uint8_t srcbuf[WIDTH*HEIGHT*4];
-    int accel = 0, compare = 0, verbose = 0, width = WIDTH, height = HEIGHT;
+    int check = 0, accel = 0, compare = 0, verbose = 0, width = WIDTH,
+	height = HEIGHT;
     int i, j;
 
     while (argc > 1) {
 	if (strcmp(argv[--argc],"-h") == 0) {
-	    fprintf(stderr, "Usage: %s [-c] [-v] [=fmt-name[,fmt-name...]] [@WIDTHxHEIGHT] [accel-name...]\n", argv[0]);
+	    fprintf(stderr, "Usage: %s [-C] [-c] [-v] [=fmt-name[,fmt-name...]] [@WIDTHxHEIGHT] [accel-name...]\n", argv[0]);
+	    fprintf(stderr, "-C: check all testable accelerated routines and exit with success/failure\n");
 	    fprintf(stderr, "-c: compare with non-accelerated versions and report percentage speedup\n");
 	    fprintf(stderr, "-v: verbose (report details of comparison failures)\n");
 	    fprintf(stderr, "=: select formats to test");
@@ -196,7 +255,9 @@ int main(int argc, char **argv)
 	    fprintf(stderr, "accel-name can be ia32asm, amd64asm, cmove, mmx, ...\n");
 	    return 0;
 	}
-	if (strcmp(argv[argc],"-c") == 0)
+	if (strcmp(argv[argc],"-C") == 0)
+	    check = 1;
+	else if (strcmp(argv[argc],"-c") == 0)
 	    compare = 1;
 	else if (strcmp(argv[argc],"-v") == 0)
 	    verbose = 1;
@@ -270,6 +331,9 @@ int main(int argc, char **argv)
     for (i = 0; i < sizeof(srcbuf); i++)
 	srcbuf[i] = random();
 
+    if (check)
+	return checkall(srcbuf, accel);
+
     printf("Acceleration flags:%s%s%s%s%s%s%s%s%s%s\n",
 	   !accel                ? " none"     : "",
 	   (accel & AC_IA32ASM ) ? " ia32asm"  : "",
@@ -306,7 +370,7 @@ int main(int argc, char **argv)
 	    if (fmtlist[j].disabled)
 		continue;
 	    int res = testit(srcbuf, fmtlist[i].fmt, fmtlist[j].fmt,
-			     width, height, accel, verbose);
+			     width, height, accel, verbose, 0);
 	    switch (res) {
 	        case -1:
 	        case -2:
@@ -319,7 +383,8 @@ int main(int argc, char **argv)
 	        default:
 		    if (compare) {
 			int res0 = testit(srcbuf, fmtlist[i].fmt,
-					  fmtlist[j].fmt, width, height, 0, 0);
+					  fmtlist[j].fmt, width, height,
+					  0, 0, 0);
 			if (res0 < 0)
 			    printf("****|");
 			else
@@ -336,3 +401,5 @@ int main(int argc, char **argv)
 
     return 0;
 }
+
+/*************************************************************************/
