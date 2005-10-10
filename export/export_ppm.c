@@ -163,7 +163,6 @@ MOD_encode
   
   FILE *fd;
   char *out_buffer = param->buffer;
-  char *convbuff;
   int n, out_size = param->size;
   
   if ((++int_counter-1) % interval != 0)
@@ -182,7 +181,8 @@ MOD_encode
     }
 
     if(codec==CODEC_YUV422) {
-      ac_imgconvert(planes, IMG_UYVY, &tmp_buffer, IMG_RGB24, width, height);
+      ac_imgconvert(&param->buffer, IMG_UYVY, &tmp_buffer, IMG_RGB24,
+		    width, height);
       out_buffer = tmp_buffer;
       out_size = height * 3 *width;
     }
