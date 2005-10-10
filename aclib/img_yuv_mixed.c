@@ -251,18 +251,18 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 /* Common macros/data for x86 code */
 #include "img_x86_common.h"
 
-/* YUV420P (1 row) or YUV422P -> YUY2 */
+/* YUV420P (1 row) or YUV422P -> YUY2 (unit: 2 pixels) */
 #define YUV42XP_YUY2 \
     SIMD_LOOP_WRAPPER(							\
 	/* blocksize */ 8,						\
 	/* push_regs */ "push "EBX,					\
 	/* pop_regs  */ "pop "EBX,					\
 	/* small_loop */						\
-	"movb -1("EDX","ECX"), %%bl					\n\
-	movb -1("ESI","ECX",2), %%bh					\n\
+	"movb -1("EDX","ECX"), %%bh					\n\
+	movb -1("ESI","ECX",2), %%bl					\n\
 	shll $16, %%ebx							\n\
-	movb -1("EAX","ECX"), %%bl					\n\
-	movb -2("ESI","ECX",2), %%bh					\n\
+	movb -1("EAX","ECX"), %%bh					\n\
+	movb -2("ESI","ECX",2), %%bl					\n\
 	movl %%ebx, -4("EDI","ECX",4)",					\
 	/* main_loop */							\
 	"movdqu -16("ESI","ECX",2),%%xmm0 #XM0: YF YE YD ..... Y2 Y1 Y0	\n\
@@ -276,24 +276,24 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	movdqu %%xmm1, -16("EDI","ECX",4)",				\
 	/* emms */ "emms")
 
-/* YUV411P -> YUY2 */
+/* YUV411P -> YUY2 (unit: 4 pixels) */
 #define YUV411P_YUY2 \
     SIMD_LOOP_WRAPPER(							\
 	/* blocksize */ 4,						\
 	/* push_regs */ "push "EBX,					\
 	/* pop_regs  */ "pop "EBX,					\
 	/* small_loop */						\
-	"movb -1("EDX","ECX"), %%bl					\n\
-	movb -1("ESI","ECX",4), %%bh					\n\
+	"movb -1("EDX","ECX"), %%bh					\n\
+	movb -1("ESI","ECX",4), %%bl					\n\
 	shll $16, %%ebx							\n\
-	movb -1("EAX","ECX"), %%bl					\n\
-	movb -2("ESI","ECX",4), %%bh					\n\
+	movb -1("EAX","ECX"), %%bh					\n\
+	movb -2("ESI","ECX",4), %%bl					\n\
 	movl %%ebx, -4("EDI","ECX",8)					\n\
-	movb -1("EDX","ECX"), %%bl					\n\
-	movb -3("ESI","ECX",4), %%bh					\n\
+	movb -1("EDX","ECX"), %%bh					\n\
+	movb -3("ESI","ECX",4), %%bl					\n\
 	shll $16, %%ebx							\n\
-	movb -1("EAX","ECX"), %%bl					\n\
-	movb -4("ESI","ECX",4), %%bh					\n\
+	movb -1("EAX","ECX"), %%bh					\n\
+	movb -4("ESI","ECX",4), %%bl					\n\
 	movl %%ebx, -8("EDI","ECX",8)",					\
 	/* main_loop */							\
 	"movdqu -16("ESI","ECX",4),%%xmm0 #XM0: YF YE YD ..... Y2 Y1 Y0	\n\
@@ -309,7 +309,7 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	movdqu %%xmm1, -16("EDI","ECX",8)",				\
 	/* emms */ "emms")
 
-/* YUV444P -> YUY2 */
+/* YUV444P -> YUY2 (unit: 2 pixels) */
 #define YUV444P_YUY2 \
     /* Load 0x00FF*8 into XMM7 for masking */				\
     "pcmpeqd %%xmm7, %%xmm7; psrlw $8, %%xmm7;"				\
@@ -353,7 +353,7 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	movdqu %%xmm1, -16("EDI","ECX",4)",				\
 	/* emms */ "emms")
 
-/* YUY2 -> YUV420P (U row) */
+/* YUY2 -> YUV420P (U row) (unit: 2 pixels) */
 #define YUY2_YUV420P_U \
     /* Load 0x00FF*8 into XMM7 for masking */				\
     "pcmpeqd %%xmm7, %%xmm7; psrlw $8, %%xmm7;"				\
@@ -387,7 +387,7 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	movd %%xmm1, -4("EDX","ECX")",					\
 	/* emms */ "emms")
 
-/* YUY2 -> YUV420P (V row) */
+/* YUY2 -> YUV420P (V row) (unit: 2 pixels) */
 #define YUY2_YUV420P_V \
     /* Load 0x00FF*8 into XMM7 for masking */				\
     "pcmpeqd %%xmm7, %%xmm7; psrlw $8, %%xmm7;"				\
@@ -421,7 +421,7 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	movd %%xmm2, -4("EDX","ECX")",					\
 	/* emms */ "emms")
 
-/* YUY2 -> YUV411P */
+/* YUY2 -> YUV411P (unit: 4 pixels) */
 #define YUY2_YUV411P \
     /* Load 0x000..000FFFFFFFF into XMM6, 0x00FF*8 into XMM7 for masking */ \
     "pcmpeqd %%xmm6, %%xmm6; psrldq $12, %%xmm6;"			\
@@ -476,7 +476,7 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	movw %%bx, -2("EDX","ECX")",					\
 	/* emms */ "emms")
 
-/* YUY2 -> YUV422P */
+/* YUY2 -> YUV422P (unit: 2 pixels) */
 #define YUY2_YUV422P \
     /* Load 0x00FF*8 into XMM7 for masking */				\
     "pcmpeqd %%xmm7, %%xmm7; psrlw $8, %%xmm7;"				\
@@ -510,7 +510,7 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	movd %%xmm2, -4("EDX","ECX")",					\
 	/* emms */ "emms")
 
-/* YUY2 -> YUV444P */
+/* YUY2 -> YUV444P (unit: 2 pixels) */
 #define YUY2_YUV444P \
     /* Load 0x00FF*8 into XMM7 for masking */				\
     "pcmpeqd %%xmm7, %%xmm7; psrlw $8, %%xmm7;"				\
@@ -551,7 +551,7 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	/* emms */ "emms")
 
 
-/* Y8 -> YUY2/YVYU */
+/* Y8 -> YUY2/YVYU (unit: 1 pixel) */
 #define Y8_YUY2 \
     /* Load 0x80*16 into XMM7 for interlacing U/V */			\
     "pcmpeqd %%xmm7, %%xmm7; psllw $7, %%xmm7; packsswb %%xmm7, %%xmm7;"\
@@ -572,7 +572,7 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	movdqu %%xmm1, -16("EDI","ECX",2)",				\
 	/* emms */ "emms")
 
-/* Y8 -> UYVY */
+/* Y8 -> UYVY (unit: 1 pixel) */
 #define Y8_UYVY \
     /* Load 0x80*16 into XMM7 for interlacing U/V */			\
     "pcmpeqd %%xmm7, %%xmm7; psllw $7, %%xmm7; packsswb %%xmm7, %%xmm7;"\
@@ -594,7 +594,7 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	movdqu %%xmm2, -16("EDI","ECX",2)",				\
 	/* emms */ "emms")
 
-/* YUY2/YVYU -> Y8 */
+/* YUY2/YVYU -> Y8 (unit: 1 pixel) */
 #define YUY2_Y8 \
     /* Load 0x00FF*8 into XMM7 for masking */				\
     "pcmpeqd %%xmm7, %%xmm7; psrlw $8, %%xmm7;"				\
@@ -612,7 +612,7 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 	movq %%xmm0, -8("EDI","ECX")",					\
 	/* emms */ "emms")
 
-/* UYVY -> Y8 */
+/* UYVY -> Y8 (unit: 1 pixel) */
 #define UYVY_Y8 \
     SIMD_LOOP_WRAPPER(							\
 	/* blocksize */ 8,						\

@@ -313,7 +313,7 @@ static int y8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 /* Common macros/data for x86 code */
 #include "img_x86_common.h"
 
-/* Average 2 bytes horizontally (e.g. 422P->411P) */
+/* Average 2 bytes horizontally (e.g. 422P->411P) (unit: 2 source bytes) */
 #define AVG_2H(src,dest,count) \
     asm("pcmpeqd %%xmm7, %%xmm7; psrlw $8, %%xmm7;" /* XMM7: 0x00FF*8 */ \
 	SIMD_LOOP_WRAPPER(						\
@@ -337,9 +337,9 @@ static int y8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 	/* emms */ "emms")						\
 	: /* no outputs */						\
 	: "S" (src), "D" (dest), "c" (count)				\
-	: "eax")
+	: "eax", "edx")
 
-/* Average 4 bytes horizontally (e.g. 444P->411P) */
+/* Average 4 bytes horizontally (e.g. 444P->411P) (unit: 4 source bytes) */
 #define AVG_4H(src,dest,count) \
     asm("pcmpeqd %%xmm7, %%xmm7; psrld $24, %%xmm7;" /* XMM7: 0x000000FF*4 */ \
 	SIMD_LOOP_WRAPPER(						\
@@ -376,9 +376,9 @@ static int y8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 	/* emms */ "emms")						\
 	: /* no outputs */						\
 	: "S" (src), "D" (dest), "c" (count)				\
-	: "eax")
+	: "eax", "edx")
 
-/* Repeat 2 bytes horizontally (e.g. 422P->444P) */
+/* Repeat 2 bytes horizontally (e.g. 422P->444P) (unit: 1 source byte) */
 #define REP_2H(src,dest,count) \
     asm(SIMD_LOOP_WRAPPER(						\
 	/* blocksize */ 8,						\
@@ -397,7 +397,7 @@ static int y8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 	: "S" (src), "D" (dest), "c" (count)				\
 	: "eax")
 
-/* Repeat 4 bytes horizontally (e.g. 411P->444P) */
+/* Repeat 4 bytes horizontally (e.g. 411P->444P) (unit: 1 source byte) */
 #define REP_4H(src,dest,count) \
     asm(SIMD_LOOP_WRAPPER(						\
 	/* blocksize */ 4,						\
@@ -420,7 +420,8 @@ static int y8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 	: "S" (src), "D" (dest), "c" (count)				\
 	: "eax", "edx")
 
-/* Average 2 bytes vertically and double horizontally (411P->420P) */
+/* Average 2 bytes vertically and double horizontally (411P->420P)
+ * (unit: 1 source byte) */
 #define AVG_411_420(src1,src2,dest,count) \
     asm(SIMD_LOOP_WRAPPER(						\
 	/* blocksize */ 8,						\
@@ -444,14 +445,14 @@ static int y8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 	: "S" (src1), "d" (src2), "D" (dest), "c" (count)		\
 	: "eax")
 
-/* Average 2 bytes vertically (422P->420P) */
+/* Average 2 bytes vertically (422P->420P) (unit: 1 source byte) */
 #define AVG_422_420(src1,src2,dest,count) \
     asm(SIMD_LOOP_WRAPPER(						\
 	/* blocksize */ 16,						\
 	/* push_regs */ "push "EBX,					\
 	/* pop_regs  */ "pop "EBX,					\
 	/* small_loop */						\
-	"movzbl -2("ESI","ECX"), %%eax					\n\
+	"movzbl -1("ESI","ECX"), %%eax					\n\
 	movzbl -1("EDX","ECX"), %%ebx					\n\
 	addl %%ebx, %%eax						\n\
 	shrl $1, %%eax							\n\
@@ -466,7 +467,8 @@ static int y8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 	: "S" (src1), "d" (src2), "D" (dest), "c" (count)		\
 	: "eax")
 
-/* Average 4 bytes, 2 horizontally and 2 vertically (444P->420P) */
+/* Average 4 bytes, 2 horizontally and 2 vertically (444P->420P)
+ * (unit: 2 source bytes) */
 #define AVG_444_420(src1,src2,dest,count) \
     asm("pcmpeqd %%xmm7, %%xmm7; psrlw $8, %%xmm7;" /* XMM7: 0x00FF*8 */ \
 	SIMD_LOOP_WRAPPER(						\
@@ -474,10 +476,14 @@ static int y8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 	/* push_regs */ "push "EBX,					\
 	/* pop_regs  */ "pop "EBX,					\
 	/* small_loop */						\
-	"movzbl -2("ESI","ECX"), %%eax					\n\
-	movzbl -1("EDX","ECX"), %%ebx					\n\
+	"movzbl -2("ESI","ECX",2), %%eax				\n\
+	movzbl -1("ESI","ECX",2), %%ebx					\n\
 	addl %%ebx, %%eax						\n\
-	shrl $1, %%eax							\n\
+	movzbl -2("EDX","ECX",2), %%ebx					\n\
+	addl %%ebx, %%eax						\n\
+	movzbl -1("EDX","ECX",2), %%ebx					\n\
+	addl %%ebx, %%eax						\n\
+	shrl $2, %%eax							\n\
 	movb %%al, -1("EDI","ECX")",					\
 	/* main_loop */							\
 	"movdqu -16("ESI","ECX",2), %%xmm0				\n\

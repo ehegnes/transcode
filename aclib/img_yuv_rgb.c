@@ -760,9 +760,9 @@ static int rgb24_yuv411p_sse2(uint8_t **src, uint8_t **dest,
 	    int b = src[0][(y*width+x)*3+2];
 	    RGB2Y();
 	    if (!(x & 3))
-		RGB2U(y*(width/2)+x/2);
+		RGB2U(y*(width/4)+x/4);
 	    if (!((x^2) & 3))  /* take Cb/Cr from pixels 2 points apart */
-		RGB2V(y*(width/2)+x/2);
+		RGB2V(y*(width/4)+x/4);
 	    x++;
 	}
     }
