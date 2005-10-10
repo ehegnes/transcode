@@ -21,9 +21,10 @@ libac_la_SOURCES = \
 
 EXTRA_DIST = \
 	ac.h \
-	cputest.h \
+	ac_internal.h \
 	imgconvert.h \
-	img_internal.h
+	img_internal.h \
+	img_x86_common.h \
 	mmx.h \
 	rgb-yuv-conv.pl \
 	test-imgconvert.c \
