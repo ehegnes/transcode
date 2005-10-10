@@ -182,20 +182,9 @@ MOD_encode
     }
 
     if(codec==CODEC_YUV422) {
-#warning ******************* FIXME ********************* 2-step conversion
-      /* convert the buffer from YUV422 packed to YUV422 planar */
-      uint8_t *planes[3];
-      convbuff = malloc(width*height*2);
-      YUV_INIT_PLANES(planes, convbuff, IMG_YUV422P, width, height);
-      ac_imgconvert(&param->buffer, IMG_YUY2, planes, IMG_YUV422P,
-		    width, height);
-      /* now we have the planar version, we can convert it to RGB as needed
-       * by the PPM code */
-      ac_imgconvert(planes, IMG_YUV422P, &tmp_buffer, IMG_RGB24,
-		    width, height);
+      ac_imgconvert(planes, IMG_UYVY, &tmp_buffer, IMG_RGB24, width, height);
       out_buffer = tmp_buffer;
       out_size = height * 3 *width;
-      free(convbuff);		/* release the memory used during convert */
     }
     
     if(strncmp(type, "P5", 2)==0) {   

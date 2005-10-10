@@ -1,4 +1,8 @@
 2005-10-10 Andrew Church <achurch at achurch dot org>
+  * aclib/img_yuv_rgb.c export/export_ppm.c
+  Add a direct conversion from YUV packed to RGB packed, and use it in
+  export_ppm (and use the proper pixel format while we're at it).
+
   * aclib/average.c aclib/img_rgb_packed.c aclib/img_x86_common.h
     aclib/img_yuv_mixed.c aclib/img_yuv_planar.c aclib/img_yuv_rgb.c
     aclib/rescale.c

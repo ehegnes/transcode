@@ -58,12 +58,31 @@ static void yuv_create_tables(void) {
     dest[0][(y*width+x)*3+1] = Ylut[Y+gUlut[U]+gVlut[V]];	\
     dest[0][(y*width+x)*3+2] = Ylut[Y+bUlut[U]];		\
 } while (0)
+# define YUV2RGB_PACKED(yofs,uofs,vofs) do {			\
+    int Y = src[0][(y*width+x)*2+yofs] * TABLE_SCALE;		\
+    int U = src[0][(y*width+(x&~1))*2+uofs];			\
+    int V = src[0][(y*width+(x&~1))*2+vofs];			\
+    dest[0][(y*width+x)*3  ] = Ylut[Y+rVlut[V]];		\
+    dest[0][(y*width+x)*3+1] = Ylut[Y+gUlut[U]+gVlut[V]];	\
+    dest[0][(y*width+x)*3+2] = Ylut[Y+bUlut[U]];		\
+} while (0)
 #else  /* !USE_LOOKUP_TABLES */
 # define yuv_create_tables() /*nothing*/
 # define YUV2RGB(uvofs) do {					\
     int Y = cY * (src[0][y*width+x] - 16);			\
     int U = src[1][(uvofs)] - 128;				\
     int V = src[2][(uvofs)] - 128;				\
+    int r = (Y + crV*V + 32768) >> 16;				\
+    int g = (Y + cgU*U + cgV*V + 32768) >> 16;			\
+    int b = (Y + cbU*U + 32768) >> 16;				\
+    dest[0][(y*width+x)*3  ] = r<0 ? 0 : r>255 ? 255 : r;	\
+    dest[0][(y*width+x)*3+1] = g<0 ? 0 : g>255 ? 255 : g;	\
+    dest[0][(y*width+x)*3+2] = b<0 ? 0 : b>255 ? 255 : b;	\
+} while (0)
+# define YUV2RGB_PACKED(yofs,uofs,vofs) do {			\
+    int Y = cY * (src[0][(y*width+x)*2+yofs] - 16);		\
+    int U = src[0][(y*width+(x&~1))*2+uofs] - 128;		\
+    int V = src[0][(y*width+(x&~1))*2+vofs] - 128;		\
     int r = (Y + crV*V + 32768) >> 16;				\
     int g = (Y + cgU*U + cgV*V + 32768) >> 16;			\
     int b = (Y + cbU*U + 32768) >> 16;				\
@@ -125,6 +144,45 @@ static int yuv444p_rgb24(uint8_t **src, uint8_t **dest, int width, int height)
     return 1;
 }
 
+static int yuy2_rgb24(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int x, y;
+
+    yuv_create_tables();
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < width; x++) {
+	    YUV2RGB_PACKED(0,1,3);
+	}
+    }
+    return 1;
+}
+
+static int uyvy_rgb24(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int x, y;
+
+    yuv_create_tables();
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < width; x++) {
+	    YUV2RGB_PACKED(1,0,2);
+	}
+    }
+    return 1;
+}
+
+static int yvyu_rgb24(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int x, y;
+
+    yuv_create_tables();
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < width; x++) {
+	    YUV2RGB_PACKED(0,3,1);
+	}
+    }
+    return 1;
+}
+
 /*************************************************************************/
 
 #define RGB2Y() \
@@ -133,6 +191,12 @@ static int yuv444p_rgb24(uint8_t **src, uint8_t **dest, int width, int height)
     (dest[1][(uvofs)]   = ((-9714*r - 19070*g + 28784*b + 32768) >> 16) + 128)
 #define RGB2V(uvofs) \
     (dest[2][(uvofs)]   = ((28784*r - 24103*g -  4681*b + 32768) >> 16) + 128)
+#define RGB2Y_PACKED(ofs) \
+    (dest[0][(y*width+x)*2+(ofs)] = ((16829*r + 33039*g +  6416*b + 32768) >> 16) + 16)
+#define RGB2U_PACKED(ofs) \
+    (dest[0][(y*width+x)*2+(ofs)] = ((-9714*r - 19070*g + 28784*b + 32768) >> 16) + 128)
+#define RGB2V_PACKED(ofs) \
+    (dest[0][(y*width+x)*2+(ofs)] = ((28784*r - 24103*g -  4681*b + 32768) >> 16) + 128)
 
 static int rgb24_yuv420p(uint8_t **src, uint8_t **dest, int width, int height)
 {
@@ -203,6 +267,63 @@ static int rgb24_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 	    RGB2Y();
 	    RGB2U(y*width+x);
 	    RGB2V(y*width+x);
+	}
+    }
+    return 1;
+}
+
+static int rgb24_yuy2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int x, y;
+
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < width; x++) {
+	    int r = src[0][(y*width+x)*3  ];
+	    int g = src[0][(y*width+x)*3+1];
+	    int b = src[0][(y*width+x)*3+2];
+	    RGB2Y_PACKED(0);
+	    if (!(x & 1))
+		RGB2U_PACKED(1);
+	    if (x & 1)  /* take Cb/Cr from separate pixels */
+		RGB2V_PACKED(1);
+	}
+    }
+    return 1;
+}
+
+static int rgb24_uyvy(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int x, y;
+
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < width; x++) {
+	    int r = src[0][(y*width+x)*3  ];
+	    int g = src[0][(y*width+x)*3+1];
+	    int b = src[0][(y*width+x)*3+2];
+	    RGB2Y_PACKED(1);
+	    if (!(x & 1))
+		RGB2U_PACKED(0);
+	    if (x & 1)  /* take Cb/Cr from separate pixels */
+		RGB2V_PACKED(0);
+	}
+    }
+    return 1;
+}
+
+static int rgb24_yvyu(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int x, y;
+
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < width; x++) {
+	    int r = src[0][(y*width+x)*3  ];
+	    int g = src[0][(y*width+x)*3+1];
+	    int b = src[0][(y*width+x)*3+2];
+	    RGB2Y_PACKED(0);
+	    if (!(x & 1))
+		RGB2V_PACKED(1);
+	    if (x & 1)  /* take Cb/Cr from separate pixels */
+		RGB2U_PACKED(1);
 	}
     }
     return 1;
@@ -624,34 +745,34 @@ static inline void mmx_store_rgb24(uint8_t *dest)
 
 /*************************************************************************/
 
-static inline void sse2_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
-				       uint8_t *srcV);
-static inline void sse2_yuv411p_to_rgb(uint8_t *srcY, uint8_t *srcU,
-				       uint8_t *srcV);
-static inline void sse2_yuv444p_to_rgb(uint8_t *srcY, uint8_t *srcU,
-				       uint8_t *srcV);
+static inline void sse2_load_yuv42Xp(uint8_t *srcY, uint8_t *srcU, uint8_t *srcV);
+static inline void sse2_load_yuv411p(uint8_t *srcY, uint8_t *srcU, uint8_t *srcV);
+static inline void sse2_load_yuv444p(uint8_t *srcY, uint8_t *srcU, uint8_t *srcV);
+static inline void sse2_load_yuy2(uint8_t *src);
+static inline void sse2_load_uyvy(uint8_t *src);
+static inline void sse2_load_yvyu(uint8_t *src);
+static inline void sse2_yuv_to_rgb(void);
 static inline void sse2_store_rgb24(uint8_t *dest);
 static inline void sse2_load_rgb24(uint8_t *src);
 static inline void sse2_rgb_to_yuv420p_yu(uint8_t *destY, uint8_t *destU);
 static inline void sse2_rgb_to_yuv420p_yv(uint8_t *destY, uint8_t *destV);
-static inline void sse2_rgb_to_yuv411p(uint8_t *destY, uint8_t *destU,
-				       uint8_t *destV);
-static inline void sse2_rgb_to_yuv422p(uint8_t *destY, uint8_t *destU,
-				       uint8_t *destV);
-static inline void sse2_rgb_to_yuv444p(uint8_t *destY, uint8_t *destU,
-				       uint8_t *destV);
+static inline void sse2_rgb_to_yuv411p(uint8_t *destY, uint8_t *destU, uint8_t *destV);
+static inline void sse2_rgb_to_yuv422p(uint8_t *destY, uint8_t *destU, uint8_t *destV);
+static inline void sse2_rgb_to_yuv444p(uint8_t *destY, uint8_t *destU, uint8_t *destV);
+static inline void sse2_rgb_to_yuy2(uint8_t *dest);
+static inline void sse2_rgb_to_uyvy(uint8_t *dest);
+static inline void sse2_rgb_to_yvyu(uint8_t *dest);
 
-static int yuv420p_rgb24_sse2(uint8_t **src, uint8_t **dest,
-			      int width, int height)
+static int yuv420p_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
     yuv_create_tables();
     for (y = 0; y < height; y++) {
 	for (x = 0; x < (width & ~15); x += 16) {
-	    sse2_yuv42Xp_to_rgb(src[0]+y*width+x,
-				src[1]+(y/2)*(width/2)+x/2,
-				src[2]+(y/2)*(width/2)+x/2);
+	    sse2_load_yuv42Xp(src[0]+y*width+x, src[1]+(y/2)*(width/2)+x/2,
+			      src[2]+(y/2)*(width/2)+x/2);
+	    sse2_yuv_to_rgb();
 	    sse2_store_rgb24(dest[0]+(y*width+x)*3);
 	}
 	while (x < width) {
@@ -663,17 +784,16 @@ static int yuv420p_rgb24_sse2(uint8_t **src, uint8_t **dest,
     return 1;
 }
 
-static int yuv411p_rgb24_sse2(uint8_t **src, uint8_t **dest,
-			      int width, int height)
+static int yuv411p_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
     yuv_create_tables();
     for (y = 0; y < height; y++) {
 	for (x = 0; x < (width & ~15); x += 16) {
-	    sse2_yuv411p_to_rgb(src[0]+y*width+x,
-				src[1]+y*(width/4)+x/4,
-				src[2]+y*(width/4)+x/4);
+	    sse2_load_yuv411p(src[0]+y*width+x, src[1]+y*(width/4)+x/4,
+			      src[2]+y*(width/4)+x/4);
+	    sse2_yuv_to_rgb();
 	    sse2_store_rgb24(dest[0]+(y*width+x)*3);
 	}
 	while (x < width) {
@@ -685,17 +805,16 @@ static int yuv411p_rgb24_sse2(uint8_t **src, uint8_t **dest,
     return 1;
 }
 
-static int yuv422p_rgb24_sse2(uint8_t **src, uint8_t **dest,
-			      int width, int height)
+static int yuv422p_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
     yuv_create_tables();
     for (y = 0; y < height; y++) {
 	for (x = 0; x < (width & ~15); x += 16) {
-	    sse2_yuv42Xp_to_rgb(src[0]+y*width+x,
-				src[1]+y*(width/2)+x/2,
-				src[2]+y*(width/2)+x/2);
+	    sse2_load_yuv42Xp(src[0]+y*width+x, src[1]+y*(width/2)+x/2,
+			      src[2]+y*(width/2)+x/2);
+	    sse2_yuv_to_rgb();
 	    sse2_store_rgb24(dest[0]+(y*width+x)*3);
 	}
 	while (x < width) {
@@ -707,17 +826,16 @@ static int yuv422p_rgb24_sse2(uint8_t **src, uint8_t **dest,
     return 1;
 }
 
-static int yuv444p_rgb24_sse2(uint8_t **src, uint8_t **dest,
-			      int width, int height)
+static int yuv444p_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
     yuv_create_tables();
     for (y = 0; y < height; y++) {
 	for (x = 0; x < (width & ~15); x += 16) {
-	    sse2_yuv444p_to_rgb(src[0]+y*width+x,
-				src[1]+y*width+x,
-				src[2]+y*width+x);
+	    sse2_load_yuv444p(src[0]+y*width+x, src[1]+y*width+x,
+			      src[2]+y*width+x);
+	    sse2_yuv_to_rgb();
 	    sse2_store_rgb24(dest[0]+(y*width+x)*3);
 	}
 	while (x < width) {
@@ -729,9 +847,68 @@ static int yuv444p_rgb24_sse2(uint8_t **src, uint8_t **dest,
     return 1;
 }
 
+static int yuy2_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int x, y;
 
-static int rgb24_yuv420p_sse2(uint8_t **src, uint8_t **dest,
-			      int width, int height)
+    yuv_create_tables();
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < (width & ~15); x += 16) {
+	    sse2_load_yuy2(src[0]+(y*width+x)*2);
+	    sse2_yuv_to_rgb();
+	    sse2_store_rgb24(dest[0]+(y*width+x)*3);
+	}
+	while (x < width) {
+	    YUV2RGB_PACKED(0,1,3);
+	    x++;
+	}
+    }
+    asm("emms");
+    return 1;
+}
+
+static int uyvy_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int x, y;
+
+    yuv_create_tables();
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < (width & ~15); x += 16) {
+	    sse2_load_uyvy(src[0]+(y*width+x)*2);
+	    sse2_yuv_to_rgb();
+	    sse2_store_rgb24(dest[0]+(y*width+x)*3);
+	}
+	while (x < width) {
+	    YUV2RGB_PACKED(1,0,2);
+	    x++;
+	}
+    }
+    asm("emms");
+    return 1;
+}
+
+static int yvyu_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int x, y;
+
+    yuv_create_tables();
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < (width & ~15); x += 16) {
+	    sse2_load_yvyu(src[0]+(y*width+x)*2);
+	    sse2_yuv_to_rgb();
+	    sse2_store_rgb24(dest[0]+(y*width+x)*3);
+	}
+	while (x < width) {
+	    YUV2RGB_PACKED(0,3,1);
+	    x++;
+	}
+    }
+    asm("emms");
+    return 1;
+}
+
+
+static int rgb24_yuv420p_sse2(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
@@ -761,8 +938,7 @@ static int rgb24_yuv420p_sse2(uint8_t **src, uint8_t **dest,
     return 1;
 }
 
-static int rgb24_yuv411p_sse2(uint8_t **src, uint8_t **dest,
-			      int width, int height)
+static int rgb24_yuv411p_sse2(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
@@ -789,8 +965,7 @@ static int rgb24_yuv411p_sse2(uint8_t **src, uint8_t **dest,
     return 1;
 }
 
-static int rgb24_yuv422p_sse2(uint8_t **src, uint8_t **dest,
-			      int width, int height)
+static int rgb24_yuv422p_sse2(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
@@ -817,8 +992,7 @@ static int rgb24_yuv422p_sse2(uint8_t **src, uint8_t **dest,
     return 1;
 }
 
-static int rgb24_yuv444p_sse2(uint8_t **src, uint8_t **dest,
-			      int width, int height)
+static int rgb24_yuv444p_sse2(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int x, y;
 
@@ -843,9 +1017,83 @@ static int rgb24_yuv444p_sse2(uint8_t **src, uint8_t **dest,
     return 1;
 }
 
+static int rgb24_yuy2_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int x, y;
 
-static inline void sse2_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
-				       uint8_t *srcV)
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < (width & ~7); x += 8) {
+	    sse2_load_rgb24(src[0]+(y*width+x)*3);
+	    sse2_rgb_to_yuy2(dest[0]+(y*width+x)*2);
+	}
+	while (x < width) {
+	    int r = src[0][(y*width+x)*3  ];
+	    int g = src[0][(y*width+x)*3+1];
+	    int b = src[0][(y*width+x)*3+2];
+	    RGB2Y_PACKED(0);
+	    if (!(x & 1))
+		RGB2U_PACKED(1);
+	    if (x & 1)  /* take Cb/Cr from separate pixels */
+		RGB2V_PACKED(1);
+	    x++;
+	}
+    }
+    asm("emms");
+    return 1;
+}
+
+static int rgb24_uyvy_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int x, y;
+
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < (width & ~7); x += 8) {
+	    sse2_load_rgb24(src[0]+(y*width+x)*3);
+	    sse2_rgb_to_uyvy(dest[0]+(y*width+x)*2);
+	}
+	while (x < width) {
+	    int r = src[0][(y*width+x)*3  ];
+	    int g = src[0][(y*width+x)*3+1];
+	    int b = src[0][(y*width+x)*3+2];
+	    RGB2Y_PACKED(1);
+	    if (!(x & 1))
+		RGB2U_PACKED(0);
+	    if (x & 1)  /* take Cb/Cr from separate pixels */
+		RGB2V_PACKED(0);
+	    x++;
+	}
+    }
+    asm("emms");
+    return 1;
+}
+
+static int rgb24_yvyu_sse2(uint8_t **src, uint8_t **dest, int width, int height)
+{
+    int x, y;
+
+    for (y = 0; y < height; y++) {
+	for (x = 0; x < (width & ~7); x += 8) {
+	    sse2_load_rgb24(src[0]+(y*width+x)*3);
+	    sse2_rgb_to_yvyu(dest[0]+(y*width+x)*2);
+	}
+	while (x < width) {
+	    int r = src[0][(y*width+x)*3  ];
+	    int g = src[0][(y*width+x)*3+1];
+	    int b = src[0][(y*width+x)*3+2];
+	    RGB2Y_PACKED(0);
+	    if (!(x & 1))
+		RGB2V_PACKED(1);
+	    if (x & 1)  /* take Cb/Cr from separate pixels */
+		RGB2U_PACKED(1);
+	    x++;
+	}
+    }
+    asm("emms");
+    return 1;
+}
+
+
+static inline void sse2_load_yuv42Xp(uint8_t *srcY, uint8_t *srcU, uint8_t *srcV)
 {
     asm("\
 	# Load data, bias and expand to 16 bits				\n\
@@ -857,7 +1105,136 @@ static inline void sse2_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
 	pand ("ESI"), %%xmm6	# XMM6: YE YC YA Y8 Y6 Y4 Y2 Y0		\n\
 	psrlw $8, %%xmm7	# XMM7: YF YD YB Y9 Y7 Y5 Y3 Y1		\n\
 	punpcklbw %%xmm4,%%xmm2	# XMM2: U7 U6 U5 U4 U3 U2 U1 U0		\n\
-	punpcklbw %%xmm4,%%xmm3	# XMM3: V7 V6 V5 V4 V3 V2 V1 V0		\n\
+	punpcklbw %%xmm4,%%xmm3	# XMM3: V7 V6 V5 V4 V3 V2 V1 V0		\n"
+	: /* no outputs */
+	: "a" (srcY), "c" (srcU), "d" (srcV), "S" (&yuv_data), "m" (yuv_data)
+    );
+}
+
+static inline void sse2_load_yuv411p(uint8_t *srcY, uint8_t *srcU, uint8_t *srcV)
+{
+    asm("\
+	# Load data, bias and expand to 16 bits				\n\
+	pxor %%xmm4, %%xmm4	# XMM4: 00 00 00 00 00 00 00 00		\n\
+	movdqu ("EAX"), %%xmm6	# XMM6: YF...................Y0		\n\
+	movd ("ECX"), %%xmm2	# XMM2:                   U3.U0		\n\
+	punpcklbw %%xmm2,%%xmm2	# XMM2:             U3 U3.U0 U0		\n\
+	movd ("EDX"), %%xmm3	# XMM3:                   V3.V0		\n\
+	punpcklbw %%xmm3,%%xmm3	# XMM2:             V3 V3.V0 V0		\n\
+	movdqa %%xmm6, %%xmm7	# XMM7: YF...................Y0		\n\
+	pand ("ESI"), %%xmm6	# XMM6: YE YC YA Y8 Y6 Y4 Y2 Y0		\n\
+	psrlw $8, %%xmm7	# XMM7: YF YD YB Y9 Y7 Y5 Y3 Y1		\n\
+	punpcklbw %%xmm4,%%xmm2	# XMM2: U3 U3 U2 U2 U1 U1 U0 U0		\n\
+	punpcklbw %%xmm4,%%xmm3	# XMM3: V3 V3 V2 V2 V1 V1 V0 V0		\n"
+	: /* no outputs */
+	: "a" (srcY), "c" (srcU), "d" (srcV), "S" (&yuv_data), "m" (yuv_data)
+    );
+}
+
+static inline void sse2_load_yuv444p(uint8_t *srcY, uint8_t *srcU, uint8_t *srcV)
+{
+    asm("\
+	# Load data, bias and expand to 16 bits				\n\
+	pxor %%xmm4, %%xmm4	# XMM4: 00 00 00 00 00 00 00 00		\n\
+	movdqu ("EAX"), %%xmm6	# XMM6: YF...................Y0		\n\
+	movdqu ("ECX"), %%xmm2	# XMM2: UF...................U0		\n\
+	movdqu ("EDX"), %%xmm0	# XMM0: VF...................V0		\n\
+	movdqa %%xmm6, %%xmm7	# XMM7: YF...................Y0		\n\
+	punpcklbw %%xmm4,%%xmm6	# XMM6: Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0		\n\
+	punpckhbw %%xmm4,%%xmm7	# XMM7: YF YE YD YC YB YA Y9 Y8		\n\
+	movdqa %%xmm2, %%xmm5	# XMM5: UF...................U0		\n\
+	punpcklbw %%xmm4,%%xmm2	# XMM2: U7 U6 U5 U4 U3 U2 U1 U0		\n\
+	punpckhbw %%xmm4,%%xmm5	# XMM5: UF UE UD UC UB UA U9 U8		\n\
+	movdqa %%xmm0, %%xmm3	# XMM3: VF...................V0		\n\
+	punpcklbw %%xmm4,%%xmm0	# XMM0: V7 V6 V5 V4 V3 V2 V1 V0		\n\
+	punpckhbw %%xmm4,%%xmm3	# XMM3: VF VE VD VC VB VA V9 V8		\n"
+	: /* no outputs */
+	: "a" (srcY), "c" (srcU), "d" (srcV), "S" (&yuv_data), "m" (yuv_data)
+    );
+}
+
+static inline void sse2_load_yuy2(uint8_t *src)
+{
+    asm("\
+	# Load data, bias and expand to 16 bits				\n\
+	pxor %%xmm4, %%xmm4	# XMM4: 00 00 00 00 00 00 00 00		\n\
+	movdqu ("EAX"), %%xmm6	# XMM6: V3 Y7.............U0 Y0		\n\
+	movdqu 16("EAX"),%%xmm7	# XMM7: V7 YF.............U4 Y8		\n\
+	movdqa %%xmm6, %%xmm2	# XMM2: V3 Y7.............U0 Y0		\n\
+	psrlw $8, %%xmm2	# XMM2: V3 U3 V2 U2 V1 U1 V0 U0		\n\
+	pand ("ESI"), %%xmm6	# XMM6: Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0		\n\
+	movdqa %%xmm7, %%xmm3	# XMM3: V7 YF.............U4 Y8		\n\
+	psrlw $8, %%xmm3	# XMM3: V7 U7 V6 U6 V5 U5 V4 U4		\n\
+	pand ("ESI"), %%xmm7	# XMM6: YF YE YD YC YB YA Y9 Y8		\n\
+	packuswb %%xmm3, %%xmm2	# XMM2: V7 U7.............V0 U0		\n\
+	movdqa %%xmm2, %%xmm3	# XMM3: V7 U7.............V0 U0		\n\
+	pand ("ESI"), %%xmm2	# XMM2: U7 U6 U5 U4 U3 U2 U1 U0		\n\
+	psrlw $8, %%xmm3	# XMM3: V7 V6 V5 V4 V3 V2 V1 V0		\n\
+	packuswb %%xmm7, %%xmm6	# XMM6: YF...................Y0		\n\
+	movdqa %%xmm6, %%xmm7	# XMM7: YF...................Y0		\n\
+	pand ("ESI"), %%xmm6	# XMM6: YE YC YA Y8 Y6 Y4 Y2 Y0		\n\
+	psrlw $8, %%xmm7	# XMM7: YF YD YB Y9 Y7 Y5 Y3 Y1		\n"
+	: /* no outputs */
+	: "a" (src), "S" (&yuv_data), "m" (yuv_data)
+    );
+}
+
+static inline void sse2_load_uyvy(uint8_t *src)
+{
+    asm("\
+	# Load data, bias and expand to 16 bits				\n\
+	pxor %%xmm4, %%xmm4	# XMM4: 00 00 00 00 00 00 00 00		\n\
+	movdqu ("EAX"), %%xmm6	# XMM6: Y7 V3.............Y0 00		\n\
+	movdqu 16("EAX"),%%xmm7	# XMM7: YF V7.............Y8 U4		\n\
+	movdqa %%xmm6, %%xmm2	# XMM2: Y7 V3.............Y0 U0		\n\
+	pand ("ESI"), %%xmm2	# XMM2: V3 U3 V2 U2 V1 U1 V0 U0		\n\
+	psrlw $8, %%xmm6	# XMM6: Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0		\n\
+	movdqa %%xmm7, %%xmm3	# XMM3: YF V7.............Y8 U4		\n\
+	pand ("ESI"), %%xmm3	# XMM3: V7 U7 V6 U6 V5 U5 V4 U4		\n\
+	psrlw $8, %%xmm7	# XMM6: YF YE YD YC YB YA Y9 Y8		\n\
+	packuswb %%xmm3, %%xmm2	# XMM2: V7 U7.............V0 U0		\n\
+	movdqa %%xmm2, %%xmm3	# XMM3: V7 U7.............V0 U0		\n\
+	pand ("ESI"), %%xmm2	# XMM2: U7 U6 U5 U4 U3 U2 U1 U0		\n\
+	psrlw $8, %%xmm3	# XMM3: V7 V6 V5 V4 V3 V2 V1 V0		\n\
+	packuswb %%xmm7, %%xmm6	# XMM6: YF...................Y0		\n\
+	movdqa %%xmm6, %%xmm7	# XMM7: YF...................Y0		\n\
+	pand ("ESI"), %%xmm6	# XMM6: YE YC YA Y8 Y6 Y4 Y2 Y0		\n\
+	psrlw $8, %%xmm7	# XMM7: YF YD YB Y9 Y7 Y5 Y3 Y1		\n"
+	: /* no outputs */
+	: "a" (src), "S" (&yuv_data), "m" (yuv_data)
+    );
+}
+
+static inline void sse2_load_yvyu(uint8_t *src)
+{
+    asm("\
+	# Load data, bias and expand to 16 bits				\n\
+	pxor %%xmm4, %%xmm4	# XMM4: 00 00 00 00 00 00 00 00		\n\
+	movdqu ("EAX"), %%xmm6	# XMM6: U3 Y7.............V0 Y0		\n\
+	movdqu 16("EAX"),%%xmm7	# XMM7: U7 YF.............V4 Y8		\n\
+	movdqa %%xmm6, %%xmm2	# XMM2: U3 Y7.............V0 Y0		\n\
+	psrlw $8, %%xmm2	# XMM2: U3 V3 U2 V2 U1 V1 U0 V0		\n\
+	pand ("ESI"), %%xmm6	# XMM6: Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0		\n\
+	movdqa %%xmm7, %%xmm3	# XMM3: U7 YF.............V4 Y8		\n\
+	psrlw $8, %%xmm3	# XMM3: U7 V7 U6 V6 U5 V5 U4 V4		\n\
+	pand ("ESI"), %%xmm7	# XMM6: YF YE YD YC YB YA Y9 Y8		\n\
+	packuswb %%xmm3, %%xmm2	# XMM2: U7 V7.............U0 V0		\n\
+	movdqa %%xmm2, %%xmm3	# XMM3: U7 V7.............U0 V0		\n\
+	psrlw $8, %%xmm2	# XMM2: U7 U6 U5 U4 U3 U2 U1 U0		\n\
+	pand ("ESI"), %%xmm3	# XMM3: V7 V6 V5 V4 V3 V2 V1 V0		\n\
+	packuswb %%xmm7, %%xmm6	# XMM6: YF...................Y0		\n\
+	movdqa %%xmm6, %%xmm7	# XMM7: YF...................Y0		\n\
+	pand ("ESI"), %%xmm6	# XMM6: YE YC YA Y8 Y6 Y4 Y2 Y0		\n\
+	psrlw $8, %%xmm7	# XMM7: YF YD YB Y9 Y7 Y5 Y3 Y1		\n"
+	: /* no outputs */
+	: "a" (src), "S" (&yuv_data), "m" (yuv_data)
+    );
+}
+
+/* Standard YUV->RGB (Yodd=XMM7 Yeven=XMM6 U=XMM2 V=XMM3) */
+static inline void sse2_yuv_to_rgb(void)
+{
+    asm("\
 	psubw 16("ESI"), %%xmm6	# XMM6: subtract 16			\n\
 	psllw $7, %%xmm6	# XMM6: convert to fixed point 8.7	\n\
 	psubw 16("ESI"), %%xmm7	# XMM7: subtract 16			\n\
@@ -903,99 +1280,16 @@ static inline void sse2_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
 	packuswb %%xmm5, %%xmm5	# XMM5: BF.......B1 BF.......B1		\n\
 	punpcklbw %%xmm3,%%xmm0	# XMM0: RF...................R0		\n\
 	punpcklbw %%xmm4,%%xmm1	# XMM1: GF...................G0		\n\
-	punpcklbw %%xmm5,%%xmm2	# XMM2: BF...................B0		\n\
-	"
+	punpcklbw %%xmm5,%%xmm2	# XMM2: BF...................B0		\n"
 	: /* no outputs */
-	: "a" (srcY), "c" (srcU), "d" (srcV), "S" (&yuv_data), "m" (yuv_data)
+	: "S" (&yuv_data), "m" (yuv_data)
     );
 }
 
-static inline void sse2_yuv411p_to_rgb(uint8_t *srcY, uint8_t *srcU,
-				       uint8_t *srcV)
+/* YUV444 YUV->RGB (Y=XMM7:XMM6 U=XMM5:XMM2 V=XMM3:XMM0) */
+static inline void sse2_yuv444_to_rgb(void)
 {
     asm("\
-	# Load data, bias and expand to 16 bits				\n\
-	pxor %%xmm4, %%xmm4	# XMM4: 00 00 00 00 00 00 00 00		\n\
-	movdqu ("EAX"), %%xmm6	# XMM6: YF...................Y0		\n\
-	movd ("ECX"), %%xmm2	# XMM2:                   U3.U0		\n\
-	punpcklbw %%xmm2,%%xmm2	# XMM2:             U3 U3.U0 U0		\n\
-	movd ("EDX"), %%xmm3	# XMM3:                   V3.V0		\n\
-	punpcklbw %%xmm3,%%xmm3	# XMM2:             V3 V3.V0 V0		\n\
-	movdqa %%xmm6, %%xmm7	# XMM7: YF...................Y0		\n\
-	pand ("ESI"), %%xmm6	# XMM6: YE YC YA Y8 Y6 Y4 Y2 Y0		\n\
-	psrlw $8, %%xmm7	# XMM7: YF YD YB Y9 Y7 Y5 Y3 Y1		\n\
-	punpcklbw %%xmm4,%%xmm2	# XMM2: U3 U3 U2 U2 U1 U1 U0 U0		\n\
-	punpcklbw %%xmm4,%%xmm3	# XMM3: V3 V3 V2 V2 V1 V1 V0 V0		\n\
-	psubw 16("ESI"), %%xmm6	# XMM6: subtract 16			\n\
-	psllw $7, %%xmm6	# XMM6: convert to fixed point 8.7	\n\
-	psubw 16("ESI"), %%xmm7	# XMM7: subtract 16			\n\
-	psllw $7, %%xmm7	# XMM7: convert to fixed point 8.7	\n\
-	psubw 32("ESI"), %%xmm2	# XMM2: subtract 128			\n\
-	psllw $7, %%xmm2	# XMM2: convert to fixed point 8.7	\n\
-	psubw 32("ESI"), %%xmm3	# XMM3: subtract 128			\n\
-	psllw $7, %%xmm3	# XMM3: convert to fixed point 8.7	\n\
-	# Multiply by constants						\n\
-	pmulhw 48("ESI"),%%xmm6	# XMM6: cYE.................cY0		\n\
-	pmulhw 48("ESI"),%%xmm7	# XMM7: cYF.................cY1		\n\
-	movdqa 80("ESI"),%%xmm4	# XMM4: gU constant			\n\
-	pmulhw %%xmm2, %%xmm4	# XMM4: gU3 gU3.........gU0 gU0		\n\
-	movdqa 96("ESI"),%%xmm5	# XMM5: gV constant			\n\
-	pmulhw %%xmm3, %%xmm5	# XMM5: gV3 gV3.........gV0 gV0		\n\
-	paddw %%xmm5, %%xmm4	# XMM4: g7 g6 g5 g4 g3 g2 g1 g0		\n\
-	pmulhw 64("ESI"),%%xmm3	# XMM3: r7 r6 r5 r4 r3 r2 r1 r0		\n\
-	pmulhw 112("ESI"),%%xmm2 #XMM2: b7 b6 b5 b4 b3 b2 b1 b0		\n\
-	movdqa %%xmm3, %%xmm0	# XMM0: r7 r6 r5 r4 r3 r2 r1 r0		\n\
-	movdqa %%xmm4, %%xmm1	# XMM1: g7 g6 g5 g4 g3 g2 g1 g0		\n\
-	movdqa %%xmm2, %%xmm5	# XMM5: b7 b6 b5 b4 b3 b2 b1 b0		\n\
-	# Add intermediate results and round/shift to get R/G/B values	\n\
-	paddw 128("ESI"),%%xmm6 # Add rounding value (0.5 @ 8.4 fixed)	\n\
-	paddw 128("ESI"),%%xmm7						\n\
-	paddw %%xmm6, %%xmm0	# XMM0: RE RC RA R8 R6 R4 R2 R0		\n\
-	psraw $4, %%xmm0	# Shift back to 8.0 fixed		\n\
-	paddw %%xmm6, %%xmm1	# XMM1: GE GC GA G8 G6 G4 G2 G0		\n\
-	psraw $4, %%xmm1						\n\
-	paddw %%xmm6, %%xmm2	# XMM2: BE BC BA B8 B6 B4 B2 B0		\n\
-	psraw $4, %%xmm2						\n\
-	paddw %%xmm7, %%xmm3	# XMM3: RF RD RB R9 R7 R5 R3 R1		\n\
-	psraw $4, %%xmm3						\n\
-	paddw %%xmm7, %%xmm4	# XMM4: GF GD GB G9 G7 G5 G3 G1		\n\
-	psraw $4, %%xmm4						\n\
-	paddw %%xmm7, %%xmm5	# XMM5: BF BD BB B9 B7 B5 B3 B1		\n\
-	psraw $4, %%xmm5						\n\
-	# Saturate to 0-255 and pack into bytes				\n\
-	packuswb %%xmm0, %%xmm0	# XMM0: RE.......R0 RE.......R0		\n\
-	packuswb %%xmm1, %%xmm1	# XMM1: GE.......G0 GE.......G0		\n\
-	packuswb %%xmm2, %%xmm2	# XMM2: BE.......B0 BE.......B0		\n\
-	packuswb %%xmm3, %%xmm3	# XMM3: RF.......R1 RF.......R1		\n\
-	packuswb %%xmm4, %%xmm4	# XMM4: GF.......G1 GF.......G1		\n\
-	packuswb %%xmm5, %%xmm5	# XMM5: BF.......B1 BF.......B1		\n\
-	punpcklbw %%xmm3,%%xmm0	# XMM0: RF...................R0		\n\
-	punpcklbw %%xmm4,%%xmm1	# XMM1: GF...................G0		\n\
-	punpcklbw %%xmm5,%%xmm2	# XMM2: BF...................B0		\n\
-	"
-	: /* no outputs */
-	: "a" (srcY), "c" (srcU), "d" (srcV), "S" (&yuv_data), "m" (yuv_data)
-    );
-}
-
-static inline void sse2_yuv444p_to_rgb(uint8_t *srcY, uint8_t *srcU,
-				       uint8_t *srcV)
-{
-    asm("\
-	# Load data, bias and expand to 16 bits				\n\
-	pxor %%xmm4, %%xmm4	# XMM4: 00 00 00 00 00 00 00 00		\n\
-	movdqu ("EAX"), %%xmm6	# XMM6: YF...................Y0		\n\
-	movdqu ("ECX"), %%xmm2	# XMM2: UF...................U0		\n\
-	movdqu ("EDX"), %%xmm0	# XMM0: VF...................V0		\n\
-	movdqa %%xmm6, %%xmm7	# XMM7: YF...................Y0		\n\
-	punpcklbw %%xmm4,%%xmm6	# XMM6: Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0		\n\
-	punpckhbw %%xmm4,%%xmm7	# XMM7: YF YE YD YC YB YA Y9 Y8		\n\
-	movdqa %%xmm2, %%xmm5	# XMM5: UF...................U0		\n\
-	punpcklbw %%xmm4,%%xmm2	# XMM2: U7 U6 U5 U4 U3 U2 U1 U0		\n\
-	punpckhbw %%xmm4,%%xmm5	# XMM5: UF UE UD UC UB UA U9 U8		\n\
-	movdqa %%xmm0, %%xmm3	# XMM3: VF...................V0		\n\
-	punpcklbw %%xmm4,%%xmm0	# XMM0: V7 V6 V5 V4 V3 V2 V1 V0		\n\
-	punpckhbw %%xmm4,%%xmm3	# XMM3: VF VE VD VC VB VA V9 V8		\n\
 	psubw 16("ESI"), %%xmm6	# XMM6: subtract 16			\n\
 	psllw $7, %%xmm6	# XMM6: convert to fixed point 8.7	\n\
 	psubw 16("ESI"), %%xmm7	# XMM7: subtract 16			\n\
@@ -1044,10 +1338,9 @@ static inline void sse2_yuv444p_to_rgb(uint8_t *srcY, uint8_t *srcU,
 	# Saturate to 0-255 and pack into bytes				\n\
 	packuswb %%xmm3, %%xmm0	# XMM0: RF...................R0		\n\
 	packuswb %%xmm4, %%xmm1	# XMM1: GF...................G0		\n\
-	packuswb %%xmm5, %%xmm2	# XMM2: BF...................B0		\n\
-	"
+	packuswb %%xmm5, %%xmm2	# XMM2: BF...................B0		\n"
 	: /* no outputs */
-	: "a" (srcY), "c" (srcU), "d" (srcV), "S" (&yuv_data), "m" (yuv_data)
+	: "S" (&yuv_data), "m" (yuv_data)
     );
 }
 
@@ -1115,8 +1408,7 @@ static inline void sse2_store_rgb24(uint8_t *dest)
 	movl %%eax, 36("EDI")						\n\
 	movl %%ebx, 40("EDI")						\n\
 	movl %%ecx, 44("EDI")						\n\
-	pop "EBX"							\n\
-	"
+	pop "EBX"							\n"
 	: /* no outputs */
 	: "D" (dest)
 	: "eax", "ecx", "edx", "esi"
@@ -1152,8 +1444,7 @@ static inline void sse2_load_rgb24(uint8_t *src)
 	movq 16("ESP"), %%xmm2						\n\
 	punpcklbw %%xmm7, %%xmm2					\n\
 	add $24, "ESP"							\n\
-	pop "EBX"							\n\
-	"
+	pop "EBX"							\n"
 	: /* no outputs */
 	: "S" (src)
 	: "eax", "ecx", "edx", "edi"
@@ -1238,8 +1529,7 @@ static inline void sse2_rgb_to_yuv420p_yu(uint8_t *destY, uint8_t *destU)
 	"SSE2_STRIPU(0)"						\n\
 	# Store into destination pointers				\n\
 	movq %%xmm3, ("EAX")						\n\
-	movd %%xmm0, ("ECX")						\n\
-	"
+	movd %%xmm0, ("ECX")						\n"
 	: /* no outputs */
 	: "a" (destY), "c" (destU), "D" (&rgb_data), "m" (rgb_data)
     );
@@ -1254,15 +1544,13 @@ static inline void sse2_rgb_to_yuv420p_yv(uint8_t *destY, uint8_t *destV)
 	"SSE2_STRIPV"							\n\
 	# Store into destination pointers				\n\
 	movq %%xmm3, ("EAX")						\n\
-	movd %%xmm0, ("EDX")						\n\
-	"
+	movd %%xmm0, ("EDX")						\n"
 	: /* no outputs */
 	: "a" (destY), "d" (destV), "D" (&rgb_data), "m" (rgb_data)
     );
 }
 
-static inline void sse2_rgb_to_yuv411p(uint8_t *destY, uint8_t *destU,
-				       uint8_t *destV)
+static inline void sse2_rgb_to_yuv411p(uint8_t *destY, uint8_t *destU, uint8_t *destV)
 {
     asm("\
 	"SSE2_RGB2Y"							\n\
@@ -1278,16 +1566,14 @@ static inline void sse2_rgb_to_yuv411p(uint8_t *destY, uint8_t *destU,
 	movd %%xmm4, %%eax						\n\
 	movw %%ax, ("ECX")						\n\
 	movd %%xmm0, %%eax						\n\
-	movw %%ax, ("EDX")						\n\
-	"
+	movw %%ax, ("EDX")						\n"
 	: /* no outputs */
 	: "a" (destY), "c" (destU), "d" (destV),
 	  "D" (&rgb_data), "m" (rgb_data)
     );
 }
 
-static inline void sse2_rgb_to_yuv422p(uint8_t *destY, uint8_t *destU,
-				       uint8_t *destV)
+static inline void sse2_rgb_to_yuv422p(uint8_t *destY, uint8_t *destU, uint8_t *destV)
 {
     asm("\
 	"SSE2_RGB2Y"							\n\
@@ -1299,16 +1585,14 @@ static inline void sse2_rgb_to_yuv422p(uint8_t *destY, uint8_t *destU,
 	# Store into destination pointers				\n\
 	movq %%xmm3, ("EAX")						\n\
 	movd %%xmm4, ("ECX")						\n\
-	movd %%xmm0, ("EDX")						\n\
-	"
+	movd %%xmm0, ("EDX")						\n"
 	: /* no outputs */
 	: "a" (destY), "c" (destU), "d" (destV),
 	  "D" (&rgb_data), "m" (rgb_data)
     );
 }
 
-static inline void sse2_rgb_to_yuv444p(uint8_t *destY, uint8_t *destU,
-				       uint8_t *destV)
+static inline void sse2_rgb_to_yuv444p(uint8_t *destY, uint8_t *destU, uint8_t *destV)
 {
     asm("\
 	"SSE2_RGB2Y"							\n\
@@ -1318,11 +1602,71 @@ static inline void sse2_rgb_to_yuv444p(uint8_t *destY, uint8_t *destU,
 	# Store into destination pointers				\n\
 	movq %%xmm3, ("EAX")						\n\
 	movq %%xmm4, ("ECX")						\n\
-	movq %%xmm0, ("EDX")						\n\
-	"
+	movq %%xmm0, ("EDX")						\n"
 	: /* no outputs */
 	: "a" (destY), "c" (destU), "d" (destV),
 	  "D" (&rgb_data), "m" (rgb_data)
+    );
+}
+
+static inline void sse2_rgb_to_yuy2(uint8_t *dest)
+{
+    asm("\
+	"SSE2_RGB2Y"							\n\
+	"SSE2_RGB2U"							\n\
+	"SSE2_RGB2V"							\n\
+	"SSE2_PACKYUV"							\n\
+	"SSE2_STRIPU(4)"						\n\
+	"SSE2_STRIPV"							\n\
+	# Interleave Y/U/V						\n\
+	punpcklbw %%xmm0, %%xmm4					\n\
+	punpcklbw %%xmm4, %%xmm3					\n\
+	# Store into destination pointer				\n\
+	movdqu %%xmm3, ("EAX")						\n"
+	: /* no outputs */
+	: "a" (dest), "D" (&rgb_data), "m" (rgb_data)
+    );
+}
+
+static inline void sse2_rgb_to_uyvy(uint8_t *dest)
+{
+    asm("\
+	"SSE2_RGB2Y"							\n\
+	"SSE2_RGB2U"							\n\
+	"SSE2_RGB2V"							\n\
+	"SSE2_PACKYUV"							\n\
+	"SSE2_STRIPU(4)"						\n\
+	"SSE2_STRIPV"							\n\
+	# Interleave Y/U/V						\n\
+	punpcklbw %%xmm0, %%xmm4					\n\
+	punpcklbw %%xmm3, %%xmm4					\n\
+	# Store into destination pointer				\n\
+	movdqu %%xmm4, ("EAX")						\n"
+	: /* no outputs */
+	: "a" (dest), "D" (&rgb_data), "m" (rgb_data)
+    );
+}
+
+static inline void sse2_rgb_to_yvyu(uint8_t *dest)
+{
+    asm("\
+	"SSE2_RGB2Y"							\n\
+	"SSE2_RGB2U"							\n\
+	"SSE2_RGB2V"							\n\
+	"SSE2_PACKYUV"							\n\
+	# Remove every odd V value					\n\
+	pand 176("EDI"), %%xmm0						\n\
+	packuswb %%xmm7, %%xmm0						\n\
+	# Remove every even U value					\n\
+	psrlw $8, %%xmm4						\n\
+	packuswb %%xmm7, %%xmm4						\n\
+	# Interleave Y/U/V						\n\
+	punpcklbw %%xmm4, %%xmm0					\n\
+	punpcklbw %%xmm0, %%xmm3					\n\
+	# Store into destination pointer				\n\
+	movdqu %%xmm3, ("EAX")						\n"
+	: /* no outputs */
+	: "a" (dest), "D" (&rgb_data), "m" (rgb_data)
     );
 }
 
@@ -1663,12 +2007,18 @@ int ac_imgconvert_init_yuv_rgb(int accel)
      || !register_conversion(IMG_YUV411P, IMG_RGB24,   yuv411p_rgb24)
      || !register_conversion(IMG_YUV422P, IMG_RGB24,   yuv422p_rgb24)
      || !register_conversion(IMG_YUV444P, IMG_RGB24,   yuv444p_rgb24)
+     || !register_conversion(IMG_YUY2,    IMG_RGB24,   yuy2_rgb24)
+     || !register_conversion(IMG_UYVY,    IMG_RGB24,   uyvy_rgb24)
+     || !register_conversion(IMG_YVYU,    IMG_RGB24,   yvyu_rgb24)
      || !register_conversion(IMG_Y8,      IMG_RGB24,   y8_rgb24)
 
      || !register_conversion(IMG_RGB24,   IMG_YUV420P, rgb24_yuv420p)
      || !register_conversion(IMG_RGB24,   IMG_YUV411P, rgb24_yuv411p)
      || !register_conversion(IMG_RGB24,   IMG_YUV422P, rgb24_yuv422p)
      || !register_conversion(IMG_RGB24,   IMG_YUV444P, rgb24_yuv444p)
+     || !register_conversion(IMG_RGB24,   IMG_YUY2,    rgb24_yuy2)
+     || !register_conversion(IMG_RGB24,   IMG_UYVY,    rgb24_uyvy)
+     || !register_conversion(IMG_RGB24,   IMG_YVYU,    rgb24_yvyu)
      || !register_conversion(IMG_RGB24,   IMG_Y8,      rgb24_y8)
 
      || !register_conversion(IMG_YUV420P, IMG_GRAY8,   yuvp_gray8)
@@ -1708,12 +2058,18 @@ int ac_imgconvert_init_yuv_rgb(int accel)
 	 || !register_conversion(IMG_YUV411P, IMG_RGB24,   yuv411p_rgb24_sse2)
 	 || !register_conversion(IMG_YUV422P, IMG_RGB24,   yuv422p_rgb24_sse2)
 	 || !register_conversion(IMG_YUV444P, IMG_RGB24,   yuv444p_rgb24_sse2)
+	 || !register_conversion(IMG_YUY2,    IMG_RGB24,   yuy2_rgb24_sse2)
+	 || !register_conversion(IMG_UYVY,    IMG_RGB24,   uyvy_rgb24_sse2)
+	 || !register_conversion(IMG_YVYU,    IMG_RGB24,   yvyu_rgb24_sse2)
 	 || !register_conversion(IMG_Y8,      IMG_RGB24,   y8_rgb24_sse2)
 
 	 || !register_conversion(IMG_RGB24,   IMG_YUV420P, rgb24_yuv420p_sse2)
 	 || !register_conversion(IMG_RGB24,   IMG_YUV411P, rgb24_yuv411p_sse2)
 	 || !register_conversion(IMG_RGB24,   IMG_YUV422P, rgb24_yuv422p_sse2)
 	 || !register_conversion(IMG_RGB24,   IMG_YUV444P, rgb24_yuv444p_sse2)
+	 || !register_conversion(IMG_RGB24,   IMG_YUY2,    rgb24_yuy2_sse2)
+	 || !register_conversion(IMG_RGB24,   IMG_UYVY,    rgb24_uyvy_sse2)
+	 || !register_conversion(IMG_RGB24,   IMG_YVYU,    rgb24_yvyu_sse2)
 	 || !register_conversion(IMG_RGB24,   IMG_Y8,      rgb24_y8_sse2)
 
 	 || !register_conversion(IMG_GRAY8,   IMG_YUY2,    gray8_yuy2_sse2)
