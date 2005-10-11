@@ -2436,7 +2436,7 @@ int main(int argc, char *argv[]) {
 	psubase = video_out_file;
       }
     }
-      
+
       /* ------------------------------------------------------------ 
        *
        * (III) auto probe properties of input stream
@@ -2820,6 +2820,17 @@ int main(int argc, char *argv[]) {
     // -g
 
     // import size
+    // force to even for YUV mode
+    if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
+	if(vob->im_v_width%2 != 0) {
+	    tc_warn("frame width must be even in YUV/UYVY mode");
+	    vob->im_v_width--;
+	}
+	if(vob->im_v_codec == CODEC_YUV && vob->im_v_height%2 != 0) {
+	    tc_warn("frame height must be even in YUV mode");
+	    vob->im_v_height--;
+	}
+    }
     if(verbose & TC_INFO) {
       (vob->im_v_width && vob->im_v_height) ?
 	printf("[%s] V: %-16s | %03dx%03d  %4.2f:1  %s\n", PACKAGE, "import frame", vob->im_v_width, vob->im_v_height, asr, asr2str(vob->im_asr)):printf("[%s] V: %-16s | disabled\n", PACKAGE, "import frame");
@@ -3027,6 +3038,26 @@ int main(int argc, char *argv[]) {
     
     if(pre_im_clip) {
       
+      // force to even for YUV mode
+      if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
+	if(vob->pre_im_clip_left%2 != 0) {
+	    tc_warn("left/right pre_clip must be even in YUV/UYVY mode");
+	    vob->pre_im_clip_left--;
+	}
+	if(vob->pre_im_clip_right%2 != 0) {
+	    tc_warn("left/right pre_clip must be even in YUV/UYVY mode");
+	    vob->pre_im_clip_right--;
+	}
+	if(vob->im_v_codec == CODEC_YUV && vob->pre_im_clip_top%2 != 0) {
+	    tc_warn("top/bottom pre_clip must be even in YUV mode");
+	    vob->pre_im_clip_top--;
+	}
+	if(vob->im_v_codec == CODEC_YUV && vob->pre_im_clip_bottom%2 != 0) {
+	    tc_warn("top/bottom pre_clip must be even in YUV mode");
+	    vob->pre_im_clip_bottom--;
+	}
+      }
+
       //check against import parameter, this is pre processing!
       
       if(vob->ex_v_height - vob->pre_im_clip_top - vob->pre_im_clip_bottom <= 0 ||
@@ -3052,6 +3083,26 @@ int main(int argc, char *argv[]) {
     
     if(im_clip) {
       
+      // force to even for YUV mode
+      if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
+	if(vob->im_clip_left%2 != 0) {
+	    tc_warn("left/right clip must be even in YUV/UYVY mode");
+	    vob->im_clip_left--;
+	}
+	if(vob->im_clip_right%2 != 0) {
+	    tc_warn("left/right clip must be even in YUV/UYVY mode");
+	    vob->im_clip_right--;
+	}
+	if(vob->im_v_codec == CODEC_YUV && vob->im_clip_top%2 != 0) {
+	    tc_warn("top/bottom clip must be even in YUV mode");
+	    vob->im_clip_top--;
+	}
+	if(vob->im_v_codec == CODEC_YUV && vob->im_clip_bottom%2 != 0) {
+	    tc_warn("top/bottom clip must be even in YUV mode");
+	    vob->im_clip_bottom--;
+	}
+      }
+
       if(vob->ex_v_height - vob->im_clip_top - vob->im_clip_bottom <= 0 ||
 	 vob->ex_v_height - vob->im_clip_top - vob->im_clip_bottom > TC_MAX_V_FRAME_HEIGHT) tc_error("invalid top/bottom clip parameter for option -j");
       
@@ -3334,6 +3385,26 @@ int main(int argc, char *argv[]) {
 
     if(ex_clip) {
 
+      // force to even for YUV mode
+      if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
+	if(vob->ex_clip_left%2 != 0) {
+	    tc_warn("left/right clip must be even in YUV/UYVY mode");
+	    vob->ex_clip_left--;
+	}
+	if(vob->ex_clip_right%2 != 0) {
+	    tc_warn("left/right clip must be even in YUV/UYVY mode");
+	    vob->ex_clip_right--;
+	}
+	if(vob->im_v_codec == CODEC_YUV && vob->ex_clip_top%2 != 0) {
+	    tc_warn("top/bottom clip must be even in YUV mode");
+	    vob->ex_clip_top--;
+	}
+	if(vob->im_v_codec == CODEC_YUV && vob->ex_clip_bottom%2 != 0) {
+	    tc_warn("top/bottom clip must be even in YUV mode");
+	    vob->ex_clip_bottom--;
+	}
+      }
+
       //check against export parameter, this is post processing!
 	
 	if(vob->ex_v_height - vob->ex_clip_top - vob->ex_clip_bottom <= 0 ||
@@ -3356,12 +3427,19 @@ int main(int argc, char *argv[]) {
     if(rescale) {
 	
       vob->ex_v_height /= vob->reduce_h;
-      vob->ex_v_width /= vob->reduce_w; 
-    
+      vob->ex_v_width /= vob->reduce_w;
+
       //new aspect ratio:
       asr *= (double)vob->ex_v_width/vob->ex_v_height*(vob->reduce_h*vob->ex_v_height)/(vob->reduce_w*vob->ex_v_width);
       if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d  %4.2f:1 (-r)\n", PACKAGE, "rescale frame", vob->ex_v_width, vob->ex_v_height,asr);
 
+      // sanity check for YUV
+      if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
+	if(vob->ex_v_width%2 != 0 || (vob->im_v_codec == CODEC_YUV && vob->ex_v_height%2 != 0)) {
+	    tc_error("rescaled width/height must be even for YUV mode, try --use_rgb");
+	}
+      }
+    
       //2003-01-13 
       tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
     } 
@@ -3556,6 +3634,26 @@ int main(int argc, char *argv[]) {
     
     if(post_ex_clip) {
       
+      // force to even for YUV mode
+      if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
+	if(vob->post_ex_clip_left%2 != 0) {
+	    tc_warn("left/right post_clip must be even in YUV/UYVY mode");
+	    vob->post_ex_clip_left--;
+	}
+	if(vob->post_ex_clip_right%2 != 0) {
+	    tc_warn("left/right post_clip must be even in YUV/UYVY mode");
+	    vob->post_ex_clip_right--;
+	}
+	if(vob->im_v_codec == CODEC_YUV && vob->post_ex_clip_top%2 != 0) {
+	    tc_warn("top/bottom post_clip must be even in YUV mode");
+	    vob->post_ex_clip_top--;
+	}
+	if(vob->im_v_codec == CODEC_YUV && vob->post_ex_clip_bottom%2 != 0) {
+	    tc_warn("top/bottom post_clip must be even in YUV mode");
+	    vob->post_ex_clip_bottom--;
+	}
+      }
+
       //check against export parameter, this is post processing!
       
       if(vob->ex_v_height - vob->post_ex_clip_top - vob->post_ex_clip_bottom <= 0 ||

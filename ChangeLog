@@ -1,4 +1,7 @@
 2005-10-11 Andrew Church <achurch at achurch dot org>
+  * src/transcode.c
+  Force all size parameters to be even in YUV mode.
+
   * aclib/rescale.c src/video_rgb.c src/video_trans.c src/video_trans.h
     src/video_yuv.c src/video_yuv422.c
   Fixed bugs in fast resizing (-B option).
