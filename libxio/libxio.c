@@ -39,7 +39,7 @@ char *strndup(const char *s, size_t n);
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <stdarg.h>
 
 #include "xio.h"
