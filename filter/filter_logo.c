@@ -66,8 +66,8 @@ typedef struct MyFilterData {
     /* private */
 	unsigned int nr_of_images; /* animated: number of images */
 	unsigned int cur_seq;      /* animated: current image */
-	int cur_delay;              /* animated: current delay */
-	char **yuv;                /* buffer for rgb2yuv conversion */
+	int cur_delay;             /* animated: current delay */
+	char **yuv;                /* buffer for RGB->YUV conversion */
 } MyFilterData;
 	
 static MyFilterData *mfd = NULL;
@@ -273,8 +273,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    }
 	}
 
-	if (tc_rgb2yuv_init(image->columns, image->rows)<0) {
-	    fprintf(stderr, "[%s] ERROR rgb2yuv init failed\n", MOD_NAME);
+	if (!tcv_convert_init(image->columns, image->rows)) {
+	    fprintf(stderr, "[%s] ERROR image conversion init failed\n", MOD_NAME);
 	    return(-1); 
 	}
 
@@ -325,7 +325,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 
 	for (i=0; i<mfd->nr_of_images; i++) {
-	    if(tc_rgb2yuv_core(mfd->yuv[i])<0) {
+	    if (!tcv_convert(mfd->yuv[i], IMG_RGB24, IMG_YUV_DEFAULT)) {
 		fprintf(stderr, "[%s] ERROR rgb2yuv conversion failed\n", MOD_NAME);
 		return(-1);
 	    }
@@ -404,9 +404,6 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	free(mfd);
 	mfd = NULL;
     }
-
-    if (vob->im_v_codec == CODEC_YUV)
-	tc_rgb2yuv_close();
 
     if (image) {
 	    DestroyImage(image);

@@ -185,8 +185,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	memset(mfd->fmoving, 0, width*height*sizeof(unsigned char));
 
 	if (mfd->codec == CODEC_YUV) {
-	    tc_yuv2rgb_init(width, height/2);
-	    tc_rgb2yuv_init(width, height);
+	    tcv_convert_init(width, height/2);
 	}
 
 	// filter init ok.
@@ -240,10 +239,6 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		mfd->convertFrameOut = NULL;
 	}
 
-	if (mfd->codec == CODEC_YUV) {
-	    tc_rgb2yuv_close();
-	    tc_yuv2rgb_close();
-	}
 	if (mfd)
 		free(mfd);
 
@@ -272,7 +267,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	Pixel32 * src_buf;
 
 	if (mfd->codec == CODEC_YUV) {
-	    tc_yuv2rgb_core(ptr->video_buf);
+	    tcv_convert(ptr->video_buf, IMG_YUV_DEFAULT, IMG_RGB24);
 	}
 
 	ac_imgconvert(&ptr->video_buf, IMG_RGB24,
@@ -543,8 +538,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		      &ptr->video_buf, IMG_RGB24,
 		      ptr->v_width, ptr->v_height);
 
-	if (mfd->codec == CODEC_YUV)
-	    tc_rgb2yuv_core(ptr->video_buf);
+	if (mfd->codec == CODEC_YUV) {
+	    tcv_convert(ptr->video_buf, IMG_RGB24, IMG_YUV_DEFAULT);
+	}
 
 	return 0;
   }

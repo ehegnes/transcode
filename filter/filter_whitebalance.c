@@ -123,8 +123,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 		if (vob->im_v_codec == CODEC_YUV) {
 			if (verbose) printf("[%s] will need to convert YUV to RGB before filtering\n", MOD_NAME);
-			tc_rgb2yuv_init(width, height);
-			tc_yuv2rgb_init(width, height);
+			if (!tcv_convert_init(width, height)) {
+				fprintf(stderr, "[%s] ERROR: image conversion init failed\n", MOD_NAME);
+				return -1;
+			}
 		}
 
 		if (!buffer)
@@ -142,10 +144,6 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			free(buffer);
 		buffer = NULL;
 
-		if (vob->im_v_codec == CODEC_YUV) {
-			tc_rgb2yuv_close();
-			tc_yuv2rgb_close();
-		}
 		return 0;
 	}
 
@@ -162,7 +160,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 		if (state) {
 			if (vob->im_v_codec == CODEC_YUV)
-				tc_yuv2rgb_core(ptr->video_buf);
+				tcv_convert(ptr->video_buf, IMG_YUV_DEFAULT, IMG_RGB24);
 			ac_memcpy(buffer, ptr->video_buf, ptr->v_width*ptr->v_height*3);
 			
 			
@@ -178,7 +176,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			
 			ac_memcpy(ptr->video_buf, buffer, ptr->v_width*ptr->v_height*3);
 			if (vob->im_v_codec == CODEC_YUV)
-				tc_rgb2yuv_core(ptr->video_buf);
+				tcv_convert(ptr->video_buf, IMG_RGB24, IMG_YUV_DEFAULT);
 		}
 	} 
 

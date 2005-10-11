@@ -1,4 +1,11 @@
 2005-10-11 Andrew Church <achurch at achurch dot org>
+  * export/export_mp1e.c export/export_mpeg2enc.c export/export_yuv4mpeg.c
+    export/vid_aux.c export/vid_aux.h filter/filter_ascii.c
+    filter/filter_facemask.c filter/filter_logo.c filter/filter_msharpen.c
+    filter/filter_smartbob.c filter/filter_smartdeinter.c
+    filter/filter_whitebalance.c
+  Replace tc_{rgb2yuv,yuv2rgb} functions with a single tcv_convert().
+
   * import/decode_mpeg2.c
   Fixed bug causing red/blue swapping for -x vob.
 

@@ -31,7 +31,7 @@
 #include "filter.h"
 #include "optstr.h"
 
-/* RGB2YUV features */
+/* RGB->YUV conversion */
 #include "export/vid_aux.h"
 
 
@@ -187,12 +187,8 @@ int tc_filter(frame_list_t *ptr_, char *options){
 	}
 		
 	if (vob->im_v_codec == CODEC_YUV){
-		if (tc_yuv2rgb_init(vob->im_v_width, vob->im_v_height)<0) {
-			tc_error("[%s] Error at YUV to RGB conversion initialization.\n", MOD_NAME);
-			return(-1); 
-		}
-		if (tc_rgb2yuv_init(vob->im_v_width, vob->im_v_height)<0) {
-			tc_error("[%s] Error at RGB to YUV conversion initialization.\n", MOD_NAME);
+		if (!tcv_convert_init(vob->im_v_width, vob->im_v_height)) {
+			tc_error("[%s] Error at image conversion initialization.\n", MOD_NAME);
 			return(-1); 
 		}
 	}
@@ -221,17 +217,6 @@ int tc_filter(frame_list_t *ptr_, char *options){
 	free(parameters);
 	parameters = NULL;
 	
-	if (vob->im_v_codec == CODEC_YUV){
-		if (tc_yuv2rgb_close()<0) {
-			tc_error("[%s] Error at YUV to RGB conversion closure.\n", MOD_NAME);
-			return(-1); 
-		}
-		
-		if (tc_rgb2yuv_close()<0) {
-			tc_error("[%s] Error at RGB to YUV conversion closure.\n", MOD_NAME);
-			return(-1); 
-		}
-	}
     return(0);
   }
   
@@ -251,13 +236,13 @@ int tc_filter(frame_list_t *ptr_, char *options){
 			
 			case CODEC_YUV:
 				
-				if (tc_yuv2rgb_core(ptr->video_buf) == -1){
+				if (!tcv_convert(ptr->video_buf, IMG_YUV_DEFAULT, IMG_RGB24)){
 					tc_error("[%s] Error: cannot convert YUV stream to RGB format !\n", MOD_NAME);
 					return -1;
 				}
 				
 				if ((print_mask(parameters->xpos, parameters->ypos, parameters->xresolution, parameters->yresolution, parameters->xdim, parameters->ydim, ptr))<0) return -1;
-				if (tc_rgb2yuv_core(ptr->video_buf) == -1){
+				if (!tcv_convert(ptr->video_buf, IMG_RGB24, IMG_YUV_DEFAULT)){
 					tc_error("[%s] Error: cannot convert RGB stream to YUV format !\n", MOD_NAME);
 					return -1;
 				}

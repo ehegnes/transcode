@@ -55,6 +55,7 @@ static int   sa_width  = 0;
 static int   sa_height = 0;
 static int   sa_size_l = 0;
 static int   sa_size_c = 0;
+static ImageFormat srcfmt;
 
 #define Y4M_LINE_MAX 256
 #define Y4M_MAGIC "YUV4MPEG2"
@@ -357,18 +358,26 @@ MOD_init
     int prof = 0;
     fprintf(stderr, "[%s] *** init-v *** !\n", MOD_NAME); 
 
-   //ThOe added RGB2YUV cap
-    if(vob->im_v_codec == CODEC_RGB) {
-	if(tc_rgb2yuv_init(vob->ex_v_width, vob->ex_v_height)<0) {
-	    fprintf(stderr, "[%s] rgb2yuv init failed\n", MOD_NAME);
-	    return(TC_EXPORT_ERROR); 
-	}
-    }
-    
     sa_width  = vob->ex_v_width;
     sa_height = vob->ex_v_height;
     sa_size_l = sa_width * sa_height;
     sa_size_c = sa_size_l/4;
+
+    if (vob->im_v_codec == CODEC_YUV) {
+	srcfmt = IMG_YUV_DEFAULT;
+    } else if (vob->im_v_codec == CODEC_YUV422) {
+	srcfmt = IMG_UYVY;
+    } else if (vob->im_v_codec == CODEC_RGB) {
+	srcfmt = IMG_RGB_DEFAULT;
+    } else {
+	fprintf(stderr, "[%s] unsupported video format %d\n", MOD_NAME,
+		vob->im_v_codec);
+	return(TC_EXPORT_ERROR);
+    }
+    if (!tcv_convert_init(sa_width, sa_height)) {
+	fprintf(stderr, "[%s] image conversion init failed\n", MOD_NAME);
+	return(TC_EXPORT_ERROR);
+    }
 
     if (vob->ex_v_fcc) prof = atoi(vob->ex_v_fcc);
     if ( !(probe_export_attributes & TC_PROBE_NO_EXPORT_VEXT) ) {
@@ -399,13 +408,10 @@ MOD_encode
   if(param->flag == TC_VIDEO) 
   {
 
-      //ThOe 
-      if(tc_rgb2yuv_core(param->buffer)<0) {
-	  fprintf(stderr, "[%s] rgb2yuv conversion failed\n", MOD_NAME);
+      if (!tcv_convert(param->buffer, srcfmt, IMG_YUV420P)) {
+	  fprintf(stderr, "[%s] image format conversion failed\n", MOD_NAME);
 	  return(TC_EXPORT_ERROR);
       }
-      
-      //      fwrite(MENC_FRAME, strlen(MENC_FRAME), 1, sa_ip);
 
       y4m_init_frame_info(&info);
       
@@ -417,6 +423,7 @@ MOD_encode
       fwrite(param->buffer, sa_size_l, 1, sa_ip);
       fwrite(param->buffer + sa_size_l, sa_size_c, 1, sa_ip); 
       fwrite(param->buffer + sa_size_l + sa_size_c, sa_size_c, 1, sa_ip);
+
       return (0); 
   }
   
@@ -435,10 +442,6 @@ MOD_encode
 MOD_stop
 {  
   if(param->flag == TC_VIDEO) {
-
-      //ThOe
-      tc_rgb2yuv_close();
-      
       return (0);
   }
   

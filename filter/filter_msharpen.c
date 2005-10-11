@@ -166,8 +166,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	memset(mfd->convertFrameOut, 0, width*height*4);
 
 	if (vob->im_v_codec == CODEC_YUV) {
-	  tc_rgb2yuv_init(width, height);
-	  tc_yuv2rgb_init(width, height);
+	    tcv_convert_init(width, height/2);
 	}
 
 	// filter init ok.
@@ -220,11 +219,6 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		free(mfd);
 	mfd = NULL;
 
-	if (vob->im_v_codec == CODEC_YUV) {
-	  tc_rgb2yuv_close();
-	  tc_yuv2rgb_close();
-	}
-
 	return 0;
 
   } /* TC_FILTER_CLOSE */
@@ -248,7 +242,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	const int	dstpitch = ptr->v_width*4;
 
 	if (vob->im_v_codec == CODEC_YUV) {
-	  tc_yuv2rgb_core(ptr->video_buf);
+	    tcv_convert(ptr->video_buf, IMG_YUV_DEFAULT, IMG_RGB24);
 	}
 
 	ac_imgconvert(&ptr->video_buf, IMG_RGB24,
@@ -486,7 +480,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		      ptr->v_width, ptr->v_height);
 
 	if (vob->im_v_codec == CODEC_YUV) {
-	  tc_rgb2yuv_core(ptr->video_buf);
+	    tcv_convert(ptr->video_buf, IMG_RGB24, IMG_YUV_DEFAULT);
 	}
 
 	return 0;

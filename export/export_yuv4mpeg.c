@@ -25,8 +25,8 @@
 #include <stdlib.h>
 
 #include "transcode.h"
+#include "aclib/imgconvert.h"
 #include "aud_aux.h"
-#include "vid_aux.h"
 #include "ioaux.h"
 
 #define MOD_NAME    "export_yuv4mpeg.so"
@@ -61,6 +61,7 @@ static const y4m_ratio_t sar_UNKNOWN = SAR_UNKNOWN;
 
 
 static int fd, size;
+static ImageFormat srcfmt;
 
 static y4m_stream_info_t y4mstream;
 
@@ -93,14 +94,22 @@ MOD_init
     
     if(param->flag == TC_VIDEO) {
 
-	//ThOe added RGB2YUV cap
-	if(vob->im_v_codec == CODEC_RGB) {
-	    if(tc_rgb2yuv_init(vob->ex_v_width, vob->ex_v_height)<0) {
-		fprintf(stderr, "[%s] rgb2yuv init failed\n", MOD_NAME);
-		return(TC_EXPORT_ERROR); 
-	    }
+	if (vob->im_v_codec == CODEC_YUV) {
+	    srcfmt = IMG_YUV_DEFAULT;
+	} else if (vob->im_v_codec == CODEC_YUV422) {
+	    srcfmt = IMG_UYVY;
+	} else if (vob->im_v_codec == CODEC_RGB) {
+	    srcfmt = IMG_RGB_DEFAULT;
+	} else {
+	    fprintf(stderr, "[%s] unsupported video format %d\n", MOD_NAME,
+		    vob->im_v_codec);
+	    return(TC_EXPORT_ERROR);
 	}
-	
+	if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
+	    fprintf(stderr, "[%s] image conversion init failed\n", MOD_NAME);
+	    return(TC_EXPORT_ERROR);
+	}
+
 	return(0);
     }
 
@@ -199,13 +208,11 @@ MOD_encode
     
     if(param->flag == TC_VIDEO) { 
 	
-	//ThOe 
-	if(tc_rgb2yuv_core(param->buffer)<0) {
-	    fprintf(stderr, "[%s] rgb2yuv conversion failed\n", MOD_NAME);
+	if (!tcv_convert(param->buffer, srcfmt, IMG_YUV420P)) {
+	    fprintf(stderr, "[%s] image format conversion failed\n", MOD_NAME);
 	    return(TC_EXPORT_ERROR);
 	}
-	
-	
+
 #ifdef USE_NEW_MJPEGTOOLS_CODE
 	y4m_init_frame_info(&info);
 	
@@ -249,9 +256,6 @@ MOD_stop
 {
   
   if(param->flag == TC_VIDEO) {
-      
-      //ThOe
-      tc_rgb2yuv_close();
       
       return(0);
   }

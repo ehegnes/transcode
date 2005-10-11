@@ -28,7 +28,6 @@
 
 #include "transcode.h"
 #include "vid_aux.h"
-#include "aclib/imgconvert.h"
 
 #define MOD_NAME    "export_mp1e.so"
 #define MOD_VERSION "v0.0.1 (2003-12-18)"
@@ -47,10 +46,10 @@ const char *fifoname = "audio-mp1e.wav";
 static int audio_open_done = 0;
 static int do_audio = 0;
 
-static uint8_t *yuy2buf = NULL;
 static int v_codec = 0;
 static int width = 0;
 static int height = 0;
+static ImageFormat srcfmt, destfmt;
 
 
 // mp1e cant handle audio from a pipe, so we write a temporary WAV file.
@@ -143,25 +142,23 @@ MOD_open
 	// Colorspace format
 	v_codec = vob->im_v_codec;
 	if (v_codec == CODEC_YUV) {
-
 	    yuv_str = "yuv420";
-
+	    srcfmt = IMG_YUV_DEFAULT;
+	    destfmt = IMG_YUV420P;
 	} else if (v_codec == CODEC_YUV422) {
-
 	    yuv_str = "yuyv";
-	    if (!yuy2buf)
-		yuy2buf = malloc(vob->ex_v_width*vob->ex_v_height*2);
-
+	    srcfmt = IMG_UYVY;
+	    destfmt = IMG_YUY2;
 	} else if (v_codec == CODEC_RGB) {
-
 	    yuv_str = "yuv420";
-	    if(tc_rgb2yuv_init(vob->ex_v_width, vob->ex_v_height)<0) {
-		fprintf(stderr, "[%s] rgb2yuv init failed\n", MOD_NAME);
-		return(TC_EXPORT_ERROR); 
-	    }
-
+	    srcfmt = IMG_RGB_DEFAULT;
+	    destfmt = IMG_YUV420P;
 	} else {
 	    tc_warn ("invalid codec for this export module");
+	    return (TC_EXPORT_ERROR);
+	}
+	if (!tcv_convert_init(width, height)) {
+	    tc_warn ("failed to init image format conversion");
 	    return (TC_EXPORT_ERROR);
 	}
 
@@ -305,23 +302,14 @@ MOD_encode
 	    }
 	}
 
-	if (v_codec == CODEC_YUV) {
-	    int Ysize = param->size*2/3; 
-	    int UVsize = Ysize/4;
-	    char *U = param->buffer+Ysize;
-	    char *V = U + UVsize;
-	    fwrite(param->buffer, Ysize, 1, pFile);
-	    fwrite(U, UVsize, 1, pFile);
-	    fwrite(V, UVsize, 1, pFile);
-	} else if (v_codec == CODEC_YUV422) {
-	    ac_imgconvert(&param->buffer, IMG_UYVY, &yuy2buf, IMG_YUY2,
-			  width, height);
-	    fwrite(yuy2buf, param->size, 1, pFile);
-	} else if (v_codec == CODEC_RGB) {
-	    if(tc_rgb2yuv_core(param->buffer)<0) {
-		fprintf(stderr, "[%s] rgb2yuv conversion failed\n", MOD_NAME);
-		return(TC_EXPORT_ERROR);
-	    }
+	if (!tcv_convert(param->buffer, srcfmt, destfmt)) {
+	    fprintf(stderr, "[%s] image format conversion failed\n", MOD_NAME);
+	    return(TC_EXPORT_ERROR);
+	}
+
+	if (v_codec == CODEC_YUV422) {
+	    fwrite(param->buffer, width*height*2, 1, pFile);
+	} else {
 	    fwrite(param->buffer, width*height*3/2, 1, pFile);
 	}
     }
