@@ -60,6 +60,7 @@ typedef enum {
      (planes)[1] = (planes)[0] + (w)*(h),      \
      (planes)[2] = (planes)[1] + UV_PLANE_SIZE((fmt),(w),(h)))
 
+#if 0
 /* Structure describing an image.  FIXME: not currently used--this should
  * eventually replace the (planes,format) pairs passed to ac_imgconvert. */
 typedef struct {
@@ -68,6 +69,7 @@ typedef struct {
     uint8_t *planes[4];  /* Data planes (use planes[0] for packed data) */
     int stride[4];       /* Length of one row in each plane, incl. padding */
 } Image;
+#endif
 
 /*************************************************************************/
 
