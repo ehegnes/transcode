@@ -1,4 +1,8 @@
 2005-10-11 Andrew Church <achurch at achurch dot org>
+  * aclib/rescale.c src/video_rgb.c src/video_trans.c src/video_trans.h
+    src/video_yuv.c src/video_yuv422.c
+  Fixed bugs in fast resizing (-B option).
+
   * export/export_mp1e.c export/export_mpeg2enc.c export/export_yuv4mpeg.c
     export/vid_aux.c export/vid_aux.h filter/filter_ascii.c
     filter/filter_facemask.c filter/filter_logo.c filter/filter_msharpen.c

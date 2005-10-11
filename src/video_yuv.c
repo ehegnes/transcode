@@ -47,10 +47,10 @@
  * ------------------------------------------------------------*/
 
 
-static void yuv_rescale_core(char *image, int width, int height, int reduce_h, int reduce_w)
+static void yuv_rescale_core(uint8_t *image, int width, int height, int reduce_h, int reduce_w)
 {
   
-  char *in, *out;
+  uint8_t *in, *out;
   
   unsigned int x, y; 
   
@@ -78,7 +78,7 @@ static void yuv_rescale_core(char *image, int width, int height, int reduce_h, i
     }
 }
 
-void yuv_rescale(char *image, int width, int height, int resize_h, int resize_w)
+void yuv_rescale(uint8_t *image, int width, int height, int resize_h, int resize_w)
 {
 
     int n_height, n_width, bytes;
@@ -109,10 +109,10 @@ void yuv_rescale(char *image, int width, int height, int resize_h, int resize_w)
 }
 
 
-static void yuv_flip_core(char *image, int width, int height)
+static void yuv_flip_core(uint8_t *image, int width, int height)
 {
 
-  char *in, *out;
+  uint8_t *in, *out;
 
   // this shouldn't be too hard on the stack
   char rowbuffer[TC_MAX_V_FRAME_WIDTH];
@@ -135,7 +135,7 @@ static void yuv_flip_core(char *image, int width, int height)
   }
 }
 
-void yuv_flip(char *image, int width, int height)
+void yuv_flip(uint8_t *image, int width, int height)
 {
     
     int block = (width*height)>>2;
@@ -145,10 +145,10 @@ void yuv_flip(char *image, int width, int height)
     yuv_flip_core(image + 5*block, width/2, height/2);
 }
 
-void yuv_hclip(char *image, int width, int height, int cols)
+void yuv_hclip(uint8_t *image, int width, int height, int cols)
 {
 
-  char *in, *out;
+  uint8_t *in, *out;
   
   unsigned int y, block, offset, new, rowbytes; 
   unsigned int pixeltoins, size;
@@ -290,10 +290,10 @@ void yuv_hclip(char *image, int width, int height, int cols)
   }
 }
 
-void yuv_clip_left_right(char *image, int width, int height, int cols_left, int cols_right)
+void yuv_clip_left_right(uint8_t *image, int width, int height, int cols_left, int cols_right)
 {
 
-  char *in, *out;
+  uint8_t *in, *out;
   
   unsigned int y, block, offset, new, rowbytes; 
   unsigned int pixeltoins, offset_left, offset_right;
@@ -600,11 +600,11 @@ void yuv_clip_left_right(char *image, int width, int height, int cols_left, int 
 }
 
 
-void yuv_vclip(char *image, int width, int height, int lines)
+void yuv_vclip(uint8_t *image, int width, int height, int lines)
 {
 
   
-  char *in, *out;
+  uint8_t *in, *out;
   
   unsigned offset, block, bar; 
 
@@ -679,10 +679,10 @@ void yuv_vclip(char *image, int width, int height, int lines)
 }
 
 
-void yuv_clip_top_bottom(char *image, char *dest, int _width, int _height, int _lines_top, int _lines_bottom)
+void yuv_clip_top_bottom(uint8_t *image, uint8_t *dest, int _width, int _height, int _lines_top, int _lines_bottom)
 {
  
-  char *in=NULL, *out=NULL, *next, *offset;
+  uint8_t *in=NULL, *out=NULL, *next, *offset;
 
   int bytes=0;
 
@@ -824,10 +824,10 @@ void yuv_clip_top_bottom(char *image, char *dest, int _width, int _height, int _
 }
 
 
-static void yuv_mirror_core(char *image, int width,  int height)
+static void yuv_mirror_core(uint8_t *image, int width,  int height)
 {
 
-  char *in, *out;
+  uint8_t *in, *out;
 
   char tt;
 
@@ -866,7 +866,7 @@ static void yuv_mirror_core(char *image, int width,  int height)
   }
 }
 
-void yuv_mirror(char *image, int width, int height)
+void yuv_mirror(uint8_t *image, int width, int height)
 {
     int block = (width*height)>>2;
 
@@ -876,10 +876,10 @@ void yuv_mirror(char *image, int width, int height)
 }
 
 
-void yuv_swap(char *image, int width, int height)
+void yuv_swap(uint8_t *image, int width, int height)
 {
 
-  char *in, *out;
+  uint8_t *in, *out;
 
   int n, block;
 
@@ -900,10 +900,10 @@ void yuv_swap(char *image, int width, int height)
 }
 
 
-static void yuv_vresize_8_Y(char *image, int width, int height, int resize)
+static void yuv_vresize_8_Y(uint8_t *image, int width, int height, int resize)
 {
   
-  char *in, *out;
+  uint8_t *in, *out;
   
   unsigned int i, j=0, row_bytes, chunk, rows, n_height, m; 
     
@@ -940,10 +940,10 @@ static void yuv_vresize_8_Y(char *image, int width, int height, int resize)
 }
 
 
-static void yuv_vresize_8_up_Y(char *dest, char *image, int width, int height, int resize)
+static void yuv_vresize_8_up_Y(uint8_t *dest, uint8_t *image, int width, int height, int resize)
 {
   
-  char *in, *out, *last_row;
+  uint8_t *in, *out, *last_row;
   
   unsigned int i, j=0, row_bytes, chunk, rows, n_height, m; 
     
@@ -996,10 +996,10 @@ static void yuv_vresize_8_up_Y(char *dest, char *image, int width, int height, i
 }
 
 
-static void yuv_vresize_16_CbCr(char *image, int width, int height, int resize)
+static void yuv_vresize_16_CbCr(uint8_t *image, int width, int height, int resize)
 {
   
-  char *in, *out;
+  uint8_t *in, *out;
   
   unsigned int i, j=0, row_bytes, chunk, rows, n_height, m; 
     
@@ -1037,10 +1037,10 @@ static void yuv_vresize_16_CbCr(char *image, int width, int height, int resize)
   return;
 }
 
-static void yuv_vresize_16_up_CbCr(char *dest, char *image, int width, int height, int resize)
+static void yuv_vresize_16_up_CbCr(uint8_t *dest, uint8_t *image, int width, int height, int resize)
 {
   
-  char *in, *out, *last_row;
+  uint8_t *in, *out, *last_row;
   
   unsigned int i, j=0, row_bytes, chunk, rows, n_height, m; 
     
@@ -1092,7 +1092,7 @@ static void yuv_vresize_16_up_CbCr(char *dest, char *image, int width, int heigh
   return;
 }
 
-void yuv_vresize_8(char *image, int width, int height, int resize)
+void yuv_vresize_8(uint8_t *image, int width, int height, int resize)
 {
 
     int n_height, bytes;
@@ -1121,7 +1121,7 @@ void yuv_vresize_8(char *image, int width, int height, int resize)
 }
 
 
-void yuv_vresize_8_up(char *image, char *tmp_image, int width, int height, int resize)
+void yuv_vresize_8_up(uint8_t *image, uint8_t *tmp_image, int width, int height, int resize)
 {
 
     int n_height;
@@ -1142,7 +1142,7 @@ void yuv_vresize_8_up(char *image, char *tmp_image, int width, int height, int r
 }
 
 
-static void yuv_hresize_8_Y(char *image, int width, int height, int resize)
+static void yuv_hresize_8_Y(uint8_t *image, int width, int height, int resize)
 {
     
     unsigned int m, cols, i, j, pixels, n_width, blocks, incr;
@@ -1166,8 +1166,8 @@ static void yuv_hresize_8_Y(char *image, int width, int height, int resize)
     for(j = 0; j < 8 * height; ++j) {
       
       for (i = 0; i < cols; i++) {
-	
-	incr = j * blocks + hori_table_8_up[i].source;
+
+	incr = j * blocks + hori_table_8[i].source;
 	image[m] = (image[incr  ] * hori_table_8[i].weight1
 		  + image[incr+1] * hori_table_8[i].weight2 + 32768) >> 16;
 
@@ -1178,7 +1178,7 @@ static void yuv_hresize_8_Y(char *image, int width, int height, int resize)
     return;
 }
 
-static void yuv_hresize_8_up_Y(char * dest, char *image, int width, int height, int resize)
+static void yuv_hresize_8_up_Y(uint8_t *dest, uint8_t *image, int width, int height, int resize)
 {
     
     unsigned int m, cols, i, j, pixels, n_width, blocks, incr;
@@ -1219,7 +1219,7 @@ static void yuv_hresize_8_up_Y(char * dest, char *image, int width, int height, 
 }
 
 
-static void yuv_hresize_16_CbCr(char *image, int width, int height, int resize)
+static void yuv_hresize_16_CbCr(uint8_t *image, int width, int height, int resize)
 {
     
     unsigned int m, cols, i, j, pixels, n_width, blocks, incr;
@@ -1244,7 +1244,7 @@ static void yuv_hresize_16_CbCr(char *image, int width, int height, int resize)
       
       for (i = 0; i < cols; i++) {
 	
-	incr = j * blocks + hori_table_8_up[i].source;
+	incr = j * blocks + hori_table_8[i].source;
 	image[m] = (image[incr  ] * hori_table_8[i].weight1
 		  + image[incr+1] * hori_table_8[i].weight2 + 32768) >> 16;
 
@@ -1256,7 +1256,7 @@ static void yuv_hresize_16_CbCr(char *image, int width, int height, int resize)
 }
 
 
-static void yuv_hresize_16_up_CbCr(char *dest, char *image, int width, int height, int resize)
+static void yuv_hresize_16_up_CbCr(uint8_t *dest, uint8_t *image, int width, int height, int resize)
 {
     
     unsigned int m, cols, i, j, pixels, n_width, blocks, incr;
@@ -1294,7 +1294,7 @@ static void yuv_hresize_16_up_CbCr(char *dest, char *image, int width, int heigh
     return;
 }
 
-void yuv_hresize_8(char *image, int width, int height, int resize)
+void yuv_hresize_8(uint8_t *image, int width, int height, int resize)
 {
 
     int n_width, bytes;
@@ -1323,7 +1323,7 @@ void yuv_hresize_8(char *image, int width, int height, int resize)
 }
 
 
-void yuv_hresize_8_up(char *image, char *tmp_image, int width, int height, int resize)
+void yuv_hresize_8_up(uint8_t *image, uint8_t *tmp_image, int width, int height, int resize)
 {
 
     int n_width;
@@ -1346,9 +1346,9 @@ void yuv_hresize_8_up(char *image, char *tmp_image, int width, int height, int r
 }
 
 
-static inline void yuv_deinterlace_linear_blend_core(char *image, char *tmp, int width, int height)
+static inline void yuv_deinterlace_linear_blend_core(uint8_t *image, uint8_t *tmp, int width, int height)
 {
-  char *in, *out;
+  uint8_t *in, *out;
   
   unsigned int y, block; 
   
@@ -1404,9 +1404,9 @@ static inline void yuv_deinterlace_linear_blend_core(char *image, char *tmp, int
   ac_average(image, tmp, image, width*height);
 }
 
-void yuv_deinterlace_linear(char *image, int width, int height)
+void yuv_deinterlace_linear(uint8_t *image, int width, int height)
 {
-    char *in, *out;
+    uint8_t *in, *out;
     
     unsigned int y, block; 
     
@@ -1432,7 +1432,7 @@ void yuv_deinterlace_linear(char *image, int width, int height)
 }
 
 
-void yuv_deinterlace_linear_blend(char *image, char *tmp, int width, int height)
+void yuv_deinterlace_linear_blend(uint8_t *image, uint8_t *tmp, int width, int height)
 {
   // Y
   yuv_deinterlace_linear_blend_core(image, tmp, width, height);
@@ -1442,7 +1442,7 @@ void yuv_deinterlace_linear_blend(char *image, char *tmp, int width, int height)
 }
 
 
-inline void yuv_decolor(char *image, int offset)
+inline void yuv_decolor(uint8_t *image, int offset)
 {
     
     unsigned int y;
@@ -1472,7 +1472,7 @@ static void yuv_zoom_done(void)
 }
 
 
-static void yuv_zoom_init(char *image, char *tmp_buf, int width, int height, int new_width, int new_height)
+static void yuv_zoom_init(uint8_t *image, uint8_t *tmp_buf, int width, int height, int new_width, int new_height)
 {
   
   int id;
@@ -1503,11 +1503,11 @@ static void yuv_zoom_init(char *image, char *tmp_buf, int width, int height, int
 }
 
 
-void yuv_zoom(char *image, char *_tmp_buf, int width, int height, int new_width, int new_height)
+void yuv_zoom(uint8_t *image, uint8_t *_tmp_buf, int width, int height, int new_width, int new_height)
 {
 
   int id;
-  char *tmp_buf=_tmp_buf;
+  uint8_t *tmp_buf=_tmp_buf;
 
   //get thread id:
   
@@ -1558,7 +1558,7 @@ static void yuv_zoom_done_DI(void)
 }
 
 
-static void yuv_zoom_init_DI(char *image, int width, int height, int new_width, int new_height, int id)
+static void yuv_zoom_init_DI(uint8_t *image, int width, int height, int new_width, int new_height, int id)
 {
   
   vob_t *vob;
@@ -1581,7 +1581,7 @@ static void yuv_zoom_init_DI(char *image, int width, int height, int new_width, 
 }
 
 
-void yuv_zoom_DI(char *image, int width, int height, int new_width, int new_height)
+void yuv_zoom_DI(uint8_t *image, int width, int height, int new_width, int new_height)
 {
 
   int id;
@@ -1610,25 +1610,22 @@ void yuv_zoom_DI(char *image, int width, int height, int new_width, int new_heig
 
 
 
-void yuv_gamma(char *image, int len)
+void yuv_gamma(uint8_t *image, int len)
 {
     int n;
-    unsigned char *c;
-
-    c = (unsigned char*) image;
 
     for(n=0; n<=len; ++n) {
-      *c = gamma_table[*c];
-      ++c;
+      *image = gamma_table[*image];
+      ++image;
     }
 
     return;
 }
 
-void deinterlace_yuv_zoom(unsigned char *src, int width, int height)
+void deinterlace_yuv_zoom(uint8_t *src, int width, int height)
 {
 
-    char *in, *out;
+    uint8_t *in, *out;
 
     int i, block;
 
@@ -1681,10 +1678,10 @@ void deinterlace_yuv_zoom(unsigned char *src, int width, int height)
   
 }
 
-void deinterlace_yuv_nozoom(unsigned char *src, int width, int height)
+void deinterlace_yuv_nozoom(uint8_t *src, int width, int height)
 {
 
-    char *in, *out;
+    uint8_t *in, *out;
 
     int i, block;
 
@@ -1734,24 +1731,24 @@ void deinterlace_yuv_nozoom(unsigned char *src, int width, int height)
 }
 
 
-inline static int samecolor(char *color1, char *color2)
+inline static int samecolor(uint8_t *color1, uint8_t *color2)
 {
     
     unsigned short diff;
     
-    diff = abs((unsigned char) *color1 - (unsigned char) *color2);
+    diff = abs(*color1 - *color2);
     
     return (diff < s_threshold);
 }
 
-inline static int diffcolor(char *color, char *color1, char *color2)
+inline static int diffcolor(uint8_t *color, uint8_t *color1, uint8_t *color2)
 {
   unsigned short diff;
   
-  diff = abs((unsigned char) *color - (unsigned char)*color1);
+  diff = abs(*color - *color1);
   if (diff < d_threshold) return TC_FALSE; 
   
-  diff = abs((unsigned char) *color - (unsigned char)*color2);
+  diff = abs(*color - *color2);
   return (diff > d_threshold);
 }
 
@@ -1762,10 +1759,10 @@ inline static int diffcolor(char *color, char *color1, char *color2)
 #define WEST  (src_ptr - 1)
 
 
-static void antialias(char *inrow, char *outrow, int pixels)
+static void antialias(uint8_t *inrow, uint8_t *outrow, int pixels)
 {
     
-  unsigned char *dest_ptr, *src_ptr;
+  uint8_t *dest_ptr, *src_ptr;
   
   unsigned int i;
   
@@ -1818,12 +1815,12 @@ static void antialias(char *inrow, char *outrow, int pixels)
 #undef WEST
 
 
-void yuv_antialias(char *image, char *dest, int width, int height, int mode)
+void yuv_antialias(uint8_t *image, uint8_t *dest, int width, int height, int mode)
 {
     
     int i, j, block, pixels;
     
-    char *in, *out;
+    uint8_t *in, *out;
     
     
     j = height >>3;

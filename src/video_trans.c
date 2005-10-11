@@ -41,7 +41,7 @@ int vert_table_8_up_flag=0;
 int hori_table_8_flag=0;
 int hori_table_8_up_flag=0;
 
-unsigned char gamma_table[256];
+uint8_t gamma_table[256];
 /* can't be static */
 int gamma_table_flag = 0;
 
@@ -53,7 +53,7 @@ unsigned long *aa_table_y;
 unsigned long *aa_table_d;
 
 
-char *tmp_image=NULL;
+uint8_t *tmp_image=NULL;
 
 
 
@@ -133,7 +133,7 @@ void init_table_8_up(redtab_t *table, int length, int resize)
   return;    
 }
 
-void init_gamma_table(unsigned char *table, double gamma)
+void init_gamma_table(uint8_t *table, double gamma)
 {
   int i;
   
@@ -145,7 +145,7 @@ void init_gamma_table(unsigned char *table, double gamma)
     val = i/255.0;
     val = pow(val, gamma);
     val = 255.0*val;
-    table[i] = (unsigned char) val;
+    table[i] = (uint8_t) val;
   }
 
   return;    

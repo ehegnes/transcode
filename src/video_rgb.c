@@ -35,10 +35,10 @@
  *
  * ------------------------------------------------------------*/
 
-void rgb_rescale(char *image, int width, int height, int reduce_h, int reduce_w)
+void rgb_rescale(uint8_t *image, int width, int height, int reduce_h, int reduce_w)
 {
   
-  char *in, *out;
+  uint8_t *in, *out;
   
   unsigned int x, y; 
   
@@ -67,10 +67,10 @@ void rgb_rescale(char *image, int width, int height, int reduce_h, int reduce_w)
 }
 
 
-void rgb_flip(char *image, int width, int height)
+void rgb_flip(uint8_t *image, int width, int height)
 {
 
-  char *in, *out;
+  uint8_t *in, *out;
 
   // this shouldn't be too hard on the stack
   char rowbuffer[TC_MAX_V_FRAME_WIDTH*3];
@@ -94,10 +94,10 @@ void rgb_flip(char *image, int width, int height)
     }
 }
 
-void rgb_hclip(char *image, int width, int height, int cols)
+void rgb_hclip(uint8_t *image, int width, int height, int cols)
 {
 
-  char *in, *out;
+  uint8_t *in, *out;
   
   unsigned int y, block, offset, rowbytes; 
   unsigned int pixeltoins;
@@ -153,10 +153,10 @@ void rgb_hclip(char *image, int width, int height, int cols)
 
 }
 
-void rgb_clip_left_right(char *image, int width, int height, int cols_left, int cols_right)
+void rgb_clip_left_right(uint8_t *image, int width, int height, int cols_left, int cols_right)
 {
 
-  char *in, *out;
+  uint8_t *in, *out;
   
   unsigned int y, block, offset, rowbytes; 
   unsigned int pixeltoins, offset_left, offset_right;
@@ -292,11 +292,11 @@ void rgb_clip_left_right(char *image, int width, int height, int cols_left, int 
 }
 
 
-void rgb_vclip(char *image, int width, int height, int lines)
+void rgb_vclip(uint8_t *image, int width, int height, int lines)
 {
 
   
-  char *in, *out;
+  uint8_t *in, *out;
   
   unsigned int y, block, bar; 
 
@@ -328,10 +328,10 @@ void rgb_vclip(char *image, int width, int height, int lines)
   
 }
 
-void rgb_clip_top_bottom(char *image, char *dest, int width, int height, int _lines_top, int _lines_bottom)
+void rgb_clip_top_bottom(uint8_t *image, uint8_t *dest, int width, int height, int _lines_top, int _lines_bottom)
 {
   
-  char *in=NULL, *out=NULL, *offset, *next;
+  uint8_t *in=NULL, *out=NULL, *offset, *next;
   
   unsigned int block; 
   
@@ -384,10 +384,10 @@ void rgb_clip_top_bottom(char *image, char *dest, int width, int height, int _li
 }
 
 
-void rgb_mirror(char *image, int width,  int height)
+void rgb_mirror(uint8_t *image, int width,  int height)
 {
 
-  char *in, *out;
+  uint8_t *in, *out;
 
   char ttr, ttg, ttb;
 
@@ -445,31 +445,10 @@ void rgb_swap(uint8_t *image, int pixels)
 }
 
 
-inline int rgb_merge_C(char *row1, char *row2, char *out, int bytes, 
-			unsigned long weight1, unsigned long weight2)
+void rgb_vresize_8(uint8_t *image, int width, int height, int resize)
 {
   
-  //blend each color entry in two arrays and return
-  //result in char *out
-    
-    unsigned int y;
-    unsigned long tmp;
-    register unsigned long w1 = weight1;
-    register unsigned long w2 = weight2;
-
-    for (y = 0; y<bytes; ++y) {
-      tmp = w2 * (unsigned char) row2[y] + w1 *(unsigned char) row1[y];
-      out[y] = (tmp>>16) & 0xff;
-    }
-
-    return(0);
-}
-
-
-void rgb_vresize_8(char *image, int width, int height, int resize)
-{
-  
-  char *in, *out;
+  uint8_t *in, *out;
   
   unsigned int i, j=0, row_bytes, chunk, rows, n_height, m; 
     
@@ -505,10 +484,10 @@ void rgb_vresize_8(char *image, int width, int height, int resize)
   return;
 }
 
-void rgb_vresize_8_up(char *image, char *tmp_image, int width, int height, int resize)
+void rgb_vresize_8_up(uint8_t *image, uint8_t *tmp_image, int width, int height, int resize)
 {
   
-  char *in, *out, *last_row;
+  uint8_t *in, *out, *last_row;
   
   unsigned int i, j=0, row_bytes, chunk, rows, n_height, m; 
     
@@ -564,10 +543,10 @@ void rgb_vresize_8_up(char *image, char *tmp_image, int width, int height, int r
 }
 
 
-void rgb_hresize_8(char *image, int width, int height, int resize)
+void rgb_hresize_8(uint8_t *image, int width, int height, int resize)
 {
     
-    char *in, *out;
+    uint8_t *in, *out;
     
     unsigned int m, cols, i, j, pixels, n_width, blocks; 
     
@@ -609,10 +588,10 @@ void rgb_hresize_8(char *image, int width, int height, int resize)
 }
 
 
-void rgb_hresize_8_up(char *image, char *tmp_image, int width, int height, int resize)
+void rgb_hresize_8_up(uint8_t *image, uint8_t *tmp_image, int width, int height, int resize)
 {
     
-    char *in, *out;
+    uint8_t *in, *out;
     
     unsigned int m, cols, i, j, pixels, n_width, blocks, incr; 
     
@@ -636,7 +615,7 @@ void rgb_hresize_8_up(char *image, char *tmp_image, int width, int height, int r
       
       for (i = 0; i < cols; i++) {
 	
-	incr = j * blocks + hori_table_8_up[i].source ;
+	incr = j * blocks + hori_table_8[i].source ;
 	in  = image + incr *3;
 	out = tmp_image + m;
 	
@@ -660,14 +639,9 @@ void rgb_hresize_8_up(char *image, char *tmp_image, int width, int height, int r
 }
 
 
-static inline void rgb_deinterlace_linear_blend_core(char *image, char *tmp, int width, int height)
+void rgb_deinterlace_linear(uint8_t *image, int width, int height)
 {
-}
-
-
-void rgb_deinterlace_linear(char *image, int width, int height)
-{
-    char *in, *out;
+    uint8_t *in, *out;
     
     unsigned int y, block; 
     
@@ -689,9 +663,9 @@ void rgb_deinterlace_linear(char *image, int width, int height)
     }
 }
 
-void rgb_deinterlace_linear_blend(char *image, char *tmp, int width, int height)
+void rgb_deinterlace_linear_blend(uint8_t *image, uint8_t *tmp, int width, int height)
 {
-  char *in, *out;
+  uint8_t *in, *out;
   
   unsigned int y, block; 
   
@@ -751,7 +725,7 @@ void rgb_deinterlace_linear_blend(char *image, char *tmp, int width, int height)
 }
 
 
-inline void rgb_decolor(char *image, int bytes)
+inline void rgb_decolor(uint8_t *image, int bytes)
 {
     unsigned int y;
     unsigned short tmp;
@@ -759,7 +733,7 @@ inline void rgb_decolor(char *image, int bytes)
     double ftmp;
     
     for (y = 0; y<bytes; y=y+3) {
-	ftmp = YRED * (unsigned char) image[y] + YGREEN *(unsigned char) image[y+1] + YBLUE * (unsigned char) image[y+2]; 
+	ftmp = YRED * image[y] + YGREEN * image[y+1] + YBLUE * image[y+2]; 
 	
 	tmp = (unsigned short) ftmp;
 	
@@ -772,14 +746,14 @@ inline void rgb_decolor(char *image, int bytes)
 }
 
 
-inline static int samecolor(char *color1, char *color2, int bytes)
+inline static int samecolor(uint8_t *color1, uint8_t *color2, int bytes)
 {
   
   int i;
   unsigned short maxdiff=0, diff;
   
   for(i=0; i<bytes; i++) {
-    diff = abs((unsigned char) color1[i] - (unsigned char) color2[i]);
+    diff = abs(color1[i] - color2[i]);
     if (diff > maxdiff) 
       maxdiff = diff;
   }
@@ -787,13 +761,13 @@ inline static int samecolor(char *color1, char *color2, int bytes)
   return (maxdiff < s_threshold);
 }
 
-inline static int diffcolor(char *color, char *color1, char *color2, int bytes)
+inline static int diffcolor(uint8_t *color, uint8_t *color1, uint8_t *color2, int bytes)
 {
   int i;
   unsigned short maxdiff=0, diff;
   
   for(i=0; i<bytes; i++) {
-    diff = abs((unsigned char) color[i] - (unsigned char) color1[i]);
+    diff = abs(color[i] - color1[i]);
     if (diff > maxdiff) 
       maxdiff = diff;
   }
@@ -803,7 +777,7 @@ inline static int diffcolor(char *color, char *color1, char *color2, int bytes)
   maxdiff=0;
   
   for(i=0; i<bytes; i++) {
-    diff = abs((unsigned char)color[i] - (unsigned char)color2[i]);
+    diff = abs(color[i] - color2[i]);
     if (diff > maxdiff) 
       maxdiff = diff;
   }
@@ -817,13 +791,13 @@ inline static int diffcolor(char *color, char *color1, char *color2, int bytes)
 #define WEST  (src_ptr - bpp)
 
 
-static void antialias(char *inrow, char *outrow, int pixels)
+static void antialias(uint8_t *inrow, uint8_t *outrow, int pixels)
 {
     
   // bytes per pixel
   const unsigned short bpp = BPP/8;
   
-  unsigned char *dest_ptr, *src_ptr;
+  uint8_t *dest_ptr, *src_ptr;
   
   unsigned int i, j;
   
@@ -885,12 +859,12 @@ static void antialias(char *inrow, char *outrow, int pixels)
 #undef WEST
 
 
-void rgb_antialias(char *image, char *dest, int width, int height, int mode)
+void rgb_antialias(uint8_t *image, uint8_t *dest, int width, int height, int mode)
 {
     
     int i, j, block, pixels;
     
-    char *in, *out;
+    uint8_t *in, *out;
     
     
     j = height >>3;
@@ -998,7 +972,7 @@ static void rgb_zoom_done(void)
   free(tbuf[id].tmpBuffer);
 }
 
-static void rgb_zoom_init(char *image, int width, int height, int new_width, int new_height)
+static void rgb_zoom_init(uint8_t *image, int width, int height, int new_width, int new_height)
 {
 
   int id;
@@ -1022,7 +996,7 @@ static void rgb_zoom_init(char *image, int width, int height, int new_width, int
 }
 
 
-void rgb_zoom(char *image, int width, int height, int new_width, int new_height)
+void rgb_zoom(uint8_t *image, int width, int height, int new_width, int new_height)
 {
 
   int id;
@@ -1060,7 +1034,7 @@ static void rgb_zoom_done_DI(void)
   free(tbuf_DI[id].tmpBuffer);
 }
 
-static void rgb_zoom_init_DI(char *image, int width, int height, int new_width, int new_height, int id)
+static void rgb_zoom_init_DI(uint8_t *image, int width, int height, int new_width, int new_height, int id)
 {
 
   vob_t *vob;
@@ -1078,7 +1052,7 @@ static void rgb_zoom_init_DI(char *image, int width, int height, int new_width, 
 }
 
 
-void rgb_zoom_DI(char *image, int width, int height, int new_width, int new_height)
+void rgb_zoom_DI(uint8_t *image, int width, int height, int new_width, int new_height)
 {
 
   int id;
@@ -1105,25 +1079,22 @@ void rgb_zoom_DI(char *image, int width, int height, int new_width, int new_heig
 }
 
 
-void rgb_gamma(char *image, int len)
+void rgb_gamma(uint8_t *image, int len)
 {
     int n;
-    unsigned char *c;
-
-    c = (unsigned char*) image;
 
     for(n=0; n<=len; ++n) {
-      *c = gamma_table[*c];
-      ++c;
+      *image = gamma_table[*image];
+      ++image;
     }
 
     return;
 }
 
-void deinterlace_rgb_zoom(unsigned char *src, int width, int height)
+void deinterlace_rgb_zoom(uint8_t *src, int width, int height)
 {
 
-    char *in, *out;
+    uint8_t *in, *out;
 
     int i, block;
 
@@ -1147,10 +1118,10 @@ void deinterlace_rgb_zoom(unsigned char *src, int width, int height)
   
 }
 
-void deinterlace_rgb_nozoom(unsigned char *src, int width, int height)
+void deinterlace_rgb_nozoom(uint8_t *src, int width, int height)
 {
 
-    char *in, *out;
+    uint8_t *in, *out;
 
     int i, block;
 
