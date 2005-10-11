@@ -10,6 +10,9 @@
     filter/filter_whitebalance.c
   Replace tc_{rgb2yuv,yuv2rgb} functions with a single tcv_convert().
 
+  * export/export_raw.c
+  Set fourcc for YUV mode to I420 instead of YV12.
+
   * import/decode_mpeg2.c
   Fixed bug causing red/blue swapping for -x vob.
 

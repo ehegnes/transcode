@@ -150,11 +150,11 @@ further:
 	width = vob->ex_v_width;
 	height = vob->ex_v_height;
 	
-	AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->ex_fps, "YV12");
+	AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->ex_fps, "I420");
 	
 	if(!info_shown && verbose_flag) 
 	  fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
-		MOD_NAME, "YV12", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
+		MOD_NAME, "I420", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
 	break;
 
       case CODEC_YUV422:
