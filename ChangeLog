@@ -1,3 +1,7 @@
+2005-10-11 Andrew Church <achurch at achurch dot org>
+  * import/decode_mpeg2.c
+  Fixed bug causing red/blue swapping for -x vob.
+
 2005-10-11 Aleksey Sudakov <Aleksey.Sudakov at turner dot com>
   * libxio/libxio.c
   Include <errno.h> instead of <sys/errno.h> to fix compilation on Solaris.
