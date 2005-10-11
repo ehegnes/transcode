@@ -233,6 +233,7 @@ MOD_open
 	}
 	m2v_passthru=1;
 
+#warning ********************* FIXME ********************* snprintf() returns needed size instead of -1 on most systems
 	if((snprintf(import_cmd_buf, MAX_BUF, 
 		"tccat -i \"%s\" -t vob -d %d -S %d"
 		" | tcdemux -s 0x%x -x mpeg2 %s %s -d %d"
