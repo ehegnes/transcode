@@ -235,7 +235,7 @@ D: (video) * | (audio) MPEG/AC3/PCM
 C: none
 R: none
 S: +
-I: Can write uncompressed streams to an AVI file as well as raw mpeg2 files in pass-through mode.
+I: Can write uncompressed streams to an AVI file as well as raw mpeg2 files in pass-through mode. The image format for uncompressed streams can be selected with -F (use -F help to see available formats).
 P: audio - RAW (pass-through) PCM AC3, video - RAW (pass-through) RGB YUV DV YUV422
 
 M: export_toolame.c

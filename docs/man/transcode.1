@@ -279,6 +279,9 @@ Note: You can use "list" instead of a video/audiocodec or parameter to get a lis
       '8' = DVD
     <options_string> will be passed down to mpeg2enc untouched by transcode. Have a look at the manpage for mpeg2enc.
 
+-y \fIraw\fP:
+  The name of the image format to use for uncompressed video. Examples are I420 (YUV 4:2:0 planar), YV12 (the same thing with U and V reversed), or UYVY (YUV 4:2:2 packed). Use "-F help" to get a list of formats.
+
 
 .TP
 .B \-G \fIval\fP
@@ -1584,7 +1587,7 @@ This module has no compile-time dependencies.
 This module has no run-time dependencies.
 Support for this module is good.
 .RS 8
-Can write uncompressed streams to an AVI file as well as raw mpeg2 files in pass-through mode.
+Can write uncompressed streams to an AVI file as well as raw mpeg2 files in pass-through mode. The image format for uncompressed streams can be selected with -F (use -F help to see available formats).
 .br
 Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RAW (pass-through) RGB YUV DV YUV422
 .RE

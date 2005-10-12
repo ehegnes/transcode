@@ -156,7 +156,7 @@ export_pvn_la_SOURCES = export_pvn.c aud_aux.c
 export_pvn_la_LDFLAGS = -module -avoid-version
 export_pvn_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(ACLIB_LIBS) $(LIBAVCODEC_LIBS)
 
-export_raw_la_SOURCES = export_raw.c aud_aux.c
+export_raw_la_SOURCES = export_raw.c aud_aux.c vid_aux.c
 export_raw_la_LDFLAGS = -module -avoid-version
 export_raw_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 

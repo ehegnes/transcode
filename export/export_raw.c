@@ -50,7 +50,24 @@ static int mpeg_passthru;
 static FILE *mpeg_f = NULL;
 
 static ImageFormat srcfmt = IMG_NONE, destfmt = IMG_NONE;
+static int destsize = 0;
 
+static const struct {
+    const char *name;  // fourcc
+    ImageFormat format;
+    int bpp;
+} formats[] = {
+    { "I420", IMG_YUV420P, 12 },
+    { "YV12", IMG_YV12,    12 },
+    { "YUY2", IMG_YUY2,    16 },
+    { "UYVY", IMG_UYVY,    16 },
+    { "YVYU", IMG_YVYU,    16 },
+    { "Y800", IMG_Y8,       8 },
+    { "RGB",  IMG_RGB24,   24 },
+    { NULL,   IMG_NONE,     0 }
+};
+
+/*************************************************************************/
 
 static int scan(char *name) 
 {
@@ -103,8 +120,34 @@ MOD_open
     char *codec;
     char *dir_name = NULL;
     char *to_open;
+    const char *fcc = NULL;
 
     im_v_codec = vob->im_v_codec;
+
+    if (vob->ex_v_fcc) {
+	int want_help = (strcasecmp(vob->ex_v_fcc, "help") == 0);
+	int i;
+	if (want_help)
+	    fprintf(stderr, "[%s] Available formats:", MOD_NAME);
+	for (i = 0; formats[i].name != NULL; i++) {
+	    if (want_help)
+		fprintf(stderr, " %s", formats[i].name);
+	    else if (strcasecmp(formats[i].name, vob->ex_v_fcc) == 0)
+		break;
+	}
+	if (want_help)
+	    fprintf(stderr, "\n");
+	if (formats[i].name == NULL) {
+	    if (!want_help) {
+		tc_warn("[%s] Unknown output format, \"-F help\" to list",
+			MOD_NAME);
+	    }
+	    return TC_EXPORT_ERROR;
+	}
+	fcc = formats[i].name;
+	destfmt = formats[i].format;
+	destsize = vob->ex_v_width * vob->ex_v_height * formats[i].bpp / 8;
+    }
 
     // open out file
     if(param->flag==TC_AUDIO && vob->out_flag) goto further; 
@@ -126,6 +169,11 @@ further:
       
       // video
       
+      if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
+	tc_warn("[%s] tcv_convert_init failed\n", MOD_NAME);
+	return(TC_EXPORT_ERROR);
+      }
+
       switch(vob->im_v_codec) {
 	
       case CODEC_RGB:
@@ -135,17 +183,22 @@ further:
 	
 	width = vob->ex_v_width;
 	height = vob->ex_v_height;
+	if (!fcc)
+	    fcc = "RGB";
 	
-	AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->ex_fps, "RGB");
+	AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height,
+		      vob->ex_fps, fcc);
 
 	if (vob->avi_comment_fd>0)
 	    AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
 
 	if(!info_shown && verbose_flag) 
 	  fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
-		  MOD_NAME, "RGB", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
-	  break;
-	    
+		  MOD_NAME, fcc, vob->ex_fps,
+		  vob->ex_v_width, vob->ex_v_height);
+	srcfmt = IMG_RGB_DEFAULT;
+	break;
+
       case CODEC_YUV:
 	
 	//force keyframe
@@ -153,12 +206,17 @@ further:
 
 	width = vob->ex_v_width;
 	height = vob->ex_v_height;
+	if (!fcc)
+	    fcc = "I420";
 	
-	AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->ex_fps, "I420");
+	AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height,
+		      vob->ex_fps, fcc);
 	
 	if(!info_shown && verbose_flag) 
 	  fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
-		MOD_NAME, "I420", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
+		  MOD_NAME, fcc, vob->ex_fps,
+		  vob->ex_v_width, vob->ex_v_height);
+	srcfmt = IMG_YUV_DEFAULT;
 	break;
 
       case CODEC_YUV422:
@@ -168,19 +226,20 @@ further:
 
 	width = vob->ex_v_width;
 	height = vob->ex_v_height;
+	if (!fcc)
+	    fcc = "UYVY";
 	
-	AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->ex_fps, "UYVY");
+	AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height,
+		      vob->ex_fps, fcc);
 	
 	if(!info_shown && verbose_flag) 
 	  fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
-		MOD_NAME, "UYVY", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
+		  MOD_NAME, fcc, vob->ex_fps,
+		  vob->ex_v_width, vob->ex_v_height);
 
-	if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
-	  tc_warn("[%s] tcv_convert_init failed\n", MOD_NAME);
-	  return(TC_EXPORT_ERROR);
-	}
 	srcfmt = IMG_YUV422P;
-	destfmt = IMG_UYVY;
+	if (!vob->ex_v_fcc)
+	    destfmt = IMG_UYVY;
 	break;
 
 	    
@@ -300,16 +359,11 @@ MOD_encode
 
   int key;
   int i, mod=width%4;
+  int size = param->size;
   
   if(param->flag == TC_VIDEO) { 
 
     if (mpeg_f) {
-      if (srcfmt && destfmt) {
-	if (!tcv_convert(param->buffer, srcfmt, destfmt)) {
-	  tc_warn("[%s] image conversion failed", MOD_NAME);
-	  return(TC_EXPORT_ERROR);
-	}
-      }
       if (fwrite (param->buffer, 1, param->size, mpeg_f) != param->size) {
 	tc_warn("[%s] Cannot write data: %s", MOD_NAME, strerror(errno));
 	return(TC_EXPORT_ERROR); 
@@ -327,9 +381,18 @@ MOD_encode
     
     if(key) tc_outstream_rotate();
 
+    if (srcfmt && destfmt) {
+      if (!tcv_convert(param->buffer, srcfmt, destfmt)) {
+	tc_warn("[%s] image conversion failed", MOD_NAME);
+	return(TC_EXPORT_ERROR);
+      }
+      if (destsize)
+	size = destsize;
+    }
+
     // Fixup: For uncompressed AVIs, it must be aligned at
     // a 4-byte boundary
-    if (mod && (im_v_codec == CODEC_RGB)) {
+    if (mod && (destfmt ? destfmt == IMG_RGB24 : im_v_codec == CODEC_RGB)) {
 	for (i = height; i>0; i--) {
 	    memmove (param->buffer+(i*width*3) + mod*i,
 		     param->buffer+(i*width*3) , 
@@ -339,7 +402,7 @@ MOD_encode
 	//fprintf(stderr, "going here mod = |%d| width (%d) size (%d)||\n", mod, width, param->size);
     }
     // write video
-    if(AVI_write_frame(avifile2, param->buffer, param->size, key)<0) {
+    if(AVI_write_frame(avifile2, param->buffer, size, key)<0) {
       AVI_print_error("avi video write error");
       
       return(TC_EXPORT_ERROR); 
