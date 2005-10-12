@@ -22,12 +22,11 @@
  */
 
 #include "transcode.h"
+#include "ioaux.h"
+#include "iodir.h"
+#include "tc.h"
 
 #include <sys/types.h>
-#include <dirent.h>
-
-#include "ioaux.h"
-#include "tc.h"
 
 #ifdef HAVE_LIBDVDREAD
 #ifdef HAVE_LIBDVDREAD_INC
@@ -42,147 +41,10 @@
 
 int dvd_read(int arg_title, int arg_chapter, int arg_angle);
 
-#ifdef SYS_BSD
-typedef	off_t off64_t;
-#define	lseek64 lseek
-#endif
-
 #define IO_BUF_SIZE 1024
 #define DVD_VIDEO_LB_LEN 2048
 
 static int verbose_flag=TC_QUIET;
-
-static DIR *dir=NULL;
-
-static char filename[PATH_MAX+2];
-
-static char **rbuf_ptr;
-
-static int nfiles=0, findex=0, buffered=0;  
-
-#warning ************* FIXME **************** is this a copy of src/iodir.c?
-static int open_directory(char *dir_name)
-{
-  if((dir = opendir(dir_name))==NULL) return(-1);
-  return(0);
-}
-
-static char *scan_directory(char *dir_name)
-{ 
-  struct dirent *dent;
-  char *end_of_dir;
-  int len;
-  
-  if (dir_name == 0) return NULL;
-  if (dir == 0) return NULL;
-  
-  len = strlen( dir_name );
-  end_of_dir = &dir_name[ len - 1 ];
-  
-  if ( *end_of_dir != '/' ) { 
-      end_of_dir++;
-      *end_of_dir = '/';
-      end_of_dir++;
-      *end_of_dir = 0;	
-  }
-  
-  switch(buffered) {
-      
-  case 0:
-      
-      while((dent = readdir( dir ))!=NULL) {
-	  
-	  if((strncmp(dent->d_name, ".", 1)==0) || (strcmp(dent->d_name, "..")==0)) 
-	      continue;
-	  
-	  snprintf(filename, sizeof(filename), "%s%s", dir_name, dent->d_name);
-
-	  //counter 
-	  ++nfiles;
-	  
-	  return(filename);
-      }
-      
-      break;
-      
-  case 1:
-      
-      if (findex < nfiles) {
-	  return(rbuf_ptr[findex++]); 
-      } else {
-	  return(NULL);
-      }
-
-      break;
-  }
-  
-  return(NULL);
-}
-
-
-static int compare_name(const void *file1_ptr, const void *file2_ptr)
-{
-    return strcoll(*(const char **)file1_ptr, *(const char **)file2_ptr);
-}
-
-
-static int sortbuf_directory(char *dir_name)
-{ 
-  struct dirent *dent;
-  char *end_of_dir;
-  int n, len;
-
-  if (dir_name == 0) return(-1);
-  if (dir == 0) return(-1);
-  if(nfiles == 0) return(-1);
-  
-  len = strlen( dir_name );
-  end_of_dir = &dir_name[ len - 1 ];
-  
-  if ( *end_of_dir != '/' ) { 
-    end_of_dir++;
-    *end_of_dir = '/';
-    end_of_dir++;
-    *end_of_dir = 0;	
-  }
-  
-  if((rbuf_ptr = (char **) calloc(nfiles, sizeof(char *)))==NULL) {
-      perror("out of memory");
-      return(-1);
-  }
-  
-  n=0;
-
-  while((dent = readdir( dir ))!=NULL) {
-    
-    if((strncmp(dent->d_name, ".", 1)==0) || (strcmp(dent->d_name, "..")==0)) 
-      continue;
-    
-    snprintf(filename, sizeof(filename), "%s%s", dir_name, dent->d_name);
-    rbuf_ptr[n++] = strdup(filename);
-  }
-  
-  // sorting
-
-  qsort(rbuf_ptr, nfiles, sizeof(char *), compare_name);
-
-  buffered=1;
-  findex=0;
-
-  return(0);
-}
-
-
-static void close_directory(void)
-{
-    if(dir!=NULL) closedir(dir);
-    dir=NULL;
-}
-
-static void freebuf_directory(void)
-{
-    free(rbuf_ptr);
-}
 
 /* ------------------------------------------------------------ 
  *
@@ -323,13 +185,13 @@ void tccat_thread(info_t *ipipe)
     
     //PASS 1: check file type - file order not important
 
-    if((open_directory(ipipe->name))<0) { 
+    if((tc_open_directory(ipipe->name))<0) { 
       fprintf(stderr, "(%s) unable to open directory \"%s\"\n", __FILE__, ipipe->name);
       exit(1);
     } else if(verbose_flag & TC_DEBUG) 
       fprintf(stderr, "(%s) scanning directory \"%s\"\n", __FILE__, ipipe->name);
     
-    while((name=scan_directory(ipipe->name))!=NULL) {	
+    while((name=tc_scan_directory(ipipe->name))!=NULL) {	
       
       if((ipipe->fd_in = open(name, O_RDONLY))<0) {
 	perror("file open");
@@ -383,7 +245,7 @@ void tccat_thread(info_t *ipipe)
       } // check itype
     } // process files
     
-    close_directory();
+    tc_close_directory();
     
     if(!found) {
       fprintf(stderr,"\nerror: no valid files found in %s\n", name);
@@ -395,17 +257,17 @@ void tccat_thread(info_t *ipipe)
     
     //PASS 2: dump files in correct order
     
-    if((open_directory(ipipe->name))<0) { 
+    if((tc_open_directory(ipipe->name))<0) { 
       fprintf(stderr, "(%s) unable to sort directory entries\"%s\"\n", __FILE__, name);
       exit(1);
     }
 
-    if((sortbuf_directory(ipipe->name))<0) { 
+    if((tc_sortbuf_directory(ipipe->name))<0) { 
       fprintf(stderr, "(%s) unable to sort directory entries\"%s\"\n", __FILE__, name);
       exit(1);
     }
     
-    while((name=scan_directory(ipipe->name))!=NULL) {
+    while((name=tc_scan_directory(ipipe->name))!=NULL) {
       
       if((ipipe->fd_in = open(name, O_RDONLY))<0) {
 	perror("file open");
@@ -478,8 +340,8 @@ void tccat_thread(info_t *ipipe)
 
     }//process files
     
-    close_directory();
-    freebuf_directory();
+    tc_close_directory();
+    tc_freebuf_directory();
 
     break;
   }
@@ -492,21 +354,21 @@ int fileinfo_dir(char *dname, int *fd, long *magic)
     
     //check file type - file order not important
     
-    if((open_directory(dname))<0) { 
+    if((tc_open_directory(dname))<0) { 
 	fprintf(stderr, "(%s) unable to open directory \"%s\"\n", __FILE__, dname);
 	exit(1);
     } else if(verbose_flag & TC_DEBUG) 
 	
 	fprintf(stderr, "(%s) scanning directory \"%s\"\n", __FILE__, dname);
     
-    if((name=scan_directory(dname))==NULL) return(-1); 	
+    if((name=tc_scan_directory(dname))==NULL) return(-1); 	
 
     if((*fd= open(name, O_RDONLY))<0) {
 	perror("open file");
 	return(-1);
     }
 
-    close_directory();
+    tc_close_directory();
     
     //first valid magic must be the same for all
     //files to follow, but is not checked here
