@@ -167,15 +167,15 @@ export_wav_la_SOURCES = export_wav.c
 export_wav_la_LDFLAGS = -module -avoid-version
 export_wav_la_LIBADD = -lm
 
-export_xvid2_la_SOURCES = export_xvid2.c aud_aux.c xvid_vbr.c ../import/ioaux.c
+export_xvid2_la_SOURCES = export_xvid2.c aud_aux.c vid_aux.c xvid_vbr.c ../import/ioaux.c
 export_xvid2_la_LDFLAGS = -module -avoid-version
 export_xvid2_la_LIBADD = $(LIBAVCODEC_LIBS) $(LAME_LIBS) $(AC3_LIBS)
 
-export_xvid3_la_SOURCES = export_xvid3.c aud_aux.c xvid_vbr.c ../import/ioaux.c
+export_xvid3_la_SOURCES = export_xvid3.c aud_aux.c vid_aux.c xvid_vbr.c ../import/ioaux.c
 export_xvid3_la_LDFLAGS = -module -avoid-version
 export_xvid3_la_LIBADD = $(LIBAVCODEC_LIBS) $(LAME_LIBS) $(AC3_LIBS)
 
-export_xvid4_la_SOURCES = export_xvid4.c aud_aux.c ../import/ioaux.c
+export_xvid4_la_SOURCES = export_xvid4.c aud_aux.c vid_aux.c ../import/ioaux.c
 export_xvid4_la_LDFLAGS = -module -avoid-version
 export_xvid4_la_LIBADD = $(LIBAVCODEC_LIBS) $(LAME_LIBS) $(AC3_LIBS)
 
