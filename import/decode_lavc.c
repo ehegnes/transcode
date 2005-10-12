@@ -287,7 +287,6 @@ void decode_lavc(decode_t *decode)
       YUV_INIT_PLANES(planes, out_buffer, IMG_YUV420P,
 		      lavc_dec_context->width, lavc_dec_context->height);
 
-#warning ******************** FIXME ******************** use strides in imgconvert
       // Convert avcodec image to the requested YUV or RGB format
       switch (lavc_dec_context->pix_fmt) {
 	case PIX_FMT_YUVJ420P:

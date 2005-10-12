@@ -598,7 +598,6 @@ retry:
     YUV_INIT_PLANES(planes, frame, IMG_YUV_DEFAULT,
 		    lavc_dec_context->width, lavc_dec_context->height);
 
-#warning ******************** FIXME ******************** use strides in imgconvert
     // Convert avcodec image to our internal YUV or RGB format
     switch (lavc_dec_context->pix_fmt) {
       case PIX_FMT_YUVJ420P:
