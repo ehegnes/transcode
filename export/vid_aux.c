@@ -33,6 +33,9 @@ int tcv_convert(uint8_t *image, ImageFormat srcfmt, ImageFormat destfmt)
     uint8_t *srcplanes[3], *destplanes[3];
     int size;
 
+    if (!va_width || !va_height || !va_buffer)
+	return 0;  /* not initted */
+
     if (srcfmt == destfmt && srcfmt != IMG_NONE)
 	return 1;  /* formats are the same */
 
