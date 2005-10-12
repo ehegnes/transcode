@@ -32,6 +32,10 @@
 
 #include "video_trans.h"
 
+#warning ********************** FIXME *********************** disabled, functions no longer available (module to be deleted)
+
+#ifdef VIDEOCORE_NOT_DEFINED
+
 // basic parameter
 unsigned char gamma_table[256];
 
@@ -51,6 +55,8 @@ typedef struct MyFilterData {
 	
 static MyFilterData *mfd = NULL;
 
+#endif
+
 /*-------------------------------------------------
  *
  * single function interface
@@ -66,6 +72,14 @@ static void help_optstr(void)
 
 int tc_filter(frame_list_t *ptr_, char *options)
 {
+
+#ifndef VIDEOCORE_NOT_DEFINED
+
+  tc_error("[%s] this filter is obsolete, please use command line options instead", MOD_NAME);
+  return(-1);
+
+#else
+
   vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
 
@@ -317,5 +331,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
   }
   
   return(0);
+
+#endif /*VIDEOCORE_NOT_DEFINED*/
+
 }
 
