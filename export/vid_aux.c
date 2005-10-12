@@ -3,7 +3,7 @@
  * Written by Andrew Church <achurch@achurch.org>
  */
 
-#warning ************* FIXME ************* lots of people using us -> conflicts?
+#warning ************* FIXME ************* make sure everybody using us links us in
 
 #include "vid_aux.h"
 
