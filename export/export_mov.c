@@ -65,8 +65,8 @@ static quicktime_t *qtfile = NULL;
 /* row pointer for source frames */
 static unsigned char** row_ptr = NULL;
 
-/* temporary buffer*/
-static char *tmp_buf;
+/* temporary buffer */
+static uint8_t *tmp_buf;
 
 /* toggle for raw frame export */
 static int rawVideo = 0;
