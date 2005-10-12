@@ -3,6 +3,8 @@
  * Written by Andrew Church <achurch@achurch.org>
  */
 
+#warning ************* FIXME ************* lots of people using us -> conflicts?
+
 #include "vid_aux.h"
 
 static int         va_width   = 0;
