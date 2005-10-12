@@ -1013,7 +1013,7 @@ if test x"$have_libquicktime" = x"yes" ; then
   AC_CHECK_LIB(quicktime, lqt_encode_video,
     [AC_DEFINE([LIBQUICKTIME_000904], [1], [Have libquicktime 0.9.4 or newer])],
     [], 
-    [$LIBQUICKTIME_EXTRA_LIBS])
+    [$LIBQUICKTIME_LIBS $LIBQUICKTIME_EXTRA_LIBS])
 fi
 TC_PKG_HAVE(libquicktime, LIBQUICKTIME)
 

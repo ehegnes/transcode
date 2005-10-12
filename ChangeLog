@@ -1,4 +1,7 @@
 2005-10-13 Andrew Church <achurch at achurch dot org>
+  * configure.in
+  Fix a bug in detecting libquicktime version (-L not used in check).
+
   * docs/man/transcode.1 filter/filter_videocore.c
   Obsolete the videocore filter (now just prints an error if used), since
   all the functions are available on the command line anyway, and the
