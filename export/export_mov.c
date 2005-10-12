@@ -373,7 +373,7 @@ MOD_init
         if (quicktime_writes_cmodel(qtfile, qt_cm ,0) != 1) { 
                 if (verbose_flag != TC_QUIET)
                     fprintf(stderr,"[%s] INFO: Colorspace conversation required you may want to try\n"
-                                   "[%s]       a different mode (rgb, yuv, uyvy) to speed up encoding\n", 
+                                   "[%s]       a different mode (rgb, yuv, yuv422) to speed up encoding\n", 
                         MOD_NAME, MOD_NAME);
         }
     }
@@ -659,8 +659,10 @@ MOD_encode
                 /* setup row pointers for YUV422 */
                 sl = w*2;                        
                 if (qt_cm != CODEC_YUY2){
-                    /* convert uyvy to yuy2 */   /* find out if lqt supports uyvy byteorder */ 
-                    ac_imgconvert(&ptr, IMG_UYVY, &tmp_buf, IMG_YUY2, w, h);
+                    /* convert yuv422 to yuy2 */
+		    uint8_t *src[3];
+		    YUV_INIT_PLANES(src, ptr, IMG_YUV422P, w, h);
+                    ac_imgconvert(src, IMG_YUV422P, &tmp_buf, IMG_YUY2, w, h);
                     ptr = tmp_buf;
                 }
                 for(iy=0;iy<h;iy++){

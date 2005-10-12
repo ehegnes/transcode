@@ -93,7 +93,7 @@ MOD_open
 	} else if (!strcasecmp(vob->im_v_string, "yuy2")) {
 	    srcfmt = IMG_YUY2;
 	    if (vob->im_v_codec == CODEC_YUV422) {
-		destfmt = IMG_UYVY;
+		destfmt = IMG_YUV422P;
 	    } else {
 		destfmt = IMG_YUV_DEFAULT;
 	    }
@@ -101,7 +101,7 @@ MOD_open
 	} else if (!strcasecmp(vob->im_v_string, "uyvy")) {
 	    srcfmt = IMG_UYVY;
 	    if (vob->im_v_codec == CODEC_YUV422) {
-		destfmt = IMG_UYVY;
+		destfmt = IMG_YUV422P;
 	    } else {
 		destfmt = IMG_YUV_DEFAULT;
 	    }
@@ -187,7 +187,12 @@ retry:
   }
 
   if(srcfmt != destfmt) {
-    ac_imgconvert(&param->buffer, srcfmt, &video_buffer, destfmt,
+    uint8_t *src[3], *dest[3];
+    YUV_INIT_PLANES(src, param->buffer, srcfmt, vob->im_v_width,
+		    vob->im_v_height);
+    YUV_INIT_PLANES(dest, video_buffer, srcfmt, vob->im_v_width,
+		    vob->im_v_height);
+    ac_imgconvert(src, srcfmt, dest, destfmt,
 		  vob->im_v_width, vob->im_v_height);
     ac_memcpy(param->buffer, video_buffer, out_bytes);
   }

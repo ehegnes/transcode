@@ -27,6 +27,7 @@
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
+#include "vid_aux.h"
 #include "import/magic.h"
 #include "src/iodir.h"
 
@@ -47,6 +48,9 @@ static int info_shown=0, force_kf=0;
 static int width=0, height=0, im_v_codec=-1;
 static int mpeg_passthru;
 static FILE *mpeg_f = NULL;
+
+static ImageFormat srcfmt = IMG_NONE, destfmt = IMG_NONE;
+
 
 static int scan(char *name) 
 {
@@ -170,6 +174,13 @@ further:
 	if(!info_shown && verbose_flag) 
 	  fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
 		MOD_NAME, "UYVY", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
+
+	if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
+	  tc_warn("[%s] tcv_convert_init failed\n", MOD_NAME);
+	  return(TC_EXPORT_ERROR);
+	}
+	srcfmt = IMG_YUV422P;
+	destfmt = IMG_UYVY;
 	break;
 
 	    
@@ -293,6 +304,12 @@ MOD_encode
   if(param->flag == TC_VIDEO) { 
 
     if (mpeg_f) {
+      if (srcfmt && destfmt) {
+	if (!tcv_convert(param->buffer, srcfmt, destfmt)) {
+	  tc_warn("[%s] image conversion failed", MOD_NAME);
+	  return(TC_EXPORT_ERROR);
+	}
+      }
       if (fwrite (param->buffer, 1, param->size, mpeg_f) != param->size) {
 	tc_warn("[%s] Cannot write data: %s", MOD_NAME, strerror(errno));
 	return(TC_EXPORT_ERROR); 

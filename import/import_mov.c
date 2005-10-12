@@ -237,10 +237,10 @@ MOD_open
 
               quicktime_set_cmodel(qt_video, BC_YUV420P); qt_cm = BC_YUV420P;
               break;
-/*TODO: implement YUV2  / Passthrough has issues */
         case CODEC_YUV422:
-              /*fprintf(stderr," using yuv422\n"); */                 
-              quicktime_set_cmodel(qt_video, BC_YUV422); qt_cm = BC_YUV422;
+              fprintf(stderr, "[%s] sorry, YUV422 not implemented\n", MOD_NAME);
+              return(TC_IMPORT_ERROR);
+              /*quicktime_set_cmodel(qt_video, BC_YUV422); qt_cm = BC_YUV422;*/
               break;
 
         case CODEC_YUY2:

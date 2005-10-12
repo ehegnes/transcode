@@ -204,8 +204,8 @@ MOD_open
       break;
 
     case CODEC_YUV422:
-      format=1;
-      if(verbose & TC_DEBUG) fprintf(stderr, "[%s] raw format is UYVY\n", MOD_NAME);
+      format=2;
+      if(verbose & TC_DEBUG) fprintf(stderr, "[%s] raw format is YUV422\n", MOD_NAME);
       break;
       
       
@@ -297,21 +297,29 @@ MOD_encode
       
       if(encoder->isPAL) {
 	pixels[1]=(char *) vbuf + PAL_W*PAL_H;
-	pixels[2]=(char *) vbuf + (PAL_W*PAL_H*5)/4;
+	pixels[2]=(char *) vbuf + (PAL_W*PAL_H*(format==2?6:5))/4;
       } else {
 	pixels[1]=(char *) vbuf + NTSC_W*NTSC_H;
-	pixels[2]=(char *) vbuf + (NTSC_W*NTSC_H*5)/4;
+	pixels[2]=(char *) vbuf + (NTSC_W*NTSC_H*(format==2?6:5))/4;
       }
       
       if(dv_yuy2_mode && !dv_uyvy_mode) {
-	ac_imgconvert(pixels, IMG_YUV420P, &tmp_buf, IMG_YUY2,
-		      PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
+	if (format==2)
+	  ac_imgconvert(pixels, IMG_YUV422P, &tmp_buf, IMG_YUY2,
+			PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
+	else
+	  ac_imgconvert(pixels, IMG_YUV420P, &tmp_buf, IMG_YUY2,
+			PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
 	pixels[0]=tmp_buf;
       }
 
       if (dv_uyvy_mode) {
-	ac_imgconvert(pixels, IMG_YUV420P, &tmp_buf, IMG_UYVY,
-		      PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
+	if (format==2)
+	  ac_imgconvert(pixels, IMG_YUV422P, &tmp_buf, IMG_UYVY,
+			PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
+	else
+	  ac_imgconvert(pixels, IMG_YUV420P, &tmp_buf, IMG_UYVY,
+			PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
 	pixels[0]=tmp_buf;
       }
       

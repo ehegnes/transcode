@@ -59,8 +59,6 @@ transcode_SOURCES = \
 	dl_loader.c \
 	encoder.c \
 	filter.c \
-	frame_postprocess.c \
-	frame_preprocess.c \
 	frame_threads.c \
 	info_server.c \
 	iodir.c \
@@ -69,8 +67,5 @@ transcode_SOURCES = \
 	socket.c \
 	split.c \
 	video_buffer.c \
-	video_rgb.c \
 	video_trans.c \
-	video_yuv.c \
-	video_yuv422.c \
 	zoom.c

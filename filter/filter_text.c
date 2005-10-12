@@ -655,6 +655,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (mfd->flip) {
 	    switch (codec) {
+#warning ******************** FIXME ************************** these functions are no longer available
 		case CODEC_RGB:
 		    rgb_flip(ptr->video_buf, ptr->v_width, ptr->v_height);
 		    break;

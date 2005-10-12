@@ -26,6 +26,7 @@
 #define MOD_CODEC   "(video) DV | (audio) PCM"
 
 #include "transcode.h"
+#include "aclib/imgconvert.h"
 #include "xio.h"
 
 static int verbose_flag = TC_QUIET;
@@ -40,6 +41,8 @@ char import_cmd_buf[TC_BUF_MAX];
 
 static int frame_size=0;
 static FILE *fd=NULL;
+static uint8_t *tmpbuf = NULL;
+static int yuv422_mode = 0, width, height;
 
 static int scan(char *name)
 {
@@ -88,6 +91,7 @@ MOD_open
         snprintf(yuv_buf, 16, "-y yuv420p");
 
     param->fd = NULL;
+    yuv422_mode = 0;
 
     switch(vob->im_v_codec) {
 
@@ -140,6 +144,16 @@ MOD_open
 
       // for reading
       frame_size = vob->im_v_width * vob->im_v_height * 2;
+
+      tmpbuf = malloc(frame_size);
+      if (!tmpbuf) {
+	tc_error("[%s] out of memory", MOD_NAME);
+	return(TC_IMPORT_ERROR);
+      }
+
+      yuv422_mode = 1;
+      width = vob->im_v_width;
+      height = vob->im_v_height;
 
       param->fd = NULL;
 
@@ -236,8 +250,16 @@ MOD_decode
     // return true yuv frame size as physical size of video data
     param->size = frame_size; 
 
-    if (fread(param->buffer, frame_size, 1, fd) !=1) 
-	return(TC_IMPORT_ERROR);
+    if (yuv422_mode) {
+        uint8_t *planes[3];
+        if (fread(tmpbuf, frame_size, 1, fd) !=1) 
+            return(TC_IMPORT_ERROR);
+        YUV_INIT_PLANES(planes, param->buffer, IMG_YUV422P, width, height);
+	ac_imgconvert(&tmpbuf, IMG_YUY2, planes, IMG_YUV422P, width, height);
+    } else {
+        if (fread(param->buffer, frame_size, 1, fd) !=1) 
+            return(TC_IMPORT_ERROR);
+    }
 
     return(TC_IMPORT_OK);
 }
@@ -259,6 +281,9 @@ MOD_close
 
     if(fd) pclose(fd);
     fd=NULL;
+
+    free(tmpbuf);
+    tmpbuf=NULL;
 
     return(TC_IMPORT_OK);
 

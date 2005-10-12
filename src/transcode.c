@@ -173,7 +173,7 @@ enum {
   DIVX5_VBV_PROF,
   DIVX5_VBV,
   CONFIG_DIR,
-  USE_UYVY,
+  USE_YUV422,
   DVD_ACCESS_DELAY,
   EXTENSIONS,
   EX_PIXEL_ASPECT,
@@ -295,7 +295,7 @@ static void usage(int status)
   printf(" -A                  use AC3 as internal audio codec [off]\n");
   printf(" -V                  use YV12/I420/YUV420 as internal video format [deprecated, default]\n");
   printf(" --use_rgb           use RGB as internal video format [off]\n");
-  printf("--uyvy               use UYVY/YUV422 as internal video format [off]\n");
+  printf(" --yuv422            use YUV422 as internal video format [off]\n");
   printf(" -J f1[,f2[,...]]    apply external filter plugins [off]\n");
   printf(" -P flag             pass-through flag (0=off|1=V|2=A|3=A+V) [0]\n");
   printf("\n");
@@ -782,7 +782,7 @@ int main(int argc, char *argv[]) {
       {"divx_vbv", required_argument, NULL, DIVX5_VBV},
       {"hard_fps", no_argument, NULL, HARD_FPS},
       {"config_dir", required_argument, NULL, CONFIG_DIR},
-      {"uyvy", no_argument, NULL, USE_UYVY},
+      {"yuv422", no_argument, NULL, USE_YUV422},
       {"dvd_access_delay", required_argument, NULL, DVD_ACCESS_DELAY},
       {"ext", required_argument, NULL, EXTENSIONS},
       {"export_par", required_argument, NULL, EX_PIXEL_ASPECT},
@@ -1850,7 +1850,7 @@ int main(int argc, char *argv[]) {
 	  
 	  break;
 
-	case USE_UYVY:
+	case USE_YUV422:
 	  vob->im_v_codec = CODEC_YUV422;
 	  break;
 
@@ -2823,7 +2823,7 @@ int main(int argc, char *argv[]) {
     // force to even for YUV mode
     if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
 	if(vob->im_v_width%2 != 0) {
-	    tc_warn("frame width must be even in YUV/UYVY mode");
+	    tc_warn("frame width must be even in YUV/YUV422 mode");
 	    vob->im_v_width--;
 	}
 	if(vob->im_v_codec == CODEC_YUV && vob->im_v_height%2 != 0) {
@@ -3041,11 +3041,11 @@ int main(int argc, char *argv[]) {
       // force to even for YUV mode
       if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
 	if(vob->pre_im_clip_left%2 != 0) {
-	    tc_warn("left/right pre_clip must be even in YUV/UYVY mode");
+	    tc_warn("left/right pre_clip must be even in YUV/YUV422 mode");
 	    vob->pre_im_clip_left--;
 	}
 	if(vob->pre_im_clip_right%2 != 0) {
-	    tc_warn("left/right pre_clip must be even in YUV/UYVY mode");
+	    tc_warn("left/right pre_clip must be even in YUV/YUV422 mode");
 	    vob->pre_im_clip_right--;
 	}
 	if(vob->im_v_codec == CODEC_YUV && vob->pre_im_clip_top%2 != 0) {
@@ -3086,11 +3086,11 @@ int main(int argc, char *argv[]) {
       // force to even for YUV mode
       if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
 	if(vob->im_clip_left%2 != 0) {
-	    tc_warn("left/right clip must be even in YUV/UYVY mode");
+	    tc_warn("left/right clip must be even in YUV/YUV422 mode");
 	    vob->im_clip_left--;
 	}
 	if(vob->im_clip_right%2 != 0) {
-	    tc_warn("left/right clip must be even in YUV/UYVY mode");
+	    tc_warn("left/right clip must be even in YUV/YUV422 mode");
 	    vob->im_clip_right--;
 	}
 	if(vob->im_v_codec == CODEC_YUV && vob->im_clip_top%2 != 0) {
@@ -3388,11 +3388,11 @@ int main(int argc, char *argv[]) {
       // force to even for YUV mode
       if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
 	if(vob->ex_clip_left%2 != 0) {
-	    tc_warn("left/right clip must be even in YUV/UYVY mode");
+	    tc_warn("left/right clip must be even in YUV/YUV422 mode");
 	    vob->ex_clip_left--;
 	}
 	if(vob->ex_clip_right%2 != 0) {
-	    tc_warn("left/right clip must be even in YUV/UYVY mode");
+	    tc_warn("left/right clip must be even in YUV/YUV422 mode");
 	    vob->ex_clip_right--;
 	}
 	if(vob->im_v_codec == CODEC_YUV && vob->ex_clip_top%2 != 0) {
@@ -3637,11 +3637,11 @@ int main(int argc, char *argv[]) {
       // force to even for YUV mode
       if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
 	if(vob->post_ex_clip_left%2 != 0) {
-	    tc_warn("left/right post_clip must be even in YUV/UYVY mode");
+	    tc_warn("left/right post_clip must be even in YUV/YUV422 mode");
 	    vob->post_ex_clip_left--;
 	}
 	if(vob->post_ex_clip_right%2 != 0) {
-	    tc_warn("left/right post_clip must be even in YUV/UYVY mode");
+	    tc_warn("left/right post_clip must be even in YUV/YUV422 mode");
 	    vob->post_ex_clip_right--;
 	}
 	if(vob->im_v_codec == CODEC_YUV && vob->post_ex_clip_top%2 != 0) {
@@ -3714,16 +3714,16 @@ int main(int argc, char *argv[]) {
       tc_error("invalid frame processing requested");
     }    
 
-    // -V / --uyvy
+    // -V / --yuv422
     
     if(vob->im_v_codec==CODEC_YUV) {
       vob->ex_v_size = (3*vob->ex_v_height * vob->ex_v_width)>>1;
       vob->im_v_size = (3*vob->im_v_height * vob->im_v_width)>>1;
-      if(verbose & TC_INFO) printf("[%s] V: %-16s | YV12/I420\n", PACKAGE, "Y'CbCr");
+      if(verbose & TC_INFO) printf("[%s] V: %-16s | I420\n", PACKAGE, "YCbCr");
     } else if (vob->im_v_codec==CODEC_YUV422) {
       vob->ex_v_size = (2*vob->ex_v_height * vob->ex_v_width);
       vob->im_v_size = (2*vob->im_v_height * vob->im_v_width);
-      if(verbose & TC_INFO) printf("[%s] V: %-16s | UYVY (4:2:2)\n", PACKAGE, "Y'CbCr");
+      if(verbose & TC_INFO) printf("[%s] V: %-16s | YUV422 (4:2:2)\n", PACKAGE, "YCbCr");
     } else
       vob->ex_v_size = vob->ex_v_height * vob->ex_v_width * vob->v_bpp>>3;
 

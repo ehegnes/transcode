@@ -390,6 +390,19 @@ int main(int argc, char *argv[])
 	done = 1;
     }
 
+    // YUV422P
+    if(strcmp(codec,"yuv422p")==0) { 
+	
+	ipipe.codec = TC_CODEC_YUV422P;
+
+	if(strcmp(magic, "avi")==0) ipipe.magic = TC_MAGIC_AVI;
+	if(strcmp(magic, "raw")==0) ipipe.magic = TC_MAGIC_RAW;
+	if(strcmp(magic, "yuv4mpeg")==0) ipipe.magic = TC_MAGIC_YUV4MPEG;
+	
+	extract_yuv(&ipipe);
+	done = 1;
+    }
+
     // UYVY
     if(strcmp(codec,"uyvy")==0) { 
 	

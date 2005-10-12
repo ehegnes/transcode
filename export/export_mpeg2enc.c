@@ -366,7 +366,7 @@ MOD_init
     if (vob->im_v_codec == CODEC_YUV) {
 	srcfmt = IMG_YUV_DEFAULT;
     } else if (vob->im_v_codec == CODEC_YUV422) {
-	srcfmt = IMG_UYVY;
+	srcfmt = IMG_YUV422P;
     } else if (vob->im_v_codec == CODEC_RGB) {
 	srcfmt = IMG_RGB_DEFAULT;
     } else {

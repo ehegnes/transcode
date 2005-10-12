@@ -29,6 +29,7 @@
 
 #include "transcode.h"
 #include "optstr.h"
+#include "aclib/imgconvert.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422;
@@ -493,12 +494,15 @@ int bktr_grab(size_t size, char *dest)
 
 static void copy_buf_yuv422(char *dest, size_t size)
 {
+    uint8_t *planes;
+
     if (bktr_buffer_size != size)
         fprintf(stderr,
             "[%s] buffer sizes do not match (input %lu != output %lu)\n",
             MOD_NAME, (unsigned long)bktr_buffer_size, (unsigned long)size);
 
-    ac_memcpy(dest, bktr_buffer, size);
+    YUV_INIT_PLANES(planes, dest, IMG_YUV422P, size/2, 1);
+    ac_imgconvert(&bktr_buffer, IMG_UYVY, planes, IMG_YUV422P, size/2, 1);
 }
 
 static void copy_buf_yuv(char *dest, size_t size)
@@ -514,6 +518,7 @@ static void copy_buf_yuv(char *dest, size_t size)
             "[%s] buffer sizes do not match (input %lu != output %lu)\n",
             MOD_NAME, (unsigned long)bktr_buffer_size, (unsigned long)size);
 
+#warning ****************** FIXME ********************* no switch?
     /* switch Cb and Cr */
     ac_memcpy(dest + y_offset,  bktr_buffer + y_offset,  y_size);
     ac_memcpy(dest + u1_offset, bktr_buffer + u2_offset, u_size);

@@ -147,7 +147,7 @@ MOD_open
 	    destfmt = IMG_YUV420P;
 	} else if (v_codec == CODEC_YUV422) {
 	    yuv_str = "yuyv";
-	    srcfmt = IMG_UYVY;
+	    srcfmt = IMG_YUV422P;
 	    destfmt = IMG_YUY2;
 	} else if (v_codec == CODEC_RGB) {
 	    yuv_str = "yuv420";

@@ -1,4 +1,24 @@
 2005-10-12 Andrew Church <achurch at achurch dot org>
+  * docs/OPTIMIZERS docs/man/transcode.1 export/export_dvraw.c
+    export/export_ffmpeg.c export/export_mov.c export/export_mp1e.c
+    export/export_mpeg2enc.c export/export_ppm.c export/export_raw.c
+    export/export_xvid2.c export/export_xvid3.c export/export_xvid4.c
+    export/export_yuv4mpeg.c filter/filter_denoise3d.c
+    filter/filter_fieldanalysis.c filter/filter_mask.c filter/filter_text.c
+    filter/preview/filter_pv.c filter/preview/pv.c
+    filter/tomsmocomp/filter_tomsmocomp.c import/import_bktr.c
+    import/import_dv.c import/import_mov.c import/import_raw.c
+    import/import_rawlist.c import/magic.h import/tcextract.c src/transcode.c
+  Changed YUV422 mode to use planar YUV422 instead of UYVY for ease of
+  processing, and changed command-line option for YUV422 mode from --uyvy
+  to --yuv422.
+
+  * Changed: src/Makefile.am src/tc_defaults.h src/video_trans.c
+    src/video_trans.h
+    Removed: src/frame_postprocess.c src/frame_preprocess.c src/video_rgb.c
+    src/video_yuv.c src/video_yuv422.c
+  Refactored video processing code to remove redundancy.
+
   * aclib/ac.h aclib/memcpy.c
   Define ac_memcpy() to be a copy in ascending order (allowing overlaps if
   the destination address is lower).

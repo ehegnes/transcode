@@ -65,6 +65,7 @@
 #include "avilib.h"
 #include "aud_aux.h"
 #include "ioaux.h"
+#include "vid_aux.h"
 
 #ifdef DEVELOPER_USE
 #include "libioaux/configs.h"
@@ -264,6 +265,10 @@ MOD_init
 		case CODEC_YUV422:
 			global_framesize = fsize*2;
 			global_colorspace = XVID_CSP_UYVY;
+			if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
+				tc_warn("[%s] tcv_convert_init failed");
+				return TC_EXPORT_ERROR;
+			}
 			break;
 		default: /* unknown, default to YUV420P (I420) */
 			global_framesize = fsize*3/2;
@@ -437,6 +442,11 @@ MOD_encode
   
   	if(param->flag != TC_VIDEO) 
 		return(TC_EXPORT_ERROR); 
+
+	if(tc_get_vob()->im_v_codec == CODEC_YUV422) {
+		/* Convert to UYVY */
+		tc_convert(param->buffer, IMG_YUV422P, IMG_UYVY);
+	}
 
 	/* Initialize the local frame copy */
 	xframe.bitstream  = buffer;

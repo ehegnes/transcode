@@ -1486,9 +1486,8 @@ MOD_encode
             if(is_huffyuv)
             {
                 uint8_t *src[3];
-                src[0] = param->buffer;
-                src[1] = src[0] + lavc_venc_context->width*lavc_venc_context->height;
-                src[2] = src[1] + lavc_venc_context->width*lavc_venc_context->height/4;
+		YUV_INIT_PLANES(src, param->buffer, IMG_YUV_DEFAULT,
+				lavc_venc_context->width, lavc_venc_context->height);
                 avpicture_fill((AVPicture *)lavc_venc_frame, yuv42xP_buffer,
                                PIX_FMT_YUV422P, lavc_venc_context->width,
                                lavc_venc_context->height);
@@ -1509,20 +1508,20 @@ MOD_encode
         case CODEC_YUV422:
             if(is_huffyuv)
             {
-                avpicture_fill((AVPicture *)lavc_venc_frame, yuv42xP_buffer,
-                               PIX_FMT_YUV422P, lavc_venc_context->width,
-                               lavc_venc_context->height);
-                ac_imgconvert(&param->buffer, IMG_UYVY,
-                              lavc_venc_frame->data, IMG_YUV422P,
-                              lavc_venc_context->width,
-                              lavc_venc_context->height);
+                lavc_venc_frame->data[1]     = param->buffer +
+                    lavc_venc_context->width * lavc_venc_context->height;
+                lavc_venc_frame->data[2]     = param->buffer +
+                    (lavc_venc_context->width * lavc_venc_context->height*3)/2;
             }
             else
             {
+                uint8_t *src[3];
+		YUV_INIT_PLANES(src, param->buffer, IMG_YUV422P,
+				lavc_venc_context->width, lavc_venc_context->height);
                 avpicture_fill((AVPicture *)lavc_venc_frame, yuv42xP_buffer,
                                PIX_FMT_YUV420P, lavc_venc_context->width,
                                lavc_venc_context->height);
-                ac_imgconvert(&param->buffer, IMG_UYVY,
+                ac_imgconvert(src, IMG_YUV422P,
                               lavc_venc_frame->data, IMG_YUV420P,
                               lavc_venc_context->width,
                               lavc_venc_context->height);

@@ -60,6 +60,7 @@
 #include "avilib.h"
 #include "aud_aux.h"
 #include "ioaux.h"
+#include "vid_aux.h"
 
 #include "libioaux/configs.h"
 
@@ -234,7 +235,13 @@ MOD_init
 	thismod.stream_size = vob->ex_v_width * vob->ex_v_height;
 	if(vob->im_v_codec == CODEC_RGB)
 		thismod.stream_size *= 3;
-	else
+	else if(vob->im_v_codec == CODEC_YUV422) {
+		thismod.stream_size *= 2;
+		if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
+			tc_warn("[%s] tcv_convert_init failed");
+			return TC_EXPORT_ERROR;
+		}
+	} else
 		thismod.stream_size = (thismod.stream_size*3)/2;
 	if((thismod.stream = malloc(thismod.stream_size)) == NULL) {
 		fprintf(stderr, "[%s] Error allocating stream buffer\n", MOD_NAME);
@@ -362,6 +369,11 @@ MOD_encode
 		return(audio_encode(param->buffer, param->size, vob->avifile_out));  
   
 	/* Video encoding */
+
+	if(vob->im_v_codec == CODEC_YUV422) {
+		/* Convert to UYVY */
+		tc_convert(param->buffer, IMG_YUV422P, IMG_UYVY);
+	}
 
 	/* Init the stat structure */
 	memset(&xvid_enc_stats,0, sizeof(xvid_enc_stats_t));

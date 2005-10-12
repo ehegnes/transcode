@@ -675,6 +675,7 @@ int xv_display_init(xv_display_t *dv_dpy, int *argc, char ***argv, int width, in
 
   dv_dpy->dontdraw = 0;
   
+#warning ****************** FIXME ******************** data now in YUV422P
   dv_dpy->format = yuv422?DV_FOURCC_UYVY:DV_FOURCC_YV12;
   dv_dpy->len = (dv_dpy->width * dv_dpy->height * 3) / 2;
   if (yuv422) dv_dpy->len = dv_dpy->width * dv_dpy->height * 2;

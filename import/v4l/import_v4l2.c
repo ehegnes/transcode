@@ -180,13 +180,13 @@ static v4l2_format_convert_table_t v4l2_format_convert_table[] =
 	{ V4L2_PIX_FMT_BGR32,   IMG_BGRA32,  IMG_RGB_DEFAULT, "BGR32 [packed] -> RGB [packed]" },
 	{ V4L2_PIX_FMT_GREY,    IMG_GRAY8,   IMG_RGB_DEFAULT, "8-bit grayscale -> RGB [packed]" },
 
-	{ V4L2_PIX_FMT_UYVY,    IMG_UYVY,    IMG_UYVY,        "UYVY [packed] -> YUV422 [packed] (no conversion)" },
-	{ V4L2_PIX_FMT_YUYV,    IMG_YUY2,    IMG_UYVY,        "YUY2 [packed] -> YUV422 [packed]" },
-	{ V4L2_PIX_FMT_YUV420,  IMG_YUV420P, IMG_UYVY,        "YUV420 [planar] -> YUV420 [packed]" },
-	{ V4L2_PIX_FMT_YVU420,  IMG_YV12,    IMG_UYVY,        "YVU420 [planar] -> YUV420 [packed]" },
-	{ V4L2_PIX_FMT_YYUV,    IMG_YUV422P, IMG_UYVY,        "YUV422 [planar] -> YUV420 [packed]" },
-	{ V4L2_PIX_FMT_Y41P,    IMG_YUV411P, IMG_UYVY,        "YUV411 [planar] -> YUV420 [packed]" },
-	{ V4L2_PIX_FMT_GREY,    IMG_GRAY8,   IMG_UYVY,        "8-bit grayscale -> YUV422 [packed]" },
+	{ V4L2_PIX_FMT_YYUV,    IMG_YUV422P, IMG_YUV422P,     "YUV422 [planar] -> YUV422 [planar] (no conversion)" },
+	{ V4L2_PIX_FMT_UYVY,    IMG_UYVY,    IMG_YUV422P,     "UYVY [packed] -> YUV422 [planar] (no conversion)" },
+	{ V4L2_PIX_FMT_YUYV,    IMG_YUY2,    IMG_YUV422P,     "YUY2 [packed] -> YUV422 [planar]" },
+	{ V4L2_PIX_FMT_YUV420,  IMG_YUV420P, IMG_YUV422P,     "YUV420 [planar] -> YUV422 [planar]" },
+	{ V4L2_PIX_FMT_YVU420,  IMG_YV12,    IMG_YUV422P,     "YVU420 [planar] -> YUV422 [planar]" },
+	{ V4L2_PIX_FMT_Y41P,    IMG_YUV411P, IMG_YUV422P,     "YUV411 [planar] -> YUV422 [planar]" },
+	{ V4L2_PIX_FMT_GREY,    IMG_GRAY8,   IMG_YUV422P,     "8-bit grayscale -> YUV422 [planar]" },
 
 	{ V4L2_PIX_FMT_YUV420,  IMG_YUV420P, IMG_YUV_DEFAULT, "YUV420 [planar] -> YUV420 [planar] (no conversion)" },
 	{ V4L2_PIX_FMT_YVU420,  IMG_YV12,    IMG_YUV_DEFAULT, "YVU420 [planar] -> YUV420 [planar]" },
@@ -444,7 +444,7 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 	{
 		case(CODEC_RGB):    v4l2_fmt = IMG_RGB_DEFAULT; break;
 		case(CODEC_YUV):    v4l2_fmt = IMG_YUV_DEFAULT; break;
-		case(CODEC_YUV422): v4l2_fmt = IMG_UYVY;        break;
+		case(CODEC_YUV422): v4l2_fmt = IMG_YUV422P;     break;
 
 		default:
 		{

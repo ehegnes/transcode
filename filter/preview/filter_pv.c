@@ -203,7 +203,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       
       if(xv_display_init(xv_player->display, 0, NULL, 
 			 w, h, buffer, buffer, 1)<0) return(-1);
-			 size = w*h*2;
+      size = w*h*2;
 
       break;
     
@@ -300,7 +300,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if(!xv_player->display->dontdraw) {
       
       //0.6.2 (secondaray buffer for pass-through mode)
-      (use_secondary_buffer) ? ac_memcpy(xv_player->display->pixels[0], (char*) ptr->video_buf2, size) : ac_memcpy(xv_player->display->pixels[0], (char*) ptr->video_buf, size); 
+      (use_secondary_buffer) ? ac_memcpy(xv_player->display->pixels[0], (char*) ptr->video_buf2, size) : ac_memcpy(xv_player->display->pixels[0], (char*) ptr->video_buf, size);
       
       //display video frame
       xv_display_show(xv_player->display);

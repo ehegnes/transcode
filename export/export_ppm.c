@@ -181,7 +181,9 @@ MOD_encode
     }
 
     if(codec==CODEC_YUV422) {
-      ac_imgconvert(&param->buffer, IMG_UYVY, &tmp_buffer, IMG_RGB24,
+      uint8_t *planes[3];
+      YUV_INIT_PLANES(planes, param->buffer, IMG_YUV422P, width, height);
+      ac_imgconvert(planes, IMG_YUV422P, &tmp_buffer, IMG_RGB24,
 		    width, height);
       out_buffer = tmp_buffer;
       out_size = height * 3 *width;

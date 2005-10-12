@@ -286,7 +286,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			   tmc->width, tmc->height);
 	    break;
 	case CODEC_YUV422:
-	    ac_imgconvert (&ptr->video_buf, IMG_UYVY, &tmc->frameIn, IMG_YUY2,
+	    ac_imgconvert (planes, IMG_YUV422P, &tmc->frameIn, IMG_YUY2,
 			   tmc->width, tmc->height);
 	    break;
 	}
@@ -308,7 +308,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		break;
 	    case CODEC_YUV422:
 		ac_imgconvert (&tmc->frameOut, IMG_YUY2,
-			       &ptr->video_buf, IMG_UYVY,
+			       planes, IMG_YUV422P,
 			       tmc->width, tmc->height);
 		break;
 	    default:

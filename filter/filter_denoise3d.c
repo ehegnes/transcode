@@ -60,7 +60,7 @@ typedef enum { dn3d_luma, dn3d_chroma, dn3d_disabled } dn3d_plane_type_t;
 typedef enum
 {
 	dn3d_off_y420,	dn3d_off_u420,	dn3d_off_v420,
-	dn3d_off_y,		dn3d_off_u,		dn3d_off_v,
+	dn3d_off_y422,	dn3d_off_u422,	dn3d_off_v422,
 	dn3d_off_r,		dn3d_off_g,		dn3d_off_b
 } dn3d_offset_t;
 
@@ -108,7 +108,7 @@ static dn3d_private_data_t dn3d_private_data[MAX_FILTER];
 static const dn3d_layout_t dn3d_layout[] = 
 {
 	{ CODEC_YUV,    dn3d_yuv420p, dn3d_planar, {{ dn3d_luma, dn3d_off_y420,  1, 1, 1 }, { dn3d_chroma, dn3d_off_u420,  1, 2, 2 }, { dn3d_chroma, dn3d_off_v420,  1, 2, 2 }}},
-	{ CODEC_YUV422, dn3d_yuv422,  dn3d_packed, {{ dn3d_luma, dn3d_off_y,     2, 1, 1 }, { dn3d_chroma, dn3d_off_u,     4, 2, 1 }, { dn3d_chroma, dn3d_off_v,     4, 2, 1 }}},
+	{ CODEC_YUV422, dn3d_yuv422,  dn3d_planar, {{ dn3d_luma, dn3d_off_y422,  1, 1, 1 }, { dn3d_chroma, dn3d_off_u422,  1, 2, 1 }, { dn3d_chroma, dn3d_off_v422,  1, 2, 1 }}},
 	{ CODEC_RGB,    dn3d_rgb,     dn3d_packed, {{ dn3d_luma, dn3d_off_r,     3, 1, 1 }, { dn3d_luma,   dn3d_off_g,     3, 1, 1 }, { dn3d_luma,   dn3d_off_b,     3, 1, 1 }}}
 };
 
@@ -423,9 +423,10 @@ int tc_filter(frame_list_t *vframe_, char * options)
 					case(dn3d_off_u420):	offset = vframe->v_width * vframe->v_height * 4 / 4; break;
 					case(dn3d_off_v420):	offset = vframe->v_width * vframe->v_height * 5 / 4; break;
 
-					case(dn3d_off_y):		offset = 1; break;
-					case(dn3d_off_u):		offset = 0; break;
-					case(dn3d_off_v):		offset = 2; break;
+					case(dn3d_off_y422):	offset = vframe->v_width * vframe->v_height * 0 / 2; break;
+					case(dn3d_off_u422):	offset = vframe->v_width * vframe->v_height * 2 / 2; break;
+					case(dn3d_off_v422):	offset = vframe->v_width * vframe->v_height * 3 / 2; break;
+
 				}
 
 #if 0

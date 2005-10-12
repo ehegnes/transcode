@@ -55,6 +55,9 @@
 #define TC_MAX_V_FRAME_WIDTH     2500
 #define TC_MAX_V_FRAME_HEIGHT    2000
 
+// max bytes per pixel
+#define TC_MAX_V_BYTESPP        4
+
 // audio defaults
 #define RATE         48000
 #define BITS            16

@@ -48,7 +48,7 @@ static void ymask_yuv(unsigned char *buf, vob_t *vob, int top, int bottom)
 	// printf("%d %d\n", top, bottom);
 
 	bufcb = buf + vob->im_v_width * vob->im_v_height;
-	bufcr = buf + vob->im_v_width * vob->im_v_height * 5/ 4;
+	bufcr = buf + vob->im_v_width * vob->im_v_height * 5 / 4;
 
 	for (i = top; i <= bottom; i+=2) {
 		memset(&buf[i * vob->im_v_width], 0x10, vob->im_v_width); 
@@ -60,15 +60,20 @@ static void ymask_yuv(unsigned char *buf, vob_t *vob, int top, int bottom)
 
 static void ymask_yuv422(unsigned char *buf, vob_t *vob, int top, int bottom)
 {
-	int i,j;
-	unsigned char *t;
+	int i;
+	unsigned char *bufcb, *bufcr;
+	int w2 = vob->im_v_width / 2;
+
+	bufcb = buf + vob->im_v_width * vob->im_v_height;
+	bufcr = buf + vob->im_v_width * vob->im_v_height * 3 / 2;
 
 	for (i = top; i <= bottom; i++) {
-	    t = buf + i * vob->im_v_width * 2;
-	    for (j=0; j<vob->im_v_width*2; j++)
-		*t++ = (j&1)?0x10:0x80;
+		memset(&buf[i * vob->im_v_width], 0x10, vob->im_v_width); 
+	    	memset(&bufcb[i * w2], 128, w2); 
+	    	memset(&bufcr[i * w2], 128, w2); 
 	}
 }
+
 static void ymask_rgb(unsigned char *buf, vob_t *vob, int top, int bottom)
 {
 	int i;
@@ -87,7 +92,7 @@ static void xmask_yuv(unsigned char *buf, vob_t *vob, int left, int right)
 	// printf("%d %d\n", left, right);
 
 	bufcb = buf + vob->im_v_width * vob->im_v_height;
-	bufcr = buf + vob->im_v_width * vob->im_v_height * 5/ 4;
+	bufcr = buf + vob->im_v_width * vob->im_v_height * 5 / 4;
 
 	/* Y */
 	for (i = left; i < right; i++) {
@@ -100,7 +105,7 @@ static void xmask_yuv(unsigned char *buf, vob_t *vob, int left, int right)
 	}	
 
 	/* Cb */
-	for (i = left; i < right; i++) {
+	for (i = left & ~1; i < right; i += 2) {
 		ptr = &bufcb[i/2]; 
 		ptrmax = &bufcr[i/2 + (vob->im_v_height/2 * vob->im_v_width/2)]; 
 		while (ptr < ptrmax) {
@@ -110,7 +115,7 @@ static void xmask_yuv(unsigned char *buf, vob_t *vob, int left, int right)
 	}	
 
 	/* Cr */
-	for (i = left; i < right; i++) {
+	for (i = left & ~1; i < right; i += 2) {
 		ptr = &bufcr[i/2]; 
 		ptrmax = &bufcb[i/2 + (vob->im_v_height/2 * vob->im_v_width/2)]; 
 		while (ptr < ptrmax) {
@@ -122,14 +127,42 @@ static void xmask_yuv(unsigned char *buf, vob_t *vob, int left, int right)
 
 static void xmask_yuv422(unsigned char *buf, vob_t *vob, int left, int right)
 {
-	int x, y;
+	int i;
+	unsigned char *bufcb, *bufcr;
+	unsigned char *ptr, *ptrmax;
 
-	for (y = 0; y < vob->im_v_height; y++) { 
-	    for (x = left; x < right; x++) {
-		buf[(y*vob->im_v_width+x)*2  ] = 16;
-		buf[(y*vob->im_v_width+x)*2+1] = 128;
-	    }
-	}
+	bufcb = buf + vob->im_v_width * vob->im_v_height;
+	bufcr = buf + vob->im_v_width * vob->im_v_height * 3 / 2;
+
+	/* Y */
+	for (i = left; i < right; i++) {
+		ptr = &buf[i]; 
+		ptrmax = &buf[i + (vob->im_v_height * vob->im_v_width)]; 
+		while (ptr < ptrmax) {
+			*ptr = 0x10;
+			ptr += vob->im_v_width;
+		}
+	}	
+
+	/* Cb */
+	for (i = left & ~1; i < right; i += 2) {
+		ptr = &bufcb[i/2]; 
+		ptrmax = &bufcr[i/2 + (vob->im_v_height * vob->im_v_width/2)]; 
+		while (ptr < ptrmax) {
+			*ptr = 128;
+			ptr += vob->im_v_width/2;
+		}
+	}	
+
+	/* Cr */
+	for (i = left & ~1; i < right; i += 2) {
+		ptr = &bufcr[i/2]; 
+		ptrmax = &bufcb[i/2 + (vob->im_v_height * vob->im_v_width/2)]; 
+		while (ptr < ptrmax) {
+			*ptr = 128;
+			ptr += vob->im_v_width/2;
+		}
+	}	
 }
 
 static void xmask_rgb(unsigned char *buf, vob_t *vob, int left, int right)

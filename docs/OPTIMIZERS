@@ -135,14 +135,11 @@ Width*Height/4 Cr bytes. The size of the image is Width*Height*3/2.
 
 
 * YUV (4:2:2)
-This is UYVY 8-bit packed.
-
- _______________________________________  ....
-|_U1_|_Y1_|_V1_|_Y2_|_U3_|_Y3_|_V3_|_Y4_| ....
- \_________________/ \_________________/
-    Pixel 1 and 2       Pixel 3 and 4
+This is YUV422 8-bit planar, with 2 bytes per pixel.  The layout is the
+same as for YUV420P, but the Cb and Cr planes are twice as high (double
+vertical resolution).
 
 Size of the image is 2*W*H.
 
 (c) 2003 Tilmann Bitterberg <transcode@tibit.org>
-Modified: $Date: 2005-10-08 07:18:52 $
+Modified: $Date: 2005-10-12 19:08:46 $

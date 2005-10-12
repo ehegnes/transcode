@@ -601,7 +601,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    ac_memcpy (myf->lumIn, ptr->video_buf, myf->size);
 	    break;
 	case CODEC_YUV422:
-	    ac_imgconvert(&ptr->video_buf, IMG_UYVY,
+	    ac_imgconvert(&ptr->video_buf, IMG_YUV422P,
 			  &myf->lumIn, IMG_Y8,
 			  myf->width, myf->height);
 	    break;
