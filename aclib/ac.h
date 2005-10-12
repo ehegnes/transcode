@@ -60,7 +60,8 @@ extern const char *ac_flagstotext(int accel);
 
 /* Acceleration-enabled functions: */
 
-/* Optimized memcpy() */
+/* Optimized memcpy().  The copy direction is guaranteed to be ascending
+ * (so ac_memcpy(ptr, ptr+1, size) will work). */
 extern void *ac_memcpy(void *dest, const void *src, size_t size);
 
 /* Average of two sets of data */

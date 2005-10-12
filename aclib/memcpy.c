@@ -7,7 +7,8 @@
 #include "ac_internal.h"
 #include <string.h>
 
-static void *(*memcpy_ptr)(void *, const void *, size_t) = memcpy;
+/* Use memmove because memcpy isn't guaranteed to be ascending */
+static void *(*memcpy_ptr)(void *, const void *, size_t) = memmove;
 
 /*************************************************************************/
 
@@ -463,7 +464,7 @@ amd64.memcpy_last:							\n\
 
 int ac_memcpy_init(int accel)
 {
-    memcpy_ptr = memcpy;
+    memcpy_ptr = memmove;
 
 #if defined(ARCH_X86)
     if (HAS_ACCEL(accel, AC_MMX))

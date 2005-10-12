@@ -1,3 +1,8 @@
+2005-10-12 Andrew Church <achurch at achurch dot org>
+  * aclib/ac.h aclib/memcpy.c
+  Define ac_memcpy() to be a copy in ascending order (allowing overlaps if
+  the destination address is lower).
+
 2005-10-11 Andrew Church <achurch at achurch dot org>
   * src/transcode.c
   Force all size parameters to be even in YUV mode.
