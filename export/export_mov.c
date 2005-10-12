@@ -321,8 +321,7 @@ MOD_init
                         quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"SVQ3");
                         break;
 
-#warning ************** FIXME ************** check quicktime tag
-                    case TC_CODEC_YUV420P:  /* FIXME: should this be "i420"? */
+                    case TC_CODEC_YUV420P:
                         quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"yv12");
                         break;
 
@@ -531,7 +530,7 @@ MOD_init
     /* alloc row pointers for frame encoding */
     row_ptr = malloc (sizeof(char *) * h);        
 
-    /* same for temp buffer ... used during yuy2 encoding*/
+    /* same for temp buffer ... used during yuy2/yv12 encoding */
     tmp_buf = malloc (w*h*2);
 
     /* verbose */
@@ -649,9 +648,10 @@ MOD_encode
                 /* setup row pointers for YUV420P */
                 row_ptr[0] = ptr;
                 ptr = ptr + (h * w);
-                row_ptr[1] = ptr;  
+		/* note, quicktime wants YV12 so we reverse the planes */
+                row_ptr[2] = ptr;  
                 ptr = ptr + (h * w )/4;
-                row_ptr[2] = ptr;
+                row_ptr[1] = ptr;
                 break;
 
             case CODEC_YUY2:

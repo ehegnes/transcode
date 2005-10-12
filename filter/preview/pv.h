@@ -41,7 +41,7 @@
 #include <X11/extensions/Xvlib.h>
 #include <X11/Xatom.h>
 
-#warning ********************** FIXME ************************* need I420
+#define DV_FOURCC_I420  0x30323449	/* 4:2:0 Planar mode: Y + U + V  (3 planes) */
 #define DV_FOURCC_YV12  0x32315659	/* 4:2:0 Planar mode: Y + V + U  (3 planes) */
 #define DV_FOURCC_YUY2  0x32595559	/* 4:2:2 Packed mode: Y0+U0+Y1+V0 (1 plane) */
 #define DV_FOURCC_UYVY  0x59565955	/* 4:2:2 Packed mode: U0+Y0+V0+Y1 (1 plane) */

@@ -518,11 +518,9 @@ static void copy_buf_yuv(char *dest, size_t size)
             "[%s] buffer sizes do not match (input %lu != output %lu)\n",
             MOD_NAME, (unsigned long)bktr_buffer_size, (unsigned long)size);
 
-#warning ****************** FIXME ********************* no switch?
-    /* switch Cb and Cr */
     ac_memcpy(dest + y_offset,  bktr_buffer + y_offset,  y_size);
-    ac_memcpy(dest + u1_offset, bktr_buffer + u2_offset, u_size);
-    ac_memcpy(dest + u2_offset, bktr_buffer + u1_offset, u_size);
+    ac_memcpy(dest + u1_offset, bktr_buffer + u1_offset, u_size);
+    ac_memcpy(dest + u2_offset, bktr_buffer + u2_offset, u_size);
 }
 
 static void copy_buf_rgb(char *dest, size_t size)
@@ -538,11 +536,8 @@ static void copy_buf_rgb(char *dest, size_t size)
 
     /* bktr_buffer_size was set to width * height * 4 (32 bits) */
     /* so width * height = bktr_buffer_size / 4                 */
-    for (i = 0; i < bktr_buffer_size / 4; i++) {
-        dest[(i * 3)    ] = bktr_buffer[(i * 4)     + 1];
-        dest[(i * 3) + 1] = bktr_buffer[(i * 4) + 1 + 1];
-        dest[(i * 3) + 2] = bktr_buffer[(i * 4) + 2 + 1];
-    }
+    ac_imgconvert(&bktr_buffer, IMG_ARGB32, &dest, IMG_RGB24,
+		  bktr_buffer_size/4, 1);
 }
 
 

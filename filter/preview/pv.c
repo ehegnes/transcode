@@ -675,8 +675,8 @@ int xv_display_init(xv_display_t *dv_dpy, int *argc, char ***argv, int width, in
 
   dv_dpy->dontdraw = 0;
   
-#warning ****************** FIXME ******************** data now in YUV422P
-  dv_dpy->format = yuv422?DV_FOURCC_UYVY:DV_FOURCC_YV12;
+#warning ****************** FIXME ******************** YUV422 data now in YUV422P
+  dv_dpy->format = yuv422?DV_FOURCC_UYVY:DV_FOURCC_I420;
   dv_dpy->len = (dv_dpy->width * dv_dpy->height * 3) / 2;
   if (yuv422) dv_dpy->len = dv_dpy->width * dv_dpy->height * 2;
   
@@ -702,7 +702,7 @@ int xv_display_init(xv_display_t *dv_dpy, int *argc, char ***argv, int width, in
     dv_dpy->pitches[0] = width * 2;
     break;
     
-  case DV_FOURCC_YV12:
+  case DV_FOURCC_I420:
     dv_dpy->pixels[1] = dv_dpy->pixels[0] + (width * height);
     dv_dpy->pixels[2] = dv_dpy->pixels[1] + (width * height / 4);
     

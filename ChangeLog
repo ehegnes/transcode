@@ -1,4 +1,8 @@
 2005-10-13 Andrew Church <achurch at achurch dot org>
+  * export/export_mov.c filter/preview/pv.c filter/preview/pv.h
+    import/import_bktr.c
+  Fix more color reversal issues.
+
   * docs/export-mods.txt docs/man/transcode.1 export/Makefile.am
     export/export_raw.c
   Allow the image format for uncompressed video with -y raw to be selected
