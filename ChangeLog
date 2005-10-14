@@ -1,8 +1,8 @@
 2005-10-14 Francesco Romani <fromani at gmail dot com>
   * libtc/tc_functions.c
-  add statbuffer to tc_* debug fnctions, to avoid malloc() which
+  add statbuffer to tc_* debug functions, to avoid malloc()s which
   are undesiderable when reporting critical situations.
-  In 'regular' situations (short tags) dynamic, malloc()'d buffer 
+  In 'regular' situations (short 'tag' argument) dynamic, malloc()'d buffer
   should never be used.
   
 2005-10-14 Francesco Romani <fromani at gmail dot com>
