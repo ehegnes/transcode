@@ -1,4 +1,8 @@
 2005-10-14 Andrew Church <achurch at achurch dot org>
+  * configure.in
+  Fix check for IBP.
+
+2005-10-14 Andrew Church <achurch at achurch dot org>
   * libtc/libtc.h libtc/tc_functions.c
   Add tc_snprintf() and tc_vsnprintf() to return a consistent value (-1)
   and print an error message on buffer overflow.

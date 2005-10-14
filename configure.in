@@ -781,12 +781,6 @@ XVID_DEFAULT="$default_xvid"
 AC_SUBST(XVID_DEFAULT)
 
 dnl
-dnl ibp and lors
-dnl
-TC_PATH_IBP(AC_DEFINE([HAVE_IBP], 1, [ibp and lors support]))
-AM_CONDITIONAL(HAVE_IBP, test x"$have_ibp" = x"yes")
-
-dnl
 dnl libpostproc
 dnl
 TC_PKG_CHECK(libpostproc, no, LIBPOSTPROC, no, postprocess.h,
@@ -1092,6 +1086,12 @@ LIBXML2_EXTRA_LIBS="$LIBXML2_EXTRA_LIBS -lz -lm"
 TC_PKG_CHECK(libxml2, no, LIBXML2, xml2-config, [libxml/parser.h],
  xml2, xmlStrcmp, libxml-2.0, [http://xmlsoft.org])
 TC_PKG_HAVE(libxml2, LIBXML2)
+
+dnl
+dnl ibp and lors -- must be after libxml2
+dnl
+TC_PATH_IBP(AC_DEFINE([HAVE_IBP], 1, [ibp and lors support]))
+AM_CONDITIONAL(HAVE_IBP, test x"$have_ibp" = x"yes")
 
 dnl
 dnl mjpegtools (actually only YUV4MPEG)
