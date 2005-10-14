@@ -1,3 +1,8 @@
+2005-10-14 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h libtc/tc_functions.c
+  Generalize debug functions, and start to use it almost everywhere
+  fprintf() was previously used
+
 2005-10-14 Andrew Church <achurch at achurch dot org>
   * configure.in
   Fix check for IBP. Update LZO check for LZO version 2.

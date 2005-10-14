@@ -40,20 +40,20 @@
 #endif
 
 
-void tc_error(char *fmt, ...)
+void tc_tag_error(const char *tag, char *fmt, ...)
 {
   
   va_list ap;
 
   // munge format
   int size = strlen(fmt) + 2*strlen(RED) + 2*strlen(GRAY) +
-             strlen(PACKAGE) + strlen("[] critical: \n") + 1;
+             strlen(tag) + strlen("[] critical: \n") + 1;
   char *a = malloc (size);
 
   version();
 
   snprintf(a, size, "[%s%s%s] %scritical%s: %s\n",
-                     RED, PACKAGE, GRAY, RED, GRAY, fmt);
+                     RED, tag, GRAY, RED, GRAY, fmt);
 
   va_start(ap, fmt);
   vfprintf (stderr, a, ap);
@@ -64,20 +64,20 @@ void tc_error(char *fmt, ...)
   exit(1);
 }
 
-void tc_warn(char *fmt, ...)
+void tc_tag_warn(const char *tag, char *fmt, ...)
 {
   
   va_list ap;
 
   // munge format
   int size = strlen(fmt) + 2*strlen(BLUE) + 2*strlen(GRAY) +
-             strlen(PACKAGE) + strlen("[]  warning: \n") + 1;
+             strlen(tag) + strlen("[]  warning: \n") + 1;
   char *a = malloc (size);
 
   version();
 
   snprintf(a, size, "[%s%s%s] %swarning%s : %s\n",
-                     RED, PACKAGE, GRAY, YELLOW, GRAY, fmt);
+                     RED, tag, GRAY, YELLOW, GRAY, fmt);
 
   va_start(ap, fmt);
   vfprintf (stderr, a, ap);
@@ -86,19 +86,19 @@ void tc_warn(char *fmt, ...)
   fflush(stdout);
 }
 
-void tc_info(char *fmt, ...)
+void tc_tag_info(const char *tag, char *fmt, ...)
 {
   
   va_list ap;
 
   // munge format
   int size = strlen(fmt) + strlen(BLUE) + strlen(GRAY) +
-             strlen(PACKAGE) + strlen("[] \n") + 1;
+             strlen(tag) + strlen("[] \n") + 1;
   char *a = malloc (size);
 
   version();
 
-  snprintf(a, size, "[%s%s%s] %s\n", BLUE, PACKAGE, GRAY, fmt);
+  snprintf(a, size, "[%s%s%s] %s\n", BLUE, tag, GRAY, fmt);
 
   va_start(ap, fmt);
   vfprintf (stderr, a, ap);
@@ -130,14 +130,14 @@ int tc_test_program(char *name)
 
 	if(!name)
 	{
-		fprintf(stderr, "[%s] ERROR: Searching for a NULL program!\n", PACKAGE);
+		tc_warn("ERROR: Searching for a NULL program!\n");
 		return(ENOENT);
 	}
 
 	if(!path)
 	{
-		fprintf(stderr, "[%s] ERROR: The '%s' program could not be found. \n"
-		"[%s]        Because your PATH environment variable is not set.\n", PACKAGE, name, PACKAGE);
+		tc_warn("The '%s' program could not be found. \n", name);
+		tc_warn("Because your PATH environment variable is not set.\n");
 		return(ENOENT);
 	}
 
@@ -181,21 +181,17 @@ int tc_test_program(char *name)
 
 	if(!done)
 	{
-		fprintf(stderr, "[%s] ERROR: The '%s' program could not be found. \n"
-				"[%s]        Please check your installation.\n", PACKAGE, name, PACKAGE);
+		tc_warn("The '%s' program could not be found. \n", name);
+		tc_warn("Please check your installation.\n");
 		return(ENOENT); 
 	}
 
 	if(error != 0)
 	{
 		/* access returned an unhandled error */
-		fprintf(stderr,
-				"[%s] ERROR: The '%s' program was found, but is not accessible.\n"
-				"[%s]        %s\n"
-				"[%s]        Please check your installation.\n",
-				PACKAGE, name,
-				PACKAGE, strerror(error),
-				PACKAGE);
+		tc_warn("The '%s' program was found, but is not accessible.\n", name);
+		tc_warn("%s\n", strerror(errno));
+		tc_warn("Please check your installation.\n");
 		return(error);
 	}
 #endif

@@ -37,9 +37,15 @@
 #include <string.h>
 #endif
 
-void tc_error(char *fmt, ...);
-void tc_info(char *fmt, ...);
-void tc_warn(char *fmt, ...);
+#define tc_error(format,args...) \
+    tc_tag_error(__FILE__, format , ## args)
+#define tc_info(format,args...) \
+    tc_tag_info(__FILE__, format , ## args)
+#define tc_warn(format,args...) \
+    tc_tag_warn(__FILE__, format , ## args)
+void tc_tag_error(const char *tag, char *fmt, ...);
+void tc_tag_info(const char *tag, char *fmt, ...);
+void tc_tag_warn(const char *tag, char *fmt, ...);
 
 /* Provided by caller */
 extern void version(void);
