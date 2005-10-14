@@ -123,10 +123,6 @@ int tcv_import(int a, void *b, void *c) {
     return 0;
 }
 
-void init_aa_table(double a, double b) {
-    return;
-}
-
 static void *tcmodinfo_load_module(char *mod_name, char *mod_path, int mode)
 {
 #ifdef SYS_BSD
