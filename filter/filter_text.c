@@ -353,7 +353,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
         }
         else if (optstr_lookup (options, "tstamp") ) {
 	    // mytime = time(NULL);
-            mfd->string=strdup("[ timestamp ]");
+            mfd->string = "[ timestamp ]";
 	    mfd->do_time = 0;
 	    mfd->tstamp = 1;
 
@@ -547,6 +547,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
   
   if((ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO) && !(ptr->attributes & TC_FRAME_IS_SKIPPED))  {
 
+    char tstampbuf[256];
+
     if (mfd->start <= ptr->id && ptr->id <= mfd->end && ptr->id%mfd->step == mfd->boolstep) {
 
 	if(mfd->do_time && time(NULL)!=mytime) {
@@ -562,7 +564,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    mm = (elapsed_ss - (3600 * hh)) / 60;
 	    ss = (elapsed_ss - (3600 * hh) - (60 * mm));
 	    ss_frame = (ptr->id - (((hh * 3600) + (mm * 60) + ss) * vob->fps));
-	    sprintf(mfd->string, "%02i:%02i:%02i.%02i", hh, mm, ss, ss_frame);  
+	    tc_snprintf(tstampbuf, sizeof(tstampbuf),
+			"%02i:%02i:%02i.%02i", hh, mm, ss, ss_frame);
+	    mfd->string = tstampbuf;
 	    font_render(width,height,size,codec,w,h,i,p,q,buf);
 	}
 
