@@ -100,17 +100,24 @@ const char *ac_flagstotext(int accel)
 
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
 
+#ifdef ARCH_X86_64
+# define EAX "rax"
+# define EBX "rbx"
+# define ESI "rsi"
+# define PUSHF "pushfq"
+# define POPF "popfq"
+#else
+# define EAX "eax"
+# define EBX "ebx"
+# define ESI "esi"
+# define PUSHF "pushfl"
+# define POPF "popfl"
+#endif
+
 /* Macro to execute the CPUID instruction with EAX = func.  Results are
  * placed in ret_a (EAX), ret_b (EBX), ret_c (ECX), and ret_d (EDX), which
  * must be lvalues.  Note that we save and restore EBX (RBX on x86-64)
  * because it is the PIC register. */
-#ifdef ARCH_X86_64
-# define EBX "rbx"
-# define ESI "rsi"
-#else
-# define EBX "ebx"
-# define ESI "esi"
-#endif
 #define CPUID(func,ret_a,ret_b,ret_c,ret_d)				\
     asm("mov %%"EBX", %%"ESI"; cpuid; xchg %%"EBX", %%"ESI		\
         : "=a" (ret_a), "=S" (ret_b), "=c" (ret_c), "=d" (ret_d)	\
@@ -140,15 +147,15 @@ static int cpuinfo_x86(void)
     /* First see if the CPUID instruction is even available.  We try to
      * toggle bit 21 (ID) of the flags register; if the bit changes, then
      * CPUID is available. */
-    asm("pushfl			\n\
-	 popl %%eax		\n\
-	 movl %%eax, %%edx	\n\
-	 xorl $0x200000, %%eax	\n\
-	 pushl %%eax		\n\
-	 popfl			\n\
-	 pushfl			\n\
-	 popl %%eax		\n\
-	 xorl %%edx, %%eax"
+    asm(PUSHF"			\n\
+	pop "EAX"		\n\
+	mov %%eax, %%edx	\n\
+	xor $0x200000, %%eax	\n\
+	push "EAX"		\n\
+	"POPF"			\n\
+	"PUSHF"			\n\
+	pop "EAX"		\n\
+	xor %%edx, %%eax"
 	: "=a" (eax) : : "edx");
     if (!eax)
 	return 0;
