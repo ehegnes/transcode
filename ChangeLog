@@ -1,10 +1,17 @@
+2005-10-15 Joern Reder <joern at zyn dot de>
+  * export/export_divx4.c export/export_divx4raw.c
+    export/export_divx5.c export/export_divx5raw.c
+    import/import_xml.c
+  fix a few typos in some modules
+  (patch effectively applied by fromani at gmail dot com)
+
 2005-10-14 Francesco Romani <fromani at gmail dot com>
   * libtc/tc_functions.c
   add statbuffer to tc_* debug functions, to avoid malloc()s which
   are undesiderable when reporting critical situations.
   In 'regular' situations (short 'tag' argument) dynamic, malloc()'d buffer
   should never be used.
-  
+
 2005-10-14 Francesco Romani <fromani at gmail dot com>
   * export/aud_aux.c export/divx4_vbr.c export/export_ac3.c 
     export/export_af6.cpp export/export_debugppm.c export/export_def.h

@@ -251,7 +251,7 @@ MOD_init
        //-- GMO start -- 
        if (vob->divxmultipass == 3) { 
           tc_tag_info(MOD_NAME, "    single-pass session: %d (VBR)", vob->divxmultipass);
-          tc_tag_info(NOD_NAME, "          VBR-quantizer: %d", vob->divxbitrate);
+          tc_tag_info(MOD_NAME, "          VBR-quantizer: %d", vob->divxbitrate);
         } else {
 	  tc_tag_info(MOD_NAME, "     multi-pass session: %d", vob->divxmultipass);
 	  tc_tag_info(MOD_NAME, "      bitrate [kBits/s]: %d", divx->bitrate/1000);
