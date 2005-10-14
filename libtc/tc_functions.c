@@ -39,26 +39,47 @@
 #include <alloca.h>
 #endif
 
+#define TC_MSG_BUF_SIZE		(128)
+
+/* ***FIXME***
+ * we _really_ need to invoke (and depend from an external symbol)
+ * every time version() in following tc_tag_{error,warn,info} ?
+ * I think we dont need, if aren't objections nor I find a reason,
+ * I will erase calls in future revisions
+ * 						- fromani 20051014
+ */
 
 void tc_tag_error(const char *tag, char *fmt, ...)
 {
-  
+  char buf[TC_MSG_BUF_SIZE];
+  char *a = buf;
+  int dynbuf = 0; // flag
   va_list ap;
 
   // munge format
   int size = strlen(fmt) + 2*strlen(RED) + 2*strlen(GRAY) +
              strlen(tag) + strlen("[] critical: \n") + 1;
-  char *a = malloc (size);
+  if(size > TC_MSG_BUF_SIZE) {
+	dynbuf = 1;
+	a = malloc (size);
+	if(!a) {
+		fprintf(stderr, "(%s) CRITICAL: can't get memory in "
+				"tc_tag_error(); tag='%s'\n", __FILE__, tag);
+		return;
+	}
+  }
 
-  version();
+//  version();
 
   snprintf(a, size, "[%s%s%s] %scritical%s: %s\n",
                      RED, tag, GRAY, RED, GRAY, fmt);
 
   va_start(ap, fmt);
-  vfprintf (stderr, a, ap);
+  vfprintf(stderr, a, ap);
   va_end(ap);
-  free (a);
+  if(dynbuf) {
+	  free(a);
+  }
   //abort
   fflush(stdout);
   exit(1);
@@ -66,44 +87,68 @@ void tc_tag_error(const char *tag, char *fmt, ...)
 
 void tc_tag_warn(const char *tag, char *fmt, ...)
 {
-  
+  char buf[TC_MSG_BUF_SIZE];
+  char *a = buf;
+  int dynbuf = 0; // flag
   va_list ap;
 
   // munge format
   int size = strlen(fmt) + 2*strlen(BLUE) + 2*strlen(GRAY) +
              strlen(tag) + strlen("[]  warning: \n") + 1;
-  char *a = malloc (size);
+  if(size > TC_MSG_BUF_SIZE) {
+	dynbuf = 1;
+  	a = malloc (size);
+	if(!a) {
+		fprintf(stderr, "(%s) CRITICAL: can't get memory in "
+				"tc_tag_warn(); tag='%s'\n", __FILE__, tag);
+		return;
+	}
+  }
 
-  version();
+//  version();
 
   snprintf(a, size, "[%s%s%s] %swarning%s : %s\n",
                      RED, tag, GRAY, YELLOW, GRAY, fmt);
 
   va_start(ap, fmt);
-  vfprintf (stderr, a, ap);
+  vfprintf(stderr, a, ap);
   va_end(ap);
-  free (a);
+  if(dynbuf) {
+  	free(a);
+  }
   fflush(stdout);
 }
 
 void tc_tag_info(const char *tag, char *fmt, ...)
 {
-  
+  char buf[TC_MSG_BUF_SIZE];
+  char *a = buf;
+  int dynbuf = 0; // flag
   va_list ap;
 
   // munge format
   int size = strlen(fmt) + strlen(BLUE) + strlen(GRAY) +
              strlen(tag) + strlen("[] \n") + 1;
-  char *a = malloc (size);
+  if(size > TC_MSG_BUF_SIZE) {
+	dynbuf = 1;
+  	a = malloc (size);
+	if(!a) {
+		fprintf(stderr, "(%s) CRITICAL: can't get memory in "
+				"tc_tag_info(); tag='%s'\n", __FILE__, tag);
+		return;
+	}
+  }
 
-  version();
+//  version();
 
   snprintf(a, size, "[%s%s%s] %s\n", BLUE, tag, GRAY, fmt);
 
   va_start(ap, fmt);
-  vfprintf (stderr, a, ap);
+  vfprintf(stderr, a, ap);
   va_end(ap);
-  free (a);
+  if(dynbuf) {
+  	free(a);
+  }
   fflush(stdout);
 }
 
