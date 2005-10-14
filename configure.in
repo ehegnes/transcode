@@ -1014,7 +1014,7 @@ TC_PKG_HAVE(libquicktime, LIBQUICKTIME)
 dnl
 dnl LZO
 dnl
-TC_PKG_CHECK(lzo, no, LZO, no, [lzo1x.h], lzo, lzo_version, lzo,
+TC_PKG_CHECK(lzo, no, LZO, no, [lzo/lzo1x.h], lzo2, lzo_version, lzo,
  [http://www.oberhumer.com/opensource/lzo/])
 TC_PKG_HAVE(lzo, LZO)
 
