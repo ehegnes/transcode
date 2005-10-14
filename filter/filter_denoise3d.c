@@ -231,19 +231,19 @@ int tc_filter(frame_list_t *vframe_, char * options)
 		char buf[128];
 		optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYMOE", "2");
 
-		snprintf(buf, 128, "%f", DEFAULT_LUMA_SPATIAL);
+		tc_snprintf(buf, 128, "%f", DEFAULT_LUMA_SPATIAL);
 		optstr_param(options, "luma", "spatial luma strength", "%f", buf, "0.0", "100.0" );
 
-		snprintf(buf, 128, "%f", DEFAULT_CHROMA_SPATIAL);
+		tc_snprintf(buf, 128, "%f", DEFAULT_CHROMA_SPATIAL);
 		optstr_param(options, "chroma", "spatial chroma strength", "%f", buf, "0.0", "100.0" );
 
-		snprintf(buf, 128, "%f", DEFAULT_LUMA_TEMPORAL);
+		tc_snprintf(buf, 128, "%f", DEFAULT_LUMA_TEMPORAL);
 		optstr_param(options, "luma_strength", "temporal luma strength", "%f", buf, "0.0", "100.0" );
 
-		snprintf(buf, 128, "%f", DEFAULT_CHROMA_TEMPORAL);
+		tc_snprintf(buf, 128, "%f", DEFAULT_CHROMA_TEMPORAL);
 		optstr_param(options, "chroma_strength", "temporal chroma strength", "%f", buf, "0.0", "100.0" );
 
-		snprintf(buf, 128, "%d", dn3d_private_data[instance].prefilter);
+		tc_snprintf(buf, 128, "%d", dn3d_private_data[instance].prefilter);
 		optstr_param(options, "pre", "run as a pre filter", "%d", buf, "0", "1" );
 	}
 

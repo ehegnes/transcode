@@ -57,9 +57,9 @@ MOD_open
 	char fps[32]; 
 	char cmdbuf[1024];
 
-	snprintf (fifo, 256, "%s-%d", "/tmp/tc-vncfifo", getpid());
-	snprintf (fps, 32, "%f", vob->fps);
-	snprintf (cmdbuf, 1024, "%s -o %s", PROGTOCALL, fifo);
+	tc_snprintf (fifo, 256, "%s-%d", "/tmp/tc-vncfifo", getpid());
+	tc_snprintf (fps, 32, "%f", vob->fps);
+	tc_snprintf (cmdbuf, 1024, "%s -o %s", PROGTOCALL, fifo);
 
 	mkfifo (fifo, 0600);
 

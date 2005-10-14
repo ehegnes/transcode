@@ -91,55 +91,55 @@ int tc_filter(frame_list_t *ptr_, char *options)
   if (ptr->tag & TC_FILTER_GET_CONFIG && options) {
       char buf[255];
 
-      snprintf (buf, sizeof(buf), "%d", denoiser.delay); // frames_needed
+      tc_snprintf (buf, sizeof(buf), "%d", denoiser.delay); // frames_needed
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYEO", buf);
 
-      snprintf (buf, sizeof(buf), "%d", denoiser.radius);
+      tc_snprintf (buf, sizeof(buf), "%d", denoiser.radius);
       optstr_param (options, "radius",         "Search radius", "%d", buf, "8", "24");
 
-      snprintf (buf, sizeof(buf), "%d", denoiser.threshold);
+      tc_snprintf (buf, sizeof(buf), "%d", denoiser.threshold);
       optstr_param (options, "threshold",      "Denoiser threshold", "%d", buf, "0", "255");
 
-      snprintf (buf, sizeof(buf), "%d", denoiser.pp_threshold);
+      tc_snprintf (buf, sizeof(buf), "%d", denoiser.pp_threshold);
       optstr_param (options, "pp_threshold",   "Pass II threshold", "%d",  buf, "0", "255");
 
-      snprintf (buf, sizeof(buf), "%d", denoiser.delay);
+      tc_snprintf (buf, sizeof(buf), "%d", denoiser.delay);
       optstr_param (options, "delay",          "Average 'n' frames for a time-lowpassed pixel", "%d", buf, "1", "255"  );
 
-      snprintf (buf, sizeof(buf), "%d", denoiser.postprocess);
+      tc_snprintf (buf, sizeof(buf), "%d", denoiser.postprocess);
       optstr_param (options, "postprocess",    "Filter internal postprocessing", "%d", buf, "0", "1"  );
 
-      snprintf (buf, sizeof(buf), "%d", denoiser.luma_contrast);
+      tc_snprintf (buf, sizeof(buf), "%d", denoiser.luma_contrast);
       optstr_param (options, "luma_contrast",  "Luminance contrast in percent", "%d", buf, "0", "255" );
 
-      snprintf (buf, sizeof(buf), "%d", denoiser.chroma_contrast);
+      tc_snprintf (buf, sizeof(buf), "%d", denoiser.chroma_contrast);
       optstr_param (options, "chroma_contrast","Chrominance contrast in percent.", "%d", buf, "0", "255" );
 
-      snprintf (buf, sizeof(buf), "%d", denoiser.sharpen);
+      tc_snprintf (buf, sizeof(buf), "%d", denoiser.sharpen);
       optstr_param (options, "sharpen",        "Sharpness in percent", "%d", buf, "0", "255"  );
 
-      snprintf (buf, sizeof(buf), "%d", denoiser.deinterlace);
+      tc_snprintf (buf, sizeof(buf), "%d", denoiser.deinterlace);
       optstr_param (options, "deinterlace",    "Force deinterlacing", "%d", buf, "0", "1" );
 
-      snprintf (buf, sizeof(buf), "%d", denoiser.mode);
+      tc_snprintf (buf, sizeof(buf), "%d", denoiser.mode);
       optstr_param (options, "mode",           "[0]: Progressive [1]: Interlaced [2]: Fast", "%d", buf, "0", "2" );
 
-      snprintf (buf, sizeof(buf), "%d", denoiser.scene_thres);
+      tc_snprintf (buf, sizeof(buf), "%d", denoiser.scene_thres);
       optstr_param (options, "scene_thres",    "Blocks where motion estimation should fail before scenechange", "%d%%", buf, "0", "100" );
 
-      snprintf (buf, sizeof(buf), "%d", denoiser.block_thres);
+      tc_snprintf (buf, sizeof(buf), "%d", denoiser.block_thres);
       optstr_param (options, "block_thres",    "Every SAD value greater than this will be considered bad", "%d", buf, "0", "oo" );
 
-      snprintf (buf, sizeof(buf), "%d", denoiser.do_reset);
+      tc_snprintf (buf, sizeof(buf), "%d", denoiser.do_reset);
       optstr_param (options, "do_reset",       "Reset the filter for `n' frames after a scene", "%d", buf, "0", "oo" );
 
-      snprintf (buf, sizeof(buf), "%d", denoiser.increment_cr);
+      tc_snprintf (buf, sizeof(buf), "%d", denoiser.increment_cr);
       optstr_param (options, "increment_cr",   "Increment Cr with constant", "%d", buf, "-128", "127" );
 
-      snprintf (buf, sizeof(buf), "%d", denoiser.increment_cb);
+      tc_snprintf (buf, sizeof(buf), "%d", denoiser.increment_cb);
       optstr_param (options, "increment_cb",   "Increment Cb with constant", "%d", buf, "-128", "127"  );
 
-      snprintf (buf, sizeof(buf), "%dx%d-%dx%d", 
+      tc_snprintf (buf, sizeof(buf), "%dx%d-%dx%d", 
 	denoiser.border.x, denoiser.border.y, denoiser.border.w, denoiser.border.h);
       optstr_param (options, "border",         "Active image area", "%dx%d-%dx%d", buf, "0", "W", "0", "H", "0", "W", "0", "H");
 

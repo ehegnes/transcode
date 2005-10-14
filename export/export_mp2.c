@@ -117,20 +117,20 @@ MOD_open
         /* check for sox */
         if (tc_test_program("sox") != 0) return (TC_EXPORT_ERROR);
         
-        result = snprintf(buf, PATH_MAX,
+        result = tc_snprintf(buf, PATH_MAX,
                             "sox %s -s -c %d -r %d -t raw - -r %d -t wav - speed %.10f | ",
                             vob->dm_bits == 16 ? "-w" : "-b",
                             vob->dm_chan,
                             vob->a_rate,
                             vob->a_rate,
                             speed);
-	if (tc_test_string(__FILE__, __LINE__, PATH_MAX, result, errno))
+	if (result < 0)
 	        return(TC_EXPORT_ERROR);
 
         ptr = buf + strlen(buf);
 	}
 
-    result = snprintf (ptr, PATH_MAX - strlen(buf),
+    result = tc_snprintf (ptr, PATH_MAX - strlen(buf),
                            "ffmpeg -y -f s%d%s -ac %d -ar %d -i - -ab %d -ar %d -f mp2 %s%s",
                            vob->dm_bits,
                            ((vob->dm_bits > 8) ? "le" : ""),
@@ -141,7 +141,7 @@ MOD_open
                            out_fname,
                            vob->verbose > 1 ? "" : " >&/dev/null");
 
-    if (tc_test_string(__FILE__, __LINE__, PATH_MAX - strlen(buf), result, errno))
+    if (result < 0)
         return(TC_EXPORT_ERROR);
 
     if (verbose > 0)

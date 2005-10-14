@@ -117,7 +117,7 @@ static int divx4_init(char *path) {
 	fprintf(stderr, "[%s] *** DivX. Use xvid or ffmpeg -F mpeg4 instead ***\n", MOD_NAME);
 	fprintf(stderr, "[%s] *** for all your mpeg4 encodings. ***\n", MOD_NAME);
   
-  snprintf(module, sizeof(module), "%s/%s", path, MODULE);
+  tc_snprintf(module, sizeof(module), "%s/%s", path, MODULE);
   
   // try transcode's module directory
   

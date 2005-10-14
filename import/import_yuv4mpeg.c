@@ -51,7 +51,7 @@ MOD_open
 		{
 			case CODEC_RGB:
 			{
-				if(((unsigned)snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" | tcextract -x yuv420p -t yuv4mpeg | tcdecode -x yuv420p -g %dx%d", vob->video_in_file, vob->im_v_width, vob->im_v_height)>=MAX_BUF))
+				if(tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" | tcextract -x yuv420p -t yuv4mpeg | tcdecode -x yuv420p -g %dx%d", vob->video_in_file, vob->im_v_width, vob->im_v_height) < 0)
 				{
 					perror("cmd buffer overflow");
 					return(TC_IMPORT_ERROR);
@@ -62,7 +62,7 @@ MOD_open
   
 			case CODEC_YUV:
 			{
-				if(((unsigned) snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" | tcextract -x yuv420p -t yuv4mpeg", vob->video_in_file)>=MAX_BUF))
+				if(tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" | tcextract -x yuv420p -t yuv4mpeg", vob->video_in_file) < 0)
 				{
 					perror("cmd buffer overflow");
 					return(TC_IMPORT_ERROR);
@@ -102,7 +102,7 @@ MOD_open
     }
     
       
-      if(((unsigned)snprintf(import_cmd_buf, MAX_BUF, "tcextract -x pcm -t wav -i \"%s\"", vob->audio_in_file)>=MAX_BUF)) {
+      if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -x pcm -t wav -i \"%s\"", vob->audio_in_file) < 0) {
       perror("cmd buffer overflow");
       return(TC_IMPORT_ERROR);
     }

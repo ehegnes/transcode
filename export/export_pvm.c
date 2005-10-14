@@ -553,7 +553,7 @@ MOD_init
 			return(TC_EXPORT_ERROR);
 		}
 		memset((char *)&s_version,'\0',MAX_BUF);
-		snprintf((char *)&s_version,MAX_BUF,"%s",EXPORT_PVM_VERSION);
+		tc_snprintf((char *)&s_version,MAX_BUF,"%s",EXPORT_PVM_VERSION);
 		if((f_pvm_multi_send(strlen(&s_version[0]),(char *)&s_version[0],PVM_CHECK_VERSION,p_pvm_fun))==-1)
 		{
 			(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);

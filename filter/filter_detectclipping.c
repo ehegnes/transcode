@@ -108,7 +108,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       char buf[128];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYEOM", "1");
 
-      snprintf(buf, 128, "%u-%u/%d", mfd[ptr->filter_id]->start, mfd[ptr->filter_id]->end, mfd[ptr->filter_id]->step);
+      tc_snprintf(buf, 128, "%u-%u/%d", mfd[ptr->filter_id]->start, mfd[ptr->filter_id]->end, mfd[ptr->filter_id]->step);
       optstr_param (options, "range", "apply filter to [start-end]/step frames", 
 	      "%u-%u/%d", buf, "0", "oo", "0", "oo", "1", "oo");
       optstr_param (options, "limit", "the sum of a line must be below this limit to be considered as black", "%d", "24", "0", "255");

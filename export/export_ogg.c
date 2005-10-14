@@ -80,9 +80,9 @@ MOD_open
 	char resample [PATH_MAX];
 
 	if (ofreq != ifreq) {
-	    result = snprintf(resample, PATH_MAX, "--resample %d -R %d", vob->mp3frequency, vob->a_rate);
+	    result = tc_snprintf(resample, PATH_MAX, "--resample %d -R %d", vob->mp3frequency, vob->a_rate);
 	} else {
-	    result = snprintf(resample, PATH_MAX, "-R %d", vob->a_rate);
+	    result = tc_snprintf(resample, PATH_MAX, "-R %d", vob->a_rate);
         }
 	if (result < 0) {
 	    perror("command buffer overflow");
@@ -93,7 +93,7 @@ MOD_open
 	    fprintf(stderr, "[%s] Writing audio to \"/dev/null\" (no -m option)\n", MOD_NAME);
 	}
 	if (vob->mp3bitrate == 0)
-	    result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -q %.2f %s -Q -o \"%s\" %s -",
+	    result = tc_snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -q %.2f %s -Q -o \"%s\" %s -",
 		vob->dm_bits,
 		vob->dm_chan,
 		vob->mp3quality,
@@ -101,7 +101,7 @@ MOD_open
 		vob->audio_out_file?vob->audio_out_file:"/dev/null",
 		(vob->ex_a_string?vob->ex_a_string:""));
 	else
-	    result = snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -b %d %s -Q -o \"%s\" %s -",
+	    result = tc_snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -b %d %s -Q -o \"%s\" %s -",
 		vob->dm_bits,
 		vob->dm_chan,
 		vob->mp3bitrate,

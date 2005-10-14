@@ -123,7 +123,7 @@ static int divx5_init(char *path) {
   char *error;
   int *quiet_encore;
   
-  snprintf(module, sizeof(module), "%s/%s", path, MODULE);
+  tc_snprintf(module, sizeof(module), "%s/%s", path, MODULE);
   
 
   // try transcode's module directory

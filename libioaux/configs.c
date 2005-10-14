@@ -2480,9 +2480,9 @@ int module_read_config(char *section, char *prefix, char *module, struct config 
   char	      conffile[256];
 
   if (configdir) {
-      snprintf(conffile, sizeof(conffile), "%s/%s.cfg", configdir, module);
+      tc_snprintf(conffile, sizeof(conffile), "%s/%s.cfg", configdir, module);
   } else {
-      snprintf(conffile, sizeof(conffile), "./%s.cfg", module);
+      tc_snprintf(conffile, sizeof(conffile), "./%s.cfg", module);
   }
   
   /* Search for the config file called module.cfg */
@@ -2490,7 +2490,7 @@ int module_read_config(char *section, char *prefix, char *module, struct config 
     char *home = getenv("HOME");
     
     if (home != NULL) {
-      snprintf(buffer, sizeof(buffer), "%s/.transcode/%s.cfg", home, module);
+      tc_snprintf(buffer, sizeof(buffer), "%s/.transcode/%s.cfg", home, module);
       if (stat(buffer, &statfile) != 0) {
         fprintf(stderr, "[%s] Neither './%s.cfg' nor '~/.transcode/%s.cfg'\n"
                 "[%s] found. Default settings will be used instead.\n",

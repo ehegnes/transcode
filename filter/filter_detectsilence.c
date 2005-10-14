@@ -96,21 +96,36 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //----------------------------------
   
   if(ptr->tag & TC_FILTER_CLOSE) {
-    int i, len=0;
+    int i, res, len=0;
     if (next<1) return 0;
 
     if((vob = tc_get_vob())==NULL) return(-1);
 
     //len += sprintf(cmd, "tcmp3cut -i %s -o %s ", vob->audio_in_file, vob->audio_out_file?vob->audio_out_file:vob->audio_in_file);
-    len += snprintf(cmd, sizeof(cmd), "tcmp3cut -i in.mp3 -o base ");
+    res = tc_snprintf(cmd, sizeof(cmd), "tcmp3cut -i in.mp3 -o base ");
+    if (res < 0) {
+      tc_error("cmd buffer overflow");
+      return(-1);
+    }
+    len += res;
     printf("\n ********** Songs ***********\n");
     if (next>0) {
       printf("%d", songs[0]);
-      len += snprintf(cmd+len, sizeof(cmd) - len, "-t %d", songs[0]);
+      res = tc_snprintf(cmd+len, sizeof(cmd) - len, "-t %d", songs[0]);
+      if (res < 0) {
+        tc_error("cmd buffer overflow");
+        return(-1);
+      }
+      len += res;
     }
     for (i=1; i<next; i++) {
       printf(",%d", songs[i]);
-      len += snprintf(cmd+len, sizeof(cmd) - len, ",%d", songs[i]);
+      res = tc_snprintf(cmd+len, sizeof(cmd) - len, ",%d", songs[i]);
+      if (res < 0) {
+        tc_error("cmd buffer overflow");
+        return(-1);
+      }
+      len += res;
     }
     printf("\n");
     printf("Execute: %s\n", cmd);

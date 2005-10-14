@@ -164,18 +164,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
       char buf[128];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYMOE", "2");
 
-      snprintf(buf, 128, "%f", PARAM1_DEFAULT);
+      tc_snprintf(buf, 128, "%f", PARAM1_DEFAULT);
       optstr_param (options, "luma", "spatial luma strength", "%f", buf, "0.0", "100.0" );
 
-      snprintf(buf, 128, "%f", PARAM2_DEFAULT);
+      tc_snprintf(buf, 128, "%f", PARAM2_DEFAULT);
       optstr_param (options, "chroma", "spatial chroma strength", "%f", buf, "0.0", "100.0" );
 
-      snprintf(buf, 128, "%f", PARAM3_DEFAULT);
+      tc_snprintf(buf, 128, "%f", PARAM3_DEFAULT);
       optstr_param (options, "luma_strength", "temporal luma strength", "%f", buf, "0.0", "100.0" );
 
-      snprintf(buf, 128, "%f", PARAM3_DEFAULT*PARAM2_DEFAULT/PARAM1_DEFAULT);
+      tc_snprintf(buf, 128, "%f", PARAM3_DEFAULT*PARAM2_DEFAULT/PARAM1_DEFAULT);
       optstr_param (options, "chroma_strength", "temporal chroma strength", "%f", buf, "0.0", "100.0" );
-      snprintf(buf, 128, "%d", mfd[instance]->pre);
+      tc_snprintf(buf, 128, "%d", mfd[instance]->pre);
       optstr_param (options, "pre", "run as a pre filter", "%d", buf, "0", "1" );
 
       return 0;

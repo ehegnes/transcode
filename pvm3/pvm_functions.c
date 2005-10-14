@@ -248,35 +248,35 @@ void f_pvm_skeduler(pvm_res_func_t *(*f_my_elab_func)(int,char *,int,int))
 				if (memcmp((char *)EXPORT_PVM_VERSION,p_buffer,strlen(EXPORT_PVM_VERSION)) !=0)
 				{
 					s_rc=1;
-					if((gethostname((char *)&s_hostname,MAX_BUF))!=0)
+					if((gethostname(s_hostname,sizeof(s_hostname)))!=0)
 					{
-						memset((char *)&s_hostname,'\0',MAX_BUF);
-						snprintf((char *)&s_hostname,MAX_BUF,"localhost-%d\n",getpid());
+						memset(s_hostname,'\0',sizeof(s_hostname));
+						snprintf(s_hostname,sizeof(s_hostname),"localhost-%d\n",getpid());
 					}
-					fprintf(stderr,"(%s) Invalid version: (%s) request (%s) on host %s\n",__FILE__,EXPORT_PVM_VERSION,p_buffer,(char *)&s_hostname);
+					fprintf(stderr,"(%s) Invalid version: (%s) request (%s) on host %s\n",__FILE__,EXPORT_PVM_VERSION,p_buffer,s_hostname);
 				}
 				else
 					s_rc=0;
 			}
 			else if ((s_msg_type==PVM_MSG_CONF)&&(s_option==PVM_INIT_SKED))		/*check which the type of msg*/
 			{
-				memcpy((char *)&s_nfrxtask,p_buffer,s_size);
+				memcpy(&s_nfrxtask,p_buffer,s_size);
 				s_rc=0;
 			}
 			else if ((s_msg_type==PVM_MSG_CONF)&&(s_option==PVM_INIT_JOIN))		/*check which the type of msg*/
 			{
-				memcpy((char *)&s_join,p_buffer,s_size);
+				memcpy(&s_join,p_buffer,s_size);
 				s_rc=0;
 			}
 			else if ((s_msg_type==PVM_MSG_WORK)&&(s_option==PVM_MERGER_INIT))		/*check which the type of msg*/
 			{
-				memcpy((char *)&s_join,p_buffer,s_size);
+				memcpy(&s_join,p_buffer,s_size);
 				s_msg_type=PVM_MSG_WRKN;
 				s_rc=0;
 			}
 			else if ((s_msg_type==PVM_MSG_WORK)&&(s_option==PVM_EXP_OPT_PREINIT))		/*check the option of msg*/
 			{
-				memcpy((char *)&s_seq_preinit,p_buffer,s_size);
+				memcpy(&s_seq_preinit,p_buffer,s_size);
 				s_msg_type=PVM_MSG_WRKN;
 				s_rc=0;
 			}

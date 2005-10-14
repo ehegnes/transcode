@@ -394,7 +394,7 @@ while( fgets(sor, 1020, f) )
 				{
 				return NULL;
 				}
-			snprintf(cp, strlen(desc->fpath) + strlen(p[1]) + 2, "%s/%s",
+			tc_snprintf(cp, strlen(desc->fpath) + strlen(p[1]) + 2, "%s/%s",
 			desc->fpath, p[1]);
 			if(!((desc->pic_a[fontdb] = load_raw(cp, verbose))))
 				{
@@ -412,7 +412,7 @@ while( fgets(sor, 1020, f) )
 				{
 				return NULL;
 				}
-			snprintf(cp, strlen(desc->fpath) + strlen(p[1]) + 2, "%s/%s",
+			tc_snprintf(cp, strlen(desc->fpath) + strlen(p[1]) + 2, "%s/%s",
 			desc->fpath, p[1]);
 			if(!((desc->pic_b[fontdb] = load_raw(cp, verbose))))
 				{
@@ -664,7 +664,7 @@ FILE *f;
 int const max_name = 128;
 char name[max_name];
 
-snprintf(name, max_name, "%s/%s-%c.raw", outdir, encoding_name, type);
+tc_snprintf(name, max_name, "%s/%s-%c.raw", outdir, encoding_name, type);
 f = fopen(name, "wb");
 if(! f)
 	{
@@ -801,7 +801,7 @@ int		glyphs_count = 0;
     int const max_name = 128;
     char name[max_name];
 
-    snprintf(name, max_name, "%s/%s", outdir, font_desc);
+    tc_snprintf(name, max_name, "%s/%s", outdir, font_desc);
     f = fopen(name, append_mode ? "a":"w");
 	if(! f)
 		{
@@ -1370,7 +1370,7 @@ if(! iso_extention) return 0;
 
 /* pathfilename of true type font */
 if(font_path) free(font_path);
-snprintf(temp, sizeof(temp), "%s/.xste/fonts/%s", home_dir, font_name);
+tc_snprintf(temp, sizeof(temp), "%s/.xste/fonts/%s", home_dir, font_name);
 font_path = strsave(temp);
 if(! font_path) return 0;
 
@@ -1385,17 +1385,17 @@ if(! fptr)
 fclose(fptr);
 
 /* create font data directory */
-snprintf(temp, sizeof(temp), "mkdir %s/.subtitler 2> /dev/zero", home_dir);
+tc_snprintf(temp, sizeof(temp), "mkdir %s/.subtitler 2> /dev/zero", home_dir);
 pptr = popen(temp, "w");
 pclose(pptr);
 
 /* directory where to put the temp files */
-snprintf(temp, sizeof(temp), "%s/.subtitler", home_dir);
+tc_snprintf(temp, sizeof(temp), "%s/.subtitler", home_dir);
 outdir = strsave(temp);
 if(! outdir) return 0;
 
 /* encoding string */
-snprintf(temp, sizeof(temp), "iso-8859-%d", iso_extention); 
+tc_snprintf(temp, sizeof(temp), "iso-8859-%d", iso_extention); 
 encoding = strsave(temp);
 if(! encoding) return 0;
 
@@ -1426,7 +1426,7 @@ free(abuffer);
 /* reload the font ! */
 
 /* read in font (also needed for frame counter) */
-snprintf(temp, sizeof(temp), "%s/font.desc", outdir);
+tc_snprintf(temp, sizeof(temp), "%s/font.desc", outdir);
 
 pfontd = read_font_desc(temp, 1, 0);
 if(! pfontd)

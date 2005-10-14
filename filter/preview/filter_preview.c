@@ -95,7 +95,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
 
-    snprintf(buffer, sizeof(buffer), "%s-%s", PACKAGE, VERSION);
+    tc_snprintf(buffer, sizeof(buffer), "%s-%s", PACKAGE, VERSION);
     
     if(dv_player != NULL) return(-1);
     if(!(dv_player = dv_player_new())) return(-1);

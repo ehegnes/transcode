@@ -638,7 +638,7 @@ int main(int argc, char *argv[])
 		print_ms = aud_ms[audtr];
 		chunk = avifile1->track[audtr].audio_posc;
 		break;
-	case 10: snprintf(tag, sizeof(tag), "idx1");
+	case 10: tc_snprintf(tag, sizeof(tag), "idx1");
 		 index_pos = pos;
 		 index_len = len;
 		 print_ms = 0.0;

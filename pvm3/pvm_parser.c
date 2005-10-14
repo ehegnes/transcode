@@ -71,7 +71,7 @@ pvm_config_env *f_pvm_parser(char *p_hostfile,char *p_option)
 			fprintf(stderr, "(%s) error reading configuration file\n",__FILE__);
 			return(NULL);
 		}
-		memset((char *)&s_pvm_conf,'\0',sizeof(pvm_config_env));
+		memset(&s_pvm_conf,'\0',sizeof(s_pvm_conf));
 		if((p_section=cf_get_section(p_root))!=NULL)
 		{
 			do 
@@ -400,7 +400,7 @@ pvm_config_env *f_pvm_parser(char *p_hostfile,char *p_option)
 			free(p_pvm_conf_fileadd);
 			p_pvm_conf_fileadd=p_pvm_conf_filerem;
 		}
-		memset((char *)&s_pvm_conf,'\0',sizeof(pvm_config_env));
+		memset(&s_pvm_conf,'\0',sizeof(s_pvm_conf));
 		return(NULL);
 	}
 	return(NULL);

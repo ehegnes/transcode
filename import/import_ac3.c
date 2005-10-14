@@ -65,11 +65,11 @@ MOD_open
     case CODEC_AC3:
 
 	// produce a clean sequence of AC3 frames
-	sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+	sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 		"tcextract -a %d -i \"%s\" -x ac3 -d %d |"
 		" tcextract -t raw -x ac3 -d %d",
 		vob->a_track, vob->audio_in_file, vob->verbose, vob->verbose);
-        if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+        if (sret < 0)
 	    return(TC_IMPORT_ERROR);
 
 	if(verbose_flag) printf("[%s] AC3->AC3\n", MOD_NAME);
@@ -80,13 +80,13 @@ MOD_open
 
 	if(vob->fixme_a_codec==CODEC_AC3) {
 
-	    sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+	    sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			"tcextract -a %d -i \"%s\" -x ac3 -d %d |"
 			" tcdecode -x ac3 -d %d -s %f,%f,%f -A %d",
 			vob->a_track, vob->audio_in_file, vob->verbose,
 			vob->verbose, vob->ac3_gain[0], vob->ac3_gain[1],
 			vob->ac3_gain[2], vob->a52_mode);
-            if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+            if (sret < 0)
 	        return(TC_IMPORT_ERROR);
 
 	    if(verbose_flag) printf("[%s] AC3->PCM\n", MOD_NAME);
@@ -94,12 +94,12 @@ MOD_open
 
 	if(vob->fixme_a_codec==CODEC_A52) {
 
-	    sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+	    sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 				"tcextract -a %d -i \"%s\" -x a52 -d %d |"
 				" tcdecode -x a52 -d %d -A %d",
 				vob->a_track, vob->audio_in_file,
 				vob->verbose, vob->verbose, vob->a52_mode);
-            if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+            if (sret < 0)
 	        return(TC_IMPORT_ERROR);
 
 	    if(verbose_flag) printf("[%s] A52->PCM\n", MOD_NAME);

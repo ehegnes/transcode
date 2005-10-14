@@ -31,7 +31,7 @@ if(debug_flag)
 	}
 
 /* write data as a temp .ppm file */
-snprintf(temp, sizeof(temp), "%s/%s/temp.ppm", home_dir, subtitles_dir);
+tc_snprintf(temp, sizeof(temp), "%s/%s/temp.ppm", home_dir, subtitles_dir);
 if(! yuv_to_ppm(data, xsize, ysize, temp) )
 	{
 	printf(\
@@ -68,7 +68,7 @@ if(yshear != 0)
 
 if( (xshear != 0.0) || (yshear != 0.0) )
 	{
-	snprintf(temp, sizeof(temp),\
+	tc_snprintf(temp, sizeof(temp),\
 "mogrify -geometry %dx%d%c  -rotate %.2f  -shear %.2fx%.2f  %s/%s/temp.ppm",\
 	(int) *new_xsize, (int) *new_ysize, a,\
 	zrotation,\
@@ -77,7 +77,7 @@ if( (xshear != 0.0) || (yshear != 0.0) )
 	}
 else
 	{
-	snprintf(temp, sizeof(temp),\
+	tc_snprintf(temp, sizeof(temp),\
 	"mogrify -geometry %dx%d%c  -rotate %.2f  %s/%s/temp.ppm",\
 	(int) *new_xsize, (int) *new_ysize, a,\
 	zrotation,\
@@ -87,7 +87,7 @@ else
 if(!execute(temp) ) return 0;
 
 /* load temp .ppm file */
-snprintf(temp, sizeof(temp), "%s/%s/temp.ppm", home_dir, subtitles_dir);
+tc_snprintf(temp, sizeof(temp), "%s/%s/temp.ppm", home_dir, subtitles_dir);
 ptr = ppm_to_yuv_in_char(temp, &x, &y);
 
 *new_xsize = (double)x;

@@ -127,26 +127,6 @@ void init_aa_table(double a, double b) {
     return;
 }
 
-void tc_error(char *fmt, ...)
-{
-      fprintf(stderr, "critical error: %s - exit\n", fmt);
-}
-
-void tc_warn(char *fmt, ...)
-{
-      fprintf(stderr, "critical error: %s - exit\n", fmt);
-}
-
-void tc_info(char *fmt, ...)
-{
-      fprintf(stderr, "critical error: %s - exit\n", fmt);
-}
-
-int tc_test_program(char *name)
-{
-	return 0;
-}
-
 static void *tcmodinfo_load_module(char *mod_name, char *mod_path, int mode)
 {
 #ifdef SYS_BSD
@@ -157,7 +137,7 @@ static void *tcmodinfo_load_module(char *mod_name, char *mod_path, int mode)
   
   if(mode & TC_EXPORT) {
     
-    snprintf(module, sizeof(module), "%s/export_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
+    tc_snprintf(module, sizeof(module), "%s/export_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
     
     if(verbose & TC_DEBUG) 
       printf("loading %s export module %s\n", ((mode & TC_VIDEO)? "video": "audio"), module); 
@@ -192,7 +172,7 @@ static void *tcmodinfo_load_module(char *mod_name, char *mod_path, int mode)
   
   if(mode & TC_IMPORT) {
     
-    snprintf(module, sizeof(module), "%s/import_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
+    tc_snprintf(module, sizeof(module), "%s/import_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
     
     //if(verbose & TC_DEBUG) 
       printf("loading %s import module %s\n", ((mode & TC_VIDEO)? "video": "audio"), module); 
@@ -254,7 +234,7 @@ static int load_plugin(char *path, int id) {
     }
   }
   
-  snprintf(module, sizeof(module), "%s/filter_%s.so", path, filter[id].name);
+  tc_snprintf(module, sizeof(module), "%s/filter_%s.so", path, filter[id].name);
   
   // try transcode's module directory
   
@@ -479,7 +459,7 @@ int main(int argc, char *argv[])
 
   if (mod_type & TYPE_FI) {
     filter[0].name = malloc(256);
-    snprintf (filter[0].name, 256, "%s", filename);
+    tc_snprintf (filter[0].name, 256, "%s", filename);
 
     if (load_plugin ( (newmodpath?newmodpath:modpath), 0) == 0) {
       int out=0;

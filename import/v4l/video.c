@@ -80,7 +80,7 @@ video_grab_init (char *device,  // device the video/audio comes from [/dev/video
 
   do_audio = _do_audio;
 
-  snprintf (pNorm, TC_BUF_MIN - 1, "%s", "don't touch");
+  tc_snprintf (pNorm, TC_BUF_MIN - 1, "%s", "don't touch");
 
   // open video device  
   if ((fh = open (device, O_RDWR)) == -1) {
@@ -108,7 +108,7 @@ video_grab_init (char *device,  // device the video/audio comes from [/dev/video
     return (-1);
   }
 
-  snprintf (pNorm, TC_BUF_MIN - 1, "%s", channels[chanid].name);
+  tc_snprintf (pNorm, TC_BUF_MIN - 1, "%s", channels[chanid].name);
 
   if (channels[chanid].flags & VIDEO_VC_TUNER) {
     channel_has_tuner = 1;
@@ -149,7 +149,7 @@ video_grab_init (char *device,  // device the video/audio comes from [/dev/video
     /*
      * construct the filename from $HOME/.xawtv
      */
-    if (snprintf (pConfig, TC_BUF_MIN, "%s/%s", pHome, ".xawtv") > 0) {
+    if (tc_snprintf (pConfig, TC_BUF_MIN, "%s/%s", pHome, ".xawtv") > 0) {
       /*
        * open and read the config file ($HOME/.xawtv)
        */
@@ -246,13 +246,13 @@ video_grab_init (char *device,  // device the video/audio comes from [/dev/video
                */
               if (strncmp (pSection->name, "global", strlen (pSection->name)) == 0)
                 if ((pTemp = cf_get_named_key (pRoot, pSection->name, "freqtab")) != NULL)
-                  snprintf (pNorm, TC_BUF_MIN - 1, "%s", pTemp);
+                  tc_snprintf (pNorm, TC_BUF_MIN - 1, "%s", pTemp);
 
               /*
                * is this section a channel?
                */
               if ((pTemp = cf_get_named_key (pRoot, pSection->name, "channel")) != NULL) {
-                snprintf (pChannel, 7, "%s", pTemp);
+                tc_snprintf (pChannel, 7, "%s", pTemp);
                 /*
                  * is this section our channel?
                  */
@@ -301,7 +301,7 @@ video_grab_init (char *device,  // device the video/audio comes from [/dev/video
               }
 
               if (found_station) {
-                snprintf (pStation, TC_BUF_MIN - 1, "%s", pSection->name);
+                tc_snprintf (pStation, TC_BUF_MIN - 1, "%s", pSection->name);
                 if ((pTemp = cf_get_named_key (pRoot, pSection->name, "bright")) != NULL) {
                   bright = atoi (pTemp);
                   if (strstr (pTemp, "%") != NULL) {

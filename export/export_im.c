@@ -165,6 +165,7 @@ MOD_encode
   ExceptionInfo exception_info;
   char *out_buffer = param->buffer;
   Image *image=NULL;
+  int res;
 
   if ((++int_counter-1) % interval != 0)
       return (0);
@@ -173,7 +174,8 @@ MOD_encode
 
     GetExceptionInfo(&exception_info);
 
-    if(((unsigned) snprintf(buf2, PATH_MAX, "%s%06d.%s", prefix, counter++, type)>=PATH_MAX)) {
+    res = tc_snprintf(buf2, PATH_MAX, "%s%06d.%s", prefix, counter++, type);
+    if (res < 0) {
       perror("cmd buffer overflow");
       return(TC_EXPORT_ERROR);
     } 

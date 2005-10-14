@@ -310,9 +310,9 @@ char *clone_fifo()
   
   //need to create a pipe here
   if ((a = getenv("TMPDIR")) != NULL)
-      snprintf(b, PATH_MAX, "%s/%s", a, "fileXXXXXX");
+      tc_snprintf(b, PATH_MAX, "%s/%s", a, "fileXXXXXX");
   else 
-      snprintf(b, PATH_MAX, "%s/%s", "/tmp", "fileXXXXXX");
+      tc_snprintf(b, PATH_MAX, "%s/%s", "/tmp", "fileXXXXXX");
   
   name = mktemp(b);
   

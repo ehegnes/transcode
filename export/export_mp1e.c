@@ -190,7 +190,7 @@ MOD_open
 	// Build commandline
 	if (do_audio) {
 
-	    snprintf(export_cmd_buf, PATH_MAX, 
+	    tc_snprintf(export_cmd_buf, PATH_MAX, 
 		"mp1e %s -m 3 -b %d -R %s -B %d -c raw:%s-%d-%d-%d-%d -o \"%s\" -p %s %s %s", 
 		mux_buf,
 		vob->divxbitrate,
@@ -208,7 +208,7 @@ MOD_open
 
 	} else { // no audio
 
-	    snprintf(export_cmd_buf, PATH_MAX, 
+	    tc_snprintf(export_cmd_buf, PATH_MAX, 
 		"mp1e -m 1 -b %d -R %s -c raw:%s-%d-%d-%d-%d -o \"%s\" %s %s" , 
 		vob->divxbitrate,
 		motion_str,

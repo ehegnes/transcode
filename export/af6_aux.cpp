@@ -385,7 +385,7 @@ int setup_codec_byFile(char *mod_name, const CodecInfo *info, vob_t *vob, int ve
   cfg_file = fopen(fname, "r");
   if (!cfg_file) 
   {
-    snprintf(fname, sizeof(fname), "%s/export_af6.conf", vob->mod_path);
+    tc_snprintf(fname, sizeof(fname), "%s/export_af6.conf", vob->mod_path);
     cfg_file = fopen(fname, "r");
   }  
   if (!cfg_file) return 0;

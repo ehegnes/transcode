@@ -59,7 +59,7 @@ static int split_stream_core(char *file, char *source)
     
     if(file == NULL) {
 	
-	if((snprintf(split_cmd_buf, PMAX_BUF, "tccat -i %s | tcdemux -W 2>/dev/null", source)<0)) debug_return;
+	if(tc_snprintf(split_cmd_buf, PMAX_BUF, "tccat -i %s | tcdemux -W 2>/dev/null", source)<0) debug_return;
 	// popen
 	if((fd = popen(split_cmd_buf, "r"))== NULL) debug_return;
 	

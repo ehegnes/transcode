@@ -93,7 +93,7 @@ int rtjpeg_vid_open(char *tplorg)
   char   *space;
   int    editmode=0;
 
-  snprintf(editfname, sizeof(editfname), "%s.%s", tplorg, "edit");
+  tc_snprintf(editfname, sizeof(editfname), "%s.%s", tplorg, "edit");
   editfile = fopen(editfname, "r");
 
   if (editfile != NULL && editmode==0) {

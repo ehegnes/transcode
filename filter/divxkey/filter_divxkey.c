@@ -127,7 +127,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
 
-    snprintf(buffer, sizeof(buffer), "%s-%s", PACKAGE, VERSION);
+    tc_snprintf(buffer, sizeof(buffer), "%s-%s", PACKAGE, VERSION);
     
     //init filter
 

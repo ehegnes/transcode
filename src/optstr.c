@@ -39,6 +39,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include "optstr.h"
+#include "libtc/libtc.h"
 
 char * optstr_lookup(char *haystack, char *needle)
 {
@@ -167,7 +168,7 @@ int optstr_filter_desc (char *buf,
 		)
 {
     int len = strlen(buf);
-    if (snprintf(buf+len, ARG_CONFIG_LEN-len, "\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\"\n", 
+    if (tc_snprintf(buf+len, ARG_CONFIG_LEN-len, "\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\"\n", 
 				    filter_name,filter_comment,filter_version,
 				    filter_author, capabilities, frames_needed) <= 0)
 	return 1;
@@ -195,12 +196,13 @@ int optstr_param  (char *buf,
 		   ... ) /* char *valid_from1, char *valid_to1, ... */ 
 {
     va_list ap; 
-    int n = 0, pos, numargs=0;
+    int n = 0, res, pos, numargs=0;
     int len = strlen(buf);
 
-    if ((n += snprintf(buf+len, ARG_CONFIG_LEN-len, "\"%s\", \"%s\", \"%s\", \"%s\"", 
+    if ((res = tc_snprintf(buf+len, ARG_CONFIG_LEN-len, "\"%s\", \"%s\", \"%s\", \"%s\"", 
 				name,comment,fmt,val)) <= 0)
 	return 1;
+    n += res;
 
 
     /* count format strings */
@@ -221,12 +223,13 @@ int optstr_param  (char *buf,
 
     va_start (ap, val);
       while (numargs--) {
-	  if ((n += snprintf (buf+len+n, ARG_CONFIG_LEN-len-n, ", \"%s\"", va_arg(ap, char *))) <= 0)
+	  if ((res = tc_snprintf (buf+len+n, ARG_CONFIG_LEN-len-n, ", \"%s\"", va_arg(ap, char *))) <= 0)
 	      return 1;
+	  n += res;
       }
     va_end (ap);
 
-    if ((n += snprintf (buf+len+n, ARG_CONFIG_LEN-len-n, "\n")) <= 0 )
+    if ((res = tc_snprintf (buf+len+n, ARG_CONFIG_LEN-len-n, "\n")) <= 0 )
 	return 1;
 
 

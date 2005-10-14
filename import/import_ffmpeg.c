@@ -444,10 +444,10 @@ do_dv:
 
       switch (vob->im_v_codec) {
 	case CODEC_RGB:
-	  snprintf(yuv_buf, sizeof(yuv_buf), "rgb");
+	  tc_snprintf(yuv_buf, sizeof(yuv_buf), "rgb");
 	  break;
 	case CODEC_YUV:
-	  snprintf(yuv_buf, sizeof(yuv_buf), "yuv420p");
+	  tc_snprintf(yuv_buf, sizeof(yuv_buf), "yuv420p");
 	  break;
       }
 
@@ -465,14 +465,14 @@ do_dv:
 
       //printf ("FFMPEG: codec->name = %s ->id = 0x%x\n", codec->name, codec->id);
 
-      sret = snprintf(import_cmd_buf, TC_BUF_MAX, 
-	              "tccat -i \"%s\" -d %d |"
-                      " tcextract -x dv -d %d |"
-                      " tcdecode -x %s -t lavc -y %s -g %dx%d -Q %d -d %d",
-	              vob->video_in_file, vob->verbose, vob->verbose,
-	              codec->name, yuv_buf, x_dim, y_dim, vob->quality,
-                      vob->verbose);
-      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX, 
+			 "tccat -i \"%s\" -d %d |"
+			 " tcextract -x dv -d %d |"
+			 " tcdecode -x %s -t lavc -y %s -g %dx%d -Q %d -d %d",
+			 vob->video_in_file, vob->verbose, vob->verbose,
+			 codec->name, yuv_buf, x_dim, y_dim, vob->quality,
+			 vob->verbose);
+      if (sret < 0)
         return(TC_IMPORT_ERROR);
     }
 

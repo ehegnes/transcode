@@ -136,16 +136,16 @@ int tc_filter(frame_list_t *ptr_, char *options)
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYEM", "1");
       
       // buf, name, comment, format, val, from, to  
-      snprintf (buf, 32, "%.2f", strength[instance]);
+      tc_snprintf (buf, 32, "%.2f", strength[instance]);
       optstr_param (options, "strength", "Blending factor",                 "%f", buf, "0.0", "0.9");
 
-      snprintf (buf, 32, "%d", cdiff[instance]);
+      tc_snprintf (buf, 32, "%d", cdiff[instance]);
       optstr_param (options, "cdiff",    "Max difference in chroma values", "%d", buf, "0", "16");
       
-      snprintf (buf, 32, "%d", ldiff[instance]);
+      tc_snprintf (buf, 32, "%d", ldiff[instance]);
       optstr_param (options, "ldiff",    "Max difference in luma value",    "%d", buf, "0", "16");
 
-      snprintf (buf, 32, "%d", range[instance]);
+      tc_snprintf (buf, 32, "%d", range[instance]);
       optstr_param (options, "range",    "Search Range",                    "%d", buf, "0", "16");
 
 	return 0;

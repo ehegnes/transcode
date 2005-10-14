@@ -73,11 +73,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
       char buf[128];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYE", "1");
 
-      snprintf(buf, 128, "%ux%u/%d", mfd->start, mfd->end, mfd->step);
+      tc_snprintf(buf, 128, "%ux%u/%d", mfd->start, mfd->end, mfd->step);
       optstr_param (options, "range", "apply filter to [start-end]/step frames", 
 	      "%u-%u/%d", buf, "0", "oo", "0", "oo", "1", "oo");
 
-      snprintf(buf, 128, "%d", mfd->subst);
+      tc_snprintf(buf, 128, "%d", mfd->subst);
       optstr_param (options, "subst", "substract N red from Cr", 
 	      "%d", buf, "-127", "127" );
 

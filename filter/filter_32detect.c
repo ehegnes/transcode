@@ -144,22 +144,22 @@ int tc_filter(frame_list_t *ptr_, char *options)
       char buf[255];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Thomas", "VRYMEO", "1");
 
-      snprintf(buf, sizeof(buf), "%d", THRESHOLD);
+      tc_snprintf(buf, sizeof(buf), "%d", THRESHOLD);
       optstr_param (options, "threshold", "Interlace detection threshold", "%d", buf, "0", "255");
 
-      snprintf(buf, sizeof(buf), "%d", THRESHOLD/2);
+      tc_snprintf(buf, sizeof(buf), "%d", THRESHOLD/2);
       optstr_param (options, "chromathres", "Interlace detection chroma threshold", "%d", buf, "0", "255");
 
-      snprintf(buf, sizeof(buf), "%d", COLOR_EQUAL);
+      tc_snprintf(buf, sizeof(buf), "%d", COLOR_EQUAL);
       optstr_param (options, "equal", "threshold for equal colors", "%d", buf, "0", "255");
 
-      snprintf(buf, sizeof(buf), "%d", COLOR_EQUAL/2);
+      tc_snprintf(buf, sizeof(buf), "%d", COLOR_EQUAL/2);
       optstr_param (options, "chromaeq", "threshold for equal chroma", "%d", buf, "0", "255");
 
-      snprintf(buf, sizeof(buf), "%d", COLOR_DIFF);
+      tc_snprintf(buf, sizeof(buf), "%d", COLOR_DIFF);
       optstr_param (options, "diff", "threshold for different colors", "%d", buf, "0", "255");
 
-      snprintf(buf, sizeof(buf), "%d", COLOR_DIFF/2);
+      tc_snprintf(buf, sizeof(buf), "%d", COLOR_DIFF/2);
       optstr_param (options, "chromadi", "threshold for different chroma", "%d", buf, "0", "255");
 
       optstr_param (options, "force_mode", "set internal force de-interlace flag with mode -I N", 

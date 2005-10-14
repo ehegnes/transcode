@@ -88,22 +88,22 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    	
 	    optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYOE", "1");
 
-	    snprintf (buf, sizeof(buf), "%d", radius_luma);
+	    tc_snprintf (buf, sizeof(buf), "%d", radius_luma);
 	    optstr_param (options, "radius_luma",    "Radius for median (luma)", "%d", buf, "1", "24");
 
-	    snprintf (buf, sizeof(buf), "%d", radius_chroma);
+	    tc_snprintf (buf, sizeof(buf), "%d", radius_chroma);
 	    optstr_param (options, "radius_chroma",  "Radius for median (chroma)", "%d", buf, "1", "24");
 
-	    snprintf (buf, sizeof(buf), "%d", threshold_luma);
+	    tc_snprintf (buf, sizeof(buf), "%d", threshold_luma);
 	    optstr_param (options, "threshold_luma",  "Trigger threshold (luma)", "%d", buf, "1", "32");
 
-	    snprintf (buf, sizeof(buf), "%d", threshold_chroma);
+	    tc_snprintf (buf, sizeof(buf), "%d", threshold_chroma);
 	    optstr_param (options, "threshold_chroma",  "Trigger threshold (chroma)", "%d", buf, "1", "32");
 
-	    snprintf (buf, sizeof(buf), "%d", interlace);
+	    tc_snprintf (buf, sizeof(buf), "%d", interlace);
 	    optstr_param (options, "interlace",  "Treat input as interlaced", "%d", buf, "0", "1");
 
-	    snprintf (buf, sizeof(buf), "%d", pre);
+	    tc_snprintf (buf, sizeof(buf), "%d", pre);
 	    optstr_param (options, "pre",  "Run as a PRE filter", "%d", buf, "0", "1");
 
 	    return 0;

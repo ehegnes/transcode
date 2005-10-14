@@ -103,38 +103,38 @@ int f_multiplexer(char *p_codec,char *p_merge_cmd,char *p_video_filename,char *p
 
 	if(!strcasecmp(p_codec,"mpeg2enc-mp2enc"))
 	{
-		memset((char *)&s_buffer,'\0',2*MAX_BUF);
+		memset(s_buffer,'\0',sizeof(s_buffer));
 		if (p_merge_cmd!=NULL)
-			snprintf((char *)&s_buffer,2*MAX_BUF,"%s %s -o %s %s %s",MPEG2ENC_MP2ENC_PROG,p_merge_cmd,p_dest_file,p_video_filename,p_audio_filename);
+			tc_snprintf(s_buffer,sizeof(s_buffer),"%s %s -o %s %s %s",MPEG2ENC_MP2ENC_PROG,p_merge_cmd,p_dest_file,p_video_filename,p_audio_filename);
 		else
-			snprintf((char *)&s_buffer,2*MAX_BUF,"%s -o %s %s %s",MPEG2ENC_MP2ENC_PROG,p_dest_file,p_video_filename,p_audio_filename);
+			tc_snprintf(s_buffer,sizeof(s_buffer),"%s -o %s %s %s",MPEG2ENC_MP2ENC_PROG,p_dest_file,p_video_filename,p_audio_filename);
 		if(s_verbose & TC_DEBUG)	
-			fprintf(stderr,"(%s) multiplex cmd: %s\n",__FILE__,(char *)&s_buffer);
-		(int)system((char *)&s_buffer);
+			fprintf(stderr,"(%s) multiplex cmd: %s\n",__FILE__,s_buffer);
+		(int)system(s_buffer);
 		return(0);
 	}
 	else if(!strcasecmp(p_codec,"mpeg-mpeg"))
 	{
-		memset((char *)&s_buffer,'\0',2*MAX_BUF);
+		memset(s_buffer,'\0',sizeof(s_buffer));
 		if (p_merge_cmd!=NULL)
-			snprintf((char *)&s_buffer,2*MAX_BUF,"%s %s -o %s -i %s -p %s",MPEG_MPEG_PROG,p_merge_cmd,p_dest_file,p_video_filename,p_audio_filename);
+			tc_snprintf(s_buffer,sizeof(s_buffer),"%s %s -o %s -i %s -p %s",MPEG_MPEG_PROG,p_merge_cmd,p_dest_file,p_video_filename,p_audio_filename);
 		else
-			snprintf((char *)&s_buffer,2*MAX_BUF,"%s -o %s -i %s -p %s",MPEG_MPEG_PROG,p_dest_file,p_video_filename,p_audio_filename);
+			tc_snprintf(s_buffer,sizeof(s_buffer),"%s -o %s -i %s -p %s",MPEG_MPEG_PROG,p_dest_file,p_video_filename,p_audio_filename);
 		if(s_verbose & TC_DEBUG)	
-			fprintf(stderr,"(%s) multiplex cmd: %s\n",__FILE__,(char *)&s_buffer);
-		(int)system((char *)&s_buffer);
+			fprintf(stderr,"(%s) multiplex cmd: %s\n",__FILE__,s_buffer);
+		(int)system(s_buffer);
 		return(0);
 	}
 	else if(!strcasecmp(p_codec,"avi-avi"))
 	{
-		memset((char *)&s_buffer,'\0',2*MAX_BUF);
+		memset(s_buffer,'\0',sizeof(s_buffer));
 		if (p_merge_cmd!=NULL)
-			snprintf((char *)&s_buffer,2*MAX_BUF,"%s %s -o %s -i %s -p %s",AVI_AVI_PROG,p_merge_cmd,p_dest_file,p_video_filename,p_audio_filename);
+			tc_snprintf(s_buffer,sizeof(s_buffer),"%s %s -o %s -i %s -p %s",AVI_AVI_PROG,p_merge_cmd,p_dest_file,p_video_filename,p_audio_filename);
 		else
-			snprintf((char *)&s_buffer,2*MAX_BUF,"%s -o %s -i %s -p %s",AVI_AVI_PROG,p_dest_file,p_video_filename,p_audio_filename);
+			tc_snprintf(s_buffer,sizeof(s_buffer),"%s -o %s -i %s -p %s",AVI_AVI_PROG,p_dest_file,p_video_filename,p_audio_filename);
 		if(s_verbose & TC_DEBUG)	
-			fprintf(stderr,"(%s) multiplex cmd: %s\n",__FILE__,(char *)&s_buffer);
-		(int)system((char *)&s_buffer);
+			fprintf(stderr,"(%s) multiplex cmd: %s\n",__FILE__,s_buffer);
+		(int)system(s_buffer);
 		return(0);
 	}
 	else

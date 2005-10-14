@@ -91,7 +91,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       char buf[32];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYE", "1");
 
-      snprintf(buf, 32, "%d", shift);
+      tc_snprintf(buf, 32, "%d", shift);
       optstr_param (options, "shift", "Shift chroma(color) to the left", "%d", buf, "0", "width");
       return 0;
   }

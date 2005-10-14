@@ -99,7 +99,7 @@ static int lock(void)
     }
 
     pid = getpid();
-    snprintf(lock_buffer, sizeof(lock_buffer), "%10d\n", pid);
+    tc_snprintf(lock_buffer, sizeof(lock_buffer), "%10d\n", pid);
     write (fd, lock_buffer, 11);
     close(fd);
     return 0;

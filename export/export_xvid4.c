@@ -1196,23 +1196,23 @@ static int load_xvid(xvid_module_t *xvid, char *path)
 
 	/* First we build all sonames we will try to load */
 #ifdef SYSTEM_DARWIN
-	snprintf(soname[0], 4095, "%s/%s.%d.%s", path, XVID_SHARED_LIB_BASE,
-		XVID_API_MAJOR(XVID_API), XVID_SHARED_LIB_SUFX);
+	tc_snprintf(soname[0], 4095, "%s/%s.%d.%s", path, XVID_SHARED_LIB_BASE,
+	            XVID_API_MAJOR(XVID_API), XVID_SHARED_LIB_SUFX);
 #else
-	snprintf(soname[0], 4095, "%s/%s.%s.%d", path, XVID_SHARED_LIB_BASE,
-		XVID_SHARED_LIB_SUFX, XVID_API_MAJOR(XVID_API));
+	tc_snprintf(soname[0], 4095, "%s/%s.%s.%d", path, XVID_SHARED_LIB_BASE,
+	            XVID_SHARED_LIB_SUFX, XVID_API_MAJOR(XVID_API));
 #endif
 #ifdef SYSTEM_DARWIN
-	snprintf(soname[1], 4095, "%s.%d.%s", XVID_SHARED_LIB_BASE,
-		XVID_API_MAJOR(XVID_API), XVID_SHARED_LIB_SUFX);
+	tc_snprintf(soname[1], 4095, "%s.%d.%s", XVID_SHARED_LIB_BASE,
+	            XVID_API_MAJOR(XVID_API), XVID_SHARED_LIB_SUFX);
 #else
-	snprintf(soname[1], 4095, "%s.%s.%d", XVID_SHARED_LIB_BASE,
-		XVID_SHARED_LIB_SUFX, XVID_API_MAJOR(XVID_API));
+	tc_snprintf(soname[1], 4095, "%s.%s.%d", XVID_SHARED_LIB_BASE,
+	            XVID_SHARED_LIB_SUFX, XVID_API_MAJOR(XVID_API));
 #endif
-	snprintf(soname[2], 4095, "%s/%s.%s", path, XVID_SHARED_LIB_BASE,
-		XVID_SHARED_LIB_SUFX);
-	snprintf(soname[3], 4095, "%s.%s", XVID_SHARED_LIB_BASE,
-		XVID_SHARED_LIB_SUFX);
+	tc_snprintf(soname[2], 4095, "%s/%s.%s", path, XVID_SHARED_LIB_BASE,
+	            XVID_SHARED_LIB_SUFX);
+	tc_snprintf(soname[3], 4095, "%s.%s", XVID_SHARED_LIB_BASE,
+	            XVID_SHARED_LIB_SUFX);
 
 	/* Let's try each shared lib until success */
 	for(i=0; i<4; i++) {

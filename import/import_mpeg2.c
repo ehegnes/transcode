@@ -69,22 +69,22 @@ MOD_open
       
     case CODEC_RGB:
 
-      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-                      "tcextract -x mpeg2 -i \"%s\" -d %d |"
-                      " tcdecode -x mpeg2 -d %d",
-                      vob->video_in_file, vob->verbose, vob->verbose);
-      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+			 "tcextract -x mpeg2 -i \"%s\" -d %d |"
+			 " tcdecode -x mpeg2 -d %d",
+			 vob->video_in_file, vob->verbose, vob->verbose);
+      if (sret < 0)
 	return(TC_IMPORT_ERROR);
 
       break;
       
     case CODEC_YUV:
 
-      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-                      "tcextract -x mpeg2 -i \"%s\" -d %d |"
-                      " tcdecode -x mpeg2 -d %d -y yuv420p",
-                      vob->video_in_file, vob->verbose, vob->verbose);
-      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+			 "tcextract -x mpeg2 -i \"%s\" -d %d |"
+			 " tcdecode -x mpeg2 -d %d -y yuv420p",
+			 vob->video_in_file, vob->verbose, vob->verbose);
+      if (sret < 0)
 	return(TC_IMPORT_ERROR);
 
       break;
@@ -94,15 +94,15 @@ MOD_open
 	
 	memset(requant_buf, 0, sizeof (requant_buf)); 
 	if (vob->m2v_requant > M2V_REQUANT_FACTOR) {
-	  snprintf (requant_buf, 256, " | tcrequant -d %d -f %f ",
+	  tc_snprintf (requant_buf, 256, " | tcrequant -d %d -f %f ",
                     vob->verbose, vob->m2v_requant);
 	}
 	m2v_passthru=1;
 
-        sret = snprintf(import_cmd_buf, TC_BUF_MAX, 
-		        "tcextract -x mpeg2 -i \"%s\" -d %d%s", 
-		        vob->video_in_file, vob->verbose, requant_buf);
-        if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+        sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX, 
+			   "tcextract -x mpeg2 -i \"%s\" -d %d%s", 
+			   vob->video_in_file, vob->verbose, requant_buf);
+        if (sret < 0)
 	  return(TC_IMPORT_ERROR);
 
 	break;
@@ -114,26 +114,26 @@ MOD_open
       
     case CODEC_RGB:
 
-      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-                      "tccat -i \"%s\" -d %d -n 0x%x |"
-                      " tcextract -x mpeg2 -t m2v -d %d |"
-                      " tcdecode -x mpeg2 -d %d",
-                      vob->video_in_file, vob->verbose, vob->ts_pid1,
-                      vob->verbose, vob->verbose);
-      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+			 "tccat -i \"%s\" -d %d -n 0x%x |"
+			 " tcextract -x mpeg2 -t m2v -d %d |"
+			 " tcdecode -x mpeg2 -d %d",
+			 vob->video_in_file, vob->verbose, vob->ts_pid1,
+			 vob->verbose, vob->verbose);
+      if (sret < 0)
 	return(TC_IMPORT_ERROR);
 
       break;
       
     case CODEC_YUV:
 
-      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-                      "tccat -i \"%s\" -d %d -n 0x%x |"
-                      " tcextract -x mpeg2 -t m2v -d %d |"
-                      " tcdecode -x mpeg2 -d %d -y yuv420p",
-                      vob->video_in_file, vob->verbose,vob->ts_pid1,
-                      vob->verbose, vob->verbose);
-      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+			 "tccat -i \"%s\" -d %d -n 0x%x |"
+			 " tcextract -x mpeg2 -t m2v -d %d |"
+			 " tcdecode -x mpeg2 -d %d -y yuv420p",
+			 vob->video_in_file, vob->verbose,vob->ts_pid1,
+			 vob->verbose, vob->verbose);
+      if (sret < 0)
 	return(TC_IMPORT_ERROR);
 
       break;

@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
   
   if(shift == 0) fprintf(stderr, "no sync requested - exit");
 
-  memset (nulls, 0, 32000);
+  memset (nulls, 0, sizeof(nulls));
   
  
   // open file
@@ -269,9 +269,9 @@ int main(int argc, char *argv[])
       if (mp3rate%2) mp3rate++;
 
       fprintf(status_fd, "Creating silent mp3 frame with current parameter\n");
-      memset (cmd, 0, 1024);
-      snprintf(cmd, 1024, "transcode -i /dev/zero -o %s "
-	      "-x raw,raw -n 0x1 -g 16x16 -y raw,raw -c 0-5 -e %ld,%d,%d -b %ld -q0", 
+      memset (cmd, 0, sizeof(cmd));
+      tc_snprintf(cmd, sizeof(cmd), "transcode -i /dev/zero -o %s -x raw,raw"
+	      " -n 0x1 -g 16x16 -y raw,raw -c 0-5 -e %ld,%d,%d -b %ld -q0", 
 	      tmp0, rate,bits,chan, mp3rate);
 
       printf(cmd);
@@ -289,12 +289,12 @@ int main(int argc, char *argv[])
 	  AVI_print_error("AVI audio read frame");
 	  return(-1);
       }
-      memset (nulls, 0, 32000);
+      memset (nulls, 0, sizeof(nulls));
       if(AVI_read_audio(avifile3, nulls, nullbytes) < 0) {
 	  AVI_print_error("AVI audio read frame");
 	  return(-1);
       }
-      memset (nulls, 0, 32000);
+      memset (nulls, 0, sizeof(nulls));
       if(AVI_read_audio(avifile3, nulls, nullbytes) < 0) {
 	  AVI_print_error("AVI audio read frame");
 	  return(-1);
@@ -750,7 +750,9 @@ int main(int argc, char *argv[])
   AVI_close(avifile2);
 
   if (avifile3) {
-      memset(nulls, 0, 1024); snprintf(nulls, sizeof(nulls), "rm -f %s", tmp0); system(nulls);
+      memset(nulls, 0, sizeof(nulls));
+      tc_snprintf(nulls, sizeof(nulls), "rm -f %s", tmp0);
+      system(nulls);
       AVI_close(avifile3);
   }
   

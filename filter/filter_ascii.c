@@ -84,7 +84,7 @@ static int write_tmpfile(char* header, char* content, int content_size, int slot
 	
 	if (verbose & TC_DEBUG)
 		tc_info("[%s] Temporary filename correctly allocated.\n", MOD_NAME);
-	snprintf(filename, strlen(TMP_FILE) + TMP_STRING_SIZE, "%s-%d.tmp", TMP_FILE, slot_id);
+	tc_snprintf(filename, strlen(TMP_FILE) + TMP_STRING_SIZE, "%s-%d.tmp", TMP_FILE, slot_id);
 	
 	tmp = fopen(filename, "w");
 	if (!tmp){
@@ -149,14 +149,14 @@ static int aart_render(char* buffer, int width, int height, int slot_id, char* f
 	if (verbose & TC_DEBUG) 
 		tc_info("[%s] Formating buffer option string.\n", MOD_NAME);
 	if (buffer_option != 1)
-		snprintf(buffer_option_string, strlen("--nobuffer"), "--nobuffer");
+		tc_snprintf(buffer_option_string, strlen("--nobuffer"), "--nobuffer");
 	if (verbose & TC_DEBUG)
 		tc_info("[%s] Buffer option string correctly formated.\n", MOD_NAME);
 		
 	
-	snprintf(cmd_line, MAX_LENGTH, "aart %s-%d.tmp --font %s --pallete %s --inmod=pnm --outmod=pnm %s --threads=%d", TMP_FILE, slot_id, font, pallete, buffer_option_string, threads);
+	tc_snprintf(cmd_line, MAX_LENGTH, "aart %s-%d.tmp --font %s --pallete %s --inmod=pnm --outmod=pnm %s --threads=%d", TMP_FILE, slot_id, font, pallete, buffer_option_string, threads);
 	
-	snprintf(pnm_header, 255, "P6\n%d %d\n255\n", width, height);
+	tc_snprintf(pnm_header, 255, "P6\n%d %d\n255\n", width, height);
 	
 	if (write_tmpfile(pnm_header, buffer, width*height*3, slot_id) == -1)
 		return -1;

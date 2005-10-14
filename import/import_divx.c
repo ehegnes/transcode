@@ -186,28 +186,24 @@ static int divx_init(char *path) {
     // try transcode's module directory
     if (!handle) {
       // (try 5.x "libdivxencore.so.0" style)
-      sret = snprintf(module, TC_BUF_MAX, "%s/%s", path, MODULE_V);
-      tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno);
+      sret = tc_snprintf(module, TC_BUF_MAX, "%s/%s", path, MODULE_V);
       handle = dlopen(module, RTLD_LAZY); 
     }
     if (!handle) {
       // (try 4.x "libdivxencore.so" style)
-      sret = snprintf(module, TC_BUF_MAX, "%s/%s", path, MODULE);
-      tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno);
+      sret = tc_snprintf(module, TC_BUF_MAX, "%s/%s", path, MODULE);
       handle = dlopen(module, RTLD_LAZY); 
     }
 
     //try the default:
     if (!handle) {
       // (try 5.x "libdivxencore.so.0" style)
-      sret = snprintf(module, TC_BUF_MAX, "%s", MODULE_V);
-      tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno);
+      sret = tc_snprintf(module, TC_BUF_MAX, "%s", MODULE_V);
       handle = dlopen(module, RTLD_LAZY); 
     }
     if (!handle) {
       // (try 4.x "libdivxencore.so" style)
-      sret = snprintf(module, TC_BUF_MAX, "%s", MODULE);
-      tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno);
+      sret = tc_snprintf(module, TC_BUF_MAX, "%s", MODULE);
       handle = dlopen(module, RTLD_LAZY); 
     }
 

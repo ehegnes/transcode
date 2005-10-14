@@ -83,7 +83,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		char buf[32];
 		optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYE", "1");
 		
-		snprintf(buf, 32, "%d", level);
+		tc_snprintf(buf, 32, "%d", level);
 		optstr_param(options, "level", "Level of blue-to-yellow white balance shifting (can be negative)", "%d", buf, "-1000", "+1000");
 		optstr_param(options, "limit", "Limit to specified ranges (+fnumber toggles on, -fnumber toggles off)", "%s", "");
 		return 0;

@@ -555,21 +555,21 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	char buf[255];
 	optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION,
 			    MOD_AUTHOR, "VRY4E", "2");
-	snprintf (buf, sizeof(buf), "%g", myf->interlaceDiff);
+	tc_snprintf (buf, sizeof(buf), "%g", myf->interlaceDiff);
 	optstr_param (options, "interlacediff", "Minimum temporal inter-field difference for detecting interlaced video", "%f", buf, "1.0", "inf");
-	snprintf (buf, sizeof(buf), "%g", myf->unknownDiff);
+	tc_snprintf (buf, sizeof(buf), "%g", myf->unknownDiff);
 	optstr_param (options, "unknowndiff", "Maximum inter-frame change vs. detail differences for neglecting interlaced video", "%f", buf, "1.0", "inf");
-	snprintf (buf, sizeof(buf), "%g", myf->progressiveDiff);
+	tc_snprintf (buf, sizeof(buf), "%g", myf->progressiveDiff);
 	optstr_param (options, "progressivediff", "Minimum inter-frame change vs. detail differences for detecting progressive video" ,"%f", buf, "unknowndiff", "inf");
-	snprintf (buf, sizeof(buf), "%g", myf->progressiveChange);
+	tc_snprintf (buf, sizeof(buf), "%g", myf->progressiveChange);
 	optstr_param (options, "progressivechange", "Minimum temporal change needed for detecting progressive video" ,"%f", buf, "0", "inf");
-	snprintf (buf, sizeof(buf), "%g", myf->changedIfMore);
+	tc_snprintf (buf, sizeof(buf), "%g", myf->changedIfMore);
 	optstr_param (options, "changedifmore", "Minimum temporal change for detecting truly changed frames" ,"%f", buf, "0", "65025");
-	snprintf (buf, sizeof(buf), "%d", myf->forceTelecineDetect);
+	tc_snprintf (buf, sizeof(buf), "%d", myf->forceTelecineDetect);
 	optstr_param (options, "forcetelecinedetect", "Detect telecine even on non-NTSC (29.97fps) video", "%d", buf, "0", "1");
-	snprintf (buf, sizeof(buf), "%d", myf->verbose);
+	tc_snprintf (buf, sizeof(buf), "%d", myf->verbose);
 	optstr_param (options, "verbose", "Output analysis for every frame", "%d", buf, "0", "2");
-	snprintf (buf, sizeof(buf), "%d", myf->outDiff);
+	tc_snprintf (buf, sizeof(buf), "%d", myf->outDiff);
 	optstr_param (options, "outdiff", "Output internal debug frames as luminance of YUV video (see source)", "%d", buf, "0", "11");
     }
     

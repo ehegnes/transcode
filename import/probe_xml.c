@@ -142,7 +142,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
 	{
 		if (p_audio_video->p_nome_video != NULL)
 		{
-			if((snprintf(s_probe_cmd_buf, MAX_BUF, "tcprobe -i %s -d %d ",p_audio_video->p_nome_video,ipipe->verbose)<0))
+			if(tc_snprintf(s_probe_cmd_buf, MAX_BUF, "tcprobe -i %s -d %d ",p_audio_video->p_nome_video,ipipe->verbose) < 0)
 			{
 	                	fprintf(stderr,"Buffer overflow\n");
 				ipipe->error=1;
@@ -150,7 +150,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
 			}
 			if (binary_dump)
 			{
-				if((snprintf(s_probe_cmd_buf+strlen(s_probe_cmd_buf), MAX_BUF-strlen(s_probe_cmd_buf), "-B ")<0))
+				if(tc_snprintf(s_probe_cmd_buf+strlen(s_probe_cmd_buf), MAX_BUF-strlen(s_probe_cmd_buf), "-B ") < 0)
 				{
 	                		fprintf(stderr,"Buffer overflow\n");
 					ipipe->error=1;
@@ -222,7 +222,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
 		}
 		if (p_audio_video->p_nome_audio != NULL)
 		{
-			if((snprintf(s_probe_cmd_buf, MAX_BUF, "tcprobe -i %s -d %d ",p_audio_video->p_nome_audio,ipipe->verbose)<0))
+			if(tc_snprintf(s_probe_cmd_buf, MAX_BUF, "tcprobe -i %s -d %d ",p_audio_video->p_nome_audio,ipipe->verbose) < 0)
 			{
 	                	fprintf(stderr,"Buffer overflow\n");
 				ipipe->error=1;
@@ -230,7 +230,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
 			}
 			if (binary_dump)
 			{
-				if((snprintf(s_probe_cmd_buf+strlen(s_probe_cmd_buf), MAX_BUF-strlen(s_probe_cmd_buf), "-B ")<0))
+				if(tc_snprintf(s_probe_cmd_buf+strlen(s_probe_cmd_buf), MAX_BUF-strlen(s_probe_cmd_buf), "-B ") < 0)
 				{
 	                		fprintf(stderr,"Buffer overflow\n");
 					ipipe->error=1;

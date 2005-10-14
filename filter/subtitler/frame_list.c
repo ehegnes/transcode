@@ -182,7 +182,7 @@ if(debug_flag)
 	frame_nr); 
 	}
 
-snprintf(temp, sizeof(temp), "%d", frame_nr);
+tc_snprintf(temp, sizeof(temp), "%d", frame_nr);
 for(pa = frametab[hash(temp)]; pa != 0; pa = pa -> nxtentr)
 	{
 	if(strcmp(pa -> name, temp) == 0)
@@ -207,7 +207,7 @@ if(debug_flag)
 	frame_nr, end_frame);
 	}
 
-snprintf(temp, sizeof(temp), "%d", frame_nr);
+tc_snprintf(temp, sizeof(temp), "%d", frame_nr);
 for(pa = frametab[hash(temp)]; pa != 0; pa = pa -> nxtentr)
 	{
 #if 0
@@ -291,7 +291,7 @@ if(debug_flag)
 	fprintf(stdout, "delete_subtitle_fontname(): arg subtitle_fontnamenr=%d\n", subtitle_fontnamenr);
 	}
 
-snprintf(name, sizeof(name), "%d", subtitle_fontnamenr);
+tc_snprintf(name, sizeof(name), "%d", subtitle_fontnamenr);
 pa = subtitle_fontnametab[0];
 while(1)
 	{
@@ -373,7 +373,7 @@ if(debug_flag)
 	name, symbols, size, iso_extension, outline_thickness, blur_radius);
 	}
 
-snprintf(temp, sizeof(temp), "%s_%d_%d_%d_%.2f_%.2f", name, symbols, size, iso_extension, outline_thickness, blur_radius);
+tc_snprintf(temp, sizeof(temp), "%s_%d_%d_%d_%.2f_%.2f", name, symbols, size, iso_extension, outline_thickness, blur_radius);
 ps = lookup_subtitle_fontname(temp);
 if(ps) /* found in list */
 	{
@@ -406,7 +406,7 @@ else /* not in fontname_list */
 			return 0;
 			}
 
-		snprintf(temp, sizeof(temp), "%s_%d_%d_%d_%.2f_%.2f",\
+		tc_snprintf(temp, sizeof(temp), "%s_%d_%d_%d_%.2f_%.2f",\
 			default_subtitle_font_name,\
 			default_subtitle_symbols,\
 			default_subtitle_font_size,\

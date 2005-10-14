@@ -53,7 +53,7 @@ static char prgname[MAX_BUF];
 MOD_open
 {
   
-  int n = 0;
+  int n;
   FILE *f;
   char buffer[MAX_BUF], *offset;
   unsigned int nv_version = 0;
@@ -87,39 +87,41 @@ MOD_open
   
   if(param->flag == TC_VIDEO) {
 
-    n = snprintf(import_cmd_buf, MAX_BUF, 
-	   "%s -o raw://%s -w %u -h %u", prgname, afile, vob->im_v_width, vob->im_v_height);
+#define APPEND(fmt,rest...) do { int res = tc_snprintf(import_cmd_buf+n, MAX_BUF-n, fmt , ## rest); if (res < 0) {fprintf(stderr, "cmd buffer overflow\n"); return(TC_IMPORT_ERROR);} n += res; } while (0)
+    n = 0;
+
+    APPEND("%s -o raw://%s -w %u -h %u", prgname, afile, vob->im_v_width, vob->im_v_height);
 
     if(vob->a_chan == 2)
-	n += snprintf(import_cmd_buf+n, MAX_BUF, " -s");
+	APPEND(" -s");
 
-    n += snprintf(import_cmd_buf+n, MAX_BUF, " -b %d",    vob->a_bits);
-    n += snprintf(import_cmd_buf+n, MAX_BUF, " -r %d",    vob->a_rate);
-    n += snprintf(import_cmd_buf+n, MAX_BUF, " -ab %d",   vob->mp3bitrate);
-    n += snprintf(import_cmd_buf+n, MAX_BUF, " -aq %d",   (int)vob->mp3quality);
-    n += snprintf(import_cmd_buf+n, MAX_BUF, " -vr %.3f", vob->fps);
+    APPEND(" -b %d",    vob->a_bits);
+    APPEND(" -r %d",    vob->a_rate);
+    APPEND(" -ab %d",   vob->mp3bitrate);
+    APPEND(" -aq %d",   (int)vob->mp3quality);
+    APPEND(" -vr %.3f", vob->fps);
 
     if (strncmp(vob->video_in_file, "/dev/zero", 9) == 0) {
 	fprintf (stderr, "[%s] Warning: Input v4l1/2 device assumed to be %s\n", MOD_NAME, "/dev/video");
-	n += snprintf(import_cmd_buf+n, MAX_BUF, " -v %s", "/dev/video");
+	APPEND(" -v %s", "/dev/video");
     } else {
-	n += snprintf(import_cmd_buf+n, MAX_BUF, " -v %s", vob->video_in_file);
+	APPEND(" -v %s", vob->video_in_file);
     }
 
     if (strncmp(vob->audio_in_file, "/dev/zero", 9) != 0) {
-      n += snprintf(import_cmd_buf+n, MAX_BUF, " -d %s", vob->audio_in_file);
+	APPEND(" -d %s", vob->audio_in_file);
     }
 
     // new since 0.1.3
     if(vob->im_v_string != NULL) {
-	n += snprintf(import_cmd_buf+n, MAX_BUF, " %s", vob->im_v_string);
+	APPEND(" %s", vob->im_v_string);
     }
 
     /* Check NVrec features */
-    memset (buffer, 0, 1024);
-    snprintf (buffer, sizeof(buffer), "%s -h 2>&1", prgname);
+    memset (buffer, 0, sizeof(buffer));
+    tc_snprintf (buffer, sizeof(buffer), "%s -h 2>&1", prgname);
     f = popen (buffer, "r");
-    memset (buffer, 0, 1024);
+    memset (buffer, 0, sizeof(buffer));
 
     while ( fgets (buffer, MAX_BUF, f) ) {
 	offset = strstr(buffer, ", version ");
@@ -137,10 +139,10 @@ MOD_open
 	return(TC_IMPORT_ERROR);
     } else if (nv_version < 20020524) {
 	/* make nvrec silent the hard way */
-	n += snprintf(import_cmd_buf+n, MAX_BUF, " 2>/dev/null");
+	APPEND(" 2>/dev/null");
     } else if (nv_version >= 20020524) {
 	/* we support the -Q quiet option */
-	n += snprintf(import_cmd_buf+n, MAX_BUF, " -Q");
+	APPEND(" -Q");
     }
 
 

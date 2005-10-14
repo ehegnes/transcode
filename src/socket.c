@@ -59,13 +59,13 @@ static int s_write (int sock, void *buf, size_t count)
 
 static int tc_socket_version(char *buf)
 {
-    snprintf(buf, M_BUF_SIZE, "%s%s", VERSION, "\n");
+    tc_snprintf(buf, M_BUF_SIZE, "%s%s", VERSION, "\n");
     return 0;
 }
 
 #define P(field,fmt) \
-    n = snprintf (buf, M_BUF_SIZE, "%20s = "fmt"\n", #field, vob->field); \
-    s_write (socket_fd, buf, n)
+    n = tc_snprintf (buf, M_BUF_SIZE, "%20s = "fmt"\n", #field, vob->field); \
+    if (n > 0) s_write (socket_fd, buf, n)
 
 static int tc_socket_dump_vob(char *buf) 
 {
@@ -471,7 +471,7 @@ int tc_socket_load(char *buf)
 
 static int tc_socket_help(char *buf)
 {
-    snprintf(buf, M_BUF_SIZE, "%s",
+    tc_snprintf(buf, M_BUF_SIZE, "%s",
 	    "load <filter> <initial string>\n"
 	    "config <filter> <string>\n"
 	    "parameters <filter>\n"
@@ -686,9 +686,9 @@ void socket_thread(void)
 		    break;
 	    }
 	    if (ret>0)
-		snprintf(rbuf+strlen(rbuf), M_BUF_SIZE - strlen(rbuf), "%s", "OK\n");
+		tc_snprintf(rbuf+strlen(rbuf), M_BUF_SIZE - strlen(rbuf), "%s", "OK\n");
 	    else 
-		snprintf(rbuf, M_BUF_SIZE, "%s", "FAILED\n");
+		tc_snprintf(rbuf, M_BUF_SIZE, "%s", "FAILED\n");
 
 	    if (msgsock > 0)
 		s_write (msgsock,  rbuf, strlen(rbuf));

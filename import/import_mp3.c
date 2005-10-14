@@ -96,41 +96,41 @@ MOD_open
     case CODEC_PCM:
 
 	if (offset && vob->nav_seek_file) {
-	  sret = snprintf(import_cmd_buf, TC_BUF_MAX, 
-	              "tcextract -a %d -i \"%s\" -x %s -d %d -f %s -C %d-%d |"
-                      " tcdecode -x %s -d %d -z %d", 
-		      vob->a_track, vob->audio_in_file, 
-		      (vob->fixme_a_codec==0x50 ? "mp2" : "mp3"), vob->verbose, 
-		      vob->nav_seek_file, offset, offset + 1, 
-		      (vob->fixme_a_codec==0x50 ? "mp2" : "mp3"), vob->verbose,
-		      vob->a_padrate);
-          if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+	  sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX, 
+			"tcextract -a %d -i \"%s\" -x %s -d %d -f %s -C %d-%d |"
+			" tcdecode -x %s -d %d -z %d",
+			vob->a_track, vob->audio_in_file,
+			(vob->fixme_a_codec==0x50 ? "mp2" : "mp3"),
+			vob->verbose, vob->nav_seek_file, offset, offset + 1,
+			(vob->fixme_a_codec==0x50 ? "mp2" : "mp3"),
+			vob->verbose, vob->a_padrate);
+          if (sret < 0)
 	    return(TC_IMPORT_ERROR);
 
 	} else {
 	  if (is_dir) {
-	    sret = snprintf(import_cmd_buf, TC_BUF_MAX, 
+	    sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX, 
 			"tccat -a -i %s | tcextract -a %d -x %s -d %d |"
-                        " tcdecode -x %s -d %d -z %d", 
+			" tcdecode -x %s -d %d -z %d", 
 			vob->audio_in_file, vob->a_track,
 			(vob->fixme_a_codec==0x50 ? "mp2" : "mp3"),
 			vob->verbose, 
 			(vob->fixme_a_codec==0x50 ? "mp2" : "mp3"),
 			vob->verbose,
 			vob->a_padrate);
-	    if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))  
+	    if (sret < 0)
 	      return(TC_IMPORT_ERROR);
 
 	  } else {
-	    sret = snprintf(import_cmd_buf, TC_BUF_MAX, 
+	    sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX, 
 			"tcextract -a %d -i \"%s\" -x %s -d %d |"
-                        " tcdecode -x %s -d %d -z %d", 
+			" tcdecode -x %s -d %d -z %d", 
 			vob->a_track, vob->audio_in_file, 
 			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
 			vob->verbose, 
 			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
 			vob->verbose, vob->a_padrate);
-	    if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+	    if (sret < 0)
 	      return(TC_IMPORT_ERROR);
 
 	  }

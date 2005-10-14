@@ -73,37 +73,37 @@ static int xvid2_init(char *path) {
 	 *  - then xvid2 decoders
 	 *  - bare soname as a fallback */
 #ifdef SYSTEM_DARWIN
-	snprintf(modules[0], sizeof(modules[0]), "%s/%s.%d.%s", path, XVID_SHARED_LIB_BASE,
-		3, XVID_SHARED_LIB_SUFX);
+	tc_snprintf(modules[0], sizeof(modules[0]), "%s/%s.%d.%s", path,
+		    XVID_SHARED_LIB_BASE, 3, XVID_SHARED_LIB_SUFX);
 #else
-	snprintf(modules[0], sizeof(modules[0]), "%s/%s.%s.%d", path, XVID_SHARED_LIB_BASE,
-		XVID_SHARED_LIB_SUFX, 3);
+	tc_snprintf(modules[0], sizeof(modules[0]), "%s/%s.%s.%d", path,
+		    XVID_SHARED_LIB_BASE, XVID_SHARED_LIB_SUFX, 3);
 #endif
 #ifdef SYSTEM_DARWIN
-	snprintf(modules[1], sizeof(modules[1]), "%s.%d.%s", XVID_SHARED_LIB_BASE,
-		3, XVID_SHARED_LIB_SUFX);
+	tc_snprintf(modules[1], sizeof(modules[1]), "%s.%d.%s",
+		    XVID_SHARED_LIB_BASE, 3, XVID_SHARED_LIB_SUFX);
 #else
-	snprintf(modules[1], sizeof(modules[1]), "%s.%s.%d", XVID_SHARED_LIB_BASE,
-		XVID_SHARED_LIB_SUFX, 3);
+	tc_snprintf(modules[1], sizeof(modules[1]), "%s.%s.%d",
+		    XVID_SHARED_LIB_BASE, XVID_SHARED_LIB_SUFX, 3);
 #endif
 #ifdef SYSTEM_DARWIN
-	snprintf(modules[2], sizeof(modules[2]), "%s/%s.%d.%s", path, XVID_SHARED_LIB_BASE,
-		2, XVID_SHARED_LIB_SUFX);
+	tc_snprintf(modules[2], sizeof(modules[2]), "%s/%s.%d.%s", path,
+		    XVID_SHARED_LIB_BASE, 2, XVID_SHARED_LIB_SUFX);
 #else
-	snprintf(modules[2], sizeof(modules[2]), "%s/%s.%s.%d", path, XVID_SHARED_LIB_BASE,
-		XVID_SHARED_LIB_SUFX, 2);
+	tc_snprintf(modules[2], sizeof(modules[2]), "%s/%s.%s.%d", path,
+		    XVID_SHARED_LIB_BASE, XVID_SHARED_LIB_SUFX, 2);
 #endif
 #ifdef SYSTEM_DARWIN
-	snprintf(modules[3], sizeof(modules[3]), "%s.%d.%s", XVID_SHARED_LIB_BASE,
-		2, XVID_SHARED_LIB_SUFX);
+	tc_snprintf(modules[3], sizeof(modules[3]), "%s.%d.%s",
+		    XVID_SHARED_LIB_BASE, 2, XVID_SHARED_LIB_SUFX);
 #else
-	snprintf(modules[3], sizeof(modules[3]), "%s.%s.%d", XVID_SHARED_LIB_BASE,
-		XVID_SHARED_LIB_SUFX, 2);
+	tc_snprintf(modules[3], sizeof(modules[3]), "%s.%s.%d",
+		    XVID_SHARED_LIB_BASE, XVID_SHARED_LIB_SUFX, 2);
 #endif
-	snprintf(modules[4], sizeof(modules[4]), "%s/%s.%s", path, XVID_SHARED_LIB_BASE,
-		XVID_SHARED_LIB_SUFX);
-	snprintf(modules[5], sizeof(modules[5]), "%s.%s", XVID_SHARED_LIB_BASE,
-		XVID_SHARED_LIB_SUFX);
+	tc_snprintf(modules[4], sizeof(modules[4]), "%s/%s.%s", path,
+		    XVID_SHARED_LIB_BASE, XVID_SHARED_LIB_SUFX);
+	tc_snprintf(modules[5], sizeof(modules[5]), "%s.%s",
+		    XVID_SHARED_LIB_BASE, XVID_SHARED_LIB_SUFX);
 
 	for(i=0; i<6; i++) {
 		module = modules[i];

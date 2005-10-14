@@ -93,16 +93,16 @@ MOD_open
 	fprintf(stderr, "[%s] *** This module is non-optimal ***\n", MOD_NAME);
 	fprintf(stderr, "[%s] *** Use -N 0x2000 instead of -y ...,ac3 (faster) ***\n", MOD_NAME);
 
-        result = snprintf (buf, PATH_MAX,
-                           "ffmpeg -y -f s%dle -ac %d -ar %d -i - -ab %d -acodec ac3 %s%s",
-                           vob->dm_bits,
-                           vob->dm_chan,
-                           vob->mp3frequency,
-                           vob->mp3bitrate,
-                           out_fname,
-                           vob->verbose > 1 ? "" : " >/dev/null 2>&1");
+        result = tc_snprintf (buf, PATH_MAX,
+                              "ffmpeg -y -f s%dle -ac %d -ar %d -i - -ab %d -acodec ac3 %s%s",
+                              vob->dm_bits,
+                              vob->dm_chan,
+                              vob->mp3frequency,
+                              vob->mp3bitrate,
+                              out_fname,
+                              vob->verbose > 1 ? "" : " >/dev/null 2>&1");
 
-	if (tc_test_string(__FILE__, __LINE__, PATH_MAX, result, errno))
+	if (result < 0)
             return(TC_EXPORT_ERROR);
 
         if (verbose > 0)

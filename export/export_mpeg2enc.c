@@ -72,7 +72,7 @@ static int y4m_snprint_xtags(char *s, int maxn, y4m_xtag_list_t *xtags)
   int i, room;
   
   for (i = 0, room = maxn - 1; i < y4m_xtag_count(xtags); i++) {
-    int n = snprintf(s, room + 1, " %s", y4m_xtag_get(xtags, i));
+    int n = tc_snprintf(s, room + 1, " %s", y4m_xtag_get(xtags, i));
     if ((n < 0) || (n > room)) return Y4M_ERR_HEADER;
     s += n;
     room -= n;
@@ -92,7 +92,7 @@ static int y4m_write_stream_header2(FILE *fd, y4m_stream_info_t *i)
   y4m_ratio_t tmpsamplerate = y4m_si_get_sampleaspect(i);
   y4m_ratio_reduce(&tmpframerate);
   y4m_ratio_reduce(&tmpsamplerate);
-  n = snprintf(s, sizeof(s), "%s W%d H%d F%d:%d I%s A%d:%d",
+  n = tc_snprintf(s, sizeof(s), "%s W%d H%d F%d:%d I%s A%d:%d",
 	       Y4M_MAGIC,
 	       y4m_si_get_width(i),
 	       y4m_si_get_height(i),
@@ -101,7 +101,7 @@ static int y4m_write_stream_header2(FILE *fd, y4m_stream_info_t *i)
 	       (y4m_si_get_interlace(i) == Y4M_ILACE_TOP_FIRST) ? "t" :
 	       (y4m_si_get_interlace(i) == Y4M_ILACE_BOTTOM_FIRST) ? "b" : "?",
 	       y4m_si_get_sampleaspect(i).n, y4m_si_get_sampleaspect(i).d);
-  if ((n < 0) || (n > Y4M_LINE_MAX)) return Y4M_ERR_HEADER;
+  if (n < 0) return Y4M_ERR_HEADER;
   if ((err = y4m_snprint_xtags(s + n, sizeof(s) - n - 1, y4m_si_xtags(i))) 
       != Y4M_OK) 
     return err;
@@ -117,7 +117,7 @@ static int y4m_write_frame_header2(FILE *fd, y4m_frame_info_t *i)
   int err;
   
   n = snprintf(s, sizeof(s), "%s", Y4M_FRAME_MAGIC);
-  if ((n < 0) || (n > Y4M_LINE_MAX)) return Y4M_ERR_HEADER;
+  if (n < 0) return Y4M_ERR_HEADER;
   if ((err = y4m_snprint_xtags(s + n, sizeof(s) - n - 1, y4m_fi_xtags(i))) 
       != Y4M_OK) 
     return err;
@@ -171,7 +171,7 @@ MOD_open
     y4m_si_set_interlace(&y4mstream,vob->encode_fields );
     y4m_si_set_sampleaspect(&y4mstream, y4m_guess_sar(vob->ex_v_width, vob->ex_v_height, dar));
     /*
-    snprintf( dar_tag, 19, "XM2AR%03d", asr );
+    tc_snprintf( dar_tag, 19, "XM2AR%03d", asr );
     y4m_xtag_add( y4m_si_xtags(&y4mstream), dar_tag );
     */
     y4m_si_set_height(&y4mstream, vob->ex_v_height);
@@ -220,9 +220,9 @@ MOD_open
     
     //ThOe collect additional parameter
     if(asr>0) 
-      snprintf(buf2, sizeof(buf2), "%s %s -a %d", tv_type, pulldown, asr); 
+      tc_snprintf(buf2, sizeof(buf2), "%s %s -a %d", tv_type, pulldown, asr); 
     else
-      snprintf(buf2, sizeof(buf2), "%s %s", tv_type, pulldown); 
+      tc_snprintf(buf2, sizeof(buf2), "%s %s", tv_type, pulldown); 
     
     //tibit: do not write to /dev/null.m1v
     m1v = video_ext;
@@ -242,12 +242,12 @@ MOD_open
     // constant quantizer encoding?
     if (vob->divxmultipass == 3) {
 	if (vob->video_max_bitrate != 0) {
-	    snprintf(bitrate, sizeof(bitrate), "-q %d -b %d", vob->divxbitrate, vob->video_max_bitrate);
+	    tc_snprintf(bitrate, sizeof(bitrate), "-q %d -b %d", vob->divxbitrate, vob->video_max_bitrate);
 	} else {
-	    snprintf(bitrate, sizeof(bitrate), "-q %d", vob->divxbitrate);
+	    tc_snprintf(bitrate, sizeof(bitrate), "-q %d", vob->divxbitrate);
 	}
     } else {
-	snprintf(bitrate, sizeof(bitrate), "-b %d", vob->divxbitrate);
+	tc_snprintf(bitrate, sizeof(bitrate), "-b %d", vob->divxbitrate);
     }
 
     
@@ -258,21 +258,21 @@ MOD_open
       //Standard VCD. An MPEG1  profile
       //exactly to the VCD2.0 specification.
       
-	snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 1 -F %d %s %s -o \"%s%s\" %s", verb, fields, frc, buf2, p4, vob->video_out_file, m1v, p2);
+	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 1 -F %d %s %s -o \"%s%s\" %s", verb, fields, frc, buf2, p4, vob->video_out_file, m1v, p2);
       break;
       
     case 2:
 
       //User VCD 
       
-	snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -q 3 -f 2 -4 2 -2 3 %s -F %d %s -o \"%s%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, m1v, p2, p4);
+	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -q 3 -f 2 -4 2 -2 3 %s -F %d %s -o \"%s%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, m1v, p2, p4);
       break;
       
     case 3:
       
       //Generic MPEG2
       
-	snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -q 3 -f 3 -4 2 -2 3 %s -s -F %d %s -o \"%s%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, m2v, p2, p4);
+	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -q 3 -f 3 -4 2 -2 3 %s -s -F %d %s -o \"%s%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, m2v, p2, p4);
       break;
       
     case 4:
@@ -281,23 +281,23 @@ MOD_open
       //exactly  to  the  SVCD2.0 specification
       
       if ( !(probe_export_attributes & TC_PROBE_NO_EXPORT_VBITRATE) )
-	snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 4 -F %d %s -o \"%s%s\" %s %s", verb, fields, frc, buf2, vob->video_out_file, m2v, p2, p4);
+	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 4 -F %d %s -o \"%s%s\" %s %s", verb, fields, frc, buf2, vob->video_out_file, m2v, p2, p4);
       else
-	snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 4 %s -F %d %s -o \"%s%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, m2v, p2, p4);
+	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 4 %s -F %d %s -o \"%s%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, m2v, p2, p4);
       break;
 
     case 5:
       
       //User SVCD
 
-	snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -q 3 -f 5 -4 2 -2 3 %s -F %d %s -V 230 -o \"%s%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, m2v, p2, p4);
+	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -q 3 -f 5 -4 2 -2 3 %s -F %d %s -V 230 -o \"%s%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, m2v, p2, p4);
       break;
       
     case 6:
       
       // Manual parameter mode.
       
-      snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d %s -o \"%s%s\" %s %s", verb, fields, bitrate, vob->video_out_file, m2v, p2?p2:"", p4);
+      tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d %s -o \"%s%s\" %s %s", verb, fields, bitrate, vob->video_out_file, m2v, p2?p2:"", p4);
       break;
       
     case 8:
@@ -305,9 +305,9 @@ MOD_open
       //DVD
       
       if ( !(probe_export_attributes & TC_PROBE_NO_EXPORT_VBITRATE) )
-	snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 8 -F %d %s -o \"%s%s\" %s %s", verb, fields, frc, buf2, vob->video_out_file, m2v, p2, p4);
+	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 8 -F %d %s -o \"%s%s\" %s %s", verb, fields, frc, buf2, vob->video_out_file, m2v, p2, p4);
       else
-	snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 8 %s -F %d %s -o \"%s%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, m2v, p2, p4);
+	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 8 %s -F %d %s -o \"%s%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, m2v, p2, p4);
       
       break;
 
@@ -317,7 +317,7 @@ MOD_open
       
       //Generic MPEG1
       
-	snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -q 3 -f 0 -4 2 -2 3 %s -F %d %s -o \"%s%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, m1v, p2, p4);
+	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -q 3 -f 0 -4 2 -2 3 %s -F %d %s -o \"%s%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, m1v, p2, p4);
       break;
     }
     
@@ -331,7 +331,7 @@ MOD_open
       return(TC_EXPORT_ERROR);
     }     
 
-    //    snprintf(buf, sizeof(buf), MENC_HDR, sa_width, sa_height);
+    //    tc_snprintf(buf, sizeof(buf), MENC_HDR, sa_width, sa_height);
     //fwrite(buf, strlen(buf), 1, sa_ip);
 
     return(0);

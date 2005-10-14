@@ -165,7 +165,7 @@ MOD_open
     y4m_si_set_interlace(&y4mstream,vob->encode_fields );
     y4m_si_set_sampleaspect(&y4mstream, y4m_guess_sar(vob->ex_v_width, vob->ex_v_height, asr_rate));
     /*
-    snprintf( dar_tag, 19, "XM2AR%03d", asr );
+    tc_snprintf( dar_tag, 19, "XM2AR%03d", asr );
     y4m_xtag_add( y4m_si_xtags(&y4mstream), dar_tag );
     */
     y4m_si_set_height(&y4mstream,vob->ex_v_height);

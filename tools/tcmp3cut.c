@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
       return -1;
   }
 
-  snprintf(outfile, sizeof(outfile), "%s-%04d.mp3", base, cursong);
+  tc_snprintf(outfile, sizeof(outfile), "%s-%04d.mp3", base, cursong);
   if ( (out = fopen(outfile, "w")) == NULL) {
       perror ("fopen() output");
       return -1;
@@ -267,7 +267,7 @@ int main(int argc, char *argv[])
 			  cursong++;
 			  if (cursong>numsongs)
 			      break;
-			  snprintf(outfile, sizeof(outfile), "%s-%04d.mp3", base, cursong);
+			  tc_snprintf(outfile, sizeof(outfile), "%s-%04d.mp3", base, cursong);
 			  if ( (out = fopen(outfile, "w")) == NULL) {
 			      perror ("fopen() output");
 			      return -1;

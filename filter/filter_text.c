@@ -227,7 +227,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       char b[128];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYO", "1");
 
-      snprintf(b, 128, "%u-%u/%d", mfd->start, mfd->end, mfd->step);
+      tc_snprintf(b, 128, "%u-%u/%d", mfd->start, mfd->end, mfd->step);
       optstr_param (options, "range", "apply filter to [start-end]/step frames", 
 	      "%u-%u/%d", b, "0", "oo", "0", "oo", "1", "oo");
 
@@ -237,19 +237,19 @@ int tc_filter(frame_list_t *ptr_, char *options)
       optstr_param (options, "font", "full path to font file [defaults to arial.ttf]", 
 	      "%s", mfd->font);
 
-      snprintf(b, 128, "%d", mfd->points);
+      tc_snprintf(b, 128, "%d", mfd->points);
       optstr_param (options, "points", "size of font (in points)", 
 	      "%d", b, "1", "100");
 
-      snprintf(b, 128, "%d", mfd->dpi);
+      tc_snprintf(b, 128, "%d", mfd->dpi);
       optstr_param (options, "dpi", "resolution of font (in dpi)", 
 	      "%d", b, "72", "300");
 
-      snprintf(b, 128, "%d", mfd->fade);
+      tc_snprintf(b, 128, "%d", mfd->fade);
       optstr_param (options, "fade", "fade in/out (0=off, 1=slow, 10=fast)", 
 	      "%d", b, "0", "10");
 
-      snprintf(b, 128, "%d", mfd->antialias);
+      tc_snprintf(b, 128, "%d", mfd->antialias);
       optstr_param (options, "antialias", "Anti-Alias text (0=off 1=on)", 
 	      "%d", b, "0", "10");
 

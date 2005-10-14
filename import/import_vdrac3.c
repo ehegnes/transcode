@@ -66,7 +66,7 @@ MOD_open
     case CODEC_AC3:
 	
 	// produce a clean sequence of AC3 frames
-	if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -t vdr -i \"%s\" -x ps1 -d %d | tcextract -t raw -x ac3 -d %d", vob->audio_in_file, vob->verbose, vob->verbose)<0)) {
+	if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -t vdr -i \"%s\" -x ps1 -d %d | tcextract -t raw -x ac3 -d %d", vob->audio_in_file, vob->verbose, vob->verbose) < 0) {
 	    perror("command buffer overflow");
 	    return(TC_IMPORT_ERROR);
 	}
@@ -79,7 +79,7 @@ MOD_open
 
 	if(vob->fixme_a_codec==CODEC_AC3) {
 	
-	    if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -t vdr -i \"%s\" -x ps1 -d %d | tcdecode -x ac3 -d %d -s %f,%f,%f -A %d", vob->audio_in_file, vob->verbose, vob->verbose, vob->ac3_gain[0], vob->ac3_gain[1], vob->ac3_gain[2], vob->a52_mode)<0)) {
+	    if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -t vdr -i \"%s\" -x ps1 -d %d | tcdecode -x ac3 -d %d -s %f,%f,%f -A %d", vob->audio_in_file, vob->verbose, vob->verbose, vob->ac3_gain[0], vob->ac3_gain[1], vob->ac3_gain[2], vob->a52_mode) < 0) {
 		perror("command buffer overflow");
 		return(TC_IMPORT_ERROR);
 	    }
@@ -90,7 +90,7 @@ MOD_open
 
 	if(vob->fixme_a_codec==CODEC_A52) {
 	    
-	    if((snprintf(import_cmd_buf, MAX_BUF, "tcextract -t vdr -i \"%s\" -x ps1 -d %d | tcdecode -x a52 -d %d -A %d", vob->audio_in_file, vob->verbose, vob->verbose, vob->a52_mode)<0)) {
+	    if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -t vdr -i \"%s\" -x ps1 -d %d | tcdecode -x a52 -d %d -A %d", vob->audio_in_file, vob->verbose, vob->verbose, vob->a52_mode) < 0) {
 		perror("command buffer overflow");
 		return(TC_IMPORT_ERROR);
 	    }

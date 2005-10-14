@@ -60,9 +60,10 @@ int sret;
                 MOD_NAME);
         }
 
-        sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-	  "bsdavdemux -i \"%s\" -o /dev/stdout", vob->video_in_file);
-        if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+        sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+			   "bsdavdemux -i \"%s\" -o /dev/stdout",
+			   vob->video_in_file);
+        if (sret < 0)
             return(TC_IMPORT_ERROR);
 
 	if (verbose_flag & TC_INFO)
@@ -82,9 +83,10 @@ int sret;
                 MOD_NAME);
         }
 
-        sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-	  "bsdavdemux -i \"%s\" -O /dev/stdout", vob->audio_in_file);
-        if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+        sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+			   "bsdavdemux -i \"%s\" -O /dev/stdout",
+			   vob->audio_in_file);
+        if (sret < 0)
             return(TC_IMPORT_ERROR);
 
 	if (verbose_flag & TC_INFO)

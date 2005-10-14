@@ -213,10 +213,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRY4E", "1");
       
-      snprintf(buf, 32, "%dx%d", lc, tc);
+      tc_snprintf(buf, 32, "%dx%d", lc, tc);
       optstr_param (options, "lefttop", "Upper left corner of the box", "%dx%d", buf, "0", "width", "0", "height"); 
 
-      snprintf(buf, 32, "%dx%d", rc, bc);
+      tc_snprintf(buf, 32, "%dx%d", rc, bc);
       optstr_param (options, "rightbot", "Lower right corner of the box", "%dx%d", buf, "0", "width", "0", "height"); 
 
       return 0;

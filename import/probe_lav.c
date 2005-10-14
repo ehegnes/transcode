@@ -41,7 +41,7 @@ void probe_lav(info_t *ipipe)
     if (ipipe->seek_allowed>0) {
       // We're working on a file, so the filename should be in ipipe->name.
       // Do this the easy way.
-      if((snprintf(cmd_buf, MAX_BUF, "lavinfo \"%s\"", ipipe->name)<0)) {
+      if((tc_snprintf(cmd_buf, MAX_BUF, "lavinfo \"%s\"", ipipe->name)<0)) {
         perror("Unable to create lavinfo command string");
 	return;
       }

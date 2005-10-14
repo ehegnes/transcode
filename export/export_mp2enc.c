@@ -136,7 +136,7 @@ MOD_open
 	    chan = def_chan;
 	  }
 	
-	if(((unsigned)snprintf(buf, PATH_MAX, "mp2enc -v %d -r %d -b %d %s -o \"%s%s\" %s", verb, srate, brate, chan, vob->audio_out_file, mpa, (vob->ex_a_string?vob->ex_a_string:""))>=PATH_MAX)) {
+	if(tc_snprintf(buf, PATH_MAX, "mp2enc -v %d -r %d -b %d %s -o \"%s%s\" %s", verb, srate, brate, chan, vob->audio_out_file, mpa, (vob->ex_a_string?vob->ex_a_string:"")) < 0) {
 	  perror("cmd buffer overflow");
 	  return(TC_EXPORT_ERROR);
 	} 

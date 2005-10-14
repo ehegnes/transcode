@@ -83,7 +83,7 @@ MOD_open
     //int ofreq_dec;
     int ochan;
     char chan;
-    char *ptr = buf;
+    char *ptr;
 
     /* check for toolame */
     if (tc_test_program("toolame") != 0) return (TC_EXPORT_ERROR);
@@ -108,11 +108,13 @@ MOD_open
       if (tc_test_program("sox") != 0) return (TC_EXPORT_ERROR);
             
       /* add sox for conversion */
-      snprintf(buf, sizeof(buf), "sox %s -r %d -c %d -t raw - -r %d -t raw - polyphase "
-	      "2>/dev/null | ",
-	      (vob->dm_bits==16)?"-w -s":"-b -u", 
-	      ifreq, ochan, ofreq);
+      tc_snprintf(buf, sizeof(buf), "sox %s -r %d -c %d -t raw - -r %d"
+		  " -t raw - polyphase 2>/dev/null | ",
+		  (vob->dm_bits==16)?"-w -s":"-b -u", 
+		  ifreq, ochan, ofreq);
       ptr = buf + strlen(buf);
+    } else {
+      ptr = buf;
     }
 
     /* convert output frequency to fixed point */
@@ -122,9 +124,11 @@ MOD_open
     */
 	    
     /* toolame command line */
-    /* ptr is a pointer to buf */
-    snprintf(ptr, sizeof(buf), "toolame -s %0.3f -b %d -m %c - \"%s.mp2\" 2>/dev/null %s", 
-	    (double)ofreq/1000.0, orate, chan, vob->audio_out_file, (vob->ex_a_string?vob->ex_a_string:""));
+    /* ptr is a pointer into buf */
+    tc_snprintf(ptr, sizeof(buf) - (ptr-buf),
+		"toolame -s %0.3f -b %d -m %c - \"%s.mp2\" 2>/dev/null %s", 
+		(double)ofreq/1000.0, orate, chan, vob->audio_out_file,
+		(vob->ex_a_string?vob->ex_a_string:""));
 	
     fprintf (stderr,"[%s] cmd=%s\n", MOD_NAME, buf);
     

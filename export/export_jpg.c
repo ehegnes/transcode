@@ -294,7 +294,7 @@ MOD_encode
   if(param->flag == TC_VIDEO) { 
 
 
-    if(((unsigned) snprintf(buf2, PATH_MAX, "%s%06d.%s", prefix, counter++, "jpg")>=PATH_MAX)) {
+    if(tc_snprintf(buf2, PATH_MAX, "%s%06d.%s", prefix, counter++, "jpg") < 0) {
       perror("cmd buffer overflow");
       return(TC_EXPORT_ERROR);
     } 

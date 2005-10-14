@@ -68,9 +68,9 @@ MOD_open
     if(param->flag == TC_AUDIO) {
       
       //directory mode?
-      (scan(vob->audio_in_file)) ? snprintf(cat_buf, sizeof(cat_buf), "tccat -a") : ((vob->im_a_string) ? snprintf(cat_buf, sizeof(cat_buf), "tcextract -x pcm %s", vob->im_a_string) : snprintf(cat_buf, sizeof(cat_buf), "tcextract -x pcm"));
+      (scan(vob->audio_in_file)) ? tc_snprintf(cat_buf, sizeof(cat_buf), "tccat -a") : ((vob->im_a_string) ? tc_snprintf(cat_buf, sizeof(cat_buf), "tcextract -x pcm %s", vob->im_a_string) : tc_snprintf(cat_buf, sizeof(cat_buf), "tcextract -x pcm"));
       
-      if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d | tcextract -a %d -x pcm -d %d -t raw", cat_buf, vob->audio_in_file, vob->verbose, vob->a_track, vob->verbose)<0)) {
+      if(tc_snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d | tcextract -a %d -x pcm -d %d -t raw", cat_buf, vob->audio_in_file, vob->verbose, vob->a_track, vob->verbose) < 0) {
 	perror("cmd buffer overflow");
 	return(TC_IMPORT_ERROR);
       }
@@ -95,11 +95,11 @@ MOD_open
       
       //directory mode?
       if(scan(vob->video_in_file)) {
-	snprintf(cat_buf, sizeof(cat_buf), "tccat");
+	tc_snprintf(cat_buf, sizeof(cat_buf), "tccat");
 	co=""; 
       } else {
 	
-	(vob->im_v_string) ? snprintf(cat_buf, sizeof(cat_buf), "tcextract %s", vob->im_v_string) : snprintf(cat_buf, sizeof(cat_buf), "tcextract");
+	(vob->im_v_string) ? tc_snprintf(cat_buf, sizeof(cat_buf), "tcextract %s", vob->im_v_string) : tc_snprintf(cat_buf, sizeof(cat_buf), "tcextract");
 	
 	switch (codec) {
 	    case CODEC_RGB: co = "-x rgb"; break;
@@ -114,7 +114,7 @@ MOD_open
 	
       case CODEC_RGB:
 	
-	if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x rgb -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose)<0)) {
+	if(tc_snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x rgb -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose) < 0) {
 	  perror("cmd buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}
@@ -123,7 +123,7 @@ MOD_open
 	
       case CODEC_YUV422:
 	
-	if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x yuv422p -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose)<0)) {
+	if(tc_snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x yuv422p -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose) < 0) {
 	  perror("cmd buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}
@@ -133,7 +133,7 @@ MOD_open
       case CODEC_YUV:
       default:
 	
-	if((snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x yuv420p -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose)<0)) {
+	if(tc_snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x yuv420p -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose) < 0) {
 	  perror("cmd buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}

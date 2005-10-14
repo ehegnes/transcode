@@ -229,7 +229,7 @@ int tc_guess_frc(double fps)
 #undef delta
 
 
-int tc_test_string(char *file, int line, int limit, long ret, int errnum)
+int tc_test_string(const char *file, int line, int limit, long ret, int errnum)
 {
     if (ret < 0) {
         fprintf(stderr, "[%s:%d] string error: %s\n",
@@ -242,4 +242,30 @@ int tc_test_string(char *file, int line, int limit, long ret, int errnum)
         return(1);
     }
     return(0);
+}
+
+
+/*
+ * These versions of [v]snprintf() return -1 if the string was truncated,
+ * printing a message to stderr in case of truncation (or other error).
+ */
+
+int _tc_vsnprintf(const char *file, int line, char *buf, size_t limit,
+		  const char *format, va_list args)
+{
+    int res = vsnprintf(buf, limit, format, args);
+    return tc_test_string(file, line, limit, res, errno) ? -1 : res;
+}
+
+
+int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
+		 const char *format, ...)
+{
+    va_list args;
+    int res;
+
+    va_start(args, format);
+    res = _tc_vsnprintf(file, line, buf, limit, format, args);
+    va_end(args);
+    return res;
 }

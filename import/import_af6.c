@@ -52,10 +52,10 @@ MOD_open
 
     if(param->flag == TC_AUDIO) {
 
-      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-                      "tcdecode -i \"%s\" -x af6audio -y pcm -d %d",
-                      vob->audio_in_file, vob->verbose);
-      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+			 "tcdecode -i \"%s\" -x af6audio -y pcm -d %d",
+			 vob->audio_in_file, vob->verbose);
+      if (sret < 0)
 	  return(TC_IMPORT_ERROR);
 
       // print out
@@ -80,20 +80,20 @@ MOD_open
 
       case CODEC_RGB:
 
-        sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-                        "tcdecode -i \"%s\" -x af6video -y rgb -d %d",
-                        vob->video_in_file, vob->verbose);
-        if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+        sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+			   "tcdecode -i \"%s\" -x af6video -y rgb -d %d",
+			   vob->video_in_file, vob->verbose);
+        if (sret < 0)
 	    return(TC_IMPORT_ERROR);
 
 	break;
 
       case CODEC_YUV:
 
-	sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-                        "tcdecode -i \"%s\" -x af6video -y yuv420p -d %d",
-                        vob->video_in_file, vob->verbose);
-        if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+	sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+			   "tcdecode -i \"%s\" -x af6video -y yuv420p -d %d",
+			   vob->video_in_file, vob->verbose);
+        if (sret < 0)
 	    return(TC_IMPORT_ERROR);
 
 	break;

@@ -114,11 +114,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION,
 				   MOD_AUTHOR, "VRYMO", "1");
 		
-		snprintf(buf, 128, "/dev/null");
+		tc_snprintf(buf, 128, "/dev/null");
 		optstr_param(options, "pattern", "Pattern image file path", "%s", buf);
-		snprintf(buf, 128, "results.dat");
+		tc_snprintf(buf, 128, "results.dat");
 		optstr_param(options, "results", "Results file path" , "%s", buf);
-		snprintf(buf, 128, "%f", compare[instance]->delta);
+		tc_snprintf(buf, 128, "%f", compare[instance]->delta);
 		optstr_param(options, "delta", "Delta error", "%f",buf,"0.0", "100.0");
 		return 0;
 	}

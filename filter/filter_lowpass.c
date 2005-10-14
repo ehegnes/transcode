@@ -113,7 +113,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       char buf[255];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "AE", "1");
 
-      snprintf (buf, sizeof(buf), "%d", taps);
+      tc_snprintf (buf, sizeof(buf), "%d", taps);
       optstr_param (options, "taps", "strength (may be negative)", "%d", buf, "-50", "50");
   }
   //----------------------------------

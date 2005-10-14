@@ -319,9 +319,9 @@ int main(int argc, char *argv[])
       if(!is_open) {
 
 	  if(base == NULL || strlen(base)==0) {
-          snprintf(out_file, sizeof(out_file), "%s-%04d", in_file, j);
+          tc_snprintf(out_file, sizeof(out_file), "%s-%04d", in_file, j);
         } else {
-          snprintf(out_file, sizeof(out_file), "%s-%04d.avi", base, j);
+          tc_snprintf(out_file, sizeof(out_file), "%s-%04d.avi", base, j);
         }
 
         // prepare output file
@@ -409,9 +409,9 @@ int main(int argc, char *argv[])
     if( single_output_file != NULL ) {
 
       if(base == NULL || strlen(base)==0) {
-        snprintf(out_file, sizeof(out_file), "%s-%04d", in_file, j++ );
+        tc_snprintf(out_file, sizeof(out_file), "%s-%04d", in_file, j++ );
       } else {
-        snprintf(out_file, sizeof(out_file), "%s", base );
+        tc_snprintf(out_file, sizeof(out_file), "%s", base );
       }
       if( ( out = AVI_open_output_file( out_file ) ) == NULL ) {
         AVI_print_error( "AVI open" );
@@ -485,10 +485,10 @@ int main(int argc, char *argv[])
          * prepare output file
          */
         if( base == NULL || strlen( base ) == 0 ) {
-          snprintf( out_file, sizeof(out_file), "%s-%04d", in_file, j++ );
+          tc_snprintf( out_file, sizeof(out_file), "%s-%04d", in_file, j++ );
         }
         else {
-          snprintf( out_file, sizeof(out_file), "%s-%04d", base, j++ );
+          tc_snprintf( out_file, sizeof(out_file), "%s-%04d", base, j++ );
         }
 
         if( ( out = AVI_open_output_file( out_file ) ) == NULL ) {

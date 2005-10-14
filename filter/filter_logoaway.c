@@ -196,7 +196,7 @@ void work_with_rgb_frame(char *buffer, int width, int height, int instance)
     }
 
     data[instance]->dumpimage = ConstituteImage(data[instance]->width-data[instance]->xpos, data[instance]->height-data[instance]->ypos, "RGB", CharPixel, data[instance]->dump_buf, &data[instance]->exception_info);
-    snprintf (data[instance]->dumpimage->filename, MaxTextExtent, "dump[%d].png", instance);
+    tc_snprintf (data[instance]->dumpimage->filename, MaxTextExtent, "dump[%d].png", instance);
 
     WriteImage(data[instance]->dumpimage_info, data[instance]->dumpimage);
   }
@@ -594,31 +594,31 @@ int tc_filter(frame_list_t *ptr_, char *options)
     char buf[255];
     optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYOM", "1");
 
-    snprintf (buf, sizeof(buf), "%u-%u", data[instance]->start, data[instance]->end);
+    tc_snprintf (buf, sizeof(buf), "%u-%u", data[instance]->start, data[instance]->end);
     optstr_param (options, "range",  "Frame Range",                         "%d-%d",     buf, "0", "oo",    "0", "oo");
 
-    snprintf (buf, sizeof(buf), "%dx%d", data[instance]->xpos, data[instance]->ypos);
+    tc_snprintf (buf, sizeof(buf), "%dx%d", data[instance]->xpos, data[instance]->ypos);
     optstr_param (options, "pos",    "Position of logo",                    "%dx%d",     buf, "0", "width", "0", "height");
 
-    snprintf (buf, sizeof(buf), "%dx%d", data[instance]->width, data[instance]->height);
+    tc_snprintf (buf, sizeof(buf), "%dx%d", data[instance]->width, data[instance]->height);
     optstr_param (options, "size",   "Size of logo",                        "%dx%d",     buf, "0", "width", "0", "height");
 
-    snprintf (buf, sizeof(buf), "%d", data[instance]->mode);
+    tc_snprintf (buf, sizeof(buf), "%d", data[instance]->mode);
     optstr_param (options, "mode",   "Filter Mode (0=none,1=solid,2=xy,3=shape)", "%d",  buf, "0", "3");
 
-    snprintf (buf, sizeof(buf), "%d",  data[instance]->border);
+    tc_snprintf (buf, sizeof(buf), "%d",  data[instance]->border);
     optstr_param (options, "border", "Visible Border",                      "",          buf);
 
-    snprintf (buf, sizeof(buf), "%d",  data[instance]->dump);
+    tc_snprintf (buf, sizeof(buf), "%d",  data[instance]->dump);
     optstr_param (options, "dump", "Dump filterarea to file",               "",          buf);
     
-    snprintf (buf, sizeof(buf), "%d", data[instance]->xweight);
+    tc_snprintf (buf, sizeof(buf), "%d", data[instance]->xweight);
     optstr_param (options, "xweight","X-Y Weight(0%-100%)",                 "%d",        buf, "0", "100");
 
-    snprintf (buf, sizeof(buf), "%x%x%x", data[instance]->rcolor, data[instance]->gcolor, data[instance]->bcolor);
+    tc_snprintf (buf, sizeof(buf), "%x%x%x", data[instance]->rcolor, data[instance]->gcolor, data[instance]->bcolor);
     optstr_param (options, "fill",   "Solid Fill Color(RGB)",               "%2x%2x%2x", buf, "00", "FF",   "00", "FF", "00", "FF");
 
-    snprintf (buf, sizeof(buf), "%s",  data[instance]->file);
+    tc_snprintf (buf, sizeof(buf), "%s",  data[instance]->file);
     optstr_param (options, "file",   "Image with alpha/shape information",  "%s",        buf);
 
     return 0;

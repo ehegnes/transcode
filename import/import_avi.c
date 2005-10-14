@@ -71,10 +71,10 @@ MOD_open
     // tccat to dump out the audio. N.B. This isn't going
     // to work if a particular track is needed
     if((xio_stat(vob->audio_in_file, &fbuf))==0 && S_ISDIR(fbuf.st_mode)) {
-      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-                      "tccat -a -i \"%s\" -d %d",
-                      vob->video_in_file, vob->verbose);
-      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+			 "tccat -a -i \"%s\" -d %d",
+			 vob->video_in_file, vob->verbose);
+      if (sret < 0)
           return(TC_IMPORT_ERROR);
       if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
       if ((param->fd = popen(import_cmd_buf, "r"))== NULL) {

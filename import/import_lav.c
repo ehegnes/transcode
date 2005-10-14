@@ -63,24 +63,24 @@ MOD_open
 
     case CODEC_RGB:
 
-      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-                      "lav2yuv \"%s\"%s |"
-                      " tcextract -x yuv420p -t yuv4mpeg |"
-                      " tcdecode -x yuv420p -g %dx%d",
-                      vob->video_in_file, i ? "*" : "",
-                      vob->im_v_width, vob->im_v_height);
-      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+			 "lav2yuv \"%s\"%s |"
+			 " tcextract -x yuv420p -t yuv4mpeg |"
+			 " tcdecode -x yuv420p -g %dx%d",
+			 vob->video_in_file, i ? "*" : "",
+			 vob->im_v_width, vob->im_v_height);
+      if (sret < 0)
 	return(TC_IMPORT_ERROR);
 
       break;
 
     case CODEC_YUV:
 
-      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-                      "lav2yuv \"%s\"%s |"
-                      " tcextract -x yuv420p -t yuv4mpeg",
-                      vob->video_in_file, i ? "*" : "");
-      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+			 "lav2yuv \"%s\"%s |"
+			 " tcextract -x yuv420p -t yuv4mpeg",
+			 vob->video_in_file, i ? "*" : "");
+      if (sret < 0)
 	return(TC_IMPORT_ERROR);
 
       break;
@@ -108,10 +108,10 @@ MOD_open
     /* check for lav2wav */
     if (tc_test_program("lav2wav") != 0) return (TC_EXPORT_ERROR);
 
-    sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-                    "lav2wav \"%s\"%s | tcextract -x pcm -t wav ",
-                    vob->audio_in_file, i ? "*" : "");
-    if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+    sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+		       "lav2wav \"%s\"%s | tcextract -x pcm -t wav ",
+		       vob->audio_in_file, i ? "*" : "");
+    if (sret < 0)
       return(TC_IMPORT_ERROR);
 
     // print out

@@ -113,16 +113,16 @@ int tc_filter(frame_list_t *vframe_, char *options)
 		char buf[64];
 		optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYMEO", "1");
 
-		snprintf(buf, 64, "%d-%d", DEFAULT_IN_BLACK, DEFAULT_IN_WHITE );
+		tc_snprintf(buf, 64, "%d-%d", DEFAULT_IN_BLACK, DEFAULT_IN_WHITE );
 		optstr_param(options, "input", "input luma range (black-white)", "%d-%d", buf, "0", "255", "0", "255" );
 
-        snprintf(buf, 64, "%f", DEFAULT_IN_GAMMA );
+        tc_snprintf(buf, 64, "%f", DEFAULT_IN_GAMMA );
         optstr_param(options, "gamma", "input luma gamma", "%f", buf, "0.5", "3.5" );
 
-		snprintf(buf, 64, "%d-%d", DEFAULT_OUT_BLACK, DEFAULT_OUT_WHITE );
+		tc_snprintf(buf, 64, "%d-%d", DEFAULT_OUT_BLACK, DEFAULT_OUT_WHITE );
 		optstr_param(options, "output", "output luma range (black-white)", "%d-%d", buf, "0", "255", "0", "255" );
         
-		snprintf(buf, 64, "%i", DEFAULT_PRE );
+		tc_snprintf(buf, 64, "%i", DEFAULT_PRE );
 	        optstr_param(options, "pre", "pre processing filter", "%i", buf, "0", "1" );
 	}
 

@@ -144,25 +144,25 @@ int tc_filter(frame_list_t *ptr_, char *options)
       char buf[255];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYE", "1");
 
-      snprintf (buf, sizeof(buf), "%d", mfd->deinterlace);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->deinterlace);
       optstr_param (options, "deinterlace", "same as -I", "%d", buf, "0", "5");
 
-      snprintf (buf, sizeof(buf), "%d", mfd->flip);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->flip);
       optstr_param (options, "flip", "same as -z", "", buf);
 
-      snprintf (buf, sizeof(buf), "%d", mfd->mirror);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->mirror);
       optstr_param (options, "mirror", "same as -l", "", buf);
 
-      snprintf (buf, sizeof(buf), "%d", mfd->rgbswap);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->rgbswap);
       optstr_param (options, "rgbswap", "same as -k", "", buf);
 
-      snprintf (buf, sizeof(buf), "%d", mfd->decolor);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->decolor);
       optstr_param (options, "decolor", "same as -K", "", buf);
 
-      snprintf (buf, sizeof(buf), "%f", mfd->dgamma);
+      tc_snprintf (buf, sizeof(buf), "%f", mfd->dgamma);
       optstr_param (options, "dgamma", "same as -G", "%f", buf, "0.0", "3.0");
 
-      snprintf (buf, sizeof(buf), "%d/%.2f/%.2f", mfd->antialias, mfd->aa_weight, mfd->aa_bias);
+      tc_snprintf (buf, sizeof(buf), "%d/%.2f/%.2f", mfd->antialias, mfd->aa_weight, mfd->aa_bias);
       optstr_param (options, "antialias", "same as -C/weight/bias", "%d/%f/%f", buf, 
 	      "0", "3", "0.0", "1.0", "0.0", "1.0");
 

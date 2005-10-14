@@ -200,13 +200,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
       char buf[255];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYO", "1");
 
-      snprintf (buf, sizeof(buf), "%d", mfd->bMotionOnly);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->bMotionOnly);
       optstr_param (options, "motionOnly", "Show motion areas only" ,"%d", buf, "0", "1");
-      snprintf (buf, sizeof(buf), "%d", mfd->bShiftEven);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->bShiftEven);
       optstr_param (options, "shiftEven", "Blend instead of interpolate in motion areas", "%d", buf, "0", "1" );
-      snprintf (buf, sizeof(buf), "%d", mfd->threshold);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->threshold);
       optstr_param (options, "threshold", "Motion Threshold", "%d", buf, "0", "255" );
-      snprintf (buf, sizeof(buf), "%d", mfd->bDenoise);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->bDenoise);
       optstr_param (options, "denoise", "Phase shift", "%d", buf, "0", "1" );
 
       return (0);

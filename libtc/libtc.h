@@ -28,6 +28,8 @@
 #include "config.h"
 #endif
 
+#include <stdarg.h>
+
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
@@ -81,6 +83,22 @@ size_t strlcat(char *dst, const char *src, size_t size);
  * If error, prints reason.
  */
 
-int tc_test_string(char *file, int line, int limit, long ret, int errnum);
+int tc_test_string(const char *file, int line, int limit, long ret, int errnum);
+
+
+/*
+ * These versions of [v]snprintf() return -1 if the string was truncated,
+ * printing a message to stderr in case of truncation (or other error).
+ */
+
+#define tc_vsnprintf(buf,limit,format,args...) \
+    _tc_vsnprintf(__FILE__, __LINE__, buf, limit, format , ## args)
+#define tc_snprintf(buf,limit,format,args...) \
+    _tc_snprintf(__FILE__, __LINE__, buf, limit, format , ## args)
+
+int _tc_vsnprintf(const char *file, int line, char *buf, size_t limit,
+		  const char *format, va_list args);
+int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
+		 const char *format, ...);
 
 #endif  /* _LIBTC_H */

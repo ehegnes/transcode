@@ -127,9 +127,9 @@ static int probe_source_core(probe_info_t *pvob, int range, char *file, char *na
   FILE *fd;
 
   if(nav_seek_file) {
-    if((snprintf(probe_cmd_buf, PMAX_BUF, "tcprobe -B -i \"%s\" -T %d -d %d -H %d -f \"%s\"", file, title, verb, range, nav_seek_file)<0)) return(-1);
+    if(tc_snprintf(probe_cmd_buf, PMAX_BUF, "tcprobe -B -i \"%s\" -T %d -d %d -H %d -f \"%s\"", file, title, verb, range, nav_seek_file)<0) return(-1);
   } else {
-    if((snprintf(probe_cmd_buf, PMAX_BUF, "tcprobe -B -i \"%s\" -T %d -d %d -H %d", file, title, verb, range)<0)) return(-1);
+    if(tc_snprintf(probe_cmd_buf, PMAX_BUF, "tcprobe -B -i \"%s\" -T %d -d %d -H %d", file, title, verb, range)<0) return(-1);
   }
 
   

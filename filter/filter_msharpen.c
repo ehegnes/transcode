@@ -180,17 +180,17 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if (options) {
 	    char buf[256];
 	    optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYO", "1");
-	    snprintf (buf, sizeof(buf), "%d", mfd->strength);
+	    tc_snprintf (buf, sizeof(buf), "%d", mfd->strength);
 	    optstr_param (options, "strength", "How much  of the effect", "%d", buf, "0", "255");
 
-	    snprintf (buf, sizeof(buf), "%d", mfd->threshold);
+	    tc_snprintf (buf, sizeof(buf), "%d", mfd->threshold);
 	    optstr_param (options, "threshold", 
 			  "How close a pixel must be to the brightest or dimmest pixel to be mapped", 
 			  "%d", buf, "0", "255");
-	    snprintf (buf, sizeof(buf), "%d", mfd->highq);
+	    tc_snprintf (buf, sizeof(buf), "%d", mfd->highq);
 	    optstr_param (options, "highq",  "Tradeoff speed for quality of detail detection",
 		          "%d", buf, "0", "1");
-	    snprintf (buf, sizeof(buf), "%d", mfd->mask);
+	    tc_snprintf (buf, sizeof(buf), "%d", mfd->mask);
 	    optstr_param (options, "mask",  "Areas to be sharpened are shown in white",
 		          "%d", buf, "0", "1");
 

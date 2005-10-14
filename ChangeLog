@@ -1,3 +1,20 @@
+2005-10-14 Andrew Church <achurch at achurch dot org>
+  * libtc/libtc.h libtc/tc_functions.c
+  Add tc_snprintf() and tc_vsnprintf() to return a consistent value (-1)
+  and print an error message on buffer overflow.
+
+  * export/* filter/* import/* libioaux/* pvm3/export_pvm_slave.c
+    pvm3/external_codec.c pvm3/tcpvmexportd.c src/* tools/*
+  Use tc_[v]snprintf() instead of ordinary [v]snprintf().
+
+  * pvm3/export_pvm_slave.c pvm3/external_codec.c pvm3/pvm_functions.c
+    pvm3/tcpvmexportd.c
+  Fix up bad usage of char arrays.
+
+  * export/export_lame.c export/export_toolame.c
+    filter/filter_detectsilence.c import/import_nvrec.c
+  Fix potential buffer overflows.
+
 2005-10-13 Andrew Church <achurch at achurch dot org>
   * configure.in
   Fix a bug in detecting libquicktime version (-L not used in check).

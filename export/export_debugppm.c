@@ -122,7 +122,7 @@ MOD_open
 	    prefix=vob->video_out_file;
 	  }
 	  type = "P5";
-	  snprintf(buf, sizeof(buf), "%s\n%d %d 255\n", type, vob->ex_v_width, vob->ex_v_height*3/2);
+	  tc_snprintf(buf, sizeof(buf), "%s\n%d %d 255\n", type, vob->ex_v_width, vob->ex_v_height*3/2);
 	  break;
 
 	case CODEC_RGB:
@@ -131,7 +131,7 @@ MOD_open
 	    prefix=vob->video_out_file;
 	  }
 	  type = "P5"; 
-	  snprintf(buf, sizeof(buf), "%s\n%d %d 255\n", type, vob->ex_v_width, vob->ex_v_height);
+	  tc_snprintf(buf, sizeof(buf), "%s\n%d %d 255\n", type, vob->ex_v_width, vob->ex_v_height);
 	  break;
 	  
 	default:
@@ -174,17 +174,17 @@ MOD_encode
       FILE *fdr,*fdg,*fdb;
       char *c_buffer;
       out_size /= 3;
-      snprintf(buf2, sizeof(buf2), "%s%06d_r.pgm", prefix, counter);
+      tc_snprintf(buf2, sizeof(buf2), "%s%06d_r.pgm", prefix, counter);
       if((fdr = fopen(buf2, "w"))<0) {
         perror("fopen file");
 	return(TC_EXPORT_ERROR);
       }   
-      snprintf(buf2, sizeof(buf2), "%s%06d_g.pgm", prefix, counter);
+      tc_snprintf(buf2, sizeof(buf2), "%s%06d_g.pgm", prefix, counter);
       if((fdg = fopen(buf2, "w"))<0) {
         perror("fopen file");
 	return(TC_EXPORT_ERROR);
       }   
-      snprintf(buf2, sizeof(buf2), "%s%06d_b.pgm", prefix, counter++);
+      tc_snprintf(buf2, sizeof(buf2), "%s%06d_b.pgm", prefix, counter++);
       if((fdb = fopen(buf2, "w"))<0) {
         perror("fopen file");
 	return(TC_EXPORT_ERROR);
@@ -227,7 +227,7 @@ MOD_encode
       free(c_buffer);
       return(0);
     } // else YUV
-    snprintf(buf2, sizeof(buf2), "%s%06d.pgm", prefix, counter++);
+    tc_snprintf(buf2, sizeof(buf2), "%s%06d.pgm", prefix, counter++);
     
     if((fd = fopen(buf2, "w"))<0) {
       perror("fopen file");

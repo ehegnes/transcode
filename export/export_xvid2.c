@@ -674,23 +674,27 @@ static int xvid2_init(char *path)
 
 	/* First we build all lib names we will try to load */
 #ifdef SYSTEM_DARWIN
-	snprintf(modules[0], sizeof(modules[0]), "%s/%s.%d.%s", path, XVID_SHARED_LIB_BASE,
-		API_VERSION>>16, XVID_SHARED_LIB_SUFX);
+	tc_snprintf(modules[0], sizeof(modules[0]), "%s/%s.%d.%s", path,
+	            XVID_SHARED_LIB_BASE, API_VERSION>>16,
+	            XVID_SHARED_LIB_SUFX);
 #else
-	snprintf(modules[0], sizeof(modules[0]), "%s/%s.%s.%d", path, XVID_SHARED_LIB_BASE,
-		XVID_SHARED_LIB_SUFX, API_VERSION>>16);
+	tc_snprintf(modules[0], sizeof(modules[0]), "%s/%s.%s.%d", path,
+	            XVID_SHARED_LIB_BASE, XVID_SHARED_LIB_SUFX,
+	            API_VERSION>>16);
 #endif
 #ifdef SYSTEM_DARWIN
-	snprintf(modules[1], sizeof(modules[1]), "%s.%d.%s", XVID_SHARED_LIB_BASE,
-		API_VERSION>>16, XVID_SHARED_LIB_SUFX);
+	tc_snprintf(modules[1], sizeof(modules[1]), "%s.%d.%s",
+	            XVID_SHARED_LIB_BASE, API_VERSION>>16,
+	            XVID_SHARED_LIB_SUFX);
 #else
-	snprintf(modules[1], sizeof(modules[1]), "%s.%s.%d", XVID_SHARED_LIB_BASE,
-		XVID_SHARED_LIB_SUFX, API_VERSION>>16);
+	tc_snprintf(modules[1], sizeof(modules[1]), "%s.%s.%d",
+	            XVID_SHARED_LIB_BASE, XVID_SHARED_LIB_SUFX,
+	            API_VERSION>>16);
 #endif
-	snprintf(modules[2], sizeof(modules[2]), "%s/%s.%s", path, XVID_SHARED_LIB_BASE,
-		XVID_SHARED_LIB_SUFX);
-	snprintf(modules[3], sizeof(modules[3]), "%s.%s", XVID_SHARED_LIB_BASE,
-		XVID_SHARED_LIB_SUFX);
+	tc_snprintf(modules[2], sizeof(modules[2]), "%s/%s.%s", path,
+	            XVID_SHARED_LIB_BASE, XVID_SHARED_LIB_SUFX);
+	tc_snprintf(modules[3], sizeof(modules[3]), "%s.%s",
+	            XVID_SHARED_LIB_BASE, XVID_SHARED_LIB_SUFX);
 
 	for(i=0; i<4; i++) {
 		module = modules[i];
@@ -817,9 +821,10 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 
 	/* Check conf file existence */
 	if (tc_config_dir) {
-	    snprintf(buffer, 1024, "%s/%s", tc_config_dir, XVID_CONFIG_FILE);
+		tc_snprintf(buffer, 1024, "%s/%s", tc_config_dir,
+		            XVID_CONFIG_FILE);
 	} else {
-	    snprintf(buffer, 1024, "%s", XVID_CONFIG_FILE);
+		tc_snprintf(buffer, 1024, "%s", XVID_CONFIG_FILE);
 	}
 
 	if(stat(buffer, &statfile) == -1) {
@@ -828,8 +833,8 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 			char *home = getenv("HOME");
 
 			if(home != NULL) {
-				snprintf(buffer, 1023, "%s/.transcode/%s", home,
-					 XVID_CONFIG_FILE);
+				tc_snprintf(buffer, 1023, "%s/.transcode/%s", home,
+				            XVID_CONFIG_FILE);
 
 				if(stat(buffer, &statfile) == -1) {
 					fprintf(stderr,
@@ -865,7 +870,7 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 		return(0);
 	}
 
-	snprintf(buffer, 15, "%s%d", "quality", quality);
+	tc_snprintf(buffer, 15, "%s%d", "quality", quality);
 
 	if((pSection = cf_get_section(pRoot)) != NULL) {
 		do {

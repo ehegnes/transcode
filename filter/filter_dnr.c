@@ -490,19 +490,19 @@ int tc_filter(frame_list_t *ptr_, char *options)
       
     optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Gerhard Monzel", "VYRO", "1");
 
-    snprintf(buf, 32, "%d", my_fctx->pThreshold);
+    tc_snprintf(buf, 32, "%d", my_fctx->pThreshold);
     optstr_param (options, "lt", "Threshold to blend luma/red", "%d", buf, "1", "128");
 
-    snprintf(buf, 32, "%d", my_fctx->pPixellock);
+    tc_snprintf(buf, 32, "%d", my_fctx->pPixellock);
     optstr_param (options, "ll", "Threshold to lock luma/red", "%d", buf, "1", "128");
 
-    snprintf(buf, 32, "%d", my_fctx->pThreshold2);
+    tc_snprintf(buf, 32, "%d", my_fctx->pThreshold2);
     optstr_param (options, "ct", "Threshold to blend croma/green+blue", "%d", buf, "1", "128");
 
-    snprintf(buf, 32, "%d", my_fctx->pPixellock2);
+    tc_snprintf(buf, 32, "%d", my_fctx->pPixellock2);
     optstr_param (options, "cl", "Threshold to lock croma/green+blue", "%d", buf, "1", "128");
 
-    snprintf(buf, 32, "%d", my_fctx->pScene);
+    tc_snprintf(buf, 32, "%d", my_fctx->pScene);
     optstr_param (options, "sc", "Percentage of picture difference (scene change)", "%d", buf, "1", "90");
 
 

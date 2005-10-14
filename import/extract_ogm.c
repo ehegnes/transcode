@@ -211,16 +211,16 @@ static void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
       if ((strlen(sub) > 1) || (*sub != ' ')) {
         sst = (pack->granulepos / stream->sample_rate) * 1000;
         pgp = sst + lenbytes;
-        snprintf(out,sizeof(out), "%d\r\n%02d:%02d:%02d,%03d --> " \
-                "%02d:%02d:%02d,%03d\r\n", stream->subnr + 1,
-                (int)(sst / 3600000),
-                (int)(sst / 60000) % 60,
-                (int)(sst / 1000) % 60,
-                (int)(sst % 1000),
-                (int)(pgp / 3600000),
-                (int)(pgp / 60000) % 60,
-                (int)(pgp / 1000) % 60,
-                (int)(pgp % 1000));
+        tc_snprintf(out,sizeof(out), "%d\r\n%02d:%02d:%02d,%03d --> " \
+		    "%02d:%02d:%02d,%03d\r\n", stream->subnr + 1,
+		    (int)(sst / 3600000),
+		    (int)(sst / 60000) % 60,
+		    (int)(sst / 1000) % 60,
+		    (int)(sst % 1000),
+		    (int)(pgp / 3600000),
+		    (int)(pgp / 60000) % 60,
+		    (int)(pgp / 1000) % 60,
+		    (int)(pgp % 1000));
         i = write(stream->fd, out, strlen(out));
         end = strlen(sub) - 1;
         while ((end >= 0) && ((sub[end] == '\n') || (sub[end] == '\r'))) {
@@ -495,9 +495,9 @@ static void process_ogm(int fdin, int fdout)
               exit(1);
             }
             if (!xraw)
-              snprintf(new_name, strlen(basename) + 20, "%s-t%d.srt", basename, ntstreams + 1);
+              tc_snprintf(new_name, strlen(basename) + 20, "%s-t%d.srt", basename, ntstreams + 1);
             else
-              snprintf(new_name, strlen(basename) + 20, "%s-t%d.raw", basename, ntstreams + 1);
+              tc_snprintf(new_name, strlen(basename) + 20, "%s-t%d.raw", basename, ntstreams + 1);
             //stream->fd = open(new_name, O_WRONLY | O_CREAT | O_TRUNC,
             //                S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
             stream->fd = fdout;

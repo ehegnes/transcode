@@ -170,10 +170,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if (options) {
 	    char buf[256];
 	    optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYO", "1");
-	    snprintf (buf, sizeof(buf), "%d", mfd->strength);
+	    tc_snprintf (buf, sizeof(buf), "%d", mfd->strength);
 	    optstr_param (options, "strength", "How much  of the effect", "%d", buf, "0", "255");
 
-	    snprintf (buf, sizeof(buf), "%d", mfd->threshold);
+	    tc_snprintf (buf, sizeof(buf), "%d", mfd->threshold);
 	    optstr_param (options, "threshold", 
 			  "How close a pixel must be to the brightest or dimmest pixel to be mapped", 
 			  "%d", buf, "0", "255");

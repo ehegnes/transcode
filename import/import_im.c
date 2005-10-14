@@ -153,11 +153,11 @@ MOD_open
         /* frame = malloc(pad + 1); */
         do {
             last_frame++;
-            snprintf(printfspec, sizeof(printfspec), "%%s%%0%dd%%s", pad);
+            tc_snprintf(printfspec, sizeof(printfspec), "%%s%%0%dd%%s", pad);
             string_length = strlen(head) + pad + strlen(tail) + 1;
-            sret = snprintf(filename, string_length, printfspec, head,
-                                                      last_frame, tail);
-            if (tc_test_string(__FILE__, __LINE__, string_length, sret, errno))
+            sret = tc_snprintf(filename, string_length, printfspec, head,
+                               last_frame, tail);
+            if (sret < 0)
               return(TC_IMPORT_ERROR);
         } while (close(open(filename, O_RDONLY)) != -1); 
         last_frame--;
@@ -217,14 +217,14 @@ MOD_decode {
     if (pad) {
         frame = malloc(pad+1);
         framespec = malloc(10);
-        snprintf(framespec, 10, "%%0%dd", pad);
-        snprintf(frame, pad+1, framespec, current_frame);
+        tc_snprintf(framespec, 10, "%%0%dd", pad);
+        tc_snprintf(frame, pad+1, framespec, current_frame);
         free(framespec);
         frame[pad] = '\0';
     }
     else if (first_frame >= 0) {
         frame = malloc(10);
-        snprintf(frame, 10, "%d", current_frame);
+        tc_snprintf(frame, 10, "%d", current_frame);
     }
     strlcpy(filename, head, string_length);
     if (frame != NULL) {

@@ -1446,25 +1446,25 @@ int tc_filter(frame_list_t *ptr_, char *options)
       char buf[255];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYE", "1");
 
-      snprintf (buf, sizeof(buf), "%d", mfd->motionOnly);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->motionOnly);
       optstr_param (options, "motionOnly", "Show motion areas only, blacking out static areas" ,"%d", buf, "0", "1");
-      snprintf (buf, sizeof(buf), "%d", mfd->diffmode);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->diffmode);
       optstr_param (options, "diffmode", "Motion Detection (0=frame, 1=field, 2=both)", "%d", buf, "0", "2" );
-      snprintf (buf, sizeof(buf), "%d", mfd->threshold);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->threshold);
       optstr_param (options, "threshold", "Motion Threshold (luma)", "%d", buf, "0", "255" );
-      snprintf (buf, sizeof(buf), "%d", mfd->chromathres);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->chromathres);
       optstr_param (options, "chromathres", "Motion Threshold (chroma)", "%d", buf, "0", "255" );
-      snprintf (buf, sizeof(buf), "%d", mfd->scenethreshold);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->scenethreshold);
       optstr_param (options, "scenethres", "Threshold for detecting scenechanges", "%d", buf, "0", "255" );
-      snprintf (buf, sizeof(buf), "%d", mfd->highq);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->highq);
       optstr_param (options, "highq", "High-Quality processing (motion Map denoising)", "%d", buf, "0", "1" );
-      snprintf (buf, sizeof(buf), "%d", mfd->cubic);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->cubic);
       optstr_param (options, "cubic", "Do cubic interpolation", "%d", buf, "0", "1" );
-      snprintf (buf, sizeof(buf), "%d", mfd->Blend);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->Blend);
       optstr_param (options, "Blend", "Blend the frames for deinterlacing", "%d", buf, "0", "1" );
-      snprintf (buf, sizeof(buf), "%d", mfd->doChroma);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->doChroma);
       optstr_param (options, "doChroma", "Enable chroma processing (slower but more accurate)", "%d", buf, "0", "1" );
-      snprintf (buf, sizeof(buf), "%d", mfd->verbose);
+      tc_snprintf (buf, sizeof(buf), "%d", mfd->verbose);
       optstr_param (options, "verbose", "Verbose mode", "%d", buf, "0", "1" );
 
       return (0);

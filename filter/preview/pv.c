@@ -267,7 +267,7 @@ void xv_display_event (xv_display_t *dv_dpy)
 	      int yend = (y1>y2)?y1:y2;
 	      char buf[255];
 
-	      snprintf(buf, sizeof(buf), "[%s]: pos1=%dx%d pos2=%dx%d pos=%dx%d:size=%dx%d -Y %d,%d,%d,%d\n", 
+	      tc_snprintf(buf, sizeof(buf), "[%s]: pos1=%dx%d pos2=%dx%d pos=%dx%d:size=%dx%d -Y %d,%d,%d,%d\n", 
 			      "filter_pv", xanf, yanf, xend, yend, xanf, yanf, xend-xanf, yend-yanf, 
 			      yanf, xanf,  dv_dpy->height-yend, dv_dpy->width - xend);
 

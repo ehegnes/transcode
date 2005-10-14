@@ -128,7 +128,7 @@ MOD_open
 	  
       case 6:
 	  
-	  snprintf(fname, sizeof(fname), "%s_ls.pcm", vob->audio_out_file);
+	  tc_snprintf(fname, sizeof(fname), "%s_ls.pcm", vob->audio_out_file);
 	  
 	  if((fd_ls = open(fname, O_RDWR|O_CREAT|O_TRUNC,
 			   S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))
@@ -138,7 +138,7 @@ MOD_open
 	  }     
 	  
 	  
-	  snprintf(fname, sizeof(fname), "%s_rs.pcm", vob->audio_out_file);
+	  tc_snprintf(fname, sizeof(fname), "%s_rs.pcm", vob->audio_out_file);
 	  
 	  if((fd_rs = open(fname, O_RDWR|O_CREAT|O_TRUNC,
 			   S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))
@@ -148,7 +148,7 @@ MOD_open
 	  }     
 	  
 	  
-	  snprintf(fname, sizeof(fname), "%s_lfe.pcm", vob->audio_out_file);
+	  tc_snprintf(fname, sizeof(fname), "%s_lfe.pcm", vob->audio_out_file);
 	  
 	  if((fd_lfe = open(fname, O_RDWR|O_CREAT|O_TRUNC,
 			    S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))
@@ -160,7 +160,7 @@ MOD_open
 	  
       case 2:
 	  
-	  snprintf(fname, sizeof(fname), "%s_l.pcm", vob->audio_out_file);
+	  tc_snprintf(fname, sizeof(fname), "%s_l.pcm", vob->audio_out_file);
 	  
 	  if((fd_l = open(fname, O_RDWR|O_CREAT|O_TRUNC,
 			  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))
@@ -169,7 +169,7 @@ MOD_open
 	      return(TC_EXPORT_ERROR);
 	  }     
 	  
-	  snprintf(fname, sizeof(fname), "%s_r.pcm", vob->audio_out_file);
+	  tc_snprintf(fname, sizeof(fname), "%s_r.pcm", vob->audio_out_file);
 	  
 	  if((fd_r = open(fname, O_RDWR|O_CREAT|O_TRUNC,
 			  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))
@@ -181,7 +181,7 @@ MOD_open
       case 1:
 	  
 	  
-	  snprintf(fname, sizeof(fname), "%s_c.pcm", vob->audio_out_file);
+	  tc_snprintf(fname, sizeof(fname), "%s_c.pcm", vob->audio_out_file);
 	  
 	  if((fd_c = open(fname, O_RDWR|O_CREAT|O_TRUNC,
 			  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))

@@ -79,16 +79,16 @@ MOD_open
     if (sret < 0)
         return(TC_IMPORT_ERROR);
     (sret == 1) ?
-        snprintf(cat_buf, TC_BUF_MAX, "tccat") :
+        tc_snprintf(cat_buf, TC_BUF_MAX, "tccat") :
         ((vob->im_v_string) ?
-            snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv %s",
-                                              vob->im_v_string) :
-            snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv"));
+            tc_snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv %s",
+			vob->im_v_string) :
+            tc_snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv"));
 
     //yuy2 mode?
     (vob->dv_yuy2_mode) ?
-        snprintf(yuv_buf, 16, "-y yuv420p -Y") :
-        snprintf(yuv_buf, 16, "-y yuv420p");
+        tc_snprintf(yuv_buf, 16, "-y yuv420p -Y") :
+        tc_snprintf(yuv_buf, 16, "-y yuv420p");
 
     param->fd = NULL;
     yuv422_mode = 0;
@@ -97,11 +97,11 @@ MOD_open
 
     case CODEC_RGB:
 
-      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
                       "%s -i \"%s\" -d %d | tcdecode -x dv -y rgb -d %d -Q %d",
                       cat_buf, vob->video_in_file, vob->verbose, vob->verbose,
                       vob->quality);
-      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+      if (sret < 0)
           return(TC_IMPORT_ERROR);
 
       // popen
@@ -113,11 +113,11 @@ MOD_open
 
     case CODEC_YUV:
 
-      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-                      "%s -i \"%s\" -d %d | tcdecode -x dv %s -d %d -Q %d",
-                      cat_buf, vob->video_in_file, vob->verbose, yuv_buf,
-                      vob->verbose, vob->quality);
-      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+			 "%s -i \"%s\" -d %d | tcdecode -x dv %s -d %d -Q %d",
+			 cat_buf, vob->video_in_file, vob->verbose, yuv_buf,
+			 vob->verbose, vob->quality);
+      if (sret < 0)
 	return(TC_IMPORT_ERROR);
 
       // for reading
@@ -134,12 +134,12 @@ MOD_open
 
     case CODEC_YUV422:
 
-      sret = snprintf(import_cmd_buf, TC_BUF_MAX, 
-		      "%s -i \"%s\" -d %d |"
-                      " tcdecode -x dv -y yuy2 -d %d -Q %d", 
-		      cat_buf, vob->video_in_file, vob->verbose, 
-		      vob->verbose, vob->quality);
-      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX, 
+			 "%s -i \"%s\" -d %d |"
+			 " tcdecode -x dv -y yuy2 -d %d -Q %d", 
+			 cat_buf, vob->video_in_file, vob->verbose, 
+			 vob->verbose, vob->quality);
+      if (sret < 0)
 	return(TC_IMPORT_ERROR);
 
       // for reading
@@ -168,9 +168,9 @@ MOD_open
     case CODEC_RAW:
     case CODEC_RAW_YUV:
 
-      sret = snprintf(import_cmd_buf, TC_BUF_MAX, "%s -i \"%s\" -d %d",
-                      cat_buf, vob->video_in_file, vob->verbose);
-      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX, "%s -i \"%s\" -d %d",
+			 cat_buf, vob->video_in_file, vob->verbose);
+      if (sret < 0)
 	return(TC_IMPORT_ERROR);
 
       // for reading
@@ -203,16 +203,17 @@ MOD_open
 
     //directory mode?
     (scan(vob->audio_in_file)) ?
-        snprintf(cat_buf, TC_BUF_MAX, "tccat") :
+        tc_snprintf(cat_buf, TC_BUF_MAX, "tccat") :
         ((vob->im_a_string) ?
-            snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv %s",
-                                              vob->im_a_string) :
-            snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv"));
+            tc_snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv %s",
+			vob->im_a_string) :
+            tc_snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv"));
 
-    sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-                    "%s -i \"%s\" -d %d | tcdecode -x dv -y pcm -d %d",
-                    cat_buf, vob->audio_in_file, vob->verbose, vob->verbose);
-    if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno))
+    sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+		       "%s -i \"%s\" -d %d | tcdecode -x dv -y pcm -d %d",
+		       cat_buf, vob->audio_in_file, vob->verbose,
+		       vob->verbose);
+    if (sret < 0)
       return(TC_IMPORT_ERROR);
 
     // print out

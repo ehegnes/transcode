@@ -63,12 +63,12 @@ MOD_open
         return(TC_IMPORT_ERROR);
       }
 
-      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-                      "mplayer -benchmark -noframedrop -nosound -vo yuv4mpeg"
-                      " %s \"%s\" -osdlevel 0 > /dev/null 2>&1",
-                      ((vob->im_v_string) ? vob->im_v_string : ""),
-                      vob->video_in_file);
-      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno)) {
+      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+			 "mplayer -benchmark -noframedrop -nosound -vo"
+			 " yuv4mpeg %s \"%s\" -osdlevel 0 > /dev/null 2>&1",
+			 ((vob->im_v_string) ? vob->im_v_string : ""),
+			 vob->video_in_file);
+      if (sret < 0) {
 	unlink(videopipe);
         return(TC_IMPORT_ERROR);
       }
@@ -82,18 +82,18 @@ MOD_open
       }
       
       if (vob->im_v_codec == CODEC_YUV) {
-        sret = snprintf(import_cmd_buf, TC_BUF_MAX,
+        sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			"tcextract -i %s -x yuv420p -t yuv4mpeg", videopipe);
-	if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno)) {
+	if (sret < 0) {
 	  unlink(videopipe);
           return(TC_IMPORT_ERROR);
         }
       } else {
-        sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-			"tcextract -i %s -x yuv420p -t yuv4mpeg |"
-			" tcdecode -x yuv420p -g %dx%d",
-                        videopipe, vob->im_v_width, vob->im_v_height);
-	if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno)) {
+        sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+			   "tcextract -i %s -x yuv420p -t yuv4mpeg |"
+			   " tcdecode -x yuv420p -g %dx%d",
+			   videopipe, vob->im_v_width, vob->im_v_height);
+	if (sret < 0) {
 	  unlink(videopipe);
           return(TC_IMPORT_ERROR);
         }
@@ -124,12 +124,12 @@ MOD_open
         return(TC_IMPORT_ERROR);
       }
       
-      sret = snprintf(import_cmd_buf, TC_BUF_MAX,
-		      "mplayer -hardframedrop -vo null -ao pcm:nowaveheader"
-		      " -ao pcm:file=\"%s\" %s \"%s\" > /dev/null 2>&1",
-		      audiopipe, ((vob->im_a_string) ? vob->im_a_string : ""),
-		      vob->audio_in_file);
-      if (tc_test_string(__FILE__, __LINE__, TC_BUF_MAX, sret, errno)) {
+      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+			 "mplayer -hardframedrop -vo null -ao pcm:nowaveheader"
+			 " -ao pcm:file=\"%s\" %s \"%s\" > /dev/null 2>&1",
+			 audiopipe, (vob->im_a_string ? vob->im_a_string : ""),
+			 vob->audio_in_file);
+      if (sret < 0) {
 	unlink(audiopipe);
         return(TC_IMPORT_ERROR);
       }

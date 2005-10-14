@@ -176,7 +176,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if(cache_num<0) printf("[%s] invalid cache number - exit\n", MOD_NAME);
     if(preview_skip_num<0) printf("[%s] invalid number of frames to skip - exit\n", MOD_NAME);
 
-    snprintf(buffer, sizeof(buffer), "%s-%s", PACKAGE, VERSION);
+    tc_snprintf(buffer, sizeof(buffer), "%s-%s", PACKAGE, VERSION);
     
     if(xv_player != NULL) return(-1);
     if(!(xv_player = xv_player_new())) return(-1);
@@ -356,7 +356,7 @@ void preview_cache_submit(char *buf, int id, int flag) {
   
   ac_memcpy((char*) vid_buf[cache_ptr], buf, size);
   
-  (flag & TC_FRAME_IS_KEYFRAME) ? snprintf(string, sizeof(string), "%u *", id) : snprintf(string, sizeof(string), "%u", id);
+  (flag & TC_FRAME_IS_KEYFRAME) ? tc_snprintf(string, sizeof(string), "%u *", id) : tc_snprintf(string, sizeof(string), "%u", id);
   
   str2img (vid_buf[cache_ptr], string, w, h, cols, rows, 0, 0, CODEC_YUV);
 }
@@ -477,7 +477,7 @@ void preview_filter(void)
     if (!cache_enabled) return;
 
     // build commandline
-    snprintf (buf, 1024, 
+    tc_snprintf (buf, 1024, 
 	   "xterm -title \"Transcode Filter select\" -e %s/filter_list.awk %s %s &&  cat %s && rm -f %s",
 	   vob->mod_path, vob->mod_path, tmpfile, tmpfile, tmpfile);
     if ((f = popen (buf, "r")) == NULL) {
@@ -544,7 +544,7 @@ void preview_filter(void)
     // recycle
     memset (buf, 0, 1024);
 
-    snprintf (buf, 1024, 
+    tc_snprintf (buf, 1024, 
 	  "xterm -title \"Transcode parameters\" -e %s/parse_csv.awk %s %s %s && cat %s && rm -f %s %s",
 	  vob->mod_path, tmpfile, filter_name, infile, infile, tmpfile, infile);
 
@@ -810,7 +810,7 @@ int preview_grab_jpeg(void)
     if(!cache_enabled) return 1;
     
     if (jpeg_vhandle == NULL) { 
-	snprintf(module, sizeof(module), "%s/export_%s.so", MOD_PATH, "jpg");
+	tc_snprintf(module, sizeof(module), "%s/export_%s.so", MOD_PATH, "jpg");
 	jpeg_vhandle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
 	if (!jpeg_vhandle) {
 	    tc_warn("%s", dlerror());

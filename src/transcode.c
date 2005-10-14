@@ -2431,7 +2431,7 @@ int main(int argc, char *argv[]) {
 	  *suffix = '\0';
 	}
 	psubase = malloc(PATH_MAX);
-	snprintf(psubase, PATH_MAX, "%s-psu%%02d%s", video_out_file, video_ext);
+	tc_snprintf(psubase, PATH_MAX, "%s-psu%%02d%s", video_out_file, video_ext);
       } else {
 	psubase = video_out_file;
       }
@@ -2480,7 +2480,7 @@ int main(int argc, char *argv[]) {
 	if (vob->video_in_file && strstr(vob->video_in_file,"/dev/zero") ==NULL)
 	{
 	      	p_tcxmlcheck_buffer=(char *)calloc(TCXML_MAX_BUFF,1);
-		if ((snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -i \"%s\" -S -B -V",vob->video_in_file))<0)
+		if (tc_snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -i \"%s\" -S -B -V",vob->video_in_file)<0)
 		{
 		  perror("command buffer overflow");
 		  exit(1);
@@ -2498,7 +2498,7 @@ int main(int argc, char *argv[]) {
 		}
 		pclose (p_fd_tcxmlcheck);
 		memset(p_tcxmlcheck_buffer, 0 ,TCXML_MAX_BUFF);
-		if ((snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -i \"%s\" -B -V",vob->video_in_file))<0)
+		if (tc_snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -i \"%s\" -B -V",vob->video_in_file)<0)
 		{
 		  perror("command buffer overflow");
 		  exit(1);
@@ -2544,7 +2544,7 @@ int main(int argc, char *argv[]) {
 	if (vob->audio_in_file && strstr(vob->audio_in_file,"/dev/zero") ==NULL)
 	{
       		p_tcxmlcheck_buffer=(char *)calloc(TCXML_MAX_BUFF,1);
-		if ((snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -p %s -S -B -A",vob->audio_in_file))<0)
+		if (tc_snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -p %s -S -B -A",vob->audio_in_file)<0)
 		{
 	  		perror("command buffer overflow");
 	  		exit(1);
@@ -2562,7 +2562,7 @@ int main(int argc, char *argv[]) {
 		}
 		pclose(p_fd_tcxmlcheck);
 		memset(p_tcxmlcheck_buffer,0 ,TCXML_MAX_BUFF);
-		if ((snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -p %s -B -A",vob->audio_in_file))<0)
+		if (tc_snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -p %s -B -A",vob->audio_in_file)<0)
 		{
 		  perror("command buffer overflow");
 		  exit(1);
@@ -4180,7 +4180,7 @@ int main(int argc, char *argv[]) {
 	  strlcpy(base, vob->video_out_file, TC_BUF_MIN);
 	
 	// create new filename 
-	snprintf(buf, sizeof(buf), "%s%03d%s", base, ch1++, video_ext);
+	tc_snprintf(buf, sizeof(buf), "%s%03d%s", base, ch1++, video_ext);
 	
 	// update vob structure
 	vob->video_out_file = buf;
@@ -4256,7 +4256,7 @@ int main(int argc, char *argv[]) {
 	memset(buf, 0, sizeof buf);
 	if(!no_split) {
 	  // create new filename 
-	  snprintf(buf, sizeof(buf), psubase, ch1);
+	  tc_snprintf(buf, sizeof(buf), psubase, ch1);
 	  
 	  // update vob structure
 	  vob->video_out_file = buf;
@@ -4393,7 +4393,7 @@ int main(int argc, char *argv[]) {
       if(no_split) {
 	
 	// create single output filename 
-	snprintf(buf, sizeof(buf), "%s%s", dirbase, video_ext);
+	tc_snprintf(buf, sizeof(buf), "%s%s", dirbase, video_ext);
 	
 	// update vob structure
 	if(dir_audio) {
@@ -4401,7 +4401,7 @@ int main(int argc, char *argv[]) {
 	  switch(vob->ex_a_codec) {
 	    
 	  case CODEC_MP3:
-	    snprintf(buf, sizeof(buf), "%s-%03d%s", dirbase, dir_fcnt, audio_ext);
+	    tc_snprintf(buf, sizeof(buf), "%s-%03d%s", dirbase, dir_fcnt, audio_ext);
 	    break;
 	  }
 
@@ -4429,7 +4429,7 @@ int main(int argc, char *argv[]) {
 
 	if(!no_split) {
 	  // create new filename 
-	  snprintf(buf, sizeof(buf), "%s-%03d%s", dirbase, dir_fcnt, video_ext);
+	  tc_snprintf(buf, sizeof(buf), "%s-%03d%s", dirbase, dir_fcnt, video_ext);
 	  
 	  // update vob structure
 	  if(dir_audio) {
@@ -4437,7 +4437,7 @@ int main(int argc, char *argv[]) {
 	    switch(vob->ex_a_codec) {
 	      
 	    case CODEC_MP3:
-	      snprintf(buf, sizeof(buf), "%s-%03d%s", dirbase, dir_fcnt, audio_ext);
+	      tc_snprintf(buf, sizeof(buf), "%s-%03d%s", dirbase, dir_fcnt, audio_ext);
 	      break;
 	    }
 
@@ -4537,7 +4537,7 @@ int main(int argc, char *argv[]) {
       if(no_split) {
 	
 	// create new filename 
-	snprintf(buf, sizeof(buf), "%s%s", chbase, video_ext);
+	tc_snprintf(buf, sizeof(buf), "%s%s", chbase, video_ext);
 	
 	// update vob structure
 	vob->video_out_file = buf;
@@ -4567,7 +4567,7 @@ int main(int argc, char *argv[]) {
 	
 	if(!no_split) {
 	  // create new filename 
-	  snprintf(buf, sizeof(buf), "%s-ch%02d%s", chbase, ch1, video_ext);
+	  tc_snprintf(buf, sizeof(buf), "%s-ch%02d%s", chbase, ch1, video_ext);
 	  
 	  // update vob structure
 	  vob->video_out_file = buf;

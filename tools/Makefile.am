@@ -82,3 +82,5 @@ tcmodinfo_LDADD = \
 tcmodinfo_LDFLAGS = -export-dynamic 
 
 tcmp3cut_SOURCES = tcmp3cut.c
+tcmp3cut_LDADD = \
+	$(LIBTC_LIBS)

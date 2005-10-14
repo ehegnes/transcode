@@ -51,6 +51,7 @@
 
 void *f_handle=NULL;	/*handle for dlopen/dlclose*/
 void *f_ext_handle=NULL;	/*handle for dlopen/dlclose of the external module*/
+#define tc_export p_tc_export
 int (*tc_export)(int,void *,void *);
 char *p_param1=NULL,*p_param2=NULL,*p_param3=NULL; /*codec input parameter*/
 int tc_accel=-1;
@@ -110,8 +111,8 @@ int f_init_func(char *p_option,char *p_mod)
 	{
 		if (p_mod!=NULL)
 		{
-			memset((char *)&s_module,'\0',MAX_BUF);
-			snprintf(s_module, sizeof(s_module), "%s/export_%s.so", p_modpath,p_mod);
+			memset(s_module,'\0',sizeof(s_module));
+			tc_snprintf(s_module, sizeof(s_module), "%s/export_%s.so", p_modpath,p_mod);
 			f_ext_handle=dlopen(s_module, RTLD_GLOBAL|RTLD_LAZY);
 			if (!f_ext_handle) 
 			{
@@ -144,8 +145,8 @@ int f_init_func(char *p_option,char *p_mod)
 		if (p_mod!=NULL)
 		{
 			tc_accel = ac_cpuinfo();
-			memset((char *)&s_module,'\0',MAX_BUF);
-			snprintf(s_module, sizeof(s_module), "%s/export_%s.so", p_modpath,p_mod);
+			memset(s_module,'\0',sizeof(s_module));
+			tc_snprintf(s_module, sizeof(s_module), "%s/export_%s.so", p_modpath,p_mod);
 			f_ext_handle=dlopen(s_module, RTLD_GLOBAL|RTLD_LAZY);
 			if (!f_ext_handle) 
 			{
@@ -193,10 +194,10 @@ int main(int argc,char **argv)
 
 	p_out_file_name=p_tmp_file;
 
-	if((gethostname((char *)&s_hostname,MAX_BUF))!=0)
+	if((gethostname(s_hostname,sizeof(s_hostname)))!=0)
 	{
-		memset((char *)&s_hostname,'\0',MAX_BUF);
-		snprintf((char *)&s_hostname,MAX_BUF,"localhost-%d\n",getpid());
+		memset(s_hostname,'\0',sizeof(s_hostname));
+		tc_snprintf(s_hostname,sizeof(s_hostname),"localhost-%d\n",getpid());
 	}
 	p_hostname=(char *)s_hostname;
 

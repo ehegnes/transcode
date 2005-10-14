@@ -139,12 +139,12 @@ int genFileName(const char *prefix, const char *suffix, char filename[MAX_FILENA
 
   sprintf(&filename[strlen(filename)], "%d%s", val,suffix);
 #else
-  snprintf(format_buf, sizeof(format_buf), "%%0%dd", digits);
+  tc_snprintf(format_buf, sizeof(format_buf), "%%0%dd", digits);
   if ((digits_buf = malloc(digits + 1)) == NULL) {
     fprintf(stderr, "Could not allocate memory for digits_buf\n");
     return(ERROR);
   }
-  snprintf(digits_buf, digits + 1, format_buf, val);
+  tc_snprintf(digits_buf, digits + 1, format_buf, val);
   strlcat(filename, digits_buf, MAX_FILENAME_LENGTH);
   strlcat(filename, suffix, MAX_FILENAME_LENGTH);
   free(digits_buf);

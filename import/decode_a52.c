@@ -49,7 +49,7 @@ static int a52_do_init(char *path) {
 #endif    
     char *error;
 
-    snprintf(module, sizeof(module), "%s/%s", path, MODULE);
+    tc_snprintf(module, sizeof(module), "%s/%s", path, MODULE);
   
     if(verbose & TC_DEBUG) 
 	fprintf(stderr, "loading external module %s\n", module); 
