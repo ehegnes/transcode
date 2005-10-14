@@ -1,4 +1,11 @@
 2005-10-14 Francesco Romani <fromani at gmail dot com>
+  * libtc/tc_functions.c
+  add statbuffer to tc_* debug fnctions, to avoid malloc() which
+  are undesiderable when reporting critical situations.
+  In 'regular' situations (short tags) dynamic, malloc()'d buffer 
+  should never be used.
+  
+2005-10-14 Francesco Romani <fromani at gmail dot com>
   * export/aud_aux.c export/divx4_vbr.c export/export_ac3.c 
     export/export_af6.cpp export/export_debugppm.c export/export_def.h
     export/export_divx4.c export/export_divx4raw.c export/export_divx5.c
@@ -16,7 +23,7 @@
 2005-10-14 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tc_functions.c
   Generalize debug functions, and start to use it almost everywhere
-  fprintf() was previously used
+  fprintf() was previously used.
 
 2005-10-14 Andrew Church <achurch at achurch dot org>
   * configure.in
