@@ -161,7 +161,7 @@ extern "C" {
 	  bh.biCompression=fccYV12;
 	  break;
       default:
-	  fprintf(stderr, "[%s] codec not supported\n", MOD_NAME);
+	  tc_tag_warn(MOD_NAME, "codec not supported");
 	  return(TC_EXPORT_ERROR); 
 	  break;
       }
@@ -174,14 +174,14 @@ extern "C" {
 
       if((codec_info = is_valid_codec(vob->ex_v_fcc, &fourcc)) == NULL) {
         
-        fprintf(stderr, "[%s] invalid codec string: \"%s\"\n", MOD_NAME, vob->ex_v_fcc);
+        tc_tag_warn(MOD_NAME, "invalid codec string: \"%s\"", vob->ex_v_fcc);
 	list_codecs();
 	return(TC_EXPORT_ERROR);
       }
       
       pfcc = (char *)&fourcc;
-      printf("[%s] \"%s\" FOURCC=0x%lx (%c%c%c%c)\n", 
-             MOD_NAME, vob->ex_v_fcc, (long)fourcc, 
+      tc_tag_info(MOD_NAME "\"%s\" FOURCC=0x%lx (%c%c%c%c)", 
+             vob->ex_v_fcc, (long)fourcc, 
              pfcc[0], pfcc[1], pfcc[2], pfcc[3]);
 
       //-- setup codec properties before(!) creating codec object --
@@ -195,8 +195,8 @@ extern "C" {
       //---------------------------
       if( (ve = CreateVideoEncoder(*codec_info, bh)) == NULL ) 
       {
-	fprintf(stderr, "[%s] failed to create encoder for FOURCC=0x%lx\n", 
-                MOD_NAME, (long)fourcc);
+	tc_tag_warn(MOD_NAME, "failed to create encoder for FOURCC=0x%lx", 
+                (long)fourcc);
 	return(TC_EXPORT_ERROR);
       }
       

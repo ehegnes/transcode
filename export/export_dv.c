@@ -143,7 +143,7 @@ MOD_open
       
     default:
       
-      fprintf(stderr, "[%s] codec not supported\n", MOD_NAME);
+      tc_tag_warn(MOD_NAME, "codec not supported");
       return(TC_EXPORT_ERROR); 
       
       break;

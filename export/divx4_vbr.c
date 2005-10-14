@@ -230,7 +230,8 @@ int VbrControl_init_2pass_vbr_encoding(const char *filename, int bitrate, double
 		average_complexity=complexity/iNumFrames;
 		
 		if (verbose & TC_DEBUG)	{
-		    fprintf(stderr, "(%s) frames %d, texture %lld, motion %lld, total %lld, complexity %lld\n", __FILE__, iNumFrames, text_bits, motion_bits, total_bits, complexity);
+		    tc_info("frames %d, texture %lld, motion %lld, total %lld, complexity %lld",
+				iNumFrames, text_bits, motion_bits, total_bits, complexity);
 		}
 		
 		m_vFrames = (entry*)malloc(iNumFrames*sizeof(entry));

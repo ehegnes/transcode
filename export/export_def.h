@@ -57,7 +57,7 @@ MOD_name
     verbose_flag = param->flag;
 
     // print module version only once
-    if(verbose_flag && (display++)==0) fprintf(stderr, "[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CODEC);
+    if(verbose_flag && (display++)==0) tc_tag_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CODEC);
 
     // return module capability flag
     param->flag = capability_flag;

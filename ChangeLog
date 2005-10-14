@@ -1,4 +1,19 @@
 2005-10-14 Francesco Romani <fromani at gmail dot com>
+  * export/aud_aux.c export/divx4_vbr.c export/export_ac3.c 
+    export/export_af6.cpp export/export_debugppm.c export/export_def.h
+    export/export_divx4.c export/export_divx4raw.c export/export_divx5.c
+    export/export_divx5raw.c export/export_dv.c export/export_dvraw.c
+    export/export_fame.c export/export_im.c export/export_jpg.c
+    export/export_lame.c export/export_lzo.c export/export_mjpeg.c
+    export/export_mov.c export/export_mp1e.c export/export_mp2.c
+    export/export_mp2enc.c export/export_mpeg2enc.c export/export_net.c
+    export/export_ogg.c export/export_ppm.c export/export_pvm.c
+    export/export_pvn.c export/export_raw.c export/export_toolame.c
+    export/export_wav.c export/export_yuv4mpeg.c
+  tc_{info,warn,error} roundup part 1; ported most of fprintf() in most of
+  export modules to above functions. More to come.
+
+2005-10-14 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tc_functions.c
   Generalize debug functions, and start to use it almost everywhere
   fprintf() was previously used

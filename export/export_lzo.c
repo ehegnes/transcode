@@ -73,14 +73,15 @@ MOD_init
 {
     
     if(param->flag == TC_VIDEO) {
-      if(verbose & TC_DEBUG) printf("[%s] max AVI-file size limit = %lu bytes\n", MOD_NAME, (unsigned long) AVI_max_size());
+      if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "max AVI-file size limit = %lu bytes\n", 
+		                         (unsigned long) AVI_max_size());
 
       /*
        * Step 1: initialize the LZO library
        */
 
       if (lzo_init() != LZO_E_OK) {
-	printf("[%s] lzo_init() failed\n", MOD_NAME);
+	tc_tag_warn(MOD_NAME, "lzo_init() failed");
 	return(TC_EXPORT_ERROR); 
       }
 
@@ -88,7 +89,7 @@ MOD_init
       out = (lzo_bytep) lzo_malloc(vob->ex_v_height*vob->ex_v_width*3*2);
 
       if (wrkmem == NULL || out == NULL) {
-	printf("[%s] out of memory\n", MOD_NAME);
+	fprintf(stderr, "[%s] out of memory\n", MOD_NAME);
 	return(TC_EXPORT_ERROR); 
       }
 
@@ -140,11 +141,11 @@ MOD_open
       
       if(!info_shown && verbose_flag) 
 #ifdef LZO2
-	fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
-		MOD_NAME, "LZO2", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
+	tc_tag_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
+		"LZO2", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
 #else
-	fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
-		MOD_NAME, "LZO1", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
+	tc_tag_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
+		"LZO1", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
 #endif
       
       info_shown=1;
@@ -213,18 +214,18 @@ MOD_encode
 #endif
     
     if (r == LZO_E_OK) {
-      if(verbose & TC_DEBUG) printf("compressed %lu bytes into %lu bytes\n",
+      if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "compressed %lu bytes into %lu bytes",
 				    (long) param->size, (long) out_len);
     } else {
       
       /* this should NEVER happen */
-      printf("[%s] internal error - compression failed: %d\n", MOD_NAME, r);
+      tc_tag_warn(MOD_NAME, "internal error - compression failed: %d", r);
       return(TC_EXPORT_ERROR); 
     }
     
     /* check for an incompressible block */
     if (out_len >= param->size)  {
-      if(verbose & TC_DEBUG) printf("[%s] block contains incompressible data\n", MOD_NAME);
+      if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "block contains incompressible data");
 #ifdef LZO2
       h.flags |= TC_LZO_NOT_COMPRESSIBLE;
 #endif

@@ -83,8 +83,7 @@ static void write_yuv_JPEG_file(char *filename, int quality,
   encinfo.err = jpeg_std_error(&jerr);
  
   if ((outfile = fopen(filename, "wb")) == NULL) {
-    fprintf(stderr, "can't open %s\n", filename);
-    exit(1);
+    tc_tag_error(MOD_NAME, "can't open %s", filename);
   }
   jpeg_stdio_dest(&encinfo, outfile);
 
@@ -150,8 +149,7 @@ static void write_rgb_JPEG_file (char * filename, int quality, int width, int he
   /* Note: steps 2 and 3 can be done in either order. */
 
   if ((outfile = fopen(filename, "wb")) == NULL) {
-    fprintf(stderr, "can't open %s\n", filename);
-    exit(1);
+    tc_tag_error(MOD_NAME, "can't open %s", filename);
   }
   jpeg_stdio_dest(&cinfo, outfile);
 
@@ -253,7 +251,7 @@ MOD_open
 	  
 	default:
 	  
-	  fprintf(stderr, "[%s] codec not supported (0x%x)\n", MOD_NAME, vob->im_v_codec);
+	  tc_tag_warn(MOD_NAME, "codec not supported (0x%x)", vob->im_v_codec);
 	  return(TC_EXPORT_ERROR); 
 	  
 	  break;

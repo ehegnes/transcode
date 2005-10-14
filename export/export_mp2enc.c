@@ -122,17 +122,20 @@ MOD_open
 	// encoding values, let commandline override profile
 	if(!(probe_export_attributes & TC_PROBE_NO_EXPORT_ARATE))
 	  if (srate != def_srate) {
-            printf("[%s] export profile changed samplerate: %d -> %d Hz.\n", MOD_NAME, srate, def_srate); 
+            tc_tag_info(MOD_NAME, "export profile changed samplerate:"
+			          " %d -> %d Hz.", srate, def_srate); 
 	    srate = def_srate;
 	  }
 	if(!(probe_export_attributes & TC_PROBE_NO_EXPORT_ABITRATE))
 	  if (brate != def_brate) {
-            printf("[%s] export profile changed bitrate: %d -> %d kbps.\n", MOD_NAME, brate, def_brate); 
+            tc_tag_info(MOD_NAME, "export profile changed bitrate: "
+			          "%d -> %d kbps.", brate, def_brate); 
 	    brate = def_brate;
 	  }
 	if(!(probe_export_attributes & TC_PROBE_NO_EXPORT_ACHANS))
 	  if (chan != def_chan) {
-            printf("[%s] export profile changed channels: mono -> stereo.\n", MOD_NAME); 
+            tc_tag_info(MOD_NAME, "export profile changed channels: "
+			          "mono -> stereo."); 
 	    chan = def_chan;
 	  }
 	
@@ -141,7 +144,8 @@ MOD_open
 	  return(TC_EXPORT_ERROR);
 	} 
 	
-        if(verbose & TC_INFO) printf("[%s] (%d/%d) cmd=%s\n", MOD_NAME, (int)strlen(buf), PATH_MAX, buf);
+        if(verbose & TC_INFO) tc_tag_info(MOD_NAME, "(%d/%d) cmd=%s", 
+			                  (int)strlen(buf), PATH_MAX, buf);
 	
         if((pFile = popen (buf, "w")) == NULL)
 	  return(TC_EXPORT_ERROR);
@@ -196,7 +200,7 @@ MOD_init
 	if ( !(probe_export_attributes & TC_PROBE_NO_EXPORT_AEXT))
 		audio_ext = mpa;
 	  
-        fprintf(stderr, "[%s] *** init-v *** !\n", MOD_NAME); 
+        tc_tag_warn(MOD_NAME, "*** init-v *** !"); 
     
         return(0);
     }

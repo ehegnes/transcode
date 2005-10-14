@@ -223,7 +223,7 @@ MOD_open
 	}
 
 	if (verbose > 0)
-	    fprintf(stderr, "[%s]: %s\n", "export_mp1e", export_cmd_buf);
+	    tc_tag_info(MOD_NAME, "%s", export_cmd_buf);
 
     }
   return(0);
@@ -303,7 +303,7 @@ MOD_encode
 	}
 
 	if (!tcv_convert(param->buffer, srcfmt, destfmt)) {
-	    fprintf(stderr, "[%s] image format conversion failed\n", MOD_NAME);
+	    tc_tag_warn(MOD_NAME, "image format conversion failed");
 	    return(TC_EXPORT_ERROR);
 	}
 

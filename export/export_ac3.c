@@ -81,17 +81,17 @@ MOD_open
             strlcat(out_fname, ".ac3", sizeof(out_fname));
 
 	if (vob->mp3bitrate == 0) {
-            fprintf (stderr, "[%s] Please set the export audio bitrate\n", MOD_NAME);
+            tc_tag_warn (MOD_NAME, "Please set the export audio bitrate");
             return(TC_EXPORT_ERROR);
         }
 
 	if (vob->mp3frequency == 0) {
-            fprintf (stderr, "[%s] Please set the export audio sample rate\n", MOD_NAME);
+            tc_tag_warn (MOD_NAME, "Please set the export audio sample rate");
             return(TC_EXPORT_ERROR);
         }
 
-	fprintf(stderr, "[%s] *** This module is non-optimal ***\n", MOD_NAME);
-	fprintf(stderr, "[%s] *** Use -N 0x2000 instead of -y ...,ac3 (faster) ***\n", MOD_NAME);
+	tc_tag_warn(MOD_NAME, "*** This module is non-optimal ***");
+	tc_tag_warn(MOD_NAME, "*** Use -N 0x2000 instead of -y ...,ac3 (faster) ***");
 
         result = tc_snprintf (buf, PATH_MAX,
                               "ffmpeg -y -f s%dle -ac %d -ar %d -i - -ab %d -acodec ac3 %s%s",
@@ -106,7 +106,7 @@ MOD_open
             return(TC_EXPORT_ERROR);
 
         if (verbose > 0)
-	    fprintf (stderr, "[%s] %s\n", MOD_NAME, buf);
+	    tc_info (MOD_NAME, "%s", buf);
         
 	if ((pFile = popen (buf, "w")) == NULL)
 	    return(TC_EXPORT_ERROR);

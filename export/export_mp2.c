@@ -105,7 +105,7 @@ MOD_open
         strlcat(out_fname, ".mpa", sizeof(out_fname));
 
 	if (vob->mp3bitrate == 0) {
-            fprintf (stderr, "[%s] Audio bitrate 0 is not valid, cannot cope.\n", MOD_NAME);
+            tc_tag_warn (MOD_NAME, "Audio bitrate 0 is not valid, cannot cope.");
             return(TC_EXPORT_ERROR);
         }
 
@@ -145,7 +145,7 @@ MOD_open
         return(TC_EXPORT_ERROR);
 
     if (verbose > 0)
-        fprintf (stderr, "[%s] %s\n", MOD_NAME, buf);
+        tc_tag_info (MOD_NAME, "%s", buf);
 
 	if ((pFile = popen (buf, "w")) == NULL)
 	    return(TC_EXPORT_ERROR);

@@ -113,7 +113,7 @@ MOD_open
       
     default:
       
-      fprintf(stderr, "[%s] codec not supported\n", MOD_NAME);
+      tc_tag_warn(MOD_NAME, "codec not supported");
       return(TC_EXPORT_ERROR); 
       
       break;
@@ -150,7 +150,7 @@ static void mjpeg_init_destination(j_compress_ptr cinfo) {
 }
 static boolean mjpeg_empty_output_buffer(j_compress_ptr cinfo) {
   /* this should never occur! */
-  fprintf(stderr, "[%s] empty_output_buffer was called!\n", MOD_NAME);
+  tc_tag_warn(MOD_NAME, "empty_output_buffer was called!");
   exit(1);
 }
 static void mjpeg_term_destination(j_compress_ptr cinfo) {
@@ -195,7 +195,7 @@ MOD_encode
         bwritten=jpeg_write_scanlines(&cinfo,row_pointer,cinfo.image_height);
         
         if (bwritten != cinfo.image_height) {
-          fprintf(stderr, "[%s] only wrote %d!\n", MOD_NAME, bwritten);
+          tc_tag_warn(MOD_NAME, "only wrote %d!", bwritten);
           return(TC_EXPORT_ERROR);
         }
         break;
@@ -230,14 +230,13 @@ MOD_encode
 
           bwritten = jpeg_write_raw_data(&cinfo, line, 2*DCTSIZE);
           if ( bwritten < 2*DCTSIZE) {
-            fprintf(stderr, "[%s] only wrote %i instead of %i", MOD_NAME, bwritten, 2*DCTSIZE);
+            tc_tag_warn(MOD_NAME, "only wrote %i instead of %i", bwritten, 2*DCTSIZE);
             return(TC_EXPORT_ERROR);
           }
         }
         break;
     default:
-        fprintf(stderr,"[%s] You should not be here! (Unsupported video in MOD_encode) \n",
-                MOD_NAME);
+        tc_tag_warn(MOD_NAME, "You should not be here! (Unsupported video in MOD_encode)");
         return(TC_EXPORT_ERROR);
         break;
     }

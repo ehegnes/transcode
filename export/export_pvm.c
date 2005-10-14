@@ -113,9 +113,9 @@ void f_pvm_balancer(char *p_option,pvm_func_t *p_func,int s_seq,int s_type)
 			if (verbose_flag & TC_DEBUG)
 			{
 				if (s_type== TC_VIDEO)
-					fprintf(stderr,"[%s] The new task for video is %d\n",MOD_NAME,s_cont);
+					tc_tag_info(MOD_NAME, "The new task for video is %d",s_cont);
 				else
-					fprintf(stderr,"[%s] The new task for audio is %d\n",MOD_NAME,s_cont);
+					tc_tag_info(MOD_NAME, "The new task for audio is %d",s_cont);
 			}
 		}
 		else	/*stop and wait for the first free task*/
@@ -123,9 +123,9 @@ void f_pvm_balancer(char *p_option,pvm_func_t *p_func,int s_seq,int s_type)
 			if (verbose_flag & TC_DEBUG)
 			{
 				if (s_type== TC_VIDEO)
-					fprintf(stderr,"[%s] Waiting for a video free task.....\n",MOD_NAME);
+					tc_tag_info(MOD_NAME, "Waiting for a video free task...");
 				else
-					fprintf(stderr,"[%s] Waiting for an audio free task.....\n",MOD_NAME);
+					tc_tag_info(MOD_NAME, "Waiting for an audio free task...");
 			}
 			s_cont=s_seq;
 			if (s_type== TC_VIDEO)
@@ -139,9 +139,9 @@ void f_pvm_balancer(char *p_option,pvm_func_t *p_func,int s_seq,int s_type)
 			if (verbose_flag & TC_DEBUG)
 			{
 				if (s_type== TC_VIDEO)
-					fprintf(stderr,"[%s] The new video task free is %d\n",MOD_NAME,s_cont);
+					tc_tag_info(MOD_NAME, "The new video task free is %d",s_cont);
 				else
-					fprintf(stderr,"[%s] The new audio task free is %d\n",MOD_NAME,s_cont);
+					tc_tag_info(MOD_NAME, "The new audio task free is %d",s_cont);
 			}
 		}
 	}
@@ -149,10 +149,10 @@ void f_pvm_balancer(char *p_option,pvm_func_t *p_func,int s_seq,int s_type)
 
 void f_help()
 {
-	fprintf(stderr, "[%s]  %s\n",MOD_NAME,MOD_VERSION);
-	fprintf(stderr, "[%s]  -F configfile,[[nproc]:[maxproc]:[nfrxtask]]\n",MOD_NAME);
-	fprintf(stderr, "[%s]  nproc,maxproc,nfrxtask override the parameter present in the config file\n",MOD_NAME);
-	fprintf(stderr, "[%s]  List of known and supported codecs:\n",MOD_NAME);
+	tc_tag_info(MOD_NAME, "%s",MOD_VERSION);
+	tc_tag_info(MOD_NAME, "  -F configfile,[[nproc]:[maxproc]:[nfrxtask]]");
+	tc_tag_info(MOD_NAME, "  nproc,maxproc,nfrxtask override the parameter present in the config file");
+	tc_tag_info(MOD_NAME, "  List of known and supported codecs:");
 	f_help_codec(MOD_NAME);
 }
 
@@ -173,14 +173,14 @@ MOD_open
 		s_null_module=s_null_video_module;
 		p_pvm_fun=&s_pvm_fun_video;
 		if (verbose_flag & TC_DEBUG)
-			fprintf(stderr, "[%s] enter in MOD_OPEN Video\n",MOD_NAME);
+			tc_tag_info(MOD_NAME, "enter in MOD_OPEN Video");
 	}
 	else
 	{
 		s_null_module=s_null_audio_module;
 		p_pvm_fun=&s_pvm_fun_audio;
 		if (verbose_flag & TC_DEBUG)
-			fprintf(stderr, "[%s] enter in MOD_OPEN Video\n",MOD_NAME);
+			tc_tag_info(MOD_NAME, "enter in MOD_OPEN Video");
 	}
 	if (!s_null_module)
 	{
@@ -195,7 +195,7 @@ MOD_open
 	}
 	pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 	if (verbose_flag & TC_DEBUG)
-		fprintf(stderr, "[%s] exit MOD_OPEN Video\n",MOD_NAME);
+		tc_tag_info(MOD_NAME, "exit MOD_OPEN Video");
 	return(0);
 }
 
@@ -228,7 +228,7 @@ MOD_init
 	s_contj=2;
 	s_contsys=2;
 	if (verbose_flag & TC_DEBUG)
-		fprintf(stderr, "[%s] enter in MOD_INIT \n",MOD_NAME);
+		tc_tag_info(MOD_NAME, "enter in MOD_INIT");
 	if (s_init_check==0)
 	{
 		s_init_check++;		//do it only for the first time
@@ -246,7 +246,7 @@ MOD_init
 			}
 			if ((p_pvm_conf=f_pvm_parser(p_par1,"open"))==NULL)
 			{
-				fprintf(stderr,"error checking %s\n",p_par1);
+				tc_tag_warn(MOD_NAME, "error checking %s",p_par1);
 				f_help();
 				pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 				return(TC_EXPORT_ERROR);
@@ -413,17 +413,17 @@ MOD_init
 		if(param->flag == TC_VIDEO) 
 		{
 			s_null_video_module=s_null_module;
-			fprintf(stderr, "[%s] use internal video null codec\n",MOD_NAME);
+			tc_tag_info(MOD_NAME, "use internal video null codec");
 		}
 		else
 		{
 			s_null_audio_module=s_null_module;
-			fprintf(stderr, "[%s] use internal audio null codec\n",MOD_NAME);
+			tc_tag_info(MOD_NAME, "use internal audio null codec");
 		}
 	}
 	else
 	{
-		fprintf(stderr, "[%s] error: unsupported %s codec\n",MOD_NAME,p_conf_codec->p_codec);
+		tc_tag-warn(MOD_NAME, "unsupported %s codec",p_conf_codec->p_codec);
 		f_help();		/*unsupported codec parameter*/
 		pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 		return(TC_EXPORT_ERROR);
@@ -498,7 +498,10 @@ MOD_init
 		if (p_merger_conf->s_build_only_list)
 			p_argv_merger[s_contj++]="-L";
 		if ((verbose_flag & TC_INFO)||(verbose_flag & TC_DEBUG))
-			fprintf(stderr, "[%s] P1=%s, P2=%s (%d %d %d)\n",MOD_NAME,p_par1,p_par2,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_conf->s_num_frame_task);
+			tc_tag_info(MOD_NAME, "P1=%s, P2=%s (%d %d %d)",
+				p_par1,p_par2,p_pvm_conf->s_nproc,
+				p_pvm_conf->s_max_proc,
+				p_pvm_conf->s_num_frame_task);
 		if (p_handle==NULL)
 		{
 			if((p_handle=f_init_pvm_func("open",NULL))==NULL)
@@ -575,7 +578,7 @@ MOD_init
 					return(TC_EXPORT_ERROR);
 				}
 				if (verbose_flag & TC_DEBUG)
-					fprintf(stderr, "[%s] System merger tid %d\n",MOD_NAME,*p_merger_sys_tid);
+					tc_tag_info(MOD_NAME, "System merger tid %d",*p_merger_sys_tid);
 				/*send the output file name*/
 				if(f_pvm_send(strlen(p_file_to_open),(char *)p_file_to_open,PVM_JOIN_OPT_INIT,s_pvm_single_proc_system.s_current_tid,&s_pvm_single_proc_system)==-1)
 				{
@@ -599,9 +602,9 @@ MOD_init
 			return(TC_EXPORT_ERROR);
 		}
 		if (verbose_flag & TC_DEBUG)
-			fprintf(stderr, "[%s] MOD_INIT stop f_pvm_start_single_process\n",MOD_NAME);
+			tc_tag_info(MOD_NAME, "MOD_INIT stop f_pvm_start_single_process");
 		if (verbose_flag & TC_DEBUG)
-			fprintf(stderr, "[%s] MOD_INIT start PVM_INIT_SKED\n",MOD_NAME);
+			tc_tag_info(MOD_NAME, "MOD_INIT start PVM_INIT_SKED");
 		if((f_pvm_multi_send(sizeof(int),(char *)&p_pvm_conf->s_num_frame_task,PVM_INIT_SKED,p_pvm_fun))==-1)
 		{
 			f_pvm_stop_single_process(*p_merger_tid);
@@ -615,13 +618,13 @@ MOD_init
 			return(TC_EXPORT_ERROR);
 		}
 		if (verbose_flag & TC_DEBUG)
-			fprintf(stderr, "[%s] MOD_INIT stop PVM_INIT_SKED\n",MOD_NAME);
+			tc_tag_info(MOD_NAME, "MOD_INIT stop PVM_INIT_SKED");
 		if (verbose_flag & TC_DEBUG)
 		{
 			if(param->flag == TC_VIDEO) 
-				fprintf(stderr, "[%s] Video merger tid %d\n",MOD_NAME,*p_merger_tid);
+				tc_tag_info(MOD_NAME, "Video merger tid %d",*p_merger_tid);
 			else
-				fprintf(stderr, "[%s] Audio merger tid %d\n",MOD_NAME,*p_merger_tid);
+				tc_tag_info(MOD_NAME, "Audio merger tid %d",*p_merger_tid);
 		}
 		if((f_pvm_multi_send(sizeof(int),(char *)p_merger_tid,PVM_INIT_JOIN,p_pvm_fun))==-1)	/*send the merger tid*/
 		{
@@ -640,7 +643,7 @@ MOD_init
 		if (vob->divxmultipass==2)
 		{
 			if (verbose_flag & TC_DEBUG)
-				fprintf(stderr, "[%s] enter in preinit msg\n",MOD_NAME);
+				tc_tag_info(MOD_NAME, "enter in preinit msg");
 			for(s_cont=0;s_cont<p_pvm_fun->s_nproc;s_cont=s_cont++)
 			{
 				if(f_pvm_send(sizeof(int),(char *)&s_cont,PVM_EXP_OPT_PREINIT,s_cont,p_pvm_fun)==-1)
@@ -657,7 +660,7 @@ MOD_init
 				}
 			}
 			if (verbose_flag & TC_DEBUG)
-				fprintf(stderr, "[%s] exit from preinit msg\n",MOD_NAME);
+				tc_tag_info(MOD_NAME, "exit from preinit msg");
 		}
 		if((f_pvm_multi_send(s_vob_buffer_size,p_vob_buffer,PVM_EXP_OPT_INIT,p_pvm_fun))==-1)
 		{
@@ -702,7 +705,7 @@ MOD_init
 	}
 	pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 	if (verbose_flag & TC_DEBUG)
-		fprintf(stderr, "[%s] exit from MOD_INIT \n",MOD_NAME);
+		tc_tag_info(MOD_NAME, "exit from MOD_INIT");
 	return(0);
 }
 
@@ -775,9 +778,9 @@ MOD_encode
 		if (verbose_flag & TC_DEBUG)
 		{
 			if(param->flag == TC_VIDEO)
-				fprintf(stderr,"[%s] Send %d video sequence number\n",MOD_NAME,s_seq);
+				tc_tag_info(MOD_NAME,"Send %d video sequence number",s_seq);
 			else
-				fprintf(stderr,"[%s] Send %d audio sequence number\n",MOD_NAME,s_seq);
+				tc_tag_info(MOD_NAME,"Send %d audio sequence number",s_seq);
 		}
 		f_pvm_balancer("set-seq",p_pvm_fun,s_seq,param->flag); /*the tid in s_tid_pos now elab the seq*/
 		if (s_cont<p_pvm_conf->s_num_frame_task)
@@ -989,15 +992,15 @@ MOD_close
 		if (verbose_flag & TC_DEBUG)
 		{
 			if(param->flag == TC_VIDEO)
-				fprintf(stderr,"[%s] Waiting for video merger task (seq %d) termination...",MOD_NAME,s_seq);
+				tc_tag_info(MOD_NAME,"Waiting for video merger task (seq %d) termination...",s_seq);
 			else
-				fprintf(stderr,"[%s] Waiting for audio merger task (seq %d) termination...",MOD_NAME,s_seq);
+				tc_tag_info(MOD_NAME,"Waiting for audio merger task (seq %d) termination...",s_seq);
 		}
 		(int)f_pvm_set_recv(s_seq);	/*set the last s_seq send*/	
 		(int)f_pvm_recv(&s_dummy,(char *)&s_dummy1,&s_rc);
 		if (s_rc)
 		{
-			fprintf(stderr,"[%s] Can't close destination file \n",MOD_NAME);
+			tc_tag_warn(MOD_NAME,"Can't close destination file");
 			f_pvm_stop_single_process(*p_merger_tid);
 			if (s_sys_merger_started==1)
 				s_sys_merger_started--;
@@ -1010,7 +1013,7 @@ MOD_close
 			return(TC_EXPORT_ERROR);
 		}
 		if (verbose_flag & TC_DEBUG)
-			fprintf(stderr,"done. \n");
+			tc_tag_info(MOD_NAME, "done.");
 		if (s_sys_merger_started!=-1)
 		{
 			if((s_seq=f_pvm_send(0,(char *)0,PVM_JOIN_OPT_SENDFILE,0,p_pvm_single_proc))==-1) /*s_seq not really used*/
@@ -1030,14 +1033,14 @@ MOD_close
 		if (s_msys)
 		{
 			if (verbose_flag & TC_DEBUG)
-				fprintf(stderr,"[%s] Waiting for system merger build list...",MOD_NAME);
+				tc_tag_info(MOD_NAME, "Waiting for system merger build list...");
 			(int)f_pvm_set_recv(PVM_MSG_ENDTASK_SYSTEM);	/*wait for system merger end task*/
 			(int)f_pvm_recv(&s_dummy,(char *)&s_dummy1,&s_rc);
 			if (verbose_flag & TC_DEBUG)
-				fprintf(stderr,"done. \n");
+				tc_tag_info(MOD_NAME, "done.");
 			if (s_rc)
 			{
-				fprintf(stderr,"[%s] Can't close destination file \n",MOD_NAME);
+				tc_tag_warn(MOD_NAME,"Can't close destination file");
 				f_pvm_stop_single_process(*p_merger_tid);
 				f_pvm_balancer("close",p_pvm_fun,0,param->flag);
 				(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
@@ -1058,12 +1061,12 @@ MOD_close
 					return(TC_EXPORT_ERROR);
 				}
 				if (verbose_flag & TC_DEBUG)
-					fprintf(stderr,"[%s] Waiting for system merger task (seq %d) termination...",MOD_NAME,s_seq);
+					tc_tag_info(MOD_NAME,"Waiting for system merger task (seq %d) termination...",s_seq);
 				(int)f_pvm_set_recv(s_seq);	/*set the last s_seq send*/	
 				(int)f_pvm_recv(&s_dummy,(char *)&s_dummy1,&s_rc);
 				if (s_rc)
 				{
-					fprintf(stderr,"[%s] Can't close destination file \n",MOD_NAME);
+					tc_tag_warn(MOD_NAME,"Can't close destination file");
 					f_pvm_stop_single_process(*p_merger_tid);
 					f_pvm_balancer("close",p_pvm_fun,0,param->flag);
 					(pvm_func_t*)f_pvm_master_start_stop("close","tcpvmexportd",(char **)0,p_pvm_conf->s_nproc,p_pvm_conf->s_max_proc,p_pvm_fun);
@@ -1072,7 +1075,7 @@ MOD_close
 					return(TC_EXPORT_ERROR);
 				}
 				if (verbose_flag & TC_DEBUG)
-					fprintf(stderr,"done. \n");
+					tc_tag_info(MOD_NAME,"done.");
 			}
 		}
 		if (s_sys_merger_started!=-1)

@@ -195,17 +195,17 @@ MOD_open
       
     case CODEC_RGB:
       format=0;
-      if(verbose & TC_DEBUG) fprintf(stderr, "[%s] raw format is RGB\n", MOD_NAME);
+      if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "raw format is RGB");
       break;
       
     case CODEC_YUV:
       format=1;
-      if(verbose & TC_DEBUG) fprintf(stderr, "[%s] raw format is YUV420P\n", MOD_NAME);
+      if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "raw format is YUV420P");
       break;
 
     case CODEC_YUV422:
       format=2;
-      if(verbose & TC_DEBUG) fprintf(stderr, "[%s] raw format is YUV422\n", MOD_NAME);
+      if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "raw format is YUV422");
       break;
       
       
@@ -216,14 +216,14 @@ MOD_open
       break;
       
     default:
-      fprintf(stderr, "[%s] codec not supported\n", MOD_NAME);
+      tc_tag_warn(MOD_NAME, "codec not supported");
       return(TC_EXPORT_ERROR); 
     }
     
     // for reading
     frame_size = (vob->ex_v_height==PAL_H) ? TC_FRAME_DV_PAL:TC_FRAME_DV_NTSC;
 
-    if(verbose & TC_DEBUG) fprintf(stderr, "[%s] encoding to %s DV\n", MOD_NAME, (vob->ex_v_height==PAL_H) ? "PAL":"NTSC");
+    if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "encoding to %s DV", (vob->ex_v_height==PAL_H) ? "PAL":"NTSC");
 
     // Store aspect ratio - ex_asr uses the value 3 for 16x9
     encoder->is16x9 = ((vob->ex_asr<0) ? vob->im_asr:vob->ex_asr) == 3;
@@ -254,7 +254,8 @@ MOD_open
     bytespersecond = rate * bytealignment;
     bytesperframe = bytespersecond/(encoder->isPAL ? 25 : 30);
 
-    if(verbose & TC_DEBUG) fprintf(stderr, "[%s] audio: CH=%d, f=%d, balign=%d, bps=%d, bpf=%d\n", MOD_NAME, chans, rate, bytealignment, bytespersecond, bytesperframe);
+    if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "audio: CH=%d, f=%d, balign=%d, bps=%d, bpf=%d", 
+		                       chans, rate, bytealignment, bytespersecond, bytesperframe);
 
     return(0);
   }
@@ -280,7 +281,7 @@ MOD_encode
       ac_memcpy(vbuf, param->buffer, param->size);
     }
     
-    if(verbose & TC_STATS) fprintf(stderr, "[%s] ---V---\n", MOD_NAME);
+    if(verbose & TC_STATS) tc_tag_info(MOD_NAME, "---V---");
 
     return(0);
   }
@@ -289,7 +290,7 @@ MOD_encode
     
     time_t now = time(NULL);
 
-    if(verbose & TC_STATS) fprintf(stderr, "[%s] ---A---\n", MOD_NAME);
+    if(verbose & TC_STATS) tc_tag_info(MOD_NAME, "---A---");
     
     if(!pass_through) {
 

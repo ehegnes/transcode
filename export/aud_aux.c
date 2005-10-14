@@ -110,13 +110,10 @@ static int avi_aud_codec, avi_aud_bitrate;
 static long avi_aud_rate;
 static int avi_aud_chan, avi_aud_bits;
 
-
 /*-----------------------------------------------------------------------------
                              P R O T O T Y P E S
 -----------------------------------------------------------------------------*/
 
-static void error(const char *s, ...);
-static void debug(const char *s, ...);
 static int audio_init_ffmpeg(vob_t *vob, int o_codec);
 static int audio_init_lame(vob_t *vob, int o_codec);
 static int audio_init_raw(vob_t *vob);
@@ -134,43 +131,6 @@ static int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate);
 #endif
 
 /**
- *
- */
-static void error(const char *s, ...)
-{
-	va_list ap;
-
-	fputs("(" __FILE__ ") Error: ", stderr);
-	va_start(ap, s);
-	vfprintf(stderr, s, ap);
-	va_end(ap);
-	fputs("\n", stderr);
-	
-	return;
-}
-
-
-/**
- *
- */
-static void debug(const char *s, ...)
-{
-	if (verbose_flag & TC_DEBUG)
-	{
-		va_list ap;
-
-		fputs("(" __FILE__ ") Debug: ", stderr);
-		va_start(ap, s);
-		vfprintf(stderr, s, ap);
-		va_end(ap);
-		fputs("\n", stderr);
-	}
-	
-	return;
-}
-
-
-/**
  * Init Lame Encoder
  *
  * @param vob
@@ -181,7 +141,7 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 {
 	static int initialized=0;
 	
-	if (!initialized) fprintf(stderr, "Audio: using new version\n");
+	if (!initialized) tc_info("Audio: using new version");
 
 	if(initialized==0)
 	{
@@ -192,7 +152,7 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 		lgf=lame_init();
 		if(lgf<0)
 		{
-			error("Lame encoder init failed.");
+			tc_warn("Lame encoder init failed.");
 			return(TC_EXPORT_ERROR);
 		}
 
@@ -297,17 +257,17 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 				avi_aud_bitrate = preset;
 			}
 			else
-				error("Lame preset `%s' not supported. "
-				      "Falling back defaults.",
-				      vob->lame_preset);
+				tc_warn("Lame preset `%s' not supported. "
+				        "Falling back defaults.",
+				        vob->lame_preset);
 
 			if (fast == 1)
 				*c = ',';
 			
 			if (preset)
 			{
-				debug("Using Lame preset `%s'.",
-				      vob->lame_preset);
+				tc_info("Using Lame preset `%s'.",
+				        vob->lame_preset);
 				lame_set_preset(lgf, preset);
 			}
 		}
@@ -316,14 +276,14 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 		/* Init Lame ! */
 		lame_init_params(lgf);
 		if(verbose_flag)
-			fprintf(stderr,"Audio: using lame-%s\n",
+			tc_info("Audio: using lame-%s",
 				get_lame_version());
-		debug("Lame config: PCM -> %s",
-		      (o_codec==CODEC_MP3)?"MP3":"MP2");
-		debug("             bitrate         : %d kbit/s",
-		      vob->mp3bitrate);
-		debug("             ouput samplerate: %d Hz",
-		      (vob->mp3frequency>0)?vob->mp3frequency:vob->a_rate);
+		tc_info("Lame config: PCM -> %s",
+		        (o_codec==CODEC_MP3)?"MP3":"MP2");
+		tc_info("             bitrate         : %d kbit/s",
+		        vob->mp3bitrate);
+		tc_info("             ouput samplerate: %d Hz",
+		        (vob->mp3frequency>0)?vob->mp3frequency:vob->a_rate);
 	  
 		/* init lame encoder only on first call */
 		initialized = 1;
@@ -333,7 +293,7 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 }
 #else  /* HAVE_LAME */
 	}
-	fprintf(stderr,"No Lame support available!\n");
+	tc_warn("No Lame support available!");
 	return(TC_EXPORT_ERROR);
 }
 #endif
@@ -362,14 +322,14 @@ static int audio_init_ffmpeg(vob_t *vob, int o_codec)
     switch (o_codec) {
 	case   0x50: codeid = CODEC_ID_MP2; break;
 	case 0x2000: codeid = CODEC_ID_AC3; break;
-	default    : error("cannot init ffmpeg with %x", o_codec);
+	default    : tc_warn("cannot init ffmpeg with %x", o_codec);
     }
     
     //-- get it --
     mpa_codec = avcodec_find_encoder(codeid);
     if (!mpa_codec) 
     {
-      fprintf(stderr, "[%s] mpa codec not found !\n", "encode_ffmpeg");
+      tc_tag_warn("encode_ffmpeg", "mpa codec not found !");
       return(TC_EXPORT_ERROR); 
     }
 
@@ -398,7 +358,7 @@ static int audio_init_ffmpeg(vob_t *vob, int o_codec)
       //----------------
       if (avcodec_open(&mpa_ctx, mpa_codec) < 0) 
       {
-        fprintf(stderr, "[%s] could not open mpa codec !\n", "encode_ffmpeg");
+        tc_warn("encode_ffmpeg", "could not open mpa codec !");
         return(TC_EXPORT_ERROR); 
       }
     
@@ -409,9 +369,6 @@ static int audio_init_ffmpeg(vob_t *vob, int o_codec)
       //-- create buffer to hold 1 frame --
       mpa_buf     = malloc(mpa_bytes_pf);
       mpa_buf_ptr = 0;
-
-      //fprintf(stderr, "[%s] writing audio to [%s]\n",
-      //                "encode_ffmpeg, out_fname);  
 
     return(TC_EXPORT_OK);
 
@@ -496,7 +453,7 @@ int audio_init(vob_t *vob, int v)
 	if ((vob->amod_probed != NULL)  &&
 	    (strcmp(vob->amod_probed,"null") == 0))
 	{
-		error("No Audio Module probed. Muting.");
+		tc_warn("No Audio Module probed. Muting.");
 		audio_encode_function=audio_mute;
 		return(TC_EXPORT_OK);
 	}
@@ -504,7 +461,7 @@ int audio_init(vob_t *vob, int v)
 	if((sample_size == 0) &&
 	   (vob->im_a_codec != CODEC_NULL))
 	{
-		error("Nul sample size detected for audio format `0x%x'. "
+		tc_warn("Nul sample size detected for audio format `0x%x'. "
 		      "Muting.", vob->im_a_codec);
 		audio_encode_function=audio_mute;
 		return(TC_EXPORT_OK);
@@ -523,7 +480,7 @@ int audio_init(vob_t *vob, int v)
 	memset (output, 0, OUTPUT_SIZE);
 	memset (input, 0, INPUT_SIZE);
 
-	debug("Audio submodule in=0x%x out=0x%x", vob->im_a_codec, vob->ex_a_codec);
+	tc_info("Audio submodule in=0x%x out=0x%x", vob->im_a_codec, vob->ex_a_codec);
 
 	switch(vob->im_a_codec)
 	{
@@ -540,28 +497,28 @@ int audio_init(vob_t *vob, int v)
 			break;
 
 		case CODEC_PCM:	
-			debug("PCM -> PCM");
+			tc_info("PCM -> PCM");
 			/* adjust bitrate with magic ! */
 			avi_aud_bitrate=(vob->a_rate*4)/1000*8;
 			audio_encode_function = audio_pass_through_pcm;
 			break;
 
 		case CODEC_MP2:	
-			debug("PCM -> MP2");
+			tc_info("PCM -> MP2");
 			ret=audio_init_ffmpeg(vob, vob->ex_a_codec);
 			audio_encode_function = audio_encode_ffmpeg;
 			break;
 
 		case CODEC_AC3:	
 		case CODEC_A52:	
-			debug("PCM -> AC3");
+			tc_info("PCM -> AC3");
 			ret=audio_init_ffmpeg(vob, vob->ex_a_codec);
 			audio_encode_function = audio_encode_ffmpeg;
 			break;
 
 		default:
-			error("Conversion not supported (in=0x%x out=0x%x)",
-			      vob->im_a_codec, vob->ex_a_codec);
+			tc_warn("Conversion not supported (in=0x%x out=0x%x)",
+			        vob->im_a_codec, vob->ex_a_codec);
 			ret=TC_EXPORT_ERROR;
 			break;
 		}
@@ -581,8 +538,8 @@ int audio_init(vob_t *vob, int v)
 			break;
 	
 		default:
-			error("Conversion not supported (in=x0%x out=x0%x)",
-			      vob->im_a_codec, vob->ex_a_codec);
+			tc_warn("Conversion not supported (in=x0%x out=x0%x)",
+			        vob->im_a_codec, vob->ex_a_codec);
 			ret=TC_EXPORT_ERROR;
 			break;
 		}
@@ -596,7 +553,7 @@ int audio_init(vob_t *vob, int v)
 			break;
 
 		case CODEC_AC3:
-			debug("AC3->AC3");
+			tc_info("AC3->AC3");
 			if (vob->out_flag) {
 				audio_encode_function = audio_pass_through;
 			} else {
@@ -609,8 +566,8 @@ int audio_init(vob_t *vob, int v)
 			 */
 			break;
 		default:
-			error("Conversion not supported (in=0x%x out=0x%x)",
-			      vob->im_a_codec, vob->ex_a_codec);
+			tc_warn("Conversion not supported (in=0x%x out=0x%x)",
+			        vob->im_a_codec, vob->ex_a_codec);
 			ret=TC_EXPORT_ERROR;
 			break;
 		}
@@ -626,7 +583,7 @@ int audio_init(vob_t *vob, int v)
 		break;
       
 	default:
-		error("Conversion not supported (in=x0%x out=x0%x)",
+		tc_warn("Conversion not supported (in=x0%x out=x0%x)",
 		      vob->im_a_codec, vob->ex_a_codec);
 		ret=TC_EXPORT_ERROR;
 		break;
@@ -657,9 +614,9 @@ int audio_open(vob_t *vob, avi_t *avifile)
 					fd = popen(vob->audio_out_file+1, "w");
 					if (! fd)
 					{
-						error("Cannot popen() audio "
-						      "file `%s'",
-						      vob->audio_out_file+1);
+						tc_warn("Cannot popen() audio "
+						        "file `%s'",
+						        vob->audio_out_file+1);
 						return(TC_EXPORT_ERROR);
 					}
 					is_pipe = 1;
@@ -667,7 +624,7 @@ int audio_open(vob_t *vob, avi_t *avifile)
 					fd = fopen(vob->audio_out_file, "w");
 					if (! fd)
 					{
-						error("Cannot open() audio "
+						tc_warn("Cannot open() audio "
 						      "file `%s'",
 						      vob->audio_out_file);
 						return(TC_EXPORT_ERROR);
@@ -675,14 +632,14 @@ int audio_open(vob_t *vob, avi_t *avifile)
 				}
 			}
 			
-			debug("Sending audio output to %s",
-			      vob->audio_out_file);
+			tc_info("Sending audio output to %s",
+			        vob->audio_out_file);
 		} else {
     
 			if(avifile==NULL)
 			{
 				audio_encode_function = audio_mute;
-				debug("No option `-m' found. Muting sound.");
+				tc_info("No option `-m' found. Muting sound.");
 				return(TC_EXPORT_OK);
 			}
     
@@ -701,13 +658,13 @@ int audio_open(vob_t *vob, avi_t *avifile)
 			if(avifile2 == NULL)
 				avifile2 = avifile; /* save for close */
     
-			debug("AVI stream: format=0x%x, rate=%ld Hz, "
-			      "bits=%d, channels=%d, bitrate=%d",
-			      avi_aud_codec,
-			      avi_aud_rate,
-			      avi_aud_bits,
-			      avi_aud_chan,
-			      avi_aud_bitrate);
+			tc_info("AVI stream: format=0x%x, rate=%ld Hz, "
+			        "bits=%d, channels=%d, bitrate=%d",
+			        avi_aud_codec,
+			        avi_aud_rate,
+			        avi_aud_bits,
+			        avi_aud_chan,
+			        avi_aud_bitrate);
 		}
   	}
 	
@@ -724,7 +681,7 @@ static int audio_write(char *buffer, size_t size, avi_t *avifile)
 	{
 		if (fwrite(buffer, size, 1, fd) != 1)
 		{
-			error("Audio file write error (errno=%d) [%s].", errno, strerror(errno));
+			tc_warn("Audio file write error (errno=%d) [%s].", errno, strerror(errno));
 			return(TC_EXPORT_ERROR);
 		}
 	} else {
@@ -781,7 +738,7 @@ static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 	 */
         ac_memcpy (input+input_len, aud_buffer, aud_size);
 	input_len += aud_size;
-	debug("audio_encode_mp3: input buffer size=%d", input_len);
+	tc_info("audio_encode_mp3: input buffer size=%d", input_len);
 	
 	/*
 	 * As long as lame doesn't return encoded data (lame needs to fill its
@@ -809,8 +766,8 @@ static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 
 		if(outsize < 0)
 		{
-			error("Lame encoding error: (%s)",
-			      lame_error2str(outsize));
+			tc_warn("Lame encoding error: (%s)",
+			        lame_error2str(outsize));
 			return(TC_EXPORT_ERROR); 
 		}
 
@@ -819,16 +776,16 @@ static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 
 		++count;
 		
-		debug("Encoding: count=%d outsize=%d output_len=%d "
-		      "consumed=%d", 
-		      count, outsize, output_len, count*MP3_CHUNK_SZ); 
+		tc_info("Encoding: count=%d outsize=%d output_len=%d "
+		        "consumed=%d", 
+		        count, outsize, output_len, count*MP3_CHUNK_SZ); 
 	}
 	/* Update input */
 	memmove(input, input+count*MP3_CHUNK_SZ, input_len);
 
 
-	debug("output_len=%d input_len=%d count=%d", output_len, input_len,
-	      count);
+	tc_info("output_len=%d input_len=%d count=%d", output_len, input_len,
+  	        count);
 	
 	/*
 	 * Now, it's time to write mp3 data to output stream...
@@ -844,18 +801,18 @@ static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 		 * each one and write it if enough data is avaible.
 		 */
 	
-		debug("Writing... (output_len=%d)\n", output_len);
+		tc_info("Writing... (output_len=%d)\n", output_len);
 		while((size=tc_get_mp3_header(output+offset, NULL, NULL)) > 0)
 		{
 			if (size > output_len)
 				break;
-			debug("Writing chunk of size=%d", size);
+			tc_info("Writing chunk of size=%d", size);
 			audio_write(output+offset, size, avifile);
 			offset += size;
 			output_len -= size;
 		}	
 		memmove(output, output+offset, output_len);
-		debug("Writing OK (output_len=%d)\n", output_len);
+		tc_info("Writing OK (output_len=%d)", output_len);
 	} else {
 		/*
 		 * in CBR mode, write our data in simplest way.
@@ -868,7 +825,7 @@ static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 	return(TC_EXPORT_OK);
 }
 #else   // HAVE_LAME
-	fprintf(stderr, "No Lame support available!\n");
+	tc_warn("No Lame support available!");
 	return(TC_EXPORT_ERROR);
 }
 #endif
@@ -970,7 +927,7 @@ static int audio_pass_through_ac3(char *aud_buffer, int aud_size, avi_t *avifile
 		if (bitrate > 0)
 		{
 			AVI_set_audio_bitrate(avifile, bitrate);
-			debug("bitrate %d kBits/s", bitrate);
+			tc_info("bitrate %d kBits/s", bitrate);
 		}
 	}
 
@@ -1056,7 +1013,7 @@ int audio_close()
 
 			outsize = lame_encode_flush(lgf, output, 0);
 
-			debug("flushing %d audio bytes\n", outsize);
+			tc_info("flushing %d audio bytes", outsize);
 
 			if (outsize>0)
 				audio_write(output, outsize, avifile2);
@@ -1149,17 +1106,15 @@ static int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate){
       hbuf[3];
 
 
-#if 1
     // head_check:
     if( (newhead & 0xffe00000) != 0xffe00000 ||  
         (newhead & 0x0000fc00) == 0x0000fc00){
 	//fprintf( stderr, "[%s] head_check failed\n", __FILE__);
 	return -1;
     }
-#endif
 
     if((4-((newhead>>17)&3))!=3){ 
-      fprintf( stderr, "[%s] not layer-3\n", __FILE__); 
+      tc_warn("not layer-3"); 
       return -1;
     }
 
@@ -1177,7 +1132,7 @@ static int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate){
       sampling_frequency = ((newhead>>10)&0x3) + (lsf*3);
 
     if(sampling_frequency>8){
-	fprintf( stderr, "[%s] invalid sampling_frequency\n", __FILE__);
+	tc_wanr("invalid sampling_frequency");
 	return -1;  // valid: 0..8
     }
 
@@ -1194,7 +1149,7 @@ static int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate){
     stereo    = ( (((newhead>>6)&0x3)) == 3) ? 1 : 2;
 
     if(!bitrate_index){
-      fprintf( stderr, "[%s] Free format not supported.\n", __FILE__);
+      tc_warn("Free format not supported.");
       return -1;
     }
 
@@ -1207,7 +1162,7 @@ static int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate){
     framesize = tabsel_123[lsf][2][bitrate_index] * 144000;
 
     if(!framesize){
-	fprintf( stderr, "[%s] invalid framesize/bitrate_index\n", __FILE__);
+	tc_warn("invalid framesize/bitrate_index");
 	return -1;  // valid: 1..14
     }
 

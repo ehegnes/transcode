@@ -187,7 +187,7 @@ MOD_open
     p2 = vob->ex_a_fcc;
     p3 = vob->ex_profile_name; //unsupported
     
-    if(verbose_flag & TC_DEBUG) fprintf(stderr, "P1=%s, P2=%s, P3=%s\n", p1, p2, p3);
+    if(verbose_flag & TC_DEBUG) tc_tag_info(MOD_NAME, "P1=%s, P2=%s, P3=%s", p1, p2, p3);
 
     prof = (p1==NULL || strlen(p1) == 0) ? 0:atoi(p1);
 
@@ -321,7 +321,7 @@ MOD_open
       break;
     }
     
-    fprintf(stderr,"[%s] cmd=%s\n", MOD_NAME, buf);
+    tc_tag_info(MOD_NAME, "%s", buf);
 
     sa_ip = popen(buf, "w");
     if (!sa_ip) return(TC_EXPORT_ERROR);
@@ -356,7 +356,7 @@ MOD_init
   if(param->flag == TC_VIDEO) 
   {
     int prof = 0;
-    fprintf(stderr, "[%s] *** init-v *** !\n", MOD_NAME); 
+    tc_tag_info(MOD_NAME, "*** init-v *** !"); 
 
     sa_width  = vob->ex_v_width;
     sa_height = vob->ex_v_height;
@@ -370,12 +370,12 @@ MOD_init
     } else if (vob->im_v_codec == CODEC_RGB) {
 	srcfmt = IMG_RGB_DEFAULT;
     } else {
-	fprintf(stderr, "[%s] unsupported video format %d\n", MOD_NAME,
+	tc_tag_warn(MOD_NAME, "unsupported video format %d",
 		vob->im_v_codec);
 	return(TC_EXPORT_ERROR);
     }
     if (!tcv_convert_init(sa_width, sa_height)) {
-	fprintf(stderr, "[%s] image conversion init failed\n", MOD_NAME);
+	tc_tag_warn(MOD_NAME, "image conversion init failed");
 	return(TC_EXPORT_ERROR);
     }
 
@@ -409,7 +409,7 @@ MOD_encode
   {
 
       if (!tcv_convert(param->buffer, srcfmt, IMG_YUV420P)) {
-	  fprintf(stderr, "[%s] image format conversion failed\n", MOD_NAME);
+	  tc_tag_warn(MOD_NAME, "image format conversion failed");
 	  return(TC_EXPORT_ERROR);
       }
 

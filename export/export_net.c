@@ -71,7 +71,7 @@ void vlisten()
   struct sockaddr_in fsin;  
   int fromlen;
 
-  printf("[%s] waiting for clients to connect ...\n", MOD_NAME);
+  tc_tag_info(MOD_NAME, "[%s] waiting for clients to connect ...");
   
   if(listen(vport, 2) < 0) {
       perror("listen");
@@ -85,7 +85,7 @@ void vlisten()
       return;
   }
   
-  printf("[%s] client connected (video request)\n", MOD_NAME);
+  tc_tag_info(MOD_NAME, "client connected (video request)");
 
   return;
 }
@@ -96,7 +96,7 @@ void alisten()
   struct sockaddr fsin;  
   int fromlen;
 
-  printf("[%s] waiting for clients to connect ...\n", MOD_NAME);
+  tc_tag_info(MOD_NAME, "waiting for clients to connect ...");
   
   if(listen(aport, 2) < 0) {
       perror("listen");
@@ -110,7 +110,7 @@ void alisten()
       return;
   }
   
-  printf("[%s] client connected (audio request)\n", MOD_NAME);
+  tc_tag_info(MOD_NAME, "client connected (audio request)");
 
   return;
 }
@@ -232,11 +232,11 @@ MOD_encode
     if(param->flag == TC_VIDEO) {
 
 	while(vns==0) {
-	    if(verbose & TC_DEBUG) printf("[%s] (V) waiting\n", MOD_NAME);
+	    if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "(V) waiting");
 	    sleep(1);
 	}
 
-	if(verbose & TC_DEBUG) printf("[%s] (V) write (%d,%d)\n", MOD_NAME, param->size, size);
+	if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "(V) write (%d,%d)", param->size, size);
 
 	if(p_write(vns, (char *) param->buffer, size)!=size) {
 	  perror("video write");
@@ -249,11 +249,11 @@ MOD_encode
     if(param->flag == TC_AUDIO) {
 
 	while(ans==0) {
-	    if(verbose & TC_DEBUG) printf("[%s] (A) waiting\n", MOD_NAME);
+	    if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "(A) waiting");
 	    sleep(1);
 	}
 
-	if(verbose & TC_DEBUG) printf("[%s] (A) write (%d)\n", MOD_NAME, param->size);
+	if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "(A) write (%d)", param->size);
 	
 	if(p_write(ans, (char *) param->buffer, param->size)!=param->size) {
 	  perror("audio write");

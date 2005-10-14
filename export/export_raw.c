@@ -95,7 +95,7 @@ MOD_init
 {
     
     if(param->flag == TC_VIDEO) {
-      if(verbose & TC_DEBUG) printf("[%s] max AVI-file size limit = %lu bytes\n", MOD_NAME, (unsigned long) AVI_max_size());
+      if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "max AVI-file size limit = %lu bytes",(unsigned long) AVI_max_size());
       return(0);
     }
 
@@ -128,19 +128,16 @@ MOD_open
 	int want_help = (strcasecmp(vob->ex_v_fcc, "help") == 0);
 	int i;
 	if (want_help)
-	    fprintf(stderr, "[%s] Available formats:", MOD_NAME);
+	    tc_tag_info(MOD_NAME, "Available formats:");
 	for (i = 0; formats[i].name != NULL; i++) {
 	    if (want_help)
-		fprintf(stderr, " %s", formats[i].name);
+		tc_tag_info(MOD_NAME, "%s", formats[i].name);
 	    else if (strcasecmp(formats[i].name, vob->ex_v_fcc) == 0)
 		break;
 	}
-	if (want_help)
-	    fprintf(stderr, "\n");
 	if (formats[i].name == NULL) {
 	    if (!want_help) {
-		tc_warn("[%s] Unknown output format, \"-F help\" to list",
-			MOD_NAME);
+		tc_tag_warn(MOD_NAME, "Unknown output format, \"-F help\" to list");
 	    }
 	    return TC_EXPORT_ERROR;
 	}
@@ -193,9 +190,8 @@ further:
 	    AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
 
 	if(!info_shown && verbose_flag) 
-	  fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
-		  MOD_NAME, fcc, vob->ex_fps,
-		  vob->ex_v_width, vob->ex_v_height);
+	  tc_tag_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
+		  fcc, vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
 	srcfmt = IMG_RGB_DEFAULT;
 	break;
 
@@ -213,9 +209,8 @@ further:
 		      vob->ex_fps, fcc);
 	
 	if(!info_shown && verbose_flag) 
-	  fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
-		  MOD_NAME, fcc, vob->ex_fps,
-		  vob->ex_v_width, vob->ex_v_height);
+	  tc_tag_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
+		  fcc, vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
 	srcfmt = IMG_YUV_DEFAULT;
 	break;
 
@@ -233,9 +228,8 @@ further:
 		      vob->ex_fps, fcc);
 	
 	if(!info_shown && verbose_flag) 
-	  fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
-		  MOD_NAME, fcc, vob->ex_fps,
-		  vob->ex_v_width, vob->ex_v_height);
+	  tc_tag_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
+		  fcc, vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
 
 	srcfmt = IMG_YUV422P;
 	if (!vob->ex_v_fcc)
@@ -250,7 +244,7 @@ further:
 
 	    if (vob->pass_flag & TC_VIDEO) {
 		mpeg_passthru = 1;
-		fprintf(stderr, "[%s] icodec (0x%08x) and codec_flag (0x%08lx) - passthru\n", MOD_NAME,
+		tc_tag_info(MOD_NAME, "icodec (0x%08x) and codec_flag (0x%08lx) - passthru",
 		    vob->im_v_codec, vob->codec_flag);
 
 		mpeg_f = fopen(vob->video_out_file, "w");
@@ -276,8 +270,8 @@ further:
 	  AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->ex_fps, "DVSD");
 	  
 	  if(!info_shown && verbose_flag) 
-	    fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
-		    MOD_NAME, "DVSD", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
+	    tc_tag_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
+		    "DVSD", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
 	  break;
 	  
 	default:
@@ -316,7 +310,8 @@ further:
 	    AVI_set_video(vob->avifile_out, width, height, fps, codec); 
 	    
 	    if(!info_shown && (verbose_flag)) 
-	      fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", MOD_NAME, codec, fps, width, height);
+	      tc_tag_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
+			            codec, fps, width, height);
 	    
 	    //free resources
 	    if(avifile1!=NULL) {
@@ -330,7 +325,7 @@ further:
 	
       default:
 	
-	fprintf(stderr, "[%s] codec (0x%08x) and format (0x%08lx)not supported\n", MOD_NAME,
+	tc_tag_info(MOD_NAME, "codec (0x%08x) and format (0x%08lx)not supported",
 		vob->im_v_codec, vob->format_flag);
 	return(TC_EXPORT_ERROR); 
 	
