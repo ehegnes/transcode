@@ -1132,7 +1132,7 @@ static int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate){
       sampling_frequency = ((newhead>>10)&0x3) + (lsf*3);
 
     if(sampling_frequency>8){
-	tc_wanr("invalid sampling_frequency");
+	tc_warn("invalid sampling_frequency");
 	return -1;  // valid: 0..8
     }
 
