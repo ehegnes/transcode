@@ -1,4 +1,16 @@
 2005-10-15 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h libtc/tc_functions.c
+  debug functions changed again. Refactorize tc_tag_*
+  using a common (and more powerful) backend, tc_log().
+  documentation will be added in the future, and
+  tc_tag_{warn,info,error} compatibility macros
+  should go away in the near future.
+
+2005-10-15 Francesco Romani <fromani at gmail dot com>
+  * export/aud_aux.c
+  using tc_info module is too verbose; correct this issue.
+
+2005-10-15 Francesco Romani <fromani at gmail dot com>
   * export/export_xvid4.c
   fixed some typos, and moved internal strema buffer from char to
   uint8_t. Also removed some dead code.

@@ -37,17 +37,33 @@
 #include <string.h>
 #endif
 
-#define tc_error(format,args...) \
-    tc_tag_error(__FILE__, format , ## args)
-#define tc_info(format,args...) \
-    tc_tag_info(__FILE__, format , ## args)
-#define tc_warn(format,args...) \
-    tc_tag_warn(__FILE__, format , ## args)
-void tc_tag_error(const char *tag, char *fmt, ...);
-void tc_tag_info(const char *tag, char *fmt, ...);
-void tc_tag_warn(const char *tag, char *fmt, ...);
+// FIXME: add documentation about meaning of levels
+#define TC_LOG_ERR		0
+#define TC_LOG_WARN		1
+#define TC_LOG_INFO		2
+#define TC_LOG_MSG		3
+
+void tc_log(int level, const char *tag, const char *fmt, ...);
+
+// only for compatibility
+#define tc_error(format, args...) \
+    do { tc_log(TC_LOG_ERR, PACKAGE, format , ## args); exit(1); } while(0)
+#define tc_info(format, args...) \
+    tc_log(TC_LOG_INFO, PACKAGE, format , ## args)
+#define tc_warn(format, args...) \
+    tc_log(TC_LOG_WARN, PACKAGE, format , ## args)
+
+/* well, I should drop this soon... -- fromani 20051015 */
+#define tc_tag_error(tag, format, args...) \
+    tc_log(TC_LOG_ERR, tag, format , ## args)
+#define tc_tag_info(tag, format, args...) \
+    tc_log(TC_LOG_INFO, tag, format , ## args)
+#define tc_tag_warn(tag, format, args...) \
+    tc_log(TC_LOG_WARN, tag, format , ## args)
 
 /* Provided by caller */
+/* we can can embed color macros? moving it from tc_fucntions.c?
+ * This break anything? -- fromani 20051015 */
 extern void version(void);
 extern char *RED;
 extern char *GREEN;
@@ -55,7 +71,6 @@ extern char *YELLOW;
 extern char *BLUE;
 extern char *WHITE;
 extern char *GRAY;
-
 
 /*
  * Find program <name> in $PATH

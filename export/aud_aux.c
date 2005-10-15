@@ -141,7 +141,9 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 {
 	static int initialized=0;
 	
-	if (!initialized) tc_info("Audio: using new version");
+	if (!initialized) 
+		if (verbose_flag & TC_DEBUG)
+			tc_info("Audio: using new version");
 
 	if(initialized==0)
 	{
@@ -266,8 +268,9 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 			
 			if (preset)
 			{
-				tc_info("Using Lame preset `%s'.",
-				        vob->lame_preset);
+				if (verbose_flag & TC_DEBUG)
+					tc_info("Using Lame preset `%s'.",
+				        	vob->lame_preset);
 				lame_set_preset(lgf, preset);
 			}
 		}
@@ -278,13 +281,14 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 		if(verbose_flag)
 			tc_info("Audio: using lame-%s",
 				get_lame_version());
-		tc_info("Lame config: PCM -> %s",
-		        (o_codec==CODEC_MP3)?"MP3":"MP2");
-		tc_info("             bitrate         : %d kbit/s",
-		        vob->mp3bitrate);
-		tc_info("             ouput samplerate: %d Hz",
-		        (vob->mp3frequency>0)?vob->mp3frequency:vob->a_rate);
-	  
+		if (verbose_flag & TC_DEBUG) {
+			tc_info("Lame config: PCM -> %s",
+			        (o_codec==CODEC_MP3)?"MP3":"MP2");
+			tc_info("             bitrate         : %d kbit/s",
+			        vob->mp3bitrate);
+			tc_info("             ouput samplerate: %d Hz",
+		        	(vob->mp3frequency>0)?vob->mp3frequency:vob->a_rate);
+	  	}
 		/* init lame encoder only on first call */
 		initialized = 1;
 	}
@@ -480,7 +484,8 @@ int audio_init(vob_t *vob, int v)
 	memset (output, 0, OUTPUT_SIZE);
 	memset (input, 0, INPUT_SIZE);
 
-	tc_info("Audio submodule in=0x%x out=0x%x", vob->im_a_codec, vob->ex_a_codec);
+	if (verbose_flag & TC_DEBUG)
+		tc_info("Audio submodule in=0x%x out=0x%x", vob->im_a_codec, vob->ex_a_codec);
 
 	switch(vob->im_a_codec)
 	{
@@ -632,8 +637,9 @@ int audio_open(vob_t *vob, avi_t *avifile)
 				}
 			}
 			
-			tc_info("Sending audio output to %s",
-			        vob->audio_out_file);
+			if (verbose_flag & TC_DEBUG)
+				tc_info("Sending audio output to %s",
+			        	vob->audio_out_file);
 		} else {
     
 			if(avifile==NULL)
@@ -658,13 +664,14 @@ int audio_open(vob_t *vob, avi_t *avifile)
 			if(avifile2 == NULL)
 				avifile2 = avifile; /* save for close */
     
-			tc_info("AVI stream: format=0x%x, rate=%ld Hz, "
-			        "bits=%d, channels=%d, bitrate=%d",
-			        avi_aud_codec,
-			        avi_aud_rate,
-			        avi_aud_bits,
-			        avi_aud_chan,
-			        avi_aud_bitrate);
+			if (verbose_flag & TC_DEBUG)
+				tc_info("AVI stream: format=0x%x, rate=%ld Hz, "
+			        	"bits=%d, channels=%d, bitrate=%d",
+				        avi_aud_codec,
+				        avi_aud_rate,
+				        avi_aud_bits,
+				        avi_aud_chan,
+			        	avi_aud_bitrate);
 		}
   	}
 	
@@ -738,7 +745,8 @@ static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 	 */
         ac_memcpy (input+input_len, aud_buffer, aud_size);
 	input_len += aud_size;
-	tc_info("audio_encode_mp3: input buffer size=%d", input_len);
+	if (verbose_flag & TC_DEBUG)
+		tc_info("audio_encode_mp3: input buffer size=%d", input_len);
 	
 	/*
 	 * As long as lame doesn't return encoded data (lame needs to fill its
@@ -776,7 +784,8 @@ static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 
 		++count;
 		
-		tc_info("Encoding: count=%d outsize=%d output_len=%d "
+		if (verbose_flag & TC_DEBUG)
+			tc_info("Encoding: count=%d outsize=%d output_len=%d "
 		        "consumed=%d", 
 		        count, outsize, output_len, count*MP3_CHUNK_SZ); 
 	}
@@ -784,8 +793,9 @@ static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 	memmove(input, input+count*MP3_CHUNK_SZ, input_len);
 
 
-	tc_info("output_len=%d input_len=%d count=%d", output_len, input_len,
-  	        count);
+	if (verbose_flag & TC_DEBUG)
+		tc_info("output_len=%d input_len=%d count=%d", 
+			output_len, input_len, count);
 	
 	/*
 	 * Now, it's time to write mp3 data to output stream...
@@ -801,18 +811,22 @@ static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 		 * each one and write it if enough data is avaible.
 		 */
 	
-		tc_info("Writing... (output_len=%d)\n", output_len);
+		if (verbose_flag & TC_DEBUG)
+			tc_info("Writing... (output_len=%d)\n", output_len);
 		while((size=tc_get_mp3_header(output+offset, NULL, NULL)) > 0)
 		{
 			if (size > output_len)
 				break;
-			tc_info("Writing chunk of size=%d", size);
+
+			if (verbose_flag & TC_DEBUG)
+				tc_info("Writing chunk of size=%d", size);
 			audio_write(output+offset, size, avifile);
 			offset += size;
 			output_len -= size;
 		}	
 		memmove(output, output+offset, output_len);
-		tc_info("Writing OK (output_len=%d)", output_len);
+		if (verbose_flag & TC_DEBUG)
+			tc_info("Writing OK (output_len=%d)", output_len);
 	} else {
 		/*
 		 * in CBR mode, write our data in simplest way.
@@ -927,7 +941,8 @@ static int audio_pass_through_ac3(char *aud_buffer, int aud_size, avi_t *avifile
 		if (bitrate > 0)
 		{
 			AVI_set_audio_bitrate(avifile, bitrate);
-			tc_info("bitrate %d kBits/s", bitrate);
+			if (verbose_flag & TC_DEBUG)
+				tc_info("bitrate %d kBits/s", bitrate);
 		}
 	}
 
@@ -1013,7 +1028,8 @@ int audio_close()
 
 			outsize = lame_encode_flush(lgf, output, 0);
 
-			tc_info("flushing %d audio bytes", outsize);
+			if (verbose_flag & TC_DEBUG)
+				tc_info("flushing %d audio bytes", outsize);
 
 			if (outsize>0)
 				audio_write(output, outsize, avifile2);
