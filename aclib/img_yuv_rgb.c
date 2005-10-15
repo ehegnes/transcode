@@ -1916,7 +1916,7 @@ static int y8_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int height)
 	/* push_regs */ "push "EBX,
 	/* pop_regs  */ "pop "EBX,
 	/* small_loop */ "\
-	leal ("ECX","ECX",2), "EDX"	# 3*count for RGB offset	\n\
+	lea ("ECX","ECX",2), "EDX"	# 3*count for RGB offset	\n\
 	movzbl -1("ESI","ECX"), %%eax	# retrieve Y byte		\n\
 	subl $16, %%eax			# subtract 16			\n\
 	imull %3, %%eax			# multiply by 255/219		\n\
@@ -1930,7 +1930,7 @@ static int y8_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int height)
 	movb %%al, -2("EDI","EDX")					\n\
 	movb %%al, -1("EDI","EDX")					\n",
 	/* main_loop */ "\
-	leal ("ECX","ECX",2), "EDX"					\n\
+	lea ("ECX","ECX",2), "EDX"					\n\
 	movd -4("ESI","ECX"), %%xmm0	# XMM0: Y3..Y0			\n\
 	punpcklbw %%xmm4, %%xmm0	# XMM0: Y3..Y0 in 16 bits	\n\
 	psubw %%xmm6, %%xmm0		# XMM0: unbias by 16		\n\
