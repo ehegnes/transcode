@@ -1175,10 +1175,10 @@ static void print_matrix(unsigned char *matrix)
 		tc_tag_info(MOD_NAME, 
 			"%3d %3d %3d %3d "
 			"%3d %3d %3d %3d",
-			(int)matrix(i), (int)matrix(i+1),
-			(int)matrix(i+2), (int)matrix(i+3),
-			(int)matrix(i+4), (int)matrix(i+5),
-			(int)matrix(i+6), (int)matrix(i+7));
+			(int)matrix[i], (int)matrix[i+1],
+			(int)matrix[i+2], (int)matrix[i+3],
+			(int)matrix[i+4], (int)matrix[i+5],
+			(int)matrix[i+6], (int)matrix[i+7]);
 #endif	
 	}
 
