@@ -50,10 +50,14 @@
 #define TC_MSG_BUF_SIZE		(128)
 
 const char *tc_log_preambles[] = {
-  	"["COL_RED"%s"COL_GRAY"]"COL_RED" critical"COL_GRAY": %s\n",
+  	"["COL_RED"%s"COL_GRAY"]"COL_RED" critical"COL_GRAY": %s\n", 
+							// TC_LOG_ERR
 	"["COL_RED"%s"COL_GRAY"]"COL_YELLOW" warning"COL_GRAY": %s\n", 
+							// TC_LOG_WARN
   	"["COL_BLUE"%s"COL_GRAY"] %s\n", 
+							// TC_LOG_INFO
 	"[%s] %s\n",
+							// TC_LOG_MSG
 };
 
 void tc_log(int level, const char *tag, const char *fmt, ...)
@@ -75,7 +79,7 @@ void tc_log(int level, const char *tag, const char *fmt, ...)
 	a = malloc(size);
 	if(!a) {
 		fprintf(stderr, "(%s) CRITICAL: can't get memory in "
-				"tc_tag_error(); tag='%s'\n", __FILE__, tag);
+				"tc_log(); tag='%s'\n", __FILE__, tag);
 		return;
 	}
   } else {

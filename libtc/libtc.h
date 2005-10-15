@@ -37,11 +37,10 @@
 #include <string.h>
 #endif
 
-// FIXME: add documentation about meaning of levels
-#define TC_LOG_ERR		0
-#define TC_LOG_WARN		1
-#define TC_LOG_INFO		2
-#define TC_LOG_MSG		3
+#define TC_LOG_ERR		0 // critical error condition
+#define TC_LOG_WARN		1 // non-critical error condition
+#define TC_LOG_INFO		2 // informative higlighted message
+#define TC_LOG_MSG		3 // regular message
 
 void tc_log(int level, const char *tag, const char *fmt, ...);
 
@@ -53,7 +52,7 @@ void tc_log(int level, const char *tag, const char *fmt, ...);
 #define tc_warn(format, args...) \
     tc_log(TC_LOG_WARN, PACKAGE, format , ## args)
 
-/* well, I should drop this soon... -- fromani 20051015 */
+/* well, I should drop this soon... Or not? -- fromani 20051015 */
 #define tc_tag_error(tag, format, args...) \
     tc_log(TC_LOG_ERR, tag, format , ## args)
 #define tc_tag_info(tag, format, args...) \
