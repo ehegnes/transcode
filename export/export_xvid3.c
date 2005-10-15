@@ -196,7 +196,7 @@ MOD_init
 
 		/* Load the codec */
 		if(xvid2_init(vob->mod_path)<0) {
-			fprintf(stderr, "Failed to init XviD codec");
+			tc_tag_warn(MOD_NAME, "Failed to init XviD codec");
 			return(TC_EXPORT_ERROR); 
 		}
 
@@ -283,7 +283,7 @@ MOD_init
 		xerr = XviD_encore(NULL, XVID_ENC_CREATE, &global_param, NULL);
 
 		if(xerr == XVID_ERR_FAIL) {
-			fprintf(stderr, "codec open error");
+			tc_tag_warn(MOD_NAME, "codec open error");
 			return(TC_EXPORT_ERROR); 
 		}
 
@@ -396,8 +396,8 @@ MOD_open
 	if(param->flag == TC_VIDEO) {
 
 		if(verbose_flag & TC_DEBUG)
-			fprintf(stderr, "[%s] Using %s output\n",
-				MOD_NAME, avi_output?"AVI":"Raw");
+			tc_tag_info(MOD_NAME, "Using %s output",
+				avi_output?"AVI":"Raw");
     
 		if(avi_output) {
 			/* AVI Video output */
@@ -470,7 +470,7 @@ MOD_encode
 
 	/* Error ? */
 	if(xerr == XVID_ERR_FAIL) {
-		fprintf(stderr, "codec encoding error %d\n", xerr);
+		tc_tag_warn(MOD_NAME, "codec encoding error %d", xerr);
 		return(TC_EXPORT_ERROR); 
     	}
 
@@ -514,7 +514,7 @@ MOD_encode
 		/* Write bitstream */
 		if(rawfd < 0) {
 			if(AVI_write_frame(avifile, buffer, xframe.length, xframe.intra == 1) < 0) {
-				fprintf(stderr, "avi video write error");
+				tc_tag_warn(MOD_NAME, "avi video write error");
 				return(TC_EXPORT_ERROR); 
 			}
 		} else if(p_write(rawfd, buffer, xframe.length)  != xframe.length) {    
@@ -571,7 +571,7 @@ MOD_stop
 				   NULL);
 
 		if(xerr == XVID_ERR_FAIL) {
-			printf("encoder close error");
+			tc_tag_warn(MOD_NAME, "encoder close error");
 		}
 
 		/* Free matrices */
@@ -646,8 +646,8 @@ static int xvid2_init(char *path)
 		module = modules[i];
 
 		if(verbose_flag & TC_DEBUG)
-			fprintf(stderr,	"[%s] Trying to load shared lib %s\n",
-				MOD_NAME, module);
+			tc_ta_info(MOD_NAME, "Trying to load shared lib %s",
+				module);
 
 		/* Try loading the shared lib */
 		handle = dlopen(modules[i], RTLD_GLOBAL| RTLD_LAZY);
@@ -658,20 +658,20 @@ static int xvid2_init(char *path)
 	}
 
 	/* None of the modules were available */
-	fprintf(stderr, dlerror());
+	tc_tag_warn(MOD_NAME, "%s", dlerror());
 	return(-1);
 
  so_loaded:
 	if(verbose_flag & TC_DEBUG)
-		fprintf(stderr,	"[%s] Using shared lib %s\n",
-			MOD_NAME, module);
+		tc_tag_info(MOD_NAME, "Using shared lib %s",
+			module);
 
 	/* Import the XviD init entry point */
 	XviD_init   = dlsym(handle, "xvid_init");
     
 	/* Something went wrong */
 	if((error = dlerror()) != NULL)  {
-		fprintf(stderr, error);
+	        tc_tag_warn(MOD_NAME, "%s", dlerror());
 		return(-1);
 	}
 
@@ -680,7 +680,7 @@ static int xvid2_init(char *path)
 
 	/* Something went wrong */
 	if((error = dlerror()) != NULL)  {
-		fprintf(stderr, error);
+		tc_tag_warn(MOD_NAME, "%s", error);
 		return(-1);
 	}
 
@@ -785,25 +785,25 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 				            XVID_CONFIG_FILE);
 
 				if(stat(buffer, &statfile) == -1) {
-					fprintf(stderr,
+					tc_tag_warn(MOD_NAME,
 						"No ./xvid3.cfg nor ~/.transcode/xvid3.cfg"
 						" file found, falling back to"
-						" hardcoded defaults\n");
+						" hardcoded defaults");
 					return(0);
 				}
 			} else {
 				return(0);
 			}
 		} else {
-			fprintf(stderr, "Error: %s\nFalling back to hardcoded"
+			tc_tag_warn(MOD_NAME, "%s; Falling back to hardcoded"
 				" defaults\n", strerror(errno));
 			return(0);
 		}
 	}
 
 	if(!S_ISREG(statfile.st_mode)) {
-		fprintf(stderr, "%s file is not a regular file ! Falling back"
-			" to defaults\n", buffer);
+		tc_tag_warn(MOD_NAME, "%s file is not a regular file ! Falling back"
+			" to defaults", buffer);
 		return(0);
 	}
 
@@ -812,7 +812,7 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 	 * section
 	 */
 	if(( pRoot = cf_read( buffer ) ) == NULL ) {
-		fprintf(stderr, "Error reading configuration file\n");
+		tc_tag_warn(MOD_NAME, "Error reading configuration file");
 		return(0);
 	}
 
@@ -1118,9 +1118,8 @@ static void *xvid_read_matrixfile(unsigned char *filename)
 
 		/* If fscanf fails then get out of the loop */
 		if(fscanf(input, "%d", &value) != 1) {
-			fprintf(stderr,
-				"[%s]\tError: The matrix file %s is corrupted\n",
-				MOD_NAME,
+			tc_tag_warn(MOD_NAME,
+				"\tError: The matrix file %s is corrupted",
 				filename);
 			free(matrix);
 			fclose(input);
@@ -1502,7 +1501,7 @@ static int xvid_print_config(XVID_INIT_PARAM *einit,
 			     int bitrate)
 {
 	int i;
-	
+
 	char *passtype[] =
 		{
 			"ABR 1 Pass",
@@ -1512,135 +1511,128 @@ static int xvid_print_config(XVID_INIT_PARAM *einit,
 		};
 
 	/* What pass is it ? */
-	fprintf(stderr, "[%s]\tPass Type: %s\n",
-		MOD_NAME, passtype[Clamp(pass, 0 , 3)]);
+	tc_tag_info(MOD_NAME, "\tPass Type: %s",
+		passtype[Clamp(pass, 0 , 3)]);
 
 	/* Quality used */
-	fprintf(stderr,	"[%s]\tQuality: %d\n",
-		MOD_NAME, quality);
+	tc_tag_info(MOD_NAME, "\tQuality: %d",
+		quality);
 
 	/* Bitrate */
 	switch(pass) {
 	case 0:
 	case 2:
-		fprintf(stderr,	"[%s]\tBitrate [kBits/s]: %d\n",
-			MOD_NAME, bitrate);
+		tc_tag_info(MOD_NAME, "\tBitrate [kBits/s]: %d",
+			bitrate);
 		break;
 	case 3:
-		fprintf(stderr,	"[%s]\tConstant Quantizer: %d\n",
-			MOD_NAME, bitrate);
+		tc_tag_info(MOD_NAME, "\tConstant Quantizer: %d",
+			bitrate);
 		break;
 	default:
-		fprintf(stderr,	"[%s]\tBitrate: Unknown\n",
-			MOD_NAME);
+		tc_tag_info(MOD_NAME, "\tBitrate: Unknown");
 	}
 
 	/* Key frame interval */
-	fprintf(stderr,	"[%s]\tMax keyframe Interval: %d\n",
-		MOD_NAME, eparam->max_key_interval);
-
+	tc_tag_info(MOD_NAME, "\tMax keyframe Interval: %d",
+		eparam->max_key_interval);
 	/* Max bframe sequence */
-	fprintf(stderr,	"[%s]\tMax BFrame Sequence: %d\n",
-		MOD_NAME, eparam->max_bframes);
+	tc_tag_info(MOD_NAME, "\tMax BFrame Sequence: %d",
+		eparam->max_bframes);
 
 	/* Bframe quant ratio */
-	fprintf(stderr,	"[%s]\tBFrame Quant Ratio: %d\n",
-		MOD_NAME, eparam->bquant_ratio);
+	tc_tag_info(MOD_NAME, "\tBFrame Quant Ratio: %d",
+		eparam->bquant_ratio);
 
 	/* Bframe quant offset */
-	fprintf(stderr,	"[%s]\tBFrame Quant Offset: %d\n",
-		MOD_NAME, eparam->bquant_offset);
+	tc_tag_info(MOD_NAME, "\tBFrame Quant Offset: %d",
+		eparam->bquant_offset);
 
 	/* Bframe thresholding */
-	fprintf(stderr,	"[%s]\tBFrame Threshold: %d\n",
-		MOD_NAME, eframe->bframe_threshold);
+	tc_tag_info(MOD_NAME, "\tBFrame Threshold: %d",
+		eframe->bframe_threshold);
 
 	/* Motion flags */
-	fprintf(stderr,	"[%s]\tMotion Flags:\n",
-		MOD_NAME);
+	tc_tag_info(MOD_NAME, "\tMotion flags:");
 
 	for(i=0; motion_flags[i].flag_string != NULL; i++) {
 		if(motion_flags[i].flag_value & eframe->motion)
-			fprintf(stderr, "\t\t\t%s\n",
+			tc_tag_info(MOD_NAME, "\t\t\t%s",
 				motion_flags[i].flag_string);
 	}
 
 	/* Global flags */
-	fprintf(stderr,	"[%s]\tGlobal Flags:\n",
-		MOD_NAME);
-
+	tc_tag_info(MOD_NAME, "\tGlobal Flags:");
+	
 	for(i=0; global_flags[i].flag_string != NULL; i++) {
 		if(global_flags[i].flag_value & eparam->global)
-			fprintf(stderr, "\t\t\t%s\n",
-				global_flags[i].flag_string);
+			tc_tag_info(MOD_NAME, "\t\t\t%s", 
+					global_flags[i].flag_string);
 	}
-
+	
 	/* General flags */
-	fprintf(stderr,	"[%s]\tGeneral Flags:\n",
-		MOD_NAME);
+	tc_tag_info(MOD_NAME, "\tGeneral Flags:");
 
 	for(i=0; general_flags[i].flag_string != NULL; i++) {
 		if(general_flags[i].flag_value & eframe->general)
-			fprintf(stderr, "\t\t\t%s\n",
+			tc_tag_info(MOD_NAME, "\t\t\t%s",
 				general_flags[i].flag_string);
 	}
 
 	/* CPU flags */
-	fprintf(stderr,	"[%s]\tCPU Flags:\n",
-		MOD_NAME);
+	tc_tag_info(MOD_NAME, "\tCPU Flags:");
 
 	for(i=0; cpu_flags[i].flag_string != NULL; i++) {
 		if(cpu_flags[i].flag_value & einit->cpu_flags)
-			fprintf(stderr, "\t\t\t%s\n",
+			tc_tag_info(MOD_NAME, "\t\t\t%s",
 				cpu_flags[i].flag_string);
 	}
 
 	/* Frame Rate */
-	fprintf(stderr,	"[%s]\tFrame Rate: %.2f\n",
-		MOD_NAME, (float)((float)eparam->fbase/(float)eparam->fincr));
+	tc_tag_info(MOD_NAME, "\tFrame Rate: %.2f",
+		(float)((float)eparam->fbase/(float)eparam->fincr));
 
 	/* Color Space */
-	fprintf(stderr,	"[%s]\tColor Space: %s\n",
-		MOD_NAME, csp);
+	tc_tag_info(MOD_NAME, "\tColor Space: %s", csp);
 
 	/* Matrices */
 	if(eframe->quant_intra_matrix != NULL) {
 
-		fprintf(stderr, "[%s]\tIntra Matrix\n", MOD_NAME);
+		tc_tag_info(MOD_NAME, "\tIntra Matrix");
 
 		for(i=0; i<8; i++) {
 			int j;
-			fprintf(stderr,"\t\t\t");
+//			fprintf(stderr,"\t\t\t");
 			for(j=0; j<8; j++)
-				fprintf(stderr, "%3d ",
+				tc_tag_info(MOD_NAME, "\t\t\t%3d",
 					eframe->quant_intra_matrix[i*8+j]);
-			fprintf(stderr,"\n");
-
+//			fprintf(stderr,"\n");
 		}
-
 	}
 
 	if(eframe->quant_inter_matrix != NULL) {
 
-		fprintf(stderr, "[%s]\tInter Matrix\n", MOD_NAME);
+		tc_tag_info(MOD_NAME, "\tInter Matrix");
 
 		for(i=0; i<8; i++) {
 			int j;
-			fprintf(stderr,"\t\t\t");
+//			fprintf(stderr,"\t\t\t");
 			for(j=0; j<8; j++)
-				fprintf(stderr, "%3d ",
+				tc_tag_info(MOD_NAME, "\t\t\t%3d",
 					eframe->quant_inter_matrix[i*8+j]);
-			fprintf(stderr,"\n");
+//			fprintf(stderr,"\n");
 		}
 	}
 
 	return(0);
 }
 
+
 static void xvid_print_vbr(vbr_control_t *state)
 {
-	fprintf(stderr, "[%s]\tXviD VBR settings\n",
-		MOD_NAME);
+	tc_tag_info(MOD_NAME, "\tXviD VBR settings\n");
+	/** following fprintfs() are intentionally left out.
+	 * This may change in the future -- fromani 200501015 */
 	fprintf(stderr, "\t\t\tmode : %d\n",
 		state->mode);
 	fprintf(stderr, "\t\t\tcredits_mod = %d\n",
@@ -1722,23 +1714,6 @@ static void xvid_print_vbr(vbr_control_t *state)
 	fprintf(stderr, "\t\t\tfixed_quant = %d\n",
 		state->fixed_quant);
 }
-
-#if 0  /* get this from ioaux.c */
-static int p_write(int fd, char *buf, size_t len)
-{
-   size_t n = 0;
-   size_t r = 0;
-
-   while(r < len) {
-      n = write(fd, buf + r, len - r);
-      if(n < 0)
-         return n;
-      
-      r += n;
-   }
-   return r;
-}
-#endif
 
 /*
  * Please do not modify the tag line.

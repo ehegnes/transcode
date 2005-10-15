@@ -94,10 +94,6 @@ static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AC3|
 #define MOD_PRE ffmpeg
 #include "export_def.h"
 
-#define ff_error(...) do { fprintf(stderr, "[" MOD_NAME "]: ERROR: " __VA_ARGS__); return(TC_EXPORT_ERROR); } while(0)
-#define ff_warning(...) do { fprintf(stderr, "[" MOD_NAME "]: WARNING: " __VA_ARGS__); } while(0)
-#define ff_info(...) do { if(verbose_flag & TC_INFO) fprintf(stderr, "[" MOD_NAME "]: INFO: " __VA_ARGS__); else (void)0; } while(0)
-
 #include "probe_export.h"
 #include "ffmpeg_cfg.h"
 
@@ -252,21 +248,21 @@ MOD_init {
             user_codec_string = 0;
 
     if ((!user_codec_string || !strlen(user_codec_string))) {
-        fprintf(stderr, "[%s] You must chose a codec by supplying '-F "
+        tc_tag_info(MOD_NAME, "You must chose a codec by supplying '-F "
                 "<codecname>'. A list of supported codecs can be obtained with "
-                "'transcode -y ffmpeg -F list'.\n", MOD_NAME);
+                "'transcode -y ffmpeg -F list'.");
 
         return TC_EXPORT_ERROR;
     }
 
     if (!strcasecmp(user_codec_string, "list")) {
         i = 0;
-        fprintf(stderr, "[%s] List of known and supported codecs:\n"
-                "[%s] Name       fourCC multipass comments\n"
-                "[%s] ---------- ------ --------- ---------------------------"
-                "--------\n", MOD_NAME, MOD_NAME, MOD_NAME);
+	tc_tag_info(MOD_NAME, "List of known and supported codecs:");
+	tc_tag_info(MOD_NAME, " Name       fourCC multipass comments");
+	tc_tag_info(MOD_NAME, " ---------- ------ --------- "
+			      "-----------------------------------");
         while (ffmpeg_codecs[i].name != NULL) {
-            fprintf(stderr, "[%s] %-10s  %s     %3s    %s\n", MOD_NAME,
+            tc_tag_info(MOD_NAME, " %-10s  %s     %3s    %s", 
                     ffmpeg_codecs[i].name, ffmpeg_codecs[i].fourCC, 
                     ffmpeg_codecs[i].multipass ? "yes" : "no", 
                     ffmpeg_codecs[i].comments);
@@ -293,12 +289,13 @@ MOD_init {
     {
         int handle;
 
-        ff_info("output is mjpeg or ljpeg, extending range from YUV420P to YUVJ420P (full range)\n");
+        tc_tag_info(MOD_NAME, "output is mjpeg or ljpeg, extending range from "
+			      "YUV420P to YUVJ420P (full range)");
 
         is_mjpeg = 1;
 
         if((handle = plugin_get_handle("levels=input=16-240") == -1))
-            ff_warning("cannot load levels filter\n");
+            tc_tag_warn(MOD_NAME, "cannot load levels filtern");
     }
 
     free(user_codec_string);
@@ -312,8 +309,10 @@ MOD_init {
         else
             if (!strcmp(p, "pal"))
                 video_template = vt_pal;
-            else
-                ff_error("Video template standard must be one of pal/ntsc\n");
+            else {
+		tc_tag_warn(MOD_NAME, "Video template standard must be one of pal/ntsc");
+		return(TC_EXPORT_ERROR);
+	    }
     } else
         video_template = vt_none;
 
@@ -348,7 +347,7 @@ MOD_init {
     codec = find_ffmpeg_codec(real_codec);
 
     if (codec == NULL) {
-        fprintf(stderr, "[%s] Unknown codec '%s'.\n", MOD_NAME, real_codec);
+        tc_tag_warn(MOD_NAME, "Unknown codec '%s'.", real_codec);
         return TC_EXPORT_ERROR;
     }
 
@@ -360,12 +359,12 @@ MOD_init {
     /* -- get it -- */
     lavc_venc_codec = avcodec_find_encoder_by_name(codec->name);
     if (!lavc_venc_codec) {
-        fprintf(stderr, "[%s] Could not find a FFMPEG codec for '%s'.\n",
-                MOD_NAME, codec->name);
+        tc_tag_warn(MOD_NAME, "Could not find a FFMPEG codec for '%s'.",
+                codec->name);
         return TC_EXPORT_ERROR; 
     }
-    fprintf(stderr, "[%s] Using FFMPEG codec '%s' (FourCC '%s', %s).\n",
-            MOD_NAME, codec->name, codec->fourCC, codec->comments);
+    tc_tag_warn(MOD_NAME, "Using FFMPEG codec '%s' (FourCC '%s', %s).",
+            codec->name, codec->fourCC, codec->comments);
 
     lavc_venc_context = avcodec_alloc_context();
     lavc_venc_frame   = avcodec_alloc_frame();
@@ -382,7 +381,7 @@ MOD_init {
     pix_fmt = vob->im_v_codec;
     
     if (! (pix_fmt == CODEC_RGB || pix_fmt == CODEC_YUV || pix_fmt == CODEC_YUV422)) {
-        fprintf(stderr, "[%s] Unknown color space %d.\n", MOD_NAME,
+        tc_tag_wanr(MOD_NAME, "Unknown color space %d.",
                 pix_fmt);
         return TC_EXPORT_ERROR;
     }
@@ -408,7 +407,7 @@ MOD_init {
             lavc_venc_context->gop_size = 250; /* reasonable default for mpeg4 (and others) */
 
     if (pseudo_codec != pc_none) { /* using profiles */
-        ff_info("Selected %s profile, %s video type for video\n",
+        tc_tag_info(MOD_NAME, "Selected %s profile, %s video type for video",
                  pseudo_codec_name[pseudo_codec], vt_name[video_template]);
 
         if(!(probe_export_attributes & TC_PROBE_NO_EXPORT_FIELDS)) {
@@ -418,12 +417,12 @@ MOD_init {
                 if(video_template == vt_ntsc)
                     vob->encode_fields = 2; /* bottom first */
                 else {
-                    ff_warning("Interlacing parameters unknown, "
-                               "select video type with profile\n");
+                    tc_tag_warn(MOD_NAME, "Interlacing parameters unknown, "
+                               "select video type with profile");
                     vob->encode_fields = 3; /* unknown */
                 }
 
-            ff_info("Set interlacing to %s\n", il_name[vob->encode_fields]);
+            tc_tag_info(MOD_NAME, "Set interlacing to %s", il_name[vob->encode_fields]);
         }
     
         if (!(probe_export_attributes & TC_PROBE_NO_EXPORT_FRC)) {
@@ -435,12 +434,12 @@ MOD_init {
                 else
                     vob->ex_frc = 0; /* unknown */
 
-            ff_info("Set frame rate to %s\n", vob->ex_frc == 3 ? "25" :
+            tc_tag_info(MOD_NAME, "Set frame rate to %s", vob->ex_frc == 3 ? "25" :
                     (vob->ex_frc == 4 ? "29.97" : "unknown"));
         }
     } else { /* no profile active */
         if (!(probe_export_attributes & TC_PROBE_NO_EXPORT_FIELDS)) {
-            ff_warning("Interlacing parameters unknown, use --encode_fields\n");
+            tc_tag_warn(MOD_NAME, "Interlacing parameters unknown, use --encode_fields");
             vob->encode_fields = 3; /* unknown */
         }
     }
@@ -448,25 +447,25 @@ MOD_init {
     switch(pseudo_codec) {
     case(pc_vcd):
         if (vob->ex_v_width != 352)
-            ff_warning("X resolution is not 352 as required\n");
+            tc_tag_warn(MOD_NAME, "X resolution is not 352 as required");
 
         if (vob->ex_v_height != 240 && vob->ex_v_height != 288)
-            ff_warning("Y resolution is not 240 or 288 as required\n");
+            tc_tag_warn(MOD_NAME, "Y resolution is not 240 or 288 as required");
 
         if (probe_export_attributes & TC_PROBE_NO_EXPORT_VBITRATE) {
             if (vob->divxbitrate != 1150)
-                ff_warning("Video bitrate not 1150 kbps as required\n");
+                tc_tag_warn(MOD_NAME, "Video bitrate not 1150 kbps as required");
         } else {
             vob->divxbitrate = 1150;
-            ff_info("Set video bitrate to 1150\n");
+            tc_tag_info(MOD_NAME, "Set video bitrate to 1150");
         }
 
         if (probe_export_attributes & TC_PROBE_NO_EXPORT_GOP) {
             if(vob->divxkeyframes > 9)
-                ff_warning("GOP size not < 10 as required\n");
+                tc_tag_warn(MOD_NAME, "GOP size not < 10 as required");
         } else {
             vob->divxkeyframes = 9;
-            ff_info("Set GOP size to 9\n");
+            tc_tag_info(MOD_NAME, "Set GOP size to 9");
         }
 
         lavc_venc_context->gop_size = vob->divxkeyframes;
@@ -480,29 +479,29 @@ MOD_init {
 
     case(pc_svcd):
         if (vob->ex_v_width != 480)
-            ff_warning("X resolution is not 480 as required\n");
+            tc_tag_warn(MOD_NAME, "X resolution is not 480 as required");
 
         if (vob->ex_v_height != 480 && vob->ex_v_height != 576)
-            ff_warning("Y resolution is not 480 or 576 as required\n");
+            tc_tag_warn(MOD_NAME, "Y resolution is not 480 or 576 as required");
 
         if (probe_export_attributes & TC_PROBE_NO_EXPORT_VBITRATE) {
             if(vob->divxbitrate != 2040)
-                ff_warning("Video bitrate not 2040 kbps as required\n");
+                tc_tag_warn(MOD_NAME, "Video bitrate not 2040 kbps as required");
         } else {
             vob->divxbitrate = 2040;
-            ff_warning("Set video bitrate to 2040\n");
+            tc_tag_warn(MOD_NAME, "Set video bitrate to 2040");
         }
 
         if (probe_export_attributes & TC_PROBE_NO_EXPORT_GOP) {
             if (vob->divxkeyframes > 18)
-                ff_warning("GOP size not < 19 as required\n");
+                tc_tag_warn(MOD_NAME, "GOP size not < 19 as required");
         } else {
             if (video_template == vt_ntsc)
                   vob->divxkeyframes = 18;
             else
                   vob->divxkeyframes = 15;
 
-            ff_warning("Set GOP size to %d\n", vob->divxkeyframes);
+            tc_tag_warn(MOD_NAME, "Set GOP size to %d", vob->divxkeyframes);
         }
 
         lavc_venc_context->gop_size = vob->divxkeyframes;
@@ -516,29 +515,29 @@ MOD_init {
 
     case(pc_xvcd):
         if (vob->ex_v_width != 480)
-            ff_warning("X resolution is not 480 as required\n");
+            tc_tag_warn(MOD_NAME, "X resolution is not 480 as required");
 
         if (vob->ex_v_height != 480 && vob->ex_v_height != 576)
-            ff_warning("Y resolution is not 480 or 576 as required\n");
+            tc_tag_warn(MOD_NAME, "Y resolution is not 480 or 576 as required");
 
         if (probe_export_attributes & TC_PROBE_NO_EXPORT_VBITRATE) {
             if (vob->divxbitrate < 1000 || vob->divxbitrate > 9000)
-                ff_warning("Video bitrate not between 1000 and 9000 kbps as required\n");
+                tc_tag_warn(MOD_NAME, "Video bitrate not between 1000 and 9000 kbps as required");
         } else {
             vob->divxbitrate = 2040;
-            ff_warning("Set video bitrate to 2040\n");
+            tc_tag_warn(MOD_NAME, "Set video bitrate to 2040");
         }
 
         if (probe_export_attributes & TC_PROBE_NO_EXPORT_GOP) {
             if (vob->divxkeyframes > 18)
-                ff_warning("GOP size not < 19 as required\n");
+                tc_tag_warn(MOD_NAME, "GOP size not < 19 as required");
         } else {
             if (video_template == vt_ntsc)
                 vob->divxkeyframes = 18;
             else
                 vob->divxkeyframes = 15;
 
-            ff_warning("Set GOP size to %d\n", vob->divxkeyframes);
+            tc_tag_warn(MOD_NAME, "Set GOP size to %d", vob->divxkeyframes);
         }
 
         lavc_venc_context->gop_size = vob->divxkeyframes;
@@ -556,29 +555,29 @@ MOD_init {
 
     case(pc_dvd):
         if (vob->ex_v_width != 720 && vob->ex_v_width != 704 && vob->ex_v_width != 352)
-            ff_warning("X resolution is not 720, 704 or 352 as required\n");
+            tc_tag_warn(MOD_NAME, "X resolution is not 720, 704 or 352 as required");
 
         if (vob->ex_v_height != 576 && vob->ex_v_height != 480 && vob->ex_v_height != 288 && vob->ex_v_height != 240)
-            ff_warning("Y resolution is not 576, 480, 288 or 240 as required\n");
+            tc_tag_warn(MOD_NAME, "Y resolution is not 576, 480, 288 or 240 as required");
 
         if (probe_export_attributes & TC_PROBE_NO_EXPORT_VBITRATE) {
             if(vob->divxbitrate < 1000 || vob->divxbitrate > 9800)
-                ff_warning("Video bitrate not between 1000 and 9800 kbps as required\n");
+                tc_tag_warn(MOD_NAME, "Video bitrate not between 1000 and 9800 kbps as required");
         } else {
             vob->divxbitrate = 5000;
-            ff_info("Set video bitrate to 5000\n");
+            tc_tag_info(MOD_NAME, "Set video bitrate to 5000");
         }
 
         if (probe_export_attributes & TC_PROBE_NO_EXPORT_GOP) {
             if (vob->divxkeyframes > 18)
-                ff_warning("GOP size not < 19 as required\n");
+                tc_tag_warn(MOD_NAME, "GOP size not < 19 as required");
         } else {
             if (video_template == vt_ntsc)
                 vob->divxkeyframes = 18;
             else
                 vob->divxkeyframes = 15;
 
-            ff_info("Set GOP size to %d\n", vob->divxkeyframes);
+            tc_tag_info(MOD_NAME, "Set GOP size to %d", vob->divxkeyframes);
         }
 
         lavc_venc_context->gop_size = vob->divxkeyframes;
@@ -590,7 +589,7 @@ MOD_init {
         break;
 
     case(pc_none): /* leave everything alone, prevent gcc warning */
-        ff_info("No profile selected\n");
+        tc_tag_info(MOD_NAME, "No profile selected");
 
         break;
     }
@@ -688,8 +687,7 @@ MOD_init {
 
     module_read_config(codec->name, MOD_NAME, "ffmpeg", lavcopts_conf, tc_config_dir);
     if (verbose_flag & TC_DEBUG) {
-        fprintf(stderr, "[%s] Using the following FFMPEG parameters:\n",
-                MOD_NAME);
+        tc_tag_info(MOD_NAME, "Using the following FFMPEG parameters:");
         module_print_config("", lavcopts_conf);
     }
 
@@ -833,12 +831,14 @@ MOD_init {
     lavc_venc_context->skip_top           = lavc_param_skip_top;
     lavc_venc_context->skip_bottom        = lavc_param_skip_bottom;
 
-    if ((lavc_param_threads < 1) || (lavc_param_threads > 7))
-        ff_error("Thread count out of range (should be [0-7])\n");
+    if ((lavc_param_threads < 1) || (lavc_param_threads > 7)) {
+        tc_tag_warn(MOD_NAME, "Thread count out of range (should be [0-7])");
+	return(TC_EXPORT_ERROR);
+    }
 
     lavc_venc_context->thread_count = lavc_param_threads;
 
-    ff_info("Starting %d thread(s)\n", lavc_venc_context->thread_count);
+    tc_tag_info(MOD_NAME, "Starting %d thread(s)", lavc_venc_context->thread_count);
 
     avcodec_thread_init(lavc_venc_context, lavc_param_threads);
 
@@ -859,7 +859,7 @@ MOD_init {
             free(lavc_venc_context->intra_matrix);
             lavc_venc_context->intra_matrix = NULL;
         } else
-            fprintf(stderr, "[%s] Using user specified intra matrix\n", MOD_NAME);
+            tc_tag_info(MOD_NAME, "Using user specified intra matrix");
     }
 
     if (lavc_param_inter_matrix) {
@@ -879,7 +879,7 @@ MOD_init {
             free(lavc_venc_context->inter_matrix);
             lavc_venc_context->inter_matrix = NULL;
         } else
-            fprintf(stderr, "[%s] Using user specified inter matrix\n", MOD_NAME);
+            tc_tag_info(MOD_NAME, "Using user specified inter matrix");
     }
 
     p = lavc_param_rc_override_string;
@@ -888,7 +888,7 @@ MOD_init {
         int e = sscanf(p, "%d,%d,%d", &start, &end, &q);
 
         if (e != 3) {
-            fprintf(stderr, "[%s] Error parsing vrc_override.\n", MOD_NAME);
+            tc_tag_warn(MOD_NAME, "Error parsing vrc_override.");
             return TC_EXPORT_ERROR;
         }
         lavc_venc_context->rc_override =
@@ -940,14 +940,15 @@ MOD_init {
                 lavc_venc_context->sample_aspect_ratio.den = 3300;
                 break;
             default:
-                ff_error("Parameter value for --export_par out of range (allowed: [1-5])\n");
+                tc_tag_warn(MOD_NAME, "Parameter value for --export_par out of range (allowed: [1-5])");
+		return(TC_EXPORT_ERROR);
             }
         } else {
             if (vob->ex_par_width > 0 && vob->ex_par_height > 0) {
                 lavc_venc_context->sample_aspect_ratio.num = vob->ex_par_width;
                 lavc_venc_context->sample_aspect_ratio.den = vob->ex_par_height;
             } else {
-                ff_error("Parameter values for --export_par parameter out of range (allowed: [>0]/[>0])\n");
+                tc_tag_warn(MOD_NAME, "Parameter values for --export_par parameter out of range (allowed: [>0]/[>0])");
                 lavc_venc_context->sample_aspect_ratio.num = 1;
                 lavc_venc_context->sample_aspect_ratio.den = 1;
             }
@@ -963,19 +964,26 @@ MOD_init {
                 case 3: dar = 16.0/9.0; break;
                 case 4: dar = 221.0/100.0; break;
                 default:
-                    ff_error("Parameter value to --export_asr out of range (allowed: [1-4])\n");
+		    /* *** FIXME *** 
+		     * orignal code ff_error() forces exit here. I think that
+		     * actual code (which NOT exits) is more correct 
+		     * - fromani 10051014
+		     */
+                    tc_tag_warn(MOD_NAME, "Parameter value to --export_asr out of range (allowed: [1-4])");
                     break;
                 }
 
-                ff_info("Display aspect ratio calculated as %f\n", dar);
+                tc_tag_info(MOD_NAME, "Display aspect ratio calculated as %f", dar);
                 sar = dar * ((double)vob->ex_v_height / (double)vob->ex_v_width);
-                ff_info("Sample aspect ratio calculated as %f\n", sar);
+                tc_tag_info(MOD_NAME, "Sample aspect ratio calculated as %f", sar);
                 lavc_venc_context->sample_aspect_ratio.num = (int)(sar * 1000);
                 lavc_venc_context->sample_aspect_ratio.den = 1000;
-            } else
-                ff_error("Parameter value to --export_asr out of range (allowed: [1-4])\n");
+            } else {
+                tc_tag_warn(MOD_NAME, "Parameter value to --export_asr out of range (allowed: [1-4])");
+		return(TC_EXPORT_ERROR);
+	    }
         } else { /* user did not specify asr at all, assume no change */
-            ff_info("Set display aspect ratio to input\n");
+            tc_tag_info(MOD_NAME, "Set display aspect ratio to input");
             /*
              * sar = (4.0 * ((double)vob->ex_v_height) / (3.0 * (double)vob->ex_v_width));
              * lavc_venc_context->sample_aspect_ratio.num = (int)(sar * 1000);
@@ -1092,7 +1100,7 @@ MOD_init {
 
             default:
             {
-                fprintf(stderr, "[%s] Unknown pixel format %d.\n", MOD_NAME, pix_fmt);
+                tc_tag_wanr(MOD_NAME, "Unknown pixel format %d.", pix_fmt);
                 return TC_EXPORT_ERROR;
             }
         }
@@ -1101,29 +1109,29 @@ MOD_init {
     switch (vob->divxmultipass) {
       case 1:
         if (!codec->multipass) {
-          fprintf(stderr, "[%s] This codec does not support multipass "
-                  "encoding.\n", MOD_NAME);
+          tc_tag_warn(MOD_NAME, "This codec does not support multipass "
+                  "encoding.");
           return TC_EXPORT_ERROR;
         }
         lavc_venc_context->flags |= CODEC_FLAG_PASS1; 
         stats_file = fopen(vob->divxlogfile, "w");
         if (stats_file == NULL){
-          fprintf(stderr, "[%s] Could not create 2pass log file \"%s\".\n",
-                  MOD_NAME, vob->divxlogfile);
+          tc_tag_warn(MOD_NAME, "Could not create 2pass log file \"%s\".",
+                  vob->divxlogfile);
           return TC_EXPORT_ERROR;
         }
         break;
       case 2:
         if (!codec->multipass) {
-          fprintf(stderr, "[%s] This codec does not support multipass "
-                  "encoding.\n", MOD_NAME);
+          tc_tag_warn(MOD_NAME, "This codec does not support multipass "
+                  "encoding.");
           return TC_EXPORT_ERROR;
         }
         lavc_venc_context->flags |= CODEC_FLAG_PASS2; 
         stats_file= fopen(vob->divxlogfile, "r");
         if (stats_file==NULL){
-          fprintf(stderr, "[%s] Could not open 2pass log file \"%s\" for "
-                  "reading.\n", MOD_NAME, vob->divxlogfile);
+          tc_tag_warn(MOD_NAME, "Could not open 2pass log file \"%s\" for "
+                  "reading.", vob->divxlogfile);
           return TC_EXPORT_ERROR;
         }
         fseek(stats_file, 0, SEEK_END);
@@ -1143,8 +1151,8 @@ MOD_init {
         lavc_venc_context->stats_in[fsize] = 0;
 
         if (fread(lavc_venc_context->stats_in, fsize, 1, stats_file) < 1){
-          fprintf(stderr, "[%s] Could not read the complete 2pass log file "
-                  "\"%s\".\n", MOD_NAME, vob->divxlogfile);
+          tc_tag_warn(MOD_NAME, "Could not read the complete 2pass log file "
+                  "\"%s\".", vob->divxlogfile);
           return TC_EXPORT_ERROR;
         }        
         break;
@@ -1160,13 +1168,13 @@ MOD_init {
     //-- open codec --
     //----------------
     if (avcodec_open(lavc_venc_context, lavc_venc_codec) < 0) {
-      fprintf(stderr, "[%s] could not open FFMPEG codec\n", MOD_NAME);
+      tc_tag_warn(MOD_NAME, "could not open FFMPEG codec");
       return TC_EXPORT_ERROR; 
     }
 
     if (lavc_venc_context->codec->encode == NULL) {
-      fprintf(stderr, "[%s] could not open FFMPEG codec "
-              "(lavc_venc_context->codec->encode == NULL)\n", MOD_NAME);
+      tc_tag_warn(MOD_NAME, "could not open FFMPEG codec "
+              "(lavc_venc_context->codec->encode == NULL)");
       return TC_EXPORT_ERROR; 
     }
     
@@ -1178,26 +1186,26 @@ MOD_init {
     if (verbose_flag & TC_DEBUG) {
      //-- GMO start -- 
       if (vob->divxmultipass == 3) { 
-        fprintf(stderr, "[%s]    single-pass session: 3 (VBR)\n", MOD_NAME);
-        fprintf(stderr, "[%s]          VBR-quantizer: %d\n", MOD_NAME,
+        tc_tag_info(MOD_NAME, "    single-pass session: 3 (VBR)");
+        tc_tag_info(MOD_NAME, "          VBR-quantizer: %d",
                 vob->divxbitrate);
       } else {
-        fprintf(stderr, "[%s]     multi-pass session: %d\n", MOD_NAME,
+        tc_tag_info(MOD_NAME, "     multi-pass session: %d", 
                 vob->divxmultipass);
-        fprintf(stderr, "[%s]      bitrate [kBits/s]: %d\n", MOD_NAME,
+        tc_tag_info(MOD_NAME, "      bitrate [kBits/s]: %d", 
                 lavc_venc_context->bit_rate/1000);
       }
   
       //-- GMO end --
 
-      fprintf(stderr, "[%s]  max keyframe interval: %d\n", MOD_NAME,
+      tc_tag_info(MOD_NAME, "  max keyframe interval: %d\n", 
               vob->divxkeyframes);
-      fprintf(stderr, "[%s]             frame rate: %.2f\n", MOD_NAME,
+      tc_tag_info(MOD_NAME, "             frame rate: %.2f\n", 
               vob->ex_fps);
-      fprintf(stderr, "[%s]            color space: %s\n", MOD_NAME,
+      tc_tag_info(MOD_NAME, "            color space: %s\n", 
               (pix_fmt == CODEC_RGB) ? "RGB24":
              ((pix_fmt == CODEC_YUV) ? "YUV420P" : "YUV422"));
-      fprintf(stderr, "[%s]             quantizers: %d/%d\n", MOD_NAME,
+      tc_tag_info(MOD_NAME, "             quantizers: %d/%d\n", 
               lavc_venc_context->qmin, lavc_venc_context->qmax);
     }
 
@@ -1241,47 +1249,48 @@ MOD_init {
             int resample_active = plugin_find_id("resample") != -1;
             int rate = pseudo_codec_rate[target];
 
-            ff_info("Selected %s profile for audio\n", pseudo_codec_name[target]);
-            ff_info("Resampling filter %sactive\n", resample_active ? "already " : "in");
+            tc_tag_info(MOD_NAME, "Selected %s profile for audio", pseudo_codec_name[target]);
+            tc_tag_info(MOD_NAME, "Resampling filter %sactive", resample_active ? "already " : "in");
 
             if(probe_export_attributes & TC_PROBE_NO_EXPORT_ACHANS)
             {
                 if(vob->dm_chan != 2)
-                    ff_warning("Number of audio channels not 2 as required\n");
+                    tc_tag_warn(MOD_NAME, "Number of audio channels not 2 as required");
             }
             else
             {
                 vob->dm_chan = 2;
-                ff_info("Set number of audio channels to 2\n");
+                tc_tag_info(MOD_NAME, "Set number of audio channels to 2");
             }
 
             if(probe_export_attributes & TC_PROBE_NO_EXPORT_ABITS)
             {
                 if(vob->dm_bits != 16)
-                    ff_warning("Number of audio bits not 16 as required\n");
+                    tc_tag_warn(MOD_NAME, "Number of audio bits not 16 as required");
             }
             else
             {
                 vob->dm_bits = 16;
-                ff_info("Set number of audio bits to 16\n");
+                tc_tag_info(MOD_NAME, "Set number of audio bits to 16");
             }
 
             if(resample_active)
             {
                 if(vob->mp3frequency != 0)
-                    ff_warning("Resampling filter active but vob->mp3frequency not 0!\n");
+                    tc_tag_warn(MOD_NAME, "Resampling filter active but vob->mp3frequency not 0!");
 
                 if(probe_export_attributes & TC_PROBE_NO_EXPORT_ARATE)
                 {
                     if((rate == -1) || (vob->a_rate == rate))
-                        ff_info("No audio resampling necessary\n");
+                        tc_tag_info(MOD_NAME, "No audio resampling necessary");
                     else
-                        ff_info("Resampling audio from %d Hz to %d Hz as required\n", vob->a_rate, rate);
+                        tc_tag_info(MOD_NAME, "Resampling audio from %d Hz to %d Hz as required", 
+					      vob->a_rate, rate);
                 }
                 else if (rate != -1)
                 {
                     vob->a_rate = rate;
-                    ff_info("Set audio sample rate to %d Hz\n", rate);
+                    tc_tag_info(MOD_NAME, "Set audio sample rate to %d Hz", rate);
                 }
             }
             else
@@ -1289,27 +1298,32 @@ MOD_init {
                 if((probe_export_attributes & TC_PROBE_NO_EXPORT_ARATE) && (vob->mp3frequency != 0))
                 {
                     if(vob->mp3frequency != rate)
-                        ff_warning("Selected audio sample rate (%d Hz) not %d Hz as required\n", vob->mp3frequency, rate);
+                        tc_tag_warn(MOD_NAME, "Selected audio sample rate (%d Hz) not %d Hz as required", 
+					      vob->mp3frequency, rate);
 
                     if(vob->mp3frequency != vob->a_rate)
-                        ff_warning("Selected audio sample rate (%d Hz) not equal to input sample rate (%d Hz), use -J\n", vob->mp3frequency, vob->a_rate);
+                        tc_tag_warn(MOD_NAME, "Selected audio sample rate (%d Hz) not equal to input "
+					      "sample rate (%d Hz), use -J", vob->mp3frequency, vob->a_rate);
                 }
                 else
                 {
                     if(vob->a_rate == rate && vob->mp3frequency == rate)
-                        ff_info("Set audio sample rate to %d Hz\n", rate);
+                        tc_tag_info(MOD_NAME, "Set audio sample rate to %d Hz", 
+					      rate);
                     else if (vob->a_rate == rate && vob->mp3frequency == 0) {
                         vob->mp3frequency = rate;
-                        ff_info("No audio resampling necessary, using %d Hz\n", rate);
+                        tc_tag_info(MOD_NAME, "No audio resampling necessary, using %d Hz", 
+					      rate);
                     }
                     else
                     {
                         vob->mp3frequency = rate;
-                        ff_warning("Set audio sample rate to %d Hz, input rate is %d Hz\n", rate, vob->a_rate);
-                        ff_warning("   loading resample plugin\n");
+                        tc_tag_warn(MOD_NAME, "Set audio sample rate to %d Hz, input rate is %d Hz", 
+					       rate, vob->a_rate);
+                        tc_tag_warn(MOD_NAME, "   loading resample plugin");
 
                         if(plugin_get_handle("resample") == -1)
-                            ff_warning("Load of resample filter failed, expect trouble\n");
+                            tc_tag_warn(MOD_NAME, "Load of resample filter failed, expect trouble");
                     }
                 }
             }
@@ -1319,18 +1333,18 @@ MOD_init {
                 if((target != pc_dvd) && (target != pc_xvcd))
                 {
                     if(vob->mp3bitrate != 224)
-                        ff_warning("Audio bit rate not 224 kbps as required\n");
+                        tc_tag_warn(MOD_NAME, "Audio bit rate not 224 kbps as required");
                 }
                 else
                 {
                     if(vob->mp3bitrate < 160 || vob->mp3bitrate > 320)
-                        ff_warning("Audio bit rate not between 160 and 320 kbps as required\n");
+                        tc_tag_warn(MOD_NAME, "Audio bit rate not between 160 and 320 kbps as required");
                 }
             }
             else
             {
                 vob->mp3bitrate = 224;
-                ff_info("Set audio bit rate to 224 kbps\n");
+                tc_tag_info(MOD_NAME, "Set audio bit rate to 224 kbps");
             }
 
             if(probe_export_attributes & TC_PROBE_NO_EXPORT_ACODEC)
@@ -1338,12 +1352,12 @@ MOD_init {
                 if(target != pc_dvd)
                 {
                     if(vob->ex_a_codec != CODEC_MP2)
-                        ff_warning("Audio codec not mp2 as required\n");
+                        tc_tag_warn(MOD_NAME, "Audio codec not mp2 as required");
                 }
                 else
                 {
                     if(vob->ex_a_codec != CODEC_MP2 && vob->ex_a_codec != CODEC_AC3)
-                        ff_warning("Audio codec not mp2 or ac3 as required\n");
+                        tc_tag_warn(MOD_NAME, "Audio codec not mp2 or ac3 as required");
                 }
             }
             else
@@ -1351,12 +1365,12 @@ MOD_init {
                 if(target != pc_dvd)
                 {
                     vob->ex_a_codec = CODEC_MP2;
-                    ff_info("Set audio codec to mp2\n");
+                    tc_tag_info(MOD_NAME, "Set audio codec to mp2");
                 }
                 else
                 {
                     vob->ex_a_codec = CODEC_AC3;
-                    ff_info("Set audio codec to ac3\n");
+                    tc_tag_info(MOD_NAME, "Set audio codec to ac3");
                 }
             }
         }
@@ -1419,7 +1433,7 @@ MOD_open
 
         if (!mpeg1fd)
         {
-            ff_warning("Can not open file \"%s\" using /dev/null\n", buf); 
+            tc_tag_warn(MOD_NAME, "Can not open file \"%s\" using /dev/null", buf); 
             mpeg1fd = fopen("/dev/null", "wb");
         }
 
@@ -1539,7 +1553,7 @@ MOD_encode
             break;
 
         default:
-              fprintf(stderr, "[%s] Unknown pixel format %d.\n", MOD_NAME, pix_fmt);
+              tc_tag_warn(MOD_NAME, "Unknown pixel format %d.", pix_fmt);
               return TC_EXPORT_ERROR;
     }
 
@@ -1551,11 +1565,11 @@ MOD_encode
     pthread_mutex_unlock(&init_avcodec_lock);
   
     if (out_size < 0) {
-      fprintf(stderr, "[%s] encoder error: size (%d)\n", MOD_NAME, out_size);
+      tc_tag_warn(MOD_NAME, "encoder error: size (%d)", out_size);
       return TC_EXPORT_ERROR; 
     }
     if (verbose & TC_STATS) {
-      fprintf(stderr, "[%s] encoder: size of encoded (%d)\n", MOD_NAME, out_size);
+      tc_tag_warn(MOD_NAME, "encoder: size of encoded (%d)", out_size);
     }
 
     //0.6.2: switch outfile on "r/R" and -J pv
@@ -1573,7 +1587,7 @@ MOD_encode
       }
     } else { // mpegvideo
       if ( (out_size >0) && (fwrite (tmp_buffer, out_size, 1, mpeg1fd) <= 0) ) {
-    fprintf(stderr, "[%s] encoder error write failed size (%d)\n", MOD_NAME, out_size);
+    tc_tag_warn(MOD_NAME, "encoder error write failed size (%d)", out_size);
     //return TC_EXPORT_ERROR; 
       }
     }
@@ -1642,7 +1656,7 @@ MOD_stop
         
         f*= lavc_venc_context->coded_frame->coded_picture_number;
         
-        fprintf(stderr, "PSNR: Y:%2.2f, Cb:%2.2f, Cr:%2.2f, All:%2.2f\n",
+        tc_tag_info(MOD_NAME, "PSNR: Y:%2.2f, Cb:%2.2f, Cr:%2.2f, All:%2.2f",
             psnr(lavc_venc_context->error[0]/f),
             psnr(lavc_venc_context->error[1]*4/f),
             psnr(lavc_venc_context->error[2]*4/f),

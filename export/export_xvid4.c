@@ -221,8 +221,8 @@ MOD_init
 
 	/* Check frame dimensions */
 	if(vob->ex_v_width%2 || vob->ex_v_height%2) {
-		fprintf(stderr, "[%s] Only even dimensions allowed (%dx%d)\n",
-			MOD_NAME, vob->ex_v_width, vob->ex_v_height);
+		tc_tag_warn(MOD_NAME, "Only even dimensions allowed (%dx%d)",
+			vob->ex_v_width, vob->ex_v_height);
 		return(TC_EXPORT_ERROR);
 	}
 
@@ -267,7 +267,7 @@ MOD_init
 	ret = xvid->global(NULL, XVID_GBL_INIT, &thismod.xvid_gbl_init, NULL);
 
 	if(ret < 0) {
-		fprintf(stderr, "[%s] Library initialization failed\n", MOD_NAME);
+		tc_tag_warn(MOD_NAME, "Library initialization failed");
 		return(TC_EXPORT_ERROR);
 	}
 
@@ -277,7 +277,7 @@ MOD_init
 	ret = xvid->encore(NULL, XVID_ENC_CREATE, &thismod.xvid_enc_create, NULL);
 
 	if(ret < 0) {
-		fprintf(stderr, "[%s] Encoder initialization failed\n", MOD_NAME);
+		tc_tag_warn(MOD_NAME, "Encoder initialization failed");
 		return(TC_EXPORT_ERROR);
 	}
 
@@ -322,7 +322,7 @@ MOD_open
     
 	/* Open video file */
 	if(verbose_flag & TC_DEBUG)
-		fprintf(stderr, "[%s] Using %s output\n",
+		tc_tag_info(MOD_NAME, "Using %s output",
 			MOD_NAME, avi_output?"AVI":"Raw");
     
 	if(avi_output) {
@@ -388,8 +388,8 @@ MOD_encode
 
 	/* Error handling */
 	if(bytes < 0) {
-		fprintf(stderr, "[%s] xvidcore returned a \"%s\" error\n",
-			MOD_NAME, errorstring(bytes));
+		tc_tag_warn(MOD_NAME, "xvidcore returned a \"%s\" error",
+			errorstring(bytes));
 		return(TC_EXPORT_ERROR);
 	}
 
@@ -426,14 +426,14 @@ MOD_encode
 		ret = AVI_write_frame(vob->avifile_out, thismod.stream, bytes,
 				      thismod.xvid_enc_frame.out_flags & XVID_KEYFRAME);
 		if(ret < 0) {
-			fprintf(stderr, "[%s] AVI video write error\n", MOD_NAME);
+			tc_tag_warn(MOD_NAME, "AVI video write error");
 			return(TC_EXPORT_ERROR); 
 		}
 	} else {
 		int ret;
 		ret = p_write(thismod.rawfd, thismod.stream, bytes);
 		if(ret != bytes) {    
-			fprintf(stderr, "[%s] RAW video write error\n", MOD_NAME);
+			tc_tag_warn(MOD_NAME, "RAW video write error");
 			return(TC_EXPORT_ERROR);
 		}
 	}
@@ -498,7 +498,7 @@ MOD_stop
 	/* Destroy the encoder instance */
 	ret = xvid->encore(thismod.instance, XVID_ENC_DESTROY, NULL, NULL);
 	if(ret < 0) {
-		fprintf(stderr, "[%s] Encoder instance releasing failed\n", MOD_NAME);
+		tc_tag_warn(MOD_NAME, "Encoder instance releasing failed");
 		return(TC_EXPORT_ERROR);
 	}
 
@@ -520,11 +520,10 @@ MOD_stop
 			thismod.sse_v = 0;
 		}
 		
-		fprintf(stderr, "[%s] "
+		tc_tag_info(MOD_NAME, 
 			"psnr y = %.2f dB, "
 			"psnr u = %.2f dB, "
-			"psnr v = %.2f dB\n",
-			MOD_NAME,
+			"psnr v = %.2f dB",
 			SSE2PSNR(thismod.sse_y,
 				 thismod.xvid_enc_create.width,
 				 thismod.xvid_enc_create.height),
@@ -767,7 +766,7 @@ static void dispatch_settings(xvid_transcode_module_t *mod)
 	if(mod->cfg_intra_matrix_file) {
 		frame->quant_intra_matrix = (unsigned char*)read_matrix(mod->cfg_intra_matrix_file);
 		if(frame->quant_intra_matrix != NULL) {
-			fprintf(stderr, "\n[%s] Loaded Intra matrix (switching to mpeg quantization type)\n", MOD_NAME);
+			tc_tag_info(MOD_NAME, "Loaded Intra matrix (switching to mpeg quantization type)");
 			print_matrix(frame->quant_intra_matrix);
 			free(mod->cfg_quant_method);
 			mod->cfg_quant_method = strdup("mpeg");
@@ -776,7 +775,7 @@ static void dispatch_settings(xvid_transcode_module_t *mod)
 	if(mod->cfg_inter_matrix_file) {
 		frame->quant_inter_matrix = read_matrix(mod->cfg_inter_matrix_file);
 		if(frame->quant_inter_matrix) {
-			fprintf(stderr, "\n[%s] Loaded Inter matrix (switching to mpeg quantization type)\n", MOD_NAME);
+			tc_tag_info(MOD_NAME, "Loaded Inter matrix (switching to mpeg quantization type)");
 			print_matrix(frame->quant_inter_matrix);
 			free(mod->cfg_quant_method);
 			mod->cfg_quant_method = strdup("mpeg");
@@ -906,7 +905,7 @@ static void set_create_struct(xvid_transcode_module_t *mod, vob_t *vob)
 		xvid_plugin_2pass1_t *pass1 = &mod->pass1;
 
 		if(xvid->plugin_twopass1 == NULL) {
-			fprintf(stderr, "[%s] Two Pass #1 bitrate controller plugin not available\n", MOD_NAME);
+			tc_tag_warn(MOD_NAME, "Two Pass #1 bitrate controller plugin not available");
 			return;
 		}
 
@@ -925,7 +924,7 @@ static void set_create_struct(xvid_transcode_module_t *mod, vob_t *vob)
 		xvid_plugin_2pass2_t *pass2cfg = &mod->cfg_pass2;
 
 		if(xvid->plugin_twopass2 == NULL) {
-			fprintf(stderr, "[%s] Two Pass #2 bitrate controller plugin not available\n", MOD_NAME);
+			tc_tag_warn(MOD_NAME, "Two Pass #2 bitrate controller plugin not available");
 			return;
 		}
 
@@ -965,7 +964,7 @@ static void set_create_struct(xvid_transcode_module_t *mod, vob_t *vob)
 		xvid_plugin_single_t *cfgonepass = &mod->cfg_onepass;
 
 		if(xvid->plugin_onepass == NULL) {
-			fprintf(stderr, "[%s] One Pass bitrate controller plugin not available\n", MOD_NAME);
+			tc_tag_warn(MOD_NAME, "One Pass bitrate controller plugin not available");
 			return;
 		}
 
@@ -1123,9 +1122,8 @@ static void *read_matrix(unsigned char *filename)
 
 	/* Open the matrix file */
 	if((input = fopen(filename, "rb")) == NULL) {
-		fprintf(stderr,
-			"[%s] Error opening the matrix file %s\n",
-			MOD_NAME,
+		tc_tag_warn(MOD_NAME,
+			"Error opening the matrix file %s",
 			filename);
 		free(matrix);
 		return(NULL);
@@ -1138,9 +1136,8 @@ static void *read_matrix(unsigned char *filename)
 
 		/* If fscanf fails then get out of the loop */
 		if(fscanf(input, "%d", &value) != 1) {
-			fprintf(stderr,
-				"[%s] Error reading the matrix file %s\n",
-				MOD_NAME,
+			tc_tag_warn(MOD_NAME,
+				"Error reading the matrix file %s",
 				filename);
 			free(matrix);
 			fclose(input);
@@ -1166,12 +1163,23 @@ static void *read_matrix(unsigned char *filename)
 static void print_matrix(unsigned char *matrix)
 {
 	int i;
-
+// FIXME: remove me when new code works	
+#if 0
 	for(i=0; i<8; i++) {
 		int j;
 		fprintf(stderr, "[%s] ", MOD_NAME);
 		for(j=0; j<8; j++) fprintf(stderr, "%3d ", (int)matrix[8*i + j]);
 		fprintf(stderr, "\n");
+#else
+	for(i=0; i < 64; i+=8) {
+		tc_tag_info(MOD_NAME, 
+			"%3d %3d %3d %3d "
+			"%3d %3d %3d %3d",
+			(int)matrix(i), (int)matrix(i+1),
+			(int)matrix(i+2), (int)matrix(i+3),
+			(int)matrix(i+4), (int)matrix(i+5),
+			(int)matrix(i+6), (int)matrix(i+7));
+#endif	
 	}
 
 	return;
@@ -1217,8 +1225,8 @@ static int load_xvid(xvid_module_t *xvid, char *path)
 	/* Let's try each shared lib until success */
 	for(i=0; i<4; i++) {
 		if(verbose_flag & TC_DEBUG)
-			fprintf(stderr,	"[%s] Trying to load shared lib %s\n",
-				MOD_NAME, soname[i]);
+			tc_tag_info(MOD_NAME, "Trying to load shared lib %s",
+				soname[i]);
 
 		/* Try loading the shared lib */
 		xvid->so = dlopen(soname[i], RTLD_GLOBAL| RTLD_LAZY);
@@ -1230,12 +1238,12 @@ static int load_xvid(xvid_module_t *xvid, char *path)
 
 	/* None of the modules were available */
 	if(xvid->so == NULL) {
-		fprintf(stderr, "[%s] No libxvidcore API4 found\n", MOD_NAME);
+		tc_tag_warn(MOD_NAME, "No libxvidcore API4 found");
 		return(-1);
 	}
 
 	if(verbose_flag & TC_DEBUG)
-		fprintf(stderr,	"[%s] Loaded %s\n", MOD_NAME, soname[i]);
+		tc_tag_info(MOD_NAME, "Loaded %s", soname[i]);
 
 	/* Next step is to load xvidcore symbols
 	 *
@@ -1248,9 +1256,11 @@ static int load_xvid(xvid_module_t *xvid, char *path)
 	xvid->global = dlsym(xvid->so, "xvid_global");
 
 	if(xvid->global == NULL && (error = dlerror()) != NULL) {
-		fprintf(stderr, "[%s] Error loading symbol (%s)\n", MOD_NAME, error);
-		fprintf(stderr, "[%s] Library \"%s\" looks like an old version of libxvidcore\n", MOD_NAME, soname[i]);
-		fprintf(stderr, "[%s] You cannot use this module with this lib; maybe -y xvid2 works\n", MOD_NAME);
+		tc_tag_warn(MOD_NAME, "Error loading symbol (%s)", error);
+		tc_tag_warn(MOD_NAME, "Library \"%s\" looks like an old "
+				      "version of libxvidcore", soname[i]);
+		tc_tag_warn(MOD_NAME, "You cannot use this module with this"
+				      " lib; maybe -y xvid2 works");
 		return(-1);
 	}
 
@@ -1258,7 +1268,7 @@ static int load_xvid(xvid_module_t *xvid, char *path)
 	xvid->encore = dlsym(xvid->so, "xvid_encore");
 
 	if(xvid->encore == NULL && (error = dlerror()) != NULL) {
-		fprintf(stderr, "[%s] Error loading symbol (%s)\n", MOD_NAME, error);
+		tc_tag_warn(MOD_NAME, "Error loading symbol (%s)", error);
 		return(-1);
 	}
 
