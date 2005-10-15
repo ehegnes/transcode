@@ -584,7 +584,7 @@ static int rgb24_bgr24_sse2(uint8_t **src, uint8_t **dest, int width, int height
 	/* push_regs */ "",
 	/* pop_regs  */ "",
 	/* small_loop */
-	"leal ("ECX","ECX",2),"EDX"					\n\
+	"lea ("ECX","ECX",2),"EDX"					\n\
 	movb -3("ESI","EDX"), %%al					\n\
 	movb -2("ESI","EDX"), %%ah					\n\
 	movb %%ah, -2("EDI","EDX")					\n\
@@ -592,7 +592,7 @@ static int rgb24_bgr24_sse2(uint8_t **src, uint8_t **dest, int width, int height
 	movb %%ah, -3("EDI","EDX")					\n\
 	movb %%al, -1("EDI","EDX")",
 	/* main_loop */
-	"leal ("ECX","ECX",2),"EDX"					\n\
+	"lea ("ECX","ECX",2),"EDX"					\n\
 	# We can't just movdqu, because we might run over the edge	\n\
 	movd -12("ESI","EDX"), %%xmm1					\n\
 	movq -8("ESI","EDX"), %%xmm0					\n\
@@ -726,7 +726,7 @@ static int bgra32_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int heigh
 #define ASM_RGB24_GRAY(ofsR,ofsG,ofsB,load) \
     asm(INIT_GRAY8							\
 	"push "EBX"							\n\
-	leal ("ECX","ECX",2),"EBX"					\n"\
+	lea ("ECX","ECX",2),"EBX"					\n"\
 	SIMD_LOOP_WRAPPER(						\
 	/* blocksize  */ 8,						\
 	/* push_regs  */ "",						\
@@ -814,7 +814,7 @@ static int gray8_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int height
 	pshuflw $0x24, %%xmm7, %%xmm7	# XMM7.l: 00FF0000FF0000FF	\n\
 	pshufhw $0xFC, %%xmm7, %%xmm7	# XMM7.h: 000000000000FF00	\n\
 	# Load ECX*3 into EDX ahead of time				\n\
-	leal ("ECX","ECX",2), "EDX"					\n"
+	lea ("ECX","ECX",2), "EDX"					\n"
 	SIMD_LOOP_WRAPPER(
 	/* blocksize */ 4,
 	/* push_regs */ "",
