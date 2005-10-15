@@ -166,7 +166,7 @@ typedef struct _xvid_transcode_module_t
 
 	/* MPEG4 stream buffer */
 	int   stream_size;
-	char *stream;
+	uint8_t *stream;
 
 	/* File output
 	 * Depending on the "-F raw" option presence, this module will
@@ -190,10 +190,6 @@ static void dispatch_settings(xvid_transcode_module_t *mod);
 static void set_create_struct(xvid_transcode_module_t *mod, vob_t *vob);
 static void set_frame_struct(xvid_transcode_module_t *mod, vob_t *vob, transfer_t *t);
 static const char *errorstring(int err);
-
-#if 0  /* gte this from ioaux.h */
-static int p_write(int fd, char *buf, size_t len);
-#endif
 
 /*****************************************************************************
  * Init codec
@@ -372,7 +368,7 @@ MOD_encode
 
 	if(vob->im_v_codec == CODEC_YUV422) {
 		/* Convert to UYVY */
-		tc_convert(param->buffer, IMG_YUV422P, IMG_UYVY);
+		tcv_convert(param->buffer, IMG_YUV422P, IMG_UYVY);
 	}
 
 	/* Init the stat structure */
@@ -710,7 +706,7 @@ static void read_config_file(xvid_transcode_module_t *mod)
 	return;
 }
 
-static void *read_matrix(unsigned char *filename);
+static void *read_matrix(const char *filename);
 static void print_matrix(unsigned char *matrix);
 
 static void dispatch_settings(xvid_transcode_module_t *mod)
@@ -1085,32 +1081,11 @@ static const char *errorstring(int err)
 	return((const char *)error);
 }
 
-#if 0  /* get this from ioaux.c */
-/*****************************************************************************
- * Writes a buffer to a file descriptor (forces completion of the write)
- ****************************************************************************/
-
-static int p_write(int fd, char *buf, size_t len)
-{
-   size_t n = 0;
-   size_t r = 0;
-
-   while(r < len) {
-      n = write(fd, buf + r, len - r);
-      if(n < 0)
-         return n;
-      
-      r += n;
-   }
-   return r;
-}
-#endif
-
 /*****************************************************************************
  * Read and print a matrix file
  ****************************************************************************/
 
-static void *read_matrix(unsigned char *filename)
+static void *read_matrix(const char *filename)
 {
 	int i;
 	unsigned char *matrix;
