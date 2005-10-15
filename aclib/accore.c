@@ -101,15 +101,15 @@ const char *ac_flagstotext(int accel)
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
 
 #ifdef ARCH_X86_64
-# define EAX "rax"
-# define EBX "rbx"
-# define ESI "rsi"
+# define EAX "%%rax"
+# define EBX "%%rbx"
+# define ESI "%%rsi"
 # define PUSHF "pushfq"
 # define POPF "popfq"
 #else
-# define EAX "eax"
-# define EBX "ebx"
-# define ESI "esi"
+# define EAX "%%eax"
+# define EBX "%%ebx"
+# define ESI "%%esi"
 # define PUSHF "pushfl"
 # define POPF "popfl"
 #endif
@@ -119,7 +119,7 @@ const char *ac_flagstotext(int accel)
  * must be lvalues.  Note that we save and restore EBX (RBX on x86-64)
  * because it is the PIC register. */
 #define CPUID(func,ret_a,ret_b,ret_c,ret_d)				\
-    asm("mov %%"EBX", %%"ESI"; cpuid; xchg %%"EBX", %%"ESI		\
+    asm("mov "EBX", "ESI"; cpuid; xchg "EBX", "ESI			\
         : "=a" (ret_a), "=S" (ret_b), "=c" (ret_c), "=d" (ret_d)	\
         : "a" (func))
 
