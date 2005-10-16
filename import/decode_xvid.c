@@ -156,30 +156,6 @@ static char *in_buffer;
 static char *out_buffer;
 #define BUFFER_SIZE SIZE_RGB_FRAME
 
-static unsigned char *bufalloc(size_t size)
-{
-
-#ifdef HAVE_GETPAGESIZE
-    long buffer_align=getpagesize();
-#else
-    long buffer_align=0;
-#endif
-
-    char *buf = malloc(size + buffer_align);
-
-    long adjust;
-
-    if (buf == NULL) {
-	fprintf(stderr, "(%s) out of memory", __FILE__);
-    }
-
-    adjust = buffer_align - ((long) buf) % buffer_align;
-
-    if (adjust == buffer_align)
-	adjust = 0;
-
-    return (unsigned char *) (buf + adjust);
-}
 
 /* ------------------------------------------------------------ 
  *

@@ -1,3 +1,22 @@
+2005-10-16 Andrew Church <achurch at achurch dot org>
+  * libtc/libtc.h libtc/tc_functions.c
+  Add bufalloc() and buffree() for allocating/freeing aligned buffers.
+
+  * export/export_dv.c export/export_dvraw.c filter/filter_smartyuv.c 
+    filter/filter_test.c filter/filter_unsharp.c                                
+    filter/extsub/subtitle_buffer.c import/decode_dv.c import/decode_lavc.c
+    import/decode_xvid.c import/import_divx.c import/import_ffmpeg.c 
+    import/import_xvid.c src/audio_buffer.c src/video_buffer.c
+  Use libtc bufalloc()/buffree() instead of private functions.
+
+  * filter/yuvdenoise/filter_yuvdenoise.c
+  Rename private bufalloc() (which is just an error-checked malloc() call)
+  to avoid collision with libtc bufalloc().
+
+2005-10-16 Andrew Church <achurch at achurch dot org>
+  * import/import_ffmpeg.c
+  Fix bug in bufalloc() causing memory corruption.
+
 2005-10-16 Francesco Romani <fromani at gmail dot com>
   * import/import_pvn.c import/import_raw.c import/import_rawlist.c
     import/import_sh.c import/import_sunau.c import/import_vdrac3.c
@@ -15,7 +34,7 @@
   tc_(tag_){info,warn,error} roundup part 4; more import modules
 
 2005-10-16 Francesco Romani <fromani at gmail dot com>
-  * lintc/Makefile.am
+  * libtc/Makefile.am
   _really_ remove my own obsolete style guide
 
 2005-10-16 Francesco Romani <fromani at gmail dot com>

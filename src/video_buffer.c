@@ -40,38 +40,8 @@ static int vid_buf_locked=0;
 static int vid_buf_empty =0;
 static int vid_buf_wait  =0;
 
-static vframe_list_t **vid_buf_ptr; char *vid_buf_mem, **vid_buf_vid_0, **vid_buf_vid_1;
-
-/* ------------------------------------------------------------------ */
-
-static unsigned char *bufalloc(int n, int id, size_t size)
-{
-
-#ifdef HAVE_GETPAGESIZE
-   unsigned long buffer_align=getpagesize();
-#else
-   unsigned long buffer_align=0;
-#endif
-
-   char *buf = malloc(size + buffer_align);
-
-   unsigned long adjust;
-
-   if (buf == NULL) {
-       fprintf(stderr, "(%s) out of memory", __FILE__);
-   }
-   
-   adjust = buffer_align - ((unsigned long) buf) % buffer_align;
-
-   if (adjust == buffer_align)
-      adjust = 0;
-
-   if(id==0) vid_buf_vid_0[n] = buf;
-   if(id==1) vid_buf_vid_1[n] = buf;
-
-   return (unsigned char *) (buf + adjust);
-}
-
+static vframe_list_t **vid_buf_ptr;
+static int8_t *vid_buf_mem;
 
 /* ------------------------------------------------------------------ */
 
@@ -106,16 +76,6 @@ static int vid_buf_alloc(int ex_num)
       return(-1);
     }
 
-    if((vid_buf_vid_0 = (char **) calloc(num, sizeof(char *)))==NULL) {
-      perror("out of memory");
-      return(-1);
-    }
-
-    if((vid_buf_vid_1 = (char **) calloc(num, sizeof(char *)))==NULL) {
-      perror("out of memory");
-      return(-1);
-    }
-    
     // init ringbuffer
     for (n=0; n<num; ++n) {
 	vid_buf_ptr[n] = (vframe_list_t *) (vid_buf_mem + n * sizeof(vframe_list_t));
@@ -124,12 +84,12 @@ static int vid_buf_alloc(int ex_num)
 	vid_buf_ptr[n]->bufid = n;
 
 	//allocate extra video memory:
-	if((vid_buf_ptr[n]->internal_video_buf_0=bufalloc(n, 0, frame_size_max))==NULL) {
+	if((vid_buf_ptr[n]->internal_video_buf_0=bufalloc(frame_size_max))==NULL) {
 	    perror("out of memory");
 	    return(-1);
 	}
 	
-	if((vid_buf_ptr[n]->internal_video_buf_1=bufalloc(n, 1, frame_size_max))==NULL) {
+	if((vid_buf_ptr[n]->internal_video_buf_1=bufalloc(frame_size_max))==NULL) {
 	    perror("out of memory");
 	    return(-1);
 	}
@@ -184,8 +144,8 @@ static void vid_buf_free(void)
   if(vid_buf_max > 0) {
 
     for (n=0; n<vid_buf_max; ++n) {
-      free(vid_buf_vid_0[n]);
-      free(vid_buf_vid_1[n]);
+      buffree(vid_buf_ptr[n]->internal_video_buf_0);
+      buffree(vid_buf_ptr[n]->internal_video_buf_1);
     }
     free(vid_buf_mem);
     free(vid_buf_ptr);

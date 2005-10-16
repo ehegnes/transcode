@@ -121,4 +121,7 @@ int _tc_vsnprintf(const char *file, int line, char *buf, size_t limit,
 int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
 		 const char *format, ...);
 
+void *bufalloc(size_t size);
+void buffree(void *ptr);
+
 #endif  /* _LIBTC_H */

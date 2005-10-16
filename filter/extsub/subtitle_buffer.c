@@ -40,36 +40,6 @@ static sframe_list_t **sub_buf_ptr; char *sub_buf_mem, **sub_buf_sub;
 
 /* ------------------------------------------------------------------ */
 
-static unsigned char *bufalloc(int n, size_t size)
-{
-
-#ifdef HAVE_GETPAGESIZE
-   long buffer_align=getpagesize();
-#else
-   long buffer_align=0;
-#endif
-
-   char *buf = malloc(size + buffer_align);
-
-   long adjust;
-
-   if (buf == NULL) {
-       fprintf(stderr, "(%s) out of memory", __FILE__);
-   }
-   
-   adjust = buffer_align - ((long) buf) % buffer_align;
-
-   if (adjust == buffer_align)
-      adjust = 0;
-
-   sub_buf_sub[n] = buf;
-
-   return (unsigned char *) (buf + adjust);
-}
-
-
-/* ------------------------------------------------------------------ */
-
 static int sub_buf_alloc(int ex_num)
 {
     
@@ -98,11 +68,6 @@ static int sub_buf_alloc(int ex_num)
       return(-1);
     }
     
-    if((sub_buf_sub = (char **) calloc(num, sizeof(char *)))==NULL) {
-      perror("out of memory");
-      return(-1);
-    }
-    
     // init ringbuffer
     for (n=0; n<num; ++n) {
 	sub_buf_ptr[n] = (sframe_list_t *) (sub_buf_mem + n * sizeof(sframe_list_t));
@@ -111,7 +76,7 @@ static int sub_buf_alloc(int ex_num)
 	sub_buf_ptr[n]->bufid = n;
 
 	//allocate extra subeo memory:
-	if((sub_buf_ptr[n]->video_buf=bufalloc(n, SUB_BUFFER_SIZE))==NULL) {
+	if((sub_buf_ptr[n]->video_buf=bufalloc(SUB_BUFFER_SIZE))==NULL) {
 	  perror("out of memory");
 	  return(-1);
 	}
@@ -144,7 +109,7 @@ static void sub_buf_free(void)
   if(sub_buf_max > 0) {
 
     for (n=0; n<sub_buf_max; ++n) {
-      free(sub_buf_sub[n]);
+      buffree(sub_buf_ptr[n]->video_buf);
     }
     free(sub_buf_mem);
     free(sub_buf_ptr);

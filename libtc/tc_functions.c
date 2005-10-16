@@ -1,10 +1,8 @@
 /*
- *  tc_functions.c 
+ *  tc_functions.c - various common functions for transcode
+ *  Written by Thomas Oestreich, Francesco Romani, Andrew Church, and others
  *
- *  Copyright (C) Thomas Östreich - August 2003
- *
- *  This file is part of transcode, a video stream processing tool
- *      
+ *  This file is part of transcode, a video stream processing tool.
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
@@ -38,6 +36,8 @@
 #if defined(HAVE_ALLOCA_H)
 #include <alloca.h>
 #endif
+
+/*************************************************************************/
 
 /* local colors macro; get COL(x) macro from tc_func_excl.h */
 #define COL_RED             COL(31)
@@ -104,6 +104,8 @@ void tc_log(int level, const char *tag, const char *fmt, ...)
     
     return;
 }  
+
+/*************************************************************************/
 
 #if defined(HAVE_ALLOCA)
 #define local_alloc(s) alloca(s)
@@ -190,6 +192,7 @@ int tc_test_program(const char *name)
 #undef local_alloc
 #undef local_free
 
+/*************************************************************************/
 
 #define delta 0.05
 int tc_guess_frc(double fps)
@@ -226,6 +229,7 @@ int tc_guess_frc(double fps)
 }
 #undef delta
 
+/*************************************************************************/
 
 int tc_test_string(const char *file, int line, int limit, long ret, int errnum)
 {
@@ -242,6 +246,7 @@ int tc_test_string(const char *file, int line, int limit, long ret, int errnum)
     return 0;
 }
 
+/*************************************************************************/
 
 /*
  * These versions of [v]snprintf() return -1 if the string was truncated,
@@ -249,7 +254,7 @@ int tc_test_string(const char *file, int line, int limit, long ret, int errnum)
  */
 
 int _tc_vsnprintf(const char *file, int line, char *buf, size_t limit,
-          const char *format, va_list args)
+                  const char *format, va_list args)
 {
     int res = vsnprintf(buf, limit, format, args);
     return tc_test_string(file, line, limit, res, errno) ? -1 : res;
@@ -257,7 +262,7 @@ int _tc_vsnprintf(const char *file, int line, char *buf, size_t limit,
 
 
 int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
-         const char *format, ...)
+                 const char *format, ...)
 {
     va_list args;
     int res;
@@ -267,3 +272,39 @@ int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
     va_end(args);
     return res;
 }
+
+/*************************************************************************/
+
+/* Allocate a buffer aligned to the machine's page size, if known.  The
+ * buffer must be freed with buffree() (not free()). */
+
+void *bufalloc(size_t size)
+{
+#ifdef HAVE_GETPAGESIZE
+    unsigned long pagesize = getpagesize();
+    int8_t *base = malloc(size + sizeof(void *) + pagesize);
+    int8_t *ptr = base + sizeof(void *);
+    unsigned long offset = (unsigned long)ptr % pagesize;
+    if (offset)
+	ptr += (pagesize - offset);
+    ((void **)ptr)[-1] = base;  /* save the base pointer for freeing */
+    return ptr;
+#else  /* !HAVE_GETPAGESIZE */
+    return malloc(size);
+#endif
+}
+
+
+/* Free a buffer allocated with bufalloc(). */
+
+void buffree(void *ptr)
+{
+#ifdef HAVE_GETPAGESIZE
+    if (ptr)
+	free(((void **)ptr)[-1]);
+#else
+    free(ptr);
+#endif
+}
+
+/*************************************************************************/

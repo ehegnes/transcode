@@ -103,6 +103,10 @@ static struct ffmpeg_codec ffmpeg_codecs[] = {
     {"ASV2", ""}},
   {CODEC_ID_FFV1, TC_CODEC_FFV1, "ffv1",
     {"FFV1", ""}},
+  {CODEC_ID_RAWVIDEO, TC_CODEC_YUV420P, "raw",
+    {"I420", "IYUV", ""}},
+  {CODEC_ID_RAWVIDEO, TC_CODEC_YUV422P, "raw",
+    {"Y42B", ""}},
   {0, TC_CODEC_UNKNOWN, NULL, {""}}};
 
 #define BUFFER_SIZE SIZE_RGB_FRAME
@@ -110,12 +114,12 @@ static struct ffmpeg_codec ffmpeg_codecs[] = {
 static avi_t              *avifile = NULL;
 static int                 pass_through = 0;
 static char               *buffer =  NULL;
-static uint8_t           *yuv2rgb_buffer = NULL;
+static uint8_t            *yuv2rgb_buffer = NULL;
 static AVCodec            *lavc_dec_codec = NULL;
 static AVCodecContext     *lavc_dec_context = NULL;
 static int                 x_dim = 0, y_dim = 0;
 static int                 pix_fmt, frame_size = 0, bpp;
-static uint8_t           *frame = NULL;
+static uint8_t            *frame = NULL;
 static unsigned long       format_flag;
 static struct ffmpeg_codec *codec;
 
@@ -214,26 +218,6 @@ static int divx3_is_key(char *d)
     return(1);
 }
 
-
-static unsigned char *bufalloc(size_t size) {
-#ifdef HAVE_GETPAGESIZE
-  long buffer_align = getpagesize();
-#else
-  long buffer_align = 0;
-#endif
-  char *buf = malloc(size + buffer_align);
-  long adjust;
-
-  if (buf == NULL)
-    fprintf(stderr, "(%s) out of memory", __FILE__);
-
-  adjust = buffer_align - ((long) buf) % buffer_align;
-
-  if (adjust == buffer_align)
-    adjust = 0;
-
-  return (unsigned char *) (buf + adjust);
-}
 
 static void enable_levels_filter(void)
 {
@@ -510,7 +494,7 @@ MOD_decode {
   int        key, len;
   long       bytes_read = 0;
   int        got_picture;
-  uint8_t  *planes[3];
+  uint8_t   *planes[3];
   AVFrame    picture;
 
   if (param->flag == TC_VIDEO) {

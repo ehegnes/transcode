@@ -42,30 +42,6 @@ static const int frame_size_625_50 = 12 * 150 * 80;
 #endif
 
 
-#ifdef HAVE_LIBDV
-static unsigned char *bufalloc(size_t size)
-{
-   long buffer_align=getpagesize();
- 
-   unsigned char *buf = malloc(size + buffer_align);
-
-   long adjust;
-
-   if (buf == NULL) {
-       fprintf(stderr, "(%s) out of memory", __FILE__);
-   }
-   
-   adjust = buffer_align - ((long) buf) % buffer_align;
-
-   if (adjust == buffer_align)
-      adjust = 0;
-
-   return buf + adjust;
-}
-#endif
-
-
-
 /* ------------------------------------------------------------ 
  *
  * decoder thread

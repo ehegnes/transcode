@@ -52,8 +52,6 @@ void print_settings(void);
 void turn_on_accels(void);
 void display_help(void);
 
-static uint8_t *bufalloc(size_t size);
-
 struct DNSR_GLOBAL denoiser;
 
 extern uint32_t (*calc_SAD)         (uint8_t * , uint8_t * );
@@ -387,7 +385,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 }
 
 
-static uint8_t *bufalloc(size_t size)
+static uint8_t *alloc_buf(size_t size)
 {
   uint8_t *ret = (uint8_t *)malloc(size);
   if( ret == NULL )
@@ -411,50 +409,50 @@ void allc_buffers(void)
   chroma_buffsize += 64*denoiser.frame.w;
   
 #ifdef HAVE_FILTER_IO_BUF
-  denoiser.frame.io[Yy] = bufalloc (luma_buffsize);
-  denoiser.frame.io[Cr] = bufalloc (chroma_buffsize);
-  denoiser.frame.io[Cb] = bufalloc (chroma_buffsize);
+  denoiser.frame.io[Yy] = alloc_buf (luma_buffsize);
+  denoiser.frame.io[Cr] = alloc_buf (chroma_buffsize);
+  denoiser.frame.io[Cb] = alloc_buf (chroma_buffsize);
 #endif
 
-  denoiser.frame.ref[Yy] = bufalloc (luma_buffsize);
-  denoiser.frame.ref[Cr] = bufalloc (chroma_buffsize);
-  denoiser.frame.ref[Cb] = bufalloc (chroma_buffsize);
+  denoiser.frame.ref[Yy] = alloc_buf (luma_buffsize);
+  denoiser.frame.ref[Cr] = alloc_buf (chroma_buffsize);
+  denoiser.frame.ref[Cb] = alloc_buf (chroma_buffsize);
 
-  denoiser.frame.avg[Yy] = bufalloc (luma_buffsize);
-  denoiser.frame.avg[Cr] = bufalloc (chroma_buffsize);
-  denoiser.frame.avg[Cb] = bufalloc (chroma_buffsize);
+  denoiser.frame.avg[Yy] = alloc_buf (luma_buffsize);
+  denoiser.frame.avg[Cr] = alloc_buf (chroma_buffsize);
+  denoiser.frame.avg[Cb] = alloc_buf (chroma_buffsize);
 
-  denoiser.frame.dif[Yy] = bufalloc (luma_buffsize);
-  denoiser.frame.dif[Cr] = bufalloc (chroma_buffsize);
-  denoiser.frame.dif[Cb] = bufalloc (chroma_buffsize);
+  denoiser.frame.dif[Yy] = alloc_buf (luma_buffsize);
+  denoiser.frame.dif[Cr] = alloc_buf (chroma_buffsize);
+  denoiser.frame.dif[Cb] = alloc_buf (chroma_buffsize);
 
-  denoiser.frame.dif2[Yy] = bufalloc (luma_buffsize);
-  denoiser.frame.dif2[Cr] = bufalloc (chroma_buffsize);
-  denoiser.frame.dif2[Cb] = bufalloc (chroma_buffsize);
+  denoiser.frame.dif2[Yy] = alloc_buf (luma_buffsize);
+  denoiser.frame.dif2[Cr] = alloc_buf (chroma_buffsize);
+  denoiser.frame.dif2[Cb] = alloc_buf (chroma_buffsize);
 
-  denoiser.frame.avg2[Yy] = bufalloc (luma_buffsize);
-  denoiser.frame.avg2[Cr] = bufalloc (chroma_buffsize);
-  denoiser.frame.avg2[Cb] = bufalloc (chroma_buffsize);
+  denoiser.frame.avg2[Yy] = alloc_buf (luma_buffsize);
+  denoiser.frame.avg2[Cr] = alloc_buf (chroma_buffsize);
+  denoiser.frame.avg2[Cb] = alloc_buf (chroma_buffsize);
 
-  denoiser.frame.tmp[Yy] = bufalloc (luma_buffsize);
-  denoiser.frame.tmp[Cr] = bufalloc (chroma_buffsize);
-  denoiser.frame.tmp[Cb] = bufalloc (chroma_buffsize);
+  denoiser.frame.tmp[Yy] = alloc_buf (luma_buffsize);
+  denoiser.frame.tmp[Cr] = alloc_buf (chroma_buffsize);
+  denoiser.frame.tmp[Cb] = alloc_buf (chroma_buffsize);
 
-  denoiser.frame.sub2ref[Yy] = bufalloc (luma_buffsize);
-  denoiser.frame.sub2ref[Cr] = bufalloc (chroma_buffsize);
-  denoiser.frame.sub2ref[Cb] = bufalloc (chroma_buffsize);
+  denoiser.frame.sub2ref[Yy] = alloc_buf (luma_buffsize);
+  denoiser.frame.sub2ref[Cr] = alloc_buf (chroma_buffsize);
+  denoiser.frame.sub2ref[Cb] = alloc_buf (chroma_buffsize);
 
-  denoiser.frame.sub2avg[Yy] = bufalloc (luma_buffsize);
-  denoiser.frame.sub2avg[Cr] = bufalloc (chroma_buffsize);
-  denoiser.frame.sub2avg[Cb] = bufalloc (chroma_buffsize);
+  denoiser.frame.sub2avg[Yy] = alloc_buf (luma_buffsize);
+  denoiser.frame.sub2avg[Cr] = alloc_buf (chroma_buffsize);
+  denoiser.frame.sub2avg[Cb] = alloc_buf (chroma_buffsize);
 
-  denoiser.frame.sub4ref[Yy] = bufalloc (luma_buffsize);
-  denoiser.frame.sub4ref[Cr] = bufalloc (chroma_buffsize);
-  denoiser.frame.sub4ref[Cb] = bufalloc (chroma_buffsize);
+  denoiser.frame.sub4ref[Yy] = alloc_buf (luma_buffsize);
+  denoiser.frame.sub4ref[Cr] = alloc_buf (chroma_buffsize);
+  denoiser.frame.sub4ref[Cb] = alloc_buf (chroma_buffsize);
 
-  denoiser.frame.sub4avg[Yy] = bufalloc (luma_buffsize);
-  denoiser.frame.sub4avg[Cr] = bufalloc (chroma_buffsize);
-  denoiser.frame.sub4avg[Cb] = bufalloc (chroma_buffsize);
+  denoiser.frame.sub4avg[Yy] = alloc_buf (luma_buffsize);
+  denoiser.frame.sub4avg[Cr] = alloc_buf (chroma_buffsize);
+  denoiser.frame.sub4avg[Cb] = alloc_buf (chroma_buffsize);
 }
 
 

@@ -40,37 +40,8 @@ static int aud_buf_locked=0;
 static int aud_buf_empty =0;
 static int aud_buf_wait  =0;
 
-static aframe_list_t **aud_buf_ptr; char *aud_buf_mem, **aud_buf_vid;
-
-/* ------------------------------------------------------------------ */
-
-static unsigned char *bufalloc(int n, size_t size)
-{
-
-#ifdef HAVE_GETPAGESIZE
-   unsigned long buffer_align=getpagesize();
-#else
-   unsigned long buffer_align=0;
-#endif
-
-   char *buf = malloc(size + buffer_align);
-
-   unsigned long adjust;
-
-   if (buf == NULL) {
-       fprintf(stderr, "(%s) out of memory", __FILE__);
-   }
-   
-   adjust = buffer_align - ((unsigned long) buf) % buffer_align;
-
-   if (adjust == buffer_align)
-      adjust = 0;
-
-   aud_buf_vid[n] = buf;
-
-   return (unsigned char *) (buf + adjust);
-}
-
+static aframe_list_t **aud_buf_ptr;
+int8_t *aud_buf_mem;
 
 /* ------------------------------------------------------------------ */
 
@@ -101,11 +72,6 @@ static int aud_buf_alloc(int ex_num)
       return(-1);
     }
     
-    if((aud_buf_vid = (char **) calloc(num, sizeof(char *)))==NULL) {
-      perror("out of memory");
-      return(-1);
-    }
-    
     // init ringbuffer
     for (n=0; n<num; ++n) {
 	aud_buf_ptr[n] = (aframe_list_t *) (aud_buf_mem + n * sizeof(aframe_list_t));
@@ -113,8 +79,8 @@ static int aud_buf_alloc(int ex_num)
 	aud_buf_ptr[n]->status = FRAME_NULL;
 	aud_buf_ptr[n]->bufid = n;
 
-	//allocate extra video memory:
-	if((aud_buf_ptr[n]->audio_buf=bufalloc(n, (SIZE_PCM_FRAME)))==NULL) {
+	//allocate extra audio memory:
+	if((aud_buf_ptr[n]->audio_buf=bufalloc(SIZE_PCM_FRAME))==NULL) {
 	  perror("out of memory");
 	  return(-1);
 	}
@@ -147,7 +113,7 @@ static void aud_buf_free(void)
   if(aud_buf_max > 0) {
 
     for (n=0; n<aud_buf_max; ++n) {
-      free(aud_buf_vid[n]);
+      buffree(aud_buf_ptr[n]->audio_buf);
     }
     free(aud_buf_mem);
     free(aud_buf_ptr);

@@ -51,7 +51,6 @@ typedef struct FilterParam {
     int msizeX, msizeY;
     double amount;
     uint32_t *SC[MAX_MATRIX_SIZE-1];
-    uint32_t *SC_unaligned[MAX_MATRIX_SIZE-1];
 } FilterParam;
 
 typedef struct vf_priv_s {
@@ -59,42 +58,6 @@ typedef struct vf_priv_s {
     FilterParam chromaParam;
     int pre;
 } MyFilterData;
-
-
-static void *bufalloc(size_t size)
-{
-
-#ifdef HAVE_GETPAGESIZE
-   long buffer_align=getpagesize();
-#else
-   long buffer_align=16;
-#endif
-
-   return malloc(size + buffer_align);
-}
-
-static void *bufalign(char *buf)
-{
-
-#ifdef HAVE_GETPAGESIZE
-   long buffer_align=getpagesize();
-#else
-   long buffer_align=16;
-#endif
-
-   long adjust;
-
-   if (buf == NULL) {
-       fprintf(stderr, "(%s) out of memory", __FILE__);
-   }
-   
-   adjust = buffer_align - ((long) buf) % buffer_align;
-
-   if (adjust == buffer_align)
-      adjust = 0;
-
-   return (void *) (buf + adjust);
-}
 
 
 //===========================================================================//
@@ -314,8 +277,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     stepsY = fp->msizeY/2;
     for( z=0; z<2*stepsY; z++ )
         {
-	fp->SC_unaligned[z] = bufalloc(sizeof(*(fp->SC[z])) * (width+2*stepsX) );
-	fp->SC[z] = bufalign((char *)(fp->SC_unaligned[z]));
+	fp->SC[z] = bufalloc(sizeof(*(fp->SC[z])) * (width+2*stepsX));
         }
 
     fp = &mfd->chromaParam;
@@ -326,8 +288,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     stepsY = fp->msizeY/2;
     for( z=0; z<2*stepsY; z++ )
         {
-	fp->SC_unaligned[z] = bufalloc( sizeof(*(fp->SC[z])) * (width+2*stepsX) );
-	fp->SC[z] = bufalign((char *)(fp->SC_unaligned[z]));
+	fp->SC[z] = bufalloc(sizeof(*(fp->SC[z])) * (width+2*stepsX));
         }
 
 
@@ -344,14 +305,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
       fp = &mfd->lumaParam;
       for( z=0; z<sizeof(fp->SC)/sizeof(fp->SC[0]); z++ ) {
-	  if( fp->SC_unaligned[z] ) free( fp->SC_unaligned[z] );
-	  fp->SC_unaligned[z] = NULL;
+          buffree(fp->SC[z]);
 	  fp->SC[z] = NULL;
       }
       fp = &mfd->chromaParam;
       for( z=0; z<sizeof(fp->SC)/sizeof(fp->SC[0]); z++ ) {
-	  if( fp->SC_unaligned[z] ) free( fp->SC_unaligned[z] );
-	  fp->SC_unaligned[z] = NULL;
+          buffree(fp->SC[z]);
 	  fp->SC[z] = NULL;
       }
 
