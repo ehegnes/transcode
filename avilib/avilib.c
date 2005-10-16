@@ -96,7 +96,7 @@ static ssize_t avi_read(int fd, char *buf, size_t len)
    return r;
 }
 
-static ssize_t avi_write (int fd, char *buf, size_t len)
+static ssize_t avi_write (int fd, const char *buf, size_t len)
 {
    ssize_t n = 0;
    ssize_t r = 0;
@@ -172,9 +172,7 @@ static uint32_t str2ulong_len (unsigned char *str)
 static uint32_t str2ulong_key (unsigned char *str)
 {
   uint32_t c = str2ulong(str);
-  c &= 0x80000000;
-  if (c == 0) return 0x10;
-  else return 0;
+  return ((c & 0x80000000) ? 0 : 0x10);
 }
 
 /* Calculate audio sample size from number of bits and number of channels.
