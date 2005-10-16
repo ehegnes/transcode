@@ -381,7 +381,7 @@ MOD_init {
     pix_fmt = vob->im_v_codec;
     
     if (! (pix_fmt == CODEC_RGB || pix_fmt == CODEC_YUV || pix_fmt == CODEC_YUV422)) {
-        tc_tag_wanr(MOD_NAME, "Unknown color space %d.",
+        tc_tag_warn(MOD_NAME, "Unknown color space %d.",
                 pix_fmt);
         return TC_EXPORT_ERROR;
     }
@@ -1100,7 +1100,7 @@ MOD_init {
 
             default:
             {
-                tc_tag_wanr(MOD_NAME, "Unknown pixel format %d.", pix_fmt);
+                tc_tag_warn(MOD_NAME, "Unknown pixel format %d.", pix_fmt);
                 return TC_EXPORT_ERROR;
             }
         }
