@@ -111,16 +111,16 @@ MOD_open
 	    destfmt = IMG_RGB24;
 	    bytes = vob->im_v_width * vob->im_v_height * 4;
 	} else if (!strcasecmp(vob->im_v_string, "ayuv")) {
-	    tc_error("ayuv not supported");
+	    tc_tag_error(MOD_NAME, "ayuv not supported");
 	    return(TC_IMPORT_ERROR);
 	} else {
-	    tc_error("Unknown format {rgb, gray, argb, ayuv, yv12, i420, yuy2, uyvy}");
+	    tc_tag_error(MOD_NAME, "Unknown format {rgb, gray, argb, ayuv, yv12, i420, yuy2, uyvy}");
 	    return(TC_IMPORT_ERROR);
 	}
     }
 
     if((fd = fopen(vob->video_in_file, "r"))==NULL) {
-	tc_error("You need to specify a filelist as input");
+	tc_tag_error(MOD_NAME, "You need to specify a filelist as input");
 	return(TC_IMPORT_ERROR);
     }
 
