@@ -34,7 +34,7 @@
 #define TC_CODEC_A52                   0x00002001
 #define TC_CODEC_DTS                   0x0001000f
 #define TC_CODEC_YUV420P               0x30323449  /* I420 */
-#define TC_CODEC_YUV422P               0x50323234
+#define TC_CODEC_YUV422P               0x42323459  /* Y42B, see lavc/raw.c */
 #define TC_CODEC_UYVY                  0x59565955
 #define TC_CODEC_YUV2                  0x32565559
 #define TC_CODEC_YUY2                  0x32595559
