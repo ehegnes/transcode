@@ -1,3 +1,9 @@
+2005-10-16 Francesco Romani <fromani at gmail dot com>
+  * libtc/tc_functions.c
+  Removed file: libtc/STYLE.txt
+ Andrew's style guide is better, so drop mine and revert changes to
+ achieve conformancy
+
 2005-10-16 Andrew Church <achurch at achurch dot org>
   * export/export_af6.cpp export/export_fame.c export/export_mov.c
     export/export_net.c export/export_pvm.c export/export_yuv4mpeg.c
