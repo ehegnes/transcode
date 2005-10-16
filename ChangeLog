@@ -1,4 +1,9 @@
 2005-10-16 Andrew Church <achurch at achurch dot org>
+  * export/export_lzo.c export/tc_lzo.h import/decode_lzo.c
+    import/extract_lzo.c import/import_lzo.c
+  Update for LZO version 2, and fix a number of bugs.
+
+2005-10-16 Andrew Church <achurch at achurch dot org>
   * Added: aclib/STYLE.txt
   Codify style guidelines for aclib.
 

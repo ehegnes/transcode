@@ -22,10 +22,12 @@
  */
 
 #define MOD_NAME    "import_lzo.so"
-#define MOD_VERSION "v0.0.3 (2002-11-26)"
+#define MOD_VERSION "v0.1.0 (2005-10-16)"
 #define MOD_CODEC   "(video) LZO"
 
 #include "transcode.h"
+#include "magic.h"
+#include "export/tc_lzo.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_PCM | TC_CAP_YUV | TC_CAP_RGB |
@@ -34,15 +36,14 @@ static int capability_flag = TC_CAP_PCM | TC_CAP_YUV | TC_CAP_RGB |
 #define MOD_PRE lzo
 #include "import_def.h"
 
-#include <lzo1x.h>
-#if (LZO_VERSION > 0x1070)
-#  include <lzoutil.h>
-#endif
+#include <lzo/lzo1x.h>
+#include <lzo/lzoutil.h>
 
 
 static avi_t *avifile1=NULL;
 static avi_t *avifile2=NULL;
 
+static uint32_t video_codec;
 static int audio_codec;
 static int aframe_count=0, vframe_count=0;
 
@@ -103,17 +104,24 @@ MOD_open
     fps    =  AVI_frame_rate(avifile2);
     codec  =  AVI_video_compressor(avifile2);
 
+    if (strcmp(codec,"LZO1") == 0) {
+      video_codec = TC_CODEC_LZO1;
+    } else if (strcmp(codec,"LZO2") == 0) {
+      video_codec = TC_CODEC_LZO2;
+    } else {
+      tc_tag_warn(MOD_NAME, "Unsupported video codec %s", codec);
+      return(TC_IMPORT_ERROR); 
+    }
 
-    fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
-	    MOD_NAME, codec, fps, width, height);
-
+    tc_tag_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d\n", 
+		codec, fps, width, height);
 
     /*
      * Step 1: initialize the LZO library
      */
 
     if (lzo_init() != LZO_E_OK) {
-      printf("[%s] lzo_init() failed\n", MOD_NAME);
+      tc_tag_warn(MOD_NAME, "lzo_init() failed");
       return(TC_IMPORT_ERROR); 
     }
 
@@ -121,7 +129,7 @@ MOD_open
     out = (lzo_bytep) lzo_malloc(BUFFER_SIZE);
 
     if (wrkmem == NULL || out == NULL) {
-      printf("[%s] out of memory\n", MOD_NAME);
+      tc_tag_warn(MOD_NAME, "out of memory");
       return(TC_IMPORT_ERROR); 
     }
 
@@ -142,7 +150,7 @@ MOD_decode
 {
 
   int key;
-
+  lzo_uint size;
   long bytes_read=0;
 
   if(param->flag == TC_VIDEO) {
@@ -160,18 +168,37 @@ MOD_decode
       return(TC_IMPORT_ERROR);
     }
 
-    r = lzo1x_decompress(out, out_len, param->buffer, &param->size, wrkmem);
+    if (video_codec == TC_CODEC_LZO1) {
+      r = lzo1x_decompress(out, out_len, param->buffer, &size, wrkmem);
+    } else {
+      tc_lzo_header_t *h = (tc_lzo_header_t *)out;
+      uint8_t *compdata = out + sizeof(*h);
+      int compsize = out_len - sizeof(*h);
+      if (h->magic != video_codec) {
+	tc_tag_warn(MOD_NAME, "frame with invalid magic 0x%08X\n", h->magic);
+	return (TC_IMPORT_ERROR);
+      }
+      if (h->flags & TC_LZO_NOT_COMPRESSIBLE) {
+	ac_memcpy(param->buffer, compdata, compsize);
+	size = compsize;
+	r = LZO_E_OK;
+      } else {
+	r = lzo1x_decompress(compdata, compsize, param->buffer, &size, wrkmem);
+      }
+    }
 
     if (r == LZO_E_OK) {
-      if(verbose & TC_DEBUG) printf("decompressed %lu bytes into %lu bytes\n",
-				    (long) out_len, (long) param->size);
+      if(verbose & TC_DEBUG)
+	  tc_tag_info(MOD_NAME, "decompressed %lu bytes into %lu bytes\n",
+		      (long) out_len, (long) param->size);
     } else {
 
       /* this should NEVER happen */
-      printf("[%s] internal error - decompression failed: %d\n", MOD_NAME, r);
+      tc_tag_warn(MOD_NAME, "internal error - decompression failed: %d\n", r);
       return(TC_IMPORT_ERROR); 
     }
 
+    param->size = size;
     //transcode v.0.5.0-pre8 addition
     if(key) param->attributes |= TC_FRAME_IS_KEYFRAME;
 

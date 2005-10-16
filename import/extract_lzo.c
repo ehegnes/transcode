@@ -28,10 +28,8 @@
 
 #ifdef HAVE_LZO
 
-#include <lzo1x.h>
-#if (LZO_VERSION > 0x1070)
-#  include <lzoutil.h>
-#endif
+#include <lzo/lzo1x.h>
+#include <lzo/lzoutil.h>
 
 #define BUFFER_SIZE SIZE_RGB_FRAME<<1
 

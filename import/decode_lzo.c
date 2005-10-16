@@ -28,10 +28,8 @@
 
 #ifdef HAVE_LZO
 
-#include <lzo1x.h>
-#if (LZO_VERSION > 0x1070)
-#  include <lzoutil.h>
-#endif
+#include <lzo/lzo1x.h>
+#include <lzo/lzoutil.h>
 
 #include "export/tc_lzo.h"
 
@@ -101,8 +99,13 @@ void decode_lzo(decode_t *decode)
 	    goto decoder_error;
 	}
 
-
-	r = lzo1x_decompress(inbuf, bytes, out, &out_len, wrkmem);
+	if (h.flags & TC_LZO_NOT_COMPRESSIBLE) {
+	  ac_memcpy(out, inbuf, bytes);
+	  out_len = bytes;
+	  r = LZO_E_OK;
+	} else {
+	  r = lzo1x_decompress(inbuf, bytes, out, &out_len, wrkmem);
+	}
 
 	if (r == LZO_E_OK) {
 	    if(verbose & TC_DEBUG) 
@@ -128,15 +131,6 @@ decoder_error:
     import_exit(1);
     
 }
-
-
-
-
-
-
-
-
-
 
 
 
