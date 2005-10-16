@@ -1,4 +1,8 @@
 2005-10-16 Andrew Church <achurch at achurch dot org>
+  * avilib/avidump.c avilib/avilib.c avilib/avilib.h avilib/avimisc.c
+  Use const in exported function declarations when possible.
+
+2005-10-16 Andrew Church <achurch at achurch dot org>
   * export/export_ffmpeg.c
   Make --export-asr processing exit on invalid positive values, like it
   does for invalid nonpositive values (also corrects use of an
@@ -91,19 +95,23 @@
   * configure.in
   Fix a bug in detecting libquicktime version (-L not used in check).
 
+2005-10-13 Andrew Church <achurch at achurch dot org>
   * docs/man/transcode.1 filter/filter_videocore.c
   Obsolete the videocore filter (now just prints an error if used), since
   all the functions are available on the command line anyway, and the
   particular routines called by the filter are no longer available.
 
+2005-10-13 Andrew Church <achurch at achurch dot org>
   * import/Makefile.am import/iodump.c
   Eliminate redundant code (link iodir.c instead of copying code into
   iodump.c).
 
+2005-10-13 Andrew Church <achurch at achurch dot org>
   * export/export_mov.c filter/preview/pv.c filter/preview/pv.h
     import/import_bktr.c
   Fix more color reversal issues.
 
+2005-10-13 Andrew Church <achurch at achurch dot org>
   * docs/export-mods.txt docs/man/transcode.1 export/Makefile.am
     export/export_raw.c
   Allow the image format for uncompressed video with -y raw to be selected
@@ -124,12 +132,14 @@
   processing, and changed command-line option for YUV422 mode from --uyvy
   to --yuv422.
 
+2005-10-12 Andrew Church <achurch at achurch dot org>
   * Changed: src/Makefile.am src/tc_defaults.h src/video_trans.c
     src/video_trans.h
     Removed: src/frame_postprocess.c src/frame_preprocess.c src/video_rgb.c
     src/video_yuv.c src/video_yuv422.c
   Refactored video processing code to remove redundancy.
 
+2005-10-12 Andrew Church <achurch at achurch dot org>
   * aclib/ac.h aclib/memcpy.c
   Define ac_memcpy() to be a copy in ascending order (allowing overlaps if
   the destination address is lower).
@@ -138,10 +148,12 @@
   * src/transcode.c
   Force all size parameters to be even in YUV mode.
 
+2005-10-11 Andrew Church <achurch at achurch dot org>
   * aclib/rescale.c src/video_rgb.c src/video_trans.c src/video_trans.h
     src/video_yuv.c src/video_yuv422.c
   Fixed bugs in fast resizing (-B option).
 
+2005-10-11 Andrew Church <achurch at achurch dot org>
   * export/export_mp1e.c export/export_mpeg2enc.c export/export_yuv4mpeg.c
     export/vid_aux.c export/vid_aux.h filter/filter_ascii.c
     filter/filter_facemask.c filter/filter_logo.c filter/filter_msharpen.c
@@ -149,9 +161,11 @@
     filter/filter_whitebalance.c
   Replace tc_{rgb2yuv,yuv2rgb} functions with a single tcv_convert().
 
+2005-10-11 Andrew Church <achurch at achurch dot org>
   * export/export_raw.c
   Set fourcc for YUV mode to I420 instead of YV12.
 
+2005-10-11 Andrew Church <achurch at achurch dot org>
   * import/decode_mpeg2.c
   Fixed bug causing red/blue swapping for -x vob.
 
@@ -161,7 +175,7 @@
 
 2005-10-11 Andrew Church <achurch at achurch dot org>
   * Changed: aclib/Makefile.am filter/mmx.h
-  * Removed: aclib/mmx.h
+    Removed: aclib/mmx.h
   Move aclib/mmx.h contents back to filter/mmx.h, since most of the code
   that uses it is in filter/.
 
@@ -197,6 +211,7 @@
     Removed: filter/filter_yuy2toyv12.c
   Remove unused (and possibly broken) filter module yuy2toyv12.
 
+2005-10-08 Andrew Church <achurch at achurch dot org>
   * Changed: filter/filter_fieldanalysis.c filter/filter_msharpen.c
     filter/filter_smartbob.c filter/filter_smartdeinter.c
     filter/filter_xsharpen.c filter/tomsmocomp/filter_tomsmocomp.c
@@ -205,6 +220,7 @@
   Replace redundant implementations of image conversion code with calls
   to ac_imgconvert().
 
+2005-10-08 Andrew Church <achurch at achurch dot org>
   * import/extract_avi.c import/magic.h import/probe_bsdav.c
     import/probe_mov.c import/probe_ogg.c import/tcdecode.c
     import/tcextract.c src/probe.c
@@ -212,9 +228,11 @@
   no longer read raw (uncompressed) YV12 AVIs or MOVs directly; use
   -x mplayer,mplayer to transcode them.
 
+2005-10-08 Andrew Church <achurch at achurch dot org>
   * src/video_rgb.c src/video_yuv422.c
   Avoid calling ac_rescale() for every pixel when rescaling horizontally.
 
+2005-10-08 Andrew Church <achurch at achurch dot org>
   * aclib/ac.h aclib/accore.c
   Add ac_endian() function and AC_{BIG,LITTLE}_ENDIAN constants for
   determining the CPU's endianness.
@@ -250,15 +268,13 @@
   alphabetical order.
 
 2005-10-07 Andrew Church <achurch at achurch dot org>
-  * Changed files:
-    aclib/Makefile.am docs/OPTIMIZERS export/* filter/filter_cshift.c
-    import/* src/probe.c src/transcode.c src/transcode.h
-    Added files:
-    aclib/imgconvert.c aclib/imgconvert.h aclib/img_internal.h
+  * Changed: aclib/Makefile.am docs/OPTIMIZERS export/*
+    filter/filter_cshift.c import/* src/probe.c src/transcode.c
+    src/transcode.h
+    Added: aclib/imgconvert.c aclib/imgconvert.h aclib/img_internal.h
     aclib/img_rgb_packed.c aclib/img_yuv_mixed.c aclib/img_yuv_packed.c
     aclib/img_yuv_planar.c aclib/img_yuv_rgb.c
-    Removed files:
-    aclib/colorspace.c aclib/colorspace.h
+    Removed: aclib/colorspace.c aclib/colorspace.h
   Complete rewrite of image format and colorspace handling.
   - Internal YUV format is now YCbCr (YUV420P/I420), not YCrCb (YV12).
     Fixes the blue-faces problem when converting to/from RGB.
@@ -271,15 +287,12 @@
     colorspace is changed (e.g. to YUV444).
 
 2005-10-04 Andrew Church <achurch at achurch dot org>
-  * Changed files:
-    aclib/Makefile.am export/export_im.c export/export_ppm.c
+  * Changed: aclib/Makefile.am export/export_im.c export/export_ppm.c
     export/export_pvn.c export/vid_aux.c export/vid_aux.h
     import/decode_lavc.c import/decode_yuv.c import/import_ffmpeg.c
     src/transcode.c
-    Added files:
-    aclib/colorspace.c aclib/colorspace.h
-    Removed files:
-    aclib/AUTHORS.libvo aclib/COPYING.libvo aclib/README.libvo
+    Added: aclib/colorspace.c aclib/colorspace.h
+    Removed: aclib/AUTHORS.libvo aclib/COPYING.libvo aclib/README.libvo
     aclib/rgb2yuv.c aclib/rgb2yuv.h aclib/yuv2rgb.c aclib/yuv2rgb.h
     aclib/yuv2rgb_mlib.c aclib/yuv2rgb_mmx.c
   Replace libvo colorspace conversion code with a new from-scratch

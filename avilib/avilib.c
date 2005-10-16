@@ -190,7 +190,8 @@ static int avi_sampsize(avi_t *AVI, int j)
 /* Add a chunk (=tag and data) to the AVI file,
    returns -1 on write error, 0 on success */
 
-static int avi_add_chunk(avi_t *AVI, unsigned char *tag, unsigned char *data, int length)
+static int avi_add_chunk(avi_t *AVI, const unsigned char *tag,
+			 const unsigned char *data, int length)
 {
    unsigned char c[8];
    char p=0;
@@ -228,7 +229,8 @@ static int avi_add_chunk(avi_t *AVI, unsigned char *tag, unsigned char *data, in
 #define OUTS(s) memcpy(ix00+bl,s,4); bl+=4
 
 // this does the physical writeout of the ix## structure
-static int avi_ixnn_entry(avi_t *AVI, avistdindex_chunk *ch, avisuperindex_entry *en) 
+static int avi_ixnn_entry(avi_t *AVI, avistdindex_chunk *ch,
+			  avisuperindex_entry *en) 
 {
     int bl, k;
     unsigned int max = ch->nEntriesInUse * sizeof (uint32_t) * ch->wLongsPerEntry + 24; // header
@@ -277,7 +279,8 @@ static int avi_ixnn_entry(avi_t *AVI, avistdindex_chunk *ch, avisuperindex_entry
 #undef OUTC
 
 // inits a super index structure including its enclosed stdindex
-static int avi_init_super_index(avi_t *AVI, unsigned char *idxtag, avisuperindex_chunk **si)
+static int avi_init_super_index(avi_t *AVI, const unsigned char *idxtag,
+				avisuperindex_chunk **si)
 {
     int k;
 
@@ -322,9 +325,10 @@ static int avi_init_super_index(avi_t *AVI, unsigned char *idxtag, avisuperindex
     return 0;
 }
 
-// fills an alloc'ed stdindex structure and mallocs some entries for the actual chunks
-static int avi_add_std_index(avi_t *AVI, unsigned char *idxtag, unsigned char *strtag,
-	avistdindex_chunk *stdil)
+// fills an alloc'ed stdindex structure and mallocs some entries for the
+// actual chunks
+static int avi_add_std_index(avi_t *AVI, const unsigned char *idxtag,
+	const unsigned char *strtag, avistdindex_chunk *stdil)
 {
 
     memcpy (stdil->fcc, idxtag, 4); 
@@ -350,7 +354,8 @@ static int avi_add_std_index(avi_t *AVI, unsigned char *idxtag, unsigned char *s
     return 0;
 }
 
-static int avi_add_odml_index_entry_core(avi_t *AVI, long flags, off_t pos, unsigned long len, avistdindex_chunk *si) 
+static int avi_add_odml_index_entry_core(avi_t *AVI, long flags, off_t pos,
+	unsigned long len, avistdindex_chunk *si) 
 {
     int cur_chunk_idx;
     // put new chunk into index
@@ -379,7 +384,8 @@ static int avi_add_odml_index_entry_core(avi_t *AVI, long flags, off_t pos, unsi
     return 0;
 }
 
-static int avi_add_odml_index_entry(avi_t *AVI, unsigned char *tag, long flags, off_t pos, unsigned long len) 
+static int avi_add_odml_index_entry(avi_t *AVI, const unsigned char *tag,
+				    long flags, off_t pos, unsigned long len) 
 {
     char fcc[5];
 
@@ -554,7 +560,8 @@ static int avi_add_odml_index_entry(avi_t *AVI, unsigned char *tag, long flags, 
 
 // #undef NR_IXNN_CHUNKS
 
-static int avi_add_index_entry(avi_t *AVI, unsigned char *tag, long flags, unsigned long pos, unsigned long len)
+static int avi_add_index_entry(avi_t *AVI, const unsigned char *tag, long flags,
+			       unsigned long pos, unsigned long len)
 {
    void *ptr;
 
@@ -612,7 +619,7 @@ int AVI_can_read_audio(avi_t *AVI)
    returns a pointer to avi_t on success, a zero pointer on error
 */
 
-avi_t* AVI_open_output_file(char * filename)
+avi_t *AVI_open_output_file(const char *filename)
 {
    avi_t *AVI;
    int i;
@@ -673,7 +680,8 @@ avi_t* AVI_open_output_file(char * filename)
    return AVI;
 }
 
-void AVI_set_video(avi_t *AVI, int width, int height, double fps, char *compressor)
+void AVI_set_video(avi_t *AVI, int width, int height, double fps,
+		   const char *compressor)
 {
    /* may only be called if file is open for writing */
 
@@ -694,7 +702,8 @@ void AVI_set_video(avi_t *AVI, int width, int height, double fps, char *compress
    avi_update_header(AVI);
 }
 
-void AVI_set_audio(avi_t *AVI, int channels, long rate, int bits, int format, long mp3rate)
+void AVI_set_audio(avi_t *AVI, int channels, long rate, int bits, int format,
+		   long mp3rate)
 {
    /* may only be called if file is open for writing */
 
@@ -1707,7 +1716,8 @@ static int avi_close_output_file(avi_t *AVI)
 
 */
 
-static int avi_write_data(avi_t *AVI, char *data, unsigned long length, int audio, int keyframe)
+static int avi_write_data(avi_t *AVI, const char *data, unsigned long length,
+			  int audio, int keyframe)
 {
    int n = 0;
 
@@ -1753,7 +1763,7 @@ static int avi_write_data(avi_t *AVI, char *data, unsigned long length, int audi
    return 0;
 }
 
-int AVI_write_frame(avi_t *AVI, char *data, long bytes, int keyframe)
+int AVI_write_frame(avi_t *AVI, const char *data, long bytes, int keyframe)
 {
   off_t pos;
   
@@ -1780,7 +1790,7 @@ int AVI_dup_frame(avi_t *AVI)
    return 0;
 }
 
-int AVI_write_audio(avi_t *AVI, char *data, long bytes)
+int AVI_write_audio(avi_t *AVI, const char *data, long bytes)
 {
    if(AVI->mode==AVI_MODE_READ) { AVI_errno = AVI_ERR_NOT_PERM; return -1; }
 
@@ -1791,7 +1801,7 @@ int AVI_write_audio(avi_t *AVI, char *data, long bytes)
 }
 
 
-int AVI_append_audio(avi_t *AVI, char *data, long bytes)
+int AVI_append_audio(avi_t *AVI, const char *data, long bytes)
 {
 
     // won't work for >2gb
@@ -1960,7 +1970,8 @@ int AVI_close(avi_t *AVI)
    return 0; \
 }
 
-avi_t *AVI_open_input_indexfile(char *filename, int getIndex, char *indexfile)
+avi_t *AVI_open_input_indexfile(const char *filename, int getIndex,
+				const char *indexfile)
 {
   avi_t *AVI=NULL;
   
@@ -2004,7 +2015,7 @@ avi_t *AVI_open_input_indexfile(char *filename, int getIndex, char *indexfile)
       return AVI;
 }
 
-avi_t *AVI_open_indexfd(int fd, int getIndex, char *indexfile)
+avi_t *AVI_open_indexfd(int fd, int getIndex, const char *indexfile)
 {
   avi_t *AVI=NULL;
   
@@ -2038,7 +2049,7 @@ avi_t *AVI_open_indexfd(int fd, int getIndex, char *indexfile)
 }
 
 
-avi_t *AVI_open_input_file(char *filename, int getIndex)
+avi_t *AVI_open_input_file(const char *filename, int getIndex)
 {
   avi_t *AVI=NULL;
   
@@ -2112,7 +2123,7 @@ avi_t *AVI_open_fd(int fd, int getIndex)
 // transcode-0.6.8
 // reads a file generated by aviindex and builds the index out of it.
 
-int avi_parse_index_from_file(avi_t *AVI, char *filename)
+int avi_parse_index_from_file(avi_t *AVI, const char *filename)
 {
     char data[100]; // line buffer
     FILE *fd = NULL; // read from
@@ -3456,7 +3467,7 @@ static int num_avi_errors = sizeof(avi_errors)/sizeof(char*);
 
 static char error_string[4096];
 
-void AVI_print_error(char *str)
+void AVI_print_error(const char *str)
 {
    int aerrno;
 
@@ -3515,7 +3526,7 @@ typedef char struct_packing_constraint [
     44 == sizeof(struct wave_header) ? 1 : -1];
 #endif
 
-int AVI_read_wave_header( int fd, struct wave_header * wave )
+int AVI_read_wave_header(int fd, struct wave_header * wave)
 {
     char buf[44];
     // read raw data
@@ -3584,7 +3595,7 @@ int AVI_read_wave_header( int fd, struct wave_header * wave )
     return 0;
 }
 
-int AVI_write_wave_header( int fd, const struct wave_header * wave )
+int AVI_write_wave_header(int fd, const struct wave_header * wave)
 {
     char buf[44];
     struct wave_header buffer = *wave;
@@ -3637,7 +3648,7 @@ int AVI_write_wave_header( int fd, const struct wave_header * wave )
     return 0;
 }
 
-size_t AVI_read_wave_pcm_data( int fd, void * buffer, size_t buflen )
+size_t AVI_read_wave_pcm_data(int fd, void * buffer, size_t buflen)
 {
     int doneread = avi_read(fd, buffer, buflen);
 
@@ -3659,7 +3670,7 @@ size_t AVI_read_wave_pcm_data( int fd, void * buffer, size_t buflen )
     return doneread;
 }
 
-size_t AVI_write_wave_pcm_data( int fd, const void * data, size_t datalen )
+size_t AVI_write_wave_pcm_data(int fd, const void * data, size_t datalen)
 {
     size_t totalwritten = 0;
 

@@ -318,23 +318,26 @@ typedef struct
 #define IBM_FORMAT_ADPCM                (0x0103)
 #endif
 
-avi_t* AVI_open_output_file(char * filename);
-void AVI_set_video(avi_t *AVI, int width, int height, double fps, char *compressor);
-void AVI_set_audio(avi_t *AVI, int channels, long rate, int bits, int format, long mp3rate);
-int  AVI_write_frame(avi_t *AVI, char *data, long bytes, int keyframe);
+avi_t *AVI_open_output_file(const char *filename);
+void AVI_set_video(avi_t *AVI, int width, int height, double fps,
+		   const char *compressor);
+void AVI_set_audio(avi_t *AVI, int channels, long rate, int bits, int format,
+		   long mp3rate);
+int  AVI_write_frame(avi_t *AVI, const char *data, long bytes, int keyframe);
 int  AVI_dup_frame(avi_t *AVI);
-int  AVI_write_audio(avi_t *AVI, char *data, long bytes);
-int  AVI_append_audio(avi_t *AVI, char *data, long bytes);
+int  AVI_write_audio(avi_t *AVI, const char *data, long bytes);
+int  AVI_append_audio(avi_t *AVI, const char *data, long bytes);
 long AVI_bytes_remain(avi_t *AVI);
 int  AVI_close(avi_t *AVI);
 long AVI_bytes_written(avi_t *AVI);
 
-avi_t *AVI_open_input_file(char *filename, int getIndex);
-avi_t *AVI_open_input_indexfile(char *filename, int getIndex, char *indexfile);
+avi_t *AVI_open_input_file(const char *filename, int getIndex);
+avi_t *AVI_open_input_indexfile(const char *filename, int getIndex,
+				const char *indexfile);
 avi_t *AVI_open_fd(int fd, int getIndex);
-avi_t *AVI_open_indexfd(int fd, int getIndex, char *indexfile);
+avi_t *AVI_open_indexfd(int fd, int getIndex, const char *indexfile);
 int avi_parse_input_file(avi_t *AVI, int getIndex);
-int avi_parse_index_from_file(avi_t *AVI, char *filename);
+int avi_parse_index_from_file(avi_t *AVI, const char *filename);
 long AVI_audio_mp3rate(avi_t *AVI);
 long AVI_audio_padrate(avi_t *AVI);
 long AVI_video_frames(avi_t *AVI);
@@ -378,15 +381,15 @@ int  AVI_read_data(avi_t *AVI, char *vidbuf, long max_vidbuf,
                                char *audbuf, long max_audbuf,
                                long *len);
 
-void AVI_print_error(char *str);
+void AVI_print_error(const char *str);
 char *AVI_strerror(void);
 char *AVI_syserror(void);
 
-int AVI_scan(char *name);
-int AVI_dump(char *name, int mode);
+int AVI_scan(const char *name);
+int AVI_dump(const char *name, int mode);
 
 char *AVI_codec2str(short cc);
-int AVI_file_check(char *import_file);
+int AVI_file_check(const char *import_file);
 
 void AVI_info(avi_t *avifile);
 uint64_t AVI_max_size(void);
@@ -435,10 +438,10 @@ struct wave_header
 };
 
 // Simple WAV IO
-int AVI_read_wave_header( int fd, struct wave_header * wave );
-int AVI_write_wave_header( int fd, const struct wave_header * wave );
-size_t AVI_read_wave_pcm_data( int fd, void * buffer, size_t buflen );
-size_t AVI_write_wave_pcm_data( int fd, const void * buffer, size_t buflen );
+int AVI_read_wave_header(int fd, struct wave_header *wave);
+int AVI_write_wave_header(int fd, const struct wave_header *wave);
+size_t AVI_read_wave_pcm_data(int fd, void *buffer, size_t buflen);
+size_t AVI_write_wave_pcm_data(int fd, const void *buffer, size_t buflen);
 
 
 struct AVIStreamHeader {

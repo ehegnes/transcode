@@ -88,7 +88,7 @@ void AVI_info(avi_t *avifile)
 }
 
 
-int AVI_file_check(char *import_file)
+int AVI_file_check(const char *import_file)
 {
     // check for sane video file
     struct stat fbuf;

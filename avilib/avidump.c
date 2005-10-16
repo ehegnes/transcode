@@ -25,6 +25,7 @@
  *
  */
 
+#include "avilib.h"
 #include "os.h"
 
 #include <stdlib.h>
@@ -830,7 +831,7 @@ static boolean DumpChunk(int fd, off_t filepos, off_t filesize,
 }
 
 
-int AVI_scan(char *file_name)
+int AVI_scan(const char *file_name)
 {
     off_t  filesize;     /* its size                    */
     off_t  filepos;
@@ -870,7 +871,7 @@ int AVI_scan(char *file_name)
 }
 
 
-int AVI_dump(char *file_name, int mode)
+int AVI_dump(const char *file_name, int mode)
 {
     off_t  filesize;     /* its size                    */
     off_t  filepos;
