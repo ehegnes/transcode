@@ -195,14 +195,12 @@ MOD_decode
         break;
       case TC_AUDIO:
         if (oss_grab(param->size, param->buffer)) {
-            tc_tag_warn(MOD_NAME,
-                "error in grabbing audio");,
+            tc_tag_warn(MOD_NAME, "error in grabbing audio");
             ret = TC_IMPORT_ERROR;
         }
         break;
       default:
-        tc_tag_warn(MOD_NAME,
-            "unsupported request (decode)");,
+        tc_tag_warn(MOD_NAME, "unsupported request (decode)");
         ret = TC_IMPORT_ERROR;
         break;
     }
