@@ -77,7 +77,7 @@ extern char *GRAY;
  * occurance if found but not accessible.
  */
 
-int tc_test_program(char *name);
+int tc_test_program(const char *name);
 
 /* guess the frame rate code from the frames per second */
 int tc_guess_frc(double fps);
