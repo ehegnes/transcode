@@ -266,5 +266,6 @@ EXTRA_DIST = \
 	xvid_vbr.h
 
 install-exec-hook:
+	@mkdir -p $(DESTDIR)$(MOD_PATH)
 	@rm -f $(DESTDIR)$(MOD_PATH)/export_xvid.so
 	@$(LN_S) export_$(XVID_DEFAULT).so $(DESTDIR)$(MOD_PATH)/export_xvid.so
