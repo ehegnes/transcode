@@ -1,4 +1,9 @@
 2005-10-16 Andrew Church <achurch at achurch dot org>
+  * export/af6_aux.cpp export/export_af6.cpp import/af6_decore.cpp
+  Fix compilation error with avifile 0.7 (#include <avifile.h>, not
+  <avifile-0.7/avifile.h>).
+
+2005-10-16 Andrew Church <achurch at achurch dot org>
   * avilib/avidump.c avilib/avilib.c avilib/avilib.h avilib/avimisc.c
   Use const in exported function declarations when possible.
 

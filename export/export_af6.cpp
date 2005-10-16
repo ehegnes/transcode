@@ -32,11 +32,11 @@
 
 
 #if HAVE_AVIFILE_INCLUDES == 7
-#  include <avifile-0.7/videoencoder.h>
-#  include <avifile-0.7/audioencoder.h>
-#  include <avifile-0.7/avm_fourcc.h>
-#  include <avifile-0.7/avm_creators.h>
-#  include <avifile-0.7/image.h>
+#  include <videoencoder.h>
+#  include <audioencoder.h>
+#  include <avm_fourcc.h>
+#  include <avm_creators.h>
+#  include <image.h>
 #elif HAVE_AVIFILE_INCLUDES == 0
 #  include <avifile/videoencoder.h>
 #  include <avifile/audioencoder.h>

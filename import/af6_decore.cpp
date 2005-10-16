@@ -34,15 +34,15 @@
 #ifdef HAVE_AVIFILE
 
 #if HAVE_AVIFILE_INCLUDES == 7
-#include <avifile-0.7/avm_fourcc.h>
-#include <avifile-0.7/avifile.h>
-#include <avifile-0.7/image.h>
-#include <avifile-0.7/aviplay.h>
-#include <avifile-0.7/avm_cpuinfo.h>
-#include <avifile-0.7/utils.h>
-#include <avifile-0.7/version.h>
-#include <avifile-0.7/renderer.h>
-#include <avifile-0.7/avm_creators.h>
+#include <avm_fourcc.h>
+#include <avifile.h>
+#include <image.h>
+#include <aviplay.h>
+#include <avm_cpuinfo.h>
+#include <utils.h>
+#include <version.h>
+#include <renderer.h>
+#include <avm_creators.h>
 #elif HAVE_AVIFILE_INCLUDES == 0
 #include <avifile/avm_fourcc.h>
 #include <avifile/avifile.h>
