@@ -21,24 +21,24 @@
 static int yuv420p_copy(uint8_t **src, uint8_t **dest, int width, int height)
 {
     ac_memcpy(dest[0], src[0], width*height);
-    ac_memcpy(dest[1], src[1], width*height/4);
-    ac_memcpy(dest[2], src[2], width*height/4);
+    ac_memcpy(dest[1], src[1], (width/2)*(height/2));
+    ac_memcpy(dest[2], src[2], (width/2)*(height/2));
     return 1;
 }
 
 static int yuv411p_copy(uint8_t **src, uint8_t **dest, int width, int height)
 {
     ac_memcpy(dest[0], src[0], width*height);
-    ac_memcpy(dest[1], src[1], width/4*height);
-    ac_memcpy(dest[2], src[2], width/4*height);
+    ac_memcpy(dest[1], src[1], (width/4)*height);
+    ac_memcpy(dest[2], src[2], (width/4)*height);
     return 1;
 }
 
 static int yuv422p_copy(uint8_t **src, uint8_t **dest, int width, int height)
 {
     ac_memcpy(dest[0], src[0], width*height);
-    ac_memcpy(dest[1], src[1], width*height/2);
-    ac_memcpy(dest[2], src[2], width*height/2);
+    ac_memcpy(dest[1], src[1], (width/2)*height);
+    ac_memcpy(dest[2], src[2], (width/2)*height);
     return 1;
 }
 
