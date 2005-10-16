@@ -58,7 +58,7 @@ return 0; /* not found */
 
 struct frame *install_frame(char *name)
 {
-struct frame *pa, *pnew, *pnext, *lookupframe();
+struct frame *pa, *pnew, *pnext;
 int hashval;
 
 if(debug_flag)
@@ -231,7 +231,7 @@ return 0;
 } /* end function set_end_frame */
 
 
-struct subtitle_fontname *lookup_subtitle_fontname(char *name)
+static struct subtitle_fontname *lookup_subtitle_fontname(char *name)
 {
 struct subtitle_fontname *pa;
 
@@ -244,7 +244,7 @@ return 0; /* not found */
 }/* end function lookup_subtitle_fontname */
 
 
-struct subtitle_fontname *install_subtitle_fontname_at_end_of_list(char *name)
+static struct subtitle_fontname *install_subtitle_fontname_at_end_of_list(char *name)
 {
 struct subtitle_fontname *plast, *pnew;
 
@@ -281,6 +281,7 @@ return(pnew);/* pointer to new structure */
 }/* end function install_subtitle_fontname */
 
 
+#if 0  /* unused --AC */
 int delete_subtitle_fontname(int subtitle_fontnamenr)/* delete entry from double linked list */
 {
 struct subtitle_fontname *pa, *pprev, *pdel, *pnext;
@@ -333,9 +334,11 @@ while(1)
 	return 1;
 	}/* end for all structures */
 }/* end function delete_subtitle_fontname */
+#endif /* 0 */
 
 
-int delete_all_subtitle_fontnames()/* delete all entries from table */
+#if 0  /* unused --AC */
+int delete_all_subtitle_fontnames(void)/* delete all entries from table */
 {
 struct subtitle_fontname *pa;
 
@@ -357,6 +360,7 @@ while(1)
 subtitle_fontnametab[1] = 0;
 return 1;
 }/* end function delete_all_subtitle_fontnames */
+#endif /* 0 */
 
 
 font_desc_t *add_font(\

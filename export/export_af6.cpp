@@ -253,7 +253,7 @@ extern "C" {
       }
     
     if(param->flag == TC_AUDIO) 
-      return(audio_encode(param->buffer, param->size, avifile));
+      return(audio_encode((char *)param->buffer, param->size, avifile));
     
     return(TC_EXPORT_ERROR);
   }

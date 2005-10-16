@@ -105,7 +105,7 @@ struct qt_codec_list qt_param_list[] = {
 
 #ifdef LIBQUICKTIME_000904
 /* from libquicktime */
-int tc_quicktime_get_timescale(double frame_rate)
+static int tc_quicktime_get_timescale(double frame_rate)
 {
 	int timescale = 600;
 	/* Encode the 29.97, 23.976, 59.94 framerates */

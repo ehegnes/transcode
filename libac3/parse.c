@@ -88,7 +88,7 @@ static const struct frmsize_s frmsizecod_tbl[] =
 
 #define fscd_tbl_entries (sizeof(frmsizecod_tbl)/sizeof(frmsize_t))
 
-int get_ac3_header(char *buf) 
+static int get_ac3_header(char *buf) 
 {
   uint_32 i=0, tmp=0;
 

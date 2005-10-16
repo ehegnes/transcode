@@ -77,6 +77,8 @@ static void float2s16 (float * _f, int16_t * s16)
 
 static unsigned char buf[FRAME_SIZE];
 
+int a52_decore(decode_t *decode);  /* avoid a missing-prototype warning */
+
 int a52_decore(decode_t *decode) {
   
   int i, s=0, pcm_size, frame_size;

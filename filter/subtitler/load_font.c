@@ -608,7 +608,7 @@ iconv_t cd;	// iconv conversion descriptor
 #define ALIGN8(x)		(((x)+7)&~7)	// 8 byte align
 
 
-void paste_bitmap(FT_Bitmap *bitmap, int x, int y)
+static void paste_bitmap(FT_Bitmap *bitmap, int x, int y)
 {
 int drow = x + y * width;
 int srow = 0;
@@ -1024,8 +1024,9 @@ return 1;
 
 
 /* decode from 'encoding' to unicode */
-FT_ULong decode_char(char c)
+static FT_ULong decode_char(char c)
 {
+#if 0  /* this code is completely broken (o is never initialized, etc) --AC */
 FT_ULong o;
 /* patch for AMD 64 by Tilmann Bitterberg */
 size_t outbytesleft = sizeof(FT_ULong);
@@ -1040,6 +1041,9 @@ if (outbytesleft != 0) o = 0;
 if (o >= 0x7f && o < 0xa0) o = 0;
 
 return o;
+#else /* 0 */
+return c;
+#endif /* 0 */
 } /* end function decode_char */
 
 

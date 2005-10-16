@@ -153,7 +153,7 @@ static void help_optstr(void)
  *          alpha           weight
  * @return  unsigned char   new pixel value
  *********************************************************/
-unsigned char alpha_blending(unsigned char srcPixel, unsigned char destPixel, int alpha)
+static unsigned char alpha_blending(unsigned char srcPixel, unsigned char destPixel, int alpha)
 {
   return ( ( ( alpha * ( srcPixel - destPixel ) ) >> 8 ) + destPixel );
 }
@@ -169,7 +169,7 @@ unsigned char alpha_blending(unsigned char srcPixel, unsigned char destPixel, in
  *          instance    filter instance
  * @return  void        nothing
  *********************************************************/
-void work_with_rgb_frame(char *buffer, int width, int height, int instance)
+static void work_with_rgb_frame(char *buffer, int width, int height, int instance)
 {
   int row, col, i;
   int xdistance, ydistance, distance_west, distance_north;
@@ -359,7 +359,7 @@ void work_with_rgb_frame(char *buffer, int width, int height, int instance)
  *          instance    filter instance
  * @return  void        nothing
  *********************************************************/
-void work_with_yuv_frame(char *buffer, int width, int height, int instance)
+static void work_with_yuv_frame(char *buffer, int width, int height, int instance)
 {
   int row, col, i;
   int craddr, cbaddr;

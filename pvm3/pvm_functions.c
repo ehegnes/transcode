@@ -47,7 +47,7 @@ void f_pvm_stop_single_process(int s_slave_tid)
 		pvm_kill(s_slave_tid);
 }
 
-int f_pvm_send_all(int s_buff_size,char *p_buffer,int s_option,pvm_func_t *p_func,int s_type,int s_pos_tids)
+static int f_pvm_send_all(int s_buff_size,char *p_buffer,int s_option,pvm_func_t *p_func,int s_type,int s_pos_tids)
 {
 	static int s_seq=-1;
 
@@ -86,7 +86,7 @@ int f_pvm_send(int s_buff_size,char *p_buffer,int s_option,int s_pos_tids,pvm_fu
 	return(f_pvm_send_all(s_buff_size,p_buffer,s_option,p_func,-1,s_pos_tids));
 }
 
-int f_pvm_multi_send_all(int s_buff_size,char *p_buffer,int s_option,pvm_func_t *p_func,int s_wait)
+static int f_pvm_multi_send_all(int s_buff_size,char *p_buffer,int s_option,pvm_func_t *p_func,int s_wait)
 {
 	static int s_seq=-1;
 	int s_rec_seq,s_rc;
@@ -135,7 +135,7 @@ int f_pvm_multi_send(int s_buff_size,char *p_buffer,int s_option,pvm_func_t *p_f
 	return(f_pvm_multi_send_all(s_buff_size,p_buffer,s_option,p_func,1));
 }
 
-int f_pvm_nrecv_check(int *p_buff_size,char *p_buffer,int s_init_seq,int *s_rc)
+static int f_pvm_nrecv_check(int *p_buff_size,char *p_buffer,int s_init_seq,int *s_rc)
 {
 	static int s_seq_rec=0;
 	int s_tmp,s_bs,s_rc_int;
@@ -173,7 +173,7 @@ int f_pvm_set_nrecv(int s_seq)
 	return(f_pvm_nrecv_check(NULL,NULL,s_seq,&s_rc));
 }
 
-int f_pvm_recv_check(int *p_buff_size,char *p_buffer,int s_init_seq,int *s_rc)
+static int f_pvm_recv_check(int *p_buff_size,char *p_buffer,int s_init_seq,int *s_rc)
 {
 	static int s_seq_rec=0;
 	int s_tmp,s_bs,s_rc_int;

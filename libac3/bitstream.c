@@ -95,7 +95,7 @@ bitstream_buffer_frame(uint_32 frame_size)
 
 
 static inline void
-bitstream_fill_current()
+bitstream_fill_current(void)
 {
 	uint_32 tmp;
 	tmp = *(buffer_start)++;

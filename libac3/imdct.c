@@ -142,7 +142,7 @@ static inline void swap_cmplx(complex_t *a, complex_t *b)
 
 
 
-float float_mult (float a, float b)
+static float float_mult (float a, float b)
 {
     return (a*b);
 }

@@ -67,11 +67,11 @@ extern pthread_mutex_t capture_lock;
 extern int capture;
 
 void capture_set_status(int flag, int mode);
-int capture_get_status();
+int capture_get_status(void);
 
 extern int frame_count;
 int grab_count;
 
-void grab_stop();
+void grab_stop(void);
 
 #endif

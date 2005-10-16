@@ -65,7 +65,7 @@ static size_t p_write (int fd, char *buf, size_t len)
 }
 #endif
 
-void vlisten() 
+static void vlisten(void)
 {
     
   struct sockaddr_in fsin;  
@@ -90,7 +90,7 @@ void vlisten()
   return;
 }
 
-void alisten() 
+static void alisten(void)
 {
     
   struct sockaddr fsin;  

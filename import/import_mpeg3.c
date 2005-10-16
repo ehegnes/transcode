@@ -121,9 +121,11 @@ MOD_open
       int a_rate, a_chan;
       long a_samp;
 
+#if 0  /* this function no longer exists in libmpeg3 --AC */
 #ifdef ARCH_X86  /* until otherwise confirmed to work elsewhere */
 #ifdef HAVE_MMX
       mpeg3_set_mmx(file_a, 1);
+#endif
 #endif
 #endif
       mpeg3_set_cpus(file_a,1);
@@ -184,9 +186,11 @@ MOD_open
 
     if(!mpeg3_check_sig(vob->video_in_file)) return(TC_IMPORT_ERROR);
 
+#if 0  /* this function no longer exists in libmpeg3 --AC */
 #ifdef ARCH_X86  /* until otherwise confirmed to work elsewhere */
 #ifdef HAVE_MMX
     mpeg3_set_mmx(file, 1);
+#endif
 #endif
 #endif
     mpeg3_set_cpus(file,1);

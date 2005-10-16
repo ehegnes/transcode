@@ -108,7 +108,7 @@ int audio_grab_frame(char *buffer, int bytes)
 
 }
 
-void audio_grab_close(do_audio)
+void audio_grab_close(int do_audio)
 {
 
   if(do_audio) sound_startrec(0);

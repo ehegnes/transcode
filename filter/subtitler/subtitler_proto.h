@@ -5,9 +5,9 @@ extern font_desc_t *add_font(\
 //extern void paste_bitmap(FT_Bitmap *bitmap, int x, int y);
 extern void write_header(FILE *f);
 extern int write_bitmap(void *buffer, char type);
-extern int render();
+extern int render(void);
 //extern FT_ULong decode_char(char c);
-extern int prepare_charset();
+extern int prepare_charset(void);
 extern void outline(unsigned char *s, unsigned char *t, int width, int height, int *m, int r, int mwidth);
 extern void outline1(unsigned char *s, unsigned char *t, int width, int height);
 extern void blur(
@@ -36,7 +36,7 @@ extern char *change_picture_geometry(\
 	int keep_aspect,\
 	double zrotation,\
 	double xshear, double yshear);
-extern int sort_objects_by_zaxis();
+extern int sort_objects_by_zaxis(void);
 extern char *ppm_to_yuv_in_char(char *pathfilename, int *xsize, int *ysize);
 extern int get_h_pixels(int c, font_desc_t *pfd);
 extern char *p_reformat_text(char *text, int max_pixels, font_desc_t *pfd);
@@ -54,13 +54,13 @@ extern void draw_alpha(\
 	int w, int h,\
 	uint8_t *src, uint8_t *srca, int stride, int u, int v,\
 	double contrast, double transparency, int is_space);
-extern int print_options();
+extern int print_options(void);
 extern int hash(char *s);
 extern char *strsave(char *s);
 extern int readline(FILE *file, char *contents);
 extern struct frame *lookup_frame(char *name);
 extern struct frame *install_frame(char *name);
-extern int delete_all_frames();
+extern int delete_all_frames(void);
 extern int add_frame(\
 	char *name, char *data, int object_type,\
 	int xsize, int ysize, int zsize, int id);
@@ -76,7 +76,7 @@ extern int read_in_ppml_file(FILE *finptr);
 extern struct object *lookup_object(char *name);
 extern struct object *install_object_at_end_of_list(char *name);
 extern int delete_object(char *name);
-extern int delete_all_objects();
+extern int delete_all_objects(void);
 extern int set_object_status(int start_frame_nr, int status);
 extern int get_object_status(int start_frame_nr, int *status);
 extern struct object *add_subtitle_object(\
@@ -88,5 +88,14 @@ extern void putimage(int xsize, int ysize);
 extern int openwin(int argc, char *argv[], int xsize, int ysize);
 extern unsigned char *getbuf(void);
 extern void closewin(void);
-extern int get_x11_bpp();
+extern int get_x11_bpp(void);
 extern int resize_window(int xsize, int ysize);
+
+extern int add_background(struct object *pa);
+extern int add_objects(int);
+extern int add_picture(struct object *pa);
+extern int execute(char *);
+extern int parse_frame_entry(struct frame *pa);
+extern int readline_ppml(FILE *, char *);
+extern int set_end_frame(int, int);
+extern int swap_position(struct object *ptop, struct object *pbottom);

@@ -25,6 +25,7 @@
 #include <string.h>
 #include "ac3.h"
 #include "ac3_internal.h"
+#include "bit_allocate.h"
 
 
 

@@ -214,7 +214,7 @@ int f_copy_remove_func(char *p_option,char *p_file,int s_file_dest)
 	return(0);
 }
 
-int f_internal_multipass(vob_t *p_vob,int s_size,int s_elab_type,transfer_t *p_export_param,char *p_input_stream)
+static int f_internal_multipass(vob_t *p_vob,int s_size,int s_elab_type,transfer_t *p_export_param,char *p_input_stream)
 {
 
 	int s_file_dest,s_tmp;

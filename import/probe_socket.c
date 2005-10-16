@@ -28,7 +28,7 @@
 
 static vob_t *ivob;
 
-vob_t *probe_host(char *server)
+static vob_t *probe_host(char *server)
 {
 
   struct sockaddr_in sin;

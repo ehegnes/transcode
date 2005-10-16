@@ -74,7 +74,7 @@ int binary_dump = 1;		//force to use the binary dump in probe_xml
 
 
 
-int f_complete_vob_info(vob_t *p_vob,int s_type_check)
+static int f_complete_vob_info(vob_t *p_vob,int s_type_check)
 {
 	audiovideo_t s_audiovideo;
 	int s_rc;

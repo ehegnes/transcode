@@ -40,17 +40,17 @@ extern struct rtfileheader rtjpeg_vid_fileheader;
 
 
 int            rtjpeg_vid_open(char *tplorg);
-int            rtjpeg_vid_close();
-int            rtjpeg_vid_get_video_width();
-int            rtjpeg_vid_get_video_height();
-double         rtjpeg_vid_get_video_frame_rate();
-// unsigned char *rtjpeg_vid_get_frame();
+int            rtjpeg_vid_close(void);
+int            rtjpeg_vid_get_video_width(void);
+int            rtjpeg_vid_get_video_height(void);
+double         rtjpeg_vid_get_video_frame_rate(void);
+// unsigned char *rtjpeg_vid_get_frame(void);
 unsigned char *rtjpeg_vid_get_frame(int fakenumber, int *timecode, int onlyvideo,
                                 unsigned char **audiodata, int *alen);
 
 //unsigned char *rtjpeg_vid_get_frame(int fakenumber, struct rtframeheader **fhp,
 //                                int onlyvideo, int *audiolen);
 
-int            rtjpeg_vid_end_of_video();
+int            rtjpeg_vid_end_of_video(void);
 int            rtjpeg_vid_check_sig(char *fname);
 

@@ -33,6 +33,7 @@
 #define TC_VIDEO_AUDIO		0x01000000
 #define TC_MULTI_VIDEO_AUDIO	0x10000000
 
+int f_init_func(char *p_option,char *p_mod);
 pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq);
 int f_copy_remove_func(char *p_option,char *p_file,int s_file_dest);
 int f_system_merge(pvm_config_env *p_pvm_conf);

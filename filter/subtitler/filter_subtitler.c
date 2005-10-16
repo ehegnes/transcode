@@ -2039,7 +2039,7 @@ return 1;
 } /* end function add_background */
 
 
-int print_options()
+int print_options(void)
 {
 if(debug_flag)
 	{

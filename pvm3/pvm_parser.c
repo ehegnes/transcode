@@ -38,7 +38,7 @@ extern int verbose;
 #define SYSTEMLIST_MASK		0x00100000
 
 
-char *f_skip_space(char *p_value,char *p_default)
+static char *f_skip_space(char *p_value,char *p_default)
 {
 	char *p_tmp;
 

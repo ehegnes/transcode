@@ -281,7 +281,7 @@ int rtjpeg_vid_open(char *tplorg)
 /* seeks to native frames only!!!!                   */
 /* ------------------------------------------------- */
 
-int rtjpeg_vid_seekto_keyframe_before(int number) 
+static int rtjpeg_vid_seekto_keyframe_before(int number) 
 {
   int  startpos, pos;
   int  curnum=2000000000;
@@ -381,7 +381,7 @@ int rtjpeg_vid_seekto_keyframe_before(int number)
 
 /* ------------------------------------------------- */
 
-unsigned char *decode_vid_frame(struct rtframeheader *frameheader,unsigned char *strm)
+static unsigned char *decode_vid_frame(struct rtframeheader *frameheader,unsigned char *strm)
 {
   int r;
   int keyframe;

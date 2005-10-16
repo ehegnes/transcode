@@ -424,8 +424,8 @@ static void v4l2_parse_options(const char * options_in)
  * V4L2 CORE
  * ============================================================*/
 
-int v4l2_video_init(int layout, const char * device, int width, int height, int fps,
-		const char * options)
+static int v4l2_video_init(int layout, const char * device, int width,
+			   int height, int fps, const char * options)
 {
 	int ix, found;
 	v4l2_format_convert_table_t * fcp;
@@ -830,7 +830,7 @@ int v4l2_video_init(int layout, const char * device, int width, int height, int 
 	return(0);
 }
 
-int	v4l2_video_get_frame(size_t size, char * data)
+static int v4l2_video_get_frame(size_t size, char * data)
 {
 	int buffers_filled = 0;
 	int dummy;
@@ -920,7 +920,7 @@ int	v4l2_video_get_frame(size_t size, char * data)
 	return(0);
 }
 
-int v4l2_video_grab_stop(void)
+static int v4l2_video_grab_stop(void)
 {
 	int dummy, ix;
 
@@ -947,7 +947,8 @@ int v4l2_video_grab_stop(void)
 	return(0);
 }
 
-int v4l2_audio_init(const char * device, int rate, int bits, int channels)
+static int v4l2_audio_init(const char * device, int rate, int bits,
+			   int channels)
 {
 	int tmp;
 
@@ -1016,7 +1017,7 @@ int v4l2_audio_init(const char * device, int rate, int bits, int channels)
 	return(0);
 }
 
-int v4l2_audio_grab_frame(size_t size, char * buffer)
+static int v4l2_audio_grab_frame(size_t size, char * buffer)
 {
 	int left;
 	int offset;
@@ -1055,7 +1056,7 @@ int v4l2_audio_grab_frame(size_t size, char * buffer)
 	return(0);
 }
 
-int v4l2_audio_grab_stop(void)
+static int v4l2_audio_grab_stop(void)
 {
 	close(v4l2_audio_fd);
 

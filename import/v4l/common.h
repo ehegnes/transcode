@@ -29,10 +29,10 @@
 #define FRAME_ALL    65536
 
 //get rescaled frame parameters or global parameter infos
-unsigned int get_width();
-unsigned int get_height();
-unsigned int get_pipe_mode();
-unsigned int get_decode_ahead();
+unsigned int get_width(void);
+unsigned int get_height(void);
+unsigned int get_pipe_mode(void);
+unsigned int get_decode_ahead(void);
 
 #define MOV_T  144737919
 #define AVI_T 1179011410
@@ -57,7 +57,7 @@ extern long int v_startsec, v_startusec;
 
 extern int v_source;
 
-double v4l_counter_init();
+double v4l_counter_init(void);
 void v4l_counter_print(char *s, long _n, double ini, double *last);
 
 #endif

@@ -61,7 +61,7 @@ static char *p_par1=NULL,*p_par2=NULL;
 
 extern pthread_mutex_t s_channel_lock;
 
-void adjust_ch(char *line, char ch)
+static void adjust_ch(char *line, char ch)
 {
   char *src = &line[strlen(line)];
   char *dst = line;
@@ -84,7 +84,7 @@ void adjust_ch(char *line, char ch)
   *dst = '\0';
 }
 
-void f_pvm_balancer(char *p_option,pvm_func_t *p_func,int s_seq,int s_type)
+static void f_pvm_balancer(char *p_option,pvm_func_t *p_func,int s_seq,int s_type)
 {
 	int s_cont,s_dummy,s_dummy1,s_rc;
 
@@ -147,7 +147,7 @@ void f_pvm_balancer(char *p_option,pvm_func_t *p_func,int s_seq,int s_type)
 	}
 }
 
-void f_help()
+static void f_help(void)
 {
 	tc_tag_info(MOD_NAME, "%s",MOD_VERSION);
 	tc_tag_info(MOD_NAME, "  -F configfile,[[nproc]:[maxproc]:[nfrxtask]]");
@@ -644,7 +644,7 @@ MOD_init
 		{
 			if (verbose_flag & TC_DEBUG)
 				tc_tag_info(MOD_NAME, "enter in preinit msg");
-			for(s_cont=0;s_cont<p_pvm_fun->s_nproc;s_cont=s_cont++)
+			for(s_cont=0;s_cont<p_pvm_fun->s_nproc;s_cont++)
 			{
 				if(f_pvm_send(sizeof(int),(char *)&s_cont,PVM_EXP_OPT_PREINIT,s_cont,p_pvm_fun)==-1)
 				{

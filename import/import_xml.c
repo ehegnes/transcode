@@ -57,7 +57,7 @@ int binary_dump=1;		//force the use of binary dump to create the correct XML tre
 
 
 
-int f_af6_sync(FILE *s_fd,char s_type)
+static int f_af6_sync(FILE *s_fd,char s_type)
 {
 	int s_skip;
 	char s_buffer;
@@ -104,7 +104,7 @@ int f_af6_sync(FILE *s_fd,char s_type)
 }
 
 
-int f_dim_check(audiovideo_t *p_temp,int *s_new_height,int *s_new_width)
+static int f_dim_check(audiovideo_t *p_temp,int *s_new_height,int *s_new_width)
 {
 	int s_rc;
 	
@@ -126,7 +126,7 @@ int f_dim_check(audiovideo_t *p_temp,int *s_new_height,int *s_new_width)
 	return(s_rc);
 }
 
-int f_calc_frame_size(audiovideo_t *p_temp,int s_codec)
+static int f_calc_frame_size(audiovideo_t *p_temp,int s_codec)
 {
 	int s_new_height,s_new_width;
 	
@@ -146,7 +146,7 @@ int f_calc_frame_size(audiovideo_t *p_temp,int s_codec)
 }
 
 
-video_filter_t *f_video_filter(char *p_filter)
+static video_filter_t *f_video_filter(char *p_filter)
 {
 	static video_filter_t s_v_filter;
 
@@ -205,7 +205,7 @@ video_filter_t *f_video_filter(char *p_filter)
 
 }
 
-void f_mod_video_frame(transfer_t *param,audiovideo_t *p_temp,int s_codec,int s_cleanup)
+static void f_mod_video_frame(transfer_t *param,audiovideo_t *p_temp,int s_codec,int s_cleanup)
 {
 	static pixel_t *p_pixel_tmp=NULL;
 	int s_new_height,s_new_width;

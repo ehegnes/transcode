@@ -144,10 +144,7 @@ static LONG SrcEX(P2(resample_t r, LONG Nx));
 /*
  * Process options
  */
-int st_resample_getopts(effp, n, argv) 
-eff_t effp;
-int n;
-char **argv;
+static int st_resample_getopts(eff_t effp, int n, char **argv) 
 {
 	resample_t r = (resample_t) effp->priv;
 
@@ -205,8 +202,7 @@ char **argv;
 /*
  * Prepare processing.
  */
-int st_resample_start(effp)
-eff_t effp;
+static int st_resample_start(eff_t effp)
 {
 	resample_t r = (resample_t) effp->priv;
 	LONG Xoff, gcdrate;
@@ -300,10 +296,8 @@ eff_t effp;
  * Return number of samples processed.
  */
 
-int st_resample_flow(effp, ibuf, obuf, isamp, osamp)
-eff_t effp;
-LONG *ibuf, *obuf;
-LONG *isamp, *osamp;
+static int st_resample_flow(eff_t effp, LONG *ibuf, LONG *obuf, LONG *isamp,
+			    LONG *osamp)
 {
 	resample_t r = (resample_t) effp->priv;
 	LONG i, last, Nout, Nx, Nproc;
@@ -403,10 +397,7 @@ LONG *isamp, *osamp;
 /*
  * Process tail of input samples.
  */
-int st_resample_drain(effp, obuf, osamp)
-eff_t effp;
-LONG *obuf;
-LONG *osamp;
+static int st_resample_drain(eff_t effp, LONG *obuf, LONG *osamp)
 {
 	resample_t r = (resample_t) effp->priv;
 	LONG isamp_res, *Obuf, osamp_res;
@@ -442,8 +433,7 @@ LONG *osamp;
  * Do anything required when you stop reading samples.  
  * Don't close input file! 
  */
-int st_resample_stop(effp)
-eff_t effp;
+static int st_resample_stop(eff_t effp)
 {
 	resample_t r = (resample_t) effp->priv;
 	
@@ -455,10 +445,8 @@ eff_t effp;
 
 /* over 90% of CPU time spent in this iprodUD() function */
 /* quadratic interpolation */
-static double qprodUD(Imp, Xp, Inc, T0, dhb, ct)
-const Float Imp[], *Xp;
-LONG Inc, dhb, ct;
-double T0;
+static double qprodUD(const Float *Imp, const Float *Xp, LONG Inc, double T0,
+		      LONG dhb, LONG ct)
 {
   const double f = 1.0/(1<<La);
   double v;
@@ -489,10 +477,8 @@ double T0;
 }
 
 /* linear interpolation */
-static double iprodUD(Imp, Xp, Inc, T0, dhb, ct)
-const Float Imp[], *Xp;
-LONG Inc, dhb, ct;
-double T0;
+static double iprodUD(const Float *Imp, const Float *Xp, LONG Inc, double T0,
+		      LONG dhb, LONG ct)
 {
   const double f = 1.0/(1<<La);
   double v;
@@ -519,15 +505,14 @@ double T0;
 /* From resample:filters.c */
 /* Sampling rate conversion subroutine */
 
-static LONG SrcUD(r, Nx)
-resample_t r;
-LONG Nx;
+static LONG SrcUD(resample_t r, LONG Nx)
 {
    Float *Ystart, *Y;
    double Factor;
    double dt;                  /* Step through input signal */
    double time;
-   double (*prodUD)();
+   double (*prodUD)(const Float *Imp, const Float *Xp, LONG Inc, double T0,
+		    LONG dhb, LONG ct);
    int n;
 
    prodUD = (r->quadr)? qprodUD:iprodUD; /* quadratic or linear interp */
@@ -566,9 +551,8 @@ LONG Nx;
 }
 
 /* exact coeff's */
-static double prodEX(Imp, Xp, Inc, T0, dhb, ct)
-const Float Imp[], *Xp;
-LONG Inc, T0, dhb, ct;
+static double prodEX(const Float *Imp, const Float *Xp, LONG Inc, LONG T0,
+		     LONG dhb, LONG ct)
 {
   double v;
   const Float *Cp;
@@ -584,9 +568,7 @@ LONG Inc, T0, dhb, ct;
   return v;
 }
 
-static LONG SrcEX(r, Nx)
-resample_t r;
-LONG Nx;
+static LONG SrcEX(resample_t r, LONG Nx)
 {
    Float *Ystart, *Y;
    double Factor;
@@ -621,11 +603,8 @@ LONG Nx;
    return (Y - Ystart);        /* Return the number of output samples */
 }
 
-int makeFilter(Imp, Nwing, Froll, Beta, Num, Normalize)
-Float Imp[];
-LONG Nwing, Num;
-int Normalize;    /* non-zero to normalize DCGain of filter */
-double Froll, Beta;
+int makeFilter(Float *Imp, LONG Nwing, double Froll, double Beta, LONG Num,
+	       int Normalize /* non-zero to normalize DCGain of filter */)
 {
    double *ImpR;
    LONG Mwing, i;
@@ -712,8 +691,7 @@ double Froll, Beta;
 
 #define IzeroEPSILON 1E-21               /* Max error acceptable in Izero */
 
-static double Izero(x)
-double x;
+static double Izero(double x)
 {
    double sum, u, halfx, temp;
    LONG n;
@@ -730,9 +708,7 @@ double x;
    return(sum);
 }
 
-static void LpFilter(c,N,frq,Beta,Num)
-double c[], frq, Beta;
-LONG N, Num;
+static void LpFilter(double *c, LONG N, double frq, double Beta, LONG Num)
 {
    LONG i;
 
@@ -759,6 +735,11 @@ LONG N, Num;
       }
    }
 }
+
+/*************************************************************************/
+/*************************************************************************/
+
+#include "resample.h"
 
 #define MY_BUFSIZE 50000
 
@@ -867,7 +848,7 @@ int resample_flow(char *flowi, int isamp, char *flowo)
 	short *wordp, *iword, *oword;
 	LONG irbuf[MY_BUFSIZE/2];
 	LONG ilbuf[MY_BUFSIZE/2];
-	int osamp, osampdef, i;
+	LONG isamp_LONG = isamp, osamp, osampdef, i;
 	
 	iword=(short *)flowi;
 	oword=(short *)flowo;
@@ -878,9 +859,9 @@ int resample_flow(char *flowi, int isamp, char *flowo)
 		ilbuf[i]=(((LONG)wordp[i*2+1])<<16);
 	}
 	osamp=osampdef;
-	st_resample_flow(reffp, &irbuf, reffp->obuf, &isamp, &osamp);
+	st_resample_flow(reffp, irbuf, reffp->obuf, &isamp_LONG, &osamp);
 	osamp=osampdef;
-	st_resample_flow(leffp, &ilbuf, leffp->obuf, &isamp, &osamp);
+	st_resample_flow(leffp, ilbuf, leffp->obuf, &isamp_LONG, &osamp);
 	wordp=oword;
 	for (i=0; i<osamp; i++) {
 		wordp[i*2]=(int)(reffp->obuf[i]>>16);
@@ -895,10 +876,12 @@ int resample_stop(char *stopo)
 //	short *wordp, *iword, *oword;
 //	LONG irbuf[MY_BUFSIZE/2];
 //	LONG ilbuf[MY_BUFSIZE/2];
-	int osamp, i;
+	LONG osamp, i;
 	
 	oword=(short *)stopo;
+	osamp=reffp->outinfo.rate>>2;
 	st_resample_drain(reffp, reffp->obuf, &osamp);
+	osamp=reffp->outinfo.rate>>2;
 	st_resample_drain(leffp, leffp->obuf, &osamp);
 	wordp=oword;
 	for (i=0; i<osamp; i++) {

@@ -77,6 +77,6 @@ struct fgdevice {
   unsigned char  *rgb565_to_y8;
 };
 
-extern int counter_get_range();
+extern int counter_get_range(void);
 
 #endif

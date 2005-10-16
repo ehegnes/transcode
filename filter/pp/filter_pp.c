@@ -86,7 +86,7 @@ static void optstr_help (void)
 }
 
 
-void do_getconfig(char *opts)
+static void do_getconfig(char *opts)
 {
 
     optstr_filter_desc (opts, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYMOE", "1");
@@ -127,7 +127,7 @@ static int no_optstr (char *s)
   return (result<=0)?0:1;
 }
 
-void do_optstr(char *opts)
+static void do_optstr(char *opts)
 {
     opts++;
 

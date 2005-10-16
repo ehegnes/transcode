@@ -120,7 +120,7 @@ static void help_optstr(void)
    printf ("        'tstamp' add timestamp to each frame (overrides string)\n");
 }
 
-static void font_render(int width, int height, int size, int codec, int w, int h, int i, char *p, char *q, char *buf)
+static void font_render(int width, int height, int size, int codec, int w, int h, int i, uint8_t *p, uint8_t *q, uint8_t *buf)
 {
     int error;
 
@@ -215,8 +215,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
   static time_t mytime=0;
   static int hh, mm, ss, ss_frame;
   static float elapsed_ss;
-  static char *buf = NULL;
-  static char *p, *q;
+  static uint8_t *buf = NULL;
+  static uint8_t *p, *q;
   char *default_font = "/usr/X11R6/lib/X11/fonts/TrueType/arial.ttf";
   extern int flip; // transcode.c
   
@@ -305,10 +305,6 @@ int tc_filter(frame_list_t *ptr_, char *options)
     mfd->top_space = 0;
     mfd->boundX=0;
     mfd->boundY=0;
-    mfd->flip = flip;
-
-    //if the user wants flipping, do it here in this filter
-    if (mfd->flip) flip=TC_FALSE;
 
     mfd->R = mfd->B = mfd->G = 0xff; // white
     mfd->Y = 240; mfd->U = mfd->V = 128;
@@ -396,7 +392,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     else 
       size = width*3/2;
 
-    if((buf = (char *)malloc (height*size)) == NULL) return (-1);
+    if((buf = (uint8_t *)malloc (height*size)) == NULL) return (-1);
 
     if (codec == CODEC_RGB)
 	memset (buf, 0, height*size);
@@ -585,18 +581,29 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 
 	if (codec == CODEC_YUV) {
-	    char *U, *V;
+	    uint8_t *vbuf, *U, *V;
+	    int Bpl;
 
-	    p = ptr->video_buf + mfd->posy*width + mfd->posx;
-	    q =            buf + mfd->posy*width + mfd->posx;
-	    U = ptr->video_buf + mfd->posy/2*width/2 + mfd->posx/2 +  ptr->v_width*ptr->v_height;
-	    V = U + ptr->v_width*ptr->v_height/4;
+	    if (flip) {
+		vbuf = ptr->video_buf + (height-1)*width;
+		Bpl = (-height);
+		U = ptr->video_buf + ptr->v_width*ptr->v_height
+		                   + ((height/2)-1)*(width/2);
+	    } else {
+		vbuf = ptr->video_buf;
+		Bpl = height;
+		U = ptr->video_buf + ptr->v_width*ptr->v_height;
+	    }
+	    p = vbuf + mfd->posy*Bpl   + mfd->posx;
+	    q =  buf + mfd->posy*width + mfd->posx;
+	    U = U + (mfd->posy/2)*(Bpl/2) + mfd->posx/2;
+	    V = U + (ptr->v_width/2)*(ptr->v_height/2);
 
 	    for (h=0; h<mfd->boundY; h++) {
 		for (w=0; w<mfd->boundX; w++)  {
 
 		    unsigned int c = q[h*width+w]&0xff;
-		    unsigned int d = p[h*width+w]&0xff;
+		    unsigned int d = p[h*Bpl+w]&0xff;
 		    unsigned int e = 0;
 		    
 		    // transparency
@@ -609,16 +616,26 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		    // write to image
 		    p[h*width+w] = e&0xff;
 
-		    U[h/2*width/2+w/2] = mfd->U&0xff;
-		    V[h/2*width/2+w/2] = mfd->V&0xff;
+		    U[(h/2)*(Bpl/2)+w/2] = mfd->U&0xff;
+		    V[(h/2)*(Bpl/2)+w/2] = mfd->V&0xff;
 		}
 	    }
 
 
 	} else if (codec == CODEC_RGB) { // FIXME
+	    uint8_t *vbuf;
+	    int Bpl;
 
-	    p = ptr->video_buf + 3*(height-mfd->posy)*width + 3*mfd->posx;
-	    q =            buf + 3*(height-mfd->posy)*width + 3*mfd->posx;
+	    if (flip) {
+		vbuf = ptr->video_buf + (height-1)*width*3;
+		Bpl = (-height)*3;
+	    } else {
+		vbuf = ptr->video_buf;
+		Bpl = height*3;
+	    }
+
+	    p = vbuf +   (height-mfd->posy)*Bpl   + 3*mfd->posx;
+	    q =  buf + 3*(height-mfd->posy)*width + 3*mfd->posx;
 
 	    //ac_memcpy(ptr->video_buf, buf, 3*width*height);
 
@@ -626,7 +643,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		for (w=0; w<mfd->boundX; w++)  {
 		    for (i=0; i<3; i++) {
 			unsigned int c = q[3*(h*width+w)-(2-i)]&0xff;
-			unsigned int d = p[3*(h*width+w)-(2-i)]&0xff;
+			unsigned int d = p[3*(h*Bpl+w)-(2-i)]&0xff;
 			unsigned int e;
 			if (mfd->transparent && c <= 16) continue;
 		
@@ -656,25 +673,6 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    mfd->opaque += mfd->fade;
 	    if (mfd->opaque>MAX_OPACITY) mfd->opaque=MAX_OPACITY;
 	}
-
-	if (mfd->flip) {
-	    switch (codec) {
-#warning ******************** FIXME ************************** these functions are no longer available
-		case CODEC_RGB:
-		    rgb_flip(ptr->video_buf, ptr->v_width, ptr->v_height);
-		    break;
-		case CODEC_YUV:
-		    yuv_flip(ptr->video_buf, ptr->v_width, ptr->v_height);
-		    break;
-		case CODEC_YUV422:
-		    yuv422_flip(ptr->video_buf, ptr->v_width, ptr->v_height);
-		    break;
-		default:
-		    printf("unsupported\n");
-		    break;
-	    }
-	}
-
 
     }
   }

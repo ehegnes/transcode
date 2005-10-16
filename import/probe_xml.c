@@ -35,7 +35,7 @@
 extern int binary_dump;
 
 
-int f_check_video_H_W(audiovideo_t *p_audio_video)
+static int f_check_video_H_W(audiovideo_t *p_audio_video)
 {
 	audiovideo_t *p_temp;
 	int s_rc=0,s_video_tg_height=0,s_video_tg_width=0,s_v_height=0,s_v_width=0;
@@ -54,7 +54,7 @@ int f_check_video_H_W(audiovideo_t *p_audio_video)
 			s_video_tg_height=p_temp->s_v_tg_height;
 		else if (p_temp->s_v_tg_height != 0)
 		{
-			if (p_temp->s_v_tg_height != s_video_tg_height==0)
+			if (p_temp->s_v_tg_height != s_video_tg_height)
 			{
 				fprintf(stderr,"(%s) Warning: setting target height to %d (the target must be the same for all statements)\n",__FILE__,s_video_tg_height);
 				p_temp->s_v_tg_height=s_video_tg_height;
@@ -64,7 +64,7 @@ int f_check_video_H_W(audiovideo_t *p_audio_video)
 			s_video_tg_width=p_temp->s_v_tg_width;
 		else if (p_temp->s_v_tg_width != 0)
 		{
-			if (p_temp->s_v_tg_width != s_video_tg_width==0)
+			if (p_temp->s_v_tg_width != s_video_tg_width)
 			{
 				fprintf(stderr,"(%s) Warning: setting target width to %d (the target must be the same for all statements)\n",__FILE__,s_video_tg_width);
 				p_temp->s_v_tg_width=s_video_tg_width;
@@ -99,7 +99,7 @@ int f_check_video_H_W(audiovideo_t *p_audio_video)
 	return(0);
 }
 
-void f_det_totale_video_frame(audiovideo_t *p_audio_video)
+static void f_det_totale_video_frame(audiovideo_t *p_audio_video)
 {
 	if ((p_audio_video->s_video_smpte==smpte)||(p_audio_video->s_video_smpte==smpte25))
 		p_audio_video->s_fps=25.00;
@@ -109,7 +109,7 @@ void f_det_totale_video_frame(audiovideo_t *p_audio_video)
 	p_audio_video->s_end_video+=(long)p_audio_video->s_end_v_time * p_audio_video->s_fps;
 }
 
-void f_det_totale_audio_frame(audiovideo_t *p_audio_video)
+static void f_det_totale_audio_frame(audiovideo_t *p_audio_video)
 {
 	if ((p_audio_video->s_audio_smpte==smpte)||(p_audio_video->s_audio_smpte==smpte25))
 		p_audio_video->s_fps=25.00;
@@ -120,7 +120,7 @@ void f_det_totale_audio_frame(audiovideo_t *p_audio_video)
 }
 
 
-int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_first_audio,probe_info_t *p_first_video,long *s_tot_frames_audio, long *s_tot_frames_video)
+static int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_first_audio,probe_info_t *p_first_video,long *s_tot_frames_audio, long *s_tot_frames_video)
 {
 	audiovideo_t	*p_audio_video;
 	char	s_probe_cmd_buf[MAX_BUF+1];

@@ -27,6 +27,7 @@
 #include "transcode.h"
 #include "aclib/imgconvert.h"
 #include "aud_aux.h"
+#include "vid_aux.h"
 #include "ioaux.h"
 
 #define MOD_NAME    "export_yuv4mpeg.so"

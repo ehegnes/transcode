@@ -53,7 +53,7 @@ int frame =0;
 static FILE *logfileout;
 static FILE *logfilein;
 
-int read_stats(fame_frame_statistics_t *stats)
+static int read_stats(fame_frame_statistics_t *stats)
 {
   fscanf(logfilein, "Frame: %d coding %c target %d actual %d activity %d quant %d\n",
 	 &stats->frame_number,
@@ -68,7 +68,7 @@ int read_stats(fame_frame_statistics_t *stats)
 
 
 
-void print_stats(fame_frame_statistics_t *stats)
+static void print_stats(fame_frame_statistics_t *stats)
 {
   fprintf(logfileout, "Frame: %6d coding %c target %7d actual %7d activity %8d quant %2d\n",
 	 stats->frame_number,
@@ -81,7 +81,7 @@ void print_stats(fame_frame_statistics_t *stats)
 
 
 
-int split_write(int fd, unsigned char *buffer, unsigned int size)
+static int split_write(int fd, unsigned char *buffer, unsigned int size)
 {
     fd_set set;
     int r, w;

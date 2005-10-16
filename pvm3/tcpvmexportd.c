@@ -73,7 +73,7 @@ void version()
 }
 
 
-void usage(int status)
+static void usage(int status)
 {
 	version();
 	fprintf(stderr,"\nUsage: %s -s|-m [options]\n", EXE);

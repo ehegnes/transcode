@@ -34,7 +34,7 @@ struct MOVIE_PARAMS {
 
 
 int audio_grab_init(char *dev, int rate, int bits, int chan, int verb);
-void audio_grab_close();
+void audio_grab_close(int do_audio);
 int audio_grab_frame(char *buffer, int bytes);
 
 time_t tc(char * buf);

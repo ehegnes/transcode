@@ -120,13 +120,14 @@ int st_is_littleendian(void)
 	return 0;
 }
 
-int strcmpcase(s1, s2)
-char *s1, *s2;
+#if 0  /* unused --AC */
+static int strcmpcase(const char *s1, const char *s2)
 {
 	while(*s1 && *s2 && (tolower(*s1) == tolower(*s2)))
 		s1++, s2++;
 	return *s1 - *s2;
 }
+#endif
 
 /*
  * File format routines 
@@ -200,9 +201,8 @@ ft_t ft;
 
 static ft_t ft_queue[2];
 
-void
-sigint(s)
-int s;
+static void
+sigint(int s)
 {
     if (s == SIGINT) {
 	if (ft_queue[0])

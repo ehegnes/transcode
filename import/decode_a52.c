@@ -39,7 +39,7 @@ static char *mod_path=MOD_PATH;
 #define MODULE "a52_decore.so"
 
 // dl stuff
-static int (*a52_decore)(decode_t *decode);
+static int (*p_a52_decore)(decode_t *decode);
 static void *handle;
 static char module[TC_BUF_MAX];
 
@@ -67,7 +67,7 @@ static int a52_do_init(char *path) {
       }
     }
     
-    a52_decore = dlsym(handle, "a52_decore");   
+    p_a52_decore = dlsym(handle, "a52_decore");   
     if ((error = dlerror()) != NULL)  {
       fputs(error, stderr);
       fputs("\n", stderr);
@@ -93,7 +93,7 @@ void decode_a52(decode_t *decode)
     import_exit(1);
   }
   
-  a52_decore(decode);
+  (*p_a52_decore)(decode);
   dlclose(handle);
   import_exit(0);
 }

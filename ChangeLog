@@ -1,6 +1,30 @@
 2005-10-16 Andrew Church <achurch at achurch dot org>
+  * export/export_af6.cpp export/export_fame.c export/export_mov.c
+    export/export_net.c export/export_pvm.c export/export_yuv4mpeg.c
+    filter/filter_logoaway.c filter/filter_text.c filter/pp/filter_pp.c
+    filter/subtitler/filter_subtitler.c filter/subtitler/frame_list.c
+    filter/subtitler/load_font.c M filter/subtitler/subtitler_proto.h
+    filter/subtitler/text_processing.c filter/subtitler/x11.c
+    import/a52_decore.c import/decode_a52.c import/import_mpeg3.c
+    import/import_vob.c import/import_xml.c import/probe_socket.c
+    import/probe_xml.c import/tcxmlcheck.c import/nuv/RTjpegN.c 
+    import/nuv/resample.c import/nuv/rtjpeg_aud_plugin.c 
+    import/nuv/rtjpeg_aud_plugin.h import/nuv/rtjpeg_vid_plugin.c
+    import/nuv/rtjpeg_vid_plugin.h import/nuv/soxfuncs.c
+    import/v4l/audio.c import/v4l/audio.h import/v4l/common.h
+    import/v4l/import_v4l2.c import/v4l/vcr.h import/v4l/video.h
+    libac3/bit_allocate.c libac3/bitstream.c libac3/bitstream.h
+    libac3/imdct.c libac3/parse.c pvm3/export_pvm_slave.c
+    pvm3/export_pvm_slave.h pvm3/pvm_functions.c pvm3/pvm_parser.c
+    pvm3/tcpvmexportd.c
+  Fix compiler warnings.  transcode should now compile cleanly under GCC4
+  with -Wall -Wstrict-prototypes -Wmissing-prototypes -Wno-pointer-sign
+  (modulo warnings from external packages like libquicktime).
+
+2005-10-16 Andrew Church <achurch at achurch dot org>
   * configure.in
-  Fix a bug in checking for -Werror validity.
+  Fix a bug in checking for -Werror validity (--enable-warnings-as-errors
+  now works properly).
 
 2005-10-16 Andrew Church <achurch at achurch dot org>
   * export/export_lzo.c export/tc_lzo.h import/decode_lzo.c
