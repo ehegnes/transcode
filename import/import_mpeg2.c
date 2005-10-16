@@ -141,7 +141,7 @@ MOD_open
   }
    
   // print out
-  if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+  if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
   
   param->fd = NULL;
   
@@ -171,7 +171,7 @@ MOD_open
       else tbuf.off++;
     }
     if (tbuf.off+4>=tbuf.len)  {
-      fprintf (stderr, "Internal Error. No sync word\n");
+      tc_tag_warn(MOD_NAME, "Internal Error. No sync word");
       return (TC_IMPORT_ERROR);
     }
 
@@ -214,7 +214,7 @@ MOD_decode{
 	      ((tbuf.d[tbuf.off+5]>>3)&0x7)>1 && 
 	      ((tbuf.d[tbuf.off+5]>>3)&0x7)<4) {
 	    if (verbose & TC_DEBUG)
-              printf("Completed a sequence + I frame from %d -> %d\n", 
+              tc_tag_warn(MOD_NAME, "Completed a sequence + I frame from %d -> %d", 
 		      start_seq, tbuf.off);
 
 	    param->attributes |= (TC_FRAME_IS_KEYFRAME | TC_FRAME_IS_I_FRAME);
@@ -227,8 +227,9 @@ MOD_decode{
 	    tbuf.len -= param->size;
 
 	    if (verbose & TC_DEBUG)
-              printf("%02x %02x %02x %02x\n", tbuf.d[0]&0xff, tbuf.d[1]&0xff,
-                                              tbuf.d[2]&0xff, tbuf.d[3]&0xff);
+              tc_tag_info(MOD_NAME, "%02x %02x %02x %02x", 
+			      tbuf.d[0]&0xff, tbuf.d[1]&0xff,
+                              tbuf.d[2]&0xff, tbuf.d[3]&0xff);
 	    return TC_IMPORT_OK;
 	  }
 	  else tbuf.off++;
@@ -237,7 +238,7 @@ MOD_decode{
 	// not enough data.
 	if (tbuf.off+6 >= tbuf.len) {
 
-	  if (verbose & TC_DEBUG) printf("Fetching in Sequence\n");
+	  if (verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "Fetching in Sequence");
 	  memmove (tbuf.d, tbuf.d+start_seq, tbuf.len - start_seq);
 	  tbuf.len -= start_seq;
 	  tbuf.off = 0;
@@ -246,7 +247,7 @@ MOD_decode{
 	    can_read = fread (tbuf.d+tbuf.len, SIZE_RGB_FRAME-tbuf.len, 1, f);
 	    tbuf.len += (SIZE_RGB_FRAME-tbuf.len);
 	  } else {
-	    printf("No 1 Read %d\n", can_read);
+	    tc_tag_info(MOD_NAME, "No 1 Read %d", can_read);
 	    /* XXX: Flush buffers */
 	    return TC_IMPORT_ERROR;
 	  }
@@ -264,7 +265,7 @@ MOD_decode{
 	      tbuf.d[tbuf.off+2]==0x1 && 
 	      (unsigned char)tbuf.d[tbuf.off+3]==0xb3) {
 	    if (verbose & TC_DEBUG)
-               printf("found a last P or B frame %d -> %d\n", 
+               tc_tag_info(MOD_NAME, "found a last P or B frame %d -> %d", 
                        start_pic, tbuf.off);
 
 	    param->size = tbuf.off - start_pic;
@@ -284,7 +285,7 @@ MOD_decode{
 	     ((tbuf.d[tbuf.off+5]>>3)&0x7)>1 && 
 	     ((tbuf.d[tbuf.off+5]>>3)&0x7)<4) {
 	      if (verbose & TC_DEBUG)
-                printf("found a P or B frame from %d -> %d\n", 
+                tc_tag_info(MOD_NAME, "found a P or B frame from %d -> %d", 
 		        start_pic, tbuf.off);
 
 	      param->size = tbuf.off - start_pic;
@@ -311,7 +312,7 @@ MOD_decode{
 	      can_read = fread (tbuf.d+tbuf.len, SIZE_RGB_FRAME-tbuf.len, 1, f);
 	      tbuf.len += (SIZE_RGB_FRAME-tbuf.len);
 	    } else {
-	      printf("No 1 Read %d\n", can_read);
+	      tc_tag_info(MOD_NAME, "No 1 Read %d", can_read);
 	      /* XXX: Flush buffers */
 	      return TC_IMPORT_ERROR;
 	    }
@@ -320,7 +321,7 @@ MOD_decode{
 	break;
       default:
 	// should not get here
-	printf("Default case\n");
+	tc_tag_warn(MOD_NAME, "Default case");
 	tbuf.off++;
 	break;
     }

@@ -237,9 +237,9 @@ static unsigned char *bufalloc(size_t size) {
 
 static void enable_levels_filter(void)
 {
-  tc_info("input is mjpeg, reducing range from YUVJ420P to YUV420P");
+  tc_tag_info(MOD_NAME, "input is mjpeg, reducing range from YUVJ420P to YUV420P");
   if((levels_handle = plugin_get_handle("levels=output=16-240:pre=1") == -1))
-    tc_warn("cannot load levels filter");
+    tc_tag_warn(MOD_NAME, "cannot load levels filter");
 }
 
 /* ------------------------------------------------------------ 
@@ -268,14 +268,14 @@ MOD_open {
     if (format_flag == TC_MAGIC_AVI) {
       goto do_avi;
     } else if (format_flag==TC_MAGIC_DV_PAL || format_flag==TC_MAGIC_DV_NTSC) {
-      fprintf(stderr, "Format 0x%lX DV!!\n", format_flag);
+      tc_tag_warn(MOD_NAME, "Format 0x%lX DV!!", format_flag);
       goto do_dv;
     } else {
-      fprintf(stderr, "[%s] Format 0x%lX not supported\n",
-                      MOD_NAME, format_flag);
+      tc_tag_warn(MOD_NAME, "Format 0x%lX not supported",
+                      format_flag);
       return(TC_IMPORT_ERROR); 
     }
-    fprintf(stderr, "[%s] Format 0x%lX\n", MOD_NAME, format_flag);
+    tc_tag_info(MOD_NAME, "Format 0x%lX", format_flag);
 
 do_avi:
     if(avifile==NULL) {
@@ -307,8 +307,7 @@ do_avi:
     fourCC = AVI_video_compressor(avifile);
 
     if (strlen(fourCC) == 0) {
-      fprintf(stderr, "[%s] FOURCC has zero length!? Broken source?\n",
-              MOD_NAME);
+      tc_tag_warn(MOD_NAME, "FOURCC has zero length!? Broken source?");
       
       return TC_IMPORT_ERROR;
     }
@@ -322,14 +321,14 @@ do_avi:
 
     codec = find_ffmpeg_codec(fourCC);
     if (codec == NULL) {
-      fprintf(stderr, "[%s] No codec is known the FOURCC '%s'.\n", MOD_NAME,
+      tc_tag_warn(MOD_NAME, "No codec is known the FOURCC '%s'.",
               fourCC);
       return TC_IMPORT_ERROR;
     }
 
     lavc_dec_codec = avcodec_find_decoder(codec->id);
     if (!lavc_dec_codec) {
-      fprintf(stderr, "[%s] No codec found for the FOURCC '%s'.\n", MOD_NAME,
+      tc_tag_warn(MOD_NAME, "No codec found for the FOURCC '%s'.",
               fourCC);
       return TC_IMPORT_ERROR;
     }
@@ -371,7 +370,7 @@ do_avi:
     }
 
     if (avcodec_open(lavc_dec_context, lavc_dec_codec) < 0) {
-      fprintf(stderr, "[%s] Could not initialize the '%s' codec.\n", MOD_NAME,
+      tc_tag_warn(MOD_NAME, "Could not initialize the '%s' codec.",
               codec->name);
       return TC_IMPORT_ERROR;
     }
@@ -453,7 +452,7 @@ do_dv:
 
       codec = find_ffmpeg_codec_id (vob->codec_flag);
       if (codec == NULL) {
-	fprintf(stderr, "[%s] No codec is known the TAG '%lx'.\n", MOD_NAME,
+	tc_tag_warn(MOD_NAME, "No codec is known the TAG '%lx'.",
 	    vob->codec_flag);
 	return TC_IMPORT_ERROR;
       }
@@ -462,8 +461,6 @@ do_dv:
       if(codec->id == CODEC_ID_MJPEG) {
         enable_levels_filter();
       }
-
-      //printf ("FFMPEG: codec->name = %s ->id = 0x%x\n", codec->name, codec->id);
 
       sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX, 
 			 "tccat -i \"%s\" -d %d |"
@@ -477,7 +474,7 @@ do_dv:
     }
 
     // print out
-    if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+    if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
 
     // set to NULL if we handle read
     param->fd = NULL;
@@ -545,8 +542,8 @@ MOD_decode {
 
       if (verbose & TC_DEBUG) 
 	if (key || bkey)
-          printf("[%s] Keyframe info (AVI | Bitstream) (%d|%d)\n",
-                  MOD_NAME, key, bkey);
+          tc_tag_info(MOD_NAME, "Keyframe info (AVI | Bitstream) (%d|%d)",
+                  key, bkey);
 
       param->size = (int) bytes_read;
       ac_memcpy(param->buffer, buffer, bytes_read); 
@@ -573,7 +570,7 @@ retry:
       pthread_mutex_unlock(&init_avcodec_lock);
 
       if (len < 0) {
-	tc_warn ("[%s] frame decoding failed", MOD_NAME);
+	tc_tag_warn (MOD_NAME, "frame decoding failed");
         return TC_IMPORT_ERROR;
       }
       if (!got_picture) {
@@ -683,8 +680,8 @@ retry:
 			lavc_dec_context->width, lavc_dec_context->height);
 	  break;
       default:
-	  tc_warn("[%s] Unsupported decoded frame format: %d",
-		  MOD_NAME, lavc_dec_context->pix_fmt);
+	  tc_tag_warn(MOD_NAME, "Unsupported decoded frame format: %d",
+		  lavc_dec_context->pix_fmt);
 	  return TC_IMPORT_ERROR;
     }
 

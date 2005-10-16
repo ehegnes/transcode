@@ -161,7 +161,8 @@ MOD_decode
 
     out_len = AVI_read_frame(avifile2, out, &key);
 
-    if(verbose & TC_STATS && key) printf("keyframe %d\n", vframe_count); 
+    if(verbose & TC_STATS && key) 
+      tc_tag_info(MOD_NAME, "keyframe %d", vframe_count); 
 
     if(out_len<=0) {
       if(verbose & TC_DEBUG) AVI_print_error("AVI read video frame");

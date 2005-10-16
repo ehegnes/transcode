@@ -91,7 +91,7 @@ MOD_open
     /* open movie for audio extraction */
     if(qt_audio==NULL) {
       if(NULL == (qt_audio = quicktime_open(vob->audio_in_file,1,0))){
-	       fprintf(stderr,"error: can't open quicktime!\n");
+	       tc_tag_warn(MOD_NAME, "can't open quicktime!");
 	       return(TC_IMPORT_ERROR); 
       } 
     }   
@@ -99,8 +99,7 @@ MOD_open
     /* check for audio track */
     numTrk = quicktime_audio_tracks(qt_audio);
     if(numTrk==0) {
-      fprintf(stderr,"[%s] AUDIO: --no audio track in quicktime found --\n",
-            MOD_NAME);
+      tc_tag_warn(MOD_NAME, "AUDIO: --no audio track in quicktime found --");
       no_samples=0;
       return(TC_IMPORT_OK);
     }
@@ -115,25 +114,25 @@ MOD_open
     no_samples=quicktime_audio_length(qt_audio, 0);
 
     /* verbose info */
-    fprintf(stderr, "[%s] codec=%s, rate=%ld Hz, bits=%d,"
-                    " channels=%d, samples=%d\n", 
-                    MOD_NAME, codec, rate, bits, chan, no_samples);
+    tc_tag_info(MOD_NAME, "codec=%s, rate=%ld Hz, bits=%d,"
+                    " channels=%d, samples=%d", 
+                    codec, rate, bits, chan, no_samples);
 
     /* check bits */
     if((bits!=8)&&(bits!=16)) {
-      fprintf(stderr,"error: unsupported sample bits: %d\n",bits);
+      tc_tag_warn(MOD_NAME, "unsupported sample bits: %d",bits);
       return(TC_IMPORT_ERROR);
     }
 
     /* check channels */
     if(chan>2) {
-      fprintf(stderr,"error: too many audio channels: %d\n",chan);
+      tc_tag_warn(MOD_NAME, "too many audio channels: %d",chan);
       return(TC_IMPORT_ERROR);
     }
 
     /* check codec string */
     if(strlen(codec)==0) {
-      fprintf(stderr, "error: empty codec in quicktime?\n");
+      tc_tag_warn(MOD_NAME, "empty codec in quicktime?");
       return(TC_IMPORT_ERROR);
     }
 
@@ -145,12 +144,12 @@ MOD_open
     /* RAW PCM is directly supported */
     else if(strcasecmp(codec,QUICKTIME_RAW)==0) {
       rawAudioMode = 1;
-      fprintf(stderr,"[%s] using RAW audio mode!\n",MOD_NAME);
+      tc_tag_warn(MOD_NAME, "using RAW audio mode!");
     }
 #endif
     /* unsupported codec */
     else {
-      fprintf(stderr, "error: quicktime audio codec '%s' not supported!\n",
+      tc_tag_warn(MOD_NAME, "quicktime audio codec '%s' not supported!",
 	      codec);
       return(TC_IMPORT_ERROR);
     }
@@ -168,14 +167,14 @@ MOD_open
     /* open movie for video extraction */
     if(qt_video==NULL) 
       if(NULL == (qt_video = quicktime_open(vob->video_in_file,1,0))){
-	       fprintf(stderr,"error: can't open quicktime!\n");
+	       tc_tag_warn(MOD_NAME,"can't open quicktime!");
 	       return(TC_IMPORT_ERROR); 
       }
 
     /* check for audio track */
     numTrk = quicktime_video_tracks(qt_video);
     if(numTrk==0) {
-      fprintf(stderr,"error: no video track in quicktime found!\n");
+      tc_tag_warn(MOD_NAME,"no video track in quicktime found!");
       return(TC_IMPORT_ERROR); 
     }
 
@@ -189,20 +188,20 @@ MOD_open
     frames=quicktime_video_length(qt_video, 0);
 
     /* verbose info */
-    fprintf(stderr, "[%s] VIDEO: codec=%s, fps=%6.3f, width=%d,"
-                    " height=%d, frames=%d\n", 
-                    MOD_NAME, codec, fps, w, h, frames);
+    tc_tag_info(MOD_NAME, "VIDEO: codec=%s, fps=%6.3f, width=%d,"
+                    " height=%d, frames=%d", 
+                    codec, fps, w, h, frames);
 
     /* check codec string */
     if(strlen(codec)==0) {
-      fprintf(stderr, "error: empty codec in quicktime?\n");
+      tc_tag_warn(MOD_NAME, "empty codec in quicktime?");
       return(TC_IMPORT_ERROR);
     }
 
     /* check if a suitable compressor is available */
     if(quicktime_supported_video(qt_video,0)==0) {
-	     fprintf(stderr, "error: quicktime codec '%s'"
-                             " not supported for RGB!\n",
+	     tc_tag_warn(MOD_NAME, "quicktime codec '%s'"
+                             " not supported for RGB!",
 		             codec);
 	     return(TC_IMPORT_ERROR);
     }
@@ -238,13 +237,12 @@ MOD_open
               quicktime_set_cmodel(qt_video, BC_YUV420P); qt_cm = BC_YUV420P;
               break;
         case CODEC_YUV422:
-              fprintf(stderr, "[%s] sorry, YUV422 not implemented\n", MOD_NAME);
+              tc_tag_warn(MOD_NAME, "sorry, YUV422 not implemented", MOD_NAME);
               return(TC_IMPORT_ERROR);
               /*quicktime_set_cmodel(qt_video, BC_YUV422); qt_cm = BC_YUV422;*/
               break;
 
         case CODEC_YUY2:
-              /*fprintf(stderr," using yuy2\n");*/
               quicktime_set_cmodel(qt_video, BC_YUV422); qt_cm = CODEC_YUY2;
               break;                         
 
@@ -257,8 +255,8 @@ MOD_open
 
         default:
             /* unsupported internal format */
-            fprintf(stderr,"[%s] unsupported internal video format %x\n",
-                MOD_NAME,vob->ex_v_codec);
+            tc_tag_warn(MOD_NAME,"unsupported internal video format %x",
+                	vob->ex_v_codec);
             return(TC_EXPORT_ERROR);
             break;
        }
@@ -285,7 +283,7 @@ MOD_decode
       param->size = quicktime_read_frame(qt_video, param->buffer, 0);
       if(param->size<=0) {
 	if(verbose & TC_DEBUG) 
-	  fprintf(stderr,"quicktime read video frame");
+	  tc_tag_warn(MOD_NAME,"quicktime read video frame");
 	return(TC_IMPORT_ERROR);
       }
     } else {
@@ -322,7 +320,7 @@ MOD_decode
       /* decode the next frame */
       if(lqt_decode_video(qt_video,row_ptr,0)<0) {
         if(verbose & TC_DEBUG)
-          fprintf(stderr,"can't decode frame");
+          tc_tag_warn(MOD_NAME,"can't decode frame");
           return(TC_IMPORT_ERROR);
         }
     }
@@ -367,7 +365,7 @@ MOD_decode
 	/* check result */
 	if(bytes_read<0) {
 	  if(verbose & TC_DEBUG) 
-	    fprintf(stderr,"error: reading quicktime audio frame!\n");
+	    tc_tag_warn(MOD_NAME,"reading quicktime audio frame!");
 	  return(TC_IMPORT_ERROR);
 	}
       }
@@ -385,7 +383,7 @@ MOD_decode
 	bytes_read = quicktime_decode_audio(qt_audio,tgt,NULL,samples,0);
 	if(bytes_read<0) {
 	  if(verbose & TC_DEBUG) 
-	    fprintf(stderr,"error: reading quicktime audio frame!\n");
+	    tc_tag_warn(MOD_NAME,"reading quicktime audio frame!");
 	  return(TC_IMPORT_ERROR);
 	}
 
@@ -394,7 +392,7 @@ MOD_decode
 	bytes_read = quicktime_decode_audio(qt_audio,tmp,NULL,samples,1);
 	if(bytes_read<0) {
 	  if(verbose & TC_DEBUG) 
-	    fprintf(stderr,"error: reading quicktime audio frame!\n");
+	    tc_tag_warn(MOD_NAME,"reading quicktime audio frame!");
 	  return(TC_IMPORT_ERROR);
 	}
 

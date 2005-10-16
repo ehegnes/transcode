@@ -90,7 +90,7 @@ MOD_open
     }
 
     // print out
-    if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+    if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
 
     param->fd = NULL;
 
@@ -115,7 +115,7 @@ MOD_open
       return(TC_IMPORT_ERROR);
 
     // print out
-    if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+    if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
 
     param->fd = NULL;
 

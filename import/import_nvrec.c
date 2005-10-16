@@ -87,7 +87,7 @@ MOD_open
   
   if(param->flag == TC_VIDEO) {
 
-#define APPEND(fmt,rest...) do { int res = tc_snprintf(import_cmd_buf+n, MAX_BUF-n, fmt , ## rest); if (res < 0) {fprintf(stderr, "cmd buffer overflow\n"); return(TC_IMPORT_ERROR);} n += res; } while (0)
+#define APPEND(fmt,rest...) do { int res = tc_snprintf(import_cmd_buf+n, MAX_BUF-n, fmt , ## rest); if (res < 0) {tc_tag_warn(MOD_NAME, "cmd buffer overflow"); return(TC_IMPORT_ERROR);} n += res; } while (0)
     n = 0;
 
     APPEND("%s -o raw://%s -w %u -h %u", prgname, afile, vob->im_v_width, vob->im_v_height);
@@ -102,7 +102,7 @@ MOD_open
     APPEND(" -vr %.3f", vob->fps);
 
     if (strncmp(vob->video_in_file, "/dev/zero", 9) == 0) {
-	fprintf (stderr, "[%s] Warning: Input v4l1/2 device assumed to be %s\n", MOD_NAME, "/dev/video");
+	tc_tag_warn (MOD_NAME, "Input v4l1/2 device assumed to be %s", "/dev/video");
 	APPEND(" -v %s", "/dev/video");
     } else {
 	APPEND(" -v %s", vob->video_in_file);
@@ -133,9 +133,9 @@ MOD_open
     if (f) pclose(f);
 
     if (nv_version == 0) { 
-	fprintf( stderr, "Unable to detect NVrec version, trying to continue...\n");
+	tc_tag_warn(MOD_NAME, "Unable to detect NVrec version, trying to continue...");
     } else if (0 < nv_version && nv_version < 20020513) {
-	fprintf( stderr, "Seems your NVrec doesn't support the -o raw:// option\n");
+	tc_tag_warn(MOD_NAME, "Seems your NVrec doesn't support the -o raw:// option");
 	return(TC_IMPORT_ERROR);
     } else if (nv_version < 20020524) {
 	/* make nvrec silent the hard way */
@@ -154,7 +154,7 @@ MOD_open
 
     
     // print out
-    if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+    if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
 
   
     param->fd = NULL;

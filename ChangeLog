@@ -1,4 +1,12 @@
 2005-10-16 Francesco Romani <fromani at gmail dot com>
+  * import/import_ffmpeg.c import/import_fraps.c import/import_im.c
+    import/import_lav.c import/import_lzo.c import/import_mov.c
+    import/import_mp3.c import/import_mpeg2.c import/import_mpeg3.c
+    import/import_mplayer.c import/import_net.c import/import_nvrec.c
+    import/import_ogg.c import/import_oss.c
+  tc_(tag_){info,warn,error} roundup part 4; more import modules
+
+2005-10-16 Francesco Romani <fromani at gmail dot com>
   * lintc/Makefile.am
   _really_ remove my own obsolete style guide
 
