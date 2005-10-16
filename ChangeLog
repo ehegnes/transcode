@@ -1,3 +1,7 @@
+2005-10-16 Andrew Church <achurch at achurch dot org>
+  * Added: aclib/STYLE.txt
+  Codify style guidelines for aclib.
+
 2005-10-16 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tc_functions.c libtc/STYLE.txt
     add a little coding style guide in libtc and start enforcement,
