@@ -14,4 +14,5 @@ libtc_la_SOURCES = \
 
 EXTRA_DIST = \
 	libtc.h \
-	tc_func_excl.h
+	tc_func_excl.h \
+	STYLE.txt

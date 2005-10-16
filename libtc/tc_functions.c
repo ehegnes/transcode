@@ -49,52 +49,60 @@
 
 #define TC_MSG_BUF_SIZE		(128)
 
-const char *tc_log_preambles[] = {
+/* WARNING: we MUST keep in sync preambles order with TC_LOG* macros */
+static const char *tc_log_preambles[] = {
+	/* TC_LOG_ERR */
   	"["COL_RED"%s"COL_GRAY"]"COL_RED" critical"COL_GRAY": %s\n", 
-							// TC_LOG_ERR
+	/* TC_LOG_WARN */
 	"["COL_RED"%s"COL_GRAY"]"COL_YELLOW" warning"COL_GRAY": %s\n", 
-							// TC_LOG_WARN
+	/* TC_LOG_INFO */
   	"["COL_BLUE"%s"COL_GRAY"] %s\n", 
-							// TC_LOG_INFO
+	/* TC_LOG_MSG */
 	"[%s] %s\n",
-							// TC_LOG_MSG
 };
 
 void tc_log(int level, const char *tag, const char *fmt, ...)
 {
-  char buf[TC_MSG_BUF_SIZE];
-  char *a = buf;
-  int dynbuf = 0; // flag
-  va_list ap;
-  size_t size = 0;
+	char buf[TC_MSG_BUF_SIZE];
+	char *a = buf;
+	int dynbuf = 0; 
+	/* flag: we must use a dynamic (larger than static) buffer? */
+	va_list ap;
+	size_t size = 0;
 
-  // sanity check;
-  level = (level < TC_LOG_ERR) ?TC_LOG_ERR :level;
-  level = (level > TC_LOG_MSG) ?TC_LOG_MSG :level;
+	/* sanity check, avoid {under,over}flow; */
+	level = (level < TC_LOG_ERR) ?TC_LOG_ERR :level;
+	level = (level > TC_LOG_MSG) ?TC_LOG_MSG :level;
 
-  size = strlen(tc_log_preambles[level] + 1);			 
+	size = strlen(tc_log_preambles[level] + 1);			 
  
-  if(size > TC_MSG_BUF_SIZE) {
-	dynbuf = 1;
-	a = malloc(size);
-	if(!a) {
-		fprintf(stderr, "(%s) CRITICAL: can't get memory in "
-				"tc_log(); tag='%s'\n", __FILE__, tag);
-		return;
+	if(size > TC_MSG_BUF_SIZE) {
+		dynbuf = 1;
+		a = malloc(size);
+		if(!a) {
+			fprintf(stderr, "(%s) CRITICAL: can't get memory in "
+					"tc_log(); tag='%s'\n", __FILE__, 
+					tag);
+			return;
+		}
+	} else {
+		size = TC_MSG_BUF_SIZE - 1;
 	}
-  } else {
-	size = TC_MSG_BUF_SIZE - 1;
-  }
 
-  snprintf(a, size, tc_log_preambles[level], tag, fmt);
+	snprintf(a, size, tc_log_preambles[level], tag, fmt);
   
-  va_start(ap, fmt);
-  vfprintf(stderr, a, ap);
-  va_end(ap);
-  if(dynbuf) {
-	  free(a);
-  }
-  fflush(stdout);
+	va_start(ap, fmt);
+	vfprintf(stderr, a, ap);
+	va_end(ap);
+
+	if(dynbuf) {
+		free(a);
+	}
+	
+	/* ensure that all *other* messages are written */
+	fflush(stdout);
+	
+	return;
 }  
 
 #if defined(HAVE_ALLOCA)
@@ -118,46 +126,38 @@ int tc_test_program(char *name)
 	long sret;
 	int error = 0;
 
-	if(!name)
-	{
+	if(!name) {
 		tc_warn("ERROR: Searching for a NULL program!\n");
-		return(ENOENT);
+		return ENOENT;
 	}
 
-	if(!path)
-	{
+	if(!path) {
 		tc_warn("The '%s' program could not be found. \n", name);
 		tc_warn("Because your PATH environment variable is not set.\n");
-		return(ENOENT);
+		return ENOENT;
 	}
 
-	pathlen		= strlen(path) + 1;
-	tmp_path	= local_alloc(pathlen * sizeof(char));
-	strtokbuf	= local_alloc(pathlen * sizeof(char));
+	pathlen	= strlen(path) + 1;
+	tmp_path = local_alloc(pathlen * sizeof(char));
+	strtokbuf = local_alloc(pathlen * sizeof(char));
 
 	sret = strlcpy(tmp_path, path, pathlen);
 	tc_test_string(__FILE__, __LINE__, pathlen, sret, errno);
 
 	/* iterate through PATH tokens */
-
-	for (done = 0, tok_path = strtok_r(tmp_path, ":", strtokbuf);
+	for(done = 0, tok_path = strtok_r(tmp_path, ":", strtokbuf);
 			!done && tok_path;
-			tok_path = strtok_r((char *)0, ":", strtokbuf))
-	{
+			tok_path = strtok_r((char *)0, ":", strtokbuf)) {
 		pathlen = strlen(tok_path) + strlen(name) + 2;
 		compl_path = local_alloc(pathlen * sizeof(char));
 		sret = snprintf(compl_path, pathlen, "%s/%s", tok_path, name);
  		tc_test_string(__FILE__, __LINE__, pathlen, sret, errno);
 
-		if(access(compl_path, X_OK) == 0)
-		{
+		if(access(compl_path, X_OK) == 0) {
 			error	= 0;
 			done	= 1;
-		}
-		else
-		{
-			if(errno != ENOENT)
-			{
+		} else {
+			if(errno != ENOENT)	{
 				done	= 1;
 				error	= errno;
 			}
@@ -169,20 +169,18 @@ int tc_test_program(char *name)
 	local_free(tmp_path);
 	local_free(strtokbuf); 
 
-	if(!done)
-	{
+	if(!done) {
 		tc_warn("The '%s' program could not be found. \n", name);
 		tc_warn("Please check your installation.\n");
-		return(ENOENT); 
+		return ENOENT; 
 	}
 
-	if(error != 0)
-	{
+	if(error != 0) {
 		/* access returned an unhandled error */
 		tc_warn("The '%s' program was found, but is not accessible.\n", name);
 		tc_warn("%s\n", strerror(errno));
 		tc_warn("Please check your installation.\n");
-		return(error);
+		return error;
 	}
 #endif
 
@@ -196,38 +194,38 @@ int tc_test_program(char *name)
 #define delta 0.05
 int tc_guess_frc(double fps)
 {
-  if (fps-delta < 00.010 && 00.010 < fps+delta) return 0;
-  if (fps-delta < 23.976 && 23.976 < fps+delta) return 1;
-  if (fps-delta < 24.000 && 24.000 < fps+delta) return 2;
-  if (fps-delta < 25.000 && 25.000 < fps+delta) return 3;
-  if (fps-delta < 29.970 && 29.970 < fps+delta) return 4;
-  if (fps-delta < 30.000 && 30.000 < fps+delta) return 5;
-  if (fps-delta < 50.000 && 50.000 < fps+delta) return 6;
-  if (fps-delta < 59.940 && 59.940 < fps+delta) return 7;
-  if (fps-delta < 60.000 && 60.000 < fps+delta) return 8;
-  if (fps-delta <  1.000 &&  1.000 < fps+delta) return 9;
-  if (fps-delta <  5.000 &&  5.000 < fps+delta) return 10;
-  if (fps-delta < 10.000 && 10.000 < fps+delta) return 11;
-  if (fps-delta < 12.000 && 12.000 < fps+delta) return 12;
-  if (fps-delta < 15.000 && 15.000 < fps+delta) return 13;
-  return -1;
+	if(fps-delta < 00.010 && 00.010 < fps+delta) return 0;
+	if(fps-delta < 23.976 && 23.976 < fps+delta) return 1;
+	if(fps-delta < 24.000 && 24.000 < fps+delta) return 2;
+	if(fps-delta < 25.000 && 25.000 < fps+delta) return 3;
+	if(fps-delta < 29.970 && 29.970 < fps+delta) return 4;
+	if(fps-delta < 30.000 && 30.000 < fps+delta) return 5;
+	if(fps-delta < 50.000 && 50.000 < fps+delta) return 6;
+	if(fps-delta < 59.940 && 59.940 < fps+delta) return 7;
+	if(fps-delta < 60.000 && 60.000 < fps+delta) return 8;
+	if(fps-delta <  1.000 &&  1.000 < fps+delta) return 9;
+	if(fps-delta <  5.000 &&  5.000 < fps+delta) return 10;
+	if(fps-delta < 10.000 && 10.000 < fps+delta) return 11;
+	if(fps-delta < 12.000 && 12.000 < fps+delta) return 12;
+	if(fps-delta < 15.000 && 15.000 < fps+delta) return 13;
+	return -1;
 }
 #undef delta
 
 
 int tc_test_string(const char *file, int line, int limit, long ret, int errnum)
 {
-    if (ret < 0) {
+    if(ret < 0) {
         fprintf(stderr, "[%s:%d] string error: %s\n",
                         file, line, strerror(errnum));
-        return(1);
+        return 1;
     }
-    if (ret >= limit) {
+    if(ret >= limit) {
         fprintf(stderr, "[%s:%d] truncated %ld characters\n",
                         file, line, (ret - limit) + 1);
-        return(1);
+        return 1;
     }
-    return(0);
+    return 0;
 }
 
 

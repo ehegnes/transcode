@@ -39,7 +39,7 @@
 
 #define TC_LOG_ERR		0 // critical error condition
 #define TC_LOG_WARN		1 // non-critical error condition
-#define TC_LOG_INFO		2 // informative higlighted message
+#define TC_LOG_INFO		2 // informative highlighted message
 #define TC_LOG_MSG		3 // regular message
 
 void tc_log(int level, const char *tag, const char *fmt, ...);

@@ -1,0 +1,66 @@
+CODING STYLE IN LIBTC
+---------------------
+
+This document aim to provide a list of style requirements for code in libtc.
+The purpose is to omogeneize the coding style, at least in libtc.
+
+EXCEPTIONS:
+strl* functions should not follows below rules, since such code is borroed from
+*BSD, and follow its own rules.
+
+0) apply the KISS rule: break _long_ statements in simpler ones, where
+it is possible
+
+1) comments: 
+classical C comment are preferred
+/* a unuseful comment */
+but C99/C++/gcc like comment too are allowed
+// an unuseful comment, take 2
+
+2) indentation: 1 tab = 4 spaces, no conversion (no "set expandtab" in vim),
+use real tabs
+
+3) bracket position:
+
+void dummy()
+{
+	return;
+}
+
+void adder(int a, int b)
+{
+	int c = a + b;
+	return c;
+}
+
+int i = 0;
+for(i = 1; i < 1; i++) {
+	if(FALSE) {
+		puts("lazy");
+	}
+}
+
+4) spacing in expressions:
+4.1) attach the round bracket at the preceding word:
+
+if(something()) {
+	foobar();
+}
+
+4.2) separate expression components with a single space
+
+int blah = 21 + 21;
+
+for(i = 0; i < 100; i++) {
+	printf("%i ", i);
+}
+
+
+5) return statement:
+use round brackets only whit complex expressions:
+
+return AN_ERROR;
+
+return ((condition == TRUE) ? foobar() : failures++)
+/* yes, this sucks according to rule #0 */
+
