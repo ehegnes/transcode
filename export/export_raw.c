@@ -167,7 +167,7 @@ further:
       // video
       
       if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
-	tc_warn("[%s] tcv_convert_init failed\n", MOD_NAME);
+	tc_tag_warn(MOD_NAME, "tcv_convert_init failed");
 	return(TC_EXPORT_ERROR);
       }
 
@@ -249,8 +249,8 @@ further:
 
 		mpeg_f = fopen(vob->video_out_file, "w");
 		if (!mpeg_f) {
-		    tc_warn("[%s] Cannot open outfile \"%s\": %s", MOD_NAME, vob->video_out_file,
-			strerror(errno));
+		    tc_tag_warn(MOD_NAME, "Cannot open outfile \"%s\": %s", 
+				    vob->video_out_file, strerror(errno));
 		    return (TC_EXPORT_ERROR);
 		}
 	    }
@@ -286,7 +286,8 @@ further:
 
 	      dir_name = vob->video_in_file;
 	      if((tc_open_directory(dir_name))<0) { 
-		tc_error("unable to open directory \"%s\"", dir_name);
+		tc_tag_warn(MOD_NAME, "unable to open directory \"%s\"", dir_name);
+		return(TC_EXPORT_ERROR);
 	      }
 	      to_open = tc_scan_directory(dir_name);
 
@@ -360,7 +361,7 @@ MOD_encode
 
     if (mpeg_f) {
       if (fwrite (param->buffer, 1, param->size, mpeg_f) != param->size) {
-	tc_warn("[%s] Cannot write data: %s", MOD_NAME, strerror(errno));
+	tc_tag_warn(MOD_NAME, "Cannot write data: %s", strerror(errno));
 	return(TC_EXPORT_ERROR); 
       }
       return (TC_EXPORT_OK);
@@ -378,7 +379,7 @@ MOD_encode
 
     if (srcfmt && destfmt) {
       if (!tcv_convert(param->buffer, srcfmt, destfmt)) {
-	tc_warn("[%s] image conversion failed", MOD_NAME);
+	tc_tag_warn(MOD_NAME, "image conversion failed");
 	return(TC_EXPORT_ERROR);
       }
       if (destsize)

@@ -106,16 +106,16 @@ MOD_open
             return(TC_EXPORT_ERROR);
 
         if (verbose > 0)
-	    tc_info (MOD_NAME, "%s", buf);
+	    tc_tag_info(MOD_NAME, "%s", buf);
         
 	if ((pFile = popen (buf, "w")) == NULL)
 	    return(TC_EXPORT_ERROR);
 
-	return(0);
+	return(TC_EXPORT_OK);
 		
     }
     if (param->flag == TC_VIDEO) 
-	return(0);
+	return(TC_EXPORT_OK);
 
     // invalid flag
     return(TC_EXPORT_ERROR); 

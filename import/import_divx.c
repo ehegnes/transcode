@@ -208,18 +208,18 @@ static int divx_init(char *path) {
     }
 
     if (!handle) {
-      tc_warn("[%s] %s\n", MOD_NAME, dlerror());
+      tc_tag_warn(MOD_NAME, "%s", dlerror());
       return(-1);
     } else {  
       if(verbose_flag & TC_DEBUG) 
-        fprintf(stderr, "[%s] Loading external codec module %s\n",
-                        MOD_NAME, module); 
+        tc_tag_info(MOD_NAME, "Loading external codec module %s",
+                        module); 
     }
 
     divx_decore = dlsym(handle, "decore");   
 
     if ((error = dlerror()) != NULL)  {
-      tc_warn("[%s] %s\n", MOD_NAME, error);
+      tc_tag_warn(MOD_NAME, "%s", error);
       return(-1);
     }
 
@@ -265,7 +265,6 @@ MOD_open
 
     // vob->offset contains the last keyframe
     if (!done_seek && vob->vob_offset>0) {
-	//printf("starting decode from last key was (%d)\n", vob->vob_offset);
 	AVI_set_video_position(avifile, vob->vob_offset);
 	done_seek=1;
     }
@@ -275,7 +274,7 @@ MOD_open
 
     if (!decore_in_use) {
       if(divx_init(vob->mod_path)<0) {
-	fprintf(stderr, "[%s] failed to init DivX 4.xx/5.xx codec\n", MOD_NAME);
+	tc_tag_warn(MOD_NAME, "failed to init DivX 4.xx/5.xx codec");
 	return(TC_IMPORT_ERROR); 
       }
     }
@@ -284,7 +283,7 @@ MOD_open
     codec_str = AVI_video_compressor(avifile);
 
     if(strlen(codec_str)==0) {
-	fprintf(stderr, "[%s] invalid AVI file codec", MOD_NAME);
+	tc_tag_warn(MOD_NAME, "invalid AVI file codec");
 	return(TC_IMPORT_ERROR); 
     }
 
@@ -297,7 +296,7 @@ MOD_open
       memset(decInit,0x00,sizeof(DEC_INIT));
 
       if (verbose & TC_DEBUG) 
-      		printf("[%s] using DivX5.0.5 decoder syntax.\n", MOD_NAME);
+      		tc_tag_info(MOD_NAME, "using DivX5.0.5 decoder syntax.");
 
       if (strcasecmp(codec_str,"DIV3")==0)
 	  decInit->codec_version = 311;
@@ -324,7 +323,7 @@ MOD_open
 
 
       if (verbose & TC_DEBUG)
-      		printf("[%s] using DivX5 decoder syntax.\n", MOD_NAME);
+      		tc_tag_info(MOD_NAME, "using DivX5 decoder syntax.");
 
       if (strcasecmp(codec_str,"DIV3")==0)
 		divx->codec_version = 311;
@@ -339,8 +338,7 @@ MOD_open
     if(strcasecmp(codec_str,"DIV3")==0) {
 	divx_version=DEC_OPT_FRAME_311;
         if(verbose & TC_DEBUG)
-		fprintf(stderr, "[%s] detected DivX divx_version3.11 codec\n",
-                                 MOD_NAME);
+		tc_tag_info(MOD_NAME, "detected DivX divx_version3.11 codec");
     }
     else
 	divx_version=DEC_OPT_FRAME;
@@ -437,19 +435,19 @@ MOD_open
     //----------------------------------------
 #if DECORE_VERSION >= 20021112
     if(divx_decore(&dec_handle, DEC_OPT_INIT, decInit, NULL) < 0) {
-      fprintf(stderr, "[%s] codec DEC_OPT_INIT error", MOD_NAME);
+      tc_tag_warn(MOD_NAME, "codec DEC_OPT_INIT error");
       return(TC_IMPORT_ERROR); 
     } else
 	++decore_in_use;
 
     if(divx_decore(dec_handle, DEC_OPT_SETOUT, pbi, NULL) < 0) {
-      fprintf(stderr, "[%s] codec DEC_OPT_SETOUT error", MOD_NAME);
+      tc_tag_warn(MOD_NAME, "codec DEC_OPT_SETOUT error");
       return(TC_IMPORT_ERROR); 
     }
 #else
 
     if(divx_decore(divx_id, DEC_OPT_INIT, divx, NULL) < 0) {
-      fprintf(stderr, "[%s] codec DEC_OPT_INIT error", MOD_NAME);
+      tc_tag_warn(MOD_NAME, "codec DEC_OPT_INIT error");
       return(TC_IMPORT_ERROR); 
     } else
 	++decore_in_use;
@@ -562,7 +560,7 @@ MOD_decode {
 #endif
       if(cc) param->attributes |= TC_FRAME_IS_KEYFRAME;
       if(verbose & TC_DEBUG)
-        printf("keyframe info (AVI|bitstream)=(%d|%d)\n", key, cc);
+        tc_tag_info(MOD_NAME, "keyframe info (AVI|bitstream)=(%d|%d)\n", key, cc);
 
     } else {
 
@@ -580,15 +578,15 @@ MOD_decode {
 #if DECORE_VERSION >= 20021112
       decFrame->stride = pbi->biWidth;
       if(divx_decore(dec_handle, divx_version, decFrame, NULL) != DEC_OK) {
-	fprintf(stderr, "[%s]:%d  codec DEC_OPT_FRAME error",
-                         MOD_NAME, __LINE__);
+	tc_tag_warn(MOD_NAME, "(%d) codec DEC_OPT_FRAME error",
+                          __LINE__);
 	return(TC_IMPORT_ERROR); 
       }
 #else
       decFrame->stride = divx->x_dim;
 
       if(divx_decore(divx_id, divx_version, decFrame, NULL) != DEC_OK) {
-	fprintf(stderr, "[%s] codec DEC_OPT_FRAME error", MOD_NAME);
+	tc_tag_warn(MOD_NAME, "codec DEC_OPT_FRAME error");
 	return(TC_IMPORT_ERROR); 
       }
 #endif
@@ -610,14 +608,14 @@ MOD_decode {
       decFrame->stride = pbi->biWidth;
 
       if(divx_decore(dec_handle, divx_version, decFrame, NULL) != DEC_OK) {
-	  fprintf(stderr, "[%s] codec DEC_OPT_FRAME error", MOD_NAME);
+	  tc_tag_warn(MOD_NAME, "codec DEC_OPT_FRAME error");
 	  return(TC_IMPORT_ERROR); 
       }
 #else
       decFrame->stride = divx->x_dim;
 
       if(divx_decore(divx_id, divx_version, decFrame, NULL) != DEC_OK) {
-	  fprintf(stderr, "[%s] codec DEC_OPT_FRAME error", MOD_NAME);
+	  tc_tag_warn(MOD_NAME, "codec DEC_OPT_FRAME error");
 	  return(TC_IMPORT_ERROR); 
       }
 #endif
@@ -640,8 +638,6 @@ MOD_close
 
 	int status;
 
-	//fprintf (stderr, "DEBUG [%s:%d] 1\n", __FILE__, __LINE__);
-
 	if (decore_in_use>0) {
 	    --decore_in_use;
 #if DECORE_VERSION >= 20021112
@@ -651,7 +647,7 @@ MOD_close
 	    status = divx_decore(divx_id, DEC_OPT_RELEASE, NULL, NULL);
 #endif
 	    if(verbose_flag & TC_DEBUG) 
-		fprintf(stderr, "DivX decore module returned %d\n", status); 
+		tc_tag_warn(MOD_NAME, "DivX decore module returned %d", status); 
 
 	    //remove codec
 	    dlclose(handle);

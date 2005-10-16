@@ -156,10 +156,12 @@ MOD_init
     }
 
     // start the listen thread     
-    if(pthread_create(&thread2, NULL, (void *) alisten, NULL)!=0)
-	tc_error("failed to start listen (audio) thread");
+    if(pthread_create(&thread2, NULL, (void *) alisten, NULL)!=0) {
+	tc_tag_warn(MOD_NAME, "failed to start listen (audio) thread");
+        return(TC_EXPORT_ERROR);
+    }
 
-    return(0);
+    return(TC_EXPORT_OK);
   }
   
   if(param->flag == TC_VIDEO) {
@@ -190,8 +192,10 @@ MOD_init
     }
 
     // start the listen thread     
-    if(pthread_create(&thread1, NULL, (void *) vlisten, NULL)!=0)
-	tc_error("failed to start listen (video) thread");
+    if(pthread_create(&thread1, NULL, (void *) vlisten, NULL)!=0) {
+	tc_tag_warn(MOD_NAME, "failed to start listen (video) thread");
+	return(TC_EXPORT_ERROR);
+    }
 
     //size?
 

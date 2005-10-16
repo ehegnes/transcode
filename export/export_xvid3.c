@@ -266,7 +266,7 @@ MOD_init
 			global_framesize = fsize*2;
 			global_colorspace = XVID_CSP_UYVY;
 			if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
-				tc_warn("[%s] tcv_convert_init failed");
+				tc_tag_warn(MOD_NAME, "tcv_convert_init failed");
 				return TC_EXPORT_ERROR;
 			}
 			break;

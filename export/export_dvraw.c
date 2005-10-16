@@ -242,8 +242,8 @@ MOD_open
   if(param->flag == TC_AUDIO) {
     
     if (!encoder) {
-      tc_warn("[export_dvraw] -y XXX,dvraw is not possible without the video");
-      tc_warn("[export_dvraw] export module also being dvraw");
+      tc_tag_warn(MOD_NAME, "-y XXX,dvraw is not possible without the video");
+      tc_tag_warn(MOD_NAME, "export module also being dvraw");
       return (TC_EXPORT_ERROR);
     }
     chans = vob->dm_chan;

@@ -234,7 +234,7 @@ MOD_init
 	else if(vob->im_v_codec == CODEC_YUV422) {
 		thismod.stream_size *= 2;
 		if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
-			tc_warn("[%s] tcv_convert_init failed");
+			tc_tag_warn(MOD_NAME, "tcv_convert_init failed");
 			return TC_EXPORT_ERROR;
 		}
 	} else

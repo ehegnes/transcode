@@ -154,11 +154,11 @@ MOD_open
 	    srcfmt = IMG_RGB_DEFAULT;
 	    destfmt = IMG_YUV420P;
 	} else {
-	    tc_warn ("invalid codec for this export module");
+	    tc_tag_warn (MOD_NAME, "invalid codec for this export module");
 	    return (TC_EXPORT_ERROR);
 	}
 	if (!tcv_convert_init(width, height)) {
-	    tc_warn ("failed to init image format conversion");
+	    tc_tag_warn (MOD_NAME, "failed to init image format conversion");
 	    return (TC_EXPORT_ERROR);
 	}
 

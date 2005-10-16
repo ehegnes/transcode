@@ -113,13 +113,13 @@ MOD_open
       int max_titles, max_chapters, max_angles;
 
       if(dvd_init(vob->audio_in_file, &max_titles, verbose_flag)<0) {
-	fprintf(stderr, "[%s] failed to open DVD %s\n", MOD_NAME,
-                        vob->video_in_file);
+	tc_tag_warn(MOD_NAME, "failed to open DVD %s\n",
+			vob->video_in_file);
 	return(TC_IMPORT_ERROR);
       }
 
       if(dvd_query(vob->dvd_title, &max_chapters, &max_angles)<0) {
-	fprintf(stderr, "[%s] failed to read DVD information\n", MOD_NAME);
+	tc_tag_warn(MOD_NAME, "failed to read DVD information");
 	dvd_close();
 	return(TC_IMPORT_ERROR);
       } else {
@@ -153,7 +153,7 @@ MOD_open
 	return(TC_IMPORT_ERROR);
 
       if(verbose_flag & TC_DEBUG && !a_re_entry)
-        printf("[%s] AC3->AC3\n", MOD_NAME);
+        tc_tag_info(MOD_NAME, "AC3->AC3");
 
       break;
 
@@ -175,7 +175,7 @@ MOD_open
 	  return(TC_IMPORT_ERROR);
 
 	if(verbose_flag & TC_DEBUG && !a_re_entry)
-          printf("[%s] AC3->PCM\n", MOD_NAME);
+          tc_tag_info(MOD_NAME, "AC3->PCM");
       }
 
       if(vob->fixme_a_codec==CODEC_A52) {
@@ -193,7 +193,7 @@ MOD_open
 	  return(TC_IMPORT_ERROR);
 
 	if(verbose_flag & TC_DEBUG && !a_re_entry)
-          printf("[%s] A52->PCM\n", MOD_NAME);
+          tc_tag_info(MOD_NAME, "A52->PCM");
       }
 
       if(vob->fixme_a_codec==CODEC_MP3) {
@@ -211,7 +211,7 @@ MOD_open
 	  return(TC_IMPORT_ERROR);
 
 	if(verbose_flag & TC_DEBUG && !a_re_entry)
-          printf("[%s] MP3->PCM\n", MOD_NAME);
+          tc_tag_info(MOD_NAME, "MP3->PCM");
       }
 
       if(vob->fixme_a_codec==CODEC_MP2) {
@@ -229,7 +229,7 @@ MOD_open
 	  return(TC_IMPORT_ERROR);
 	
 	if(verbose_flag & TC_DEBUG && !a_re_entry)
-          printf("[%s] MP2->PCM\n", MOD_NAME);
+          tc_tag_info(MOD_NAME, "MP2->PCM");
       }
 
       if(vob->fixme_a_codec==CODEC_PCM || vob->fixme_a_codec==CODEC_LPCM) {
@@ -245,20 +245,20 @@ MOD_open
 	  return(TC_IMPORT_ERROR);
 
 	if(verbose_flag & TC_DEBUG && !a_re_entry)
-          printf("[%s] LPCM->PCM\n", MOD_NAME);
+          tc_tag_info(MOD_NAME, "LPCM->PCM");
       }
 
       break;
 
     default: 
-      fprintf(stderr, "invalid import codec request 0x%x\n", codec);
+      tc_tag_warn(MOD_NAME, "invalid import codec request 0x%x", codec);
       return(TC_IMPORT_ERROR);
 
     }
 
     // print out
     if(verbose_flag && !a_re_entry) 
-      printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+      tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
 
     // set to NULL if we handle read
     param->fd = NULL;
@@ -290,10 +290,10 @@ MOD_open
     if (sret < 0)
       return(TC_IMPORT_ERROR);
 
-    if(verbose_flag & TC_DEBUG) printf("[%s] subtitle extraction\n", MOD_NAME);
+    if(verbose_flag & TC_DEBUG) tc_tag_info(MOD_NAME, "subtitle extraction");
 
     // print out
-    if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+    if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
 
     // popen
     if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
@@ -313,13 +313,13 @@ MOD_open
       int max_titles, max_chapters, max_angles;
 
       if(dvd_init(vob->video_in_file, &max_titles, verbose_flag)<0) {
-	fprintf(stderr, "[%s] failed to open DVD %s\n",
-                         MOD_NAME, vob->video_in_file);
+	tc_tag_warn(MOD_NAME, "failed to open DVD %s",
+                         vob->video_in_file);
 	return(TC_IMPORT_ERROR);
       }
 
       if(dvd_query(vob->dvd_title, &max_chapters, &max_angles)<0) {
-	fprintf(stderr, "[%s] failed to read DVD information\n", MOD_NAME);
+	tc_tag_warn(MOD_NAME, "failed to read DVD information");
 	dvd_close();
 	return(TC_IMPORT_ERROR);
       } else {
@@ -334,7 +334,7 @@ MOD_open
     if (vob->demuxer==TC_DEMUX_SEQ_FSYNC || vob->demuxer==TC_DEMUX_SEQ_FSYNC2) {
 
       if((logfile=clone_fifo())==NULL) {
-	printf("[%s] failed to create a temporary pipe\n", MOD_NAME);
+	tc_tag_warn(MOD_NAME, "failed to create a temporary pipe");
 	return(TC_IMPORT_ERROR);
       } 
       tc_snprintf(dem_buf, TMP_BUF_SIZE, "-M %d -f %f -P %s",
@@ -415,21 +415,20 @@ MOD_open
 
     // print out
     if(verbose_flag && !v_re_entry) 
-      printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+      tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
 
     param->fd = NULL;
 
     if (tc_dvd_access_delay) {
       if(verbose_flag && !v_re_entry)
-        printf("[%s] delaying DVD access by %d second(s)\n",
+        tc_tag_info(MOD_NAME, "delaying DVD access by %d second(s)",
                 MOD_NAME, tc_dvd_access_delay);
 
       n=tc_dvd_access_delay; 
       while(n--) {
-	if(verbose_flag) printf("."); 
+	if(verbose_flag) tc_tag_info(MOD_NAME, "waiting..."); 
 	fflush(stdout); sleep(1);
       }
-      printf("\r");
     }
 
     // popen
@@ -442,7 +441,7 @@ MOD_open
 	(vob->demuxer==TC_DEMUX_SEQ_FSYNC || vob->demuxer==TC_DEMUX_SEQ_FSYNC2)) {
 
       if(clone_init(param->fd)<0) {
-	printf("[%s] failed to init stream sync mode\n", MOD_NAME);
+	tc_tag_warn(MOD_NAME, "failed to init stream sync mode");
 	return(TC_IMPORT_ERROR);
       } else param->fd = NULL;
     }
@@ -467,7 +466,7 @@ MOD_open
 	else tbuf.off++;
       }
       if (tbuf.off+4>=tbuf.len)  {
-	fprintf (stderr, "Internal Error. No sync word\n");
+	tc_tag_warn(MOD_NAME, "Internal Error. No sync word");
 	return (TC_IMPORT_ERROR);
       }
 
@@ -503,7 +502,7 @@ MOD_decode
 
       if(clone_frame(param->buffer, param->size)<0) {
 	if(verbose_flag & TC_DEBUG)
-          printf("[%s] end of stream - failed to sync video frame\n", MOD_NAME);
+          tc_tag_warn(MOD_NAME, "end of stream - failed to sync video frame");
 	return(TC_IMPORT_ERROR);
       }
     }
@@ -533,7 +532,7 @@ MOD_decode
 		((tbuf.d[tbuf.off+5]>>3)&0x7)>1 && 
 		((tbuf.d[tbuf.off+5]>>3)&0x7)<4) {
 	      if (verbose & TC_DEBUG)
-                printf("Completed a sequence + I frame from %d -> %d\n", 
+                tc_tag_info(MOD_NAME, "Completed a sequence + I frame from %d -> %d", 
 		        start_seq, tbuf.off);
 
 	      param->attributes |= (TC_FRAME_IS_KEYFRAME | TC_FRAME_IS_I_FRAME);
@@ -546,7 +545,7 @@ MOD_decode
 	      tbuf.len -= param->size;
 
 	      if (verbose & TC_DEBUG)
-                  printf("%02x %02x %02x %02x\n",
+                  tc_tag_info(MOD_NAME, "%02x %02x %02x %02x",
                           tbuf.d[0]&0xff, tbuf.d[1]&0xff,
                           tbuf.d[2]&0xff, tbuf.d[3]&0xff);
 
@@ -558,7 +557,7 @@ MOD_decode
 	  // not enough data.
 	  if (tbuf.off+6 >= tbuf.len) {
 
-	    if (verbose & TC_DEBUG) printf("Fetching in Sequence\n");
+	    if (verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "Fetching in Sequence");
 	    memmove (tbuf.d, tbuf.d+start_seq, tbuf.len - start_seq);
 	    tbuf.len -= start_seq;
 	    tbuf.off = 0;
@@ -567,7 +566,7 @@ MOD_decode
 	      can_read = fread (tbuf.d+tbuf.len, SIZE_RGB_FRAME-tbuf.len, 1, f);
 	      tbuf.len += (SIZE_RGB_FRAME-tbuf.len);
 	    } else {
-		printf("No 1 Read %d\n", can_read);
+		tc_tag_info(MOD_NAME, "No 1 Read %d", can_read);
 	      /* XXX: Flush buffers */
 	      return TC_IMPORT_ERROR;
 	    }
@@ -585,7 +584,7 @@ MOD_decode
 		tbuf.d[tbuf.off+2]==0x1 && 
 		(unsigned char)tbuf.d[tbuf.off+3]==0xb3) {
 	      if (verbose & TC_DEBUG)
-                  printf("found a last P or B frame %d -> %d\n", 
+                  tc_tag_info(MOD_NAME, "found a last P or B frame %d -> %d", 
 		          start_pic, tbuf.off);
 
 	      param->size = tbuf.off - start_pic;
@@ -605,7 +604,7 @@ MOD_decode
 		((tbuf.d[tbuf.off+5]>>3)&0x7)>1 && 
 		((tbuf.d[tbuf.off+5]>>3)&0x7)<4) {
 		 if (verbose & TC_DEBUG)
-                     printf("found a P or B frame from %d -> %d\n", 
+                     tc_tag_info(MOD_NAME, "found a P or B frame from %d -> %d\n", 
 		             start_pic, tbuf.off);
 
 		 param->size = tbuf.off - start_pic;
@@ -632,7 +631,7 @@ MOD_decode
 		can_read = fread (tbuf.d+tbuf.len, SIZE_RGB_FRAME-tbuf.len, 1, f);
 		tbuf.len += (SIZE_RGB_FRAME-tbuf.len);
 	      } else {
-		printf("No 1 Read %d\n", can_read);
+		tc_tag_info(MOD_NAME, "No 1 Read %d", can_read);
 		/* XXX: Flush buffers */
 		return TC_IMPORT_ERROR;
 	      }
@@ -641,7 +640,7 @@ MOD_decode
 	  break;
 	default:
 	  // should not get here
-	  printf("Default case\n");
+	  tc_tag_warn(MOD_NAME, "Default case");
 	  tbuf.off++;
 	  break;
       }
@@ -688,8 +687,8 @@ MOD_decode
       param->size = effective_frame_size; 
 
       if(verbose_flag & TC_STATS)
-        fprintf(stderr,"[%s] pseudo=%d, real=%d, frames=%d, effective=%d\n",
-                MOD_NAME, ac_bytes, real_frame_size, num_frames,
+        tc_tag_info(MOD_NAME, "pseudo=%d, real=%d, frames=%d, effective=%d",
+                ac_bytes, real_frame_size, num_frames,
                 effective_frame_size);
 
       // adjust
@@ -712,7 +711,7 @@ MOD_decode
       break;
 
     default: 
-      fprintf(stderr, "invalid import codec request 0x%x\n",codec);
+      tc_tag_warn(MOD_NAME, "invalid import codec request 0x%x");
       return(TC_IMPORT_ERROR);
 
     }

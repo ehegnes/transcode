@@ -122,7 +122,7 @@ void bktr_usage(void)
 {
     int i;
 
-    printf("[%s] help\n", MOD_NAME);
+    tc_tag_info(MOD_NAME, "help");
 
     printf("* Overview\n");
     printf("    This module grabs video frames from bktr(4) devices\n");
@@ -185,9 +185,9 @@ int bktr_parse_options(char *options)
         if (formats[i].name)
             bktr_format = formats[i].format;
         else {
-            fprintf(stderr,
-                "[%s] invalid format: %s",
-                MOD_NAME, format);
+            tc_tag_warn(MOD_NAME,
+                "invalid format: %s",
+                format);
             return(1);
         }
     }
@@ -199,9 +199,9 @@ int bktr_parse_options(char *options)
         if (vsources[i].name)
             bktr_vsource = vsources[i].vsource;
         else {
-            fprintf(stderr,
-                "[%s] invalid vsource: %s",
-                MOD_NAME, vsource);
+            tc_tag_warn(MOD_NAME,
+                "invalid vsource: %s",
+                vsource);
             return(1);
         }
     }
@@ -213,9 +213,9 @@ int bktr_parse_options(char *options)
         if (asources[i].name)
             bktr_asource = asources[i].asource;
         else {
-            fprintf(stderr,
-                "[%s] invalid asource: %s",
-                MOD_NAME, asource);
+            tc_tag_warn(MOD_NAME,
+                "invalid asource: %s",
+                asource);
             return(1);
         }
     }
@@ -256,18 +256,18 @@ int bktr_init(int video_codec, const char *video_device,
     }
 
     if (width > w_max) {
-        fprintf(stderr,
-            "[%s] import width '%d' too large!\n"
-            "PAL max width = 768, NTSC max width = 640\n",
-            MOD_NAME, width);
+        tc_tag_warn(MOD_NAME,
+            "import width '%d' too large! "
+            "PAL max width = 768, NTSC max width = 640",
+            width);
         return(1);
     }
 
     if (height > h_max) {
-        fprintf(stderr,
-            "[%s] import height %d too large!\n"
-            "PAL max height = 576, NTSC max height = 480\n",
-            MOD_NAME, width);
+        tc_tag_warn(MOD_NAME,
+            "import height %d too large! "
+            "PAL max height = 576, NTSC max height = 480",
+            height);
         return(1);
     }
 
@@ -359,9 +359,9 @@ int bktr_init(int video_codec, const char *video_device,
         bktr_buffer_size = width * height * 3 / 2;
         break;
       default:
-        fprintf(stderr,
-            "[%s] video_codec (%d) must be %d or %d or %d\n",
-            MOD_NAME, video_codec, CODEC_RGB, CODEC_YUV422, CODEC_YUV);
+        tc_tag_warn(MOD_NAME,
+            "video_codec (%d) must be %d or %d or %d\n",
+            video_codec, CODEC_RGB, CODEC_YUV422, CODEC_YUV);
         return(1);
     }
 
@@ -378,11 +378,11 @@ int bktr_init(int video_codec, const char *video_device,
     geo.oformat = 0;
 
     if (verbose_flag & TC_DEBUG) {
-        fprintf(stderr,
-            "[%s] geo.rows = %d, geo.columns = %d\n"
-            "[%s] geo.frames = %d, geo.oformat = %ld\n",
-            MOD_NAME, geo.rows, geo.columns,
-            MOD_NAME, geo.frames, (long)geo.oformat);
+        tc_tag_info(MOD_NAME,
+            "geo.rows = %d, geo.columns = %d, "
+            "geo.frames = %d, geo.oformat = %ld",
+            geo.rows, geo.columns,
+            geo.frames, (long)geo.oformat);
     }
 
     if (ioctl(bktr_vfd, METEORSETGEO, &geo) < 0) {
@@ -464,8 +464,8 @@ int bktr_grab(size_t size, char *dest)
         bktr_frame_waiting = 0;
         if (dest) {
             if (verbose_flag & TC_DEBUG) {
-                fprintf(stderr, "[%s] copying %lu bytes, buffer size is %lu\n",
-                                 MOD_NAME, (unsigned long)size,
+                tc_tag_info(MOD_NAME, "copying %lu bytes, buffer size is %lu",
+                                 (unsigned long)size,
                                  (unsigned long)bktr_buffer_size);
             }
             switch (bktr_convert) {
@@ -473,20 +473,18 @@ int bktr_grab(size_t size, char *dest)
               case BKTR2YUV422: copy_buf_yuv422(dest, size); break;
               case BKTR2YUV:    copy_buf_yuv(dest, size);    break;
               default:
-                fprintf(stderr,
-                    "[%s] unrecognized video conversion request\n",
-                    MOD_NAME);
+                tc_tag_warn(MOD_NAME,
+                    "unrecognized video conversion request");
                 return(1);
                 break;
             }
         } else {
-            fprintf(stderr,
-                "[%s] no destination buffer to copy frames to\n",
-                MOD_NAME);
+            tc_tag_warn(MOD_NAME,
+                "no destination buffer to copy frames to");
             return(1);
         }
     } else {  /* bktr_frame_waiting */
-        fprintf(stderr, "[%s]: sigalrm\n", MOD_NAME);
+        tc_tag_warn(MOD_NAME, "sigalrm");
     }
 
     return(0);
@@ -497,9 +495,9 @@ static void copy_buf_yuv422(char *dest, size_t size)
     uint8_t *planes;
 
     if (bktr_buffer_size != size)
-        fprintf(stderr,
-            "[%s] buffer sizes do not match (input %lu != output %lu)\n",
-            MOD_NAME, (unsigned long)bktr_buffer_size, (unsigned long)size);
+        tc_tag_warn(MOD_NAME,
+            "buffer sizes do not match (input %lu != output %lu)",
+            (unsigned long)bktr_buffer_size, (unsigned long)size);
 
     YUV_INIT_PLANES(planes, dest, IMG_YUV422P, size/2, 1);
     ac_imgconvert(&bktr_buffer, IMG_UYVY, planes, IMG_YUV422P, size/2, 1);
@@ -514,9 +512,9 @@ static void copy_buf_yuv(char *dest, size_t size)
     int u2_offset = y_size + u_size;
 
     if (bktr_buffer_size != size)
-        fprintf(stderr,
-            "[%s] buffer sizes do not match (input %lu != output %lu)\n",
-            MOD_NAME, (unsigned long)bktr_buffer_size, (unsigned long)size);
+        tc_tag_warn(MOD_NAME,
+            "buffer sizes do not match (input %lu != output %lu)",
+            (unsigned long)bktr_buffer_size, (unsigned long)size);
 
     ac_memcpy(dest + y_offset,  bktr_buffer + y_offset,  y_size);
     ac_memcpy(dest + u1_offset, bktr_buffer + u1_offset, u_size);
@@ -530,9 +528,9 @@ static void copy_buf_rgb(char *dest, size_t size)
     /* 24 bit RGB packed into 32 bits (NULL, R, G, B) */
 
     if ((bktr_buffer_size * 3 / 4) != size)
-        fprintf(stderr,
-            "[%s] buffer sizes do not match (input %lu != output %lu)\n",
-            MOD_NAME, (unsigned long)bktr_buffer_size * 3 / 4, (unsigned long)size);
+        tc_tag_warn(MOD_NAME,
+            "buffer sizes do not match (input %lu != output %lu)",
+            (unsigned long)bktr_buffer_size * 3 / 4, (unsigned long)size);
 
     /* bktr_buffer_size was set to width * height * 4 (32 bits) */
     /* so width * height = bktr_buffer_size / 4                 */
@@ -591,9 +589,8 @@ MOD_open
     switch (param->flag) {
       case TC_VIDEO:
         if (verbose_flag & TC_DEBUG) {
-            fprintf(stderr,
-                "[%s] bktr video grabbing\n",
-                MOD_NAME);
+            tc_tag_info(MOD_NAME,
+                "bktr video grabbing");
         }
         if (bktr_init(vob->im_v_codec, vob->video_in_file,
                       vob->im_v_width, vob->im_v_height,
@@ -602,14 +599,12 @@ MOD_open
         }
         break;
       case TC_AUDIO:
-        fprintf(stderr,
-            "[%s] unsupported request (init audio)\n",
-            MOD_NAME);
+        tc_tag_warn(MOD_NAME,
+            "unsupported request (init audio)\n");
         break;
       default:
-        fprintf(stderr,
-            "[%s] unsupported request (init)\n",
-            MOD_NAME);
+        tc_tag_warn(MOD_NAME,
+            "unsupported request (init)\n");
         ret = TC_IMPORT_ERROR;
         break;
     }
@@ -631,22 +626,19 @@ MOD_decode
     switch (param->flag) {
       case TC_VIDEO:
         if (bktr_grab(param->size, param->buffer)) {
-            fprintf(stderr,
-                "[%s] error in grabbing video\n",
-                MOD_NAME);
+            tc_tag_warn(MOD_NAME,
+                "error in grabbing video");
             ret = TC_IMPORT_ERROR;
         }
         break;
       case TC_AUDIO:
-        fprintf(stderr,
-            "[%s] unsupported request (decode audio)\n",
-            MOD_NAME);
+        tc_tag_warn(MOD_NAME,
+            "unsupported request (decode audio)");
         ret = TC_IMPORT_ERROR;
         break;
       default:
-        fprintf(stderr,
-            "[%s] unsupported request (decode)\n",
-            MOD_NAME);
+        tc_tag_warn(MOD_NAME,
+            "unsupported request (decode)");
         ret = TC_IMPORT_ERROR;
         break;
     }
@@ -669,15 +661,13 @@ MOD_close
         bktr_stop();
         break;
       case TC_AUDIO:
-        fprintf(stderr,
-            "[%s] unsupported request (close audio)\n",
-            MOD_NAME);
+        tc_tag_warn(MOD_NAME,
+            "unsupported request (close audio)");
         ret = TC_IMPORT_ERROR;
         break;
       default:
-        fprintf(stderr,
-            "[%s] unsupported request (close)\n",
-            MOD_NAME);
+        tc_tag_warn(MOD_NAME,
+            "unsupported request (close)");
         ret = TC_IMPORT_ERROR;
         break;
     }

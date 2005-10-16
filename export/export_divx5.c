@@ -227,12 +227,12 @@ MOD_init
     //load the codec
 
     if(divx5_init(vob->mod_path)<0) {
-      tc_warn("failed to init DivX 5.0 Codec");
+      tc_tag_warn(MOD_NAME, "failed to init DivX 5.0 Codec");
       return(TC_EXPORT_ERROR); 
     }
 
     if (divx5_encore(0, ENC_OPT_VERSION, 0, 0) != ENCORE_VERSION) {
-	tc_warn("API in encore.h is not compatible with installed lbdivxencore library");
+	tc_tag_warn(MOD_NAME, "API in encore.h is not compatible with installed lbdivxencore library");
 	return (TC_EXPORT_ERROR);
     }
 
@@ -386,7 +386,7 @@ MOD_init
     settings->enable_resize = 0;
 
     if(divx5_encore(&encore_handle, ENC_OPT_INIT, format, settings) < 0) {
-      tc_warn("Error doing ENC_OPT_INIT");
+      tc_tag_warn(MOD_NAME, "Error doing ENC_OPT_INIT");
       return(TC_EXPORT_ERROR); 
     }
 
@@ -421,13 +421,13 @@ MOD_init
     divx->handle=NULL;
 
     if(divx5_encore(NULL, ENC_OPT_INIT, divx, NULL) < 0) {
-      tc_warn("DivX codec init error");
+      tc_tag_warn(MOD_NAME, "DivX codec init error");
       return(TC_EXPORT_ERROR); 
     }
 
     // catch API mismatch
     if(!divx || !divx->handle) {
-      tc_warn("DivX codec open error");
+      tc_tag_warn(MOD_NAME, "DivX codec open error");
       return(TC_EXPORT_ERROR); 
     }
     
@@ -578,7 +578,7 @@ MOD_encode
 
     do {
 	if(divx5_encore(encore_handle, ENC_OPT_ENCODE, &encode, &key) < 0) {
-	    tc_warn("DivX encoder error");
+	    tc_tag_warn(MOD_NAME, "DivX encoder error");
 	    return(TC_EXPORT_ERROR); 
 	}	
 	// write bitstream
@@ -591,7 +591,7 @@ MOD_encode
 	    if(key.cType == 'I') tc_outstream_rotate();
 
 	    if(AVI_write_frame(avifile, buffer, encode.length, (key.cType == 'I')?1:0)<0) {
-		tc_warn("DivX avi video write error");
+		tc_tag_warn(MOD_NAME, "DivX avi video write error");
 		return(TC_EXPORT_ERROR); 
 	    }
 	}

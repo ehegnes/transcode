@@ -80,7 +80,7 @@ MOD_open
       if (sret < 0)
         return(TC_IMPORT_ERROR);
 
-      if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+      if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
 
       if ((videopipefd = popen(import_cmd_buf, "w")) == NULL) {
         perror("popen videopipe");
@@ -102,7 +102,7 @@ MOD_open
       }
 
       // print out
-      if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+      if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
 
       param->fd = NULL;
 
@@ -132,7 +132,7 @@ MOD_open
       if (sret < 0)
         return(TC_IMPORT_ERROR);
 
-      if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+      if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
 
       if ((audiopipefd = popen(import_cmd_buf, "w")) == NULL) {
         perror("popen audiopipe failed");
@@ -183,7 +183,7 @@ MOD_close
       unlink(audiopipe);
     break;
   default:
-    fprintf(stderr, "[%s] unsupported request (close ?)\n", MOD_NAME);
+    tc_tag_warn(MOD_NAME, "unsupported request (close)");
     return(TC_IMPORT_ERROR);
     break;
   }

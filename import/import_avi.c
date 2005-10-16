@@ -76,7 +76,7 @@ MOD_open
 			 vob->video_in_file, vob->verbose);
       if (sret < 0)
           return(TC_IMPORT_ERROR);
-      if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+      if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
       if ((param->fd = popen(import_cmd_buf, "r"))== NULL) {
         return(TC_IMPORT_ERROR);
       }
@@ -106,7 +106,7 @@ MOD_open
     chan   =  AVI_audio_channels(avifile1);
 
     if(!chan) {
-      fprintf(stderr, "error: no audio track found\n");
+      tc_tag_warn(MOD_NAME, "error: no audio track found");
       return(TC_IMPORT_ERROR); 
     }
 
@@ -117,13 +117,13 @@ MOD_open
     bitrate=  AVI_audio_mp3rate(avifile1);
 
     if (verbose_flag)
-        fprintf(stderr, "[%s] format=0x%x, rate=%ld Hz, bits=%d, "
-                        "channels=%d, bitrate=%ld\n",
-                         MOD_NAME, format, rate, bits, chan, bitrate);
+        tc_tag_info(MOD_NAME, "format=0x%x, rate=%ld Hz, bits=%d, "
+                        "channels=%d, bitrate=%ld",
+                         format, rate, bits, chan, bitrate);
 
     if(vob->im_a_codec == CODEC_PCM && format != CODEC_PCM) {
-      fprintf(stderr, "error: invalid AVI audio format '0x%x'"
-                      " for PCM processing\n", format);
+      tc_tag_info(MOD_NAME, "error: invalid AVI audio format '0x%x'"
+                      " for PCM processing", format);
       return(TC_IMPORT_ERROR);
     }
     // go to a specific byte for seeking
@@ -162,24 +162,24 @@ MOD_open
     fps    =  AVI_frame_rate(avifile2);
     codec  =  AVI_video_compressor(avifile2);
 
-    fprintf(stderr, "[%s] codec=%s, fps=%6.3f, width=%d, height=%d\n", 
-	    MOD_NAME, codec, fps, width, height);
+    tc_tag_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d\n", 
+	    codec, fps, width, height);
 
     if(strlen(codec)!=0 && vob->im_v_codec == CODEC_RGB) {
-      fprintf(stderr, "error: invalid AVI file codec '%s'"
-                      " for RGB processing\n", codec);
+      tc_tag_warn(MOD_NAME, "error: invalid AVI file codec '%s'"
+                      " for RGB processing", codec);
       return(TC_IMPORT_ERROR);
     }
 
     if(AVI_max_video_chunk(avifile2) > SIZE_RGB_FRAME){
-      fprintf(stderr, "error: invalid AVI video frame chunk size detected\n");
+      tc_tag_warn(MOD_NAME, "error: invalid AVI video frame chunk size detected");
       return(TC_IMPORT_ERROR);
     }
 
     if(strlen(codec)!=0 && vob->im_v_codec == CODEC_YUV &&
                                                strcmp(codec, "YV12") != 0) {
-      fprintf(stderr, "error: invalid AVI file codec '%s'"
-                      " for YV12 processing\n", codec);
+      tc_tag_warn(MOD_NAME, "error: invalid AVI file codec '%s'"
+                      " for YV12 processing", codec);
       return(TC_IMPORT_ERROR);
     }
     return(TC_IMPORT_OK);
@@ -222,7 +222,8 @@ MOD_decode
 	}
     }
 
-    if(verbose & TC_STATS && key) printf("keyframe %d\n", vframe_count); 
+    if(verbose & TC_STATS && key) 
+      tc_tag_info(MOD_NAME, "keyframe %d", vframe_count); 
 
     if(param->size<0) {
       if(verbose & TC_DEBUG) AVI_print_error("AVI read video frame");

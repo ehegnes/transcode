@@ -147,7 +147,7 @@ MOD_open
 
       tmpbuf = malloc(frame_size);
       if (!tmpbuf) {
-	tc_error("[%s] out of memory", MOD_NAME);
+	fprintf(stderr, "out of memory");
 	return(TC_IMPORT_ERROR);
       }
 
@@ -188,13 +188,14 @@ MOD_open
 
 
     default:
-      fprintf(stderr, "invalid import codec request 0x%x\n", vob->im_v_codec);
+      tc_tag_warn(MOD_NAME, "invalid import codec request 0x%x", 
+		      vob->im_v_codec);
       return(TC_IMPORT_ERROR);
 
     }
 
     // print out
-    if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+    if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
 
     return(TC_IMPORT_OK);
   }
@@ -217,7 +218,7 @@ MOD_open
       return(TC_IMPORT_ERROR);
 
     // print out
-    if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+    if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
 
     param->fd = NULL;
 
