@@ -130,13 +130,13 @@ extern "C" {
 
 	// YUV 4:2:0 planar formats are supported directly:
 	// I420 = IYUV = Y plane + U subplane + V subplane
-	else if(caps & (IVideoDecoder::CAP_I420|IVideoDecoder::CAP_IYUV)) {
+	if(caps & (IVideoDecoder::CAP_I420|IVideoDecoder::CAP_IYUV)) {
 	  fcc = fccI420;
 	  fprintf(stderr, "(%s) input: YUV 4:2:0 planar data\n", __FILE__);
 	  buffer_size = (plane_size * 3)/2;
 	} 
 	// YV12 = Y plane + V subplane + U subplane
-	if(caps & IVideoDecoder::CAP_YV12) {
+	else if(caps & IVideoDecoder::CAP_YV12) {
 	  fcc = fccYV12;
 	  fprintf(stderr, "(%s) input: YVU 4:2:0 planar data\n", __FILE__);
 	  buffer_size = (plane_size * 3)/2;
@@ -225,7 +225,7 @@ extern "C" {
 	    /* unpack and write unpacked data */
 	    ac_imgconvert(&buf, srcfmt, unpack, IMG_YUV420P,
 	                  bh.biWidth, bh.biHeight);
-	    if(p_write(decode->fd_out, pack_buffer, pack_size)!= pack_size) {
+	    if(p_write(decode->fd_out, unpack_buffer, unpack_size)!= unpack_size) {
 	      fprintf(stderr,"(%s) ERROR: Pipe write error!\n",__FILE__);
 	      break;
 	    }
