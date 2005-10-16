@@ -423,7 +423,7 @@ MOD_init
 	}
 	else
 	{
-		tc_tag-warn(MOD_NAME, "unsupported %s codec",p_conf_codec->p_codec);
+		tc_tag_warn(MOD_NAME, "unsupported %s codec",p_conf_codec->p_codec);
 		f_help();		/*unsupported codec parameter*/
 		pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 		return(TC_EXPORT_ERROR);
