@@ -480,7 +480,7 @@ MOD_encode
 
 	if(tc_get_vob()->im_v_codec == CODEC_YUV422) {
 		/* Convert to UYVY */
-		tc_convert(param->buffer, IMG_YUV422P, IMG_UYVY);
+		tcv_convert(param->buffer, IMG_YUV422P, IMG_UYVY);
 	}
 
 	/* Initialize the local frame copy */

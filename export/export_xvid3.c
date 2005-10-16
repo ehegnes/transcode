@@ -445,7 +445,7 @@ MOD_encode
 
 	if(tc_get_vob()->im_v_codec == CODEC_YUV422) {
 		/* Convert to UYVY */
-		tc_convert(param->buffer, IMG_YUV422P, IMG_UYVY);
+		tcv_convert(param->buffer, IMG_YUV422P, IMG_UYVY);
 	}
 
 	/* Initialize the local frame copy */
@@ -646,7 +646,7 @@ static int xvid2_init(char *path)
 		module = modules[i];
 
 		if(verbose_flag & TC_DEBUG)
-			tc_ta_info(MOD_NAME, "Trying to load shared lib %s",
+			tc_tag_info(MOD_NAME, "Trying to load shared lib %s",
 				module);
 
 		/* Try loading the shared lib */
