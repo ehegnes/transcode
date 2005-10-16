@@ -95,7 +95,7 @@ MOD_open
       inbufFormat=FORMAT_UINT;
     else
     {
-      fprintf(stderr, "Unknown PVN format");
+      tc_tag_warn(MOD_NAME, "Unknown PVN format");
       return(TC_IMPORT_ERROR);
     }
 
@@ -106,7 +106,7 @@ MOD_open
 
     if(inParams.framerate==0)
     {
-      fprintf(stderr,"Setting Frame Rate to default of 15\n");
+      tc_tag_warn(MOD_NAME, "Setting Frame Rate to default of 15");
       inParams.framerate=15;
     }
 
@@ -139,7 +139,7 @@ MOD_decode
       inParams.maxcolour=inParams.width; // if BIT format, bufconvert requires width in the maxcolour field
     if(bufConvert(buf, bufSize, inbufFormat, inParams.maxcolour,tmpBuf,tmpBufSize,FORMAT_UINT,tmpParams.maxcolour) != OK)
     {
-      fprintf(stderr, "Buffer conversion error!\n");
+      tc_tag_warn(MOD_NAME, "Buffer conversion error!");
       return(TC_IMPORT_ERROR);
     }
 

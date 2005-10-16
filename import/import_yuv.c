@@ -61,7 +61,7 @@ MOD_open
 
     if(param->flag == TC_VIDEO) {
         if(verbose_flag & TC_DEBUG)
-            fprintf(stderr, "[%s] yuv start MOD_open video\n", MOD_NAME);
+            tc_tag_info(MOD_NAME, "yuv start MOD_open video");
 	frm=0;
         param->fd = NULL;
         return(0);
@@ -82,14 +82,14 @@ MOD_decode {
     if(param->flag == TC_VIDEO) {
 
         if(verbose_flag & TC_STATS)
-            fprintf(stderr, "[%s] (V) read yuv", MOD_NAME);
+            tc_tag_info(MOD_NAME, "(V) read yuv");
 
         tc_snprintf(fname,sizeof(fname),"%s/%04d.yuv",vob->video_in_file,frm);	
 
         if (!(fd = fopen(fname,"rb"))) {
 
             if(verbose_flag & TC_DEBUG)
-                fprintf(stderr, "[%s] warning: missing frame %d, searching next...", MOD_NAME, frm);
+                tc_tag_warn(MOD_NAME, "missing frame %d, searching next...", frm);
 
             while (frm < MAXFRM){ 
 		frm++;
@@ -97,7 +97,7 @@ MOD_decode {
 		fd=fopen(fname,"rb");
 		if (fd) {
 		    if(verbose_flag & TC_DEBUG)
-			fprintf(stderr,"[%s] found %d \n", MOD_NAME, frm);
+			tc_tag_info(MOD_NAME, "found %d", frm);
 		    goto cont;
 		}
 	    }
@@ -125,7 +125,7 @@ MOD_close
 {  
   if(param->flag == TC_VIDEO) {
 
-    printf("[%s] disconnect video \n", MOD_NAME);
+    tc_tag_info(MOD_NAME, "disconnect video");
     return(0);
   }
   

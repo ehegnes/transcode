@@ -54,7 +54,7 @@ MOD_open
 	tc_snprintf (import_cmd_buf, MAX_BUF, "%s ", vob->audio_in_file);
 
 	// print out
-	if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+	if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
 
 	// popen
 	if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
@@ -72,7 +72,7 @@ MOD_open
 	tc_snprintf (import_cmd_buf, MAX_BUF, "%s ", vob->video_in_file);
 
 	// print out
-	if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+	if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
 
 	// popen
 	if((param->fd = popen(import_cmd_buf, "r"))== NULL) {

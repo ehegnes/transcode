@@ -175,7 +175,7 @@ retry:
   //read the raw frame
   
   if((fd_in = open(filename, O_RDONLY))<0) {
-    fprintf(stderr, "[%s] Opening file \"%s\" failed!\n", MOD_NAME, filename);
+    tc_tag_warn(MOD_NAME, "Opening file \"%s\" failed!", filename);
     perror("open file");
     goto retry;
   } 

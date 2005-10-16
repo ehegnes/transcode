@@ -27,30 +27,6 @@ static char fifo[256];
  *
  * ------------------------------------------------------------*/
 
-#if 0  /* get this from ioaux.c */
-static ssize_t p_read(int fd, char *buf, size_t len)
-{
-   ssize_t n = 0;
-   ssize_t r = 0;
-
-   while (r < len) {
-      n = read (fd, buf + r, len - r);
-
-	  if (n == 0)
-		break;
-	  if (n < 0) {
-		if (errno == EINTR)
-		  continue;
-		else
-		  break;
-	  } 
-      r += n;
-   }
-
-   return r;
-}
-#endif
-
 MOD_open
 {
     if (param->flag == TC_VIDEO) {
@@ -87,10 +63,12 @@ MOD_open
 				if (d && *d) { *d = '\0';
 				    while (*c == ' ') c++;
 				    a[n++] = c;
-				    printf("XX |%s|\n", c);
+				    tc_tag_info(MOD_NAME, "XX |%s|", c);
+				    // FIXME: ??? - fromani 20051016
 				    c = strchr(c, ' ');
 				} else {
-				    printf("XXXX |%s|\n", c);
+				    tc_tag_info(MOD_NAME, "XXXX |%s|", c);
+				    // FIXME: ??? - fromani 20051016
 				    a[n++] = c;
 				    break;
 				}
@@ -99,7 +77,8 @@ MOD_open
 				while (*d == ' ') d++;
 				if (strchr(d, ' ')) *strchr(d, ' ') = '\0';
 				a[n++] = d;
-				printf("XXX |%s|\n", d);
+				tc_tag_info(MOD_NAME, "XXX |%s|", c);
+				// FIXME: ??? - fromani 20051016
 				break;
 			    }
 			}
@@ -114,7 +93,6 @@ MOD_open
 	    default:
 		break;
 	}
-	//fprintf(stderr, "Main here\n");
 
 
 	return (TC_IMPORT_OK);
@@ -171,7 +149,6 @@ MOD_decode
 	    } else {
 		kill(pid, SIGKILL);
 		wret = wait(&ret);
-		//printf("%d ret %d;\n", wret, ret);
 		close(fd);
 		return (TC_IMPORT_ERROR);
 	    }
@@ -198,9 +175,7 @@ MOD_close
 	int ret;
 	kill(pid, SIGKILL);
 	wait(&ret);
-	//fprintf(stderr, "\nCLOSE1\n");
 	unlink (fifo);
-	//fprintf(stderr, "\nCLOSE2\n");
     }
 
     return (TC_IMPORT_OK);

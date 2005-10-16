@@ -1,4 +1,12 @@
 2005-10-16 Francesco Romani <fromani at gmail dot com>
+  * import/import_pvn.c import/import_raw.c import/import_rawlist.c
+    import/import_sh.c import/import_sunau.c import/import_vdrac3.c
+    import/import_vnc.c import/import_vob.c import/import_xml.c
+    import/import_xvid.c import/import_yuv.c import/import_yuv4mpeg.c
+  tc_(tag_){info,warn,error} roundup part 5; finish port import modules
+  (except for obvious typos)
+
+2005-10-16 Francesco Romani <fromani at gmail dot com>
   * import/import_ffmpeg.c import/import_fraps.c import/import_im.c
     import/import_lav.c import/import_lzo.c import/import_mov.c
     import/import_mp3.c import/import_mpeg2.c import/import_mpeg3.c

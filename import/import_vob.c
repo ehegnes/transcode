@@ -92,7 +92,7 @@ MOD_open
 	return(TC_IMPORT_ERROR);
       }
       
-      if(verbose_flag & TC_DEBUG) printf("[%s] AC3->AC3\n", MOD_NAME);
+      if(verbose_flag & TC_DEBUG) tc_tag_info(MOD_NAME, "AC3->AC3");
       
       break;
       
@@ -105,7 +105,7 @@ MOD_open
 	  return(TC_IMPORT_ERROR);
 	}
 	
-	if(verbose_flag & TC_DEBUG) printf("[%s] AC3->PCM\n", MOD_NAME);
+	if(verbose_flag & TC_DEBUG) tc_tag_info(MOD_NAME, "AC3->PCM");
       } 
       
       
@@ -116,7 +116,7 @@ MOD_open
 	  return(TC_IMPORT_ERROR);
 	}
 	
-	if(verbose_flag & TC_DEBUG) printf("[%s] A52->PCM\n", MOD_NAME);
+	if(verbose_flag & TC_DEBUG) tc_tag_info(MOD_NAME, "A52->PCM");
       } 
       
       if(vob->fixme_a_codec==CODEC_MP3) {
@@ -126,7 +126,7 @@ MOD_open
 	  return(TC_IMPORT_ERROR);
 	}
 	
-	if(verbose_flag & TC_DEBUG) printf("[%s] MP3->PCM\n", MOD_NAME);
+	if(verbose_flag & TC_DEBUG) tc_tag_info(MOD_NAME, "MP3->PCM");
       }
 
       if(vob->fixme_a_codec==CODEC_MP2) {
@@ -136,7 +136,7 @@ MOD_open
 	  return(TC_IMPORT_ERROR);
 	}
 	
-	if(verbose_flag & TC_DEBUG) printf("[%s] MP2->PCM\n", MOD_NAME);
+	if(verbose_flag & TC_DEBUG) tc_tag_info(MOD_NAME, "MP2->PCM");
       }
       
       if(vob->fixme_a_codec==CODEC_PCM || vob->fixme_a_codec==CODEC_LPCM) {
@@ -146,19 +146,19 @@ MOD_open
 	  return(TC_IMPORT_ERROR);
 	}
 	
-	if(verbose_flag & TC_DEBUG) printf("[%s] LPCM->PCM\n", MOD_NAME);
+	if(verbose_flag & TC_DEBUG) tc_tag_info(MOD_NAME, "LPCM->PCM");
       }
       
       break;
       
     default: 
-      fprintf(stderr, "invalid import codec request 0x%x\n", codec);
+      tc_tag_warn(MOD_NAME, "invalid import codec request 0x%x", codec);
       return(TC_IMPORT_ERROR);
       
     }
     
     // print out
-    if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+    if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
     
     // set to NULL if we handle read
     param->fd = NULL;
@@ -184,10 +184,10 @@ MOD_open
 	  return(TC_IMPORT_ERROR);
     }
     
-    if(verbose_flag & TC_DEBUG) printf("[%s] subtitle extraction\n", MOD_NAME);
+    if(verbose_flag & TC_DEBUG) tc_tag_info(MOD_NAME, "subtitle extraction");
     
     // print out
-    if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+    if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
     
     // popen
     if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
@@ -205,7 +205,7 @@ MOD_open
       if (vob->demuxer==TC_DEMUX_SEQ_FSYNC || vob->demuxer==TC_DEMUX_SEQ_FSYNC2) {
 	
 	if((logfile=clone_fifo())==NULL) {
-	  printf("[%s] failed to create a temporary pipe\n", MOD_NAME);
+	  tc_tag_warn(MOD_NAME, "failed to create a temporary pipe");
 	  return(TC_IMPORT_ERROR);
 	} 
 	tc_snprintf(dem_buf, sizeof(dem_buf), "-M %d -f %f -P %s %s %s", vob->demuxer, vob->fps, logfile, ((vob->vob_chunk==0)? "": "-O"),
@@ -266,7 +266,7 @@ MOD_open
 
       default:
 
-	fprintf(stderr, "Don't know anything about Codec 0x%x\n", vob->im_v_codec);
+	tc_tag_warn(MOD_NAME, "Don't know anything about Codec 0x%x", vob->im_v_codec);
 	if (tc_snprintf(import_cmd_buf, MAX_BUF, "cat /dev/null") < 0) {
 	  perror("command buffer overflow");
 	  return(TC_IMPORT_ERROR);
@@ -275,7 +275,7 @@ MOD_open
       }
       
       // print out
-      if(verbose_flag) printf("[%s] %s\n", MOD_NAME, import_cmd_buf);
+      if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
       
       param->fd = NULL;
       
@@ -289,7 +289,7 @@ MOD_open
 	  (vob->demuxer==TC_DEMUX_SEQ_FSYNC || vob->demuxer==TC_DEMUX_SEQ_FSYNC2)) {
 	
 	if(clone_init(param->fd)<0) {
-	  if(verbose_flag) fprintf(stderr, "[%s] failed to init stream sync mode\n", MOD_NAME);
+	  if(verbose_flag) tc_tag_warn(MOD_NAME, "failed to init stream sync mode");
 	  return(TC_IMPORT_ERROR);
 	} else param->fd = NULL;
       }
@@ -313,7 +313,7 @@ MOD_open
 	  else tbuf.off++;
 	}
 	if (tbuf.off+4>=tbuf.len)  {
-	  fprintf (stderr, "Internal Error. No sync word\n");
+	  tc_tag_warn(MOD_NAME, "Internal Error. No sync word");
 	  return (TC_IMPORT_ERROR);
 	}
 
@@ -338,14 +338,12 @@ MOD_decode
   int ac_bytes=0, ac_off=0; 
   int num_frames;
 
-  //printf("FLAG: 0x%x\n", param->flag);
-
   if(param->flag == TC_VIDEO) {
     
     if (!m2v_passthru && (vob->demuxer==TC_DEMUX_SEQ_FSYNC || vob->demuxer==TC_DEMUX_SEQ_FSYNC2)) {
       
       if(clone_frame(param->buffer, param->size)<0) {
-	if(verbose_flag & TC_DEBUG) fprintf(stderr, "[%s] end of stream - failed to sync video frame\n", MOD_NAME);
+	if(verbose_flag & TC_DEBUG) tc_tag_warn(MOD_NAME, "end of stream - failed to sync video frame");
 	return(TC_IMPORT_ERROR);
       } 
     }
@@ -374,8 +372,9 @@ MOD_decode
 		tbuf.d[tbuf.off+2]==0x1 && tbuf.d[tbuf.off+3]==0x0 && 
 		((tbuf.d[tbuf.off+5]>>3)&0x7)>1 && 
 		((tbuf.d[tbuf.off+5]>>3)&0x7)<4) {
-	      if (verbose & TC_DEBUG) printf("Completed a sequence + I frame from %d -> %d\n", 
-		  start_seq, tbuf.off);
+	      if (verbose & TC_DEBUG) 
+	        tc_tag_info(MOD_NAME, "Completed a sequence + I frame from %d -> %d", 
+				start_seq, tbuf.off);
 
 	      param->attributes |= ( TC_FRAME_IS_KEYFRAME | TC_FRAME_IS_I_FRAME);
 	      param->size = tbuf.off-start_seq;
@@ -386,8 +385,9 @@ MOD_decode
 	      tbuf.off = 0;
 	      tbuf.len -= param->size;
 
-	      if (verbose & TC_DEBUG) printf("%02x %02x %02x %02x\n", 
-		  tbuf.d[0]&0xff, tbuf.d[1]&0xff, tbuf.d[2]&0xff, tbuf.d[3]&0xff);
+	      if (verbose & TC_DEBUG) 
+	        tc_tag_info(MOD_NAME, "%02x %02x %02x %02x", 
+		 	 tbuf.d[0]&0xff, tbuf.d[1]&0xff, tbuf.d[2]&0xff, tbuf.d[3]&0xff);
 	      return TC_IMPORT_OK;
 	    }
 	    else tbuf.off++;
@@ -396,7 +396,7 @@ MOD_decode
 	  // not enough data.
 	  if (tbuf.off+6 >= tbuf.len) {
 
-	    if (verbose & TC_DEBUG) printf("Fetching in Sequence\n");
+	    if (verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "Fetching in Sequence");
 	    memmove (tbuf.d, tbuf.d+start_seq, tbuf.len - start_seq);
 	    tbuf.len -= start_seq;
 	    tbuf.off = 0;
@@ -405,7 +405,7 @@ MOD_decode
 	      can_read = fread (tbuf.d+tbuf.len, SIZE_RGB_FRAME-tbuf.len, 1, f);
 	      tbuf.len += (SIZE_RGB_FRAME-tbuf.len);
 	    } else {
-		printf("No 1 Read %d\n", can_read);
+		tc_tag_info(MOD_NAME, "No 1 Read %d", can_read);
 	      /* XXX: Flush buffers */
 	      return TC_IMPORT_ERROR;
 	    }
@@ -422,8 +422,9 @@ MOD_decode
 	    if (tbuf.d[tbuf.off+0]==0x0 && tbuf.d[tbuf.off+1]==0x0 && 
 		tbuf.d[tbuf.off+2]==0x1 && 
 		(unsigned char)tbuf.d[tbuf.off+3]==0xb3) {
-	      if (verbose & TC_DEBUG) printf("found a last P or B frame %d -> %d\n", 
-		  start_pic, tbuf.off);
+	      if (verbose & TC_DEBUG) 
+                tc_tag_info(MOD_NAME, "found a last P or B frame %d -> %d", 
+			  start_pic, tbuf.off);
 
 	      param->size = tbuf.off - start_pic;
 	      if (pic_type == 2) param->attributes |= TC_FRAME_IS_P_FRAME;
@@ -441,8 +442,9 @@ MOD_decode
 		tbuf.d[tbuf.off+2]==0x1 && tbuf.d[tbuf.off+3]==0x0 && 
 		((tbuf.d[tbuf.off+5]>>3)&0x7)>1 && 
 		((tbuf.d[tbuf.off+5]>>3)&0x7)<4) {
-		 if (verbose & TC_DEBUG) printf("found a P or B frame from %d -> %d\n", 
-		     start_pic, tbuf.off);
+		 if (verbose & TC_DEBUG) 
+                   tc_tag_info(MOD_NAME, "found a P or B frame from %d -> %d", 
+			     start_pic, tbuf.off);
 
 		 param->size = tbuf.off - start_pic;
 		 if (pic_type == 2) param->attributes |= TC_FRAME_IS_P_FRAME;
@@ -468,7 +470,7 @@ MOD_decode
 		can_read = fread (tbuf.d+tbuf.len, SIZE_RGB_FRAME-tbuf.len, 1, f);
 		tbuf.len += (SIZE_RGB_FRAME-tbuf.len);
 	      } else {
-		printf("No 1 Read %d\n", can_read);
+		tc_tag_info(MOD_NAME, "No 1 Read %d", can_read);
 		/* XXX: Flush buffers */
 		return TC_IMPORT_ERROR;
 	      }
@@ -477,7 +479,7 @@ MOD_decode
 	  break;
 	default:
 	  // should not get here
-	  printf("Default case\n");
+	  tc_tag_warn(MOD_NAME, "Default case");
 	  tbuf.off++;
 	  break;
       }
@@ -524,8 +526,8 @@ MOD_decode
       param->size = effective_frame_size; 
 
       if(verbose_flag & TC_STATS) 
-	  fprintf(stderr,"[%s] pseudo=%d, real=%d, frames=%d, effective=%d offset=%d\n", 
-		  MOD_NAME, ac_bytes, real_frame_size, num_frames, effective_frame_size, ac_off);
+	  tc_tag_info(MOD_NAME, "pseudo=%d, real=%d, frames=%d, effective=%d offset=%d", 
+		  ac_bytes, real_frame_size, num_frames, effective_frame_size, ac_off);
 
       // adjust
       ac_bytes=effective_frame_size;
@@ -549,7 +551,7 @@ MOD_decode
       break;
       
     default: 
-      fprintf(stderr, "invalid import codec request 0x%x\n",codec);
+      tc_tag_warn(MOD_NAME, "invalid import codec request 0x%x",codec);
       return(TC_IMPORT_ERROR);
       
     }
