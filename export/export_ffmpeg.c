@@ -964,13 +964,8 @@ MOD_init {
                 case 3: dar = 16.0/9.0; break;
                 case 4: dar = 221.0/100.0; break;
                 default:
-		    /* *** FIXME *** 
-		     * orignal code ff_error() forces exit here. I think that
-		     * actual code (which NOT exits) is more correct 
-		     * - fromani 10051014
-		     */
                     tc_tag_warn(MOD_NAME, "Parameter value to --export_asr out of range (allowed: [1-4])");
-                    break;
+		    return(TC_EXPORT_ERROR);
                 }
 
                 tc_tag_info(MOD_NAME, "Display aspect ratio calculated as %f", dar);

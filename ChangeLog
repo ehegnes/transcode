@@ -1,3 +1,9 @@
+2005-10-16 Andrew Church <achurch at achurch dot org>
+  * export/export_ffmpeg.c
+  Make --export-asr processing exit on invalid positive values, like it
+  does for invalid nonpositive values (also corrects use of an
+  uninitialized variable).
+
 2005-10-15 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tc_functions.c
   debug functions changed again. Refactorize tc_tag_*
