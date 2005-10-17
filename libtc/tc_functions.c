@@ -275,19 +275,57 @@ int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
 
 /*************************************************************************/
 
+/* simple malloc wrapper with failure guard. */
+
+void *_tc_malloc(const char *file, int line, size_t size)
+{
+    void *p = malloc(size);
+    if(p == NULL) {
+        fprintf(stderr, "[%s:%d] tc_malloc(): can't allocate %lu bytes\n",
+                        file, line, (unsigned long)size);
+    }
+    return p;
+}        
+
+/* allocate a chunk of memory (like tc_malloc), but zeroes memory before
+ * returning. */
+
+void *_tc_mallocz(const char *file, int line, size_t size)
+{
+    void *p = malloc(size);
+    if(p == NULL) {
+        fprintf(stderr, "[%s:%d] tc_mallocz(): can't allocate %lu bytes\n",
+                        file, line, (unsigned long)size);
+    } else {
+        memset(p, 0, size);
+    }
+    return p;
+}
+
+/*** FIXME ***: find a clean way to refactorize above two functions */
+
 /* Allocate a buffer aligned to the machine's page size, if known.  The
  * buffer must be freed with buffree() (not free()). */
 
-void *tc_bufalloc(size_t size)
+void *_tc_bufalloc(const char *file, int line, size_t size)
 {
 #ifdef HAVE_GETPAGESIZE
     unsigned long pagesize = getpagesize();
     int8_t *base = malloc(size + sizeof(void *) + pagesize);
-    int8_t *ptr = base + sizeof(void *);
-    unsigned long offset = (unsigned long)ptr % pagesize;
-    if (offset)
-	ptr += (pagesize - offset);
-    ((void **)ptr)[-1] = base;  /* save the base pointer for freeing */
+    int8_t *ptr = NULL;
+    unsigned long offset = 0;
+    
+    if(base == NULL) {
+        fprintf(stderr, "[%s:%d] tc_bufalloc(): can't allocate %lu bytes\n",
+                        file, line, (unsigned long)size);
+    } else {
+        ptr = base + sizeof(void *);
+        offset = (unsigned long)ptr % pagesize;
+        
+        if (offset)
+            ptr += (pagesize - offset);
+        ((void **)ptr)[-1] = base;  /* save the base pointer for freeing */
+    }
     return ptr;
 #else  /* !HAVE_GETPAGESIZE */
     return malloc(size);
@@ -296,7 +334,6 @@ void *tc_bufalloc(size_t size)
 
 
 /* Free a buffer allocated with tc_bufalloc(). */
-
 void tc_buffree(void *ptr)
 {
 #ifdef HAVE_GETPAGESIZE

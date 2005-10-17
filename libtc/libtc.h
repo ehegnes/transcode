@@ -121,7 +121,74 @@ int _tc_vsnprintf(const char *file, int line, char *buf, size_t limit,
 int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
 		 const char *format, ...);
 
-void *tc_bufalloc(size_t size);
+/*
+ * tc_malloc: just a simple wrapper on libc's malloc(), with emits
+ *            an additionalwarning, specifying calling context,
+ *            if allocation fails
+ * tc_mallocz: like tc_malloc, but zeroes all acquired memory before
+ *             returning to the caller (this is quite common in 
+ *             transcode codebase)
+ * tc_free: the companion memory releasing wrapper.
+ */
+
+#define tc_malloc(size) \
+    _tc_malloc(__FILE__, __LINE__, size)
+#define tc_mallocz(size) \
+    _tc_mallocz(__FILE__, __LINE__, size)
+#define tc_free(ptr) \
+    free(ptr);
+
+/*
+ * _tc_malloc: do the real work behind tc_malloc macro
+ *
+ * Parameters: file: name of the file on which call occurs
+ *             line: line of above file on which call occurs
+ *             (above two parameters are intended to be, and usually
+ *             are, filled by tc_malloc macro)
+ *             size: size of desired chunk of memory
+ * Return Value: a pointer of acquired memory, or NULL if acquisition fails
+ * Side effects: a message is printed on stderr (20051017)
+ * Preconditions: file param not null
+ * Postconditions: none
+ */
+void *_tc_malloc(const char *file, int line, size_t size);
+
+/* 
+ * _tc_nallocz: do the real work behind tc_mallocz macro
+ * 
+ * Parameters: file: name of the file on which call occurs
+ *             line: line of above file on which call occurs
+ *             (above two parameters are intended to be, and usually
+ *             are, filled by tc_malloc macro)
+ *             size: size of desired chunk of memory
+ * Return Value: a pointer of acquired memory, or NULL if acquisition fails
+ * Side effects: a message is printed on stderr (20051017)
+ * Preconditions: file param not null
+ * Postconditions: if call succeed, acquired memory contains all '0'
+ */
+void *_tc_mallocz(const char *file, int line, size_t size);
+
+/* Allocate a buffer aligned to the machine's page size, if known.  The
+ * buffer must be freed with buffree() (not free()). */
+
+#define tc_bufalloc(size) \
+    _tc_bufalloc(__FILE__, __LINE__, size)
+
+void *_tc_bufalloc(const char *file, int line, size_t size);
+
+/*
+ * tc_buffree: release a memory buffer acquired using tc_bufalloc
+ *
+ * Parameters: ptr: pointer obtained as return value of a succesfull
+ *                  tc_bufalloc() call
+ * Return Value: none
+ * Side effects: none
+ * Precondtiions: ptr is acquired via tc_bufalloc(). Really BAD things
+ *                will happen if a buffer acquired via tc_bufalloc()
+ *                is released using anything but tc_buffree(), or
+ *                vice versa.
+ * Postconditions: none
+ */
 void tc_buffree(void *ptr);
 
 #endif  /* _LIBTC_H */
