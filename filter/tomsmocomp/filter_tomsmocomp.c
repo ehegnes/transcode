@@ -272,7 +272,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if ((ptr->tag & TC_PRE_S_PROCESS) && (ptr->tag & TC_VIDEO)) {
 
 	uint8_t *tmp;
-	uint8_t *planes;
+	uint8_t **planes;
 	YUV_INIT_PLANES(planes, ptr->video_buf, IMG_YUV_DEFAULT,
 			tmc->width, tmc->height);
  

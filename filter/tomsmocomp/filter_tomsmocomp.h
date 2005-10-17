@@ -55,5 +55,5 @@ typedef struct {
 } tomsmocomp_t;
 
 
-extern int tc_filter(vframe_list_t *ptr, char *options);
+extern int tc_filter(frame_list_t *ptr, char *options);
 

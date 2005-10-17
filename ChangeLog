@@ -1,4 +1,9 @@
 2005-10-17 Francesco Romani <fromani at gmail dot com>
+  * filter/tomsmocomp/filter_tomsmocomp.h
+    filter/tomsmocomp/filter_tomsmocomp.c
+  compilation fixes
+
+2005-10-17 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tc_functions.c
   add a debug guard to tc_bufalloc(), which emits a warning if
   allocation fails. Also add tc_malloc(), tc_mallocz() and tc_free()
