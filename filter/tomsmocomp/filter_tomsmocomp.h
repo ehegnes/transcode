@@ -1,5 +1,5 @@
 /*
- *  filter_tomsmocomp.c
+ *  filter_tomsmocomp.h
  *
  *  Filter access code (c) by Matthias Hopf - July 2004
  *  Base code taken from DScaler's tomsmocomp filter (c) 2002 Tom Barry,
@@ -53,7 +53,3 @@ typedef struct {
     TDeinterlaceInfo DSinfo;
 
 } tomsmocomp_t;
-
-
-extern int tc_filter(frame_list_t *ptr, char *options);
-
