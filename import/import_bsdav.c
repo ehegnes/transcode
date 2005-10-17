@@ -55,7 +55,7 @@ int sret;
     case TC_VIDEO:
 
         if (verbose_flag & TC_DEBUG) {
-            tc_tag_info(MOD_NAME,
+            tc_log_info(MOD_NAME,
                 "bsdav raw video");
         }
 
@@ -66,7 +66,7 @@ int sret;
             return(TC_IMPORT_ERROR);
 
 	if (verbose_flag & TC_INFO)
-            tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+            tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
 	if ((param->fd = popen(import_cmd_buf, "r")) == NULL) {
             perror("popen bsdav video stream");
@@ -77,7 +77,7 @@ int sret;
     case TC_AUDIO:
 
         if (verbose_flag & TC_DEBUG) {
-            tc_tag_info(MOD_NAME,
+            tc_log_info(MOD_NAME,
                 "bsdav raw audio");
         }
 
@@ -88,7 +88,7 @@ int sret;
             return(TC_IMPORT_ERROR);
 
 	if (verbose_flag & TC_INFO)
-            tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+            tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
 	if ((param->fd = popen(import_cmd_buf, "r")) == NULL) {
             perror("popen bsdav audio stream");
@@ -97,7 +97,7 @@ int sret;
         break;
 
     default:
-        tc_tag_warn(MOD_NAME,
+        tc_log_warn(MOD_NAME,
             "unsupported request (init)");
         return(TC_IMPORT_ERROR);
         break;
@@ -139,7 +139,7 @@ MOD_close
         break;
 
     default:
-        tc_tag_warn(MOD_NAME,
+        tc_log_warn(MOD_NAME,
             "unsupported request (close)");
         return(TC_IMPORT_ERROR);
         break;

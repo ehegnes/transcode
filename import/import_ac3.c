@@ -72,7 +72,7 @@ MOD_open
         if (sret < 0)
 	    return(TC_IMPORT_ERROR);
 
-	if(verbose_flag) tc_tag_info(MOD_NAME, "AC3->AC3");
+	if(verbose_flag) tc_log_info(MOD_NAME, "AC3->AC3");
 
 	break;
 
@@ -89,7 +89,7 @@ MOD_open
             if (sret < 0)
 	        return(TC_IMPORT_ERROR);
 
-	    if(verbose_flag) tc_tag_info(MOD_NAME, "AC3->PCM");
+	    if(verbose_flag) tc_log_info(MOD_NAME, "AC3->PCM");
 	}
 
 	if(vob->fixme_a_codec==CODEC_A52) {
@@ -102,20 +102,20 @@ MOD_open
             if (sret < 0)
 	        return(TC_IMPORT_ERROR);
 
-	    if(verbose_flag) tc_tag_info(MOD_NAME, "A52->PCM");
+	    if(verbose_flag) tc_log_info(MOD_NAME, "A52->PCM");
 	}
 
 	break;
 
     default:
-	tc_tag_warn(MOD_NAME, "invalid import codec request 0x%x", codec);
+	tc_log_warn(MOD_NAME, "invalid import codec request 0x%x", codec);
 	return(TC_IMPORT_ERROR);
 
     }
 
     // print out
     if(verbose_flag) 
-        tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+        tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
     // set to NULL if we handle read
     param->fd = NULL;
@@ -178,7 +178,7 @@ MOD_decode
       param->size = effective_frame_size;
 
       if (verbose_flag & TC_STATS)
-	  tc_tag_info(MOD_NAME, "pseudo=%d, real=%d, frames=%d, effective=%d",
+	  tc_log_info(MOD_NAME, "pseudo=%d, real=%d, frames=%d, effective=%d",
 			ac_bytes, real_frame_size, num_frames,
 			effective_frame_size);
 
@@ -202,7 +202,7 @@ MOD_decode
     break;
 
   default: 
-    tc_tag_warn(MOD_NAME, "invalid import codec request 0x%x", codec);
+    tc_log_warn(MOD_NAME, "invalid import codec request 0x%x", codec);
       return(TC_IMPORT_ERROR);
 
   }

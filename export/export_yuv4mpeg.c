@@ -102,12 +102,12 @@ MOD_init
 	} else if (vob->im_v_codec == CODEC_RGB) {
 	    srcfmt = IMG_RGB_DEFAULT;
 	} else {
-	    tc_tag_warn(MOD_NAME, "unsupported video format %d", 
+	    tc_log_warn(MOD_NAME, "unsupported video format %d", 
 		    vob->im_v_codec);
 	    return(TC_EXPORT_ERROR);
 	}
 	if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
-	    tc_tag_warn(MOD_NAME, "image conversion init failed");
+	    tc_log_warn(MOD_NAME, "image conversion init failed");
 	    return(TC_EXPORT_ERROR);
 	}
 
@@ -210,7 +210,7 @@ MOD_encode
     if(param->flag == TC_VIDEO) { 
 	
 	if (!tcv_convert(param->buffer, srcfmt, IMG_YUV420P)) {
-	    tc_tag_warn(MOD_NAME, "image format conversion failed");
+	    tc_log_warn(MOD_NAME, "image format conversion failed");
 	    return(TC_EXPORT_ERROR);
 	}
 

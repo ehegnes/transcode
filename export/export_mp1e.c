@@ -154,11 +154,11 @@ MOD_open
 	    srcfmt = IMG_RGB_DEFAULT;
 	    destfmt = IMG_YUV420P;
 	} else {
-	    tc_tag_warn (MOD_NAME, "invalid codec for this export module");
+	    tc_log_warn (MOD_NAME, "invalid codec for this export module");
 	    return (TC_EXPORT_ERROR);
 	}
 	if (!tcv_convert_init(width, height)) {
-	    tc_tag_warn (MOD_NAME, "failed to init image format conversion");
+	    tc_log_warn (MOD_NAME, "failed to init image format conversion");
 	    return (TC_EXPORT_ERROR);
 	}
 
@@ -223,7 +223,7 @@ MOD_open
 	}
 
 	if (verbose > 0)
-	    tc_tag_info(MOD_NAME, "%s", export_cmd_buf);
+	    tc_log_info(MOD_NAME, "%s", export_cmd_buf);
 
     }
   return(0);
@@ -303,7 +303,7 @@ MOD_encode
 	}
 
 	if (!tcv_convert(param->buffer, srcfmt, destfmt)) {
-	    tc_tag_warn(MOD_NAME, "image format conversion failed");
+	    tc_log_warn(MOD_NAME, "image format conversion failed");
 	    return(TC_EXPORT_ERROR);
 	}
 

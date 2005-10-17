@@ -71,7 +71,7 @@ static void vlisten(void)
   struct sockaddr_in fsin;  
   int fromlen;
 
-  tc_tag_info(MOD_NAME, "[%s] waiting for clients to connect ...");
+  tc_log_info(MOD_NAME, "[%s] waiting for clients to connect ...");
   
   if(listen(vport, 2) < 0) {
       perror("listen");
@@ -85,7 +85,7 @@ static void vlisten(void)
       return;
   }
   
-  tc_tag_info(MOD_NAME, "client connected (video request)");
+  tc_log_info(MOD_NAME, "client connected (video request)");
 
   return;
 }
@@ -96,7 +96,7 @@ static void alisten(void)
   struct sockaddr fsin;  
   int fromlen;
 
-  tc_tag_info(MOD_NAME, "waiting for clients to connect ...");
+  tc_log_info(MOD_NAME, "waiting for clients to connect ...");
   
   if(listen(aport, 2) < 0) {
       perror("listen");
@@ -110,7 +110,7 @@ static void alisten(void)
       return;
   }
   
-  tc_tag_info(MOD_NAME, "client connected (audio request)");
+  tc_log_info(MOD_NAME, "client connected (audio request)");
 
   return;
 }
@@ -157,7 +157,7 @@ MOD_init
 
     // start the listen thread     
     if(pthread_create(&thread2, NULL, (void *) alisten, NULL)!=0) {
-	tc_tag_warn(MOD_NAME, "failed to start listen (audio) thread");
+	tc_log_warn(MOD_NAME, "failed to start listen (audio) thread");
         return(TC_EXPORT_ERROR);
     }
 
@@ -193,7 +193,7 @@ MOD_init
 
     // start the listen thread     
     if(pthread_create(&thread1, NULL, (void *) vlisten, NULL)!=0) {
-	tc_tag_warn(MOD_NAME, "failed to start listen (video) thread");
+	tc_log_warn(MOD_NAME, "failed to start listen (video) thread");
 	return(TC_EXPORT_ERROR);
     }
 
@@ -236,11 +236,11 @@ MOD_encode
     if(param->flag == TC_VIDEO) {
 
 	while(vns==0) {
-	    if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "(V) waiting");
+	    if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "(V) waiting");
 	    sleep(1);
 	}
 
-	if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "(V) write (%d,%d)", param->size, size);
+	if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "(V) write (%d,%d)", param->size, size);
 
 	if(p_write(vns, (char *) param->buffer, size)!=size) {
 	  perror("video write");
@@ -253,11 +253,11 @@ MOD_encode
     if(param->flag == TC_AUDIO) {
 
 	while(ans==0) {
-	    if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "(A) waiting");
+	    if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "(A) waiting");
 	    sleep(1);
 	}
 
-	if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "(A) write (%d)", param->size);
+	if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "(A) write (%d)", param->size);
 	
 	if(p_write(ans, (char *) param->buffer, param->size)!=param->size) {
 	  perror("audio write");

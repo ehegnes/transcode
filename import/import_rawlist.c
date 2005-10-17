@@ -111,16 +111,16 @@ MOD_open
 	    destfmt = IMG_RGB24;
 	    bytes = vob->im_v_width * vob->im_v_height * 4;
 	} else if (!strcasecmp(vob->im_v_string, "ayuv")) {
-	    tc_tag_error(MOD_NAME, "ayuv not supported");
+	    tc_log_error(MOD_NAME, "ayuv not supported");
 	    return(TC_IMPORT_ERROR);
 	} else {
-	    tc_tag_error(MOD_NAME, "Unknown format {rgb, gray, argb, ayuv, yv12, i420, yuy2, uyvy}");
+	    tc_log_error(MOD_NAME, "Unknown format {rgb, gray, argb, ayuv, yv12, i420, yuy2, uyvy}");
 	    return(TC_IMPORT_ERROR);
 	}
     }
 
     if((fd = fopen(vob->video_in_file, "r"))==NULL) {
-	tc_tag_error(MOD_NAME, "You need to specify a filelist as input");
+	tc_log_error(MOD_NAME, "You need to specify a filelist as input");
 	return(TC_IMPORT_ERROR);
     }
 
@@ -175,7 +175,7 @@ retry:
   //read the raw frame
   
   if((fd_in = open(filename, O_RDONLY))<0) {
-    tc_tag_warn(MOD_NAME, "Opening file \"%s\" failed!", filename);
+    tc_log_warn(MOD_NAME, "Opening file \"%s\" failed!", filename);
     perror("open file");
     goto retry;
   } 

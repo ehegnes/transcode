@@ -90,7 +90,7 @@ MOD_open
 	}
 
 	if (!strcmp(vob->video_out_file, vob->audio_out_file)) {
-	    tc_tag_info(MOD_NAME, "Writing audio to \"/dev/null\" (no -m option)");
+	    tc_log_info(MOD_NAME, "Writing audio to \"/dev/null\" (no -m option)");
 	}
 	if (vob->mp3bitrate == 0)
 	    result = tc_snprintf (buf, PATH_MAX, "oggenc -r -B %d -C %d -q %.2f %s -Q -o \"%s\" %s -",
@@ -116,7 +116,7 @@ MOD_open
 	    return(TC_EXPORT_ERROR);
 
 	if (verbose > 0)
-	    tc_tag_info (MOD_NAME, "%s", buf);
+	    tc_log_info (MOD_NAME, "%s", buf);
 
 	return(0);
 		
@@ -215,8 +215,8 @@ MOD_close
 
 	if (verbose > 0 && strcmp (vob->audio_out_file, "/dev/null") &&
 		strcmp (vob->video_out_file, "/dev/null")!=0) {
-	    tc_tag_info (MOD_NAME, "Hint: Now merge the files with");
-	    tc_tag_info (MOD_NAME, "Hint: ogmmerge -o complete.ogg %s %s", 
+	    tc_log_info (MOD_NAME, "Hint: Now merge the files with");
+	    tc_log_info (MOD_NAME, "Hint: ogmmerge -o complete.ogg %s %s", 
 		    MOD_NAME, vob->video_out_file, vob->audio_out_file );
 	}
   

@@ -95,7 +95,7 @@ MOD_init
 	!rtf.common.dwSamplesPerSec ||
 	!rtf.common.wBitsPerSample ||
 	!rtf.common.wBlockAlign) {
-	    tc_tag_warn(MOD_NAME, "Cannot export PCM, invalid format (no audio track at all?)");
+	    tc_log_warn(MOD_NAME, "Cannot export PCM, invalid format (no audio track at all?)");
 	    return TC_EXPORT_ERROR;
     }
 

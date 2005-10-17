@@ -168,7 +168,7 @@ MOD_close
      * just return success.
     */
     if((fsize = lseek(fd, 0, SEEK_CUR))<0) {
-      tc_tag_info(MOD_NAME, "Can't seek to fix header, probably a pipe");
+      tc_log_info(MOD_NAME, "Can't seek to fix header, probably a pipe");
       return(0);
     }
     

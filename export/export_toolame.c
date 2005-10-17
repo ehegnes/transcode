@@ -130,7 +130,7 @@ MOD_open
 		(double)ofreq/1000.0, orate, chan, vob->audio_out_file,
 		(vob->ex_a_string?vob->ex_a_string:""));
 	
-    tc_tag_info (MOD_NAME, "%s", buf);
+    tc_log_info (MOD_NAME, "%s", buf);
     
     if ((pFile = popen (buf, "w")) == NULL)
       return(TC_EXPORT_ERROR);

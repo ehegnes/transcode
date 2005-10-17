@@ -333,7 +333,7 @@ static int audio_init_ffmpeg(vob_t *vob, int o_codec)
     mpa_codec = avcodec_find_encoder(codeid);
     if (!mpa_codec) 
     {
-      tc_tag_warn("encode_ffmpeg", "mpa codec not found !");
+      tc_log_warn("encode_ffmpeg", "mpa codec not found !");
       return(TC_EXPORT_ERROR); 
     }
 

@@ -95,9 +95,9 @@ static int f_af6_sync(FILE *s_fd,char s_type)
 		if (s_skip > (1<<20))
 		{
 			if ( s_type == 'V' )
-				tc_tag_warn(MOD_NAME, "no video af6 sync string found within 1024 kB of stream");
+				tc_log_warn(MOD_NAME, "no video af6 sync string found within 1024 kB of stream");
 			else
-				tc_tag_warn(MOD_NAME, "no audio af6 sync string found within 1024 kB of stream");
+				tc_log_warn(MOD_NAME, "no audio af6 sync string found within 1024 kB of stream");
 			return(TC_IMPORT_ERROR);
 		}
 	}
@@ -230,7 +230,7 @@ static void f_mod_video_frame(transfer_t *param,audiovideo_t *p_temp,int s_codec
 			p_tmp=p_temp;
 			p_v_filter=f_video_filter(p_temp->p_v_resize_filter);
 			if(verbose_flag) 
-				tc_tag_info(MOD_NAME,"setting resize video filter to %s",
+				tc_log_info(MOD_NAME,"setting resize video filter to %s",
 						p_v_filter->p_zoom_filter);
 		}
 		switch(s_codec) 
@@ -308,7 +308,7 @@ MOD_open
                         if (f_build_xml_tree(&s_info_dummy,&s_video,&s_probe_dummy1,&s_probe_dummy2,&s_tot_dummy1,&s_tot_dummy2) == -1)	//create the XML tree
                         {
                                 (int)f_manage_input_xml(NULL,0,&s_video);
-                                tc_tag_warn(MOD_NAME,"file %s has invalid format content.", 
+                                tc_log_warn(MOD_NAME,"file %s has invalid format content.", 
 						vob->video_in_file);
 				return(TC_IMPORT_ERROR);
                         }
@@ -316,7 +316,7 @@ MOD_open
                 }
 		if (p_video == NULL)
 		{
-                        tc_tag_warn(MOD_NAME,"there isn't no file in  %s.", 
+                        tc_log_warn(MOD_NAME,"there isn't no file in  %s.", 
 					vob->video_in_file);
 			return(TC_IMPORT_ERROR);
 		}
@@ -373,7 +373,7 @@ MOD_open
 					}
 				break;
 				default:
-					tc_tag_warn(MOD_NAME, "invalid import codec request 0x%x", s_v_codec);
+					tc_log_warn(MOD_NAME, "invalid import codec request 0x%x", s_v_codec);
 					return(TC_IMPORT_ERROR);
 			}
 		   break;
@@ -420,7 +420,7 @@ MOD_open
 					}
 				break;
 				default:
-					tc_tag_warn(MOD_NAME, "invalid import codec request 0x%x", s_v_codec);
+					tc_log_warn(MOD_NAME, "invalid import codec request 0x%x", s_v_codec);
 					return(TC_IMPORT_ERROR);
 			}
 		   break;
@@ -437,7 +437,7 @@ MOD_open
 				}
 				break;
 				default:
-                       			tc_tag_warn(MOD_NAME,"video codec 0x%x not yet supported.", s_v_codec);
+                       			tc_log_warn(MOD_NAME,"video codec 0x%x not yet supported.", s_v_codec);
 					return(TC_IMPORT_ERROR);
 					;
 			}
@@ -463,28 +463,28 @@ MOD_open
 				}
 				break;
 				default:
-                       			tc_tag_warn(MOD_NAME,"video codec 0x%x not yet supported.", s_v_codec);
+                       			tc_log_warn(MOD_NAME,"video codec 0x%x not yet supported.", s_v_codec);
 					return(TC_IMPORT_ERROR);
 					;
 			}
 		  break;
 		  default:
-                       	tc_tag_warn(MOD_NAME,"video magic 0x%lx not yet supported.", s_v_magic);
+                       	tc_log_warn(MOD_NAME,"video magic 0x%lx not yet supported.", s_v_magic);
 			return(TC_IMPORT_ERROR);
 		}
 		if((s_fd_video = popen(import_cmd_buf, "r"))== NULL)
 		{
-			tc_tag_warn(MOD_NAME,"Error cannot open the pipe.");
+			tc_log_warn(MOD_NAME,"Error cannot open the pipe.");
 			return(TC_IMPORT_ERROR);
 		}
 		param->size=f_calc_frame_size(p_video,s_v_codec);	//setting the frame size
 		p_vframe_buffer=(char *)malloc(s_frame_size);
 		if(verbose_flag) 
-			tc_tag_info(MOD_NAME,"setting target video size to %d",param->size);
+			tc_log_info(MOD_NAME,"setting target video size to %d",param->size);
 		p_video_prev=p_video;
 		p_video=p_video->p_next;
 		if(verbose_flag) 
-			tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+			tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 		return(0);
 	}
 	if(param->flag == TC_AUDIO) 
@@ -501,19 +501,19 @@ MOD_open
                         if (f_build_xml_tree(&s_info_dummy,&s_audio,&s_probe_dummy1,&s_probe_dummy2,&s_tot_dummy1,&s_tot_dummy2) == -1)	//create the XML tree
 			{
 				(int)f_manage_input_xml(NULL,0,&s_audio);
-				tc_tag_warn(MOD_NAME,"file %s has invalid format content.", vob->audio_in_file);
+				tc_log_warn(MOD_NAME,"file %s has invalid format content.", vob->audio_in_file);
 				return(TC_IMPORT_ERROR);
 			}
 			p_audio=s_audio.p_next;
 		}
 		if (p_audio == NULL)
 		{
-                        tc_tag_warn(MOD_NAME,"there isn't no file in  %s.", vob->audio_in_file);
+                        tc_log_warn(MOD_NAME,"there isn't no file in  %s.", vob->audio_in_file);
 			return(TC_IMPORT_ERROR);
 		}
 		s_frame_audio_size=(1.00 * p_audio->s_a_bits * p_audio->s_a_chan * p_audio->s_a_rate)/(8*p_audio->s_fps);
 		if(verbose_flag) 
-			tc_tag_info(MOD_NAME,"setting audio size to %d",s_frame_audio_size);
+			tc_log_info(MOD_NAME,"setting audio size to %d",s_frame_audio_size);
 		s_a_magic=p_audio->s_a_magic;
 		switch(s_a_magic)
 		{
@@ -555,17 +555,17 @@ MOD_open
 			}
 		   break;
 		   default:
-                        tc_tag_warn(MOD_NAME,"audio magic 0x%lx not yet supported.",s_a_magic);
+                        tc_log_warn(MOD_NAME,"audio magic 0x%lx not yet supported.",s_a_magic);
 			return(TC_IMPORT_ERROR);
 		}
 		if((s_fd_audio = popen(import_cmd_buf, "r"))== NULL)
 		{
-			tc_tag_warn(MOD_NAME,"Error cannot open the pipe.");
+			tc_log_warn(MOD_NAME,"Error cannot open the pipe.");
 			return(TC_IMPORT_ERROR);
 		}
 		p_audio=p_audio->p_next;
 		if(verbose_flag) 
-			tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+			tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 		return(0);
 	}
 	return(TC_IMPORT_ERROR);
@@ -611,7 +611,7 @@ MOD_decode
                         {
 				s_frame_audio_size=(1.00 * p_audio->s_a_bits * p_audio->s_a_chan * p_audio->s_a_rate)/(8*p_audio->s_fps);
 				if(verbose_flag) 
-					tc_tag_info(MOD_NAME,"setting audio size to %d",s_frame_audio_size);
+					tc_log_info(MOD_NAME,"setting audio size to %d",s_frame_audio_size);
 				s_a_magic=p_audio->s_a_magic;
 				switch(s_a_magic)
 				{
@@ -649,16 +649,16 @@ MOD_decode
 					}
 				   break;
 				   default:
-                        		tc_tag_warn(MOD_NAME,"audio magic 0x%lx not yet supported.",s_a_magic);
+                        		tc_log_warn(MOD_NAME,"audio magic 0x%lx not yet supported.",s_a_magic);
 					return(TC_IMPORT_ERROR);
 				}
                                 if((s_fd_audio = popen(import_cmd_buf, "r"))== NULL)
                                 {
-                                        tc_tag_warn(MOD_NAME,"Error cannot open the pipe.");
+                                        tc_log_warn(MOD_NAME,"Error cannot open the pipe.");
                                         return(TC_IMPORT_ERROR);
                                 }
 				if(verbose_flag) 
-					tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+					tc_log_info(MOD_NAME, "%s", import_cmd_buf);
                                 p_audio=p_audio->p_next;
                         }
 			else
@@ -809,7 +809,7 @@ MOD_decode
 							}
 						break;
 						default:
-                        				tc_tag_warn(MOD_NAME,"video codec 0x%x not yet supported.",s_v_codec);
+                        				tc_log_warn(MOD_NAME,"video codec 0x%x not yet supported.",s_v_codec);
 							return(TC_IMPORT_ERROR);
 							;
 					}
@@ -834,27 +834,27 @@ MOD_decode
 						}
 						break;
 						default:
-							tc_tag_warn(MOD_NAME,"video codec 0x%x not yet supported.",s_v_codec);
+							tc_log_warn(MOD_NAME,"video codec 0x%x not yet supported.",s_v_codec);
 							return(TC_IMPORT_ERROR);
 							;
 					}
 				   break;
 				   default:
-                        		tc_tag_warn(MOD_NAME,"video magic 0x%lx not yet supported.",s_v_magic);
+                        		tc_log_warn(MOD_NAME,"video magic 0x%lx not yet supported.",s_v_magic);
 					return(TC_IMPORT_ERROR);
 				}
                        		if((s_fd_video = popen(import_cmd_buf, "r"))== NULL)
                                	{
-                                	tc_tag_warn(MOD_NAME,"Error cannot open the pipe.");
+                                	tc_log_warn(MOD_NAME,"Error cannot open the pipe.");
      		                 	return(TC_IMPORT_ERROR);
                		        }
 				param->size=f_calc_frame_size(p_video,s_v_codec);	//setting the frame size
 				if(verbose_flag) 
-					tc_tag_info(MOD_NAME,"setting target video size to %d",param->size);
+					tc_log_info(MOD_NAME,"setting target video size to %d",param->size);
 				p_video_prev=p_video;
                        		p_video=p_video->p_next;
 				if(verbose_flag) 
-					tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+					tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 			}
 			else
 			{

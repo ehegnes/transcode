@@ -59,7 +59,7 @@ MOD_open
 	  return(TC_IMPORT_ERROR);
 
       // print out
-      if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+      if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
       param->fd = NULL;
 
@@ -100,7 +100,7 @@ MOD_open
       }
 
       // print out
-      if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+      if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
       param->fd = NULL;
 
@@ -169,7 +169,7 @@ MOD_decode {
       ++k;
 
       if(k>(1<<20)) {
-	tc_tag_warn(MOD_NAME, "no sync string found within 1024 kB of stream");
+	tc_log_warn(MOD_NAME, "no sync string found within 1024 kB of stream");
 	return(TC_IMPORT_ERROR);
       }
     }
@@ -220,7 +220,7 @@ MOD_decode {
       ++k;
 
       if(k>(1<<20)) {
-	tc_tag_warn(MOD_NAME, "no sync string found within 1024 kB of stream");
+	tc_log_warn(MOD_NAME, "no sync string found within 1024 kB of stream");
 	return(TC_IMPORT_ERROR);
       }
     }
@@ -229,7 +229,7 @@ MOD_decode {
 
     if ((bytes=fread(param->buffer, param->size, 1, afd)) !=1) {
       if(verbose_flag & TC_DEBUG)
-        tc_tag_warn(MOD_NAME, "audio read error %d/%d", bytes, param->size);
+        tc_log_warn(MOD_NAME, "audio read error %d/%d", bytes, param->size);
 
       return(TC_IMPORT_ERROR);
     }    

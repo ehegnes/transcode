@@ -135,7 +135,7 @@ MOD_open
 	  
 	default:
 	  
-	  tc_tag_warn(MOD_NAME, "codec not supported");
+	  tc_log_warn(MOD_NAME, "codec not supported");
 	  return(TC_EXPORT_ERROR); 
 	  
 	  break;

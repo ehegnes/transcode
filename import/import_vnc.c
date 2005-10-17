@@ -63,11 +63,11 @@ MOD_open
 				if (d && *d) { *d = '\0';
 				    while (*c == ' ') c++;
 				    a[n++] = c;
-				    tc_tag_info(MOD_NAME, "XX |%s|", c);
+				    tc_log_info(MOD_NAME, "XX |%s|", c);
 				    // FIXME: ??? - fromani 20051016
 				    c = strchr(c, ' ');
 				} else {
-				    tc_tag_info(MOD_NAME, "XXXX |%s|", c);
+				    tc_log_info(MOD_NAME, "XXXX |%s|", c);
 				    // FIXME: ??? - fromani 20051016
 				    a[n++] = c;
 				    break;
@@ -77,7 +77,7 @@ MOD_open
 				while (*d == ' ') d++;
 				if (strchr(d, ' ')) *strchr(d, ' ') = '\0';
 				a[n++] = d;
-				tc_tag_info(MOD_NAME, "XXX |%s|", c);
+				tc_log_info(MOD_NAME, "XXX |%s|", c);
 				// FIXME: ??? - fromani 20051016
 				break;
 			    }

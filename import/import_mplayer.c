@@ -73,7 +73,7 @@ MOD_open
         return(TC_IMPORT_ERROR);
       }
 
-      if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+      if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
       if ((videopipefd = popen(import_cmd_buf, "w")) == NULL) {
         perror("popen videopipe failed");
@@ -100,7 +100,7 @@ MOD_open
       }
       
       // print out
-      if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+      if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
       
       param->fd = NULL;
 
@@ -134,7 +134,7 @@ MOD_open
         return(TC_IMPORT_ERROR);
       }
 
-      if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+      if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
       if ((audiopipefd = popen(import_cmd_buf, "w")) == NULL) {
         perror("popen audiopipe failed");

@@ -95,7 +95,7 @@ MOD_init
 {
     
     if(param->flag == TC_VIDEO) {
-      if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "max AVI-file size limit = %lu bytes",(unsigned long) AVI_max_size());
+      if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "max AVI-file size limit = %lu bytes",(unsigned long) AVI_max_size());
       return(0);
     }
 
@@ -128,16 +128,16 @@ MOD_open
 	int want_help = (strcasecmp(vob->ex_v_fcc, "help") == 0);
 	int i;
 	if (want_help)
-	    tc_tag_info(MOD_NAME, "Available formats:");
+	    tc_log_info(MOD_NAME, "Available formats:");
 	for (i = 0; formats[i].name != NULL; i++) {
 	    if (want_help)
-		tc_tag_info(MOD_NAME, "%s", formats[i].name);
+		tc_log_info(MOD_NAME, "%s", formats[i].name);
 	    else if (strcasecmp(formats[i].name, vob->ex_v_fcc) == 0)
 		break;
 	}
 	if (formats[i].name == NULL) {
 	    if (!want_help) {
-		tc_tag_warn(MOD_NAME, "Unknown output format, \"-F help\" to list");
+		tc_log_warn(MOD_NAME, "Unknown output format, \"-F help\" to list");
 	    }
 	    return TC_EXPORT_ERROR;
 	}
@@ -167,7 +167,7 @@ further:
       // video
       
       if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
-	tc_tag_warn(MOD_NAME, "tcv_convert_init failed");
+	tc_log_warn(MOD_NAME, "tcv_convert_init failed");
 	return(TC_EXPORT_ERROR);
       }
 
@@ -190,7 +190,7 @@ further:
 	    AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
 
 	if(!info_shown && verbose_flag) 
-	  tc_tag_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
+	  tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
 		  fcc, vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
 	srcfmt = IMG_RGB_DEFAULT;
 	break;
@@ -209,7 +209,7 @@ further:
 		      vob->ex_fps, fcc);
 	
 	if(!info_shown && verbose_flag) 
-	  tc_tag_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
+	  tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
 		  fcc, vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
 	srcfmt = IMG_YUV_DEFAULT;
 	break;
@@ -228,7 +228,7 @@ further:
 		      vob->ex_fps, fcc);
 	
 	if(!info_shown && verbose_flag) 
-	  tc_tag_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
+	  tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
 		  fcc, vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
 
 	srcfmt = IMG_YUV422P;
@@ -244,12 +244,12 @@ further:
 
 	    if (vob->pass_flag & TC_VIDEO) {
 		mpeg_passthru = 1;
-		tc_tag_info(MOD_NAME, "icodec (0x%08x) and codec_flag (0x%08lx) - passthru",
+		tc_log_info(MOD_NAME, "icodec (0x%08x) and codec_flag (0x%08lx) - passthru",
 		    vob->im_v_codec, vob->codec_flag);
 
 		mpeg_f = fopen(vob->video_out_file, "w");
 		if (!mpeg_f) {
-		    tc_tag_warn(MOD_NAME, "Cannot open outfile \"%s\": %s", 
+		    tc_log_warn(MOD_NAME, "Cannot open outfile \"%s\": %s", 
 				    vob->video_out_file, strerror(errno));
 		    return (TC_EXPORT_ERROR);
 		}
@@ -270,7 +270,7 @@ further:
 	  AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->ex_fps, "DVSD");
 	  
 	  if(!info_shown && verbose_flag) 
-	    tc_tag_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
+	    tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
 		    "DVSD", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
 	  break;
 	  
@@ -286,7 +286,7 @@ further:
 
 	      dir_name = vob->video_in_file;
 	      if((tc_open_directory(dir_name))<0) { 
-		tc_tag_warn(MOD_NAME, "unable to open directory \"%s\"", dir_name);
+		tc_log_warn(MOD_NAME, "unable to open directory \"%s\"", dir_name);
 		return(TC_EXPORT_ERROR);
 	      }
 	      to_open = tc_scan_directory(dir_name);
@@ -311,7 +311,7 @@ further:
 	    AVI_set_video(vob->avifile_out, width, height, fps, codec); 
 	    
 	    if(!info_shown && (verbose_flag)) 
-	      tc_tag_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
+	      tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
 			            codec, fps, width, height);
 	    
 	    //free resources
@@ -326,7 +326,7 @@ further:
 	
       default:
 	
-	tc_tag_info(MOD_NAME, "codec (0x%08x) and format (0x%08lx)not supported",
+	tc_log_info(MOD_NAME, "codec (0x%08x) and format (0x%08lx)not supported",
 		vob->im_v_codec, vob->format_flag);
 	return(TC_EXPORT_ERROR); 
 	
@@ -361,7 +361,7 @@ MOD_encode
 
     if (mpeg_f) {
       if (fwrite (param->buffer, 1, param->size, mpeg_f) != param->size) {
-	tc_tag_warn(MOD_NAME, "Cannot write data: %s", strerror(errno));
+	tc_log_warn(MOD_NAME, "Cannot write data: %s", strerror(errno));
 	return(TC_EXPORT_ERROR); 
       }
       return (TC_EXPORT_OK);
@@ -379,7 +379,7 @@ MOD_encode
 
     if (srcfmt && destfmt) {
       if (!tcv_convert(param->buffer, srcfmt, destfmt)) {
-	tc_tag_warn(MOD_NAME, "image conversion failed");
+	tc_log_warn(MOD_NAME, "image conversion failed");
 	return(TC_EXPORT_ERROR);
       }
       if (destsize)

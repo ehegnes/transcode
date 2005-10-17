@@ -109,11 +109,11 @@ MOD_open
     } else if (strcmp(codec,"LZO2") == 0) {
       video_codec = TC_CODEC_LZO2;
     } else {
-      tc_tag_warn(MOD_NAME, "Unsupported video codec %s", codec);
+      tc_log_warn(MOD_NAME, "Unsupported video codec %s", codec);
       return(TC_IMPORT_ERROR); 
     }
 
-    tc_tag_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d\n", 
+    tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d\n", 
 		codec, fps, width, height);
 
     /*
@@ -121,7 +121,7 @@ MOD_open
      */
 
     if (lzo_init() != LZO_E_OK) {
-      tc_tag_warn(MOD_NAME, "lzo_init() failed");
+      tc_log_warn(MOD_NAME, "lzo_init() failed");
       return(TC_IMPORT_ERROR); 
     }
 
@@ -129,7 +129,7 @@ MOD_open
     out = (lzo_bytep) lzo_malloc(BUFFER_SIZE);
 
     if (wrkmem == NULL || out == NULL) {
-      tc_tag_warn(MOD_NAME, "out of memory");
+      tc_log_warn(MOD_NAME, "out of memory");
       return(TC_IMPORT_ERROR); 
     }
 
@@ -162,7 +162,7 @@ MOD_decode
     out_len = AVI_read_frame(avifile2, out, &key);
 
     if(verbose & TC_STATS && key) 
-      tc_tag_info(MOD_NAME, "keyframe %d", vframe_count); 
+      tc_log_info(MOD_NAME, "keyframe %d", vframe_count); 
 
     if(out_len<=0) {
       if(verbose & TC_DEBUG) AVI_print_error("AVI read video frame");
@@ -176,7 +176,7 @@ MOD_decode
       uint8_t *compdata = out + sizeof(*h);
       int compsize = out_len - sizeof(*h);
       if (h->magic != video_codec) {
-	tc_tag_warn(MOD_NAME, "frame with invalid magic 0x%08X\n", h->magic);
+	tc_log_warn(MOD_NAME, "frame with invalid magic 0x%08X\n", h->magic);
 	return (TC_IMPORT_ERROR);
       }
       if (h->flags & TC_LZO_NOT_COMPRESSIBLE) {
@@ -190,12 +190,12 @@ MOD_decode
 
     if (r == LZO_E_OK) {
       if(verbose & TC_DEBUG)
-	  tc_tag_info(MOD_NAME, "decompressed %lu bytes into %lu bytes\n",
+	  tc_log_info(MOD_NAME, "decompressed %lu bytes into %lu bytes\n",
 		      (long) out_len, (long) param->size);
     } else {
 
       /* this should NEVER happen */
-      tc_tag_warn(MOD_NAME, "internal error - decompression failed: %d\n", r);
+      tc_log_warn(MOD_NAME, "internal error - decompression failed: %d\n", r);
       return(TC_IMPORT_ERROR); 
     }
 

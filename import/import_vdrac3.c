@@ -71,7 +71,7 @@ MOD_open
 	    return(TC_IMPORT_ERROR);
 	}
 	
-	if(verbose_flag) tc_tag_info(MOD_NAME, "AC3->AC3");
+	if(verbose_flag) tc_log_info(MOD_NAME, "AC3->AC3");
 	
 	break;
 	
@@ -84,7 +84,7 @@ MOD_open
 		return(TC_IMPORT_ERROR);
 	    }
 	    
-	    if(verbose_flag) tc_tag_info(MOD_NAME, "AC3->PCM");
+	    if(verbose_flag) tc_log_info(MOD_NAME, "AC3->PCM");
 	}	
 
 
@@ -95,19 +95,19 @@ MOD_open
 		return(TC_IMPORT_ERROR);
 	    }
 	    
-	    if(verbose_flag) tc_tag_info(MOD_NAME, "A52->PCM");
+	    if(verbose_flag) tc_log_info(MOD_NAME, "A52->PCM");
 	}	
 
 	break;
 	
     default: 
-	tc_tag_warn(MOD_NAME, "invalid import codec request 0x%x");
+	tc_log_warn(MOD_NAME, "invalid import codec request 0x%x");
 	return(TC_IMPORT_ERROR);
 	
     }
     
     // print out
-    if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+    if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
     
     // set to NULL if we handle read
     param->fd = NULL;
@@ -171,7 +171,7 @@ MOD_decode
     
     
   default: 
-      tc_tag_warn(MOD_NAME, "invalid import codec request 0x%x", codec);
+      tc_log_warn(MOD_NAME, "invalid import codec request 0x%x", codec);
       return(TC_IMPORT_ERROR);
       
   }

@@ -188,14 +188,14 @@ MOD_open
 
 
     default:
-      tc_tag_warn(MOD_NAME, "invalid import codec request 0x%x", 
+      tc_log_warn(MOD_NAME, "invalid import codec request 0x%x", 
 		      vob->im_v_codec);
       return(TC_IMPORT_ERROR);
 
     }
 
     // print out
-    if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+    if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
     return(TC_IMPORT_OK);
   }
@@ -218,7 +218,7 @@ MOD_open
       return(TC_IMPORT_ERROR);
 
     // print out
-    if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+    if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
     param->fd = NULL;
 

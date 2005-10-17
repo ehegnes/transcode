@@ -73,7 +73,7 @@ MOD_open
 		}
     
     // print out
-    if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+    if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
     
     param->fd = NULL;
     
@@ -94,9 +94,9 @@ MOD_open
       if(strcmp(vob->audio_in_file, vob->video_in_file) == 0) {
 	  
       // user error, print warnig and exit
-      tc_tag_warn(MOD_NAME, "audio/video files are identical");
-      tc_tag_warn(MOD_NAME, "unable to read pcm data from yuv stream");
-      tc_tag_warn(MOD_NAME, "use \"-x yuv4mpeg,null\" for dummy audio input");
+      tc_log_warn(MOD_NAME, "audio/video files are identical");
+      tc_log_warn(MOD_NAME, "unable to read pcm data from yuv stream");
+      tc_log_warn(MOD_NAME, "use \"-x yuv4mpeg,null\" for dummy audio input");
       
       return(TC_IMPORT_ERROR);
     }
@@ -108,7 +108,7 @@ MOD_open
     }
     
     // print out
-    if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+    if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
     
     param->fd = NULL;
     

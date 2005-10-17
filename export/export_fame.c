@@ -217,11 +217,11 @@ MOD_init
 
     if(verbose_flag & TC_DEBUG) 
     {
-	tc_tag_info(MOD_NAME, "                quality: %d", fame_params.quality);
-	tc_tag_info(MOD_NAME, "      bitrate [kBits/s]: %d", fame_params.bitrate/1000);
-	tc_tag_info(MOD_NAME, "              crispness: %d", vob->divxcrispness);
-	tc_tag_info(MOD_NAME, "             frame rate: %.2f", vob->ex_fps);
-	tc_tag_info(MOD_NAME, "            color space: %s", (vob->im_v_codec==CODEC_RGB) ? "RGB24" : "YUV420P");
+	tc_log_info(MOD_NAME, "                quality: %d", fame_params.quality);
+	tc_log_info(MOD_NAME, "      bitrate [kBits/s]: %d", fame_params.bitrate/1000);
+	tc_log_info(MOD_NAME, "              crispness: %d", vob->divxcrispness);
+	tc_log_info(MOD_NAME, "             frame rate: %.2f", vob->ex_fps);
+	tc_log_info(MOD_NAME, "            color space: %s", (vob->im_v_codec==CODEC_RGB) ? "RGB24" : "YUV420P");
     }
 
     return(0);

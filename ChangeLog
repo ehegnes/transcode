@@ -1,4 +1,9 @@
 2005-10-17 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h import/import* export/export*
+  tc_tag_*() -> tc_log_*(), more clear and more expressive name
+  (and this should be the real last one :^) )
+
+2005-10-17 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tc_functions.c
     export/export_dv.c export/export_dvraw.c filter/filter_smartyuv.c 
     filter/filter_test.c filter/filter_unsharp.c

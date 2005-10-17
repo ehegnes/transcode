@@ -80,18 +80,18 @@ MOD_open
       if (!file) {
 	  if (!file_a) {
 	      if((file = mpeg3_open(vob->video_in_file))==NULL) {
-		  tc_tag_warn(MOD_NAME, "open file failed");
+		  tc_log_warn(MOD_NAME, "open file failed");
 		  return(TC_IMPORT_ERROR);
 	      }
 	      if (verbose & TC_DEBUG)
-                  tc_tag_info(MOD_NAME, "Opened video NO copy");
+                  tc_log_info(MOD_NAME, "Opened video NO copy");
 	  } else if (file_a) {
 	      if((file = mpeg3_open_copy(vob->video_in_file, file_a))==NULL) {
-		  tc_tag_warn(MOD_NAME, "open file failed");
+		  tc_log_warn(MOD_NAME, "open file failed");
 		  return(TC_IMPORT_ERROR);
 	      }
 	      if (verbose & TC_DEBUG)
-                  tc_tag_info(MOD_NAME, "Opened video WITH copy");
+                  tc_log_info(MOD_NAME, "Opened video WITH copy");
 	  }
       }
   }
@@ -99,18 +99,18 @@ MOD_open
       if (!file_a) {
 	  if (!file) {
 	      if((file_a = mpeg3_open(vob->audio_in_file))==NULL) {
-		  tc_tag_warn(MOD_NAME, "open audio file failed");
+		  tc_log_warn(MOD_NAME, "open audio file failed");
 		  return(TC_IMPORT_ERROR);
 	      }
 	      if (verbose & TC_DEBUG)
-                  tc_tag_info(MOD_NAME, "Opened audio NO copy");
+                  tc_log_info(MOD_NAME, "Opened audio NO copy");
 	  } else if (file) {
 	      if((file_a = mpeg3_open_copy(vob->audio_in_file, file))==NULL) {
-		  tc_tag_warn(MOD_NAME, "open_copy audio file failed");
+		  tc_log_warn(MOD_NAME, "open_copy audio file failed");
 		  return(TC_IMPORT_ERROR);
 	      }
 	      if (verbose & TC_DEBUG)
-                  tc_tag_info(MOD_NAME, "Opened audio WITH copy");
+                  tc_log_info(MOD_NAME, "Opened audio WITH copy");
 	  }
       }
   }
@@ -132,12 +132,12 @@ MOD_open
 
   
       if (!mpeg3_has_audio(file_a)) {
-	  tc_tag_warn(MOD_NAME, "No audio found");
+	  tc_log_warn(MOD_NAME, "No audio found");
 	  return TC_IMPORT_ERROR;
       }
       astream = mpeg3_total_astreams(file_a);
       if (verbose & TC_DEBUG)
-          tc_tag_warn(MOD_NAME, "<%d> audio streams found, we only handle one"
+          tc_log_warn(MOD_NAME, "<%d> audio streams found, we only handle one"
                  " stream right now", astream);
 
       astreamid = vob->a_track;
@@ -146,18 +146,18 @@ MOD_open
       a_samp = -1;
 
       if (verbose & TC_DEBUG)
-	  tc_tag_info(MOD_NAME, "<%d> Channels, <%d> Samplerate, <%ld> Samples,"
+	  tc_log_info(MOD_NAME, "<%d> Channels, <%d> Samplerate, <%ld> Samples,"
                  " <%d> fch, <%s> Format",
                  a_chan, a_rate, a_samp, vob->im_a_size,
 	         mpeg3_audio_format(file_a, astreamid));
 
       if (a_rate != vob->a_rate) {
-	  tc_tag_warn(MOD_NAME, "Audio parameter mismatch (rate)");
+	  tc_log_warn(MOD_NAME, "Audio parameter mismatch (rate)");
 	  return TC_IMPORT_ERROR;
       }
 
       if (a_chan != vob->a_chan) {
-	  tc_tag_warn(MOD_NAME, "Audio parameter mismatch (%d!=%d channels)",
+	  tc_log_warn(MOD_NAME, "Audio parameter mismatch (%d!=%d channels)",
                           a_chan, vob->a_chan);
 	  //return TC_IMPORT_ERROR;
       }

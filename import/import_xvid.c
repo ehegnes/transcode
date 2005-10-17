@@ -117,7 +117,7 @@ static int xvid2_init(char *path) {
 		module = modules[i];
 
 		if(verbose_flag & TC_DEBUG)
-			tc_tag_info(MOD_NAME, "Trying to load shared lib %s",
+			tc_log_info(MOD_NAME, "Trying to load shared lib %s",
 				module);
 
 		/* Try loading the shared lib */
@@ -132,12 +132,12 @@ static int xvid2_init(char *path) {
 	}
 
 	/* None of the modules were available */
-	tc_tag_warn(MOD_NAME, "dlopen: %s", error);
+	tc_log_warn(MOD_NAME, "dlopen: %s", error);
 	return(-1);
 
  so_loaded:
 	if(verbose_flag & TC_DEBUG)
-		tc_tag_info(MOD_NAME, "Using shared lib %s",
+		tc_log_info(MOD_NAME, "Using shared lib %s",
 			module);
 
 	/* Import the XviD init entry point */
@@ -146,7 +146,7 @@ static int xvid2_init(char *path) {
 	/* Something went wrong */
 	error = dlerror();
 	if(error != NULL)  {
-		tc_tag_warn(MOD_NAME, "XviD_init: %s", error);
+		tc_log_warn(MOD_NAME, "XviD_init: %s", error);
 		return(-1);
 	}
 
@@ -156,7 +156,7 @@ static int xvid2_init(char *path) {
 	error = dlerror();
 	/* Something went wrong */
 	if(error != NULL)  {
-		tc_tag_warn(MOD_NAME, "XviD_decore: %s", error);
+		tc_log_warn(MOD_NAME, "XviD_decore: %s", error);
 		return(-1);
 	}
 
@@ -209,14 +209,14 @@ MOD_open
     
     codec_str = AVI_video_compressor(avifile);
     if(strlen(codec_str)==0) {
-      tc_tag_warn(MOD_NAME, "invalid AVI file codec");
+      tc_log_warn(MOD_NAME, "invalid AVI file codec");
       return(TC_IMPORT_ERROR); 
     }
     if (!strcasecmp(codec_str, "DIV3") ||
         !strcasecmp(codec_str, "MP43") ||
         !strcasecmp(codec_str, "MPG3") ||
         !strcasecmp(codec_str, "AP41")) {
-      tc_tag_warn(MOD_NAME, "The XviD codec does not support MS-MPEG4v3 " \
+      tc_log_warn(MOD_NAME, "The XviD codec does not support MS-MPEG4v3 " \
               "(aka DivX ;-) aka DivX3).");
       return(TC_IMPORT_ERROR);
     }
@@ -224,7 +224,7 @@ MOD_open
     //load the codec
     //if(xvid2_init("/data/scr/comp/video/xvid/xvid_20030610/xvidcore/build/generic")<0) {
     if(xvid2_init(vob->mod_path)<0) {
-      tc_tag_warn(MOD_NAME, "failed to init Xvid codec");
+      tc_log_warn(MOD_NAME, "failed to init Xvid codec");
       return(TC_IMPORT_ERROR); 
     }
     
@@ -240,7 +240,7 @@ MOD_open
     xerr = XviD_decore(NULL, XVID_DEC_CREATE, &xparam, NULL);
 
     if(xerr == XVID_ERR_FAIL) {
-      tc_tag_warn(MOD_NAME, "codec open error");
+      tc_log_warn(MOD_NAME, "codec open error");
       return(TC_EXPORT_ERROR); 
     }
     XviD_decore_handle=xparam.handle;
@@ -340,7 +340,7 @@ MOD_decode {
 
     xerr = XviD_decore(XviD_decore_handle, XVID_DEC_DECODE, &xframe, NULL);
     if (xerr != XVID_ERR_OK) {
-      tc_tag_warn(MOD_NAME, "frame decoding failed. Perhaps you're trying to " \
+      tc_log_warn(MOD_NAME, "frame decoding failed. Perhaps you're trying to " \
              "decode MS-MPEG4v3 (aka DivX ;-) aka DivX3)?");
       return(TC_IMPORT_ERROR);
     }
@@ -364,7 +364,7 @@ MOD_close
 
     xerr = XviD_decore(XviD_decore_handle, XVID_DEC_DESTROY, NULL, NULL);
     if (xerr == XVID_ERR_FAIL)
-      tc_tag_warn(MOD_NAME, "encoder close error");
+      tc_log_warn(MOD_NAME, "encoder close error");
 
     //remove codec
     dlclose(handle);

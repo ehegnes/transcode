@@ -104,7 +104,7 @@ MOD_open
 
     result = regexec(&preg, vob->video_in_file, 4, pmatch, 0);
     if (result) {
-        tc_tag_warn(MOD_NAME, "Regex match failed: no image sequence");
+        tc_log_warn(MOD_NAME, "Regex match failed: no image sequence");
 	string_length = strlen(vob->video_in_file) + 1;
         if ((head = malloc(string_length)) == NULL) {
 	    perror("filename head");

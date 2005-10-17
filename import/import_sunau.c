@@ -57,7 +57,7 @@ int sunau_init(const char *audio_device,
         return(0);
 
     if(precision != 8 && precision != 16) {
-        tc_tag_warn(MOD_NAME,
+        tc_log_warn(MOD_NAME,
             "bits/sample must be 8 or 16");
         return(1);
     }
@@ -90,28 +90,28 @@ int sunau_init(const char *audio_device,
     }
 
     if (audio_if.record.precision != precision) {
-        tc_tag_warn(MOD_NAME,
+        tc_log_warn(MOD_NAME,
             "unable to initialize sample size for %s; "
             "tried %d, got %d",
             audio_device, precision, audio_if.record.precision);
         return(1);
     }
     if (audio_if.record.channels != channels) {
-        tc_tag_warn(MOD_NAME,
+        tc_log_warn(MOD_NAME,
             "unable to initialize number of channels for %s; "
             "tried %d, got %d",
             audio_device, channels, audio_if.record.channels);
         return(1);
     }
     if (audio_if.record.sample_rate != sample_rate) {
-        tc_tag_warn(MOD_NAME,
+        tc_log_warn(MOD_NAME,
             "unable to initialize rate for %s; "
             "tried %d, got %d\n",
             audio_device, sample_rate, audio_if.record.sample_rate);
         return(1);
     }
     if (audio_if.record.encoding != encoding) {
-        tc_tag_warn(MOD_NAME,
+        tc_log_warn(MOD_NAME,
             "unable to initialize encoding for %s; "
             "tried %d, got %d",
             audio_device, encoding, audio_if.record.encoding);
@@ -135,7 +135,7 @@ int sunau_grab(size_t size, char *buffer)
     for (left = size, offset = 0; left > 0;) {
         received = read(sunau_fd, buffer + offset, left);
         if (received == 0) {
-            tc_tag_warn(MOD_NAME,
+            tc_log_warn(MOD_NAME,
                 "audio grab: received == 0");
         }
         if (received < 0) {
@@ -147,7 +147,7 @@ int sunau_grab(size_t size, char *buffer)
             }
         }
         if (received > left) {
-            tc_tag_warn(MOD_NAME,
+            tc_log_warn(MOD_NAME,
                 "read returns more bytes than requested; "
                 "requested: %d, returned: %d",
                 left, received);
@@ -165,7 +165,7 @@ int sunau_stop(void)
     sunau_fd = -1;
 
     if (verbose_flag & TC_STATS) {
-        tc_tag_warn(MOD_NAME,
+        tc_log_warn(MOD_NAME,
             "totals: (not implemented)");
     }
 
@@ -185,13 +185,13 @@ MOD_open
 
     switch (param->flag) {
       case TC_VIDEO:
-        tc_tag_warn(MOD_NAME,
+        tc_log_warn(MOD_NAME,
             "unsupported request (init video)\n");
         ret = TC_IMPORT_ERROR;
         break;
       case TC_AUDIO:
         if (verbose_flag & TC_DEBUG) {
-            tc_tag_info(MOD_NAME,
+            tc_log_info(MOD_NAME,
                 "sunau audio grabbing\n");
         }
         if (sunau_init(vob->audio_in_file,
@@ -200,7 +200,7 @@ MOD_open
         }
         break;
       default:
-        tc_tag_warn(MOD_NAME,
+        tc_log_warn(MOD_NAME,
             "unsupported request (init)");
         ret = TC_IMPORT_ERROR;
         break;
@@ -222,19 +222,19 @@ MOD_decode
 
     switch (param->flag) {
       case TC_VIDEO:
-        tc_tag_warn(MOD_NAME,
+        tc_log_warn(MOD_NAME,
             "unsupported request (decode video)");
         ret = TC_IMPORT_ERROR;
         break;
       case TC_AUDIO:
         if (sunau_grab(param->size, param->buffer)) {
-            tc_tag_warn(MOD_NAME,
+            tc_log_warn(MOD_NAME,
                 "error in grabbing audio");
             ret = TC_IMPORT_ERROR;
         }
         break;
       default:
-        tc_tag_warn(MOD_NAME,
+        tc_log_warn(MOD_NAME,
             "unsupported request (decode)");
         ret = TC_IMPORT_ERROR;
         break;
@@ -255,7 +255,7 @@ MOD_close
 
     switch (param->flag) {
       case TC_VIDEO:
-        tc_tag_warn(MOD_NAME,
+        tc_log_warn(MOD_NAME,
             "unsupported request (close video)");
         ret = TC_IMPORT_ERROR;
         break;
@@ -263,7 +263,7 @@ MOD_close
         sunau_stop();
         break;
       default:
-        tc_tag_warn(MOD_NAME,
+        tc_log_warn(MOD_NAME,
             "unsupported request (close)");
         ret = TC_IMPORT_ERROR;
         break;

@@ -109,7 +109,7 @@ MOD_open
 	    return(TC_IMPORT_ERROR);
 	}
 	// print out
-	if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+	if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
 	if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
 	    perror("popen video stream");
@@ -139,7 +139,7 @@ MOD_open
 		break;
 
 	    default:
-		tc_tag_warn(MOD_NAME, "Unkown codec");
+		tc_log_warn(MOD_NAME, "Unkown codec");
 		break;
 	}
     
@@ -162,7 +162,7 @@ MOD_open
 	}
 
 	// print out
-	if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+	if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
 	// popen
 	if((fd = popen(import_cmd_buf, "r"))== NULL) {

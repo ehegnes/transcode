@@ -111,12 +111,12 @@ MOD_open
         fps    =  AVI_frame_rate(avifile2);
         codec  =  AVI_video_compressor(avifile2);
 
-        tc_tag_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
+        tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
                 codec, fps, width, height);
 
         if ((strlen(codec) != 0 && strcmp("FPS1", codec) != 0) ||
             vob->im_v_codec == CODEC_RGB) {
-            tc_tag_warn(MOD_NAME, "invalid AVI file codec '%s' "
+            tc_log_warn(MOD_NAME, "invalid AVI file codec '%s' "
                             "for YUV processing", codec);
             return(TC_IMPORT_ERROR);
         }
@@ -163,7 +163,7 @@ MOD_decode
         /* right? */
         version = buffer[0] & 0xff;
         if (version != 0) {
-            tc_tag_warn(MOD_NAME, "unsupported protocol version for FRAPS");
+            tc_log_warn(MOD_NAME, "unsupported protocol version for FRAPS");
             return(TC_IMPORT_ERROR);
         }
 

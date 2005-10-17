@@ -133,24 +133,24 @@ static int list(char *list_type)
         qi = lqt_query_registry(1, 1, 1, 0);
     }
     
-    tc_tag_info(MOD_NAME, "List of supported %s:", list_type);
-    tc_tag_info(MOD_NAME, "Name                    comments");
-    tc_tag_info(MOD_NAME, "---------------         "
+    tc_log_info(MOD_NAME, "List of supported %s:", list_type);
+    tc_log_info(MOD_NAME, "Name                    comments");
+    tc_log_info(MOD_NAME, "---------------         "
 		          "-----------------------------------");
     while(qi[cod] != NULL)
         {       
         if (list_type == QT_LIST_PARM) {
-            tc_tag_info(MOD_NAME, "%s:", qi[cod]->name);
+            tc_log_info(MOD_NAME, "%s:", qi[cod]->name);
             for(i = 0; i < qi[cod]->num_encoding_parameters; i++) {
                 if (qi[cod]->encoding_parameters[i].type != LQT_PARAMETER_SECTION) {
-                    tc_tag_info(MOD_NAME, " %-23s %s", 
+                    tc_log_info(MOD_NAME, " %-23s %s", 
                         qi[cod]->encoding_parameters[i].name, 
                         qi[cod]->encoding_parameters[i].real_name);
                 }
             }
         }
         else {
-            tc_tag_info(MOD_NAME, "%-23s %s", 
+            tc_log_info(MOD_NAME, "%-23s %s", 
                 qi[cod]->name, 
                 qi[cod]->description);
         }
@@ -208,7 +208,7 @@ MOD_init
 
     /* list special paramters at the end */
     for(i = 0; qt_param_list[i].name != NULL; i++) {
-        tc_tag_info(MOD_NAME, "  %-23s %s",
+        tc_log_info(MOD_NAME, "  %-23s %s",
             qt_param_list[i].name, 
             qt_param_list[i].comments);
     }
@@ -234,7 +234,7 @@ MOD_init
     
     /* open target file for writing */
     if(NULL == (qtfile = quicktime_open(vob->video_out_file, 0, 1)) ){
-        tc_tag_warn(MOD_NAME, "error opening qt file '%s'",
+        tc_log_warn(MOD_NAME, "error opening qt file '%s'",
             vob->video_out_file);
         return(TC_EXPORT_ERROR);
     }
@@ -246,7 +246,7 @@ MOD_init
             /* default */     
             qt_codec = "mjpa";
             if (verbose_flag != TC_QUIET) {
-                tc_tag_info(MOD_NAME, "Empty qt codec name. Switching to %s use '-F list'"
+                tc_log_info(MOD_NAME, "Empty qt codec name. Switching to %s use '-F list'"
                                 " to get a list of supported codec.", qt_codec);
             }
         }
@@ -254,7 +254,7 @@ MOD_init
         /* check if we can encode with this codec */
         qt_codec_info = lqt_find_video_codec_by_name(qt_codec);
         if (!qt_codec_info) {
-        tc_tag_warn(MOD_NAME, "qt video codec '%s' not supported!", qt_codec);
+        tc_log_warn(MOD_NAME, "qt video codec '%s' not supported!", qt_codec);
             return(TC_EXPORT_ERROR);
         }
 
@@ -262,7 +262,7 @@ MOD_init
         /* set proposed video codec */
         lqt_set_video(qtfile, 1, w, h, vob->ex_fps,qt_codec_info[0]);
 #else
-	tc_tag_info(MOD_NAME, "%i\n", tc_quicktime_get_timescale(vob->ex_fps));
+	tc_log_info(MOD_NAME, "%i\n", tc_quicktime_get_timescale(vob->ex_fps));
         /* set proposed video codec */
         lqt_set_video(qtfile, 1, w, h,
 		tc_quicktime_get_timescale(vob->ex_fps) / vob->ex_fps+0.5,
@@ -334,16 +334,16 @@ MOD_init
                         break;
 
                     default:
-                        tc_tag_warn(MOD_NAME, "codec '%lx' not supported for pass-through",
+                        tc_log_warn(MOD_NAME, "codec '%lx' not supported for pass-through",
 					vob->codec_flag);
-			tc_tag_warn(MOD_NAME, "        If you really know what you are doing you can force");
-                        tc_tag_warn(MOD_NAME, "        a codec via -F <vc>, '-F list' returns a list");
+			tc_log_warn(MOD_NAME, "        If you really know what you are doing you can force");
+                        tc_log_warn(MOD_NAME, "        a codec via -F <vc>, '-F list' returns a list");
                         return(TC_EXPORT_ERROR);
                         break;
                 }
             }
             else {
-                tc_tag_warn(MOD_NAME,"Overriding the output codec is almost never a good idea");
+                tc_log_warn(MOD_NAME,"Overriding the output codec is almost never a good idea");
                 quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,qt_codec);
             }
 
@@ -352,7 +352,7 @@ MOD_init
               
         default:
             /* unsupported internal format */
-	    tc_tag_warn(MOD_NAME, "unsupported internal video format %x",
+	    tc_log_warn(MOD_NAME, "unsupported internal video format %x",
                 vob->ex_v_codec);
             return(TC_EXPORT_ERROR);
             break;
@@ -363,8 +363,8 @@ MOD_init
     if (vob->im_v_codec != CODEC_RAW && vob->im_v_codec != CODEC_RAW_YUV && vob->im_v_codec != CODEC_RAW_RGB) {
         if (quicktime_writes_cmodel(qtfile, qt_cm ,0) != 1) { 
                 if (verbose_flag != TC_QUIET)
-                    tc_tag_info(MOD_NAME, "Colorspace conversation required you may want to try");
-		    tc_tag_info(MOD_NAME, "a different mode (rgb, yuv, yuv422) to speed up encoding");
+                    tc_log_info(MOD_NAME, "Colorspace conversation required you may want to try");
+		    tc_log_info(MOD_NAME, "a different mode (rgb, yuv, yuv422) to speed up encoding");
         }
     }
 
@@ -429,7 +429,7 @@ MOD_init
             break;
       
         default:
-            tc_tag_warn(MOD_NAME, "Given aspect ratio not supported, using default");
+            tc_log_warn(MOD_NAME, "Given aspect ratio not supported, using default");
             break;
         }
     
@@ -475,8 +475,8 @@ MOD_init
         for(i=0;i<=strlen(vob->ex_profile_name);i++,j++) {
             /* try to catch bad input */
             if (vob->ex_profile_name[i] == ','){
-                tc_tag_warn(MOD_NAME, "bad -F option found");
-		tc_tag_warn(MOD_NAME, "try something like this: \"-F vc,ac,opt1=val,opt2=val...\"");
+                tc_log_warn(MOD_NAME, "bad -F option found");
+		tc_log_warn(MOD_NAME, "try something like this: \"-F vc,ac,opt1=val,opt2=val...\"");
                 return(TC_EXPORT_ERROR);
                 break;
             }
@@ -487,8 +487,8 @@ MOD_init
                 for(i++,k=0;i<=strlen(vob->ex_profile_name), vob->ex_profile_name[i] != (char)NULL;i++,k++) {
                     /* try to catch bad input */        
                     if (vob->ex_profile_name[i] == '=') {
-                        tc_tag_warn(MOD_NAME, "bad -F option found, aborting ...");
-			tc_tag_warn(MOD_NAME, "try something like this: \"-F vc,ac,opt1=val,opt2=val...\"");
+                        tc_log_warn(MOD_NAME, "bad -F option found, aborting ...");
+			tc_log_warn(MOD_NAME, "try something like this: \"-F vc,ac,opt1=val,opt2=val...\"");
                         return(TC_EXPORT_ERROR);
                         break;
                     }
@@ -522,7 +522,7 @@ MOD_init
     tmp_buf = malloc (w*h*2);
 
     /* verbose */
-    tc_tag_info(MOD_NAME, "video codec='%s' w=%d h=%d fps=%g",
+    tc_log_info(MOD_NAME, "video codec='%s' w=%d h=%d fps=%g",
 	    qt_codec,w,h,vob->ex_fps);
 
     return(0);
@@ -538,7 +538,7 @@ MOD_init
 
     /* check given audio format */
     if((vob->dm_chan!=1)&&(vob->dm_chan!=2)) {
-        tc_tag_warn(MOD_NAME, "Only mono or stereo audio supported");
+        tc_log_warn(MOD_NAME, "Only mono or stereo audio supported");
         return(TC_EXPORT_ERROR);
     }
     channels = vob->dm_chan;
@@ -549,9 +549,9 @@ MOD_init
     if(qt_codec == NULL || strlen(qt_codec)==0) {
         qt_codec = "ima4";
         if (verbose_flag != TC_QUIET) {
-            tc_tag_info(MOD_NAME, "empty qt codec name - switching to %s"
+            tc_log_info(MOD_NAME, "empty qt codec name - switching to %s"
 			          " use '-F ,list'", qt_codec);
-	    tc_tag_info(MOD_NAME, "to get a list of supported codec"); 
+	    tc_log_info(MOD_NAME, "to get a list of supported codec"); 
         }
     }
      
@@ -569,7 +569,7 @@ MOD_init
 
         default:
             /* unsupported internal format */
-            tc_tag_warn(MOD_NAME, "unsupported internal audio format %x",
+            tc_log_warn(MOD_NAME, "unsupported internal audio format %x",
                 vob->ex_v_codec);
             return(TC_EXPORT_ERROR);
             break;
@@ -577,7 +577,7 @@ MOD_init
 
     qt_codec_info = lqt_find_audio_codec_by_name(qt_codec);
     if (!qt_codec_info){
-        tc_tag_warn(MOD_NAME, "qt audio codec '%s' unsupported",
+        tc_log_warn(MOD_NAME, "qt audio codec '%s' unsupported",
             qt_codec);
         return(TC_EXPORT_ERROR);
     }
@@ -586,7 +586,7 @@ MOD_init
     lqt_set_audio(qtfile,channels,vob->a_rate,bits,qt_codec_info[0]);
 
     /* verbose */
-    tc_tag_info(MOD_NAME, "audio codec='%s' bits=%d chan=%d rate=%d",
+    tc_log_info(MOD_NAME, "audio codec='%s' bits=%d chan=%d rate=%d",
 	    qt_codec,bits,channels,vob->a_rate);
     return(0);
   }
@@ -610,7 +610,7 @@ MOD_encode
         /* add divx keyframes if needed */
         if(quicktime_divx_is_key(param->buffer, param->size) == 1) quicktime_insert_keyframe(qtfile, (int)tc_get_frames_encoded, 0);
         if(quicktime_write_frame(qtfile,param->buffer,param->size,0)<0) {
-            tc_tag_warn(MOD_NAME, "error writing raw video frame");
+            tc_log_warn(MOD_NAME, "error writing raw video frame");
             return(TC_EXPORT_ERROR);
         }
     }
@@ -659,7 +659,7 @@ MOD_encode
         }
 
         if(quicktime_encode_video(qtfile, row_ptr, 0)<0) {
-            tc_tag_warn(MOD_NAME, "error encoding video frame");
+            tc_log_warn(MOD_NAME, "error encoding video frame");
             return(TC_EXPORT_ERROR);
         }
     }
@@ -672,7 +672,7 @@ MOD_encode
     if(rawAudio) {
         if(quicktime_write_frame(qtfile,
             param->buffer,param->size,0)<0) {
-            tc_tag_warn(MOD_NAME, "error writing raw audio frame");
+            tc_log_warn(MOD_NAME, "error writing raw audio frame");
             return(TC_EXPORT_ERROR);
         }
     }
@@ -721,7 +721,7 @@ MOD_encode
         
         /* encode audio samples */
         if ((quicktime_encode_audio(qtfile, aptr, NULL, samples)<0)){
-            tc_tag_warn(MOD_NAME, "error encoding audio frame");
+            tc_log_warn(MOD_NAME, "error encoding audio frame");
             return(TC_EXPORT_ERROR);
         }
     }

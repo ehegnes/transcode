@@ -80,7 +80,7 @@ MOD_open
 
       if(( hp = gethostbyname(server)) == NULL) {
 	
-	tc_tag_warn(MOD_NAME, "host %s unknown", server);
+	tc_log_warn(MOD_NAME, "host %s unknown", server);
 	return(TC_EXPORT_ERROR);
       }
       
@@ -116,7 +116,7 @@ MOD_open
 
       if(( hp = gethostbyname(server)) == NULL) {
 	
-	tc_tag_warn(MOD_NAME, "host %s unknown", server);
+	tc_log_warn(MOD_NAME, "host %s unknown", server);
 	return(TC_EXPORT_ERROR);
       }
       
@@ -159,7 +159,7 @@ MOD_decode {
 
   if(param->flag == TC_VIDEO) {
     
-    if(verbose_flag & TC_DEBUG) tc_tag_info(MOD_NAME, "(V) read");
+    if(verbose_flag & TC_DEBUG) tc_log_info(MOD_NAME, "(V) read");
     
     if(p_read(vs, (char *) param->buffer, param->size)!=param->size) {
       return(TC_IMPORT_ERROR);
@@ -169,7 +169,7 @@ MOD_decode {
   
   if(param->flag == TC_AUDIO) {
 
-    if(verbose_flag & TC_DEBUG) tc_tag_info(MOD_NAME, "(A) read");
+    if(verbose_flag & TC_DEBUG) tc_log_info(MOD_NAME, "(A) read");
     
     if(p_read(as, (char *) param->buffer, param->size)!=param->size) {
       return(TC_IMPORT_ERROR);
@@ -191,14 +191,14 @@ MOD_close
 {  
   if(param->flag == TC_VIDEO) {
 
-    tc_tag_info(MOD_NAME, "disconnect");
+    tc_log_info(MOD_NAME, "disconnect");
     if(close(vs) < 0)  perror("close socket");
     return(0);
   }
   
   if(param->flag == TC_AUDIO) {
 
-    tc_tag_info(MOD_NAME, "disconnect");
+    tc_log_info(MOD_NAME, "disconnect");
     if(close(as) < 0)  perror("close socket");
     return(0);
   }

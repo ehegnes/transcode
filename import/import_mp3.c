@@ -136,18 +136,18 @@ MOD_open
 	  }
 	}
 
-	if(verbose_flag) tc_tag_info(MOD_NAME, "MP3->PCM");
+	if(verbose_flag) tc_log_info(MOD_NAME, "MP3->PCM");
 
 	break;
 
     default: 
-	tc_tag_warn(MOD_NAME, "invalid import codec request 0x%x", codec);
+	tc_log_warn(MOD_NAME, "invalid import codec request 0x%x", codec);
 	return(TC_IMPORT_ERROR);
 
     }
 
     // print out
-    if(verbose_flag) tc_tag_info(MOD_NAME, "%s", import_cmd_buf);
+    if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
     // set to NULL if we handle read
     param->fd = NULL;
@@ -185,7 +185,7 @@ MOD_decode
     break;
 
   default: 
-      tc_tag_warn(MOD_NAME, "invalid import codec request 0x%x",codec);
+      tc_log_warn(MOD_NAME, "invalid import codec request 0x%x",codec);
       return(TC_IMPORT_ERROR);
 
   }
@@ -200,7 +200,7 @@ MOD_decode
 	  return(TC_IMPORT_ERROR);
       }
       if (offset && percent <= 100 && last_percent != percent) {
-	  tc_tag_warn(MOD_NAME, "skipping to frame %d .. %d%%", 
+	  tc_log_warn(MOD_NAME, "skipping to frame %d .. %d%%", 
 		  offset, percent);
 	  last_percent = percent;
       }

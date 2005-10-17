@@ -66,7 +66,7 @@ MOD_init
 {
     
     if(param->flag == TC_VIDEO) {
-      if(verbose & TC_DEBUG) tc_tag_info(MOD_NAME, "max AVI-file size limit = %lu bytes\n", 
+      if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "max AVI-file size limit = %lu bytes\n", 
 		                         (unsigned long) AVI_max_size());
 
       /*
@@ -74,7 +74,7 @@ MOD_init
        */
 
       if (lzo_init() != LZO_E_OK) {
-	tc_tag_warn(MOD_NAME, "lzo_init() failed");
+	tc_log_warn(MOD_NAME, "lzo_init() failed");
 	return(TC_EXPORT_ERROR); 
       }
 
@@ -129,7 +129,7 @@ MOD_open
 	  AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
       
       if(!info_shown && verbose_flag) 
-	tc_tag_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
+	tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
 		"LZO2", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
       
       info_shown=1;
@@ -193,19 +193,19 @@ MOD_encode
     
     if (r == LZO_E_OK) {
       if(verbose & TC_DEBUG)
-	tc_tag_info(MOD_NAME, "compressed %lu bytes into %lu bytes",
+	tc_log_info(MOD_NAME, "compressed %lu bytes into %lu bytes",
 		    (long) param->size, (long) out_len);
     } else {
       
       /* this should NEVER happen */
-      tc_tag_warn(MOD_NAME, "internal error - compression failed: %d", r);
+      tc_log_warn(MOD_NAME, "internal error - compression failed: %d", r);
       return(TC_EXPORT_ERROR); 
     }
     
     /* check for an incompressible block */
     if (out_len >= param->size)  {
       if(verbose & TC_DEBUG)
-	tc_tag_info(MOD_NAME, "block contains incompressible data");
+	tc_log_info(MOD_NAME, "block contains incompressible data");
       h.flags |= TC_LZO_NOT_COMPRESSIBLE;
       ac_memcpy(out+sizeof(h), param->buffer, param->size);
       out_len = param->size;

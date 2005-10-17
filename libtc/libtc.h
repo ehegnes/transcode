@@ -44,7 +44,7 @@
 
 void tc_log(int level, const char *tag, const char *fmt, ...);
 
-// only for compatibility
+/* compatibility macros */
 #define tc_error(format, args...) \
     do { tc_log(TC_LOG_ERR, PACKAGE, format , ## args); exit(1); } while(0)
 #define tc_info(format, args...) \
@@ -52,12 +52,12 @@ void tc_log(int level, const char *tag, const char *fmt, ...);
 #define tc_warn(format, args...) \
     tc_log(TC_LOG_WARN, PACKAGE, format , ## args)
 
-/* well, I should drop this soon... Or not? -- fromani 20051015 */
-#define tc_tag_error(tag, format, args...) \
+/* macro goodies */
+#define tc_log_error(tag, format, args...) \
     tc_log(TC_LOG_ERR, tag, format , ## args)
-#define tc_tag_info(tag, format, args...) \
+#define tc_log_info(tag, format, args...) \
     tc_log(TC_LOG_INFO, tag, format , ## args)
-#define tc_tag_warn(tag, format, args...) \
+#define tc_log_warn(tag, format, args...) \
     tc_log(TC_LOG_WARN, tag, format , ## args)
 
 /* Provided by caller */
