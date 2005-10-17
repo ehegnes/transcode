@@ -197,7 +197,7 @@ void decode_lavc(decode_t *decode)
         bpp = 24;
 
         if (yuv2rgb_buffer == NULL)
-	    yuv2rgb_buffer = bufalloc(frame_size);
+	    yuv2rgb_buffer = tc_bufalloc(frame_size);
 	
         if (yuv2rgb_buffer == NULL)
 	{
@@ -213,13 +213,13 @@ void decode_lavc(decode_t *decode)
 	break;
   }
 
-  if(buffer == NULL) buffer=bufalloc(READ_BUFFER_SIZE);
+  if(buffer == NULL) buffer=tc_bufalloc(READ_BUFFER_SIZE);
   if(buffer == NULL) {
       perror("out of memory");
       goto decoder_error;
   }
 
-  if(out_buffer == NULL) out_buffer=bufalloc(frame_size);
+  if(out_buffer == NULL) out_buffer=tc_bufalloc(frame_size);
   if(out_buffer == NULL) {
       perror("out of memory");
       goto decoder_error;

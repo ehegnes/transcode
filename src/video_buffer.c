@@ -84,12 +84,12 @@ static int vid_buf_alloc(int ex_num)
 	vid_buf_ptr[n]->bufid = n;
 
 	//allocate extra video memory:
-	if((vid_buf_ptr[n]->internal_video_buf_0=bufalloc(frame_size_max))==NULL) {
+	if((vid_buf_ptr[n]->internal_video_buf_0=tc_bufalloc(frame_size_max))==NULL) {
 	    perror("out of memory");
 	    return(-1);
 	}
 	
-	if((vid_buf_ptr[n]->internal_video_buf_1=bufalloc(frame_size_max))==NULL) {
+	if((vid_buf_ptr[n]->internal_video_buf_1=tc_bufalloc(frame_size_max))==NULL) {
 	    perror("out of memory");
 	    return(-1);
 	}
@@ -144,8 +144,8 @@ static void vid_buf_free(void)
   if(vid_buf_max > 0) {
 
     for (n=0; n<vid_buf_max; ++n) {
-      buffree(vid_buf_ptr[n]->internal_video_buf_0);
-      buffree(vid_buf_ptr[n]->internal_video_buf_1);
+      tc_buffree(vid_buf_ptr[n]->internal_video_buf_0);
+      tc_buffree(vid_buf_ptr[n]->internal_video_buf_1);
     }
     free(vid_buf_mem);
     free(vid_buf_ptr);

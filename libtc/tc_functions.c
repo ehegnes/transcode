@@ -278,7 +278,7 @@ int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
 /* Allocate a buffer aligned to the machine's page size, if known.  The
  * buffer must be freed with buffree() (not free()). */
 
-void *bufalloc(size_t size)
+void *tc_bufalloc(size_t size)
 {
 #ifdef HAVE_GETPAGESIZE
     unsigned long pagesize = getpagesize();
@@ -295,9 +295,9 @@ void *bufalloc(size_t size)
 }
 
 
-/* Free a buffer allocated with bufalloc(). */
+/* Free a buffer allocated with tc_bufalloc(). */
 
-void buffree(void *ptr)
+void tc_buffree(void *ptr)
 {
 #ifdef HAVE_GETPAGESIZE
     if (ptr)

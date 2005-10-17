@@ -62,11 +62,11 @@ MOD_init
 {
     
     if(param->flag == TC_VIDEO) {
-      target = bufalloc(TC_FRAME_DV_PAL);
+      target = tc_bufalloc(TC_FRAME_DV_PAL);
 
       if(vob->dv_yuy2_mode) {
-	tmp_buf = bufalloc(PAL_W*PAL_H*2); //max frame
-	dv_yuy2_mode=1;
+	    tmp_buf = tc_bufalloc(PAL_W*PAL_H*2); //max frame
+        dv_yuy2_mode=1;
       }
 
       encoder = dv_encoder_new(FALSE, FALSE, FALSE);

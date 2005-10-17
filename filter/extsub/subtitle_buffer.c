@@ -76,7 +76,7 @@ static int sub_buf_alloc(int ex_num)
 	sub_buf_ptr[n]->bufid = n;
 
 	//allocate extra subeo memory:
-	if((sub_buf_ptr[n]->video_buf=bufalloc(SUB_BUFFER_SIZE))==NULL) {
+	if((sub_buf_ptr[n]->video_buf=tc_bufalloc(SUB_BUFFER_SIZE))==NULL) {
 	  perror("out of memory");
 	  return(-1);
 	}
@@ -109,7 +109,7 @@ static void sub_buf_free(void)
   if(sub_buf_max > 0) {
 
     for (n=0; n<sub_buf_max; ++n) {
-      buffree(sub_buf_ptr[n]->video_buf);
+      tc_buffree(sub_buf_ptr[n]->video_buf);
     }
     free(sub_buf_mem);
     free(sub_buf_ptr);

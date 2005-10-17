@@ -261,7 +261,7 @@ MOD_open
 	break;
     }
     
-    if ((buffer = bufalloc(frame_size))==NULL) {
+    if ((buffer = tc_bufalloc(frame_size))==NULL) {
       perror("out of memory");
       return(TC_EXPORT_ERROR); 
     } else

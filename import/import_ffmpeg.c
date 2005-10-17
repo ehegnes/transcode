@@ -375,7 +375,7 @@ do_avi:
         frame_size = x_dim * y_dim * 3;
         bpp = vob->v_bpp;
 
-        if (yuv2rgb_buffer == NULL) yuv2rgb_buffer = bufalloc(BUFFER_SIZE);
+        if (yuv2rgb_buffer == NULL) yuv2rgb_buffer = tc_bufalloc(BUFFER_SIZE);
 
         if (yuv2rgb_buffer == NULL) {
           perror("out of memory");
@@ -404,7 +404,7 @@ do_avi:
     //
     //----------------------------------------
 
-    if(buffer == NULL) buffer=bufalloc(frame_size);
+    if(buffer == NULL) buffer=tc_bufalloc(frame_size);
 
     if(buffer == NULL) {
       perror("out of memory");

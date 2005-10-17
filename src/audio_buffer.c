@@ -80,7 +80,7 @@ static int aud_buf_alloc(int ex_num)
 	aud_buf_ptr[n]->bufid = n;
 
 	//allocate extra audio memory:
-	if((aud_buf_ptr[n]->audio_buf=bufalloc(SIZE_PCM_FRAME))==NULL) {
+	if((aud_buf_ptr[n]->audio_buf=tc_bufalloc(SIZE_PCM_FRAME))==NULL) {
 	  perror("out of memory");
 	  return(-1);
 	}
@@ -113,7 +113,7 @@ static void aud_buf_free(void)
   if(aud_buf_max > 0) {
 
     for (n=0; n<aud_buf_max; ++n) {
-      buffree(aud_buf_ptr[n]->audio_buf);
+      tc_buffree(aud_buf_ptr[n]->audio_buf);
     }
     free(aud_buf_mem);
     free(aud_buf_ptr);

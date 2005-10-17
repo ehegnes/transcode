@@ -61,7 +61,7 @@ void tc_log(int level, const char *tag, const char *fmt, ...);
     tc_log(TC_LOG_WARN, tag, format , ## args)
 
 /* Provided by caller */
-/* we can can embed color macros? moving it from tc_fucntions.c?
+/* we can can embed color macros? moving it from tc_functions.c?
  * This break anything? -- fromani 20051015 */
 extern void version(void);
 extern char *RED;
@@ -121,7 +121,7 @@ int _tc_vsnprintf(const char *file, int line, char *buf, size_t limit,
 int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
 		 const char *format, ...);
 
-void *bufalloc(size_t size);
-void buffree(void *ptr);
+void *tc_bufalloc(size_t size);
+void tc_buffree(void *ptr);
 
 #endif  /* _LIBTC_H */

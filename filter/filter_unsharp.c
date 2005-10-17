@@ -277,7 +277,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     stepsY = fp->msizeY/2;
     for( z=0; z<2*stepsY; z++ )
         {
-	fp->SC[z] = bufalloc(sizeof(*(fp->SC[z])) * (width+2*stepsX));
+	fp->SC[z] = tc_bufalloc(sizeof(*(fp->SC[z])) * (width+2*stepsX));
         }
 
     fp = &mfd->chromaParam;
@@ -288,7 +288,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     stepsY = fp->msizeY/2;
     for( z=0; z<2*stepsY; z++ )
         {
-	fp->SC[z] = bufalloc(sizeof(*(fp->SC[z])) * (width+2*stepsX));
+	fp->SC[z] = tc_bufalloc(sizeof(*(fp->SC[z])) * (width+2*stepsX));
         }
 
 
@@ -305,12 +305,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
       fp = &mfd->lumaParam;
       for( z=0; z<sizeof(fp->SC)/sizeof(fp->SC[0]); z++ ) {
-          buffree(fp->SC[z]);
+          tc_buffree(fp->SC[z]);
 	  fp->SC[z] = NULL;
       }
       fp = &mfd->chromaParam;
       for( z=0; z<sizeof(fp->SC)/sizeof(fp->SC[0]); z++ ) {
-          buffree(fp->SC[z]);
+          tc_buffree(fp->SC[z]);
 	  fp->SC[z] = NULL;
       }
 

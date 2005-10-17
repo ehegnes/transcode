@@ -1314,18 +1314,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 
 
-	mfd->buf =  bufalloc (width*height*3);
-	mfd->prevFrame =  bufalloc (width*height*3);
+	mfd->buf =  tc_bufalloc (width*height*3);
+	mfd->prevFrame =  tc_bufalloc (width*height*3);
 
 	msize = width*height + 4*(width+PAD) + PAD*height;
-	mfd->movingY = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
-	mfd->fmovingY = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
+	mfd->movingY = (unsigned char *) tc_bufalloc(sizeof(unsigned char)*msize);
+	mfd->fmovingY = (unsigned char *) tc_bufalloc(sizeof(unsigned char)*msize);
 
 	msize = width*height/4 + 4*(width+PAD) + PAD*height;
-	mfd->movingU  = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
-	mfd->movingV  = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
-	mfd->fmovingU = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
-	mfd->fmovingV = (unsigned char *) bufalloc(sizeof(unsigned char)*msize);
+	mfd->movingU  = (unsigned char *) tc_bufalloc(sizeof(unsigned char)*msize);
+	mfd->movingV  = (unsigned char *) tc_bufalloc(sizeof(unsigned char)*msize);
+	mfd->fmovingU = (unsigned char *) tc_bufalloc(sizeof(unsigned char)*msize);
+	mfd->fmovingV = (unsigned char *) tc_bufalloc(sizeof(unsigned char)*msize);
 
 	if ( !mfd->movingY || !mfd->movingU || !mfd->movingV || !mfd->fmovingY || 
 	      !mfd->fmovingU || !mfd->fmovingV || !mfd->buf || !mfd->prevFrame) {
@@ -1432,24 +1432,24 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if (!mfd)
 		return 0;
 	
-	buffree (mfd->buf);
+	tc_buffree (mfd->buf);
 	mfd->buf = NULL;
 
-	buffree (mfd->prevFrame);
+	tc_buffree (mfd->prevFrame);
 	mfd->prevFrame = NULL;
 
-	buffree (mfd->movingY);
+	tc_buffree (mfd->movingY);
 	mfd->movingY = NULL;
-	buffree (mfd->movingU);
+	tc_buffree (mfd->movingU);
 	mfd->movingU = NULL;
-	buffree (mfd->movingV);
+	tc_buffree (mfd->movingV);
 	mfd->movingV = NULL;
 
-	buffree (mfd->fmovingY);
+	tc_buffree (mfd->fmovingY);
 	mfd->fmovingY = NULL;
-	buffree (mfd->fmovingU);
+	tc_buffree (mfd->fmovingU);
 	mfd->fmovingU = NULL;
-	buffree (mfd->fmovingV);
+	tc_buffree (mfd->fmovingV);
 	mfd->fmovingV = NULL;
 
 	if (mfd)

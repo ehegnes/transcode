@@ -63,7 +63,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
 
-    buffer = bufalloc(SIZE_RGB_FRAME);
+    buffer = tc_bufalloc(SIZE_RGB_FRAME);
 
     if(options != NULL) sscanf(options,"%d:%d", &loop, &ac);
 

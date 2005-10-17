@@ -224,13 +224,13 @@ void decode_xvid(decode_t *decode)
 	    break;
     }
 
-    if ((in_buffer = bufalloc(BUFFER_SIZE))==NULL) {
+    if ((in_buffer = tc_bufalloc(BUFFER_SIZE))==NULL) {
 	perror("out of memory");
 	goto error;
     } else {
 	memset(in_buffer, 0, BUFFER_SIZE);  
     }
-    if ((out_buffer = bufalloc(BUFFER_SIZE))==NULL) {
+    if ((out_buffer = tc_bufalloc(BUFFER_SIZE))==NULL) {
 	perror("out of memory");
 	goto error;
     } else {

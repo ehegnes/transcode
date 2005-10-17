@@ -1,3 +1,13 @@
+2005-10-17 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h libtc/tc_functions.c
+    export/export_dv.c export/export_dvraw.c filter/filter_smartyuv.c 
+    filter/filter_test.c filter/filter_unsharp.c
+    filter/extsub/subtitle_buffer.c import/decode_dv.c import/decode_lavc.c
+    import/decode_xvid.c import/import_divx.c import/import_ffmpeg.c
+    import/import_xvid.c src/audio_buffer.c src/video_buffer.c
+  {bufalloc,buffree} -> tc_{bufalloc,buffree} to achieve naming
+  conformancy with libtc.
+
 2005-10-16 Andrew Church <achurch at achurch dot org>
   * libtc/libtc.h libtc/tc_functions.c
   Add bufalloc() and buffree() for allocating/freeing aligned buffers.
