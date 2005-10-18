@@ -1312,7 +1312,7 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
 return(-1);
 }
 
-int dvd_stream(int arg_title)
+int dvd_stream(int arg_title, int arg_chapid)
 {
  
   fprintf(stderr, "(%s) no support for DVD reading configured - exit.\n", __FILE__);
@@ -1320,7 +1320,7 @@ int dvd_stream(int arg_title)
 return(-1);
 }
 
-int dvd_close() 
+int dvd_close(void) 
 {
  
   fprintf(stderr, "(%s) no support for DVD reading configured - exit.\n", __FILE__);
