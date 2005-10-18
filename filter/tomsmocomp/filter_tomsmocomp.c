@@ -223,7 +223,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	
 	if (verbose) {
 	    tc_log_info(MOD_NAME, "topfirst %s,  searcheffort %d,  usestrangebob %s",
-		   MOD_NAME, tmc->TopFirst ? "True":"False", tmc->SearchEffort,
+		   tmc->TopFirst ? "True":"False", tmc->SearchEffort, 
 		   tmc->UseStrangeBob ? "True":"False");
 	    tc_log_info(MOD_NAME, "cpuflags%s%s%s%s",
 		   tmc->cpuflags & AC_SSE ? " SSE":"",
