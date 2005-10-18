@@ -38,7 +38,7 @@
 static tomsmocomp_t *tmc_global = NULL;
 
 static void help_optstr (void) {
-    printf ("[%s] (%s) help\n\n", MOD_NAME, MOD_CAP);
+    tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
     printf ("* Overview:\n"
 	    "  TomsMoComp.dll is a filter that uses motion compensation and adaptive\n"
 	    "  processing to deinterlace video source. It uses a variable amount of\n"
@@ -163,7 +163,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
     
 	if (verbose)
-	    printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+	    tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
 	/* default values */
 	tmc->SearchEffort   = 11;
@@ -177,7 +177,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	case CODEC_YUV422:
 	    break;
 	default:
-	    fprintf (stderr, "[%s]: only working with YUV (4:2:2 and 4:2:0) and YUY2 frame data...\n", MOD_NAME);
+	    tc_log_error (MOD_NAME, "only working with YUV (4:2:2 and 4:2:0) and YUY2 frame data...");
 	    return -1;
 	}
 	tmc->codec     = vob->im_v_codec;
@@ -222,10 +222,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	tmc->DSinfo.pMemcpy = ac_memcpy;
 	
 	if (verbose) {
-	    printf("[%s] topfirst %s,  searcheffort %d,  usestrangebob %s\n",
+	    tc_log_info(MOD_NAME, "topfirst %s,  searcheffort %d,  usestrangebob %s",
 		   MOD_NAME, tmc->TopFirst ? "True":"False", tmc->SearchEffort,
 		   tmc->UseStrangeBob ? "True":"False");
-	    printf("[%s] cpuflags%s%s%s%s\n", MOD_NAME,
+	    tc_log_info(MOD_NAME, "cpuflags%s%s%s%s",
 		   tmc->cpuflags & AC_SSE ? " SSE":"",
 		   tmc->cpuflags & AC_3DNOW ? " 3DNOW":"",
 		   tmc->cpuflags & AC_MMX ? " MMX":"",

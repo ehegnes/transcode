@@ -85,7 +85,7 @@ extern int rgbswap;
 
 static void help_optstr(void) 
 {
-	printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+	tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
 	printf ("* Overview\n");
 	printf ("    Generate a file in with information about the times, \n");
 	printf ("    frame, etc the pattern defined in the image \n"); 
@@ -159,14 +159,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			memset(pattern_name,0,PATH_MAX);
 			memset(results_name,0,PATH_MAX);
 
-			if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+			if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 	
 			optstr_get(options, "pattern", "%[^:]", &pattern_name);
 			optstr_get(options, "results", "%[^:]", &results_name);
 			optstr_get(options, "delta", "%f", &compare[instance]->delta);
 			
 			if (verbose > 1) {
-			printf("Compare Image Settings:\n");
+			tc_log_info(MOD_NAME, "Compare Image Settings:");
 			printf("      pattern = %s\n", pattern_name);
 			printf("      results = %s\n", results_name);
 			printf("        delta = %f\n", compare[instance]->delta);
@@ -183,13 +183,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			}
 			
 			InitializeMagick("");
-			if (verbose > 1) printf("[%s] Magick Initialized successfully\n", MOD_NAME);
+			if (verbose > 1) 
+                tc_log_info(MOD_NAME, "Magick Initialized successfully");
 				
 			GetExceptionInfo(&exception_info);
 			image_info = CloneImageInfo ((ImageInfo *) NULL);
 			strlcpy(image_info->filename, pattern_name, MaxTextExtent);
 			if (verbose > 1)
-			     printf("Trying to open image\n");
+			     tc_log_info(MOD_NAME, "Trying to open image");
 			orig = ReadImage(image_info,
 					 &exception_info);
 			
@@ -200,7 +201,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				strlcpy(pattern_name, "/dev/null", sizeof(pattern_name));
 			}else{
 			       if (verbose > 1)
-			       		printf("[%s] Image loaded successfully\n", MOD_NAME);
+			       		tc_log_info(MOD_NAME, "Image loaded successfully");
 			     }
 		}
 		
@@ -220,7 +221,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
                         // Flip and resize
 			if (compare[instance]->vob->im_v_codec == CODEC_YUV)
 				TransformRGBImage(orig,YCbCrColorspace);
-			if (verbose > 1) printf("[%s] Resizing the Image\n", MOD_NAME);
+			if (verbose > 1) tc_log_info(MOD_NAME, "Resizing the Image");
 			resized = ResizeImage(orig,
 					      compare[instance]->width,
 					      compare[instance]->height,
@@ -228,7 +229,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 					      1,
 					      &exception_info);
 			if (verbose > 1)
-				printf("[%s] Flipping the Image\n", MOD_NAME);
+				tc_log_info(MOD_NAME, "Flipping the Image");
 			pattern = FlipImage(resized, &exception_info);
 			if (pattern == (Image *) NULL) {
 				MagickError (exception_info.severity,
@@ -239,12 +240,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			// Filling the matrix with the pixels values not
 			// alpha
 
-			if (verbose > 1) printf("[%s] GetImagePixels\n", MOD_NAME);
+			if (verbose > 1) tc_log_info(MOD_NAME, "GetImagePixels");
 			pixel_packet = GetImagePixels(pattern,0,0,
 						      pattern->columns,
 						      pattern->rows);
 
-			if (verbose > 1) printf("[%s] Filling the Image matrix\n", MOD_NAME);
+			if (verbose > 1) tc_log_info(MOD_NAME, "Filling the Image matrix");
 			for (t = 0; t < pattern->rows; t++) 
 				for (r = 0; r < pattern->columns; r++){
 					index = t*pattern->columns + r;
@@ -267,10 +268,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 					}
 				}
 			
-			if (verbose) printf("[%s] %s %s\n",
-					    MOD_NAME,
-					    MOD_VERSION,
-					    MOD_CAP);
+			if (verbose) 
+                tc_log_info(MOD_NAME, "%s %s",
+					    MOD_VERSION, MOD_CAP);
 		}
 		return(0);
 	}

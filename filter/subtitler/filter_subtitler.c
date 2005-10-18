@@ -138,16 +138,16 @@ if(pfl->tag & TC_FILTER_INIT)
 	vob = tc_get_vob();
 	if(! vob)
 		{
-		printf("subtitler(): could not tc_get_vob() failed\n");
+		tc_log_error(MOD_NAME, "could not tc_get_vob() failed");
 
 		return -1;
 		}
-	if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+	if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
 	/* identify */
-    printf(\
-	"\nPanteltje (c) movie composer%s (alias subtitle-filter)\n\n",\
-	SUBTITLER_VERSION);
+    tc_log_info(MOD_NAME, 
+        "Panteltje (c) movie composer%s (alias subtitle-filter)",
+    	SUBTITLER_VERSION);
 
 	/* get home directory */  
 	userinfo = getpwuid(getuid() );
@@ -295,7 +295,7 @@ if(pfl->tag & TC_FILTER_INIT)
 	/* end defaults */
 	if(debug_flag)
 		{
-		printf("subtitler(): INIT options=%s\n", options);
+		tc_log_info(MOD_NAME, "options=%s", options);
 		}
 
 	if(temp[0] != 0)
@@ -387,19 +387,19 @@ if(pfl->tag & TC_FILTER_INIT)
 
 	if(use_pre_processing_flag)
 		{
-		printf("subtitler(): Using pre processing\n");
+		tc_log_info(MOD_NAME, "Using pre processing");
 		}
 	else
 		{
-		printf("subtitler(): Using post processing\n");
+		tc_log_info(MOD_NAME, "Using post processing");
 		}
 
 	if(debug_flag)
 		{		
-		printf("subtitler(): PARSER RESULT\n\
-		write_ppm_flag=%d add_objects_flag=%d show_output_flag=%d\n\
-		color_depth=%d frame_offset=%d movie_id=%d\n\
-		use_pre_processing_flag=%d\n",\
+		tc_log_info(MOD_NAME, "PARSER RESULT: "
+		"write_ppm_flag=%d add_objects_flag=%d show_output_flag=%d "
+		"color_depth=%d frame_offset=%d movie_id=%d "
+		"use_pre_processing_flag=%d",
 		write_ppm_flag, add_objects_flag, show_output_flag,\
 		color_depth, frame_offset, movie_id,\
 		use_pre_processing_flag\
@@ -454,8 +454,8 @@ or after and determines video/audio context
 */
 if(verbose & TC_STATS)
 	{
-	printf("[%s] %s/%s %s %s\n",\
-	MOD_NAME, vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
+	tc_log_info(MOD_NAME, "%s/%s %s %s",\
+	vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
     
 	/*
 	tag variable indicates, if we are called before
@@ -469,8 +469,8 @@ if(verbose & TC_STATS)
 	if(pfl->tag & TC_VIDEO) vid = 1;
 	if(pfl->tag & TC_AUDIO) vid = 0;
     
-	printf("[%s] frame [%06d] %s %16s call\n",\
-	MOD_NAME, pfl->id, (vid)?"(video)":"(audio)",\
+	tc_log_info(MOD_NAME, "frame [%06d] %s %16s call",\
+	pfl->id, (vid)?"(video)":"(audio)",\
 	(pre)?"pre-process filter":"post-process filter");
 	} /* end if verbose and stats */
   
@@ -516,9 +516,9 @@ if(a)
 
 	if(debug_flag)
 		{
-		printf(\
-		"frame_nr=%d\n\
-		ImageData=%lu image_width=%d image_height=%d\n",\
+		tc_log_info(MOD_NAME, \
+		"frame_nr=%d \
+		ImageData=%lu image_width=%d image_height=%d",\
 		frame_nr,\
 		(unsigned long)ImageData, image_width, image_height);
 		}
@@ -732,11 +732,9 @@ if(a)
 		*/
 		if(vob->im_v_codec == CODEC_RGB)
 			{		
-			printf(\
-			"subtitler(): hue operations only available in YUV 420\n\
-			please use -V option in transcode\n");
-
-			exit(1);
+			tc_log_error(MOD_NAME, \
+			"hue operations only available in YUV 420");
+            return(-1);
 			} /* end if CODEC_RGB */
 		else if(vob->im_v_codec == CODEC_YUV)
 			{
@@ -823,11 +821,9 @@ if(a)
 		{
 		if(vob->im_v_codec == CODEC_RGB)
 			{		
-			printf(\
-			"subtitler(): write_ppm only available in YUV 420\n\
-			please use -V option in transcode\n");
-
-			exit(1);
+			tc_log_error(MOD_NAME, \
+			"subtitler(): write_ppm only available in YUV 420\n");
+			return(-1);
 			} /* end if CODEC_RGB */
 		else if(vob->im_v_codec == CODEC_YUV)
 			{
@@ -841,11 +837,10 @@ if(a)
 			pppm_file = fopen(temp, "w");
 			if(! pppm_file)
 				{
-				printf(\
-				"subtitler(): could not open file %s for write, aborting\n",\
+				tc_log_error(MOD_NAME, 
+				"could not open file %s for write, aborting",\
 				 temp);
-
-				exit(1);
+				return(-1);
 				} 
 
 			/* write the ppm header */
@@ -917,7 +912,7 @@ if(a)
 			{
 			if(debug_flag)
 				{
-				printf("subtitler(): opening window\n");
+				tc_log_info(MOD_NAME, "opening window");
 				}
 
 //			openwin(argc, argv, width, height);
@@ -1092,9 +1087,9 @@ char *ptr;
 
 if(debug_flag)
 	{
-	printf("subtitler(): add_text(): x=%d y=%d text=%s\n\
-	pa=%p u=%d v=%d contrast=%.2f transparency=%.2f\n\
-	font_desc_t=%lu espace=%d\n",\
+	tc_log_info(MOD_NAME, "add_text(): x=%d y=%d text=%s \
+	pa=%p u=%d v=%d contrast=%.2f transparency=%.2f \
+	font_desc_t=%lu espace=%d",\
 	x, y, (const char *)pa, text, u, v, contrast, transparency, (unsigned long)pfd, espace);
 	} 
 
@@ -1134,9 +1129,9 @@ double contrast, double transparency, font_desc_t *pfd, int is_space)
 {
 if(debug_flag)
 	{
-	printf("subtiter(): draw_char(): arg\n\
-	x=%d y=%d c=%d pa=%p u=%d v=%d contrast=%.2f transparency=%.2f\n\
-	pfd=%lu is_space=%d\n",\
+	tc_log_info(MOD_NAME, "draw_char(): arg \
+	x=%d y=%d c=%d pa=%p u=%d v=%d contrast=%.2f transparency=%.2f \
+	pfd=%lu is_space=%d",\
 	x, y, c, pa, u, v, contrast, transparency, (unsigned long)pfd, is_space);
 	}
 
@@ -1183,17 +1178,17 @@ double dmulto, dmulti;
 
 if(debug_flag)
 	{
-	printf(\
-	"subtitler(): draw_alpha(): x0=%d y0=%d pa=%p w=%d h=%d\n\
-	src=%lu srca=%lu stride=%d u=%d v=%d\n\
-	contrast=%.2f transparency=%.2f is_space=%d\n",\
+	tc_log_info(MOD_NAME, \
+	"draw_alpha(): x0=%d y0=%d pa=%p w=%d h=%d \
+	src=%lu srca=%lu stride=%d u=%d v=%d \
+	contrast=%.2f transparency=%.2f is_space=%d",\
 	x0, y0, pa, w, h,\
 	(unsigned long)src, (unsigned long)srca, stride, u, v,\
 	contrast, transparency, is_space);
 
-	printf("vob->im_v_codec=%d\n", vob -> im_v_codec);
-	printf("image_width=%d image_height=%d\n", image_width, image_height);
-	printf("ImageData=%lu\n", (unsigned long)ImageData);
+	tc_log_info(MOD_NAME, "vob->im_v_codec=%d", vob -> im_v_codec);
+	tc_log_info(MOD_NAME, "image_width=%d image_height=%d", image_width, image_height);
+	tc_log_info(MOD_NAME, "ImageData=%lu", (unsigned long)ImageData);
 	}
 
 /* all */
@@ -1844,18 +1839,18 @@ double opaqueness;
 
 if(debug_flag)
 	{
-	fprintf(stdout, "add_background(): arg pa=%p\n", pa);
+	tc_log_info(MOD_NAME, "add_background(): arg pa=%p", pa);
 
-	fprintf(stdout,\
-	"pa->line_number=%d pa->bg_y_start=%d pa->bg_y_end=%d pa->bg_x_start=%d pa->bg_x_end=%d\n",\
+	tc_log_info(MOD_NAME,\
+	"pa->line_number=%d pa->bg_y_start=%d pa->bg_y_end=%d pa->bg_x_start=%d pa->bg_x_end=%d",\
 	pa -> line_number, pa -> bg_y_start, pa -> bg_y_end, pa -> bg_x_start, pa -> bg_x_end);
 
-	fprintf(stdout,\
-	"pa->background=%d pa->background_contrast=%d\n",\
+	tc_log_info(MOD_NAME,\
+	"pa->background=%d pa->background_contrast=%d",\
 	pa -> background, pa -> background_contrast);
 
-	fprintf(stdout,\
-	"pa->contrast=%.2f, pa->transparency=%.2f\n",\
+	tc_log_info(MOD_NAME,\
+	"pa->contrast=%.2f, pa->transparency=%.2f",\
 	pa -> contrast, pa -> transparency);
 	}
 
@@ -2043,14 +2038,14 @@ int print_options(void)
 {
 if(debug_flag)
 	{
-	printf("subtitler(): print options(): arg none\n");
+	tc_log_info(MOD_NAME, "print options(): arg none");
 	}
 /*
 From transcode -0.5.1 ChangeLog:
 Example: -J my_filter="fonts=3 position=55 -v"
 */
 
-printf("subtitler():\n");
+tc_log_info(MOD_NAME, ":\n");
 printf(\
 "Usage -J subtitler=%c[no_objects] [subtitle_file=s]\n\
 [color_depth=n]\n\
@@ -2096,8 +2091,8 @@ int odd_line;
 
 if(debug_flag)
 	{
-	printf("subtitler(): add_picture(): arg pa=%lu\n\
-	pa->xsize=%.2f pa->ysize=%.2f pa->ck_color=%.2f\n",\
+	tc_log_info(MOD_NAME, "add_picture(): arg pa=%lu\
+	pa->xsize=%.2f pa->ysize=%.2f pa->ck_color=%.2f",\
 	(unsigned long)pa,\
 	pa -> xsize, pa -> ysize,\
 	pa -> chroma_key_color);
@@ -2123,10 +2118,10 @@ if(vob->im_v_codec == CODEC_RGB)
 	{
 	/* ImageData, image_width, image_height */
 
-	printf(\
-	"subtitler ONLY works with YUV 420, please use -V option in transcode\n");
+	tc_log_error(MOD_NAME, \
+	"subtitler ONLY works with YUV 420");
 
-	exit(1);
+	return(-1);
 	} /* end if RGB */
 else if(vob->im_v_codec == CODEC_YUV)
 	{
@@ -2311,7 +2306,7 @@ int set_main_movie_properties(struct object *pa)
 {
 if(debug_flag)
 	{
-	printf("set_main_movie_properties(): arg pa=%lu\n", (unsigned long)pa);
+	tc_log_info(MOD_NAME, "set_main_movie_properties(): arg pa=%lu", (unsigned long)pa);
 	}
 
 if(! pa) return 0;
@@ -2336,7 +2331,7 @@ double dr, dg, db, dy, du, dv;
 
 if(debug_flag)
 	{
-	fprintf(stdout, "rgb_to_yuv(): arg r=%d g=%d b=%d\n", r, g, b);
+	tc_log_info(MOD_NAME, "rgb_to_yuv(): arg r=%d g=%d b=%d", r, g, b);
 	}
 
 dr = (double) r;

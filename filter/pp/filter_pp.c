@@ -219,13 +219,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
          
     if (vob->im_v_codec == CODEC_RGB)
     {
-      fprintf(stderr, "[%s] error: filter is not capable for RGB-Mode !\n", MOD_NAME);
+      tc_log_error(MOD_NAME, "filter is not capable for RGB-Mode !");
       return(-1);
     }
     
     if (!options || !(len=strlen(options)))
     {
-      fprintf(stderr, "[%s] error: this filter needs options !\n", MOD_NAME);
+      tc_log_error(MOD_NAME, "this filter needs options !");
       return(-1);
     }
 
@@ -258,7 +258,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     mode[instance] = pp_get_mode_by_name_and_quality(options, PP_QUALITY_MAX);
 
     if(mode[instance]==NULL) {
-      fprintf(stderr, "[%s] internal error (pp_get_mode_by_name_and_quality)\n", MOD_NAME);
+      tc_log_error(MOD_NAME, "internal error (pp_get_mode_by_name_and_quality)");
       return(-1);
     }
     
@@ -272,12 +272,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
       context[instance] = pp_get_context(width[instance], height[instance], 0);
     
     if(context[instance]==NULL) {
-      fprintf(stderr, "[%s] internal error (pp_get_context) (instance=%d)\n", MOD_NAME, instance);
+      tc_log_error(MOD_NAME, "internal error (pp_get_context) (instance=%d)", instance);
       return(-1);
     }
     
     // filter init ok.
-    if(verbose) printf("[%s] %s %s #%d\n", MOD_NAME, MOD_VERSION, MOD_CAP, ptr->filter_id);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s #%d", MOD_VERSION, MOD_CAP, ptr->filter_id);
     return(0);
   }
 
@@ -330,8 +330,6 @@ int tc_filter(frame_list_t *ptr_, char *options)
     unsigned char *pp_page[3];
     int ppStride[3];
     
-   // printf ("2 instance %d width[instance] %d height[instance] %d pre %d\n",
-//	instance, width[instance], height[instance], pre[instance]);
       pp_page[0] = ptr->video_buf;
       pp_page[1] = pp_page[0] + (width[instance] * height[instance]);
       pp_page[2] = pp_page[1] + (width[instance] * height[instance])/4;

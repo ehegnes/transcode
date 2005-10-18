@@ -85,7 +85,7 @@ extern int flip;
 
 static void help_optstr(void) 
 {
-   printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
    printf("    This filter renders an user specified image into the video.\n");
    printf("    Any image format ImageMagick can read is accepted.\n");
@@ -169,7 +169,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if (options != NULL) {
     
-	if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+	if(verbose) tc_log_info (MOD_NAME, "options=%s", options);
 
 	optstr_get (options, "file",     "%[^:]",    &mfd->file);
 	optstr_get (options, "posdef",   "%d",        &mfd->pos);
@@ -186,14 +186,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
     }
 
     if (verbose > 1) {
-	printf (" Logo renderer Settings:\n");
-	printf ("              file = %s\n", mfd->file);
-	printf ("            posdef = %d\n", mfd->pos);
-	printf ("               pos = %dx%d\n", mfd->posx, mfd->posy);
-	printf ("             range = %u-%u\n", mfd->start, mfd->end);
-	printf ("              flip = %d\n", mfd->flip);
-	printf ("       ignoredelay = %d\n", mfd->ignoredelay);
-	printf ("           rgbswap = %d\n", mfd->rgbswap);
+	tc_log_info (MOD_NAME, " Logo renderer Settings:");
+    tc_log_info (MOD_NAME, "              file = %s", mfd->file);
+	tc_log_info (MOD_NAME, "            posdef = %d", mfd->pos);
+	tc_log_info (MOD_NAME, "               pos = %dx%d", mfd->posx, mfd->posy);
+	tc_log_info (MOD_NAME, "             range = %u-%u", mfd->start, mfd->end);
+	tc_log_info (MOD_NAME, "              flip = %d", mfd->flip);
+	tc_log_info (MOD_NAME, "       ignoredelay = %d", mfd->ignoredelay);
+	tc_log_info (MOD_NAME, "           rgbswap = %d", mfd->rgbswap);
     }
 
     InitializeMagick("");
@@ -211,13 +211,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 
     if (image->columns > vob->ex_v_width || image->rows > vob->ex_v_height) {
-	fprintf(stderr, "[%s] ERROR \"%s\" is too large\n", MOD_NAME, mfd->file);
+	tc_log_error(MOD_NAME, "\"%s\" is too large", mfd->file);
 	return(-1);
     }
 
     if (vob->im_v_codec == CODEC_YUV) {
 	if ( (image->columns&1) || (image->rows&1)) {
-	    fprintf(stderr, "[%s] ERROR \"%s\" has odd sizes\n", MOD_NAME, mfd->file);
+	    tc_log_error(MOD_NAME, "\"%s\" has odd sizes", mfd->file);
 	    return(-1);
 	}
     }
@@ -251,7 +251,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     mfd->cur_delay = image->delay*vob->fps/100;
 
     if (verbose & TC_DEBUG)
-    printf("Nr: %d Delay: %d image->del %lu|\n", mfd->nr_of_images,  
+    tc_log_info(MOD_NAME, "Nr: %d Delay: %d image->del %lu|", mfd->nr_of_images,  
 	    mfd->cur_delay, image->delay );
 
     if (vob->im_v_codec == CODEC_YUV) {
@@ -274,7 +274,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 
 	if (!tcv_convert_init(image->columns, image->rows)) {
-	    fprintf(stderr, "[%s] ERROR image conversion init failed\n", MOD_NAME);
+	    tc_log_error(MOD_NAME, "image conversion init failed");
 	    return(-1); 
 	}
 
@@ -326,7 +326,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	for (i=0; i<mfd->nr_of_images; i++) {
 	    if (!tcv_convert(mfd->yuv[i], IMG_RGB24, IMG_YUV_DEFAULT)) {
-		fprintf(stderr, "[%s] ERROR rgb2yuv conversion failed\n", MOD_NAME);
+		tc_log_error(MOD_NAME, "rgb2yuv conversion failed");
 		return(-1);
 	    }
 	}
@@ -367,7 +367,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if ( mfd->posy < 0 || mfd->posx < 0 || 
 	    mfd->posx+image->columns > vob->ex_v_width ||
 	    mfd->posy+image->rows > vob->ex_v_height) {
-	fprintf(stderr, "[%s] ERROR invalid position\n", MOD_NAME);
+	tc_log_error(MOD_NAME, "invalid position");
 	return (-1);
     }
 
@@ -375,7 +375,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     images = image;
 
     // filter init ok.
-    if (verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if (verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
     
     return(0);

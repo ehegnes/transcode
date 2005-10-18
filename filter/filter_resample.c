@@ -68,9 +68,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
-    if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+    if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
     
     bytes_per_sample = vob->a_chan * vob->a_bits/8;
     samples_per_frame = vob->a_rate/vob->ex_fps;
@@ -85,7 +85,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
         return 1;
     }
 
-    if (verbose & TC_DEBUG) fprintf(stderr, "[%s] bufsize : %i, bytes : %i, bytesfreq/fps: %i, rest %i\n", 
+    if (verbose & TC_DEBUG) tc_log_info(MOD_NAME, "bufsize : %i, bytes : %i, bytesfreq/fps: %i, rest %i", 
         MOD_NAME, resample_buffer_size, bytes_per_sample,
         vob->mp3frequency * bytes_per_sample / (int)vob->fps,
         (vob->a_leap_bytes > 0 )?(int)(vob->a_leap_bytes * ratio):0);
@@ -93,12 +93,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if((int) (bytes_per_sample * vob->mp3frequency / vob->fps) > resample_buffer_size) return(1);
     
     if (!vob->a_rate || !vob->mp3frequency) {
-	fprintf(stderr, "[%s] Invalid settings\n", MOD_NAME);
+	tc_log_error(MOD_NAME, "Invalid settings");
 	error = 1;
 	return -1;
     }
     if (vob->a_rate == vob->mp3frequency) {
-	fprintf(stderr, "[%s] Frequencies are too similar, filter skipped\n", MOD_NAME);
+	tc_log_error(MOD_NAME, "Frequencies are too similar, filter skipped");
 	error=1;
 	return -1;
     }
@@ -144,11 +144,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     if (resample_buffer_size != 0) {
 
-    if (verbose & TC_STATS) fprintf(stderr,"[%s] inbuf:%i, bufsize: %i", MOD_NAME, ptr->audio_size, resample_buffer_size);
+    if (verbose & TC_STATS) tc_log_info(MOD_NAME, "inbuf:%i, bufsize: %i", ptr->audio_size, resample_buffer_size);
 
     ptr->audio_size = bytes_per_sample * audio_resample(resamplecontext, (short *)resample_buffer, (short *)ptr->audio_buf, ptr->audio_size/bytes_per_sample);
 
-    if (verbose & TC_STATS) fprintf(stderr," outbuf: %i\n", ptr->audio_size);
+    if (verbose & TC_STATS) tc_log_info(MOD_NAME, "outbuf: %i", ptr->audio_size);
 
     if(ptr->audio_size<0) ptr->audio_size=0;
     

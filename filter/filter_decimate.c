@@ -71,8 +71,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    return (-1);
 
 	if (vob->im_v_codec != CODEC_YUV) {
-		printf("[%s] Sorry, only YUV input allowed for now\n", 
-		    MOD_NAME);
+		tc_log_error(MOD_NAME, "Sorry, only YUV input allowed for now");
 		return (-1);
 	}
 
@@ -86,7 +85,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 
 	if (verbose)
-	    printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+	    tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
 	for(i=0; i<FRBUFSIZ; i++) {
 	    lastFrames[i] = malloc(SIZE_RGB_FRAME);
@@ -133,7 +132,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		ptr->video_buf, 
 		ptr->v_width*ptr->v_height*3);
 	if (show_results) 
-	    fprintf(stderr, "Inserted frame %d into slot %d ", 
+	    tc_log_info(MOD_NAME, "Inserted frame %d into slot %d ", 
 		    frameCount, frameIn);
 	lastFramesOK[frameIn] = 1;
 	frameIn = (frameIn+1) % FRBUFSIZ;
@@ -172,12 +171,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			lastFrames[frameOut], 
 			ptr->v_width*ptr->v_height*3);
 		if (show_results) 
-		    fprintf(stderr, "giving slot %d\n", frameOut);
+		    tc_log_info(MOD_NAME, "giving slot %d", frameOut);
 	    }
 	    else {
 		ptr->attributes |= TC_FRAME_IS_SKIPPED;
 		if (show_results) 
-		    fprintf(stderr, "droping slot %d\n", frameOut);
+		    tc_log_info(MOD_NAME, "droping slot %d", frameOut);
 	    }
 	    // Regardless of the job we periodically do (for each group 
 	    // of 5 frames) we must also advance the two indexes. 

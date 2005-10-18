@@ -53,7 +53,7 @@
  *********************************************************/
 static void help_optstr(void)
 {
-  printf ("[%s] help : * Overview                                            \n", MOD_NAME);
+  tc_log_info (MOD_NAME, "help : * Overview");
   printf ("[%s] help :     This filter skips all listed frames.              \n", MOD_NAME);
   printf ("[%s] help :                                                       \n", MOD_NAME);
   printf ("[%s] help : * Options                                             \n", MOD_NAME);
@@ -97,8 +97,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);    
-    if(verbose & TC_DEBUG) printf("[%s] options=%s\n", MOD_NAME, options);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);    
+    if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "options=%s", options);
 
     if(options == NULL) return(0);
 

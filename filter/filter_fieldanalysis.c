@@ -325,9 +325,9 @@ static void check_interlace (myfilter_t *myf, int id) {
 	verboseBuffer[13] = 0;
 	
 	if (myf->verbose > 1) {
-	    fprintf (stderr, "[%s] frame %d: pixDiff %.3f pixShiftChanged %.3fT/%.3fB pixLast %.3fT/%.3fB telecineState %d\n",
-		     MOD_NAME, id, pixDiff,
-		     pixShiftChangedT, pixShiftChangedB, pixLastT, pixLastB,
+	    tc_log_info (MOD_NAME, "frame %d: pixDiff %.3f "
+                     "pixShiftChanged %.3fT/%.3fB pixLast %.3fT/%.3fB telecineState %d",
+		     id, pixDiff, pixShiftChangedT, pixShiftChangedB, pixLastT, pixLastB,
 		     myf->telecineState);
 	}
 	
@@ -347,8 +347,8 @@ static void check_interlace (myfilter_t *myf, int id) {
 	case IS_TRUE:		outField = "T";			break;
 	}
 	
-	fprintf (stderr, "[%s] frame %d: %s  %s   [%s]   \n",
-		 MOD_NAME, id, outType, outField, verboseBuffer);
+	tc_log_info (MOD_NAME, "frame %d: %s  %s   [%s]",
+		 id, outType, outField, verboseBuffer);
     }
 
     /* Count types */
@@ -397,7 +397,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
     
 	if (verbose)			/* global verbose */
-	    printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+	    tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
 	/* default values */
 	myf->interlaceDiff       = 1.1;
@@ -418,7 +418,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	case CODEC_RGB:
 	    break;
 	default:
-	    fprintf (stderr, "[%s]: Unsupported codec - need one of RGB YUV YUY2 YUV422\n", MOD_NAME);
+	    tc_log_error (MOD_NAME, "Unsupported codec - need one of RGB YUV YUY2 YUV422");
 	    return -1;
 	}
 	myf->codec     = vob->im_v_codec;
@@ -444,8 +444,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    optstr_get (options, "outdiff",          "%d", &myf->outDiff);
 
 	    if (optstr_get (options, "help", "") >= 0) {
-		printf ("[%s] (%s) help\n\n"
-			"* Overview:\n"
+		tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
+		printf("* Overview:\n"
 			"  'fieldanalysis' scans video for interlacing artifacts and\n"
 			"  detects progressive / interlaced / telecined video.\n"
 			"  It also determines the major field for interlaced video.\n"
@@ -454,8 +454,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			"  pt, pb:   unknowndiff succeeded, progressivediff failed.\n"
 			"  c:        progressivechange succeeded.\n"
 			"  t:        topFieldFirst / b: bottomFieldFirst detected.\n"
-			"  st, sb:   changedifmore failed (fields are similar to last frame).\n\n",
-			MOD_NAME, MOD_CAP);
+			"  st, sb:   changedifmore failed (fields are similar to last frame).\n\n");
 	    }
 	}
 
@@ -471,14 +470,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 
 	if (verbose) {			/* global verbose */
-	    printf("[%s] interlacediff %.2f,  unknowndiff %.2f,  progressivediff %.2f\n"
-		   "[%s] progressivechange %.2f, changedifmore %.2f\n"
-		   "[%s] forcetelecinedetect %s, verbose %d, outdiff %d\n",
-		   MOD_NAME, myf->interlaceDiff, myf->unknownDiff,
-		   myf->progressiveDiff,
-		   MOD_NAME, myf->progressiveChange, myf->changedIfMore,
-		   MOD_NAME, myf->forceTelecineDetect ? "True":"False",
-		   myf->verbose, myf->outDiff);
+	    tc_log_info(MOD_NAME, "interlacediff %.2f,  unknowndiff %.2f,  progressivediff %.2f",
+		                        myf->interlaceDiff, myf->unknownDiff, myf->progressiveDiff);
+        tc_log_info(MOD_NAME, "progressivechange %.2f, changedifmore %.2f",
+                    		   myf->progressiveChange, myf->changedIfMore);
+        tc_log_info(MOD_NAME, "forcetelecinedetect %s, verbose %d, outdiff %d",
+                    		   myf->forceTelecineDetect ? "True":"False", myf->verbose, 
+                               myf->outDiff);
 	}
 	
 	return 0;
@@ -506,44 +504,40 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	/* Output results */
 	if (totalfields < 1)
 	    totalfields = 1;
-	printf ("\n"
-		"[%s] RESULTS: Frames:      %d (100%%)  Unknown:      %d (%.3g%%)\n"
-		"[%s] RESULTS: Progressive: %d (%.3g%%)  Interlaced:   %d (%.3g%%)\n"
-		"[%s] RESULTS: FieldShift:  %d (%.3g%%)  Telecined:    %d (%.3g%%)\n"
-		"[%s] RESULTS: MajorField: TopFirst %d (%.3g%%)  BottomFirst %d (%.3g%%)\n",
-		MOD_NAME, myf->numFrames,
-		myf->unknownFrames,
-		100.0 * myf->unknownFrames / (double)myf->numFrames,
-		MOD_NAME, myf->progressiveFrames,
-		100.0 * myf->progressiveFrames / (double)myf->numFrames,
-		myf->interlacedFrames,
-		100.0 * myf->interlacedFrames / (double)myf->numFrames,
-		MOD_NAME, myf->fieldShiftFrames,
-		100.0 * myf->fieldShiftFrames / (double)myf->numFrames,
-		myf->telecineFrames,
-		100.0 * myf->telecineFrames / (double)myf->numFrames,
-		MOD_NAME, myf->topFirstFrames, 100.0 * myf->topFirstFrames / (double)totalfields,
-		myf->bottomFirstFrames,        100.0 * myf->bottomFirstFrames / (double)totalfields);
+	tc_log_info(MOD_NAME, "RESULTS: Frames:      %d (100%%)  Unknown:      %d (%.3g%%)",
+		                myf->numFrames, myf->unknownFrames,
+                		100.0 * myf->unknownFrames / (double)myf->numFrames);
+    tc_log_info(MOD_NAME, "RESULTS: Progressive: %d (%.3g%%)  Interlaced:   %d (%.3g%%)",
+		myf->progressiveFrames, 100.0 * myf->progressiveFrames / (double)myf->numFrames,
+		myf->interlacedFrames, 100.0 * myf->interlacedFrames / (double)myf->numFrames);
+    tc_log_info(MOD_NAME, "RESULTS: FieldShift:  %d (%.3g%%)  Telecined:    %d (%.3g%%)",
+		myf->fieldShiftFrames, 100.0 * myf->fieldShiftFrames / (double)myf->numFrames,
+		myf->telecineFrames, 100.0 * myf->telecineFrames / (double)myf->numFrames);
+    tc_log_info(MOD_NAME, "RESULTS: MajorField: TopFirst %d (%.3g%%)  BottomFirst %d (%.3g%%)",
+		myf->topFirstFrames, 100.0 * myf->topFirstFrames / (double)totalfields,
+		myf->bottomFirstFrames, 100.0 * myf->bottomFirstFrames / (double)totalfields);
 
 	if (total < 50)
-	    printf ("\n[%s] less than 50 frames analyzed correctly, no conclusion.\n\n",
-		    MOD_NAME);
+	    tc_log_warn (MOD_NAME, "less than 50 frames analyzed correctly, no conclusion.");
 	else if (myf->unknownFrames * 10 > myf->numFrames * 9)
-	    printf ("\n[%s] less than 10%% frames analyzed correctly, no conclusion.\n\n", MOD_NAME);
+	    tc_log_warn (MOD_NAME, "less than 10%% frames analyzed correctly, no conclusion.");
 	else if (myf->progressiveFrames * 8 > total * 7)
-	    printf ("\n[%s] CONCLUSION: progressive video.\n\n", MOD_NAME);
+	    tc_log_info (MOD_NAME, "CONCLUSION: progressive video.");
 	else if (myf->topFirstFrames * 8 > myf->bottomFirstFrames &&
 		 myf->bottomFirstFrames * 8 > myf->topFirstFrames)
-	    printf ("\n[%s] major field unsure, no conclusion. Use deinterlacer for processing.\n\n", MOD_NAME);
+	    tc_log_info (MOD_NAME, "major field unsure, no conclusion. Use deinterlacer for processing.");
 	else if (myf->telecineFrames * 4 > total * 3)
-	    printf ("\n[%s] CONCLUSION: telecined video, %s field first.\n\n", MOD_NAME, myf->topFirstFrames > myf->bottomFirstFrames ? "top" : "bottom");
+	    tc_log_info (MOD_NAME, "CONCLUSION: telecined video, %s field first.", 
+                        myf->topFirstFrames > myf->bottomFirstFrames ? "top" : "bottom");
 	else if (myf->fieldShiftFrames * 4 > total * 3)
-	    printf ("\n[%s] CONCLUSION: field shifted progressive video, %s field first.\n\n", MOD_NAME, myf->topFirstFrames > myf->bottomFirstFrames ? "top" : "bottom");
+	    tc_log_info (MOD_NAME, "CONCLUSION: field shifted progressive video, %s field first.", 
+                        myf->topFirstFrames > myf->bottomFirstFrames ? "top" : "bottom");
 	else if (myf->interlacedFrames > myf->fieldShiftFrames &&
 		 (myf->interlacedFrames+myf->fieldShiftFrames) * 8 > total * 7)
-	    printf ("\n[%s] CONCLUSION: interlaced video, %s field first.\n\n", MOD_NAME, myf->topFirstFrames > myf->bottomFirstFrames ? "top" : "bottom");
+	    tc_log_info (MOD_NAME, "CONCLUSION: interlaced video, %s field first.", 
+                        myf->topFirstFrames > myf->bottomFirstFrames ? "top" : "bottom");
 	else
-	    printf ("\n[%s] mixed video, no conclusion. Use deinterlacer for processing.\n\n", MOD_NAME);
+	    tc_log_info (MOD_NAME, "mixed video, no conclusion. Use deinterlacer for processing.");
 
 	return 0;
     }

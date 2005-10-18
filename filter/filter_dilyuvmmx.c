@@ -62,7 +62,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
     return(0);
   }

@@ -58,7 +58,7 @@ static int      pre =1;
 
 static void Usage(void)
 {
-   printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Options\n");
    printf ("           'radius' Radius for median (luma)   [2]\n");
    printf ("        'threshold' Trigger threshold (luma)   [2]\n");
@@ -114,7 +114,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    if((vob = tc_get_vob())==NULL) return(-1);
 
 	    if (vob->im_v_codec == CODEC_RGB) {
-		fprintf(stderr, "[%s] error: filter is not capable for RGB-Mode !\n", MOD_NAME);
+		tc_log_error(MOD_NAME, "filter is not capable for RGB-Mode !");
 		return(-1);
 	    }
 
@@ -147,8 +147,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	    if( interlace && vert % 2 != 0 )
 	    {
-		fprintf(stderr, 
-			"Input images have odd number of lines - can't treats as interlaced!" );
+		tc_log_error(MOD_NAME, 
+			"Input images have odd number of lines - can't treats as interlaced!");
 		return -1;
 	    }
 
@@ -160,7 +160,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		return (1);
 
 	    frame_count = 0;
-	    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+	    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 	    return(0);
 	} // INIT
 
@@ -170,8 +170,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    if (input_frame[1])  { free(input_frame[1]);  input_frame[1]=NULL; }
 	    if (input_frame[2])  { free(input_frame[2]);  input_frame[2]=NULL; }
 	    if (verbose > 1)
-		fprintf(stderr, "[%s] frames=%d avg=%d replaced=%d\n", 
-			MOD_NAME, avg, chg_replace, ovr_replace);
+		tc_log_info(MOD_NAME, "frames=%d avg=%d replaced=%d", 
+			avg, chg_replace, ovr_replace);
 	    return(0);
 	} // CLOSE
 

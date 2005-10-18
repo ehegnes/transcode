@@ -53,7 +53,7 @@ static MyFilterData *mfd = NULL;
 
 static void help_optstr(void) 
 {
-   printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
    printf ("    nored an image\n");
    printf ("* Options\n");
@@ -103,16 +103,16 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if (options != NULL) {
     
-	if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+	if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
 	optstr_get (options, "range",  "%u-%u/%d",    &mfd->start, &mfd->end, &mfd->step);
 	optstr_get (options, "subst",  "%d",    &mfd->subst);
     }
 
     if (verbose > 1) {
-	printf (" nored Image Settings:\n");
-	printf ("             range = %u-%u\n", mfd->start, mfd->end);
-	printf ("              step = %u\n", mfd->step);
+	tc_log_info (MOD_NAME, " nored Image Settings:");
+	tc_log_info (MOD_NAME, "             range = %u-%u", mfd->start, mfd->end);
+	tc_log_info (MOD_NAME, "              step = %u", mfd->step);
     }
 
     if (options)
@@ -129,13 +129,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
     height = vob->ex_v_height;
 
     if (vob->im_v_codec == CODEC_RGB) {
-	fprintf(stderr, "[%s] This filter is only capable of YUV mode\n", MOD_NAME);
+	tc_log_error(MOD_NAME, "This filter is only capable of YUV mode");
 	return -1;
     } else 
       size = width*3/2;
 
     // filter init ok.
-    if (verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if (verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
     return(0);
   }

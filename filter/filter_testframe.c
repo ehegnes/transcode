@@ -189,9 +189,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
-    if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+    if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
     if (options) {
 	if (is_optstr(options)) {
@@ -200,7 +200,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    sscanf(options, "%d", &mode);
     }
 
-    if(mode <0) { fprintf(stderr, "[%s] Invalid mode\n", MOD_NAME); return(-1); }
+    if(mode <0) { tc_log_error(MOD_NAME, "Invalid mode"); return(-1); }
     
     return(0);
   }

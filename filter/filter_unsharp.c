@@ -132,7 +132,7 @@ static void unsharp( uint8_t *dst, uint8_t *src, int dstStride, int srcStride, i
 
 static void help_optstr(void)
 {
-    printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+    tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
     printf ("* Overview\n");
     printf ("  This filter blurs or sharpens an image depending on\n");
     printf ("  the sign of \"amount\". You can either set amount for\n");
@@ -211,7 +211,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if((vob = tc_get_vob())==NULL) return(-1);
     	
     if (vob->im_v_codec != CODEC_YUV) {
-	fprintf(stderr, "[%s] This filter is only capable of YUV mode\n", MOD_NAME);
+	tc_log_error(MOD_NAME, "This filter is only capable of YUV mode");
 	return -1;
     }
 
@@ -271,7 +271,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     fp = &mfd->lumaParam;
     effect = fp->amount == 0 ? "don't touch" : fp->amount < 0 ? "blur" : "sharpen";
-    fprintf(stderr, "[%s] unsharp: %dx%d:%0.2f (%s luma)\n", MOD_NAME, fp->msizeX, fp->msizeY, fp->amount, effect );
+    tc_log_info(MOD_NAME, "unsharp: %dx%d:%0.2f (%s luma)", 
+                    fp->msizeX, fp->msizeY, fp->amount, effect );
     memset( fp->SC, 0, sizeof( fp->SC ) );
     stepsX = fp->msizeX/2;
     stepsY = fp->msizeY/2;
@@ -282,7 +283,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     fp = &mfd->chromaParam;
     effect = fp->amount == 0 ? "don't touch" : fp->amount < 0 ? "blur" : "sharpen";
-    fprintf(stderr, "[%s] unsharp: %dx%d:%0.2f (%s chroma)\n", MOD_NAME, fp->msizeX, fp->msizeY, fp->amount, effect );
+    tc_log_info(MOD_NAME, "unsharp: %dx%d:%0.2f (%s chroma)", 
+                    fp->msizeX, fp->msizeY, fp->amount, effect );
     memset( fp->SC, 0, sizeof( fp->SC ) );
     stepsX = fp->msizeX/2;
     stepsY = fp->msizeY/2;
@@ -292,7 +294,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
         }
 
 
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     return 0;
   }
 

@@ -28,8 +28,6 @@
 
 #include <math.h>
 
-#define module "[" MOD_NAME "]: "
-
 #define DEFAULT_IN_BLACK   0
 #define DEFAULT_IN_WHITE   255
 #define DEFAULT_IN_GAMMA   1.0
@@ -85,7 +83,7 @@ static void build_map(unsigned char *map, int inlow, int inhigh,
 
 static void help_optstr(void)
 {
-    fprintf(stderr, "[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+    tc_log_info(MOD_NAME, "(%s) help", MOD_CAP);
     fprintf(stderr, "* Overview\n");
     fprintf(stderr, "  Scales luminosity values in the source image, similar to\n");
     fprintf(stderr, "  VirtualDub's 'levels' filter.  This is useful to scale ITU-R601\n");
@@ -154,7 +152,7 @@ int tc_filter(frame_list_t *vframe_, char *options)
 
 		if(vob->im_v_codec != CODEC_YUV)
 		{
-			fprintf(stderr, "[%s] This filter is only capable of YUV mode\n", MOD_NAME);
+			tc_log_error(MOD_NAME, "This filter is only capable of YUV mode");
 	  		return(TC_IMPORT_ERROR);
 		}
 
@@ -162,13 +160,13 @@ int tc_filter(frame_list_t *vframe_, char *options)
                  pd->parameter.out_black, pd->parameter.out_white);
 
 		if(verbose) 
-    		fprintf(stderr, "[%s]: %s %s #%d\n", MOD_NAME, MOD_VERSION, MOD_CAP, vframe->filter_id);
-                fprintf(stderr, "[%s]: scaling %d-%d gamma %f to %d-%d\n", MOD_NAME,
+    		tc_log_info(MOD_NAME, "%s %s #%d", MOD_VERSION, MOD_CAP, vframe->filter_id);
+        tc_log_info(MOD_NAME, "scaling %d-%d gamma %f to %d-%d",
                         pd->parameter.in_black, pd->parameter.in_white,
                         pd->parameter.in_gamma,
                         pd->parameter.out_black, pd->parameter.out_white
                        );
-		fprintf(stderr, "[%s]: %s-processing filter\n", MOD_NAME, 
+		tc_log_info(MOD_NAME, "%s-processing filter", MOD_NAME, 
 			(pd->prefilter) ?"pre" :"post");
 	}  /* if INIT */
 

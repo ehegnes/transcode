@@ -91,9 +91,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
-    if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+    if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
     tc_snprintf(buffer, sizeof(buffer), "%s-%s", PACKAGE, VERSION);
     
@@ -114,7 +114,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     w = tc_x_preview;
     h = tc_y_preview;
     
-    if(verbose) printf("[%s] preview window %dx%d\n", MOD_NAME, w, h);
+    if(verbose) tc_log_info(MOD_NAME, "preview window %dx%d", w, h);
     
     switch(vob->im_v_codec) {
       
@@ -148,12 +148,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
       break;
 
     default:
-      fprintf(stderr, "[%s] codec not supported for preview\n", MOD_NAME);
+      tc_log_error(MOD_NAME, "codec not supported for preview");
       return(-1);
     }
 
     if ((undo_buffer = (char *) malloc (size)) == NULL) {
-      fprintf(stderr, "[%s] codec not supported for preview\n", MOD_NAME);
+      tc_log_error(MOD_NAME, "codec not supported for preview");
       return (-1);
     }
 
@@ -183,7 +183,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
   
-  if(verbose & TC_STATS) printf("[%s] %s/%s %s %s\n", MOD_NAME, vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
+  if(verbose & TC_STATS) tc_log_info(MOD_NAME, "%s/%s %s %s", vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
   
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines

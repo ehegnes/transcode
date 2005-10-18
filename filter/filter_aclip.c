@@ -78,9 +78,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
-    if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+    if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
     if(options!=NULL) {
 	if (!is_optstr(options)) {
@@ -113,7 +113,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //
   //----------------------------------
 
-  if(verbose & TC_STATS) printf("[%s] %s/%s %s %s\n", MOD_NAME, vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
+  if(verbose & TC_STATS) 
+    tc_log_info(MOD_NAME, "%s/%s %s %s", 
+                vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
   
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
@@ -136,7 +138,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     sum *= 1000;
 
-    if(verbose & TC_DEBUG) printf("frame=%d sum=%f\n", ptr->id, sum);
+    if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "frame=%d sum=%f", ptr->id, sum);
     
     if(sum<level) {
 

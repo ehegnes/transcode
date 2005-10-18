@@ -77,7 +77,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
     a_bits=vob->a_bits;
     a_rate=vob->a_rate;
@@ -104,16 +104,16 @@ int tc_filter(frame_list_t *ptr_, char *options)
     //len += sprintf(cmd, "tcmp3cut -i %s -o %s ", vob->audio_in_file, vob->audio_out_file?vob->audio_out_file:vob->audio_in_file);
     res = tc_snprintf(cmd, sizeof(cmd), "tcmp3cut -i in.mp3 -o base ");
     if (res < 0) {
-      tc_error("cmd buffer overflow");
+      tc_log_error(MOD_NAME, "cmd buffer overflow");
       return(-1);
     }
     len += res;
-    printf("\n ********** Songs ***********\n");
+    tc_log_info(MOD_NAME, "********** Songs ***********");
     if (next>0) {
       printf("%d", songs[0]);
       res = tc_snprintf(cmd+len, sizeof(cmd) - len, "-t %d", songs[0]);
       if (res < 0) {
-        tc_error("cmd buffer overflow");
+        tc_log_error(MOD_NAME, "cmd buffer overflow");
         return(-1);
       }
       len += res;
@@ -122,13 +122,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
       printf(",%d", songs[i]);
       res = tc_snprintf(cmd+len, sizeof(cmd) - len, ",%d", songs[i]);
       if (res < 0) {
-        tc_error("cmd buffer overflow");
+        tc_log_error(MOD_NAME, "cmd buffer overflow");
         return(-1);
       }
       len += res;
     }
     printf("\n");
-    printf("Execute: %s\n", cmd);
+    tc_log_info(MOD_NAME, "Execute: %s", cmd);
     
     return(0);
   }
@@ -170,7 +170,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
      songs[next++] = tot;
 
      if (next > MAX_SONGS) {
-       tc_error("[%s] Cannot save more songs", MOD_NAME);
+       tc_log_error(MOD_NAME, "Cannot save more songs");
        return (-1);
      }
 

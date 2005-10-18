@@ -64,7 +64,7 @@ static MyFilterData *mfd;
 
 static void help_optstr(void)
 {
-   printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
    printf ("    This filter performs a subtle but useful sharpening effect. The\n");
    printf ("    result is a sharpening effect that not only avoids amplifying\n");
@@ -123,7 +123,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (options != NULL) {
     
-	  if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+	  if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
 	  optstr_get (options, "strength",  "%d", &mfd->strength);
 	  optstr_get (options, "threshold", "%d", &mfd->threshold);
@@ -134,9 +134,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (verbose > 1) {
 
-	  printf (" XSharpen Filter Settings (%dx%d):\n", width,height);
-	  printf ("          strength = %d\n", mfd->strength);
-	  printf ("         threshold = %d\n", mfd->threshold);
+	  tc_log_info (MOD_NAME, " XSharpen Filter Settings (%dx%d):", width,height);
+	  tc_log_info (MOD_NAME, "          strength = %d", mfd->strength);
+	  tc_log_info (MOD_NAME, "         threshold = %d", mfd->threshold);
 	}
 
 	if (options)
@@ -159,7 +159,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	memset(mfd->convertFrameOut, 0, width*height*sizeof(Pixel32));
 
 	// filter init ok.
-	if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+	if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
 	return 0;
 

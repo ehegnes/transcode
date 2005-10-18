@@ -56,7 +56,7 @@ static MyFilterData *mfd;
 
 static void help_optstr(void)
 {
-  printf("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+  tc_log_info(MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
    printf ("    This plugin implements an unusual concept in spatial sharpening.\n");
    printf ("    Although designed specifically for anime, it also works well with\n");
@@ -120,7 +120,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (options != NULL) {
     
-	  if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+	  if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
 	  optstr_get (options, "strength",  "%d", &mfd->strength);
 	  optstr_get (options, "threshold", "%d", &mfd->threshold);
@@ -131,11 +131,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (verbose > 1) {
 
-	  printf (" MSharpen Filter Settings (%dx%d):\n", width,height);
-	  printf ("          strength = %d\n", mfd->strength);
-	  printf ("         threshold = %d\n", mfd->threshold);
-	  printf ("             highq = %d\n", mfd->highq);
-	  printf ("              mask = %d\n", mfd->mask);
+	  tc_log_info (MOD_NAME, " MSharpen Filter Settings (%dx%d):", width,height);
+	  tc_log_info (MOD_NAME, "          strength = %d", mfd->strength);
+	  tc_log_info (MOD_NAME, "         threshold = %d", mfd->threshold);
+	  tc_log_info (MOD_NAME, "             highq = %d", mfd->highq);
+	  tc_log_info (MOD_NAME, "              mask = %d", mfd->mask);
 	}
 
 	if (options)
@@ -170,7 +170,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 
 	// filter init ok.
-	if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+	if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
 	return 0;
 

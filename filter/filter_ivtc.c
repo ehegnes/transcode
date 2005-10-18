@@ -103,7 +103,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    return (-1);
 
 	if (vob->im_v_codec != CODEC_YUV) {
-		printf("[%s] Sorry, only YUV input allowed for now\n", MOD_NAME);
+		tc_log_error(MOD_NAME, "Sorry, only YUV input allowed for now");
 		return (-1);
 	}
 
@@ -120,7 +120,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 
 	if (verbose)
-	    printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+	    tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
 	for(i=0; i<FRBUFSIZ; i++) {
 	    lastFrames[i] = malloc(SIZE_RGB_FRAME);
@@ -159,7 +159,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		ptr->video_buf, 
 		ptr->v_width*ptr->v_height*3);
 	if (show_results) 
-	    fprintf(stderr, "Inserted frame %d into slot %d\n", 
+	    tc_log_info(MOD_NAME, "Inserted frame %d into slot %d", 
 		    frameCount, frameIn);
 	frameIn = (frameIn+1) % FRBUFSIZ;
 	frameCount++;
@@ -259,8 +259,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    // Blatant copy ends... :)
 
 	    if (show_results) 
-		fprintf(stderr, 
-		    "Telecide => frame %d: p=%u  c=%u  n=%u [using %d]\n", 
+		tc_log_info(MOD_NAME, 
+		    "Telecide => frame %d: p=%u  c=%u  n=%u [using %d]", 
 		    frameCount, p, c, n, chosen);
 
 	    // Set up the pointers in preparation to output final frame. 

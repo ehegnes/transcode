@@ -520,7 +520,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       return (-1);
     }
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
     
     if (options)
@@ -544,7 +544,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	} while (*p1);
 	*p2 = '\0';
       
-	if(verbose & TC_DEBUG) printf("[%s] options=%s\n", MOD_NAME, options);
+	if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "options=%s", options);
 
 	if ( (p1 = strtok(hlp_str,":")) != NULL)
 	  my_fctx->pThreshold  = atoi(p1);
@@ -578,12 +578,6 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	my_fctx->pPixellock2 = DEFAULT_CL;
       if (my_fctx->pScene > 90 || my_fctx->pScene < 1)
 	my_fctx->pScene = DEFAULT_SC;
-/*
-      fprintf(stderr, "*** (%d:%d:%d:%d:%d)\n",
-              my_fctx->pThreshold, my_fctx->pPixellock,
-              my_fctx->pThreshold2, my_fctx->pPixellock2,
-              my_fctx->pScene);
-*/
     }
     
     return(0);

@@ -45,8 +45,6 @@ static void ymask_yuv(unsigned char *buf, vob_t *vob, int top, int bottom)
 	unsigned char *bufcb, *bufcr;
 	int w2 = vob->im_v_width / 2;
 
-	// printf("%d %d\n", top, bottom);
-
 	bufcb = buf + vob->im_v_width * vob->im_v_height;
 	bufcr = buf + vob->im_v_width * vob->im_v_height * 5 / 4;
 
@@ -88,8 +86,6 @@ static void xmask_yuv(unsigned char *buf, vob_t *vob, int left, int right)
 	int i;
 	unsigned char *bufcb, *bufcr;
 	unsigned char *ptr, *ptrmax;
-
-	// printf("%d %d\n", left, right);
 
 	bufcb = buf + vob->im_v_width * vob->im_v_height;
 	bufcr = buf + vob->im_v_width * vob->im_v_height * 5 / 4;
@@ -190,7 +186,7 @@ static int is_optstr (char *buf) {
 
 static void help_optstr(void)
 {
-   printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
    printf ("    This filter applies an rectangular mask to the video.\n");
    printf ("    Everything outside the mask is set to black.\n");
@@ -234,9 +230,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
-    if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+    if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
     if (!buffer)
 	buffer = malloc(SIZE_RGB_FRAME);

@@ -123,8 +123,7 @@ static logoaway_data *data[MAX_FILTER];
  *********************************************************/
 static void help_optstr(void)
 {
-   printf ("%s", WHITE);
-   printf ("[%s] (%s) help                                                            \n", MOD_NAME, MOD_CAP);
+   tc_log_info (MOD_NAME, "(%s) help\n", MOD_CAP);
    printf ("* Overview                                                                \n");
    printf ("    This filter removes an image in a user specified area from the video. \n");
    printf ("    You can choose from different methods.                                \n");
@@ -140,7 +139,6 @@ static void help_optstr(void)
    printf ("        'fill' Solid Fill Color (RRGGBB)                      [000000]    \n");
    printf ("        'file' Image with alpha/shape information             []          \n");
    printf ("                                                                          \n");
-   printf ("%s", GRAY);
 }
 
 
@@ -662,7 +660,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     // filter init ok.
 
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
     if(options!=NULL) {
       optstr_get     (options,  "range",   "%d-%d",     &data[instance]->start,  &data[instance]->end);
@@ -686,39 +684,39 @@ int tc_filter(frame_list_t *ptr_, char *options)
         data[instance]->dump = 1;
     }
 
-    if(verbose) printf("[%s] instance(%d) options=%s\n", MOD_NAME, instance, options);
+    if(verbose) tc_log_info(MOD_NAME, "instance(%d) options=%s", instance, options);
     if(verbose > 1) {
-      printf (" LogoAway Filter Settings: \n");
-      printf ("            pos = %dx%d    \n", data[instance]->xpos, data[instance]->ypos);
-      printf ("           size = %dx%d    \n", data[instance]->width-data[instance]->xpos, data[instance]->height-data[instance]->ypos);
-      printf ("           mode = %d(%s)   \n", data[instance]->mode, modes[data[instance]->mode]);
-      printf ("         border = %d       \n", data[instance]->border);
-      printf ("     x-y weight = %d:%d    \n", data[instance]->xweight, data[instance]->yweight);
-      printf ("     fill color = %2X%2X%2X\n", data[instance]->rcolor, data[instance]->gcolor, data[instance]->bcolor);
+      tc_log_info (MOD_NAME, " LogoAway Filter Settings:");
+      tc_log_info (MOD_NAME, "            pos = %dx%d", data[instance]->xpos, data[instance]->ypos);
+      tc_log_info (MOD_NAME, "           size = %dx%d", data[instance]->width-data[instance]->xpos, data[instance]->height-data[instance]->ypos);
+      tc_log_info (MOD_NAME, "           mode = %d(%s)", data[instance]->mode, modes[data[instance]->mode]);
+      tc_log_info (MOD_NAME, "         border = %d", data[instance]->border);
+      tc_log_info (MOD_NAME, "     x-y weight = %d:%d", data[instance]->xweight, data[instance]->yweight);
+      tc_log_info (MOD_NAME, "     fill color = %2X%2X%2X", data[instance]->rcolor, data[instance]->gcolor, data[instance]->bcolor);
       if(data[instance]->alpha)
-        printf ("           file = %s       \n", data[instance]->file);
+        tc_log_info (MOD_NAME, "           file = %s", data[instance]->file);
       if(data[instance]->dump)
-        printf ("           dump = %d       \n", data[instance]->dump);
+        tc_log_info (MOD_NAME, "           dump = %d", data[instance]->dump);
     }
 
     if( (data[instance]->xpos > vob->im_v_width) || (data[instance]->ypos > vob->im_v_height) || (data[instance]->xpos < 0) || (data[instance]->ypos < 0) )  {
-      fprintf(stderr, "[%s] ERROR: invalid position\n", MOD_NAME);
+      tc_log_error(MOD_NAME, "invalid position");
       return(-1);
     }
     if( (data[instance]->width > vob->im_v_width) || (data[instance]->height > vob->im_v_height) || (data[instance]->width-data[instance]->xpos < 0) || (data[instance]->height-data[instance]->ypos < 0) ) {
-      fprintf(stderr, "[%s] ERROR: invalid size\n", MOD_NAME);
+      tc_log_error(MOD_NAME, "invalid size");
       return(-1);
     }    
     if( (data[instance]->xweight > 100) || (data[instance]->xweight < 0) ) {
-      fprintf(stderr, "[%s] ERROR: invalid x weight\n", MOD_NAME);
+      tc_log_error(MOD_NAME, "invalid x weight");
       return(-1);
     }
     if( (data[instance]->mode < 0) || (data[instance]->mode > 3) ) {
-      fprintf(stderr, "[%s] ERROR: invalid mode\n", MOD_NAME);
+      tc_log_error(MOD_NAME, "invalid mode");
       return(-1);
     }
     if( (data[instance]->mode == 3) && (data[instance]->alpha == 0) ) {
-      fprintf(stderr, "[%s] ERROR: alpha/shape file needed for SHAPE-mode\n", MOD_NAME);
+      tc_log_error(MOD_NAME, "alpha/shape file needed for SHAPE-mode");
       return(-1);
     }
 
@@ -732,13 +730,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
         strlcpy(data[instance]->image_info->filename, data[instance]->file, MaxTextExtent);
         data[instance]->image = ReadImage(data[instance]->image_info, &data[instance]->exception_info);
         if (data[instance]->image == (Image *) NULL) {
-          fprintf(stderr, "[%s] ERROR: ", MOD_NAME);
+          tc_log_error(MOD_NAME, "\n");
           MagickWarning (data[instance]->exception_info.severity, data[instance]->exception_info.reason, data[instance]->exception_info.description);
           return(-1);
         }
   
         if ((data[instance]->image->columns != (data[instance]->width-data[instance]->xpos)) || (data[instance]->image->rows != (data[instance]->height-data[instance]->ypos))) {
-          fprintf(stderr, "[%s] ERROR: \"%s\" has incorrect size\n", MOD_NAME, data[instance]->file);
+          tc_log_error(MOD_NAME, "\"%s\" has incorrect size", data[instance]->file);
   
           return(-1);
         }

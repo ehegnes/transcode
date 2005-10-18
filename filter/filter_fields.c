@@ -118,7 +118,7 @@ static void show_help(void) {
   const char **line;
 
   for (line=help_text; *line; line++) {
-    printf("[%s] %s\n", MOD_NAME, *line);
+    tc_log_info(MOD_NAME, "%s", *line);
   }
 }
 
@@ -174,7 +174,7 @@ static int filter_fields_init(char *options) {
   vob = tc_get_vob();
   if (!vob) return -1;
 
-  if (verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+  if (verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
   buffer = malloc(SIZE_RGB_FRAME);
   if (!buffer) {
@@ -208,20 +208,17 @@ static int filter_fields_init(char *options) {
 
   if(verbose) {
     if (field_ops & FIELD_OP_SHIFT)
-      printf("[%s] Adjusting frame positions (shift)\n", MOD_NAME);
+      tc_log_info(MOD_NAME, "Adjusting frame positions (shift)");
     if (field_ops & FIELD_OP_FLIP)
-      printf("[%s] Transposing input fields  (flip)\n", MOD_NAME);
+      tc_log_info(MOD_NAME, "Transposing input fields  (flip)");
     if (field_ops & FIELD_OP_REVERSE)
-      printf("[%s] Flipping will occur before shifting (flip_first)\n",
-             MOD_NAME);
+      tc_log_info(MOD_NAME, "Flipping will occur before shifting (flip_first)");
   }
 
   if (!field_ops) {
-    fprintf(stderr, "[%s] ERROR: No operations specified to perform.\n",
-                    MOD_NAME);
+    tc_log_warn(MOD_NAME, "No operations specified to perform.");
     if (!help_shown) {
-      fprintf(stderr, "[%s]   Use the 'help' option for more information.\n",
-                      MOD_NAME);
+      tc_log_warn(MOD_NAME, "Use the 'help' option for more information.\n");
     }
     return -1;
   }

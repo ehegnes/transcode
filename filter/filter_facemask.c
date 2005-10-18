@@ -54,7 +54,7 @@ typedef struct parameter_struct {
 static parameter_struct *parameters = NULL;
 
 static void help_optstr(void){
-	printf ("[%s] Help:\n", MOD_NAME);
+	tc_log_info (MOD_NAME, "Help:");
 	printf ("\n* Overview:\n");
 	printf("  This filter can mask people faces in video interviews.\n");
 	printf("  Both YUV and RGB formats are supported, in multithreaded mode.\n");
@@ -75,21 +75,21 @@ static int check_parameters(int x, int y, int w, int h, int W, int H, vob_t *vob
 	
 	/* First, we check if the face-zone is contained in the picture */
 	if ((x+W) > vob->im_v_width){
-		tc_error("[%s] Face zone is larger than the picture !\n", MOD_NAME);
+		tc_log_error(MOD_NAME, "Face zone is larger than the picture !");
 		return -1;
 	}
 	if ((y+H) > vob->im_v_height){
-		tc_error("[%s] Face zone is taller than the picture !\n", MOD_NAME);
+		tc_log_error(MOD_NAME, "Face zone is taller than the picture !");
 		return -1;
 	}
 	
 	/* Then, we check the resolution */
 	if ((H%h) != 0) {
-		tc_error("[%s] Uncorrect Y resolution !", MOD_NAME);
+		tc_log_error(MOD_NAME, "Uncorrect Y resolution !");
 		return -1;
 	}
 	if ((W%w) != 0) {
-		tc_error("[%s] Uncorrect X resolution !", MOD_NAME);
+		tc_log_error(MOD_NAME, "Uncorrect X resolution !");
 		return -1;
 	}
 	return 0;
@@ -165,7 +165,7 @@ int tc_filter(frame_list_t *ptr_, char *options){
 	
 	/* Filter default options */
 	if (verbose & TC_DEBUG)
-		tc_info("[%s] Preparing default options.\n", MOD_NAME);
+		tc_log_info(MOD_NAME, "Preparing default options.");
 	parameters->xpos 		= 0;
 	parameters->ypos 		= 0;
 	parameters->xresolution	= 1;
@@ -176,7 +176,7 @@ int tc_filter(frame_list_t *ptr_, char *options){
 	if (options){
 		/* Get filter options via transcode core */
 		if (verbose & TC_DEBUG)
-			tc_info("[%s] Merging options from transcode.\n", MOD_NAME);
+			tc_log_info(MOD_NAME, "Merging options from transcode.");
 		optstr_get(options, "xpos",  		 	"%d",		&parameters->xpos);
 		optstr_get(options, "ypos",   			"%d",		&parameters->ypos);
 		optstr_get(options, "xresolution",   	"%d",		&parameters->xresolution);
@@ -188,7 +188,7 @@ int tc_filter(frame_list_t *ptr_, char *options){
 		
 	if (vob->im_v_codec == CODEC_YUV){
 		if (!tcv_convert_init(vob->im_v_width, vob->im_v_height)) {
-			tc_error("[%s] Error at image conversion initialization.\n", MOD_NAME);
+			tc_log_error(MOD_NAME, "Error at image conversion initialization.");
 			return(-1); 
 		}
 	}
@@ -197,7 +197,7 @@ int tc_filter(frame_list_t *ptr_, char *options){
 		return -1;
 	
 	if(verbose)
-		fprintf(stdout, "[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+		tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
     return(0);
   }
@@ -237,19 +237,19 @@ int tc_filter(frame_list_t *ptr_, char *options){
 			case CODEC_YUV:
 				
 				if (!tcv_convert(ptr->video_buf, IMG_YUV_DEFAULT, IMG_RGB24)){
-					tc_error("[%s] Error: cannot convert YUV stream to RGB format !\n", MOD_NAME);
+					tc_log_error(MOD_NAME, "cannot convert YUV stream to RGB format !");
 					return -1;
 				}
 				
 				if ((print_mask(parameters->xpos, parameters->ypos, parameters->xresolution, parameters->yresolution, parameters->xdim, parameters->ydim, ptr))<0) return -1;
 				if (!tcv_convert(ptr->video_buf, IMG_RGB24, IMG_YUV_DEFAULT)){
-					tc_error("[%s] Error: cannot convert RGB stream to YUV format !\n", MOD_NAME);
+					tc_log_error(MOD_NAME, "cannot convert RGB stream to YUV format !");
 					return -1;
 				}
 				break;
 			
 			default: 
-				tc_error("[%s] Internal video codec is not supported.\n", MOD_NAME);
+				tc_log_error(MOD_NAME, "Internal video codec is not supported.");
 				return -1;
 		}
 	}

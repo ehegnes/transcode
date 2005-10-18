@@ -154,11 +154,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
     if (options != NULL) {
       
-      if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+      if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
       
       optstr_get (options, "cache", "%d", &cache_num);
       
@@ -173,8 +173,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     }
 
-    if(cache_num<0) printf("[%s] invalid cache number - exit\n", MOD_NAME);
-    if(preview_skip_num<0) printf("[%s] invalid number of frames to skip - exit\n", MOD_NAME);
+    if(cache_num<0) tc_log_warn(MOD_NAME, "invalid cache number - exit");
+    if(preview_skip_num<0) tc_log_warn(MOD_NAME, "invalid number of frames to skip - exit");
 
     tc_snprintf(buffer, sizeof(buffer), "%s-%s", PACKAGE, VERSION);
     
@@ -195,7 +195,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     size = w*h* 3/2;
     
-    if(verbose) printf("[%s] preview window %dx%d\n", MOD_NAME, w, h);
+    if(verbose) tc_log_info(MOD_NAME, "preview window %dx%d", w, h);
     
     switch(vob->im_v_codec) {
       
@@ -222,7 +222,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       break;
       
     default:
-      fprintf(stderr, "[%s] non-YUV codecs not supported for this preview plug-in\n", MOD_NAME);
+      tc_log_error(MOD_NAME, "non-YUV codecs not supported for this preview plug-in");
       return(-1);
     }
 
@@ -276,7 +276,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
   
-  if(verbose & TC_STATS) printf("[%s] %s/%s %s %s\n", MOD_NAME, vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
+  if(verbose & TC_STATS) tc_log_info(MOD_NAME, "%s/%s %s %s", vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
 
   //we do nothing if not properly initialized
   if(!xv_init_ok) return(0);
@@ -813,13 +813,13 @@ int preview_grab_jpeg(void)
 	tc_snprintf(module, sizeof(module), "%s/export_%s.so", MOD_PATH, "jpg");
 	jpeg_vhandle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
 	if (!jpeg_vhandle) {
-	    tc_warn("%s", dlerror());
-	    tc_warn("(%s) loading \"%s\" failed", __FILE__, module);
+	    tc_log_error(MOD_NAME, "%s", dlerror());
+	    tc_log_error(MOD_NAME, "loading \"%s\" failed", module);
 	    return(1);
 	}
 	JPEG_export = dlsym(jpeg_vhandle, "tc_export");   
 	if ((error = dlerror()) != NULL)  {
-	    tc_warn("%s", error);
+	    tc_log_error(MOD_NAME, "%s", error);
 	    return(1);
 	}
 	export_para.flag = TC_DEBUG;
@@ -831,13 +831,13 @@ int preview_grab_jpeg(void)
 
 	export_para.flag = TC_VIDEO;
 	if((ret=JPEG_export(TC_EXPORT_INIT, &export_para, mvob))==TC_EXPORT_ERROR) {
-	    tc_warn("(%s) video jpg export module error: init failed", __FILE__);
+	    tc_log_error(MOD_NAME, "video jpg export module error: init failed");
 	    return(1);
 	}
 
 	export_para.flag = TC_VIDEO;	
 	if((ret=JPEG_export(TC_EXPORT_OPEN, &export_para, mvob))==TC_EXPORT_ERROR) {
-	    tc_warn("(%s) video export module error: open failed", __FILE__);
+	    tc_log_error(MOD_NAME, "video export module error: open failed");
 	    return(1);
 	}
     }
@@ -849,10 +849,10 @@ int preview_grab_jpeg(void)
     export_para.flag   = TC_VIDEO;
 
     if(JPEG_export(TC_EXPORT_ENCODE, &export_para, mvob)<0) {
-	tc_warn("(%s) error encoding jpg frame", __FILE__);
+	tc_log_warn(MOD_NAME, "error encoding jpg frame");
 	return 1;
     }
-    printf("[%s] Saved JPEG to %s%06d.jpg\n", "filter_pv", prefix, counter++);
+    tc_log_info(MOD_NAME, "Saved JPEG to %s%06d.jpg", prefix, counter++);
 
 
     return 0;

@@ -38,7 +38,7 @@
 
 static void help_optstr(void) 
 {
-   printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
    printf ("   This filter produces a simple slow-motion effect by\n");
    printf ("   duplicating certain frames. I have seen this effect\n");
@@ -84,10 +84,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
     if (options) {
-	if (verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+	if (verbose) tc_log_info(MOD_NAME, "options=%s", options);
 	if (optstr_get(options, "help", "")>=0) help_optstr();
     }
     
@@ -143,7 +143,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   if(ptr->tag & TC_PRE_S_PROCESS && ptr->tag & TC_VIDEO) {
     
     if(!(ptr->tag & TC_FRAME_WAS_CLONED) && do_clone(ptr->id))  {
-	//fprintf(stderr, "cloning frame %d\n", ptr->id);
+	//cloning frame
 	ptr->attributes |= TC_FRAME_IS_CLONED;
     }
     

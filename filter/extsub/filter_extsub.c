@@ -100,7 +100,7 @@ static int subtitle_retrieve(void)
       
       if((sptr = sframe_retrieve())==NULL) {
 	  //this shouldn´t happen
-	  fprintf(stderr, "(%s) internal error (S)\n", __FILE__);
+	  tc_log_error(MOD_NAME, "internal error (S)");
 	  return(-1);
       } 
   } else {
@@ -114,7 +114,7 @@ static int subtitle_retrieve(void)
   // conversion
   if(subproc_feedme(sptr->video_buf, sptr->video_size, sptr->id, sptr->pts, &sub)<0) {
     // problems, drop this subtitle
-    if(verbose & TC_DEBUG) fprintf(stderr, "(%s) subtitle dropped\n", __FILE__);
+    if(verbose & TC_DEBUG) tc_log_warn(MOD_NAME, "subtitle dropped");
     sframe_remove(sptr); 
     pthread_cond_signal(&sframe_list_full_cv); 
     return(-1);
@@ -138,7 +138,7 @@ static int subtitle_retrieve(void)
   pthread_cond_signal(&sframe_list_full_cv); 
 
   if(verbose & TC_STATS) 
-    printf("[%s] got SUBTITLE %d with pts=%.3f dtime=%.3f\n", MOD_NAME, sub_id, sub_pts1, sub_pts2-sub_pts1); 
+    tc_log_info(MOD_NAME, "got SUBTITLE %d with pts=%.3f dtime=%.3f", sub_id, sub_pts1, sub_pts2-sub_pts1); 
   
   return(0);
 }
@@ -181,8 +181,12 @@ static void get_subtitle_colors(void) {
   color_set_done=1;
   
   if(verbose & TC_DEBUG) {
-    printf("[%s] color dis: 0=%d, 1=%d, 2=%d, 3=%d, ca=%d, cb=%d\n", __FILE__, sub_colour[0], sub_colour[1], sub_colour[2], sub_colour[3], ca, cb);
-    printf("[%s] alpha dis: 0=%d, 1=%d, 2=%d, 3=%d, ca=%d, cb=%d\n", __FILE__, sub_alpha[0], sub_alpha[1], sub_alpha[2], sub_alpha[3], ca, cb);
+    tc_log_info(MOD_NAME, "color dis: 0=%d, 1=%d, 2=%d, 3=%d, ca=%d, cb=%d", 
+                    sub_colour[0], sub_colour[1], sub_colour[2], sub_colour[3], 
+                    ca, cb);
+    tc_log_info(MOD_NAME, "alpha dis: 0=%d, 1=%d, 2=%d, 3=%d, ca=%d, cb=%d", 
+                    sub_alpha[0], sub_alpha[1], sub_alpha[2], sub_alpha[3], 
+                    ca, cb);
   }
   
 }
@@ -247,7 +251,9 @@ static void subtitle_overlay_yuv(char *vid_frame, int w, int h)
   int eff_sub_ylen, off;
 
   if(verbose & TC_STATS) 
-    printf("SUBTITLE id=%d, x=%d, y=%d, w=%d, h=%d, t=%f\n", sub_id, sub_xpos, sub_ypos, sub_xlen, sub_ylen, sub_pts2-sub_pts1);
+    tc_log_info(MOD_NAME, "SUBTITLE id=%d, x=%d, y=%d, w=%d, h=%d, t=%f",
+                    sub_id, sub_xpos, sub_ypos, sub_xlen, sub_ylen, 
+                    sub_pts2-sub_pts1);
   
   if(color_set_done==0) get_subtitle_colors();
   
@@ -257,7 +263,7 @@ static void subtitle_overlay_yuv(char *vid_frame, int w, int h)
   off = (vshift>0) ? vshift:0;
 
   if(eff_sub_ylen<0 || off>eff_sub_ylen) {
-    fprintf(stderr, "[%s] invalid subtitle shift parameter\n", __FILE__); 
+    tc_log_info(MOD_NAME, "invalid subtitle shift parameter"); 
     return;
   }
 
@@ -311,7 +317,9 @@ static void subtitle_overlay_rgb(char *vid_frame, int w, int h)
   int eff_sub_ylen, off;
   
   if(verbose & TC_STATS) 
-    printf("SUBTITLE id=%d, x=%d, y=%d, w=%d, h=%d, t=%f\n", sub_id, sub_xpos, sub_ypos, sub_xlen, sub_ylen, sub_pts2-sub_pts1);
+    tc_log_info(MOD_NAME, "SUBTITLE id=%d, x=%d, y=%d, w=%d, h=%d, t=%f", 
+                    sub_id, sub_xpos, sub_ypos, sub_xlen, sub_ylen, 
+                    sub_pts2-sub_pts1);
   
   if(color_set_done==0) get_subtitle_colors();
   
@@ -324,7 +332,7 @@ static void subtitle_overlay_rgb(char *vid_frame, int w, int h)
   off = (vshift<0) ? -vshift:0;
 
   if(eff_sub_ylen<0 || off>eff_sub_ylen) {
-    fprintf(stderr, "[%s] invalid subtitle shift parameter\n", __FILE__); 
+    tc_log_warn(MOD_NAME, "invalid subtitle shift parameter"); 
     return;
   }
   
@@ -408,9 +416,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
-    if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+    if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
     //------------------------------------------------------------
 
@@ -418,7 +426,6 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if (!is_optstr(options)) {
 	    n=sscanf(options,"%d:%d:%d:%d:%d:%d:%d:%d:%d", &vob->s_track, &vshift, &tshift, &skip_anti_alias, &post, &color1, &color2, &ca, &cb);
 	} else { // new options
-	    //fprintf(stderr, "[%s] NEW options\n", MOD_NAME);
 	    optstr_get (options, "track", "%d", &vob->s_track);
 	    optstr_get (options, "vertshift", "%d", &vshift);
 	    optstr_get (options, "timeshift", "%d", &tshift);
@@ -437,13 +444,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     if(n>8) color_set_done=1;
     
-    if(verbose) printf("[%s] extracting subtitle 0x%x\n", MOD_NAME, vob->s_track+0x20);
+    if(verbose) tc_log_info(MOD_NAME, "extracting subtitle 0x%x", vob->s_track+0x20);
 
     // start subtitle stream
     import_para.flag=TC_SUBEX;
   
     if(tcv_import(TC_IMPORT_OPEN, &import_para, vob)<0) {
-      tc_error("popen subtitle stream");
+      tc_log_error(MOD_NAME, "popen subtitle stream");
     }
     
     //------------------------------------------------------------
@@ -456,7 +463,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     // start thread
     if(pthread_create(&thread1, NULL, (void *) subtitle_reader, NULL)!=0)
-      tc_error("failed to start subtitle import thread");    
+      tc_log_error(MOD_NAME, "failed to start subtitle import thread");    
 
     // misc:
 
@@ -517,7 +524,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     //FIXME: module already removed by main process
 
     //    if(tca_import(TC_IMPORT_CLOSE, &import_para, vob)<0) {
-    //  tc_error("pclose subtitle stream");
+    //  tc_log_error(MOD_NAME, "pclose subtitle stream");
     //}
 
     if(vid_frame) free(vid_frame);
@@ -537,7 +544,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
   // or after and determines video/audio context
   
   if(verbose & TC_STATS) 
-    printf("[%s] %s/%s %s %s\n", MOD_NAME, vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
+    tc_log_info(MOD_NAME, "%s/%s %s %s", 
+                    vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
   
   if(post) {
     pre = (ptr->tag & TC_POST_S_PROCESS)? 1:0;
@@ -565,7 +573,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
   f_pts = f_time*(ptr->id-tc_get_frames_dropped()+vob->psu_offset) + tshift/1000.;
 
   if(verbose & TC_DEBUG) 
-    printf("[%s] frame=%06d pts=%.3f sub1=%.3f sub2=%.3f\n", MOD_NAME, ptr->id, f_pts, sub_pts1, sub_pts2); 
+    tc_log_info(MOD_NAME, "frame=%06d pts=%.3f sub1=%.3f sub2=%.3f", 
+                    ptr->id, f_pts, sub_pts1, sub_pts2); 
   
   //overlay now?
   if(sub_pts1 <= f_pts && f_pts <= sub_pts2) {
@@ -581,7 +590,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   if(f_pts > sub_pts2) {
     if(subtitle_retrieve()<0) {
       if(verbose & TC_STATS) 
-	printf("[%s] no subtitle available at this time\n", __FILE__); 
+	tc_log_info(MOD_NAME, "no subtitle available at this time"); 
       return(0);
     }
   }

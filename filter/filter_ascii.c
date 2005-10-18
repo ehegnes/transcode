@@ -56,7 +56,7 @@ typedef struct parameter_struct{
 static parameter_struct *parameters = NULL;
 
 static void help_optstr(void){
-	printf ("[%s] Help:\n", MOD_NAME);
+	tc_log_info (MOD_NAME, "Help:");
 	printf ("\n* Overview:\n");
 	printf("  This filter renders a video sample into colored ascii art, using the `aart` package.\n");
 	printf("  Both YUV and RGB formats are supported, in multithreaded mode.\n");
@@ -78,17 +78,17 @@ static int write_tmpfile(char* header, char* content, int content_size, int slot
 	
 	filename = (char *) malloc(sizeof(char)*(strlen(TMP_FILE) + TMP_STRING_SIZE));
 	if (!filename){
-		tc_error("[%s] ... Out of memory !!!", MOD_NAME);
+		fprintf(stderr, "[%s] ... Out of memory !!!\n", MOD_NAME);
 		return -1;
 	}
 	
 	if (verbose & TC_DEBUG)
-		tc_info("[%s] Temporary filename correctly allocated.\n", MOD_NAME);
+		tc_log_info(MOD_NAME, "Temporary filename correctly allocated.");
 	tc_snprintf(filename, strlen(TMP_FILE) + TMP_STRING_SIZE, "%s-%d.tmp", TMP_FILE, slot_id);
 	
 	tmp = fopen(filename, "w");
 	if (!tmp){
-		tc_error("[%s] Cannot write temporary file !\n", MOD_NAME);
+		tc_log_error(MOD_NAME, "Cannot write temporary file !");
 		return -1;
 	}
 	for(i=0; i<strlen(header); i++)
@@ -122,7 +122,7 @@ static int parse_stream_header(FILE* stream, int width){
 		cursor = fgetc(stream);
 	}
 	if ((aart_width != width) && (verbose & TC_DEBUG))
-		tc_warn("[%s] Picture has been re-sized by `aart`.\n", MOD_NAME);
+		tc_log_warn(MOD_NAME, "Picture has been re-sized by `aart`.");
 
 	/* Purge the rest of the line */
 	while (cursor!='\n')
@@ -147,11 +147,11 @@ static int aart_render(char* buffer, int width, int height, int slot_id, char* f
 			resize = 0;
 
 	if (verbose & TC_DEBUG) 
-		tc_info("[%s] Formating buffer option string.\n", MOD_NAME);
+		tc_log_info(MOD_NAME, "Formating buffer option string.");
 	if (buffer_option != 1)
 		tc_snprintf(buffer_option_string, strlen("--nobuffer"), "--nobuffer");
 	if (verbose & TC_DEBUG)
-		tc_info("[%s] Buffer option string correctly formated.\n", MOD_NAME);
+		tc_log_info(MOD_NAME, "Buffer option string correctly formated.");
 		
 	
 	tc_snprintf(cmd_line, MAX_LENGTH, "aart %s-%d.tmp --font %s --pallete %s --inmod=pnm --outmod=pnm %s --threads=%d", TMP_FILE, slot_id, font, pallete, buffer_option_string, threads);
@@ -162,7 +162,7 @@ static int aart_render(char* buffer, int width, int height, int slot_id, char* f
 		return -1;
 	
 	if (!(aart_output = popen(cmd_line, "r"))){
-		tc_error("[%s] `aart` call failure !\n", MOD_NAME);
+		tc_log_error(MOD_NAME, "`aart` call failure !");
 		return -1;
 	}
 	
@@ -193,7 +193,7 @@ static int clean_parameter(char* parameter){
 		i++;
 	}
 	if (verbose & TC_DEBUG)
-		tc_info("[%s] Extra-paramater correctly cleaned.\n", MOD_NAME);
+		tc_log_info(MOD_NAME, "Extra-paramater correctly cleaned.");
 	return 0;
 }
 
@@ -211,7 +211,7 @@ static int find_empty_slot(int frame_id, int *slots){
 	if (i<TC_FRAME_THREADS_MAX)
 		slots[i] = frame_id;
 	if (verbose & TC_DEBUG)
-		tc_info("[%s] Found empty slot %d for frame %d.\n", MOD_NAME, i, frame_id);
+		tc_log_info(MOD_NAME, "Found empty slot %d for frame %d.", i, frame_id);
 	return i;
 }
 
@@ -229,7 +229,7 @@ static int free_slot(int frame_id, int *slots){
 	if (i<TC_FRAME_THREADS_MAX)
 		slots[i] = 0;
 	if (verbose & TC_DEBUG)
-		tc_info("[%s] Slot %d correctly free.\n", MOD_NAME, i);
+		tc_log_info(MOD_NAME, "Slot %d correctly free.", i);
 	return 0;
 }
 
@@ -270,16 +270,16 @@ int tc_filter(frame_list_t *ptr_, char *options){
 	
 	/* Now, let's handle the options ... */
 	if((parameters = (parameter_struct *) malloc (sizeof(parameter_struct))) == NULL){
-		tc_error("[%s] ... Out of memory !!!", MOD_NAME);
+		fprintf(stderr, "[%s] ... Out of memory !!!\n", MOD_NAME);
 		return -1;
 	}
 	
 	/* Filter default options */
 	if (verbose & TC_DEBUG)
-		tc_info("[%s] Preparing default options.\n", MOD_NAME);
+		tc_log_info(MOD_NAME, "Preparing default options.");
 	strncpy(parameters->aart_font, "default8x9.psf", strlen("default8x9.psf"));
 	if (verbose & TC_DEBUG)
-		tc_info("[%s] Default options correctly formated.\n", MOD_NAME);
+		tc_log_info(MOD_NAME, "Default options correctly formated.");
 	strncpy(parameters->aart_pallete, "colors.pal", strlen("colors.pal"));
 	parameters->aart_threads 		= 1;
 	parameters->aart_buffer 		= -1;
@@ -287,7 +287,7 @@ int tc_filter(frame_list_t *ptr_, char *options){
 	if (options){
 		/* Get filter options via transcode core */
 		if (verbose & TC_DEBUG)
-			tc_info("[%s] Merging options from transcode.\n", MOD_NAME);
+			tc_log_info(MOD_NAME, "Merging options from transcode.");
 		optstr_get(options, "font",			"%s",		&parameters->aart_font);
 		clean_parameter(parameters->aart_font);
 		optstr_get(options, "pallete",		"%s",		&parameters->aart_pallete);
@@ -299,12 +299,12 @@ int tc_filter(frame_list_t *ptr_, char *options){
 		if (optstr_get(options, "help",  "") >=0)
 			help_optstr();
 		if (verbose & TC_DEBUG)
-			tc_info("[%s] Options correctly merged.\n", MOD_NAME);
+			tc_log_info(MOD_NAME, "Options correctly merged.");
 	}
 		
 	if (vob->im_v_codec == CODEC_YUV){
 		if (!tcv_convert_init(vob->im_v_width, vob->im_v_height)) {
-			tc_error("[%s] Error at image conversion initialization.\n", MOD_NAME);
+			tc_log_error(MOD_NAME, "Error at image conversion initialization.");
 			return(-1); 
 		}
 	}
@@ -313,7 +313,7 @@ int tc_filter(frame_list_t *ptr_, char *options){
 	init_slots(slots);
 	
 	if(verbose)
-		fprintf(stdout, "[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+		tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
     return(0);
   }
@@ -358,19 +358,19 @@ int tc_filter(frame_list_t *ptr_, char *options){
 			case CODEC_YUV:
 				
 				if (!tcv_convert(ptr->video_buf, IMG_YUV_DEFAULT, IMG_RGB24)){
-					tc_error("[%s] Error: cannot convert YUV stream to RGB format !\n", MOD_NAME);
+					tc_log_error(MOD_NAME, "cannot convert YUV stream to RGB format !");
 					return -1;
 				}
 				
 				if (aart_render(ptr->video_buf, ptr->v_width, ptr->v_height, frame_slot, parameters->aart_font, parameters->aart_pallete, parameters->aart_threads, parameters->aart_buffer) == -1){return -1;}
 				if (!tcv_convert(ptr->video_buf, IMG_RGB24, IMG_YUV_DEFAULT)){
-					tc_error("[%s] Error: cannot convert RGB stream to YUV format !\n", MOD_NAME);
+					tc_log_error(MOD_NAME, "cannot convert RGB stream to YUV format !");
 					return -1;
 				}
 				break;
 			
 			default: 
-				tc_error("[%s] Internal video codec is not supported.\n", MOD_NAME);
+				tc_log_error(MOD_NAME, "Internal video codec is not supported.");
 				return -1;
 		}
 		free_slot(ptr->id, slots);

@@ -71,18 +71,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	lines = (char *) malloc (width*height*3);
     
     if (!lines) {
-	fprintf(stderr, "[%s] No lines buffer available\n", MOD_NAME);
+	tc_log_error(MOD_NAME, "No lines buffer available");
 	return -1;
     }
 
     if(options) {
-	if (verbose & TC_INFO) printf("[%s] options=%s\n", MOD_NAME, options);
+	if (verbose & TC_INFO) tc_log_info(MOD_NAME, "options=%s", options);
 
 	optstr_get (options, "shiftEven",      "%d",  &evenfirst        );
     }
 
     // filter init ok.
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
     return(0);
   }
@@ -130,7 +130,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	  char *p = ptr->video_buf;
 	  char *s = lines+((evenfirst)?stride:0);
-	  //printf("Is cloned\n");
+      // is cloned
 
 	  ptr->attributes |= TC_FRAME_IS_CLONED;
 
@@ -160,7 +160,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	  char *p = ptr->video_buf;
 	  char *s = lines+((evenfirst)?0:stride);
-	 // printf("WAS cloned\n");
+      // was cloned
 
 	  for (h = 0; h < height/2; h++) {
 	      ac_memcpy (p, s, stride);

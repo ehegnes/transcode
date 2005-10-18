@@ -63,19 +63,12 @@ static MyFilterData *mfd = NULL;
  *
  *-------------------------------------------------*/
 
-#if 0 // unused, EMS
-static void help_optstr(void) 
-{
-   printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
-}
-#endif
-
 int tc_filter(frame_list_t *ptr_, char *options)
 {
 
 #ifndef VIDEOCORE_NOT_DEFINED
 
-  tc_error("[%s] this filter is obsolete, please use command line options instead", MOD_NAME);
+  tc_log_error(MOD_NAME, "this filter is obsolete, please use command line options instead");
   return(-1);
 
 #else
@@ -123,11 +116,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	optstr_get (options, "antialias",  "%d/%f/%f",   
 		&mfd->antialias, &mfd->aa_weight, &mfd->aa_bias);
 
-	if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+	if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
     }
 
     // filter init ok.
-    if (verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if (verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
     
     return(0);

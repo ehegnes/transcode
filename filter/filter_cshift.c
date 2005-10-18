@@ -51,7 +51,7 @@ static void cshift_yuv(uint8_t *buffer, vob_t *vob, int shift,
 	h = vob->im_v_height;
 	shift *= 2;
     } else {
-	tc_error("unsupported image format %d in cshift_yuv()", format);
+	tc_log_error(MOD_NAME, "unsupported image format %d in cshift_yuv()", format);
 	return;
     }
     cbaddr = buffer + w*h;
@@ -108,19 +108,19 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
 
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
-    if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+    if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
     if (!buffer)
-	buffer = malloc(SIZE_RGB_FRAME);
+	    buffer = malloc(SIZE_RGB_FRAME);
 
-    if(options != NULL) {
-	if (!is_optstr(options)) { // old syntax
-	    shift = atoi(options);
-	} else {
-	    optstr_get (options, "shift", "%d", &shift);
-	}
+        if(options != NULL) {
+	    if (!is_optstr(options)) { // old syntax
+	        shift = atoi(options);
+    	} else {
+	        optstr_get (options, "shift", "%d", &shift);
+	    }
     }
       
     return(0);

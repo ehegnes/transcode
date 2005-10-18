@@ -1,3 +1,33 @@
+2005-10-18 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_29to23.c filter/filter_32detect.c filter/filter_32drop.c
+    filter/filter_aclip.c filter/filter_ascii.c filter/filter_astat.c
+    filter/filter_clone.c filter/filter_compare.c filter/filter_cpaudio.c
+    filter/filter_cshift.c filter/filter_cut.c filter/filter_decimate.c
+    filter/filter_denoise3d.c filter/filter_detectclipping.c
+    filter/filter_detectsilence.c filter/filter_dilyuvmmx.c
+    filter/filter_dnr.c filter/filter_doublefps.c filter/filter_facemask.c
+    filter/filter_fieldanalysis.c filter/filter_fields.c filter/filter_fps.c 
+    filter/filter_hqdn3d.c filter/filter_invert.c filter/filter_ivtc.c 
+    filter/filter_levels.c filter/filter_logo.c filter/filter_logoaway.c 
+    filter/filter_lowpass.c filter/filter_mask.c filter/filter_modfps.c 
+    filter/filter_msharpen.c filter/filter_nored.c filter/filter_normalize.c 
+    filter/filter_null.c filter/filter_resample.c filter/filter_skip.c 
+    filter/filter_slowmo.c filter/filter_smartbob.c
+    filter/filter_smartdeinter.c filter/filter_smartyuv.c 
+    filter/filter_smooth.c filter/filter_tc_audio.c filter/filter_tc_video.c
+    filter/filter_test.c filter/filter_testframe.c filter/filter_text.c 
+    filter/filter_unsharp.c filter/filter_videocore.c
+    filter/filter_whitebalance.c filter/filter_xsharpen.c 
+    filter/divxkey/filter_divxkey.c filter/extsub/filter_extsub.c
+    filter/pp/filter_pp.c filter/preview/filter_preview.c
+    filter/preview/filter_pv.c filter/subtitler/filter_subtitler.c
+    filter/tomsmocomp/filter_tomsmocomp.c 
+    filter/yuvdenoise/filter_yuvdenoise.c 
+    filter/yuvdenoise/filter_yuvmedian.c
+  tc_(tag_){info,warn,error} roundup part 6; (now tc_log_*)
+  End of tc_log*() crazyness: port almost all filters to tc_log_*() debug 
+  functions; no typos nor regression known after a quick test.
+
 2005-10-17 Francesco Romani <fromani at gmail dot com>
   * filter/tomsmocomp/filter_tomsmocomp.h
     filter/tomsmocomp/filter_tomsmocomp.c

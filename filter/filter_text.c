@@ -104,7 +104,7 @@ static MyFilterData *mfd = NULL;
 
 static void help_optstr(void) 
 {
-   printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
    printf ("    This filter renders text into the video stream\n");
    printf ("* Options\n");
@@ -318,7 +318,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	memset (font, 0, PATH_MAX);
 	memset (string, 0, PATH_MAX);
     
-	if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+	if(verbose) tc_log_info(MOD_NAME, "options=%s", MOD_NAME, options);
 
 	optstr_get (options, "range",  "%u-%u/%d", &mfd->start, &mfd->end, &mfd->step);
 	optstr_get (options, "dpi",    "%u",       &mfd->dpi);
@@ -362,17 +362,17 @@ int tc_filter(frame_list_t *ptr_, char *options)
     }
 
     if (verbose) {
-	printf (" Text Settings:\n");
-	printf ("            string = \"%s\"\n", mfd->string);
-	printf ("             range = %u-%u\n", mfd->start, mfd->end);
-	printf ("              step = %u\n", mfd->step);
-	printf ("               dpi = %u\n", mfd->dpi);
-	printf ("            points = %u\n", mfd->points);
-	printf ("              font = %s\n", mfd->font);
-	printf ("            posdef = %d\n", mfd->pos);
-	printf ("               pos = %dx%d\n", mfd->posx, mfd->posy);
-	printf ("       color (RGB) = %x %x %x\n", mfd->R, mfd->G, mfd->B);
-	printf ("       color (YUV) = %x %x %x\n", mfd->Y, mfd->U, mfd->V);
+	tc_log_info (MOD_NAME, " Text Settings:");
+	tc_log_info (MOD_NAME, "            string = \"%s\"", mfd->string);
+	tc_log_info (MOD_NAME, "             range = %u-%u", mfd->start, mfd->end);
+	tc_log_info (MOD_NAME, "              step = %u", mfd->step);
+	tc_log_info (MOD_NAME, "               dpi = %u", mfd->dpi);
+	tc_log_info (MOD_NAME, "            points = %u", mfd->points);
+	tc_log_info (MOD_NAME, "              font = %s", mfd->font);
+    tc_log_info (MOD_NAME, "            posdef = %d", mfd->pos);
+	tc_log_info (MOD_NAME, "               pos = %dx%d", mfd->posx, mfd->posy);
+	tc_log_info (MOD_NAME, "       color (RGB) = %x %x %x", mfd->R, mfd->G, mfd->B);
+	tc_log_info (MOD_NAME, "       color (YUV) = %x %x %x", mfd->Y, mfd->U, mfd->V);
     }
 
     if (options)
@@ -403,14 +403,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     // init lib
     error = FT_Init_FreeType (&mfd->library);
-    if (error) { fprintf(stderr, "[%s] ERROR: init lib!\n", MOD_NAME); return -1;}
+    if (error) { tc_log_error(MOD_NAME, "init FreeType lib!"); return -1;}
 
     error = FT_New_Face (mfd->library, mfd->font, 0, &mfd->face);
     if (error == FT_Err_Unknown_File_Format) {
-	fprintf(stderr, "[%s] ERROR: Unsupported font format\n", MOD_NAME);
+	tc_log_error(MOD_NAME, "Unsupported font format");
 	return -1;
     } else if (error) {
-	fprintf(stderr, "[%s] ERROR: Cannot handle file\n", MOD_NAME);
+	tc_log_error(MOD_NAME, "Cannot handle file");
 	return -1;
     }
     
@@ -421,7 +421,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
               mfd->dpi,       /* horizontal device resolution    */
               mfd->dpi );     /* vertical device resolution      */
 
-    if (error) { fprintf(stderr, "[%s] ERROR: Cannot set char size\n", MOD_NAME); return -1; }
+    if (error) { tc_log_error(MOD_NAME, "Cannot set char size"); return -1; }
     
     // guess where the the groundline is
     // find the bounding box
@@ -490,14 +490,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if ( mfd->posy < 0 || mfd->posx < 0 || 
 	    mfd->posx+mfd->boundX > width ||
 	    mfd->posy+mfd->boundY > height) {
-	fprintf(stderr, "[%s] ERROR invalid position\n", MOD_NAME);
+	tc_log_error(MOD_NAME, "invalid position");
 	return (-1);
     }
 
     font_render(width,height,size,codec,w,h,i,p,q,buf);
 
     // filter init ok.
-    if (verbose) printf("[%s] %s %s %dx%d-%d\n", MOD_NAME, MOD_VERSION, MOD_CAP, 
+    if (verbose) tc_log_info(MOD_NAME, "%s %s %dx%d-%d", MOD_VERSION, MOD_CAP, 
 	    mfd->boundX, mfd->boundY, mfd->top_space);
 
     
@@ -683,7 +683,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 #else
 int tc_filter(vframe_list_t *ptr, char *options)
 {
-    fprintf(stderr, "[%s] Your freetype installation is missing header files\n");
+    tc_log_error(MOD_NAME, "Your freetype installation is missing header files");
     return -1;
 }
 #endif // FT_FREETYPE_H

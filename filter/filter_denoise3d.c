@@ -30,8 +30,6 @@
 
 #include <math.h>
 
-#define module "[" MOD_NAME "]: "
-
 /*
 	set tabstop=4 for best layout
 
@@ -200,7 +198,7 @@ static void PrecalcCoefs(int * ct, double dist25)
 
 static void help_optstr(void)
 {
-    fprintf(stderr, "[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+    tc_log_info(MOD_NAME, "(%s) help", MOD_CAP);
     fprintf(stderr, "* Overview\n");
     fprintf(stderr, "  This filter aims to reduce image noise producing\n");
     fprintf(stderr, "  smooth images and making still images really still\n");
@@ -263,7 +261,7 @@ int tc_filter(frame_list_t *vframe_, char * options)
 
 		if(!options)
 		{
-			fprintf(stderr, module "options not set!\n");
+			tc_log_error(MOD_NAME, "options not set!");
 			return(TC_IMPORT_ERROR);
 		}
 
@@ -344,7 +342,7 @@ int tc_filter(frame_list_t *vframe_, char * options)
 
 		if(!found)
 		{
-			fprintf(stderr, "[%s] This filter is only capable of YUV, YUV422 and RGB mode\n", MOD_NAME);
+			tc_log_error(MOD_NAME, "This filter is only capable of YUV, YUV422 and RGB mode");
 	  		return(TC_IMPORT_ERROR);
 		}
 
@@ -365,14 +363,14 @@ int tc_filter(frame_list_t *vframe_, char * options)
 		if(!!(pd->lineant = malloc(size)))
 			memset(pd->lineant, 0, size);
 		else
-			fprintf(stderr, module "malloc failed\n");
+			tc_log_error(MOD_NAME, "malloc failed");
 
 		size *= pd->vob->im_v_height * 2;
 
 		if(!!(pd->previous = malloc(size)))
 			memset(pd->previous, 0, size);
 		else
-			fprintf(stderr, module "malloc failed\n");
+			tc_log_error(MOD_NAME, "malloc failed");
 
 		PrecalcCoefs(pd->coefficients[0], pd->parameter.luma_spatial);
 		PrecalcCoefs(pd->coefficients[1], pd->parameter.luma_temporal);
@@ -381,16 +379,18 @@ int tc_filter(frame_list_t *vframe_, char * options)
       
 		if(verbose)
 		{
-			fprintf(stderr, "[%s]: %s %s #%d\n", MOD_NAME, MOD_VERSION, MOD_CAP, instance);
-			fprintf(stderr, "[%s]: Settings luma (spatial): %.2f luma_strength (temporal): %.2f chroma (spatial): %.2f chroma_strength (temporal): %.2f\n",
-				MOD_NAME,
-				pd->parameter.luma_spatial, 
-				pd->parameter.luma_temporal, 
-				pd->parameter.chroma_spatial, 
-				pd->parameter.chroma_temporal); 
-
-			printf("[%s]: luma enabled: %s, chroma enabled: %s\n",
-				MOD_NAME, pd->enable_luma ? "yes" : "no", pd->enable_chroma ? "yes" : "no");
+			tc_log_info(MOD_NAME, "%s %s #%d", MOD_VERSION, MOD_CAP, instance);
+			tc_log_info(MOD_NAME, "Settings luma (spatial): %.2f "
+                                  "luma_strength (temporal): %.2f "
+                                  "chroma (spatial): %.2f "
+                                  "chroma_strength (temporal): %.2f",
+				        pd->parameter.luma_spatial, 
+        				pd->parameter.luma_temporal, 
+		        		pd->parameter.chroma_spatial, 
+				        pd->parameter.chroma_temporal); 
+			tc_log_info(MOD_NAME, "luma enabled: %s, chroma enabled: %s",
+		                pd->enable_luma ? "yes" : "no", 
+                        pd->enable_chroma ? "yes" : "no");
 		}
 	}
 
@@ -429,31 +429,6 @@ int tc_filter(frame_list_t *vframe_, char * options)
 
 				}
 
-#if 0
-				fprintf(stderr, "buffers1: %lu, %lu, %lu\nbuffers2: %lu, %lu, %lu\n", 
-						vframe->video_buf_Y[0] - vframe->video_buf,
-						vframe->video_buf_U[0] - vframe->video_buf,
-						vframe->video_buf_V[0] - vframe->video_buf,
-						0,
-						(pd->vob->im_v_width * pd->vob->im_v_height * 4/4),
-						(pd->vob->im_v_width * pd->vob->im_v_height * 5/4));
-#endif
-
-#if 0
-				fprintf(stderr, "%d -> %p, %p, %p\n%d,%d\n%p, %p, %p\n%d, %d\n",
-						plane_index,
-					vframe->video_buf,				// frame
-					pd->previous,					// previous (saved) frame
-					pd->lineant,					// line buffer
-					vframe->v_width / lp->scale_x,	// width (pixels)
-					vframe->v_height / lp->scale_y,	// height (pixels)
-					pd->coefficients[coef[0]],		// horizontal (spatial) strength
-					pd->coefficients[coef[0]],		// vertical (spatial) strength
-					pd->coefficients[coef[1]],		// temporal strength
-					offset,							// offset in bytes of first relevant pixel in frame
-					lp->skip						// skip this amount of bytes between two pixels
-				);
-#endif
 				deNoise(vframe->video_buf,			// frame
 					pd->previous,					// previous (saved) frame
 					pd->lineant,					// line buffer

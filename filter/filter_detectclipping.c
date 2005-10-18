@@ -61,7 +61,7 @@ static MyFilterData *mfd[16];
 
 static void help_optstr(void) 
 {
-   printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
    printf ("    Detect black regions on top, bottom, left and right of an image\n");
    printf ("    It is suggested that the filter is run for around 100 frames.\n");
@@ -138,7 +138,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if (options != NULL) {
     
-	if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+	if(verbose) tc_log_info (MOD_NAME, "options=%s", MOD_NAME, options);
 
 	optstr_get (options, "range",  "%u-%u/%d",    &mfd[ptr->filter_id]->start, &mfd[ptr->filter_id]->end, &mfd[ptr->filter_id]->step);
 	optstr_get (options, "limit",  "%d",    &mfd[ptr->filter_id]->limit);
@@ -147,11 +147,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 
     if (verbose > 1) {
-	printf (" detectclipping#%d Settings:\n", ptr->filter_id);
-	printf ("              range = %u-%u\n", mfd[ptr->filter_id]->start, mfd[ptr->filter_id]->end);
-	printf ("               step = %u\n", mfd[ptr->filter_id]->step);
-	printf ("              limit = %u\n", mfd[ptr->filter_id]->limit);
-	printf ("    run POST filter = %s\n", mfd[ptr->filter_id]->post?"yes":"no");
+	tc_log_info (MOD_NAME, " detectclipping#%d Settings:", ptr->filter_id);
+	tc_log_info (MOD_NAME, "              range = %u-%u", mfd[ptr->filter_id]->start, mfd[ptr->filter_id]->end);
+	tc_log_info (MOD_NAME, "               step = %u", mfd[ptr->filter_id]->step);
+	tc_log_info (MOD_NAME, "              limit = %u", mfd[ptr->filter_id]->limit);
+	tc_log+info (MOD_NAME, "    run POST filter = %s", mfd[ptr->filter_id]->post?"yes":"no");
     }
 
     if (options)
@@ -182,12 +182,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	mfd[ptr->filter_id]->stride = mfd[ptr->filter_id]->post?(vob->ex_v_width*3):(vob->im_v_width*3);
 	mfd[ptr->filter_id]->bpp = 3;
     } else {
-	fprintf (stderr, "[%s] unsupported colorspace\n", MOD_NAME);
+	tc_log_error (MOD_NAME, "unsupported colorspace");
 	return -1;
     }
 
     // filter init ok.
-    if (verbose) printf("[%s] %s %s #%d\n", MOD_NAME, MOD_VERSION, MOD_CAP, ptr->filter_id);
+    if (verbose) tc_log_info(MOD_NAME, "%s %s #%d", MOD_VERSION, MOD_CAP, ptr->filter_id);
     
     return(0);
   }
@@ -265,7 +265,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     b = ptr->v_height - ((mfd[ptr->filter_id]->y2+1)&(~1));
     r = ptr->v_width - ((mfd[ptr->filter_id]->x2+1)&(~1));
 
-    printf("[detectclipping#%d] valid area: X: %d..%d Y: %d..%d  -> %s %d,%d,%d,%d\n",
+    tc_log_info(MOD_NAME, "[detectclipping#%d] valid area: X: %d..%d Y: %d..%d  -> %s %d,%d,%d,%d",
 	ptr->filter_id,
 	mfd[ptr->filter_id]->x1,mfd[ptr->filter_id]->x2,
 	mfd[ptr->filter_id]->y1,mfd[ptr->filter_id]->y2,

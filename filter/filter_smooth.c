@@ -101,7 +101,6 @@ static void smooth_yuv(unsigned char *buf, int width, int height, int maxdiff,
 					ratio = level / dist;
 					nval = nval * (1 - ratio);
 					nval += ((float)ltbuf[x + (ya * width)]) * ratio;
-//						printf("%d %d %d %d %f %f\n", xa, ya, tbuf[x * (y * width)], buf[x + (y * width)], nval, ratio);
 				}
 			}
 			buf[x + (y * width)] = (unsigned char)(nval + 0.5);
@@ -171,7 +170,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     range[instance] = 4;		/* Search range */
 
     if (options != NULL) {
-    	if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+    	if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 	
 	optstr_get (options, "strength",  "%f", &strength[instance]);
 	optstr_get (options, "cdiff",  "%d", &cdiff[instance]);
@@ -184,11 +183,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
     memset(tbuf[instance], 0, SIZE_RGB_FRAME);
 
     if (vob->im_v_codec == CODEC_RGB) {
-	if (verbose) fprintf(stderr, "[%s] only capable of YUV mode\n", MOD_NAME);
+	if (verbose) tc_log_error(MOD_NAME, "only capable of YUV mode");
 	return -1;
     }
 
-    if(verbose) printf("[%s] %s %s #%d\n", MOD_NAME, MOD_VERSION, MOD_CAP, ptr->filter_id);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s #%d", MOD_VERSION, MOD_CAP, ptr->filter_id);
 
     return(0);
   }

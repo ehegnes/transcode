@@ -93,10 +93,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		unsigned int width, height;
 		int i;
 
-		if (verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+		if (verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
 		if (!(vob = tc_get_vob())) {
-			fprintf(stderr, "[%s] ERROR: Could not get vob\n", MOD_NAME);
+			tc_log_error(MOD_NAME, "Could not get vob");
 			return -1;
 		}
 
@@ -104,13 +104,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		height = vob->im_v_height;
 
 		if (options != NULL) {
-			if (verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+			if (verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
 			optstr_get(options, "level", "%d", &level);
 			memset(limit, 0, PATH_MAX);
 			optstr_get(options, "limit", "%[^:]", &limit);
 		}
-		if (verbose) printf("[%s] options set to: level=%d limit=%s\n", MOD_NAME, level, limit);
+		if (verbose) tc_log_info(MOD_NAME, "options set to: level=%d limit=%s", level, limit);
 		factor = 1 + ((double)abs(level))/100;
 		if (level < 0)
 			factor = 1/factor;
@@ -122,9 +122,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		update_switches();
 
 		if (vob->im_v_codec == CODEC_YUV) {
-			if (verbose) printf("[%s] will need to convert YUV to RGB before filtering\n", MOD_NAME);
+			if (verbose) tc_log_warn(MOD_NAME, "will need to convert YUV to RGB before filtering");
 			if (!tcv_convert_init(width, height)) {
-				fprintf(stderr, "[%s] ERROR: image conversion init failed\n", MOD_NAME);
+				tc_log_error(MOD_NAME, "image conversion init failed");
 				return -1;
 			}
 		}

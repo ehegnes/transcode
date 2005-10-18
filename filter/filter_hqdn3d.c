@@ -132,7 +132,7 @@ static void PrecalcCoefs(int *Ct, double Dist25)
 
 static void help_optstr(void)
 {
-    printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+    tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
     printf ("* Overview\n");
     printf ("  This filter aims to reduce image noise producing\n");
     printf ("  smooth images and making still images really still\n");
@@ -189,7 +189,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       if((vob = tc_get_vob())==NULL) return(-1);
       
       if (vob->im_v_codec == CODEC_RGB) {
-	  fprintf(stderr, "[%s] This filter is only capable of YUV mode\n", MOD_NAME);
+	  tc_log_error(MOD_NAME, "This filter is only capable of YUV mode");
 	  return -1;
       }
 
@@ -265,9 +265,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
       
       if(verbose) {
-	  printf("[%s] %s %s #%d\n", MOD_NAME, MOD_VERSION, MOD_CAP, instance);
-	  printf("[%s] Settings luma=%.2f chroma=%.2f luma_strength=%.2f chroma_strength=%.2f\n",
-		  MOD_NAME, LumSpac, ChromSpac, LumTmp, ChromTmp);
+	  tc_log_info(MOD_NAME, "%s %s #%d\n", MOD_VERSION, MOD_CAP, instance);
+	  tc_log_info(MOD_NAME, "Settings luma=%.2f chroma=%.2f luma_strength=%.2f chroma_strength=%.2f",
+		  LumSpac, ChromSpac, LumTmp, ChromTmp);
       }
       return 0;
   }

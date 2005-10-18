@@ -48,8 +48,8 @@ parse_options(char *options, int *pre, double *infps, double *outfps)
 
 	if (!options || !*options) return 0;
 	if (!strcmp(options, "help")) {
-		printf("[%s] help\n"
-			"This filter converts the video frame rate,"
+		tc_log_info(MOD_NAME, "help");
+		printf("This filter converts the video frame rate,"
 			" by repeating or dropping frames.\n"
 			"options: <input fps>:<output fps>\n"
 			"example: -J fps=25:29.97 will convert"
@@ -123,16 +123,15 @@ tc_filter(frame_list_t *ptr_, char *options)
 	}
 
 	if(ptr->tag & TC_FILTER_INIT) {
-		if (verbose) printf("[%s] %s %s\n",
-			MOD_NAME, MOD_VERSION, MOD_CAP);
+		if (verbose) tc_log_info(MOD_NAME, "%s %s",
+			MOD_VERSION, MOD_CAP);
 		if (parse_options(options, &pre, &infps, &outfps) == -1)
 			return -1;
-		if (verbose && options) printf("[%s] options=%s",
-			MOD_NAME, options);
-		if (verbose && !options) printf("[%s] no options", MOD_NAME);
-		if (verbose) printf(", converting from %g fps to %g fps,"
-			" %sprocessing\n", infps, outfps,
-			pre ? "pre" : "post");
+		if (verbose && options) tc_log_info(MOD_NAME, "options=%s",
+			options);
+		if (verbose && !options) tc_log_info(MOD_NAME, "no options");
+		if (verbose) tc_log_info(MOD_NAME, "converting from %g fps to %g fps,"
+			" %sprocessing", infps, outfps, pre ? "pre" : "post");
 		return 0;
 	}
 

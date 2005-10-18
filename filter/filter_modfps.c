@@ -95,7 +95,7 @@ static double frc_table[16] = {0,
 			       0, 0};
 static void help_optstr(void)
 {
-    printf("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+    tc_log_info(MOD_NAME, "(%s) help", MOD_CAP);
     printf ("* Overview\n");
     printf ("  This filter aims to allow transcode to alter the fps\n");
     printf ("  of video.  While one can reduce the fps to any amount,\n");
@@ -248,12 +248,13 @@ static void clone_temporal_average(unsigned char *clone, unsigned char*next, vfr
   // weight2 is also 1.0-weight1
   
   if (show_results){
-    printf("[%s] temporal_clone tin=%4d tout=%4d w1=%1.5f w2=%1.5f\n",MOD_NAME,tin,tout,weight1,weight2);
+    tc_log_info(MOD_NAME, "temporal_clone tin=%4d tout=%4d w1=%1.5f w2=%1.5f",
+                    tin,tout,weight1,weight2);
   }
 
   if (weight1 < 0.0){
     if (show_results){
-      printf("[%s] temporal_clone: w1 is weak, copying next frame\n",MOD_NAME);
+      tc_log_info(MOD_NAME, "temporal_clone: w1 is weak, copying next frame");
     }
     ac_memcpy(ptr->video_buf,next,ptr->video_size);
     return;
@@ -261,7 +262,7 @@ static void clone_temporal_average(unsigned char *clone, unsigned char*next, vfr
   if (weight2 < 0.0){
     // I think this case cannot happen
     if (show_results){
-      printf("[%s] temporal_clone: w2 is weak, simple cloning of frame\n",MOD_NAME);
+      tc_log_info(MOD_NAME, "temporal_clone: w2 is weak, simple cloning of frame");
     }
     // no memcpy needed, as we're keeping the orig
     return;
@@ -273,7 +274,7 @@ static void clone_temporal_average(unsigned char *clone, unsigned char*next, vfr
   } // else 
 
   if (weight1 > 1.0 || weight2 > 1.0){
-    fprintf(stderr, "[%s] clone_temporal_average: error: weights are out of range, w1=%f w2=%f\n", MOD_NAME,weight1,weight2);
+    tc_log_info(MOD_NAME, "clone_temporal_average: error: weights are out of range, w1=%f w2=%f", weight1,weight2);
     return;
   } // else 
   
@@ -343,10 +344,9 @@ static void clone_interpolate(char *clone, char *next, vframe_list_t *ptr){
  ******/
 static void fancy_clone(char* clone, char* next, vframe_list_t *ptr, int tin, int tout){
   if ((ptr == NULL) || (clone == NULL) || (next == NULL) || (ptr->video_buf == NULL)){
-    fprintf(stderr,"[%s] Big error; we're about to dereference NULL\n",MOD_NAME);
+    tc_log_error(MOD_NAME, "Big error; we're about to dereference NULL");
     return;
   }
-  //printf("[%s] fancy_clone clonetype: %d tin=%4d tout=%4d\n",MOD_NAME,clonetype,tin,tout);
   switch (clonetype){
     case 0:
       ac_memcpy(ptr->video_buf,clone,ptr->video_size);
@@ -365,13 +365,13 @@ static void fancy_clone(char* clone, char* next, vframe_list_t *ptr, int tin, in
       break;
     case 5:
       if (ptr->v_codec != CODEC_YUV){
-        printf("[%s] Erroor, phosphor merge only implemented for YUV data\n",MOD_NAME);
+        tc_log_error(MOD_NAME, "phosphor merge only implemented for YUV data");
 	return;
       }
       clone_phosphor_average(clone,next,ptr);
       break;
     default:
-      printf("[%s] Error, unimplemented clonetype\n",MOD_NAME);
+      tc_log_error(MOD_NAME, "unimplemented clonetype");
       break;
   }
   return;
@@ -394,7 +394,8 @@ static int memory_init(vframe_list_t * ptr){
 
   if (scanrange > ptr->video_size){
     // error, we'll overwalk boundaries later on
-    fprintf(stderr, "[%s] Error, video_size doesn't look to be big enough (scan=%d video_size=%d).\n",MOD_NAME,scanrange,ptr->video_size);
+    tc_log_error(MOD_NAME, "video_size doesn't look to be big enough (scan=%d video_size=%d).",
+                    scanrange,ptr->video_size);
     return -1;
   }
   
@@ -472,18 +473,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 
 	if (verbose){
-	  printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
-	  printf("[%s] converting from %2.4ffps to %2.4ffps\n",MOD_NAME,infps,outfps);
+	  tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
+	  tc_log_info(MOD_NAME, "converting from %2.4ffps to %2.4ffps",infps,outfps);
 	}
 
 	if (outfps > infps*2.0){
-	  fprintf(stderr, "[%s] Error, desired output fps can not be greater\n",MOD_NAME);
-	  fprintf(stderr, "[%s] than twice the input fps\n", MOD_NAME);
+	  tc_log_error(MOD_NAME, "desired output fps can not be greater");
+	  tc_log_error(MOD_NAME, "than twice the input fps");
 	  return -1;
 	}
 
 	if ( (outfps == infps) || (infrc && infrc == vob->ex_frc)) {
-	  fprintf(stderr, "[%s] No framerate conversion requested, exiting\n",MOD_NAME);
+	  tc_log_error(MOD_NAME, "No framerate conversion requested, exiting");
 	  return -1;
 	}
 
@@ -498,7 +499,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  return 0;
 	} // else
 
-	fprintf (stderr, "[%s] Error, only two modes of operation.\n",MOD_NAME);
+	tc_log_eror(MOD_NAME, "only two modes of operation.");
 	return -1;
     }
 
@@ -548,7 +549,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if ((ptr->tag & runnow) && (ptr->tag & TC_VIDEO)) {
       if (mode == 0){
         if (show_results){
-          printf("[%s] in=%5d out=%5d win=%05.3f wout=%05.3f ",MOD_NAME,framesin,outframes,(double)framesin/infps,outframes/outfps);
+          tc_log_info(MOD_NAME, "in=%5d out=%5d win=%05.3f wout=%05.3f ",
+                          framesin,outframes,(double)framesin/infps,outframes/outfps);
 	} 
         if (infps < outfps){
 	  // Notes; since we currently only can clone frames (and just clone
@@ -557,13 +559,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    // we can't clone it again, so we'll record the outframe and exit
 	    ++outframes;
 	    if (show_results){
-	      printf("\n");
+	      tc_log_info(MOD_NAME, "\n");
 	    }
 	    return 0;
 	  } // else 
 	  if ((double)framesin++/infps > (double)outframes++/outfps){
 	    if (show_results){
-	      printf("FRAME IS CLONED");
+	      tc_log_info(MOD_NAME, "FRAME IS CLONED");
 	    }
 	    ptr->attributes |= TC_FRAME_IS_CLONED;
 	  }
@@ -572,13 +574,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	       ++outframes; 
 	  } else {
 	    if (show_results){
-	      printf("FRAME IS SKIPPED");
+	      tc_log_info(MOD_NAME, "FRAME IS SKIPPED");
 	    }
 	    ptr->attributes |= TC_FRAME_IS_SKIPPED;
 	  }
 	}
 	if (show_results){
-	  printf("\n");
+	  tc_log_info(MOD_NAME, "\n");
 	}
 	return(0);
       } // else
@@ -592,7 +594,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  }
 	}
 	if (show_results){
-          printf("[%s] frameIn=%d frameOut=%d in=%5d out=%5d win=%05.3f wout=%05.3f ",MOD_NAME,frameIn,frameOut,framesin-numSample,outframes+cloneq,(double)(framesin-numSample)/infps,(double)(outframes+cloneq)/outfps);
+          tc_log_info(MOD_NAME, "frameIn=%d frameOut=%d in=%5d out=%5d win=%05.3f wout=%05.3f ",
+                          frameIn,frameOut,framesin-numSample,outframes+cloneq,
+                          (double)(framesin-numSample)/infps,(double)(outframes+cloneq)/outfps);
 	}
 	if (ptr->attributes & TC_FRAME_WAS_CLONED){
 	  // don't do anything.  Since it's cloned, we don't
@@ -601,12 +605,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  // as the user requests and then leave, but for now, we'll
 	  // just flee.
 	  if (framesOK[(frameIn+0)%frbufsize]){
-	    fprintf(stderr, "[%s] Oppps, this frame wasn't cloned but we thought it was\n",MOD_NAME);
+	    tc_log_warn(MOD_NAME, "this frame wasn't cloned but we thought it was");
 	  }
 	  ++outframes;
 	  --cloneq;
 	  if (show_results){
-	    printf("no slot needed for clones\n");
+	    tc_log_info(MOD_NAME, "no slot needed for clones");
 	  }
 	  fancy_clone(frames[frameIn],frames[(frameIn+1)%frbufsize],ptr,framesin-numSample,outframes+cloneq+1);
 	  return 0;
@@ -614,7 +618,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	ac_memcpy(frames[frameIn], ptr->video_buf, ptr->video_size);
 	framesOK[frameIn] = 1;
 #ifdef DEBUG
-	printf("Inserted frame %d into slot %d \n",framesin, frameIn);
+	tc_log_info(MOD_NAME, "Inserted frame %d into slot %d",framesin, frameIn);
 #endif // DEBUG
 
 	// Now let's look and see if we should compute a frame's
@@ -627,7 +631,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  t1 = frames[t];
 	  t2 = frames[frameIn];
 #ifdef DEBUG
-	    printf("score: slot=%d, t1=%p t2=%p ",
+	    tc_log_info(MOD_NAME, "score: slot=%d, t1=%p t2=%p ",
 	      t,t1,t2);
 #endif // DEBUG
 	  *score=0;
@@ -635,7 +639,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    *score += abs(t2[i] - t1[i]);
 	  }
 #ifdef DEBUG
-	    printf("score = %d\n",*score);
+	    tc_log_info(MOD_NAME, "score = %d\n",*score);
 #endif // DEBUG
 	}
 
@@ -647,7 +651,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  frameIn = (frameIn+1) % frbufsize;
 	  ++framesin;
 	  if (show_results){
-	    printf("\n");
+	    tc_log_info(MOD_NAME, "\n");
 	  }
 	  return 0;
 	} // else
@@ -660,12 +664,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    // we have to find a frame to clone
 	    int diff=-1, mod=-1;
 #ifdef DEBUG
-	      printf("start=%d end=%d\n",(frameIn+1)%frbufsize,frameIn);
+	      tc_log_info(MOD_NAME, "start=%d end=%d",(frameIn+1)%frbufsize,frameIn);
 #endif // DEBUG
 	    fflush(stdout);
 	    for(i=((frameIn+1)%frbufsize); i!=frameIn; i=((i+1)%frbufsize)){
 #ifdef DEBUG
-	        printf("i=%d Ok=%d Score=%d\n",i,framesOK[i],framesScore[i]);
+	        tc_log_info(MOD_NAME, "i=%d Ok=%d Score=%d",i,framesOK[i],framesScore[i]);
 #endif // DEBUG
 	      // make sure we haven't skipped/cloned this frame already
 	      if(framesOK[i]){
@@ -677,11 +681,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	      }
 	    }
 	    if (mod == -1){
-	      fprintf(stderr,"[%s] Error calculating frame to clone\n",MOD_NAME);
+	      tc_log_error(MOD_NAME, "Error calculating frame to clone");
 	      return -1;
 	    }
 #ifdef DEBUG
-	    printf("XXX cloning  %d\n",mod);
+	    tc_log_info(MOD_NAME, "cloning  %d",mod);
 #endif // DEBUG
 	    ++cloneq;
 	    framesOK[mod] = 0;
@@ -689,12 +693,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  ac_memcpy(ptr->video_buf,frames[frameOut],ptr->video_size);
 	  if (framesOK[frameOut]){
 	    if (show_results){
-	      printf("giving   slot %2d frame %6d\n",frameOut,ptr->id);
+	      tc_log_info(MOD_NAME, "giving   slot %2d frame %6d",frameOut,ptr->id);
 	    }
 	  } else {
 	    ptr->attributes |= TC_FRAME_IS_CLONED;
 	    if (show_results){
-	      printf("cloning  slot %2d frame %6d\n",frameOut,ptr->id);
+	      tc_log_info(MOD_NAME, "cloning  slot %2d frame %6d",frameOut,ptr->id);
 	    }
 	  }
 	  frameOut = (frameOut+1) % frbufsize;
@@ -707,7 +711,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    // difference between the frame which follows it.
 	    for(i=((frameIn+1)%frbufsize); i!=frameIn; i=((i+1)%frbufsize)){
 #ifdef DEBUG
-	        printf("i=%d Ok=%d Score=%d\n",i,framesOK[i],framesScore[i]);
+	        tc_log_info(MOD_NAME, "i=%d Ok=%d Score=%d",i,framesOK[i],framesScore[i]);
 #endif // debug
 	      // make sure we haven't skipped/cloned this frame already
 	      if(framesOK[i]){
@@ -718,7 +722,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	      }
 	    }
 	    if (mod == -1){
-	      fprintf(stderr,"[%s] Error calculating frame to skip\n",MOD_NAME);
+	      tc_log_error(MOD_NAME,"Error calculating frame to skip",MOD_NAME);
 	      return -1;
 	    }
 	    framesOK[mod] = 0;
@@ -728,12 +732,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  if (framesOK[frameOut]){
 	    ac_memcpy(ptr->video_buf,frames[frameOut],ptr->video_size);
 	    if (show_results){
-	      printf("giving   slot %2d frame %6d\n",frameOut,ptr->id);
+	      tc_log_info(MOD_NAME, "giving   slot %2d frame %6d",frameOut,ptr->id);
 	    }
 	  } else {
 	    ptr->attributes |= TC_FRAME_IS_SKIPPED;
 	    if (show_results){
-	      printf("skipping slot %2d frame %6d\n",frameOut,ptr->id);
+	      tc_log_warn(MOD_NAME, "skipping slot %2d frame %6d",frameOut,ptr->id);
 	    }
 	  }
 	  frameOut = (frameOut+1) % frbufsize;
@@ -742,7 +746,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	++framesin;
 	return 0;
       }
-      fprintf(stderr, "[%s] Oppps, currently only 2 modes of operation\n",MOD_NAME);
+      tc_log_error(MOD_NAME, "currently only 2 modes of operation");
       return(-1);
     }
 

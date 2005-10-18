@@ -90,7 +90,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
     /* extract file name */
     file = NULL;
@@ -102,7 +102,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	optstr_get(options, "file", "%[^:]", file);
       }
       if(verbose) 
-	printf("[%s] saving audio scale value to '%s'\n", MOD_NAME, file);
+	    tc_log_info(MOD_NAME, "saving audio scale value to '%s'", file);
     }
 
     fps=vob->fps;
@@ -131,7 +131,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
     vol = (fmin<fmax) ? 1./fmax : 1./fmin;
     
     //    printf("[%s] audio frames=%.2f, estimated clip length=%.2f seconds\n", MOD_NAME, frames, frames/fps);
-    printf("\n[%s] (min=%.3f/max=%.3f), normalize volume with \"-s %.3f\"\n", MOD_NAME, -fmin, fmax, vol);
+    tc_log_info(MOD_NAME, "(min=%.3f/max=%.3f), "
+                          "normalize volume with \"-s %.3f\"", 
+                          -fmin, fmax, vol);
 
     /* write scale value to file */
     if(file!=NULL) {
@@ -141,7 +143,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       fprintf(fh,"%.3f\n",vol);
       fclose(fh);
       if(verbose)
-	printf("[%s] wrote audio scale value to '%s'\n",MOD_NAME,file);
+	    tc_log_info(MOD_NAME, "wrote audio scale value to '%s'", file);
       free(file);
     }
     
@@ -154,7 +156,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //
   //----------------------------------
 
-  if(verbose & TC_STATS) printf("[%s] %s/%s %s %s\n", MOD_NAME, vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
+  if(verbose & TC_STATS) 
+    tc_log_info(MOD_NAME, "%s/%s %s %s", 
+                vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
   
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines

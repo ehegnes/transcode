@@ -89,7 +89,7 @@ static MyFilterData *mfd;
 
 static void help_optstr(void) 
 {
-   printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
    printf ("    This filter provides a smart, motion-based deinterlacing\n");
    printf ("    capability. In static picture areas, interlacing artifacts do not\n");
@@ -110,8 +110,6 @@ static void help_optstr(void)
    printf ("         'outswap' Field swap after phase shift (0=off, 1=on) [0]\n");
    printf ("           'highq' Motion map denoising for field-only (0=off, 1=on) [0]\n");
    printf ("        'noMotion' Disable motion processing (0=off, 1=on) [0]\n");
-
-
 
 }
 
@@ -156,7 +154,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (options != NULL) {
     
-	  if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+	  if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
 	  optstr_get (options, "motionOnly",     "%d",  &mfd->motionOnly       );
 	  optstr_get (options, "Blend",          "%d",  &mfd->Blend            );
@@ -178,19 +176,19 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (verbose > 1) {
 
-	  printf (" Smart Deinterlacer Filter Settings (%dx%d):\n", width, height);
-	  printf ("        motionOnly = %d\n", mfd->motionOnly);
-	  printf ("             Blend = %d\n", mfd->Blend);
-	  printf ("         threshold = %d\n", mfd->threshold);
-	  printf ("    scenethreshold = %d\n", mfd->scenethreshold);
-	  printf ("        fieldShift = %d\n", mfd->fieldShift);
-	  printf ("            inswap = %d\n", mfd->inswap);
-	  printf ("           outswap = %d\n", mfd->outswap);
-	  printf ("          noMotion = %d\n", mfd->noMotion);
-	  printf ("             highq = %d\n", mfd->highq);
-	  printf ("          diffmode = %d\n", mfd->diffmode);
-	  printf ("         colordiff = %d\n", mfd->colordiff);
-	  printf ("             cubic = %d\n", mfd->cubic);
+	  tc_log_info (MOD_NAME, " Smart Deinterlacer Filter Settings (%dx%d):", width, height);
+	  tc_log_info (MOD_NAME, "        motionOnly = %d", mfd->motionOnly);
+	  tc_log_info (MOD_NAME, "             Blend = %d", mfd->Blend);
+	  tc_log_info (MOD_NAME, "         threshold = %d", mfd->threshold);
+	  tc_log_info (MOD_NAME, "    scenethreshold = %d", mfd->scenethreshold);
+	  tc_log_info (MOD_NAME, "        fieldShift = %d", mfd->fieldShift);
+	  tc_log_info (MOD_NAME, "            inswap = %d", mfd->inswap);
+	  tc_log_info (MOD_NAME, "           outswap = %d", mfd->outswap);
+	  tc_log_info (MOD_NAME, "          noMotion = %d", mfd->noMotion);
+	  tc_log_info (MOD_NAME, "             highq = %d", mfd->highq);
+	  tc_log_info (MOD_NAME, "          diffmode = %d", mfd->diffmode);
+	  tc_log_info (MOD_NAME, "         colordiff = %d", mfd->colordiff);
+	  tc_log_info (MOD_NAME, "             cubic = %d", mfd->cubic);
 	}
 
 	/* fetch memory */
@@ -229,7 +227,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 
 	// filter init ok.
-	if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+	if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
 	return 0;
 

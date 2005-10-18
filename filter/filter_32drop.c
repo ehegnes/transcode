@@ -83,8 +83,6 @@ static int interlace_test(char *video_buf, int width, int height, int id, int ve
     
     cc = (((double) (cc_1 + cc_2))/(width*height) > critical_threshold) ? 1:0;
     
-    if(0) fprintf(stderr, "frame [%06d]: (1) = %5d | (2) = %5d | (3) = %f | interlaced = %s\n", id, cc_1, cc_2, (double)(cc_1 + cc_2)/(width*height), ((cc)?"yes":"no")); 
-    
     return(cc);
 }
 
@@ -134,7 +132,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
     lastframe = malloc(SIZE_RGB_FRAME);
     lastiframe = malloc(SIZE_RGB_FRAME);

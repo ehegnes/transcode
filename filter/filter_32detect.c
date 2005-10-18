@@ -60,7 +60,7 @@ static inline int sq( int d ) { return d * d; }
 
 static void help_optstr(void) 
 {
-   printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
    printf("    This filter checks for interlaced video frames.\n");
    printf("    Subsequent de-interlacing with transcode can be enforced with 'force_mode' option\n");
@@ -120,7 +120,11 @@ static int interlace_test(char *video_buf, int width, int height, int id, int in
     flag = (cc > thres) ? 1:0;
     
 
-    if(show_results[instance]) fprintf(stderr, "(%d) frame [%06d]: (1) = %5d | (2) = %5d | (3) = %3d | interlaced = %s\n", instance, id, cc_1, cc_2, cc, ((flag)?"yes":"no")); 
+    if(show_results[instance]) 
+        tc_log_info(MOD_NAME, "(%d) frame [%06d]: (1) = %5d | (2) = %5d "
+                              "| (3) = %3d | interlaced = %s", 
+                              instance, id, cc_1, cc_2, cc, 
+                              ((flag)?"yes":"no"));
     
     return(flag);
 }
@@ -185,13 +189,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
       
       // filter init ok.
       
-      if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+      if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
       
       // process filter options:
       
       if (options != NULL) {
 	  
-	  if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+	  if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 	  
 	  optstr_get (options, "threshold", "%d",  &threshold[instance]);
 	  optstr_get (options, "chromathres", "%d",  &chroma_threshold[instance]);

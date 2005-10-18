@@ -63,9 +63,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
-    if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+    if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
     /* thank god there is no write protection for variables */
     
@@ -107,7 +107,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
     }
     if (verbose & TC_DEBUG)
-      printf("[%s] changing audio bufsize (%d) -> (%d)\n", MOD_NAME, vob->im_a_size, vob->ex_a_size);
+      tc_log_info(MOD_NAME, "changing audio bufsize (%d) -> (%d)", vob->im_a_size, vob->ex_a_size);
     
     return(0);
   }
@@ -171,7 +171,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    ptr->attributes |= TC_FRAME_IS_CLONED;
 
 	    if (verbose & TC_DEBUG)
-	      printf("[A] frame cloned (%d)\n", ptr->id);
+	      tc_log_info(MOD_NAME, "[A] frame cloned (%d)", ptr->id);
 
 	    ac_memcpy (audio_buf[0]+3*diff , ptr->audio_buf          , ex-3*diff);
 	    ac_memcpy (audio_buf[1]        , ptr->audio_buf+ex-3*diff, 4*diff);

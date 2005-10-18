@@ -68,7 +68,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
     if(options != NULL) {
 	optstr_get(options, "taps", "%d", &taps);
@@ -95,7 +95,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     }
 
     if (vob->a_bits != 16) {
-	fprintf(stderr, "[%s] This filter only supports 16 bit samples\n", MOD_NAME);
+	tc_log_error(MOD_NAME, "This filter only supports 16 bit samples");
 	return (TC_IMPORT_ERROR);
     }
 

@@ -89,7 +89,7 @@ static MyFilterData *mfd;
 
 static void help_optstr(void) 
 {
-   printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
    printf ("   This filter only makes sence when fed by -J doublefps.\n");
    printf ("   It will take the field-frames which filter_doublefps\n");
@@ -146,7 +146,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (options != NULL) {
     
-	  if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+	  if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
 	  optstr_get (options, "motionOnly",     "%d",  &mfd->bMotionOnly       );
 	  optstr_get (options, "shiftEven",      "%d",  &mfd->bShiftEven        );
@@ -160,11 +160,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (verbose > 1) {
 
-	  printf (" Smart Deinterlacer Filter Settings (%dx%d):\n", width, height);
-	  printf ("        motionOnly = %d\n", mfd->bMotionOnly);
-	  printf ("            denois = %d\n", mfd->bDenoise);
-	  printf ("         threshold = %d\n", mfd->threshold);
-	  printf ("         shiftEven = %d\n", mfd->bShiftEven);
+	  tc_log_info (MOD_NAME, " Smart Deinterlacer Filter Settings (%dx%d):", width, height);
+	  tc_log_info (MOD_NAME, "        motionOnly = %d", mfd->bMotionOnly);
+	  tc_log_info (MOD_NAME, "            denois = %d", mfd->bDenoise);
+	  tc_log_info (MOD_NAME, "         threshold = %d", mfd->threshold);
+	  tc_log_info (MOD_NAME, "         shiftEven = %d", mfd->bShiftEven);
 	}
 
 	/* fetch memory */
@@ -189,7 +189,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 
 	// filter init ok.
-	if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+	if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
 	return 0;
 

@@ -98,7 +98,7 @@ static MyFilterData *mfd = NULL;
 
 static void help_optstr(void) 
 {
-   printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
    printf ("    normalizes audio\n");
    printf ("* Options\n");
@@ -125,8 +125,6 @@ static void reset(void){
       break;
     default:
       break;
-      //fprintf(stderr,"[pl_volnorm] internal inconsistency - bugreport !\n");
-      //*(char *) 0 = 0;
   }
 }
 
@@ -156,7 +154,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if((vob = tc_get_vob())==NULL) return(-1);
 
     if (vob->a_bits != 16) {
-	fprintf(stderr, "This filter only works for 16 bit samples\n");
+	tc_log_error(MOD_NAME, "This filter only works for 16 bit samples");
 	return (-1);
 
     }
@@ -174,7 +172,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if (options != NULL) {
     
-	if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+	if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
 	optstr_get(options, "smooth", "%f", &mfd->SMOOTH_MUL);
 	optstr_get(options, "smoothlast", "%f", &mfd->SMOOTH_LASTAVG);
@@ -185,10 +183,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     }
 
-
+#if 0
     if (verbose > 1) {
-	printf (" Normalize Filter Settings:\n");
+	tc_log_info (MOD_NAME, " Normalize Filter Settings:");
     }
+#endif    
 
     if (options)
 	if (optstr_lookup (options, "help")) {
@@ -196,7 +195,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 
     // filter init ok.
-    if (verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if (verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
     
     return(0);
@@ -295,12 +294,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
     // Stores computed values for future smoothing
     if (mfd->AVG == 1) {
 	mfd->lastavg = (1.0-mfd->SMOOTH_LASTAVG)*mfd->lastavg + mfd->SMOOTH_LASTAVG*newavg;
-	//printf("\rmfd->mul=%02.1f ", mfd->mul);
     } else if (mfd->AVG == 2) {
 	mfd->mem[mfd->idx].len = len;
 	mfd->mem[mfd->idx].avg = newavg;
 	mfd->idx = (mfd->idx + 1) % NSAMPLES;
-	//printf("\rmfd->mul=%02.1f (%04dKiB) ", mfd->mul, totallen/1024);
     }
 
 

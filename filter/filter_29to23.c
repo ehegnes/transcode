@@ -71,13 +71,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
     f2 = malloc (SIZE_RGB_FRAME);
     
     if (!f1 || !f2) {
-	    printf("[%s]: Malloc failed in %d\n", MOD_NAME, __LINE__);
+	    fprintf(stderr, "[%s]: Malloc failed in %d\n", MOD_NAME, __LINE__);
 	    return -1;
     }
 
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
-    if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+    if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
     
     return(0);
   }

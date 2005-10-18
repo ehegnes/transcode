@@ -152,7 +152,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if((vob = tc_get_vob())==NULL) return(-1);
     
     if (vob->im_v_codec == CODEC_RGB) {
-      fprintf(stderr, "[%s] error: filter is not capable for RGB-Mode !\n", MOD_NAME);
+      tc_log_error(MOD_NAME, "filter is not capable for RGB-Mode !");
       return(-1);
     }
 
@@ -216,15 +216,15 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
         if(denoiser.radius<8) {
           denoiser.radius=8;
-  	      fprintf (stderr, "Minimum allowed search radius is 8 pixel.");
+  	      tc_log_warn (MOD_NAME, "Minimum allowed search radius is 8 pixel.");
         } else if(denoiser.radius>24) {
-  	      fprintf (stderr, "Maximum suggested search radius is 24 pixel.");
+  	      tc_log_warn (MOD_NAME, "Maximum suggested search radius is 24 pixel.");
         }
         if(denoiser.delay<1) {
           denoiser.delay=1;
-  	      fprintf (stderr, "Minimum allowed frame delay is 1.");
+  	      tc_log_warn (MOD_NAME, "Minimum allowed frame delay is 1.");
         } else if(denoiser.delay>8) {
-  	      fprintf (stderr, "Maximum suggested frame delay is 8.");
+  	      tc_log_warn (MOD_NAME, "Maximum suggested frame delay is 8.");
         }
 	//denoiser.deinterlace=0;
     }
@@ -260,7 +260,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     turn_on_accels();
 
     // filter init ok.
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     return(0);
   }
 
@@ -352,7 +352,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
       if(denoiser.reset) {
 	  if(verbose && denoiser.reset==denoiser.do_reset)
-	    fprintf(stderr, "[%s] Scene change detected at frame <%d>\n", MOD_NAME, ptr->id); 
+	    tc_log_info(MOD_NAME, "Scene change detected at frame <%d>", ptr->id); 
         
 	  ac_memcpy(denoiser.frame.avg[Yy]+frame_offset,   denoiser.frame.io[Yy],y_size );
 	  ac_memcpy(denoiser.frame.avg[Cr]+frame_offset4,  denoiser.frame.io[Cr],y_size4);
@@ -389,7 +389,7 @@ static uint8_t *alloc_buf(size_t size)
 {
   uint8_t *ret = (uint8_t *)malloc(size);
   if( ret == NULL )
-    tc_error( "Out of memory: could not allocate buffer" );
+    tc_log_error(MOD_NAME, "Out of memory: could not allocate buffer" );
   return ret;
 }
 
@@ -490,6 +490,8 @@ void free_buffers(void)
       denoiser.frame.sub4avg[i] = NULL;
     }
 }
+
+// ***
 
 void print_settings(void)
 {

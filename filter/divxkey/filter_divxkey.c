@@ -123,15 +123,15 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
     
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
-    if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+    if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
     tc_snprintf(buffer, sizeof(buffer), "%s-%s", PACKAGE, VERSION);
     
     //init filter
 
-    if(verbose) printf("[%s] divxkey\n", MOD_NAME);
+    if(verbose) tc_log_info(MOD_NAME, "divxkey");
 
     return(0);
   }
@@ -153,7 +153,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //
   //----------------------------------
 
-  if(verbose & TC_STATS) printf("[%s] %s/%s %s %s\n", MOD_NAME, vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
+  if(verbose & TC_STATS) tc_log_info(MOD_NAME, "%s/%s %s %s", vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
   
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
@@ -169,7 +169,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       cc0 = bs_vol(&bs, &dec);
       cc1 = bs_vop(&bs, &dec, &rounding, &quant, &fcode);
       
-      if(verbose & TC_STATS) fprintf(stderr, "frame=%d vop=%d vol=%d (%d %d %d)\n", ptr->id, cc1, cc0, rounding, quant, fcode);
+      if(verbose & TC_STATS) tc_log_info(MOD_NAME, "frame=%d vop=%d vol=%d (%d %d %d)", ptr->id, cc1, cc0, rounding, quant, fcode);
       
 
       // DivX ;-)
@@ -179,7 +179,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  if(ptr->video_size>4) cc3=quicktime_divx3_is_key((unsigned char *)ptr->video_buf);
 	  
 	  if(cc3) ptr->attributes |= TC_FRAME_IS_KEYFRAME;
-	  if((verbose & TC_DEBUG) && cc3) fprintf(stderr, "key (intra) @ %d  \n", ptr->id);
+	  if((verbose & TC_DEBUG) && cc3) tc_log_info(MOD_NAME, "key (intra) @ %d", ptr->id);
 	  
       }
       
@@ -189,7 +189,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  
 	  cc2=quicktime_divx4_is_key((unsigned char *)ptr->video_buf, (long) ptr->video_size);
 	  if(cc2  && cc1 == I_VOP) ptr->attributes |= TC_FRAME_IS_KEYFRAME;
-	  if((verbose & TC_DEBUG) && cc2 && cc1 == I_VOP) fprintf(stderr, "key (intra) @ %d  \n", ptr->id);
+	  if((verbose & TC_DEBUG) && cc2 && cc1 == I_VOP) tc_log_info(MOD_NAME, "key (intra) @ %d", ptr->id);
       }
   }
   

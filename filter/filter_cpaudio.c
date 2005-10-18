@@ -46,7 +46,7 @@
 
 static void help_optstr(void)
 {
-   printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+   tc_log_info (MOD_NAME, "(%s) help\n", MOD_CAP);
    printf ("* Overview\n");
    printf ("    Copies audio from one channel to another\n");
    printf ("* Options\n");
@@ -80,7 +80,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if (vob->dm_bits != 16)
     {
-      fprintf (stderr, "This filter only works for 16 bit samples\n");
+      tc_log_error (MOD_NAME, "This filter only works for 16 bit samples\n");
       return (-1);
     }
    
@@ -104,8 +104,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     // filter init ok.
    
-    if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
-    if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
+    if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
    
     return(0);
   }

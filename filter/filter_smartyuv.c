@@ -128,7 +128,7 @@ static MyFilterData *mfd;
 
 static void help_optstr(void) 
 {
-   printf ("[%s] (%s) help\n", MOD_NAME, MOD_CAP);
+   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
    printf ("   This filter is basically a rewrite of the\n");
    printf ("   smartdeinter filter by Donald Graft (without advanced processing\n");
@@ -162,6 +162,7 @@ static void help_optstr(void)
    printf ("     'verbose' Verbose mode (0=off 1=on) [1]\n");
 
 }
+
 static void Erode_Dilate (uint8_t *_moving, uint8_t *_fmoving, int width, int height)
 {
     int sum, x, y;
@@ -379,7 +380,6 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	srcplus = src + srcpitch;
 	moving = _moving + w+PAD;
 	prev = _prev + w;
-	//printf("Aligned src %p prev %p moving %p\n", src, prev, moving);
 
 	if (mfd->diffmode == FRAME_ONLY || mfd->diffmode == FRAME_AND_FIELD)
 	{
@@ -450,15 +450,6 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		  }  else  // cannot use mmx
 #elif CAN_COMPILE_C_ALTIVEC
 		  if (can_use_altivec) {
-#if 0
-		      typedef union {
-			  vector unsigned char v;
-			  unsigned char e[16];
-		      } uchar_t;
-		      uchar_t res;
-		      //printf("mov: "); for (i=0; i<16;i++) printf("%02x ", res.e[i]&0xff);  printf("\n");
-#endif
-
 		      vector unsigned char vthres;
 		      vector unsigned char shift = vec_splat_u8(7);
 		      unsigned char __attribute__ ((aligned(16))) tdata[16];
@@ -493,17 +484,6 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 
 			  moving += PAD;
 		    }
-#if 0
-		    {
-			FILE *f = fopen("mov.dat", "w");
-			printf ("COUNT %d size1 (%d) size2 (%d)\n", count, sizeof (*moving), sizeof (unsigned char));
-			fwrite (_moving, h*w, 1, f);
-			fclose (f);
-			exit(0);
-		    }
-#endif
-
-
 		      
 		  } else
 #endif
@@ -800,7 +780,6 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 			moving += PAD;
 			srcminus += srcpitch;
 		    }
-		    //printf ("XXXCOUNT %d|\n", count);
 		  }
 		}
 
@@ -809,7 +788,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		else scenechange = 0;
 
 		if (scenechange && mfd->verbose) 
-		    printf("[%s] Scenechange at %6d (%6ld moving pixels)\n", MOD_NAME, counter, count);
+		    tc_log_info(MOD_NAME, "Scenechange at %6d (%6ld moving pixels)", counter, count);
 		/*
 		printf("Frame (%04d) count (%8ld) sc (%d) calc (%02ld)\n", 
 				counter, count, scenechange, (100 * count) / (h * w));
@@ -1271,13 +1250,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	mfd->verbose        = 0;
 
 	if (mfd->codec != CODEC_YUV) {
-	    tc_warn ("[%s] This filter is only capable of YUV mode", MOD_NAME);
+	    tc_log_error (MOD_NAME, "This filter is only capable of YUV mode");
 	    return -1;
 	}
 
 	if (options != NULL) {
     
-	  if(verbose) printf("[%s] options=%s\n", MOD_NAME, options);
+	  if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
 	  optstr_get (options, "motionOnly",     "%d",  &mfd->motionOnly     );
 	  optstr_get (options, "threshold",      "%d",  &mfd->threshold      );
@@ -1297,22 +1276,20 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (verbose > 1) {
 
-	  printf (" Smart YUV Deinterlacer Test Filter Settings (%dx%d):\n", width, height);
-	  printf ("        motionOnly = %d\n", mfd->motionOnly);
-	  printf ("          diffmode = %d\n", mfd->diffmode);
-	  printf ("         threshold = %d\n", mfd->threshold);
-	  printf ("       chromathres = %d\n", mfd->chromathres);
-	  printf ("        scenethres = %d\n", mfd->scenethreshold);
-	  printf ("             cubic = %d\n", mfd->cubic);
-	  printf ("             highq = %d\n", mfd->highq);
-	  printf ("             Blend = %d\n", mfd->Blend);
-	  printf ("          doChroma = %d\n", mfd->doChroma);
-	  printf ("           verbose = %d\n", mfd->verbose);
+	  tc_log_info (MOD_NAME, " Smart YUV Deinterlacer Test Filter Settings (%dx%d):", width, height);
+	  tc_log_info (MOD_NAME, "        motionOnly = %d", mfd->motionOnly);
+	  tc_log_info (MOD_NAME, "          diffmode = %d", mfd->diffmode);
+	  tc_log_info (MOD_NAME, "         threshold = %d", mfd->threshold);
+	  tc_log_info (MOD_NAME, "       chromathres = %d", mfd->chromathres);
+	  tc_log_info (MOD_NAME, "        scenethres = %d", mfd->scenethreshold);
+	  tc_log_info (MOD_NAME, "             cubic = %d", mfd->cubic);
+	  tc_log_info (MOD_NAME, "             highq = %d", mfd->highq);
+	  tc_log_info (MOD_NAME, "             Blend = %d", mfd->Blend);
+	  tc_log_info (MOD_NAME, "          doChroma = %d", mfd->doChroma);
+	  tc_log_info (MOD_NAME, "           verbose = %d", mfd->verbose);
 	}
 
 	/* fetch memory */
-
-
 
 	mfd->buf =  tc_bufalloc (width*height*3);
 	mfd->prevFrame =  tc_bufalloc (width*height*3);
@@ -1385,14 +1362,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	// filter init ok.
 
-	if(verbose) printf("[%s] "
+	if(verbose) tc_log_info(MOD_NAME, 
 #ifdef HAVE_ASM_MMX
 		"(MMX) "
 #endif
 #ifdef CAN_COMPILE_C_ALTIVEC
 		"(ALTIVEC) "
 #endif
-		"%s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
+		"%s %s", MOD_VERSION, MOD_CAP);
 
 	return 0;
 
