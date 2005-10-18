@@ -158,7 +158,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	return (-1);
 
     }
-    if((mfd = (MyFilterData *)malloc (sizeof(MyFilterData))) == NULL) return (-1);
+    if((mfd = tc_malloc (sizeof(MyFilterData))) == NULL) return (-1);
 
     mfd->format  = 1; /* XXX bogus */
     mfd->mul     = MUL_INIT;

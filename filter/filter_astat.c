@@ -98,7 +98,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       if (!is_optstr(options)) {
 	file = strdup(options);
       } else  {
-	file = malloc(1024);
+	file = tc_malloc(1024);
 	optstr_get(options, "file", "%[^:]", file);
       }
       if(verbose) 

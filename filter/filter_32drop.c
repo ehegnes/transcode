@@ -134,8 +134,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
-    lastframe = malloc(SIZE_RGB_FRAME);
-    lastiframe = malloc(SIZE_RGB_FRAME);
+    lastframe = tc_malloc(SIZE_RGB_FRAME);
+    lastiframe = tc_malloc(SIZE_RGB_FRAME);
 
     return(0);
   }

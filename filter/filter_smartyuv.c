@@ -1225,13 +1225,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if((vob = tc_get_vob())==NULL) return(-1);
     
 
-	mfd = (MyFilterData *) malloc(sizeof(MyFilterData));
+	mfd = tc_mallocz(sizeof(MyFilterData));
 
 	if (!mfd) {
-		fprintf(stderr, "No memory!\n"); return (-1);
+		fprintf(stderr, "No memory!\n"); 
+        return (-1);
 	}
-
-	memset (mfd, 0, sizeof(MyFilterData));
 
 	width  = vob->im_v_width;
 	height = vob->im_v_height;

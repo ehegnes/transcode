@@ -275,10 +275,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if((vob = tc_get_vob())==NULL) return(-1);
 
-    if((mfd = (MyFilterData *)malloc (sizeof(MyFilterData))) == NULL) return (-1);
-
-    // just to be safe
-    memset (mfd, 0, sizeof(MyFilterData));
+    // MallocZ  just to be safe
+    mfd = tc_mallocz (sizeof(MyFilterData));
+    if(mfd == NULL) 
+        return (-1);
 
     mfd->start=0;
     mfd->end=(unsigned int)-1;
@@ -392,7 +392,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
     else 
       size = width*3/2;
 
-    if((buf = (uint8_t *)malloc (height*size)) == NULL) return (-1);
+    buf = tc_malloc (height*size);
+    if(buf == NULL) 
+        return (-1);
 
     if (codec == CODEC_RGB)
 	memset (buf, 0, height*size);

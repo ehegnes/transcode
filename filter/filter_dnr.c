@@ -369,7 +369,7 @@ static T_DNR_FILTER_CTX *dnr_init(int src_w, int src_h, int isYUV)
   double high1, high2;
   int    a, b, dif1, dif2;
   
-  T_DNR_FILTER_CTX *fctx = malloc (sizeof(T_DNR_FILTER_CTX));
+  T_DNR_FILTER_CTX *fctx = tc_malloc (sizeof(T_DNR_FILTER_CTX));
   
   //-- PARAMETERS --
   fctx->pThreshold  = DEFAULT_LT; // threshold to blend luma/red (default 10)

@@ -176,7 +176,7 @@ static int filter_fields_init(char *options) {
 
   if (verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     
-  buffer = malloc(SIZE_RGB_FRAME);
+  buffer = tc_malloc(SIZE_RGB_FRAME);
   if (!buffer) {
     fprintf(stderr, "[%s] ERROR: Unable to allocate memory.  Aborting.\n",
                     MOD_NAME);

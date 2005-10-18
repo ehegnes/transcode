@@ -149,7 +149,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if((vob = tc_get_vob())==NULL) return(-1);
 
-    if((mfd = (MyFilterData *)malloc (sizeof(MyFilterData))) == NULL) return (-1);
+    if((mfd = tc_malloc (sizeof(MyFilterData))) == NULL) return (-1);
 
     //mfd->file = filename;
     strlcpy (mfd->file, "logo.png", PATH_MAX);
@@ -259,13 +259,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	int i;
 
 	if (!mfd->yuv) {
-	    mfd->yuv = (char **) malloc(sizeof(char *) * mfd->nr_of_images); 
+	    mfd->yuv = tc_malloc(sizeof(char *) * mfd->nr_of_images); 
 	    if (!mfd->yuv) {
 		fprintf (stderr, "[%s:%d] ERROR out of memory\n", __FILE__, __LINE__);
 		return (-1);
 	    }
 	    for (i=0; i<mfd->nr_of_images; i++) {
-		mfd->yuv[i]=(char *)malloc(sizeof(char)*image->columns*image->rows*3);
+		mfd->yuv[i]=tc_malloc(sizeof(char)*image->columns*image->rows*3);
 		if (!mfd->yuv[i]) {
 		    fprintf (stderr, "[%s:%d] ERROR out of memory\n", __FILE__, __LINE__);
 		    return (-1);

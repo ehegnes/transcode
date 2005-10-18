@@ -360,17 +360,15 @@ int tc_filter(frame_list_t *vframe_, char * options)
 
 		size = pd->vob->im_v_width * MAX_PLANES * sizeof(char) * 2;
 
-		if(!!(pd->lineant = malloc(size)))
-			memset(pd->lineant, 0, size);
-		else
-			tc_log_error(MOD_NAME, "malloc failed");
+		pd->lineant = tc_mallocz(size);
+		if(pd->lineant == NULL)
+			tc_log_error(MOD_NAME, "Malloc failed");
 
 		size *= pd->vob->im_v_height * 2;
 
-		if(!!(pd->previous = malloc(size)))
-			memset(pd->previous, 0, size);
-		else
-			tc_log_error(MOD_NAME, "malloc failed");
+		pd->previous = tc_mallocz(size);
+		if(pd->previous == NULL)
+			tc_log_error(MOD_NAME, "Malloc failed");
 
 		PrecalcCoefs(pd->coefficients[0], pd->parameter.luma_spatial);
 		PrecalcCoefs(pd->coefficients[1], pd->parameter.luma_temporal);

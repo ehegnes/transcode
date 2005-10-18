@@ -68,7 +68,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     //height_mod = vob->ex_v_height;
 
     if (!lines) 
-	lines = (char *) malloc (width*height*3);
+	lines = tc_malloc (width*height*3);
     
     if (!lines) {
 	tc_log_error(MOD_NAME, "No lines buffer available");

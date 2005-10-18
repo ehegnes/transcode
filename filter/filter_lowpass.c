@@ -79,8 +79,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	highpass = 1;
     }
 
-    array_r = malloc (taps * sizeof(short));
-    array_l = malloc (taps * sizeof(short));
+    array_r = tc_malloc (taps * sizeof(short));
+    array_l = tc_malloc (taps * sizeof(short));
 
     if (!array_r || !array_l) {
 	fprintf (stderr, "[%s] Malloc failed in %d\n", MOD_NAME, __LINE__);

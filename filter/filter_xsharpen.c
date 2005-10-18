@@ -105,7 +105,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
 	if((vob = tc_get_vob())==NULL) return(-1);
     
-	mfd = (MyFilterData *) malloc(sizeof(MyFilterData));
+	mfd = tc_malloc(sizeof(MyFilterData));
 
 	if (!mfd) {
 		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
@@ -146,13 +146,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	
 	/* fetch memory */
 
-	mfd->convertFrameIn = (Pixel32 *) malloc (width*height*sizeof(Pixel32));
+	mfd->convertFrameIn = tc_malloc (width*height*sizeof(Pixel32));
 	if (!mfd->convertFrameIn) {
 		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
 	}
 	memset(mfd->convertFrameIn, 0, width*height*sizeof(Pixel32));
 
-	mfd->convertFrameOut = (Pixel32 *) malloc (width*height*sizeof(Pixel32));
+	mfd->convertFrameOut = tc_malloc (width*height*sizeof(Pixel32));
 	if (!mfd->convertFrameOut) {
 		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
 	}
@@ -465,7 +465,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	static char * dst_buf = NULL;
 
 	if (!dst_buf) 
-		dst_buf =  (char *) malloc (width*height*3/2);
+		dst_buf =  tc_malloc (width*height*3/2);
 
 	/* First copy through the four border lines. */
 	/* first */

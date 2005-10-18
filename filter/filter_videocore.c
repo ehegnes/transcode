@@ -91,8 +91,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if((vob = tc_get_vob())==NULL) return(-1);
 
-    if((mfd = (MyFilterData *)malloc (sizeof(MyFilterData))) == NULL) return (-1);
-    memset (mfd, 0, sizeof(MyFilterData));
+    mfd = tc_mallocz (sizeof(MyFilterData));
+    if(mfd == NULL) {
+        fprintf (stderr, "[%s] can't allocate filter data\n", MOD_NAME);
+        return(-1);
+    }
 
     mfd->deinterlace = 0;
     mfd->flip        = 0;

@@ -37,6 +37,12 @@
 #include <string.h>
 #endif
 
+#ifndef SYS_BSD
+# ifdef HAVE_MALLOC_H
+# include <malloc.h>
+# endif
+#endif
+
 #define TC_LOG_ERR		0 // critical error condition
 #define TC_LOG_WARN		1 // non-critical error condition
 #define TC_LOG_INFO		2 // informative highlighted message

@@ -76,7 +76,7 @@ static int write_tmpfile(char* header, char* content, int content_size, int slot
 	int 	i = 0;
 	char*	filename = NULL;
 	
-	filename = (char *) malloc(sizeof(char)*(strlen(TMP_FILE) + TMP_STRING_SIZE));
+	filename = tc_malloc(sizeof(char)*(strlen(TMP_FILE) + TMP_STRING_SIZE));
 	if (!filename){
 		fprintf(stderr, "[%s] ... Out of memory !!!\n", MOD_NAME);
 		return -1;
@@ -269,7 +269,7 @@ int tc_filter(frame_list_t *ptr_, char *options){
 		return -1;
 	
 	/* Now, let's handle the options ... */
-	if((parameters = (parameter_struct *) malloc (sizeof(parameter_struct))) == NULL){
+	if((parameters = tc_malloc (sizeof(parameter_struct))) == NULL){
 		fprintf(stderr, "[%s] ... Out of memory !!!\n", MOD_NAME);
 		return -1;
 	}

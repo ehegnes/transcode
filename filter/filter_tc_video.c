@@ -74,10 +74,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
     if (!video_buf[0] && !video_buf[1]) {
-	video_buf[0] = malloc (SIZE_RGB_FRAME);
-	video_buf[1] = malloc (SIZE_RGB_FRAME);
+	video_buf[0] = tc_malloc (SIZE_RGB_FRAME);
+	video_buf[1] = tc_malloc (SIZE_RGB_FRAME);
 	if (!video_buf[0] || !video_buf[1]) {
-	    fprintf(stderr, "[%s] [%s:%d] malloc failed\n", MOD_NAME, __FILE__, __LINE__);
+	    fprintf(stderr, "[%s] can't allocate buffers", MOD_NAME);
 	    return (-1);
 	}
     }

@@ -67,8 +67,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
     // filter init ok.
     
-    f1 = malloc (SIZE_RGB_FRAME);
-    f2 = malloc (SIZE_RGB_FRAME);
+    f1 = tc_malloc (SIZE_RGB_FRAME);
+    f2 = tc_malloc (SIZE_RGB_FRAME);
     
     if (!f1 || !f2) {
 	    fprintf(stderr, "[%s]: Malloc failed in %d\n", MOD_NAME, __LINE__);

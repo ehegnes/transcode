@@ -634,8 +634,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if((vob = tc_get_vob())==NULL) return(-1);
 
-    if((data[instance] = (logoaway_data *)malloc (sizeof(logoaway_data))) == NULL) {
-      fprintf (stderr, "[%s:%d] ERROR: out of memory\n", __FILE__, __LINE__);
+    if((data[instance] = tc_malloc (sizeof(logoaway_data))) == NULL) {
+      fprintf (stderr, "[%s] can't allocate filter data\n", __FILE__);
       return (-1);
     }
 
@@ -744,8 +744,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
         data[instance]->pixel_packet = GetImagePixels(data[instance]->image, 0, 0, data[instance]->image->columns, data[instance]->image->rows);
       }
       if(data[instance]->dump) {
-        if((data[instance]->dump_buf = malloc ((data[instance]->width-data[instance]->xpos)*(data[instance]->height-data[instance]->ypos)*3)) == NULL) 
-          fprintf (stderr, "[%s:%d] ERROR: out of memory\n", __FILE__, __LINE__);
+        if((data[instance]->dump_buf = tc_malloc ((data[instance]->width-data[instance]->xpos)*(data[instance]->height-data[instance]->ypos)*3)) == NULL) 
+          fprintf (stderr, "[%s] out of memory\n", __FILE__);
       
         data[instance]->dumpimage_info = CloneImageInfo((ImageInfo *) NULL);        
       }      

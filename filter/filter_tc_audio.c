@@ -99,10 +99,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
     }
 
     if (!audio_buf[0] && !audio_buf[1]) {
-	audio_buf[0] = malloc (SIZE_PCM_FRAME);
-	audio_buf[1] = malloc (SIZE_PCM_FRAME);
+	audio_buf[0] = tc_malloc (SIZE_PCM_FRAME);
+	audio_buf[1] = tc_malloc (SIZE_PCM_FRAME);
 	if (!audio_buf[0] || !audio_buf[1]) {
-	    fprintf(stderr, "[%s] [%s:%d] malloc failed\n", MOD_NAME, __FILE__, __LINE__);
+	    fprintf(stderr, "[%s] can't allocate buffers", MOD_NAME);
 	    return (-1);
 	}
     }

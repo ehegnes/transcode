@@ -103,7 +103,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     
 	if((vob = tc_get_vob())==NULL) return(-1);
     
-	mfd = (MyFilterData *) malloc(sizeof(MyFilterData));
+	mfd = tc_malloc(sizeof(MyFilterData));
 
 	if (!mfd) {
 		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
@@ -145,25 +145,23 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	
 	/* fetch memory */
 
-	mfd->blur = (unsigned char *) malloc(4 * width * height);
+	mfd->blur = tc_malloc(4 * width * height);
 	if (!mfd->blur){
                 fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
 	}
-	mfd->work = (unsigned char *) malloc(4 * width * height);
+	mfd->work = tc_malloc(4 * width * height);
 	if (!mfd->work){
                 fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
 	}
-	mfd->convertFrameIn = (uint8_t *) malloc (width*height*4);
+	mfd->convertFrameIn = tc_mallocz (width*height*4);
 	if (!mfd->convertFrameIn) {
 		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
 	}
-	memset(mfd->convertFrameIn, 0, width*height*4);
-
-	mfd->convertFrameOut = (uint8_t *) malloc (width*height*4);
+	
+	mfd->convertFrameOut = tc_mallocz (width*height*4);
 	if (!mfd->convertFrameOut) {
 		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
 	}
-	memset(mfd->convertFrameOut, 0, width*height*4);
 
 	if (vob->im_v_codec == CODEC_YUV) {
 	    tcv_convert_init(width, height/2);

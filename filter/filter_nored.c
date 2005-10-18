@@ -94,7 +94,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if((vob = tc_get_vob())==NULL) return(-1);
 
-    if((mfd = (MyFilterData *)malloc (sizeof(MyFilterData))) == NULL) return (-1);
+    if((mfd = tc_malloc (sizeof(MyFilterData))) == NULL) return (-1);
 
     mfd->start=0;
     mfd->end=(unsigned int)-1;

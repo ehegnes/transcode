@@ -160,7 +160,8 @@ int tc_filter(frame_list_t *ptr_, char *options){
 
 	
 	/* Now, let's handle the options ... */
-	if((parameters = (parameter_struct *) malloc (sizeof(parameter_struct))) == NULL)
+	parameters = tc_malloc (sizeof(parameter_struct));
+	if(parameters == NULL)
 		return -1;
 	
 	/* Filter default options */

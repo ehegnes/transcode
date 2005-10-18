@@ -399,24 +399,24 @@ static int memory_init(vframe_list_t * ptr){
     return -1;
   }
   
-  frames = (char**)malloc(sizeof (char*)*frbufsize);
+  frames = tc_malloc(sizeof (char*)*frbufsize);
   if (NULL == frames){
     fprintf(stderr, "[%s] Error allocating memory in init\n",MOD_NAME);
     return -1;
   } // else
   for (i=0;i<frbufsize; i++){
-    frames[i] = (char*)malloc(sizeof(char)*ptr->video_size);
+    frames[i] = tc_malloc(sizeof(char)*ptr->video_size);
     if (NULL == frames[i]){
       fprintf(stderr, "[%s] Error allocating memory in init\n",MOD_NAME);
       return -1;
     }
   }
-  framesOK = (int*)malloc(sizeof(int)*frbufsize);
+  framesOK = tc_malloc(sizeof(int)*frbufsize);
   if (NULL == framesOK){
     fprintf(stderr, "[%s] Error allocating memory in init\n",MOD_NAME);
     return -1;
   }
-  framesScore = (int*)malloc(sizeof(int)*frbufsize);
+  framesScore = tc_malloc(sizeof(int)*frbufsize);
   if (NULL == framesScore){
     fprintf(stderr, "[%s] Error allocating memory in init\n",MOD_NAME);
     return -1;

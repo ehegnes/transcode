@@ -88,7 +88,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
 	for(i=0; i<FRBUFSIZ; i++) {
-	    lastFrames[i] = malloc(SIZE_RGB_FRAME);
+	    lastFrames[i] = tc_malloc(SIZE_RGB_FRAME);
 	    lastFramesOK[i] = 1;
     	}
 

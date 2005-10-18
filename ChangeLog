@@ -1,4 +1,25 @@
 2005-10-18 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_29to23.c filter/filter_32drop.c filter/filter_ascii.c
+    filter/filter_astat.c filter/filter_compare.c filter/filter_cshift.c
+    filter/filter_decimate.c filter/filter_denoise3d.c
+    filter/filter_detectclipping.c filter/filter_dnr.c 
+    filter/filter_doublefps.c filter/filter_facemask.c filter/filter_fields.c
+    filter/filter_hqdn3d.c filter/filter_invert.c filter/filter_ivtc.c
+    filter/filter_logo.c filter/filter_logoaway.c filter/filter_lowpass.c
+    filter/filter_mask.c filter/filter_modfps.c filter/filter_msharpen.c
+    filter/filter_nored.c filter/filter_normalize.c filter/filter_resample.c
+    filter/filter_smartbob.c filter/filter_smartdeinter.c 
+    filter/filter_smartyuv.c filter/filter_smooth.c filter/filter_tc_audio.c
+    filter/filter_tc_video.c filter/filter_text.c filter/filter_unsharp.c
+    filter/filter_videocore.c filter/filter_whitebalance.c
+    filter/filter_xsharpen.c
+    libtc/libtc.h
+  - another filters roundup; switch from malloc() to tc_malloc() and
+    from malloc() + memset() to tc_mallocz().
+  - remove some unneeded casts
+  - moved conditioned malloc.h inclusion on BSD to libtc/libtc.h
+
+2005-10-18 Francesco Romani <fromani at gmail dot com>
   * filter/filter_29to23.c filter/filter_32detect.c filter/filter_32drop.c
     filter/filter_aclip.c filter/filter_ascii.c filter/filter_astat.c
     filter/filter_clone.c filter/filter_compare.c filter/filter_cpaudio.c

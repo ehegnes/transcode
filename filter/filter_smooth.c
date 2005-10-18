@@ -178,7 +178,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	optstr_get (options, "range",  "%d", &range[instance]);
     }
     
-    tbuf[instance] = (unsigned char *) malloc(SIZE_RGB_FRAME);
+    tbuf[instance] = tc_malloc(SIZE_RGB_FRAME);
     if (strength[instance]> 0.9) strength[instance] = 0.9;
     memset(tbuf[instance], 0, SIZE_RGB_FRAME);
 

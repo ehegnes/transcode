@@ -113,7 +113,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
     if (!buffer)
-	    buffer = malloc(SIZE_RGB_FRAME);
+	    buffer = tc_malloc(SIZE_RGB_FRAME);
 
         if(options != NULL) {
 	    if (!is_optstr(options)) { // old syntax

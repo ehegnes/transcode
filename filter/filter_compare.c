@@ -136,11 +136,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		unsigned int t,r,index;
 		pixelsMask *temp;
 
-		if((compare[instance] = (compareData *)malloc(sizeof(compareData))) == NULL)
+		compare[instance] = tc_malloc(sizeof(compareData));
+		if(compare[instance] == NULL)
 			return (-1);
 		
-		if((compare[instance]->vob = tc_get_vob())==NULL) return(-1);
-		
+		compare[instance]->vob = tc_get_vob();
+		if(compare[instance]->vob ==NULL) 
+            return(-1);
 
 		compare[instance]->delta=DELTA_COLOR;
 		compare[instance]->step=1;
@@ -250,7 +252,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				for (r = 0; r < pattern->columns; r++){
 					index = t*pattern->columns + r;
 					if (pixel_packet[index].opacity == 0){
-						temp=(pixelsMask *)malloc(sizeof(struct pixelsMask));
+						temp=tc_malloc(sizeof(struct pixelsMask));
 						temp->row=t;
 						temp->col=r;
 						temp->r = (unsigned char)pixel_packet[index].red;

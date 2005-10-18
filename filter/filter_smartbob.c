@@ -126,13 +126,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if((vob = tc_get_vob())==NULL) return(-1);
     
 
-	mfd = (MyFilterData *) malloc(sizeof(MyFilterData));
+	mfd = tc_mallocz(sizeof(MyFilterData));
 
 	if (!mfd) {
-		fprintf(stderr, "No memory!\n"); return (-1);
+		fprintf(stderr, "No memory!\n"); 
+        return (-1);
 	}
-
-	memset (mfd, 0, sizeof(MyFilterData));
 
 	width  = vob->im_v_width;
 	height = vob->im_v_height;
@@ -169,20 +168,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	/* fetch memory */
 
-	mfd->convertFrameIn = (Pixel32 *) malloc (width * height * sizeof(Pixel32));
-	memset(mfd->convertFrameIn, 0, width * height * sizeof(Pixel32));
-
-	mfd->convertFrameOut = (Pixel32 *) malloc (width * height * sizeof(Pixel32));
-	memset(mfd->convertFrameOut, 0, width * height * sizeof(Pixel32));
-
-	mfd->prevFrame = (int *) malloc (width*height*sizeof(int));
-	memset(mfd->prevFrame, 0, width*height*sizeof(int));
-
-	mfd->moving = (unsigned char *) malloc(sizeof(unsigned char)*width*height);
-	memset(mfd->moving, 0, width*height*sizeof(unsigned char));
-
-	mfd->fmoving = (unsigned char *) malloc(sizeof(unsigned char)*width*height);
-	memset(mfd->fmoving, 0, width*height*sizeof(unsigned char));
+	mfd->convertFrameIn = tc_mallocz (width * height * sizeof(Pixel32));
+	mfd->convertFrameOut = tc_mallocz (width * height * sizeof(Pixel32));
+	mfd->prevFrame = tc_mallocz (width*height*sizeof(int));
+	mfd->moving = tc_mallocz (sizeof(unsigned char)*width*height);
+	mfd->fmoving = tc_mallocz (sizeof(unsigned char)*width*height);
 
 	if (mfd->codec == CODEC_YUV) {
 	    tcv_convert_init(width, height/2);

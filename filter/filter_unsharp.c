@@ -27,11 +27,6 @@
 #include "optstr.h"
 
 #include <math.h>
-#ifndef SYS_BSD
-# ifdef HAVE_MALLOC_H
-# include <malloc.h>
-# endif
-#endif
 
 
 #ifndef MIN
@@ -215,11 +210,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	return -1;
     }
 
-    mfd   = malloc( sizeof(MyFilterData) );
-    memset( mfd, 0, sizeof(MyFilterData) );
-    buffer = (char *)malloc(SIZE_RGB_FRAME);
-    memset(buffer, 0, SIZE_RGB_FRAME);
-
+    mfd   = tc_mallocz( sizeof(MyFilterData) );
+    buffer = tc_mallocz(SIZE_RGB_FRAME);
 
     // GET OPTIONS
     if (options) {

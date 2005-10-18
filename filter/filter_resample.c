@@ -79,7 +79,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     resample_buffer_size = (int)(samples_per_frame * ratio) * bytes_per_sample + 16                            // frame + 16 bytes 
                                 + ((vob->a_leap_bytes > 0)?(int)(vob->a_leap_bytes * ratio) :0); // leap bytes .. kinda
 
-                                resample_buffer = malloc(resample_buffer_size * sizeof(char));
+                                resample_buffer = tc_malloc(resample_buffer_size * sizeof(char));
     if (!resample_buffer) {
         fprintf(stderr,"[%s] Buffer allocation failed\n", MOD_NAME);
         return 1;

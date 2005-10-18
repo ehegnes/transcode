@@ -65,7 +65,7 @@ static void deNoise(unsigned char *Frame,        // mpi->planes[x]
     unsigned short* FrameAnt=(*FrameAntPtr);
     
     if(!FrameAnt){
-	(*FrameAntPtr)=FrameAnt=malloc(W*H*sizeof(unsigned short));
+	(*FrameAntPtr)=FrameAnt=tc_malloc(W*H*sizeof(unsigned short));
 	for (Y = 0; Y < H; Y++){
 	    unsigned short* dst=&FrameAnt[Y*W];
 	    unsigned char* src=Frame+Y*sStride;
@@ -193,16 +193,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  return -1;
       }
 
-      mfd[instance] = malloc(sizeof(MyFilterData));
-      memset(mfd[instance], 0, sizeof(MyFilterData));
+      mfd[instance] = tc_mallocz(sizeof(MyFilterData));
 
       if (mfd[instance]) {
-	  mfd[instance]->Line = malloc(TC_MAX_V_FRAME_WIDTH*sizeof(int));
-	  memset(mfd[instance]->Line, 0, TC_MAX_V_FRAME_WIDTH*sizeof(int));
+	  mfd[instance]->Line = tc_mallocz(TC_MAX_V_FRAME_WIDTH*sizeof(int));
       }
 
-      buffer[instance] = (char *)malloc(SIZE_RGB_FRAME);
-      memset(buffer[instance], 0, SIZE_RGB_FRAME);
+      buffer[instance] = tc_mallocz(SIZE_RGB_FRAME);
 
       if (!mfd[instance] || !mfd[instance]->Line || !buffer[instance]) {
 	  fprintf(stderr, "[%s] Malloc failed\n", MOD_NAME);
