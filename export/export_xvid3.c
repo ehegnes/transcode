@@ -1711,6 +1711,7 @@ static void xvid_print_vbr(vbr_control_t *state)
 		state->fixed_quant);
 }
 
+
 /*
  * Please do not modify the tag line.
  *

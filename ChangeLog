@@ -1,4 +1,19 @@
 2005-10-19 Francesco Romani <fromani at gmail dot com>
+  * export/export_divx4raw.c export/export_divx5raw.c;
+    export/export_dvraw.c export/export_net.c
+    export/export_pcm.c export/export_xvid2.c
+    export/export_xvid3.c export/export_yuv4mpeg.c
+  Removed commented code for p_write, it is already taken
+  from ioaux.c.
+
+* 2005-10-19 Francesco Romani <fromani at gmail dot com>
+  * import/Makefile.am import/import_dv.c import/import_ffmpeg.c
+    import/import_mp3.c import/import_raw.c
+    import/ioaux.c import/ioaux.h
+  Eliminate duplication of scan() utility function; it was moved
+  on import/ioaux.{c,h}, at least temporary.
+
+2005-10-19 Francesco Romani <fromani at gmail dot com>
   * libvo/
   Remove libvo/, is empty.
 
