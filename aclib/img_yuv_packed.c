@@ -28,7 +28,7 @@ static int yuv16_swap16(uint8_t **src, uint8_t **dest, int width, int height)
     uint16_t *destp = (uint16_t *)dest[0];
     int i;
     for (i = 0; i < width*height; i++)
-	destp[i] = srcp[i]>>8 | srcp[i]<<8;
+        destp[i] = srcp[i]>>8 | srcp[i]<<8;
     return 1;
 }
 
@@ -37,11 +37,11 @@ static int yuv16_swapuv(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height/2; i++) {
-	uint8_t tmp   = src[0][i*4+1];
-	dest[0][i*4  ] = src[0][i*4  ];
-	dest[0][i*4+1] = src[0][i*4+3];
-	dest[0][i*4+2] = src[0][i*4+2];
-	dest[0][i*4+3] = tmp;
+        uint8_t tmp   = src[0][i*4+1];
+        dest[0][i*4  ] = src[0][i*4  ];
+        dest[0][i*4+1] = src[0][i*4+3];
+        dest[0][i*4+2] = src[0][i*4+2];
+        dest[0][i*4+3] = tmp;
     }
     return 1;
 }
@@ -52,10 +52,10 @@ static int uyvy_yvyu(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height/2; i++) {
-	dest[0][i*4  ] = src[0][i*4+1];
-	dest[0][i*4+1] = src[0][i*4+2];
-	dest[0][i*4+2] = src[0][i*4+3];
-	dest[0][i*4+3] = src[0][i*4  ];
+        dest[0][i*4  ] = src[0][i*4+1];
+        dest[0][i*4+1] = src[0][i*4+2];
+        dest[0][i*4+2] = src[0][i*4+3];
+        dest[0][i*4+3] = src[0][i*4  ];
     }
     return 1;
 }
@@ -64,10 +64,10 @@ static int yvyu_uyvy(uint8_t **src, uint8_t **dest, int width, int height)
 {
     int i;
     for (i = 0; i < width*height/2; i++) {
-	dest[0][i*4  ] = src[0][i*4+3];
-	dest[0][i*4+1] = src[0][i*4  ];
-	dest[0][i*4+2] = src[0][i*4+1];
-	dest[0][i*4+3] = src[0][i*4+2];
+        dest[0][i*4  ] = src[0][i*4+3];
+        dest[0][i*4+1] = src[0][i*4  ];
+        dest[0][i*4+2] = src[0][i*4+1];
+        dest[0][i*4+3] = src[0][i*4+2];
     }
     return 1;
 }
@@ -89,8 +89,8 @@ static int yuv16_swap16_x86(uint8_t **src, uint8_t **dest, int width, int height
 {
     ASM_SWAP16_2_X86(width*height/2);
     if (width*height % 1)
-	((uint16_t *)(dest[0]))[width*height-1] =
-	    src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
+        ((uint16_t *)(dest[0]))[width*height-1] =
+            src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
     return 1;
 }
 
@@ -104,8 +104,8 @@ static int uyvy_yvyu_x86(uint8_t **src, uint8_t **dest, int width, int height)
 {
     ASM_ROR32_X86(width*height/2);
     if (width*height % 1)
-	((uint16_t *)(dest[0]))[width*height-1] =
-	    src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
+        ((uint16_t *)(dest[0]))[width*height-1] =
+            src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
     return 1;
 }
 
@@ -113,8 +113,8 @@ static int yvyu_uyvy_x86(uint8_t **src, uint8_t **dest, int width, int height)
 {
     ASM_ROL32_X86(width*height/2);
     if (width*height % 1)
-	((uint16_t *)(dest[0]))[width*height-1] =
-	    src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
+        ((uint16_t *)(dest[0]))[width*height-1] =
+            src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
     return 1;
 }
 
@@ -126,8 +126,8 @@ static int yuv16_swap16_mmx(uint8_t **src, uint8_t **dest, int width, int height
 {
     ASM_SWAP16_2_MMX(width*height/2);
     if (width*height % 1)
-	((uint16_t *)(dest[0]))[width*height-1] =
-	    src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
+        ((uint16_t *)(dest[0]))[width*height-1] =
+            src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
     return 1;
 }
 
@@ -141,8 +141,8 @@ static int uyvy_yvyu_mmx(uint8_t **src, uint8_t **dest, int width, int height)
 {
     ASM_ROR32_MMX(width*height/2);
     if (width*height % 1)
-	((uint16_t *)(dest[0]))[width*height-1] =
-	    src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
+        ((uint16_t *)(dest[0]))[width*height-1] =
+            src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
     return 1;
 }
 
@@ -150,8 +150,8 @@ static int yvyu_uyvy_mmx(uint8_t **src, uint8_t **dest, int width, int height)
 {
     ASM_ROL32_MMX(width*height/2);
     if (width*height % 1)
-	((uint16_t *)(dest[0]))[width*height-1] =
-	    src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
+        ((uint16_t *)(dest[0]))[width*height-1] =
+            src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
     return 1;
 }
 
@@ -163,8 +163,8 @@ static int yuv16_swap16_sse2(uint8_t **src, uint8_t **dest, int width, int heigh
 {
     ASM_SWAP16_2_SSE2(width*height/2);
     if (width*height % 1)
-	((uint16_t *)(dest[0]))[width*height-1] =
-	    src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
+        ((uint16_t *)(dest[0]))[width*height-1] =
+            src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
     return 1;
 }
 
@@ -178,8 +178,8 @@ static int uyvy_yvyu_sse2(uint8_t **src, uint8_t **dest, int width, int height)
 {
     ASM_ROR32_SSE2(width*height/2);
     if (width*height % 1)
-	((uint16_t *)(dest[0]))[width*height-1] =
-	    src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
+        ((uint16_t *)(dest[0]))[width*height-1] =
+            src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
     return 1;
 }
 
@@ -187,8 +187,8 @@ static int yvyu_uyvy_sse2(uint8_t **src, uint8_t **dest, int width, int height)
 {
     ASM_ROL32_SSE2(width*height/2);
     if (width*height % 1)
-	((uint16_t *)(dest[0]))[width*height-1] =
-	    src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
+        ((uint16_t *)(dest[0]))[width*height-1] =
+            src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
     return 1;
 }
 
@@ -215,44 +215,44 @@ int ac_imgconvert_init_yuv_packed(int accel)
      || !register_conversion(IMG_YVYU,    IMG_UYVY,    yvyu_uyvy)
      || !register_conversion(IMG_YVYU,    IMG_YVYU,    yuv16_copy)
     ) {
-	return 0;
+        return 0;
     }
 
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
     if (accel & (AC_IA32ASM | AC_AMD64ASM)) {
-	if (!register_conversion(IMG_YUY2,    IMG_UYVY,    yuv16_swap16_x86)
-	 || !register_conversion(IMG_YUY2,    IMG_YVYU,    yuv16_swapuv_x86)
-	 || !register_conversion(IMG_UYVY,    IMG_YUY2,    yuv16_swap16_x86)
-	 || !register_conversion(IMG_UYVY,    IMG_YVYU,    uyvy_yvyu_x86)
-	 || !register_conversion(IMG_YVYU,    IMG_YUY2,    yuv16_swapuv_x86)
-	 || !register_conversion(IMG_YVYU,    IMG_UYVY,    yvyu_uyvy_x86)
-	) {
-	    return 0;
-	}
+        if (!register_conversion(IMG_YUY2,    IMG_UYVY,    yuv16_swap16_x86)
+         || !register_conversion(IMG_YUY2,    IMG_YVYU,    yuv16_swapuv_x86)
+         || !register_conversion(IMG_UYVY,    IMG_YUY2,    yuv16_swap16_x86)
+         || !register_conversion(IMG_UYVY,    IMG_YVYU,    uyvy_yvyu_x86)
+         || !register_conversion(IMG_YVYU,    IMG_YUY2,    yuv16_swapuv_x86)
+         || !register_conversion(IMG_YVYU,    IMG_UYVY,    yvyu_uyvy_x86)
+        ) {
+            return 0;
+        }
     }
 
     if (accel & AC_MMX) {
-	if (!register_conversion(IMG_YUY2,    IMG_UYVY,    yuv16_swap16_mmx)
-	 || !register_conversion(IMG_YUY2,    IMG_YVYU,    yuv16_swapuv_mmx)
-	 || !register_conversion(IMG_UYVY,    IMG_YUY2,    yuv16_swap16_mmx)
-	 || !register_conversion(IMG_UYVY,    IMG_YVYU,    uyvy_yvyu_mmx)
-	 || !register_conversion(IMG_YVYU,    IMG_YUY2,    yuv16_swapuv_mmx)
-	 || !register_conversion(IMG_YVYU,    IMG_UYVY,    yvyu_uyvy_mmx)
-	) {
-	    return 0;
-	}
+        if (!register_conversion(IMG_YUY2,    IMG_UYVY,    yuv16_swap16_mmx)
+         || !register_conversion(IMG_YUY2,    IMG_YVYU,    yuv16_swapuv_mmx)
+         || !register_conversion(IMG_UYVY,    IMG_YUY2,    yuv16_swap16_mmx)
+         || !register_conversion(IMG_UYVY,    IMG_YVYU,    uyvy_yvyu_mmx)
+         || !register_conversion(IMG_YVYU,    IMG_YUY2,    yuv16_swapuv_mmx)
+         || !register_conversion(IMG_YVYU,    IMG_UYVY,    yvyu_uyvy_mmx)
+        ) {
+            return 0;
+        }
     }
 
     if (accel & AC_SSE2) {
-	if (!register_conversion(IMG_YUY2,    IMG_UYVY,    yuv16_swap16_sse2)
-	 || !register_conversion(IMG_YUY2,    IMG_YVYU,    yuv16_swapuv_sse2)
-	 || !register_conversion(IMG_UYVY,    IMG_YUY2,    yuv16_swap16_sse2)
-	 || !register_conversion(IMG_UYVY,    IMG_YVYU,    uyvy_yvyu_sse2)
-	 || !register_conversion(IMG_YVYU,    IMG_YUY2,    yuv16_swapuv_sse2)
-	 || !register_conversion(IMG_YVYU,    IMG_UYVY,    yvyu_uyvy_sse2)
-	) {
-	    return 0;
-	}
+        if (!register_conversion(IMG_YUY2,    IMG_UYVY,    yuv16_swap16_sse2)
+         || !register_conversion(IMG_YUY2,    IMG_YVYU,    yuv16_swapuv_sse2)
+         || !register_conversion(IMG_UYVY,    IMG_YUY2,    yuv16_swap16_sse2)
+         || !register_conversion(IMG_UYVY,    IMG_YVYU,    uyvy_yvyu_sse2)
+         || !register_conversion(IMG_YVYU,    IMG_YUY2,    yuv16_swapuv_sse2)
+         || !register_conversion(IMG_YVYU,    IMG_UYVY,    yvyu_uyvy_sse2)
+        ) {
+            return 0;
+        }
     }
 #endif  /* ARCH_X86 || ARCH_X86_64 */
 

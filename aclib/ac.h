@@ -1,4 +1,4 @@
-/*
+ /*
  * ac.h -- main aclib include
  * Written by Andrew Church <achurch@achurch.org>
  */
@@ -17,24 +17,24 @@
 
 /* CPU acceleration support flags, for use with ac_init(): */
 
-#define AC_IA32ASM	0x0001	/* x86-32: standard assembly (no MMX) */
-#define AC_AMD64ASM	0x0002	/* x86-64: standard assembly (no MMX) */
-#define AC_CMOVE	0x0004	/* x86: CMOVcc instruction */
-#define AC_MMX		0x0008	/* x86: MMX instructions */
-#define AC_MMXEXT	0x0010	/* x86: MMX extended instructions (AMD) */
-#define AC_3DNOW	0x0020	/* x86: 3DNow! instructions (AMD) */
-#define AC_3DNOWEXT	0x0040	/* x86: 3DNow! instructions (AMD) */
-#define AC_SSE		0x0080	/* x86: SSE instructions */
-#define AC_SSE2		0x0100	/* x86: SSE2 instructions */
-#define AC_SSE3		0x0200	/* x86: SSE3 instructions */
+#define AC_IA32ASM      0x0001  /* x86-32: standard assembly (no MMX) */
+#define AC_AMD64ASM     0x0002  /* x86-64: standard assembly (no MMX) */
+#define AC_CMOVE        0x0004  /* x86: CMOVcc instruction */
+#define AC_MMX          0x0008  /* x86: MMX instructions */
+#define AC_MMXEXT       0x0010  /* x86: MMX extended instructions (AMD) */
+#define AC_3DNOW        0x0020  /* x86: 3DNow! instructions (AMD) */
+#define AC_3DNOWEXT     0x0040  /* x86: 3DNow! instructions (AMD) */
+#define AC_SSE          0x0080  /* x86: SSE instructions */
+#define AC_SSE2         0x0100  /* x86: SSE2 instructions */
+#define AC_SSE3         0x0200  /* x86: SSE3 instructions */
 
-#define AC_NONE		0	/* No acceleration (vanilla C functions) */
-#define AC_ALL		(~0)	/* All available acceleration */
+#define AC_NONE         0       /* No acceleration (vanilla C functions) */
+#define AC_ALL          (~0)    /* All available acceleration */
 
 
 /* Endianness flag: */
-#define AC_LITTLE_ENDIAN	1
-#define AC_BIG_ENDIAN		2
+#define AC_LITTLE_ENDIAN        1
+#define AC_BIG_ENDIAN           2
 
 /*************************************************************************/
 
@@ -66,12 +66,12 @@ extern void *ac_memcpy(void *dest, const void *src, size_t size);
 
 /* Average of two sets of data */
 extern void ac_average(const uint8_t *src1, const uint8_t *src2,
-		       uint8_t *dest, int bytes);
+                       uint8_t *dest, int bytes);
 
 /* Weighted average of two sets of data (weight1+weight2 should be 65536) */
 extern void ac_rescale(const uint8_t *src1, const uint8_t *src2,
-		       uint8_t *dest, int bytes,
-		       uint32_t weight1, uint32_t weight2);
+                       uint8_t *dest, int bytes,
+                       uint32_t weight1, uint32_t weight2);
 
 /* Image format manipulation is available in aclib/imgconvert.h */
 

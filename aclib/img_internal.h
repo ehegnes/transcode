@@ -8,11 +8,11 @@
 
 /* Type of a conversion function */
 typedef int (*ConversionFunc)(uint8_t **src, uint8_t **dest,
-			      int width, int height);
+                              int width, int height);
 
 /* Function to register a conversion */
 extern int register_conversion(ImageFormat srcfmt, ImageFormat destfmt,
-			       ConversionFunc function);
+                               ConversionFunc function);
 
 /* Initialization routines */
 extern int ac_imgconvert_init(int accel);

@@ -27,8 +27,8 @@ static int n_conversions = 0;
  * width and height are in pixels.  Returns 1 on success, 0 on failure. */
 
 int ac_imgconvert(uint8_t **src, ImageFormat srcfmt,
-		  uint8_t **dest, ImageFormat destfmt,
-		  int width, int height)
+                  uint8_t **dest, ImageFormat destfmt,
+                  int width, int height)
 {
     int i;
 
@@ -36,23 +36,23 @@ int ac_imgconvert(uint8_t **src, ImageFormat srcfmt,
      * format tags */
     uint8_t *newsrc[3], *newdest[3];
     if (srcfmt == IMG_YV12) {
-	srcfmt = IMG_YUV420P;
-	newsrc[0] = src[0];
-	newsrc[1] = src[2];
-	newsrc[2] = src[1];
-	src = newsrc;
+        srcfmt = IMG_YUV420P;
+        newsrc[0] = src[0];
+        newsrc[1] = src[2];
+        newsrc[2] = src[1];
+        src = newsrc;
     }
     if (destfmt == IMG_YV12) {
-	destfmt = IMG_YUV420P;
-	newdest[0] = dest[0];
-	newdest[1] = dest[2];
-	newdest[2] = dest[1];
-	dest = newdest;
+        destfmt = IMG_YUV420P;
+        newdest[0] = dest[0];
+        newdest[1] = dest[2];
+        newdest[2] = dest[1];
+        dest = newdest;
     }
 
     for (i = 0; i < n_conversions; i++) {
-	if (conversions[i].srcfmt==srcfmt && conversions[i].destfmt==destfmt)
-	    return (*conversions[i].func)(src, dest, width, height);
+        if (conversions[i].srcfmt==srcfmt && conversions[i].destfmt==destfmt)
+            return (*conversions[i].func)(src, dest, width, height);
     }
 
     return 0;
@@ -71,28 +71,28 @@ int ac_imgconvert_init(int accel)
      || !ac_imgconvert_init_yuv_rgb(accel)
      || !ac_imgconvert_init_rgb_packed(accel)
     ) {
-	fprintf(stderr, "ac_imgconvert_init() failed");
-	return 0;
+        fprintf(stderr, "ac_imgconvert_init() failed");
+        return 0;
     }
     return 1;
 }
 
 int register_conversion(ImageFormat srcfmt, ImageFormat destfmt,
-			ConversionFunc function)
+                        ConversionFunc function)
 {
     int i;
 
     for (i = 0; i < n_conversions; i++) {
-	if (conversions[i].srcfmt==srcfmt && conversions[i].destfmt==destfmt) {
-	    conversions[i].func = function;
-	    return 1;
-	}
+        if (conversions[i].srcfmt==srcfmt && conversions[i].destfmt==destfmt) {
+            conversions[i].func = function;
+            return 1;
+        }
     }
 
     if (!(conversions = realloc(conversions,
-				(n_conversions+1) * sizeof(*conversions)))) {
-	fprintf(stderr, "register_conversion(): out of memory\n");
-	return 0;
+                                (n_conversions+1) * sizeof(*conversions)))) {
+        fprintf(stderr, "register_conversion(): out of memory\n");
+        return 0;
     }
     conversions[n_conversions].srcfmt  = srcfmt;
     conversions[n_conversions].destfmt = destfmt;

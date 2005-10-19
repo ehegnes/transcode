@@ -1,4 +1,9 @@
 2005-10-19 Andrew Church <achurch at achurch dot org>
+  * aclib/*
+  Change aclib coding style to "tabs prohibited", and expand tabs in aclib
+  source files.
+
+2005-10-19 Andrew Church <achurch at achurch dot org>
   * filter/extsub/filter_extsub.c
   Get filter_extsub functional again (minus antialiasing for the moment).
 

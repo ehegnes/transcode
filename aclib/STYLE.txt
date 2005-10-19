@@ -7,9 +7,9 @@ Coding style guidelines (for aclib)
 
 * The basic indentation unit is four columns.
 
-* Tab stops are set at multiples of eight columns (i.e., a tab character is
-  equivalent to two levels of indentation).  Tabs may be expanded into
-  the appropriate number of space characters.
+* Tab characters (ASCII 0x09) must not be used for indentation or alignment
+  of source code, and should be avoided in other cases (such as in strings)
+  where possible.  Tabs should not be assumed to have any particular width.
 
 * Only one statement is allowed per line.  Statements (including the empty
   statement ";") may not be written on the same line as a control keyword

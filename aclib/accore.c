@@ -25,15 +25,15 @@ int ac_init(int accel)
     static int initted = 0;
 
     if (!initted) {
-	accel &= ac_cpuinfo();
-	if (!ac_average_init(accel)
-	 || !ac_imgconvert_init(accel)
-	 || !ac_memcpy_init(accel)
-	 || !ac_rescale_init(accel)
-	) {
-	    return 0;
-	}
-	initted = 1;
+        accel &= ac_cpuinfo();
+        if (!ac_average_init(accel)
+         || !ac_imgconvert_init(accel)
+         || !ac_memcpy_init(accel)
+         || !ac_rescale_init(accel)
+        ) {
+            return 0;
+        }
+        initted = 1;
     }
     return 1;
 }
@@ -61,9 +61,9 @@ int ac_endian(void)
 
     test = 1;
     if (*((uint8_t *)&test))
-	return AC_LITTLE_ENDIAN;
+        return AC_LITTLE_ENDIAN;
     else
-	return AC_BIG_ENDIAN;
+        return AC_BIG_ENDIAN;
 }
 
 /*************************************************************************/
@@ -76,17 +76,17 @@ const char *ac_flagstotext(int accel)
 {
     static char retbuf[1000];
     if (!accel)
-	return "none";
+        return "none";
     snprintf(retbuf, sizeof(retbuf), "%s%s%s%s%s%s%s%s%s",
-	     accel & AC_SSE3                  ? " sse3"     : "",
-	     accel & AC_SSE2                  ? " sse2"     : "",
-	     accel & AC_SSE                   ? " sse"      : "",
-	     accel & AC_3DNOWEXT              ? " 3dnowext" : "",
-	     accel & AC_3DNOW                 ? " 3dnow"    : "",
-	     accel & AC_MMXEXT                ? " mmxext"   : "",
-	     accel & AC_MMX                   ? " mmx"      : "",
-	     accel & AC_CMOVE                 ? " cmove"    : "",
-	     accel & (AC_IA32ASM|AC_AMD64ASM) ? " asm"      : "");
+             accel & AC_SSE3                  ? " sse3"     : "",
+             accel & AC_SSE2                  ? " sse2"     : "",
+             accel & AC_SSE                   ? " sse"      : "",
+             accel & AC_3DNOWEXT              ? " 3dnowext" : "",
+             accel & AC_3DNOW                 ? " 3dnow"    : "",
+             accel & AC_MMXEXT                ? " mmxext"   : "",
+             accel & AC_MMX                   ? " mmx"      : "",
+             accel & AC_CMOVE                 ? " cmove"    : "",
+             accel & (AC_IA32ASM|AC_AMD64ASM) ? " asm"      : "");
     return *retbuf ? retbuf+1 : retbuf;  /* skip initial space */
 }
 
@@ -118,23 +118,23 @@ const char *ac_flagstotext(int accel)
  * placed in ret_a (EAX), ret_b (EBX), ret_c (ECX), and ret_d (EDX), which
  * must be lvalues.  Note that we save and restore EBX (RBX on x86-64)
  * because it is the PIC register. */
-#define CPUID(func,ret_a,ret_b,ret_c,ret_d)				\
-    asm("mov "EBX", "ESI"; cpuid; xchg "EBX", "ESI			\
-        : "=a" (ret_a), "=S" (ret_b), "=c" (ret_c), "=d" (ret_d)	\
+#define CPUID(func,ret_a,ret_b,ret_c,ret_d)                             \
+    asm("mov "EBX", "ESI"; cpuid; xchg "EBX", "ESI                      \
+        : "=a" (ret_a), "=S" (ret_b), "=c" (ret_c), "=d" (ret_d)        \
         : "a" (func))
 
 /* Various CPUID flags.  The second word of the macro name indicates the
  * function (1: function 1, X1: function 0x80000001) and register (D: EDX)
  * to which the value belongs. */
-#define CPUID_1D_CMOVE		(1UL<<15)
-#define CPUID_1D_MMX		(1UL<<23)
-#define CPUID_1D_SSE		(1UL<<25)
-#define CPUID_1D_SSE2		(1UL<<26)
-#define CPUID_1C_SSE3		(1UL<< 0)
-#define CPUID_X1D_AMD_MMXEXT	(1UL<<22)  /* AMD only */
-#define CPUID_X1D_AMD_3DNOW	(1UL<<31)  /* AMD only */
-#define CPUID_X1D_AMD_3DNOWEXT	(1UL<<30)  /* AMD only */
-#define CPUID_X1D_CYRIX_MMXEXT	(1UL<<24)  /* Cyrix only */
+#define CPUID_1D_CMOVE          (1UL<<15)
+#define CPUID_1D_MMX            (1UL<<23)
+#define CPUID_1D_SSE            (1UL<<25)
+#define CPUID_1D_SSE2           (1UL<<26)
+#define CPUID_1C_SSE3           (1UL<< 0)
+#define CPUID_X1D_AMD_MMXEXT    (1UL<<22)  /* AMD only */
+#define CPUID_X1D_AMD_3DNOW     (1UL<<31)  /* AMD only */
+#define CPUID_X1D_AMD_3DNOWEXT  (1UL<<30)  /* AMD only */
+#define CPUID_X1D_CYRIX_MMXEXT  (1UL<<24)  /* Cyrix only */
 
 static int cpuinfo_x86(void)
 {
@@ -147,18 +147,18 @@ static int cpuinfo_x86(void)
     /* First see if the CPUID instruction is even available.  We try to
      * toggle bit 21 (ID) of the flags register; if the bit changes, then
      * CPUID is available. */
-    asm(PUSHF"			\n\
-	pop "EAX"		\n\
-	mov %%eax, %%edx	\n\
-	xor $0x200000, %%eax	\n\
-	push "EAX"		\n\
-	"POPF"			\n\
-	"PUSHF"			\n\
-	pop "EAX"		\n\
-	xor %%edx, %%eax"
-	: "=a" (eax) : : "edx");
+    asm(PUSHF"                  \n\
+        pop "EAX"               \n\
+        mov %%eax, %%edx        \n\
+        xor $0x200000, %%eax    \n\
+        push "EAX"              \n\
+        "POPF"                  \n\
+        "PUSHF"                 \n\
+        pop "EAX"               \n\
+        xor %%edx, %%eax"
+        : "=a" (eax) : : "edx");
     if (!eax)
-	return 0;
+        return 0;
 
     /* Determine the maximum function number available, and save the vendor
      * string */
@@ -173,9 +173,9 @@ static int cpuinfo_x86(void)
     /* Read available features */
     cpuid_1D = cpuid_1C = cpuid_X1D = 0;
     if (cpuid_max >= 1)
-	CPUID(1, eax, ebx, cpuid_1C, cpuid_1D);
+        CPUID(1, eax, ebx, cpuid_1C, cpuid_1D);
     if (cpuid_ext_max >= 0x80000001)
-	CPUID(0x80000001, eax, ebx, ecx, cpuid_X1D);
+        CPUID(0x80000001, eax, ebx, ecx, cpuid_X1D);
 
     /* Convert to acceleration flags */
 #ifdef ARCH_X86_64
@@ -184,25 +184,25 @@ static int cpuinfo_x86(void)
     accel = AC_IA32ASM;
 #endif
     if (cpuid_1D & CPUID_1D_CMOVE)
-	accel |= AC_CMOVE;
+        accel |= AC_CMOVE;
     if (cpuid_1D & CPUID_1D_MMX)
-	accel |= AC_MMX;
+        accel |= AC_MMX;
     if (cpuid_1D & CPUID_1D_SSE)
-	accel |= AC_SSE;
+        accel |= AC_SSE;
     if (cpuid_1D & CPUID_1D_SSE2)
-	accel |= AC_SSE2;
+        accel |= AC_SSE2;
     if (cpuid_1C & CPUID_1C_SSE3)
-	accel |= AC_SSE3;
+        accel |= AC_SSE3;
     if (strcmp(cpu_vendor, "AuthenticAMD") == 0) {
-	if (cpuid_X1D & CPUID_X1D_AMD_MMXEXT)
-	    accel |= AC_MMXEXT;
-	if (cpuid_X1D & CPUID_X1D_AMD_3DNOW)
-	    accel |= AC_3DNOW;
-	if (cpuid_X1D & CPUID_X1D_AMD_3DNOWEXT)
-	    accel |= AC_3DNOWEXT;
+        if (cpuid_X1D & CPUID_X1D_AMD_MMXEXT)
+            accel |= AC_MMXEXT;
+        if (cpuid_X1D & CPUID_X1D_AMD_3DNOW)
+            accel |= AC_3DNOW;
+        if (cpuid_X1D & CPUID_X1D_AMD_3DNOWEXT)
+            accel |= AC_3DNOWEXT;
     } else if (strcmp(cpu_vendor, "CyrixInstead") == 0) {
-	if (cpuid_X1D & CPUID_X1D_CYRIX_MMXEXT)
-	    accel |= AC_MMXEXT;
+        if (cpuid_X1D & CPUID_X1D_CYRIX_MMXEXT)
+            accel |= AC_MMXEXT;
     }
 
     /* And return */
