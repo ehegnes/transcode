@@ -193,13 +193,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  return -1;
       }
 
-      mfd[instance] = tc_mallocz(sizeof(MyFilterData));
+      mfd[instance] = tc_zalloc(sizeof(MyFilterData));
 
       if (mfd[instance]) {
-	  mfd[instance]->Line = tc_mallocz(TC_MAX_V_FRAME_WIDTH*sizeof(int));
+	  mfd[instance]->Line = tc_zalloc(TC_MAX_V_FRAME_WIDTH*sizeof(int));
       }
 
-      buffer[instance] = tc_mallocz(SIZE_RGB_FRAME);
+      buffer[instance] = tc_zalloc(SIZE_RGB_FRAME);
 
       if (!mfd[instance] || !mfd[instance]->Line || !buffer[instance]) {
 	  fprintf(stderr, "[%s] Malloc failed\n", MOD_NAME);

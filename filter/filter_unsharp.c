@@ -210,8 +210,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	return -1;
     }
 
-    mfd   = tc_mallocz( sizeof(MyFilterData) );
-    buffer = tc_mallocz(SIZE_RGB_FRAME);
+    mfd   = tc_zalloc( sizeof(MyFilterData) );
+    buffer = tc_zalloc(SIZE_RGB_FRAME);
 
     // GET OPTIONS
     if (options) {

@@ -1,4 +1,13 @@
 2005-10-19 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_denoise3d.c filter/filter_hqdn3d.c filter/filter_msharpen.c
+    filter/filter_smartbob.c filter/filter_smartdeinter.c
+    filter/filter_smartyuv.c filter/filter_text.c filter/filter_unsharp.c
+    filter/filter_videocore.c 
+    libtc/libtc.h libtc/tc_functions.c
+  renamed tc_mallocz() to tc_zalloc(), which is more clear;
+  updated the client code accordingly.
+
+2005-10-19 Francesco Romani <fromani at gmail dot com>
   * export/export_divx4raw.c export/export_divx5raw.c;
     export/export_dvraw.c export/export_net.c
     export/export_pcm.c export/export_xvid2.c

@@ -131,7 +131,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if((vob = tc_get_vob())==NULL) return(-1);
     
 
-	mfd = tc_mallocz(sizeof(MyFilterData));
+	mfd = tc_zalloc(sizeof(MyFilterData));
 
 	if (!mfd) {
 		fprintf(stderr, "No memory!\n"); 
@@ -192,12 +192,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	/* fetch memory */
 
-	mfd->convertFrameIn = tc_mallocz (width * height * sizeof(Pixel32));
-	mfd->convertFrameOut = tc_mallocz (width * height * sizeof(Pixel32));
+	mfd->convertFrameIn = tc_zalloc (width * height * sizeof(Pixel32));
+	mfd->convertFrameOut = tc_zalloc (width * height * sizeof(Pixel32));
 
 	if (mfd->diffmode == FRAME_ONLY || mfd->diffmode == FRAME_AND_FIELD)
 	{
-		mfd->prevFrame = tc_mallocz (width*height*sizeof(int));
+		mfd->prevFrame = tc_zalloc (width*height*sizeof(int));
 	}
 
 	if (mfd->fieldShift ||
@@ -208,7 +208,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (!mfd->noMotion)
 	{
-		mfd->moving = tc_mallocz (sizeof(unsigned char)*width*height);
+		mfd->moving = tc_zalloc (sizeof(unsigned char)*width*height);
 	}
 
 	if (mfd->highq)

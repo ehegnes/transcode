@@ -153,12 +153,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if (!mfd->work){
                 fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
 	}
-	mfd->convertFrameIn = tc_mallocz (width*height*4);
+	mfd->convertFrameIn = tc_zalloc (width*height*4);
 	if (!mfd->convertFrameIn) {
 		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
 	}
 	
-	mfd->convertFrameOut = tc_mallocz (width*height*4);
+	mfd->convertFrameOut = tc_zalloc (width*height*4);
 	if (!mfd->convertFrameOut) {
 		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
 	}

@@ -131,7 +131,7 @@ int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
  * tc_malloc: just a simple wrapper on libc's malloc(), with emits
  *            an additionalwarning, specifying calling context,
  *            if allocation fails
- * tc_mallocz: like tc_malloc, but zeroes all acquired memory before
+ * tc_zalloc: like tc_malloc, but zeroes all acquired memory before
  *             returning to the caller (this is quite common in 
  *             transcode codebase)
  * tc_free: the companion memory releasing wrapper.
@@ -139,8 +139,8 @@ int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
 
 #define tc_malloc(size) \
     _tc_malloc(__FILE__, __LINE__, size)
-#define tc_mallocz(size) \
-    _tc_mallocz(__FILE__, __LINE__, size)
+#define tc_zalloc(size) \
+    _tc_zalloc(__FILE__, __LINE__, size)
 #define tc_free(ptr) \
     free(ptr);
 
@@ -160,7 +160,7 @@ int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
 void *_tc_malloc(const char *file, int line, size_t size);
 
 /* 
- * _tc_nallocz: do the real work behind tc_mallocz macro
+ * _tc_zalloc: do the real work behind tc_zalloc macro
  * 
  * Parameters: file: name of the file on which call occurs
  *             line: line of above file on which call occurs
@@ -172,7 +172,7 @@ void *_tc_malloc(const char *file, int line, size_t size);
  * Preconditions: file param not null
  * Postconditions: if call succeed, acquired memory contains all '0'
  */
-void *_tc_mallocz(const char *file, int line, size_t size);
+void *_tc_zalloc(const char *file, int line, size_t size);
 
 /* Allocate a buffer aligned to the machine's page size, if known.  The
  * buffer must be freed with buffree() (not free()). */

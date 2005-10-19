@@ -290,11 +290,11 @@ void *_tc_malloc(const char *file, int line, size_t size)
 /* allocate a chunk of memory (like tc_malloc), but zeroes memory before
  * returning. */
 
-void *_tc_mallocz(const char *file, int line, size_t size)
+void *_tc_zalloc(const char *file, int line, size_t size)
 {
     void *p = malloc(size);
     if(p == NULL) {
-        fprintf(stderr, "[%s:%d] tc_mallocz(): can't allocate %lu bytes\n",
+        fprintf(stderr, "[%s:%d] tc_zalloc(): can't allocate %lu bytes\n",
                         file, line, (unsigned long)size);
     } else {
         memset(p, 0, size);

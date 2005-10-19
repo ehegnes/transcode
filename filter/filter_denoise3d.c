@@ -360,13 +360,13 @@ int tc_filter(frame_list_t *vframe_, char * options)
 
 		size = pd->vob->im_v_width * MAX_PLANES * sizeof(char) * 2;
 
-		pd->lineant = tc_mallocz(size);
+		pd->lineant = tc_zalloc(size);
 		if(pd->lineant == NULL)
 			tc_log_error(MOD_NAME, "Malloc failed");
 
 		size *= pd->vob->im_v_height * 2;
 
-		pd->previous = tc_mallocz(size);
+		pd->previous = tc_zalloc(size);
 		if(pd->previous == NULL)
 			tc_log_error(MOD_NAME, "Malloc failed");
 

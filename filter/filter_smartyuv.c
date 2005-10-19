@@ -1225,7 +1225,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if((vob = tc_get_vob())==NULL) return(-1);
     
 
-	mfd = tc_mallocz(sizeof(MyFilterData));
+	mfd = tc_zalloc(sizeof(MyFilterData));
 
 	if (!mfd) {
 		fprintf(stderr, "No memory!\n"); 
