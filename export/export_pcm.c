@@ -41,24 +41,6 @@ static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
 static struct wave_header rtf;
 static int fd_r, fd_l, fd_c, fd_ls, fd_rs, fd_lfe;
 
-#if 0  /* gte this from ioaux.c */
-static int p_write (int fd, char *buf, size_t len)
-{
-   size_t n = 0;
-   size_t r = 0;
-
-   while (r < len) {
-      n = write (fd, buf + r, len - r);
-      if (n < 0)
-         return n;
-      
-      r += n;
-   }
-   return r;
-}
-#endif
-
- 
 /* ------------------------------------------------------------ 
  *
  * init codec

@@ -31,7 +31,9 @@
 /* this exit is provided by the import module or frontend */
 extern void import_exit(int ret);
 
-int file_check(char *file);
+//int scan(const char *name);
+
+//int file_check(char *file);
 
 long fileinfo(int fd, int skipy);
 int fileinfo_dir(char *name, int *fd, long *cc);
@@ -44,12 +46,12 @@ void scan_pes(int verbose, FILE *fd);
 void probe_pes(info_t *ipipe);
 int probe_dvd(info_t *ipipe);
 
-ssize_t p_read(int fd, uint8_t *buf, size_t len);
-ssize_t p_write(int fd, uint8_t *buf, size_t len);
-int p_readwrite(int in, int out);
+//ssize_t p_read(int fd, uint8_t *buf, size_t len);
+//ssize_t p_write(int fd, uint8_t *buf, size_t len);
+//int p_readwrite(int in, int out);
 
 int open_dir(char *name, int *fd, long *stype);
-int probe_path(char *name);
+//int probe_path(char *name);
 
 int enc_bitrate(long frames, double fps, int abit, char *s, int cdsize);
 unsigned int stream_read_int16(unsigned char *s);
@@ -104,15 +106,15 @@ typedef struct sync_info_s {
 #define ERROR_INVALID_FRAME_SIZE   3
 #define ERROR_INVALID_HEADER       4
 
-#define TC_PROBE_PATH_INVALID	0
-#define TC_PROBE_PATH_ABSPATH	1
-#define TC_PROBE_PATH_RELDIR	2
-#define TC_PROBE_PATH_FILE	3
-#define TC_PROBE_PATH_NET	4
-#define TC_PROBE_PATH_BKTR	5
-#define TC_PROBE_PATH_SUNAU	6
-#define TC_PROBE_PATH_V4L_VIDEO	7
-#define TC_PROBE_PATH_V4L_AUDIO	8
-#define TC_PROBE_PATH_OSS	9
+//#define TC_PROBE_PATH_INVALID	0
+//#define TC_PROBE_PATH_ABSPATH	1
+//#define TC_PROBE_PATH_RELDIR	2
+//#define TC_PROBE_PATH_FILE	3
+//#define TC_PROBE_PATH_NET	4
+//#define TC_PROBE_PATH_BKTR	5
+//#define TC_PROBE_PATH_SUNAU	6
+//#define TC_PROBE_PATH_V4L_VIDEO	7
+//#define TC_PROBE_PATH_V4L_AUDIO	8
+//#define TC_PROBE_PATH_OSS	9
 
 #endif   /* _IOAUX_H */

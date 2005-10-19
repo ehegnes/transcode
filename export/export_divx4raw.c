@@ -86,24 +86,6 @@ static char module[TC_BUF_MAX];
 
 #define MODULE "libdivxencore.so"
 
-#if 0  /* get this from ioaux.c */
-static int p_write (int fd, char *buf, size_t len)
-{
-   size_t n = 0;
-   size_t r = 0;
-
-   while (r < len) {
-      n = write (fd, buf + r, len - r);
-      if (n < 0)
-         return n;
-      
-      r += n;
-   }
-   return r;
-}
-#endif
-
-
 static int divx4_init(char *path) {
 #ifdef SYS_BSD /* Just in case ProjectMayo will release FreeBSD library :-) */  
   const

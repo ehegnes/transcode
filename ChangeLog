@@ -1,3 +1,7 @@
+2005-10-19 Francesco Romani <fromani at gmail dot com>
+  * libvo/
+  Remove libvo/, is empty.
+
 2005-10-19 Andrew Church <achurch at achurch dot org>
   * aclib/*
   Change aclib coding style to "tabs prohibited", and expand tabs in aclib

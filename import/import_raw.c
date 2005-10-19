@@ -33,25 +33,11 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_PCM | TC_CAP_YUV42
 #define MOD_PRE raw
 #include "import_def.h"
 
+#include "ioaux.h"
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];
 static int codec;
-
-static int scan(char *name) 
-{
-  struct stat fbuf;
-  
-  if(stat(name, &fbuf)) {
-    fprintf(stderr, "(%s) invalid file \"%s\"\n", __FILE__, name);
-    exit(1);
-  }
-  
-  // file or directory?
-  
-  if(S_ISDIR(fbuf.st_mode)) return(1);
-  return(0);
-}
 
 /* ------------------------------------------------------------ 
  *

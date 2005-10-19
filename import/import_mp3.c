@@ -35,6 +35,7 @@ static int capability_flag = TC_CAP_PCM;
 
 #include "libxio/xio.h"
 
+#include "ioaux.h"
 
 char import_cmd_buf[TC_BUF_MAX];
 
@@ -46,21 +47,6 @@ static int count=TC_PAD_AUD_FRAMES;
 static int decoded_frames=0;
 static int offset=0;
 static int last_percent=0;
-
-static int scan(char *name)
-{
-  struct stat fbuf;
-
-  if(xio_stat(name, &fbuf)) {
-    fprintf(stderr, "(%s) invalid file \"%s\"\n", __FILE__, name);
-    return(-1);
-  }
-
-  // file or directory?
-
-  if(S_ISDIR(fbuf.st_mode)) return(1);
-  return(0);
-}
 
 /* ------------------------------------------------------------ 
  *

@@ -56,23 +56,6 @@ static int chans, rate;
 static int dv_yuy2_mode=0;
 static int dv_uyvy_mode=0;
 
-#if 0  /* get this from ioaux.c */
-static int p_write (int fd, char *buf, size_t len)
-{
-   size_t n = 0;
-   size_t r = 0;
-
-   while (r < len) {
-      n = write (fd, buf + r, len - r);
-      if (n < 0)
-         return n;
-      
-      r += n;
-   }
-   return r;
-}
-#endif
-
 #if 0
 static void pcm_swap(char *buffer, int len)
 {

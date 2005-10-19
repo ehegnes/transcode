@@ -29,6 +29,8 @@
 #include "aclib/imgconvert.h"
 #include "xio.h"
 
+#include "ioaux.h"
+
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_DV |
     TC_CAP_PCM | TC_CAP_VID | TC_CAP_YUV422;
@@ -43,21 +45,6 @@ static int frame_size=0;
 static FILE *fd=NULL;
 static uint8_t *tmpbuf = NULL;
 static int yuv422_mode = 0, width, height;
-
-static int scan(char *name)
-{
-  struct stat fbuf;
-
-  if(xio_stat(name, &fbuf)) {
-    fprintf(stderr, "(%s) invalid file \"%s\"\n", __FILE__, name);
-    return(-1);
-  }
-
-  // file or directory?
-
-  if(S_ISDIR(fbuf.st_mode)) return(1);
-  return(0);
-}
 
 /* ------------------------------------------------------------ 
  *

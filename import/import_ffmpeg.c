@@ -42,6 +42,7 @@ static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID;
 #include "avilib/avilib.h"
 #include "magic.h"
 
+#include "ioaux.h"
 
 char import_cmd_buf[TC_BUF_MAX];
 
@@ -153,22 +154,6 @@ static struct ffmpeg_codec *find_ffmpeg_codec_id(unsigned int transcode_id) {
   
   return NULL;
 }
-
-static int scan(char *name) 
-{
-  struct stat fbuf;
-  
-  if(stat(name, &fbuf)) {
-    fprintf(stderr, "[%s] invalid file \"%s\"\n", MOD_NAME, name);
-    return(-1);
-  }
-
-  // file or directory?
-
-  if(S_ISDIR(fbuf.st_mode)) return(1);
-  return(0);
-}
-
 
 inline static int stream_read_char(char *d)
 {

@@ -25,6 +25,7 @@
 #include "ioaux.h"
 #include <xio.h>
 
+#if 0
 #define MAX_BUF 4096
 static uint8_t buffer[MAX_BUF];  /* only used in p_readwrite() */
 
@@ -118,6 +119,21 @@ int file_check(char *file)
     return(0);
 }
 
+int scan(const char *name)
+{
+  struct stat fbuf;
+
+  if(xio_stat(name, &fbuf)) {
+    fprintf(stderr, "(%s) invalid file \"%s\"\n", __FILE__, name);
+    return(-1);
+  }
+
+  // file or directory?
+
+  if(S_ISDIR(fbuf.st_mode)) return(1);
+  return(0);
+}
+#endif
 
 void import_info(int code, char *EXE) 
 {
@@ -223,6 +239,7 @@ long read_time_stamp_long(unsigned char *s)
   return (clock_ref);
 }  
 
+#if 0
 #ifndef major
 # define major(dev)  (((dev) >> 8) & 0xff)
 #endif
@@ -311,6 +328,7 @@ int probe_path(char *name)
     
     return(TC_PROBE_PATH_INVALID);
 }
+#endif
 
 int fps2frc(double _fps)
 {
@@ -337,3 +355,4 @@ int fps2frc(double _fps)
 
     return(0);
 }
+

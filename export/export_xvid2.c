@@ -166,10 +166,6 @@ static int xvid_print_config(XVID_INIT_PARAM *einit,
 
 static void xvid_print_vbr(vbr_control_t *state);
 
-#if 0  /* get this from ioaux.c */
-static int p_write(int fd, char *buf, size_t len);
-#endif
-
 /*****************************************************************************
  * Init codec
  ****************************************************************************/
