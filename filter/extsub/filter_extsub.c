@@ -41,8 +41,9 @@
 #include "subproc.h"
 
 //provided by transcode
-extern void init_aa_table(double aa_weight, double aa_bias);
-extern void yuv_antialias(char *image, char *dest, int width, int height, int mode);
+#warning ***************** FIXME ****************** not available
+//extern void init_aa_table(double aa_weight, double aa_bias);
+//extern void yuv_antialias(char *image, char *dest, int width, int height, int mode);
 
 #define BUFFER_SIZE SIZE_RGB_FRAME
 #define SUBTITLE_BUFFER 100
@@ -151,7 +152,8 @@ static int subtitle_retrieve(void)
 
 static int color_set_done=0; 
 static int anti_alias_done=0; 
-static int skip_anti_alias=0;
+#warning ***************** FIXME ****************** temp 1 because antialiasing not available
+static int skip_anti_alias=1;
 
 static unsigned int ca=2, cb=3; 
 
@@ -228,10 +230,11 @@ static void anti_alias_subtitle(int black) {
   }
   
   //use transcode's anti-alias routine (full frame mode = 3)
-  if(!skip_anti_alias) {
-    yuv_antialias(sub_frame, tmp_frame, sub_xlen, sub_ylen, 3);
-    ac_memcpy(sub_frame, tmp_frame, sub_xlen * sub_ylen);
-  }
+#warning ***************** FIXME ****************** not available
+//  if(!skip_anti_alias) {
+//    yuv_antialias(sub_frame, tmp_frame, sub_xlen, sub_ylen, 3);
+//    ac_memcpy(sub_frame, tmp_frame, sub_xlen * sub_ylen);
+//  }
 
   anti_alias_done=1;
 
@@ -438,6 +441,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if (optstr_lookup (options, "help")) return (-1);
 	}
     }
+    if (!skip_anti_alias) {
+        tc_log_warn(MOD_NAME, "antialiasing not available right now, sorry");
+        skip_anti_alias = 1;
+    }
 
     if (vob->im_v_codec == CODEC_YUV)
 	vshift = -vshift;
@@ -494,7 +501,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
       memset(tmp_frame, 0, BUFFER_SIZE);  
  
     //for ant-aliasing
-    if(!skip_anti_alias) init_aa_table(vob->aa_weight, vob->aa_bias);
+#warning ***************** FIXME ****************** not available
+    //if(!skip_anti_alias) init_aa_table(vob->aa_weight, vob->aa_bias);
 
     return(0);
   }

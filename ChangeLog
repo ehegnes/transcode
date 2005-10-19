@@ -1,3 +1,7 @@
+2005-10-19 Andrew Church <achurch at achurch dot org>
+  * filter/extsub/filter_extsub.c
+  Get filter_extsub functional again (minus antialiasing for the moment).
+
 2005-10-18 Francesco Romani <fromani at gmail dot com>
   * filter/filter_29to23.c filter/filter_32drop.c filter/filter_ascii.c
     filter/filter_astat.c filter/filter_compare.c filter/filter_cshift.c
