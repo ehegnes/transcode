@@ -6,7 +6,7 @@
   Removed commented code for p_write, it is already taken
   from ioaux.c.
 
-* 2005-10-19 Francesco Romani <fromani at gmail dot com>
+2005-10-19 Francesco Romani <fromani at gmail dot com>
   * import/Makefile.am import/import_dv.c import/import_ffmpeg.c
     import/import_mp3.c import/import_raw.c
     import/ioaux.c import/ioaux.h
