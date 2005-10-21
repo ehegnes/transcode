@@ -110,16 +110,16 @@ static int dnr_run(T_DNR_FILTER_CTX *fctx, T_PIXEL *data)
   else
   {
     RY1 = fctx->src_data;
-    GU1 = BV1 + fctx->gu_ofs; 
-    BV1 = BV1 + fctx->bv_ofs;    
+    GU1 = RY1 + fctx->gu_ofs; 
+    BV1 = RY1 + fctx->bv_ofs;    
     
     RY2 = fctx->lastframe;
-    GU2 = BV2 + fctx->gu_ofs; 
-    BV2 = BV2 + fctx->bv_ofs;   
+    GU2 = RY2 + fctx->gu_ofs; 
+    BV2 = RY2 + fctx->bv_ofs;   
 
     RY3 = fctx->src_data;     
-    GU3 = BV3 + fctx->gu_ofs; 
-    BV3 = BV3 + fctx->bv_ofs;
+    GU3 = RY3 + fctx->gu_ofs; 
+    BV3 = RY3 + fctx->bv_ofs;
   }
   
   h = fctx->src_h;
