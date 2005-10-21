@@ -1,5 +1,5 @@
 /*
- *  probe_bktr.c
+ *  probe_vnc.c
  *
  *  Copyright (C) Brian de Alwis 2004
  *
