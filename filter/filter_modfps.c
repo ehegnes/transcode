@@ -499,7 +499,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  return 0;
 	} // else
 
-	tc_log_eror(MOD_NAME, "only two modes of operation.");
+	tc_log_error(MOD_NAME, "only two modes of operation.");
 	return -1;
     }
 
