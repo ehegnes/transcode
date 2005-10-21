@@ -565,7 +565,7 @@ static const struct { uint16_t n[32]; } __attribute__((aligned(16))) gray_data =
 
 /* MMX routines */
 
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
+#if defined(ARCH_X86)
 
 static inline void mmx_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
                                       uint8_t *srcV);
@@ -622,38 +622,38 @@ static inline void mmx_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
     asm("\
         # Load data, bias and expand to 16 bits                         \n\
         pxor %%mm4, %%mm4       # MM4: 00 00 00 00 00 00 00 00          \n\
-        movq (%%eax), %%mm6     # MM6: Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0          \n\
-        movd (%%ecx), %%mm2     # MM2:             U3 U2 U1 U0          \n\
-        movd (%%edx), %%mm3     # MM3:             V3 V2 V1 V0          \n\
+        movq ("EAX"), %%mm6     # MM6: Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0          \n\
+        movd ("ECX"), %%mm2     # MM2:             U3 U2 U1 U0          \n\
+        movd ("EDX"), %%mm3     # MM3:             V3 V2 V1 V0          \n\
         movq %%mm6, %%mm7       # MM7: Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0          \n\
-        pand (%%esi), %%mm6     # MM6:  -Y6-  -Y4-  -Y2-  -Y0-          \n\
+        pand ("ESI"), %%mm6     # MM6:  -Y6-  -Y4-  -Y2-  -Y0-          \n\
         psrlw $8, %%mm7         # MM7:  -Y7-  -Y5-  -Y3-  -Y1-          \n\
         punpcklbw %%mm4, %%mm2  # MM2:  -U3-  -U2-  -U1-  -U0-          \n\
         punpcklbw %%mm4, %%mm3  # MM3:  -V3-  -V2-  -V1-  -V0-          \n\
-        psubw 16(%%esi), %%mm6  # MM6: subtract 16                      \n\
-        psubw 16(%%esi), %%mm7  # MM7: subtract 16                      \n\
-        psubw 32(%%esi), %%mm2  # MM2: subtract 128                     \n\
-        psubw 32(%%esi), %%mm3  # MM3: subtract 128                     \n\
+        psubw 16("ESI"), %%mm6  # MM6: subtract 16                      \n\
+        psubw 16("ESI"), %%mm7  # MM7: subtract 16                      \n\
+        psubw 32("ESI"), %%mm2  # MM2: subtract 128                     \n\
+        psubw 32("ESI"), %%mm3  # MM3: subtract 128                     \n\
         psllw $7, %%mm6         # MM6: convert to fixed point 8.7       \n\
         psllw $7, %%mm7         # MM7: convert to fixed point 8.7       \n\
         psllw $7, %%mm2         # MM2: convert to fixed point 8.7       \n\
         psllw $7, %%mm3         # MM3: convert to fixed point 8.7       \n\
         # Multiply by constants                                         \n\
-        pmulhw 48(%%esi), %%mm6 # MM6: -cY6- -cY4- -cY2- -cY0-          \n\
-        pmulhw 48(%%esi), %%mm7 # MM6: -cY7- -cY5- -cY3- -cY1-          \n\
-        movq 80(%%esi), %%mm4   # MM4: gU constant                      \n\
-        movq 96(%%esi), %%mm5   # MM5: gV constant                      \n\
+        pmulhw 48("ESI"), %%mm6 # MM6: -cY6- -cY4- -cY2- -cY0-          \n\
+        pmulhw 48("ESI"), %%mm7 # MM6: -cY7- -cY5- -cY3- -cY1-          \n\
+        movq 80("ESI"), %%mm4   # MM4: gU constant                      \n\
+        movq 96("ESI"), %%mm5   # MM5: gV constant                      \n\
         pmulhw %%mm2, %%mm4     # MM4: -gU3- -gU2- -gU1- -gU0-          \n\
         pmulhw %%mm3, %%mm5     # MM5: -gV3- -gV2- -gV1- -gV0-          \n\
         paddw %%mm5, %%mm4      # MM4:  -g3-  -g2-  -g1-  -g0-          \n\
-        pmulhw 64(%%esi), %%mm3 # MM3:  -r3-  -r2-  -r1-  -r0-          \n\
-        pmulhw 112(%%esi),%%mm2 # MM2:  -b3-  -b2-  -b1-  -b0-          \n\
+        pmulhw 64("ESI"), %%mm3 # MM3:  -r3-  -r2-  -r1-  -r0-          \n\
+        pmulhw 112("ESI"),%%mm2 # MM2:  -b3-  -b2-  -b1-  -b0-          \n\
         movq %%mm3, %%mm0       # MM0:  -r3-  -r2-  -r1-  -r0-          \n\
         movq %%mm4, %%mm1       # MM1:  -g3-  -g2-  -g1-  -g0-          \n\
         movq %%mm2, %%mm5       # MM5:  -b3-  -b2-  -b1-  -b0-          \n\
         # Add intermediate results and round/shift to get R/G/B values  \n\
-        paddw 128(%%esi), %%mm6 # Add rounding value (0.5 @ 8.4 fixed)  \n\
-        paddw 128(%%esi), %%mm7                                         \n\
+        paddw 128("ESI"), %%mm6 # Add rounding value (0.5 @ 8.4 fixed)  \n\
+        paddw 128("ESI"), %%mm7                                         \n\
         paddw %%mm6, %%mm0      # MM0:  -R6-  -R4-  -R2-  -R0-          \n\
         psraw $4, %%mm0         # Shift back to 8.0 fixed               \n\
         paddw %%mm6, %%mm1      # MM1:  -G6-  -G4-  -G2-  -G0-          \n\
@@ -715,17 +715,17 @@ static inline void mmx_store_rgb24(uint8_t *dest)
         movd %%mm1, %%ecx       # ECX: 00 B2 G2 R2                      \n\
         movd %%mm5, %%edx       # EDX: 00 B3 G3 R3                      \n\
         "IA32_RGB32_TO_RGB24"                                           \n\
-        movl %%eax, (%%edi)                                             \n\
-        movl %%ebx, 4(%%edi)                                            \n\
-        movl %%ecx, 8(%%edi)                                            \n\
+        movl %%eax, ("EDI")                                             \n\
+        movl %%ebx, 4("EDI")                                            \n\
+        movl %%ecx, 8("EDI")                                            \n\
         movd %%mm2, %%eax       # EAX: 00 B4 G4 R4                      \n\
         movd %%mm6, %%ebx       # EBX: 00 B5 G5 R5                      \n\
         movd %%mm3, %%ecx       # ECX: 00 B6 G6 R6                      \n\
         movd %%mm7, %%edx       # EDX: 00 B7 G7 R7                      \n\
         "IA32_RGB32_TO_RGB24"                                           \n\
-        movl %%eax, 12(%%edi)                                           \n\
-        movl %%ebx, 16(%%edi)                                           \n\
-        movl %%ecx, 20(%%edi)                                           \n\
+        movl %%eax, 12("EDI")                                           \n\
+        movl %%ebx, 16("EDI")                                           \n\
+        movl %%ecx, 20("EDI")                                           \n\
         pop "EBX"                                                       \n\
         "
         : /* no outputs */
@@ -734,7 +734,7 @@ static inline void mmx_store_rgb24(uint8_t *dest)
     );
 }
 
-#endif  /* ARCH_X86 || ARCH_X86_64 */
+#endif  /* ARCH_X86 */
 
 /*************************************************************************/
 /*************************************************************************/

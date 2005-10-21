@@ -1,4 +1,8 @@
 2005-10-21 Andrew Church <achurch at achurch dot org>
+  * aclib/img_yuv_rgb.c
+  Fix compilation on x86-64.
+
+2005-10-21 Andrew Church <achurch at achurch dot org>
   * INSTALL
   Fix LZO notes to refer to current version (2) of LZO.
 
