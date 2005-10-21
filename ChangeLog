@@ -1,3 +1,7 @@
+2005-10-20 Jacob Meuser <jakemsr@jakemsr.com>
+  * aclib/ac.h
+  not all systems have stdint.h.  might need sys/types.h as well.
+
 2005-10-19 Francesco Romani <fromani at gmail dot com>
   * filter/filter_denoise3d.c filter/filter_hqdn3d.c filter/filter_msharpen.c
     filter/filter_smartbob.c filter/filter_smartdeinter.c

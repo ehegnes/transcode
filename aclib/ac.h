@@ -11,7 +11,12 @@
 #endif
 
 #include <stddef.h>
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
 
 /*************************************************************************/
 
