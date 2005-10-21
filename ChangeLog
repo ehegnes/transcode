@@ -1,4 +1,8 @@
 2005-10-20 Jacob Meuser <jakemsr@jakemsr.com>
+  * filter/filter_fps.c
+  extraneous format argument
+
+2005-10-20 Jacob Meuser <jakemsr@jakemsr.com>
   * filter/filter_detectclipping.c
   fix typo
 
