@@ -87,7 +87,7 @@ static void help_optstr(void)
     fprintf(stderr, "* Overview\n");
     fprintf(stderr, "  Scales luminosity values in the source image, similar to\n");
     fprintf(stderr, "  VirtualDub's 'levels' filter.  This is useful to scale ITU-R601\n");
-    fprintf(stderr, "  video (which limits luma to 16-253) back to the full 0-255 range.\n");
+    fprintf(stderr, "  video (which limits luma to 16-235) back to the full 0-255 range.\n");
     fprintf(stderr, "* Options\n");
     fprintf(stderr, "   input:   luma range of input (%d-%d)\n", DEFAULT_IN_BLACK, DEFAULT_IN_WHITE);
     fprintf(stderr, "   gamma:   gamma ramp to apply to input luma (%f)\n", DEFAULT_IN_GAMMA);
