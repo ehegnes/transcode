@@ -153,7 +153,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	tc_log_info (MOD_NAME, "              range = %u-%u", mfd[ptr->filter_id]->start, mfd[ptr->filter_id]->end);
 	tc_log_info (MOD_NAME, "               step = %u", mfd[ptr->filter_id]->step);
 	tc_log_info (MOD_NAME, "              limit = %u", mfd[ptr->filter_id]->limit);
-	tc_log+info (MOD_NAME, "    run POST filter = %s", mfd[ptr->filter_id]->post?"yes":"no");
+	tc_log_info (MOD_NAME, "    run POST filter = %s", mfd[ptr->filter_id]->post?"yes":"no");
     }
 
     if (options)

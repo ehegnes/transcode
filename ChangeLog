@@ -1,4 +1,8 @@
 2005-10-20 Jacob Meuser <jakemsr@jakemsr.com>
+  * filter/filter_detectclipping.c
+  fix typo
+
+2005-10-20 Jacob Meuser <jakemsr@jakemsr.com>
   * aclib/ac.h
   not all systems have stdint.h.  might need sys/types.h as well.
 
