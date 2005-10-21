@@ -1,5 +1,5 @@
 /*
- *  filter_slowmo.c
+ *  filter_doublefps.c
  *
  *  Copyright (C) Tilmann Bitterberg - June 2003
  *
