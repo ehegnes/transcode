@@ -65,7 +65,6 @@ int tc_filter(frame_list_t *ptr_, char *options)
   vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
 
-  static int size;
   int h;
   
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
@@ -127,8 +126,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if (vob->im_v_codec == CODEC_RGB) {
 	tc_log_error(MOD_NAME, "This filter is only capable of YUV mode");
 	return -1;
-    } else 
-      size = width*3/2;
+    }
 
     // filter init ok.
     if (verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
