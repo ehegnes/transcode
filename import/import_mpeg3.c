@@ -219,8 +219,8 @@ MOD_open
     case CODEC_YUV:
       
       y_output=framebuffer;
-      v_output=y_output+width*height;
-      u_output=v_output+((width*height)>>2);
+      u_output=y_output+width*height;
+      v_output=u_output+(width/2)*(height/2);
       break;
     }
     
@@ -312,7 +312,7 @@ MOD_decode
     case CODEC_RGB:
       
       if(mpeg3_read_frame(file, rowptr, 0, 0, width, height, width,
-                          height, MPEG3_BGR888, stream_id))
+                          height, MPEG3_RGB888, stream_id))
           return(TC_IMPORT_ERROR);
       
       block = width * 3; 
@@ -329,8 +329,8 @@ MOD_decode
                              width, height, stream_id))
           return(TC_IMPORT_ERROR);
 
-      param->size = (width * height * 3)>>1;
-      ac_memcpy(param->buffer, framebuffer,param->size);
+      param->size = width*height + 2*((width/2)*(height/2));
+      ac_memcpy(param->buffer, framebuffer, param->size);
       break;
     }
     return(TC_IMPORT_OK);

@@ -259,7 +259,7 @@ MOD_encode
     yuv.p = fame_params.width;
     yuv.y = param->buffer;
     yuv.u = yuv.y + yuv.w*yuv.h;
-    yuv.v = yuv.u + yuv.w*yuv.h/4;
+    yuv.v = yuv.u + (yuv.w/2)*(yuv.h/2);
 
     fame_start_frame(fame_context, &yuv, NULL);
     // segfaults here

@@ -48,7 +48,7 @@ static void generate_rgb_frame(char *buffer, int width, int height)
       for(n=0; n<height; ++n) {
 	  
 	  if(n & 1) {
-	      for(j=0; j<row_bytes; ++j) buffer[n*row_bytes+j] = 255 & 0xff;
+	      for(j=0; j<row_bytes; ++j) buffer[n*row_bytes+j] = 255;
 	  } else { 
 	      for(j=0; j<row_bytes; ++j) buffer[n*row_bytes+j] = 0;
 	  }
@@ -59,9 +59,9 @@ static void generate_rgb_frame(char *buffer, int width, int height)
   case 1:
       
       for(n=0; n<height*width; n=n+2) {
-	  buffer[n*3]   = 255 & 0xff;
-	  buffer[n*3+1] = 255 & 0xff;
-	  buffer[n*3+2] = 255 & 0xff;
+	  buffer[n*3]   = 255;
+	  buffer[n*3+1] = 255;
+	  buffer[n*3+2] = 255;
       } 
       
       break;
@@ -69,26 +69,26 @@ static void generate_rgb_frame(char *buffer, int width, int height)
   case 2:  //red picture
 
     for(n=0; n<height*width; ++n) {
-      buffer[n*3]   = 255 & 0xff;
-      buffer[n*3+1] = 255 & 0x00;
-      buffer[n*3+2] = 255 & 0x00;
+      buffer[n*3]   = 255;
+      buffer[n*3+1] = 0;
+      buffer[n*3+2] = 0;
     } 
     break;
 
   case 3:  //green picture
 
     for(n=0; n<height*width; ++n) {
-      buffer[n*3]   = 255 & 0x00;
-      buffer[n*3+1] = 255 & 0xff;
-      buffer[n*3+2] = 255 & 0x00;
+      buffer[n*3]   = 0;
+      buffer[n*3+1] = 255;
+      buffer[n*3+2] = 0;
     } 
     break;
   case 4:  //blue
 
     for(n=0; n<height*width; ++n) {
-      buffer[n*3]   = 255 & 0x00;
-      buffer[n*3+1] = 255 & 0x00;
-      buffer[n*3+2] = 255 & 0xff;
+      buffer[n*3]   = 0;
+      buffer[n*3+1] = 0;
+      buffer[n*3+2] = 255;
     } 
     break;
   }
@@ -129,8 +129,8 @@ static void generate_yuv_frame(char *buffer, int width, int height)
 	  int x, y;
 	  unsigned char 
 	      *Y = buffer, 
-	      *U=buffer+width*height, 
-	      *V=buffer+width*height*5/4;
+	      *U = Y + width*height, 
+	      *V = U + (width/2)*(height/2);
 
 	  for(y=0;y<height;y++) {
 	      for(x=0;x<width;x++) {
@@ -142,7 +142,7 @@ static void generate_yuv_frame(char *buffer, int width, int height)
 	  for(y=0;y<height/2;y++) {
 	      for(x=0;x<width/2;x++) {
 		  U[y * width/2 + x] = 128 + y + indx * 2;
-		  V[y * height + x] = 64 + x + indx * 5;
+		  V[y * width/2 + x] = 64 + x + indx * 5;
 	      }
 	  }
 	  indx++;

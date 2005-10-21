@@ -48,7 +48,7 @@ typedef struct t_dnr_filter_ctx
   int     isYUV;
   T_PIXEL *lastframe;
   T_PIXEL *origframe;
-  int     gu_ofs, rv_ofs;
+  int     gu_ofs, bv_ofs;
   
   unsigned char lookup[256][256];
   unsigned char *lockhistory;
@@ -97,29 +97,29 @@ static int dnr_run(T_DNR_FILTER_CTX *fctx, T_PIXEL *data)
   {
     RY1 = fctx->src_data;
     GU1 = RY1 + fctx->gu_ofs; 
-    BV1 = RY1 + fctx->rv_ofs;    
+    BV1 = RY1 + fctx->bv_ofs;    
     
     RY2 = fctx->lastframe;
     GU2 = RY2 + fctx->gu_ofs; 
-    BV2 = RY2 + fctx->rv_ofs;   
+    BV2 = RY2 + fctx->bv_ofs;   
 
     RY3 = fctx->src_data;     
     GU3 = RY3 + fctx->gu_ofs; 
-    BV3 = RY3 + fctx->rv_ofs;   
+    BV3 = RY3 + fctx->bv_ofs;   
   }
   else
   {
-    BV1 = fctx->src_data;
+    RY1 = fctx->src_data;
     GU1 = BV1 + fctx->gu_ofs; 
-    RY1 = BV1 + fctx->rv_ofs;    
+    BV1 = BV1 + fctx->bv_ofs;    
     
-    BV2 = fctx->lastframe;
+    RY2 = fctx->lastframe;
     GU2 = BV2 + fctx->gu_ofs; 
-    RY2 = BV2 + fctx->rv_ofs;   
+    BV2 = BV2 + fctx->bv_ofs;   
 
-    BV3 = fctx->src_data;     
+    RY3 = fctx->src_data;     
     GU3 = BV3 + fctx->gu_ofs; 
-    RY3 = BV3 + fctx->rv_ofs;
+    BV3 = BV3 + fctx->bv_ofs;
   }
   
   h = fctx->src_h;
@@ -392,9 +392,9 @@ static T_DNR_FILTER_CTX *dnr_init(int src_w, int src_h, int isYUV)
  
   if (isYUV)
   {
-    fctx->img_size = (fctx->hist_size * 3) / 2;
     fctx->gu_ofs   = fctx->hist_size;
-    fctx->rv_ofs   = (fctx->hist_size * 5) / 4;
+    fctx->bv_ofs   = fctx->gu_ofs + (src_h/2) * (src_w/2);
+    fctx->img_size = fctx->bv_ofs + (src_h/2) * (src_w/2);
     fctx->pitch    = 1;
     
     fctx->line_size_c = (src_w >> 1);
@@ -404,7 +404,7 @@ static T_DNR_FILTER_CTX *dnr_init(int src_w, int src_h, int isYUV)
   {
     fctx->img_size = fctx->hist_size * 3;
     fctx->gu_ofs = 1;
-    fctx->rv_ofs = 2;
+    fctx->bv_ofs = 2;
     fctx->pitch  = 3;
     
     fctx->line_size_c = src_w * 3;

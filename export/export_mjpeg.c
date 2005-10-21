@@ -34,6 +34,7 @@
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
+#include "vid_aux.h"
 
 #define MOD_NAME    "export_mjpeg.so"
 #define MOD_VERSION "v0.0.5 (2003-07-24)"
@@ -161,7 +162,6 @@ MOD_encode
 {
   if(param->flag == TC_VIDEO) {
     int i, j, k;
-    int width_yuv;
     JSAMPROW row_pointer[MAX_ROWS];
     int bwritten;
     unsigned char *base[3];
@@ -213,19 +213,16 @@ MOD_encode
         
         jpeg_start_compress(&cinfo, TRUE);
 
-        width_yuv = cinfo.image_width>>1;
-
-        base[0] = param->buffer;
-        base[1] = param->buffer + cinfo.image_width*cinfo.image_height;
-        base[2] = param->buffer + cinfo.image_width*cinfo.image_height*5/4;
+        YUV_INIT_PLANES(base, param->buffer, IMG_YUV420P,
+                        cinfo.image_width, cinfo.image_height);
 
         for (i = 0; i < cinfo.image_height; i += 2*DCTSIZE) {
           for (j=0, k=0; j<2*DCTSIZE;j+=2, k++) {
 
             line[0][j]   = base[0]; base[0] += cinfo.image_width;
             line[0][j+1] = base[0]; base[0] += cinfo.image_width;
-            line[1][k]   = base[1]; base[1] += width_yuv;
-            line[2][k]   = base[2]; base[2] += width_yuv;
+            line[1][k]   = base[1]; base[1] += cinfo.image_width/2;
+            line[2][k]   = base[2]; base[2] += cinfo.image_width/2;
           }
 
           bwritten = jpeg_write_raw_data(&cinfo, line, 2*DCTSIZE);

@@ -129,7 +129,8 @@ MOD_open
 	out_bytes = vob->im_v_width * vob->im_v_height * 3;
 	break;
       case CODEC_YUV:
-	out_bytes = (vob->im_v_width * vob->im_v_height * 3) / 2;
+	out_bytes = vob->im_v_width * vob->im_v_height
+                  + 2 * ((vob->im_v_width/2) * (vob->im_v_height/2));
 	break;
       case CODEC_YUV422:
 	out_bytes = (vob->im_v_width * vob->im_v_height * 2);

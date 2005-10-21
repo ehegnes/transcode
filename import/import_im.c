@@ -264,13 +264,13 @@ MOD_decode {
            */
           param->buffer[(row * image->columns + column) * 3 + 0] =
                (char) (pixel_packet[(image->rows - row - 1) * image->columns +
-                                                            column].blue >> 8);
+                                                            column].red >> 8);
           param->buffer[(row * image->columns + column) * 3 + 1] =
                (char) (pixel_packet[(image->rows - row - 1) * image->columns +
                                                            column].green >> 8);
           param->buffer[(row * image->columns + column) * 3 + 2] =
                (char) (pixel_packet[(image->rows - row - 1) * image->columns +
-                                                             column].red >> 8);
+                                                             column].blue >> 8);
         }
     }
 

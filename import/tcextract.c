@@ -79,8 +79,6 @@ static void usage(int status)
  *
  * ------------------------------------------------------------*/
 
-void extract_lzo(info_t *ipipe);
-
 int main(int argc, char *argv[])
 {
 

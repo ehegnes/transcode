@@ -1,4 +1,23 @@
 2005-10-21 Andrew Church <achurch at achurch dot org>
+  * export/export_debugppm.c export/export_dv.c export/export_dvraw.c
+    export/export_fame.c export/export_ffmpeg.c export/expirt_im.c
+    export/export_jpg.c export/export_mjpeg.c filter/filter_smooth.c
+    filter/filter_testframe.c import/import_mov.c import/import_rawlist.c
+    import/tcextract.c
+  Code cleanup.
+
+  * export/export_xvid4.c filter/filter_dnr.c filter/filter_nored.c
+    import/import_divx.c import/import_fraps.c import/import_im.c
+    import/import_imlist.c import/import_mpeg3.c
+  Fix swapping of red and blue.
+
+  * filter/filter_cshift.c
+  Fix handling of YUV422/YUV444 images.
+
+  * filter/filter_fields.c
+  Update help message for current colorspace processing.
+
+2005-10-21 Andrew Church <achurch at achurch dot org>
   * aclib/img_yuv_rgb.c
   Fix compilation on x86-64.
 

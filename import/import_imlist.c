@@ -138,15 +138,16 @@ MOD_decode {
     pixel_packet = GetImagePixels(image, 0, 0, image->columns, image->rows);
     for (row = 0; row < image->rows; row++) {
         for (column = 0; column < image->columns; column++) {
+          /* FIXME: should these use >>8? (see import_im.c) */
           param->buffer[(row * image->columns + column) * 3 + 0] =
                pixel_packet[(image->rows - row - 1) * image->columns +
-                                                                 column].blue;
+                                                                 column].red;
           param->buffer[(row * image->columns + column) * 3 + 1] =
                pixel_packet[(image->rows - row - 1) * image->columns +
                                                                  column].green;
           param->buffer[(row * image->columns + column) * 3 + 2] =
                pixel_packet[(image->rows - row - 1) * image->columns +
-                                                                 column].red;
+                                                                 column].blue;
         }
     }
 

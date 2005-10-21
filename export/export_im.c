@@ -49,7 +49,7 @@ static char buf2[PATH_MAX];
 
 static uint8_t *tmp_buffer; //[SIZE_RGB_FRAME];
 
-static int codec, width, height, row_bytes;
+static int codec, width, height;
 
 static int counter=0;
 static char *prefix="frame.";
@@ -80,15 +80,11 @@ MOD_init
       
       codec = (vob->im_v_codec == CODEC_YUV) ? CODEC_YUV : CODEC_RGB;
 
-      if(vob->im_v_codec == CODEC_YUV) {
-	row_bytes = vob->v_bpp/8 * vob->ex_v_width;
-      }
-      
       InitializeMagick("");
 
       image_info=CloneImageInfo((ImageInfo *) NULL);
       
-      if (vob->divxbitrate == 1600)
+      if (vob->divxbitrate == VBITRATE)
 	quality = 75;
       else quality = vob->divxbitrate;
 

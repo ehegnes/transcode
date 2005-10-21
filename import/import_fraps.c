@@ -171,8 +171,8 @@ MOD_decode
         d = param->buffer;
         param->size = width * height * 3 / 2;
 
-        v = param->buffer + width * height;
-        u = param->buffer + (width * height) * 5 / 4;
+        u = param->buffer + width * height;
+        v = u + (width/2) * (height/2);
 
         for (y = 0; y < height; y += 2) {
 

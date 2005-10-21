@@ -65,7 +65,6 @@ int tc_filter(frame_list_t *ptr_, char *options)
   vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
 
-  static int width, height;
   static int size;
   int h;
   
@@ -125,9 +124,6 @@ int tc_filter(frame_list_t *ptr_, char *options)
     else 
       mfd->boolstep = 1;
 
-    width = vob->ex_v_width;
-    height = vob->ex_v_height;
-
     if (vob->im_v_codec == CODEC_RGB) {
 	tc_log_error(MOD_NAME, "This filter is only capable of YUV mode");
 	return -1;
@@ -173,9 +169,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if (mfd->start <= ptr->id && ptr->id <= mfd->end && ptr->id%mfd->step == mfd->boolstep) {
 
-      p = ptr->video_buf + ptr->v_height*ptr->v_width;
+      p = ptr->video_buf + ptr->v_height*ptr->v_width
+        + (ptr->v_height/2)*(ptr->v_width/2);
 
-      for (h = 0; h < height*width/4; h++) {
+      for (h = 0; h < (ptr->v_height/2)*(ptr->v_width/2); h++) {
+#warning ******************* FIXME ******************** integer overflow
 	*p = (*p-mfd->subst)&0xff;
 	p++;
       }

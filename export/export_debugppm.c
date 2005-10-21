@@ -244,7 +244,7 @@ MOD_encode
 	return(TC_EXPORT_ERROR);
     }  
     out_buffer += width*height;
-    offset = (width*height)>>2;
+    offset = (width/2)*(height/2);
     for(n=0 ; n<height/2 ; n++){
       if(fwrite(out_buffer,width/2,1,fd) != 1) {
         perror("write frame");

@@ -32,6 +32,7 @@
 #endif
 
 #include "transcode.h"
+#include "vid_aux.h"
 
 #define MOD_NAME    "export_jpg.so"
 #define MOD_VERSION "v0.2.1 (2003-08-06)"
@@ -70,7 +71,7 @@ static void write_yuv_JPEG_file(char *filename, int quality,
 		       unsigned char **input,
 		       int _width, int _height)
 {
-  int width2, i, j, k;
+  int i, j, k;
   int width 	= _width;
   int height 	= _height;
   unsigned char *base[3];
@@ -106,7 +107,6 @@ static void write_yuv_JPEG_file(char *filename, int quality,
   encinfo.comp_info[2].v_samp_factor = 1;
 
   jpeg_start_compress(&encinfo, TRUE);
-  width2 = width>>1;
 
   base[0] = input[0];
   base[1] = input[1];
@@ -117,8 +117,8 @@ static void write_yuv_JPEG_file(char *filename, int quality,
 
       line[0][j]   = base[0]; base[0] += width;
       line[0][j+1] = base[0]; base[0] += width;
-      line[1][k]   = base[1]; base[1] += width2;
-      line[2][k]   = base[2]; base[2] += width2;
+      line[1][k]   = base[1]; base[1] += width/2;
+      line[2][k]   = base[2]; base[2] += width/2;
     }
     jpeg_write_raw_data(&encinfo, line, 2*DCTSIZE);
   }
@@ -299,9 +299,7 @@ MOD_encode
     
     if(codec==CODEC_YUV) {
       unsigned char *base[3];
-      base[0] = param->buffer;
-      base[1] = param->buffer + width*height;
-      base[2] = param->buffer + width*height*5/4;
+      YUV_INIT_PLANES(base, param->buffer, IMG_YUV420P, width, height);
       write_yuv_JPEG_file(buf2, jpeg_quality, base, width, height);
       
       //out_buffer = tmp_buffer;

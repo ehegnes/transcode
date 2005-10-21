@@ -236,11 +236,6 @@ MOD_open
 
               quicktime_set_cmodel(qt_video, BC_YUV420P); qt_cm = BC_YUV420P;
               break;
-        case CODEC_YUV422:
-              tc_log_warn(MOD_NAME, "sorry, YUV422 not implemented", MOD_NAME);
-              return(TC_IMPORT_ERROR);
-              /*quicktime_set_cmodel(qt_video, BC_YUV422); qt_cm = BC_YUV422;*/
-              break;
 
         case CODEC_YUY2:
               quicktime_set_cmodel(qt_video, BC_YUV422); qt_cm = CODEC_YUY2;

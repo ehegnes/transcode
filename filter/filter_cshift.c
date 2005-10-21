@@ -44,10 +44,10 @@ static void cshift_yuv(uint8_t *buffer, vob_t *vob, int shift,
 	w = vob->im_v_width/2;
 	h = vob->im_v_height/2;
     } else if (format == IMG_YUV422P) {
-	w = vob->im_v_width/4;
+	w = vob->im_v_width/2;
 	h = vob->im_v_height;
     } else if (format == IMG_YUV444P) {
-	w = vob->im_v_width/4;
+	w = vob->im_v_width;
 	h = vob->im_v_height;
 	shift *= 2;
     } else {

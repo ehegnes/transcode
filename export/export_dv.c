@@ -158,14 +158,13 @@ MOD_encode
 
     time_t now = time(NULL);
 
-      pixels[0] = (char *) param->buffer;
-	
+      pixels[0] = param->buffer;
       if(encoder->isPAL) {
-	pixels[1]=(char *) param->buffer + PAL_W*PAL_H;
-	pixels[2]=(char *) param->buffer + (PAL_W*PAL_H*5)/4;
+	pixels[1] = pixels[0] + PAL_W*PAL_H;
+	pixels[2] = pixels[1] + (PAL_W/2)*(PAL_H/2);
       } else {
-	pixels[1]=(char *) param->buffer + NTSC_W*NTSC_H;
-	pixels[2]=(char *) param->buffer + (NTSC_W*NTSC_H*5)/4;
+	pixels[1] = pixels[0] + NTSC_W*NTSC_H;
+	pixels[2] = pixels[1] + (NTSC_W/2)*(NTSC_H/2);
       }
       
       if(dv_yuy2_mode) {

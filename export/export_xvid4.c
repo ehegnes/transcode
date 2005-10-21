@@ -229,9 +229,13 @@ MOD_init
 	 * ones, something really odd occurs somewhere and i prefer the
 	 * application crash */
 	thismod.stream_size = vob->ex_v_width * vob->ex_v_height;
-	if(vob->im_v_codec == CODEC_RGB)
+	if(vob->im_v_codec == CODEC_RGB) {
 		thismod.stream_size *= 3;
-	else if(vob->im_v_codec == CODEC_YUV422) {
+		if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
+			tc_log_warn(MOD_NAME, "tcv_convert_init failed");
+			return TC_EXPORT_ERROR;
+		}
+	} else if(vob->im_v_codec == CODEC_YUV422) {
 		thismod.stream_size *= 2;
 		if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
 			tc_log_warn(MOD_NAME, "tcv_convert_init failed");
@@ -369,7 +373,10 @@ MOD_encode
 	if(vob->im_v_codec == CODEC_YUV422) {
 		/* Convert to UYVY */
 		tcv_convert(param->buffer, IMG_YUV422P, IMG_UYVY);
-	}
+	} else if (vob->im_v_codec == CODEC_RGB) {
+		/* Convert to BGR (why isn't RGB supported??) */
+		tcv_convert(param->buffer, IMG_RGB24, IMG_BGR24);
+        }
 
 	/* Init the stat structure */
 	memset(&xvid_enc_stats,0, sizeof(xvid_enc_stats_t));

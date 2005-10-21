@@ -1491,7 +1491,6 @@ MOD_encode
             lavc_venc_frame->linesize[0] = lavc_venc_context->width;     
             lavc_venc_frame->linesize[1] = lavc_venc_context->width / 2;
             lavc_venc_frame->linesize[2] = lavc_venc_context->width / 2;
-            lavc_venc_frame->data[0]     = param->buffer;
         
             if(is_huffyuv)
             {
@@ -1508,26 +1507,25 @@ MOD_encode
             }
             else
             {
-                lavc_venc_frame->data[1]     = param->buffer +
-                    lavc_venc_context->width * lavc_venc_context->height;
-                lavc_venc_frame->data[2]     = param->buffer +
-                    (lavc_venc_context->width * lavc_venc_context->height*5)/4;
+                YUV_INIT_PLANES(lavc_venc_frame->data, param->buffer,
+                                IMG_YUV420P, lavc_venc_context->width,
+                                lavc_venc_context->height);
             }
             break;
 
         case CODEC_YUV422:
             if(is_huffyuv)
             {
-                lavc_venc_frame->data[1]     = param->buffer +
-                    lavc_venc_context->width * lavc_venc_context->height;
-                lavc_venc_frame->data[2]     = param->buffer +
-                    (lavc_venc_context->width * lavc_venc_context->height*3)/2;
+                YUV_INIT_PLANES(lavc_venc_frame->data, param->buffer,
+                                IMG_YUV422P, lavc_venc_context->width,
+                                lavc_venc_context->height);
             }
             else
             {
                 uint8_t *src[3];
 		YUV_INIT_PLANES(src, param->buffer, IMG_YUV422P,
-				lavc_venc_context->width, lavc_venc_context->height);
+				lavc_venc_context->width,
+                                lavc_venc_context->height);
                 avpicture_fill((AVPicture *)lavc_venc_frame, yuv42xP_buffer,
                                PIX_FMT_YUV420P, lavc_venc_context->width,
                                lavc_venc_context->height);
@@ -1540,7 +1538,8 @@ MOD_encode
 
         case CODEC_RGB:
             avpicture_fill((AVPicture *)lavc_venc_frame, tmp_buffer,
-                    PIX_FMT_YUV420P, lavc_venc_context->width, lavc_venc_context->height);
+                           PIX_FMT_YUV420P, lavc_venc_context->width,
+                           lavc_venc_context->height);
 	    ac_imgconvert(&param->buffer, IMG_RGB_DEFAULT,
                               lavc_venc_frame->data, IMG_YUV420P,
                               lavc_venc_context->width,

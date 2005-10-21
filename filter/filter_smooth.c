@@ -42,13 +42,13 @@ static void smooth_yuv(unsigned char *buf, int width, int height, int maxdiff,
 	float dist, ratio, nval;
 
 	ltbuf = tbuf[instance];
-	tbufcr = &ltbuf[width * height];
-	tbufcb = &tbufcr[(width * height) / 4];
+	tbufcb = &ltbuf[width * height];
+	tbufcr = &tbufcb[(width/2) * (height/2)];
 
 	ac_memcpy(ltbuf, buf, (width * height) * 3 / 2);
 	
-	bufcr = &buf[width * height];
-	bufcb = &bufcr[(width * height) / 4];
+	bufcb = &buf[width * height];
+	bufcr = &bufcb[(width/2) * (height/2)];
 	
 
 	/* First pass - horizontal */

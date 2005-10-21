@@ -289,13 +289,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		    for (column = 0; column < image->columns; column++) {
 
 			mfd->yuv[i][(row * image->columns + column) * 3 + 0] =
-			    pixel_packet[image->columns*row + column].blue;
+			    pixel_packet[image->columns*row + column].red;
 
 			mfd->yuv[i][(row * image->columns + column) * 3 + 1] =
 			    pixel_packet[image->columns*row + column].green;
 
 			mfd->yuv[i][(row * image->columns + column) * 3 + 2] =
-			    pixel_packet[image->columns*row + column].red;
+			    pixel_packet[image->columns*row + column].blue;
 		    }
 		}
 		images=images->next;
@@ -311,13 +311,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		    for (column = 0; column < image->columns; column++) {
 
 			mfd->yuv[i][(row * image->columns + column) * 3 + 0] =
-			    pixel_packet[image->columns*row + column].red;
+			    pixel_packet[image->columns*row + column].blue;
 
 			mfd->yuv[i][(row * image->columns + column) * 3 + 1] =
 			    pixel_packet[image->columns*row + column].green;
 
 			mfd->yuv[i][(row * image->columns + column) * 3 + 2] =
-			    pixel_packet[image->columns*row + column].blue;
+			    pixel_packet[image->columns*row + column].red;
 		    }
 		}
 		images=images->next;
@@ -459,9 +459,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			  int packet_off = (images->rows - row - 1) * images->columns + column;
 			  int ptr_off    = ((row+mfd->posy)* vob->ex_v_width + column+mfd->posx) * 3;
 
-			  ptr->video_buf[ptr_off + 0] = pixel_packet[packet_off].red;
+			  ptr->video_buf[ptr_off + 0] = pixel_packet[packet_off].blue;
 			  ptr->video_buf[ptr_off + 1] = pixel_packet[packet_off].green;
-			  ptr->video_buf[ptr_off + 2] = pixel_packet[packet_off].blue;
+			  ptr->video_buf[ptr_off + 2] = pixel_packet[packet_off].red;
 		      } /* !opaque */
 		  }
 	      }
@@ -473,9 +473,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			  int packet_off = (images->rows - row - 1) * images->columns + column;
 			  int ptr_off    = ((row+mfd->posy)* vob->ex_v_width + column+mfd->posx) * 3;
 
-			  ptr->video_buf[ptr_off + 0] = pixel_packet[packet_off].blue;
+			  ptr->video_buf[ptr_off + 0] = pixel_packet[packet_off].red;
 			  ptr->video_buf[ptr_off + 1] = pixel_packet[packet_off].green;
-			  ptr->video_buf[ptr_off + 2] = pixel_packet[packet_off].red;
+			  ptr->video_buf[ptr_off + 2] = pixel_packet[packet_off].blue;
 		      } /* !opaque */
 		  }
 	      }

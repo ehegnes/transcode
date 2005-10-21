@@ -86,10 +86,11 @@ static const char *help_text[] = {
   "  help  - Print this text.",
   "",
   "Note: the 'shift' function may produce slight color",
-  "discrepancies if YV12 is used as the internal transcode",
-  "video format (-V flag).  This is because YV12 does not",
-  "contain enough information to do field shifting cleanly. For",
-  "best (but slower) results, use RGB mode for field shifting.",
+  "discrepancies if YUV is used as the internal transcode",
+  "video format.  This is because YUV does not contain enough",
+  "information to do field shifting cleanly. For best (but",
+  "slower) results, use RGB mode (--use_rgb) for field",
+  "shifting.",
   "",
   0 // End of Text
 };
@@ -140,9 +141,9 @@ static inline void copy_field(char *to, char *from, int width, int height) {
  *               NOTE:  This function uses 'buffer' as a temporary space.
  */
 static inline void swap_fields(char *f1, char *f2, int width, int height) {
-  int increment = width << 1;
+  int increment = width * 2;
 
-  height >>= 1;
+  height /= 2;
   while (height--) {
     ac_memcpy(buffer, f1, width);
     ac_memcpy(f1, f2, width);

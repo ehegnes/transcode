@@ -352,7 +352,7 @@ MOD_open
 
     case CODEC_YUV:
 
-      pbi->biCompression = FOURCC('Y','V','1','2');
+      pbi->biCompression = FOURCC('I','4','2','0');
       frame_size = (pbi->biWidth * pbi->biHeight * 3)/2;
       break;
 
@@ -366,7 +366,7 @@ MOD_open
 
       pass_through=1;
       pass_through_decode=1;
-      pbi->biCompression = FOURCC('Y','V','1','2');
+      pbi->biCompression = FOURCC('I','4','2','0');
       frame_size = pbi->biWidth * pbi->biHeight * 3;
       break;
     }
@@ -384,7 +384,7 @@ MOD_open
 
     case CODEC_YUV:
 
-      divx->output_format=DEC_YV12;
+      divx->output_format=DEC_420;
       frame_size = (divx->x_dim * divx->y_dim * 3)/2;
       break;
 
@@ -398,7 +398,7 @@ MOD_open
 
       pass_through=1;
       pass_through_decode=1;
-      divx->output_format=DEC_YV12;
+      divx->output_format=DEC_420;
       frame_size = (divx->x_dim * divx->y_dim * 3)/2;
       break;
     }

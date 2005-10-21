@@ -252,14 +252,13 @@ MOD_encode
     
     if(!pass_through) {
 
-      pixels[0] = (char *) vbuf;
-      
+      pixels[0] = vbuf;
       if(encoder->isPAL) {
-	pixels[1]=(char *) vbuf + PAL_W*PAL_H;
-	pixels[2]=(char *) vbuf + (PAL_W*PAL_H*(format==2?6:5))/4;
+	pixels[1] = pixels[0] + PAL_W*PAL_H;
+	pixels[2] = pixels[1] + (PAL_W/2)*(format==2?PAL_H:PAL_H/2);
       } else {
-	pixels[1]=(char *) vbuf + NTSC_W*NTSC_H;
-	pixels[2]=(char *) vbuf + (NTSC_W*NTSC_H*(format==2?6:5))/4;
+	pixels[1] = pixels[0] + NTSC_W*NTSC_H;
+	pixels[2] = pixels[1] + (NTSC_W/2)*(format==2?NTSC_H:NTSC_H/2);
       }
       
       if(dv_yuy2_mode && !dv_uyvy_mode) {
