@@ -26,7 +26,6 @@
  * it start to search then encode frame: 0000.yuv, 0001.yuv and so on. 
  * If some frames are missing module try to find a next aviable frame 
  * until MAXFRM frame is count.
- * Remeber to add -V option to transcode (only YUV mode is supported) 
  */
 
 #define MOD_NAME    "import_yuv.so"
