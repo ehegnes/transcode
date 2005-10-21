@@ -1,3 +1,7 @@
+2005-10-21 Andrew Church <achurch at achurch dot org>
+  * INSTALL
+  Fix LZO notes to refer to current version (2) of LZO.
+
 2005-10-20 Jacob Meuser <jakemsr@jakemsr.com>
   * filter/filter_modfps.c
   fix typo
