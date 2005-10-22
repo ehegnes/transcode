@@ -1,3 +1,8 @@
+2005-10-22 Jacob Meuser <jakemsr at jakemsr dot com>
+  * import/iodump.c
+  *BSD don't have lseek64 or off64_t.  lseek and off_t are 64-bit
+  clean there.
+
 2005-10-21 Andrew Church <achurch at achurch dot org>
   * export/export_debugppm.c export/export_dv.c export/export_dvraw.c
     export/export_fame.c export/export_ffmpeg.c export/expirt_im.c
@@ -25,19 +30,19 @@
   * INSTALL
   Fix LZO notes to refer to current version (2) of LZO.
 
-2005-10-20 Jacob Meuser <jakemsr@jakemsr.com>
+2005-10-20 Jacob Meuser <jakemsr at jakemsr dot com>
   * filter/filter_modfps.c
   fix typo
 
-2005-10-20 Jacob Meuser <jakemsr@jakemsr.com>
+2005-10-20 Jacob Meuser <jakemsr at jakemsr dot com>
   * filter/filter_fps.c
   extraneous format argument
 
-2005-10-20 Jacob Meuser <jakemsr@jakemsr.com>
+2005-10-20 Jacob Meuser <jakemsr at jakemsr dot com>
   * filter/filter_detectclipping.c
   fix typo
 
-2005-10-20 Jacob Meuser <jakemsr@jakemsr.com>
+2005-10-20 Jacob Meuser <jakemsr at jakemsr dot com>
   * aclib/ac.h
   not all systems have stdint.h.  might need sys/types.h as well.
 
