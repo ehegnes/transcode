@@ -1,4 +1,8 @@
 2005-10-22 Jacob Meuser <jakemsr at jakemsr dot com>
+  * tools/tcmodinfo.c
+  Conditionalize inclusion of stdint.h.
+
+2005-10-22 Jacob Meuser <jakemsr at jakemsr dot com>
   * import/iodump.c
   *BSD don't have lseek64 or off64_t.  lseek and off_t are 64-bit
   clean there.
