@@ -180,7 +180,7 @@ extern "C" {
       }
       
       pfcc = (char *)&fourcc;
-      tc_log_info(MOD_NAME "\"%s\" FOURCC=0x%lx (%c%c%c%c)", 
+      tc_log_info(MOD_NAME, "\"%s\" FOURCC=0x%lx (%c%c%c%c)", 
              vob->ex_v_fcc, (long)fourcc, 
              pfcc[0], pfcc[1], pfcc[2], pfcc[3]);
 
