@@ -1,3 +1,8 @@
+2005-10-25 Bryan Mayland <bmayland at leoninedev dot com>
+  * export/export_xvid4.c export/xvid4.cfg
+  support for full quality first pass in xvid4
+  (patch effectively applied by fromani at gmail dot com)
+
 2005-10-22 Jacob Meuser <jakemsr at jakemsr dot com>
   * tools/tcmodinfo.c
   Conditionalize inclusion of stdint.h.

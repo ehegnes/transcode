@@ -136,7 +136,7 @@ typedef struct _xvid_transcode_module_t
 
 	/* This data must survive local block scope, so here it is */
 	xvid_enc_plugin_t    plugins[7];
-	xvid_enc_zone_t      zones[1];
+	xvid_enc_zone_t      zones[2];
 	xvid_plugin_single_t onepass;
 	xvid_plugin_2pass1_t pass1;
 	xvid_plugin_2pass2_t pass2;
@@ -163,6 +163,7 @@ typedef struct _xvid_transcode_module_t
 	int cfg_stats;
 	int cfg_greyscale;
 	int cfg_turbo;
+	int cfg_full1pass;
 
 	/* MPEG4 stream buffer */
 	int   stream_size;
@@ -572,6 +573,7 @@ static void reset_module(xvid_transcode_module_t *mod)
 	mod->cfg_vhq = 1;
 	mod->cfg_motion = 6;
 	mod->cfg_turbo = 0;
+	mod->cfg_full1pass = 0;
 	mod->cfg_stats = 0;
 	mod->cfg_greyscale = 0;
 	mod->cfg_quant_method = strdup("h263");
@@ -669,6 +671,7 @@ static void read_config_file(xvid_transcode_module_t *mod)
 			{"stats", &mod->cfg_stats, CONF_TYPE_FLAG, 0, 0, 1, NULL},
 			{"greyscale", &mod->cfg_greyscale, CONF_TYPE_FLAG, 0, 0, 1, NULL},
 			{"turbo", &mod->cfg_turbo, CONF_TYPE_FLAG, 0, 0, 1, NULL},
+			{"full1pass", &mod->cfg_full1pass, CONF_TYPE_FLAG, 0, 0, 1, NULL},
 
 			/* section [quantizer] */
 			{"quantizer", "Quantizer settings", CONF_TYPE_SECTION, 0, 0, 0, NULL},
@@ -894,7 +897,17 @@ static void set_create_struct(xvid_transcode_module_t *mod, vob_t *vob)
 	 * ToDo?: Allow zones definitions */
 	memset(mod->zones, 0, sizeof(mod->zones));
 	x->zones     = mod->zones;
-	x->num_zones = 0;
+
+	if (1 == vob->divxmultipass && mod->cfg_full1pass)
+	{
+		x->zones[0].frame = 0;
+		x->zones[0].mode = XVID_ZONE_QUANT;
+		x->zones[0].increment = 200;
+		x->zones[0].base = 100;
+		x->num_zones = 1;
+	} else {
+		x->num_zones = 0;
+	}
 
 	/* Plugins */
 	memset(mod->plugins, 0, sizeof(mod->plugins));
