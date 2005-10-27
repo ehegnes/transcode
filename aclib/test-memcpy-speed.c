@@ -1,6 +1,6 @@
 /*compile-command
 set -x
-gcc -O3 -g "$0" -DARCH_X86
+gcc -O3 -g -I. -I.. "$0" -DARCH_X86
 exit $?
 */
 
@@ -20,6 +20,8 @@ exit $?
 #include <signal.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+
+#include "config.h"
 
 #include "memcpy.c"
 

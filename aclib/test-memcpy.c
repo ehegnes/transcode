@@ -1,6 +1,6 @@
 /*compile-command
 set -x
-gcc -O3 "$0" -DARCH_X86
+gcc -O3 -g -I. -I.. "$0" -DARCH_X86
 exit $?
 */
 
@@ -17,6 +17,8 @@ exit $?
 #include <signal.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+
+#include "config.h"
 
 #include "memcpy.c"
 
@@ -55,8 +57,8 @@ int testit(void *(*func)(void *, const void *, size_t), int align1, int align2, 
 
         chunk1_base = malloc(length+128+spill);
         chunk2_base = malloc(length+128+spill);
-        chunk1 = (char *)((int)chunk1_base+63 & -64) + align1;
-        chunk2 = (char *)((int)chunk2_base+63 & -64) + align2;
+        chunk1 = (char *)((long)chunk1_base+63 & -64) + align1;
+        chunk2 = (char *)((long)chunk2_base+63 & -64) + align2;
 
         memset(chunk1, 0x11, length+spill);
         memset(chunk2, 0x22, length+spill);

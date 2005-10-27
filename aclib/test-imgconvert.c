@@ -1,6 +1,6 @@
 /*compile-command
 set -x
-gcc -O3 -g "$0" -DARCH_X86
+gcc -O3 -I. -I.. -g "$0" -DARCH_X86
 exit $?
 */
 
@@ -26,6 +26,8 @@ exit $?
 #include <signal.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+
+#include "config.h"
 
 #include "imgconvert.c"
 #include "img_rgb_packed.c"

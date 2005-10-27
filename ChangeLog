@@ -1,3 +1,12 @@
+2005-10-27 Francesco Romani <fromani at gmail dot com>
+  * aclib/test-imgconvert.c aclib/test-memcpy.c
+    aclib/test-memcpy-speed.c
+  Update compile-command and include config.h in order to
+  conditional include stdint.h or sys/types.h (or both);
+  
+  also make aclib/test-memcpy.c compile on amd64 (where
+  sizeof(int) == 4, sizeof(long) == 8, sizeof(void*) == 8).
+
 2005-10-25 Bryan Mayland <bmayland at leoninedev dot com>
   * export/export_xvid4.c export/xvid4.cfg
   support for full quality first pass in xvid4
