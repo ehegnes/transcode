@@ -1,4 +1,14 @@
 2005-10-27 Francesco Romani <fromani at gmail dot com>
+  * libtc/tc_functions.c
+  Fixed a stupid but really nasty bug which cause
+  incorrect (too small) message buffer allocation in tc_log().
+  Fixed nasty typo in strlen() usage.
+  Embedded basic, commented, test for tc_log()
+  Also enlarged static buffer data; this should catch the majority
+  of possibile messages without need to allocate a new buffer at
+  each call.
+
+2005-10-27 Francesco Romani <fromani at gmail dot com>
   * aclib/test-imgconvert.c aclib/test-memcpy.c
     aclib/test-memcpy-speed.c
   Update compile-command and include config.h in order to

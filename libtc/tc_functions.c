@@ -47,7 +47,7 @@
 #define COL_WHITE           COL(37)
 #define COL_GRAY            "\033[0m"
 
-#define TC_MSG_BUF_SIZE     (128)
+#define TC_MSG_BUF_SIZE     (256)
 
 /* WARNING: we MUST keep in sync preambles order with TC_LOG* macros */
 static const char *tc_log_preambles[] = {
@@ -74,7 +74,8 @@ void tc_log(int level, const char *tag, const char *fmt, ...)
     level = (level < TC_LOG_ERR) ?TC_LOG_ERR :level;
     level = (level > TC_LOG_MSG) ?TC_LOG_MSG :level;
 
-    size = strlen(tc_log_preambles[level] + 1);          
+    size = strlen(tc_log_preambles[level]) 
+           + strlen(tag) + strlen(fmt) + 1;          
  
     if (size > TC_MSG_BUF_SIZE) {
         dynbuf = 1;
@@ -345,3 +346,36 @@ void tc_buffree(void *ptr)
 }
 
 /*************************************************************************/
+
+/* embedded simple test for tc_log()
+
+int main() {
+    int i = 0;
+
+    for(i = 0; i < 4; i++) {
+        tc_log(i, __FILE__, "short format");
+        tc_log(i, __FILE__, "a little longer format (%i)", i);
+        tc_log(i, __FILE__, "a really longer format (%i) with additional "
+                            "arg: %s", i, __FILE__);
+        tc_log(i, __FILE__, "a really really long format (%i) with various "
+                            "additional arguments: "
+                            " file='%s' line='%i' date='%s' i=%i &i=%p",
+                            i, __FILE__, __LINE__, __DATE__, i, &i);
+
+#define __TAG__ "tag a bit more longer than FILE standard macro"
+        tc_log(i, __TAG__, "short format");
+        tc_log(i, __TAG__, "a little longer format (%i)", i);
+        tc_log(i, __TAG__, "a really longer format (%i) with additional "
+                            "arg: %s", i, __FILE__);
+        tc_log(i, __TAG__, "a really really long format (%i) with various "
+                           "additional arguments: "
+                           " file='%s' line='%i' date='%s' i=%i &i=%p",
+                           i, __FILE__, __LINE__, __DATE__, i, &i);
+        
+       
+    }
+
+    return 0;
+}
+
+*/
