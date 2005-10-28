@@ -13,15 +13,15 @@
 2005-10-28 Francesco Romani <fromani at gmail dot com>
   * import/aux_pes.c import/aux_pes.h import/demuxer.c
     import/demuxer.h import/scan_pack.c
- Clean up an out of bound behaviour in probe_picext() and,
- potentially, in probe_group(). Now these functions check
- if have enough buffer space before to do a probe, emitting
- a warning at first probe failed for lack of space, and every
- following N failed probes.
- More work is needed to ensure that similar functions in modified
- files have'nt problems like this.
- PLEASE NOTE that transcode_1.0 branch will adopt a different,
- simpler approach to fix this problem.
+  Clean up an out of bound behaviour in probe_picext() and,
+  potentially, in probe_group(). Now these functions check
+  if have enough buffer space before to do a probe, emitting
+  a warning at first probe failed for lack of space, and every
+  following N failed probes.
+  More work is needed to ensure that similar functions in modified
+  files have'nt problems like this.
+  PLEASE NOTE that transcode_1.0 branch will adopt a different,
+  simpler approach to fix this problem.
 
 2005-10-27 Francesco Romani <fromani at gmail dot com>
   * libtc/tc_functions.c
