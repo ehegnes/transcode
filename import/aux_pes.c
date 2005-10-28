@@ -259,7 +259,9 @@ int probe_extension(uint8_t *buffer, probe_info_t *probe_info)
   return(0);
 }
 
-int probe_picext(uint8_t *buffer)
+#define BUF_WARN_COUNT 20
+
+int probe_picext(uint8_t *buffer, size_t buflen)
 {
   
   //  static char *picture_structure_str[4] = {
@@ -268,16 +270,36 @@ int probe_picext(uint8_t *buffer)
   //  "Bottom field",
   //  "Frame Picture"
   //};
-  
+  static int buf_small_count = 0;
+  if(buflen < 3) {
+    if(buf_small_count == 0 
+      || (buf_small_count % BUF_WARN_COUNT) == 0) {
+        tc_log_warn(__FILE__, "not enough buffer to probe picture extension "
+                          "(buflen=%lu) [happened at least %i times]", 
+                          (unsigned long)buflen, buf_small_count);
+    }
+    buf_small_count++;
+    return(-1); /* failed probe */
+  }
   return(buffer[2] & 3);
 }
 
-void probe_group(uint8_t *buffer)
+void probe_group(uint8_t *buffer, size_t buflen)
 {
-    printf("%s%s\n", (buffer[4] & 0x40) ? " closed_gop" : "",
-	   (buffer[4] & 0x20) ? " broken_link" : "");
+    static int buf_small_count = 0;
+    if(buflen < 5) {
+        if(buf_small_count == 0 
+          || (buf_small_count % BUF_WARN_COUNT) == 0) {
+            tc_log_warn(__FILE__, "not enough buffer to probe picture group "
+                             "(buflen=%lu) [happened at least %i times]", 
+                             (unsigned long)buflen, buf_small_count);
+        }
+        buf_small_count++;
+    } else {	 
+       printf("%s%s\n", (buffer[4] & 0x40) ? " closed_gop" : "",
+	        (buffer[4] & 0x20) ? " broken_link" : "");
+    }
 }
-
 
 int get_pts_dts(char *buffer, unsigned long *pts, unsigned long *dts)
 {

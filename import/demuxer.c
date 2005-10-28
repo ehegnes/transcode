@@ -745,11 +745,11 @@ void tcdemux_thread(info_t *ipipe)
 	
       case TC_DEMUX_DEBUG:
 	if((flag_flush && !flag_skip && (payload_id & select)) 
-	   || flag_force) scan_pack_payload(buffer, j, ipipe->verbose);
+	   || flag_force) scan_pack_payload(buffer, packet_size, j, ipipe->verbose);
 	break;
 	
       case TC_DEMUX_DEBUG_ALL:
-	scan_pack_payload(buffer, j, ipipe->verbose);
+	scan_pack_payload(buffer, packet_size, j, ipipe->verbose);
 	break;
 	
       case TC_DEMUX_SEQ_FSYNC:

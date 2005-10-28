@@ -142,7 +142,7 @@ int scan_pack_ext(char *buf)
   for(n=0; n<VOB_PACKET_SIZE-4; ++n) {
       
       if(_cmp_32_bits(buf+n, TC_MAGIC_PICEXT) && ((uint8_t) buf[n+4]>>4)==8){
-	  ret_code = probe_picext(buf+n+4);
+	  ret_code = probe_picext(buf+n+4, VOB_PACKET_SIZE-4-n);
       }
   } // probe extension header
   
@@ -150,7 +150,7 @@ int scan_pack_ext(char *buf)
 }
 
 
-void scan_pack_payload(char *video, int n, int verbose)
+void scan_pack_payload(char *video, size_t size, int n, int verbose)
 {
 
     int k;
@@ -202,10 +202,13 @@ void scan_pack_payload(char *video, int n, int verbose)
 	if((k=pack_scan_32(video, MPEG_EXT_START_CODE))!=-1) {
 	    
 	    if(((uint8_t)video[k+4]>>4)==8) {
-		int mode = probe_picext(&video[k+4]);
-		printf("\tMPEG EXT start code found in packet %d, offset %4d, %s\n", n, k, picture_structure_str[mode]);
+		    int mode = probe_picext(&video[k+4], size - (size_t)k);
+            if(mode > 0)
+                printf("\tMPEG EXT start code found in packet %d, offset %4d, %s\n", n, k, picture_structure_str[mode]);
+            else
+                printf("\tMPEG EXT start code found INCOMPLETE in packet %d, offset %4d\n", n, k);
 	    } else 
-		printf("\tMPEG EXT start code found in packet %d, offset %4d\n", n, k);
+		    printf("\tMPEG EXT start code found in packet %d, offset %4d\n", n, k);
 	}
 
 	if((k=pack_scan_32(video, MPEG_GOP_START_CODE))!=-1) {
@@ -213,7 +216,7 @@ void scan_pack_payload(char *video, int n, int verbose)
 	    gop_pts=pts;
 	    ++gop_cnt;
 	    gop=1;
-	    probe_group((uint8_t*) &video[k+4]);
+	    probe_group((uint8_t*) &video[k+4], size - (size_t)k);
 	}
 	
 	if((k=pack_scan_32(video, MPEG_PICTURE_START_CODE))!=-1) 

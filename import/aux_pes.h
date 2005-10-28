@@ -46,7 +46,7 @@ int get_pts_dts(char *buffer, unsigned long *pts, unsigned long *dts);
 int probe_sequence(uint8_t *buffer, probe_info_t *probe_info);
 int probe_extension(uint8_t *buffer, probe_info_t *probe_info);
 void scr_rewrite(char *buffer, uint32_t pts);
-int probe_picext(uint8_t *buffer);
-void probe_group(uint8_t *buffer);
+int probe_picext(uint8_t *buffer, size_t buflen);
+void probe_group(uint8_t *buffer, size_t buflen);
 
 #endif
