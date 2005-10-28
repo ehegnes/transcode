@@ -30,9 +30,14 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include "libxio/xio.h"
+
 #include "libtc.h"
 #include "tc_func_excl.h"
 
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
 #if defined(HAVE_ALLOCA_H)
 #include <alloca.h>
 #endif
@@ -343,6 +348,188 @@ void tc_buffree(void *ptr)
 #else
     free(ptr);
 #endif
+}
+
+
+ssize_t tc_pread(int fd, uint8_t *buf, size_t len)
+{
+    ssize_t n = 0;
+    ssize_t r = 0;
+
+    while (r < len) {
+        n = xio_read(fd, buf + r, len - r);
+        
+        if (n == 0) {  /* EOF */
+            break;
+        }
+        if (n < 0) {
+            if (errno == EINTR) {
+                continue;
+            } else {
+                break;
+            }
+        }
+        r += n;
+    }
+    return r;
+}
+
+
+ssize_t tc_pwrite(int fd, uint8_t *buf, size_t len)
+{
+    ssize_t n = 0;
+    ssize_t r = 0;
+
+    while (r < len) {
+        n = xio_write(fd, buf + r, len - r);
+
+        if (n < 0) {
+            if (errno == EINTR) {
+                continue;
+            } else {
+                break;
+            }                
+        }
+        r += n;
+    }
+    return r;
+}
+
+
+#define MAX_BUF 4096
+int tc_preadwrite(int fd_in, int fd_out)
+{
+    uint8_t buffer[MAX_BUF];
+    ssize_t bytes;
+    int error = 0;
+
+    do {
+        bytes = tc_pread(fd_in, buffer, MAX_BUF);
+
+        /* error on read? */
+        if (bytes < 0) {
+            return -1;
+        }            
+
+        /* read stream end? */
+        if (bytes != MAX_BUF) {
+            error = 1;
+        }            
+
+        if (bytes) {
+            /* write stream problems? */
+            if (tc_pwrite(fd_out, buffer, bytes) != bytes) {
+                error = 1;
+            }
+        }
+    } while (!error);
+ 
+    return 0;
+}
+
+
+int tc_file_check(const char *name)
+{
+    struct stat fbuf;
+
+    if(xio_stat(name, &fbuf)) {
+        tc_log_warn(__FILE__, "invalid file \"%s\"", name);
+        return -1;
+    }
+
+    // file or directory?
+    if(S_ISDIR(fbuf.st_mode)) {
+        return 1;
+    }
+    return 0;
+}
+
+#ifndef major
+# define major(dev)  (((dev) >> 8) & 0xff)
+#endif
+
+int tc_probe_path(const char *name) 
+{
+    struct stat fbuf;
+#ifdef NET_STREAM
+    struct hostent *hp;
+#endif
+    if(name == NULL) { 
+        tc_log_warn(__FILE__, "invalid file \"%s\"", name);
+        return TC_PROBE_PATH_INVALID;
+    }
+
+    if(xio_stat(name, &fbuf)==0) {
+        /* inode exists */
+
+        /* treat DVD device as absolute directory path */
+        if (S_ISBLK(fbuf.st_mode)) {
+            return TC_PROBE_PATH_ABSPATH;
+        }
+
+        /* char device could be several things, depending on system */
+        /* *BSD DVD device? v4l? bktr? sunau? */
+        if(S_ISCHR(fbuf.st_mode)) {
+            switch (major(fbuf.st_rdev)) {
+#ifdef SYS_BSD
+# ifdef __OpenBSD__
+                case 15: /* rcd */
+                    return TC_PROBE_PATH_ABSPATH;
+                case 42: /* sunau */
+                    return TC_PROBE_PATH_SUNAU;
+                case 49: /* bktr */
+                    return TC_PROBE_PATH_BKTR;
+# endif
+# ifdef __FreeBSD__
+                case 4: /* acd */
+                    return TC_PROBE_PATH_ABSPATH;
+                case 229: /* bktr */
+                    return TC_PROBE_PATH_BKTR;
+                case 0: /* OSS */
+                    return TC_PROBE_PATH_OSS;
+# endif
+                default: /* libdvdread uses "raw" disk devices here */
+                    return TC_PROBE_PATH_ABSPATH;
+#else
+                case 81: /* v4l (Linux) */
+                    return TC_PROBE_PATH_V4L_VIDEO;
+#ifdef HAVE_V4L
+                case 14: /* dsp (Linux) */
+                    return TC_PROBE_PATH_V4L_AUDIO;
+#else
+                case 14: /* OSS */
+                    return TC_PROBE_PATH_OSS;
+#endif
+                default:
+                    break;
+#endif
+            }
+        }
+
+        /* file or directory? */
+        if (!S_ISDIR(fbuf.st_mode)) {
+            return TC_PROBE_PATH_FILE;
+        }
+
+        /* directory, check for absolute path */
+        if(name[0] == '/') {
+            return TC_PROBE_PATH_ABSPATH;
+        }
+
+        /* directory mode */
+        return TC_PROBE_PATH_RELDIR;
+    } else {
+#ifdef NET_STREAM
+        /* check for network host */
+        if ((hp = gethostbyname(name)) != NULL) {
+            return(TC_PROBE_PATH_NET);
+        }
+#endif
+        tc_log_warn(__FILE__, "invalid filename or host \"%s\"", name);
+        return TC_PROBE_PATH_INVALID;
+    }
+    
+    return TC_PROBE_PATH_INVALID;
 }
 
 /*************************************************************************/

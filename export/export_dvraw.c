@@ -27,7 +27,6 @@
 #include "transcode.h"
 #include "vid_aux.h"
 #include "optstr.h"
-#include "ioaux.h"
 #include "aclib/imgconvert.h"
 
 #define MOD_NAME    "export_dvraw.so"
@@ -320,7 +319,7 @@ MOD_encode
 
     //write raw DV frame
     
-    if(p_write(fd, target, frame_size) != frame_size) {    
+    if(tc_pwrite(fd, target, frame_size) != frame_size) {    
       perror("write frame");
       return(TC_EXPORT_ERROR);
     }     

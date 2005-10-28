@@ -30,7 +30,6 @@
 #include <netdb.h>
 
 #include "transcode.h"
-#include "ioaux.h"
 
 #define MOD_NAME    "export_net.so"
 #define MOD_VERSION "v0.0.2 (2003-01-09)"
@@ -225,7 +224,7 @@ MOD_encode
 
 	if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "(V) write (%d,%d)", param->size, size);
 
-	if(p_write(vns, (char *) param->buffer, size)!=size) {
+	if(tc_pwrite(vns, (char *) param->buffer, size)!=size) {
 	  perror("video write");
 	  return(TC_EXPORT_ERROR);
 	}
@@ -242,7 +241,7 @@ MOD_encode
 
 	if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "(A) write (%d)", param->size);
 	
-	if(p_write(ans, (char *) param->buffer, param->size)!=param->size) {
+	if(tc_pwrite(ans, (char *) param->buffer, param->size)!=param->size) {
 	  perror("audio write");
 	  return(TC_EXPORT_ERROR);
 	}

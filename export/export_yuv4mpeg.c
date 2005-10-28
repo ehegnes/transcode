@@ -28,7 +28,6 @@
 #include "aclib/imgconvert.h"
 #include "aud_aux.h"
 #include "vid_aux.h"
-#include "ioaux.h"
 
 #define MOD_NAME    "export_yuv4mpeg.so"
 #define MOD_VERSION "v0.1.8 (2003-08-23)"
@@ -215,7 +214,7 @@ MOD_encode
 #endif
 	
 	//do not trust param->size
-	if(p_write(fd, param->buffer, size) != size) {    
+	if(tc_pwrite(fd, param->buffer, size) != size) {    
 	    perror("write frame");
 	    return(TC_EXPORT_ERROR);
 	}     

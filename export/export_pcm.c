@@ -26,7 +26,6 @@
 
 #include "transcode.h"
 #include "avilib.h"
-#include "ioaux.h"
 
 #define MOD_NAME    "export_pcm.so"
 #define MOD_VERSION "v0.0.4 (2003-09-30)"
@@ -199,32 +198,32 @@ MOD_encode
       
     case 6:
       
-      if(p_write(fd_rs, param->buffer + 5*size, size) != size) {
+      if(tc_pwrite(fd_rs, param->buffer + 5*size, size) != size) {
 	perror("write audio frame");
 	return(TC_EXPORT_ERROR);
       }     
       
-      if(p_write(fd_ls, param->buffer + 4*size, size) != size) {    
+      if(tc_pwrite(fd_ls, param->buffer + 4*size, size) != size) {    
 	perror("write audio frame");
 	return(TC_EXPORT_ERROR);
       }
       
-      if(p_write(fd_r, param->buffer + 3*size, size) != size) {    
+      if(tc_pwrite(fd_r, param->buffer + 3*size, size) != size) {    
 	perror("write audio frame");
 	return(TC_EXPORT_ERROR);
       }     
       
-      if(p_write(fd_c, param->buffer + 2*size, size) != size) {    
+      if(tc_pwrite(fd_c, param->buffer + 2*size, size) != size) {    
 	perror("write audio frame");
 	return(TC_EXPORT_ERROR);
       }
 
-      if(p_write(fd_l, param->buffer + size, size) != size) {    
+      if(tc_pwrite(fd_l, param->buffer + size, size) != size) {    
 	perror("write audio frame");
 	return(TC_EXPORT_ERROR);
       }
       
-      if(p_write(fd_lfe, param->buffer, size) != size) {    
+      if(tc_pwrite(fd_lfe, param->buffer, size) != size) {    
 	perror("write audio frame");
 	return(TC_EXPORT_ERROR);
       }
@@ -234,12 +233,12 @@ MOD_encode
       
     case 2:
       
-      if(p_write(fd_r, param->buffer + size, size) != size) {    
+      if(tc_pwrite(fd_r, param->buffer + size, size) != size) {    
 	perror("write audio frame");
 	return(TC_EXPORT_ERROR);
       }
       
-      if(p_write(fd_l, param->buffer, size) != size) {    
+      if(tc_pwrite(fd_l, param->buffer, size) != size) {    
 	perror("write audio frame");
 	return(TC_EXPORT_ERROR);
       }
@@ -248,7 +247,7 @@ MOD_encode
       
     case 1:
       
-      if(p_write(fd_c, param->buffer, size) != size) {    
+      if(tc_pwrite(fd_c, param->buffer, size) != size) {    
 	perror("write audio frame");
 	return(TC_EXPORT_ERROR);
       }

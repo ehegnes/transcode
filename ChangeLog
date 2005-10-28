@@ -1,4 +1,16 @@
 2005-10-28 Francesco Romani <fromani at gmail dot com>
+  * export/Makefile.am export/export_divx4raw.c export/export_divx5raw.c
+    export/export_dvraw.c export/export_net.c export/export_pcm.c
+    export/export_raw.c export/export_xvid2.c export/export_xvid3.c
+    export/export_xvid4.c export/export_yuv4mpeg.c 
+    libtc/libtc.h libtc/tc_functions.c
+  Start to factorize and move with basic documentation in libtc
+  some common I/O-related functions used both in export and import
+  modules, in order to reduce redundancy and object size.
+  Those functions are renamed to conform with libtc naming
+  scheme. Soon import modules will be updated too.
+
+2005-10-28 Francesco Romani <fromani at gmail dot com>
   * import/aux_pes.c import/aux_pes.h import/demuxer.c
     import/demuxer.h import/scan_pack.c
  Clean up an out of bound behaviour in probe_picext() and,

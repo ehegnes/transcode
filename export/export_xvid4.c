@@ -59,7 +59,6 @@
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
-#include "ioaux.h"
 #include "vid_aux.h"
 
 #include "libioaux/configs.h"
@@ -435,7 +434,7 @@ MOD_encode
 		}
 	} else {
 		int ret;
-		ret = p_write(thismod.rawfd, thismod.stream, bytes);
+		ret = tc_pwrite(thismod.rawfd, thismod.stream, bytes);
 		if(ret != bytes) {    
 			tc_log_warn(MOD_NAME, "RAW video write error");
 			return(TC_EXPORT_ERROR);

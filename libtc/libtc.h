@@ -30,6 +30,9 @@
 
 #include <stdarg.h>
 
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
@@ -189,12 +192,103 @@ void *_tc_bufalloc(const char *file, int line, size_t size);
  *                  tc_bufalloc() call
  * Return Value: none
  * Side effects: none
- * Precondtiions: ptr is acquired via tc_bufalloc(). Really BAD things
+ * Preconditions: ptr is acquired via tc_bufalloc(). Really BAD things
  *                will happen if a buffer acquired via tc_bufalloc()
  *                is released using anything but tc_buffree(), or
  *                vice versa.
  * Postconditions: none
  */
 void tc_buffree(void *ptr);
+
+/*
+ * tc_file_check: verify the type of a given file (path)
+ *                this function will be deprecated very soon,
+ *                replaced by a powered tc_probe_path().
+ *
+ * Parameters: file: the file (really: path) to verify.
+ * Return Value: -1 if an internal error occur
+ *               0 if given path is really a file
+ *               1 if given path is a directory
+ * Side effects: none
+ * Preconditions: none
+ * Postconditions: none
+ */
+int tc_file_check(const char *file);
+
+/*
+ * tc_pread: read an entire buffer from a file descriptor, restarting
+ *           automatically if interrupted.
+ *           This function is basically a wrapper around posix read(2);
+ *           read(2) can be interrupted by a signal, so doesn't guarantee
+ *           that all requested bytes are effectively readed when read(2)
+ *           returns; this function ensures so, except for critical errors.
+ * Parameters: fd: read data from this file descriptor
+ *             buf: pointer to a buffer which will hold readed data
+ *             len: how much data function must read from fd
+ * Return Value: size of effectively readed data
+ * Side effects: errno is readed internally
+ * Preconditions: none
+ * Postconditions: read exactly the requested bytes, if no *critical*
+ *                 (tipically I/O related) error occurs.
+ */
+ssize_t tc_pread(int fd, uint8_t *buf, size_t len);
+
+/*
+ * tc_pwrite: write an entire buffer from a file descriptor, restarting
+ *            automatically if interrupted.
+ *            This function is basically a wrapper around posix write(2);
+ *            write(2) can be interrupted by a signal, so doesn't guarantee
+ *            that all requested bytes are effectively writed when write(2)
+ *            returns; this function ensures so, except for critical errors.
+ * Parameters: fd: write data on this file descriptor
+ *             buf: pointer to a buffer which hold data to be written
+ *             len: how much data function must write in fd
+ * Return Value: size of effectively written data
+ * Side effects: errno is readed internally
+ * Preconditions: none
+ * Postconditions: write exactly the requested bytes, if no *critical*
+ *                 (tipically I/O related) error occurs.
+ */
+ssize_t tc_pwrite(int fd, uint8_t *buf, size_t len);
+
+/*
+ * tc_preadwrite: read all data avalaible from a file descriptor, putting 
+ *                it on the other one.
+ * Parameters: in: read data from this file descriptor
+ *             out: write readed data on this file descriptor
+ * Return Value: -1 if a read error happens
+ *               0 if no error happens
+ * Preconditions: none
+ * Postconditions: move the entire content of 'in' into 'out', 
+ *                 if no *critical* (tipically I/O related) error occurs.
+ */
+int tc_preadwrite(int in, int out);
+
+#define TC_PROBE_PATH_INVALID	0
+#define TC_PROBE_PATH_ABSPATH	1
+#define TC_PROBE_PATH_RELDIR	2
+#define TC_PROBE_PATH_FILE	3
+#define TC_PROBE_PATH_NET	4
+#define TC_PROBE_PATH_BKTR	5
+#define TC_PROBE_PATH_SUNAU	6
+#define TC_PROBE_PATH_V4L_VIDEO	7
+#define TC_PROBE_PATH_V4L_AUDIO	8
+#define TC_PROBE_PATH_OSS	9
+
+/*
+ * tc_probe_path: verify the type of a given path.
+ *
+ * Parameters: path: the path to probe.
+ * Return Value: the probed type of path. Can be
+ *               TC_PROBE_PATH_INVALID if given path
+ *               doesn't exists or an internal error occur.
+ * Side effects: if function fails, one or more debug message 
+ *               can be issued using tc_log*().
+ *               A name resolve request can be issued to system.
+ * Preconditions: none
+ * Postconditions: none
+ */
+int tc_probe_path(const char *name);
+
 
 #endif  /* _LIBTC_H */

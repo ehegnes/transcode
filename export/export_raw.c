@@ -69,22 +69,6 @@ static const struct {
 
 /*************************************************************************/
 
-static int scan(char *name) 
-{
-  struct stat fbuf;
-  
-  if(xio_stat(name, &fbuf)) {
-    fprintf(stderr, "(%s) invalid file \"%s\"\n", __FILE__, name);
-    exit(1);
-  }
-  
-  // file or directory?
-  
-  if(S_ISDIR(fbuf.st_mode)) return(1);
-  return(0);
-}
-
-
 /* ------------------------------------------------------------ 
  *
  * init codec
@@ -282,7 +266,7 @@ further:
 
 	    to_open = vob->video_in_file;
 
-	    if (scan(vob->video_in_file)) { 
+	    if (tc_file_check(vob->video_in_file) == 1) { /* directory */ 
 
 	      dir_name = vob->video_in_file;
 	      if((tc_open_directory(dir_name))<0) { 

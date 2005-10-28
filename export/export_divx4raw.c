@@ -55,7 +55,6 @@
 #include "avilib.h"
 #include "aud_aux.h"
 #include "vbr.h"
-#include "ioaux.h"
 
 #define MOD_NAME    "export_divx4raw.so"
 #define MOD_VERSION "v0.3.6 (2003-07-24)"
@@ -430,7 +429,7 @@ MOD_encode
     
     // write bitstream
     
-    if(p_write(fd, buffer, encode.length) != encode.length) {    
+    if(tc_pwrite(fd, buffer, encode.length) != encode.length) {    
       perror("write frame");
       return(TC_EXPORT_ERROR);
     }     

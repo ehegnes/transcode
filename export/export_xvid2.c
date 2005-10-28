@@ -65,7 +65,6 @@
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
-#include "ioaux.h"
 #include "vid_aux.h"
 
 #ifdef DEVELOPER_USE
@@ -563,7 +562,7 @@ MOD_encode
 			tc_log_warn(MOD_NAME, "avi video write error");
 			return(TC_EXPORT_ERROR); 
 		}
-	} else if(p_write(rawfd, buffer, xframe.length)  != xframe.length) {    
+	} else if(tc_pwrite(rawfd, buffer, xframe.length)  != xframe.length) {    
 		perror("write frame");
 		return(TC_EXPORT_ERROR);
 	}     

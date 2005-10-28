@@ -112,7 +112,7 @@ export_divx4_la_SOURCES = export_divx4.c aud_aux.c divx4_vbr.c
 export_divx4_la_LDFLAGS = -module -avoid-version
 export_divx4_la_LIBADD = $(LAME_LIBS) $(LIBAVCODEC_LIBS) $(AC3_LIBS)
 
-export_divx4raw_la_SOURCES = export_divx4raw.c aud_aux.c divx4_vbr.c ../import/ioaux.c
+export_divx4raw_la_SOURCES = export_divx4raw.c aud_aux.c divx4_vbr.c
 export_divx4raw_la_LDFLAGS = -module -avoid-version
 export_divx4raw_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
@@ -120,7 +120,7 @@ export_divx5_la_SOURCES = export_divx5.c aud_aux.c divx4_vbr.c
 export_divx5_la_LDFLAGS = -module -avoid-version
 export_divx5_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
-export_divx5raw_la_SOURCES = export_divx5raw.c aud_aux.c divx4_vbr.c ../import/ioaux.c
+export_divx5raw_la_SOURCES = export_divx5raw.c aud_aux.c divx4_vbr.c
 export_divx5raw_la_LDFLAGS = -module -avoid-version
 export_divx5raw_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
@@ -144,7 +144,7 @@ export_null_la_LDFLAGS = -module -avoid-version
 export_ogg_la_SOURCES = export_ogg.c
 export_ogg_la_LDFLAGS = -module -avoid-version
 
-export_pcm_la_SOURCES = export_pcm.c ../import/ioaux.c
+export_pcm_la_SOURCES = export_pcm.c
 export_pcm_la_LDFLAGS = -module -avoid-version
 export_pcm_la_LIBADD = -lm
 
@@ -167,15 +167,15 @@ export_wav_la_SOURCES = export_wav.c
 export_wav_la_LDFLAGS = -module -avoid-version
 export_wav_la_LIBADD = -lm
 
-export_xvid2_la_SOURCES = export_xvid2.c aud_aux.c vid_aux.c xvid_vbr.c ../import/ioaux.c
+export_xvid2_la_SOURCES = export_xvid2.c aud_aux.c vid_aux.c xvid_vbr.c
 export_xvid2_la_LDFLAGS = -module -avoid-version
 export_xvid2_la_LIBADD = $(LIBAVCODEC_LIBS) $(LAME_LIBS) $(AC3_LIBS)
 
-export_xvid3_la_SOURCES = export_xvid3.c aud_aux.c vid_aux.c xvid_vbr.c ../import/ioaux.c
+export_xvid3_la_SOURCES = export_xvid3.c aud_aux.c vid_aux.c xvid_vbr.c
 export_xvid3_la_LDFLAGS = -module -avoid-version
 export_xvid3_la_LIBADD = $(LIBAVCODEC_LIBS) $(LAME_LIBS) $(AC3_LIBS)
 
-export_xvid4_la_SOURCES = export_xvid4.c aud_aux.c vid_aux.c ../import/ioaux.c
+export_xvid4_la_SOURCES = export_xvid4.c aud_aux.c vid_aux.c
 export_xvid4_la_LDFLAGS = -module -avoid-version
 export_xvid4_la_LIBADD = $(LIBAVCODEC_LIBS) $(LAME_LIBS) $(AC3_LIBS)
 
@@ -194,7 +194,7 @@ export_dv_la_SOURCES = export_dv.c aud_aux.c vid_aux.c
 export_dv_la_LDFLAGS = -module -avoid-version 
 export_dv_la_LIBADD = $(LAME_LIBS) $(LIBDV_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS) $(ACLIB_LIBS)
 
-export_dvraw_la_SOURCES = export_dvraw.c vid_aux.c ../import/ioaux.c
+export_dvraw_la_SOURCES = export_dvraw.c vid_aux.c
 export_dvraw_la_LDFLAGS = -module -avoid-version
 export_dvraw_la_LIBADD = $(LIBDV_LIBS) $(ACLIB_LIBS) -lm
 
@@ -231,12 +231,12 @@ export_mpeg2enc_la_SOURCES = export_mpeg2enc.c vid_aux.c
 export_mpeg2enc_la_LDFLAGS = -module -avoid-version
 export_mpeg2enc_la_LIBADD = $(MJPEGTOOLS_LIBS) $(ACLIB_LIBS) -lm
 
-export_yuv4mpeg_la_SOURCES = export_yuv4mpeg.c aud_aux.c vid_aux.c ../import/ioaux.c
+export_yuv4mpeg_la_SOURCES = export_yuv4mpeg.c aud_aux.c vid_aux.c
 export_yuv4mpeg_la_LDFLAGS = -module -avoid-version
 export_yuv4mpeg_la_LIBADD = $(LAME_LIBS) $(MJPEGTOOLS_LIBS) $(ACLIB_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
 # MODS_NET_STREAM
-export_net_la_SOURCES = export_net.c ../import/ioaux.c
+export_net_la_SOURCES = export_net.c
 export_net_la_LDFLAGS = -module -avoid-version
 
 # MODS_PVM3
