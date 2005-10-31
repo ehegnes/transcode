@@ -149,16 +149,18 @@ extern "C" {
       bh.biSize=sizeof(BITMAPINFOHEADER);
       bh.biWidth=vob->ex_v_width;
       bh.biHeight=vob->ex_v_height;
-      bh.biPlanes=1;
-      bh.biBitCount=vob->v_bpp;
       bh.biSizeImage = vob->ex_v_size;
 
       switch (vob->im_v_codec) {
       case CODEC_RGB:
+          bh.biPlanes=1;
+          bh.biBitCount=24;
 	  bh.biCompression=0;
 	  break;
       case CODEC_YUV:
-	  bh.biCompression=fccYV12;
+          bh.biPlanes=3;
+          bh.biBitCount=8;
+	  bh.biCompression=fccI420;
 	  break;
       default:
 	  tc_log_warn(MOD_NAME, "codec not supported");

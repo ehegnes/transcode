@@ -1,4 +1,9 @@
 2005-10-31 Andrew Church <achurch at achurch dot org>
+  * export/export_af6.cpp
+  Minor fixups to initialization code (bitmap parameters were not being
+  set properly).
+
+2005-10-31 Andrew Church <achurch at achurch dot org>
   * libtc/libtc.h
   Add extern "C" so C++ sources (export_af6.cpp) can link to libtc.
 
