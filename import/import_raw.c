@@ -33,8 +33,6 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_PCM | TC_CAP_YUV42
 #define MOD_PRE raw
 #include "import_def.h"
 
-#include "ioaux.h"
-
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];
 static int codec;
@@ -54,7 +52,15 @@ MOD_open
     if(param->flag == TC_AUDIO) {
       
       //directory mode?
-      (scan(vob->audio_in_file)) ? tc_snprintf(cat_buf, sizeof(cat_buf), "tccat -a") : ((vob->im_a_string) ? tc_snprintf(cat_buf, sizeof(cat_buf), "tcextract -x pcm %s", vob->im_a_string) : tc_snprintf(cat_buf, sizeof(cat_buf), "tcextract -x pcm"));
+      if(tc_file_check(vob->audio_in_file) == 1) {
+        tc_snprintf(cat_buf, sizeof(cat_buf), "tccat -a"); 
+      } else {
+          if(vob->im_a_string) {
+            tc_snprintf(cat_buf, sizeof(cat_buf), "tcextract -x pcm %s", vob->im_a_string);
+          } else {
+            tc_snprintf(cat_buf, sizeof(cat_buf), "tcextract -x pcm");
+          }
+      }
       
       if(tc_snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d | tcextract -a %d -x pcm -d %d -t raw", cat_buf, vob->audio_in_file, vob->verbose, vob->a_track, vob->verbose) < 0) {
 	perror("cmd buffer overflow");
@@ -80,7 +86,7 @@ MOD_open
       codec=vob->im_v_codec;
       
       //directory mode?
-      if(scan(vob->video_in_file)) {
+      if(tc_file_check(vob->video_in_file) == 1) {
 	tc_snprintf(cat_buf, sizeof(cat_buf), "tccat");
 	co=""; 
       } else {

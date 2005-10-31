@@ -35,8 +35,6 @@ static int capability_flag = TC_CAP_PCM;
 
 #include "libxio/xio.h"
 
-#include "ioaux.h"
-
 char import_cmd_buf[TC_BUF_MAX];
 
 static FILE *fd;
@@ -62,7 +60,7 @@ MOD_open
     // audio only
     if(param->flag != TC_AUDIO) return(TC_IMPORT_ERROR);
 
-    sret = scan(vob->audio_in_file);
+    sret = tc_file_check(vob->audio_in_file);
     if (sret < 0)
       return(TC_IMPORT_ERROR);
     else

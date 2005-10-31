@@ -357,9 +357,10 @@ void clone_read_thread()
 
 	if(verbose & TC_SYNC) fprintf(stderr, "READ (%d)\n", i);
 
-	if((j=p_read(sfd, (char *) ptr->sync_info, sizeof(sync_info_t))) != sizeof(sync_info_t)) {
+	if((j=tc_pread(sfd, (uint8_t *) ptr->sync_info, sizeof(sync_info_t))) != sizeof(sync_info_t)) {
 	    
-	    if(verbose & TC_DEBUG) fprintf(stderr, "(%s) p_read error (%d/%ld)\n",  __FILE__, j, (long)sizeof(sync_info_t));
+	    if(verbose & TC_DEBUG) 
+            fprintf(stderr, "(%s) tc_pread error (%d/%ld)\n",  __FILE__, j, (long)sizeof(sync_info_t));
 	    pthread_mutex_lock(&buffer_fill_lock);
 	    clone_read_thread_flag=0;
 	    pthread_mutex_unlock(&buffer_fill_lock);

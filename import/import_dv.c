@@ -29,8 +29,6 @@
 #include "aclib/imgconvert.h"
 #include "xio.h"
 
-#include "ioaux.h"
-
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_DV |
     TC_CAP_PCM | TC_CAP_VID | TC_CAP_YUV422;
@@ -62,16 +60,21 @@ MOD_open
   if(param->flag == TC_VIDEO) {
 
     //directory mode?
-    sret = scan(vob->video_in_file);
-    if (sret < 0)
+    sret = tc_file_check(vob->video_in_file);
+    if (sret < 0) {
         return(TC_IMPORT_ERROR);
-    (sret == 1) ?
-        tc_snprintf(cat_buf, TC_BUF_MAX, "tccat") :
-        ((vob->im_v_string) ?
+    }
+    if(sret == 1) {
+        tc_snprintf(cat_buf, TC_BUF_MAX, "tccat");
+    } else {
+        if(vob->im_v_string) {
             tc_snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv %s",
-			vob->im_v_string) :
-            tc_snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv"));
-
+			            vob->im_v_string);
+        } else {
+            tc_snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv");
+        }
+    }
+        
     //yuy2 mode?
     (vob->dv_yuy2_mode) ?
         tc_snprintf(yuv_buf, 16, "-y yuv420p -Y") :
@@ -190,12 +193,16 @@ MOD_open
   if(param->flag == TC_AUDIO) {
 
     //directory mode?
-    (scan(vob->audio_in_file)) ?
-        tc_snprintf(cat_buf, TC_BUF_MAX, "tccat") :
-        ((vob->im_a_string) ?
+    if(tc_file_check(vob->audio_in_file)) {
+        tc_snprintf(cat_buf, TC_BUF_MAX, "tccat");
+    } else {
+        if(vob->im_a_string) {
             tc_snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv %s",
-			vob->im_a_string) :
-            tc_snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv"));
+            			vob->im_a_string);
+        } else {
+            tc_snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv");
+        }
+    }
 
     sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 		       "%s -i \"%s\" -d %d | tcdecode -x dv -y pcm -d %d",

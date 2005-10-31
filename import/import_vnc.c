@@ -13,8 +13,6 @@ static int capability_flag = TC_CAP_VID | TC_CAP_RGB | TC_CAP_YUV;
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#include "ioaux.h"
-
 
 #define PROGTOCALL "tcxpm2rgb"
 
@@ -137,7 +135,7 @@ MOD_decode
 
 		    n = 0;
 		    while (n < param->size) {
-			n += p_read(fd, param->buffer+n, param->size-n);
+			n += tc_pread(fd, param->buffer+n, param->size-n);
 		    }
 		}
 

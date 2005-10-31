@@ -34,10 +34,9 @@
 # endif
 #endif
 
-#include "ioaux.h"
-
 #include <a52dec/a52.h>
 #include <a52dec/mm_accel.h> 
+#include "magic.h"
 
 #define FRAME_SIZE 3840
 #define HEADER_LEN    8
@@ -120,7 +119,7 @@ int a52_decore(decode_t *decode) {
 
     for (;;) {
       
-      if (p_read(decode->fd_in, &buf[s], 1) !=1) {
+      if (tc_pread(decode->fd_in, &buf[s], 1) !=1) {
 	//ac3 sync frame scan failed
 	return(-1);
       }
@@ -144,7 +143,7 @@ int a52_decore(decode_t *decode) {
     buf[0] = (sync_word >> 8) & 0xff;
     buf[1] = (sync_word) & 0xff;
 
-    bytes_read=p_read(decode->fd_in, &buf[2], HEADER_LEN-2);
+    bytes_read=tc_pread(decode->fd_in, &buf[2], HEADER_LEN-2);
     
     if(bytes_read< HEADER_LEN-2) {
       if(decode->verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) read error (%d/%d)\n", __FILE__, __LINE__, bytes_read, HEADER_LEN-2);
@@ -165,7 +164,7 @@ int a52_decore(decode_t *decode) {
     }
 
     // read the rest of the frame
-    if((bytes_read=p_read(decode->fd_in, &buf[HEADER_LEN], frame_size-HEADER_LEN)) < frame_size-HEADER_LEN) {
+    if((bytes_read=tc_pread(decode->fd_in, &buf[HEADER_LEN], frame_size-HEADER_LEN)) < frame_size-HEADER_LEN) {
       if(decode->verbose & TC_DEBUG) 
 	fprintf (stderr, "(%s@%d) read error (%d/%d)\n", __FILE__, __LINE__, bytes_read, frame_size-HEADER_LEN);
       return(-1);
@@ -212,7 +211,7 @@ int a52_decore(decode_t *decode) {
       //fprintf (stderr, "(%s@%d) write (%d) bytes\n", __FILE__, __LINE__, pcm_size);
       (decode->a52_mode & TC_A52_DEMUX) ? float2s16((float *)samples, (int16_t *)&pcm_buf) : float2s16_2((float *)samples, (int16_t *)&pcm_buf);  
       
-	if((bytes_wrote=p_write(decode->fd_out, (char*) pcm_buf, pcm_size)) < pcm_size) {
+	if((bytes_wrote=tc_pwrite(decode->fd_out, (char*) pcm_buf, pcm_size)) < pcm_size) {
 	  if(decode->verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) write error (%d/%d)\n", __FILE__, __LINE__, bytes_wrote, pcm_size);
 	  return(-1);
 	}
@@ -232,7 +231,7 @@ int a52_decore(decode_t *decode) {
       //fprintf (stderr, "(%s@%d) write (%d) bytes\n", __FILE__, __LINE__, pcm_size);
       (decode->a52_mode & TC_A52_DEMUX) ? float2s16((float *)samples, (int16_t *)&pcm_buf) : float2s16_2((float *)samples, (int16_t *)&pcm_buf);  
     } //end pcm data output
-    if((bytes_wrote=p_write(decode->fd_out, buf, bytes_read+HEADER_LEN)) < bytes_read+HEADER_LEN) {
+    if((bytes_wrote=tc_pwrite(decode->fd_out, buf, bytes_read+HEADER_LEN)) < bytes_read+HEADER_LEN) {
 	if(decode->verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) write error (%d/%d)\n", 
 	    __FILE__, __LINE__, bytes_wrote, bytes_read+HEADER_LEN);
 	return(-1);

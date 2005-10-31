@@ -33,31 +33,11 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_PCM;
 #define MOD_PRE net
 #include "import_def.h"
 
-#include "ioaux.h"
-
 
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];
 
 static int vs, as;
-
-#if 0  /* get this from ioaux.c */
-static size_t p_read(int fd, char *buf, size_t len)
-{
-   size_t n = 0;
-   size_t r = 0;
-
-   while (r < len) {
-      n = read (fd, buf + r, len - r);
-
-      if (n <= 0)
-	  return r;
-      r += n;
-   }
-
-   return r;
-}
-#endif
 
 /* ------------------------------------------------------------ 
  *
@@ -161,7 +141,7 @@ MOD_decode {
     
     if(verbose_flag & TC_DEBUG) tc_log_info(MOD_NAME, "(V) read");
     
-    if(p_read(vs, (char *) param->buffer, param->size)!=param->size) {
+    if(tc_pread(vs, (uint8_t *) param->buffer, param->size)!=param->size) {
       return(TC_IMPORT_ERROR);
     }
     return(0);
@@ -171,7 +151,7 @@ MOD_decode {
 
     if(verbose_flag & TC_DEBUG) tc_log_info(MOD_NAME, "(A) read");
     
-    if(p_read(as, (char *) param->buffer, param->size)!=param->size) {
+    if(tc_pread(as, (uint8_t *) param->buffer, param->size)!=param->size) {
       return(TC_IMPORT_ERROR);
     }
     return(0);

@@ -66,7 +66,6 @@ extern "C" {
 
 #include "transcode.h"
 #include "aclib/imgconvert.h"
-#include "ioaux.h"
   
   void af6_decore(decode_t *decode)
   {
@@ -209,7 +208,7 @@ extern "C" {
 
       /* send sync token */
       fflush(stdout);
-      p_write(decode->fd_out, (uint8_t *)sync_str, sizeof(sync_str));
+      tc_pwrite(decode->fd_out, (uint8_t *)sync_str, sizeof(sync_str));
 
       /* frame serve loop */
       /* by default decode->frame_limit[0]=0 and ipipe->frame_limit[1]=LONG_MAX so all frames are decoded */
@@ -225,13 +224,13 @@ extern "C" {
 	    /* unpack and write unpacked data */
 	    ac_imgconvert(&buf, srcfmt, unpack, IMG_YUV420P,
 	                  bh.biWidth, bh.biHeight);
-	    if(p_write(decode->fd_out, unpack_buffer, unpack_size)!= unpack_size) {
+	    if(tc_pwrite(decode->fd_out, unpack_buffer, unpack_size)!= unpack_size) {
 	      fprintf(stderr,"(%s) ERROR: Pipe write error!\n",__FILE__);
 	      break;
 	    }
 	  } else {
 	    /* directly write raw frame */
-	    if(p_write(decode->fd_out, buf, buffer_size)!= buffer_size) {
+	    if(tc_pwrite(decode->fd_out, buf, buffer_size)!= buffer_size) {
 	      fprintf(stderr,"(%s) ERROR: Pipe write error!\n",__FILE__);
 	      break;
 	    }
@@ -325,7 +324,7 @@ extern "C" {
 
       /* send sync token */
       fflush(stdout);
-      p_write(decode->fd_out, (uint8_t *)sync_str, sizeof(sync_str));
+      tc_pwrite(decode->fd_out, (uint8_t *)sync_str, sizeof(sync_str));
       
       /* sample server loop */
       while(!ars->Eof()) { 
@@ -350,18 +349,18 @@ extern "C" {
 	{
 	  if ( s_byte_read - ret_size <(unsigned int)decode->frame_limit[0])
 	  {
-	    if((unsigned int)p_write(decode->fd_out,buffer+(ret_size-(s_byte_read-decode->frame_limit[0])),(s_byte_read-decode->frame_limit[0]))!=(unsigned int)(s_byte_read-decode->frame_limit[0])) 
+	    if((unsigned int)tc_pwrite(decode->fd_out,buffer+(ret_size-(s_byte_read-decode->frame_limit[0])),(s_byte_read-decode->frame_limit[0]))!=(unsigned int)(s_byte_read-decode->frame_limit[0])) 
 	      break;
 	  }
 	  else
 	  {
-	    if((unsigned int)p_write(decode->fd_out,buffer,ret_size)!=ret_size) 
+	    if((unsigned int)tc_pwrite(decode->fd_out,buffer,ret_size)!=ret_size) 
 	      break;
 	  }
 	}
 	else if ((s_byte_read> decode->frame_limit[0]) && (s_byte_read - ret_size <=(unsigned int)decode->frame_limit[1]))
 	{
-	  if((unsigned int)p_write(decode->fd_out,buffer,(s_byte_read-decode->frame_limit[1]))!=(unsigned int)(s_byte_read-decode->frame_limit[1])) 
+	  if((unsigned int)tc_pwrite(decode->fd_out,buffer,(s_byte_read-decode->frame_limit[1]))!=(unsigned int)(s_byte_read-decode->frame_limit[1])) 
 	    break;
 	}
 	else if (s_byte_read - ret_size >(unsigned int)decode->frame_limit[1])

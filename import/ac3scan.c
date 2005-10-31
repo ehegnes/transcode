@@ -28,7 +28,7 @@
 
 #include "ac3.h"
 #include "ac3scan.h"
-#include "ioaux.h"
+#include "magic.h"
 
 #define MAX_BUF 4096
 static char sbuffer[MAX_BUF];
@@ -118,7 +118,7 @@ void probe_ac3(info_t *ipipe)
 
     // need to find syncframe:
     
-    if(p_read(ipipe->fd_in, sbuffer, MAX_BUF) != MAX_BUF) {
+    if(tc_pread(ipipe->fd_in, sbuffer, MAX_BUF) != MAX_BUF) {
 	ipipe->error=1;
 	return;
     }
@@ -230,7 +230,7 @@ void probe_dts(info_t *ipipe)
 
     // need to find syncframe:
     
-    if(p_read(ipipe->fd_in, sbuffer, MAX_BUF) != MAX_BUF) {
+    if(tc_pread(ipipe->fd_in, sbuffer, MAX_BUF) != MAX_BUF) {
 	ipipe->error=1;
 	return;
     }

@@ -36,7 +36,6 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_AUD | TC_CAP_YUV42
 
 #include <time.h>
 #include <sys/types.h>
-#include "ioaux.h"
 
 
 #define MAX_BUF 1024
@@ -181,7 +180,7 @@ retry:
     goto retry;
   } 
   
-  if(p_read(fd_in, param->buffer, bytes) != bytes) { 
+  if(tc_pread(fd_in, param->buffer, bytes) != bytes) { 
     perror("image parameter mismatch");
     close(fd_in);
     goto retry;

@@ -1,3 +1,12 @@
+2005-10-31 Francesco Romani <fromani at gmail dot com>
+  * import/Makefile.am import/a52_decore.c import/ac3scan.c 
+    import/af6_decore.cpp import/clone.c import/import_dv.c
+    import/import_ffmpeg.c import/import_mp3.c import/import_net.c
+    import/import_raw.c import/import_rawlist.c import/import_vnc.c
+  Start the migration of import layer code to new I/O auxiliary
+  functions moved in libtc from ioaux; now some import modules
+  no longer need at all ioaux.c
+
 2005-10-31 Andrew Church <achurch at achurch dot org>
   * export/export_ffmpeg.c
   Print the codec information as an info message, not a warning.

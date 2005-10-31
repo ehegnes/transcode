@@ -42,8 +42,6 @@ static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID;
 #include "avilib/avilib.h"
 #include "magic.h"
 
-#include "ioaux.h"
-
 char import_cmd_buf[TC_BUF_MAX];
 
 // libavcodec is not thread-safe. We must protect concurrent access to it.
@@ -227,9 +225,9 @@ MOD_open {
 
     format_flag = vob->format_flag;
 
-    sret = scan(vob->video_in_file);
+    sret = tc_file_check(vob->video_in_file); /* is a directory? */
     if (sret == 1)
-      goto do_dv;
+      goto do_dv; /* yes, it is */
     else
       if (sret == -1)
         return TC_IMPORT_ERROR;
