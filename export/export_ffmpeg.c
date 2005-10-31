@@ -363,7 +363,7 @@ MOD_init {
                 codec->name);
         return TC_EXPORT_ERROR; 
     }
-    tc_log_warn(MOD_NAME, "Using FFMPEG codec '%s' (FourCC '%s', %s).",
+    tc_log_info(MOD_NAME, "Using FFMPEG codec '%s' (FourCC '%s', %s).",
             codec->name, codec->fourCC, codec->comments);
 
     lavc_venc_context = avcodec_alloc_context();
