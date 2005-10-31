@@ -46,6 +46,10 @@
 # endif
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define TC_LOG_ERR		0 // critical error condition
 #define TC_LOG_WARN		1 // non-critical error condition
 #define TC_LOG_INFO		2 // informative highlighted message
@@ -290,5 +294,9 @@ int tc_preadwrite(int in, int out);
  */
 int tc_probe_path(const char *name);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _LIBTC_H */

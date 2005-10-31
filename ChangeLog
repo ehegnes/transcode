@@ -1,3 +1,7 @@
+2005-10-31 Andrew Church <achurch at achurch dot org>
+  * libtc/libtc.h
+  Add extern "C" so C++ sources (export_af6.cpp) can link to libtc.
+
 2005-10-28 Francesco Romani <fromani at gmail dot com>
   * export/Makefile.am export/export_divx4raw.c export/export_divx5raw.c
     export/export_dvraw.c export/export_net.c export/export_pcm.c
