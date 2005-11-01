@@ -37,8 +37,6 @@ EXTRA_DIST = \
 	filter.h \
 	frame_threads.h \
 	framebuffer.h \
-	iodir.h \
-	optstr.h \
 	probe.h \
 	socket.h \
 	split.h \
@@ -61,8 +59,6 @@ transcode_SOURCES = \
 	filter.c \
 	frame_threads.c \
 	info_server.c \
-	iodir.c \
-	optstr.c \
 	probe.c \
 	socket.c \
 	split.c \

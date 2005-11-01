@@ -5,6 +5,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/filter \
 	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/libtc \
 	$(ACLIB_CFLAGS)
 
 pkgdir = $(MOD_PATH)

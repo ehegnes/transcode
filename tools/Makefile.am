@@ -73,7 +73,7 @@ avisplit_LDADD = \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS)
 
-tcmodinfo_SOURCES = tcmodinfo.c ../src/optstr.c
+tcmodinfo_SOURCES = tcmodinfo.c 
 tcmodinfo_LDADD = \
 	$(DLDARWINLIB) \
 	$(ACLIB_LIBS) \

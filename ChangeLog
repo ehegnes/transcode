@@ -1,3 +1,19 @@
+2005-10-11 Francesco Romani <fromani at gmail dot com>
+  * export/Makefile.am filter/Makefile.am filter/divxkey/Makefile.am
+    filter/extsub/Makefile.am filter/pp/Makefile.am tools/Makefile.am
+    filter/preview/Makefile.am filter/subtitler/Makefile.am
+    filter/tomsmocomp/Makefile.am filter/yuvdenoise/Makefile.am
+    import/Makefile.am libtc/Makefile.am src/Makefile.am
+    export/export_raw.c src/transcode.c tools/tcmodinfo.c
+  
+  Added files: libtc/iodir.c libtc/iodir.h libtc/optstr.c libtc/optstr.h
+
+  Removed files: src/iodir.c src/iodir.h src/optstr.c src/optstr.h
+  
+  Moved optstr.{h,c} and iodir.{h,c} to libtc from src/, since they
+  are really loosely coupled with transcode main binary, and also
+  used in other modules. Updated makefiles accordingly.
+
 2005-10-11 Mark Nauwelaerts <manauw at skynet dot be>
   * avilib/avilib.c
   Fixed segmentation fault problem by checking != NULL before free()

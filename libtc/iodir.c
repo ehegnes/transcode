@@ -21,9 +21,11 @@
  *
  */
 
-#include "transcode.h"
+#include <stdlib.h>
+#include <string.h>
 #include <dirent.h>
 #include "iodir.h"
+#include "libtc.h"
 
 #ifdef SYS_BSD
 typedef	off_t off64_t;

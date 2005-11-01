@@ -5,6 +5,7 @@ AM_CPPFLAGS = \
 	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/libtc \
 	$(LIBTC_CFLAGS) \
 	$(A52_CFLAGS) \
 	$(AC3_CFLAGS) \
@@ -366,7 +367,6 @@ tccat_SOURCES = \
 	extract_avi.c \
 	fileinfo.c \
 	ioaux.c \
-	../src/iodir.c \
 	iodump.c \
 	ioxml.c \
 	scan_dv.c \
@@ -426,7 +426,6 @@ tcprobe_SOURCES = \
 	dvd_reader.c \
 	fileinfo.c \
 	ioaux.c \
-	../src/iodir.c \
 	iodump.c \
 	ioxml.c \
 	mpg123.c \

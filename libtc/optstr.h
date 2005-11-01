@@ -180,7 +180,4 @@ int optstr_param  (char *buf,
 		   char *val, 
 		   ... ); /* char *valid_from1, char *valid_to1 */ 
 
-/* internal */
-int optstr_is_string_arg(char *fmt);
-
 #endif /* __OPTSTR_H */

@@ -9,9 +9,13 @@ noinst_LTLIBRARIES = libtc.la
 
 libtc_la_SOURCES = \
 	tc_functions.c \
+	optstr.c \
+	iodir.c \
 	strlcat.c \
 	strlcpy.c
 
 EXTRA_DIST = \
 	libtc.h \
+	iodir.h \
+	optstr.h \
 	tc_func_excl.h
