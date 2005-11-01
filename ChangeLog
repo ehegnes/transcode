@@ -1,3 +1,8 @@
+2005-10-11 Mark Nauwelaerts <manauw at skynet dot be>
+  * avilib/avilib.c
+  Fixed segmentation fault problem by checking != NULL before free()
+  (patch applied by fromani at gmail dot com)
+
 2005-10-11 Francesco Romani <fromani at gmail dot com>
   * import/decode_dv.c import/decode_lavc.c import/decode_lzo.c
     import/decode_mov.c import/decode_mp3.c import/decode_mpeg2.c

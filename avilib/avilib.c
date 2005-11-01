@@ -1916,7 +1916,7 @@ int AVI_close(avi_t *AVI)
    xio_close(AVI->fdes);
    if(AVI->idx) free(AVI->idx);
    if(AVI->video_index) free(AVI->video_index);
-   if(AVI->video_superindex) {
+   if(AVI->video_superindex && AVI->video_superindex->stdindex) {
        for (j = 0; j < NR_IXNN_CHUNKS; j++) {
 	   if (AVI->video_superindex->stdindex[j]) {
 	       if (AVI->video_superindex->stdindex[j]->aIndex) {
@@ -1937,7 +1937,7 @@ int AVI_close(avi_t *AVI)
 	   // shortcut
 	   avisuperindex_chunk *a = AVI->track[j].audio_superindex;
 	   for (k = 0; k < NR_IXNN_CHUNKS; k++) {
-	       if (a->stdindex[k]) {
+	       if (a->stdindex && a->stdindex[k]) {
 		   if (a->stdindex[k]->aIndex) {
 		       free(a->stdindex[k]->aIndex);
 		   }
