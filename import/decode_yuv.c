@@ -84,7 +84,7 @@ static int vo_read_yuv (vo_t *vo, int fd)
    /* Read luminance scanlines */
 
    for (i = 0; i < v; i++)
-       if ((bytes = p_read (fd, vo->yuv[0] + i * h, h)) != h) {
+       if ((bytes = tc_pread (fd, vo->yuv[0] + i * h, h)) != h) {
 	   if (bytes < 0)
 	      fprintf(stderr,"(%s) read failed", __FILE__);
 	   return 0;
@@ -96,14 +96,14 @@ static int vo_read_yuv (vo_t *vo, int fd)
    /* Read chrominance scanlines */
 
    for (i = 0; i < v; i++)
-       if ((bytes = p_read (fd, vo->yuv[1] + i * h, h)) != h) {
+       if ((bytes = tc_pread (fd, vo->yuv[1] + i * h, h)) != h) {
 	  if (bytes < 0) 
 	     fprintf(stderr,"(%s) read failed", __FILE__);
 	  return 0;
        }
 
    for (i = 0; i < v; i++)
-       if ((bytes = p_read (fd, vo->yuv[2] + i * h, h)) != h) {
+       if ((bytes = tc_pread (fd, vo->yuv[2] + i * h, h)) != h) {
 	   if (bytes < 0)
 	      fprintf(stderr,"(%s) read failed", __FILE__);
 	   return 0;
@@ -121,7 +121,7 @@ static int vo_read_yuv (vo_t *vo, int fd)
 static int vo_write_rgb (vo_t *vo, int fd)
 {
    int framesize = vo->width * vo->height * 3, bytes = 0;
-   bytes = p_write (fd, vo->rgb, framesize);
+   bytes = tc_pwrite (fd, vo->rgb, framesize);
    if (bytes != framesize) {
       if (bytes < 0) 
          fprintf(stderr,"(%s) read failed", __FILE__);

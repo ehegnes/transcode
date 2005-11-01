@@ -91,11 +91,11 @@ void decode_mp3(decode_t *decode)
       * mp3data->stereo * 2;
     memset(buffer, 0, sizeof(buffer));
     while (padding >= sizeof(buffer)) {
-      if (p_write(decode->fd_out, (char *)buffer, sizeof(buffer)) < 0)
+      if (tc_pwrite(decode->fd_out, (uint8_t *)buffer, sizeof(buffer)) < 0)
         import_exit(1);
       padding -= sizeof(buffer);
     }
-    if (padding && p_write(decode->fd_out, (char *)buffer, padding) < 0)
+    if (padding && tc_pwrite(decode->fd_out, (uint8_t *)buffer, padding) < 0)
       import_exit(0);
   }
   
@@ -123,7 +123,7 @@ void decode_mp3(decode_t *decode)
     
     bytes = samples * channels * sizeof(short);
 
-    if (p_write(decode->fd_out, (char*) buffer, bytes) < 0)
+    if (tc_pwrite(decode->fd_out, (uint8_t *) buffer, bytes) < 0)
       break; /* broken pipe */
   }
 
@@ -195,7 +195,7 @@ void decode_mp2(decode_t *decode)
     
     bytes = samples * channels * sizeof(short);
 
-    if (p_write(decode->fd_out, (char*) buffer, bytes) < 0)
+    if (tc_pwrite(decode->fd_out, (uint8_t *) buffer, bytes) < 0)
       break; /* broken pipe */
   }
 

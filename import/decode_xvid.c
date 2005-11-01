@@ -244,7 +244,7 @@ void decode_xvid(decode_t *decode)
      * ------------------------------------------------------------*/
 
 
-    bytes_read = p_read(decode->fd_in, (char*) in_buffer, BUFFER_SIZE);
+    bytes_read = tc_pread(decode->fd_in, (uint8_t*) in_buffer, BUFFER_SIZE);
     mp4_ptr = in_buffer;
 
     do {
@@ -268,7 +268,7 @@ void decode_xvid(decode_t *decode)
 	    mp4_ptr = in_buffer; 
 
 	    /* read new data */
-	    if ( (bytes_read = p_read(decode->fd_in, (char*) (in_buffer+rest), BUFFER_SIZE - rest) ) < 0) {
+	    if ( (bytes_read = tc_pread(decode->fd_in, (uint8_t*) (in_buffer+rest), BUFFER_SIZE - rest) ) < 0) {
 		fprintf(stderr, "read failed read (%ld) should (%d)\n", bytes_read, BUFFER_SIZE - rest);
 		import_exit(1);
 	    }
@@ -292,7 +292,7 @@ void decode_xvid(decode_t *decode)
 
 //	fprintf(stderr, "[%s] decoded frame (%ld) (%d)\n", MOD_NAME, frame_length, frame_size);
 
-	if (p_write (decode->fd_out, (char *)out_buffer, frame_size) != frame_size) {
+	if (tc_pwrite (decode->fd_out, (uint8_t *)out_buffer, frame_size) != frame_size) {
 	    fprintf(stderr, "writeout failed\n");
 	    goto error;
 	}

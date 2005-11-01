@@ -204,7 +204,7 @@ void tcdemux_thread(info_t *ipipe)
        *
        * ------------------------------------------------------------*/
       
-      if((bytes=p_read(ipipe->fd_in, buffer, packet_size)) != packet_size) {    
+      if((bytes=tc_pread(ipipe->fd_in, buffer, packet_size)) != packet_size) {    
 	
 	//program end code?
 	if(bytes==4) {
@@ -778,7 +778,7 @@ void tcdemux_thread(info_t *ipipe)
 	
 	if((flag_flush && !flag_skip && (payload_id & select)) || flag_force) {
 	  
-	  if(p_write(ipipe->fd_out, buffer, packet_size) != packet_size) {
+	  if(tc_pwrite(ipipe->fd_out, buffer, packet_size) != packet_size) {
 	    perror("(" __FILE__ ") write program stream packet");
 	    exit(1);
 	  } 
@@ -807,7 +807,7 @@ void tcdemux_thread(info_t *ipipe)
 	
       case TC_DEMUX_OFF:
 	
-	if(p_write(ipipe->fd_out, buffer, packet_size) != packet_size) {
+	if(tc_pwrite(ipipe->fd_out, buffer, packet_size) != packet_size) {
 	  perror("(" __FILE__ ") write program stream packet");
 	  exit(1);
 	} 

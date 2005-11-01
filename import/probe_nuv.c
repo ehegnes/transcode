@@ -38,7 +38,7 @@ void probe_nuv(info_t *ipipe)
   }
   
   // read min frame (NTSC)
-  if((bytes=p_read(ipipe->fd_in, (char*) rtf, sizeof(rtfileheader)))
+  if((bytes=tc_pread(ipipe->fd_in, (uint8_t*) rtf, sizeof(rtfileheader)))
      != sizeof(rtfileheader)) {
     fprintf(stderr, "(%s) end of stream\n", __FILE__);
     ipipe->error=1;

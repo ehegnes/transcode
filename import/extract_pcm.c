@@ -306,7 +306,7 @@ void extract_pcm(info_t *ipipe)
 	break;
       }
       
-      if(p_write(ipipe->fd_out, audio, MAX_BUF)!= MAX_BUF) {
+      if(tc_pwrite(ipipe->fd_out, audio, MAX_BUF)!= MAX_BUF) {
 	error=1;
 	break;
       }
@@ -315,7 +315,7 @@ void extract_pcm(info_t *ipipe)
     if((bytes = AVI_read_audio(avifile, audio, padding)) < padding) 
       error=1;
       
-    if(p_write(ipipe->fd_out, audio, bytes)!= bytes) error=1;
+    if(tc_pwrite(ipipe->fd_out, audio, bytes)!= bytes) error=1;
 
     break;
 
@@ -354,7 +354,7 @@ void extract_pcm(info_t *ipipe)
     do {
       bytes = AVI_read_wave_pcm_data(ipipe->fd_in, audio, MAX_BUF);
       if(bytes != MAX_BUF) error=1;
-      if(p_write(ipipe->fd_out, audio, bytes)!= bytes) error=1;
+      if(tc_pwrite(ipipe->fd_out, audio, bytes)!= bytes) error=1;
     } while(!error);
     
     break;
@@ -407,7 +407,7 @@ void extract_pcm(info_t *ipipe)
 		}
    	if (ipipe->frame_limit[1] ==LONG_MAX)
    	{
-    		error=p_readwrite(ipipe->fd_in, ipipe->fd_out);
+    		error=tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
 	}
 	else
    	{
@@ -415,12 +415,12 @@ void extract_pcm(info_t *ipipe)
    		frames = bytes / MAX_BUF;
    		for (n=0; n<frames; ++n) 
   		{
-      			if(p_read(ipipe->fd_in, audio, MAX_BUF)!= MAX_BUF) 
+      			if(tc_pread(ipipe->fd_in, audio, MAX_BUF)!= MAX_BUF) 
       			{
 				error=1;
 				break;
       			}
-			if(p_write(ipipe->fd_out, audio, MAX_BUF)!= MAX_BUF) 
+			if(tc_pwrite(ipipe->fd_out, audio, MAX_BUF)!= MAX_BUF) 
 			{
 				error=1;
 				break;
@@ -428,12 +428,12 @@ void extract_pcm(info_t *ipipe)
     		}
    		if (padding !=0)
 		{
-      			if(p_read(ipipe->fd_in, audio, padding)!= padding) 
+      			if(tc_pread(ipipe->fd_in, audio, padding)!= padding) 
       			{
 				error=1;
 				break;
       			}
-			if(p_write(ipipe->fd_out, audio, padding)!= padding) 
+			if(tc_pwrite(ipipe->fd_out, audio, padding)!= padding) 
 			{
 				error=1;
 				break;

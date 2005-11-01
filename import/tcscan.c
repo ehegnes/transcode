@@ -279,7 +279,7 @@ int main(int argc, char *argv[])
   // do not try to mess with the stream
   if(stream_stype!=TC_STYPE_STDIN) {
     
-    if(file_check(name)) exit(1);
+    if(tc_file_check(name)) exit(1);
     
     if((ipipe.fd_in = xio_open(name, O_RDONLY))<0) {
       perror("open file");
@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
       
       for(;;) {
 	
-	if (p_read(ipipe.fd_in, buffer, 1) !=1) {
+	if (tc_pread(ipipe.fd_in, buffer, 1) !=1) {
 	  perror("ac3 sync frame scan failed");
 	  goto ac3_summary;
 	}
@@ -318,7 +318,7 @@ int main(int argc, char *argv[])
 
       i=i-2;
       
-      if (p_read(ipipe.fd_in, buffer, 3) !=3) {
+      if (tc_pread(ipipe.fd_in, buffer, 3) !=3) {
 	perror("ac3 header read failed");
 	goto ac3_summary;
       }
@@ -345,7 +345,7 @@ int main(int argc, char *argv[])
 	exit(1);
       }
       
-      if ((bytes_read=p_read(ipipe.fd_in, buffer, ac_bytes)) != ac_bytes) {
+      if ((bytes_read=tc_pread(ipipe.fd_in, buffer, ac_bytes)) != ac_bytes) {
 	fprintf(stderr, "error reading ac3 frame (%d/%d)\n", bytes_read, ac_bytes);
 	break;
       }
@@ -375,7 +375,7 @@ int main(int argc, char *argv[])
     
       while(on) {
 	  
-	  if( (bytes_read = p_read(ipipe.fd_in, buffer, CHUNK_SIZE)) != CHUNK_SIZE) on = 0;
+	  if( (bytes_read = tc_pread(ipipe.fd_in, buffer, CHUNK_SIZE)) != CHUNK_SIZE) on = 0;
 	  
 	  total += (uint64_t) bytes_read;
 	  

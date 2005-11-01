@@ -130,7 +130,7 @@ void decode_dv(decode_t *decode)
 
   for (;;) {
       // read min dv frame (NTSC)
-      if((bytes=p_read(decode->fd_in, (char*) buf, DV_NTSC_SIZE))
+      if((bytes=tc_pread(decode->fd_in, (uint8_t*) buf, DV_NTSC_SIZE))
 	 != DV_NTSC_SIZE) {
 	  if(verbose & TC_DEBUG)  fprintf(stderr, "(%s) end of stream\n", __FILE__);
 	  import_exit(1);
@@ -150,7 +150,7 @@ void decode_dv(decode_t *decode)
       if(dv_decoder->system==e_dv_system_625_50) {
 	  
 	// read rest of PAL dv frame
-	if((bytes=p_read(decode->fd_in, (char*) buf+DV_NTSC_SIZE, DV_PAL_SIZE-DV_NTSC_SIZE)) != DV_PAL_SIZE-DV_NTSC_SIZE) {
+	if((bytes=tc_pread(decode->fd_in, (uint8_t*) buf+DV_NTSC_SIZE, DV_PAL_SIZE-DV_NTSC_SIZE)) != DV_PAL_SIZE-DV_NTSC_SIZE) {
 	  if(verbose & TC_DEBUG)  fprintf(stderr, "(%s) end of stream\n", __FILE__);
 	  import_exit(1);
 	}
@@ -175,7 +175,7 @@ void decode_dv(decode_t *decode)
 	  
 	bytes = 3 * dv_decoder->width * dv_decoder->height;
 	
-	if(p_write (decode->fd_out, video[0], bytes)!= bytes) {
+	if(tc_pwrite (decode->fd_out, video[0], bytes)!= bytes) {
 	  error=1;
 	  goto error;
 	}
@@ -191,7 +191,7 @@ void decode_dv(decode_t *decode)
 	dv_decoder->prev_frame_decoded = 1;
 	  
 	bytes = 2 * dv_decoder->width * dv_decoder->height;
-	if(p_write (decode->fd_out, video[0], bytes)!= bytes) {
+	if(tc_pwrite (decode->fd_out, video[0], bytes)!= bytes) {
 	  error=1;
 	  goto error;
 	}
@@ -237,7 +237,7 @@ void decode_dv(decode_t *decode)
 	bytes = dv_decoder->width * dv_decoder->height;
 	
 	// Y
-	if (p_write (decode->fd_out, video[0], bytes) != bytes) {
+	if (tc_pwrite (decode->fd_out, video[0], bytes) != bytes) {
 	  error=1;
 	  goto error;
 	}
@@ -245,13 +245,13 @@ void decode_dv(decode_t *decode)
 	bytes /=4;
 	
 	// U
-	if(p_write(decode->fd_out, video[1], bytes)!= bytes) {
+	if(tc_pwrite(decode->fd_out, video[1], bytes)!= bytes) {
 	  error=1;
 	  goto error;
 	}
 	
 	// V
-	if(p_write(decode->fd_out, video[2], bytes)!= bytes) {
+	if(tc_pwrite(decode->fd_out, video[2], bytes)!= bytes) {
 	  error=1;
 	  goto error;
 	}
@@ -280,7 +280,7 @@ void decode_dv(decode_t *decode)
 	bytes = samples * channels * 2;
 
 	// write out
-	if (p_write(decode->fd_out, (char*) audio, bytes) != bytes) {     
+	if (tc_pwrite(decode->fd_out, (uint8_t*) audio, bytes) != bytes) {     
 	  error=1;
 	  goto error;
 	}
@@ -321,7 +321,7 @@ void probe_dv(info_t *ipipe)
   }
 
   // read min frame (NTSC)
-  if((bytes=p_read(ipipe->fd_in, (char*) buf, DV_NTSC_SIZE))
+  if((bytes=tc_pread(ipipe->fd_in, (uint8_t*) buf, DV_NTSC_SIZE))
      != DV_NTSC_SIZE) {
     fprintf(stderr, "(%s) end of stream\n", __FILE__);
     ipipe->error=1;

@@ -99,7 +99,7 @@ void extract_dv(info_t *ipipe)
 		error=1;
 		break;
 	    }
-	    if(p_write(ipipe->fd_out, video, bytes)!=bytes) {
+	    if(tc_pwrite(ipipe->fd_out, video, bytes)!=bytes) {
 	        error=1;
 	    	break;
 	    }
@@ -134,14 +134,14 @@ void extract_dv(info_t *ipipe)
         /* Skip to the first desired frame. */
         for(n=0; n<ipipe->frame_limit[0]; ++n) {
             /* The first 32 bits contain the flag for PAL or NTSC frame. */
-            if(p_read(ipipe->fd_in, frame, 4) != 4) {
+            if(tc_pread(ipipe->fd_in, frame, 4) != 4) {
                 error = 1;
                 return;
             }
 
             /* Read the rest of the frame. */
             size = frame[3] & 128 ? DV_PAL_FRAME_SIZE : DV_NTSC_FRAME_SIZE;
-            if (p_read(ipipe->fd_in, frame, size-4) != size-4) {
+            if (tc_pread(ipipe->fd_in, frame, size-4) != size-4) {
                 error = 1;
                 return;
             }
@@ -150,20 +150,20 @@ void extract_dv(info_t *ipipe)
         /* Read the right number of frames. */
         for(n=ipipe->frame_limit[0]; n<=ipipe->frame_limit[1]; ++n) {
             /* The first 32 bits contain the flag for PAL or NTSC frame. */
-            if(p_read(ipipe->fd_in, frame, 4)!=4) {
+            if(tc_pread(ipipe->fd_in, frame, 4)!=4) {
                 error = 1;
                 return;
             }
 
             /* Read the rest of the frame. */
             size = frame[3] & 128 ? DV_PAL_FRAME_SIZE : DV_NTSC_FRAME_SIZE;
-            if(p_read(ipipe->fd_in, &frame[4], size-4)!=size-4) {
+            if(tc_pread(ipipe->fd_in, &frame[4], size-4)!=size-4) {
                 error = 1;
                 return;
             }
 
             /* Write it out. */
-            if(p_write(ipipe->fd_out, frame, size)!=size) {
+            if(tc_pwrite(ipipe->fd_out, frame, size)!=size) {
                 error = 1;
                 return;
             }

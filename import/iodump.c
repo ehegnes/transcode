@@ -114,7 +114,7 @@ void tccat_thread(info_t *ipipe)
       } 
     }
     
-    p_readwrite(ipipe->fd_in, ipipe->fd_out);
+    tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
     
   vob_skip2:
     break;
@@ -163,7 +163,7 @@ void tccat_thread(info_t *ipipe)
       
       do {
 	
-	bytes=p_read(vs, iobuf, IO_BUF_SIZE);
+	bytes=tc_pread(vs, iobuf, IO_BUF_SIZE);
 	
 	// error on read?
 	if(bytes<0) {
@@ -175,7 +175,7 @@ void tccat_thread(info_t *ipipe)
 	if(bytes!=IO_BUF_SIZE) error=1;
 	
 	// write stream problems?
-	if(p_write(ipipe->fd_out, iobuf, bytes)!= bytes) error=1;
+	if(tc_pwrite(ipipe->fd_out, iobuf, bytes)!= bytes) error=1;
       } while(!error);
       
       close(vs);
@@ -305,7 +305,7 @@ void tccat_thread(info_t *ipipe)
 	  } 
 	}
 
-	p_readwrite(ipipe->fd_in, ipipe->fd_out);
+	tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
 	
       vob_skip:
 	break;
@@ -316,7 +316,7 @@ void tccat_thread(info_t *ipipe)
       case TC_MAGIC_YUV4MPEG:
       case TC_MAGIC_MPEG:
 	
-	p_readwrite(ipipe->fd_in, ipipe->fd_out);
+	tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
 	
 	
 	break;

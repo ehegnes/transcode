@@ -278,7 +278,7 @@ void seq_write(seq_list_t *ptr)
 
       sync_info.pts = (double) ptr->tot_pts/90000;
 
-      if((tmp=p_write(_sfd, (char *) &sync_info, sizeof(sync_info_t)))!= sizeof(sync_info_t)) {
+      if((tmp=tc_pwrite(_sfd, (uint8_t *) &sync_info, sizeof(sync_info_t)))!= sizeof(sync_info_t)) {
 	  fprintf(stderr, "syncinfo write error (%d)\n", tmp);
 	  perror("write");
       }

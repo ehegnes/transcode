@@ -199,7 +199,7 @@ void extract_mpeg2(info_t *ipipe)
 		__FILE__, filetype(TC_MAGIC_RAW));
       
       
-      error=p_readwrite(ipipe->fd_in, ipipe->fd_out);
+      error=tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
       
       break;
     }

@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
 		if((s_shm = shmget(s_key, 0, 0600)) != -1)
 			shmctl(s_shm, IPC_RMID, NULL);
 
-		if((p_read(STDIN_FILENO, (char *) &s_vob, sizeof(vob_t))) != sizeof(vob_t))
+		if((tc_pread(STDIN_FILENO, (uint8_t *) &s_vob, sizeof(vob_t))) != sizeof(vob_t))
 		{
 			fprintf(stderr,"(%s) Error reading data from stdin\n",EXE);
 			exit(1);
@@ -269,12 +269,12 @@ int main(int argc, char *argv[])
 		{
 			s_vob.video_in_file=p_video_tmp;
 			s_vob.audio_in_file=p_audio_tmp;
-			if(p_write(STDOUT_FILENO, (char *) &s_vob, sizeof(vob_t)) != sizeof(vob_t))
+			if(tc_pwrite(STDOUT_FILENO, (uint8_t *) &s_vob, sizeof(vob_t)) != sizeof(vob_t))
 			{
 				fprintf(stderr,"(%s) Error writing data to stdout\n",EXE);
 				exit(1);
 			}
-			if(p_write(STDOUT_FILENO, (char *)&s_rc, sizeof(int)) != sizeof(int))
+			if(tc_pwrite(STDOUT_FILENO, (uint8_t *)&s_rc, sizeof(int)) != sizeof(int))
 			{
 				fprintf(stderr,"(%s) Error writing data to stdout\n",EXE);
 				exit(1);

@@ -98,7 +98,7 @@ void extract_rgb(info_t *ipipe)
 		error=1;
 		break;
 	    }
-	    if(p_write(ipipe->fd_out, video, bytes)!=bytes) {
+	    if(tc_pwrite(ipipe->fd_out, video, bytes)!=bytes) {
 		error=1;
 		break;
 	    }
@@ -124,7 +124,7 @@ void extract_rgb(info_t *ipipe)
 	    fprintf(stderr, "(%s) no file type specified, assuming %s\n", 
 		    __FILE__, filetype(TC_MAGIC_RAW));
 	
-	error=p_readwrite(ipipe->fd_in, ipipe->fd_out);
+	error=tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
 	
 	break;
     }

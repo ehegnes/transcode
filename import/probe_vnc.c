@@ -64,7 +64,7 @@ void probe_vnc(info_t *ipipe)
     int index = 0, major, minor, authReqs;
     int width, height;
 
-    if(p_read(ipipe->fd_in, buf, sizeof(buf)) != sizeof(buf)) {
+    if(tc_pread(ipipe->fd_in, buf, sizeof(buf)) != sizeof(buf)) {
 	fprintf(stderr, "(%s) end of stream\n", __FILE__);
 	ipipe->error=1;
 	return;

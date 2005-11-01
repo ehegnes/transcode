@@ -137,7 +137,7 @@ void probe_ts(info_t *ipipe)
 
     // look for a syncword
     while (!found && doit) {
-	i = p_read(ipipe->fd_in, (char *)&sync, 1);
+	i = tc_pread(ipipe->fd_in, (uint8_t *)&sync, 1);
 	if (sync == 0x47) found = 1;
 	if (i == 0) doit = 0;
     }
@@ -148,7 +148,7 @@ void probe_ts(info_t *ipipe)
     printf("(%s) Pids: ", __FILE__);
     while (size < ipipe->factor*1024*1024) {
 
-	if((i=p_read(ipipe->fd_in, buffer, TS_PACK-1)) != TS_PACK-1) {
+	if((i=tc_pread(ipipe->fd_in, buffer, TS_PACK-1)) != TS_PACK-1) {
 	    fprintf(stderr, "(%s) end of stream\n", __FILE__);
 	    return;    
 	}
@@ -178,7 +178,7 @@ void probe_ts(info_t *ipipe)
 	// read away syncword
 
 	while (!found && doit) {
-	    i = p_read(ipipe->fd_in, (char *)&sync, 1);
+	    i = tc_pread(ipipe->fd_in, (uint8_t *)&sync, 1);
 	    if (sync == 0x47) found = 1;
 	    if (i == 0) doit = 0;
 	    size += i;
@@ -515,7 +515,7 @@ static void ts_loop (void)
 
     do {
       
-      if((i=p_read(fd_in, buffer, TS_PACK)) != TS_PACK) {
+      if((i=tc_pread(fd_in, buffer, TS_PACK)) != TS_PACK) {
 	fprintf(stderr, "(%s) end of stream\n", __FILE__);
 	return;    
       }

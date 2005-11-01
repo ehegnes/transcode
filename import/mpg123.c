@@ -327,7 +327,7 @@ void probe_mp3(info_t *ipipe)
 
     // need to find syncframe:
     
-    if((ret = p_read(ipipe->fd_in, sbuffer, MAX_BUF)) != MAX_BUF) {
+    if((ret = tc_pread(ipipe->fd_in, sbuffer, MAX_BUF)) != MAX_BUF) {
 	if (!ret) {
 	    ipipe->error=1;
 	    return;

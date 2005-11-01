@@ -120,7 +120,7 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
        *
        * ------------------------------------------------------------*/
       
-      if((bytes=p_read(ipipe->fd_in, buffer, packet_size)) != packet_size) {    
+      if((bytes=tc_pread(ipipe->fd_in, buffer, packet_size)) != packet_size) {    
 	
 	//program end code?
 	if(bytes==4) {
@@ -264,7 +264,7 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
       if(is_track == pass[0] || is_track == pass[1] || is_track == pass[2]
 	 || is_track == pass[3] || is_track == pass[4] ) {
       
-	  if(p_write(ipipe->fd_out, buffer, packet_size) != packet_size) {
+	  if(tc_pwrite(ipipe->fd_out, buffer, packet_size) != packet_size) {
 	      perror("write program stream packet");
 	      exit(1);
 	  } 

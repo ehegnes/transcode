@@ -1,3 +1,18 @@
+2005-10-11 Francesco Romani <fromani at gmail dot com>
+  * import/decode_dv.c import/decode_lavc.c import/decode_lzo.c
+    import/decode_mov.c import/decode_mp3.c import/decode_mpeg2.c
+    import/decode_xvid.c import/decode_yuv.c import/demux_pass.c
+    import/demuxer.c import/extract_ac3.c import/extract_dv.c
+    import/extract_lzo.c import/extract_mp3.c import/extract_mpeg2.c
+    import/extract_pcm.c import/extract_rgb.c import/extract_yuv.c
+    import/fileinfo.c import/ioaux.c import/ioaux.h import/iodump.c
+    import/mpg123.c import/packets.c import/probe_nuv.c import/probe_vnc.c
+    import/seqinfo.c import/tcdecode.c import/tcdemux.c import/tcextract.c
+    import/tcprobe.c import/tcscan.c import/tcxmlcheck.c import/ts_reader.c
+  Finish the migration of import layer code to new I/O auxiliary
+  functions, recently moved in libtc from import/ioaux.c; now such
+  code lives only in libtc
+
 2005-10-31 Francesco Romani <fromani at gmail dot com>
   * import/Makefile.am import/a52_decore.c import/ac3scan.c 
     import/af6_decore.cpp import/clone.c import/import_dv.c

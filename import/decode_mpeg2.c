@@ -82,7 +82,7 @@ void decode_mpeg2(decode_t *decode)
 	sequence = info->sequence;
 	switch (state) {
 	case STATE_BUFFER:
-	    size = p_read (decode->fd_in, buffer, BUFFER_SIZE);
+	    size = tc_pread (decode->fd_in, buffer, BUFFER_SIZE);
 	    mpeg2_buffer (decoder, buffer, buffer + size);
 	    break;
 	case STATE_SEQUENCE:
@@ -99,16 +99,16 @@ void decode_mpeg2(decode_t *decode)
 					__FILE__, framenum++);
 		}
 		len = sequence->width * sequence->height;
-		if(len != p_write (decode->fd_out, info->display_fbuf->buf[0], len)) {
+		if(len != tc_pwrite (decode->fd_out, info->display_fbuf->buf[0], len)) {
 			fprintf (stderr, "failed to write Y plane of frame");
 			import_exit (1);
 		}
 		len = sequence->chroma_width * sequence->chroma_height;
-		if (len != p_write (decode->fd_out, info->display_fbuf->buf[1], len)) {
+		if (len != tc_pwrite (decode->fd_out, info->display_fbuf->buf[1], len)) {
 			fprintf (stderr, "failed to write U plane of frame");
 			import_exit (1);
 		}
-		if (len != p_write (decode->fd_out, info->display_fbuf->buf[2], len)) {
+		if (len != tc_pwrite (decode->fd_out, info->display_fbuf->buf[2], len)) {
 			fprintf (stderr, "failed to write V plane of frame");
 			import_exit (1);
 		}

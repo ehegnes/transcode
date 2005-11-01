@@ -230,7 +230,7 @@ void decode_lavc(decode_t *decode)
 
   // DECODE MAIN LOOP
 
-  bytes_read = p_read(decode->fd_in, (char*) buffer, READ_BUFFER_SIZE);
+  bytes_read = tc_pread(decode->fd_in, (uint8_t*) buffer, READ_BUFFER_SIZE);
 
   if (bytes_read < 0) {
       fprintf(stderr, "[%s] EOF?\n", MOD_NAME);
@@ -367,7 +367,7 @@ void decode_lavc(decode_t *decode)
 	      memmove(buffer, buffer+buf_len, READ_BUFFER_SIZE-buf_len);
 
 	  /* read new data */
-	  if ( (bytes_read = p_read(decode->fd_in, (char*) (buffer+(READ_BUFFER_SIZE-buf_len)), buf_len) )  != buf_len) {
+	  if ( (bytes_read = tc_pread(decode->fd_in, (uint8_t*) (buffer+(READ_BUFFER_SIZE-buf_len)), buf_len) )  != buf_len) {
 	      if (verbose_flag & TC_DEBUG) fprintf(stderr, "read failed read (%ld) should (%d)\n", bytes_read, buf_len);
 	      flush = 1;
 	      mp4_size -= buf_len;
@@ -382,7 +382,7 @@ void decode_lavc(decode_t *decode)
 	  break;
       }
 
-      if (p_write(decode->fd_out, out_buffer, frame_size) != frame_size) {
+      if (tc_pwrite(decode->fd_out, out_buffer, frame_size) != frame_size) {
 	  goto decoder_error;
       }
 

@@ -35,20 +35,20 @@ static int yuv_readwrite_frame (int in_fd, int out_fd, char *buffer, int bytes)
     int padding, blocks, n;
     
     for(;;) {
-      if (p_read (in_fd, magic, 5) != 5)
+      if (tc_pread (in_fd, magic, 5) != 5)
 	return 0;
       
       // Check for extra header in case input was tccat'ed
       if (strncmp (magic, "YUV4MP", 5) == 0) {
 	do {
-	  if (p_read (in_fd, magic, 1) < 1) return 0;
+	  if (tc_pread (in_fd, magic, 1) < 1) return 0;
 	} while(magic[0] != '\n');
       } else break;
     }
 
     if (strncmp (magic, "FRAME", 5) == 0) {
 	do {
-	    if (p_read (in_fd, magic, 1) < 1) return 0;
+	    if (tc_pread (in_fd, magic, 1) < 1) return 0;
 	} while(magic[0] != '\n');
     }
 
@@ -57,15 +57,15 @@ static int yuv_readwrite_frame (int in_fd, int out_fd, char *buffer, int bytes)
   
     for (n=0; n<blocks; ++n) {
 	
-	if (p_read(in_fd, buffer, MAX_BUF) != MAX_BUF)
+	if (tc_pread(in_fd, buffer, MAX_BUF) != MAX_BUF)
 	    return 0;
-	if (p_write(out_fd, buffer, MAX_BUF) != MAX_BUF)
+	if (tc_pwrite(out_fd, buffer, MAX_BUF) != MAX_BUF)
 	    return 0;
     }
     
-    if (p_read(in_fd, buffer, padding) != padding)
+    if (tc_pread(in_fd, buffer, padding) != padding)
 	return 0;
-    if (p_write(out_fd, buffer, padding) != padding)
+    if (tc_pwrite(out_fd, buffer, padding) != padding)
 	return 0;
     
     return 1;
@@ -226,7 +226,7 @@ void extract_yuv(info_t *ipipe)
 	error=1;
 	break;
       }
-      if(p_write(ipipe->fd_out, video, bytes)!=bytes) {
+      if(tc_pwrite(ipipe->fd_out, video, bytes)!=bytes) {
 	error=1;
 	break;
       }
@@ -245,7 +245,7 @@ void extract_yuv(info_t *ipipe)
 	      __FILE__, filetype(TC_MAGIC_RAW));
     
     
-    error=p_readwrite(ipipe->fd_in, ipipe->fd_out);
+    error=tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
     
     break;
   }

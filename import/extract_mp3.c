@@ -276,7 +276,7 @@ static int mp3scan(int infd, int outfd)
 
   for(;;) {
     
-    if (p_read(infd, &buffer[s], 1) !=1) {
+    if (tc_pread(infd, &buffer[s], 1) !=1) {
       //mp3 sync byte scan failed
       return(ERROR_INVALID_HEADER);
     }
@@ -303,8 +303,8 @@ static int mp3scan(int infd, int outfd)
   
   // dump the rest
   
-  p_write(outfd, buffer, 2);
-  p_readwrite(infd, outfd);
+  tc_pwrite(outfd, buffer, 2);
+  tc_preadwrite(infd, outfd);
   
   free (buffer);
   return(1);
@@ -406,7 +406,7 @@ void extract_mp3(info_t *ipipe)
 	  break;
 	}
 	
-	if(p_write(ipipe->fd_out, audio, MAX_BUF)!= MAX_BUF) {
+	if(tc_pwrite(ipipe->fd_out, audio, MAX_BUF)!= MAX_BUF) {
 	  error=1;
 	  break;
 	}
@@ -415,7 +415,7 @@ void extract_mp3(info_t *ipipe)
       if((bytes = AVI_read_audio(avifile, audio, padding)) < padding) 
 	error=1;
       
-      if(p_write(ipipe->fd_out, audio, bytes)!= bytes) error=1;
+      if(tc_pwrite(ipipe->fd_out, audio, bytes)!= bytes) error=1;
       
       break;
 

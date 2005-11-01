@@ -78,7 +78,7 @@ void decode_lzo(decode_t *decode)
     verbose = decode->verbose;
 
     for (;;) {
-	if ( (ss=p_read (decode->fd_in, (char *)&h, sizeof(h))) != sizeof(h)) {
+	if ( (ss=tc_pread (decode->fd_in, (uint8_t *)&h, sizeof(h))) != sizeof(h)) {
 	    //fprintf(stderr," (%s) failed to read frame size: EOF. expected (%ld) got (%d)\n", __FILE__, 4L, ss);
 	    goto decoder_out;
 	}
@@ -94,7 +94,7 @@ void decode_lzo(decode_t *decode)
 
 	if (verbose & TC_DEBUG) 
 	    fprintf (stderr, "got bytes (%ld)\n", bytes); 
-	if ( (ss=p_read (decode->fd_in, inbuf, bytes))!=bytes) {
+	if ( (ss=tc_pread (decode->fd_in, inbuf, bytes))!=bytes) {
 	    fprintf(stderr," (%s) failed to read frame: expected (%ld) got (%lu)\n", __FILE__, bytes, (unsigned long)ss);
 	    goto decoder_error;
 	}
@@ -118,7 +118,7 @@ void decode_lzo(decode_t *decode)
 	    goto decoder_error;
 	}
 
-	if ( (ss = p_write (decode->fd_out, out, out_len)) != out_len) {
+	if ( (ss = tc_pwrite (decode->fd_out, out, out_len)) != out_len) {
 	    fprintf(stderr," (%s) failed to write frame: expected (%ld) wrote (%lu)\n", __FILE__, bytes, (unsigned long)ss);
 	    goto decoder_error;
 	}

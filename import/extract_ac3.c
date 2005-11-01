@@ -230,15 +230,15 @@ static void pes_ac3_loop (void)
 		if(verbose & TC_STATS) 
 		  fprintf(stderr,"subtitle=0x%x size=%4d lpts=%d rpts=%f rptsfromvid=%f\n", track_code, subtitle_header.payload_length, subtitle_header.lpts, subtitle_header.rpts,abs_rpts); 
 		
-		if(p_write(STDOUT_FILENO, (char*) subtitle_header_str, strlen(subtitle_header_str))<0) {
+		if(tc_pwrite(STDOUT_FILENO, (uint8_t*) subtitle_header_str, strlen(subtitle_header_str))<0) {
 		  fprintf(stderr, "error writing subtitle\n");
 		    import_exit(1);
 		}
-		if(p_write(STDOUT_FILENO, (char*) &subtitle_header, sizeof(subtitle_header_t))<0) {
+		if(tc_pwrite(STDOUT_FILENO, (uint8_t*) &subtitle_header, sizeof(subtitle_header_t))<0) {
 		    fprintf(stderr, "error writing subtitle\n");
 		    import_exit(1);
 		}
-		if(p_write(STDOUT_FILENO, tmp1, tmp2-tmp1)<0) {
+		if(tc_pwrite(STDOUT_FILENO, tmp1, tmp2-tmp1)<0) {
 		    fprintf(stderr, "error writing subtitle\n");
 		    import_exit(1);
 		}
@@ -329,7 +329,7 @@ static int ac3scan(int infd, int outfd)
     k=0;
     
     for(;;) {
-      bytes_read = p_read(infd, &buffer[s], 1);
+      bytes_read = tc_pread(infd, &buffer[s], 1);
       if (bytes_read <= 0) {
 	//ac3 sync frame scan failed
 	free (buffer);
@@ -362,7 +362,7 @@ static int ac3scan(int infd, int outfd)
 #endif
 
     // read rest of header
-    if (p_read(infd, &buffer[2], 3) !=3) {
+    if (tc_pread(infd, &buffer[2], 3) !=3) {
       //ac3 header read failed
       free (buffer);
       return(ERROR_INVALID_HEADER);
@@ -392,14 +392,14 @@ static int ac3scan(int infd, int outfd)
 #endif
 
     // s points directly at first byte of syncword
-    p_write(outfd, &buffer[s], 1);
+    tc_pwrite(outfd, &buffer[s], 1);
     s = (s+1)%2;
-    p_write(outfd, &buffer[s], 1);
+    tc_pwrite(outfd, &buffer[s], 1);
     s = (s+1)%2;
 
     // read packet
-    p_read(infd, &buffer[5], frame_size-5);
-    p_write(outfd, &buffer[2], frame_size-2);
+    tc_pread(infd, &buffer[5], frame_size-5);
+    tc_pwrite(outfd, &buffer[2], frame_size-2);
 
     i+=frame_size;
     j=i;
@@ -521,7 +521,7 @@ void extract_ac3(info_t *ipipe)
 	  break;
 	}
 	
-	if(p_write(ipipe->fd_out, audio, MAX_BUF)!= MAX_BUF) {
+	if(tc_pwrite(ipipe->fd_out, audio, MAX_BUF)!= MAX_BUF) {
 	  error=1;
 	  break;
 	}
@@ -530,7 +530,7 @@ void extract_ac3(info_t *ipipe)
       if((bytes = AVI_read_audio(avifile, audio, padding)) < padding) 
 	error=1;
       
-      if(p_write(ipipe->fd_out, audio, bytes)!= bytes) error=1;
+      if(tc_pwrite(ipipe->fd_out, audio, bytes)!= bytes) error=1;
       
       break;
       

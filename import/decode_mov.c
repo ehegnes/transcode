@@ -117,7 +117,7 @@ void decode_mov(decode_t *decode)
 						fprintf(stderr,"(%s) error: reading quicktime audio frame\n",__FILE__);
 						import_exit(1);
 					}
-					p_write (decode->fd_out, p_buffer, s_buff_size);
+					tc_pwrite (decode->fd_out, p_buffer, s_buff_size);
 				}
 			}
       			else 
@@ -147,7 +147,7 @@ void decode_mov(decode_t *decode)
 					for (s_cont=0;s_cont<s_sample;s_cont++)
 						p_mask1[1+(s_cont<<1)]= p_mask2[s_cont];
 					s_qt_pos+=s_sample;
-					p_write (decode->fd_out, p_buffer, s_buff_size>>1);
+					tc_pwrite (decode->fd_out, p_buffer, s_buff_size>>1);
 				}
 				free(p_mask2);
 			}
@@ -169,7 +169,7 @@ void decode_mov(decode_t *decode)
 					fprintf(stderr,"(%s) error: reading quicktime audio frame\n",__FILE__);
 					import_exit(1);
 				}
-				p_write (decode->fd_out, p_buffer, s_buff_size);
+				tc_pwrite (decode->fd_out, p_buffer, s_buff_size);
 			}
 			quicktime_close(p_qt_structure);
 			free(p_buffer);
@@ -229,7 +229,7 @@ void decode_mov(decode_t *decode)
 					fprintf(stderr,"(%s) error: reading quicktime video frame\n",__FILE__);
 					import_exit(1);
       				}
-				p_write (decode->fd_out, p_buffer, s_buff_size);
+				tc_pwrite (decode->fd_out, p_buffer, s_buff_size);
       			}
 		}
 		else if(decode->format == TC_CODEC_RGB)
@@ -272,7 +272,7 @@ void decode_mov(decode_t *decode)
 					fprintf(stderr,"(%s) error: reading quicktime video frame\n",__FILE__);
 					import_exit(1);
       				}
-				p_write (decode->fd_out, p_buffer, s_buff_size);
+				tc_pwrite (decode->fd_out, p_buffer, s_buff_size);
       			}
 			free(p_raw_buffer);
 		}
@@ -302,7 +302,7 @@ void decode_mov(decode_t *decode)
 					fprintf(stderr,"(%s) error: reading quicktime video frame\n",__FILE__);
 					import_exit(1);
       				}
-				p_write (decode->fd_out, p_buffer, s_buff_size);
+				tc_pwrite (decode->fd_out, p_buffer, s_buff_size);
       			}
 		}
 		else

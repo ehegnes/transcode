@@ -598,7 +598,7 @@ long streaminfo(int fdes)
  
   int bytes=16, ret=0;
 
-  if( (ret = p_read(fdes, buf, bytes))<bytes) {
+  if( (ret = tc_pread(fdes, buf, bytes))<bytes) {
     if (ret) fprintf(stderr, "File too short (must be 16 bytes at least)\n");
     else perror("stream read error");
     return(TC_MAGIC_ERROR);

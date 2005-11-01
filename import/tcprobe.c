@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
 	  
 	  binary_dump = 1;
 
-	  p_write(STDOUT_FILENO, (char *) &pid, sizeof(pid_t));
+	  tc_pwrite(STDOUT_FILENO, (uint8_t *) &pid, sizeof(pid_t));
 	    
 	  break;
 
@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
 
     /* do not try to mess with the stream */
     if (stream_stype != TC_STYPE_STDIN) {
-      cc = probe_path(name);
+      cc = tc_probe_path(name);
       switch(cc) {
         case TC_PROBE_PATH_INVALID:	/* non-existent source */
           exit(1);
@@ -352,7 +352,7 @@ int main(int argc, char *argv[])
     //-------------------------------------
     
     if(binary_dump) {
-      p_write(ipipe.fd_out, (char*) ipipe.probe_info, sizeof(probe_info_t));
+      tc_pwrite(ipipe.fd_out, (uint8_t *) ipipe.probe_info, sizeof(probe_info_t));
       exit(0);
     }
     

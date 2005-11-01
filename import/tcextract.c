@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
     // do not try to mess with the stream
     if(stream_stype!=TC_STYPE_STDIN) {
       
-      if(file_check(name)) exit(1);
+      if(tc_file_check(name)) exit(1);
       
       if((ipipe.fd_in = xio_open(name, O_RDONLY))<0) {
 	perror("file open");

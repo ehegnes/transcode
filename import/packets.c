@@ -374,7 +374,7 @@ int packet_buffer_flush()
       return(-1);
   }
 
-  n = p_write(ifd, ptr->buffer, ptr->size);
+  n = tc_pwrite(ifd, ptr->buffer, ptr->size);
   
   if((verbose_flag & TC_SYNC)) fprintf(stderr, "done writing packet (%d/%03d)\n", ptr->id, pack_ctr);
   

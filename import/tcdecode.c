@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
     
     // do not try to mess with the stream
     if (decode.stype != TC_STYPE_STDIN) {
-	if (file_check(decode.name)) exit(1);
+	if (tc_file_check(decode.name)) exit(1);
 	if ((decode.fd_in = xio_open(decode.name, O_RDONLY)) < 0) {
 	    perror("open file");
 	    exit(1);
