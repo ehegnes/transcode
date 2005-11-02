@@ -1,4 +1,8 @@
-2005-10-11 Francesco Romani <fromani at gmail dot com>
+2005-11-02 Francesco Romani <fromani at gmail dot com>
+  * libtc/optstr.c libtc/optstr.h
+  Code reviewed, updated and documented following our new standard.
+
+2005-11-01 Francesco Romani <fromani at gmail dot com>
   * export/Makefile.am filter/Makefile.am filter/divxkey/Makefile.am
     filter/extsub/Makefile.am filter/pp/Makefile.am tools/Makefile.am
     filter/preview/Makefile.am filter/subtitler/Makefile.am
@@ -14,12 +18,12 @@
   are really loosely coupled with transcode main binary, and also
   used in other modules. Updated makefiles accordingly.
 
-2005-10-11 Mark Nauwelaerts <manauw at skynet dot be>
+2005-11-01 Mark Nauwelaerts <manauw at skynet dot be>
   * avilib/avilib.c
   Fixed segmentation fault problem by checking != NULL before free()
-  (patch applied by fromani at gmail dot com)
+  (patch applied by fromani at gmail dot com).
 
-2005-10-11 Francesco Romani <fromani at gmail dot com>
+2005-11-01 Francesco Romani <fromani at gmail dot com>
   * import/decode_dv.c import/decode_lavc.c import/decode_lzo.c
     import/decode_mov.c import/decode_mp3.c import/decode_mpeg2.c
     import/decode_xvid.c import/decode_yuv.c import/demux_pass.c
@@ -32,7 +36,7 @@
     import/tcprobe.c import/tcscan.c import/tcxmlcheck.c import/ts_reader.c
   Finish the migration of import layer code to new I/O auxiliary
   functions, recently moved in libtc from import/ioaux.c; now such
-  code lives only in libtc
+  code lives only in libtc.
 
 2005-10-31 Francesco Romani <fromani at gmail dot com>
   * import/Makefile.am import/a52_decore.c import/ac3scan.c 
@@ -41,7 +45,7 @@
     import/import_raw.c import/import_rawlist.c import/import_vnc.c
   Start the migration of import layer code to new I/O auxiliary
   functions moved in libtc from ioaux; now some import modules
-  no longer need at all ioaux.c
+  no longer need at all ioaux.c.
 
 2005-10-31 Andrew Church <achurch at achurch dot org>
   * export/export_ffmpeg.c

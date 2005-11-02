@@ -39,199 +39,210 @@
 #include <string.h>
 #include <stdarg.h>
 #include "optstr.h"
-#include "libtc/libtc.h"
+#include "libtc.h"
 
-char * optstr_lookup(char *haystack, char *needle)
+const char* optstr_lookup(const char *haystack, const char *needle)
 {
-	char *ch = haystack;
-	int found = 0;
-	int len = strlen (needle);
+    const char *ch = haystack;
+    int found = 0;
+    size_t len = strlen(needle);
 
-	while (!found) {
-		ch = strstr(ch, needle);
+    while (!found) {
+        ch = strstr(ch, needle);
 
-		/* not in string */
-		if (!ch)
-			break;
+        /* not in string */
+        if (!ch) {
+            break;
+        }
 
-		/* do we want this hit? ie is it exact? */
-		if (ch[len] == '\0' || ch[len] == '=' || ch[len] == ARG_SEP) {
-			found = 1;
-		} else {
-			/* go a little further */
-			ch++; 
-		}
-	} 
+        /* do we want this hit? ie is it exact? */
+        if (ch[len] == '\0' || ch[len] == '=' || ch[len] == ARG_SEP) {
+            found = 1;
+        } else {
+            /* go a little further */
+            ch++; 
+        }
+    } 
 
-	return (ch);
-
-	
+    return ch;
 }
 
-int optstr_get(char *options, char *name, char *fmt, ...)
+int optstr_get(const char *options, const char *name, const char *fmt, ...)
 {
-	va_list ap;     /* points to each unnamed arg in turn */
-	int numargs= 0; 
-	int n      = 0;
-	int pos;
-	char *ch = NULL;
+    va_list ap;     /* points to each unnamed arg in turn */
+    int num_args = 0, n = 0;
+    size_t pos, fmt_len = strlen(fmt);
+    const char *ch = NULL;
 
 #ifndef HAVE_VSSCANF
-	void *temp[ARG_MAXIMUM];
+    void *temp[ARG_MAXIMUM];
 #endif
-	
-	ch = optstr_lookup(options, name);
-	if (!ch) return (-1);
-	
-	/* name IS in options */
+    
+    ch = optstr_lookup(options, name);
+    if (!ch) {
+        return -1;
+    }
+    
+    /* name IS in options */
 
-	/* Find how many arguments we expect */
-	for (pos=0; pos < strlen(fmt); pos++) {
-		if (fmt[pos] == '%') {
-			++numargs;
-			/* is this one quoted  with '%%' */
-			if (pos+1 < strlen(fmt) && fmt[pos+1] == '%') {
-				--numargs;
-				++pos;
-			}
-		}
-	}
+    /* Find how many arguments we expect */
+    for (pos = 0; pos < fmt_len; pos++) {
+        if (fmt[pos] == '%') {
+            ++num_args;
+            /* is this one quoted  with '%%' */
+            if (pos + 1 < fmt_len && fmt[pos + 1] == '%') {
+                --num_args;
+                ++pos;
+            }
+        }
+    }
 
 #ifndef HAVE_VSSCANF
-	if (numargs > ARG_MAXIMUM) {
-		fprintf (stderr, 
-			"(%s:%d) Internal Overflow; redefine ARG_MAXIMUM (%d) to something higher\n", 
-			__FILE__, __LINE__, ARG_MAXIMUM);
-		return (-2);
-	}
+    if (num_args > ARG_MAXIMUM) {
+        fprintf (stderr, 
+            "(%s:%d) Internal Overflow; redefine ARG_MAXIMUM (%d) to something higher\n", 
+            __FILE__, __LINE__, ARG_MAXIMUM);
+        return -2;
+    }
 #endif
 
-	n = numargs;
-	/* Bool argument */
-	if (numargs <= 0) {
-		return (0);
-	}
+    n = num_args;
+    /* Bool argument */
+    if (num_args <= 0) {
+        return 0;
+    }
 
-	/* skip the `=' */
-	ch += ( strlen(name) + 1);
+    /* skip the `=' */
+    ch += (strlen(name) + 1);
 
-	va_start (ap, fmt);
+    va_start(ap, fmt);
 
 #ifndef HAVE_VSSCANF
-	while (--n >= 0) {
-		temp[numargs-n-1] = va_arg(ap, void *);
-	}
+    while (--n >= 0) {
+        temp[num_args - n - 1] = va_arg(ap, void *);
+    }
 
-	n = sscanf (ch, fmt, 
-			temp[0],  temp[1],  temp[2],  temp[3], temp[4],
-			temp[5],  temp[6],  temp[7],  temp[8], temp[9], 
-			temp[10], temp[11], temp[12], temp[13], temp[14], 
-			temp[15]);
+    n = sscanf(ch, fmt, 
+            temp[0],  temp[1],  temp[2],  temp[3], temp[4],
+            temp[5],  temp[6],  temp[7],  temp[8], temp[9], 
+            temp[10], temp[11], temp[12], temp[13], temp[14], 
+            temp[15]);
 
 #else
-	/* this would be very nice instead of the above, 
-	 * but it does not seem portable 
-	 */
-	 n = vsscanf (ch, fmt, ap); 
+    /* this would be very nice instead of the above, 
+     * but it does not seem portable 
+     */
+     n = vsscanf(ch, fmt, ap); 
 #endif
-	
-	va_end(ap);
+    
+    va_end(ap);
 
-	return n;
+    return n;
 }
 
-int optstr_is_string_arg(char *fmt)
+static int optstr_is_string_arg(const char *fmt)
 {
-    if (!fmt)
-	return 0;
-
-    if (!strlen(fmt))
-	return 0;
-
-    if (strchr (fmt, 's'))
-	return 1;
-
-    if (strchr (fmt, '[') && strchr (fmt, ']'))
-	return 1;
-
+    if (!fmt) {
+        return 0;
+    }
+    if (!strlen(fmt)) {
+        return 0;
+    }
+    if (strchr(fmt, 's')) {
+        return 1;
+    }
+    if (strchr(fmt, '[') && strchr(fmt, ']')) {
+        return 1;
+    }
     return 0;
 }
 
 
-int optstr_filter_desc (char *buf,
-		char *filter_name,
-                char *filter_comment,
-		char *filter_version,
-		char *filter_author,
-		char *capabilities,
-		char *frames_needed
-		)
+int optstr_filter_desc(char *buf,
+                       const char *filter_name,
+                       const char *filter_comment,
+                       const char *filter_version,
+                       const char *filter_author,
+                       const char *capabilities,
+                       const char *frames_needed)
 {
     int len = strlen(buf);
-    if (tc_snprintf(buf+len, ARG_CONFIG_LEN-len, "\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\"\n", 
-				    filter_name,filter_comment,filter_version,
-				    filter_author, capabilities, frames_needed) <= 0)
-	return 1;
+    if (tc_snprintf(buf + len, ARG_CONFIG_LEN - len, 
+                    "\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\"\n", 
+                    filter_name,filter_comment,filter_version,
+                    filter_author, capabilities, frames_needed) <= 0) {
+        return 1;
+    }
     return 0;
 }
 
-int optstr_frames_needed (char *filter_desc, int *needed_frames)
+int optstr_frames_needed(const char *filter_desc, int *needed_frames)
 {
-    char *s;
+    const char *s = NULL;
 
-    if ((s = strrchr (filter_desc, ',')) == NULL)
-	return 1;
-    if ((s = strchr (s, '\"')) == NULL)
-	return 1;
+    if ((s = strrchr(filter_desc, ',')) == NULL) {
+        return 1;
+    }
+    if ((s = strchr(s, '\"')) == NULL) {
+        return 1;
+    }
 
-    *needed_frames = strtol (s+1, (char **)NULL, 0);
+    *needed_frames = strtol(s + 1, NULL, 0);
     return 0;
 }
 
-int optstr_param  (char *buf, 
-		   char *name, 
-		   char *comment, 
-		   char *fmt, 
-		   char *val, 
-		   ... ) /* char *valid_from1, char *valid_to1, ... */ 
+int optstr_param(char *buf, 
+                 const char *name, 
+                 const char *comment, 
+                 const char *fmt, 
+                 const char *val, 
+                 ...) /* char *valid_from1, char *valid_to1, ... */ 
 {
     va_list ap; 
-    int n = 0, res, pos, numargs=0;
-    int len = strlen(buf);
+    int n = 0, res = 0, num_args=0;
+    size_t buf_len = strlen(buf), fmt_len = strlen(fmt), pos = 0;
 
-    if ((res = tc_snprintf(buf+len, ARG_CONFIG_LEN-len, "\"%s\", \"%s\", \"%s\", \"%s\"", 
-				name,comment,fmt,val)) <= 0)
-	return 1;
+    res = tc_snprintf(buf + buf_len, ARG_CONFIG_LEN - buf_len, 
+                           "\"%s\", \"%s\", \"%s\", \"%s\"", 
+                           name, comment, fmt, val);
+    if(res <= 0) {
+        return 1;
+    }
     n += res;
 
-
     /* count format strings */
-    for (pos=0; pos < strlen(fmt); pos++) {
-	if (fmt[pos] == '%') {
-	    ++numargs;
-	    /* is this one quoted  with '%%' */
-	    if (pos+1 < strlen(fmt) && fmt[pos+1] == '%') {
-		--numargs;
-		++pos;
-	    }
-	}
+    for (pos = 0; pos < fmt_len; pos++) {
+        if (fmt[pos] == '%') {
+            ++num_args;
+            /* is this one quoted  with '%%' */
+            if (pos + 1 < fmt_len && fmt[pos + 1] == '%') {
+                --num_args;
+                ++pos;
+            }
+        }
     }
-    numargs *= 2;
+    num_args *= 2;
 
-    if (numargs && optstr_is_string_arg(fmt))
-	numargs = 0;
+    if (num_args && optstr_is_string_arg(fmt)) {
+        num_args = 0;
+    }
 
-    va_start (ap, val);
-      while (numargs--) {
-	  if ((res = tc_snprintf (buf+len+n, ARG_CONFIG_LEN-len-n, ", \"%s\"", va_arg(ap, char *))) <= 0)
-	      return 1;
-	  n += res;
-      }
-    va_end (ap);
+    va_start(ap, val);
+    while (num_args--) {
+        res = tc_snprintf(buf + buf_len + n, 
+                          ARG_CONFIG_LEN - buf_len - n, 
+                          ", \"%s\"", va_arg(ap, char *));
+        if (res <= 0) {
+            return 1;
+        }
+        n += res;
+    }
+    va_end(ap);
 
-    if ((res = tc_snprintf (buf+len+n, ARG_CONFIG_LEN-len-n, "\n")) <= 0 )
-	return 1;
-
+    res = tc_snprintf(buf + buf_len + n, ARG_CONFIG_LEN - buf_len - n, "\n");
+    if (res <= 0 ) {
+        return 1;
+    }
 
     return 0;
 }
