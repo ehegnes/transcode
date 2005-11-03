@@ -536,7 +536,8 @@ int tc_probe_path(const char *name)
 
 /* embedded simple test for tc_log()
 
-int main() {
+int main() 
+{
     int i = 0;
 
     for(i = 0; i < 4; i++) {

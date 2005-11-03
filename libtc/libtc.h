@@ -262,6 +262,7 @@ ssize_t tc_pwrite(int fd, uint8_t *buf, size_t len);
  *             out: write readed data on this file descriptor
  * Return Value: -1 if a read error happens
  *               0 if no error happens
+ * Side effects: none
  * Preconditions: none
  * Postconditions: move the entire content of 'in' into 'out', 
  *                 if no *critical* (tipically I/O related) error occurs.
