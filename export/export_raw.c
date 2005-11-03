@@ -268,14 +268,15 @@ further:
 
 	    if (tc_file_check(vob->video_in_file) == 1) { /* directory */ 
 
+	      TcDirectory dir;
 	      dir_name = vob->video_in_file;
-	      if((tc_open_directory(dir_name))<0) { 
+	      if((tc_directory_open(&dir, dir_name))<0) { 
 		tc_log_warn(MOD_NAME, "unable to open directory \"%s\"", dir_name);
 		return(TC_EXPORT_ERROR);
 	      }
-	      to_open = tc_scan_directory(dir_name);
+	      to_open = tc_directory_scan(&dir);
 
-	      tc_close_directory();
+	      tc_directory_close(&dir);
 	    }
 
 	    if(avifile1==NULL) 

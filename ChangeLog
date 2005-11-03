@@ -1,3 +1,11 @@
+2005-11-03 Francesco Romani <fromani at gmail dot com>
+  * export/export_raw.c import/iodump.c src/transcode.c
+    libtc/iodir.c libtc/iodir.h
+  Code reviewed, documented and heavily rewritten. Dropped usage 
+  of global variables, introduced a new type to hold directory context
+  API was changed to make code more reusable, and client code was
+  updated as well.
+
 2005-11-02 Francesco Romani <fromani at gmail dot com>
   * libtc/optstr.c libtc/optstr.h
   Code reviewed, updated and documented following our new standard.

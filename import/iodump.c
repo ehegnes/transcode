@@ -65,6 +65,7 @@ void tccat_thread(info_t *ipipe)
   int vob_offset=0;
 
   info_t ipipe_avi;
+  TcDirectory tcdir;
 
 #ifdef NET_STREAM
   struct sockaddr_in sin;
@@ -189,13 +190,13 @@ void tccat_thread(info_t *ipipe)
     
     //PASS 1: check file type - file order not important
 
-    if((tc_open_directory(ipipe->name))<0) { 
+    if((tc_directory_open(&tcdir, ipipe->name))<0) { 
       fprintf(stderr, "(%s) unable to open directory \"%s\"\n", __FILE__, ipipe->name);
       exit(1);
     } else if(verbose_flag & TC_DEBUG) 
       fprintf(stderr, "(%s) scanning directory \"%s\"\n", __FILE__, ipipe->name);
     
-    while((name=tc_scan_directory(ipipe->name))!=NULL) {	
+    while((name=tc_directory_scan(&tcdir))!=NULL) {	
       
       if((ipipe->fd_in = open(name, O_RDONLY))<0) {
 	perror("file open");
@@ -249,7 +250,7 @@ void tccat_thread(info_t *ipipe)
       } // check itype
     } // process files
     
-    tc_close_directory();
+    tc_directory_close(&tcdir);
     
     if(!found) {
       fprintf(stderr,"\nerror: no valid files found in %s\n", name);
@@ -261,17 +262,17 @@ void tccat_thread(info_t *ipipe)
     
     //PASS 2: dump files in correct order
     
-    if((tc_open_directory(ipipe->name))<0) { 
+    if((tc_directory_open(&tcdir, ipipe->name))<0) { 
       fprintf(stderr, "(%s) unable to sort directory entries\"%s\"\n", __FILE__, name);
       exit(1);
     }
 
-    if((tc_sortbuf_directory(ipipe->name))<0) { 
+    if((tc_directory_sortbuf(&tcdir))<0) { 
       fprintf(stderr, "(%s) unable to sort directory entries\"%s\"\n", __FILE__, name);
       exit(1);
     }
     
-    while((name=tc_scan_directory(ipipe->name))!=NULL) {
+    while((name=tc_directory_scan(&tcdir))!=NULL) {
       
       if((ipipe->fd_in = open(name, O_RDONLY))<0) {
 	perror("file open");
@@ -344,8 +345,7 @@ void tccat_thread(info_t *ipipe)
 
     }//process files
     
-    tc_close_directory();
-    tc_freebuf_directory();
+    tc_directory_close(&tcdir);
 
     break;
   }
@@ -354,25 +354,26 @@ void tccat_thread(info_t *ipipe)
 
 int fileinfo_dir(char *dname, int *fd, long *magic)
 {    
+    TcDirectory tcdir;        
     char *name=NULL;
     
     //check file type - file order not important
     
-    if((tc_open_directory(dname))<0) { 
+    if((tc_directory_open(&tcdir, dname))<0) { 
 	fprintf(stderr, "(%s) unable to open directory \"%s\"\n", __FILE__, dname);
 	exit(1);
     } else if(verbose_flag & TC_DEBUG) 
 	
 	fprintf(stderr, "(%s) scanning directory \"%s\"\n", __FILE__, dname);
     
-    if((name=tc_scan_directory(dname))==NULL) return(-1); 	
+    if((name=tc_directory_scan(&tcdir))==NULL) return(-1); 	
 
     if((*fd= open(name, O_RDONLY))<0) {
 	perror("open file");
 	return(-1);
     }
 
-    tc_close_directory();
+    tc_directory_close(&tcdir);
     
     //first valid magic must be the same for all
     //files to follow, but is not checked here

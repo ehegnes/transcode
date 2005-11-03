@@ -674,6 +674,8 @@ int main(int argc, char *argv[]) {
 
     long sret;  /* used for string function return values */
 
+    TcDirectory tcdir;
+
     static struct option long_options[] =
     {
       {"version", no_argument, NULL, 'v'},
@@ -4358,29 +4360,22 @@ int main(int argc, char *argv[]) {
       dir_name = (dir_audio) ? vob->audio_in_file : vob->video_in_file;
       dir_fcnt = 0;
       
-      if((tc_open_directory(dir_name))<0) { 
+      if((tc_directory_open(&tcdir, dir_name))<0) { 
 	tc_error("unable to open directory \"%s\"", dir_name);
 	exit(1);
       }
       
-      while((dir_fname=tc_scan_directory(dir_name))!=NULL) {
+      while((dir_fname=tc_directory_scan(&tcdir))!=NULL) {
 	if(verbose & TC_DEBUG) printf("(%d) %s\n", dir_fcnt, dir_fname);
 	++dir_fcnt;
       }
       
       printf("(%s) processing %d file(s) in directory %s\n", __FILE__, dir_fcnt, dir_name);
       
-      tc_close_directory();
-      
       if(dir_fcnt==0) tc_error("no valid input files found");
       dir_fcnt=0;
       
-      if((tc_open_directory(dir_name))<0) { 
-	tc_error("unable to open directory \"%s\"", dir_name);
-	exit(1);
-      }
-      
-      if((tc_sortbuf_directory(dir_name))<0) { 
+      if((tc_directory_sortbuf(&tcdir))<0) { 
 	tc_error("unable to sort directory entries \"%s\"", dir_name);
 	exit(1);
       }
@@ -4417,7 +4412,7 @@ int main(int argc, char *argv[]) {
 
       // need to loop with directory content for this option
       
-      while((dir_fname=tc_scan_directory(dir_name))!=NULL) {
+      while((dir_fname=tc_directory_scan(&tcdir))!=NULL) {
 	
 	// update vob structure
 	if(dir_audio) {
@@ -4501,8 +4496,7 @@ int main(int argc, char *argv[]) {
 	
       }//next directory entry
       
-      tc_close_directory();
-      tc_freebuf_directory();
+      tc_directory_close(&tcdir);
       
       // close output
       if(no_split) {
