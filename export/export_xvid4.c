@@ -575,7 +575,7 @@ static void reset_module(xvid_transcode_module_t *mod)
 	mod->cfg_full1pass = 0;
 	mod->cfg_stats = 0;
 	mod->cfg_greyscale = 0;
-	mod->cfg_quant_method = strdup("h263");
+	mod->cfg_quant_method = tc_strdup("h263");
 	mod->cfg_create.max_bframes = 1;
 	mod->cfg_create.bquant_ratio = 150;
 	mod->cfg_create.bquant_offset = 100;
@@ -774,7 +774,7 @@ static void dispatch_settings(xvid_transcode_module_t *mod)
 			tc_log_info(MOD_NAME, "Loaded Intra matrix (switching to mpeg quantization type)");
 			print_matrix(frame->quant_intra_matrix);
 			free(mod->cfg_quant_method);
-			mod->cfg_quant_method = strdup("mpeg");
+			mod->cfg_quant_method = tc_strdup("mpeg");
 		}
 	}
 	if(mod->cfg_inter_matrix_file) {
@@ -783,7 +783,7 @@ static void dispatch_settings(xvid_transcode_module_t *mod)
 			tc_log_info(MOD_NAME, "Loaded Inter matrix (switching to mpeg quantization type)");
 			print_matrix(frame->quant_inter_matrix);
 			free(mod->cfg_quant_method);
-			mod->cfg_quant_method = strdup("mpeg");
+			mod->cfg_quant_method = tc_strdup("mpeg");
 		}
 	}
 	if(!strcasecmp(mod->cfg_quant_method, "mpeg")) {

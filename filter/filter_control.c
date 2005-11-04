@@ -115,7 +115,7 @@ int tc_filter(frame_list_t *ptr, char *options)
 	optstr_get (options, "file", "%[^:]", file);
 
 	if (strlen(file)>0) {
-	    ctrl->file = strdup(file);
+	    ctrl->file = tc_strdup(file);
 	} else {
 	    cprintf("The \"file\" option is mandatory");
 	    goto init_e_out;
@@ -129,7 +129,7 @@ int tc_filter(frame_list_t *ptr, char *options)
 	optstr_get (options, "ofile", "%[^:]", file);
 
 	if (strlen(file)>0) { 
-	    ctrl->ofile = strdup(file);
+	    ctrl->ofile = tc_strdup(file);
 	    if (NULL == (ctrl->of = fopen(ctrl->ofile, "w"))) {
 		cprintf("Cannot open \"%s\"", ctrl->ofile);
 		goto init_e_out;
@@ -294,7 +294,7 @@ static int parse_input_list (ctrl_t *ctrl, flist_t **flist_tofill)
 	}
 
 	flist->frame = strtol(fnum, (char **)NULL, 10);
-	flist->line = strdup (action);
+	flist->line = tc_strdup (action);
 	flist->cmd = cmd;
 
 	mmalloc (flist->next, flist_t);

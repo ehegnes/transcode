@@ -371,7 +371,7 @@ static void v4l2_parse_options(const char * options_in)
 	if(!options_in)
 		return;
 
-	options = options_ptr = strdup(options_in);
+	options = options_ptr = tc_strdup(options_in);
 
 	if(!options || (!(option = malloc(strlen(options) * sizeof(char)))))
 	{
@@ -474,7 +474,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 	}
 
 	if(device)
-		v4l2_device = strdup(device);
+		v4l2_device = tc_strdup(device);
 
 	if((v4l2_video_fd = open(device, O_RDWR, 0)) < 0)
 	{

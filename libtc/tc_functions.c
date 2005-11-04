@@ -338,6 +338,19 @@ void *_tc_bufalloc(const char *file, int line, size_t size)
 #endif
 }
 
+char *_tc_strndup(const char *file, int line, const char *s, size_t n)
+{
+    char *pc = NULL;
+            
+    if (s != NULL) {
+        pc = _tc_zalloc(file, line, n + 1);
+        if (pc != NULL) {
+            /* strlcpy automatically adds final '\0' */
+            strlcpy(pc, s, n + 1);
+        }
+    }
+    return pc;
+}
 
 /* Free a buffer allocated with tc_bufalloc(). */
 void tc_buffree(void *ptr)
@@ -536,11 +549,16 @@ int tc_probe_path(const char *name)
 
 /* embedded simple test for tc_log()
 
-int main() 
+#include "config.h"
+#include "libtc.h"
+#include <stdlib.h>
+#include <stdio.h>
+
+int main(void) 
 {
     int i = 0;
 
-    for(i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++) {
         tc_log(i, __FILE__, "short format");
         tc_log(i, __FILE__, "a little longer format (%i)", i);
         tc_log(i, __FILE__, "a really longer format (%i) with additional "
@@ -562,6 +580,82 @@ int main()
         
        
     }
+
+    return 0;
+}
+
+*/
+
+/* embedded simple test for tc_strdup() / tc_strndup
+
+#include "config.h"
+
+#define _GNU_SOURCE 1
+
+#include "libtc.h"
+#include <stdlib.h>
+#include <stdio.h>
+
+// test case 1
+
+#define TEST_STRING "testing tc_str*dup()"
+
+int test_strdup(void)
+{
+    const char *s1 = TEST_STRING, *s2 = NULL, *s3 = NULL;
+
+    tc_info("test_strdup()");
+    
+    s2 = strdup(s1);
+    s3 = tc_strdup(s1);
+
+    if (strlen(s2) != strlen(s3)) {
+        tc_error("string length mismatch: '%s' '%s'", s2, s3);
+    }
+
+    if (strcmp(s2, s3) != 0) {
+        tc_error("string mismatch: '%s' '%s'", s2, s3);
+    }
+
+    free(s2);
+    tc_free(s3);
+    
+    return 0;
+}
+
+int test_strndup(size_t n)
+{
+    const char *s1 = TEST_STRING, *s2 = NULL, *s3 = NULL;
+
+    tc_info("test_strndup(%lu)", (unsigned long)n);
+    
+    s2 = strndup(s1, n);
+    s3 = tc_strndup(s1, n);
+
+    if (strlen(s2) != strlen(s3)) {
+        tc_error("string length mismatch: '%s' '%s'", s2, s3);
+    }
+
+    if (strcmp(s2, s3) != 0) {
+        tc_error("string mismatch: '%s' '%s'", s2, s3);
+    }
+
+    free(s2);
+    tc_free(s3);
+    
+    return 0;
+}
+
+int main(void)
+{
+    test_strdup();
+    
+    test_strndup(0);
+    test_strndup(1);
+    test_strndup(5);
+    
+    test_strndup(strlen(TEST_STRING)-2);
+    test_strndup(strlen(TEST_STRING)-1);
 
     return 0;
 }

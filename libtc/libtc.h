@@ -205,6 +205,39 @@ void *_tc_bufalloc(const char *file, int line, size_t size);
 void tc_buffree(void *ptr);
 
 /*
+ * tc_strdup: a macro wrapper on top of _tc_strndup, like tc_malloc, above
+ * tc_strndup: like tc_strdup, but copies only N byte of given string
+ *
+ * This function does the same thing of libc's standard functions
+ * strdup(3) an strndup(3), but using the libtc's tc_malloc features.
+ */
+
+#define tc_strdup(s) \
+    _tc_strndup(__FILE__, __LINE__, s, strlen(s))
+#define tc_strndup(s, n) \
+    _tc_strndup(__FILE__, __LINE__, s, n)
+
+/*
+ * _tc_strndup: do the real work behind tc_strdup/tc_strndup macro.
+ *              this function adds automatically and implicitely a
+ *              '\0' terminator at end of copied string.
+ *
+ * Parameters: file: name of the file on which call occurs
+ *             line: line of above file on which call occurs
+ *             (above two parameters are intended to be, and usually
+ *             are, filled by tc_malloc macro)
+ *             s: null-terminated string to copy
+ *             n: copy at most 'n' characters of original string.
+ * Return Value: a pointer to a copy of given string.
+ *               this pointer must be freed using tc_free() to avoid
+ *               memory leaks
+ * Side effects: a message is printed on stderr (20051017)
+ * Preconditions: file param not null
+ * Postconditions: none
+ */
+char *_tc_strndup(const char *file, int line, const char *s, size_t n);
+
+/*
  * tc_file_check: verify the type of a given file (path)
  *                this function will be deprecated very soon,
  *                replaced by a powered tc_probe_path().

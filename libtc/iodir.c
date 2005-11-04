@@ -191,7 +191,7 @@ int tc_directory_sortbuf(TcDirectory *tcdir)
     }
   
     while (tc_directory_next(tcdir) == 0) {
-        tcdir->rbuf_ptr[n] = strdup(tcdir->filename);
+        tcdir->rbuf_ptr[n] = tc_strdup(tcdir->filename);
         if (tcdir->rbuf_ptr[n] == NULL) {
             tc_log_warn(__FILE__, "can't memorize directory entry "
                                   "for '%s'\n", tcdir->filename);

@@ -1,3 +1,13 @@
+2005-11-04 Francesco Romani <fromani at gmail dot com>
+  * export/af6_aux.cpp export/export_ffmpeg.c export/export_mov.c
+    export/export_xvid4.c filter/filter_astat.c filter/filter_control.c
+    filter/filter_text.c filter/subtitler/load_font.c import/clone.c
+    import/v4l/import_v4l2.c libtc/iodir.c libtc/libtc.h 
+    libtc/tc_functions.c src/callback.c
+  enter tc_strdup() and tc_strndup(); there are simple
+  reimplementations of libc functions in terms of tc_malloc().
+  Client code was updated as well, and test documentation was added.
+
 2005-11-03 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tc_functions.c
   Style fixes

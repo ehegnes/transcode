@@ -286,7 +286,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     mfd->points=25;
     mfd->dpi = 96;
-    mfd->font = strdup(default_font);
+    mfd->font = tc_strdup(default_font);
     mfd->string = NULL;
 
     mfd->fade = 0;
@@ -340,11 +340,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (font && strlen(font)>0) {
 	    free (mfd->font);
-	    mfd->font=strdup(font);
+	    mfd->font=tc_strdup(font);
 	}
 
 	if (string && strlen(string)>0) {
-	    mfd->string=strdup(string);
+	    mfd->string=tc_strdup(string);
 	    mfd->do_time=0;
         }
         else if (optstr_lookup (options, "tstamp") ) {

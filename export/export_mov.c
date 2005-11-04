@@ -230,7 +230,7 @@ MOD_init
     h = vob->ex_v_height;
 
     /* fetch qt codec from -F switch */
-    qt_codec =  strdup(vob->ex_v_fcc);
+    qt_codec =  tc_strdup(vob->ex_v_fcc);
     
     /* open target file for writing */
     if(NULL == (qtfile = quicktime_open(vob->video_out_file, 0, 1)) ){

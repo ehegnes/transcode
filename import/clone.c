@@ -316,7 +316,7 @@ char *clone_fifo()
   
   name = mktemp(b);
   
-  logfile=strdup(name);
+  logfile=tc_strdup(name);
 
 #ifdef USE_FIFO_LOGFILE
   if(mkfifo(logfile, 0666)<0) {

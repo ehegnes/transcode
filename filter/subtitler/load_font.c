@@ -381,7 +381,7 @@ while( fgets(sor, 1020, f) )
 		{
 		if(pdb == 1)
 			{
-			desc->fpath = strdup(p[0]);
+			desc->fpath = tc_strdup(p[0]);
 			continue;
 			}
 		}
@@ -428,7 +428,7 @@ while( fgets(sor, 1020, f) )
 		{
 		if(pdb == 2 && strcmp(p[0], "name") == 0)
 			{
-			desc->name = strdup(p[1]);
+			desc->name = tc_strdup(p[1]);
 			continue;
 			}
 		if(pdb == 2 && strcmp(p[0], "descversion") == 0)

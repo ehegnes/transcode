@@ -305,8 +305,8 @@ short add_attribute(const char *attr)
 	if (val != 2)
 		return 0;
 	
-	new_attr.name = strdup(attrname);
-	new_attr.val = strdup(attrval);
+	new_attr.name = tc_strdup(attrname);
+	new_attr.val = tc_strdup(attrval);
 
 	attributes = (struct codec_attr*)realloc(attributes, (attr_count + 1) *
 		sizeof(struct codec_attr));

@@ -70,7 +70,7 @@ void tc_outstream_rotate(void)
   if(strcmp(vob->video_out_file, "/dev/null") == 0) return;
 
   // get current outfile basename
-  base=strdup(vob->video_out_file);
+  base=tc_strdup(vob->video_out_file);
 
   //check
   if(base==NULL) return;

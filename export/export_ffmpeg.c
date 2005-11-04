@@ -242,7 +242,7 @@ MOD_init {
         /* Check if the user used '-F codecname' and abort if not. */
 
         if (vob->ex_v_fcc) {
-            user_codec_string = strdup(vob->ex_v_fcc);
+            user_codec_string = tc_strdup(vob->ex_v_fcc);
             strip(user_codec_string);
         } else
             user_codec_string = 0;
@@ -272,15 +272,15 @@ MOD_init {
     }
 
     if (!strcmp(user_codec_string, "mpeg1"))
-        real_codec = strdup("mpeg1video");
+        real_codec = tc_strdup("mpeg1video");
     else
         if (!strcmp(user_codec_string, "mpeg2"))
-            real_codec = strdup("mpeg2video");
+            real_codec = tc_strdup("mpeg2video");
         else
             if (!strcmp(user_codec_string, "dv"))
-                real_codec = strdup("dvvideo");
+                real_codec = tc_strdup("dvvideo");
             else
-                real_codec = strdup(user_codec_string);
+                real_codec = tc_strdup(user_codec_string);
 
     if (!strcmp(user_codec_string, "huffyuv"))
         is_huffyuv = 1;
@@ -318,22 +318,22 @@ MOD_init {
 
     if (!strcmp(real_codec, "vcd")) {
         free(real_codec);
-        real_codec = strdup("mpeg1video");
+        real_codec = tc_strdup("mpeg1video");
         pseudo_codec = pc_vcd;
     } else
         if (!strcmp(real_codec, "svcd")) {
             free(real_codec);
-            real_codec = strdup("mpeg2video");
+            real_codec = tc_strdup("mpeg2video");
             pseudo_codec = pc_svcd;
         } else
             if(!strcmp(real_codec, "xvcd")) {
                 free(real_codec);
-                real_codec = strdup("mpeg2video");
+                real_codec = tc_strdup("mpeg2video");
                 pseudo_codec = pc_xvcd;
             } else
                 if(!strcmp(real_codec, "dvd")) {
                     free(real_codec);
-                    real_codec = strdup("mpeg2video");
+                    real_codec = tc_strdup("mpeg2video");
                     pseudo_codec = pc_dvd;
                 } else
                     pseudo_codec = pc_none;
@@ -1214,7 +1214,7 @@ MOD_init {
 
         if(vob->ex_v_fcc)
         {
-            user_codec_string = strdup(vob->ex_v_fcc);
+            user_codec_string = tc_strdup(vob->ex_v_fcc);
             strip(user_codec_string);
         }
         else
