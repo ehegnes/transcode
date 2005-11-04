@@ -1,4 +1,8 @@
 2005-11-04 Francesco Romani <fromani at gmail dot com>
+  * import/af6_decore.cpp
+  forgot to include needed 'magic.h' header file
+
+2005-11-04 Francesco Romani <fromani at gmail dot com>
   * export/af6_aux.cpp export/export_ffmpeg.c export/export_mov.c
     export/export_xvid4.c filter/filter_astat.c filter/filter_control.c
     filter/filter_text.c filter/subtitler/load_font.c import/clone.c

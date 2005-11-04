@@ -65,6 +65,7 @@ extern "C" {
 #endif
 
 #include "transcode.h"
+#include "magic.h"
 #include "aclib/imgconvert.h"
   
   void af6_decore(decode_t *decode)
