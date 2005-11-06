@@ -68,19 +68,19 @@
 #define MOD_CAP     "remove an image from the video"
 #define MOD_AUTHOR  "Thomas Wehrspann"
 
-#include "transcode.h"
-#include "filter.h"
-#include "optstr.h"
-
-#include "tc_func_excl.h"
-
-// transcode defines this as well as ImageMagick.
+#include <magick/api.h>
+/* ImageMagick leaves these defined, grr */
+#undef PACKAGE_BUGREPORT
 #undef PACKAGE_NAME
 #undef PACKAGE_TARNAME
 #undef PACKAGE_VERSION
 #undef PACKAGE_STRING
 
-#include <magick/api.h>
+#include "transcode.h"
+#include "filter.h"
+#include "optstr.h"
+
+#include "tc_func_excl.h"
 
 static vob_t *vob=NULL;
 

@@ -32,20 +32,20 @@
 #define MOD_CAP     "render image in videostream"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
+#include <magick/api.h>
+/* ImageMagick leaves these defined, grr */
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+#undef PACKAGE_STRING
+
 #include "transcode.h"
 #include "filter.h"
 #include "optstr.h"
 
 #include "export/vid_aux.h"
 
-
-// transcode defines this as well as ImageMagick.
-#undef PACKAGE_NAME
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-#undef PACKAGE_STRING
-
-#include <magick/api.h>
 
 // basic parameter
 

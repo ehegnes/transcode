@@ -27,6 +27,14 @@
 #define MOD_CAP     "compare with other image to find a pattern"
 #define MOD_AUTHOR  "Antonio Beamud"
 
+#include <magick/api.h>
+/* ImageMagick leaves these defined, grr */
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+#undef PACKAGE_STRING
+
 #include "transcode.h"
 #include "filter.h"
 #include "optstr.h"
@@ -37,14 +45,6 @@
 #define DELTA_COLOR 45.0
 
 // FIXME: Try to implement the YUV colorspace
-
-// transcode defines this as well as ImageMagick.
-#undef PACKAGE_NAME
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-#undef PACKAGE_STRING
-
-#include <magick/api.h>
 
 typedef struct pixelsMask {
 	unsigned int row;
