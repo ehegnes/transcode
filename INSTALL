@@ -308,7 +308,7 @@ Optional packages:
   theora  http://www.theora.org/
     related options:
       --enable-theora (disabled)
-          build with support for importing theora audio
+          build with support for importing theora video
       --with-theora-prefix=PFX (/usr)
           prefix where theora is installed
       --with-theora-includes=DIR (/usr/include)

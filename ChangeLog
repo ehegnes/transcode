@@ -1,3 +1,7 @@
+2005-11-06 Andrew Church <achurch at achurch dot org>
+  * INSTALL
+  Theora is video not audio.
+
 2005-10-02 Jacob Meuser <jakemsr at jakemsr dot com>
   * configure.in export/export_mov.c import/decode_mov.c
     import/import_mov.c import/probe_mov.c
