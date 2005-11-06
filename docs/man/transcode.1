@@ -525,7 +525,9 @@ The quantizer is the "compression level" of the picture. The lower the
 quantizer is, the higher is the quality of the picture. This mode can help
 in making sure the sequence is encoded at constant quality, but no prediction
 can be made on the final bitrate. When using this mode, the \fB-w\fP option
-changes its meaning, it now takes the quantizer ranging from 1 to 31.
+changes its meaning, it now takes the quantizer ranging from 1 to 31. Note
+that constant quantizer encoding is not supported with some codecs (notably
+mpeg1/2/4 with -y ffmpeg).
 .RE
 
 .TP
