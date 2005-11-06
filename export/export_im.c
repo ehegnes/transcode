@@ -24,16 +24,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "transcode.h"
-#include "aclib/imgconvert.h"
-
-// transcode defines this as well as ImageMagick.
+#include <magick/api.h>
+/* ImageMagick leaves these defined, grr */
+#undef PACKAGE_BUGREPORT
 #undef PACKAGE_NAME
 #undef PACKAGE_TARNAME
 #undef PACKAGE_VERSION
 #undef PACKAGE_STRING
 
-#include <magick/api.h>
+#include "transcode.h"
+#include "aclib/imgconvert.h"
 
 #define MOD_NAME    "export_im.so"
 #define MOD_VERSION "v0.0.4 (2003-11-13)"

@@ -25,6 +25,14 @@
 #define MOD_VERSION "v0.0.4 (2003-09-15)"
 #define MOD_CODEC   "(video) RGB"
 
+#include <magick/api.h>
+/* ImageMagick leaves these defined, grr */
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+#undef PACKAGE_STRING
+
 #include "transcode.h"
 
 static int verbose_flag = TC_QUIET;
@@ -36,14 +44,6 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_VID;
 #include <time.h>
 #include <sys/types.h>
 #include <regex.h>
-
-/* transcode defines these as well as ImageMagick. */
-#undef PACKAGE_NAME
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-#undef PACKAGE_STRING
-
-#include <magick/api.h>
 
 
 char

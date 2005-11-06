@@ -1,3 +1,8 @@
+2005-11-06 Andrew Church <achurch at achurch dot org>
+  * export/export_im.c import/import_im.c import/import_imlist.c
+  Fix compilation warnings, and ensure that the correct PACKAGE_* macros
+  are available for use.
+
 2005-11-04 Francesco Romani <fromani at gmail dot com>
   * import/af6_decore.cpp
   forgot to include needed 'magic.h' header file

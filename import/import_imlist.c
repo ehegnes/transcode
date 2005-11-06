@@ -25,6 +25,14 @@
 #define MOD_VERSION "v0.0.2 (2003-11-13)"
 #define MOD_CODEC   "(video) RGB"
 
+#include <magick/api.h>
+/* ImageMagick leaves these defined, grr */
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+#undef PACKAGE_STRING
+
 #include "transcode.h"
 
 static int verbose_flag = TC_QUIET;
@@ -32,15 +40,6 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_VID | TC_CAP_AUD;
 
 #define MOD_PRE imlist
 #include "import_def.h"
-
-
-// transcode defines this as well as ImageMagick.
-#undef PACKAGE_NAME
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-#undef PACKAGE_STRING
-
-#include <magick/api.h>
 
 
 int
