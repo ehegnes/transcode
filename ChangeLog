@@ -1,3 +1,7 @@
+2005-11-06 Mark Nauwelaerts <manauw at skynet dot be>
+  * avilib/avilib.c
+  Fixed segmentation fault problem by checking != NULL before free()
+
 2005-11-06 Andrew Church <achurch at achurch dot org>
   * INSTALL
   Theora is video not audio.
