@@ -141,7 +141,7 @@ int scan_pack_ext(char *buf)
 
   int n, ret_code=-1;
   
-  for(n=0; n<VOB_PACKET_SIZE-4; ++n) {
+  for(n=0; n<VOB_PACKET_SIZE-7; ++n) {
       
       if(_cmp_32_bits(buf+n, TC_MAGIC_PICEXT) && ((uint8_t) buf[n+4]>>4)==8){
 	  ret_code = probe_picext(buf+n+4);

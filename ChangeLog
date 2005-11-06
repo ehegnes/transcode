@@ -1,3 +1,7 @@
+2005-11-06 Jacob Meuser <jakemsr at jakemsr dot com>
+  * import/scan_pack.c
+  avoid out-of-bounds memory access
+
 2005-11-06 Mark Nauwelaerts <manauw at skynet dot be>
   * avilib/avilib.c
   Fixed segmentation fault problem by checking != NULL before free()
