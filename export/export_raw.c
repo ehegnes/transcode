@@ -103,7 +103,7 @@ MOD_open
     
     char *codec;
     char *dir_name = NULL;
-    char *to_open;
+    const char *to_open;
     const char *fcc = NULL;
 
     im_v_codec = vob->im_v_codec;

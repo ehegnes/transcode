@@ -649,7 +649,7 @@ int main(int argc, char *argv[]) {
     char *aux_str;
     char **endptr=&aux_str;
 
-    char *dir_name, *dir_fname;
+    const char *dir_name, *dir_fname;
     int dir_fcnt=0, dir_audio=0;
 
     transfer_t export_para;
@@ -4416,10 +4416,10 @@ int main(int argc, char *argv[]) {
 	
 	// update vob structure
 	if(dir_audio) {
-	  vob->audio_in_file = dir_fname;
+	  vob->audio_in_file = (char *)dir_fname;
 	} else { 
-	  vob->video_in_file = dir_fname;
-	  vob->audio_in_file = dir_fname;
+	  vob->video_in_file = (char *)dir_fname;
+	  vob->audio_in_file = (char *)dir_fname;
 	}
 
 	if(!no_split) {

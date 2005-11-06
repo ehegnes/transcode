@@ -59,7 +59,7 @@ static int verbose_flag=TC_QUIET;
 void tccat_thread(info_t *ipipe)
 {
   
-  char *name=NULL;
+  const char *name=NULL;
   int found=0, itype=TC_MAGIC_UNKNOWN, type=TC_MAGIC_UNKNOWN;
 
   int vob_offset=0;
@@ -329,7 +329,7 @@ void tccat_thread(info_t *ipipe)
 	ac_memcpy(&ipipe_avi, ipipe, sizeof(info_t));
 	
 	//real AVI file name
-	ipipe_avi.name = name;
+	ipipe_avi.name = (char *)name;
 	ipipe_avi.magic = TC_MAGIC_AVI;
 
 	extract_avi(&ipipe_avi);	
@@ -355,7 +355,7 @@ void tccat_thread(info_t *ipipe)
 int fileinfo_dir(char *dname, int *fd, long *magic)
 {    
     TcDirectory tcdir;        
-    char *name=NULL;
+    const char *name=NULL;
     
     //check file type - file order not important
     
