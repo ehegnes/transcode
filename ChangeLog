@@ -1,6 +1,7 @@
 2005-11-06 Andrew Church <achurch at achurch dot org>
   * export/export_im.c filter/filter_compare.c filter/filter_logo.c
     filter/filter_logoaway.c import/import_im.c import/import_imlist.c
+    import/probe_im.c
   Fix compilation warnings, and ensure that the correct PACKAGE_* macros
   are available for use.
 

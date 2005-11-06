@@ -21,18 +21,29 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+
+#ifdef HAVE_IMAGEMAGICK
+/* ImageMagick leaves these defined, grr */
+# undef PACKAGE_BUGREPORT
+# undef PACKAGE_NAME
+# undef PACKAGE_TARNAME
+# undef PACKAGE_VERSION
+# undef PACKAGE_STRING
+# include <magick/api.h>
+# undef PACKAGE_BUGREPORT
+# undef PACKAGE_NAME
+# undef PACKAGE_TARNAME
+# undef PACKAGE_VERSION
+# undef PACKAGE_STRING
+#endif
+
 #include "ioaux.h"
 #include "tc.h"
 
 #ifdef HAVE_IMAGEMAGICK
-
-// transcode defines this as well as ImageMagick.
-#undef PACKAGE_NAME
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-#undef PACKAGE_STRING
-
-#include <magick/api.h>
 
 void probe_im(info_t *ipipe)
 {
