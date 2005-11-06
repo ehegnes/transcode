@@ -1,4 +1,8 @@
 2005-11-06 Andrew Church <achurch at achurch dot org>
+  * filter/preview/filter_pv.c filter/preview/pv.c
+  Fix processing for YUV422 mode.
+
+2005-11-06 Andrew Church <achurch at achurch dot org>
   * export/export_raw.c import/iodump.c src/transcode.c
   More compilation warning fixes (const issues).
 

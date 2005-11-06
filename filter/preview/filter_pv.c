@@ -29,6 +29,7 @@
 #include "transcode.h"
 #include "filter.h"
 #include "optstr.h"
+#include "aclib/imgconvert.h"
 
 #include "video_trans.h"
 
@@ -63,6 +64,7 @@ static int rows=20;
 static char buffer[128];
 static int size=0;
 static int use_secondary_buffer=0;
+static ImageFormat srcfmt = IMG_NONE, destfmt = IMG_NONE;
 
 static int xv_init_ok=0;
 
@@ -204,6 +206,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
       if(xv_display_init(xv_player->display, 0, NULL, 
 			 w, h, buffer, buffer, 1)<0) return(-1);
       size = w*h*2;
+      srcfmt = IMG_YUV422P;
+      destfmt = IMG_YUY2;
 
       break;
     
@@ -300,7 +304,17 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if(!xv_player->display->dontdraw) {
       
       //0.6.2 (secondaray buffer for pass-through mode)
-      (use_secondary_buffer) ? ac_memcpy(xv_player->display->pixels[0], (char*) ptr->video_buf2, size) : ac_memcpy(xv_player->display->pixels[0], (char*) ptr->video_buf, size);
+      if (use_secondary_buffer) {
+          ac_memcpy(xv_player->display->pixels[0], ptr->video_buf2, size);
+      } else if (srcfmt != IMG_NONE && destfmt != IMG_NONE) {
+          uint8_t *planes[3];
+          YUV_INIT_PLANES(planes, ptr->video_buf, srcfmt, w, h);
+          ac_imgconvert(planes, srcfmt,
+                        (uint8_t **)xv_player->display->pixels, destfmt,
+                        w, h);
+      } else {
+          ac_memcpy(xv_player->display->pixels[0], ptr->video_buf, size);
+      }
       
       //display video frame
       xv_display_show(xv_player->display);
