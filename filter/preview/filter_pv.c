@@ -70,6 +70,7 @@ static int xv_init_ok=0;
 
 static int preview_delay=0;
 static int preview_skip=0, preview_skip_num=25;
+static int preview_xv_port=0;
 static char *undo_buffer = NULL;
 static char *run_buffer[2] = {NULL, NULL};
 static char *process_buffer[3] = {NULL, NULL, NULL};
@@ -142,6 +143,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       optstr_param (options, "cache", "Number of raw frames to cache for seeking",  "%d", "15", "15", "255");
       optstr_param (options, "skip", "display only every Nth frame",  "%d", "0", "0", "255");
       optstr_param (options, "fullscreen", "Display in fullscreen mode","", "0");
+      optstr_param (options, "port", "force Xv port","%d", "0", "0", "255");
   }
 
   //----------------------------------
@@ -187,6 +189,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if (options != NULL) {
       if(optstr_get (options, "fullscreen", "") == 0)
         xv_player->display->full_screen = 1;
+      optstr_get (options, "port", "%d", &preview_xv_port);
+      if(preview_xv_port != 0) {
+        tc_log_info(MOD_NAME, "forced Xv port: %d", preview_xv_port);
+        xv_player->display->arg_xv_port = preview_xv_port;
+      }
     }
 
 

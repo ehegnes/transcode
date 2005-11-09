@@ -1,3 +1,7 @@
+2005-11-09 Francesco Romani <fromani at gmail dot com>
+  * filter/preview/filter_ov.c
+  Add an option to select the Xv port to use.
+
 2005-11-06 Andrew Church <achurch at achurch dot org>
   * docs/man/transcode.1
   Add note that -R 3 doesn't work for ffmpeg mpeg[124] output.
