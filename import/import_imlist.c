@@ -25,6 +25,9 @@
 #define MOD_VERSION "v0.0.2 (2003-11-13)"
 #define MOD_CODEC   "(video) RGB"
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #include <magick/api.h>
 /* ImageMagick leaves these defined, grr */
 #undef PACKAGE_BUGREPORT

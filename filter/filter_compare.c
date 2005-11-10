@@ -27,6 +27,9 @@
 #define MOD_CAP     "compare with other image to find a pattern"
 #define MOD_AUTHOR  "Antonio Beamud"
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #include <magick/api.h>
 /* ImageMagick leaves these defined, grr */
 #undef PACKAGE_BUGREPORT

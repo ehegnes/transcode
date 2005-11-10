@@ -68,6 +68,9 @@
 #define MOD_CAP     "remove an image from the video"
 #define MOD_AUTHOR  "Thomas Wehrspann"
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #include <magick/api.h>
 /* ImageMagick leaves these defined, grr */
 #undef PACKAGE_BUGREPORT

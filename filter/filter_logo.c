@@ -32,6 +32,9 @@
 #define MOD_CAP     "render image in videostream"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #include <magick/api.h>
 /* ImageMagick leaves these defined, grr */
 #undef PACKAGE_BUGREPORT

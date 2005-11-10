@@ -25,6 +25,9 @@
 # include "config.h"
 #endif
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #ifdef HAVE_IMAGEMAGICK
 /* ImageMagick leaves these defined, grr */
 # undef PACKAGE_BUGREPORT
