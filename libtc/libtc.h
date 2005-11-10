@@ -89,7 +89,6 @@ extern char *GRAY;
  * returns 0 if found, ENOENT if not and the value of errno of the first 
  * occurance if found but not accessible.
  */
-
 int tc_test_program(const char *name);
 
 /* guess the frame rate code from the frames per second */
@@ -115,7 +114,6 @@ size_t strlcat(char *dst, const char *src, size_t size);
  * Returns 0 if not problems, 1 if error.
  * If error, prints reason.
  */
-
 int tc_test_string(const char *file, int line, int limit, long ret, int errnum);
 
 
@@ -123,7 +121,6 @@ int tc_test_string(const char *file, int line, int limit, long ret, int errnum);
  * These versions of [v]snprintf() return -1 if the string was truncated,
  * printing a message to stderr in case of truncation (or other error).
  */
-
 #define tc_vsnprintf(buf,limit,format,args...) \
     _tc_vsnprintf(__FILE__, __LINE__, buf, limit, format , ## args)
 #define tc_snprintf(buf,limit,format,args...) \
@@ -143,7 +140,6 @@ int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
  *             transcode codebase)
  * tc_free: the companion memory releasing wrapper.
  */
-
 #define tc_malloc(size) \
     _tc_malloc(__FILE__, __LINE__, size)
 #define tc_zalloc(size) \
@@ -181,8 +177,10 @@ void *_tc_malloc(const char *file, int line, size_t size);
  */
 void *_tc_zalloc(const char *file, int line, size_t size);
 
-/* Allocate a buffer aligned to the machine's page size, if known.  The
- * buffer must be freed with buffree() (not free()). */
+/* 
+ * Allocate a buffer aligned to the machine's page size, if known.  The
+ * buffer must be freed with buffree() (not free()). 
+ */
 
 #define tc_bufalloc(size) \
     _tc_bufalloc(__FILE__, __LINE__, size)
@@ -211,7 +209,6 @@ void tc_buffree(void *ptr);
  * This function does the same thing of libc's standard functions
  * strdup(3) an strndup(3), but using the libtc's tc_malloc features.
  */
-
 #define tc_strdup(s) \
     _tc_strndup(__FILE__, __LINE__, s, strlen(s))
 #define tc_strndup(s, n) \

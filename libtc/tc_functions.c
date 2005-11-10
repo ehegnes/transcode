@@ -200,40 +200,40 @@ int tc_test_program(const char *name)
 
 /*************************************************************************/
 
-#define delta 0.05
+#define DELTA 0.05
 int tc_guess_frc(double fps)
 {
-    if (fps - delta < 00.010 && 00.010 < fps + delta)
+    if (fps - DELTA < 00.010 && 00.010 < fps + DELTA)
         return 0;
-    if (fps - delta < 23.976 && 23.976 < fps + delta)
+    if (fps - DELTA < 23.976 && 23.976 < fps + DELTA)
         return 1;
-    if (fps - delta < 24.000 && 24.000 < fps + delta)
+    if (fps - DELTA < 24.000 && 24.000 < fps + DELTA)
         return 2;
-    if (fps - delta < 25.000 && 25.000 < fps + delta)
+    if (fps - DELTA < 25.000 && 25.000 < fps + DELTA)
         return 3;
-    if (fps - delta < 29.970 && 29.970 < fps + delta)
+    if (fps - DELTA < 29.970 && 29.970 < fps + DELTA)
         return 4;
-    if (fps - delta < 30.000 && 30.000 < fps + delta)
+    if (fps - DELTA < 30.000 && 30.000 < fps + DELTA)
         return 5;
-    if (fps - delta < 50.000 && 50.000 < fps + delta)
+    if (fps - DELTA < 50.000 && 50.000 < fps + DELTA)
         return 6;
-    if (fps - delta < 59.940 && 59.940 < fps + delta)
+    if (fps - DELTA < 59.940 && 59.940 < fps + DELTA)
         return 7;
-    if (fps - delta < 60.000 && 60.000 < fps + delta)
+    if (fps - DELTA < 60.000 && 60.000 < fps + DELTA)
         return 8;
-    if (fps - delta <  1.000 &&  1.000 < fps + delta)
+    if (fps - DELTA <  1.000 &&  1.000 < fps + DELTA)
         return 9;
-    if (fps - delta <  5.000 &&  5.000 < fps + delta)
+    if (fps - DELTA <  5.000 &&  5.000 < fps + DELTA)
         return 10;
-    if (fps - delta < 10.000 && 10.000 < fps + delta)
+    if (fps - DELTA < 10.000 && 10.000 < fps + DELTA)
         return 11;
-    if (fps - delta < 12.000 && 12.000 < fps + delta)
+    if (fps - DELTA < 12.000 && 12.000 < fps + DELTA)
         return 12;
-    if (fps - delta < 15.000 && 15.000 < fps + delta)
+    if (fps - DELTA < 15.000 && 15.000 < fps + DELTA)
         return 13;
     return -1;
 }
-#undef delta
+#undef DELTA
 
 /*************************************************************************/
 
