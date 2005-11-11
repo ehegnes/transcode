@@ -83,3 +83,13 @@ extern void ac_rescale(const uint8_t *src1, const uint8_t *src2,
 /*************************************************************************/
 
 #endif  /* ACLIB_AC_H */
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

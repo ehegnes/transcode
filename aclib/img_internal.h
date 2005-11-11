@@ -23,3 +23,13 @@ extern int ac_imgconvert_init_yuv_rgb(int accel);
 extern int ac_imgconvert_init_rgb_packed(int accel);
 
 #endif  /* ACLIB_IMG_INTERNAL_H */
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

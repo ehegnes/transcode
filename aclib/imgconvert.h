@@ -88,3 +88,13 @@ extern int ac_imgconvert(uint8_t **src,         /* Array of source planes */
 /*************************************************************************/
 
 #endif  /* ACLIB_IMGCONVERT_H */
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

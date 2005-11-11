@@ -579,3 +579,13 @@ static const struct { uint32_t n[64]; } __attribute__((aligned(16))) mask_data =
 /*************************************************************************/
 
 #endif  /* ACLIB_IMG_X86_COMMON_H */
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
