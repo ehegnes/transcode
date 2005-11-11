@@ -65,10 +65,10 @@
 # define SWAP8(a) (a)
 #endif
 
-typedef unsigned long DWORD;
-typedef unsigned short WORD;
+typedef uint32_t DWORD;
+typedef uint16_t WORD;
 typedef DWORD FOURCC;             /* Type of FOUR Character Codes */
-typedef unsigned char boolean;
+typedef uint8_t boolean;
 #define TRUE  1
 #define FALSE 0
 #define BUFSIZE 4096
@@ -385,13 +385,13 @@ static void dump_vals(int fd, int count, struct VAL *names)
 	case INT16:
 	    xio_read(fd, &val16,2);
 	    val16 = SWAP2(val16);
-	    printf("\t%-12s = %ld\n",names[i].name,(long)val16);
+	    printf("\t%-12s = %u\n",names[i].name,(uint32_t)val16);
 	    break;
 
 	case HEX16:
 	    xio_read(fd, &val16,2);
 	    val16 = SWAP2(val16);
-	    printf("\t%-12s = 0x%lx\n",names[i].name,(long)val16);
+	    printf("\t%-12s = 0x%x\n",names[i].name,(uint32_t)val16);
 	    break;
 	}
     }
@@ -551,7 +551,7 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 	
 	while (datashowed<*chunksize) {      /* while not showed all: */
 	    
-	  long subchunklen;           /* complete size of a subchunk  */
+	  uint32_t subchunklen;           /* complete size of a subchunk  */
 	  
 	  datapos_tmp[RekDepth]=datapos;
 
@@ -609,10 +609,10 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 	break;
 
     case indxtag: {
-	long chunks=*chunksize-sizeof(names_indx)/sizeof(char*);
+	uint32_t chunks=*chunksize-sizeof(names_indx)/sizeof(char*);
 	off_t offset;
 	DWORD size, duration;
-	long u=0;
+	uint32_t u=0;
 	off_t indxend = datapos + chunks;
 	dump_vals(fd,sizeof(names_indx)/sizeof(char*),names_indx);
 
@@ -634,9 +634,9 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
     case Tagix01:
     case Tagix02:
     case Tagix03: {
-	long chunks=*chunksize-sizeof(names_stdidx)/sizeof(char*);
-	unsigned int offset, size, key;
-	long u=0;
+	uint32_t chunks=*chunksize-sizeof(names_stdidx)/sizeof(char*);
+	uint32_t offset, size, key;
+	uint32_t u=0;
 	off_t indxend = datapos + chunks;
 	dump_vals(fd,sizeof(names_stdidx)/sizeof(char*),names_stdidx);
 
@@ -662,7 +662,7 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 	while (datapos<idxend) {
 
 	    DWORD val32;
-	    static long u=0;
+	    static uint32_t u=0;
 
 	    //tag:
 	    xio_read(fd, &val32,4);
@@ -771,7 +771,7 @@ static boolean DumpChunk(int fd, off_t filepos, off_t filesize,
       
       while (datashowed<*chunksize) {      /* while not showed all: */
 	
-	long subchunklen;           /* complete size of a subchunk  */
+	uint32_t subchunklen;           /* complete size of a subchunk  */
 	
 	/* recurse for subchunks of RIFF and LIST chunks: */
 	if (!DumpChunk(fd, datapos,filesize,0,

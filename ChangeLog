@@ -1,3 +1,8 @@
+2005-11-11 Francesco Romani <fromani at gmail dot com>
+  * avilib/avidump.c
+  make some data types of the right wideness both on i386 and on
+  amd64. This allow tccat dirmode to work on amd64.
+
 2005-11-10 Francesco Romani <fromani at gmail dot com>
   * filter/filter_compare.c filter/filter_logo.c filter/filter_logoaway.c
     import/import_im.c import/import_imlist.c import/probe_im.c
