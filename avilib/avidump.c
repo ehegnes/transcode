@@ -323,10 +323,10 @@ static size_t avi_read_write (int fd_in, int fd_out, size_t len)
 
 static void dump_vals(int fd, int count, struct VAL *names)
 {
-    DWORD i,j,val32;
-    WORD  val16;
+    uint32_t i,j,val32;
+    uint16_t val16;
     off_t val64;
-    char  val8;
+    char val8;
 
     for (i = 0; names[i].type != EoLST; i++) {
 	switch (names[i].type) {
@@ -342,7 +342,7 @@ static void dump_vals(int fd, int count, struct VAL *names)
 	case INT32:
 	    xio_read(fd, &val32, 4);
 	    val32 = SWAP4(val32);
-	    printf("\t%-12s = %ld\n",names[i].name,val32);
+	    printf("\t%-12s = %ld\n",names[i].name,(long)val32);
 	    break;
 	case CCODE:
 	    xio_read(fd, &val32,4);
@@ -353,7 +353,7 @@ static void dump_vals(int fd, int count, struct VAL *names)
 		       (int)((val32 >>  8) & 0xff),
 		       (int)((val32 >> 16) & 0xff),
 		       (int)((val32 >> 24) & 0xff),
-		       val32);
+		       (long)val32);
 	    } else {
 		printf("\t%-12s = unset (0)\n",names[i].name);
 	    }
@@ -374,7 +374,7 @@ static void dump_vals(int fd, int count, struct VAL *names)
 	case FLAGS:
 	    xio_read(fd, &val32,4);
 	    val32 = SWAP4(val32);
-	    printf("\t%-12s = 0x%lx\n",names[i].name,val32);
+	    printf("\t%-12s = 0x%lx\n",names[i].name,(long)val32);
 	    if (names[i].flags) {
 		for (j = 0; names[i].flags[j].bit != 0; j++)
 		    if (names[i].flags[j].bit & val32)
@@ -510,7 +510,7 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
     printf("(%Lu) %*c  ID:<%s>   Size: %lu\n",
 	    filepos ,(RekDepth+1)*4,' ',tagstr, *chunksize);
 #else
-    printf("(0x%s) %*c  ID:<%s>   Size: 0x%08lx %8lu\n",
+    printf("(0x%s) %*c  ID:<%s>   Size: 0x%08x %8u\n",
 	   off_t_to_char(filepos,16,8),(RekDepth+1)*4,' ',tagstr, *chunksize, *chunksize);
 #endif
 
@@ -611,7 +611,7 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
     case indxtag: {
 	uint32_t chunks=*chunksize-sizeof(names_indx)/sizeof(char*);
 	off_t offset;
-	DWORD size, duration;
+	uint32_t size, duration;
 	uint32_t u=0;
 	off_t indxend = datapos + chunks;
 	dump_vals(fd,sizeof(names_indx)/sizeof(char*),names_indx);
@@ -624,8 +624,8 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 	    size = SWAP4(size);
 	    duration = SWAP4(duration);
 	    if (size!=0)
-	    printf("\t\t [%6ld] 0x%016llx 0x%08lx %8d\n", u++, offset, size,
-		    (int)duration);
+	    printf("\t\t [%6d] 0x%016llx 0x%08lx %8d\n", u++,
+		    offset, (long)size, (int)duration);
 	    datapos += 16;
 	}
 	break;
@@ -649,7 +649,7 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 	    key  = key&0x80000000?0:1;
 	    size &= 0x7fffffff;
 	    if (size!=0)
-	    printf("\t\t [%6ld] 0x%08x 0x%08x key=%s\n", u++, offset, size,
+	    printf("\t\t [%6d] 0x%08x 0x%08x key=%s\n", u++, offset, size,
 		    key?"yes":"no");
 	    datapos += 8;
 	}
@@ -668,7 +668,7 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 	    xio_read(fd, &val32,4);
 	    val32 = SWAP4(val32);
 	    if(val32==Tag00db) {
-		printf("\t\t [%6ld] %s=%c%c%c%c ", u++, "tag",
+		printf("\t\t [%6d] %s=%c%c%c%c ", u++, "tag",
 		       (int)( val32        & 0xff),
 		       (int)((val32 >>  8) & 0xff),
 		       (int)((val32 >> 16) & 0xff),
@@ -683,17 +683,17 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 	    //flag
 	    xio_read(fd, &val32, 4);
 	    val32 = SWAP4(val32);
-	    printf("flags=%02ld ",val32);
+	    printf("flags=%02ld ",(long)val32);
 
 	    //pos
 	    xio_read(fd, &val32, 4);
 	    val32 = SWAP4(val32);
-	    printf("0x%08lx",val32);
+	    printf("0x%08lx",(long)val32);
 
 	    //size
 	    xio_read(fd, &val32, 4);
 	    val32 = SWAP4(val32);
-	    printf("%8ld\n",val32);
+	    printf("%8ld\n",(long)val32);
 
 	    datapos+=16;
 	}

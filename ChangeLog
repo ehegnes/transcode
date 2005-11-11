@@ -1,8 +1,12 @@
 2005-11-11 Andrew Church <achurch at achurch dot org>
+  * avilib/avidump.c
+  Fix compilation warnings.
+
+2005-11-11 Andrew Church <achurch at achurch dot org>
   * (everything)
-  Removed trailing whitespace from text (s/[ \t]+$//).
+  Remove trailing whitespace from text (s/[ \t]+$//).
   * aclib/*
-  Added Emacs/vim style helpers.
+  Add Emacs/vim style helpers.
 
 2005-11-11 Francesco Romani <fromani at gmail dot com>
   * import/import_vob.c
