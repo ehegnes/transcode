@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -42,7 +42,7 @@ static const int frame_size_625_50 = 12 * 150 * 80;
 #endif
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decoder thread
  *
@@ -57,11 +57,11 @@ void decode_dv(decode_t *decode)
   int i, j, bytes=0, ch, cc;
   int samples=0, channels=0;
   static dv_decoder_t *dv_decoder=NULL;
-  int error=0, dvinfo=0; 
+  int error=0, dvinfo=0;
   unsigned char  *buf;
   unsigned char  *video[4];
-  int16_t *audio_buffers[4], *audio;  
-  uint16_t pitches[3];  //do not change to signed! (ThOe) libdv BUG! 
+  int16_t *audio_buffers[4], *audio;
+  uint16_t pitches[3];  //do not change to signed! (ThOe) libdv BUG!
 
   verbose = decode->verbose;
 
@@ -71,9 +71,9 @@ void decode_dv(decode_t *decode)
     fprintf(stderr, "(%s) dv decoder init failed\n", __FILE__);
     import_exit(1);
   }
-  
+
   switch (decode->quality) {
-      
+
   case 1:
       dv_decoder->quality = DV_QUALITY_FASTEST;
       break;
@@ -85,23 +85,23 @@ void decode_dv(decode_t *decode)
   case 3:
       dv_decoder->quality = DV_QUALITY_AC_2;
       break;
-      
+
   case 4:
       dv_decoder->quality = (DV_QUALITY_COLOR | DV_QUALITY_AC_1);
       break;
-      
+
   case 5:
   default:
       dv_decoder->quality = DV_QUALITY_BEST;
       break;
   }
-  
+
   // max frame input buffer
   if((buf = tc_bufalloc(DV_PAL_SIZE))==NULL) {
       fprintf(stderr, "(%s) out of memory\n", __FILE__);
       import_exit(1);
   }
-  
+
   // allocate space, assume max buffer size
   for(i=0; i < 4; i++) {
       //if((video[i] = tc_bufalloc(SIZE_RGB_FRAME))==NULL) {
@@ -110,20 +110,20 @@ void decode_dv(decode_t *decode)
 	  import_exit(1);
       }
   }
-  
+
   // tmp audio buffer
   for(i=0; i < 4; i++) {
       if(!(audio_buffers[i] = malloc(DV_AUDIO_MAX_SAMPLES * sizeof(int16_t)))) {
 	  fprintf(stderr, "(%s) out of memory\n", __FILE__);
 	  import_exit(1);
-      }  
-  }	  
-  
+      }
+  }
+
   // output audio buffer
   if(!(audio = malloc(DV_AUDIO_MAX_SAMPLES * 4 * sizeof(int16_t)))) {
       fprintf(stderr, "(%s) out of memory\n", __FILE__);
       import_exit(1);
-  }  
+  }
 
   // frame decoding loop
   dv_decoder->prev_frame_decoded = 0;
@@ -135,20 +135,20 @@ void decode_dv(decode_t *decode)
 	  if(verbose & TC_DEBUG)  fprintf(stderr, "(%s) end of stream\n", __FILE__);
 	  import_exit(1);
       }
-      
+
       // parse frame header
       if((cc=dv_parse_header(dv_decoder, buf))!=0) {
 	  if(verbose & TC_DEBUG)  fprintf(stderr, "(%s) header parsing failed (%d)\n", __FILE__, cc);
-      } 
+      }
 
       // PAL or NTSC?
       if(dv_decoder->system==e_dv_system_none) {
 	  fprintf(stderr, "(%s) no valid PAL or NTSC video frame detected\n", __FILE__);
 	  import_exit(1);
       }
-      
+
       if(dv_decoder->system==e_dv_system_625_50) {
-	  
+
 	// read rest of PAL dv frame
 	if((bytes=tc_pread(decode->fd_in, (uint8_t*) buf+DV_NTSC_SIZE, DV_PAL_SIZE-DV_NTSC_SIZE)) != DV_PAL_SIZE-DV_NTSC_SIZE) {
 	  if(verbose & TC_DEBUG)  fprintf(stderr, "(%s) end of stream\n", __FILE__);
@@ -161,20 +161,20 @@ void decode_dv(decode_t *decode)
 	fprintf(stderr, "(%s) %s video: %dx%d framesize=%lu sampling=%d\n", __FILE__, ((dv_decoder->system==e_dv_system_625_50)?"PAL":"NTSC"), dv_decoder->width, dv_decoder->height, (unsigned long)dv_decoder->frame_size, dv_decoder->sampling);
 	dvinfo=1;
       }
-      
+
       // decode
-      
+
       if (decode->format == TC_CODEC_RGB) {
-	  
+
 	pitches[0]  = dv_decoder->width * 3;
 	pitches[1]  = 0;
 	pitches[2]  = 0;
-	  
+
 	dv_decode_full_frame(dv_decoder, buf, e_dv_color_rgb, (unsigned char **) video, (int *)pitches);
 	dv_decoder->prev_frame_decoded = 1;
-	  
+
 	bytes = 3 * dv_decoder->width * dv_decoder->height;
-	
+
 	if(tc_pwrite (decode->fd_out, video[0], bytes)!= bytes) {
 	  error=1;
 	  goto error;
@@ -182,14 +182,14 @@ void decode_dv(decode_t *decode)
       }
 
       if (decode->format == TC_CODEC_YUY2) {
-	  
+
 	pitches[0]  = dv_decoder->width * 2;
 	pitches[1]  = 0;
 	pitches[2]  = 0;
-	  
+
 	dv_decode_full_frame(dv_decoder, buf, e_dv_color_yuv, (unsigned char **) video, (int *)pitches);
 	dv_decoder->prev_frame_decoded = 1;
-	  
+
 	bytes = 2 * dv_decoder->width * dv_decoder->height;
 	if(tc_pwrite (decode->fd_out, video[0], bytes)!= bytes) {
 	  error=1;
@@ -208,92 +208,92 @@ void decode_dv(decode_t *decode)
 	    pitches[0]  = dv_decoder->width;
 	    pitches[1]  = pitches[0]/2;
 	    pitches[2]  = pitches[0]/2;
-	    
+
 	    dv_decode_full_frame(dv_decoder, buf, e_dv_color_yuv, (unsigned char **) video, (int *)pitches);
-	  
+
 	  } else {
-	    
+
 	    pitches[0]  = dv_decoder->width * 2;
 	    pitches[1]  = 0;
 	    pitches[2]  = 0;
-	    
+
 	    dv_decode_full_frame(dv_decoder, buf, e_dv_color_yuv, (unsigned char **) &video[3], (int *)pitches);
-	    
+
 	    //downsample to 420P:
 	    ac_imgconvert(&video[3], IMG_YUY2, video, IMG_YUV420P,
 			  dv_decoder->width, dv_decoder->height);
 	  }
-	  
+
 	  break;
-	  
+
 	case e_dv_sample_none:
-	  
+
 	  if(verbose) fprintf(stderr, "(%s) invalid DV sample format\n", __FILE__);
 	  break;
 	}
-	
+
 	dv_decoder->prev_frame_decoded = 1;
-	
+
 	bytes = dv_decoder->width * dv_decoder->height;
-	
+
 	// Y
 	if (tc_pwrite (decode->fd_out, video[0], bytes) != bytes) {
 	  error=1;
 	  goto error;
 	}
-	
+
 	bytes /=4;
-	
+
 	// U
 	if(tc_pwrite(decode->fd_out, video[1], bytes)!= bytes) {
 	  error=1;
 	  goto error;
 	}
-	
+
 	// V
 	if(tc_pwrite(decode->fd_out, video[2], bytes)!= bytes) {
 	  error=1;
 	  goto error;
 	}
-      }	
-      
+      }
+
       if (decode->format == TC_CODEC_PCM) {
-	
+
 	// print info:
 	if(!dvinfo && verbose) {
 	  fprintf(stderr, "(%s) audio: %d Hz, %d channels\n", __FILE__, dv_decoder->audio->frequency, dv_decoder->audio->num_channels);
 	  dvinfo=1;
 	}
-	
+
 	channels = dv_decoder->audio->num_channels;
 	samples  = dv_decoder->audio->samples_this_frame;
-	
+
 	dv_decode_full_audio(dv_decoder, buf, audio_buffers);
-	
+
 	// interleave the audio into a single buffer
 	j=0;
 	for(i=0; i < samples; i++) {
 	  for(ch=0; ch < channels; ch++) {
 	    audio[j++] = audio_buffers[ch][i];
-	  } 
+	  }
 	}
 	bytes = samples * channels * 2;
 
 	// write out
-	if (tc_pwrite(decode->fd_out, (uint8_t*) audio, bytes) != bytes) {     
+	if (tc_pwrite(decode->fd_out, (uint8_t*) audio, bytes) != bytes) {
 	  error=1;
 	  goto error;
 	}
       }
   }
-  
- error:  
+
+ error:
   import_exit(error);
 #endif
-  
+
   fprintf(stderr, "(%s) no support for Digital Video (DV) configured - exit.\n", __FILE__);
   import_exit(1);
-  
+
 }
 
 void probe_dv(info_t *ipipe)
@@ -327,13 +327,13 @@ void probe_dv(info_t *ipipe)
     ipipe->error=1;
     return;
   }
-  
+
   // parse frame header
   if(dv_parse_header(dv_decoder, buf)<0) {
     fprintf(stderr, "(%s) invalid DV frame header\n", __FILE__);
     ipipe->error=1;
     return;
-  } 
+  }
 
   // PAL or NTSC?
   if(dv_decoder->system==e_dv_system_none) {
@@ -341,19 +341,19 @@ void probe_dv(info_t *ipipe)
     ipipe->error=1;
     return;
   }
-    
-    
+
+
   ipipe->probe_info->width  = dv_decoder->width;
   ipipe->probe_info->height = dv_decoder->height;
   ipipe->probe_info->fps = (dv_decoder->system==e_dv_system_625_50)? PAL_FPS:NTSC_VIDEO;
-  
+
   ipipe->probe_info->track[0].samplerate = dv_decoder->audio->frequency;
   ipipe->probe_info->track[0].chan = dv_decoder->audio->num_channels;
   ipipe->probe_info->track[0].bits = 16;
   ipipe->probe_info->track[0].format = CODEC_PCM;
-  ipipe->probe_info->track[0].bitrate = 
+  ipipe->probe_info->track[0].bitrate =
     (ipipe->probe_info->track[0].samplerate * ipipe->probe_info->track[0].bits/8 * ipipe->probe_info->track[0].chan * 8)/1000;
-  
+
   ipipe->probe_info->magic = (dv_decoder->system==e_dv_system_625_50)? TC_MAGIC_PAL: TC_MAGIC_NTSC;
 
   ipipe->probe_info->frc = (dv_decoder->system==e_dv_system_625_50)? 3:4;
@@ -368,7 +368,7 @@ void probe_dv(info_t *ipipe)
 
   verbose = ipipe->verbose;
   ipipe->probe_info->codec=TC_CODEC_DV;
-  
+
   return;
 }
 

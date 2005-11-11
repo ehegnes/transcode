@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -38,86 +38,86 @@ static int seq_ctr=0, drop_ctr=0;
 
 seq_list_t *seq_register(int id)
 {
-  
-  /* objectives: 
+
+  /* objectives:
      ===========
 
      register new seq
 
      allocate space for new seq and establish backward reference
-     
-     
+
+
   */
 
   seq_list_t *ptr;
-  
+
   pthread_mutex_lock(&seq_list_lock);
 
   // retrive a valid pointer from the pool
-  
+
   if((ptr = malloc(sizeof(seq_list_t))) == NULL) {
     pthread_mutex_unlock(&seq_list_lock);
     return(NULL);
   }
-  
+
   memset(ptr, 0, sizeof(seq_list_t));
-  
+
   ptr->status = BUFFER_EMPTY;
-  
+
   ptr->next = NULL;
   ptr->prev = NULL;
-  
+
   ptr->id  = id;
-  
+
   if(seq_list_tail != NULL)
   {
       seq_list_tail->next = ptr;
       ptr->prev = seq_list_tail;
   }
-  
+
   seq_list_tail = ptr;
-  
+
   /* first seq registered must set seq_list_head */
-  
+
   if(seq_list_head == NULL) seq_list_head = ptr;
 
   pthread_mutex_unlock(&seq_list_lock);
 
   return(ptr);
-  
+
 }
 
 
 /* ------------------------------------------------------------------ */
 
- 
+
 void seq_remove(seq_list_t *ptr)
 
 {
-  
-  /* objectives: 
+
+  /* objectives:
      ===========
 
      remove seq from chained list
 
   */
 
-  
+
   if(ptr == NULL) return;         // do nothing if null pointer
 
   pthread_mutex_lock(&seq_list_lock);
 
   if(ptr->prev != NULL) (ptr->prev)->next = ptr->next;
   if(ptr->next != NULL) (ptr->next)->prev = ptr->prev;
-  
+
   if(ptr == seq_list_tail) seq_list_tail = ptr->prev;
   if(ptr == seq_list_head) seq_list_head = ptr->next;
-  
+
   free(ptr);
   ptr=NULL;
 
   pthread_mutex_unlock(&seq_list_lock);
-  
+
 }
 
 
@@ -128,13 +128,13 @@ seq_list_t *seq_retrieve()
 
 {
 
-  /* objectives: 
+  /* objectives:
      ===========
 
      get pointer to next full seq
-     
+
   */
-  
+
   seq_list_t *ptr;
 
   pthread_mutex_lock(&seq_list_lock);
@@ -145,16 +145,16 @@ seq_list_t *seq_retrieve()
 
   while(ptr != NULL)
     {
-      if(ptr->status == BUFFER_READY) 
+      if(ptr->status == BUFFER_READY)
 	{
 	  pthread_mutex_unlock(&seq_list_lock);
 	  return(ptr);
 	}
       ptr = ptr->next;
     }
-  
+
   pthread_mutex_unlock(&seq_list_lock);
-  
+
   return(NULL);
 }
 /* ------------------------------------------------------------------ */
@@ -166,25 +166,25 @@ static void seq_flush_thread(void)
   seq_list_t *ptr, *tmp;
 
   ptr = seq_retrieve();
-  
+
   if(ptr!=NULL) {
 
       if(verbose & TC_SYNC) fprintf(stderr, "syncinfo write (%d)\n", ptr->id);
 
       seq_write(ptr);
-      
+
       // release valid pointer to pool
       ptr->status = BUFFER_EMPTY;
-      
+
       tmp=ptr->prev;
       seq_remove(tmp);
 
       pthread_mutex_lock(&seq_ctr_lock);
       --seq_ctr;
       pthread_mutex_unlock(&seq_ctr_lock);
-      
+
   } else fprintf(stderr, "called but no work to do - this shouldn't happen\n");
-  
+
   return;
 }
 
@@ -219,11 +219,11 @@ void seq_write(seq_list_t *ptr)
   // 1 = unique frame
   // N = use N copies of this frame
 
-  
+
   //default
   for(i=0; i<ptr->enc_pics; ++i) clone[i]=1;
 
-  if(ptr->adj_pics<0) { 
+  if(ptr->adj_pics<0) {
 
       tmp =  ptr->adj_pics;
       inc = -ptr->enc_pics/ptr->adj_pics;
@@ -235,8 +235,8 @@ void seq_write(seq_list_t *ptr)
 	++tmp;
       }
   }
-  if(ptr->adj_pics>0) { 
-      
+  if(ptr->adj_pics>0) {
+
       tmp =  ptr->adj_pics;
       inc = (ptr->adj_pics<ptr->enc_pics) ? (int) ptr->enc_pics/ptr->adj_pics : 1;
 
@@ -254,19 +254,19 @@ void seq_write(seq_list_t *ptr)
 
      //check for pulldown flag
       sync_info.pulldown = ptr->pulldown;
-  
+
       //master flag makes final decision
       if(ptr->sync_active == 0) {
 	  clone[i]=0;
 	  sync_info.drop_seq=1;
 	  sync_info.pulldown=0;
-      } else 
+      } else
 	  sync_info.drop_seq=0;
 
       if(verbose & TC_PRIVATE) fprintf(stderr, "[%ld] %d %d %d %ld\n", frame_ctr, ptr->id, i, clone[i], check_ctr);
-      
+
       drop_ctr += (int) (clone[i]-1);
-      
+
       sync_info.sequence = ptr->id;
 
       sync_info.enc_frame = (long) frame_ctr++;
@@ -286,11 +286,11 @@ void seq_write(seq_list_t *ptr)
 
       if(verbose & TC_SYNC && i==ptr->enc_pics-1) fprintf(stderr,"(%s) sync data for sequence %d flushed [%ld]\n", __FILE__, ptr->id, sync_info.enc_frame);
   }
-  
+
   if(verbose & TC_PRIVATE) {
       fprintf(stderr, "frames=%6ld seq=%4ld adj=%4d AV=%8.4f [fps] ratio= %.4f PTS= %.2f\n", sync_info.enc_frame, sync_info.sequence, drop_ctr, sync_info.dec_fps-fps, sync_info.enc_fps/fps, sync_info.pts);
   }
-  
+
   return;
 
 }
@@ -321,10 +321,10 @@ void seq_update(seq_list_t *ptr, int end_pts, int pictures, int packets, int fla
     adj=0;
     delay=0;
     goto skip;
-  } 
+  }
 
   if(ptr->id && ptr->sync_reset==0) {
-      
+
       // (1) calculate total encoded frames:
       ptr->tot_enc_pics = ptr->prev->tot_enc_pics + ptr->enc_pics;
 
@@ -334,11 +334,11 @@ void seq_update(seq_list_t *ptr, int end_pts, int pictures, int packets, int fla
       // (3) total number of packets:
       ptr->tot_packet_ctr = ptr->prev->tot_packet_ctr + ptr->packet_ctr;
 
-      // (4) total time since first sequence 
+      // (4) total time since first sequence
       ptr->tot_pts = ptr->prev->tot_pts + ptr->ptime;
 
   } else {
-      
+
       // first sequence
       ptr->tot_enc_pics = ptr->enc_pics;
       ptr->tot_dec_pics = ptr->seq_pics;
@@ -351,25 +351,25 @@ void seq_update(seq_list_t *ptr, int end_pts, int pictures, int packets, int fla
   request_pics = (long) (fps * ftot_pts);
 
   // (6) drop or clone frames of this sequence?
-  delay = request_pics - ptr->tot_dec_pics; 
+  delay = request_pics - ptr->tot_dec_pics;
 
   adj=0;
-  
+
   if(delay>0) { //frame cloning no limit yet
-      
+
       if(delay<ptr->seq_pics) {
 	  adj = delay;
       } else {
 	  adj = delay - (delay%ptr->seq_pics);
       }
   }
-   
+
   if(delay<0) { //frame dropping, maximum seq_pics/2
 
       tmp=-delay;
 
       if ( (-delay) >= (ptr->seq_pics/2)) {
-	  adj = -(ptr->seq_pics/2); 
+	  adj = -(ptr->seq_pics/2);
       } else {
 	  adj = delay;
       }
@@ -383,66 +383,66 @@ void seq_update(seq_list_t *ptr, int end_pts, int pictures, int packets, int fla
  if (hard_fps == 0) {
 
   ptr->pulldown=0;
-  
+
   if(adj == -3 && ptr->ptime == 45045 && ptr->seq_pics==15) ptr->pulldown = 1;
   if(adj == -4 && ptr->ptime == 45045 && ptr->seq_pics==15) ptr->pulldown = 2;
   if(adj == -2 && ptr->ptime ==  6006 && ptr->seq_pics== 4) ptr->pulldown = 3;
   if(adj == -1 && ptr->ptime == 39039 && ptr->seq_pics==11) ptr->pulldown = 4;
-  
+
   //smooth drop/copy algorithm 2002-08-21
   if(ptr->pulldown==0) {
     if(adj==-1 || adj==1 || adj==2) adj=0;
     if(adj== 3) adj=1;
   }
  }
-  
- skip: 
+
+ skip:
 
   if(verbose & TC_PRIVATE) {
-    
-    fprintf(stderr, "---------------------------------------------------------\n"); 
-    fprintf(stderr, "MPEG sequence: %d (reset=%d)\n", ptr->id, ptr->sync_reset); 
-    fprintf(stderr, "2k packets: %d (%d) | stream size %.2f MB\n", ptr->packet_ctr, ptr->tot_packet_ctr, (double) 2*ptr->tot_packet_ctr/(1<<10)); 
-    fprintf(stderr, "PTS: %f (abs) --> runtime=%f (sec)\n", (double) ptr->pts/90000, ftot_pts); 
-    fprintf(stderr, "sequence length: %f | ftime: %.4f (sec)\n", (double) ptr->ptime/90000, (double) ptr->ptime/90000/ptr->seq_pics); 
-    fprintf(stderr, "sequence frames: %2d (current=%.3f fps) %ld (average=%.3f fps)\n", ptr->seq_pics, (double) ptr->seq_pics*90000/ptr->ptime, ptr->ptime, (double) ptr->tot_dec_pics/ftot_pts); 
-    fprintf(stderr, "3:2 pulldown flag: %d (%f) | master_flag = %d\n", ptr->pulldown, fps * ftot_pts - ptr->tot_dec_pics, flag); 
-    fprintf(stderr, "total frames (encoded in sequence 0-%d): %d (requested=%ld) %ld --> adjust: %ld\n", ptr->id, ptr->tot_enc_pics, request_pics, delay, adj); 
-  
+
+    fprintf(stderr, "---------------------------------------------------------\n");
+    fprintf(stderr, "MPEG sequence: %d (reset=%d)\n", ptr->id, ptr->sync_reset);
+    fprintf(stderr, "2k packets: %d (%d) | stream size %.2f MB\n", ptr->packet_ctr, ptr->tot_packet_ctr, (double) 2*ptr->tot_packet_ctr/(1<<10));
+    fprintf(stderr, "PTS: %f (abs) --> runtime=%f (sec)\n", (double) ptr->pts/90000, ftot_pts);
+    fprintf(stderr, "sequence length: %f | ftime: %.4f (sec)\n", (double) ptr->ptime/90000, (double) ptr->ptime/90000/ptr->seq_pics);
+    fprintf(stderr, "sequence frames: %2d (current=%.3f fps) %ld (average=%.3f fps)\n", ptr->seq_pics, (double) ptr->seq_pics*90000/ptr->ptime, ptr->ptime, (double) ptr->tot_dec_pics/ftot_pts);
+    fprintf(stderr, "3:2 pulldown flag: %d (%f) | master_flag = %d\n", ptr->pulldown, fps * ftot_pts - ptr->tot_dec_pics, flag);
+    fprintf(stderr, "total frames (encoded in sequence 0-%d): %d (requested=%ld) %ld --> adjust: %ld\n", ptr->id, ptr->tot_enc_pics, request_pics, delay, adj);
+
   }
 
   //save the adjustment:
   ptr->tot_dec_pics +=adj;
   ptr->seq_pics     +=adj;
   ptr->adj_pics      =adj;
-    
+
   // A-V shift at end of this sequence
   ptr->av_sync = (ptr->tot_dec_pics - request_pics)/fps;
 
-  
+
   if(verbose & TC_PRIVATE) {
-    
-    fprintf(stderr, "adjusted frames (decoded in sequence 0-%d): %d --> A-V: %.4f\n", ptr->id, ptr->tot_dec_pics, ptr->av_sync); 
-    fprintf(stderr, "---------------------------------------------------------\n"); 
+
+    fprintf(stderr, "adjusted frames (decoded in sequence 0-%d): %d --> A-V: %.4f\n", ptr->id, ptr->tot_dec_pics, ptr->av_sync);
+    fprintf(stderr, "---------------------------------------------------------\n");
   }
 
-  
+
   // -----------------
   //
   // write to log file
   //
   // -----------------
-  
+
   ptr->status = BUFFER_READY;
-  
+
   pthread_mutex_lock(&seq_ctr_lock);
   ++seq_ctr;
   pthread_mutex_unlock(&seq_ctr_lock);
-  
+
   seq_flush_thread();
-  
+
   return;
-  
+
 }
 
 /* ------------------------------------------------------------------ */
@@ -463,11 +463,11 @@ void seq_list(seq_list_t *ptr, int end_pts, int pictures, int packets, int flag)
   int n, id;
 
   int tmp;
-  
+
   long int adj=0;
-  
+
   long int request_pics=0, delay=0;
-  
+
   double ftot_pts=0.0;
 
   //set basic parameter from inout variables
@@ -485,15 +485,15 @@ void seq_list(seq_list_t *ptr, int end_pts, int pictures, int packets, int flag)
   ptr->ptime       = end_pts - ptr->pts;
   ptr->sync_active = flag;  //master flag
 
-  //first sequence timing info may be wrong 
+  //first sequence timing info may be wrong
   if(ptr->ptime<=0 || id == 0 || ptr->sync_reset) {
     adj=0;
     delay=0;
     goto skip;
-  } 
+  }
 
   if(ptr->id && ptr->sync_reset==0) {
-      
+
       // (1) calculate total encoded frames:
       ptr->tot_enc_pics = ptr->prev->tot_enc_pics + ptr->enc_pics;
 
@@ -503,11 +503,11 @@ void seq_list(seq_list_t *ptr, int end_pts, int pictures, int packets, int flag)
       // (3) total number of packets:
       ptr->tot_packet_ctr = ptr->prev->tot_packet_ctr + ptr->packet_ctr;
 
-      // (4) total time since first sequence 
+      // (4) total time since first sequence
       ptr->tot_pts = ptr->prev->tot_pts + ptr->ptime;
 
   } else {
-      
+
       ptr->tot_enc_pics = ptr->enc_pics;
       ptr->tot_dec_pics = ptr->seq_pics;
       ptr->tot_packet_ctr = ptr->packet_ctr;
@@ -519,25 +519,25 @@ void seq_list(seq_list_t *ptr, int end_pts, int pictures, int packets, int flag)
   request_pics = (long) (fps * ftot_pts);
 
   // (6) drop or clone frames of this sequence?
-  delay = request_pics - ptr->tot_dec_pics; 
+  delay = request_pics - ptr->tot_dec_pics;
 
   adj=0;
-  
+
   if(delay>0) { //frame cloning no limit yet
-      
+
       if(delay<ptr->seq_pics) {
 	  adj = delay;
       } else {
 	  adj = delay - (delay%ptr->seq_pics);
       }
   }
-   
+
   if(delay<0) { //frame dropping, maximum seq_pics/2
 
       tmp=-delay;
 
       if ( (-delay) >= (ptr->seq_pics/2)) {
-	  adj = -(ptr->seq_pics/2); 
+	  adj = -(ptr->seq_pics/2);
       } else {
 	  adj = delay;
       }
@@ -546,21 +546,21 @@ void seq_list(seq_list_t *ptr, int end_pts, int pictures, int packets, int flag)
   ptr->pulldown=0;
 
   //smooth drop/copy algorithm 2002-06-04
-  if((adj==1 || adj == -1 || adj==2 || adj== -2 || adj== -3 || adj== 3) 
+  if((adj==1 || adj == -1 || adj==2 || adj== -2 || adj== -3 || adj== 3)
      && ptr->pulldown==0) adj=0;
   if(adj >  3 && ptr->pulldown==0) adj= 1;
   if(adj < -3 && ptr->pulldown==0) adj=-1;
-  
+
   //FIXME: drop all NTSC stuff, let transcode handle frame count
   adj=0;
-  
- skip: 
-  
+
+ skip:
+
   //save the adjustment:
   ptr->tot_dec_pics +=adj;
   ptr->seq_pics     +=adj;
   ptr->adj_pics      =adj;
-  
+
   // A-V shift at end of this sequence
   ptr->av_sync = (ptr->tot_dec_pics - request_pics)/fps;
 
@@ -570,9 +570,9 @@ void seq_list(seq_list_t *ptr, int end_pts, int pictures, int packets, int flag)
   // write to log file
   //
   // -----------------
-  
+
   ptr->status = BUFFER_READY;
-  
+
   pthread_mutex_lock(&seq_ctr_lock);
   ++seq_ctr;
   pthread_mutex_unlock(&seq_ctr_lock);
@@ -586,37 +586,37 @@ void seq_list(seq_list_t *ptr, int end_pts, int pictures, int packets, int flag)
     frame_ctr=0;
     seq_offset=ptr->id;
     ++unit_ctr;
-    
+
     id=0;
-    
+
   }
-  
+
   //  fprintf(stderr, "--- %d %d %d %d %d %d\n", delay, adj, ptr->seq_pics , ptr->enc_pics, ptr->pics_first_packet, pictures);
 
   //
-  // first sequence of stream or new unit 
+  // first sequence of stream or new unit
   //
-  
+
   if(id==0 || ptr->sync_reset) {
-    
+
     for(n=0; n<ptr->enc_pics; ++n)
       printf("%2d %6ld %5d %5d %6ld %3d\n", unit_ctr, (long) frame_ctr++, id, id, (long) ptr->packet_ctr, n);
-    
+
     return;
   }
 
   //
   // regular sequence
   //
-  
+
   for(n=0; n<ptr->enc_pics; ++n) {
-    
+
     if(n==0 || n==1) {
       printf("%2d %6ld %5d %5d %6ld %3d\n", unit_ctr, (long) frame_ctr++, id, id-1, (long) ptr->prev->packet_ctr, ptr->prev->seq_pics+n);
     } else {
       printf("%2d %6ld %5d %5d %6ld %3d\n", unit_ctr, (long) frame_ctr++, id, id, (long) ptr->packet_ctr, n);
     }
-  } 
+  }
   return;
 }
 
@@ -633,13 +633,13 @@ int seq_init(char *logfile, int _ext_sfd, double _fps, int _verbose)
       return(-1);
     }
   }
-  
+
   fps = _fps;
 
   //done
-  
+
   if(_verbose & TC_DEBUG) fprintf(stderr, "\n(%s) open %s for frame sync information\n", __FILE__, logfile);
-  
+
   return(0);
 }
 
@@ -647,10 +647,10 @@ int seq_init(char *logfile, int _ext_sfd, double _fps, int _verbose)
 
 void seq_close()
 {
-  
+
   if(_sfd != 0) close(_sfd);
   _sfd=0;
-  
+
   return;
 }
 

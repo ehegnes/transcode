@@ -4,20 +4,20 @@
  *  Copyright (C) Tilmann Bitterberg - August 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -64,13 +64,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //----------------------------------
 
   if(ptr->tag & TC_FILTER_INIT) {
-    
+
     if((vob = tc_get_vob())==NULL) return(-1);
-    
+
     // filter init ok.
-    
+
     if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    
+
     if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
     if (!video_buf[0] && !video_buf[1]) {
@@ -81,7 +81,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    return (-1);
 	}
     }
-    
+
     return(0);
   }
 
@@ -90,11 +90,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
   // filter close
   //
   //----------------------------------
-  
+
   if(ptr->tag & TC_FILTER_CLOSE) {
     return(0);
   }
-  
+
   //----------------------------------
   //
   // filter frame routine
@@ -177,7 +177,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	Y1 = ptr->video_buf;
 	Cr1 = ptr->video_buf+wh;
-	
+
 	Y2 = video_buf[0];
 	Cr2 = video_buf[0]+wh;
 
@@ -226,8 +226,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 	break;
     } // switch mod
-  } 
-  else if (vob->im_v_codec == CODEC_RGB) 
+  }
+  else if (vob->im_v_codec == CODEC_RGB)
   {
       // This is wrong
     int mod = ptr->id % 4;
@@ -242,16 +242,16 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	break;
       case 2:
 	/* save top2 lines */
-	for (y=0; y<height-1; y+=2) 
+	for (y=0; y<height-1; y+=2)
 	  ac_memcpy (video_buf[0]+y*width3, ptr->video_buf+y*width3, width3);
 	break;
       case 3:
 	/* save top3 lines */
-	for (y=0; y<height-1; y+=2) 
+	for (y=0; y<height-1; y+=2)
 	  ac_memcpy (video_buf[1]+y*width3, ptr->video_buf+y*width3, width3);
-	
+
 	/* merge bot3 with top2 */
-	for (y=0; y<height-1; y+=2) 
+	for (y=0; y<height-1; y+=2)
 	  ac_memcpy (ptr->video_buf+y*width3, video_buf[0]+y*width3, width3);
 	break;
       case 0:
@@ -261,7 +261,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    /* save complete frame */
 	    ac_memcpy (video_buf[0], ptr->video_buf, height*width3);
 	    /* merge bot4 with top3 */
-	    for (y=0; y<height-1; y+=2) 
+	    for (y=0; y<height-1; y+=2)
 		ac_memcpy (ptr->video_buf+y*width3, video_buf[1]+y*width3, width3);
 	} else {
 	    /* restore frame4 = frame 5 */
@@ -270,10 +270,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 	break;
     } // switch mod
-    
+
   } // CODEC_RGB
   }
 
-  
+
   return(0);
 }

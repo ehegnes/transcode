@@ -6,13 +6,13 @@ const unsigned char*	pSrc;
 const unsigned char*	pBob;
 const unsigned char*	pBobP;
 
-Q_INT64 Max_Mov[2]   __attribute__((aligned(16))) = { 0x0404040404040404ull, 0x0404040404040404ull }; 
-Q_INT64 DiffThres[2] __attribute__((aligned(16))) = { 0x0f0f0f0f0f0f0f0full, 0x0f0f0f0f0f0f0f0full }; 
+Q_INT64 Max_Mov[2]   __attribute__((aligned(16))) = { 0x0404040404040404ull, 0x0404040404040404ull };
+Q_INT64 DiffThres[2] __attribute__((aligned(16))) = { 0x0f0f0f0f0f0f0f0full, 0x0f0f0f0f0f0f0f0full };
 Q_INT64 YMask[2]     __attribute__((aligned(16))) = { 0x00ff00ff00ff00ffull, 0x00ff00ff00ff00ffull }; // keeps only luma
 Q_INT64 UVMask[2]    __attribute__((aligned(16))) = { 0xff00ff00ff00ff00ull, 0xff00ff00ff00ff00ull }; // keeps only chroma
-Q_INT64 TENS[2]      __attribute__((aligned(16))) = { 0x0a0a0a0a0a0a0a0aull, 0x0a0a0a0a0a0a0a0aull }; 
-Q_INT64 FOURS[2]     __attribute__((aligned(16))) = { 0x0404040404040404ull, 0x0404040404040404ull }; 
-Q_INT64 ONES[2]      __attribute__((aligned(16))) = { 0x0101010101010101ull, 0x0101010101010101ull }; 
+Q_INT64 TENS[2]      __attribute__((aligned(16))) = { 0x0a0a0a0a0a0a0a0aull, 0x0a0a0a0a0a0a0a0aull };
+Q_INT64 FOURS[2]     __attribute__((aligned(16))) = { 0x0404040404040404ull, 0x0404040404040404ull };
+Q_INT64 ONES[2]      __attribute__((aligned(16))) = { 0x0101010101010101ull, 0x0101010101010101ull };
 Q_INT64 Min_Vals[2]  __attribute__((aligned(16))) = { 0x0000000000000000ull, 0x0000000000000000ull };
 Q_INT64 Max_Vals[2]  __attribute__((aligned(16))) = { 0x0000000000000000ull, 0x0000000000000000ull };
 Q_INT64 ShiftMask = 0xfefffefffefffeffull;
@@ -34,10 +34,10 @@ int     Last8 = (rowsize-8);			// ofs to last 8 bytes in row
 
 int		dst_pitchw = dst_pitch; // local stor so asm can ref
 	pSrc  = pWeaveSrc;			// points 1 weave line above
-	pSrcP = pWeaveSrcP;			// " 
+	pSrcP = pWeaveSrcP;			// "
 
 #ifdef DBL_RESIZE
-	        
+
 #ifdef USE_VERTICAL_FILTER
 	pDest = pWeaveDest + dst_pitch2;
 #else
@@ -85,14 +85,14 @@ int		dst_pitchw = dst_pitch; // local stor so asm can ref
 #define _Max_Mov    "%16"
 #define _YMask      "%17"
 
-	for (y=1; y < FldHeight-1; y++)	
+	for (y=1; y < FldHeight-1; y++)
 	{
 		// pretend it's indented -->>
         __asm__ __volatile__
             (
              // Loop general reg usage
              //
-             // eax - pBobP, then pDest 
+             // eax - pBobP, then pDest
              // ebx - pBob
              // ecx - src_pitch2
              // edx - current offset
@@ -101,9 +101,9 @@ int		dst_pitchw = dst_pitch; // local stor so asm can ref
 
              // Save ebx (-fPIC)
              "pushl %%ebx\n\t"
-             
+
 #ifdef IS_SSE2
-             
+
              // sse2 code deleted for now
 
 #else
@@ -156,7 +156,7 @@ int		dst_pitchw = dst_pitch; // local stor so asm can ref
              "movl		"_pSrcP", %%edi\n\t"
              "movl		$8, %%edx\n\t"				// curr offset into all lines
 
-             "1:\n\t"	
+             "1:\n\t"
              "movl		"_pBobP", %%eax\n\t"
              "addl		$8, %%edi\n\t"
              "addl		$8, %%esi\n\t"
@@ -173,9 +173,9 @@ int		dst_pitchw = dst_pitch; // local stor so asm can ref
              // through out most of the rest of this loop we will maintain
              //	mm4		our min bob value
              //	mm5		best weave pixels so far
-             //  mm6		our max Bob value 
+             //  mm6		our max Bob value
              //	mm7		best weighted pixel ratings so far
-             
+
              // We will keep a slight bias to using the weave pixels
              // from the current location, by rating them by the min distance
              // from the Bob value instead of the avg distance from that value.

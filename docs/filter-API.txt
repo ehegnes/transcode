@@ -1,17 +1,17 @@
-  
+
   // ================
   // API explanation:
   // ================
   //
-  // (1) need more infos, than get pointer to transcode global 
+  // (1) need more infos, than get pointer to transcode global
   //     information structure vob_t as defined in transcode.h.
   //
   // (2) 'tc_get_vob' and 'verbose' are exported by transcode.
   //
   // (3) filter is called first time with TC_FILTER_INIT flag set.
   //
-  // (4) make sure to exit immediately if context (video/audio) or 
-  //     placement of call (pre/post) is not compatible with the filters 
+  // (4) make sure to exit immediately if context (video/audio) or
+  //     placement of call (pre/post) is not compatible with the filters
   //     intended purpose, since the filter is called 4 times per frame.
   //
   // (5) see framebuffer.h for a complete list of frame_list_t variables.
@@ -88,13 +88,13 @@ int tc_filter(frame_list_t *ptr, char *options)
   //----------------------------------
 
   if(ptr->tag & TC_FILTER_INIT) {
-    
+
     if((vob = tc_get_vob())==NULL) return(-1);
-    
+
     if (options) {
       optstr_get (options, "dummy_option", "%d", &dummy_option);
     }
-    
+
     // filter init ok.
     if(verbose) printf("[%s] %s %s\n", MOD_NAME, MOD_VERSION, MOD_CAP);
 
@@ -107,12 +107,12 @@ int tc_filter(frame_list_t *ptr, char *options)
   //
   //----------------------------------
 
-  
+
   if(ptr->tag & TC_FILTER_CLOSE) {
     // free memory, etc ..
     return(0);
   }
-  
+
   //----------------------------------
   //
   // filter frame routine
@@ -122,15 +122,15 @@ int tc_filter(frame_list_t *ptr, char *options)
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
-  
-  
+
+
       if(ptr->tag & TC_PRE_PROCESS)  pre=1;
       if(ptr->tag & TC_POST_PROCESS) pre=0;
-	
+
       if(ptr->tag & TC_VIDEO) vid=1;
       if(ptr->tag & TC_AUDIO) vid=0;
-    
+
       printf("[%s] frame [%06d] %s %16s call\n", MOD_NAME, ptr->id, (vid)?"(video)":"(audio)", (pre)?"pre-process filter":"post-process filter");
-    
+
       return(0);
 }

@@ -23,7 +23,7 @@ directory.
 Copy the source .h and .c files to
 transcode-xxxxx/filter/subtitler/
 (xxx is the current version of transcode)
-Type 
+Type
 make
 make install
 in this directory.

@@ -52,5 +52,5 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  exit(pvn2pnm(infile, digits)); 
+  exit(pvn2pnm(infile, digits));
 }

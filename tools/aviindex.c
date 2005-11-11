@@ -72,11 +72,11 @@ static unsigned long str2ulong(unsigned char *str)
 static inline uint32_t SWAP(uint32_t a) {
 #ifdef WORDS_BIGENDIAN
     return ( (a<<24&0xff000000) | (a<< 8&0x00ff0000) |
-	     (a>> 8&0x0000ff00) | (a>>24&0x000000ff)); 
+	     (a>> 8&0x0000ff00) | (a>>24&0x000000ff));
 #else
     return a;
 #endif
-} 
+}
 
 static inline int avi_stream_id(unsigned int id){
   unsigned char *p=(unsigned char *)&id;
@@ -214,24 +214,24 @@ static int mpidx1_to_aviidx1(char *in_file, FILE *out_fd)
 	uint32_t ckid;
 	idx = &((AVIINDEXENTRY *)data)[i];
 	ckid = SWAP(idx->ckid);
-	fprintf(out_fd, 
-		"%.4s %d %d %d %d %d %d 0\n", 
-		(char *)&ckid, 
+	fprintf(out_fd,
+		"%.4s %d %d %d %d %d %d 0\n",
+		(char *)&ckid,
 		avi_stream_nr(idx->ckid),
-		i, 
+		i,
 		streams[avi_stream_id(idx->ckid)],
-		idx->dwChunkOffset, 
-		idx->dwChunkLength, 
+		idx->dwChunkOffset,
+		idx->dwChunkLength,
 		idx->dwFlags?1:0);
 
 	streams[avi_stream_id(idx->ckid)]++;
     }
 
-    
+
     free(data);
     fclose (in);
     fclose(out_fd);
-    
+
     return 0;
 }
 
@@ -389,7 +389,7 @@ static int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off
    }
 }
 
-static int is_key(unsigned char *data, long size, char *codec) 
+static int is_key(unsigned char *data, long size, char *codec)
 {
     if (strncasecmp(codec, "div3", 4) == 0) {
 
@@ -412,7 +412,7 @@ static int is_key(unsigned char *data, long size, char *codec)
                         else                            return 0;
                 }
         }
-        
+
         return result;
 
     }
@@ -478,47 +478,47 @@ int main(int argc, char *argv[])
     {
 
 	switch (ch) {
-	
+
 	case 'i':
 
 	     if(optarg[0]=='-') usage(EXIT_FAILURE);
 	    in_file=optarg;
-	
+
 	    break;
-	
+
 	case 'a':
-	
+
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  track_num = atoi(optarg);
-	
+
 	  if(track_num<0) usage(EXIT_FAILURE);
-	
+
 	  break;
 
 	case 'o':
 
 	    if(optarg[0]=='-') usage(EXIT_FAILURE);
 	    out_file=optarg;
-	
+
 	    break;
-	
+
 	case 'n':
 
 	    open_without_index=1;
-	
+
 	    break;
 
 	case 'x':
 
 	    open_without_index=1;
 	    index_keyframes=1;
-	
+
 	    break;
 
 	case 'f':
 	    force_with_index=1;
 	    break;
-	
+
 	case 'v':
 	    version();
 	    exit(0);
@@ -551,9 +551,9 @@ int main(int argc, char *argv[])
 
   switch (ftype) {
       case RIFF:    fprintf(stderr, "[%s] Seems to be an AVI file.\n", EXE); break;
-      case AVIIDX1: fprintf(stderr, "[%s] Converting a transcode to an mplayer index file.\n", EXE); 
+      case AVIIDX1: fprintf(stderr, "[%s] Converting a transcode to an mplayer index file.\n", EXE);
 		    return aviidx1_to_mpidx1(in_file, out_fd);
-      case MPIDX1:  fprintf(stderr, "[%s] Converting an mplayer to a transcode index file.\n", EXE); 
+      case MPIDX1:  fprintf(stderr, "[%s] Converting an mplayer to a transcode index file.\n", EXE);
 		    return mpidx1_to_aviidx1(in_file, out_fd);
       default:      fprintf(stderr, "[%s] Unrecognized format\n", EXE); return (1);
   }
@@ -570,7 +570,7 @@ int main(int argc, char *argv[])
   if (size > (off_t)AVI_MAX_LEN/2)
       if (!force_with_index) open_without_index = 1;
 
-  if (open_without_index) 
+  if (open_without_index)
       if (index_keyframes) fprintf(stderr, "[%s] Open \"%s\" without index and don't use index for keyframes info\n",EXE, in_file);
       else fprintf(stderr, "[%s] Open \"%s\" without index but use index (if any) for keyframes info\n",EXE, in_file);
   else
@@ -683,7 +683,7 @@ int main(int argc, char *argv[])
     xio_lseek(avifile1->fdes, index_pos+8, SEEK_SET);
     while (len<index_len) {
 	xio_read(avifile1->fdes, tag, 8);
-	
+
 	// if its a keyframe and is a video chunk
 	if (str2ulong(tag+4) && tag[1] == '0') {
 	    int typen, keyn;
@@ -707,16 +707,16 @@ int main(int argc, char *argv[])
 	    posn = ftell(out_fd);
 	    fgets(data, 100, out_fd);
 	    fseek(out_fd, posn, SEEK_SET);
-	    sscanf(data, "%s %d %ld %ld %lld %lld %d %lf", 
+	    sscanf(data, "%s %d %ld %ld %lld %lld %d %lf",
 		      tagn, &typen, &chunkn, &chunkptypen, &posn, &lenn, &keyn, &msn);
-	    fprintf(out_fd, "%s %d %ld %ld %lld %lld %d %.2f", 
+	    fprintf(out_fd, "%s %d %ld %ld %lld %lld %d %.2f",
 		      tagn, typen, chunkn, chunkptypen, posn, lenn, 1, msn);
 	}
 
 	xio_lseek(avifile1->fdes, 8, SEEK_CUR);
 	len += 16;
     }
-    
+
 
 
   } else { // with index
@@ -769,13 +769,13 @@ int main(int argc, char *argv[])
     while (i<avifile1->n_idx) {
       ac_memcpy(tag, avifile1->idx[i], 4);
       // tag
-      fprintf(out_fd, "%c%c%c%c", 
+      fprintf(out_fd, "%c%c%c%c",
 	  avifile1->idx[i][0], avifile1->idx[i][1],
 	  avifile1->idx[i][2], avifile1->idx[i][3]);
 
       // type, absolute chunk number
       fprintf(out_fd, " %c %ld", avifile1->idx[i][1]+1, i);
-      
+
 
       switch (avifile1->idx[i][1]) {
 	case '0':

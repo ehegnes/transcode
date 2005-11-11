@@ -1,8 +1,8 @@
 /*
     filter_smartbob.c
-    
+
     This file is part of transcode, a video stream processing tool
-    
+
     Smart Bob Filter for VirtualDub -- Break fields into frames using
     a motion-adaptive algorithm. Copyright (C) 1999-2001 Donald A. Graft
 
@@ -24,7 +24,7 @@
 	neuron2@home.com.
 
     modified 2003 by Tilmann Bitterberg for use with transcode
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation.
@@ -87,7 +87,7 @@ typedef struct MyFilterData {
 
 static MyFilterData *mfd;
 
-static void help_optstr(void) 
+static void help_optstr(void)
 {
    tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
@@ -122,14 +122,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
   if(ptr->tag & TC_FILTER_INIT) {
 
 	unsigned int width, height;
-    
+
 	if((vob = tc_get_vob())==NULL) return(-1);
-    
+
 
 	mfd = tc_zalloc(sizeof(MyFilterData));
 
 	if (!mfd) {
-		fprintf(stderr, "No memory!\n"); 
+		fprintf(stderr, "No memory!\n");
         return (-1);
 	}
 
@@ -144,7 +144,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	mfd->codec          = vob->im_v_codec;
 
 	if (options != NULL) {
-    
+
 	  if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
 	  optstr_get (options, "motionOnly",     "%d",  &mfd->bMotionOnly       );
@@ -184,7 +184,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	return 0;
 
   } /* TC_FILTER_INIT */
-	
+
 
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
       char buf[255];
@@ -206,7 +206,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (!mfd)
 		return 0;
-	
+
 	if (mfd->prevFrame)
 	    free(mfd->prevFrame);
 	mfd->prevFrame = NULL;
@@ -239,7 +239,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 ///////////////////////////////////////////////////////////////////////////
 
   if(ptr->tag & TC_POST_S_PROCESS && ptr->tag & TC_VIDEO) {
-    
+
 	Pixel32 *src, *dst, *srcn, *srcnn, *srcp;
 	unsigned char *moving, *fmoving;
 	int x, y, *prev;
@@ -333,7 +333,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				{
 					if (moving[x] == 0)
 					{
-						fmoving[x] = 0;	
+						fmoving[x] = 0;
 						continue;
 					}
 					xlo = x - Nover2; if (xlo < 0) xlo = 0;
@@ -366,7 +366,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				{
 					if (fmoving[x] == 0)
 					{
-						moving[x] = 0;	
+						moving[x] = 0;
 						continue;
 					}
 					xlo = x - Nover2;
@@ -383,7 +383,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 					m = mfd->moving + ylo * w;
 					for (u = ylo; u <= yhi; u++)
 					{
-						memset(&m[xlo], 1, xsize); 
+						memset(&m[xlo], 1, xsize);
 						m += w;
 					}
 				}
@@ -460,7 +460,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 						if (B > 255) B = 255;
 						else if (B < 0) B = 0;
 					}
-					dst[x] = ( ((R << 16)&0xff0000) | ((G << 8)&0xff00) | (B&0xff)) & 0x00ffffff;  
+					dst[x] = ( ((R << 16)&0xff0000) | ((G << 8)&0xff00) | (B&0xff)) & 0x00ffffff;
 				}
 				else
 				{

@@ -67,7 +67,7 @@ preview <command>
   toggle -- preview only every 10th or so image. This saves a
             lot of CPU time.
   grab -- Save a jpeg of the current buffer.
-  
+
 quit
   Disconnect from the socket
 

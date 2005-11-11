@@ -114,7 +114,7 @@ while ($i<count($c)) {
     echo "$c[$i]";
     echo "</li>";
     ++$i;
-} 
+}
 
 echo "</ul>";
 echo "</td>";

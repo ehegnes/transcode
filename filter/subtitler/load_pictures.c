@@ -104,7 +104,7 @@ while(1)
 	if( (c == '\n') || (c == '\r') ) comment_flag = 0;
 
 	if(comment_flag) continue;
-	
+
 	temp[i] = c;
 	if( (c == '\n') || (c == '\t') || (c == '\r') || (c == ' ') )
 		{
@@ -123,14 +123,14 @@ while(1)
 		i = 0;
 		}/* end if white space */
 	else i++;
-	if(j == 4) break;	
+	if(j == 4) break;
 	}/* end for all chars in header */
 
 if(debug_flag)
 	{
 	fprintf(stdout,\
 	"ppm_to_yuv_in_char(): width=%d height=%d maxval=%d\n",\
-	width, height, maxval); 
+	width, height, maxval);
 	}
 
 *xsize = width;
@@ -235,7 +235,7 @@ for (i = 0; i < height; i++)
 
 			*out_ptr = v;
 			}
-			
+
 		out_ptr++;
 		u_time = 1 - u_time;
 		}/* end for j horizontal */
@@ -264,7 +264,7 @@ int odd_line;
 int odd_xsize;
 
 if(debug_flag)
-	{	
+	{
 	printf(\
 	"subtitler(): yuv_to_ppm(): arg data=%lu\n\
 	xsize=%d ysize=%d filename=%s\n",\
@@ -276,7 +276,7 @@ fptr = fopen(filename, "w");
 if(! fptr)
 	{
 	printf("subtitler(): yuv_to_ppm(): could not open %s for write\n",\
-	filename);	
+	filename);
 
 	return 0;
 	}
@@ -306,14 +306,14 @@ for(y = 0; y < ysize; y++)
 		Normally the variable border_luminance is set to greater then 255,
 		(so a value that will never happen) except in rotate and shear,
 		where we use this luminance level to cut away the left over edges
-		of the picture after mogrify processes it.		
+		of the picture after mogrify processes it.
 		*/
 		/* do not use top white or greater for mask */
 		if(cy != 255)
 			{
 			if(cy == YUV_MASK) cy += 1;
 			}
-	
+
 		cy  *= 76310;
 
 		/* increment Y pointer */
@@ -358,11 +358,11 @@ for(y = 0; y < ysize; y++)
 
 		u_time = 1 - u_time;
 		} /* end for all x */
-	} /* end for all y */					
+	} /* end for all y */
 
 /* close output file */
 fclose(fptr);
 
 return 1;
-} /* end function yuv_to_ppm */ 
+} /* end function yuv_to_ppm */
 

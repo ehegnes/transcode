@@ -22,12 +22,12 @@ struct MOVIE_PARAMS {
   int video_format;
   int width, height;          /* size */
   int fps;                    /* frames per second */
-  
+
   /* audio */
   int channels;               /* 1 = mono, 2 = stereo */
   int bits;                   /* 8/16 */
   int rate;                   /* sample rate (11025 etc) */
-  
+
   char *adev;
 
 };

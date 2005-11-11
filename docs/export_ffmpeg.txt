@@ -34,7 +34,7 @@ lavcopts: (encoder options)
 ---------------------------
 
 vqmin 1-31 (minimum quantizer) for pass1/2
-	1 is not recommended (much larger file, little quality difference (if u are lucky) 
+	1 is not recommended (much larger file, little quality difference (if u are lucky)
            and other weird things (if u are less lucky))
            weird things: msmpeg4, h263 will be very low quality
                          ratecontrol will be confused -> lower quality
@@ -42,7 +42,7 @@ vqmin 1-31 (minimum quantizer) for pass1/2
 	2 is recommended for normal mpeg4/mpeg1video encoding (default)
 	3 is recommended for h263(p)/msmpeg4
 	   the reason for 3 instead of 2 is that 2 could lead to overflows
-           (this will be fixed for h263(p) by changing the quanizer per MB in	    
+           (this will be fixed for h263(p) by changing the quantizer per MB in
            the future, but msmpeg4 doesnt support that so it cant be fixed for
 	   that)
 
@@ -67,7 +67,7 @@ mbqmin 1-31 (minimum macroblock quantizer) for pass1/2
 
 mbqmax 1-31 (maximum macroblock quantizer) for pass1/2
 	31 default
-        
+
 vqdiff  1-31 (maximum quantizer difference between I or P frames) for pass1/2
 	3 default
 
@@ -105,7 +105,7 @@ keyint  0-300 (maximum interval between keyframes)
 	keyframes are needed for seeking as seeking is only possible to a
         keyframe but they need more space than non-keyframes so larger numbers here
         mean slightly smaller files, but less precise seeking
-	0 no keyframes 
+	0 no keyframes
 	>300 is not recommended as the quality might be bad (depends upon
         decoder, encoder and luck)
         for strict mpeg1/2/4 compliance this would have to be <=132
@@ -147,7 +147,7 @@ vrc_buf_size (buffer size    in kbit) for pass1/2
 	VCD:  FIXME
 	SVCD: ...
 	DVD:  ...
-	Note: vratetol should not be too large during the 2.pass or there might 
+	Note: vratetol should not be too large during the 2.pass or there might
               be problems if vrc_(min|max)rate is used
 
 vb_qfactor (-31.0-31.0) for pass1/2
@@ -158,9 +158,9 @@ vb_qoffset (-31.0-31.0) for pass1/2
 	1.25 is default
 vi_qoffset (-31.0-31.0) for pass1/2
 	0.0 is default
-        if v{b|i}_qfactor > 0  
+        if v{b|i}_qfactor > 0
             I/B-Frame quantizer = P-Frame quantizer * v{b|i}_qfactor + v{b|i}_qoffset
-        else    
+        else
             do normal ratecontrol (dont lock to next P frame quantizer) and
             set q= -q * v{b|i}_qfactor + v{b|i}_qoffset
 	tip: to do constant quantizer encoding with different quantizers for
@@ -179,7 +179,7 @@ vqblur (0.0-99.0) quantizer blur (pass2)
 	larger values will average the quantizer more over time so that it will
         be changed slower
 
-vqcomp  quantizer compression (for pass1/2) 
+vqcomp  quantizer compression (for pass1/2)
 	depends upon vrc_eq
 
 vrc_eq	the main ratecontrol equation (for pass1/2)
@@ -206,7 +206,7 @@ vrc_eq	the main ratecontrol equation (for pass1/2)
 		isI, isP, isB	is 1 if picture type is I/P/B else 0
 		Pi,E		see ur favorite math book
 
-        functions: 
+        functions:
 		max(a,b),min(a,b)	maximum / minimum
 		gt(a,b)			is 1 if a>b, 0 otherwise
 		lt(a,b)			is 1 if a<b, 0 otherwise
@@ -217,7 +217,7 @@ vrc_override	user specified quality for specific parts (ending credits ...) (for
 	<start-frame>,<end-frame>,<quality>[/<start-frame>,<end-frame>,<quality>[/...]]
 	quality 2..31 -> quantizer
 	quality -500..0 -> quality correcture in %
-        
+
 vrc_init_cplx	(0-1000) initial complexity for pass1
 
 vqsquish (0 or 1) for pass1/2 how to keep the quantizer between qmin & qmax
@@ -240,7 +240,7 @@ vstrict (-1,0,1) strict standard compliance
 	0  (default)
         1  only recommended if you want to feed the output into the mpeg4 reference
            decoder
-        -1 allows nonstandard YV12 huffyuv encoding (20% smaller files, but 
+        -1 allows nonstandard YV12 huffyuv encoding (20% smaller files, but
            cant be played back by the official huffyuv codec)
 
 vdpart	data partitioning
@@ -249,11 +249,11 @@ vdpart	data partitioning
 		1. MVs             (=movement)
 		2. DC coefficients (=low res picture)
 		3. AC coefficients (=details)
-	the MV & DC are most important, loosing them looks far worse than 
+	the MV & DC are most important, loosing them looks far worse than
 	loosing the AC and the 1. & 2. partition (MV&DC) are far smaller than
 	the 3. partition (AC) -> errors will hit the AC partition much more
 	often than the MV&DC -> the picture will look better with partitioning
-	than without, as without partitining an error will trash AC/DC/MV 
+	than without, as without partitining an error will trash AC/DC/MV
 	equally
 	improves error-resistance when transfering over unreliable channels (eg.
         streaming over the internet)
@@ -267,11 +267,11 @@ gray	grayscale only encoding (a bit faster than with color ...)
 
 vfdct	(0-99) dct algorithm
 	0 automatically select a good one (default)
-	1 fast integer 
+	1 fast integer
         2 accurate integer
         3 mmx
         4 mlib
-        
+
 idct	(0-99) idct algorithm
 	0 automatically select a good one (default)
 	1 jpeg reference integer
@@ -296,7 +296,7 @@ dark_mask	(0.0-1.0) darkness masking
         warning: be carefull, too large values can cause disasterous things
         warning2: large values might look good on some monitors but may look horrible
         on other monitors / TV / TFT
-        
+
 tcplx_mask	(0.0-1.0) temporal complexity masking
 	0.0 disabled (default)
 
@@ -312,7 +312,7 @@ naq	normalize adaptive quantization (experimental)
 	when using adaptive quantization (*_mask), the average per-MB quantizer
 	may no longer match the requested frame-level quantizer. using naq will
 	attempt to adjust the per-MB quantizers to maintain the proper average.
- 
+
 ildct	use interlaced dct
 
 format
@@ -323,7 +323,7 @@ pred (for huffyuv)
 	0 left prediction
         1 plane/gradient prediction
         2 median prediction
- 
+
 qpel	use quarter pel motion compensation
 	Tip: this seems only usefull for high bitrate encodings
 
@@ -341,7 +341,7 @@ mbcmp	comparission function for macroblock decission
         7 ZERO (0)
         +256 (use chroma too, doesnt work (correctly) with b frames currently)
         Tip: SAD is fast, SATD is good, SSE is something in between
-        Tip2: when using SATD/DCT/BIT/RD for full pel search then a 
+        Tip2: when using SATD/DCT/BIT/RD for full pel search then a
               larger diamond something like dia=2 or dia=4 might improve
               quality, but only for some videos
         Note: mbcmp is only used if hq mode is disabled
@@ -369,14 +369,14 @@ dia	(-99 - 6) diamond type & size for motion estimation
 
 trell	trellis quantization
 	this will find the optimal encoding for each 8x8 block
-	trellis quantization is quite simple a optimal quantization in the 
-	PSNR vs bitrate sense (assuming that there would be no rounding errors introduced 
+	trellis quantization is quite simple a optimal quantization in the
+	PSNR vs bitrate sense (assuming that there would be no rounding errors introduced
 	by the IDCT, which is obviously not the case) it simply finds a block for the minimum of
-	error + lambda*bits 
+	error + lambda*bits
 	lambda is a qp dependant constant
 	bits is the amount of bits needed to encode the block
 	error is simple the sum of squared errors of the quantization
-        
+
 last_pred	(0-99) amount of motion predictors from the previous frame
 	0 (default)
 	a -> will use 2a+1 x 2a+1 MB square of MV predictors from the previous frame
@@ -385,11 +385,11 @@ preme	(0-2) Motion estimation pre-pass
 	0 disabled
 	1 only after I frames (default)
 	2 allways
-        
+
 subq	(1-8) subpel refinement quality (for qpel)
 	8 (default)
 	Note: this has a significant effect on the speed
-        
+
 psnr	will print the psnr for the whole video after encoding and store the per frame psnr
 	in a file with name like "psnr_012345.log"
 
@@ -426,7 +426,7 @@ bug	manual workaround encoder bugs (autodetection isnt foolproof for these)
 gray	grayscale only decoding (a bit faster than with color ...)
 
 idct	see lavcopts
-        note: the decoding quality is highest if the same idct algorithm is used 
+        note: the decoding quality is highest if the same idct algorithm is used
         for decoding as for encoding, this is often not the most accurate though
 
 

@@ -5,20 +5,20 @@
  *                based on work by Stefan Fendt
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -137,7 +137,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       tc_snprintf (buf, sizeof(buf), "%d", denoiser.increment_cb);
       optstr_param (options, "increment_cb",   "Increment Cb with constant", "%d", buf, "-128", "127"  );
 
-      tc_snprintf (buf, sizeof(buf), "%dx%d-%dx%d", 
+      tc_snprintf (buf, sizeof(buf), "%dx%d-%dx%d",
 	denoiser.border.x, denoiser.border.y, denoiser.border.w, denoiser.border.h);
       optstr_param (options, "border",         "Active image area", "%dx%d-%dx%d", buf, "0", "W", "0", "H", "0", "W", "0", "H");
 
@@ -146,11 +146,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
       return 0;
   }
-  
+
   if(ptr->tag & TC_FILTER_INIT) {
-    
+
     if((vob = tc_get_vob())==NULL) return(-1);
-    
+
     if (vob->im_v_codec == CODEC_RGB) {
       tc_log_error(MOD_NAME, "filter is not capable for RGB-Mode !");
       return(-1);
@@ -182,7 +182,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     denoiser.increment_cb    = 2;
     denoiser.increment_cr    = 2; /* maybe more? */
-  
+
 
     /* process commandline */
     if (options) {
@@ -205,7 +205,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if (optstr_get (options, "increment_cb",   "%d", &t1) >= 0) denoiser.increment_cb=t1;
 
 	if (optstr_get (options, "border",         "%dx%d-%dx%d", &t1, &t2, &t3, &t4) >= 0) {
-	    denoiser.border.x = t1&0xffff; denoiser.border.y = t2&0xffff; 
+	    denoiser.border.x = t1&0xffff; denoiser.border.y = t2&0xffff;
 	    denoiser.border.w = t3&0xffff; denoiser.border.h = t4&0xffff;
 	}
 
@@ -255,7 +255,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     /* print denoisers settings */
     if (verbose > 1)
 	print_settings();
-    
+
     /* turn on accelerations if any */
     turn_on_accels();
 
@@ -270,12 +270,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //
   //----------------------------------
 
-  
+
   if(ptr->tag & TC_FILTER_CLOSE) {
       free_buffers();
     return(0);
   }
-  
+
   //----------------------------------
   //
   // filter frame routine
@@ -285,11 +285,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
-  
+
   if (vob->im_v_codec!=CODEC_YUV)
       return 0;
 
-  if(((ptr->tag & TC_PRE_PROCESS  && pre) || 
+  if(((ptr->tag & TC_PRE_PROCESS  && pre) ||
 	  (ptr->tag & TC_POST_PROCESS && !pre)) &&
 	  !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
       /* readability */
@@ -352,8 +352,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
       if(denoiser.reset) {
 	  if(verbose && denoiser.reset==denoiser.do_reset)
-	    tc_log_info(MOD_NAME, "Scene change detected at frame <%d>", ptr->id); 
-        
+	    tc_log_info(MOD_NAME, "Scene change detected at frame <%d>", ptr->id);
+
 	  ac_memcpy(denoiser.frame.avg[Yy]+frame_offset,   denoiser.frame.io[Yy],y_size );
 	  ac_memcpy(denoiser.frame.avg[Cr]+frame_offset4,  denoiser.frame.io[Cr],y_size4);
 	  ac_memcpy(denoiser.frame.avg[Cb]+frame_offset4,  denoiser.frame.io[Cb],y_size4);
@@ -380,7 +380,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 #endif
 
   }
-  
+
   return(0);
 }
 
@@ -399,15 +399,15 @@ void allc_buffers(void)
 {
   int luma_buffsize = denoiser.frame.w * denoiser.frame.h;
   int chroma_buffsize = (denoiser.frame.w * denoiser.frame.h) / 4;
-  
+
   /* now, the MC-functions really(!) do go beyond the vertical
    * frame limits so we need to make the buffers larger to avoid
    * bound-checking (memory vs. speed...)
    */
-  
+
   luma_buffsize += 64*denoiser.frame.w;
   chroma_buffsize += 64*denoiser.frame.w;
-  
+
 #ifdef HAVE_FILTER_IO_BUF
   denoiser.frame.io[Yy] = alloc_buf (luma_buffsize);
   denoiser.frame.io[Cr] = alloc_buf (chroma_buffsize);
@@ -460,7 +460,7 @@ void allc_buffers(void)
 void free_buffers(void)
 {
   int i;
-  
+
   for (i = 0; i < 3; i++)
     {
 #ifdef HAVE_FILTER_IO_BUF
@@ -510,12 +510,12 @@ void print_settings(void)
   fprintf (stderr, " Pass 2 threshold : %3i\n",denoiser.pp_threshold);
   fprintf (stderr, " Y - contrast     : %3i %%\n",denoiser.luma_contrast);
   fprintf (stderr, " Cr/Cb - contrast : %3i %%\n",denoiser.chroma_contrast);
-  fprintf (stderr, " Sharpen          : %3i %%\n",denoiser.sharpen);  
+  fprintf (stderr, " Sharpen          : %3i %%\n",denoiser.sharpen);
   fprintf (stderr, " --------------------\n");
-  fprintf (stderr, " Run as pre filter: %s\n",(pre==0)? "Off":"On");  
-  fprintf (stderr, " block_threshold  : %d\n",denoiser.block_thres);  
-  fprintf (stderr, " scene_threshold  : %d%%\n",denoiser.scene_thres);  
-  fprintf (stderr, " SceneChange Reset: %s\n",(denoiser.do_reset==0)? "Off":"On");  
+  fprintf (stderr, " Run as pre filter: %s\n",(pre==0)? "Off":"On");
+  fprintf (stderr, " block_threshold  : %d\n",denoiser.block_thres);
+  fprintf (stderr, " scene_threshold  : %d%%\n",denoiser.scene_thres);
+  fprintf (stderr, " SceneChange Reset: %s\n",(denoiser.do_reset==0)? "Off":"On");
   fprintf (stderr, " increment_cr     : %d\n",denoiser.increment_cr);
   fprintf (stderr, " increment_cb     : %d\n",denoiser.increment_cb);
   fprintf (stderr, " \n");
@@ -527,9 +527,9 @@ void turn_on_accels(void)
 /* XXX: very weird effects, #undef'ed in global.h -- tibit */
 #ifdef HAVE_ASM_MMX
   uint32_t CPU_CAP = tc_accel;
-  
+
   if( (CPU_CAP & AC_MMXEXT)!=0 ||
-      (CPU_CAP & AC_SSE   )!=0 
+      (CPU_CAP & AC_SSE   )!=0
     ) /* MMX+SSE */
   {
     calc_SAD    = &calc_SAD_mmxe;
@@ -651,5 +651,5 @@ display_help(void)
   );
 }
 
-/* vim: sw=4 
+/* vim: sw=4
  */

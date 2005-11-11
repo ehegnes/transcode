@@ -4,20 +4,20 @@
  *  Copyright (C) Tilmann Bitterberg - May 2002
  *
  *  This file is part of transcode, a video stream  processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -52,7 +52,7 @@ static char prgname[MAX_BUF];
 
 MOD_open
 {
-  
+
   int n;
   FILE *f;
   char buffer[MAX_BUF], *offset;
@@ -84,7 +84,7 @@ MOD_open
 
   /* make this even more ugly. Add another check for prgname */
   if (tc_test_program(prgname) != 0) return (TC_EXPORT_ERROR);
-  
+
   if(param->flag == TC_VIDEO) {
 
 #define APPEND(fmt,rest...) do { int res = tc_snprintf(import_cmd_buf+n, MAX_BUF-n, fmt , ## rest); if (res < 0) {tc_log_warn(MOD_NAME, "cmd buffer overflow"); return(TC_IMPORT_ERROR);} n += res; } while (0)
@@ -132,7 +132,7 @@ MOD_open
     }
     if (f) pclose(f);
 
-    if (nv_version == 0) { 
+    if (nv_version == 0) {
 	tc_log_warn(MOD_NAME, "Unable to detect NVrec version, trying to continue...");
     } else if (0 < nv_version && nv_version < 20020513) {
 	tc_log_warn(MOD_NAME, "Seems your NVrec doesn't support the -o raw:// option");
@@ -152,11 +152,11 @@ MOD_open
     }
 
 
-    
+
     // print out
     if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
-  
+
     param->fd = NULL;
 
     // popen video
@@ -165,13 +165,13 @@ MOD_open
 	perror("popen stream");
 	return(TC_IMPORT_ERROR);
     }
-  
+
   }
 
   return(0);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
@@ -182,14 +182,14 @@ MOD_decode
     return(0);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
 
     if(param->fd != NULL) pclose(param->fd);
 

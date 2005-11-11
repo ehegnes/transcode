@@ -18,11 +18,11 @@ typedef struct _vob_t {
 
 typedef struct _transfer_t {
 
-  int flag;		// specifies context: TC_VIDEO for video 
+  int flag;		// specifies context: TC_VIDEO for video
 					      TC_AUDIO for audio
 		        // or passes an integer to the module
 
-  FILE *fd;             // file handle for input stream   
+  FILE *fd;             // file handle for input stream
 			// NULL if import module performs reading
 
   int size;             // total amount of bytes in the buffer
@@ -53,7 +53,7 @@ requested method:
 
 transcode calls the following routines in this order
 for both import modules, i.e., first for video and subsequent with the
-audio context flag set. 
+audio context flag set.
 
 [1]
 opt=TC_IMPORT_NAME
@@ -90,6 +90,6 @@ status: required if previous option is not implemented
 opt=TC_IMPORT_CLOSE
 para1=_transfer_t
 para2=NULL
-requested action: close streams or any open files, free memory and prepare 
+requested action: close streams or any open files, free memory and prepare
 		  module removal
 status: required

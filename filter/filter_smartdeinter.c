@@ -1,18 +1,18 @@
 /*
     filter_smartdeinter.c
-    
+
     This file is part of transcode, a video stream processing tool
-    
+
     Smart Deinterlacing Filter for VirtualDub -- performs deinterlacing only
     in moving picture areas, allowing full resolution in static areas.
     Copyright (C) 1999-2001 Donald A. Graft
     Miscellaneous suggestions and optimizations by Avery Lee.
-    Useful suggestions by Hans Zimmer, Jim Casaburi, Ondrej Kavka, 
+    Useful suggestions by Hans Zimmer, Jim Casaburi, Ondrej Kavka,
 	and Gunnar Thalin. Field-only differencing based on algorithm by
 	Gunnar Thalin.
 
     modified 2002 by Tilmann Bitterberg for use with transcode
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation.
@@ -87,7 +87,7 @@ typedef struct MyFilterData {
 
 static MyFilterData *mfd;
 
-static void help_optstr(void) 
+static void help_optstr(void)
 {
    tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
@@ -127,14 +127,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
   if(ptr->tag & TC_FILTER_INIT) {
 
 	unsigned int width, height;
-    
+
 	if((vob = tc_get_vob())==NULL) return(-1);
-    
+
 
 	mfd = tc_zalloc(sizeof(MyFilterData));
 
 	if (!mfd) {
-		fprintf(stderr, "No memory!\n"); 
+		fprintf(stderr, "No memory!\n");
         return (-1);
 	}
 
@@ -152,7 +152,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	mfd->codec          = vob->im_v_codec;
 
 	if (options != NULL) {
-    
+
 	  if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
 	  optstr_get (options, "motionOnly",     "%d",  &mfd->motionOnly       );
@@ -226,7 +226,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	return 0;
 
   } /* TC_FILTER_INIT */
-	
+
 
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
       char buf[255];
@@ -264,7 +264,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (!mfd)
 		return 0;
-	
+
 	if (mfd->diffmode == FRAME_ONLY || mfd->diffmode == FRAME_AND_FIELD)
 	{
 		if (mfd->prevFrame)
@@ -314,7 +314,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 ///////////////////////////////////////////////////////////////////////////
 
       if(ptr->tag & TC_PRE_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
-    
+
 	const int		srcpitch = ptr->v_width*sizeof(Pixel32);
 	const int		srcpitchtimes2 = 2 * srcpitch;
 	const int		dstpitch = ptr->v_width*sizeof(Pixel32);
@@ -405,7 +405,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				src1 = (Pixel32 *)((char *)src_buf + srcpitch);
 				saved = mfd->saveFrame + w;
 				for (y = 0; y < hover2; y++)
-				{					
+				{
 					ac_memcpy(saved, src1, wtimes4);
 					src1 = (Pixel *)((char *)src1 + srcpitchtimes2);
 					saved += wtimes2;
@@ -413,7 +413,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				src1 = src_buf;
 				dst1 = (Pixel32 *)((char *)dst_buf+ dstpitch);
 				for (y = 0; y < hover2; y++)
-				{					
+				{
 					ac_memcpy(dst1, src1, wtimes4);
 					src1 = (Pixel *)((char *)src1 + srcpitchtimes2);
 					dst1 = (Pixel *)((char *)dst1 + dstpitchtimes2);
@@ -421,7 +421,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				dst1 = dst_buf;
 				saved = mfd->saveFrame + w;
 				for (y = 0; y < hover2; y++)
-				{					
+				{
 					ac_memcpy(dst1, saved, wtimes4);
 					dst1 = (Pixel *)((char *)dst1 + dstpitchtimes2);
 					saved += wtimes2;
@@ -650,7 +650,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		else scenechange = 0;
 
 		/*
-		printf("Frame (%04d) count (%8ld) sc (%d) calc (%02ld)\n", 
+		printf("Frame (%04d) count (%8ld) sc (%d) calc (%02ld)\n",
 				ptr->id, count, scenechange, (100 * count) / (h * w));
 				*/
 
@@ -672,7 +672,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				{
 					if (!((mfd->moving + y * w)[x]))
 					{
-						fmoving[x] = 0;	
+						fmoving[x] = 0;
 						continue;
 					}
 					xlo = x - Nover2; if (xlo < 0) xlo = 0;
@@ -706,7 +706,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				{
 					if (!((mfd->fmoving + y * w)[x]))
 					{
-						moving[x] = 0;	
+						moving[x] = 0;
 						continue;
 					}
 					xlo = x - Nover2; if (xlo < 0) xlo = 0;
@@ -820,7 +820,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				{
 					if (!((mfd->moving + y * w)[x]))
 					{
-						fmoving[x] = 0;	
+						fmoving[x] = 0;
 						continue;
 					}
 					xlo = x - Nover2; if (xlo < 0) xlo = 0;
@@ -855,7 +855,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				{
 					if (!((mfd->fmoving + y * w)[x]))
 					{
-						moving[x] = 0;	
+						moving[x] = 0;
 						continue;
 					}
 					xlo = x - Nover2; if (xlo < 0) xlo = 0;
@@ -873,7 +873,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 					}
 				}
 				moving += w;
-			}		
+			}
 		}
 	}
 
@@ -905,7 +905,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 					if (!(movingminus[x] | moving[x] | movingplus[x]) && !scenechange)
 						dst[x] = 0x7f7f7f;
 					else
-					{	
+					{
 						/* Blend fields. */
 						p0 = src[x];
 						p0 &= 0x00fefefe;
@@ -951,7 +951,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 							B = (5 * (bp + bn) - (bpp + bnn)) >> 3;
 							if (B > 255) B = 255;
 							else if (B < 0) B = 0;
-							dst[x] = (R << 16) | (G << 8) | B;  
+							dst[x] = (R << 16) | (G << 8) | B;
 						}
 						else
 						{
@@ -1028,7 +1028,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 								B = (5 * (bp + bn) - (bpp + bnn)) >> 3;
 								if (B > 255) B = 255;
 								else if (B < 0) B = 0;
-								dst[x] = (R << 16) | (G << 8) | B;  
+								dst[x] = (R << 16) | (G << 8) | B;
 							}
 							else
 							{
@@ -1063,7 +1063,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		movingminus += w;
 		movingplus += w;
 	}
-	
+
 	// The last line gets a free ride.
 	ac_memcpy(dst, src, wtimes4);
 

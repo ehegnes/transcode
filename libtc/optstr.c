@@ -4,24 +4,24 @@
  *  Copyright (C) Tilmann Bitterberg 2003
  *
  *  Description: A general purpose option string parser
- * 
+ *
  *  Usage: see optstr.h, please
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -60,9 +60,9 @@ const char* optstr_lookup(const char *haystack, const char *needle)
             found = 1;
         } else {
             /* go a little further */
-            ch++; 
+            ch++;
         }
-    } 
+    }
 
     return ch;
 }
@@ -77,12 +77,12 @@ int optstr_get(const char *options, const char *name, const char *fmt, ...)
 #ifndef HAVE_VSSCANF
     void *temp[ARG_MAXIMUM];
 #endif
-    
+
     ch = optstr_lookup(options, name);
     if (!ch) {
         return -1;
     }
-    
+
     /* name IS in options */
 
     /* Find how many arguments we expect */
@@ -99,8 +99,8 @@ int optstr_get(const char *options, const char *name, const char *fmt, ...)
 
 #ifndef HAVE_VSSCANF
     if (num_args > ARG_MAXIMUM) {
-        fprintf (stderr, 
-            "(%s:%d) Internal Overflow; redefine ARG_MAXIMUM (%d) to something higher\n", 
+        fprintf (stderr,
+            "(%s:%d) Internal Overflow; redefine ARG_MAXIMUM (%d) to something higher\n",
             __FILE__, __LINE__, ARG_MAXIMUM);
         return -2;
     }
@@ -122,19 +122,19 @@ int optstr_get(const char *options, const char *name, const char *fmt, ...)
         temp[num_args - n - 1] = va_arg(ap, void *);
     }
 
-    n = sscanf(ch, fmt, 
+    n = sscanf(ch, fmt,
             temp[0],  temp[1],  temp[2],  temp[3], temp[4],
-            temp[5],  temp[6],  temp[7],  temp[8], temp[9], 
-            temp[10], temp[11], temp[12], temp[13], temp[14], 
+            temp[5],  temp[6],  temp[7],  temp[8], temp[9],
+            temp[10], temp[11], temp[12], temp[13], temp[14],
             temp[15]);
 
 #else
-    /* this would be very nice instead of the above, 
-     * but it does not seem portable 
+    /* this would be very nice instead of the above,
+     * but it does not seem portable
      */
-     n = vsscanf(ch, fmt, ap); 
+     n = vsscanf(ch, fmt, ap);
 #endif
-    
+
     va_end(ap);
 
     return n;
@@ -167,8 +167,8 @@ int optstr_filter_desc(char *buf,
                        const char *frames_needed)
 {
     int len = strlen(buf);
-    if (tc_snprintf(buf + len, ARG_CONFIG_LEN - len, 
-                    "\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\"\n", 
+    if (tc_snprintf(buf + len, ARG_CONFIG_LEN - len,
+                    "\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\"\n",
                     filter_name,filter_comment,filter_version,
                     filter_author, capabilities, frames_needed) <= 0) {
         return 1;
@@ -191,19 +191,19 @@ int optstr_frames_needed(const char *filter_desc, int *needed_frames)
     return 0;
 }
 
-int optstr_param(char *buf, 
-                 const char *name, 
-                 const char *comment, 
-                 const char *fmt, 
-                 const char *val, 
-                 ...) /* char *valid_from1, char *valid_to1, ... */ 
+int optstr_param(char *buf,
+                 const char *name,
+                 const char *comment,
+                 const char *fmt,
+                 const char *val,
+                 ...) /* char *valid_from1, char *valid_to1, ... */
 {
-    va_list ap; 
+    va_list ap;
     int n = 0, res = 0, num_args=0;
     size_t buf_len = strlen(buf), fmt_len = strlen(fmt), pos = 0;
 
-    res = tc_snprintf(buf + buf_len, ARG_CONFIG_LEN - buf_len, 
-                           "\"%s\", \"%s\", \"%s\", \"%s\"", 
+    res = tc_snprintf(buf + buf_len, ARG_CONFIG_LEN - buf_len,
+                           "\"%s\", \"%s\", \"%s\", \"%s\"",
                            name, comment, fmt, val);
     if(res <= 0) {
         return 1;
@@ -229,8 +229,8 @@ int optstr_param(char *buf,
 
     va_start(ap, val);
     while (num_args--) {
-        res = tc_snprintf(buf + buf_len + n, 
-                          ARG_CONFIG_LEN - buf_len - n, 
+        res = tc_snprintf(buf + buf_len + n,
+                          ARG_CONFIG_LEN - buf_len - n,
                           ", \"%s\"", va_arg(ap, char *));
         if (res <= 0) {
             return 1;

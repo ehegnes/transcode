@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -53,21 +53,21 @@ extern int seq_info_delay(void);
 packet_list_t *packet_register(int id)
 
 {
-  
-  /* objectives: 
+
+  /* objectives:
      ===========
 
      register new packet
 
      allocate space for packet buffer and establish backward reference
-     
+
      requirements:
      =============
 
      thread-safe
 
      global mutex: packet_list_lock
-     
+
   */
 
   packet_list_t *ptr;
@@ -75,26 +75,26 @@ packet_list_t *packet_register(int id)
   pthread_mutex_lock(&packet_list_lock);
 
   // retrieve a valid pointer from the pool
-  
+
 #ifdef STATBUFFER
   if(verbose_flag & TC_FLIST) printf("packet id=%d\n", id);
   if((ptr = sbuf_retrieve()) == NULL) {
     pthread_mutex_unlock(&packet_list_lock);
     return(NULL);
   }
-#else 
+#else
 
   if((ptr = malloc(sizeof(packet_list_t))) == NULL) {
     pthread_mutex_unlock(&packet_list_lock);
     return(NULL);
   }
 #endif
-    
+
   ptr->status = PACKET_EMPTY;
-  
+
   ptr->next = NULL;
   ptr->prev = NULL;
-  
+
   ptr->id  = id;
 
  if(packet_list_tail != NULL)
@@ -102,7 +102,7 @@ packet_list_t *packet_register(int id)
       packet_list_tail->next = ptr;
       ptr->prev = packet_list_tail;
     }
-  
+
   packet_list_tail = ptr;
 
   /* first packet registered must set packet_list_head */
@@ -110,7 +110,7 @@ packet_list_t *packet_register(int id)
   if(packet_list_head == NULL) packet_list_head = ptr;
 
   pthread_mutex_unlock(&packet_list_lock);
-  
+
   return(ptr);
 
 }
@@ -118,12 +118,12 @@ packet_list_t *packet_register(int id)
 
 /* ------------------------------------------------------------------ */
 
- 
+
 void packet_remove(packet_list_t *ptr)
 
 {
-  
-  /* objectives: 
+
+  /* objectives:
      ===========
 
      remove packet from chained list
@@ -132,20 +132,20 @@ void packet_remove(packet_list_t *ptr)
      =============
 
      thread-safe
-     
+
   */
 
-  
+
   if(ptr == NULL) return;         // do nothing if null pointer
 
   pthread_mutex_lock(&packet_list_lock);
-  
+
   if(ptr->prev != NULL) (ptr->prev)->next = ptr->next;
   if(ptr->next != NULL) (ptr->next)->prev = ptr->prev;
-  
+
   if(ptr == packet_list_tail) packet_list_tail = ptr->prev;
   if(ptr == packet_list_head) packet_list_head = ptr->next;
-  
+
   // release valid pointer to pool
   ptr->status = PACKET_EMPTY;
 
@@ -154,9 +154,9 @@ void packet_remove(packet_list_t *ptr)
 #else
       free(ptr);
 #endif
-  
-  pthread_mutex_unlock(&packet_list_lock); 
-  
+
+  pthread_mutex_unlock(&packet_list_lock);
+
 }
 
 
@@ -167,18 +167,18 @@ packet_list_t *packet_retrieve()
 
 {
 
-  /* objectives: 
+  /* objectives:
      ===========
 
      get pointer to next packet for rendering
-     
+
      requirements:
      =============
-     
+
      thread-safe
-     
+
   */
-  
+
   packet_list_t *ptr;
 
   pthread_mutex_lock(&packet_list_lock);
@@ -189,16 +189,16 @@ packet_list_t *packet_retrieve()
 
   while(ptr != NULL)
     {
-      if(ptr->status == PACKET_READY) 
+      if(ptr->status == PACKET_READY)
 	{
 	  pthread_mutex_unlock(&packet_list_lock);
 	  return(ptr);
 	}
       ptr = ptr->next;
     }
-  
+
   pthread_mutex_unlock(&packet_list_lock);
-  
+
   return(NULL);
 }
 
@@ -206,55 +206,55 @@ packet_list_t *packet_retrieve()
 
 int sbuf_alloc(int ex_num)
 {
-    
-    /* objectives: 
+
+    /* objectives:
        ===========
-       
+
        allocate memory for ringbuffer structure
        return -1 on failure, 0 on success
-       
+
     */
-    
+
     int n, num;
 
     if(ex_num < 0) return(-1);
-    
-    num = ex_num + 2; //alloc some more because 
-    
+
+    num = ex_num + 2; //alloc some more because
+
     if((sbuf_ptr = (packet_list_t **) calloc(num, sizeof(packet_list_t *)))==NULL) {
 	perror("out of memory");
 	return(-1);
     }
-    
+
     if((sbuf_mem = (char *) calloc(num, sizeof(packet_list_t)))==NULL) {
 	perror("out of memory");
 	return(-1);
     }
-    
+
     // init ringbuffer
     for (n=0; n<num; ++n) {
 	sbuf_ptr[n] = (packet_list_t *) (sbuf_mem + n * sizeof(packet_list_t));
-	
+
 	sbuf_ptr[n]->status = PACKET_NULL;
 	sbuf_ptr[n]->bufid = n;
     }
 
     // assign to static
     sbuf_max = num;
-    
+
     return(0);
 }
-    
+
 /* ------------------------------------------------------------------ */
 
 void sbuf_free()
 {
-    
-    /* objectives: 
+
+    /* objectives:
        ===========
-       
+
        free memory for ringbuffer structure
-       
+
     */
 
     if(sbuf_max > 0) {
@@ -262,24 +262,24 @@ void sbuf_free()
 	free(sbuf_mem);
     }
 }
-    
-    
-    
+
+
+
 /* ------------------------------------------------------------------ */
 
 packet_list_t *sbuf_retrieve()
 {
-    
-    /* objectives: 
+
+    /* objectives:
        ===========
 
        retrieve a valid pointer to a packet_list_t structure
        return NULL on failure, valid pointer on success
 
        thread safe
-       
+
     */
-    
+
     packet_list_t *ptr;
 
     ptr = sbuf_ptr[sbuf_next];
@@ -293,7 +293,7 @@ packet_list_t *sbuf_retrieve()
     if(verbose_flag & TC_FLIST) printf("alloc  =%d [%d]\n", sbuf_next, ptr->bufid);
     ++sbuf_next;
     sbuf_next %= sbuf_max;
-    
+
     return(ptr);
 }
 
@@ -303,40 +303,40 @@ packet_list_t *sbuf_retrieve()
 
 int sbuf_release(packet_list_t *ptr)
 {
-    
-    /* objectives: 
+
+    /* objectives:
        ===========
 
        release a valid pointer to a packet_list_t structure
        return -1 on failure, 0 on success
 
        thread safe
-       
+
     */
 
     // instead of freeing the memory and setting the pointer
     // to NULL we only change a flag
 
     if(ptr == NULL) return(-1);
-    
+
     if(ptr->status != PACKET_EMPTY) {
 	return(-1);
     } else {
-	
+
 	if(verbose_flag & TC_FLIST) printf("release=%d [%d]\n", sbuf_next, ptr->bufid);
 	ptr->status = PACKET_NULL;
-	
+
     }
 
     return(0);
 }
 
-/* ------------------------------------------------------------------ 
+/* ------------------------------------------------------------------
  *
  * packet buffer management
  *
  * API:   flush_buffer_init
- *        flush_buffer_write 
+ *        flush_buffer_write
  *        flush_buffer_close
  *
  *-------------------------------------------------------------------*/
@@ -345,29 +345,29 @@ int packet_buffer_flush()
 
 {
 
-  /* objectives: 
+  /* objectives:
      ===========
 
      flush a packet and release memory
-     
+
      requirements:
      =============
-     
+
      thread-safe
-     
+
   */
-  
+
   packet_list_t *ptr;
-  
+
   size_t n = 0;
 
   ptr = packet_retrieve();
 
-  pthread_mutex_lock(&pack_ctr_lock);   
-  
-  //info: 
+  pthread_mutex_lock(&pack_ctr_lock);
+
+  //info:
   if(verbose_flag & TC_SYNC) fprintf(stderr, "packet buffer status (%03d/%03d) [%.1f%%]\n", pack_ctr, pack_fill_ctr, (double) 100*pack_fill_ctr/FLUSH_BUFFER_MAX);
-  pthread_mutex_unlock(&pack_ctr_lock);   
+  pthread_mutex_unlock(&pack_ctr_lock);
 
   if(ptr==NULL) {
       //Ooops, shouldn't happen
@@ -375,14 +375,14 @@ int packet_buffer_flush()
   }
 
   n = tc_pwrite(ifd, ptr->buffer, ptr->size);
-  
+
   if((verbose_flag & TC_SYNC)) fprintf(stderr, "done writing packet (%d/%03d)\n", ptr->id, pack_ctr);
-  
+
   // no release, if not set!
   ptr->status = PACKET_EMPTY;
-  
+
   packet_remove(ptr);
-  
+
   return(0);
 }
 
@@ -395,8 +395,8 @@ static void flush_buffer_thread(void)
 
     for (;;) {
 
-	pthread_mutex_lock(&pack_ctr_lock);    
-	
+	pthread_mutex_lock(&pack_ctr_lock);
+
 	while(pack_fill_ctr==0) {
 	    pthread_cond_wait(&packet_pop_cv, &pack_ctr_lock);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
@@ -405,32 +405,32 @@ static void flush_buffer_thread(void)
 	}
 
 	pthread_mutex_unlock(&pack_ctr_lock);
-	
+
 	if(packet_buffer_flush()==0) {
-	    
+
 	    pthread_mutex_lock(&pack_ctr_lock);
 	    tt=pack_fill_ctr;
 	    --pack_fill_ctr;
 	    pthread_mutex_unlock(&pack_ctr_lock);
-	    
+
 	    //notify submissions
 	    if(tt==FLUSH_BUFFER_MAX) pthread_cond_signal(&packet_push_cv);
 	}
     }
-    
+
     return;
 }
 
 /* ------------------------------------------------------------------ */
- 
+
 int flush_buffer_init(int _ifd, int _verbose)
 {
-    
+
     ifd=_ifd;
     verbose_flag = _verbose;
 
     pack_fill_ctr=0;
-  
+
 #ifdef STATBUFFER
   // allocate buffer
   if(verbose_flag & TC_DEBUG) fprintf(stderr, "[%s] allocating %d framebuffer (static)\n", __FILE__, FLUSH_BUFFER_MAX);
@@ -443,12 +443,12 @@ int flush_buffer_init(int _ifd, int _verbose)
 #endif
 
 
-  // start the flush thread     
+  // start the flush thread
   if(pthread_create(&packet_thread, NULL, (void *) flush_buffer_thread, NULL)!=0) {
     fprintf(stderr,"(%s) failed to start packet flush thread\n", __FILE__);
     return(-1);
   } else if(verbose_flag & TC_SYNC) fprintf(stderr, "[%s] flush buffer thread started\n", __FILE__);
-  
+
   return(0);
 }
 
@@ -456,39 +456,39 @@ int flush_buffer_init(int _ifd, int _verbose)
 
 int flush_buffer_write(int fd_out, char*buffer, int packet_size)
 {
-  
+
     packet_list_t *pack_ptr=NULL;
-    
+
 
     pthread_mutex_lock(&pack_ctr_lock);
-    
+
     while(pack_fill_ctr == FLUSH_BUFFER_MAX) {
       pthread_cond_wait(&packet_push_cv, &pack_ctr_lock);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
       pthread_testcancel();
 #endif
     }
-    
+
     pthread_mutex_unlock(&pack_ctr_lock);
-    
+
     pack_ptr = packet_register(pack_ctr);
 
     ac_memcpy(pack_ptr->buffer, buffer, packet_size);
-    
+
     pack_ptr->size = packet_size;
     pack_ptr->status = PACKET_READY; //packet ready to go
 
 
     //total processed packets
     ++pack_ctr;
-    
+
     pthread_mutex_lock(&pack_ctr_lock);
-    
+
     ++pack_fill_ctr;
 
     //info: buffer status
     if(verbose_flag & TC_SYNC) fprintf(stderr, "packet submitted to flush buffer (%03d/%03d) [%.1f%%]\n", pack_ctr, pack_fill_ctr, (double) 100*pack_fill_ctr/FLUSH_BUFFER_MAX);
-    
+
     pthread_mutex_unlock(&pack_ctr_lock);
 
     //notify write thread
@@ -503,15 +503,15 @@ int flush_buffer_close()
 {
 
     pthread_mutex_lock(&pack_ctr_lock);
-    
+
     while(pack_fill_ctr>0) {
       pthread_mutex_unlock(&pack_ctr_lock);
       usleep(TC_DELAY_MAX);
       pthread_mutex_lock(&pack_ctr_lock);
     }
-    
+
     pthread_mutex_unlock(&pack_ctr_lock);
-    
+
     return(0);
 }
 

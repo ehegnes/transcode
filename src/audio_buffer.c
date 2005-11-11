@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -47,35 +47,35 @@ int8_t *aud_buf_mem;
 
 static int aud_buf_alloc(int ex_num)
 {
-    
-    /* objectives: 
+
+    /* objectives:
        ===========
-       
+
        allocate memory for ringbuffer structure
        return -1 on failure, 0 on success
-       
+
     */
-    
+
     int n, num;
 
     if(ex_num < 0) return(-1);
-    
+
     num = ex_num + 1; //alloc at least one buffer
-    
+
     if((aud_buf_ptr = (aframe_list_t **) calloc(num, sizeof(aframe_list_t *)))==NULL) {
       perror("out of memory");
       return(-1);
     }
-    
+
     if((aud_buf_mem = (char *) calloc(num, sizeof(aframe_list_t)))==NULL) {
       perror("out of memory");
       return(-1);
     }
-    
+
     // init ringbuffer
     for (n=0; n<num; ++n) {
 	aud_buf_ptr[n] = (aframe_list_t *) (aud_buf_mem + n * sizeof(aframe_list_t));
-	
+
 	aud_buf_ptr[n]->status = FRAME_NULL;
 	aud_buf_ptr[n]->bufid = n;
 
@@ -84,32 +84,32 @@ static int aud_buf_alloc(int ex_num)
 	  perror("out of memory");
 	  return(-1);
 	}
-	
+
     }
-    
+
     // assign to static
     aud_buf_max = num;
-    
+
     return(0);
 }
 
-    
-    
-    
+
+
+
 /* ------------------------------------------------------------------ */
 
 static void aud_buf_free(void)
 {
-    
-    /* objectives: 
+
+    /* objectives:
        ===========
-       
+
        free memory for ringbuffer structure
-       
+
     */
 
   int n;
-  
+
   if(aud_buf_max > 0) {
 
     for (n=0; n<aud_buf_max; ++n) {
@@ -119,27 +119,27 @@ static void aud_buf_free(void)
     free(aud_buf_ptr);
   }
 }
-    
+
 /* ------------------------------------------------------------------ */
 
 static aframe_list_t *aud_buf_retrieve(void)
 {
-    
-    /* objectives: 
+
+    /* objectives:
        ===========
 
        retrieve a valid pointer to a aframe_list_t structure
        return NULL on failure, valid pointer on success
 
        thread safe
-       
+
     */
-    
+
     aframe_list_t *ptr;
     int i=0;
 
     ptr = aud_buf_ptr[aud_buf_next];
-   
+
     // find an unused ptr, the next one may already be busy
     while (ptr->status != FRAME_NULL && i < aud_buf_max) {
 	++i;
@@ -154,13 +154,13 @@ static aframe_list_t *aud_buf_retrieve(void)
       if(verbose & TC_FLIST) fprintf(stderr, "(%s) A buffer=%d not empty\n", __FILE__, ptr->status);
       return(NULL);
     }
-    
+
     // ok
     if(verbose & TC_FLIST) printf("A alloc  =%d [%d]\n", aud_buf_next, ptr->bufid);
 
     ++aud_buf_next;
     aud_buf_next %= aud_buf_max;
-    
+
     return(ptr);
 }
 
@@ -170,31 +170,31 @@ static aframe_list_t *aud_buf_retrieve(void)
 
 static int aud_buf_release(aframe_list_t *ptr)
 {
-  
-  /* objectives: 
+
+  /* objectives:
      ===========
-     
+
      release a valid pointer to a aframe_list_t structure
      return -1 on failure, 0 on success
-     
+
      thread safe
-     
+
   */
-  
+
   // instead of freeing the memory and setting the pointer
   // to NULL we only change a flag
-  
+
   if(ptr == NULL) return(-1);
-  
+
   if(ptr->status != FRAME_EMPTY) {
     fprintf(stderr, "A (%s) internal error (%d)\n", __FILE__, ptr->status);
     return(-1);
   } else {
-    
+
     if(verbose & TC_FLIST) printf("A release=%d [%d]\n", aud_buf_next, ptr->bufid);
     ptr->status = FRAME_NULL;
   }
-  
+
   return(0);
 }
 
@@ -216,21 +216,21 @@ void aframe_free()
 aframe_list_t *aframe_register(int id)
 
 {
-  
-  /* objectives: 
+
+  /* objectives:
      ===========
 
      register new frame
 
      allocate space for frame buffer and establish backward reference
-     
+
      requirements:
      =============
 
      thread-safe
 
      global mutex: aframe_list_lock
-     
+
   */
 
   aframe_list_t *ptr;
@@ -238,26 +238,26 @@ aframe_list_t *aframe_register(int id)
   pthread_mutex_lock(&aframe_list_lock);
 
   // retrive a valid pointer from the pool
-  
+
 #ifdef STATBUFFER
   if(verbose & TC_FLIST) printf("A frameid=%d\n", id);
   if((ptr = aud_buf_retrieve()) == NULL) {
     pthread_mutex_unlock(&aframe_list_lock);
     return(NULL);
   }
-#else 
+#else
   if((ptr = malloc(sizeof(aframe_list_t))) == NULL) {
     pthread_mutex_unlock(&aframe_list_lock);
     return(NULL);
   }
 #endif
-    
+
   ptr->status = FRAME_EMPTY;
   ++aud_buf_empty;
-  
+
   ptr->next = NULL;
   ptr->prev = NULL;
-  
+
   ptr->id  = id;
 
  if(aframe_list_tail != NULL)
@@ -265,7 +265,7 @@ aframe_list_t *aframe_register(int id)
       aframe_list_tail->next = ptr;
       ptr->prev = aframe_list_tail;
     }
-  
+
   aframe_list_tail = ptr;
 
   /* first frame registered must set aframe_list_head */
@@ -274,11 +274,11 @@ aframe_list_t *aframe_register(int id)
 
   // adjust fill level
   ++aud_buf_fill;
-  
+
   if(verbose & TC_FLIST) fprintf(stderr, "A+  f=%d e=%d w=%d l=%d r=%d \n", aud_buf_fill, aud_buf_empty, aud_buf_wait, aud_buf_locked, aud_buf_ready);
- 
+
   pthread_mutex_unlock(&aframe_list_lock);
-  
+
   return(ptr);
 
 }
@@ -315,21 +315,21 @@ static void aframe_copy_payload(aframe_list_t *dst, aframe_list_t *src)
 aframe_list_t *aframe_dup(aframe_list_t *f)
 
 {
-  
-  /* objectives: 
+
+  /* objectives:
      ===========
 
-     duplicate a frame (for cloning) 
+     duplicate a frame (for cloning)
 
      insert a ptr after f;
-     
+
      requirements:
      =============
 
      thread-safe
 
      global mutex: vframe_list_lock
-     
+
   */
 
   aframe_list_t *ptr;
@@ -345,20 +345,20 @@ aframe_list_t *aframe_dup(aframe_list_t *f)
   }
 
   // retrive a valid pointer from the pool
-  
+
 #ifdef STATBUFFER
   if((ptr = aud_buf_retrieve()) == NULL) {
     pthread_mutex_unlock(&aframe_list_lock);
     fprintf(stderr, "(%s) cannot find a free slot (%d)\n", __FILE__, f->id);
     return(NULL);
   }
-#else 
+#else
   if((ptr = malloc(sizeof(aframe_list_t))) == NULL) {
     pthread_mutex_unlock(&aframe_list_lock);
     return(NULL);
   }
 #endif
-  
+
   aframe_copy_payload (ptr, f);
 
   ptr->status = FRAME_WAIT;
@@ -366,7 +366,7 @@ aframe_list_t *aframe_dup(aframe_list_t *f)
 
   ptr->next = NULL;
   ptr->prev = NULL;
-  
+
   // insert after ptr
   ptr->next = f->next;
   f->next = ptr;
@@ -376,23 +376,23 @@ aframe_list_t *aframe_dup(aframe_list_t *f)
      // must be last ptr in the list
      aframe_list_tail = ptr;
  }
-  
+
   // adjust fill level
   ++aud_buf_fill;
-  
+
   pthread_mutex_unlock(&aframe_list_lock);
-  
+
   return(ptr);
 
 }
 
 /* ------------------------------------------------------------------ */
- 
+
 void aframe_remove(aframe_list_t *ptr)
 
 {
-  
-  /* objectives: 
+
+  /* objectives:
      ===========
 
      remove frame from chained list
@@ -401,17 +401,17 @@ void aframe_remove(aframe_list_t *ptr)
      =============
 
      thread-safe
-     
+
   */
 
-  
+
   if(ptr == NULL) return;         // do nothing if null pointer
 
   pthread_mutex_lock(&aframe_list_lock);
-  
+
   if(ptr->prev != NULL) (ptr->prev)->next = ptr->next;
   if(ptr->next != NULL) (ptr->next)->prev = ptr->prev;
-  
+
   if(ptr == aframe_list_tail) aframe_list_tail = ptr->prev;
   if(ptr == aframe_list_head) aframe_list_head = ptr->next;
 
@@ -427,25 +427,25 @@ void aframe_remove(aframe_list_t *ptr)
 #else
   free(ptr);
 #endif
-  
+
   // adjust fill level
   --aud_buf_empty;
   --aud_buf_fill;
-  
+
   if(verbose & TC_FLIST) fprintf(stderr, "A-  f=%d e=%d w=%d l=%d r=%d \n", aud_buf_fill, aud_buf_empty, aud_buf_wait, aud_buf_locked, aud_buf_ready);
-  
-  pthread_mutex_unlock(&aframe_list_lock); 
-  
+
+  pthread_mutex_unlock(&aframe_list_lock);
+
 }
 
 /* ------------------------------------------------------------------ */
 
- 
+
 void aframe_flush()
 
 {
-  
-  /* objectives: 
+
+  /* objectives:
      ===========
 
      remove all frame from chained list
@@ -454,33 +454,33 @@ void aframe_flush()
      =============
 
      thread-safe
-     
+
   */
 
   aframe_list_t *ptr;
-  
+
   int cc=0;
-  
+
   while((ptr=aframe_retrieve())!=NULL) {
-    if(verbose & TC_STATS) fprintf(stderr, "flushing audio buffers\n"); 
+    if(verbose & TC_STATS) fprintf(stderr, "flushing audio buffers\n");
     aframe_remove(ptr);
     ++cc;
   }
-  
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) flushing %d audio buffer\n", __FILE__, cc); 
-  
+
+  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) flushing %d audio buffer\n", __FILE__, cc);
+
   pthread_mutex_lock(&abuffer_im_fill_lock);
   abuffer_im_fill_ctr=0;
-  pthread_mutex_unlock(&abuffer_im_fill_lock);  
-  
+  pthread_mutex_unlock(&abuffer_im_fill_lock);
+
   pthread_mutex_lock(&abuffer_ex_fill_lock);
   abuffer_ex_fill_ctr=0;
   pthread_mutex_unlock(&abuffer_ex_fill_lock);
-  
+
   pthread_mutex_lock(&abuffer_xx_fill_lock);
   abuffer_xx_fill_ctr=0;
   pthread_mutex_unlock(&abuffer_xx_fill_lock);
-  
+
   return;
 }
 
@@ -492,18 +492,18 @@ aframe_list_t *aframe_retrieve()
 
 {
 
-  /* objectives: 
+  /* objectives:
      ===========
 
      get pointer to next frame for rendering
-     
+
      requirements:
      =============
-     
+
      thread-safe
-     
+
   */
-  
+
   aframe_list_t *ptr;
 
   pthread_mutex_lock(&aframe_list_lock);
@@ -521,18 +521,18 @@ aframe_list_t *aframe_retrieve()
 	  pthread_mutex_unlock(&aframe_list_lock);
 	  return(NULL);
       }
-  
+
       //this frame is ready to go
-      if(ptr->status == FRAME_READY) 
+      if(ptr->status == FRAME_READY)
       {
 	pthread_mutex_unlock(&aframe_list_lock);
 	  return(ptr);
       }
       ptr = ptr->next;
   }
-  
+
   pthread_mutex_unlock(&aframe_list_lock);
-  
+
   return(NULL);
 }
 
@@ -543,52 +543,52 @@ aframe_list_t *aframe_retrieve_status(int old_status, int new_status)
 
 {
 
-  /* objectives: 
+  /* objectives:
      ===========
 
      get pointer to next frame for rendering
-     
+
      requirements:
      =============
-     
+
      thread-safe
-     
+
   */
-  
+
   aframe_list_t *ptr;
 
   pthread_mutex_lock(&aframe_list_lock);
-  
+
   ptr = aframe_list_head;
-  
+
   /* move along the chain and check for status */
-  
+
   while(ptr != NULL)
     {
-      if(ptr->status == old_status) 
+      if(ptr->status == old_status)
 	{
 
 	  // found matching frame
 
 	  if(ptr->status==FRAME_WAIT)   --aud_buf_wait;
 	  if(ptr->status==FRAME_READY)  --aud_buf_ready;
-	  if(ptr->status==FRAME_LOCKED) --aud_buf_locked;	  
-	  
+	  if(ptr->status==FRAME_LOCKED) --aud_buf_locked;
+
 	  ptr->status = new_status;
-	  
+
 	  if(ptr->status==FRAME_WAIT)   ++aud_buf_wait;
 	  if(ptr->status==FRAME_READY)  ++aud_buf_ready;
-	  if(ptr->status==FRAME_LOCKED) ++aud_buf_locked;	  
+	  if(ptr->status==FRAME_LOCKED) ++aud_buf_locked;
 
 	  pthread_mutex_unlock(&aframe_list_lock);
-	  
+
 	  return(ptr);
 	}
       ptr = ptr->next;
     }
-  
+
   pthread_mutex_unlock(&aframe_list_lock);
-  
+
   return(NULL);
 }
 
@@ -600,20 +600,20 @@ void aframe_set_status(aframe_list_t *ptr, int status)
 
 {
 
-  /* objectives: 
+  /* objectives:
      ===========
 
      get pointer to next frame for rendering
-     
+
      requirements:
      =============
 
   */
 
     if(ptr == NULL) return;
-  
+
     pthread_mutex_lock(&aframe_list_lock);
-    
+
     if(ptr->status==FRAME_READY)  --aud_buf_ready;
     if(ptr->status==FRAME_EMPTY)  --aud_buf_empty;
     if(ptr->status==FRAME_LOCKED) --aud_buf_locked;
@@ -627,7 +627,7 @@ void aframe_set_status(aframe_list_t *ptr, int status)
     if(ptr->status==FRAME_LOCKED) ++aud_buf_locked;
 
     pthread_mutex_unlock(&aframe_list_lock);
-	
+
     return;
 }
 
@@ -635,11 +635,11 @@ void aframe_set_status(aframe_list_t *ptr, int status)
 
 void aframe_fill_print(int r)
 {
-    
-  fprintf(stderr, "(A) fill=%d/%d, empty=%d wait=%d locked=%d, ready=%d, tag=%d\n", aud_buf_fill, aud_buf_max, aud_buf_empty, aud_buf_wait, aud_buf_locked, aud_buf_ready, r);
-}     
 
-   
+  fprintf(stderr, "(A) fill=%d/%d, empty=%d wait=%d locked=%d, ready=%d, tag=%d\n", aud_buf_fill, aud_buf_max, aud_buf_empty, aud_buf_wait, aud_buf_locked, aud_buf_ready, r);
+}
+
+
 /* ------------------------------------------------------------------ */
 
 
@@ -647,9 +647,9 @@ int aframe_fill_level(int status)
 {
 
   if(verbose & TC_STATS) aframe_fill_print(status);
-  
+
   //user has to lock aframe_list_lock to obtain a proper result
-  
+
   if(status==TC_BUFFER_FULL  && aud_buf_fill >= aud_buf_max-1) return(1);
   if(status==TC_BUFFER_READY && aud_buf_ready>0) return(1);
   if(status==TC_BUFFER_EMPTY && aud_buf_fill==0) return(1);

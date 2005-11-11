@@ -4,20 +4,20 @@
  *  Copyright (C) Gerhard Monzel - Januar 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -46,9 +46,9 @@ static int pre[MAX_FILTER];
  *
  *-------------------------------------------------*/
 
-static void optstr_help (void) 
+static void optstr_help (void)
 {
-  fprintf(stderr, 
+  fprintf(stderr,
    "<filterName>[:<option>[:<option>...]][[|/][-]<filterName>[:<option>...]]...\n"
 "long form example:\n"
 "vdeblock:autoq/hdeblock:autoq/linblenddeint    default,-vdeblock\n"
@@ -104,17 +104,17 @@ static void do_getconfig(char *opts)
     optstr_param (opts, "md", "Median deinterlacer", "", "0");
     optstr_param (opts, "de", "Default preset (hb:a/vb:a/dr:a/al)", "", "0");
     optstr_param (opts, "fa", "Fast preset (h1:a/v1:a/dr:a/al)", "", "0");
-    optstr_param (opts, "tn", "Temporal Noise Reducer (1<=2<=3)", 
+    optstr_param (opts, "tn", "Temporal Noise Reducer (1<=2<=3)",
 	    "%d:%d:%d", "64:128:256", "0", "700", "0", "1500", "0", "3000");
     optstr_param (opts, "fq", "Force quantizer", "%d", "15", "0", "255");
     optstr_param (opts, "pre", "Run as a PRE filter", "", "0");
 }
 
-static int no_optstr (char *s) 
+static int no_optstr (char *s)
 {
   int result = 0; // decrement if transcode, increment if mplayer
   char *c = s;
-  
+
   while (c && *c && (c = strchr (c, '=')))  { result--; c++; }
   c = s;
   while (c && *c && (c = strchr (c, '/')))  { result++; c++; }
@@ -156,13 +156,13 @@ static void do_optstr(char *opts)
 		    *(opts-1) = '/';
 		}
 	    }
-		    
-	       
+
+
 	}
 
 	if (*opts == '=')
 	    *opts = ':';
-	
+
 	opts++;
     }
 }
@@ -181,13 +181,13 @@ static char * pp_lookup(char *haystack, char *needle)
 		if (ch[len] == '\0' || ch[len] == '=' || ch[len] == '/') {
 			found = 1;
 		} else {
-			ch++; 
+			ch++;
 		}
-	} 
+	}
 
 	return (ch);
 
-	
+
 }
 
 int tc_filter(frame_list_t *ptr_, char *options)
@@ -196,7 +196,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   static vob_t *vob=NULL;
   int instance = ptr->filter_id;
 
-  
+
   //----------------------------------
   //
   // filter init
@@ -210,19 +210,19 @@ int tc_filter(frame_list_t *ptr_, char *options)
   if(ptr->tag & TC_FRAME_IS_SKIPPED)
 	  return 0;
 
-  if(ptr->tag & TC_FILTER_INIT) 
+  if(ptr->tag & TC_FILTER_INIT)
   {
     char *c;
     int len=0;
-       
+
     if((vob = tc_get_vob())==NULL) return(-1);
-         
+
     if (vob->im_v_codec == CODEC_RGB)
     {
       tc_log_error(MOD_NAME, "filter is not capable for RGB-Mode !");
       return(-1);
     }
-    
+
     if (!options || !(len=strlen(options)))
     {
       tc_log_error(MOD_NAME, "this filter needs options !");
@@ -261,21 +261,21 @@ int tc_filter(frame_list_t *ptr_, char *options)
       tc_log_error(MOD_NAME, "internal error (pp_get_mode_by_name_and_quality)");
       return(-1);
     }
-    
-    if(tc_accel & AC_MMXEXT) 
+
+    if(tc_accel & AC_MMXEXT)
       context[instance] = pp_get_context(width[instance], height[instance], PP_CPU_CAPS_MMX2);
-    else if(tc_accel & AC_3DNOW) 
+    else if(tc_accel & AC_3DNOW)
       context[instance] = pp_get_context(width[instance], height[instance], PP_CPU_CAPS_3DNOW);
-    else if(tc_accel & AC_MMX) 
+    else if(tc_accel & AC_MMX)
       context[instance] = pp_get_context(width[instance], height[instance], PP_CPU_CAPS_MMX);
-    else 
+    else
       context[instance] = pp_get_context(width[instance], height[instance], 0);
-    
+
     if(context[instance]==NULL) {
       tc_log_error(MOD_NAME, "internal error (pp_get_context) (instance=%d)", instance);
       return(-1);
     }
-    
+
     // filter init ok.
     if(verbose) tc_log_info(MOD_NAME, "%s %s #%d", MOD_VERSION, MOD_CAP, ptr->filter_id);
     return(0);
@@ -287,7 +287,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //
   //----------------------------------
 
-  if(ptr->tag & TC_FILTER_GET_CONFIG) 
+  if(ptr->tag & TC_FILTER_GET_CONFIG)
   {
       do_getconfig (options);
       return 0;
@@ -299,8 +299,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //
   //----------------------------------
 
-  
-  if(ptr->tag & TC_FILTER_CLOSE) 
+
+  if(ptr->tag & TC_FILTER_CLOSE)
   {
     if (mode[instance])
       pp_free_mode(mode[instance]);
@@ -311,38 +311,38 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     return(0);
   }
-  
+
   //----------------------------------
   //
   // filter frame routine
   //
   //----------------------------------
 
-    
+
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
-  
-  if(((ptr->tag & TC_PRE_M_PROCESS  && pre[instance]) || 
+
+  if(((ptr->tag & TC_PRE_M_PROCESS  && pre[instance]) ||
 	  (ptr->tag & TC_POST_M_PROCESS && !pre[instance])) &&
 	  !(ptr->attributes & TC_FRAME_IS_SKIPPED))
   {
     unsigned char *pp_page[3];
     int ppStride[3];
-    
+
       pp_page[0] = ptr->video_buf;
       pp_page[1] = pp_page[0] + (width[instance] * height[instance]);
       pp_page[2] = pp_page[1] + (width[instance] * height[instance])/4;
 
       ppStride[0] = width[instance];
       ppStride[1] = ppStride[2] = width[instance]>>1;
-       
-      pp_postprocess(pp_page, ppStride, 
+
+      pp_postprocess(pp_page, ppStride,
 		     pp_page, ppStride,
 		     width[instance], height[instance],
 		     NULL, 0, mode[instance], context[instance], 0);
   }
-  
+
   return(0);
 }
 

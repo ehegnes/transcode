@@ -73,13 +73,13 @@ avisplit_LDADD = \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS)
 
-tcmodinfo_SOURCES = tcmodinfo.c 
+tcmodinfo_SOURCES = tcmodinfo.c
 tcmodinfo_LDADD = \
 	$(DLDARWINLIB) \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS) \
 	-lm
-tcmodinfo_LDFLAGS = -export-dynamic 
+tcmodinfo_LDFLAGS = -export-dynamic
 
 tcmp3cut_SOURCES = tcmp3cut.c
 tcmp3cut_LDADD = \

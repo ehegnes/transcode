@@ -4,26 +4,26 @@
  *  Copyright (C) Tilmann Bitterberg - April 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
-    /* TODO: 
+    /* TODO:
         - animated gif/png support -> done
-        - sequences of jpgs maybe    
+        - sequences of jpgs maybe
 	  would be nice.
      */
 
@@ -72,13 +72,13 @@ typedef struct MyFilterData {
 	int cur_delay;             /* animated: current delay */
 	char **yuv;                /* buffer for RGB->YUV conversion */
 } MyFilterData;
-	
+
 static MyFilterData *mfd = NULL;
 
 /* from /src/transcode.c */
 extern int rgbswap;
 extern int flip;
-/* should probably honor the other flags too */ 
+/* should probably honor the other flags too */
 
 /*-------------------------------------------------
  *
@@ -86,7 +86,7 @@ extern int flip;
  *
  *-------------------------------------------------*/
 
-static void help_optstr(void) 
+static void help_optstr(void)
 {
    tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
@@ -122,7 +122,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
   int column, row;
   int rgb_off = 0;
-  
+
   //----------------------------------
   //
   // filter init
@@ -133,14 +133,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
 
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYO", "1");
-      // buf, name, comment, format, val, from, to  
+      // buf, name, comment, format, val, from, to
       optstr_param (options, "file",   "Image filename",    "%s",    "logo.png");
       optstr_param (options, "posdef", "Position (0=None, 1=TopL, 2=TopR, 3=BotL, 4=BotR, 5=Center)",  "%d", "0", "0", "5");
       optstr_param (options, "pos",    "Position (0-width x 0-height)",  "%dx%d", "0x0", "0", "width", "0", "height");
       optstr_param (options, "range",  "Restrict rendering to framerange",  "%u-%u", "0-0", "0", "oo", "0", "oo");
 
       // bools
-      optstr_param (options, "ignoredelay", "Ignore delay specified in animations", "", "0"); 
+      optstr_param (options, "ignoredelay", "Ignore delay specified in animations", "", "0");
       optstr_param (options, "rgbswap", "Swap red/blue colors", "", "0");
       optstr_param (options, "grayout", "YUV only: don't write Cb and Cr, makes a nice effect", "",  "0");
       optstr_param (options, "flip",   "Mirror image",  "", "0");
@@ -166,12 +166,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
     mfd->ignoredelay = 0;
     mfd->rgbswap     = 0;
     mfd->grayout     = 0;
-    
+
     mfd->nr_of_images = 0;
     mfd->cur_seq      = 0;
 
     if (options != NULL) {
-    
+
 	if(verbose) tc_log_info (MOD_NAME, "options=%s", options);
 
 	optstr_get (options, "file",     "%[^:]",    &mfd->file);
@@ -233,7 +233,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if (mfd->flip || flip) {
 	    timg = FlipImage (images, &exception_info);
 	    if (timg == (Image *) NULL) {
-		MagickError (exception_info.severity, exception_info.reason, 
+		MagickError (exception_info.severity, exception_info.reason,
 			exception_info.description);
 		return -1;
 	    }
@@ -249,12 +249,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if (mfd->flip || flip) {
 	image = nimg;
     }
-    
+
     /* initial delay. real delay = 1/100 sec * delay */
     mfd->cur_delay = image->delay*vob->fps/100;
 
     if (verbose & TC_DEBUG)
-    tc_log_info(MOD_NAME, "Nr: %d Delay: %d image->del %lu|", mfd->nr_of_images,  
+    tc_log_info(MOD_NAME, "Nr: %d Delay: %d image->del %lu|", mfd->nr_of_images,
 	    mfd->cur_delay, image->delay );
 
     if (vob->im_v_codec == CODEC_YUV) {
@@ -262,7 +262,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	int i;
 
 	if (!mfd->yuv) {
-	    mfd->yuv = tc_malloc(sizeof(char *) * mfd->nr_of_images); 
+	    mfd->yuv = tc_malloc(sizeof(char *) * mfd->nr_of_images);
 	    if (!mfd->yuv) {
 		fprintf (stderr, "[%s:%d] ERROR out of memory\n", __FILE__, __LINE__);
 		return (-1);
@@ -278,7 +278,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (!tcv_convert_init(image->columns, image->rows)) {
 	    tc_log_error(MOD_NAME, "image conversion init failed");
-	    return(-1); 
+	    return(-1);
 	}
 
 	/* convert Magick RGB format to 24bit RGB */
@@ -366,8 +366,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    break;
     }
 
-    
-    if ( mfd->posy < 0 || mfd->posx < 0 || 
+
+    if ( mfd->posy < 0 || mfd->posx < 0 ||
 	    mfd->posx+image->columns > vob->ex_v_width ||
 	    mfd->posy+image->rows > vob->ex_v_height) {
 	tc_log_error(MOD_NAME, "invalid position");
@@ -380,7 +380,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     // filter init ok.
     if (verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
-    
+
     return(0);
   }
 
@@ -390,10 +390,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //
   //----------------------------------
 
-  
+
   if(ptr->tag & TC_FILTER_CLOSE) {
 
-    if (mfd) { 
+    if (mfd) {
 	int i;
 	if (mfd->yuv) {
 	    for (i=0; i<mfd->nr_of_images; i++)
@@ -417,18 +417,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
     return(0);
 
   } /* filter close */
-  
+
   //----------------------------------
   //
   // filter frame routine
   //
   //----------------------------------
 
-    
+
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
-  
+
   if((ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO) && !(ptr->attributes & TC_FRAME_IS_SKIPPED))  {
       int seq;
 
@@ -497,7 +497,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 		  if (pixel_packet[images->columns*row + column].opacity == 0) {
 
-		      *(ptr->video_buf + (row+mfd->posy)*vob->ex_v_width + column + mfd->posx) = 
+		      *(ptr->video_buf + (row+mfd->posy)*vob->ex_v_width + column + mfd->posx) =
 			  mfd->yuv[mfd->cur_seq][images->columns*row + column];
 
 		  }

@@ -4,20 +4,20 @@
  *  Copyright (C) Marzio Malanchini - March 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -107,7 +107,7 @@ static int f_af6_sync(FILE *s_fd,char s_type)
 static int f_dim_check(audiovideo_t *p_temp,int *s_new_height,int *s_new_width)
 {
 	int s_rc;
-	
+
 	s_rc=0;
 	if (p_temp->s_v_tg_width==0)
 		*s_new_width=p_temp->s_v_width;
@@ -129,10 +129,10 @@ static int f_dim_check(audiovideo_t *p_temp,int *s_new_height,int *s_new_width)
 static int f_calc_frame_size(audiovideo_t *p_temp,int s_codec)
 {
 	int s_new_height,s_new_width;
-	
+
 	if (f_dim_check(p_temp,&s_new_height,&s_new_width))
 	{
-		switch(s_codec) 
+		switch(s_codec)
 		{
 			case CODEC_RGB:
 				return(3*s_new_width*s_new_height);
@@ -152,13 +152,13 @@ static video_filter_t *f_video_filter(char *p_filter)
 
 	if (p_filter !=NULL)
 	{
-		if(strcasecmp(p_filter,"bell")==0) 
+		if(strcasecmp(p_filter,"bell")==0)
 		{
 			s_v_filter.f_zoom_filter=Bell_filter;
 			s_v_filter.s_zoom_support=Bell_support;
 			s_v_filter.p_zoom_filter="Bell";
 		}
-		else if(strcasecmp(p_filter,"box")==0) 
+		else if(strcasecmp(p_filter,"box")==0)
 		{
 			s_v_filter.f_zoom_filter=Box_filter;
 			s_v_filter.s_zoom_support=Box_support;
@@ -215,7 +215,7 @@ static void f_mod_video_frame(transfer_t *param,audiovideo_t *p_temp,int s_codec
 	zoomer_t	*p_zoomer,*p_zoomer_Y,*p_zoomer_UV;
 	static video_filter_t *p_v_filter;
 	static audiovideo_t *p_tmp=NULL;
-	
+
 
 	if (s_cleanup)
 	{
@@ -229,11 +229,11 @@ static void f_mod_video_frame(transfer_t *param,audiovideo_t *p_temp,int s_codec
 		{
 			p_tmp=p_temp;
 			p_v_filter=f_video_filter(p_temp->p_v_resize_filter);
-			if(verbose_flag) 
+			if(verbose_flag)
 				tc_log_info(MOD_NAME,"setting resize video filter to %s",
 						p_v_filter->p_zoom_filter);
 		}
-		switch(s_codec) 
+		switch(s_codec)
 		{
 			case CODEC_RGB:
 				if (p_pixel_tmp ==NULL)
@@ -285,7 +285,7 @@ static void f_mod_video_frame(transfer_t *param,audiovideo_t *p_temp,int s_codec
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open stream
  *
@@ -298,7 +298,7 @@ MOD_open
 	long s_tot_dummy1,s_tot_dummy2;
 	int s_frame_audio_size=0;
 
-	if(param->flag == TC_VIDEO) 
+	if(param->flag == TC_VIDEO)
 	{
 		param->fd = NULL;
                 if (p_video == NULL)
@@ -308,7 +308,7 @@ MOD_open
                         if (f_build_xml_tree(&s_info_dummy,&s_video,&s_probe_dummy1,&s_probe_dummy2,&s_tot_dummy1,&s_tot_dummy2) == -1)	//create the XML tree
                         {
                                 (int)f_manage_input_xml(NULL,0,&s_video);
-                                tc_log_warn(MOD_NAME,"file %s has invalid format content.", 
+                                tc_log_warn(MOD_NAME,"file %s has invalid format content.",
 						vob->video_in_file);
 				return(TC_IMPORT_ERROR);
                         }
@@ -316,11 +316,11 @@ MOD_open
                 }
 		if (p_video == NULL)
 		{
-                        tc_log_warn(MOD_NAME,"there isn't no file in  %s.", 
+                        tc_log_warn(MOD_NAME,"there isn't no file in  %s.",
 					vob->video_in_file);
 			return(TC_IMPORT_ERROR);
 		}
-		if(p_video->s_v_codec == TC_CODEC_UNKNOWN) 
+		if(p_video->s_v_codec == TC_CODEC_UNKNOWN)
 		{
 			if (vob->dv_yuy2_mode == TC_TRUE)
 		    		s_v_codec=CODEC_YUY2;
@@ -337,7 +337,7 @@ MOD_open
 		   case TC_MAGIC_DV_PAL:
 		   case TC_MAGIC_DV_NTSC:
 			capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_DV|TC_CAP_PCM;
-			switch(s_v_codec) 
+			switch(s_v_codec)
 			{
 				case CODEC_RGB:
 					s_frame_size = 3*(p_video->s_v_width * p_video->s_v_height);
@@ -379,7 +379,7 @@ MOD_open
 		   break;
 		   case TC_MAGIC_MOV:
 			capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV;
-			switch(s_v_codec) 
+			switch(s_v_codec)
 			{
 				case CODEC_RGB:
 					s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height));
@@ -426,7 +426,7 @@ MOD_open
 		   break;
 		   case TC_MAGIC_AVI:
 			capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_AUD|TC_CAP_VID;
-			switch(s_v_codec) 
+			switch(s_v_codec)
 			{
 				case CODEC_RGB:
 				s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height));
@@ -444,7 +444,7 @@ MOD_open
 		   break;
 		   case TC_MAGIC_AF6:
 			capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM;
-			switch(s_v_codec) 
+			switch(s_v_codec)
 			{
 				case CODEC_RGB:
 				s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height));
@@ -479,15 +479,15 @@ MOD_open
 		}
 		param->size=f_calc_frame_size(p_video,s_v_codec);	//setting the frame size
 		p_vframe_buffer=(char *)malloc(s_frame_size);
-		if(verbose_flag) 
+		if(verbose_flag)
 			tc_log_info(MOD_NAME,"setting target video size to %d",param->size);
 		p_video_prev=p_video;
 		p_video=p_video->p_next;
-		if(verbose_flag) 
+		if(verbose_flag)
 			tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 		return(0);
 	}
-	if(param->flag == TC_AUDIO) 
+	if(param->flag == TC_AUDIO)
 	{
 		param->fd = NULL;
 		if (p_audio== NULL)
@@ -512,7 +512,7 @@ MOD_open
 			return(TC_IMPORT_ERROR);
 		}
 		s_frame_audio_size=(1.00 * p_audio->s_a_bits * p_audio->s_a_chan * p_audio->s_a_rate)/(8*p_audio->s_fps);
-		if(verbose_flag) 
+		if(verbose_flag)
 			tc_log_info(MOD_NAME,"setting audio size to %d",s_frame_audio_size);
 		s_a_magic=p_audio->s_a_magic;
 		switch(s_a_magic)
@@ -564,7 +564,7 @@ MOD_open
 			return(TC_IMPORT_ERROR);
 		}
 		p_audio=p_audio->p_next;
-		if(verbose_flag) 
+		if(verbose_flag)
 			tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 		return(0);
 	}
@@ -572,13 +572,13 @@ MOD_open
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
  * ------------------------------------------------------------*/
 
-MOD_decode 
+MOD_decode
 {
 	int s_audio_frame_size;
 	int s_video_frame_size;
@@ -587,7 +587,7 @@ MOD_decode
 	static int s_v_af6_sync=0,s_a_af6_sync=0;
 	int s_frame_audio_size=0;
 
-	if(param->flag == TC_AUDIO) 
+	if(param->flag == TC_AUDIO)
 	{
                 if (param->size < s_audio_frame_size_orig)
                 {
@@ -610,7 +610,7 @@ MOD_decode
                         if (p_audio != NULL)    // is there a file ?
                         {
 				s_frame_audio_size=(1.00 * p_audio->s_a_bits * p_audio->s_a_chan * p_audio->s_a_rate)/(8*p_audio->s_fps);
-				if(verbose_flag) 
+				if(verbose_flag)
 					tc_log_info(MOD_NAME,"setting audio size to %d",s_frame_audio_size);
 				s_a_magic=p_audio->s_a_magic;
 				switch(s_a_magic)
@@ -657,7 +657,7 @@ MOD_decode
                                         tc_log_warn(MOD_NAME,"Error cannot open the pipe.");
                                         return(TC_IMPORT_ERROR);
                                 }
-				if(verbose_flag) 
+				if(verbose_flag)
 					tc_log_info(MOD_NAME, "%s", import_cmd_buf);
                                 p_audio=p_audio->p_next;
                         }
@@ -674,7 +674,7 @@ MOD_decode
                 }
 		return(0);
 	}
-	if(param->flag == TC_VIDEO) 
+	if(param->flag == TC_VIDEO)
 	{
                 if (s_frame_size < s_video_frame_size_orig)
                 {
@@ -697,7 +697,7 @@ MOD_decode
 		{
 			if (p_video !=NULL)	// is there a file ?
 			{
-				if(p_video->s_v_codec == TC_CODEC_UNKNOWN) 
+				if(p_video->s_v_codec == TC_CODEC_UNKNOWN)
 				{
 					if (vob->dv_yuy2_mode == TC_TRUE)
 		    				s_v_codec=CODEC_YUY2;
@@ -713,7 +713,7 @@ MOD_decode
 				{
 		   		   case TC_MAGIC_DV_PAL:
 		   		   case TC_MAGIC_DV_NTSC:
-					switch(s_v_codec) 
+					switch(s_v_codec)
 					{
 						case CODEC_RGB:
 							s_frame_size = 3*(p_video->s_v_width * p_video->s_v_height);
@@ -753,7 +753,7 @@ MOD_decode
 					}
 		   		   break;
 		   		   case TC_MAGIC_MOV:
-					switch(s_v_codec) 
+					switch(s_v_codec)
 					{
 						case CODEC_RGB:
 							s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height));
@@ -798,7 +798,7 @@ MOD_decode
 					}
 		   		   break;
 		   		   case TC_MAGIC_AVI:
-					switch(s_v_codec) 
+					switch(s_v_codec)
 					{
 						case CODEC_RGB:
 							s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height));
@@ -815,7 +815,7 @@ MOD_decode
 					}
 		   		   break;
 				   case TC_MAGIC_AF6:
-					switch(s_v_codec) 
+					switch(s_v_codec)
 					{
 						case CODEC_RGB:
 						s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height));
@@ -849,11 +849,11 @@ MOD_decode
      		                 	return(TC_IMPORT_ERROR);
                		        }
 				param->size=f_calc_frame_size(p_video,s_v_codec);	//setting the frame size
-				if(verbose_flag) 
+				if(verbose_flag)
 					tc_log_info(MOD_NAME,"setting target video size to %d",param->size);
 				p_video_prev=p_video;
                        		p_video=p_video->p_next;
-				if(verbose_flag) 
+				if(verbose_flag)
 					tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 			}
 			else
@@ -873,25 +873,25 @@ MOD_decode
 	return(TC_IMPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
-	if(param->flag == TC_AUDIO) 
+{
+	if(param->flag == TC_AUDIO)
 	{
 		s_fd_audio=0;
-		param->fd=NULL;	
+		param->fd=NULL;
 		return(0);
 	}
-	if(param->flag == TC_VIDEO) 
+	if(param->flag == TC_VIDEO)
 	{
 		f_mod_video_frame(NULL,NULL,0,1); //cleanup
 		s_fd_video=0;
-		param->fd=NULL;	
+		param->fd=NULL;
 		return(0);
 	}
 	return(TC_IMPORT_ERROR);

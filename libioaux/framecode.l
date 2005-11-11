@@ -19,7 +19,7 @@
 
 
 int
-parse_fc_time_string( char * string, double fps, char *separator, 
+parse_fc_time_string( char * string, double fps, char *separator,
                       int fc_verb, struct fc_time **fc_list)
 {
   struct fc_time * time;
@@ -68,12 +68,12 @@ parse_fc_time_string( char * string, double fps, char *separator,
   return 0;
 }
 
-int fc_frame_in_time( struct fc_time * list, unsigned int frame ) 
+int fc_frame_in_time( struct fc_time * list, unsigned int frame )
 {
     while (list) {
 	if (list->stf <= frame && frame < list->etf)
 	    return list->stepf;
-	else 
+	else
 	    list = list->next;
     }
 
@@ -131,9 +131,9 @@ fc_time_normalize( struct fc_time * list, int fc_verb )
       list->sm -= (int)(t+.5);
     }
 
-    t = list->sh * 3600.0 * list->fps + 
-                list->sm *   60.0 * list->fps + 
-		            list->ss * list->fps        + 
+    t = list->sh * 3600.0 * list->fps +
+                list->sm *   60.0 * list->fps +
+		            list->ss * list->fps        +
 			          list->sf;
     list->stf = (int)(t+.5);
     /*
@@ -157,12 +157,12 @@ fc_time_normalize( struct fc_time * list, int fc_verb )
       list->em -= (int)(t+.5);
     }
 
-    t = list->eh * 3600.0 * list->fps + 
-                list->em *   60.0 * list->fps + 
-		            list->es * list->fps        + 
+    t = list->eh * 3600.0 * list->fps +
+                list->em *   60.0 * list->fps +
+		            list->es * list->fps        +
 			          list->ef;
     list->etf = (int)(t+.5);
-                
+
     /*
      * swap values if required
      */
@@ -269,7 +269,7 @@ HOURS_MINUTES_SECONDS_AND_FRAMES  {DIGIT}*{MINUTES_SECONDS_AND_FRAMES}
 
   if( *fc_to ) {
     tail_fc_time( fc_list )->ef = (unsigned)atoi( yytext );
-  } 
+  }
   else {
     tail_fc_time( fc_list )->sf = (unsigned)atoi( yytext );
   }
@@ -403,7 +403,7 @@ HOURS_MINUTES_SECONDS_AND_FRAMES  {DIGIT}*{MINUTES_SECONDS_AND_FRAMES}
   *fc_to = 1;
 
   if( fc_verb )
-    printf( "to " ); 
+    printf( "to " );
 }
 
 {OOPS} {

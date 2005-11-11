@@ -34,9 +34,9 @@ Before you get completly confused, here are some usage examples
   $ transcode -V -i /dev/v4l2/capture0 -x nvrec,null -y xvidcvs,null \
   -o video.avi -g 512x384 -u 100 -m audio.avi -H0
 
-Since import_nvrec only works in YUV mode '-V' is mandatory. 
+Since import_nvrec only works in YUV mode '-V' is mandatory.
 Use your v4l1/2 device as the input file or transcode will assume
-/dev/video. 
+/dev/video.
 Write encoded video stream to video.avi.
 Write audio stream to audio.avi.
 Framesize is 512x384.
@@ -80,11 +80,11 @@ Easy, eh?
 ----------------
 
 divx4rec gets its options from transcode meaning transcode's defaults
-apply. 
+apply.
 
 Audio parameters can be specified through transcodes '-e' option,
 the mp3 bitrate is controlled with '-b' , eg
- 
+
  $ transcode (..) -e 44100,16,2 -b 192
 
 Everything should work like you expect it to work.
@@ -107,7 +107,7 @@ something like
 ---------------
 
 RAWrec is now integrated into NVrec. Since it was heavily based on divx4rec
-anyway it became a special output mode of divx4rec. NVrec lives at 
+anyway it became a special output mode of divx4rec. NVrec lives at
 http://nvrec.sf.net
 
 If you only want divx4rec out of NVrec, configure with
@@ -125,7 +125,7 @@ Done
 * Examples
 ----------
 
-Record video at 512x384 to XviD, audio to mp3 at bitrate 128 
+Record video at 512x384 to XviD, audio to mp3 at bitrate 128
 
   $ transcode -V -i /dev/video -x nvrec,null -y xvidcvs,null \
   -g 512x384 -u 100 -o video.avi -H0
@@ -165,7 +165,7 @@ pipermail/transcode-users/2002-June/002575.html (in one line)
 with xawtv):
 
 transcode --duration 01:00:00 \
-        -x nvrec="-wav",null 
+        -x nvrec="-wav",null
 	-i /dev/video0 -V -H0 -u 100 \
         -g 576x432 \
         -y divx5,null -w 1200 -o output-video.avi \
@@ -203,14 +203,14 @@ Basically I record with the following commands:
 
 Pass 1 (recording)
 
-transcode -V -i /dev/video0 -x nvrec="-N 32",null -y yuv4mpeg,null 
-        -o out_video.yuv4mpeg -g 384x288 -u 100 -m out_audio.avi 
+transcode -V -i /dev/video0 -x nvrec="-N 32",null -y yuv4mpeg,null
+        -o out_video.yuv4mpeg -g 384x288 -u 100 -m out_audio.avi
 	-H0 -f 25
 
 Pass 2 (encoding)
 
 nice -19 transcode -i out_video.yuv4mpeg -p out_audio.avi
-		-g 384x288 -f 25 -x yuv4mpeg,mp3 -y ffmpeg4 -w 3000 
+		-g 384x288 -f 25 -x yuv4mpeg,mp3 -y ffmpeg4 -w 3000
 		-o out.avi -u 100 -J dnr,yuvdenoise,32detect=force_mode=3
 
 The advantage is, that the recording stage needs ~5% CPU time, so I
@@ -230,7 +230,7 @@ comparison."
 * Changes
 ---------
 (newest last)
-- NVrec interface changed based on discussion with Justin. RAWrec is now 
+- NVrec interface changed based on discussion with Justin. RAWrec is now
   divx4rec -o raw:// in raw file mode.
 - Use -i ... as input video device.
 - Use -H0 to disable conflicting autoprobing with import_v4l

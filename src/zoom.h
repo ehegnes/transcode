@@ -7,20 +7,20 @@
  *  2001/08/22: Modified by Vaclav Slavik for inclusion in transcode
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -42,7 +42,7 @@ typedef struct
 
 /* Initializes image_t structure for given width and height.
    Please do NOT manipulate xsize, span and ysize properties directly,
-   zooming code has inverted meaning of x and y axis 
+   zooming code has inverted meaning of x and y axis
    (i.e. w=ysize, h=xsize)  */
 extern void zoom_setup_image(image_t *img, int w, int h, int depth, pixel_t *data);
 
@@ -88,7 +88,7 @@ extern void zoom_image_done(zoomer_t *zoomer);
    longer processing takes. Filter function's cost is much less
    important because it is computed only once, during zoomer_t
    initialization.
-   
+
    Lanczos3 yields best result when downscaling video. */
 
 #define       Box_support       (0.5)

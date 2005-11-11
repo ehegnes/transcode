@@ -20,19 +20,19 @@ program stream, video, audio, transcode, decoder, stream, YV12">
     </tr>
     <tr>
       <td>
-	  
+
 	  This chapter gives an introduction to Digital Video
 	  processing with transcode. Here is a list of features:
-	  
+
 	  <ul>
 	    <li> AVI-files with Digital Video streams can be
-		 decoded with 
+		 decoded with
 		 <ul>
 		   <li><i>libdv</i> (default)
 		   <li><i>avifile</i> (-x af6)
 		   <li><i>ffmpeg</i> (-x ffmpeg)
 		 </ul>
-		 
+
 	  <li> concatenating clips with directory mode and option "-i <i>direname</i>"
 	      before processing.
 	  <li> a couple of fast or high-quality de-interlace
@@ -47,7 +47,7 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 	produced by <i>transcode</i>, the nonlinear DV video
 	editor <a href=http://www.schirmacher.de/arne/kino/><i>kino</i></a>
 	refuses to work with them.
- 		  
+
 	<ul>
 	  <li> <a href="dv.html#dv"> <FONT FACE="Lucida,Helvetica">
 	  Digital Video DV</font></a>
@@ -64,7 +64,7 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 	   de-interlacing guide</font></a> <p>
        <li> <a href="#alias"> <FONT FACE="Lucida,Helvetica">
 	   anti-aliasing guide</font></a>
-	   
+
       </td>
     </tr>
 </table>
@@ -88,7 +88,7 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 	  MPEG-4 movie clip under linux using <i>transcode</i>. For a
 	   selection of a video codec implementation supported by
 	   transcode consult the <a href=modules.html> modules</a> info-page.
-	   
+
 	  <ul>
 	    <li> You need Arne Schirmacher's nice tool <i>dvgrab</I>
 		to transfer the DV tape to disk. Make sure, you use
@@ -99,7 +99,7 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		 </i> to find out important parameters: For example:
 
 		 <p><code>
-		 
+
 [tcprobe] RIFF data, AVI video
 [avilib] V: 25.000 fps, codec=dvsd, frames=633, width=720, height=576 <br>
 [avilib] A: 48000 Hz, format=0x01, bits=16, channels=2, bitrate=1536
@@ -112,7 +112,7 @@ import frame size: -g 720x576 [720x576] <br>
                    bitrate=1536 kbps <br>
            length: 633 frames, frame_time=40 msec <br>
 </code><p>
-		 
+
 		 Fortunately, the auto-probing feature
 		of <i>transcode</i> takes care of these details.
 		 <br><br>
@@ -130,9 +130,9 @@ import frame size: -g 720x576 [720x576] <br>
 		 </ul>
 
 		 <a name=dv_avi><h3>AVI-file</h3></a>
-		 
+
 		 Here,
-		 we use a single AVI-file <i>file.avi</i> with "dvsd" codec 
+		 we use a single AVI-file <i>file.avi</i> with "dvsd" codec
 		 as an example: <p>
 
 
@@ -140,21 +140,21 @@ import frame size: -g 720x576 [720x576] <br>
 		   <tr>
 		     <td align=left valign="top" bgcolor="#ccffcc">
 		     transcode</td>
-		     
+
 		     <td align=left valign="top" bgcolor="#ccffcc">
 		     -i file.avi -x dv,avi</td>
 		   </tr>
-		   
+
 		   <tr><td></td>
 		       <td align=left valign="top" bgcolor="#ccffcc">
 		       -I 1 -C 1 -z -k  </td>
 		  </tr>
-		  
+
 	     <td></td><td align=left valign="top" bgcolor="#ccffcc">
 		 -o file-divxmp3.avi -y divx4</td></tr>
-		 
+
 	   </table>
-	   
+
 	   <br>
 
 	   We use <i>import_avi.so</i> to extract the audio,
@@ -179,9 +179,9 @@ import frame size: -g 720x576 [720x576] <br>
 	   The option "-z -k" flips the frame and make the
 	   necessary color space changes for the encoder.
 
-	   
+
 	   <a name=dv_dv><h3>DV stream</h3></a>
-		 
+
 	   Put all AVI-files or raw DV stream into a subdirectory,
 	   e.g., named "tape/". <p>
 
@@ -190,34 +190,34 @@ import frame size: -g 720x576 [720x576] <br>
 	     <tr>
 	       <td align=left valign="top" bgcolor="#ccffcc">
 	       transcode</td>
-	       
+
 	       <td align=left valign="top" bgcolor="#ccffcc">
 	       -i tape/ </td>
 	     </tr>
-	     
+
 	     <tr><td></td>
 		 <td align=left valign="top" bgcolor="#ccffcc">
 		 -I 3 -C 2 -z -k  </td>
 	   </tr>
-	   
+
        <td></td><td align=left valign="top" bgcolor="#ccffcc">
 	   -o tape-divxmp3.avi -y divx4</td></tr>
-	   
+
      </table>
-     
+
      <br>
 
      The necessary import module is autodetected. <i>tccat</i> extracts
      the video stream of all AVI-files and concatenates them together to
      make the clips appear as a single DV stream for <i>transcode</i>.
-	   
+
      Here, the de-interlace option "-I 3",
      which drops one half-frame and interpolates by zooming to full
      frame size and, in principle, removes the interlace artifacts. We also try
 	   the anti-aliasing feature with "-C 2" to process the
 	   full frame afterwards, but this is slow.
      <p>
-	   
+
  <li> Well, that's it. Use <i>avimerge</i> to glue the
      matching clips together and burn the resulting file
      to CD.
@@ -258,7 +258,7 @@ import frame size: -g 720x576 [720x576] <br>
 	   tcextract -i raw.avi -x raw > raw.dv
 	   </code>
 	   <p>
-	   
+
 </table>
 </table>
 
@@ -274,9 +274,9 @@ import frame size: -g 720x576 [720x576] <br>
     <tr>
       <td>
 
-	  Underway. 
+	  Underway.
 	  Tilmann Bitterberg did some testing of de-interlace filters available in
-	  transcode. You can view and read the result 
+	  transcode. You can view and read the result
 	  <a href=http://tibit.org/video/> here</a>.
 </table>
 </table>
@@ -294,7 +294,7 @@ import frame size: -g 720x576 [720x576] <br>
     <tr>
       <td>
 
-	  Underway. 
+	  Underway.
 
 </table>
 </table>

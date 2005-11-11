@@ -9,20 +9,20 @@
  *  part of libdv, a free DV (IEC 61834/SMPTE 314M) codec.
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -61,10 +61,10 @@ typedef enum dv_dpy_lib_e {
 } dv_dpy_lib_t;
 
 
-typedef enum color_space_e { 
-  e_dv_color_yuv, 
-  e_dv_color_rgb, 
-  e_dv_color_bgr0, 
+typedef enum color_space_e {
+  e_dv_color_yuv,
+  e_dv_color_rgb,
+  e_dv_color_bgr0,
 } dv_color_space_t;
 
 
@@ -77,7 +77,7 @@ typedef struct {
 
   /* Begin Private */
   dv_dpy_lib_t       lib;
-  uint32_t           len; 
+  uint32_t           len;
   uint32_t           format;   /* fourcc code for YUV modes */
 
   /* -----------------------------------------------------------
@@ -118,7 +118,7 @@ typedef struct {
 
   xv_display_t    *display;
   xv_mmap_region_t mmap_region;
-  
+
   struct stat     statbuf;
   struct timeval  tv[3];
   int             arg_disable_audio;
@@ -131,13 +131,13 @@ typedef struct {
 extern "C" {
 #endif
 
-  extern xv_player_t *xv_player_new(void); 
+  extern xv_player_t *xv_player_new(void);
   extern xv_display_t *xv_display_new(void);
   extern int xv_display_init(xv_display_t *dpy,
-			     int *argc, char ***argv, 
-			     int width, int height, 
-			     char *w_name, char *i_name, int yuv422); 
-  
+			     int *argc, char ***argv,
+			     int width, int height,
+			     char *w_name, char *i_name, int yuv422);
+
   extern void xv_display_show(xv_display_t *dv_dpy);
   extern void xv_display_event(xv_display_t *dv_dpy);
   extern void xv_display_exit(xv_display_t *dv_dpy);
@@ -155,7 +155,7 @@ extern "C" {
   int preview_grab_jpeg(void);
 
   char **char2bmp(char c);
-  void bmp2img(char *img, char **c, int width, int height, 
+  void bmp2img(char *img, char **c, int width, int height,
 	       int char_width, int char_height, int posx, int posy, int codec);
   void str2img(char *img, char *c, int width,  int height,
 	       int char_width, int char_height, int posx, int posy, int codec);
@@ -164,7 +164,7 @@ extern "C" {
  extern int cache_short_skip;
 
  int DoSelection(XButtonEvent *ev, int *xanf, int *yanf, int *xend, int *yend);
-  
+
 #ifdef __cplusplus
 }
 #endif

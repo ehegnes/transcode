@@ -1,4 +1,4 @@
-/* 
+/*
  *  dv_types.h
  *
  *     Copyright (C) Charles 'Buck' Krasic - April 2000
@@ -11,17 +11,17 @@
  *  under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your
  *  option) any later version.
- *   
+ *
  *  libdv is distributed in the hope that it will be useful, but
  *  WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *  General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- *  The libdv homepage is http://libdv.sourceforge.net/.  
+ *  The libdv homepage is http://libdv.sourceforge.net/.
  */
 #ifndef DV_TYPES_H
 #define DV_TYPES_H
@@ -108,29 +108,29 @@ static const gint header_size = 80 * 52; // upto first audio AAUX AS
 static const gint frame_size_525_60 = 10 * 150 * 80;
 static const gint frame_size_625_50 = 12 * 150 * 80;
 
-typedef enum color_space_e { 
-  e_dv_color_yuv, 
-  e_dv_color_rgb, 
-  e_dv_color_bgr0, 
+typedef enum color_space_e {
+  e_dv_color_yuv,
+  e_dv_color_rgb,
+  e_dv_color_bgr0,
 } dv_color_space_t;
 
-typedef enum sample_e { 
+typedef enum sample_e {
   e_dv_sample_none = 0,
   e_dv_sample_411,
   e_dv_sample_420,
   e_dv_sample_422,
 } dv_sample_t;
 
-typedef enum system_e { 
+typedef enum system_e {
   e_dv_system_none = 0,
   e_dv_system_525_60,    // NTSC
   e_dv_system_625_50,    // PAL
 } dv_system_t;
 
-typedef enum std_e { 
+typedef enum std_e {
   e_dv_std_none = 0,
-  e_dv_std_smpte_314m,    
-  e_dv_std_iec_61834,    
+  e_dv_std_smpte_314m,
+  e_dv_std_iec_61834,
 } dv_std_t;
 
 typedef gint16 dv_coeff_t;
@@ -176,14 +176,14 @@ typedef struct {
   gint         class_no;
   gint8        *reorder;
   gint8        *reorder_sentinel;
-  gint         offset;   // bitstream offset of first unused bit 
+  gint         offset;   // bitstream offset of first unused bit
   gint         end;      // bitstream offset of last bit + 1
   gint         eob;
   gboolean     mark;     // used during passes 2 & 3 for tracking fragmented vlcs
 } dv_block_t;
 
 typedef struct {
-  gint       i,j;   // superblock row/column, 
+  gint       i,j;   // superblock row/column,
   gint       k;     // macroblock no. within superblock */
   gint       x, y;  // top-left corner position
   dv_block_t b[6];
@@ -196,7 +196,7 @@ typedef struct {
 typedef struct {
   gint            i, k;
   bitstream_t    *bs;
-  dv_macroblock_t mb[5]; 
+  dv_macroblock_t mb[5];
   gboolean        isPAL;
 } dv_videosegment_t;
 
@@ -207,7 +207,7 @@ typedef struct {
 // Frame
 typedef struct {
   gboolean           placement_done;
-  dv_dif_sequence_t  ds[12];  
+  dv_dif_sequence_t  ds[12];
 } dv_frame_t;
 
 /* From Section 8.1 of 61834-4: Audio auxiliary data source pack fields pc1-pc4.
@@ -229,7 +229,7 @@ typedef struct {
 
 typedef struct {
 #if defined(LITTLE_ENDIAN_BITFIELD)
-  guint8 af_size : 6; /* Samples per frame: 
+  guint8 af_size : 6; /* Samples per frame:
 		       * 32 kHz: 1053-1080
 		       * 44.1: 1452-1489
 		       * 48: 1580-1620 */
@@ -238,7 +238,7 @@ typedef struct {
 #elif defined(BIG_ENDIAN_BITFIELD)
   guint8 lf      : 1; // Locked mode flag (1 = unlocked)
   guint8         : 1; // Should be 1
-  guint8 af_size : 6; /* Samples per frame: 
+  guint8 af_size : 6; /* Samples per frame:
 		       * 32 kHz: 1053-1080
 		       * 44.1: 1452-1489
 		       * 48: 1580-1620 */
@@ -248,13 +248,13 @@ typedef struct {
 typedef struct {
 #if defined(LITTLE_ENDIAN_BITFIELD)
   guint8 audio_mode: 4; // See 8.1...
-  guint8 pa        : 1; // pair bit: 0 = one pair of channels, 1 = independent channel (for sm = 1, pa shall be 1) 
+  guint8 pa        : 1; // pair bit: 0 = one pair of channels, 1 = independent channel (for sm = 1, pa shall be 1)
   guint8 chn       : 2; // number of audio channels per block: 0 = 1 channel, 1 = 2 channels, others reserved
   guint8 sm        : 1; // stereo mode: 0 = Multi-stereo, 1 = Lumped
 #elif defined(BIG_ENDIAN_BITFIELD)
   guint8 sm        : 1; // stereo mode: 0 = Multi-stereo, 1 = Lumped
   guint8 chn       : 2; // number of audio channels per block: 0 = 1 channel, 1 = 2 channels, others reserved
-  guint8 pa        : 1; // pair bit: 0 = one pair of channels, 1 = independent channel (for sm = 1, pa shall be 1) 
+  guint8 pa        : 1; // pair bit: 0 = one pair of channels, 1 = independent channel (for sm = 1, pa shall be 1)
   guint8 audio_mode: 4; // See 8.1...
 #endif // BIG_ENDIAN_BITFIELD
 } dv_aaux_as_pc2_t;
@@ -360,28 +360,28 @@ typedef struct {
 
 typedef struct {
   dv_aaux_as_t      aaux_as;           // low-level audio format info direct from the stream
-  dv_aaux_asc_t     aaux_asc;          
-  gint              samples_this_frame; 
+  dv_aaux_asc_t     aaux_asc;
+  gint              samples_this_frame;
   gint              quantization;
   gint              max_samples;
   gint              frequency;
   gint              num_channels;
-  gboolean          emphasis;              
+  gboolean          emphasis;
   gint              arg_audio_emphasis;
   gint              arg_audio_frequency;
   gint              arg_audio_quantization;
 #if HAVE_LIBPOPT
-  struct poptOption option_table[DV_AUDIO_NUM_OPTS+1]; 
+  struct poptOption option_table[DV_AUDIO_NUM_OPTS+1];
 #endif // HAVE_LIBPOPT
 } dv_audio_t;
 
 typedef struct {
-  guint              quality;        
+  guint              quality;
   gint               arg_block_quality; // default 3
   gint               arg_monochrome;
 
 #if HAVE_LIBPOPT
-  struct poptOption  option_table[DV_VIDEO_NUM_OPTS+1]; 
+  struct poptOption  option_table[DV_VIDEO_NUM_OPTS+1];
 #endif // HAVE_LIBPOPT
 
 } dv_video_t;
@@ -409,7 +409,7 @@ typedef struct {
   guint8             vaux_data [45][4];
 
 #if HAVE_LIBPOPT
-  struct poptOption option_table[DV_DECODER_NUM_OPTS+1]; 
+  struct poptOption option_table[DV_DECODER_NUM_OPTS+1];
 #endif // HAVE_LIBPOPT
 } dv_decoder_t;
 

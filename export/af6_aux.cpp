@@ -4,24 +4,24 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *  Copyright (C) 2001 Bram Avontuur (bram@avontuur.org)
  *
- *  codec parameter settings cleanup 
+ *  codec parameter settings cleanup
  *  by Gerhard Monzel <gerhard.monzel@sap.com>
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 #include "config.h"
@@ -63,8 +63,8 @@ struct codec_attr {
 int attr_count = 0;
 
 #ifndef __FreeBSD__ /* Does it work on other systems? */
-  //static 
-#endif 
+  //static
+#endif
 void long2str(unsigned char *dst, int n)
 {
    dst[0] = (n    )&0xff;
@@ -81,19 +81,19 @@ unsigned long str2ulong(unsigned char *str)
 void list_codecs()
 {
   avm::vector<CodecInfo>::iterator it;
-  
+
   fprintf(stderr, "(%s) available codecs:\n", __FILE__);
-  
+
   for ( it = video_codecs.begin(); it != video_codecs.end(); it++)
   {
      if (it->kind == CodecInfo::DShow_Dec) continue;
-      
+
      const char *cname = it->GetName();
      fprintf(stderr, "\"%s\",", cname);
   }
   fprintf(stderr, "\n");
 }
-  
+
 void list_attributes(const CodecInfo *info)
 {
   int defval=-1;
@@ -135,7 +135,7 @@ void list_attributes(const CodecInfo *info)
   	fprintf(stderr, "\tType: string (default value: %s)\n", def_str);
   	break;
     }
-  }  
+  }
   fprintf(stderr, "\n");
 }
 
@@ -143,22 +143,22 @@ void list_attributes(const CodecInfo *info)
 int get_attribute(const CodecInfo *info, const char *attr)
 {
 	int defval=-1;
-	
+
 	avm::vector<AttributeInfo> enc_attr = info->encoder_info;
 	avm::vector<AttributeInfo>::const_iterator it;
-	
+
 	for(it=enc_attr.begin(); it!=enc_attr.end(); it++) {
 
 	  if (strcasecmp(attr, it->GetName()))
 	    continue; //wrong attribute.
-	  
+
 	  switch(it->kind) {
-	    
+
 	  case AttributeInfo::Integer:
 	    GetCodecAttr(*info, it->GetName(), defval);
 	    return(defval);
 	    break;
-	    
+
 	  default:
 	    defval=-1;
 	    break;
@@ -177,30 +177,30 @@ const CodecInfo *is_valid_codec(const char *cname, fourcc_t *found_codec)
   //fix ends
 
   if (!cname) return NULL;
-  
+
   *found_codec = 0xFFFFFFFF;
-  
+
   VideoEncoderInfo GetInfo();
-  
+
   avm::vector<CodecInfo>::iterator it;
-  
+
   for (it = video_codecs.begin(); it != video_codecs.end(); it++)
   {
       if (it->kind == CodecInfo::DShow_Dec) continue;
-      
+
       if (!strcasecmp(cname, it->GetName()))
       {
 	*found_codec = it->fourcc;
-        
+
         //-- force all codecs to be encoder !!!   --
         //-- some codecs may be crash, but nobody --
         //-- would use it a 2nd. time :-)         --
         it->direction = CodecInfo::Both;
-        
+
         return it;
       }
   }
-  
+
   return NULL;
 }
 
@@ -221,7 +221,7 @@ short set_attribute_int(const CodecInfo *info, const char *attr, int val)
 		case AttributeInfo::Integer:
 		  SetCodecAttr(*info, it->GetName(), val);
 		  break;
-		  
+
 		default:
 		  retval = 1;
 		}
@@ -248,11 +248,11 @@ short set_attribute(const CodecInfo *info, const char *attr, const char *val)
 		{
 		case AttributeInfo::Integer:
 		  SetCodecAttr(*info, it->GetName(), atoi(val));
-		  
+
 		  break;
 		case AttributeInfo::String:
 		  SetCodecAttr(*info, it->GetName(), val);
-		  
+
 		  break;
 		case AttributeInfo::Select:
 		  SetCodecAttr(*info, it->GetName(), val);
@@ -284,7 +284,7 @@ void clear_attributes()
 {
 	if (!attr_count)
 		return;
-	
+
 	if (attributes)
 		free(attributes);
 	attributes = NULL;
@@ -293,7 +293,7 @@ void clear_attributes()
 
 short add_attribute(const char *attr)
 {
-	int 
+	int
 		attr_len = strlen(attr) + 1;
 	char
 		attrname[attr_len],
@@ -304,13 +304,13 @@ short add_attribute(const char *attr)
 	int val = sscanf(attr,"%[^=]=%s", attrname, attrval);
 	if (val != 2)
 		return 0;
-	
+
 	new_attr.name = tc_strdup(attrname);
 	new_attr.val = tc_strdup(attrval);
 
 	attributes = (struct codec_attr*)realloc(attributes, (attr_count + 1) *
 		sizeof(struct codec_attr));
-	attributes[attr_count++] = new_attr;	
+	attributes[attr_count++] = new_attr;
 
 	return 1;
 }
@@ -329,9 +329,9 @@ static void remove_ch(char *line, char *garbage)
   {
     src = line;
     dst = line;
-   
+
     while (*src)
-    { 
+    {
       if (*src != *idx)
       {
         *dst = *src;
@@ -353,7 +353,7 @@ static void adjust_ch(char *line, char ch)
   do { src--; } while ( (src != line) && (*src == ch) );
   *(src+1) = '\0';
   src = line;
-  while (*src == ch) src++; 
+  while (*src == ch) src++;
 
   if (src == line) return;
 
@@ -380,20 +380,20 @@ int setup_codec_byFile(char *mod_name, const CodecInfo *info, vob_t *vob, int ve
   int  hit = 0;
 
   //-- try to open config-file --
-  //-----------------------------  
+  //-----------------------------
   strlcpy(fname, "~/.transcode/export_af6.conf", sizeof(fname));
   cfg_file = fopen(fname, "r");
-  if (!cfg_file) 
+  if (!cfg_file)
   {
     tc_snprintf(fname, sizeof(fname), "%s/export_af6.conf", vob->mod_path);
     cfg_file = fopen(fname, "r");
-  }  
+  }
   if (!cfg_file) return 0;
 
   //-- search codec section --
   //--------------------------
   while ( fgets(line, 128, cfg_file) )
-  { 
+  {
     //-- remove comments --
     if ( (pstr = strchr(line, '#')) != NULL ) *pstr = '\0';
 
@@ -401,20 +401,20 @@ int setup_codec_byFile(char *mod_name, const CodecInfo *info, vob_t *vob, int ve
     remove_ch(line, "\t\n");
     if (!strlen(line)) continue;
 
-    if ( (pstr = strchr(line, '[')) != NULL ) 
+    if ( (pstr = strchr(line, '[')) != NULL )
     {
-      char *ptmp; 
+      char *ptmp;
       if ( (ptmp = strchr(pstr,']')) != NULL )
       {
         *ptmp = '\0';
         pstr++;
-        if ( !strcmp(pstr, info->GetName()) ) 
+        if ( !strcmp(pstr, info->GetName()) )
         {
           hit = 1;
           break;
         }
       }
-    }  
+    }
   }
 
   //-- codec section found --
@@ -435,11 +435,11 @@ int setup_codec_byFile(char *mod_name, const CodecInfo *info, vob_t *vob, int ve
 
       //-- ... or test for valid parameter definition --
       if ( (pstr = strchr(line, '=')) != NULL)
-      { 
+      {
         *pstr = '\0';
         pstr++;
         if (!(*pstr)) continue;
-        
+
         adjust_ch(line, ' ');
         adjust_ch(pstr, ' ');
         if ( !strlen(line) || !strlen(pstr) ) continue;
@@ -447,11 +447,11 @@ int setup_codec_byFile(char *mod_name, const CodecInfo *info, vob_t *vob, int ve
         //-- get name and value of parameter entry --
         strlcpy(param_name, line, sizeof(param_name));
         param_val = atoi(pstr);
-        
+
         //-- count parameter --
         n++;
-        if (n==1) printf("[%s] using config from (%s)\n", mod_name, fname);  
-        
+        if (n==1) printf("[%s] using config from (%s)\n", mod_name, fname);
+
         //-- set now --
         Creators::SetCodecAttr(*info, param_name, param_val);
         Creators::GetCodecAttr(*info, param_name, value);
@@ -459,33 +459,33 @@ int setup_codec_byFile(char *mod_name, const CodecInfo *info, vob_t *vob, int ve
         //-- validation --
         if (param_val != value)
         {
-          fprintf(stderr, "[%s] failed to set '%s' (%d) for encoder\n", 
+          fprintf(stderr, "[%s] failed to set '%s' (%d) for encoder\n",
                   mod_name, param_name, param_val);
 
           //-- force update of registry-entry -> this will be helpfull --
           //-- for codecs reading there properties from registry like  --
-          //-- Win32-Divx4.11 !                                        --  
+          //-- Win32-Divx4.11 !                                        --
           // update_registry(info, param_name, param_val);
 
           list_attr = 1;
         }
         else if (1) //verbose & TC_DEBUG)
         {
-          printf("[%s] set '%s' to (%d)\n", 
+          printf("[%s] set '%s' to (%d)\n",
                  mod_name, param_name, param_val);
-        } 
-      } 
-    }  
-  }   
+        }
+      }
+    }
+  }
 
   fclose(cfg_file);
 
   //-- sometimes need to know, which properties are available --
-  //------------------------------------------------------------ 
+  //------------------------------------------------------------
   if ( (n && list_attr) || (verbose & TC_DEBUG)) list_attributes(info);
 
   return n;
-} 
+}
 
 int setup_codec_byParam(char *mod_name, const CodecInfo *info, vob_t *vob, int verbose)
 {
@@ -494,26 +494,26 @@ int setup_codec_byParam(char *mod_name, const CodecInfo *info, vob_t *vob, int v
 
   //-- set Bitrate --
   //-----------------
-  
+
   if(vob->divxbitrate != VBITRATE) {
 
     Creators::SetCodecAttr(*info, "BitRate", vob->divxbitrate);
     Creators::GetCodecAttr(*info, "BitRate", value);
     if (vob->divxbitrate != value)
       {
-	fprintf(stderr, "[%s] failed to set 'BitRate' (%d) for encoder\n", 
+	fprintf(stderr, "[%s] failed to set 'BitRate' (%d) for encoder\n",
 		mod_name, vob->divxbitrate);
 	list_attr = 1;
       }
     else if (verbose & TC_DEBUG)
       {
 	printf("[%s] set 'BitRate' to (%d)\n", mod_name, vob->divxbitrate);
-      } 
+      }
   }
-  
+
   //-- set Keyframes --
   //-------------------
-  
+
 
   if(vob->divxkeyframes != VKEYFRAMES) {
 
@@ -522,19 +522,19 @@ int setup_codec_byParam(char *mod_name, const CodecInfo *info, vob_t *vob, int v
     Creators::GetCodecAttr(*info, "KeyFrames", value);
     if (vob->divxkeyframes != value)
       {
-	fprintf(stderr, "[%s] failed to set 'KeyFrames' (%d) for encoder\n", 
+	fprintf(stderr, "[%s] failed to set 'KeyFrames' (%d) for encoder\n",
 		mod_name, vob->divxkeyframes);
 	list_attr = 1;
       }
     else if (verbose & TC_DEBUG)
       {
 	printf("[%s] set 'KeyFrames' to (%d)\n", mod_name, vob->divxkeyframes);
-      } 
+      }
   }
 
   //-- Set Crispness --
   //-------------------
-  
+
   if(vob->divxcrispness != VCRISPNESS) {
 
     value = 0;
@@ -542,20 +542,20 @@ int setup_codec_byParam(char *mod_name, const CodecInfo *info, vob_t *vob, int v
     Creators::GetCodecAttr(*info, "Crispness", value);
     if (vob->divxcrispness != value)
       {
-	fprintf(stderr, "[%s] failed to set 'Crispness' (%d) for encoder\n", 
+	fprintf(stderr, "[%s] failed to set 'Crispness' (%d) for encoder\n",
 		mod_name, vob->divxcrispness);
 	list_attr = 1;
       }
     else if (verbose & TC_DEBUG)
       {
 	printf("[%s] set 'Crispness' to (%d)\n", mod_name, vob->divxcrispness);
-      } 
+      }
   }
-  
+
   //-- sometimes need to know, which properties are available --
-  //------------------------------------------------------------ 
+  //------------------------------------------------------------
   if (list_attr || (verbose & TC_DEBUG)) list_attributes(info);
-  
+
   return 1;
 }
 

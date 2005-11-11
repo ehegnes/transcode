@@ -1,23 +1,23 @@
-/* 
+/*
  *    coeff.c
  *
  *	Copyright (C) Aaron Holtzman - May 1999
  *
  *  This file is part of ac3dec, a free Dolby AC-3 stream decoder.
- *	
+ *
  *  ac3dec is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  ac3dec is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -36,30 +36,30 @@
 //
 //Lookup tables of 0.15 two's complement quantization values
 //
-static const uint_16 q_1[3] = 
+static const uint_16 q_1[3] =
 {
-	( -2 << 15)/3, 0,(  2 << 15)/3 
+	( -2 << 15)/3, 0,(  2 << 15)/3
 };
 
-static const uint_16 q_2[5] = 
+static const uint_16 q_2[5] =
 {
 	( -4 << 15)/5,( -2 << 15)/5, 0,
 	(  2 << 15)/5,(  4 << 15)/5
 };
 
-static const uint_16 q_3[7] = 
+static const uint_16 q_3[7] =
 {
 	( -6 << 15)/7,( -4 << 15)/7,( -2 << 15)/7, 0,
 	(  2 << 15)/7,(  4 << 15)/7,(  6 << 15)/7
 };
 
-static const uint_16 q_4[11] = 
+static const uint_16 q_4[11] =
 {
 	(-10 << 15)/11,(-8 << 15)/11,(-6 << 15)/11, ( -4 << 15)/11,(-2 << 15)/11,  0,
 	(  2 << 15)/11,( 4 << 15)/11,( 6 << 15)/11, (  8 << 15)/11,(10 << 15)/11
 };
 
-static const uint_16 q_5[15] = 
+static const uint_16 q_5[15] =
 {
 	(-14 << 15)/15,(-12 << 15)/15,(-10 << 15)/15,
 	( -8 << 15)/15,( -6 << 15)/15,( -4 << 15)/15,
@@ -72,7 +72,7 @@ static const uint_16 q_5[15] =
 // Scale factors for convert_to_float
 //
 
-static const uint_32 u32_scale_factors[25] = 
+static const uint_32 u32_scale_factors[25] =
 {
 	0x38000000, //2 ^ -(0 + 15)
 	0x37800000, //2 ^ -(1 + 15)
@@ -155,7 +155,7 @@ coeff_unpack(bsi_t *bsi, audblk_t *audblk, stream_samples_t samples)
 		{
 			// ncplmant is equal to 12 * ncplsubnd
 			// Don't dither coupling channel until channel separation so that
-			// interchannel noise is uncorrelated 
+			// interchannel noise is uncorrelated
 			for(j=audblk->cplstrtmant; j < audblk->cplendmant; j++)
 				audblk->cplmant[j] = coeff_get_mantissa(audblk->cpl_bap[j],0);
 			done_cpl = 1;
@@ -175,7 +175,7 @@ coeff_unpack(bsi_t *bsi, audblk_t *audblk, stream_samples_t samples)
 
 	if(bsi->lfeon)
 	{
-		// There are always 7 mantissas for lfe, no dither for lfe 
+		// There are always 7 mantissas for lfe, no dither for lfe
 		for(j=0; j < 7 ; j++)
 		{
 			mantissa = coeff_get_mantissa(audblk->lfe_bap[j],0);
@@ -213,9 +213,9 @@ coeff_get_mantissa(uint_16 bap, uint_16 dithflag)
 				if(group_code > 26)
 					goto error;
 
-				m_1[0] = group_code / 9; 
-				m_1[1] = (group_code % 9) / 3; 
-				m_1[2] = (group_code % 9) % 3; 
+				m_1[0] = group_code / 9;
+				m_1[1] = (group_code % 9) / 3;
+				m_1[2] = (group_code % 9) % 3;
 				m_1_pointer = 0;
 			}
 			mantissa = m_1[m_1_pointer++];
@@ -232,7 +232,7 @@ coeff_get_mantissa(uint_16 bap, uint_16 dithflag)
 
 				m_2[0] = group_code / 25;
 				m_2[1] = (group_code % 25) / 5 ;
-				m_2[2] = (group_code % 25) % 5 ; 
+				m_2[2] = (group_code % 25) % 5 ;
 				m_2_pointer = 0;
 			}
 			mantissa = m_2[m_2_pointer++];
@@ -293,7 +293,7 @@ error:
 //
 // Reset the mantissa state
 //
-static void 
+static void
 coeff_reset(void)
 {
 	m_1[2] = m_1[1] = m_1[0] = 0;
@@ -326,7 +326,7 @@ coeff_uncouple_ch(float samples[],bsi_t *bsi,audblk_t *audblk,uint_32 ch)
 				cpl_mant_tmp = (audblk->cplcomant[ch][bnd]) << 11;
 			else
 				cpl_mant_tmp = ((0x10) | audblk->cplcomant[ch][bnd]) << 10;
-			
+
 			cpl_coord = convert_to_float(cpl_exp_tmp,cpl_mant_tmp) * 8.0f;
 
 			//Invert the phase for the right channel if necessary

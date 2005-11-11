@@ -1,4 +1,4 @@
-Import_xml Documentation 
+Import_xml Documentation
 
 Last update 2003/06/27 Marzio Malanchini <marzio_malanchini@vodafone.it>
 
@@ -36,19 +36,19 @@ Now it has some features (not supported by kino) that enable transcode to work i
   \---------/				\---------/
 					    |
 					    | det. source
-                                           \ /      
+                                           \ /
 					    |
 				____________|________________
 				|	    |		     |
 				|	    |		     |
   			  /---------\   /---------\     /---------\
   			  |video.dv |   |         |     |         |
-  spec. source processor  |    +    |   |video.mov|     |video.avi| 
+  spec. source processor  |    +    |   |video.mov|     |video.avi|
   			  |audio.avi|   |         |     |         |
   			  \---------/   \---------/     \---------/
      				\___________|_______________/
                            	            |
-					   \ /	
+					   \ /
                            	            |
                      	     	     /--------------\
                      		     |internal filter|
@@ -60,9 +60,9 @@ Now it has some features (not supported by kino) that enable transcode to work i
 	|
 	|
    /---------\
-   |  normal  |    
-   |transcode |   
-   |  flow    |  
+   |  normal  |
+   |transcode |
+   |  flow    |
    \---------/
 
 
@@ -87,11 +87,11 @@ A simply way to use the import_xml module is to build an smil file like this:
 </smil>
 ------ end my.smil ----
 
-and run 
+and run
 
 transcode -i my.smil -y .............
 
-The smil file is auto probed by transcode (it's possible to force the option -x xml) 
+The smil file is auto probed by transcode (it's possible to force the option -x xml)
 
 The first 2 lines define the namespace
 Each sequences are include in <seq> tag and for instance is possible to define two tag <video> and <audio> .
@@ -104,7 +104,7 @@ e.g.
 
 transcode -i my.smil -p my-audio.smil -y .............
 
-where my-audio.smil 
+where my-audio.smil
 ------ start my-audio.smil ----
 <?xml version="1.0"?>
 <smil xmlns:smil2="http://www.w3.org/2001/SMIL20/Language">
@@ -118,18 +118,18 @@ where my-audio.smil
 ------ end my-audio.smil----
 
 
-In  each <audio> and <video> tag is possible to define <param> tag and this is useful to override some autoprobe parameter or activate feature 
+In  each <audio> and <video> tag is possible to define <param> tag and this is useful to override some autoprobe parameter or activate feature
 
-in-audio-module 		 	define the module that will be used by the import_xml module; 
+in-audio-module 		 	define the module that will be used by the import_xml module;
 					only dv,mov and avi are currently supported.
 
-in-video-module                      	define the module that will be used by the import_xml module; 
+in-video-module                      	define the module that will be used by the import_xml module;
 					only dv,mov and avi are currently supported.
 
-in-audio-codec                     	define the codec that will be used by the import_xml module; 
+in-audio-codec                     	define the codec that will be used by the import_xml module;
 					only pcm and mov related are currently supported.
 
-in-video-codec                     	define the codec that will be used by the import_xml module; 
+in-video-codec                     	define the codec that will be used by the import_xml module;
 					only yuv2 rgb yu12 yuy2 (for --dv_yuy2_mode) and raw are currently supported.
 
 target-height				set the size of target height
@@ -161,7 +161,7 @@ VERY IMPORTANT: any resize option passed from command line are ignored if target
 
 It's possible to use in the same xml file different file type (i.e. avi, dv, mov...).
 
-If you want to decode source file with avifile (af6) you need to declare the in-video-codec|in-audio-codec parameter 
+If you want to decode source file with avifile (af6) you need to declare the in-video-codec|in-audio-codec parameter
 
 ------ start avifile.smil ----
 <?xml version="1.0"?>
@@ -244,13 +244,13 @@ import_xml require libxml2 to be compiled in transcode (if present import_xml is
 
 Taken from SMIL MediaClipping Module "....
 
-Values in the clipBegin and clipEnd attribute have the following syntax: 
+Values in the clipBegin and clipEnd attribute have the following syntax:
 Clip-value-MediaClipping ::= [ Metric "=" ] ( Clock-val | Smpte-val )
-Metric            ::= Smpte-type | "npt" 
+Metric            ::= Smpte-type | "npt"
 Smpte-type        ::= "smpte" | "smpte-30-drop" | "smpte-25"
-Smpte-val         ::= Hours ":" Minutes ":" Seconds 
+Smpte-val         ::= Hours ":" Minutes ":" Seconds
                       [ ":" Frames [ "." Subframes ]]
-Hours             ::= Digit+ 
+Hours             ::= Digit+
 Minutes           ::= Digit Digit; range from 00 to 59
 Seconds           ::= Digit Digit; range from 00 to 59
 
@@ -260,21 +260,21 @@ Subframes         ::= Digit Digit; smpte range = 00-01, smpte-30-drop range = 00
 
 
 
-SMPTE Timestamp 
-SMPTE time codes [SMPTE] can be used for frame-level access accuracy. The metric specifier can have the following values: 
+SMPTE Timestamp
+SMPTE time codes [SMPTE] can be used for frame-level access accuracy. The metric specifier can have the following values:
 
-	smpte 
+	smpte
 
-	smpte-30-drop 
-	These values indicate the use of the "SMPTE 30 drop" format (approximately 29.97 frames per second), as defined in the SMPTE specification (also referred to as "NTSC drop frame"). 
-	The "frames" field in the time value can assume the values 0 through 29. The difference between 30 and 29.97 frames per second is handled by dropping the first two frame indices 
-	(values 00 and 01) of every minute, except every tenth minute. 
+	smpte-30-drop
+	These values indicate the use of the "SMPTE 30 drop" format (approximately 29.97 frames per second), as defined in the SMPTE specification (also referred to as "NTSC drop frame").
+	The "frames" field in the time value can assume the values 0 through 29. The difference between 30 and 29.97 frames per second is handled by dropping the first two frame indices
+	(values 00 and 01) of every minute, except every tenth minute.
 
-	smpte-25 
-	The "frames" field in the time specification can assume the values 0 through 24. This corresponds to the PAL standard as noted in [SMPTE] 
+	smpte-25
+	The "frames" field in the time specification can assume the values 0 through 24. This corresponds to the PAL standard as noted in [SMPTE]
 	The time value has the format hours:minutes:seconds:frames.subframes. If the subframe value is zero, it may be omitted. Subframes are measured in one-hundredths of a frame.
 		Examples:
-		clipBegin="smpte=10:12:33:20" 
+		clipBegin="smpte=10:12:33:20"
 
 Normal Play Time
 
@@ -282,7 +282,7 @@ Normal Play Time
 	Normal Play Time expresses time in terms of SMIL clock values. The metric specifier is "npt", and the syntax of the time value is identical to the syntax of SMIL clock values.
 		Examples:
 		clipBegin="npt=123.45s"
-		clipBegin="npt=12:05:35.3" 
+		clipBegin="npt=12:05:35.3"
 
 ....."
 
@@ -297,7 +297,7 @@ Normal Play Time
 2003-06-26 * docs/import-xml.txt /import/import_xml.c import/ioxml.c import/ioxml.h import/Makefile.am import/probe_xml.c import/tcxmlcheck.c src/transcode.c docs/man/tcxmlcheck.1 docs/man/tcdecode.1 docs/man/transcode.1:
 - change the evaluation order of audio parameter (priority: -p audio.smil, <audio> tag and then <video> tag)
 - review of syncronization time for ntsc and pal
-- support for source with different height and width 
+- support for source with different height and width
 - adding target-height target-width and resize-filter
 - document file rewritten
 
@@ -310,10 +310,10 @@ Normal Play Time
 - tcdecode can manage mov input file
 - enable new parameters in the PARM option (see file import-xml.txt under docs directory )               `
 
-2003-04-18 * import/ioxml.c, docs/import-xml.txt: 
+2003-04-18 * import/ioxml.c, docs/import-xml.txt:
 - allow ioxml to handle the multiple video and audio elements in the same seq statement
 
-2003-04-09 
+2003-04-09
 - manage different file type in the same xml (only for dv and avi created with dvgrab/kino)
 - add a program to check the consistence of xml file
 - enable new parameters in the PARM option (see file import-xml.txt under docs directory )

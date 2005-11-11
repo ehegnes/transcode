@@ -4,20 +4,20 @@
  *  Copyright (C) Tilmann Bitterberg - June 2003
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -56,20 +56,20 @@ int tc_filter(frame_list_t *ptr_, char *options)
       return 0;
 
   if(ptr->tag & TC_FILTER_INIT) {
-    
+
     if((vob = tc_get_vob())==NULL) return(-1);
-    
+
     width  = vob->ex_v_width;
     height = vob->ex_v_height;
     codec  = vob->im_v_codec;
-    
+
     // dirty, dirty, dirty.
     //vob->ex_v_height /= 2;
     //height_mod = vob->ex_v_height;
 
-    if (!lines) 
+    if (!lines)
 	lines = tc_malloc (width*height*3);
-    
+
     if (!lines) {
 	tc_log_error(MOD_NAME, "No lines buffer available");
 	return -1;
@@ -83,7 +83,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     // filter init ok.
     if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    
+
     return(0);
   }
 
@@ -108,7 +108,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if (lines) free(lines); lines=NULL;
     return(0);
   }
-  
+
   //----------------------------------
   //
   // filter frame routine
@@ -120,7 +120,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   // or after and determines video/audio context
 
   // this must be POST_S_PROCESS otherwise we won't see a cloned frame again.
-  
+
   if(ptr->tag & TC_POST_S_PROCESS) {
       int stride = ptr->v_width*3;
       if (codec==CODEC_YUV)
@@ -185,6 +185,6 @@ int tc_filter(frame_list_t *ptr_, char *options)
       }
      //ptr->v_height = height_mod;
   }
-  
+
   return(0);
 }

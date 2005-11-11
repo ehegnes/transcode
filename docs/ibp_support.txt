@@ -5,18 +5,18 @@ http://loci.cs.utk.edu/
 
 Binary utilities can user lors URI for input and/or output file.
 
-If we want to access file in the IBP depot then URI in form 
+If we want to access file in the IBP depot then URI in form
 
 lors://host:port/local_path/file?bs=number&duration=number&copies=number&threads=number&timeout=number&servers=number&size=number
 
-is used. User can also use the short form URI 
+is used. User can also use the short form URI
 
-lors:///local_path/file 
+lors:///local_path/file
 
-When we want to read an IBP file, the local_path/file specifies local file 
+When we want to read an IBP file, the local_path/file specifies local file
 where is stored exNode with XML specification. When writing an IBP file the
 local_path/file specifies local file where to store exNode with XML
-specification of IBP depots used. 
+specification of IBP depots used.
 
 The paremeters in the full form of URI mean as follows:
 
@@ -30,7 +30,7 @@ timeout  specification of timeout in seconds (default 100)
 servers  specification of number of unique IBP depots (default 1)
 size     specification of assumed file size in bytes (default 10MB)
 
-There are environment variables that can be used instead of URI parameters for 
+There are environment variables that can be used instead of URI parameters for
 the LoRS layer.
 
 LBONE_SERVER   specifies L-Bone server location
@@ -55,7 +55,7 @@ is used.
 
 For example:
 
-LBONE_SERVER=our.ibp.host; 
+LBONE_SERVER=our.ibp.host;
 transcode -i lors:///video.dv.xnd -P1 -N 0x1 -y raw -o lors:///temp1-remux.avi.xnd -E 44100,16,2 -J resample
 
 Transcode will use source file identified by serialized description of IBP

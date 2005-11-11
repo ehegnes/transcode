@@ -15,10 +15,10 @@
 #include "pvnglobals.h"
 #include "pvn.h"
 
-/* calculates the size of raster data in a PVN file based on a PVNParam 
-   header 
+/* calculates the size of raster data in a PVN file based on a PVNParam
+   header
 
-   returns # of bytes if PV4/PV5/PV6(a/f/d); 
+   returns # of bytes if PV4/PV5/PV6(a/f/d);
 */
 long calcPVNSize(PVNParam p)
 {
@@ -29,10 +29,10 @@ long calcPVNSize(PVNParam p)
     return(pageSize*p.depth);
 }
 
-/* calculates the size of raster data of a single image within a PVN file 
-   based on a PVNParam header 
+/* calculates the size of raster data of a single image within a PVN file
+   based on a PVNParam header
 
-   returns # of bytes if PV4/PV5/PV6 (a/f/d); 
+   returns # of bytes if PV4/PV5/PV6 (a/f/d);
 */
 long calcPVNPageSize(PVNParam p)
 {
@@ -92,13 +92,13 @@ int PVNParamCompare(PVNParam first, PVNParam second)
     return(EQUAL);
 }
 
-/* Copy src parameters to dest 
+/* Copy src parameters to dest
    returns OK or ERROR */
 int PVNParamCopy(PVNParam *dest, PVNParam *src)
 {
   if ((dest==NULL) || (src == NULL))
   {
-    fprintf(stderr, "Pointer Error\n"); 
+    fprintf(stderr, "Pointer Error\n");
     return(ERROR);
   }
   else
@@ -120,8 +120,8 @@ int writePVNHeader(FILE *fp, PVNParam p)
   printf("Writing Header . . .\n");
   showPVNHeader(p);
 #endif
-  if(fprintf(fp, "%s\n%d %d %d\n%f %f\n", 
-     p.magic, p.width, p.height, p.depth, 
+  if(fprintf(fp, "%s\n%d %d %d\n%f %f\n",
+     p.magic, p.width, p.height, p.depth,
      p.maxcolour, p.framerate) == 0)
     return(ERROR);
   else
@@ -131,7 +131,7 @@ int writePVNHeader(FILE *fp, PVNParam p)
 /* display the pvnparam header to stdout */
 void showPVNHeader(PVNParam p)
 {
-  printf("Magic: %s, Width: %d, Height: %d, Depth: %d, Framerate: %f Maxval: %f\n", 
+  printf("Magic: %s, Width: %d, Height: %d, Depth: %d, Framerate: %f Maxval: %f\n",
          p.magic, p.width, p.height, p.depth, p.framerate, p.maxcolour);
 }
 
@@ -145,7 +145,7 @@ int readPVNHeader(FILE *fp, PVNParam *p)
   int done = 0;
   long fsize, pos, calcSize;
 
-  p->width=-1; p->height=-1; p->maxcolour=-1; 
+  p->width=-1; p->height=-1; p->maxcolour=-1;
   p->depth=-1; p->framerate=UNDEF_FRAMERATE; /* clear these vars */
 
   tmpMagic[0] = 0; /* empty string */
@@ -203,22 +203,22 @@ int readPVNHeader(FILE *fp, PVNParam *p)
       if ((p->magic[2] == '4') && (p->magic[3] != 'a'))
       {
         fprintf(stderr, "Bitmap PV4x files must be in unsigned integer format!\n");
-        return(INVALID);         
+        return(INVALID);
       }
 
       /* if we have a bitmapped version, then maxcolour must be 1 */
-      if (p->magic[2] == '4') 
+      if (p->magic[2] == '4')
       {
         if(p->maxcolour != 1)
         {
           fprintf(stderr, "Bitmap PV4x files must have a colour depth of 1!\n");
-          return(INVALID);         
+          return(INVALID);
         }
       }
       else if (((p->magic[3] == 'a') || (p->magic[3] == 'b')) && (((int)p->maxcolour % 8 != 0) || (p->maxcolour > 32) || (p->maxcolour==0)))
       {
         fprintf(stderr, "Max colour depth of %f is invalid; must be a multiple of 8 bits (max 32)!\n", p->maxcolour);
-        return(INVALID);                 
+        return(INVALID);
       }
 
       done = 1;
@@ -248,7 +248,7 @@ int readPVNHeader(FILE *fp, PVNParam *p)
         if ((fsize - pos) == calcSize)
           return(VALID);
         else if (p->depth == 0) // ok if this is a streaming file
-          return(VALID); 
+          return(VALID);
         else
         {
           fprintf(stderr, "File size does not match calculations\nCalc: %ld, Size: %ld", calcSize, fsize-pos);
@@ -309,7 +309,7 @@ int pvnconvert(const char *infile, const char *outfile, double framerate, unsign
     fprintf(stderr, "Invalid frame rate, must be >= 0\n");
     return(ERROR);
   } */
-    
+
 #ifdef DEBUG
   printf("Opening and verifying %s:\n\n", infile);
 #endif
@@ -317,7 +317,7 @@ int pvnconvert(const char *infile, const char *outfile, double framerate, unsign
   if ((in = fopen(infile, "rb")) == NULL)
   {
       fprintf(stderr, "Error opening file %s for read\n", infile);
-      _exit(OPENERROR);    
+      _exit(OPENERROR);
   }
 
   if (readPVNHeader(in, &inParams) != VALID)
@@ -353,7 +353,7 @@ int pvnconvert(const char *infile, const char *outfile, double framerate, unsign
   if(format == FORMAT_UINT)
     outParams.magic[3]='a';  /* PVx already exists before the a from the copy */
   else if(format == FORMAT_INT)
-    outParams.magic[3]='b';  
+    outParams.magic[3]='b';
   else if(format == FORMAT_FLOAT)
     outParams.magic[3]='f';
   else if(format == FORMAT_DOUBLE)
@@ -407,7 +407,7 @@ int pvnconvert(const char *infile, const char *outfile, double framerate, unsign
     {
       // for PV4a, since bufConvert needs width parameter passed in maxcolour, set it here.
       if(inParams.magic[2] == '4')
-        inParams.maxcolour = inParams.width; 
+        inParams.maxcolour = inParams.width;
       retVal=bufConvert(inbuf, inCalcSize, inFormat, inParams.maxcolour, outbuf, outCalcSize, format, outParams.maxcolour);
       if (retVal==ERROR)
       {

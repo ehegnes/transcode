@@ -6,20 +6,20 @@
  *  special module request by Dieter Bloms <dbloms@suse.de>
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -46,7 +46,7 @@ static FILE *fd;
 static int codec, pseudo_frame_size=0, frame_size=0, syncf=0;
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open stream
  *
@@ -57,71 +57,71 @@ MOD_open
 
     // audio only
     if(param->flag != TC_AUDIO) return(TC_IMPORT_ERROR);
-    
+
     codec = vob->im_a_codec;
     syncf = vob->sync;
-    
+
     switch(codec) {
-	
+
     case CODEC_AC3:
-	
+
 	// produce a clean sequence of AC3 frames
 	if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -t vdr -i \"%s\" -x ps1 -d %d | tcextract -t raw -x ac3 -d %d", vob->audio_in_file, vob->verbose, vob->verbose) < 0) {
 	    perror("command buffer overflow");
 	    return(TC_IMPORT_ERROR);
 	}
-	
+
 	if(verbose_flag) tc_log_info(MOD_NAME, "AC3->AC3");
-	
+
 	break;
-	
+
     case CODEC_PCM:
 
 	if(vob->fixme_a_codec==CODEC_AC3) {
-	
+
 	    if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -t vdr -i \"%s\" -x ps1 -d %d | tcdecode -x ac3 -d %d -s %f,%f,%f -A %d", vob->audio_in_file, vob->verbose, vob->verbose, vob->ac3_gain[0], vob->ac3_gain[1], vob->ac3_gain[2], vob->a52_mode) < 0) {
 		perror("command buffer overflow");
 		return(TC_IMPORT_ERROR);
 	    }
-	    
+
 	    if(verbose_flag) tc_log_info(MOD_NAME, "AC3->PCM");
-	}	
+	}
 
 
 	if(vob->fixme_a_codec==CODEC_A52) {
-	    
+
 	    if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -t vdr -i \"%s\" -x ps1 -d %d | tcdecode -x a52 -d %d -A %d", vob->audio_in_file, vob->verbose, vob->verbose, vob->a52_mode) < 0) {
 		perror("command buffer overflow");
 		return(TC_IMPORT_ERROR);
 	    }
-	    
+
 	    if(verbose_flag) tc_log_info(MOD_NAME, "A52->PCM");
-	}	
+	}
 
 	break;
-	
-    default: 
+
+    default:
 	tc_log_warn(MOD_NAME, "invalid import codec request 0x%x");
 	return(TC_IMPORT_ERROR);
-	
+
     }
-    
+
     // print out
     if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
-    
+
     // set to NULL if we handle read
     param->fd = NULL;
-    
+
     // popen
     if((fd = popen(import_cmd_buf, "r"))== NULL) {
 	perror("popen pcm stream");
 	return(TC_IMPORT_ERROR);
     }
-    
+
     return(0);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode stream
  *
@@ -129,71 +129,71 @@ MOD_open
 
 MOD_decode
 {
-    
-  int ac_bytes=0, ac_off=0; 
+
+  int ac_bytes=0, ac_off=0;
 
   // audio only
   if(param->flag != TC_AUDIO) return(TC_IMPORT_ERROR);
-  
+
   switch(codec) {
-      
+
   case CODEC_AC3:
-      
+
       // determine frame size at the very beginning of the stream
-      
+
       if(pseudo_frame_size==0) {
-	  
+
 	  if(ac3scan(fd, param->buffer, param->size, &ac_off, &ac_bytes, &pseudo_frame_size, &frame_size, verbose)!=0) return(TC_IMPORT_ERROR);
-	  
-      } else { 
+
+      } else {
 	  ac_off = 0;
 	  ac_bytes = pseudo_frame_size;
       }
-      
+
       // return true pseudo_frame_size as physical size of audio data
-      param->size = pseudo_frame_size; 
-      
+      param->size = pseudo_frame_size;
+
       if(syncf>0) {
-	  //dump an ac3 frame, instead of a pcm frame 
+	  //dump an ac3 frame, instead of a pcm frame
 	  ac_bytes = frame_size-ac_off;
-	  param->size = frame_size; 
+	  param->size = frame_size;
 	  --syncf;
       }
-      
+
       break;
 
   case CODEC_PCM:
-    
+
     //default:
     ac_off   = 0;
     ac_bytes = param->size;
     break;
-    
-    
-  default: 
+
+
+  default:
       tc_log_warn(MOD_NAME, "invalid import codec request 0x%x", codec);
       return(TC_IMPORT_ERROR);
-      
+
   }
-  
-  if (fread(param->buffer+ac_off, ac_bytes, 1, fd) !=1) 
+
+  if (fread(param->buffer+ac_off, ac_bytes, 1, fd) !=1)
       return(TC_IMPORT_ERROR);
-  
-  
+
+
   return(0);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
-  
+{
+
   if(param->fd != NULL) pclose(param->fd);
-  
+
   return(0);
 }
 

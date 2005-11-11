@@ -116,7 +116,7 @@ void f_free_tree(audiovideo_t *p_node)
 	{
 		p_temp1=p_temp->p_next;
 		free(p_temp);
-		p_temp=p_temp1;	
+		p_temp=p_temp1;
 	}
 }
 
@@ -129,14 +129,14 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 	static int s_video_codec=TC_CODEC_UNKNOWN,s_audio_codec=TC_CODEC_UNKNOWN;
 
 	s_rc=0;
-	if (p_node != NULL) 
+	if (p_node != NULL)
 	{
-	        if (xmlStrcmp(p_node->name, (const xmlChar*)"smil") == 0) 
+	        if (xmlStrcmp(p_node->name, (const xmlChar*)"smil") == 0)
 		{
 		        if(f_parse_tree(p_node->xmlChildrenNode,p_audiovideo))
 				s_rc=1;
 	        }
-	        else if (xmlStrcmp(p_node->name, (const xmlChar*)"seq") == 0) 
+	        else if (xmlStrcmp(p_node->name, (const xmlChar*)"seq") == 0)
 		{
 			s_type=AUDIO_VIDEO_UNKNOWN;
 			p_temp=(audiovideo_t *)malloc(sizeof(audiovideo_t));
@@ -174,7 +174,7 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 				s_rc=1;
 		        if(f_parse_tree(p_node->next,p_temp))		//eventually go to the next seq item
 				s_rc=1;
-	        } 
+	        }
 		else if (xmlStrcmp(p_node->name, (const xmlChar*)"video") == 0)
 		{
 			if (s_type!=AUDIO_VIDEO_UNKNOWN)
@@ -207,7 +207,7 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 				if(p_audiovideo != NULL)
 					p_audiovideo->p_next=p_temp;
 				p_audiovideo=p_temp;
-			}	
+			}
 			s_type=VIDEO_ITEM;	//set origin to video
 		        if(f_parse_tree((xmlNodePtr)p_node->properties,p_audiovideo)) //visit the properties
 				s_rc=1;
@@ -248,7 +248,7 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 				if(p_audiovideo != NULL)
 					p_audiovideo->p_next=p_temp;
 				p_audiovideo=p_temp;
-			}	
+			}
 			s_type=AUDIO_ITEM;	//set origin to audio
 		        if(f_parse_tree((xmlNodePtr)p_node->properties,p_audiovideo)) //visit the properties
 				s_rc=1;
@@ -266,7 +266,7 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 		        if(f_parse_tree(p_node->next,p_audiovideo))		//eventually go to the next audio/video item
 				s_rc=1;
 	        }
-		else if (xmlStrcmp(p_node->name, (const xmlChar*)"src") == 0) 
+		else if (xmlStrcmp(p_node->name, (const xmlChar*)"src") == 0)
 		{
 			if (s_type==AUDIO_ITEM)
 			{
@@ -279,7 +279,7 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 		        if(f_parse_tree(p_node->next,p_audiovideo))		//goto to begin and end of clip
 				s_rc=1;
 	        }
-		else if (xmlStrcmp(p_node->name, (const xmlChar*)"clipBegin") == 0) 
+		else if (xmlStrcmp(p_node->name, (const xmlChar*)"clipBegin") == 0)
 		{
 			s_limit=f_det_time((char *)p_node->xmlChildrenNode->content);
 			if (s_type==AUDIO_ITEM)
@@ -297,7 +297,7 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 		        if(f_parse_tree(p_node->next,p_audiovideo))		//goto the next param.
 				s_rc=1;
 	        }
-		else if (xmlStrcmp(p_node->name, (const xmlChar*)"clipEnd") == 0) 
+		else if (xmlStrcmp(p_node->name, (const xmlChar*)"clipEnd") == 0)
 		{
 			s_limit=f_det_time((char *)p_node->xmlChildrenNode->content);
 			if (s_type==AUDIO_ITEM)
@@ -315,21 +315,21 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 		        if(f_parse_tree(p_node->next,p_audiovideo))		//goto the next param.
 				s_rc=1;
 	        }
-		else if (xmlStrcmp(p_node->name, (const xmlChar*)"name") == 0) 
+		else if (xmlStrcmp(p_node->name, (const xmlChar*)"name") == 0)
 		{
-			if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"in-video-module") == 0) 
+			if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"in-video-module") == 0)
 				s_param=IN_VIDEO_MAGIC;
-			else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"in-audio-module") == 0) 
+			else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"in-audio-module") == 0)
 				s_param=IN_AUDIO_MAGIC;
-			else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"in-video-codec") == 0) 
+			else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"in-video-codec") == 0)
 				s_param=IN_VIDEO_CODEC;
-			else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"in-audio-codec") == 0) 
+			else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"in-audio-codec") == 0)
 				s_param=IN_AUDIO_CODEC;
-			else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"target-height") == 0) 
+			else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"target-height") == 0)
 				s_param=OUT_VIDEO_HEIGHT;
-			else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"target-width") == 0) 
+			else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"target-width") == 0)
 				s_param=OUT_VIDEO_WIDTH;
-			else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"resize-filter") == 0) 
+			else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"resize-filter") == 0)
 				s_param=OUT_VIDEO_RES_FILTER;
 			else
 				s_param=UNSUPPORTED_PARAM;
@@ -337,7 +337,7 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 		        if(f_parse_tree(p_node->next,p_audiovideo))		//goto the next param.
 				s_rc=1;
 	        }
-		else if (xmlStrcmp(p_node->name, (const xmlChar*)"value") == 0) 
+		else if (xmlStrcmp(p_node->name, (const xmlChar*)"value") == 0)
 		{
 			if ((s_type==AUDIO_ITEM) && ((s_param==IN_VIDEO_CODEC)||(s_param==IN_VIDEO_MAGIC)||(s_param==OUT_VIDEO_HEIGHT)||(s_param==OUT_VIDEO_WIDTH)))
 			{
@@ -396,17 +396,17 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 					break;
 					case IN_VIDEO_CODEC:
 						if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"rgb") == 0)
-							p_audiovideo->s_v_codec=CODEC_RGB;	
+							p_audiovideo->s_v_codec=CODEC_RGB;
 						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"yuv2") == 0)
-							p_audiovideo->s_v_codec=CODEC_YUV;	
+							p_audiovideo->s_v_codec=CODEC_YUV;
 						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"yuv420p") == 0)
-							p_audiovideo->s_v_codec=CODEC_YUV;	
+							p_audiovideo->s_v_codec=CODEC_YUV;
 						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"yv12") == 0)
-							p_audiovideo->s_v_codec=CODEC_YUV;	
+							p_audiovideo->s_v_codec=CODEC_YUV;
 						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"yuy2") == 0)
-							p_audiovideo->s_v_codec=CODEC_YUY2;	
+							p_audiovideo->s_v_codec=CODEC_YUY2;
 						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"raw") == 0)
-							p_audiovideo->s_v_codec=CODEC_RAW;	
+							p_audiovideo->s_v_codec=CODEC_RAW;
 						else
 						{
 							fprintf(stderr,"(%s) The in-video-codec %s parameter isn't yet supported.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
@@ -453,23 +453,23 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 
 void f_delete_unused_node(xmlNodePtr p_node)
 {
-	while (p_node != NULL) 
+	while (p_node != NULL)
 	{
 	        xmlNodePtr p_kill_node = NULL;
 
 	        f_delete_unused_node(p_node->xmlChildrenNode);
-	        if (xmlStrcmp(p_node->name, (const xmlChar*)"smil") == 0) 
+	        if (xmlStrcmp(p_node->name, (const xmlChar*)"smil") == 0)
 		{
             		//leave it in the tree
 	        }
-	        else if (xmlStrcmp(p_node->name, (const xmlChar*)"seq") == 0) 
+	        else if (xmlStrcmp(p_node->name, (const xmlChar*)"seq") == 0)
 		{
-	        	if (p_node->xmlChildrenNode == NULL) 
+	        	if (p_node->xmlChildrenNode == NULL)
 			{
 				//This node don't have any video sections so i can kill it
 	                	p_kill_node = p_node;
 	            	}
-	        } 
+	        }
 		else if ((xmlStrcmp(p_node->name, (const xmlChar*)"param") == 0) ||(xmlStrcmp(p_node->name, (const xmlChar*)"video") == 0) || (xmlStrcmp(p_node->name, (const xmlChar*)"audio") == 0))
 		{
             		//leave it in the tree
@@ -481,7 +481,7 @@ void f_delete_unused_node(xmlNodePtr p_node)
 		}
 	        p_node = p_node->next;
 
-	        if (p_kill_node != NULL) 
+	        if (p_kill_node != NULL)
 		{
 			//kill the node from the tree
 	        	xmlUnlinkNode(p_kill_node);
@@ -517,7 +517,7 @@ int f_complete_tree(audiovideo_t *p_audiovideo)
 					fprintf(stderr,"(%s) The file must contain the same video codec (found 0x%lx but 0x%x is already define)", __FILE__,p_audiovideo->s_v_codec,s_video_codec);
 					return(1);
 				}
-				s_video_codec=p_audiovideo->s_v_codec;	
+				s_video_codec=p_audiovideo->s_v_codec;
 			}
 		}
 		if (p_temp->p_nome_audio != NULL)
@@ -539,7 +539,7 @@ int f_complete_tree(audiovideo_t *p_audiovideo)
 					fprintf(stderr,"(%s) The file must contain the same audio codec (found 0x%lx but 0x%x is already define)", __FILE__,p_audiovideo->s_a_codec,s_audio_codec);
 					return(1);
 				}
-				s_audio_codec=p_audiovideo->s_a_codec;	
+				s_audio_codec=p_audiovideo->s_a_codec;
 			}
 		}
 		else
@@ -555,9 +555,9 @@ int f_complete_tree(audiovideo_t *p_audiovideo)
 	for (p_temp=p_audiovideo->p_next;p_temp != NULL;p_temp=p_temp->p_next) //initialize all unset codec
 	{
 		if (p_temp->p_nome_video != NULL)
-			p_audiovideo->s_v_codec=s_video_codec;	
+			p_audiovideo->s_v_codec=s_video_codec;
 		if (p_temp->p_nome_audio != NULL)
-			p_audiovideo->s_a_codec=s_audio_codec;	
+			p_audiovideo->s_a_codec=s_audio_codec;
 	}
 	return(0);
 

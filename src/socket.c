@@ -5,20 +5,20 @@
  *                Written 2003 by Tilmann Bitterberg
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 /*
  * This file opens a socket and lets transcode be configured over it.
@@ -42,7 +42,7 @@ static int socket_fd=-1;
 
 pthread_mutex_t tc_socket_msg_lock=PTHREAD_MUTEX_INITIALIZER;
 
-static int s_write (int sock, void *buf, size_t count) 
+static int s_write (int sock, void *buf, size_t count)
 {
     int retval=0;
     do {
@@ -67,7 +67,7 @@ static int tc_socket_version(char *buf)
     n = tc_snprintf (buf, M_BUF_SIZE, "%20s = "fmt"\n", #field, vob->field); \
     if (n > 0) s_write (socket_fd, buf, n)
 
-static int tc_socket_dump_vob(char *buf) 
+static int tc_socket_dump_vob(char *buf)
 {
     vob_t *vob = tc_get_vob();
     int n;
@@ -265,36 +265,36 @@ int tc_socket_preview(char *buf)
 
     if (!c)
 	return 1;
-    
+
     d = strchr (c, ' ');
     if (d) {
 	arg = strtol(d, (char **)NULL, 0);
     }
-    
+
     pthread_mutex_lock(&tc_socket_msg_lock);
 
     if        (!strncasecmp(c, "draw",    2)) {
 	tc_socket_msgchar = TC_SOCK_PV_DRAW;
 	TC_SOCK_SET_ARG (tc_socket_msgchar, arg);
-    
+
     } else if (!strncasecmp(c, "pause",  2)) {
 	tc_socket_msgchar = TC_SOCK_PV_PAUSE;
-    
+
     } else if (!strncasecmp(c, "undo", 2)) {
 	tc_socket_msgchar = TC_SOCK_PV_UNDO;
-    
+
     } else if (!strncasecmp(c, "fastfw", 6)) {
 	tc_socket_msgchar = TC_SOCK_PV_FAST_FW;
-    
+
     } else if (!strncasecmp(c, "fastbw", 6)) {
 	tc_socket_msgchar = TC_SOCK_PV_FAST_BW;
-  
+
     } else if (!strncasecmp(c, "slowfw", 6)) {
 	tc_socket_msgchar = TC_SOCK_PV_SLOW_FW;
-	
+
     } else if (!strncasecmp(c, "slowbw", 6)) {
 	tc_socket_msgchar = TC_SOCK_PV_SLOW_BW;
-	
+
     } else if (!strncasecmp(c, "toggle", 6)) {
 	tc_socket_msgchar = TC_SOCK_PV_TOGGLE;
 
@@ -303,17 +303,17 @@ int tc_socket_preview(char *buf)
 
     } else if (!strncasecmp(c, "faster", 6)) {
 	tc_socket_msgchar = TC_SOCK_PV_FASTER;
-    
+
     } else if (!strncasecmp(c, "rotate", 6)) {
 	tc_socket_msgchar = TC_SOCK_PV_ROTATE;
-    
+
     } else if (!strncasecmp(c, "display", 6)) {
 	tc_socket_msgchar = TC_SOCK_PV_DISPLAY;
-    
+
     } else if (!strncasecmp(c, "grab", 4)) {
 	tc_socket_msgchar = TC_SOCK_PV_SAVE_JPG;
-    
-    } else 
+
+    } else
 	ret = 1;
 
     pthread_mutex_unlock(&tc_socket_msg_lock);
@@ -374,7 +374,7 @@ int tc_socket_list(char *buf)
     } else if (!strncasecmp(c, "disable", 2)) {
 	memset (buf, 0, M_BUF_SIZE);
 	plugin_list_disabled(buf);
-    } else 
+    } else
 	return 1;
 
     return 0;
@@ -396,7 +396,7 @@ int tc_socket_config(char *buf)
     c = strchr (d, ' ');
     while (c && *c && *c == ' ')
 	*c++ = '\0';
-    
+
     if (!c || !d)
 	return 1;
 
@@ -452,7 +452,7 @@ int tc_socket_load(char *buf)
     // eat whitespace
     while (c && *c && *c == ' ')
 	c++;
-    
+
     if (!c)
 	return 1;
 
@@ -462,7 +462,7 @@ int tc_socket_load(char *buf)
     if (c && *c)  {
 	*c = '=';
 	c++;
-	if (c && *c && *c=='0') 
+	if (c && *c && *c=='0')
 	    *c = '\0';
     }
 
@@ -546,7 +546,7 @@ void tc_socket_submit (char *buf)
 
     if (!tc_socket_submit_buf) {
 	if ( (tc_socket_submit_buf = (char *) malloc (M_BUF_SIZE)) == NULL) {
-	  fprintf(stderr, "[%s] malloc for tc_socket_submit_buf failed : %s:%d\n", 
+	  fprintf(stderr, "[%s] malloc for tc_socket_submit_buf failed : %s:%d\n",
 		  "socket server" , __FILE__, __LINE__);
 	  return;
 	}
@@ -590,14 +590,14 @@ void socket_thread(void)
     if (bind(thisfd, (struct sockaddr *) &server, sizeof(struct sockaddr_un))) {
 	perror("binding stream socket");
 	return;
-    } 
+    }
 
     //fprintf(stderr, "Socket has name %s, mypid (%d)\n", server.sun_path, getpid()); fflush(stderr);
     listen(thisfd, 5);
 
     while (1) {
 	int ret;
-	
+
 	pthread_testcancel();
 
 	socket_fd = msgsock = accept(thisfd, 0, 0);
@@ -663,7 +663,7 @@ void socket_thread(void)
 		    ret = !tc_socket_config(rbuf);
 		    memset (rbuf, 0, M_BUF_SIZE);
 		    break;
-		case TC_SOCK_PARAMETER: 
+		case TC_SOCK_PARAMETER:
 		    ret = !tc_socket_parameter(rbuf);
 		    break;
 		case TC_SOCK_PREVIEW:
@@ -687,7 +687,7 @@ void socket_thread(void)
 	    }
 	    if (ret>0)
 		tc_snprintf(rbuf+strlen(rbuf), M_BUF_SIZE - strlen(rbuf), "%s", "OK\n");
-	    else 
+	    else
 		tc_snprintf(rbuf, M_BUF_SIZE, "%s", "FAILED\n");
 
 	    if (msgsock > 0)

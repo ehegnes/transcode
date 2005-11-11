@@ -2,7 +2,7 @@
  *	import_v4l2.c
  *
  *	By Erik Slagter <erik@slagter.name> Sept 2003
- * 
+ *
  *	This file is part of transcode, a video stream processing tool
  *
  *	transcode is free software; you can redistribute it and/or modify
@@ -17,7 +17,7 @@
  *
  *	You should have received a copy of the GNU General Public License
  *	along with GNU Make; see the file COPYING. If not, write to
- *	the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *	the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -72,7 +72,7 @@ static int capability_flag	= TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_PC
 					gcc-2.95 bugfix
 			tibit   check for struct v4l2_buffer
 	1.1.0	EMS	added dma overrun protection, use overrun_guard=0 to disable
-					this prevents from crashing the computer when all 
+					this prevents from crashing the computer when all
 					capture buffers are full while capturing, by stopping capturing
 					when > 75% of the buffers are filled.
 			EMS added YUV422 capture -> YUV420 transcode core conversion
@@ -84,7 +84,7 @@ static int capability_flag	= TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_PC
 	1.2.1	EMS added bttv driver to blacklist 'does not support cropping
 					info ioctl'
 			tibit added mmx version of yuy2_to_uyvy
-					hacked in alternate fields (#if 0'ed) 
+					hacked in alternate fields (#if 0'ed)
 					fixed a typo (UYUV -> UYVY)
 	1.2.2	EMS	fixed av sync mutex not yet grabbed problem with "busy" wait
 	1.3.0	EMS	added cropping cap, removed saa7134 and bttv specific code, not
@@ -127,7 +127,7 @@ typedef struct
 	} value;
 } v4l2_parameter_t;
 
-static struct 
+static struct
 {
 	void * start;
 	size_t length;
@@ -172,7 +172,7 @@ static v4l2_parameter_t v4l2_parameters[] =
 	{ v4l2_param_string,	"format",			sizeof(v4l2_format_string),	{ .string	= v4l2_format_string }}
 };
 
-static v4l2_format_convert_table_t v4l2_format_convert_table[] = 
+static v4l2_format_convert_table_t v4l2_format_convert_table[] =
 {
 	{ V4L2_PIX_FMT_RGB24,   IMG_RGB24,   IMG_RGB_DEFAULT, "RGB24 [packed] -> RGB [packed] (no conversion" },
 	{ V4L2_PIX_FMT_BGR24,   IMG_BGR24,   IMG_RGB_DEFAULT, "BGR24 [packed] -> RGB [packed]" },
@@ -197,7 +197,7 @@ static v4l2_format_convert_table_t v4l2_format_convert_table[] =
 	{ V4L2_PIX_FMT_GREY,    IMG_GRAY8,   IMG_YUV_DEFAULT, "8-bit grayscale -> YUV420 [planar]" },
 };
 
-/* ============================================================ 
+/* ============================================================
  * IMAGE FORMAT CONVERSION ROUTINE
  * ============================================================*/
 
@@ -219,7 +219,7 @@ static void v4l2_format_convert(uint8_t *source, uint8_t *dest,
     ac_imgconvert(srcplanes, conv->from, destplanes, conv->to, width, height);
 }
 
-/* ============================================================ 
+/* ============================================================
  * UTILS
  * ============================================================*/
 
@@ -304,7 +304,7 @@ static int v4l2_video_grab_frame(char * dest, size_t length)
 			}
 		}
 	}
-	
+
 	ix	= buffer.index;
 
 	// copy frame
@@ -312,7 +312,7 @@ static int v4l2_video_grab_frame(char * dest, size_t length)
 	if(dest) {
 		v4l2_format_convert(v4l2_buffers[ix].start, dest, v4l2_width, v4l2_height);
 	}
-	
+
 	// enqueue buffer again
 
 	if(!eio)
@@ -320,7 +320,7 @@ static int v4l2_video_grab_frame(char * dest, size_t length)
 		buffer.type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		buffer.memory	= V4L2_MEMORY_MMAP;
 		buffer.flags	= 0;
-	
+
 		if(ioctl(v4l2_video_fd, VIDIOC_QBUF, &buffer) < 0)
 		{
 			perror(module "VIDIOC_QBUF");
@@ -385,7 +385,7 @@ static void v4l2_parse_options(const char * options_in)
 
 		if(!result)
 			break;
-		
+
 		name = result;
 		value = strchr(result, '=');
 
@@ -420,7 +420,7 @@ static void v4l2_parse_options(const char * options_in)
 	free(options);
 }
 
-/* ============================================================ 
+/* ============================================================
  * V4L2 CORE
  * ============================================================*/
 
@@ -595,7 +595,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 			tc_log_error(MOD_NAME, "unknown format %s", v4l2_format_string);
 			return(1);
 		}
-		
+
 		if(ioctl(v4l2_video_fd, VIDIOC_S_STD, &standard.id) < 0)
 		{
 			perror(module "VIDIOC_S_STD");
@@ -654,7 +654,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 			v4l2_crop_enabled = 1;
 		else
 		{
-			v4l2_crop_height = v4l2_crop_width = 
+			v4l2_crop_height = v4l2_crop_width =
 				v4l2_crop_top = v4l2_crop_left = 0;
 			v4l2_crop_enabled = 0;
 		}
@@ -677,12 +677,12 @@ static int v4l2_video_init(int layout, const char * device, int width,
 	else
 	{
 		tc_log_info(MOD_NAME, "frame size: %dx%d", width, height);
-		tc_log_info(MOD_NAME, "cropcap bounds: %dx%d +%d+%d", 
+		tc_log_info(MOD_NAME, "cropcap bounds: %dx%d +%d+%d",
 				cropcap.bounds.width,
 				cropcap.bounds.height,
 				cropcap.bounds.left,
 				cropcap.bounds.top);
-		tc_log_info(MOD_NAME, "cropcap defrect: %dx%d +%d+%d", 
+		tc_log_info(MOD_NAME, "cropcap defrect: %dx%d +%d+%d",
 				cropcap.defrect.width,
 				cropcap.defrect.height,
 				cropcap.defrect.left,
@@ -693,7 +693,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 		if((width > cropcap.bounds.width) || (height > cropcap.bounds.height) || (width < 0) || (height < 0))
 		{
-			tc_log_error(MOD_NAME, "capturing dimensions exceed maximum crop area: %dx%d", 
+			tc_log_error(MOD_NAME, "capturing dimensions exceed maximum crop area: %dx%d",
                          cropcap.bounds.width, cropcap.bounds.height);
 			return(1);
 		}
@@ -707,7 +707,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 		}
 		else
 		{
-			tc_log_info(MOD_NAME, "default cropping: %dx%d +%d+%d", 
+			tc_log_info(MOD_NAME, "default cropping: %dx%d +%d+%d",
 				crop.c.width,
 				crop.c.height,
 				crop.c.left,
@@ -737,7 +737,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 			}
 			else
 			{
-				tc_log_info(MOD_NAME, "cropping after set frame source: %dx%d +%d+%d", 
+				tc_log_info(MOD_NAME, "cropping after set frame source: %dx%d +%d+%d",
 					crop.c.width,
 					crop.c.height,
 					crop.c.left,
@@ -842,8 +842,8 @@ static int v4l2_video_get_frame(size_t size, char * data)
 		if(buffers_filled > (v4l2_buffers_count * 3 / 4))
 		{
 			tc_log_error(MOD_NAME, "running out of capture buffers (%d left from %d total), "
-                                   "stopping capture", 
-                                   v4l2_buffers_count - buffers_filled, 
+                                   "stopping capture",
+                                   v4l2_buffers_count - buffers_filled,
                                    v4l2_buffers_count);
 
 			if(ioctl(v4l2_video_fd, VIDIOC_STREAMOFF, &dummy) < 0)
@@ -1077,11 +1077,11 @@ static int v4l2_audio_grab_stop(void)
 	return(0);
 }
 
-/* ============================================================ 
- * TRANSCODE INTERFACE 
+/* ============================================================
+ * TRANSCODE INTERFACE
  * ============================================================*/
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  * open stream
  * ------------------------------------------------------------*/
 
@@ -1118,7 +1118,7 @@ MOD_open
 	return(0);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  * decode  stream
  * ------------------------------------------------------------*/
 
@@ -1152,7 +1152,7 @@ MOD_decode
 	return(0);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  * close stream
  * ------------------------------------------------------------*/
 

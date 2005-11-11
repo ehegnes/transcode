@@ -4,20 +4,20 @@
  *  Copyright (C) Malanchini Marzio - March 2003
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -66,7 +66,7 @@ static void usage(int status)
 int binary_dump = 1;		//force to use the binary dump in probe_xml
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * print a usage/version message
  *
@@ -91,9 +91,9 @@ static int f_complete_vob_info(vob_t *p_vob,int s_type_check)
 				return(1);
 			}
 			if (s_audiovideo.p_next->s_v_codec != TC_CODEC_UNKNOWN)
-				p_vob->im_v_codec=s_audiovideo.p_next->s_v_codec;	
+				p_vob->im_v_codec=s_audiovideo.p_next->s_v_codec;
 			if (s_audiovideo.p_next->s_a_codec != TC_CODEC_UNKNOWN)
-				p_vob->im_a_codec=s_audiovideo.p_next->s_a_codec;	
+				p_vob->im_a_codec=s_audiovideo.p_next->s_a_codec;
 			if ((s_audiovideo.p_next->s_v_tg_height !=0) || (s_audiovideo.p_next->s_v_tg_width !=0))
 				s_rc=2;
 			(void) f_manage_input_xml(NULL,0,&s_audiovideo);
@@ -110,16 +110,16 @@ static int f_complete_vob_info(vob_t *p_vob,int s_type_check)
 				return(1);
 			}
 			if (s_audiovideo.p_next->s_a_codec != TC_CODEC_UNKNOWN)
-				p_vob->im_a_codec=s_audiovideo.p_next->s_a_codec;	
+				p_vob->im_a_codec=s_audiovideo.p_next->s_a_codec;
 			(void) f_manage_input_xml(NULL,0,&s_audiovideo);
 		}
 	}
 	return(s_rc);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
- * check the consistence of XML file 
+ * check the consistence of XML file
  *
  * ------------------------------------------------------------*/
 
@@ -132,26 +132,26 @@ int main(int argc, char *argv[])
 	int s_bin_dump=0,s_type_check=VIDEO_MODE|AUDIO_MODE,s_shmem=0;
 	int s_shm,s_rc,s_cmd;
 	key_t s_key=0x00112233;
-	
+
 	//proper initialization
 	memset(&s_vob, 0, sizeof(vob_t));
 	s_pid=getpid();
-	
-	
+
+
 	s_vob.audio_in_file= "/dev/zero";
 	s_vob.video_in_file= "/dev/zero";
-	
-	while ((s_cmd = getopt(argc, argv, "i:p:vSBAVh")) != -1) 
+
+	while ((s_cmd = getopt(argc, argv, "i:p:vSBAVh")) != -1)
 	{
-		switch (s_cmd) 
+		switch (s_cmd)
 		{
-			case 'i': 
-		  		if(optarg[0]=='-') 
+			case 'i':
+		  		if(optarg[0]=='-')
 			  		usage(EXIT_FAILURE);
 		  		p_in_v_file = optarg;
 		  	break;
-			case 'p': 
-		  		if(optarg[0]=='-') 
+			case 'p':
+		  		if(optarg[0]=='-')
 			  		usage(EXIT_FAILURE);
 		  		p_in_a_file = optarg;
 		  	break;
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
 			case 'S':
 		  		s_shmem = 1;
 		  	break;
-			case 'v': 
+			case 'v':
 		  		version();
 		  		exit(0);
 		  	break;
@@ -177,21 +177,21 @@ int main(int argc, char *argv[])
 				usage(EXIT_FAILURE);
 		}
 	}
-	
-	if(optind < argc) 
+
+	if(optind < argc)
 	{
-		if(strcmp(argv[optind],"-")!=0) 
+		if(strcmp(argv[optind],"-")!=0)
 			usage(EXIT_FAILURE);
         }
 	// need at least a file name
-	if(argc==1) 
+	if(argc==1)
 		usage(EXIT_FAILURE);
-	/* ------------------------------------------------------------ 
+	/* ------------------------------------------------------------
 	 *
 	 * fill out defaults for info structure
 	 *
 	 * ------------------------------------------------------------*/
-	
+
 	if ((s_bin_dump) && (s_shmem))
 	{
 		if((s_shm = shmget(s_key, 0, 0600)) != -1)
@@ -238,10 +238,10 @@ int main(int argc, char *argv[])
 		p_video_tmp=s_vob.video_in_file;
 		p_audio_tmp=s_vob.audio_in_file;
 	}
-	if(p_in_v_file==NULL) 
+	if(p_in_v_file==NULL)
 	{
 		s_vob.video_in_file= p_in_v_file;
-		if(p_in_a_file==NULL) 
+		if(p_in_a_file==NULL)
 			s_vob.audio_in_file= p_in_a_file;
 		else
 			s_vob.audio_in_file= p_in_a_file;
@@ -249,16 +249,16 @@ int main(int argc, char *argv[])
 	else
 	{
 		s_vob.video_in_file= p_in_v_file;
-		if(p_in_a_file==NULL) 
+		if(p_in_a_file==NULL)
 			s_vob.audio_in_file= p_in_v_file;
 		else
 			s_vob.audio_in_file= p_in_a_file;
 	}
-	
-	
-	/* ------------------------------------------------------------ 
+
+
+	/* ------------------------------------------------------------
 	 *
-	 * start with the program              
+	 * start with the program
 	 *
 	 * ------------------------------------------------------------*/
 	if ((s_rc=f_complete_vob_info(&s_vob,s_type_check)) == 1)

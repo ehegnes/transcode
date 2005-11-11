@@ -1,30 +1,30 @@
-/* 
+/*
  *    decode.c
  *
  *	Copyright (C) Aaron Holtzman - May 1999
  *
  *  This file is part of ac3dec, a free Dolby AC-3 stream decoder.
- *	
+ *
  *  ac3dec is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  ac3dec is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *
  */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif 
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -95,23 +95,23 @@ ac3_decode_frame(int banner)
 	    stats_print_banner(&syncinfo,&bsi);
 	    done_banner = 1;
 	}
-	
+
 	for(i=0; i < 6; i++)
 	{
 		//Initialize freq/time sample storage
 		memset(samples,0,sizeof(float) * 256 * (bsi.nfchans + bsi.lfeon));
 
 		// Extract most of the audblk info from the bitstream
-		// (minus the mantissas 
+		// (minus the mantissas
 		parse_audblk(&bsi,&audblk);
 
 		// Take the differential exponent data and turn it into
-		// absolute exponents 
-		exponent_unpack(&bsi,&audblk); 
+		// absolute exponents
+		exponent_unpack(&bsi,&audblk);
 		if(error_flag)
 			goto error;
 
-		// Figure out how many bits per mantissa 
+		// Figure out how many bits per mantissa
 		bit_allocate(syncinfo.fscod,&bsi,&audblk);
 
 		// Extract the mantissas from the stream and
@@ -123,7 +123,7 @@ ac3_decode_frame(int banner)
 		if(bsi.acmod == 0x2)
 			rematrix(&audblk,samples);
 
-		// Convert the frequency samples into time samples 
+		// Convert the frequency samples into time samples
 		imdct(&bsi,&audblk,samples);
 
 		// Downmix into the requested number of channels
@@ -136,13 +136,13 @@ ac3_decode_frame(int banner)
 	}
 	parse_auxdata(&syncinfo);
 
-	return &frame;	
+	return &frame;
 
 error:
 	//mute the frame
 	memset(s16_samples,0,sizeof(sint_16) * 256 * 2 * 6);
 
 	error_flag = 0;
-	return &frame;	
+	return &frame;
 
 }

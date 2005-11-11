@@ -3,23 +3,23 @@ void
 subsample_frame (uint8_t * dst[3], uint8_t * src[3]);
 
 /* search steps */
-void 
+void
 mb_search_44 (uint16_t x, uint16_t y);
 
-void 
+void
 mb_search_22 (uint16_t x, uint16_t y);
 
-void 
+void
 mb_search_11 (uint16_t x, uint16_t y);
 
 uint32_t
 mb_search_00 (uint16_t x, uint16_t y);
 
 /* no accel */
-uint32_t 
+uint32_t
 calc_SAD_noaccel (uint8_t * frm, uint8_t * ref);
 
-uint32_t 
+uint32_t
 calc_SAD_uv_noaccel (uint8_t * frm, uint8_t * ref);
 
 uint32_t

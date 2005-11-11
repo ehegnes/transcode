@@ -33,7 +33,7 @@ long calcPNMSize(PNMParam p);
    or NOTEQUAL if they are not */
 int PNMParamCompare(PNMParam first, PNMParam second);
 
-/* Copy src parameters to dest 
+/* Copy src parameters to dest
    returns VALID or ERROR */
 int PNMParamCopy(PNMParam *dest, PNMParam *src);
 

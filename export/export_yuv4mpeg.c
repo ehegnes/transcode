@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -65,7 +65,7 @@ static ImageFormat srcfmt;
 
 static y4m_stream_info_t y4mstream;
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * init codec
  *
@@ -73,7 +73,7 @@ static y4m_stream_info_t y4mstream;
 
 MOD_init
 {
-    
+
     if(param->flag == TC_VIDEO) {
 
 	if (vob->im_v_codec == CODEC_YUV) {
@@ -83,7 +83,7 @@ MOD_init
 	} else if (vob->im_v_codec == CODEC_RGB) {
 	    srcfmt = IMG_RGB_DEFAULT;
 	} else {
-	    tc_log_warn(MOD_NAME, "unsupported video format %d", 
+	    tc_log_warn(MOD_NAME, "unsupported video format %d",
 		    vob->im_v_codec);
 	    return(TC_EXPORT_ERROR);
 	}
@@ -98,7 +98,7 @@ MOD_init
     if(param->flag == TC_AUDIO) return(audio_init(vob, verbose_flag));
 
     // invalid flag
-    return(TC_EXPORT_ERROR); 
+    return(TC_EXPORT_ERROR);
 }
 
 static void asrcode2asrratio(int asr, y4m_ratio_t *r)
@@ -112,7 +112,7 @@ static void asrcode2asrratio(int asr, y4m_ratio_t *r)
     }
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open outputfile
  *
@@ -123,12 +123,12 @@ MOD_open
 
   int asr;
   //char dar_tag[20];
-  y4m_ratio_t framerate;  
+  y4m_ratio_t framerate;
   y4m_ratio_t asr_rate;
 
 
   if(param->flag == TC_VIDEO) {
-    
+
     // video
 
     //note: this is the real framerate of the raw stream
@@ -152,33 +152,33 @@ MOD_open
     */
     y4m_si_set_height(&y4mstream,vob->ex_v_height);
     y4m_si_set_width(&y4mstream,vob->ex_v_width);
-    
+
     size = vob->ex_v_width * vob->ex_v_height * 3/2;
-    
-    if((fd = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC, 
+
+    if((fd = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC,
 		  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))<0) {
 	  perror("open file");
 	  return(TC_EXPORT_ERROR);
-    }     
-    
+    }
+
     if( y4m_write_stream_header( fd, &y4mstream ) != Y4M_OK ){
       perror("write stream header");
       return(TC_EXPORT_ERROR);
-    }     
-    
+    }
+
     /* WAS: sprintf(buf, "FRAME\n"); */
-    
+
     return(0);
   }
-  
-  
-  if(param->flag == TC_AUDIO) return(audio_open(vob, NULL));
-  
-  // invalid flag
-  return(TC_EXPORT_ERROR); 
-}   
 
-/* ------------------------------------------------------------ 
+
+  if(param->flag == TC_AUDIO) return(audio_open(vob, NULL));
+
+  // invalid flag
+  return(TC_EXPORT_ERROR);
+}
+
+/* ------------------------------------------------------------
  *
  * encode and export
  *
@@ -187,9 +187,9 @@ MOD_open
 MOD_encode
 {
     y4m_frame_info_t info;
-    
-    if(param->flag == TC_VIDEO) { 
-	
+
+    if(param->flag == TC_VIDEO) {
+
 	if (!tcv_convert(param->buffer, srcfmt, IMG_YUV420P)) {
 	    tc_log_warn(MOD_NAME, "image format conversion failed");
 	    return(TC_EXPORT_ERROR);
@@ -197,71 +197,71 @@ MOD_encode
 
 #ifdef USE_NEW_MJPEGTOOLS_CODE
 	y4m_init_frame_info(&info);
-	
+
 	if(y4m_write_frame_header( fd, &y4mstream, &info ) != Y4M_OK )
 	{
 	    perror("write frame header");
 	    return(TC_EXPORT_ERROR);
-	}     
+	}
 #else
 	y4m_init_frame_info(&info);
-	
+
 	if(y4m_write_frame_header( fd, &info) != Y4M_OK )
 	{
 	    perror("write frame header");
 	    return(TC_EXPORT_ERROR);
-	}     
+	}
 #endif
-	
+
 	//do not trust param->size
-	if(tc_pwrite(fd, param->buffer, size) != size) {    
+	if(tc_pwrite(fd, param->buffer, size) != size) {
 	    perror("write frame");
 	    return(TC_EXPORT_ERROR);
-	}     
-	
+	}
+
 	return(0);
     }
-    
+
     if(param->flag == TC_AUDIO) return(audio_encode(param->buffer, param->size, NULL));
-    
+
     // invalid flag
     return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * stop encoder
  *
  * ------------------------------------------------------------*/
 
-MOD_stop 
+MOD_stop
 {
-  
+
   if(param->flag == TC_VIDEO) {
-      
+
       return(0);
   }
   if(param->flag == TC_AUDIO) return(audio_stop());
-  
+
   return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close outputfiles
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
-  
+{
+
   if(param->flag == TC_AUDIO) return(audio_close());
   if(param->flag == TC_VIDEO) {
     close(fd);
     return(0);
   }
-  return(TC_EXPORT_ERROR);  
-  
+  return(TC_EXPORT_ERROR);
+
 }
 
 

@@ -1,15 +1,15 @@
 Here is a short guide for making a quick "backup" of
-your shiny new multi-angle DVD. 
+your shiny new multi-angle DVD.
 NOTE: Please make sure, the DVD explicitly allows you to make a backup copy.
 
-(0) insert your DVD;-) 
+(0) insert your DVD;-)
 (1) switch to a new empty directory $MY_PATH/DVD/ on your hard drive.
 (2) if /dev/dvd is a link to your block device, use tccat's new -P option
-	
-    tccat -i /dev/dvd -P 1 | split -b 1024m - VTS_01_	
+
+    tccat -i /dev/dvd -P 1 | split -b 1024m - VTS_01_
 
     This will result in a couple of files named
-  
+
     VTS_01_aa, VTS_01_ab, ...
 
     (once LFS is fully working, a single file should be sufficient (???),
@@ -24,10 +24,10 @@ NOTE: Please make sure, the DVD explicitly allows you to make a backup copy.
     cp /mnt/dvd/VIDEO_TS/VTS_01_0.IFO .
 
     umount /mnt/dvd
-	
+
 (4) rename the chunks, first file is VTS_01_1.VOB, not VTS_01_0.VOB. The
     latter contains still pictures and the like (?).
-	
+
     mv VTS_01_aa VTS_01_1.VOB
     mv VTS_01_ab VTS_01_2.VOB
     ...
@@ -48,16 +48,16 @@ NOTE: Please make sure, the DVD explicitly allows you to make a backup copy.
 
 (6) test your copy, you need to provide an absolute path to
     the backup directory:
-    
+
     tcprobe -i $MY_PATH/DVD -T 1
-    tccat -i $MY_PATH/DVD -T 1,C,A  | [mplayer|xine|...] - 
+    tccat -i $MY_PATH/DVD -T 1,C,A  | [mplayer|xine|...] -
 
     and optionally check other titles, chapters (C) or even viewing angles (A).
 
-(7) Please note this backup copy is suitable for navigation with import 
+(7) Please note this backup copy is suitable for navigation with import
     module "-x dvd". If you prefer the cluster mode, you need to
-    apply my cluster mini guide to this copy of your DVD or the DVD in your 
-    drive. The program stream contains full navigation and angle information. 
+    apply my cluster mini guide to this copy of your DVD or the DVD in your
+    drive. The program stream contains full navigation and angle information.
     These information are not preserved using the -T option with tccat.
 
     -----

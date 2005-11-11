@@ -6,27 +6,27 @@
  *  2-pass code OpenDivX port: "-R 1", "-R 2"
  *  Copyright (C) 2001 Christoph Lampert <gruel@web.de>
  *
- *  constant quantizer extensions "-R 3" by Gerhard Monzel 
+ *  constant quantizer extensions "-R 3" by Gerhard Monzel
  *  <gerhard.monzel@sap.com>
  *
  *  This module is derived from export_divx4.c, minor modification by
  *  Christoph Lampert <gruel@web.de>
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -79,7 +79,7 @@ int VbrMode=0;
 int force_key_frame=-1;
 
 static avi_t *avifile=NULL;
-  
+
 //temporary audio/video buffer
 static char *buffer;
 
@@ -117,62 +117,62 @@ static char * prof2name(int n)
 #define MODULE "libdivxencore.so.0"
 
 static int divx5_init(char *path) {
-#ifdef SYS_BSD /* Just in case ProjectMayo will release FreeBSD library :-) */  
+#ifdef SYS_BSD /* Just in case ProjectMayo will release FreeBSD library :-) */
   const
-#endif  
+#endif
   char *error;
   int *quiet_encore;
-  
+
   tc_snprintf(module, sizeof(module), "%s/%s", path, MODULE);
-  
+
 
   // try transcode's module directory
-  
-  handle = dlopen(module, RTLD_NOW); 
-  
+
+  handle = dlopen(module, RTLD_NOW);
+
   if (!handle) {
-    
+
     //try the default:
-    
+
     handle = dlopen(MODULE, RTLD_GLOBAL| RTLD_LAZY);
-    
+
     if (!handle) {
       tc_log_warn(MOD_NAME, "%s", dlerror());
       return(-1);
-    } else {  
-      if(verbose_flag & TC_DEBUG) 
+    } else {
+      if(verbose_flag & TC_DEBUG)
         tc_log_info(MOD_NAME, "Loading external codec module %s", MODULE);
     }
-    
-  } else {  
-    if(verbose_flag & TC_DEBUG) 
+
+  } else {
+    if(verbose_flag & TC_DEBUG)
       tc_log_info(MOD_NAME, "Loading external codec module %s", module);
   }
-  
-  divx5_encore = dlsym(handle, "encore");   
-  
+
+  divx5_encore = dlsym(handle, "encore");
+
   if ((error = dlerror()) != NULL)  {
     tc_log_warn(MOD_NAME, "%s", error);
     return(-1);
   }
-  
-  quiet_encore=dlsym(handle, "quiet_encore"); 
-  
+
+  quiet_encore=dlsym(handle, "quiet_encore");
+
   if ((error = dlerror()) != NULL)  {
     tc_log_warn(MOD_NAME, "%s", error);
     return(-1);
   }
-  
+
   *quiet_encore=1;
-  
+
   // debug
-  if(verbose_flag & TC_STATS) *quiet_encore=0; 
-  
+  if(verbose_flag & TC_STATS) *quiet_encore=0;
+
   return(0);
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * init codec
  *
@@ -200,35 +200,35 @@ MOD_init
     if((ch = vob->ex_v_width - ((vob->ex_v_width>>3)<<3)) != 0) {
       tc_log_warn(MOD_NAME, "frame width %d (no multiple of 8)", vob->ex_v_width);
       tc_log_warn(MOD_NAME, "encoder may not work correctly or crash");
-      
+
       if(ch & 1) {
-	tc_log_warn(MOD_NAME, "invalid frame width"); 
-	return(TC_EXPORT_ERROR); 
+	tc_log_warn(MOD_NAME, "invalid frame width");
+	return(TC_EXPORT_ERROR);
       }
     }
-   
+
     if((ch = vob->ex_v_height - ((vob->ex_v_height>>3)<<3)) != 0) {
       tc_log_warn(MOD_NAME, "frame height %d (no multiple of 8)", vob->ex_v_height);
       tc_log_warn(MOD_NAME, "encoder may not work correctly or crash");
-     
+
       if(ch & 1) {
-	tc_log_warn(MOD_NAME, "invalid frame height"); 
-	return(TC_EXPORT_ERROR); 
+	tc_log_warn(MOD_NAME, "invalid frame height");
+	return(TC_EXPORT_ERROR);
       }
     }
-    
+
     if ((buffer = malloc(vob->ex_v_height*vob->ex_v_width*3))==NULL) {
       perror("out of memory");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     } else
-      
-    memset(buffer, 0, vob->ex_v_height*vob->ex_v_width*3);  	
+
+    memset(buffer, 0, vob->ex_v_height*vob->ex_v_width*3);
 
     //load the codec
 
     if(divx5_init(vob->mod_path)<0) {
       tc_log_warn(MOD_NAME, "failed to init DivX 5.0 Codec");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     }
 
     if (divx5_encore(0, ENC_OPT_VERSION, 0, 0) != ENCORE_VERSION) {
@@ -237,21 +237,21 @@ MOD_init
     }
 
     VbrMode = vob->divxmultipass;
-    // 0 for nothing,  
-    // 1 for DivX 5.0 - first-pass, 
+    // 0 for nothing,
+    // 1 for DivX 5.0 - first-pass,
     // 2 for DivX 5.0 - second pass
     // 3 constant quantizer
-    
+
 #if ENCORE_VERSION >= 20021024
 #define FOURCC(A, B, C, D) ( ((uint8_t) (A)) | (((uint8_t) (B))<<8) | (((uint8_t) (C))<<16) | (((uint8_t) (D))<<24) )
 
     if ((settings = malloc(sizeof(SETTINGS)))==NULL) {
       perror("out of memory");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     }
     if ((format = malloc(sizeof(DivXBitmapInfoHeader)))==NULL) {
       perror("out of memory");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     }
     memset (settings, 0, sizeof(SETTINGS));
     memset (format, 0, sizeof(DivXBitmapInfoHeader));
@@ -307,7 +307,7 @@ MOD_init
     settings->quality = vob->divxquality;
 
     if (VbrMode == 1 || VbrMode == 2){
-	 /* 
+	 /*
 	  * http://www.divx.com/support/divx/guide_mac.php
 	  *
 	  * Handheld 128000,262144,196608
@@ -346,7 +346,7 @@ MOD_init
 	 }
 	 if (verbose & TC_DEBUG)
 	     tc_log_info(MOD_NAME, "Using VBV Profile [%d] (%s)",
-		     vob->divx5_vbv_prof, 
+		     vob->divx5_vbv_prof,
 		     prof2name(vob->divx5_vbv_prof));
 
     }
@@ -387,20 +387,20 @@ MOD_init
 
     if(divx5_encore(&encore_handle, ENC_OPT_INIT, format, settings) < 0) {
       tc_log_warn(MOD_NAME, "Error doing ENC_OPT_INIT");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     }
 
 #else
 
     if ((divx = malloc(sizeof(ENC_PARAM)))==NULL) {
 	perror("out of memory");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     }
 
     memset(divx, 0, sizeof(ENC_PARAM));
 
     //important parameter (Note: use_bidirect and obmc have been removed since DivX4)
-    
+
     divx->x_dim     = vob->ex_v_width;
     divx->y_dim     = vob->ex_v_height;
     divx->framerate = vob->ex_fps;
@@ -411,7 +411,7 @@ MOD_init
     divx->min_quantizer      = vob->min_quantizer;
     divx->max_quantizer      = vob->max_quantizer;
     divx->rc_period          = vob->rc_period;
-    divx->rc_reaction_period = vob->rc_reaction_period; 
+    divx->rc_reaction_period = vob->rc_reaction_period;
     divx->rc_reaction_ratio  = vob->rc_reaction_ratio;
 
     divx->max_key_interval   = vob->divxkeyframes;
@@ -422,26 +422,26 @@ MOD_init
 
     if(divx5_encore(NULL, ENC_OPT_INIT, divx, NULL) < 0) {
       tc_log_warn(MOD_NAME, "DivX codec init error");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     }
 
     // catch API mismatch
     if(!divx || !divx->handle) {
       tc_log_warn(MOD_NAME, "DivX codec open error");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     }
-    
-    if(verbose_flag & TC_DEBUG) 
+
+    if(verbose_flag & TC_DEBUG)
       {
-       //-- GMO start -- 
-       if (vob->divxmultipass == 3) { 
+       //-- GMO start --
+       if (vob->divxmultipass == 3) {
           tc_log_info(MOD_NAME, "    single-pass session: %d (VBR)", vob->divxmultipass);
           tc_log_info(MOD_NAME, "          VBR-quantizer: %d", vob->divxbitrate);
         } else {
 	  tc_log_info(MOD_NAME, "     multi-pass session: %d", vob->divxmultipass);
 	  tc_log_info(MOD_NAME, "      bitrate [kBits/s]: %d", divx->bitrate/1000);
 	}
-	
+
 	tc_log_info(MOD_NAME, "                quality: %d", divx->quality);
         //-- GMO end --
 
@@ -457,58 +457,58 @@ MOD_init
 
     encode.bitstream = buffer;
 
-    
+
     switch(VbrMode) {
-	
+
     case 1:
-	VbrControl_init_2pass_vbr_analysis(vob->divxlogfile, divx->quality);   
+	VbrControl_init_2pass_vbr_analysis(vob->divxlogfile, divx->quality);
 	break;
-	
+
     case 2:
-      
+
       // check for logfile
-      
+
       if(vob->divxlogfile==NULL || stat(vob->divxlogfile, &fbuf)){
-	tc_log_warn(MOD_NAME, "pass-1 logfile \"%s\" not found exit", 
+	tc_log_warn(MOD_NAME, "pass-1 logfile \"%s\" not found exit",
 		vob->divxlogfile);
 	return(TC_EXPORT_ERROR);
     }
 
 
       // second pass: read back the logfile
-      VbrControl_init_2pass_vbr_encoding(vob->divxlogfile, 
-					 divx->bitrate, 
-					 divx->framerate, 
-					 vob->divxcrispness, 
+      VbrControl_init_2pass_vbr_encoding(vob->divxlogfile,
+					 divx->bitrate,
+					 divx->framerate,
+					 vob->divxcrispness,
 					 divx->quality);
       break;
 
-      //-- GMO start --  
+      //-- GMO start --
     case 3:
-	VbrControl_init_2pass_vbr_analysis(vob->divxlogfile, divx->quality);   
+	VbrControl_init_2pass_vbr_analysis(vob->divxlogfile, divx->quality);
 
       encode.quant = vob->divxbitrate;
       encode.intra = -1;
       break;
       //-- GMO end --
- 
+
     default:
       // none
       break;
     }
 #endif
-    
+
     return(0);
   }
-  
-  if(param->flag == TC_AUDIO) return(audio_init(vob, verbose));    
-  
+
+  if(param->flag == TC_AUDIO) return(audio_init(vob, verbose));
+
   // invalid flag
-  return(TC_EXPORT_ERROR); 
+  return(TC_EXPORT_ERROR);
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open outputfile
  *
@@ -518,28 +518,28 @@ MOD_open
 {
 
   // open file
-  if(vob->avifile_out==NULL) 
+  if(vob->avifile_out==NULL)
     if(NULL == (vob->avifile_out = AVI_open_output_file(vob->video_out_file))) {
       AVI_print_error("avi open error");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     }
-  
+
   /* save locally */
   avifile = vob->avifile_out;
 
-  if(param->flag == TC_AUDIO) return(audio_open(vob, vob->avifile_out));  
-  
+  if(param->flag == TC_AUDIO) return(audio_open(vob, vob->avifile_out));
+
   if(param->flag == TC_VIDEO) {
-    
+
     // video
 #if ENCORE_MAJOR_VERSION >= 5010
-    AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, 
+    AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height,
 		  vob->ex_fps, "DX50");
 #else
-    AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, 
+    AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height,
 		  vob->ex_fps, "DIVX");
 #endif
-    
+
     if (vob->avi_comment_fd>0)
 	AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
 
@@ -547,16 +547,16 @@ MOD_open
     //first frame will be a key fame anayway. Therefore key.quantizer
     //is well defined for any frame to follow
     force_key_frame=(force_key_frame<0) ? 0:1;
-    
+
     return(0);
   }
-  
+
   // invalid flag
-  return(TC_EXPORT_ERROR); 
+  return(TC_EXPORT_ERROR);
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * encode and export frame
  *
@@ -565,26 +565,26 @@ MOD_open
 
 MOD_encode
 {
-  
-  if(param->flag == TC_VIDEO) { 
-    
+
+  if(param->flag == TC_VIDEO) {
+
     // encode video
-    
+
     encode.image = param->buffer;
     encode.bitstream = buffer;
-    
+
 #if ENCORE_VERSION >= 20021024
     encode.produce_empty_frame = 0;
 
     do {
 	if(divx5_encore(encore_handle, ENC_OPT_ENCODE, &encode, &key) < 0) {
 	    tc_log_warn(MOD_NAME, "DivX encoder error");
-	    return(TC_EXPORT_ERROR); 
-	}	
+	    return(TC_EXPORT_ERROR);
+	}
 	// write bitstream
 	if(key.cType != '\0') {
 	    /* split the AVI */
-	    if((uint32_t)(AVI_bytes_written(avifile)+encode.length+16+8)>>20 >= tc_avi_limit) 
+	    if((uint32_t)(AVI_bytes_written(avifile)+encode.length+16+8)>>20 >= tc_avi_limit)
 		tc_outstream_rotate_request();
 
 	    //0.6.2: switch outfile on "C" and -J pv
@@ -592,7 +592,7 @@ MOD_encode
 
 	    if(AVI_write_frame(avifile, buffer, encode.length, (key.cType == 'I')?1:0)<0) {
 		tc_log_warn(MOD_NAME, "DivX avi video write error");
-		return(TC_EXPORT_ERROR); 
+		return(TC_EXPORT_ERROR);
 	    }
 	}
 	encode.image = NULL;
@@ -600,9 +600,9 @@ MOD_encode
 #else
     switch(VbrMode) {
 
-   //-- GMO start --   
+   //-- GMO start --
     case 3:
-    
+
       if (force_key_frame)
       {
         encode.intra    = 1;
@@ -610,72 +610,72 @@ MOD_encode
       }
       else
         encode.intra = -1;
-          
-      if(divx5_encore(divx->handle, ENC_OPT_ENCODE_VBR, &encode, &key) < 0) 
+
+      if(divx5_encore(divx->handle, ENC_OPT_ENCODE_VBR, &encode, &key) < 0)
       {
 	tc_log_warn(MOD_NAME, "encoder error");
-	return(TC_EXPORT_ERROR); 
+	return(TC_EXPORT_ERROR);
       }
 
 
-      VbrControl_update_2pass_vbr_analysis(key.is_key_frame, 
-					       key.motion_bits, 
-					       key.texture_bits, 
-					       key.total_bits, 
+      VbrControl_update_2pass_vbr_analysis(key.is_key_frame,
+					       key.motion_bits,
+					       key.texture_bits,
+					       key.total_bits,
 					       key.quantizer);
       break;
     //-- GMO end --
- 	
+
     case 2:
 	// second pass of 2-pass, just a hack for the moment
 
-	encode.quant = VbrControl_get_quant();		
+	encode.quant = VbrControl_get_quant();
 	encode.intra = VbrControl_get_intra();
 
 	if(force_key_frame) {
 	    encode.intra=1;    //key frame
 	    force_key_frame=0; //reset
 	}
-	
+
       if(divx5_encore(divx->handle, ENC_OPT_ENCODE_VBR, &encode, &key) < 0) {
 	tc_log_warn(MOD_NAME, "encoder error");
-	return(TC_EXPORT_ERROR); 
+	return(TC_EXPORT_ERROR);
       }
-      
-      VbrControl_update_2pass_vbr_encoding(key.motion_bits, 
-					   key.texture_bits, 
+
+      VbrControl_update_2pass_vbr_encoding(key.motion_bits,
+					   key.texture_bits,
 					   key.total_bits);
       break;
 
     default:
-      
+
       if(force_key_frame) {
-	
+
 	encode.intra=1; //key frame
 	encode.quant=key.quantizer; //well defined for frames != first frame.
-	
+
 	if(divx5_encore(divx->handle, ENC_OPT_ENCODE_VBR, &encode, &key) < 0) {
 	  tc_log_warn(MOD_NAME, "encoder error");
-	  return(TC_EXPORT_ERROR); 
+	  return(TC_EXPORT_ERROR);
 	}
-	
+
 	//reset
-	force_key_frame=0; 
+	force_key_frame=0;
 
       } else {
-	  
+
 	  if(divx5_encore(divx->handle, ENC_OPT_ENCODE, &encode, &key) < 0) {
 	      tc_log_warn(MOD_NAME, "encoder error");
-	      return(TC_EXPORT_ERROR); 
+	      return(TC_EXPORT_ERROR);
 	  }
       }
-      
+
       // first pass of two-pass, save results
-      if(VbrMode==1) 
-	  VbrControl_update_2pass_vbr_analysis(key.is_key_frame, 
-					       key.motion_bits, 
-					       key.texture_bits, 
-					       key.total_bits, 
+      if(VbrMode==1)
+	  VbrControl_update_2pass_vbr_analysis(key.is_key_frame,
+					       key.motion_bits,
+					       key.texture_bits,
+					       key.total_bits,
 					       key.quantizer);
       break;
     }
@@ -683,60 +683,60 @@ MOD_encode
     // write bitstream
 
     /* split the AVI */
-    if((uint32_t)(AVI_bytes_written(avifile)+encode.length+16+8)>>20 >= tc_avi_limit) 
+    if((uint32_t)(AVI_bytes_written(avifile)+encode.length+16+8)>>20 >= tc_avi_limit)
 	tc_outstream_rotate_request();
 
     //0.6.2: switch outfile on "C" and -J pv
     if(key.is_key_frame) tc_outstream_rotate();
-  
+
     if(AVI_write_frame(avifile, buffer, encode.length, key.is_key_frame)<0) {
 	tc_log_warn(MOD_NAME, "DivX avi video write error");
-	return(TC_EXPORT_ERROR); 
+	return(TC_EXPORT_ERROR);
     }
 #endif
-    
+
     return(0);
   }
-  
-  if(param->flag == TC_AUDIO) return(audio_encode(param->buffer, param->size, avifile));  
-  
+
+  if(param->flag == TC_AUDIO) return(audio_encode(param->buffer, param->size, avifile));
+
   // invalid flag
-  return(TC_EXPORT_ERROR); 
+  return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close codec
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
 
   vob_t *vob = tc_get_vob();
-  if(param->flag == TC_AUDIO) return(audio_close()); 
-    
+  if(param->flag == TC_AUDIO) return(audio_close());
+
   if(vob->avifile_out!=NULL) {
     AVI_close(vob->avifile_out);
     vob->avifile_out=NULL;
   }
-  
+
   if(param->flag == TC_VIDEO) return(0);
-  
-  return(TC_EXPORT_ERROR); 
+
+  return(TC_EXPORT_ERROR);
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * stop encoder
  *
  * ------------------------------------------------------------*/
 
 MOD_stop
-{  
+{
 
-  if(param->flag == TC_VIDEO) { 
+  if(param->flag == TC_VIDEO) {
 #if ENCORE_VERSION >= 20021024
     if(divx5_encore(encore_handle, ENC_OPT_RELEASE, NULL, NULL) < 0) {
       tc_log_warn(MOD_NAME, "DivX encoder close error");
@@ -751,14 +751,14 @@ MOD_stop
 	free(buffer);
 	buffer=NULL;
     }
-    
+
     //remove codec
     dlclose(handle);
-    
+
 #if ENCORE_VERSION >= 20021024
 #else
     switch(VbrMode) {
-	
+
     case 1:
     case 2:
     case 3:
@@ -769,12 +769,12 @@ MOD_stop
 	break;
     }
 #endif
-    
+
     return(0);
   }
 
-  if(param->flag == TC_AUDIO) return(audio_stop());  
-  
-  return(TC_EXPORT_ERROR);     
+  if(param->flag == TC_AUDIO) return(audio_stop());
+
+  return(TC_EXPORT_ERROR);
 }
 

@@ -6,20 +6,20 @@
  *            http://www.bunkus.org/videotools/ogmtools/index.html
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -54,7 +54,7 @@ struct demux_t {
 
 enum { none, Vorbis, Theora, DirectShow, StreamHeader };
 
-static int ogm_packet_type (ogg_packet pack) 
+static int ogm_packet_type (ogg_packet pack)
 {
     if ((pack.bytes >= 7) && ! strncmp(&pack.packet[1], "vorbis", 6))
 	return Vorbis;
@@ -137,7 +137,7 @@ void probe_ogg(info_t *ipipe)
 	    ogg_stream_pagein(&sstate, &page);
 	    ogg_stream_packetout(&sstate, &pack);
 
-	    switch (ogm_packet_type(pack)) 
+	    switch (ogm_packet_type(pack))
 	    {
 		case Vorbis:
 		    vorbis_info_init(inf);
@@ -150,7 +150,7 @@ void probe_ogg(info_t *ipipe)
 #ifdef OGM_DEBUG
 			fprintf(stderr, "(%s) (a%d/%d) Vorbis audio; "
 				"rate: %ldHz, channels: %d, bitrate %3.2f kb/s\n", __FILE__,
-				natracks + 1, natracks + nvtracks + 1, inf->rate, 
+				natracks + 1, natracks + nvtracks + 1, inf->rate,
 				inf->channels, (double)inf->bitrate_nominal/1000.0);
 #endif
 
@@ -176,7 +176,7 @@ void probe_ogg(info_t *ipipe)
 		    theora_comment tc;
 
 		    theora_decode_header(&ti, &tc, &pack);
-		    
+
 		    ipipe->probe_info->width  =  ti.width;
 		    ipipe->probe_info->height =  ti.height;
 		    ipipe->probe_info->fps    =  (double)ti.fps_numerator/ti.fps_denominator;
@@ -210,8 +210,8 @@ void probe_ogg(info_t *ipipe)
 		    if (!strncmp(sth->streamtype, "video", 5)) {
 #ifdef OGM_DEBUG
 			unsigned long codec;
-			codec = (sth->subtype[0] << 24) + 
-			    (sth->subtype[1] << 16) + (sth->subtype[2] << 8) + sth->subtype[3]; 
+			codec = (sth->subtype[0] << 24) +
+			    (sth->subtype[1] << 16) + (sth->subtype[2] << 8) + sth->subtype[3];
 			fprintf(stderr, "(%s) (v%d/%d) video; fps: %.3f width height: %dx%d " \
 				"codec: %p (%c%c%c%c)\n", __FILE__, nvtracks + 1,
 				natracks + nvtracks + 1,
@@ -286,7 +286,7 @@ void probe_ogg(info_t *ipipe)
 
 			ipipe->probe_info->track[natracks].samplerate = sth->samples_per_unit;
 			ipipe->probe_info->track[natracks].chan = sth->sh.audio.channels;
-			ipipe->probe_info->track[natracks].bits = 
+			ipipe->probe_info->track[natracks].bits =
 			    (sth->bits_per_sample<4)?sth->bits_per_sample*8:sth->bits_per_sample;
 			ipipe->probe_info->track[natracks].format = codec;
 			ipipe->probe_info->track[natracks].bitrate = 0;

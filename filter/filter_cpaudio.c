@@ -13,17 +13,17 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *     
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *  
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -62,7 +62,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   aframe_list_t *ptr = (aframe_list_t *)ptr_;
   vob_t *vob=NULL;
   static int sourceChannel = 0;    // Init to left. '1' = right
-   
+
   if (ptr->tag & TC_FILTER_GET_CONFIG) {
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "William H Wittig", "AO", "1");
       optstr_param (options, "source", "Source channel (l=left, r=right)", "%c", "l", "l", "r");
@@ -83,11 +83,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
       tc_log_error (MOD_NAME, "This filter only works for 16 bit samples\n");
       return (-1);
     }
-   
+
     if (options != NULL)
     {
       char srcChannel;
-       
+
       optstr_get(options, "source", "%c", &srcChannel);
 
       if (srcChannel == 'l')
@@ -103,22 +103,22 @@ int tc_filter(frame_list_t *ptr_, char *options)
       }
 
     // filter init ok.
-   
+
     if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
-   
+
     return(0);
   }
 
   //----------------------------------
   // filter close
   //----------------------------------
- 
+
   if(ptr->tag & TC_FILTER_CLOSE)
   {
     return(0);
   }
- 
+
   //----------------------------------
   // filter frame routine
   //----------------------------------
@@ -126,13 +126,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
- 
+
   if(ptr->tag & TC_POST_PROCESS && ptr->tag & TC_AUDIO && !(ptr->attributes & TC_FRAME_IS_SKIPPED))
   {
     int16_t* data = (int16_t *)ptr->audio_buf;
     int len = ptr->audio_size / 2; // 16 bits samples
     int i;
- 
+
     // if(verbose) printf("[%s] Length: %d, Source: %d\n", MOD_NAME, len, sourceChannel);
 
     for (i = 0; i < len; i += 2) // Implicitly assumes even number of samples (e.g. l,r pairs)

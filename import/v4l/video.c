@@ -4,23 +4,23 @@
  *  Copyright (C) Thomas Östreich - January 2002
  *  some code from xawtv: (c) 1997-2001 Gerd Knorr <kraxel@bytesex.org>
  *  updates for general channel selection and .xavtv processing by
- *  Chris C. Hoover <cchoover@charter.net> 
+ *  Chris C. Hoover <cchoover@charter.net>
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -82,7 +82,7 @@ video_grab_init (char *device,  // device the video/audio comes from [/dev/video
 
   tc_snprintf (pNorm, TC_BUF_MIN - 1, "%s", "don't touch");
 
-  // open video device  
+  // open video device
   if ((fh = open (device, O_RDWR)) == -1) {
     perror ("grab device open");
     return (-1);
@@ -133,13 +133,13 @@ video_grab_init (char *device,  // device the video/audio comes from [/dev/video
   }
 
   /*
-   * let's see if we can find a .xawtv 
+   * let's see if we can find a .xawtv
    * file in the users home directory.
    *
    * this is needed even if the chosen
    * channel has no tuner because we
    * need to set the values for bright,
-   * contrast, hue and saturation in 
+   * contrast, hue and saturation in
    * any case.
    */
   /*
@@ -290,7 +290,7 @@ video_grab_init (char *device,  // device the video/audio comes from [/dev/video
                 }
               }
               else if ((pTemp = cf_get_named_key (pRoot, pSection->name, "freq")) != NULL) {
-                if (station_id != NULL && 
+                if (station_id != NULL &&
                     (strcmp (station_id, pSection->name) == 0 || strcmp (station_id, pTemp) == 0)) {
                   /*
                    * xawtv freq is in MHz
@@ -404,7 +404,7 @@ dont_touch:
             (float) pict.brightness / 65535 * 100, "%", (float) pict.hue / 65535 * 100, "%",
             (float) pict.colour / 65535 * 100, "%", (float) pict.contrast / 65535 * 100, "%");
 
-  /* ------------------------------------------------------------------- 
+  /* -------------------------------------------------------------------
    *
    * user section
    *
@@ -493,7 +493,7 @@ dont_touch:
     }
   }
 
-  // retrieve buffer size and offsets 
+  // retrieve buffer size and offsets
 
   if (ioctl (fg.video_dev, VIDIOCGMBUF, &fg.vid_mbuf) == -1) {
     perror ("ioctl (VIDIOCGMBUF)");
@@ -510,7 +510,7 @@ dont_touch:
     return (-1);
   }
 
-  // map grabber memory onto user space 
+  // map grabber memory onto user space
 
   fg.video_map = mmap (0, fg.vid_mbuf.size, PROT_READ | PROT_WRITE, MAP_SHARED, fg.video_dev, 0);
   if ((unsigned char *) -1 == (unsigned char *) fg.video_map) {
@@ -518,7 +518,7 @@ dont_touch:
     return (-1);
   }
 
-  // generate mmap records 
+  // generate mmap records
 
   for (i = 0; i < v4l_max_buffer; i++) {
 
@@ -529,7 +529,7 @@ dont_touch:
 
   }
 
-  // calculate framebuffer size 
+  // calculate framebuffer size
   switch (fg.format) {
   case VIDEO_PALETTE_RGB24:
     fg.image_pixels = w * h;
@@ -550,7 +550,7 @@ dont_touch:
     break;
   }
 
-  // reset grab counter variables 
+  // reset grab counter variables
 
   fg.current_grab_number = 0;
   fg.totalframecount = 0;
@@ -698,10 +698,10 @@ video_grab_frame (char *buffer)
 {
   uint8_t *p;
 
-  // advance grab-frame number 
+  // advance grab-frame number
   fg.current_grab_number = ((fg.current_grab_number + 1) % v4l_max_buffer);
 
-  // wait for next image in the sequence to complete grabbing 
+  // wait for next image in the sequence to complete grabbing
   if (ioctl (fg.video_dev, VIDIOCSYNC, &fg.vid_mmap[fg.current_grab_number]) == -1) {
     perror ("VIDIOCSYNC");
     return (-1);
@@ -735,7 +735,7 @@ video_grab_frame (char *buffer)
 
   fg.totalframecount++;
 
-  // issue new grab command for this buffer 
+  // issue new grab command for this buffer
 
   if (ioctl (fg.video_dev, VIDIOCMCAPTURE, &fg.vid_mmap[fg.current_grab_number]) == -1) {
     perror ("VIDIOCMCAPTURE");

@@ -57,7 +57,7 @@ struct object
 
 	double heading;
 	double dheading;
-	
+
 	double speed;
 	double dspeed;
 	double ddspeed;
@@ -100,7 +100,7 @@ struct object
 
 	double chroma_key_window;
 	double dchroma_key_window;
-	
+
 	double extra_character_space;
 	double dextra_character_space;
 
@@ -124,9 +124,9 @@ struct object
 	double font_outline_thickness;
 	double font_blur_radius;
 
-	font_desc_t *pfd;	
+	font_desc_t *pfd;
 
-	int line_number; // line number in multiline formatted text 
+	int line_number; // line number in multiline formatted text
 	int bg_y_start;
 	int bg_y_end;
 	int bg_x_start;

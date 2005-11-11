@@ -47,7 +47,7 @@ static void rescale(const uint8_t *src1, const uint8_t *src2,
 /* MMX version */
 
 static void rescale_mmx(const uint8_t *src1, const uint8_t *src2,
-                        uint8_t *dest, int bytes, 
+                        uint8_t *dest, int bytes,
                         uint32_t weight1, uint32_t weight2)
 {
     if (bytes >= 8) {

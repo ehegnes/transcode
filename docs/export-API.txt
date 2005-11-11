@@ -19,11 +19,11 @@ typedef struct _vob_t {
 
 typedef struct _transfer_t {
 
-  int flag;		// specifies context: TC_VIDEO for video 
+  int flag;		// specifies context: TC_VIDEO for video
 					      TC_AUDIO for audio
 		        // or passes an integer to the module
 
-  FILE *fd;             // file handle for input stream   
+  FILE *fd;             // file handle for input stream
 			// NULL if import module performs reading
 			// unused in export module
 
@@ -53,7 +53,7 @@ requested method:
 transcode calls the following routines in this order
 for both export modules, i.e., first for video and then for the
 audio context flag set. An export module should in general
-be able to deal with audio and video and write it to 
+be able to deal with audio and video and write it to
 a common file. But the interface is more general.
 
 [1]
@@ -63,7 +63,7 @@ para2=NULL
 requested action: print out some general modules infos to stderr
 		  and inherit transcode verbosity flag
 		  (optional return capability flag)
-		  
+
 		  //>0.3.3 of transcode interpret flag returned
 		  //to read module capabilities for sanity checks
 status: optional
@@ -73,14 +73,14 @@ option=TC_EXPORT_INIT
 para1=_transfer_t
 para2=_vob_t
 requested action: initialize the encoder
-status: required 
+status: required
 
 
 [3]
 option=TC_EXPORT_OPEN
 para1=_transfer_t
 para2=_vob_t
-requested action: open outputfile 
+requested action: open outputfile
 status: required
 
 
@@ -90,7 +90,7 @@ para1=_transfer_t
 para2=NULL
 requested action: use this frame data to encode the next frame
 		  in the sequence
-status: required 
+status: required
 
 
 [5]
@@ -107,5 +107,5 @@ para1=_transfer_t
 para2=NULL
 requested action: stop the encoder, free memory and prepare for
 		  module removal
-status: required 
+status: required
 

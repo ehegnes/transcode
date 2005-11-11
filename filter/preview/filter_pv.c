@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - October 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -99,7 +99,7 @@ void dec_preview_delay(void)
 
 void preview_toggle_skip(void)
 {
-  preview_skip = (preview_skip>0) ? 0: preview_skip_num; 
+  preview_skip = (preview_skip>0) ? 0: preview_skip_num;
 }
 
 static char * preview_alloc_align_buffer(size_t size)
@@ -116,7 +116,7 @@ static char * preview_alloc_align_buffer(size_t size)
    if (buf == NULL) {
        fprintf(stderr, "(%s) out of memory", __FILE__);
    }
-   
+
    adjust = buffer_align - ((long) buf) % buffer_align;
 
    if (adjust == buffer_align)
@@ -155,17 +155,17 @@ int tc_filter(frame_list_t *ptr_, char *options)
   if(ptr->tag & TC_FILTER_INIT) {
 
     if((vob = tc_get_vob())==NULL) return(-1);
-    
+
     // filter init ok.
-    
+
     if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    
+
     if (options != NULL) {
-      
+
       if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
-      
+
       optstr_get (options, "cache", "%d", &cache_num);
-      
+
       //adjust for small buffers
       if(cache_num && cache_num<15) {
 	cache_num=15;
@@ -181,7 +181,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if(preview_skip_num<0) tc_log_warn(MOD_NAME, "invalid number of frames to skip - exit");
 
     tc_snprintf(buffer, sizeof(buffer), "%s-%s", PACKAGE, VERSION);
-    
+
     if(xv_player != NULL) return(-1);
     if(!(xv_player = xv_player_new())) return(-1);
 
@@ -198,40 +198,40 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 
     //init filter
-    
+
     w = tc_x_preview;
     h = tc_y_preview;
 
     size = w*h* 3/2;
-    
+
     if(verbose) tc_log_info(MOD_NAME, "preview window %dx%d", w, h);
-    
+
     switch(vob->im_v_codec) {
-      
+
     case CODEC_YUV422:
-      
-      if(xv_display_init(xv_player->display, 0, NULL, 
+
+      if(xv_display_init(xv_player->display, 0, NULL,
 			 w, h, buffer, buffer, 1)<0) return(-1);
       size = w*h*2;
       srcfmt = IMG_YUV422P;
       destfmt = IMG_YUY2;
 
       break;
-    
+
     case CODEC_YUV:
-      
-      if(xv_display_init(xv_player->display, 0, NULL, 
+
+      if(xv_display_init(xv_player->display, 0, NULL,
 			 w, h, buffer, buffer, 0)<0) return(-1);
 
       break;
-    
+
     case CODEC_RAW_YUV:
-    
-      if(xv_display_init(xv_player->display, 0, NULL, 
+
+      if(xv_display_init(xv_player->display, 0, NULL,
 			  w, h, buffer, buffer, 0)<0) return(-1);
       use_secondary_buffer=1;
       break;
-      
+
     default:
       tc_log_error(MOD_NAME, "non-YUV codecs not supported for this preview plug-in");
       return(-1);
@@ -254,20 +254,20 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  return (-1);
       if ((process_buffer[2] = preview_alloc_align_buffer (SIZE_RGB_FRAME)) == NULL)
 	  return (-1);
-      
+
     }
 
     xv_init_ok=1;
 
     return(0);
   }
-  
+
   //----------------------------------
   //
   // filter close
   //
   //----------------------------------
-  
+
   if(ptr->tag & TC_FILTER_CLOSE) {
 
     if(!xv_init_ok) return(0);
@@ -276,7 +276,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     return(0);
   }
-  
+
   //----------------------------------
   //
   // filter frame routine
@@ -286,7 +286,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
-  
+
   if(verbose & TC_STATS) tc_log_info(MOD_NAME, "%s/%s %s %s", vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
 
   //we do nothing if not properly initialized
@@ -295,21 +295,21 @@ int tc_filter(frame_list_t *ptr_, char *options)
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
-  
+
   pre = (ptr->tag & TC_POST_S_PROCESS)? 1:0;
   vid = (ptr->tag & TC_VIDEO)? 1:0;
-  
+
   if( (ptr->tag & TC_PRE_PROCESS) && vid && cache_enabled) {
       process_ctr_cur = (process_ctr_cur+1)%3;
       ac_memcpy (process_buffer[process_ctr_cur], ptr->video_buf, ptr->video_size);
       return 0;
   }
   if(pre && vid) {
-    
+
     if(preview_skip && (ptr->id % preview_skip_num)) return(0);
-    
+
     if(!xv_player->display->dontdraw) {
-      
+
       //0.6.2 (secondaray buffer for pass-through mode)
       if (use_secondary_buffer) {
           ac_memcpy(xv_player->display->pixels[0], ptr->video_buf2, size);
@@ -322,42 +322,42 @@ int tc_filter(frame_list_t *ptr_, char *options)
       } else {
           ac_memcpy(xv_player->display->pixels[0], ptr->video_buf, size);
       }
-      
+
       //display video frame
       xv_display_show(xv_player->display);
-      
+
       if(cache_enabled) preview_cache_submit(xv_player->display->pixels[0], ptr->id, ptr->attributes);
-      
+
       if(preview_delay) usleep(preview_delay);
 
     } else {
-      
+
       //check only for X11-events
       xv_display_event(xv_player->display);
-    
+
     }//dontdraw=1?
-  
+
   }//correct slot?
-  
+
   return(0);
 }
 
 int preview_cache_init(void) {
-  
+
   //size must be know!
-  
+
   int n;
 
   if((vid_buf_mem = (char *) calloc(cache_num, size))==NULL) {
     perror("out of memory");
     return(-1);
   }
-  
+
   if((vid_buf = (char **) calloc(cache_num, sizeof(char *)))==NULL) {
     perror("out of memory");
     return(-1);
   }
-  
+
   for (n=0; n<cache_num; ++n) vid_buf[n] = (char *) (vid_buf_mem + n * size);
 
   cache_enabled=1;
@@ -366,19 +366,19 @@ int preview_cache_init(void) {
 
 }
 
-void preview_cache_submit(char *buf, int id, int flag) {    
+void preview_cache_submit(char *buf, int id, int flag) {
 
   char string[255];
   memset (string, 0, 255);
-  
+
   if(!cache_enabled) return;
 
   cache_ptr = (cache_ptr+1)%cache_num;
-  
+
   ac_memcpy((char*) vid_buf[cache_ptr], buf, size);
-  
+
   (flag & TC_FRAME_IS_KEYFRAME) ? tc_snprintf(string, sizeof(string), "%u *", id) : tc_snprintf(string, sizeof(string), "%u", id);
-  
+
   str2img (vid_buf[cache_ptr], string, w, h, cols, rows, 0, 0, CODEC_YUV);
 }
 
@@ -387,10 +387,10 @@ int preview_filter_buffer(int frames_needed)
     int current,i;
 
     static int this_filter = -1;
-    static vframe_list_t *ptr = NULL; 
+    static vframe_list_t *ptr = NULL;
     vob_t *vob = tc_get_vob();
 
-    if (ptr == NULL) 
+    if (ptr == NULL)
 	ptr = malloc (sizeof (vframe_list_t));
     memset (ptr, 0, sizeof (vframe_list_t));
 
@@ -472,7 +472,7 @@ int preview_filter_buffer(int frames_needed)
 	process_vid_plugins (ptr);
 
 	plugin_enable_id (this_filter);
-	
+
 	ac_memcpy (vid_buf[cache_ptr-current+1], ptr->video_buf, size);
 	preview_cache_draw(0);
 
@@ -494,11 +494,11 @@ void preview_filter(void)
     int frames_needed = 1;
     int current=0;
     int i;
-    
+
     if (!cache_enabled) return;
 
     // build commandline
-    tc_snprintf (buf, 1024, 
+    tc_snprintf (buf, 1024,
 	   "xterm -title \"Transcode Filter select\" -e %s/filter_list.awk %s %s &&  cat %s && rm -f %s",
 	   vob->mod_path, vob->mod_path, tmpfile, tmpfile, tmpfile);
     if ((f = popen (buf, "r")) == NULL) {
@@ -527,7 +527,7 @@ void preview_filter(void)
 	filter_handle = plugin_find_id (filter_name);
 	if (filter_handle == -1) {
 	    // not loaded
-	    return; 
+	    return;
 	} else {
 	    plugin_disable_id(filter_handle);
 	    goto redisplay_frame;
@@ -537,7 +537,7 @@ void preview_filter(void)
 
     this_filter  = plugin_find_id ("pv");
     fprintf (stderr, "[%s] this_filter (%d)\n", MOD_NAME, this_filter);
-    
+
     // we now have a valid ID
     if ( (config = filter_single_readconf(filter_handle)) == NULL) {
 	fprintf(stderr, "[%s] Filter \"%s\" can not be configured.\n", MOD_NAME, filter_name);
@@ -550,13 +550,13 @@ void preview_filter(void)
 	fprintf(stderr, "[%s] unable to write to %s.\n", MOD_NAME, tmpfile);
 	return;
     }
-    
+
     if ((c = strchr (config, '\n'))) {
 	*c = '\0';
 	optstr_frames_needed (config, &frames_needed);
-    } else 
+    } else
 	frames_needed = 1;
-    
+
     printf ("XXX optstr_frames_needed:(%d)\n", frames_needed);
 
 
@@ -565,7 +565,7 @@ void preview_filter(void)
     // recycle
     memset (buf, 0, 1024);
 
-    tc_snprintf (buf, 1024, 
+    tc_snprintf (buf, 1024,
 	  "xterm -title \"Transcode parameters\" -e %s/parse_csv.awk %s %s %s && cat %s && rm -f %s %s",
 	  vob->mod_path, tmpfile, filter_name, infile, infile, tmpfile, infile);
 
@@ -589,7 +589,7 @@ void preview_filter(void)
     if (buf && *buf)
 	filter_single_configure_handle (filter_handle, strchr (buf, '='));
 
-redisplay_frame: 
+redisplay_frame:
     // logoaway pos=210x136:size=257x175:mode=2
     for (current = frames_needed, i = 1; current > 0; current--, i++){
 
@@ -645,7 +645,7 @@ redisplay_frame:
 	plugin_disable_id (this_filter);
 	process_vid_plugins (&ptr);
 	plugin_enable_id (this_filter);
-	
+
 	ac_memcpy (vid_buf[cache_ptr-current+1], ptr.video_buf, size);
 	preview_cache_draw(0);
     }
@@ -654,7 +654,7 @@ redisplay_frame:
 }
 #endif
 
-void preview_cache_undo(void) 
+void preview_cache_undo(void)
 {
     if (!cache_enabled) return;
 
@@ -665,22 +665,22 @@ void preview_cache_undo(void)
 void preview_cache_draw(int next) {
 
   if(!cache_enabled) return;
-  
+
   cache_ptr+=next;
-  
+
   if(next < 0) cache_ptr+=cache_num;
   while (cache_ptr<0)
       cache_ptr+=cache_num;
-  
+
   cache_ptr%=cache_num;
 
   ac_memcpy(xv_player->display->pixels[0], (char*) vid_buf[cache_ptr], size);
 
   //display video frame
   xv_display_show(xv_player->display);
-  
+
   return;
-  
+
 }
 
 void str2img(char *img, char *c, int width, int height, int char_width, int char_height, int posx, int posy, int codec)
@@ -815,7 +815,7 @@ int preview_grab_jpeg(void)
 {
 #ifdef SYS_BSD
     const
-#endif  
+#endif
     char *error;
     char *prefix = "preview_grab-";
     vob_t *vob = tc_get_vob();
@@ -829,8 +829,8 @@ int preview_grab_jpeg(void)
     int ret = 0;
 
     if(!cache_enabled) return 1;
-    
-    if (jpeg_vhandle == NULL) { 
+
+    if (jpeg_vhandle == NULL) {
 	tc_snprintf(module, sizeof(module), "%s/export_%s.so", MOD_PATH, "jpg");
 	jpeg_vhandle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
 	if (!jpeg_vhandle) {
@@ -838,7 +838,7 @@ int preview_grab_jpeg(void)
 	    tc_log_error(MOD_NAME, "loading \"%s\" failed", module);
 	    return(1);
 	}
-	JPEG_export = dlsym(jpeg_vhandle, "tc_export");   
+	JPEG_export = dlsym(jpeg_vhandle, "tc_export");
 	if ((error = dlerror()) != NULL)  {
 	    tc_log_error(MOD_NAME, "%s", error);
 	    return(1);
@@ -856,7 +856,7 @@ int preview_grab_jpeg(void)
 	    return(1);
 	}
 
-	export_para.flag = TC_VIDEO;	
+	export_para.flag = TC_VIDEO;
 	if((ret=JPEG_export(TC_EXPORT_OPEN, &export_para, mvob))==TC_EXPORT_ERROR) {
 	    tc_log_error(MOD_NAME, "video export module error: open failed");
 	    return(1);

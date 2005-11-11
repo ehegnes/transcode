@@ -7,20 +7,20 @@
  *  by Sham Gardner (risctaker@risctaker.de)
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -34,7 +34,7 @@
 //#define NDEBUG(args...) fprintf(stderr, ## args)
 #define ERROR(args...) fprintf(stderr, ## args)
 
-#define NDEBUG(args...) 
+#define NDEBUG(args...)
 #define DEBUG(args...)
 
 typedef struct
@@ -185,29 +185,29 @@ static void parse_data_sequence(unsigned char *data, parsed_ctrl_sequence *parse
 
   /*
   sprintf(filename, "%s_%d.raw", config.subprefix, counter) ;
-  
+
   if ((file=fopen(filename, "w"))==0)
   {
     DEBUG("Unable to open output file %s\n", filename) ;
     return ;
-  } 
-  
+  }
+
   fprintf(file, "P5\n");
   fprintf(file, "%d %d 2\n", parsed->dimensions.size[0], parsed->dimensions.size[1]);
   */
   //NDEBUG("Start=%d\n", start[0]) ;
-  
+
 
   while (y < parsed->dimensions.size[1]) {
-  
+
     int parity = y&1 ;
-    
+
     if (x==0) linestart=offset[parity] ;
     chunk=read_nibble(data+start[parity], offset[parity]) ;
     offset[parity]++ ;
 
     //    DEBUG("chunk=%x, offset=%d (1)\n", chunk, offset[parity]) ;
-    
+
     if (chunk < 0x4) {
       chunk = (chunk << 4) | read_nibble(data+start[parity], offset[parity]) ;
       offset[parity]++ ;
@@ -228,9 +228,9 @@ static void parse_data_sequence(unsigned char *data, parsed_ctrl_sequence *parse
     }
     colour=chunk & 3 ;
     //    colour=enhance_colour(colour) ;
-    
+
     if (chunk < 4) {
-      // EOL 
+      // EOL
       len=width-x ;
       //      fprintf(stderr, "Writing %d pixels (EOL)\n", parsed->dimensions.size[0]-x) ;
     } else {
@@ -241,20 +241,20 @@ static void parse_data_sequence(unsigned char *data, parsed_ctrl_sequence *parse
 	//        DEBUG("ERK! Line overrun by %d\n", (x+number)-width) ;
       }
     }
-    
+
     for (n=0; n < len; n++) {
       picture[parsed->dimensions.size[0]*y + x + n]=colour& 0xff;
-      //      fputc(colour, file); 
+      //      fputc(colour, file);
       pixcounter++ ;
     }
     x += len ;
-    
+
     if (x >= width) {
       // the > case shouldn't really happen
-      
+
       x=0 ;
       y++ ;
-      
+
       if (offset[parity] & 1) {
 	offset[parity]++ ;
 	//        DEBUG("Realigned at EOL\n") ;
@@ -268,7 +268,7 @@ static void parse_data_sequence(unsigned char *data, parsed_ctrl_sequence *parse
   }
 
   //fclose(file) ;
-  
+
   counter++ ;
 }
 
@@ -282,7 +282,7 @@ static int parse_ctrl_sequence(unsigned char *data,
   int n=0 ;
   int current_offset ;
 
-  do 
+  do
   {
     memset(&parsed[n], 0, sizeof(parsed_ctrl_sequence)) ;
     current_offset = start_offset+offset ;
@@ -293,29 +293,29 @@ static int parse_ctrl_sequence(unsigned char *data,
 
     //    fprintf(stderr, "sequence %d, time=%d, next=%d, current_offset=%d\n", n, parsed[n].time, next, current_offset) ;
     offset+=4 ;
-    
+
     //DEBUG("ctrlseq: ") ; show_nibbles(data, 0, 80, stderr) ;DEBUG("\n") ;
     while (data[offset] != 0xFF )
     {
       switch (data[offset])
       {
-        case 0x00: 
+        case 0x00:
           parsed[n].forcedisplay=1 ;
           offset++ ;
           break ;
 
-        case 0x01: 
+        case 0x01:
           parsed[n].startdisplay=1 ;
           DEBUG("Start\n") ;
           offset++ ;
           break ;
 
-        case 0x02: 
+        case 0x02:
           parsed[n].stopdisplay=1 ;
           offset++ ;
           break ;
 
-        case 0x03: 
+        case 0x03:
           parsed[n].palette.colour[0] = (data[offset+1] & 0xF0) >> 4 ;
 	  config.sub.colour[0]=parsed[n].palette.colour[0];
           parsed[n].palette.colour[1] = (data[offset+1] & 0x0F) ;
@@ -329,7 +329,7 @@ static int parse_ctrl_sequence(unsigned char *data,
           offset += 3 ;
           break ;
 
-        case 0x04: 
+        case 0x04:
           parsed[n].alpha.colour[0] = (data[offset+1] & 0xF0) >> 4 ;
 	  config.sub.alpha[0]=parsed[n].alpha.colour[0];
           parsed[n].alpha.colour[1] = (data[offset+1] & 0x0F) ;
@@ -342,14 +342,14 @@ static int parse_ctrl_sequence(unsigned char *data,
           offset += 3 ;
           break ;
 
-        case 0x05: 
+        case 0x05:
           parsed[n].dimensions.x0 =  (data[offset+1] << 4)         | (data[offset+2] >> 4) ;
 
 	  config.sub.x = parsed[n].dimensions.x0;
 
           parsed[n].dimensions.x1 = ((data[offset+2] & 0x0F) << 8) |  data[offset+3] ;
           parsed[n].dimensions.y0 =  (data[offset+4] << 4)         | (data[offset+5] >> 4) ;
-	  
+
 	  config.sub.y = parsed[n].dimensions.y0;
 
           parsed[n].dimensions.y1 = ((data[offset+5] & 0x0F) << 8) |  data[offset+6] ;
@@ -360,12 +360,12 @@ static int parse_ctrl_sequence(unsigned char *data,
           parsed[n].dimensions.size[1]=parsed[n].dimensions.y1 - parsed[n].dimensions.y0+1 ; // +1 because it's inclusive
 
 	  config.sub.h = parsed[n].dimensions.size[1];
-	  
+
           parsed[n].dimensions.used=1 ;
           offset += 7 ;
           break ;
 
-        case 0x06: 
+        case 0x06:
           parsed[n].linestart.line0=read_short(data+offset+1) ;
           parsed[n].linestart.line1=read_short(data+offset+3) ;
           parsed[n].linestart.used=1 ;
@@ -414,26 +414,26 @@ static int process_sub(unsigned char *data, unsigned int size, int block, unsign
 
   if (queued==0) {
       buffer.total_size = (data[0] << 8) | data[1];
-      
+
       ts=buffer.total_size;
-      
+
       buffer.data_size = ntohs(*((unsigned short *) &data[2])) ;
       buffer.size=0 ;
   }
-  
+
   ac_memcpy(buffer.data+buffer.size, data, size) ;
   buffer.size += size ;
-  
+
   buffer.pts=pts;
-  
+
   NDEBUG("total size=%d, data size=%d\n", buffer.total_size, buffer.data_size);
-  
+
   if (buffer.total_size > buffer.size) {
       queued=1 ;
   } else {
       queued=0 ;
   }
-  
+
   if(queued) {
       NDEBUG("Packet overflow, queued\n");
       return(-1);
@@ -441,7 +441,7 @@ static int process_sub(unsigned char *data, unsigned int size, int block, unsign
       NDEBUG("Processing packet of size %d\n", buffer.total_size) ;
       process_title(buffer.data, buffer.size, buffer.data_size, buffer.pts);
   }
-  
+
   return(0);
 }
 
@@ -456,12 +456,12 @@ int subproc_init(char *scriptfile, char *prefix, int subtitles, unsigned short i
     config.subprefix=prefix ;
     config.subtitles=subtitles ;
     config.id=id ;
-    
+
     if (id > 31) {
 	fprintf(stderr, "illegal subtitle stream id %d\n", id) ;
 	return(-1);
     }
-    
+
     printf("(%s) extracting subtitle stream %d\n", __FILE__, config.id) ;
     return(0);
 }
@@ -477,7 +477,7 @@ int subproc_feedme(void *_data, unsigned  int size, int block, double pts, sub_i
   config.sub.frame = sub->frame;
 
   if(process_sub(data+1, size-1, block, type & 0x1F, pts)<0) return(-1);
-  
+
   sub->time  = config.sub.time;
   sub->x     = config.sub.x;
   sub->y     = config.sub.y;

@@ -4,20 +4,20 @@
  *  Copyright (C) Tilmann Bitterberg - June 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -39,10 +39,10 @@ typedef struct MyFilterData {
 	unsigned int step;
 	int boolstep;
 } MyFilterData;
-	
+
 static MyFilterData *mfd = NULL;
 
-/* should probably honor the other flags too */ 
+/* should probably honor the other flags too */
 
 /*-------------------------------------------------
  *
@@ -50,7 +50,7 @@ static MyFilterData *mfd = NULL;
  *
  *-------------------------------------------------*/
 
-static void help_optstr(void) 
+static void help_optstr(void)
 {
    tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
@@ -65,18 +65,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
   static vob_t *vob=NULL;
 
   int w;
-  
+
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
       char buf[128];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRY4O", "1");
 
       tc_snprintf(buf, 128, "%u-%u/%d", mfd->start, mfd->end, mfd->step);
-      optstr_param (options, "range", "apply filter to [start-end]/step frames", 
+      optstr_param (options, "range", "apply filter to [start-end]/step frames",
 	      "%u-%u/%d", buf, "0", "oo", "0", "oo", "1", "oo");
 
       return 0;
   }
-  
+
   //----------------------------------
   //
   // filter init
@@ -89,7 +89,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if((vob = tc_get_vob())==NULL) return(-1);
 
     mfd = tc_malloc (sizeof(MyFilterData));
-    if(mfd == NULL) 
+    if(mfd == NULL)
         return (-1);
 
 
@@ -98,7 +98,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     mfd->step=1;
 
     if (options != NULL) {
-    
+
 	if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
 	optstr_get (options, "range",  "%u-%u/%d",    &mfd->start, &mfd->end, &mfd->step);
@@ -118,13 +118,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if (mfd->start % mfd->step == 0)
       mfd->boolstep = 0;
-    else 
+    else
       mfd->boolstep = 1;
 
     // filter init ok.
     if (verbose) tc_log_info (MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
-    
+
     return(0);
   }
 
@@ -134,10 +134,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //
   //----------------------------------
 
-  
+
   if(ptr->tag & TC_FILTER_CLOSE) {
 
-    if (mfd) { 
+    if (mfd) {
 	free(mfd);
     }
     mfd=NULL;
@@ -145,18 +145,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
     return(0);
 
   } /* filter close */
-  
+
   //----------------------------------
   //
   // filter frame routine
   //
   //----------------------------------
 
-    
+
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
-  
+
   if((ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO) && !(ptr->attributes & TC_FRAME_IS_SKIPPED))  {
     char *p = ptr->video_buf;
 
@@ -166,7 +166,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	     *p = 255 - *p;
     }
   }
-  
+
   return(0);
 }
 

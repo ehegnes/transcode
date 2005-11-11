@@ -21,8 +21,8 @@
  * July 5, 1991
  * Copyright 1991 Lance Norskog And Sundry Contributors
  * This source code is freely redistributable and may be used for
- * any purpose.  This copyright notice must be maintained. 
- * Lance Norskog And Sundry Contributors are not responsible for 
+ * any purpose.  This copyright notice must be maintained.
+ * Lance Norskog And Sundry Contributors are not responsible for
  * the consequences of using this software.
  */
 
@@ -64,7 +64,7 @@
  * note that upsampling usually doesn't require interpolation,
  * therefore is faster and more accurate than downsampling.
  * Downsampling by an integer factor is also simple, since
- * it just involves decimation if the input is already 
+ * it just involves decimation if the input is already
  * lowpass-filtered to the output Nyquist freqency.
  * Get the idea? :)
  */
@@ -144,7 +144,7 @@ static LONG SrcEX(P2(resample_t r, LONG Nx));
 /*
  * Process options
  */
-static int st_resample_getopts(eff_t effp, int n, char **argv) 
+static int st_resample_getopts(eff_t effp, int n, char **argv)
 {
 	resample_t r = (resample_t) effp->priv;
 
@@ -277,7 +277,7 @@ static int st_resample_start(eff_t effp)
 		st_fail("Factor is too small or large for BUFFSIZE");
 		return (ST_EOF);
 	}
-	
+
 	r->Xsize = 2*Xoff + i/(1.0+r->Factor);
 	r->Ysize = BUFFSIZE - r->Xsize;
 	/* st_report("Xsize %d, Ysize %d, Xoff %d",r->Xsize,r->Ysize,r->Xoff); */
@@ -322,10 +322,10 @@ static int st_resample_flow(eff_t effp, LONG *ibuf, LONG *obuf, LONG *isamp,
 	/*fprintf(stderr,"Nx %d\n",Nx);*/
 
 	if (ibuf == NULL) {
-		for(i = r->Xread; i < Nx + r->Xread  ; i++) 
+		for(i = r->Xread; i < Nx + r->Xread  ; i++)
 			r->X[i] = 0;
 	} else {
-		for(i = r->Xread; i < Nx + r->Xread  ; i++) 
+		for(i = r->Xread; i < Nx + r->Xread  ; i++)
 			r->X[i] = (Float)(*ibuf++)/ISCALE;
 	}
 	last = i;
@@ -339,7 +339,7 @@ static int st_resample_flow(eff_t effp, LONG *ibuf, LONG *obuf, LONG *isamp,
 		return (ST_SUCCESS);
 	}
 	if (r->quadr < 0) { /* exact coeff's method */
-		LONG creep; 
+		LONG creep;
 		Nout = SrcEX(r, Nproc);
 		/*fprintf(stderr,"Nproc %d --> %d\n",Nproc,Nout);*/
 		/* Move converter Nproc samples back in time */
@@ -347,7 +347,7 @@ static int st_resample_flow(eff_t effp, LONG *ibuf, LONG *obuf, LONG *isamp,
 		/* Advance by number of samples processed */
 		r->Xp += Nproc;
 		/* Calc time accumulation in Time */
-		creep = r->t/r->b - r->Xoff; 
+		creep = r->t/r->b - r->Xoff;
 		if (creep)
 		{
 		  r->t -= creep * r->b;  /* Remove time accumulation   */
@@ -355,7 +355,7 @@ static int st_resample_flow(eff_t effp, LONG *ibuf, LONG *obuf, LONG *isamp,
 		  /*fprintf(stderr,"Nproc %ld, creep %ld\n",Nproc,creep);*/
 		}
 	} else { /* approx coeff's method */
-		LONG creep; 
+		LONG creep;
 		Nout = SrcUD(r, Nproc);
 		/*fprintf(stderr,"Nproc %d --> %d\n",Nproc,Nout);*/
 		/* Move converter Nproc samples back in time */
@@ -363,7 +363,7 @@ static int st_resample_flow(eff_t effp, LONG *ibuf, LONG *obuf, LONG *isamp,
 		/* Advance by number of samples processed */
 		r->Xp += Nproc;
 		/* Calc time accumulation in Time */
-		creep = r->Time - r->Xoff; 
+		creep = r->Time - r->Xoff;
 		if (creep)
 		{
 		  r->Time -= creep;   /* Remove time accumulation   */
@@ -377,11 +377,11 @@ static int st_resample_flow(eff_t effp, LONG *ibuf, LONG *obuf, LONG *isamp,
 	/* Copy back portion of input signal that must be re-used */
 	k = r->Xp - r->Xoff;
 	/*fprintf(stderr,"k %d, last %d\n",k,last);*/
-	for (i=0; i<last - k; i++) 
+	for (i=0; i<last - k; i++)
 	    r->X[i] = r->X[i+k];
 
 	/* Pos in input buff to read new data into */
-	r->Xread = i;                 
+	r->Xread = i;
 	r->Xp = r->Xoff;
 
 	for(i=0; i < Nout; i++)
@@ -430,16 +430,16 @@ static int st_resample_drain(eff_t effp, LONG *obuf, LONG *osamp)
 }
 
 /*
- * Do anything required when you stop reading samples.  
- * Don't close input file! 
+ * Do anything required when you stop reading samples.
+ * Don't close input file!
  */
 static int st_resample_stop(eff_t effp)
 {
 	resample_t r = (resample_t) effp->priv;
-	
+
 	free(r->Imp - 1);
 	free(r->X);
-	/* free(r->Y); Y is in same block starting at X */ 
+	/* free(r->Y); Y is in same block starting at X */
 	return (ST_SUCCESS);
 }
 
@@ -634,7 +634,7 @@ int makeFilter(Float *Imp, LONG Nwing, double Froll, double Beta, LONG Num,
          DCgain += ImpR[i];
       DCgain = 2*DCgain + ImpR[0];    /* DC gain of real coefficients */
       /*st_report("DCgain err=%.12f",DCgain-1.0);*/
-  
+
       DCgain = 1.0/DCgain;
       for (i=0; i<Mwing; i++)
          Imp[i] = ImpR[i]*DCgain;
@@ -721,7 +721,7 @@ static void LpFilter(double *c, LONG N, double frq, double Beta, LONG Num)
       double x = M_PI*(double)i/(double)(Num);
       c[i] = sin(x*frq)/x;
    }
-  
+
    if (Beta>2) { /* Apply Kaiser window to filter coeffs: */
       double IBeta = 1.0/Izero(Beta);
       for (i=1; i<N; i++) {
@@ -756,7 +756,7 @@ int resample_init(int irate, int orate)
 //	struct st_instrinfo  instr;     /* input instrument  specifications */
 //	struct st_signalinfo outinfo;   /* output signal specifications */
 //	int i,start=0;
-	
+
 	leffp=malloc(sizeof(struct st_effect));
 	leffp->ininfo.rate=48000;           /* sampling rate */
 	leffp->ininfo.size=4;           /* word length of data */
@@ -786,10 +786,10 @@ int resample_init(int irate, int orate)
 
 
 	leffp->name="resample";          /* effect name */
-	
+
 	leffp->h=NULL;             /* effects driver */
 	leffp->obuf=olbuf;          /* output buffer */
-	leffp->odone=0; 
+	leffp->odone=0;
 	leffp->olen=0;    /* consumed, total length */
 	/* FIXME: I perfer void * or char * */
 //	double          priv[ST_MAX_PRIVSIZE]; /* private area for effect */
@@ -824,10 +824,10 @@ int resample_init(int irate, int orate)
 
 
 	reffp->name="resample";          /* effect name */
-	
+
 	reffp->h=NULL;             /* effects driver */
 	reffp->obuf=orbuf;          /* output buffer */
-	reffp->odone=0; 
+	reffp->odone=0;
 	reffp->olen=0;    /* consumed, total length */
 	/* FIXME: I perfer void * or char * */
 //	double          priv[ST_MAX_PRIVSIZE]; /* private area for effect */
@@ -837,7 +837,7 @@ int resample_init(int irate, int orate)
 
 	leffp->ininfo.rate=reffp->ininfo.rate=irate;
 	leffp->outinfo.rate=reffp->outinfo.rate=orate;
-	
+
 	st_resample_start(reffp);
 	st_resample_start(leffp);
 	return(0);
@@ -849,7 +849,7 @@ int resample_flow(char *flowi, int isamp, char *flowo)
 	LONG irbuf[MY_BUFSIZE/2];
 	LONG ilbuf[MY_BUFSIZE/2];
 	LONG isamp_LONG = isamp, osamp, osampdef, i;
-	
+
 	iword=(short *)flowi;
 	oword=(short *)flowo;
 	osampdef=reffp->outinfo.rate>>2;
@@ -877,7 +877,7 @@ int resample_stop(char *stopo)
 //	LONG irbuf[MY_BUFSIZE/2];
 //	LONG ilbuf[MY_BUFSIZE/2];
 	LONG osamp, i;
-	
+
 	oword=(short *)stopo;
 	osamp=reffp->outinfo.rate>>2;
 	st_resample_drain(reffp, reffp->obuf, &osamp);

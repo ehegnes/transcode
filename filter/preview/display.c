@@ -1,4 +1,4 @@
-/* 
+/*
  *  display.c
  *
  *     Copyright (C) Charles 'Buck' Krasic - April 2000
@@ -11,17 +11,17 @@
  *  under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your
  *  option) any later version.
- *   
+ *
  *  libdv is distributed in the hope that it will be useful, but
  *  WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *  General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- *  The libdv homepage is http://libdv.sourceforge.net/.  
+ *  The libdv homepage is http://libdv.sourceforge.net/.
  */
 
 /* Most of this file is derived from patches 101018 and 101136 submitted by
@@ -85,10 +85,10 @@ static void dv_center_window(SDL_Surface *screen);
 static void dv_display_event (dv_display_t *dv_dpy);
 static int dv_display_Xv_init (dv_display_t *dv_dpy, char *w_name,
 				char   *i_name, int flags, int size);
-#endif 
+#endif
 
 dv_display_t *
-dv_display_new(void) 
+dv_display_new(void)
 {
   dv_display_t *result;
 
@@ -196,7 +196,7 @@ dv_display_exit(dv_display_t *dv_dpy) {
   case e_dv_dpy_gtk:
 #if HAVE_GTK
     /* segfaults
-    gtk_main_quit(); 
+    gtk_main_quit();
     */
     if(dv_dpy->pixels[0]) {
       free(dv_dpy->pixels[0]);
@@ -233,7 +233,7 @@ dv_display_gdk_init(dv_display_t *dv_dpy, int *argc, char ***argv) {
   dv_dpy->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   dv_dpy->image = gtk_drawing_area_new();
   gtk_container_add(GTK_CONTAINER(dv_dpy->window),dv_dpy->image);
-  gtk_drawing_area_size(GTK_DRAWING_AREA(dv_dpy->image), 
+  gtk_drawing_area_size(GTK_DRAWING_AREA(dv_dpy->image),
 			dv_dpy->width, dv_dpy->height);
   gtk_widget_set_usize(GTK_WIDGET(dv_dpy->image),
 			dv_dpy->width, dv_dpy->height);
@@ -285,27 +285,27 @@ dv_display_event (dv_display_t *dv_dpy)
 	XLookupString (&dv_dpy->event.xkey, buf, 16, &keysym, NULL);
 
 	switch(keysym) {
-	  
+
 	case XK_Escape:
 	  dv_dpy->dontdraw = 1;
 	  xv_pause=0;
 	  XvStopVideo(dv_dpy->dpy, dv_dpy->port, dv_dpy->win);
 	  XDestroyWindow(dv_dpy->dpy, dv_dpy->win);
 	  break;
-	  
+
 	case XK_Q:
 	case XK_q:
 	  xv_pause=0;
 	  dv_dpy->dontdraw = (dv_dpy->dontdraw) ? 0:1;
 	  break;
-	  
+
 	case XK_space:
-	  xv_pause = (xv_pause)?0:1; 
+	  xv_pause = (xv_pause)?0:1;
 	  while(xv_pause) {
 	    dv_display_event(dv_dpy);
 	    usleep(10000);
 	  }
-	  
+
 	default:
 		break;
 	}
@@ -335,7 +335,7 @@ dv_display_check_format(dv_display_t *dv_dpy, int pic_format)
 {
 #if HAVE_LIBXV
   /*  return immediate if ther is no format change or no format
-   * specific flag was set upon initialisation 
+   * specific flag was set upon initialisation
    */
   if (pic_format == dv_dpy->pic_format ||
       !(dv_dpy->flags & XV_FORMAT_MASK))
@@ -403,7 +403,7 @@ dv_display_Xv_init(dv_display_t *dv_dpy, char *w_name, char *i_name,
    * So let's first check for an available adaptor and port
    */
   if(Success == XvQueryAdaptors(dv_dpy->dpy, dv_dpy->rwin, &ad_cnt, &ad_info)) {
-  
+
     for(i = 0, got_port = False; i < ad_cnt; ++i) {
       fprintf(stderr,
 	      "Xv: %s: ports %ld - %ld\n",
@@ -412,7 +412,7 @@ dv_display_Xv_init(dv_display_t *dv_dpy, char *w_name, char *i_name,
 	      ad_info[i].base_id +
 	      ad_info[i].num_ports - 1);
 
-      if (dv_dpy->arg_xv_port != 0 && 
+      if (dv_dpy->arg_xv_port != 0 &&
 	      (dv_dpy->arg_xv_port < ad_info[i].base_id ||
 	       dv_dpy->arg_xv_port >= ad_info[i].base_id+ad_info[i].num_ports)) {
 	  fprintf(stderr,
@@ -558,19 +558,19 @@ dv_display_Xv_init(dv_display_t *dv_dpy, char *w_name, char *i_name,
 
   dv_dpy->gc = XCreateGC(dv_dpy->dpy, dv_dpy->win, 0, &values);
 
-  /* 
+  /*
    * Now we do shared memory allocation etc..
    */
   dv_dpy->xv_image = XvShmCreateImage(dv_dpy->dpy, dv_dpy->port,
 					 dv_dpy->format, dv_dpy->pixels[0],
-				      	 dv_dpy->width, dv_dpy->height, 
+				      	 dv_dpy->width, dv_dpy->height,
 					 &dv_dpy->shminfo);
 
   dv_dpy->shminfo.shmid = shmget(IPC_PRIVATE,
 				     dv_dpy->len,
 				     IPC_CREAT | 0777);
 
-  dv_dpy->xv_image->data = dv_dpy->pixels[0] = dv_dpy->shminfo.shmaddr = 
+  dv_dpy->xv_image->data = dv_dpy->pixels[0] = dv_dpy->shminfo.shmaddr =
     shmat(dv_dpy->shminfo.shmid, 0, 0);
 
   XShmAttach(dv_dpy->dpy, &dv_dpy->shminfo);
@@ -646,7 +646,7 @@ dv_display_SDL_init(dv_display_t *dv_dpy, char *w_name, char *i_name) {
   return(True);
 
  no_overlay:
-  if(dv_dpy->overlay) 
+  if(dv_dpy->overlay)
     SDL_FreeYUVOverlay(dv_dpy->overlay);
   SDL_Quit();
  no_sdl:
@@ -685,14 +685,14 @@ dv_display_on_exit_hack_handler()
 #endif  // unused
 
 int
-dv_display_init(dv_display_t *dv_dpy, int *argc, char ***argv, int width, int height, 
+dv_display_init(dv_display_t *dv_dpy, int *argc, char ***argv, int width, int height,
 		dv_sample_t sampling, char *w_name, char *i_name) {
 
   dv_dpy->width = width;
   dv_dpy->height = height;
 
   dv_dpy->dontdraw = 0;
-  
+
   switch(sampling) {
 
   case e_dv_sample_420:
@@ -714,7 +714,7 @@ dv_display_init(dv_display_t *dv_dpy, int *argc, char ***argv, int width, int he
 			  dv_dpy->arg_aspect_val,
 			  dv_dpy->arg_size_val)) {
       goto Xv_ok;
-    } else 
+    } else
 #endif /* HAVE_LIBXV */
     if(dv_display_SDL_init(dv_dpy, w_name, i_name)) {
       goto SDL_ok;

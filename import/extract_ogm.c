@@ -36,7 +36,7 @@ int      xraw = 0;
 
 static int verbose_flag = TC_QUIET;
 
-#if (HAVE_OGG && HAVE_VORBIS) 
+#if (HAVE_OGG && HAVE_VORBIS)
 
 #include <ogg/ogg.h>
 #include <vorbis/codec.h>
@@ -76,7 +76,7 @@ char basename[] = "stdout";
 
 static void add_stream(stream_t *ndmx) {
   stream_t *cur = first;
-  
+
   if (first == NULL) {
     first = ndmx;
     first->next = NULL;
@@ -91,13 +91,13 @@ static void add_stream(stream_t *ndmx) {
 
 static stream_t *find_stream(int fserial) {
   stream_t *cur = first;
-  
+
   while (cur != NULL) {
     if (cur->serial == fserial)
       break;
     cur = cur->next;
   }
-  
+
   return cur;
 }
 
@@ -105,7 +105,7 @@ double highest_ts = 0;
 
 static int extraction_requested(unsigned char *s, int stream, int type) {
   int i;
-  
+
   if (no[type])
     return 0;
   if (strlen((char *)s) == 0)
@@ -149,7 +149,7 @@ static void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
   char *sub;
   char out[100];
   ogg_int64_t pgp, sst;
-  
+
   //fprintf(stderr, "Going handle 1\n");
   if (pack->e_o_s) {
     stream->eos = 1;
@@ -162,15 +162,15 @@ static void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
                   (double)stream->sample_rate;
 
   switch (stream->stype) {
-    case 'v': 
+    case 'v':
       if (!extraction_requested(xvideo, stream->sno, NOVIDEO))
         return;
       break;
-    case 'a': 
+    case 'a':
       if (!extraction_requested(xaudio, stream->sno, NOAUDIO))
         return;
       break;
-    case 't': 
+    case 't':
       if (!extraction_requested(xtext, stream->sno, NOTEXT))
         return;
       break;
@@ -393,8 +393,8 @@ static void process_ogm(int fdin, int fdout)
           char ccodec[5];
           strncpy(ccodec, sth->subtype, 4);
           ccodec[4] = 0;
-          codec = (sth->subtype[0] << 24) + 
-            (sth->subtype[1] << 16) + (sth->subtype[2] << 8) + sth->subtype[3]; 
+          codec = (sth->subtype[0] << 24) +
+            (sth->subtype[1] << 16) + (sth->subtype[2] << 8) + sth->subtype[3];
           if (verbose_flag & TC_INFO)
             fprintf(stderr, "(%s) (v%d/%d) fps: %.3f width height: %dx%d " \
                     "codec: %p (%s)\n", __FILE__, nvstreams + 1,
@@ -414,7 +414,7 @@ static void process_ogm(int fdin, int fdout)
           ac_memcpy(&stream->instate, &sstate, sizeof(sstate));
           if (extraction_requested(xvideo, nvstreams + 1, NOVIDEO)) {
 	    stream->fd = fdout;
-            
+
             if (verbose_flag & TC_INFO)
               fprintf(stderr, "(%s) Extracting v%d to \"%s\".\n", __FILE__,
                       nvstreams + 1, "new_name");
@@ -456,7 +456,7 @@ static void process_ogm(int fdin, int fdout)
           stream->acodec = codec;
           ac_memcpy(&stream->instate, &sstate, sizeof(sstate));
           if (extraction_requested(xaudio, nastreams + 1, NOAUDIO)) {
-              
+
 	    /*
                       codec == ACPCM ? "wav" :
                       codec == ACMP3 ? "mp3" :
@@ -540,7 +540,7 @@ static void process_ogm(int fdin, int fdout)
       if (verbose_flag & TC_DEBUG)
         fprintf(stderr, "(%s) %c%d: NEW PAGE\n",
                 __FILE__, stream->stype, stream->sno);
-                
+
       ogg_stream_pagein(&stream->instate, &page);
       while (ogg_stream_packetout(&stream->instate, &pack) == 1)
         handle_packet(stream, &pack, &page);
@@ -613,15 +613,15 @@ void extract_ogm (info_t *ipipe)
 
     no[NOAUDIO] = 1;
     xvideo[0] = (unsigned char)(ipipe->track+1);
-    
+
   }
 
   if (ipipe->select == TC_AUDIO) {
 
     no[NOVIDEO] = 1;
     xaudio[0] = (unsigned char)(ipipe->track+1);
-    
-    // we need !xraw because no tool seems to be able to handle 
+
+    // we need !xraw because no tool seems to be able to handle
     // raw vorbis streams -- tibit
 
     if (ipipe->codec == TC_CODEC_VORBIS) {
@@ -630,7 +630,7 @@ void extract_ogm (info_t *ipipe)
 
   }
 
-#if (HAVE_OGG && HAVE_VORBIS) 
+#if (HAVE_OGG && HAVE_VORBIS)
   process_ogm(ipipe->fd_in, ipipe->fd_out);
 #else
   fprintf(stderr, "No support for Ogg/Vorbis compiled in\n");

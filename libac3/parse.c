@@ -1,23 +1,23 @@
-/* 
+/*
  *    parse.c
  *
  *	Copyright (C) Aaron Holtzman - May 1999
  *
  *  This file is part of ac3dec, a free Dolby AC-3 stream decoder.
- *	
+ *
  *  ac3dec is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  ac3dec is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *
  */
@@ -44,7 +44,7 @@ struct frmsize_s
 
 } frmsize_t;
 
-static const struct frmsize_s frmsizecod_tbl[] = 
+static const struct frmsize_s frmsizecod_tbl[] =
 {
 	{ 32  ,{64   ,69   ,96   } },
 	{ 32  ,{64   ,70   ,96   } },
@@ -88,26 +88,26 @@ static const struct frmsize_s frmsizecod_tbl[] =
 
 #define fscd_tbl_entries (sizeof(frmsizecod_tbl)/sizeof(frmsize_t))
 
-static int get_ac3_header(char *buf) 
+static int get_ac3_header(char *buf)
 {
   uint_32 i=0, tmp=0;
 
   tmp = (tmp << 8) + (uint_8) buf[i++];
   tmp = (tmp << 8) + (uint_8) buf[i++];
   tmp = (tmp << 8) + (uint_8) buf[i++];
-  
+
   return(tmp);
 }
 
-int get_ac3_framesize(char *buf) 
+int get_ac3_framesize(char *buf)
 {
   int fscod, frmsizecod;
   uint_32 tmp = 0;
 
   tmp=get_ac3_header(buf);
-  
+
   if(tmp<0) return(-1);
-  
+
   fscod      = (tmp >> 6) & 0x3;
   frmsizecod = tmp & 0x3f;
 
@@ -117,7 +117,7 @@ int get_ac3_framesize(char *buf)
 }
 
 // tibit
-int get_ac3_nfchans(char *buf) 
+int get_ac3_nfchans(char *buf)
 {
   int acmod = 0;
 
@@ -131,15 +131,15 @@ int get_ac3_nfchans(char *buf)
 }
 
 
-int get_ac3_bitrate(char *buf) 
+int get_ac3_bitrate(char *buf)
 {
   int frmsizecod;
   uint_32 tmp = 0;
 
   tmp=get_ac3_header(buf);
-  
+
   if(tmp<0) return(-1);
- 
+
   frmsizecod = tmp & 0x3f;
 
   if(frmsizecod >= fscd_tbl_entries) return(-1);
@@ -148,18 +148,18 @@ int get_ac3_bitrate(char *buf)
 }
 
 
-int get_ac3_samplerate(char *buf) 
+int get_ac3_samplerate(char *buf)
 {
   int fscod, sampling_rate;
   uint_32 tmp = 0;
 
   tmp=get_ac3_header(buf);
-  
+
   if(tmp<0) return(-1);
- 
-  // Get the sampling rate 
+
+  // Get the sampling rate
   fscod  = (tmp >> 6) & 0x3;
-  
+
   if(fscod == 3) {
     return(-1);  //invalid sampling rate code
   } else if(fscod == 2)
@@ -181,10 +181,10 @@ parse_syncinfo(syncinfo_t *syncinfo)
 	uint_16 sync_word = 0;
 	uint_32 time_out = 1<<16;
 
-	// 
+	//
 	// Find a ac3 sync frame. Time out if we read 64k without finding
 	// one.
-	// 
+	//
 	while(time_out--)
 	{
 		sync_word = (sync_word << 8) + bitstream_get_byte();
@@ -201,13 +201,13 @@ parse_syncinfo(syncinfo_t *syncinfo)
 	tmp = (tmp << 8) + bitstream_get_byte();
 	tmp = (tmp << 8) + bitstream_get_byte();
 
-	// Get the sampling rate 
+	// Get the sampling rate
 	syncinfo->fscod  = (tmp >> 6) & 0x3;
 
 	if(syncinfo->fscod == 3)
 	{
 		//invalid sampling rate code
-		error_flag = 1;	
+		error_flag = 1;
 		return;
 	}
 	else if(syncinfo->fscod == 2)
@@ -217,7 +217,7 @@ parse_syncinfo(syncinfo_t *syncinfo)
 	else
 		syncinfo->sampling_rate = 48000;
 
-	// Get the frame size code 
+	// Get the frame size code
 	syncinfo->frmsizecod = tmp & 0x3f;
 
 	//ThOe
@@ -228,29 +228,29 @@ parse_syncinfo(syncinfo_t *syncinfo)
 	}
 
 	// Calculate the frame size and bitrate
-	syncinfo->frame_size = 
+	syncinfo->frame_size =
 		frmsizecod_tbl[syncinfo->frmsizecod].frm_size[syncinfo->fscod];
 	syncinfo->bit_rate = frmsizecod_tbl[syncinfo->frmsizecod].bit_rate;
-	
-	
+
+
 	//ThOe
 	if(syncinfo->frame_size==0) {
 	  fprintf(stderr, "[libac3] broken AC3 frame detected - framesize=0 - muting frame\n");
 	  error_flag = 1;
 	  return;
 	}
-	
+
 	//ThOe
 	if(syncinfo->bit_rate==0) {
 	  fprintf(stderr, "[libac3] broken AC3 frame detected - bitrate=0 - muting frame\n");
 	  error_flag = 1;
 	  return;
 	}
-	
-	// Buffer the entire syncframe 
+
+	// Buffer the entire syncframe
 	bitstream_buffer_frame(syncinfo->frame_size * 2 - 5);
-	
-	// Check the crc over the entire frame 
+
+	// Check the crc over the entire frame
 	crc_init();
 
 	crc_process_byte(tmp>>16);
@@ -373,7 +373,7 @@ parse_bsi(bsi_t *bsi)
 
 	/* Get the original bit */
 	bsi->origbs = bitstream_get(1);
-	
+
 	/* Does timecode one exist? */
 	bsi->timecod1e = bitstream_get(1);
 
@@ -457,12 +457,12 @@ parse_audblk(bsi_t *bsi,audblk_t *audblk)
 			audblk->ncplsubnd = (audblk->cplendf + 2) - audblk->cplbegf + 1;
 
 			/* Calculate the start and end bins of the coupling channel */
-			audblk->cplstrtmant = (audblk->cplbegf * 12) + 37 ; 
+			audblk->cplstrtmant = (audblk->cplbegf * 12) + 37 ;
 			audblk->cplendmant =  ((audblk->cplendf + 3) * 12) + 37;
 
 			/* The number of combined subbands is ncplsubnd minus each combined
 			 * band */
-			audblk->ncplbnd = audblk->ncplsubnd; 
+			audblk->ncplbnd = audblk->ncplsubnd;
 
 			for(i=1; i< audblk->ncplsubnd; i++)
 			{
@@ -474,7 +474,7 @@ parse_audblk(bsi_t *bsi,audblk_t *audblk)
 
 	if(audblk->cplinu)
 	{
-		/* Loop through all the channels and get their coupling co-ords */	
+		/* Loop through all the channels and get their coupling co-ords */
 		for(i=0;i < bsi->nfchans;i++)
 		{
 			if(!audblk->chincpl[i])
@@ -485,21 +485,21 @@ parse_audblk(bsi_t *bsi,audblk_t *audblk)
 
 			if(audblk->cplcoe[i])
 			{
-				audblk->mstrcplco[i] = bitstream_get(2); 
+				audblk->mstrcplco[i] = bitstream_get(2);
 				for(j=0;j < audblk->ncplbnd; j++)
 				{
-					audblk->cplcoexp[i][j] = bitstream_get(4); 
-					audblk->cplcomant[i][j] = bitstream_get(4); 
+					audblk->cplcoexp[i][j] = bitstream_get(4);
+					audblk->cplcomant[i][j] = bitstream_get(4);
 				}
 			}
 		}
 
 		/* If we're in dual mono mode, there's going to be some phase info */
-		if( (bsi->acmod == 0x2) && audblk->phsflginu && 
+		if( (bsi->acmod == 0x2) && audblk->phsflginu &&
 				(audblk->cplcoe[0] || audblk->cplcoe[1]))
 		{
 			for(j=0;j < audblk->ncplbnd; j++)
-				audblk->phsflg[j] = bitstream_get(1); 
+				audblk->phsflg[j] = bitstream_get(1);
 
 		}
 	}
@@ -510,23 +510,23 @@ parse_audblk(bsi_t *bsi,audblk_t *audblk)
 		audblk->rematstr = bitstream_get(1);
 		if(audblk->rematstr)
 		{
-			if (audblk->cplinu == 0) 
-			{ 
-				for(i = 0; i < 4; i++) 
-					audblk->rematflg[i] = bitstream_get(1);
-			}
-			if((audblk->cplbegf > 2) && audblk->cplinu) 
+			if (audblk->cplinu == 0)
 			{
-				for(i = 0; i < 4; i++) 
+				for(i = 0; i < 4; i++)
 					audblk->rematflg[i] = bitstream_get(1);
 			}
-			if((audblk->cplbegf <= 2) && audblk->cplinu) 
-			{ 
-				for(i = 0; i < 3; i++) 
+			if((audblk->cplbegf > 2) && audblk->cplinu)
+			{
+				for(i = 0; i < 4; i++)
 					audblk->rematflg[i] = bitstream_get(1);
-			} 
-			if((audblk->cplbegf == 0) && audblk->cplinu) 
-				for(i = 0; i < 2; i++) 
+			}
+			if((audblk->cplbegf <= 2) && audblk->cplinu)
+			{
+				for(i = 0; i < 3; i++)
+					audblk->rematflg[i] = bitstream_get(1);
+			}
+			if((audblk->cplbegf == 0) && audblk->cplinu)
+				for(i = 0; i < 2; i++)
 					audblk->rematflg[i] = bitstream_get(1);
 
 		}
@@ -537,7 +537,7 @@ parse_audblk(bsi_t *bsi,audblk_t *audblk)
 		/* Get the coupling channel exponent strategy */
 		audblk->cplexpstr = bitstream_get(2);
 		audblk->ncplgrps = audblk->cplexpstr ?
-				(audblk->cplendmant - audblk->cplstrtmant) / 
+				(audblk->cplendmant - audblk->cplstrtmant) /
 					(3 << (audblk->cplexpstr-1))
 				: 0;
 	}
@@ -546,23 +546,23 @@ parse_audblk(bsi_t *bsi,audblk_t *audblk)
 		audblk->chexpstr[i] = bitstream_get(2);
 
 	/* Get the exponent strategy for lfe channel */
-	if(bsi->lfeon) 
+	if(bsi->lfeon)
 		audblk->lfeexpstr = bitstream_get(1);
 
 	/* Determine the bandwidths of all the fbw channels */
-	for(i = 0; i < bsi->nfchans; i++) 
-	{ 
+	for(i = 0; i < bsi->nfchans; i++)
+	{
 		uint_16 grp_size;
 
-		if(audblk->chexpstr[i] != EXP_REUSE) 
-		{ 
-			if (audblk->cplinu && audblk->chincpl[i]) 
+		if(audblk->chexpstr[i] != EXP_REUSE)
+		{
+			if (audblk->cplinu && audblk->chincpl[i])
 			{
 				audblk->endmant[i] = audblk->cplstrtmant;
 			}
 			else
 			{
-				audblk->chbwcod[i] = bitstream_get(6); 
+				audblk->chbwcod[i] = bitstream_get(6);
 				audblk->endmant[i] = ((audblk->chbwcod[i] + 12) * 3) + 37;
 			}
 
@@ -585,7 +585,7 @@ parse_audblk(bsi_t *bsi,audblk_t *audblk)
 	{
 		if(audblk->chexpstr[i] != EXP_REUSE)
 		{
-			audblk->exps[i][0] = bitstream_get(4);			
+			audblk->exps[i][0] = bitstream_get(4);
 			for(j=1;j<=audblk->nchgrps[i];j++)
 				audblk->exps[i][j] = bitstream_get(7);
 			audblk->gainrng[i] = bitstream_get(2);
@@ -641,18 +641,18 @@ parse_audblk(bsi_t *bsi,audblk_t *audblk)
 	/* Get coupling leakage info if it exists */
 	if(audblk->cplinu)
 	{
-		audblk->cplleake = bitstream_get(1);	
-		
+		audblk->cplleake = bitstream_get(1);
+
 		if(audblk->cplleake)
 		{
 			audblk->cplfleak = bitstream_get(3);
 			audblk->cplsleak = bitstream_get(3);
 		}
 	}
-	
+
 	/* Get the delta bit alloaction info */
-	audblk->deltbaie = bitstream_get(1);	
-	
+	audblk->deltbaie = bitstream_get(1);
+
 	if(audblk->deltbaie)
 	{
 		if(audblk->cplinu)
@@ -702,7 +702,7 @@ parse_audblk(bsi_t *bsi,audblk_t *audblk)
 			//XXX remove
 			//fprintf(stderr,"skipped data %2x\n",skip_data);
 			//if(skip_data != 0)
-			//{	
+			//{
 				//dprintf("(parse) Invalid skipped data %2x\n",skip_data);
 				//exit(1);
 			//}
@@ -726,13 +726,13 @@ parse_auxdata(syncinfo_t *syncinfo)
 
 	//XXX remove
 	//dprintf("(auxdata) skipping %d auxbits\n",skip_length);
-	
+
 	for(i=0; i <  skip_length; i++)
 		//printf("Skipped bit %i\n",(uint_16)bitstream_get(1));
 		bitstream_get(1);
 
 	//get the auxdata exists bit
-	auxdatae = bitstream_get(1);	
+	auxdatae = bitstream_get(1);
 
 	//XXX remove
 	//dprintf("auxdatae = %i\n",auxdatae);

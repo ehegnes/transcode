@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -33,7 +33,7 @@
 #if 0 // EMS not used
 static int cmp_32_bits(char *buf, long x)
 {
-  
+
     if (buf[0] != ((x >> 24) & 0xff))
 	return 0;
     if (buf[1] != ((x >> 16) & 0xff))
@@ -42,18 +42,18 @@ static int cmp_32_bits(char *buf, long x)
 	return 0;
     if (buf[3] != ((x      ) & 0xff))
 	return 0;
-  
+
   // OK found it
   return 1;
 }
 #endif
 
 static double frc_table[16] = {0,
-			       NTSC_FILM, 24, 25, NTSC_VIDEO, 30, 50, 
+			       NTSC_FILM, 24, 25, NTSC_VIDEO, 30, 50,
 			       (2*NTSC_VIDEO), 60,
-			       1, 5, 10, 12, 15, 
+			       1, 5, 10, 12, 15,
 			       0, 0};
-  
+
 static char * aspect_ratio_information_str[16] = {
   "Invalid Aspect Ratio",
   "1:1",
@@ -84,13 +84,13 @@ static char * frame_rate_str[16] = {
 
 int stats_sequence_silent(uint8_t * buffer, seq_info_t *seq_info)
 {
-  
+
   int horizontal_size;
   int vertical_size;
   int aspect_ratio_information;
   int frame_rate_code;
   int bit_rate_value;
-  
+
   vertical_size = (buffer[0] << 16) | (buffer[1] << 8) | buffer[2];
   horizontal_size = ((vertical_size >> 12) + 15) & ~15;
   vertical_size = ((vertical_size & 0xfff) + 15) & ~15;
@@ -99,31 +99,31 @@ int stats_sequence_silent(uint8_t * buffer, seq_info_t *seq_info)
   frame_rate_code = buffer[3] & 15;
   bit_rate_value = (buffer[4] << 10) | (buffer[5] << 2) | (buffer[6] >> 6);
   if(aspect_ratio_information < 0 || aspect_ratio_information>15) {
-    fprintf(stderr, "error: ****** invalid MPEG sequence header detected (%d/%d|%d/%d) ******\n", 
+    fprintf(stderr, "error: ****** invalid MPEG sequence header detected (%d/%d|%d/%d) ******\n",
 	    aspect_ratio_information, 16, frame_rate_code, 16);
     return(-1);
   }
-  
+
   if(frame_rate_code < 0 || frame_rate_code>15) {
-    fprintf(stderr, "error: ****** invalid MPEG sequence header detected (%d/%d|%d/%d) ******\n", 
+    fprintf(stderr, "error: ****** invalid MPEG sequence header detected (%d/%d|%d/%d) ******\n",
 	    frame_rate_code, 16, aspect_ratio_information, 8);
     return(-1);
   }
-  
+
   //fill out user structure
-  
+
   seq_info->w = horizontal_size;
   seq_info->h = vertical_size;
   seq_info->ari = aspect_ratio_information;
   seq_info->frc = frame_rate_code;
   seq_info->brv = bit_rate_value;
-  
+
   return(0);
-  
+
 }
 int stats_sequence(uint8_t * buffer, seq_info_t *seq_info)
 {
-  
+
   int horizontal_size;
   int vertical_size;
   int aspect_ratio_information;
@@ -133,7 +133,7 @@ int stats_sequence(uint8_t * buffer, seq_info_t *seq_info)
   int constrained_parameters_flag;
   int load_intra_quantizer_matrix;
   int load_non_intra_quantizer_matrix;
-  
+
   vertical_size = (buffer[0] << 16) | (buffer[1] << 8) | buffer[2];
   horizontal_size = ((vertical_size >> 12) + 15) & ~15;
   vertical_size = ((vertical_size & 0xfff) + 15) & ~15;
@@ -152,12 +152,12 @@ int stats_sequence(uint8_t * buffer, seq_info_t *seq_info)
     printf("error: ****** invalid MPEG sequence header detected (%d/%d|%d/%d) ******\n", aspect_ratio_information, 16, frame_rate_code, 16);
     return(-1);
   }
-  
+
   if(frame_rate_code < 0 || frame_rate_code>15) {
     printf("error: ****** invalid MPEG sequence header detected (%d/%d|%d/%d) ******\n", frame_rate_code, 16, aspect_ratio_information, 8);
     return(-1);
   }
-  
+
   printf("\tsequence: %dx%d %s, %s fps, %5.0f kbps, VBV %d kB%s%s%s\n", horizontal_size, vertical_size,
 		  aspect_ratio_information_str [aspect_ratio_information],
 		  frame_rate_str [frame_rate_code],
@@ -166,23 +166,23 @@ int stats_sequence(uint8_t * buffer, seq_info_t *seq_info)
 		  constrained_parameters_flag ? " , CP":"",
 		  load_intra_quantizer_matrix ? " , Custom Intra Matrix":"",
 		  load_non_intra_quantizer_matrix ? " , Custom Non-Intra Matrix":"");
-  
-  
+
+
   //fill out user structure
-  
+
   seq_info->w = horizontal_size;
   seq_info->h = vertical_size;
   seq_info->ari = aspect_ratio_information;
   seq_info->frc = frame_rate_code;
   seq_info->brv = bit_rate_value;
-  
+
   return(0);
-  
+
 }
 
 int probe_sequence(uint8_t *buffer, probe_info_t *probe_info)
 {
-  
+
   int horizontal_size;
   int vertical_size;
   int aspect_ratio_information;
@@ -192,7 +192,7 @@ int probe_sequence(uint8_t *buffer, probe_info_t *probe_info)
   int constrained_parameters_flag;
   int load_intra_quantizer_matrix;
   int load_non_intra_quantizer_matrix;
-  
+
   vertical_size = (buffer[0] << 16) | (buffer[1] << 8) | buffer[2];
   horizontal_size = ((vertical_size >> 12) + 15) & ~15;
   vertical_size = ((vertical_size & 0xfff) + 15) & ~15;
@@ -209,11 +209,11 @@ int probe_sequence(uint8_t *buffer, probe_info_t *probe_info)
 
   //set some defaults, if invalid:
   if(aspect_ratio_information < 0 || aspect_ratio_information>15) aspect_ratio_information=1;
-  
+
   if(frame_rate_code < 0 || frame_rate_code>15) frame_rate_code=3;
-  
+
   //fill out user structure
-  
+
   probe_info->width = horizontal_size;
   probe_info->height = vertical_size;
   probe_info->asr = aspect_ratio_information;
@@ -222,7 +222,7 @@ int probe_sequence(uint8_t *buffer, probe_info_t *probe_info)
   probe_info->fps = frc_table[frame_rate_code];
 
   return(0);
-  
+
 }
 
 int probe_extension(uint8_t *buffer, probe_info_t *probe_info)
@@ -253,7 +253,7 @@ int probe_extension(uint8_t *buffer, probe_info_t *probe_info)
     //get infos
     probe_info->ext_attributes[2] = progressive_frame;
     probe_info->ext_attributes[3] = alternate_scan;
-    
+
     if(top_field_first == 1 && repeat_first_field == 0) return(1);
 
   return(0);
@@ -263,7 +263,7 @@ int probe_extension(uint8_t *buffer, probe_info_t *probe_info)
 
 int probe_picext(uint8_t *buffer, size_t buflen)
 {
-  
+
   //  static char *picture_structure_str[4] = {
   //  "Invalid Picture Structure",
   //  "Top field",
@@ -272,10 +272,10 @@ int probe_picext(uint8_t *buffer, size_t buflen)
   //};
   static int buf_small_count = 0;
   if(buflen < 3) {
-    if(buf_small_count == 0 
+    if(buf_small_count == 0
       || (buf_small_count % BUF_WARN_COUNT) == 0) {
         tc_log_warn(__FILE__, "not enough buffer to probe picture extension "
-                          "(buflen=%lu) [happened at least %i times]", 
+                          "(buflen=%lu) [happened at least %i times]",
                           (unsigned long)buflen, buf_small_count);
     }
     buf_small_count++;
@@ -288,14 +288,14 @@ void probe_group(uint8_t *buffer, size_t buflen)
 {
     static int buf_small_count = 0;
     if(buflen < 5) {
-        if(buf_small_count == 0 
+        if(buf_small_count == 0
           || (buf_small_count % BUF_WARN_COUNT) == 0) {
             tc_log_warn(__FILE__, "not enough buffer to probe picture group "
-                             "(buflen=%lu) [happened at least %i times]", 
+                             "(buflen=%lu) [happened at least %i times]",
                              (unsigned long)buflen, buf_small_count);
         }
         buf_small_count++;
-    } else {	 
+    } else {
        printf("%s%s\n", (buffer[4] & 0x40) ? " closed_gop" : "",
 	        (buffer[4] & 0x20) ? " broken_link" : "");
     }
@@ -310,19 +310,19 @@ int get_pts_dts(char *buffer, unsigned long *pts, unsigned long *dts)
   int has_pts_dts=0;
 
   unsigned int ptr=0;
-  
+
   /* drop first 8 bits */
   ++ptr;
   pts_dts_flags = (buffer[ptr++] >> 6) & 0x3;
   pes_header_data_length = buffer[ptr++];
 
   switch(pts_dts_flags)
-    
+
     {
 
     case 2:
-      
-      *pts = (buffer[ptr++] >> 1) & 7;  //low 4 bits (7==1111) 
+
+      *pts = (buffer[ptr++] >> 1) & 7;  //low 4 bits (7==1111)
       *pts <<= 15;
       *pts |= (stream_read_int16(&buffer[ptr]) >> 1);
       ptr+=2;
@@ -337,16 +337,16 @@ int get_pts_dts(char *buffer, unsigned long *pts, unsigned long *dts)
       break;
 
     case 3:
-      
-      *pts = (buffer[ptr++] >> 1) & 7;  //low 4 bits (7==1111) 
+
+      *pts = (buffer[ptr++] >> 1) & 7;  //low 4 bits (7==1111)
       *pts <<= 15;
       *pts |= (stream_read_int16(&buffer[ptr]) >> 1);
       ptr+=2;
       *pts <<= 15;
       *pts |= (stream_read_int16(&buffer[ptr]) >> 1);
       ptr+=2;
-      
-      *dts = (buffer[ptr++] >> 1) & 7;  
+
+      *dts = (buffer[ptr++] >> 1) & 7;
       *dts <<= 15;
       *dts |= (stream_read_int16(&buffer[ptr]) >> 1);
       ptr+=2;
@@ -356,17 +356,17 @@ int get_pts_dts(char *buffer, unsigned long *pts, unsigned long *dts)
 
       pes_header_bytes += 10;
 
-      has_pts_dts=1;      
+      has_pts_dts=1;
 
       break;
-      
+
     default:
 
-      has_pts_dts=0;            
+      has_pts_dts=0;
       *dts=*pts=0;
       break;
     }
-  
+
   return(has_pts_dts);
 }
 
@@ -375,12 +375,12 @@ static unsigned long read_ts(char *_s)
 {
 
   unsigned long pts;
-  
+
   char *buffer=_s;
 
   unsigned int ptr=0;
-     
-  pts = (buffer[ptr++] >> 1) & 7;  //low 4 bits (7==1111) 
+
+  pts = (buffer[ptr++] >> 1) & 7;  //low 4 bits (7==1111)
   pts <<= 15;
   pts |= (stream_read_int16(&buffer[ptr]) >> 1);
   ptr+=2;
@@ -404,15 +404,15 @@ typedef struct timecode_struc	/* Time_code Struktur laut MPEG		*/
 static void make_timecode (double timestamp, Timecode_struc *pointer)
 {
     double temp_ts;
-    
+
     if (timestamp < 0.0) {
       pointer->negative = 1;
       timestamp = -timestamp;
     } else
       pointer->negative = 0;
-    
+
     temp_ts = floor(timestamp / 300.0);
-    
+
     if (temp_ts > MAX_FFFFFFFF) {
       pointer->msb=1;
       temp_ts -= MAX_FFFFFFFF;
@@ -421,9 +421,9 @@ static void make_timecode (double timestamp, Timecode_struc *pointer)
       pointer->msb=0;
       pointer->lsb=(unsigned long)temp_ts;
     }
-    
+
     pointer->reference_ext = (unsigned long)(timestamp - (floor(timestamp / 300.0) * 300.0));
-    
+
 }
 
 #define MPEG2_MARKER_SCR	1		/* MPEG2 Marker SCR	*/
@@ -438,7 +438,7 @@ static void make_timecode (double timestamp, Timecode_struc *pointer)
 
 static void buffer_timecode_scr (Timecode_struc *pointer, unsigned char **buffer)
 {
-  
+
   unsigned char temp;
   unsigned char marker=MPEG2_MARKER_SCR;
 
@@ -466,13 +466,13 @@ void scr_rewrite(char *buf, uint32_t pts)
 {
   Timecode_struc timecode;
   unsigned char * ucbuf = (unsigned char *)buf;
-  
+
   timecode.msb = 0;
   timecode.lsb = 0;
   timecode.reference_ext = 0;
   timecode.negative = 0;
-  
+
   make_timecode((double) pts, &timecode);
-  
+
   buffer_timecode_scr(&timecode, &ucbuf);
 }

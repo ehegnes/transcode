@@ -38,13 +38,13 @@ One horizontal line in NTSC:
 0             64us
 burst
 |||----------
- 0 \ 
+ 0 \
     \
      \
       \
        \ local oscillator phase relative to transmitter
         \
-         \ 
+         \
          -12 degrees
 
 
@@ -68,7 +68,7 @@ If you just want to correct hue (face color):
 120 *my_movie hue=3
 Of cause any other correction can be applied at the same time.
 
-Please note that the color processor uses some math for each pixel, and 
+Please note that the color processor uses some math for each pixel, and
 will slow down transcoding considerably.
 The color processor is automatically invoked if you specify a value other
 then zero for:
@@ -86,13 +86,13 @@ So now it works like this, for a 12 degree correction:
 0             64us
 burst
 |||----------
-+6 \ 
++6 \
     \
-     \ 
+     \
       \0 at 32 us (middle line = horizontal middle screen)
        \ local oscillator phase relative to transmitter
         \
-         \ 
+         \
          -6 degrees
 
 

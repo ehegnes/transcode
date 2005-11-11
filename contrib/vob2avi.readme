@@ -1,11 +1,11 @@
 ** Readme zum vob2avi-Skript
-** Copyright 2002 bei Michael Neuendorf 
+** Copyright 2002 bei Michael Neuendorf
 ** (michael.neuendorf@post.rwth-aachen.de)
 
 Syntax:	vob2avi [Verzeichnis mit den vob-Dateien] [Zieldatei]
-		[audiostream] [0 - 1.78:1 | 1 - 2.35:1=16:9 | 2 - 1.33:1=4:3] 
+		[audiostream] [0 - 1.78:1 | 1 - 2.35:1=16:9 | 2 - 1.33:1=4:3]
                 [bitrate]
-                
+
 Das Skript "vob2avi" dient dem Codieren von DVD-Filmen in das DivX-Format.
 Dabei erledigt es die Parametrisierung von transcode anhand weniger (teilweise
 optionaler) Parameter. Zusätzlich ermöglicht es den Rechner nach der Beendigung
@@ -26,8 +26,8 @@ der Herunterfahren nachträglich noch vermieden werden kann.
 "vob2avi" setzt standardmäßig die folgenden Einstellungen:
   audiostream 		= 0
   Seitenverhältnis 	= 0 => 1.78:1
-  bitrate 		= 1400 kb/s 
-  
+  bitrate 		= 1400 kb/s
+
 Am besten lassen sich die Einstellungen vorab mit einem Player, z.B. dem
 MPlayer oder Xine, ermitteln: Durch die Player läßt sich die Audiospur durch
 Probieren leicht herausfinden, das Seitenverhältnis wird beim Abspielen im
@@ -36,7 +36,7 @@ Streifen oben und unten, 2.35:1 codierte Filme haben breite schwarze Streifen.
 4:3 codierte Filme heben sich deutlich von diesen Seitenverhältnissen ab und
 haben normalerweise keine Ränder.
 
-Beispiel: 
+Beispiel:
   Um einen Film im Verzeichnis "rip" in "test.avi" mit Audiospur 1, Seiten-
   verhältnis 2.35:1 und 2000 kb/s zu codieren und den Rechner anschließend
   herunterzufahren, ist vob2avi in folgender Weise zu parametrisieren.:

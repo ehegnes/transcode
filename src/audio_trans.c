@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -25,7 +25,7 @@
 #include "framebuffer.h"
 #include "audio_trans.h"
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * audio frame transformation auxiliary routines
  *
@@ -40,7 +40,7 @@ static short aclip(int v, int *cclip)
     ++ *cclip;
     return -SHRT_MAX;
   }
-  
+
   // ok
   return ((short) v);
 }
@@ -61,13 +61,13 @@ static void pcm_swap(char *buffer, int len)
     tt = *(in+1);
     *(out+1) = *in;
     *out = tt;
-    
+
     in = in+2;
     out = out+2;
   }
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * audio frame transformation
  *
@@ -77,7 +77,7 @@ static void pcm_swap(char *buffer, int len)
 
 
 int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
-    
+
 {
   short *s, *d, uu, uu1, uu2;
   int n;
@@ -96,18 +96,18 @@ int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
       }
       t = t->next;
   }
-  
+
   if (skip) {
       ptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
       return 0;
   }
 
   // check for pass-through mode
-  
+
   if(vob->pass_flag & TC_AUDIO) return(0);
-  
+
   // check if a frame transformation is requested:
-  
+
   if (vob->volume > 0.0 || pcmswap
     || (vob->a_chan == 1 && vob->dm_chan == 2)
     || (vob->a_chan == 2 && vob->dm_chan == 1)
@@ -115,15 +115,15 @@ int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
 
   if(vob->im_a_codec != CODEC_PCM) {
 
-    if(trans) 
-      tc_error("Oops, this version of transcode only supports PCM data for audio transformation"); 
-    else 
+    if(trans)
+      tc_error("Oops, this version of transcode only supports PCM data for audio transformation");
+    else
       return(0);
   }
-  
+
   // update frame
   ptr->a_codec = CODEC_PCM;
-  
+
   //-----------------------------------------------------------------
   //
   // transformation: stretch audio given by vob->sync_ms
@@ -147,37 +147,37 @@ int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
       memmove(ptr->audio_buf-bytes, ptr->audio_buf, ptr->audio_size);
       memset(ptr->audio_buf, 0, -bytes);
     }
-    
+
     ptr->audio_size -=bytes;
     if(verbose & TC_DEBUG) printf("(%s) adjusted %d PCM samples (%d ms)\n", __FILE__, bytes/(vob->a_chan*vob->a_bits/16), vob->sync_ms);
     vob->sync_ms=0;
   }
 
   //-----------------------------------------------------------------
-  //  
+  //
   // transformation: swap audio bytes
   //
   // flag: pcmswap
-  
+
   if(pcmswap) pcm_swap(ptr->audio_buf, ptr->audio_size);
 
-		       
+
   //-----------------------------------------------------------------
   //
-  // transformation: rescale audio amplitude 
+  // transformation: rescale audio amplitude
   //
   // flag: vob->volume>0
 
   if(vob->volume > 0.0 && vob->a_bits == 16) {
-    
+
     s=(short *) ptr->audio_buf;
-    
+
     for(n=0; n<ptr->audio_size>>1; ++n) {
       uu = aclip((int) (vob->volume * *s), &vob->clip_count);
       *s++ = uu;
     }
   }
-  
+
   //-----------------------------------------------------------------
   //
   // transformation: convert 16 bit to 8 bit samples
@@ -185,17 +185,17 @@ int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
   // only 8 bit unsigned supported!
   //
   // flag: vob->dm_bits = 8
-  
+
   if(vob->dm_bits == 8 && vob->a_bits == 16) {
-    
+
     s = (short *) ptr->audio_buf;
     b = (unsigned char *) s;
-    
+
     for(n=0; n<ptr->audio_size>>1; ++n) *b++ = *s++/256+0x80;
     ptr->audio_size = ptr->audio_size>>1;
-    
+
   }
-  
+
   // convert 8 bit to 16 bit
   // as above, assume 8 bit unsigned and 16 bit signed
 
@@ -232,7 +232,7 @@ int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
   }
 
   // convert mono to stereo
-  
+
   if (vob->dm_chan == 2 && vob->a_chan == 1) {
     if (vob->dm_bits == 16) {
       s = (short *)ptr->audio_buf + ptr->audio_size / 2;

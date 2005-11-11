@@ -22,7 +22,7 @@ line reads:                 signifies:
 1 Hello there               is a normal subtitle (bottom of screen),
                               appearing at frame 1.
                             An new 'nn' entry that does NOT contain an
-                             object reference will clear this subtitle.  
+                             object reference will clear this subtitle.
                              '*' is illegal as the FIRST character in the
                              text (that would signify an operation on an
                              object).
@@ -32,19 +32,19 @@ line reads:                 signifies:
                              activate it).
                              From here on parameters of *rose can be
                              modified at any time, until *rose is removed.
-51 *rose heading=275 speed=10 
+51 *rose heading=275 speed=10
                             This will cause *rose to move west at speed 10.
 60 *rose speed=0            *rose will stop in its tracks...
 61                          a line with only a number will cause the
                              subtitle to disappear, so now 'Hello there'
-                             disappears.          
+                             disappears.
 115 *rose kill              *rose is removed from the display list.
-177 *rose xpos=1 ypos=30    *rose is added to the display list again. 							
+177 *rose xpos=1 ypos=30    *rose is added to the display list again.
 177 This is a subtitle      this replaces 'Hello there' from frame 1.
                              It is legal to have more operations in the same
                              frame, but use separate lines for each object.
 200 *girls kill=350         Adds object *girls at x=0 y=0, and removes
-                             object *girls at frame 350.                 
+                             object *girls at frame 350.
 
 Objects can be defined anywhere, not only at the start of the file.
 If you kill an object, you can use it again later, the data definition
@@ -78,10 +78,10 @@ color sets U and V for text objects, and has a dcolor.
 Using u and v directly will overrule color and dcolor.
 Color is the color in a 'color cirlce':
 
-      red 	 
+      red
        0
        |
-270 --- --- 90 blue 
+270 --- --- 90 blue
        |
       180
 
@@ -90,7 +90,7 @@ red       0
 blue     90
 green   200
 yellow  290
-      
+
 Have a go with dcolor=1, for 360 frames, you will see all possible colors,
 beautiful ones you perhaps never see in the real world!
 Perhaps I will add more functions later.
@@ -107,28 +107,28 @@ heading         *            all         0   direction according to compas, 0-36
 speed           *            all         0   pixels per frame.
                                              Note: there is also both dpseed AND ddspeed.
                                              Using ddspeed is pure acceleration!
-transp          *            pic/text    0   transparency, range 0-100, 100 is invisible     
+transp          *            pic/text    0   transparency, range 0-100, 100 is invisible
 slice           *            pic         0   range 0-255, anything below slice level is not
                                              drawn.
-sat             *            pic/text  100   multiplier for current saturation in percent.      
+sat             *            pic/text  100   multiplier for current saturation in percent.
 contr           *            pic/text  100   multiplier for current contrast in percent.
 bright          *            pic/text    0   range -128 to +128 value added to Y, clipping done.
 hue             *            pic         0   color vector UV rotation, 0-360 degrees.
 hue_ldrift      *            pic         0   horizontal drift of hue (to be able to correct NTSC
                                              pics and movies that are green on one- and red on
-                                             the other side. 
+                                             the other side.
                                              hue_ldrift will also be able work on the main movie.
                                              see README.COLOR.PROCESSOR
 color           *            text         0  0-360 degrees in color circle, PLEASE set contrast
-                                             to 70 % or so, to allow for saturated colors. 
+                                             to 70 % or so, to allow for saturated colors.
 ck_color        *            pic          0  chroma key color (color vector) 0-360 degrees.
 ck_sat          *            pic          0  chroma key minimum saturation level to activate,
                                              0-100%.
 ck_window       *            pic          0  chroma key window (aperture) in degrees (0-360).
 xsize           *            pic,movie    x  xsize, used to resize a picture,
-ysize           *            pic,movie    y  ysize, used to resize a picture.		
+ysize           *            pic,movie    y  ysize, used to resize a picture.
 rsize           *            pic,movie    -  this restores the original size, and sets the
-                                             size deltas to zero (works on x,y,z).   
+                                             size deltas to zero (works on x,y,z).
 aspect                       pic,movie    0  setting this to any other value then zero will
                                              force the resize functions to keep the aspect.
 center                       subtitles    1  zero or 1, 1 centers any subtitles (not loose
@@ -158,14 +158,14 @@ font_dir                     text   ~/.xste/fonts is the default.
                                              is located.
                                              This allows on the fly changing of fonts.
                                              See also 'outline' below.
-font_name                    text arial.ttf  true type fontname   
+font_name                    text arial.ttf  true type fontname
 font_size                    text        28  fontsize in pixels
 font_iso_extension           text        15  ISO extention, 15 has the Euro symbol,
                                              man iso_8859_15 will tell you more.
 font_outline_thickness       text       1.0  The border around the characters,
                                              (normally black), do NOt use zero!.
 font_blur_radius             text      0.01  Blurred border around characters,
-                                             do NOT use zero. 
+                                             do NOT use zero.
 espace                       text         1  extra space between characters in pixels.
                                              This can be used to make 'exploding' text for
                                              example.
@@ -188,7 +188,7 @@ background_contrast          text         0  background printing area contrast (
 pattern_contrast             text        15  character body contrast.
 emphasis1_contrast           text        15  character outline1 (border around character) contrast.
 emphasis2_contrast           text         0  character outline2 (character-space) contrast.
-    
+
 *
  Some of these commands also have their delta command, so xpos has dxpos.
  The deltas are added each frame.
@@ -212,7 +212,7 @@ If you have overlapping lines between fonts, or irregular edges etc. try RGB mod
 This is a lot slower, but better quality in some cases.
 In this version I completely rewrote the color routines for the subtitles,
 and added full RGB support.
- 
+
 Reserved for future versions (but not yet implemented) are among others:
 zsize      pic  p       pixels
 xrot       pic  0       rotation 0-360 degrees
@@ -225,11 +225,11 @@ definition       argument
 
 main_movie       none
 movie            filename (must be a .mpg file for now, that transcode can
-                  read with -xmpeg2,null). 
+                  read with -xmpeg2,null).
 picture          filename (must be a .ppm file).
 text             any text, '*' is illegal as the first character.
 frame_counter    none
-subtitle         none      
+subtitle         none
 
 Usage:
 *my_file main_movie
@@ -286,15 +286,15 @@ then specify a new font:
 
 *subtitle subtitle
 
-10 Hello, this is a very long line that will be reformatted automatically 
+10 Hello, this is a very long line that will be reformatted automatically
 
 ;this empty line will remove the subtitle
 110
-;this will specify a new font to be used 
+;this will specify a new font to be used
 111 *subtitle font_dir=/root/.subtitles/fonts/iso-8859-2/arial-28
 ;reformatting is now done with the new font!
 112 Hello, this is a subtitle with a new font in a very long line too.
- 
+
 Chroma key:
 Added a simple chroma key feature:
 Chroma key is a system that allows you to put an object on the screen,
@@ -336,7 +336,7 @@ You can set 'mask=xxx' to activate other values.
 Since it (mogrify) seems to depend on Xwindows border, I cannot
 guarantee it will work on each system.
 
- 
+
 About xdest and ydest:
 These are 'destinations' which will cause an object to move towards these
 coordinates at the speed specified, and stop on arrival.

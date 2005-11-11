@@ -1,8 +1,8 @@
 /* pnm2pvn by Jacob (Jack) Gryn
    - Opens a list of PNM files and saves them in PVN format
    - Syntax: pnm2pvn output.pvn *.pnm
-   - *.pnm refers to all input files, entered in order that they are to appear 
-     in PVN file 
+   - *.pnm refers to all input files, entered in order that they are to appear
+     in PVN file
 
    PVN (PVB/PVG/PVP) Library
 
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 
 
   outfile = argv[minargc-1];
-  infiles_count = argc - minargc; 
+  infiles_count = argc - minargc;
   if ((copies > 1) && (infiles_count != 1))
   {
     fprintf(stderr, "-cXX switch only works with one input file\n");
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  printf("Converting %d files into PVN file: %s\n", infiles_count, outfile); 
+  printf("Converting %d files into PVN file: %s\n", infiles_count, outfile);
 
-  exit(pnm2pvn(infiles, infiles_count, outfile, framerate, format, maxcolour, copies)); 
+  exit(pnm2pvn(infiles, infiles_count, outfile, framerate, format, maxcolour, copies));
 }

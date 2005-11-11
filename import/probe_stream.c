@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -30,7 +30,7 @@
 static probe_info_t probe_info;
 void probe_pvn(info_t *ipipe);
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * probe thread
  *
@@ -38,34 +38,34 @@ void probe_pvn(info_t *ipipe);
 
 void tcprobe_thread(info_t *ipipe)
 {
-    
-    verbose = ipipe->verbose; 
+
+    verbose = ipipe->verbose;
 
     ipipe->probe_info = &probe_info;
-    ipipe->probe = 1; 
+    ipipe->probe = 1;
 
     //data structure will be completed by subroutines
     memset((char*) &probe_info, 0, sizeof(probe_info_t));
-    
-    /* ------------------------------------------------------------ 
+
+    /* ------------------------------------------------------------
      *
      * check file type/magic and take action to probe for contents
      *
      * ------------------------------------------------------------*/
-    
+
 
     switch(ipipe->magic) {
-      
+
     case TC_MAGIC_AVI:     // AVI file
       probe_avi(ipipe);
-      
+
       break;
 
     case TC_MAGIC_VNC:
       probe_vnc(ipipe);
 
       break;
-      
+
     case TC_MAGIC_TIFF1:   // ImageMagick images
     case TC_MAGIC_TIFF2:
     case TC_MAGIC_JPEG:
@@ -114,50 +114,50 @@ void tcprobe_thread(info_t *ipipe)
 	probe_ogg(ipipe);
 	break;
 
-    case TC_MAGIC_CDXA:    // RIFF 
+    case TC_MAGIC_CDXA:    // RIFF
       probe_pes(ipipe);
       ipipe->probe_info->attributes |= TC_INFO_NO_DEMUX;
 
       ipipe->probe_info->magic = TC_MAGIC_CDXA;
-      
+
       break;
-      
+
     case TC_MAGIC_VOB:     // VOB program stream
       probe_pes(ipipe);
-      
+
       //NTSC video/film
 
-      
+
       if(verbose & TC_DEBUG) fprintf(stderr, "att0=%d, att1=%d\n", ipipe->probe_info->ext_attributes[0], ipipe->probe_info->ext_attributes[1]);
-      
+
       if(ipipe->probe_info->codec==TC_CODEC_MPEG2
 	 && ipipe->probe_info->height==480 && ipipe->probe_info->width==720) {
-	
+
 	if(ipipe->probe_info->ext_attributes[0] > 2 * ipipe->probe_info->ext_attributes[1] || ipipe->probe_info->ext_attributes[1] == 0) ipipe->probe_info->is_video=1;
-		
+
 	if(ipipe->probe_info->is_video) {
 	  ipipe->probe_info->fps=NTSC_VIDEO;
 	  ipipe->probe_info->frc=4;
-	} else { 
+	} else {
 	  ipipe->probe_info->fps=NTSC_FILM;
 	  ipipe->probe_info->frc=1;
-	} 
+	}
       }
-      
+
       //MPEG video, no program stream
-      
-      if(ipipe->probe_info->codec==TC_CODEC_MPEG1) 
+
+      if(ipipe->probe_info->codec==TC_CODEC_MPEG1)
 	ipipe->probe_info->magic=TC_MAGIC_MPG;
-      
+
       //check for need of special import module, that does not rely on 2k packs
-      
+
       if(ipipe->probe_info->attributes & TC_INFO_NO_DEMUX) {
 	ipipe->probe_info->codec=TC_CODEC_MPEG;
 	ipipe->probe_info->magic=TC_MAGIC_MPG;
       }
-      
+
       break;
-      
+
     case TC_MAGIC_M2V:     // MPEG ES
       probe_pes(ipipe);
 
@@ -167,7 +167,7 @@ void tcprobe_thread(info_t *ipipe)
 
       break;
 
-    case TC_MAGIC_MPEG:    // MPEG PES 
+    case TC_MAGIC_MPEG:    // MPEG PES
       probe_pes(ipipe);
 
       ipipe->probe_info->attributes |= TC_INFO_NO_DEMUX;
@@ -204,7 +204,7 @@ void tcprobe_thread(info_t *ipipe)
       //case TC_MAGIC_OGG:
       //not yet implemented
       //break;
-      
+
     case TC_MAGIC_TS:
       probe_ts(ipipe);
       break;
@@ -247,10 +247,10 @@ void tcprobe_thread(info_t *ipipe)
     }
     if (ipipe->magic == TC_MAGIC_XML)
 	ipipe->probe_info->magic_xml=TC_MAGIC_XML;	//used in transcode to load import_xml and to have the correct type of the video/audio
-    else 
+    else
 	ipipe->probe_info->magic_xml=ipipe->probe_info->magic;
-    
+
     return;
 }
 
-  
+

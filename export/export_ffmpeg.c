@@ -6,20 +6,20 @@
  *    UpToDate by Tilmann Bitterberg - July 2003
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 #include <ctype.h>
@@ -101,7 +101,7 @@ extern char *tc_config_dir;
 
 /*
  * libavcodec is not thread-safe. We must protect concurrent access to it.
- * this is visible (without the mutex of course) with 
+ * this is visible (without the mutex of course) with
  * transcode .. -x ffmpeg -y ffmpeg -F mpeg4
  */
 extern pthread_mutex_t init_avcodec_lock;
@@ -225,7 +225,7 @@ static double psnr(double d) {
     return -10.0 * log(d) / log(10);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * init codec
  *
@@ -262,9 +262,9 @@ MOD_init {
 	tc_log_info(MOD_NAME, " ---------- ------ --------- "
 			      "-----------------------------------");
         while (ffmpeg_codecs[i].name != NULL) {
-            tc_log_info(MOD_NAME, " %-10s  %s     %3s    %s", 
-                    ffmpeg_codecs[i].name, ffmpeg_codecs[i].fourCC, 
-                    ffmpeg_codecs[i].multipass ? "yes" : "no", 
+            tc_log_info(MOD_NAME, " %-10s  %s     %3s    %s",
+                    ffmpeg_codecs[i].name, ffmpeg_codecs[i].fourCC,
+                    ffmpeg_codecs[i].multipass ? "yes" : "no",
                     ffmpeg_codecs[i].comments);
             i++;
         }
@@ -343,7 +343,7 @@ MOD_init {
 
     if (!strcmp(real_codec, "mpeg2video"))
         is_mpegvideo = 2;
-    
+
     codec = find_ffmpeg_codec(real_codec);
 
     if (codec == NULL) {
@@ -355,13 +355,13 @@ MOD_init {
     avcodec_init();
     avcodec_register_all();
     pthread_mutex_unlock(&init_avcodec_lock);
-    
+
     /* -- get it -- */
     lavc_venc_codec = avcodec_find_encoder_by_name(codec->name);
     if (!lavc_venc_codec) {
         tc_log_warn(MOD_NAME, "Could not find a FFMPEG codec for '%s'.",
                 codec->name);
-        return TC_EXPORT_ERROR; 
+        return TC_EXPORT_ERROR;
     }
     tc_log_info(MOD_NAME, "Using FFMPEG codec '%s' (FourCC '%s', %s).",
             codec->name, codec->fourCC, codec->comments);
@@ -379,7 +379,7 @@ MOD_init {
     }
 
     pix_fmt = vob->im_v_codec;
-    
+
     if (! (pix_fmt == CODEC_RGB || pix_fmt == CODEC_YUV || pix_fmt == CODEC_YUV422)) {
         tc_log_warn(MOD_NAME, "Unknown color space %d.",
                 pix_fmt);
@@ -424,7 +424,7 @@ MOD_init {
 
             tc_log_info(MOD_NAME, "Set interlacing to %s", il_name[vob->encode_fields]);
         }
-    
+
         if (!(probe_export_attributes & TC_PROBE_NO_EXPORT_FRC)) {
             if(video_template == vt_pal)
                 vob->ex_frc = 3;
@@ -919,7 +919,7 @@ MOD_init {
     if (probe_export_attributes & TC_PROBE_NO_EXPORT_PAR) { /* export_par explicitely set by user */
         if (vob->ex_par > 0) {
             switch(vob->ex_par) {
-            case 1: 
+            case 1:
                 lavc_venc_context->sample_aspect_ratio.num = 1;
                 lavc_venc_context->sample_aspect_ratio.den = 1;
                 break;
@@ -1108,7 +1108,7 @@ MOD_init {
                   "encoding.");
           return TC_EXPORT_ERROR;
         }
-        lavc_venc_context->flags |= CODEC_FLAG_PASS1; 
+        lavc_venc_context->flags |= CODEC_FLAG_PASS1;
         stats_file = fopen(vob->divxlogfile, "w");
         if (stats_file == NULL){
           tc_log_warn(MOD_NAME, "Could not create 2pass log file \"%s\".",
@@ -1122,7 +1122,7 @@ MOD_init {
                   "encoding.");
           return TC_EXPORT_ERROR;
         }
-        lavc_venc_context->flags |= CODEC_FLAG_PASS2; 
+        lavc_venc_context->flags |= CODEC_FLAG_PASS2;
         stats_file= fopen(vob->divxlogfile, "r");
         if (stats_file==NULL){
           tc_log_warn(MOD_NAME, "Could not open 2pass log file \"%s\" for "
@@ -1134,12 +1134,12 @@ MOD_init {
         fseek(stats_file, 0, SEEK_SET);
 
     // count the lines of the file to not encode to much
-    { 
+    {
         char lbuf[255];
         while (fgets (lbuf, 255, stats_file))
         encoded_frames++;
     }
-    
+
         fseek(stats_file, 0, SEEK_SET);
 
         lavc_venc_context->stats_in= malloc(fsize + 1);
@@ -1149,7 +1149,7 @@ MOD_init {
           tc_log_warn(MOD_NAME, "Could not read the complete 2pass log file "
                   "\"%s\".", vob->divxlogfile);
           return TC_EXPORT_ERROR;
-        }        
+        }
         break;
       case 3:
         /* fixed qscale :p */
@@ -1164,43 +1164,43 @@ MOD_init {
     //----------------
     if (avcodec_open(lavc_venc_context, lavc_venc_codec) < 0) {
       tc_log_warn(MOD_NAME, "could not open FFMPEG codec");
-      return TC_EXPORT_ERROR; 
+      return TC_EXPORT_ERROR;
     }
 
     if (lavc_venc_context->codec->encode == NULL) {
       tc_log_warn(MOD_NAME, "could not open FFMPEG codec "
               "(lavc_venc_context->codec->encode == NULL)");
-      return TC_EXPORT_ERROR; 
+      return TC_EXPORT_ERROR;
     }
-    
+
     /* free second pass buffer, its not needed anymore */
     if (lavc_venc_context->stats_in)
       free(lavc_venc_context->stats_in);
     lavc_venc_context->stats_in = NULL;
-    
+
     if (verbose_flag & TC_DEBUG) {
-     //-- GMO start -- 
-      if (vob->divxmultipass == 3) { 
+     //-- GMO start --
+      if (vob->divxmultipass == 3) {
         tc_log_info(MOD_NAME, "    single-pass session: 3 (VBR)");
         tc_log_info(MOD_NAME, "          VBR-quantizer: %d",
                 vob->divxbitrate);
       } else {
-        tc_log_info(MOD_NAME, "     multi-pass session: %d", 
+        tc_log_info(MOD_NAME, "     multi-pass session: %d",
                 vob->divxmultipass);
-        tc_log_info(MOD_NAME, "      bitrate [kBits/s]: %d", 
+        tc_log_info(MOD_NAME, "      bitrate [kBits/s]: %d",
                 lavc_venc_context->bit_rate/1000);
       }
-  
+
       //-- GMO end --
 
-      tc_log_info(MOD_NAME, "  max keyframe interval: %d\n", 
+      tc_log_info(MOD_NAME, "  max keyframe interval: %d\n",
               vob->divxkeyframes);
-      tc_log_info(MOD_NAME, "             frame rate: %.2f\n", 
+      tc_log_info(MOD_NAME, "             frame rate: %.2f\n",
               vob->ex_fps);
-      tc_log_info(MOD_NAME, "            color space: %s\n", 
+      tc_log_info(MOD_NAME, "            color space: %s\n",
               (pix_fmt == CODEC_RGB) ? "RGB24":
              ((pix_fmt == CODEC_YUV) ? "YUV420P" : "YUV422"));
-      tc_log_info(MOD_NAME, "             quantizers: %d/%d\n", 
+      tc_log_info(MOD_NAME, "             quantizers: %d/%d\n",
               lavc_venc_context->qmin, lavc_venc_context->qmax);
     }
 
@@ -1279,7 +1279,7 @@ MOD_init {
                     if((rate == -1) || (vob->a_rate == rate))
                         tc_log_info(MOD_NAME, "No audio resampling necessary");
                     else
-                        tc_log_info(MOD_NAME, "Resampling audio from %d Hz to %d Hz as required", 
+                        tc_log_info(MOD_NAME, "Resampling audio from %d Hz to %d Hz as required",
 					      vob->a_rate, rate);
                 }
                 else if (rate != -1)
@@ -1293,7 +1293,7 @@ MOD_init {
                 if((probe_export_attributes & TC_PROBE_NO_EXPORT_ARATE) && (vob->mp3frequency != 0))
                 {
                     if(vob->mp3frequency != rate)
-                        tc_log_warn(MOD_NAME, "Selected audio sample rate (%d Hz) not %d Hz as required", 
+                        tc_log_warn(MOD_NAME, "Selected audio sample rate (%d Hz) not %d Hz as required",
 					      vob->mp3frequency, rate);
 
                     if(vob->mp3frequency != vob->a_rate)
@@ -1303,17 +1303,17 @@ MOD_init {
                 else
                 {
                     if(vob->a_rate == rate && vob->mp3frequency == rate)
-                        tc_log_info(MOD_NAME, "Set audio sample rate to %d Hz", 
+                        tc_log_info(MOD_NAME, "Set audio sample rate to %d Hz",
 					      rate);
                     else if (vob->a_rate == rate && vob->mp3frequency == 0) {
                         vob->mp3frequency = rate;
-                        tc_log_info(MOD_NAME, "No audio resampling necessary, using %d Hz", 
+                        tc_log_info(MOD_NAME, "No audio resampling necessary, using %d Hz",
 					      rate);
                     }
                     else
                     {
                         vob->mp3frequency = rate;
-                        tc_log_warn(MOD_NAME, "Set audio sample rate to %d Hz, input rate is %d Hz", 
+                        tc_log_warn(MOD_NAME, "Set audio sample rate to %d Hz, input rate is %d Hz",
 					       rate, vob->a_rate);
                         tc_log_warn(MOD_NAME, "   loading resample plugin");
 
@@ -1372,12 +1372,12 @@ MOD_init {
 
         return audio_init(vob, verbose_flag);
     }
-  
+
   // invalid flag
   return TC_EXPORT_ERROR;
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open outputfile
  *
@@ -1387,7 +1387,7 @@ MOD_open
 {
 
   // open output file
-  
+
   /* Open file */
   if ( (param->flag == TC_VIDEO && !is_mpegvideo) || (param->flag == TC_AUDIO && !vob->out_flag)) {
     if (vob->avifile_out==NULL) {
@@ -1401,13 +1401,13 @@ MOD_open
 
     }
   }
-    
+
   /* Save locally */
   avifile = vob->avifile_out;
 
-  
+
   if (param->flag == TC_VIDEO) {
-    
+
     char * buf = 0;
     const char * ext;
     // video
@@ -1417,7 +1417,7 @@ MOD_open
             ext = video_ext;
         else
             ext = is_mpegvideo == 1 ? ".m1v" : ".m2v";
-        
+
         if ((buf = malloc(strlen (vob->video_out_file) + 1 + strlen(ext))) == NULL) {
             fprintf(stderr, "Could not allocate memory for buf\n");
             return(TC_EXPORT_ERROR);
@@ -1428,7 +1428,7 @@ MOD_open
 
         if (!mpeg1fd)
         {
-            tc_log_warn(MOD_NAME, "Can not open file \"%s\" using /dev/null", buf); 
+            tc_log_warn(MOD_NAME, "Can not open file \"%s\" using /dev/null", buf);
             mpeg1fd = fopen("/dev/null", "wb");
         }
 
@@ -1451,19 +1451,19 @@ MOD_open
       if (vob->avi_comment_fd>0)
       AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
     }
-    
+
     return 0;
   }
-  
-  
+
+
   if (param->flag == TC_AUDIO)
     return audio_open(vob, vob->avifile_out);
-  
+
   // invalid flag
   return TC_EXPORT_ERROR;
-}   
+}
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * encode and export
  *
@@ -1471,11 +1471,11 @@ MOD_open
 
 MOD_encode
 {
-  
+
   int out_size;
   const char pict_type_char[5]= {'?', 'I', 'P', 'B', 'S'};
-  
-  if (param->flag == TC_VIDEO) { 
+
+  if (param->flag == TC_VIDEO) {
 
     ++frames;
 
@@ -1488,10 +1488,10 @@ MOD_encode
     switch (pix_fmt)
     {
         case CODEC_YUV:
-            lavc_venc_frame->linesize[0] = lavc_venc_context->width;     
+            lavc_venc_frame->linesize[0] = lavc_venc_context->width;
             lavc_venc_frame->linesize[1] = lavc_venc_context->width / 2;
             lavc_venc_frame->linesize[2] = lavc_venc_context->width / 2;
-        
+
             if(is_huffyuv)
             {
                 uint8_t *src[3];
@@ -1557,10 +1557,10 @@ MOD_encode
                                     (unsigned char *) tmp_buffer, size,
                                     lavc_venc_frame);
     pthread_mutex_unlock(&init_avcodec_lock);
-  
+
     if (out_size < 0) {
       tc_log_warn(MOD_NAME, "encoder error: size (%d)", out_size);
-      return TC_EXPORT_ERROR; 
+      return TC_EXPORT_ERROR;
     }
     if (verbose & TC_STATS) {
       tc_log_warn(MOD_NAME, "encoder: size of encoded (%d)", out_size);
@@ -1570,19 +1570,19 @@ MOD_encode
     //0.6.2: enforce auto-split at 2G (or user value) for normal AVI files
     if (!is_mpegvideo) {
       if((uint32_t)(AVI_bytes_written(avifile)+out_size+16+8)>>20 >= tc_avi_limit) tc_outstream_rotate_request();
-    
+
       if (lavc_venc_context->coded_frame->key_frame) tc_outstream_rotate();
-    
+
       if (AVI_write_frame(avifile, tmp_buffer, out_size,
                        lavc_venc_context->coded_frame->key_frame? 1 : 0) < 0) {
     AVI_print_error("avi video write error");
-      
-    return TC_EXPORT_ERROR; 
+
+    return TC_EXPORT_ERROR;
       }
     } else { // mpegvideo
       if ( (out_size >0) && (fwrite (tmp_buffer, out_size, 1, mpeg1fd) <= 0) ) {
     tc_log_warn(MOD_NAME, "encoder error write failed size (%d)", out_size);
-    //return TC_EXPORT_ERROR; 
+    //return TC_EXPORT_ERROR;
       }
     }
 
@@ -1619,37 +1619,37 @@ MOD_encode
             pict_type_char[lavc_venc_context->coded_frame->pict_type]
             );
     }
-    
+
     /* store stats if there are any */
-    if (lavc_venc_context->stats_out && stats_file) 
+    if (lavc_venc_context->stats_out && stats_file)
       fprintf(stats_file, "%s", lavc_venc_context->stats_out);
 
     return 0;
   }
-  
+
   if (param->flag == TC_AUDIO)
     return audio_encode(param->buffer, param->size, avifile);
-  
+
   // invalid flag
   return TC_EXPORT_ERROR;
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * stop encoder
  *
  * ------------------------------------------------------------*/
 
-MOD_stop 
+MOD_stop
 {
-  
+
   if (param->flag == TC_VIDEO) {
 
     if(do_psnr){
         double f= lavc_venc_context->width*lavc_venc_context->height*255.0*255.0;
-        
+
         f*= lavc_venc_context->coded_frame->coded_picture_number;
-        
+
         tc_log_info(MOD_NAME, "PSNR: Y:%2.2f, Cb:%2.2f, Cr:%2.2f, All:%2.2f",
             psnr(lavc_venc_context->error[0]/f),
             psnr(lavc_venc_context->error[1]*4/f),
@@ -1673,8 +1673,8 @@ MOD_stop
       fclose(stats_file);
       stats_file = NULL;
     }
-    
-    if (lavc_venc_context != NULL) {    
+
+    if (lavc_venc_context != NULL) {
       if (lavc_venc_context->rc_override) {
         free(lavc_venc_context->rc_override);
         lavc_venc_context->rc_override = NULL;
@@ -1685,21 +1685,21 @@ MOD_stop
     free(real_codec); // prevent little memory leak
     return 0;
   }
-  
+
   if (param->flag == TC_AUDIO)
     return audio_stop();
-  
+
   return TC_EXPORT_ERROR;
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close outputfiles
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
 
   vob_t *vob = tc_get_vob();
 
@@ -1711,7 +1711,7 @@ MOD_close
     vob->avifile_out=NULL;
     return 0;
   }
-  
+
   if (is_mpegvideo) {
     if (mpeg1fd) {
       fclose (mpeg1fd);
@@ -1721,5 +1721,5 @@ MOD_close
   }
 
   return TC_EXPORT_ERROR;
-  
+
 }

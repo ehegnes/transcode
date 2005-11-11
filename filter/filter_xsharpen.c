@@ -3,11 +3,11 @@
 
     Copyright (C) 1999-2000 Donald A. Graft
       modified 2002 by Tilmann Bitterberg for use with transcode
-   
+
     This file is part of transcode, a video stream processing tool
 
     Xsharpen Filter for VirtualDub -- sharpen by mapping pixels
-    to the closest of window max or min. 
+    to the closest of window max or min.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ typedef	int		PixOffset;
 typedef struct MyFilterData {
 	Pixel32		*convertFrameIn;
 	Pixel32		*convertFrameOut;
-	int		strength; 
+	int		strength;
 	int		strengthInv;
 	int		threshold;
 	int		srcPitch;
@@ -102,9 +102,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
   if(ptr->tag & TC_FILTER_INIT) {
 
 	int width, height;
-    
+
 	if((vob = tc_get_vob())==NULL) return(-1);
-    
+
 	mfd = tc_malloc(sizeof(MyFilterData));
 
 	if (!mfd) {
@@ -122,12 +122,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	mfd->dstPitch       = 0;
 
 	if (options != NULL) {
-    
+
 	  if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
 	  optstr_get (options, "strength",  "%d", &mfd->strength);
 	  optstr_get (options, "threshold", "%d", &mfd->threshold);
-	
+
 	}
 
 	mfd->strengthInv    = 255 - mfd->strength;
@@ -143,7 +143,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		if ( optstr_get(options, "help", "") >= 0) {
 			help_optstr();
 		}
-	
+
 	/* fetch memory */
 
 	mfd->convertFrameIn = tc_malloc (width*height*sizeof(Pixel32));
@@ -164,7 +164,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	return 0;
 
   } /* TC_FILTER_INIT */
-	
+
 
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
     if (options) {
@@ -174,8 +174,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    optstr_param (options, "strength", "How much  of the effect", "%d", buf, "0", "255");
 
 	    tc_snprintf (buf, sizeof(buf), "%d", mfd->threshold);
-	    optstr_param (options, "threshold", 
-			  "How close a pixel must be to the brightest or dimmest pixel to be mapped", 
+	    optstr_param (options, "threshold",
+			  "How close a pixel must be to the brightest or dimmest pixel to be mapped",
 			  "%d", buf, "0", "255");
     }
   }
@@ -187,7 +187,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		free (mfd->convertFrameIn);
 	mfd->convertFrameIn = NULL;
 
-	if (mfd->convertFrameOut) 
+	if (mfd->convertFrameOut)
 		free (mfd->convertFrameOut);
 	mfd->convertFrameOut = NULL;
 
@@ -202,7 +202,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 ///////////////////////////////////////////////////////////////////////////
 
   if(ptr->tag & TC_POST_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
-    
+
      if (vob->im_v_codec == CODEC_RGB) {
 	const PixDim	width  = ptr->v_width;
 	const PixDim	height = ptr->v_height;
@@ -288,7 +288,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				lumamin = luma;
 				min = p;
 			}
-			
+
 			p = ((Pixel32 *)((char *)src - srcpitch))[x];
 			luma = p >> 24;
 			if (luma > lumamax)
@@ -301,7 +301,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				lumamin = luma;
 				min = p;
 			}
-			
+
 			p = ((Pixel32 *)((char *)src - srcpitch))[x+1];
 			luma = p >> 24;
 			if (luma > lumamax)
@@ -314,7 +314,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				lumamin = luma;
 				min = p;
 			}
-			
+
 			p = src[x-1];
 			luma = p >> 24;
 			if (luma > lumamax)
@@ -327,7 +327,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				lumamin = luma;
 				min = p;
 			}
-			
+
 			p = src[x];
 			lumac = luma = p >> 24;
 			if (luma > lumamax)
@@ -340,7 +340,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				lumamin = luma;
 				min = p;
 			}
-			
+
 			p = src[x+1];
 			luma = p >> 24;
 			if (luma > lumamax)
@@ -353,7 +353,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				lumamin = luma;
 				min = p;
 			}
-			
+
 			p = ((Pixel32 *)((char *)src + srcpitch))[x-1];
 			luma = p >> 24;
 			if (luma > lumamax)
@@ -366,7 +366,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				lumamin = luma;
 				min = p;
 			}
-			
+
 			p = ((Pixel32 *)((char *)src + srcpitch))[x];
 			luma = p >> 24;
 			if (luma > lumamax)
@@ -379,7 +379,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 				lumamin = luma;
 				min = p;
 			}
-			
+
 			p = ((Pixel32 *)((char *)src + srcpitch))[x+1];
 			luma = p >> 24;
 			if (luma > lumamax)
@@ -424,7 +424,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			}
 			else
 			{
-				
+
 				R = (src[x] >> 16) & 0xff;
 				G = (src[x] >> 8) & 0xff;
 				B = src[x] & 0xff;
@@ -464,7 +464,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	char * src_buf = ptr->video_buf;
 	static char * dst_buf = NULL;
 
-	if (!dst_buf) 
+	if (!dst_buf)
 		dst_buf =  tc_malloc (width*height*3/2);
 
 	/* First copy through the four border lines. */
@@ -490,7 +490,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		dst += dstpitch;
 		src += srcpitch;
 	}
-	
+
 	src = src_buf+srcpitch;
 	dst = dst_buf+dstpitch;
 

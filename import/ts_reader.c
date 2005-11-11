@@ -8,20 +8,20 @@
  *  Copyright (C) 1999-2000 Aaron Holtzman <aholtzma@ess.engr.uvic.ca>
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -123,7 +123,7 @@ static uint16_t get_pid(uint8_t *pid)
 }
 
 // tibit
-void probe_ts(info_t *ipipe) 
+void probe_ts(info_t *ipipe)
 {
     int i;
     int found=0, doit=1;
@@ -150,10 +150,10 @@ void probe_ts(info_t *ipipe)
 
 	if((i=tc_pread(ipipe->fd_in, buffer, TS_PACK-1)) != TS_PACK-1) {
 	    fprintf(stderr, "(%s) end of stream\n", __FILE__);
-	    return;    
+	    return;
 	}
 	size += i;
-	
+
 	init_ts (&p);
 	ac_memcpy (&p, buffer, 3);
 
@@ -167,7 +167,7 @@ void probe_ts(info_t *ipipe)
 	    printf("0x%x ", get_pid (buffer));
 	    pid[npid] = get_pid (buffer);
 	    npid++;
-	    if (npid >= MAX_PID) { 
+	    if (npid >= MAX_PID) {
 		fprintf(stderr, "(%s) Too many pids\n", __FILE__);
 		return;
 	    }
@@ -185,7 +185,7 @@ void probe_ts(info_t *ipipe)
 	}
 	if(!doit) {
 	    fprintf(stderr, "(%s) end of stream\n", __FILE__);
-	    return;    
+	    return;
 	}
     }
     printf("%s\n", (npid>0?"":"none"));
@@ -467,8 +467,8 @@ static int pva_demux (uint8_t * buf, uint8_t * end)
 		state = DEMUX_SKIP;
 		state_bytes = bytes - (end - buf);
 		return 0;
-	    } 
-	    buf += bytes; 
+	    }
+	    buf += bytes;
 	} else {
 	    len = 8;
 	    if (header[5] & 0x10) {
@@ -514,12 +514,12 @@ static void ts_loop (void)
     int pid;
 
     do {
-      
+
       if((i=tc_pread(fd_in, buffer, TS_PACK)) != TS_PACK) {
 	fprintf(stderr, "(%s) end of stream\n", __FILE__);
-	return;    
+	return;
       }
- 
+
 
 	packets=1;
 
@@ -549,11 +549,11 @@ static void ts_loop (void)
 
 int ts_read(int _fd_in, int fd_out, int _demux_pid)
 {
-  
+
 #ifdef HAVE_IO_H
   setmode (fileno (stdout), O_BINARY);
 #endif
-  
+
   demux_pid = _demux_pid;
   fd_in = _fd_in;
 

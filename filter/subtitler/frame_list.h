@@ -22,7 +22,7 @@ struct frame
 	int id;
 
 	int status;
-	
+
 	struct frame *nxtentr;
 	struct frame *prventr;
 	};

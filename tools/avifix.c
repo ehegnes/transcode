@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -83,36 +83,36 @@ int main(int argc, char *argv[])
   ac_init(AC_ALL);
 
   if(argc==1) usage(EXIT_FAILURE);
-  
+
   while ((ch = getopt(argc, argv, "f:i:N:F:vb:e:a:?h")) != -1)
     {
-      
+
       switch (ch) {
-	
+
       case 'N':
-	  
+
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  id = strtol(optarg, NULL, 16);
 
 	  if(id <  0)
 	      fprintf(stderr, "invalid parameter set for option -N");
-	  
+
 	  aud = 1;
 	  break;
-	  
-	  
+
+
       case 'a':
-	
+
 	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	track_num = atoi(optarg);
-	
+
 	if(track_num<0) usage(EXIT_FAILURE);
-	
+
 	break;
-	
-	
+
+
       case 'f':
-	  
+
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  n=sscanf(optarg,"%d,%d", &val1, &val2);
 	  if(n!=2 || val1 < 0 || val2 < 0) fprintf(stderr, "invalid parameter set for option -f");
@@ -121,40 +121,40 @@ int main(int argc, char *argv[])
 	  break;
 
       case 'F':
-	  
+
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  str = optarg;
 
 	  if(strlen(str) > 4 || strlen(str) == 0)
 	      fprintf(stderr, "invalid parameter set for option -F");
-	  
+
 	  vid = 1;
 	  break;
 
       case 'i':
-	  
+
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  filename = optarg;
 	  break;
 
       case 'b':
-	  
+
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  brate = atoi(optarg);
 	  rat = 1;
 	  break;
-	  
+
       case 'v':
-	  
+
 	  version();
 	  exit(0);
 
       case 'e':
-	
+
 	if(optarg[0]=='-') usage(EXIT_FAILURE);
-	
+
 	n=sscanf(optarg,"%d,%d,%d", &a_rate, &a_bits, &a_chan);
-	
+
 	switch (n) {
 
 	case 3:
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
 	default:
 	  fprintf(stderr, "invalid parameter set for option -e");
 	}
-	
+
 	break;
 
       case 'h':
@@ -176,18 +176,18 @@ int main(int argc, char *argv[])
 	  usage(EXIT_FAILURE);
       }
     }
-  
-  
+
+
   if(filename==NULL) usage(EXIT_FAILURE);
-  
+
   printf("[%s] scanning AVI-file %s for header information\n", EXE, filename);
-  
+
   // open file
   if(NULL == (avifile = AVI_open_input_file(filename,1))) {
       AVI_print_error("AVI open");
       exit(1);
   }
-  
+
   AVI_info(avifile);
 
   //switch to requested audio_channel
@@ -213,13 +213,13 @@ int main(int argc, char *argv[])
   AVI_close(avifile);
 
   if(0) printf("AH [0x%lx] AF [0x%lx] VH [0x%lx] VF [0x%lx]\n", ah_off, af_off, vh_off, vf_off);
-  
+
   // open file for writing
   if((fd = open(filename, O_RDWR))<0) {
       perror("open");
       exit(1);
   }
-  
+
   // check video codecs
   lseek(fd,vh_off,SEEK_SET);
 
@@ -257,22 +257,22 @@ int main(int argc, char *argv[])
       lseek(fd, vh_off-4, SEEK_SET);
       write(fd, (char*) &vsh, sizeof(vsh));
   }
-  
 
-  // set video codec 
-  
+
+  // set video codec
+
   if(vid) {
       lseek(fd,vh_off,SEEK_SET);
-      
+
       // video
       if(strncmp(str,"RGB",3)==0) {
 	  memset(codec,0,4);
 	  write(fd, codec, 4);
       } else
 	  write(fd, str, 4);
-      
+
       lseek(fd,vf_off,SEEK_SET);
-      
+
       // video
       if(strncmp(str,"RGB",3)==0) {
 	  memset(codec,0,4);
@@ -288,57 +288,57 @@ int main(int argc, char *argv[])
   //----------------------------
 
   if(aud | rat | bit | cha | sam) {
-      
+
       lseek(fd, ah_off, SEEK_SET);
       if((bytes=read(fd, (char*) &ash, sizeof(ash))) != sizeof(ash)) {
 	  fprintf(stderr, "(%s) error reading AVI-file\n", __FILE__);
 	  exit(1);
       }
-      
-      
+
+
       lseek(fd, af_off, SEEK_SET);
       if((bytes=read(fd, (char*) &rtf, sizeof(rtf))) != sizeof(rtf)) {
 	  fprintf(stderr, "(%s) error reading AVI-file\n", __FILE__);
 	  exit(1);
     }
-      
-      
+
+
       if(aud) rtf.wFormatTag = (unsigned short) id;
-      
+
       if(rat) {
 	  rtf.dwAvgBytesPerSec = (long) 1000*brate/8;
 	  ash.dwRate = (long) 1000*brate/8;
 	  ash.dwScale = 1;
       }
-      
+
       if(cha) rtf.wChannels = (short) a_chan;
-      
+
       if(bit) rtf.wBitsPerSample = (short) a_bits;
-      
+
       if(sam) rtf.dwSamplesPerSec = (long) a_rate;
-      
+
       lseek(fd, ah_off ,SEEK_SET);
       write(fd, (char*) &ash, sizeof(ash));
-      
+
       lseek(fd, af_off ,SEEK_SET);
       write(fd, (char*) &rtf, sizeof(rtf));
-      
+
   }
-  
-  close(fd);  
-  
+
+  close(fd);
+
   // verify AVI-file header
-  
+
   if(NULL == (avifile = AVI_open_input_file(filename,1))) {
       AVI_print_error("AVI open");
       exit(1);
   }
-  
+
   printf("[%s] successfully updated AVI file %s\n", EXE, filename);
-  
+
   AVI_info(avifile);
-  
+
   AVI_close(avifile);
-  
+
   return(0);
 }

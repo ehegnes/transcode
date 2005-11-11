@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich, Chad Page - February/March 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -103,13 +103,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //----------------------------------
 
   if(ptr->tag & TC_FILTER_INIT) {
-    
+
     if((vob = tc_get_vob()) == NULL) return(-1);
-    
+
     // filter init ok.
 
     if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    
+
     if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
     if (!buffer)
@@ -122,35 +122,35 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	        optstr_get (options, "shift", "%d", &shift);
 	    }
     }
-      
+
     return(0);
   }
-  
+
   //----------------------------------
   //
   // filter close
   //
   //----------------------------------
-  
+
   if(ptr->tag & TC_FILTER_CLOSE) {
-    
+
     if (buffer)
 	free(buffer);
     buffer = NULL;
-    
+
     return(0);
   }
-  
+
   //----------------------------------
   //
   // filter frame routine
   //
   //----------------------------------
-    
+
   // tag variable indicates, if we are called before
   // transcodes internal video/audio frame processing routines
   // or after and determines video/audio context
-  
+
   if(ptr->tag & TC_PRE_M_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
       if (vob->im_v_codec == CODEC_YUV) {
@@ -166,7 +166,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  ac_imgconvert(planes, IMG_YUV444P, &ptr->video_buf, IMG_RGB_DEFAULT,
 			ptr->v_width, ptr->v_height);
       }
-  } 
-  
+  }
+
   return(0);
 }

@@ -3,7 +3,7 @@
 #ifndef _TC_V4L_COMMON_H
 #define _TC_V4L_COMMON_H 1
 
-#define NAME "vcr" 
+#define NAME "vcr"
 
 //#define DEBUG
 

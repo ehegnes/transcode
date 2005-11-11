@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -81,7 +81,7 @@ typedef unsigned int uint32_t;
 #include "libtc/libtc.h"
 
 // Uglyness from libavcodec - common.h
-// Don't use these except when your code won't work without it, 
+// Don't use these except when your code won't work without it,
 // and there is no alternative.
 
 #ifndef always_inline
@@ -101,7 +101,7 @@ typedef unsigned int uint32_t;
 #endif
 
 /* ----------------------------
- * 
+ *
  * mpeg profiles for setting
  * sensible defaults
  *
@@ -134,7 +134,7 @@ typedef struct _transfer_t {
 
   int flag;
   FILE *fd;
-  
+
   int size;
 
   uint8_t *buffer;
@@ -145,7 +145,7 @@ typedef struct _transfer_t {
 } transfer_t;
 
 typedef struct _vob_t {
-  
+
   // import info
 
   char *vmod_probed;
@@ -153,26 +153,26 @@ typedef struct _vob_t {
   char *vmod_probed_xml;       // type of content of xml file
   char *amod_probed_xml;       // type of content of xml file
 
-  
+
   int verbose;
-  
+
   char *video_in_file;       // video source
   char *audio_in_file;       // audio source
-  
+
   char *nav_seek_file;        // seek/index information
 
   int in_flag;
 
-  int has_audio;           // stream has probably no audio 
+  int has_audio;           // stream has probably no audio
   int has_audio_track;     // stream has probably not requested track
   int has_video;           // stream has probably no video
- 
+
   int lang_code;            // track language
-  
+
   int a_track;
   int v_track;
   int s_track;              // subtitle track id
-  
+
   int sync;                 // audio frame offset for synchronization
   int sync_ms;              // fine tuning audio/video offset
 
@@ -181,7 +181,7 @@ typedef struct _vob_t {
   int dvd_chapter2;
   int dvd_max_chapters;
   int dvd_angle;
- 
+
   int ps_unit;
   int ps_seq1;
   int ps_seq2;
@@ -213,23 +213,23 @@ typedef struct _vob_t {
   int quality;
 
   int af6_mode;
-  
+
   // audio stream parameter
 
   int a_stream_bitrate;     //source stream bitrate
-  
+
   int a_chan;
   int a_bits;
   int a_rate;
 
   int a_padrate;            // zero padding rate
 
-  int im_a_size;            // import total bytes per audio frame 
-  int ex_a_size;            // export total bytes per audio frame 
+  int im_a_size;            // import total bytes per audio frame
+  int ex_a_size;            // export total bytes per audio frame
 
   int im_a_codec;           // true frame buffer audio codec
   int fixme_a_codec;        // true frame buffer audio codec
-  
+
   int a_leap_frame;
   int a_leap_bytes;
 
@@ -243,7 +243,7 @@ typedef struct _vob_t {
   // video stream parameter
 
   int v_stream_bitrate;     //source stream bitrate
-  
+
   double fps;               // defaults to PAL: 25 fps
   int im_frc;               // import frame rate code
   double ex_fps;            // defaults to PAL: 25 fps
@@ -257,16 +257,16 @@ typedef struct _vob_t {
   int im_v_size;            // total number of bytes per frame
 
   int v_bpp;                // defaults to BPP
-  
-  int im_asr;               // import aspect ratio code  
+
+  int im_asr;               // import aspect ratio code
   int im_par;               // import pixel aspect (code)
   int im_par_width;         // import pixel aspect width
   int im_par_height;        // import pixel aspect height
-  int ex_asr;               // export aspect ratio code  
+  int ex_asr;               // export aspect ratio code
   int ex_par;               // export pixel aspect (code)
   int ex_par_width;         // export pixel aspect width
   int ex_par_height;        // export pixel aspect height
-  int attributes;           // more video frame attributes 
+  int attributes;           // more video frame attributes
 
   int im_v_codec;           // true frame buffer video codec
 
@@ -280,17 +280,17 @@ typedef struct _vob_t {
 
   double volume;          // audio amplitude rescale parameter
   double ac3_gain[3];     // audio amplitude rescale parameter for ac3
-  int clip_count;         // total number of bytes clipped after 
-                          // volume adjustment 
+  int clip_count;         // total number of bytes clipped after
+                          // volume adjustment
 
   // video frame manipulation info
 
-  int core_v_format;      // internal video data format  
+  int core_v_format;      // internal video data format
 
   int ex_v_width;         // export picture width
   int ex_v_height;        // export picture height
   int ex_v_size;          // total number of bytes per frame
-  
+
   int reduce_h;             // reductionfactor for frame size 2^reduce
   int reduce_w;             // reductionfactor for frame size 2^reduce
 
@@ -298,7 +298,7 @@ typedef struct _vob_t {
   int vert_resize1;        // resize height: h -> h - vert_resize*resize1_mult rows
   int hori_resize1;        // resize width:  w -> w - hori_resize*resize1_mult coloums
 
-  
+
   int resize2_mult;        // row resp. colums multiplier
   int vert_resize2;        // resize height: h -> h + vert_resize*resize2_mult rows
   int hori_resize2;        // resize width:  w -> w + hori_resize*resize2_mult coloums
@@ -315,7 +315,7 @@ typedef struct _vob_t {
 
   double aa_weight;       // anti-alias center pixel weight
   double aa_bias;         // anti-alias horizontal/vertical bias
-   
+
   double gamma;
 
   int ex_clip_top;
@@ -350,7 +350,7 @@ typedef struct _vob_t {
   int out_flag;
 
   // encoding parameter
-  
+
   int divxbitrate;
   int divxkeyframes;
   int divxquality;
@@ -381,17 +381,17 @@ typedef struct _vob_t {
   char *lame_preset;
 
   char *audiologfile;
-  
+
   int ex_a_codec;         // audio codec for export module
   int ex_v_codec;         // video codec fcc for export module
-  
+
   char *ex_v_fcc;        //video fourcc string
   char *ex_a_fcc;        //audio fourcc string/identifier
   char *ex_profile_name; //user profile name
-  
+
   int pass_flag;
   int lame_flush;
-  
+
   char *mod_path;
 
   struct fc_time *ttime; // for framecode parsing, pointer to first struct
@@ -413,7 +413,7 @@ typedef struct _vob_t {
   float m2v_requant;    // Requantize Factor for mpeg2 video streams
 
   mpeg_profile_t mpeg_profile;
-  
+
 } vob_t;
 
 /* -----------------------------------
@@ -424,31 +424,31 @@ typedef struct _vob_t {
 
 
 typedef struct pcm_s {
-  
+
   int samplerate;
   int chan;
   int bits;
   int bitrate;
   int padrate;         // byterate for zero padding
-  
+
   int format;
   int lang;
-  
-  int attribute;       // 0=subtitle,1=AC3,2=PCM 
+
+  int attribute;       // 0=subtitle,1=AC3,2=PCM
   int tid;             // logical track id, in case of gaps
-  
+
   double pts_start;
 
 } pcm_t;
 
 
 typedef struct probe_info_s {
-  
+
   int width;              //frame size parameter
   int height;             //frame size parameter
-  
+
   double fps;             //encoder fps
-  
+
   long codec;             //video codec
   long magic;             //file type/magic
   long magic_xml;         // specifies type/magic of the file content in xml file
@@ -460,9 +460,9 @@ typedef struct probe_info_s {
   int par_height;
 
   int attributes;         //video attributes
-  
+
   int num_tracks;         //number of audio tracks
-  
+
   pcm_t track[TC_MAX_AUD_TRACKS]; //probe for TC_MAX_AUD_TRACKS tracks
 
   long frames;            //total frames
@@ -486,10 +486,10 @@ typedef struct probe_info_s {
  * -----------------------------------*/
 
 typedef struct _info_t {
-  
+
   int fd_in;      // input stream file descriptor
   int fd_out;     // output stream file descriptor
-  
+
   long magic;     // specifies file magic for extract thread
   int track;      // extract this track
   long stype;     // specifies stream type for extract thread
@@ -509,7 +509,7 @@ typedef struct _info_t {
   int ts_pid;
 
   int seek_allowed;
-  
+
   int demux;      // demux or debug
   int select;     // selected packet payload type
   int subid;      // selected packet substream id
@@ -525,7 +525,7 @@ typedef struct _info_t {
   int probe;      // flag for probe only mode
   int factor;     // amount of MB to probe
 
-  probe_info_t *probe_info;    
+  probe_info_t *probe_info;
 
   int quality;
   int error;
@@ -557,10 +557,10 @@ typedef struct {
 
 typedef struct subtitle_header_s {
 
-  unsigned int header_length;   
+  unsigned int header_length;
   unsigned int header_version;
   unsigned int payload_length;
-  
+
   unsigned int lpts;
   double rpts;
 
@@ -583,7 +583,7 @@ void tc_error(char *fmt, ...);
 void tc_info(char *fmt, ...);
 void tc_warn(char *fmt, ...);
 */
-vob_t *tc_get_vob(void); 
+vob_t *tc_get_vob(void);
 long tc_get_frames_dropped(void);
 long tc_get_frames_skipped(void);
 long tc_get_frames_encoded(void);
@@ -689,9 +689,9 @@ extern pid_t tc_probe_pid;
 
 #define tc_pthread_mutex_lock(S) {fprintf(stderr, "(%s@%d) (%ld) lock....\n", __FILE__, __LINE__, pthread_self()); pthread_mutex_lock(S);}
 #define tc_pthread_mutex_unlock(S) {fprintf(stderr, "(%s@%d)  (%ld) ...unlock\n", __FILE__, __LINE__, pthread_self()); pthread_mutex_unlock(S);}
-  
+
 #define tc_pthread_cond_wait(A,B) {fprintf(stderr, "(%s@%d) (%ld) condwait\n", __FILE__, __LINE__, pthread_self()); pthread_cond_wait(A,B);}
-  
+
 #define tc_pthread_mutex_trylock(S);{fprintf(stderr, "(%s@%d) (%ld) try lock\n", __FILE__, __LINE__, pthread_self()); pthread_mutex_trylock(S);}
 
 #endif

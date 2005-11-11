@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -59,8 +59,8 @@ int
     current_frame = 0,
     pad = 0;
 
-  
-/* ------------------------------------------------------------ 
+
+/* ------------------------------------------------------------
  *
  * open stream
  *
@@ -135,7 +135,7 @@ MOD_open
         }
         strlcpy(frame, vob->video_in_file + pmatch[2].rm_so, string_length);
 
-        // If the frame number is padded with zeros, record how many digits 
+        // If the frame number is padded with zeros, record how many digits
         // are actually being used.
         if (frame[0] == '0') {
             pad = pmatch[2].rm_eo - pmatch[2].rm_so;
@@ -150,7 +150,7 @@ MOD_open
         strlcpy(tail, vob->video_in_file + pmatch[3].rm_so, string_length);
 
         // find the last frame by trying to open files
-        last_frame = first_frame; 
+        last_frame = first_frame;
         filename = malloc(strlen(head) + pad + strlen(tail) + 1);
         /* why remalloc frame? */
         /* frame = malloc(pad + 1); */
@@ -162,7 +162,7 @@ MOD_open
                                last_frame, tail);
             if (sret < 0)
               return(TC_IMPORT_ERROR);
-        } while (close(open(filename, O_RDONLY)) != -1); 
+        } while (close(open(filename, O_RDONLY)) != -1);
         last_frame--;
         free(filename);
         free(frame);
@@ -180,7 +180,7 @@ MOD_open
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
@@ -257,12 +257,12 @@ MOD_decode {
     for (row = 0; row < image->rows; row++) {
         for (column = 0; column < image->columns; column++) {
           /*
-           * The bit-shift 8 in the following lines is to convert 
-           * 16-bit-per-channel images that may be read by ImageMagick 
+           * The bit-shift 8 in the following lines is to convert
+           * 16-bit-per-channel images that may be read by ImageMagick
            * into the 8-bit-per-channel images that transcode uses.
-           * The bit-shift is still valid for 8-bit-per-channel images 
-           * because when ImageMagick handles 8-bit images it still uses 
-           * unsigned shorts, but stores the same 8-bit value in both 
+           * The bit-shift is still valid for 8-bit-per-channel images
+           * because when ImageMagick handles 8-bit images it still uses
+           * unsigned shorts, but stores the same 8-bit value in both
            * the low and high byte.
            */
           param->buffer[(row * image->columns + column) * 3 + 0] =
@@ -293,14 +293,14 @@ MOD_decode {
     return(TC_IMPORT_OK);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
   if (param->fd != NULL) pclose(param->fd);
   if (head != NULL) free(head);
   if (tail != NULL) free(tail);

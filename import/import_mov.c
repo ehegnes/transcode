@@ -2,23 +2,23 @@
  *  import_mov.c
  *
  *  Copyright (C) Thomas Östreich - January 2002
- *  updated by Christian Vogelgsang <Vogelgsang@informatik.uni-erlangen.de> 
+ *  updated by Christian Vogelgsang <Vogelgsang@informatik.uni-erlangen.de>
  *
  *  This file is part of transcode, a video stream  processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -72,7 +72,7 @@ static int no_samples=0;
 static int qt_cm = 0;
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open stream
  *
@@ -92,9 +92,9 @@ MOD_open
     if(qt_audio==NULL) {
       if(NULL == (qt_audio = quicktime_open(vob->audio_in_file,1,0))){
 	       tc_log_warn(MOD_NAME, "can't open quicktime!");
-	       return(TC_IMPORT_ERROR); 
-      } 
-    }   
+	       return(TC_IMPORT_ERROR);
+      }
+    }
 
     /* check for audio track */
     numTrk = quicktime_audio_tracks(qt_audio);
@@ -115,7 +115,7 @@ MOD_open
 
     /* verbose info */
     tc_log_info(MOD_NAME, "codec=%s, rate=%ld Hz, bits=%d,"
-                    " channels=%d, samples=%d", 
+                    " channels=%d, samples=%d",
                     codec, rate, bits, chan, no_samples);
 
     /* check bits */
@@ -139,7 +139,7 @@ MOD_open
     /* check if audio compressor is supported */
     if(quicktime_supported_audio(qt_audio, 0)!=0) {
       rawAudioMode = 0;
-    } 
+    }
 #if !defined(LIBQUICKTIME_000904)
     /* RAW PCM is directly supported */
     else if(strcasecmp(codec,QUICKTIME_RAW)==0) {
@@ -165,22 +165,22 @@ MOD_open
     param->fd = NULL;
 
     /* open movie for video extraction */
-    if(qt_video==NULL) 
+    if(qt_video==NULL)
       if(NULL == (qt_video = quicktime_open(vob->video_in_file,1,0))){
 	       tc_log_warn(MOD_NAME,"can't open quicktime!");
-	       return(TC_IMPORT_ERROR); 
+	       return(TC_IMPORT_ERROR);
       }
 
     /* check for audio track */
     numTrk = quicktime_video_tracks(qt_video);
     if(numTrk==0) {
       tc_log_warn(MOD_NAME,"no video track in quicktime found!");
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
     }
 
     /* read all video parameter from input file */
     w      =  quicktime_video_width(qt_video, 0);
-    h      =  quicktime_video_height(qt_video, 0);    
+    h      =  quicktime_video_height(qt_video, 0);
     fps    =  quicktime_frame_rate(qt_video, 0);
     codec  =  quicktime_video_compressor(qt_video, 0);
 
@@ -189,7 +189,7 @@ MOD_open
 
     /* verbose info */
     tc_log_info(MOD_NAME, "VIDEO: codec=%s, fps=%6.3f, width=%d,"
-                    " height=%d, frames=%d", 
+                    " height=%d, frames=%d",
                     codec, fps, w, h, frames);
 
     /* check codec string */
@@ -222,7 +222,7 @@ MOD_open
 
               quicktime_set_cmodel(qt_video, BC_RGB888); qt_cm = BC_RGB888;
               break;
-              
+
         case CODEC_YUV:
               /* use raw mode when possible */
               /* not working ?*/
@@ -239,7 +239,7 @@ MOD_open
 
         case CODEC_YUY2:
               quicktime_set_cmodel(qt_video, BC_YUV422); qt_cm = CODEC_YUY2;
-              break;                         
+              break;
 
          /* passthrough */
          case CODEC_RAW_RGB:
@@ -263,13 +263,13 @@ MOD_open
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
  * ------------------------------------------------------------*/
 
-MOD_decode 
+MOD_decode
 {
   /* video */
   if(param->flag == TC_VIDEO) {
@@ -277,7 +277,7 @@ MOD_decode
       /* read frame raw */
       param->size = quicktime_read_frame(qt_video, param->buffer, 0);
       if(param->size<=0) {
-	if(verbose & TC_DEBUG) 
+	if(verbose & TC_DEBUG)
 	  tc_log_warn(MOD_NAME,"quicktime read video frame");
 	return(TC_IMPORT_ERROR);
       }
@@ -290,7 +290,7 @@ MOD_decode
       switch(qt_cm) {
       case BC_RGB888:
               /* setup row pointers for RGB: inverse! */
-              sl = w*3; 
+              sl = w*3;
               for(iy=0;iy<h;iy++){
                   row_ptr[iy] = mem;
                   mem += sl;
@@ -310,7 +310,7 @@ MOD_decode
               param->size = (h*w*3)/2;
               break;
               }
-      }      
+      }
 
       /* decode the next frame */
       if(lqt_decode_video(qt_video,row_ptr,0)<0) {
@@ -339,7 +339,7 @@ MOD_decode
     /* raw read mode */
 #if !defined(LIBQUICKTIME_000904)
     if(rawAudioMode) {
-      bytes_read = quicktime_read_audio(qt_audio, 
+      bytes_read = quicktime_read_audio(qt_audio,
 					param->buffer, param->size, 0);
     } else
 #endif
@@ -359,7 +359,7 @@ MOD_decode
 
 	/* check result */
 	if(bytes_read<0) {
-	  if(verbose & TC_DEBUG) 
+	  if(verbose & TC_DEBUG)
 	    tc_log_warn(MOD_NAME,"reading quicktime audio frame!");
 	  return(TC_IMPORT_ERROR);
 	}
@@ -377,7 +377,7 @@ MOD_decode
 	/* read first channel into target buffer */
 	bytes_read = quicktime_decode_audio(qt_audio,tgt,NULL,samples,0);
 	if(bytes_read<0) {
-	  if(verbose & TC_DEBUG) 
+	  if(verbose & TC_DEBUG)
 	    tc_log_warn(MOD_NAME,"reading quicktime audio frame!");
 	  return(TC_IMPORT_ERROR);
 	}
@@ -386,7 +386,7 @@ MOD_decode
 	quicktime_set_audio_position(qt_audio,pos,0);
 	bytes_read = quicktime_decode_audio(qt_audio,tmp,NULL,samples,1);
 	if(bytes_read<0) {
-	  if(verbose & TC_DEBUG) 
+	  if(verbose & TC_DEBUG)
 	    tc_log_warn(MOD_NAME,"reading quicktime audio frame!");
 	  return(TC_IMPORT_ERROR);
 	}
@@ -413,14 +413,14 @@ MOD_decode
   return(TC_IMPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
   /* free up audio */
   if(param->flag == TC_AUDIO) {
     if(qt_audio!=NULL) {
@@ -442,6 +442,6 @@ MOD_close
 
     return(TC_IMPORT_OK);
   }
-    
+
   return(TC_IMPORT_ERROR);
 }

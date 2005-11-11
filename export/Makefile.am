@@ -28,18 +28,18 @@ pkgdir = $(MOD_PATH)
 
 if HAVE_AVIFILE
 MODS_AVIFILE = export_af6.la
-endif 
+endif
 
 if HAVE_IMAGEMAGICK
 MODS_IMAGEMAGICK = export_im.la
 endif
 
 if HAVE_LIBDV
-MODS_LIBDV = export_dvraw.la export_dv.la 
+MODS_LIBDV = export_dvraw.la export_dv.la
 endif
 
 if HAVE_LIBFAME
-MODS_LIBFAME = export_fame.la 
+MODS_LIBFAME = export_fame.la
 endif
 
 if HAVE_LIBJPEG
@@ -192,7 +192,7 @@ export_im_la_LIBADD = $(IMAGEMAGICK_LIBS) $(ACLIB_LIBS) -lm
 
 # MODS_LIBDV
 export_dv_la_SOURCES = export_dv.c aud_aux.c vid_aux.c
-export_dv_la_LDFLAGS = -module -avoid-version 
+export_dv_la_LDFLAGS = -module -avoid-version
 export_dv_la_LIBADD = $(LAME_LIBS) $(LIBDV_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS) $(ACLIB_LIBS)
 
 export_dvraw_la_SOURCES = export_dvraw.c vid_aux.c

@@ -22,7 +22,7 @@
  */
 
 #ifndef _PVM_PARSER_H
-#define _PVM_PARSER_H 
+#define _PVM_PARSER_H
 
 #include <configs.h>	/*for libioaux*/
 #include <tc_defaults.h>	/*TC_xxxx variables*/
@@ -46,7 +46,7 @@ typedef struct _pvm_config_hosts{
 				int 				s_nproc;
 				struct _pvm_config_hosts	*p_next;
 				} pvm_config_hosts;
-		
+
 typedef struct _pvm_config_codec{
 				char 			*p_codec;
 				char			*p_par1;
@@ -72,7 +72,7 @@ typedef struct _pvm_config_env{
 				pvm_config_filelist	*p_rem_list;
 				pvm_config_filelist	s_sys_list;
 		} pvm_config_env;
-		
+
 
 pvm_config_env *f_pvm_parser(char *p_hostfile,char *p_option);
 

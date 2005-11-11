@@ -1,4 +1,4 @@
-// -*- c++ -*-       
+// -*- c++ -*-
 
 #ifdef IS_SSE2
 //sse2 code deleted for now
@@ -29,7 +29,7 @@
             // Use the better of bob or weave
             //      pminub  mm4, TENS           // the most we care about
             V_PMINUB ("%%mm4", _TENS, "%%mm0")   // the most we care about
-            
+
             "psubusb %%mm4, %%mm7\n\t"            // foregive that much from weave est?
             "psubusb "_FOURS", %%mm7\n\t"       // bias it a bit toward weave
             "pxor    %%mm0, %%mm0\n\t"
@@ -39,18 +39,18 @@
             "pand    %%mm5, %%mm7\n\t"            // use weave for these
             "por     %%mm7, %%mm0\n\t"            // combine both
 #endif
-            
-            
+
+
                 //      pminub  mm0, Max_Vals       // but clip to catch the stray error
                 V_PMINUB ("%%mm0", _Max_Vals, "%%mm1") // but clip to catch the stray error
                 //      pmaxub  mm0, Min_Vals
                 V_PMAXUB ("%%mm0", _Min_Vals)
-                
+
 #endif
 
 
             "movl     "_pDest", %%eax\n\t"
-                
+
 #ifdef USE_VERTICAL_FILTER
             "movq    %%mm0, %%mm1\n\t"
             //      pavgb   mm0, qword ptr[ebx]
@@ -63,11 +63,11 @@
             //      movntq  qword ptr[eax+edx], mm1
             V_MOVNTQ ("(%%eax, %%edx)", "%%mm1")
 #else
-                
+
             //      movntq  qword ptr[eax+edx], mm0
                 V_MOVNTQ ("(%%eax, %%edx)", "%%mm0")
 #endif
-                
+
            "leal    8(%%edx), %%edx\n\t"       // bump offset pointer
            "cmpl    "_Last8", %%edx\n\t"       // done with line?
            "jb      1b\n\t"                    // y
@@ -127,5 +127,5 @@
         pBob += src_pitch2;
         pBobP += src_pitch2;
     }
-    
+
     return 0;

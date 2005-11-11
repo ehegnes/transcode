@@ -63,7 +63,7 @@ static void deNoise(unsigned char *Frame,        // mpi->planes[x]
     unsigned int PixelAnt;
     int PixelDst;
     unsigned short* FrameAnt=(*FrameAntPtr);
-    
+
     if(!FrameAnt){
 	(*FrameAntPtr)=FrameAnt=tc_malloc(W*H*sizeof(unsigned short));
 	for (Y = 0; Y < H; Y++){
@@ -141,13 +141,13 @@ static void help_optstr(void)
     printf ("             luma : spatial luma strength (%f)\n", PARAM1_DEFAULT);
     printf ("           chroma : spatial chroma strength (%f)\n", PARAM2_DEFAULT);
     printf ("    luma_strength : temporal luma strength (%f)\n", PARAM3_DEFAULT);
-    printf ("  chroma_strength : temporal chroma strength (%f)\n", 
+    printf ("  chroma_strength : temporal chroma strength (%f)\n",
 	    PARAM3_DEFAULT*PARAM2_DEFAULT/PARAM1_DEFAULT);
     printf ("              pre : run as a pre filter (0)\n");
 }
 
 // main filter routine
-int tc_filter(frame_list_t *ptr_, char *options) 
+int tc_filter(frame_list_t *ptr_, char *options)
 {
   vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
@@ -187,7 +187,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       double Param1=0.0, Param2=0.0, Param3=0.0, Param4=0.0;
 
       if((vob = tc_get_vob())==NULL) return(-1);
-      
+
       if (vob->im_v_codec == CODEC_RGB) {
 	  tc_log_error(MOD_NAME, "This filter is only capable of YUV mode");
 	  return -1;
@@ -236,18 +236,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	      ChromSpac = PARAM2_DEFAULT * Param1 / PARAM1_DEFAULT;
 	      ChromTmp = LumTmp * ChromSpac / LumSpac;
-	  } 
+	  }
 	  if (Param2!=0.0) {
 
 	      ChromSpac = Param2;
 	      ChromTmp = LumTmp * ChromSpac / LumSpac;
-	  } 
+	  }
 	  if (Param3!=0.0) {
 
 	      LumTmp = Param3;
 	      ChromTmp = LumTmp * ChromSpac / LumSpac;
 
-	  } 
+	  }
 	  if (Param4!=0.0) {
 
 	      ChromTmp = Param4;
@@ -260,7 +260,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       PrecalcCoefs(mfd[instance]->Coefs[2], ChromSpac);
       PrecalcCoefs(mfd[instance]->Coefs[3], ChromTmp);
 
-      
+
       if(verbose) {
 	  tc_log_info(MOD_NAME, "%s %s #%d\n", MOD_VERSION, MOD_CAP, instance);
 	  tc_log_info(MOD_NAME, "Settings luma=%.2f chroma=%.2f luma_strength=%.2f chroma_strength=%.2f",
@@ -277,7 +277,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //
   //----------------------------------
 
-  
+
   if(ptr->tag & TC_FILTER_CLOSE) {
 
       if (buffer[instance]) {free(buffer[instance]); buffer[instance]=NULL;}
@@ -296,7 +296,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
   //actually do the filter
 
-  if(((ptr->tag & TC_PRE_PROCESS  && mfd[instance]->pre) || 
+  if(((ptr->tag & TC_PRE_PROCESS  && mfd[instance]->pre) ||
 	  (ptr->tag & TC_POST_PROCESS && !mfd[instance]->pre)) &&
 	  !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 

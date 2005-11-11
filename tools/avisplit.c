@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
   char *codec;
 
   int j, n, key, k;
-  
+
   int key_boundary=1;
 
   int chunk=0, is_open, ch, split_next=INT_MAX;
@@ -126,25 +126,25 @@ int main(int argc, char *argv[])
 
   if(argc==1) usage(EXIT_FAILURE);
   memset(byte_count_at_start, 0 , sizeof(long)*AVI_MAX_TRACKS);
-  
+
   while ((ch = getopt(argc, argv, "b:mco:vs:i:f:t:H:?h")) != -1) {
 
     switch (ch) {
 
     case 'b':
-      
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       is_vbr = atoi(optarg);
-      
+
       if(is_vbr<0) usage(EXIT_FAILURE);
-      
+
       break;
-      
+
     case 'c':  // cat
       single_output_file = out_file;
       break;
 
-    case 'm': 
+    case 'm':
 	key_boundary = 0;
       break;
 
@@ -160,14 +160,14 @@ int main(int argc, char *argv[])
   	  break;
 
     case 'i':
-  
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       in_file=optarg;
-  
+
       break;
-  
+
     case 's':
-  
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       chunk = atoi(optarg);
       split_option=SPLIT_BY_SIZE;
@@ -181,17 +181,17 @@ int main(int argc, char *argv[])
       break;
 
     case 'o':
-  
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       base = optarg;
-  
+
       break;
 
     case 'f':
-      
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       comfile = optarg;
-      
+
       break;
 
     case 'v':
@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
     break;
   }
 
-  
+
   // open file
   if(NULL == (in = AVI_open_input_file(in_file,1))) {
     AVI_print_error("AVI open");
@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
   // read video info;
 
   AVI_info(in);
- 
+
   // read video info;
 
   frames =  AVI_video_frames(in);
@@ -246,10 +246,10 @@ int main(int argc, char *argv[])
   chan   =  AVI_audio_channels(in);
   bits   =  AVI_audio_bits(in);
 
-  for (k = 0; k<AVI_MAX_TRACKS; k++) 
+  for (k = 0; k<AVI_MAX_TRACKS; k++)
       aud_ms[k] = 0.0;
 
-  for (k = 0; k<AVI_MAX_TRACKS; k++) 
+  for (k = 0; k<AVI_MAX_TRACKS; k++)
       aud_ms_w[k] = 0.0;
 
   switch (split_option) {
@@ -266,25 +266,25 @@ int main(int argc, char *argv[])
     if(frames<=0) frames=INT_MAX;
 
     for (n=0; n<frames; ++n) {
-      
+
       // read video frame
       bytes = AVI_read_frame(in, data, &key);
-      
+
       if(bytes < 0) {
         fprintf(stderr, "%d (%ld)\n", n, bytes);
         AVI_print_error("AVI read video frame");
         break;
       }
-      
+
       //check for closing outputfile
-	
+
       if(key && is_open && n && split_next) {
-	    
+
         size = AVI_bytes_written(out);
         fsize = ((double) size)/MBYTE;
-	    
-        if((size + MBYTE) > (uint64_t)(chunk*MBYTE)) {      
-		
+
+        if((size + MBYTE) > (uint64_t)(chunk*MBYTE)) {
+
           // limit exceeded, close file
 
           fprintf(stderr, "\n");
@@ -314,7 +314,7 @@ int main(int argc, char *argv[])
 
 	  return (0);
       }
-      
+
       // need new output file
       if(!is_open) {
 
@@ -325,16 +325,16 @@ int main(int argc, char *argv[])
         }
 
         // prepare output file
-    
+
         if(NULL == (out = AVI_open_output_file(out_file))) {
           AVI_print_error("AVI open");
           exit(1);
         }
-    
+
         AVI_set_video(out, width, height, fps, codec);
 	if (comfile!=NULL)
 	    AVI_set_comment_fd(out, open(comfile, O_RDONLY));
-    
+
         for(k=0; k< AVI_audio_tracks(in); ++k) {
 
           AVI_set_audio_track(in, k);
@@ -346,7 +346,7 @@ int main(int argc, char *argv[])
           format =  AVI_audio_format(in);
           mp3rate=  AVI_audio_mp3rate(in);
 
-    
+
           //set next track of output file
           AVI_set_audio_track(out, j);
           AVI_set_audio(out, chan, rate, bits, format, mp3rate);
@@ -355,14 +355,14 @@ int main(int argc, char *argv[])
 
         is_open=1;
       }
-    
+
       //write frame
-    
+
       if(AVI_write_frame(out, data, bytes, key)<0) {
         AVI_print_error("AVI write video frame");
         return(-1);
       }
-    
+
       vid_chunks++;
       vid_ms = vid_chunks*1000.0/fps;
 
@@ -373,7 +373,7 @@ int main(int argc, char *argv[])
         AVI_set_audio_track(out, k);
 
 	sync_audio_video_avi2avi(vid_ms, &aud_ms[k], in, out);
-      } 
+      }
 
     }//process all frames
 
@@ -548,9 +548,9 @@ int main(int argc, char *argv[])
 
 	  double tms = aud_ms[k];
 	  AVI_set_audio_track( in, k );
-	  
+
 	  byte_count_audio[ k ] = AVI_get_audio_position_index(in);
-	 
+
 	  if (!didread) {
 	    sync_audio_video_avi2avi_ro (vid_ms, &aud_ms[k], in);
 	  }
@@ -565,7 +565,7 @@ int main(int argc, char *argv[])
 
 	}
         /*
-         * if one of the preferred frames write frame (video+audio) 
+         * if one of the preferred frames write frame (video+audio)
          * but don't stop until the next keyframe
          */
         if( n >= ttime->stf && ( n <= ttime->etf || ( n >= ttime->stf && ! key ) ) ) {
@@ -597,7 +597,7 @@ int main(int argc, char *argv[])
              * re-read video and audio from rewound position
              */
             bytes = AVI_read_frame( in, data, &key );
-	    
+
 	    // count the frame which will be written also this, too
 	    vid_ms = vid_ms_w+1000.0/fps;
 
@@ -639,12 +639,12 @@ int main(int argc, char *argv[])
 	    if( n > ttime->etf && key ) {
 		printf( "\n" );
 		break;
-	    }       
+	    }
 	} else {
 	    if( n > ttime->etf) {
 		printf( "\n" );
 		break;
-	    }        
+	    }
 	}
       }
       /*

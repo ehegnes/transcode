@@ -5,20 +5,20 @@
  *  Copyright (c) 1999 Albert L Faber
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -91,7 +91,7 @@ static int is_syncword_mp123(const void *const headerptr)
     if ((p[2] & 0xF0) == 0xF0)
         return 0;       // bad bitrate
     if ((p[2] & 0x0C) == 0x0C)
-        return 0;       // no sample frequency with (32,44.1,48)/(1,2,4)    
+        return 0;       // no sample frequency with (32,44.1,48)/(1,2,4)
     if ((p[1] & 0x06) == 0x04) // illegal Layer II bitrate/Channel Mode comb
         if (abl2[p[2] >> 4] & (1 << (p[3] >> 6)))
             return 0;
@@ -113,7 +113,7 @@ static int is_syncword_mp3(const void *const headerptr)
     if ((p[2] & 0xF0) == 0xF0)
         return 0;       // bad bitrate
     if ((p[2] & 0x0C) == 0x0C)
-        return 0;       // no sample frequency with (32,44.1,48)/(1,2,4)    
+        return 0;       // no sample frequency with (32,44.1,48)/(1,2,4)
     return 1;
 }
 
@@ -172,9 +172,9 @@ int lame_decode_initfile(FILE * fd, mp3data_struct * mp3data, int format)
 	}
     }
 
-    // now parse the current buffer looking for MP3 headers.   
-    // (as of 11/00: mpglib modified so that for the first frame where 
-    // headers are parsed, no data will be decoded.  
+    // now parse the current buffer looking for MP3 headers.
+    // (as of 11/00: mpglib modified so that for the first frame where
+    // headers are parsed, no data will be decoded.
     // However, for freeformat, we need to decode an entire frame,
     // so mp3data->bitrate will be 0 until we have decoded the first
     // frame.  Cannot decode first frame here because we are not
@@ -195,7 +195,7 @@ int lame_decode_initfile(FILE * fd, mp3data_struct * mp3data, int format)
     }
 
     if (mp3data->bitrate==0) {
-	fprintf(stderr,"Input file is freeformat.\n"); 
+	fprintf(stderr,"Input file is freeformat.\n");
     }
 
     if (mp3data->totalframes > 0) {
@@ -254,10 +254,10 @@ static int verbose_flag;
 
 int buf_probe_mp3(unsigned char *_buf, int len, pcm_t *pcm)
 {
-  
+
   //  VBRTAGDATA pTagData;
   // int xing_header,len2,num_frames;
-  
+
   char *buf;
   mp3data_struct *mp3data;
   int     i, ret;
@@ -270,12 +270,12 @@ int buf_probe_mp3(unsigned char *_buf, int len, pcm_t *pcm)
     fprintf(stderr, "(%s) out of memory", __FILE__);
     exit(1);
   }
-  
+
   memset(mp3data, 0, sizeof(mp3data_struct));
   lame_decode_init();
-  
+
   buf=_buf;
-  
+
   for (i = 0; i < len - 1; i++) {
     if(is_syncword_mp123(buf)) {
 	// catch false positives
@@ -305,9 +305,9 @@ int buf_probe_mp3(unsigned char *_buf, int len, pcm_t *pcm)
   pcm->format = CODEC_MP3;
   pcm->bitrate = mp3data->bitrate;
 
-  if(verbose_flag & TC_DEBUG) 
+  if(verbose_flag & TC_DEBUG)
     fprintf(stderr, "(%s) channels=%d, samplerate=%d Hz, bitrate=%d kbps, (fsize=%d)\n", __FILE__, mp3data->stereo, mp3data->samplerate, mp3data->bitrate, mp3data->framesize);
-  
+
   switch(type) {
 
   case 0xFD:
@@ -326,14 +326,14 @@ void probe_mp3(info_t *ipipe)
     ssize_t ret=0;
 
     // need to find syncframe:
-    
+
     if((ret = tc_pread(ipipe->fd_in, sbuffer, MAX_BUF)) != MAX_BUF) {
 	if (!ret) {
 	    ipipe->error=1;
 	    return;
 	}
     }
-    
+
     verbose_flag = ipipe->verbose;
 
     //for single MP3 stream only
@@ -343,7 +343,7 @@ void probe_mp3(info_t *ipipe)
     }
 
     switch(ipipe->probe_info->track[0].format) {
-      
+
     case CODEC_MP2:
       ipipe->probe_info->magic = TC_MAGIC_MP2;
       break;
@@ -351,7 +351,7 @@ void probe_mp3(info_t *ipipe)
       ipipe->probe_info->magic = TC_MAGIC_MP3;
       break;
     }
-    
+
     ++ipipe->probe_info->num_tracks;
 
     return;

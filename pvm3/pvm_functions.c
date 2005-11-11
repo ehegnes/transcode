@@ -423,7 +423,7 @@ pvm_func_t *f_pvm_master_start_stop(char *p_option,char *p_spawn_process,char **
 			pvm_exit();					/* remove the master task from pvm*/
 		s_num_call--;
 		free(p_func->p_used_tid);
-		return(NULL);	
+		return(NULL);
 	}
 	else if (!strcasecmp(p_option, "open"))
 	{
@@ -442,7 +442,7 @@ pvm_func_t *f_pvm_master_start_stop(char *p_option,char *p_spawn_process,char **
 		pvm_config( &s_num_hosts, &s_num_arch, &p_host );
 		p_func->s_nhosts = s_num_hosts;
 		p_func->s_nproc = s_num_hosts * s_nproc_host;
-		if(p_func->s_nproc > s_nproc_max) 
+		if(p_func->s_nproc > s_nproc_max)
 			p_func->s_nproc = s_nproc_max;
 
 		p_func->p_used_tid=(int *)malloc(sizeof(int)*(p_func->s_nproc));	/*allocate the buffer for the serial number of tid*/
@@ -470,7 +470,7 @@ pvm_func_t *f_pvm_master_start_stop(char *p_option,char *p_spawn_process,char **
 		return(NULL);
 	}
 }
-		
+
 int f_ring(int s_father_tid,int *s_rec_seq,int s_msg_type,int s_rc)
 {
 	int s_mytid;                  /* my task id */
@@ -499,9 +499,9 @@ int f_ring(int s_father_tid,int *s_rec_seq,int s_msg_type,int s_rc)
 		s_dst_tid=p_other_tids[0]; /* if i'm the last task i need to wait the wake up of task n. 0 */
 	else
 		s_dst_tid=p_other_tids[s_my_proc_id+1]; /* the other cases */
-	
+
 	if(s_my_proc_id==0)
-	{ 
+	{
 		pvm_initsend(PvmDataDefault);	/*initialize the send*/
 		pvm_pkint(&s_rc,1,1);				/*send the rc*/
 		pvm_send(s_dst_tid,PVM_MSG_RING);		/*send to the next process*/

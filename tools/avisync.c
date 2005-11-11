@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -75,20 +75,20 @@ int main(int argc, char *argv[])
   char *in_file=NULL, *out_file=NULL;
 
   long frames, bytes;
- 
+
   double fps;
-    
+
   char *codec;
 
   int track_num=0, aud_tracks;
   int encode_null=0;
-   
+
   int i, j, n, key, shift=0;
-  
+
   int ch, preload=0;
 
   long rate, mp3rate;
-  
+
   int width, height, format, chan, bits;
 
   int be_quiet = 0;
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
   char nulls[32000];
   long nullbytes=0;
   char tmp0[] = "/tmp/nullfile.00.avi"; /* XXX: use mktemp*() */
-    
+
   buffer_list_t *ptr;
 
   double vid_ms = 0.0, shift_ms = 0.0, one_vid_ms = 0.0;
@@ -109,30 +109,30 @@ int main(int argc, char *argv[])
   ac_init(AC_ALL);
 
   if(argc==1) usage(EXIT_FAILURE);
-  
+
   while ((ch = getopt(argc, argv, "a:b:vi:o:n:Nq?h")) != -1)
     {
-      
+
 	switch (ch) {
-	    
+
 	case 'i':
 
 	     if(optarg[0]=='-') usage(EXIT_FAILURE);
 	    in_file=optarg;
-	  
+
 	    break;
-	    
+
 	case 'a':
-	  
+
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  track_num = atoi(optarg);
-	  
+
 	  if(track_num<0) usage(EXIT_FAILURE);
-	  
+
 	  break;
 
 	case 'b':
-      
+
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  is_vbr = atoi(optarg);
 
@@ -144,16 +144,16 @@ int main(int argc, char *argv[])
 
 	    if(optarg[0]=='-') usage(EXIT_FAILURE);
 	    out_file=optarg;
-	
+
 	    break;
-	    
+
 	case 'f':
 
 	    if(optarg[0]=='-') usage(EXIT_FAILURE);
 	    comfile = optarg;
 
 	    break;
-      
+
 	case 'n':
 
 	    if(sscanf(optarg,"%d", &shift)!=1) {
@@ -178,15 +178,15 @@ int main(int argc, char *argv[])
 	usage(EXIT_FAILURE);
       }
     }
-  
+
   // check
   if(in_file==NULL || out_file == NULL) usage(EXIT_FAILURE);
-  
+
   if(shift == 0) fprintf(stderr, "no sync requested - exit");
 
   memset (nulls, 0, sizeof(nulls));
-  
- 
+
+
   // open file
   if(NULL == (avifile1 = AVI_open_input_file(in_file,1))) {
       AVI_print_error("AVI open");
@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
       printf("error: output filename conflicts with input filename\n");
       exit(1);
   }
- 
+
   if(NULL == (avifile2 = AVI_open_output_file(out_file))) {
     AVI_print_error("AVI open");
     exit(1);
@@ -213,43 +213,43 @@ int main(int argc, char *argv[])
   // read video info;
 
   AVI_info(avifile1);
-  
+
   // read video info;
 
   frames =  AVI_video_frames(avifile1);
    width =  AVI_video_width(avifile1);
   height =  AVI_video_height(avifile1);
-  
+
   fps    =  AVI_frame_rate(avifile1);
   codec  =  AVI_video_compressor(avifile1);
-  
+
   //set video in outputfile
   AVI_set_video(avifile2, width, height, fps, codec);
 
   if (comfile!=NULL)
     AVI_set_comment_fd(avifile2, open(comfile, O_RDONLY));
-  
+
   aud_tracks = AVI_audio_tracks(avifile1);
-  
+
   for(j=0; j<aud_tracks; ++j) {
-    
+
     AVI_set_audio_track(avifile1, j);
-    
+
     rate   =  AVI_audio_rate(avifile1);
     chan   =  AVI_audio_channels(avifile1);
     bits   =  AVI_audio_bits(avifile1);
-    
+
     format =  AVI_audio_format(avifile1);
     mp3rate=  AVI_audio_mp3rate(avifile1);
-    
+
     //set next track of output file
     AVI_set_audio_track(avifile2, j);
     AVI_set_audio(avifile2, chan, rate, bits, format, mp3rate);
     AVI_set_audio_vbr(avifile2, is_vbr);
   }
- 
+
   //switch to requested audio_channel
-  
+
   if(AVI_set_audio_track(avifile1, track_num)<0) {
     fprintf(stderr, "invalid auto track\n");
   }
@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
       fprintf(status_fd, "Creating silent mp3 frame with current parameter\n");
       memset (cmd, 0, sizeof(cmd));
       tc_snprintf(cmd, sizeof(cmd), "transcode -i /dev/zero -o %s -x raw,raw"
-	      " -n 0x1 -g 16x16 -y raw,raw -c 0-5 -e %ld,%d,%d -b %ld -q0", 
+	      " -n 0x1 -g 16x16 -y raw,raw -c 0-5 -e %ld,%d,%d -b %ld -q0",
 	      tmp0, rate,bits,chan, mp3rate);
 
       printf(cmd);
@@ -299,7 +299,7 @@ int main(int argc, char *argv[])
 	  AVI_print_error("AVI audio read frame");
 	  return(-1);
       }
-      
+
 
       /*
       printf("\nBytes (%ld): \n", nullbytes);
@@ -324,22 +324,22 @@ int main(int argc, char *argv[])
   // ---------------------------------------------------------------------
 
   for (n=0; n<frames; ++n) {
-    
+
     // video unchanged
     bytes = AVI_read_frame(avifile1, data, &key);
-    
+
     if(bytes < 0) {
       AVI_print_error("AVI read video frame");
       return(-1);
     }
-    
+
     if(AVI_write_frame(avifile2, data, bytes, key)<0) {
       AVI_print_error("AVI write video frame");
       return(-1);
     }
 
     vid_ms = (n+1)*1000.0/fps;
-    
+
 
     // Pass-through all other audio tracks.
     for(j=0; j<aud_tracks; ++j) {
@@ -366,14 +366,14 @@ int main(int argc, char *argv[])
     bits   = AVI_audio_bits(avifile1);
     bits   = bits==0?16:bits;
     mp3rate= AVI_audio_mp3rate(avifile1);
-    
-    
+
+
     if(shift>0) {
-      
+
       // for n < shift, shift audio frames are discarded
-      
+
       if(!preload) {
-	
+
 	if (tc_format_ms_supported(format)) {
 	  for(i=0;i<shift;++i) {
 	      //fprintf (stderr, "shift (%d) i (%d) n (%d) a (%d)\n", shift, i, n, aud_chunks);
@@ -386,13 +386,13 @@ int main(int argc, char *argv[])
 		    if (bytes == 0) continue;
 		    AVI_print_error("AVI 2 audio read frame");
 		    break;
-		}      
+		}
 
 		if ( !aud_bitrate && tc_get_audio_header(data, bytes, format, NULL, NULL, &aud_bitrate)<0) {
 		    // if this is the last frame of the file, slurp in audio chunks
 		    if (n == frames-1) continue;
 		    aud_ms[track_num] = vid_ms + one_vid_ms*i;
-		} else 
+		} else
 		    aud_ms[track_num] += (bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):
 				       (format==0x2000?(double)(mp3rate):aud_bitrate));
 	    }
@@ -411,10 +411,10 @@ int main(int argc, char *argv[])
 	}
 	preload=1;
       }
-      
-      
+
+
       // copy rest of the track
-      if(n<frames-shift) { 
+      if(n<frames-shift) {
 	if (tc_format_ms_supported(format)) {
 
 	    while (aud_ms[track_num] < vid_ms + shift_ms) {
@@ -426,12 +426,12 @@ int main(int argc, char *argv[])
 		    aud_ms[track_num] = vid_ms + shift_ms;
 		    AVI_print_error("AVI 3 audio read frame");
 		    break;
-		}      
+		}
 
 		if(AVI_write_audio(avifile2, data, bytes) < 0) {
 		    AVI_print_error("AVI 3 write audio frame");
 		    return(-1);
-		} 
+		}
 
 		fprintf(status_fd, "V [%05d][%08.2f] | A [%05d][%08.2f] [%05ld]\r", n, vid_ms, aud_chunks, aud_ms[track_num], bytes);
 
@@ -441,10 +441,10 @@ int main(int argc, char *argv[])
 		}
 
 		if(n>=frames-2*shift) {
-	  
+
 		    // save audio frame for later
 		    ptr = buffer_register(n);
-      
+
 		    if(ptr==NULL) {
 			fprintf(stderr,"buffer allocation failed\n");
 			break;
@@ -459,37 +459,37 @@ int main(int argc, char *argv[])
 		if ( !aud_bitrate && tc_get_audio_header(data, bytes, format, NULL, NULL, &aud_bitrate)<0) {
 		    if (n == frames-1) continue;
 		    aud_ms[track_num] = vid_ms + shift_ms;
-		} else 
+		} else
 		    aud_ms[track_num] += (bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):
 				       (format==0x2000?(double)(mp3rate):aud_bitrate));
 	    }
 
 	} else { // fallback
 	bytes = AVI_audio_size(avifile1, n+shift-1);
-	
+
 	do {
 	    if( (bytes = AVI_read_audio_chunk(avifile1, data)) < 0) {
 		AVI_print_error("AVI audio read frame");
 		return(-1);
 	    }
-	
+
 	    if(AVI_write_audio(avifile2, data, bytes) < 0) {
 		AVI_print_error("AVI write audio frame");
 		return(-1);
-	    } 
-	
+	    }
+
 	    fprintf(status_fd, "V [%05d] | A [%05d] [%05ld]\r", n, n+shift, bytes);
-	
+
 	    if(n>=frames-2*shift) {
-	  
+
 		// save audio frame for later
 		ptr = buffer_register(n);
-      
+
 		if(ptr==NULL) {
 		    fprintf(stderr,"buffer allocation failed\n");
 		    break;
 		}
-	  
+
 		ac_memcpy(ptr->data, data, bytes);
 		ptr->size = bytes;
 		ptr->status = BUFFER_READY;
@@ -497,10 +497,10 @@ int main(int argc, char *argv[])
 	} while (AVI_can_read_audio(avifile1));
 	}
       }
-      
+
       // padding at the end
-      if(n>=frames-shift) { 
-	
+      if(n>=frames-shift) {
+
 	if (!ptrlen) {
 	    ptr = buffer_retrieve();
 	    ac_memcpy (ptrdata, ptr->data, ptr->size);
@@ -520,20 +520,20 @@ int main(int argc, char *argv[])
 		if(AVI_write_audio(avifile2, ptrdata, ptrlen) < 0) {
 		    AVI_print_error("AVI write audio frame");
 		    return(-1);
-		} 
+		}
 
 		fprintf(status_fd, " V [%05d][%08.2f] | A [%05d][%08.2f] [%05ld]\r", n, vid_ms, n+shift, aud_ms[track_num], bytes);
 
 		if ( !aud_bitrate && tc_get_audio_header(ptrdata, ptrlen, format, NULL, NULL, &aud_bitrate)<0) {
 		    //if (n == frames-1) continue;
 		    aud_ms[track_num] = vid_ms + shift_ms;
-		} else 
+		} else
 		    aud_ms[track_num] += (ptrlen*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):
 				       (format==0x2000?(double)(mp3rate):aud_bitrate));
 	    }
 
 	} else { // fallback
-	
+
 	// get next audio frame
 	ptr = buffer_retrieve();
 
@@ -551,11 +551,11 @@ int main(int argc, char *argv[])
 		    return(-1);
 		}
 	    } else {
-		// simple keep old frames to force exact time delay	
+		// simple keep old frames to force exact time delay
 		if(AVI_write_audio(avifile2, ptr->data, ptr->size)<0) {
 		    AVI_print_error("AVI write audio frame");
 		    return(-1);
-		} 
+		}
 	    }
 
 	    fprintf(status_fd, "V [%05d] | padding\r", n);
@@ -565,7 +565,7 @@ int main(int argc, char *argv[])
 		ptr = buffer_retrieve();
 		continue;
 	    }
-	    
+
 	    buffer_remove(ptr);
 	    break;
 	}  // 1
@@ -581,14 +581,14 @@ int main(int argc, char *argv[])
 
       if (tc_format_ms_supported(format)) {
 	/*
-	fprintf(status_fd, "n(%d) -shift(%d) shift_ms (%.2lf) vid_ms(%.2lf) aud_ms[%d](%.2lf) v-s(%.2lf)\n", 
+	fprintf(status_fd, "n(%d) -shift(%d) shift_ms (%.2lf) vid_ms(%.2lf) aud_ms[%d](%.2lf) v-s(%.2lf)\n",
 	    n, -shift, shift_ms, vid_ms, track_num, aud_ms[track_num], vid_ms + shift_ms);
 	    */
 
 	// shift<0 -> shift_ms<0 !
 	while (aud_ms[track_num] < vid_ms) {
 	    /*
-	  fprintf(stderr, " 1 (%02d) %s frame_read len=%4ld (A/V) (%8.2f/%8.2f)\n", 
+	  fprintf(stderr, " 1 (%02d) %s frame_read len=%4ld (A/V) (%8.2f/%8.2f)\n",
 	      n, format==0x55?"MP3":"AC3", bytes, aud_ms[track_num], vid_ms);
 	      */
 
@@ -603,17 +603,17 @@ int main(int argc, char *argv[])
 
 	  // save audio frame for later
 	  ptr = buffer_register(n);
-    
+
 	  if(ptr==NULL) {
 	    fprintf(stderr,"buffer allocation failed\n");
 	    break;
 	  }
-     
+
 	  ac_memcpy(ptr->data, data, bytes);
 	  ptr->size = bytes;
 	  ptr->status = BUFFER_READY;
 
-	  if(n<-shift) { 
+	  if(n<-shift) {
 
 	    // mute this -- check if can mute!
 	    if (tc_probe_audio_header(data, bytes) > 0)
@@ -633,33 +633,33 @@ int main(int argc, char *argv[])
 
 	    // get next audio frame
 	    ptr = buffer_retrieve();
-	
+
 	    if(ptr==NULL) {
 	      fprintf(stderr,"no buffer found\n");
 	      break;
 	    }
-	
+
 	    if(AVI_write_audio(avifile2, ptr->data, ptr->size)<0) {
 	      AVI_print_error("AVI write audio frame");
 	      return(-1);
-	    } 
+	    }
 	    bytes = ptr->size;
 	    ac_memcpy (data, ptr->data, bytes);
-	
+
 	    fprintf(status_fd, "V [%05d] | A [%05d]\r", n, ptr->id);
-	
+
 	    buffer_remove(ptr);
 	  }
-      
+
 	  if ( !aud_bitrate && tc_get_audio_header(data, bytes, format, NULL, NULL, &aud_bitrate)<0) {
 	    if (n == frames-1) continue;
 	    aud_ms[track_num] = vid_ms;
-	  } else 
+	  } else
 	    aud_ms[track_num] += (bytes*8.0)/(format==0x1?((double)(rate*chan*bits)/1000.0):
 				       (format==0x2000?(double)(mp3rate):aud_bitrate));
 
 	  /*
-	  fprintf(stderr, " 1 (%02d) %s frame_read len=%4ld (A/V) (%8.2f/%8.2f)\n", 
+	  fprintf(stderr, " 1 (%02d) %s frame_read len=%4ld (A/V) (%8.2f/%8.2f)\n",
 	      n, format==0x55?"MP3":"AC3", bytes, aud_ms[track_num], vid_ms);
 	      */
 
@@ -681,27 +681,27 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "invalid frame size\n");
 	return(-1);
       }
-      
+
       if(AVI_read_audio(avifile1, data, bytes) < 0) {
 	AVI_print_error("AVI audio read frame");
 	return(-1);
       }
-      
+
       // save audio frame for later
       ptr = buffer_register(n);
-      
+
       if(ptr==NULL) {
 	fprintf(stderr,"buffer allocation failed\n");
 	break;
       }
-      
+
       ac_memcpy(ptr->data, data, bytes);
       ptr->size = bytes;
       ptr->status = BUFFER_READY;
-      
-      
-      if(n<-shift) { 
-	
+
+
+      if(n<-shift) {
+
 	if (encode_null) {
 	    if(AVI_write_audio(avifile2, nulls, nullbytes)<0) {
 		AVI_print_error("AVI write audio frame");
@@ -714,38 +714,38 @@ int main(int argc, char *argv[])
 		return(-1);
 	    }
 	}
-	
+
 	fprintf(status_fd, "V [%05d] | padding\r", n);
-	
+
       } else {
-	
+
 	// get next audio frame
 	ptr = buffer_retrieve();
-	
+
 	if(ptr==NULL) {
 	  fprintf(stderr,"no buffer found\n");
 	  break;
 	}
-	
+
 	if(AVI_write_audio(avifile2, ptr->data, ptr->size)<0) {
 	  AVI_print_error("AVI write audio frame");
 	  return(-1);
-	} 
-	
+	}
+
 	fprintf(status_fd, "V [%05d] | A [%05d]\r", n, ptr->id);
-	
+
 	buffer_remove(ptr);
       }
     }
     }
-  }  
-  
+  }
+
   fprintf(status_fd, "\n");
 
   if (be_quiet) {
     fclose(status_fd);
   }
-  
+
   AVI_close(avifile1);
   AVI_close(avifile2);
 
@@ -755,6 +755,6 @@ int main(int argc, char *argv[])
       system(nulls);
       AVI_close(avifile3);
   }
-  
+
   return(0);
 }

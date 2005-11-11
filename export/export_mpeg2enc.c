@@ -4,20 +4,20 @@
  *  Copyright (C) Gerhard Monzel - January 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -70,7 +70,7 @@ static char *m2v=".m2v";
 static int y4m_snprint_xtags(char *s, int maxn, y4m_xtag_list_t *xtags)
 {
   int i, room;
-  
+
   for (i = 0, room = maxn - 1; i < y4m_xtag_count(xtags); i++) {
     int n = tc_snprintf(s, room + 1, " %s", y4m_xtag_get(xtags, i));
     if ((n < 0) || (n > room)) return Y4M_ERR_HEADER;
@@ -87,7 +87,7 @@ static int y4m_write_stream_header2(FILE *fd, y4m_stream_info_t *i)
   char s[Y4M_LINE_MAX+1];
   int n;
   int err;
-  
+
   y4m_ratio_t tmpframerate = y4m_si_get_framerate(i);
   y4m_ratio_t tmpsamplerate = y4m_si_get_sampleaspect(i);
   y4m_ratio_reduce(&tmpframerate);
@@ -102,8 +102,8 @@ static int y4m_write_stream_header2(FILE *fd, y4m_stream_info_t *i)
 	       (y4m_si_get_interlace(i) == Y4M_ILACE_BOTTOM_FIRST) ? "b" : "?",
 	       y4m_si_get_sampleaspect(i).n, y4m_si_get_sampleaspect(i).d);
   if (n < 0) return Y4M_ERR_HEADER;
-  if ((err = y4m_snprint_xtags(s + n, sizeof(s) - n - 1, y4m_si_xtags(i))) 
-      != Y4M_OK) 
+  if ((err = y4m_snprint_xtags(s + n, sizeof(s) - n - 1, y4m_si_xtags(i)))
+      != Y4M_OK)
     return err;
   /* zero on error */
   return (fwrite(s, strlen(s), 1, fd) ? Y4M_OK : Y4M_ERR_SYSTEM);
@@ -115,18 +115,18 @@ static int y4m_write_frame_header2(FILE *fd, y4m_frame_info_t *i)
   char s[Y4M_LINE_MAX+1];
   int n;
   int err;
-  
+
   n = snprintf(s, sizeof(s), "%s", Y4M_FRAME_MAGIC);
   if (n < 0) return Y4M_ERR_HEADER;
-  if ((err = y4m_snprint_xtags(s + n, sizeof(s) - n - 1, y4m_fi_xtags(i))) 
-      != Y4M_OK) 
+  if ((err = y4m_snprint_xtags(s + n, sizeof(s) - n - 1, y4m_fi_xtags(i)))
+      != Y4M_OK)
     return err;
   /* zero on error */
   return (fwrite(s, strlen(s), 1, fd) ? Y4M_OK : Y4M_ERR_SYSTEM);
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open outputfile
  *
@@ -140,7 +140,7 @@ MOD_open
   char *p1, *p2, *p3, *p4;
   char bitrate[25];
   //char dar_tag[20];
-  y4m_ratio_t framerate;  
+  y4m_ratio_t framerate;
   y4m_ratio_t dar;
   int frc=0, asr=0;
   char *tv_type="-n p";
@@ -149,8 +149,8 @@ MOD_open
 
   /* check for mpeg2enc */
   if (tc_test_program("mpeg2enc") != 0) return (TC_EXPORT_ERROR);
-        
-  if(param->flag == TC_VIDEO) 
+
+  if(param->flag == TC_VIDEO)
   {
     char buf[PATH_MAX];
     char buf2[16];
@@ -165,7 +165,7 @@ MOD_open
 	case 4: dar = y4m_dar_221_100; break;
 	case 0: default: dar.n=0; dar.d=0; break;
     }
-    
+
     y4m_init_stream_info(&y4mstream);
     y4m_si_set_framerate(&y4mstream,framerate);
     y4m_si_set_interlace(&y4mstream,vob->encode_fields );
@@ -176,7 +176,7 @@ MOD_open
     */
     y4m_si_set_height(&y4mstream, vob->ex_v_height);
     y4m_si_set_width(&y4mstream, vob->ex_v_width);
-    
+
     verb = (verbose & TC_DEBUG) ? 2:0;
 
     //base profile support and coustom setting
@@ -186,7 +186,7 @@ MOD_open
     p1 = vob->ex_v_fcc;
     p2 = vob->ex_a_fcc;
     p3 = vob->ex_profile_name; //unsupported
-    
+
     if(verbose_flag & TC_DEBUG) tc_log_info(MOD_NAME, "P1=%s, P2=%s, P3=%s", p1, p2, p3);
 
     prof = (p1==NULL || strlen(p1) == 0) ? 0:atoi(p1);
@@ -214,16 +214,16 @@ MOD_open
     } else {
       tv_type = "-n p";  // default is PAL
     }
-    
+
     //ThOe pulldown?
     if(vob->pulldown) pulldown="-p";
-    
+
     //ThOe collect additional parameter
-    if(asr>0) 
-      tc_snprintf(buf2, sizeof(buf2), "%s %s -a %d", tv_type, pulldown, asr); 
+    if(asr>0)
+      tc_snprintf(buf2, sizeof(buf2), "%s %s -a %d", tv_type, pulldown, asr);
     else
-      tc_snprintf(buf2, sizeof(buf2), "%s %s", tv_type, pulldown); 
-    
+      tc_snprintf(buf2, sizeof(buf2), "%s %s", tv_type, pulldown);
+
     //tibit: do not write to /dev/null.m1v
     m1v = video_ext;
     m2v = video_ext;
@@ -250,36 +250,36 @@ MOD_open
 	tc_snprintf(bitrate, sizeof(bitrate), "-b %d", vob->divxbitrate);
     }
 
-    
+
     switch(prof) {
-      
+
     case 1:
-      
+
       //Standard VCD. An MPEG1  profile
       //exactly to the VCD2.0 specification.
-      
+
 	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 1 -F %d %s %s -o \"%s%s\" %s", verb, fields, frc, buf2, p4, vob->video_out_file, m1v, p2);
       break;
-      
+
     case 2:
 
-      //User VCD 
-      
+      //User VCD
+
 	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -q 3 -f 2 -4 2 -2 3 %s -F %d %s -o \"%s%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, m1v, p2, p4);
       break;
-      
+
     case 3:
-      
+
       //Generic MPEG2
-      
+
 	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -q 3 -f 3 -4 2 -2 3 %s -s -F %d %s -o \"%s%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, m2v, p2, p4);
       break;
-      
+
     case 4:
-      
+
       //Standard SVCD. An MPEG-2 profile
       //exactly  to  the  SVCD2.0 specification
-      
+
       if ( !(probe_export_attributes & TC_PROBE_NO_EXPORT_VBITRATE) )
 	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 4 -F %d %s -o \"%s%s\" %s %s", verb, fields, frc, buf2, vob->video_out_file, m2v, p2, p4);
       else
@@ -287,64 +287,64 @@ MOD_open
       break;
 
     case 5:
-      
+
       //User SVCD
 
 	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -q 3 -f 5 -4 2 -2 3 %s -F %d %s -V 230 -o \"%s%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, m2v, p2, p4);
       break;
-      
+
     case 6:
-      
+
       // Manual parameter mode.
-      
+
       tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d %s -o \"%s%s\" %s %s", verb, fields, bitrate, vob->video_out_file, m2v, p2?p2:"", p4);
       break;
-      
+
     case 8:
-      
+
       //DVD
-      
+
       if ( !(probe_export_attributes & TC_PROBE_NO_EXPORT_VBITRATE) )
 	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 8 -F %d %s -o \"%s%s\" %s %s", verb, fields, frc, buf2, vob->video_out_file, m2v, p2, p4);
       else
 	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 8 %s -F %d %s -o \"%s%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, m2v, p2, p4);
-      
+
       break;
 
 
-    case 0:       
+    case 0:
     default:
-      
+
       //Generic MPEG1
-      
+
 	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -q 3 -f 0 -4 2 -2 3 %s -F %d %s -o \"%s%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, m1v, p2, p4);
       break;
     }
-    
+
     tc_log_info(MOD_NAME, "%s", buf);
 
     sa_ip = popen(buf, "w");
     if (!sa_ip) return(TC_EXPORT_ERROR);
-    
+
     if( y4m_write_stream_header2( sa_ip, &y4mstream ) != Y4M_OK ){
       perror("write stream header");
       return(TC_EXPORT_ERROR);
-    }     
+    }
 
     //    tc_snprintf(buf, sizeof(buf), MENC_HDR, sa_width, sa_height);
     //fwrite(buf, strlen(buf), 1, sa_ip);
 
     return(0);
   }
-  
+
   if(param->flag == TC_AUDIO) return(0);
-  
+
   // invalid flag
-  return(TC_EXPORT_ERROR); 
+  return(TC_EXPORT_ERROR);
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * init codec
  *
@@ -353,10 +353,10 @@ MOD_open
 MOD_init
 {
 
-  if(param->flag == TC_VIDEO) 
+  if(param->flag == TC_VIDEO)
   {
     int prof = 0;
-    tc_log_info(MOD_NAME, "*** init-v *** !"); 
+    tc_log_info(MOD_NAME, "*** init-v *** !");
 
     sa_width  = vob->ex_v_width;
     sa_height = vob->ex_v_height;
@@ -384,17 +384,17 @@ MOD_init
 	if (prof < 3) video_ext = ".m1v";
 	else video_ext = ".m2v";
     }
-    
+
     return(0);
   }
-  
-  if(param->flag == TC_AUDIO) return(0);  
-  
+
+  if(param->flag == TC_AUDIO) return(0);
+
   // invalid flag
-  return(TC_EXPORT_ERROR); 
+  return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * encode and export frame
  *
@@ -405,7 +405,7 @@ MOD_encode
 {
   y4m_frame_info_t info;
 
-  if(param->flag == TC_VIDEO) 
+  if(param->flag == TC_VIDEO)
   {
 
       if (!tcv_convert(param->buffer, srcfmt, IMG_YUV420P)) {
@@ -414,60 +414,60 @@ MOD_encode
       }
 
       y4m_init_frame_info(&info);
-      
+
       if( y4m_write_frame_header2( sa_ip, &info ) != Y4M_OK ){
 	perror("write stream header");
 	return(TC_EXPORT_ERROR);
-      }     
-      
+      }
+
       fwrite(param->buffer, sa_size_l, 1, sa_ip);
-      fwrite(param->buffer + sa_size_l, sa_size_c, 1, sa_ip); 
+      fwrite(param->buffer + sa_size_l, sa_size_c, 1, sa_ip);
       fwrite(param->buffer + sa_size_l + sa_size_c, sa_size_c, 1, sa_ip);
 
-      return (0); 
+      return (0);
   }
-  
+
   if(param->flag == TC_AUDIO) return(0);
 
   // invalid flag
-  return(TC_EXPORT_ERROR); 
+  return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * stop encoder
  *
  * ------------------------------------------------------------*/
 
 MOD_stop
-{  
+{
   if(param->flag == TC_VIDEO) {
       return (0);
   }
-  
+
   if(param->flag == TC_AUDIO) return (0);
-  return(TC_EXPORT_ERROR);     
+  return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close codec
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
 
   if(param->flag == TC_AUDIO) return (0);
-  
-  if(param->flag == TC_VIDEO) 
+
+  if(param->flag == TC_VIDEO)
   {
     if (sa_ip) pclose(sa_ip);
     sa_ip = NULL;
 
     return(0);
   }
-  
-  return(TC_EXPORT_ERROR); 
+
+  return(TC_EXPORT_ERROR);
 }
 

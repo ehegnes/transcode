@@ -1,7 +1,7 @@
 NEW: transcode Additions
 You can reset the filter at a scene change with the do_reset option.
 Scenechange thresholds can be controled through
-  
+
   block_thres   every SAD value greater than this will be considered "bad"
                 [default 1024]
   scene_thres   Percentage of blocks where motion estimation should fail
@@ -25,7 +25,7 @@ YUV4MPEG-Denoiser (eventually part of the mjpegtools)
 This program can remove noise from your typical video recordings to
 increase the compression-ratio to be achieved by mpeg2enc (or if a
 fixed bitrate is used, it can dramatically increase the image-
-quality). 
+quality).
 
 The filter mainly reduces color- and luminance-noise and flickering
 due to phase errors. It however does *not* do a good job on
@@ -38,7 +38,7 @@ only saving one color information for two lines but not interpolating
 on the transmitted color-information. Despite of that oddity it has a
 reasonable quality for that price... So just record "Full-Pal/NTSC"
 and use yuvscaler to downscale your material! The quality is far
-better than recording at your destination resolution directly!!!)  
+better than recording at your destination resolution directly!!!)
 
 
 
@@ -70,7 +70,7 @@ frame... Turn this feature off by typing "-b 0"
 3. Transcode Usage
 ------------------
 When used within transcode, the filter does provide options.
-Usage of the filter is 
+Usage of the filter is
   $ transcode ... -J yuvdenoise=help
 Provide additional options (not that these are meaningful)
   $ transcode ... -J yuvdenoise=chroma_contrast=50:luma_contrast=120:sharpen=100
@@ -132,7 +132,7 @@ scene_thres   Percentage of blocks where motion estimation should fail
 do_reset      [1] = reset the filter after a scene change
               [0] = dont reset (default)
 
- 
+
 4. My way of using it...
 ------------------------
 
@@ -157,7 +157,7 @@ do_reset      [1] = reset the filter after a scene change
 ------------
 
 In rare cases you'll notice very clean blocks directly aside totally
-noisy ones... Seeing blocks is probably not what you want to get. 
+noisy ones... Seeing blocks is probably not what you want to get.
 
 It uses a MC with a search-radius of 32 pixels. It *will* slow down
 the encoding process. (I probably will use i686 asm sometime to

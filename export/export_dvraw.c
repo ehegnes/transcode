@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -72,14 +72,14 @@ static void pcm_swap(char *buffer, int len)
     tt = *(in+1);
     *(out+1) = *in;
     *out = tt;
-    
+
     in = in+2;
     out = out+2;
   }
 }
 #endif
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * init codec
  *
@@ -87,9 +87,9 @@ static void pcm_swap(char *buffer, int len)
 
 MOD_init
 {
-  
+
   int i;
-  
+
   if(param->flag == TC_VIDEO) {
     target = tc_bufalloc(TC_FRAME_DV_PAL);
     vbuf = tc_bufalloc(PAL_W*PAL_H*3);
@@ -103,30 +103,30 @@ MOD_init
       tmp_buf = tc_bufalloc(PAL_W*PAL_H*2); //max frame
       dv_uyvy_mode=1;
     }
-    
+
     encoder = dv_encoder_new(FALSE, FALSE, FALSE);
-    
+
     return(0);
   }
-  
+
   if(param->flag == TC_AUDIO) {
-    
+
     // tmp audio buffer
     for(i=0; i < 4; i++) {
       if(!(audio_bufs[i] = malloc(DV_AUDIO_MAX_SAMPLES * sizeof(int16_t)))) {
 	fprintf(stderr, "(%s) out of memory\n", __FILE__);
-	return(TC_EXPORT_ERROR); 
-      }  
-    }	  
-    
+	return(TC_EXPORT_ERROR);
+      }
+    }
+
     return(0);
   }
-  
+
   // invalid flag
-  return(TC_EXPORT_ERROR); 
+  return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open outputfile
  *
@@ -137,24 +137,24 @@ MOD_open
   int bytealignment;
   int bytespersecond;
   int bytesperframe;
-  
+
   if(param->flag == TC_VIDEO) {
-    
+
     // video
     if((fd = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC,
 		  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))<0) {
       perror("open file");
-      
+
       return(TC_EXPORT_ERROR);
-    }     
-    
+    }
+
     switch(vob->im_v_codec) {
-      
+
     case CODEC_RGB:
       format=0;
       if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "raw format is RGB");
       break;
-      
+
     case CODEC_YUV:
       format=1;
       if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "raw format is YUV420P");
@@ -164,19 +164,19 @@ MOD_open
       format=2;
       if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "raw format is YUV422");
       break;
-      
-      
+
+
     case CODEC_RAW:
     case CODEC_RAW_YUV:
       format=1;
       pass_through=1;
       break;
-      
+
     default:
       tc_log_warn(MOD_NAME, "codec not supported");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     }
-    
+
     // for reading
     frame_size = (vob->ex_v_height==PAL_H) ? TC_FRAME_DV_PAL:TC_FRAME_DV_NTSC;
 
@@ -194,10 +194,10 @@ MOD_open
 
     return(0);
   }
-  
-  
+
+
   if(param->flag == TC_AUDIO) {
-    
+
     if (!encoder) {
       tc_log_warn(MOD_NAME, "-y XXX,dvraw is not possible without the video");
       tc_log_warn(MOD_NAME, "export module also being dvraw");
@@ -211,16 +211,16 @@ MOD_open
     bytespersecond = rate * bytealignment;
     bytesperframe = bytespersecond/(encoder->isPAL ? 25 : 30);
 
-    if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "audio: CH=%d, f=%d, balign=%d, bps=%d, bpf=%d", 
+    if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "audio: CH=%d, f=%d, balign=%d, bps=%d, bpf=%d",
 		                       chans, rate, bytealignment, bytespersecond, bytesperframe);
 
     return(0);
   }
   // invalid flag
-  return(TC_EXPORT_ERROR); 
-}   
+  return(TC_EXPORT_ERROR);
+}
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * encode and export
  *
@@ -230,25 +230,25 @@ MOD_encode
 {
   int i;
 
-  if(param->flag == TC_VIDEO) { 
-    
+  if(param->flag == TC_VIDEO) {
+
     if(pass_through) {
       ac_memcpy(target, param->buffer, frame_size);
-    } else { 
+    } else {
       ac_memcpy(vbuf, param->buffer, param->size);
     }
-    
+
     if(verbose & TC_STATS) tc_log_info(MOD_NAME, "---V---");
 
     return(0);
   }
-  
+
   if(param->flag == TC_AUDIO) {
-    
+
     time_t now = time(NULL);
 
     if(verbose & TC_STATS) tc_log_info(MOD_NAME, "---A---");
-    
+
     if(!pass_through) {
 
       pixels[0] = vbuf;
@@ -259,7 +259,7 @@ MOD_encode
 	pixels[1] = pixels[0] + NTSC_W*NTSC_H;
 	pixels[2] = pixels[1] + (NTSC_W/2)*(format==2?NTSC_H:NTSC_H/2);
       }
-      
+
       if(dv_yuy2_mode && !dv_uyvy_mode) {
 	if (format==2)
 	  ac_imgconvert(pixels, IMG_YUV422P, &tmp_buf, IMG_YUY2,
@@ -279,9 +279,9 @@ MOD_encode
 			PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
 	pixels[0]=tmp_buf;
       }
-      
+
       dv_encode_full_frame(encoder, pixels, (format)?e_dv_color_yuv:e_dv_color_rgb, target);
-      
+
     }//no pass-through
 #ifdef LIBDV_099
       encoder->samples_this_frame=param->size;
@@ -318,53 +318,53 @@ MOD_encode
 
 
     //write raw DV frame
-    
-    if(tc_pwrite(fd, target, frame_size) != frame_size) {    
+
+    if(tc_pwrite(fd, target, frame_size) != frame_size) {
       perror("write frame");
       return(TC_EXPORT_ERROR);
-    }     
-    
+    }
+
     return(0);
   }
-  
+
   // invalid flag
   return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * stop encoder
  *
  * ------------------------------------------------------------*/
 
-MOD_stop 
+MOD_stop
 {
-  
+
   int i;
-  
+
   if(param->flag == TC_VIDEO) {
-    
-    dv_encoder_free(encoder);  
-    
+
+    dv_encoder_free(encoder);
+
     return(0);
   }
-  
+
   if(param->flag == TC_AUDIO) {
     for(i=0; i < 4; i++) free(audio_bufs[i]);
     return(0);
-  }  
-  
+  }
+
   return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close outputfiles
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
 
   if(param->flag == TC_VIDEO) {
     close(fd);
@@ -372,8 +372,8 @@ MOD_close
   }
 
   if(param->flag == TC_AUDIO) return(0);
-  
-  return(TC_EXPORT_ERROR);  
+
+  return(TC_EXPORT_ERROR);
 
 }
 

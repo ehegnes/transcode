@@ -24,7 +24,7 @@
 
 
 #ifndef _EXPORT_PVM_MPEG_H
-#define _EXPORT_PVM_MPEG_H 
+#define _EXPORT_PVM_MPEG_H
 
 #define PVM_DL_FUNC 1
 #include <pvm_functions.h>

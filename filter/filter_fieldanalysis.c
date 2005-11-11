@@ -4,20 +4,20 @@
  *  (c) by Matthias Hopf - August 2004
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -51,7 +51,7 @@ typedef struct {
     double progressiveDiff;
     double progressiveChange;
     double changedIfMore;
-    
+
     int   forceTelecineDetect;
     int   verbose;
     int   outDiff;
@@ -135,7 +135,7 @@ static void pic_diff (uint8_t *p1, uint8_t *p2, uint8_t *dest, int size, int sca
  * main function: check interlace state
  */
 static void check_interlace (myfilter_t *myf, int id) {
-    
+
     double pixDiff, pixShiftChangedT, pixShiftChangedB;
     double pixLastT, pixLastB, pixLast;
     int isChangedT = IS_FALSE,   isChangedB = IS_FALSE;
@@ -156,13 +156,13 @@ static void check_interlace (myfilter_t *myf, int id) {
 				    myf->lumPrev + myf->width,
 				    myf->width, myf->height/2, myf->width);
     pixLast = (pixLastT + pixLastB) / 2;
-    
+
     /* Check for changed fields */
     if (pixLastT > myf->changedIfMore)
 	isChangedT = IS_TRUE;
     if (pixLastB > myf->changedIfMore)
 	isChangedB = IS_TRUE;
-    
+
     /* Major field detection */
     if (pixShiftChangedT * myf->interlaceDiff < pixShiftChangedB)
 	isTop = IS_TRUE;
@@ -213,7 +213,7 @@ static void check_interlace (myfilter_t *myf, int id) {
 	if ((isChangedT == IS_TRUE || isChangedB == IS_TRUE) &&
 	    (isProg != IS_UNKNOWN || isTop != IS_UNKNOWN ||
 	     myf->telecineState > 10)){
-	    
+
 	    switch (myf->telecineState % 5) {
 	    case 0:
 /*		if (isProg == IS_FALSE)
@@ -279,8 +279,8 @@ static void check_interlace (myfilter_t *myf, int id) {
 	if (myf->telecineState > 100)
 	    myf->telecineState -= 10;
     }
-    
-	
+
+
     /* Detect inconstistencies */
     if (isProg == IS_FALSE && isTop == IS_UNKNOWN)
 	isProg = IS_UNKNOWN;
@@ -298,9 +298,9 @@ static void check_interlace (myfilter_t *myf, int id) {
     if (myf->verbose) {
 	char verboseBuffer[64];
 	char *outType = 0, *outField = " ";
-	
+
 	memset (verboseBuffer, ' ', 63);
-	
+
 	if (pixDiff * myf->unknownDiff < pixShiftChangedT)
 	    memcpy (&verboseBuffer[0], "pt", 2);
 	if (pixDiff * myf->progressiveDiff < pixShiftChangedT)
@@ -323,14 +323,14 @@ static void check_interlace (myfilter_t *myf, int id) {
 	    memcpy (&verboseBuffer[11], "sb", 2);
 
 	verboseBuffer[13] = 0;
-	
+
 	if (myf->verbose > 1) {
 	    tc_log_info (MOD_NAME, "frame %d: pixDiff %.3f "
                      "pixShiftChanged %.3fT/%.3fB pixLast %.3fT/%.3fB telecineState %d",
 		     id, pixDiff, pixShiftChangedT, pixShiftChangedB, pixLastT, pixLastB,
 		     myf->telecineState);
 	}
-	
+
 	switch (isProg) {
 	case IS_UNKNOWN:	outType = "unknown    ";	break;
 	case IS_FALSE:		outType = "interlaced ";	break;
@@ -346,7 +346,7 @@ static void check_interlace (myfilter_t *myf, int id) {
 	case IS_FALSE:		outField = "B";			break;
 	case IS_TRUE:		outField = "T";			break;
 	}
-	
+
 	tc_log_info (MOD_NAME, "frame %d: %s  %s   [%s]",
 		 id, outType, outField, verboseBuffer);
     }
@@ -370,10 +370,10 @@ static void check_interlace (myfilter_t *myf, int id) {
     assert (counter);
     (*counter)++;
     myf->numFrames++;
-    
+
 }
 
-	
+
 /*
  * transcode API
  */
@@ -390,22 +390,22 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (! (vob = tc_get_vob ()))
 	    return -1;
-    
+
 	if (! (myf = myf_global = calloc (1, sizeof (myfilter_t)))) {
 	    fprintf (stderr, "calloc() failed\n");
 	    return -1;
 	}
-    
+
 	if (verbose)			/* global verbose */
 	    tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    
+
 	/* default values */
 	myf->interlaceDiff       = 1.1;
 	myf->unknownDiff         = 1.5;
 	myf->progressiveDiff     = 8;
 	myf->progressiveChange   = 0.2;
 	myf->changedIfMore       = 10;
-	
+
 	myf->forceTelecineDetect = 0;
 	myf->verbose             = 0;
 	myf->outDiff             = 0;
@@ -475,19 +475,19 @@ int tc_filter(frame_list_t *ptr_, char *options)
         tc_log_info(MOD_NAME, "progressivechange %.2f, changedifmore %.2f",
                     		   myf->progressiveChange, myf->changedIfMore);
         tc_log_info(MOD_NAME, "forcetelecinedetect %s, verbose %d, outdiff %d",
-                    		   myf->forceTelecineDetect ? "True":"False", myf->verbose, 
+                    		   myf->forceTelecineDetect ? "True":"False", myf->verbose,
                                myf->outDiff);
 	}
-	
+
 	return 0;
     }
-  
+
     /*
      * filter close
      */
 
     if (ptr->tag & TC_FILTER_CLOSE) {
-	
+
 	int total = myf->numFrames - myf->unknownFrames;
 	int totalfields = myf->topFirstFrames + myf->bottomFirstFrames;
 
@@ -500,7 +500,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	free (myf->lumPrevB);
 	myf->lumIn = myf->lumPrev = myf->lumInT = myf->lumInB =
 	    myf->lumPrevT = myf->lumPrevB = NULL;
-	
+
 	/* Output results */
 	if (totalfields < 1)
 	    totalfields = 1;
@@ -527,21 +527,21 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		 myf->bottomFirstFrames * 8 > myf->topFirstFrames)
 	    tc_log_info (MOD_NAME, "major field unsure, no conclusion. Use deinterlacer for processing.");
 	else if (myf->telecineFrames * 4 > total * 3)
-	    tc_log_info (MOD_NAME, "CONCLUSION: telecined video, %s field first.", 
+	    tc_log_info (MOD_NAME, "CONCLUSION: telecined video, %s field first.",
                         myf->topFirstFrames > myf->bottomFirstFrames ? "top" : "bottom");
 	else if (myf->fieldShiftFrames * 4 > total * 3)
-	    tc_log_info (MOD_NAME, "CONCLUSION: field shifted progressive video, %s field first.", 
+	    tc_log_info (MOD_NAME, "CONCLUSION: field shifted progressive video, %s field first.",
                         myf->topFirstFrames > myf->bottomFirstFrames ? "top" : "bottom");
 	else if (myf->interlacedFrames > myf->fieldShiftFrames &&
 		 (myf->interlacedFrames+myf->fieldShiftFrames) * 8 > total * 7)
-	    tc_log_info (MOD_NAME, "CONCLUSION: interlaced video, %s field first.", 
+	    tc_log_info (MOD_NAME, "CONCLUSION: interlaced video, %s field first.",
                         myf->topFirstFrames > myf->bottomFirstFrames ? "top" : "bottom");
 	else
 	    tc_log_info (MOD_NAME, "mixed video, no conclusion. Use deinterlacer for processing.");
 
 	return 0;
     }
-  
+
     /*
      * filter description
      */
@@ -566,7 +566,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	tc_snprintf (buf, sizeof(buf), "%d", myf->outDiff);
 	optstr_param (options, "outdiff", "Output internal debug frames as luminance of YUV video (see source)", "%d", buf, "0", "11");
     }
-    
+
     /*
      * filter frame routine
      */
@@ -578,7 +578,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	assert (ptr->free == 0 || ptr->free == 1);
 	assert (ptr->video_buf_Y[!ptr->free] == ptr->video_buf);
- 
+
 	/* Convert / Copy to luminance only */
 	switch (myf->codec) {
 	case CODEC_RGB:
@@ -660,13 +660,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    pic_diff (myf->lumInB, myf->lumPrevB, ptr->video_buf, myf->size,4);
 	    break;
 	}
-	
+
 	/* The current frame gets the next previous frame :-P */
 	tmp = myf->lumPrev;   myf->lumPrev  = myf->lumIn;   myf->lumIn  = tmp;
 	tmp = myf->lumPrevT;  myf->lumPrevT = myf->lumInT;  myf->lumInT = tmp;
 	tmp = myf->lumPrevB;  myf->lumPrevB = myf->lumInB;  myf->lumInB = tmp;
-    } 
-  
+    }
+
     return 0;
 }
 

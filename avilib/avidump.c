@@ -8,20 +8,20 @@
  *  Extracts some infos from RIFF files, modified by Gerd Knorr.
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -223,12 +223,12 @@ struct VAL names_strf_auds[] = {
     { INT16,  "nBlockSize" },
     { INT16,  "nFramesPerBlock" },
     { INT16,  "nCodecDelay" },
-    { EoLST,  NULL }    
+    { EoLST,  NULL }
 };
 
 struct VAL names_dmlh[] = {
     { INT32,  "frames" },
-    { EoLST,  NULL }    
+    { EoLST,  NULL }
 };
 
 struct VAL names_idx1[] = {
@@ -236,7 +236,7 @@ struct VAL names_idx1[] = {
     { INT32,  "flags" },
     { INT32,  "pos" },
     { INT32,  "length" },
-    { EoLST,  NULL }    
+    { EoLST,  NULL }
 };
 struct VAL names_indx[] = {
     { INT16, "longs/entry"},
@@ -247,7 +247,7 @@ struct VAL names_indx[] = {
     { INT32, "reserved1"},
     { INT32, "reserved2"},
     { INT32, "reserved3"},
-    { EoLST,  NULL }    
+    { EoLST,  NULL }
 };
 struct VAL names_stdidx[] = {
     { INT16, "longs/entry"},
@@ -257,7 +257,7 @@ struct VAL names_stdidx[] = {
     { CCODE, "fcc_handler"},
     { INT64, "base_offset"},
     { INT32, "reserved3"},
-    { EoLST,  NULL }    
+    { EoLST,  NULL }
 };
 
 
@@ -289,7 +289,7 @@ static size_t avi_write (int fd, char *buf, size_t len)
       n = xio_write (fd, buf + r, len - r);
       if (n < 0)
          return n;
-      
+
       r += n;
    }
    return r;
@@ -297,11 +297,11 @@ static size_t avi_write (int fd, char *buf, size_t len)
 
 static size_t avi_read_write (int fd_in, int fd_out, size_t len)
 {
-  
+
   size_t w=len, z=0;
-  
+
   while(w>0) {
-  
+
     if(w>MAX_BUF) {
       z=avi_read(fd_in, buffer, MAX_BUF);
       if(z<0) return(z);
@@ -327,7 +327,7 @@ static void dump_vals(int fd, int count, struct VAL *names)
     WORD  val16;
     off_t val64;
     char  val8;
-    
+
     for (i = 0; names[i].type != EoLST; i++) {
 	switch (names[i].type) {
 	case INT8:
@@ -401,7 +401,7 @@ static void dump_vals(int fd, int count, struct VAL *names)
 static void hexlog(unsigned char *buf, int count)
 {
     int l,i;
-    
+
     for (l = 0; l < count; l+= 16) {
 	printf("\t  ");
 	for (i = l; i < l+16; i++) {
@@ -434,7 +434,7 @@ off_t_to_char(off_t val, int base, int len)
 	val = val / base;
     }
     return (unsigned char *)p;
-}    
+}
 
 /* Reads a chunk ID and the chunk's size from file f at actual
    file position : */
@@ -474,17 +474,17 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
     char   tagstr[5];          /* FOURCC of chunk converted to string */
     FOURCC chunkid;            /* read FOURCC of chunk                */
     off_t  datapos;     /* position of data in file to process */
-    
+
     off_t tt;
 
     if (filepos>filesize-1) {  /* Oops. Must be something wrong!      */
 	printf("  *****  Error: Data would be behind end of file!\n");
     }
-    
+
     tt=xio_lseek(fd, filepos, SEEK_SET); /* Go to desired file position!     */
 
 #ifdef AVI_DEBUG
-    printf("lseek64=%Lu/%Lu (%Lu)\n", tt, filepos, filesize); 
+    printf("lseek64=%Lu/%Lu (%Lu)\n", tt, filepos, filesize);
 #endif
 
     if (!ReadChunkHead(fd, &chunkid, chunksize)) {  /* read chunk header */
@@ -502,7 +502,7 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 	    return(FALSE);
 	}
     }
-    
+
     datapos=filepos+sizeof(FOURCC)+sizeof(DWORD); /* here is the data */
 
     /* print out header: */
@@ -518,9 +518,9 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
     if (datapos + ((*chunksize+1)&~1) > filesize) {      /* too long? */
 	printf("  *****  Error: Chunk exceeds file\n");
     }
-    
+
     switch (chunkid) {
-	
+
   /* Depending on the ID of the chunk and the internal state, the
      different IDs can be interpreted. At the moment the only
      interpreted chunks are RIFF- and LIST-chunks. For all other
@@ -528,16 +528,16 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 
     case RIFFtag:
     case LISTtag: {
-	
+
 	DWORD  datashowed=0;
 	FOURCC formtype;         /* format of chunk                     */
 	char   formstr[5];       /* format of chunk converted to string */
 	DWORD  subchunksize=0;   /* size of a read subchunk             */
-	
+
 	if (!read(fd, &formtype, sizeof(FOURCC))) printf("ERROR\n");     /* read the form type */
 	FOURCC2Str(formtype,formstr);            /* make it printable  */
-	
-	
+
+
 	/* print out the indented form of the chunk: */
 	if (chunkid==RIFFtag)
 	    printf("%12c %*c  Form Type = <%s>\n",
@@ -545,38 +545,38 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 	else
 	    printf("%12c %*c  List Type = <%s>\n",
 		   ' ',(RekDepth+1)*4,' ',formstr);
-	
+
 	datashowed=sizeof(FOURCC);    /* we showed the form type      */
 	datapos+=(off_t) datashowed;  /* for the rest of the routine  */
-	
+
 	while (datashowed<*chunksize) {      /* while not showed all: */
-	    
+	
 	  uint32_t subchunklen;           /* complete size of a subchunk  */
-	  
+	
 	  datapos_tmp[RekDepth]=datapos;
 
 	    /* recurse for subchunks of RIFF and LIST chunks: */
 #ifdef AVI_DEBUG
-	    printf("enter [%d] size=%lu pos=%Lu left=%lu\n", RekDepth, subchunksize, datapos, *chunksize-datashowed); 
+	    printf("enter [%d] size=%lu pos=%Lu left=%lu\n", RekDepth, subchunksize, datapos, *chunksize-datashowed);
 #endif
 	    if (!ProcessChunk(fd, datapos, filesize,  0,
 			      RekDepth+1, &subchunksize)) return(FALSE);
-	    
+	
 	    subchunklen = sizeof(FOURCC) +  /* this is the complete..   */
 		sizeof(DWORD)  +  /* .. size of the subchunk  */
 		((subchunksize+1) & ~1);
-	    
+	
 	    datashowed += subchunklen;      /* we showed the subchunk   */
 	    datapos    = datapos_tmp[RekDepth] + (off_t) subchunklen;      /* for the rest of the loop */
-	    
+	
 #ifdef AVI_DEBUG
-	    printf(" exit [%d] size=%lu/%lu pos=%Lu left=%lu\n", RekDepth, subchunksize, subchunklen, datapos, *chunksize-datashowed); 
+	    printf(" exit [%d] size=%lu/%lu pos=%Lu left=%lu\n", RekDepth, subchunksize, subchunklen, datapos, *chunksize-datashowed);
 #endif
 	}
     } break;
-    
+
     /* Feel free to put your extensions here! */
-    
+
     case avihtag:
 	dump_vals(fd,sizeof(names_avih)/sizeof(struct VAL),names_avih);
 	break;
@@ -678,8 +678,8 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 		       (int)((val32 >>  8) & 0xff),
 		       (int)((val32 >> 16) & 0xff),
 		       (int)((val32 >> 24) & 0xff));
-	    
-	    
+	
+	
 	    //flag
 	    xio_read(fd, &val32, 4);
 	    val32 = SWAP4(val32);
@@ -704,7 +704,7 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 	dump_vals(fd,sizeof(names_dmlh)/sizeof(struct VAL),names_dmlh);
 	break;
     }
-    
+
     return(TRUE);
 }
 
@@ -718,16 +718,16 @@ static boolean DumpChunk(int fd, off_t filepos, off_t filesize,
     char   tagstr[5];          /* FOURCC of chunk converted to string */
     FOURCC chunkid;            /* read FOURCC of chunk                */
     off_t  datapos;            /* position of data in file to process */
-    
+
     if (filepos>filesize-1)  /* Oops. Must be something wrong!      */
 	return(FALSE);
-    
+
     xio_lseek(fd, filepos, SEEK_SET);
 
     if (!ReadChunkHead(fd, &chunkid,chunksize)) {  /* read chunk header */
       return(FALSE);
     }
-    
+
     FOURCC2Str(chunkid,tagstr);       /* now we can PRINT the chunkid */
 
     if (DesiredTag) {                 /* do we have to test identity? */
@@ -737,19 +737,19 @@ static boolean DumpChunk(int fd, off_t filepos, off_t filesize,
 	return(FALSE);
       }
     }
-    
+
     datapos=filepos+sizeof(FOURCC)+sizeof(DWORD); /* here is the data */
 
     //support for broken files
     if (datapos + ((*chunksize+1)&~1) > filesize) {
       size = filesize-datapos;
       eos=1;
-    } else { 
+    } else {
       size = *chunksize;
     }
-    
+
     switch (chunkid) {
-	
+
   /* Depending on the ID of the chunk and the internal state, the
      different IDs can be interpreted. At the moment the only
      interpreted chunks are RIFF- and LIST-chunks. For all other
@@ -757,37 +757,37 @@ static boolean DumpChunk(int fd, off_t filepos, off_t filesize,
 
     case RIFFtag:
     case LISTtag: {
-	
+
       DWORD datashowed;
       FOURCC formtype;       /* format of chunk                     */
       char   formstr[5];     /* format of chunk converted to string */
       DWORD  subchunksize;   /* size of a read subchunk             */
-      
+
       xio_read(fd, &formtype,sizeof(FOURCC));    /* read the form type */
       FOURCC2Str(formtype,formstr);           /* make it printable  */
-      
+
       datashowed=sizeof(FOURCC);    /* we showed the form type      */
       datapos+=(off_t)datashowed;   /* for the rest of the routine  */
-      
+
       while (datashowed<*chunksize) {      /* while not showed all: */
-	
+
 	uint32_t subchunklen;           /* complete size of a subchunk  */
-	
+
 	/* recurse for subchunks of RIFF and LIST chunks: */
 	if (!DumpChunk(fd, datapos,filesize,0,
 		       RekDepth+1,&subchunksize,mode)) return(FALSE);
-	
+
 	subchunklen = sizeof(FOURCC) +  /* this is the complete..   */
 	  sizeof(DWORD)  +  /* .. size of the subchunk  */
 	  ((subchunksize+1) & ~1);
-	
+
 	datashowed += subchunklen;      /* we showed the subchunk   */
 	datapos    += (off_t) subchunklen;      /* for the rest of the loop */
       }
-    } 
+    }
 
     break;
-    
+
     case Tag01wb:
     case Tag00wb:
 
@@ -796,9 +796,9 @@ static boolean DumpChunk(int fd, off_t filepos, off_t filesize,
 	if(avi_read_write(fd, STDOUT_FILENO, size)!=size) return(FALSE);
       }
       if(eos) return(FALSE);
-      
+
       break;
-      
+
     case Tag00db:
     case Tag00dc:
     case Tag01db:
@@ -809,24 +809,24 @@ static boolean DumpChunk(int fd, off_t filepos, off_t filesize,
 	xio_lseek(fd, datapos, SEEK_SET);
 	if(avi_read_write(fd, STDOUT_FILENO, size)!=size) return(FALSE);
       }
-    
+
       if(eos) return(FALSE);
 
       break;
-      
+
     case Tagdata:
     case TagDATA:
-      
+
       if(mode==2) {
 	xio_lseek(fd, datapos, SEEK_SET);
 	if(avi_read_write(fd, STDOUT_FILENO, size)!=size) return(FALSE);
       }
-      
+
       if(eos) exit(1);
-      
+
       break;
     }
-    
+
     return(TRUE);
 }
 

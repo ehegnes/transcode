@@ -55,8 +55,8 @@ Next, the internal processing routines take place
    The following operations are applied to the frame in the hereby
    given order
    -j (clip) -I (deinterlace) -X (fast scale up) -B (fast scale
-   down) -Z (slow zoom) -Y (clip) -r (scale half) -z (flip) 
-   -l (mirror) -k (rgbswap) -K (make grayscale) -G (gamma) 
+   down) -Z (slow zoom) -Y (clip) -r (scale half) -z (flip)
+   -l (mirror) -k (rgbswap) -K (make grayscale) -G (gamma)
    -C (antialias)
    short: "jIXBZYrzlkKGC"
 
@@ -64,7 +64,7 @@ The frame wanders off into the filters a third time
 
 5) TC_POST_M_PROCESS == TC_POST_PROCESS
    (the same as for 3) applies here, too)
-   
+
 The frame processing thread now sets the status of the frame to
 FRAME_READY which means the frame can now be picked up by the
 encoder. The encoder does again some processing and calls the
@@ -217,7 +217,7 @@ Multithreaded vs. Synchronous
  filter.
 
 PRE vs. POST
- 
+
  This decision is merely driven by the fact what your filter
  actually does and which kind of data you want to have. Its usually
  true, that a POST filter has to deal with less data than a PRE
@@ -239,7 +239,7 @@ depends on the filter which tag it wants.
 Multiple Instances of your Filter
 =================================
 
-If your you want to be able to run XXX: see /filter/filter_32detect.c 
+If your you want to be able to run XXX: see /filter/filter_32detect.c
 
 =======================
 Linked Framebuffer List

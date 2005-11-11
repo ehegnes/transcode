@@ -8,7 +8,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src
 
 pkgdir = $(MOD_PATH)
-pkg_LTLIBRARIES = import_nuv.la 
+pkg_LTLIBRARIES = import_nuv.la
 
 import_nuv_la_SOURCES = \
 	RTjpegN.c \

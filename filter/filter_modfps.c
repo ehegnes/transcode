@@ -6,24 +6,24 @@
  *  This file is part of transcode, a video stream processing tool
  *  Based on the excellent work of Donald Graft in Decomb and of
  *  Thanassis Tsiodras of transcode's decimate filter and Tilmann Bitterberg
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
-// ----------------- Changes 
+// ----------------- Changes
 // 0.9 -> 0.10: marrq
 //		added scene change detection code courtesy of Tilmann Bitterberg
 //		so we won't blend if there's a change of scene (we'll still interpolate)
@@ -89,9 +89,9 @@ static int scanrange = 0;
 static int clonetype = 0;
 
 static double frc_table[16] = {0,
-			       NTSC_FILM, 24, 25, NTSC_VIDEO, 30, 50, 
+			       NTSC_FILM, 24, 25, NTSC_VIDEO, 30, 50,
 			       (2*NTSC_VIDEO), 60,
-			       1, 5, 10, 12, 15, 
+			       1, 5, 10, 12, 15,
 			       0, 0};
 static void help_optstr(void)
 {
@@ -194,7 +194,7 @@ static void clone_phosphor_average(unsigned char *clone, unsigned char *next, vf
   // let's not blend if there's a scenechange
   if (tc_detect_scenechange(clone,next,ptr)){
     return;
-  } // else 
+  } // else
   for(i=0;i<(ptr->v_width*ptr->v_height);i++){
     //ptr->video_buf[i] = (unsigned char)lrint(pow( ( pow((double)clone[i], 3.0) +
     //					      pow((double)next[i],  3.0) ) / 2.0,
@@ -220,7 +220,7 @@ static void clone_average(unsigned char *clone, unsigned char *next, vframe_list
   // let's not blend if there's a scenechange
   if (tc_detect_scenechange(clone,next,ptr)){
     return;
-  } // else 
+  } // else
   for(i=0;i<ptr->video_size;i++){
     ptr->video_buf[i] = (unsigned char)( ((short int)clone[i] + (short int)next[i]) >> 1);
   }
@@ -232,13 +232,13 @@ static void clone_temporal_average(unsigned char *clone, unsigned char*next, vfr
   // perfectly placed  since's we'll be merging the tin and the tin+1
   // frame into the tout'th frame, we calculate the time that
   // tout will be played at, and compare it to tin and tin+1
-  
+
   // because the main body is buffering frames, when we're called, tin and tout might
   // not be appropriate for when clones should be called (in otherwords, the
   // buffering allows a small amount of AV slippage) ... what this means, is
   // that sometimes to have things match up temporally best, we should just
   // copy in the next frame  This tends to happen when outfps < 1.5*infps
-  
+
   double weight1,weight2;
   int i;
   static int first=1;
@@ -246,7 +246,7 @@ static void clone_temporal_average(unsigned char *clone, unsigned char*next, vfr
   weight1 = 1.0 - ( (double)tout/outfps*infps - (double)tin );
   weight2 = 1.0 - ( (double)(tin+1) - (double)(tout)/outfps*infps );
   // weight2 is also 1.0-weight1
-  
+
   if (show_results){
     tc_log_info(MOD_NAME, "temporal_clone tin=%4d tout=%4d w1=%1.5f w2=%1.5f",
                     tin,tout,weight1,weight2);
@@ -267,17 +267,17 @@ static void clone_temporal_average(unsigned char *clone, unsigned char*next, vfr
     // no memcpy needed, as we're keeping the orig
     return;
   } // else
-  
+
   // let's not blend if there's a scenechange
   if (tc_detect_scenechange(clone,next,ptr)){
     return;
-  } // else 
+  } // else
 
   if (weight1 > 1.0 || weight2 > 1.0){
     tc_log_info(MOD_NAME, "clone_temporal_average: error: weights are out of range, w1=%f w2=%f", weight1,weight2);
     return;
-  } // else 
-  
+  } // else
+
   for(i=0; i<ptr->video_size; i++){
     ptr->video_buf[i] = (unsigned char)( (double)(clone[i])*weight1 + (double)(next[i])*weight2);
   }
@@ -398,7 +398,7 @@ static int memory_init(vframe_list_t * ptr){
                     scanrange,ptr->video_size);
     return -1;
   }
-  
+
   frames = tc_malloc(sizeof (char*)*frbufsize);
   if (NULL == frames){
     fprintf(stderr, "[%s] Error allocating memory in init\n",MOD_NAME);
@@ -532,7 +532,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 
     if (ptr->tag & TC_FILTER_CLOSE) {
-	
+
 	return (0);
     }
     //----------------------------------
@@ -551,7 +551,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
         if (show_results){
           tc_log_info(MOD_NAME, "in=%5d out=%5d win=%05.3f wout=%05.3f ",
                           framesin,outframes,(double)framesin/infps,outframes/outfps);
-	} 
+	}
         if (infps < outfps){
 	  // Notes; since we currently only can clone frames (and just clone
 	  // them once, we can at most double the input framerate.
@@ -562,7 +562,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	      tc_log_info(MOD_NAME, "\n");
 	    }
 	    return 0;
-	  } // else 
+	  } // else
 	  if ((double)framesin++/infps > (double)outframes++/outfps){
 	    if (show_results){
 	      tc_log_info(MOD_NAME, "FRAME IS CLONED");
@@ -571,7 +571,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  }
 	} else {
 	  if ((double)framesin++/infps > outframes / outfps){
-	       ++outframes; 
+	       ++outframes;
 	  } else {
 	    if (show_results){
 	      tc_log_info(MOD_NAME, "FRAME IS SKIPPED");
@@ -614,7 +614,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  }
 	  fancy_clone(frames[frameIn],frames[(frameIn+1)%frbufsize],ptr,framesin-numSample,outframes+cloneq+1);
 	  return 0;
-	} // else 
+	} // else
 	ac_memcpy(frames[frameIn], ptr->video_buf, ptr->video_size);
 	framesOK[frameIn] = 1;
 #ifdef DEBUG

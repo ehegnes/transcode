@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - March 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -60,7 +60,7 @@ static unsigned int int_counter=0;
 
 ImageInfo *image_info;
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * init codec
  *
@@ -68,22 +68,22 @@ ImageInfo *image_info;
 
 MOD_init
 {
-    
+
     /* set the 'spit-out-frame' interval */
     interval = vob->frame_interval;
-    
+
     if(param->flag == TC_VIDEO) {
       int quality = 75;
 
       width = vob->ex_v_width;
       height = vob->ex_v_height;
-      
+
       codec = (vob->im_v_codec == CODEC_YUV) ? CODEC_YUV : CODEC_RGB;
 
       InitializeMagick("");
 
       image_info=CloneImageInfo((ImageInfo *) NULL);
-      
+
       if (vob->divxbitrate == VBITRATE)
 	quality = 75;
       else quality = vob->divxbitrate;
@@ -95,17 +95,17 @@ MOD_init
 
       if (!tmp_buffer) tmp_buffer = malloc (vob->ex_v_width*vob->ex_v_height*3);
       if (!tmp_buffer) return 1;
-       
+
       return(0);
     }
 
     if(param->flag == TC_AUDIO) return(0);
 
     // invalid flag
-    return(TC_EXPORT_ERROR); 
+    return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open outputfile
  *
@@ -113,25 +113,25 @@ MOD_init
 
 MOD_open
 {
-  
+
     if(param->flag == TC_VIDEO) {
-      
+
       // video
-      
+
 	switch(vob->im_v_codec) {
 
 	case CODEC_YUV:
 	case CODEC_RGB:
-	  
+
 	  if(vob->video_out_file!=NULL && strcmp(vob->video_out_file,"/dev/null")!=0) prefix=vob->video_out_file;
-	  
+
 	  break;
-	  
+
 	default:
-	  
+
 	  tc_log_warn(MOD_NAME, "codec not supported");
-	  return(TC_EXPORT_ERROR); 
-	  
+	  return(TC_EXPORT_ERROR);
+
 	  break;
 	}
 
@@ -141,15 +141,15 @@ MOD_open
 
 	return(0);
     }
-    
-    
-    if(param->flag == TC_AUDIO) return(0);
-    
-    // invalid flag
-    return(TC_EXPORT_ERROR); 
-}   
 
-/* ------------------------------------------------------------ 
+
+    if(param->flag == TC_AUDIO) return(0);
+
+    // invalid flag
+    return(TC_EXPORT_ERROR);
+}
+
+/* ------------------------------------------------------------
  *
  * encode and export
  *
@@ -157,7 +157,7 @@ MOD_open
 
 MOD_encode
 {
-  
+
   ExceptionInfo exception_info;
   char *out_buffer = param->buffer;
   Image *image=NULL;
@@ -166,7 +166,7 @@ MOD_encode
   if ((++int_counter-1) % interval != 0)
       return (0);
 
-  if(param->flag == TC_VIDEO) { 
+  if(param->flag == TC_VIDEO) {
 
     GetExceptionInfo(&exception_info);
 
@@ -174,8 +174,8 @@ MOD_encode
     if (res < 0) {
       perror("cmd buffer overflow");
       return(TC_EXPORT_ERROR);
-    } 
-    
+    }
+
     if(codec==CODEC_YUV) {
       uint8_t *planes[3];
       YUV_INIT_PLANES(planes, param->buffer, IMG_YUV_DEFAULT, width, height);
@@ -183,32 +183,32 @@ MOD_encode
 		    width, height);
       out_buffer = tmp_buffer;
     }
-    
+
     image=ConstituteImage (width, height, "RGB", CharPixel, out_buffer, &exception_info);
-    
+
     strlcpy(image->filename, buf2, MaxTextExtent);
-    
+
     WriteImage(image_info, image);
     DestroyImage(image);
-    
+
     return(0);
   }
-  
+
   if(param->flag == TC_AUDIO) return(0);
-  
+
   // invalid flag
   return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * stop encoder
  *
  * ------------------------------------------------------------*/
 
-MOD_stop 
+MOD_stop
 {
-  
+
   if(param->flag == TC_VIDEO) {
     DestroyImageInfo(image_info);
     DestroyConstitute();
@@ -221,23 +221,23 @@ MOD_stop
   }
 
   if(param->flag == TC_AUDIO) return(0);
-  
+
   return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close outputfiles
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
 
     if(param->flag == TC_AUDIO) return(0);
     if(param->flag == TC_VIDEO) return(0);
-    
-    return(TC_EXPORT_ERROR);  
-    
+
+    return(TC_EXPORT_ERROR);
+
 }
 

@@ -33,17 +33,17 @@ long filesize(FILE *fp)
   {
     return(ERROR);
   }
-  
+
   if ((fsize=ftell(fp))==-1)
   {
     return(ERROR);
-  }  
+  }
 
   if (fseek(fp,fpos,SEEK_SET)==-1)
   {
     return(ERROR);
   }
-  return(fsize);  
+  return(fsize);
 }
 
 /* read in 'count' unsigned integers of range 0-maxcolour and place values
@@ -73,7 +73,7 @@ int asciiRead(unsigned char *buf, unsigned int count, FILE *fp, unsigned int max
        fprintf(stderr, "ASCII value is out of range!\n");
        return(ERROR);
     }
-    
+
     if (maxcolour == 1)
     {
       buf[i/8] = buf[i/8] << 1;
@@ -174,12 +174,12 @@ int changeBufPrecision(unsigned char *inbuf, unsigned long inbufsize, unsigned c
   {
     byte_num = i % input_bytes;
 
-    /* copy bytes until we reach max outbyte bytes/pixel; 
+    /* copy bytes until we reach max outbyte bytes/pixel;
        if output bytes are less than input bytes, then ignore the rest */
     if(byte_num < output_bytes)
       outbuf[outputPtr++]=inbuf[i];
 
-    /* if output bytes are > than input bytes, 
+    /* if output bytes are > than input bytes,
        and this is the last byte for input, then padd with 0's */
     if((byte_num==input_bytes-1)&&(output_bytes > input_bytes))
     {
@@ -403,7 +403,7 @@ int bufConvert(unsigned char *inbuf, unsigned long inbufsize,
     }
 
     for(i=0; i < outbufsize; i++)
-     if(i % out_prec_bytes == 0) 
+     if(i % out_prec_bytes == 0)
        outbuf[i] -= 128;  // subtracting 128 to the most significant byte is equivalent to subtracting 2^(maxcolour-1) to the entire thing
     return(OK);
   }
@@ -434,7 +434,7 @@ int bufConvert(unsigned char *inbuf, unsigned long inbufsize,
         fprintf(stderr, "Error converting buffer to integer!\n");
         return(ERROR);
       }
-  
+
       if (outbufFormat == FORMAT_FLOAT)
       {
         if(inbufFormat == FORMAT_INT)
@@ -800,7 +800,7 @@ int bufToDouble(double *d, unsigned char *buf)
   return(OK);
 }
 
-/* Saves an integer from a buffer buf (big endian), of precision 'prec' bits 
+/* Saves an integer from a buffer buf (big endian), of precision 'prec' bits
    into long *l
 
    returns OK or ERROR */
@@ -827,7 +827,7 @@ int bufToInt(unsigned long *l, unsigned char *buf, int prec)
   return(OK);
 }
 
-/* convert an unsigned long to a float, adjusting the range from [-maxval,+maxval] 
+/* convert an unsigned long to a float, adjusting the range from [-maxval,+maxval]
    note, input_prec is in bits! */
 double ulFloatAdjust(unsigned long input, int input_prec, double maxval)
 {
@@ -837,7 +837,7 @@ double ulFloatAdjust(unsigned long input, int input_prec, double maxval)
   return((input * mult)-maxval);
 }
 
-/* convert a signed long to a float, adjusting the range from [-maxval,+maxval] 
+/* convert a signed long to a float, adjusting the range from [-maxval,+maxval]
    note, input_prec is in bits! */
 double slFloatAdjust(long input, int input_prec, double maxval)
 {
@@ -855,7 +855,7 @@ double dFloatAdjust(double input, double old_maxval, double new_maxval)
   return(input * mult);
 }
 
-/* convert a float to an unsigned long, adjusting the range to output_prec 
+/* convert a float to an unsigned long, adjusting the range to output_prec
    note, output_prec is in bits! */
 unsigned long FloatAdjustToULong(double input, double maxval, int output_prec)
 {

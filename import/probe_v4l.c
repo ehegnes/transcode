@@ -4,20 +4,20 @@
  *  Copyright (C) Tilmann Bitterberg - January 2004
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -44,7 +44,7 @@ void probe_v4l(info_t *ipipe)
   int is_v4l2 = 0, is_pal = 0;
   struct v4l2_capability caps; // v4l2
   struct video_capability  capability; // v4l1
-  
+
   printf("xxx name");
   close(ipipe->fd_in);
   ipipe->fd_in = open(ipipe->name, O_RDWR, 0);
@@ -68,7 +68,7 @@ void probe_v4l(info_t *ipipe)
   // try v4l1
   if (!is_v4l2) {
       if (ipipe->verbose & TC_DEBUG) fprintf(stderr, "Checking if v4l1 ioctls are supported .. ");
-      if (-1 == ioctl(ipipe->fd_in,VIDIOCGCAP,&capability)) { 
+      if (-1 == ioctl(ipipe->fd_in,VIDIOCGCAP,&capability)) {
 	  if (ipipe->verbose & TC_DEBUG) fprintf(stderr, "no\n");
 	  goto error;
       } else {
@@ -110,13 +110,13 @@ void probe_v4l(info_t *ipipe)
 
       }
   }
-  
+
   // FIXME: Check if these settings are actually supported by /dev/dsp
   ipipe->probe_info->track[0].samplerate = 44100;
   ipipe->probe_info->track[0].chan = 2;
   ipipe->probe_info->track[0].bits = 16;
   ipipe->probe_info->track[0].format = 0x1;
-  
+
   if(ipipe->probe_info->track[0].chan>0) ipipe->probe_info->num_tracks=1;
 
   return;

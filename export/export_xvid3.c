@@ -3,11 +3,11 @@
  *
  *  Copyright (C) 2001-2003 - Thomas Östreich
  *
- *  Original Author    : Christoph Lampert <gruel@web.de> 
+ *  Original Author    : Christoph Lampert <gruel@web.de>
  *  Current maintainer : Edouard Gomez <ed.gomez@free.fr>
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software ; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation ; either version 2 of the License, or
@@ -86,7 +86,7 @@ static int capability_flag = TC_CAP_PCM |
                              TC_CAP_AC3 |
                              TC_CAP_YUV422 |
                              TC_CAP_AUD;
-#define MOD_PRE xvid3_ 
+#define MOD_PRE xvid3_
 #include "export_def.h"
 
 extern pthread_mutex_t delay_video_frames_lock;
@@ -102,7 +102,7 @@ static int VbrMode = 0;
 static int encode_fields = 0;
 static avi_t *avifile = NULL;
 static int rawfd = -1;
-  
+
 /* temporary audio/video buffer */
 static char *buffer;
 
@@ -170,7 +170,7 @@ static void xvid_print_vbr(vbr_control_t *state);
 
 MOD_init
 {
-	int xerr; 
+	int xerr;
 	int quality;
 	float bpp;
 
@@ -179,20 +179,20 @@ MOD_init
 
 	if(param->flag == TC_VIDEO) {
 		int fsize = vob->ex_v_width * vob->ex_v_height;
-		bpp = 1000 * (vob->divxbitrate) / 
+		bpp = 1000 * (vob->divxbitrate) /
 			(vob->ex_fps * vob->ex_v_width * vob->ex_v_height);
-    
+
 		if((buffer = malloc(fsize*3))==NULL) {
 			perror("out of memory");
-			return(TC_EXPORT_ERROR); 
+			return(TC_EXPORT_ERROR);
 		} else {
-			memset(buffer, 0, fsize*3);  
+			memset(buffer, 0, fsize*3);
 		}
 
 		/* Load the codec */
 		if(xvid2_init(vob->mod_path)<0) {
 			tc_log_warn(MOD_NAME, "Failed to init XviD codec");
-			return(TC_EXPORT_ERROR); 
+			return(TC_EXPORT_ERROR);
 		}
 
 		VbrMode = vob->divxmultipass;
@@ -249,7 +249,7 @@ MOD_init
 		if(encode_fields) global_frame.general |= XVID_INTERLACING;
 
 		switch(vob->im_v_codec) {
-		case CODEC_RGB:	
+		case CODEC_RGB:
 			global_framesize = fsize*3;
 			global_colorspace = XVID_CSP_RGB24|XVID_CSP_VFLIP;
 			break;
@@ -269,7 +269,7 @@ MOD_init
 			global_framesize = fsize*3/2;
 			global_colorspace = XVID_CSP_I420;
 			break;
-		}			
+		}
 
 		global_frame.colorspace = global_colorspace;
 		global_frame.length     = global_framesize;
@@ -279,12 +279,12 @@ MOD_init
 
 		if(xerr == XVID_ERR_FAIL) {
 			tc_log_warn(MOD_NAME, "codec open error");
-			return(TC_EXPORT_ERROR); 
+			return(TC_EXPORT_ERROR);
 		}
 
 		/* Here is our XviD handle which identify our instance */
 		XviD_encore_handle = global_param.handle;
-    
+
 		/* Overide the vbr settings with command line options */
 		vbr_state.fps = (float)((float)global_param.fbase/(float)global_param.fincr);
 		vbr_state.debug = (verbose_flag & TC_DEBUG)?1:0;
@@ -298,7 +298,7 @@ MOD_init
 			vbr_state.mode = VBR_MODE_2PASS_1;
 			vbr_state.filename = vob->divxlogfile;
 			break;
-		case 2:	
+		case 2:
 			/*
 			 * Two pass mode - 2nd pass : the vbr controler will
 			 * analyse the statistics file generated during 1st pass
@@ -349,12 +349,12 @@ MOD_init
 
 			if(VbrMode == 2) xvid_print_vbr(&vbr_state);
 		}
-    
+
 		return(TC_EXPORT_OK);
 	}
-  
+
 	/* invalid flag */
-	return(TC_EXPORT_ERROR); 
+	return(TC_EXPORT_ERROR);
 }
 
 
@@ -378,22 +378,22 @@ MOD_open
 
 		if((vob->avifile_out) == NULL) {
 			AVI_print_error("avi open error");
-			return(TC_EXPORT_ERROR); 
+			return(TC_EXPORT_ERROR);
 		}
 	}
 
 	/* Save locally */
 	avifile = vob->avifile_out;
-    
+
 	if(param->flag == TC_AUDIO)
 		return(audio_open(vob, vob->avifile_out));
-    
+
 	if(param->flag == TC_VIDEO) {
 
 		if(verbose_flag & TC_DEBUG)
 			tc_log_info(MOD_NAME, "Using %s output",
 				avi_output?"AVI":"Raw");
-    
+
 		if(avi_output) {
 			/* AVI Video output */
 			AVI_set_video(vob->avifile_out, vob->ex_v_width,
@@ -415,9 +415,9 @@ MOD_open
 
 		return(TC_EXPORT_OK);
 	}
-  
+
 	/* invalid flag */
-	return(TC_EXPORT_ERROR); 
+	return(TC_EXPORT_ERROR);
 }
 
 
@@ -432,11 +432,11 @@ MOD_encode
 	XVID_ENC_FRAME xframe;
 	XVID_ENC_STATS xstats;
 
-	if(param->flag == TC_AUDIO) 
-		return(audio_encode(param->buffer, param->size, avifile));  
-  
-  	if(param->flag != TC_VIDEO) 
-		return(TC_EXPORT_ERROR); 
+	if(param->flag == TC_AUDIO)
+		return(audio_encode(param->buffer, param->size, avifile));
+
+  	if(param->flag != TC_VIDEO)
+		return(TC_EXPORT_ERROR);
 
 	if(tc_get_vob()->im_v_codec == CODEC_YUV422) {
 		/* Convert to UYVY */
@@ -466,7 +466,7 @@ MOD_encode
 	/* Error ? */
 	if(xerr == XVID_ERR_FAIL) {
 		tc_log_warn(MOD_NAME, "codec encoding error %d", xerr);
-		return(TC_EXPORT_ERROR); 
+		return(TC_EXPORT_ERROR);
     	}
 
 	/* Update the VBR controler */
@@ -484,7 +484,7 @@ MOD_encode
 	 * Original comment:
 	 *   0.6.2: switch outfile on "C" and -J pv
 	 *
-	 * NB: we now test xframe.intra == 1 because xvidocre can return 
+	 * NB: we now test xframe.intra == 1 because xvidocre can return
 	 *     0 == PFrame (predicted frame)
 	 *     1 == IFrame (intra frame)
 	 *     2 == BFrame (bidirectional frame)
@@ -495,7 +495,7 @@ MOD_encode
 
 	if(rawfd < 0) {
 		/* Split the AVI */
-		if((uint32_t)(AVI_bytes_written(avifile)+xframe.length+16+8)>>20 >= tc_avi_limit) 
+		if((uint32_t)(AVI_bytes_written(avifile)+xframe.length+16+8)>>20 >= tc_avi_limit)
 			tc_outstream_rotate_request();
 
 		if(xframe.intra == 1) tc_outstream_rotate();
@@ -510,14 +510,14 @@ MOD_encode
 		if(rawfd < 0) {
 			if(AVI_write_frame(avifile, buffer, xframe.length, xframe.intra == 1) < 0) {
 				tc_log_warn(MOD_NAME, "avi video write error");
-				return(TC_EXPORT_ERROR); 
+				return(TC_EXPORT_ERROR);
 			}
-		} else if(tc_pwrite(rawfd, buffer, xframe.length)  != xframe.length) {    
+		} else if(tc_pwrite(rawfd, buffer, xframe.length)  != xframe.length) {
 			perror("write frame");
 			return(TC_EXPORT_ERROR);
 		}
 	}
-    
+
 	return(TC_EXPORT_OK);
 }
 
@@ -526,12 +526,12 @@ MOD_encode
  ****************************************************************************/
 
 MOD_close
-{  
+{
 	vob_t *vob = tc_get_vob();
 
 	if(param->flag == TC_AUDIO)
-		return(audio_close()); 
-    
+		return(audio_close());
+
 	if(param->flag == TC_VIDEO) {
 		if(rawfd >= 0) {
 			close(rawfd);
@@ -543,7 +543,7 @@ MOD_close
 		}
 		return(TC_EXPORT_OK);
 	}
-  
+
 	return(TC_EXPORT_ERROR);
 }
 
@@ -553,13 +553,13 @@ MOD_close
  ****************************************************************************/
 
 MOD_stop
-{  
+{
 	int xerr;
 
 	if(param->flag == TC_AUDIO)
 		return(audio_stop());
 
-	if(param->flag == TC_VIDEO) { 
+	if(param->flag == TC_VIDEO) {
 
 		/* Stop the encoder */
 		xerr = XviD_encore(XviD_encore_handle, XVID_ENC_DESTROY, NULL,
@@ -585,13 +585,13 @@ MOD_stop
 			free(buffer);
 			buffer=NULL;
 		}
-    
+
 		/* Unload XviD core shared library */
 		dlclose(handle);
-    
+
 		/* Stops the VBR controler */
 		vbrFinish(&vbr_state);
-    
+
 		return(TC_EXPORT_OK);
   	}
 
@@ -606,12 +606,12 @@ static int xvid2_init(char *path)
 {
 #ifdef SYS_BSD
 	const
-#endif    
+#endif
 		char *error;
 	char modules[4][TC_BUF_MAX];
 	char *module;
 	int i;
-	
+
 
 	/* First we build all lib names we will try to load */
 #ifdef SYSTEM_DARWIN
@@ -663,7 +663,7 @@ static int xvid2_init(char *path)
 
 	/* Import the XviD init entry point */
 	XviD_init   = dlsym(handle, "xvid_init");
-    
+
 	/* Something went wrong */
 	if((error = dlerror()) != NULL)  {
 	        tc_log_warn(MOD_NAME, "%s", dlerror());
@@ -757,7 +757,7 @@ static int xvid_config(XVID_INIT_PARAM *einit,
 	/* Frame flags */
 	eframe->general  = general_presets[quality];
 	eframe->motion   =  motion_presets[quality];
-	eframe->bframe_threshold = 0;  
+	eframe->bframe_threshold = 0;
 	eframe->quant_inter_matrix = NULL;
 	eframe->quant_intra_matrix = NULL;
 
@@ -1095,7 +1095,7 @@ static void *xvid_read_matrixfile(unsigned char *filename)
 	int i;
 	unsigned char *matrix;
 	FILE *input;
-	
+
 	/* Allocate matrix space */
 	if((matrix = malloc(64*sizeof(unsigned char))) == NULL)
 	   return(NULL);
@@ -1132,7 +1132,7 @@ static void *xvid_read_matrixfile(unsigned char *filename)
 	fclose(input);
 
 	return(matrix);
-	
+
 }
 
 #if 0
@@ -1440,7 +1440,7 @@ static void xvid_config_get_vbr(vbr_control_t *evbr_state,
 		int n = atoi(pTemp);
 		evbr_state->twopass_max_overflow_improvement = Max(0, n);
 	}
-	
+
 	if( ( pTemp = cf_get("twopass_max_overflow_degradation" ) ) != NULL ) {
 		int n = atoi(pTemp);
 		evbr_state->twopass_max_overflow_degradation = Max(0, n);
@@ -1558,13 +1558,13 @@ static int xvid_print_config(XVID_INIT_PARAM *einit,
 
 	/* Global flags */
 	tc_log_info(MOD_NAME, "\tGlobal Flags:");
-	
+
 	for(i=0; global_flags[i].flag_string != NULL; i++) {
 		if(global_flags[i].flag_value & eparam->global)
-			tc_log_info(MOD_NAME, "\t\t\t%s", 
+			tc_log_info(MOD_NAME, "\t\t\t%s",
 					global_flags[i].flag_string);
 	}
-	
+
 	/* General flags */
 	tc_log_info(MOD_NAME, "\tGeneral Flags:");
 
@@ -1632,7 +1632,7 @@ static void xvid_print_vbr(vbr_control_t *state)
 		state->mode);
 	fprintf(stderr, "\t\t\tcredits_mod = %d\n",
 		state->credits_mode);
-	fprintf(stderr, "\t\t\tcredits_start = %d\n", 
+	fprintf(stderr, "\t\t\tcredits_start = %d\n",
 		state->credits_start);
 	fprintf(stderr, "\t\t\tcredits_start_begin = %d\n",
 		state->credits_start_begin);

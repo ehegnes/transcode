@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -70,7 +70,7 @@ int fthread_index=0;
 fthbuf_t tbuf[TC_FRAME_THREADS_MAX];
 fthbuf_t tbuf_DI[TC_FRAME_THREADS_MAX];
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * frame processing threads
  *
@@ -78,14 +78,14 @@ fthbuf_t tbuf_DI[TC_FRAME_THREADS_MAX];
 
 void frame_threads_init(vob_t *vob, int vworkers, int aworkers)
 {
-    
+
     int n;
 
     master_thread_id=pthread_self();
 
 
     //video
-    
+
     have_vframe_workers = vworkers;
 
     if(vworkers==0) return;
@@ -95,16 +95,16 @@ void frame_threads_init(vob_t *vob, int vworkers, int aworkers)
     if(verbose & TC_DEBUG) printf("[%s] starting %d frame processing thread(s)\n", PACKAGE, vworkers);
 
     // start the thread pool
-    
+
     for(n=0; n<vworkers; ++n) {
-	
+
 	if(pthread_create(&vfthread[n], NULL, (void *) process_vframe, vob)!=0)
 	    tc_error("failed to start video frame processing thread");
     }
 
 
     //audio
-    
+
     have_aframe_workers = aworkers;
 
     if(aworkers==0) return;
@@ -114,9 +114,9 @@ void frame_threads_init(vob_t *vob, int vworkers, int aworkers)
     if(verbose & TC_DEBUG) printf("[%s] starting %d frame processing thread(s)\n", PACKAGE, aworkers);
 
     // start the thread pool
-    
+
     for(n=0; n<aworkers; ++n) {
-	
+
 	if(pthread_create(&afthread[n], NULL, (void *) process_aframe, vob)!=0)
 	    tc_error("failed to start audio frame processing thread");
     }
@@ -126,7 +126,7 @@ void frame_threads_init(vob_t *vob, int vworkers, int aworkers)
 void frame_threads_notify(int what)
 {
   if(what==TC_AUDIO) {
-    
+
     pthread_mutex_lock(&abuffer_im_fill_lock);
 
     //notify all threads to check for status
@@ -135,7 +135,7 @@ void frame_threads_notify(int what)
     pthread_mutex_unlock(&abuffer_im_fill_lock);
     return;
   }
-  
+
   if(what==TC_VIDEO) {
 
     pthread_mutex_lock(&vbuffer_im_fill_lock);
@@ -151,23 +151,23 @@ void frame_threads_notify(int what)
 
 void frame_threads_close()
 {
-  
+
     int n;
     void *status;
 
     //audio
-    
+
     if(have_aframe_threads==0) return;
-    
+
     pthread_mutex_lock(&abuffer_im_fill_lock);
     aframe_threads_shutdown=1;
     pthread_mutex_unlock(&abuffer_im_fill_lock);
 
-    //notify all threads of shutdown    
+    //notify all threads of shutdown
     frame_threads_notify(TC_AUDIO);
-    
+
     for(n=0; n<have_aframe_workers; ++n) pthread_cancel(afthread[n]);
-    
+
     //wait for threads to terminate
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
     pthread_cond_broadcast(&abuffer_fill_cv);
@@ -177,9 +177,9 @@ void frame_threads_close()
     if(verbose & TC_DEBUG) fprintf(stderr, "(%s) audio frame processing threads canceled\n", __FILE__);
 
     //video
-    
+
     if(have_vframe_threads==0) return;
-    
+
     pthread_mutex_lock(&vbuffer_im_fill_lock);
     vframe_threads_shutdown=1;
     pthread_mutex_unlock(&vbuffer_im_fill_lock);
@@ -193,9 +193,9 @@ void frame_threads_close()
     pthread_cond_broadcast(&vbuffer_fill_cv);
 #endif
     for(n=0; n<have_vframe_workers; ++n) pthread_join(vfthread[n], &status);
-    
+
     if(verbose & TC_DEBUG) fprintf(stderr, "(%s) video frame processing threads canceled\n", __FILE__);
-    
+
 }
 
 #define DUP_vptr_if_cloned(vptr) \
@@ -322,26 +322,26 @@ process_frame_lock_cleanup (void *arg)
 
 void process_vframe(vob_t *vob)
 {
-  
+
   int id;
   vframe_list_t *ptr = NULL;
-  
+
   pthread_mutex_lock(&fth_id_lock);
 
   id = fthread_index++;
-  
+
   fthread_id[id] = pthread_self();
-  
+
   pthread_mutex_unlock(&fth_id_lock);
-  
+
   memset(&tbuf[id], 0, sizeof(fthbuf_t));
-  
+
   for(;;) {
-    
+
     pthread_testcancel();
-    
+
     pthread_mutex_lock(&vbuffer_im_fill_lock);
-    
+
     pthread_cleanup_push (process_frame_lock_cleanup, &vbuffer_im_fill_lock);
 
     while(vbuffer_im_fill_ctr==0) {
@@ -349,22 +349,22 @@ void process_vframe(vob_t *vob)
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
       pthread_testcancel();
 #endif
-      
+
       //exit
       if(vframe_threads_shutdown) {
 	pthread_exit(0);
       }
     }
-    
+
     pthread_cleanup_pop (0);
 
     pthread_mutex_unlock(&vbuffer_im_fill_lock);
-    
+
     ptr = vframe_retrieve_status(FRAME_WAIT, FRAME_LOCKED);
-    
+
     if(ptr==NULL) {
       if(verbose & TC_DEBUG) fprintf(stderr, "(%s) internal error (V|%d)\n", __FILE__, vbuffer_im_fill_ctr);
-      
+
       pthread_testcancel();
       continue;
       //goto invalid_vptr; // this shouldn't happen but is non-fatal
@@ -390,9 +390,9 @@ void process_vframe(vob_t *vob)
 
     //release lock
     pthread_mutex_unlock(&vbuffer_xx_fill_lock);
-    
 
-    
+
+
     //------
     // video
     //------
@@ -422,10 +422,10 @@ void process_vframe(vob_t *vob)
     DROP_vptr_if_skipped(ptr)
 
     pthread_testcancel();
-    
+
     // ready for encoding
     vframe_set_status(ptr, FRAME_READY);
-    
+
     pthread_mutex_lock(&vbuffer_xx_fill_lock);
     --vbuffer_xx_fill_ctr;
     pthread_mutex_unlock(&vbuffer_xx_fill_lock);
@@ -433,25 +433,25 @@ void process_vframe(vob_t *vob)
     pthread_mutex_lock(&vbuffer_ex_fill_lock);
     ++vbuffer_ex_fill_ctr;
     pthread_mutex_unlock(&vbuffer_ex_fill_lock);
-    
+
     //invalid_vptr:
   }
-  
+
   return;
 }
 
 
 void process_aframe(vob_t *vob)
 {
-  
+
   aframe_list_t *ptr = NULL;
-  
+
   for(;;) {
-    
+
     pthread_testcancel();
-    
+
     pthread_mutex_lock(&abuffer_im_fill_lock);
-    
+
     pthread_cleanup_push (process_frame_lock_cleanup, &abuffer_im_fill_lock);
 
     while(abuffer_im_fill_ctr==0) {
@@ -459,29 +459,29 @@ void process_aframe(vob_t *vob)
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
       pthread_testcancel();
 #endif
-      
+
       //exit
       if(aframe_threads_shutdown) {
 	pthread_exit(0);
       }
     }
-    
+
     pthread_cleanup_pop (0);
 
     pthread_mutex_unlock(&abuffer_im_fill_lock);
-    
+
     ptr = aframe_retrieve_status(FRAME_WAIT, FRAME_LOCKED);
-    
+
     if(ptr==NULL) {
       if(verbose & TC_DEBUG) fprintf(stderr, "(%s) internal error (A|%d)\n", __FILE__, abuffer_im_fill_ctr);
-      
+
       pthread_testcancel();
       continue;
       //goto invalid_aptr; // this shouldn't happen but is non-fatal
     }
 
     pthread_testcancel();
-    
+
     // regain locked during operation
     pthread_mutex_lock(&abuffer_im_fill_lock);
 
@@ -494,7 +494,7 @@ void process_aframe(vob_t *vob)
     pthread_mutex_lock(&abuffer_xx_fill_lock);
 
     ++abuffer_xx_fill_ctr;
-    
+
     //release lock
     pthread_mutex_unlock(&abuffer_xx_fill_lock);
 
@@ -504,7 +504,7 @@ void process_aframe(vob_t *vob)
     //------
 
     DROP_aptr_if_skipped(ptr)
-    
+
     // external plugin pre-processing
     ptr->tag = TC_AUDIO|TC_PRE_M_PROCESS;
     process_aud_plugins(ptr);
@@ -512,15 +512,15 @@ void process_aframe(vob_t *vob)
     DUP_aptr_if_cloned(ptr)
 
     DROP_aptr_if_skipped(ptr)
-    
+
     // internal processing of audio
     ptr->tag = TC_AUDIO;
     process_aud_frame(vob, ptr);
-    
+
     // external plugin post-processing
     ptr->tag = TC_AUDIO|TC_POST_M_PROCESS;
     process_aud_plugins(ptr);
-    
+
     DROP_aptr_if_skipped(ptr)
 
     pthread_testcancel();
@@ -538,7 +538,7 @@ void process_aframe(vob_t *vob)
 
     //invalid_aptr:
   }
-  
+
   return;
 }
 
@@ -548,21 +548,21 @@ void process_aframe(vob_t *vob)
 int get_fthread_id(int flag)
 {
   int n;
-  
+
   pthread_t id;
-  
+
   static int cc1=0, cc2;
-  
+
   if(have_vframe_workers==0) return(0);
-  
+
   id = pthread_self();
-  
+
   if(id==master_thread_id) return(((flag)?cc1++:cc2++));
-  
+
   for(n=0; n<TC_FRAME_THREADS_MAX; ++n) {
     if(fthread_id[n] == id) return(n);
   }
-  
+
   tc_error("frame processing thread not registered");
 
   return(-1);

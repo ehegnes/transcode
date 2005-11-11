@@ -19,7 +19,7 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- * $Id: xvid3.h,v 1.2 2004-10-17 22:03:12 jacob Exp $
+ * $Id: xvid3.h,v 1.3 2005-11-11 14:46:58 achurch Exp $
  *
  ****************************************************************************/
 
@@ -38,10 +38,10 @@ extern "C" {
 #define API_VERSION ((3 << 16) | (0))
 #define XVID_API_UNSTABLE
 
-/* Bitstream Version 
- * this will be writen into the bitstream to allow easy detection of xvid 
- * encoder bugs in the decoder, without this it might not possible to 
- * automatically distinquish between a file which has been encoded with an 
+/* Bitstream Version
+ * this will be writen into the bitstream to allow easy detection of xvid
+ * encoder bugs in the decoder, without this it might not possible to
+ * automatically distinquish between a file which has been encoded with an
  * old & buggy XVID from a file which has been encoded with a bugfree version
  * see the infamous interlacing bug ...
  *
@@ -215,7 +215,7 @@ extern "C" {
 
 
 	/* This struct is used for per slice rendering */
-	typedef struct 
+	typedef struct
 	{
 		void *y,*u,*v;
 		int stride_y, stride_u,stride_v;
@@ -326,10 +326,10 @@ extern "C" {
 
 /* only for compatability with old encoders */
 
-#define PMV_EARLYSTOP16         0x00	
+#define PMV_EARLYSTOP16         0x00
 #define PMV_EARLYSTOP8          0x00
-#define PMV_QUICKSTOP16         0x00	
-#define PMV_QUICKSTOP8          0x00	
+#define PMV_QUICKSTOP16         0x00
+#define PMV_QUICKSTOP8          0x00
 
 #define PMV_HALFPELDIAMOND16    0x00
 #define PMV_HALFPELDIAMOND8     0x00
@@ -408,7 +408,7 @@ extern "C" {
 		int length;                        /* [out] bitstream length (bytes) */
 
 		void *image;                       /* [in] image ptr */
-		int stride;                        /* [in] horizontal stride in bytes */ 
+		int stride;                        /* [in] horizontal stride in bytes */
 		int colorspace;                    /* [in] source colorspace */
 
 		unsigned char *quant_intra_matrix; /* [in] custom intra qmatrix */

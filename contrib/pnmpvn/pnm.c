@@ -14,10 +14,10 @@
 #include "pvnglobals.h"
 #include "pnm.h"
 
-/* calculates the size of raster data in a PNM file based on a PNMParam 
-   header 
+/* calculates the size of raster data in a PNM file based on a PNMParam
+   header
 
-   returns # of bytes if P4/P5/P6; 
+   returns # of bytes if P4/P5/P6;
    or # bytes required to store ascii numbers in P1/P2/P3 in binary
 */
 long calcPNMSize(PNMParam p)
@@ -70,13 +70,13 @@ int PNMParamCompare(PNMParam first, PNMParam second)
     return(EQUAL);
 }
 
-/* Copy src parameters to dest 
+/* Copy src parameters to dest
    returns OK or ERROR */
 int PNMParamCopy(PNMParam *dest, PNMParam *src)
 {
   if ((dest==NULL) || (src == NULL))
   {
-    fprintf(stderr, "Pointer Error\n"); 
+    fprintf(stderr, "Pointer Error\n");
     return(ERROR);
   }
   else
@@ -153,7 +153,7 @@ int readPNMHeader(FILE *fp, PNMParam *p)
       if (p->maxcolour > 65535)
       {
         fprintf(stderr, "Max colour value is invalid; must be between 1 and 65535!\n");
-        return(INVALID);         
+        return(INVALID);
       }
 
       done = 1;

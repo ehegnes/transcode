@@ -22,7 +22,7 @@
  */
 
 #ifndef _PVM_VERSION_H
-#define _PVM_VERSION_H 
+#define _PVM_VERSION_H
 
 
 #define EXPORT_PVM_VERSION   "v0.0.4 (2003-09-10)\0"

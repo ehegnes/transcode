@@ -28,12 +28,12 @@ distributed encoding:
 =====================
 
 (3) we need to decide, how many chunks we want to create for
-    distributed encoding. This number should not be too high, in case 
+    distributed encoding. This number should not be too high, in case
     you prefer 2-pass encoding. Otherwise, it may depend on the nodes
     in our cluster. Assume we want 8 chunks with approx.
-    25k frames. 
+    25k frames.
 
-    For each chunk, switch to a node and invoke transcode with your 
+    For each chunk, switch to a node and invoke transcode with your
     favorite options. In addition, use the new -W option:
 
     example:
@@ -43,8 +43,8 @@ distributed encoding:
 
     and repeat this for X=0,1,2,...,7.
     Note, this will transcode the video only. Audio is done for the
-    entire stream in the last step with X=8. Repeat this step in case of 
-    2-pass encoding. However, in this case we need to specify different 
+    entire stream in the last step with X=8. Repeat this step in case of
+    2-pass encoding. However, in this case we need to specify different
     filenames for multi-pass encoding logfile with option -R.
 
 post-processing:
@@ -62,12 +62,12 @@ post-processing:
 
     example:
     ========
-    
-    transcode -p dvd_title/ -W 8,8,nav_file -i tmp_movie.avi -P 1 
-	      -x avi,vob -y raw -o movie.avi -u 50 
-  
+
+    transcode -p dvd_title/ -W 8,8,nav_file -i tmp_movie.avi -P 1
+	      -x avi,vob -y raw -o movie.avi -u 50
+
     This command will pass-through the video, extract the audio track
-    and multiplex both into movie.avi. Increasing the number of buffer 
+    and multiplex both into movie.avi. Increasing the number of buffer
     for audio processing only will boost the performance.
     To tell transcode to process all chunks, the first parameter to -W is
     identical to the number of chunks.
@@ -75,14 +75,14 @@ post-processing:
 ----------------------------------------------------------------------------
 Q: Why not use -c 0-25000, ... with 0.5.x?
 A: Well, the problem is seeking to large frame numbers requires decoding
-   all previous frames, which takes way too long. 
+   all previous frames, which takes way too long.
 
 Q: Why not transcoding the audio with step (3)?
-A: This may lead to AV out of sync on chunk boundaries, since a 
-   MP3 frame requires a certain amount of PCM data and the encoder runs 
+A: This may lead to AV out of sync on chunk boundaries, since a
+   MP3 frame requires a certain amount of PCM data and the encoder runs
    on different nodes. If you need it, use PCM, this will work fine.
 
 Q: Will it work for NTSC?
 A: Not tested very well. It may or may not work.
 ----------------------------------------------------------------------------
-    
+

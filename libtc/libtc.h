@@ -4,25 +4,25 @@
  *  Copyright (C) Thomas Östreich - August 2003
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
 #ifndef _LIBTC_H
-#define _LIBTC_H 
+#define _LIBTC_H
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -86,7 +86,7 @@ extern char *GRAY;
 
 /*
  * Find program <name> in $PATH
- * returns 0 if found, ENOENT if not and the value of errno of the first 
+ * returns 0 if found, ENOENT if not and the value of errno of the first
  * occurance if found but not accessible.
  */
 int tc_test_program(const char *name);
@@ -136,7 +136,7 @@ int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
  *            an additionalwarning, specifying calling context,
  *            if allocation fails
  * tc_zalloc: like tc_malloc, but zeroes all acquired memory before
- *             returning to the caller (this is quite common in 
+ *             returning to the caller (this is quite common in
  *             transcode codebase)
  * tc_free: the companion memory releasing wrapper.
  */
@@ -162,9 +162,9 @@ int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
  */
 void *_tc_malloc(const char *file, int line, size_t size);
 
-/* 
+/*
  * _tc_zalloc: do the real work behind tc_zalloc macro
- * 
+ *
  * Parameters: file: name of the file on which call occurs
  *             line: line of above file on which call occurs
  *             (above two parameters are intended to be, and usually
@@ -177,9 +177,9 @@ void *_tc_malloc(const char *file, int line, size_t size);
  */
 void *_tc_zalloc(const char *file, int line, size_t size);
 
-/* 
+/*
  * Allocate a buffer aligned to the machine's page size, if known.  The
- * buffer must be freed with buffree() (not free()). 
+ * buffer must be freed with buffree() (not free()).
  */
 
 #define tc_bufalloc(size) \
@@ -286,7 +286,7 @@ ssize_t tc_pread(int fd, uint8_t *buf, size_t len);
 ssize_t tc_pwrite(int fd, uint8_t *buf, size_t len);
 
 /*
- * tc_preadwrite: read all data avalaible from a file descriptor, putting 
+ * tc_preadwrite: read all data avalaible from a file descriptor, putting
  *                it on the other one.
  * Parameters: in: read data from this file descriptor
  *             out: write readed data on this file descriptor
@@ -294,7 +294,7 @@ ssize_t tc_pwrite(int fd, uint8_t *buf, size_t len);
  *               0 if no error happens
  * Side effects: none
  * Preconditions: none
- * Postconditions: move the entire content of 'in' into 'out', 
+ * Postconditions: move the entire content of 'in' into 'out',
  *                 if no *critical* (tipically I/O related) error occurs.
  */
 int tc_preadwrite(int in, int out);
@@ -317,7 +317,7 @@ int tc_preadwrite(int in, int out);
  * Return Value: the probed type of path. Can be
  *               TC_PROBE_PATH_INVALID if given path
  *               doesn't exists or an internal error occur.
- * Side effects: if function fails, one or more debug message 
+ * Side effects: if function fails, one or more debug message
  *               can be issued using tc_log*().
  *               A name resolve request can be issued to system.
  * Preconditions: none

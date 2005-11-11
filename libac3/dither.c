@@ -1,23 +1,23 @@
-/* 
+/*
  *    dither.c
  *
  *	Copyright (C) Aaron Holtzman - May 1999
  *
  *  This file is part of ac3dec, a free Dolby AC-3 stream decoder.
- *	
+ *
  *  ac3dec is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  ac3dec is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -31,7 +31,7 @@
 #include "dither.h"
 
 
-const uint_16 dither_lut[256] = 
+const uint_16 dither_lut[256] =
 {
  0x0000, 0xa011, 0xe033, 0x4022, 0x6077, 0xc066, 0x8044, 0x2055,
  0xc0ee, 0x60ff, 0x20dd, 0x80cc, 0xa099, 0x0088, 0x40aa, 0xe0bb,
@@ -80,7 +80,7 @@ uint_16 lfsr_state = 1;
 // lut version and is still here because it's easier to understand.
 //
 
-/* 
+/*
  * Generate eight bits of pseudo-entropy using a 16 bit linear
  * feedback shift register (LFSR). The primitive polynomial used
  * is 1 + x^4 + x^14 + x^16.
@@ -101,7 +101,7 @@ uint_16 dither_gen(void)
 	//Generate eight pseudo random bits
 	for(i=0;i<8;i++)
 	{
-		state <<= 1;	
+		state <<= 1;
 
 		if(state & 0x10000)
 			state ^= 0xa011;

@@ -5,23 +5,23 @@
  *
  *  This file is part of transcode, a video stream processing tool
  *  Based on the excellent work of Donald Graft in Decomb.
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
- 
+
 #define MOD_NAME    "filter_ivtc.so"
 #define MOD_VERSION "v0.4.1 (2004-06-01)"
 #define MOD_CAP     "NTSC inverse telecine plugin"
@@ -137,8 +137,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if (ptr->tag & TC_FILTER_CLOSE) {
 	int i;
-	
-	for(i=0; i<FRBUFSIZ; i++) 
+
+	for(i=0; i<FRBUFSIZ; i++)
 	    free(lastFrames[i]);
 	return (0);
     }
@@ -155,11 +155,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if ((ptr->tag & TC_PRE_S_PROCESS) && (ptr->tag & TC_VIDEO)) {
 
-	ac_memcpy(	lastFrames[frameIn], 
-		ptr->video_buf, 
+	ac_memcpy(	lastFrames[frameIn],
+		ptr->video_buf,
 		ptr->v_width*ptr->v_height*3);
-	if (show_results) 
-	    tc_log_info(MOD_NAME, "Inserted frame %d into slot %d", 
+	if (show_results)
+	    tc_log_info(MOD_NAME, "Inserted frame %d into slot %d",
 		    frameCount, frameIn);
 	frameIn = (frameIn+1) % FRBUFSIZ;
 	frameCount++;
@@ -168,13 +168,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if (frameCount <= 2) {
 	    ptr->attributes |= TC_FRAME_IS_SKIPPED;
 	} else {
-	    // We have the last 3 frames in the buffer... 
+	    // We have the last 3 frames in the buffer...
 	    //
 	    //		Previous Current Next
-	    // 
+	    //
 	    // OK, time to work...
-	   
-	    unsigned char *curr, 
+
+	    unsigned char *curr,
 		*pprev, *pnext, *cprev, *cnext, *nprev, *nnext, *dstp;
 	    int idxp, idxc, idxn;
 	    int p, c, n, lowest, chosen;
@@ -216,7 +216,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		{
 		    C = curr[x];
 #define T 100
-		    /* This combing metric is based on 
+		    /* This combing metric is based on
 		       an original idea of Gunnar Thalin. */
 		    comb = ((long)pprev[x] - C) * ((long)pnext[x] - C);
 		    if (comb > T) p++;
@@ -255,31 +255,31 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		lowest = c;
 		chosen = 1;
             }
-		
+
 	    // Blatant copy ends... :)
 
-	    if (show_results) 
-		tc_log_info(MOD_NAME, 
-		    "Telecide => frame %d: p=%u  c=%u  n=%u [using %d]", 
+	    if (show_results)
+		tc_log_info(MOD_NAME,
+		    "Telecide => frame %d: p=%u  c=%u  n=%u [using %d]",
 		    frameCount, p, c, n, chosen);
 
-	    // Set up the pointers in preparation to output final frame. 
+	    // Set up the pointers in preparation to output final frame.
 
 	    // First, the Y plane
-	    if (chosen == 0) 
+	    if (chosen == 0)
 		curr = lastFrames[idxp];
-	    else if (chosen == 1) 
+	    else if (chosen == 1)
 		curr = lastFrames[idxc];
-	    else 
+	    else
 		curr = lastFrames[idxn];
 
 	    dstp = ptr->video_buf;
-	    
-	    // First output the top field selected 
+
+	    // First output the top field selected
 	    // from the set of three stored frames.
 	    ivtc_copy_field(dstp, curr, ptr, field);
 
-	    // The bottom field of the current frame unchanged 
+	    // The bottom field of the current frame unchanged
 	    ivtc_copy_field(dstp, lastFrames[idxc], ptr, 1-field);
 
 	}

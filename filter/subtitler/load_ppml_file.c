@@ -1,4 +1,4 @@
-/* 
+/*
 part of xste subtitle editor
 xste  is registered Copyright (C) 2001 Jan Panteltje
 email: panteltje@zonnet.nl
@@ -174,7 +174,7 @@ while(1)
 				printf("subtitler(): file %s not found, aborting\n",\
 				ptr);
 
-				exit(1);				
+				exit(1);
 				}
 
 			fclose(fptr2);
@@ -183,7 +183,7 @@ while(1)
 			{
 			arguments = 1;
 			object_type = MAIN_MOVIE;
-			
+
 			/* empty, but NULL would cause error return in add_frame() */
 			ptr = strsave("");
 			if(! ptr)
@@ -224,10 +224,10 @@ while(1)
 
 			exit(1);
 			}
-		
+
 		} /* end if object */
-	
-	/* NOTE ptr points to start arguments */ 
+
+	/* NOTE ptr points to start arguments */
 	if(object_type == MAIN_MOVIE)
 		{
 		/* no arguments, identified by type */
@@ -236,7 +236,7 @@ while(1)
 		{
 		/* load ppm file in buffer (ptr) */
 		cptr = ppm_to_yuv_in_char(ptr, &xsize, &ysize);
-		if(! cptr) 
+		if(! cptr)
 			{
 			printf("subtitler(): could not read file %s\n", ptr1);
 
@@ -271,7 +271,7 @@ while(1)
 		leaves the ' in, when called from a shell not...... why?
 		*/
 		tc_snprintf(subtitler_args, sizeof(subtitler_args), " no_objects write_ppm movie_id=%d",\
-		movie_number); 
+		movie_number);
 
 		/* arguments to transcode */
 		tc_snprintf(temp, sizeof(temp),\
@@ -301,7 +301,7 @@ while(1)
 		/* movie_number to structure */
 		id = movie_number;
 
-		/* 
+		/*
 		increment the movie_number, for the next movie definition
 		*/
 		movie_number++;
@@ -323,11 +323,11 @@ while(1)
 		{
 		/* a subtitle, or an object manipulation */
 		tc_snprintf(arg0, sizeof(arg0), "%d", start_frame);
-		
-		if(ptr[0] != '*') 
+
+		if(ptr[0] != '*')
 			{
 			/* only a subtitle */
-			object_type = FORMATTED_TEXT;			
+			object_type = FORMATTED_TEXT;
 			}
 
 		/* one could look up the object type here, but later, parser */
@@ -335,7 +335,7 @@ while(1)
 
 	if(object_type == FORMATTED_TEXT)
 		{
-		/* 
+		/*
 		now we know the end frame of the previous entry, it is this start
 		frame.
 		look the entry up and modify that end_frame
@@ -349,7 +349,7 @@ while(1)
 		/* remember start_frame */
 		old_start_frame = start_frame;
 
-		} /* end if object_type FORMATTED_TEXT */	
+		} /* end if object_type FORMATTED_TEXT */
 
 	/* add entry to linked list from here */
 
@@ -425,7 +425,7 @@ while(1)
 			if(c == ' ') c = 0;
 			}
 
-		execv_args[i][j] = c; 
+		execv_args[i][j] = c;
 		if(c == 0) break;
 		j++;
 		k++;
@@ -447,7 +447,7 @@ temp[0] = 0;
 i = 0;
 while(1)
 	{
-	flip[i] = execv_args[i];	
+	flip[i] = execv_args[i];
 	if(execv_args[i][0] == 0)
 		{
 		flip[i] = temp;
@@ -477,7 +477,7 @@ if(debug_flag)
 pid = fork();
 if(pid == 0)/* in child */
 	{
-	/* 
+	/*
 	start the helper program
 	NOTE: helper program  must be in the path or in the current directory.
 	*/
@@ -502,7 +502,7 @@ else if(pid < 0)/* fork failed */
 	return(0);
 	}
 else/* parent */
-	{	
+	{
 	}
 
 return(0);
@@ -563,10 +563,10 @@ while(1)
 		else
 			{
 			contents[i] = 0; /* string termination */
-			
+
 			return 1; /* end of line */
 			}
-		} 
+		}
 	else
 		{
 		status = 0;

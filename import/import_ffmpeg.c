@@ -4,20 +4,20 @@
  *  Copyright (C) Moritz Bunkus - October 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -45,7 +45,7 @@ static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID;
 char import_cmd_buf[TC_BUF_MAX];
 
 // libavcodec is not thread-safe. We must protect concurrent access to it.
-// this is visible (without the mutex of course) with 
+// this is visible (without the mutex of course) with
 // transcode .. -x ffmpeg -y ffmpeg -F mpeg4
 
 extern pthread_mutex_t init_avcodec_lock;
@@ -125,7 +125,7 @@ static struct ffmpeg_codec *codec;
 static struct ffmpeg_codec *find_ffmpeg_codec(char *fourCC) {
   int i;
   struct ffmpeg_codec *cdc;
-  
+
   cdc = &ffmpeg_codecs[0];
   while (cdc->name != NULL) {
     i = 0;
@@ -136,20 +136,20 @@ static struct ffmpeg_codec *find_ffmpeg_codec(char *fourCC) {
     }
     cdc++;
   }
-  
+
   return NULL;
 }
 
 static struct ffmpeg_codec *find_ffmpeg_codec_id(unsigned int transcode_id) {
   struct ffmpeg_codec *cdc;
-  
+
   cdc = &ffmpeg_codecs[0];
   while (cdc->name != NULL) {
       if (cdc->tc_id == transcode_id)
 	  return cdc;
     cdc++;
   }
-  
+
   return NULL;
 }
 
@@ -176,28 +176,28 @@ static int mpeg4_is_key(unsigned char *data, long size)
 
         for(i = 0; i < size - 5; i++)
         {
-                if( data[i]     == 0x00 && 
+                if( data[i]     == 0x00 &&
                         data[i + 1] == 0x00 &&
                         data[i + 2] == 0x01 &&
                         data[i + 3] == 0xb6)
                 {
-                        if((data[i + 4] & 0xc0) == 0x0) 
+                        if((data[i + 4] & 0xc0) == 0x0)
                                 return 1;
                         else
                                 return 0;
                 }
         }
-        
+
         return result;
 }
 
 static int divx3_is_key(char *d)
 {
     int32_t c=0;
-    
+
     c=stream_read_dword(d);
     if(c&0x40000000) return(0);
-    
+
     return(1);
 }
 
@@ -209,7 +209,7 @@ static void enable_levels_filter(void)
     tc_log_warn(MOD_NAME, "cannot load levels filter");
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open stream
  *
@@ -240,7 +240,7 @@ MOD_open {
     } else {
       tc_log_warn(MOD_NAME, "Format 0x%lX not supported",
                       format_flag);
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
     }
     tc_log_info(MOD_NAME, "Format 0x%lX", format_flag);
 
@@ -250,13 +250,13 @@ do_avi:
 	if(NULL == (avifile = AVI_open_input_indexfile(vob->video_in_file,
                                                     0, vob->nav_seek_file))){
 	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR); 
+	  return(TC_IMPORT_ERROR);
 	}
       } else {
 	if(NULL == (avifile = AVI_open_input_file(vob->video_in_file,1))){
 	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR); 
-	} 
+	  return(TC_IMPORT_ERROR);
+	}
       }
     }
 
@@ -275,7 +275,7 @@ do_avi:
 
     if (strlen(fourCC) == 0) {
       tc_log_warn(MOD_NAME, "FOURCC has zero length!? Broken source?");
-      
+
       return TC_IMPORT_ERROR;
     }
 
@@ -364,7 +364,7 @@ do_avi:
           perror("out of memory");
           return TC_IMPORT_ERROR;
         } else
-          memset(yuv2rgb_buffer, 0, BUFFER_SIZE);  
+          memset(yuv2rgb_buffer, 0, BUFFER_SIZE);
         break;
       case CODEC_RAW:
       case CODEC_RAW_YUV:
@@ -394,12 +394,12 @@ do_avi:
       return TC_IMPORT_ERROR;
     }
 
-    memset(buffer, 0, frame_size);  
+    memset(buffer, 0, frame_size);
 
     param->fd = NULL;
 
     return TC_IMPORT_OK;
-do_dv: 
+do_dv:
     x_dim = vob->im_v_width;
     y_dim = vob->im_v_height;
 
@@ -423,13 +423,13 @@ do_dv:
 	    vob->codec_flag);
 	return TC_IMPORT_ERROR;
       }
-	
+
       // we adapt the color space
       if(codec->id == CODEC_ID_MJPEG) {
         enable_levels_filter();
       }
 
-      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX, 
+      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			 "tccat -i \"%s\" -d %d |"
 			 " tcextract -x dv -d %d |"
 			 " tcdecode -x %s -t lavc -y %s -g %dx%d -Q %d -d %d",
@@ -460,7 +460,7 @@ do_dv:
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
@@ -469,7 +469,7 @@ do_dv:
 MOD_decode {
 
   /*
-   * When using directory mode or dvraw etc, we don't enter here 
+   * When using directory mode or dvraw etc, we don't enter here
    * (transcode-core does the reading) so there is no need to protect this
    * stuff by and if() or something.
    */
@@ -484,7 +484,7 @@ MOD_decode {
     bytes_read = AVI_read_frame(avifile, buffer, &key);
 
     if (bytes_read < 0) return TC_IMPORT_ERROR;
-    
+
     if (key) param->attributes |= TC_FRAME_IS_KEYFRAME;
 
     // PASS_THROUGH MODE
@@ -507,13 +507,13 @@ MOD_decode {
 	param->attributes |= TC_FRAME_IS_KEYFRAME;
       }
 
-      if (verbose & TC_DEBUG) 
+      if (verbose & TC_DEBUG)
 	if (key || bkey)
           tc_log_info(MOD_NAME, "Keyframe info (AVI | Bitstream) (%d|%d)",
                   key, bkey);
 
       param->size = (int) bytes_read;
-      ac_memcpy(param->buffer, buffer, bytes_read); 
+      ac_memcpy(param->buffer, buffer, bytes_read);
 
       return TC_IMPORT_OK;
     }
@@ -532,7 +532,7 @@ MOD_decode {
 retry:
     do {
       pthread_mutex_lock(&init_avcodec_lock);
-      len = avcodec_decode_video(lavc_dec_context, &picture, 
+      len = avcodec_decode_video(lavc_dec_context, &picture,
 			         &got_picture, buffer, bytes_read);
       pthread_mutex_unlock(&init_avcodec_lock);
 
@@ -661,7 +661,7 @@ retry:
   return TC_IMPORT_ERROR;
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *
@@ -697,7 +697,7 @@ MOD_close {
     }
 
     return TC_IMPORT_OK;
-  } 
+  }
 
   return TC_IMPORT_ERROR;
 }

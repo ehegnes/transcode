@@ -4,25 +4,25 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
 #ifndef _FRAMEBUFFER_H
-#define _FRAMEBUFFER_H 
+#define _FRAMEBUFFER_H
 
 #ifdef HAVE_CONFIG_H
 # include "config.h"
@@ -57,12 +57,12 @@
  */
 
 typedef struct frame_list {
-  
+
   int bufid;     // buffer id
   int tag;       // init, open, close, ...
   int filter_id; // filter instance to run
   int codec;     // v_codec or a_codec
-  int id;        // 
+  int id;        //
   int status;
   int attributes;
   int thread_id;
@@ -74,21 +74,21 @@ typedef struct frame_list {
 } frame_list_t;
 
 typedef struct vframe_list {
-  
+
     //frame accounting parameter
 
   int bufid;     // buffer id
   int tag;       // init, open, close, ...
 
   int filter_id; // filter instance to run
-  
+
   int v_codec;   // video frame codec
-  
+
   int id;        // frame number
   int status;    // frame status
 
   int attributes;    //this flag must be set to activate action for the following flags:
-    
+
   int thread_id;
 
     //frame physical parameter
@@ -96,18 +96,18 @@ typedef struct vframe_list {
   int v_width;
   int v_height;
   int v_bpp;
-  
+
   int video_size;
 
   struct vframe_list *next;
   struct vframe_list *prev;
-  
+
   int plane_mode;
 
   int clone_flag;    // set to N if frame needs to be processed (encoded) N+1 times.
   int deinter_flag;  // set to N for internal de-interlacing with "-I N"
 
-  
+
   //pointer to current buffer
   uint8_t *video_buf;
 
@@ -117,9 +117,9 @@ typedef struct vframe_list {
   //flag
   int free;
 
-  //RGB 
+  //RGB
   uint8_t *video_buf_RGB[2];
-  
+
   //YUV planes
   uint8_t *video_buf_Y[2];
   uint8_t *video_buf_U[2];
@@ -154,7 +154,7 @@ extern vframe_list_t *vframe_list_tail;
 
 
 typedef struct aframe_list {
-  
+
     //frame accounting parameter
 
   int bufid;     // buffer id
@@ -163,19 +163,19 @@ typedef struct aframe_list {
   int filter_id; // filter instance to run
 
   int a_codec;   // audio frame codec
-  
+
   int id;        // frame number
   int status;    // frame status
 
   int attributes;
-  
+
   int thread_id;
-  
-  
+
+
   int a_rate;
   int a_bits;
   int a_chan;
-  
+
   int audio_size;
 
   struct aframe_list *next;

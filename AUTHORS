@@ -19,7 +19,7 @@ Contributors: (c.f. ChangeLog):
 		o manpages
 		o inverse cropping
 		o tons of bug fixes
-		
+
 	Marek Blaszkowski <mb@intercon.pl>
 		o import_yuv.c
 
@@ -31,15 +31,15 @@ Contributors: (c.f. ChangeLog):
 		o import_ffmpeg.c
 		o import_mplayer.c
 
-	Dominique Caron <domi@LPM.univ-montp2.fr> 
+	Dominique Caron <domi@LPM.univ-montp2.fr>
 		o vob2divx.pl
 
 	Ben Collins <bcollins@debian.org>
 		o export_mjpeg.c
 
-	Arne Driescher <driescher@mpi-magdeburg.mpg.de>	
+	Arne Driescher <driescher@mpi-magdeburg.mpg.de>
 		o subrip
-	
+
 	German Gomez Garcia <german@piraos.com>
 		o AC3 downmixing patch for -s
 		o import_lav.c
@@ -66,7 +66,7 @@ Contributors: (c.f. ChangeLog):
 		o initial two-pass encoding for MPEG-4
 		o export_divx.c
 		o export_xvid.c
-		
+
 	Georg Ludwig <email@georg-ludwig.de>
 		o export_mp2enc.c
 
@@ -96,16 +96,16 @@ Contributors: (c.f. ChangeLog):
 	Chad Page <cpage@silcom.com>
 		o see filter plug-ins
 
-	Andreas Påhlsson <andreas.pahlsson@tjohoo.se>	
-		o import_nuv.c 
+	Andreas Påhlsson <andreas.pahlsson@tjohoo.se>
+		o import_nuv.c
 
-	Jan Panteltje <panteltje@yahoo.com> 
+	Jan Panteltje <panteltje@yahoo.com>
 		o subtitler
 
         Eduardo Perez <eperez@dei.inf.uc3m.es>
                 o ISO8601 date compliance
 
-	Joerg Sauer <js-mail@gmx.net>	
+	Joerg Sauer <js-mail@gmx.net>
 		o liba52 fixes
 
 	Nikita Schmidt <cetus@cnds.ucd.ie>
@@ -117,12 +117,12 @@ Contributors: (c.f. ChangeLog):
 	Michel Alexandre Salim <salimma1@yahoo.co.uk>
 		o spec file updates
 
-	Vaclav Slavik <v.slavik@volny.cz>	
-		o progress meter patch for option "-c"	
-		o high-quality frame resizing, i.e., zooming 	
+	Vaclav Slavik <v.slavik@volny.cz>
+		o progress meter patch for option "-c"
+		o high-quality frame resizing, i.e., zooming
 		o audio downsampling patch
 
-	Andrew Stevens <andrew.stevens@nexgo.de> 
+	Andrew Stevens <andrew.stevens@nexgo.de>
 		o mjpeg-tools API patch
 
 	Nicolas Vignal <nicolas.vignal@fnac.net>
@@ -147,24 +147,24 @@ o antialias algorithm adapted from the Anti-Aliasing plug-in for the GIMP v1.2.
   Kevin Turner <acapnotic@users.sourceforge.net>
   http://gimp-plug-ins.sourceforge.net/antialias/
 
-o Port of the original code of Ray Gardener, Daylon Graphics Ltd, 
-  from Graphics Gems III, adapted and optimized for use in transcode. 
+o Port of the original code of Ray Gardener, Daylon Graphics Ltd,
+  from Graphics Gems III, adapted and optimized for use in transcode.
 
-o lame 
+o lame
   http://www.sulaco.org/mp3
-  Originally developed by Mike Cheng (www.uq.net.au/~zzmcheng).  Now 
+  Originally developed by Mike Cheng (www.uq.net.au/~zzmcheng).  Now
   maintained by Mark Taylor (www.sulaco.org/mp3).
 
 o avilib
-  Original source code 
+  Original source code
   Copyright (C) 1999 Rainer Johanni <Rainer@Johanni.de>
 
 o af6_aux.cpp
   code borrowed from "vcr" package:
-  Copyright (C) 2001 Bram Avontuur (bram@avontuur.org)	
+  Copyright (C) 2001 Bram Avontuur (bram@avontuur.org)
 
 o export_qt.c (obsolete)
-  Copyright (C) ken@hero.com 2001 (Module Author)	
+  Copyright (C) ken@hero.com 2001 (Module Author)
 
 o libac3
   Written by Aaron Holtzman (aholtzma@engr.uvic.ca)

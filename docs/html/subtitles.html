@@ -25,13 +25,13 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 
 	  This chapter gives a short introduction on handling and
 	  processing subtitles with transcode and related programs.
-	  
+
 	  <ul>
 	    <li> <a href="#extsub"> <FONT FACE="Lucida,Helvetica">
 		DVD subtitle overlay mode with <i> -J extsub</i></font></a> <p>
 	    <li> <a href="#subrip"><FONT FACE="Lucida,Helvetica">
 		generating subtitle files with <i>subrip</i></font></a><p>
-	    <li> <a href="#subtitler"><FONT FACE="Lucida,Helvetica"> 
+	    <li> <a href="#subtitler"><FONT FACE="Lucida,Helvetica">
 		adding custom subtitles with <i> -J subtitler</i></font></a><p>
 
 	  </ul>
@@ -48,7 +48,7 @@ program stream, video, audio, transcode, decoder, stream, YV12">
     <td align=left valign="top" width=30% bgcolor="#a0a0a0">
     <table border="0" cellpadding="10" cellspacing="3" font size=+2 bgcolor="#ffffff" width=100%>
       <td align="left" bgcolor="#e9e9e9">
-      
+
       <font> DVD subtitle overlay mode </font>
     </tr>
     <tr>
@@ -72,40 +72,40 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 	  s:h:t:f:w:a:b:p:q
 	    </tr>
       </table><p>
-      
+
       	<ul>
-		  
+
 		  <li>  s  &nbsp; subtitle track id (0-31)<br>
 
 		      Use <i>tcprobe -H N</i> with N>1 to find out
 		      if subtitle any packs are available in the program stream.<p>
 
-		      
+
 		  <li>  h  &nbsp; offset of subtitle with respect to bottom
 		      of frame in rows.<br>
 
 		      Subtitles are placed at the bottom of the
 		      frame. Try this option to shift them up or down.<p>
-		      
+
 		  <li>  t &nbsp;  global display start time correction
 		      in msec.<br>
 		      If you feel, subtitles are displayed not timely,
 		      adjust it with this option. This will affect all subtitles.<p>
 
-		      
+
 		  <li>  f  &nbsp; fast rendering, i.e., no anti-aliasing (0=off,1=on).<br>
 		      Anti-aliasing of the font is performed by
 		      default. Switch it of (1) if your font is tiny
 		      and messed up by this feature.<p>
 
-		      
+
 		  <li>  w &nbsp;  render on post-processing (0=off,
 		      1=on).<br>
 		      Setting this option to 1 will render the
-		      subtitle on post-processing instead of pre-processing. 
+		      subtitle on post-processing instead of pre-processing.
 		      This may improve subtitle quality but makes no
 		      sense after extensive resizing of the frame.<p>
-		      
+
 		  <li>  a  &nbsp; graylevel value a (0-255).
 		  <li>  b &nbsp;  graylevel value b (0-255).<br>
 		      Make another subtitle color visible with full
@@ -121,9 +121,9 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		<p>
 
 		Example (1) changing color assignment:
-		
+
 		<ul>
-		  
+
 		  <li>
 		      <table>
 			<tr>
@@ -147,12 +147,12 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		      -J extsub=0:0:0:0:0:0:0:1:2
 		    </tr>
 	      </table>
-	      
+
 	      shuffle the font color assignment
 	      using 1:2 looks like this, but has an ugly 3D effect.
-	      
+
 	      <p>
-	      
+
 	      <img align="top" src="mes4-00000.png"> <p>
 
 	  <li>
@@ -162,12 +162,12 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		      -J extsub=0:0:0:0:0:0:0:1:3
 		    </tr>
 	      </table>
-	      
+
 	      shuffle the color assignment using 1:3 looks better,
 	      but shows white shadows that make the font fatter but blurry
-	      
+
 	      <p>
-	      
+
 	      <img align="top" src="mes5-00000.png"> <p>
 
 
@@ -178,11 +178,11 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		      -J extsub=0:0:0:0:0:0:0:2:3
 		    </tr>
 	      </table>
-	      
+
 	      shuffle the color assignment using 2:3 seems to be perfect.
 	      Nice and smooth looking letters.
 	      <p>
-	      
+
 	      <img align="top" src="mes6-00000.png"> <p>
 
 
@@ -193,20 +193,20 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		  -J extsub=0:0:0:1:0:0:0:2:3
 		</tr>
 	  </table>
-	  
+
 	  for comparison, we switch off anti-aliasing, see the difference?
-	  
+
 	  <p>
-	  
+
 	  <img align="top" src="mes7-00000.png"> <p>
 
-		  
+
 	    </ul>
-      
+
 	    Example (2) adding another white color:
-		
+
 	    <ul>
-	      
+
 	      <li>
 		  <table>
 		    <tr>
@@ -214,11 +214,11 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		      -J extsub
 		    </tr>
 	      </table>
-	      
+
 	      this one looks already perfect without any options.
-	      
+
 		  <p>
-	      
+
 	      <img align="top" src="sub0-00000.png"> <p>
 
 
@@ -229,11 +229,11 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		      -J extsub=0:0:0:1
 		    </tr>
 	      </table>
-	      
+
 	      same as above with-out ant-aliasing.
-	      
+
 		  <p>
-	      
+
 	      <img align="top" src="sub1-00000.png"> <p>
 
 
@@ -244,15 +244,15 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		  -J extsub=0:0:0:0:0:0:255
 		</tr>
 	  </table>
-	  
+
 	  We make switch another color to full intensity (white) to
 	  make the subtitle appear fatter, maybe too much.
-	  
+
 	  <p>
-	  
+
 	  <img align="top" src="sub2-00000.png"> <p>
 
-	  
+
       <li>
 	  <table>
 	    <tr>
@@ -260,20 +260,20 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 	      -J extsub=0:0:0:1:0:0:255
 	    </tr>
       </table>
-      
+
       The above fat one without anti-aliasing.
-      
+
       <p>
-      
+
       <img align="top" src="sub3-00000.png"> <p>
 
-	  
 
 
-	      
+
+
 	</ul>
 
-	  
+
     </table>
 </table>
 
@@ -307,20 +307,20 @@ program stream, video, audio, transcode, decoder, stream, YV12">
     <td align=left valign="top" width=30% bgcolor="#a0a0a0">
     <table border="0" cellpadding="10" cellspacing="3" font size=+2 bgcolor="#ffffff" width=100%>
       <td align="left" bgcolor="#e9e9e9">
-      
+
       <font> generating custom subtitles</font>
     </tr>
     <tr>
       <td>
 
-	  
+
 	  Please find some documentation on Jan Panteltje's
 	  <i>subtitler</i> plugin in the <code>filter/subtitler/</code> directory
 	  or visit the <a
 	  href=http://www.home.zonnet.nl/panteltje/subtitles/>
 	  project page</a>
 	  for more information.
-	  
+
 </table>
 </table>
 

@@ -10,15 +10,15 @@
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -145,11 +145,11 @@ if(pfl->tag & TC_FILTER_INIT)
 	if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
 	/* identify */
-    tc_log_info(MOD_NAME, 
+    tc_log_info(MOD_NAME,
         "Panteltje (c) movie composer%s (alias subtitle-filter)",
     	SUBTITLER_VERSION);
 
-	/* get home directory */  
+	/* get home directory */
 	userinfo = getpwuid(getuid() );
 	home_dir = strsave(userinfo -> pw_dir);
 	user_name = strsave(userinfo -> pw_name);
@@ -183,7 +183,7 @@ if(pfl->tag & TC_FILTER_INIT)
 		{
 		printf("subtitler(): could not allocate space for default_font_dir\n");
 
-		return -1; 
+		return -1;
 		}
 
 	/*
@@ -201,7 +201,7 @@ if(pfl->tag & TC_FILTER_INIT)
 		printf(\
 		"subtitler(): could not allocate space for subtitle_file\n");
 
-		return -1; 
+		return -1;
 		}
 
 	/* for picture adjust */
@@ -221,7 +221,7 @@ if(pfl->tag & TC_FILTER_INIT)
 							// correction.
 
 
-	/* for show output in X11 */ 
+	/* for show output in X11 */
 	window_open_flag = 0;
 	color_depth = 0; /* get from X */
 
@@ -271,7 +271,7 @@ if(pfl->tag & TC_FILTER_INIT)
 	default_subtitle_radius = 1.0;
 	default_subtitle_thickness = 0.1;
 
-	default_subtitle_font_symbols = 0;		
+	default_subtitle_font_symbols = 0;
 
 	rgb_palette_valid_flag = 0;
 
@@ -314,7 +314,7 @@ if(pfl->tag & TC_FILTER_INIT)
 
 			/* avoid empty string */
 			if(token[0] == 0) continue;
-			
+
 			if(strncmp(token, "no_objects", 10) == 0)
 				{
 				add_objects_flag = 0;
@@ -326,7 +326,7 @@ if(pfl->tag & TC_FILTER_INIT)
 			else if(strncmp(token, "debug", 5) == 0)
 				{
 				debug_flag = 1;
-				}	
+				}
 			else if(strncmp(token, "help", 4) == 0)
 				{
 				help_flag = 1;
@@ -335,7 +335,7 @@ if(pfl->tag & TC_FILTER_INIT)
 				/* error exit */
 				return 0;
 				//exit(1);
-				}	
+				}
 			 else if(strncmp(token, "subtitle_file=", 14) == 0)
 				{
 				a = sscanf(token, "subtitle_file=%s", temp);
@@ -395,7 +395,7 @@ if(pfl->tag & TC_FILTER_INIT)
 		}
 
 	if(debug_flag)
-		{		
+		{
 		tc_log_info(MOD_NAME, "PARSER RESULT: "
 		"write_ppm_flag=%d add_objects_flag=%d show_output_flag=%d "
 		"color_depth=%d frame_offset=%d movie_id=%d "
@@ -445,7 +445,7 @@ if(pfl->tag & TC_FILTER_CLOSE)
 	/* return close OK */
 	return 0;
 	} /* end if filter close */
-  
+
 /*
 filter frame routine
 tag variable indicates, if we are called before
@@ -456,30 +456,30 @@ if(verbose & TC_STATS)
 	{
 	tc_log_info(MOD_NAME, "%s/%s %s %s",\
 	vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
-    
+
 	/*
 	tag variable indicates, if we are called before
 	transcodes internal video/audo frame processing routines
 	or after and determines video/audio context
    	*/
- 
+
 	if(pfl->tag & TC_PRE_PROCESS) pre = 1;
 	if(pfl->tag & TC_POST_PROCESS) pre = 0;
-    
+
 	if(pfl->tag & TC_VIDEO) vid = 1;
 	if(pfl->tag & TC_AUDIO) vid = 0;
-    
+
 	tc_log_info(MOD_NAME, "frame [%06d] %s %16s call",\
 	pfl->id, (vid)?"(video)":"(audio)",\
 	(pre)?"pre-process filter":"post-process filter");
 	} /* end if verbose and stats */
-  
+
 #if 0
 if( (pfl->tag & TC_POST_PROCESS) && (pfl->tag & TC_AUDIO) )
 {
 	printf(\
 	"WAS afl->audio_size=%d afl->audio_buf=%lu\n",\
-	afl -> audio_size, afl -> audio_buf);		
+	afl -> audio_size, afl -> audio_buf);
 
 	for(i = 0; i < 16; i++)
 		{
@@ -489,9 +489,9 @@ if( (pfl->tag & TC_POST_PROCESS) && (pfl->tag & TC_AUDIO) )
 	}
 #endif
 
-/* 
+/*
 default:
-add the subtitles, after the coding, else edges in text get bad 
+add the subtitles, after the coding, else edges in text get bad
 */
 if(use_pre_processing_flag)
 	{
@@ -507,7 +507,7 @@ if(a)
 	ImageData = pfl->video_buf;
 	image_width = pfl->v_width;
 	image_height = pfl->v_height;
-	frame_nr = pfl->id;	
+	frame_nr = pfl->id;
 	if(! have_bottom_margin_flag)
 		{
 		window_bottom = image_height - window_bottom;
@@ -572,12 +572,12 @@ if(a)
 		/* save the current frame for later */
 		for(i = 0; i < pfl->v_width * pfl->v_height * 3; i++)
 			{
-			frame_memory0[i] = pfl->video_buf[i];			
+			frame_memory0[i] = pfl->video_buf[i];
 			}
 
 		slice_level = 0;
 		pfm = pfl->video_buf;
-		opfm = frame_memory1;	
+		opfm = frame_memory1;
 		pfmend = ImageData + (pfl->v_height * pfl->v_width * 3);
 		opfmend = frame_memory1 + (pfl->v_height * pfl->v_width * 3);
 		for(y = 0; y < pfl->v_height; y++)
@@ -597,7 +597,7 @@ if(a)
 				{
 				if(pfm >= pfmend - 3) break;
 
-				/* test if white stripe */ 
+				/* test if white stripe */
 				if( (pfm[0] - opfm[0] > slice_level) &&\
 				(pfm[1] - opfm[1] > slice_level) &&\
 				(pfm[2] - opfm[2] > slice_level) )
@@ -606,10 +606,10 @@ if(a)
 
 					/* test for out of range pointers due to x_shift */
 					if( (opfm + x_shift >= (uint8_t *)frame_memory1) &&\
-					(opfm + x_shift < opfmend) ) 					
+					(opfm + x_shift < opfmend) )
 						{
 						/* replace with data from previous frame */
-						pfm[0] = *(opfm + x_shift); 
+						pfm[0] = *(opfm + x_shift);
 						pfm[1] = *(opfm + 1 + x_shift);
 						pfm[2] = *(opfm + 2 + x_shift);
 						} /* end if in range */
@@ -627,7 +627,7 @@ if(a)
 		/* save the current frame for later */
 		for(i = 0; i < pfl->v_width * pfl->v_height * 3; i++)
 			{
-			frame_memory1[i] = frame_memory0[i];			
+			frame_memory1[i] = frame_memory0[i];
 			}
 
 		} /* end if de_stripe_flag */
@@ -650,7 +650,7 @@ if(a)
 	    pu = ImageData + (image_width * image_height * 5) / 4;
 
 		if(vob->im_v_codec == CODEC_RGB)
-			{		
+			{
 			for(y = 0; y < pfl->v_height; y++)
 				{
 				for(x = 0; x < pfl->v_width * 3; x++)
@@ -694,7 +694,7 @@ if(a)
 
 					*pu = (uint8_t)a + 128;
 					*pv = (uint8_t)b + 128;
-						
+
 					/* u_shift */
 					*pu += u_shift;
 					*pu &= 0xff;
@@ -702,7 +702,7 @@ if(a)
 					/* v_shift */
 					*pv += v_shift;
 					*pv &= 255;
-			
+
 					/* increment Y pointer */
 					py++;
 
@@ -731,7 +731,7 @@ if(a)
 		Dynamic UV vector rotation (NTSC line phase error correction).
 		*/
 		if(vob->im_v_codec == CODEC_RGB)
-			{		
+			{
 			tc_log_error(MOD_NAME, \
 			"hue operations only available in YUV 420");
             return(-1);
@@ -755,10 +755,10 @@ if(a)
 
 					/* the phase drift over one horizontal line */
 					da = (double)x / (double)pfl->v_width; // 0 to 1
-				
+
 					/* go for middle, now -.5 to +.5 */
 					da -= .5;
-						
+
 					/* multiply by specified dynamic correction factor */
 					db = dhue_line_drift * da;
 
@@ -771,7 +771,7 @@ if(a)
 					adjust_color(&a, &b, db, dsaturation);
 					*pu = (uint8_t)a + 128;
 					*pv = (uint8_t)b + 128;
-						
+
 					/* increment Y pointer */
 					py++;
 
@@ -782,14 +782,14 @@ if(a)
 						pv++;
 						}
 					} /* end for all x */
-					
-				/* 
+
+				/*
 				2 x 2 color pixels on screen for each Y value,
-				repeat each line twice.					
+				repeat each line twice.
 
 				Orientation on screen Y (*) and U V (o)
 				* o
-				o o 
+				o o
 				drop shadow :-) color less area below char looks better.
 				sink a line.
 				*/
@@ -820,7 +820,7 @@ if(a)
 	if(write_ppm_flag)
 		{
 		if(vob->im_v_codec == CODEC_RGB)
-			{		
+			{
 			tc_log_error(MOD_NAME, \
 			"subtitler(): write_ppm only available in YUV 420\n");
 			return(-1);
@@ -837,11 +837,11 @@ if(a)
 			pppm_file = fopen(temp, "w");
 			if(! pppm_file)
 				{
-				tc_log_error(MOD_NAME, 
+				tc_log_error(MOD_NAME,
 				"could not open file %s for write, aborting",\
 				 temp);
 				return(-1);
-				} 
+				}
 
 			/* write the ppm header */
 			fprintf(pppm_file,\
@@ -863,7 +863,7 @@ if(a)
 					cb = 132278 * cu;
 
 					fprintf(pppm_file, "%c%c%c",\
-					LIMIT(cr + cy), LIMIT(cg + cy), LIMIT(cb + cy) );  
+					LIMIT(cr + cy), LIMIT(cg + cy), LIMIT(cb + cy) );
 
 					/* increment Y pointer */
 					py++;
@@ -875,7 +875,7 @@ if(a)
 						pv++;
 						}
 					} /* end for all x */
-					
+
 				if( (y + 1) % 2)
 					{
 					pu -= pfl->v_width / 2;
@@ -896,7 +896,7 @@ if(a)
 			{
 			fptr = fopen(temp, "r");
 			if(! fptr) break;
-				
+
 			fclose(fptr);
 
 			/* reduce processor load */
@@ -917,7 +917,7 @@ if(a)
 
 //			openwin(argc, argv, width, height);
 			openwin(0, NULL, pfl->v_width, pfl->v_height);
-	
+
 			window_size = pfl->v_width * pfl->v_height;
 			window_open_flag = 1;
 
@@ -946,7 +946,7 @@ if(a)
 			ucptrs = ImageData;
 
 			if(vob->im_v_codec == CODEC_RGB)
-				{		
+				{
 				/* need vertical flip, but not horizontal flip */
 				if(color_depth == 32)
 					{
@@ -990,7 +990,7 @@ if(a)
 						ucptrd -= pfl->v_width * 6;
 						} /* end for y (all lines) */
 					} /* end if color_depth 32 */
-				} /* end if buffer is RGB */	
+				} /* end if buffer is RGB */
 			else if(vob->im_v_codec == CODEC_YUV)
 				{
 				/* set pointers */
@@ -1014,7 +1014,7 @@ if(a)
 						cg = -25690 * cu + -53294 * cv;
 						cb = 132278 * cu;
 
-						if(color_depth == 32) // 4 bytes per pixel							
+						if(color_depth == 32) // 4 bytes per pixel
 							{
 							*ucptrd++ = LIMIT(cb + cy); // B
 							*ucptrd++ = LIMIT(cg + cy); // G
@@ -1031,7 +1031,7 @@ if(a)
 							*ucptrd++ = LIMIT(cg + cy); // G
 							*ucptrd++ = LIMIT(cr + cy); // R
 							}
-						
+
 						/* increment Y pointer */
 						py++;
 
@@ -1042,14 +1042,14 @@ if(a)
 							pv++;
 							}
 						} /* end for all x */
-					
-					/* 
+
+					/*
 					2 x 2 color pixels on screen for each Y value,
-					repeat each line twice.					
+					repeat each line twice.
 
 					Orientation on screen Y (*) and U V (o)
 					* o
-					o o 
+					o o
 					drop shadow :-) color less area below char looks better.
 					sink a line.
 					*/
@@ -1072,7 +1072,7 @@ if(a)
 
 /* return OK */
 return 0;
-} /* end function tc_filter */ 
+} /* end function tc_filter */
 
 
 int add_text(\
@@ -1091,7 +1091,7 @@ if(debug_flag)
 	pa=%p u=%d v=%d contrast=%.2f transparency=%.2f \
 	font_desc_t=%lu espace=%d",\
 	x, y, (const char *)pa, text, u, v, contrast, transparency, (unsigned long)pfd, espace);
-	} 
+	}
 
 ptr = text;
 while(*ptr)
@@ -1232,7 +1232,7 @@ if(rgb_palette_valid_flag)
 
 	dmti_e2 *= dmci;
 
-	} 
+	}
 else
 	{
 	/* calculate multiplier for transparency ouside loops */
@@ -1267,7 +1267,7 @@ if(vob->im_v_codec == CODEC_RGB)
 
 			/* clip top scroll */
 			if( (y + y0) > image_height - 1) continue;
-	
+
 			/* clip bottom scroll */
 			if( (y + y0) < 0) continue;
 
@@ -1286,24 +1286,24 @@ if(vob->im_v_codec == CODEC_RGB)
 
 					/* transparency */
 					diy *= dmti;
-							
+
 					dob *= dmto;
 					dog *= dmto;
 					dor *= dmto;
 
 					if(sa[x])
 						{
-						dst[0] = (int) (dob + diy);			
-						dst[1] = (int) (dog + diy);			
-						dst[2] = (int) (dor + diy);			
+						dst[0] = (int) (dob + diy);
+						dst[1] = (int) (dog + diy);
+						dst[2] = (int) (dor + diy);
 						}
 					else /* border */
 						{
-						dst[0] = (int) (dob);			
-						dst[1] = (int) (dog);			
-						dst[2] = (int) (dor);			
-						}			
-	
+						dst[0] = (int) (dob);
+						dst[1] = (int) (dog);
+						dst[2] = (int) (dor);
+						}
+
 					}
 				} /* end if ! rgb_palette_valid_flag */
 			else /* DVD like subs */
@@ -1336,7 +1336,7 @@ if(vob->im_v_codec == CODEC_RGB)
 
 						dir *= dblur;
 						dig *= dblur;
-						dib *= dblur; 
+						dib *= dblur;
 
 						/* transparency */
 						dir *= dmti_p;
@@ -1398,7 +1398,7 @@ if(vob->im_v_codec == CODEC_RGB)
 	} /* end if RGB */
 else if(vob->im_v_codec == CODEC_YUV)
 	{
-	/* 
+	/*
 	We seem to be in this format I420:
     y = dest;
     v = dest + width * height;
@@ -1431,7 +1431,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 	if(y0 % 2)
 		{
 		pu -= b;
-		pv -= b;				
+		pv -= b;
 		}
 
 	for(y = 0; y < h; y++)
@@ -1453,7 +1453,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 
 			/* clip top scroll */
 			if( (y + y0) > image_height - 1) continue;
-	
+
 			/* clip bottom scroll */
 			if( (y + y0) < 0) continue;
 
@@ -1463,7 +1463,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 					{
 					/* trailing shadow no */
 					sx = 1;
-					if( (x + x0) % 2) sx = 0; 
+					if( (x + x0) % 2) sx = 0;
 
 //					if(x  < (w - 4) ) sx = 1; // hack, looks better :-)
 //					else sx = 0;
@@ -1495,7 +1495,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 
 					/* add what is left of the insert (character) */
 					py[x] = (int) (doy + diy);
-				
+
 					if(cd)
 						{
 						diu *= dblur;
@@ -1504,12 +1504,12 @@ else if(vob->im_v_codec == CODEC_YUV)
 						/* change color too */
 						diu = u * dmti;
 						div = v * dmti;
-					
+
 						dou *= dmto;
 						dov *= dmto;
 
 						if(sc[x]) /* white part of char */
-							{						
+							{
 							/* set U vector */
 							pu[x / 2 + sx] = (int) (128.0 + dou + diu);
 
@@ -1529,7 +1529,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 					} /* end if cd */
 
 				} /* end if ! rgb_palette_valid_flag */
-			else 
+			else
 				{
 				/*
 				OK lets get this straight:
@@ -1538,7 +1538,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 				Here I see that:
 				sa[x] > 0 for character space, it varies from 255 to 0
 				sc[x] > 0 for character body (pattern), it varies from 0 to 255;
-									
+
 				sa[x] seems to be the aliasing or blur? multiplier, and is used to attenuate
                 the original! Not my idea of anti alias, but OK.
 				sc[x] is the multiplier for the insert (character).
@@ -1547,12 +1547,12 @@ else if(vob->im_v_codec == CODEC_YUV)
 				sa[x] increases as you go from center character outwards (fade in background)
 				sa[x] is zero outside the character space.
 
-				
+
 				so:
 				sa[x] = 0 is not in character space.
 				sa[x] = 1 is character body
-				sa[x] > 1 is outline1				
-								
+				sa[x] > 1 is outline1
+
 
 				Variable names used:
 				dxxxxo for double (format) referring to original data
@@ -1568,7 +1568,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 
 				/* some color trick */
 				sx = 1;
-				if( (x + x0) % 2) sx = 0; 
+				if( (x + x0) % 2) sx = 0;
 
 				/* trailing shadow no */
 //				if(x  < (w - 4) ) sx = 1; // hack, looks better :-)
@@ -1594,7 +1594,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 						else dmulti = 0.0;
 						}
 
-					/* test for character body */		
+					/* test for character body */
 					if(dmulti > .5)
 						{
 						/* get original */
@@ -1646,7 +1646,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 						if(use_emphasis2_for_anti_aliasing_flag)
 							{
 							/* use outline2 for anti aliasing, set to grey 50 % */
-                            if( (dmulti > 0) && (dmulti < .5) ) 
+                            if( (dmulti > 0) && (dmulti < .5) )
 								{
 								/* get original */
 								doy = (double) py[x];
@@ -1679,7 +1679,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 
 								/* set U vector */
 								pu[x / 2 + sx] = 128 + (int) (dou + diu);
-	
+
 								/* set V vector */
 								pv[x / 2 + sx] = 128 + (int) (dov + div);
 								} /* end emphasis2 for anti-aliasing */
@@ -1716,7 +1716,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 								/* set U vector */
 								da = dou  + diu;
 								pu[x / 2 + sx] = 128 + (int)da;
-	
+
 								/* set V vector */
 								da = dov + div;
 								pv[x / 2 + sx] = 128 + (int)da;
@@ -1760,7 +1760,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 							da = dov + div;
 							pv[x / 2 + sx] = 128 + (int)da;
 							} /* end no anti-alias */
-						} /* end dmulti < 0.5 */ 
+						} /* end dmulti < 0.5 */
 					} /* end if sa[x] && ! is_space */
 				else /* outline2 */
 					{
@@ -1797,7 +1797,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 
 						/* set U vector */
 						pu[x / 2 + sx] = 128 + (int) (dou + diu);
-	
+
 						/* set V vector */
 						pv[x / 2 + sx] = 128 + (int) (dov + div);
 						} /* end if outline2 */
@@ -1885,7 +1885,7 @@ saturation could be done in adjust color, but done here for speed
 */
 dmci = (pa -> contrast / 100.0); // contrast insert, 1.0 for 100 % contrast
 
-dmti *= dmci; 
+dmti *= dmci;
 
 if(vob->im_v_codec == CODEC_RGB)
 	{
@@ -1932,7 +1932,7 @@ if(vob->im_v_codec == CODEC_RGB)
 	} /* end if RGB */
 else if(vob->im_v_codec == CODEC_YUV)
 	{
-	/* 
+	/*
 	We seem to be in this format I420:
     y = dest;
     v = dest + width * height;
@@ -1968,7 +1968,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 	if(pa -> bg_y_start % 2)
 		{
 		pu -= b;
-		pv -= b;				
+		pv -= b;
 		}
 
 	for(y = 0; y < height; y++)
@@ -1976,7 +1976,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 		for(x = 0; x < width; x++)
 			{
 			sx = 1;
-			if( (x + pa -> bg_x_start) % 2) sx = 0; 
+			if( (x + pa -> bg_x_start) % 2) sx = 0;
 
 			/* get old part */
 			doy = (double)py[x];
@@ -2131,7 +2131,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 	py = ImageData;
 	pu = ImageData + (image_width * image_height * 5) / 4;
 	pv = ImageData + (image_width * image_height);
-	
+
 	a = (int)pa -> ypos * image_width;
 	py += (int)pa -> xpos + a;
 	a /= 4;
@@ -2164,7 +2164,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 
 			/* clip top scroll */
 			if( (y + (int)pa -> ypos) > image_height) in_range = 0;
-	
+
 			/* clip bottom scroll */
 			if( (y + (int)pa -> ypos) < 0) in_range = 0;
 
@@ -2224,7 +2224,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 						pa -> chroma_key_window,\
 						pa -> chroma_key_saturation);
 						} /* end if odd line */
-					} /* end if u_time */	
+					} /* end if u_time */
 
 				/* transport to next time here ! */
 				if(! ck_flag) in_range = 0;
@@ -2243,10 +2243,10 @@ else if(vob->im_v_codec == CODEC_YUV)
 				if(u_time)
 					{
 					ca = *ps;
-					ca = 128 + ( ( (uint8_t)*ps - 128 ) * ds);	
-					
+					ca = 128 + ( ( (uint8_t)*ps - 128 ) * ds);
+
 					pu[x / 2] *= dd;
-					pu[x / 2] += dm * (uint8_t)ca; 
+					pu[x / 2] += dm * (uint8_t)ca;
 					}
 				else
 					{
@@ -2254,7 +2254,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 					ca = 128 + ( ( (uint8_t)*ps - 128 ) * ds);
 
 					pv[x / 2] *= dd;
-					pv[x / 2] += dm * (uint8_t)ca; 
+					pv[x / 2] += dm * (uint8_t)ca;
 					}
 
 				/* apply hue correction if both U and V set */
@@ -2299,7 +2299,7 @@ else if(vob->im_v_codec == CODEC_YUV)
 	} /* end if YUV 420 */
 
 return 1;
-}/* end function add_picture */ 
+}/* end function add_picture */
 
 
 int set_main_movie_properties(struct object *pa)

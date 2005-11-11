@@ -61,7 +61,7 @@ To compress single images:
 
 To decompress a single image:
 1) Read saved tables (or call RTjpeg_init_compress with the same Q factor as
-was used to compress the data) 
+was used to compress the data)
 2) RTjpeg_init_decompress
 3) store the YUV420 image, or
 3) RTjpeg_yuvrgbXX where XX is the desired RGB depth (8 (grey) 16 (565) 24
@@ -109,7 +109,7 @@ Initialise decompressor (and color convertor).
 extern int RTjpeg_compress(__s8 *sp, unsigned char *bp);
 --------------------------------------------------------
 Compress the image.
-  *sp is a pointer to the output data (for safety, this buffer should be as 
+  *sp is a pointer to the output data (for safety, this buffer should be as
     large as the uncompressed data).
   *bp is a pointer to the input data (YUV420P format).
   RETURN: the number of bytes actually used for the output stream.

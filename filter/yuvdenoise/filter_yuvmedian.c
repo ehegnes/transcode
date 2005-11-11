@@ -1,8 +1,8 @@
 /*
  *    Copyright (C) 2001 Mike Bernson <mike@mlb.org>
- *      Modified for use in transcode by 
+ *      Modified for use in transcode by
  *              Tilmann Bitterberg <transcode@tibit.org>
- *  
+ *
  *    This file is part of transcode, a video stream processing tool
  *
  *    This program is free software; you can redistribute it and/or modify
@@ -68,7 +68,7 @@ static void Usage(void)
    printf ("        'interlace' Treat input as interlaced  [0]\n");
    printf ("             'help' show this help\n");
 }
-			
+
 
 int tc_filter(frame_list_t *ptr_, char *options)
 {
@@ -85,7 +85,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (ptr->tag & TC_FILTER_GET_CONFIG && options) {
 	    char buf[255];
-	    	
+
 	    optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYOE", "1");
 
 	    tc_snprintf (buf, sizeof(buf), "%d", radius_luma);
@@ -147,7 +147,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	    if( interlace && vert % 2 != 0 )
 	    {
-		tc_log_error(MOD_NAME, 
+		tc_log_error(MOD_NAME,
 			"Input images have odd number of lines - can't treats as interlaced!");
 		return -1;
 	    }
@@ -170,13 +170,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    if (input_frame[1])  { free(input_frame[1]);  input_frame[1]=NULL; }
 	    if (input_frame[2])  { free(input_frame[2]);  input_frame[2]=NULL; }
 	    if (verbose > 1)
-		tc_log_info(MOD_NAME, "frames=%d avg=%d replaced=%d", 
+		tc_log_info(MOD_NAME, "frames=%d avg=%d replaced=%d",
 			avg, chg_replace, ovr_replace);
 	    return(0);
 	} // CLOSE
 
 
-	if(((ptr->tag & TC_PRE_PROCESS  && pre) || 
+	if(((ptr->tag & TC_PRE_PROCESS  && pre) ||
 		(ptr->tag & TC_POST_PROCESS && !pre)) &&
 		!(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
@@ -186,7 +186,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    ac_memcpy(input_frame[0], ptr->video_buf,            y_size );
 	    ac_memcpy(input_frame[1], ptr->video_buf+y_size    , y_size4);
 	    ac_memcpy(input_frame[2], ptr->video_buf+y_size*5/4, y_size4);
-	    
+
 	    output_frame[0] = ptr->video_buf;
 	    output_frame[1] = ptr->video_buf+y_size;
 	    output_frame[2] = ptr->video_buf+y_size*5/4;
@@ -209,35 +209,35 @@ filter(int width, int height, uint8_t *input[], uint8_t * const output[])
 {
 	if( interlace )
 	{
-		filter_buffer(width, height/2, width*2, 
-					  radius_luma, threshold_luma, 
+		filter_buffer(width, height/2, width*2,
+					  radius_luma, threshold_luma,
 					  input[0], output[0]);
-		filter_buffer(width, height/2, width*2, 
-					  radius_luma, threshold_luma, 
+		filter_buffer(width, height/2, width*2,
+					  radius_luma, threshold_luma,
 					  input[0]+width, output[0]+width);
-		filter_buffer(width/2, height/4, width, 
-					  radius_chroma, threshold_chroma, 
+		filter_buffer(width/2, height/4, width,
+					  radius_chroma, threshold_chroma,
 					  input[1], output[1]);
-		filter_buffer(width/2, height/4, width, 
-					  radius_chroma, threshold_chroma, 
+		filter_buffer(width/2, height/4, width,
+					  radius_chroma, threshold_chroma,
 					  input[1]+width/2, output[1]+width/2);
-		filter_buffer(width/2, height/4, width, radius_chroma, 
-					  threshold_chroma, 
+		filter_buffer(width/2, height/4, width, radius_chroma,
+					  threshold_chroma,
 					  input[2], output[2]);
-		filter_buffer(width/2, height/4, width, radius_chroma, 
-					  threshold_chroma, 
+		filter_buffer(width/2, height/4, width, radius_chroma,
+					  threshold_chroma,
 					  input[2]+width/2, output[2]+width/2);
 	}
 	else
 	{
-		filter_buffer(width, height, width, 
-					  radius_luma, threshold_luma, 
+		filter_buffer(width, height, width,
+					  radius_luma, threshold_luma,
 					  input[0], output[0]);
-		filter_buffer(width/2, height/2, width/2, 
-					  radius_chroma, threshold_chroma, 
+		filter_buffer(width/2, height/2, width/2,
+					  radius_chroma, threshold_chroma,
 					  input[1], output[1]);
-		filter_buffer(width/2, height/2, width/2, 
-					  radius_chroma, threshold_chroma, 
+		filter_buffer(width/2, height/2, width/2,
+					  radius_chroma, threshold_chroma,
 					  input[2], output[2]);
 	}
 }
@@ -262,7 +262,7 @@ filter_buffer(int width, int height, int row_stride,
 	uint8_t *outpix;
 	radius_count = radius + radius + 1;
 	min_count = (radius_count * radius_count + 2)/3;
-	
+
 
 	count = 0;
 
@@ -304,13 +304,13 @@ filter_buffer(int width, int height, int row_stride,
 			 */
 			if (count <= min_count)
 			{
-				*outpix =  
-					( ( (refpix[-row_stride-1] + refpix[-row_stride]) + 
-						(refpix[-row_stride+1] +  refpix[-1]) 
-						) 
-					  + 
+				*outpix =
+					( ( (refpix[-row_stride-1] + refpix[-row_stride]) +
+						(refpix[-row_stride+1] +  refpix[-1])
+						)
+					  +
 					  ( ((refpix[0]<<3) + 8 + refpix[1]) +
-						(refpix[row_stride-1] + refpix[row_stride]) + 
+						(refpix[row_stride-1] + refpix[row_stride]) +
 						refpix[row_stride+1]
 						  )
 					 ) >> 4;

@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -36,7 +36,7 @@
 
 #define COLOR_EQUAL  10
 #define COLOR_DIFF   30
-#define THRESHOLD     9 
+#define THRESHOLD     9
 
 static int color_diff_threshold1[MAX_FILTER];  //=COLOR_EQUAL;
 static int color_diff_threshold2[MAX_FILTER];  //=COLOR_DIFF;
@@ -44,8 +44,8 @@ static int chroma_diff_threshold1[MAX_FILTER]; //=COLOR_EQUAL/2;
 static int chroma_diff_threshold2[MAX_FILTER]; //=COLOR_DIFF/2;
 
 static int force_mode=0;
-static int threshold[MAX_FILTER];              //=THRESHOLD; 
-static int chroma_threshold[MAX_FILTER];       //=THRESHOLD/2; 
+static int threshold[MAX_FILTER];              //=THRESHOLD;
+static int chroma_threshold[MAX_FILTER];       //=THRESHOLD/2;
 static int show_results[MAX_FILTER];           //=0;
 
 static int pre[MAX_FILTER];	// = 0;
@@ -58,7 +58,7 @@ static int pre[MAX_FILTER];	// = 0;
 
 static inline int sq( int d ) { return d * d; }
 
-static void help_optstr(void) 
+static void help_optstr(void)
 {
    tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
@@ -83,49 +83,49 @@ static int interlace_test(char *video_buf, int width, int height, int id, int in
     int j, n, off, block, cc_1, cc_2, cc, flag;
 
     uint16_t s1, s2, s3, s4;
-    
+
     cc_1 = 0;
     cc_2 = 0;
-    
+
     block = width;
-	
+
     flag = 0;
 
     for(j=0; j<block; ++j) {
 
 	off=0;
-	
+
 	for(n=0; n<(height-4); n=n+2) {
 
-	    
+
 	    s1 = (video_buf[off+j        ] & 0xff);
 	    s2 = (video_buf[off+j+  block] & 0xff);
 	    s3 = (video_buf[off+j+2*block] & 0xff);
 	    s4 = (video_buf[off+j+3*block] & 0xff);
-	    
+
 	    if((abs(s1 - s3) < eq) &&
 	       (abs(s1 - s2) > diff)) ++cc_1;
-	    
+
 	    if((abs(s2 - s4) < eq) &&
 	       (abs(s2 - s3) > diff)) ++cc_2;
-	    
+
 	    off +=2*block;
 	}
     }
-    
-    // compare results
-    
-    cc = (int)((cc_1 + cc_2)*1000.0/(width*height));
-	       
-    flag = (cc > thres) ? 1:0;
-    
 
-    if(show_results[instance]) 
+    // compare results
+
+    cc = (int)((cc_1 + cc_2)*1000.0/(width*height));
+
+    flag = (cc > thres) ? 1:0;
+
+
+    if(show_results[instance])
         tc_log_info(MOD_NAME, "(%d) frame [%06d]: (1) = %5d | (2) = %5d "
-                              "| (3) = %3d | interlaced = %s", 
-                              instance, id, cc_1, cc_2, cc, 
+                              "| (3) = %3d | interlaced = %s",
+                              instance, id, cc_1, cc_2, cc,
                               ((flag)?"yes":"no"));
-    
+
     return(flag);
 }
 
@@ -136,14 +136,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
   int is_interlaced = 0;
   int instance = ptr->filter_id;
-  
+
   //----------------------------------
   //
   // filter init
   //
   //----------------------------------
-  
-  
+
+
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
       char buf[255];
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Thomas", "VRYMEO", "1");
@@ -166,7 +166,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       tc_snprintf(buf, sizeof(buf), "%d", COLOR_DIFF/2);
       optstr_param (options, "chromadi", "threshold for different chroma", "%d", buf, "0", "255");
 
-      optstr_param (options, "force_mode", "set internal force de-interlace flag with mode -I N", 
+      optstr_param (options, "force_mode", "set internal force de-interlace flag with mode -I N",
 	      "%d", "0", "0", "5");
 
       optstr_param (options, "pre", "run as pre filter", "%d", "1", "0", "1");
@@ -175,7 +175,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   }
 
   if(ptr->tag & TC_FILTER_INIT) {
-      
+
       if((vob = tc_get_vob())==NULL) return(-1);
 
       color_diff_threshold1[instance]  = COLOR_EQUAL;
@@ -186,17 +186,17 @@ int tc_filter(frame_list_t *ptr_, char *options)
       chroma_threshold[instance]       = THRESHOLD/2;
       show_results[instance]           = 0;
       pre[instance]                    = 1;
-      
+
       // filter init ok.
-      
+
       if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-      
+
       // process filter options:
-      
+
       if (options != NULL) {
-	  
+
 	  if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
-	  
+
 	  optstr_get (options, "threshold", "%d",  &threshold[instance]);
 	  optstr_get (options, "chromathres", "%d",  &chroma_threshold[instance]);
 	  optstr_get (options, "force_mode", "%d",  &force_mode);
@@ -214,52 +214,52 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	      help_optstr();
 	  }
       }
-      
+
       return(0);
   }
-  
+
   //----------------------------------
   //
   // filter close
   //
   //----------------------------------
 
-  
+
   if(ptr->tag & TC_FILTER_CLOSE) {
     return(0);
   }
-  
+
   //----------------------------------
   //
   // filter frame routine
   //
   //----------------------------------
 
-    
+
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
-  
+
   if (!(ptr->tag & TC_VIDEO))
 	  return (0);
 
   //if((ptr->tag & TC_PRE_M_PROCESS) && (ptr->tag & TC_VIDEO))  {
-  if(((ptr->tag & TC_PRE_M_PROCESS  && pre[instance]) || 
+  if(((ptr->tag & TC_PRE_M_PROCESS  && pre[instance]) ||
 	  (ptr->tag & TC_POST_M_PROCESS && !pre[instance])) && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
     //if (ptr->tag & TC_PRE_M_PROCESS) fprintf(stderr, "32#%d pre (%d)\n", instance, ptr->id);
     //if (ptr->tag & TC_POST_M_PROCESS) fprintf(stderr, "32#%d post (%d)\n", instance, ptr->id);
-    
+
     if(vob->im_v_codec==CODEC_RGB) {
-	is_interlaced = interlace_test(ptr->video_buf, 3*ptr->v_width, ptr->v_height, ptr->id, instance, 
-		threshold[instance], color_diff_threshold1[instance], color_diff_threshold2[instance]); 
+	is_interlaced = interlace_test(ptr->video_buf, 3*ptr->v_width, ptr->v_height, ptr->id, instance,
+		threshold[instance], color_diff_threshold1[instance], color_diff_threshold2[instance]);
     } else {
 	is_interlaced += interlace_test(ptr->video_buf, ptr->v_width, ptr->v_height, ptr->id, instance,
-		threshold[instance], color_diff_threshold1[instance], color_diff_threshold2[instance]); 
+		threshold[instance], color_diff_threshold1[instance], color_diff_threshold2[instance]);
 	is_interlaced += interlace_test(ptr->video_buf+ptr->v_width*ptr->v_height, ptr->v_width/2, ptr->v_height/2, ptr->id, instance,
-		chroma_threshold[instance], chroma_diff_threshold1[instance], chroma_diff_threshold2[instance]); 
+		chroma_threshold[instance], chroma_diff_threshold1[instance], chroma_diff_threshold2[instance]);
 	is_interlaced += interlace_test(ptr->video_buf+ptr->v_width*ptr->v_height*5/4, ptr->v_width/2, ptr->v_height/2, ptr->id, instance,
-		chroma_threshold[instance], chroma_diff_threshold1[instance], chroma_diff_threshold2[instance]); 
+		chroma_threshold[instance], chroma_diff_threshold1[instance], chroma_diff_threshold2[instance]);
     }
 
     //force de-interlacing?
@@ -272,7 +272,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     is_interlaced=0;
 
   }
-  
+
   return(0);
 }
 

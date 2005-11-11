@@ -1,16 +1,16 @@
 #ifndef __OGMSTREAMS_H
 #define __OGMSTREAMS_H
 
-/* 
+/*
  * Taken from http://tobias.everwicked.com/packfmt.htm
  *
  * Changes: Prefixed types with ogm_ to avoid namespace polution
  *                             -- tibit
  *
- 
+
  First packet (header)
  ---------------------
- 
+
  pos    | content                 | description
  -------+-------------------------+----------------------------------
  0x0000 | 0x01                    | indicates 'header packet'
@@ -21,7 +21,7 @@
 
  Second packet (comment)
  -----------------------
- 
+
  pos    | content                 | description
  -------+-------------------------+----------------------------------
  0x0000 | 0x03                    | indicates 'comment packet'
@@ -30,7 +30,7 @@
 
  Data packets
  ------------
- 
+
  pos      | content                 | description
  ---------+-------------------------+----------------------------------
  0x0000   | Bit0  0                 | indicates data packet
@@ -60,7 +60,7 @@ typedef struct ogm_stream_header_video
   ogg_int32_t  width;
   ogg_int32_t  height;
 } ogm_stream_header_video;
-  
+
 typedef struct ogm_stream_header_audio
 {
   ogg_int16_t  channels;

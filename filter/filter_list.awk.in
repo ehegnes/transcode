@@ -1,7 +1,7 @@
 #!@PATH_TO_AWK@ -f
 
 BEGIN {
-  
+
   if (ARGC <= 2) {
     print "Usage: prog MOD_PATH TMPFILE"
     exit 1
@@ -48,7 +48,7 @@ BEGIN {
 	print "** Invalid name";
 	continue;
      }
-  } 
+  }
 
   while (1) {
      printf ("(c)onfig (d)isable [default (c)]? ");

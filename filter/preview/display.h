@@ -1,4 +1,4 @@
-/* 
+/*
  *  display.h
  *
  *     Copyright (C) Charles 'Buck' Krasic - April 2000
@@ -11,17 +11,17 @@
  *  under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your
  *  option) any later version.
- *   
+ *
  *  libdv is distributed in the hope that it will be useful, but
  *  WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *  General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- *  The libdv homepage is http://libdv.sourceforge.net/.  
+ *  The libdv homepage is http://libdv.sourceforge.net/.
  */
 
 #ifndef DV_DISPLAY_H
@@ -76,7 +76,7 @@ typedef struct {
 
   /* Begin Private */
   dv_dpy_lib_t      lib;
-  uint32_t           len; 
+  uint32_t           len;
   uint32_t           format;   /* fourcc code for YUV modes */
 
 #if HAVE_LIBXV
@@ -126,8 +126,8 @@ extern "C" {
 
 extern dv_display_t *dv_display_new(void);
 extern int           dv_display_init(dv_display_t *dpy,
-				     int *argc, char ***argv, 
-				     int width, int height, 
+				     int *argc, char ***argv,
+				     int width, int height,
 				     dv_sample_t sampling,
 				     char *w_name, char *i_name); // dv_display_init
 

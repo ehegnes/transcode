@@ -70,7 +70,7 @@ typedef struct
 	int					scale_x;
 	int					scale_y;
 } dn3d_single_layout_t;
-		
+
 typedef struct
 {
 	int						tc_fmt;
@@ -84,7 +84,7 @@ typedef struct
 	vob_t *			vob;
 	dn3d_layout_t	layout_data;
 
-	struct	
+	struct
 	{
 		double luma_spatial;
 		double chroma_spatial;
@@ -103,7 +103,7 @@ typedef struct
 
 static dn3d_private_data_t dn3d_private_data[MAX_FILTER];
 
-static const dn3d_layout_t dn3d_layout[] = 
+static const dn3d_layout_t dn3d_layout[] =
 {
 	{ CODEC_YUV,    dn3d_yuv420p, dn3d_planar, {{ dn3d_luma, dn3d_off_y420,  1, 1, 1 }, { dn3d_chroma, dn3d_off_u420,  1, 2, 2 }, { dn3d_chroma, dn3d_off_v420,  1, 2, 2 }}},
 	{ CODEC_YUV422, dn3d_yuv422,  dn3d_planar, {{ dn3d_luma, dn3d_off_y422,  1, 1, 1 }, { dn3d_chroma, dn3d_off_u422,  1, 2, 1 }, { dn3d_chroma, dn3d_off_v422,  1, 2, 1 }}},
@@ -211,7 +211,7 @@ static void help_optstr(void)
     fprintf(stderr, "   pre:             run as a pre filter (0)\n");
 }
 
-int tc_filter(frame_list_t *vframe_, char * options) 
+int tc_filter(frame_list_t *vframe_, char * options)
 {
 	vframe_list_t *vframe = (vframe_list_t *)vframe_;
 	int instance;
@@ -309,7 +309,7 @@ int tc_filter(frame_list_t *vframe_, char * options)
 		else
 		{
 			pd->enable_chroma = 1;
-	
+
 			if(pd->parameter.chroma_spatial == 0)
 			{
 				if(pd->parameter.chroma_temporal == 0)
@@ -374,7 +374,7 @@ int tc_filter(frame_list_t *vframe_, char * options)
 		PrecalcCoefs(pd->coefficients[1], pd->parameter.luma_temporal);
 		PrecalcCoefs(pd->coefficients[2], pd->parameter.chroma_spatial);
 		PrecalcCoefs(pd->coefficients[3], pd->parameter.chroma_temporal);
-      
+
 		if(verbose)
 		{
 			tc_log_info(MOD_NAME, "%s %s #%d", MOD_VERSION, MOD_CAP, instance);
@@ -382,12 +382,12 @@ int tc_filter(frame_list_t *vframe_, char * options)
                                   "luma_strength (temporal): %.2f "
                                   "chroma (spatial): %.2f "
                                   "chroma_strength (temporal): %.2f",
-				        pd->parameter.luma_spatial, 
-        				pd->parameter.luma_temporal, 
-		        		pd->parameter.chroma_spatial, 
-				        pd->parameter.chroma_temporal); 
+				        pd->parameter.luma_spatial,
+        				pd->parameter.luma_temporal,
+		        		pd->parameter.chroma_spatial,
+				        pd->parameter.chroma_temporal);
 			tc_log_info(MOD_NAME, "luma enabled: %s, chroma enabled: %s",
-		                pd->enable_luma ? "yes" : "no", 
+		                pd->enable_luma ? "yes" : "no",
                         pd->enable_chroma ? "yes" : "no");
 		}
 	}
@@ -437,7 +437,7 @@ int tc_filter(frame_list_t *vframe_, char * options)
 					pd->coefficients[coef[1]],		// temporal strength
 					offset,							// offset in bytes of first relevant pixel in frame
 					lp->skip						// skip this amount of bytes between two pixels
-				);								
+				);
 			}
 		}
 	}

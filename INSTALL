@@ -46,7 +46,7 @@ and building with *gcc*, you can invoke configure like this:
 
 to create an optimised build,
 
-or 
+or
 
  $ env CFLAGS="-g" ./configure ...
 

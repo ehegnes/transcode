@@ -6,8 +6,8 @@
  * Copyright 1999 Chris Bagwell
  *
  * This source code is freely redistributable and may be used for
- * any purpose.  This copyright notice must be maintained. 
- * Chris Bagwell And Sundry Contributors are not responsible for 
+ * any purpose.  This copyright notice must be maintained.
+ * Chris Bagwell And Sundry Contributors are not responsible for
  * the consequences of using this software.
  */
 
@@ -132,7 +132,7 @@ struct  st_instrinfo {
 
 /* Loop modes, upper 4 bits mask the loop blass, lower 4 bits describe */
 /* the loop behaviour, ie. single shot, bidirectional etc. */
-#define ST_LOOP_NONE          0	
+#define ST_LOOP_NONE          0
 #define ST_LOOP_8             32 /* 8 loops: don't know ?? */
 #define ST_LOOP_SUSTAIN_DECAY 64 /* AIFF style: one sustain & one decay loop */
 
@@ -167,12 +167,12 @@ typedef struct st_soundstream *ft_t;
 typedef struct st_format {
 	char	**names;	/* file type names */
 	int	flags;		/* details about file type */
-	int	(*startread)(P1(ft_t ft));			
-	LONG	(*read)(P3(ft_t ft, LONG *buf, LONG len));			
-	int	(*stopread)(P1(ft_t ft));		
-	int	(*startwrite)(P1(ft_t ft));			
+	int	(*startread)(P1(ft_t ft));
+	LONG	(*read)(P3(ft_t ft, LONG *buf, LONG len));
+	int	(*stopread)(P1(ft_t ft));
+	int	(*startwrite)(P1(ft_t ft));
 	LONG	(*write)(P3(ft_t ft, LONG *buf, LONG len));
-	int	(*stopwrite)(P1(ft_t ft));		
+	int	(*stopwrite)(P1(ft_t ft));
 } st_format_t;
 
 struct st_soundstream {
@@ -200,7 +200,7 @@ extern st_format_t st_formats[];
 #define ST_FILE_LOOPS	2	/* does file format support loops? */
 #define ST_FILE_INSTR	4	/* does file format support instrument specificications? */
 
-/* Size field */ 
+/* Size field */
 /* SJB: note that the 1st 3 are sometimes used as sizeof(type) */
 #define	ST_SIZE_BYTE	1
 #define ST_SIZE_8BIT	1
@@ -303,7 +303,7 @@ int	st_readb(P2(ft_t ft, unsigned char *uc));
 int	st_writeb(P2(ft_t ft, unsigned char uc));
 int	st_readw(P2(ft_t ft, unsigned short *us));
 int	st_writew(P2(ft_t ft, unsigned short us));
-int	st_readdw(P2(ft_t ft, ULONG *ul));		
+int	st_readdw(P2(ft_t ft, ULONG *ul));
 int	st_writedw(P2(ft_t ft, ULONG ul));
 int	st_readf(P2(ft_t ft, float *f));
 int	st_writef(P2(ft_t ft, double f));

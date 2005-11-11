@@ -4,23 +4,23 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  2-pass code OpenDivX port:
- *  Copyright (C) 2001 Christoph Lampert <gruel@gmx.de> 
+ *  Copyright (C) 2001 Christoph Lampert <gruel@gmx.de>
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -33,7 +33,7 @@
  *  this code is published under DivX Open license, which *
  *  can be found... somewhere... oh, whatever...          *
  **********************************************************/
- 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -68,7 +68,7 @@ static const int min_quantizer=1;
 static const int max_quantizer=31;
 
 /*  Limits on frame-level deviation of quantizer ( higher values
-	correspond to frames with more changes and vice versa ) */	
+	correspond to frames with more changes and vice versa ) */
 static const float min_quant_delta=-10.f;
 static const float max_quant_delta=5.f;
 /*  Limits on stream-level deviation of quantizer ( used to make
@@ -136,7 +136,7 @@ int VbrControl_init_2pass_vbr_analysis(const char *filename, int quality)
 int VbrControl_init_2pass_vbr_encoding(const char *filename, int bitrate, double framerate, int crispness, int quality)
 {
 	int i;
-	
+
 	int64_t text_bits=0;
 	int64_t total_bits=0;
 	int64_t complexity=0;
@@ -201,51 +201,51 @@ int VbrControl_init_2pass_vbr_encoding(const char *filename, int bitrate, double
 		new_qual=2.f;
 		break;
 	    }
-	    qual_multiplier=new_qual/old_qual;	
+	    qual_multiplier=new_qual/old_qual;
 	}
 	else
 	    fseek(m_pFile, 0, SEEK_SET);
 
-	lFrameStart=ftell(m_pFile);		// save current position	
+	lFrameStart=ftell(m_pFile);		// save current position
 
 /* removed C++ dependencies, now read file twice :-( */
 
-	
-	while(!feof(m_pFile)) 
+
+	while(!feof(m_pFile))
 	{  fscanf(m_pFile, "Frame %d: intra %d, quant %d, texture %d, motion %d, total %d\n",
 		  &iNumFrames, (int *) &(vFrame.is_key_frame), &(vFrame.quant), &(vFrame.text_bits), &(vFrame.motion_bits), &(vFrame.total_bits));
-	
+
 	vFrame.total_bits+=vFrame.text_bits*(qual_multiplier-1);
 	vFrame.text_bits*=qual_multiplier;
 	text_bits +=(int64_t)vFrame.text_bits;
 	motion_bits += (int64_t)vFrame.motion_bits;
 	total_bits +=(int64_t)vFrame.total_bits;
 	complexity +=(int64_t)vFrame.text_bits*vFrame.quant;
-	
+
 //	printf("Frames %d, texture %d, motion %d, quant %d total %d ",
 //		iNumFrames, vFrame.text_bits, vFrame.motion_bits, vFrame.quant, vFrame.total_bits);
 //	printf("texture %d, total %d, complexity %lld \n",vFrame.text_bits,vFrame.total_bits, complexity);
 	 	}
 		iNumFrames++;
 		average_complexity=complexity/iNumFrames;
-		
+
 		if (verbose & TC_DEBUG)	{
 		    tc_info("frames %d, texture %lld, motion %lld, total %lld, complexity %lld",
 				iNumFrames, text_bits, motion_bits, total_bits, complexity);
 		}
-		
+
 		m_vFrames = (entry*)malloc(iNumFrames*sizeof(entry));
-		if (!m_vFrames) 
+		if (!m_vFrames)
 		{	printf("out of memory");
 			return TC_EXPORT_ERROR;
 		}
-			
+
 	   fseek(m_pFile, lFrameStart, SEEK_SET);		// start again
-		
+
 		for (i=0;i<iNumFrames;i++)
 		{  fscanf(m_pFile, "Frame %d: intra %d, quant %d, texture %d, motion %d, total %d\n",
-         &dummy, (int *) &(m_vFrames[i].is_key_frame), &(m_vFrames[i].quant), 
-			&(m_vFrames[i].text_bits), &(m_vFrames[i].motion_bits), 
+         &dummy, (int *) &(m_vFrames[i].is_key_frame), &(m_vFrames[i].quant),
+			&(m_vFrames[i].text_bits), &(m_vFrames[i].motion_bits),
 			&(m_vFrames[i].total_bits));
 
 			m_vFrames[i].total_bits += m_vFrames[i].text_bits*(qual_multiplier-1);
@@ -284,7 +284,7 @@ int VbrControl_init_2pass_vbr_encoding(const char *filename, int bitrate, double
 	desired_bits -= non_text_bits;
 		/**
 		BRIEF EXPLANATION OF WHAT'S GOING ON HERE.
-		We assume that 
+		We assume that
 			text_bits=complexity / quantizer
 			total_bits-text_bits = const(complexity)
 		where 'complexity' is a characteristic of the frame
@@ -293,14 +293,14 @@ int VbrControl_init_2pass_vbr_encoding(const char *filename, int bitrate, double
 		to be used for encoding ( 1st order effect ).
 		Having constant quantizer for the entire stream is not
 		very convenient - reconstruction errors are
-		more noticeable in low-motion scenes. To compensate 
+		more noticeable in low-motion scenes. To compensate
 		this effect, we multiply quantizer for each frame by
 			(complexity/average_complexity)^k,
 		( k - parameter of adjustment ). k=0 means 'no compensation'
 		and k=1 is 'constant bitrate mode'. We choose something in
 		between, like 0.5 ( 2nd order effect ).
 		**/
-		
+
 	average_complexity=complexity/iNumFrames;
 
 	for(i=0; i<iNumFrames; i++)
@@ -317,7 +317,7 @@ int VbrControl_init_2pass_vbr_encoding(const char *filename, int bitrate, double
 		{
 			mult=m_vFrames[i].text_bits*m_vFrames[i].quant;
 			mult=(float)sqrt(mult/average_complexity);
-			
+
 //			if(i && m_vFrames[i-1].is_key_frame)
 //			    mult *= 0.75;
 			if(mult<0.5)
@@ -332,7 +332,7 @@ int VbrControl_init_2pass_vbr_encoding(const char *filename, int bitrate, double
 
 		denominator+=desired_bits*m_vFrames[i].mult/iNumFrames;
 	}
-	
+
 	m_fQuant=((double)new_complexity)/(double)denominator;
 
 	if(m_fQuant<min_quantizer) m_fQuant=min_quantizer;
@@ -350,17 +350,17 @@ int VbrControl_init_2pass_vbr_encoding(const char *filename, int bitrate, double
 	return 0;
 }
 
-int VbrControl_get_intra() 
+int VbrControl_get_intra()
 {
 	return m_vFrames[m_iCount].is_key_frame;
 }
 
-short VbrControl_get_drop() 
+short VbrControl_get_drop()
 {
 	return m_bDrop;
 }
 
-int VbrControl_get_quant() 
+int VbrControl_get_quant()
 {
 	return m_iQuant;
 }
@@ -393,7 +393,7 @@ void VbrControl_update_2pass_vbr_encoding(int motion_bits, int texture_bits, int
 {
 	double q;
 	double dq;
-		
+
 	if(m_iCount>=iNumFrames)
 		return;
 
@@ -414,11 +414,11 @@ void VbrControl_update_2pass_vbr_encoding(int motion_bits, int texture_bits, int
 
 	dq = (double)m_lEncodedBits/(double)m_lExpectedBits;
 	dq*=dq;
-	if(dq<min_rc_quant_delta) 
+	if(dq<min_rc_quant_delta)
 		dq=min_rc_quant_delta;
-	if(dq>max_rc_quant_delta) 
+	if(dq>max_rc_quant_delta)
 		dq=max_rc_quant_delta;
-	if(m_iCount<20)					// no framerate corrections in first frames 
+	if(m_iCount<20)					// no framerate corrections in first frames
 		dq=1;
 	if(m_pFile)
 		fprintf(m_pFile, "Progress: expected %12lld, achieved %12lld, dq %f",

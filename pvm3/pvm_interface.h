@@ -22,7 +22,7 @@
  */
 
 #ifndef _PVM_INTERFACE_H
-#define _PVM_INTERFACE_H 
+#define _PVM_INTERFACE_H
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"

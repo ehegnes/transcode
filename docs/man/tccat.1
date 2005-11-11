@@ -50,11 +50,11 @@ correctly.
 Tell \fBtccat\fP about the type of input.  Currently only \fBdvd\fP
 is supported - any other parameter will be ignored.
 .IP "\fB-T \fItitle\fP[\fB,\fIchapter\fR[\fB,\fIangle\fR]]"
-Select DVD 
-.I title 
-and extract only a single 
-.I chapter 
-with selected viewing 
+Select DVD
+.I title
+and extract only a single
+.I chapter
+with selected viewing
 .I angle\fP.
 Setting the argument
 .I chapter
@@ -99,11 +99,11 @@ PRIVATE     256
 .IP "\fB-v\fP"
 Print version information and exit.
 .SH NOTES
-\fBtccat\fP is a front end for streaming various source types and is used in \fBtranscode\fP´s import modules. 
+\fBtccat\fP is a front end for streaming various source types and is used in \fBtranscode\fP´s import modules.
 .SH EXAMPLES
 The command
 .PP
-.B tccat -i /dev/dvd -T 1,-1 | mplayer - 
+.B tccat -i /dev/dvd -T 1,-1 | mplayer -
 .PP
 reads all chapters belonging to title \fI1\fP of a DVD (assuming that
 /dev/dvd/ is a symbolic link to a real DVD device) and pipes a

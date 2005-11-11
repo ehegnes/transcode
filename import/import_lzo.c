@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - October 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -56,7 +56,7 @@ static lzo_uint out_len;
 
 static int done_seek=0;
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open stream
  *
@@ -81,12 +81,12 @@ MOD_open
 	if(NULL == (avifile2 = AVI_open_input_indexfile(vob->video_in_file,
                                                       0,vob->nav_seek_file))){
 	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR); 
-	} 
+	  return(TC_IMPORT_ERROR);
+	}
       } else {
 	if(NULL == (avifile2 = AVI_open_input_file(vob->video_in_file,1))){
 	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR); 
+	  return(TC_IMPORT_ERROR);
 	}
       }
     }
@@ -100,7 +100,7 @@ MOD_open
     //read all video parameter from input file
     width  =  AVI_video_width(avifile2);
     height =  AVI_video_height(avifile2);
-    
+
     fps    =  AVI_frame_rate(avifile2);
     codec  =  AVI_video_compressor(avifile2);
 
@@ -110,10 +110,10 @@ MOD_open
       video_codec = TC_CODEC_LZO2;
     } else {
       tc_log_warn(MOD_NAME, "Unsupported video codec %s", codec);
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
     }
 
-    tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d\n", 
+    tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d\n",
 		codec, fps, width, height);
 
     /*
@@ -122,7 +122,7 @@ MOD_open
 
     if (lzo_init() != LZO_E_OK) {
       tc_log_warn(MOD_NAME, "lzo_init() failed");
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
     }
 
     wrkmem = (lzo_bytep) lzo_malloc(LZO1X_1_MEM_COMPRESS);
@@ -130,7 +130,7 @@ MOD_open
 
     if (wrkmem == NULL || out == NULL) {
       tc_log_warn(MOD_NAME, "out of memory");
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
     }
 
     return(TC_IMPORT_OK);
@@ -140,13 +140,13 @@ MOD_open
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
  * ------------------------------------------------------------*/
 
-MOD_decode 
+MOD_decode
 {
 
   int key;
@@ -161,8 +161,8 @@ MOD_decode
 
     out_len = AVI_read_frame(avifile2, out, &key);
 
-    if(verbose & TC_STATS && key) 
-      tc_log_info(MOD_NAME, "keyframe %d", vframe_count); 
+    if(verbose & TC_STATS && key)
+      tc_log_info(MOD_NAME, "keyframe %d", vframe_count);
 
     if(out_len<=0) {
       if(verbose & TC_DEBUG) AVI_print_error("AVI read video frame");
@@ -196,7 +196,7 @@ MOD_decode
 
       /* this should NEVER happen */
       tc_log_warn(MOD_NAME, "internal error - decompression failed: %d\n", r);
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
     }
 
     param->size = size;
@@ -249,14 +249,14 @@ MOD_decode
   return(TC_IMPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
 
   if(param->fd != NULL) pclose(param->fd);
 

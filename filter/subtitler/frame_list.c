@@ -65,7 +65,7 @@ if(debug_flag)
 	{
 	fprintf(stdout, "installframe(): arg name=%s\n", name);
 	}
-	
+
 /* allow multiple entries with the same name */
 //pa = lookup_frame(name);
 pa = 0;
@@ -87,11 +87,11 @@ if(!pa) /* not found */
 
 	/* set pointers for next structure */
 	if(pnext) pnext -> prventr = pnew;
-	
+
 	/* set pointers for new structure */
 	pnew -> nxtentr = pnext;
 	pnew -> prventr = 0;/* always inserting at start of chain of structures */
-	
+
 	return pnew;/* pointer to new structure */
 	}/* end if not found */
 
@@ -117,7 +117,7 @@ for(i = 0; i < FRAME_HASH_SIZE; i++)/* for all structures at this position */
 		free(pa -> name);/* free name */
 		free(pa -> data);
 		free(pa);/* free structure */
-		}/* end while all structures hashing to this value */ 
+		}/* end while all structures hashing to this value */
 	}/* end for all entries in frametab */
 
 return(0);/* not found */
@@ -179,7 +179,7 @@ char temp[80];
 if(debug_flag)
 	{
 	printf("subtitler(): process_frame_number(): arg frame_nr=%d\n",\
-	frame_nr); 
+	frame_nr);
 	}
 
 tc_snprintf(temp, sizeof(temp), "%d", frame_nr);
@@ -220,7 +220,7 @@ for(pa = frametab[hash(temp)]; pa != 0; pa = pa -> nxtentr)
 		if(atoi(pa -> name) == frame_nr)
 			{
 			pa -> end_frame = end_frame;
-			
+
 			return 1;
 			}
 		} /* end if type FORMATTED_TEXT */
@@ -325,8 +325,8 @@ while(1)
 	/* if last one, modify subtitle_fontnametab[1] */
 	if(pnext == 0) subtitle_fontnametab[1] = pprev;
 	else pnext -> prventr = pprev;
-	
-	/* delete structure */	
+
+	/* delete structure */
 	free(pdel -> name);
 	free(pdel); /* free structure */
 
@@ -348,7 +348,7 @@ if(debug_flag)
 	}
 
 while(1)
-	{	
+	{
 	pa = subtitle_fontnametab[0];
 	if(! pa) break;
 	subtitle_fontnametab[0] = pa -> nxtentr;
@@ -384,7 +384,7 @@ if(ps) /* found in list */
 	/* get pointer from list */
 
 	pfd = ps -> pfd;
-	
+
 	return pfd;
 	} /* end if found in list */
 else /* not in fontname_list */
@@ -397,7 +397,7 @@ else /* not in fontname_list */
 		{
 		/* try the default font settings */
 		fprintf(stderr,\
-		"subtitler(): add_font(): could not create requested font %s, trying default font\n", temp); 
+		"subtitler(): add_font(): could not create requested font %s, trying default font\n", temp);
 
 		pfd = make_font(\
 			default_subtitle_font_name, default_subtitle_symbols,
@@ -429,7 +429,7 @@ if(! ps)
 	{
 	fprintf(stderr,\
 	"subtitler(): add_font(): could not add subtitle font %s to subtitle_fontname_list\n", temp);
-			
+
 	return 0;
 	}
 

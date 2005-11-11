@@ -23,17 +23,17 @@ program stream, video, audio, transcode, decoder, stream, YV12">
       <td>
 
 	   <ul>
-	     <li> <a href="#para"> <FONT FACE="Lucida,Helvetica"> 
+	     <li> <a href="#para"> <FONT FACE="Lucida,Helvetica">
 		  Overview on the
 		  resizing/clipping options</font></a> <br>
 	   </uL>
-	   
+
 	   <ul>
-	     <li> <a href="#maudio"> <FONT FACE="Lucida,Helvetica"> 
+	     <li> <a href="#maudio"> <FONT FACE="Lucida,Helvetica">
 		  AVI-files with multiple audio tracks</font></a><br>
 	   </ul>
-	   
-		
+
+
 
 	   <ul>
 	    <li> <a href="#pass"> <FONT FACE="Lucida,Helvetica">
@@ -43,15 +43,15 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		   <li><a href="#pass_1"> <FONT FACE="Lucida,Helvetica">
 			replacing audio</font></a>
 		   <li><a href="#pass_2"> <FONT FACE="Lucida,Helvetica">
-			creating music clips</font></a>		      
+			creating music clips</font></a>
 		   <li><a href="#pass_3"> <FONT FACE="Lucida,Helvetica">
 			audio recompression</font></a>
 		   <li><a href="#pass_4"> <FONT FACE="Lucida,Helvetica">
 			fixing truncated AVI files</font></a>
 		 </ul>
 		 <br>
-		 
-		
+
+
 	    <li> <a href="#audio"> <FONT FACE="Lucida,Helvetica">
 		audio only conversion</font></a>
 		 <br>
@@ -63,7 +63,7 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		   <li><a href="#aud_3"> <FONT FACE="Lucida,Helvetica">
 			ASF audio -> MP3</font></a>
 		 </ul>
-		
+
       </td>
     </tr>
 </table>
@@ -76,22 +76,22 @@ program stream, video, audio, transcode, decoder, stream, YV12">
     <td align=left valign="top" width=30% bgcolor="#a0a0a0">
     <table border="0" cellpadding="10" cellspacing="3" font size=+2 bgcolor="#ffffff" width=100%>
       <td align="left" bgcolor="#e9e9e9">
-      
+
       <font>
-      resizing/clipping options 
+      resizing/clipping options
 </font>
     </tr>
     <tr>
       <td>
 
 	  <br> by Steffen Klupsch &lt;steffen@vlsi.informatik.tu-darmstadt.de&gt;
-	  
+
 <P>
 Boundary Conditions (valid for transcode-0.5.0 and later):
 <UL>
   <LI> maximum image size is 1024x768
   <LI> The video frame operations ordering is fixed:
-    "-j -I -X -B -Z -Y -r -z -l -k -K -G -C" 
+    "-j -I -X -B -Z -Y -r -z -l -k -K -G -C"
    (executed from left to right)
   <LI> Shrinking the image with '-B' is not possible
    if the image width/height is not a multiple of 32.
@@ -106,7 +106,7 @@ Boundary Conditions (valid for transcode-0.5.0 and later):
    constant factor, this factor can be 2,4 or 8.
 
     <LI> Clipping and changing the aspect ratio
-   transcode uses 3 steps to produce the input image for the 
+   transcode uses 3 steps to produce the input image for the
    export modules
     <OL>
       <LI> Clipping of the input image.
@@ -142,33 +142,33 @@ Boundary Conditions (valid for transcode-0.5.0 and later):
 </OL>
 <P>
 Examples on Usage:
- 
+
 <OL>
-  <LI> Input data '16:9' 'widescreen' DVD data, 
+  <LI> Input data '16:9' 'widescreen' DVD data,
       output data should have 4:3 aspect ratio without black border.
-      <br> 
+      <br>
       Analyze the input data, we assume a black border at the top and
       bottom of 66 pixel in a 720x576 pixel frame.
 <p>
       <OL>
-	<LI> Using the fast resizing option  -B, 
+	<LI> Using the fast resizing option  -B,
      shrinking the height to reach a correct aspect ratio:
      '-j 32,0 -B 4,0 -Y 24,0'
      Final image size: 720x336 Pixel
 
-      <LI> Using the fast resizing options -X and -B, 
-     removing 1% at the left&amp;right border, expanding the image width 
-     to PAL resolution, and shrinking the height to reach a 
+      <LI> Using the fast resizing options -X and -B,
+     removing 1% at the left&amp;right border, expanding the image width
+     to PAL resolution, and shrinking the height to reach a
      correct aspect ratio:<br>
      '-j 32,8 -X 0,2 -B 3,0 -Y 24,0'<br>
      Final image size: 768x368 Pixel
 
-      <LI> Using the fast -X resizing, expanding the image width, 
+      <LI> Using the fast -X resizing, expanding the image width,
      but removing 3% of the image at the left and the right border:<br>
      '-j 64,24 -X 0,7'<br>
      Final image size: 896x448 Pixel
 
-      <LI> Using the slower -Z resizing, expanding the image width to PAL 
+      <LI> Using the slower -Z resizing, expanding the image width to PAL
      resolution:<br>
      '-j 68,0 -Z 768x360'<br>
      Final image size: 768x360 Pixel
@@ -192,12 +192,12 @@ Examples on Usage:
      '-B 4,0'<br>
      Final image size: 720x448 Pixel
 
-    <LI> Using the fast -X resizing, expanding the image width, 
+    <LI> Using the fast -X resizing, expanding the image width,
      but removing 3% of the image at the left and the right border:<br>
      '-j 0,24 -X 0,7'<br>
      Final image size: 896x576 Pixel
 
-    <LI> Using the slower -Z resizing, expanding the image width 
+    <LI> Using the slower -Z resizing, expanding the image width
      to PAL resolution:<br>
      '-Z 768x472'<br>
      Final image size: 768x472 Pixel
@@ -213,7 +213,7 @@ Examples on Usage:
   </OL>
 </OL>
 <P>
-	  
+
     </table>
 </table>
 
@@ -224,7 +224,7 @@ Examples on Usage:
     <td align=left valign="top" width=30% bgcolor="#a0a0a0">
     <table border="0" cellpadding="10" cellspacing="3" font size=+2 bgcolor="#ffffff" width=100%>
       <td align="left" bgcolor="#e9e9e9">
-      
+
       <font>pass-through modes</font>
     </tr>
     <tr>
@@ -232,7 +232,7 @@ Examples on Usage:
 	   This section is devoted to the pass-through modes
 	   available, which maybe useful for some, not so common
 	   situations as outlined below.
-	 
+
 	   <a name=pass_1><h3>replacing audio</h3></a>
 	   <a name=pass_2><h3>creating video clips</h3></a>
 	   Suppose you have mastered a couple of DV clips,
@@ -248,21 +248,21 @@ Examples on Usage:
 	     <tr>
 	       <td align=left valign="top" bgcolor="#ccffcc">
 	       transcode</td>
-	       
+
 	       <td align=left valign="top" bgcolor="#ccffcc">
 	       -i clip.avi -p clip.mp3</td>
 		   </tr>
-		   
+
 		   <tr><td></td>
 			<td align=left valign="top" bgcolor="#ccffcc">
 			-P 1  </td>
 		  </tr>
-		  
+
 	     <td></td><td align=left valign="top" bgcolor="#ccffcc">
 		 -o new_clip.avi -y raw</td></tr>
-		 
+
 	   </table>
-	   
+
 	   <br>
 
 	   Note: The MP3 stream must be identified by <i>tcprobe</i>.
@@ -272,13 +272,13 @@ Examples on Usage:
 	   as is together with the re-encoded audio. MP3 pass-through,
 	   similar
 	   to AC3 pass-through with options "-A -N 0x2000" is not yet available.
-	   
+
 	   <a name=pass_3><h3>audio recompression</h3></a>
 
 	   The following situation is not uncommon. Suppose your single
 	   AVI-file "movie128.avi" is about 2x700MB+15MB, i.e., too large to fit
 	   on 2 CD's. Fortunately, the audio is MP3 with a bitrate of
-	   128kbps, which is the default. 
+	   128kbps, which is the default.
 	   We recompress the audio to 96kbps to reduce the filesize
 	   below 2x700MB. Let's also double the volume of the sound,
 	   if possible, or use the recommended value given by <i>tcscan</i>.
@@ -289,21 +289,21 @@ Examples on Usage:
 	     <tr>
 	       <td align=left valign="top" bgcolor="#ccffcc">
 	       transcode</td>
-	       
+
 	       <td align=left valign="top" bgcolor="#ccffcc">
 	       -i movie128.avi</td>
 		   </tr>
-		   
+
 		   <tr><td></td>
 			<td align=left valign="top" bgcolor="#ccffcc">
 			-P 1 -b 96 -s 2.0</td>
 		  </tr>
-		  
+
 	     <td></td><td align=left valign="top" bgcolor="#ccffcc">
 		 -o movie96.avi -y raw</td></tr>
-		 
+
 	   </table>
-	   
+
 	   <br>
 
 	   This is reasonable fast since video is only passed through
@@ -312,21 +312,21 @@ Examples on Usage:
 	   into 2 chunks.
 	   <a name=pass_4><h3>fixing truncated AVI files</h3></a>
 
-	   The AVI file header is updated (written to disk), whenever video/audio 
-	   parameter are set. If transcode or hardware crashes, the truncated file 
-	   is in most cases playable for advanced players. 
+	   The AVI file header is updated (written to disk), whenever video/audio
+	   parameter are set. If transcode or hardware crashes, the truncated file
+	   is in most cases playable for advanced players.
 	   Repairing the AVI-file index is also possible via pass-through option "-P3".
 <p>
 	       <table>
        <tr>
 	 <td align=left valign=center bgcolor="#ccffcc">
-	 transcode -i crashed.avi -o new.avi -P3 -u X</td> 
+	 transcode -i crashed.avi -o new.avi -P3 -u X</td>
 	 </td>
        </table>
 
 	   <br>Option "-u X" with X>>10 enhances pass-through speed.
 
-	   
+
     </table>
 </table>
 
@@ -361,53 +361,53 @@ Examples on Usage:
 	   right one.
 	   We do it in 1 step for
 	   track 2 and write to the file "track.mp3":
-	   
+
 	   <p>
 	   <table>
 	     <tr>
 	       <td align=left valign="top" bgcolor="#ccffcc">
 	       transcode</td>
-	       
+
 	       <td align=left valign="top" bgcolor="#ccffcc">
 	       -p /dev/dvd/ -T 1,-1 -a 2 </td>
 	     </tr>
-	     
+
 	<td></td><td align=left valign="top" bgcolor="#ccffcc">
 	     -y raw -m track.mp3 </td></tr>
-	   
+
       </table>
       <p>
-      
+
       <a name=aud_2><h3>audio track -> PCM</h3></a>
-    
+
       If you prefer uncompressed PCM data for further processing, add
       "-N 0x1" in the command above:
-	   
+
 	   <p>
 	   <table>
 	     <tr>
 	       <td align=left valign="top" bgcolor="#ccffcc">
 	       transcode</td>
-	       
+
 	       <td align=left valign="top" bgcolor="#ccffcc">
 	       -p /dev/dvd/ -T 1,-1 -a 2</td>
 	     </tr>
-	     
+
 	<td></td><td align=left valign="top" bgcolor="#ccffcc">
 	     -y raw -m track.pcm -N 0x1</td></tr>
-	   
+
       </table>
       <p>
 
 
       <a name=aud_3><h3>ASF audio -> MP3</h3></a>
-    
+
       I had this ASF (advanced stream format) Genesis audio file
       lying around and tried the <i>avifile</i> import module. Since
       no auto-probing is available for ASF streams in the current
       version, you must play around with the sample rate. CD quality
       is 44100 Hz samplerate:
-	   
+
 	   <p>
 	   <table>
 	     <tr>
@@ -422,10 +422,10 @@ Examples on Usage:
 		  <td align=left valign="top" bgcolor="#ccffcc">
 		  -e 44100 -E 44100 -b 112</td>
 	   </tr>
-	     
+
 	<td></td><td align=left valign="top" bgcolor="#ccffcc">
 	     -y null,raw -m carpet_crawler_1999.mp3</td></tr>
-	   
+
       </table>
       <p>
 
@@ -456,7 +456,7 @@ Examples on Usage:
 	  track from the source. Suppose, we used the example modules
 	  "vmod,amod"
 	  for video and audio extraction.<p>
-	  
+
 
 	  The second session goes as follows. This session will be much
 	  faster, since no video is de/encoded.<p>
@@ -465,7 +465,7 @@ Examples on Usage:
 	    <li>
 		(1) transcode the second audio track "-a 1" into an AVI
 		container file named add-on.avi This looks like:
-		
+
 		<table>
 		  <tr>
 		    <td align=left valign="top" bgcolor="#ccffcc">
@@ -473,21 +473,21 @@ Examples on Usage:
 		    -o add-on.avi -u 50 </tr>
 	    </table>
 	    <p>
-	    
+
 	    The resulting file is only a temporary file but enables
 	    proper processing with <i>avimerge</i>. The export
 	    module "-y raw" is fine, since it writes proper (0 bytes)
 	    video frames.
-	    Set video import module to "null". If all goes well, 
+	    Set video import module to "null". If all goes well,
 	    both files should be identical with respect to the number
 	    of frames. Choose the proper audio track with "-a". Try also to
 	    increase the internal buffers "-u" for speedup.<p>
-	    
+
 	<li>(2) merge this track into movie.avi
 	    <table>
 	      <tr>
 		<td align=left valign="top" bgcolor="#ccffcc">
-		avimerge -i movie.avi -o dualaudiomovie.avi -p add-on.avi     
+		avimerge -i movie.avi -o dualaudiomovie.avi -p add-on.avi
 	      </tr>
 	</table>
 	<p>

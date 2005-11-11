@@ -28,7 +28,7 @@ static char fifo[256];
 MOD_open
 {
     if (param->flag == TC_VIDEO) {
-	char fps[32]; 
+	char fps[32];
 	char cmdbuf[1024];
 
 	tc_snprintf (fifo, 256, "%s-%d", "/tmp/tc-vncfifo", getpid());
@@ -56,7 +56,7 @@ MOD_open
 		    if ( vob->im_v_string) {
 			char *d = c;
 			while (1) {
-			    if (c && *c) { 
+			    if (c && *c) {
 				d = strchr (c, ' ');
 				if (d && *d) { *d = '\0';
 				    while (*c == ' ') c++;
@@ -98,7 +98,7 @@ MOD_open
     return (TC_IMPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
@@ -161,14 +161,14 @@ MOD_decode
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
     if (param->flag == TC_VIDEO) {
 	int ret;
 	kill(pid, SIGKILL);

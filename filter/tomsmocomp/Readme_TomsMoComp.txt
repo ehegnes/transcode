@@ -1,4 +1,4 @@
-File: Readme_TomsMoComp.txt 
+File: Readme_TomsMoComp.txt
 
 TomsMoComp - Motion Compensating Deinterlace Filter
 
@@ -21,19 +21,19 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details
 
 Also, this program is "Philanthropy-Ware".  That is, if you like it and feel
-the need to reward or inspire the author then please feel free (but not obligated) 
-to consider joining or donating to the Electronic Frontier Foundation. This will 
-help keep cyber space free of barbed wire and bullsh*t.  
+the need to reward or inspire the author then please feel free (but not obligated)
+to consider joining or donating to the Electronic Frontier Foundation. This will
+help keep cyber space free of barbed wire and bullsh*t.
 
 See their web page at www.eff.org.
 
 
 ***************
 
-Okay, on to business. 
+Okay, on to business.
 
 TomsMoComp.dll is a filter (for Avisynth and DScaler 4.0) that uses motion compensation
-and adaptive processing to deinterlace video source. It uses a variable amount of CPU 
+and adaptive processing to deinterlace video source. It uses a variable amount of CPU
 time based upon the user specified SearchEffort parameter.  The SearchEffort may currently be
 set anywhere from 0 (a smarter Bob) to about 30 (too CPU intensive for everybody). Only certain
 values are actually implemented (currently 0,1,3,5,9,11,13,15,19,21,max) but the nearest value
@@ -42,8 +42,8 @@ will be used.  Values above 15 have not been well tested and should probably be 
 (Note from Matthias Hopf <mat@mshopf.de>: It seems to be that all higher modes starting
 with '15' are somewhat broken and introduce dot noise.)
 
-TomsMoComp should run on all MMX machines or higher. It has also has some added code 
-for 3DNOW instructions for when it is running on a K6-II or higher and some SSEMMX 
+TomsMoComp should run on all MMX machines or higher. It has also has some added code
+for 3DNOW instructions for when it is running on a K6-II or higher and some SSEMMX
 for P3 & Athlon.
 
 
@@ -51,7 +51,7 @@ for P3 & Athlon.
 
 For DScaler:
 
-TomsMoComp will be included with future releases of DScaler but to test with a current alpha 
+TomsMoComp will be included with future releases of DScaler but to test with a current alpha
 R4.0 release just unzip the DI_TomsMoComp.dll file into your DScaler folder. Then restart
 DScaler and choose Settings/Deinterlace/TomsMoComp as your deinterlace method.
 
@@ -65,7 +65,7 @@ the SearchEffort value (default 5).
 
 For Avisynth:
 
-Just unzip the TomsMoComp.dll from the Avisynth zip folder into your Avisynth directory, or 
+Just unzip the TomsMoComp.dll from the Avisynth zip folder into your Avisynth directory, or
 somewhere. As the script below shows, I made a subdirectory under Avisynth just to keep it separate.
 
 Sample avs script:
@@ -78,7 +78,7 @@ Of course replace the file and directory names with your own and supply the desi
 values for parameters.
 
 The above avs file specifies for TopFirst=auto, SearchEffort=5, and a Vertical Filter option to be
-turned on.  
+turned on.
 
 ***************
 
@@ -98,29 +98,29 @@ TomsMoComp Parm list:
 
 All the values are integer, 0=no, 1=yes:
 
-  TopFirst - assume the top field, lines 0,2,4,... should be displayed first. 
+  TopFirst - assume the top field, lines 0,2,4,... should be displayed first.
     The default is the supposedly more common BottomFirst (not for me). You may
-	have to bring it up in Virtualdub and look at a few frames to see which 
+	have to bring it up in Virtualdub and look at a few frames to see which
 	looks best. (0=BottomFirst, 1=TopFirst)
-	
+
 	New - setting TopFirst=-1 will automatically pick up whatever Avisynth reports.
-	
-  SearchEffort - determines how much effort (CPU time) will be used to find 
+
+  SearchEffort - determines how much effort (CPU time) will be used to find
     moved pixels. Currently numbers from -1 to 30 with 0 being practically
-	just a smarter bob and 30 being fairly CPU intensive. 
-	
+	just a smarter bob and 30 being fairly CPU intensive.
+
 	For Avisynth only, a value of -1 is supported. In this case the TomsMoComp
 	filter will not deinterlace but instead assume you already have progressive
-	frames but want to double the vertical size.  I found by accident that this could 
+	frames but want to double the vertical size.  I found by accident that this could
 	give slightly better apparent detail than regular scaling algorithms and is useful
 	for low bit rate captures that are hard to IVTC/deinterlace or where you have just
 	kept the even fields for some other reason.  I'm considering making a DirectShow
 	version of this to be run at display time, or possibly adding it to ffDshow.
 
-	
+
   VerticalFilter - If turned on will very slightly blend each pair of horizontal lines
     together.  This loses only a small amount of vertical resolution but is probably
-	a good idea as it can somewhat hide remaining deinterlace artifacts and will 
+	a good idea as it can somewhat hide remaining deinterlace artifacts and will
 	probably also make you clip compress a bit better. (0 = no filter, 1 = filter)
 
 ***
@@ -128,7 +128,7 @@ All the values are integer, 0=no, 1=yes:
 Known issues and limitations (for both DScaler and Avisynth):
 
 1) 	Assumes YUV (YUY2 or YV12) Frame Based input. Use an Avisynth function to convert first if
-    needed.  YV12 is supported by the 2.5 Avisynth Alpha version only.        
+    needed.  YV12 is supported by the 2.5 Avisynth Alpha version only.
 
 2)  Currently still requires the pixel width to be a multiple of 4. This probably
     shouldn't be required but I pilfered the code from some of my other filters.
@@ -138,22 +138,22 @@ Known issues and limitations (for both DScaler and Avisynth):
 
 4)  TomsMoComp is for pure video source material. Use IVTC, DeComb, or DScaler's
     Auto Pulldown processing for mixed or film source material.
-	
-	
+
+
 Temporary file locations:
 
 For now, both source, this readme, and DLL should be at:
-	
+
 	www.trbarry.com/TomsMoComp.zip
-	
+
 
 A copy of this Readme_TomsMoComp.txt file should be at:
-  	
+
 	www.trbarry.com/Readme_TomsMoComp.txt
-	
+
 The source is included in above zip file and also in the TomsMoComp directory
 of the DScaler project at SourceForge, www.sourceforge.org (including Avisynth version)
-	
+
 If you have questions email Tom Barry, trbarry@trbarry.com
 
 Cheers,
@@ -169,10 +169,10 @@ Cheers,
 // 17 Jun 2003   0.0.1.7    Tom Barry	       Fix YV12 crash bug when TF=0
 // 17 Jun 2003   0.0.1.6    Tom Barry	       Fix SearchEffortW for YUY2
 											   Change various "2" to BPP for YV12 (bits/pixel
-// 21 Jan 2003   0.0.1.5    Tom Barry	       Same source compiled without Optimize 
-// 18 Jan 2003   0.0.1.4    Tom Barry	       Use AvisynthPluginit2 
-// 12 Nov 2002   0.0.1.3    Tom Barry	       YV12 support for Avisynth 2.5 Alpha 
-// 07 Jul 2002   0.0.1.0    Tom Barry	       Create TomsMoComp Deinterlacer 
+// 21 Jan 2003   0.0.1.5    Tom Barry	       Same source compiled without Optimize
+// 18 Jan 2003   0.0.1.4    Tom Barry	       Use AvisynthPluginit2
+// 12 Nov 2002   0.0.1.3    Tom Barry	       YV12 support for Avisynth 2.5 Alpha
+// 07 Jul 2002   0.0.1.0    Tom Barry	       Create TomsMoComp Deinterlacer
 //                                             (still brand new and experimental!)
 
 

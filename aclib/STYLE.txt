@@ -66,7 +66,7 @@ Coding style guidelines (for aclib)
           /* indented code goes here */
           ...
       }
-  
+
       int function(int param1, char *param2)
       {
           /* indented code goes here */
@@ -92,7 +92,7 @@ Coding style guidelines (for aclib)
       ) {
           ...
       }
-  
+
       if (!init_first()
        || !init_second()
        || !init_third()
@@ -102,7 +102,7 @@ Coding style guidelines (for aclib)
            * to make the terms line up. */
           ...
       }
-  
+
       for (node = first_node(list, LISTTYPE_MYLIST); node != NULL;
            node = next_node(list, LISTTYPE_MYLIST))
       ) {
@@ -139,13 +139,13 @@ Coding style guidelines (for aclib)
   multiple lines).  Examples:
       for (i = 0; i < count; i++)
           function(i);
-  
+
       while (!done) {
           /* Braces required because of the nested "if" */
           if (do_stuff())
               done = 1;
       }
-  
+
       if (state == 0) {
           a = b;
       } else if (state == 1) {
@@ -167,13 +167,13 @@ Coding style guidelines (for aclib)
       while (i < count) {
           ...
       }  /* while (i < count) */
-  
+
       if (flag) {
           ...
       } else {  /* !flag */
           ...
       }  /* if (flag) */
-  
+
       for (node = first; node != NULL; node = node->;next) {
           ...
       }  /* for all nodes */

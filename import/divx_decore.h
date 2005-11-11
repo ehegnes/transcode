@@ -10,7 +10,7 @@
 **/
 // decore.h //
 
-// This is the header file describing 
+// This is the header file describing
 // the entrance function of the encoder core
 // or the encore ...
 
@@ -19,7 +19,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
 #ifdef WIN32
 #define STDCALL _stdcall
@@ -63,11 +63,11 @@ extern "C" {
 // decore RGB color format
 #define DEC_RGB32		4
 #define DEC_RGB32_INV	5
-#define DEC_RGB24		6 
+#define DEC_RGB24		6
 #define DEC_RGB24_INV	7
-#define DEC_RGB555		8 
+#define DEC_RGB555		8
 #define DEC_RGB555_INV	9
-#define DEC_RGB565		10	
+#define DEC_RGB565		10
 #define DEC_RGB565_INV	11
 #define DEC_USER		12
 #define DEC_YV12		13
@@ -94,10 +94,10 @@ typedef struct
 	unsigned long mp4_reference_size;
 } DEC_MEM_REQS;
 
-typedef struct 
+typedef struct
 {
-	void * mp4_edged_ref_buffers;  
-	void * mp4_edged_for_buffers; 
+	void * mp4_edged_ref_buffers;
+	void * mp4_edged_for_buffers;
 	void * mp4_edged_back_buffers;
 	void * mp4_display_buffers;
 	void * mp4_state;
@@ -106,7 +106,7 @@ typedef struct
 	void * mp4_reference;
 } DEC_BUFFERS;
 
-typedef struct 
+typedef struct
 {
 	int x_dim; // x dimension of the frames to be decoded
 	int y_dim; // y dimension of the frames to be decoded
@@ -119,7 +119,7 @@ typedef struct
 
 typedef struct
 {
-	void *bmp; // decoded bitmap 
+	void *bmp; // decoded bitmap
 	const void *bitstream; // decoder buffer
 	long length; // length of the decoder stream
 	int render_flag;	// 1: the frame is going to be rendered
@@ -176,7 +176,7 @@ typedef int (STDCALL *decoreFunc)(unsigned long handle,	// handle	- the handle o
 
 #ifdef __cplusplus
 }
-#endif 
+#endif
 
 #endif // _DECORE_H_
 

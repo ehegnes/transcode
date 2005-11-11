@@ -105,7 +105,7 @@ that if the threshold is exceeded, the entire frame will be treated as moving, i
 entire frame will be interpolated or blended. The value to be specified is the percentage of
 moving area detected; for example, with the default value of 30, if 30 percent or more of
 the frame is detected to be moving, the entire frame will be treated as moving. Note that
-the percentage calculation is made prior to motion-map denoising (if enabled). 
+the percentage calculation is made prior to motion-map denoising (if enabled).
 
 <h3>Advanced Processing</h3>
 
@@ -163,7 +163,7 @@ may be telecined:
 2) b1t2b2t3b3t4b4t5...  ('perverse' telecining)
 <p>
 Note that both will appear fine when displayed on an interlaced display, but a capture of
-telecine type 2 with capture pattern 1 will no longer give deinterlaced output 
+telecine type 2 with capture pattern 1 will no longer give deinterlaced output
 on a progressive display without filtering! This means that we must now consider 8 patterns,
 i.e., 4 capture patterns times 2 telecining types. For each type, we will have a specific operation
 that will need to be done to re-create the original progressive frames. We see below that by
@@ -240,7 +240,7 @@ and output a continuous stream of progressive frames.
 The advanced processing settings allow the possible 8 corrections to be applied. Simply check
 a given building block if you want it enabled.
 <p>
-<b><i>Field swap before phase shift</i></b>: Swaps the fields of the frames before an optional phase shift. 
+<b><i>Field swap before phase shift</i></b>: Swaps the fields of the frames before an optional phase shift.
 <p>
 <b><i>Phase shift</i></b>: Shifts the field phase by one, i.e., b1t1-b2t2-b3t3... becomes
 xxb1-t1b2-t2b3-t3b4...
@@ -250,7 +250,7 @@ xxb1-t1b2-t2b3-t3b4...
 <b><i>Disable motion processing</i></b>: When checked the filter will perform only the Advanced Processing and
 will not follow it with normal motion processing. This is useful for getting only a shift and/or
 swap when that is sufficient for processing telecined material. When this is unchecked the
-Advanced Processing will be performed first and then full motion processing will be performed. 
+Advanced Processing will be performed first and then full motion processing will be performed.
 
 <h3>Note on 3:2 Pulldown, Etc.</h3>
 

@@ -4,20 +4,20 @@
  *  Copyright (C) Tilmann Bitterberg - August 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -129,82 +129,82 @@ static void *tcmodinfo_load_module(char *mod_name, char *mod_path, int mode)
 {
 #ifdef SYS_BSD
   const
-#endif  
+#endif
   char *error;
   void *handle;
-  
+
   if(mode & TC_EXPORT) {
-    
+
     tc_snprintf(module, sizeof(module), "%s/export_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
-    
-    if(verbose & TC_DEBUG) 
-      printf("loading %s export module %s\n", ((mode & TC_VIDEO)? "video": "audio"), module); 
-    
+
+    if(verbose & TC_DEBUG)
+      printf("loading %s export module %s\n", ((mode & TC_VIDEO)? "video": "audio"), module);
+
     handle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
-    
+
     if (!handle) {
       fputs (dlerror(), stderr);
       fprintf(stderr, "\n(%s) loading \"%s\" failed\n", __FILE__, module);
       return(NULL);
     }
-    
+
     if(mode & TC_VIDEO) {
-      TCV_export = dlsym(handle, "tc_export");   
+      TCV_export = dlsym(handle, "tc_export");
       if ((error = dlerror()) != NULL)  {
 	fputs(error, stderr);
 	return(NULL);
       }
     }
-    
+
     if(mode & TC_AUDIO) {
-      TCA_export = dlsym(handle, "tc_export");   
+      TCA_export = dlsym(handle, "tc_export");
       if ((error = dlerror()) != NULL)  {
 	fputs(error, stderr);
 	return(NULL);
       }
     }
-    
+
     return(handle);
   }
-  
-  
+
+
   if(mode & TC_IMPORT) {
-    
+
     tc_snprintf(module, sizeof(module), "%s/import_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
-    
-    //if(verbose & TC_DEBUG) 
-      printf("loading %s import module %s\n", ((mode & TC_VIDEO)? "video": "audio"), module); 
-    
+
+    //if(verbose & TC_DEBUG)
+      printf("loading %s import module %s\n", ((mode & TC_VIDEO)? "video": "audio"), module);
+
     handle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
-    
+
     if (!handle) {
       fputs (dlerror(), stderr);
       fputs ("\n", stderr);
       return(NULL);
     }
-    
+
     if(mode & TC_VIDEO) {
-      TCV_import = dlsym(handle, "tc_import");   
+      TCV_import = dlsym(handle, "tc_import");
       if ((error = dlerror()) != NULL)  {
 	fputs(error, stderr);
 	fputs ("\n", stderr);
 	return(NULL);
       }
     }
-    
-    
+
+
     if(mode & TC_AUDIO) {
-      TCA_import = dlsym(handle, "tc_import");   
+      TCA_import = dlsym(handle, "tc_import");
       if ((error = dlerror()) != NULL)  {
 	fputs(error, stderr);
 	fputs ("\n", stderr);
 	return(NULL);
       }
     }
-    
+
     return(handle);
   }
-  
+
   // wrong mode?
   return(NULL);
 }
@@ -213,13 +213,13 @@ static void *tcmodinfo_load_module(char *mod_name, char *mod_path, int mode)
 static int load_plugin(char *path, int id) {
 #ifdef SYS_BSD
   const
-#endif    
+#endif
   char *error;
 
   int n;
 
   //replace "=" by "/0" in filter name
-  
+
   if(!filter[id].name) return(-1);
 
   filter[id].options=NULL;
@@ -231,24 +231,24 @@ static int load_plugin(char *path, int id) {
       break;
     }
   }
-  
+
   tc_snprintf(module, sizeof(module), "%s/filter_%s.so", path, filter[id].name);
-  
+
   // try transcode's module directory
-  
-  filter[id].handle = dlopen(module, RTLD_LAZY); 
+
+  filter[id].handle = dlopen(module, RTLD_LAZY);
 
   if (!filter[id].handle) {
-    fprintf(stderr, "[%s] loading filter module %s failed\n", EXE, module); 
+    fprintf(stderr, "[%s] loading filter module %s failed\n", EXE, module);
     if ((error = dlerror()) != NULL) fputs(error, stderr);
     fputs("\n", stderr);
     return(-1);
 
-  } else 
-    //fprintf(stderr, "[%s] loading filter module (%d) %s\n", EXE, id, module); 
-  
-  filter[id].entry = dlsym(filter[id].handle, "tc_filter");   
-  
+  } else
+    //fprintf(stderr, "[%s] loading filter module (%d) %s\n", EXE, id, module);
+
+  filter[id].entry = dlsym(filter[id].handle, "tc_filter");
+
   if ((error = dlerror()) != NULL)  {
     fputs(error, stderr);
     fputs("\n", stderr);
@@ -261,27 +261,27 @@ static int load_plugin(char *path, int id) {
 static void do_connect_socket (char *socketfile)
 {
 #ifdef NET_STREAM
-    int sock, retval;  
-    struct sockaddr_un server;  
+    int sock, retval;
+    struct sockaddr_un server;
     char buf[SIZE];
     fd_set rfds;
     struct timeval tv;
     ssize_t n;
 
-    sock = socket(AF_UNIX, SOCK_STREAM, 0); 
-    if (sock < 0) { 
-	perror("opening stream socket"); 
-	exit(1); 
-    }  
-    server.sun_family = AF_UNIX;  
+    sock = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (sock < 0) {
+	perror("opening stream socket");
+	exit(1);
+    }
+    server.sun_family = AF_UNIX;
     strlcpy(server.sun_path, socketfile, sizeof(server.sun_path));
 
     if (connect(sock, (struct sockaddr *) &server, sizeof(struct sockaddr_un)) < 0)
-    {  
-	close(sock);  
+    {
+	close(sock);
 	perror("connecting stream socket");
 	exit(1);
-    } 
+    }
 
     while (1) {
 	/* Watch stdin (fd 0) to see when it has input. */
@@ -314,12 +314,12 @@ static void do_connect_socket (char *socketfile)
 	    }
 	}
 
-	if (write(sock, buf, sizeof(buf)) < 0) 
+	if (write(sock, buf, sizeof(buf)) < 0)
 	    perror("writing on stream socket");
 
 	memset(buf, 0, sizeof (buf));
-	
-	if (read(sock, buf, SIZE) < 0) 
+
+	if (read(sock, buf, SIZE) < 0)
 	    perror("reading on stream socket");
 
 	printf("%s", buf);
@@ -328,7 +328,7 @@ static void do_connect_socket (char *socketfile)
 	    break;
     }
 
-    close(sock); 
+    close(sock);
 #else
     fprintf(stderr, "No support for Netstreams compiled in\n");
     fflush (stderr);
@@ -385,7 +385,7 @@ int main(int argc, char *argv[])
 	    else
 		flags = 0;
 	    break;
-	    
+
 	case 't':
 	    if (!optarg) { usage(1); }
 
@@ -447,12 +447,12 @@ int main(int argc, char *argv[])
   vob.ex_v_height= 32;
   vob.im_v_codec = CODEC_YUV;
 
-  vob.a_rate          = 44100; 
+  vob.a_rate          = 44100;
   vob.mp3frequency    = 44100;
   vob.a_chan          = 2;
   vob.a_bits          = 16;
   vob.video_in_file   = "/dev/zero";
-  
+
   //fprintf(stderr, "Module is (%s/filter_%s) (%d)\n", modpath, filename, getpid());
 
   if (mod_type & TYPE_FI) {
@@ -517,7 +517,7 @@ int main(int argc, char *argv[])
 
   }
 
-  
+
   return(1);
 }
 
@@ -526,7 +526,7 @@ void dummy_optstr(void);
 void dummy_optstr(void) {
   optstr_lookup(NULL, NULL);
   optstr_get(NULL, NULL, NULL);
-  optstr_filter_desc(NULL, NULL, NULL, NULL, NULL, NULL, NULL); 
+  optstr_filter_desc(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
   optstr_frames_needed(NULL, NULL);
   optstr_param(NULL, NULL, NULL, NULL, NULL);
 }

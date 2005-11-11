@@ -20,8 +20,8 @@ int r,\
 int mwidth,\
 unsigned volume\
 );
-extern unsigned gmatrix(unsigned *m, int r, int w, double const A); 
-extern int alpha(double outline_thickness, double blur_radius); 
+extern unsigned gmatrix(unsigned *m, int r, int w, double const A);
+extern int alpha(double outline_thickness, double blur_radius);
 extern font_desc_t *make_font(\
 	char *font_name, int font_symbols, int font_size, int iso_extention, double outline_thickness, double blur_radius);
 extern int chroma_key(int u, int v, double color,\

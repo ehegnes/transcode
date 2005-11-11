@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -61,10 +61,10 @@
 // audio defaults
 #define RATE         48000
 #define BITS            16
-#define CHANNELS         2  
+#define CHANNELS         2
 
 #define SIZE_RGB_FRAME ((int) TC_MAX_V_FRAME_WIDTH*TC_MAX_V_FRAME_HEIGHT*(BPP/8))
-#define SIZE_PCM_FRAME ((int) (RATE/MIN_FPS) * BITS/8 * CHANNELS * 3)  
+#define SIZE_PCM_FRAME ((int) (RATE/MIN_FPS) * BITS/8 * CHANNELS * 3)
 
 #define TC_PAD_AUD_FRAMES 10
 #define TC_MAX_SEEK_BYTES (1<<20)
@@ -120,7 +120,7 @@
 #define TC_RESERVED              8
 
 #define TC_FILTER_INIT          16
-#define TC_PRE_S_PROCESS        32    
+#define TC_PRE_S_PROCESS        32
 #define TC_PRE_M_PROCESS        64
 #define TC_INT_M_PROCESS       128
 #define TC_POST_M_PROCESS      256
@@ -215,9 +215,9 @@
 #define TC_PROBE_NO_IMASR    8192
 
 #define TC_INFO_NO_DEMUX        1
-#define TC_INFO_MPEG_PS         2  
-#define TC_INFO_MPEG_ES         4  
-#define TC_INFO_MPEG_PES        8  
+#define TC_INFO_MPEG_PS         2
+#define TC_INFO_MPEG_ES         4
+#define TC_INFO_MPEG_PES        8
 
 #define TC_DEFAULT_PPORT     19630
 #define TC_DEFAULT_APORT     19631
@@ -231,7 +231,7 @@
 #define TC_DEFAULT_AAWEIGHT (1.0f/3.0f)
 #define TC_DEFAULT_AABIAS   (0.5f)
 
-#define TC_A52_DRC_OFF    1 
+#define TC_A52_DRC_OFF    1
 #define TC_A52_DEMUX      2
 #define TC_A52_DOLBY_OFF  4
 

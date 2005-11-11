@@ -7,20 +7,20 @@
  *  Code base kdetv-cvs20040727.
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -153,18 +153,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
     //----------------------------------
 
     if (ptr->tag & TC_FILTER_INIT) {
-    
+
 	if (! (vob = tc_get_vob ()))
 	    return -1;
-    
+
 	if (! (tmc = tmc_global = calloc (1, sizeof (tomsmocomp_t)))) {
 	    fprintf (stderr, "calloc() failed\n");
 	    return -1;
 	}
-    
+
 	if (verbose)
 	    tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    
+
 	/* default values */
 	tmc->SearchEffort   = 11;
 	tmc->UseStrangeBob  = 0;
@@ -211,7 +211,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    return -1;
 	}
 
-	tmc->DSinfo.Overlay      = tmc->frameOut;	
+	tmc->DSinfo.Overlay      = tmc->frameOut;
 	tmc->DSinfo.OverlayPitch = tmc->rowsize;
 	tmc->DSinfo.LineLength   = tmc->rowsize;
 	tmc->DSinfo.FrameWidth   = tmc->width;
@@ -220,10 +220,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	tmc->DSinfo.InputPitch   = 2* tmc->rowsize;
 
 	tmc->DSinfo.pMemcpy = ac_memcpy;
-	
+
 	if (verbose) {
 	    tc_log_info(MOD_NAME, "topfirst %s,  searcheffort %d,  usestrangebob %s",
-		   tmc->TopFirst ? "True":"False", tmc->SearchEffort, 
+		   tmc->TopFirst ? "True":"False", tmc->SearchEffort,
 		   tmc->UseStrangeBob ? "True":"False");
 	    tc_log_info(MOD_NAME, "cpuflags%s%s%s%s",
 		   tmc->cpuflags & AC_SSE ? " SSE":"",
@@ -231,10 +231,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		   tmc->cpuflags & AC_MMX ? " MMX":"",
 		   !(tmc->cpuflags & (AC_SSE|AC_3DNOW|AC_MMX)) ? " None":"");
 	}
-	
+
 	return 0;
     }
-  
+
     //----------------------------------
     // filter close
     //----------------------------------
@@ -246,7 +246,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	tmc->framePrev = tmc->frameIn = tmc->frameOut = NULL;
 	return 0;
     }
-  
+
     //----------------------------------
     // filter description
     //----------------------------------
@@ -263,7 +263,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	sprintf (buf, "%02x", tmc->cpuflags);
 	optstr_param (options, "cpuflags", "Manual specification of CPU capabilities" ,"%x", buf, "00", "ff");
     }
-    
+
     //----------------------------------
     // filter frame routine
     //----------------------------------
@@ -275,7 +275,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	uint8_t *planes[3];
 	YUV_INIT_PLANES(planes, ptr->video_buf, IMG_YUV_DEFAULT,
 			tmc->width, tmc->height);
- 
+
 	/* Convert / Copy to yuy2 */
 	switch (tmc->codec) {
 	case CODEC_YUY2:
@@ -321,8 +321,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	tmp = tmc->framePrev;
 	tmc->framePrev = tmc->frameIn;
 	tmc->frameIn   = tmp;
-    } 
-  
+    }
+
     return 0;
 }
 

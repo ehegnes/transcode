@@ -1,28 +1,28 @@
-/* 
+/*
  *    ac3_internal.h
  *
  *	Copyright (C) Aaron Holtzman - May 1999
  *
  *  This file is part of ac3dec, a free Dolby AC-3 stream decoder.
- *	
+ *
  *  ac3dec is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  ac3dec is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
 #ifndef __GNUC__
-#define inline 
+#define inline
 #endif
 
 /* Exponent strategy constants */
@@ -78,7 +78,7 @@ typedef struct syncinfo_s
 	/* crc for the first 5/8 of the sync block */
 	/* uint_16   crc1; */
 	/* Stream Sampling Rate (kHz) 0 = 48, 1 = 44.1, 2 = 32, 3 = reserved */
-	uint_16		fscod;	
+	uint_16		fscod;
 	/* Frame size code */
 	uint_16		frmsizecod;
 
@@ -96,7 +96,7 @@ typedef struct bsi_s
 {
 	uint_32	magic;
 	/* Bit stream identification == 0x8 */
-	uint_16 bsid;	
+	uint_16 bsid;
 	/* Bit stream mode */
 	uint_16 bsmod;
 	/* Audio coding mode */
@@ -256,14 +256,14 @@ typedef struct audblk_s
 		uint_16 lfefsnroffst;
 		/* lfe fast gain code */
 		uint_16 lfefgaincod;
-	
+
 	/* Coupling leak info */
 	uint_16 cplleake;
 		/* coupling fast leak initialization */
 		uint_16 cplfleak;
 		/* coupling slow leak initialization */
 		uint_16 cplsleak;
-	
+
 	/* delta bit allocation info */
 	uint_16 deltbaie;
 		/* coupling delta bit allocation exists */
@@ -320,7 +320,7 @@ typedef struct audblk_s
 	/* Number of coupling exponent groups
 	 * Derived from cplbegf, cplendf, cplexpstr */
 	uint_16 ncplgrps;
-			
+
 	/* End mantissa numbers of fbw channels */
 	uint_16 endmant[5];
 
@@ -337,7 +337,7 @@ typedef struct audblk_s
 	uint_16 fbw_bap[5][256];
 	uint_16 cpl_bap[256];
 	uint_16 lfe_bap[7];
-	
+
 	uint_32	magic3;
 } audblk_t;
 

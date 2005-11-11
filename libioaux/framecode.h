@@ -21,7 +21,7 @@ struct fc_time {
   unsigned int  sf; /* start frame */
   unsigned int  stf; /* calculated start frame */
 
-  unsigned int  eh; /* end hour */ 
+  unsigned int  eh; /* end hour */
   unsigned int  em; /* end minute */
   unsigned int  es; /* end second */
   unsigned int  ef; /* end frame */

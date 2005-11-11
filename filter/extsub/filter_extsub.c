@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - January 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -87,40 +87,40 @@ static int subtitle_retrieve(void)
 
   // get a subtitle from buffer
   pthread_mutex_lock(&sframe_list_lock);
-  
+
   if(sframe_fill_level(TC_BUFFER_EMPTY)) {
       pthread_mutex_unlock(&sframe_list_lock);
       return(-1);
   }
-  
+
   //not beeing empty does not mean ready to go!!!!!
 
   if(sframe_fill_level(TC_BUFFER_READY)) {
-      
+
       pthread_mutex_unlock(&sframe_list_lock);
-      
+
       if((sptr = sframe_retrieve())==NULL) {
 	  //this shouldn´t happen
 	  tc_log_error(MOD_NAME, "internal error (S)");
 	  return(-1);
-      } 
+      }
   } else {
       pthread_mutex_unlock(&sframe_list_lock);
       return(-1);
   }
-  
+
   //room for title pixels
   sub.frame = sub_frame;
-  
+
   // conversion
   if(subproc_feedme(sptr->video_buf, sptr->video_size, sptr->id, sptr->pts, &sub)<0) {
     // problems, drop this subtitle
     if(verbose & TC_DEBUG) tc_log_warn(MOD_NAME, "subtitle dropped");
-    sframe_remove(sptr); 
-    pthread_cond_signal(&sframe_list_full_cv); 
+    sframe_remove(sptr);
+    pthread_cond_signal(&sframe_list_full_cv);
     return(-1);
   }
-  
+
   //save data
 
   sub_id   = sptr->id;
@@ -135,12 +135,12 @@ static int subtitle_retrieve(void)
   for(n=0; n<4;++n) sub_alpha[n] = sub.alpha[n];
 
   //release packet buffer
-  sframe_remove(sptr);  
-  pthread_cond_signal(&sframe_list_full_cv); 
+  sframe_remove(sptr);
+  pthread_cond_signal(&sframe_list_full_cv);
 
-  if(verbose & TC_STATS) 
-    tc_log_info(MOD_NAME, "got SUBTITLE %d with pts=%.3f dtime=%.3f", sub_id, sub_pts1, sub_pts2-sub_pts1); 
-  
+  if(verbose & TC_STATS)
+    tc_log_info(MOD_NAME, "got SUBTITLE %d with pts=%.3f dtime=%.3f", sub_id, sub_pts1, sub_pts2-sub_pts1);
+
   return(0);
 }
 
@@ -150,21 +150,21 @@ static int subtitle_retrieve(void)
 //
 //-------------------------------------------------------------------
 
-static int color_set_done=0; 
-static int anti_alias_done=0; 
+static int color_set_done=0;
+static int anti_alias_done=0;
 #warning ***************** FIXME ****************** temp 1 because antialiasing not available
 static int skip_anti_alias=1;
 
-static unsigned int ca=2, cb=3; 
+static unsigned int ca=2, cb=3;
 
 static void get_subtitle_colors(void) {
-  
+
   int y;
-  
+
   for(y=0; y<sub_ylen*sub_xlen; ++y) ++sub_colour[(uint8_t) sub_frame[y]];
-  
+
   if(sub_colour[0] || sub_colour[1] || sub_colour[2] || sub_colour[3]) {
-    
+
     if(sub_colour[1]>sub_colour[2] && sub_colour[1]>sub_colour[3]) {
       ca = 1;
       cb = (sub_colour[2]>sub_colour[3]) ? 2:3;
@@ -181,16 +181,16 @@ static void get_subtitle_colors(void) {
     }
   }
   color_set_done=1;
-  
+
   if(verbose & TC_DEBUG) {
-    tc_log_info(MOD_NAME, "color dis: 0=%d, 1=%d, 2=%d, 3=%d, ca=%d, cb=%d", 
-                    sub_colour[0], sub_colour[1], sub_colour[2], sub_colour[3], 
+    tc_log_info(MOD_NAME, "color dis: 0=%d, 1=%d, 2=%d, 3=%d, ca=%d, cb=%d",
+                    sub_colour[0], sub_colour[1], sub_colour[2], sub_colour[3],
                     ca, cb);
-    tc_log_info(MOD_NAME, "alpha dis: 0=%d, 1=%d, 2=%d, 3=%d, ca=%d, cb=%d", 
-                    sub_alpha[0], sub_alpha[1], sub_alpha[2], sub_alpha[3], 
+    tc_log_info(MOD_NAME, "alpha dis: 0=%d, 1=%d, 2=%d, 3=%d, ca=%d, cb=%d",
+                    sub_alpha[0], sub_alpha[1], sub_alpha[2], sub_alpha[3],
                     ca, cb);
   }
-  
+
 }
 
 //-------------------------------------------------------------------
@@ -200,13 +200,13 @@ static void get_subtitle_colors(void) {
 //-------------------------------------------------------------------
 
 static void anti_alias_subtitle(int black) {
-  
+
   int back_col=black;
   int n;
 
   if(color1<=black) color1=black+1;
   if(color2<=black) color2=black+1;
-  
+
   for(n=0; n<sub_ylen*sub_xlen; ++n) {
 
     if(sub_frame[n] == ca) {
@@ -214,21 +214,21 @@ static void anti_alias_subtitle(int black) {
       back_col=black;
       goto next_pix;
     }
-    
+
     if(sub_frame[n] == cb) {
       sub_frame[n] = color2 & 0xff;
       back_col=255;
       goto next_pix;
     }
-    
+
     if(back_col==255) {
       sub_frame[n] = 255 & 0xff;
     } else sub_frame[n]=black;
-    
+
   next_pix:
     continue;
   }
-  
+
   //use transcode's anti-alias routine (full frame mode = 3)
 #warning ***************** FIXME ****************** not available
 //  if(!skip_anti_alias) {
@@ -253,20 +253,20 @@ static void subtitle_overlay_yuv(char *vid_frame, int w, int h)
 
   int eff_sub_ylen, off;
 
-  if(verbose & TC_STATS) 
+  if(verbose & TC_STATS)
     tc_log_info(MOD_NAME, "SUBTITLE id=%d, x=%d, y=%d, w=%d, h=%d, t=%f",
-                    sub_id, sub_xpos, sub_ypos, sub_xlen, sub_ylen, 
+                    sub_id, sub_xpos, sub_ypos, sub_xlen, sub_ylen,
                     sub_pts2-sub_pts1);
-  
+
   if(color_set_done==0) get_subtitle_colors();
-  
+
   //check:
   eff_sub_ylen = (sub_ylen+vshift>h) ?  h-vshift:sub_ylen;
 
   off = (vshift>0) ? vshift:0;
 
   if(eff_sub_ylen<0 || off>eff_sub_ylen) {
-    tc_log_info(MOD_NAME, "invalid subtitle shift parameter"); 
+    tc_log_info(MOD_NAME, "invalid subtitle shift parameter");
     return;
   }
 
@@ -278,15 +278,15 @@ static void subtitle_overlay_yuv(char *vid_frame, int w, int h)
     for(y=0; y<w*h/4; ++y) vid_frame[w*h+y]=80;
     for(y=0; y<w*h/4; ++y) vid_frame[w*h*5/4+y]=80;
   }
-  
+
   n=0;
-  
+
   for(y=0; y<eff_sub_ylen-off; ++y) {
-    
+
     m = sub_xpos + (y+h-eff_sub_ylen)*w+vshift*w;
-    
+
     for(x=0; x<sub_xlen; ++x) {
-      
+
       if(sub_frame[n] != 16) {
 	//Y
 	vid_frame[m] = sub_frame[n] & 0xff;
@@ -308,7 +308,7 @@ static void subtitle_overlay_yuv(char *vid_frame, int w, int h)
 
 //-------------------------------------------------------------------
 //
-// RGB overlay 
+// RGB overlay
 //
 //-------------------------------------------------------------------
 
@@ -318,14 +318,14 @@ static void subtitle_overlay_rgb(char *vid_frame, int w, int h)
   int x, y, n, m;
 
   int eff_sub_ylen, off;
-  
-  if(verbose & TC_STATS) 
-    tc_log_info(MOD_NAME, "SUBTITLE id=%d, x=%d, y=%d, w=%d, h=%d, t=%f", 
-                    sub_id, sub_xpos, sub_ypos, sub_xlen, sub_ylen, 
+
+  if(verbose & TC_STATS)
+    tc_log_info(MOD_NAME, "SUBTITLE id=%d, x=%d, y=%d, w=%d, h=%d, t=%f",
+                    sub_id, sub_xpos, sub_ypos, sub_xlen, sub_ylen,
                     sub_pts2-sub_pts1);
-  
+
   if(color_set_done==0) get_subtitle_colors();
-  
+
   n=0;
 
   //check:
@@ -335,18 +335,18 @@ static void subtitle_overlay_rgb(char *vid_frame, int w, int h)
   off = (vshift<0) ? -vshift:0;
 
   if(eff_sub_ylen<0 || off>eff_sub_ylen) {
-    tc_log_warn(MOD_NAME, "invalid subtitle shift parameter"); 
+    tc_log_warn(MOD_NAME, "invalid subtitle shift parameter");
     return;
   }
-  
+
   if(!anti_alias_done) anti_alias_subtitle(0);
-  
+
   for(y=0; y<eff_sub_ylen-off; ++y) {
-    
+
     m = sub_xpos*3 + (eff_sub_ylen-y+vshift+(off?0:vshift))*w*3;
-    
+
     for(x=0; x<sub_xlen; ++x) {
-      
+
       if(sub_frame[n] !=0) {
 	vid_frame[m++]= sub_frame[n] & 0xff;
 	vid_frame[m++]= sub_frame[n] & 0xff;
@@ -412,15 +412,15 @@ int tc_filter(frame_list_t *ptr_, char *options)
   // filter init
   //
   //----------------------------------
-  
+
   if(ptr->tag & TC_FILTER_INIT) {
-    
+
     if((vob = tc_get_vob())==NULL) return(-1);
-    
+
     // filter init ok.
-    
+
     if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    
+
     if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
     //------------------------------------------------------------
@@ -448,18 +448,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if (vob->im_v_codec == CODEC_YUV)
 	vshift = -vshift;
-    
+
     if(n>8) color_set_done=1;
-    
+
     if(verbose) tc_log_info(MOD_NAME, "extracting subtitle 0x%x", vob->s_track+0x20);
 
     // start subtitle stream
     import_para.flag=TC_SUBEX;
-  
+
     if(tcv_import(TC_IMPORT_OPEN, &import_para, vob)<0) {
       tc_log_error(MOD_NAME, "popen subtitle stream");
     }
-    
+
     //------------------------------------------------------------
 
     subproc_init(NULL, "title", subtitles, (unsigned short)vob->s_track);
@@ -470,7 +470,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     // start thread
     if(pthread_create(&thread1, NULL, (void *) subtitle_reader, NULL)!=0)
-      tc_log_error(MOD_NAME, "failed to start subtitle import thread");    
+      tc_log_error(MOD_NAME, "failed to start subtitle import thread");
 
     // misc:
 
@@ -481,32 +481,32 @@ int tc_filter(frame_list_t *ptr_, char *options)
     }
 
     codec = vob->im_v_codec;
-    
+
     if ((sub_frame = malloc(BUFFER_SIZE))==NULL) {
       perror("out of memory");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     } else
-      memset(sub_frame, 0, BUFFER_SIZE);  
+      memset(sub_frame, 0, BUFFER_SIZE);
 
     if ((vid_frame = malloc(BUFFER_SIZE))==NULL) {
       perror("out of memory");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     } else
-      memset(vid_frame, 0, BUFFER_SIZE);  
+      memset(vid_frame, 0, BUFFER_SIZE);
 
     if ((tmp_frame = malloc(BUFFER_SIZE))==NULL) {
       perror("out of memory");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     } else
-      memset(tmp_frame, 0, BUFFER_SIZE);  
- 
+      memset(tmp_frame, 0, BUFFER_SIZE);
+
     //for ant-aliasing
 #warning ***************** FIXME ****************** not available
     //if(!skip_anti_alias) init_aa_table(vob->aa_weight, vob->aa_bias);
 
     return(0);
   }
-  
+
   //----------------------------------
   //
   // filter close
@@ -516,17 +516,17 @@ int tc_filter(frame_list_t *ptr_, char *options)
   if(ptr->tag & TC_FILTER_CLOSE) {
 
     void * status;
-    
+
     pthread_cancel(thread1);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
     pthread_cond_signal(&sframe_list_full_cv);
 #endif
     pthread_join(thread1, &status);
-    
+
     import_para.flag=TC_SUBEX;
 
     if(import_para.fd!=NULL) pclose(import_para.fd);
-    
+
     import_para.fd=NULL;
 
     //FIXME: module already removed by main process
@@ -537,10 +537,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if(vid_frame) free(vid_frame);
     if(sub_frame) free(sub_frame);
-    
+
     return(0);
   }
-  
+
   //----------------------------------
   //
   // filter frame routine
@@ -550,11 +550,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
-  
-  if(verbose & TC_STATS) 
-    tc_log_info(MOD_NAME, "%s/%s %s %s", 
+
+  if(verbose & TC_STATS)
+    tc_log_info(MOD_NAME, "%s/%s %s %s",
                     vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
-  
+
   if(post) {
     pre = (ptr->tag & TC_POST_S_PROCESS)? 1:0;
   } else {
@@ -567,44 +567,44 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //-------------------------------------------------------------------------
   //
   // below is a very fuzzy concept of rendering the subtitle on the movie
-  // 
+  //
   // (1) check if we have a valid subtitle and render it
   // (2) if (1) fails try to get a new one
   // (3) buffer and display the new one if it's showtime, if not return
-  // 
+  //
   // repeat steps throughout the movie
-  
+
   // calculate current frame video PTS in [s]
   // adjust for dropped frames so far
   // adjust for user shift (in milliseconds)
 
   f_pts = f_time*(ptr->id-tc_get_frames_dropped()+vob->psu_offset) + tshift/1000.;
 
-  if(verbose & TC_DEBUG) 
-    tc_log_info(MOD_NAME, "frame=%06d pts=%.3f sub1=%.3f sub2=%.3f", 
-                    ptr->id, f_pts, sub_pts1, sub_pts2); 
-  
+  if(verbose & TC_DEBUG)
+    tc_log_info(MOD_NAME, "frame=%06d pts=%.3f sub1=%.3f sub2=%.3f",
+                    ptr->id, f_pts, sub_pts1, sub_pts2);
+
   //overlay now?
   if(sub_pts1 <= f_pts && f_pts <= sub_pts2) {
     subtitle_overlay(ptr->video_buf, ptr->v_width, ptr->v_height);
     return(0);
   }
-  
+
   //get a new subtitle, if the last one has expired:
 
   //reset anti-alias info
   anti_alias_done=0;
-  
+
   if(f_pts > sub_pts2) {
     if(subtitle_retrieve()<0) {
-      if(verbose & TC_STATS) 
-	tc_log_info(MOD_NAME, "no subtitle available at this time"); 
+      if(verbose & TC_STATS)
+	tc_log_info(MOD_NAME, "no subtitle available at this time");
       return(0);
     }
   }
-  
+
   //overlay now?
   if(sub_pts1 < f_pts && f_pts < sub_pts2) subtitle_overlay(ptr->video_buf, ptr->v_width, ptr->v_height);
-  
+
   return(0);
 }

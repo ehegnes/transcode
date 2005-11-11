@@ -53,7 +53,7 @@ static long freqs[9] = { 44100, 48000, 32000, 22050, 24000, 16000 , 11025 , 1200
 int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate){
     int stereo, ssize, crc, lsf, mpeg25, framesize;
     int padding, bitrate_index, sampling_frequency;
-    unsigned long newhead = 
+    unsigned long newhead =
       hbuf[0] << 24 |
       hbuf[1] << 16 |
       hbuf[2] <<  8 |
@@ -62,15 +62,15 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
 
 #if 1
     // head_check:
-    if( (newhead & 0xffe00000) != 0xffe00000 ||  
+    if( (newhead & 0xffe00000) != 0xffe00000 ||
         (newhead & 0x0000fc00) == 0x0000fc00){
 	//fprintf( stderr, "[%s] head_check failed\n", __FILE__);
 	return -1;
     }
 #endif
 
-    if((4-((newhead>>17)&3))!=3){ 
-      //fprintf( stderr, "[%s] not layer-3\n", __FILE__); 
+    if((4-((newhead>>17)&3))!=3){
+      //fprintf( stderr, "[%s] not layer-3\n", __FILE__);
       return -1;
     }
 
@@ -142,7 +142,7 @@ struct frmsize_s
 
 } frmsize_t;
 
-static const struct frmsize_s frmsizecod_tbl[] = 
+static const struct frmsize_s frmsizecod_tbl[] =
 {
 	{ 32  ,{64   ,69   ,96   } },
 	{ 32  ,{64   ,70   ,96   } },
@@ -186,7 +186,7 @@ static const struct frmsize_s frmsizecod_tbl[] =
 
 #define fscd_tbl_entries (sizeof(frmsizecod_tbl)/sizeof(frmsize_t))
 
-static unsigned long get_ac3_header(unsigned char *buf) 
+static unsigned long get_ac3_header(unsigned char *buf)
 {
   int i=0;
   unsigned long tmp=0;
@@ -194,19 +194,19 @@ static unsigned long get_ac3_header(unsigned char *buf)
   tmp = (tmp << 8) + (buf[i++]&0xff);
   tmp = (tmp << 8) + (buf[i++]&0xff);
   tmp = (tmp << 8) + (buf[i++]&0xff);
-  
+
   return(tmp);
 }
 
-static int get_ac3_framesize(unsigned char *buf) 
+static int get_ac3_framesize(unsigned char *buf)
 {
   int fscod, frmsizecod;
   unsigned long tmp = 0;
 
   tmp=get_ac3_header(buf);
-  
+
   if(tmp<0) return(-1);
-  
+
   fscod      = (tmp >> 6) & 0x3;
   frmsizecod = tmp & 0x3f;
 
@@ -216,7 +216,7 @@ static int get_ac3_framesize(unsigned char *buf)
 }
 
 // tibit
-static int get_ac3_nfchans(unsigned char *buf) 
+static int get_ac3_nfchans(unsigned char *buf)
 {
   int acmod = 0;
 
@@ -230,13 +230,13 @@ static int get_ac3_nfchans(unsigned char *buf)
 }
 
 
-static int get_ac3_bitrate(unsigned char *buf) 
+static int get_ac3_bitrate(unsigned char *buf)
 {
   int frmsizecod;
   unsigned long tmp = 0;
 
   tmp=get_ac3_header(buf);
-  
+
   frmsizecod = tmp & 0x3f;
 
   if(frmsizecod >= fscd_tbl_entries) return(-1);
@@ -245,16 +245,16 @@ static int get_ac3_bitrate(unsigned char *buf)
 }
 
 
-static int get_ac3_samplerate(unsigned char *buf) 
+static int get_ac3_samplerate(unsigned char *buf)
 {
   int fscod, sampling_rate;
   unsigned long tmp = 0;
 
   tmp=get_ac3_header(buf);
-  
-  // Get the sampling rate 
+
+  // Get the sampling rate
   fscod  = (tmp >> 6) & 0x3;
-  
+
   if(fscod == 3) {
     return(-1);  //invalid sampling rate code
   } else if(fscod == 2)
@@ -280,27 +280,27 @@ int tc_get_ac3_header(unsigned char *_buf, int len, int *chans, int *srate, int 
   // need to find syncframe:
 
   buffer=_buf;
-  
+
   for (i=0; i<len-4; i++) {
       //fprintf(stderr, "%02x ", buffer[i]);
-      sync_word = (sync_word << 8) + (uint8_t) buffer[i]; 
+      sync_word = (sync_word << 8) + (uint8_t) buffer[i];
       if(sync_word == 0x0b77) break;
   }
-    
+
   if(sync_word != 0x0b77) return(-1);
 
   if (srate) *srate = get_ac3_samplerate(&buffer[i+1]);
-  if (bitrate) *bitrate = get_ac3_bitrate(&buffer[i+1]);  
+  if (bitrate) *bitrate = get_ac3_bitrate(&buffer[i+1]);
   nfchans = get_ac3_nfchans(&buffer[i+1]);
   if (chans) *chans = nfchans;
   fsize = 2*get_ac3_framesize(&buffer[i+1]);
-  
+
   if(j<0 || bitrate <0) return(-1);
 
   return(fsize);
 }
 
-  
+
 int tc_get_audio_header(unsigned char *buf, int buflen, int format, int *chans, int *srate, int *bitrate )
 {
     switch (format) {
@@ -384,7 +384,7 @@ int sync_audio_video_avi2avi (double vid_ms, double *aud_ms, avi_t *in, avi_t *o
 		AVI_print_error("AVI audio read frame");
 		//*aud_ms = vid_ms;
 		return(-2);
-	    }      
+	    }
 	    //fprintf(stderr, "len (%ld)\n", bytes);
 
 	    if(AVI_write_audio(out, data, bytes)<0) {
@@ -407,24 +407,24 @@ int sync_audio_video_avi2avi (double vid_ms, double *aud_ms, avi_t *in, avi_t *o
 		*aud_ms += (bytes*8.0*1000.0)/(double)mp3rate;
 	    }
 	    /*
-	       fprintf(stderr, "%s track (%d) %8.0lf->%8.0lf len (%ld) rate (%ld)\n", 
-	       format==0x55?"MP3":format==0x1?"PCM":"AC3", 
-	       j, vid_ms, aud_ms[j], bytes, mp3rate); 
+	       fprintf(stderr, "%s track (%d) %8.0lf->%8.0lf len (%ld) rate (%ld)\n",
+	       format==0x55?"MP3":format==0x1?"PCM":"AC3",
+	       j, vid_ms, aud_ms[j], bytes, mp3rate);
 	     */
 	}
 
     } else { // fallback for not supported audio format
 
 	do {
-	    if ( (bytes = AVI_read_audio_chunk(in, data) ) < 0) { 
-		AVI_print_error("AVI audio read frame"); 
+	    if ( (bytes = AVI_read_audio_chunk(in, data) ) < 0) {
+		AVI_print_error("AVI audio read frame");
 		return -2;
 	    }
 
 	    if(AVI_write_audio(out, data, bytes)<0) {
 		AVI_print_error("AVI write audio frame");
 		return(-1);
-	    } 
+	    }
 	} while (AVI_can_read_audio(in));
     }
 
@@ -462,7 +462,7 @@ int sync_audio_video_avi2avi_ro (double vid_ms, double *aud_ms, avi_t *in)
 		AVI_print_error("AVI audio read frame");
 		//*aud_ms = vid_ms;
 		return(-2);
-	    }      
+	    }
 	    //fprintf(stderr, "len (%ld)\n", bytes);
 
 	    // pass-through null frames
@@ -480,17 +480,17 @@ int sync_audio_video_avi2avi_ro (double vid_ms, double *aud_ms, avi_t *in)
 		*aud_ms += (bytes*8.0*1000.0)/(double)mp3rate;
 	    }
 	    /*
-	       fprintf(stderr, "%s track (%d) %8.0lf->%8.0lf len (%ld) rate (%ld)\n", 
-	       format==0x55?"MP3":format==0x1?"PCM":"AC3", 
-	       j, vid_ms, aud_ms[j], bytes, mp3rate); 
+	       fprintf(stderr, "%s track (%d) %8.0lf->%8.0lf len (%ld) rate (%ld)\n",
+	       format==0x55?"MP3":format==0x1?"PCM":"AC3",
+	       j, vid_ms, aud_ms[j], bytes, mp3rate);
 	     */
 	}
 
     } else { // fallback for not supported audio format
 
 	do {
-	    if ( (bytes = AVI_read_audio_chunk(in, data) ) < 0) { 
-		AVI_print_error("AVI audio read frame"); 
+	    if ( (bytes = AVI_read_audio_chunk(in, data) ) < 0) {
+		AVI_print_error("AVI audio read frame");
 		return -2;
 	    }
 	} while (AVI_can_read_audio(in));

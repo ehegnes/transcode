@@ -134,7 +134,7 @@ error:
 
 #else			/* HAVE_OSS */
 
-void 
+void
 probe_oss(info_t * ipipe)
 {
     fprintf(stderr, "No support for oss compiled in\n");

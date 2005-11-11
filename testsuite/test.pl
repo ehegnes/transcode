@@ -5,9 +5,9 @@
 my($testdir) = "transcode-test";
 my($frames) = 5;
 
-my(%testdata) = 
+my(%testdata) =
 (
-	import => 
+	import =>
 	{
 	},
 
@@ -17,7 +17,7 @@ my(%testdata) =
 		{
 			"" =>
 			{
-				yuv => 
+				yuv =>
 				{
 					"output000000.ppm" => "2d366b437ced6b4b82ddab406cfc272d",
 					"output000001.ppm" => "a744069a2eaf23f3441a838c5748a746",

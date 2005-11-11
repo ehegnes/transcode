@@ -3,21 +3,21 @@
  *
  *  Copyright (C) Tilmann Bitterberg, July 2002
  *
- *  This file is part of transcode, a video stream processing tool 
- *      
+ *  This file is part of transcode, a video stream processing tool
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -43,18 +43,18 @@ static inline int p_write (char *buf, size_t len)
     size_t r  = 0;
     int    fd = fileno (pFile);
 
-    while (r < len) 
+    while (r < len)
     {
         if ((n = write (fd, buf + r, len - r)) < 0)
 	    return n;
-      
+
         r += n;
     }
-   
+
     return r;
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open codec
  *
@@ -67,14 +67,14 @@ MOD_open
 
     /* check for oggenc */
     if (tc_test_program("oggenc") != 0) return (TC_EXPORT_ERROR);
-        
+
     ofreq = vob->mp3frequency;
     ifreq = vob->a_rate;
 
     /* default out freq */
     if(ofreq==0)
         ofreq = ifreq;
- 
+
     if (param->flag == TC_AUDIO) {
 	char buf [PATH_MAX];
 	char resample [PATH_MAX];
@@ -86,7 +86,7 @@ MOD_open
         }
 	if (result < 0) {
 	    perror("command buffer overflow");
-	    return(TC_EXPORT_ERROR); 
+	    return(TC_EXPORT_ERROR);
 	}
 
 	if (!strcmp(vob->video_out_file, vob->audio_out_file)) {
@@ -110,7 +110,7 @@ MOD_open
 		(vob->ex_a_string?vob->ex_a_string:""));
 	if (result < 0) {
 	    perror("command buffer overflow");
-	    return(TC_EXPORT_ERROR); 
+	    return(TC_EXPORT_ERROR);
 	}
 	if ((pFile = popen (buf, "w")) == NULL)
 	    return(TC_EXPORT_ERROR);
@@ -119,16 +119,16 @@ MOD_open
 	    tc_log_info (MOD_NAME, "%s", buf);
 
 	return(0);
-		
+
     }
-    if (param->flag == TC_VIDEO) 
+    if (param->flag == TC_VIDEO)
 	return(0);
 
     // invalid flag
-    return(TC_EXPORT_ERROR); 
+    return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * init codec
  *
@@ -136,20 +136,20 @@ MOD_open
 
 MOD_init
 {
-    if(param->flag == TC_AUDIO) 
+    if(param->flag == TC_AUDIO)
     {
         return(0);
     }
-  
-    if (param->flag == TC_VIDEO) 
-	return(0);  
-  
+
+    if (param->flag == TC_VIDEO)
+	return(0);
+
     // invalid flag
-    return(TC_EXPORT_ERROR); 
+    return(TC_EXPORT_ERROR);
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * encode and export
  *
@@ -159,71 +159,71 @@ MOD_encode
 {
     if(param->flag == TC_AUDIO)
     {
-        if (p_write (param->buffer, param->size) != param->size) 
-        {    
+        if (p_write (param->buffer, param->size) != param->size)
+        {
             perror("write audio frame");
             return(TC_EXPORT_ERROR);
-        }      
-        return (0); 
+        }
+        return (0);
     }
-  
-    if (param->flag == TC_VIDEO) 
+
+    if (param->flag == TC_VIDEO)
         return(0);
 
     // invalid flag
-    return(TC_EXPORT_ERROR); 
+    return(TC_EXPORT_ERROR);
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * stop codec
  *
  * ------------------------------------------------------------*/
 
 MOD_stop
-{  
-    if (param->flag == TC_VIDEO) 
+{
+    if (param->flag == TC_VIDEO)
         return (0);
-  
-    if (param->flag == TC_AUDIO) 
+
+    if (param->flag == TC_AUDIO)
 	return (0);
-  
-    return(TC_EXPORT_ERROR);     
+
+    return(TC_EXPORT_ERROR);
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close codec
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
     vob_t *vob = tc_get_vob();
 
-    if (param->flag == TC_VIDEO) 
+    if (param->flag == TC_VIDEO)
 	return (0);
-  
-    if (param->flag == TC_AUDIO) 
+
+    if (param->flag == TC_AUDIO)
     {
-        if (pFile) 
+        if (pFile)
 	  pclose (pFile);
-    
+
 	pFile = NULL;
 
 	if (verbose > 0 && strcmp (vob->audio_out_file, "/dev/null") &&
 		strcmp (vob->video_out_file, "/dev/null")!=0) {
 	    tc_log_info (MOD_NAME, "Hint: Now merge the files with");
-	    tc_log_info (MOD_NAME, "Hint: ogmmerge -o complete.ogg %s %s", 
+	    tc_log_info (MOD_NAME, "Hint: ogmmerge -o complete.ogg %s %s",
 		    MOD_NAME, vob->video_out_file, vob->audio_out_file );
 	}
-  
+
         return(0);
     }
-  
-    return (TC_EXPORT_ERROR); 
+
+    return (TC_EXPORT_ERROR);
 }
 
 /* vim: sw=4

@@ -19,13 +19,13 @@ if test "$4" = "2" ; then RESIZE32=1; CROP=0,0; fi   # 1.33:1
 # Bitrate soll per Parameter gewählt werden können
 if test "$5"; then BITRATE="$5"; fi
 
-if (test "$1") && (test "$2"); 
-  then 
+if (test "$1") && (test "$2");
+  then
     echo ================================================================================
     echo "=> Encoding $1 to $2, using audio channel 0x08$AUDIO_STREAM."
     echo "=> bitrate $BITRATE + crop : $CROP + resize : $RESIZE32"
     echo ================================================================================
-    
+
     transcode -i "$1" -x $INPUT_CODEC -o "$2" -y $OUTPUT_CODEC -s $AUDIO_SCALE \
       -w $BITRATE -j $CROP -B $RESIZE32 -I $DEINTERLACE -a $AUDIO_STREAM -b $AUDIO_BITRATE -q 1;
   else
@@ -34,9 +34,9 @@ if (test "$1") && (test "$2");
     echo "If a file named 'shutdown' exists, then the computer will shut down"
     echo "after it has finished encoding; this requires the script to be run as root."
 fi
-if test -e "shutdown"; then 
+if test -e "shutdown"; then
   echo -en "\x07" # make some noise
   echo "Shutting down the computer in 1 minute."
   sleep 60
-  halt; 
+  halt;
 fi

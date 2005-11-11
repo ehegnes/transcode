@@ -17,7 +17,7 @@ Right and Center" available through `posdef'. Origin of the image is
 at the very top left.
 
 Support parameters:
-  
+
   - help
     Display a short description of the filter and its arguments.
   - file=$FILENAME [required]

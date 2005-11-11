@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - February 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -27,7 +27,7 @@
 #include "tc_defaults.h"
 
 #ifndef _SUBTITLE_BUFFER_H
-#define _SUBTITLE_BUFFER_H 
+#define _SUBTITLE_BUFFER_H
 
 #define FRAME_NULL  -1
 #define FRAME_EMPTY  0
@@ -43,10 +43,10 @@
 #define SUB_BUFFER_SIZE 2048
 
 typedef struct sframe_list {
-  
+
   int bufid;     // buffer id
   int tag;       // unused
-  
+
   int id;        // frame number
   int status;    // frame status
 
@@ -55,10 +55,10 @@ typedef struct sframe_list {
   double pts;
 
   int video_size;
-  
+
   struct sframe_list *next;
   struct sframe_list *prev;
-  
+
 #ifdef STATBUFFER
   char *video_buf;
 #else

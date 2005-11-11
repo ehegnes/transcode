@@ -11,7 +11,7 @@ AM_CFLAGS = -fno-omit-frame-pointer
 
 pkgdir = $(MOD_PATH)
 
-pkg_LTLIBRARIES = filter_tomsmocomp.la 
+pkg_LTLIBRARIES = filter_tomsmocomp.la
 
 filter_tomsmocomp_la_SOURCES = \
 	filter_tomsmocomp.c \

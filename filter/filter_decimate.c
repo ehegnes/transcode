@@ -5,20 +5,20 @@
  *
  *  This file is part of transcode, a video stream processing tool
  *  Based on the excellent work of Donald Graft in Decomb.
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -103,8 +103,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if (ptr->tag & TC_FILTER_CLOSE) {
 	int i;
-	
-	for(i=0; i<FRBUFSIZ; i++) 
+
+	for(i=0; i<FRBUFSIZ; i++)
 	    free(lastFrames[i]);
 	return (0);
     }
@@ -121,18 +121,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if ((ptr->tag & TC_POST_S_PROCESS) && (ptr->tag & TC_VIDEO)) {
 
-	// After frame processing, the frames must be deinterlaced. 
+	// After frame processing, the frames must be deinterlaced.
 	// For inverse telecine, this has been done by the ivtc filter
 	//     (you must use filter_ivtc before this filter)
 	// for example :
-	//     -J ivtc,decimate  
+	//     -J ivtc,decimate
 	// or (better) :
 	//     -J ivtc,32detect=force_mode=3,decimate
-	ac_memcpy( lastFrames[frameIn], 
-		ptr->video_buf, 
+	ac_memcpy( lastFrames[frameIn],
+		ptr->video_buf,
 		ptr->v_width*ptr->v_height*3);
-	if (show_results) 
-	    tc_log_info(MOD_NAME, "Inserted frame %d into slot %d ", 
+	if (show_results)
+	    tc_log_info(MOD_NAME, "Inserted frame %d into slot %d ",
 		    frameCount, frameIn);
 	lastFramesOK[frameIn] = 1;
 	frameIn = (frameIn+1) % FRBUFSIZ;
@@ -143,12 +143,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    ptr->attributes |= TC_FRAME_IS_SKIPPED;
 	} else {
 	    // Having 6 frames in the buffer, we will now output one of them.
-	    // From now on, for each group of 5 frames we will drop 1 
-	    // (FPS: 29.97->23.976). In fact, we will drop the frame 
+	    // From now on, for each group of 5 frames we will drop 1
+	    // (FPS: 29.97->23.976). In fact, we will drop the frame
 	    // that looks almost exactly like its successor.
 	    if ((frameCount % 5) == 0) {
-	
-		// First, find which one of the first 5 frames in the group 
+
+		// First, find which one of the first 5 frames in the group
 		// looks almost exactly like the frame that follows.
 		int i, j, diffMin=INT_MAX, indexMin = -1;
 
@@ -156,7 +156,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		    int diff = 0;
 		    for(i=0; i<ptr->v_height*ptr->v_width; i+=16)
 			diff += abs(
-			    lastFrames[(frameOut+j+1)%FRBUFSIZ][i] - 
+			    lastFrames[(frameOut+j+1)%FRBUFSIZ][i] -
 			    lastFrames[(frameOut+j)%FRBUFSIZ][i]);
 		    if (diff<diffMin) {
 			diffMin = diff;
@@ -167,22 +167,22 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		lastFramesOK[(frameOut+indexMin)%FRBUFSIZ] = 0;
 	    }
 	    if (lastFramesOK[frameOut]) {
-		ac_memcpy(	ptr->video_buf, 
-			lastFrames[frameOut], 
+		ac_memcpy(	ptr->video_buf,
+			lastFrames[frameOut],
 			ptr->v_width*ptr->v_height*3);
-		if (show_results) 
+		if (show_results)
 		    tc_log_info(MOD_NAME, "giving slot %d", frameOut);
 	    }
 	    else {
 		ptr->attributes |= TC_FRAME_IS_SKIPPED;
-		if (show_results) 
+		if (show_results)
 		    tc_log_info(MOD_NAME, "droping slot %d", frameOut);
 	    }
-	    // Regardless of the job we periodically do (for each group 
-	    // of 5 frames) we must also advance the two indexes. 
-	    // The frameIn index is increased at frame insertion. 
+	    // Regardless of the job we periodically do (for each group
+	    // of 5 frames) we must also advance the two indexes.
+	    // The frameIn index is increased at frame insertion.
 	    // Now it is time for the frameOut index.
-	    // Note that both indexes are moving at the same speed, 
+	    // Note that both indexes are moving at the same speed,
 	    // so no code for circular queue index-clashing is required.
 	    frameOut = (frameOut+1) % FRBUFSIZ;
 	}

@@ -15,7 +15,7 @@
 #config
 
 helpfile="filter-help.txt"
-outfile="output.1" 
+outfile="output.1"
 
 # all filters to process
 filter_list="
@@ -85,22 +85,22 @@ text=""
 get_help_to_filter() {
 
   name=$1
-  
+
   text=`sed -n "/^---------------------->\[ ${name}.help/,/^<----------------------|$/{
      /^---------------------->\[ ${name}.help/d
      /^<----------------------|$/d
      p;
   }" $helpfile`
-  
+
 }
 
 >$outfile
-for i in $filter_list; 
-do 
+for i in $filter_list;
+do
     name=`echo $i | sed -e 's/[^_]*_//' -e 's/\.so//'`
     echo -n "Processing $name .."
     # rm -f $name.1 $name.txt
-    tcmodinfo -i $name 2>&1| sed -n '/^START/,/^END/p' | 
+    tcmodinfo -i $name 2>&1| sed -n '/^START/,/^END/p' |
     sed '
 /START/{
    N
@@ -200,7 +200,7 @@ s|"\([^"]*\)", "\([^"]*\)", "\([^"]*\)", "\([^"]*\)"|\\(bu \
     fi
     echo -e ".RE" >> $outfile
     echo " done"
-    
+
 done
 
 # empty lines removal

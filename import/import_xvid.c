@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - January 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -69,12 +69,12 @@ static int x_dim, y_dim;
 static int xvid2_init(char *path) {
 #ifdef SYS_BSD
 	const
-#endif    
+#endif
 		char *error;
 	char modules[6][TC_BUF_MAX];
 	char *module;
 	int i;
-	
+
 
 	/* First we build all lib names we will try to load
 	 *  - xvid3 decoders to have bframe support
@@ -142,7 +142,7 @@ static int xvid2_init(char *path) {
 
 	/* Import the XviD init entry point */
 	XviD_init   = dlsym(handle, "xvid_init");
-    
+
 	/* Something went wrong */
 	error = dlerror();
 	if(error != NULL)  {
@@ -171,7 +171,7 @@ static int pass_through=0;
 static char *buffer;
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open stream
  *
@@ -185,32 +185,32 @@ MOD_open
   char *codec_str;
 
   if(param->flag == TC_VIDEO) {
-    
+
     if(avifile==NULL)  {
       if(vob->nav_seek_file) {
 	if(NULL == (avifile = AVI_open_input_indexfile(vob->video_in_file,0,vob->nav_seek_file))){
 	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR); 
-	} 
+	  return(TC_IMPORT_ERROR);
+	}
       } else {
 	if(NULL == (avifile = AVI_open_input_file(vob->video_in_file,1))){
 	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR); 
-	} 
+	  return(TC_IMPORT_ERROR);
+	}
       }
     }
-   
+
     // vob->offset contains the last keyframe
     if (!done_seek && vob->vob_offset>0) {
 	AVI_set_video_position(avifile, vob->vob_offset);
 	done_seek=1;
     }
 
-    
+
     codec_str = AVI_video_compressor(avifile);
     if(strlen(codec_str)==0) {
       tc_log_warn(MOD_NAME, "invalid AVI file codec");
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
     }
     if (!strcasecmp(codec_str, "DIV3") ||
         !strcasecmp(codec_str, "MP43") ||
@@ -225,12 +225,12 @@ MOD_open
     //if(xvid2_init("/data/scr/comp/video/xvid/xvid_20030610/xvidcore/build/generic")<0) {
     if(xvid2_init(vob->mod_path)<0) {
       tc_log_warn(MOD_NAME, "failed to init Xvid codec");
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
     }
-    
+
     xinit.cpu_flags = 0;
     XviD_init(NULL, 0, &xinit, NULL);
-  
+
     //important parameter
     xparam.width = AVI_video_width(avifile);
     xparam.height = AVI_video_height(avifile);
@@ -241,7 +241,7 @@ MOD_open
 
     if(xerr == XVID_ERR_FAIL) {
       tc_log_warn(MOD_NAME, "codec open error");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     }
     XviD_decore_handle=xparam.handle;
 
@@ -260,18 +260,18 @@ MOD_open
 	pass_through=1;
 	break;
     }
-    
+
     if ((buffer = tc_bufalloc(frame_size))==NULL) {
       perror("out of memory");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     } else
-      memset(buffer, 0, frame_size);  
-    
+      memset(buffer, 0, frame_size);
+
     param->fd = NULL;
-    
+
     return(0);
   }
-  
+
   return(TC_IMPORT_ERROR);
 }
 
@@ -283,22 +283,22 @@ static int divx4_is_key(unsigned char *data, long size)
 
         for(i = 0; i < size - 5; i++)
         {
-                if( data[i]     == 0x00 && 
+                if( data[i]     == 0x00 &&
                         data[i + 1] == 0x00 &&
                         data[i + 2] == 0x01 &&
                         data[i + 3] == 0xb6)
                 {
-                        if((data[i + 4] & 0xc0) == 0x0) 
+                        if((data[i + 4] & 0xc0) == 0x0)
                                 return 1;
                         else
                                 return 0;
                 }
         }
-        
+
         return result;
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
@@ -311,11 +311,11 @@ MOD_decode {
 
   if(param->flag == TC_VIDEO) {
     bytes_read = (pass_through) ?
-                 AVI_read_frame(avifile, param->buffer, &key) : 
+                 AVI_read_frame(avifile, param->buffer, &key) :
                  AVI_read_frame(avifile, buffer, &key);
-	
+
     if( bytes_read < 0)
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
 
     if (key)
       param->attributes |= TC_FRAME_IS_KEYFRAME;
@@ -325,7 +325,7 @@ MOD_decode {
       if (divx4_is_key((unsigned char *)param->buffer, (long) param->size))
 	  param->attributes |= TC_FRAME_IS_KEYFRAME;
       param->size = (int) bytes_read;
-      ac_memcpy(param->buffer, buffer, bytes_read); 
+      ac_memcpy(param->buffer, buffer, bytes_read);
 
       return(0);
     }
@@ -344,21 +344,21 @@ MOD_decode {
              "decode MS-MPEG4v3 (aka DivX ;-) aka DivX3)?");
       return(TC_IMPORT_ERROR);
     }
-    
+
     return(0);
   }
-   
+
   return(TC_IMPORT_ERROR);
 }
-    
-/* ------------------------------------------------------------ 
+
+/* ------------------------------------------------------------
  *
  * close stream
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
   if(param->flag == TC_VIDEO) {
     int xerr;
 

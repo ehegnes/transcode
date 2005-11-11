@@ -42,7 +42,7 @@ static void clear_signals(void)
 {
     signal(SIGSEGV, old_SIGSEGV);
     signal(SIGILL , old_SIGILL );
-} 
+}
 
 /* align1 and align2 are 0..63 */
 int testit(void *(*func)(void *, const void *, size_t), int align1, int align2, int length)

@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -28,11 +28,11 @@
 #include "tc.h"
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * rgb extract thread
  *
- * magic: TC_MAGIC_AVI 
+ * magic: TC_MAGIC_AVI
  *        TC_MAGIC_RAW  <-- default
  *
  * ------------------------------------------------------------*/
@@ -43,20 +43,20 @@ void extract_rgb(info_t *ipipe)
 
     avi_t *avifile=NULL;
     char *video;
-    
+
     int key, error=0;
 
     long frames, bytes, n;
 
 
-    /* ------------------------------------------------------------ 
+    /* ------------------------------------------------------------
      *
      * AVI
      *
      * ------------------------------------------------------------*/
-    
+
     switch(ipipe->magic) {
-	
+
     case TC_MAGIC_AVI:
 
 	// scan file
@@ -71,9 +71,9 @@ void extract_rgb(info_t *ipipe)
 	    import_exit(1);
 	  }
 	}
-	
+
 	// read video info;
-	
+
 	frames =  AVI_video_frames(avifile);
         if (ipipe->frame_limit[1] < frames)
         {
@@ -92,7 +92,7 @@ void extract_rgb(info_t *ipipe)
 
         (int)AVI_set_video_position(avifile,ipipe->frame_limit[0]);
         for (n=ipipe->frame_limit[0]; n<=frames; ++n) {
-	    
+
 	    // video
 	    if((bytes = AVI_read_frame(avifile, video, &key))<0) {
 		error=1;
@@ -103,30 +103,30 @@ void extract_rgb(info_t *ipipe)
 		break;
 	    }
 	}
-	
+
 	free(video);
-	
+
 	break;
 
-	
-	/* ------------------------------------------------------------ 
+
+	/* ------------------------------------------------------------
 	 *
 	 * RAW
 	 *
 	 * ------------------------------------------------------------*/
-	
-	    
+
+
     case TC_MAGIC_RAW:
-    
+
     default:
 
 	if(ipipe->magic == TC_MAGIC_UNKNOWN)
-	    fprintf(stderr, "(%s) no file type specified, assuming %s\n", 
+	    fprintf(stderr, "(%s) no file type specified, assuming %s\n",
 		    __FILE__, filetype(TC_MAGIC_RAW));
-	
+
 	error=tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
-	
+
 	break;
     }
-}		
+}
 

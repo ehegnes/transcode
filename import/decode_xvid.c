@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - January 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -61,12 +61,12 @@ static int xvid2_init(char *path) {
 
 #ifdef SYS_BSD
 	const
-#endif    
+#endif
 		char *error;
 	char modules[6][TC_BUF_MAX];
 	char *module;
 	int i;
-	
+
 
 	/* First we build all lib names we will try to load
 	 *  - xvid3 decoders to have bframe support
@@ -131,7 +131,7 @@ static int xvid2_init(char *path) {
 
 	/* Import the XviD init entry point */
 	XviD_init   = dlsym(handle, "xvid_init");
-    
+
 	/* Something went wrong */
 	if((error = dlerror()) != NULL)  {
 		fprintf(stderr, error);
@@ -157,7 +157,7 @@ static char *out_buffer;
 #define BUFFER_SIZE SIZE_RGB_FRAME
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open stream
  *
@@ -179,7 +179,7 @@ void decode_xvid(decode_t *decode)
 
     if(strlen(codec_str)==0) {
 	printf("invalid AVI file codec\n");
-	goto error; 
+	goto error;
     }
     if (!strcasecmp(codec_str, "DIV3") ||
 	    !strcasecmp(codec_str, "MP43") ||
@@ -193,7 +193,7 @@ void decode_xvid(decode_t *decode)
     //load the codec
     if(xvid2_init(MOD_PATH)<0) {
 	printf("failed to init Xvid codec");
-	goto error; 
+	goto error;
     }
 
     xinit.cpu_flags = 0;
@@ -228,16 +228,16 @@ void decode_xvid(decode_t *decode)
 	perror("out of memory");
 	goto error;
     } else {
-	memset(in_buffer, 0, BUFFER_SIZE);  
+	memset(in_buffer, 0, BUFFER_SIZE);
     }
     if ((out_buffer = tc_bufalloc(BUFFER_SIZE))==NULL) {
 	perror("out of memory");
 	goto error;
     } else {
-	memset(out_buffer, 0, BUFFER_SIZE);  
+	memset(out_buffer, 0, BUFFER_SIZE);
     }
 
-    /* ------------------------------------------------------------ 
+    /* ------------------------------------------------------------
      *
      * decode  stream
      *
@@ -251,7 +251,7 @@ void decode_xvid(decode_t *decode)
 	int mp4_size = (in_buffer + BUFFER_SIZE - mp4_ptr);
 
 	if( bytes_read < 0)
-	    goto error; 
+	    goto error;
 
 	// HOW? if (key) param->attributes |= TC_FRAME_IS_KEYFRAME;
 
@@ -265,7 +265,7 @@ void decode_xvid(decode_t *decode)
 		ac_memcpy(in_buffer, mp4_ptr, rest);
 
 	    /* Update mp4_ptr */
-	    mp4_ptr = in_buffer; 
+	    mp4_ptr = in_buffer;
 
 	    /* read new data */
 	    if ( (bytes_read = tc_pread(decode->fd_in, (uint8_t*) (in_buffer+rest), BUFFER_SIZE - rest) ) < 0) {
@@ -312,6 +312,6 @@ out:
     //remove codec
     dlclose(handle);
 
-    import_exit(0); 
+    import_exit(0);
 }
 

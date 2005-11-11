@@ -144,8 +144,8 @@ while(1)
 	/* if last one, modify objecttab[1] */
 	if(pnext == 0) objecttab[1] = pprev;
 	else pnext -> prventr = pprev;
-	
-	/* delete structure */	
+
+	/* delete structure */
 /*
 DO NOT DELETE THESE ARE POINTERS TO DATA IN FRAME LIST,
 if you delete this, the next time the object is re-used, there is no data!
@@ -173,7 +173,7 @@ if(debug_flag)
 	}
 
 while(1)
-	{	
+	{
 	pa = objecttab[0];
 	if(! pa) break;
 	objecttab[0] = pa -> nxtentr;
@@ -200,7 +200,7 @@ struct object *add_subtitle_object\
 	int type,\
 	double xpos, double ypos, double zpos,\
 	char *data\
-	) 
+	)
 {
 struct object *pa;
 char name[TEMP_SIZE];
@@ -245,7 +245,7 @@ pa -> end_frame = end_frame_nr;
 
 pa -> type = type;
 
-pa -> xpos = xpos;     
+pa -> xpos = xpos;
 pa -> ypos = ypos;
 pa -> zpos = zpos;
 
@@ -328,7 +328,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 		if(pnext == 0) objecttab[1] = pprev;
 		else pnext -> prventr = pprev;
 
-		/* delete structure */	
+		/* delete structure */
 		/*
 		DO NOT DELETE THESE ARE POINTERS TO DATA IN FRAME LIST,
 		if you delete this, the next time the object is re-used,
@@ -373,7 +373,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 
 			/* correct for aspect ratio, these are globals */
 			pa -> dxpos *=\
-			(double)image_width / (double)image_height; 
+			(double)image_width / (double)image_height;
 			} /* end if speed not zero */
 
 		if(pa -> type == FORMATTED_TEXT)
@@ -453,10 +453,10 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 						{
 						border_luminance = pa -> mask_level;
 						}
-					else	
+					else
 						{
 						border_luminance = default_border_luminance;
-						}						
+						}
 
 					temp_data = pa -> data;
 					pc =\
@@ -509,7 +509,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 
 					break;
 					}
-	
+
 				/* reduce processor load */
 				usleep(10000); // 10 ms
 				} /* end while wait for handshake */
@@ -518,14 +518,14 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 			if(! pa -> status & OBJECT_STATUS_INIT)
 				{
 				/* read the ppm file to get the size */
-				tc_snprintf(temp, sizeof(temp), "%s/.subtitles/%d.ppm", home_dir, pa -> id); 
+				tc_snprintf(temp, sizeof(temp), "%s/.subtitles/%d.ppm", home_dir, pa -> id);
 				temp_data = ppm_to_yuv_in_char(temp, &width, &height);
 				if(! temp_data)
    			        {
      			    printf("subtitler(): could not read file %s, aborting\n",\
 					temp);
 
-	    		    exit(1); 
+	    		    exit(1);
     				}
 
 				/* this is the original movie size */
@@ -534,7 +534,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 
 				pa -> xsize = (double)width;
 				pa -> ysize = (double)height;
-			
+
 				pa -> status |= OBJECT_STATUS_INIT;
 				} /* end if ! pa > status */
 
@@ -555,7 +555,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 					home_dir, pa -> id, home_dir);
 					execute(temp);
 
-					/* 
+					/*
 					errors if structure directly used in sprintf,
 					compiler?
 					*/
@@ -585,7 +585,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 						{
 						/* load ppm */
 						tc_snprintf(temp, sizeof(temp), "%s/%d.ppm", home_dir, pa -> id);
-						ptr = ppm_to_yuv_in_char(temp, &width, &height); 
+						ptr = ppm_to_yuv_in_char(temp, &width, &height);
 						if(! ptr) return 0;
 
 						/* change .ppm file */
@@ -593,11 +593,11 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 							{
 							border_luminance = pa -> mask_level;
 							}
-						else	
+						else
 							{
 							border_luminance = default_border_luminance;
-							}						
-	
+							}
+
 						/* save a modified ppm */
 						a = yuv_to_ppm(ptr, width, height, temp);
 						free(ptr);
@@ -623,9 +623,9 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 						x, y, a,\
 						pa -> zrotation,\
 						home_dir, pa -> id);
-						}				
+						}
 
-					execute(temp);					
+					execute(temp);
 
 					/* back to normal dir */
 					tc_snprintf(temp, sizeof(temp),\
@@ -639,7 +639,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 				dty = pa -> ysize;
 
 				/* read the ppm file into the buffer */
-				tc_snprintf(temp, sizeof(temp), "%s/.subtitles/%d.ppm", home_dir, pa -> id); 
+				tc_snprintf(temp, sizeof(temp), "%s/.subtitles/%d.ppm", home_dir, pa -> id);
 				pa -> data = ppm_to_yuv_in_char(temp, &width, &height);
 		        if(! pa -> data)
     		        {
@@ -647,14 +647,14 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 					"subtitler(): could not read file %s, aborting\n",\
 					temp);
 
-   		 	        exit(1); 
+   		 	        exit(1);
 	    			}
 
-				/* use the modified sizes for display */ 
+				/* use the modified sizes for display */
 				pa -> xsize = width;
 				pa -> ysize = height;
 
-				/* 
+				/*
 				remove the semaphore,
 				so the other transcode can get the next frame.
 				*/
@@ -667,7 +667,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 				add_picture(pa);
 
 				/* release the memory */
-				free(pa -> data);	
+				free(pa -> data);
 
 				/* restore the sizes */
 				pa -> xsize = dtx;
@@ -697,7 +697,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 			{
 			/* set the globals */
 			subtitle_u = pa -> u;
-			subtitle_v = pa -> v; 
+			subtitle_v = pa -> v;
 			subtitle_contrast = pa -> contrast;
 			subtitle_transparency = pa -> transparency;
 			subtitle_dxpos = pa -> dxpos;
@@ -761,10 +761,10 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 
 			/* correct for aspect ratio, these are globals */
 			dx *=\
-			(double)image_height / (double)image_width; 
+			(double)image_height / (double)image_width;
 
 			dd = sqrt( (dx * dx) + (dy * dy) );
-			
+
 			/* substract travelled distance */
 			pa -> distance -= dd;
 
@@ -898,18 +898,18 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 		if(pa -> chroma_key_window > 255.0) pa -> chroma_key_window = 255.0;
 		if(pa -> chroma_key_window < 0.0) pa -> chroma_key_window = 0.0;
 
-		if(pa -> u_shift > 127.0) pa -> u_shift = 127.0; 
-		if(pa -> u_shift < -127.0) pa -> u_shift = -127.0; 
+		if(pa -> u_shift > 127.0) pa -> u_shift = 127.0;
+		if(pa -> u_shift < -127.0) pa -> u_shift = -127.0;
 
-		if(pa -> v_shift > 127.0) pa -> v_shift = 127.0; 
-		if(pa -> v_shift < -127.0) pa -> v_shift = -127.0; 
+		if(pa -> v_shift > 127.0) pa -> v_shift = 127.0;
+		if(pa -> v_shift < -127.0) pa -> v_shift = -127.0;
 
 		if(pa -> u > 127.0) pa -> u = 127.0;
 		if(pa -> u < -127.0) pa -> u = -127.0;
 
 		if(pa -> v > 127.0) pa -> v = 127.0;
 		if(pa -> v < -127.0) pa -> v = -127.0;
-	
+
 		/*
 		limit to prevent counter overflow, causing things that were
 		forgotten (wrong endframe) to re-appear at strange locations.
@@ -920,7 +920,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 		if(pa -> ypos > INT_MAX) pa -> ypos = INT_MAX;
 		if(pa -> xpos < -INT_MAX) pa -> xpos = -INT_MAX;
 		if(pa -> xpos > INT_MAX) pa -> xpos = INT_MAX;
-			
+
 		/* if any zpos changed, sort the list for zpos */
 		if(pa -> zpos != pa -> old_zpos)
 			{
@@ -939,7 +939,7 @@ return 1;
 int sort_objects_by_zaxis()
 /*
 sorts the double linked list with as criterium that the lowest zaxis value,
-that is the farthest away object, goes on top, 
+that is the farthest away object, goes on top,
 doing some sort of bubble sort.
 */
 {
@@ -958,22 +958,22 @@ while(1)/* go through list again and again */
 		{
 		fprintf(stdout, "SORTING OBJECT LIST\n");
 		}/* end if debug_flag */
-		
+
 	swap_flag = 0;
 	for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 		{
 		if(debug_flag)
 			{
 			fprintf(stdout, "sort_objects_by_zaxis(): sorting %s pa=%lu\n",\
-			(const char *)pa->name, (unsigned long)pa);		
-			}	
-	
+			(const char *)pa->name, (unsigned long)pa);
+			}
+
 		pb = pa -> prventr;
 		if(debug_flag)
 			{
 			fprintf(stdout, "sort_objects_by_zaxis(): pb=pa->prventr=%lu\n", (unsigned long)pb);
 			}
-		
+
 		if(pb)
 			{
 			/* compare */
@@ -988,8 +988,8 @@ while(1)/* go through list again and again */
 					"AFTER SWAP pa->prventr=%lu pa->nxtentr=%lu\n\
 					pb->prventr=%lu pb-nxtentrr=%lu\n",\
 					(unsigned long)pa -> prventr, (unsigned long)pa -> nxtentr,\
-					(unsigned long)pb -> prventr, (unsigned long)pb -> nxtentr);		
-					}										
+					(unsigned long)pb -> prventr, (unsigned long)pb -> nxtentr);
+					}
 				}/* end if strcmp < 0 */
 			}/* end if pb */
 		}/* end for all entries */
@@ -1041,7 +1041,7 @@ if(debug_flag)
 /* the next pointer in punder (or objecttab[0]) must now point to ptop */
 if(! punder)
 	{
-	objecttab[0] = ptop; 
+	objecttab[0] = ptop;
 	}
 else
 	{

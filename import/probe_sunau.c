@@ -110,7 +110,7 @@ error:
 
 #else			/* HAVE_SUNAU */
 
-void 
+void
 probe_sunau(info_t * ipipe)
 {
     fprintf(stderr, "No support for sunau compiled in\n");

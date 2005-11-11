@@ -2,8 +2,8 @@
  * July 5, 1991
  * Copyright 1991 Lance Norskog And Sundry Contributors
  * This source code is freely redistributable and may be used for
- * any purpose.  This copyright notice must be maintained. 
- * Lance Norskog And Sundry Contributors are not responsible for 
+ * any purpose.  This copyright notice must be maintained.
+ * Lance Norskog And Sundry Contributors are not responsible for
  * the consequences of using this software.
  */
 
@@ -31,12 +31,12 @@
 int verbose = 0;	/* be noisy on stderr */
 
 /* FIXME:  These functions are user level concepts.  Move them outside
- * the ST library. 
+ * the ST library.
  */
 char *myname = 0;
 
 void
-st_report(const char *fmt, ...) 
+st_report(const char *fmt, ...)
 {
 	va_list args;
 
@@ -52,7 +52,7 @@ st_report(const char *fmt, ...)
 
 
 void
-st_warn(const char *fmt, ...) 
+st_warn(const char *fmt, ...)
 {
 	va_list args;
 
@@ -65,7 +65,7 @@ st_warn(const char *fmt, ...)
 }
 
 void
-st_fail(const char *fmt, ...) 
+st_fail(const char *fmt, ...)
 {
 	va_list args;
 
@@ -130,7 +130,7 @@ static int strcmpcase(const char *s1, const char *s2)
 #endif
 
 /*
- * File format routines 
+ * File format routines
  */
 
 void st_copyformat(ft, ft2)
@@ -159,8 +159,8 @@ ft_t ft, ft2;
 		ft2->comment = ft->comment;
 		noise = 1;
 	}
-	/* 
-	 * copy loop info, resizing appropriately 
+	/*
+	 * copy loop info, resizing appropriately
 	 * it's in samples, so # channels don't matter
 	 */
 	factor = (double) ft2->info.rate / (double) ft->info.rate;
@@ -180,13 +180,13 @@ ft_t ft, ft2;
 }
 
 /* check that all settings have been given */
-void st_checkformat(ft) 
+void st_checkformat(ft)
 ft_t ft;
 {
 	if (ft->info.rate == 0)
 		st_fail("Sampling rate for %s file was not given\n", ft->filename);
 	if ((ft->info.rate < 100) || (ft->info.rate > 999999L))
-		st_fail("Sampling rate %lu for %s file is bogus\n", 
+		st_fail("Sampling rate %lu for %s file is bogus\n",
 			ft->info.rate, ft->filename);
 	if (ft->info.size == -1)
 		st_fail("Data size was not given for %s file\nUse one of -b/-w/-l/-f/-d/-D", ft->filename);

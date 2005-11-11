@@ -3,21 +3,21 @@
  *
  *  Copyright (C) Malanchini Marzio - June 2003
  *
- *  This file is part of transcode, a video stream processing tool 
- *      
+ *  This file is part of transcode, a video stream processing tool
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -92,7 +92,7 @@ static void f_pvm_balancer(char *p_option,pvm_func_t *p_func,int s_seq,int s_typ
 	{
 		for(s_cont=0;s_cont<p_func->s_nproc;s_cont++)
 			p_func->p_used_tid[s_cont]=INT_MAX;	/*setup to INT_MAX*/
-		p_func->s_current_tid=0;	/*First tid*/	
+		p_func->s_current_tid=0;	/*First tid*/
 	}
 	else if (!strcasecmp(p_option, "close"))
 	{
@@ -101,7 +101,7 @@ static void f_pvm_balancer(char *p_option,pvm_func_t *p_func,int s_seq,int s_typ
 	}
 	else if (!strcasecmp(p_option, "set-seq"))
 	{
-		p_func->p_used_tid[p_func->s_current_tid]=s_seq;	
+		p_func->p_used_tid[p_func->s_current_tid]=s_seq;
 	}
 	else if (!strcasecmp(p_option, "first-free"))
 	{
@@ -109,7 +109,7 @@ static void f_pvm_balancer(char *p_option,pvm_func_t *p_func,int s_seq,int s_typ
 //		for(s_cont=0;((p_func->p_used_tid[s_cont]!=INT_MAX)&&(s_cont<p_func->s_nproc));s_cont++);	/*det the first task free*/
 		if ((s_cont<p_func->s_nproc)&&(p_func->p_used_tid[s_cont]==INT_MAX))	/*it's already assigned to a running task?*/
 		{
-			p_func->s_current_tid=s_cont;	/*setting up the new task*/	
+			p_func->s_current_tid=s_cont;	/*setting up the new task*/
 			if (verbose_flag & TC_DEBUG)
 			{
 				if (s_type== TC_VIDEO)
@@ -135,7 +135,7 @@ static void f_pvm_balancer(char *p_option,pvm_func_t *p_func,int s_seq,int s_typ
 			s_seq=f_pvm_recv(&s_dummy,(char *)&s_dummy1,&s_rc);	/*Waiting for a free task */
 			(int)f_pvm_set_recv(s_cont);	/*set up to receive the prev seq*/
 			for(s_cont=0;p_func->p_used_tid[s_cont]!=s_seq;s_cont++);	/*det the task free*/
-			p_func->s_current_tid=s_cont;	/*setting up the new task*/	
+			p_func->s_current_tid=s_cont;	/*setting up the new task*/
 			if (verbose_flag & TC_DEBUG)
 			{
 				if (s_type== TC_VIDEO)
@@ -156,7 +156,7 @@ static void f_help(void)
 	f_help_codec(MOD_NAME);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open codec
  *
@@ -168,7 +168,7 @@ MOD_open
 	int s_null_module;
 
 	pthread_mutex_lock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
-	if(param->flag == TC_VIDEO) 
+	if(param->flag == TC_VIDEO)
 	{
 		s_null_module=s_null_video_module;
 		p_pvm_fun=&s_pvm_fun_video;
@@ -199,7 +199,7 @@ MOD_open
 	return(0);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * init codec
  *
@@ -234,11 +234,11 @@ MOD_init
 		s_init_check++;		//do it only for the first time
 		memset((char *)&s_pvm_conf,'\0',sizeof(pvm_config_env));
 		p_pvm_conf=&s_pvm_conf;
-		if(vob->ex_v_fcc != NULL && strlen(vob->ex_v_fcc) != 0) 
+		if(vob->ex_v_fcc != NULL && strlen(vob->ex_v_fcc) != 0)
 		{
 			p_par1 = vob->ex_v_fcc;
 			adjust_ch(p_par1, ' ');    /*-- module to recall --*/
-			if(!strcasecmp(p_par1,"list")) 
+			if(!strcasecmp(p_par1,"list"))
 			{
 				f_help();
 				pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
@@ -260,7 +260,7 @@ MOD_init
 			pthread_mutex_unlock(&s_channel_lock);	/*this is the only way to make my module work with nultithreads: need to change all the code*/
 			return(TC_EXPORT_ERROR);
 		}
-		if(vob->ex_a_fcc != NULL && strlen(vob->ex_a_fcc) != 0) 
+		if(vob->ex_a_fcc != NULL && strlen(vob->ex_a_fcc) != 0)
 		{
 			p_par2 = vob->ex_a_fcc;
 			adjust_ch(p_par2, ' '); /*-- first parameter of the module --*/
@@ -332,7 +332,7 @@ MOD_init
 	{
 		s_init_check++;
 	}
-	if(param->flag == TC_VIDEO) 
+	if(param->flag == TC_VIDEO)
 	{
 		p_conf_codec=&(p_pvm_conf->s_video_codec);
 		p_file_to_open=vob->video_out_file;
@@ -371,7 +371,7 @@ MOD_init
 					p_argv_merger_sys[s_contsys]="unknown"; /*store the parameter*/
 					s_sys_merger_started=-1;	/*so the system merger never started*/
 				}
-			}	
+			}
 			else
 			{
 				s_contsys--;
@@ -410,7 +410,7 @@ MOD_init
 	else if (!strcasecmp(p_conf_codec->p_codec, "null"))
 	{
 		s_null_module=1;
-		if(param->flag == TC_VIDEO) 
+		if(param->flag == TC_VIDEO)
 		{
 			s_null_video_module=s_null_module;
 			tc_log_info(MOD_NAME, "use internal video null codec");
@@ -436,8 +436,8 @@ MOD_init
 	if (!s_null_module)	/*skip if null module is requested*/
 	{
 		/*check the default setup*/
-		p_pvm_conf->s_nproc=(p_pvm_conf->s_nproc<1)?1:p_pvm_conf->s_nproc;	
-		p_pvm_conf->s_max_proc=(p_pvm_conf->s_max_proc<MIN_TOT_NPROC)?10:p_pvm_conf->s_max_proc;	
+		p_pvm_conf->s_nproc=(p_pvm_conf->s_nproc<1)?1:p_pvm_conf->s_nproc;
+		p_pvm_conf->s_max_proc=(p_pvm_conf->s_max_proc<MIN_TOT_NPROC)?10:p_pvm_conf->s_max_proc;
 		p_pvm_conf->s_num_frame_task=(p_pvm_conf->s_num_frame_task<MIN_FRAME)?100:p_pvm_conf->s_num_frame_task;
 
 		if ((vob->divxmultipass==0)&&(p_pvm_conf->s_internal_multipass))
@@ -481,7 +481,7 @@ MOD_init
 		}
 		else
 		{
-			p_argv[s_cont++]="2"; 
+			p_argv[s_cont++]="2";
 			p_argv_merger[s_contj++]="2";
 			p_argv_merger_sys[s_contsys++]="2";
 		}
@@ -525,7 +525,7 @@ MOD_init
 			s_pvm_single_proc_system.s_current_tid=0;     /*data for the merger process*/
 			p_merger_sys_tid=(int *)&s_merger_tid_system[0];
 		}
-		if(param->flag == TC_VIDEO) 
+		if(param->flag == TC_VIDEO)
 		{
 			p_argv[s_cont++]="video"; /*video parameter*/
 			p_argv_merger[s_contj++]="video"; /*video parameter*/
@@ -621,7 +621,7 @@ MOD_init
 			tc_log_info(MOD_NAME, "MOD_INIT stop PVM_INIT_SKED");
 		if (verbose_flag & TC_DEBUG)
 		{
-			if(param->flag == TC_VIDEO) 
+			if(param->flag == TC_VIDEO)
 				tc_log_info(MOD_NAME, "Video merger tid %d",*p_merger_tid);
 			else
 				tc_log_info(MOD_NAME, "Audio merger tid %d",*p_merger_tid);
@@ -710,7 +710,7 @@ MOD_init
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * encode and export
  *
@@ -837,14 +837,14 @@ MOD_encode
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * stop codec
  *
  * ------------------------------------------------------------*/
 
 MOD_stop
-{  
+{
 	pvm_func_t *p_pvm_fun=NULL;
 	int *p_merger_tid=0,*p_merger_sys_tid=0;
 	int s_null_module;
@@ -911,14 +911,14 @@ MOD_stop
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close codec
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
 	int s_seq=0,s_dummy,s_dummy1,s_rc;
 	pvm_func_t *p_pvm_fun=NULL;
 	int *p_merger_tid=0,*p_merger_sys_tid=0;
@@ -996,7 +996,7 @@ MOD_close
 			else
 				tc_log_info(MOD_NAME,"Waiting for audio merger task (seq %d) termination...",s_seq);
 		}
-		(int)f_pvm_set_recv(s_seq);	/*set the last s_seq send*/	
+		(int)f_pvm_set_recv(s_seq);	/*set the last s_seq send*/
 		(int)f_pvm_recv(&s_dummy,(char *)&s_dummy1,&s_rc);
 		if (s_rc)
 		{
@@ -1062,7 +1062,7 @@ MOD_close
 				}
 				if (verbose_flag & TC_DEBUG)
 					tc_log_info(MOD_NAME,"Waiting for system merger task (seq %d) termination...",s_seq);
-				(int)f_pvm_set_recv(s_seq);	/*set the last s_seq send*/	
+				(int)f_pvm_set_recv(s_seq);	/*set the last s_seq send*/
 				(int)f_pvm_recv(&s_dummy,(char *)&s_dummy1,&s_rc);
 				if (s_rc)
 				{

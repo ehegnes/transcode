@@ -12,7 +12,7 @@ if ($#ARGV < 0)
   print("\n\n");
 }
 
-while ($#ARGV >= 0) 
+while ($#ARGV >= 0)
 {
   $FilmName = shift(@ARGV);
   print ("Analyzing File ".$FilmName."\n");

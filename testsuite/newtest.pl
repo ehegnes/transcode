@@ -327,7 +327,7 @@ sub test_import
 
 # Test a generic video export module, by running the output back through
 # -x ffmpeg.  Pass the module name (with any parameters) in $vexport_mod, a
-# CSP_* colorspace constant in $csp, 
+# CSP_* colorspace constant in $csp,
 
 sub test_export_x_ffmpeg
 {

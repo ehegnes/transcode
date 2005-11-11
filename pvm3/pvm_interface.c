@@ -1,5 +1,5 @@
 /*
- *  pvm_interface.c 
+ *  pvm_interface.c
  *
  *  Copyright (C) Marzio Malanchini - July 2003
  *
@@ -50,78 +50,78 @@ void *f_init_pvm_func(char *p_option,void *p_ret_handle)
 	char s_module[MAX_BUF];
 	void *p_handle;
 
-	
+
 	if(!strcasecmp(p_option,"open"))
 	{
 		snprintf(s_module, sizeof(s_module), "%s/%s", MOD_PATH, M_LOAD_LIB);
 		p_handle=dlopen(s_module, RTLD_GLOBAL|RTLD_LAZY);
-		if (!p_handle) 
+		if (!p_handle)
 		{
 			fputs (dlerror(), stderr);
 			return(NULL);
 		}
-		f_pvm_start_single_process = dlsym(p_handle, "f_pvm_start_single_process");   
-		if ((p_error = dlerror()) != NULL)  
+		f_pvm_start_single_process = dlsym(p_handle, "f_pvm_start_single_process");
+		if ((p_error = dlerror()) != NULL)
 		{
 			fputs(p_error, stderr);
 			return(NULL);
 		}
-		f_pvm_stop_single_process = dlsym(p_handle, "f_pvm_stop_single_process");   
-		if ((p_error = dlerror()) != NULL)  
+		f_pvm_stop_single_process = dlsym(p_handle, "f_pvm_stop_single_process");
+		if ((p_error = dlerror()) != NULL)
 		{
 			fputs(p_error, stderr);
 			return(NULL);
 		}
-		f_pvm_master_start_stop = dlsym(p_handle, "f_pvm_master_start_stop");   
-		if ((p_error = dlerror()) != NULL)  
+		f_pvm_master_start_stop = dlsym(p_handle, "f_pvm_master_start_stop");
+		if ((p_error = dlerror()) != NULL)
 		{
 			fputs(p_error, stderr);
 			return(NULL);
 		}
-		f_pvm_set_send = dlsym(p_handle, "f_pvm_set_send");   
-		if ((p_error = dlerror()) != NULL)  
+		f_pvm_set_send = dlsym(p_handle, "f_pvm_set_send");
+		if ((p_error = dlerror()) != NULL)
 		{
 			fputs(p_error, stderr);
 			return(NULL);
 		}
-		f_pvm_send = dlsym(p_handle, "f_pvm_send");   
-		if ((p_error = dlerror()) != NULL)  
+		f_pvm_send = dlsym(p_handle, "f_pvm_send");
+		if ((p_error = dlerror()) != NULL)
 		{
 			fputs(p_error, stderr);
 			return(NULL);
 		}
-		f_pvm_multi_send_nw = dlsym(p_handle, "f_pvm_multi_send_nw");   
-		if ((p_error = dlerror()) != NULL)  
+		f_pvm_multi_send_nw = dlsym(p_handle, "f_pvm_multi_send_nw");
+		if ((p_error = dlerror()) != NULL)
 		{
 			fputs(p_error, stderr);
 			return(NULL);
 		}
-		f_pvm_multi_send = dlsym(p_handle, "f_pvm_multi_send");   
-		if ((p_error = dlerror()) != NULL)  
+		f_pvm_multi_send = dlsym(p_handle, "f_pvm_multi_send");
+		if ((p_error = dlerror()) != NULL)
 		{
 			fputs(p_error, stderr);
 			return(NULL);
 		}
-		f_pvm_nrecv = dlsym(p_handle, "f_pvm_nrecv");   
-		if ((p_error = dlerror()) != NULL)  
+		f_pvm_nrecv = dlsym(p_handle, "f_pvm_nrecv");
+		if ((p_error = dlerror()) != NULL)
 		{
 			fputs(p_error, stderr);
 			return(NULL);
 		}
-		f_pvm_recv = dlsym(p_handle, "f_pvm_recv");   
-		if ((p_error = dlerror()) != NULL)  
+		f_pvm_recv = dlsym(p_handle, "f_pvm_recv");
+		if ((p_error = dlerror()) != NULL)
 		{
 			fputs(p_error, stderr);
 			return(NULL);
 		}
-		f_pvm_set_recv = dlsym(p_handle, "f_pvm_set_recv");   
-		if ((p_error = dlerror()) != NULL)  
+		f_pvm_set_recv = dlsym(p_handle, "f_pvm_set_recv");
+		if ((p_error = dlerror()) != NULL)
 		{
 			fputs(p_error, stderr);
 			return(NULL);
 		}
-		f_pvm_set_nrecv = dlsym(p_handle, "f_pvm_set_nrecv");   
-		if ((p_error = dlerror()) != NULL)  
+		f_pvm_set_nrecv = dlsym(p_handle, "f_pvm_set_nrecv");
+		if ((p_error = dlerror()) != NULL)
 		{
 			fputs(p_error, stderr);
 			return(NULL);

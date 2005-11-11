@@ -9,20 +9,20 @@
  *  part of libdv, a free DV (IEC 61834/SMPTE 314M) codec.
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -59,15 +59,15 @@ static int xv_display_Xv_init (xv_display_t *dv_dpy, char *w_name,
 			       char *i_name, int flags, int size);
 
 
-xv_player_t *xv_player_new(void) 
+xv_player_t *xv_player_new(void)
 {
   xv_player_t *result;
-  
+
   if(!(result = calloc(1,sizeof(xv_player_t)))) goto no_mem;
   if(!(result->display = xv_display_new())) goto no_display;
-  
+
   return(result);
-  
+
  no_display:
   free(result);
   result = NULL;
@@ -76,22 +76,22 @@ xv_player_t *xv_player_new(void)
 } // xv_player_new
 
 
-xv_display_t *xv_display_new(void) 
+xv_display_t *xv_display_new(void)
 {
   xv_display_t *result;
-  
+
   result = (xv_display_t *)calloc(1,sizeof(xv_display_t));
   if(!result) goto no_mem;
-  
+
  no_mem:
   return(result);
 } // xv_display_new
 
 
 void xv_display_show(xv_display_t *dv_dpy) {
-  
+
   xv_display_event(dv_dpy);
-  
+
   if (!dv_dpy->dontdraw) {
     XvShmPutImage(dv_dpy->dpy, dv_dpy->port,
 		  dv_dpy->win, dv_dpy->gc,
@@ -103,25 +103,25 @@ void xv_display_show(xv_display_t *dv_dpy) {
 		  True);
     XFlush(dv_dpy->dpy);
   }
-  
-} // xv_display_show 
+
+} // xv_display_show
 
 
 void xv_display_exit(xv_display_t *dv_dpy) {
-  
+
   if(!dv_dpy) return;
-  
+
   XvStopVideo(dv_dpy->dpy, dv_dpy->port, dv_dpy->win);
-  
+
   if(dv_dpy->shminfo.shmaddr)
     shmdt(dv_dpy->shminfo.shmaddr);
-  
+
   if(dv_dpy->shminfo.shmid > 0)
     shmctl(dv_dpy->shminfo.shmid, IPC_RMID, 0);
-  
+
   if(dv_dpy->xv_image) free(dv_dpy->xv_image);
   dv_dpy->xv_image = NULL;
-  
+
   free(dv_dpy);
   dv_dpy = NULL;
 #ifdef SYS_BSD /* We don't have on_exit() */
@@ -131,7 +131,7 @@ void xv_display_exit(xv_display_t *dv_dpy) {
 
 static int xv_pause=0;
 
-static void xv_window_close(xv_display_t *dv_dpy) 
+static void xv_window_close(xv_display_t *dv_dpy)
 {
     dv_dpy->dontdraw = 1;
 
@@ -158,7 +158,7 @@ void xv_display_event (xv_display_t *dv_dpy)
   sockmsg = tc_socket_msgchar;
   tc_socket_msgchar = TC_SOCK_PV_NONE;
   pthread_mutex_unlock(&tc_socket_msg_lock);
-  
+
   while ( sockmsg || XPending(dv_dpy->dpy) )  {
 
     // tibit: Poll for a socket message
@@ -218,7 +218,7 @@ void xv_display_event (xv_display_t *dv_dpy)
 		break;
 	    case TC_SOCK_PV_PAUSE:
 		sockmsg = TC_SOCK_PV_NONE;
-		xv_pause = (xv_pause)?0:1; 
+		xv_pause = (xv_pause)?0:1;
 		while(xv_pause) {
 		    xv_display_event(dv_dpy);
 		    usleep(10000);
@@ -235,7 +235,7 @@ void xv_display_event (xv_display_t *dv_dpy)
 
 
     switch (dv_dpy->event.type) {
-      
+
 	case ClientMessage:
 	    // stolen from xmms opengl_plugin  -- tibit
 	    if ((Atom)(dv_dpy->event.xclient.data.l[0]) == dv_dpy->wm_delete_window_atom)
@@ -255,7 +255,7 @@ void xv_display_event (xv_display_t *dv_dpy)
       dv_dpy->pic_format = DV_FORMAT_UNKNOWN;
       xv_display_check_format(dv_dpy, old_pic_format);
       break;
-      
+
     case ButtonPress:
 
       but_event = (XButtonEvent *) &dv_dpy->event;
@@ -267,8 +267,8 @@ void xv_display_event (xv_display_t *dv_dpy)
 	      int yend = (y1>y2)?y1:y2;
 	      char buf[255];
 
-	      tc_snprintf(buf, sizeof(buf), "[%s]: pos1=%dx%d pos2=%dx%d pos=%dx%d:size=%dx%d -Y %d,%d,%d,%d\n", 
-			      "filter_pv", xanf, yanf, xend, yend, xanf, yanf, xend-xanf, yend-yanf, 
+	      tc_snprintf(buf, sizeof(buf), "[%s]: pos1=%dx%d pos2=%dx%d pos=%dx%d:size=%dx%d -Y %d,%d,%d,%d\n",
+			      "filter_pv", xanf, yanf, xend, yend, xanf, yanf, xend-xanf, yend-yanf,
 			      yanf, xanf,  dv_dpy->height-yend, dv_dpy->width - xend);
 
 	      //print to socket
@@ -277,7 +277,7 @@ void xv_display_event (xv_display_t *dv_dpy)
 	      fprintf(stderr, "%s", buf);
 	      // white
 	      XSetForeground(dv_dpy->dpy,dv_dpy->gc, 0xFFFFFFFFUL);
-	      XDrawRectangle(dv_dpy->dpy,dv_dpy->win,dv_dpy->gc, 
+	      XDrawRectangle(dv_dpy->dpy,dv_dpy->win,dv_dpy->gc,
 			      xanf, yanf, (unsigned int)xend-xanf, (unsigned int)yend-yanf);
 
       }
@@ -285,15 +285,15 @@ void xv_display_event (xv_display_t *dv_dpy)
       break;
 
     case KeyPress:
-      
+
       XLookupString (&dv_dpy->event.xkey, buf, 16, &keysym, NULL);
-      
+
       switch(keysym) {
-	
+
       case XK_Escape:
 	xv_window_close (dv_dpy);
 	break;
-	
+
       case XK_u:
       case XK_U:
 	preview_cache_undo();
@@ -304,7 +304,7 @@ void xv_display_event (xv_display_t *dv_dpy)
 	xv_pause=0;
 	dv_dpy->dontdraw = (dv_dpy->dontdraw) ? 0:1;
 	break;
-	
+
       case XK_Up:
 	preview_cache_draw(cache_long_skip);
 	break;
@@ -312,7 +312,7 @@ void xv_display_event (xv_display_t *dv_dpy)
       case XK_Down:
 	preview_cache_draw(-cache_long_skip);
 	break;
-	
+
       case XK_Left:
 	preview_cache_draw(-cache_short_skip);
 	break;
@@ -320,22 +320,22 @@ void xv_display_event (xv_display_t *dv_dpy)
       case XK_Right:
 	preview_cache_draw(cache_short_skip);
 	break;
-	
+
       case XK_R:
       case XK_r:
 	tc_outstream_rotate_request();
 	break;
-	
+
       case XK_s:
       case XK_S:
 	inc_preview_delay();
 	break;
-	
+
       case XK_f:
       case XK_F:
 	dec_preview_delay();
 	break;
-	
+
       case XK_y:
       case XK_Y:
 	preview_toggle_skip();
@@ -352,13 +352,13 @@ void xv_display_event (xv_display_t *dv_dpy)
 	preview_filter();
 	break;
 #endif
-	
+
       case XK_Return:
 	xv_display_show(dv_dpy);
 	break;
 
       case XK_space:
-	xv_pause = (xv_pause)?0:1; 
+	xv_pause = (xv_pause)?0:1;
 	while(xv_pause) {
 	  xv_display_event(dv_dpy);
 	  //xv_display_show(dv_dpy);
@@ -378,7 +378,7 @@ void xv_display_event (xv_display_t *dv_dpy)
 void xv_display_check_format(xv_display_t *dv_dpy, int pic_format)
 {
   /*  return immediate if ther is no format change or no format
-   * specific flag was set upon initialisation 
+   * specific flag was set upon initialisation
    */
   if (pic_format == dv_dpy->pic_format ||
       !(dv_dpy->flags & XV_FORMAT_MASK))
@@ -414,37 +414,37 @@ void xv_display_check_format(xv_display_t *dv_dpy, int pic_format)
     dv_dpy->lheight = dv_dpy->dheight;
   }
   dv_dpy->pic_format = pic_format;
-} // xv_display_check_format 
+} // xv_display_check_format
 
 
 static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
-			      int flags, int size) 
+			      int flags, int size)
 {
-  
+
   int scn_id, ad_cnt, fmt_cnt, got_port, got_fmt;
   int i, k;
-  
+
   XGCValues	values;
   XSizeHints	hints;
   XWMHints	wmhints;
   XTextProperty	x_wname, x_iname;
-  
+
   Atom wm_protocols[1];
-  
+
   XvAdaptorInfo	*ad_info;
   XvImageFormatValues *fmt_info;
-  
+
   if(!(dv_dpy->dpy = XOpenDisplay(NULL))) return 0;
-  
+
   dv_dpy->rwin = DefaultRootWindow(dv_dpy->dpy);
   scn_id = DefaultScreen(dv_dpy->dpy);
-  
+
   /*
    * So let's first check for an available adaptor and port
    */
-  
+
   if(Success == XvQueryAdaptors(dv_dpy->dpy, dv_dpy->rwin, &ad_cnt, &ad_info)) {
-    
+
     for(i = 0, got_port = False; i < ad_cnt; ++i) {
       fprintf(stderr,
 	      "Xv: %s: ports %ld - %ld\n",
@@ -453,7 +453,7 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
 	      ad_info[i].base_id +
 	      ad_info[i].num_ports - 1);
 
-      if (dv_dpy->arg_xv_port != 0 && 
+      if (dv_dpy->arg_xv_port != 0 &&
 	      (dv_dpy->arg_xv_port < ad_info[i].base_id ||
 	       dv_dpy->arg_xv_port >= ad_info[i].base_id+ad_info[i].num_ports)) {
 	  fprintf(stderr,
@@ -583,7 +583,7 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
 
     if(dv_dpy->full_screen) {
       int  screen = XDefaultScreen(dv_dpy->dpy);
-      dv_dpy->lwidth = dv_dpy->dwidth =DisplayWidth(dv_dpy->dpy, screen); 
+      dv_dpy->lwidth = dv_dpy->dwidth =DisplayWidth(dv_dpy->dpy, screen);
       dv_dpy->lheight = dv_dpy->dheight = DisplayHeight(dv_dpy->dpy, screen);
     }
 
@@ -602,8 +602,8 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
       XA_WIN_STATE = XInternAtom (dv_dpy->dpy, "_NET_WM_STATE", False);
       propvalue[0] = XInternAtom (dv_dpy->dpy, "_NET_WM_STATE_FULLSCREEN", False);
       propvalue[1] = 0;
-                
-      XChangeProperty (dv_dpy->dpy, dv_dpy->win, XA_WIN_STATE, XA_ATOM, 
+
+      XChangeProperty (dv_dpy->dpy, dv_dpy->win, XA_WIN_STATE, XA_ATOM,
                        32, PropModeReplace, (unsigned char *)propvalue, 1);
     }
   } else {
@@ -615,32 +615,32 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
 		    &hints, &wmhints, NULL);
 
 
-  XSelectInput(dv_dpy->dpy, dv_dpy->win, ExposureMask | StructureNotifyMask | 
+  XSelectInput(dv_dpy->dpy, dv_dpy->win, ExposureMask | StructureNotifyMask |
 		                         KeyPressMask | ButtonPressMask);
 
   dv_dpy->wm_delete_window_atom = wm_protocols[0] =
       XInternAtom(dv_dpy->dpy, "WM_DELETE_WINDOW", False);
   XSetWMProtocols(dv_dpy->dpy, dv_dpy->win, wm_protocols, 1);
-		  	
+
   XMapRaised(dv_dpy->dpy, dv_dpy->win);
   XNextEvent(dv_dpy->dpy, &dv_dpy->event);
 
   dv_dpy->gc = XCreateGC(dv_dpy->dpy, dv_dpy->win, 0, &values);
 
-  /* 
+  /*
    * Now we do shared memory allocation etc..
    */
 
   dv_dpy->xv_image = XvShmCreateImage(dv_dpy->dpy, dv_dpy->port,
 					 dv_dpy->format, dv_dpy->pixels[0],
-				      	 dv_dpy->width, dv_dpy->height, 
+				      	 dv_dpy->width, dv_dpy->height,
 					 &dv_dpy->shminfo);
 
   dv_dpy->shminfo.shmid = shmget(IPC_PRIVATE,
 				     dv_dpy->len,
 				     IPC_CREAT | 0777);
 
-  dv_dpy->xv_image->data = dv_dpy->pixels[0] = dv_dpy->shminfo.shmaddr = 
+  dv_dpy->xv_image->data = dv_dpy->pixels[0] = dv_dpy->shminfo.shmaddr =
     shmat(dv_dpy->shminfo.shmid, 0, 0);
 
   XShmAttach(dv_dpy->dpy, &dv_dpy->shminfo);
@@ -649,14 +649,14 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
 
 
   return 1;
-} // xv_display_Xv_init 
+} // xv_display_Xv_init
 
 #if 0  // unused
 #ifndef SYS_BSD /* We don't have on_exit() */
 static void xv_display_exit_handler(int code, void *arg)
 {
   if(code && arg) xv_display_exit(arg);
-} // dv_display_exit_handler 
+} // dv_display_exit_handler
 #else
 static void
 xv_display_on_exit_hack_handler()
@@ -674,11 +674,11 @@ int xv_display_init(xv_display_t *dv_dpy, int *argc, char ***argv, int width, in
   dv_dpy->height = height;
 
   dv_dpy->dontdraw = 0;
-  
+
   dv_dpy->format = yuv422 ? DV_FOURCC_YUY2 : DV_FOURCC_I420;
   dv_dpy->len = (dv_dpy->width * dv_dpy->height * 3) / 2;
   if (yuv422) dv_dpy->len = dv_dpy->width * dv_dpy->height * 2;
-  
+
   /* Xv */
   if(xv_display_Xv_init(dv_dpy, w_name, i_name,
 			dv_dpy->arg_aspect_val,
@@ -688,30 +688,30 @@ int xv_display_init(xv_display_t *dv_dpy, int *argc, char ***argv, int width, in
     fprintf(stderr, "Attempt to display via Xv failed\n");
     goto fail;
   }
-  
+
  Xv_ok:
   fprintf(stderr, "Using Xv for display\n");
   dv_dpy->lib = e_dv_dpy_Xv;
   dv_dpy->color_space = e_dv_color_yuv;
-  
-  
+
+
   switch(dv_dpy->format) {
-    
+
   case DV_FOURCC_YUY2:
     dv_dpy->pitches[0] = width * 2;
     break;
-    
+
   case DV_FOURCC_I420:
     dv_dpy->pixels[1] = dv_dpy->pixels[0] + (width * height);
     dv_dpy->pixels[2] = dv_dpy->pixels[1] + (width * height / 4);
-    
+
     dv_dpy->pitches[0] = width;
     dv_dpy->pitches[1] = width / 2;
     dv_dpy->pitches[2] = width / 2;
     break;
   }
 #if 0
-  
+
 #ifdef SYS_BSD /* We don't have on_exit() */
   xv_dpy_on_exit_hack = dv_dpy;
   atexit(xv_display_on_exit_hack_handler);
@@ -719,13 +719,13 @@ int xv_display_init(xv_display_t *dv_dpy, int *argc, char ***argv, int width, in
   on_exit(xv_display_exit_handler, dv_dpy);
 #endif
 #endif
-  
+
   return(0);
-  
+
  fail:
   fprintf(stderr, "Unable to establish a display method\n");
   return(-1);
-} // xv_display_init 
+} // xv_display_init
 
 
 // returns 1 if a selection is complete (2nd click)
@@ -746,12 +746,12 @@ int DoSelection(XButtonEvent *ev, int *xanf, int *yanf, int *xend, int *yend)
     /* double clicked B1 ? */
       // save
     if (lastClickButton!=Button1) {
-      *xanf = ev->x; 
+      *xanf = ev->x;
       *yanf = ev->y;
       lastClickButton=Button1;
       rv = 0;
     } else  {
-      *xend = ev->x; 
+      *xend = ev->x;
       *yend = ev->y;
       lastClickButton=Button3;
 

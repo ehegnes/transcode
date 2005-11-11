@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -35,14 +35,14 @@ extern long fileinfo(int fd, int skip);
 
 int verbose=TC_QUIET;
 
-void import_exit(int code) 
+void import_exit(int code)
 {
   if(verbose & TC_DEBUG) import_info(code, EXE);
   exit(code);
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * print a usage/version message
  *
@@ -80,9 +80,9 @@ static void usage(int status)
   exit(status);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
- * universal decode thread frontend 
+ * universal decode thread frontend
  *
  * ------------------------------------------------------------*/
 
@@ -99,67 +99,67 @@ int main(int argc, char *argv[])
     decode.stype = TC_STYPE_UNKNOWN;
     decode.quality = VQUALITY;
     decode.ac3_gain[0] = decode.ac3_gain[1] = decode.ac3_gain[2] = 1.0;
-    decode.frame_limit[0]=0; 
-    decode.frame_limit[1]=LONG_MAX; 
+    decode.frame_limit[0]=0;
+    decode.frame_limit[1]=LONG_MAX;
 
     while ((ch = getopt(argc, argv, "Q:t:d:x:i:a:g:vy:s:YC:A:z:?h")) != -1) {
 	switch (ch) {
-	    
-	case 'i': 
+
+	case 'i':
 	  if (optarg[0]=='-') usage(EXIT_FAILURE);
 	  decode.name = optarg;
 	  break;
 
-	case 'd': 
+	case 'd':
 	  if (optarg[0]=='-') usage(EXIT_FAILURE);
 	  verbose = atoi(optarg);
 	  break;
 
-	case 'Q': 
+	case 'Q':
 	  if (optarg[0]=='-') usage(EXIT_FAILURE);
 	  decode.quality = atoi(optarg);
 	  break;
 
-	case 'A': 
+	case 'A':
 	  if (optarg[0]=='-') usage(EXIT_FAILURE);
 	  decode.a52_mode = atoi(optarg);
 	  break;
-		  
-	case 'x': 
+
+	case 'x':
 	  if (optarg[0]=='-') usage(EXIT_FAILURE);
 	  codec = optarg;
 	  break;
 
-	case 't': 
+	case 't':
 	  if (optarg[0]=='-') usage(EXIT_FAILURE);
 	  magic = optarg;
 	  break;
 
-	case 'y': 
+	case 'y':
 	  if (optarg[0]=='-') usage(EXIT_FAILURE);
 	  format = optarg;
 	  break;
-	  
-	case 'g': 
+
+	case 'g':
 	  if (optarg[0]=='-') usage(EXIT_FAILURE);
 	  if (2 != sscanf(optarg,"%dx%d", &decode.width, &decode.height)) usage(EXIT_FAILURE);
 	  break;
-	  
-	case 'v': 
+
+	case 'v':
 	  version();
 	  exit(0);
 	  break;
 
-	case 'Y': 
+	case 'Y':
 	  decode.dv_yuy2_mode=1;
 	  break;
 
-	case 's': 
+	case 's':
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  if (3 != sscanf(optarg,"%lf,%lf,%lf", &decode.ac3_gain[0], &decode.ac3_gain[1], &decode.ac3_gain[2])) usage(EXIT_FAILURE);
 	  break;
-	  
-	case 'C': 
+
+	case 'C':
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  if (2 != sscanf(optarg,"%ld,%ld", &decode.frame_limit[0], &decode.frame_limit[1])) usage(EXIT_FAILURE);
  	  if (decode.frame_limit[0] >= decode.frame_limit[1])
@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  decode.padrate = atoi(optarg);
 	  break;
-	  
+
 	case 'h':
 	  usage(EXIT_SUCCESS);
 	default:
@@ -181,42 +181,42 @@ int main(int argc, char *argv[])
 	}
     }
 
-    /* ------------------------------------------------------------ 
+    /* ------------------------------------------------------------
      *
      * fill out defaults for info structure
      *
      * ------------------------------------------------------------*/
-    
+
     // assume defaults
     if(decode.name==NULL) decode.stype=TC_STYPE_STDIN;
-    
+
     // no autodetection yet
     if(codec==NULL) {
 	fprintf(stderr, "error: invalid codec %s\n", codec);
 	usage(EXIT_FAILURE);
     }
-    
+
     // do not try to mess with the stream
     if (decode.stype != TC_STYPE_STDIN) {
 	if (tc_file_check(decode.name)) exit(1);
 	if ((decode.fd_in = xio_open(decode.name, O_RDONLY)) < 0) {
 	    perror("open file");
 	    exit(1);
-	} 
-	
+	}
+
 	// try to find out the filetype
 	decode.magic = fileinfo(decode.fd_in, 0);
 	if (verbose) fprintf(stderr, "[%s] (pid=%d) %s\n", EXE, getpid(), filetype(decode.magic));
-	
+
     } else decode.fd_in = STDIN_FILENO;
-    
+
     decode.fd_out = STDOUT_FILENO;
     decode.codec = TC_CODEC_UNKNOWN;
     decode.verbose = verbose;
     if (decode.width < 0) decode.width = 0;
     if (decode.height < 0) decode.height = 0;
 
-    /* ------------------------------------------------------------ 
+    /* ------------------------------------------------------------
      *
      * output raw stream format
      *
@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
     else if (!strcmp(format, "pcm")) decode.format = TC_CODEC_PCM;
     else if (!strcmp(format, "raw")) decode.format = TC_CODEC_RAW;
 
-    /* ------------------------------------------------------------ 
+    /* ------------------------------------------------------------
      *
      * codec specific section
      *
@@ -264,14 +264,14 @@ int main(int argc, char *argv[])
 
 	decode_lavc(&decode);
     }
-    
+
     // MPEG2
-    if (!strcmp(codec, "mpeg2")) { 
+    if (!strcmp(codec, "mpeg2")) {
 	decode.codec = TC_CODEC_MPEG2;
 	decode_mpeg2(&decode);
 	done = 1;
     }
-    
+
     // OGG
     if (!strcmp(codec, "ogg")) {
 	decode.codec = TC_CODEC_VORBIS;
@@ -315,7 +315,7 @@ int main(int argc, char *argv[])
     }
 
     // YUV420P
-    if (!strcmp(codec, "yuv420p")) { 
+    if (!strcmp(codec, "yuv420p")) {
 	decode.codec = TC_CODEC_YUV420P;
 	decode_yuv(&decode);
 	done = 1;
@@ -327,14 +327,14 @@ int main(int argc, char *argv[])
       decode_af6(&decode);
       done = 1;
     }
-    
+
     // AF6 video
     if (!strcmp(codec, "af6video")) {
       decode.select = TC_VIDEO;
       decode_af6(&decode);
       done = 1;
     }
-    
+
 #if 0
     // DivX Video
     if (!strcmp(codec, "divx")) {
@@ -343,33 +343,33 @@ int main(int argc, char *argv[])
       done = 1;
     }
 #endif
-    
+
     // XviD Video
     if (!strcmp(codec, "xvid")) {
       decode.select = TC_VIDEO;
       decode_xvid(&decode);
       done = 1;
     }
-    
-    // MOV 
+
+    // MOV
     if (!strcmp(codec, "mov")) {
       decode_mov(&decode);
       done = 1;
     }
-    
+
     // LZO
     if (!strcmp(codec, "lzo")) {
       decode_lzo(&decode);
       done = 1;
     }
-    
+
     if(!done) {
 	fprintf(stderr, "[%s] (pid=%d) unable to handle codec %s\n", EXE, getpid(), codec);
 	exit(1);
     }
-    
+
     if (decode.fd_in != STDIN_FILENO) xio_close(decode.fd_in);
-    
+
     return 0;
 }
 

@@ -4,20 +4,20 @@
  *  Copyright (C) Tilmann Bitterberg - September 2003
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -197,7 +197,7 @@ void version(void)
 static void usage(int status)
 {
   version();
-   
+
   fprintf(stderr,"\n%s converts a XPM file to rgb24 format\n", EXE);
   fprintf(stderr,"Usage: %s [options]\n", EXE);
 
@@ -206,16 +206,16 @@ static void usage(int status)
   fprintf(stderr,"\t-v               print version\n");
 
   exit(status);
-  
+
 }
 
 
 int main (int argc, char *argv[])
-{ 
+{
     char linebuf[MAX_BUF], target[MAX_BUF], key[16];
     FILE *f, *o;
     int width, height, colors, bwidth, n, j, linelen, x, y, ch;
-    char **clist, **keys; 
+    char **clist, **keys;
     char *p, *q, *line;
     char *out = NULL, *d;
     char *outfile = NULL, *infile=NULL;
@@ -223,21 +223,21 @@ int main (int argc, char *argv[])
     long sret;
 
     while ((ch = getopt(argc, argv, "i:o:vh?")) != -1) {
-	
+
       switch (ch) {
-	
-      case 'i': 
-	
+
+      case 'i':
+
 	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	infile = optarg;
-      
+
 	break;
 
-      case 'o': 
-	
+      case 'o':
+
 	if(optarg[0]=='-') usage(EXIT_FAILURE);
 	outfile = optarg;
-      
+
 	break;
 
       case 'v':
@@ -259,7 +259,7 @@ int main (int argc, char *argv[])
 	    perror ("fopen infile");
 	    return 1;
 	}
-    } else 
+    } else
 	f = stdin;
 
     if (outfile) {
@@ -268,7 +268,7 @@ int main (int argc, char *argv[])
 	    perror ("fopen outfile");
 	    return 1;
 	}
-    } else 
+    } else
 	o = stdout;
 
 
@@ -317,7 +317,7 @@ int main (int argc, char *argv[])
 	    return 1;
 	}
 	len=strlen(linebuf);
-	     
+
 	clist[n] = (char *)malloc(len);
 	memcpy(clist[n], linebuf+1, len-3);
 	clist[n][len-4] = '\0';
@@ -415,7 +415,7 @@ int main (int argc, char *argv[])
     free(clist);
     free(keys);
     free(colormap);
-    
+
     // read };
     if (!fgets(linebuf, MAX_BUF, f)) {
 	perror("fgets header");

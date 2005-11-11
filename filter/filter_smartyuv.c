@@ -1,10 +1,10 @@
 /*
     filter_smartyuv.c
-    
+
     This file is part of transcode, a video stream processing tool
-    
+
     2003 by Tilmann Bitterberg, based on code by Donald Graft.
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation.
@@ -70,7 +70,7 @@ static vob_t *vob=NULL;
 
 // We pad the moving maps with 16 pixels left and right, to make sure
 // that we always can do aligned loads and stores at a multiple of 16.
-// this is especially important when doing altivec but might help in 
+// this is especially important when doing altivec but might help in
 // other cases as well.
 #define PAD 32
 
@@ -89,17 +89,17 @@ stride: -32000 - 320000
 */
 
 #if 0 // unused, EMS
-static unsigned int get_prefetch_const (int blocksize_in_vectors, int block_count, int block_stride) 
+static unsigned int get_prefetch_const (int blocksize_in_vectors, int block_count, int block_stride)
 {
-    return ((blocksize_in_vectors<<24)&0x1F000000) | 
+    return ((blocksize_in_vectors<<24)&0x1F000000) |
 	   ((block_count<<16)&0x00FF0000)          |
 	    (block_stride&0xFFFF);
 }
 #endif
 
-static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int _height, 
-		int _srcpitch, int _dstpitch, 
-		unsigned char *_moving, unsigned char *_fmoving, 
+static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int _height,
+		int _srcpitch, int _dstpitch,
+		unsigned char *_moving, unsigned char *_fmoving,
 		unsigned char(*clamp_f)(unsigned char x), int _threshold );
 
 typedef struct MyFilterData {
@@ -126,7 +126,7 @@ typedef struct MyFilterData {
 
 static MyFilterData *mfd;
 
-static void help_optstr(void) 
+static void help_optstr(void)
 {
    tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
@@ -247,7 +247,7 @@ static void Erode_Dilate (uint8_t *_moving, uint8_t *_fmoving, int width, int he
 	    fmoving += PAD;
 	    moving += PAD;
 	    p += PAD;
-	} else 
+	} else
 #endif
 	{
 	    for (x = 0; x < width; x++)
@@ -309,7 +309,7 @@ static void Erode_Dilate (uint8_t *_moving, uint8_t *_fmoving, int width, int he
 	fmoving += w4;
     }
 }
-static void inline Blendline_c (uint8_t *dst, uint8_t *src, uint8_t *srcminus, uint8_t *srcplus, 
+static void inline Blendline_c (uint8_t *dst, uint8_t *src, uint8_t *srcminus, uint8_t *srcplus,
 	                 uint8_t *moving, uint8_t *movingminus, uint8_t *movingplus, const int w, const int scenechange)
 {
     int	x=0;
@@ -328,9 +328,9 @@ static void inline Blendline_c (uint8_t *dst, uint8_t *src, uint8_t *srcminus, u
 // this works fine on OSX too
 #define ABS_u8(a) (((a)^((a)>>7))-((a)>>7))
 
-static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int _height, 
-		int _srcpitch, int _dstpitch, 
-		unsigned char *_moving, unsigned char *_fmoving, 
+static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int _height,
+		int _srcpitch, int _dstpitch,
+		unsigned char *_moving, unsigned char *_fmoving,
 		unsigned char(*clamp_f)(unsigned char x), int _threshold )
 {
 	const int		srcpitch = _srcpitch;
@@ -484,7 +484,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 
 			  moving += PAD;
 		    }
-		      
+
 		  } else
 #endif
 		  {
@@ -504,7 +504,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 				/* Keep a count of the number of moving pixels for the
 				   scene change detection. */
 				count += *moving++;
-				
+
 			}
 
 			moving += PAD;
@@ -716,7 +716,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 				p0 = vec_sub (vec_max (luma, p0), vec_min (luma, p0));
 				p1 = vec_sub (vec_max (luma, p1), vec_min (luma, p1));
 				vmov = vec_and(
-					(vector unsigned char)vec_cmpgt(p0, vthres), 
+					(vector unsigned char)vec_cmpgt(p0, vthres),
 					(vector unsigned char)vec_cmpgt(p1, vthres));
 
 				// FF -> 01
@@ -747,7 +747,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		    for (y = 1; y < hminus1; y++)
 		    {
 			x = 0;
-			if (y & 1) { 
+			if (y & 1) {
 
 			    do {
 
@@ -787,10 +787,10 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		if ((100L * count) / (h * w) >= mfd->scenethreshold) scenechange = 1;
 		else scenechange = 0;
 
-		if (scenechange && mfd->verbose) 
+		if (scenechange && mfd->verbose)
 		    tc_log_info(MOD_NAME, "Scenechange at %6d (%6ld moving pixels)", counter, count);
 		/*
-		printf("Frame (%04d) count (%8ld) sc (%d) calc (%02ld)\n", 
+		printf("Frame (%04d) count (%8ld) sc (%d) calc (%02ld)\n",
 				counter, count, scenechange, (100 * count) / (h * w));
 				*/
 
@@ -862,7 +862,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 				{
 					if (!((_moving + y * (w+PAD))[x]))
 					{
-						fmoving[x] = 0;	
+						fmoving[x] = 0;
 						continue;
 					}
 					xlo = x - Nover2; if (xlo < 0) xlo = 0;
@@ -897,7 +897,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 				{
 					if (!((_fmoving + y * (w+PAD))[x]))
 					{
-						moving[x] = 0;	
+						moving[x] = 0;
 						continue;
 					}
 					xlo = x - Nover2; if (xlo < 0) xlo = 0;
@@ -915,7 +915,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 					}
 				}
 				moving += (w+PAD);
-			}		
+			}
 		}
 	}
 
@@ -957,7 +957,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 			if (!(movingminus[x] | moving[x] | movingplus[x]) && !scenechange)
 			    dst[x] = (clamp_f==clamp_Y)?BLACK_BYTE_Y:BLACK_BYTE_UV;
 			else
-			{	
+			{
 			    /* Blend fields. */
 			    dst[x] = (((src[x]&0xff)>>1) + ((srcminus[x]&0xff)>>2) + ((srcplus[x]&0xff)>>2))&0xff;
 			}
@@ -1022,7 +1022,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 	    return;
 
 	}
-	
+
 	if (mfd->Blend)
 	{
 	    // linear blend, see Blendline_c for a plainC version
@@ -1061,8 +1061,8 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 
 		    pcmpeqw_r2r(mm5, mm5);  // make all ff's (recycle mm5)
 		    psubb_r2r  (mm0, mm5);  // inverse mask
-		    pand_r2r   (mm0, mm7); 
-		    pand_r2r   (mm5, mm1); 
+		    pand_r2r   (mm0, mm7);
+		    pand_r2r   (mm5, mm1);
 		    psrlw_i2r  (1,   mm7);
 
 		    pand_r2r   (mm4, mm7);  // clear highest bit
@@ -1128,7 +1128,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 
 
 
-	      } else 
+	      } else
 #endif
 	      {
 		Blendline_c (dst, src, srcminus, srcplus, moving, movingminus, movingplus, w, scenechange);
@@ -1163,7 +1163,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		    if (movingminus[x] | moving[x] | movingplus[x] | scenechange)
 			if (cubic & (y > 2) & (y < hminus3))
 			{
-			    R = (5 * ((srcminus[x] & 0xff) + (srcplus[x] & 0xff)) 
+			    R = (5 * ((srcminus[x] & 0xff) + (srcplus[x] & 0xff))
 				    - ((srcminusminus[x] & 0xff) + (srcplusplus[x] & 0xff))) >> 3;
 			    dst[x] = clamp_f(R & 0xff)&0xff;
 			}
@@ -1221,14 +1221,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	unsigned int width, height;
 	int msize;
-    
+
 	if((vob = tc_get_vob())==NULL) return(-1);
-    
+
 
 	mfd = tc_zalloc(sizeof(MyFilterData));
 
 	if (!mfd) {
-		fprintf(stderr, "No memory!\n"); 
+		fprintf(stderr, "No memory!\n");
         return (-1);
 	}
 
@@ -1254,7 +1254,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 
 	if (options != NULL) {
-    
+
 	  if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
 	  optstr_get (options, "motionOnly",     "%d",  &mfd->motionOnly     );
@@ -1303,7 +1303,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	mfd->fmovingU = (unsigned char *) tc_bufalloc(sizeof(unsigned char)*msize);
 	mfd->fmovingV = (unsigned char *) tc_bufalloc(sizeof(unsigned char)*msize);
 
-	if ( !mfd->movingY || !mfd->movingU || !mfd->movingV || !mfd->fmovingY || 
+	if ( !mfd->movingY || !mfd->movingU || !mfd->movingV || !mfd->fmovingY ||
 	      !mfd->fmovingU || !mfd->fmovingV || !mfd->buf || !mfd->prevFrame) {
 	    fprintf (stderr, "[%s] Memory allocation error\n", MOD_NAME);
 	    return -1;
@@ -1333,7 +1333,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	// This is also the reason for the w+4's all over the place.
 	//
 	// This gives an speedup factor in erode+denoise of about 3.
-	// 
+	//
 	// A lot of brain went into the optimisations, here are some numbers of
 	// the separate steps. Note, to get these numbers I used the rdtsc
 	// instruction to read the CPU cycle counter in seperate programms:
@@ -1361,7 +1361,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	// filter init ok.
 
-	if(verbose) tc_log_info(MOD_NAME, 
+	if(verbose) tc_log_info(MOD_NAME,
 #ifdef HAVE_ASM_MMX
 		"(MMX) "
 #endif
@@ -1373,7 +1373,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	return 0;
 
   } /* TC_FILTER_INIT */
-	
+
 
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
       char buf[255];
@@ -1407,7 +1407,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (!mfd)
 		return 0;
-	
+
 	tc_buffree (mfd->buf);
 	mfd->buf = NULL;
 
@@ -1439,7 +1439,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
   //if(ptr->tag & TC_PRE_S_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
   if(ptr->tag & TC_PRE_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
-	  
+
 	  int U  = ptr->v_width*ptr->v_height;
 	  int V  = ptr->v_width*ptr->v_height*5/4;
 	  int w2 = ptr->v_width/2;
@@ -1453,7 +1453,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  */
 
 
-	  smartyuv_core(ptr->video_buf, mfd->buf, mfd->prevFrame, 
+	  smartyuv_core(ptr->video_buf, mfd->buf, mfd->prevFrame,
 		        ptr->v_width, ptr->v_height, ptr->v_width, ptr->v_width,
 		        mfd->movingY+off, mfd->fmovingY+off, clamp_Y, mfd->threshold);
 
@@ -1469,11 +1469,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	      /*
 	      */
 
-	      smartyuv_core(ptr->video_buf+U, mfd->buf+U, mfd->prevFrame+U, 
+	      smartyuv_core(ptr->video_buf+U, mfd->buf+U, mfd->prevFrame+U,
 			  w2, h2, w2, w2,
 			  mfd->movingU+off, mfd->fmovingU+off, clamp_UV, mfd->chromathres);
 
-	      smartyuv_core(ptr->video_buf+V, mfd->buf+V, mfd->prevFrame+V, 
+	      smartyuv_core(ptr->video_buf+V, mfd->buf+V, mfd->prevFrame+V,
 			  w2, h2, w2, w2,
 			  mfd->movingV+off, mfd->fmovingV+off, clamp_UV, mfd->chromathres);
 	  } else {

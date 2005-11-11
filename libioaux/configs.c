@@ -5,7 +5,7 @@
  */
 
 /*
-         1         2         3         4         5         6         7         8         9         10        11        12        
+         1         2         3         4         5         6         7         8         9         10        11        12
 12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678
 
 */
@@ -281,7 +281,7 @@ cf_get_named_section_value_of_key( CF_ROOT_TYPE * pRoot, char * pName, char * pK
  * lot like work to me so maybe later.
  */
 int
-cf_put_named_section_value_of_key( CF_ROOT_TYPE * pRoot, char * pName, char * pKey, 
+cf_put_named_section_value_of_key( CF_ROOT_TYPE * pRoot, char * pName, char * pKey,
 	char * pVal, CF_VALUE_TYPE vtype, char * pComment )
 {
 	CF_KEYVALUE_TYPE * pKeyvalue, * pNew;
@@ -293,7 +293,7 @@ cf_put_named_section_value_of_key( CF_ROOT_TYPE * pRoot, char * pName, char * pK
 	if( pRoot == NULL || pName == NULL )
 		return -1;
 	/*
-	 * make sure we can instantiate a 
+	 * make sure we can instantiate a
 	 * new key-value pair.
 	 */
 	if( ( pNew = CF_NEW_KEYVALUE( pKey, pVal, vtype, pComment ) ) == NULL )
@@ -686,7 +686,7 @@ cf_read( char * filename )
 
 				break;
 			/*
-			 * it's not the ROOT, a SECTION, a SUBSECTION or a KEYVALUE 
+			 * it's not the ROOT, a SECTION, a SUBSECTION or a KEYVALUE
 			 * so what is it? better bail out.
 			 */
 			default:
@@ -1659,7 +1659,7 @@ CF_PRINT_KEYVALUE( FILE * fp, CF_KEYVALUE_TYPE * pKeyvalue )
 		fp = stdout;
 
 	if( pKeyvalue->key != NULL && pKeyvalue->value != NULL ) {
-		if( strlen( pKeyvalue->value ) == strlen( pKeyvalue->key ) && 
+		if( strlen( pKeyvalue->value ) == strlen( pKeyvalue->key ) &&
 			strcmp( pKeyvalue->value, pKeyvalue->key ) == 0 )
 			fprintf( fp, "%s", pKeyvalue->value );
 
@@ -1689,7 +1689,7 @@ CF_PRINT_KEYVALUE( FILE * fp, CF_KEYVALUE_TYPE * pKeyvalue )
 			fprintf( fp, "\n" );
 
 		while( ( pKeyvalue = pKeyvalue->next ) != NULL ) {
-			if( strlen( pKeyvalue->value ) == strlen( pKeyvalue->key ) && 
+			if( strlen( pKeyvalue->value ) == strlen( pKeyvalue->key ) &&
 				strcmp( pKeyvalue->value, pKeyvalue->key ) == 0 )
 				fprintf( fp, "%s", pKeyvalue->value );
 
@@ -2018,7 +2018,7 @@ cf_readline( FILE * fp )
 /*
  * open the named configfile for reading.
  */
-FILE * 
+FILE *
 cf_ropen( char * filename )
 {
 	static FILE * fp;
@@ -2376,46 +2376,46 @@ cf_sntoupper( char * pString, int num )
 //
 // I added a CONF_TYPE_SECTION element type to be able to modelize sections
 // directly in struct config arrays.
-// 
+//
 // Let's have a look at a code snippet that shows how to use this change.
-// 
+//
 // You want to parse something like
 // <file name="test.cfg">
 // [section1]
 // value1 = 5
 // value2 = 3
-// 
+//
 // [section2]
-// 
+//
 // value3 = 8
 // value4 = 9
 // value5 = -2
 // </file>
-// 
+//
 // Then instead of reading the config file twice to get a section at each
 // module_read_config call, you can define an array with CONF_TYPE_SECTION
 // elements.
-// 
+//
 // A CONF_TYPE_SECTION element uses the config fields as follow:
 // {"section1", "God damn i'm good", CONF_TYPE_SECTION, 0, 0, 0, NULL},
 //  ^^^^^^^^^     ^^^^^^^^^^^^^^^        ^^^^^^
 //  |section name  | Section description | type .... not used
-// 
+//
 // The  section  name is  used  while  loading  the settings,  the  section
 // description   is  used   (when   given)  as   a   description  for   the
 // module_print_config function (else it uses the section name).
-// 
-// Let's see a program that would read the test.cfg file. 
-// 
+//
+// Let's see a program that would read the test.cfg file.
+//
 // <file name="plop.c">
 // #include <stdio.h>
 // #include "configs.h"
-// 
+//
 // int main(int argc, char **argv)
 // {
-// 
+//
 //         int plop[5];
-// 
+//
 //         struct config conf[] =
 //                 {
 //                         {"section1", "Damn i'm good", CONF_TYPE_SECTION, 0, 0, 0, NULL},
@@ -2427,33 +2427,33 @@ cf_sntoupper( char * pString, int num )
 //                         {"value5", &plop[4], CONF_TYPE_INT, CONF_RANGE, -127, 127,NULL},
 //                         {NULL, NULL, 0, 0, 0, 0, NULL}
 //                 };
-// 
+//
 // 	memset(plop, 0, sizeof(plop));
 //         module_read_config(NULL, "test", "test", conf);
 //         module_print_config("print test: ", conf);
 // }
 // </file>
-// 
+//
 // As  you see,  the only  difference is  in the  way we  define  the array
 // (contains sections) and the missing first argument in module_read_config
-// replaced by a NULL pointer. 
-// 
+// replaced by a NULL pointer.
+//
 // So here are the new rules:
 //  - a section  name is  passed in argument, and  a CONF_TYPE_SECTION
 //  element is detected in the  config array, the function will declare the
-//  array as being inconsistent. This is simply not allowed. 
+//  array as being inconsistent. This is simply not allowed.
 //  - a  NULL  pointer  is passed  as  the  section  name pointer,  and  no
 //  CONF_TYPE_SECTION  element  is found  as  the  config[0] element,  same
-//  behavior as before, this is simply inconstsent and is not allowed. 
-// 
+//  behavior as before, this is simply inconstsent and is not allowed.
+//
 // So allowed cases are:
-//  - a section name a config array w/o CONF_TYPE_SECTION elemnts. 
+//  - a section name a config array w/o CONF_TYPE_SECTION elemnts.
 //  - no section name and array with at least a module_print_config element
-//  (the first one). 
-// 
+//  (the first one).
+//
 // My changes are backward compatible. But i would like some more testing
 // from people that use the ffmpeg module.
-// 
+//
 // For curious people, the output of the above program is:
 // [test] Reading configuration from './test.cfg'
 // [test] Reading config section 'section1' from './test.cfg'
@@ -2469,7 +2469,7 @@ cf_sntoupper( char * pString, int num )
 // print test: value3 = 8
 // print test: value4 = 9
 // print test: value5 = -2
-// 
+//
 
 
 int module_read_config(char *section, char *prefix, char *module, struct config *conf, char *configdir) {
@@ -2484,11 +2484,11 @@ int module_read_config(char *section, char *prefix, char *module, struct config 
   } else {
       tc_snprintf(conffile, sizeof(conffile), "./%s.cfg", module);
   }
-  
+
   /* Search for the config file called module.cfg */
   if (stat(conffile, &statfile) != 0) {
     char *home = getenv("HOME");
-    
+
     if (home != NULL) {
       tc_snprintf(buffer, sizeof(buffer), "%s/.transcode/%s.cfg", home, module);
       if (stat(buffer, &statfile) != 0) {
@@ -2505,7 +2505,7 @@ int module_read_config(char *section, char *prefix, char *module, struct config 
   }
 
   fprintf(stderr, "[%s] Reading configuration from '%s'\n", prefix, buffer);
-  
+
   /* Avoid reading non regular files (pipes and so on) */
   if (!S_ISREG(statfile.st_mode)) {
     fprintf(stderr, "[%s] '%s' is not a regular file. Falling back to hardcoded"
@@ -2582,7 +2582,7 @@ int module_read_config(char *section, char *prefix, char *module, struct config 
       conf++;
     }
   }
-  
+
   CF_FREE_ROOT(p_root);
 
   return 1;
@@ -2659,10 +2659,10 @@ int module_read_values(CF_ROOT_TYPE *p_root, CF_SECTION_TYPE *p_section,
                   prefix, cur_config->type, cur_config->name);
       }
     }
-  
+
     cur_config++;
   }
-  
+
   kv = cf_get_named_section_keyvalue(p_root, p_section->name);
   while (kv != NULL) {
     cur_config = conf;
@@ -2679,28 +2679,28 @@ int module_read_values(CF_ROOT_TYPE *p_root, CF_SECTION_TYPE *p_section,
               kv->key);
     kv = cf_get_named_section_next_keyvalue(p_root, p_section->name, kv);
   }
-  
+
   return 0;
 }
 
 int module_print_config(char *prefix, struct config *conf) {
   struct config *cur_config;
   char          *s;
-  
+
   cur_config = conf;
-  
+
   while (cur_config->name != NULL) {
     switch (cur_config->type) {
     case CONF_TYPE_INT:
-      fprintf(stderr, "%s%s = %d\n", prefix, cur_config->name, 
+      fprintf(stderr, "%s%s = %d\n", prefix, cur_config->name,
               *((int *)cur_config->p));
       break;
     case CONF_TYPE_FLAG:
-      fprintf(stderr, "%s%s = %d\n", prefix, cur_config->name, 
+      fprintf(stderr, "%s%s = %d\n", prefix, cur_config->name,
               *((int *)cur_config->p) ? 1 : 0);
       break;
     case CONF_TYPE_FLOAT:
-      fprintf(stderr, "%s%s = %f\n", prefix, cur_config->name, 
+      fprintf(stderr, "%s%s = %f\n", prefix, cur_config->name,
               *((float *)cur_config->p));
       break;
     case CONF_TYPE_STRING:
@@ -2724,6 +2724,6 @@ int module_print_config(char *prefix, struct config *conf) {
     }
     cur_config++;
   }
-  
+
   return 0;
 }

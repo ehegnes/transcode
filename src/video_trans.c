@@ -787,7 +787,7 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
 	    ac_memcpy(vtd.tmpplanes[2], vtd.planes[2], UVsize);
 	}
 	swap_buffers(&vtd);
-    }   
+    }
 
     /**** End of processing ****/
 
@@ -823,7 +823,7 @@ int process_vid_frame(vob_t *vob, vframe_list_t *ptr)
     }
 
     /* Invalid colorspace, bail out */
-    tc_error("Oops, invalid colorspace video frame data"); 
+    tc_error("Oops, invalid colorspace video frame data");
     return -1;
 }
 
@@ -859,7 +859,7 @@ int preprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
      && vob->im_v_codec != CODEC_YUV
      && vob->im_v_codec != CODEC_YUV422
     ) {
-	tc_error("Oops, invalid colorspace video frame data"); 
+	tc_error("Oops, invalid colorspace video frame data");
 	return -1;
     }
 
@@ -904,7 +904,7 @@ int postprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
      && vob->im_v_codec != CODEC_YUV
      && vob->im_v_codec != CODEC_YUV422
     ) {
-	tc_error("Oops, invalid colorspace video frame data"); 
+	tc_error("Oops, invalid colorspace video frame data");
 	return -1;
     }
 
@@ -926,10 +926,10 @@ int postprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
 
     /* Sanity check: make sure the frame size is what we're expecting */
     if (ptr->v_width != vob->ex_v_width || ptr->v_height != vob->ex_v_height) {
-	printf("(%s) width %d %d | height %d %d\n", __FILE__, 
-	       ptr->v_width, vob->ex_v_width, 
+	printf("(%s) width %d %d | height %d %d\n", __FILE__,
+	       ptr->v_width, vob->ex_v_width,
 	       ptr->v_height, vob->ex_v_height);
-	tc_error("Oops, frame parameter mismatch detected"); 
+	tc_error("Oops, frame parameter mismatch detected");
     }
 
     /* Finished with postprocessing */

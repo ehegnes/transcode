@@ -5,20 +5,20 @@
  *  Updated by Christian Vogelgsang <Vogelgsang@informatik.uni-erlangen.de>
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -67,11 +67,11 @@ extern "C" {
 #include "transcode.h"
 #include "magic.h"
 #include "aclib/imgconvert.h"
-  
+
   void af6_decore(decode_t *decode)
   {
     int verbose_flag=TC_QUIET;
-    static char *sync_str="Taf6"; 
+    static char *sync_str="Taf6";
 
     verbose_flag=decode->verbose;
 
@@ -94,7 +94,7 @@ extern "C" {
 
       /* create a new file reader */
       vfile = CreateIAviReadFile(decode->name);
-      
+
       /* setup decoder */
       vrs = vfile->GetStream(0, AviStream::Video);
       if((vrs==0) || (vrs->StartStreaming()!=0)) {
@@ -105,7 +105,7 @@ extern "C" {
       /* decoder bitmap setup */
       BITMAPINFOHEADER bh;
       vrs->GetDecoder()->SetDestFmt(24);
-      vrs->GetOutputFormat(&bh, sizeof(bh));      
+      vrs->GetOutputFormat(&bh, sizeof(bh));
       vrs->SetDirection(1);
       bh.biHeight=labs(bh.biHeight);
       bh.biWidth=labs(bh.biWidth);
@@ -122,7 +122,7 @@ extern "C" {
 	fprintf(stderr, "(%s) input: RGB\n", __FILE__);
 	buffer_size = plane_size * 3;
 	break;
-	
+
       case TC_CODEC_YUV420P:
 	do_yuv = 1;
 	// Decide on AVI target format
@@ -134,14 +134,14 @@ extern "C" {
 	  fcc = fccI420;
 	  fprintf(stderr, "(%s) input: YUV 4:2:0 planar data\n", __FILE__);
 	  buffer_size = (plane_size * 3)/2;
-	} 
+	}
 	// YV12 = Y plane + V subplane + U subplane
 	else if(caps & IVideoDecoder::CAP_YV12) {
 	  fcc = fccYV12;
 	  fprintf(stderr, "(%s) input: YVU 4:2:0 planar data\n", __FILE__);
 	  buffer_size = (plane_size * 3)/2;
-	} 
-    
+	}
+
 	// YUV 4:2:2 packed formats are supported via conversion:
 	// YUY2 = Y0 U0 Y1 V0  Y2 U2 Y3 V2  ...
 	else if(caps & IVideoDecoder::CAP_YUY2) {
@@ -197,13 +197,13 @@ extern "C" {
 	unpack[1] = unpack_buffer + plane_size;
 	unpack[2] = unpack_buffer + plane_size + (plane_size >> 2);
       }
-      
+
       s_tot_frame=vrs->GetLength();	//get the total number of the frames
       if (decode->frame_limit[1] < s_tot_frame) //added to enable the -C option of tcdecode
       {
         s_tot_frame=decode->frame_limit[1];
       }
-      
+
       /* start at the beginning */
       vrs->SeekToKeyFrame(0);
 
@@ -213,7 +213,7 @@ extern "C" {
 
       /* frame serve loop */
       /* by default decode->frame_limit[0]=0 and ipipe->frame_limit[1]=LONG_MAX so all frames are decoded */
-      for(s_init_frame=0;(s_init_frame<=s_tot_frame)||(!vrs->Eof());s_init_frame++) { 
+      for(s_init_frame=0;(s_init_frame<=s_tot_frame)||(!vrs->Eof());s_init_frame++) {
 	/* fetch a frame */
 	vrs->ReadFrame();
 	CImage *imsrc = vrs->GetFrame();
@@ -238,7 +238,7 @@ extern "C" {
 	  }
 	}
       }
-      
+
       /* cleanup */
       delete vfile;
       if(unpack_buffer!=0)
@@ -247,7 +247,7 @@ extern "C" {
 
     /* ----- AF6 AUDIO ----- */
     if (decode->select == TC_AUDIO) {
-	
+
       IAviReadStream *ars = NULL;
       IAviReadFile   *afile= NULL;
 
@@ -260,7 +260,7 @@ extern "C" {
 
       /* create AVI audio file reader */
       afile = CreateIAviReadFile(decode->name);
-      
+
       /* setup decoder */
       ars = afile->GetStream(0, AviStream::Audio);
       if((ars==0)||(ars->StartStreaming()!=0)) {
@@ -274,21 +274,21 @@ extern "C" {
 	fprintf(stderr, "(%s) ERROR: can't fetch audio format!!!\n", __FILE__);
 	return;
       }
-      fprintf(stderr, 
-	      "(%s) file audio: %s, %d bits, %dCH, sample rate = %dHz\n", 
-	      __FILE__, avm_wave_format_name(wvFmt.wFormatTag), 
+      fprintf(stderr,
+	      "(%s) file audio: %s, %d bits, %dCH, sample rate = %dHz\n",
+	      __FILE__, avm_wave_format_name(wvFmt.wFormatTag),
 	      wvFmt.wBitsPerSample,
-	      wvFmt.nChannels, 
+	      wvFmt.nChannels,
 	      wvFmt.nSamplesPerSec);
       WAVEFORMATEX fmt;
       ars->GetOutputFormat(&fmt, sizeof(fmt));
-      fprintf(stderr, 
-	      "(%s) output audio: %s, %d bits, %dCH, sample rate = %dHz\n", 
-	      __FILE__, avm_wave_format_name(fmt.wFormatTag), 
+      fprintf(stderr,
+	      "(%s) output audio: %s, %d bits, %dCH, sample rate = %dHz\n",
+	      __FILE__, avm_wave_format_name(fmt.wFormatTag),
 	      fmt.wBitsPerSample,
-	      fmt.nChannels, 
-	      fmt.nSamplesPerSec);      
-      
+	      fmt.nChannels,
+	      fmt.nSamplesPerSec);
+
       /* currently only supports PCM */
       if(fmt.wFormatTag!=WAVE_FORMAT_PCM) {
 	fprintf(stderr,"(%s) ERROR: currently only PCM audio supported!!!\n",
@@ -326,9 +326,9 @@ extern "C" {
       /* send sync token */
       fflush(stdout);
       tc_pwrite(decode->fd_out, (uint8_t *)sync_str, sizeof(sync_str));
-      
+
       /* sample server loop */
-      while(!ars->Eof()) { 
+      while(!ars->Eof()) {
 	unsigned int ret_samples;
 	unsigned int ret_size;
 
@@ -339,8 +339,8 @@ extern "C" {
 		  __FILE__);
 	  return;
 	}
-	
-	if(verbose_flag & TC_STATS) 
+
+	if(verbose_flag & TC_STATS)
 	  fprintf(stderr, "(%s) audio: requested: %u, got: %u samples",
 		  __FILE__, samples, ret_samples);
 
@@ -350,28 +350,28 @@ extern "C" {
 	{
 	  if ( s_byte_read - ret_size <(unsigned int)decode->frame_limit[0])
 	  {
-	    if((unsigned int)tc_pwrite(decode->fd_out,buffer+(ret_size-(s_byte_read-decode->frame_limit[0])),(s_byte_read-decode->frame_limit[0]))!=(unsigned int)(s_byte_read-decode->frame_limit[0])) 
+	    if((unsigned int)tc_pwrite(decode->fd_out,buffer+(ret_size-(s_byte_read-decode->frame_limit[0])),(s_byte_read-decode->frame_limit[0]))!=(unsigned int)(s_byte_read-decode->frame_limit[0]))
 	      break;
 	  }
 	  else
 	  {
-	    if((unsigned int)tc_pwrite(decode->fd_out,buffer,ret_size)!=ret_size) 
+	    if((unsigned int)tc_pwrite(decode->fd_out,buffer,ret_size)!=ret_size)
 	      break;
 	  }
 	}
 	else if ((s_byte_read> decode->frame_limit[0]) && (s_byte_read - ret_size <=(unsigned int)decode->frame_limit[1]))
 	{
-	  if((unsigned int)tc_pwrite(decode->fd_out,buffer,(s_byte_read-decode->frame_limit[1]))!=(unsigned int)(s_byte_read-decode->frame_limit[1])) 
+	  if((unsigned int)tc_pwrite(decode->fd_out,buffer,(s_byte_read-decode->frame_limit[1]))!=(unsigned int)(s_byte_read-decode->frame_limit[1]))
 	    break;
 	}
 	else if (s_byte_read - ret_size >(unsigned int)decode->frame_limit[1])
 	{
 	  break;
 	}
-	
+
       }
-      
-      if(verbose_flag & TC_DEBUG) 
+
+      if(verbose_flag & TC_DEBUG)
 	fprintf(stderr, "(%s) audio: eof\n", __FILE__);
 
       /* cleanup */

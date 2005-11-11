@@ -22,7 +22,7 @@ extern struct DNSR_GLOBAL denoiser;
 /* pointer on deinterlace functions */
 void (*deinterlace) (void);
 
-void 
+void
 deinterlace_noaccel(void)
 {
   unsigned int d=0;
@@ -35,7 +35,7 @@ deinterlace_noaccel(void)
   int l1;
   int l2;
   int lumadiff = 0;
-  uint8_t line_buf[8192]; 
+  uint8_t line_buf[8192];
   uint8_t *line = line_buf;
 
   /* Go through the frame by every two lines */
@@ -69,7 +69,7 @@ deinterlace_noaccel(void)
                 {
                   min = d;
                   xpos = xx;
-                  
+
                   l1 = l2 = 0;
                   for (i = 0; i < 8; i++)
                     {
@@ -110,7 +110,7 @@ deinterlace_noaccel(void)
     }
 }
 
-void 
+void
 deinterlace_mmx(void)
 {
   uint32_t d=0;
@@ -128,12 +128,12 @@ deinterlace_mmx(void)
   int l1;
   int l2;
   int lumadiff = 0;
-  uint8_t line_buf[8192]; 
+  uint8_t line_buf[8192];
   uint8_t *line = line_buf;
   uint8_t *ref1;
   uint8_t *ref2;
   uint8_t *ref3;
-  
+
   /* Go through the frame by every two lines */
   for (y = 32; y < (H+32) ; y += 2)
     {
@@ -147,7 +147,7 @@ deinterlace_mmx(void)
 
           for (xx = 0; xx < 8; xx++)
             {
-              
+
               ref1=denoiser.frame.ref[0]+x+y*W;      /* not displaced */
               ref2=denoiser.frame.ref[0]+x+y*W+W*2;  /* not displaced two lines below */
               ref3=denoiser.frame.ref[0]+x+y*W+W+xx; /* displaced one line below */
@@ -192,7 +192,7 @@ deinterlace_mmx(void)
                   :"=m" (a)
                   :"S" (ref1), "a" (ref2), "D" (ref3)
                 );
-              
+
               d=a[0]+a[1]+a[2]+a[3];
               #endif
               #endif
@@ -202,7 +202,7 @@ deinterlace_mmx(void)
                 {
                   min = d;
                   xpos = xx;
-                  
+
                   l1 = l2 = 0;
                   for (i = 0; i < 8; i++)
                     {
@@ -243,7 +243,7 @@ deinterlace_mmx(void)
     }
 }
 
-void 
+void
 deinterlace_mmxe(void)
 {
 }

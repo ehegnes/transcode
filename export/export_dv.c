@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -52,7 +52,7 @@ static dv_encoder_t *encoder = NULL;
 static unsigned char *pixels[3], *tmp_buf;
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * init codec
  *
@@ -60,7 +60,7 @@ static unsigned char *pixels[3], *tmp_buf;
 
 MOD_init
 {
-    
+
     if(param->flag == TC_VIDEO) {
       target = tc_bufalloc(TC_FRAME_DV_PAL);
 
@@ -70,17 +70,17 @@ MOD_init
       }
 
       encoder = dv_encoder_new(FALSE, FALSE, FALSE);
-      
+
       return(0);
     }
-    
+
     if(param->flag == TC_AUDIO) return(audio_init(vob, verbose_flag));
-    
+
     // invalid flag
-    return(TC_EXPORT_ERROR); 
+    return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open outputfile
  *
@@ -88,9 +88,9 @@ MOD_init
 
 MOD_open
 {
-  
+
   // open out file
-  if(vob->avifile_out==NULL) 
+  if(vob->avifile_out==NULL)
     if(NULL == (vob->avifile_out = AVI_open_output_file(vob->video_out_file))) {
       AVI_print_error("avi open error");
       exit(TC_EXPORT_ERROR);
@@ -105,28 +105,28 @@ MOD_open
 
     if (vob->avi_comment_fd>0)
 	AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
-    
+
     switch(vob->im_v_codec) {
-      
+
     case CODEC_RGB:
       format=0;
       break;
-      
+
     case CODEC_YUV:
       format=1;
       break;
-      
+
     default:
-      
+
       tc_log_warn(MOD_NAME, "codec not supported");
-      return(TC_EXPORT_ERROR); 
-      
+      return(TC_EXPORT_ERROR);
+
       break;
     }
-    
+
     // for reading
     frame_size = (vob->ex_v_height==PAL_H) ? TC_FRAME_DV_PAL:TC_FRAME_DV_NTSC;
-    
+
     encoder->isPAL = (vob->ex_v_height==PAL_H);
     encoder->is16x9 = FALSE;
     encoder->vlc_encode_passes = 3;
@@ -135,15 +135,15 @@ MOD_open
 
     return(0);
   }
-  
-  
-  if(param->flag == TC_AUDIO)  return(audio_open(vob, vob->avifile_out));
-  
-  // invalid flag
-  return(TC_EXPORT_ERROR); 
-}   
 
-/* ------------------------------------------------------------ 
+
+  if(param->flag == TC_AUDIO)  return(audio_open(vob, vob->avifile_out));
+
+  // invalid flag
+  return(TC_EXPORT_ERROR);
+}
+
+/* ------------------------------------------------------------
  *
  * encode and export
  *
@@ -154,7 +154,7 @@ MOD_encode
 
   int key;
 
-  if(param->flag == TC_VIDEO) { 
+  if(param->flag == TC_VIDEO) {
 
     time_t now = time(NULL);
 
@@ -166,85 +166,85 @@ MOD_encode
 	pixels[1] = pixels[0] + NTSC_W*NTSC_H;
 	pixels[2] = pixels[1] + (NTSC_W/2)*(NTSC_H/2);
       }
-      
+
       if(dv_yuy2_mode) {
 	ac_imgconvert(pixels, IMG_YUV420P, &tmp_buf, IMG_YUY2,
 		      PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
 	pixels[0]=tmp_buf;
       }
-      
+
     dv_encode_full_frame(encoder, pixels, (format)?e_dv_color_yuv:e_dv_color_rgb, target);
 
     dv_encode_metadata(target, encoder->isPAL, encoder->is16x9, &now, 0);
     dv_encode_timecode(target, encoder->isPAL, 0);
 
-    
+
     // write video
-    // only keyframes 
+    // only keyframes
     key = 1;
-    
+
     //0.6.2: switch outfile on "r/R" and -J pv
     //0.6.2: enforce auto-split at 2G (or user value) for normal AVI files
     if((uint32_t)(AVI_bytes_written(avifile)+frame_size+16+8)>>20 >= tc_avi_limit) tc_outstream_rotate_request();
-    
+
     if(key) tc_outstream_rotate();
 
-    
+
     if(AVI_write_frame(avifile, target, frame_size, key)<0) {
       AVI_print_error("avi video write error");
-      
-      return(TC_EXPORT_ERROR); 
+
+      return(TC_EXPORT_ERROR);
     }
     return(0);
   }
-  
+
   if(param->flag == TC_AUDIO) return(audio_encode(param->buffer, param->size, avifile));
-  
+
   // invalid flag
   return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * stop encoder
  *
  * ------------------------------------------------------------*/
 
-MOD_stop 
+MOD_stop
 {
-  
+
   if(param->flag == TC_VIDEO) {
-    
-    dv_encoder_free(encoder);  
-    
+
+    dv_encoder_free(encoder);
+
     return(0);
   }
-  
+
   if(param->flag == TC_AUDIO) return(audio_stop());
-  
+
   return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close outputfiles
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
 
   vob_t *vob = tc_get_vob();
   if(param->flag == TC_AUDIO) return(audio_close());
-  
+
   //outputfile
   if(vob->avifile_out!=NULL) {
     AVI_close(vob->avifile_out);
     vob->avifile_out=NULL;
   }
-  
+
   if(param->flag == TC_VIDEO) return(0);
-  
-  return(TC_EXPORT_ERROR);  
+
+  return(TC_EXPORT_ERROR);
 
 }

@@ -107,7 +107,7 @@ int pvn2pnm(const char *infile, unsigned int digits)
   if ((in = fopen(infile, "rb")) == NULL)
   {
       fprintf(stderr, "Error opening file %s for read\n", infile);
-      exit(OPENERROR);    
+      exit(OPENERROR);
   }
 
   if (readPVNHeader(in, &inParams) != VALID)
@@ -121,15 +121,15 @@ int pvn2pnm(const char *infile, unsigned int digits)
 
   switch(inParams.magic[2])
   {
-    case '4': 
+    case '4':
       strcpy(outParams.magic, "P4");
       strcpy(suffix, ".pbm");
       break;
-    case '5': 
+    case '5':
       strcpy(outParams.magic, "P5");
       strcpy(suffix, ".pgm");
       break;
-    case '6': 
+    case '6':
       strcpy(outParams.magic, "P6");
       strcpy(suffix, ".ppm");
       break;
@@ -280,7 +280,7 @@ int pvn2pnm(const char *infile, unsigned int digits)
 }
 
 
-/* 
+/*
    - Opens a list of PGM/PPM/PNM files and saves them in PVG/PVP/PVN format
 
    infiles = list of input files
@@ -336,14 +336,14 @@ int pnm2pvn(const char **infiles, int infiles_count, const char *outfile, double
   if ((out = fopen(outfile, "wb")) == NULL)
   {
       fprintf(stderr, "Error opening file %s for write\n", outfile);
-      exit(OPENERROR);    
+      exit(OPENERROR);
   }
 
 #ifdef DEBUG
   printf("Writing output to %s:\n\n", outfile);
 #endif
 
-  /* Now that everything matches, we can start processing! */  
+  /* Now that everything matches, we can start processing! */
   for(i=0; i < infiles_count; i++)
   {
     if ((fp = fopen(infiles[i], "rb")) == NULL)
@@ -444,12 +444,12 @@ int pnm2pvn(const char **infiles, int infiles_count, const char *outfile, double
         remove(outfile);
         return(ERROR);
       }
-    }    
+    }
     calcSize=calcPNMSize(cur);
     fsize=filesize(fp);
     pos=ftell(fp);
     inbuf=(unsigned char *)malloc(calcSize);
-    
+
     switch(cur.magic[1])
     {
       /* ASCII FILES */
@@ -469,7 +469,7 @@ int pnm2pvn(const char **infiles, int infiles_count, const char *outfile, double
 
       case '2':
       case '3':
-        /* 16 bit per colour-pixel uses 2 bytes, but we need to pass it 
+        /* 16 bit per colour-pixel uses 2 bytes, but we need to pass it
            a param in # of integers, not bytes */
         if (cur.maxcolour > 255)
           retVal=asciiRead(inbuf, calcSize/2, fp, cur.maxcolour);

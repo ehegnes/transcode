@@ -32,11 +32,11 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 	   modules</a> section to find out which MPEG-4 codecs are currently supported
 	   and where to obtain the sources/binaries. Unless you enjoy
 	   command line utilities, please take a look at the excellent
-	   <a href="http://www.exit1.org/dvdrip/">dvd::rip</a>, which is 
+	   <a href="http://www.exit1.org/dvdrip/">dvd::rip</a>, which is
 		      a full featured DVD Ripper GUI for Linux, written in
 		      Perl, by Joern Reder.
 
-	   
+
 	  <ul>
 	    <li> <a href="#dvd1"> <FONT FACE="Lucida,Helvetica"> DVD
 		 (PAL)</font></a> <br>
@@ -48,7 +48,7 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		</ul>
 
 		<br>
-		
+
 	    <li> <a href="#dvd2"> <FONT FACE="Lucida,Helvetica"> DVD
 		 (NTSC)</font></a><br>
 		<ul>
@@ -59,7 +59,7 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		</ul>
 
 		<br>
-		
+
 	    <li> <a href="#vob"> <FONT FACE="Lucida,Helvetica">
 		multiple program stream VOB chunks </font></a>
 		<br>
@@ -77,12 +77,12 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 	 </ul>
 
 		<ul>
-		  <li> <a href="#tccat"> <FONT FACE="Lucida,Helvetica"> 
+		  <li> <a href="#tccat"> <FONT FACE="Lucida,Helvetica">
 		       making a main title DVD backup with
 		       <i>tccat</i></font></a><br>
 		</ul>
 		<p>
-		
+
       </td>
     </tr>
 </table>
@@ -104,12 +104,12 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 	  DivX movie with <FONT color=blue> MP3 </font> (default) sound under linux using
 	   <i>transcode</i>:
 
-	   <ul> 
+	   <ul>
 	     <li> (I) Put the DVD in the drive:<br>
 		 We assume, that /dev/dvd
-		 is a link to the actual device. The disk may be 
+		 is a link to the actual device. The disk may be
 		 encrypted and we need <i>libdvdcss</i> as a shared
-		 library in the default library search path for this.  
+		 library in the default library search path for this.
 		 We first do some preprocessing with <i> tcscan </i>
 		 to find out the best encoding bitrate and frame
 		 parameter
@@ -121,10 +121,10 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		 <i>tcscan</i>: <p>
 		 <ul>
 		   <li> bitrate:<br>
-		       
+
 		       <FONT color=red>tccat  -t dvd -T 1,-1 -i /dev/dvd |
 		       tcextract -x ac3 -t vob | tcdecode -x ac3 | tcscan -x pcm</font><p>
-		       
+
 		       We basically pipe all chapters (use "-1" for the
 		       chapter argument of option "-T") of the main title
 		       (this number may be different on your DVD) through
@@ -133,7 +133,7 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		       decoded by <i>tcdecode</i> and analyzed by
 		       <i>tcscan</i>.
 		       The output may look like:<p>
-		       <code>		  
+		       <code>
 		       [tcscan] audio frames=167838.40, estimated clip length=6713.54 seconds<br>
 		       [tcscan] (min/max) amplitude=(-0.210/0.224), suggested volume
 		       [tcscan]	  rescale=4.470 <br>
@@ -160,15 +160,15 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 
 		   </li>
 		   <li> frame parameter and aspect ratio:<br>
-		       
+
 		       <FONT color=red>tccat  -t dvd -T 1,-1 -i
 		       /dev/dvd | tcscan -x vob</font><p>
-		       
+
 		       and press "^C" after the MPEG frame parameter
-		       have been displayed.  
+		       have been displayed.
 		       In this case, the output may look like
 		       <p>
-		       <code>	found MPEG-2 video stream [0xe0] <br>	
+		       <code>	found MPEG-2 video stream [0xe0] <br>
 		       sequence: 720x576 4:3, 25 fps, ...
 		       </code><p>
 		       which means, that we need to rescale the frame
@@ -178,10 +178,10 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		       suggested scaling parameter and two
 		       <i>transcode</i> processing
 		       modes for both cases.
-		       
+
 		   </li>
-		       
-		 </ul>  
+
+		 </ul>
 		 <p>
 
 	     <li> (II) The actual encoding session (parameter grouped
@@ -193,27 +193,27 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		    <tr>
 		      <td align=left valign="top" bgcolor="#ccffcc">
 		      transcode</td>
-		      
+
 		      <td align=left valign="top" bgcolor="#ccffcc">
 		      -i /dev/dvd/ -x dvd -T 1,-1 -V</td>
 		    </tr>
-		    
+
 		    <tr><td></td>
 			 <td align=left valign="top" bgcolor="#ccffcc">
 			  -B 1,0 -Y 76,8 -s 4.47</td>
 		  </tr>
-		  
+
 	     <td></td><td align=left valign="top" bgcolor="#ccffcc">
 		  -t 83920,alien -y divx4 -w 1618 </td></tr>
-		  
+
 	   </table>
 	<br>
 		 <code>
 		 [transcode] video:   &nbsp;  &nbsp; import frame | 720 x 576  1.25:1<br>
 [transcode] video: new aspect ratio | 720 x 544  1.32:1 (-B) <br>
-[transcode] video:  &nbsp; clip frame (->) | 704 x 392 
+[transcode] video:  &nbsp; clip frame (->) | 704 x 392
 		 </code><p>
-		 
+
 		 <ul>
 		   <li>
 		       We use slightly more than 1/2 of the total number of
@@ -252,8 +252,8 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		 </ul>
 
 		       <p>
-		       
-		       
+
+
 		       <a name=dvd1_169>Example:</a> <FONT color=blue> <bf>DVD chapter mode /
 		       aspect ratio "16:9" / letterbox format </bf></font><p>
 
@@ -261,21 +261,21 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 		    <tr>
 		      <td align=left valign="top" bgcolor="#ccffcc">
 		      transcode</td>
-		      
+
 		      <td align=left valign="top" bgcolor="#ccffcc">
 		      -i /dev/dvd/ -x dvd -V</td>
 		    </tr>
-		    
+
 		    <tr><td></td>
 			 <td align=left valign="top" bgcolor="#ccffcc">
 			  -j 16,0 -B 5,0 -Y 40,8 -s 4.47</td>
 		  </tr>
-		  
+
 	     <td></td><td align=left valign="top" bgcolor="#ccffcc">
 		  -U alien -y divx4 -w 1618 </td></tr>
-		  
+
 	   </table>
-	   
+
 	   <br>
 
 	   <code>
@@ -289,7 +289,7 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 <li>		  We clip off 16 lines at the top and the bottom of
 		  the movie to use the fast resizing of <i>
     transcode</i> to an almost ideal aspect ratio of 1.77:1.
-    
+
 		  Clipping 8 columns on both
 		  sides and 40 rows at the top and the bottom removes
     the remaining black bars prior to encoding.
@@ -301,7 +301,7 @@ program stream, video, audio, transcode, decoder, stream, YV12">
 </ul>
 
 <p>
-	       
+
 Example: <FONT color=blue> <bf>DVD chapter #25 /
 aspect ratio "16:9"</bf></font><p>
 
@@ -309,21 +309,21 @@ aspect ratio "16:9"</bf></font><p>
 		    <tr>
 		      <td align=left valign="top" bgcolor="#ccffcc">
 		      transcode</td>
-		      
+
 		      <td align=left valign="top" bgcolor="#ccffcc">
 		      -i /dev/dvd/ -x dvd -T 1,25 -V</td>
 		    </tr>
-		    
+
 		    <tr><td></td>
 			 <td align=left valign="top" bgcolor="#ccffcc">
 			  -j 0,8 -B 6,1 -Y 40,8 -s 4.47</td>
 		  </tr>
-		  
+
 	     <td></td><td align=left valign="top" bgcolor="#ccffcc">
 		  -o alien-ch25.avi -y divx4 -w 1618 </td></tr>
-		  
+
 	   </table>
-	   
+
 	   <br>
 
 	   <code>
@@ -340,7 +340,7 @@ aspect ratio "16:9"</bf></font><p>
 		 clipping necessary for the final frame size of 672x384.
 		 <br>
     <li> The encoding stops after the selected chapter 25 is done.
-  
+
 </ul>
 
 <p>
@@ -364,7 +364,7 @@ aspect ratio "16:9"</bf></font><p>
 		 N=1,2,..., each containing no more than 650 or 700
 		 MB, depending on your choice of CD. Now invoke
 		 <i>avimerge</i>  for each subdirectory <br><br>
-		 
+
 		  <FONT color=red> avimerge -o movie-disk-N.avi -i ./CD_N/*.avi</font><br><br>
 		 This will glue all the small
 		 files to one big AVI file named  movie-disk-N.avi,
@@ -403,7 +403,7 @@ aspect ratio "16:9"</bf></font><p>
 	  DivX movie with <FONT color=blue> MP3 </font> (default) sound under linux using
 	   <i>transcode</i>:
 
-	  <ul> 
+	  <ul>
 	    <li> (I) Put the DVD in the drive:<br>
 		Follow step (I) for the PAL DVD, with option "-f
 		 23.976024" for <i>tcscan</i>.
@@ -419,21 +419,21 @@ aspect ratio "16:9"</bf></font><p>
 		    <tr>
 		      <td align=left valign="top" bgcolor="#ccffcc">
 		      transcode</td>
-		      
+
 		      <td align=left valign="top" bgcolor="#ccffcc">
 		      -i /dev/dvd/ -x dvd -T 1,-1 -g 720x480 -M 2 -V</td>
 		    </tr>
-		    
+
 		    <tr><td></td>
 			 <td align=left valign="top" bgcolor="#ccffcc">
 			 -X 2,0 -Y 80,8 -s 4.47</td>
 		  </tr>
-		  
+
 	     <td></td><td align=left valign="top" bgcolor="#ccffcc">
 		  -t 83920,alien -y divx4 -w 1618 -f 23.976024</td></tr>
-		  
+
 	   </table>
-	   
+
 	   <br>
 
 		 <code>
@@ -441,7 +441,7 @@ aspect ratio "16:9"</bf></font><p>
 [transcode] video: new aspect ratio | 720 x 544  1.32:1 (-X) <br>
 [transcode] video:  &nbsp; clip frame (->) | 704 x 384
 		 </code><p>
-		 
+
 		 <ul>
 		   <li>
 		       We use slightly more than 1/2 of the total number of
@@ -465,32 +465,32 @@ aspect ratio "16:9"</bf></font><p>
 		 </ul>
 
 		       <p>
-		       
-	       
+
+
 		 <a name=dvd2_169>Example:</a> <FONT color=blue> <bf>DVD chapter mode /
 		 aspect ratio "16:9" / letterbox format </bf></font><p>
-		 
+
 		 <table>
 		   <tr>
 		     <td align=left valign="top" bgcolor="#ccffcc">
 		     transcode</td>
-		     
+
 		     <td align=left valign="top" bgcolor="#ccffcc">
 		     -i /dev/dvd/ -x dvd -g 720x480 -M 2 -V</td>
 		   </tr>
-		   
+
 		   <tr><td></td>
 			<td align=left valign="top" bgcolor="#ccffcc">
 			-j 16,0 -B 2,0 -Y 32,8 -s 4.47</td>
 		 </tr>
-		 
+
 	    <td></td><td align=left valign="top" bgcolor="#ccffcc">
 		 -U alien -y divx4 -w 1618 -f 23.976024</td></tr>
-		 
+
 	  </table>
-	  
+
 	  <br>
-	  
+
 	  <code>
 	  [transcode] video:   &nbsp;  &nbsp;   import frame | 720 x 480
 	  1.50:1 <br>
@@ -503,10 +503,10 @@ aspect ratio "16:9"</bf></font><p>
 		 the movie to use the fast resizing of <i>
 		 transcode</i>
 		 to an almost ideal aspect ratio of 1.77:1.
-		 
+
 		 Clipping 8 columns on both
 		 sides and 32 rows at the top and the bottom removes
-		 the remaining black bars prior to encoding. 
+		 the remaining black bars prior to encoding.
     <br>
 <li>
      In the chapter mode "-U", the output is split into separate
@@ -518,28 +518,28 @@ aspect ratio "16:9"</bf></font><p>
 
     Example: <FONT color=blue> <bf>DVD chapter #10 /
   aspect ratio "16:9" / viewing angle #2</bf></font><p>
-		 
+
 		 <table>
 		   <tr>
 		     <td align=left valign="top" bgcolor="#ccffcc">
 		     transcode</td>
-		     
+
 		     <td align=left valign="top" bgcolor="#ccffcc">
 		     -i /dev/dvd/ -x dvd -T 1,10,2 -g 720x480 -M 2 -V</td>
 		   </tr>
-		   
+
 		   <tr><td></td>
 			<td align=left valign="top" bgcolor="#ccffcc">
 			-j 0,8 -B 3,1 -s 4.47</td>
 		 </tr>
-		 
+
 	    <td></td><td align=left valign="top" bgcolor="#ccffcc">
 		 -o alien-ch10-2.avi -y divx4 -w 1618 -f 23.976024</td></tr>
-		 
+
 	  </table>
-	  
+
 	  <br>
-	  
+
 	  <code>
 	  [transcode] video:   &nbsp;  &nbsp;   import frame | 720 x 480
 	  1.50:1 <br>
@@ -566,8 +566,8 @@ aspect ratio "16:9"</bf></font><p>
 		 <p>
 	   </ul>
      </ul>
-		
-	  
+
+
     </table>
 </table>
 
@@ -587,13 +587,13 @@ aspect ratio "16:9"</bf></font><p>
 	   Here is a 3 step guide to rip a DVD and convert the multiple VOB
 	   chunks, or only a single file, using <i>transcode</i>:
 
-	   <ul> 
+	   <ul>
 	     <li> We rip the DVD and put all VOB chunks, that make up the
 		  actual movie into a subdirectory, denoted
 		  here as
 		  "my_movie/". For an encrypted DVD, we will need
 		  <i>libdvdcss</i> under linux to do this, but this may
-		  not be legal. 
+		  not be legal.
 		  <br>
 		  If you do not need DVD navigation or multiple angle
 		  features,
@@ -607,7 +607,7 @@ aspect ratio "16:9"</bf></font><p>
 		  device and the main title is 1.
 		  The DVD does not have to be mounted, just
 		  put it in the drive. After some time,
-		  we chunks named: movie-aa, movie-ab, ..., 
+		  we chunks named: movie-aa, movie-ab, ...,
 		  which are, but the last, exactly 1GB.<br><br>
 		  The following is also valid, if we have used other
 		  programs to copy the DVD title VOBs onto the
@@ -641,7 +641,7 @@ aspect ratio "16:9"</bf></font><p>
 		  audio track. In the following, we only need to take
 		  care of the aspect ratio 16:9, but that has already been
 		  explained in the previous section.<p>
-		  
+
 	     <li> Now we can invoke <i>transcode</i> with the directory
 		  mode, that internally concatenates all VOB
 		  chunks. If
@@ -655,22 +655,22 @@ aspect ratio "16:9"</bf></font><p>
 		    <tr>
 		      <td align=left valign="top" bgcolor="#ccffcc">
 		      transcode</td>
-		     
+
 		      <td align=left valign="top" bgcolor="#ccffcc">
 		      -i my_movie/ -V</td>
 		    </tr>
-		    
+
 		    <tr><td></td>
 			 <td align=left valign="top" bgcolor="#ccffcc">
 			 -j 0,8 -B 3,1 </td>
 		  </tr>
-		 
+
 	     <td></td><td align=left valign="top" bgcolor="#ccffcc">
 		  -t 10000,movie -y divx4 </td></tr>
-		 
+
 	  </table>
 	  <p>
-	  
+
 	  To enable AC3 pass-through,
 	  use "-A" and use "-N 0x2000"
 	  to set the proper codec
@@ -684,19 +684,19 @@ aspect ratio "16:9"</bf></font><p>
 	    <tr>
 	      <td align=left valign="top" bgcolor="#ccffcc">
 	      transcode</td>
-	      
+
 	      <td align=left valign="top" bgcolor="#ccffcc">
 	      -i my_movie/ -V -A</td>
 	    </tr>
-	    
+
 	    <tr><td></td>
 		 <td align=left valign="top" bgcolor="#ccffcc">
 		 -j 0,8 -B 3,1 </td>
 	  </tr>
-	  
+
      <td></td><td align=left valign="top" bgcolor="#ccffcc">
 	  -t 10000,movie -y divx4 -N 0x2000</td></tr>
-	  
+
    </table>
    <p>
 
@@ -705,24 +705,24 @@ aspect ratio "16:9"</bf></font><p>
    want to keep the quality, i.e., pass-through the sound, use:
 
    <a name=vob_pcm><h3>PCM->PCM</h3></a>
-   
+
    <table>
      <tr>
        <td align=left valign="top" bgcolor="#ccffcc">
        transcode</td>
-       
+
        <td align=left valign="top" bgcolor="#ccffcc">
        -i my_movie/ -V -a 1</td>
      </tr>
-     
+
      <tr><td></td>
 	 <td align=left valign="top" bgcolor="#ccffcc">
 	 -j 0,8 -B 3,1 </td>
    </tr>
-   
+
 <td></td><td align=left valign="top" bgcolor="#ccffcc">
     -t 10000,movie -y divx4 -N 0x1</td></tr>
-    
+
 </table>
 <p>
 
@@ -733,36 +733,36 @@ default settings. However, if you need to resample your sound, here
 is an example, using audio track 2:
 
    <a name=vob_mp2><h3>MP2->MP3</h3></a>
-   
+
    <table>
      <tr>
        <td align=left valign="top" bgcolor="#ccffcc">
        transcode</td>
-       
+
        <td align=left valign="top" bgcolor="#ccffcc">
        -i my_movie/ -V -a 2</td>
      </tr>
-     
+
      <tr><td></td>
 	 <td align=left valign="top" bgcolor="#ccffcc">
 	 -j 0,8 -B 3,1 -E 44100</td>
    </tr>
-   
+
 <td></td><td align=left valign="top" bgcolor="#ccffcc">
     -t 10000,movie -y divx4</td></tr>
-    
+
 </table>
 <p>
 
-   
+
    The "-t" option
    splits the output into separate files labeled movie000.avi,
    movie001.avi,..., with exactly
-   10000 frames per file. 
+   10000 frames per file.
    On my CII 533@800 MHz, I get around 11 fps for the
    encoding, using the "-V" mode, which saves alot of
    bandwidth.
-   
+
    This will take some hours, but since we work with linux,
    we don't need to care, just wait.<p>
 
@@ -787,7 +787,7 @@ is an example, using audio track 2:
    rarely used anyway.
  </uL>
 	<p>
-   
+
 <li> Take a look at the DVD section to learn how to avimerge
      the AVI-files. After merging,
      try to play the big files with
@@ -799,7 +799,7 @@ is an example, using audio track 2:
      default for transcode.<p>
 
    </ul>
-   
+
 </table>
 </table>
 
@@ -820,7 +820,7 @@ your shiny new multi-angle DVD. <br>
 NOTE: Please make sure, the DVD explicitly allows you to make a backup copy.
 
 <p>
-	<ul>  
+	<ul>
 <li> (0) insert your DVD;-) <p>
 <li> (1) switch to a new empty directory $MY_PATH/DVD/ on your hard drive.<p>
 <li>(2) if /dev/dvd is a link to your block device, use tccat's new -P
@@ -834,7 +834,7 @@ NOTE: Please make sure, the DVD explicitly allows you to make a backup copy.
 </table>
 <p>
     This will result in a couple of files named <br>
-  
+
     VTS_01_aa, VTS_01_ab, ...<br>
 
     (once LFS is fully working, a single file should be sufficient (???),
@@ -865,8 +865,8 @@ NOTE: Please make sure, the DVD explicitly allows you to make a backup copy.
        </tr>
  </table>
  <p>
-	 
-	
+
+
 <li>(4) rename the chunks, first file is VTS_01_1.VOB, not VTS_01_0.VOB. The
     latter contains still pictures and the like (?). <p>
 
@@ -886,7 +886,7 @@ NOTE: Please make sure, the DVD explicitly allows you to make a backup copy.
        </tr>
  </table>
  <p>
-	  
+
 
 <li>(5) repeat step (2-4) for other titles, you wish to keep. In most cases,
     the main title will do. Note that the Example after you're done: <p>
@@ -917,19 +917,19 @@ NOTE: Please make sure, the DVD explicitly allows you to make a backup copy.
 
  </table>
  <p>
-	  
+
     and optionally check other titles, chapters (C) or even viewing angles (A).<p>
 
-<li>(7) Please note this backup copy is suitable for navigation with import 
+<li>(7) Please note this backup copy is suitable for navigation with import
     module "-x dvd". If you prefer the cluster mode, you need to
-    apply my cluster mini guide to this copy of your DVD or the DVD in your 
-    drive. The program stream contains full navigation and angle information. 
+    apply my cluster mini guide to this copy of your DVD or the DVD in your
+    drive. The program stream contains full navigation and angle information.
     These information are not preserved using the -T option with tccat.<p>
     -----<br>
     Hint: It does not make sense to apply the procedure to all titles
     found with tcprobe, since a lot of titles share VTS* files and IFO files.
 
-	  
+
     </table>
 </table>
 

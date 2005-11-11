@@ -1,6 +1,6 @@
 #ifndef _ENCORE_ENCORE_H
 #define _ENCORE_ENCORE_H
-// This is the header file describing 
+// This is the header file describing
 // the entrance function of the encoder core
 // or the encore ...
 
@@ -14,7 +14,7 @@ extern "C"
 	0<x_dim<=1920, 0<y_dim<=1280, both dimensions should be even ).
     You can set all other values to 0, in which case they'll be initialized
     to default values, or specify them directly.
-    On success 'handle' member will contain non-zero handle to initialized 
+    On success 'handle' member will contain non-zero handle to initialized
     encoder.
 **/
 typedef struct _ENC_PARAM_
@@ -89,8 +89,8 @@ int encore(void *handle,	// handle               - the handle of the calling ent
 #define ENC_OPT_VERSION	4
 
 #define ENCORE_VERSION		20010807
-	
-     
+
+
 
 // return code of encore()
 #define ENC_FAIL		-1
@@ -101,7 +101,7 @@ int encore(void *handle,	// handle               - the handle of the calling ent
 /** Common 24-bit RGB, order of components b-g-r **/
 #define ENC_CSP_RGB24 	0
 
-/** Planar YUV, U & V subsampled by 2 in both directions, 
+/** Planar YUV, U & V subsampled by 2 in both directions,
     average 12 bit per pixel; order of components y-v-u **/
 #define ENC_CSP_YV12	1
 

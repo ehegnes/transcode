@@ -89,7 +89,7 @@
 ;subtitle: explain....
 ;3 Hello it is now night, nothing to be seen in the land of rose
 
-;show first movie insert 
+;show first movie insert
 5 *chicago xpos=100 ypos=200
 
 ;show second movie insert
@@ -225,7 +225,7 @@ A PantelWorks Universe Company\\\\
 
 ;lets play sun again
 355 using dheading and speed can make circles!
-355 *sun xpos=160 ypos=160 speed=40 heading=0 dheading=10 
+355 *sun xpos=160 ypos=160 speed=40 heading=0 dheading=10
 
 ; closing in
 ;356 *sun dxsize=2 dysize=2
@@ -280,7 +280,7 @@ A PantelWorks Universe Company\\\\
 
 920 The left flower is behind the right one, but moving forward, using dzpos
 1000 *rose kill
-1100 *flower kill 
+1100 *flower kill
 1100 *chicago kill
 
 ;remove subtitle

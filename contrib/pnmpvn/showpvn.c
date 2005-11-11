@@ -242,7 +242,7 @@ int main(int argc, char **argv)
     fprintf(stderr, "For the time being, only type 'a', 'b', 'f' and 'd' PVN files are supported!\n");
     _exit(1);
   }
-	
+
   winWidth=inParams.width;
   winHeight=inParams.height;
 

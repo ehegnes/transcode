@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - October 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -55,7 +55,7 @@ void tc_outstream_rotate_request(void)
 
 void tc_outstream_rotate(void)
 {
-  
+
   char buf[TC_BUF_MAX];
   vob_t *vob=tc_get_vob();
 
@@ -77,20 +77,20 @@ void tc_outstream_rotate(void)
 
   // close output
   if(encoder_close(&export_para)<0)
-    tc_error("failed to close output");      
-  
-  // create new filename 
+    tc_error("failed to close output");
+
+  // create new filename
   tc_snprintf(buf, sizeof(buf), "%s-%03d", base, rotate_ctr++);
 
   //rename old outputfile
   if(xio_rename(base, buf)<0) tc_error("failed to rename output file\n");
 
   // reopen output
-  if(encoder_open(&export_para, vob)<0) 
-    tc_error("failed to open output");      
+  if(encoder_open(&export_para, vob)<0)
+    tc_error("failed to open output");
 
   fprintf(stderr, "\n(%s) outfile %s saved to %s\n", __FILE__, base, buf);
 
   free(base);
-  
+
 }

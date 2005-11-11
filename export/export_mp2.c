@@ -116,7 +116,7 @@ MOD_open
 
         /* check for sox */
         if (tc_test_program("sox") != 0) return (TC_EXPORT_ERROR);
-        
+
         result = tc_snprintf(buf, PATH_MAX,
                             "sox %s -s -c %d -r %d -t raw - -r %d -t wav - speed %.10f | ",
                             vob->dm_bits == 16 ? "-w" : "-b",

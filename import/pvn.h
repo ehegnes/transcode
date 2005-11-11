@@ -47,7 +47,7 @@ long calcPVNPageSize(PVNParam p);
    or NOTEQUAL if they are not */
 int PVNParamCompare(PVNParam first, PVNParam second);
 
-/* Copy src parameters to dest 
+/* Copy src parameters to dest
    returns VALID or ERROR */
 int PVNParamCopy(PVNParam *dest, PVNParam *src);
 
@@ -76,4 +76,4 @@ int pvnconvert(const char *infile, const char *outfile, double framerate, unsign
   }    // end namespace
 #endif
 
-#endif 
+#endif

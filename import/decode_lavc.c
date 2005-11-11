@@ -6,20 +6,20 @@
  *  Copyright (C) 1999-2001 Aaron Holtzman <aholtzma@ess.engr.uvic.ca>
  *
  *  This file is part of transcode, a video stream  processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -88,19 +88,19 @@ static struct ffmpeg_codec ffmpeg_codecs[] = {
 
 static struct ffmpeg_codec *find_ffmpeg_codec_id(unsigned int transcode_id) {
   struct ffmpeg_codec *cdc;
-  
+
   cdc = &ffmpeg_codecs[0];
   while (cdc->name != NULL) {
       if (cdc->tc_id == transcode_id)
 	  return cdc;
     cdc++;
   }
-  
+
   return NULL;
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decoder thread
  *
@@ -182,9 +182,9 @@ void decode_lavc(decode_t *decode)
 	      codec->name);
       goto decoder_error;
   }
-    
+
   pix_fmt = decode->format;
-    
+
   frame_size = (x_dim * y_dim * 3)/2;
   switch (pix_fmt)
   {
@@ -198,14 +198,14 @@ void decode_lavc(decode_t *decode)
 
         if (yuv2rgb_buffer == NULL)
 	    yuv2rgb_buffer = tc_bufalloc(frame_size);
-	
+
         if (yuv2rgb_buffer == NULL)
 	{
             perror("out of memory");
             goto decoder_error;
         }
 	else
-	    memset(yuv2rgb_buffer, 0, frame_size);  
+	    memset(yuv2rgb_buffer, 0, frame_size);
         break;
 
       case TC_CODEC_RAW:
@@ -225,8 +225,8 @@ void decode_lavc(decode_t *decode)
       goto decoder_error;
   }
 
-  memset(buffer, 0, READ_BUFFER_SIZE);  
-  memset(out_buffer, 0, frame_size);  
+  memset(buffer, 0, READ_BUFFER_SIZE);
+  memset(out_buffer, 0, frame_size);
 
   // DECODE MAIN LOOP
 
@@ -251,7 +251,7 @@ void decode_lavc(decode_t *decode)
 
       //fprintf(stderr, "SIZE: (%d) MP4(%d) blen(%d) BUF(%d) read(%ld)\n", len, mp4_size, buf_len, READ_BUFFER_SIZE, bytes_read);
       do {
-	  len = avcodec_decode_video(lavc_dec_context, &picture, 
+	  len = avcodec_decode_video(lavc_dec_context, &picture,
 		  &got_picture, buffer+buf_len, mp4_size-buf_len);
 
 	  if (len < 0) {

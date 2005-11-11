@@ -6,5 +6,5 @@
         MERGE4PIXavg("-2(%%edi)", "2(%%esi, %%ecx, 2)")  // up left, down right
         MERGE4PIXavg("2(%%edi)", "-2(%%esi, %%ecx, 2)")  // up right, down left
         MERGE4PIXavg("-2(%%edi, %%ecx, 2)", "2(%%esi)")   // down left, up right
-        MERGE4PIXavg("2(%%edi, %%ecx, 2)", "-2(%%esi)")   // down right, up left   
+        MERGE4PIXavg("2(%%edi, %%ecx, 2)", "-2(%%esi)")   // down right, up left
 #include "SearchLoopOddA2.inc"

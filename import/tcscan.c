@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -39,7 +39,7 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
 
 int verbose=TC_QUIET;
 
-void import_exit(int code) 
+void import_exit(int code)
 {
   if(verbose & TC_DEBUG) import_info(code, EXE);
   exit(code);
@@ -51,26 +51,26 @@ static int min=0, max=0;
 
 static void check (int v)
 {
-  
+
   if (v > max) {
     max = v;
   } else if (v < min) {
     min = v;
   }
-  
+
   return;
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * print a usage/version message
  *
  * ------------------------------------------------------------*/
 
 static double frc_table[16] = {0,
-			       NTSC_FILM, 24, 25, NTSC_VIDEO, 30, 50, 
+			       NTSC_FILM, 24, 25, NTSC_VIDEO, 30, 50,
 			       (2*NTSC_VIDEO), 60,
-			       1, 5, 10, 12, 15, 
+			       1, 5, 10, 12, 15,
 			       0, 0};
 
 
@@ -97,13 +97,13 @@ static void usage(int status)
   fprintf(stderr,"\t -c cdsize         user defined CD size in MB [0]\n");
   fprintf(stderr,"\t -d mode           verbosity mode\n");
   fprintf(stderr,"\t -v                print version\n");
-  
+
   exit(status);
-  
+
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * scan stream
  *
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
   long magic = TC_MAGIC_UNKNOWN;
 
   FILE *in_file;
-  
+
   int n=0, ch;
   char *codec=NULL, *name=NULL;
 
@@ -128,12 +128,12 @@ int main(int argc, char *argv[])
   uint64_t total=0;
 
   int a_rate=RATE, a_bits=BITS, chan=CHANNELS;
- 
+
   int on=1;
   short *s;
 
   char buffer[CHUNK_SIZE];
-  
+
   double fps=PAL_FPS, frames, fmin, fmax, vol=0.0;
 
   int frc;
@@ -141,9 +141,9 @@ int main(int argc, char *argv[])
   int pseudo_frame_size=0;
 
   int ac_bytes=0, frame_size, bitrate=ABITRATE;
-  
+
   float rbytes;
-  
+
   uint32_t i=0, j=0;
   uint16_t sync_word = 0;
   int cdsize = 0;
@@ -152,60 +152,60 @@ int main(int argc, char *argv[])
 
   //proper initialization
   memset(&ipipe, 0, sizeof(info_t));
-  
+
   while ((ch = getopt(argc, argv, "c:b:e:i:vx:f:d:w:?h")) != -1) {
-    
+
     switch (ch) {
     case 'c':
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       cdsize = atoi(optarg);
-      
+
       break;
 
-    case 'd': 
-      
+    case 'd':
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       verbose = atoi(optarg);
-      
+
       break;
-      
-    case 'e': 
-      
+
+    case 'e':
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
-      
+
       if (3 != sscanf(optarg,"%d,%d,%d", &a_rate, &a_bits, &chan)) fprintf(stderr, "invalid pcm parameter set for option -e");
-      
+
       if(a_rate > RATE || a_rate <= 0) {
 	fprintf(stderr, "invalid pcm parameter 'rate' for option -e");
 	usage(EXIT_FAILURE);
       }
-      
+
       if(!(a_bits == 16 || a_bits == 8)) {
 	fprintf(stderr, "invalid pcm parameter 'bits' for option -e");
 	usage(EXIT_FAILURE);
       }
-      
+
       if(!(chan == 0 || chan == 1 || chan == 2)) {
 	fprintf(stderr, "invalid pcm parameter 'channels' for option -e");
 	usage(EXIT_FAILURE);
       }
-      
+
       break;
-      
-    case 'i': 
-      
+
+    case 'i':
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       name = optarg;
       break;
 
-    case 'x': 
-      
+    case 'x':
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       codec = optarg;
       break;
 
-    case 'f': 
-      
+    case 'f':
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       n = sscanf(optarg,"%lf,%d", &fps, &frc);
 
@@ -218,10 +218,10 @@ int main(int argc, char *argv[])
       }
       break;
 
-    case 'w': 
-      
+    case 'w':
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
-      bframes = atoi(optarg);      
+      bframes = atoi(optarg);
 
       if(bframes <=0) {
 	fprintf(stderr,"invalid parameter for option -w\n");
@@ -229,10 +229,10 @@ int main(int argc, char *argv[])
       }
       break;
 
-    case 'b': 
-      
+    case 'b':
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
-      bitrate = atoi(optarg);      
+      bitrate = atoi(optarg);
 
       if(bitrate < 0) {
 	fprintf(stderr,"invalid bitrate for option -b");
@@ -240,20 +240,20 @@ int main(int argc, char *argv[])
       }
       break;
 
-      
-    case 'v': 
+
+    case 'v':
       version();
       exit(0);
       break;
-      
+
     case 'h':
       usage(EXIT_SUCCESS);
     default:
       usage(EXIT_FAILURE);
     }
   }
-  
-  /* ------------------------------------------------------------ 
+
+  /* ------------------------------------------------------------
    *
    * fill out defaults for info structure
    *
@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
     enc_bitrate(bframes, fps, bitrate, EXE, cdsize);
     exit(0);
   }
-  
+
   // assume defaults
   if(name==NULL) stream_stype=TC_STYPE_STDIN;
 
@@ -278,20 +278,20 @@ int main(int argc, char *argv[])
 
   // do not try to mess with the stream
   if(stream_stype!=TC_STYPE_STDIN) {
-    
+
     if(tc_file_check(name)) exit(1);
-    
+
     if((ipipe.fd_in = xio_open(name, O_RDONLY))<0) {
       perror("open file");
       exit(1);
-    } 
-    
+    }
+
     magic = fileinfo(ipipe.fd_in, 0);
 
   } else ipipe.fd_in = STDIN_FILENO;
-  
-  
-  /* ------------------------------------------------------------ 
+
+
+  /* ------------------------------------------------------------
    *
    * AC3 stream
    *
@@ -299,115 +299,115 @@ int main(int argc, char *argv[])
 
   if(strcmp(codec,"ac3")==0 || magic==TC_MAGIC_AC3) {
 
- 
+
     for(;;) {
-      
+
       for(;;) {
-	
+
 	if (tc_pread(ipipe.fd_in, buffer, 1) !=1) {
 	  perror("ac3 sync frame scan failed");
 	  goto ac3_summary;
 	}
-	
-	sync_word = (sync_word << 8) + (uint8_t) buffer[0]; 
-	
+
+	sync_word = (sync_word << 8) + (uint8_t) buffer[0];
+
 	++i;
-	
+
 	if(sync_word == 0x0b77) break;
       }
 
       i=i-2;
-      
+
       if (tc_pread(ipipe.fd_in, buffer, 3) !=3) {
 	perror("ac3 header read failed");
 	goto ac3_summary;
       }
-      
+
       if((frame_size = 2*get_ac3_framesize(buffer)) < 1) {
 	printf("ac3 framesize %d invalid - frame broken?\n", frame_size);
 	goto more;
       }
-      
+
       //FIXME: I assume that a single AC3 frame contains 6kB PCM bytes
-      
+
       rbytes = (float) SIZE_PCM_FRAME/1024/6 * frame_size;
       pseudo_frame_size = (int) rbytes;
       bitrate = get_ac3_bitrate(buffer);
-      
+
       printf("[%05d] offset %06d (%06d) %04d bytes, bitrate %03d kBits/s\n", n++, i, j, frame_size, bitrate);
-      
+
       // read the rest
-      
+
       ac_bytes = frame_size-5;
-      
+
       if(ac_bytes>CHUNK_SIZE) {
-	fprintf(stderr, "Oops, no buffer space framesize %d\n", ac_bytes); 
+	fprintf(stderr, "Oops, no buffer space framesize %d\n", ac_bytes);
 	exit(1);
       }
-      
+
       if ((bytes_read=tc_pread(ipipe.fd_in, buffer, ac_bytes)) != ac_bytes) {
 	fprintf(stderr, "error reading ac3 frame (%d/%d)\n", bytes_read, ac_bytes);
 	break;
       }
-      
+
     more:
-      
+
       i+=frame_size;
       j=i;
     }
 
   ac3_summary:
-    
+
     vol = (double) (n * 1024 * 6)/4/RATE;
-        
+
     fprintf(stderr, "[%s] valid AC3 frames=%d, estimated clip length=%.2f seconds\n", EXE, n, vol);
-    
+
     return(0);
   }
-  
-  /* ------------------------------------------------------------ 
+
+  /* ------------------------------------------------------------
    *
    * PCM stream
    *
    * ------------------------------------------------------------*/
 
   if(strcmp(codec,"pcm")==0) {
-    
+
       while(on) {
-	  
+
 	  if( (bytes_read = tc_pread(ipipe.fd_in, buffer, CHUNK_SIZE)) != CHUNK_SIZE) on = 0;
-	  
+
 	  total += (uint64_t) bytes_read;
-	  
+
 	  s=(short *) buffer;
-	  
+
 	  for(n=0; n<bytes_read>>1; ++n) {
 	      check((int) (*s));
 	      s++;
 	  }
       }
-      
-      bytes_per_sec = a_rate * (a_bits/8) * chan; 
-      
+
+      bytes_per_sec = a_rate * (a_bits/8) * chan;
+
       frames = (fps*((double)total)/bytes_per_sec);
-      
+
       fmin = -((double) min)/SHRT_MAX;
       fmax =  ((double) max)/SHRT_MAX;
-  
+
       if(min==0 || max == 0) exit(0);
-  
+
       vol = (fmin<fmax) ? 1./fmax : 1./fmin;
-  
+
       printf("[%s] audio frames=%.2f, estimated clip length=%.2f seconds\n", EXE, frames, frames/fps);
       printf("[%s] (min/max) amplitude=(%.3f/%.3f), suggested volume rescale=%.3f\n", EXE, -fmin, fmax, vol);
-      
+
       enc_bitrate((long) frames, fps, bitrate, EXE, cdsize);
-      
+
       return(0);
   }
 
   if(strcmp(codec,"mp3")==0 || magic == TC_MAGIC_MP3) {
-    
+
       char header[4];
       int framesize = 0;
       int chunks = 0;
@@ -418,7 +418,7 @@ int main(int argc, char *argv[])
 
       min = 500;
       max = 0;
-      
+
       pos = lseek(ipipe.fd_in, 0, SEEK_CUR);
       // find mp3 header
       while ((total += read(ipipe.fd_in, header, 4))) {
@@ -431,24 +431,24 @@ int main(int argc, char *argv[])
       printf("POS %lld\n", pos);
 
       // Example for _1_ mp3 chunk
-      // 
+      //
       // fps       = 25
       // framesize = 480 bytes
       // bitrate   = 160 kbit/s == 20 kbytes/s == 20480 bytes/s == 819.20 bytes / frame
       //
       // 480 bytes = 480/20480 s/bytes = .0234 s = 23.4 ms
-      //  
+      //
       //  ms = (framesize*1000*8)/(bitrate*1000);
       //                           why 1000 and not 1024?
       //  correct? yes! verified with "cat file.mp3|mpg123 -w /dev/null -v -" -- tibit
 
       while (on) {
-	  if ( (bytes_read = read(ipipe.fd_in, buffer, framesize-4)) != framesize-4) { 
+	  if ( (bytes_read = read(ipipe.fd_in, buffer, framesize-4)) != framesize-4) {
 	      on = 0;
 	  } else {
 	      total += bytes_read;
 	      while ((total += read(ipipe.fd_in, header, 4))) {
-		  
+
 		  //printf("%x %x %x %x\n", header[0]&0xff, header[1]&0xff, header[2]&0xff, header[3]&0xff);
 
 		  if ( (framesize = tc_get_mp3_header (header, &chans, &srate, &bitrate)) < 0) {
@@ -458,7 +458,7 @@ int main(int argc, char *argv[])
 		  } else  {
 
 		      /*
-		      printf("Found new header (%d) (framesize = %d) chan(%d) srate(%d) bitrate(%d)\n", 
+		      printf("Found new header (%d) (framesize = %d) chan(%d) srate(%d) bitrate(%d)\n",
 			  chunks, framesize, chans, srate, bitrate);
 			  */
 
@@ -473,60 +473,60 @@ int main(int argc, char *argv[])
 
 	  }
       }
-      printf("[%s] MPEG-1 layer-3 stream. Info: -e %d,%d,%d\n", 
+      printf("[%s] MPEG-1 layer-3 stream. Info: -e %d,%d,%d\n",
 	      EXE, srate, 16, chans);
-      printf("[%s] Found %d MP3 chunks. Average bitrate is %3.2f kbps ", 
+      printf("[%s] Found %d MP3 chunks. Average bitrate is %3.2f kbps ",
 	      EXE, chunks, (double)bitrate_add/chunks);
       if (min != max) printf("(%d-%d)\n", min, max);
       else printf("(cbr)\n");
 
-      printf("[%s] AVI overhead will be max. %d*(8+16) = %d bytes (%dk)\n", 
+      printf("[%s] AVI overhead will be max. %d*(8+16) = %d bytes (%dk)\n",
 	      EXE, chunks, chunks*8+chunks*16, (chunks*8+chunks*16)/1024 );
-      printf("[%s] Estimated time is %.0f ms (%02d:%02d:%02d.%02d)\n", 
-	      EXE, ms, 
-	         (int)(ms/1000.0/60.0/60.0), 
-	         (int)(ms/1000.0/60.0)%60, 
-		 (int)(ms/1000)%60, 
+      printf("[%s] Estimated time is %.0f ms (%02d:%02d:%02d.%02d)\n",
+	      EXE, ms,
+	         (int)(ms/1000.0/60.0/60.0),
+	         (int)(ms/1000.0/60.0)%60,
+		 (int)(ms/1000)%60,
 		 (int)(ms)%(1000) );
       return(0);
   }
-  
-  /* ------------------------------------------------------------ 
+
+  /* ------------------------------------------------------------
    *
    * MPEG program stream
    *
    * ------------------------------------------------------------*/
 
   if(strcmp(codec, "mpeg2")==0 || strcmp(codec, "mpeg")==0 || strcmp(codec, "vob")==0 || magic==TC_MAGIC_VOB || magic==TC_MAGIC_M2V) {
-    
+
     in_file = fdopen(ipipe.fd_in, "r");
-    
+
     scan_pes(verbose, in_file);
-    
+
     return(0);
   }
 
-  /* ------------------------------------------------------------ 
+  /* ------------------------------------------------------------
    *
    * AVI
    *
    * ------------------------------------------------------------*/
 
   if(magic==TC_MAGIC_AVI || TC_MAGIC_WAV) {
-      
+
       if(name!=NULL) AVI_scan(name);
-      
+
       return(0);
   }
-  
-  
+
+
   fprintf(stderr, "[%s] unable to handle codec/filetype %s\n", EXE, codec);
-  
+
   exit(1);
-  
+
 }
-  
-  
+
+
 // from mencoder
 //----------------------- mp3 audio frame header parser -----------------------
 
@@ -547,7 +547,7 @@ static long freqs[9] = { 44100, 48000, 32000, 22050, 24000, 16000 , 11025 , 1200
 int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate){
     int stereo, ssize, crc, lsf, mpeg25, framesize;
     int padding, bitrate_index, sampling_frequency;
-    unsigned long newhead = 
+    unsigned long newhead =
       hbuf[0] << 24 |
       hbuf[1] << 16 |
       hbuf[2] <<  8 |
@@ -556,15 +556,15 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
 
 #if 1
     // head_check:
-    if( (newhead & 0xffe00000) != 0xffe00000 ||  
+    if( (newhead & 0xffe00000) != 0xffe00000 ||
         (newhead & 0x0000fc00) == 0x0000fc00){
 	//fprintf( stderr, "[%s] head_check failed\n", EXE);
 	return -1;
     }
 #endif
 
-    if((4-((newhead>>17)&3))!=3){ 
-      //fprintf( stderr, "[%s] not layer-3\n", EXE); 
+    if((4-((newhead>>17)&3))!=3){
+      //fprintf( stderr, "[%s] not layer-3\n", EXE);
       return -1;
     }
 

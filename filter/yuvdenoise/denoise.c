@@ -15,7 +15,7 @@ extern struct DNSR_VECTOR vector;
 extern struct DNSR_VECTOR varray44[8];
 extern struct DNSR_VECTOR varray22[8];
 
-/* pointer on optimized deinterlacer 
+/* pointer on optimized deinterlacer
  * defined in deinterlace.c
  */
 extern void (*deinterlace) (void);
@@ -25,7 +25,7 @@ void black_border (void)
   int dx,dy;
   int BX0,BX1;
   int BY0,BY1;
-  
+
   BX0=denoiser.border.x;
   BY0=denoiser.border.y;
   BX1=BX0+denoiser.border.w;
@@ -38,7 +38,7 @@ void black_border (void)
       *(denoiser.frame.avg2[1]+dx/2+dy/2*W2)=128;
       *(denoiser.frame.avg2[2]+dx/2+dy/2*W2)=128;
     }
-    
+
   for(dy=(BY1+32);dy<(H+32);dy++)
     for(dx=0;dx<W;dx++)
     {
@@ -46,7 +46,7 @@ void black_border (void)
       *(denoiser.frame.avg2[1]+dx/2+dy/2*W2)=128;
       *(denoiser.frame.avg2[2]+dx/2+dy/2*W2)=128;
     }
-    
+
   for(dy=32;dy<(H+32);dy++)
     for(dx=0;dx<BX0;dx++)
     {
@@ -89,7 +89,7 @@ void contrast_frame (void)
   }
 
   p=denoiser.frame.ref[Cr]+16*W2;
- 
+
   for(c=0;c<(W2*H2);c++)
   {
   	value=*(p);
@@ -104,9 +104,9 @@ void contrast_frame (void)
 
 	  *(p++)=value&0xff;
   }
-  
+
   p=denoiser.frame.ref[Cb]+16*W2;
- 
+
   for(c=0;c<(W2*H2);c++)
   {
   	value=*(p);
@@ -121,7 +121,7 @@ void contrast_frame (void)
 
 	  *(p++)=value&0xff;
   }
-  
+
 }
 
 int
@@ -130,72 +130,72 @@ low_contrast_block (int x, int y)
   /* Only do a motion search in blocks where at least eight pixels do
    * differ more than 2/3 of our noise threshold in either color or luma
    */
-  
+
   int xx;
   int yy;
   int max=0;
   int d;
-  
+
   uint8_t * src = denoiser.frame.ref[Yy]+x+y*W;
   uint8_t * dst = denoiser.frame.avg[Yy]+x+y*W;
-  
+
   for (yy=0;yy<8;yy++)
   {
     for (xx=0;xx<8;xx++)
     {
       d = *(dst) - *(src);
       d = (d<0)? -d:d;
-      
+
       max = (d>(2*denoiser.threshold/3))? max+1:max;
-      
+
       src++;
       dst++;
     }
   src+=W-8;
   dst+=W-8;
   }
-  
+
   x/=2;
   y/=2;
-  
+
   src = denoiser.frame.ref[Cr] + x + y * W2;
   dst = denoiser.frame.avg[Cr] + x + y * W2;
-  
+
   for (yy=0;yy<4;yy++)
   {
     for (xx=0;xx<4;xx++)
     {
       d = *(dst) - *(src);
       d = (d<0)? -d:d;
-      
+
       max = (d>(2*denoiser.threshold/3))? max+1:max;
-      
+
       src++;
       dst++;
     }
   src+=W2-4;
   dst+=W2-4;
   }
-  
+
   src = denoiser.frame.ref[Cb]+x+y*W2;
   dst = denoiser.frame.avg[Cb]+x+y*W2;
-  
+
   for (yy=0;yy<4;yy++)
   {
     for (xx=0;xx<4;xx++)
     {
       d = *(dst) - *(src);
       d = (d<0)? -d:d;
-      
+
       max = (d>(denoiser.threshold/2))? max+1:max;
-      
+
       src++;
       dst++;
     }
   src+=W2-4;
   dst+=W2-4;
   }
-  
+
   return ((max>8)? 0:1);
 }
 
@@ -212,11 +212,11 @@ move_block (int x, int y)
   uint8_t * dst;
   uint8_t * src1;
   uint8_t * src2;
-  
+
   dst = denoiser.frame.tmp[Yy]+x+y*denoiser.frame.w;
   src1= denoiser.frame.avg[Yy]+(x+qx   )+(y+qy   )*denoiser.frame.w;
   src2= denoiser.frame.avg[Yy]+(x+qx+sx)+(y+qy+sy)*denoiser.frame.w;
-  
+
   for (dy=0;dy<8;dy++)
   {
     for (dx=0;dx<8;dx++)
@@ -227,7 +227,7 @@ move_block (int x, int y)
       src2+=w;
       dst+=w;
   }
-  
+
   w /= 2;
   dst = denoiser.frame.tmp[Cr]+x/2+y/2*w;
   src1= denoiser.frame.avg[Cr]+(x+qx   )/2+(y+qy   )/2*w;
@@ -243,7 +243,7 @@ move_block (int x, int y)
       src2+=w;
       dst+=w;
   }
-  
+
   dst = denoiser.frame.tmp[Cb]+x/2+y/2*w;
   src1= denoiser.frame.avg[Cb]+(x+qx   )/2+(y+qy   )/2*w;
   src2= denoiser.frame.avg[Cb]+(x+qx+sx)/2+(y+qy+sy)/2*w;
@@ -258,8 +258,8 @@ move_block (int x, int y)
       src2+=w;
       dst+=w;
   }
-  
-}  
+
+}
 
 /*****************************************************************************
  * takes a frame and blends it into the average                              *
@@ -281,7 +281,7 @@ average_frame (void)
   int t =denoiser.delay;
   int t1=denoiser.delay+1;
   int c;
-  
+
   src_Yy=denoiser.frame.ref[Yy]+32*W;
   src_Cr=denoiser.frame.ref[Cr]+16*W2;
   src_Cb=denoiser.frame.ref[Cb]+16*W2;
@@ -295,9 +295,9 @@ average_frame (void)
     *(dst_Yy) = ( *(dst_Yy) * t + *(src_Yy))/(t1);
     dst_Yy++;
     src_Yy++;
-  }      
-  
-  /* Why? -- tibit 
+  }
+
+  /* Why? -- tibit
   for (c = 0; c < (W2*H2); c++)
   {
     *(dst_Cr) = ( *(dst_Cr) * t + *(src_Cr) )/(t1);
@@ -305,7 +305,7 @@ average_frame (void)
     src_Cr++;
   }
   */
-  
+
   for (c = 0; c < (W2*H2); c++)
   {
     *(dst_Cr) = ( *(dst_Cr) * t + *(src_Cr) )/(t1);
@@ -330,32 +330,32 @@ difference_frame (void)
   register int threshold = denoiser.threshold;
 
   /* Only Y Component */
-  
+
   src[Yy]=denoiser.frame.ref[Yy]+32*W;
   dst[Yy]=denoiser.frame.tmp[Yy]+32*W;
   df1[Yy]=denoiser.frame.dif[Yy]+32*W;
   df2[Yy]=denoiser.frame.dif2[Yy]+32*W;
 
   /* Calc difference image */
-  
+
   for (c = 0; c < (W*H); c++)
   {
     d = *(dst[Yy]) - *(src[Yy]);
     d = (d<0)? -d:d;
     d = (d<threshold)? 0:d;
-      
+
     *(df1[Yy])=d;
-    
+
     dst[Yy]++;
     src[Yy]++;
     df1[Yy]++;
   }
 
   /* LP-filter difference image */
-  
+
   df1[Yy]=denoiser.frame.dif[Yy]+32*W;
   df2[Yy]=denoiser.frame.dif2[Yy]+32*W;
-  
+
   for (c = 0; c < (W*H); c++)
     {
       d = ( *(df1[Yy] + W * -1 -1 ) +
@@ -367,14 +367,14 @@ difference_frame (void)
             *(df1[Yy] + W * +1 -1 ) +
             *(df1[Yy] + W * +1 +0 ) +
             *(df1[Yy] + W * +1 +1 ) )/9;
-      
+
       /* error is linear but visability is exponential */
-      
+
       d = 4*(d*d);
       d=(d>255)? 255:d;
-      
+
       *(df2[Yy]) = d ;
-      
+
       df2[Yy]++;
       df1[Yy]++;
     }
@@ -391,13 +391,13 @@ correct_frame2 (void)
   //register int m;
   int f1=0;
   int f2=0;
-  
+
   /* Only correct Y portion... Cr and Cb remain uncorrected and have to
    * fade to the right value in about 2..3 frames
-   * This solution quite effectivly kills chroma-flicker and is nearly not 
+   * This solution quite effectivly kills chroma-flicker and is nearly not
    * perceptable despite of any other method I tried to get rid of it.
    */
-  
+
   src=denoiser.frame.ref[Yy]+W*32;
   dst=denoiser.frame.tmp[Yy]+W*32;
   dif=denoiser.frame.dif2[Yy]+W*32;
@@ -423,12 +423,12 @@ correct_frame2 (void)
 
   src=denoiser.frame.ref[Cr]+W2*16;
   dst=denoiser.frame.tmp[Cr]+W2*16;
-  
+
   for (c = 0; c < (W2*H2); c++)
   {
     q = *(src) - *(dst) ;
     q = (q<0)? -q:q;
-    
+
     f1 = (255*(q-denoiser.threshold))/denoiser.threshold;
     f1 = (f1>255)? 255:f1;
     f1 = (f1<0)?     0:f1;
@@ -438,7 +438,7 @@ correct_frame2 (void)
     {
 	if(c>W2 && c<(W2*H2-W2))
 	{
-	    *(dst)=( (*(src) + *(src+W2) + *(src-W2))*f1/3 +  
+	    *(dst)=( (*(src) + *(src+W2) + *(src-W2))*f1/3 +
 		     (*(dst) + *(dst+W2) + *(dst-W2))*f2/3 )/255;
 	}
 	else
@@ -453,12 +453,12 @@ correct_frame2 (void)
 
   src=denoiser.frame.ref[Cb]+W2*16;
   dst=denoiser.frame.tmp[Cb]+W2*16;
-  
+
   for (c = 0; c < (W2*H2); c++)
   {
     q = *(src) - *(dst) ;
     q = (q<0)? -q:q;
-    
+
     f1 = (255*(q-denoiser.threshold))/denoiser.threshold;
     f1 = (f1>255)? 255:f1;
     f1 = (f1<0)?     0:f1;
@@ -468,7 +468,7 @@ correct_frame2 (void)
     {
 	if(c>W2 && c<(W2*H2-W2))
 	{
-	    *(dst)=( (*(src) + *(src+W2) + *(src-W2))*f1/3 +  
+	    *(dst)=( (*(src) + *(src+W2) + *(src-W2))*f1/3 +
 		     (*(dst) + *(dst+W2) + *(dst-W2))*f2/3 )/255;
 	}
 	else
@@ -506,7 +506,7 @@ denoise_frame_pass2 (void)
   for (c = 0; c < (W*H); c++)
   {
     *(dst[Yy]) = ( *(dst[Yy]) * 2 + *(src[Yy]) )/3;
-      
+
     d = *(dst[Yy])-*(src[Yy]);
     d = (d<0)? -d:d;
 
@@ -514,20 +514,20 @@ denoise_frame_pass2 (void)
     f1 = (f1>255)? 255:f1;
     f1 = (f1<0)?     0:f1;
     f2 = 255-f1;
-    
+
     *(dst[Yy]) =( *(src[Yy])*f1 +*(dst[Yy])*f2 )/255;
 
     dst[Yy]++;
     src[Yy]++;
   }
-  
+
   /* Cr and Cb */
   for (c = 0; c < (W2*H2); c++)
   {
-    *(dst[Cr]) = ( *(dst[Cr]) * 2 + *(src[Cr]) )/3;      
+    *(dst[Cr]) = ( *(dst[Cr]) * 2 + *(src[Cr]) )/3;
     d = *(dst[Cr])-*(src[Cr]);
     d = (d<0)? -d:d;
-    
+
     f1 = (255*(d-denoiser.pp_threshold))/denoiser.pp_threshold;
     f1 = (f1>255)? 255:f1;
     f1 = (f1<0)?     0:f1;
@@ -535,10 +535,10 @@ denoise_frame_pass2 (void)
     *(dst[Cr]) =( *(src[Cr])*f1 +*(dst[Cr])*f2 )/255;
 
 
-    *(dst[Cb]) = ( *(dst[Cb]) * 2 + *(src[Cb]) )/3;      
+    *(dst[Cb]) = ( *(dst[Cb]) * 2 + *(src[Cb]) )/3;
     d = *(dst[Cb])-*(src[Cb]);
     d = (d<0)? -d:d;
-    
+
     f1 = (255*(d-denoiser.pp_threshold))/denoiser.pp_threshold;
     f1 = (f1>255)? 255:f1;
     f1 = (f1<0)?     0:f1;
@@ -550,7 +550,7 @@ denoise_frame_pass2 (void)
     dst[Cb]++;
     src[Cb]++;
   }
-    
+
 }
 
 
@@ -573,19 +573,19 @@ sharpen_frame(void)
   for (c = 0; c < (W*H); c++)
   {
     m = ( *(dst[Yy]) + *(dst[Yy]+1) + *(dst[Yy]+W) + *(dst[Yy]+1+W) ) /4;
-      
+
     d = *(dst[Yy]) - m;
-    
+
     d *= denoiser.sharpen;
     d /= 100;
-    
+
     m = m+d;
     m = (m>Y_HI_LIMIT)? Y_HI_LIMIT:m;
     m = (m<Y_LO_LIMIT)? Y_LO_LIMIT:m;
-    
+
     *(dst[Yy]) = m;
     dst[Yy]++;
-  }    
+  }
 }
 
 void
@@ -599,39 +599,39 @@ denoise_frame(void)
 
   switch(denoiser.mode)
   {
-    
+
     case 0: /* progressive mode */
     {
 
     /* deinterlacing wanted ? */
     if(denoiser.deinterlace) deinterlace();
-      
+
     /* Generate subsampled images */
     subsample_frame (denoiser.frame.sub2ref,denoiser.frame.ref);
     subsample_frame (denoiser.frame.sub4ref,denoiser.frame.sub2ref);
     subsample_frame (denoiser.frame.sub2avg,denoiser.frame.avg);
     subsample_frame (denoiser.frame.sub4avg,denoiser.frame.sub2avg);
-  
+
     for(y=32;y<(denoiser.frame.h+32);y+=8) {
       for(x=0;x<denoiser.frame.w;x+=8)
       {
         vector.x=0;
         vector.y=0;
 
-        if( !low_contrast_block(x,y) && 
+        if( !low_contrast_block(x,y) &&
           x>(denoiser.border.x) && y>(denoiser.border.y+32) &&
-          x<(denoiser.border.x+denoiser.border.w) && y<(denoiser.border.y+32+denoiser.border.h) 
-          )        
+          x<(denoiser.border.x+denoiser.border.w) && y<(denoiser.border.y+32+denoiser.border.h)
+          )
         {
         mb_search_44(x,y);
         mb_search_22(x,y);
         mb_search_11(x,y);
         if (mb_search_00(x,y) > denoiser.block_thres) bad_vector++;
         }
-      
-        if  ( (vector.x+x)>0 && 
+
+        if  ( (vector.x+x)>0 &&
 	            (vector.x+x)<W &&
-	            (vector.y+y)>32 && 
+	            (vector.y+y)>32 &&
 	            (vector.y+y)<(32+H) )
         {
     	    move_block(x,y);
@@ -646,25 +646,25 @@ denoise_frame(void)
     }
 
     /* scene change? */
-    if ( denoiser.do_reset && 
-	 denoiser.frame.w*denoiser.frame.h*denoiser.scene_thres/(64*100) < bad_vector) {   
+    if ( denoiser.do_reset &&
+	 denoiser.frame.w*denoiser.frame.h*denoiser.scene_thres/(64*100) < bad_vector) {
       denoiser.reset = denoiser.do_reset;
     }
 
     bad_vector = 0;
-    
+
     average_frame();
     correct_frame2();
     denoise_frame_pass2();
     sharpen_frame();
     black_border();
-    
+
     ac_memcpy(denoiser.frame.avg[Yy],denoiser.frame.tmp[Yy],denoiser.frame.w*(denoiser.frame.h+64));
     ac_memcpy(denoiser.frame.avg[Cr],denoiser.frame.tmp[Cr],denoiser.frame.w*(denoiser.frame.h+64)/4);
     ac_memcpy(denoiser.frame.avg[Cb],denoiser.frame.tmp[Cb],denoiser.frame.w*(denoiser.frame.h+64)/4);
     break;
     }
-    
+
     case 1: /* interlaced mode */
     {
       /* Generate subsampled images */
@@ -672,11 +672,11 @@ denoise_frame(void)
       subsample_frame (denoiser.frame.sub4ref,denoiser.frame.sub2ref);
       subsample_frame (denoiser.frame.sub2avg,denoiser.frame.avg);
       subsample_frame (denoiser.frame.sub4avg,denoiser.frame.sub2avg);
-  
+
       /* process the fields as two seperate images */
       denoiser.frame.h /= 2;
       denoiser.frame.w *= 2;
-      
+
       /* if lines are twice as wide as normal the offset is only 16 lines
        * despite 32 in progressive mode...
        */
@@ -686,20 +686,20 @@ denoise_frame(void)
           vector.x=0;
           vector.y=0;
 
-          if(!low_contrast_block(x,y) && 
+          if(!low_contrast_block(x,y) &&
             x>(denoiser.border.x) && y>(denoiser.border.y+32) &&
-            x<(denoiser.border.x+denoiser.border.w) && y<(denoiser.border.y+32+denoiser.border.h) 
-            )        
+            x<(denoiser.border.x+denoiser.border.w) && y<(denoiser.border.y+32+denoiser.border.h)
+            )
           {
           mb_search_44(x,y);
           mb_search_22(x,y);
           mb_search_11(x,y);
           mb_search_00(x,y);
           }
-      
-          if  ( (vector.x+x)>0 && 
+
+          if  ( (vector.x+x)>0 &&
 	            (vector.x+x)<W &&
-	            (vector.y+y)>32 && 
+	            (vector.y+y)>32 &&
 	            (vector.y+y)<(32+H) )
           {
     	      move_block(x,y);
@@ -711,37 +711,37 @@ denoise_frame(void)
     	      move_block(x,y);
           }
         }
-        
+
       /* process the fields in one image again */
       denoiser.frame.h *= 2;
       denoiser.frame.w /= 2;
-      
+
       average_frame();
       correct_frame2();
       denoise_frame_pass2();
       sharpen_frame();
       black_border();
-    
+
       ac_memcpy(denoiser.frame.avg[0],denoiser.frame.tmp[0],denoiser.frame.w*(denoiser.frame.h+64));
       ac_memcpy(denoiser.frame.avg[1],denoiser.frame.tmp[1],denoiser.frame.w*(denoiser.frame.h+64)/4);
       ac_memcpy(denoiser.frame.avg[2],denoiser.frame.tmp[2],denoiser.frame.w*(denoiser.frame.h+64)/4);
       break;
     }
-    
+
     case 2: /* PASS II only mode */
-    {      
+    {
       /* deinterlacing wanted ? */
       if(denoiser.deinterlace) deinterlace();
-      
+
       /* as the normal denoising functions are not used we need to copy ... */
       ac_memcpy(denoiser.frame.tmp[0],denoiser.frame.ref[0],denoiser.frame.w*(denoiser.frame.h+64));
       ac_memcpy(denoiser.frame.tmp[1],denoiser.frame.ref[1],denoiser.frame.w*(denoiser.frame.h+64)/4);
       ac_memcpy(denoiser.frame.tmp[2],denoiser.frame.ref[2],denoiser.frame.w*(denoiser.frame.h+64)/4);
-      
+
       denoise_frame_pass2();
       sharpen_frame();
       black_border();
-      
+
       break;
     }
   }

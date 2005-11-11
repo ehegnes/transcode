@@ -5,20 +5,20 @@
  *    Based on Code from mplayers cropdetect by A'rpi
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -48,10 +48,10 @@ typedef struct MyFilterData {
 	int fno;
 	int boolstep;
 } MyFilterData;
-	
+
 static MyFilterData *mfd[16];
 
-/* should probably honor the other flags too */ 
+/* should probably honor the other flags too */
 
 /*-------------------------------------------------
  *
@@ -59,7 +59,7 @@ static MyFilterData *mfd[16];
  *
  *-------------------------------------------------*/
 
-static void help_optstr(void) 
+static void help_optstr(void)
 {
    tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
@@ -109,14 +109,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYEOM", "1");
 
       tc_snprintf(buf, 128, "%u-%u/%d", mfd[ptr->filter_id]->start, mfd[ptr->filter_id]->end, mfd[ptr->filter_id]->step);
-      optstr_param (options, "range", "apply filter to [start-end]/step frames", 
+      optstr_param (options, "range", "apply filter to [start-end]/step frames",
 	      "%u-%u/%d", buf, "0", "oo", "0", "oo", "1", "oo");
       optstr_param (options, "limit", "the sum of a line must be below this limit to be considered as black", "%d", "24", "0", "255");
       optstr_param (options, "post", "run as a POST filter (calc -Y instead of the default -j)", "", "0");
 
       return 0;
   }
-  
+
   //----------------------------------
   //
   // filter init
@@ -128,7 +128,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if((vob = tc_get_vob())==NULL) return(-1);
 
     mfd[ptr->filter_id] = tc_malloc (sizeof(MyFilterData));
-    if(mfd[ptr->filter_id] == NULL) 
+    if(mfd[ptr->filter_id] == NULL)
         return (-1);
 
 
@@ -139,7 +139,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     mfd[ptr->filter_id]->post = 0;
 
     if (options != NULL) {
-    
+
 	if(verbose) tc_log_info (MOD_NAME, "options=%s", MOD_NAME, options);
 
 	optstr_get (options, "range",  "%u-%u/%d",    &mfd[ptr->filter_id]->start, &mfd[ptr->filter_id]->end, &mfd[ptr->filter_id]->step);
@@ -163,7 +163,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if (mfd[ptr->filter_id]->start % mfd[ptr->filter_id]->step == 0)
       mfd[ptr->filter_id]->boolstep = 0;
-    else 
+    else
       mfd[ptr->filter_id]->boolstep = 1;
 
     if (!mfd[ptr->filter_id]->post) {
@@ -190,7 +190,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     // filter init ok.
     if (verbose) tc_log_info(MOD_NAME, "%s %s #%d", MOD_VERSION, MOD_CAP, ptr->filter_id);
-    
+
     return(0);
   }
 
@@ -202,7 +202,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
   if(ptr->tag & TC_FILTER_CLOSE) {
 
-    if (mfd[ptr->filter_id]) { 
+    if (mfd[ptr->filter_id]) {
 	free(mfd[ptr->filter_id]);
     }
     mfd[ptr->filter_id]=NULL;
@@ -210,19 +210,19 @@ int tc_filter(frame_list_t *ptr_, char *options)
     return(0);
 
   } /* filter close */
-  
+
   //----------------------------------
   //
   // filter frame routine
   //
   //----------------------------------
-    
+
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
-  
-  if(((ptr->tag & TC_PRE_M_PROCESS && !mfd[ptr->filter_id]->post) || 
-      (ptr->tag & TC_POST_M_PROCESS && mfd[ptr->filter_id]->post)) && 
+
+  if(((ptr->tag & TC_PRE_M_PROCESS && !mfd[ptr->filter_id]->post) ||
+      (ptr->tag & TC_POST_M_PROCESS && mfd[ptr->filter_id]->post)) &&
      !(ptr->attributes & TC_FRAME_IS_SKIPPED))  {
 
     int y;
@@ -247,7 +247,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    break;
 	}
     }
-    
+
     for (y = 0; y < mfd[ptr->filter_id]->x1; y++) {
 	if(checkline(p+mfd[ptr->filter_id]->bpp*y, mfd[ptr->filter_id]->stride, ptr->v_height, mfd[ptr->filter_id]->bpp) > mfd[ptr->filter_id]->limit) {
 	    mfd[ptr->filter_id]->x1 = y;
@@ -271,14 +271,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	ptr->filter_id,
 	mfd[ptr->filter_id]->x1,mfd[ptr->filter_id]->x2,
 	mfd[ptr->filter_id]->y1,mfd[ptr->filter_id]->y2,
-	mfd[ptr->filter_id]->post?"-Y":"-j", 
+	mfd[ptr->filter_id]->post?"-Y":"-j",
 	t, l, b, r
 	  );
-    
+
     }
 
   }
-  
+
   return(0);
 }
 

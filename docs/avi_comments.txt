@@ -5,7 +5,7 @@
 #
 # You can use this file as the argument to the transcode option
 # --avi_comments. When the file is read, empty lines and lines
-# starting with '#' are ignored. 
+# starting with '#' are ignored.
 # The syntax is: "TAG<space>STRING". The order of the tags does not
 # matter. If a tag has no string following it, it is ignored. That
 # means, you can use this file as input and only fill out the fields

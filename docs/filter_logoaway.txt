@@ -16,7 +16,7 @@ Configuration:                     (possible values)        [default]
   Options:
       'help' Short Help
               Get a short description of all the logoaway options
-              
+
 
      'range' Frame Range           (0-oo)                   [0-end]
               The frame region were the filter is active.
@@ -56,7 +56,7 @@ Configuration:                     (possible values)        [default]
                          you can specify how much of the horizontally
                          interpolation is used. 50% xweight (=>50% yweight) gives
                          mostly the best results.
-              3=shape  - This mode is basically the same as the xy above. An 
+              3=shape  - This mode is basically the same as the xy above. An
                          alpha/shape file (see below) is needed for getting the
                          information where to render and which pixels to use
                          for interpolation. This mode is slower than xy and
@@ -66,7 +66,7 @@ Configuration:                     (possible values)        [default]
 
     'border' Visible Border
               Works in every mode and gives you a dotted line around the remove area
-              
+
       'dump' dumps the image between the given coordinates to the file dump[instance].png continously.
              That means one image file is written for each filter instance and every frame this image is
              overwritten with the current content.
@@ -107,7 +107,7 @@ Configuration:                     (possible values)        [default]
                 000###000       the video for interpolation
                 000000000       of @
 
-              
+
 Examples:
   -J logoaway=pos=100x100:size=50x50:border
       This gives us only a border, because the default mode is 0(none).

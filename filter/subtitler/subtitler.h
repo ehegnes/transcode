@@ -4,7 +4,7 @@
  * This file is part of transcode, a video stream processing tool
  *
  * Transcode is copyright Thomas Oestreich
- * 
+ *
  * transcode is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -73,7 +73,7 @@
 /*
 for masking out areas in rotate and shear.
 These 2 values are related, and I have not figured out the relation yet.
-YUV_MASK is used to prevent picture areas to be cut out. 
+YUV_MASK is used to prevent picture areas to be cut out.
 */
 #define LUMINANCE_MASK	178
 #define YUV_MASK		164

@@ -37,9 +37,9 @@
 
 
 #ifdef __cplusplus
-  namespace std 
+  namespace std
   {
-    extern "C" 
+    extern "C"
     {                // or   extern "C++" {
 #endif
 
@@ -90,8 +90,8 @@ int genFileName(const char *prefix, const char *suffix, char filename[MAX_FILENA
 
    returns OK or ERROR
 */
-int changeBufPrecision(unsigned char *inbuf, unsigned long inbufsize, 
-                       unsigned char *outbuf, unsigned long outbufsize, 
+int changeBufPrecision(unsigned char *inbuf, unsigned long inbufsize,
+                       unsigned char *outbuf, unsigned long outbufsize,
                        unsigned int input_prec, unsigned int output_prec);
 
 /* convert one buffer type to another, buffer memory for
@@ -104,13 +104,13 @@ int bufConvert(unsigned char *inbuf, unsigned long inbufsize,
                unsigned char *outbuf, unsigned long outbufsize,
                unsigned int outbufFormat, double outbufMaxcolour);
 
-/* take a single float and write it (w/big-endian) into the buffer 
+/* take a single float and write it (w/big-endian) into the buffer
    there must be >= 4 bytes at *buf
 
    returns OK or ERROR */
 int floatToBuf(float f, unsigned char *buf);
 
-/* take a single double and write it (w/big-endian) into the buffer 
+/* take a single double and write it (w/big-endian) into the buffer
    there must be >= 8 bytes at *buf
 
    returns OK or ERROR */
@@ -123,13 +123,13 @@ int doubleToBuf(double d, unsigned char *buf);
 int uintToBuf(unsigned long l, unsigned char *buf, unsigned int prec);
 int sintToBuf(long l, unsigned char *buf, unsigned int prec);
 
-/* take the next float from the (big-endian) buffer 
+/* take the next float from the (big-endian) buffer
    there must be >= 4 bytes at *buf
 
    returns OK or ERROR */
 int bufToFloat(float *f, unsigned char *buf);
 
-/* take the next double from the (big-endian) buffer 
+/* take the next double from the (big-endian) buffer
    there must be >= 8 bytes at *buf
 
    returns OK or ERROR */

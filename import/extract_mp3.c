@@ -5,20 +5,20 @@
  *  Copyright (C) 1999-2001 Aaron Holtzman <aholtzma@ess.engr.uvic.ca>
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 #include "transcode.h"
@@ -54,9 +54,9 @@ static int aud_chunk_from_vid_frame (char *file, int vidframe, int audtrack, off
     fgets( buf, sizeof buf, f); // comment
 
     pos = ftell(f);
-    
+
     // find the line for vidframe and safe its timestamp
-    while (fgets( buf, sizeof buf, f)) 
+    while (fgets( buf, sizeof buf, f))
     {
 	// sloooow
 	sscanf (buf, "%*s %d %d %d %*d %*d %*d %lf", &type, &ch, &chtype, &ms);
@@ -66,7 +66,7 @@ static int aud_chunk_from_vid_frame (char *file, int vidframe, int audtrack, off
 	    break;
 	}
 
-	
+
 	++line;
     }
     fprintf(stderr, "%d (%f): %s", line, vid_ms, buf);
@@ -75,7 +75,7 @@ static int aud_chunk_from_vid_frame (char *file, int vidframe, int audtrack, off
     line = 1;
 
     // find the line where timestamp of audio is smaller than vid_ms
-    while (fgets( buf, sizeof buf, f)) 
+    while (fgets( buf, sizeof buf, f))
     {
 
 	sscanf (buf, "%*s %d %d %d %lld %*d %*d %lf", &type, &ch, &chtype, &pos, &ms);
@@ -92,7 +92,7 @@ static int aud_chunk_from_vid_frame (char *file, int vidframe, int audtrack, off
 	}
 	npos = ftell(f);
 
-	
+
 	++line;
     }
     fseek(f, pos, SEEK_SET);
@@ -123,35 +123,35 @@ static void ps_loop (void)
 
     complain_loudly = 1;
     buf = buffer;
-    
+
     do {
       end = buf + fread (buf, 1, buffer + BUFFER_SIZE - buf, in_file);
       buf = buffer;
-      
+
       //scan buffer
       while (buf + 4 <= end) {
-	
+
 	// check for valid start code
 	if (buf[0] || buf[1] || (buf[2] != 0x01)) {
 	  if (complain_loudly) {
-	
+
 	    fprintf (stderr, "(%s) missing start code at %#lx\n",
 		     __FILE__, ftell (in_file) - (end - buf));
 	    if ((buf[0] == 0) && (buf[1] == 0) && (buf[2] == 0))
 	      fprintf (stderr, "(%s) incorrect zero-byte padding detected - ignored\n", __FILE__);
-	    
+
 	    complain_loudly = 0;
 	  }
 	  buf++;
 	  continue;
-	}// check for valid start code 
-	
+	}// check for valid start code
+
 
 	switch (buf[3]) {
-	  
+
 	case 0xb9:	/* program end code */
 	  return;
-	  
+
 	case 0xba:	/* pack header */
 
 	  /* skip */
@@ -165,12 +165,12 @@ static void ps_loop (void)
 	    fprintf (stderr, "(%s) weird pack header\n", __FILE__);
 	    import_exit(1);
 	  }
-	  
+
 	  if (tmp1 > end)
 	    goto copy;
 	  buf = tmp1;
 	  break;
-	  
+
 	  //MPEG audio
 
 	case 0xc0:
@@ -222,16 +222,16 @@ static void ps_loop (void)
 	      tmp1 += 2;
 	    tmp1 += mpeg1_skip_table [*tmp1 >> 4];
 	  }
-	  
+
 	  if((buf[3] & 0xff) == demux_track) {
 	      if (tmp1 < tmp2)
 		if (fwrite (tmp1, tmp2-tmp1, 1, out_file) != 1)
 		  import_exit(0); /* decoder exited */
 	  }
 	  buf = tmp2;
-	  
+
 	  break;
-	  
+
 	default:
 	  if (buf[3] < 0xb9) fprintf (stderr, "(%s) broken stream - skipping data\n", __FILE__);
 
@@ -244,20 +244,20 @@ static void ps_loop (void)
 
 	} //start code selection
       } //scan buffer
-      
+
       if (buf < end) {
       copy:
 	/* we only pass here for mpeg1 ps streams */
 	memmove (buffer, buf, end - buf);
       }
       buf = buffer + (end - buf);
-      
+
     } while (end == buffer + BUFFER_SIZE);
 }
 
 static int mp3scan(int infd, int outfd)
 {
-  
+
   int j=0, i=0, s=0;
 
   unsigned long k=0;
@@ -268,44 +268,44 @@ static int mp3scan(int infd, int outfd)
   uint16_t sync_word = 0;
 
   // need to find syncbyte:
-  
+
   if (!buffer) {
       fprintf(stderr, "cannot malloc memory\n");
       return 1;
   }
 
   for(;;) {
-    
+
     if (tc_pread(infd, &buffer[s], 1) !=1) {
       //mp3 sync byte scan failed
       return(ERROR_INVALID_HEADER);
     }
-    
-    sync_word = (sync_word << 8) + (uint8_t) buffer[s]; 
-    
+
+    sync_word = (sync_word << 8) + (uint8_t) buffer[s];
+
     s = (s+1)%2;
-    
+
     ++i;
     ++k;
-    
+
     if(sync_word == 0xfffc || sync_word == 0xfffb || sync_word == 0xfffd) break;
-    
+
     if(k>(1<<20)) {
       fprintf(stderr, "no MP3 sync byte found within 1024 kB of stream\n");
       free (buffer);
       return(1);
     }
   }
-  
+
   i=i-2;
-  
+
   if(verbose & TC_DEBUG) fprintf(stderr, "found sync frame at offset %d (%d)\n", i, j);
-  
+
   // dump the rest
-  
+
   tc_pwrite(outfd, buffer, 2);
   tc_preadwrite(infd, outfd);
-  
+
   free (buffer);
   return(1);
 }
@@ -313,7 +313,7 @@ static int mp3scan(int infd, int outfd)
 #define MAX_BUF 4096
 char audio[MAX_BUF];
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * mp3 extract thread
  *
@@ -330,37 +330,37 @@ void extract_mp3(info_t *ipipe)
     int error=0;
 
     avi_t *avifile;
-    
+
     long frames, padding, n;
     off_t bytes;
-    //off_t fpos; 
+    //off_t fpos;
 
     verbose = ipipe->verbose;
-  
+
     switch(ipipe->magic) {
-	
+
     case TC_MAGIC_VOB:
-	
+
 	in_file = fdopen(ipipe->fd_in, "r");
 	out_file = fdopen(ipipe->fd_out, "w");
 
 	demux_track = 0xc0 + ipipe->track;
-	
+
 	ps_loop();
-	
+
 	fclose(in_file);
 	fclose(out_file);
 
 	break;
 
    case TC_MAGIC_AVI:
-      
+
       if(ipipe->stype == TC_STYPE_STDIN){
 	fprintf(stderr, "(%s) invalid magic/stype - exit\n", __FILE__);
 	error=1;
 	break;
       }
-    
+
       // scan file
       if (ipipe->nav_seek_file) {
 	if(NULL == (avifile = AVI_open_indexfd(ipipe->fd_in,0,ipipe->nav_seek_file))) {
@@ -384,55 +384,55 @@ void extract_mp3(info_t *ipipe)
 	  padding = aud_chunk_from_vid_frame (ipipe->nav_seek_file, ipipe->frame_limit[0], 0, &fpos);
       }
 
-      fprintf (stderr, "(%s) IPIPE Frame limit (%ld-%ld) pad (%ld)\n", __FILE__, 
+      fprintf (stderr, "(%s) IPIPE Frame limit (%ld-%ld) pad (%ld)\n", __FILE__,
 	      ipipe->frame_limit[0], ipipe->frame_limit[1], padding);
 
-    
+
       // get total audio size
       bytes = (off_t)AVI_audio_bytes(avifile);
       bytes -= fpos;
       AVI_set_audio_position_index(avifile, padding);
 #endif
 
-    
+
       bytes = (off_t)AVI_audio_bytes(avifile);
       padding = bytes % MAX_BUF;
       frames = bytes / MAX_BUF;
 
       for (n=0; n<frames; ++n) {
-	
+
 	if(AVI_read_audio(avifile, audio, MAX_BUF)<0) {
 	  error=1;
 	  break;
 	}
-	
+
 	if(tc_pwrite(ipipe->fd_out, audio, MAX_BUF)!= MAX_BUF) {
 	  error=1;
 	  break;
 	}
       }
-    
-      if((bytes = AVI_read_audio(avifile, audio, padding)) < padding) 
+
+      if((bytes = AVI_read_audio(avifile, audio, padding)) < padding)
 	error=1;
-      
+
       if(tc_pwrite(ipipe->fd_out, audio, bytes)!= bytes) error=1;
-      
+
       break;
 
 
     case TC_MAGIC_RAW:
     default:
-	
+
 	if(ipipe->magic == TC_MAGIC_UNKNOWN)
-	    fprintf(stderr, "(%s) no file type specified, assuming %s\n", 
+	    fprintf(stderr, "(%s) no file type specified, assuming %s\n",
 		    __FILE__, filetype(TC_MAGIC_RAW));
-	
-	
+
+
 	error=mp3scan(ipipe->fd_in, ipipe->fd_out);
-     
+
      break;
     }
-    
+
     import_exit(error);
-    
+
 }

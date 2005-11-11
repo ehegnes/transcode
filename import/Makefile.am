@@ -129,93 +129,93 @@ pkg_LTLIBRARIES = \
 	import_yuv4mpeg.la
 
 import_null_la_SOURCES = import_null.c
-import_null_la_LDFLAGS = -module -avoid-version 
+import_null_la_LDFLAGS = -module -avoid-version
 
 import_sh_la_SOURCES = import_sh.c
-import_sh_la_LDFLAGS = -module -avoid-version 
+import_sh_la_LDFLAGS = -module -avoid-version
 
 import_ogg_la_SOURCES = import_ogg.c
-import_ogg_la_LDFLAGS = -module -avoid-version 
+import_ogg_la_LDFLAGS = -module -avoid-version
 
 import_xml_la_SOURCES = import_xml.c ioxml.c probe_xml.c ../src/zoom.c
-import_xml_la_LDFLAGS = -module -avoid-version 
+import_xml_la_LDFLAGS = -module -avoid-version
 import_xml_la_LIBADD = $(LIBXML2_LIBS) -lm
 
 import_yuv4mpeg_la_SOURCES = import_yuv4mpeg.c
-import_yuv4mpeg_la_LDFLAGS = -module -avoid-version 
+import_yuv4mpeg_la_LDFLAGS = -module -avoid-version
 
 import_mplayer_la_SOURCES = import_mplayer.c
-import_mplayer_la_LDFLAGS = -module -avoid-version 
+import_mplayer_la_LDFLAGS = -module -avoid-version
 
 import_rawlist_la_SOURCES = import_rawlist.c
 import_rawlist_la_LDFLAGS = -module -avoid-version
 import_rawlist_la_LIBADD = -lm
 
 import_divx_la_SOURCES = import_divx.c
-import_divx_la_LDFLAGS = -module -avoid-version 
+import_divx_la_LDFLAGS = -module -avoid-version
 
 import_xvid_la_SOURCES = import_xvid.c
-import_xvid_la_LDFLAGS = -module -avoid-version 
+import_xvid_la_LDFLAGS = -module -avoid-version
 
 import_ffmpeg_la_SOURCES = import_ffmpeg.c
-import_ffmpeg_la_LDFLAGS = -module -avoid-version 
+import_ffmpeg_la_LDFLAGS = -module -avoid-version
 import_ffmpeg_la_LIBADD = $(LIBAVCODEC_LIBS)
 
 import_im_la_SOURCES = import_im.c
-import_im_la_LDFLAGS = -module -avoid-version 
-import_im_la_LIBADD = $(IMAGEMAGICK_LIBS) -lm 
+import_im_la_LDFLAGS = -module -avoid-version
+import_im_la_LIBADD = $(IMAGEMAGICK_LIBS) -lm
 
 import_imlist_la_SOURCES = import_imlist.c
-import_imlist_la_LDFLAGS = -module -avoid-version 
-import_imlist_la_LIBADD = $(IMAGEMAGICK_LIBS) -lm 
+import_imlist_la_LDFLAGS = -module -avoid-version
+import_imlist_la_LIBADD = $(IMAGEMAGICK_LIBS) -lm
 
 import_mov_la_SOURCES = import_mov.c
-import_mov_la_LDFLAGS = -module -avoid-version 
-import_mov_la_LIBADD = $(LIBQUICKTIME_LIBS) -lm 
+import_mov_la_LDFLAGS = -module -avoid-version
+import_mov_la_LIBADD = $(LIBQUICKTIME_LIBS) -lm
 
 import_lav_la_SOURCES = import_lav.c
-import_lav_la_LDFLAGS = -module -avoid-version 
+import_lav_la_LDFLAGS = -module -avoid-version
 
 import_raw_la_SOURCES = import_raw.c
-import_raw_la_LDFLAGS = -module -avoid-version 
+import_raw_la_LDFLAGS = -module -avoid-version
 
 import_nvrec_la_SOURCES = import_nvrec.c
-import_nvrec_la_LDFLAGS = -module -avoid-version 
+import_nvrec_la_LDFLAGS = -module -avoid-version
 
 import_mpeg2_la_SOURCES = import_mpeg2.c
-import_mpeg2_la_LDFLAGS = -module -avoid-version 
+import_mpeg2_la_LDFLAGS = -module -avoid-version
 
 import_mpeg3_la_SOURCES = import_mpeg3.c
-import_mpeg3_la_LDFLAGS = -module -avoid-version 
+import_mpeg3_la_LDFLAGS = -module -avoid-version
 import_mpeg3_la_LIBADD = $(LIBMPEG3_LIBS)
 
-import_fraps_la_SOURCES = import_fraps.c 
-import_fraps_la_LDFLAGS = -module -avoid-version 
+import_fraps_la_SOURCES = import_fraps.c
+import_fraps_la_LDFLAGS = -module -avoid-version
 
-import_avi_la_SOURCES = import_avi.c 
-import_avi_la_LDFLAGS = -module -avoid-version 
+import_avi_la_SOURCES = import_avi.c
+import_avi_la_LDFLAGS = -module -avoid-version
 
 import_ac3_la_SOURCES = import_ac3.c ac3scan.c
-import_ac3_la_LDFLAGS = -module -avoid-version 
+import_ac3_la_LDFLAGS = -module -avoid-version
 import_ac3_la_LIBADD = $(AC3_LIBS) -lm
 
 import_vdrac3_la_SOURCES = import_vdrac3.c ac3scan.c
-import_vdrac3_la_LDFLAGS = -module -avoid-version 
+import_vdrac3_la_LDFLAGS = -module -avoid-version
 import_vdrac3_la_LIBADD = $(AC3_LIBS) -lm
 
 a52_decore_la_SOURCES = a52_decore.c
-a52_decore_la_LDFLAGS = -module -avoid-version 
+a52_decore_la_LDFLAGS = -module -avoid-version
 a52_decore_la_LIBADD = $(A52_LIBS) $(XIO_LIBS)
 
 af6_decore_la_SOURCES = af6_decore.cpp
-af6_decore_la_LDFLAGS = -module -avoid-version 
+af6_decore_la_LDFLAGS = -module -avoid-version
 af6_decore_la_LIBADD = $(AVIFILE_LIBS) -lstdc++ -lm
 
 import_mp3_la_SOURCES = import_mp3.c
-import_mp3_la_LDFLAGS = -module -avoid-version 
+import_mp3_la_LDFLAGS = -module -avoid-version
 
-import_lzo_la_SOURCES = import_lzo.c 
-import_lzo_la_LDFLAGS = -module -avoid-version 
+import_lzo_la_SOURCES = import_lzo.c
+import_lzo_la_LDFLAGS = -module -avoid-version
 import_lzo_la_LIBADD  = $(LZO_LIBS) -lm
 
 import_vob_la_SOURCES = import_vob.c ac3scan.c clone.c ioaux.c frame_info.c ivtc.c
@@ -235,20 +235,20 @@ import_vnc_la_LDFLAGS = -module -avoid-version
 import_pvn_la_SOURCES = import_pvn.c pvn.c pvnglobals.c
 import_pvn_la_LDFLAGS = -module -avoid-version
 
-import_ffbin_la_SOURCES = import_ffbin.c 
-import_ffbin_la_LDFLAGS = -module -avoid-version 
+import_ffbin_la_SOURCES = import_ffbin.c
+import_ffbin_la_LDFLAGS = -module -avoid-version
 
-import_bktr_la_SOURCES = import_bktr.c 
-import_bktr_la_LDFLAGS = -module -avoid-version 
+import_bktr_la_SOURCES = import_bktr.c
+import_bktr_la_LDFLAGS = -module -avoid-version
 
-import_sunau_la_SOURCES = import_sunau.c 
-import_sunau_la_LDFLAGS = -module -avoid-version 
+import_sunau_la_SOURCES = import_sunau.c
+import_sunau_la_LDFLAGS = -module -avoid-version
 
-import_oss_la_SOURCES = import_oss.c 
-import_oss_la_LDFLAGS = -module -avoid-version 
+import_oss_la_SOURCES = import_oss.c
+import_oss_la_LDFLAGS = -module -avoid-version
 
-import_bsdav_la_SOURCES = import_bsdav.c 
-import_bsdav_la_LDFLAGS = -module -avoid-version 
+import_bsdav_la_SOURCES = import_bsdav.c
+import_bsdav_la_LDFLAGS = -module -avoid-version
 
 import_af6_la_SOURCES = import_af6.c
 import_af6_la_LDFLAGS = -module -avoid-version
@@ -549,7 +549,7 @@ tcdemux_CFLAGS = $(AM_CFLAGS)
 
 # ------------------- #
 # T C X M L C H E C K #
-# ------------------- # 
+# ------------------- #
 
 tcxmlcheck_SOURCES = \
 	tcxmlcheck.c \
@@ -572,7 +572,7 @@ tcxmlcheck_CFLAGS = $(AM_CFLAGS)
 
 # ----------------- #
 # T C X P M 2 R G B #
-# ----------------- # 
+# ----------------- #
 
 tcxpm2rgb_SOURCES = tcxpm2rgb.c
 

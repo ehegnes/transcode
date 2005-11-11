@@ -67,7 +67,7 @@ Source code cleanup
    There is a configure option to build transcode linked to ffmpeg statically,
    but that's experimental. I will probably only work on linux;
 
- * Internal frame handling is now done in the YUV colourspace (more 
+ * Internal frame handling is now done in the YUV colourspace (more
    exactly: YUV420P or YV12) by default. This is much more suitable
    for almost all video encoders and decoders, so it's faster and more
    accurate because often two conversion steps can be skipped. In some

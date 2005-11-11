@@ -114,7 +114,7 @@ char *f_filenamelist(char *p_option,pvm_config_env *p_pvm_conf,int s_type,int s_
 		if ((s_cont==s_seq)&&(p_add_list->s_type==s_type))
 			return(p_add_list->p_filename);
 		else if (p_add_list->s_type==s_type)
-			s_cont++;		
+			s_cont++;
 	}
 	return(NULL);
 
@@ -183,7 +183,7 @@ int f_copy_remove_func(char *p_option,char *p_file,int s_file_dest)
 	static char *p_buffer=NULL;
 	int s_tmp;
 
-	
+
 	if(!strcasecmp(p_option,"open"))
 	{
 		if (p_buffer == NULL)
@@ -195,7 +195,7 @@ int f_copy_remove_func(char *p_option,char *p_file,int s_file_dest)
 		}
 		while(!feof(p_file_src))	/*copy process*/
 		{
-			s_tmp=fread(p_buffer,1,COPY_BUFFER,p_file_src);	
+			s_tmp=fread(p_buffer,1,COPY_BUFFER,p_file_src);
 			write(s_file_dest,p_buffer,s_tmp);
 		}
 		fclose(p_file_src);
@@ -235,16 +235,16 @@ static int f_internal_multipass(vob_t *p_vob,int s_size,int s_elab_type,transfer
 	tc_export(TC_EXPORT_NAME,(void *)p_export_param,NULL); /*check the capability*/
 	if (s_elab_type==TC_VIDEO)
 	{
-		switch (vob->im_v_codec) 
+		switch (vob->im_v_codec)
 		{
-			case CODEC_RGB: 
+			case CODEC_RGB:
 				s_tmp=(p_export_param->flag & TC_CAP_RGB);
 			break;
-			case CODEC_YUV: 
+			case CODEC_YUV:
 				s_tmp=(p_export_param->flag & TC_CAP_YUV);
 			break;
-			case CODEC_RAW: 
-			case CODEC_RAW_YUV: 
+			case CODEC_RAW:
+			case CODEC_RAW_YUV:
 				s_tmp=(p_export_param->flag & TC_CAP_VID);
 			break;
 			default:
@@ -254,15 +254,15 @@ static int f_internal_multipass(vob_t *p_vob,int s_size,int s_elab_type,transfer
 	}
 	else	/*audio codec*/
 	{
-		switch (vob->im_a_codec) 
+		switch (vob->im_a_codec)
 		{
-			case CODEC_PCM: 
+			case CODEC_PCM:
 				s_tmp=(p_export_param->flag & TC_CAP_PCM);
 			break;
-			case CODEC_AC3: 
+			case CODEC_AC3:
 				s_tmp=(p_export_param->flag & TC_CAP_AC3);
 			break;
-			case CODEC_RAW: 
+			case CODEC_RAW:
 				s_tmp=(p_export_param->flag & TC_CAP_AUD);
 			break;
 			default:
@@ -270,7 +270,7 @@ static int f_internal_multipass(vob_t *p_vob,int s_size,int s_elab_type,transfer
 		}
 		p_export_param->flag=TC_AUDIO;
 	}
-	if (!s_tmp)		
+	if (!s_tmp)
 		return(1);
 	if (tc_export(TC_EXPORT_INIT,(void *)p_export_param,vob)==TC_EXPORT_ERROR) /*check the capability*/
 	{
@@ -280,7 +280,7 @@ static int f_internal_multipass(vob_t *p_vob,int s_size,int s_elab_type,transfer
 			fprintf(stderr,"(%s) audio export module error: init failed\n",__FILE__);
 		return(1);
 	}
-	if (tc_export(TC_EXPORT_OPEN,(void *)p_export_param,vob)==TC_EXPORT_ERROR) 
+	if (tc_export(TC_EXPORT_OPEN,(void *)p_export_param,vob)==TC_EXPORT_ERROR)
 	{
 		if (s_elab_type==TC_VIDEO)
 			fprintf(stderr,"(%s) video export module error: open failed\n",__FILE__);
@@ -295,7 +295,7 @@ static int f_internal_multipass(vob_t *p_vob,int s_size,int s_elab_type,transfer
 	}
 	while (read(s_file_dest,p_export_param->buffer,s_size)==s_size)
 	{
-		if (tc_export(TC_EXPORT_ENCODE,(void *)p_export_param,vob)==TC_EXPORT_ERROR) 
+		if (tc_export(TC_EXPORT_ENCODE,(void *)p_export_param,vob)==TC_EXPORT_ERROR)
 		{
 			if (s_elab_type==TC_VIDEO)
 				fprintf(stderr,"(%s) video export module error: encode failed\n",__FILE__);
@@ -304,7 +304,7 @@ static int f_internal_multipass(vob_t *p_vob,int s_size,int s_elab_type,transfer
 			return(1);
 		}
 	}
-	if (tc_export(TC_EXPORT_CLOSE,(void *)p_export_param,NULL)==TC_EXPORT_ERROR) 
+	if (tc_export(TC_EXPORT_CLOSE,(void *)p_export_param,NULL)==TC_EXPORT_ERROR)
 	{
 		if (s_elab_type==TC_VIDEO)
 			fprintf(stderr,"(%s) video export module error: close failed\n",__FILE__);
@@ -312,7 +312,7 @@ static int f_internal_multipass(vob_t *p_vob,int s_size,int s_elab_type,transfer
 			fprintf(stderr,"(%s) audio export module error: close failed\n",__FILE__);
 		return(1);
 	}
-	if (tc_export(TC_EXPORT_STOP,(void *)p_export_param,NULL)==TC_EXPORT_ERROR) 
+	if (tc_export(TC_EXPORT_STOP,(void *)p_export_param,NULL)==TC_EXPORT_ERROR)
 	{
 		if (s_elab_type==TC_VIDEO)
 			fprintf(stderr,"(%s) video export module error: stop failed\n",__FILE__);
@@ -551,7 +551,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 			memset(s_result.p_result,'\0',s_result.s_dim_buffer);
 			fread(s_result.p_result,1,s_f_stat.st_size,p_file_src);
 			fclose(p_file_src);
-			s_result.s_msg_type=PVM_MSG_MERG_SEND;	
+			s_result.s_msg_type=PVM_MSG_MERG_SEND;
 			s_result.s_ret_size=s_f_stat.st_size;
 			s_result.s_rc=0;
 			if (verbose & TC_DEBUG)
@@ -576,7 +576,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 				memcpy(p_file_erase_tmp->s_file+strlen(p_buffer),p_suffix,strlen(p_suffix));
 			if ((s_divxmultipass==1)||(s_divxmultipass==2))
 				memcpy(p_file_erase_tmp->s_file_log,p_buffer+strlen(p_buffer)+1,s_size-(strlen(p_buffer)+1));
-			s_result.s_msg_type=PVM_MSG_JOIN;	
+			s_result.s_msg_type=PVM_MSG_JOIN;
 			s_result.s_ret_size=0;
 			s_result.s_rc=0;
 			if (verbose & TC_DEBUG)
@@ -594,7 +594,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 			else
 			{
 				p_file_elab_tmp=p_file_elab;
-				for (p_search=p_file_elab;p_search!=NULL;p_search=p_search->p_next)	
+				for (p_search=p_file_elab;p_search!=NULL;p_search=p_search->p_next)
 				{
 					if (p_search->s_seq >s_seq)
 						break;
@@ -644,7 +644,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 				vob->ex_a_fcc=p_param2;		/*override the default*/
 				vob->ex_profile_name=p_param3;	/*override the default*/
 				vob->out_flag=1;	/*force audio track on different file*/
-				vob->verbose=verbose;	
+				vob->verbose=verbose;
 				memset(s_filename_log,'\0',sizeof(s_filename_log));
 				tc_snprintf(s_filename_log,sizeof(s_filename_log),"%s-log-%s-%d-%d%s",p_out_file_name,p_hostname,getpid(),s_serial,p_suffix);
 				if (s_internal_multipass)
@@ -663,7 +663,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 						{
 							fprintf(stderr,"(%s) error checking %s\n",__FILE__,s_filename);
 							s_result.s_rc=1;
-							s_result.s_msg_type=PVM_MSG_CONF_JOIN;	
+							s_result.s_msg_type=PVM_MSG_CONF_JOIN;
 							break;
 						}
 					}
@@ -672,7 +672,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 					{
 						fprintf(stderr,"(%s) invalid sequence number %d\n",__FILE__,s_seq);
 						s_result.s_rc=1;
-						s_result.s_msg_type=PVM_MSG_CONF_JOIN;	
+						s_result.s_msg_type=PVM_MSG_CONF_JOIN;
 						break;
 					}
 					memset(s_filename_log,'\0',sizeof(s_filename_log));
@@ -688,16 +688,16 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 				tc_export(TC_EXPORT_NAME,&s_export_param,NULL); /*check the capability*/
 				if (s_elab_type==TC_VIDEO)
 				{
-					switch (vob->im_v_codec) 
+					switch (vob->im_v_codec)
 					{
-						case CODEC_RGB: 
+						case CODEC_RGB:
 							s_tmp=(s_export_param.flag & TC_CAP_RGB);
 						break;
-						case CODEC_YUV: 
+						case CODEC_YUV:
 							s_tmp=(s_export_param.flag & TC_CAP_YUV);
 						break;
-						case CODEC_RAW: 
-						case CODEC_RAW_YUV: 
+						case CODEC_RAW:
+						case CODEC_RAW_YUV:
 							s_tmp=(s_export_param.flag & TC_CAP_VID);
 						break;
 						default:
@@ -709,15 +709,15 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 				}
 				else	/*audio codec*/
 				{
-					switch (vob->im_a_codec) 
+					switch (vob->im_a_codec)
 					{
-						case CODEC_PCM: 
+						case CODEC_PCM:
 							s_tmp=(s_export_param.flag & TC_CAP_PCM);
 						break;
-						case CODEC_AC3: 
+						case CODEC_AC3:
 							s_tmp=(s_export_param.flag & TC_CAP_AC3);
 						break;
-						case CODEC_RAW: 
+						case CODEC_RAW:
 							s_tmp=(s_export_param.flag & TC_CAP_AUD);
 						break;
 						default:
@@ -727,7 +727,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 					if ((vob->divxmultipass==1)||(vob->divxmultipass==2))
 						vob->audiologfile=s_filename_log;
 				}
-				if (!s_tmp)		
+				if (!s_tmp)
 				{
 					s_result.s_msg_type=PVM_MSG_CONF;
 					s_result.s_ret_size=0;
@@ -743,7 +743,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 						fprintf(stderr,"(%s) audio export module error: init failed\n",__FILE__);
 					s_result.s_msg_type=PVM_MSG_CONF;
 					s_result.s_ret_size=0;
-					s_result.s_rc=-1;	
+					s_result.s_rc=-1;
 					break;
 				}
 				s_result.s_msg_type=PVM_MSG_CONF;
@@ -769,7 +769,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 					{
 						fprintf(stderr,"(%s) error checking %s\n",__FILE__,s_filename);
 						s_result.s_rc=1;
-						s_result.s_msg_type=PVM_MSG_CONF_JOIN;	
+						s_result.s_msg_type=PVM_MSG_CONF_JOIN;
 						break;
 					}
 				}
@@ -779,7 +779,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 				{
 					fprintf(stderr,"(%s) invalid sequence number %d\n",__FILE__,s_seq);
 					s_result.s_rc=1;
-					s_result.s_msg_type=PVM_MSG_CONF_JOIN;	
+					s_result.s_msg_type=PVM_MSG_CONF_JOIN;
 					break;
 				}
 				if (*p_suffix!='\0')
@@ -803,15 +803,15 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 				vob->audio_out_file=s_filename;
 				s_export_param.flag=TC_AUDIO;
 			}
-			if (tc_export(TC_EXPORT_OPEN,&s_export_param,vob)==TC_EXPORT_ERROR) 
+			if (tc_export(TC_EXPORT_OPEN,&s_export_param,vob)==TC_EXPORT_ERROR)
 			{
 				if (s_elab_type==TC_VIDEO)
 					fprintf(stderr,"(%s) video export module error: open failed\n",__FILE__);
 				else
 					fprintf(stderr,"(%s) audio export module error: open failed\n",__FILE__);
-				s_result.s_msg_type=PVM_MSG_CONF;	
+				s_result.s_msg_type=PVM_MSG_CONF;
 				s_result.s_ret_size=0;
-				s_result.s_rc=-1;	
+				s_result.s_rc=-1;
 				break;
 			}
 			memset(s_result.p_result,'\0',s_result.s_dim_buffer);
@@ -820,13 +820,13 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 				memcpy(s_result.p_result,s_filename,strlen(s_filename));
 				s_result.s_ret_size=strlen(s_filename);	/*need a number !0*/
 			}
-			else 
+			else
 			{
 				memcpy(s_result.p_result,s_filename,strlen(s_filename));
 				memcpy(s_result.p_result+1+strlen(s_filename),s_filename_log,strlen(s_filename_log));
 				s_result.s_ret_size=1+strlen(s_filename)+strlen(s_filename_log);	/*need a number !0*/
 			}
-			s_result.s_msg_type=PVM_MSG_CONF_JOIN;	
+			s_result.s_msg_type=PVM_MSG_CONF_JOIN;
 			s_result.s_rc=0;
 			if (verbose & TC_DEBUG)
 				fprintf(stderr,"(%s) exit from PVM_EXP_OPT_OPEN %d\n",__FILE__,s_elab_type);
@@ -838,7 +838,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 			s_export_param.buffer=p_buffer+sizeof(transfer_t);	/*pointer to the data*/
 			if (s_elab_type==TC_VIDEO)
 				s_export_param.flag=TC_VIDEO;
-			else	
+			else
 				s_export_param.flag=TC_AUDIO;
 			if (s_internal_multipass)
 			{
@@ -847,7 +847,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 					memset(s_file_int_multipass,'\0',sizeof(s_file_int_multipass));
 					if (s_elab_type==TC_VIDEO)
 						tc_snprintf(s_file_int_multipass,sizeof(s_file_int_multipass),"%s-video.raw",p_out_file_name);
-					else	
+					else
 						tc_snprintf(s_file_int_multipass,sizeof(s_file_int_multipass),"%s-audio.raw",p_out_file_name);
 					if ((s_file_dest=creat(s_file_int_multipass,O_TRUNC|S_IWUSR|S_IRUSR|S_IRGRP|S_IROTH))==-1)
 					{
@@ -859,7 +859,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 				}
 				write(s_file_dest,(char *)s_export_param.buffer,s_encode_size);
 			}
-			if (tc_export(TC_EXPORT_ENCODE,&s_export_param,vob)==TC_EXPORT_ERROR) 
+			if (tc_export(TC_EXPORT_ENCODE,&s_export_param,vob)==TC_EXPORT_ERROR)
 			{
 				if (s_elab_type==TC_VIDEO)
 					fprintf(stderr,"(%s) video export module error: encode failed\n",__FILE__);
@@ -867,7 +867,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 					fprintf(stderr,"(%s) audio export module error: encode failed\n",__FILE__);
 				s_result.s_msg_type=PVM_MSG_WORK;
 				s_result.s_ret_size=0;
-				s_result.s_rc=-1;	
+				s_result.s_rc=-1;
 				break;
 			}
 			if (s_first_encode)
@@ -884,7 +884,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 					s_result.s_ret_size=strlen(s_filename);        /*need a number !0*/
 					memcpy(s_result.p_result,s_filename,s_result.s_ret_size);
 				}
-				else 
+				else
 				{
 					memcpy(s_result.p_result,s_filename,strlen(s_filename));
 					memcpy(s_result.p_result+1+strlen(s_filename),s_filename_log,strlen(s_filename_log));
@@ -901,11 +901,11 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 				fprintf(stderr,"(%s) enter in PVM_EXP_OPT_CLOSE %d\n",__FILE__,s_elab_type);
 			if (s_elab_type==TC_VIDEO)
 				s_export_param.flag=TC_VIDEO;
-			else	
+			else
 				s_export_param.flag=TC_AUDIO;
 			if(f_init_func("status-external",p_request_func))	/*need because most of external module don't release the resources*/
 			{
-				if (tc_export(TC_EXPORT_CLOSE,&s_export_param,NULL)==TC_EXPORT_ERROR) 
+				if (tc_export(TC_EXPORT_CLOSE,&s_export_param,NULL)==TC_EXPORT_ERROR)
 				{
 					if (s_elab_type==TC_VIDEO)
 						fprintf(stderr,"(%s) video export module error: close failed\n",__FILE__);
@@ -913,13 +913,13 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 						fprintf(stderr,"(%s) audio export module error: close failed\n",__FILE__);
 					s_result.s_msg_type=PVM_MSG_CONF;
 					s_result.s_ret_size=0;
-					s_result.s_rc=-1;	
+					s_result.s_rc=-1;
 					break;
 				}
 			}
-			s_result.s_msg_type=PVM_MSG_CONF;	
+			s_result.s_msg_type=PVM_MSG_CONF;
 			s_result.s_ret_size=0;
-			s_result.s_rc=0;	
+			s_result.s_rc=0;
 			if (verbose & TC_DEBUG)
 				fprintf(stderr,"(%s) exit from PVM_EXP_OPT_CLOSE %d\n",__FILE__,s_elab_type);
 		break;
@@ -928,25 +928,25 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 				fprintf(stderr,"(%s) enter in PVM_EXP_OPT_STOP %d\n",__FILE__,s_elab_type);
 			if (s_elab_type==TC_VIDEO)
 				s_export_param.flag=TC_VIDEO;
-			else	
+			else
 				s_export_param.flag=TC_AUDIO;
 			if(f_init_func("status-external",p_request_func))	/*need because most of external module don't release the resources*/
 			{
-				if (tc_export(TC_EXPORT_STOP,&s_export_param,NULL)==TC_EXPORT_ERROR) 
+				if (tc_export(TC_EXPORT_STOP,&s_export_param,NULL)==TC_EXPORT_ERROR)
 				{
 					if (s_elab_type==TC_VIDEO)
 						fprintf(stderr,"(%s) video export module error: stop failed\n",__FILE__);
 					else
 						fprintf(stderr,"(%s) audio export module error: stop failed\n",__FILE__);
-					s_result.s_msg_type=PVM_MSG_CONF;	
+					s_result.s_msg_type=PVM_MSG_CONF;
 					s_result.s_ret_size=0;
-					s_result.s_rc=-1;	
+					s_result.s_rc=-1;
 					break;
 				}
 			}
 			s_result.s_msg_type=PVM_MSG_CONF;
 			s_result.s_ret_size=0;
-			s_result.s_rc=0;	
+			s_result.s_rc=0;
 			if (verbose & TC_DEBUG)
 				fprintf(stderr,"(%s) exit from PVM_EXP_OPT_STOP %d\n",__FILE__,s_elab_type);
 		break;
@@ -955,36 +955,36 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 				fprintf(stderr,"(%s) enter in PVM_EXP_OPT_RESTART_ENCODE1 %d\n",__FILE__,s_elab_type);
 			if (s_elab_type==TC_VIDEO)
 				s_export_param.flag=TC_VIDEO;
-			else	
+			else
 				s_export_param.flag=TC_AUDIO;
 			/*force the encoder to close the file and reopen a new one*/
-			if (tc_export(TC_EXPORT_CLOSE,&s_export_param,NULL)==TC_EXPORT_ERROR) 
+			if (tc_export(TC_EXPORT_CLOSE,&s_export_param,NULL)==TC_EXPORT_ERROR)
 			{
 				if (s_elab_type==TC_VIDEO)
 					fprintf(stderr,"(%s) video export module error: close failed\n",__FILE__);
 				else
 					fprintf(stderr,"(%s) audio export module error: close failed\n",__FILE__);
-				s_result.s_msg_type=PVM_MSG_WORK;	
+				s_result.s_msg_type=PVM_MSG_WORK;
 				s_result.s_ret_size=0;
-				s_result.s_rc=-1;	
+				s_result.s_rc=-1;
 				break;
 			}
-			if (tc_export(TC_EXPORT_STOP,&s_export_param,NULL)==TC_EXPORT_ERROR) 
+			if (tc_export(TC_EXPORT_STOP,&s_export_param,NULL)==TC_EXPORT_ERROR)
 			{
 				if (s_elab_type==TC_VIDEO)
 					fprintf(stderr,"(%s) video export module error: stop failed\n",__FILE__);
 				else
 					fprintf(stderr,"(%s) audio export module error: stop failed\n",__FILE__);
-				s_result.s_msg_type=PVM_MSG_WORK;	
+				s_result.s_msg_type=PVM_MSG_WORK;
 				s_result.s_ret_size=0;
-				s_result.s_rc=-1;	
+				s_result.s_rc=-1;
 				break;
 			}
 			if(f_init_func("close-external",p_request_func))	/*need because most of external module don't release the resources*/
 			{
 				fprintf(stderr,"(%s) restarting the dlopen \n",__FILE__);
 				s_result.s_rc=-1;
-				s_result.s_msg_type=PVM_MSG_WORK;	
+				s_result.s_msg_type=PVM_MSG_WORK;
 				break;
 			}
 			if (s_internal_multipass)
@@ -995,9 +995,9 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 				s_file_dest=-1;	/*reset the file desc*/
 				if(f_internal_multipass(vob,s_encode_size,s_elab_type,&s_export_param,s_file_int_multipass))
 				{
-					s_result.s_msg_type=PVM_MSG_WORK;	
+					s_result.s_msg_type=PVM_MSG_WORK;
 					s_result.s_ret_size=0;
-					s_result.s_rc=-1;	
+					s_result.s_rc=-1;
 					break;
 				}
 				remove(s_file_int_multipass);
@@ -1008,9 +1008,9 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 			s_result.s_rc=0;
 			s_result.s_ret_size=0;
 			if (s_elab_type==TC_VIDEO)
-				s_result.s_msg_type=PVM_MSG_ENDTASK_VIDEO;	
+				s_result.s_msg_type=PVM_MSG_ENDTASK_VIDEO;
 			else
-				s_result.s_msg_type=PVM_MSG_ENDTASK_AUDIO;	
+				s_result.s_msg_type=PVM_MSG_ENDTASK_AUDIO;
 			if (verbose & TC_DEBUG)
 				fprintf(stderr,"(%s) exit from PVM_EXP_OPT_RESTART_ENCODE1 %d\n",__FILE__,s_elab_type);
 		break;
@@ -1019,7 +1019,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 				fprintf(stderr,"(%s) enter in PVM_EXP_OPT_RESTART_ENCODE2 %d\n",__FILE__,s_elab_type);
 			if (s_elab_type==TC_VIDEO)
 				s_export_param.flag=TC_VIDEO;
-			else	
+			else
 				s_export_param.flag=TC_AUDIO;
 			if (vob->divxmultipass==2)		/*check the config file for multipass*/
 			{
@@ -1033,7 +1033,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 					{
 						fprintf(stderr,"(%s) error checking %s\n",__FILE__,s_filename);
 						s_result.s_rc=-1;
-						s_result.s_msg_type=PVM_MSG_WORK;	
+						s_result.s_msg_type=PVM_MSG_WORK;
 						break;
 					}
 				}
@@ -1043,7 +1043,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 				{
 					fprintf(stderr,"(%s) invalid sequence number %d\n",__FILE__,s_seq);
 					s_result.s_rc=-1;
-					s_result.s_msg_type=PVM_MSG_WORK;	
+					s_result.s_msg_type=PVM_MSG_WORK;
 					break;
 				}
 				if (*p_suffix!='\0')
@@ -1056,7 +1056,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 				{
 					fprintf(stderr,"(%s) invalid sequence number %d\n",__FILE__,s_seq);
 					s_result.s_rc=-1;
-					s_result.s_msg_type=PVM_MSG_WORK;	
+					s_result.s_msg_type=PVM_MSG_WORK;
 					break;
 				}
 				memcpy(s_filename_log,p_filetmp,strlen(p_filetmp));
@@ -1092,23 +1092,23 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 			{
 				fprintf(stderr,"(%s) restarting the dlopen \n",__FILE__);
 				s_result.s_rc=-1;
-				s_result.s_msg_type=PVM_MSG_WORK;	
+				s_result.s_msg_type=PVM_MSG_WORK;
 				break;
 			}
 			s_export_param.flag=verbose;	/*verbose option*/
 			tc_export(TC_EXPORT_NAME,&s_export_param,NULL); /*check the capability*/
 			if (s_elab_type==TC_VIDEO)
 			{
-				switch (vob->im_v_codec) 
+				switch (vob->im_v_codec)
 				{
-					case CODEC_RGB: 
+					case CODEC_RGB:
 						s_tmp=(s_export_param.flag & TC_CAP_RGB);
 					break;
-					case CODEC_YUV: 
+					case CODEC_YUV:
 						s_tmp=(s_export_param.flag & TC_CAP_YUV);
 					break;
-					case CODEC_RAW: 
-					case CODEC_RAW_YUV: 
+					case CODEC_RAW:
+					case CODEC_RAW_YUV:
 						s_tmp=(s_export_param.flag & TC_CAP_VID);
 					break;
 					default:
@@ -1118,15 +1118,15 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 			}
 			else	/*audio codec*/
 			{
-				switch (vob->im_a_codec) 
+				switch (vob->im_a_codec)
 				{
-					case CODEC_PCM: 
+					case CODEC_PCM:
 						s_tmp=(s_export_param.flag & TC_CAP_PCM);
 					break;
-					case CODEC_AC3: 
+					case CODEC_AC3:
 						s_tmp=(s_export_param.flag & TC_CAP_AC3);
 					break;
-					case CODEC_RAW: 
+					case CODEC_RAW:
 						s_tmp=(s_export_param.flag & TC_CAP_AUD);
 					break;
 					default:
@@ -1134,7 +1134,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 				}
 				s_export_param.flag=TC_AUDIO;
 			}
-			if (!s_tmp)		
+			if (!s_tmp)
 			{
 				s_result.s_msg_type=PVM_MSG_CONF;
 				s_result.s_ret_size=0;
@@ -1150,18 +1150,18 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 					fprintf(stderr,"(%s) audio export module error: init failed\n",__FILE__);
 				s_result.s_msg_type=PVM_MSG_WORK;
 				s_result.s_ret_size=0;
-				s_result.s_rc=-1;	
+				s_result.s_rc=-1;
 				break;
 			}
-			if (tc_export(TC_EXPORT_OPEN,&s_export_param,vob)==TC_EXPORT_ERROR) 
+			if (tc_export(TC_EXPORT_OPEN,&s_export_param,vob)==TC_EXPORT_ERROR)
 			{
 				if (s_elab_type==TC_VIDEO)
 					fprintf(stderr,"(%s) video export module error: open failed\n",__FILE__);
 				else
 					fprintf(stderr,"(%s) audio export module error: open failed\n",__FILE__);
-				s_result.s_msg_type=PVM_MSG_WORK;	
+				s_result.s_msg_type=PVM_MSG_WORK;
 				s_result.s_ret_size=0;
-				s_result.s_rc=-1;	
+				s_result.s_rc=-1;
 				break;
 			}
 			/*finished to encode the range so the task is free: send a msg to the father and another to the merger*/

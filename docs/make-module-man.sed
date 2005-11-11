@@ -7,7 +7,7 @@
 # .TH transcode 1 "1st November 2003" "transcode(1)"\
 # .SH NAME\
 # transcode \- LINUX video stream processing tool\
-# 
+#
 # start the work
 /^M: /{
 s/^M: [ei][xm]port_\([^.]*\)\.cp*/.TP 4\

@@ -39,7 +39,7 @@
 
 #define MOD_NAME    "import_fraps.so"
 #define MOD_VERSION "v0.0.2 (2003-11-12)"
-#define MOD_CODEC   "(video) * "
+#define MOD_CODEC   "(video) *"
 
 #include "transcode.h"
 
@@ -83,7 +83,7 @@ MOD_open
                              AVI_open_input_indexfile(vob->video_in_file,
                                                       0,vob->nav_seek_file))) {
                     AVI_print_error("avi open error");
-                    return(TC_IMPORT_ERROR); 
+                    return(TC_IMPORT_ERROR);
                 }
             } else {
                 if (NULL == (avifile2 = AVI_open_input_file(vob->video_in_file,
@@ -111,7 +111,7 @@ MOD_open
         fps    =  AVI_frame_rate(avifile2);
         codec  =  AVI_video_compressor(avifile2);
 
-        tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
+        tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d",
                 codec, fps, width, height);
 
         if ((strlen(codec) != 0 && strcmp("FPS1", codec) != 0) ||
@@ -126,7 +126,7 @@ MOD_open
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
@@ -199,7 +199,7 @@ MOD_decode
     return(TC_IMPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *

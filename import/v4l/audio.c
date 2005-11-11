@@ -5,20 +5,20 @@
  *  some code from xawtv: (c) 1997-2001 Gerd Knorr <kraxel@bytesex.org>
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -58,14 +58,14 @@ static int verb=0;
 
 int audio_grab_init(char *dev, int rate, int bits, int chan, int _verb)
 {
-  
+
   struct MOVIE_PARAMS params;
-  
+
   params.bits=bits;
   params.channels=chan;
   params.rate=rate;
   params.adev=dev;
-  
+
   verb=_verb;
 
   if(-1==sound_open(&params)) {
@@ -78,21 +78,21 @@ int audio_grab_init(char *dev, int rate, int bits, int chan, int _verb)
 
 int audio_grab_frame(char *buffer, int bytes)
 {
-  
+
   int bytes_left=bytes;
   int offset=0;
-  
+
   while(bytes_left>0) {
-    
+
     if(blocksize>bytes_left) {
-      
+
       if (bytes_left != read(fd, buffer + offset, bytes_left)) {
 	perror("read /dev/dsp");
 	return(-1);
       }
-      
+
     } else {
-      
+
       if (blocksize != read(fd, buffer + offset, blocksize)) {
 	perror("read /dev/dsp");
 	return(-1);
@@ -102,8 +102,8 @@ int audio_grab_frame(char *buffer, int bytes)
     offset += blocksize;
     bytes_left -= blocksize;
 
-  }//bytes_left>0     
-  
+  }//bytes_left>0
+
   return(0);
 
 }
@@ -112,7 +112,7 @@ void audio_grab_close(int do_audio)
 {
 
   if(do_audio) sound_startrec(0);
-  
+
   // audio device
   close(fd);
 }
@@ -122,43 +122,43 @@ void audio_grab_close(int do_audio)
 int sound_open(struct MOVIE_PARAMS *params)
 {
     int afmt, frag;
-    
+
     if (-1 == (fd = open(params->adev, O_RDONLY))) {
       perror("open audio device");
       goto err;
     }
-    
+
     fcntl(fd, F_SETFD, FD_CLOEXEC);
-    
+
     /* format */
 
     switch (params->bits) {
-      
+
     case 16:
-      
+
       afmt = AFMT_S16_LE;  //Signed 16 Low-Endian
       ioctl(fd, SNDCTL_DSP_SETFMT, &afmt);
-      
+
       if (afmt != AFMT_S16_LE) {
 	fprintf(stderr,"16 bit sound not supported\n");
 	goto err;
       }
 
       break;
-      
+
     case 8:
-      
+
       afmt = AFMT_U8;
-	
+
       ioctl(fd, SNDCTL_DSP_SETFMT, &afmt);
-      
+
       if (afmt != AFMT_U8) {
 	fprintf(stderr,"8 bit sound not supported\n");
 	goto err;
       }
-	
+
       break;
-    
+
     default:
       fprintf(stderr,"%d bit sound not supported\n",
 	      params->bits);
@@ -167,16 +167,16 @@ int sound_open(struct MOVIE_PARAMS *params)
 
     frag = 0x7fff000c;   //4k
     ioctl(fd, SNDCTL_DSP_SETFRAGMENT, &frag);
-    
+
     /* channels */
     ioctl(fd, SNDCTL_DSP_CHANNELS, &params->channels);
-    
+
     /* sample rate */
     ioctl(fd, SNDCTL_DSP_SPEED, &params->rate);
-    
+
     if (-1 == ioctl(fd, SNDCTL_DSP_GETBLKSIZE, &blocksize))
       goto err;
-    
+
     if(verb) printf("(%s) audio blocksize %d\n", __FILE__, blocksize);
 
     //start recording
@@ -184,7 +184,7 @@ int sound_open(struct MOVIE_PARAMS *params)
     sound_startrec(1);
 
     return fd;
-    
+
  err:
     return -1;
 }
@@ -192,11 +192,11 @@ int sound_open(struct MOVIE_PARAMS *params)
 void sound_startrec(int on_off)
 {
     long unsigned trigger;
-    
+
     /* trigger record */
 
     trigger = (on_off) ? PCM_ENABLE_INPUT : ~PCM_ENABLE_INPUT;
-    
+
     if (-1 == ioctl(fd,SNDCTL_DSP_SETTRIGGER, &trigger)) {
       perror("trigger record");
       exit(1);
@@ -278,7 +278,7 @@ int
 mixer_mute()
 {
     int zero=0;
-    
+
     muted = 1;
     if (-1 == dev)
 	return -1;

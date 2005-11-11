@@ -99,7 +99,7 @@ ptr = ppm_to_yuv_in_char(temp, &x, &y);
 #endif
 
 return ptr;
-} /* end function change_picture_geometry */ 
+} /* end function change_picture_geometry */
 
 
 int execute(char *command)

@@ -7,19 +7,19 @@
  *  Sources: some ideas from volnorm plugin for xmms
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, version 2.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
 /* Values for AVG:
@@ -85,10 +85,10 @@ typedef struct MyFilterData {
 	struct mem_t mem[NSAMPLES];
 	int AVG;
 } MyFilterData;
-	
+
 static MyFilterData *mfd = NULL;
 
-/* should probably honor the other flags too */ 
+/* should probably honor the other flags too */
 
 /*-------------------------------------------------
  *
@@ -96,7 +96,7 @@ static MyFilterData *mfd = NULL;
  *
  *-------------------------------------------------*/
 
-static void help_optstr(void) 
+static void help_optstr(void)
 {
    tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
@@ -171,7 +171,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     reset();
 
     if (options != NULL) {
-    
+
 	if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
 	optstr_get(options, "smooth", "%f", &mfd->SMOOTH_MUL);
@@ -187,7 +187,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if (verbose > 1) {
 	tc_log_info (MOD_NAME, " Normalize Filter Settings:");
     }
-#endif    
+#endif
 
     if (options)
 	if (optstr_lookup (options, "help")) {
@@ -197,7 +197,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     // filter init ok.
     if (verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
-    
+
     return(0);
   }
 
@@ -207,28 +207,28 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //
   //----------------------------------
 
-  
+
   if(ptr->tag & TC_FILTER_CLOSE) {
 
-    if (mfd) { 
+    if (mfd) {
 	free(mfd);
     }
 
     return(0);
 
   } /* filter close */
-  
+
   //----------------------------------
   //
   // filter frame routine
   //
   //----------------------------------
 
-    
+
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
-  
+
   if((ptr->tag & TC_PRE_PROCESS) && (ptr->tag & TC_AUDIO) && !(ptr->attributes & TC_FRAME_IS_SKIPPED))  {
 
 
@@ -302,7 +302,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 
   }
-  
+
   return(0);
 }
 

@@ -6,7 +6,7 @@
  *  Author : Edouard Gomez <ed.gomez@free.fr>
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software ; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation ; either version 2 of the License, or
@@ -78,7 +78,7 @@ static int capability_flag = TC_CAP_PCM |
                              TC_CAP_YUV422 |
                              TC_CAP_AC3 |
                              TC_CAP_AUD;
-#define MOD_PRE xvid4_ 
+#define MOD_PRE xvid4_
 #include "export_def.h"
 
 /* XviD shared library name */
@@ -223,7 +223,7 @@ MOD_init
 	}
 
 	/* Buffer allocation
-	 * We allocate width*height*bpp/8 to "receive" the compressed stream 
+	 * We allocate width*height*bpp/8 to "receive" the compressed stream
 	 * I don't think the codec will ever return more than that. It's and
 	 * encoder, so if it fails delivering smaller frames than original
 	 * ones, something really odd occurs somewhere and i prefer the
@@ -245,7 +245,7 @@ MOD_init
 		thismod.stream_size = (thismod.stream_size*3)/2;
 	if((thismod.stream = malloc(thismod.stream_size)) == NULL) {
 		fprintf(stderr, "[%s] Error allocating stream buffer\n", MOD_NAME);
-		return(TC_EXPORT_ERROR); 
+		return(TC_EXPORT_ERROR);
 	} else {
 		memset(thismod.stream, 0, thismod.stream_size);
 	}
@@ -312,19 +312,19 @@ MOD_open
 
 		if((vob->avifile_out) == NULL) {
 			AVI_print_error("avi open error");
-			return(TC_EXPORT_ERROR); 
+			return(TC_EXPORT_ERROR);
 		}
 	}
 
 	/* Open audio file */
 	if(param->flag == TC_AUDIO)
 		return(audio_open(vob, vob->avifile_out));
-    
+
 	/* Open video file */
 	if(verbose_flag & TC_DEBUG)
 		tc_log_info(MOD_NAME, "Using %s output",
 			MOD_NAME, avi_output?"AVI":"Raw");
-    
+
 	if(avi_output) {
 		/* AVI Video output */
 		AVI_set_video(vob->avifile_out, vob->ex_v_width,
@@ -365,9 +365,9 @@ MOD_encode
 		return(TC_EXPORT_ERROR);
 
 	/* Audio encoding */
-	if(param->flag == TC_AUDIO) 
-		return(audio_encode(param->buffer, param->size, vob->avifile_out));  
-  
+	if(param->flag == TC_AUDIO)
+		return(audio_encode(param->buffer, param->size, vob->avifile_out));
+
 	/* Video encoding */
 
 	if(vob->im_v_codec == CODEC_YUV422) {
@@ -385,7 +385,7 @@ MOD_encode
 	/* Combine both the config settings with the transcode direct options
 	 * into the final xvid_enc_frame_t struct */
 	set_frame_struct(&thismod, vob, param);
-	
+
 	bytes = xvid->encore(thismod.instance, XVID_ENC_ENCODE,
 			     &thismod.xvid_enc_frame, &xvid_enc_stats);
 
@@ -417,7 +417,7 @@ MOD_encode
 
 	/* Make sure we take care of AVI splitting */
 	if(thismod.rawfd < 0) {
-		if((uint32_t)(AVI_bytes_written(vob->avifile_out)+bytes+16+8)>>20 >= tc_avi_limit) 
+		if((uint32_t)(AVI_bytes_written(vob->avifile_out)+bytes+16+8)>>20 >= tc_avi_limit)
 			tc_outstream_rotate_request();
 		if(thismod.xvid_enc_frame.out_flags & XVID_KEYFRAME)
 			tc_outstream_rotate();
@@ -430,12 +430,12 @@ MOD_encode
 				      thismod.xvid_enc_frame.out_flags & XVID_KEYFRAME);
 		if(ret < 0) {
 			tc_log_warn(MOD_NAME, "AVI video write error");
-			return(TC_EXPORT_ERROR); 
+			return(TC_EXPORT_ERROR);
 		}
 	} else {
 		int ret;
 		ret = tc_pwrite(thismod.rawfd, thismod.stream, bytes);
-		if(ret != bytes) {    
+		if(ret != bytes) {
 			tc_log_warn(MOD_NAME, "RAW video write error");
 			return(TC_EXPORT_ERROR);
 		}
@@ -449,7 +449,7 @@ MOD_encode
  ****************************************************************************/
 
 MOD_close
-{  
+{
 	vob_t *vob = tc_get_vob();
 
 	/* Invalid flag */
@@ -458,7 +458,7 @@ MOD_close
 
 	/* Audio file closing */
 	if(param->flag == TC_AUDIO)
-		return(audio_close()); 
+		return(audio_close());
 
 	/* Video file closing */
 	if(thismod.rawfd >= 0) {
@@ -482,7 +482,7 @@ MOD_close
 ((!(sse)) ? (99.0f) : (48.131f - 10*(float)log10((float)(sse)/((float)((width)*(height))))))
 
 MOD_stop
-{  
+{
 	int ret;
 	xvid_module_t *xvid = &thismod.xvid;
 
@@ -522,8 +522,8 @@ MOD_stop
 			thismod.sse_u = 0;
 			thismod.sse_v = 0;
 		}
-		
-		tc_log_info(MOD_NAME, 
+
+		tc_log_info(MOD_NAME,
 			"psnr y = %.2f dB, "
 			"psnr u = %.2f dB, "
 			"psnr v = %.2f dB",
@@ -736,7 +736,7 @@ static void dispatch_settings(xvid_transcode_module_t *mod)
 			XVID_ME_HALFPELREFINE8  | XVID_ME_USESQUARES16
 		};
 
-	
+
 	/* Dispatch all settings having an impact on the "create" structure */
 	create->global = 0;
 
@@ -1003,7 +1003,7 @@ static void set_create_struct(xvid_transcode_module_t *mod, vob_t *vob)
 			x->num_zones++;
 		}
 
-		
+
 		x->plugins[x->num_plugins].func  = xvid->plugin_onepass;
 		x->plugins[x->num_plugins].param = onepass;
 		x->num_plugins++;
@@ -1059,8 +1059,8 @@ static void set_frame_struct(xvid_transcode_module_t *mod, vob_t *vob, transfer_
 
 	/* pixel aspect ratio
 	 * transcode.c uses 0 for EXT instead of 15 */
-	if ((vob->ex_par==0) && 
-	    (vob->ex_par_width==1) && (vob->ex_par_height==1)) 
+	if ((vob->ex_par==0) &&
+	    (vob->ex_par_width==1) && (vob->ex_par_height==1))
 	    vob->ex_par = 1;
 
 	x->par = (vob->ex_par==0)? XVID_PAR_EXT: vob->ex_par;
@@ -1109,7 +1109,7 @@ static void *read_matrix(const char *filename)
 	int i;
 	unsigned char *matrix;
 	FILE *input;
-	
+
 	/* Allocate matrix space */
 	if((matrix = malloc(64*sizeof(unsigned char))) == NULL)
 	   return(NULL);
@@ -1151,13 +1151,13 @@ static void *read_matrix(const char *filename)
 	fclose(input);
 
 	return(matrix);
-	
+
 }
 
 static void print_matrix(unsigned char *matrix)
 {
 	int i;
-// FIXME: remove me when new code works	
+// FIXME: remove me when new code works
 #if 0
 	for(i=0; i<8; i++) {
 		int j;
@@ -1166,14 +1166,14 @@ static void print_matrix(unsigned char *matrix)
 		fprintf(stderr, "\n");
 #else
 	for(i=0; i < 64; i+=8) {
-		tc_log_info(MOD_NAME, 
+		tc_log_info(MOD_NAME,
 			"%3d %3d %3d %3d "
 			"%3d %3d %3d %3d",
 			(int)matrix[i], (int)matrix[i+1],
 			(int)matrix[i+2], (int)matrix[i+3],
 			(int)matrix[i+4], (int)matrix[i+5],
 			(int)matrix[i+6], (int)matrix[i+7]);
-#endif	
+#endif
 	}
 
 	return;

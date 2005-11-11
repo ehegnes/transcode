@@ -46,7 +46,7 @@
 void deinterlace_bob_yuv_mmx(uint8_t *pdst, uint8_t *psrc,
 			     int width, int height )
 {
-  
+
   int Line;
   long long* YVal1;
   long long* YVal2;

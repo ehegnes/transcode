@@ -6,20 +6,20 @@
  *  Parts of export_wav and export_mpeg2enc used for this file
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -51,7 +51,7 @@ static struct wave_header 	rtf;
 
 static char *mpa=".mpa";
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open outputfile
  *
@@ -63,8 +63,8 @@ MOD_open
 
     /* check for mp2enc */
     if (tc_test_program("mp2enc") != 0) return (TC_EXPORT_ERROR);
-          
-    if (param->flag == TC_AUDIO) 
+
+    if (param->flag == TC_AUDIO)
     {
         char buf [PATH_MAX];
 	char mono[] = "-m";
@@ -93,7 +93,7 @@ MOD_open
 
 	// default profile values, authority: videohelp and dvdfaq
 	switch(vob->mpeg_profile) {
-	case VCD_PAL: case VCD_NTSC: case VCD: 
+	case VCD_PAL: case VCD_NTSC: case VCD:
 	  def_srate = 44100;
 	  def_brate = 224;
 	  def_chan = stereo;
@@ -123,51 +123,51 @@ MOD_open
 	if(!(probe_export_attributes & TC_PROBE_NO_EXPORT_ARATE))
 	  if (srate != def_srate) {
             tc_log_info(MOD_NAME, "export profile changed samplerate:"
-			          " %d -> %d Hz.", srate, def_srate); 
+			          " %d -> %d Hz.", srate, def_srate);
 	    srate = def_srate;
 	  }
 	if(!(probe_export_attributes & TC_PROBE_NO_EXPORT_ABITRATE))
 	  if (brate != def_brate) {
             tc_log_info(MOD_NAME, "export profile changed bitrate: "
-			          "%d -> %d kbps.", brate, def_brate); 
+			          "%d -> %d kbps.", brate, def_brate);
 	    brate = def_brate;
 	  }
 	if(!(probe_export_attributes & TC_PROBE_NO_EXPORT_ACHANS))
 	  if (chan != def_chan) {
             tc_log_info(MOD_NAME, "export profile changed channels: "
-			          "mono -> stereo."); 
+			          "mono -> stereo.");
 	    chan = def_chan;
 	  }
-	
+
 	if(tc_snprintf(buf, PATH_MAX, "mp2enc -v %d -r %d -b %d %s -o \"%s%s\" %s", verb, srate, brate, chan, vob->audio_out_file, mpa, (vob->ex_a_string?vob->ex_a_string:"")) < 0) {
 	  perror("cmd buffer overflow");
 	  return(TC_EXPORT_ERROR);
-	} 
-	
-        if(verbose & TC_INFO) tc_log_info(MOD_NAME, "(%d/%d) cmd=%s", 
+	}
+
+        if(verbose & TC_INFO) tc_log_info(MOD_NAME, "(%d/%d) cmd=%s",
 			                  (int)strlen(buf), PATH_MAX, buf);
-	
+
         if((pFile = popen (buf, "w")) == NULL)
 	  return(TC_EXPORT_ERROR);
-	
+
         if (AVI_write_wave_header (fileno (pFile), &rtf) != 0)
-	{    
+	{
       	    perror("write wave header");
       	    return(TC_EXPORT_ERROR);
-        }     
-   
+        }
+
         return(0);
     }
-  
-    if (param->flag == TC_VIDEO) 
+
+    if (param->flag == TC_VIDEO)
 	return(0);
-  
+
     // invalid flag
-    return(TC_EXPORT_ERROR); 
+    return(TC_EXPORT_ERROR);
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * init codec
  *
@@ -175,19 +175,19 @@ MOD_open
 
 MOD_init
 {
-    if(param->flag == TC_AUDIO) 
+    if(param->flag == TC_AUDIO)
     {
         memset((char *) &rtf, 0, sizeof(rtf));
-    
+
         strncpy(rtf.riff.id, "RIFF", 4);
         rtf.riff.len = sizeof(struct riff_struct)
 	             + sizeof(struct chunk_struct)
 		     + sizeof(struct common_struct);
         strncpy(rtf.riff.wave_id, "WAVE",4);
         strncpy(rtf.format.id, "fmt ",4);
-    
+
         rtf.format.len = sizeof (struct common_struct);
-	
+
         rtf.common.wFormatTag        = CODEC_PCM;
         rtf.common.dwSamplesPerSec   = vob->a_rate;
         rtf.common.dwAvgBytesPerSec  = vob->dm_chan*vob->a_rate*vob->dm_bits/8;
@@ -199,20 +199,20 @@ MOD_init
 
 	if ( !(probe_export_attributes & TC_PROBE_NO_EXPORT_AEXT))
 		audio_ext = mpa;
-	  
-        tc_log_warn(MOD_NAME, "*** init-v *** !"); 
-    
+
+        tc_log_warn(MOD_NAME, "*** init-v *** !");
+
         return(0);
     }
-  
-    if (param->flag == TC_VIDEO) 
-	return(0);  
-  
+
+    if (param->flag == TC_VIDEO)
+	return(0);
+
     // invalid flag
-    return(TC_EXPORT_ERROR); 
+    return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * encode and export frame
  *
@@ -227,58 +227,58 @@ MOD_encode
 		fileno (pFile),
 		param->buffer, param->size
 		) != param->size)
-        {    
+        {
             perror("write audio frame");
             return(TC_EXPORT_ERROR);
-        }      
-        return (0); 
+        }
+        return (0);
     }
-  
-    if (param->flag == TC_VIDEO) 
+
+    if (param->flag == TC_VIDEO)
         return(0);
 
     // invalid flag
-    return(TC_EXPORT_ERROR); 
+    return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * stop encoder
  *
  * ------------------------------------------------------------*/
 
 MOD_stop
-{  
-    if (param->flag == TC_VIDEO) 
+{
+    if (param->flag == TC_VIDEO)
         return (0);
-  
-    if (param->flag == TC_AUDIO) 
+
+    if (param->flag == TC_AUDIO)
 	return (0);
-  
-    return(TC_EXPORT_ERROR);     
+
+    return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close codec
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
-    if (param->flag == TC_VIDEO) 
+{
+    if (param->flag == TC_VIDEO)
 	return (0);
-  
-    if (param->flag == TC_AUDIO) 
+
+    if (param->flag == TC_AUDIO)
     {
-        if (pFile) 
+        if (pFile)
 	  pclose (pFile);
-    
+
 	pFile = NULL;
-  
+
         return(0);
     }
-  
-    return (TC_EXPORT_ERROR); 
+
+    return (TC_EXPORT_ERROR);
 }
 

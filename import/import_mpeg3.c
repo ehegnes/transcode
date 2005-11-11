@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream  processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -45,7 +45,7 @@ static mpeg3_t* file = NULL;
 static mpeg3_t* file_a = NULL;
 
 static int codec, stream_id;
-static int height, width; 
+static int height, width;
 
 static int astreamid = 0;
 
@@ -130,7 +130,7 @@ MOD_open
 #endif
       mpeg3_set_cpus(file_a,1);
 
-  
+
       if (!mpeg3_has_audio(file_a)) {
 	  tc_log_warn(MOD_NAME, "No audio found");
 	  return TC_IMPORT_ERROR;
@@ -168,9 +168,9 @@ MOD_open
 	  mpeg3_set_sample(file_a, sample*vob->im_a_size/2, astreamid);
       }
 
-      // prefetch 
+      // prefetch
       prefetch_len = vob->im_a_size * FRAMES_TO_PREFETCH;
-      
+
       read_buffer = malloc (prefetch_len);
       prefetch_buffer = malloc (prefetch_len);
       if (!read_buffer || !prefetch_buffer) {
@@ -203,9 +203,9 @@ MOD_open
     height=vob->im_v_height;
 
     switch(codec) {
-    
+
     case CODEC_RGB:
-      
+
     for (i=0; i<height; i++)
     {
 	if(i==height-1)
@@ -217,25 +217,25 @@ MOD_open
     break;
 
     case CODEC_YUV:
-      
+
       y_output=framebuffer;
       u_output=y_output+width*height;
       v_output=u_output+(width/2)*(height/2);
       break;
     }
-    
+
     if (vob->im_v_string) {
 	long sample = strtol(vob->im_v_string, (char **)NULL, 0);
 	mpeg3_set_frame(file, sample, stream_id);
     }
-    
+
     return(TC_IMPORT_OK);
   }
   return(TC_IMPORT_ERROR);
-  
+
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
@@ -243,11 +243,11 @@ MOD_open
 
 MOD_decode
 {
-    
+
   int i, block;
 
   if(param->flag == TC_AUDIO) {
-      
+
 	int channel = 0;
 	int result = 0;
 	static int framenum = 0;
@@ -268,18 +268,18 @@ MOD_decode
 
 	    for(channel = 0; (channel < vob->a_chan) && !result; channel++) {
 		if(channel == 0) {
-		    result = mpeg3_read_audio(file_a, 
-			    NULL, 
-			    read_buffer, 
-			    channel, 
-			    len, 
+		    result = mpeg3_read_audio(file_a,
+			    NULL,
+			    read_buffer,
+			    channel,
+			    len,
 			    astreamid);
 		} else {
-		    result = mpeg3_reread_audio(file_a, 
-			    NULL, 
-			    read_buffer, 
-			    channel, 
-			    len, 
+		    result = mpeg3_reread_audio(file_a,
+			    NULL,
+			    read_buffer,
+			    channel,
+			    len,
 			    astreamid);
 		}
 
@@ -295,10 +295,10 @@ MOD_decode
 		}
 		if (result) return TC_IMPORT_ERROR;
 	    }
-	} 
-	ac_memcpy (param->buffer, 
-		(char *)prefetch_buffer + 
-                           (framenum % FRAMES_TO_PREFETCH) * vob->im_a_size, 
+	}
+	ac_memcpy (param->buffer,
+		(char *)prefetch_buffer +
+                           (framenum % FRAMES_TO_PREFETCH) * vob->im_a_size,
 		vob->im_a_size);
 	framenum++;
       return(TC_IMPORT_OK);
@@ -308,17 +308,17 @@ MOD_decode
   if(param->flag == TC_VIDEO) {
 
     switch(codec) {
-    
+
     case CODEC_RGB:
-      
+
       if(mpeg3_read_frame(file, rowptr, 0, 0, width, height, width,
                           height, MPEG3_RGB888, stream_id))
           return(TC_IMPORT_ERROR);
-      
-      block = width * 3; 
+
+      block = width * 3;
       param->size = block * height;
-    
-      for(i=0; i<height; ++i) 
+
+      for(i=0; i<height; ++i)
 	ac_memcpy(param->buffer+(i-1)*block,rowptr[height-i-1], block);
 
       break;
@@ -338,15 +338,15 @@ MOD_decode
   return(TC_IMPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
-    
+{
+
     if(param->fd != NULL) pclose(param->fd);
 
     if(param->flag == TC_VIDEO) {

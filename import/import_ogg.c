@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - July 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -41,7 +41,7 @@ char import_cmd_buf[MAX_BUF];
 
 static FILE *fd;
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open stream
  *
@@ -51,7 +51,7 @@ MOD_open
 {
 
     param->fd = NULL;
-    
+
     if(param->flag == TC_VIDEO) {
 
 	char *codec;
@@ -100,10 +100,10 @@ MOD_open
 
 	}
 
-	if(tc_snprintf(import_cmd_buf, MAX_BUF, 
+	if(tc_snprintf(import_cmd_buf, MAX_BUF,
 			"tcextract -i \"%s\" -x raw -d %d | "
 			"tcdecode %s -g %dx%d -x %s -y %s -d %d",
-			vob->video_in_file, vob->verbose, 
+			vob->video_in_file, vob->verbose,
 			magic, vob->im_v_width, vob->im_v_height, codec, color, vob->verbose) < 0) {
 	    perror("command buffer overflow");
 	    return(TC_IMPORT_ERROR);
@@ -142,17 +142,17 @@ MOD_open
 		tc_log_warn(MOD_NAME, "Unkown codec");
 		break;
 	}
-    
-	if(tc_snprintf(import_cmd_buf, MAX_BUF, 
+
+	if(tc_snprintf(import_cmd_buf, MAX_BUF,
 			"tcextract -i \"%s\" -x %s -a %d -d %d | tcdecode -x %s -d %d",
-			vob->audio_in_file, codec, vob->a_track, vob->verbose, 
+			vob->audio_in_file, codec, vob->a_track, vob->verbose,
 			codec, vob->verbose) < 0) {
 	    perror("command buffer overflow");
 	    return(TC_IMPORT_ERROR);
 	}
 
 	if (vob->fixme_a_codec == CODEC_PCM) {
-	    if(tc_snprintf(import_cmd_buf, MAX_BUF, 
+	    if(tc_snprintf(import_cmd_buf, MAX_BUF,
 			"tcextract -i \"%s\" -x %s -a %d -d %d",
 			vob->audio_in_file, codec, vob->a_track,
 			vob->verbose) < 0) {
@@ -178,7 +178,7 @@ MOD_open
     return(TC_IMPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode stream
  *
@@ -190,17 +190,17 @@ MOD_decode
   return(0);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
-  
+{
+
   if(param->fd != NULL) pclose(param->fd);
-  
+
   return(0);
 }
 

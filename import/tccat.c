@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -35,14 +35,14 @@ char buf[MAX_BUF];
 
 int verbose=TC_INFO;
 
-void import_exit(int code) 
+void import_exit(int code)
 {
   if(verbose & TC_DEBUG) import_info(code, EXE);
   exit(code);
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * print a usage/version message
  *
@@ -60,7 +60,7 @@ void version(void)
 static void usage(int status)
 {
   version();
-  
+
   fprintf(stderr,"\nUsage: %s [options]\n", EXE);
 #ifdef HAVE_LIBDVDREAD
 #ifdef NET_STREAM
@@ -90,7 +90,7 @@ static void usage(int status)
   fprintf(stderr,"\t -v               print version\n");
 
   exit(status);
-  
+
 }
 
 # define IS_STDIN    1
@@ -100,9 +100,9 @@ static void usage(int status)
 # define IS_SOCKET   5
 # define IS_TS       6
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
- * universal extract frontend 
+ * universal extract frontend
  *
  * ------------------------------------------------------------*/
 
@@ -118,9 +118,9 @@ int main(int argc, char *argv[])
   long sret;
 
   int user=0, source=0;
-  
+
   int end_chapter, start_chapter;
-  
+
   int title=1, chapter1=1, chapter2=-1, angle=1, n=0, j, loop=0, stream=0, audio=0;
 
   int max_chapters;
@@ -133,19 +133,19 @@ int main(int argc, char *argv[])
 
   //proper initialization
   memset(&ipipe, 0, sizeof(info_t));
-  
+
   while ((ch = getopt(argc, argv, "S:T:d:i:vt:LaP?hn:")) != -1) {
-    
+
     switch (ch) {
-      
-    case 'i': 
-      
+
+    case 'i':
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       name = optarg;
-      
+
       break;
-      
-    case 'T': 
+
+    case 'T':
 
       n = sscanf(optarg,"%d,%d-%d,%d", &title, &chapter1, &chapter2, &angle);
 
@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
 	n = sscanf(optarg,"%d,%d-%d", &title, &chapter1, &chapter2);
 
 	if (n != 3) {
-	  
+
 	  n = sscanf(optarg,"%d,%d,%d", &title, &chapter1, &angle);
           // only do one chapter !
 	  chapter2=chapter1;
@@ -165,9 +165,9 @@ int main(int argc, char *argv[])
 	  }
 	}
       }
-      
+
       source = IS_DVD;
-      
+
       if(chapter2!=-1) {
 	if(chapter2<chapter1) {
 	  fprintf(stderr, "invalid parameter for option -T\n");
@@ -179,13 +179,13 @@ int main(int argc, char *argv[])
       if(chapter1==-1) loop=1;
 
       break;
-      
+
     case 'L':
       loop=1;
       chapter2=INT_MAX;
-      
+
       break;
-      
+
     case 'P':
       stream=1;
 
@@ -194,50 +194,50 @@ int main(int argc, char *argv[])
     case 'a':
       audio=1;
       break;
-      
-    case 'd': 
-      
+
+    case 'd':
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       verbose = atoi(optarg);
-      
+
       break;
 
 
-    case 'n': 
-      
+    case 'n':
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       ts_pid = strtol(optarg, NULL, 16);
-      
+
       source = IS_TS;
 
       break;
 
-    case 'S': 
-      
+    case 'S':
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       vob_offset = atoi(optarg);
-      
+
       break;
-      
-      
-    case 't': 
-      
+
+
+    case 't':
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       magic = optarg;
       user=1;
-      
+
       if(strcmp(magic,"dvd")==0) {
 	source=IS_DVD;
       }
-      
+
       break;
-      
-      
-    case 'v': 
+
+
+    case 'v':
       version();
       exit(0);
       break;
-      
+
     case 'h':
       usage(EXIT_SUCCESS);
     default:
@@ -247,8 +247,8 @@ int main(int argc, char *argv[])
 
   //DVD debugging information
   if(verbose & TC_DEBUG && source == IS_DVD) fprintf(stderr, "T=%d %d %d %d %d\n", n, title, chapter1, chapter2, angle);
-  
-  /* ------------------------------------------------------------ 
+
+  /* ------------------------------------------------------------
    *
    * fill out defaults for info structure
    *
@@ -258,24 +258,24 @@ int main(int argc, char *argv[])
   if(argc==1) {
     usage(EXIT_FAILURE);
   }
-  
+
   // assume defaults
   if(name==NULL) {
     source=IS_STDIN;
     ipipe.fd_in = STDIN_FILENO;
   }
-  
-  // no stdin for DVD 
+
+  // no stdin for DVD
   if(name==NULL && source==IS_DVD) {
     fprintf(stderr, "error: invalid directory/path_to_device\n");
     usage(EXIT_FAILURE);
   }
-  
+
   // do not try to mess with the stdin stream
   if((source!=IS_DVD) && (source!=IS_TS) && (source!=IS_STDIN)) {
-    
+
     // file or directory?
-    
+
     if(stat(name, &fbuf)) {
 
 #ifdef NET_STREAM
@@ -289,7 +289,7 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "(%s) invalid file \"%s\"\n", __FILE__, name);
 	exit(1);
     }
-    
+
     //default
     source=IS_FILE;
     if(S_ISDIR(fbuf.st_mode)) source=IS_DIR;
@@ -301,9 +301,9 @@ int main(int argc, char *argv[])
 
   // fill out defaults for info structure
   ipipe.fd_out = STDOUT_FILENO;
-  
+
   ipipe.verbose = verbose;
-  
+
   ipipe.dvd_title = title;
   ipipe.dvd_chapter = chapter1;
   ipipe.dvd_angle = angle;
@@ -326,53 +326,53 @@ int main(int argc, char *argv[])
   }
 
   ipipe.select = audio;
-  
-  /* ------------------------------------------------------------ 
+
+  /* ------------------------------------------------------------
    *
    * source specific section
    *
    * ------------------------------------------------------------*/
-  
+
   switch(source) {
 
     // ---
     // TS
     // ---
-    
+
   case IS_TS:
 
     if((ipipe.fd_in = xio_open(name, O_RDONLY))<0) {
       perror("file open");
       exit(1);
     }
-    
+
     ipipe.magic = TC_MAGIC_TS;
 
     tccat_thread(&ipipe);
-    
+
     xio_close(ipipe.fd_in);
-    
+
     break;
 
     // ---
     // DVD
     // ---
-    
+
   case IS_DVD:
-    
+
     if(dvd_init(name, &max_titles, verbose)<0) {
       fprintf(stderr, "[%s] (pid=%d) failed to open DVD %s\n", EXE, getpid(), name);
       exit(1);
     }
-    
+
     ipipe.magic = TC_MAGIC_DVD_PAL;
-    
+
     dvd_query(title, &max_chapters, &max_angles);
 
     // set chapternumbers now we know how much there are
     start_chapter = (chapter1!=-1 && chapter1 <=max_chapters) ? chapter1:1;
       end_chapter = (chapter2!=-1 && chapter2 <=max_chapters) ? chapter2:max_chapters;
-      
+
     for(j=start_chapter; j<end_chapter+1; ++j) {
       ipipe.dvd_chapter=j;
       if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (pid=%d) processing chapter (%d/%d)\n", EXE, getpid(), j, max_chapters);
@@ -382,43 +382,43 @@ int main(int argc, char *argv[])
       }else{
         tccat_thread(&ipipe);
       }
-    } 
+    }
 /*
     } else if(stream) {
-      
+
       dvd_stream(title,chapter1,chapter2);
-      
+
     } else {
 	  if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (pid=%d) processing chapter (%d)\n", EXE, getpid(), chapter1);
           tccat_thread(&ipipe);
     }*/
-    
+
     dvd_close();
-    
+
     break;
-    
+
     // ------------------
     // stdin/regular file
     // ------------------
-    
+
   case IS_FILE:
-    
+
     if((ipipe.fd_in = open(name, O_RDONLY))<0) {
       perror("file open");
       exit(1);
     }
-    
+
   case IS_STDIN:
-    
+
     //stream out:
     ipipe.magic = TC_MAGIC_RAW;
-    
+
     tccat_thread(&ipipe);
 
     if(ipipe.fd_in != STDIN_FILENO) close(ipipe.fd_in);
-    
+
     break;
-    
+
     // ---------
     // directory
     // ---------
@@ -427,9 +427,9 @@ int main(int argc, char *argv[])
 
     //stream out:
     ipipe.magic = TC_MAGIC_DIR;
-    
+
     tccat_thread(&ipipe);
-    
+
     break;
 
     // ------
@@ -437,16 +437,16 @@ int main(int argc, char *argv[])
     // ------
 
   case IS_SOCKET:
-      
+
     //stream out:
     ipipe.magic = TC_MAGIC_SOCKET;
-    
+
     tccat_thread(&ipipe);
-    
+
     break;
 
   }
-  
+
   return(0);
 }
 

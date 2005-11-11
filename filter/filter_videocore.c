@@ -4,20 +4,20 @@
  *  Copyright (C) Tilmann Bitterberg - June 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -52,7 +52,7 @@ typedef struct MyFilterData {
 	double aa_weight;
 	double aa_bias;
 } MyFilterData;
-	
+
 static MyFilterData *mfd = NULL;
 
 #endif
@@ -116,7 +116,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if (optstr_get (options, "rgbswap", "") >= 0)  mfd->rgbswap = !mfd->rgbswap;
 	if (optstr_get (options, "decolor", "") >= 0)  mfd->decolor = !mfd->decolor;
 	optstr_get (options, "dgamma",  "%f",          &mfd->dgamma);
-	optstr_get (options, "antialias",  "%d/%f/%f",   
+	optstr_get (options, "antialias",  "%d/%f/%f",
 		&mfd->antialias, &mfd->aa_weight, &mfd->aa_bias);
 
 	if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
@@ -125,7 +125,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     // filter init ok.
     if (verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
-    
+
     return(0);
   }
 
@@ -159,7 +159,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       optstr_param (options, "dgamma", "same as -G", "%f", buf, "0.0", "3.0");
 
       tc_snprintf (buf, sizeof(buf), "%d/%.2f/%.2f", mfd->antialias, mfd->aa_weight, mfd->aa_bias);
-      optstr_param (options, "antialias", "same as -C/weight/bias", "%d/%f/%f", buf, 
+      optstr_param (options, "antialias", "same as -C/weight/bias", "%d/%f/%f", buf,
 	      "0", "3", "0.0", "1.0", "0.0", "1.0");
 
       return 0;
@@ -171,7 +171,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //
   //----------------------------------
 
-  
+
   if(ptr->tag & TC_FILTER_CLOSE) {
 
     if (mfd)
@@ -181,18 +181,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
     return(0);
 
   } /* filter close */
-  
+
   //----------------------------------
   //
   // filter frame routine
   //
   //----------------------------------
 
-    
+
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
-  
+
   if((ptr->tag & TC_PRE_PROCESS) && (vob->im_v_codec == CODEC_YUV) && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
    if (mfd->deinterlace) {
 
@@ -215,17 +215,17 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	      break;
 
 	  case 5:
-	      yuv_deinterlace_linear_blend(ptr->video_buf, 
+	      yuv_deinterlace_linear_blend(ptr->video_buf,
 		      ptr->video_buf_Y[ptr->free], ptr->v_width, ptr->v_height);
 	      break;
       }
 
    }
    if (mfd->flip) {
-       yuv_flip(ptr->video_buf, ptr->v_width, ptr->v_height);   
+       yuv_flip(ptr->video_buf, ptr->v_width, ptr->v_height);
    }
    if (mfd->mirror) {
-       yuv_mirror(ptr->video_buf, ptr->v_width, ptr->v_height); 
+       yuv_mirror(ptr->video_buf, ptr->v_width, ptr->v_height);
    }
    if (mfd->rgbswap) {
        yuv_swap(ptr->video_buf, ptr->v_width, ptr->v_height);
@@ -246,17 +246,17 @@ int tc_filter(frame_list_t *ptr_, char *options)
        init_aa_table(vob->aa_weight, vob->aa_bias);
 
        //UV components unchanged
-       ac_memcpy(ptr->video_buf_Y[ptr->free]+ptr->v_width*ptr->v_height, 
-	      ptr->video_buf + ptr->v_width*ptr->v_height, 
+       ac_memcpy(ptr->video_buf_Y[ptr->free]+ptr->v_width*ptr->v_height,
+	      ptr->video_buf + ptr->v_width*ptr->v_height,
 	      ptr->v_width*ptr->v_height/2);
-    
-       yuv_antialias(ptr->video_buf, ptr->video_buf_Y[ptr->free], 
+
+       yuv_antialias(ptr->video_buf, ptr->video_buf_Y[ptr->free],
 	      ptr->v_width, ptr->v_height, mfd->antialias);
-    
+
        // adjust pointer, zoomed frame in tmp buffer
        ptr->video_buf = ptr->video_buf_Y[ptr->free];
        ptr->free = (ptr->free) ? 0:1;
-    
+
        // no update for frame_list_t *ptr required
    }
 
@@ -284,17 +284,17 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	      break;
 
 	  case 5:
-	      rgb_deinterlace_linear_blend(ptr->video_buf, 
+	      rgb_deinterlace_linear_blend(ptr->video_buf,
 		      ptr->video_buf_RGB[ptr->free], ptr->v_width, ptr->v_height);
 	      break;
       }
 
    }
    if (mfd->flip) {
-       rgb_flip(ptr->video_buf, ptr->v_width, ptr->v_height);   
+       rgb_flip(ptr->video_buf, ptr->v_width, ptr->v_height);
    }
    if (mfd->mirror) {
-       rgb_mirror(ptr->video_buf, ptr->v_width, ptr->v_height); 
+       rgb_mirror(ptr->video_buf, ptr->v_width, ptr->v_height);
    }
    if (mfd->rgbswap) {
        rgb_swap(ptr->video_buf, ptr->v_width * ptr->v_height);
@@ -314,8 +314,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
    if (mfd->antialias) {
 
        init_aa_table(vob->aa_weight, vob->aa_bias);
-    
-       rgb_antialias(ptr->video_buf, ptr->video_buf_RGB[ptr->free], 
+
+       rgb_antialias(ptr->video_buf, ptr->video_buf_RGB[ptr->free],
 	       ptr->v_width, ptr->v_height, vob->antialias);
 
        // adjust pointer, zoomed frame in tmp buffer
@@ -325,7 +325,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
    }
 
   }
-  
+
   return(0);
 
 #endif /*VIDEOCORE_NOT_DEFINED*/

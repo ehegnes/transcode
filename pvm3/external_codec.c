@@ -32,12 +32,12 @@
 
 static char *p_supported_modules[] = {
 				"null",
-				"af6", 
-				"mpeg2enc", 
-				"mp2enc", 
-				"mpeg", 
-				"divx5", 
-				"divx4", 
+				"af6",
+				"mpeg2enc",
+				"mp2enc",
+				"mpeg",
+				"divx5",
+				"divx4",
 				"ffmpeg",
 				"xvid",
 				"xvid2",
@@ -75,12 +75,12 @@ char *f_supported_system(pvm_config_codec *p_v_codec,pvm_config_codec *p_a_codec
 		return((char *)"mpeg-mpeg");
 	else if ((!strcasecmp(p_v_codec->p_codec, "ffmpeg"))&&(!strcasecmp(p_a_codec->p_codec, "ffmpeg"))&&((!strcasecmp(p_v_codec->p_par1, "mpeg1video"))))
 	{
-		p_a_codec->p_par1=p_buffer;	/*this isn't defined but useful to known the type of the output stram*/	
+		p_a_codec->p_par1=p_buffer;	/*this isn't defined but useful to known the type of the output stram*/
 		return((char *)"mpeg-mpeg");
 	}
 	else
 		return((char *)"avi-avi");
-	return(NULL);	
+	return(NULL);
 }
 
 int f_supported_export_module(char *p_codec)
@@ -108,7 +108,7 @@ int f_multiplexer(char *p_codec,char *p_merge_cmd,char *p_video_filename,char *p
 			tc_snprintf(s_buffer,sizeof(s_buffer),"%s %s -o %s %s %s",MPEG2ENC_MP2ENC_PROG,p_merge_cmd,p_dest_file,p_video_filename,p_audio_filename);
 		else
 			tc_snprintf(s_buffer,sizeof(s_buffer),"%s -o %s %s %s",MPEG2ENC_MP2ENC_PROG,p_dest_file,p_video_filename,p_audio_filename);
-		if(s_verbose & TC_DEBUG)	
+		if(s_verbose & TC_DEBUG)
 			fprintf(stderr,"(%s) multiplex cmd: %s\n",__FILE__,s_buffer);
 		(int)system(s_buffer);
 		return(0);
@@ -120,7 +120,7 @@ int f_multiplexer(char *p_codec,char *p_merge_cmd,char *p_video_filename,char *p
 			tc_snprintf(s_buffer,sizeof(s_buffer),"%s %s -o %s -i %s -p %s",MPEG_MPEG_PROG,p_merge_cmd,p_dest_file,p_video_filename,p_audio_filename);
 		else
 			tc_snprintf(s_buffer,sizeof(s_buffer),"%s -o %s -i %s -p %s",MPEG_MPEG_PROG,p_dest_file,p_video_filename,p_audio_filename);
-		if(s_verbose & TC_DEBUG)	
+		if(s_verbose & TC_DEBUG)
 			fprintf(stderr,"(%s) multiplex cmd: %s\n",__FILE__,s_buffer);
 		(int)system(s_buffer);
 		return(0);
@@ -132,7 +132,7 @@ int f_multiplexer(char *p_codec,char *p_merge_cmd,char *p_video_filename,char *p
 			tc_snprintf(s_buffer,sizeof(s_buffer),"%s %s -o %s -i %s -p %s",AVI_AVI_PROG,p_merge_cmd,p_dest_file,p_video_filename,p_audio_filename);
 		else
 			tc_snprintf(s_buffer,sizeof(s_buffer),"%s -o %s -i %s -p %s",AVI_AVI_PROG,p_dest_file,p_video_filename,p_audio_filename);
-		if(s_verbose & TC_DEBUG)	
+		if(s_verbose & TC_DEBUG)
 			fprintf(stderr,"(%s) multiplex cmd: %s\n",__FILE__,s_buffer);
 		(int)system(s_buffer);
 		return(0);
@@ -195,7 +195,7 @@ char *f_external_suffix(char *p_codec,char *p_param)
 		{
 			return(p_suffix[2]);
 		}
-		else if(!strcasecmp(p_codec,"mpeg"))	/*valid only for audio (no param)*/ 
+		else if(!strcasecmp(p_codec,"mpeg"))	/*valid only for audio (no param)*/
 		{
 			return(p_suffix[2]);
 		}

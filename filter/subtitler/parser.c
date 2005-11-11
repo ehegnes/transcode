@@ -60,7 +60,7 @@ if(pa -> data[0] == '*')
 		if(token == NULL) break;
 
 		if(debug_flag)
-			{	
+			{
 			printf("token=%s\n", token);
 			}
 
@@ -79,9 +79,9 @@ if(pa -> data[0] == '*')
 				token);
 
 				return 1;
-//				exit(1);			
+//				exit(1);
 				}
-						
+
 			/* get data for this object */
 			if(debug_flag)
 				{
@@ -92,16 +92,16 @@ if(pa -> data[0] == '*')
 			add this object to the display list, if it is already there,
 			we get a pointer to it.
 			*/
-			po = install_object_at_end_of_list(token);			
+			po = install_object_at_end_of_list(token);
 			if(! po)
 				{
 				printf(\
 				"subtitler(): parse_frame_entry():\n\
 				could not install or find object %s in display list\n",\
 				token);
-			
+
 				exit(1);
-				}	
+				}
 			}
 		else /* token[0] != 0, must be an argument */
 			{
@@ -124,12 +124,12 @@ if(pa -> data[0] == '*')
 				{
 				po -> type = pb -> type;
 				po -> data = pb -> data;
-				po -> org_xsize = (double) pb -> xsize;			
-				po -> org_ysize = (double) pb -> ysize;			
-				po -> org_zsize = (double) pb -> zsize;			
-				po -> xsize = (double) pb -> xsize;			
-				po -> ysize = (double) pb -> ysize;			
-				po -> zsize = (double) pb -> zsize;			
+				po -> org_xsize = (double) pb -> xsize;
+				po -> org_ysize = (double) pb -> ysize;
+				po -> org_zsize = (double) pb -> zsize;
+				po -> xsize = (double) pb -> xsize;
+				po -> ysize = (double) pb -> ysize;
+				po -> zsize = (double) pb -> zsize;
 				po -> id = pb -> id;
 
 				po -> pfd = pb -> pfd;
@@ -137,7 +137,7 @@ if(pa -> data[0] == '*')
 				pa -> status = OBJECT_STATUS_NEW;
 
 				/* set some defaults */
-				po -> extra_character_space = extra_character_space; 
+				po -> extra_character_space = extra_character_space;
 
 				}
 
@@ -161,12 +161,12 @@ if(pa -> data[0] == '*')
 
 			a = sscanf(token, "zdest=%lf", &dgz);
 			if(a) po -> status |= OBJECT_STATUS_HAVE_Z_DEST;
-			
+
 			if(\
 			(po -> status & OBJECT_STATUS_HAVE_X_DEST) ||\
 			(po -> status & OBJECT_STATUS_HAVE_Y_DEST) ||\
 			(po -> status & OBJECT_STATUS_HAVE_Z_DEST)\
-			)	
+			)
 				{
 				/* use current position if nothing specified */
 				if(po -> status & OBJECT_STATUS_HAVE_X_DEST)
@@ -206,7 +206,7 @@ if(pa -> data[0] == '*')
 				the other way around.
 				*/
 				dx *=\
-				(double)image_height / (double)image_width; 
+				(double)image_height / (double)image_width;
 
 				/* y distance */
 				dy = po -> ydest - po -> ypos;
@@ -219,7 +219,7 @@ if(pa -> data[0] == '*')
 
 				/* calculate a heading angle */
 				errno = 0;
-				po -> heading = asin(da);	
+				po -> heading = asin(da);
 				if(errno == EDOM)
 					{
 					perror("subtitler(): parse_frame_entry():\n\
@@ -272,9 +272,9 @@ if(pa -> data[0] == '*')
 
 			if(strncmp(token, "rsize", 5) == 0)
 				{
-				po -> xsize = po -> org_xsize; 
-				po -> ysize = po -> org_ysize; 
-				po -> zsize = po -> org_zsize; 
+				po -> xsize = po -> org_xsize;
+				po -> ysize = po -> org_ysize;
+				po -> zsize = po -> org_zsize;
 
 				po -> dxsize = 0.0;
 				po -> dysize = 0.0;
@@ -299,7 +299,7 @@ if(pa -> data[0] == '*')
 
 			sscanf(token, "hue_ldrift=%lf", &po -> hue_line_drift);
 			sscanf(token, "dhue_ldrift=%lf", &po -> dhue_line_drift);
-			
+
 			sscanf(token, "contr=%lf", &po -> contrast);
 			sscanf(token, "dcontr=%lf", &po -> dcontrast);
 
@@ -337,14 +337,14 @@ if(pa -> data[0] == '*')
 			sscanf(token, "dcolor=%lf", &po -> dcolor);
 
 			a = sscanf(token, "center=%lf", &da);
-			if(a == 1) center_flag = (int)da;	
-			
+			if(a == 1) center_flag = (int)da;
+
 			sscanf(token, "aspect=%lf", &po -> aspect);
 
 			/* these are globals (double) for subtitles */
 			sscanf(token, "hfactor=%lf", &subtitle_h_factor);
 			sscanf(token, "vfactor=%lf", &subtitle_v_factor);
-			
+
 			/* font related */
 
 			font_dir[0] = 0;
@@ -378,7 +378,7 @@ if(pa -> data[0] == '*')
 			font_name[0] = 0;
 			a = sscanf(token, "font_name=%s", font_name);
 			if(a == 1)
-				{	
+				{
 				po -> font_name = strsave(font_name);
 				if(! po -> font_name)
 					{
@@ -402,7 +402,7 @@ if(pa -> data[0] == '*')
 				po -> font_size, po -> font_iso_extension,\
 				po -> font_outline_thickness, po -> font_blur_radius);
 				}
-			
+
 			/* also reload font if font_factor changed */
 			if( (po -> font_dir) && (po -> font_name) &&\
 			(po -> font_size > 0) && (po -> font_iso_extension > 0) &&\
@@ -448,13 +448,13 @@ if(pa -> data[0] == '*')
 					{
 					/* set the global for subtitles to the current value */
 					subtitle_current_font_descriptor = pb -> pfd;
-//					subtitle_current_spacing = po -> extra_character_space; 
+//					subtitle_current_spacing = po -> extra_character_space;
 					/*
 					every subtitle read from the ppml file is formatted using
 					this setting, until a line with a subtitle reference
                		with a new value in read.
 					*/
-					}	
+					}
 				} /* end if font_dir specified */
 			/* end font related */
 
@@ -484,7 +484,7 @@ if(pa -> data[0] == '*')
 			if(a == 48)
 				{
 				for(i = 0; i < 16; i++)
-					{	
+					{
 					for(j = 0; j < 3; j++)
 						{
 						rgb_palette[i][j] = temp_palette[i][j];
@@ -512,12 +512,12 @@ if(pa -> data[0] == '*')
 
 			a = sscanf(token, "emphasis1_color=%d", &po -> emphasis1);
 			a = sscanf(token, "emphasis2_color=%d", &po -> emphasis2);
-			
+
 			a = sscanf(token, "background_contrast=%d", &po -> background_contrast);
 			a = sscanf(token, "pattern_contrast=%d", &po -> pattern_contrast);
 			a = sscanf(token, "emphasis1_contrast=%d", &po -> emphasis1_contrast);
 			a = sscanf(token, "emphasis2_contrast=%d", &po -> emphasis2_contrast);
-			
+
 			/* end palette, color from palette, and contrast */
 
 			/* some text releated */
@@ -557,7 +557,7 @@ if(pa -> data[0] == '*')
 if(pa -> type == FORMATTED_TEXT)
 	{
 	/* pa -> data points to text with possible formatting slashes */
-	
+
 	frame_nr = atoi(pa -> name);
 	end_frame_nr = pa -> end_frame;
 
@@ -578,7 +578,7 @@ if(pa -> type == FORMATTED_TEXT)
 		screen_start[i] = 0; // pixels from left used to center text
 		}
 
-	/* reformat text inserting (multiple) '/n' if too long */ 
+	/* reformat text inserting (multiple) '/n' if too long */
 	extra_character_space = po -> extra_character_space;
 
 	tptr =\
@@ -587,10 +587,10 @@ if(pa -> type == FORMATTED_TEXT)
 	if(! tptr)
 		{
 		printf("subtitler(): could not reformat text=%s\n", pa -> data);
-	
+
 		/* return error */
 		return -1;
-		} /* end if reformat text failed */		
+		} /* end if reformat text failed */
 
 	/* center text */
 	if(center_flag) p_center_text(tptr, subtitle_current_font_descriptor);
@@ -607,7 +607,7 @@ if(pa -> type == FORMATTED_TEXT)
 				{
 				/* scip the '\n' */
 				cptr++;
-				
+
 				/* force string termination */
 				screen_text[screen_lines - 1][i] = 0;
 
@@ -617,7 +617,7 @@ if(pa -> type == FORMATTED_TEXT)
 				}
 
 			/* copy character */
-			screen_text[screen_lines - 1][i] = *cptr;	
+			screen_text[screen_lines - 1][i] = *cptr;
 
 			/* test for end of string tptr */
 			if(*cptr == 0) break;
@@ -631,7 +631,7 @@ if(pa -> type == FORMATTED_TEXT)
 
 		/* ready if end of tptr */
 		if(*cptr == 0) break;
-				
+
 		} /* end while all lines in tptr */
 	free(tptr);
 
@@ -662,7 +662,7 @@ if(pa -> type == FORMATTED_TEXT)
 	for(i = 0; i < screen_lines; i++)
 		{
 		/* get text length */
-		line_len = 0;        
+		line_len = 0;
 		j = 0;
 		while(1)
 			{
@@ -700,7 +700,7 @@ text=%s\n",\
 			line_height, x, y,\
 			screen_text[i]);
 			}
-		
+
 		/* subtitle just behind frame counter */
 		z = 65534;
 
@@ -711,14 +711,14 @@ text=%s\n",\
 
 		/*
 		remember the pointer for the first sub.
-		Later, when diplaying lines of a formatted sub, 
-		in line 0 we can make a background if DVD type subs requested.	
+		Later, when diplaying lines of a formatted sub,
+		in line 0 we can make a background if DVD type subs requested.
 		*/
 		pc -> line_number = i;
 		if(i == 0)
 			{
-			pf = pc; 
-			}		
+			pf = pc;
+			}
 		} /* end for all screen_lines */
 
 	/* only the first line_number of a multiline sub has these parameters set! */
@@ -726,7 +726,7 @@ text=%s\n",\
 	/* just like in submux-dvd we clip the area, so it looks exactly like DVD */
 
 	bg_height = screen_lines * line_height; // + 9;
-//	a = bg_height % 4;   
+//	a = bg_height % 4;
 //	if(a) bg_height += 4 - a;
 
 	bg_width = max_width; // + 6;

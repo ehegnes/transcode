@@ -4,20 +4,20 @@
  *  Copyright (C) Yannick Vignon - February 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -38,7 +38,7 @@ static int capability_flag=TC_CAP_PCM|TC_CAP_AC3|TC_CAP_AUD|TC_CAP_YUV;
 #include "export_def.h"
 
 static avi_t *avifile=NULL;
-  
+
 //temporary audio/video buffer
 static unsigned char *buffer;
 
@@ -93,7 +93,7 @@ static int split_write(int fd, unsigned char *buffer, unsigned int size)
 	w += r;
         size -= CHUNK_SIZE;
         buffer += CHUNK_SIZE;
-      
+
         FD_ZERO(&set);
         FD_SET(fd, &set);
         if(select(fd+1, NULL, &set, NULL, NULL) <= 0) break;
@@ -107,7 +107,7 @@ static int split_write(int fd, unsigned char *buffer, unsigned int size)
 
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open outputfile
  *
@@ -115,12 +115,12 @@ static int split_write(int fd, unsigned char *buffer, unsigned int size)
 
 MOD_open
 {
-    
+
   // open file
-  if(vob->avifile_out==NULL) 
+  if(vob->avifile_out==NULL)
     if(NULL == (vob->avifile_out = AVI_open_output_file(vob->video_out_file))) {
       AVI_print_error("avi open error");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     }
 
   /* save locally */
@@ -129,9 +129,9 @@ MOD_open
   if(param->flag == TC_VIDEO) {
     // video
 
-    ofile = open("/tmp/test.mp4", O_WRONLY | O_CREAT | O_TRUNC, 0666); 
+    ofile = open("/tmp/test.mp4", O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
-    AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, 
+    AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height,
 		  vob->ex_fps, "DIVX");
 
     if (vob->avi_comment_fd>0)
@@ -140,14 +140,14 @@ MOD_open
     return(0);
   }
 
-  if(param->flag == TC_AUDIO) return(audio_open(vob, vob->avifile_out)); 
-  
+  if(param->flag == TC_AUDIO) return(audio_open(vob, vob->avifile_out));
+
   // invalid flag
-  return(TC_EXPORT_ERROR); 
+  return(TC_EXPORT_ERROR);
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * init codec
  *
@@ -162,30 +162,30 @@ MOD_init
   if(param->flag == TC_VIDEO) {
 
     //check for odd frame parameter:
-    
+
     if((ch = vob->ex_v_width - ((vob->ex_v_width>>3)<<3)) != 0) {
       printf("[%s] frame width %d (no multiple of 8)\n", MOD_NAME, vob->ex_v_width);
       printf("[%s] encoder may not work correctly or crash\n", MOD_NAME);
-      
+
       if(ch & 1) {
-	printf("[%s] invalid frame width\n", MOD_NAME); 
-	return(TC_EXPORT_ERROR); 
+	printf("[%s] invalid frame width\n", MOD_NAME);
+	return(TC_EXPORT_ERROR);
       }
     }
-    
+
     if((ch = vob->ex_v_height - ((vob->ex_v_height>>3)<<3)) != 0) {
       printf("[%s] invalid frame height %d (no multiple of 8)\n", MOD_NAME, vob->ex_v_height);
       printf("[%s] encoder may not work correctly or crash\n", MOD_NAME);
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     }
-    
+
     if ((buffer = malloc(vob->ex_v_height*vob->ex_v_width*3))==NULL) {
       perror("out of memory");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     } else
-      memset(buffer, 0, vob->ex_v_height*vob->ex_v_width*3);  
-        
-    
+      memset(buffer, 0, vob->ex_v_height*vob->ex_v_width*3);
+
+
     fame_params.width = vob->ex_v_width;
     fame_params.height = vob->ex_v_height;
     fame_params.coding = "A";
@@ -194,11 +194,11 @@ MOD_init
     fame_params.frame_rate_num = vob->ex_fps;
     fame_params.frame_rate_den = 1;
     fame_params.verbose = 0;
-     
+
     fame_context = fame_open();
     fame_object = fame_get_object(fame_context, "profile/mpeg4");
     fame_register(fame_context, "profile", fame_object);
-    
+
     if (vob->divxmultipass == 2)
       {
 	//	fame_object = fame_get_object(fame_context, "rate/2pass");
@@ -208,14 +208,14 @@ MOD_init
 	fame_params.retrieve_cb = read_stats;
 	logfileout = fopen("fame_2pass.log", "w");
       }
-    else 
+    else
       logfileout = fopen("fame.log", "w");
     fprintf(logfileout, "Frames: %7d\n", 0);
 
     fame_init(fame_context, &fame_params, buffer, vob->ex_v_height*vob->ex_v_width*3);
 
 
-    if(verbose_flag & TC_DEBUG) 
+    if(verbose_flag & TC_DEBUG)
     {
 	tc_log_info(MOD_NAME, "                quality: %d", fame_params.quality);
 	tc_log_info(MOD_NAME, "      bitrate [kBits/s]: %d", fame_params.bitrate/1000);
@@ -227,13 +227,13 @@ MOD_init
     return(0);
   }
 
-  if(param->flag == TC_AUDIO) return(audio_init(vob, verbose_flag));  
-  
+  if(param->flag == TC_AUDIO) return(audio_init(vob, verbose_flag));
+
   // invalid flag
-  return(TC_EXPORT_ERROR); 
+  return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * encode and export frame
  *
@@ -247,8 +247,8 @@ MOD_encode
   static fame_frame_statistics_t *current_stats=NULL;
   int size;
 
-  if(param->flag == TC_VIDEO) { 
-    
+  if(param->flag == TC_VIDEO) {
+
     if (!current_stats)
       current_stats = malloc (sizeof (current_stats));
     memset (current_stats, 0, sizeof (current_stats));
@@ -269,42 +269,42 @@ MOD_encode
     fame_end_frame(fame_context, current_stats);
 
     frame++;
-    
+
     // write stats
     print_stats(current_stats);
 
-    if (current_stats->coding == 'I' ) 
+    if (current_stats->coding == 'I' )
       keyframe = 1;
-    else 
+    else
       keyframe =0;
 
 
     // write video
-    
+
     if(AVI_write_frame(avifile, buffer, size, keyframe)<0) {
       printf("avi video write error");
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     }
     //split_write(ofile, buffer, current_stats->actual_bits/8);
-    
+
     return(0);
   }
 
-  if(param->flag == TC_AUDIO) return(audio_encode(param->buffer, param->size, avifile));  
-  
+  if(param->flag == TC_AUDIO) return(audio_encode(param->buffer, param->size, avifile));
+
   // invalid flag
-  return(TC_EXPORT_ERROR); 
+  return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * stop encoder
  *
  * ------------------------------------------------------------*/
 
 MOD_stop
-{    
-  if(param->flag == TC_VIDEO) { 
+{
+  if(param->flag == TC_VIDEO) {
     if(fame_close(fame_context) > 0) {
       printf("fame close error");
     }
@@ -323,34 +323,34 @@ if (logfileout)
     }
 
   close(ofile);
-    
+
     return(0);
   }
-  
-  if(param->flag == TC_AUDIO) return(audio_stop());  
-  
-  return(TC_EXPORT_ERROR);     
+
+  if(param->flag == TC_AUDIO) return(audio_stop());
+
+  return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close codec
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
 
   vob_t *vob = tc_get_vob();
-  if(param->flag == TC_AUDIO) return(audio_close()); 
-  
+  if(param->flag == TC_AUDIO) return(audio_close());
+
   if(vob->avifile_out!=NULL) {
     AVI_close(vob->avifile_out);
     vob->avifile_out=NULL;
   }
 
   if(param->flag == TC_VIDEO) return(0);
-  
-  return(TC_EXPORT_ERROR); 
+
+  return(TC_EXPORT_ERROR);
 }
 

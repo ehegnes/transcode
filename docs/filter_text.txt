@@ -45,7 +45,7 @@ of options to play with.
   upper left corner of the bounding box.
 
 * 'posdef' Position (0=None, 1=TopL 2=TopR 3=BotL 4=BotR 5=Cent 6=BotCent) [0]
-  Predefined Position. 
+  Predefined Position.
       1: Top Left
       2: Top Right
       3: Bottom Left
@@ -61,7 +61,7 @@ of options to play with.
 'range' together with 'fade'
   Say you want the text to be visible from frame 50 until frame 250
   and you also want a slow fade (e.g. 2). The number of frames the fade
-  will take is 100/2 = 50 frames, so 
+  will take is 100/2 = 50 frames, so
 
   0        50         100         150        200        250
   |---------|----------|-----------|----------|----------|------> Frames

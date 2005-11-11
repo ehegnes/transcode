@@ -38,7 +38,7 @@ Empty lines and lines starting with a `#' are ignored. The frame numbers must be
       20 configure smooth=strength=0.9
       99 disable smooth
 
-      
+
 
 <----------------------|
 
@@ -168,7 +168,7 @@ see /docs/filter_logo.txt
 
 ---------------------->[ logoaway.help ]
 This filter removes an image in a user specified area from the video.  You can
-choose from different methods.                                
+choose from different methods.
 
 see /docs/filter_logoaway.txt
 <----------------------|
@@ -221,7 +221,7 @@ available keys.
 
 When you start transcode with the --socket option and the pv filter with (for
 example) cache=20 you can talk to transcode and the pv filter at runtime using
-the socket. 
+the socket.
 
 .nf
 transcode -i file.avi -V -J pv=cache=30 --socket /tmp/sock
@@ -286,9 +286,9 @@ quite well. The filter has no options.
 ---------------------->[ smartbob.help ]
 This filter only makes sence when fed by -J doublefps.
 It will take the field-frames which filter_doublefps
-produces and generates full-sized motion adaptive deinterlaced 
+produces and generates full-sized motion adaptive deinterlaced
 output at the double import framerate.
-If you force reading the imput file twice its actual frames 
+If you force reading the imput file twice its actual frames
 per second, A/V will stay in sync (for PAL):
 -f 50 -J doublefps=shiftEven=1,smartbob=denoise=1:threshold=12
 <----------------------|

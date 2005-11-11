@@ -4,20 +4,20 @@
  *  Copyright (C) Tilmann Bitterberg - April 2003
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -45,22 +45,22 @@ enum POS { NONE, TOP_LEFT, TOP_RIGHT, BOT_LEFT, BOT_RIGHT, CENTER, BOT_CENTER };
 #define MAX_OPACITY 100
 
 static unsigned char yuv255to224[] = {
- 16,  17,  18,  19,  20,  20,  21,  22,  23,  24,  25,  26,  27,  27,  28, 
- 29,  30,  31,  32,  33,  34,  34,  35,  36,  37,  38,  39,  40,  41,  41, 
- 42,  43,  44,  45,  46,  47,  48,  49,  49,  50,  51,  52,  53,  54,  55, 
- 56,  56,  57,  58,  59,  60,  61,  62,  63,  63,  64,  65,  66,  67,  68, 
- 69,  70,  70,  71,  72,  73,  74,  75,  76,  77,  77,  78,  79,  80,  81, 
- 82,  83,  84,  85,  85,  86,  87,  88,  89,  90,  91,  92,  92,  93,  94, 
- 95,  96,  97,  98,  99,  99, 100, 101, 102, 103, 104, 105, 106, 106, 107, 
-108, 109, 110, 111, 112, 113, 114, 114, 115, 116, 117, 118, 119, 120, 121, 
-121, 122, 123, 124, 125, 126, 127, 128, 128, 129, 130, 131, 132, 133, 134, 
-135, 135, 136, 137, 138, 139, 140, 141, 142, 142, 143, 144, 145, 146, 147, 
-148, 149, 150, 150, 151, 152, 153, 154, 155, 156, 157, 157, 158, 159, 160, 
-161, 162, 163, 164, 164, 165, 166, 167, 168, 169, 170, 171, 171, 172, 173, 
-174, 175, 176, 177, 178, 179, 179, 180, 181, 182, 183, 184, 185, 186, 186, 
-187, 188, 189, 190, 191, 192, 193, 193, 194, 195, 196, 197, 198, 199, 200, 
-200, 201, 202, 203, 204, 205, 206, 207, 207, 208, 209, 210, 211, 212, 213, 
-214, 215, 215, 216, 217, 218, 219, 220, 221, 222, 222, 223, 224, 225, 226, 
+ 16,  17,  18,  19,  20,  20,  21,  22,  23,  24,  25,  26,  27,  27,  28,
+ 29,  30,  31,  32,  33,  34,  34,  35,  36,  37,  38,  39,  40,  41,  41,
+ 42,  43,  44,  45,  46,  47,  48,  49,  49,  50,  51,  52,  53,  54,  55,
+ 56,  56,  57,  58,  59,  60,  61,  62,  63,  63,  64,  65,  66,  67,  68,
+ 69,  70,  70,  71,  72,  73,  74,  75,  76,  77,  77,  78,  79,  80,  81,
+ 82,  83,  84,  85,  85,  86,  87,  88,  89,  90,  91,  92,  92,  93,  94,
+ 95,  96,  97,  98,  99,  99, 100, 101, 102, 103, 104, 105, 106, 106, 107,
+108, 109, 110, 111, 112, 113, 114, 114, 115, 116, 117, 118, 119, 120, 121,
+121, 122, 123, 124, 125, 126, 127, 128, 128, 129, 130, 131, 132, 133, 134,
+135, 135, 136, 137, 138, 139, 140, 141, 142, 142, 143, 144, 145, 146, 147,
+148, 149, 150, 150, 151, 152, 153, 154, 155, 156, 157, 157, 158, 159, 160,
+161, 162, 163, 164, 164, 165, 166, 167, 168, 169, 170, 171, 171, 172, 173,
+174, 175, 176, 177, 178, 179, 179, 180, 181, 182, 183, 184, 185, 186, 186,
+187, 188, 189, 190, 191, 192, 193, 193, 194, 195, 196, 197, 198, 199, 200,
+200, 201, 202, 203, 204, 205, 206, 207, 207, 208, 209, 210, 211, 212, 213,
+214, 215, 215, 216, 217, 218, 219, 220, 221, 222, 222, 223, 224, 225, 226,
 227, 228, 229, 229, 230, 231, 232, 233, 234, 235, 236, 236, 237, 238, 239, 240
 };
 
@@ -102,7 +102,7 @@ typedef struct MyFilterData {
 
 static MyFilterData *mfd = NULL;
 
-static void help_optstr(void) 
+static void help_optstr(void)
 {
    tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
    printf ("* Overview\n");
@@ -141,7 +141,7 @@ static void font_render(int width, int height, int size, int codec, int w, int h
 		/*
 		printf ("`%c\': rows(%2d) width(%2d) pitch(%2d) left(%2d) top(%2d) "
 			"METRIC: width(%2d) height(%2d) bearX(%2d) bearY(%2d)\n",
-			mfd->string[i], mfd->slot->bitmap.rows, mfd->slot->bitmap.width, 
+			mfd->string[i], mfd->slot->bitmap.rows, mfd->slot->bitmap.width,
 			mfd->slot->bitmap.pitch, mfd->slot->bitmap_left, mfd->slot->bitmap_top,
 			mfd->slot->metrics.width>>6, mfd->slot->metrics.height>>6,
 			mfd->slot->metrics.horiBearingX>>6, mfd->slot->metrics.horiBearingY>>6);
@@ -155,13 +155,13 @@ static void font_render(int width, int height, int size, int codec, int w, int h
 		    // make it transparent
 		    if (mfd->transparent && c==16) continue;
 
-		    p[width*(h+mfd->top_space - mfd->slot->bitmap_top) + 
+		    p[width*(h+mfd->top_space - mfd->slot->bitmap_top) +
 			w+mfd->slot->bitmap_left] = c&0xff;
 
 		    }
 		}
 	    p+=((mfd->slot->advance.x >> 6) - (mfd->slot->advance.y >> 6)*width);
-	} 
+	}
 
     } else if (codec == CODEC_RGB) {
 
@@ -182,11 +182,11 @@ static void font_render(int width, int height, int size, int codec, int w, int h
 		    // make it transparent
 		    if (mfd->transparent && c==16) continue;
 
-		    p[3*(width*(-(h+mfd->top_space - mfd->slot->bitmap_top)) + 
+		    p[3*(width*(-(h+mfd->top_space - mfd->slot->bitmap_top)) +
 			    w+mfd->slot->bitmap_left)-2] = c&0xff;
-		    p[3*(width*(-(h+mfd->top_space - mfd->slot->bitmap_top)) + 
+		    p[3*(width*(-(h+mfd->top_space - mfd->slot->bitmap_top)) +
 			    w+mfd->slot->bitmap_left)-1] = c&0xff;
-		    p[3*(width*(-(h+mfd->top_space - mfd->slot->bitmap_top)) + 
+		    p[3*(width*(-(h+mfd->top_space - mfd->slot->bitmap_top)) +
 			    w+mfd->slot->bitmap_left)-0] = c&0xff;
 
 		    }
@@ -219,7 +219,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   static uint8_t *p, *q;
   char *default_font = "/usr/X11R6/lib/X11/fonts/TrueType/arial.ttf";
   extern int flip; // transcode.c
-  
+
   if (ptr->tag & TC_AUDIO)
       return 0;
 
@@ -228,32 +228,32 @@ int tc_filter(frame_list_t *ptr_, char *options)
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYO", "1");
 
       tc_snprintf(b, 128, "%u-%u/%d", mfd->start, mfd->end, mfd->step);
-      optstr_param (options, "range", "apply filter to [start-end]/step frames", 
+      optstr_param (options, "range", "apply filter to [start-end]/step frames",
 	      "%u-%u/%d", b, "0", "oo", "0", "oo", "1", "oo");
 
-      optstr_param (options, "string", "text to display (no ':') [defaults to `date`]", 
+      optstr_param (options, "string", "text to display (no ':') [defaults to `date`]",
 	      "%s", mfd->string);
-      
-      optstr_param (options, "font", "full path to font file [defaults to arial.ttf]", 
+
+      optstr_param (options, "font", "full path to font file [defaults to arial.ttf]",
 	      "%s", mfd->font);
 
       tc_snprintf(b, 128, "%d", mfd->points);
-      optstr_param (options, "points", "size of font (in points)", 
+      optstr_param (options, "points", "size of font (in points)",
 	      "%d", b, "1", "100");
 
       tc_snprintf(b, 128, "%d", mfd->dpi);
-      optstr_param (options, "dpi", "resolution of font (in dpi)", 
+      optstr_param (options, "dpi", "resolution of font (in dpi)",
 	      "%d", b, "72", "300");
 
       tc_snprintf(b, 128, "%d", mfd->fade);
-      optstr_param (options, "fade", "fade in/out (0=off, 1=slow, 10=fast)", 
+      optstr_param (options, "fade", "fade in/out (0=off, 1=slow, 10=fast)",
 	      "%d", b, "0", "10");
 
       tc_snprintf(b, 128, "%d", mfd->antialias);
-      optstr_param (options, "antialias", "Anti-Alias text (0=off 1=on)", 
+      optstr_param (options, "antialias", "Anti-Alias text (0=off 1=on)",
 	      "%d", b, "0", "10");
 
-      optstr_param (options, "pos", "Position (0-width x 0-height)",  
+      optstr_param (options, "pos", "Position (0-width x 0-height)",
 	      "%dx%d", "0x0", "0", "width", "0", "height");
 
       optstr_param (options, "posdef", "Position (0=None 1=TopL 2=TopR 3=BotL 4=BotR 5=Cent 6=BotCent)",  "%d", "0", "0", "5");
@@ -263,7 +263,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
       return 0;
   }
-  
+
   //----------------------------------
   //
   // filter init
@@ -277,7 +277,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     // MallocZ  just to be safe
     mfd = tc_zalloc (sizeof(MyFilterData));
-    if(mfd == NULL) 
+    if(mfd == NULL)
         return (-1);
 
     mfd->start=0;
@@ -317,7 +317,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	memset (font, 0, PATH_MAX);
 	memset (string, 0, PATH_MAX);
-    
+
 	if(verbose) tc_log_info(MOD_NAME, "options=%s", MOD_NAME, options);
 
 	optstr_get (options, "range",  "%u-%u/%d", &mfd->start, &mfd->end, &mfd->step);
@@ -389,11 +389,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if (codec == CODEC_RGB)
       size = width*3;
-    else 
+    else
       size = width*3/2;
 
     buf = tc_malloc (height*size);
-    if(buf == NULL) 
+    if(buf == NULL)
         return (-1);
 
     if (codec == CODEC_RGB)
@@ -415,7 +415,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	tc_log_error(MOD_NAME, "Cannot handle file");
 	return -1;
     }
-    
+
     error = FT_Set_Char_Size(
               mfd->face,      /* handle to face object           */
               0,              /* char_width in 1/64th of points  */
@@ -424,7 +424,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
               mfd->dpi );     /* vertical device resolution      */
 
     if (error) { tc_log_error(MOD_NAME, "Cannot set char size"); return -1; }
-    
+
     // guess where the the groundline is
     // find the bounding box
     for (i=0; i<strlen(mfd->string); i++) {
@@ -442,11 +442,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    */
 	if (mfd->boundY < 2*(mfd->slot->bitmap.rows) - mfd->slot->bitmap_top)
 	    mfd->boundY = 2*(mfd->slot->bitmap.rows) - mfd->slot->bitmap_top;
-	
+
 	/*
 	printf ("`%c\': rows(%2d) width(%2d) pitch(%2d) left(%2d) top(%2d) "
 		"METRIC: width(%2d) height(%2d) bearX(%2d) bearY(%2d)\n",
-		mfd->string[i], mfd->slot->bitmap.rows, mfd->slot->bitmap.width, 
+		mfd->string[i], mfd->slot->bitmap.rows, mfd->slot->bitmap.width,
 		mfd->slot->bitmap.pitch, mfd->slot->bitmap_left, mfd->slot->bitmap_top,
 		mfd->slot->metrics.width>>6, mfd->slot->metrics.height>>6,
 		mfd->slot->metrics.horiBearingX>>6, mfd->slot->metrics.horiBearingY>>6);
@@ -488,8 +488,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    break;
     }
 
-    
-    if ( mfd->posy < 0 || mfd->posx < 0 || 
+
+    if ( mfd->posy < 0 || mfd->posx < 0 ||
 	    mfd->posx+mfd->boundX > width ||
 	    mfd->posy+mfd->boundY > height) {
 	tc_log_error(MOD_NAME, "invalid position");
@@ -499,10 +499,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
     font_render(width,height,size,codec,w,h,i,p,q,buf);
 
     // filter init ok.
-    if (verbose) tc_log_info(MOD_NAME, "%s %s %dx%d-%d", MOD_VERSION, MOD_CAP, 
+    if (verbose) tc_log_info(MOD_NAME, "%s %s %dx%d-%d", MOD_VERSION, MOD_CAP,
 	    mfd->boundX, mfd->boundY, mfd->top_space);
 
-    
+
     return(0);
   }
 
@@ -512,10 +512,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //
   //----------------------------------
 
-  
+
   if(ptr->tag & TC_FILTER_CLOSE) {
 
-    if (mfd) { 
+    if (mfd) {
 	FT_Done_Face (mfd->face );
 	FT_Done_FreeType (mfd->library);
 	free(mfd->font);
@@ -523,7 +523,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    free(mfd->string);
 	free(mfd);
 	free(buf);
-	
+
     }
     mfd=NULL;
     buf=NULL;
@@ -531,18 +531,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
     return(0);
 
   } /* filter close */
-  
+
   //----------------------------------
   //
   // filter frame routine
   //
   //----------------------------------
 
-    
+
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
-  
+
   if((ptr->tag & TC_POST_PROCESS) && (ptr->tag & TC_VIDEO) && !(ptr->attributes & TC_FRAME_IS_SKIPPED))  {
 
     char tstampbuf[256];
@@ -607,7 +607,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		    unsigned int c = q[h*width+w]&0xff;
 		    unsigned int d = p[h*Bpl+w]&0xff;
 		    unsigned int e = 0;
-		    
+
 		    // transparency
 		    if (mfd->transparent && (c <= 16)) continue;
 
@@ -648,7 +648,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			unsigned int d = p[3*(h*Bpl+w)-(2-i)]&0xff;
 			unsigned int e;
 			if (mfd->transparent && c <= 16) continue;
-		
+
 			// opacity
 			e = ((MAX_OPACITY-mfd->opaque)*d + mfd->opaque*c)/MAX_OPACITY;
 
@@ -678,7 +678,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     }
   }
-  
+
   return(0);
 }
 

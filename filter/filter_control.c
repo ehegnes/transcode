@@ -4,20 +4,20 @@
  *  Copyright (C) Tilmann Bitterberg - June 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -128,7 +128,7 @@ int tc_filter(frame_list_t *ptr, char *options)
 	memset (file, 0, M_BUF_SIZE);
 	optstr_get (options, "ofile", "%[^:]", file);
 
-	if (strlen(file)>0) { 
+	if (strlen(file)>0) {
 	    ctrl->ofile = tc_strdup(file);
 	    if (NULL == (ctrl->of = fopen(ctrl->ofile, "w"))) {
 		cprintf("Cannot open \"%s\"", ctrl->ofile);
@@ -217,7 +217,7 @@ init_e_out:
 		}
 	    }
 
-	    //if (verbose & TC_DEBUG) 
+	    //if (verbose & TC_DEBUG)
 	    cprintf("Executed at %d \"%s\"", ptr->id, flist->line);
 
 	    first = flist->next;
@@ -288,7 +288,7 @@ static int parse_input_list (ctrl_t *ctrl, flist_t **flist_tofill)
 	}
 
 	if (cmd->cmd == NULL) {
-	    cprintf("Warning at line %d: unknown command (%s) found -- ignored", count, action); 
+	    cprintf("Warning at line %d: unknown command (%s) found -- ignored", count, action);
 	    count++;
 	    continue;
 	}
@@ -300,7 +300,7 @@ static int parse_input_list (ctrl_t *ctrl, flist_t **flist_tofill)
 	mmalloc (flist->next, flist_t);
 
 	flist = flist->next;
-	
+
 	count++;
     }
 

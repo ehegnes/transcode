@@ -65,7 +65,7 @@ static void help_optstr(void)
 
    printf ("* Options\n");
    printf ("  * Strength 'strength' (0-255) [100]\n");
-   printf ("    This is the strength of the sharpening to be applied to the edge\n"); 
+   printf ("    This is the strength of the sharpening to be applied to the edge\n");
    printf ("    detail areas. It is applied only to the edge detail areas as\n");
    printf ("    determined by the 'threshold' parameter. Strength 255 is the\n");
    printf ("    strongest sharpening.\n");
@@ -100,9 +100,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
   if(ptr->tag & TC_FILTER_INIT) {
 
 	int width, height;
-    
+
 	if((vob = tc_get_vob())==NULL) return(-1);
-    
+
 	mfd = tc_malloc(sizeof(MyFilterData));
 
 	if (!mfd) {
@@ -119,14 +119,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	mfd->highq          = TC_TRUE; /* high Q or not? */
 
 	if (options != NULL) {
-    
+
 	  if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
 	  optstr_get (options, "strength",  "%d", &mfd->strength);
 	  optstr_get (options, "threshold", "%d", &mfd->threshold);
 	  optstr_get (options, "highq", "%d", &mfd->highq);
 	  optstr_get (options, "mask", "%d", &mfd->mask);
-	
+
 	}
 
 	if (verbose > 1) {
@@ -142,7 +142,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		if ( optstr_get(options, "help", "") >= 0) {
 			help_optstr();
 		}
-	
+
 	/* fetch memory */
 
 	mfd->blur = tc_malloc(4 * width * height);
@@ -157,7 +157,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if (!mfd->convertFrameIn) {
 		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
 	}
-	
+
 	mfd->convertFrameOut = tc_zalloc (width*height*4);
 	if (!mfd->convertFrameOut) {
 		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
@@ -182,8 +182,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    optstr_param (options, "strength", "How much  of the effect", "%d", buf, "0", "255");
 
 	    tc_snprintf (buf, sizeof(buf), "%d", mfd->threshold);
-	    optstr_param (options, "threshold", 
-			  "How close a pixel must be to the brightest or dimmest pixel to be mapped", 
+	    optstr_param (options, "threshold",
+			  "How close a pixel must be to the brightest or dimmest pixel to be mapped",
 			  "%d", buf, "0", "255");
 	    tc_snprintf (buf, sizeof(buf), "%d", mfd->highq);
 	    optstr_param (options, "highq",  "Tradeoff speed for quality of detail detection",
@@ -202,10 +202,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		free (mfd->convertFrameIn);
 	mfd->convertFrameIn = NULL;
 
-	if (mfd->convertFrameOut) 
+	if (mfd->convertFrameOut)
 		free (mfd->convertFrameOut);
 	mfd->convertFrameOut = NULL;
-	
+
 	if (mfd->blur)
                 free ( mfd->blur);
 	mfd->blur = NULL;
@@ -223,8 +223,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 ///////////////////////////////////////////////////////////////////////////
   if(ptr->tag & TC_POST_PROCESS && ptr->tag & TC_VIDEO) {
-    
-    
+
+
 	const int	width  = ptr->v_width;
 	const int	height = ptr->v_height;
 	const long	pitch = ptr->v_width*4;
@@ -248,7 +248,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		      ptr->v_width, ptr->v_height);
 
 	src = mfd->convertFrameIn;
-	dst = mfd->convertFrameOut; 
+	dst = mfd->convertFrameOut;
 
 	/* Blur the source image prior to detail detection. Separate
 	   dimensions for speed. */
@@ -299,7 +299,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	blurp = mfd->blur;
 	blurpn = blurp + bwidth;
 	workp = mfd->work;
-	for (y = 0; y < height - 1; y++) 
+	for (y = 0; y < height - 1; y++)
 	{
 		b1 = blurp[0];
 		g1 = blurp[1];

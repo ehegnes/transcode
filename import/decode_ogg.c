@@ -4,20 +4,20 @@
  *  Copyright (C) Tilmann Bitterberg
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -26,7 +26,7 @@
 #include "ioaux.h"
 #include "tc.h"
 
-#if (HAVE_OGG && HAVE_VORBIS) 
+#if (HAVE_OGG && HAVE_VORBIS)
 #include <vorbis/vorbisfile.h>
 
 static int quiet = 0;
@@ -34,7 +34,7 @@ static int bits = 16;
 static int endian = 0;
 static int sign = 1;
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decoder thread
  *
@@ -109,9 +109,9 @@ static int decode_ogg_file(int fdin, int fdout)
 
 void decode_ogg(decode_t *decode)
 {
-  
-#if (HAVE_OGG && HAVE_VORBIS) 
-  
+
+#if (HAVE_OGG && HAVE_VORBIS)
+
   quiet = decode->verbose;
   //bits = decode->a_bits;
   decode_ogg_file(decode->fd_in, decode->fd_out);
@@ -119,10 +119,10 @@ void decode_ogg(decode_t *decode)
   import_exit(0);
 
 #else
-  
+
   fprintf(stderr, "(%s) no support for VORBIS decoding configured - exit.\n", __FILE__);
   import_exit(1);
 
 #endif
-  
+
 }

@@ -84,7 +84,7 @@ static void unsharp( uint8_t *dst, uint8_t *src, int dstStride, int srcStride, i
     if( !fp->amount ) {
 	if( src == dst )
 	    return;
-	if( dstStride == srcStride ) 
+	if( dstStride == srcStride )
 	    ac_memcpy( dst, src, srcStride*height );
 	else
 	    for( y=0; y<height; y++, dst+=dstStride, src+=srcStride )
@@ -111,7 +111,7 @@ static void unsharp( uint8_t *dst, uint8_t *src, int dstStride, int srcStride, i
 	    if( x>=stepsX && y>=stepsY ) {
 		uint8_t* srx = src - stepsY*srcStride + x - stepsX;
 		uint8_t* dsx = dst - stepsY*dstStride + x - stepsX;
-		
+
 		res = (int32_t)*srx + ( ( ( (int32_t)*srx - (int32_t)((Tmp1+halfscale) >> scalebits) ) * amount ) >> 16 );
 		*dsx = res>255 ? 255 : res<0 ? 0 : (uint8_t)res;
 	    }
@@ -204,7 +204,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     int msizeX=0, msizeY=0;
 
     if((vob = tc_get_vob())==NULL) return(-1);
-    	
+
     if (vob->im_v_codec != CODEC_YUV) {
 	tc_log_error(MOD_NAME, "This filter is only capable of YUV mode");
 	return -1;
@@ -242,7 +242,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    mfd->lumaParam.amount = mfd->chromaParam.amount = amount;
 
 	} else {
-    
+
 	    // min/max & odd
 	    mfd->lumaParam.msizeX   = 1 | MIN( MAX( mfd->lumaParam.msizeX,   MIN_MATRIX_SIZE ), MAX_MATRIX_SIZE );
 	    mfd->lumaParam.msizeY   = 1 | MIN( MAX( mfd->lumaParam.msizeY,   MIN_MATRIX_SIZE ), MAX_MATRIX_SIZE );
@@ -258,12 +258,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	width  = vob->ex_v_width;
 	height = vob->ex_v_height;
     }
-    
+
     // allocate buffers
 
     fp = &mfd->lumaParam;
     effect = fp->amount == 0 ? "don't touch" : fp->amount < 0 ? "blur" : "sharpen";
-    tc_log_info(MOD_NAME, "unsharp: %dx%d:%0.2f (%s luma)", 
+    tc_log_info(MOD_NAME, "unsharp: %dx%d:%0.2f (%s luma)",
                     fp->msizeX, fp->msizeY, fp->amount, effect );
     memset( fp->SC, 0, sizeof( fp->SC ) );
     stepsX = fp->msizeX/2;
@@ -275,7 +275,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     fp = &mfd->chromaParam;
     effect = fp->amount == 0 ? "don't touch" : fp->amount < 0 ? "blur" : "sharpen";
-    tc_log_info(MOD_NAME, "unsharp: %dx%d:%0.2f (%s chroma)", 
+    tc_log_info(MOD_NAME, "unsharp: %dx%d:%0.2f (%s chroma)",
                     fp->msizeX, fp->msizeY, fp->amount, effect );
     memset( fp->SC, 0, sizeof( fp->SC ) );
     stepsX = fp->msizeX/2;
@@ -319,7 +319,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   }
 
 
-  if(((ptr->tag & TC_PRE_PROCESS  && mfd->pre) || 
+  if(((ptr->tag & TC_PRE_PROCESS  && mfd->pre) ||
 	  (ptr->tag & TC_POST_PROCESS && !mfd->pre)) &&
 	  !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
@@ -338,6 +338,6 @@ int tc_filter(frame_list_t *ptr_, char *options)
   }
 
   return 0;
-    
+
 } // tc_filter
 

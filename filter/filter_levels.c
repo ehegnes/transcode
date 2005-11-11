@@ -119,7 +119,7 @@ int tc_filter(frame_list_t *vframe_, char *options)
 
 		tc_snprintf(buf, 64, "%d-%d", DEFAULT_OUT_BLACK, DEFAULT_OUT_WHITE );
 		optstr_param(options, "output", "output luma range (black-white)", "%d-%d", buf, "0", "255", "0", "255" );
-        
+
 		tc_snprintf(buf, 64, "%i", DEFAULT_PRE );
 	        optstr_param(options, "pre", "pre processing filter", "%i", buf, "0", "1" );
 	}
@@ -159,14 +159,14 @@ int tc_filter(frame_list_t *vframe_, char *options)
         build_map(pd->lumamap, pd->parameter.in_black, pd->parameter.in_white, pd->parameter.in_gamma,
                  pd->parameter.out_black, pd->parameter.out_white);
 
-		if(verbose) 
+		if(verbose)
     		tc_log_info(MOD_NAME, "%s %s #%d", MOD_VERSION, MOD_CAP, vframe->filter_id);
         tc_log_info(MOD_NAME, "scaling %d-%d gamma %f to %d-%d",
                         pd->parameter.in_black, pd->parameter.in_white,
                         pd->parameter.in_gamma,
                         pd->parameter.out_black, pd->parameter.out_white
                        );
-		tc_log_info(MOD_NAME, "%s-processing filter", MOD_NAME, 
+		tc_log_info(MOD_NAME, "%s-processing filter", MOD_NAME,
 			(pd->prefilter) ?"pre" :"post");
 	}  /* if INIT */
 

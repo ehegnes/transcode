@@ -35,11 +35,11 @@
 
 char *f_vob_pack(char *p_option,vob_t *p_vob,int *p_size)
 {
-	static char *p_buffer=NULL; 
+	static char *p_buffer=NULL;
 	vob_pack_unpack_t	*p_pup_area;
 
 	if(!strcasecmp(p_option,"open"))
-	{	
+	{
 		if (p_buffer==NULL)
 		{
 			p_buffer=(char *)calloc(MAX_BUF,1);
@@ -297,7 +297,7 @@ char *f_vob_pack(char *p_option,vob_t *p_vob,int *p_size)
 		return(p_buffer);
 	}
 	else if(!strcasecmp(p_option,"close"))
-	{	
+	{
 		free(p_buffer);
 		p_buffer=NULL;
 		return(NULL);
@@ -308,13 +308,13 @@ char *f_vob_pack(char *p_option,vob_t *p_vob,int *p_size)
 
 vob_t *f_vob_unpack(char *p_option,char *p_area,int s_size)
 {
-	static char *p_buffer=NULL,*p_pun_buf; 
+	static char *p_buffer=NULL,*p_pun_buf;
 	int s_cont;
 	vob_pack_unpack_t	*p_pup_area;
 	vob_t	*p_vob;
 
 	if(!strcasecmp(p_option,"open"))
-	{	
+	{
 		if (p_buffer==NULL)
 		{
 			p_buffer=(char *)calloc(MAX_BUF,1);
@@ -468,7 +468,7 @@ vob_t *f_vob_unpack(char *p_option,char *p_area,int s_size)
 		return(p_vob);
 	}
 	else if(!strcasecmp(p_option,"close"))
-	{	
+	{
 		free(p_buffer);
 		p_buffer=NULL;
 		return(NULL);

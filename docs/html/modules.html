@@ -32,7 +32,7 @@ program stream, video, audio, transcode, decoder, stream, YV12">
   <tr>
     <td align=left valign="top" width=30% bgcolor="#a0a0a0">
     <table border="0" cellpadding="10" cellspacing="3" font size=+2 bgcolor="#ffffff" width=100%>
-      <td align="left" bgcolor="#e9e9e9"> <FONT 
+      <td align="left" bgcolor="#e9e9e9"> <FONT
       FACE="Lucida,Helvetica">Import/export modules:</font>
     </tr>
     <tr>
@@ -43,77 +43,77 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
     <td align=left valign="top">
 <ul><li><b>import modules</b>:
 
-<p>	
-<font size=+2 color=blue>Raw:</font>	
-     
+<p>
+<font size=+2 color=blue>Raw:</font>
+
      <ul>
-       <li> <a href="import_null.html">import_null.so</a><br> 
+       <li> <a href="import_null.html">import_null.so</a><br>
 	    dummy module, reads from <i>/dev/zero</i>
-	    
+
        <li> <a href="import_avi.html">import_avi.so</a> <br>RGB/PCM
 	    from RIFF AVI files.
-	    
-       <li> <a href="import_raw.html">import_raw.so</a><br> 
+
+       <li> <a href="import_raw.html">import_raw.so</a><br>
 	    RGB/PCM from RIFF AVI/WAVE files or raw streams.
-	    
-       <li> <a href="import_yuv4mpeg.html">import_yuv4mpeg.so</a><br> 
+
+       <li> <a href="import_yuv4mpeg.html">import_yuv4mpeg.so</a><br>
 	    YUV from video streams produced by <i>mjpegtools</i> (YUV4MPEG)
 	    and RIFF WAVE pcm audio.
 
        <li> <a href="sorry.html">import_lav.so</a><br>
 	    interface to  <i>mjpegtools</i> (YUV4MPEG) streams produced
 	    by <i>lav2yuv</i> and <i>lav2wav</i>.
-	    
+
        <li> <a href="sorry.html">import_net.so</a><br>
 	    read raw video/audio streams from sockets.
 
-    </ul><p>	
-    <font size=+2 color=blue>Quicktime4linux API:</font>	
+    </ul><p>
+    <font size=+2 color=blue>Quicktime4linux API:</font>
     <ul>
 
       <li> <a href="sorry.html">import_mov.so</a><br>
 	   Quicktime file format, audio/video codecs supported by
 	   <i>quicktime4linux</i>.
-	   
-  
-      </ul><p>	
-      <font size=+2 color=blue>Avifile API:</font>	
+
+
+      </ul><p>
+      <font size=+2 color=blue>Avifile API:</font>
       <ul>
 
 	<li> <a href="sorry.html">import_af6.so</a> <br>
 	  interface to <i>avifile</i> library supported codecs and
 	  file formats.
-	   
+
       </ul><p>
-      <font size=+2 color=blue>FFmpeg API:</font>	
+      <font size=+2 color=blue>FFmpeg API:</font>
       <ul>
-	
+
 	<li> <a href="sorry.html">import_ffmpeg.so</a> <br>
 	     interface to <i>ffmpeg</i> library supported video codecs and
 	     file formats.
       </ul>
-      <p>	
-      <font size=+2 color=blue>MPEG-4:</font>	
+      <p>
+      <font size=+2 color=blue>MPEG-4:</font>
       <ul>
-	
+
   <li> <a href="sorry.html">import_divx.so</a><br>
        decoding support for AVI-files with DivX, OpendivX, DivX
        4.xx/5.xx, XviD video using the DivX codec.
 
   <li> <a href="sorry.html">import_xvid.so</a><br>
        decoding support for AVI-files with DivX, OpendivX, DivX
-       4.xx/5.xx, XviD video using the XviD codec. 
-	  
-</ul><p>	
-<font size=+2 color=blue>MPEG-1/2, AC3:</font>	
+       4.xx/5.xx, XviD video using the XviD codec.
+
+</ul><p>
+<font size=+2 color=blue>MPEG-1/2, AC3:</font>
 <ul>
 
-    
+
   <li> <a href="import_ac3.html">import_ac3.so</a> <br>
        AC3 audio from MPEG program streams or raw streams.
 
   <li> <a href="import_mp3.html">import_mp3.so</a><br>
-       MPEG audio from program streams or raw streams.	  
+       MPEG audio from program streams or raw streams.
 
   <li> <a href="import_mpeg2.html">import_mpeg2.so</a><br>
        video track from MPEG program streams or raw streams,
@@ -128,67 +128,67 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 
   <li> <a href="import_dvd.html">import_dvd.so</a><br>
        on-the-fly DVD transcoding
-       
+
   <li> <a href="sorry.html">import_vdrac3.so</a><br>
        AC3 audio with invalid AC3 audio stream header from MPEG
-       streams produced by digital capture cards. 
+       streams produced by digital capture cards.
 
-  </ul><p>	
-  <font size=+2 color=blue>NuppelVideo:</font>	
+  </ul><p>
+  <font size=+2 color=blue>NuppelVideo:</font>
   <ul>
 
-	 
+
     <li> <a href="sorry.html">import_nuv.so</a> <br>
 	 interface to NuppelVideo file format
-	 
-</ul><p>	
-<font size=+2 color=blue>Digital Video:</font>	
+
+</ul><p>
+<font size=+2 color=blue>Digital Video:</font>
 <ul>
-  
+
   <li> <a href="import_dv.html">import_dv.so</a> <br>
        Digital Video and PCM audio from RIFF AVI-files or raw streams.
-       
-</ul><p>	
-<font size=+2 color=blue>Images:</font>	
+
+</ul><p>
+<font size=+2 color=blue>Images:</font>
 <ul>
 
   <li> <a href="sorry.html">import_im.so</a><br>
        interface to <i>ImageMagick</i> library supported picture codecs and
        file formats for making animations. Reads images with a
        counter pattern.
-       
+
   <li> <a href="sorry.html">import_imlist.so</a><br>
        interface to <i>ImageMagick</i> library supported picture codecs and
        file formats for making animations. Reads images from a list.
-       
+
   <li> <a href="sorry.html">import_rawlist.so</a><br>
        reads images from a list. Native support for raw image formats only.
-       
-</ul>  
+
+</ul>
 <p>
-<font size=+2 color=blue>XML:</font>	
+<font size=+2 color=blue>XML:</font>
 
 <ul>
-  
+
   <li> <a href="sorry.html">import_xml.so</a><br>
        interface to XML files with file listing and frame range
        produced by <i>kino</i>.
-       
-</ul>  
+
+</ul>
 
 <p>
-    <font size=+2 color=blue>Video4linux:</font>	
+    <font size=+2 color=blue>Video4linux:</font>
     <ul>
       <li> <a href="sorry.html">import_v4l.so</a><br>
-	   interface for grabbing sound/video from a v4l device. 
+	   interface for grabbing sound/video from a v4l device.
 
       <li> <a href="sorry.html">import_nvrec.so</a><br>
-	   interface to <i>NVrec</i> video recorder program.  
-	   <p>  
+	   interface to <i>NVrec</i> video recorder program.
+	   <p>
     </ul>
 
-    <p>	
-    <font size=+2 color=blue>MPlayer API:</font>	
+    <p>
+    <font size=+2 color=blue>MPlayer API:</font>
 <ul>
 
   <li> <a href="sorry.html">import_mplayer.so</a> <br>
@@ -196,8 +196,8 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
        exotic file formats or more ore less broken sources.
 </ul>
 
-    <p>	
-<font size=+2 color=blue>Ogg Media:</font>	
+    <p>
+<font size=+2 color=blue>Ogg Media:</font>
 
     <ul>
       <li>
@@ -212,10 +212,10 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 	       </td>
 	     </tr>
       </table>
-      
+
 </ul><p>
 
-<font size=+2 color=blue>Loss-Less compression:</font>	
+<font size=+2 color=blue>Loss-Less compression:</font>
 
     <ul>
       <li>
@@ -231,7 +231,7 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 	       </td>
 	     </tr>
       </table>
-      
+
 </ul>
 
 
@@ -240,71 +240,71 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 
 </td>
 <td align=left valign="top">
-<ul><li><b>export modules</b>: 
+<ul><li><b>export modules</b>:
 
-<p>	
-<font size=+2 color=blue>Raw:</font>	
-  
+<p>
+<font size=+2 color=blue>Raw:</font>
+
   <ul>
     <li> <a href="export_null.html">export_null.so</a> <br>
 	 benchmark, frame sink, disable audio for AVI file.
 
     <li> <a href="export_raw.html">export_raw.so</a><br>
 	 uncompressed or raw (compressed) frames, RGB, PCM.
-	 
+
     <li> <a href="sorry.html">export_net.so</a><br>
 	 write raw video/audio stream to a socket
-	 
+
     <li> <a href="sorry.html">export_wav.so</a>
 	 <br>RIFF WAVE data with PCM audio.
 
     <li> <a href="sorry.html">export_toolame.so</a><br>
 	 MPEG-1 layer-II audio stream, encoded by <i>toolame</i>.
-	 
+
     <li> <a href="sorry.html">export_yuv4mpeg.so</a><br>
 	 exports to YUV4MPEG stream, sound to file with "-m" option.
 
     <li> <a href="sorry.html">export_pcm.so</a><br>
 	 exports raw, multi-channel PCM audio to separate files.
-	   
+
   </ul><p>
-  
-  <font size=+2 color=blue>Quicktime4linux API:</font>	
+
+  <font size=+2 color=blue>Quicktime4linux API:</font>
   <ul>
-    
+
     <li> <a href="sorry.html">export_mov.so</a><br>
 	 Quicktime file format, audio/video codecs supported by
 	 <i>quicktime4linux</i>.
-	 
+
   </ul>
   <p>
 
-  <font size=+2 color=blue>FFmpeg API:</font>	
+  <font size=+2 color=blue>FFmpeg API:</font>
   <ul>
 
     all modules have MP3/AC3/PCM audio support.
-    
+
     <li> <a href="sorry.html">export_ffmpeg.so</a><br>
 	 interface to <i>ffmpeg</i> library supported video codecs.
   </ul>
-  <p>	
-  
-  <font size=+2 color=blue>Avifile API:</font>	
+  <p>
+
+  <font size=+2 color=blue>Avifile API:</font>
   <ul>
 
     all modules have MP3/AC3/PCM audio support.
-    
+
     <li> <a href="export_af6.html">export_af6.so</a><br>
 	 interface to <i>avifile</i> supported video codecs.
-	 
-  </ul><p>	
-  <font size=+2 color=blue>MPEG-4:</font>	
+
+  </ul><p>
+  <font size=+2 color=blue>MPEG-4:</font>
 <ul>
 
   all modules have MP3/AC3/PCM audio support.
-  
+
   <li>
-      
+
       <table cellspacing="4" cellpadding="0" border="0" width=100%>
 	<tr>
 	  <td align=left valign="top" width=30% bgcolor=#e9e9e9>
@@ -317,13 +317,13 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 	  </td>
 	</tr>
 	<tr>
-	  <td>DivX version 4 codec.  
+	  <td>DivX version 4 codec.
 	  </td>
 	</tr>
   </table>
 
 <li>
-      
+
       <table cellspacing="4" cellpadding="0" border="0" width=100%>
 	<tr>
 	  <td align=left valign="top" width=30% bgcolor=#e9e9e9>
@@ -347,7 +347,7 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
   </table>
 
   <li>
-      
+
       <table cellspacing="4" cellpadding="0" border="0" width=100%>
 	<tr>
 	  <td align=left valign="top" width=30% bgcolor=#e9e9e9>
@@ -364,7 +364,7 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 	  <a href="export_xvid.php"> <font size=+0>export_xvidraw.so</font></a>
 	  </td>
 	</tr>
-	
+
 	<tr>
 	  <td>Open-Source XviD codec.
 	  </td>
@@ -372,7 +372,7 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
   </table>
 
     <li>
-      
+
       <table cellspacing="4" cellpadding="0" border="0" width=100%>
 	<tr>
 	  <td align=left valign="top" width=30% bgcolor=#e9e9e9>
@@ -385,47 +385,47 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 	</tr>
   </table>
 
-</ul><p>	
-<font size=+2 color=blue>MPEG-1/2:</font>	
+</ul><p>
+<font size=+2 color=blue>MPEG-1/2:</font>
 <ul>
 
   <li> <a href="sorry.html">export_mpeg2enc.so</a><br>
        MPEG-1/2, (S)VCD, frontend for <i>mpeg2enc</i> from
        <i>mjpegtools</i>.
-       
+
   <li> <a href="sorry.html">export_mp2enc.so</a><br>
        MPEG layer-2 audio frontend for <i>mp2enc</i> from
        <i>mjpegtools</i>.
-       
+
   <li> <a href="sorry.html">export_mjpeg.so</a><br>
        native support for AVI-files with JPEG video
        frames encoded with <i>libjpeg</i>.
-       
-</ul><p>	
-<font size=+2 color=blue>Digital Video:</font>	
+
+</ul><p>
+<font size=+2 color=blue>Digital Video:</font>
 <ul>
 
   <li> <a href="sorry.html">export_dv.so</a><br>
        Digital Video, MPEG/AC3/PCM audio with AVI-file format.
-       
+
   <li> <a href="sorry.html">export_dvraw.so</a> <br>
        raw Digital Video with interleaved uncompressed PCM audio.
-       
+
 </ul>
-<p>	
-<font size=+2 color=blue>Images:</font>	
+<p>
+<font size=+2 color=blue>Images:</font>
 <ul>
  <li> <a href="sorry.html">export_ppm.so</a><br>
       PPM raw video picture sequence, sound to extra file with "-m" option.
-      
+
  <li> <a href="sorry.html">export_im.so</a><br>
       interface to <i>ImageMagick</i> library supported picture codecs and
       file formats for generating picture sequences.
-     
+
     </ul>
 
-<p>	
-<font size=+2 color=blue>Ogg Media:</font>	
+<p>
+<font size=+2 color=blue>Ogg Media:</font>
 
     <ul>
       <li>
@@ -441,11 +441,11 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 	       </td>
 	     </tr>
       </table>
-      
+
 </ul><p>
 
-<p>	
-<font size=+2 color=blue>Loss-Less compression:</font>	
+<p>
+<font size=+2 color=blue>Loss-Less compression:</font>
 
     <ul>
       <li>
@@ -461,7 +461,7 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 	       </td>
 	     </tr>
       </table>
-      
+
 </ul><p>
 
 

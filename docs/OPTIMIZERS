@@ -127,7 +127,7 @@ The memory layout is
 
  __________________ ...  ______  ...  _____
 |__Y__|__Y__|__Y__| ... |__Cb_|  ... |__Cr_| ....
- \___/ \___/ \___/     
+ \___/ \___/ \___/
  (0,0) (1,0) (2,0)
 
 There are Width*Height Y bytes, Width*Height/4 Cb bytes and
@@ -142,4 +142,4 @@ vertical resolution).
 Size of the image is 2*W*H.
 
 (c) 2003 Tilmann Bitterberg <transcode@tibit.org>
-Modified: $Date: 2005-10-12 19:08:46 $
+Modified: $Date: 2005-11-11 14:46:53 $

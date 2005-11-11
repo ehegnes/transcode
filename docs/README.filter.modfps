@@ -73,7 +73,7 @@ clonetype: Ah, the fun stuff.  When cloning a frame, modfps will let
 	first cloned frame is frame 5.  Frame 5 and 6 of the import
 	steam will correspond to frame 5 and 7 of the export steam.
 	Frame 6 of the export steam will varry based on clonetype.
-	
+
 	0: no special behavior, export frame 6 will be the same as
 	export frame 5.
 
@@ -114,7 +114,7 @@ clonetype: Ah, the fun stuff.  When cloning a frame, modfps will let
 	pixels "sticking around" better than the less bright areas.
 	This is currently only implemented for YUV (and it will
 	probably stay that way).
-	
+
 	An approximate ordering of the speed of the different clone
 	types is: 0, 1, 2, 3, 4, 5 from fastest to slowest.   In my
 	opinion, modes 0-4 are fast enough to not worry about speed,
@@ -125,10 +125,10 @@ clonetype: Ah, the fun stuff.  When cloning a frame, modfps will let
 3. Misc.
 
 Because transcode by default will buffer some (5) frames, whenever
-one isn't encoding an entire file (I.E. using "-c" "-J cut" or 
+one isn't encoding an entire file (I.E. using "-c" "-J cut" or
 "-J skip").
 
-As of transcode 0.6.9 filters do not see frames which are not in 
+As of transcode 0.6.9 filters do not see frames which are not in
 the range of "-c" ... thus if one is cutting frames 1000-1500 the
 first frame modfps sees is 1000 .  As modfps buffers the frame it
 sets the TC_FRAME_IS_SKIPPED flag, so it won't be encoded.  After
@@ -157,7 +157,7 @@ the AV in sync while -c wouldn't.  However, again all the frames in
 the export are off by the number of buffers.  But the effects are
 different from -c , so if you wanted to use
 "-J cut="3916-13090,17493-24185,28304-42212" you would then use
-"-J cut="3921-13095,17498-24190,28309-42217" 
+"-J cut="3921-13095,17498-24190,28309-42217"
 
 4. Example commands
 
@@ -184,7 +184,7 @@ Next, I do the 2nd pass, again, video only.
 -b 64 -c 3916-13090,17493-24185,28304-42212,46777-54715 -y xvid,null \
 -j 0,8 -Y 0,-4 -B 0,39,08 -w 600 -R 2 -o tmp.tv.avi
 
-Now that I have the video, I examine audio.  I've found that since 
+Now that I have the video, I examine audio.  I've found that since
 commercials are much louder than TV, before I give anything to filter
 astat, I'll rip the raw audio.  Note, that the values of -c are
 different for audio than they were for video.

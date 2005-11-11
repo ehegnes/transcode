@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -40,7 +40,7 @@ static int min=0, max=0;
 
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * print a usage/version message
  *
@@ -63,13 +63,13 @@ static void usage(int status)
   fprintf(stderr,"\t -t c1[,c2[,.]]    cut points in milliseconds\n");
   fprintf(stderr,"\t -d mode           verbosity mode\n");
   fprintf(stderr,"\t -v                print version\n");
-  
+
   exit(status);
-  
+
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * scan stream
  *
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 
   int fd=-1;
   FILE *out=NULL;
-  
+
   int n=0, ch;
   char *name=NULL, *offset=NULL, *base=NULL;
   char outfile[1024];
@@ -96,51 +96,51 @@ int main(int argc, char *argv[])
   int a_rate=RATE, a_bits=BITS, chan=CHANNELS;
   int songs[MAX_SONGS];
   int numsongs=0;
- 
+
   int on=1;
 
   char buffer[CHUNK_SIZE];
-  
+
   uint32_t i=0;
 
   if (argc<2)
       usage(EXIT_SUCCESS);
 
   while ((ch = getopt(argc, argv, "o:e:i:t:d:v?h")) != -1) {
-    
+
     switch (ch) {
-    case 'd': 
-      
+    case 'd':
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       verbose = atoi(optarg);
-      
+
       break;
-      
-    case 'e': 
-      
+
+    case 'e':
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
-      
+
       if (3 != sscanf(optarg,"%d,%d,%d", &a_rate, &a_bits, &chan)) fprintf(stderr, "invalid pcm parameter set for option -e");
-      
+
       if(a_rate > RATE || a_rate <= 0) {
 	fprintf(stderr, "invalid pcm parameter 'rate' for option -e");
 	usage(EXIT_FAILURE);
       }
-      
+
       if(!(a_bits == 16 || a_bits == 8)) {
 	fprintf(stderr, "invalid pcm parameter 'bits' for option -e");
 	usage(EXIT_FAILURE);
       }
-      
+
       if(!(chan == 0 || chan == 1 || chan == 2)) {
 	fprintf(stderr, "invalid pcm parameter 'channels' for option -e");
 	usage(EXIT_FAILURE);
       }
-      
+
       break;
-      
-    case 'i': 
-      
+
+    case 'i':
+
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       name = optarg;
       break;
@@ -163,11 +163,11 @@ int main(int argc, char *argv[])
       if(optarg[0]=='-') usage(EXIT_FAILURE);
       base = optarg;
       break;
-    case 'v': 
+    case 'v':
       version();
       exit(0);
       break;
-      
+
     case 'h':
       usage(EXIT_SUCCESS);
     default:
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
   printf("Got %d songs:\n", numsongs);
   for (n=0; n<numsongs; n++)
       printf("%d : %d\n", n, songs[n]);
-  
+
 
   if (!name) {
       fprintf(stderr, "No filename given\n");
@@ -200,9 +200,9 @@ int main(int argc, char *argv[])
       perror ("fopen() output");
       return -1;
   }
-  
+
   if(1) {
-    
+
       char header[4];
       int framesize = 0;
       int chunks = 0;
@@ -212,7 +212,7 @@ int main(int argc, char *argv[])
 
       min = 500;
       max = 0;
-      
+
       pos = lseek(fd, 0, SEEK_CUR);
       // find mp3 header
       while ((total += read(fd, header, 4))) {
@@ -227,25 +227,25 @@ int main(int argc, char *argv[])
       printf("POS %lld\n", pos);
 
       // Example for _1_ mp3 chunk
-      // 
+      //
       // fps       = 25
       // framesize = 480 bytes
       // bitrate   = 160 kbit/s == 20 kbytes/s == 20480 bytes/s == 819.20 bytes / frame
       //
       // 480 bytes = 480/20480 s/bytes = .0234 s = 23.4 ms
-      //  
+      //
       //  ms = (framesize*1000*8)/(bitrate*1000);
       //                           why 1000 and not 1024?
       //  correct? yes! verified with "cat file.mp3|mpg123 -w /dev/null -v -" -- tibit
 
       while (on) {
-	  if ( (bytes_read = read(fd, buffer, framesize-4)) != framesize-4) { 
+	  if ( (bytes_read = read(fd, buffer, framesize-4)) != framesize-4) {
 	      on = 0;
 	  } else {
 	      total += bytes_read;
 	      fwrite (buffer, bytes_read, 1,out);
 	      while ((total += read(fd, header, 4))) {
-		  
+
 		  //printf("%x %x %x %x\n", header[0]&0xff, header[1]&0xff, header[2]&0xff, header[3]&0xff);
 
 		  if ( (framesize = tc_get_mp3_header (header, &chans, &srate, &bitrate)) < 0) {
@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
 		  } else  {
 
 		      /*
-		      printf("Found new header (%d) (framesize = %d) chan(%d) srate(%d) bitrate(%d)\n", 
+		      printf("Found new header (%d) (framesize = %d) chan(%d) srate(%d) bitrate(%d)\n",
 			  chunks, framesize, chans, srate, bitrate);
 			  */
 
@@ -287,15 +287,15 @@ int main(int argc, char *argv[])
       close(fd);
       return(0);
   }
-  
-  
+
+
   fprintf(stderr, "[%s] unable to handle codec/filetype\n", EXE);
-  
+
   exit(1);
-  
+
 }
-  
-  
+
+
 // from mencoder
 //----------------------- mp3 audio frame header parser -----------------------
 
@@ -316,7 +316,7 @@ static long freqs[9] = { 44100, 48000, 32000, 22050, 24000, 16000 , 11025 , 1200
 int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate){
     int stereo, ssize, crc, lsf, mpeg25, framesize;
     int padding, bitrate_index, sampling_frequency;
-    unsigned long newhead = 
+    unsigned long newhead =
       hbuf[0] << 24 |
       hbuf[1] << 16 |
       hbuf[2] <<  8 |
@@ -325,15 +325,15 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
 
 #if 1
     // head_check:
-    if( (newhead & 0xffe00000) != 0xffe00000 ||  
+    if( (newhead & 0xffe00000) != 0xffe00000 ||
         (newhead & 0x0000fc00) == 0x0000fc00){
 	//fprintf( stderr, "[%s] head_check failed\n", EXE);
 	return -1;
     }
 #endif
 
-    if((4-((newhead>>17)&3))!=3){ 
-      //fprintf( stderr, "[%s] not layer-3\n", EXE); 
+    if((4-((newhead>>17)&3))!=3){
+      //fprintf( stderr, "[%s] not layer-3\n", EXE);
       return -1;
     }
 

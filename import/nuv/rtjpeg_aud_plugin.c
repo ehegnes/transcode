@@ -115,20 +115,20 @@ int rtjpeg_aud_open(char *tplorg)
 
 #ifdef SYS_BSD
   rtjpeg_aud_file=open(tplorg, O_RDONLY);
-#else 
+#else
   rtjpeg_aud_file=open(tplorg, O_RDONLY|O_LARGEFILE);
 #endif
-  
+
   if (rtjpeg_aud_file == -1) {
     fprintf(stderr, "File not found: %s\n", tplorg);
     exit(1);
-  } 
+  }
 
 
   fstat(rtjpeg_aud_file, &fstatistics);
   filesize = rtjpeg_aud_filesize = fstatistics.st_size;
   read(rtjpeg_aud_file, &rtjpeg_aud_fileheader, FILEHEADERSIZE);
-  
+
   rtjpeg_aud_video_width      = rtjpeg_aud_fileheader.width;
   rtjpeg_aud_video_height     = rtjpeg_aud_fileheader.height;
   rtjpeg_aud_video_frame_rate = rtjpeg_aud_fileheader.fps;
@@ -136,7 +136,7 @@ int rtjpeg_aud_open(char *tplorg)
   rtjpeg_aud_eof=0;
 
   // make sure we have enough even for a raw YUV frame
-  space = (char *)malloc((int)(rtjpeg_aud_video_width*rtjpeg_aud_video_height*1.5)); 
+  space = (char *)malloc((int)(rtjpeg_aud_video_width*rtjpeg_aud_video_height*1.5));
 
   /* first frame has to be the Compression "D"ata frame */
   if (FRAMEHEADERSIZE != read(rtjpeg_aud_file, &frameheader, FRAMEHEADERSIZE)) {
@@ -158,7 +158,7 @@ int rtjpeg_aud_open(char *tplorg)
 
   if ((rtjpeg_aud_video_height & 1) == 1) {
     // this won't ever happen, since RTjpeg can only handle n*8 for w and h
-    rtjpeg_aud_video_height--; 
+    rtjpeg_aud_video_height--;
     fprintf(stderr, "\nIncompatible video height, reducing height to %d\n", rtjpeg_aud_video_height);
   }
 
@@ -174,7 +174,7 @@ int rtjpeg_aud_open(char *tplorg)
   rtjpeg_aud_startpos = startpos = lseek(rtjpeg_aud_file, 0, SEEK_CUR);
   pos = filesize-32768;
 
-  // we have to search for a RTjjjjjjjj seekframe 
+  // we have to search for a RTjjjjjjjj seekframe
   while (pos > startpos && !foundit) {
     char *p;
     lseek(rtjpeg_aud_file, pos, SEEK_SET);
@@ -197,12 +197,12 @@ int rtjpeg_aud_open(char *tplorg)
       // now check if RTjjjjjjjj was fake data and not a seekheader
       if (NULL == strchr("ARDVST", frameheader.frametype)) {
         pos -= 32768;
-        continue; 
+        continue;
       }
       ctype = 127 & frameheader.comptype;
       if (NULL == strchr("0123NLAV", ctype)) {
         pos -= 32768;
-        continue; 
+        continue;
       }
       if (frameheader.packetlength < 0 || frameheader.packetlength>3000000) {
         pos -= 32768;
@@ -250,8 +250,8 @@ int rtjpeg_aud_open(char *tplorg)
         continue;
       }
     }
-  
-    foundit = FRAMEHEADERSIZE != read(rtjpeg_aud_file, &frameheader, FRAMEHEADERSIZE); 
+
+    foundit = FRAMEHEADERSIZE != read(rtjpeg_aud_file, &frameheader, FRAMEHEADERSIZE);
   }
 
   rtjpeg_aud_fakeframescount = rtjpeg_aud_framescount;
@@ -273,9 +273,9 @@ int rtjpeg_aud_open(char *tplorg)
   lseek(rtjpeg_aud_file, startpos, SEEK_SET);
 
   fprintf(stderr, "[import_nuv.so] effdsp=%d %d\n", (rtjpeg_aud_effdsp+50)/100, rtjpeg_aud_audiodelay);
-  
+
   resample_init((rtjpeg_aud_effdsp+50)/100, 44100);
-  
+
   return(0);
 }
 
@@ -285,7 +285,7 @@ int rtjpeg_aud_open(char *tplorg)
 /* seeks to native frames only!!!!                   */
 /* ------------------------------------------------- */
 
-static int rtjpeg_aud_seekto_keyframe_before(int number) 
+static int rtjpeg_aud_seekto_keyframe_before(int number)
 {
   int  startpos, pos;
   int  curnum=2000000000;
@@ -299,11 +299,11 @@ static int rtjpeg_aud_seekto_keyframe_before(int number)
     return(-1);
   }
 
-  startpos = pos = 
+  startpos = pos =
        (int)((double)rtjpeg_aud_filesize * ((double)number/(double)rtjpeg_aud_framescount));
 
   while (curnum > number && pos > rtjpeg_aud_startpos) {
-    // we have to search for a RTjjjjjjjj seekframe 
+    // we have to search for a RTjjjjjjjj seekframe
     //fprintf(stderr, "curnum=%d  number=%d\n", curnum, number);
     foundit=0; // reset the flag
     while (pos > rtjpeg_aud_startpos && !foundit) {
@@ -327,12 +327,12 @@ static int rtjpeg_aud_seekto_keyframe_before(int number)
         // now check if RTjjjjjjjj was fake data and not a seekheader
         if (NULL == strchr("ARDVST", frameheader.frametype)) {
           pos -= 32768;
-          continue; 
+          continue;
         }
         ctype = 127 & frameheader.comptype;
         if (NULL == strchr("0123NLAV", ctype)) {
           pos -= 32768;
-          continue; 
+          continue;
         }
         if (frameheader.packetlength < 0 || frameheader.packetlength>3000000) {
           //fprintf(stderr, "FAKE seeker frame found\n");
@@ -364,8 +364,8 @@ static int rtjpeg_aud_seekto_keyframe_before(int number)
       if (frameheader.frametype != 'R' && frameheader.packetlength!=0) {
         pos = lseek(rtjpeg_aud_file, frameheader.packetlength, SEEK_CUR);
       }
-    
-      read(rtjpeg_aud_file, &frameheader, FRAMEHEADERSIZE); 
+
+      read(rtjpeg_aud_file, &frameheader, FRAMEHEADERSIZE);
     }
     pos = startpos - 32768;
     startpos = pos;
@@ -398,7 +398,7 @@ static unsigned char *decode_aud_frame(struct rtframeheader *frameheader,unsigne
                         (rtjpeg_aud_video_width*rtjpeg_aud_video_height)/2);
   }
 
-  // now everything is initialized 
+  // now everything is initialized
 
   /* fprintf(stderr, "%s\n", "after reading frame"); */
 
@@ -406,15 +406,15 @@ static unsigned char *decode_aud_frame(struct rtframeheader *frameheader,unsigne
   if (frameheader->frametype == 'V') {
     if (frameheader->comptype == 'N') {
       memset(rtjpeg_aud_buf,   0,  rtjpeg_aud_video_width*rtjpeg_aud_video_height);
-      memset(rtjpeg_aud_buf+rtjpeg_aud_video_width*rtjpeg_aud_video_height, 
+      memset(rtjpeg_aud_buf+rtjpeg_aud_video_width*rtjpeg_aud_video_height,
                          127, (rtjpeg_aud_video_width*rtjpeg_aud_video_height)/2);
       return(rtjpeg_aud_buf);
     }
     if (frameheader->comptype == 'L') {
       switch(lastct) {
-        case '0': 
+        case '0':
         case '3': return(buf2); break;
-        case '1': 
+        case '1':
         case '2': return(rtjpeg_aud_buf); break;
         default: return(rtjpeg_aud_buf);
       }
@@ -427,7 +427,7 @@ static unsigned char *decode_aud_frame(struct rtframeheader *frameheader,unsigne
     // normally there would be nothing to do, but for testing we
     // we will reset the buffer before decompression
     memset(rtjpeg_aud_buf,   0,  rtjpeg_aud_video_width*rtjpeg_aud_video_height);
-    memset(rtjpeg_aud_buf+rtjpeg_aud_video_width*rtjpeg_aud_video_height, 
+    memset(rtjpeg_aud_buf+rtjpeg_aud_video_width*rtjpeg_aud_video_height,
                        127, (rtjpeg_aud_video_width*rtjpeg_aud_video_height)/2);
     // rtjpeg_aud_reset_old(); // this might be used if i/we make real
     // predicted frames (but with no motion compensation)
@@ -446,7 +446,7 @@ static unsigned char *decode_aud_frame(struct rtframeheader *frameheader,unsigne
     if (r != LZO_E_OK) {
       // if decompression fails try raw format :-)
       fprintf(stderr,"\nminilzo: can't decompress illegal data, ft='%c' ct='%c' len=%d tc=%d\n",
-                    frameheader->frametype, frameheader->comptype, 
+                    frameheader->frametype, frameheader->comptype,
                     frameheader->packetlength, frameheader->timecode);
     }
   }
@@ -458,17 +458,17 @@ static unsigned char *decode_aud_frame(struct rtframeheader *frameheader,unsigne
     ac_memcpy(buf2, strm, (int)(rtjpeg_aud_video_width*rtjpeg_aud_video_height*1.5)); // save for 'L'
     return(buf2);
   }
- 
+
   // raw YUV420 (I420, YCrCb) but compressed
   if (frameheader->frametype=='V' && frameheader->comptype == '3') {
     return(buf2);
   }
- 
+
   // rtjpeg decompression
 
 #if 0
   if (compoff) {
-    RTjpeg_decompressYUV420((__s8 *)strm, rtjpeg_aud_buf); 
+    RTjpeg_decompressYUV420((__s8 *)strm, rtjpeg_aud_buf);
   } else {
     RTjpeg_decompressYUV420((__s8 *)buf2, rtjpeg_aud_buf);
   }
@@ -481,7 +481,7 @@ static unsigned char *decode_aud_frame(struct rtframeheader *frameheader,unsigne
 
 #define MAXVBUFFER 20
 
-unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo, 
+unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo,
                                 unsigned char **audiodata, int *alen)
 {
   static int lastnumber=-1;
@@ -516,7 +516,7 @@ unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo
   int ashift;
   int i;
   //int cnt=0;
-  
+
   if (rtjpeg_aud_buf==NULL) {
     rtjpeg_aud_buf = (unsigned char *) malloc( rtjpeg_aud_video_width*rtjpeg_aud_video_height +
                         (rtjpeg_aud_video_width*rtjpeg_aud_video_height)/2);
@@ -537,8 +537,8 @@ unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo
 
   //*fhp = &frameheader;
 
-  // now everything is initialized 
-  
+  // now everything is initialized
+
   regpos = 0;
   number = fakenumber;
 
@@ -556,9 +556,9 @@ unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo
   // if it is not the next frame in line we have to seek and therefore
   // purge all audio and videobuffers
 
-  // Warning: after every seek we will fill up exact the 
+  // Warning: after every seek we will fill up exact the
   // amount of missing audiobytes with '0's so that we (hopefully) stay in sync,
-  // so if somebody has the crazy idea to cut out exactly every second frame 
+  // so if somebody has the crazy idea to cut out exactly every second frame
   // (or only one frame with big audiobuffersize) it will/might jitter a lot ;-)
 
   // that means if you have an audioblocksize of 16384 you might experience
@@ -576,7 +576,7 @@ unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo
       nextfnum = lastnumber+1;
       //fprintf(stderr, "we are at %d, must decode until fnumber< %d\n", lastnumber+1, number);
     }
-   
+
     while (nextfnum < number) {
       if (read(rtjpeg_aud_file, &frameheader, FRAMEHEADERSIZE)!=FRAMEHEADERSIZE) {
         rtjpeg_aud_eof=1;
@@ -592,7 +592,7 @@ unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo
         nextfnum++;
       }
     }
-   
+
     // purge all buffers
     for (i=0; i<MAXVBUFFER; i++) {
       bufstat[i]=0;
@@ -606,11 +606,11 @@ unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo
     audiolen = 0;
     seeked = 1;
     fafterseek=0; // should we reset this two
-    audiobytes=0; // really when we seek? 
+    audiobytes=0; // really when we seek?
     audiotimecode=0;
   }
 
-  // now we have to read as many video frames and audio blocks 
+  // now we have to read as many video frames and audio blocks
   // until we have enough audio for the current video frame
   // that is: PAL  1/25*rtjpeg_aud_effdsp*4    where rtjpeg_aud_effdsp should be 44100
   //          NTSC 1/29.97*rtjpeg_aud_effdsp*4
@@ -649,14 +649,14 @@ unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo
   if (onlyvideo>0)  gotaudio=1;
      else           gotaudio=0;
 
-  // if (onlyvideo<0) gotvideo=1; // do not decode 
+  // if (onlyvideo<0) gotvideo=1; // do not decode
 
   while (!gotvideo || !gotaudio) {
 
     // now check if we already have a video frame in a buffer
     if (!gotvideo && bufstat[rpos]==1) {
       gotvideo = 1;
-    } 
+    }
 
     // now check if we already have enough audio for the video frame in the audiobuffer
 
@@ -675,7 +675,7 @@ unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo
         if (tcshift> 1000) tcshift= 1000;
         if (tcshift<-1000) tcshift=-1000;
         bytesperframe -= tcshift;
-        if (bytesperframe<100) { 
+        if (bytesperframe<100) {
           fprintf(stderr, "bytesperframe was %d < 100 and now is forced to 100\n", bytesperframe);
           bytesperframe=100;
         }
@@ -684,7 +684,7 @@ unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo
         //fprintf(stderr, "timecodes atc=%d vtc=%d\n", audiotimecode, timecodes[rpos]);
         // we have seeked and have now to correct audiolen due to timecode differences
 
-        // video later than audio 
+        // video later than audio
         // we have to cut off (vid.tc-aud.tc)*rtjpeg_aud_effdsp*4 bytes
         if (timecodes[rpos] > audiotimecode) {
           ashift = (int)(((double)(audiotimecode-timecodes[rpos])*(double)rtjpeg_aud_effdsp)/100000)*4;
@@ -692,14 +692,14 @@ unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo
           if (ashift>audiolen) {
             audiolen = 0;
           } else {
-            //fprintf(stderr, "timecode shift=%d atc=%d vtc=%d\n", ashift, audiotimecode, 
+            //fprintf(stderr, "timecode shift=%d atc=%d vtc=%d\n", ashift, audiotimecode,
             //                timecodes[rpos]);
             ac_memcpy(tmpaudio, audiobuffer, audiolen);
             ac_memcpy(audiobuffer, tmpaudio+ashift, audiolen);
             audiolen -= ashift;
           }
         }
-  
+
         // audio is later than video
         // we have to insert blank audio (aud.tc-vid.tc)*rtjpeg_aud_effdsp* bytes
         if (timecodes[rpos] < audiotimecode) {
@@ -708,7 +708,7 @@ unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo
             fprintf(stderr, "Warning: should never happen, huge timecode gap gap=%d atc=%d vtc=%d\n",
                     ashift, audiotimecode, timecodes[rpos]);
           } else {
-            //fprintf(stderr, "timecode shift=%d atc=%d vtc=%d\n", -ashift, audiotimecode, 
+            //fprintf(stderr, "timecode shift=%d atc=%d vtc=%d\n", -ashift, audiotimecode,
             //                timecodes[rpos]);
             ac_memcpy(tmpaudio, audiobuffer, audiolen);
             bzero(audiobuffer, ashift); // silence!
@@ -733,7 +733,7 @@ unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo
     }
 
 #ifdef DEBUG_FTYPE
-     fprintf(stderr,"\ntype='%c' ctype='%c' length=%d  timecode=%d  f-gop=%d", 
+     fprintf(stderr,"\ntype='%c' ctype='%c' length=%d  timecode=%d  f-gop=%d",
 							frameheader.frametype,
                                                         frameheader.comptype,
                                                         frameheader.packetlength,
@@ -747,7 +747,7 @@ unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo
       if(read(rtjpeg_aud_file, strm, frameheader.packetlength)!=frameheader.packetlength) {
         rtjpeg_aud_eof=1;
         return(rtjpeg_aud_buf);
-      } 
+      }
     }
 
     if (frameheader.frametype=='V') {
@@ -771,7 +771,7 @@ unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo
       if (frameheader.comptype=='N' && lastaudiolen!=0) {
         // this won't happen too often, if ever!
         memset(strm,   0, lastaudiolen);
-      } 
+      }
       // now buffer it
       ac_memcpy(audiobuffer+audiolen, strm, frameheader.packetlength);
       audiotimecode = frameheader.timecode + rtjpeg_aud_audiodelay; // untested !!!! possible FIXME
@@ -787,7 +787,7 @@ unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo
       audiolen += frameheader.packetlength;
       lastaudiolen = audiolen;
       // we do not know now if it is enough for the current video frame
-    } 
+    }
 
   }
 
@@ -811,7 +811,7 @@ unsigned char *rtjpeg_aud_get_frame(int fakenumber, int *timecode, int onlyvideo
 
   fafterseek ++;
 
-  //fprintf(stderr, "ffn=%d rfn=%d atc=%d vtc=%d\n", fakenumber, number, audiotimecode, 
+  //fprintf(stderr, "ffn=%d rfn=%d atc=%d vtc=%d\n", fakenumber, number, audiotimecode,
   //                 timecodes[rpos]);
 
   // now we have to return the frame and free it!!
@@ -877,7 +877,7 @@ int rtjpeg_aud_check_sig(char *fname)
   len=strlen(fname);
   if (len < 4)
     return(0);
-  if ((0 == strcmp(fname+len-4,".nuv")) || 
+  if ((0 == strcmp(fname+len-4,".nuv")) ||
       (0 == strcmp(fname+len-4,".NUV")))   return(1);
   return(0);
 }

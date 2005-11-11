@@ -4,20 +4,20 @@
  *  Copyright (C) Lukas Hejtmanek - January 2004
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -52,7 +52,7 @@ struct xio_handle_t {
 	off_t (*xio_lseek_v)(void *stream, off_t offset, int whence);
 	int (*xio_ftruncate_v)(void *stream, off_t length);
 	int (*xio_fstat_v)(void *stream, struct stat *buf);
-	
+
 	void *data;
 };
 
@@ -109,7 +109,7 @@ ibp_open(const char *uri, int mode, int m)
 		return (void *)-1;
 	}
 	uri += strlen(IBP_URI);
-	
+
 	handle=(struct xio_ibp_handle_t*)calloc(1,
 			                     sizeof(struct xio_ibp_handle_t));
 
@@ -170,13 +170,13 @@ ibp_open(const char *uri, int mode, int m)
 		// get LBONE_SERVER from URI
 		if(strchr(uri, ':')) {
 			// port is defined
-			handle->lbone_server = strndup(uri, 
+			handle->lbone_server = strndup(uri,
 					strchr(uri, ':')-uri);
 			uri = (char *)(strchr(uri, ':')+1);
 			handle->lbone_port = atoi(uri);
 		} else {
 			// only host
-			handle->lbone_server = strndup(uri, 
+			handle->lbone_server = strndup(uri,
 					(int)(strchr(uri, '/')-uri));
 		}
 		uri = (char *)(strchr(uri, '/')+1);
@@ -212,28 +212,28 @@ ibp_open(const char *uri, int mode, int m)
 	}
 
 	handle->lors_blocksize *= BLOCK_SIZE_SHIFT;
-	
+
 	handle->mode = mode;
 	handle->b_pos = 0;
 	handle->begin = 0;
 	handle->end = 0;
 	handle->dirty_buffer = 0;
 
-	if(mode & O_WRONLY || mode & O_CREAT) {	
+	if(mode & O_WRONLY || mode & O_CREAT) {
 		handle->buffer = malloc(handle->lors_blocksize);
 	        if(!handle->buffer) {
 	                free(handle);
 	                errno = EIO;
 	                return (void *)-1;
 	        }
-		ret = lorsGetDepotPool(&handle->dp, handle->lbone_server, 
-					handle->lbone_port, NULL, 
-			       		handle->lors_servers, NULL, 
-					handle->lors_size/(1024*1024)+1, 
-					IBP_HARD, 
-			       		handle->lors_duration, 
+		ret = lorsGetDepotPool(&handle->dp, handle->lbone_server,
+					handle->lbone_port, NULL,
+			       		handle->lors_servers, NULL,
+					handle->lors_size/(1024*1024)+1,
+					IBP_HARD,
+			       		handle->lors_duration,
 					handle->lors_threads,
-					handle->lors_timeout, 
+					handle->lors_timeout,
 					LORS_CHECKDEPOTS);
 		if(ret != LORS_SUCCESS) {
 			errno = EIO;
@@ -253,9 +253,9 @@ ibp_open(const char *uri, int mode, int m)
 			errno = EIO;
 			return (void *)-1;
 		}
-		ret = lorsUpdateDepotPool(handle->ex, &handle->dp, 
-				          handle->lbone_server, 0, 
-					  NULL, handle->lors_threads, 
+		ret = lorsUpdateDepotPool(handle->ex, &handle->dp,
+				          handle->lbone_server, 0,
+					  NULL, handle->lors_threads,
 					  handle->lors_timeout, 0);
 		if(ret != LORS_SUCCESS) {
 			errno = EIO;
@@ -277,7 +277,7 @@ ibp_flush(void *handle)
 		return 0;
 	}
 
-	ret = lorsQuery(hdl->ex, &set, hdl->begin, hdl->end, 
+	ret = lorsQuery(hdl->ex, &set, hdl->begin, hdl->end,
 			LORS_QUERY_REMOVE);
 	if(ret != LORS_SUCCESS) {
 		errno = EINVAL;
@@ -291,11 +291,11 @@ ibp_flush(void *handle)
 	                return -1;
 	        }
 
-		ret = lorsSetStore(set, hdl->dp, hdl->buffer, 
-				hdl->begin, hdl->end, NULL, 
-				hdl->lors_threads, 
+		ret = lorsSetStore(set, hdl->dp, hdl->buffer,
+				hdl->begin, hdl->end, NULL,
+				hdl->lors_threads,
 				hdl->lors_timeout, LORS_RETRY_UNTIL_TIMEOUT);
-		
+
 		if(ret != LORS_SUCCESS) {
 			lorsSetFree(set,LORS_FREE_MAPPINGS);
 			errno = EIO;
@@ -304,7 +304,7 @@ ibp_flush(void *handle)
 	} else {
 		set->copies=hdl->lors_copies;
                 set->data_blocksize=hdl->end/hdl->lors_threads;
-		ret = lorsSetUpdate(set, hdl->dp, hdl->buffer, 
+		ret = lorsSetUpdate(set, hdl->dp, hdl->buffer,
 				    hdl->begin, hdl->end,
 				    hdl->lors_threads,hdl->lors_timeout,
 				    LORS_RETRY_UNTIL_TIMEOUT);
@@ -321,7 +321,7 @@ ibp_flush(void *handle)
                 errno=EIO;
                 return -1;
         }
-	
+
         lorsSetFree(set,0);
 
 	hdl->begin += hdl->b_pos;
@@ -329,7 +329,7 @@ ibp_flush(void *handle)
 	hdl->end = 0;
 
 	ret = lorsFileSerialize(hdl->ex, hdl->filename, 0, 0);
-	
+
         if(ret != LORS_SUCCESS) {
 	        perror("file serialize");
 	}
@@ -365,12 +365,12 @@ ibp_write(void *handle, const void *buffer, size_t size)
 		}
 		hdl->b_pos = 0;
 	}
-		
+
 	memcpy((char *)hdl->buffer + hdl->b_pos, buffer, size);
 	hdl->b_pos += size;
 	if(hdl->end < hdl->b_pos)
 		hdl->end = hdl->b_pos;
-	
+
 	pthread_mutex_unlock(&xio_lock);
 	return size;
 }
@@ -386,7 +386,7 @@ ibp_read(void *handle, void *buffer, size_t size)
 	pthread_testcancel();
 	pthread_mutex_lock(&xio_lock);
 	pthread_testcancel();
-	
+
 	if(hdl->mode == O_WRONLY) {
 		errno = EINVAL;
 		pthread_mutex_unlock(&xio_lock);
@@ -402,22 +402,22 @@ ibp_read(void *handle, void *buffer, size_t size)
 		pthread_mutex_unlock(&xio_lock);
                 return msize;
         }
-	
+
 	hdl->fill_buffer = 0;
-	
-	ret = lorsQuery(hdl->ex, &set, hdl->begin + hdl->b_pos, 
+
+	ret = lorsQuery(hdl->ex, &set, hdl->begin + hdl->b_pos,
 			hdl->lors_blocksize, 0);
 	if(ret != LORS_SUCCESS) {
 		pthread_mutex_unlock(&xio_lock);
 		return 0;
 	}
 
-	ret = lorsSetLoad(set, hdl->buffer, hdl->begin + hdl->b_pos, 
+	ret = lorsSetLoad(set, hdl->buffer, hdl->begin + hdl->b_pos,
 			hdl->lors_blocksize, hdl->lors_blocksize,
                               NULL, hdl->lors_threads, hdl->lors_timeout, 0);
 
 	lorsSetFree(set, 0);
-	
+
 	if(ret < 0) {
 		errno = EIO;
 		pthread_mutex_unlock(&xio_lock);
@@ -437,13 +437,13 @@ ibp_read(void *handle, void *buffer, size_t size)
 
 static off_t
 ibp_lseek(void *handle, off_t offs, int mode)
-{	
+{
 	struct xio_ibp_handle_t *hdl = (struct xio_ibp_handle_t *)handle;
 
 	pthread_mutex_lock(&xio_lock);
 	pthread_testcancel();
 	if(mode == SEEK_SET) {
-		if(offs - hdl->begin > hdl->lors_blocksize || 
+		if(offs - hdl->begin > hdl->lors_blocksize ||
 				offs < hdl->begin) {
 			if(ibp_flush(handle)) {
 				errno = EIO;
@@ -458,13 +458,13 @@ ibp_lseek(void *handle, off_t offs, int mode)
 		}
 	}
 	else if(mode == SEEK_CUR) {
-		if(hdl->b_pos + offs > hdl->lors_blocksize || 
+		if(hdl->b_pos + offs > hdl->lors_blocksize ||
 				hdl->b_pos + offs < 0) {
 			if(ibp_flush(handle)) {
 				errno = EIO;
 				pthread_mutex_unlock(&xio_lock);
 				return -1;
-			}	
+			}
 			hdl->fill_buffer = 1;
 			hdl->begin = hdl->begin + hdl->b_pos + offs;
 			hdl->b_pos = 0;
@@ -491,11 +491,11 @@ ibp_lseek(void *handle, off_t offs, int mode)
 }
 
 static int
-ibp_close(void *handle) 
+ibp_close(void *handle)
 {
 	struct xio_ibp_handle_t *hdl = (struct xio_ibp_handle_t *)handle;
 	int ret;
-	
+
 	pthread_mutex_lock(&xio_lock);
 	pthread_testcancel();
 	if(hdl->mode & O_WRONLY || hdl->mode & O_CREAT) {
@@ -540,15 +540,15 @@ ibp_ftruncate(void *stream, off_t length)
 		pthread_mutex_unlock(&xio_lock);
 		return 0;
 	}
-	
-	ret = lorsQuery(hdl->ex, &set, length, 
+
+	ret = lorsQuery(hdl->ex, &set, length,
 			hdl->ex->logical_length-length, 0);
         if(ret != LORS_SUCCESS) {
 		pthread_mutex_unlock(&xio_lock);
 	        errno = EINVAL;
 	        return -1;
 	}
-	ret = lorsSetTrim(set, length, hdl->ex->logical_length-length, 
+	ret = lorsSetTrim(set, length, hdl->ex->logical_length-length,
 			1, 20, LORS_TRIM_ALL);
 	lorsSetFree(set, 0);
 	if(ret != LORS_SUCCESS) {
@@ -581,7 +581,7 @@ ibp_stat(const char *file_name, struct stat *buf)
 	LorsExnode *exnode;
 	int ret;
 	char *fn;
-	
+
 	fn = ibp_lorstoname((char *)file_name);
 	ret = lorsFileDeserialize(&exnode, fn, NULL);
 	if(ret!=0) {
@@ -629,7 +629,7 @@ io_init(void)
 
         for(i = 0; i < 256; i++)
                 _handles[i] = NULL;
-	
+
         xio_initialized = 1;
 	pthread_mutex_init(&xio_lock, NULL);
         return 0;
@@ -646,7 +646,7 @@ xio_open(const char *pathname, int flags, ...)
 		errno = EIO;
                 return -1;
 	}
-	
+
 	pthread_mutex_lock(&xio_lock);
 	// Find free IO handle
         i=3; // skip stdin, stdout, stderr
@@ -658,7 +658,7 @@ xio_open(const char *pathname, int flags, ...)
 		errno = EIO;
 		return -1;
 	}
-	
+
         _handles[ret_fd] = (struct xio_handle_t*)calloc(1,
                                     sizeof(struct xio_handle_t));
 	pthread_mutex_unlock(&xio_lock);
@@ -677,14 +677,14 @@ xio_open(const char *pathname, int flags, ...)
 #ifdef HAVE_IBP
 	if(strncmp(pathname, IBP_URI, strlen(IBP_URI)) == 0) {
 		// IBP uri
-		
+
 		_handles[ret_fd]->xio_read_v = &ibp_read;
 		_handles[ret_fd]->xio_write_v = &ibp_write;
 		_handles[ret_fd]->xio_lseek_v = &ibp_lseek;
 		_handles[ret_fd]->xio_close_v = &ibp_close;
 		_handles[ret_fd]->xio_ftruncate_v = &ibp_ftruncate;
 		_handles[ret_fd]->xio_fstat_v = &ibp_fstat;
-		
+
 		_handles[ret_fd]->data = (void *)ibp_open(pathname, flags, mode);
 		if(!_handles[ret_fd]->data) {
 	                free(_handles[ret_fd]);
@@ -693,28 +693,28 @@ xio_open(const char *pathname, int flags, ...)
 	                return -1;
 	        }
 		return ret_fd;
-	} 
+	}
 #endif
-	
+
 	// fallback to unix io routine
-	
+
 	_handles[ret_fd]->xio_read_v = (ssize_t(*)(void *, void *, size_t))&read;
-	_handles[ret_fd]->xio_write_v = 
+	_handles[ret_fd]->xio_write_v =
 		(ssize_t(*)(void *, const void *, size_t))&write;
 	_handles[ret_fd]->xio_lseek_v = (off_t(*)(void *,off_t,int))&lseek;
 	_handles[ret_fd]->xio_close_v = (int (*)(void *))&close;
 	_handles[ret_fd]->xio_ftruncate_v = (int (*)(void *, off_t))&ftruncate;
 	_handles[ret_fd]->xio_fstat_v = (int (*)(void *, struct stat *))&fstat;
-	
+
 	_handles[ret_fd]->data = (void *)open(pathname, flags, mode);
-	
+
 	if(!_handles[ret_fd]->data) {
 		free(_handles[ret_fd]);
 		_handles[ret_fd] = NULL;
 		errno = EIO;
 		return -1;
 	}
-	
+
 	return ret_fd;
 }
 
@@ -737,7 +737,7 @@ xio_write(int fd, const void *buf, size_t count)
 		errno = EIO;
                 return -1;
 	}
-	
+
 	if(!_handles[fd])
 		return write(fd, buf, count);
 	return _handles[fd]->xio_write_v(_handles[fd]->data, buf, count);
@@ -762,7 +762,7 @@ xio_lseek(int fd, off_t offset, int whence)
 		errno = EIO;
                 return -1;
 	}
-	
+
 	if(!_handles[fd])
 		return lseek(fd, offset, whence);
 
@@ -781,10 +781,10 @@ xio_close(int fd)
 		errno = EINVAL;
 		return -1;
 	}
-	
+
 	if(!_handles[fd])
 		return close(fd);
-	ret = _handles[fd]->xio_close_v(_handles[fd]->data);	
+	ret = _handles[fd]->xio_close_v(_handles[fd]->data);
 	free(_handles[fd]);
 	_handles[fd]=NULL;
 	return ret;
@@ -829,14 +829,14 @@ xio_rename(const char *oldpath, const char *newpath)
 	char *old, *old_p;
 	char *newp;
 	int ret;
-	
+
 	if(strncmp(IBP_URI, oldpath, strlen(IBP_URI)) == 0) {
 		old_p = old = strdup(oldpath);
 		old = strchr(old+strlen(IBP_URI),'/')+1;
 		if(strchr(old, '?')) {
 			*(strchr(old, '?')) = 0;
-		} 
-			
+		}
+
 		newp = (char*)malloc(strlen(old)+1+4);
 		snprintf(newp, strlen(old)+1+4, "%s%s", old, &newpath[strlen(newpath)-4]);
 		ret = rename(old, newp);

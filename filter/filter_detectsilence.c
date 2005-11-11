@@ -4,20 +4,20 @@
  *  Copyright (C) Tilmann Bitterberg - July 2003
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -34,7 +34,7 @@
 #include <stdint.h>
 #endif
 
-static int a_rate, a_bits, chan; 
+static int a_rate, a_bits, chan;
 
 
 /*-------------------------------------------------
@@ -72,11 +72,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
   if(ptr->tag & TC_FILTER_INIT) {
     int i;
-    
+
     if((vob = tc_get_vob())==NULL) return(-1);
-    
+
     // filter init ok.
-    
+
     if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
     a_bits=vob->a_bits;
@@ -94,7 +94,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   // filter close
   //
   //----------------------------------
-  
+
   if(ptr->tag & TC_FILTER_CLOSE) {
     int i, res, len=0;
     if (next<1) return 0;
@@ -129,10 +129,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
     }
     printf("\n");
     tc_log_info(MOD_NAME, "Execute: %s", cmd);
-    
+
     return(0);
   }
-  
+
   //----------------------------------
   //
   // filter frame routine
@@ -142,31 +142,31 @@ int tc_filter(frame_list_t *ptr_, char *options)
   // tag variable indicates, if we are called before
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
-  
+
   if(ptr->tag & TC_PRE_S_PROCESS && ptr->tag & TC_AUDIO) {
-    
+
     s=(short *) ptr->audio_buf;
     p=0.0;
-    
+
     for(n=0; n<ptr->audio_size>>1; ++n) {
       double d=(double)(*s++)/((double)SHRT_MAX*1.0);
       p += (d>0.0?d:-d);
     }
-    
-   sum = (int)p; 
+
+   sum = (int)p;
 
    // Is this frame silence?
    if (sum == 0) zero++;
 
    // if we have found SILENCE_FRAMES in a row, there must be a song change.
- 
+
    if (zero>=SILENCE_FRAMES && sum) {
-     
+
      // somwhere in the middle of silence, the +3 is just a number
      int tot = (ptr->id - zero)*ptr->audio_size;
      tot *= 8;
      tot /= (a_rate*chan*a_bits/1000);
-     
+
      songs[next++] = tot;
 
      if (next > MAX_SONGS) {
@@ -180,7 +180,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
    //printf("%5d: sum (%07.3f)\n", ptr->id, p);
   }
-  
+
   return(0);
 }
 

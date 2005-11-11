@@ -5,20 +5,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA]. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA].
  *
  */
 
@@ -61,7 +61,7 @@ static void help_optstr(void){
 	printf("\n* Warning:\n");
 	printf("  You have to calibrate by your own the mask dimensions and positions so as it fits to your video sample.\n");
 	printf("  You also have to choose a resolution that is multiple of the mask dimensions.\n");
-	
+
 	printf ("\n* Options:\n");
 	printf ("  'xpos':\t\tPosition of the upper left corner of the mask (x)\n");
 	printf ("  'ypos':\t\tPosition of the upper left corner of the mask (y)\n");
@@ -72,7 +72,7 @@ static void help_optstr(void){
 }
 
 static int check_parameters(int x, int y, int w, int h, int W, int H, vob_t *vob){
-	
+
 	/* First, we check if the face-zone is contained in the picture */
 	if ((x+W) > vob->im_v_width){
 		tc_log_error(MOD_NAME, "Face zone is larger than the picture !");
@@ -82,7 +82,7 @@ static int check_parameters(int x, int y, int w, int h, int W, int H, vob_t *vob
 		tc_log_error(MOD_NAME, "Face zone is taller than the picture !");
 		return -1;
 	}
-	
+
 	/* Then, we check the resolution */
 	if ((H%h) != 0) {
 		tc_log_error(MOD_NAME, "Uncorrect Y resolution !");
@@ -98,7 +98,7 @@ static int check_parameters(int x, int y, int w, int h, int W, int H, vob_t *vob
 static int average_neighbourhood(int x, int y, int w, int h, unsigned char *buffer, int width){
 	unsigned int 	red=0, green=0, blue=0;
 	int 			i=0,j=0;
-	
+
 	for (j=y; j<=y+h; j++){
 		for (i=3*(x + width*(j-1)); i<3*(x + w + (j-1)*width); i+=3){
 			red 	+= (int) buffer[i];
@@ -106,11 +106,11 @@ static int average_neighbourhood(int x, int y, int w, int h, unsigned char *buff
 			blue 	+= (int) buffer[i+2];
 		}
 	}
-	
+
 	red 	/= ((w+1)*h);
 	green 	/= ((w+1)*h);
 	blue 	/= ((w+1)*h);
-	
+
 	/* Now let's print values in buffer */
 	for (j=y; j<y+h; j++)
 		for (i=3*(x + width*(j-1)); i<3*(x + w + (j-1)*width); i+=3){
@@ -133,7 +133,7 @@ int tc_filter(frame_list_t *ptr_, char *options){
 	vframe_list_t *ptr = (vframe_list_t *)ptr_;
 	static 			vob_t *vob=NULL;
 
-  
+
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
 
 	optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Julien Tierny", "VRYMEO", "1");
@@ -154,16 +154,16 @@ int tc_filter(frame_list_t *ptr_, char *options){
 
 
   if(ptr->tag & TC_FILTER_INIT) {
-    
+
     if((vob = tc_get_vob())==NULL)
 		return(-1);
 
-	
+
 	/* Now, let's handle the options ... */
 	parameters = tc_malloc (sizeof(parameter_struct));
 	if(parameters == NULL)
 		return -1;
-	
+
 	/* Filter default options */
 	if (verbose & TC_DEBUG)
 		tc_log_info(MOD_NAME, "Preparing default options.");
@@ -173,7 +173,7 @@ int tc_filter(frame_list_t *ptr_, char *options){
 	parameters->yresolution	= 1;
 	parameters->xdim		= 1;
 	parameters->ydim		= 1;
-	
+
 	if (options){
 		/* Get filter options via transcode core */
 		if (verbose & TC_DEBUG)
@@ -186,20 +186,20 @@ int tc_filter(frame_list_t *ptr_, char *options){
 		optstr_get(options, "ydim",			   	"%d",		&parameters->ydim);
 		if (optstr_get(options, "help",  "") >=0) help_optstr();
 	}
-		
+
 	if (vob->im_v_codec == CODEC_YUV){
 		if (!tcv_convert_init(vob->im_v_width, vob->im_v_height)) {
 			tc_log_error(MOD_NAME, "Error at image conversion initialization.");
-			return(-1); 
+			return(-1);
 		}
 	}
-	
+
 	if (check_parameters(parameters->xpos, parameters->ypos, parameters->xresolution, parameters->yresolution, parameters->xdim, parameters->ydim, vob) < 0)
 		return -1;
-	
+
 	if(verbose)
 		tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    
+
     return(0);
   }
 
@@ -209,24 +209,24 @@ int tc_filter(frame_list_t *ptr_, char *options){
   //
   //----------------------------------
 
-  
+
   if(ptr->tag & TC_FILTER_CLOSE) {
-  
-  	
-	
+
+
+
 	/* Let's free the parameter structure */
 	free(parameters);
 	parameters = NULL;
-	
+
     return(0);
   }
-  
+
   //----------------------------------
   //
   // filter frame routine
   //
   //----------------------------------
-   
+
 	if(ptr->tag & TC_POST_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
 
@@ -234,22 +234,22 @@ int tc_filter(frame_list_t *ptr_, char *options){
 			case CODEC_RGB:
 				return print_mask(parameters->xpos, parameters->ypos, parameters->xresolution, parameters->yresolution, parameters->xdim, parameters->ydim, ptr);
 				break;
-			
+
 			case CODEC_YUV:
-				
+
 				if (!tcv_convert(ptr->video_buf, IMG_YUV_DEFAULT, IMG_RGB24)){
 					tc_log_error(MOD_NAME, "cannot convert YUV stream to RGB format !");
 					return -1;
 				}
-				
+
 				if ((print_mask(parameters->xpos, parameters->ypos, parameters->xresolution, parameters->yresolution, parameters->xdim, parameters->ydim, ptr))<0) return -1;
 				if (!tcv_convert(ptr->video_buf, IMG_RGB24, IMG_YUV_DEFAULT)){
 					tc_log_error(MOD_NAME, "cannot convert RGB stream to YUV format !");
 					return -1;
 				}
 				break;
-			
-			default: 
+
+			default:
 				tc_log_error(MOD_NAME, "Internal video codec is not supported.");
 				return -1;
 		}

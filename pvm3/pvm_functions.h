@@ -22,7 +22,7 @@
  */
 
 #ifndef _PVM_FUNCTIONS_H
-#define _PVM_FUNCTIONS_H 
+#define _PVM_FUNCTIONS_H
 
 #include <stdio.h>
 #include <pvm3.h>
@@ -97,7 +97,7 @@ void (*f_pvm_stop_single_process)(int p_slave_tid);
 
 /*private function*/
 
-/* f_pvm_master_start_stop: 
+/* f_pvm_master_start_stop:
 	s_type:			1 start 0 end
 	p_spawn_process: 	process to spawn
 	s_nproc_host: 		number of process per host

@@ -57,7 +57,7 @@ Create only the first \fInum\fP chunks then exit.
 Split the input file based on time/framecode (hh:mm:ss.ms)
 .TP
 .B -c
-Together with \fB-t\fP. Merge all segments into one AVI-File again instead 
+Together with \fB-t\fP. Merge all segments into one AVI-File again instead
 generating seperate files.
 .TP
 .B -m
@@ -113,15 +113,15 @@ The solution is to remux the AVI file with
 Now look at tcprobe again
 
 .br
- | V: 25.000 fps, codec=dvsd, frames=250, width=720, height=576                      
+ | V: 25.000 fps, codec=dvsd, frames=250, width=720, height=576
 .br
- | A: 48000 Hz, format=0x01, bits=16, channels=2, bitrate=1536 kbps,                 
+ | A: 48000 Hz, format=0x01, bits=16, channels=2, bitrate=1536 kbps,
 .br
  |   \fI250\fP chunks, 1920000 bytes
 .br
 
-The data in this file is \fIexactly\fP the same (its bit-identical)                             
-as it was in in.avi; the AVI file was just written in a                                
+The data in this file is \fIexactly\fP the same (its bit-identical)
+as it was in in.avi; the AVI file was just written in a
 different way, we do now have 250 audio chunks which makes splitting much
 easier and more accurate for avisplit.
 .SH AUTHORS

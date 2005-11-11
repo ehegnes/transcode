@@ -19,7 +19,7 @@ int main(int argc,char **argv)
 {
   FILE *in;
   PVNParam inParams, tmpParams;
- 
+
   Image *images, *curImage;
   ImageInfo *image_info;
   unsigned int i=0, j=0, k=0, prec_bytes;

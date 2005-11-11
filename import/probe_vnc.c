@@ -48,7 +48,7 @@
     * server sends 4-byte number (big-endian) to alert auth
       requirements
     * if requiring auth, server then sends 16-byte (VNC33_CHALLENGESIZE)
-      packet, which is to be encrypted and sent back (same size). 
+      packet, which is to be encrypted and sent back (same size).
       The server then sends 32-bit word result on pass-fail.  Entire
       thing aborted if not passed.
     * client sends 1-byte message
@@ -110,7 +110,7 @@ void probe_vnc(info_t *ipipe)
 	break;
 
       case VNC33_rfbVncAuth: {
-	int authResp = 
+	int authResp =
 	index += VNC33_CHALLENGESIZE;
 	authResp = (buf[index] << 24) | (buf[index+1] << 16)
 		    | (buf[index+2] << 8) | buf[index+3];

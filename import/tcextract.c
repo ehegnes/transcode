@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -35,13 +35,13 @@
 
 int verbose=TC_INFO;
 
-void import_exit(int code) 
+void import_exit(int code)
 {
   if(verbose & TC_DEBUG) { fprintf (stderr, "[%s] (pid=%d) exit ", EXE, (int) getpid()); import_info(code, EXE); }
   exit(code);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * print a usage/version message
  *
@@ -69,13 +69,13 @@ static void usage(int status)
   fprintf(stderr,"\t -v                print version\n");
 
   exit(status);
-  
+
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
- * universal extract thread frontend 
+ * universal extract thread frontend
  *
  * ------------------------------------------------------------*/
 
@@ -86,9 +86,9 @@ int main(int argc, char *argv[])
 
     int user=0;
 
-    long 
-	stream_stype = TC_STYPE_UNKNOWN, 
-	stream_magic = TC_MAGIC_UNKNOWN, 
+    long
+	stream_stype = TC_STYPE_UNKNOWN,
+	stream_magic = TC_MAGIC_UNKNOWN,
 	stream_codec = TC_CODEC_UNKNOWN;
 
     int ch, done=0, track=0;
@@ -101,52 +101,52 @@ int main(int argc, char *argv[])
     ipipe.frame_limit[0]=0;
     ipipe.frame_limit[1]=LONG_MAX;
 
-    
+
     while ((ch = getopt(argc, argv, "d:x:i:f:a:vt:C:?h")) != -1) {
-	
+
 	switch (ch) {
-	    
-	case 'i': 
-	    
+
+	case 'i':
+
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  name = optarg;
 
 	  break;
 
-	case 'd': 
-	  
+	case 'd':
+
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  verbose = atoi(optarg);
-	  
+
 	  break;
 
-	case 'x': 
-	  
+	case 'x':
+
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  codec = optarg;
 	  break;
-	  
-	case 'f': 
-	  
+
+	case 'f':
+
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  ipipe.nav_seek_file = optarg;
 
 	  break;
 
-	case 't': 
-	  
+	case 't':
+
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  magic = optarg;
 	  user=1;
 
 	  break;
-	  
-	case 'a': 
-	    
+
+	case 'a':
+
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 	  track = strtol(optarg, NULL, 0);
 	  break;
-	  
+
         case 'C':
 
           if(optarg[0]=='-') usage(EXIT_FAILURE);
@@ -158,11 +158,11 @@ int main(int argc, char *argv[])
           }
           break;
 
-	case 'v': 
+	case 'v':
 	  version();
 	  exit(0);
 	  break;
-	  
+
 	case 'h':
 	  usage(EXIT_SUCCESS);
 	default:
@@ -170,15 +170,15 @@ int main(int argc, char *argv[])
 	}
     }
 
-    /* ------------------------------------------------------------ 
+    /* ------------------------------------------------------------
      *
      * fill out defaults for info structure
      *
      * ------------------------------------------------------------*/
-    
+
     // assume defaults
     if(name==NULL) stream_stype=TC_STYPE_STDIN;
-    
+
     // no autodetection yet
     if(codec==NULL && magic==NULL) {
       fprintf(stderr, "error: invalid codec %s\n", codec);
@@ -189,26 +189,26 @@ int main(int argc, char *argv[])
 
     // do not try to mess with the stream
     if(stream_stype!=TC_STYPE_STDIN) {
-      
+
       if(tc_file_check(name)) exit(1);
-      
+
       if((ipipe.fd_in = xio_open(name, O_RDONLY))<0) {
 	perror("file open");
 	return(-1);
       }
-      
+
       stream_magic = fileinfo(ipipe.fd_in, 0);
-      
+
       if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (pid=%d) %s\n", EXE, getpid(), filetype(stream_magic));
-      
+
     } else ipipe.fd_in = STDIN_FILENO;
 
-    if(verbose & TC_DEBUG) 
+    if(verbose & TC_DEBUG)
 	fprintf(stderr, "[%s] (pid=%d) starting, doing %s\n", EXE, getpid(), codec);
-    
+
     // fill out defaults for info structure
     ipipe.fd_out = STDOUT_FILENO;
-    
+
     ipipe.magic   = stream_magic;
     ipipe.stype   = stream_stype;
     ipipe.codec   = stream_codec;
@@ -218,8 +218,8 @@ int main(int argc, char *argv[])
     ipipe.verbose = verbose;
 
     ipipe.name = name;
-    
-    /* ------------------------------------------------------------ 
+
+    /* ------------------------------------------------------------
      *
      * codec specific section
      *
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
      * ------------------------------------------------------------*/
 
     if(magic==NULL) magic="";
-    
+
     // OGM
 
     if (ipipe.magic == TC_MAGIC_OGG) {
@@ -253,21 +253,21 @@ int main(int argc, char *argv[])
     }
 
     // MPEG2
-    if(strcmp(codec,"mpeg2")==0) { 
-      
+    if(strcmp(codec,"mpeg2")==0) {
+
       ipipe.codec = TC_CODEC_MPEG2;
-      
+
       if(strcmp(magic, "vob")==0) ipipe.magic = TC_MAGIC_VOB;
       if(strcmp(magic, "m2v")==0) ipipe.magic = TC_MAGIC_M2V;
       if(strcmp(magic, "raw")==0) ipipe.magic = TC_MAGIC_RAW;
-      
+
       extract_mpeg2(&ipipe);
       done = 1;
     }
-    
+
     // PCM
-    if(strcmp(codec,"pcm")==0) { 
-      
+    if(strcmp(codec,"pcm")==0) {
+
 	ipipe.codec = TC_CODEC_PCM;
 	ipipe.select = TC_AUDIO;
 
@@ -281,8 +281,8 @@ int main(int argc, char *argv[])
     }
 
     // SUBTITLE (private_stream_1)
-    if(strcmp(codec,"ps1")==0) { 
-      
+    if(strcmp(codec,"ps1")==0) {
+
 	ipipe.codec = TC_CODEC_PS1;
 	ipipe.select = TC_AUDIO;
 
@@ -295,8 +295,8 @@ int main(int argc, char *argv[])
 
 
     // DV
-    if(strcmp(codec,"dv")==0) { 
-	
+    if(strcmp(codec,"dv")==0) {
+
 	ipipe.codec = TC_CODEC_DV;
 
 	if(strcmp(magic, "avi")==0) ipipe.magic = TC_MAGIC_AVI;
@@ -308,10 +308,10 @@ int main(int argc, char *argv[])
 
 
     // RGB
-    if(strcmp(codec,"rgb")==0) { 
-	
+    if(strcmp(codec,"rgb")==0) {
+
 	ipipe.codec = TC_CODEC_RGB;
-	
+
 	if(strcmp(magic, "avi")==0) ipipe.magic = TC_MAGIC_AVI;
 	if(strcmp(magic, "raw")==0) ipipe.magic = TC_MAGIC_RAW;
 	if(strcmp(magic, "wav")==0) ipipe.magic = TC_MAGIC_WAV;
@@ -319,11 +319,11 @@ int main(int argc, char *argv[])
 	extract_rgb(&ipipe);
 	done = 1;
     }
-    
-    
+
+
     // DTS
     if(strcmp(codec,"dts")==0) {
-	
+
 	ipipe.codec = TC_CODEC_DTS;
 	ipipe.select = TC_AUDIO;
 
@@ -336,7 +336,7 @@ int main(int argc, char *argv[])
 
     // AC3
     if(strcmp(codec,"ac3")==0) {
-	
+
 	ipipe.codec = TC_CODEC_AC3;
 	ipipe.select = TC_AUDIO;
 
@@ -349,7 +349,7 @@ int main(int argc, char *argv[])
 
     // A52
     if(strcmp(codec,"a52")==0) {
-	
+
 	ipipe.codec = TC_CODEC_A52;
 	ipipe.select = TC_AUDIO;
 
@@ -363,7 +363,7 @@ int main(int argc, char *argv[])
 
     // MP3
     if(strcmp(codec,"mp3")==0 || strcmp(codec,"mp2")==0) {
-	
+
 	ipipe.codec = TC_CODEC_MP3;
 	ipipe.select = TC_AUDIO;
 
@@ -376,52 +376,52 @@ int main(int argc, char *argv[])
     }
 
     // YUV420P
-    if(strcmp(codec,"yuv420p")==0) { 
-	
+    if(strcmp(codec,"yuv420p")==0) {
+
 	ipipe.codec = TC_CODEC_YUV420P;
 
 	if(strcmp(magic, "avi")==0) ipipe.magic = TC_MAGIC_AVI;
 	if(strcmp(magic, "raw")==0) ipipe.magic = TC_MAGIC_RAW;
 	if(strcmp(magic, "yuv4mpeg")==0) ipipe.magic = TC_MAGIC_YUV4MPEG;
-	
+
 	extract_yuv(&ipipe);
 	done = 1;
     }
 
     // YUV422P
-    if(strcmp(codec,"yuv422p")==0) { 
-	
+    if(strcmp(codec,"yuv422p")==0) {
+
 	ipipe.codec = TC_CODEC_YUV422P;
 
 	if(strcmp(magic, "avi")==0) ipipe.magic = TC_MAGIC_AVI;
 	if(strcmp(magic, "raw")==0) ipipe.magic = TC_MAGIC_RAW;
 	if(strcmp(magic, "yuv4mpeg")==0) ipipe.magic = TC_MAGIC_YUV4MPEG;
-	
+
 	extract_yuv(&ipipe);
 	done = 1;
     }
 
     // UYVY
-    if(strcmp(codec,"uyvy")==0) { 
-	
+    if(strcmp(codec,"uyvy")==0) {
+
 	ipipe.codec = TC_CODEC_UYVY;
 
 	if(strcmp(magic, "avi")==0) ipipe.magic = TC_MAGIC_AVI;
 	if(strcmp(magic, "raw")==0) ipipe.magic = TC_MAGIC_RAW;
-	
+
 	extract_yuv(&ipipe);
 	done = 1;
     }
-   
-   
+
+
     // LZO
-    if(strcmp(codec,"lzo")==0) { 
-	
+    if(strcmp(codec,"lzo")==0) {
+
 	ipipe.codec = TC_CODEC_YUV420P;
 
 	if(strcmp(magic, "avi")==0) ipipe.magic = TC_MAGIC_AVI;
 	if(strcmp(magic, "raw")==0) ipipe.magic = TC_MAGIC_RAW;
-	
+
 	extract_lzo(&ipipe);
 	done = 1;
     }
@@ -431,7 +431,7 @@ int main(int argc, char *argv[])
 
     //need to check if there isn't a codec from the input option (if we have a file with TC_MAGIC_AVI and we specify -x pcm we have pcm and rgb output)
     if ((strcmp(magic, "avi")==0 || ipipe.magic==TC_MAGIC_AVI)&& (codec == NULL)) {
-	
+
 	ipipe.magic=TC_MAGIC_AVI;
 	extract_avi(&ipipe);
 	done = 1;
@@ -443,15 +443,15 @@ int main(int argc, char *argv[])
 	extract_avi(&ipipe);
 	done = 1;
     }
-    
+
 
     if(!done) {
 	fprintf(stderr, "[%s] (pid=%d) unable to handle codec %s\n", EXE, getpid(), codec);
 	exit(1);
-    }    
-    
+    }
+
     if(ipipe.fd_in != STDIN_FILENO) xio_close(ipipe.fd_in);
-    
+
     return(0);
 }
 

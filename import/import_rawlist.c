@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - July 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -41,14 +41,14 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_AUD | TC_CAP_YUV42
 #define MAX_BUF 1024
 char import_cmd_buf[MAX_BUF];
 
-static FILE *fd; 
+static FILE *fd;
 static char buffer[PATH_MAX+2];
 
 static int bytes=0;
 static int out_bytes=0;
 static uint8_t *video_buffer=NULL;
-  
-/* ------------------------------------------------------------ 
+
+/* ------------------------------------------------------------
  *
  * open stream
  *
@@ -72,7 +72,7 @@ MOD_open
 	    srcfmt = IMG_RGB24;
 	    destfmt = IMG_RGB_DEFAULT;
 	    bytes = vob->im_v_width * vob->im_v_height * 3;
-	} else if (!strcasecmp(vob->im_v_string, "yuv420p") || 
+	} else if (!strcasecmp(vob->im_v_string, "yuv420p") ||
 		   !strcasecmp(vob->im_v_string, "i420")) {
 	    srcfmt = IMG_YUV420P;
 	    destfmt = IMG_YUV_DEFAULT;
@@ -81,12 +81,12 @@ MOD_open
 	    srcfmt = IMG_YV12;
 	    destfmt = IMG_YUV_DEFAULT;
 	    bytes = vob->im_v_width * vob->im_v_height * 3 / 2;
-	} else if (!strcasecmp(vob->im_v_string, "gray") || 
+	} else if (!strcasecmp(vob->im_v_string, "gray") ||
 		   !strcasecmp(vob->im_v_string, "grey")) {
 	    srcfmt = IMG_GRAY8;
 	    if (vob->im_v_codec == CODEC_RGB)
 		destfmt = IMG_RGB_DEFAULT;
-	    else 
+	    else
 		destfmt = IMG_YUV_DEFAULT;
 	    bytes = vob->im_v_width * vob->im_v_height;
 	} else if (!strcasecmp(vob->im_v_string, "yuy2")) {
@@ -140,47 +140,47 @@ MOD_open
 	fprintf(stderr, "(%s) out of memory", __FILE__);
 	return(TC_IMPORT_ERROR);
     }
-    
+
     return(0);
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
  * ------------------------------------------------------------*/
 
 MOD_decode {
-  
+
   char
     *filename = NULL;
-  
+
   int
     fd_in=0, n;
-  
+
   if(param->flag == TC_AUDIO) return(0);
 
-retry:  
+retry:
 
   // read a filename from the list
-  if(fgets (buffer, PATH_MAX, fd)==NULL) return(TC_IMPORT_ERROR);    
-  
-  filename = buffer; 
-  
+  if(fgets (buffer, PATH_MAX, fd)==NULL) return(TC_IMPORT_ERROR);
+
+  filename = buffer;
+
   n=strlen(filename);
-  if(n<2) return(TC_IMPORT_ERROR);  
+  if(n<2) return(TC_IMPORT_ERROR);
   filename[n-1]='\0';
-  
+
   //read the raw frame
-  
+
   if((fd_in = open(filename, O_RDONLY))<0) {
     tc_log_warn(MOD_NAME, "Opening file \"%s\" failed!", filename);
     perror("open file");
     goto retry;
-  } 
-  
-  if(tc_pread(fd_in, param->buffer, bytes) != bytes) { 
+  }
+
+  if(tc_pread(fd_in, param->buffer, bytes) != bytes) {
     perror("image parameter mismatch");
     close(fd_in);
     goto retry;
@@ -196,7 +196,7 @@ retry:
 		  vob->im_v_width, vob->im_v_height);
     ac_memcpy(param->buffer, video_buffer, out_bytes);
   }
-  
+
   param->size=out_bytes;
   param->attributes |= TC_FRAME_IS_KEYFRAME;
 
@@ -205,25 +205,25 @@ retry:
   return(0);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
-  
+{
+
   if(param->flag == TC_VIDEO) {
-    
+
     if(fd != NULL) fclose(fd);
     if (param->fd != NULL) pclose(param->fd);
-    
+
     return(0);
   }
-  
+
   if(param->flag == TC_AUDIO) return(0);
-  
+
   return(TC_IMPORT_ERROR);
 }
 

@@ -48,7 +48,7 @@
  *  exception also makes it possible to release a modified version which
  *  carries forward this exception.
  *
- * $Id: xvid2.h,v 1.2 2004-10-17 22:03:12 jacob Exp $
+ * $Id: xvid2.h,v 1.3 2005-11-11 14:46:58 achurch Exp $
  *
  *****************************************************************************/
 
@@ -83,7 +83,7 @@ extern "C" {
  * you used to build you client program. If versions mismatch, then it is
  * highly possible that your application will segfault because the host XviD
  * library and your application use different structures.
- * 
+ *
  */
 
 /** @} */
@@ -108,7 +108,7 @@ extern "C" {
  *                              already created and exit the program cleanly.
  * <li>xvid_encore or xvid_decore : something was wrong and en/decoding
  *                                  operation was not completed sucessfully.
- *                                  you can stop the en/decoding process or just 
+ *                                  you can stop the en/decoding process or just
  *									ignore and go on.
  * <li>xvid_stop : you can safely ignore it if you call this function at the
  *                 end of your program.
@@ -155,7 +155,7 @@ extern "C" {
                             *   to a DEC_PICTURE (y,u,v planar) structure.
 							*
 							*   For encoding, image is read from the DEC_PICTURE
-							*   parameter values. For decoding, the DEC_PICTURE 
+							*   parameter values. For decoding, the DEC_PICTURE
                             *   parameters are set, pointing to the internal XviD
                             *   image buffer. */
 #define XVID_CSP_EXTERN 1004 /**< Special colorspace used for slice rendering
@@ -359,7 +359,7 @@ extern "C" {
 
 
 	/* This struct is used for per slice rendering */
-	typedef struct 
+	typedef struct
 	{
 		void *y,*u,*v;
 		int stride_y, stride_u,stride_v;
@@ -509,7 +509,7 @@ extern "C" {
 											*
 * This flags forces XviD to discard chroma data, this is not mpeg4 greyscale
 * mode, it simply drops chroma MBs using cbp == 0 for these blocks */
-#define XVID_GRAYSCALE			XVID_GREYSCALE /**< XVID_GREYSCALE alias 
+#define XVID_GRAYSCALE			XVID_GREYSCALE /**< XVID_GREYSCALE alias
 											*
 * United States locale support. */
 
@@ -564,7 +564,7 @@ extern "C" {
 */
 #define PMV_USESQUARES16		0x00800000/**< Use square pattern
 											*
-* Replace  the  diamond search  with a  square search. 
+* Replace  the  diamond search  with a  square search.
 */
 #define PMV_HALFPELDIAMOND8 	0x01000000/**< see 16x16 equivalent
 											*
@@ -708,7 +708,7 @@ extern "C" {
 											* <li> !=  0  :  Then you  force  the  encoder  to use  this  specific
 											*                  quantizer   value.     It   is   clamped    in   the   interval
 											*                  [1..31]. Tipically used  during the 2nd pass of  a VBR encoding
-											*                  session. 
+											*                  session.
 											* </ul> */
 		int intra;                         /**< [in/out]
 											*
@@ -721,10 +721,10 @@ extern "C" {
 											*               during a VBR second pass
 											*     <li> -1: let   the  encoder   decide  (based   on   contents  and
 											*              max_key_interval). Mainly  used in ABR  mode and during  a 1st
-											*              VBR pass. 
+											*              VBR pass.
 											*     </ul>
 											* <li> [out] : When first set to -1, the encoder returns the effective keyframe state
-											*              of the frame. 
+											*              of the frame.
 											* </ul>
                                             */
 		HINTINFO hint;                     /**< [in/out]

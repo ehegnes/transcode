@@ -9,7 +9,7 @@ Type:	B = boolean
 	D = double
 	S = string
 
-most default values depends on what using as base-profile 
+most default values depends on what using as base-profile
 -> this will marked with "!base-prof."
 
 
@@ -22,7 +22,7 @@ verbose		 B   switch verbosity mode on (=1) or off (=0)	[0]
 gop_size	 I   total number of frames for one GOP         !base-prof.
 p_distance	 I   distance between P-frames			[3]
 aspect 		 I   picture aspect-ratio  			[like src]
-		     1:1 (=1), 4:3 (=2|8|12), 16:9 (=3), 
+		     1:1 (=1), 4:3 (=2|8|12), 16:9 (=3),
 		     2.21:1 (=4)
 frame_rate       D   video frame-rate (23.0-30.0)		[25.0]
 		     -> use "25.0" for PAL, 29.97 for NTSC
@@ -38,27 +38,27 @@ use_seq_end	 B   generate sequence end-code on encoder-exit !base-prof.
 use_seq_dspext   B   generate sequence display-extension header !base-prof.
 use_pic_dspext   B   generate picture display-extension header  !base-prof.
 cbr 		 B   encode with constant (=1) or variable (=0) !base-prof.
-		     bitrate -> in CBR-Mode "cbr_bitrate" will 
+		     bitrate -> in CBR-Mode "cbr_bitrate" will
 		     be used -> in VBR-Mode "max_/min_/avg_
 		     bitrate" may be used (if > 0).
-cbr_bitrate      D   BBR-Mode bitrate -> only valid with 
+cbr_bitrate      D   BBR-Mode bitrate -> only valid with
 		     "cbr" (=1), (500000.0 - 6000000.0) bits/s  !base-prof.
 quant_value	 I   quanitzer value for VBR-Mode -> only valid !base-prof.
 		     with "cbr (=0), range (1-31),
-		     best/biggest (=1) worst/smallest (=31)  
+		     best/biggest (=1) worst/smallest (=31)
 max_bitrate	 D   (0|500000.0-6000000.0) -> if 0, max.
 		     bitrate will not controlled
-min_bitrate	 D   (0|500000.0-6000000.0) -> if 0, min 
+min_bitrate	 D   (0|500000.0-6000000.0) -> if 0, min
 		     bitrate will not controlled
-avg_bitrate	 D   (0|500000.0-6000000.0) -> if 0, no 
-		     
-qscale_type	 B   mpeg1 and low bitrate-mpeg2 (=0),		!base-prof. 
+avg_bitrate	 D   (0|500000.0-6000000.0) -> if 0, no
+
+qscale_type	 B   mpeg1 and low bitrate-mpeg2 (=0),		!base-prof.
 		     otherwise (=1)
 dc_prec		 I   precision of dc-coeffizient 		!base-prof.
-		     8-Bit (=0) 9-Bit (=1) 10-Bit (=2)		
-iqname		 S   file-name for external intra-quantizer	[none] 
+		     8-Bit (=0) 9-Bit (=1) 10-Bit (=2)
+iqname		 S   file-name for external intra-quantizer	[none]
 		     matrix (8x8 values)
-niqname		 S   file-name for external non intra-quantizer	[none] 
+niqname		 S   file-name for external non intra-quantizer	[none]
 		     matrix (8x8 values)
 denoise		 B   high-frequency denoiser off (=0), on (=1)	[0]
 
@@ -68,9 +68,9 @@ denoise		 B   high-frequency denoiser off (=0), on (=1)	[0]
 Param-Name	Type Description				default
 -----------------------------------------------------------------------------
 max_file_size   I    max. file size in MByte for output-files	[0]
-		     after this limit is reached, a new fileset	
-		     (<outfile-name>-%03d.m1v/m2v,.mpa,.mpg)  
-		     will be startet. Value (=0) will disable 
+		     after this limit is reached, a new fileset
+		     (<outfile-name>-%03d.m1v/m2v,.mpa,.mpg)
+		     will be startet. Value (=0) will disable
 		     this feature.
 
 3. Muxer Prameters
@@ -86,9 +86,9 @@ sector_size	 I   packet- (sector-)size usual values are	!base-prof.
 use_comp_bitrate I   unused (=0), average (=1), max (=2)	!base-prof.
 forced_mux_rate	 I   (=0) compute muxrate on base of		!base-prof.
 		     "use_comp_bitrate", otherwise value of
-		     forced muxrate in 50 bytes/sec units. 
+		     forced muxrate in 50 bytes/sec units.
 always_sys_hdr	 B   generate always sys-headers (=1) or (=0)	!base-prof.
-		     for only on beginning of video. 
+		     for only on beginning of video.
 align_seq_hdr	 B   align sequence headers on sector		!base-prof.
 		     boundaries (=1), no alignment (=0)
 svcd_scan_ofs	 B   (=1) generate SVCD scan-offets, otherwise	!base-prof.

@@ -4,20 +4,20 @@
  *  Copyright (C) Jacob (Jack) Gryn - July 2004
  *
  *  Based on import_im module by Thomas Östreich - June 2001
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -52,7 +52,7 @@ static long bufSize=0;
 
 static unsigned int inbufFormat;
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open stream
  *
@@ -65,7 +65,7 @@ MOD_open
   if(param->flag == TC_AUDIO) {
       return(0);
   }
-  
+
   if(param->flag == TC_VIDEO) {
 
     fd=fopen(vob->video_in_file, "rb");
@@ -112,7 +112,7 @@ MOD_open
 
     vob->has_audio=0;
     vob->decolor=(inParams.magic[2]=='6') ? 1:0;
-    vob->fps         = inParams.framerate; 
+    vob->fps         = inParams.framerate;
     vob->im_v_height = inParams.height;
     vob->im_v_width  = inParams.width;
     vob->im_v_size   = tmpBufSize;
@@ -123,13 +123,13 @@ MOD_open
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
  * ------------------------------------------------------------*/
 
-MOD_decode 
+MOD_decode
 {
     int i;
     param->size=tmpBufSize;
@@ -160,14 +160,14 @@ MOD_decode
     return(0);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
   if(buf!=NULL)
     free(buf);
   if(tmpBuf!=NULL)

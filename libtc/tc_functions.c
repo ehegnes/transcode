@@ -7,15 +7,15 @@
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -57,11 +57,11 @@
 /* WARNING: we MUST keep in sync preambles order with TC_LOG* macros */
 static const char *tc_log_preambles[] = {
     /* TC_LOG_ERR */
-    "["COL_RED"%s"COL_GRAY"]"COL_RED" critical"COL_GRAY": %s\n", 
+    "["COL_RED"%s"COL_GRAY"]"COL_RED" critical"COL_GRAY": %s\n",
     /* TC_LOG_WARN */
-    "["COL_RED"%s"COL_GRAY"]"COL_YELLOW" warning"COL_GRAY": %s\n", 
+    "["COL_RED"%s"COL_GRAY"]"COL_YELLOW" warning"COL_GRAY": %s\n",
     /* TC_LOG_INFO */
-    "["COL_BLUE"%s"COL_GRAY"] %s\n", 
+    "["COL_BLUE"%s"COL_GRAY"] %s\n",
     /* TC_LOG_MSG */
     "[%s] %s\n",
 };
@@ -70,7 +70,7 @@ void tc_log(int level, const char *tag, const char *fmt, ...)
 {
     char buf[TC_MSG_BUF_SIZE];
     char *msg = buf;
-    int dynbuf = 0; 
+    int dynbuf = 0;
     /* flag: we must use a dynamic (larger than static) buffer? */
     size_t size = 0;
     va_list ap;
@@ -79,15 +79,15 @@ void tc_log(int level, const char *tag, const char *fmt, ...)
     level = (level < TC_LOG_ERR) ?TC_LOG_ERR :level;
     level = (level > TC_LOG_MSG) ?TC_LOG_MSG :level;
 
-    size = strlen(tc_log_preambles[level]) 
-           + strlen(tag) + strlen(fmt) + 1;          
- 
+    size = strlen(tc_log_preambles[level])
+           + strlen(tag) + strlen(fmt) + 1;
+
     if (size > TC_MSG_BUF_SIZE) {
         dynbuf = 1;
         msg = malloc(size);
         if (msg == NULL) {
             fprintf(stderr, "(%s) CRITICAL: can't get memory in "
-                    "tc_log(); tag='%s'\n", __FILE__, 
+                    "tc_log(); tag='%s'\n", __FILE__,
                     tag);
             return;
         }
@@ -96,7 +96,7 @@ void tc_log(int level, const char *tag, const char *fmt, ...)
     }
 
     snprintf(msg, size, tc_log_preambles[level], tag, fmt);
-  
+
     va_start(ap, fmt);
     vfprintf(stderr, msg, ap);
     va_end(ap);
@@ -104,12 +104,12 @@ void tc_log(int level, const char *tag, const char *fmt, ...)
     if (dynbuf == 1) {
         free(msg);
     }
-    
+
     /* ensure that all *other* messages are written */
     fflush(stdout);
-    
+
     return;
-}  
+}
 
 /*************************************************************************/
 
@@ -175,12 +175,12 @@ int tc_test_program(const char *name)
     }
 
     local_free(tmp_path);
-    local_free(strtokbuf); 
+    local_free(strtokbuf);
 
     if (!done) {
         tc_warn("The '%s' program could not be found. \n", name);
         tc_warn("Please check your installation.\n");
-        return ENOENT; 
+        return ENOENT;
     }
 
     if (error != 0) {
@@ -291,7 +291,7 @@ void *_tc_malloc(const char *file, int line, size_t size)
                         file, line, (unsigned long)size);
     }
     return p;
-}        
+}
 
 /* allocate a chunk of memory (like tc_malloc), but zeroes memory before
  * returning. */
@@ -320,14 +320,14 @@ void *_tc_bufalloc(const char *file, int line, size_t size)
     int8_t *base = malloc(size + sizeof(void *) + pagesize);
     int8_t *ptr = NULL;
     unsigned long offset = 0;
-    
+
     if(base == NULL) {
         fprintf(stderr, "[%s:%d] tc_bufalloc(): can't allocate %lu bytes\n",
                         file, line, (unsigned long)size);
     } else {
         ptr = base + sizeof(void *);
         offset = (unsigned long)ptr % pagesize;
-        
+
         if (offset)
             ptr += (pagesize - offset);
         ((void **)ptr)[-1] = base;  /* save the base pointer for freeing */
@@ -341,7 +341,7 @@ void *_tc_bufalloc(const char *file, int line, size_t size)
 char *_tc_strndup(const char *file, int line, const char *s, size_t n)
 {
     char *pc = NULL;
-            
+
     if (s != NULL) {
         pc = _tc_zalloc(file, line, n + 1);
         if (pc != NULL) {
@@ -371,7 +371,7 @@ ssize_t tc_pread(int fd, uint8_t *buf, size_t len)
 
     while (r < len) {
         n = xio_read(fd, buf + r, len - r);
-        
+
         if (n == 0) {  /* EOF */
             break;
         }
@@ -401,7 +401,7 @@ ssize_t tc_pwrite(int fd, uint8_t *buf, size_t len)
                 continue;
             } else {
                 break;
-            }                
+            }
         }
         r += n;
     }
@@ -422,12 +422,12 @@ int tc_preadwrite(int fd_in, int fd_out)
         /* error on read? */
         if (bytes < 0) {
             return -1;
-        }            
+        }
 
         /* read stream end? */
         if (bytes != MAX_BUF) {
             error = 1;
-        }            
+        }
 
         if (bytes) {
             /* write stream problems? */
@@ -436,7 +436,7 @@ int tc_preadwrite(int fd_in, int fd_out)
             }
         }
     } while (!error);
- 
+
     return 0;
 }
 
@@ -461,13 +461,13 @@ int tc_file_check(const char *name)
 # define major(dev)  (((dev) >> 8) & 0xff)
 #endif
 
-int tc_probe_path(const char *name) 
+int tc_probe_path(const char *name)
 {
     struct stat fbuf;
 #ifdef NET_STREAM
     struct hostent *hp;
 #endif
-    if(name == NULL) { 
+    if(name == NULL) {
         tc_log_warn(__FILE__, "invalid file \"%s\"", name);
         return TC_PROBE_PATH_INVALID;
     }
@@ -541,7 +541,7 @@ int tc_probe_path(const char *name)
         tc_log_warn(__FILE__, "invalid filename or host \"%s\"", name);
         return TC_PROBE_PATH_INVALID;
     }
-    
+
     return TC_PROBE_PATH_INVALID;
 }
 
@@ -554,7 +554,7 @@ int tc_probe_path(const char *name)
 #include <stdlib.h>
 #include <stdio.h>
 
-int main(void) 
+int main(void)
 {
     int i = 0;
 
@@ -577,8 +577,8 @@ int main(void)
                            "additional arguments: "
                            " file='%s' line='%i' date='%s' i=%i &i=%p",
                            i, __FILE__, __LINE__, __DATE__, i, &i);
-        
-       
+
+
     }
 
     return 0;
@@ -605,7 +605,7 @@ int test_strdup(void)
     const char *s1 = TEST_STRING, *s2 = NULL, *s3 = NULL;
 
     tc_info("test_strdup()");
-    
+
     s2 = strdup(s1);
     s3 = tc_strdup(s1);
 
@@ -619,7 +619,7 @@ int test_strdup(void)
 
     free(s2);
     tc_free(s3);
-    
+
     return 0;
 }
 
@@ -628,7 +628,7 @@ int test_strndup(size_t n)
     const char *s1 = TEST_STRING, *s2 = NULL, *s3 = NULL;
 
     tc_info("test_strndup(%lu)", (unsigned long)n);
-    
+
     s2 = strndup(s1, n);
     s3 = tc_strndup(s1, n);
 
@@ -642,18 +642,18 @@ int test_strndup(size_t n)
 
     free(s2);
     tc_free(s3);
-    
+
     return 0;
 }
 
 int main(void)
 {
     test_strdup();
-    
+
     test_strndup(0);
     test_strndup(1);
     test_strndup(5);
-    
+
     test_strndup(strlen(TEST_STRING)-2);
     test_strndup(strlen(TEST_STRING)-1);
 

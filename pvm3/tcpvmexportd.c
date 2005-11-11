@@ -1,5 +1,5 @@
 /*
- *  tcpvmexportd.c 
+ *  tcpvmexportd.c
  *
  *  Copyright (C) Marzio Malanchini - July 2003
  *
@@ -114,14 +114,14 @@ int f_init_func(char *p_option,char *p_mod)
 			memset(s_module,'\0',sizeof(s_module));
 			tc_snprintf(s_module, sizeof(s_module), "%s/export_%s.so", p_modpath,p_mod);
 			f_ext_handle=dlopen(s_module, RTLD_GLOBAL|RTLD_LAZY);
-			if (!f_ext_handle) 
+			if (!f_ext_handle)
 			{
 				fputs (dlerror(), stderr);
 				dlclose(f_handle);
 				return(1);
 			}
-			tc_export = dlsym(f_ext_handle, "tc_export");   
-			if ((p_error = dlerror()) != NULL)  
+			tc_export = dlsym(f_ext_handle, "tc_export");
+			if ((p_error = dlerror()) != NULL)
 			{
 				fputs(p_error, stderr);
 				return(1);
@@ -148,14 +148,14 @@ int f_init_func(char *p_option,char *p_mod)
 			memset(s_module,'\0',sizeof(s_module));
 			tc_snprintf(s_module, sizeof(s_module), "%s/export_%s.so", p_modpath,p_mod);
 			f_ext_handle=dlopen(s_module, RTLD_GLOBAL|RTLD_LAZY);
-			if (!f_ext_handle) 
+			if (!f_ext_handle)
 			{
 				fputs (dlerror(), stderr);
 				dlclose(f_handle);
 				return(1);
 			}
-			tc_export = dlsym(f_ext_handle, "tc_export");   
-			if ((p_error = dlerror()) != NULL)  
+			tc_export = dlsym(f_ext_handle, "tc_export");
+			if ((p_error = dlerror()) != NULL)
 			{
 				fputs(p_error, stderr);
 				return(1);
@@ -201,12 +201,12 @@ int main(int argc,char **argv)
 	}
 	p_hostname=(char *)s_hostname;
 
-	while ((s_cmd = getopt(argc, argv, "mMCLsjx:c:1:2:3:t:f:d:p:vh")) != -1) 
+	while ((s_cmd = getopt(argc, argv, "mMCLsjx:c:1:2:3:t:f:d:p:vh")) != -1)
 	{
-		switch (s_cmd) 
+		switch (s_cmd)
 		{
-			case 'c': 
-		  		if(optarg[0]=='-') 
+			case 'c':
+		  		if(optarg[0]=='-')
 			  		usage(EXIT_FAILURE);
 		  		p_argv[s_cont++]="-c";
 		  		p_argv[s_cont++]=p_request_func=optarg;
@@ -221,13 +221,13 @@ int main(int argc,char **argv)
 				verbose=((atoi(optarg)<0)||(atoi(optarg)>2))?0:atoi(optarg);
 		  	break;
 			case 'C':
-		  		s_slave|=CHECK_MODE;		
+		  		s_slave|=CHECK_MODE;
 		  	break;
 			case 'L':
-		  		s_list_only=1;		
+		  		s_list_only=1;
 		  	break;
 			case 'j':
-		  		s_slave|=MERGER_MODE;		
+		  		s_slave|=MERGER_MODE;
 		  	break;
 			case 's':
 		  		s_slave|=SLAVE_MODE;		/*default*/
@@ -265,7 +265,7 @@ int main(int argc,char **argv)
 			case '3':
 		  		p_param3=strtok(optarg,"\"");	/*Third parameter*/
 		  	break;
-			case 'v': 
+			case 'v':
 		  		version();
 		  		exit(0);
 		  	break;
@@ -275,13 +275,13 @@ int main(int argc,char **argv)
 				usage(EXIT_FAILURE);
 		}
 	}
-	
-	if(optind < argc) 
+
+	if(optind < argc)
 	{
-		if(strcmp(argv[optind],"-")!=0) 
+		if(strcmp(argv[optind],"-")!=0)
 			usage(EXIT_FAILURE);
         }
-	if(argc==1) 
+	if(argc==1)
 		usage(EXIT_FAILURE);
 	if (((s_slave==SLAVE_MODE)||(s_slave==(SLAVE_MERGE_MODE)))&&(p_request_func==NULL))
 		usage(EXIT_FAILURE);
@@ -343,7 +343,7 @@ int main(int argc,char **argv)
 			}
 			else
 			{
-				if (f_init_func("open",p_request_func))		
+				if (f_init_func("open",p_request_func))
 					exit(1);
 				f_pvm_skeduler(f_export_func);
 			}

@@ -41,7 +41,7 @@
 #endif
 
 
-void 
+void
 probe_bktr(info_t * ipipe)
 {
     struct bktr_capture_area caparea;
@@ -105,7 +105,7 @@ error:
 
 #else			/* HAVE_BKTR */
 
-void 
+void
 probe_bktr(info_t * ipipe)
 {
     fprintf(stderr, "No support for bktr compiled in\n");

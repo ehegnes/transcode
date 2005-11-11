@@ -38,18 +38,18 @@ struct DNSR_GLOBAL
     /* 1 interlaced */
     /* 2 PASS II only */
     uint8_t   mode;
-    
-    /* Search radius */    
+
+    /* Search radius */
     uint8_t   radius;
 
     /* Copy threshold */
     uint8_t   threshold;
     uint8_t   pp_threshold;
-    
+
     /* Time-average-delay */
     uint8_t   delay;
-    
-    /* Deinterlacer to be turned on? */    
+
+    /* Deinterlacer to be turned on? */
     uint8_t   deinterlace;
 
     /* Postprocessing */
@@ -66,9 +66,9 @@ struct DNSR_GLOBAL
 
     int32_t   increment_cr;
     int32_t   increment_cb;
-    
+
     /* Frame information */
-    struct 
+    struct
     {
       int32_t  w;
       int32_t  h;
@@ -85,18 +85,18 @@ struct DNSR_GLOBAL
       uint8_t *sub4ref[3];
       uint8_t *sub4avg[3];
     } frame;
-    
+
     /* Border information */
-    struct 
+    struct
     {
       uint16_t  x;
       uint16_t  y;
       uint16_t  w;
-      uint16_t  h;      
+      uint16_t  h;
     } border;
-    
+
   };
-  
+
 struct DNSR_VECTOR
 {
   int8_t  x;

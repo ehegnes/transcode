@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - October 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -56,7 +56,7 @@ static lzo_byte *wrkmem;
 static lzo_uint out_len;
 static int codec;
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * init codec
  *
@@ -64,9 +64,9 @@ static int codec;
 
 MOD_init
 {
-    
+
     if(param->flag == TC_VIDEO) {
-      if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "max AVI-file size limit = %lu bytes\n", 
+      if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "max AVI-file size limit = %lu bytes\n",
 		                         (unsigned long) AVI_max_size());
 
       /*
@@ -75,7 +75,7 @@ MOD_init
 
       if (lzo_init() != LZO_E_OK) {
 	tc_log_warn(MOD_NAME, "lzo_init() failed");
-	return(TC_EXPORT_ERROR); 
+	return(TC_EXPORT_ERROR);
       }
 
       wrkmem = (lzo_bytep) lzo_malloc(LZO1X_1_MEM_COMPRESS);
@@ -83,21 +83,21 @@ MOD_init
 
       if (wrkmem == NULL || out == NULL) {
 	fprintf(stderr, "[%s] out of memory\n", MOD_NAME);
-	return(TC_EXPORT_ERROR); 
+	return(TC_EXPORT_ERROR);
       }
 
       codec = vob->im_v_codec;
-      
+
       return(0);
     }
-    
+
     if(param->flag == TC_AUDIO) return(audio_init(vob, verbose_flag));
 
     // invalid flag
-    return(TC_EXPORT_ERROR); 
+    return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open outputfile
  *
@@ -105,43 +105,43 @@ MOD_init
 
 MOD_open
 {
-  
+
     // open out file
-    if(vob->avifile_out==NULL) 
+    if(vob->avifile_out==NULL)
       if(NULL == (vob->avifile_out = AVI_open_output_file(vob->video_out_file))) {
 	AVI_print_error("avi open error");
 	exit(TC_EXPORT_ERROR);
       }
-    
+
     /* save locally */
     avifile2 = vob->avifile_out;
-    
+
     if(param->flag == TC_VIDEO) {
-      
+
       //video
-      
+
       //force keyframe
       force_kf=1;
-      
+
       AVI_set_video(vob->avifile_out, vob->ex_v_width, vob->ex_v_height, vob->ex_fps, "LZO2");
 
       if (vob->avi_comment_fd>0)
 	  AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
-      
-      if(!info_shown && verbose_flag) 
-	tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d", 
+
+      if(!info_shown && verbose_flag)
+	tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d",
 		"LZO2", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
-      
+
       info_shown=1;
-      
+
       return(0);
     }
 
     if(param->flag == TC_AUDIO) return(audio_open(vob, vob->avifile_out));
-    
+
     // invalid flag
-    return(TC_EXPORT_ERROR); 
-}   
+    return(TC_EXPORT_ERROR);
+}
 
 inline static void long2str(long a, unsigned char *b)
 {
@@ -157,7 +157,7 @@ inline static void short2str(short a, unsigned char *b)
       b[1] = (a&0x00ff);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * encode and export
  *
@@ -169,9 +169,9 @@ MOD_encode
   int key;
 
   tc_lzo_header_t h;
-  
-  if(param->flag == TC_VIDEO) { 
-    
+
+  if(param->flag == TC_VIDEO) {
+
     //write video
 
     //encode
@@ -190,18 +190,18 @@ MOD_encode
     h.pad = 0;
 
     ac_memcpy (out, &h, sizeof(h));
-    
+
     if (r == LZO_E_OK) {
       if(verbose & TC_DEBUG)
 	tc_log_info(MOD_NAME, "compressed %lu bytes into %lu bytes",
 		    (long) param->size, (long) out_len);
     } else {
-      
+
       /* this should NEVER happen */
       tc_log_warn(MOD_NAME, "internal error - compression failed: %d", r);
-      return(TC_EXPORT_ERROR); 
+      return(TC_EXPORT_ERROR);
     }
-    
+
     /* check for an incompressible block */
     if (out_len >= param->size)  {
       if(verbose & TC_DEBUG)
@@ -210,7 +210,7 @@ MOD_encode
       ac_memcpy(out+sizeof(h), param->buffer, param->size);
       out_len = param->size;
     }
-    
+
     //0.5.0-pre8:
     key = ((param->attributes & TC_FRAME_IS_KEYFRAME) || force_kf) ? 1:0;
 
@@ -219,55 +219,55 @@ MOD_encode
     //0.6.2: switch outfile on "C" and -J pv
     //0.6.2: enforce auto-split at 2G (or user value) for normal AVI files
     if((uint32_t)(AVI_bytes_written(avifile2)+out_len+16+8)>>20 >= tc_avi_limit) tc_outstream_rotate_request();
-    
+
     if(key) tc_outstream_rotate();
 
     if(AVI_write_frame(avifile2, out, out_len, key)<0) {
       AVI_print_error("avi video write error");
-      
-      return(TC_EXPORT_ERROR); 
+
+      return(TC_EXPORT_ERROR);
     }
-    
+
     return(0);
-    
+
   }
-  
+
   if(param->flag == TC_AUDIO) return(audio_encode(param->buffer, param->size, avifile2));
-  
+
   // invalid flag
   return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * stop encoder
  *
  * ------------------------------------------------------------*/
 
-MOD_stop 
+MOD_stop
 {
-  
+
   if(param->flag == TC_VIDEO) {
 
     lzo_free(wrkmem);
     lzo_free(out);
-    
+
     return(0);
   }
-  
+
   if(param->flag == TC_AUDIO) return(audio_stop());
-  
+
   return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close outputfiles
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
 
   vob_t *vob = tc_get_vob();
 
@@ -278,7 +278,7 @@ MOD_close
   }
 
   if(param->flag == TC_AUDIO) return(audio_close());
-  
+
   //outputfile
   if(vob->avifile_out!=NULL) {
     AVI_close(vob->avifile_out);
@@ -286,8 +286,8 @@ MOD_close
   }
 
   if(param->flag == TC_VIDEO) return(0);
-  
-  return(TC_EXPORT_ERROR);  
+
+  return(TC_EXPORT_ERROR);
 
 }
 

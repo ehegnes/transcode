@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream  processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -54,7 +54,7 @@ MOD_open
   long sret;
 
   /* check for mplayer */
-  if (tc_test_program("mplayer") != 0) return (TC_EXPORT_ERROR);  
+  if (tc_test_program("mplayer") != 0) return (TC_EXPORT_ERROR);
 
   switch (param->flag) {
     case TC_VIDEO:
@@ -80,7 +80,7 @@ MOD_open
 	unlink(videopipe);
         return(TC_IMPORT_ERROR);
       }
-      
+
       if (vob->im_v_codec == CODEC_YUV) {
         sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			"tcextract -i %s -x yuv420p -t yuv4mpeg", videopipe);
@@ -98,10 +98,10 @@ MOD_open
           return(TC_IMPORT_ERROR);
         }
       }
-      
+
       // print out
       if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
-      
+
       param->fd = NULL;
 
       // popen
@@ -110,9 +110,9 @@ MOD_open
 	unlink(videopipe);
         return(TC_IMPORT_ERROR);
       }
-      
+
       return TC_IMPORT_OK;
-      
+
     case TC_AUDIO:
       if (!mktemp(audiopipe)) {
         perror("mktemp audiopipe failed");
@@ -123,7 +123,7 @@ MOD_open
 	unlink(audiopipe);
         return(TC_IMPORT_ERROR);
       }
-      
+
       sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			 "mplayer -hardframedrop -vo null -ao pcm:nowaveheader"
 			 " -ao pcm:file=\"%s\" %s \"%s\" > /dev/null 2>&1",
@@ -140,21 +140,21 @@ MOD_open
         perror("popen audiopipe failed");
 	unlink(audiopipe);
         return(TC_IMPORT_ERROR);
-      }      
-      
+      }
+
       if ((param->fd = fopen(audiopipe, "r")) == NULL) {
         perror("fopen audio stream");
 	unlink(audiopipe);
         return(TC_IMPORT_ERROR);
       }
-    
+
       return TC_IMPORT_OK;
   }
-  
+
   return(TC_IMPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
@@ -162,14 +162,14 @@ MOD_open
 
 MOD_decode { return(TC_IMPORT_OK); }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
   if (param->flag == TC_VIDEO) {
     if (param->fd != NULL)
       pclose(param->fd);

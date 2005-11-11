@@ -7,20 +7,20 @@
  *  2001/08/22: Modified by Vaclav Slavik for inclusion in transcode
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -40,16 +40,16 @@
         - Replaced get/put_pixel() and roundcloser() with faster macros
 
         - Decoupled initialization and processing passes
-        
-        - Reverted meaning of x and y axis (faster memory access thanks to 
+
+        - Reverted meaning of x and y axis (faster memory access thanks to
           output buffer locality)
-          
+
         - Rewrote the code to use bytecode instructions pipeline, so that
           filtering takes as little CPU cycles as possible
-          
+
         (As a result of all the above, the code is nearly unreadable.
         I strongly recommend getting familiar with the original
-        version by Ray Gardener first, you can get it from 
+        version by Ray Gardener first, you can get it from
         Graphics Gems III FTP site.)
 
  */
@@ -61,32 +61,32 @@
     Summary:
 
         - Horizontal filter contributions are calculated on the fly,
-          as each column is mapped from src to dst image. This lets 
-          us omit having to allocate a temporary full horizontal stretch 
+          as each column is mapped from src to dst image. This lets
+          us omit having to allocate a temporary full horizontal stretch
           of the src image.
 
-        - If none of the src pixels within a sampling region differ, 
+        - If none of the src pixels within a sampling region differ,
           then the output pixel is forced to equal (any of) the source pixel.
           This ensures that filters do not corrupt areas of constant color.
 
-        - Filter weight contribution results, after summing, are 
-          rounded to the nearest pixel color value instead of 
-          being casted to pixel_t (usually an int or char). Otherwise, 
-          artifacting occurs. 
+        - Filter weight contribution results, after summing, are
+          rounded to the nearest pixel color value instead of
+          being casted to pixel_t (usually an int or char). Otherwise,
+          artifacting occurs.
 
-        - All memory allocations checked for failure; zoom() returns 
-          error code. new_image() returns NULL if unable to allocate 
+        - All memory allocations checked for failure; zoom() returns
+          error code. new_image() returns NULL if unable to allocate
           pixel storage, even if image_t struct can be allocated.
           Some assertions added.
 
         - load_image(), save_image() take filenames, not file handles.
 
-        - TGA bitmap format available. If you want to add a filetype, 
+        - TGA bitmap format available. If you want to add a filetype,
           extend the gimage_tHandlers array, and factor in your load_image_xxx()
-          and save_image_xxx() functions. Search for string 'add your' 
+          and save_image_xxx() functions. Search for string 'add your'
           to find appropriate code locations.
 
-        - The 'input' and 'output' command-line arguments do not have 
+        - The 'input' and 'output' command-line arguments do not have
           to specify .bm files; any supported filetype is okay.
 
         - Added implementation of getopt() if compiling under Windows.
@@ -166,7 +166,7 @@ void zoom_setup_image(image_t *img, int w, int h, int depth, pixel_t *data)
 
 double Hermite_filter(double t)
 {
-    // f(t) = 2|t|^3 - 3|t|^2 + 1, -1 <= t <= 1 
+    // f(t) = 2|t|^3 - 3|t|^2 + 1, -1 <= t <= 1
     if(t < 0.0) t = -t;
     if(t < 1.0) return((2.0 * t - 3.0) * t * t + 1.0);
     return(0.0);
@@ -259,15 +259,15 @@ double Mitchell_filter(double t)
 
 
 
-/* 
+/*
     calc_x_contrib()
-    
+
     Calculates the filter weights for a single target column.
     contribX->p must be freed afterwards.
 
     Returns -1 if error, 0 otherwise.
 */
-static int calc_x_contrib(CLIST* contribX, double xscale, double fwidth, int dstwidth, int srcwidth, 
+static int calc_x_contrib(CLIST* contribX, double xscale, double fwidth, int dstwidth, int srcwidth,
                    double (*filterf)(double), int i)
 /*
 CLIST* contribX;            * Receiver of contrib info
@@ -309,12 +309,12 @@ int i;                      * pixel_t column in source bitmap being processed */
                 n = (srcwidth - j) + srcwidth - 1;
             else
                 n = j;
-            
+
             k = contribX->n++;
             contribX->p[k].pixel = n;
             contribX->p[k].weight = double2fixdouble(weight);
         }
-    
+
     }
     else
     {
@@ -463,13 +463,13 @@ zoom_image_init(image_t *dst, image_t *src, double (*filterf)(double), double fw
     if (xscale < 1.0 || yscale < 1.0)
        maxwidth = fwidth / (xscale < yscale ? xscale : yscale);
 
-    prg = zoomer->programX = calloc(zoomer->dst->xsize * 
+    prg = zoomer->programX = calloc(zoomer->dst->xsize *
                                     (2 + 2*(int)(maxwidth*2+1)),
                                     sizeof(instruction_t));
 
     for(xx = 0; xx < zoomer->dst->xsize; xx++)
     {
-        calc_x_contrib(&contribX, xscale, fwidth, 
+        calc_x_contrib(&contribX, xscale, fwidth,
                        zoomer->dst->xsize, zoomer->src->xsize,
                        filterf, xx);
 
@@ -486,11 +486,11 @@ zoom_image_init(image_t *dst, image_t *src, double (*filterf)(double), double fw
         free(contribX.p);
     }
 
-    prg = zoomer->programY = calloc(zoomer->dst->ysize * 
+    prg = zoomer->programY = calloc(zoomer->dst->ysize *
                                     (2 + 2*(int)(maxwidth*2+1)),
                                     sizeof(instruction_t));
-    
-    /* The temp column has been built. Now stretch it 
+
+    /* The temp column has been built. Now stretch it
      vertically into dst column. */
     for(i = 0; i < zoomer->dst->ysize; ++i)
     {
@@ -506,7 +506,7 @@ zoom_image_init(image_t *dst, image_t *src, double (*filterf)(double), double fw
     } /* next dst row */
 
     /* ---------------------------------------------------
-       free the memory allocated for vertical filter weights -- no 
+       free the memory allocated for vertical filter weights -- no
        longer needed, we have programX and programY */
     for(i = 0; i < zoomer->dst->ysize; ++i)
         free(contribY[i].p);
@@ -528,41 +528,41 @@ void zoom_image_process(zoomer_t *zoomer)
     instruction_t *prgY, *prgX = NULL, *prgXa;
 
     prgXa = zoomer->programX;
-    
+
     /* one colour component per plane -- e.g. when processing YUV12 */
     if (zoomer->src->pixspan == 1)
       {
         for(x = zoomer->dst->xsize; x; --x)
 	  {
             /* Apply horz filter to make dst column in tmp. */
-	    for(in = zoomer->src->data, tmpOut = zoomer->tmp, 
+	    for(in = zoomer->src->data, tmpOut = zoomer->tmp,
 		  k = zoomer->src->ysize; k; --k, in++) {
-	      
+
 	      prgX = prgXa;
 	      weight = 0;
-	      
+
 	      prgX++;
 
 	      for(j = (prgX++)->count; j; --j) {
 		pel2=in[(prgX++)->index];
 		weight += pel2 * (prgX++)->weight;
 	      }
-	      
+
 	      *(tmpOut++) = (pixel_t)CLAMP(fixdouble2int(weight));
 	  } /* next row in temp column */
-          
+
 	  prgXa = prgX;
 
-            /* The temp column has been built. Now stretch it 
+            /* The temp column has been built. Now stretch it
              vertically into dst column. */
 
             prgY = zoomer->programY;
-	    
+
             for(i = zoomer->dst->ysize; i; --i) {
-	      
+
 	      weight = 0;
 	      prgY++;
-	      
+
 	      for(j = (prgY++)->count; j; --j) {
 		pel2 = *((prgY++)->pixel);
 		weight += pel2 * (prgY++)->weight;
@@ -571,48 +571,48 @@ void zoom_image_process(zoomer_t *zoomer)
             } /* next dst row */
 	  } /* next dst column */
       }
-    
+
     /* all colour components in one plane -- e.g. when processing RGB */
     else if (zoomer->src->pixspan == 3)
       {
         for(x = zoomer->dst->xsize; x; --x)
         {
             /* Apply horz filter to make dst column in tmp. */
-            for(in = zoomer->src->data, tmpOut = zoomer->tmp, 
+            for(in = zoomer->src->data, tmpOut = zoomer->tmp,
                 k = zoomer->src->ysize; k; --k, in+=3) {
 
                 prgX = prgXa;
                 weight = 0;
-                
+
 		(prgX++);
-		
+
                 for(j = (prgX++)->count; j; --j) {
 		  pel2 = in[(prgX++)->index];
 		  weight += pel2 * (prgX++)->weight;
                 }
                 *(tmpOut++) = (pixel_t)CLAMP(fixdouble2int(weight));
             } /* next row in temp column */
-            
+
 	    prgXa = prgX;
 
-            /* The temp column has been built. Now stretch it 
+            /* The temp column has been built. Now stretch it
              vertically into dst column. */
-            
+
 	    prgY = zoomer->programY;
-            
+
 	    for(i = zoomer->dst->ysize; i; --i) {
-	      
+
 	      weight = 0;
 	      (prgY++);
-	      
+
 	      for(j = (prgY++)->count; j; --j) {
 		pel2 = *((prgY++)->pixel);
 		weight += pel2 * (prgY++)->weight;
 	      }
-	      
+
 	      *(out) = (pixel_t)CLAMP(fixdouble2int(weight));
 	      out += 3;
-	      
+
             } /* next dst row */
         } /* next dst column */
       }
@@ -622,41 +622,41 @@ void zoom_image_process(zoomer_t *zoomer)
         for(x = zoomer->dst->xsize; x; --x)
         {
             /* Apply horz filter to make dst column in tmp. */
-            for(in = zoomer->src->data, tmpOut = zoomer->tmp, 
+            for(in = zoomer->src->data, tmpOut = zoomer->tmp,
                 k = zoomer->src->ysize; k; --k, in+=2) {
 
                 prgX = prgXa;
                 weight = 0;
-                
+
 		(prgX++);
-		
+
                 for(j = (prgX++)->count; j; --j) {
 		  pel2 = in[(prgX++)->index];
 		  weight += pel2 * (prgX++)->weight;
                 }
                 *(tmpOut++) = (pixel_t)CLAMP(fixdouble2int(weight));
             } /* next row in temp column */
-            
+
 	    prgXa = prgX;
 
-            /* The temp column has been built. Now stretch it 
+            /* The temp column has been built. Now stretch it
              vertically into dst column. */
-            
+
 	    prgY = zoomer->programY;
-            
+
 	    for(i = zoomer->dst->ysize; i; --i) {
-	      
+
 	      weight = 0;
 	      (prgY++);
-	      
+
 	      for(j = (prgY++)->count; j; --j) {
 		pel2 = *((prgY++)->pixel);
 		weight += pel2 * (prgY++)->weight;
 	      }
-	      
+
 	      *(out) = (pixel_t)CLAMP(fixdouble2int(weight));
 	      out += 2;
-	      
+
             } /* next dst row */
         } /* next dst column */
       }
@@ -666,41 +666,41 @@ void zoom_image_process(zoomer_t *zoomer)
         for(x = zoomer->dst->xsize; x; --x)
         {
             /* Apply horz filter to make dst column in tmp. */
-            for(in = zoomer->src->data, tmpOut = zoomer->tmp, 
+            for(in = zoomer->src->data, tmpOut = zoomer->tmp,
                 k = zoomer->src->ysize; k; --k, in+=4) {
 
                 prgX = prgXa;
                 weight = 0;
-                
+
 		(prgX++);
-		
+
                 for(j = (prgX++)->count; j; --j) {
 		  pel2 = in[(prgX++)->index];
 		  weight += pel2 * (prgX++)->weight;
                 }
                 *(tmpOut++) = (pixel_t)CLAMP(fixdouble2int(weight));
             } /* next row in temp column */
-            
+
 	    prgXa = prgX;
 
-            /* The temp column has been built. Now stretch it 
+            /* The temp column has been built. Now stretch it
              vertically into dst column. */
-            
+
 	    prgY = zoomer->programY;
-            
+
 	    for(i = zoomer->dst->ysize; i; --i) {
-	      
+
 	      weight = 0;
 	      (prgY++);
-	      
+
 	      for(j = (prgY++)->count; j; --j) {
 		pel2 = *((prgY++)->pixel);
 		weight += pel2 * (prgY++)->weight;
 	      }
-	      
+
 	      *(out) = (pixel_t)CLAMP(fixdouble2int(weight));
 	      out += 4;
-	      
+
             } /* next dst row */
         } /* next dst column */
       }

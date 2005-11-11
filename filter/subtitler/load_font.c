@@ -133,7 +133,7 @@ static inline uint32_t ByteSwap32(uint32_t x) {
 
 static inline uint64_t ByteSwap64(uint64_t x)
 {
-    union { 
+    union {
         uint64_t ll;
         struct {
            uint32_t l,h;
@@ -148,7 +148,7 @@ static inline uint64_t ByteSwap64(uint64_t x)
 #else
 
 #define bswap_16(x) (((x) & 0x00ff) << 8 | ((x) & 0xff00) >> 8)
-			
+
 
 // code from bits/byteswap.h (C) 1997, 1998 Free Software Foundation, Inc.
 #define bswap_32(x) \
@@ -157,9 +157,9 @@ static inline uint64_t ByteSwap64(uint64_t x)
 
 static inline uint64_t ByteSwap64(uint64_t x)
 {
-    union { 
+    union {
         uint64_t ll;
-        uint32_t l[2]; 
+        uint32_t l[2];
     } w, r;
     w.ll = x;
     r.l[0] = bswap_32 (w.l[1]);
@@ -288,7 +288,7 @@ if(debug_flag)
 	{
 	printf("subtitler: read_font_desc(): read_font_desc(): fname=%s path=%s\n",\
 	fname, desc->fpath);
-	}	
+	}
 
 // set up some defaults, and erase table
 desc->charspace = 2;
@@ -335,7 +335,7 @@ while( fgets(sor, 1020, f) )
 				continue;
 				}
 			}
-		else 
+		else
 			{
 			if(id == c)
 				{
@@ -350,7 +350,7 @@ while( fgets(sor, 1020, f) )
 
 	if(d == sor2) continue; // skip empty lines
 	*d = 0;
- 
+
 	//printf("params=%d sor=%s\n", pdb, sor);
 	//for(i = 0; i < pdb; i++) printf(" param %d = '%s'\n", i, p[i]);
 
@@ -376,7 +376,7 @@ while( fgets(sor, 1020, f) )
 			continue;
 			}
 		}
- 
+
 	if(strcmp(section, "[fpath]") == 0)
 		{
 		if(pdb == 1)
@@ -454,7 +454,7 @@ while( fgets(sor, 1020, f) )
 		}
 	else if(strcmp(section, "[characters]") == 0)
 		{
-		if(pdb == 3)	
+		if(pdb == 3)
 			{
 			int chr = p[0][0];
 			int start = atoi(p[1]);
@@ -518,8 +518,8 @@ for(i = 0; i <= fontdb; i++)
 			//x ^= 255; // invert
 
 			if(x + y > 255) x = 255 - y; // to avoid overflows
-	 
-			//x=0; 
+
+			//x=0;
 			//x=((x*f*(255-y))>>16);
 			//x=((x*f*(255-y))>>16)+y;
 			//x=(x*f)>>8;if(x<y) x=y;
@@ -954,7 +954,7 @@ int		glyphs_count = 0;
 		{
 		fprintf(stderr, "subtitler: render(): Something went wrong. Use the source!");
 
-		return 0;		
+		return 0;
 		}
 
     height += 2*padding;
@@ -962,7 +962,7 @@ int		glyphs_count = 0;
     if (ymax<=ymin)
 		{
 		fprintf(stderr, "subtitler: render(): Something went wrong. Use the source!");
- 
+
 		return 0;
 		}
 
@@ -1075,10 +1075,10 @@ if (f == NULL)
 		encoding);
 
 		return 0;
-		}	
+		}
 
 	charset_size = 256 - first_char;
-	for (i = 0; i<charset_size; ++i) 
+	for (i = 0; i<charset_size; ++i)
 		{
 	    charcodes[count] = i+first_char;
 	    charset[count] = decode_char(i+first_char);
@@ -1255,7 +1255,7 @@ for(x = 0; x < width; ++x, ++tmp, ++buffer)
 
 // Gaussian matrix
 // Maybe for future use.
-unsigned gmatrix(unsigned *m, int r, int w, double const A) 
+unsigned gmatrix(unsigned *m, int r, int w, double const A)
 {
 unsigned volume = 0; // volume under Gaussian area is exactly -pi * base / A
 int mx, my;
@@ -1281,7 +1281,7 @@ return volume;
 } /* end function gmatrix */
 
 
-int alpha(double outline_thickness, double blur_radius) 
+int alpha(double outline_thickness, double blur_radius)
 {
 int const g_r = ceil(blur_radius);
 int const o_r = ceil(outline_thickness);
@@ -1361,7 +1361,7 @@ FILE *pptr;
 FILE *fptr;
 
 //if(debug_flag)
-	{	
+	{
 	printf("make_font(): arg font_name=%s font_symbols=%d font_size=%d iso_extention=%d\n\
 	outline_thickness=%.2f blur_radius=%.2f\n",\
 	font_name, font_symbols, font_size, iso_extention, outline_thickness, blur_radius);
@@ -1399,7 +1399,7 @@ outdir = strsave(temp);
 if(! outdir) return 0;
 
 /* encoding string */
-tc_snprintf(temp, sizeof(temp), "iso-8859-%d", iso_extention); 
+tc_snprintf(temp, sizeof(temp), "iso-8859-%d", iso_extention);
 encoding = strsave(temp);
 if(! encoding) return 0;
 

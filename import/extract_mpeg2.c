@@ -5,20 +5,20 @@
  *  Copyright (C) 1999-2001 Aaron Holtzman <aholtzma@ess.engr.uvic.ca>
  *
  *  This file is part of transcode, a video stream  processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -47,14 +47,14 @@ static void ps_loop (void)
 
     complain_loudly = 1;
     buf = buffer;
-    
+
     do {
       end = buf + fread (buf, 1, buffer + BUFFER_SIZE - buf, in_file);
       buf = buffer;
 
       //scan buffer
       while (buf + 4 <= end) {
-	
+
 	// check for valid start code
 	if (buf[0] || buf[1] || (buf[2] != 0x01)) {
 	  if (complain_loudly) {
@@ -66,14 +66,14 @@ static void ps_loop (void)
 	  }
 	  buf++;
 	  continue;
-	}// check for valid start code 
-	
-	
+	}// check for valid start code
+
+
 	switch (buf[3]) {
-	  
+
 	case 0xb9:	/* program end code */
 	  return;
-	  
+
 	case 0xba:	/* pack header */
 
 	  /* skip */
@@ -87,12 +87,12 @@ static void ps_loop (void)
 	    fprintf (stderr, "(%s) weird pack header\n", __FILE__);
 	    import_exit(1);
 	  }
-	  
+
 	  if (tmp1 > end)
 	    goto copy;
 	  buf = tmp1;
 	  break;
-	  
+
 	case 0xe0:	/* video */
 	case 0xe1:	/* video */
 	case 0xe2:	/* video */
@@ -120,7 +120,7 @@ static void ps_loop (void)
 	      tmp1 += 2;
 	    tmp1 += mpeg1_skip_table [*tmp1 >> 4];
 	  }
-	  
+
 	  if (tmp1 < tmp2)
 	    if (fwrite (tmp1, tmp2-tmp1, 1, out_file) != 1)
 	      import_exit(0); /* decoder has exited */
@@ -139,25 +139,25 @@ static void ps_loop (void)
 
 	} //start code selection
       } //scan buffer
-      
+
       if (buf < end) {
       copy:
 	/* we only pass here for mpeg1 ps streams */
 	memmove (buffer, buf, end - buf);
       }
       buf = buffer + (end - buf);
-      
+
     } while (end == buffer + BUFFER_SIZE);
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * mpeg2 extract thread
  *
  * magic: TC_MAGIC_VOB
  *        TC_MAGIC_RAW  <-- default
- *        TC_MAGIC_M2V  
+ *        TC_MAGIC_M2V
  *        TC_MAGIC_CDXA
  *
  * ------------------------------------------------------------*/
@@ -169,41 +169,41 @@ void extract_mpeg2(info_t *ipipe)
     int error=0;
 
     verbose = ipipe->verbose;
-  
+
     switch(ipipe->magic) {
-      
+
     case TC_MAGIC_VOB:
-      
+
       in_file = fdopen(ipipe->fd_in, "r");
       out_file = fdopen(ipipe->fd_out, "w");
-      
+
       ps_loop();
-      
+
       fclose(in_file);
       fclose(out_file);
-      
+
       break;
-      
+
     case TC_MAGIC_CDXA:
-      
+
       AVI_dump(ipipe->name, 2);
-  
+
       break;
-      
+
     case TC_MAGIC_M2V:
     case TC_MAGIC_RAW:
     default:
-      
+
       if(ipipe->magic == TC_MAGIC_UNKNOWN)
-	fprintf(stderr, "(%s) no file type specified, assuming %s\n", 
+	fprintf(stderr, "(%s) no file type specified, assuming %s\n",
 		__FILE__, filetype(TC_MAGIC_RAW));
-      
-      
+
+
       error=tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
-      
+
       break;
     }
-    
+
     import_exit(error);
-    
+
 }

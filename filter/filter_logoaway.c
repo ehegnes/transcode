@@ -26,7 +26,7 @@
 
  /*
   * TODO:
-  *   -blur                     - 
+  *   -blur                     -
  */
 
 /*
@@ -106,7 +106,7 @@ typedef struct logoaway_data {
   Image         *image;
   ImageInfo     *image_info;
   PixelPacket   *pixel_packet;
-  
+
   int           dump;
   char          *dump_buf;
   Image         *dumpimage;
@@ -184,7 +184,7 @@ static void work_with_rgb_frame(char *buffer, int width, int height, int instanc
 
         packet_off = ((row-data[instance]->ypos)*(data[instance]->width-data[instance]->xpos)+(col-data[instance]->xpos)) * 3;
         buf_off = ((height-row)*width+col) * 3;
-        
+
         /* R */
         data[instance]->dump_buf[packet_off +0] = buffer[buf_off +0];
 
@@ -201,7 +201,7 @@ static void work_with_rgb_frame(char *buffer, int width, int height, int instanc
 
     WriteImage(data[instance]->dumpimage_info, data[instance]->dumpimage);
   }
-  
+
   switch(data[instance]->mode) {
 
   case 0: // NONE
@@ -612,7 +612,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     tc_snprintf (buf, sizeof(buf), "%d",  data[instance]->dump);
     optstr_param (options, "dump", "Dump filterarea to file",               "",          buf);
-    
+
     tc_snprintf (buf, sizeof(buf), "%d", data[instance]->xweight);
     optstr_param (options, "xweight","X-Y Weight(0%-100%)",                 "%d",        buf, "0", "100");
 
@@ -709,7 +709,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if( (data[instance]->width > vob->im_v_width) || (data[instance]->height > vob->im_v_height) || (data[instance]->width-data[instance]->xpos < 0) || (data[instance]->height-data[instance]->ypos < 0) ) {
       tc_log_error(MOD_NAME, "invalid size");
       return(-1);
-    }    
+    }
     if( (data[instance]->xweight > 100) || (data[instance]->xweight < 0) ) {
       tc_log_error(MOD_NAME, "invalid x weight");
       return(-1);
@@ -726,10 +726,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if((data[instance]->alpha) || (data[instance]->dump)) {
       InitializeMagick("");
       GetExceptionInfo(&data[instance]->exception_info);
-      
+
       if(data[instance]->alpha) {
         data[instance]->image_info = CloneImageInfo((ImageInfo *) NULL);
-  
+
         strlcpy(data[instance]->image_info->filename, data[instance]->file, MaxTextExtent);
         data[instance]->image = ReadImage(data[instance]->image_info, &data[instance]->exception_info);
         if (data[instance]->image == (Image *) NULL) {
@@ -737,21 +737,21 @@ int tc_filter(frame_list_t *ptr_, char *options)
           MagickWarning (data[instance]->exception_info.severity, data[instance]->exception_info.reason, data[instance]->exception_info.description);
           return(-1);
         }
-  
+
         if ((data[instance]->image->columns != (data[instance]->width-data[instance]->xpos)) || (data[instance]->image->rows != (data[instance]->height-data[instance]->ypos))) {
           tc_log_error(MOD_NAME, "\"%s\" has incorrect size", data[instance]->file);
-  
+
           return(-1);
         }
-  
+
         data[instance]->pixel_packet = GetImagePixels(data[instance]->image, 0, 0, data[instance]->image->columns, data[instance]->image->rows);
       }
       if(data[instance]->dump) {
-        if((data[instance]->dump_buf = tc_malloc ((data[instance]->width-data[instance]->xpos)*(data[instance]->height-data[instance]->ypos)*3)) == NULL) 
+        if((data[instance]->dump_buf = tc_malloc ((data[instance]->width-data[instance]->xpos)*(data[instance]->height-data[instance]->ypos)*3)) == NULL)
           fprintf (stderr, "[%s] out of memory\n", __FILE__);
-      
-        data[instance]->dumpimage_info = CloneImageInfo((ImageInfo *) NULL);        
-      }      
+
+        data[instance]->dumpimage_info = CloneImageInfo((ImageInfo *) NULL);
+      }
     }
 
     return(0);
@@ -778,7 +778,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     }
     DestroyExceptionInfo(&data[instance]->exception_info);
     DestroyMagick();
-    
+
     if(data[instance]->dump_buf) free(data[instance]->dump_buf);
     if(data[instance]) free(data[instance]);
     data[instance] = NULL;

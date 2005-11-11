@@ -79,7 +79,7 @@ I: interface to ffmpeg library supported video codecs and file formats
 P: audio - none, video - RAW (pass-through) RGB YUV
 
 M: import_fraps.c
-D: (video) * 
+D: (video) *
 C: none
 R: none
 S: -
@@ -303,7 +303,7 @@ I: decoding support for AVI-files with DivX, OpendivX, DivX 4.xx/5.xx, XviD vide
 P: audio - none, video - RAW (pass-through) RGB YUV
 
 M: import_yuv.c
-D: (video) YUV files 
+D: (video) YUV files
 C: none
 R: none
 S: o

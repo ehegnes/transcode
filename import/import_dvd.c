@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -137,7 +137,7 @@ MOD_open
     syncf = vob->sync;
 
     switch(codec) {
-      
+
     case CODEC_AC3:
 
       sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
@@ -227,7 +227,7 @@ MOD_open
 			   vob->verbose);
 	if (sret < 0)
 	  return(TC_IMPORT_ERROR);
-	
+
 	if(verbose_flag & TC_DEBUG && !a_re_entry)
           tc_log_info(MOD_NAME, "MP2->PCM");
       }
@@ -250,14 +250,14 @@ MOD_open
 
       break;
 
-    default: 
+    default:
       tc_log_warn(MOD_NAME, "invalid import codec request 0x%x", codec);
       return(TC_IMPORT_ERROR);
 
     }
 
     // print out
-    if(verbose_flag && !a_re_entry) 
+    if(verbose_flag && !a_re_entry)
       tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
     // set to NULL if we handle read
@@ -274,7 +274,7 @@ MOD_open
     return(TC_IMPORT_OK);
   }
 
-  if(param->flag == TC_SUBEX) {  
+  if(param->flag == TC_SUBEX) {
 
     sret = snprintf(dem_buf, TMP_BUF_SIZE, "-M %d", vob->demuxer);
 
@@ -336,7 +336,7 @@ MOD_open
       if((logfile=clone_fifo())==NULL) {
 	tc_log_warn(MOD_NAME, "failed to create a temporary pipe");
 	return(TC_IMPORT_ERROR);
-      } 
+      }
       tc_snprintf(dem_buf, TMP_BUF_SIZE, "-M %d -f %f -P %s",
 		  vob->demuxer, vob->fps, logfile);
     } else
@@ -347,9 +347,9 @@ MOD_open
 
     off=0x80;
 
-    if(vob->fixme_a_codec==CODEC_PCM || vob->fixme_a_codec==CODEC_LPCM) 
+    if(vob->fixme_a_codec==CODEC_PCM || vob->fixme_a_codec==CODEC_LPCM)
       off=0xA0;
-    if(vob->fixme_a_codec==CODEC_MP3 || vob->fixme_a_codec==CODEC_MP2) 
+    if(vob->fixme_a_codec==CODEC_MP3 || vob->fixme_a_codec==CODEC_MP2)
       off=0xC0;
 
 
@@ -360,7 +360,7 @@ MOD_open
     case CODEC_RAW:
     case CODEC_RAW_YUV:
 
-      memset(requant_buf, 0, sizeof (requant_buf)); 
+      memset(requant_buf, 0, sizeof (requant_buf));
       if (vob->m2v_requant > M2V_REQUANT_FACTOR) {
 	tc_snprintf (requant_buf, TMP_BUF_SIZE, " | tcrequant -d %d -f %f ",
 		     vob->verbose, vob->m2v_requant);
@@ -371,7 +371,7 @@ MOD_open
 			 "tccat -T %s -i \"%s\" -t dvd -d %d"
 			 " | tcdemux -s 0x%x -x mpeg2 %s %s -d %d"
 			 " | tcextract -t vob -a %d -x mpeg2 -d %d%s",
-			 cha_buf, vob->video_in_file, vob->verbose, 
+			 cha_buf, vob->video_in_file, vob->verbose,
 			 (vob->a_track + off), seq_buf, dem_buf, vob->verbose,
 			 vob->v_track, vob->verbose, requant_buf);
       if (sret < 0)
@@ -414,7 +414,7 @@ MOD_open
 
 
     // print out
-    if(verbose_flag && !v_re_entry) 
+    if(verbose_flag && !v_re_entry)
       tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
     param->fd = NULL;
@@ -424,9 +424,9 @@ MOD_open
         tc_log_info(MOD_NAME, "delaying DVD access by %d second(s)",
                 MOD_NAME, tc_dvd_access_delay);
 
-      n=tc_dvd_access_delay; 
+      n=tc_dvd_access_delay;
       while(n--) {
-	if(verbose_flag) tc_log_info(MOD_NAME, "waiting..."); 
+	if(verbose_flag) tc_log_info(MOD_NAME, "waiting...");
 	fflush(stdout); sleep(1);
       }
     }
@@ -460,8 +460,8 @@ MOD_open
 
       // find a sync word
       while (tbuf.off+4<tbuf.len) {
-	if (tbuf.d[tbuf.off+0]==0x0 && tbuf.d[tbuf.off+1]==0x0 && 
-	    tbuf.d[tbuf.off+2]==0x1 && 
+	if (tbuf.d[tbuf.off+0]==0x0 && tbuf.d[tbuf.off+1]==0x0 &&
+	    tbuf.d[tbuf.off+2]==0x1 &&
 	    (unsigned char)tbuf.d[tbuf.off+3]==0xb3) break;
 	else tbuf.off++;
       }
@@ -481,7 +481,7 @@ MOD_open
 
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
@@ -527,12 +527,12 @@ MOD_decode
 	  // look for pic header
 	  while (tbuf.off+6<tbuf.len) {
 
-	    if (tbuf.d[tbuf.off+0]==0x0 && tbuf.d[tbuf.off+1]==0x0 && 
-		tbuf.d[tbuf.off+2]==0x1 && tbuf.d[tbuf.off+3]==0x0 && 
-		((tbuf.d[tbuf.off+5]>>3)&0x7)>1 && 
+	    if (tbuf.d[tbuf.off+0]==0x0 && tbuf.d[tbuf.off+1]==0x0 &&
+		tbuf.d[tbuf.off+2]==0x1 && tbuf.d[tbuf.off+3]==0x0 &&
+		((tbuf.d[tbuf.off+5]>>3)&0x7)>1 &&
 		((tbuf.d[tbuf.off+5]>>3)&0x7)<4) {
 	      if (verbose & TC_DEBUG)
-                tc_log_info(MOD_NAME, "Completed a sequence + I frame from %d -> %d", 
+                tc_log_info(MOD_NAME, "Completed a sequence + I frame from %d -> %d",
 		        start_seq, tbuf.off);
 
 	      param->attributes |= (TC_FRAME_IS_KEYFRAME | TC_FRAME_IS_I_FRAME);
@@ -580,11 +580,11 @@ MOD_decode
 	  tbuf.off++;
 
 	  while (tbuf.off+6<tbuf.len) {
-	    if (tbuf.d[tbuf.off+0]==0x0 && tbuf.d[tbuf.off+1]==0x0 && 
-		tbuf.d[tbuf.off+2]==0x1 && 
+	    if (tbuf.d[tbuf.off+0]==0x0 && tbuf.d[tbuf.off+1]==0x0 &&
+		tbuf.d[tbuf.off+2]==0x1 &&
 		(unsigned char)tbuf.d[tbuf.off+3]==0xb3) {
 	      if (verbose & TC_DEBUG)
-                  tc_log_info(MOD_NAME, "found a last P or B frame %d -> %d", 
+                  tc_log_info(MOD_NAME, "found a last P or B frame %d -> %d",
 		          start_pic, tbuf.off);
 
 	      param->size = tbuf.off - start_pic;
@@ -599,12 +599,12 @@ MOD_decode
 	      return TC_IMPORT_OK;
 
 	    } else if // P or B frame
-	       (tbuf.d[tbuf.off+0]==0x0 && tbuf.d[tbuf.off+1]==0x0 && 
-		tbuf.d[tbuf.off+2]==0x1 && tbuf.d[tbuf.off+3]==0x0 && 
-		((tbuf.d[tbuf.off+5]>>3)&0x7)>1 && 
+	       (tbuf.d[tbuf.off+0]==0x0 && tbuf.d[tbuf.off+1]==0x0 &&
+		tbuf.d[tbuf.off+2]==0x1 && tbuf.d[tbuf.off+3]==0x0 &&
+		((tbuf.d[tbuf.off+5]>>3)&0x7)>1 &&
 		((tbuf.d[tbuf.off+5]>>3)&0x7)<4) {
 		 if (verbose & TC_DEBUG)
-                     tc_log_info(MOD_NAME, "found a P or B frame from %d -> %d\n", 
+                     tc_log_info(MOD_NAME, "found a P or B frame from %d -> %d\n",
 		             start_pic, tbuf.off);
 
 		 param->size = tbuf.off - start_pic;
@@ -672,7 +672,7 @@ MOD_decode
       }
 
       // switch to entire frames:
-      // bytes_to_go is the difference between requested bytes and 
+      // bytes_to_go is the difference between requested bytes and
       // delivered bytes
       //
       // pseudo_frame_size = average bytes per audio frame
@@ -684,7 +684,7 @@ MOD_decode
       ac3_bytes_to_go = ac_bytes + ac3_bytes_to_go - effective_frame_size;
 
       // return effective_frame_size as physical size of audio data
-      param->size = effective_frame_size; 
+      param->size = effective_frame_size;
 
       if(verbose_flag & TC_STATS)
         tc_log_info(MOD_NAME, "pseudo=%d, real=%d, frames=%d, effective=%d",
@@ -696,9 +696,9 @@ MOD_decode
 
 
       if(syncf>0) {
-	//dump an ac3 frame, instead of a pcm frame 
+	//dump an ac3 frame, instead of a pcm frame
 	ac_bytes = real_frame_size-ac_off;
-	param->size = real_frame_size; 
+	param->size = real_frame_size;
 	--syncf;
       }
 
@@ -710,13 +710,13 @@ MOD_decode
       ac_bytes = param->size;
       break;
 
-    default: 
+    default:
       tc_log_warn(MOD_NAME, "invalid import codec request 0x%x");
       return(TC_IMPORT_ERROR);
 
     }
 
-    if (fread(param->buffer+ac_off, ac_bytes-ac_off, 1, fd) !=1) 
+    if (fread(param->buffer+ac_off, ac_bytes-ac_off, 1, fd) !=1)
       return(TC_IMPORT_ERROR);
 
     return(TC_IMPORT_OK);
@@ -725,14 +725,14 @@ MOD_decode
   return(TC_IMPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
     if(param->fd != NULL) pclose(param->fd); param->fd = NULL;
     if (f) pclose (f); f=NULL;
 

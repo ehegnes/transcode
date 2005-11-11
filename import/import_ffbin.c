@@ -6,25 +6,25 @@
  *  Based on import_mplayer_c, (C) Thomas Östreich - June 2001
  *
  *  VERSION HISTORY
- *  0.0.1    May 10 2004   First try, and it worked nearly at once! 
+ *  0.0.1    May 10 2004   First try, and it worked nearly at once!
  *                         Thanks go to Thomas for such nice code for ripping <g>
  *  0.0.2    May 11 2004   Gave the video pipe a regular random name, like the audio pipe
  *
  *  This file made for transcode, a video stream  processing tool
- *      
+ *
  *  this file is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  this file is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -137,7 +137,7 @@ MOD_open
       if ((audiopipefd = popen(import_cmd_buf, "w")) == NULL) {
         perror("popen audiopipe failed");
         return(TC_IMPORT_ERROR);
-      }      
+      }
 
       if ((param->fd = fopen(audiopipe, "r")) == NULL) {
         perror("fopen audio stream");
@@ -149,7 +149,7 @@ MOD_open
   return(TC_IMPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
@@ -157,7 +157,7 @@ MOD_open
 
 MOD_decode { return(TC_IMPORT_OK); }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *

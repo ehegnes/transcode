@@ -16,7 +16,7 @@ aviindex \- Write and read text files describing the index of an AVI file
 \fBaviindex\fP is Copyright (C) 2003,2004 by Tilmann Bitterberg
 .SH DESCRIPTION
 .B aviindex
-writes a text file describing the index of an AVI file. It analyses the 
+writes a text file describing the index of an AVI file. It analyses the
 content or index if available of the AVI file and prints this information in a
 human readable form.
 .PP
@@ -45,10 +45,10 @@ there is an index chunk in this file. Cross fingers.
 Also in smart mode, \fBaviindex\fP analyzes the content of the video frame and
 tries to detect keyframes by looking at the data depending on the video codec.
 .PP
-The generated index file serves different purposes. 
+The generated index file serves different purposes.
 .RS
 .TP
-* 
+*
 The library which handles AVI files in transcode(1) can read such
 index files and use this file to rebuild the index instead of
 scanning through the whole AVI file over and over again. Reading the
@@ -84,12 +84,12 @@ show version.
 show help text.
 .SH MPLAYER
 .B aviindex
-can convert from and to mplayer-generated index files. Since mplayer-1.0pre3 mplayer has the ability to save the index via 
+can convert from and to mplayer-generated index files. Since mplayer-1.0pre3 mplayer has the ability to save the index via
 .I \-saveidx
 FILE
 and load it again through
-.I \-loadidx 
-FILE. 
+.I \-loadidx
+FILE.
 .B aviindex
 is able to convert an mplayer index file to a transcode index file and vice
 visa. It is not able to directly write an mplayer file, though. Example of a
@@ -115,7 +115,7 @@ for details.
 The command
 .PP
 .nf
-  aviindex -i 3GBfile.avi -o 3GB.index 
+  aviindex -i 3GBfile.avi -o 3GB.index
 .fi
 .PP
 generates and index of the large file 3GBfile.avi. You can use the

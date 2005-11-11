@@ -1,12 +1,12 @@
 /*
     filter_whitebalance.c
-    
+
     This file is part of transcode, a video stream processing tool
-    
+
     White Balance Filter - correct images with a broken white balance
     (typically, images from a dv camcorder with an unset white balance or
     wrongly forced to indoor or outdoor)
-     
+
     Copyright (C) 2003 Guillaume Cottenceau <gc at mandrakesoft.com>
 
     This program is free software; you can redistribute it and/or modify
@@ -82,7 +82,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if (ptr->tag & TC_FILTER_GET_CONFIG) {
 		char buf[32];
 		optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYE", "1");
-		
+
 		tc_snprintf(buf, 32, "%d", level);
 		optstr_param(options, "level", "Level of blue-to-yellow white balance shifting (can be negative)", "%d", buf, "-1000", "+1000");
 		optstr_param(options, "limit", "Limit to specified ranges (+fnumber toggles on, -fnumber toggles off)", "%s", "");
@@ -94,7 +94,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		int i;
 
 		if (verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    
+
 		if (!(vob = tc_get_vob())) {
 			tc_log_error(MOD_NAME, "Could not get vob");
 			return -1;
@@ -132,14 +132,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		if (!buffer)
 			buffer = tc_malloc(SIZE_RGB_FRAME);
 		if (!buffer) {
-			fprintf(stderr, "[%s] ERROR: Could not allocate %d bytes\n", 
+			fprintf(stderr, "[%s] ERROR: Could not allocate %d bytes\n",
                             MOD_NAME, SIZE_RGB_FRAME);
 			return -1;
 		}
 
 		return 0;
 	}
-	
+
 	if (ptr->tag & TC_FILTER_CLOSE) {
 		if (buffer)
 			free(buffer);
@@ -163,8 +163,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			if (vob->im_v_codec == CODEC_YUV)
 				tcv_convert(ptr->video_buf, IMG_YUV_DEFAULT, IMG_RGB24);
 			ac_memcpy(buffer, ptr->video_buf, ptr->v_width*ptr->v_height*3);
-			
-			
+
+
 			for (y = 0; y < vob->im_v_height; y++) {
 				unsigned char * line = &buffer[y * (vob->im_v_width * 3)];
 				for (x = 0; x < vob->im_v_width*3; x += 3) {
@@ -173,13 +173,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 					line[x+2] = blue_filter[line[x+2]];
 				}
 			}
-			
-			
+
+
 			ac_memcpy(ptr->video_buf, buffer, ptr->v_width*ptr->v_height*3);
 			if (vob->im_v_codec == CODEC_YUV)
 				tcv_convert(ptr->video_buf, IMG_RGB24, IMG_YUV_DEFAULT);
 		}
-	} 
+	}
 
 	return 0;
 }

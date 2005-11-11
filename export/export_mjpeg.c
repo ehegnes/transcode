@@ -5,20 +5,20 @@
  *  module added by Ben Collins <bcollins@debian.org>
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -53,7 +53,7 @@ static int format=0, bytes_per_sample=0;
 /* row pointer for yuv mode */
 static unsigned char **line[3];
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * init codec
  *
@@ -61,18 +61,18 @@ static unsigned char **line[3];
 
 MOD_init
 {
-    
+
     if(param->flag == TC_VIDEO) {
       return(0);
     }
-    
+
     if(param->flag == TC_AUDIO) return(audio_init(vob, verbose_flag));
 
     // invalid flag
-    return(TC_EXPORT_ERROR); 
+    return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open outputfile
  *
@@ -80,14 +80,14 @@ MOD_init
 
 MOD_open
 {
-  
+
     // open out file
-    if(vob->avifile_out==NULL) 
+    if(vob->avifile_out==NULL)
       if(NULL == (vob->avifile_out = AVI_open_output_file(vob->video_out_file))) {
 	AVI_print_error("avi open error");
 	exit(TC_EXPORT_ERROR);
       }
-    
+
     /* save locally */
     avifile = vob->avifile_out;
 
@@ -97,40 +97,40 @@ MOD_open
 
     if (vob->avi_comment_fd>0)
 	AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
-    
+
     switch(vob->im_v_codec) {
-      
+
     case CODEC_RGB:
       format=0;
       bytes_per_sample=3;
       break;
-      
+
     case CODEC_YUV:
       format=1;
 	line[0] = malloc(vob->ex_v_height*sizeof(char*));
 	line[1] = malloc(vob->ex_v_height*sizeof(char*)/2);
 	line[2] = malloc(vob->ex_v_height*sizeof(char*)/2);
       break;
-      
+
     default:
-      
+
       tc_log_warn(MOD_NAME, "codec not supported");
-      return(TC_EXPORT_ERROR); 
-      
+      return(TC_EXPORT_ERROR);
+
       break;
     }
 
     return(0);
   }
-  
-  
-  if(param->flag == TC_AUDIO)  return(audio_open(vob, vob->avifile_out));
-  
-  // invalid flag
-  return(TC_EXPORT_ERROR); 
-}   
 
-/* ------------------------------------------------------------ 
+
+  if(param->flag == TC_AUDIO)  return(audio_open(vob, vob->avifile_out));
+
+  // invalid flag
+  return(TC_EXPORT_ERROR);
+}
+
+/* ------------------------------------------------------------
  *
  * encode and export
  *
@@ -165,7 +165,7 @@ MOD_encode
     JSAMPROW row_pointer[MAX_ROWS];
     int bwritten;
     unsigned char *base[3];
-    
+
     /* create jpeg object */
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_compress(&cinfo);
@@ -193,15 +193,15 @@ MOD_encode
           row_pointer[j] = (char *)(param->buffer + (j * cinfo.image_width * bytes_per_sample));
 
         bwritten=jpeg_write_scanlines(&cinfo,row_pointer,cinfo.image_height);
-        
+
         if (bwritten != cinfo.image_height) {
           tc_log_warn(MOD_NAME, "only wrote %d!", bwritten);
           return(TC_EXPORT_ERROR);
         }
         break;
-    
+
     case 1: /* YUV */
-        /* based on yuv code in export_jpg */ 
+        /* based on yuv code in export_jpg */
         cinfo.raw_data_in = TRUE;
         cinfo.jpeg_color_space = JCS_YCbCr;
         cinfo.comp_info[0].h_samp_factor = 2;
@@ -209,8 +209,8 @@ MOD_encode
         cinfo.comp_info[1].h_samp_factor = 1;
         cinfo.comp_info[1].v_samp_factor = 1;
         cinfo.comp_info[2].h_samp_factor = 1;
-        cinfo.comp_info[2].v_samp_factor = 1; 
-        
+        cinfo.comp_info[2].v_samp_factor = 1;
+
         jpeg_start_compress(&cinfo, TRUE);
 
         YUV_INIT_PLANES(base, param->buffer, IMG_YUV420P,
@@ -243,52 +243,52 @@ MOD_encode
 
     return(0);
   }
-  
+
   if(param->flag == TC_AUDIO) return(audio_encode(param->buffer, param->size, avifile));
-  
+
   // invalid flag
   return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * stop encoder
  *
  * ------------------------------------------------------------*/
 
-MOD_stop 
+MOD_stop
 {
-  
+
   if(param->flag == TC_VIDEO) {
     return(0);
   }
-  
+
   if(param->flag == TC_AUDIO) return(audio_stop());
-  
+
   return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close outputfiles
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
 
   vob_t *vob = tc_get_vob();
   if(param->flag == TC_AUDIO) return(audio_close());
-  
+
   //outputfile
   if(vob->avifile_out!=NULL) {
     AVI_close(vob->avifile_out);
     vob->avifile_out=NULL;
   }
-  
+
   if(param->flag == TC_VIDEO) return(0);
-  
-  return(TC_EXPORT_ERROR);  
+
+  return(TC_EXPORT_ERROR);
 
 }
 

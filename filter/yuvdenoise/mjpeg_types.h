@@ -1,5 +1,5 @@
 /*
-    $Id: mjpeg_types.h,v 1.5 2005-10-07 14:22:57 achurch Exp $
+    $Id: mjpeg_types.h,v 1.6 2005-11-11 14:47:04 achurch Exp $
 
     Copyright (C) 2000 Herbert Valerio Riedel <hvr@gnu.org>
 
@@ -113,7 +113,7 @@ typedef enum
 #endif /* __MJPEG_TYPES_H__ */
 
 
-/* 
+/*
  * Local variables:
  *  c-file-style: "gnu"
  *  tab-width: 8

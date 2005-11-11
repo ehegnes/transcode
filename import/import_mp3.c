@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream  processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -46,7 +46,7 @@ static int decoded_frames=0;
 static int offset=0;
 static int last_percent=0;
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open stream
  *
@@ -80,7 +80,7 @@ MOD_open
     case CODEC_PCM:
 
 	if (offset && vob->nav_seek_file) {
-	  sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX, 
+	  sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			"tcextract -a %d -i \"%s\" -x %s -d %d -f %s -C %d-%d |"
 			" tcdecode -x %s -d %d -z %d",
 			vob->a_track, vob->audio_in_file,
@@ -93,12 +93,12 @@ MOD_open
 
 	} else {
 	  if (is_dir) {
-	    sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX, 
+	    sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			"tccat -a -i %s | tcextract -a %d -x %s -d %d |"
-			" tcdecode -x %s -d %d -z %d", 
+			" tcdecode -x %s -d %d -z %d",
 			vob->audio_in_file, vob->a_track,
 			(vob->fixme_a_codec==0x50 ? "mp2" : "mp3"),
-			vob->verbose, 
+			vob->verbose,
 			(vob->fixme_a_codec==0x50 ? "mp2" : "mp3"),
 			vob->verbose,
 			vob->a_padrate);
@@ -106,12 +106,12 @@ MOD_open
 	      return(TC_IMPORT_ERROR);
 
 	  } else {
-	    sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX, 
+	    sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			"tcextract -a %d -i \"%s\" -x %s -d %d |"
-			" tcdecode -x %s -d %d -z %d", 
-			vob->a_track, vob->audio_in_file, 
+			" tcdecode -x %s -d %d -z %d",
+			vob->a_track, vob->audio_in_file,
 			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
-			vob->verbose, 
+			vob->verbose,
 			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
 			vob->verbose, vob->a_padrate);
 	    if (sret < 0)
@@ -124,7 +124,7 @@ MOD_open
 
 	break;
 
-    default: 
+    default:
 	tc_log_warn(MOD_NAME, "invalid import codec request 0x%x", codec);
 	return(TC_IMPORT_ERROR);
 
@@ -145,7 +145,7 @@ MOD_open
     return(TC_IMPORT_OK);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode stream
  *
@@ -154,13 +154,13 @@ MOD_open
 MOD_decode
 {
 
-  int ac_bytes=0, ac_off=0; 
+  int ac_bytes=0, ac_off=0;
 
   // audio only
   if(param->flag != TC_AUDIO) return(TC_IMPORT_ERROR);
 
   switch(codec) {
-      
+
   case CODEC_PCM:
 
     //default:
@@ -168,7 +168,7 @@ MOD_decode
     ac_bytes = param->size;
     break;
 
-  default: 
+  default:
       tc_log_warn(MOD_NAME, "invalid import codec request 0x%x",codec);
       return(TC_IMPORT_ERROR);
 
@@ -184,7 +184,7 @@ MOD_decode
 	  return(TC_IMPORT_ERROR);
       }
       if (offset && percent <= 100 && last_percent != percent) {
-	  tc_log_warn(MOD_NAME, "skipping to frame %d .. %d%%", 
+	  tc_log_warn(MOD_NAME, "skipping to frame %d .. %d%%",
 		  offset, percent);
 	  last_percent = percent;
       }
@@ -201,7 +201,7 @@ MOD_decode
   return(TC_IMPORT_OK);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *

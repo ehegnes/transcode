@@ -18,13 +18,13 @@ credits_end = 1
 credits_end_begin = XXX
 credits_end_end   = YYY
 
-The frame numbers are relative to your encoding range; so if you start 
-encoding at frame 100 and your credits start at frame 150, you have to 
+The frame numbers are relative to your encoding range; so if you start
+encoding at frame 100 and your credits start at frame 150, you have to
 set 'credits_start_begin = 50' !
 
 Credits mode:
 
-Via 'credits_mode' you can select from several modes for credit 
+Via 'credits_mode' you can select from several modes for credit
 handling, each using different values:
 
 VBR_CREDITS_MODE_QUANT:
@@ -39,8 +39,8 @@ credits_quant_i = 20
 # ...for P-frames
 credits_quant_p = 20
 
-Annotation: If and only if credits_quant_i does not equal 
-credits_quant_p, then I-frames appear in credits. All other modes do not 
+Annotation: If and only if credits_quant_i does not equal
+credits_quant_p, then I-frames appear in credits. All other modes do not
 generate I-frames within credits. This conflicts with this comment:
 /* We only care about Keyframes when not in credits */
 Maybe this does also need to be fixed, but I did never try this combination.

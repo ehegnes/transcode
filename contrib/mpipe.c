@@ -7,7 +7,7 @@
  *    "tcextract -t vob -x ac3 | tcdecode -x a52 | tcscan -x pcm"
  *
  * compile with
- *  
+ *
  *  gcc -O2 -Wall -o mpipe mpipe.c
  *
  * (C) Tilmann Bitterberg
@@ -65,7 +65,7 @@ int main (int argc, char *argv[])
 	       fwrite(buf, n, 1, f[i]);
 	   }
        }
-       
+
    }
 
    for (i=0; i<numcmds; ++i) {

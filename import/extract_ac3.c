@@ -4,26 +4,26 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *  Copyright (C) Aaron Holtzman <aholtzma@ess.engr.uvic.ca> - June 1999
  *
- *  Ideas and bitstream syntax info borrowed from code written 
+ *  Ideas and bitstream syntax info borrowed from code written
  *  by Nathan Laredo <laredo@gnu.org>
  *
  *  Multiple track support by Yuqing Deng <deng@tinker.chem.brown.edu>
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -76,14 +76,14 @@ static void pes_ac3_loop (void)
 
     complain_loudly = 1;
     buf = buffer;
-    
+
     do {
       end = buf + fread (buf, 1, buffer + BUFFER_SIZE - buf, in_file);
       buf = buffer;
-      
+
       //scan buffer
       while (buf + 4 <= end) {
-	
+
 	// check for valid start code
 	if (buf[0] || buf[1] || (buf[2] != 0x01)) {
 	  if (complain_loudly && (verbose & TC_DEBUG)) {
@@ -95,25 +95,25 @@ static void pes_ac3_loop (void)
 	  }
 	  buf++;
 	  continue;
-	}// check for valid start code 
-	
-	if(verbose & TC_STATS) fprintf(stderr, "packet code 0x%x\n", buf[3]); 
+	}// check for valid start code
+
+	if(verbose & TC_STATS) fprintf(stderr, "packet code 0x%x\n", buf[3]);
 
 	switch (buf[3]) {
-	  
+
 	case 0xb9:	/* program end code */
 	  return;
 
 	  //check for PTS
-	  
-	  
+
+
 	case 0xe0:	/* video */
-	  
+
 	  tmp2 = buf + 6 + (buf[4] << 8) + buf[5];
-	
+
 	  if (tmp2 > end)
 	    goto copy;
-	  
+
 	  if ((buf[6] & 0xc0) == 0x80) {
 	    /* mpeg2 */
 	    tmp1 = buf + 9 + buf[8];
@@ -129,30 +129,30 @@ static void pes_ac3_loop (void)
 	      tmp1 += 2;
 	    tmp1 += mpeg1_skip_table [*tmp1 >> 4];
 	  }
-	  
+
 	  // get pts time stamp:
 	  ac_memcpy(pack_buf, &buf[6], 16);
-	  
+
 	  if(get_pts_dts(pack_buf, &i_pts, &i_dts)) {
 	    pack_rpts = (double) i_pts/90000.;
-	    
+
 	    if(pack_rpts < last_rpts){ // pts resets when a new chapter begins
 	      offset_rpts += last_rpts;
 	      ++discont;
-	    }  
-	    
+	    }
+
 	    //default
 	    last_rpts=pack_rpts;
 	    abs_rpts=pack_rpts + offset_rpts;
-	    
+
 	    //fprintf(stderr, "PTS=%8.3f ABS=%8.3f\n", pack_rpts, abs_rpts);
 	  }
-	  
+
 	  buf = tmp2;
 	  break;
-	  
+
 	case 0xba:	/* pack header */
-	  
+
 	  if(get_pts) {
 	    ac_memcpy(pack_buf, &buf[4], 6);
 	    pack_lpts = read_tc_time_stamp(pack_buf);
@@ -169,12 +169,12 @@ static void pes_ac3_loop (void)
 	    fprintf (stderr, "(%s) weird pack header\n", __FILE__);
 	    import_exit(1);
 	  }
-	  
+
 	  if (tmp1 > end)
 	    goto copy;
 	  buf = tmp1;
 	  break;
-	  
+
 
 	case 0xbd:	/* private stream 1 */
 	  tmp2 = buf + 6 + (buf[4] << 8) + buf[5];
@@ -193,30 +193,30 @@ static void pes_ac3_loop (void)
 	      tmp1 += 2;
 	    tmp1 += mpeg1_skip_table [*tmp1 >> 4];
 	  }
-	  
-	  if(verbose & TC_STATS) fprintf(stderr,"track code 0x%x\n", *tmp1); 
-	  
+
+	  if(verbose & TC_STATS) fprintf(stderr,"track code 0x%x\n", *tmp1);
+
 	  if(vdr_work_around) {
 	    if (tmp1 < tmp2) fwrite (tmp1, tmp2-tmp1, 1, out_file);
 	  } else {
 
 	    //subtitle
-	    
-	    if (*tmp1 == track_code && track_code < 0x40) {   
-	      
+
+	    if (*tmp1 == track_code && track_code < 0x40) {
+
 	      if (tmp1 < tmp2) {
-		
+
 		// get pts time stamp:
 		  ac_memcpy(pack_buf, &buf[6], 16);
 
 		  if(get_pts_dts(pack_buf, &i_pts, &i_dts)) {
 		    pack_sub_rpts = (double) i_pts/90000.;
-	    
+
 		    //i suppose there *canNOT* be 2 sub chunks from the
 		    //same sub line over a chapter change
 		    //let's add the video offset to the subs
 		    abs_sub_rpts=pack_sub_rpts + offset_rpts;
-	    
+
 		    //fprintf(stderr, "sub PTS=%8.3f ABS=%8.3f\n", pack_rpts, abs_rpts);
 		  }
 
@@ -226,10 +226,10 @@ static void pes_ac3_loop (void)
 		subtitle_header.header_version = TC_SUBTITLE_HDRMAGIC;
 		subtitle_header.header_length = sizeof(subtitle_header_t);
 		subtitle_header.payload_length=tmp2-tmp1;
-		
-		if(verbose & TC_STATS) 
-		  fprintf(stderr,"subtitle=0x%x size=%4d lpts=%d rpts=%f rptsfromvid=%f\n", track_code, subtitle_header.payload_length, subtitle_header.lpts, subtitle_header.rpts,abs_rpts); 
-		
+
+		if(verbose & TC_STATS)
+		  fprintf(stderr,"subtitle=0x%x size=%4d lpts=%d rpts=%f rptsfromvid=%f\n", track_code, subtitle_header.payload_length, subtitle_header.lpts, subtitle_header.rpts,abs_rpts);
+
 		if(tc_pwrite(STDOUT_FILENO, (uint8_t*) subtitle_header_str, strlen(subtitle_header_str))<0) {
 		  fprintf(stderr, "error writing subtitle\n");
 		    import_exit(1);
@@ -246,27 +246,27 @@ static void pes_ac3_loop (void)
 	    }
 
 	    //ac3 package
-	    
-	    if (*tmp1 == track_code && track_code >= 0x80) {   
+
+	    if (*tmp1 == track_code && track_code >= 0x80) {
 		tmp1 += 4;
-		
+
 		//test
 		if(0) {
 		    ac_memcpy(pack_buf, &buf[6], 16);
 		    get_pts_dts(pack_buf, &i_pts, &i_dts);
 		    fprintf(stderr, "AC3 PTS=%f\n", (double) i_pts/90000.);
 		}
-		
+
 		if (tmp1 < tmp2) fwrite (tmp1, tmp2-tmp1, 1, out_file);
 	    }
 	  }
-	  
+
 	  buf = tmp2;
 	  break;
-	  
+
 	default:
 	  if (buf[3] < 0xb9) fprintf (stderr, "(%s) broken stream - skipping data\n", __FILE__);
-	  
+
 	  /* skip */
 	  tmp1 = buf + 6 + (buf[4] << 8) + buf[5];
 	  if (tmp1 > end)
@@ -276,14 +276,14 @@ static void pes_ac3_loop (void)
 
 	} //start code selection
       } //scan buffer
-      
+
       if (buf < end) {
       copy:
 	/* we only pass here for mpeg1 ps streams */
 	memmove (buffer, buf, end - buf);
       }
       buf = buffer + (end - buf);
-      
+
     } while (end == buffer + BUFFER_SIZE);
 }
 
@@ -298,21 +298,21 @@ char audio[MAX_BUF];
 
 static int ac3scan(int infd, int outfd)
 {
-  
+
   int pseudo_frame_size=0, j=0, i=0, s=0;
 
   unsigned long k=0;
 
-#ifdef DDBUG 
+#ifdef DDBUG
   int n=0;
 #endif
 
   char *buffer = malloc (SIZE_PCM_FRAME);
 
   int frame_size, bitrate;
-  
+
   float rbytes;
-  
+
   uint16_t sync_word = 0;
 
   ssize_t bytes_read;
@@ -323,11 +323,11 @@ static int ac3scan(int infd, int outfd)
   }
 
   // need to find syncframe:
-  
+
   for(;;) {
 
     k=0;
-    
+
     for(;;) {
       bytes_read = tc_pread(infd, &buffer[s], 1);
       if (bytes_read <= 0) {
@@ -338,14 +338,14 @@ static int ac3scan(int infd, int outfd)
 	else
 	  return(ERROR_INVALID_HEADER);
       }
-      
-      sync_word = (sync_word << 8) + (uint8_t) buffer[s]; 
-      
+
+      sync_word = (sync_word << 8) + (uint8_t) buffer[s];
+
       s = (s+1)%2;
 
       ++i;
       ++k;
-      
+
       if(sync_word == 0x0b77) break;
 
       if(k>(1<<20)) {
@@ -357,7 +357,7 @@ static int ac3scan(int infd, int outfd)
 
     i=i-2;
 
-#ifdef DDBUG 
+#ifdef DDBUG
     fprintf(stderr, "found sync frame at offset %d (%d)\n", i, j);
 #endif
 
@@ -367,24 +367,24 @@ static int ac3scan(int infd, int outfd)
       free (buffer);
       return(ERROR_INVALID_HEADER);
     }
-    
+
     if((frame_size = 2*get_ac3_framesize(&buffer[2])) < 1) {
       fprintf(stderr, "(%s) ac3 framesize %d invalid\n", __FILE__, frame_size);
       free (buffer);
       return(1);
     }
-    
+
     //FIXME: I assume that a single AC3 frame contains 6kB PCM bytes
-    
+
     rbytes = (float) SIZE_PCM_FRAME/1024/6 * frame_size;
     pseudo_frame_size = (int) rbytes;
-  
+
     if((bitrate = get_ac3_bitrate(&buffer[2])) < 1) {
       fprintf(stderr, "(%s) ac3 bitrate invalid\n", __FILE__);
       free (buffer);
       return(1);
     }
-    
+
     // write out frame header
 
 #ifdef DDBUG
@@ -404,13 +404,13 @@ static int ac3scan(int infd, int outfd)
     i+=frame_size;
     j=i;
   }
-  
+
   free (buffer);
   return(0);
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * extract thread
  *
@@ -423,39 +423,39 @@ static int ac3scan(int infd, int outfd)
 
 void extract_ac3(info_t *ipipe)
 {
-  
+
     int error=0;
 
     avi_t *avifile;
-    
+
     long frames, bytes, padding, n;
 
     verbose = ipipe->verbose;
-    
+
     buffer = malloc (BUFFER_SIZE);
 
     switch(ipipe->magic) {
 
     case TC_MAGIC_VDR:
-      
+
       in_file = fdopen(ipipe->fd_in, "r");
       out_file = fdopen(ipipe->fd_out, "w");
 
       vdr_work_around=1;
-      
+
       pes_ac3_loop();
-      
+
       fclose(in_file);
       fclose(out_file);
-      
+
       break;
 
     case TC_MAGIC_VOB:
-      
+
       in_file = fdopen(ipipe->fd_in, "r");
       out_file = fdopen(ipipe->fd_out, "w");
-      
-      
+
+
       if(ipipe->codec==TC_CODEC_PS1) {
 
 	track_code = ipipe->track;
@@ -477,21 +477,21 @@ void extract_ac3(info_t *ipipe)
       }
 
       pes_ac3_loop();
-      
+
       fclose(in_file);
       fclose(out_file);
-      
+
       break;
-      
-      
+
+
     case TC_MAGIC_AVI:
-      
+
       if(ipipe->stype == TC_STYPE_STDIN){
 	fprintf(stderr, "(%s) invalid magic/stype - exit\n", __FILE__);
 	error=1;
 	break;
       }
-    
+
       // scan file
       if (ipipe->nav_seek_file) {
 	if(NULL == (avifile = AVI_open_indexfd(ipipe->fd_in,0,ipipe->nav_seek_file))) {
@@ -507,46 +507,46 @@ void extract_ac3(info_t *ipipe)
 
       //set selected for multi-audio AVI-files
       AVI_set_audio_track(avifile, ipipe->track);
-    
+
       // get total audio size
       bytes = AVI_audio_bytes(avifile);
-    
+
       padding = bytes % MAX_BUF;
       frames = bytes / MAX_BUF;
-    
+
       for (n=0; n<frames; ++n) {
-	
+
 	if(AVI_read_audio(avifile, audio, MAX_BUF)<0) {
 	  error=1;
 	  break;
 	}
-	
+
 	if(tc_pwrite(ipipe->fd_out, audio, MAX_BUF)!= MAX_BUF) {
 	  error=1;
 	  break;
 	}
       }
-    
-      if((bytes = AVI_read_audio(avifile, audio, padding)) < padding) 
+
+      if((bytes = AVI_read_audio(avifile, audio, padding)) < padding)
 	error=1;
-      
+
       if(tc_pwrite(ipipe->fd_out, audio, bytes)!= bytes) error=1;
-      
+
       break;
-      
+
     case TC_MAGIC_RAW:
     default:
-      
+
       if(ipipe->magic == TC_MAGIC_UNKNOWN)
-	fprintf(stderr, "(%s) no file type specified, assuming %s\n", 
+	fprintf(stderr, "(%s) no file type specified, assuming %s\n",
 		__FILE__, filetype(TC_MAGIC_RAW));
-      
+
       error=ac3scan(ipipe->fd_in, ipipe->fd_out);
       break;
     }
-    
+
     free (buffer);
     import_exit(error);
-    
+
 }
 

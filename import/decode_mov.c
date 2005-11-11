@@ -4,20 +4,20 @@
  *  Copyright (C) Malanchini Marzio - April 2003
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -32,7 +32,7 @@
 #include "tc.h"
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decoder thread
  *
@@ -60,7 +60,7 @@ void decode_mov(decode_t *decode)
 	}
 	quicktime_set_preload(p_qt_structure,10240000);
 	s_fps=quicktime_frame_rate(p_qt_structure, 0);
-	if(decode->format == TC_CODEC_PCM) 
+	if(decode->format == TC_CODEC_PCM)
 	{
     		if (quicktime_audio_tracks(p_qt_structure) == 0)
 		{
@@ -79,25 +79,25 @@ void decode_mov(decode_t *decode)
                 	s_audio_size-= decode->frame_limit[0];
 		if (decode->verbose)
     			fprintf(stderr, "(%s) Audio codec=%s, rate=%ld Hz, bits=%d, channels=%d\n", __FILE__, p_a_codec, s_audio_rate, s_bits, s_channel);
-		if((s_bits!=8)&&(s_bits!=16)) 
+		if((s_bits!=8)&&(s_bits!=16))
 		{
 			quicktime_close(p_qt_structure);
       			fprintf(stderr,"(%s) error: unsupported %d bit rate in quicktime !\n",__FILE__,s_bits);
 			import_exit(1);
 		}
-		if(s_channel > 2) 
+		if(s_channel > 2)
 		{
 			quicktime_close(p_qt_structure);
       			fprintf(stderr,"(%s) error: too many audio tracks (%d) found in quicktime !\n",__FILE__,s_channel);
 			import_exit(1);
 		}
-		if(strlen(p_a_codec)==0) 
+		if(strlen(p_a_codec)==0)
 		{
 			quicktime_close(p_qt_structure);
       			fprintf(stderr,"(%s) error: unsupported codec (empty!) in quicktime !\n",__FILE__);
 			import_exit(1);
 		}
-		if(quicktime_supported_audio(p_qt_structure, 0)!=0) 
+		if(quicktime_supported_audio(p_qt_structure, 0)!=0)
 		{
 			s_qt_pos=quicktime_audio_position(p_qt_structure,0);
 			s_sample=(1.00 * s_channel * s_bits *s_audio_rate)/(s_fps*8);
@@ -105,7 +105,7 @@ void decode_mov(decode_t *decode)
 			p_buffer=(char *)malloc(s_buff_size);
 			if(s_bits==16)
 				s_sample >>= 1;
-			if(s_channel==1) 
+			if(s_channel==1)
 			{
 				p_mask1=(short *)p_buffer;
 				quicktime_set_audio_position(p_qt_structure,s_qt_pos+decode->frame_limit[0],0);
@@ -120,7 +120,7 @@ void decode_mov(decode_t *decode)
 					tc_pwrite (decode->fd_out, p_buffer, s_buff_size);
 				}
 			}
-      			else 
+      			else
 			{
 				s_sample >>= 1;
 				p_mask1=(short *)p_buffer;
@@ -152,9 +152,9 @@ void decode_mov(decode_t *decode)
 				free(p_mask2);
 			}
 			free(p_buffer);
-		} 
+		}
 #if !defined(LIBQUICKTIME_000904)
-		else if((strcasecmp(p_a_codec,QUICKTIME_RAW)==0) || (strcasecmp(p_a_codec,QUICKTIME_TWOS)==0)) 
+		else if((strcasecmp(p_a_codec,QUICKTIME_RAW)==0) || (strcasecmp(p_a_codec,QUICKTIME_TWOS)==0))
 		{
 			s_sample=(1.00 * s_channel * s_bits *s_audio_rate)/(s_fps*8);
 			s_buff_size=s_sample * sizeof(short);
@@ -175,7 +175,7 @@ void decode_mov(decode_t *decode)
 			free(p_buffer);
 		}
 #endif
-		else 
+		else
 		{
 			quicktime_close(p_qt_structure);
 			fprintf(stderr,"(%s) error: quicktime audio codec '%s' not supported!\n",__FILE__,p_a_codec);
@@ -197,7 +197,7 @@ void decode_mov(decode_t *decode)
 			import_exit(1);
 		}
 		s_width=quicktime_video_width(p_qt_structure, 0);
-		s_height=quicktime_video_height(p_qt_structure, 0);    
+		s_height=quicktime_video_height(p_qt_structure, 0);
 		s_video_size=quicktime_video_length(p_qt_structure,0);
 		s_frames=quicktime_video_length(p_qt_structure, 0);
 	        if (decode->frame_limit[1] < s_frames)
@@ -222,7 +222,7 @@ void decode_mov(decode_t *decode)
 			quicktime_set_video_position(p_qt_structure,s_qt_pos+decode->frame_limit[0],0);
 			for (s_cont=0;s_cont<s_video_size;s_cont++)
 			{
-      				if(quicktime_read_frame(p_qt_structure,p_buffer,0)<0) 
+      				if(quicktime_read_frame(p_qt_structure,p_buffer,0)<0)
 				{
 					free(p_buffer);
 					quicktime_close(p_qt_structure);
@@ -234,7 +234,7 @@ void decode_mov(decode_t *decode)
 		}
 		else if(decode->format == TC_CODEC_RGB)
 		{
-      			if(quicktime_supported_video(p_qt_structure,0)==0) 
+      			if(quicktime_supported_video(p_qt_structure,0)==0)
 			{
 				quicktime_close(p_qt_structure);
 				fprintf(stderr,"(%s) error: quicktime video codec '%s' not supported for RGB\n",__FILE__,p_v_codec);
@@ -255,7 +255,7 @@ void decode_mov(decode_t *decode)
 				import_exit(1);
 			}
 			p_tmp=p_buffer;
-      			for(s_cont=0;s_cont<s_height;s_cont++) 
+      			for(s_cont=0;s_cont<s_height;s_cont++)
 			{
 				p_raw_buffer[s_cont] = p_tmp;
 				p_tmp += s_width * 3;
@@ -264,7 +264,7 @@ void decode_mov(decode_t *decode)
 			quicktime_set_video_position(p_qt_structure,s_qt_pos+decode->frame_limit[0],0);
 			for (s_cont=0;s_cont<s_video_size;s_cont++)
 			{
-      				if(quicktime_decode_video(p_qt_structure,p_raw_buffer,0)<0) 
+      				if(quicktime_decode_video(p_qt_structure,p_raw_buffer,0)<0)
 				{
 					free(p_raw_buffer);
 					free(p_buffer);
@@ -276,9 +276,9 @@ void decode_mov(decode_t *decode)
       			}
 			free(p_raw_buffer);
 		}
-		else if(decode->format == TC_CODEC_YUV2) 
+		else if(decode->format == TC_CODEC_YUV2)
 		{
-      			if((strcasecmp(p_v_codec,QUICKTIME_YUV4)!=0)&& (strcasecmp(p_v_codec,QUICKTIME_YUV420)!=0)) 
+      			if((strcasecmp(p_v_codec,QUICKTIME_YUV4)!=0)&& (strcasecmp(p_v_codec,QUICKTIME_YUV420)!=0))
 			{
 				quicktime_close(p_qt_structure);
 				fprintf(stderr, "(%s) error: quicktime video codec '%s' not suitable for YUV!\n", __FILE__,p_v_codec);
@@ -295,7 +295,7 @@ void decode_mov(decode_t *decode)
 			quicktime_set_video_position(p_qt_structure,s_qt_pos+decode->frame_limit[0],0);
 			for (s_cont=0;s_cont<s_video_size;s_cont++)
 			{
-      				if(quicktime_read_frame(p_qt_structure,p_buffer,0)<0) 
+      				if(quicktime_read_frame(p_qt_structure,p_buffer,0)<0)
 				{
 					free(p_buffer);
 					quicktime_close(p_qt_structure);
@@ -316,7 +316,7 @@ void decode_mov(decode_t *decode)
 	}
 	import_exit(0);
 }
-#else  
+#else
 void decode_mov(decode_t *decode)
 {
 	fprintf(stderr, "(%s) no support for Quicktime configured - exit.\n", __FILE__);

@@ -22,14 +22,14 @@
  */
 
 #ifndef	IOXML_H
-#define IOXML_H 
+#define IOXML_H
 #ifdef	HAVE_LIBXML2
 
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
-enum	
+enum
 {
 	npt,
 	smpte,

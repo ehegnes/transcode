@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -44,7 +44,7 @@ static FILE *fd=NULL;
 static uint8_t *tmpbuf = NULL;
 static int yuv422_mode = 0, width, height;
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open stream
  *
@@ -74,7 +74,7 @@ MOD_open
             tc_snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv");
         }
     }
-        
+
     //yuy2 mode?
     (vob->dv_yuy2_mode) ?
         tc_snprintf(yuv_buf, 16, "-y yuv420p -Y") :
@@ -124,10 +124,10 @@ MOD_open
 
     case CODEC_YUV422:
 
-      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX, 
+      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			 "%s -i \"%s\" -d %d |"
-			 " tcdecode -x dv -y yuy2 -d %d -Q %d", 
-			 cat_buf, vob->video_in_file, vob->verbose, 
+			 " tcdecode -x dv -y yuy2 -d %d -Q %d",
+			 cat_buf, vob->video_in_file, vob->verbose,
 			 vob->verbose, vob->quality);
       if (sret < 0)
 	return(TC_IMPORT_ERROR);
@@ -178,7 +178,7 @@ MOD_open
 
 
     default:
-      tc_log_warn(MOD_NAME, "invalid import codec request 0x%x", 
+      tc_log_warn(MOD_NAME, "invalid import codec request 0x%x",
 		      vob->im_v_codec);
       return(TC_IMPORT_ERROR);
 
@@ -229,7 +229,7 @@ MOD_open
 
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
@@ -244,23 +244,23 @@ MOD_decode
     if(param->flag == TC_VIDEO && frame_size==0) return(TC_IMPORT_ERROR);
 
     // return true yuv frame size as physical size of video data
-    param->size = frame_size; 
+    param->size = frame_size;
 
     if (yuv422_mode) {
         uint8_t *planes[3];
-        if (fread(tmpbuf, frame_size, 1, fd) !=1) 
+        if (fread(tmpbuf, frame_size, 1, fd) !=1)
             return(TC_IMPORT_ERROR);
         YUV_INIT_PLANES(planes, param->buffer, IMG_YUV422P, width, height);
 	ac_imgconvert(&tmpbuf, IMG_YUY2, planes, IMG_YUV422P, width, height);
     } else {
-        if (fread(param->buffer, frame_size, 1, fd) !=1) 
+        if (fread(param->buffer, frame_size, 1, fd) !=1)
             return(TC_IMPORT_ERROR);
     }
 
     return(TC_IMPORT_OK);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *

@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -45,7 +45,7 @@ static int aframe_count=0, vframe_count=0;
 static int width=0, height=0;
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open stream
  *
@@ -89,15 +89,15 @@ MOD_open
 	if(NULL == (avifile1 = AVI_open_input_indexfile(vob->audio_in_file,
                                                     0, vob->nav_seek_file))){
 	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR); 
-	} 
+	  return(TC_IMPORT_ERROR);
+	}
       } else {
 	if(NULL == (avifile1 = AVI_open_input_file(vob->audio_in_file,1))){
 	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR); 
-	} 
+	  return(TC_IMPORT_ERROR);
+	}
       }
-    }   
+    }
 
     //set selected for multi-audio AVI-files
     AVI_set_audio_track(avifile1, vob->a_track);
@@ -107,7 +107,7 @@ MOD_open
 
     if(!chan) {
       tc_log_warn(MOD_NAME, "error: no audio track found");
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
     }
 
     bits   =  AVI_audio_bits(avifile1);
@@ -142,13 +142,13 @@ MOD_open
 	if(NULL == (avifile2 = AVI_open_input_indexfile(vob->video_in_file,
                                                    0,vob->nav_seek_file))){
 	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR); 
-	} 
+	  return(TC_IMPORT_ERROR);
+	}
       } else {
 	if(NULL == (avifile2 = AVI_open_input_file(vob->video_in_file,1))){
 	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR); 
-	} 
+	  return(TC_IMPORT_ERROR);
+	}
       }
     }
 
@@ -162,7 +162,7 @@ MOD_open
     fps    =  AVI_frame_rate(avifile2);
     codec  =  AVI_video_compressor(avifile2);
 
-    tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d\n", 
+    tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d\n",
 	    codec, fps, width, height);
 
     if(strlen(codec)!=0 && vob->im_v_codec == CODEC_RGB) {
@@ -189,13 +189,13 @@ MOD_open
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
  * ------------------------------------------------------------*/
 
-MOD_decode 
+MOD_decode
 {
 
   int key;
@@ -222,8 +222,8 @@ MOD_decode
 	}
     }
 
-    if(verbose & TC_STATS && key) 
-      tc_log_info(MOD_NAME, "keyframe %d", vframe_count); 
+    if(verbose & TC_STATS && key)
+      tc_log_info(MOD_NAME, "keyframe %d", vframe_count);
 
     if(param->size<0) {
       if(verbose & TC_DEBUG) AVI_print_error("AVI read video frame");
@@ -279,14 +279,14 @@ MOD_decode
   return(TC_IMPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
 
     if(param->fd != NULL) pclose(param->fd);
 

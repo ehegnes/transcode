@@ -4,20 +4,20 @@
  *  Copyright (C) Jacob Meuser <jakemsr@jakemsr.com> - May 2005
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -39,7 +39,7 @@ void probe_bsdav(info_t *ipipe)
         return;
     }
 
-    /* read stream header */ 
+    /* read stream header */
     if (bsdav_read_stream_header(file, &strhdr) != 0) {
         fprintf(stderr, "(%s) failed to read bsdav stream header\n", __FILE__);
         ipipe->error = 1;
@@ -89,7 +89,7 @@ void probe_bsdav(info_t *ipipe)
 
 #else	/* HAVE_BSDAV */
 
-void 
+void
 probe_bsdav(info_t * ipipe)
 {
     fprintf(stderr, "No support for bsdav compiled in\n");

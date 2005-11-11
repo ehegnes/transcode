@@ -76,7 +76,7 @@ Some small fixes, geometry in moving direction.
 -0.5.2
 To many bug fixes to desribe in a short space, some:
 no longer crashes if text goes of top.
-Objects on odd lines do not cause the color to diplayed at the wrong place. 
+Objects on odd lines do not cause the color to diplayed at the wrong place.
 Subtitler now looks for homedir/.subtitles/new-timed.txt
 and for homedir/.subtitles/font/font.desc
 
@@ -137,14 +137,14 @@ To make a title rol:
 *subtitle subtitle
 
 ; the title roll
-2 PantelCorp Presents:\  
+2 PantelCorp Presents:\
 The Panteltje Picture Manipulation Language \\
 'ppml' by Jan Panteltje\\\
 Copyright Panteltje Productions\\
 A PantelWorks Universe Company\\\
 
 ;this will slowly move it upward of the screen.
-2 *subtitle dypos=-.1 
+2 *subtitle dypos=-.1
 
 2 *subtitle dcol=7 contr=70
 
@@ -154,7 +154,7 @@ Fonts can be specified in the ppml file.
 Text formatting rewritten.
 
 Version-0.5.9
-If you use formatted subtitles, (useing '\') the iteration in the 
+If you use formatted subtitles, (useing '\') the iteration in the
 reformatter is switched off, preventing it from breaking lines where
 you would not want it.
 Fixed many other bugs in that reformatter.
@@ -263,9 +263,9 @@ background_contrast     text            background printing area contrast (0-15)
 pattern_contrast        text            character body contrast.
 emphasis1_contrast      text            character outline1 contrast.
 emphasis2_contrast      text            character outline2 (character-space) contrast.
-    
+
 font_path
-font_dir 
+font_dir
 are both recognized as the place where the true type fonts need to
 be (arial.ttf for example).
 You need to set this and the other font parameters for each object!
@@ -289,14 +289,14 @@ A contrast of 15 will show the subtitle maximum.
 
 Some DVD color settings may give unwanted effects, experiment.
 Anti aliasing added for DVD subs.
- 
+
 
 0.8.1:
 anti_alias command on command line will process emphasis2 as anti alias.
 (Use xste to generate this).
 Character spacing can be negative, so characters can be made to appear
 very close together.
-Reformatting for negative spacing values works. 
+Reformatting for negative spacing values works.
 
 
 0.8.2:
@@ -313,7 +313,7 @@ You need to upgrade to xste 3.2.5 too!
 
 
 0.8.4:
-Patch for AMD64 compilation by Tilmann Bitterberg.   
+Patch for AMD64 compilation by Tilmann Bitterberg.
 Character spacing routines as in old versions, for better
 compatibility.
 Default character spacing now 2.
@@ -335,12 +335,12 @@ Because of this, syntax in new-timed.txt has changed.
 
 Try this as example, in file /root/.subtitles/new-timed.txt
 
-1 *frame_counter100,400,0,900000,180,4                                                    
-2 *text10,30,1000000,100000,65,3 I am always on top!                                      
-3 *text10,30,-1000000,100000,130,3 I am far away!  
+1 *frame_counter100,400,0,900000,180,4
+2 *text10,30,1000000,100000,65,3 I am always on top!
+3 *text10,30,-1000000,100000,130,3 I am far away!
 4 *text0,0,0,100000,0,0 This is a text on 0,0
 5 *picture60,188,0,1000,75,3 /root/rose.ppm
-6 Hello                               
+6 Hello
 7 *picture0,188,0,1000,315,3 /root/rose.ppm
 8 *picture0,0,0,100 /root/rose.ppm
 10 *text200,400,0,300,75,2 Ha die pantels!
@@ -379,7 +379,7 @@ So, ideas, also I am time limited, this took some hours to program...
 Code could likely be simplified, using 2 linked lists, forgot why I needed
 2, frame_list.c reads in the files, title_list.c does some processing..
 We will see where it goes.
- 
+
 If you want only the output, try:
 -J subtitler="no_subtitles frame_offset=0 show_output color_depth=32"
 

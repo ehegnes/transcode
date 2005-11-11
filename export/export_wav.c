@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -40,8 +40,8 @@ static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
 static struct wave_header rtf;
 static int fd;
 static long total=0;
- 
-/* ------------------------------------------------------------ 
+
+/* ------------------------------------------------------------
  *
  * init codec
  *
@@ -49,7 +49,7 @@ static long total=0;
 
 MOD_init
 {
-  
+
   int rate;
 
   if(param->flag == TC_VIDEO) return(0);
@@ -61,13 +61,13 @@ chunk_struct) + sizeof(struct common_struct);
     strncpy(rtf.riff.id, "RIFF", 4);
     strncpy(rtf.riff.wave_id, "WAVE",4);
     strncpy(rtf.format.id, "fmt ",4);
-    
+
     rtf.format.len = sizeof(struct common_struct);
     rtf.common.wFormatTag=CODEC_PCM;
-    
+
     rate=(vob->mp3frequency != 0) ? vob->mp3frequency : vob->a_rate;
 
-    rtf.common.dwSamplesPerSec = rate; 
+    rtf.common.dwSamplesPerSec = rate;
     rtf.common.dwAvgBytesPerSec = vob->dm_chan * rate * vob->dm_bits/8;
     rtf.common.dwAvgBytesPerSec = rate * vob->dm_bits/8;
     rtf.common.wChannels=vob->dm_chan;
@@ -82,10 +82,10 @@ chunk_struct) + sizeof(struct common_struct);
     return(0);
   }
   // invalid flag
-  return(TC_EXPORT_ERROR); 
+  return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open outputfile
  *
@@ -95,32 +95,32 @@ MOD_open
 {
 
   if(param->flag == TC_AUDIO) {
-    
+
     if((fd = open(vob->audio_out_file, O_RDWR|O_CREAT|O_TRUNC,
 		  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))<0) {
       perror("open file");
       return(TC_EXPORT_ERROR);
-    }     
+    }
 
     total=0;
-    
+
     if(AVI_write_wave_header(fd, &rtf) != 0) {
       perror("write wave header");
       return(TC_EXPORT_ERROR);
-    }     
+    }
 
-    
+
     return(0);
   }
-  
-  
-  if(param->flag == TC_VIDEO) return(0);
-  
-  // invalid flag
-  return(TC_EXPORT_ERROR); 
-}   
 
-/* ------------------------------------------------------------ 
+
+  if(param->flag == TC_VIDEO) return(0);
+
+  // invalid flag
+  return(TC_EXPORT_ERROR);
+}
+
+/* ------------------------------------------------------------
  *
  * encode and export
  *
@@ -130,36 +130,36 @@ MOD_encode
 {
 
   int size = param->size;
-    
-  if(param->flag == TC_AUDIO) { 
-    
+
+  if(param->flag == TC_AUDIO) {
+
     if(AVI_write_wave_pcm_data(fd,param->buffer, size) != size) {
       perror("write audio frame");
       return(TC_EXPORT_ERROR);
-    }     
+    }
 
     total += size;
 
     return(0);
   }
-  
+
   if(param->flag == TC_VIDEO) return(0);
-  
+
   // invalid flag
   return(TC_EXPORT_ERROR);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close outputfiles
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
 
   off_t fsize;
-  
+
   if(param->flag == TC_VIDEO) return(0);
   if(param->flag == TC_AUDIO) {
 
@@ -171,37 +171,37 @@ MOD_close
       tc_log_info(MOD_NAME, "Can't seek to fix header, probably a pipe");
       return(0);
     }
-    
+
     rtf.riff.len=fsize-8;
     rtf.data.len=total;
 
     //write wave header
-    lseek(fd, 0, SEEK_SET);     
+    lseek(fd, 0, SEEK_SET);
 
     if(AVI_write_wave_header(fd, &rtf) != 0) {
       perror("write wave header");
       return(TC_EXPORT_ERROR);
-    }     
+    }
 
     close(fd);
 
     return(0);
   }
-  return(TC_EXPORT_ERROR);  
-  
+  return(TC_EXPORT_ERROR);
+
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * stop encoder
  *
  * ------------------------------------------------------------*/
 
-MOD_stop 
+MOD_stop
 {
   if(param->flag == TC_VIDEO) return(0);
   if(param->flag == TC_AUDIO) return(0);
-  
+
   return(TC_EXPORT_ERROR);
 }
 

@@ -43,11 +43,11 @@ static int f_check_video_H_W(audiovideo_t *p_audio_video)
 	for (p_temp=p_audio_video;p_temp != NULL;p_temp=p_temp->p_next)
 	{
 		if (s_v_height == 0)
-			s_v_height=p_temp->s_v_height;	
+			s_v_height=p_temp->s_v_height;
 		else if (s_v_height != p_temp->s_v_height)
 			s_rc|=0x01;
 		if (s_v_width == 0)
-			s_v_width=p_temp->s_v_width;	
+			s_v_width=p_temp->s_v_width;
 		else if (s_v_width != p_temp->s_v_width)
 			s_rc|=0x02;
 		if ((p_temp->s_v_tg_height != 0) && (s_video_tg_height==0))
@@ -92,9 +92,9 @@ static int f_check_video_H_W(audiovideo_t *p_audio_video)
 	for (p_temp=p_audio_video;p_temp != NULL;p_temp=p_temp->p_next) //initialize all unset codec
 	{
 		if (s_video_tg_height!=0)
-			p_temp->s_v_tg_height=s_video_tg_height;	
+			p_temp->s_v_tg_height=s_video_tg_height;
 		if (s_video_tg_width!=0)
-			p_temp->s_v_tg_width=s_video_tg_width;	
+			p_temp->s_v_tg_width=s_video_tg_width;
 	}
 	return(0);
 }
@@ -132,7 +132,7 @@ static int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_
 
 	*s_tot_frames_audio=*s_tot_frames_video=0;
 	ipipe->error=f_manage_input_xml(ipipe->name,1,p_audiovideo);
-	
+
 	if (ipipe->error==1)
 	{
 		(int)f_manage_input_xml(ipipe->name,0,p_audiovideo);
@@ -212,7 +212,7 @@ static int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_
 				f_det_totale_video_frame(p_audio_video);
 				if (p_audio_video->s_start_video > p_audio_video->s_end_video)
 				{
-					fprintf(stderr,"\n\nerror: start frame is greater than end frame in file %s\n",p_audio_video->p_nome_video); 
+					fprintf(stderr,"\n\nerror: start frame is greater than end frame in file %s\n",p_audio_video->p_nome_video);
 					ipipe->error=1;
 				}
 	                        *s_tot_frames_video+=(p_audio_video->s_end_video - p_audio_video->s_start_video);       //selected frames
@@ -287,7 +287,7 @@ static int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_
 				f_det_totale_audio_frame(p_audio_video);
 				if (p_audio_video->s_start_audio > p_audio_video->s_end_audio)
 				{
-					fprintf(stderr,"\n\nerror: start frame is greater than end frame in file %s\n",p_audio_video->p_nome_video); 
+					fprintf(stderr,"\n\nerror: start frame is greater than end frame in file %s\n",p_audio_video->p_nome_video);
 					ipipe->error=1;
 				}
 	                        *s_tot_frames_audio+=(p_audio_video->s_end_audio - p_audio_video->s_start_audio);       //selected frames

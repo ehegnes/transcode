@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - January 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -124,12 +124,12 @@ static int divx4_is_key(unsigned char *data, long size)
 
         for(i = 0; i < size - 5; i++)
         {
-                if( data[i]     == 0x00 && 
+                if( data[i]     == 0x00 &&
                         data[i + 1] == 0x00 &&
                         data[i + 2] == 0x01 &&
                         data[i + 3] == 0xb6)
                 {
-                        if((data[i + 4] & 0xc0) == 0x0) 
+                        if((data[i + 4] & 0xc0) == 0x0)
                                 return 1;
                         else
                                 return 0;
@@ -153,7 +153,7 @@ static int divx3_is_key(char *d)
 static int divx_init(char *path) {
 #ifdef SYS_BSD
     const
-#endif    
+#endif
     char *error;
     long sret;
 
@@ -163,36 +163,36 @@ static int divx_init(char *path) {
     if (!handle) {
       // (try 5.x "libdivxencore.so.0" style)
       sret = tc_snprintf(module, TC_BUF_MAX, "%s/%s", path, MODULE_V);
-      handle = dlopen(module, RTLD_LAZY); 
+      handle = dlopen(module, RTLD_LAZY);
     }
     if (!handle) {
       // (try 4.x "libdivxencore.so" style)
       sret = tc_snprintf(module, TC_BUF_MAX, "%s/%s", path, MODULE);
-      handle = dlopen(module, RTLD_LAZY); 
+      handle = dlopen(module, RTLD_LAZY);
     }
 
     //try the default:
     if (!handle) {
       // (try 5.x "libdivxencore.so.0" style)
       sret = tc_snprintf(module, TC_BUF_MAX, "%s", MODULE_V);
-      handle = dlopen(module, RTLD_LAZY); 
+      handle = dlopen(module, RTLD_LAZY);
     }
     if (!handle) {
       // (try 4.x "libdivxencore.so" style)
       sret = tc_snprintf(module, TC_BUF_MAX, "%s", MODULE);
-      handle = dlopen(module, RTLD_LAZY); 
+      handle = dlopen(module, RTLD_LAZY);
     }
 
     if (!handle) {
       tc_log_warn(MOD_NAME, "%s", dlerror());
       return(-1);
-    } else {  
-      if(verbose_flag & TC_DEBUG) 
+    } else {
+      if(verbose_flag & TC_DEBUG)
         tc_log_info(MOD_NAME, "Loading external codec module %s",
-                        module); 
+                        module);
     }
 
-    divx_decore = dlsym(handle, "decore");   
+    divx_decore = dlsym(handle, "decore");
 
     if ((error = dlerror()) != NULL)  {
       tc_log_warn(MOD_NAME, "%s", error);
@@ -202,7 +202,7 @@ static int divx_init(char *path) {
     return(0);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * open stream
  *
@@ -217,10 +217,10 @@ MOD_open
   if(param->flag == TC_VIDEO) {
 
       /*
-    if(avifile==NULL) 
+    if(avifile==NULL)
       if(NULL == (avifile = AVI_open_input_file(vob->video_in_file,1))){
 	AVI_print_error("avi open error");
-	return(TC_IMPORT_ERROR); 
+	return(TC_IMPORT_ERROR);
       }
       */
 
@@ -229,13 +229,13 @@ MOD_open
 	if(NULL == (avifile = AVI_open_input_indexfile(vob->video_in_file,
                                                        0,vob->nav_seek_file))){
 	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR); 
-	} 
+	  return(TC_IMPORT_ERROR);
+	}
       } else {
 	if(NULL == (avifile = AVI_open_input_file(vob->video_in_file,1))){
 	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR); 
-	} 
+	  return(TC_IMPORT_ERROR);
+	}
       }
     }
 
@@ -251,7 +251,7 @@ MOD_open
     if (!decore_in_use) {
       if(divx_init(vob->mod_path)<0) {
 	tc_log_warn(MOD_NAME, "failed to init DivX 4.xx/5.xx codec");
-	return(TC_IMPORT_ERROR); 
+	return(TC_IMPORT_ERROR);
       }
     }
 
@@ -260,18 +260,18 @@ MOD_open
 
     if(strlen(codec_str)==0) {
 	tc_log_warn(MOD_NAME, "invalid AVI file codec");
-	return(TC_IMPORT_ERROR); 
+	return(TC_IMPORT_ERROR);
     }
 
 #if DECORE_VERSION >= 20020303
 #  if DECORE_VERSION >= 20021112
     if ((decInit = malloc(sizeof(DEC_INIT)))==NULL) {
       perror("out of memory");
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
     } else
       memset(decInit,0x00,sizeof(DEC_INIT));
 
-      if (verbose & TC_DEBUG) 
+      if (verbose & TC_DEBUG)
       		tc_log_info(MOD_NAME, "using DivX5.0.5 decoder syntax.");
 
       if (strcasecmp(codec_str,"DIV3")==0)
@@ -288,7 +288,7 @@ MOD_open
 
     if ((divx = malloc(sizeof(DEC_PARAM)))==NULL) {
       perror("out of memory");
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
     } else
       memset(divx,0x00,sizeof(DEC_PARAM));
 
@@ -332,7 +332,7 @@ MOD_open
 
     if ((pbi = malloc(sizeof(DivXBitmapInfoHeader)))==NULL) {
       perror("out of memory");
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
     } else
       memset(pbi,0x00,sizeof(DivXBitmapInfoHeader));
 
@@ -412,46 +412,46 @@ MOD_open
 #if DECORE_VERSION >= 20021112
     if(divx_decore(&dec_handle, DEC_OPT_INIT, decInit, NULL) < 0) {
       tc_log_warn(MOD_NAME, "codec DEC_OPT_INIT error");
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
     } else
 	++decore_in_use;
 
     if(divx_decore(dec_handle, DEC_OPT_SETOUT, pbi, NULL) < 0) {
       tc_log_warn(MOD_NAME, "codec DEC_OPT_SETOUT error");
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
     }
 #else
 
     if(divx_decore(divx_id, DEC_OPT_INIT, divx, NULL) < 0) {
       tc_log_warn(MOD_NAME, "codec DEC_OPT_INIT error");
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
     } else
 	++decore_in_use;
 #endif
 
     if ((decFrame = malloc(sizeof(DEC_FRAME)))==NULL) {
       perror("out of memory");
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
     } else
       memset(decFrame,0x00,sizeof(DEC_FRAME));
 
     if ((decInfo = malloc(sizeof(DEC_FRAME_INFO)))==NULL) {
       perror("out of memory");
-      return(TC_IMPORT_ERROR); 
+      return(TC_IMPORT_ERROR);
     }
 
     if (!buffer) {
       if ((buffer = tc_bufalloc(frame_size))==NULL) {
 	perror("out of memory");
-	return(TC_EXPORT_ERROR); 
-      } 
+	return(TC_EXPORT_ERROR);
+      }
       else {
 	memset(buffer, 0, frame_size);
       }
     }
 
     //postproc
-/*   XXX enable this somehow. 
+/*   XXX enable this somehow.
     dec_set.postproc_level = vob->quality * 20;  //0-100;
     if(verbose & TC_DEBUG) printf("[%s] decoder postprocessing quality = %d\n",
                                    MOD_NAME, dec_set.postproc_level);
@@ -467,7 +467,7 @@ MOD_open
 }
 
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decode  stream
  *
@@ -494,7 +494,7 @@ MOD_decode {
         AVI_read_frame(avifile, param->buffer, &key) :
         AVI_read_frame(avifile, buffer, &key);
 
-    if(bytes_read<0) return(TC_IMPORT_ERROR); 
+    if(bytes_read<0) return(TC_IMPORT_ERROR);
 
     if(pass_through) {
 
@@ -556,14 +556,14 @@ MOD_decode {
       if(divx_decore(dec_handle, divx_version, decFrame, NULL) != DEC_OK) {
 	tc_log_warn(MOD_NAME, "(%d) codec DEC_OPT_FRAME error",
                           __LINE__);
-	return(TC_IMPORT_ERROR); 
+	return(TC_IMPORT_ERROR);
       }
 #else
       decFrame->stride = divx->x_dim;
 
       if(divx_decore(divx_id, divx_version, decFrame, NULL) != DEC_OK) {
 	tc_log_warn(MOD_NAME, "codec DEC_OPT_FRAME error");
-	return(TC_IMPORT_ERROR); 
+	return(TC_IMPORT_ERROR);
       }
 #endif
 
@@ -576,7 +576,7 @@ MOD_decode {
     if(pass_through_decode) {
 
       decFrame->bitstream = param->buffer; //read only??
-      decFrame->bmp = working_frame; 
+      decFrame->bmp = working_frame;
       decFrame->length = (int) bytes_read;
       decFrame->render_flag = 1;
 
@@ -585,14 +585,14 @@ MOD_decode {
 
       if(divx_decore(dec_handle, divx_version, decFrame, NULL) != DEC_OK) {
 	  tc_log_warn(MOD_NAME, "codec DEC_OPT_FRAME error");
-	  return(TC_IMPORT_ERROR); 
+	  return(TC_IMPORT_ERROR);
       }
 #else
       decFrame->stride = divx->x_dim;
 
       if(divx_decore(divx_id, divx_version, decFrame, NULL) != DEC_OK) {
 	  tc_log_warn(MOD_NAME, "codec DEC_OPT_FRAME error");
-	  return(TC_IMPORT_ERROR); 
+	  return(TC_IMPORT_ERROR);
       }
 #endif
       ac_memcpy(param->buffer2, working_frame, frame_size);
@@ -601,14 +601,14 @@ MOD_decode {
     return(TC_IMPORT_OK);
 }
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * close stream
  *
  * ------------------------------------------------------------*/
 
 MOD_close
-{  
+{
 
     if(param->flag == TC_VIDEO) {
 
@@ -622,8 +622,8 @@ MOD_close
 #else
 	    status = divx_decore(divx_id, DEC_OPT_RELEASE, NULL, NULL);
 #endif
-	    if(verbose_flag & TC_DEBUG) 
-		tc_log_warn(MOD_NAME, "DivX decore module returned %d", status); 
+	    if(verbose_flag & TC_DEBUG)
+		tc_log_warn(MOD_NAME, "DivX decore module returned %d", status);
 
 	    //remove codec
 	    dlclose(handle);

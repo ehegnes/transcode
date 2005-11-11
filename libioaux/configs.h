@@ -30,7 +30,7 @@
  * (subsection name)
  * key=value
  * key=value~type
- * 
+ *
  *						# whitespace ('\t',' ',^'\n') is ignored.
  * [section name]
  * key=value~type
@@ -211,7 +211,7 @@ int module_read_values(CF_ROOT_TYPE *p_root, CF_SECTION_TYPE *p_section,
                        char *prefix, struct config *conf);
 int module_print_config(char *prefix, struct config *conf);
 
-/* 
+/*
  * fill the config structure in this way:
 
 struct config module_conf[] = {

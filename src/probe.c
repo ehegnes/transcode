@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -29,10 +29,10 @@ char probe_cmd_buf[PMAX_BUF];
 
 static char *std_module[] = {
   "null",
-  "raw", 
-  "dv", 
-  "nuv", 
-  "yuv4mpeg", 
+  "raw",
+  "dv",
+  "nuv",
+  "yuv4mpeg",
   "mpeg2", "vob", "dvd",
   "af6", "avi", "divx", "ffmpeg",
   "mp3", "ac3",
@@ -56,11 +56,11 @@ static char *std_module[] = {
 };
 
 enum _std_module {
-  _null_, 
+  _null_,
   _raw_,
-  _dv_, 
-  _nuv_, 
-  _yuv4mpeg_, 
+  _dv_,
+  _nuv_,
+  _yuv4mpeg_,
   _mpeg2_, _vob_, _dvd_,
   _af6_, _avi_, _divx_, _ffmpeg_,
   _mp3_, _ac3_,
@@ -89,21 +89,21 @@ static int title, verb;
 
 static char *get_audio_module(int f, int flag)
 {
-  
+
   if(!flag) return(std_module[_null_]);
-  
+
   switch(f) {
-    
+
   case CODEC_MP2:
   case CODEC_MP3:
     return(std_module[_mp3_]);
     break;
-    
+
   case CODEC_A52:
   case CODEC_AC3:
     return(std_module[_ac3_]);
     break;
-    
+
   case CODEC_PCM:
     //this can only be AVI!
     return(std_module[_avi_]);
@@ -113,7 +113,7 @@ static char *get_audio_module(int f, int flag)
     //this can only be OGG!
     return(std_module[_ogg_]);
     break;
-    
+
   case CODEC_NULL:
   default:
     return(std_module[_null_]);
@@ -123,7 +123,7 @@ static char *get_audio_module(int f, int flag)
 
 static int probe_source_core(probe_info_t *pvob, int range, char *file, char *nav_seek_file)
 {
-  
+
   FILE *fd;
 
   if(nav_seek_file) {
@@ -132,7 +132,7 @@ static int probe_source_core(probe_info_t *pvob, int range, char *file, char *na
     if(tc_snprintf(probe_cmd_buf, PMAX_BUF, "tcprobe -B -i \"%s\" -T %d -d %d -H %d", file, title, verb, range)<0) return(-1);
   }
 
-  
+
   // popen
   if((fd = popen(probe_cmd_buf, "r"))== NULL)  return(-1);
 
@@ -148,7 +148,7 @@ static int probe_source_core(probe_info_t *pvob, int range, char *file, char *na
  *
  * probe a source, determine:
  *
- *  (I) magic: filetype 
+ *  (I) magic: filetype
  *
  * (II) codec: audio format and video codec
  *
@@ -161,18 +161,18 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   int preset=0,s_vxml=0,s_axml=0;
 
   int av_fine=0;
-  
+
   long a_magic=0;
 
   int track;
   int probe_further_for_codec=1;
-  
+
   probe_info_t  *pvob, *paob, *info;
 
   double pts_diff=0;
   int D_arg=0, D_arg_ms=0;
 
-  paob = (probe_info_t *) malloc(sizeof(probe_info_t));  
+  paob = (probe_info_t *) malloc(sizeof(probe_info_t));
   pvob = (probe_info_t *) malloc(sizeof(probe_info_t));
 
   memset (paob, 0, sizeof(probe_info_t));
@@ -188,8 +188,8 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     if(probe_source_core(pvob, range, vid_file, vob->nav_seek_file)<0) {
       *flag = TC_PROBE_ERROR;
 
-      if(verbose & TC_DEBUG) printf("(%s) failed to probe video source\n", __FILE__);	
-      
+      if(verbose & TC_DEBUG) printf("(%s) failed to probe video source\n", __FILE__);
+
       return;
     }
   } else vob->has_video=0;
@@ -200,10 +200,10 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     //probe audio file
     if(probe_source_core(paob, range, aud_file, vob->nav_seek_file)<0) {
       *flag = TC_PROBE_ERROR;
-      if(verbose & TC_DEBUG) printf("(%s) failed to probe audio source\n", __FILE__);	
+      if(verbose & TC_DEBUG) printf("(%s) failed to probe audio source\n", __FILE__);
 
       return;
-    }   
+    }
   }
 
   info = pvob;
@@ -241,30 +241,30 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   if(info->attributes>0) vob->attributes = info->attributes;
 
 
-  // AV sync correction: 
+  // AV sync correction:
   // calculate PTS difference:
-  
+
   if(info->pts_start>0 && info->track[track].pts_start>0) {
       pts_diff = info->pts_start - info->track[track].pts_start;
-    
+
       //calculate -D option argument:
       D_arg = (int) (vob->fps*pts_diff);
-      
+
       //fine tuning
       D_arg_ms = (int) ((pts_diff - D_arg/vob->fps)*1000);
   } else {
-      
+
       D_arg_ms = 0;
       D_arg = 0;
   }
 
-  if(verbose & TC_INFO) 
+  if(verbose & TC_INFO)
       printf("[%s] (probe) suggested AV correction -D %d (%d ms) | AV %d ms | %d ms\n",
-	  "transcode", D_arg, (int) ((D_arg*1000)/vob->fps), (int) (1000*pts_diff), D_arg_ms);	
-  
+	  "transcode", D_arg, (int) ((D_arg*1000)/vob->fps), (int) (1000*pts_diff), D_arg_ms);
+
   // AV sync correction: case (1)
   //
-  // demuxer disabled needs PTS sync mode 
+  // demuxer disabled needs PTS sync mode
 
   if( !(*flag & TC_PROBE_NO_DEMUX) && info->attributes & TC_INFO_NO_DEMUX) {
       vob->demuxer=0;
@@ -275,38 +275,38 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   //
   // check if PTS of requested audio track requires video frame dropping
   // vob->demuxer>0 and audio_pts > video_pts:
-  
-  if( !(*flag & TC_PROBE_NO_DEMUX)  
+
+  if( !(*flag & TC_PROBE_NO_DEMUX)
       && (info->pts_start - info->track[track].pts_start)<0) {
       av_fine=1;
   }
-  
+
   // AV sync correction: case (3)
   //
   // fully PTS based sync modes requested
-  
-  if(vob->demuxer==3 || vob->demuxer==4) av_fine=1; 
-  
-  //set parameter 
+
+  if(vob->demuxer==3 || vob->demuxer==4) av_fine=1;
+
+  //set parameter
 
   if(av_fine) {
       //few demuxer modes allow auto-probing of AV shift parameter
       if( !(*flag & TC_PROBE_NO_AVSHIFT)) vob->sync=D_arg;
       if( !(*flag & TC_PROBE_NO_AV_FINE)) vob->sync_ms=D_arg_ms;
   }
-  
+
   //check for MPEG program stream entry point
   if( !(*flag & TC_PROBE_NO_SEEK)) {
     if(info->unit_cnt>0) vob->ps_unit=info->unit_cnt;
   }
-  
+
   //maybe negative
   if(info->magic) vob->format_flag = info->magic;
   if(info->codec) vob->codec_flag = info->codec;
-  
+
   //no video detected?
   if(info->width==0 || info->height==0) vob->has_video=0;
-  
+
   //inital video PTS info
   vob->pts_start = info->pts_start;
   s_vxml=info->magic-info->magic_xml;
@@ -324,7 +324,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   if( !(*flag & TC_PROBE_NO_BITS)) {
     if(info->track[track].bits>0) vob->a_bits = info->track[track].bits;
   }
-  
+
   if( !(*flag & TC_PROBE_NO_CHAN)) {
     if(info->track[track].chan>0) vob->a_chan = info->track[track].chan;
   }
@@ -332,12 +332,12 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   if(info->track[track].bitrate>0) vob->a_stream_bitrate = info->track[track].bitrate;
 
   if(info->track[track].padrate>0) vob->a_padrate = info->track[track].padrate;
-  
+
   if( !(*flag & TC_PROBE_NO_ACODEC)) {
-    if(info->track[track].format>0) vob->fixme_a_codec = info->track[track].format; 
+    if(info->track[track].format>0) vob->fixme_a_codec = info->track[track].format;
   }
 
-  if(info->track[track].lang>0) vob->lang_code = info->track[track].lang; 
+  if(info->track[track].lang>0) vob->lang_code = info->track[track].lang;
 
   if(info->num_tracks==0) vob->has_audio=0; //safety check
 
@@ -353,11 +353,11 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     if(info->codec) vob->codec_flag = info->codec;
   }
 
-  // preset based on video file magic, usually with fixed codecs 
+  // preset based on video file magic, usually with fixed codecs
 
   if(verbose & TC_DEBUG) {
-    printf("(%s) V magic=0x%lx, A magic=0x%lx, V codec=0x%lx, A codec=0x%x\n", __FILE__, vob->format_flag, a_magic, vob->codec_flag, info->track[track].format);	
-    printf("(%s) V magic=%s, A magic=%s, V codec=%s, A codec=%s\n", __FILE__, mformat2str(vob->format_flag), mformat2str(a_magic), codec2str(vob->codec_flag), aformat2str(info->track[track].format));	
+    printf("(%s) V magic=0x%lx, A magic=0x%lx, V codec=0x%lx, A codec=0x%x\n", __FILE__, vob->format_flag, a_magic, vob->codec_flag, info->track[track].format);
+    printf("(%s) V magic=%s, A magic=%s, V codec=%s, A codec=%s\n", __FILE__, mformat2str(vob->format_flag), mformat2str(a_magic), codec2str(vob->codec_flag), aformat2str(info->track[track].format));
   }
 
   free(paob);
@@ -371,7 +371,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
 
 
   // no video?
-  
+
   if(!vob->has_video) {
     vob->vmod_probed=std_module[_null_];
 
@@ -382,10 +382,10 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   }
 
   // no audio?
-  
+
   if(!vob->has_audio) {
     vob->amod_probed=std_module[_null_];
-    
+
     vob->a_chan=0;
     vob->a_rate=0;
 
@@ -456,20 +456,20 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   case TC_MAGIC_SOCKET:
     vob->vmod_probed=std_module[_net_];
     break;
-    
+
   case TC_MAGIC_YUV4MPEG:
     if(!(preset & TC_VIDEO) && vob->im_v_codec==CODEC_RGB) vob->im_v_codec = CODEC_YUV;
     vob->vmod_probed=std_module[_yuv4mpeg_];
-    
+
     preset=(TC_AUDIO|TC_VIDEO);
     break;
-    
+
   case TC_MAGIC_BSDAV:
     if(!(preset & TC_VIDEO) && vob->im_v_codec==CODEC_RGB) vob->im_v_codec = CODEC_YUV;
     vob->vmod_probed=std_module[_bsdav_];
     preset=(TC_AUDIO|TC_VIDEO);
     break;
-    
+
   case TC_MAGIC_NUV:
     if(vob->im_v_codec==CODEC_RGB) vob->im_v_codec=CODEC_YUV;
     if(!(preset & TC_VIDEO)) vob->vmod_probed=std_module[_nuv_];
@@ -490,7 +490,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     if(vob->demuxer == -1 && !(*flag & TC_PROBE_NO_DEMUX)) vob->demuxer=1;
 
     //1->2 or 3->4
-    if(vob->fps < PAL_FPS && !(*flag & TC_PROBE_NO_DEMUX)) 
+    if(vob->fps < PAL_FPS && !(*flag & TC_PROBE_NO_DEMUX))
       if(vob->demuxer ==1 || vob->demuxer ==3) ++vob->demuxer;
 
   case TC_MAGIC_DVD_PAL:
@@ -517,7 +517,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     vob->vmod_probed=std_module[_ts_];
     preset |= TC_VIDEO;
     break;
-    
+
   case TC_MAGIC_TIFF1:
   case TC_MAGIC_TIFF2:
   case TC_MAGIC_JPEG:
@@ -545,7 +545,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
 	  preset |= TC_VIDEO;
       }
       break;
-      
+
   case TC_MAGIC_CDXA:
 
     if(!(preset & TC_VIDEO)) vob->vmod_probed=std_module[_vob_];
@@ -569,22 +569,22 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     vob->amod_probed=std_module[_lav_];
     preset |= (TC_AUDIO|TC_VIDEO);
     break;
-  } 
+  }
 
   //audio import file may be different
-  
+
   switch(a_magic) {
 
   case TC_MAGIC_V4L_AUDIO:
       vob->amod_probed=std_module[_v4l_];
       preset |= TC_AUDIO;
       break;
-      
+
   case TC_MAGIC_V4L2_AUDIO:
       vob->amod_probed=std_module[_v4l2_];
       preset |= TC_AUDIO;
       break;
-      
+
   case TC_MAGIC_SUNAU_AUDIO:
       vob->amod_probed=std_module[_sunau_];
       preset |= TC_AUDIO;
@@ -594,12 +594,12 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
       vob->amod_probed=std_module[_oss_];
       preset |= TC_AUDIO;
       break;
-      
+
   case TC_MAGIC_BSDAV:
       vob->amod_probed=std_module[_bsdav_];
       preset |= TC_AUDIO;
       break;
-      
+
   case TC_MAGIC_WAV:
     // vob->amod_probed=std_module[_yuv4mpeg_];
     vob->amod_probed=std_module[_raw_];
@@ -607,7 +607,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     break;
 
   case TC_MAGIC_AVI:
-    
+
     //pass-through?
     if(vob->pass_flag & TC_AUDIO) {
       vob->amod_probed=std_module[_avi_];
@@ -635,29 +635,29 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     preset |= TC_AUDIO;
     break;
   }
-  
+
   // select import modules based on stream codec
 
   switch(vob->codec_flag) {
-   
+
   case TC_CODEC_DV:
-    
+
     //use dv standard module
     if(!(preset & TC_VIDEO)) vob->vmod_probed=std_module[_dv_];
     preset |= TC_VIDEO;
 
     if(preset & TC_AUDIO) break;
-    
+
     if(vob->format_flag == TC_MAGIC_AVI) {
 
       //audio
       vob->amod_probed=get_audio_module(vob->fixme_a_codec, vob->has_audio);
-      preset |= TC_AUDIO;  
-      
+      preset |= TC_AUDIO;
+
     } else vob->amod_probed=std_module[_dv_];
-    preset |= TC_AUDIO; 
+    preset |= TC_AUDIO;
     break;
-    
+
   case TC_CODEC_MPEG:
   case TC_CODEC_M2V:
   case TC_CODEC_MPEG1:
@@ -668,7 +668,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
 
     //audio
     vob->amod_probed=get_audio_module(vob->fixme_a_codec, vob->has_audio);
-    preset |= TC_AUDIO;  
+    preset |= TC_AUDIO;
 
     break;
 
@@ -680,18 +680,18 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
      if(vob->demuxer == -1 && !(*flag & TC_PROBE_NO_DEMUX)) vob->demuxer=1;
 
      //1->2 or 3->4
-     if(vob->fps < PAL_FPS && !(*flag & TC_PROBE_NO_DEMUX)) 
+     if(vob->fps < PAL_FPS && !(*flag & TC_PROBE_NO_DEMUX))
 	 if(vob->demuxer == 1 || vob->demuxer == 3) ++vob->demuxer;
-     
+
      if(preset & TC_AUDIO) break;
-     
+
      // audio?
      if(!vob->has_audio) {
        vob->amod_probed=std_module[_null_];
      } else {
        vob->amod_probed=std_module[_vob_];
-       preset |= TC_AUDIO;  
-     }    
+       preset |= TC_AUDIO;
+     }
      break;
 
   case TC_CODEC_MJPG:
@@ -707,12 +707,12 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     //overwrite pass-through selection!
     if(!(preset & TC_VIDEO)) vob->vmod_probed=std_module[_ffmpeg_];
     preset |= TC_VIDEO;
-    
+
     if(preset & TC_AUDIO) break;
 
     //audio
     vob->amod_probed=get_audio_module(vob->fixme_a_codec, vob->has_audio);
-    preset |= TC_AUDIO;  
+    preset |= TC_AUDIO;
 
     break;
 
@@ -724,12 +724,12 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     //overwrite pass-through selection!
     vob->vmod_probed=std_module[_lzo_];
     preset |= TC_VIDEO;
-    
+
     if(preset & TC_AUDIO) break;
 
     //audio
     vob->amod_probed=get_audio_module(vob->fixme_a_codec, vob->has_audio);
-    preset |= TC_AUDIO;  
+    preset |= TC_AUDIO;
 
     break;
 
@@ -742,7 +742,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     vob->amod_probed=get_audio_module(vob->fixme_a_codec, vob->has_audio);
     preset |= TC_AUDIO;
     break;
-    
+
   case TC_CODEC_DIVX3:
   case TC_CODEC_DIVX4:
   case TC_CODEC_DIVX5:
@@ -755,25 +755,25 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
 	preset |= TC_VIDEO;
 	if(preset & TC_AUDIO) break;
     }
-    
+
     //audio
     vob->amod_probed=get_audio_module(vob->fixme_a_codec, vob->has_audio);
-    preset |= TC_AUDIO;  
-    
+    preset |= TC_AUDIO;
+
     break;
-    
+
   case TC_CODEC_FRAPS:
     vob->im_v_codec=CODEC_YUV;
 
     //overwrite pass-through selection!
     vob->vmod_probed=std_module[_fraps_];
     preset |= TC_VIDEO;
-    
+
     if(preset & TC_AUDIO) break;
-    
+
     //audio
     vob->amod_probed=get_audio_module(vob->fixme_a_codec, vob->has_audio);
-    preset |= TC_AUDIO;  
+    preset |= TC_AUDIO;
     break;
 
   case TC_CODEC_YUV420P:
@@ -782,44 +782,44 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
     //overwrite pass-through selection!
     if (!(preset & TC_VIDEO)) vob->vmod_probed=std_module[_raw_];
     preset |= TC_VIDEO;
-    
+
     if(preset & TC_AUDIO) break;
-    
+
     //audio
     vob->amod_probed=get_audio_module(vob->fixme_a_codec, vob->has_audio);
-    preset |= TC_AUDIO;  
+    preset |= TC_AUDIO;
 
     break;
-    
+
   case TC_CODEC_YUV422P:
     vob->im_v_codec=CODEC_YUV422;
 
     //overwrite pass-through selection!
     if (!(preset & TC_VIDEO)) vob->vmod_probed=std_module[_raw_];
     preset |= TC_VIDEO;
-    
+
     if(preset & TC_AUDIO) break;
-    
+
     //audio
     vob->amod_probed=get_audio_module(vob->fixme_a_codec, vob->has_audio);
-    preset |= TC_AUDIO;  
+    preset |= TC_AUDIO;
 
     break;
-    
+
   case TC_CODEC_RGB:
 
     if(!(preset & TC_VIDEO)) vob->vmod_probed=std_module[_avi_];
     preset |= TC_VIDEO;
-    
+
     if(preset & TC_AUDIO) break;
-    
+
     //audio
     vob->amod_probed=get_audio_module(vob->fixme_a_codec, vob->has_audio);
-    preset |= TC_AUDIO;  
-    
+    preset |= TC_AUDIO;
+
     break;
-  }    
-  
+  }
+
   if (s_axml)
     vob->amod_probed_xml=std_module[_xml_];
   else
@@ -840,9 +840,9 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
 
 char *codec2str(int f)
 {
-    
+
   switch(f) {
-    
+
   case TC_CODEC_MPEG2:
     return("MPEG-2");
 
@@ -866,7 +866,7 @@ char *codec2str(int f)
 
   case TC_CODEC_MP43:
     return("MSMPEG4 V3");
-    
+
   case TC_CODEC_DIVX4:
     return("DivX");
 
@@ -875,13 +875,13 @@ char *codec2str(int f)
 
   case TC_CODEC_XVID:
     return("XviD");
-    
+
   case TC_CODEC_MPEG1:
     return("MPEG-1");
 
   case TC_CODEC_MPEG:
     return("MPEG  ");
- 
+
   case TC_CODEC_DV:
     return("Digital Video");
 
@@ -906,7 +906,7 @@ char *codec2str(int f)
   default:
     return("unknown");
   }
-  
+
   return("unknown");
 }
 
@@ -938,7 +938,7 @@ char *aformat2str(int f)
 char *mformat2str(int f)
 {
     switch(f) {
-	
+
     case TC_MAGIC_PAL:
 	return("PAL");
     case TC_MAGIC_NTSC:
@@ -1005,13 +1005,13 @@ char *asr2str(int c)
     case 1:
 	return("encoded @ 1:1");
 	break;
-	
+
     case  2:
     case  8:
     case 12:
 	return("encoded @ 4:3");
 	break;
-	
+
     case 3:
 	return("encoded @ 16:9");
 	break;

@@ -4,20 +4,20 @@
  *  Copyright (C) Alex Stewart - July 2002
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -159,12 +159,12 @@ static inline void swap_fields(char *f1, char *f2, int width, int height) {
 
 static int filter_fields_get_config(char *options) {
     optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYE", "1");
-    optstr_param (options, "flip", 
+    optstr_param (options, "flip",
 	    "Exchange the top field and bottom field of each frame", "", "0");
-    optstr_param (options, "shift", 
+    optstr_param (options, "shift",
 	    "Shift the video by one field", "", "0");
-    optstr_param (options, "flip_first", 
-	    "Normally shifting is performed before flipping, this option reverses that", 
+    optstr_param (options, "flip_first",
+	    "Normally shifting is performed before flipping, this option reverses that",
 	    "", "0");
     return 0;
 }
@@ -176,7 +176,7 @@ static int filter_fields_init(char *options) {
   if (!vob) return -1;
 
   if (verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    
+
   buffer = tc_malloc(SIZE_RGB_FRAME);
   if (!buffer) {
     fprintf(stderr, "[%s] ERROR: Unable to allocate memory.  Aborting.\n",
@@ -287,22 +287,22 @@ int tc_filter(frame_list_t *ptr_, char *options)
   if(ptr->tag & TC_FILTER_INIT) {
     return filter_fields_init(options);
   }
-  
+
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
     return filter_fields_get_config(options);
-  } 
+  }
 
   if(ptr->tag & TC_FILTER_CLOSE) {
     return filter_fields_close();
-  } 
-  
+  }
+
   // This filter is a video-only filter, which hooks into the single-threaded
   // preprocessing stage. (we need to be single-threaded because field-shifting
   // relies on getting the frames in the correct order)
 
   if(ptr->tag & TC_PRE_S_PROCESS && ptr->tag & TC_VIDEO) {
     return filter_fields_video_frame(ptr);
-  } 
-  
+  }
+
   return 0;
 }

@@ -65,7 +65,7 @@ AC_DEFUN([TC_CHECK_V4L],
 AC_MSG_CHECKING([whether v4l support is requested])
 AC_ARG_ENABLE(v4l,
   AC_HELP_STRING([--enable-v4l],
-    [enable v4l/v4l2 support (no)]), 
+    [enable v4l/v4l2 support (no)]),
   [case "${enableval}" in
     yes) ;;
     no)  ;;
@@ -113,7 +113,7 @@ AC_DEFUN([TC_CHECK_BKTR],
 AC_MSG_CHECKING([whether bktr support is requested])
 AC_ARG_ENABLE(bktr,
   AC_HELP_STRING([--enable-bktr],
-    [enable bktr support (no)]), 
+    [enable bktr support (no)]),
   [case "${enableval}" in
     yes) ;;
     no)  ;;
@@ -150,7 +150,7 @@ AC_DEFUN([TC_CHECK_SUNAU],
 AC_MSG_CHECKING([whether sunau support is requested])
 AC_ARG_ENABLE(sunau,
   AC_HELP_STRING([--enable-sunau],
-    [enable sunau support (no)]), 
+    [enable sunau support (no)]),
   [case "${enableval}" in
     yes) ;;
     no)  ;;
@@ -181,7 +181,7 @@ AC_DEFUN([TC_CHECK_OSS],
 AC_MSG_CHECKING([whether OSS support is requested])
 AC_ARG_ENABLE(oss,
   AC_HELP_STRING([--enable-oss],
-    [enable OSS audio support (no)]), 
+    [enable OSS audio support (no)]),
   [case "${enableval}" in
     yes) ;;
     no)  ;;
@@ -495,7 +495,7 @@ if test x"$enable_$1" = x"yes" ; then
 
 else
   $3_CFLAGS=""
-  $3_LIBS=""  
+  $3_LIBS=""
 fi
 ])
 

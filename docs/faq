@@ -15,7 +15,7 @@ A:	See the INSTALL file.
 Q:	So I got transcode from CVS and compiled it according
 	to the directions in the INSTALL file, and now I (still)
 	have some sort of problem
-A:	Join the transcode-users mailing list 
+A:	Join the transcode-users mailing list
 	(see www.transcoding.org) and check the archive if
 	your problem has been discussed at the mailing list before.
 ---
@@ -41,7 +41,7 @@ A:	If your problem is that transcode is killed by a signal
 	- now file a bug report in transcode-users, including:
 	  * the complete transcode command line your're using
 	  * the complete output of the transcode run, with option -q 2
-	  * the output of gdb 
+	  * the output of gdb
 	- only with a full bug report we can do ANYTHING at all.
 ---
 Q:	How do I make a copy of a DVD-9
@@ -69,7 +69,7 @@ Q:	Finally, there's the questions about the justly infamous
 	ffmpeg.cfg file. What are all the parameters and what do
 	they mean?
 A:	The easiest way to find out is to look at the mplayer manpage at
-	http://www.mplayerhq.hu/DOCS/man/en/manpage.html#CODEC%20SPECIFIC%20ENCODING%20OPTIONS%20(MENCODER%20ONLY) 
+	http://www.mplayerhq.hu/DOCS/man/en/manpage.html#CODEC%20SPECIFIC%20ENCODING%20OPTIONS%20(MENCODER%20ONLY)
 	and scroll down to "lavc"<br />
 	If you\'re just going to encode to (S)VCD or DVD, you\'d better use the
 	profile support.
@@ -130,7 +130,7 @@ PA:	(Partial answer) In this form, your question cannot
 	case of DVD) and both of these in a mpeg-ps (program
 	stream aka "vob") container.
 
-	With this information you should be able to refrase 
+	With this information you should be able to refrase
 	your question a get a proper answer ;-) (ems)
 ---
 Q:	How do I use a CVS version of ffmpeg with transcode?
@@ -274,7 +274,7 @@ A:	Transcode ships two divx encoder modules. One is divx4 and one is divx5.
 	<br />
 ---
 Q:	transcode cannot find libdivxdecore.so/libdivxencore.so/libxvidcore.so ...
-A:	The best place to put these libraries is the transcode libdir 
+A:	The best place to put these libraries is the transcode libdir
 	(/usr/local/lib/transcode/ by default). You can find out the libdir of
 	your transcode installation by executing <tt>tcmodinfo -p</tt>.
 	Transcode will look into this libdir first when searching for a
@@ -300,7 +300,7 @@ A:	First, concatenate the VOB files into a single file all.vob .
 	(as it did on my system), use
 	<pre>
 	mencoder all.vob -o all_noaudio.avi -ovc copy -nosound
-	
+
 	</pre>
 	which will give you an AVI without sound. Transcode this:
 	<pre>
@@ -314,7 +314,7 @@ A:	First, concatenate the VOB files into a single file all.vob .
 	is called broken.avi, extract the audio with
 	<pre>
 	tcextract -i broken.avi -x mp3 -a 0 > all.mp3
-	
+
 	</pre>
 	and finally merge audio and video with
 
@@ -344,7 +344,7 @@ A:	A step by step howto can be found at
 ---
 Q:	What do I need to get the import_im and import_imlist modules?
 A:	These modules use the ImageMagick library from
-	http://www.imagemagick.org 
+	http://www.imagemagick.org
 ---
 Q:	I do have ImageMagick including the -devel package installed and still
 	get no import_im and import_imlist module.

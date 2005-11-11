@@ -5,20 +5,20 @@
  *  Copyright (C) 1999-2001 Aaron Holtzman <aholtzma@ess.engr.uvic.ca>
  *
  *  This file is part of transcode, a video stream  processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -32,7 +32,7 @@
 #define BUFFER_SIZE 262144
 static uint8_t buffer[BUFFER_SIZE];
 
-/* ------------------------------------------------------------ 
+/* ------------------------------------------------------------
  *
  * decoder thread
  *
@@ -62,13 +62,13 @@ void decode_mpeg2(decode_t *decode)
     int framenum = 0, len = 0;
     uint32_t ac;
 
-    fprintf (stderr, "[%s] libmpeg2 0.4.0b loop decoder\n", 
+    fprintf (stderr, "[%s] libmpeg2 0.4.0b loop decoder\n",
 		    __FILE__);
-    
+
     ac = mpeg2_accel (MPEG2_ACCEL_DETECT);
-    
+
     show_accel (ac);
-    
+
     decoder = mpeg2_init ();
     if (decoder == NULL) {
 	fprintf (stderr, "Could not allocate a decoder object.\n");
@@ -88,14 +88,14 @@ void decode_mpeg2(decode_t *decode)
 	case STATE_SEQUENCE:
     	    if(decode->format == TC_CODEC_RGB) {
 	        mpeg2_convert (decoder, mpeg2convert_rgb24, NULL);
-	    }	    
+	    }
 	    break;
 	case STATE_SLICE:
 	case STATE_END:
 	case STATE_INVALID_END:
 	    if (info->display_fbuf) {
 		if (decode->verbose >= 4) {
-			fprintf (stderr, "[%s] decoded frame #%09i\r", 
+			fprintf (stderr, "[%s] decoded frame #%09i\r",
 					__FILE__, framenum++);
 		}
 		len = sequence->width * sequence->height;

@@ -1,23 +1,23 @@
-/* 
+/*
  *  stats.c
  *
  *	Copyright (C) Aaron Holtzman - May 1999
  *
  *  This file is part of ac3dec, a free Dolby AC-3 stream decoder.
- *	
+ *
  *  ac3dec is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  ac3dec is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -33,7 +33,7 @@
 #include "debug.h"
 
 
-static const char *service_ids[8] = 
+static const char *service_ids[8] =
 {
 	"CM","ME","VI","HI",
 	 "D", "C","E", "VO"
@@ -45,47 +45,47 @@ struct mixlev_s
 	char *desc;
 };
 
-static const struct mixlev_s cmixlev_tbl[4] =  
+static const struct mixlev_s cmixlev_tbl[4] =
 {
 	{0.707, "(-3.0 dB)"}, {0.595, "(-4.5 dB)"},
 	{0.500, "(-6.0 dB)"}, {1.0,  "Invalid"}
 };
 
-static const struct mixlev_s smixlev_tbl[4] =  
+static const struct mixlev_s smixlev_tbl[4] =
 {
 	{0.707, "(-3.0 dB)"}, {0.500, "(-6.0 dB)"},
 	{  0.0,   "off    "}, {  1.0, "Invalid"}
 };
 
-static const char *language[128] = 
+static const char *language[128] =
 {
-	"unknown", "Albanian", "Breton", "Catalan", "Croatian", "Welsh", "Czech", "Danish", 
-	"German", "English", "Spanish", "Esperanto", "Estonian", "Basque", "Faroese", "French", 
-	"Frisian", "Irish", "Gaelic", "Galician", "Icelandic", "Italian", "Lappish", "Latin", 
-	"Latvian", "Luxembourgian", "Lithuanian", "Hungarian", "Maltese", "Dutch", "Norwegian", "Occitan", 
-	"Polish", "Portugese", "Romanian", "Romansh", "Serbian", "Slovak", "Slovene", "Finnish", 
-	"Swedish", "Turkish", "Flemish", "Walloon", "0x2c", "0x2d", "0x2e", "0x2f", 
-	"0x30", "0x31", "0x32", "0x33", "0x34", "0x35", "0x36", "0x37", 
-	"0x38", "0x39", "0x3a", "0x3b", "0x3c", "0x3d", "0x3e", "0x3f", 
-	"background", "0x41", "0x42", "0x43", "0x44", "Zulu", "Vietnamese", "Uzbek", 
-	"Urdu", "Ukrainian", "Thai", "Telugu", "Tatar", "Tamil", "Tadzhik", "Swahili", 
-	"Sranan Tongo", "Somali", "Sinhalese", "Shona", "Serbo-Croat", "Ruthenian", "Russian", "Quechua", 
-	"Pustu", "Punjabi", "Persian", "Papamiento", "Oriya", "Nepali", "Ndebele", "Marathi", 
+	"unknown", "Albanian", "Breton", "Catalan", "Croatian", "Welsh", "Czech", "Danish",
+	"German", "English", "Spanish", "Esperanto", "Estonian", "Basque", "Faroese", "French",
+	"Frisian", "Irish", "Gaelic", "Galician", "Icelandic", "Italian", "Lappish", "Latin",
+	"Latvian", "Luxembourgian", "Lithuanian", "Hungarian", "Maltese", "Dutch", "Norwegian", "Occitan",
+	"Polish", "Portugese", "Romanian", "Romansh", "Serbian", "Slovak", "Slovene", "Finnish",
+	"Swedish", "Turkish", "Flemish", "Walloon", "0x2c", "0x2d", "0x2e", "0x2f",
+	"0x30", "0x31", "0x32", "0x33", "0x34", "0x35", "0x36", "0x37",
+	"0x38", "0x39", "0x3a", "0x3b", "0x3c", "0x3d", "0x3e", "0x3f",
+	"background", "0x41", "0x42", "0x43", "0x44", "Zulu", "Vietnamese", "Uzbek",
+	"Urdu", "Ukrainian", "Thai", "Telugu", "Tatar", "Tamil", "Tadzhik", "Swahili",
+	"Sranan Tongo", "Somali", "Sinhalese", "Shona", "Serbo-Croat", "Ruthenian", "Russian", "Quechua",
+	"Pustu", "Punjabi", "Persian", "Papamiento", "Oriya", "Nepali", "Ndebele", "Marathi",
 	"Moldavian", "Malaysian", "Malagasay", "Macedonian", "Laotian", "Korean", "Khmer", "Kazakh",
-	"Kannada", "Japanese", "Indonesian", "Hindi", "Hebrew", "Hausa", "Gurani", "Gujurati", 
-	"Greek", "Georgian", "Fulani", "Dari", "Churash", "Chinese", "Burmese", "Bulgarian", 
+	"Kannada", "Japanese", "Indonesian", "Hindi", "Hebrew", "Hausa", "Gurani", "Gujurati",
+	"Greek", "Georgian", "Fulani", "Dari", "Churash", "Chinese", "Burmese", "Bulgarian",
 	"Bengali", "Belorussian", "Bambora", "Azerbijani", "Assamese", "Armenian", "Arabic", "Amharic"
 };
 
 void stats_print_banner(syncinfo_t *syncinfo,bsi_t *bsi)
 {
-//    fprintf(stderr,"ac3dec v0.6.1 (C) 2000 Aaron Holtzman (aholtzma@ess.engr.uvic.ca)\n"); 
+//    fprintf(stderr,"ac3dec v0.6.1 (C) 2000 Aaron Holtzman (aholtzma@ess.engr.uvic.ca)\n");
     fprintf(stderr,"[libac3] %d.%d Mode ",bsi->nfchans,bsi->lfeon);
     fprintf(stderr,"%2.1f KHz",syncinfo->sampling_rate * 1e-3);
     fprintf(stderr,"%4d kbps ",syncinfo->bit_rate);
     if (bsi->langcode && (bsi->langcod < 128))
 	fprintf(stderr,"%s ", language[bsi->langcod]);
-    
+
     switch(bsi->bsmod)
     {
     case 0:
@@ -118,7 +118,7 @@ void stats_print_banner(syncinfo_t *syncinfo,bsi_t *bsi)
 void stats_print_syncinfo(syncinfo_t *syncinfo)
 {
 	dprintf("(syncinfo) ");
-	
+
 	switch (syncinfo->fscod)
 	{
 		case 2:
@@ -135,11 +135,11 @@ void stats_print_syncinfo(syncinfo_t *syncinfo)
 			break;
 	}
 
-	dprintf("%4d kbps %4d words per frame\n",syncinfo->bit_rate, 
+	dprintf("%4d kbps %4d words per frame\n",syncinfo->bit_rate,
 			syncinfo->frame_size);
 
 }
-	
+
 void stats_print_bsi(bsi_t *bsi)
 {
 	dprintf("(bsi) ");

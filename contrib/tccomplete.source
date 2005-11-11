@@ -1,4 +1,4 @@
-# transcode commandline comletion.
+# transcode commandline completion.
 #
 # source this file with
 # . tccomplete.source
@@ -6,7 +6,7 @@
 # source tccomplete.source
 #
 # (c) 2003 Tilmann Bitterberg <transcode at tibit.org>
-# Version 0.2 
+# Version 0.2
 # Wed Dec 24 11:53:08 CET 2003
 
 
@@ -24,7 +24,7 @@ function _transcode_clipping {
 	  COMPREPLY=(`compgen -W "top[,left[,bottom[,right]]] 0,0,0,0" -- $3`)
        else
 	  t=$(echo ${3} | sed 's#, *$##');
-          case $t in 
+          case $t in
 	  *,*,*,*)
 	     COMPREPLY=$(echo $t | sed 's/^\([^,]*,[^,]*,[^,]*,[^,]*\),.*/\1/');
 	  ;;
@@ -406,14 +406,14 @@ function _transcode {
 
    declare -a cmd
    noarg=1
-  
+
    # echo XXX:$1:$2:$3:XXX >> log
 
    tcargs="-i -H -p -x -a --dvd_access_delay -e -E -n -N -b --no_audio_adjust --no_bitreservoir --lame_preset -g --import_asr --export_asr --export_par --keep_asr -f --export_fps --export_frc --hard_fps -o -m -y -F --avi_limit --avi_comments -d -s -u -A -V --uyvy -J -P -D --av_fine_ms -M -O -r -B -X -Z --zoom_filter -C --antialias_para -I -K -G -z -l -k -j -Y --pre_clip --post_clip -w --video_max_bitrate -R -Q --divx_quant --divx_rc --divx_vbv_prof --divx_vbv -c -t --dir_mode --frame_interval -U -T -W --cluster_percentage --cluster_chunks -S -L --import_v4l --pulldown --encode_fields --nav_seek --psu_mode --psu_chunks --no_split --ts_pid --a52_drc_off --a52_demux --a52_dolby_off --print_status --progress_off --color --write_pid --nice --accel --socket --dv_yuy2_mode --config_dir --ext -q -h -v"
 
    cmd=($(compgen -W "$tcargs" -- $3))
 
-   if test x${cmd[0]} = x$3; then 
+   if test x${cmd[0]} = x$3; then
       _transcode_args $1 $3 $2 || COMPREPLY=($(compgen -W "$tcargs" -- $2))
 
    else

@@ -14,10 +14,10 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details
 //
-//  Also, this program is "Philanthropy-Ware".  That is, if you like it and 
+//  Also, this program is "Philanthropy-Ware".  That is, if you like it and
 //  feel the need to reward or inspire the author then please feel free (but
 //  not obligated) to consider joining or donating to the Electronic Frontier
-//  Foundation. This will help keep cyber space free of barbed wire and bullsh*t.  
+//  Foundation. This will help keep cyber space free of barbed wire and bullsh*t.
 //  See www.eff.org for details
 /////////////////////////////////////////////////////////////////////////////
 
@@ -72,10 +72,10 @@ void FUNCT_NAME(TDeinterlaceInfo* pInfo, int SearchEffort, int UseStrangeBob)
     dst_pitch = pInfo->OverlayPitch;
     rowsize = pInfo->LineLength;
 	FldHeight = pInfo->FieldHeight;
-       
+
     pCopySrc = pInfo->PictureHistory[1]->pData;
     pCopySrcP = pInfo->PictureHistory[3]->pData;
-    pWeaveSrc = pInfo->PictureHistory[0]->pData;  
+    pWeaveSrc = pInfo->PictureHistory[0]->pData;
     pWeaveSrcP = pInfo->PictureHistory[2]->pData;
 	IsOdd =	pInfo->PictureHistory[0]->Flags & PICTURE_INTERLACED_ODD;
 
@@ -93,30 +93,30 @@ void FUNCT_NAME(TDeinterlaceInfo* pInfo, int SearchEffort, int UseStrangeBob)
 		pCopyDest = pInfo->Overlay + dst_pitch;
 		pWeaveDest = pInfo->Overlay;
 	}
-	// copy 1st and last weave lines 
-	Fieldcopy(pWeaveDest, pCopySrc, rowsize,		
+	// copy 1st and last weave lines
+	Fieldcopy(pWeaveDest, pCopySrc, rowsize,
               1, dst_pitch*2, src_pitch);
 	Fieldcopy(pWeaveDest+(FldHeight-1)*dst_pitch*2,
-              pCopySrc+(FldHeight-1)*src_pitch, rowsize, 
+              pCopySrc+(FldHeight-1)*src_pitch, rowsize,
               1, dst_pitch*2, src_pitch);
 
 #ifdef USE_VERTICAL_FILTER
 // Vertical Filter currently not implemented for DScaler !!
 	// copy 1st and last lines the copy field
-	Fieldcopy(pCopyDest, pCopySrc, rowsize, 
+	Fieldcopy(pCopyDest, pCopySrc, rowsize,
               1, dst_pitch*2, src_pitch);
 	Fieldcopy(pCopyDest+(FldHeight-1)*dst_pitch*2,
-              pCopySrc+(FldHeight-1)*src_pitch, rowsize, 
+              pCopySrc+(FldHeight-1)*src_pitch, rowsize,
               1, dst_pitch*2, src_pitch);
 #else
 
 	// copy all of the copy field
-	Fieldcopy(pCopyDest, pCopySrc, rowsize, 
+	Fieldcopy(pCopyDest, pCopySrc, rowsize,
               FldHeight, dst_pitch*2, src_pitch);
-#endif	
+#endif
 	// then go fill in the hard part, being variously lazy depending upon
 	// SearchEffort
-	
+
 	if(UseStrangeBob == false) {
 		if (SearchEffort == 0)
 		{
@@ -163,7 +163,7 @@ void FUNCT_NAME(TDeinterlaceInfo* pInfo, int SearchEffort, int UseStrangeBob)
 		{
 			SEFUNC(21);
 		}
-		else 
+		else
 		{
 			SEFUNC(Max);
 		}
@@ -215,7 +215,7 @@ void FUNCT_NAME(TDeinterlaceInfo* pInfo, int SearchEffort, int UseStrangeBob)
 		{
 			SEFUNC(21_SB);
 		}
-		else 
+		else
 		{
 			SEFUNC(Max_SB);
 		}

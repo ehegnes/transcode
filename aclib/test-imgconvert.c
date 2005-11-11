@@ -88,7 +88,7 @@ static void clear_signals(void)
 {
     signal(SIGSEGV, old_SIGSEGV);
     signal(SIGILL , old_SIGILL );
-} 
+}
 
 /* Return value: >=0 is time/iteration in usec, <0 is error
  *   -1: unknown error
@@ -160,9 +160,9 @@ static int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt,
     }
     if (tdiff >= width*height/2) {
         if (verbose) {
-            fprintf(stderr, 
+            fprintf(stderr,
                     "*** compare error: total difference too great (%lld)\n",
-                   tdiff);
+                    tdiff);
         }
         return -6;
     }

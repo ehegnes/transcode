@@ -4,20 +4,20 @@
  *  Copyright (C) Thomas Östreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -44,9 +44,9 @@ void AVI_info(avi_t *avifile)
   int width, height, format, chan, bits;
 
   int j, tracks, tmp;
-  
+
   double fps;
-  
+
   char *codec;
 
   frames =  AVI_video_frames(avifile);
@@ -63,9 +63,9 @@ void AVI_info(avi_t *avifile)
   tmp=AVI_get_audio_track(avifile);
 
   for(j=0; j<tracks; ++j) {
-      
+
       AVI_set_audio_track(avifile, j);
-      
+
       rate   =  AVI_audio_rate(avifile);
       format =  AVI_audio_format(avifile);
       chan   =  AVI_audio_channels(avifile);
@@ -75,16 +75,16 @@ void AVI_info(avi_t *avifile)
       chunks = AVI_audio_chunks(avifile);
       tot_bytes = AVI_audio_bytes(avifile);
 
-      
+
       if(chan>0) {
-	  printf("[avilib] A: %ld Hz, format=0x%02x, bits=%d, channels=%d, bitrate=%ld kbps,\n", rate, format, bits, chan, mp3rate); 
+	  printf("[avilib] A: %ld Hz, format=0x%02x, bits=%d, channels=%d, bitrate=%ld kbps,\n", rate, format, bits, chan, mp3rate);
 	  printf("[avilib]    %ld chunks, %ld bytes, %s\n", chunks, tot_bytes, (AVI_get_audio_vbr(avifile)?"VBR":"CBR"));
       } else
 	  printf("[avilib] A: no audio track found\n");
   }
 
   AVI_set_audio_track(avifile, tmp); //reset
-  
+
 }
 
 
@@ -94,20 +94,20 @@ int AVI_file_check(const char *import_file)
     struct stat fbuf;
 
     if(xio_stat(import_file, &fbuf) || import_file==NULL){
-        fprintf(stderr, "(%s) invalid input file \"%s\"\n", __FILE__, 
+        fprintf(stderr, "(%s) invalid input file \"%s\"\n", __FILE__,
                 import_file);
         return(1);
     }
-    
+
     return(0);
 }
 
 
 char *AVI_codec2str(short cc)
 {
-    
+
     switch (cc) {
-	
+
     case 0x1://PCM
 	return("PCM");
 	break;
@@ -121,7 +121,7 @@ char *AVI_codec2str(short cc)
     case 0x32://MSN Audio
 	printf("Audio in MS GSM 6.10 format\n");
 	break;
-    case 0x50://MPEG Layer-1,2    
+    case 0x50://MPEG Layer-1,2
 	return("MPEG Layer-1/2");
 	break;
     case 0x55://MPEG Layer-3
@@ -139,6 +139,6 @@ char *AVI_codec2str(short cc)
 	break;
     default:
 	return("unknown");
-    }	
+    }
     return("unknown");
 }
