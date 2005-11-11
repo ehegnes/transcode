@@ -1,4 +1,8 @@
 2005-11-11 Francesco Romani <fromani at gmail dot com>
+  * src/decoder.c src/frame_threads.c
+  removed useless inclusion of encoder.h.
+
+2005-11-11 Francesco Romani <fromani at gmail dot com>
   * src/encoder.c src/encoder.h src/framebuffer.h
   merge modular encoder patch, and conform style to new guidelines.
   also make independent framebuffer.h conditionally including

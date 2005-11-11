@@ -23,10 +23,10 @@
 
 #include "transcode.h"
 #include "dl_loader.h"
+#include "filter.h"
 #include "framebuffer.h"
 #include "video_trans.h"
 #include "audio_trans.h"
-#include "encoder.h"
 #include "decoder.h"
 #include "frame_threads.h"
 
