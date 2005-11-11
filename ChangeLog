@@ -1,4 +1,9 @@
 2005-11-11 Francesco Romani <fromani at gmail dot com>
+  * import/import_vob.c
+  set default presentation unit to use in import_vob
+  to the first one (# 0)
+
+2005-11-11 Francesco Romani <fromani at gmail dot com>
   * import/v4l/import_v4l.c import/v4l/import_v4l2.c
   port v4l modules to new libtc
 

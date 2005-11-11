@@ -73,8 +73,13 @@ MOD_open
   char dem_buf[256];
 
   int off=0x80;
-  
-  (vob->ps_seq1 != 0 || vob->ps_seq2 != INT_MAX) ? tc_snprintf(seq_buf, sizeof(seq_buf), "-S %d,%d-%d", vob->ps_unit, vob->ps_seq1, vob->ps_seq2) : tc_snprintf(seq_buf, sizeof(seq_buf), "-S %d", vob->ps_unit);
+ 
+  if(vob->ps_seq1 != 0 || vob->ps_seq2 != TC_FRAME_LAST) {
+      tc_snprintf(seq_buf, sizeof(seq_buf), "-S %d,%d-%d", 
+                  vob->ps_unit, vob->ps_seq1, vob->ps_seq2);
+  } else {
+      strlcpy(seq_buf, "-S 0", 256);	  
+  }
   
   if(param->flag == TC_AUDIO) {
 
