@@ -65,7 +65,7 @@ MOD_open
   if(param->flag == TC_VIDEO) {
     
     // print out
-    if(verbose_flag) printf("[%s] video4linux video grabbing\n", MOD_NAME);
+    if(verbose_flag) tc_log_info(MOD_NAME, "video4linux video grabbing");
     
     param->fd = NULL;
     
@@ -92,7 +92,7 @@ MOD_open
     case CODEC_RGB:
     
       if(video_grab_init(vob->video_in_file, vob->chanid, vob->station_id, vob->im_v_width, vob->im_v_height, VIDEO_PALETTE_RGB24, verbose_flag, do_audio)<0) {
-	fprintf(stderr, "error grab init\n");
+	tc_log_error(MOD_NAME, "error grab init");
 	return(TC_IMPORT_ERROR);
       }
 
@@ -106,7 +106,7 @@ MOD_open
       }
 
       if(video_grab_init(vob->video_in_file, vob->chanid, vob->station_id, vob->im_v_width, vob->im_v_height, fmt, verbose_flag, do_audio)<0) {
-	fprintf(stderr, "error grab init\n");
+	tc_log_error(MOD_NAME, "error grab init");
 	return(TC_IMPORT_ERROR);
       }
 
@@ -116,7 +116,7 @@ MOD_open
     vframe_pts0 =  vframe_pts = v4l_counter_init();
     if (do_audio) 
 	video_drop_frames = audio_drop_frames - (int) ((vframe_pts0-aframe_pts0)*vob->fps);
-    if(verbose_flag) printf("[%s] dropping %d video frames for AV sync\n ", MOD_NAME, video_drop_frames);
+    if(verbose_flag) tc_log_info(MOD_NAME, "dropping %d video frames for AV sync ", video_drop_frames);
     
     return(0);
   }
@@ -124,7 +124,7 @@ MOD_open
   if(param->flag == TC_AUDIO) {
     
     // print out
-    if(verbose_flag) printf("[%s] video4linux audio grabbing\n", MOD_NAME);
+    if(verbose_flag) tc_log_info(MOD_NAME, "video4linux audio grabbing");
     
     //set device with vob->audio_in_file 
     if(audio_grab_init(vob->audio_in_file, vob->a_rate, vob->a_bits, vob->a_chan, verbose_flag)<0) return(TC_IMPORT_ERROR);

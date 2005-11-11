@@ -1,4 +1,8 @@
 2005-11-11 Francesco Romani <fromani at gmail dot com>
+  * import/v4l/import_v4l.c import/v4l/import_v4l2.c
+  port v4l modules to new libtc
+
+2005-11-11 Francesco Romani <fromani at gmail dot com>
   * avilib/avidump.c
   make some data types of the right wideness both on i386 and on
   amd64. This allow tccat dirmode to work on amd64.

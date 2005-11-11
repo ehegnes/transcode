@@ -255,7 +255,7 @@ static int v4l2_video_clone_frame(char *dest, size_t size)
 static void v4l2_save_frame(const char * source, size_t length)
 {
 	if(!v4l2_resync_previous_frame)
-		v4l2_resync_previous_frame = malloc(length);
+		v4l2_resync_previous_frame = tc_malloc(length);
 
 	ac_memcpy(v4l2_resync_previous_frame, source, length);
 }
@@ -373,7 +373,7 @@ static void v4l2_parse_options(const char * options_in)
 
 	options = options_ptr = tc_strdup(options_in);
 
-	if(!options || (!(option = malloc(strlen(options) * sizeof(char)))))
+	if(!options || (!(option = tc_malloc(strlen(options) * sizeof(char)))))
 	{
 		fprintf(stderr, module "Cannot malloc - options not parsed\n");
 		return;
@@ -448,7 +448,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 		default:
 		{
-			fprintf(stderr, module "layout (%d) must be one of CODEC_RGB, CODEC_YUV or CODEC_YUV422\n", layout);
+			tc_log_error(MOD_NAME, "layout (%d) must be one of CODEC_RGB, CODEC_YUV or CODEC_YUV422", layout);
 			return(1);
 		}
 	}
@@ -458,7 +458,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 	if(v4l2_convert_index == -1)	// list
 	{
 		for(ix = 0, fcp = v4l2_format_convert_table, found = 0; ix < (sizeof(v4l2_format_convert_table) / sizeof(*v4l2_format_convert_table)); ix++)
-			fprintf(stderr, module "conversion index: %d = %s\n", ix, fcp[ix].description);
+			tc_log_info(MOD_NAME, "conversion index: %d = %s", ix, fcp[ix].description);
 
 		return(1);
 	}
@@ -466,9 +466,9 @@ static int v4l2_video_init(int layout, const char * device, int width,
 	if(verbose_flag & TC_INFO)
 	{
 		if(v4l2_resync_margin_frames == 0)
-			fprintf(stderr, module "%s", "resync disabled\n");
+			tc_log_info(MOD_NAME, "%s", "resync disabled");
 		else
-			fprintf(stderr, module "resync enabled, margin = %d frames, interval = %d frames, \n",
+			tc_log_info(MOD_NAME, "resync enabled, margin = %d frames, interval = %d frames,",
 					v4l2_resync_margin_frames,
 					v4l2_resync_interval_frames);
 	}
@@ -478,30 +478,30 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 	if((v4l2_video_fd = open(device, O_RDWR, 0)) < 0)
 	{
-		fprintf(stderr, module "cannot open video device %s\n", device);
+		tc_log_error(MOD_NAME, "cannot open video device %s");
 		return(1);
 	}
 
 	if(ioctl(v4l2_video_fd, VIDIOC_QUERYCAP, &caps) < 0)
 	{
-		fprintf(stderr, module "driver does not support querying capabilities\n");
+		tc_log_error(MOD_NAME, "driver does not support querying capabilities");
 		return(1);
 	}
 
 	if((!caps.capabilities & V4L2_CAP_VIDEO_CAPTURE))
 	{
-		fprintf(stderr, module "driver does not support video capture\n");
+		tc_log_error(MOD_NAME, "driver does not support video capture");
 		return(1);
 	}
 
 	if((!caps.capabilities & V4L2_CAP_STREAMING))
 	{
-		fprintf(stderr, module "driver does not support streaming (mmap) video capture\n");
+		tc_log_error(MOD_NAME, "driver does not support streaming (mmap) video capture");
 		return(1);
 	}
 
 	if(verbose_flag & TC_INFO)
-		fprintf(stderr, module "video grabbing, driver = %s, card = %s\n",
+		tc_log_info(MOD_NAME, "video grabbing, driver = %s, card = %s",
 				caps.driver, caps.card);
 
 	v4l2_width = width;
@@ -525,7 +525,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 			perror(module "VIDIOC_S_FMT: ");
 		else
 		{
-			fprintf(stderr, module "Pixel format conversion: %s\n", fcp[ix].description);
+			tc_log_info(MOD_NAME, "Pixel format conversion: %s", fcp[ix].description);
 			v4l2_convert_index = ix;
 			found = 1;
 			break;
@@ -534,7 +534,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 	if(!found)
 	{
-		fprintf(stderr, module "no usable pixel format supported by card\n");
+		tc_log_error(MOD_NAME, "no usable pixel format supported by card");
 		return(1);
 	}
 
@@ -546,7 +546,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 	if(ioctl(v4l2_video_fd, VIDIOC_S_PARM, &streamparm) < 0)
 	{
-		fprintf(stderr, module "driver does not support setting parameters (ioctl(VIDIOC_S_PARM) returns \"%s\")\n",
+		tc_log_warn(MOD_NAME, "driver does not support setting parameters (ioctl(VIDIOC_S_PARM) returns \"%s\")",
 			errno <= sys_nerr ? sys_errlist[errno] : "unknown");
 	}
 
@@ -565,7 +565,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 				return(1);
 			}
 
-			fprintf(stderr, module "%s\n", standard.name);
+			tc_log_info(MOD_NAME, "%s", standard.name);
 		}
 
 		return(1);
@@ -592,7 +592,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 		if(ix == 128)
 		{
-			fprintf(stderr, module "unknown format %s\n", v4l2_format_string);
+			tc_log_error(MOD_NAME, "unknown format %s", v4l2_format_string);
 			return(1);
 		}
 		
@@ -603,7 +603,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 		}
 
 		if(verbose_flag & TC_INFO)
-			fprintf(stderr, module "colour & framerate standard set to: [%s]\n", standard.name);
+			tc_log_info(MOD_NAME, "colour & framerate standard set to: [%s]", standard.name);
 	}
 
 	if(ioctl(v4l2_video_fd, VIDIOC_G_STD, &stdid) < 0)
@@ -619,13 +619,13 @@ static int v4l2_video_init(int layout, const char * device, int width,
 			v4l2_frame_rate = 25;
 		else
 		{
-			fprintf(stderr, module "unknown TV std, defaulting to 50 Hz field rate\n");
+			tc_log_info(MOD_NAME, "unknown TV std, defaulting to 50 Hz field rate");
 			v4l2_frame_rate = 25;
 		}
 
 	if(verbose_flag & TC_INFO)
 	{
-		fprintf(stderr, module "checking colour & framerate standards: ");
+		tc_log_info(MOD_NAME, "checking colour & framerate standards: ");
 
 		for(ix = 0; ix < 128; ix++)
 		{
@@ -641,11 +641,10 @@ static int v4l2_video_init(int layout, const char * device, int width,
 			}
 
 			if(standard.id == stdid)
-				fprintf(stderr, "[%s] ", standard.name);
+				tc_log_info(MOD_NAME, "[%s] ", standard.name);
 		}
 
-		fputs("\n", stderr);
-		fprintf(stderr, module "receiving %d frames / sec\n", v4l2_frame_rate);
+		tc_log_info(MOD_NAME, "receiving %d frames / sec", v4l2_frame_rate);
 	}
 
 	if(strcmp(v4l2_crop_parm, ""))
@@ -663,7 +662,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 	if((verbose_flag & TC_INFO) && v4l2_crop_enabled)
 	{
-		fprintf(stderr, module "source frame set to: %dx%d+%dx%d\n",
+		tc_log_info(MOD_NAME, "source frame set to: %dx%d+%dx%d",
 			v4l2_crop_width, v4l2_crop_height,
 			v4l2_crop_left, v4l2_crop_top);
 	}
@@ -672,29 +671,30 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 	if(ioctl(v4l2_video_fd, VIDIOC_CROPCAP, &cropcap) < 0)
 	{
-		fprintf(stderr, module "driver does not support cropping (ioctl(VIDIOC_CROPCAP) returns \"%s\"), disabled\n",
+		tc_log_warn(MOD_NAME, "driver does not support cropping (ioctl(VIDIOC_CROPCAP) returns \"%s\"), disabled",
 			errno <= sys_nerr ? sys_errlist[errno] : "unknown");
 	}
 	else
 	{
-		fprintf(stderr, module "frame size: %dx%d\n", width, height);
-		fprintf(stderr, module "cropcap bounds: %dx%d +%d+%d\n", 
+		tc_log_info(MOD_NAME, "frame size: %dx%d", width, height);
+		tc_log_info(MOD_NAME, "cropcap bounds: %dx%d +%d+%d", 
 				cropcap.bounds.width,
 				cropcap.bounds.height,
 				cropcap.bounds.left,
 				cropcap.bounds.top);
-		fprintf(stderr, module "cropcap defrect: %dx%d +%d+%d\n", 
+		tc_log_info(MOD_NAME, "cropcap defrect: %dx%d +%d+%d", 
 				cropcap.defrect.width,
 				cropcap.defrect.height,
 				cropcap.defrect.left,
 				cropcap.defrect.top);
-		fprintf(stderr, module "cropcap pixelaspect: %d/%d\n",
+		tc_log_info(MOD_NAME, "cropcap pixelaspect: %d/%d",
 				cropcap.pixelaspect.numerator,
 				cropcap.pixelaspect.denominator);
 
 		if((width > cropcap.bounds.width) || (height > cropcap.bounds.height) || (width < 0) || (height < 0))
 		{
-			fprintf(stderr, module "capturing dimensions exceed maximum crop area: %dx%d\n", cropcap.bounds.width, cropcap.bounds.height);
+			tc_log_error(MOD_NAME, "capturing dimensions exceed maximum crop area: %dx%d", 
+                         cropcap.bounds.width, cropcap.bounds.height);
 			return(1);
 		}
 
@@ -702,12 +702,12 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 		if(ioctl(v4l2_video_fd, VIDIOC_G_CROP, &crop) < 0)
 		{
-			fprintf(stderr, module "driver does not support inquering cropping parameters (ioctl(VIDIOC_G_CROP) returns \"%s\")\n",
+			tc_log_warn(MOD_NAME, "driver does not support inquering cropping parameters (ioctl(VIDIOC_G_CROP) returns \"%s\")",
 				errno <= sys_nerr ? sys_errlist[errno] : "unknown");
 		}
 		else
 		{
-			fprintf(stderr, module "default cropping: %dx%d +%d+%d\n", 
+			tc_log_info(MOD_NAME, "default cropping: %dx%d +%d+%d", 
 				crop.c.width,
 				crop.c.height,
 				crop.c.left,
@@ -732,12 +732,12 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 			if(ioctl(v4l2_video_fd, VIDIOC_G_CROP, &crop) < 0)
 			{
-				fprintf(stderr, module "driver does not support inquering cropping parameters (ioctl(VIDIOC_G_CROP) returns \"%s\")\n",
+				tc_log_warn(MOD_NAME, "driver does not support inquering cropping parameters (ioctl(VIDIOC_G_CROP) returns \"%s\")",
 					errno <= sys_nerr ? sys_errlist[errno] : "unknown");
 			}
 			else
 			{
-				fprintf(stderr, module "cropping after set frame source: %dx%d +%d+%d\n", 
+				tc_log_info(MOD_NAME, "cropping after set frame source: %dx%d +%d+%d", 
 					crop.c.width,
 					crop.c.height,
 					crop.c.left,
@@ -762,12 +762,12 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 	if(v4l2_buffers_count < 2)
 	{
-		fprintf(stderr, module "not enough buffers for capture\n");
+		tc_log_error(MOD_NAME, "not enough buffers for capture");
 		return(1);
 	}
 
 	if(verbose_flag & TC_INFO)
-		fprintf(stderr, module "%d buffers available\n", v4l2_buffers_count);
+		tc_log_info(MOD_NAME, "%d buffers available", v4l2_buffers_count);
 
 	if(!(v4l2_buffers = calloc(v4l2_buffers_count, sizeof(*v4l2_buffers))))
 	{
@@ -841,7 +841,10 @@ static int v4l2_video_get_frame(size_t size, char * data)
 
 		if(buffers_filled > (v4l2_buffers_count * 3 / 4))
 		{
-			fprintf(stderr, module "ERROR: running out of capture buffers (%d left from %d total), stopping capture\n", v4l2_buffers_count - buffers_filled, v4l2_buffers_count);
+			tc_log_error(MOD_NAME, "running out of capture buffers (%d left from %d total), "
+                                   "stopping capture", 
+                                   v4l2_buffers_count - buffers_filled, 
+                                   v4l2_buffers_count);
 
 			if(ioctl(v4l2_video_fd, VIDIOC_STREAMOFF, &dummy) < 0)
 				perror(module "VIDIOC_STREAMOFF");
@@ -877,7 +880,7 @@ static int v4l2_video_get_frame(size_t size, char * data)
 
 		default:
 		{
-			fprintf(stderr, module "impossible case\n");
+			tc_log_error(MOD_NAME, "impossible case");
 			return(1);
 		}
 	}
@@ -906,6 +909,7 @@ static int v4l2_video_get_frame(size_t size, char * data)
 
 		if(v4l2_video_resync_op != resync_none && (verbose_flag & TC_INFO))
 		{
+            /* intentionally not ported to tc_log*() -- fromani 20051110 */
 			fprintf(stderr, "\n" module "OP: %s VS/AS: %d/%d C/D: %d/%d\n",
 					v4l2_video_resync_op == resync_drop ? "drop" : "clone",
 					v4l2_video_sequence,
@@ -963,7 +967,7 @@ static int v4l2_audio_init(const char * device, int rate, int bits,
 
 	if(bits != 8 && bits != 16)
 	{
-		fprintf(stderr, module "bits/sample must be 8 or 16\n");
+		tc_log_error(MOD_NAME, "bits/sample must be 8 or 16");
 		return(1);
 	}
 
@@ -1003,7 +1007,7 @@ static int v4l2_audio_init(const char * device, int rate, int bits,
 	if(v4l2_saa7134_audio)
 	{
 		if(verbose_flag & TC_INFO)
-			fprintf(stderr, module "Audio input from saa7134 detected, you should set audio sample rate to 32 Khz using -e\n");
+			tc_log_info(MOD_NAME, "Audio input from saa7134 detected, you should set audio sample rate to 32 Khz using -e");
 	}
 	else
 	{
@@ -1028,7 +1032,7 @@ static int v4l2_audio_grab_frame(size_t size, char * buffer)
 		received = read(v4l2_audio_fd, buffer + offset, left);
 
 		if(received == 0)
-			fprintf(stderr, module "audio grab: received == 0\n");
+			tc_log_warn(MOD_NAME, "audio grab: received == 0");
 
 		if(received < 0)
 		{
@@ -1043,7 +1047,7 @@ static int v4l2_audio_grab_frame(size_t size, char * buffer)
 
 		if(received > left)
 		{
-			fprintf(stderr, module "read returns more bytes than requested! (requested: %d, returned: %d\n", left, received);
+			tc_log_error(MOD_NAME, "read returns more bytes than requested! (requested: %d, returned: %d", left, received);
 			return(TC_IMPORT_ERROR);
 		}
 
@@ -1062,6 +1066,7 @@ static int v4l2_audio_grab_stop(void)
 
 	if(verbose_flag & TC_INFO)
 	{
+        /* intentionally not ported to tc_log*() -- fromani 20051110 */
 		fprintf(stderr, "\n" module "Totals: sequence V/A: %d/%d, frames C/D: %d/%d\n",
 				v4l2_video_sequence,
 				v4l2_audio_sequence,
@@ -1085,7 +1090,7 @@ MOD_open
 	if(param->flag == TC_VIDEO)
 	{
 		if(verbose_flag & TC_INFO)
-			fprintf(stderr, module "v4l2 video grabbing\n");
+			tc_log_info(MOD_NAME, "v4l2 video grabbing");
 
 		if(v4l2_video_init(vob->im_v_codec, vob->video_in_file, vob->im_v_width, vob->im_v_height, vob->fps,
 					vob->im_v_string))
@@ -1097,7 +1102,7 @@ MOD_open
 		if(param->flag == TC_AUDIO)
 		{
 			if(verbose_flag & TC_INFO)
-				fprintf(stderr, module "v4l2 audio grabbing\n");
+				tc_log_info(MOD_NAME, "v4l2 audio grabbing");
 
 			if(v4l2_audio_init(vob->audio_in_file, vob->a_rate, vob->a_bits, vob->a_chan))
 				return(TC_IMPORT_ERROR);
@@ -1106,7 +1111,7 @@ MOD_open
 		}
 		else
 		{
-			fprintf(stderr, module "unsupported request (init)\n");
+			tc_log_error(MOD_NAME, "unsupported request (init)");
 			return(TC_IMPORT_ERROR);
 		}
 
@@ -1123,7 +1128,7 @@ MOD_decode
 	{
 		if(v4l2_video_get_frame(param->size, param->buffer))
 		{
-			fprintf(stderr, module "error in grabbing video\n");
+			tc_log_error(MOD_NAME, "error in grabbing video");
 			return(TC_IMPORT_ERROR);
 		}
 	}
@@ -1133,13 +1138,13 @@ MOD_decode
 		{
 			if(v4l2_audio_grab_frame(param->size, param->buffer))
 			{
-				fprintf(stderr, module "error in grabbing audio\n");
+				tc_log_error(MOD_NAME, "error in grabbing audio");
 				return(TC_IMPORT_ERROR);
 			}
 		}
 		else
 		{
-			fprintf(stderr, module "unsupported request (decode)\n");
+			tc_log_error(MOD_NAME, "unsupported request (decode)");
 			return(TC_IMPORT_ERROR);
 		}
 	}
@@ -1164,7 +1169,7 @@ MOD_close
 		}
 		else
 		{
-			fprintf(stderr, module "unsupported request (close)\n");
+			tc_log_error(MOD_NAME, "unsupported request (close)");
 			return(TC_IMPORT_ERROR);
 		}
 
