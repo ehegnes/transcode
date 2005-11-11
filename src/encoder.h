@@ -21,12 +21,63 @@
  *
  */
 
+#ifndef _ENCODER_H
+#define _ENCODER_H 
+
+#include "transcode.h"
 #include "filter.h"
 
-#ifndef _ENCODER_H
-#define _ENCODER_H
+/* 
+ * this structure will hold *private data* needed by encoder
+ * there is no need to export it to client code
+ * fromani -- 20051111
+ */
+typedef struct tcencoderdata_ TcEncoderData;
+struct tcencoderdata_ {
+	/* references to current frames */
+	vframe_list_t *vptr;
+	aframe_list_t *aptr;
+
+	/* (video) frame identifier */
+	int fid;
+
+	/* flags */
+	int exit_on_encoder_error;
+	int fill_flag;
+
+	/* frame boundaries */
+	int frame_a;
+	int frame_b;
+	/* needed by encoder_skip */
+	int last_frame_b;
+	
+	/* used for communications with modules */
+	transfer_t export_para;
+};
+
+#define TC_ENCODER_DATA_INIT(data) \
+	do { \
+		(data)->vptr = NULL; \
+		(data)->aptr = NULL; \
+		(data)->fid = 0; \
+		(data)->exit_on_encoder_error = 0; \
+		(data)->fill_flag = 0; \
+	} while(0)
 
 int export_init(vob_t *vob_ptr, char *a_mod, char *v_mod);
+
+#ifdef ENCODER_EXPORT
+int encoder_wait_vframe(TcEncoderData *data);
+int encoder_wait_aframe(TcEncoderData *data);
+int encoder_acquire_vframe(TcEncoderData *data, vob_t *vob);
+int encoder_acquire_aframe(TcEncoderData *data, vob_t *vob);
+
+int encoder_export(TcEncoderData *data, vob_t *vob);
+void encoder_skip(TcEncoderData *data);
+
+void encoder_dispose_vframe(TcEncoderData *data);
+void encoder_dispose_aframe(TcEncoderData *data);
+#endif
 
 int encoder_init(transfer_t *export_para, vob_t *vob);
 void encoder(vob_t *vob_ptr, int frame_a, int frame_b);

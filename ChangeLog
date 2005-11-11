@@ -1,3 +1,9 @@
+2005-11-11 Francesco Romani <fromani at gmail dot com>
+  * src/encoder.c src/encoder.h src/framebuffer.h
+  merge modular encoder patch, and conform style to new guidelines.
+  also make independent framebuffer.h conditionally including
+  standard integer definition header.
+
 2005-11-11 Andrew Church <achurch at achurch dot org>
   * avilib/avidump.c
   Fix compilation warnings.
@@ -11,11 +17,11 @@
 2005-11-11 Francesco Romani <fromani at gmail dot com>
   * import/import_vob.c
   set default presentation unit to use in import_vob
-  to the first one (# 0)
+  to the first one (# 0),
 
 2005-11-11 Francesco Romani <fromani at gmail dot com>
   * import/v4l/import_v4l.c import/v4l/import_v4l2.c
-  port v4l modules to new libtc
+  port v4l modules to new libtc.
 
 2005-11-11 Francesco Romani <fromani at gmail dot com>
   * avilib/avidump.c
@@ -25,11 +31,11 @@
 2005-11-10 Francesco Romani <fromani at gmail dot com>
   * filter/filter_compare.c filter/filter_logo.c filter/filter_logoaway.c
     import/import_im.c import/import_imlist.c import/probe_im.c
-  Build fixes for some ImageMagick modules
+  Build fixes for some ImageMagick modules.
 
 2005-11-10 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tc_functions.c
-  style fixes
+  style fixes.
 
 2005-11-09 Francesco Romani <fromani at gmail dot com>
   * filter/preview/filter_pv.c
