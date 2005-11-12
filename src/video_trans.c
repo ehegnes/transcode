@@ -370,7 +370,8 @@ static void rescale_pixel(const uint8_t *src1, const uint8_t *src2,
 	/* Watch out for trying to access beyond the end of the frame on
 	 * the last pixel */
 	if (weight1 < 0x10000)  /* this is the more likely case */
-	    dest[byte] = (src1[byte]*weight1 + src2[byte]*weight2) >> 16;
+	    dest[byte] = (src1[byte]*weight1 + src2[byte]*weight2 + 32768)
+		         >> 16;
 	else
 	    dest[byte] = src1[byte];
     }
