@@ -22,7 +22,6 @@
  */
 
 #include <pthread.h>
-#include "zoom.h"
 
 #ifndef _FRAME_THREADS_H
 #define _FRAME_THREADS_H
@@ -57,30 +56,5 @@ extern uint32_t abuffer_xx_fill_ctr;
 extern pthread_mutex_t abuffer_ex_fill_lock;
 extern uint32_t abuffer_ex_fill_ctr;
 
-
-typedef struct _fthbuf_t {
-
-  //-Z (YUV)
-
-  zoomer_t *zoomerY;
-  zoomer_t *zoomerUV;
-  image_t srcImageY;
-  image_t srcImageUV;
-  image_t dstImageY;
-  image_t dstImageUV;
-
-  //-Z (RGB)
-
-  zoomer_t *zoomer;
-  image_t srcImage;
-  image_t dstImage;
-
-  //common
-  pixel_t *tmpBuffer;
-
-} fthbuf_t;
-
-extern fthbuf_t tbuf[TC_FRAME_THREADS_MAX];
-extern fthbuf_t tbuf_DI[TC_FRAME_THREADS_MAX];
 
 #endif

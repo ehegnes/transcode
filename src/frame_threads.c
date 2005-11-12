@@ -66,8 +66,6 @@ static int vframe_threads_shutdown=0;
 static pthread_t fthread_id[TC_FRAME_THREADS_MAX];
 pthread_mutex_t fth_id_lock=PTHREAD_MUTEX_INITIALIZER;
 int fthread_index=0;
-fthbuf_t tbuf[TC_FRAME_THREADS_MAX];
-fthbuf_t tbuf_DI[TC_FRAME_THREADS_MAX];
 
 /* ------------------------------------------------------------
  *
@@ -332,8 +330,6 @@ void process_vframe(vob_t *vob)
   fthread_id[id] = pthread_self();
 
   pthread_mutex_unlock(&fth_id_lock);
-
-  memset(&tbuf[id], 0, sizeof(fthbuf_t));
 
   for(;;) {
 
