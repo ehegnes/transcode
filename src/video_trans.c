@@ -447,10 +447,16 @@ static void deint_interpolate(uint8_t *src, uint8_t *dest, int width,
     int Bpl = width * Bpp;
     int y;
 
-    for (y = 1; y < height-1; y += 2)
-	ac_average(src + (y-1)*Bpl, src + (y+1)*Bpl, dest + y*Bpl, Bpl);
-    if (y < height)  /* if the last line is odd, copy from the previous line */
-	ac_memcpy(dest + y*Bpl, src + (y-1)*Bpl, Bpl);
+    for (y = 0; y < height; y++) {
+        if (y%2 == 0) {
+            ac_memcpy(dest + y*Bpl, src + y*Bpl, Bpl);
+        } else if (y == height-1) {
+            /* if the last line is odd, copy from the previous line */
+            ac_memcpy(dest + y*Bpl, src + (y-1)*Bpl, Bpl);
+        } else {
+            ac_average(src + (y-1)*Bpl, src + (y+1)*Bpl, dest + y*Bpl, Bpl);
+        }
+    }
 }
 
 static void deint_linear_blend(uint8_t *src, uint8_t *dest, int width,
@@ -485,11 +491,11 @@ static void reduce(uint8_t *src, uint8_t *dest, int width, int height,
     int xstep = Bpp * reduce_w;
 
     for (y = 0; y < height / reduce_h; y++) {
-	for (x = 0; x < width / reduce_w * xstep; x += xstep) {
+	for (x = 0; x < width / reduce_w; x++) {
 	    for (i = 0; i < Bpp; i++)
-		*dest++ = src[x+i];
+		*dest++ = src[x*xstep+i];
 	}
-	src += width * reduce_h;
+	src += width*Bpp * reduce_h;
     }
 }
 
