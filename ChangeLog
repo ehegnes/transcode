@@ -1,4 +1,8 @@
 2005-11-12 Andrew Church <achurch at achurch dot org>
+  * src/video_trans.c
+  Fixed a regression in -k (red/blue swap) processing in RGB mode.
+
+2005-11-12 Andrew Church <achurch at achurch dot org>
   * Added: STYLE
     Changed: Makefile.am
     Removed: aclib/STYLE.txt

@@ -735,7 +735,7 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
 	    int i;
 	    for (i = 0; i < ptr->v_width * ptr->v_height; i++) {
 		uint8_t tmp = vtd.planes[0][i*3];
-		vtd.planes[0][i*3] = vtd.planes[0][i*3+1];
+		vtd.planes[0][i*3] = vtd.planes[0][i*3+2];
 		vtd.planes[0][i*3+2] = tmp;
 	    }
 	} else {
