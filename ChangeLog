@@ -10,7 +10,8 @@
 
 2005-11-12 Andrew Church <achurch at achurch dot org>
   * src/video_trans.c
-  Fixed regressions in -k and -r in RGB mode, and in -X/-B/-Z fast and -I.
+  Fixed regressions in -k and -r in RGB mode, and in -X/-B/-Z fast, -I, and
+  -C.
 
 2005-11-12 Andrew Church <achurch at achurch dot org>
   * Added: STYLE

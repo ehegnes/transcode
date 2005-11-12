@@ -148,7 +148,7 @@ static void init_aa_table(double aa_weight, double aa_bias)
 	aa_table_c[i] = i*aa_weight * 65536;
 	aa_table_x[i] = i*aa_bias*(1-aa_weight)/4 * 65536;
 	aa_table_y[i] = i*(1-aa_bias)*(1-aa_weight)/4 * 65536;
-	aa_table_d[i] = (aa_table_x[i]+aa_table_y[i])/2;
+	aa_table_d[i] = (aa_table_x[i]+aa_table_y[i]+1)/2;
     }
 }
 
@@ -615,15 +615,16 @@ static void antialias_line(uint8_t *src, uint8_t *dest, int width, int Bpp)
 	 || (SAME(R,D) && DIFF(R,U) && DIFF(R,L))
 	) {
 	    for (i = 0; i < Bpp; i++) {
-		uint32_t tmp = aa_table_d[*UL]
-		             + aa_table_y[*U ]
-		             + aa_table_d[*UR]
-		             + aa_table_x[*L ]
-		             + aa_table_c[*C ]
-		             + aa_table_x[*R ]
-		             + aa_table_d[*DL]
-		             + aa_table_y[*D ]
-		             + aa_table_d[*DR];
+		uint32_t tmp = aa_table_d[UL[i]]
+		             + aa_table_y[U [i]]
+		             + aa_table_d[UR[i]]
+		             + aa_table_x[L [i]]
+		             + aa_table_c[C [i]]
+		             + aa_table_x[R [i]]
+		             + aa_table_d[DL[i]]
+		             + aa_table_y[D [i]]
+		             + aa_table_d[DR[i]]
+		             + 32768;
 		dest[x*Bpp+i] = (verbose & TC_DEBUG) ? 255 : tmp>>16;
 	    }
 	} else {
