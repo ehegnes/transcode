@@ -122,7 +122,7 @@ static void init_resize_table(resize_table_t *table, int oldsize, int newsize)
 	} else {
 	    /* No, compute appropriate weight ratio */
 	    double temp = ((table[i].source+1) - oldpos) / width_ratio * PI/2;
-	    table[i].weight1 = sin(temp)*sin(temp) * 65536;
+	    table[i].weight1 = (uint32_t)(sin(temp)*sin(temp) * 65536 + 0.5);
 	    table[i].weight2 = 65536 - table[i].weight1;
 	    table[i].antialias = (table[i].weight1 > 65536*RESIZE_AATHRESH_L
 			       && table[i].weight1 < 65536*RESIZE_AATHRESH_U);
