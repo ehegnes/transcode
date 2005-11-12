@@ -1,3 +1,7 @@
+2005-11-12 Francesco Romani <fromani at gmail dot com>
+  * import/import_ffmpeg.c
+  little char VS uint8_t cleanup
+
 2005-11-12 Andrew Church <achurch at achurch dot org>
   * Changed: Makefile.am configure.in filter/extsub/filter_extsub.c
              import/Makefile.am import/import_xml.c import/ioxml.h

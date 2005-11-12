@@ -112,7 +112,7 @@ static struct ffmpeg_codec ffmpeg_codecs[] = {
 
 static avi_t              *avifile = NULL;
 static int                 pass_through = 0;
-static char               *buffer =  NULL;
+static uint8_t            *buffer =  NULL;
 static uint8_t            *yuv2rgb_buffer = NULL;
 static AVCodec            *lavc_dec_codec = NULL;
 static AVCodecContext     *lavc_dec_context = NULL;
@@ -153,12 +153,12 @@ static struct ffmpeg_codec *find_ffmpeg_codec_id(unsigned int transcode_id) {
   return NULL;
 }
 
-inline static int stream_read_char(char *d)
+inline static int stream_read_char(const uint8_t *d)
 {
     return (*d & 0xff);
 }
 
-inline static unsigned int stream_read_dword(char *s)
+inline static unsigned int stream_read_dword(const uint8_t *s)
 {
     unsigned int y;
     y=stream_read_char(s);
@@ -169,7 +169,7 @@ inline static unsigned int stream_read_dword(char *s)
 }
 
 // Determine of the compressed frame is a keyframe for direct copy
-static int mpeg4_is_key(unsigned char *data, long size)
+static int mpeg4_is_key(const uint8_t *data, long size)
 {
         int result = 0;
         int i;
@@ -191,7 +191,7 @@ static int mpeg4_is_key(unsigned char *data, long size)
         return result;
 }
 
-static int divx3_is_key(char *d)
+static int divx3_is_key(const uint8_t *d)
 {
     int32_t c=0;
 
@@ -481,7 +481,7 @@ MOD_decode {
   AVFrame    picture;
 
   if (param->flag == TC_VIDEO) {
-    bytes_read = AVI_read_frame(avifile, buffer, &key);
+    bytes_read = AVI_read_frame(avifile, (char*)buffer, &key);
 
     if (bytes_read < 0) return TC_IMPORT_ERROR;
 
@@ -543,7 +543,7 @@ retry:
       if (!got_picture) {
 	if (avifile->video_pos == 1) {
 
-	  bytes_read = AVI_read_frame(avifile, buffer, &key);
+	  bytes_read = AVI_read_frame(avifile, (char*)buffer, &key);
 	  if (bytes_read < 0) return TC_IMPORT_ERROR;
 	  param->attributes &= ~TC_FRAME_IS_KEYFRAME;
 	  if (key) param->attributes |= TC_FRAME_IS_KEYFRAME;
@@ -689,13 +689,16 @@ MOD_close {
     if (param->fd) pclose(param->fd);
     param->fd = NULL;
 
-    // do not free buffer and yuv2rgb_buffer!!
-
     if(avifile!=NULL) {
       AVI_close(avifile);
       avifile=NULL;
     }
 
+    // do not free buffer and yuv2rgb_buffer!!
+    /* 
+     * since the are static variables and are conditionally allocated
+     * -- fromani 20051112
+     */
     return TC_IMPORT_OK;
   }
 
