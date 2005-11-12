@@ -32,8 +32,6 @@
 
 #include "video_trans.h"
 
-#warning ********************** FIXME *********************** disabled, functions no longer available (module to be deleted)
-
 #ifdef VIDEOCORE_NOT_DEFINED
 
 // basic parameter
