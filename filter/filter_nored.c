@@ -76,7 +76,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	      "%u-%u/%d", buf, "0", "oo", "0", "oo", "1", "oo");
 
       tc_snprintf(buf, 128, "%d", mfd->subst);
-      optstr_param (options, "subst", "substract N red from Cr",
+      optstr_param (options, "subst", "subtract N red from Cr",
 	      "%d", buf, "-127", "127" );
 
       return 0;
@@ -171,9 +171,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
         + (ptr->v_height/2)*(ptr->v_width/2);
 
       for (h = 0; h < (ptr->v_height/2)*(ptr->v_width/2); h++) {
-#warning ******************* FIXME ******************** integer overflow
-	*p = (*p-mfd->subst)&0xff;
-	p++;
+        int n = *p - mfd->subst;
+        if (n < 0)
+          n = 0;
+        else if (n > 255)
+          n = 255;
+        *p++ = n;
       }
     }
   }
