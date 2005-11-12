@@ -1,3 +1,8 @@
+2005-11-12 Andrew Church <achurch at achurch dot org>
+  * Added: STYLE
+    Changed: Makefile.am
+  Store coding style guidelines in CVS.
+
 2005-11-11 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/frame_threads.c
   removed useless inclusion of encoder.h.

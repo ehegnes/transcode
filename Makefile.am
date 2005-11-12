@@ -25,7 +25,7 @@ SUBDIRS = \
 	contrib \
 	docs
 
-EXTRA_DIST = transcode.spec
+EXTRA_DIST = STYLE transcode.spec
 
 docsdir = $(datadir)/doc/transcode
 docs_DATA = ChangeLog
