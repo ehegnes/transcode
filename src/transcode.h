@@ -71,6 +71,7 @@ extern int errno;
 #include "avilib/avilib.h"
 #include "aclib/ac.h"
 #include "libioaux/framecode.h"
+#include "libtcvideo/tcvideo.h"
 
 
 #ifdef __bsdi__
@@ -306,8 +307,7 @@ typedef struct _vob_t {
   int zoom_width;         // zoom width
   int zoom_height;        // zoom height
 
-  double (*zoom_filter)(double);
-  double zoom_support;
+  TCVZoomFilter zoom_filter;
 
   int antialias;          // not yet implemented
   int deinterlace;        // not yet implemented

@@ -13,30 +13,6 @@
 #define _VIDEO_TRANS_H
 
 #include "transcode.h"
-#include <math.h>
-
-/*************************************************************************/
-
-/* Data for fast resizing operations */
-
-#ifndef PI
-# define PI 3.14159265358979323846264338327950
-#endif
-
-/* Threshold for antialiasing resized pixels/lines; we apply antialiasing
- * only when the (normalized) weights are strictly between these values */
-#define RESIZE_AATHRESH_U 0.75
-#define RESIZE_AATHRESH_L 0.25
-
-typedef struct _resize_table_t {
-    int source;
-    uint32_t weight1, weight2;
-    int antialias;  /* flag: antialias or no? */
-} resize_table_t;
-
-/* Antialiasing threshold for determining whether two pixels are the same
- * color. */
-#define AA_DIFFERENT	25
 
 /*************************************************************************/
 
@@ -49,3 +25,13 @@ int postprocess_vid_frame(vob_t *vob, vframe_list_t *ptr);
 /*************************************************************************/
 
 #endif  /* _VIDEO_TRANS_H */
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

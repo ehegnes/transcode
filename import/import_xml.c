@@ -26,6 +26,7 @@
 #define MOD_CODEC   "(video) * | (audio) *"
 
 #include "transcode.h"
+#include "libtcvideo/tcvideo.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = -1;
@@ -36,7 +37,6 @@ static int capability_flag = -1;
 #include "ioxml.h"
 #include "magic.h"
 #include "probe_xml.h"
-#include "zoom.h"
 
 
 #define M_AUDIOMAX(a,b)  (b==LONG_MAX)?LONG_MAX:a*b
@@ -154,65 +154,53 @@ static video_filter_t *f_video_filter(char *p_filter)
 	{
 		if(strcasecmp(p_filter,"bell")==0)
 		{
-			s_v_filter.f_zoom_filter=Bell_filter;
-			s_v_filter.s_zoom_support=Bell_support;
+			s_v_filter.s_zoom_filter=TCV_ZOOM_BELL;
 			s_v_filter.p_zoom_filter="Bell";
 		}
 		else if(strcasecmp(p_filter,"box")==0)
 		{
-			s_v_filter.f_zoom_filter=Box_filter;
-			s_v_filter.s_zoom_support=Box_support;
+			s_v_filter.s_zoom_filter=TCV_ZOOM_BOX;
 			s_v_filter.p_zoom_filter="Box";
 		}
 		else if(strncasecmp(p_filter,"mitchell",1)==0)
 		{
-			s_v_filter.f_zoom_filter=Mitchell_filter;
-			s_v_filter.s_zoom_support=Mitchell_support;
+			s_v_filter.s_zoom_filter=TCV_ZOOM_MITCHELL;
 			s_v_filter.p_zoom_filter="Mitchell";
 		}
 		else if(strncasecmp(p_filter,"hermite",1)==0)
 		{
-			s_v_filter.f_zoom_filter=Hermite_filter;
-			s_v_filter.s_zoom_support=Hermite_support;
+			s_v_filter.s_zoom_filter=TCV_ZOOM_HERMITE;
 			s_v_filter.p_zoom_filter="Hermite";
 		}
 		else if(strncasecmp(p_filter,"B_spline",1)==0)
 		{
-			s_v_filter.f_zoom_filter=B_spline_filter;
-			s_v_filter.s_zoom_support=B_spline_support;
+			s_v_filter.s_zoom_filter=TCV_ZOOM_B_SPLINE;
 			s_v_filter.p_zoom_filter="B_spline";
 		}
 		else if(strncasecmp(p_filter,"triangle",1)==0)
 		{
-			s_v_filter.f_zoom_filter=Triangle_filter;
-			s_v_filter.s_zoom_support=Triangle_support;
+			s_v_filter.s_zoom_filter=TCV_ZOOM_TRIANGLE;
 			s_v_filter.p_zoom_filter="Triangle";
 		}
 		else //"lanczos3" default
 		{
-			s_v_filter.f_zoom_filter=Lanczos3_filter;
-			s_v_filter.s_zoom_support=Lanczos3_support;
+			s_v_filter.s_zoom_filter=TCV_ZOOM_LANCZOS3;
 			s_v_filter.p_zoom_filter="Lanczos3";
 		}
 	}
 	else //"lanczos3" default
 	{
-		s_v_filter.f_zoom_filter=Lanczos3_filter;
-		s_v_filter.s_zoom_support=Lanczos3_support;
+		s_v_filter.s_zoom_filter=TCV_ZOOM_LANCZOS3;
 		s_v_filter.p_zoom_filter="Lanczos3";
 	}
-	return((video_filter_t *)&s_v_filter);
+	return(&s_v_filter);
 
 }
 
 static void f_mod_video_frame(transfer_t *param,audiovideo_t *p_temp,int s_codec,int s_cleanup)
 {
-	static pixel_t *p_pixel_tmp=NULL;
+	static uint8_t *p_pixel_tmp=NULL;
 	int s_new_height,s_new_width;
-	image_t	s_src_image,s_dst_image;
-	image_t	s_src_image_Y,s_dst_image_Y;
-	image_t	s_src_image_UV,s_dst_image_UV;
-	zoomer_t	*p_zoomer,*p_zoomer_Y,*p_zoomer_UV;
 	static video_filter_t *p_v_filter;
 	static audiovideo_t *p_tmp=NULL;
 
@@ -237,43 +225,22 @@ static void f_mod_video_frame(transfer_t *param,audiovideo_t *p_temp,int s_codec
 		{
 			case CODEC_RGB:
 				if (p_pixel_tmp ==NULL)
-					p_pixel_tmp = (pixel_t*)malloc((3*p_temp->s_v_tg_width * p_temp->s_v_tg_height));
-				memset((char *)p_pixel_tmp,'\0',(3*p_temp->s_v_tg_width * p_temp->s_v_tg_height));
-				zoom_setup_image(&s_src_image,p_temp->s_v_width,p_temp->s_v_height,3,(pixel_t *)p_vframe_buffer);
-				zoom_setup_image(&s_dst_image,s_new_width,s_new_height,3,p_pixel_tmp);
-				p_zoomer=zoom_image_init(&s_dst_image,&s_src_image,p_v_filter->f_zoom_filter,p_v_filter->s_zoom_support);
-				s_src_image.data=p_vframe_buffer;
-				s_dst_image.data=p_pixel_tmp;
-				zoom_image_process(p_zoomer);
-				s_src_image.data++;
-				s_dst_image.data++;
-				zoom_image_process(p_zoomer);
-				s_src_image.data++;
-				s_dst_image.data++;
-				zoom_image_process(p_zoomer);
-				zoom_image_done(p_zoomer);
+					p_pixel_tmp = malloc((3*p_temp->s_v_tg_width * p_temp->s_v_tg_height));
+				memset(p_pixel_tmp,'\0',(3*p_temp->s_v_tg_width * p_temp->s_v_tg_height));
+				tcv_zoom(p_vframe_buffer, p_pixel_tmp, p_temp->s_v_width, p_temp->s_v_height, 3, p_temp->s_v_tg_width, p_temp->s_v_tg_height, p_v_filter->s_zoom_filter);
 			break;
-			default:
+			default: {
+				int Y_size_in = p_temp->s_v_width * p_temp->s_v_height;
+				int Y_size_out = p_temp->s_v_tg_width * p_temp->s_v_tg_height;
+				int UV_size_in = (p_temp->s_v_width/2) * (p_temp->s_v_height/2);
+				int UV_size_out = (p_temp->s_v_tg_width/2) * (p_temp->s_v_tg_height/2);
 				if (p_pixel_tmp ==NULL)
-					p_pixel_tmp = (pixel_t*)malloc(((3*p_temp->s_v_tg_width * p_temp->s_v_tg_height)/2));
-				memset((char *)p_pixel_tmp,'\0',((3*p_temp->s_v_tg_width * p_temp->s_v_tg_height)/2));
-				zoom_setup_image(&s_src_image_Y,p_temp->s_v_width,p_temp->s_v_height,1,(pixel_t *)p_vframe_buffer);
-				zoom_setup_image(&s_src_image_UV,(p_temp->s_v_width)/2,(p_temp->s_v_height)/2,1,(pixel_t *)(p_vframe_buffer+(p_temp->s_v_width*p_temp->s_v_height)));
-				zoom_setup_image(&s_dst_image_Y,s_new_width,s_new_height,1,p_pixel_tmp);
-				zoom_setup_image(&s_dst_image_UV,s_new_width/2,s_new_height/2,1,p_pixel_tmp+(s_new_width*s_new_height));
-				p_zoomer_Y=zoom_image_init(&s_dst_image_Y,&s_src_image_Y,p_v_filter->f_zoom_filter,p_v_filter->s_zoom_support);
-				p_zoomer_UV=zoom_image_init(&s_dst_image_UV,&s_src_image_UV,p_v_filter->f_zoom_filter,p_v_filter->s_zoom_support);
-				s_src_image_Y.data=p_vframe_buffer;
-				s_dst_image_Y.data=p_pixel_tmp;
-				zoom_image_process(p_zoomer_Y);
-				s_src_image_UV.data=p_vframe_buffer+(p_temp->s_v_width*p_temp->s_v_height);
-				s_dst_image_UV.data=p_pixel_tmp+(s_new_width*s_new_height);
-				zoom_image_process(p_zoomer_UV);
-				s_src_image_UV.data=p_vframe_buffer+(p_temp->s_v_width*p_temp->s_v_height)+((p_temp->s_v_width*p_temp->s_v_height)>>2);
-				s_dst_image_UV.data=p_pixel_tmp+(s_new_width*s_new_height)+((s_new_width*s_new_height)>>2);
-				zoom_image_process(p_zoomer_UV);
-				zoom_image_done(p_zoomer_Y);
-				zoom_image_done(p_zoomer_UV);
+					p_pixel_tmp = malloc(Y_size_out + 2*UV_size_out);
+				memset(p_pixel_tmp, 0, Y_size_out + 2*UV_size_out);
+				tcv_zoom(p_vframe_buffer, p_pixel_tmp, p_temp->s_v_width, p_temp->s_v_height, 1, p_temp->s_v_tg_width, p_temp->s_v_tg_height, p_v_filter->s_zoom_filter);
+				tcv_zoom(p_vframe_buffer + Y_size_in, p_pixel_tmp + Y_size_out, p_temp->s_v_width/2, p_temp->s_v_height/2, 1, p_temp->s_v_tg_width/2, p_temp->s_v_tg_height/2, p_v_filter->s_zoom_filter);
+				tcv_zoom(p_vframe_buffer + Y_size_in + UV_size_in, p_pixel_tmp + Y_size_out + UV_size_out, p_temp->s_v_width/2, p_temp->s_v_height/2, 1, p_temp->s_v_tg_width/2, p_temp->s_v_tg_height/2, p_v_filter->s_zoom_filter);
+			}
 			break;
 		}
 		ac_memcpy(param->buffer,p_pixel_tmp,param->size);	//copy the new image buffer

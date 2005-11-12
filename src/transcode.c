@@ -977,8 +977,7 @@ int main(int argc, char *argv[]) {
     //-Z
     vob->zoom_width       = 0;
     vob->zoom_height      = 0;
-    vob->zoom_filter      = Lanczos3_filter;
-    vob->zoom_support     = Lanczos3_support;
+    vob->zoom_filter      = TCV_ZOOM_LANCZOS3;
 
     vob->frame_interval   = 1; // write every frame
 
@@ -1797,52 +1796,45 @@ int main(int argc, char *argv[]) {
 	  if(optarg && strlen(optarg) > 0) {
 
 	    if(strcasecmp(optarg,"bell")==0) {
-	      vob->zoom_filter=Bell_filter;
-	      vob->zoom_support=Bell_support;
-	      zoom_filter="Bell";
+	      vob->zoom_filter = TCV_ZOOM_BELL;
+	      zoom_filter = "Bell";
 	      break;
 	    }
 
 	    if(strcasecmp(optarg,"box")==0) {
-	      vob->zoom_filter=Box_filter;
-	      vob->zoom_support=Box_support;
-	      zoom_filter="Box";
+	      vob->zoom_filter = TCV_ZOOM_BOX;
+	      zoom_filter = "Box";
 	      break;
 	    }
 
 	    //default
 	    if(strncasecmp(optarg,"lanczos3",1)==0) {
-	      vob->zoom_filter=Lanczos3_filter;
-	      vob->zoom_support=Lanczos3_support;
-	      zoom_filter="Lanczos3";
+	      vob->zoom_filter = TCV_ZOOM_LANCZOS3;
+	      zoom_filter = "Lanczos3";
 	      break;
 	    }
 
 	    if(strncasecmp(optarg,"mitchell",1)==0) {
-	      vob->zoom_filter=Mitchell_filter;
-	      vob->zoom_support=Mitchell_support;
-	      zoom_filter="Mitchell";
+	      vob->zoom_filter = TCV_ZOOM_MITCHELL;
+	      zoom_filter = "Mitchell";
 	      break;
 	    }
 
 	    if(strncasecmp(optarg,"hermite",1)==0) {
-	      vob->zoom_filter=Hermite_filter;
-	      vob->zoom_support=Hermite_support;
-	      zoom_filter="Hermite";
+	      vob->zoom_filter = TCV_ZOOM_HERMITE;
+	      zoom_filter = "Hermite";
 	      break;
 	    }
 
 	    if(strncasecmp(optarg,"B_spline",1)==0) {
-	      vob->zoom_filter=B_spline_filter;
-	      vob->zoom_support=B_spline_support;
-	      zoom_filter="B_spline";
+	      vob->zoom_filter = TCV_ZOOM_B_SPLINE;
+	      zoom_filter = "B_spline";
 	      break;
 	    }
 
 	    if(strncasecmp(optarg,"triangle",1)==0) {
-	      vob->zoom_filter=Triangle_filter;
-	      vob->zoom_support=Triangle_support;
-	      zoom_filter="Triangle";
+	      vob->zoom_filter = TCV_ZOOM_TRIANGLE;
+	      zoom_filter = "Triangle";
 	      break;
 	    }
 	    tc_error("invalid argument for --zoom_filter option\nmethod: L[anczos] M[itchell] T[riangle] H[ermite] B[_spline] bell box");
@@ -2535,8 +2527,7 @@ int main(int argc, char *argv[]) {
 			vob->hori_resize2     = 0;
 			vob->zoom_width       = 0;
 			vob->zoom_height      = 0;
-			vob->zoom_filter      = Lanczos3_filter;
-			vob->zoom_support     = Lanczos3_support;
+			vob->zoom_filter      = TCV_ZOOM_LANCZOS3;
 		}
 		free(p_tcxmlcheck_buffer);
     	}

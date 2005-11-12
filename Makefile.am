@@ -14,6 +14,7 @@ SUBDIRS = \
 	libsupport \
 	libioaux \
 	libtc \
+	libtcvideo \
 	libxio \
 	export \
 	filter \

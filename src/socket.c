@@ -167,8 +167,7 @@ static int tc_socket_dump_vob(char *buf)
     P(hori_resize2, "%d");
     P(zoom_width, "%d");
     P(zoom_height, "%d");
-    P(zoom_filter, "%p");
-    P(zoom_support, "%f");
+    P(zoom_filter, "%d");
     P(antialias, "%d");
     P(deinterlace, "%d");
     P(decolor, "%d");

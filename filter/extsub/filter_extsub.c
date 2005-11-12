@@ -29,6 +29,7 @@
 #include "transcode.h"
 #include "filter.h"
 #include "optstr.h"
+#include "libtcvideo/tcvideo.h"
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -39,11 +40,6 @@
 
 #include "subtitle_buffer.h"
 #include "subproc.h"
-
-//provided by transcode
-#warning ***************** FIXME ****************** not available
-//extern void init_aa_table(double aa_weight, double aa_bias);
-//extern void yuv_antialias(char *image, char *dest, int width, int height, int mode);
 
 #define BUFFER_SIZE SIZE_RGB_FRAME
 #define SUBTITLE_BUFFER 100
@@ -70,6 +66,8 @@ static int codec;
 static int vshift=0, tshift=0, post=0;
 
 static unsigned int color1=0, color2=255;
+
+static double aa_weight, aa_bias;
 
 
 //-------------------------------------------------------------------
@@ -152,8 +150,7 @@ static int subtitle_retrieve(void)
 
 static int color_set_done=0;
 static int anti_alias_done=0;
-#warning ***************** FIXME ****************** temp 1 because antialiasing not available
-static int skip_anti_alias=1;
+static int skip_anti_alias=0;
 
 static unsigned int ca=2, cb=3;
 
@@ -229,12 +226,11 @@ static void anti_alias_subtitle(int black) {
     continue;
   }
 
-  //use transcode's anti-alias routine (full frame mode = 3)
-#warning ***************** FIXME ****************** not available
-//  if(!skip_anti_alias) {
-//    yuv_antialias(sub_frame, tmp_frame, sub_xlen, sub_ylen, 3);
-//    ac_memcpy(sub_frame, tmp_frame, sub_xlen * sub_ylen);
-//  }
+  if(!skip_anti_alias) {
+    tcv_antialias(sub_frame, tmp_frame, sub_xlen, sub_ylen, 1,
+		  aa_weight, aa_bias);
+    ac_memcpy(sub_frame, tmp_frame, sub_xlen * sub_ylen);
+  }
 
   anti_alias_done=1;
 
@@ -500,9 +496,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
     } else
       memset(tmp_frame, 0, BUFFER_SIZE);
 
-    //for ant-aliasing
-#warning ***************** FIXME ****************** not available
-    //if(!skip_anti_alias) init_aa_table(vob->aa_weight, vob->aa_bias);
+    aa_weight = vob->aa_weight;
+    aa_bias = vob->aa_bias;
 
     return(0);
   }

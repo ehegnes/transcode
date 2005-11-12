@@ -19,6 +19,7 @@ bin_PROGRAMS = transcode
 transcode_LDADD = \
 	$(DLDARWINLIB) \
 	$(LIBTC_LIBS) \
+	$(LIBTCVIDEO_LIBS) \
 	$(SUPPORT_LIBS) \
 	$(TCIOAUX_LIBS) \
 	$(ACLIB_LIBS) \
@@ -44,8 +45,7 @@ EXTRA_DIST = \
 	transcode.h \
 	usage.h \
 	video_trans.h \
-	probe_export.h \
-	zoom.h
+	probe_export.h
 
 transcode_SOURCES = \
 	transcode.c \
@@ -63,5 +63,4 @@ transcode_SOURCES = \
 	socket.c \
 	split.c \
 	video_buffer.c \
-	video_trans.c \
-	zoom.c
+	video_trans.c

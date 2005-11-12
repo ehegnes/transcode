@@ -39,9 +39,8 @@ enum
 
 
 typedef struct _video_filter_t {
-                		double (*f_zoom_filter)(double);
-                		double	s_zoom_support;
-                		char	*p_zoom_filter;
+                		TCVZoomFilter s_zoom_filter;
+                		char	     *p_zoom_filter;
                         } video_filter_t;
 
 typedef struct _audiovideo_limit_t {
