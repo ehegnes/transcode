@@ -30,7 +30,7 @@ static void average(const uint8_t *src1, const uint8_t *src2,
 {
     int i;
     for (i = 0; i < bytes; i++)
-        dest[i] = (src1[i]+src2[i]) / 2;
+        dest[i] = (src1[i]+src2[i]+1) / 2;
 }
 
 /*************************************************************************/
@@ -45,6 +45,9 @@ static void average_mmx(const uint8_t *src1, const uint8_t *src2,
     if (bytes >= 8) {
         asm("\
             pxor %%mm7, %%mm7                                           \n\
+            movq %%mm7, %%mm6                                           \n\
+            pcmpeqw %%mm5, %%mm5                                        \n\
+            psubw %%mm5, %%mm6          # Put 0x0001*4 in MM6           \n\
             0:                                                          \n\
             movq (%%esi,%%eax), %%mm0                                   \n\
             movq %%mm0, %%mm1                                           \n\
@@ -55,8 +58,10 @@ static void average_mmx(const uint8_t *src1, const uint8_t *src2,
             punpcklbw %%mm7, %%mm2                                      \n\
             punpckhbw %%mm7, %%mm3                                      \n\
             paddw %%mm2, %%mm0                                          \n\
+            paddw %%mm6, %%mm0                                          \n\
             psrlw $1, %%mm0                                             \n\
             paddw %%mm3, %%mm1                                          \n\
+            paddw %%mm6, %%mm1                                          \n\
             psrlw $1, %%mm1                                             \n\
             packuswb %%mm1, %%mm0                                       \n\
             movq %%mm0, (%%edi,%%eax)                                   \n\
