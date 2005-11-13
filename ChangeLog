@@ -1,6 +1,11 @@
+2005-11-13 Francesco Romani <fromani at gmail dot com>
+  * docs/man/aviindex.1 tools/aviindex.c
+  merge in HEAD an aviindex enhancement patch originally provided 
+  against 1.0.2 by Mark Nauwelaerts (manauw at skynet dot be).
+
 2005-11-12 Francesco Romani <fromani at gmail dot com>
   * import/import_ffmpeg.c
-  little char VS uint8_t cleanup
+  little char VS uint8_t cleanup.
 
 2005-11-12 Andrew Church <achurch at achurch dot org>
   * Changed: Makefile.am configure.in filter/extsub/filter_extsub.c

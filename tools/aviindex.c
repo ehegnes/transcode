@@ -265,16 +265,22 @@ static int AVI_read_data_fast(avi_t *AVI, char *buf, off_t *pos, off_t *len, off
 
       n = PAD_EVEN(str2ulong(data+4));
 
-      if(strncasecmp(data,"LIST",4) == 0) {
-	  continue;
+      if(strncasecmp(data,"LIST",4) == 0 ||
+	 strncasecmp(data,"RIFF",4) == 0) { // prevents skipping extended RIFF chunks
+	  if( xio_read(AVI->fdes,data,4) != 4 ) return 0;
+	  n -= 4;
+	  // put here tags of lists that need to be looked into
+	  if(strncasecmp(data,"movi",4) == 0 ||
+	     strncasecmp(data,"rec ",4) == 0 ||
+	     strncasecmp(data,"AVI ",4) == 0 ||
+	     strncasecmp(data,"AVIX",4) == 0) {
+	    // xio_lseek(AVI->fdes,-4,SEEK_CUR);
+	    continue; // proceed to look into it
+	  } // otherwise seek over it later on
       }
 
-      if(strncasecmp(data,"movi",4) == 0 ||
-         strncasecmp(data,"rec ",4) == 0) {
-	  xio_lseek(AVI->fdes,-4,SEEK_CUR);
-	  continue;
-      }
-
+      // the following list of comparisons should not include list tags;
+      // these should all go in the list above
       if(strncasecmp(data,"IDX1",4) == 0)
       {
 	 // deal with it to extract keyframe info
@@ -474,7 +480,7 @@ int main(int argc, char *argv[])
     aud_ms[i] = 0;
   }
 
-  while ((ch = getopt(argc, argv, "a:vi:o:nf?h")) != -1)
+  while ((ch = getopt(argc, argv, "a:vi:o:nxf?h")) != -1)
     {
 
 	switch (ch) {
@@ -730,7 +736,8 @@ int main(int argc, char *argv[])
 
     AVI_info(avifile1);
 
-    if(avifile1->idx)
+    // idx1 contains only info for first chunk of opendml AVI
+    if(avifile1->idx && !avifile1->is_opendml)
     {
       off_t pos, len;
 
@@ -759,60 +766,118 @@ int main(int argc, char *argv[])
          }
       }
       /* idx_type remains 0 if neither of the two tests above succeeds */
-   }
-
-   ioff = idx_type == 1 ? 0 : avifile1->movi_start-4;
-   //fprintf(stderr, "index type (%d), ioff (%ld)\n", idx_type, (long)ioff);
-    i=0;
-
-    //printf("nr idx: %d\n", avifile1->n_idx);
-    while (i<avifile1->n_idx) {
-      ac_memcpy(tag, avifile1->idx[i], 4);
-      // tag
-      fprintf(out_fd, "%c%c%c%c",
-	  avifile1->idx[i][0], avifile1->idx[i][1],
-	  avifile1->idx[i][2], avifile1->idx[i][3]);
-
-      // type, absolute chunk number
-      fprintf(out_fd, " %c %ld", avifile1->idx[i][1]+1, i);
 
 
-      switch (avifile1->idx[i][1]) {
-	case '0':
-	  fprintf(out_fd, " %d", vid_chunks);
-	  vid_chunks++;
-	  break;
-	case '1': case '2':
-	case '3': case '4':
-	case '5': case '6':
-	case '7': case '8':
-	  // uhoh
-	  ret = avifile1->idx[i][1]-'0';
-	  fprintf(out_fd, " %d", aud_chunks[ret]);
-	  aud_chunks[ret]++;
-	  break;
-	default:
-	  fprintf(out_fd, " %d", -1);
-	  break;
+      ioff = idx_type == 1 ? 0 : avifile1->movi_start-4;
+    //fprintf(stderr, "index type (%d), ioff (%ld)\n", idx_type, (long)ioff);
+      i=0;
+
+      //printf("nr idx: %d\n", avifile1->n_idx);
+      while (i<avifile1->n_idx) {
+	ac_memcpy(tag, avifile1->idx[i], 4);
+	// tag
+	fprintf(out_fd, "%c%c%c%c",
+	    avifile1->idx[i][0], avifile1->idx[i][1],
+	    avifile1->idx[i][2], avifile1->idx[i][3]);
+
+	// type, absolute chunk number
+	fprintf(out_fd, " %c %ld", avifile1->idx[i][1]+1, i);
+
+
+	switch (avifile1->idx[i][1]) {
+	  case '0':
+	    fprintf(out_fd, " %d", vid_chunks);
+	    vid_chunks++;
+	    break;
+	  case '1': case '2':
+	  case '3': case '4':
+	  case '5': case '6':
+	  case '7': case '8':
+	    // uhoh
+	    ret = avifile1->idx[i][1]-'0';
+	    fprintf(out_fd, " %d", aud_chunks[ret]);
+	    aud_chunks[ret]++;
+	    break;
+	  default:
+	    fprintf(out_fd, " %d", -1);
+	    break;
+	}
+
+	pos = str2ulong(avifile1->idx[i]+ 8);
+	pos += ioff;
+	// pos
+	fprintf(out_fd, " %llu", pos);
+	// len
+	fprintf(out_fd, " %lu", str2ulong(avifile1->idx[i]+12));
+	// flags (keyframe?);
+	fprintf(out_fd, " %d", (str2ulong(avifile1->idx[i]+ 4))?1:0);
+
+	// ms (not available here)
+	fprintf(out_fd, " %.2f", 0.0);
+
+	fprintf(out_fd, "\n");
+
+	i++;
       }
-
-      pos = str2ulong(avifile1->idx[i]+ 8);
-      pos += ioff;
-      // pos
-      fprintf(out_fd, " %llu", pos);
-      // len
-      fprintf(out_fd, " %lu", str2ulong(avifile1->idx[i]+12));
-      // flags (keyframe?);
-      fprintf(out_fd, " %d", (str2ulong(avifile1->idx[i]+ 4))?1:0);
-
-      // ms (not available here)
-      fprintf(out_fd, " %.2f", 0.0);
-
-      fprintf(out_fd, "\n");
-
-      i++;
     }
 
+    else
+    { // try to extract from the index that AVILIB built,
+      // possibly from OpenDML superindex
+
+      long aud_entry [ AVI_MAX_TRACKS ] = { 0 };
+      long vid_entry = 0;
+      char* tagp;
+
+      off_t pos, len;
+      i = chunk = 0;
+
+
+      while (1) {
+	ret = pos = 0;
+	int j = 0;
+
+	if(vid_entry < avifile1->video_frames) {
+	  pos = avifile1->video_index[vid_entry].pos;
+	  len = avifile1->video_index[vid_entry].len;
+	  key = (avifile1->video_index[vid_entry].key) & 16 ? 1 : 0;
+	  chunk = vid_entry;
+	  ret = 1;
+	}
+	for(j = 0; j < AVI_audio_tracks(avifile1); ++j) {
+	  if(aud_entry[j] < avifile1->track[j].audio_chunks) {
+	    if(!ret || avifile1->track[j].audio_index[aud_entry[j]].pos < pos) {
+	      pos = avifile1->track[j].audio_index[aud_entry[j]].pos;
+	      len = avifile1->track[j].audio_index[aud_entry[j]].len;
+	      key = 0;
+	      chunk = aud_entry[j];
+	      ret = j + 2;
+	    }
+	  }
+	}
+
+	if(!ret) // end of all index streams
+	  break;
+
+	if (ret == 1)
+	{
+	  ++vid_entry;
+	  tagp = avifile1->video_tag;
+	}
+	else
+	{
+	  aud_entry[ret-2]++;
+	  tagp = avifile1->track[ret-2].audio_tag;
+	}
+
+	// index points to data in chunk, but chunk offset is needed here
+	pos -= 8;
+	fprintf(out_fd, "%.4s %d %ld %ld %lld %lld %lld %.2f\n", tagp, ret, i, chunk, pos, len, key, 0.0);
+	i++;
+
+      }
+
+    }
 
   }
 

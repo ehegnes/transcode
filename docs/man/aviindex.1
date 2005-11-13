@@ -8,7 +8,9 @@ aviindex \- Write and read text files describing the index of an AVI file
 .I ofile
 .B -i
 .I ifile
+.B -f
 .B -n
+.B -x
 .B -v
 .B -h
 ]
@@ -22,8 +24,11 @@ human readable form.
 .PP
 An AVI file can have an optional chunk called "idx1" which contains
 information about keyframes (syncpoints) and locations of video
-frames resp. audio chunks. Movie players use this index to seek in
-files.
+frames resp. audio chunks. Though larger AVI files (>2-4GB), so-called 
+OpenDML AVI or also AVI 2 files, have a more complicated indexing 
+system, which consists of a superindex referring to (possibly) 
+several "standard" indexes, the "indexing principle" is the same.
+Movie players use such indexes to seek in files.
 .PP
 \fBaviindex\fP reads the AVI file \fIifile\fP and writes the index
 into \fIofile\fP. This can either happen in "dumb" mode where
@@ -74,8 +79,14 @@ Specify the name of the output file.
 \fB-i\fP \fIifile\fP
 Specify the name of the input file.
 .TP
+\fB-f\fP
+force the use of the existing index.
+.TP
 \fB-n\fP
-force generating the index.
+force generating the index by scanning the file.
+.TP
+\fB-x\fP
+(implies -n) don't use any existing index to generate keyframes.
 .TP
 \fB-v\fP
 show version.
