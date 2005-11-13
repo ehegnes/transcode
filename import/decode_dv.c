@@ -113,14 +113,14 @@ void decode_dv(decode_t *decode)
 
   // tmp audio buffer
   for(i=0; i < 4; i++) {
-      if(!(audio_buffers[i] = malloc(DV_AUDIO_MAX_SAMPLES * sizeof(int16_t)))) {
+      if(!(audio_buffers[i] = tc_malloc(DV_AUDIO_MAX_SAMPLES * sizeof(int16_t)))) {
 	  fprintf(stderr, "(%s) out of memory\n", __FILE__);
 	  import_exit(1);
       }
   }
 
   // output audio buffer
-  if(!(audio = malloc(DV_AUDIO_MAX_SAMPLES * 4 * sizeof(int16_t)))) {
+  if(!(audio = tc_malloc(DV_AUDIO_MAX_SAMPLES * 4 * sizeof(int16_t)))) {
       fprintf(stderr, "(%s) out of memory\n", __FILE__);
       import_exit(1);
   }
@@ -314,7 +314,7 @@ void probe_dv(info_t *ipipe)
     }
 
   // max frame input buffer
-  if((buf = (unsigned char*) calloc(1, DV_PAL_SIZE))==NULL) {
+  if((buf = tc_zalloc(DV_PAL_SIZE))==NULL) {
       fprintf(stderr, "(%s) out of memory\n", __FILE__);
       ipipe->error=1;
       return;

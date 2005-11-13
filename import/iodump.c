@@ -156,7 +156,7 @@ void tccat_thread(info_t *ipipe)
 
       //start streaming
 
-      if(!(iobuf = malloc(IO_BUF_SIZE))) {
+      if(!(iobuf = tc_malloc(IO_BUF_SIZE))) {
 	fprintf(stderr, "(%s) out of memory\n", __FILE__);
 	ipipe->error=1;
 	return;

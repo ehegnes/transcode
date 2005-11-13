@@ -214,7 +214,7 @@ MOD_open
               /* not working ?*/
               /*if (strcmp(qt_codec, "raw ")) rawVideo=1; */
 	      	    /* allocate buffer for row pointers */
-	      	    row_ptr = malloc(h*sizeof(char *));
+	      	    row_ptr = tc_malloc(h*sizeof(char *));
 	      	    if(row_ptr==0) {
 		        fprintf(stderr,"error: can't alloc row pointers\n");
 			return(TC_IMPORT_ERROR);
@@ -228,7 +228,7 @@ MOD_open
               /* not working ?*/
               /* if (strcmp(qt_codec, "yv12")) rawVideo=1; */
 	      	    /* allocate buffer for row pointers */
-	      	    row_ptr = malloc(3*sizeof(char *));
+	      	    row_ptr = tc_malloc(3*sizeof(char *));
                     if(row_ptr==0) {
 		        fprintf(stderr,"error: can't alloc row pointers\n");
 			return(TC_IMPORT_ERROR);
@@ -372,7 +372,7 @@ MOD_decode
 
 	samples >>= 1;
 	tgt = (int16_t *)param->buffer;
-	tmp = (int16_t *)malloc(samples*sizeof(int16_t));
+	tmp = tc_malloc(samples*sizeof(int16_t));
 
 	/* read first channel into target buffer */
 	bytes_read = quicktime_decode_audio(qt_audio,tgt,NULL,samples,0);

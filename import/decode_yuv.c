@@ -155,18 +155,18 @@ static int vo_alloc (vo_t *vo, int width, int height)
     vo->width = (unsigned int)width;
     vo->height = (unsigned int)height;
 
-    vo->yuv[0] = calloc (1, width * height);
+    vo->yuv[0] = tc_zalloc (width * height);
     if (!vo->yuv[0]) {
         fprintf (stderr, "(%s) out of memory\n", __FILE__);
 	return -1;
     }
-    vo->yuv[1] = calloc (1, (width/2) * (height/2));
+    vo->yuv[1] = tc_zalloc ((width/2) * (height/2));
     if (!vo->yuv[1]) {
         fprintf (stderr, "(%s) out of memory\n", __FILE__);
 	free (vo->yuv[0]);
 	return -1;
     }
-    vo->yuv[2] = calloc (1, (width/2) * (height/2));
+    vo->yuv[2] = tc_zalloc ((width/2) * (height/2));
     if(!vo->yuv[2]) {
         fprintf (stderr, "(%s) out of memory\n", __FILE__);
 	free (vo->yuv[0]);
@@ -174,7 +174,7 @@ static int vo_alloc (vo_t *vo, int width, int height)
 	return -1;
     }
 
-    vo->rgb = calloc (1, width * height * 3);
+    vo->rgb = tc_zalloc (width * height * 3);
     if(!vo->rgb) {
         fprintf (stderr, "(%s) out of memory\n", __FILE__);
 	free (vo->yuv[0]);

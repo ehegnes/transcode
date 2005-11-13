@@ -50,14 +50,6 @@
 
 #define MAX_FRAMES    10000
 
-#define Malloc(p,n,typ)  do if( !(p = (typ *) malloc ( sizeof(typ) * (n) )))\
-{\
-    perror(__FILE__); \
-    fprintf(stderr, "in line %d: \n", __LINE__);\
-    fflush(stderr);\
-    exit(1);\
-}while(0)
-
 extern pthread_mutex_t play_modus_lock;
 extern pthread_mutex_t frame_buffer_lock;
 

@@ -136,7 +136,7 @@ MOD_open
 	break;
     }
 
-    if((video_buffer = (uint8_t *)calloc(1, out_bytes)) == NULL) {
+    if((video_buffer = tc_zalloc(out_bytes)) == NULL) {
 	fprintf(stderr, "(%s) out of memory", __FILE__);
 	return(TC_IMPORT_ERROR);
     }

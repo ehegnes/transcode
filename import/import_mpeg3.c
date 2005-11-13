@@ -171,8 +171,8 @@ MOD_open
       // prefetch
       prefetch_len = vob->im_a_size * FRAMES_TO_PREFETCH;
 
-      read_buffer = malloc (prefetch_len);
-      prefetch_buffer = malloc (prefetch_len);
+      read_buffer = tc_malloc (prefetch_len);
+      prefetch_buffer = tc_malloc (prefetch_len);
       if (!read_buffer || !prefetch_buffer) {
 	  fprintf(stderr, "[%s] malloc failed at %d\n", MOD_NAME, __LINE__);
 	      return TC_IMPORT_ERROR;

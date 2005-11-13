@@ -188,7 +188,7 @@ extern "C" {
       /* prepare unpacker */
       if(srcfmt) {
 	unpack_size = (plane_size * 3) / 2; /* target is 4:2:0 */
-	unpack_buffer = (uint8_t *)malloc(unpack_size);
+	unpack_buffer = tc_malloc(unpack_size);
 	if(unpack_buffer==0) {
 	  fprintf(stderr,"(%s) ERROR: No memory for buffer!!!\n",__FILE__);
 	  return;
@@ -317,7 +317,7 @@ extern "C" {
       if (ars->GetFrameSize() > buffer_size) {
 	buffer_size = ars->GetFrameSize();
       }
-      buffer = (uint8_t *)malloc(buffer_size);
+      buffer = tc_malloc(buffer_size);
       if(buffer==0) {
 	fprintf(stderr,"(%s) ERROR: No memory for buffer!!!\n",__FILE__);
 	return;

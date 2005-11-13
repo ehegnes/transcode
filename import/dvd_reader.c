@@ -735,7 +735,7 @@ int dvd_init(char *dvd_path, int *titles, int verb)
     //workspace
 
     if(data==NULL) {
-	if((data = (unsigned char *) malloc(1024 * DVD_VIDEO_LB_LEN))==NULL) {
+	if((data = tc_malloc(1024 * DVD_VIDEO_LB_LEN))==NULL) {
 	    fprintf(stderr, "(%s) out of memory\n", __FILE__);
 	    DVDClose( dvd );
 	    return(-1);

@@ -307,7 +307,7 @@ static int ac3scan(int infd, int outfd)
   int n=0;
 #endif
 
-  char *buffer = malloc (SIZE_PCM_FRAME);
+  char *buffer = tc_malloc (SIZE_PCM_FRAME);
 
   int frame_size, bitrate;
 
@@ -432,7 +432,7 @@ void extract_ac3(info_t *ipipe)
 
     verbose = ipipe->verbose;
 
-    buffer = malloc (BUFFER_SIZE);
+    buffer = tc_malloc (BUFFER_SIZE);
 
     switch(ipipe->magic) {
 

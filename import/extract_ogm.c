@@ -11,12 +11,6 @@
 
 #include "transcode.h"
 
-#ifndef SYS_BSD
-# ifdef HAVE_MALLOC_H
-# include <malloc.h>
-# endif
-#endif
-
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
@@ -325,7 +319,7 @@ static void process_ogm(int fdin, int fdout)
 
       if ((pack.bytes >= 7) && ! strncmp(&pack.packet[1], "vorbis", 6)) {
 
-        stream = (stream_t *)malloc(sizeof(stream_t));
+        stream = tc_malloc(sizeof(stream_t));
         if (stream == NULL) {
           fprintf(stderr, "malloc failed.\n");
           exit(1);
@@ -402,7 +396,7 @@ static void process_ogm(int fdin, int fdout)
                     (double)10000000 / (double)sth->time_unit,
                     sth->sh.video.width, sth->sh.video.height, (void *)codec,
                     ccodec);
-          stream = (stream_t *)malloc(sizeof(stream_t));
+          stream = tc_malloc(sizeof(stream_t));
           if (stream == NULL) {
             fprintf(stderr, "malloc failed.\n");
             exit(1);
@@ -443,7 +437,7 @@ static void process_ogm(int fdin, int fdout)
              fprintf(stderr, " avgbytespersec: %hd blockalign: %d\n",
                      sth->sh.audio.avgbytespersec, sth->sh.audio.blockalign);
           }
-          stream = (stream_t *)malloc(sizeof(stream_t));
+          stream = tc_malloc(sizeof(stream_t));
           if (stream == NULL) {
             fprintf(stderr, "malloc failed.\n");
             exit(1);
@@ -477,7 +471,7 @@ static void process_ogm(int fdin, int fdout)
           if (verbose_flag & TC_INFO)
             fprintf(stderr, "(%s) (t%d/%d) text/subtitle stream\n", __FILE__,
                     ntstreams + 1, numstreams + 1);
-          stream = (stream_t *)malloc(sizeof(stream_t));
+          stream = tc_malloc(sizeof(stream_t));
           if (stream == NULL) {
             fprintf(stderr, "malloc failed.\n");
             exit(1);
@@ -488,7 +482,7 @@ static void process_ogm(int fdin, int fdout)
           stream->serial = sno;
           ac_memcpy(&stream->instate, &sstate, sizeof(sstate));
           if (extraction_requested(xtext, ntstreams + 1, NOTEXT)) {
-            new_name = malloc(strlen(basename) + 20);
+            new_name = tc_malloc(strlen(basename) + 20);
             if (!new_name) {
               fprintf(stderr, "(%s) Failed to allocate %d bytes.\n", __FILE__,
                 (int)strlen(basename) + 20);
@@ -604,8 +598,7 @@ void extract_ogm (info_t *ipipe)
   no[NOVIDEO] = 0;
   xraw = 1;
 
-  xvideo = malloc (16); xaudio = malloc (16); xtext = malloc (16);
-  memset (xvideo, 0, 16); memset (xaudio, 0, 16); memset (xtext, 0, 16);
+  xvideo = tc_zalloc (16); xaudio = tc_zalloc (16); xtext = tc_zalloc (16);
 
   verbose_flag = ipipe->verbose;
 

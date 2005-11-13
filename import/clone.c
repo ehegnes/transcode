@@ -81,7 +81,7 @@ int clone_init(FILE *fd)
 
   // allocate space, assume max buffer size
 
-  if((video_buffer = (char *)calloc(1, width*height*3))==NULL) {
+  if((video_buffer = tc_zalloc(width*height*3))==NULL) {
     fprintf(stderr, "(%s) out of memory", __FILE__);
     sync_disabled_flag=1;
     return(-1);
@@ -89,7 +89,7 @@ int clone_init(FILE *fd)
 
   // allocate space, assume max buffer size
 
-  if((pulldown_buffer = (char *)calloc(1, width*height*3))==NULL) {
+  if((pulldown_buffer = tc_zalloc(width*height*3))==NULL) {
     fprintf(stderr, "(%s) out of memory", __FILE__);
     sync_disabled_flag=1;
     return(-1);
@@ -347,7 +347,7 @@ void clone_read_thread()
 	    return;
 	}
 
-	if((ptr->sync_info = (sync_info_t *)calloc(1, sizeof(sync_info_t)))==NULL) {
+	if((ptr->sync_info = tc_zalloc(sizeof(sync_info_t)))==NULL) {
 	    fprintf(stderr, "(%s) out of memory", __FILE__);
 	    pthread_mutex_lock(&buffer_fill_lock);
 	    clone_read_thread_flag=0;

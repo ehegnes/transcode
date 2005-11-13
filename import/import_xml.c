@@ -225,8 +225,7 @@ static void f_mod_video_frame(transfer_t *param,audiovideo_t *p_temp,int s_codec
 		{
 			case CODEC_RGB:
 				if (p_pixel_tmp ==NULL)
-					p_pixel_tmp = malloc((3*p_temp->s_v_tg_width * p_temp->s_v_tg_height));
-				memset(p_pixel_tmp,'\0',(3*p_temp->s_v_tg_width * p_temp->s_v_tg_height));
+					p_pixel_tmp = tc_zalloc(3*p_temp->s_v_tg_width * p_temp->s_v_tg_height);
 				tcv_zoom(p_vframe_buffer, p_pixel_tmp, p_temp->s_v_width, p_temp->s_v_height, 3, p_temp->s_v_tg_width, p_temp->s_v_tg_height, p_v_filter->s_zoom_filter);
 			break;
 			default: {
@@ -235,8 +234,7 @@ static void f_mod_video_frame(transfer_t *param,audiovideo_t *p_temp,int s_codec
 				int UV_size_in = (p_temp->s_v_width/2) * (p_temp->s_v_height/2);
 				int UV_size_out = (p_temp->s_v_tg_width/2) * (p_temp->s_v_tg_height/2);
 				if (p_pixel_tmp ==NULL)
-					p_pixel_tmp = malloc(Y_size_out + 2*UV_size_out);
-				memset(p_pixel_tmp, 0, Y_size_out + 2*UV_size_out);
+					p_pixel_tmp = tc_zalloc(Y_size_out + 2*UV_size_out);
 				tcv_zoom(p_vframe_buffer, p_pixel_tmp, p_temp->s_v_width, p_temp->s_v_height, 1, p_temp->s_v_tg_width, p_temp->s_v_tg_height, p_v_filter->s_zoom_filter);
 				tcv_zoom(p_vframe_buffer + Y_size_in, p_pixel_tmp + Y_size_out, p_temp->s_v_width/2, p_temp->s_v_height/2, 1, p_temp->s_v_tg_width/2, p_temp->s_v_tg_height/2, p_v_filter->s_zoom_filter);
 				tcv_zoom(p_vframe_buffer + Y_size_in + UV_size_in, p_pixel_tmp + Y_size_out + UV_size_out, p_temp->s_v_width/2, p_temp->s_v_height/2, 1, p_temp->s_v_tg_width/2, p_temp->s_v_tg_height/2, p_v_filter->s_zoom_filter);
@@ -445,7 +443,7 @@ MOD_open
 			return(TC_IMPORT_ERROR);
 		}
 		param->size=f_calc_frame_size(p_video,s_v_codec);	//setting the frame size
-		p_vframe_buffer=(char *)malloc(s_frame_size);
+		p_vframe_buffer=tc_malloc(s_frame_size);
 		if(verbose_flag)
 			tc_log_info(MOD_NAME,"setting target video size to %d",param->size);
 		p_video_prev=p_video;

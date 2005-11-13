@@ -1783,8 +1783,8 @@ int main (int argc, char *argv[])
 	    ofd = STDOUT_FILENO;
 	}
 
-	rbuf = cbuf = orbuf = malloc(BUF_SIZE);
-	wbuf = owbuf = malloc(BUF_SIZE);
+	rbuf = cbuf = orbuf = tc_malloc(BUF_SIZE);
+	wbuf = owbuf = tc_malloc(BUF_SIZE);
 	if (!orbuf || !owbuf) {
 	    fprintf(stderr, "[%s] malloc() failed at %s:%d\n", EXE, __FILE__, __LINE__);
 	    exit (1);

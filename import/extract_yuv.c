@@ -168,7 +168,7 @@ void extract_yuv(info_t *ipipe)
     }
 
     // allocate space
-    if((buffer = (char *)calloc(1, MAX_BUF))==NULL) {
+    if((buffer = tc_zalloc(MAX_BUF))==NULL) {
       perror("out of memory");
       error=1;
       break;
@@ -212,7 +212,7 @@ void extract_yuv(info_t *ipipe)
     if(ipipe->verbose & TC_STATS) fprintf(stderr, "(%s) %ld video frames\n", __FILE__, frames);
 
     // allocate space, assume max buffer size
-    if((video = (char *)calloc(1, SIZE_RGB_FRAME))==NULL) {
+    if((video = tc_zalloc(SIZE_RGB_FRAME))==NULL) {
       fprintf(stderr, "(%s) out of memory", __FILE__);
       error=1;
       break;

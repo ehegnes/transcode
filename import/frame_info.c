@@ -21,6 +21,7 @@
  *
  */
 
+#include "libtc/libtc.h"
 #include "frame_info.h"
 
 pthread_mutex_t frame_info_list_lock=PTHREAD_MUTEX_INITIALIZER;
@@ -55,7 +56,7 @@ frame_info_list_t *frame_info_register(int id)
   // retrive a valid pointer from the pool
 
 
-  if((ptr = malloc(sizeof(frame_info_list_t))) == NULL) {
+  if((ptr = tc_malloc(sizeof(frame_info_list_t))) == NULL) {
       pthread_mutex_unlock(&frame_info_list_lock);
       return(NULL);
   }

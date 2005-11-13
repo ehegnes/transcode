@@ -331,8 +331,11 @@ do_avi:
     }
 
     if (extra_data_size) {
-      lavc_dec_context->extradata = malloc(extra_data_size);
-      memset (lavc_dec_context->extradata, 0, extra_data_size);
+      lavc_dec_context->extradata = tc_zalloc(extra_data_size);
+      if (!lavc_dec_context->extradata) {
+        fprintf(stderr, "[%s] can't allocate extra_data\n", MOD_NAME);
+        return TC_IMPORT_ERROR;
+      }
       lavc_dec_context->extradata_size = extra_data_size;
     }
 
@@ -374,7 +377,7 @@ do_avi:
     }
 
     if (!frame) {
-        frame = calloc(frame_size, 1);
+        frame = tc_zalloc(frame_size);
         if (!frame) {
             perror("out of memory");
             return TC_IMPORT_ERROR;
@@ -696,7 +699,7 @@ MOD_close {
 
     // do not free buffer and yuv2rgb_buffer!!
     /* 
-     * since the are static variables and are conditionally allocated
+     * because they are static variables and are conditionally allocated
      * -- fromani 20051112
      */
     return TC_IMPORT_OK;

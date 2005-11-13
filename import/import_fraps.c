@@ -97,9 +97,13 @@ MOD_open
         size = AVI_video_width(avifile2) * AVI_video_height(avifile2) * 3;
 
         if (!buffer)
-            buffer = malloc(size);
+            buffer = tc_malloc(size);
         if (!save_buffer)
-            save_buffer = malloc(size);
+            save_buffer = tc_malloc(size);
+        if (!buffer || !save_buffer) {
+            fprintf(stderr, "[%s] can't allocate buffers\n", MOD_NAME);
+            return(TC_IMPORT_ERROR);
+        }
 
         if (vob->vob_offset > 0)
             AVI_set_video_position(avifile2, vob->vob_offset);

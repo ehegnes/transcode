@@ -102,7 +102,7 @@ void decode_mov(decode_t *decode)
 			s_qt_pos=quicktime_audio_position(p_qt_structure,0);
 			s_sample=(1.00 * s_channel * s_bits *s_audio_rate)/(s_fps*8);
 			s_buff_size=s_sample * sizeof(short);
-			p_buffer=(char *)malloc(s_buff_size);
+			p_buffer=tc_malloc(s_buff_size);
 			if(s_bits==16)
 				s_sample >>= 1;
 			if(s_channel==1)
@@ -124,7 +124,7 @@ void decode_mov(decode_t *decode)
 			{
 				s_sample >>= 1;
 				p_mask1=(short *)p_buffer;
-				p_mask2=(short *)malloc(s_sample * sizeof(short));
+				p_mask2=tc_malloc(s_sample * sizeof(short));
 				s_qt_pos+=decode->frame_limit[0];
 				quicktime_set_audio_position(p_qt_structure,s_qt_pos,0);
 				for (;s_audio_size>0;s_audio_size-=s_sample)
@@ -158,7 +158,7 @@ void decode_mov(decode_t *decode)
 		{
 			s_sample=(1.00 * s_channel * s_bits *s_audio_rate)/(s_fps*8);
 			s_buff_size=s_sample * sizeof(short);
-			p_buffer=(char *)malloc(s_buff_size);
+			p_buffer=tc_malloc(s_buff_size);
 			s_qt_pos=quicktime_audio_position(p_qt_structure,0);
 			quicktime_set_audio_position(p_qt_structure,s_qt_pos+decode->frame_limit[0],0);
 			for (;s_audio_size>0;s_audio_size-=s_buff_size)
@@ -212,7 +212,7 @@ void decode_mov(decode_t *decode)
 				s_buff_size=TC_FRAME_DV_PAL;
 			else
 				s_buff_size=TC_FRAME_DV_NTSC;
-			if ((p_buffer=(char *)malloc(s_buff_size)) == NULL)
+			if ((p_buffer=tc_malloc(s_buff_size)) == NULL)
 			{
 				quicktime_close(p_qt_structure);
 				fprintf(stderr,"(%s) error: can't allocate buffer\n",__FILE__);
@@ -240,14 +240,14 @@ void decode_mov(decode_t *decode)
 				fprintf(stderr,"(%s) error: quicktime video codec '%s' not supported for RGB\n",__FILE__,p_v_codec);
 				import_exit(1);
 			}
-      			if ((p_raw_buffer = malloc(s_height*sizeof(char *))) ==NULL)
+      			if ((p_raw_buffer = tc_malloc(s_height*sizeof(char *))) ==NULL)
 			{
 				quicktime_close(p_qt_structure);
 				fprintf(stderr,"(%s) error: can't allocate row pointers\n",__FILE__);
 				import_exit(1);
 			}
 			s_buff_size=3 * s_height * s_width;
-			if ((p_buffer=(char *)malloc(s_buff_size)) == NULL)
+			if ((p_buffer=tc_malloc(s_buff_size)) == NULL)
 			{
 				free(p_raw_buffer);
 				quicktime_close(p_qt_structure);
@@ -285,7 +285,7 @@ void decode_mov(decode_t *decode)
 				import_exit(1);
 			}
 			s_buff_size=(3 * s_height * s_width)/2;
-			if ((p_buffer=(char *)malloc(s_buff_size)) == NULL)
+			if ((p_buffer=tc_malloc(s_buff_size)) == NULL)
 			{
 				quicktime_close(p_qt_structure);
 				fprintf(stderr,"(%s) error: can't allocate rgb buffer\n",__FILE__);

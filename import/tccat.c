@@ -114,8 +114,6 @@ int main(int argc, char *argv[])
   struct hostent *hp;
 #endif
   info_t ipipe;
-  size_t namelen;
-  long sret;
 
   int user=0, source=0;
 
@@ -313,14 +311,15 @@ int main(int argc, char *argv[])
   ipipe.vob_offset = vob_offset;
 
   if (name) {
-      namelen = strlen(name) + 1;
-      if ((ipipe.name = malloc(namelen)) == NULL) {
+      if ((ipipe.name = tc_strdup(name)) == NULL) {
           fprintf(stderr, "(%s) could not allocate memory\n", __FILE__);
           exit(1);
       }
-      sret = strlcpy(ipipe.name, name, namelen);
-      if (tc_test_string(__FILE__, __LINE__, namelen, sret, errno))
+      if (strlen(ipipe.name) != strlen(name)) {
+          /* should never happen */
+          tc_log_error(__FILE__, "can't fully copy the file name");
           exit(1);
+      }
   } else {
       ipipe.name = NULL;
   }

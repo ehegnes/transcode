@@ -263,7 +263,7 @@ static int mp3scan(int infd, int outfd)
   unsigned long k=0;
 
 
-  char *buffer = malloc (SIZE_PCM_FRAME);
+  char *buffer = tc_malloc (SIZE_PCM_FRAME);
 
   uint16_t sync_word = 0;
 

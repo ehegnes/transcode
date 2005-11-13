@@ -84,7 +84,7 @@ packet_list_t *packet_register(int id)
   }
 #else
 
-  if((ptr = malloc(sizeof(packet_list_t))) == NULL) {
+  if((ptr = tc_malloc(sizeof(packet_list_t))) == NULL) {
     pthread_mutex_unlock(&packet_list_lock);
     return(NULL);
   }
@@ -221,12 +221,12 @@ int sbuf_alloc(int ex_num)
 
     num = ex_num + 2; //alloc some more because
 
-    if((sbuf_ptr = (packet_list_t **) calloc(num, sizeof(packet_list_t *)))==NULL) {
+    if((sbuf_ptr = tc_zalloc(num * sizeof(packet_list_t *)))==NULL) {
 	perror("out of memory");
 	return(-1);
     }
 
-    if((sbuf_mem = (char *) calloc(num, sizeof(packet_list_t)))==NULL) {
+    if((sbuf_mem = tc_zalloc(num * sizeof(packet_list_t)))==NULL) {
 	perror("out of memory");
 	return(-1);
     }

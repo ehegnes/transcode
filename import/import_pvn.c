@@ -76,7 +76,7 @@ MOD_open
       return(TC_IMPORT_ERROR);
 
     bufSize=calcPVNPageSize(inParams);
-    buf=(unsigned char *)malloc(bufSize);
+    buf=tc_malloc(bufSize);
 
     PVNParamCopy(&tmpParams, &inParams);
 
@@ -102,7 +102,7 @@ MOD_open
     tmpParams.magic[3]='a';
     tmpParams.maxcolour=8.0;
     tmpBufSize=calcPVNPageSize(tmpParams);
-    tmpBuf=(unsigned char *)malloc(tmpBufSize);
+    tmpBuf=tc_malloc(tmpBufSize);
 
     if(inParams.framerate==0)
     {

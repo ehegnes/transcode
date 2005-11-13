@@ -64,12 +64,10 @@ void decode_mp3(decode_t *decode)
 
   // init decoder
 
-  if((mp3data = malloc(sizeof(mp3data_struct)))==NULL) {
+  if((mp3data = tc_zalloc(sizeof(mp3data_struct)))==NULL) {
     fprintf(stderr, "(%s) out of memory", __FILE__);
     exit(1);
   }
-
-  memset(mp3data, 0, sizeof(mp3data_struct));
 
   if(lame_decode_init()<0) {
     fprintf(stderr, "(%s) failed to init decoder", __FILE__);
@@ -152,12 +150,10 @@ void decode_mp2(decode_t *decode)
 
   // init decoder
 
-  if((mp3data = malloc(sizeof(mp3data_struct)))==NULL) {
+  if((mp3data = tc_zalloc(sizeof(mp3data_struct)))==NULL) {
     fprintf(stderr, "(%s) out of memory", __FILE__);
     exit(1);
   }
-
-  memset(mp3data, 0, sizeof(mp3data_struct));
 
   if(lame_decode_init()<0) {
     fprintf(stderr, "(%s) failed to init decoder", __FILE__);

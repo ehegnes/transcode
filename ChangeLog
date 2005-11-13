@@ -1,4 +1,24 @@
 2005-11-13 Francesco Romani <fromani at gmail dot com>
+  * import/af6_decore.cpp import/clone.c import/decode_ac3.c 
+    import/decode_dv.c import/decode_mov.c import/decode_mp3.c
+    import/decode_yuv.c import/demux_pass.c import/demuxer.c
+    import/dvd_reader.c import/extract_ac3.c import/extract_dv.c
+    import/extract_lzo.c import/extract_mp3.c import/extract_ogm.c
+    import/extract_rgb.c import/extract_yuv.c import/frame_info.c
+    import/import_divx.c import/import_dv.c import/import_dvd.c
+    import/import_ffmpeg.c import/import_fraps.c import/import_im.c
+    import/import_mov.c import/import_mpeg2.c import/import_mpeg3.c
+    import/import_pvn.c import/import_rawlist.c import/import_vob.c
+    import/import_xml.c import/iodump.c import/ioxml.c import/mpg123.c
+    import/packets.c import/probe_nuv.c import/probe_ogg.c
+    import/probe_socket.c import/probe_xml.c import/seqinfo.c
+    import/tccat.c import/tcrequant.c import/tcxpm2rgb.c
+    import/v4l/import_v4l2.c import/v4l/vcr.h import/v4l/video.c
+  libtc port roundup in import layer; ported code to tc_* helper
+  functions. Also removed a couple of questionable dynamic
+  allocations of data, and switch to tc_strdup where feasible.
+
+2005-11-13 Francesco Romani <fromani at gmail dot com>
   * docs/man/aviindex.1 tools/aviindex.c
   merge in HEAD an aviindex enhancement patch originally provided 
   against 1.0.2 by Mark Nauwelaerts (manauw at skynet dot be).

@@ -769,7 +769,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 	if(verbose_flag & TC_INFO)
 		tc_log_info(MOD_NAME, "%d buffers available", v4l2_buffers_count);
 
-	if(!(v4l2_buffers = calloc(v4l2_buffers_count, sizeof(*v4l2_buffers))))
+	if(!(v4l2_buffers = tc_zalloc(v4l2_buffers_count * sizeof(*v4l2_buffers))))
 	{
 		fprintf(stderr, module "out of memory\n");
 		return(1);

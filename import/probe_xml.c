@@ -120,7 +120,7 @@ static void f_det_totale_audio_frame(audiovideo_t *p_audio_video)
 }
 
 
-static int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_first_audio,probe_info_t *p_first_video,long *s_tot_frames_audio, long *s_tot_frames_video)
+int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_first_audio,probe_info_t *p_first_video,long *s_tot_frames_audio, long *s_tot_frames_video)
 {
 	audiovideo_t	*p_audio_video;
 	char	s_probe_cmd_buf[MAX_BUF+1];

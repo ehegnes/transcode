@@ -299,7 +299,7 @@ int main (int argc, char *argv[])
     }
     //fprintf(stderr, "XPM Image: %dx%d; %d colors, %d byte wide\n", width, height, colors, bwidth);
 
-    clist = (char **)malloc(colors*sizeof(char *));
+    clist = tc_malloc(colors*sizeof(char *));
 
     if (clist == (char **)NULL) {
 	fprintf(stderr, "Error malloc clist\n");
@@ -307,7 +307,7 @@ int main (int argc, char *argv[])
     }
 
     // color lookup table
-    colormap = (color_t *)malloc(colors*sizeof(color_t));
+    colormap = tc_malloc(colors*sizeof(color_t));
 
     for (n=0; n<colors; n++) {
 	int len;
@@ -318,18 +318,18 @@ int main (int argc, char *argv[])
 	}
 	len=strlen(linebuf);
 
-	clist[n] = (char *)malloc(len);
+	clist[n] = tc_malloc(len);
 	memcpy(clist[n], linebuf+1, len-3);
 	clist[n][len-4] = '\0';
 	//printf("[%d] : %s|\n", n, clist[n]);
     }
 
-    keys = (char **)malloc(colors*sizeof(char *));
+    keys = tc_malloc(colors*sizeof(char *));
 
     for (j=0; j<colors; j++) {
 	p = clist[j];
 
-	keys[j] = malloc(bwidth+1); // a bit stupid since bwidth is usually just 1 or 2
+	keys[j] = tc_malloc(bwidth+1); // a bit stupid since bwidth is usually just 1 or 2
 	keys[j][bwidth]='\0';
 
 	sret = strlcpy(keys[j], p, bwidth+1);
@@ -358,9 +358,9 @@ int main (int argc, char *argv[])
     memset (key, '\0', 16);
 
     linelen = width * bwidth + 16;
-    line = malloc(linelen);
+    line = tc_malloc(linelen);
 
-    out = malloc (width*height*3);
+    out = tc_malloc (width*height*3);
     if (!out || !line) {
 	fprintf(stderr, "Error malloc line\n");
 	return 1;

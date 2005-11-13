@@ -451,7 +451,7 @@ MOD_open
       f = param->fd;
       param->fd = NULL;
 
-      tbuf.d = malloc (SIZE_RGB_FRAME);
+      tbuf.d = tc_malloc (SIZE_RGB_FRAME);
       tbuf.len = SIZE_RGB_FRAME;
       tbuf.off = 0;
 

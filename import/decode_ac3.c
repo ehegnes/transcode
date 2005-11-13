@@ -93,10 +93,9 @@ void decode_ac3(decode_t *decode)
     while (!feof(in_file)) {
         ac3_frame = ac3_decode_frame(banner);
         if(!ac3_frame) {
-            void *tmp;
-            tmp = malloc(WRITE_BYTES);
-            memset(tmp, 0, WRITE_BYTES);
-            if(fwrite( tmp, WRITE_BYTES, 1, out_file)!=1) {
+            uint8_t tmp[WRITE_BYTES];
+            memset(&tmp, 0, WRITE_BYTES);
+            if(fwrite(&tmp, WRITE_BYTES, 1, out_file)!=1) {
                 fprintf(stderr, "(%s) write failed\n", __FILE__);
 	        break;
 	    }

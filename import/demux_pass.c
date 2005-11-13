@@ -70,7 +70,7 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
     double fps;
 
     // allocate space
-    if((buffer = (char *)calloc(1, packet_size))==NULL) {
+    if((buffer = tc_zalloc(packet_size))==NULL) {
       perror("out of memory");
       exit(1);
     }

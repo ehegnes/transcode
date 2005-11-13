@@ -98,7 +98,7 @@ video_grab_init (char *device,  // device the video/audio comes from [/dev/video
     goto dont_touch;
 
   if (!channels) {
-    channels = malloc (sizeof (struct video_channel) * capability.channels);
+    channels = tc_malloc (sizeof (struct video_channel) * capability.channels);
   }
 
   channels[chanid].channel = chanid;

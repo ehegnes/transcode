@@ -25,6 +25,7 @@
 
 #include "ioaux.h"
 #include "tc.h"
+#include "libtc/libtc.h"
 
 #include <sys/mman.h>
 
@@ -122,8 +123,8 @@ void probe_ogg(info_t *ipipe)
 	    break;
 	} else {
 	    ogg_stream_state sstate;
-	    vorbis_info *inf = malloc (sizeof(vorbis_info));
-	    vorbis_comment *com = malloc (sizeof(vorbis_comment));
+	    vorbis_info *inf = tc_malloc (sizeof(vorbis_info));
+	    vorbis_comment *com = tc_malloc (sizeof(vorbis_comment));
 
 	    if (!inf || !com) {
 		fprintf(stderr, "(%s) Out of Memory in %d", __FILE__, __LINE__);

@@ -266,12 +266,11 @@ int buf_probe_mp3(unsigned char *_buf, int len, pcm_t *pcm)
 
   int type;
 
-  if((mp3data = malloc(sizeof(mp3data_struct)))==NULL) {
+  if((mp3data = tc_zalloc(sizeof(mp3data_struct)))==NULL) {
     fprintf(stderr, "(%s) out of memory", __FILE__);
     exit(1);
   }
 
-  memset(mp3data, 0, sizeof(mp3data_struct));
   lame_decode_init();
 
   buf=_buf;

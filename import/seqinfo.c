@@ -55,7 +55,7 @@ seq_list_t *seq_register(int id)
 
   // retrive a valid pointer from the pool
 
-  if((ptr = malloc(sizeof(seq_list_t))) == NULL) {
+  if((ptr = tc_malloc(sizeof(seq_list_t))) == NULL) {
     pthread_mutex_unlock(&seq_list_lock);
     return(NULL);
   }

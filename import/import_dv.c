@@ -135,7 +135,7 @@ MOD_open
       // for reading
       frame_size = vob->im_v_width * vob->im_v_height * 2;
 
-      tmpbuf = malloc(frame_size);
+      tmpbuf = tc_malloc(frame_size);
       if (!tmpbuf) {
 	fprintf(stderr, "out of memory");
 	return(TC_IMPORT_ERROR);

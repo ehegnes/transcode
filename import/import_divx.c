@@ -265,11 +265,10 @@ MOD_open
 
 #if DECORE_VERSION >= 20020303
 #  if DECORE_VERSION >= 20021112
-    if ((decInit = malloc(sizeof(DEC_INIT)))==NULL) {
+    if ((decInit = tc_zalloc(sizeof(DEC_INIT)))==NULL) {
       perror("out of memory");
       return(TC_IMPORT_ERROR);
-    } else
-      memset(decInit,0x00,sizeof(DEC_INIT));
+    }
 
       if (verbose & TC_DEBUG)
       		tc_log_info(MOD_NAME, "using DivX5.0.5 decoder syntax.");
@@ -286,11 +285,10 @@ MOD_open
       divx_version=DEC_OPT_FRAME;
 #  else
 
-    if ((divx = malloc(sizeof(DEC_PARAM)))==NULL) {
+    if ((divx = tc_zalloc(sizeof(DEC_PARAM)))==NULL) {
       perror("out of memory");
       return(TC_IMPORT_ERROR);
-    } else
-      memset(divx,0x00,sizeof(DEC_PARAM));
+    } 
 
     //important parameter
     divx->x_dim = AVI_video_width(avifile);
@@ -330,11 +328,10 @@ MOD_open
 #define FOURCC(A, B, C, D) ( ((uint8_t) (A)) | (((uint8_t) (B))<<8) | \
                              (((uint8_t) (C))<<16) | (((uint8_t) (D))<<24) )
 
-    if ((pbi = malloc(sizeof(DivXBitmapInfoHeader)))==NULL) {
+    if ((pbi = tc_zalloc(sizeof(DivXBitmapInfoHeader)))==NULL) {
       perror("out of memory");
       return(TC_IMPORT_ERROR);
-    } else
-      memset(pbi,0x00,sizeof(DivXBitmapInfoHeader));
+    } 
 
     pbi->biSize=sizeof(DivXBitmapInfoHeader);
     pbi->biWidth = AVI_video_width(avifile);
@@ -429,13 +426,12 @@ MOD_open
 	++decore_in_use;
 #endif
 
-    if ((decFrame = malloc(sizeof(DEC_FRAME)))==NULL) {
+    if ((decFrame = tc_zalloc(sizeof(DEC_FRAME)))==NULL) {
       perror("out of memory");
       return(TC_IMPORT_ERROR);
-    } else
-      memset(decFrame,0x00,sizeof(DEC_FRAME));
+    } 
 
-    if ((decInfo = malloc(sizeof(DEC_FRAME_INFO)))==NULL) {
+    if ((decInfo = tc_malloc(sizeof(DEC_FRAME_INFO)))==NULL) {
       perror("out of memory");
       return(TC_IMPORT_ERROR);
     }
@@ -481,7 +477,7 @@ MOD_decode {
     static char *working_frame = NULL;
 
     if (!working_frame) {
-	working_frame = calloc(frame_size, 1);
+	working_frame = tc_zalloc(frame_size);
 	if (!working_frame) {
 	  perror("out of memory");
 	  return(TC_IMPORT_ERROR);

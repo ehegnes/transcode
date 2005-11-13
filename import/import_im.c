@@ -109,12 +109,12 @@ MOD_open
     if (result) {
         tc_log_warn(MOD_NAME, "Regex match failed: no image sequence");
 	string_length = strlen(vob->video_in_file) + 1;
-        if ((head = malloc(string_length)) == NULL) {
+        if ((head = tc_malloc(string_length)) == NULL) {
 	    perror("filename head");
 	    return(TC_IMPORT_ERROR);
 	}
 	strlcpy(head, vob->video_in_file, string_length);
-        tail = malloc(1);
+        tail = tc_malloc(1);
         tail[0] = 0;
         first_frame = -1;
         last_frame = 0x7fffffff;
@@ -122,14 +122,14 @@ MOD_open
     else {
         // split the name into head, frame number, and tail
         string_length = pmatch[1].rm_eo - pmatch[1].rm_so + 1;
-        if ((head = malloc(string_length)) == NULL) {
+        if ((head = tc_malloc(string_length)) == NULL) {
             perror("filename head");
             return(TC_IMPORT_ERROR);
         }
         strlcpy(head, vob->video_in_file, string_length);
 
         string_length = pmatch[2].rm_eo - pmatch[2].rm_so + 1;
-        if ((frame = malloc(string_length)) == NULL) {
+        if ((frame = tc_malloc(string_length)) == NULL) {
             perror("filename frame");
             return(TC_IMPORT_ERROR);
         }
@@ -143,7 +143,7 @@ MOD_open
         first_frame = atoi(frame);
 
         string_length = pmatch[3].rm_eo - pmatch[3].rm_so + 1;
-        if ((tail = malloc(string_length)) == NULL) {
+        if ((tail = tc_malloc(string_length)) == NULL) {
             perror("filename tail");
             return(TC_IMPORT_ERROR);
         }
@@ -151,7 +151,7 @@ MOD_open
 
         // find the last frame by trying to open files
         last_frame = first_frame;
-        filename = malloc(strlen(head) + pad + strlen(tail) + 1);
+        filename = tc_malloc(strlen(head) + pad + strlen(tail) + 1);
         /* why remalloc frame? */
         /* frame = malloc(pad + 1); */
         do {
@@ -202,8 +202,7 @@ MOD_decode {
 
     char
         *filename = NULL,
-        *frame = NULL,
-        *framespec = NULL;
+        *frame = NULL;
 
     int
         column,
@@ -216,17 +215,16 @@ MOD_decode {
 
     // build the filename for the current frame
     string_length = strlen(head) + pad + strlen(tail) + 1;
-    filename = malloc(string_length);
+    filename = tc_malloc(string_length);
     if (pad) {
-        frame = malloc(pad+1);
-        framespec = malloc(10);
+        char framespec[10];
+        frame = tc_malloc(pad+1);
         tc_snprintf(framespec, 10, "%%0%dd", pad);
         tc_snprintf(frame, pad+1, framespec, current_frame);
-        free(framespec);
         frame[pad] = '\0';
     }
     else if (first_frame >= 0) {
-        frame = malloc(10);
+        frame = tc_malloc(10);
         tc_snprintf(frame, 10, "%d", current_frame);
     }
     strlcpy(filename, head, string_length);

@@ -23,6 +23,7 @@
 
 #include "ioaux.h"
 #include "tc.h"
+#include "libtc/libtc.h"
 
 #ifdef NET_STREAM
 
@@ -67,7 +68,7 @@ static vob_t *probe_host(char *server)
 void probe_net(info_t *ipipe)
 {
 
-  ivob = (vob_t *) malloc(sizeof(vob_t));
+  ivob = tc_malloc(sizeof(vob_t));
 
   if(probe_host(ipipe->name)==NULL) {
     ipipe->error=1;

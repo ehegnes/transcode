@@ -31,7 +31,7 @@ void probe_nuv(info_t *ipipe)
   int bytes;
   struct rtfileheader *rtf;
 
-  if((rtf = (rtfileheader *) calloc(1, sizeof(rtfileheader)))==NULL) {
+  if((rtf = tc_zalloc(sizeof(rtfileheader)))==NULL) {
     fprintf(stderr, "(%s) out of memory\n", __FILE__);
     ipipe->error=1;
     return;

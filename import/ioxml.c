@@ -23,6 +23,8 @@
 
 #include "config.h"
 
+#include "libtc/libtc.h"
+
 #ifdef HAVE_LIBXML2
 
 #include "ioaux.h"
@@ -139,8 +141,7 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 	        else if (xmlStrcmp(p_node->name, (const xmlChar*)"seq") == 0)
 		{
 			s_type=AUDIO_VIDEO_UNKNOWN;
-			p_temp=(audiovideo_t *)malloc(sizeof(audiovideo_t));
-			memset(p_temp,'\0',sizeof(audiovideo_t));
+			p_temp=tc_zalloc(sizeof(audiovideo_t));
 			p_temp->s_end_a_time=-1;
 			p_temp->s_end_v_time=-1;
 			p_temp->s_start_a_time=-1;
@@ -179,8 +180,7 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 		{
 			if (s_type!=AUDIO_VIDEO_UNKNOWN)
 			{
-				p_temp=(audiovideo_t *)malloc(sizeof(audiovideo_t));
-				memset(p_temp,'\0',sizeof(audiovideo_t));
+				p_temp=tc_zalloc(sizeof(audiovideo_t));
 				p_temp->s_end_a_time=-1;
 				p_temp->s_end_v_time=-1;
 				p_temp->s_start_a_time=-1;
@@ -220,8 +220,7 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 		{
 			if (s_type!=AUDIO_VIDEO_UNKNOWN)
 			{
-				p_temp=(audiovideo_t *)malloc(sizeof(audiovideo_t));
-				memset(p_temp,'\0',sizeof(audiovideo_t));
+				p_temp=tc_zalloc(sizeof(audiovideo_t));
 				p_temp->s_end_a_time=-1;
 				p_temp->s_end_v_time=-1;
 				p_temp->s_start_a_time=-1;
