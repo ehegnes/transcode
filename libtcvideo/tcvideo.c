@@ -693,11 +693,11 @@ int tcv_reduce(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
                int reduce_w, int reduce_h)
 {
     if (!src || !dest || width <= 0 || height <= 0 || (Bpp != 1 && Bpp != 3)) {
-        tc_log_error("libtcvideo", "tcv_zoom: invalid frame parameters!");
+        tc_log_error("libtcvideo", "tcv_reduce: invalid frame parameters!");
         return 0;
     }
     if (reduce_w <= 0 || reduce_h <= 0) {
-        tc_log_error("libtcvideo", "tcv_zoom: invalid reduction parameters"
+        tc_log_error("libtcvideo", "tcv_reduce: invalid reduction parameters"
                      " (%d,%d)!", reduce_w, reduce_h);
         return 0;
     }
