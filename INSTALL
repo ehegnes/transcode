@@ -113,7 +113,7 @@ Mandatory packages:
   libm
     (these generally come with any and all OSes)
 
-  libavcodec from FFmpeg >= 0.9.1pre1  http://ffmpeg.sourceforge.net/
+  libavcodec from FFmpeg >= 0.4.9-pre1  http://ffmpeg.sourceforge.net/
     related options:
       --with-libavcodec-prefix=PFX (/usr)
           prefix where libavcodec is installed
