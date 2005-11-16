@@ -1,3 +1,7 @@
+2005-11-16 Francesco Romani <fromani at gmail dot com>
+  * INSTALL
+  typo: last ffmpeg formal release was 0.4.9pre1, not 0.9.1pre1
+
 2005-11-13 Francesco Romani <fromani at gmail dot com>
   * import/af6_decore.cpp import/clone.c import/decode_ac3.c 
     import/decode_dv.c import/decode_mov.c import/decode_mp3.c
