@@ -230,8 +230,8 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
 
     if (zoom) {
         preadjust_frame_size(&vtd, vob->zoom_width, vob->zoom_height);
-        PROCESS_FRAME(tcv_zoom, &vtd, vob->zoom_width, vob->zoom_height,
-                      vob->zoom_filter);
+        PROCESS_FRAME(tcv_zoom, &vtd, vob->zoom_width / vtd.width_div[i],
+                      vob->zoom_height / vtd.height_div[i], vob->zoom_filter);
     }
 
     /**** -Y: clip frame (export) ****/
