@@ -281,11 +281,11 @@ MOD_init
             break;
 
         case CODEC_YUV422:
-            quicktime_set_cmodel(qtfile, BC_YUV422); qt_cm = BC_YUV422;
+            quicktime_set_cmodel(qtfile, BC_YUV422P); qt_cm = BC_YUV422P;
             break;
 
         case CODEC_YUY2:
-            quicktime_set_cmodel(qtfile, BC_YUV422); qt_cm = CODEC_YUY2;
+            quicktime_set_cmodel(qtfile, BC_YUV422); qt_cm = BC_YUV422;
             break;
 
          /* passthrough */
@@ -618,42 +618,38 @@ MOD_encode
     /* encode frame */
     else {
         char *ptr = param->buffer;
-        int iy,sl;
+        int iy;
 
         switch(qt_cm) {
             case BC_RGB888:
                 /* setup row pointers for RGB */
-                sl = w*3;
-                for(iy=0;iy<h;iy++){
+                for (iy = 0; iy < h; iy++) {
                     row_ptr[iy] = ptr;
-                    ptr += sl;
+                    ptr += w*3;
                 }
                 break;
-
             case BC_YUV420P:
                 /* setup row pointers for YUV420P */
                 row_ptr[0] = ptr;
                 ptr = ptr + (h * w);
-		/* note, quicktime wants YV12 so we reverse the planes */
+                /* note, quicktime wants YV12 so we reverse the planes */
                 row_ptr[2] = ptr;
-                ptr = ptr + (h * w )/4;
+                ptr = ptr + (h * w) / 4;
                 row_ptr[1] = ptr;
                 break;
-
-            case CODEC_YUY2:
+            case BC_YUV422P:
+                /* setup row pointers for YUV422P */
+                row_ptr[0] = ptr;
+                ptr = ptr + (h * w);
+                row_ptr[1] = ptr;
+                ptr = ptr + (h * w) / 2;
+                row_ptr[2] = ptr;
+                break;
             case BC_YUV422:
-                /* setup row pointers for YUV422 */
-                sl = w*2;
-                if (qt_cm != CODEC_YUY2){
-                    /* convert yuv422 to yuy2 */
-		    uint8_t *src[3];
-		    YUV_INIT_PLANES(src, ptr, IMG_YUV422P, w, h);
-                    ac_imgconvert(src, IMG_YUV422P, &tmp_buf, IMG_YUY2, w, h);
-                    ptr = tmp_buf;
-                }
-                for(iy=0;iy<h;iy++){
+                /* setup row pointers for YUY2 */
+                for (iy = 0; iy < h; iy++) {
                     row_ptr[iy] = ptr;
-                    ptr += sl;
+                    ptr += w*2;
                 }
                 break;
         }

@@ -1,3 +1,8 @@
+2005-11-17 Baptiste COUDURIER <baptiste.coudurier at smartjog dot com>
+  * export/export_mov.c
+  Use libquicktime's native YUV422P support for --yuv422 instead of
+  converting to YUY2.
+
 2005-11-17 Andrew Church <achurch at achurch dot org>
   * import/af6_decore.cpp import/probe_xml.c tools/aviindex.c
   Fix compilation errors and warnings.
