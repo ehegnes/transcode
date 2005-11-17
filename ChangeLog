@@ -1,10 +1,16 @@
+2005-11-17 Francesco Romani <fromani at gmail dot com>
+  * import/Makefile.am
+  add aclib and libtc to tcdecode modules (import/a*_decore)
+  to avoid unresolved symbols issues. This solution is clumsy,
+  it's just a workaround until someone can provide a cleaner fix.
+
 2005-11-17 Andrew Church <achurch at achurch dot org>
   * src/video_trans.c
   Fix regression in -Z (slow zooming) causing YUV images to lose color.
 
 2005-11-16 Francesco Romani <fromani at gmail dot com>
   * INSTALL
-  typo: last ffmpeg formal release was 0.4.9pre1, not 0.9.1pre1
+  typo: last ffmpeg formal release was 0.4.9pre1, not 0.9.1pre1.
 
 2005-11-13 Francesco Romani <fromani at gmail dot com>
   * import/af6_decore.cpp import/clone.c import/decode_ac3.c 

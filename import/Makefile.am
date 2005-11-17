@@ -205,11 +205,11 @@ import_vdrac3_la_LIBADD = $(AC3_LIBS) -lm
 
 a52_decore_la_SOURCES = a52_decore.c
 a52_decore_la_LDFLAGS = -module -avoid-version
-a52_decore_la_LIBADD = $(A52_LIBS) $(XIO_LIBS)
+a52_decore_la_LIBADD = $(A52_LIBS) $(XIO_LIBS) $(ACLIB_LIBS) $(LIBTC_LIBS)
 
 af6_decore_la_SOURCES = af6_decore.cpp
 af6_decore_la_LDFLAGS = -module -avoid-version
-af6_decore_la_LIBADD = $(AVIFILE_LIBS) -lstdc++ -lm
+af6_decore_la_LIBADD = $(AVIFILE_LIBS) $(ACLIB_LIBS) $(LIBTC_LIBS) -lstdc++ -lm
 
 import_mp3_la_SOURCES = import_mp3.c
 import_mp3_la_LDFLAGS = -module -avoid-version
