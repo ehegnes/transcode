@@ -30,17 +30,15 @@ typedef enum {
     TCV_DEINTERLACE_LINEAR_BLEND,
 } TCVDeinterlaceMode;
 
-
-/* Zoom filter types: */
-
+/* Filter IDs for tcv_zoom(): */
 typedef enum {
+    TCV_ZOOM_HERMITE = 1,
     TCV_ZOOM_BOX,
     TCV_ZOOM_TRIANGLE,
-    TCV_ZOOM_HERMITE,
     TCV_ZOOM_BELL,
     TCV_ZOOM_B_SPLINE,
-    TCV_ZOOM_MITCHELL,
     TCV_ZOOM_LANCZOS3,
+    TCV_ZOOM_MITCHELL,
 } TCVZoomFilter;
 
 /*************************************************************************/

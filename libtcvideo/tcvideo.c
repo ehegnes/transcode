@@ -10,11 +10,12 @@
  */
 
 #include "tcvideo.h"
-
-#include <math.h>
 #include "zoom.h"
 
+#define zoom zoom_  // temp to avoid name conflict
 #include "src/transcode.h"
+#undef zoom
+#include <math.h>
 
 /*************************************************************************/
 
@@ -583,7 +584,7 @@ static inline void rescale_pixel(const uint8_t *src1, const uint8_t *src2,
 /*************************************************************************/
 
 /**
- * tcv_zoom:  Zoom the given image to an arbitrary size.
+ * tcv_zoom:  Resize the given image to an arbitrary size, with filtering.
  *
  * Parameters:    src: Source data plane.
  *               dest: Destination data plane.
@@ -600,13 +601,20 @@ static inline void rescale_pixel(const uint8_t *src1, const uint8_t *src2,
  * Postconditions: (on success) dest[0]..dest[new_w*new_h*Bpp-1] are set
  */
 
+/* ZoomInfo cache */
+#define ZOOM_CACHE_SIZE 10
+static struct {
+    int old_w, old_h, new_w, new_h, Bpp;
+    TCVZoomFilter filter;
+    ZoomInfo *zi;
+} zoominfo_cache[ZOOM_CACHE_SIZE];
+
 int tcv_zoom(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
              int new_w, int new_h, TCVZoomFilter filter)
 {
-    double (*zoom_filter)(double);
-    double zoom_support;
-    image_t srcimage, destimage;
-    zoomer_t *zoomer;
+    ZoomInfo *zi;
+    int free_zi = 0;  // Should the ZoomInfo be freed after use?
+    int i;
 
     if (!src || !dest || width <= 0 || height <= 0 || (Bpp != 1 && Bpp != 3)) {
         tc_log_error("libtcvideo", "tcv_zoom: invalid frame parameters!");
@@ -619,48 +627,54 @@ int tcv_zoom(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
     }
     switch (filter) {
       case TCV_ZOOM_BOX:
-        zoom_filter = Box_filter;
-        zoom_support = Box_support;
-        break;
       case TCV_ZOOM_TRIANGLE:
-        zoom_filter = Triangle_filter;
-        zoom_support = Triangle_support;
-        break;
       case TCV_ZOOM_HERMITE:
-        zoom_filter = Hermite_filter;
-        zoom_support = Hermite_support;
-        break;
       case TCV_ZOOM_BELL:
-        zoom_filter = Bell_filter;
-        zoom_support = Bell_support;
-        break;
       case TCV_ZOOM_B_SPLINE:
-        zoom_filter = B_spline_filter;
-        zoom_support = B_spline_support;
-        break;
       case TCV_ZOOM_MITCHELL:
-        zoom_filter = Mitchell_filter;
-        zoom_support = Mitchell_support;
-        break;
       case TCV_ZOOM_LANCZOS3:
-        zoom_filter = Lanczos3_filter;
-        zoom_support = Lanczos3_support;
         break;
       default:
         tc_log_error("libtcvideo", "tcv_zoom: invalid filter %d!", filter);
         return 0;
     }
 
-    zoom_setup_image(&srcimage, width, height, Bpp, src);
-    zoom_setup_image(&destimage, new_w, new_h, Bpp, dest);
-    zoomer = zoom_image_init(&destimage, &srcimage, zoom_filter, zoom_support);
-    if (!zoomer) {
-        tc_log_error("libtcvideo", "tcv_zoom: zoom_image_init() failed");
-        return 0;
+    for (i = 0, zi = NULL; i < ZOOM_CACHE_SIZE && zi == NULL; i++) {
+        if (zoominfo_cache[i].zi     != NULL
+         && zoominfo_cache[i].old_w  == width
+         && zoominfo_cache[i].old_h  == height
+         && zoominfo_cache[i].new_w  == new_w
+         && zoominfo_cache[i].new_h  == new_h
+         && zoominfo_cache[i].Bpp    == Bpp
+         && zoominfo_cache[i].filter == filter
+        ) {
+            zi = zoominfo_cache[i].zi;
+        }
     }
-// ************************* FIXME ************************** do we need to process 1 byte at a time?
-    zoom_image_process(zoomer);
-    zoom_image_done(zoomer);
+    if (!zi) {
+        zi = zoom_init(width, height, new_w, new_h, Bpp, filter);
+        if (!zi) {
+            tc_log_error("libtcvideo", "tcv_zoom: zoom_init() failed!");
+            return 0;
+        }
+        free_zi = 1;
+        for (i = 0; i < ZOOM_CACHE_SIZE; i++) {
+            if (!zoominfo_cache[i].zi) {
+                zoominfo_cache[i].zi     = zi;
+                zoominfo_cache[i].old_w  = width;
+                zoominfo_cache[i].old_h  = height;
+                zoominfo_cache[i].new_w  = new_w;
+                zoominfo_cache[i].new_h  = new_h;
+                zoominfo_cache[i].Bpp    = Bpp;
+                zoominfo_cache[i].filter = filter;
+                free_zi = 0;
+                break;
+            }
+        }
+    }
+    zoom_process(zi, src, dest);
+    if (free_zi)
+        zoom_free(zi);
     return 1;
 }
 

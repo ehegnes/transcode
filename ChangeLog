@@ -1,3 +1,9 @@
+2005-11-17 Andrew Church <achurch at achurch dot org>
+  * libtcvideo/tcvideo.c libtcvideo/tcvideo.h libtcvide/zoom.c
+    libtcvideo/zoom.h
+  Rewrite image resize (zoom) code for improvements in both readability and
+  execution speed.
+
 2005-11-17 Francesco Romani <fromani at gmail dot com>
   * import/Makefile.am
   avoid unresolved symbols issues in tcdecode.
