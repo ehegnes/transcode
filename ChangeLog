@@ -1,4 +1,8 @@
 2005-11-17 Andrew Church <achurch at achurch dot org>
+  * import/af6_decore.cpp import/probe_xml.c tools/aviindex.c
+  Fix compilation errors and warnings.
+
+2005-11-17 Andrew Church <achurch at achurch dot org>
   * libtcvideo/tcvideo.c libtcvideo/tcvideo.h libtcvide/zoom.c
     libtcvideo/zoom.h
   Rewrite image resize (zoom) code for improvements in both readability and

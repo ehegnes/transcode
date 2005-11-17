@@ -29,6 +29,7 @@
 #ifdef HAVE_LIBXML2
 
 #include "ioxml.h"
+#include "probe_xml.h"
 
 #define MAX_BUF 1024
 

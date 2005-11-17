@@ -461,7 +461,7 @@ int main(int argc, char *argv[])
   char tag[8];
   char *data;
   int vid_chunks=0, aud_chunks[AVI_MAX_TRACKS];
-  off_t pos, len, key, index_pos=0, index_len=0,size=0;
+  off_t pos, len, key=0, index_pos=0, index_len=0,size=0;
   struct stat st;
   char *codec;
   int idx_type=0;
@@ -829,7 +829,7 @@ int main(int argc, char *argv[])
       long vid_entry = 0;
       char* tagp;
 
-      off_t pos, len;
+      off_t pos, len = 0;
       i = chunk = 0;
 
 
