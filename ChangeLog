@@ -1,8 +1,6 @@
 2005-11-17 Francesco Romani <fromani at gmail dot com>
   * import/Makefile.am
-  add aclib and libtc to tcdecode modules (import/a*_decore)
-  to avoid unresolved symbols issues. This solution is clumsy,
-  it's just a workaround until someone can provide a cleaner fix.
+  avoid unresolved symbols issues in tcdecode.
 
 2005-11-17 Andrew Church <achurch at achurch dot org>
   * src/video_trans.c
