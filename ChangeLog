@@ -1,4 +1,18 @@
 2005-11-18 Francesco Romani <fromani at gmail dot com>
+  * import/magic.h libtc/libtc.h
+  libtc/Makefile.am
+  
+  Added files:
+  libtc/tccodecs.c libtc/tccodecs.h libtc/tcmoduleinfo.c 
+  libtc/tcmoduleinfo.h
+
+  Enter new capabilities handling code in libtc.
+  tcmoduleinfo.{h,c} is the real capabilities handling code,
+  tccodecs.h holds new codecs identifiers (borrowed from
+  import/magic.h), and tccodecs.c contains codec helper
+  functions.
+
+2005-11-18 Francesco Romani <fromani at gmail dot com>
   * filter/filter_levels.c
   updated levels filter; only internal style changes.
 

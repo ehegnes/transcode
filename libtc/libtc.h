@@ -327,6 +327,50 @@ int tc_preadwrite(int in, int out);
  */
 int tc_probe_path(const char *name);
 
+/* codec helpers ***********************************************************/
+
+/*
+ * tc_codec_to_string: give a string representation of a given codec
+ *                     identifier
+ *
+ * Parameters: codec: TC_CODEC_ value to represent
+ * Return value: a constant string representing the given codec (there is
+ *               no need to free() it
+ *               NULL of codec is (yet) unknown
+ * Side effects: none
+ * Preconditions: none
+ * Postconditions: none
+ */
+const char* tc_codec_to_string(int codec);
+
+/*
+ * tc_codec_from_string: extract codec identifier from it's string
+ *                       representation
+ *
+ * Parameters: codec: string representation of codec
+ * Return value: the correspinding TC_CODEC_* of given string 
+ *               representation, or TC_CODEC_ERROR if string
+ *               is unknown or wrong.
+ * Side effects: none
+ * Preconditions: none
+ * Postconditions: none
+ */
+int tc_codec_from_string(const char *codec);
+
+/*
+ * tc_codec_get_fourcc: extract the FOURCC code for a given codec,
+ *                      if exists.
+ *
+ * Parameters: codec: TC_CODEC_ value to get the FOURCC
+ * Return value: a constant string representing the FOURCC for a given 
+ *               codec (there is no need to free() it
+ *               NULL of codec's FOURCC is (yet) unknown or given codec
+ *               has _not_ FOURCC (es: audio codec identifiers).
+ * Side effects: none
+ * Preconditions: none
+ * Postconditions: none
+ */
+const char* tc_codec_get_fourcc(int codec);
 
 #ifdef __cplusplus
 }
