@@ -17,5 +17,4 @@ libtc_la_SOURCES = \
 EXTRA_DIST = \
 	libtc.h \
 	iodir.h \
-	optstr.h \
-	tc_func_excl.h
+	optstr.h 

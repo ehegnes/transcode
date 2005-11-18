@@ -1,3 +1,11 @@
+1005-11-18 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_logoaway.c libtc/libtc.h libtc/tc_functions.c
+    src/transcode.c libtc/Makefile.am
+  Removed file: libtc/tc_func_excl.h
+  Move colors macro declarations to libtc/libtc.h, update client
+  code, remove a small redundancy from src/transcode.c and finally
+  drop tc_func_excl.h, now useless.
+
 2005-11-18 Andrew Church <achurch at achurch dot org>
   * aclib/rescale.c
   Round results instead of truncating for accelerated rescale().
