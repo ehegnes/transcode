@@ -1,5 +1,6 @@
 2005-11-18 Andrew Church <achurch at achurch dot org>
-  * libtcvideo/tcvideo.c libtcvideo/tcvideo.h src/video_trans.c
+  * filter/extsub/filter_extsub.c import/import_xml.c libtcvideo/tcvideo.c
+    libtcvideo/tcvideo.h src/video_trans.c
   Add a "handle" parameter to all libtcvideo functions for proper threaded
   operation, and add functions tcv_init() and tcv_free() to allocate and
   release handles.

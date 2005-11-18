@@ -69,6 +69,8 @@ static unsigned int color1=0, color2=255;
 
 static double aa_weight, aa_bias;
 
+static TCVHandle tcvhandle = 0;
+
 
 //-------------------------------------------------------------------
 //
@@ -227,7 +229,7 @@ static void anti_alias_subtitle(int black) {
   }
 
   if(!skip_anti_alias) {
-    tcv_antialias(sub_frame, tmp_frame, sub_xlen, sub_ylen, 1,
+    tcv_antialias(tcvhandle, sub_frame, tmp_frame, sub_xlen, sub_ylen, 1,
 		  aa_weight, aa_bias);
     ac_memcpy(sub_frame, tmp_frame, sub_xlen * sub_ylen);
   }
@@ -438,8 +440,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
     }
     if (!skip_anti_alias) {
-        tc_log_warn(MOD_NAME, "antialiasing not available right now, sorry");
-        skip_anti_alias = 1;
+        if (!(tcvhandle = tcv_init())) {
+             tc_log_error(MOD_NAME, "antialiasing initialization failed");
+             return TC_EXPORT_ERROR;
+        }
     }
 
     if (vob->im_v_codec == CODEC_YUV)
@@ -523,6 +527,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if(import_para.fd!=NULL) pclose(import_para.fd);
 
     import_para.fd=NULL;
+
+    tcv_free(tcvhandle);
+    tcvhandle = 0;
 
     //FIXME: module already removed by main process
 
