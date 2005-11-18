@@ -53,11 +53,13 @@ static void rescale_mmx(const uint8_t *src1, const uint8_t *src2,
     if (bytes >= 8) {
         /* First store weights in MM4/MM5 to relieve register pressure;
          * save time by making 2 copies ahead of time in the general
-         * registers.  Note that we shift right by 1 for MMX due to the
-         * lack of an unsigned SIMD multiply instruction (PMULHUW). */
+         * registers.  Note that we divide by 2 for MMX due to the lack
+         * of an unsigned SIMD multiply instruction (PMULHUW). */
+        int half1 = weight1 / 2;
+        int half2 = weight2 / 2;
+        half2 += weight1 & weight2 & 1;  // pick up the lost bit here
         asm("movd %%eax, %%mm4; movd %%edx, %%mm5"
-            : : "a" ((weight1>>1)<<16|(weight1>>1)),
-                "d" ((weight2>>1)<<16|(weight2>>1)));
+            : : "a" (half1<<16|half1), "d" (half2<<16|half2));
         asm("\
             movq %%mm4, %%mm6           # MM6: 00 00 W1 W1              \n\
             psllq $32, %%mm4            # MM4: W1 W1 00 00              \n\
@@ -66,31 +68,33 @@ static void rescale_mmx(const uint8_t *src1, const uint8_t *src2,
             psllq $32, %%mm5            # MM5: W2 W2 00 00              \n\
             por %%mm7, %%mm5            # MM5: W2 W2 W2 W2              \n\
             pxor %%mm7, %%mm7           # MM7: 00 00 00 00              \n\
-            pxor %%mm6, %%mm6           # Put 0x0080*4 in MM6 (rounding)\n\
+            pxor %%mm6, %%mm6           # Put 0x0020*4 in MM6 (rounding)\n\
             pcmpeqw %%mm3, %%mm3                                        \n\
             psubw %%mm3, %%mm6                                          \n\
-            psllw $7, %%mm6                                             \n\
+            psllw $5, %%mm6                                             \n\
             0:                                                          \n\
             movq -8(%%esi,%%ecx), %%mm0                                 \n\
             movq %%mm0, %%mm1                                           \n\
             punpcklbw %%mm7, %%mm0                                      \n\
-            psllw $1, %%mm0             # Compensate for halved weights \n\
-            pmulhw %%mm4, %%mm0         # And multiply                  \n\
+            psllw $7, %%mm0             # 9.7 fixed point               \n\
+            pmulhw %%mm4, %%mm0         # Multiply to get 10.6 fixed    \n\
             punpckhbw %%mm7, %%mm1                                      \n\
-            psllw $1, %%mm1                                             \n\
+            psllw $7, %%mm1                                             \n\
             pmulhw %%mm4, %%mm1                                         \n\
             movq -8(%%edx,%%ecx), %%mm2                                 \n\
             movq %%mm2, %%mm3                                           \n\
             punpcklbw %%mm7, %%mm2                                      \n\
-            psllw $1, %%mm2                                             \n\
+            psllw $7, %%mm2                                             \n\
             pmulhw %%mm5, %%mm2                                         \n\
             punpckhbw %%mm7, %%mm3                                      \n\
-            psllw $1, %%mm3                                             \n\
+            psllw $7, %%mm3                                             \n\
             pmulhw %%mm5, %%mm3                                         \n\
             paddw %%mm2, %%mm0                                          \n\
-            paddw %%mm3, %%mm1                                          \n\
             paddw %%mm6, %%mm0                                          \n\
+            psrlw $6, %%mm0                                             \n\
+            paddw %%mm3, %%mm1                                          \n\
             paddw %%mm6, %%mm1                                          \n\
+            psrlw $6, %%mm1                                             \n\
             packuswb %%mm1, %%mm0                                       \n\
             movq %%mm0, -8(%%edi,%%ecx)                                 \n\
             subl $8, %%ecx                                              \n\
@@ -128,7 +132,7 @@ static void rescale_mmxext(const uint8_t *src1, const uint8_t *src2,
             punpcklbw %%mm7, %%mm0      # (gives 8.8 fixed point)       \n\
             pmulhuw %%mm4, %%mm0        # Result: 0000..FF00            \n\
             pxor %%mm1, %%mm1                                           \n\
-            punpckhbw %%mm6, %%mm1                                      \n\
+            punpckhbw %%mm7, %%mm1                                      \n\
             pmulhuw %%mm4, %%mm1                                        \n\
             movq -8(%%edx,%%ecx), %%mm7                                 \n\
             pxor %%mm2, %%mm2                                           \n\
