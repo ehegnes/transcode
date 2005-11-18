@@ -113,44 +113,47 @@ my %VideoData;        # for saving raw output data to compare against
 &add_test("-I", ["-I 1", "-I 3", "-I 4", "-I 5"],
           "Test -I");
 
+# Be careful with values here!  Truncation by accelerated rescale() during
+# vertical resize can cause false errors (cases where the byte value is off
+# by 1 because rounding went the other way).  -X 6 seems to be safe.
 &add_test("-X y", ["raw"],
           "Test -X with height only",
-          \&test_vidcore, ["-X", "7", \&vidcore_resize, 7*32, 0]);
+          \&test_vidcore, ["-X", "6", \&vidcore_resize, 6*32, 0]);
 &add_test("-X 0,x", ["raw"],
           "Test -X with width only",
           \&test_vidcore, ["-X", "0,11", \&vidcore_resize, 0, 11*32]);
 &add_test("-X y,x", ["raw"],
           "Test -X with width and height",
-          \&test_vidcore, ["-X", "7,11", \&vidcore_resize, 7*32, 11*32]);
+          \&test_vidcore, ["-X", "6,11", \&vidcore_resize, 6*32, 11*32]);
 &add_test("-X y,x,M", ["raw"],
           "Test -X with width, height, and multiplier",
-          \&test_vidcore, ["-X", "7,11,8", \&vidcore_resize, 7*8, 11*8]);
+          \&test_vidcore, ["-X", "24,44,8", \&vidcore_resize, 24*8, 44*8]);
 &add_test("-X", ["-X y", "-X 0,x", "-X y,x", "-X y,x,M"],
           "Test -X");
 
 &add_test("-B y", ["raw"],
           "Test -B with height only",
-          \&test_vidcore, ["-B", "7", \&vidcore_resize, -7*32, 0]);
+          \&test_vidcore, ["-B", "6", \&vidcore_resize, -6*32, 0]);
 &add_test("-B 0,x", ["raw"],
           "Test -B with width only",
           \&test_vidcore, ["-B", "0,11", \&vidcore_resize, 0, -11*32]);
 &add_test("-B y,x", ["raw"],
           "Test -B with width and height",
-          \&test_vidcore, ["-B", "7,11", \&vidcore_resize, -7*32, -11*32]);
+          \&test_vidcore, ["-B", "6,11", \&vidcore_resize, -6*32, -11*32]);
 &add_test("-B y,x,M", ["raw"],
           "Test -B with width, height, and multiplier",
-          \&test_vidcore, ["-B", "7,11,8", \&vidcore_resize, -7*8, -11*8]);
+          \&test_vidcore, ["-B", "24,44,8", \&vidcore_resize, -24*8, -44*8]);
 &add_test("-B", ["-B y", "-B 0,x", "-B y,x", "-B y,x,M"],
           "Test -B");
 
 &add_test("-Z WxH,fast", ["raw"],
           "Test -Z (fast mode)",
-          \&test_vidcore, ["-Z", ((WIDTH-7*8)."x".(HEIGHT+11*8).",fast"),
-                           \&vidcore_resize, 11*8, -7*8]);
+          \&test_vidcore, ["-Z", ((WIDTH-11*32)."x".(HEIGHT+6*32).",fast"),
+                           \&vidcore_resize, 6*32, -11*32]);
 &add_test("-Z WxH", ["raw"],
           "Test -Z (slow mode)",
-          \&test_vidcore, ["-Z", ((WIDTH-77)."x".(HEIGHT+111)),
-                           \&vidcore_zoom, -77, 111]);
+          \&test_vidcore, ["-Z", ((WIDTH-78)."x".(HEIGHT+78)),
+                           \&vidcore_zoom, -78, 78]);
 &add_test("-Z", ["-Z WxH,fast", "-Z WxH"],
           "Test -Z");
 
@@ -584,7 +587,7 @@ sub test_vidcore
                 . ($out_w*$out_h*3) . ")";
         }
         if (substr($out_avi, $pos+8, $len) ne $out_frame) {
-open F,">/tmp/t";print F $out_frame;close F;open F,">/tmp/u";print F substr($out_avi,$pos+8,$len);close F;
+#open F,">/tmp/t";print F $out_frame;close F;open F,">/tmp/u";print F substr($out_avi,$pos+8,$len);close F;
             return "Incorrect data in video frame";
         }
         $pos = index($out_avi, "00db", $pos+8+$len);
