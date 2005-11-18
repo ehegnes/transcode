@@ -1,4 +1,9 @@
 2005-11-18 Francesco Romani <fromani at gmail dot com>
+  * tools/tcmodinfo.c
+  make avalaible tcv_init()/tcv_free() to loaded filter 
+  modules.
+
+2005-11-18 Francesco Romani <fromani at gmail dot com>
   * filter/filter_levels.c
   some miscelanous bugfixes.
 

@@ -456,6 +456,9 @@ int main(int argc, char *argv[])
   //fprintf(stderr, "Module is (%s/filter_%s) (%d)\n", modpath, filename, getpid());
 
   if (mod_type & TYPE_FI) {
+    /* needed by filter modules */
+    TCVHandle tcv_handle = tcv_init();
+
     filter[0].name = malloc(256);
     tc_snprintf (filter[0].name, 256, "%s", filename);
 
@@ -486,6 +489,8 @@ int main(int argc, char *argv[])
 	out = 2;
       }
       fputs("END\n", stdout);
+      
+      tcv_free(tcv_handle);
       return (out);
     }
   }
