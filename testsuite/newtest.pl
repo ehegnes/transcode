@@ -8,6 +8,8 @@
 # General Public License (version 2 or later).  See the file COPYING
 # for details.
 
+use POSIX;  # for floor() and ceil()
+
 use constant CSP_YUV => 1;
 use constant CSP_RGB => 2;
 use constant WIDTH => 704;
@@ -152,8 +154,8 @@ my %VideoData;        # for saving raw output data to compare against
                            \&vidcore_resize, 6*32, -11*32]);
 &add_test("-Z WxH", ["raw"],
           "Test -Z (slow mode)",
-          \&test_vidcore, ["-Z", ((WIDTH-78)."x".(HEIGHT+78)),
-                           \&vidcore_zoom, -78, 78]);
+          \&test_vidcore, ["-Z", ((WIDTH-76)."x".(HEIGHT+76)),
+                           \&vidcore_zoom, WIDTH-76, HEIGHT+76]);
 &add_test("-Z", ["-Z WxH,fast", "-Z WxH"],
           "Test -Z");
 
@@ -313,6 +315,7 @@ sub transcode
     if ($AccelMode) {
         push @args, "--accel", $AccelMode;
     }
+    push @args, "--zoom_filter", "triangle";
     open F, ">$TMPDIR/$IN_AVI" or &fatal("create $TMPDIR/$IN_AVI: $!");
     syswrite(F, $indata) == length($indata) or &fatal("write $TMPDIR/$IN_AVI: $!");
     close F;
@@ -832,12 +835,96 @@ sub vidcore_resize
 ################
 
 # -Z (slow)
+# Implemented using triangle filter
 sub vidcore_zoom
 {
     my ($frameref, $widthref, $heightref, $newwidth, $newheight) = @_;
+    my $Bpp = 3;
+    my $Bpl = $$widthref*$Bpp;
 
-    # FIXME: not implemented
-    return 0;
+    my @x_contrib = ();
+    my $xscale = $newwidth / $$widthref;
+    my $fscale = ($xscale<1 ? 1/$xscale : 1);
+    my $fwidth = 1.0 * $fscale;
+    for (my $x = 0; $x < $newwidth*$Bpp; $x++) {
+        my $center = int($x/$Bpp) / $xscale;
+        my $left = ceil($center - $fwidth);
+        my $right = floor($center + $fwidth);
+        my @contrib = ();
+        for (my $i = $left; $i <= $right; $i++) {
+            my $weight = ($i-$center) / $fscale;
+            $weight = (1 - abs($weight)) / $fscale;
+            $weight = 0 if $weight < 0;
+            my $n = $i;
+            $n = -$n if $n < 0;
+            $n = ($$widthref-$n) + $$widthref - 1 if $n >= $$widthref;
+            push @contrib, $n*$Bpp + ($x%$Bpp), int($weight*65536);
+        }
+        push @x_contrib, [@contrib];
+    }
+
+    my @y_contrib = ();
+    my $yscale = $newheight / $$heightref;
+    $fscale = ($yscale<0 ? 1/$yscale : 1);
+    $fwidth = 1.0 * $fscale;
+    for (my $y = 0; $y < $newheight; $y++) {
+        my $center = $y / $yscale;
+        my $left = ceil($center - $fwidth);
+        my $right = floor($center + $fwidth);
+        my @contrib = ();
+        for (my $i = $left; $i <= $right; $i++) {
+            my $weight = ($i-$center) / $fscale;
+            $weight = (1 - abs($weight)) / $fscale;
+            $weight = 0 if $weight < 0;
+            my $n = $i;
+            $n = -$n if $n < 0;
+            $n = ($$heightref-$n) + $$heightref - 1 if $n >= $$heightref;
+            push @contrib, $n, int($weight*65536);
+        }
+        push @y_contrib, [@contrib];
+    }
+
+    my $tmpframe = "";
+    for (my $y = 0; $y < $$heightref; $y++) {
+        use integer;
+        my @pixels = unpack("C*", substr($$frameref, $y*$Bpl, $Bpl));
+        for (my $x = 0; $x < $newwidth*$Bpp; $x++) {
+            my $weight = 0x8000;
+            for (my $i = 0; $i < @{$x_contrib[$x]}; $i += 2) {
+                $weight += $pixels[$x_contrib[$x][$i]] * $x_contrib[$x][$i+1];
+            }
+            $weight >>= 16;
+            $weight = 0 if $weight < 0;
+            $weight = 255 if $weight > 255;
+            $tmpframe .= chr($weight);
+        }
+    }
+
+    my @tmpframe = ();
+    $Bpl = $newwidth*$Bpp;
+    for (my $y = 0; $y < $$heightref; $y++) {
+        push @tmpframe, [unpack("C*", substr($tmpframe, $y*$Bpl, $Bpl))];
+    }
+
+    my $newframe = "";
+    for (my $y = 0; $y < $newheight; $y++) {
+        use integer;
+        for (my $x = 0; $x < $newwidth*$Bpp; $x++) {
+            my $weight = 0x8000;
+            for (my $i = 0; $i < @{$y_contrib[$y]}; $i += 2) {
+                $weight += $tmpframe[$y_contrib[$y][$i]][$x] * $y_contrib[$y][$i+1];
+            }
+            $weight >>= 16;
+            $weight = 0 if $weight < 0;
+            $weight = 255 if $weight > 255;
+            $newframe .= chr($weight);
+        }
+    }
+
+    $$frameref = $newframe;
+    $$widthref = $newwidth;
+    $$heightref = $newheight;
+    return 1;
 }
 
 ################
