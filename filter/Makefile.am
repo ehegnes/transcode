@@ -124,7 +124,6 @@ filter_aclip_la_LDFLAGS = -module -avoid-version
 
 filter_ascii_la_SOURCES = filter_ascii.c
 filter_ascii_la_LDFLAGS = -module -avoid-version
-filter_ascii_la_LIBADD = $(ACLIB_LIBS)
 
 filter_astat_la_SOURCES = filter_astat.c
 filter_astat_la_LDFLAGS = -module -avoid-version
@@ -165,7 +164,6 @@ filter_doublefps_la_LDFLAGS = -module -avoid-version
 
 filter_facemask_la_SOURCES = filter_facemask.c
 filter_facemask_la_LDFLAGS = -module -avoid-version
-filter_facemask_la_LIBADD = $(ACLIB_LIBS)
 
 filter_fieldanalysis_la_SOURCES = filter_fieldanalysis.c
 filter_fieldanalysis_la_LDFLAGS = -module -avoid-version
@@ -200,7 +198,6 @@ filter_modfps_la_LIBADD = -lm
 
 filter_msharpen_la_SOURCES = filter_msharpen.c
 filter_msharpen_la_LDFLAGS = -module -avoid-version
-filter_msharpen_la_LIBADD = $(ACLIB_LIBS)
 
 filter_nored_la_SOURCES = filter_nored.c
 filter_nored_la_LDFLAGS = -module -avoid-version
@@ -224,11 +221,9 @@ filter_slowmo_la_LDFLAGS = -module -avoid-version
 
 filter_smartbob_la_SOURCES = filter_smartbob.c
 filter_smartbob_la_LDFLAGS = -module -avoid-version
-filter_smartbob_la_LIBADD = $(ACLIB_LIBS)
 
 filter_smartdeinter_la_SOURCES = filter_smartdeinter.c
 filter_smartdeinter_la_LDFLAGS = -module -avoid-version
-filter_smartdeinter_la_LIBADD = $(ACLIB_LIBS)
 
 filter_smartyuv_la_SOURCES = filter_smartyuv.c
 filter_smartyuv_la_LDFLAGS = -module -avoid-version
@@ -256,7 +251,6 @@ filter_videocore_la_LDFLAGS = -module -avoid-version
 
 filter_whitebalance_la_SOURCES = filter_whitebalance.c
 filter_whitebalance_la_LDFLAGS = -module -avoid-version
-filter_whitebalance_la_LIBADD = $(ACLIB_LIBS) -lm
 
 filter_xsharpen_la_SOURCES = filter_xsharpen.c
 filter_xsharpen_la_LDFLAGS = -module -avoid-version
@@ -266,7 +260,7 @@ filter_xsharpen_la_LDFLAGS = -module -avoid-version
 
 filter_logo_la_SOURCES = filter_logo.c
 filter_logo_la_LDFLAGS = -module -avoid-version
-filter_logo_la_LIBADD = $(IMAGEMAGICK_LIBS) $(ACLIB_LIBS)
+filter_logo_la_LIBADD = $(IMAGEMAGICK_LIBS)
 
 filter_logoaway_la_SOURCES = filter_logoaway.c
 filter_logoaway_la_LDFLAGS = -module -avoid-version
@@ -274,7 +268,7 @@ filter_logoaway_la_LIBADD = $(IMAGEMAGICK_LIBS)
 
 filter_compare_la_SOURCES = filter_compare.c
 filter_compare_la_LDFLAGS = -module -avoid-version
-filter_compare_la_LIBADD = $(IMAGEMAGICK_LIBS) $(ACLIB_LIBS)
+filter_compare_la_LIBADD = $(IMAGEMAGICK_LIBS)
 
 
 # FILTER_DILYUVMMX = filter_dilyuvmmx.la

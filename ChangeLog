@@ -1,4 +1,8 @@
-1005-11-18 Francesco Romani <fromani at gmail dot com>
+2005-11-18 Andrew Church <achurch at achurch dot org>
+  * export/Makefile.am filter/Makefile.am
+  Don't link modules to aclib (it's already included in the executables).
+
+2005-11-18 Francesco Romani <fromani at gmail dot com>
   * filter/filter_logoaway.c libtc/libtc.h libtc/tc_functions.c
     src/transcode.c libtc/Makefile.am
   Removed file: libtc/tc_func_excl.h
