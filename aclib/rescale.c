@@ -66,6 +66,10 @@ static void rescale_mmx(const uint8_t *src1, const uint8_t *src2,
             psllq $32, %%mm5            # MM5: W2 W2 00 00              \n\
             por %%mm7, %%mm5            # MM5: W2 W2 W2 W2              \n\
             pxor %%mm7, %%mm7           # MM7: 00 00 00 00              \n\
+            pxor %%mm6, %%mm6           # Put 0x0080*4 in MM6 (rounding)\n\
+            pcmpeqw %%mm3, %%mm3                                        \n\
+            psubw %%mm3, %%mm6                                          \n\
+            psllw $7, %%mm6                                             \n\
             0:                                                          \n\
             movq -8(%%esi,%%ecx), %%mm0                                 \n\
             movq %%mm0, %%mm1                                           \n\
@@ -85,6 +89,8 @@ static void rescale_mmx(const uint8_t *src1, const uint8_t *src2,
             pmulhw %%mm5, %%mm3                                         \n\
             paddw %%mm2, %%mm0                                          \n\
             paddw %%mm3, %%mm1                                          \n\
+            paddw %%mm6, %%mm0                                          \n\
+            paddw %%mm6, %%mm1                                          \n\
             packuswb %%mm1, %%mm0                                       \n\
             movq %%mm0, -8(%%edi,%%ecx)                                 \n\
             subl $8, %%ecx                                              \n\
@@ -112,32 +118,36 @@ static void rescale_mmxext(const uint8_t *src1, const uint8_t *src2,
         asm("\
             pshufw $0, %%mm4, %%mm4     # MM4: W1 W1 W1 W1              \n\
             pshufw $0, %%mm5, %%mm5     # MM5: W2 W2 W2 W2              \n\
-            pxor %%mm7, %%mm7           # MM7: 00 00 00 00              \n\
+            pxor %%mm6, %%mm6           # Put 0x0080*4 in MM6 (rounding)\n\
+            pcmpeqw %%mm7, %%mm7                                        \n\
+            psubw %%mm7, %%mm6                                          \n\
+            psllw $7, %%mm6                                             \n\
             0:                                                          \n\
-            movq -8(%%esi,%%ecx), %%mm6                                 \n\
-            movq %%mm7, %%mm0           # Load data into high bytes     \n\
-            punpcklbw %%mm6, %%mm0      # (gives 8.8 fixed point)       \n\
+            movq -8(%%esi,%%ecx), %%mm7                                 \n\
+            pxor %%mm0, %%mm0           # Load data into high bytes     \n\
+            punpcklbw %%mm7, %%mm0      # (gives 8.8 fixed point)       \n\
             pmulhuw %%mm4, %%mm0        # Result: 0000..FF00            \n\
-            movq %%mm7, %%mm1                                           \n\
+            pxor %%mm1, %%mm1                                           \n\
             punpckhbw %%mm6, %%mm1                                      \n\
             pmulhuw %%mm4, %%mm1                                        \n\
-            movq -8(%%edx,%%ecx), %%mm6                                 \n\
-            movq %%mm7, %%mm2                                           \n\
-            punpcklbw %%mm6, %%mm2                                      \n\
+            movq -8(%%edx,%%ecx), %%mm7                                 \n\
+            pxor %%mm2, %%mm2                                           \n\
+            punpcklbw %%mm7, %%mm2                                      \n\
             pmulhuw %%mm5, %%mm2                                        \n\
-            movq %%mm7, %%mm3                                           \n\
-            punpckhbw %%mm6, %%mm3                                      \n\
+            pxor %%mm3, %%mm3                                           \n\
+            punpckhbw %%mm7, %%mm3                                      \n\
             pmulhuw %%mm5, %%mm3                                        \n\
             paddw %%mm2, %%mm0                                          \n\
+            paddw %%mm6, %%mm0                                          \n\
             psrlw $8, %%mm0             # Shift back down to 00..FF     \n\
             paddw %%mm3, %%mm1                                          \n\
+            paddw %%mm6, %%mm1                                          \n\
             psrlw $8, %%mm1                                             \n\
             packuswb %%mm1, %%mm0                                       \n\
             movq %%mm0, -8(%%edi,%%ecx)                                 \n\
             subl $8, %%ecx                                              \n\
             jnz 0b                                                      \n\
-            emms                                                        \n\
-            sfence"
+            emms"
             : /* no outputs */
             : "S" (src1), "d" (src2), "D" (dest), "c" (bytes & ~7));
     }
@@ -177,25 +187,30 @@ static void rescale_sse2(const uint8_t *src1, const uint8_t *src2,
         asm("\
             pshufd $0, %%xmm4, %%xmm4   # XMM4: W1 W1 W1 W1 W1 W1 W1 W1 \n\
             pshufd $0, %%xmm5, %%xmm5   # XMM5: W2 W2 W2 W2 W2 W2 W2 W2 \n\
-            pxor %%xmm7, %%xmm7         # XMM7: 00 00 00 00 00 00 00 00 \n\
+            pxor %%xmm6, %%xmm6         # Put 0x0080*4 in XMM6 (rounding)\n\
+            pcmpeqw %%xmm7, %%xmm7                                      \n\
+            psubw %%xmm7, %%xmm6                                        \n\
+            psllw $7, %%xmm6                                            \n\
             0:                                                          \n\
-            movdqu -16("ESI","ECX"), %%xmm6                             \n\
-            movdqa %%xmm7, %%xmm0                                       \n\
-            punpcklbw %%xmm6, %%xmm0                                    \n\
+            movdqu -16("ESI","ECX"), %%xmm7                             \n\
+            pxor %%xmm0, %%xmm0                                         \n\
+            punpcklbw %%xmm7, %%xmm0                                    \n\
             pmulhuw %%xmm4, %%xmm0                                      \n\
-            movdqa %%xmm7, %%xmm1                                       \n\
-            punpckhbw %%xmm6, %%xmm1                                    \n\
+            pxor %%xmm1, %%xmm1                                         \n\
+            punpckhbw %%xmm7, %%xmm1                                    \n\
             pmulhuw %%xmm4, %%xmm1                                      \n\
-            movdqu -16("EDX","ECX"), %%xmm6                             \n\
-            movdqa %%xmm7, %%xmm2                                       \n\
-            punpcklbw %%xmm6, %%xmm2                                    \n\
+            movdqu -16("EDX","ECX"), %%xmm7                             \n\
+            pxor %%xmm2, %%xmm2                                         \n\
+            punpcklbw %%xmm7, %%xmm2                                    \n\
             pmulhuw %%xmm5, %%xmm2                                      \n\
-            movdqa %%xmm7, %%xmm3                                       \n\
-            punpckhbw %%xmm6, %%xmm3                                    \n\
+            pxor %%xmm3, %%xmm3                                         \n\
+            punpckhbw %%xmm7, %%xmm3                                    \n\
             pmulhuw %%xmm5, %%xmm3                                      \n\
             paddw %%xmm2, %%xmm0                                        \n\
+            paddw %%xmm6, %%xmm0                                        \n\
             psrlw $8, %%xmm0                                            \n\
             paddw %%xmm3, %%xmm1                                        \n\
+            paddw %%xmm6, %%xmm1                                        \n\
             psrlw $8, %%xmm1                                            \n\
             packuswb %%xmm1, %%xmm0                                     \n\
             movdqu %%xmm0, -16("EDI","ECX")                             \n\

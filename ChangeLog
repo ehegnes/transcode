@@ -1,4 +1,8 @@
 2005-11-18 Andrew Church <achurch at achurch dot org>
+  * aclib/rescale.c
+  Round results instead of truncating for accelerated rescale().
+
+2005-11-18 Andrew Church <achurch at achurch dot org>
   * Changed: export/Makefile.am export/export_dv.c export/export_dvraw.c
              export/export_ffmpeg.c export/export_jpg.c export/export_mjpeg.c
              export/export_mp1e.c export/export_mpeg2enc.c export/export_raw.c
