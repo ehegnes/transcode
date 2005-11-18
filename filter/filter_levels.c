@@ -136,7 +136,7 @@ static void levels_get_config(char *options, int optsize)
 }
 
 static int levels_init(LevelsPrivateData *pd, const vob_t *vob,
-                                              const char *options) 
+                       const char *options, int id) 
 {
     if(!pd || !vob) {
         /* should never happen */
@@ -171,12 +171,12 @@ static int levels_init(LevelsPrivateData *pd, const vob_t *vob,
                  pd->parameter.out_black, pd->parameter.out_white);
 
     if (verbose) {
-        tc_log_info(MOD_NAME, "%s %s #%d", MOD_VERSION, MOD_CAP, vframe->filter_id);
+        tc_log_info(MOD_NAME, "%s %s #%d", MOD_VERSION, MOD_CAP, id);
         tc_log_info(MOD_NAME, "scaling %d-%d gamma %f to %d-%d",
                     pd->parameter.in_black, pd->parameter.in_white,
                     pd->parameter.in_gamma,
                     pd->parameter.out_black, pd->parameter.out_white);
-        tc_log_info(MOD_NAME, "%s-processing filter", MOD_NAME,
+        tc_log_info(MOD_NAME, "%s-processing filter",
                     (pd->is_prefilter) ?"pre" :"post");
     }
     return 0;
@@ -206,7 +206,7 @@ int tc_filter(frame_list_t *vframe_, char *options)
             return -1;
         }
     
-        ret = levels_init(pd, vob, options);
+        ret = levels_init(pd, vob, options, vframe->filter_id);
         if (ret != 0) {
             return ret;
         }

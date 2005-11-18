@@ -1,4 +1,8 @@
 2005-11-18 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_levels.c
+  some miscelanous bugfixes.
+
+2005-11-18 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h
   In fact, we want to include system types here :).
 
