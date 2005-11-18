@@ -1,4 +1,18 @@
 2005-11-18 Andrew Church <achurch at achurch dot org>
+  * Changed: export/Makefile.am export/export_dv.c export/export_dvraw.c
+             export/export_ffmpeg.c export/export_jpg.c export/export_mjpeg.c
+             export/export_mp1e.c export/export_mpeg2enc.c export/export_raw.c
+             export/export_xvid2.c export/export_xvid3.c export/export_xvid4.c
+             export/export_yuv4mpeg.c filter/Makefile.am filter/filter_ascii.c
+             filter/filter_facemask.c filter/filter_logo.c
+             filter/filter_msharpen.c filter/filter_smartbob.c
+             filter/filter_smartdeinter.c filter/filter_whitebalance.c
+             libtcvideo/tcvideo.c libtcvideo/tcvideo.h
+    Removed: export/vid_aux.c export/vid_aux.h
+  Move tcv_convert() functionality into libtcvideo, and get rid of
+  export/vid_aux.[ch].
+
+2005-11-18 Andrew Church <achurch at achurch dot org>
   * filter/extsub/filter_extsub.c import/import_xml.c libtcvideo/tcvideo.c
     libtcvideo/tcvideo.h src/video_trans.c
   Add a "handle" parameter to all libtcvideo functions for proper threaded

@@ -27,7 +27,7 @@
 #include <stdlib.h>
 
 #include "transcode.h"
-#include "vid_aux.h"
+#include "libtcvideo/tcvideo.h"
 
 #define MOD_NAME    "export_mp1e.so"
 #define MOD_VERSION "v0.0.1 (2003-12-18)"
@@ -49,6 +49,7 @@ static int do_audio = 0;
 static int v_codec = 0;
 static int width = 0;
 static int height = 0;
+static TCVHandle tcvhandle = 0;
 static ImageFormat srcfmt, destfmt;
 
 
@@ -157,7 +158,7 @@ MOD_open
 	    tc_log_warn (MOD_NAME, "invalid codec for this export module");
 	    return (TC_EXPORT_ERROR);
 	}
-	if (!tcv_convert_init(width, height)) {
+	if (!(tcvhandle = tcv_init())) {
 	    tc_log_warn (MOD_NAME, "failed to init image format conversion");
 	    return (TC_EXPORT_ERROR);
 	}
@@ -286,6 +287,7 @@ MOD_encode
 	return 0;
     }
     if (param->flag == TC_VIDEO)  {
+	vob_t *vob = tc_get_vob();
 
 	//
 	// If we open the pipe at _open time, it does not work
@@ -302,7 +304,8 @@ MOD_encode
 	    }
 	}
 
-	if (!tcv_convert(param->buffer, srcfmt, destfmt)) {
+	if (!tcv_convert(tcvhandle, param->buffer, vob->ex_v_width,
+			 vob->ex_v_height, srcfmt, destfmt)) {
 	    tc_log_warn(MOD_NAME, "image format conversion failed");
 	    return(TC_EXPORT_ERROR);
 	}
@@ -350,6 +353,9 @@ MOD_close
   }
   audio_open_done = 0;
   do_audio = 0;
+
+  tcv_free(tcvhandle);
+  tcvhandle = 0;
 
   return(0);
 }

@@ -28,7 +28,7 @@
 #include <fcntl.h>
 
 #include "transcode.h"
-#include "vid_aux.h"
+#include "libtcvideo/tcvideo.h"
 
 #if defined(HAVE_MJPEGTOOLS_INC)
 #include "yuv4mpeg.h"
@@ -55,6 +55,7 @@ static int   sa_width  = 0;
 static int   sa_height = 0;
 static int   sa_size_l = 0;
 static int   sa_size_c = 0;
+static TCVHandle tcvhandle = 0;
 static ImageFormat srcfmt;
 
 #define Y4M_LINE_MAX 256
@@ -374,7 +375,7 @@ MOD_init
 		vob->im_v_codec);
 	return(TC_EXPORT_ERROR);
     }
-    if (!tcv_convert_init(sa_width, sa_height)) {
+    if (!(tcvhandle = tcv_init())) {
 	tc_log_warn(MOD_NAME, "image conversion init failed");
 	return(TC_EXPORT_ERROR);
     }
@@ -407,8 +408,10 @@ MOD_encode
 
   if(param->flag == TC_VIDEO)
   {
+      vob_t *vob = tc_get_vob();
 
-      if (!tcv_convert(param->buffer, srcfmt, IMG_YUV420P)) {
+      if (!tcv_convert(tcvhandle, param->buffer, vob->ex_v_width,
+		       vob->ex_v_height, srcfmt, IMG_YUV420P)) {
 	  tc_log_warn(MOD_NAME, "image format conversion failed");
 	  return(TC_EXPORT_ERROR);
       }
@@ -464,6 +467,9 @@ MOD_close
   {
     if (sa_ip) pclose(sa_ip);
     sa_ip = NULL;
+
+    tcv_free(tcvhandle);
+    tcvhandle = 0;
 
     return(0);
   }

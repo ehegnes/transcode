@@ -47,7 +47,7 @@
 #include "filter.h"
 #include "optstr.h"
 
-#include "export/vid_aux.h"
+#include "libtcvideo/tcvideo.h"
 
 
 // basic parameter
@@ -71,6 +71,7 @@ typedef struct MyFilterData {
 	unsigned int cur_seq;      /* animated: current image */
 	int cur_delay;             /* animated: current delay */
 	char **yuv;                /* buffer for RGB->YUV conversion */
+	TCVHandle tcvhandle;       /* handle for RGB->YUV conversion */
 } MyFilterData;
 
 static MyFilterData *mfd = NULL;
@@ -276,7 +277,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    }
 	}
 
-	if (!tcv_convert_init(image->columns, image->rows)) {
+	if (!(mfd->tcvhandle = tcv_init())) {
 	    tc_log_error(MOD_NAME, "image conversion init failed");
 	    return(-1);
 	}
@@ -328,13 +329,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 
 	for (i=0; i<mfd->nr_of_images; i++) {
-	    if (!tcv_convert(mfd->yuv[i], IMG_RGB24, IMG_YUV_DEFAULT)) {
-		tc_log_error(MOD_NAME, "rgb2yuv conversion failed");
+	    if (!tcv_convert(mfd->tcvhandle, mfd->yuv[i], image->columns,
+			     image->rows, IMG_RGB24, IMG_YUV_DEFAULT)) {
+		tc_log_error(MOD_NAME, "RGB->YUV conversion failed");
 		return(-1);
 	    }
 	}
 
-    }  else {
+    } else {
 	/* for RGB format is origin bottom left */
 	rgb_off = vob->ex_v_height - image->rows;
 	mfd->posy = rgb_off - mfd->posy;

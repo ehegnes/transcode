@@ -19,6 +19,8 @@
 # include <stdint.h>
 #endif
 
+#include "aclib/imgconvert.h"
+
 /*************************************************************************/
 
 /* Handle for calling tcvideo functions, allocated by tcv_init() and passed
@@ -84,6 +86,9 @@ int tcv_gamma_correct(TCVHandle handle,
 int tcv_antialias(TCVHandle handle,
                   uint8_t *src, uint8_t *dest, int width, int height,
                   int Bpp, double weight, double bias);
+
+int tcv_convert(TCVHandle handle, uint8_t *image, int width, int height,
+                ImageFormat srcfmt, ImageFormat destfmt);
 
 /*************************************************************************/
 

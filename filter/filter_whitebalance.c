@@ -33,11 +33,12 @@
 #include "filter.h"
 #include "optstr.h"
 
-#include "export/vid_aux.h"
+#include "libtcvideo/tcvideo.h"
 
 #include <math.h>
 #include <ctype.h>
 
+static TCVHandle tcvhandle = 0;
 static unsigned char * buffer = NULL;
 static int level = 40;
 static char limit[PATH_MAX];
@@ -123,7 +124,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 		if (vob->im_v_codec == CODEC_YUV) {
 			if (verbose) tc_log_warn(MOD_NAME, "will need to convert YUV to RGB before filtering");
-			if (!tcv_convert_init(width, height)) {
+			if (!(tcvhandle = tcv_init())) {
 				tc_log_error(MOD_NAME, "image conversion init failed");
 				return -1;
 			}
@@ -161,7 +162,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 		if (state) {
 			if (vob->im_v_codec == CODEC_YUV)
-				tcv_convert(ptr->video_buf, IMG_YUV_DEFAULT, IMG_RGB24);
+				tcv_convert(tcvhandle, ptr->video_buf,
+					    ptr->v_width, ptr->v_height,
+					    IMG_YUV_DEFAULT, IMG_RGB24);
 			ac_memcpy(buffer, ptr->video_buf, ptr->v_width*ptr->v_height*3);
 
 
@@ -177,7 +180,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 			ac_memcpy(ptr->video_buf, buffer, ptr->v_width*ptr->v_height*3);
 			if (vob->im_v_codec == CODEC_YUV)
-				tcv_convert(ptr->video_buf, IMG_RGB24, IMG_YUV_DEFAULT);
+				tcv_convert(tcvhandle, ptr->video_buf,
+					    ptr->v_width, ptr->v_height,
+					    IMG_RGB24, IMG_YUV_DEFAULT);
 		}
 	}
 

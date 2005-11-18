@@ -65,7 +65,7 @@
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
-#include "vid_aux.h"
+#include "libtcvideo/tcvideo.h"
 
 #ifdef DEVELOPER_USE
 #include "libioaux/configs.h"
@@ -106,6 +106,8 @@ static FILE *hints_file = NULL;
 
 /* temporary audio/video buffer */
 static char *buffer;
+
+TCVHandle tcvhandle;
 
 /*****************************************************************************
  * Prototypes for shared library symbols
@@ -259,8 +261,8 @@ MOD_init
 		case CODEC_YUV422:
 			global_framesize = fsize*2;
 			global_colorspace = XVID_CSP_UYVY;
-			if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
-				tc_log_warn(MOD_NAME, "tcv_convert_init failed");
+			if (!(tcvhandle = tcv_init())) {
+				tc_log_warn(MOD_NAME, "tcv_init failed");
 				return TC_EXPORT_ERROR;
 			}
 			break;
@@ -475,7 +477,9 @@ MOD_encode
 
 	if(tc_get_vob()->im_v_codec == CODEC_YUV422) {
 		/* Convert to UYVY */
-		tcv_convert(param->buffer, IMG_YUV422P, IMG_UYVY);
+		vob_t *vob = tc_get_vob();
+		tcv_convert(tcvhandle, param->buffer, vob->ex_v_width,
+			    vob->ex_v_height, IMG_YUV422P, IMG_UYVY);
 	}
 
 	/* Initialize the local frame copy */

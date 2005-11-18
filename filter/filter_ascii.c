@@ -31,8 +31,8 @@
 #include "filter.h"
 #include "optstr.h"
 
-/* RGB->YUV conversion */
-#include "export/vid_aux.h"
+/* For RGB->YUV conversion */
+#include "libtcvideo/tcvideo.h"
 
 #define MAX_LENGTH 		1024
 #define TMP_FILE		"raw"
@@ -51,6 +51,7 @@ typedef struct parameter_struct{
 	char	aart_pallete[PATH_MAX];
 	int	aart_threads;
 	int	aart_buffer;
+	TCVHandle tcvhandle;
 } parameter_struct;
 
 static parameter_struct *parameters = NULL;
@@ -283,6 +284,7 @@ int tc_filter(frame_list_t *ptr_, char *options){
 	strncpy(parameters->aart_pallete, "colors.pal", strlen("colors.pal"));
 	parameters->aart_threads 		= 1;
 	parameters->aart_buffer 		= -1;
+	parameters->tcvhandle			= 0;
 
 	if (options){
 		/* Get filter options via transcode core */
@@ -303,7 +305,7 @@ int tc_filter(frame_list_t *ptr_, char *options){
 	}
 
 	if (vob->im_v_codec == CODEC_YUV){
-		if (!tcv_convert_init(vob->im_v_width, vob->im_v_height)) {
+		if (!(parameters->tcvhandle = tcv_init())) {
 			tc_log_error(MOD_NAME, "Error at image conversion initialization.");
 			return(-1);
 		}
@@ -334,6 +336,8 @@ int tc_filter(frame_list_t *ptr_, char *options){
 	 * process to finish before exiting.
 	 */
 
+	tcv_free(parameters->tcvhandle);
+
 	/* Let's free the parameter structure */
 	free(parameters);
 	parameters = NULL;
@@ -357,13 +361,13 @@ int tc_filter(frame_list_t *ptr_, char *options){
 
 			case CODEC_YUV:
 
-				if (!tcv_convert(ptr->video_buf, IMG_YUV_DEFAULT, IMG_RGB24)){
+				if (!tcv_convert(parameters->tcvhandle, ptr->video_buf, ptr->v_width, ptr->v_height, IMG_YUV_DEFAULT, IMG_RGB24)){
 					tc_log_error(MOD_NAME, "cannot convert YUV stream to RGB format !");
 					return -1;
 				}
 
 				if (aart_render(ptr->video_buf, ptr->v_width, ptr->v_height, frame_slot, parameters->aart_font, parameters->aart_pallete, parameters->aart_threads, parameters->aart_buffer) == -1){return -1;}
-				if (!tcv_convert(ptr->video_buf, IMG_RGB24, IMG_YUV_DEFAULT)){
+				if (!tcv_convert(parameters->tcvhandle, ptr->video_buf, ptr->v_width, ptr->v_height, IMG_RGB24, IMG_YUV_DEFAULT)){
 					tc_log_error(MOD_NAME, "cannot convert RGB stream to YUV format !");
 					return -1;
 				}

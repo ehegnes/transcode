@@ -27,7 +27,7 @@
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
-#include "vid_aux.h"
+#include "libtcvideo/tcvideo.h"
 #include "import/magic.h"
 #include "iodir.h"
 
@@ -49,6 +49,7 @@ static int width=0, height=0, im_v_codec=-1;
 static int mpeg_passthru;
 static FILE *mpeg_f = NULL;
 
+static TCVHandle tcvhandle = 0;
 static ImageFormat srcfmt = IMG_NONE, destfmt = IMG_NONE;
 static int destsize = 0;
 
@@ -150,7 +151,7 @@ further:
 
       // video
 
-      if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
+      if (!(tcvhandle = tcv_init())) {
 	tc_log_warn(MOD_NAME, "tcv_convert_init failed");
 	return(TC_EXPORT_ERROR);
       }
@@ -363,7 +364,9 @@ MOD_encode
     if(key) tc_outstream_rotate();
 
     if (srcfmt && destfmt) {
-      if (!tcv_convert(param->buffer, srcfmt, destfmt)) {
+      vob_t *vob = tc_get_vob();
+      if (!tcv_convert(tcvhandle, param->buffer, vob->ex_v_width,
+		       vob->ex_v_height, srcfmt, destfmt)) {
 	tc_log_warn(MOD_NAME, "image conversion failed");
 	return(TC_EXPORT_ERROR);
       }
@@ -443,6 +446,9 @@ MOD_close
     AVI_close(vob->avifile_out);
     vob->avifile_out=NULL;
   }
+
+  tcv_free(tcvhandle);
+  tcvhandle = 0;
 
   if(param->flag == TC_VIDEO) return(0);
 

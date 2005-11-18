@@ -1,3 +1,4 @@
+/********* FIXME: tcvhandle sanity checks ************/
 /*
  * tcvideo.c - video processing library for transcode
  * Written by Andrew Church <achurch@achurch.org>
@@ -62,6 +63,9 @@ struct tcvhandle_ {
         TCVZoomFilter filter;
         ZoomInfo *zi;
     } zoominfo_cache[ZOOMINFO_CACHE_SIZE];
+    /* Buffer and buffer size for tcv_convert() */
+    uint8_t *convert_buffer;
+    uint32_t convert_buffer_size;
 };
 
 /*************************************************************************/
@@ -925,6 +929,78 @@ static void antialias_line(TCVHandle handle,
     }
     for (i = 0; i < Bpp; i++)
         dest[(width-1)*Bpp+i] = src[(width-1)*Bpp+i];
+}
+
+/*************************************************************************/
+
+/**
+ * tcv_convert:  Convert an image from one image format to another in place
+ * (does nothing if formats are the same).
+ *
+ * Parameters:  handle: tcvideo handle.
+ *               image: Image to convert.
+ *               width: Width of image.
+ *              height: Height of image.
+ *              srcfmt: Format of image.
+ *             destfmt: Format to convert image to.
+ * Return value: Nonzero on success, zero on error (invalid parameters).
+ * Preconditions: handle != 0: handle was returned by tcv_init()
+ * Postconditions: None.
+ */
+
+int tcv_convert(TCVHandle handle, uint8_t *image, int width, int height,
+                ImageFormat srcfmt, ImageFormat destfmt)
+{
+    uint8_t *srcplanes[3], *destplanes[3];
+    uint32_t size;
+
+    if (!handle) {
+        tc_log_error("libtcvideo", "tcv_convert(): No handle given!");
+        return 0;
+    }
+    if (!image || width <= 0 || height <= 0 || !srcfmt || !destfmt) {
+        tc_log_error("libtcvideo", "tcv_convert(): Invalid image parameters!");
+        return 0;
+    }
+
+    if (srcfmt == destfmt)
+        return 1;  /* formats are the same */
+
+    switch (destfmt) {
+        case IMG_YUV420P:
+        case IMG_YV12   : size = width*height + 2*(width/2)*(height/2); break;
+        case IMG_YUV411P: size = width*height + 2*(width/4)*height; break;
+        case IMG_YUV422P: size = width*height + 2*(width/2)*height; break;
+        case IMG_YUV444P: size = width*height*3; break;
+        case IMG_YUY2   :
+        case IMG_UYVY   :
+        case IMG_YVYU   : size = width*height*2; break;
+        case IMG_Y8     :
+        case IMG_GRAY8  : size = width*height; break;
+        case IMG_RGB24  :
+        case IMG_BGR24  : size = width*height*3; break;
+        case IMG_RGBA32 :
+        case IMG_ABGR32 :
+        case IMG_ARGB32 :
+        case IMG_BGRA32 : size = width*height*4; break;
+        default         : return 0;
+    }
+
+    if (!handle->convert_buffer || handle->convert_buffer_size < size) {
+        free(handle->convert_buffer);
+        handle->convert_buffer = tc_malloc(size);
+        if (!handle->convert_buffer)
+            return 0;
+        handle->convert_buffer_size = size;
+    }
+
+    YUV_INIT_PLANES(srcplanes, image, srcfmt, width, height);
+    YUV_INIT_PLANES(destplanes, handle->convert_buffer, destfmt,
+                    width, height);
+    if (!ac_imgconvert(srcplanes, srcfmt, destplanes, destfmt, width, height))
+        return 0;
+    ac_memcpy(image, handle->convert_buffer, size);
+    return 1;
 }
 
 /*************************************************************************/

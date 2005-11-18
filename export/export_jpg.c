@@ -32,7 +32,6 @@
 #endif
 
 #include "transcode.h"
-#include "vid_aux.h"
 
 #define MOD_NAME    "export_jpg.so"
 #define MOD_VERSION "v0.2.1 (2003-08-06)"

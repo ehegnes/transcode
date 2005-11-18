@@ -27,7 +27,6 @@
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
-#include "vid_aux.h"
 #include "aclib/imgconvert.h"
 
 #define MOD_NAME    "export_dv.so"

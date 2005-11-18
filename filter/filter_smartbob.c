@@ -53,7 +53,7 @@
 #include "filter.h"
 #include "optstr.h"
 
-#include "export/vid_aux.h"
+#include "libtcvideo/tcvideo.h"
 
 
 static vob_t *vob=NULL;
@@ -83,6 +83,7 @@ typedef struct MyFilterData {
 	int 			bDenoise;
 	int 			threshold;
 	int                     codec;
+	TCVHandle		tcvhandle;
 } MyFilterData;
 
 static MyFilterData *mfd;
@@ -175,7 +176,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	mfd->fmoving = tc_zalloc (sizeof(unsigned char)*width*height);
 
 	if (mfd->codec == CODEC_YUV) {
-	    tcv_convert_init(width, height/2);
+		mfd->tcvhandle = tcv_init();
 	}
 
 	// filter init ok.
@@ -229,6 +230,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		mfd->convertFrameOut = NULL;
 	}
 
+	tcv_free(mfd->tcvhandle);
+
 	if (mfd)
 		free(mfd);
 
@@ -257,7 +260,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	Pixel32 * src_buf;
 
 	if (mfd->codec == CODEC_YUV) {
-	    tcv_convert(ptr->video_buf, IMG_YUV_DEFAULT, IMG_RGB24);
+		tcv_convert(mfd->tcvhandle, ptr->video_buf, ptr->v_width,
+			    ptr->v_height, IMG_YUV_DEFAULT, IMG_RGB24);
 	}
 
 	ac_imgconvert(&ptr->video_buf, IMG_RGB24,
@@ -529,7 +533,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		      ptr->v_width, ptr->v_height);
 
 	if (mfd->codec == CODEC_YUV) {
-	    tcv_convert(ptr->video_buf, IMG_RGB24, IMG_YUV_DEFAULT);
+		tcv_convert(mfd->tcvhandle, ptr->video_buf, ptr->v_width,
+			    ptr->v_height, IMG_RGB24, IMG_YUV_DEFAULT);
 	}
 
 	return 0;

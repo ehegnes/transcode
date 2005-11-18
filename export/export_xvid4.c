@@ -59,7 +59,7 @@
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
-#include "vid_aux.h"
+#include "libtcvideo/tcvideo.h"
 
 #include "libioaux/configs.h"
 
@@ -179,6 +179,9 @@ typedef struct _xvid_transcode_module_t
 	long long sse_y;
 	long long sse_u;
 	long long sse_v;
+
+	/* Image format conversion handle */
+	TCVHandle tcvhandle;
 } xvid_transcode_module_t;
 
 static xvid_transcode_module_t thismod;
@@ -231,14 +234,14 @@ MOD_init
 	thismod.stream_size = vob->ex_v_width * vob->ex_v_height;
 	if(vob->im_v_codec == CODEC_RGB) {
 		thismod.stream_size *= 3;
-		if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
-			tc_log_warn(MOD_NAME, "tcv_convert_init failed");
+		if (!(thismod.tcvhandle = tcv_init())) {
+			tc_log_warn(MOD_NAME, "tcv_init failed");
 			return TC_EXPORT_ERROR;
 		}
 	} else if(vob->im_v_codec == CODEC_YUV422) {
 		thismod.stream_size *= 2;
-		if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
-			tc_log_warn(MOD_NAME, "tcv_convert_init failed");
+		if (!(thismod.tcvhandle = tcv_init())) {
+			tc_log_warn(MOD_NAME, "tcv_init failed");
 			return TC_EXPORT_ERROR;
 		}
 	} else
@@ -372,10 +375,13 @@ MOD_encode
 
 	if(vob->im_v_codec == CODEC_YUV422) {
 		/* Convert to UYVY */
-		tcv_convert(param->buffer, IMG_YUV422P, IMG_UYVY);
+		vob_t *vob = tc_get_vob();
+		tcv_convert(thismod.tcvhandle, param->buffer, vob->ex_v_width,
+			    vob->ex_v_height, IMG_YUV422P, IMG_UYVY);
 	} else if (vob->im_v_codec == CODEC_RGB) {
 		/* Convert to BGR (why isn't RGB supported??) */
-		tcv_convert(param->buffer, IMG_RGB24, IMG_BGR24);
+		tcv_convert(thismod.tcvhandle, param->buffer, vob->ex_v_width,
+			    vob->ex_v_height, IMG_RGB24, IMG_BGR24);
         }
 
 	/* Init the stat structure */
@@ -585,6 +591,10 @@ static void reset_module(xvid_transcode_module_t *mod)
 
 static void free_module(xvid_transcode_module_t *mod)
 {
+
+	/* Free tcvideo handle */
+	tcv_free(thismod.tcvhandle);
+	thismod.tcvhandle = 0;
 
 	/* Release stream buffer memory */
 	if(mod->stream) {

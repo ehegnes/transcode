@@ -125,14 +125,14 @@ export_divx5raw_la_SOURCES = export_divx5raw.c aud_aux.c divx4_vbr.c
 export_divx5raw_la_LDFLAGS = -module -avoid-version
 export_divx5raw_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
-export_ffmpeg_la_SOURCES = export_ffmpeg.c aud_aux.c ffmpeg_cfg.c vid_aux.c
+export_ffmpeg_la_SOURCES = export_ffmpeg.c aud_aux.c ffmpeg_cfg.c
 export_ffmpeg_la_LDFLAGS = -module -avoid-version
 export_ffmpeg_la_LIBADD = $(LAME_LIBS) $(ACLIB_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
 export_lame_la_SOURCES = export_lame.c
 export_lame_la_LDFLAGS = -module -avoid-version
 
-export_mp1e_la_SOURCES = export_mp1e.c vid_aux.c
+export_mp1e_la_SOURCES = export_mp1e.c
 export_mp1e_la_LDFLAGS = -module -avoid-version
 export_mp1e_la_LIBADD  = $(ACLIB_LIBS) -lm
 
@@ -157,7 +157,7 @@ export_pvn_la_SOURCES = export_pvn.c aud_aux.c
 export_pvn_la_LDFLAGS = -module -avoid-version
 export_pvn_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(ACLIB_LIBS) $(LIBAVCODEC_LIBS)
 
-export_raw_la_SOURCES = export_raw.c aud_aux.c vid_aux.c
+export_raw_la_SOURCES = export_raw.c aud_aux.c
 export_raw_la_LDFLAGS = -module -avoid-version
 export_raw_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
@@ -168,15 +168,15 @@ export_wav_la_SOURCES = export_wav.c
 export_wav_la_LDFLAGS = -module -avoid-version
 export_wav_la_LIBADD = -lm
 
-export_xvid2_la_SOURCES = export_xvid2.c aud_aux.c vid_aux.c xvid_vbr.c
+export_xvid2_la_SOURCES = export_xvid2.c aud_aux.c xvid_vbr.c
 export_xvid2_la_LDFLAGS = -module -avoid-version
 export_xvid2_la_LIBADD = $(LIBAVCODEC_LIBS) $(LAME_LIBS) $(AC3_LIBS)
 
-export_xvid3_la_SOURCES = export_xvid3.c aud_aux.c vid_aux.c xvid_vbr.c
+export_xvid3_la_SOURCES = export_xvid3.c aud_aux.c xvid_vbr.c
 export_xvid3_la_LDFLAGS = -module -avoid-version
 export_xvid3_la_LIBADD = $(LIBAVCODEC_LIBS) $(LAME_LIBS) $(AC3_LIBS)
 
-export_xvid4_la_SOURCES = export_xvid4.c aud_aux.c vid_aux.c
+export_xvid4_la_SOURCES = export_xvid4.c aud_aux.c
 export_xvid4_la_LDFLAGS = -module -avoid-version
 export_xvid4_la_LIBADD = $(LIBAVCODEC_LIBS) $(LAME_LIBS) $(AC3_LIBS)
 
@@ -186,16 +186,16 @@ export_af6_la_LDFLAGS = -module -avoid-version
 export_af6_la_LIBADD = $(LAME_LIBS) $(AVIFILE_LIBS) -lstdc++ $(AC3_LIBS) -lm
 
 # MODS_IMAGEMAGICK
-export_im_la_SOURCES = export_im.c vid_aux.c
+export_im_la_SOURCES = export_im.c
 export_im_la_LDFLAGS = -module -avoid-version
 export_im_la_LIBADD = $(IMAGEMAGICK_LIBS) $(ACLIB_LIBS) -lm
 
 # MODS_LIBDV
-export_dv_la_SOURCES = export_dv.c aud_aux.c vid_aux.c
+export_dv_la_SOURCES = export_dv.c aud_aux.c
 export_dv_la_LDFLAGS = -module -avoid-version
 export_dv_la_LIBADD = $(LAME_LIBS) $(LIBDV_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS) $(ACLIB_LIBS)
 
-export_dvraw_la_SOURCES = export_dvraw.c vid_aux.c
+export_dvraw_la_SOURCES = export_dvraw.c
 export_dvraw_la_LDFLAGS = -module -avoid-version
 export_dvraw_la_LIBADD = $(LIBDV_LIBS) $(ACLIB_LIBS) -lm
 
@@ -209,7 +209,7 @@ export_jpg_la_SOURCES = export_jpg.c
 export_jpg_la_LDFLAGS = -module -avoid-version
 export_jpg_la_LIBADD = $(LIBJPEG_LIBS) -lm
 
-export_mjpeg_la_SOURCES = export_mjpeg.c vid_aux.c aud_aux.c
+export_mjpeg_la_SOURCES = export_mjpeg.c aud_aux.c
 export_mjpeg_la_LDFLAGS = -module -avoid-version
 export_mjpeg_la_LIBADD = $(LIBJPEG_LIBS) $(LAME_LIBS) $(ACLIB_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
@@ -228,11 +228,11 @@ export_mp2enc_la_SOURCES = export_mp2enc.c
 export_mp2enc_la_LDFLAGS = -module -avoid-version
 export_mp2enc_la_LIBADD = -lm
 
-export_mpeg2enc_la_SOURCES = export_mpeg2enc.c vid_aux.c
+export_mpeg2enc_la_SOURCES = export_mpeg2enc.c
 export_mpeg2enc_la_LDFLAGS = -module -avoid-version
 export_mpeg2enc_la_LIBADD = $(MJPEGTOOLS_LIBS) $(ACLIB_LIBS) -lm
 
-export_yuv4mpeg_la_SOURCES = export_yuv4mpeg.c aud_aux.c vid_aux.c
+export_yuv4mpeg_la_SOURCES = export_yuv4mpeg.c aud_aux.c
 export_yuv4mpeg_la_LDFLAGS = -module -avoid-version
 export_yuv4mpeg_la_LIBADD = $(LAME_LIBS) $(MJPEGTOOLS_LIBS) $(ACLIB_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
@@ -257,7 +257,6 @@ EXTRA_DIST = \
 	ffmpeg_cfg.h \
 	tc_lzo.h \
 	vbr.h \
-	vid_aux.h \
 	xvid2.h \
 	xvid3.h \
 	xvid4.h \

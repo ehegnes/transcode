@@ -122,7 +122,7 @@ filter_32drop_la_LDFLAGS = -module -avoid-version
 filter_aclip_la_SOURCES = filter_aclip.c
 filter_aclip_la_LDFLAGS = -module -avoid-version
 
-filter_ascii_la_SOURCES = filter_ascii.c ../export/vid_aux.c
+filter_ascii_la_SOURCES = filter_ascii.c
 filter_ascii_la_LDFLAGS = -module -avoid-version
 filter_ascii_la_LIBADD = $(ACLIB_LIBS)
 
@@ -163,7 +163,7 @@ filter_dnr_la_LIBADD = -lm
 filter_doublefps_la_SOURCES = filter_doublefps.c
 filter_doublefps_la_LDFLAGS = -module -avoid-version
 
-filter_facemask_la_SOURCES = filter_facemask.c ../export/vid_aux.c
+filter_facemask_la_SOURCES = filter_facemask.c
 filter_facemask_la_LDFLAGS = -module -avoid-version
 filter_facemask_la_LIBADD = $(ACLIB_LIBS)
 
@@ -198,7 +198,7 @@ filter_modfps_la_SOURCES = filter_modfps.c
 filter_modfps_la_LDFLAGS = -module -avoid-version
 filter_modfps_la_LIBADD = -lm
 
-filter_msharpen_la_SOURCES = filter_msharpen.c ../export/vid_aux.c
+filter_msharpen_la_SOURCES = filter_msharpen.c
 filter_msharpen_la_LDFLAGS = -module -avoid-version
 filter_msharpen_la_LIBADD = $(ACLIB_LIBS)
 
@@ -222,11 +222,11 @@ filter_resample_la_LIBADD = $(LIBAVCODEC_LIBS)
 filter_slowmo_la_SOURCES = filter_slowmo.c
 filter_slowmo_la_LDFLAGS = -module -avoid-version
 
-filter_smartbob_la_SOURCES = filter_smartbob.c ../export/vid_aux.c
+filter_smartbob_la_SOURCES = filter_smartbob.c
 filter_smartbob_la_LDFLAGS = -module -avoid-version
 filter_smartbob_la_LIBADD = $(ACLIB_LIBS)
 
-filter_smartdeinter_la_SOURCES = filter_smartdeinter.c ../export/vid_aux.c
+filter_smartdeinter_la_SOURCES = filter_smartdeinter.c
 filter_smartdeinter_la_LDFLAGS = -module -avoid-version
 filter_smartdeinter_la_LIBADD = $(ACLIB_LIBS)
 
@@ -254,7 +254,7 @@ filter_unsharp_la_LDFLAGS = -module -avoid-version
 filter_videocore_la_SOURCES = filter_videocore.c
 filter_videocore_la_LDFLAGS = -module -avoid-version
 
-filter_whitebalance_la_SOURCES = filter_whitebalance.c ../export/vid_aux.c
+filter_whitebalance_la_SOURCES = filter_whitebalance.c
 filter_whitebalance_la_LDFLAGS = -module -avoid-version
 filter_whitebalance_la_LIBADD = $(ACLIB_LIBS) -lm
 
@@ -264,7 +264,7 @@ filter_xsharpen_la_LDFLAGS = -module -avoid-version
 
 # FILTER_LOGO = filter_logo.la filter_logoaway.la filter_compare.la
 
-filter_logo_la_SOURCES = filter_logo.c ../export/vid_aux.c
+filter_logo_la_SOURCES = filter_logo.c
 filter_logo_la_LDFLAGS = -module -avoid-version
 filter_logo_la_LIBADD = $(IMAGEMAGICK_LIBS) $(ACLIB_LIBS)
 
@@ -272,7 +272,7 @@ filter_logoaway_la_SOURCES = filter_logoaway.c
 filter_logoaway_la_LDFLAGS = -module -avoid-version
 filter_logoaway_la_LIBADD = $(IMAGEMAGICK_LIBS)
 
-filter_compare_la_SOURCES = filter_compare.c ../export/vid_aux.c
+filter_compare_la_SOURCES = filter_compare.c
 filter_compare_la_LDFLAGS = -module -avoid-version
 filter_compare_la_LIBADD = $(IMAGEMAGICK_LIBS) $(ACLIB_LIBS)
 

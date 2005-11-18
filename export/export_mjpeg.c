@@ -34,7 +34,6 @@
 #include "transcode.h"
 #include "avilib.h"
 #include "aud_aux.h"
-#include "vid_aux.h"
 
 #define MOD_NAME    "export_mjpeg.so"
 #define MOD_VERSION "v0.0.5 (2003-07-24)"

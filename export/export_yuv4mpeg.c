@@ -25,9 +25,8 @@
 #include <stdlib.h>
 
 #include "transcode.h"
-#include "aclib/imgconvert.h"
+#include "libtcvideo/tcvideo.h"
 #include "aud_aux.h"
-#include "vid_aux.h"
 
 #define MOD_NAME    "export_yuv4mpeg.so"
 #define MOD_VERSION "v0.1.8 (2003-08-23)"
@@ -61,6 +60,7 @@ static const y4m_ratio_t sar_UNKNOWN = SAR_UNKNOWN;
 
 
 static int fd, size;
+static TCVHandle tcvhandle = 0;
 static ImageFormat srcfmt;
 
 static y4m_stream_info_t y4mstream;
@@ -87,7 +87,7 @@ MOD_init
 		    vob->im_v_codec);
 	    return(TC_EXPORT_ERROR);
 	}
-	if (!tcv_convert_init(vob->ex_v_width, vob->ex_v_height)) {
+	if (!(tcvhandle = tcv_init())) {
 	    tc_log_warn(MOD_NAME, "image conversion init failed");
 	    return(TC_EXPORT_ERROR);
 	}
@@ -189,8 +189,10 @@ MOD_encode
     y4m_frame_info_t info;
 
     if(param->flag == TC_VIDEO) {
+	vob_t *vob = tc_get_vob();
 
-	if (!tcv_convert(param->buffer, srcfmt, IMG_YUV420P)) {
+	if (!tcv_convert(tcvhandle, param->buffer, vob->ex_v_width,
+			 vob->ex_v_height, srcfmt, IMG_YUV420P)) {
 	    tc_log_warn(MOD_NAME, "image format conversion failed");
 	    return(TC_EXPORT_ERROR);
 	}
@@ -257,6 +259,7 @@ MOD_close
 
   if(param->flag == TC_AUDIO) return(audio_close());
   if(param->flag == TC_VIDEO) {
+    tcv_free(tcvhandle);
     close(fd);
     return(0);
   }

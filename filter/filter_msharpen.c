@@ -35,7 +35,7 @@
 #include "filter.h"
 #include "optstr.h"
 
-#include "export/vid_aux.h"
+#include "libtcvideo/tcvideo.h"
 
 static vob_t *vob=NULL;
 
@@ -50,6 +50,7 @@ typedef struct MyFilterData {
 	int	      		threshold;
 	int   			mask;
         int                     highq;
+	TCVHandle		tcvhandle;
 } MyFilterData;
 
 static MyFilterData *mfd;
@@ -164,7 +165,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 
 	if (vob->im_v_codec == CODEC_YUV) {
-	    tcv_convert_init(width, height/2);
+		mfd->tcvhandle = tcv_init();
 	}
 
 	// filter init ok.
@@ -213,6 +214,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
                 free(mfd->work);
 	mfd->work = NULL;
 
+	tcv_free(mfd->tcvhandle);
+
 	if (mfd)
 		free(mfd);
 	mfd = NULL;
@@ -240,7 +243,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	const int	dstpitch = ptr->v_width*4;
 
 	if (vob->im_v_codec == CODEC_YUV) {
-	    tcv_convert(ptr->video_buf, IMG_YUV_DEFAULT, IMG_RGB24);
+		tcv_convert(mfd->tcvhandle, ptr->video_buf, ptr->v_width,
+			    ptr->v_height, IMG_YUV_DEFAULT, IMG_RGB24);
 	}
 
 	ac_imgconvert(&ptr->video_buf, IMG_RGB24,
@@ -478,7 +482,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		      ptr->v_width, ptr->v_height);
 
 	if (vob->im_v_codec == CODEC_YUV) {
-	    tcv_convert(ptr->video_buf, IMG_RGB24, IMG_YUV_DEFAULT);
+		tcv_convert(mfd->tcvhandle, ptr->video_buf, ptr->v_width,
+			    ptr->v_height, IMG_RGB24, IMG_YUV_DEFAULT);
 	}
 
 	return 0;

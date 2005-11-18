@@ -33,7 +33,6 @@
 #include "filter.h"
 #include "avilib.h"
 #include "aud_aux.h"
-#include "vid_aux.h"
 #include "aclib/imgconvert.h"
 // FIXME
 #undef EMULATE_FAST_INT

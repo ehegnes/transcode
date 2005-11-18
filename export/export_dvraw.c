@@ -25,7 +25,6 @@
 #include <stdlib.h>
 #include <libdv/dv.h>
 #include "transcode.h"
-#include "vid_aux.h"
 #include "optstr.h"
 #include "aclib/imgconvert.h"
 
