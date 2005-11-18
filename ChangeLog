@@ -1,4 +1,8 @@
 2005-11-18 Francesco Romani <fromani at gmail dot com>
+  * Added file: testsuite/extract-test.sh
+  Add helper script to extract embedded tests (in libtc).
+
+2005-11-18 Francesco Romani <fromani at gmail dot com>
   * import/magic.h libtc/libtc.h
   libtc/Makefile.am
   
