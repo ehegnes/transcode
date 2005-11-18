@@ -50,6 +50,16 @@
 extern "C" {
 #endif
 
+/* colors macros */
+#define COL(x)              "\033[" #x ";1m"
+#define COL_RED             COL(31)
+#define COL_GREEN           COL(32)
+#define COL_YELLOW          COL(33)
+#define COL_BLUE            COL(34)
+#define COL_WHITE           COL(37)
+#define COL_GRAY            "\033[0m"
+
+
 #define TC_LOG_ERR		0 // critical error condition
 #define TC_LOG_WARN		1 // non-critical error condition
 #define TC_LOG_INFO		2 // informative highlighted message
@@ -74,15 +84,7 @@ void tc_log(int level, const char *tag, const char *fmt, ...);
     tc_log(TC_LOG_WARN, tag, format , ## args)
 
 /* Provided by caller */
-/* we can can embed color macros? moving it from tc_functions.c?
- * This break anything? -- fromani 20051015 */
 extern void version(void);
-extern char *RED;
-extern char *GREEN;
-extern char *YELLOW;
-extern char *BLUE;
-extern char *WHITE;
-extern char *GRAY;
 
 /*
  * Find program <name> in $PATH

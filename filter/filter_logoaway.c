@@ -83,8 +83,6 @@
 #include "filter.h"
 #include "optstr.h"
 
-#include "tc_func_excl.h"
-
 static vob_t *vob=NULL;
 
 static char *modes[] = {"NONE", "SOLID", "XY", "SHAPE"};

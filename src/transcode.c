@@ -45,15 +45,12 @@
 
 #include "usage.h"
 
-/* imported from libtc
-#define COL(x)  "\033[" #x ";1m"
-char *RED    = COL(31);
-char *GREEN  = COL(32);
-char *YELLOW = COL(33);
-char *BLUE   = COL(34);
-char *WHITE  = COL(37);
-char *GRAY   =  "\033[0m";
-*/
+const char *RED    = COL_RED;
+const char *GREEN  = COL_GREEN;
+const char *YELLOW = COL_YELLOW;
+const char *BLUE   = COL_BLUE;
+const char *WHITE  = COL_WHITE;
+const char *GRAY   = COL_GRAY;
 
 // communicating with export modules to allow to set them defaults.
 #include "probe_export.h"

@@ -33,7 +33,6 @@
 #include "libxio/xio.h"
 
 #include "libtc.h"
-#include "tc_func_excl.h"
 
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
@@ -43,14 +42,6 @@
 #endif
 
 /*************************************************************************/
-
-/* local colors macro; get COL(x) macro from tc_func_excl.h */
-#define COL_RED             COL(31)
-#define COL_GREEN           COL(32)
-#define COL_YELLOW          COL(33)
-#define COL_BLUE            COL(34)
-#define COL_WHITE           COL(37)
-#define COL_GRAY            "\033[0m"
 
 #define TC_MSG_BUF_SIZE     (256)
 
