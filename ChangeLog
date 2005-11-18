@@ -1,4 +1,8 @@
 2005-11-18 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_levels.c
+  updated levels filter; only internal style changes.
+
+2005-11-18 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h
   we want to include int types, not system types.
 
