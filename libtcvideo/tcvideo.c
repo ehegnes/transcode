@@ -19,9 +19,14 @@
 
 /*************************************************************************/
 
+/**** FIXME use M_PI ****/
 #ifndef PI
 # define PI 3.14159265358979323846264338327950
 #endif
+
+/* Antialiasing threshold for determining whether two pixels are the same
+ * color. */
+#define AA_DIFFERENT 25
 
 /* Data for generating a resized pixel. */
 struct resize_table_elem {
@@ -29,46 +34,103 @@ struct resize_table_elem {
     uint32_t weight1, weight2;
 };
 
-/* Antialiasing threshold for determining whether two pixels are the same
- * color. */
-#define AA_DIFFERENT    25
+/* Maximum number of ZoomInfo structures to cache. */
+#define ZOOMINFO_CACHE_SIZE 10
 
-/*************************************************************************/
 
-/* Lookup tables for fast resizing, gamma correction, and antialiasing. */
-/* FIXME: These are not thread-safe!  To handle threads properly, we should
- *        probably have a function to give a context handle to the caller,
- *        in which we store these lookup tables.  This would also prevent
- *        multiple callers from interfering with each others' tables and
- *        degrading performance.  Maybe we could even add in things like
- *        video data format to reduce the number of parameters passed to
- *        these functions...
- */
+/* Internal data structure to hold various state information.  The
+ * TCVHandle returned by tcv_init() and passed by the caller to other
+ * functions is a pointer to this structure. */
 
-static struct resize_table_elem resize_table_x[TC_MAX_V_FRAME_WIDTH/8];
-static struct resize_table_elem resize_table_y[TC_MAX_V_FRAME_HEIGHT/8];
-
-static uint8_t gamma_table[256];
-
-static uint32_t aa_table_c[256];
-static uint32_t aa_table_x[256];
-static uint32_t aa_table_y[256];
-static uint32_t aa_table_d[256];
+struct tcvhandle_ {
+    /* Various lookup tables */
+    struct resize_table_elem resize_table_x[TC_MAX_V_FRAME_WIDTH/8];
+    struct resize_table_elem resize_table_y[TC_MAX_V_FRAME_HEIGHT/8];
+    uint8_t gamma_table[256];
+    uint32_t aa_table_c[256];
+    uint32_t aa_table_x[256];
+    uint32_t aa_table_y[256];
+    uint32_t aa_table_d[256];
+    /* Initialization values used in creating lookup tables (so we know
+     * whether we have to re-create them */
+    int saved_oldw, saved_neww, saved_oldh, saved_newh;
+    double saved_gamma;
+    double saved_weight, saved_bias;
+    /* ZoomInfo cache */
+    struct {
+        int old_w, old_h, new_w, new_h, Bpp;
+        TCVZoomFilter filter;
+        ZoomInfo *zi;
+    } zoominfo_cache[ZOOMINFO_CACHE_SIZE];
+};
 
 /*************************************************************************/
 
 /* Internal-use functions (defined at the bottom of the file). */
 
-static void init_resize_tables(int oldw, int neww, int oldh, int newh);
+static void init_resize_tables(TCVHandle handle,
+                               int oldw, int neww, int oldh, int newh);
 static void init_one_resize_table(struct resize_table_elem *table,
                                   int oldsize, int newsize);
-static void init_gamma_table(double gamma);
-static void init_aa_table(double aa_weight, double aa_bias);
+static void init_gamma_table(TCVHandle handle, double gamma);
+static void init_aa_table(TCVHandle handle, double aa_weight, double aa_bias);
 
 /*************************************************************************/
 /*************************************************************************/
 
 /* External interface functions. */
+
+/*************************************************************************/
+
+/**
+ * tcv_init:  Create and return a handle for use in other tcvideo
+ * functions.  The handle should be freed with tcv_free() when no longer
+ * needed.  Note that if you need to operate on multiple image sizes or
+ * use different gamma or antialiasing values, you will get improved
+ * performance by using separate handles for each set of values.  (However,
+ * tcv_zoom() can cache lookup tables for multiple sets of image sizes,
+ * currently 10 sets.)
+ *
+ * Parameters: None.
+ * Return value: A handle to be passed to other tcvideo functions, or NULL
+ *               on error.
+ * Preconditions: None.
+ * Postconditions: None.
+ */
+
+TCVHandle tcv_init(void)
+{
+    TCVHandle handle;
+
+    handle = tc_zalloc(sizeof(*handle));
+    if (handle) {
+        handle->saved_weight = handle->saved_bias = -1.0;
+    }
+    return handle;
+}
+
+/*************************************************************************/
+
+/**
+ * tcv_free:  Free resources allocated for the given handle.
+ *
+ * Parameters: handle: tcvideo handle.
+ * Return value: None.
+ * Preconditions: handle != 0: handle was returned by tcv_init()
+ * Postconditions: None.
+ */
+
+void tcv_free(TCVHandle handle)
+{
+    if (handle) {
+        int i;
+        for (i = 0; i < ZOOMINFO_CACHE_SIZE; i++) {
+            if (handle->zoominfo_cache[i].zi)
+                zoom_free(handle->zoominfo_cache[i].zi);
+        }
+        free(handle);
+    }
+}
 
 /*************************************************************************/
 
@@ -84,7 +146,8 @@ static void init_aa_table(double aa_weight, double aa_bias);
  * then the result is a two-pixel-wide black frame (this is not considered
  * an error).
  *
- * Parameters:         src: Source data plane.
+ * Parameters:      handle: tcvideo handle.
+ *                     src: Source data plane.
  *                    dest: Destination data plane.
  *                   width: Width of frame.
  *                  height: Height of frame.
@@ -95,7 +158,8 @@ static void init_aa_table(double aa_weight, double aa_bias);
  *             clip_bottom: Number of pixels to clip from bottom edge.
  *             black_pixel: Value to be filled into expanded areas.
  * Return value: Nonzero on success, zero on error (invalid parameters).
- * Preconditions: src != NULL: src[0]..src[width*height*Bpp-1] are readable
+ * Preconditions: handle != 0: handle was returned by tcv_init()
+ *                src != NULL: src[0]..src[width*height*Bpp-1] are readable
  *                dest != NULL:
  *                    destw = width - clip_left - clip_right;
  *                    desth = height - clip_top - clip_bottom;
@@ -104,7 +168,8 @@ static void init_aa_table(double aa_weight, double aa_bias);
  * Postconditions: (on success) dest[0]..dest[destw*desth*Bpp-1] are set
  */
 
-int tcv_clip(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
+int tcv_clip(TCVHandle handle,
+             uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
              int clip_left, int clip_right, int clip_top, int clip_bottom,
              uint8_t black_pixel)
 {
@@ -179,14 +244,16 @@ int tcv_clip(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
 /**
  * tcv_deinterlace:  Deinterlace the given image.
  *
- * Parameters:    src: Source data plane.
+ * Parameters: handle: tcvideo handle.
+ *                src: Source data plane.
  *               dest: Destination data plane.
  *              width: Width of frame.
  *             height: Height of frame.
  *                Bpp: Bytes (not bits!) per pixel.
  *               mode: Deinterlacing mode (TCV_DEINTERLACE_* constant).
  * Return value: Nonzero on success, zero on error (invalid parameters).
- * Preconditions: src != NULL: src[0]..src[width*height*Bpp-1] are readable
+ * Preconditions: handle != 0: handle was returned by tcv_init()
+ *                src != NULL: src[0]..src[width*height*Bpp-1] are readable
  *                dest != NULL:
  *                    mode == TCV_DEINTERLACE_DROP_FIELD:
  *                        dest[0]..dest[width*(height/2)*Bpp-1] are writable
@@ -207,7 +274,8 @@ static int deint_interpolate(uint8_t *src, uint8_t *dest, int width,
 static int deint_linear_blend(uint8_t *src, uint8_t *dest, int width,
                               int height, int Bpp);
 
-int tcv_deinterlace(uint8_t *src, uint8_t *dest, int width, int height,
+int tcv_deinterlace(TCVHandle handle,
+                    uint8_t *src, uint8_t *dest, int width, int height,
                     int Bpp, TCVDeinterlaceMode mode)
 {
     if (!src || !dest || width <= 0 || height <= 0 || (Bpp != 1 && Bpp != 3)) {
@@ -232,11 +300,11 @@ int tcv_deinterlace(uint8_t *src, uint8_t *dest, int width, int height,
  * functions for tcv_deinterlace() that implement the individual
  * deinterlacing methods.
  *
- * Parameters: As for tcv_deinterlace().
+ * Parameters: As for tcv_deinterlace(), less `handle'.
  * Return value: As for tcv_deinterlace().
  * Side effects: (for deint_linear_blend())
  *                   src[0..width*height-1] are destroyed.
- * Preconditions: As for tcv_deinterlace(), plus:
+ * Preconditions: As for tcv_deinterlace(), less `handle', plus:
  *                src != NULL
  *                dest != NULL
  *                width > 0
@@ -286,7 +354,8 @@ static int deint_linear_blend(uint8_t *src, uint8_t *dest, int width,
     int y;
 
     /* First interpolate odd lines into the target buffer */
-    deint_interpolate(src, dest, width, height, Bpp);
+    if (!deint_interpolate(src, dest, width, height, Bpp))
+        return 0;
 
     /* Now interpolate even lines in the source buffer; we don't use it
      * after this so it's okay to destroy it */
@@ -313,7 +382,8 @@ static int deint_linear_blend(uint8_t *src, uint8_t *dest, int width,
  * N.B. doesn't work well if shrinking by more than a factor of 2 (only
  *      averages 2 adjacent lines/pixels)
  *
- * Parameters:      src: Source data plane.
+ * Parameters:   handle: tcvideo handle.
+ *                  src: Source data plane.
  *                 dest: Destination data plane.
  *                width: Width of frame.
  *               height: Height of frame.
@@ -323,7 +393,8 @@ static int deint_linear_blend(uint8_t *src, uint8_t *dest, int width,
  *              scale_w: Size in pixels of a `resize_w' unit.
  *              scale_h: Size in pixels of a `resize_h' unit.
  * Return value: Nonzero on success, zero on error (invalid parameters).
- * Preconditions: src != NULL: src[0]..src[width*height*Bpp-1] are readable
+ * Preconditions: handle != 0: handle was returned by tcv_init()
+ *                src != NULL: src[0]..src[width*height*Bpp-1] are readable
  *                dest != NULL:
  *                    destw = width + resize_w*scale_w;
  *                    desth = height + resize_h*scale_h;
@@ -336,7 +407,8 @@ static inline void rescale_pixel(const uint8_t *src1, const uint8_t *src2,
                                  uint8_t *dest, int bytes,
                                  uint32_t weight1, uint32_t weight2);
 
-int tcv_resize(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
+int tcv_resize(TCVHandle handle,
+               uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
                int resize_w, int resize_h, int scale_w, int scale_h)
 {
     int new_w, new_h;
@@ -372,16 +444,16 @@ int tcv_resize(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
         int Bpl = width * Bpp;  /* bytes per line */
         int i, y;
 
-        init_resize_tables(0, 0, height*8/scale_h, new_h*8/scale_h);
+        init_resize_tables(handle, 0, 0, height*8/scale_h, new_h*8/scale_h);
         for (i = 0; i < scale_h; i++) {
             uint8_t *sptr = src  + (i * (height/scale_h)) * Bpl;
             uint8_t *dptr = dest + (i * (new_h /scale_h)) * Bpl;
             for (y = 0; y < new_h / scale_h; y++) {
-                ac_rescale(sptr + (resize_table_y[y].source  ) * Bpl,
-                           sptr + (resize_table_y[y].source+1) * Bpl,
+                ac_rescale(sptr + (handle->resize_table_y[y].source  ) * Bpl,
+                           sptr + (handle->resize_table_y[y].source+1) * Bpl,
                            dptr + y*Bpl, Bpl,
-                           resize_table_y[y].weight1,
-                           resize_table_y[y].weight2);
+                           handle->resize_table_y[y].weight1,
+                           handle->resize_table_y[y].weight2);
             }
         }
     }
@@ -392,7 +464,7 @@ int tcv_resize(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
     if (resize_w) {
         int i, x;
 
-        init_resize_tables(width*8/scale_w, new_w*8/scale_w, 0, 0);
+        init_resize_tables(handle, width*8/scale_w, new_w*8/scale_w, 0, 0);
         /* Treat the image as an array of blocks */
         for (i = 0; i < new_h * scale_w; i++) {
             /* This `if' is an optimization hint to the compiler, to
@@ -402,21 +474,21 @@ int tcv_resize(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
                 uint8_t *sptr = src  + (i * (width/scale_w)) * Bpp;
                 uint8_t *dptr = dest + (i * (new_w/scale_w)) * Bpp;
                 for (x = 0; x < new_w / scale_w; x++) {
-                    rescale_pixel(sptr + (resize_table_x[x].source  ) * Bpp,
-                                  sptr + (resize_table_x[x].source+1) * Bpp,
+                    rescale_pixel(sptr + (handle->resize_table_x[x].source  ) * Bpp,
+                                  sptr + (handle->resize_table_x[x].source+1) * Bpp,
                                   dptr + x*Bpp, Bpp,
-                                  resize_table_x[x].weight1,
-                                  resize_table_x[x].weight2);
+                                  handle->resize_table_x[x].weight1,
+                                  handle->resize_table_x[x].weight2);
                 }
             } else {  /* exactly the same thing */
                 uint8_t *sptr = src  + (i * (width/scale_w)) * Bpp;
                 uint8_t *dptr = dest + (i * (new_w/scale_w)) * Bpp;
                 for (x = 0; x < new_w / scale_w; x++) {
-                    rescale_pixel(sptr + (resize_table_x[x].source  ) * Bpp,
-                                  sptr + (resize_table_x[x].source+1) * Bpp,
+                    rescale_pixel(sptr + (handle->resize_table_x[x].source  ) * Bpp,
+                                  sptr + (handle->resize_table_x[x].source+1) * Bpp,
                                   dptr + x*Bpp, Bpp,
-                                  resize_table_x[x].weight1,
-                                  resize_table_x[x].weight2);
+                                  handle->resize_table_x[x].weight1,
+                                  handle->resize_table_x[x].weight2);
                 }
             }
         }
@@ -446,7 +518,8 @@ static inline void rescale_pixel(const uint8_t *src1, const uint8_t *src2,
 /**
  * tcv_zoom:  Resize the given image to an arbitrary size, with filtering.
  *
- * Parameters:    src: Source data plane.
+ * Parameters: handle: tcvideo handle.
+ *                src: Source data plane.
  *               dest: Destination data plane.
  *              width: Width of frame.
  *             height: Height of frame.
@@ -455,21 +528,15 @@ static inline void rescale_pixel(const uint8_t *src1, const uint8_t *src2,
  *              new_h: New frame height.
  *             filter: Filter type (TCV_ZOOM_*).
  * Return value: Nonzero on success, zero on error (invalid parameters).
- * Preconditions: src != NULL: src[0]..src[width*height*Bpp-1] are readable
+ * Preconditions: handle != 0: handle was returned by tcv_init()
+ *                src != NULL: src[0]..src[width*height*Bpp-1] are readable
  *                dest != NULL: dest[0]..dest[new_w*new_h*Bpp-1] are writable
  *                src != dest: src and dest do not overlap
  * Postconditions: (on success) dest[0]..dest[new_w*new_h*Bpp-1] are set
  */
 
-/* ZoomInfo cache */
-#define ZOOM_CACHE_SIZE 10
-static struct {
-    int old_w, old_h, new_w, new_h, Bpp;
-    TCVZoomFilter filter;
-    ZoomInfo *zi;
-} zoominfo_cache[ZOOM_CACHE_SIZE];
-
-int tcv_zoom(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
+int tcv_zoom(TCVHandle handle,
+             uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
              int new_w, int new_h, TCVZoomFilter filter)
 {
     ZoomInfo *zi;
@@ -499,16 +566,16 @@ int tcv_zoom(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
         return 0;
     }
 
-    for (i = 0, zi = NULL; i < ZOOM_CACHE_SIZE && zi == NULL; i++) {
-        if (zoominfo_cache[i].zi     != NULL
-         && zoominfo_cache[i].old_w  == width
-         && zoominfo_cache[i].old_h  == height
-         && zoominfo_cache[i].new_w  == new_w
-         && zoominfo_cache[i].new_h  == new_h
-         && zoominfo_cache[i].Bpp    == Bpp
-         && zoominfo_cache[i].filter == filter
+    for (i = 0, zi = NULL; i < ZOOMINFO_CACHE_SIZE && zi == NULL; i++) {
+        if (handle->zoominfo_cache[i].zi     != NULL
+         && handle->zoominfo_cache[i].old_w  == width
+         && handle->zoominfo_cache[i].old_h  == height
+         && handle->zoominfo_cache[i].new_w  == new_w
+         && handle->zoominfo_cache[i].new_h  == new_h
+         && handle->zoominfo_cache[i].Bpp    == Bpp
+         && handle->zoominfo_cache[i].filter == filter
         ) {
-            zi = zoominfo_cache[i].zi;
+            zi = handle->zoominfo_cache[i].zi;
         }
     }
     if (!zi) {
@@ -518,15 +585,15 @@ int tcv_zoom(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
             return 0;
         }
         free_zi = 1;
-        for (i = 0; i < ZOOM_CACHE_SIZE; i++) {
-            if (!zoominfo_cache[i].zi) {
-                zoominfo_cache[i].zi     = zi;
-                zoominfo_cache[i].old_w  = width;
-                zoominfo_cache[i].old_h  = height;
-                zoominfo_cache[i].new_w  = new_w;
-                zoominfo_cache[i].new_h  = new_h;
-                zoominfo_cache[i].Bpp    = Bpp;
-                zoominfo_cache[i].filter = filter;
+        for (i = 0; i < ZOOMINFO_CACHE_SIZE; i++) {
+            if (!handle->zoominfo_cache[i].zi) {
+                handle->zoominfo_cache[i].zi     = zi;
+                handle->zoominfo_cache[i].old_w  = width;
+                handle->zoominfo_cache[i].old_h  = height;
+                handle->zoominfo_cache[i].new_w  = new_w;
+                handle->zoominfo_cache[i].new_h  = new_h;
+                handle->zoominfo_cache[i].Bpp    = Bpp;
+                handle->zoominfo_cache[i].filter = filter;
                 free_zi = 0;
                 break;
             }
@@ -544,7 +611,8 @@ int tcv_zoom(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
  * tcv_reduce:  Efficiently reduce the image size by a specified integral
  * amount, by removing intervening pixels.
  *
- * Parameters:      src: Source data plane.
+ * Parameters:   handle: tcvideo handle.
+ *                  src: Source data plane.
  *                 dest: Destination data plane.
  *                width: Width of frame.
  *               height: Height of frame.
@@ -554,7 +622,8 @@ int tcv_zoom(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
  *             reduce_w: Ratio to reduce width by.
  *             reduce_h: Ratio to reduce height by.
  * Return value: Nonzero on success, zero on error (invalid parameters).
- * Preconditions: src != NULL: src[0]..src[width*height*Bpp-1] are readable
+ * Preconditions: handle != 0: handle was returned by tcv_init()
+ *                src != NULL: src[0]..src[width*height*Bpp-1] are readable
  *                dest != NULL && reduce_w > 0 && reduce_h > 0:
  *                    destw = width / reduce_w;
  *                    desth = height / reduce_h;
@@ -563,7 +632,8 @@ int tcv_zoom(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
  * Postconditions: (on success) dest[0]..dest[destw*desth*Bpp-1] are set
  */
 
-int tcv_reduce(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
+int tcv_reduce(TCVHandle handle,
+               uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
                int reduce_w, int reduce_h)
 {
     if (!src || !dest || width <= 0 || height <= 0 || (Bpp != 1 && Bpp != 3)) {
@@ -606,19 +676,22 @@ int tcv_reduce(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
 /**
  * tcv_flip_v:  Flip the given image vertically.
  *
- * Parameters:    src: Source data plane.
+ * Parameters: handle: tcvideo handle.
+ *                src: Source data plane.
  *               dest: Destination data plane.
  *              width: Width of frame.
  *             height: Height of frame.
  *                Bpp: Bytes (not bits!) per pixel.
  * Return value: Nonzero on success, zero on error (invalid parameters).
- * Preconditions: src != NULL: src[0]..src[width*height*Bpp-1] are readable
+ * Preconditions: handle != 0: handle was returned by tcv_init()
+ *                src != NULL: src[0]..src[width*height*Bpp-1] are readable
  *                dest != NULL: dest[0]..dest[width*height*Bpp-1] are writable
  *                src != dest: src and dest do not overlap
  * Postconditions: (on success) dest[0]..dest[width*height*Bpp-1] are set
  */
 
-int tcv_flip_v(uint8_t *src, uint8_t *dest, int width, int height, int Bpp)
+int tcv_flip_v(TCVHandle handle,
+               uint8_t *src, uint8_t *dest, int width, int height, int Bpp)
 {
     int Bpl = width * Bpp;  /* bytes per line */
     int y;
@@ -651,19 +724,22 @@ int tcv_flip_v(uint8_t *src, uint8_t *dest, int width, int height, int Bpp)
 /**
  * tcv_flip_h:  Flip the given image horizontally.
  *
- * Parameters:    src: Source data plane.
+ * Parameters: handle: tcvideo handle.
+ *                src: Source data plane.
  *               dest: Destination data plane.
  *              width: Width of frame.
  *             height: Height of frame.
  *                Bpp: Bytes (not bits!) per pixel.
  * Return value: Nonzero on success, zero on error (invalid parameters).
- * Preconditions: src != NULL: src[0]..src[width*height*Bpp-1] are readable
+ * Preconditions: handle != 0: handle was returned by tcv_init()
+ *                src != NULL: src[0]..src[width*height*Bpp-1] are readable
  *                dest != NULL: dest[0]..dest[width*height*Bpp-1] are writable
  *                src != dest: src and dest do not overlap
  * Postconditions: (on success) dest[0]..dest[width*height*Bpp-1] are set
  */
 
-int tcv_flip_h(uint8_t *src, uint8_t *dest, int width, int height, int Bpp)
+int tcv_flip_h(TCVHandle handle,
+               uint8_t *src, uint8_t *dest, int width, int height, int Bpp)
 {
     int x, y, i;
 
@@ -700,20 +776,23 @@ int tcv_flip_h(uint8_t *src, uint8_t *dest, int width, int height, int Bpp)
 /**
  * tcv_gamma_correct:  Perform gamma correction on the given image.
  *
- * Parameters:    src: Source data plane.
+ * Parameters: handle: tcvideo handle.
+ *                src: Source data plane.
  *               dest: Destination data plane.
  *              width: Width of frame.
  *             height: Height of frame.
  *                Bpp: Bytes (not bits!) per pixel.
  *              gamma: Gamma value.
  * Return value: Nonzero on success, zero on error (invalid parameters).
- * Preconditions: src != NULL: src[0]..src[width*height*Bpp-1] are readable
+ * Preconditions: handle != 0: handle was returned by tcv_init()
+ *                src != NULL: src[0]..src[width*height*Bpp-1] are readable
  *                dest != NULL: dest[0]..dest[width*height*Bpp-1] are writable
  *                src != dest: src and dest do not overlap
  * Postconditions: (on success) dest[0]..dest[width*height*Bpp-1] are set
  */
 
-int tcv_gamma_correct(uint8_t *src, uint8_t *dest, int width, int height,
+int tcv_gamma_correct(TCVHandle handle,
+                      uint8_t *src, uint8_t *dest, int width, int height,
                       int Bpp, double gamma)
 {
     int i;
@@ -727,9 +806,9 @@ int tcv_gamma_correct(uint8_t *src, uint8_t *dest, int width, int height,
         return 0;
     }
 
-    init_gamma_table(gamma);
+    init_gamma_table(handle, gamma);
     for (i = 0; i < width*height*Bpp; i++)
-        dest[i] = gamma_table[src[i]];
+        dest[i] = handle->gamma_table[src[i]];
 
     return 1;
 }
@@ -739,7 +818,8 @@ int tcv_gamma_correct(uint8_t *src, uint8_t *dest, int width, int height,
 /**
  * tcv_antialias:  Perform antialiasing on the given image.
  *
- * Parameters:    src: Source data plane.
+ * Parameters: handle: tcvideo handle.
+ *                src: Source data plane.
  *               dest: Destination data plane.
  *              width: Width of frame.
  *             height: Height of frame.
@@ -747,15 +827,18 @@ int tcv_gamma_correct(uint8_t *src, uint8_t *dest, int width, int height,
  *             weight: `weight' antialiasing parameter.
  *               bias: `bias' antialiasing parameter.
  * Return value: Nonzero on success, zero on error (invalid parameters).
- * Preconditions: src != NULL: src[0]..src[width*height*Bpp-1] are readable
+ * Preconditions: handle != 0: handle was returned by tcv_init()
+ *                src != NULL: src[0]..src[width*height*Bpp-1] are readable
  *                dest != NULL: dest[0]..dest[width*height*Bpp-1] are writable
  *                src != dest: src and dest do not overlap
  * Postconditions: (on success) dest[0]..dest[width*height*Bpp-1] are set
  */
 
-static void antialias_line(uint8_t *src, uint8_t *dest, int width, int Bpp);
+static void antialias_line(TCVHandle handle,
+                           uint8_t *src, uint8_t *dest, int width, int Bpp);
 
-int tcv_antialias(uint8_t *src, uint8_t *dest, int width, int height,
+int tcv_antialias(TCVHandle handle,
+                  uint8_t *src, uint8_t *dest, int width, int height,
                   int Bpp, double weight, double bias)
 {
     int y;
@@ -770,10 +853,12 @@ int tcv_antialias(uint8_t *src, uint8_t *dest, int width, int height,
         return 0;
     }
 
-    init_aa_table(weight, bias);
+    init_aa_table(handle, weight, bias);
     ac_memcpy(dest, src, width*Bpp);
-    for (y = 1; y < height-1; y++)
-        antialias_line(src + y*width*Bpp, dest + y*width*Bpp, width, Bpp);
+    for (y = 1; y < height-1; y++) {
+        antialias_line(handle, src + y*width*Bpp, dest + y*width*Bpp, width,
+                       Bpp);
+    }
     ac_memcpy(dest + (height-1)*width*Bpp, src + (height-1)*width*Bpp,
               width*Bpp);
 
@@ -807,7 +892,8 @@ static inline int samecolor(uint8_t *pixel1, uint8_t *pixel2, int Bpp)
 #define SAME(pix1,pix2) samecolor((pix1),(pix2),Bpp)
 #define DIFF(pix1,pix2) !samecolor((pix1),(pix2),Bpp)
 
-static void antialias_line(uint8_t *src, uint8_t *dest, int width, int Bpp)
+static void antialias_line(TCVHandle handle,
+                           uint8_t *src, uint8_t *dest, int width, int Bpp)
 {
     int i, x;
 
@@ -820,15 +906,15 @@ static void antialias_line(uint8_t *src, uint8_t *dest, int width, int Bpp)
          || (SAME(R,D) && DIFF(R,U) && DIFF(R,L))
         ) {
             for (i = 0; i < Bpp; i++) {
-                uint32_t tmp = aa_table_d[UL[i]]
-                             + aa_table_y[U [i]]
-                             + aa_table_d[UR[i]]
-                             + aa_table_x[L [i]]
-                             + aa_table_c[C [i]]
-                             + aa_table_x[R [i]]
-                             + aa_table_d[DL[i]]
-                             + aa_table_y[D [i]]
-                             + aa_table_d[DR[i]]
+                uint32_t tmp = handle->aa_table_d[UL[i]]
+                             + handle->aa_table_y[U [i]]
+                             + handle->aa_table_d[UR[i]]
+                             + handle->aa_table_x[L [i]]
+                             + handle->aa_table_c[C [i]]
+                             + handle->aa_table_x[R [i]]
+                             + handle->aa_table_d[DL[i]]
+                             + handle->aa_table_y[D [i]]
+                             + handle->aa_table_d[DR[i]]
                              + 32768;
                 dest[x*Bpp+i] = (verbose & TC_DEBUG) ? 255 : tmp>>16;
             }
@@ -857,12 +943,14 @@ static void antialias_line(uint8_t *src, uint8_t *dest, int width, int Bpp)
  * calls with the same values suffer only the penalty of entering and
  * exiting the procedure).  Note the order of parameters!
  *
- * Parameters: oldw: Original image width.
- *             neww: New image width.
- *             oldh: Original image height.
- *             newh: New image height.
+ * Parameters: handle: tcvideo handle.
+ *               oldw: Original image width.
+ *               neww: New image width.
+ *               oldh: Original image height.
+ *               newh: New image height.
  * Return value: None.
- * Preconditions: oldw % 8 == 0
+ * Preconditions: handle != 0
+ *                oldw % 8 == 0
  *                neww % 8 == 0
  *                oldh % 8 == 0
  *                newh % 8 == 0
@@ -872,20 +960,22 @@ static void antialias_line(uint8_t *src, uint8_t *dest, int width, int Bpp)
  *                     resize_table_y[0..newh/8-1] are initialized
  */
 
-static void init_resize_tables(int oldw, int neww, int oldh, int newh)
+static void init_resize_tables(TCVHandle handle,
+                               int oldw, int neww, int oldh, int newh)
 {
-    static int saved_oldw = 0, saved_neww = 0,
-               saved_oldh = 0, saved_newh = 0;
-
-    if (oldw > 0 && neww > 0 && (oldw != saved_oldw || neww != saved_neww)) {
-        init_one_resize_table(resize_table_x, oldw, neww);
-        saved_oldw = oldw;
-        saved_neww = neww;
+    if (oldw > 0 && neww > 0
+     && (oldw != handle->saved_oldw || neww != handle->saved_neww)
+    ) {
+        init_one_resize_table(handle->resize_table_x, oldw, neww);
+        handle->saved_oldw = oldw;
+        handle->saved_neww = neww;
     }
-    if (oldh > 0 && newh > 0 && (oldh != saved_oldh || newh != saved_newh)) {
-        init_one_resize_table(resize_table_y, oldh, newh);
-        saved_oldh = oldh;
-        saved_newh = newh;
+    if (oldh > 0 && newh > 0
+     && (oldh != handle->saved_oldh || newh != handle->saved_newh)
+    ) {
+        init_one_resize_table(handle->resize_table_y, oldh, newh);
+        handle->saved_oldh = oldh;
+        handle->saved_newh = newh;
     }
 }
 
@@ -942,53 +1032,54 @@ static void init_one_resize_table(struct resize_table_elem *table,
  * Initialization will not be performed for repeated calls with the same
  * value.
  *
- * Parameters: gamma: Gamma value.
+ * Parameters: handle: tcvideo handle.
+ *              gamma: Gamma value.
  * Return value: None.
- * Preconditions: gamma > 0
+ * Preconditions: handle != 0
+ *                gamma > 0
  * Postconditions: gamma_table[0..255] are initialized
  */
 
-static void init_gamma_table(double gamma)
+static void init_gamma_table(TCVHandle handle, double gamma)
 {
-    static double saved_gamma = 0;
-    int i;
-
-    if (gamma != saved_gamma) {
+    if (gamma != handle->saved_gamma) {
+        int i;
         for (i = 0; i < 256; i++)
-            gamma_table[i] = (uint8_t) (pow((i/255.0),gamma) * 255);
-        saved_gamma = gamma;
+            handle->gamma_table[i] = (uint8_t) (pow((i/255.0),gamma) * 255);
+        handle->saved_gamma = gamma;
     }
 }
 
 /*************************************************************************/
 
 /**
- * init_aa_table:  Initialize the antialiasing lookup tables.
+ * init_handle->aa_table:  Initialize the antialiasing lookup tables.
  * Initialization will not be performed for repeated calls with the same
  * values.
  *
- * Parameters: aa_weight: Antialiasing weight value.
+ * Parameters:    handle: tcvideo handle.
+ *             aa_weight: Antialiasing weight value.
  *               aa_bias: Antialiasing bias value.
  * Return value: None.
- * Preconditions: 0 <= aa_weight && aa_weight <= 1
+ * Preconditions: handle != 0
+ *                0 <= aa_weight && aa_weight <= 1
  *                0 <= aa_bias && aa_bias <= 1
  * Postconditions: gamma_table[0..255] are initialized
  */
 
-static void init_aa_table(double aa_weight, double aa_bias)
+static void init_aa_table(TCVHandle handle, double aa_weight, double aa_bias)
 {
-    static double saved_weight = -1, saved_bias = -1;
-    int i;
-
-    if (aa_weight != saved_weight || aa_bias != saved_bias) {
+    if (aa_weight != handle->saved_weight || aa_bias != handle->saved_bias) {
+        int i;
         for (i = 0; i < 256; ++i) {
-            aa_table_c[i] = i*aa_weight * 65536;
-            aa_table_x[i] = i*aa_bias*(1-aa_weight)/4 * 65536;
-            aa_table_y[i] = i*(1-aa_bias)*(1-aa_weight)/4 * 65536;
-            aa_table_d[i] = (aa_table_x[i]+aa_table_y[i]+1)/2;
+            handle->aa_table_c[i] = i*aa_weight * 65536;
+            handle->aa_table_x[i] = i*aa_bias*(1-aa_weight)/4 * 65536;
+            handle->aa_table_y[i] = i*(1-aa_bias)*(1-aa_weight)/4 * 65536;
+            handle->aa_table_d[i] =
+                (handle->aa_table_x[i]+handle->aa_table_y[i]+1)/2;
         }
-        saved_weight = aa_weight;
-        saved_bias = aa_bias;
+        handle->saved_weight = aa_weight;
+        handle->saved_bias = aa_bias;
     }
 }
 

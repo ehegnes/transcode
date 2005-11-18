@@ -36,7 +36,7 @@ typedef struct {
 /* Macro to perform a transformation on a frame.  `vtd' is a pointer to a
  * video_trans_data_t; the given function `func' will be called for each
  * plane `i' as:
- *     func(vtd->planes[i], vtd->tmpplanes[i], vtd->ptr->v_width,
+ *     func(handle, vtd->planes[i], vtd->tmpplanes[i], vtd->ptr->v_width,
  *          vtd->ptr->v_height, vtd->Bpp, args)
  * where `args' are all arguments to this macro (if any) following `vtd'.
  * swap_buffers(vtd) is called after the processing is complete.
@@ -44,13 +44,16 @@ typedef struct {
 #define PROCESS_FRAME(func,vtd,args...) do {                    \
     int i;                                                      \
     for (i = 0; i < (vtd)->nplanes; i++) {                      \
-        func((vtd)->planes[i], (vtd)->tmpplanes[i],             \
+        func(handle, (vtd)->planes[i], (vtd)->tmpplanes[i],     \
              (vtd)->ptr->v_width / (vtd)->width_div[i],         \
              (vtd)->ptr->v_height / (vtd)->height_div[i],       \
              (vtd)->Bpp , ## args);                             \
     }                                                           \
     swap_buffers(vtd);                                          \
 } while (0)
+
+/* Handle for calling tcvideo functions. */
+static TCVHandle handle = 0;
 
 /*************************************************************************/
 /*************************************************************************/
@@ -310,15 +313,15 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
     if (dgamma) {
         /* Only process the first plane (Y) for YUV; for RGB it's all in
          * one plane anyway */
-        tcv_gamma_correct(ptr->video_buf, ptr->video_buf, ptr->v_width,
-                          ptr->v_height, vtd.Bpp, vob->gamma);
+        tcv_gamma_correct(handle, ptr->video_buf, ptr->video_buf,
+                          ptr->v_width, ptr->v_height, vtd.Bpp, vob->gamma);
     }
 
     /**** -C: antialiasing ****/
 
     if (vob->antialias) {
         /* Only Y is antialiased; U and V remain the same */
-        tcv_antialias(vtd.planes[0], vtd.tmpplanes[0],
+        tcv_antialias(handle, vtd.planes[0], vtd.tmpplanes[0],
                       ptr->v_width, ptr->v_height, vtd.Bpp,
                       vob->aa_weight, vob->aa_bias);
         if (ptr->v_codec != CODEC_RGB) {
@@ -378,6 +381,15 @@ int preprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
 {
     struct fc_time *t;
     int skip = 1;
+
+    /* Allocate tcvideo handle if necessary */
+    if (!handle) {
+        handle = tcv_init();
+        if (!handle) {
+            tc_log_error(PACKAGE, "video_trans.c: tcv_init() failed!");
+            return -1;
+        }
+    }
 
     /* Set skip attribute based on -c */
     for (t = vob->ttime; t; t = t->next) {

@@ -1,3 +1,9 @@
+2005-11-18 Andrew Church <achurch at achurch dot org>
+  * libtcvideo/tcvideo.c libtcvideo/tcvideo.h src/video_trans.c
+  Add a "handle" parameter to all libtcvideo functions for proper threaded
+  operation, and add functions tcv_init() and tcv_free() to allocate and
+  release handles.
+
 2005-11-17 Baptiste COUDURIER <baptiste.coudurier at smartjog dot com>
   * export/export_mov.c
   Use libquicktime's native YUV422P support for --yuv422 instead of

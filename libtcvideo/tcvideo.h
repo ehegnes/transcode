@@ -1,7 +1,6 @@
 /*
- * tcvideo.c - video processing library for transcode
+ * tcvideo.h - include file for video processing library for transcode
  * Written by Andrew Church <achurch@achurch.org>
- * Based on code written by Thomas Oestreich.
  *
  * This file is part of transcode, a video stream processing tool.
  * transcode is free software, distributable under the terms of the GNU
@@ -22,8 +21,12 @@
 
 /*************************************************************************/
 
-/* Modes for tcv_deinterlace(): */
+/* Handle for calling tcvideo functions, allocated by tcv_init() and passed
+ * to all other functions to hold internal state information.  Opaque to
+ * the caller. */
+typedef struct tcvhandle_ *TCVHandle;
 
+/* Modes for tcv_deinterlace(): */
 typedef enum {
     TCV_DEINTERLACE_DROP_FIELD,
     TCV_DEINTERLACE_INTERPOLATE,
@@ -43,30 +46,43 @@ typedef enum {
 
 /*************************************************************************/
 
-int tcv_clip(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
+TCVHandle tcv_init(void);
+
+void tcv_free(TCVHandle handle);
+
+int tcv_clip(TCVHandle handle,
+             uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
              int clip_left, int clip_right, int clip_top, int clip_bottom,
              uint8_t black_pixel);
 
-int tcv_deinterlace(uint8_t *src, uint8_t *dest, int width, int height,
+int tcv_deinterlace(TCVHandle handle,
+                    uint8_t *src, uint8_t *dest, int width, int height,
                     int Bpp, TCVDeinterlaceMode mode);
 
-int tcv_resize(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
+int tcv_resize(TCVHandle handle,
+               uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
                int resize_w, int resize_h, int scale_w, int scale_h);
 
-int tcv_zoom(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
+int tcv_zoom(TCVHandle handle,
+             uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
              int new_w, int new_h, TCVZoomFilter filter);
 
-int tcv_reduce(uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
+int tcv_reduce(TCVHandle handle,
+               uint8_t *src, uint8_t *dest, int width, int height, int Bpp,
                int reduce_w, int reduce_h);
 
-int tcv_flip_v(uint8_t *src, uint8_t *dest, int width, int height, int Bpp);
+int tcv_flip_v(TCVHandle handle,
+               uint8_t *src, uint8_t *dest, int width, int height, int Bpp);
 
-int tcv_flip_h(uint8_t *src, uint8_t *dest, int width, int height, int Bpp);
+int tcv_flip_h(TCVHandle handle,
+               uint8_t *src, uint8_t *dest, int width, int height, int Bpp);
 
-int tcv_gamma_correct(uint8_t *src, uint8_t *dest, int width, int height,
+int tcv_gamma_correct(TCVHandle handle,
+                      uint8_t *src, uint8_t *dest, int width, int height,
                       int Bpp, double gamma);
 
-int tcv_antialias(uint8_t *src, uint8_t *dest, int width, int height,
+int tcv_antialias(TCVHandle handle,
+                  uint8_t *src, uint8_t *dest, int width, int height,
                   int Bpp, double weight, double bias);
 
 /*************************************************************************/
