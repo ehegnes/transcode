@@ -218,15 +218,17 @@ my %VideoData;        # for saving raw output data to compare against
 
 ########
 # Run all (or specified) tests
+my $exitcode = 0;
 if (!$ListTests) {
     foreach $test (@Tests) {
-        &run_test($test) if !%TestsToRun || $TestsToRun{$test};
+        $exitcode ||= !&run_test($test) if !%TestsToRun || $TestsToRun{$test};
     }
 }
 
 ########
 # Finished, clean up
 &cleanup();
+exit $exitcode;
 
 ###########################################################################
 ###########################################################################
