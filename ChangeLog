@@ -1,3 +1,7 @@
+2005-11-18 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h
+  we want to include int types, not system types.
+
 2005-11-18 Andrew Church <achurch at achurch dot org>
   * export/Makefile.am filter/Makefile.am
   Don't link modules to aclib (it's already included in the executables).
