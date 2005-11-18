@@ -56,159 +56,19 @@ static uint32_t aa_table_y[256];
 static uint32_t aa_table_d[256];
 
 /*************************************************************************/
-/*************************************************************************/
 
-/**
- * init_resize_tables:  Initialize the lookup tables used for resizing.  If
- * either of `oldw' and `neww' is nonpositive, the horizontal resizing
- * table will not be initialized; likewise for `oldh', `newh', and the
- * vertical resizing table.  Initialization will also not be performed if
- * the values given are the same as in the previous call (thus repeated
- * calls with the same values suffer only the penalty of entering and
- * exiting the procedure).  Note the order of parameters!
- *
- * Parameters: oldw: Original image width.
- *             neww: New image width.
- *             oldh: Original image height.
- *             newh: New image height.
- * Return value: None.
- * Preconditions: oldw % 8 == 0
- *                neww % 8 == 0
- *                oldh % 8 == 0
- *                newh % 8 == 0
- * Postconditions: If oldw > 0 && neww > 0:
- *                     resize_table_x[0..neww/8-1] are initialized
- *                 If oldh > 0 && newh > 0:
- *                     resize_table_y[0..newh/8-1] are initialized
- */
+/* Internal-use functions (defined at the bottom of the file). */
 
+static void init_resize_tables(int oldw, int neww, int oldh, int newh);
 static void init_one_resize_table(struct resize_table_elem *table,
                                   int oldsize, int newsize);
-
-static void init_resize_tables(int oldw, int neww, int oldh, int newh)
-{
-    static int saved_oldw = 0, saved_neww = 0,
-               saved_oldh = 0, saved_newh = 0;
-
-    if (oldw > 0 && neww > 0 && (oldw != saved_oldw || neww != saved_neww)) {
-        init_one_resize_table(resize_table_x, oldw, neww);
-        saved_oldw = oldw;
-        saved_neww = neww;
-    }
-    if (oldh > 0 && newh > 0 && (oldh != saved_oldh || newh != saved_newh)) {
-        init_one_resize_table(resize_table_y, oldh, newh);
-        saved_oldh = oldh;
-        saved_newh = newh;
-    }
-}
-
-
-/**
- * init_one_resize_table:  Helper function for init_resize_tables() to
- * initialize a single table.
- *
- * Parameters:   table: Table to initialize.
- *             oldsize: Size to resize from.
- *             newsize: Size to resize to.
- * Return value: None.
- * Preconditions: table != NULL
- *                oldsize > 0
- *                oldsize % 8 == 0
- *                newsize > 0
- *                newsize % 8 == 0
- * Postconditions: table[0..newsize/8-1] are initialized
- */
-
-static void init_one_resize_table(struct resize_table_elem *table,
-                                  int oldsize, int newsize)
-{
-    int i;
-
-    /* Compute the number of source pixels per destination pixel */
-    double width_ratio = (double)oldsize / (double)newsize;
-
-    for (i = 0; i < newsize/8; i++) {
-        double oldpos;
-
-        /* Left/topmost source pixel to use */
-        oldpos = (double)i * (double)oldsize / (double)newsize;
-        table[i].source = (int)oldpos;
-
-        /* Is the new pixel contained entirely within the old? */
-        if (oldpos+width_ratio < table[i].source+1) {
-            /* Yes, weight ratio is 1.0:0.0 */
-            table[i].weight1 = 65536;
-            table[i].weight2 = 0;
-        } else {
-            /* No, compute appropriate weight ratio */
-            double temp = ((table[i].source+1) - oldpos) / width_ratio * PI/2;
-            table[i].weight1 = (uint32_t)(sin(temp)*sin(temp) * 65536 + 0.5);
-            table[i].weight2 = 65536 - table[i].weight1;
-        }
-    }
-}
-
-/*************************************************************************/
-
-/**
- * init_gamma_table:  Initialize the gamma correction lookup table.
- * Initialization will not be performed for repeated calls with the same
- * value.
- *
- * Parameters: gamma: Gamma value.
- * Return value: None.
- * Preconditions: gamma > 0
- * Postconditions: gamma_table[0..255] are initialized
- */
-
-static void init_gamma_table(double gamma)
-{
-    static double saved_gamma = 0;
-    int i;
-
-    if (gamma != saved_gamma) {
-        for (i = 0; i < 256; i++)
-            gamma_table[i] = (uint8_t) (pow((i/255.0),gamma) * 255);
-        saved_gamma = gamma;
-    }
-}
-
-/*************************************************************************/
-
-/**
- * init_aa_table:  Initialize the antialiasing lookup tables.
- * Initialization will not be performed for repeated calls with the same
- * values.
- *
- * Parameters: aa_weight: Antialiasing weight value.
- *               aa_bias: Antialiasing bias value.
- * Return value: None.
- * Preconditions: 0 <= aa_weight && aa_weight <= 1
- *                0 <= aa_bias && aa_bias <= 1
- * Postconditions: gamma_table[0..255] are initialized
- */
-
-static void init_aa_table(double aa_weight, double aa_bias)
-{
-    static double saved_weight = -1, saved_bias = -1;
-    int i;
-
-    if (aa_weight != saved_weight || aa_bias != saved_bias) {
-        for (i = 0; i < 256; ++i) {
-            aa_table_c[i] = i*aa_weight * 65536;
-            aa_table_x[i] = i*aa_bias*(1-aa_weight)/4 * 65536;
-            aa_table_y[i] = i*(1-aa_bias)*(1-aa_weight)/4 * 65536;
-            aa_table_d[i] = (aa_table_x[i]+aa_table_y[i]+1)/2;
-        }
-        saved_weight = aa_weight;
-        saved_bias = aa_bias;
-    }
-}
+static void init_gamma_table(double gamma);
+static void init_aa_table(double aa_weight, double aa_bias);
 
 /*************************************************************************/
 /*************************************************************************/
 
-/* Video processing functions. */
+/* External interface functions. */
 
 /*************************************************************************/
 
@@ -981,6 +841,158 @@ static void antialias_line(uint8_t *src, uint8_t *dest, int width, int Bpp)
         dest[(width-1)*Bpp+i] = src[(width-1)*Bpp+i];
 }
 
+/*************************************************************************/
+/*************************************************************************/
+
+/* Internal-use helper functions. */
+
+/*************************************************************************/
+
+/**
+ * init_resize_tables:  Initialize the lookup tables used for resizing.  If
+ * either of `oldw' and `neww' is nonpositive, the horizontal resizing
+ * table will not be initialized; likewise for `oldh', `newh', and the
+ * vertical resizing table.  Initialization will also not be performed if
+ * the values given are the same as in the previous call (thus repeated
+ * calls with the same values suffer only the penalty of entering and
+ * exiting the procedure).  Note the order of parameters!
+ *
+ * Parameters: oldw: Original image width.
+ *             neww: New image width.
+ *             oldh: Original image height.
+ *             newh: New image height.
+ * Return value: None.
+ * Preconditions: oldw % 8 == 0
+ *                neww % 8 == 0
+ *                oldh % 8 == 0
+ *                newh % 8 == 0
+ * Postconditions: If oldw > 0 && neww > 0:
+ *                     resize_table_x[0..neww/8-1] are initialized
+ *                 If oldh > 0 && newh > 0:
+ *                     resize_table_y[0..newh/8-1] are initialized
+ */
+
+static void init_resize_tables(int oldw, int neww, int oldh, int newh)
+{
+    static int saved_oldw = 0, saved_neww = 0,
+               saved_oldh = 0, saved_newh = 0;
+
+    if (oldw > 0 && neww > 0 && (oldw != saved_oldw || neww != saved_neww)) {
+        init_one_resize_table(resize_table_x, oldw, neww);
+        saved_oldw = oldw;
+        saved_neww = neww;
+    }
+    if (oldh > 0 && newh > 0 && (oldh != saved_oldh || newh != saved_newh)) {
+        init_one_resize_table(resize_table_y, oldh, newh);
+        saved_oldh = oldh;
+        saved_newh = newh;
+    }
+}
+
+
+/**
+ * init_one_resize_table:  Helper function for init_resize_tables() to
+ * initialize a single table.
+ *
+ * Parameters:   table: Table to initialize.
+ *             oldsize: Size to resize from.
+ *             newsize: Size to resize to.
+ * Return value: None.
+ * Preconditions: table != NULL
+ *                oldsize > 0
+ *                oldsize % 8 == 0
+ *                newsize > 0
+ *                newsize % 8 == 0
+ * Postconditions: table[0..newsize/8-1] are initialized
+ */
+
+static void init_one_resize_table(struct resize_table_elem *table,
+                                  int oldsize, int newsize)
+{
+    int i;
+
+    /* Compute the number of source pixels per destination pixel */
+    double width_ratio = (double)oldsize / (double)newsize;
+
+    for (i = 0; i < newsize/8; i++) {
+        double oldpos;
+
+        /* Left/topmost source pixel to use */
+        oldpos = (double)i * (double)oldsize / (double)newsize;
+        table[i].source = (int)oldpos;
+
+        /* Is the new pixel contained entirely within the old? */
+        if (oldpos+width_ratio < table[i].source+1) {
+            /* Yes, weight ratio is 1.0:0.0 */
+            table[i].weight1 = 65536;
+            table[i].weight2 = 0;
+        } else {
+            /* No, compute appropriate weight ratio */
+            double temp = ((table[i].source+1) - oldpos) / width_ratio * PI/2;
+            table[i].weight1 = (uint32_t)(sin(temp)*sin(temp) * 65536 + 0.5);
+            table[i].weight2 = 65536 - table[i].weight1;
+        }
+    }
+}
+
+/*************************************************************************/
+
+/**
+ * init_gamma_table:  Initialize the gamma correction lookup table.
+ * Initialization will not be performed for repeated calls with the same
+ * value.
+ *
+ * Parameters: gamma: Gamma value.
+ * Return value: None.
+ * Preconditions: gamma > 0
+ * Postconditions: gamma_table[0..255] are initialized
+ */
+
+static void init_gamma_table(double gamma)
+{
+    static double saved_gamma = 0;
+    int i;
+
+    if (gamma != saved_gamma) {
+        for (i = 0; i < 256; i++)
+            gamma_table[i] = (uint8_t) (pow((i/255.0),gamma) * 255);
+        saved_gamma = gamma;
+    }
+}
+
+/*************************************************************************/
+
+/**
+ * init_aa_table:  Initialize the antialiasing lookup tables.
+ * Initialization will not be performed for repeated calls with the same
+ * values.
+ *
+ * Parameters: aa_weight: Antialiasing weight value.
+ *               aa_bias: Antialiasing bias value.
+ * Return value: None.
+ * Preconditions: 0 <= aa_weight && aa_weight <= 1
+ *                0 <= aa_bias && aa_bias <= 1
+ * Postconditions: gamma_table[0..255] are initialized
+ */
+
+static void init_aa_table(double aa_weight, double aa_bias)
+{
+    static double saved_weight = -1, saved_bias = -1;
+    int i;
+
+    if (aa_weight != saved_weight || aa_bias != saved_bias) {
+        for (i = 0; i < 256; ++i) {
+            aa_table_c[i] = i*aa_weight * 65536;
+            aa_table_x[i] = i*aa_bias*(1-aa_weight)/4 * 65536;
+            aa_table_y[i] = i*(1-aa_bias)*(1-aa_weight)/4 * 65536;
+            aa_table_d[i] = (aa_table_x[i]+aa_table_y[i]+1)/2;
+        }
+        saved_weight = aa_weight;
+        saved_bias = aa_bias;
+    }
+}
+
+/*************************************************************************/
 /*************************************************************************/
 
 /*
