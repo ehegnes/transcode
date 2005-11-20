@@ -65,7 +65,7 @@ void tccat_thread(info_t *ipipe)
   int vob_offset=0;
 
   info_t ipipe_avi;
-  TCDirectory tcdir;
+  TCDirList tcdir;
 
 #ifdef NET_STREAM
   struct sockaddr_in sin;
@@ -190,13 +190,13 @@ void tccat_thread(info_t *ipipe)
 
     //PASS 1: check file type - file order not important
 
-    if((tc_directory_open(&tcdir, ipipe->name))<0) {
-      fprintf(stderr, "(%s) unable to open directory \"%s\"\n", __FILE__, ipipe->name);
+    if(tc_dirlist_open(&tcdir, ipipe->name, 0)<0) {
+      fprintf(stderr, "(%s) unable to open dirlist \"%s\"\n", __FILE__, ipipe->name);
       exit(1);
     } else if(verbose_flag & TC_DEBUG)
-      fprintf(stderr, "(%s) scanning directory \"%s\"\n", __FILE__, ipipe->name);
+      fprintf(stderr, "(%s) scanning dirlist \"%s\"\n", __FILE__, ipipe->name);
 
-    while((name=tc_directory_scan(&tcdir))!=NULL) {
+    while((name=tc_dirlist_scan(&tcdir))!=NULL) {
 
       if((ipipe->fd_in = open(name, O_RDONLY))<0) {
 	perror("file open");
@@ -216,9 +216,9 @@ void tccat_thread(info_t *ipipe)
 
 	fprintf(stderr,"\n\nerror: this version of transcode supports only\n");
 	fprintf(stderr,"directories containing files of identical file type.\n");
-	fprintf(stderr,"Please clean up directory %s and restart.\n", ipipe->name);
+	fprintf(stderr,"Please clean up dirlist %s and restart.\n", ipipe->name);
 
-	fprintf(stderr,"file %s with filetype %s is invalid for directory mode.\n", name, filetype(itype));
+	fprintf(stderr,"file %s with filetype %s is invalid for dirlist mode.\n", name, filetype(itype));
 
 	exit(1);
       } // error
@@ -238,19 +238,19 @@ void tccat_thread(info_t *ipipe)
 	if(!found) type=itype;
 
 	if(itype!=type) {
-	  fprintf(stderr,"\nerror: multiple filetypes not valid for directory mode.\n");
+	  fprintf(stderr,"\nerror: multiple filetypes not valid for dirlist mode.\n");
 	  exit(1);
 	}
 	found=1;
 	break;
 
       default:
-	fprintf(stderr,"\nerror: invalid filetype %s for directory mode.\n", filetype(type));
+	fprintf(stderr,"\nerror: invalid filetype %s for dirlist mode.\n", filetype(type));
 	exit(1);
       } // check itype
     } // process files
 
-    tc_directory_close(&tcdir);
+    tc_dirlist_close(&tcdir);
 
     if(!found) {
       fprintf(stderr,"\nerror: no valid files found in %s\n", name);
@@ -262,17 +262,12 @@ void tccat_thread(info_t *ipipe)
 
     //PASS 2: dump files in correct order
 
-    if((tc_directory_open(&tcdir, ipipe->name))<0) {
-      fprintf(stderr, "(%s) unable to sort directory entries\"%s\"\n", __FILE__, name);
+    if(tc_dirlist_open(&tcdir, ipipe->name, 1)<0) {
+      fprintf(stderr, "(%s) unable to sort dirlist entries\"%s\"\n", __FILE__, name);
       exit(1);
     }
 
-    if((tc_directory_sortbuf(&tcdir))<0) {
-      fprintf(stderr, "(%s) unable to sort directory entries\"%s\"\n", __FILE__, name);
-      exit(1);
-    }
-
-    while((name=tc_directory_scan(&tcdir))!=NULL) {
+    while((name=tc_dirlist_scan(&tcdir))!=NULL) {
 
       if((ipipe->fd_in = open(name, O_RDONLY))<0) {
 	perror("file open");
@@ -337,7 +332,7 @@ void tccat_thread(info_t *ipipe)
 	break;
 
       default:
-	fprintf(stderr,"\nerror: invalid filetype %s for directory mode.\n", filetype(type));
+	fprintf(stderr,"\nerror: invalid filetype %s for dirlist mode.\n", filetype(type));
 	exit(1);
       }
 
@@ -345,7 +340,7 @@ void tccat_thread(info_t *ipipe)
 
     }//process files
 
-    tc_directory_close(&tcdir);
+    tc_dirlist_close(&tcdir);
 
     break;
   }
@@ -354,26 +349,26 @@ void tccat_thread(info_t *ipipe)
 
 int fileinfo_dir(char *dname, int *fd, long *magic)
 {
-    TCDirectory tcdir;
+    TCDirList tcdir;
     const char *name=NULL;
 
     //check file type - file order not important
 
-    if((tc_directory_open(&tcdir, dname))<0) {
-	fprintf(stderr, "(%s) unable to open directory \"%s\"\n", __FILE__, dname);
+    if(tc_dirlist_open(&tcdir, dname, 0)<0) {
+	fprintf(stderr, "(%s) unable to open dirlist \"%s\"\n", __FILE__, dname);
 	exit(1);
     } else if(verbose_flag & TC_DEBUG)
 
-	fprintf(stderr, "(%s) scanning directory \"%s\"\n", __FILE__, dname);
+	fprintf(stderr, "(%s) scanning dirlist \"%s\"\n", __FILE__, dname);
 
-    if((name=tc_directory_scan(&tcdir))==NULL) return(-1);
+    if((name=tc_dirlist_scan(&tcdir))==NULL) return(-1);
 
     if((*fd= open(name, O_RDONLY))<0) {
 	perror("open file");
 	return(-1);
     }
 
-    tc_directory_close(&tcdir);
+    tc_dirlist_close(&tcdir);
 
     //first valid magic must be the same for all
     //files to follow, but is not checked here

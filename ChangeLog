@@ -1,7 +1,8 @@
 2005-11-20 Francesco Romani <fromani at gmail dot com>
   * export/export_raw.c import/iodump.c libtc/iodir.c
     libtc/iodir.h src/transcode.c
-  small style fixes in iodir code.
+  dirctory listing code reworked again. API changed
+  to make more understandable, some style fixes.
 
 2005-11-18 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c

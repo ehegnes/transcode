@@ -267,17 +267,17 @@ further:
 
 	    to_open = vob->video_in_file;
 
-	    if (tc_file_check(vob->video_in_file) == 1) { /* directory */
+	    if (tc_file_check(vob->video_in_file) == 1) { /* dirlist */
 
-	      TCDirectory dir;
+	      TCDirList dir;
 	      dir_name = vob->video_in_file;
-	      if((tc_directory_open(&dir, dir_name))<0) {
-		tc_log_warn(MOD_NAME, "unable to open directory \"%s\"", dir_name);
+	      if(tc_dirlist_open(&dir, dir_name, 0)<0) {
+		tc_log_warn(MOD_NAME, "unable to open dirlist \"%s\"", dir_name);
 		return(TC_EXPORT_ERROR);
 	      }
-	      to_open = tc_directory_scan(&dir);
+	      to_open = tc_dirlist_scan(&dir);
 
-	      tc_directory_close(&dir);
+	      tc_dirlist_close(&dir);
 	    }
 
 	    if(avifile1==NULL)

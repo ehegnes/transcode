@@ -230,15 +230,15 @@ static void usage(int status)
   //source
 #ifdef HAVE_LIBDVDREAD
 #ifdef NET_STREAM
-  printf(" -i name             input file/directory/device/mountpoint/host name\n");
+  printf(" -i name             input file/dirlist/device/mountpoint/host name\n");
 #else
-  printf(" -i name             input file/directory/device/mountpoint name\n");
+  printf(" -i name             input file/dirlist/device/mountpoint name\n");
 #endif
 #else
 #ifdef NET_STREAM
-  printf(" -i name             input file/directory/host name\n");
+  printf(" -i name             input file/dirlist/host name\n");
 #else
-  printf(" -i name             input file/directory name\n");
+  printf(" -i name             input file/dirlist name\n");
 #endif
 #endif
   printf(" -H n                auto-probe n MB of source (0=off) [1]\n");
@@ -354,7 +354,7 @@ static void usage(int status)
   //range control
   printf(" -c f1-f2[,f3-f4]    encode only f1-f2[,f3-f4] (frames or HH:MM:SS) [all]\n");
   printf(" -t n,base           split output to base%s.avi with n frames [off]\n", "%03d");
-  printf("--dir_mode base      process directory contents to base-%s.avi [off]\n", "%03d");
+  printf("--dir_mode base      process dirlist contents to base-%s.avi [off]\n", "%03d");
   printf("--frame_interval N   select only every Nth frame to be exported [1]\n");
   printf("\n");
 
@@ -439,7 +439,7 @@ static void short_usage(int status)
 
 static int source_check(char *import_file)
 {
-    // check for existent file, directory or host
+    // check for existent file, dirlist or host
     struct stat fbuf;
 #ifdef NET_STREAM
     struct hostent *hp;
@@ -671,7 +671,7 @@ int main(int argc, char *argv[]) {
 
     long sret;  /* used for string function return values */
 
-    TCDirectory tcdir;
+    TCDirList tcdir;
 
     static struct option long_options[] =
     {
@@ -4336,7 +4336,7 @@ int main(int argc, char *argv[]) {
 
       /* ---------------------------------------------------------------
        *
-       * internal directory mode (needs single import directory)
+       * internal dirlist mode (needs single import dirlist)
        *
        * --------------------------------------------------------------*/
 
@@ -4348,25 +4348,17 @@ int main(int argc, char *argv[]) {
       dir_name = (dir_audio) ? vob->audio_in_file : vob->video_in_file;
       dir_fcnt = 0;
 
-      if((tc_directory_open(&tcdir, dir_name))<0) {
-	tc_error("unable to open directory \"%s\"", dir_name);
+      if(tc_dirlist_open(&tcdir, dir_name, 1)<0) {
+	tc_error("unable to open dirlist \"%s\"", dir_name);
 	exit(1);
       }
 
-      while((dir_fname=tc_directory_scan(&tcdir))!=NULL) {
-	if(verbose & TC_DEBUG) printf("(%d) %s\n", dir_fcnt, dir_fname);
-	++dir_fcnt;
-      }
+      dir_fcnt = tc_dirlist_file_count(&tcdir);
 
-      printf("(%s) processing %d file(s) in directory %s\n", __FILE__, dir_fcnt, dir_name);
+      printf("(%s) processing %d file(s) in dirlist %s\n", __FILE__, dir_fcnt, dir_name);
 
       if(dir_fcnt==0) tc_error("no valid input files found");
       dir_fcnt=0;
-
-      if((tc_directory_sortbuf(&tcdir))<0) {
-	tc_error("unable to sort directory entries \"%s\"", dir_name);
-	exit(1);
-      }
 
       // encoder init
       if(encoder_init(&export_para, vob)<0)
@@ -4398,9 +4390,9 @@ int main(int argc, char *argv[]) {
 	  tc_error("failed to open output");
       }
 
-      // need to loop with directory content for this option
+      // need to loop with dirlist content for this option
 
-      while((dir_fname=tc_directory_scan(&tcdir))!=NULL) {
+      while((dir_fname=tc_dirlist_scan(&tcdir))!=NULL) {
 
 	// update vob structure
 	if(dir_audio) {
@@ -4482,9 +4474,9 @@ int main(int argc, char *argv[]) {
 
 	if (sig_int || sig_tstp) break;
 
-      }//next directory entry
+      }//next dirlist entry
 
-      tc_directory_close(&tcdir);
+      tc_dirlist_close(&tcdir);
 
       // close output
       if(no_split) {
