@@ -36,7 +36,7 @@ static int compare_name(const void *file1_ptr, const void *file2_ptr)
     return strcoll(*(const char **)file1_ptr, *(const char **)file2_ptr);
 }
 
-int tc_directory_file_count(TcDirectory *tcdir)
+int tc_directory_file_count(TCDirectory *tcdir)
 {
     if (tcdir == NULL) {
         return -1;
@@ -44,10 +44,10 @@ int tc_directory_file_count(TcDirectory *tcdir)
     return tcdir->nfiles;
 }
 
-int tc_directory_open(TcDirectory *tcdir, const char *dir_name)
+int tc_directory_open(TCDirectory *tcdir, const char *dir_name)
 {
     size_t len = 0;
-    const char *end_of_dir = NULL;
+    char end_of_dir;
 
     if (tcdir == NULL) {
         return -1;
@@ -65,8 +65,8 @@ int tc_directory_open(TcDirectory *tcdir, const char *dir_name)
     }
     tcdir->dir_name = dir_name;
 
-    end_of_dir = &tcdir->dir_name[len - 1];
-    if (*end_of_dir == '/') {
+    end_of_dir = tcdir->dir_name[len - 1];
+    if (end_of_dir == '/') {
         tcdir->path_sep = "";
     } else {
         tcdir->path_sep = "/";
@@ -80,7 +80,7 @@ int tc_directory_open(TcDirectory *tcdir, const char *dir_name)
     return 0;
 }
 
-static void tc_directory_freebuf(TcDirectory *tcdir)
+static void tc_directory_freebuf(TCDirectory *tcdir)
 {
     if (tcdir != NULL) {
         if (tcdir->buffered == 1) {
@@ -92,7 +92,7 @@ static void tc_directory_freebuf(TcDirectory *tcdir)
                 }
             }
 
-            if (tcdir->rbuf_ptr) {
+            if (tcdir->rbuf_ptr != NULL) {
                 /* should be always true */
                 free(tcdir->rbuf_ptr);
             }
@@ -102,18 +102,18 @@ static void tc_directory_freebuf(TcDirectory *tcdir)
     }
 }
 
-void tc_directory_close(TcDirectory *tcdir)
+void tc_directory_close(TCDirectory *tcdir)
 {
     if (tcdir != NULL) {
         tc_directory_freebuf(tcdir);
         if (tcdir->dir != NULL) {
             closedir(tcdir->dir);
+            tcdir->dir = NULL;
         }
-        tcdir->dir = NULL;
     }
 }
 
-static int tc_directory_next(TcDirectory *tcdir)
+static int tc_directory_next(TCDirectory *tcdir)
 {
     struct dirent *dent = NULL;
     int have_file = 0;
@@ -146,7 +146,7 @@ static int tc_directory_next(TcDirectory *tcdir)
     return 1;
 }
 
-const char *tc_directory_scan(TcDirectory *tcdir)
+const char *tc_directory_scan(TCDirectory *tcdir)
 {
     const char *ret = NULL;
 
@@ -171,7 +171,7 @@ const char *tc_directory_scan(TcDirectory *tcdir)
     return ret;
 }
 
-int tc_directory_sortbuf(TcDirectory *tcdir)
+int tc_directory_sortbuf(TCDirectory *tcdir)
 {
     int n = 0;
 
@@ -185,7 +185,7 @@ int tc_directory_sortbuf(TcDirectory *tcdir)
     }
     rewinddir(tcdir->dir);
 
-    tcdir->rbuf_ptr = tc_zalloc(tcdir->nfiles * sizeof(char *));
+    tcdir->rbuf_ptr = tc_malloc(tcdir->nfiles * sizeof(char *));
     if (tcdir->rbuf_ptr == NULL) {
         return -1;
     }
@@ -211,6 +211,9 @@ int tc_directory_sortbuf(TcDirectory *tcdir)
 
 /* embedded simple tests for tc_directory*()
 
+BEGIN_TEST_CODE
+
+// compile command: gcc -Wall -g -O -I. -I.. source.c path/to/libtc.a
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -223,7 +226,7 @@ int tc_directory_sortbuf(TcDirectory *tcdir)
 
 int test_simple_scan(void)
 {
-    TcDirectory dir;
+    TCDirectory dir;
     int ret;
     const char *pc = NULL;
 
@@ -248,7 +251,7 @@ int test_simple_scan(void)
 
 int test_sortbuf_scan(void)
 {
-    TcDirectory dir;
+    TCDirectory dir;
     int ret, i, j;
     const char *pc = NULL;
 
@@ -285,7 +288,7 @@ int test_sortbuf_scan(void)
 
 int test_expected_failures(void)
 {
-    TcDirectory dir;
+    TCDirectory dir;
     int ret;
 
     tc_info("test_expected_failures:");
@@ -311,6 +314,17 @@ int main(void)
 
     return 0;
 }
-
-
+BEGIN_TEST_CODE
 */
+
+/**************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

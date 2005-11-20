@@ -30,7 +30,7 @@
 
 #include <dirent.h>
 
-typedef struct tcdir_ TcDirectory;
+typedef struct tcdir_ TCDirectory;
 struct tcdir_ {
     DIR *dir;	/* for internal use */
 
@@ -48,8 +48,8 @@ struct tcdir_ {
 };
 
 /*
- * tc_directory_open: initialize a TcDirectory descriptor.
- *                    every TcDirectory descriptor refers to a specific
+ * tc_directory_open: initialize a TCDirectory descriptor.
+ *                    every TCDirectory descriptor refers to a specific
  *                    directory in filesystem, and more descriptors can
  *                    refer to the same directory.
  *                    BIG FAT WARNING:
@@ -57,7 +57,7 @@ struct tcdir_ {
  *                    directory *WILL NOT CHANGE* when referring
  *                    descriptor is active.
  *
- * Parameters: tcdir: TcDirectory structure (descriptor) to initialize.
+ * Parameters: tcdir: TCDirectory structure (descriptor) to initialize.
  *             dir_name: full path of target directory.
  * Return Value: -1 if some parameter is wrong or if target
  *                  directory can't be opened.
@@ -67,13 +67,13 @@ struct tcdir_ {
  *                will be closed via tc_directory_close().
  * Postconditions: none
  */
-int tc_directory_open(TcDirectory *tcdir, const char *dir_name);
+int tc_directory_open(TCDirectory *tcdir, const char *dir_name);
 
 /*
  * tc_directory_sortbuf: scans target directory, reads and sorts
  *                       all entries.
  *                       When this function was called, the
- *                       TcDirectory descriptor enter in so-called
+ *                       TCDirectory descriptor enter in so-called
  *                       'buffered mode'; now caller code can have
  *                       a precise count (if preconditions holds) of
  *                       files present in a target directory;
@@ -84,7 +84,7 @@ int tc_directory_open(TcDirectory *tcdir, const char *dir_name);
  *                       The cost for going in buffered mode is the call of
  *                       this function and an increased use of memory.
  *
- * Parameters: tcdir: TcDirectory structure (descriptor) to use.
+ * Parameters: tcdir: TCDirectory structure (descriptor) to use.
  * Return Value: 0  Succesfull.
  *               -1 Internal error.
  * Side effects: target directory will be scanned twice: one time
@@ -95,7 +95,7 @@ int tc_directory_open(TcDirectory *tcdir, const char *dir_name);
  *                'tcdir' was initialized calling tc_directory_open().
  * Postconditions: none
  */
-int tc_directory_sortbuf(TcDirectory *tcdir);
+int tc_directory_sortbuf(TCDirectory *tcdir);
 
 /*
  * tc_directory_scan: give full path of next entry in target directory.
@@ -114,7 +114,7 @@ int tc_directory_sortbuf(TcDirectory *tcdir);
  *                    directory in lexicogrpaphical order.
  *                    See documentation of tc_directory_sdortbuf for details.
  *
- * Parameters: tcdir: TcDirectory structure (descriptor) to use.
+ * Parameters: tcdir: TCDirectory structure (descriptor) to use.
  * Return Value: a constant pointer to full path of next entry
  *               NULL there are no more entries, or if an internal
  *               error occurs.
@@ -125,20 +125,20 @@ int tc_directory_sortbuf(TcDirectory *tcdir);
  *                'tcdir' was initialized calling tc_directory_open().
  * Postconditions: none
  */
-const char *tc_directory_scan(TcDirectory *tcdir);
+const char *tc_directory_scan(TCDirectory *tcdir);
 
 /*
- * tc_directory_close: finalize a TcDirectory structure (descriptor),
+ * tc_directory_close: finalize a TCDirectory structure (descriptor),
  *                     freeing all acquired resources.
  *
- * Parameters: tcdir: TcDirectory structure (descriptor) to close.
+ * Parameters: tcdir: TCDirectory structure (descriptor) to close.
  * Return Value: none
  * Side effects: none
  * Preconditions: referred directory *MUST NOT BE CHANGED* until now.
  *                'tcdir' was initialized calling tc_directory_open()
  * Postconditions: none
  */
-void tc_directory_close(TcDirectory *tcdir);
+void tc_directory_close(TCDirectory *tcdir);
 
 /*
  * tc_directory_file_count: return the actual count of files in target
@@ -149,7 +149,7 @@ void tc_directory_close(TcDirectory *tcdir);
  *                          See documentation of above two functions
  *                          for details.
  *
- * Parameters: tcdir: TcDirectory structure (descriptor) to use.
+ * Parameters: tcdir: TCDirectory structure (descriptor) to use.
  * Return Value: actual count of files in target directory
  *               -1 if 'tcdir' is an invalid descriptor
  * Side effects: none
@@ -158,5 +158,5 @@ void tc_directory_close(TcDirectory *tcdir);
  *                'tcdir' was initialized calling tc_directory_open().
  * Postconditions: none
  */
-int tc_directory_file_count(TcDirectory *tcdir);
+int tc_directory_file_count(TCDirectory *tcdir);
 #endif

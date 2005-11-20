@@ -671,7 +671,7 @@ int main(int argc, char *argv[]) {
 
     long sret;  /* used for string function return values */
 
-    TcDirectory tcdir;
+    TCDirectory tcdir;
 
     static struct option long_options[] =
     {

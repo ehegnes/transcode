@@ -65,7 +65,7 @@ void tccat_thread(info_t *ipipe)
   int vob_offset=0;
 
   info_t ipipe_avi;
-  TcDirectory tcdir;
+  TCDirectory tcdir;
 
 #ifdef NET_STREAM
   struct sockaddr_in sin;
@@ -354,7 +354,7 @@ void tccat_thread(info_t *ipipe)
 
 int fileinfo_dir(char *dname, int *fd, long *magic)
 {
-    TcDirectory tcdir;
+    TCDirectory tcdir;
     const char *name=NULL;
 
     //check file type - file order not important
