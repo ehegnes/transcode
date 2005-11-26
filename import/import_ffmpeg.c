@@ -594,7 +594,7 @@ retry:
             }
         }
         break;
-      
+
       case PIX_FMT_YUV411P:
         src_fmt = IMG_YUV411P;
         YUV_INIT_PLANES(src_planes, frame, src_fmt,
@@ -637,7 +637,7 @@ retry:
             }
         }
 	    break;
-        
+
       case PIX_FMT_YUVJ444P:
       case PIX_FMT_YUV444P:
         src_fmt = IMG_YUV444P;
@@ -659,15 +659,15 @@ retry:
             }
         }
         break;
-        
+
       default:
 	    tc_log_warn(MOD_NAME, "Unsupported decoded frame format: %d",
 		            lavc_dec_context->pix_fmt);
         return TC_IMPORT_ERROR;
     }
-	
+
     ac_imgconvert(src_planes, src_fmt, dst_planes, dst_fmt,
-	              lavc_dec_context->width, lavc_dec_context->height);
+                  lavc_dec_context->width, lavc_dec_context->height);
     param->size = frame_size;
 
     return TC_IMPORT_OK;
