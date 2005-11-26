@@ -1,3 +1,8 @@
+2005-11-26 Francesco Romani <fromani at gmail dot com>
+  * import/import_ffmpeg.c
+  review internal buffer and colorspace conversion handling,
+  to avoid memory corruptions.
+
 2005-11-20 Francesco Romani <fromani at gmail dot com>
   * src/transcode.c
   multiple typos
