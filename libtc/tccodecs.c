@@ -1,6 +1,7 @@
 /*
  * tccodecs.c - codecs helper functions
  * Written by Francesco Romani <fromani -at- gmail -dot- com>
+ * (C) 2005 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  * This file is part of transcode, a video stream processing tool.
  * transcode is free software, distributable under the terms of the GNU

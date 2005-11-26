@@ -59,13 +59,14 @@ extern "C" {
 #define COL_WHITE           COL(37)
 #define COL_GRAY            "\033[0m"
 
+typedef enum {
+    TC_LOG_ERR = 0, // critical error condition
+    TC_LOG_WARN,    // non-critical error condition
+    TC_LOG_INFO,    // informative highlighted message
+    TC_LOG_MSG,     // regular message
+} TCLogLevel;
 
-#define TC_LOG_ERR		0 // critical error condition
-#define TC_LOG_WARN		1 // non-critical error condition
-#define TC_LOG_INFO		2 // informative highlighted message
-#define TC_LOG_MSG		3 // regular message
-
-void tc_log(int level, const char *tag, const char *fmt, ...);
+void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...);
 
 /* compatibility macros */
 #define tc_error(format, args...) \
@@ -82,6 +83,9 @@ void tc_log(int level, const char *tag, const char *fmt, ...);
     tc_log(TC_LOG_INFO, tag, format , ## args)
 #define tc_log_warn(tag, format, args...) \
     tc_log(TC_LOG_WARN, tag, format , ## args)
+#define tc_log_msg(tag, format, args...) \
+    tc_log(TC_LOG_MSG, tag, format , ## args)
+
 
 /* Provided by caller */
 extern void version(void);
@@ -129,9 +133,9 @@ int tc_test_string(const char *file, int line, int limit, long ret, int errnum);
     _tc_snprintf(__FILE__, __LINE__, buf, limit, format , ## args)
 
 int _tc_vsnprintf(const char *file, int line, char *buf, size_t limit,
-		  const char *format, va_list args);
+          const char *format, va_list args);
 int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
-		 const char *format, ...);
+         const char *format, ...);
 
 /*
  * tc_malloc: just a simple wrapper on libc's malloc(), with emits
@@ -301,16 +305,16 @@ ssize_t tc_pwrite(int fd, uint8_t *buf, size_t len);
  */
 int tc_preadwrite(int in, int out);
 
-#define TC_PROBE_PATH_INVALID	0
-#define TC_PROBE_PATH_ABSPATH	1
-#define TC_PROBE_PATH_RELDIR	2
-#define TC_PROBE_PATH_FILE	3
-#define TC_PROBE_PATH_NET	4
-#define TC_PROBE_PATH_BKTR	5
-#define TC_PROBE_PATH_SUNAU	6
-#define TC_PROBE_PATH_V4L_VIDEO	7
-#define TC_PROBE_PATH_V4L_AUDIO	8
-#define TC_PROBE_PATH_OSS	9
+#define TC_PROBE_PATH_INVALID   0
+#define TC_PROBE_PATH_ABSPATH   1
+#define TC_PROBE_PATH_RELDIR    2
+#define TC_PROBE_PATH_FILE      3
+#define TC_PROBE_PATH_NET       4
+#define TC_PROBE_PATH_BKTR      5
+#define TC_PROBE_PATH_SUNAU     6
+#define TC_PROBE_PATH_V4L_VIDEO 7
+#define TC_PROBE_PATH_V4L_AUDIO 8
+#define TC_PROBE_PATH_OSS       9
 
 /*
  * tc_probe_path: verify the type of a given path.

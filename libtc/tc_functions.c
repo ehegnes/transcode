@@ -57,7 +57,7 @@ static const char *tc_log_preambles[] = {
     "[%s] %s\n",
 };
 
-void tc_log(int level, const char *tag, const char *fmt, ...)
+void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
 {
     char buf[TC_MSG_BUF_SIZE];
     char *msg = buf;
@@ -277,7 +277,7 @@ int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
 void *_tc_malloc(const char *file, int line, size_t size)
 {
     void *p = malloc(size);
-    if(p == NULL) {
+    if (p == NULL) {
         fprintf(stderr, "[%s:%d] tc_malloc(): can't allocate %lu bytes\n",
                         file, line, (unsigned long)size);
     }
@@ -290,7 +290,7 @@ void *_tc_malloc(const char *file, int line, size_t size)
 void *_tc_zalloc(const char *file, int line, size_t size)
 {
     void *p = malloc(size);
-    if(p == NULL) {
+    if (p == NULL) {
         fprintf(stderr, "[%s:%d] tc_zalloc(): can't allocate %lu bytes\n",
                         file, line, (unsigned long)size);
     } else {
@@ -312,7 +312,7 @@ void *_tc_bufalloc(const char *file, int line, size_t size)
     int8_t *ptr = NULL;
     unsigned long offset = 0;
 
-    if(base == NULL) {
+    if (base == NULL) {
         fprintf(stderr, "[%s:%d] tc_bufalloc(): can't allocate %lu bytes\n",
                         file, line, (unsigned long)size);
     } else {
