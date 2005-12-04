@@ -23,13 +23,14 @@
  */
 
 #define MOD_NAME    "import_mov.so"
-#define MOD_VERSION "v0.1.2 (2002-05-16)"
+#define MOD_VERSION "v0.1.3 (2005-12-04)"
 #define MOD_CODEC   "(video) * | (audio) *"
 
 #include "transcode.h"
 
 static int verbose_flag = TC_QUIET;
-static int capability_flag = TC_CAP_PCM | TC_CAP_RGB | TC_CAP_YUV | TC_CAP_VID;
+static int capability_flag = TC_CAP_PCM | TC_CAP_RGB | TC_CAP_YUV |
+                             TC_CAP_YUV422 | TC_CAP_VID;
 
 #define MOD_PRE mov
 #include "import_def.h"
@@ -39,6 +40,7 @@ static int capability_flag = TC_CAP_PCM | TC_CAP_RGB | TC_CAP_YUV | TC_CAP_VID;
 #include <lqt.h>
 #include "magic.h"
 
+#include "aclib/imgconvert.h"
 
 /* movie handles */
 static quicktime_t *qt_audio=NULL;
@@ -237,8 +239,19 @@ MOD_open
               quicktime_set_cmodel(qt_video, BC_YUV420P); qt_cm = BC_YUV420P;
               break;
 
+        case CODEC_YUV422:
+		    /* allocate buffer for row pointers */
+	      	    row_ptr = tc_malloc(3*sizeof(char *));
+                    if(row_ptr==0) {
+		        fprintf(stderr,"error: can't alloc row pointers\n");
+			return(TC_IMPORT_ERROR);
+	      	    }
+
+              quicktime_set_cmodel(qt_video, BC_YUV422P); qt_cm = BC_YUV422P;
+              break;
+
         case CODEC_YUY2:
-              quicktime_set_cmodel(qt_video, BC_YUV422); qt_cm = CODEC_YUY2;
+              quicktime_set_cmodel(qt_video, BC_YUV422); qt_cm = BC_YUV422;
               break;
 
          /* passthrough */
@@ -300,14 +313,16 @@ MOD_decode
               break;
 
       case BC_YUV420P: {
-              /* setup row pointers for YUV420P: inverse! */
-              row_ptr[0] = mem;
-              mem = mem + (h*w);
-              row_ptr[2] = mem;
-              mem = mem + (h*w)/4;
-              row_ptr[1] = mem;
-
+              /* setup row pointers for YUV420P */
+              YUV_INIT_PLANES(row_ptr, mem, IMG_YUV420P, h, w);
               param->size = (h*w*3)/2;
+              break;
+              }
+
+      case BC_YUV422P: {
+	      /* setup row pointers for YUV422P */
+              YUV_INIT_PLANES(row_ptr, mem, IMG_YUV422P, h, w);
+              param->size = (h*w)*2;
               break;
               }
       }

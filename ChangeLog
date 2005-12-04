@@ -1,7 +1,13 @@
+2005-12-04 Baptiste Coudurier <baptiste.coudurier at smartjog dot com>
+  * import/import_mov.c
+  add YUV422P support and fix I420 import which was previously
+  using YV12.
+  (patch applied by fromani)
+
 2005-11-26 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tc_functions.c libtc/tccodecs.c
   small style fixes.
-  
+
 2005-11-26 Francesco Romani <fromani at gmail dot com>
   * import/import_ffmpeg.c
   review internal buffer and colorspace conversion handling,
