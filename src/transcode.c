@@ -2874,37 +2874,43 @@ int main(int argc, char *argv[]) {
 
       // choose height dependent on pal or NTSC.
       switch (vob->mpeg_profile) {
-	case VCD_PAL: case VCD_NTSC:
-	case VCD: vob->zoom_height = impal?288:240;
-		  break;
+        case VCD_PAL: case VCD_NTSC: case VCD:
+          if (!vob->zoom_height)
+              vob->zoom_height = impal?288:240;
+          break;
 
-	case SVCD_PAL: case SVCD_NTSC: case SVCD:
-	case XVCD_PAL: case XVCD_NTSC: case XVCD:
-	case DVD_PAL: case DVD_NTSC:
-	case DVD: vob->zoom_height = impal?576:480;
-		  break;
+        case SVCD_PAL: case SVCD_NTSC: case SVCD:
+        case XVCD_PAL: case XVCD_NTSC: case XVCD:
+        case DVD_PAL: case DVD_NTSC: case DVD:
+          if (!vob->zoom_height)
+              vob->zoom_height = impal ? 576 : 480;
+          break;
 
-	default:
-		  break;
+        default:
+          break;
       }
 
       // choose width if not set by user.
       switch (vob->mpeg_profile) {
-	case VCD_PAL: case VCD_NTSC: case VCD:
-	  if (!vob->zoom_width) vob->zoom_width = 352;
-	  vob->ex_asr = 2;
-	  break;
-	case SVCD_PAL: case SVCD_NTSC: case SVCD:
-	case XVCD_PAL: case XVCD_NTSC: case XVCD:
-	  if (!vob->zoom_width) vob->zoom_width = 480;
-	  vob->ex_asr = 2;
-	  break;
-	case DVD_PAL: case DVD_NTSC: case DVD:
-	  if (!vob->zoom_width) vob->zoom_width = 720;
-	  if (vob->ex_asr <= 0) vob->ex_asr = 2; // assume 4:3
-		  break;
-	default:
-		  break;
+        case VCD_PAL: case VCD_NTSC: case VCD:
+          if (!vob->zoom_width)
+              vob->zoom_width = 352;
+          vob->ex_asr = 2;
+          break;
+        case SVCD_PAL: case SVCD_NTSC: case SVCD:
+        case XVCD_PAL: case XVCD_NTSC: case XVCD:
+          if (!vob->zoom_width)
+              vob->zoom_width = 480;
+          vob->ex_asr = 2;
+          break;
+        case DVD_PAL: case DVD_NTSC: case DVD:
+          if (!vob->zoom_width)
+              vob->zoom_width = 720;
+          if (vob->ex_asr <= 0)
+              vob->ex_asr = 2; // assume 4:3
+          break;
+        default:
+          break;
       }
 
 

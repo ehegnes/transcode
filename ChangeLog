@@ -1,3 +1,7 @@
+2005-12-07 Andrew Church <achurch at achurch dot org>
+  * src/transcode.c
+  Don't overwrite user's supplied -Z width when using --export_prof.
+
 2005-12-04 Baptiste Coudurier <baptiste.coudurier at smartjog dot com>
   * import/import_mov.c
   add YUV422P support and fix I420 import which was previously
