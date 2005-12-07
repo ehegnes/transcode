@@ -334,10 +334,10 @@ char *_tc_strndup(const char *file, int line, const char *s, size_t n)
     char *pc = NULL;
 
     if (s != NULL) {
-        pc = _tc_zalloc(file, line, n + 1);
+        pc = _tc_malloc(file, line, n + 1);
         if (pc != NULL) {
-            /* strlcpy automatically adds final '\0' */
-            strlcpy(pc, s, n + 1);
+            memcpy(pc, s, n);
+            pc[n] = '\0';
         }
     }
     return pc;
@@ -577,7 +577,7 @@ int main(void)
 
 */
 
-/* embedded simple test for tc_strdup() / tc_strndup
+/* embedded simple test for tc_strdup() / tc_strndup 
 
 #include "config.h"
 
@@ -593,17 +593,30 @@ int main(void)
 
 int test_strdup(void)
 {
-    const char *s1 = TEST_STRING, *s2 = NULL, *s3 = NULL;
+    const char *s1 = TEST_STRING;
+    char *s2 = NULL, *s3 = NULL;
 
-    tc_info("test_strdup()");
+    tc_info("test_strdup() begin");
 
     s2 = strdup(s1);
     s3 = tc_strdup(s1);
 
+    if (strlen(s1) != strlen(s2)) {
+        tc_error("string length mismatch: '%s' '%s'", s1, s2);
+    }
+    if (strlen(s1) != strlen(s3)) {
+        tc_error("string length mismatch: '%s' '%s'", s1, s3);
+    }
     if (strlen(s2) != strlen(s3)) {
         tc_error("string length mismatch: '%s' '%s'", s2, s3);
     }
 
+    if (strcmp(s1, s2) != 0) {
+        tc_error("string mismatch: '%s' '%s'", s1, s2);
+    }
+    if (strcmp(s1, s3) != 0) {
+        tc_error("string mismatch: '%s' '%s'", s1, s3);
+    }
     if (strcmp(s2, s3) != 0) {
         tc_error("string mismatch: '%s' '%s'", s2, s3);
     }
@@ -611,14 +624,16 @@ int test_strdup(void)
     free(s2);
     tc_free(s3);
 
+    tc_info("test_strdup() end");
     return 0;
 }
 
 int test_strndup(size_t n)
 {
-    const char *s1 = TEST_STRING, *s2 = NULL, *s3 = NULL;
+    const char *s1 = TEST_STRING;
+    char *s2 = NULL, *s3 = NULL;
 
-    tc_info("test_strndup(%lu)", (unsigned long)n);
+    tc_info("test_strndup(%lu) begin", (unsigned long)n);
 
     s2 = strndup(s1, n);
     s3 = tc_strndup(s1, n);
@@ -634,6 +649,7 @@ int test_strndup(size_t n)
     free(s2);
     tc_free(s3);
 
+    tc_info("test_strndup() end");
     return 0;
 }
 
