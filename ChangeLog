@@ -1,4 +1,13 @@
-2005-12-07 Francesco Romani <fromani at gmail.com>
+1005-12-08 Francesco Romani <fromani at gmail dot com>
+  * tools/tcmodinfo.c
+  
+  added files: libtc/static_optstr.h
+
+  Introduce helper header like to static_xio.h to make
+  symbols avalaible for other binaries different from
+  transcode which wants to load modules.
+
+2005-12-07 Francesco Romani <fromani at gmail dot com>
   * libtc/tc_functions.c
   review tc_str(n)dup implementation
 
