@@ -1,7 +1,12 @@
-1005-12-08 Francesco Romani <fromani at gmail dot com>
+2005-12-10 Francesco Romani <fromani at gmail dot com>
+  * added file: docs/module-system-API.txt
+  
+  documentation for module/plugin system.
+
+2005-12-08 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c
   
-  added files: libtc/static_optstr.h
+  added file: libtc/static_optstr.h
 
   Introduce helper header like to static_xio.h to make
   symbols avalaible for other binaries different from

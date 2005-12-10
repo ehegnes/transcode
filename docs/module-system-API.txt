@@ -289,7 +289,7 @@ the lasto one or not. You should'nt worry about this.
 
 Take care of check the return code of tc_module_destroy, since it
 triggers plugin unloading it can fail. Some debug messages are
-sended to (real) users using tc_log*().
+sent to (real) users using tc_log*().
 Future releases perhaps will add some detailed error codes than 
 actual ones, which just carries a "failed/succeeded" information.
 
@@ -335,9 +335,9 @@ For each possibile module operation, there is a convenience macro for
 easier usage and to avoid clumsy module->some_op(module, ... ) notation.
 
 The list follows:
-tc_module_get_config(module, buf, bufsize)
-	query the current configuration of a module. Return the data
-	in a text buffer. Truncation can occur if buffer is too small
+tc_module_configure(module, options)
+        (re)configure a module, changing it's internal setting; return
+	current settings.
 
 tc_module_encode(module, inframe, outframe)
 	encode a give frame and store data in another given frame
