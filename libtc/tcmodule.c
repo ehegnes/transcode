@@ -607,7 +607,7 @@ TCModule tc_module_factory_create(TCModuleFactory factory,
         tc_log_info(__FILE__, "module handler found at id (%i)", id);
     }
 
-    module = tc_zalloc(sizeof(TCModule));
+    module = tc_zalloc(sizeof(struct tcmodule_));
     
     module->instance.type = factory->handlers[id].type;
     module->instance.id = factory->instance_count + 1;
