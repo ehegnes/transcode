@@ -1,10 +1,10 @@
 2005-12-12 Francesco Romani <fromani at gmail dot com>
   * filter/filter_levels.c
-  simplify NMS support code
+  simplify NMS support code.
 
 2005-12-12 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule.c
-  fix little (but nasty) memory allocation buf
+  fix little (but nasty) memory allocation bug.
 
 2005-12-12 Francesco Romani <fromani at gmail dot com>
   * libtc/Makefile.am tools/Makefile.am tools/tcmodinfo.c
