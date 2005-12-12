@@ -540,6 +540,7 @@ int tc_probe_path(const char *name)
 
 /* embedded simple test for tc_log()
 
+BEGIN_TEST_CODE
 #include "config.h"
 #include "libtc.h"
 #include <stdlib.h>
@@ -666,5 +667,5 @@ int main(void)
 
     return 0;
 }
-
+END_TEST_CODE
 */

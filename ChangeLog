@@ -1,3 +1,7 @@
+2005-12-12 Francesco Romani <fromani at gmail dot com>
+  * libtc/tc_functions.c
+  mark test code boundaries
+
 2005-12-10 Francesco Romani <fromani at gmail dot com>
   * added file: docs/module-system-API.txt
   
