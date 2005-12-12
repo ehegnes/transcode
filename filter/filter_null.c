@@ -29,14 +29,18 @@
  *    -Documentation added
  *    -New help function
  *    -optstr_filter_desc now returns
-*      the right capability flags
+ *     the right capability flags
+ * v0.4 (2005-11-25) Francesco Romani
+ *    - port (as rolling demo :) ) to new module system
+ * v0.4.1 (2005-12-09) Francesco Romani
+ *    - configure shakeup
  */
 
 /// Name of the filter
 #define MOD_NAME    "filter_null.so"
 
 /// Version of the filter
-#define MOD_VERSION "v0.3 (2005-01-02)"
+#define MOD_VERSION "v0.4.1 (2005-12-09)"
 
 /// A short description
 #define MOD_CAP     "demo filter plugin; does nothing"
@@ -54,6 +58,14 @@
 #include "filter.h"
 #include "optstr.h"
 
+#include "tcmodule-plugin.h"
+
+
+static const char *null_help = ""
+    "Overview:\n"
+    "\tThis filter exists for demonstration purposes only; it doesn nothing.\n"
+    "Options:\n"
+    "\tHelp\tproduce module overview and options explanations\n";
 
 /**
  * Help text.
@@ -62,14 +74,76 @@
  *********************************************************/
 static void help_optstr(void)
 {
-  tc_log_info (MOD_NAME, "help : * Overview");
-  printf ("[%s] help :     This exists for demonstration purposes only. It does NOTHING!   \n", MOD_NAME);
-  printf ("[%s] help :                                                                     \n", MOD_NAME);
-  printf ("[%s] help : * Options                                                           \n", MOD_NAME);
-  printf ("[%s] help :         'help' Prints out this help text                            \n", MOD_NAME);
-  printf ("[%s] help :                                                                     \n", MOD_NAME);
+  tc_log_info(MOD_NAME, "help : * Overview");
+  tc_log_msg(MOD_NAME, 
+             "help :     This exists for demonstration purposes only. "
+             "It does NOTHING!");
+  tc_log_msg(MOD_NAME, "help :");
+  tc_log_msg(MOD_NAME, "help : * Options");
+  tc_log_msg(MOD_NAME, "help :         'help' Prints out this help text");
 }
 
+static int null_init(TCModuleInstance *self)
+{
+    vob_t *vob = tc_get_vob();
+    
+    if (vob ==NULL) {
+        return -1;
+    }
+
+    /* following very close old module model... */
+    if (verbose) {
+        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
+    }
+
+    return 0;
+}
+ 
+static int null_fini(TCModuleInstance *self)
+{
+    return 0;
+}
+
+static const char *null_configure(TCModuleInstance *self,
+                                   const char *options)
+{
+    if (optstr_lookup(options, "help")) {
+        return null_help;
+    }
+    return "";
+}
+
+static int null_filter(TCModuleInstance *self, 
+                       frame_list_t *frame)
+{
+    int pre = TC_FALSE, vid = TC_FALSE;
+
+    if (!frame) {
+        return -1;
+    }
+    
+    if (verbose & TC_STATS) {
+        /*
+         * tag variable indicates, if we are called before
+         * transcodes internal video/audo frame processing routines
+         * or after and determines video/audio context
+         */
+    
+        if (frame->tag & TC_PRE_PROCESS) {
+            pre = TC_TRUE;
+        }
+
+        if (frame->tag & TC_VIDEO) {
+            vid = TC_TRUE;
+        }
+    
+        tc_log_info(MOD_NAME, "frame [%06d] %s %16s call",
+                    frame->id, (vid) ?"(video)" :"(audio)",
+                    (pre) ?"pre-process filter" :"post-process filter");
+    }
+       
+    return 0;
+}
 
 /**
  * Main function of a filter.
@@ -188,3 +262,39 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
   return(0);
 }
+
+/*************************************************************************/
+
+static int null_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static int null_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+
+static TCModuleInfo null_info = {
+    TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO|TC_MODULE_FEATURE_AUDIO,
+    TC_MODULE_FLAG_RECONFIGURABLE,
+    MOD_NAME,
+    MOD_VERSION,
+    MOD_CAP,
+    null_codecs_in,
+    null_codecs_out
+};
+
+static const TCModuleClass null_class = {
+    0,
+        
+    &null_info,
+        
+    null_init,
+    null_fini,
+    null_configure,
+    NULL,
+    NULL,
+    null_filter,
+    NULL,
+    NULL
+};
+
+extern const TCModuleClass *tc_plugin_setup(void)
+{
+    return &null_class;
+}
+

@@ -1,4 +1,18 @@
 2005-12-12 Francesco Romani <fromani at gmail dot com>
+  * libtc/Makefile.am tools/Makefile.am tools/tcmodinfo.c
+
+  added files: libtc/tcmodule-core.h libtc/tcmodule-data.h 
+  libtc/tcmodule-plugin.h libtc/tcmodule.c
+
+  enter new module system support code. tcmodinfo helper
+  tool was adapted to work also with NMS, and two filters
+  are ported to test things and to act as rolling demo.
+
+  Documentation will be updated very soon. Code still
+  deserve some testing and review, but architecture and API
+  are now defined.
+
+2005-12-12 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmoduleinfo.c
   
   removed file: libtc/tcmoduleinfo.h

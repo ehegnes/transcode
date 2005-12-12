@@ -52,6 +52,8 @@
 #include "filter.h"
 #include "video_trans.h"
 
+#include "tcmodule-core.h"
+
 #define EXE "tcmodinfo"
 #define SIZE 8192 //Buffersize
 
@@ -71,6 +73,7 @@ static void usage(int status)
     fprintf(stderr, "\nUsage: %s [options]\n", EXE);
     fprintf(stderr, "\t -i name           Module name information (like \'smooth\')\n");
     fprintf(stderr, "\t -p                Print the compiled-in MOD_PATH\n");
+    fprintf(stderr, "\t -d verbosity      verbosity mode [0]\n");
     fprintf(stderr, "\t -m path           Use PATH as MOD_PATH\n");
     fprintf(stderr, "\t -s socket         Connect to transcode socket\n");
     //fprintf(stderr, "\t -t type           Type of module (filter, import, export)\n");
@@ -87,7 +90,7 @@ vob_t vob;
 // dependencies
 // Yeah, this sucks
 vob_t *tc_get_vob() {return(&vob);}
-int verbose  = 1;
+int verbose  = 0;
 int rgbswap  = 0;
 int tc_accel = -1;    //acceleration code
 int flip = 0;
@@ -339,7 +342,6 @@ int main(int argc, char *argv[])
 {
 
     int ch;
-    int ret;
     char *filename=NULL;
     char modpath[]=MOD_PATH;
     char *options = malloc (8192);
@@ -360,10 +362,15 @@ int main(int argc, char *argv[])
 
     if(argc==1) usage(1);
 
-    while ((ch = getopt(argc, argv, "i:?vhpm:s:t:f:")) != -1)
+    while ((ch = getopt(argc, argv, "d:i:?vhpm:s:t:f:")) != -1)
     {
 
 	switch (ch) {
+
+    case 'd':
+	    if(optarg[0]=='-') usage(1);
+        verbose = atoi(optarg);
+        break;
 
 	case 'i':
 
@@ -456,43 +463,68 @@ int main(int argc, char *argv[])
   //fprintf(stderr, "Module is (%s/filter_%s) (%d)\n", modpath, filename, getpid());
 
   if (mod_type & TYPE_FI) {
+    int ret = 0, out = 0;
+    TCModuleFactory factory;
+
     /* needed by filter modules */
     TCVHandle tcv_handle = tcv_init();
+    
+    /* first of all, try using new module system */
+    TCModule module = NULL;
 
-    filter[0].name = malloc(256);
-    tc_snprintf (filter[0].name, 256, "%s", filename);
+    factory = tc_module_factory_init(((newmodpath) ?newmodpath :modpath), verbose);
+    module = tc_module_factory_create(factory, "filter", filename);
+    if (module != NULL) {
+        if (verbose >= TC_DEBUG) {
+            tc_log_info(__FILE__, "using new module system");
+        }
+        /* overview and options */
+        puts(tc_module_configure(module, "help"));
+        /* module capabilities */
+        tc_module_show_info(module, verbose);
+        /* current configuration */
+        puts("\ndefault module configuration:");
+        puts(tc_module_configure(module, ""));
+        tc_module_factory_destroy(factory, module);        
+        out = 0;
+    } else {
+        if (verbose >= TC_DEBUG) {
+            tc_log_info(__FILE__, "using old module system");
+        }
+        /* ok, fallback to old module system */
+        filter[0].name = malloc(256);
+        tc_snprintf (filter[0].name, 256, "%s", filename);
 
-    if (load_plugin ( (newmodpath?newmodpath:modpath), 0) == 0) {
-      int out=0;
+        if (load_plugin ( (newmodpath?newmodpath:modpath), 0) == 0) {
+            options[0] = 'h';
+            options[1] = 'e';
+            options[2] = 'l';
+            options[3] = 'p';
+            ptr.tag = TC_FILTER_INIT;
+            if ( (ret = filter[0].entry(&ptr, options))) {
+                out=1;
+            }
+            //fprintf(stderr, "[%s]: (INIT) Filter %s returned (%d)\n", EXE, filename, ret);
 
-      options[0] = 'h';
-      options[1] = 'e';
-      options[2] = 'l';
-      options[3] = 'p';
-      ptr.tag = TC_FILTER_INIT;
-      if ( (ret = filter[0].entry(&ptr, options))){
-	out=1;
-      }
-      //fprintf(stderr, "[%s]: (INIT) Filter %s returned (%d)\n", EXE, filename, ret);
-
-      memset (options, 0, 8192);
-      ptr.tag = TC_FILTER_GET_CONFIG;
-      ret = filter[0].entry(&ptr, options);
-      //fprintf(stderr, "[%s]: (CONF) Filter %s returned (%d)\n", EXE, filename, ret);
-
-
-      fputs("START\n", stdout);
-      if (ret == 0) {
-	fputs(options, stdout);
-	out = 0;
-      } else {
-	out = 2;
-      }
-      fputs("END\n", stdout);
-      
-      tcv_free(tcv_handle);
-      return (out);
+            memset (options, 0, 8192);
+            ptr.tag = TC_FILTER_GET_CONFIG;
+            ret = filter[0].entry(&ptr, options);
+            //fprintf(stderr, "[%s]: (CONF) Filter %s returned (%d)\n", EXE, filename, ret);
+        }
+    
+        fputs("START\n", stdout);
+        if (ret == 0) {
+            fputs(options, stdout);
+            out = 0;
+        } else {
+            out = 2;
+        }
+        fputs("END\n", stdout);
     }
+      
+    ret = tc_module_factory_fini(factory);
+    tcv_free(tcv_handle);
+    return (out);
   }
 
   if (mod_type & TYPE_IM) {
