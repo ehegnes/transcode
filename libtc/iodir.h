@@ -37,8 +37,8 @@ struct tcdirlist_ {
     const char *dir_name; /* saved base path */
     const char *path_sep; /* optional *nix path separator */
 
-    char filename[PATH_MAX + 2]; 
-    /* 
+    char filename[PATH_MAX + 2];
+    /*
      * full path of file actually under focus + optional separator +
      * final string terminator
      */
@@ -89,8 +89,8 @@ int tc_dirlist_open(TCDirList *tcdir, const char *dirname, int sort);
  *                  The other operating mode is the 'buffered' mode, and
  *                  it's triggered using a non-zero value for parameter
  *                  'sort' in tc_dirlist_open (see above).
- *                  When in buffered mode, this function will return 
- *                  the full path of each entry in target directory in 
+ *                  When in buffered mode, this function will return
+ *                  the full path of each entry in target directory in
  *                  lexicogrpaphical order.
  *                  Otherwise full path is given using filesystem order.
  *
@@ -122,7 +122,7 @@ void tc_dirlist_close(TCDirList *tcdir);
 
 /*
  * tc_dirlist_file_count: return the actual count of files in target
- *                        directory. 
+ *                        directory.
  *
  * Parameters: tcdir: TCDirList structure (descriptor) to use.
  * Return Value: actual count of files in target directory

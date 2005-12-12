@@ -130,7 +130,7 @@ int tc_dirlist_file_count(TCDirList *tcdir)
 int tc_dirlist_open(TCDirList *tcdir, const char *dirname, int sort)
 {
     int ret;
-    
+
     if (tcdir == NULL) {
         return -1;
     }
@@ -141,12 +141,12 @@ int tc_dirlist_open(TCDirList *tcdir, const char *dirname, int sort)
     tcdir->findex = 0;
     tcdir->buffered = 0;
     tcdir->dir_name = dirname;
-    
+
     ret = tc_dirlist_set_path_sep(tcdir);
     if (ret != 0) {
         return ret;
     }
-    
+
     tcdir->dir = opendir(dirname);
     if (tcdir->dir == NULL) {
         return -1;
@@ -157,7 +157,7 @@ int tc_dirlist_open(TCDirList *tcdir, const char *dirname, int sort)
         tcdir->nfiles++;
     }
     rewinddir(tcdir->dir);
-    
+
     if (sort) {
         tc_dirlist_sortbuf(tcdir);
     }
@@ -203,7 +203,7 @@ const char *tc_dirlist_scan(TCDirList *tcdir)
     if (tcdir == NULL) {
         return NULL;
     }
-     
+
     if (tcdir->buffered == 0) {
         if (tc_dirlist_next(tcdir) == 0) {
             ret = tcdir->filename;
@@ -309,7 +309,7 @@ int test_expected_failures(void)
     if (ret == 0) {
         tc_error("tc_dirlist_open(\"/proc/self/cmdline\", sorted) succeded");
     }
-    
+
     ret = tc_dirlist_open(&dir, "/inexistent", 0);
     if (ret == 0) {
         tc_error("tc_dirlist_open(\"/inexistent\") succeded");

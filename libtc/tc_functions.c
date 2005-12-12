@@ -578,7 +578,7 @@ int main(void)
 
 */
 
-/* embedded simple test for tc_strdup() / tc_strndup 
+/* embedded simple test for tc_strdup() / tc_strndup
 
 #include "config.h"
 
