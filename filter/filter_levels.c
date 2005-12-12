@@ -46,7 +46,7 @@
 #define OPTION_BUF_SIZE    64
 #define MAP_SIZE           256
 
-#define CONF_STR_SIZE      128
+#define CONF_STR_SIZE      64
 
 typedef struct
 {
@@ -63,7 +63,7 @@ typedef struct
     uint8_t lumamap[MAP_SIZE];
     int is_prefilter;
     
-    char *conf_str;
+    char conf_str[CONF_STR_SIZE];
 } LevelsPrivateData;
 
 static LevelsPrivateData levels_private_data[MAX_FILTER];
@@ -165,7 +165,6 @@ static int levels_init_data(LevelsPrivateData *pd, const vob_t *vob,
     pd->parameter.out_black = DEFAULT_OUT_BLACK;
     pd->parameter.out_white = DEFAULT_OUT_WHITE;
     pd->is_prefilter = DEFAULT_PREFILTER;
-    pd->conf_str = NULL;
     
     if (options != NULL) {
         if (optstr_lookup(options, "help")) {
@@ -213,16 +212,9 @@ static const char *levels_configure(TCModuleInstance *self,
         return levels_help;
     }
     
-    if(!pd->conf_str) {
-        pd->conf_str = tc_malloc(CONF_STR_SIZE);
-        if(!pd->conf_str) {
-            return NULL;
-        }
-    }
-
-    optstr_get(options, "input", "%d-%d", &pd->parameter.in_black, &pd->parameter.in_white );
-    optstr_get(options, "gamma", "%f", &pd->parameter.in_gamma );
-    optstr_get(options, "output", "%d-%d", &pd->parameter.out_black, &pd->parameter.out_white );
+    optstr_get(options, "input", "%d-%d", &pd->parameter.in_black, &pd->parameter.in_white);
+    optstr_get(options, "gamma", "%f", &pd->parameter.in_gamma);
+    optstr_get(options, "output", "%d-%d", &pd->parameter.out_black, &pd->parameter.out_white);
     optstr_get(options, "pre", "%d", &pd->is_prefilter);
     
     build_map(pd->lumamap, pd->parameter.in_black, pd->parameter.in_white, 
@@ -242,11 +234,9 @@ static const char *levels_configure(TCModuleInstance *self,
 static int levels_init(TCModuleInstance *self)
 {
     vob_t *vob = tc_get_vob();
-    LevelsPrivateData *pd = tc_malloc(sizeof(LevelsPrivateData));
-    
-    if (vob == NULL || self == NULL || pd == NULL) {
-        tc_log_error(MOD_NAME, "init: bad reference (vob=%p|self=%p|pd=%p)",
-                               vob, self, pd);
+
+    if (!self) {
+        tc_log_error(MOD_NAME, "init: bad instance data reference");
         return -1;
     }
     
@@ -255,7 +245,7 @@ static int levels_init(TCModuleInstance *self)
         return -1;
     }
 
-    self->userdata = pd;
+    self->userdata = tc_malloc(sizeof(LevelsPrivateData));
     
     /* default configuration! */
     levels_configure(self, "input=0-255:gamma=1.0:output=0-255:pre=0");
@@ -269,14 +259,8 @@ static int levels_init(TCModuleInstance *self)
  
 static int levels_fini(TCModuleInstance *self)
 {
-    LevelsPrivateData *pd = NULL;
     if (!self) {
        return -1;
-    }
-    pd = self->userdata;
-
-    if(pd->conf_str) {
-        tc_free(pd->conf_str);
     }
 
     tc_free(self->userdata);
@@ -301,7 +285,7 @@ static int levels_filter(TCModuleInstance *self,
          || ((vframe->tag & TC_PRE_PROCESS) && pd->is_prefilter))) {
         
         levels_process(pd, vframe->video_buf,
-                        vframe->v_width, vframe->v_height);
+                       vframe->v_width, vframe->v_height);
     }
     return 0;
 }
