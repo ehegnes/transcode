@@ -1,6 +1,16 @@
 2005-12-12 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmoduleinfo.c
+  
+  removed file: libtc/tcmoduleinfo.h
+
+  added file: libtc/tcmodule-info.h
+
+  Update extended capabilities code and adapt it to incoming
+  introduction of new module system code.
+
+2005-12-12 Francesco Romani <fromani at gmail dot com>
   * libtc/tc_functions.c
-  mark test code boundaries
+  mark test code boundaries.
 
 2005-12-10 Francesco Romani <fromani at gmail dot com>
   * added file: docs/module-system-API.txt
