@@ -1,10 +1,15 @@
 2005-12-12 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule-core.h libtc/tcmodule-data.h libtc/tcmodule-info.h
+    libtc/tcmodule-plugin.h libtc/tcmodule.c libtc/tcmoduleinfo.c
+  Documentation update and style fixes.
+
+2005-12-12 Francesco Romani <fromani at gmail dot com>
   * filter/filter_levels.c
-  simplify NMS support code.
+  Simplify NMS support code.
 
 2005-12-12 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule.c
-  fix little (but nasty) memory allocation bug.
+  Fix little (but nasty) memory allocation bug.
 
 2005-12-12 Francesco Romani <fromani at gmail dot com>
   * libtc/Makefile.am tools/Makefile.am tools/tcmodinfo.c
@@ -12,7 +17,7 @@
   added files: libtc/tcmodule-core.h libtc/tcmodule-data.h 
   libtc/tcmodule-plugin.h libtc/tcmodule.c
 
-  enter new module system support code. tcmodinfo helper
+  Enter new module system support code. tcmodinfo helper
   tool was adapted to work also with NMS, and two filters
   are ported to test things and to act as rolling demo.
 
@@ -37,7 +42,7 @@
 2005-12-10 Francesco Romani <fromani at gmail dot com>
   * added file: docs/module-system-API.txt
   
-  documentation for module/plugin system.
+  Documentation for module/plugin system.
 
 2005-12-08 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c
@@ -50,7 +55,7 @@
 
 2005-12-07 Francesco Romani <fromani at gmail dot com>
   * libtc/tc_functions.c
-  review tc_str(n)dup implementation
+  Review tc_str(n)dup implementation
 
 2005-12-07 Andrew Church <achurch at achurch dot org>
   * src/transcode.c
@@ -58,37 +63,37 @@
 
 2005-12-04 Baptiste Coudurier <baptiste.coudurier at smartjog dot com>
   * import/import_mov.c
-  add YUV422P support and fix I420 import which was previously
+  Add YUV422P support and fix I420 import which was previously
   using YV12.
   (patch applied by fromani)
 
 2005-11-26 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tc_functions.c libtc/tccodecs.c
-  small style fixes.
+  Small style fixes.
 
 2005-11-26 Francesco Romani <fromani at gmail dot com>
   * import/import_ffmpeg.c
-  review internal buffer and colorspace conversion handling,
+  Review internal buffer and colorspace conversion handling,
   to avoid memory corruptions.
 
 2005-11-20 Francesco Romani <fromani at gmail dot com>
   * src/transcode.c
-  multiple typos.
+  Multiple typos.
 
 2005-11-20 Francesco Romani <fromani at gmail dot com>
   * export/export_raw.c import/iodump.c libtc/iodir.c
     libtc/iodir.h src/transcode.c
-  dirctory listing code reworked again. API changed
+  Dirctory listing code reworked again. API changed
   to make more understandable, some style fixes.
 
 2005-11-18 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c
-  make avalaible tcv_init()/tcv_free() to loaded filter 
+  Make avalaible tcv_init()/tcv_free() to loaded filter 
   modules.
 
 2005-11-18 Francesco Romani <fromani at gmail dot com>
   * filter/filter_levels.c
-  some miscelanous bugfixes.
+  Some miscelanous bugfixes.
 
 2005-11-18 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h

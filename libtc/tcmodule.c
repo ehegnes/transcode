@@ -51,10 +51,10 @@ struct tcmodulehandle_ {
 	void *so_handle; /* used by dl*() stuff */
 
     TCModuleInfo info;
-	TCModuleClass klass; 
-	/* 
-     * main copy of module class data. 
-     * all instance pointers will refer to this. 
+	TCModuleClass klass;
+	/*
+     * main copy of module class data.
+     * all instance pointers will refer to this.
      */
 
 	int refcount; /* how many instances are floating around? */
@@ -70,7 +70,7 @@ struct tcmodulefactory_ {
     int instance_count;
 };
 
-/************************************************************************* 
+/*************************************************************************
  * dummy/fake default module class. Always fails complaining loudly.     *
  * Using this as default, every module class has already valid           *
  * (but sometimes useless) pointers to every method.                     *
@@ -102,15 +102,15 @@ static int dummy_init(TCModuleInstance *self)
     DUMMY_HEAVY_CHECK(self, "initialization");
     return -1;
 }
- 
+
 static int dummy_fini(TCModuleInstance *self)
-{  
+{
     DUMMY_HEAVY_CHECK(self, "finalization");
     return -1;
 }
 
 
-static const char* dummy_configure(TCModuleInstance *self, 
+static const char* dummy_configure(TCModuleInstance *self,
                                    const char *options)
 {
     DUMMY_HEAVY_CHECK(self, "configuration");
@@ -118,35 +118,35 @@ static const char* dummy_configure(TCModuleInstance *self,
 }
 
 
-static int dummy_encode(TCModuleInstance *self, 
+static int dummy_encode(TCModuleInstance *self,
                         frame_list_t *inframe, frame_list_t *outframe)
 {
     DUMMY_CHECK(self, "encode");
     return -1;
 }
 
-static int dummy_decode(TCModuleInstance *self, 
+static int dummy_decode(TCModuleInstance *self,
                         frame_list_t *inframe, frame_list_t *outframe)
 {
     DUMMY_CHECK(self, "decode");
     return -1;
 }
 
-static int dummy_filter(TCModuleInstance *self, 
+static int dummy_filter(TCModuleInstance *self,
                         frame_list_t *frame)
 {
     DUMMY_CHECK(self, "filter");
     return -1;
 }
 
-static int dummy_multiplex(TCModuleInstance *self, 
+static int dummy_multiplex(TCModuleInstance *self,
                            vframe_list_t *vframe, aframe_list_t *aframe)
 {
     DUMMY_CHECK(self, "multiplex");
     return -1;
 }
 
-static int dummy_demultiplex(TCModuleInstance *self, 
+static int dummy_demultiplex(TCModuleInstance *self,
                              vframe_list_t *vframe, aframe_list_t *aframe)
 {
     DUMMY_CHECK(self, "demultiplex");
@@ -171,9 +171,9 @@ static TCModuleInfo dummy_info = {
 
 static const TCModuleClass dummy_class = {
     0,
-        
+
     &dummy_info,
-        
+
     dummy_init,
     dummy_fini,
     dummy_configure,
@@ -191,11 +191,11 @@ static const TCModuleClass dummy_class = {
 static int is_known_modclass(const char *modclass)
 {
     int ret = TC_FALSE;
-    
+
     if (modclass != NULL) {
         if (!strcmp(modclass, "filter")) {
             ret = TC_TRUE;
-        } else if (!strcmp(modclass, "demultiplex") 
+        } else if (!strcmp(modclass, "demultiplex")
           || !strcmp(modclass, "demux")) {
             ret = TC_TRUE;
         } else if (!strcmp(modclass, "decode")) {
@@ -223,7 +223,7 @@ typedef int (*TCModuleHandleIter)(TCModuleHandle *handle, void *userdata);
 
 static int tc_module_factory_foreach_handler(TCModuleFactory factory,
                                              TCModuleHandleIter iterator,
-                                             void *userdata, 
+                                             void *userdata,
                                              int *index)
 {
     int ret, i = 0;
@@ -231,7 +231,7 @@ static int tc_module_factory_foreach_handler(TCModuleFactory factory,
     if (!factory || !iterator) {
         return -1;
     }
-    
+
     for (i = 0; i < TC_FACTORY_MAX_HANDLERS; i++) {
         ret = iterator(&(factory->handlers[i]), userdata);
         if (ret != 0) {
@@ -245,7 +245,7 @@ static int tc_module_factory_foreach_handler(TCModuleFactory factory,
     return ret;
 }
 
-static int handle_match_modtype(TCModuleHandle *handle, 
+static int handle_match_modtype(TCModuleHandle *handle,
                                 void *modtype_)
 {
     char *modtype = modtype_;
@@ -259,7 +259,7 @@ static int handle_match_modtype(TCModuleHandle *handle,
         return 1;
     }
     return 0;
-} 
+}
 
 static int handle_is_free(TCModuleHandle *handle, void *unused)
 {
@@ -277,7 +277,7 @@ static int handle_init(TCModuleHandle *handle, void *unused)
     if (!handle) {
         return -1;
     }
-    
+
     handle->status = TC_HANDLE_FREE;
     memcpy(&(handle->info), &dummy_info, sizeof(TCModuleInfo));
     handle->klass.info = &(handle->info);
@@ -286,22 +286,22 @@ static int handle_init(TCModuleHandle *handle, void *unused)
     handle->refcount = 0;
 
     return 0;
-}        
+}
 
 static int handle_fini(TCModuleHandle *handle, void *unused)
 {
     if (!handle) {
         return -1;
     }
-    
+
     /* can't finalize an handler with some living instances still around */
     if (handle->refcount > 0) {
         return 1;
     }
 
     if (handle->status == TC_HANDLE_DONE) {
-        /* 
-         * to make gcc 4.x happy: free() accepts void*, 
+        /*
+         * to make gcc 4.x happy: free() accepts void*,
          * handle->type is constchar*
          */
         tc_module_info_free(&(handle->info));
@@ -321,8 +321,8 @@ static int find_by_modtype(TCModuleFactory factory, const char *modtype)
 {
     int ret, id;
     ret = tc_module_factory_foreach_handler(factory,
-                                            handle_match_modtype, 
-                                            (void*)modtype, 
+                                            handle_match_modtype,
+                                            (void*)modtype,
                                             &id);
     /* ret >= 1 -> found something */
     return (ret >= 1) ?id : -1;
@@ -332,22 +332,22 @@ static int find_by_modtype(TCModuleFactory factory, const char *modtype)
 static int find_first_free_handle(TCModuleFactory factory)
 {
     int ret, id;
-    ret = tc_module_factory_foreach_handler(factory, 
-                                            handle_is_free, 
-                                            NULL, 
+    ret = tc_module_factory_foreach_handler(factory,
+                                            handle_is_free,
+                                            NULL,
                                             &id);
     /* ret >= 1 -> found something */
     return (ret >= 1) ?id : -1;
 }
 
 /* Yeah, is that simple. Yet. ;) */
-static void make_modtype(char *buf, size_t bufsize, 
+static void make_modtype(char *buf, size_t bufsize,
                          const char *modclass, const char *modname)
 {
     tc_snprintf(buf, bufsize, "%s:%s", modclass, modname);
 }
 
-/* 
+/*
  * soft copy can't fail, just hard copy can, since it needs
  * to get some more memory.
  *
@@ -355,19 +355,19 @@ static void make_modtype(char *buf, size_t bufsize,
  * soft copy: make the two classes points to same real data.
  * hard copy: make two independent copies duplicating the data.
  */
-static int tc_module_class_copy(const TCModuleClass *klass, 
+static int tc_module_class_copy(const TCModuleClass *klass,
                                 TCModuleClass *core_klass,
                                 int soft_copy)
 {
     int ret;
-    
+
     if (!klass || !core_klass) {
         tc_log_error(__FILE__, "bad module class reference for setup: %s%s",
                                 (!klass) ?"plugin class" :"",
                                 (!core_klass) ?"core class" :"");
         return -1;
     }
- 
+
     if (!klass->init || !klass->fini || !klass->configure) {
         tc_log_error(__FILE__, "can't setup a module class without "
                                "one or more mandatory methods");
@@ -378,7 +378,7 @@ static int tc_module_class_copy(const TCModuleClass *klass,
     core_klass->init = klass->init;
     core_klass->fini = klass->fini;
     core_klass->configure = klass->configure;
-    
+
     if (klass->encode != NULL) {
         core_klass->encode = klass->encode;
     }
@@ -410,8 +410,8 @@ static int tc_module_class_copy(const TCModuleClass *klass,
  *************************************************************************/
 
 
-static int tc_module_factory_load(TCModuleFactory factory, 
-                                  const char *modclass, 
+static int tc_module_factory_load(TCModuleFactory factory,
+                                  const char *modclass,
                                   const char *modname)
 {
     int id = -1, ret = -1;
@@ -420,7 +420,7 @@ static int tc_module_factory_load(TCModuleFactory factory,
     TCModuleEntry modentry = NULL;
     TCModuleHandle *modhandle = NULL;
     const TCModuleClass *class_handle;
-    
+
     if (!modclass || !strlen(modclass)) {
         tc_log_error(__FILE__, "empty module class");
         return -1;
@@ -430,9 +430,9 @@ static int tc_module_factory_load(TCModuleFactory factory,
         return -1;
     }
     make_modtype(modtype, PATH_MAX, modclass, modname);
-    tc_snprintf(full_modpath, PATH_MAX, "%s/%s_%s.so", 
+    tc_snprintf(full_modpath, PATH_MAX, "%s/%s_%s.so",
                 factory->mod_path, modclass, modname);
-   
+
     id = find_first_free_handle(factory);
     if (id == -1) {
         tc_log_error(__FILE__, "already loaded the maximum number "
@@ -456,7 +456,7 @@ static int tc_module_factory_load(TCModuleFactory factory,
 
     /* soft copy is enough here, since information will be overwritten */
     tc_module_class_copy(&dummy_class, &(modhandle->klass), TC_TRUE);
-    
+
     modentry = dlsym(modhandle->so_handle, "tc_plugin_setup");
     if (!modentry) {
         tc_log_error(__FILE__, "module '%s' hasn't new style entry point",
@@ -464,26 +464,26 @@ static int tc_module_factory_load(TCModuleFactory factory,
         goto failed_setup;
     }
     class_handle = modentry();
-   
+
     ret = tc_module_class_copy(class_handle, &(modhandle->klass), TC_FALSE);
-    
+
     if (ret !=  0) {
         /* tc_module_register_class failed or just not ivoked! */
         tc_log_error(__FILE__, "failed class registration for module '%s'",
                                modtype);
         goto failed_setup;
     }
-    
+
     modhandle->klass.id = id; /* enforce class/handle id */
     modhandle->status = TC_HANDLE_DONE;
     factory->handler_count++;
-    
+
     return 0;
-    
+
 failed_setup:
     modhandle->status = TC_HANDLE_FREE;
-    /* 
-     * to make gcc 4.x happy: free() accepts void*, 
+    /*
+     * to make gcc 4.x happy: free() accepts void*,
      * handle->type is constchar*
      */
     tc_free((void*)modhandle->type);
@@ -507,7 +507,7 @@ static int tc_module_factory_unload(TCModuleFactory factory, int id)
 {
     int ret = 0;
     TCModuleHandle *handle = NULL;
-    
+
     CHECK_VALID_ID(id, "tc_module_factory_unload");
     handle = &(factory->handlers[id]);
 
@@ -519,7 +519,7 @@ static int tc_module_factory_unload(TCModuleFactory factory, int id)
         }
         return 1;
     }
-    
+
     ret = handle_fini(handle, NULL);
     if (ret == 0) {
         factory->handler_count--;
@@ -538,20 +538,20 @@ TCModuleFactory tc_module_factory_init(const char *modpath, int verbose)
     if (!modpath || !strlen(modpath)) {
         return NULL;
     }
-    
+
     factory = tc_zalloc(sizeof(struct tcmodulefactory_));
     if (!factory) {
         return NULL;
     }
-    
+
     factory->mod_path = modpath;
     factory->verbose = verbose;
-    
+
     factory->handler_count = 0;
     factory->instance_count = 0;
 
     tc_module_factory_foreach_handler(factory, handle_init, NULL, NULL);
-    
+
     return factory;
 }
 
@@ -560,9 +560,9 @@ int tc_module_factory_fini(TCModuleFactory factory)
     if (!factory) {
         return 1;
     }
-    
+
     tc_module_factory_foreach_handler(factory, handle_fini, NULL, NULL);
-   
+
     if (factory->handler_count > 0) {
         tc_log_warn(__FILE__, "left out %i module handlers",
                               factory->handler_count);
@@ -584,12 +584,12 @@ TCModule tc_module_factory_create(TCModuleFactory factory,
     if (!factory) {
         return NULL;
     }
-    
+
     if (!is_known_modclass(modclass)) {
         tc_log_error(__FILE__, "unknown module class '%s'", modclass);
         return NULL;
     }
-  
+
     make_modtype(modtype, MOD_TYPE_MAX_LEN, modclass, modname);
     if (factory->verbose >= TC_DEBUG) {
         tc_log_info(__FILE__, "trying to load '%s'", modtype);
@@ -608,7 +608,7 @@ TCModule tc_module_factory_create(TCModuleFactory factory,
     }
 
     module = tc_zalloc(sizeof(struct tcmodule_));
-    
+
     module->instance.type = factory->handlers[id].type;
     module->instance.id = factory->instance_count + 1;
     module->klass = &(factory->handlers[id].klass);
@@ -620,7 +620,7 @@ TCModule tc_module_factory_create(TCModuleFactory factory,
         tc_free(module);
         return NULL;
     }
-            
+
     factory->handlers[id].refcount++;
     factory->instance_count++;
     if (factory->verbose >= TC_DEBUG) {
@@ -631,28 +631,28 @@ TCModule tc_module_factory_create(TCModuleFactory factory,
         tc_log_info(__FILE__, "handler refcount=(%i) instances so far=(%i)",
                     factory->handlers[id].refcount, factory->instance_count);
     }
-    
+
     return module;
 }
 
 int tc_module_factory_destroy(TCModuleFactory factory, TCModule module)
 {
     int ret = 0, id = -1;
-    
+
     if (!factory) {
         return 1;
     }
-    
+
     if (!module) {
         return -1;
     }
     id = module->klass->id;
-    
+
     CHECK_VALID_ID(id, "tc_module_factory_destroy");
-    
+
     ret = tc_module_fini(module);
     if (ret != 0) {
-        tc_log_error(__FILE__, "finalization of '%s' failed", 
+        tc_log_error(__FILE__, "finalization of '%s' failed",
                      module->instance.type);
         return ret;
     }
@@ -670,7 +670,7 @@ int tc_module_factory_destroy(TCModuleFactory factory, TCModule module)
  * Debug helpers.                                                        *
  *************************************************************************/
 
-int tc_module_factory_get_handler_count(const TCModuleFactory factory)
+int tc_module_factory_get_plugin_count(const TCModuleFactory factory)
 {
     if (!factory) {
         return -1;
@@ -689,11 +689,11 @@ int tc_module_factory_get_instance_count(const TCModuleFactory factory)
 
 #include <assert.h>
 
-int tc_module_factory_compare_modules(const TCModule amod, 
+int tc_module_factory_compare_modules(const TCModule amod,
                                       const TCModule bmod)
 {
     assert(amod != NULL && bmod != NULL);
-    
+
     if ((amod == bmod) || (amod->instance.id == bmod->instance.id)) {
         return 1;
     }
@@ -720,7 +720,7 @@ int tc_module_factory_compare_modules(const TCModule amod,
 
 BEGIN_TEST_CODE
 
-// compile command: 
+// compile command:
 // gcc -Wall -g -O -I. -I.. -I../src/ source.c path/to/libtc.a -ldl -rdynamic
 
 #include <stdio.h>
@@ -750,20 +750,20 @@ static void test_result_helper(const char *name, int ret, int expected)
     char spaces[ADJUST_TO_COL] = { ' ' };
     size_t slen = strlen(name);
     int i = 0, padspace = ADJUST_TO_COL - slen;
-    
+
     if (padspace > 0) {
         // do a bit of padding to let the output looks more nice
         for (i = 0; i < padspace; i++) {
             spaces[i] = ' ';
         }
     }
-    
+
     if (ret != expected) {
-        tc_log_error(__FILE__, "'%s'%s%sFAILED%s", 
-                     name, spaces, COL_RED, COL_GRAY); 
+        tc_log_error(__FILE__, "'%s'%s%sFAILED%s",
+                     name, spaces, COL_RED, COL_GRAY);
     } else {
-        tc_log_info(__FILE__, "'%s'%s%sOK%s", 
-                    name, spaces, COL_GREEN, COL_GRAY); 
+        tc_log_info(__FILE__, "'%s'%s%sOK%s",
+                    name, spaces, COL_GREEN, COL_GRAY);
     }
 }
 
@@ -772,7 +772,7 @@ int test_bad_init(const char *modpath)
 {
     factory = tc_module_factory_init("", 0);
     err = (factory == NULL) ?-1 :0;
-            
+
     test_result_helper("bad_init::init", err, -1);
     return 0;
 }
@@ -781,7 +781,7 @@ int test_init_fini(const char *modpath)
 {
     factory = tc_module_factory_init(modpath, 0);
     err = (factory == NULL) ?-1 :0;
-            
+
     test_result_helper("init_fini::init", err, 0);
     test_result_helper("init_fini::fini", tc_module_factory_fini(factory), 0);
     return 0;
@@ -792,7 +792,7 @@ int test_bad_create(const char *modpath)
     TCModule module = NULL;
     factory = tc_module_factory_init(modpath, verbose);
     err = (factory == NULL) ?-1 :0;
-    
+
     test_result_helper("bad_create::init", err, 0);
     module = tc_module_factory_create(factory, "inexistent", "inexistent");
     if (module != NULL) {
@@ -807,21 +807,21 @@ int test_create(const char *modpath)
     TCModule module = NULL;
     factory = tc_module_factory_init(modpath, verbose);
     err = (factory == NULL) ?-1 :0;
-    
+
     test_result_helper("create::init", err, 0);
     module = tc_module_factory_create(factory, "filter", "null");
     if (module == NULL) {
         tc_log_error(__FILE__, "can't load filter_null");
     } else {
-        test_result_helper("create::check", 
-                            tc_module_factory_compare_modules(module, 
+        test_result_helper("create::check",
+                            tc_module_factory_compare_modules(module,
                                                               module),
                             1);
         test_result_helper("create::instances",
                            tc_module_factory_get_instance_count(factory),
                            1);
         test_result_helper("create::handlers",
-                           tc_module_factory_get_handler_count(factory),
+                           tc_module_factory_get_plugin_count(factory),
                            1);
         tc_module_factory_destroy(factory, module);
     }
@@ -834,7 +834,7 @@ int test_double_create(const char *modpath)
     TCModule module1 = NULL, module2 = NULL;
     factory = tc_module_factory_init(modpath, verbose);
     err = (factory == NULL) ?-1 :0;
-    
+
     test_result_helper("double_create::init", err, 0);
     module1 = tc_module_factory_create(factory, "filter", "null");
     if (module1 == NULL) {
@@ -845,14 +845,14 @@ int test_double_create(const char *modpath)
         tc_log_error(__FILE__, "can't load filter_null (1)");
     }
 
-    test_result_helper("double_create::check", 
+    test_result_helper("double_create::check",
                        tc_module_factory_compare_modules(module1, module2),
                        0);
     test_result_helper("double_create::instances",
                        tc_module_factory_get_instance_count(factory),
                        2);
     test_result_helper("double_create::handlers",
-                       tc_module_factory_get_handler_count(factory),
+                       tc_module_factory_get_plugin_count(factory),
                        1);
     if (module1) {
         tc_module_factory_destroy(factory, module1);
@@ -871,9 +871,9 @@ int test_stress_create(const char *modpath)
     int i, equality;
     factory = tc_module_factory_init(modpath, verbose);
     err = (factory == NULL) ?-1 :0;
- 
-    test_result_helper("stress_create::init", err, 0); 
-    
+
+    test_result_helper("stress_create::init", err, 0);
+
     for (i = 0; i < HOW_MUCH_STRESS; i++) {
         module[i] = tc_module_factory_create(factory, "filter", "null");
         if (module[i] == NULL) {
@@ -881,10 +881,10 @@ int test_stress_create(const char *modpath)
             break;
         }
     }
-   
+
     test_result_helper("stress_create::create", i, HOW_MUCH_STRESS);
     if (HOW_MUCH_STRESS != i) {
-        tc_log_error(__FILE__, "halted with i = %i (limit = %i)", 
+        tc_log_error(__FILE__, "halted with i = %i (limit = %i)",
                      i, HOW_MUCH_STRESS);
         return 1;
     }
@@ -900,26 +900,26 @@ int test_stress_create(const char *modpath)
 
     test_result_helper("stress_create::check", i, HOW_MUCH_STRESS);
     if (HOW_MUCH_STRESS != i) {
-        tc_log_error(__FILE__, "halted with i = %i (limit = %i)", 
+        tc_log_error(__FILE__, "halted with i = %i (limit = %i)",
                      i, HOW_MUCH_STRESS);
         return 1;
     }
-    
+
     test_result_helper("stress_create::instances",
                        tc_module_factory_get_instance_count(factory),
                        HOW_MUCH_STRESS);
     test_result_helper("stress_create::handlers",
-                       tc_module_factory_get_handler_count(factory), 1);
+                       tc_module_factory_get_plugin_count(factory), 1);
 
-    
+
     for (i = 0; i < HOW_MUCH_STRESS; i++) {
         tc_module_factory_destroy(factory, module[i]);
     }
-    
+
     test_result_helper("stress_create::instances (postnuke)",
                        tc_module_factory_get_instance_count(factory), 0);
     test_result_helper("stress_create::handlers (postnuke)",
-                       tc_module_factory_get_handler_count(factory), 0);
+                       tc_module_factory_get_plugin_count(factory), 0);
 
 
     test_result_helper("stress_create::fini", tc_module_factory_fini(factory), 0);
@@ -933,16 +933,16 @@ int test_stress_load(const char *modpath)
     int i, breakage = 0, instances = 0, handlers = 0;
     factory = tc_module_factory_init(modpath, verbose);
     err = (factory == NULL) ?-1 :0;
- 
-    test_result_helper("stress_load::init", err, 0); 
-    
+
+    test_result_helper("stress_load::init", err, 0);
+
     for (i = 0; i < HOW_MUCH_STRESS; i++) {
         module = tc_module_factory_create(factory, "filter", "null");
         if (module == NULL) {
             tc_log_error(__FILE__, "can't load filter_null (%i)", i);
             break;
         }
-   
+
         instances = tc_module_factory_get_instance_count(factory);
         if(instances != 1) {
             tc_log_error(__FILE__, "wrong instance count: %i, expected %i\n",
@@ -950,17 +950,17 @@ int test_stress_load(const char *modpath)
             breakage = 1;
             break;
         }
-         
-        handlers = tc_module_factory_get_handler_count(factory);
+
+        handlers = tc_module_factory_get_plugin_count(factory);
         if(handlers != 1) {
             tc_log_error(__FILE__, "wrong handler count: %i, expected %i\n",
                          handlers, 1);
             breakage = 1;
             break;
         }
-         
+
         tc_module_factory_destroy(factory, module);
-    
+
         instances = tc_module_factory_get_instance_count(factory);
         if(instances != 0) {
             tc_log_error(__FILE__, "wrong instance count (postnuke): %i, expected %i\n",
@@ -968,8 +968,8 @@ int test_stress_load(const char *modpath)
             breakage = 1;
             break;
         }
-         
-        handlers = tc_module_factory_get_handler_count(factory);
+
+        handlers = tc_module_factory_get_plugin_count(factory);
         if(handlers != 0) {
             tc_log_error(__FILE__, "wrong handler count (postnuke): %i, expected %i\n",
                          handlers, 0);
@@ -990,9 +990,9 @@ int main(int argc, char* argv[])
         fprintf(stderr, "usage: %s /module/path\n", argv[0]);
         exit(1);
     }
-    
+
     vob = tc_zalloc(sizeof(vob_t));
-    
+
     putchar('\n');
     test_bad_init(argv[1]);
     putchar('\n');
@@ -1007,9 +1007,9 @@ int main(int argc, char* argv[])
     test_stress_create(argv[1]);
     putchar('\n');
     test_stress_load(argv[1]);
-    
+
     tc_free(vob);
-    
+
     return 0;
 }
 

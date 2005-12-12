@@ -23,6 +23,9 @@
 #include "tcmodule-info.h"
 #include "tcmodule-data.h"
 
+/*
+ * plugin entry point prototype
+ */
 const TCModuleClass *tc_plugin_setup(void);
 
 #endif /* TCMODULE_PLUGIN_H */

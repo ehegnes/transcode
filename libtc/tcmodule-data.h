@@ -8,9 +8,9 @@
  * for details.
  */
 
-/* 
- * this heade file contains basi data types declarations for transcode's
- * new module system. 
+/*
+ * this header file contains basic data types declarations for transcode's
+ * new module system (1.1.x and later).
  * Should not be included directly, but doing this will not harm anything.
  */
 #ifndef TCMODULE_DATA_H
@@ -29,8 +29,8 @@
 #include "framebuffer.h"
 #include "tcmodule-info.h"
 
-/* 
- * data structure private for each instance.
+/*
+ * Data structure private for each instance.
  * This is an almost-opaque structure.
  *
  * The main purpose of this structure is to let each module (class)
@@ -46,7 +46,7 @@ typedef struct tcmoduleinstance_ TCModuleInstance;
 struct tcmoduleinstance_ {
     int id; /* instance id; */
     const char *type; /* packed class + name of module */
-        
+
     void *userdata; /* opaque to factory, used by each module */
 };
 
@@ -54,26 +54,26 @@ struct tcmoduleinstance_ {
 typedef struct tcmoduleclass_ TCModuleClass;
 struct tcmoduleclass_ {
     int id; /* opaque internal handle */
-        
+
     TCModuleInfo *info;
 
     /* mandatory operations: */
     int (*init)(TCModuleInstance *self);
     int (*fini)(TCModuleInstance *self);
     const char* (*configure)(TCModuleInstance *self, const char *options);
-    
-    /* 
+
+    /*
      * not-mandatory operations, a module doing something useful implements
      * at least one.
      */
-    int (*encode)(TCModuleInstance *self, 
+    int (*encode)(TCModuleInstance *self,
                   frame_list_t *inframe, frame_list_t *outframe);
-    int (*decode)(TCModuleInstance *self, 
+    int (*decode)(TCModuleInstance *self,
                   frame_list_t *inframe, frame_list_t *outframe);
     int (*filter)(TCModuleInstance *self, frame_list_t *frame);
-    int (*multiplex)(TCModuleInstance *self, 
+    int (*multiplex)(TCModuleInstance *self,
                      vframe_list_t *frame, aframe_list_t *aframe);
-    int (*demultiplex)(TCModuleInstance *self, 
+    int (*demultiplex)(TCModuleInstance *self,
                        vframe_list_t *frame, aframe_list_t *aframe);
 };
 
@@ -87,7 +87,7 @@ struct tcmoduleclass_ {
  *      an initialized, but unconfigured, module MUST be give
  *      a proper result when a specific operation (encode, demultiplex)
  *      is requested.
- * Parameters: 
+ * Parameters:
  *      self: pointer to module instance to initialize.
  * Return Value:
  *      0  succesfull.
@@ -99,8 +99,8 @@ struct tcmoduleclass_ {
  *      None
  * Postconditions:
  *      Given module is ready to perform any supported operation.
- *         
- * 
+ *
+ *
  * fini:
  *      finalize an initialized module, releasing all acquired resources.
  *      A finalized module MUST be re-initialized before any new usage.
@@ -123,7 +123,7 @@ struct tcmoduleclass_ {
  *      change settings for current initialized module, and return current
  *      ones.
  *      All module classes MUST support a special "help" option. If this
- *      option is given, this operation must return a textual, 
+ *      option is given, this operation must return a textual,
  *      human-readable description of module parameters. An overview
  *      of what module can do SHOULD also be returned.
  *      After reconfiguration, a module MUST be able to perform

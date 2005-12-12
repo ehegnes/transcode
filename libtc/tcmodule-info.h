@@ -33,7 +33,7 @@
 #define TC_MODULE_FEATURE_EXTRA         0x00040000
 
 #define TC_MODULE_FLAG_NONE             0x00000000
-#define TC_MODULE_FLAG_RECONFIGURABLE   0x00000001 
+#define TC_MODULE_FLAG_RECONFIGURABLE   0x00000001
 /* module can be reconfigured multiple times safely? */
 
 /*
@@ -42,14 +42,14 @@
  */
 typedef struct tcmoduleinfo_ TCModuleInfo;
 struct tcmoduleinfo_ {
-        uint32_t features; /* what this module can do? */    
+        uint32_t features; /* what this module can do? */
         uint32_t flags; /* quirks */
-        
+
         const char *name;
         const char *version;
 	const char *description;
 
-        /* 
+        /*
          * the following two MUST point to an array of TC_CODEC_*
          * terminated by a TC_CODEC_ERROR value
          */
@@ -58,56 +58,56 @@ struct tcmoduleinfo_ {
 };
 
 /*
- * tc_module_info_match: 
- *     scan the given informations about two modules, and tell if the 
+ * tc_module_info_match:
+ *     scan the given informations about two modules, and tell if the
  *     two modules can be chained toghether.
  *
- * Parameters: 
- *     head: 
+ * Parameters:
+ *     head:
  *         the first given module information structure;
  *         'head' output is supposed to fit in 'tail' input.
- *     tail: 
+ *     tail:
  *         the second  given module information structure;
  *         tail' input is supposed to be given by 'head' output.
- *         
- * Return value: 
+ *
+ * Return value:
  *     1 if 'head' can feed 'tail' safely,
  *     0 otherwise
- *     
- * Side effects: 
+ *
+ * Side effects:
  *     none
  *
- * Preconditions: 
+ * Preconditions:
  *     none
  *
- * Postconditions: 
+ * Postconditions:
  *     none
  */
 int tc_module_info_match(const TCModuleInfo *head,
                          const TCModuleInfo *tail);
 
 /*
- * tc_module_info_log: 
- *     pretty-print the content of a given module information structure 
+ * tc_module_info_log:
+ *     pretty-print the content of a given module information structure
  *     using functions of tc_log_*() family.
  *
- * Parameters: 
- *     info: 
+ * Parameters:
+ *     info:
  *         module information structure to dump
- *     verbose: 
- *         level of detail of description, ranging to TC_QUIET to TC_STATS. 
+ *     verbose:
+ *         level of detail of description, ranging to TC_QUIET to TC_STATS.
  *         Other values will be ignored
- *         
- * Return value: 
+ *
+ * Return value:
  *     none
  *
- * Side effects: 
+ * Side effects:
  *     some informations are printed using tc_log_*()
- *     
- * Preconditions: 
+ *
+ * Preconditions:
  *     'verbose' must be in range TC_QUIET ... TC_STATS
  *
- * Postconditions: 
+ * Postconditions:
  *     none
  */
 void tc_module_info_log(const TCModuleInfo *info, int verbose);
@@ -122,20 +122,20 @@ void tc_module_info_log(const TCModuleInfo *info, int verbose);
  * Parameters:
  *     src: TCModuleInfo structure to be copied
  *     dst: pointer to structure that will hold the copy.
- *         
- * Return value: 
+ *
+ * Return value:
  *     0  successfull
  *     -1 given (at least) a bad TCModuleInfo reference
  *     1  not enough memory to perform a full copy
  *
- * Side effects: 
- *     memory in 'dst' is allocated, usinc tc_* helpers, to hold data 
+ * Side effects:
+ *     memory in 'dst' is allocated, usinc tc_* helpers, to hold data
  *     provided by 'src'.
- *     
- * Preconditions: 
+ *
+ * Preconditions:
  *     'src' and 'dst' must point to valid TCModuleInfo structures.
  *
- * Postconditions: 
+ * Postconditions:
  *     'dst' is an exact copy of 'src'.
  */
 int tc_module_info_copy(const TCModuleInfo *src, TCModuleInfo *dst);
@@ -153,7 +153,7 @@ int tc_module_info_copy(const TCModuleInfo *src, TCModuleInfo *dst);
  *
  * Side effects:
  *     none
- * 
+ *
  * Preconditions:
  *     'info' must be obtained as result of 'tc_module_info_copy' function,
  *     as 'dst' parameter. Applying this function to a structure obtained
@@ -162,7 +162,7 @@ int tc_module_info_copy(const TCModuleInfo *src, TCModuleInfo *dst);
  *
  * Postconditions:
  *     all resources (memory) acquired by 'info' are released.
- *     
+ *
  */
 void tc_module_info_free(TCModuleInfo *info);
 
