@@ -213,6 +213,8 @@
 #define TC_PROBE_NO_AVSHIFT  2048
 #define TC_PROBE_NO_AV_FINE  4096
 #define TC_PROBE_NO_IMASR    8192
+#define TC_PROBE_NO_BUILTIN 16384 // external probe (mplayer)
+
 
 #define TC_INFO_NO_DEMUX        1
 #define TC_INFO_MPEG_PS         2

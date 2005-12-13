@@ -29,6 +29,7 @@
 // file/device magic:
 #define TC_MAGIC_ERROR                 0xFFFFFFFF
 #define TC_MAGIC_UNKNOWN               0x00000000
+#define TC_MAGIC_MPLAYER               0x00FFFFFF
 #define TC_MAGIC_PIPE                  0x0000FFFF
 #define TC_MAGIC_DIR                   0x000000FF
 #define TC_MAGIC_RAW                   0x00000001
