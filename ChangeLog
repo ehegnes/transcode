@@ -1,5 +1,10 @@
 2005-12-13 Francesco Romani <fromani at gmail dot com>
+  * import/magic.h import/fileinfo.c src/tc_defaults.h
+  Start to setup infrastructure for mpl;ayer probe support.
+
+2005-12-13 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tcmodule-data.h libtc/tcmodule.c
+  libtc/tccodecs.c
   Documentation update and some small style fixes.
 
 2005-12-12 Francesco Romani <fromani at gmail dot com>
