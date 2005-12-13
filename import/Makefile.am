@@ -456,7 +456,8 @@ tcprobe_SOURCES = \
 	probe_v4l.c \
 	probe_vnc.c \
 	probe_wav.c \
-	probe_xml.c
+	probe_xml.c \
+	probe_mplayer.c
 
 tcprobe_LDADD = \
 	$(LAME_LIBS) \

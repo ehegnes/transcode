@@ -1,4 +1,12 @@
 2005-12-13 Francesco Romani <fromani at gmail dot com>
+  * import/Makefile.am import/probe_stream.c import/tc.h import/tcprobe.c
+ 
+  Added file: import/probe_mplayer.c
+
+  Add (highly experimental) mplayer probe support in tcprobe.
+  This code needs some more testing and enhancements.
+
+2005-12-13 Francesco Romani <fromani at gmail dot com>
   * import/magic.h import/fileinfo.c src/tc_defaults.h
   Start to setup infrastructure for mpl;ayer probe support.
 

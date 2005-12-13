@@ -87,6 +87,8 @@ void extract_mxf(info_t *ipipe);
 
 void probe_pvn(info_t *ipipe);
 
+void probe_mplayer(info_t *ipipe);
+
 int scan_header_dv(char *buf);
 
 #endif

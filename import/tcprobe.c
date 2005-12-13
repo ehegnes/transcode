@@ -38,6 +38,7 @@ int verbose=TC_INFO;
 
 int bitrate=ABITRATE;
 int binary_dump=0;
+int mplayer_dump=0;
 
 void import_exit(int code)
 {
@@ -69,6 +70,7 @@ static void usage(int status)
   fprintf(stderr,"\nUsage: %s [options] [-]\n", EXE);
   fprintf(stderr,"\t -i name        input file/directory/device/host name [stdin]\n");
   fprintf(stderr,"\t -B             binary output to stdout (used by transcode) [off]\n");
+  fprintf(stderr,"\t -M             use EXPERIMENTAL mplayer probe [off]\n");
   fprintf(stderr,"\t -H n           probe n MB of stream [1]\n");
   fprintf(stderr,"\t -s n           skip first n bytes of stream [0]\n");
   fprintf(stderr,"\t -T title       probe for DVD title [off]\n");
@@ -113,7 +115,7 @@ int main(int argc, char *argv[])
     //proper initialization
     memset(&ipipe, 0, sizeof(info_t));
 
-    while ((ch = getopt(argc, argv, "i:vBd:T:f:b:s:H:?h")) != -1) {
+    while ((ch = getopt(argc, argv, "i:vBMd:T:f:b:s:H:?h")) != -1) {
 
 	switch (ch) {
 
@@ -176,6 +178,12 @@ int main(int argc, char *argv[])
 
 	  break;
 
+    case 'M':
+
+	  mplayer_dump = 1;
+
+	  break;
+
 	case 'T':
 
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
@@ -235,7 +243,10 @@ int main(int argc, char *argv[])
           exit(1);
 
         case TC_PROBE_PATH_FILE:	/* regular file */
-          if (!dvd_title_set || (dvd_verify(name) < 0)) {
+          if (mplayer_dump) {
+            stream_magic = TC_MAGIC_MPLAYER;
+            ipipe.seek_allowed = 0;
+          } else if (!dvd_title_set || (dvd_verify(name) < 0)) {
             if ((ipipe.fd_in = xio_open(name, O_RDONLY)) < 0) {
               perror("file open");
               return(-1);

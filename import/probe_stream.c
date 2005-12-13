@@ -56,6 +56,11 @@ void tcprobe_thread(info_t *ipipe)
 
     switch(ipipe->magic) {
 
+    case TC_MAGIC_MPLAYER:
+      probe_mplayer(ipipe);
+
+      break;
+        
     case TC_MAGIC_AVI:     // AVI file
       probe_avi(ipipe);
 
