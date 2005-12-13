@@ -86,7 +86,7 @@ static void parse_identify_line(const char *line, probe_info_t *info)
         info->fps = fetch_val_double(line);
         info->frc = fps2frc(info->fps);
     } else if (0 == strncmp(TAG_ABITRATE, line, strlen(TAG_ABITRATE))) {
-        info->track[0].bits = fetch_val_int(line) / 1000;
+        info->track[0].bitrate = fetch_val_int(line) / 1000;
         do_audio = 1;
     } else if (0 == strncmp(TAG_ACHANS, line, strlen(TAG_ACHANS))) {
         info->track[0].chan = fetch_val_int(line);
@@ -98,7 +98,9 @@ static void parse_identify_line(const char *line, probe_info_t *info)
     
     if(do_audio) {
         /* common audio settings */
+        info->track[0].bits = BITS; /* mplayer doesn't provide this, yet */
         info->track[0].format = 0x1; /* PCM */
+        info->track[0].pts_start = 0;
         info->num_tracks = 1;
     }
 }
