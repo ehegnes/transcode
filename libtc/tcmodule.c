@@ -188,6 +188,23 @@ static const TCModuleClass dummy_class = {
  * private helpers                                                       *
  *************************************************************************/
 
+/*
+ * is_known_modclass:
+ *     validate a module class name, represented by a given string.
+ *
+ * Parameters:
+ *     modclass: a class nome to validate.
+ * Return Value:
+ *     TC_TRUE if given class name can be understanded -and builded-
+ *     by actual factory code.
+ *     TC_FALSE otherwise
+ * Side effects:
+ *     None.
+ * Preconditions:
+ *     None.
+ * Postconditions:
+ *     None.
+ */
 static int is_known_modclass(const char *modclass)
 {
     int ret = TC_FALSE;
@@ -213,14 +230,51 @@ static int is_known_modclass(const char *modclass)
 }
 
 /*
- * XXX: rewrite using standard
- * return value:
- * 0  -> keep on going
- * <0 -> stop iterate and return code verbatim
- * >0 -> stop iterate and return current iteration index
+ * TCModuleHandleIter:
+ *     generic iterator function on factory handlers.
+ *     In some different contexts, a iterator can be applied on all module 
+ *     handlers in a given factory. Specific iterator functions can do 
+ *     arbitrary actions on handler data. 
+ *     See below to get some usage examples.
+ *
+ * Parameters:
+ *     handle: pointer to a TCModuleHandle.
+ *     userdata: opaque pointer to function-specific data.
+ * Return Value:
+ *     0  -> keep on going
+ *     <0 -> stop iteration and return code verbatim
+ *     >0 -> stop iteration and return current iteration index
+ * Side effects:
+ *     Arbitrary, defined by specific function.
+ * Preconditions:
+ *     given factory (but isn't guaranteed that also handlers are) already
+ *     initialized and contains valid data.
+ * Postconditions:
+ *     none.
  */
 typedef int (*TCModuleHandleIter)(TCModuleHandle *handle, void *userdata);
 
+/*
+ * tc_module_factory_foreach_handler:
+ *     apply given iterator with given data to all internal handlers,
+ *     *both used and unused*.
+ *
+ * Parameters:
+ *     factory: factory instance to use
+ *     iterator: iterator to apply at factory handlers
+ *     userdata: opaque data to pass to iterator along with each handler
+ *     index: pointer to an integer. If not NULL, will be filled
+ *            with index of last handler elaborated
+ * Return Value:
+ *     return code of the last execution of iterator.
+ * Side effects:
+ *     None (see specific handler for this).
+ * Preconditions:
+ *     None.
+ * Postconditions:
+ *     If return value is 0, given iteratr wass applied to *all*
+ *     handlers in factory.
+ */
 static int tc_module_factory_foreach_handler(TCModuleFactory factory,
                                              TCModuleHandleIter iterator,
                                              void *userdata,
@@ -245,6 +299,28 @@ static int tc_module_factory_foreach_handler(TCModuleFactory factory,
     return ret;
 }
 
+/*
+ * handle_something: some iterator functions
+ */
+
+/*
+ * handle_match_modtype:
+ *     verify the match for a given handler and a given module type.
+ *
+ * Parameters:
+ *     handle: handler to verify
+ *     modtype_: module type to look for.
+ * Return Value:
+ *     1 if given handler has given module type,
+ *     0 otherwise. 
+ *     -1 if a given parameter is bogus.
+ * Side effects:
+ *     None.
+ * Preconditions:
+ *     None.
+ * Postconditions:
+ *     None.
+ */
 static int handle_match_modtype(TCModuleHandle *handle,
                                 void *modtype_)
 {
@@ -261,6 +337,24 @@ static int handle_match_modtype(TCModuleHandle *handle,
     return 0;
 }
 
+/*
+ * handle_is_free:
+ *     verify the match for a given handler is an unitialized one.
+ *
+ * Parameters:
+ *     handle: handler to verify
+ *     unused: dummy parameter to achieve API conformancy.
+ * Return Value:
+ *     1 if given handler is a free one (uninitialized),
+ *     0 otherwise. 
+ *     -1 if a given parameter is bogus.
+ * Side effects:
+ *     None.
+ * Preconditions:
+ *     None.
+ * Postconditions:
+ *     None.
+ */
 static int handle_is_free(TCModuleHandle *handle, void *unused)
 {
     if (!handle) {
@@ -346,6 +440,26 @@ static void make_modtype(char *buf, size_t bufsize,
 {
     tc_snprintf(buf, bufsize, "%s:%s", modclass, modname);
 }
+
+/*
+ * FUNCTION_NAME:
+ *     doc
+ *
+ * Parameters:
+ *     name: doc.
+ *
+ * Return Value:
+ *     doc
+ *
+ * Side effects:
+ *     doc.
+ *
+ * Preconditions:
+ *     doc.
+ *
+ * Postconditions:
+ *     doc.
+ */
 
 /*
  * soft copy can't fail, just hard copy can, since it needs

@@ -147,7 +147,25 @@ struct tcmoduleclass_ {
  * Postconditions:
  *      Given module is ready to perform any supported operation.
  *
- *
+ * 
+ * filter:
+ *      apply an in-place transformation to a given audio/video frame.
+ *      Specific module loaded determines the action performend on
+ *      given frame.
+ * Parameters:
+ *      self: pointer to module instance to use.
+ *      frame: pointer to frame data to elaborate.
+ * Return Value:
+ *      0  succesfull.
+ *      -1 error occurred. A proper message should be sent to user using
+ *         tc_log*()
+ * Side effects:
+ *      None.
+ * Preconditions:
+ *      module was already initialized. To use a uninitialized module
+ *      for filter will cause an undefined behaviour.
+ * Postconditions:
+ *      None
  */
 
 #endif /* TCMODULE_DATA_H */

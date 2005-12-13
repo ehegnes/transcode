@@ -352,7 +352,7 @@ const char* tc_codec_to_string(int codec);
  *                       representation
  *
  * Parameters: codec: string representation of codec
- * Return value: the correspinding TC_CODEC_* of given string 
+ * Return value: the correspinding TC_CODEC_* of given string
  *               representation, or TC_CODEC_ERROR if string
  *               is unknown or wrong.
  * Side effects: none
@@ -366,7 +366,7 @@ int tc_codec_from_string(const char *codec);
  *                      if exists.
  *
  * Parameters: codec: TC_CODEC_ value to get the FOURCC
- * Return value: a constant string representing the FOURCC for a given 
+ * Return value: a constant string representing the FOURCC for a given
  *               codec (there is no need to free() it
  *               NULL of codec's FOURCC is (yet) unknown or given codec
  *               has _not_ FOURCC (es: audio codec identifiers).
