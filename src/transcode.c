@@ -175,6 +175,7 @@ enum {
   EXTENSIONS,
   EX_PIXEL_ASPECT,
   EXPORT_PROF,
+  MPLAYER_PROBE,
 };
 
 int print_counter_interval = 1;
@@ -411,7 +412,7 @@ static void usage(int status)
   printf("--config_dir dir     Assume config files are in this dir [off]\n");
   printf("--ext vid,aud        Use these file extensions [%s,%s]\n", video_ext, audio_ext);
   printf("--export_prof S      Export profile {vcd, svcd, xvcd,  dvd}[-pal|-ntsc|-secam]\n");
-
+  printf("--mplayer_probe      use (external) mplayer for probing source [off]\n");
   printf("\n");
 
   //help
@@ -786,6 +787,8 @@ int main(int argc, char *argv[]) {
       {"ext", required_argument, NULL, EXTENSIONS},
       {"export_par", required_argument, NULL, EX_PIXEL_ASPECT},
       {"export_prof", required_argument, NULL, EXPORT_PROF},
+
+      {"mplayer_probe", no_argument, NULL, MPLAYER_PROBE},
       {0,0,0,0}
     };
 
@@ -2392,8 +2395,11 @@ int main(int argc, char *argv[]) {
 	  tc_error("invalid setting for option --export_prof");
 	}
 
-
 	  break;
+
+        case MPLAYER_PROBE:
+          preset_flag |= TC_PROBE_NO_BUILTIN;
+          break;
 
 	default:
 	  short_usage(EXIT_FAILURE);

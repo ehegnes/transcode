@@ -76,7 +76,7 @@ enum _std_module {
   _ts_,
   _vnc_,
   _fraps_,
-  _theora_,
+  _mplayer_,
   _bktr_,
   _sunau_,
   _oss_,
@@ -121,12 +121,15 @@ static char *get_audio_module(int f, int flag)
   }
 }
 
-static int probe_source_core(probe_info_t *pvob, int range, char *file, char *nav_seek_file)
+static int probe_source_core(probe_info_t *pvob, int range, 
+                             char *file, char *nav_seek_file, int ex_flag)
 {
 
   FILE *fd;
 
-  if(nav_seek_file) {
+  if(ex_flag) {
+    if(tc_snprintf(probe_cmd_buf, PMAX_BUF, "tcprobe -B -M -i \"%s\" -d %d", file, verb)<0) return(-1);
+  } else if(nav_seek_file) {
     if(tc_snprintf(probe_cmd_buf, PMAX_BUF, "tcprobe -B -i \"%s\" -T %d -d %d -H %d -f \"%s\"", file, title, verb, range, nav_seek_file)<0) return(-1);
   } else {
     if(tc_snprintf(probe_cmd_buf, PMAX_BUF, "tcprobe -B -i \"%s\" -T %d -d %d -H %d", file, title, verb, range)<0) return(-1);
@@ -166,6 +169,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
 
   int track;
   int probe_further_for_codec=1;
+  int ex_flag = (*flag & TC_PROBE_NO_BUILTIN);
 
   probe_info_t  *pvob, *paob, *info;
 
@@ -185,7 +189,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
 
   if(vid_file!=NULL) {
 
-    if(probe_source_core(pvob, range, vid_file, vob->nav_seek_file)<0) {
+    if(probe_source_core(pvob, range, vid_file, vob->nav_seek_file, ex_flag)<0) {
       *flag = TC_PROBE_ERROR;
 
       if(verbose & TC_DEBUG) printf("(%s) failed to probe video source\n", __FILE__);
@@ -198,7 +202,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
 
   if(aud_file != NULL) {
     //probe audio file
-    if(probe_source_core(paob, range, aud_file, vob->nav_seek_file)<0) {
+    if(probe_source_core(paob, range, aud_file, vob->nav_seek_file, ex_flag)<0) {
       *flag = TC_PROBE_ERROR;
       if(verbose & TC_DEBUG) printf("(%s) failed to probe audio source\n", __FILE__);
 
@@ -403,7 +407,13 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
   }
 
   switch(vob->format_flag) {
+  case TC_MAGIC_MPLAYER:
+    vob->vmod_probed=std_module[_mplayer_];
+    vob->amod_probed=std_module[_mplayer_];
+    preset |= (TC_VIDEO|TC_AUDIO);
 
+    break;
+    
   case TC_MAGIC_V4L_VIDEO:
     vob->vmod_probed=std_module[_v4l_];
     preset |= TC_VIDEO;
@@ -735,7 +745,7 @@ void probe_source(int *flag, vob_t *vob, int range, char *vid_file, char *aud_fi
 
   case TC_CODEC_THEORA:
     if (probe_further_for_codec) {
-	vob->vmod_probed=std_module[_theora_];
+	vob->vmod_probed=std_module[_mplayer_];
 	preset |= TC_VIDEO;
 	if(preset & TC_AUDIO) break;
     }
