@@ -136,6 +136,9 @@ transcode \- LINUX video stream processing tool
 [ --ext vid,aud ]
 .br
 [ --export_prof S ]
+.br
+[ --mplayer_probe ]
+.br
 [ -q level ]
 [ -h ]
 [ -v ]
@@ -1911,6 +1914,13 @@ fit the video into a framesize specified by \fB-Z\fP by keeping the
 Consider \fB--keep_asr\fP a wrapper for calculating \fB-Y\fP options and
 \fB-Z\fP options
 .RE
+
+.TP
+.B \-\-mplayer_probe
+use external mplayer binary to probe stream [off]
+.br
+Default is to use internal probing code. Usage of this option is
+recommended ONLY together with mplayer import modules (-x mplayer).
 
 .TP
 .B \-\-divx_quant \fImin,max\fP

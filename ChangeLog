@@ -1,8 +1,8 @@
 2005-12-16 Francesco Romani <fromani at gmail dot com>
   * src/probe.c src/transcode.c
   basic support in transcode main program for probing using external mplayer
-  binary, disabled by default. Added a new option to enable on user request.
-  Manpage will be updated soon.
+  binary, disabled by default. Added a new option to enable on user
+  request, as well as (very) basic documentation in manpage.
 
 2005-12-13 Francesco Romani <fromani at gmail dot com>
   * import/Makefile.am import/probe_stream.c import/tc.h import/tcprobe.c
