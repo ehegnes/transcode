@@ -4,7 +4,7 @@
 
  Francesco Romani <fromani@gmail.com>, Andrew Church <achurch@achurch.org 
                                      -
-                        Revision 1, 18 December 2005
+                        Revision 0.2, 18 December 2005
 
  Index:
 ---------------------------------------------------------------------------
@@ -36,7 +36,7 @@ to lower as much as possible the dependencies count for transcode itself.
 Other developers agrees on the importance of this objective, where it
 is feasible to do (of course we hardly reimplement from scratch some 
 Audio/Video codecs!).
-Header and source code files was writtens trying to achieve readability
+Header and source code files was written trying to achieve readability
 and clarity. Reader is encouraged to take a look at source code and,
 especially, header files to get more informantions and more precise
 documentation about the functions and data structures provided.
@@ -45,18 +45,13 @@ Francesco's notes:
 I'm not a native english speaker. Send me corrections about documentation
 rather than code, and I will apply as soon as is possible :)
 
-XXX WORK-IN-PROGRESS WARNING:
-I write the most trickier english sentences in Italian first, so it's possible 
-that I miss to translate some parts when publishing some drafts. Plese let
-me know when I miss something ;)
-
 Quick terminology overview:
 - NMS: (transcode's) New Module System
-- plugin: the real shared object on disk, containing code.
+- plugin: the real shared object on disk.
 - module: the central abstract object handled by NMS.
 - module instance: maybe couter-intuitive; part of a module (see above),
   contians private, un-shared data of a module instance. For comparison,
-  in a tcmodule exist a global, shared between all modules, part
+  in a tcmodule exist a global, shared between all modules, part.
 - module class: (abstract concept) the kind of a module. 
   I.e.: filter, decoding...
   warning: module class is also the abstract object in NMS which summarize
@@ -91,6 +86,10 @@ revision process taken starting from transcode 1.1.0:
 - muxing module:
 	packs encoded data in a user-defined container
 
+More module classes (notably an input and/or output abstraction)
+can be added in future releases, but class count should not increase
+too much in NMS lifespan.
+
 Exact specification and documentation about such extended module classes
 are partially beyond the purpose of this document; they are further 
 examined only for the parts related to NMS.
@@ -110,13 +109,13 @@ roughly:
   Above module classes requires roughly the implementation of one module
   for each one plus some mandatory support methods. For example, filter 
   class requires the implementation of 'filter' operation,
-  (XXX WORK IN PROGRESS WARNING: this is not enforced, yet)
+  (WARNING: as in transcode 1.1.0, this is not enforced, yet)
   but a given module can implement more than one class simply providing
   more methods implementation. As an user of a module, just request the
   operation and check the returned code :)
   Of course, you can also use the new capabilities system to peek what
   a loaded module is supposed to do. More on this topic later.
-- when you're set, ask to factory to unload the module. You can just
+- when you're set, ask to factory to unload the module. You CAN'T just
   free your module by hand, since factory needs again to do some black
   magic to handle things nicely.
 - eventually shutdown the module factory itself. Do this only when
@@ -129,20 +128,19 @@ and some documentation about the NMS internals.
 
 From module writer viewpoint, some there are major changes too.
 First af all, all new-style modules have a unified entry point with 
-following signature:
+following signature (defined in tcmodule-plugin.h):
 
-int tc_entry(int);
+const TCModuleClass *tc_plugin_setup(void);
 
 If NMS code can't find such symbol defined in your shared object, 
-it assumes that SO isn't a valid NMS module, and it will go ahead.
+it assumes that given SO *IS NOT* a valid NMS module, and it will go 
+ahead.
 NMS entry point is no longer the main entry point for a given module,
 but it's simply the entry point for whole registration process.
 Real execution of module code will happen through some function pointers
 that each module should register into core as initialization stage.
 This registration happen, as well as other needed intialization code,
 into new entry point.
-The parameter of entry point function is an opaque handler that must
-be given back to core.
 
 So, NMS requires that each module provides (roughly) a single function
 for implemented operation. Formerly, this was already a good module
@@ -156,9 +154,9 @@ opaque to core and can be used freely by module code.
 To summarize, a NMS-compliant module will
 
 - provide a separate function for each implemented operation, plus
-  a few function for support routines (initialization, shutdown...)
-  which must conform to a give signature. Each method will handle
-  explicitely private (instance) data.
+  a few function for support routines (initialization, shutdown, 
+  configuration) which must conform to a give signature. 
+  Each method will handle explicitely private (instance) data.
 - provide a single uniform entry point for registration process.
   core uses module specific methods via some function pointers,
   so real code can be made static and private; module itself
@@ -197,7 +195,7 @@ To use transcode's NMS, you need to include some header files on your code:
 
 #include <tcmodule-core.h>
 
-and, if you want to use new enhanced capabilties (and should usually want
+and, if you want to use new enhanced capabilities (and should usually want
 to do so)
 
 #include <tcmodule-info.h>
@@ -230,27 +228,36 @@ examples
 3.3. The module factory
 -----------------------
 
-A key element in NMS is the module factory.
+A key element in NMS is the module factory. From module user viewpoint,
+a factory is represented by a totally opaque handler enterely managed
+by tcmodule code.
 The factory take care of loading plugins (the real shared object holding
 plugin code) if needed, unloading them if no longer need, accounting,
 and create instances. In short, factory does all the dirty work.
-The factory is implicit, and, as in transcode >= 1.1.0, there can be only
-one active factory at time. This should not impact significantly client 
-code, since "one factory will be enough for everyone".
 
-When using NMS, you should take care of initialize and finalize the 
-factory before (and after) use. This will be accomplished using
+In order to obtain, and release, a factory handler, you must use the 
 tc_factory_init and tc_factory_fini functions.
 Arguments and syntax of this functions is documented on tcmodule-core.h
 header file.
+
+Client code can theorically request an arbitrary number of factories,
+but each factory can handle ONLY modules created by herself. To
+request a factory to do an operation on a module NOT builded by her
+will cause a undefined behaviour (expect crash or weird behaviours).
+In a just few words: DON'T DO THIS! :)
+In the common case, "one factory will be enough for everyone".
 
 
 3.4. Creating and destroying modules
 ------------------------------------
 
-It's really simple. Just ask to factory to create a brand new module 
-belonging to a given class and from a given name. Pass it options if you
-like, and it's done.
+It's really simple. Just ask to your factory to create a brand new module
+belonging to a given class and from a given name.
+When the module is builded, you can configure it passing some options
+packed in a string using the configure functuion (tc_module_configure).
+Unconfigured modules have a sensible default configuration; some
+modules can be reconfigured multiple times, some other can be reconfigured
+just the first time; this behaviour is fully module-dependent.
 Options are specific to a module, and there is no way to describe they
 in a general fashion. Using 'help' should provide a usage summary via
 tc_log*() to (real) user, but this isn't mandatory. So, you must to 
@@ -280,12 +287,13 @@ Known module classes as in transcode 1.1.0:
 	encode		-
 	multiplex	mplex
 
-Destroying a module is really simple. Just pass the reference to the
-factory, and the module will be destroyed. But remember that real
-originating plugin will be unloaded only with all spawned modules
-are destroyed. In facts, destruction of last module trigger plugin
+Destroying a module is really simple. Just invoke the destruction
+function using your factory and the module, and the latter will be 
+destroyed. But remember that real originating plugin will be 
+unloaded only with all spawned modules are destroyed.
+In facts, destruction of last module trigger plugin
 unloading. The factory can detect at any time if a given module is
-the lasto one or not. You should'nt worry about this.
+the last one or not. You should'nt worry about this.
 
 Take care of check the return code of tc_module_destroy, since it
 triggers plugin unloading it can fail. Some debug messages are
@@ -421,6 +429,7 @@ since it seems the most simple one.
 To see a simple skeleton of a NMS plugin, take a look at 
 filter/filter_null.c.
 
+(XXX)
 
 4.4. The registration process
 -----------------------------
