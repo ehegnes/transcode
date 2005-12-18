@@ -2,9 +2,9 @@
                 Module System for Transcode 1.1.0 and later
                 ===========================================
 
- Francesco Romani <fromani@gmail.com>, Andrew Church <achurch@achutch.org 
+ Francesco Romani <fromani@gmail.com>, Andrew Church <achurch@achurch.org 
                                      -
-                        Revision 0, 1 December 2005
+                        Revision 1, 18 December 2005
 
  Index:
 ---------------------------------------------------------------------------
