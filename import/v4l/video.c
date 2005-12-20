@@ -564,11 +564,6 @@ dont_touch:
   if (found_station)
     printf ("(%s) video device OK - recording from [%s]\n", __FILE__, pStation);
 
-  i = counter_get_range ();
-  if (verb)
-    if (i)
-      printf ("(%s) recording limited to %d frames.\n", __FILE__, i);
-
   return (0);
 }
 

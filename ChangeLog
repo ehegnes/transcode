@@ -1,4 +1,9 @@
 2005-12-20 Andrew Church <achurch at achurch dot org>
+  * import/v4l/video.c
+  Remove "recording limited to N frames" info message (should be displayed
+  by the core if necessary).
+
+2005-12-20 Andrew Church <achurch at achurch dot org>
   * import/probe_mplayer.c libtc/tccodecs.c
   Warning fixes.
 
