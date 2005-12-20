@@ -4,7 +4,15 @@ gcc -O3 -g -I. -I.. "$0" -DARCH_X86
 exit $?
 */
 
-/* Time all memcpy() implementations. */
+/*
+ * test-memcpy.c - time all memcpy() implementations
+ * Written by Andrew Church <achurch@achurch.org>
+ *
+ * This file is part of transcode, a video stream processing tool.
+ * transcode is free software, distributable under the terms of the GNU
+ * General Public License (version 2 or later).  See the file COPYING
+ * for details.
+ */
 
 #define TESTSIZE        0x10000
 #define ITERATIONS      ((1<<28) / TESTSIZE)
