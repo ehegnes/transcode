@@ -575,7 +575,6 @@ int tc_export(int opt, void *para1, void *para2);
 
 // some functions exported by transcode
 
-void tc_progress(char *string);
 void tc_import_stop_nolock(void);
 void tc_export_stop_nolock(void);
 /* these function are in libtc

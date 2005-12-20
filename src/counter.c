@@ -1,92 +1,135 @@
 /*
- *  counter.c
+ * counter.c - transcode progress counter routines
+ * Written by Andrew Church <achurch@achurch.org>
  *
- *  Copyright (C) Thomas Östreich - June 2001
- *
- *  This file is part of transcode, a video stream processing tool
- *
- *  transcode is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2, or (at your option)
- *  any later version.
- *
- *  transcode is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
- *
+ * This file is part of transcode, a video stream processing tool.
+ * transcode is free software, distributable under the terms of the GNU
+ * General Public License (version 2 or later).  See the file COPYING
+ * for details.
  */
 
 #include "transcode.h"
 #include "counter.h"
 #include "frame_threads.h"
 
-#define ENCODER_PROG_STR_MAX 128
+/*************************************************************************/
 
-static int encoder_progress_flag=0;
-static char encoder_progress_str[ENCODER_PROG_STR_MAX];
+static double start_time;       /* Time at which counter was started */
+static int counter_active = 0;  /* Is the counter active? */
 
-static void tc_encoder_progress(void)
+/*************************************************************************/
+/*************************************************************************/
+
+/**
+ * counter_init:  Reset the counter's start time.
+ *
+ * Parameters: None.
+ * Return value: None.
+ * Preconditions: None.
+ * Postconditions: None.
+ */
+
+static void counter_init(void)
 {
-    printf("%s\r", encoder_progress_str);
-    fflush(stdout);
+    struct timeval tv;
+    /* We don't care about the timezone value, but pass a dummy argument
+     * to gettimeofday() in case a broken implementation chokes on NULL */
+    struct timezone dummy_tz = {0,0};
+
+    if (gettimeofday(&tv, &dummy_tz) != 0) {
+        static int warned = 0;
+        if (!warned) {
+            tc_log_warn(__FILE__, "gettimeofday() failed!");
+            warned = 1;
+        }
+    }
+    start_time = tv.tv_sec + (double)tv.tv_usec/1000000.0;
 }
 
-static int range_a = -1, range_b = -1;
-static int range_starttime = -1;
-static int counter_active = TC_OFF;
+/*************************************************************************/
 
+/**
+ * counter_on:  Activate the counter display.
+ *
+ * Parameters: None.
+ * Return value: None.
+ * Preconditions: None.
+ * Postconditions: None.
+ */
 
-void counter_init(long int *t1, long int *t2)
+void counter_on(void)
 {
-  struct timeval tv;
-  struct timezone tz={0,0};
-
-  gettimeofday(&tv,&tz);
-
-  *t1=tv.tv_sec;
-  *t2=tv.tv_usec;
-  range_starttime = -1;
-
+    counter_active = 1;
 }
 
-void counter_set_range(int from, int to)
+/*************************************************************************/
+
+/**
+ * counter_off:  Deactivate the counter display.
+ *
+ * Parameters: None.
+ * Return value: None.
+ * Preconditions: None.
+ * Postconditions: None.
+ */
+
+void counter_off(void)
 {
-  range_a = from;
-  range_b = to-1;
+    counter_active = 0;
 }
 
-void counter_on() {counter_active=TC_ON;}
-void counter_off() {counter_active=TC_OFF;}
+/*************************************************************************/
 
-int counter_get_range( void )
+/**
+ * counter_print:  Display the progress counter, if active.
+ *
+ * Parameters: encoding: True (nonzero) if frames are being encoded,
+ *                       false (zero) if frames are being skipped.
+ *                frame: Current frame being encoded or skipped.
+ *                first: First frame of current range.
+ *                 last: Last frame of current range, -1 if unknown.
+ * Return value: None.
+ * Preconditions: None.
+ * Postconditions: None.
+ */
+
+void counter_print(int encoding, int frame, int first, int last)
 {
-  return range_b - range_a + 1;
-}
+    /* Were we encoding or skipping last time? (-1 = first call) */
+    static int was_encoding = -1;
+    struct timeval tv;
+    struct timezone dummy_tz = {0,0};
+    double now, fps;
+    uint32_t buf1, buf2, buf3;
 
-void counter_print(int pida, int pidn, char *s, long int t1, long int t2, char *file, int who)
-{
-  struct timeval tv;
-  struct timezone tz={0,0};
+    if (!tc_progress_meter
+     || !counter_active
+     || !print_counter_interval
+     || frame % print_counter_interval != 0
+    ) {
+        return;
+    }
 
-  uint32_t buf1=0, buf2=0, buf3=0;
+    encoding = (encoding != 0 ? 1 : 0);  // force to 1 or 0
+    if (was_encoding != encoding) {
+        counter_init();
+        if (print_counter_cr && was_encoding != -1)
+            printf("\n");
+    }
+    was_encoding = encoding;
 
-  double fps;
-
-  if(tc_progress_meter == TC_OFF) return;
-  if(!print_counter_interval) return;
-  if((pidn % print_counter_interval) != 0) return;
-
-  if(gettimeofday(&tv,&tz)<0) return;
-
-  fps=(pidn-pida)/((tv.tv_sec+tv.tv_usec/1000000.0)-(t1+t2/1000000.0));
-
-  if(fps>0 && fps<10000) {
-    int secleft = 0;
+    if (gettimeofday(&tv, &dummy_tz) != 0) {
+        static int warned = 0;
+        if (!warned) {
+            tc_log_warn(__FILE__, "gettimeofday() failed!");
+            warned = 1;
+        }
+        return;
+    }
+    now = tv.tv_sec + (double)tv.tv_usec/1000000.0;
+    fps = (frame - first) / (now - start_time);
+    if (fps <= 0 || fps >= 10000)
+        return;
 
     pthread_mutex_lock(&vbuffer_im_fill_lock);
     buf1=vbuffer_im_fill_ctr;
@@ -100,51 +143,43 @@ void counter_print(int pida, int pidn, char *s, long int t1, long int t2, char *
     buf3=vbuffer_ex_fill_ctr;
     pthread_mutex_unlock(&vbuffer_ex_fill_lock);
 
-    if(range_b != -1 && pidn>=range_a && counter_active==TC_ON) {
-      double done;
-
-      if(range_starttime == -1) range_starttime = tv.tv_sec;
-      done = (double)(pidn-range_a)/(range_b-range_a);
-      secleft = (range_b-pidn)/fps;
-
-      if(!encoder_progress_flag) {
- 	printf("%s frame [%d], %6.2f fps, %4.1f%%, ETA: %d:%02d:%02d, (%2d|%2d|%2d)  %c", s, pidn, fps, 100*done,
-  	       secleft/3600, (secleft/60) % 60, secleft % 60,
- 	       buf1, buf2, buf3, print_counter_cr?'\r':'\n');
-
-      } else tc_encoder_progress();
-
+    if (last != -1) {
+        double done = (double)(frame - first) / (double)(last+1 - first);
+        int secleft = (last+1 - frame) / fps;
+        printf("%s frame [%d/%d], %6.2f fps, %5.1f%%, ETA: %d:%02d:%02d,"
+               " (%2d|%2d|%2d)%s",
+               encoding ? "encoding" : "skipping",
+               frame, last+1,
+               fps,
+               100*done,
+               secleft/3600, (secleft/60) % 60, secleft % 60,
+               buf1, buf2, buf3,
+               print_counter_cr ? "  \r" : "\n"
+        );
     } else {
-      vob_t *vob = tc_get_vob();
-
-      if(range_starttime == -1) range_starttime = tv.tv_sec;
-      secleft = (double)pidn/((vob->fps<1.0)?1.0:vob->fps);
-
-      if(!encoder_progress_flag) {
-
-	printf("%s frames [%06d-%06d], %6.2f fps, EMT: %d:%02d:%02d, (%2d|%2d|%2d) %c", s, pida, pidn, fps, secleft/3600, (secleft/60) % 60, secleft % 60, buf1, buf2, buf3, print_counter_cr?'\r':'\n');
-
-      } else tc_encoder_progress();
+        vob_t *vob = tc_get_vob();
+        int time = (double)frame / ((vob->fps<1.0) ? 1.0 : vob->fps);
+	printf("%s frames [%d-%d], %6.2f fps, EMT: %d:%02d:%02d,"
+               "  (%2d|%2d|%2d)%s",
+               encoding ? "encoding" : "skipping",
+               first, frame,
+               fps,
+               time/3600, (time/60) % 60, time % 60,
+               buf1, buf2, buf3,
+               print_counter_cr ? "  \r" : "\n"
+        );
     }
     fflush(stdout);
-  }
 }
 
-void tc_progress(char *string)
-{
-    long sret;
-    encoder_progress_flag=0;
+/*************************************************************************/
 
-    //off
-    if(string==NULL) return;
-
-    //on, only in debug mode
-    if(verbose & TC_DEBUG) {
-	sret = strlcpy(encoder_progress_str, string, ENCODER_PROG_STR_MAX);
-        tc_test_string(__FILE__, __LINE__, ENCODER_PROG_STR_MAX, sret, errno);
-	encoder_progress_flag=1;
-    }
-
-    return;
-}
-
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

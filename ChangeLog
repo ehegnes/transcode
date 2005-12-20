@@ -1,4 +1,9 @@
 2005-12-20 Andrew Church <achurch at achurch dot org>
+  * pvm3/export_pvm_slave.c src/counter.c src/counter.h src/encoder.c
+    src/transcode.c src/transcode.h
+  Rewrite progress counter code, and remove unused tc_progress() function.
+
+2005-12-20 Andrew Church <achurch at achurch dot org>
   * src/encoder.c src/transcode.c
   Clean up -c and progress counter handling.
 

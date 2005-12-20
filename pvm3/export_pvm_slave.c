@@ -71,11 +71,6 @@ static vob_t *vob;
 
 pthread_mutex_t init_avcodec_lock=PTHREAD_MUTEX_INITIALIZER;
 
-void tc_progress(char *string)
-{
-/*just to remove progress from child tasks*/
-}
-
 vob_t *tc_get_vob() {return(vob);}
 
 void tc_outstream_rotate()

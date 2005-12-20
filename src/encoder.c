@@ -50,12 +50,6 @@ static pthread_mutex_t force_exit_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t delay_video_frames_lock = PTHREAD_MUTEX_INITIALIZER;
 int video_frames_delay = 0;
 
-static int counter_encoding = 0;
-static int counter_skipping = 0;
-
-static long startsec;
-static long startusec;
-
 void tc_export_stop_nolock(void)
 {
     force_exit=1;
@@ -881,10 +875,7 @@ int encoder_export(TcEncoderData *data, vob_t *vob)
         if (!data->fill_flag) {
             data->fill_flag = 1;
         }
-     
-        counter_print(data->frame_a, data->fid, "encoding", startsec, startusec, 
-                        ((vob->video_out_file==NULL) ?vob->audio_out_file :vob->video_out_file), 
-                        data->vptr->thread_id);
+        counter_print(1, data->fid, data->frame_a, data->frame_b-1);
     }
     
     /* on success, increase global frame counter */
@@ -907,8 +898,7 @@ void encoder_skip(TcEncoderData *data)
         if (!data->fill_flag) {
             data->fill_flag = 1;
         }
-        counter_print(data->last_frame_b, data->fid, "skipping", startsec, startusec, 
-                      "/dev/null", data->vptr->thread_id);
+        counter_print(0, data->fid, data->last_frame_b, data->frame_a-1);
     }
     
     /*
@@ -1047,9 +1037,6 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
     data.frame_b = frame_b;
     data.last_frame_b = last_frame_b;
     
-    counter_encoding = 0;
-    counter_skipping = 0;
-
     do {
         /* check for ^C signal */
         if (tc_get_force_exit()) {
@@ -1081,16 +1068,8 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
       
         /* check frame id */
         if (frame_a <= data.fid && data.fid < frame_b) {
-            if (!counter_encoding) {
-                counter_init(&startsec, &startusec);
-                ++counter_encoding;
-            }
             encoder_export(&data, vob);
         } else { /* frame not in range */
-            if (!counter_skipping) {
-                counter_init(&startsec, &startusec);
-                ++counter_skipping;
-            }
             encoder_skip(&data);
         } /* frame processing loop */
       

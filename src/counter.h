@@ -24,11 +24,8 @@
 #ifndef _COUNTER_H
 #define _COUNTER_H
 
-void counter_init(long int *t1, long int *t2);
-void counter_set_range(int from, int to);
-int  counter_get_range( void );
-void counter_print(int pida, int pidn, char *s, long int t1, long int t2, char*file, int who);
 void counter_on(void);
 void counter_off(void);
+void counter_print(int encoding, int frame, int first, int last);
 
 #endif

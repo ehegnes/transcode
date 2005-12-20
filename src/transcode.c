@@ -4113,10 +4113,6 @@ int main(int argc, char *argv[]) {
           frame_a = tstart->stf;
           frame_b = tstart->etf;
         }
-        // inform counter of frame range
-        if (frame_b != TC_FRAME_LAST) {
-          counter_set_range(tstart->stf, tstart->etf);
-        }
         // main encoding loop, returns when done with all frames
         encoder(vob, frame_a, frame_b);
 
@@ -4170,11 +4166,6 @@ int main(int argc, char *argv[]) {
 
       // encoder init
       if(encoder_init(&export_para, vob)<0) tc_error("failed to init encoder");
-
-      // inform counter of frame range
-      if (frame_b != TC_FRAME_LAST) {
-        counter_set_range(tstart->stf, tstart->etf);
-      }
 
       // need to loop for this option
 
@@ -4291,9 +4282,6 @@ int main(int argc, char *argv[]) {
 
 	  // start the AV import threads that load the frames into transcode
 	  import_threads_create(vob);
-
-	  // set range for ETA
-	  counter_set_range(fa, fb);
 
 	  // open new output file
 	  if(!no_split) {
@@ -4456,10 +4444,6 @@ int main(int argc, char *argv[]) {
 
 	while (tstart) {
 
-	  if (tstart->etf != TC_FRAME_LAST) {
-	    counter_set_range(tstart->stf, tstart->etf);
-	  }
-
 	  // main encoding loop, return when done with all frames
 	  encoder(vob, tstart->stf, tstart->etf);
 
@@ -4546,14 +4530,6 @@ int main(int argc, char *argv[]) {
 
       //ch=-1 is allowed but makes no sense
       if(ch1<0) ch1=1;
-
-      //frame range selection finally works
-      if (frame_b != TC_FRAME_LAST) {
-        counter_set_range(frame_a, frame_b);
-        counter_on();
-      } else {
-        counter_off();
-      }
 
       for(;;) {
 
