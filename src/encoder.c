@@ -1084,18 +1084,13 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
             if (!counter_encoding) {
                 counter_init(&startsec, &startusec);
                 ++counter_encoding;
-                if (verbose & TC_INFO && counter_skipping) { 
-                    tc_log_info(__FILE__, "\n"); // XXX
-                }
             }
-
             encoder_export(&data, vob);
         } else { /* frame not in range */
             if (!counter_skipping) {
                 counter_init(&startsec, &startusec);
                 ++counter_skipping;
             }
-    
             encoder_skip(&data);
         } /* frame processing loop */
       

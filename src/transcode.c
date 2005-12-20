@@ -2112,8 +2112,6 @@ int main(int argc, char *argv[]) {
 
 	  if(frame_b-1 < frame_a) tc_error("invalid frame range for option --duration");
 
-	  counter_set_range(frame_a, frame_b);
-
 	  break;
 
 	case NAV_SEEK:
@@ -2603,7 +2601,6 @@ int main(int argc, char *argv[]) {
       vob->ttime->vob_offset = 0;
 
       tstart=vob->ttime;
-      counter_set_range(frame_a, frame_b);
       counter_on(); //activate
     } else {
       vob->ttime = new_fc_time();
@@ -2735,8 +2732,6 @@ int main(int argc, char *argv[]) {
       if(preset_flag & TC_PROBE_NO_SEEK) this_unit=vob->ps_unit;
 
       if(split_stream(vob, vob->vob_info_file, this_unit, &frame_a, &frame_b, 1)<0) tc_error("cluster mode option -W error");
-
-      counter_set_range(frame_a, frame_b);
     }
 
     /* ------------------------------------------------------------
@@ -3973,11 +3968,10 @@ int main(int argc, char *argv[]) {
 
     // --record_v4l
 
-    if(frame_asec > 0 || frame_bsec > 0) {
-	if(frame_asec > 0 ) frame_a = (int) (frame_asec*vob->fps);
-	if(frame_bsec > 0 ) frame_b = (int) (frame_bsec*vob->fps);
-	counter_set_range(frame_a, frame_b);
-    }
+    if (frame_asec > 0)
+        frame_a = (int) (frame_asec * vob->fps);
+    if (frame_bsec > 0)
+        frame_b = (int) (frame_bsec * vob->fps);
 
     // --accel
 
@@ -4114,12 +4108,17 @@ int main(int argc, char *argv[]) {
 
       while (tstart) {
 
-        if (tstart->etf != TC_FRAME_LAST) {
+        // set frame range (in cluster mode these will already be set)
+        if (!tc_cluster_mode) {
+          frame_a = tstart->stf;
+          frame_b = tstart->etf;
+        }
+        // inform counter of frame range
+        if (frame_b != TC_FRAME_LAST) {
           counter_set_range(tstart->stf, tstart->etf);
         }
-        // main encoding loop, return when done with all frames
-	// cluster mode will automagically determine frame range
-        (tc_cluster_mode) ? encoder(vob, frame_a, frame_b):encoder(vob, tstart->stf, tstart->etf);
+        // main encoding loop, returns when done with all frames
+        encoder(vob, frame_a, frame_b);
 
 	// check for user cancelation request
 	if (sig_int || sig_tstp) break;
@@ -4171,6 +4170,11 @@ int main(int argc, char *argv[]) {
 
       // encoder init
       if(encoder_init(&export_para, vob)<0) tc_error("failed to init encoder");
+
+      // inform counter of frame range
+      if (frame_b != TC_FRAME_LAST) {
+        counter_set_range(tstart->stf, tstart->etf);
+      }
 
       // need to loop for this option
 
@@ -4544,7 +4548,12 @@ int main(int argc, char *argv[]) {
       if(ch1<0) ch1=1;
 
       //frame range selection finally works
-      (frame_b < INT_MAX) ? counter_set_range(frame_a, frame_b) : counter_off();
+      if (frame_b != TC_FRAME_LAST) {
+        counter_set_range(frame_a, frame_b);
+        counter_on();
+      } else {
+        counter_off();
+      }
 
       for(;;) {
 
