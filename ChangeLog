@@ -1,3 +1,11 @@
+2005-12-20 Andrew Church <achurch at achurch dot org>
+  * import/probe_mplayer.c libtc/tccodecs.c
+  Warning fixes.
+
+  * libtc/tcmodule.c
+  Warning fixes, plus whitespace cleanup and minor string/comment
+  clarifications.
+
 2005-12-16 Francesco Romani <fromani at gmail dot com>
   * src/probe.c src/transcode.c
   basic support in transcode main program for probing using external mplayer

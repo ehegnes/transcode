@@ -12,6 +12,7 @@
 #include "transcode.h"
 #include "libtc.h"
 #include "ioaux.h"
+#include "tc.h"
 
 #include <stdio.h>
 #include <string.h>

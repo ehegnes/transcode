@@ -45,19 +45,16 @@ typedef enum {
 
 typedef struct tcmodulehandle_ TCModuleHandle;
 struct tcmodulehandle_ {
-	const char *type;       /* packed class + name using make_modtype below */
+    const char *type;       /* packed class + name using make_modtype below */
+    void *so_handle;        /* used by dl*() stuff */
     TCHandleStatus status;
-	
-	void *so_handle; /* used by dl*() stuff */
-
     TCModuleInfo info;
-	TCModuleClass klass;
-	/*
-     * main copy of module class data.
-     * all instance pointers will refer to this.
-     */
 
-	int refcount; /* how many instances are floating around? */
+    /* main copy of module class data.
+     * all instance pointers will refer to this. */
+    TCModuleClass klass;
+
+    int refcount;           /* how many instances are floating around? */
 };
 
 struct tcmodulefactory_ {
@@ -78,23 +75,21 @@ struct tcmodulefactory_ {
 
 #define DUMMY_HEAVY_CHECK(self, method_name) \
     if (self != NULL) { \
-        tc_log_warn(self->type, "critical: " \
-                    "module doesn't provide %s method", \
-                     method_name);\
+        tc_log_warn(self->type, "critical: module doesn't provide" \
+                                " %s method", method_name); \
     } else { \
-        tc_log_error(__FILE__, "CRITICAL: unknown method AND bad " \
-                               "reference for instance %p", self); \
+        tc_log_error(__FILE__, "critical: %s method missing AND bad" \
+                               " instance pointer", method_name); \
     }
 
 
 #define DUMMY_CHECK(self, method_name) \
     if (self != NULL) { \
         tc_log_warn(self->type, \
-                    "module doesn't provide %s method", \
-                     method_name);\
+                    "module doesn't provide %s method", method_name); \
     } else { \
-        tc_log_error(__FILE__, "unknown method AND bad " \
-                               "reference for instance %p", self); \
+        tc_log_error(__FILE__, "%s method missing AND bad" \
+                               " instance pointer", method_name); \
     }
 
 static int dummy_init(TCModuleInstance *self)
@@ -109,14 +104,12 @@ static int dummy_fini(TCModuleInstance *self)
     return -1;
 }
 
-
-static const char* dummy_configure(TCModuleInstance *self,
+static const char *dummy_configure(TCModuleInstance *self,
                                    const char *options)
 {
     DUMMY_HEAVY_CHECK(self, "configuration");
     return "";
 }
-
 
 static int dummy_encode(TCModuleInstance *self,
                         frame_list_t *inframe, frame_list_t *outframe)
@@ -394,13 +387,9 @@ static int handle_fini(TCModuleHandle *handle, void *unused)
     }
 
     if (handle->status == TC_HANDLE_DONE) {
-        /*
-         * to make gcc 4.x happy: free() accepts void*,
-         * handle->type is constchar*
-         */
         tc_module_info_free(&(handle->info));
         if (handle->type != NULL) {
-            tc_free((void*)handle->type);
+            tc_free((void*)handle->type);  /* avoid const warning */
         }
         if (handle->so_handle != NULL) {
             dlclose(handle->so_handle);
@@ -573,8 +562,8 @@ static int tc_module_factory_load(TCModuleFactory factory,
 
     modentry = dlsym(modhandle->so_handle, "tc_plugin_setup");
     if (!modentry) {
-        tc_log_error(__FILE__, "module '%s' hasn't new style entry point",
-                               modtype);
+        tc_log_error(__FILE__, "module '%s' doesn't have new style entry"
+                               " point", modtype);
         goto failed_setup;
     }
     class_handle = modentry();
@@ -596,11 +585,7 @@ static int tc_module_factory_load(TCModuleFactory factory,
 
 failed_setup:
     modhandle->status = TC_HANDLE_FREE;
-    /*
-     * to make gcc 4.x happy: free() accepts void*,
-     * handle->type is constchar*
-     */
-    tc_free((void*)modhandle->type);
+    tc_free((void*)modhandle->type);  /* avoid const warning */
 failed_strdup:
     dlclose(modhandle->so_handle);
 failed_dlopen:
@@ -784,6 +769,8 @@ int tc_module_factory_destroy(TCModuleFactory factory, TCModule module)
  * Debug helpers.                                                        *
  *************************************************************************/
 
+#ifdef TCMODULE_DEBUG
+
 int tc_module_factory_get_plugin_count(const TCModuleFactory factory)
 {
     if (!factory) {
@@ -827,6 +814,8 @@ int tc_module_factory_compare_modules(const TCModule amod,
     }
     return -1;
 }
+
+#endif  // TCMODULE_DEBUG
 
 /*************************************************************************/
 

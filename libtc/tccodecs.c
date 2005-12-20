@@ -69,6 +69,7 @@ static int name_finder(const TCCodecInfo *info, const void *userdata)
     return TC_TRUE;
 }
 
+#if 0  // not used
 static int fourcc_finder(const TCCodecInfo *info, const void *userdata)
 {
     if (!info || !userdata) {
@@ -79,6 +80,7 @@ static int fourcc_finder(const TCCodecInfo *info, const void *userdata)
     }
     return TC_TRUE;
 }
+#endif
 
 static int find_tc_codec(const TCCodecInfo *infos, TCCodecFinder finder, const void *userdata)
 {
