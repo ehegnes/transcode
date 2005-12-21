@@ -14,38 +14,9 @@
 
 /*************************************************************************/
 
-static double start_time;       /* Time at which counter was started */
 static int counter_active = 0;  /* Is the counter active? */
 
 /*************************************************************************/
-/*************************************************************************/
-
-/**
- * counter_init:  Reset the counter's start time.
- *
- * Parameters: None.
- * Return value: None.
- * Preconditions: None.
- * Postconditions: None.
- */
-
-static void counter_init(void)
-{
-    struct timeval tv;
-    /* We don't care about the timezone value, but pass a dummy argument
-     * to gettimeofday() in case a broken implementation chokes on NULL */
-    struct timezone dummy_tz = {0,0};
-
-    if (gettimeofday(&tv, &dummy_tz) != 0) {
-        static int warned = 0;
-        if (!warned) {
-            tc_log_warn(__FILE__, "gettimeofday() failed!");
-            warned = 1;
-        }
-    }
-    start_time = tv.tv_sec + (double)tv.tv_usec/1000000.0;
-}
-
 /*************************************************************************/
 
 /**
@@ -95,12 +66,14 @@ void counter_off(void)
 
 void counter_print(int encoding, int frame, int first, int last)
 {
-    /* Were we encoding or skipping last time? (-1 = first call) */
-    static int was_encoding = -1;
     struct timeval tv;
     struct timezone dummy_tz = {0,0};
     double now, fps;
     uint32_t buf1, buf2, buf3;
+    /* Values of 'first' and `last' during last call (-1 = not called yet) */
+    static int old_first = -1, old_last = -1;
+    /* Time of first call for this range */
+    static double start_time = 0;
 
     if (!tc_progress_meter
      || !counter_active
@@ -109,14 +82,15 @@ void counter_print(int encoding, int frame, int first, int last)
     ) {
         return;
     }
-
-    encoding = (encoding != 0 ? 1 : 0);  // force to 1 or 0
-    if (was_encoding != encoding) {
-        counter_init();
-        if (print_counter_cr && was_encoding != -1)
-            printf("\n");
+    if (frame < 0 || first < 0) {
+        static int warned = 0;
+        if (!warned) {
+            tc_log_warn(__FILE__, "invalid arguments to counter_print"
+                        " (%d,%d,%d,%d)", encoding, frame, first, last);
+            warned = 1;
+        }
+        return;
     }
-    was_encoding = encoding;
 
     if (gettimeofday(&tv, &dummy_tz) != 0) {
         static int warned = 0;
@@ -127,24 +101,38 @@ void counter_print(int encoding, int frame, int first, int last)
         return;
     }
     now = tv.tv_sec + (double)tv.tv_usec/1000000.0;
+
+    if (old_first != first || old_last != last) {
+        start_time = now;
+        if (print_counter_cr && old_first != -1)
+            printf("\n");
+        old_first = first;
+        old_last = last;
+    }
+
+    if (now <= start_time)  // true on first call per range
+        return;
+    /* Note that we don't add 1 to the numerator here, since start_time is
+     * the time we were called for the first frame, so frame first+1 is one
+     * frame later than start_time, not two. */
     fps = (frame - first) / (now - start_time);
     if (fps <= 0 || fps >= 10000)
         return;
 
     pthread_mutex_lock(&vbuffer_im_fill_lock);
-    buf1=vbuffer_im_fill_ctr;
+    buf1 = vbuffer_im_fill_ctr;
     pthread_mutex_unlock(&vbuffer_im_fill_lock);
 
     pthread_mutex_lock(&vbuffer_xx_fill_lock);
-    buf2=vbuffer_xx_fill_ctr;
+    buf2 = vbuffer_xx_fill_ctr;
     pthread_mutex_unlock(&vbuffer_xx_fill_lock);
 
     pthread_mutex_lock(&vbuffer_ex_fill_lock);
-    buf3=vbuffer_ex_fill_ctr;
+    buf3 = vbuffer_ex_fill_ctr;
     pthread_mutex_unlock(&vbuffer_ex_fill_lock);
 
     if (last != -1) {
-        double done = (double)(frame - first) / (double)(last+1 - first);
+        double done = (double)(frame - first + 1) / (double)(last+1 - first);
         int secleft = (last+1 - frame) / fps;
         printf("%s frame [%d/%d], %6.2f fps, %5.1f%%, ETA: %d:%02d:%02d,"
                " (%2d|%2d|%2d)%s",
@@ -154,7 +142,7 @@ void counter_print(int encoding, int frame, int first, int last)
                100*done,
                secleft/3600, (secleft/60) % 60, secleft % 60,
                buf1, buf2, buf3,
-               print_counter_cr ? "  \r" : "\n"
+               print_counter_cr ? " \r" : "\n"
         );
     } else {
         vob_t *vob = tc_get_vob();
@@ -166,7 +154,7 @@ void counter_print(int encoding, int frame, int first, int last)
                fps,
                time/3600, (time/60) % 60, time % 60,
                buf1, buf2, buf3,
-               print_counter_cr ? "  \r" : "\n"
+               print_counter_cr ? " \r" : "\n"
         );
     }
     fflush(stdout);

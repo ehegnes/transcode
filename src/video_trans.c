@@ -56,10 +56,20 @@ typedef struct {
 static TCVHandle handle = 0;
 
 /*************************************************************************/
+/*************************** Internal routines ***************************/
 /*************************************************************************/
 
-/* Initialize vtd structure from given vframe_list_t, and update
- * ptr->video_size. */
+/**
+ * preadjust_frame_size:  Initialize the given vtd structure from the given
+ * vframe_list_t, and update ptr->video_size.
+ *
+ * Parameters: vtd: Pointer to video frame data to be initialized.
+ *             ptr: Pointer to video frame buffer.
+ * Return value: None.
+ * Preconditions: None.
+ * Postconditions: None.
+ */
+/* */
 
 static void set_vtd(video_trans_data_t *vtd, vframe_list_t *ptr)
 {
@@ -113,9 +123,19 @@ static void set_vtd(video_trans_data_t *vtd, vframe_list_t *ptr)
 
 /*************************************************************************/
 
-/* Prepare for an operation that will change the frame size, setting up the
- * secondary buffer plane pointers with the new size.  Calling swap_buffers()
- * will store the new size in the vframe_list_t structure. */
+/**
+ * preadjust_frame_size:  Prepare for an operation that will change the
+ * frame size, setting up the secondary buffer plane pointers with the new
+ * size.  Calling swap_buffers() will store the new size in the
+ * vframe_list_t structure.
+ *
+ * Parameters:   vtd: Pointer to video frame data.
+ *             new_w: New frame width.
+ *             new_h: New frame height.
+ * Return value: None.
+ * Preconditions: None.
+ * Postconditions: None.
+ */
 
 static void preadjust_frame_size(video_trans_data_t *vtd, int new_w, int new_h)
 {
@@ -132,8 +152,15 @@ static void preadjust_frame_size(video_trans_data_t *vtd, int new_w, int new_h)
 
 /*************************************************************************/
 
-/* Swap current video frame buffer with free buffer.  Also updates frame
- * size if preadjust_frame_size() has been called. */
+/**
+ * swap_buffers:  Swap current video frame buffer with free buffer.  Also
+ * updates frame size if preadjust_frame_size() has been called.
+ *
+ * Parameters: vtd: Pointer to video frame data.
+ * Return value: None.
+ * Preconditions: None.
+ * Postconditions: None.
+ */
 
 static void swap_buffers(video_trans_data_t *vtd)
 {
@@ -153,34 +180,16 @@ static void swap_buffers(video_trans_data_t *vtd)
 /*************************************************************************/
 /*************************************************************************/
 
-/* -I: Deinterlace the frame.  `mode' is the processing mode (-I parameter). */
-
-static void deinterlace(video_trans_data_t *vtd, int mode)
-{
-    if (mode == 1) {
-        /* Simple linear interpolation */
-        PROCESS_FRAME(tcv_deinterlace, vtd, TCV_DEINTERLACE_INTERPOLATE);
-    } else if (mode == 3 || mode == 4) {
-        /* Drop every other line (and zoom back out in mode 3) */
-        preadjust_frame_size(vtd, vtd->ptr->v_width, vtd->ptr->v_height/2);
-        PROCESS_FRAME(tcv_deinterlace, vtd, TCV_DEINTERLACE_DROP_FIELD);
-        if (mode == 3) {
-            int w = vtd->ptr->v_width, h = vtd->ptr->v_height*2;
-            vob_t *vob = tc_get_vob();
-            preadjust_frame_size(vtd, w, h);
-            PROCESS_FRAME(tcv_zoom, vtd, w, h, vob->zoom_filter);
-        }
-    } else if (mode == 5) {
-        /* Linear blend */
-        PROCESS_FRAME(tcv_deinterlace, vtd, TCV_DEINTERLACE_LINEAR_BLEND);
-    } else {
-        /* Mode 2 (handled by encoder) or unknown: do nothing */
-        return;
-    }
-    vtd->ptr->attributes &= ~TC_FRAME_IS_INTERLACED;
-}
-
-/*************************************************************************/
+/**
+ * do_process_frame:  Perform video frame transformations based on global
+ * transcoding settings (derived from command-line arguments).
+ *
+ * Parameters: vob: Global data pointer.
+ *             ptr: Pointer to video frame buffer.
+ * Return value: 0 on success, -1 on failure.
+ * Preconditions: None.
+ * Postconditions: None.
+ */
 
 static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
 {
@@ -204,10 +213,29 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
 
     /**** -I: deinterlace video frame ****/
 
-    if (vob->deinterlace > 0)
-        deinterlace(&vtd, vob->deinterlace);
-    if ((ptr->attributes & TC_FRAME_IS_INTERLACED) && ptr->deinter_flag > 0)
-        deinterlace(&vtd, ptr->deinter_flag);
+    if (vob->deinterlace > 0
+     || ((ptr->attributes & TC_FRAME_IS_INTERLACED) && ptr->deinter_flag > 0)
+    ) {
+        int mode = (vob->deinterlace>0 ? vob->deinterlace : ptr->deinter_flag);
+        if (mode == 1) {
+            /* Simple linear interpolation */
+            PROCESS_FRAME(tcv_deinterlace, &vtd, TCV_DEINTERLACE_INTERPOLATE);
+        } else if (mode == 3 || mode == 4) {
+            /* Drop every other line (and zoom back out in mode 3) */
+            preadjust_frame_size(&vtd, ptr->v_width, ptr->v_height/2);
+            PROCESS_FRAME(tcv_deinterlace, &vtd, TCV_DEINTERLACE_DROP_FIELD);
+            if (mode == 3) {
+                int w = ptr->v_width, h = ptr->v_height*2;
+                preadjust_frame_size(&vtd, w, h);
+                PROCESS_FRAME(tcv_zoom, &vtd, w, h, vob->zoom_filter);
+            }
+        } else if (mode == 5) {
+            /* Linear blend */
+            PROCESS_FRAME(tcv_deinterlace, &vtd, TCV_DEINTERLACE_LINEAR_BLEND);
+        }
+        /* else mode 2 (handled by encoder) or unknown: do nothing */
+        ptr->attributes &= ~TC_FRAME_IS_INTERLACED;
+    }
 
     /**** -X: fast resize (up) ****/
     /**** -B: fast resize (down) ****/
@@ -339,18 +367,29 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
 }
 
 /*************************************************************************/
+/*************************** Exported routines ***************************/
 /*************************************************************************/
 
-/* Main video frame processing routine.  The image is passed in
- * ptr->video_buf; this can be updated as needed, e.g. to point to the
- * secondary buffer after transformations.  `vob' contains global data for
- * the transcoding operation (parameter settings and the like).
+/**
+ * process_vid_frame:  Main video frame processing routine.  The image is
+ * passed in ptr->video_buf; this can be updated as needed, e.g. to point
+ * to the secondary buffer after transformations.
+ *
+ * Parameters: vob: Global data pointer.
+ *             ptr: Pointer to video frame buffer.
+ * Return value: 0 on success, -1 on failure.
+ * Preconditions: None.
+ * Postconditions: None.
  */
 
 int process_vid_frame(vob_t *vob, vframe_list_t *ptr)
 {
+    /* Check parameter validity */
+    if (!vob || !ptr)
+        return -1;
+
     /* Check for pass-through mode or skipped/out-of-range frames */
-    if(vob->pass_flag & TC_VIDEO)
+    if (vob->pass_flag & TC_VIDEO)
         return 0;
     if (ptr->attributes & TC_FRAME_IS_SKIPPED)
         return 0;
@@ -373,14 +412,25 @@ int process_vid_frame(vob_t *vob, vframe_list_t *ptr)
 
 /*************************************************************************/
 
-/* Frame preprocessing routine.  Checks for frame out of -c range and
- * performs early clipping.  Parameters are as for process_vid_frame().
+/**
+ * preprocess_vid_frame:  Frame preprocessing routine.  Checks for frame
+ * out of -c range and performs early clipping.
+ *
+ * Parameters: vob: Global data pointer.
+ *             ptr: Pointer to video frame buffer.
+ * Return value: 0 on success, -1 on failure.
+ * Preconditions: None.
+ * Postconditions: None.
  */
 
 int preprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
 {
     struct fc_time *t;
-    int skip = 1;
+    int skip;
+
+    /* Check parameter validity */
+    if (!vob || !ptr)
+        return -1;
 
     /* Allocate tcvideo handle if necessary */
     if (!handle) {
@@ -392,6 +442,7 @@ int preprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
     }
 
     /* Set skip attribute based on -c */
+    skip = 1;
     for (t = vob->ttime; t; t = t->next) {
         if (t->stf <= ptr->id && ptr->id < t->etf)  {
             skip = 0;
@@ -404,7 +455,7 @@ int preprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
     }
 
     /* Check for pass-through mode */
-    if(vob->pass_flag & TC_VIDEO)
+    if (vob->pass_flag & TC_VIDEO)
         return 0;
 
     /* Check frame colorspace */
@@ -438,14 +489,29 @@ int preprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
 
 /*************************************************************************/
 
+/**
+ * postprocess_vid_frame:  Frame postprocessing routine.  Performs final
+ * clipping and sanity checks.
+ *
+ * Parameters: vob: Global data pointer.
+ *             ptr: Pointer to video frame buffer.
+ * Return value: 0 on success, -1 on failure.
+ * Preconditions: None.
+ * Postconditions: None.
+ */
+
 /* Frame postprocessing routine.  Performs final clipping and sanity
  * checks.  Parameters are as for process_vid_frame().
  */
 
 int postprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
 {
+    /* Check parameter validity */
+    if (!vob || !ptr)
+        return -1;
+
     /* Check for pass-through mode or skipped/out-of-range frames */
-    if(vob->pass_flag & TC_VIDEO)
+    if (vob->pass_flag & TC_VIDEO)
         return 0;
     if (ptr->attributes & TC_FRAME_IS_SKIPPED)
         return 0;
