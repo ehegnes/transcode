@@ -200,7 +200,7 @@ void counter_print(int encoding, int frame, int first, int last)
         /* Can't calculate ETA, just display current timestamp */
         vob_t *vob = tc_get_vob();
         int time = (double)frame / ((vob->fps<1.0) ? 1.0 : vob->fps);
-	printf("%s frames [%d-%d], %6.2f fps, EMT: %d:%02d:%02d,"
+        printf("%s frames [%d-%d], %6.2f fps, EMT: %d:%02d:%02d,"
                "  (%2d|%2d|%2d)%s",
                encoding ? "encoding" : "skipping",
                first, frame,

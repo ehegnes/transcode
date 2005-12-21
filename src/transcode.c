@@ -2601,7 +2601,6 @@ int main(int argc, char *argv[]) {
       vob->ttime->vob_offset = 0;
 
       tstart=vob->ttime;
-      counter_on(); //activate
     } else {
       vob->ttime = new_fc_time();
       frame_a = vob->ttime->stf = TC_FRAME_FIRST;
@@ -2610,6 +2609,7 @@ int main(int argc, char *argv[]) {
       tstart = vob->ttime;
       tstart->next = NULL;
     }
+    counter_on(); //activate
 
     // determine -S,-c,-L option parameter for distributed processing
     if(nav_seek_file) {

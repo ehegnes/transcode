@@ -872,10 +872,11 @@ int encoder_export(TcEncoderData *data, vob_t *vob)
     DEC_ABUF_COUNTER(ex);
 
     if (verbose & TC_INFO) {
+        int last = (data->frame_b == TC_FRAME_LAST) ?(-1) :data->frame_b;
         if (!data->fill_flag) {
             data->fill_flag = 1;
         }
-        counter_print(1, data->fid, data->frame_a, data->frame_b-1);
+        counter_print(1, data->fid, data->frame_a, last);
     }
     
     /* on success, increase global frame counter */
