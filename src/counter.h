@@ -26,6 +26,8 @@
 
 void counter_on(void);
 void counter_off(void);
+void counter_add_range(int first, int last, int encode);
+void counter_reset_ranges(void);
 void counter_print(int encoding, int frame, int first, int last);
 
 #endif

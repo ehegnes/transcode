@@ -1,4 +1,9 @@
 2005-12-21 Andrew Church <achurch at achurch dot org>
+  * src/counter.c src/counter.h src/transcode.c
+  When using -c, compute completion ratio and ETA over all ranges rather
+  than just the current one.
+
+2005-12-21 Andrew Church <achurch at achurch dot org>
   * src/counter.c
   Clean up code and fix minor calculation errors.
 

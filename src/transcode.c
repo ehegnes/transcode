@@ -4103,6 +4103,23 @@ int main(int argc, char *argv[]) {
       // open output files
       if(encoder_open(&export_para, vob)<0) tc_error("failed to open output");
 
+      // tell counter about all encoding ranges
+      counter_reset_ranges();
+      if (!tc_cluster_mode) {
+	int last_etf = 0;
+	for (tstart = vob->ttime; tstart; tstart = tstart->next) {
+	  if (tstart->etf == TC_FRAME_LAST) {
+            // variable length range, oh well
+            counter_reset_ranges();
+            break;
+          }
+	  if (tstart->stf > last_etf)
+            counter_add_range(last_etf, tstart->stf-1, 0);
+          counter_add_range(tstart->stf, tstart->etf-1, 1);
+          last_etf = tstart->etf;
+	}
+      }
+
       // get start interval
       tstart = vob->ttime;
 
