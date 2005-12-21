@@ -109,28 +109,6 @@ MOD_open
 
     im_v_codec = vob->im_v_codec;
 
-    if (vob->ex_v_fcc) {
-	int want_help = (strcasecmp(vob->ex_v_fcc, "help") == 0);
-	int i;
-	if (want_help)
-	    tc_log_info(MOD_NAME, "Available formats:");
-	for (i = 0; formats[i].name != NULL; i++) {
-	    if (want_help)
-		tc_log_info(MOD_NAME, "%s", formats[i].name);
-	    else if (strcasecmp(formats[i].name, vob->ex_v_fcc) == 0)
-		break;
-	}
-	if (formats[i].name == NULL) {
-	    if (!want_help) {
-		tc_log_warn(MOD_NAME, "Unknown output format, \"-F help\" to list");
-	    }
-	    return TC_EXPORT_ERROR;
-	}
-	fcc = formats[i].name;
-	destfmt = formats[i].format;
-	destsize = vob->ex_v_width * vob->ex_v_height * formats[i].bpp / 8;
-    }
-
     // open out file
     if(param->flag==TC_AUDIO && vob->out_flag) goto further;
     if(param->flag==TC_VIDEO && vob->codec_flag == TC_CODEC_MPEG2 && (vob->pass_flag & TC_VIDEO)) goto further;
@@ -150,6 +128,28 @@ further:
     if(param->flag == TC_VIDEO) {
 
       // video
+
+      if (vob->ex_v_fcc) {
+	int want_help = (strcasecmp(vob->ex_v_fcc, "help") == 0);
+	int i;
+	if (want_help)
+	    tc_log_info(MOD_NAME, "Available formats:");
+	for (i = 0; formats[i].name != NULL; i++) {
+	    if (want_help)
+		tc_log_info(MOD_NAME, "%s", formats[i].name);
+	    else if (strcasecmp(formats[i].name, vob->ex_v_fcc) == 0)
+		break;
+	}
+	if (formats[i].name == NULL) {
+	    if (!want_help) {
+		tc_log_warn(MOD_NAME, "Unknown output format, \"-F help\" to list");
+	    }
+	    return TC_EXPORT_ERROR;
+	}
+	fcc = formats[i].name;
+	destfmt = formats[i].format;
+	destsize = vob->ex_v_width * vob->ex_v_height * formats[i].bpp / 8;
+      }
 
       if (!(tcvhandle = tcv_init())) {
 	tc_log_warn(MOD_NAME, "tcv_convert_init failed");

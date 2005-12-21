@@ -1,3 +1,7 @@
+2005-12-21 Andrew Church <achurch at achurch dot org>
+  * export/export_raw.c
+  Fix breakage with -y ...,raw when the -F option is given.
+
 2005-12-21 Francesco Romani <fromani at gmail.com>
   * src/encoder.c src/transcode.c
   let the counter do it's job even without -c option.
