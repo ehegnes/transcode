@@ -50,7 +50,7 @@ Quick terminology overview:
 - plugin: the real shared object on disk.
 - module: the central abstract object handled by NMS.
 - module instance: maybe couter-intuitive; part of a module (see above),
-  contians private, un-shared data of a module instance. For comparison,
+  contains private, un-shared data of a module instance. For comparison,
   in a tcmodule exist a global, shared between all modules, part.
 - module class: (abstract concept) the kind of a module. 
   I.e.: filter, decoding...
@@ -353,7 +353,7 @@ tc_module_encode(module, inframe, outframe)
 tc_module_decode(module, inframe, outframe) 
 	decode a give frame and store data in another given frame
 
-tc_module_filter(module, tag, frame)
+tc_module_filter(module, frame)
 	apply a filter in place to a frame
 
 tc_module_multiplex(module, vframe, aframe)
@@ -429,24 +429,22 @@ since it seems the most simple one.
 To see a simple skeleton of a NMS plugin, take a look at 
 filter/filter_null.c.
 
-(XXX)
-
 4.4. The registration process
 -----------------------------
 
 The plugin registration process consist simply into a invocation
-of tc_module_register_class. This happen in plugin entry point (see
-below for more details).
+of tc_plugin_setup entry point. This function will return a
+TCModuleClass filled by plugin with description informations
+and with valid function pointers to operations implemented
+by plugin.
 
-A plugin must invoke tc_module_register_class using the value
-given to plugin entry point, and a valid reference to a module class
-data structure which is supposed to keep all interesting informations,
-ranging from capabilities data to pointers to methods functions.
-
-tc_module_register_class will do a smart copy of given data,
-so capabilities can be generated safely on the fly only for purpose
-of registration. Of course function pointers to method must reference
-real valid functions.
+Core will do some sanity checks on this descriptor returned
+by plugin, and use the given informations to fill it's
+own descriptor. Core WILL NOT change the informations provided
+by a plugin, unless they are detected as incorrect. In this
+case an error will be emitted (via tc_log*()) and more.
+Core will also setup sensible fallback values for all informations,
+or operations, not provided by a given plugin.
 
 Once a plugin is registered, there is no way to change registered
 data, nor to re-register or de-register itself.
@@ -458,22 +456,25 @@ data, nor to re-register or de-register itself.
 The plugin registration take effect into the plugin entry point: the
 body of
 
-int tc_entry(int)
+const TCModuleClass* tc_plugin_setup(void)
 
-function. You can do almost anything you like on this function, but
-remember that THERE NO IS a symmetric piece of code called at module
-unloading. One can think to The module finalization procedure can do
-this job, but there is simply no way to know what invokation is
-the lasto one. Just don't do anything on tc_entry that you must revert
-later.
+function. A plugin writer can in theory do almost anything you like on 
+this function, but remember that THERE NO IS a symmetric piece of code 
+called at module unloading. 
+One can think to The module finalization procedure can do this job, 
+but there is simply no way to know what invokation is the last one. 
+Just don't do anything on tc_entry that you must revert later, or, better
+move the code in *module* intialization/finalization routines, if
+it's feasible.
 
-Also note that you MUST invoke tc_module_register_class into your
-tc_entry function, otherwise registration will fail.
+the module entry point MUST return a TCModuleClass descriptor
+filled with all descriptive informations for plugin, and
+MUST hold function pointers to all operations implemented,
+or NULL for operations NOT implemented.
 
-In facts, the purpose beyond the tc_entry function is to feed
-tc_module_register_class with right data without expose too much
-data in plugins, and without let the core to do excessive search
-in plugin itself.
+In facts, the purpose beyond the tc_plugin-setup function is to give
+back to core the right data without expose too much data in plugins, 
+and without let the core to do extensive symbol search in plugin itself.
 
 
 5. Plugin-Writing-HOWTO
@@ -490,39 +491,16 @@ The reader is encouraged to take a look to source files (libtc/tcmodule*.c)
 to see the gory details.
 
 
-6.1. Why a single factory?
---------------------------
+6.1. Why the factory?
+---------------------
 
-It makes a little sense to have more than one factory on a given process.
-I don't see any reasonable use-case for this.
-So, I (Francesco) have chose to NOT provide an explicit 'factory' parameter
-into various API functions. Moreover, exposing such factory reference
-could provoke some (violation of) incapsulation issues in
-tc_module_register_class. Having such referenche in this function let
-the plugin to change (at least potentially) at least everything into core
-too easily, and this just the thing to avoid (or at least disencourage
-as much as is possible, since a plugin can still do weird things in 
-current scheme. Such things are just a bit more weird, so easier to
-spot and correct. I hope :) ).
+FIXME: writeme
 
 
 6.2. About multithreading safeness
 ----------------------------------
 
-Current implementation doesn't care about threading issues. There is no
-locking at all. On this topic, new code is quite similar to older one,
-since not src/dl_loader.c nor src/filter.c have locks too.
-At the moment of writing, I'm not shore that this is the Right Thing (tm).
-There is a clean way to let the things work with current code: 
-just load and open (triggering further implicit module request from
-loaded modu,les) one module at once. This avoids any issue, and I think
-can be implemented in a clean and nice way.
-Moreover, this should not impact pratically performances.
-Simply using a module doesn't provoke concurrent access issues (otherwise
-there is a bug in NMS code), so after the loading, and before unloading,
-is safe to use current code in a multithreded environment, like transcode.
-In the case, adding multithreading locks will be transparent to client 
-code.
+FIXME: re-writeme
 
 
 6.3. On explicit reference counting
@@ -538,18 +516,7 @@ and debug purposes. This can change in future releases, but this should
 be a change totally transparent to client code.
 
 
-6.4. The 'id' parameter on tc_module_register_class
----------------------------------------------------
-
-I'm not fully satisfied the presence of this parameter. I think there
-should be a way to have even more incapsulation, but I can't yet
-found a cleaner and nicer way to handle plugin class registration.
-Using 'id' is the maximum of opaqueness what I was able to achieve without
-doing too much dirty tricks. This can change in future releases, but
-not too early since is a quite invasive breakage.
-
-
-6.5. Possibile API and ABI breakage
+6.4. Possibile API and ABI breakage
 -----------------------------------
 
 Needs a careful review and a bit of discussion on transcode-devel.
