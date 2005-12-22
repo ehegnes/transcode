@@ -1,4 +1,9 @@
 2005-12-22 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule-data.h libtc/tcmodule.c
+  specialize decode/filter/encode operations to handle
+  explicitely audio and video.
+
+2005-12-22 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c libtc/tcmodule.c libtc/tcmodule-core.h
   Changed some data structure and function names to achieve
   (hopefully) more clarity. Client code updated as well.

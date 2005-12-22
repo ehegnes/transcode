@@ -66,11 +66,16 @@ struct tcmoduleclass_ {
      * not-mandatory operations, a module doing something useful implements
      * at least one.
      */
-    int (*encode)(TCModuleInstance *self,
-                  frame_list_t *inframe, frame_list_t *outframe);
-    int (*decode)(TCModuleInstance *self,
-                  frame_list_t *inframe, frame_list_t *outframe);
-    int (*filter)(TCModuleInstance *self, frame_list_t *frame);
+    int (*encode_audio)(TCModuleInstance *self,
+                        aframe_list_t *inframe, aframe_list_t *outframe);
+    int (*encode_video)(TCModuleInstance *self,
+                        vframe_list_t *inframe, vframe_list_t *outframe);
+    int (*decode_audio)(TCModuleInstance *self,
+                        aframe_list_t *inframe, aframe_list_t *outframe);
+    int (*decode_video)(TCModuleInstance *self,
+                        vframe_list_t *inframe, vframe_list_t *outframe);
+    int (*filter_audio)(TCModuleInstance *self, aframe_list_t *frame);
+    int (*filter_video)(TCModuleInstance *self, vframe_list_t *frame);
     int (*multiplex)(TCModuleInstance *self,
                      vframe_list_t *frame, aframe_list_t *aframe);
     int (*demultiplex)(TCModuleInstance *self,

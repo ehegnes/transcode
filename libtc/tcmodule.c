@@ -111,24 +111,49 @@ static const char *dummy_configure(TCModuleInstance *self,
     return "";
 }
 
-static int dummy_encode(TCModuleInstance *self,
-                        frame_list_t *inframe, frame_list_t *outframe)
+static int dummy_encode_video(TCModuleInstance *self,
+                              vframe_list_t *inframe,
+                              vframe_list_t *outframe)
 {
-    DUMMY_CHECK(self, "encode");
+    DUMMY_CHECK(self, "encode_video");
     return -1;
 }
 
-static int dummy_decode(TCModuleInstance *self,
-                        frame_list_t *inframe, frame_list_t *outframe)
+static int dummy_encode_audio(TCModuleInstance *self,
+                              aframe_list_t *inframe,
+                              aframe_list_t *outframe)
 {
-    DUMMY_CHECK(self, "decode");
+    DUMMY_CHECK(self, "encode_audio");
     return -1;
 }
 
-static int dummy_filter(TCModuleInstance *self,
-                        frame_list_t *frame)
+static int dummy_decode_video(TCModuleInstance *self,
+                              vframe_list_t *inframe,
+                              vframe_list_t *outframe)
 {
-    DUMMY_CHECK(self, "filter");
+    DUMMY_CHECK(self, "decode_video");
+    return -1;
+}
+
+static int dummy_decode_audio(TCModuleInstance *self,
+                              aframe_list_t *inframe,
+                              aframe_list_t *outframe)
+{
+    DUMMY_CHECK(self, "decode_audio");
+    return -1;
+}
+
+static int dummy_filter_video(TCModuleInstance *self,
+                              vframe_list_t *frame)
+{
+    DUMMY_CHECK(self, "filter_video");
+    return -1;
+}
+
+static int dummy_filter_audio(TCModuleInstance *self,
+                              aframe_list_t *frame)
+{
+    DUMMY_CHECK(self, "filter_audio");
     return -1;
 }
 
@@ -171,9 +196,13 @@ static const TCModuleClass dummy_class = {
     dummy_fini,
     dummy_configure,
     
-    dummy_encode,
-    dummy_decode,
-    dummy_filter,
+    dummy_encode_audio,
+    dummy_encode_video,
+    dummy_decode_audio,
+    dummy_decode_video,
+    dummy_filter_audio,
+    dummy_filter_video,
+    
     dummy_multiplex,
     dummy_demultiplex
 };
@@ -516,14 +545,23 @@ static int tc_module_class_copy(const TCModuleClass *klass,
     core_klass->fini = klass->fini;
     core_klass->configure = klass->configure;
 
-    if (klass->encode != NULL) {
-        core_klass->encode = klass->encode;
+    if (klass->encode_audio != NULL) {
+        core_klass->encode_audio = klass->encode_audio;
     }
-    if (klass->decode != NULL) {
-        core_klass->decode = klass->decode;
+    if (klass->encode_video != NULL) {
+        core_klass->encode_video = klass->encode_video;
     }
-    if (klass->filter != NULL) {
-        core_klass->filter = klass->filter;
+    if (klass->decode_audio != NULL) {
+        core_klass->decode_audio = klass->decode_audio;
+    }
+    if (klass->decode_video != NULL) {
+        core_klass->decode_video = klass->decode_video;
+    }
+    if (klass->filter_audio != NULL) {
+        core_klass->filter_audio = klass->filter_audio;
+    }
+    if (klass->filter_video != NULL) {
+        core_klass->filter_video = klass->filter_video;
     }
     if (klass->multiplex != NULL) {
         core_klass->multiplex = klass->multiplex;
