@@ -1,5 +1,9 @@
 2005-12-22 Andrew Church <achurch at achurch dot org>
   * src/counter.c
+  Change some counter field names.
+
+2005-12-22 Andrew Church <achurch at achurch dot org>
+  * src/counter.c
   Add "raw" progress counter mode to provide easily parseable output to
   wrapper programs.
 

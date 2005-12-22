@@ -25,8 +25,9 @@ static double skipped_time = 0;   /* Time spent skipping so far */
 static int highest_frame = 0;     /* Highest frame number to be seen */
 
 static void print_counter_line(int encoding, int frame, int first, int last,
-                               double fps, double done, double time,
-                               int secleft, int buf1, int buf2, int buf3);
+                               double fps, double done, double timestamp,
+                               int secleft, int decodebuf, int filterbuf,
+                               int encodebuf);
 
 /*************************************************************************/
 /*************************************************************************/
@@ -267,25 +268,49 @@ void counter_print(int encoding, int frame, int first, int last)
 
 /*************************************************************************/
 
+/**
+ * print_counter_line:  Helper function to format display arguments into a
+ * progress counter line depending on settings.
+ *
+ * Parameters:  encoding: True (nonzero) if frames are being encoded,
+ *                        false (zero) if frames are being skipped.
+ *                 frame: Current frame being encoded or skipped.
+ *                 first: First frame of current range.
+ *                  last: Last frame of current range, -1 if unknown.
+ *                   fps: Estimated frames processed per second.
+ *                  done: Completion ratio (0..1), -1 if unknown.
+ *             timestamp: Timestamp of current frame, in seconds.
+ *               secleft: Estimated time remaining to completion, in
+ *                        seconds (-1 if unknown).
+ *             decodebuf: Number of buffered frames awaiting decoding.
+ *             filterbuf: Number of buffered frames awaiting filtering.
+ *             encodebuf: Number of buffered frames awaiting encoding.
+ * Return value: None.
+ * Preconditions: None.
+ * Postconditions: None.
+ */
+
 static void print_counter_line(int encoding, int frame, int first, int last,
-                               double fps, double done, double time,
-                               int secleft, int buf1, int buf2, int buf3)
+                               double fps, double done, double timestamp,
+                               int secleft, int decodebuf, int filterbuf,
+                               int encodebuf)
 {
     if (print_counter_cr == 2) {
         /* Raw data format */
         printf("encoding=%d frame=%d first=%d last=%d fps=%.3f done=%.6f"
-               " emt=%.3f eta=%d buf1=%d buf2=%d buf3=%d\n",
+               " timestamp=%.3f timeleft=%d decodebuf=%d filterbuf=%d"
+               " encodebuf=%d\n",
                encoding, frame, first, last, fps, done,
-               time, secleft, buf1, buf2, buf3);
+               timestamp, secleft, decodebuf, filterbuf, encodebuf);
     } else if (last < 0 || done < 0 || secleft < 0) {
-        int timeint = floor(time);
-        printf("%s frames [%d-%d], %6.2f fps, EMT: %d:%02d:%02d,"
+        int timeint = floor(timestamp);
+        printf("%s frames [%d-%d], %6.2f fps, CFT: %d:%02d:%02d,"
                "  (%2d|%2d|%2d)%s",
                encoding ? "encoding" : "skipping",
                first, frame,
                fps,
                timeint/3600, (timeint/60) % 60, timeint % 60,
-               buf1, buf2, buf3,
+               decodebuf, filterbuf, encodebuf,
                print_counter_cr ? " \r" : "\n"
         );
     } else {
@@ -303,7 +328,7 @@ static void print_counter_line(int encoding, int frame, int first, int last,
                fps,
                100*done,
                eta_buf,
-               buf1, buf2, buf3,
+               decodebuf, filterbuf, encodebuf,
                print_counter_cr ? " \r" : "\n"
         );
     }
