@@ -1,3 +1,8 @@
+2005-12-22 Andrew Church <achurch at achurch dot org>
+  * src/counter.c
+  Add "raw" progress counter mode to provide easily parseable output to
+  wrapper programs.
+
 2005-12-21 Andrew Church <achurch at achurch dot org>
   * export/export_raw.c
   Fix breakage with -y ...,raw when the -F option is given.

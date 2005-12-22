@@ -24,6 +24,10 @@ static int skipped_frames = 0;    /* Number of frames skipped so far */
 static double skipped_time = 0;   /* Time spent skipping so far */
 static int highest_frame = 0;     /* Highest frame number to be seen */
 
+static void print_counter_line(int encoding, int frame, int first, int last,
+                               double fps, double done, double time,
+                               int secleft, int buf1, int buf2, int buf3);
+
 /*************************************************************************/
 /*************************************************************************/
 
@@ -122,9 +126,10 @@ void counter_reset_ranges(void)
 
 void counter_print(int encoding, int frame, int first, int last)
 {
+    vob_t *vob = tc_get_vob();
     struct timeval tv;
     struct timezone dummy_tz = {0,0};
-    double now, timediff, fps;
+    double now, timediff, fps, time;
     uint32_t buf1, buf2, buf3;
     /* Values of 'first' and `last' during last call (-1 = not called yet) */
     static int old_first = -1, old_last = -1;
@@ -196,39 +201,24 @@ void counter_print(int encoding, int frame, int first, int last)
     buf3 = vbuffer_ex_fill_ctr;
     pthread_mutex_unlock(&vbuffer_ex_fill_lock);
 
+    time = (double)frame / ((vob->fps<1.0) ? 1.0 : vob->fps);
+
     if (last == -1) {
         /* Can't calculate ETA, just display current timestamp */
-        vob_t *vob = tc_get_vob();
-        int time = (double)frame / ((vob->fps<1.0) ? 1.0 : vob->fps);
-        printf("%s frames [%d-%d], %6.2f fps, EMT: %d:%02d:%02d,"
-               "  (%2d|%2d|%2d)%s",
-               encoding ? "encoding" : "skipping",
-               first, frame,
-               fps,
-               time/3600, (time/60) % 60, time % 60,
-               buf1, buf2, buf3,
-               print_counter_cr ? " \r" : "\n"
-        );
+        print_counter_line(encoding, frame, first, -1, fps, -1, time, -1,
+                           buf1, buf2, buf3);
 
     } else if (frames_to_encode == 0) {
         /* Total number of frames unknown, just display for current range */
         double done = (double)(frame - first + 1) / (double)(last+1 - first);
         int secleft = (last+1 - frame) / fps;
-        printf("%s frame [%d/%d], %6.2f fps, %5.1f%%, ETA: %d:%02d:%02d,"
-               " (%2d|%2d|%2d)%s",
-               encoding ? "encoding" : "skipping",
-               frame, last+1,
-               fps,
-               100*done,
-               secleft/3600, (secleft/60) % 60, secleft % 60,
-               buf1, buf2, buf3,
-               print_counter_cr ? " \r" : "\n"
-        );
+        print_counter_line(encoding, frame, first, last, fps, done, time,
+                           secleft, buf1, buf2, buf3);
 
     } else {
         /* Estimate time remaining for entire run */
-        char eta_buf[100];
         double done;
+        int secleft;
         if (encoding) {
             encoded_frames++;
             encoded_time += timediff;
@@ -243,10 +233,9 @@ void counter_print(int encoding, int frame, int first, int last)
         if (encoded_frames == 0) {
             /* We don't know how long it will take to encode frames; avoid
              * understating the ETA, and just say we don't know */
-            snprintf(eta_buf, sizeof(eta_buf), "--:--:--");
+            secleft = -1;
         } else {
             double encode_fps, skip_fps, total_time;
-            int secleft;
             /* Find the processing speed for encoding and skipping */
             encode_fps = encoded_frames / encoded_time;
             if (skipped_frames > 0) {
@@ -263,18 +252,54 @@ void counter_print(int encoding, int frame, int first, int last)
                        + (frames_to_skip / skip_fps);
             /* Determine time left (round up) and convert to string */
             secleft = ceil(total_time - (encoded_time + skipped_time));
-            snprintf(eta_buf, sizeof(eta_buf), "%d:%02d:%02d",
-                     secleft/3600, (secleft/60) % 60, secleft % 60);
             /* Use the proper overall FPS in the status line */
             fps = encoding ? encode_fps : skip_fps;
         }
         /* Just use the frame ratio for completion percentage */
         done = (double)(encoded_frames + skipped_frames)
              / (double)(frames_to_encode + frames_to_skip);
+        print_counter_line(encoding, frame, first, last, fps, done, time,
+                           secleft, buf1, buf2, buf3);
+    }
+
+    fflush(stdout);
+}
+
+/*************************************************************************/
+
+static void print_counter_line(int encoding, int frame, int first, int last,
+                               double fps, double done, double time,
+                               int secleft, int buf1, int buf2, int buf3)
+{
+    if (print_counter_cr == 2) {
+        /* Raw data format */
+        printf("encoding=%d frame=%d first=%d last=%d fps=%.3f done=%.6f"
+               " emt=%.3f eta=%d buf1=%d buf2=%d buf3=%d\n",
+               encoding, frame, first, last, fps, done,
+               time, secleft, buf1, buf2, buf3);
+    } else if (last < 0 || done < 0 || secleft < 0) {
+        int timeint = floor(time);
+        printf("%s frames [%d-%d], %6.2f fps, EMT: %d:%02d:%02d,"
+               "  (%2d|%2d|%2d)%s",
+               encoding ? "encoding" : "skipping",
+               first, frame,
+               fps,
+               timeint/3600, (timeint/60) % 60, timeint % 60,
+               buf1, buf2, buf3,
+               print_counter_cr ? " \r" : "\n"
+        );
+    } else {
+        char eta_buf[100];
+        if (secleft < 0) {
+            snprintf(eta_buf, sizeof(eta_buf), "--:--:--");
+        } else {
+            snprintf(eta_buf, sizeof(eta_buf), "%d:%02d:%02d",
+                     secleft/3600, (secleft/60) % 60, secleft % 60);
+        }
         printf("%s frame [%d/%d], %6.2f fps, %5.1f%%, ETA: %s,"
                " (%2d|%2d|%2d)%s",
                encoding ? "encoding" : "skipping",
-               frame, highest_frame+1,
+               frame, last+1,
                fps,
                100*done,
                eta_buf,
@@ -282,8 +307,6 @@ void counter_print(int encoding, int frame, int first, int last)
                print_counter_cr ? " \r" : "\n"
         );
     }
-
-    fflush(stdout);
 }
 
 /*************************************************************************/
