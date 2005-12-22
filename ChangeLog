@@ -2,6 +2,7 @@
   * tools/tcmodinfo.c libtc/tcmodule.c libtc/tcmodule-core.h
   Changed some data structure and function names to achieve
   (hopefully) more clarity. Client code updated as well.
+  Also updated NMS documentation.
 
 2005-12-22 Andrew Church <achurch at achurch dot org>
   * src/counter.c

@@ -305,8 +305,8 @@ static int tc_factory_foreach_descriptor(TCFactoryHandle factory,
  *     desc: descriptor to verify
  *     modtype_: module type to look for.
  * Return Value:
- *     1 if given descriptor has given module type,
- *     0 otherwise. 
+ *     1  if given descriptor has given module type,
+ *     0  succesfull. 
  *     -1 if a given parameter is bogus.
  * Side effects:
  *     None.
@@ -339,8 +339,8 @@ static int descriptor_match_modtype(TCModuleDescriptor *desc,
  *     desc: descriptor to verify
  *     unused: dummy parameter to achieve API conformancy.
  * Return Value:
- *     1 if given descriptor is a free one (uninitialized),
- *     0 otherwise. 
+ *     1  if given descriptor is a free one (uninitialized),
+ *     0  succesfull. 
  *     -1 if a given parameter is bogus.
  * Side effects:
  *     None.
@@ -360,6 +360,23 @@ static int descriptor_is_free(TCModuleDescriptor *desc, void *unused)
     return 0;
 }
 
+/*
+ * descriptor_init:
+ *     initialize a plugin descriptor with valid defaults.
+ *
+ * Parameters:
+ *     desc: descriptor to initialize.
+ *     unused: dummy parameter to achieve API conformancy.
+ * Return Value:
+ *     0  succesfull.
+ *     -1 if a given parameter is bogus.
+ * Side effects:
+ *     None.
+ * Preconditions:
+ *     None.
+ * Postconditions:
+ *     None.
+ */
 static int descriptor_init(TCModuleDescriptor *desc, void *unused)
 {
     if (!desc) {
@@ -376,6 +393,25 @@ static int descriptor_init(TCModuleDescriptor *desc, void *unused)
     return 0;
 }
 
+/*
+ * descriptor_fini:
+ *     finalize a plugin descriptor, releasing all acquired
+ *     resources.
+ *
+ * Parameters:
+ *     desc: descriptor to finalize.
+ *     unused: dummy parameter to achieve API conformancy.
+ * Return Value:
+ *     1  if given descriptor has still some live instances around,
+ *     0  succesfull.
+ *     -1 if a given parameter is bogus.
+ * Side effects:
+ *     A plugin will be released and unloaded (via dlclose()).
+ * Preconditions:
+ *     None.
+ * Postconditions:
+ *     None.
+ */
 static int descriptor_fini(TCModuleDescriptor *desc, void *unused)
 {
     if (!desc) {
@@ -388,6 +424,7 @@ static int descriptor_fini(TCModuleDescriptor *desc, void *unused)
     }
 
     if (desc->status == TC_DESCRIPTOR_DONE) {
+        /* a deep copy was performed */
         tc_module_info_free(&(desc->info));
         if (desc->type != NULL) {
             tc_free((void*)desc->type);  /* avoid const warning */
@@ -431,32 +468,29 @@ static void make_modtype(char *buf, size_t bufsize,
 }
 
 /*
- * FUNCTION_NAME:
- *     doc
+ * tc_module_class_copy:
+ *     copy a module class into another one. Can perform
+ *     a soft (reference) copy or a hard (full) one.
+ *     Only non-null function pointer to plugin operations
+ *     will be copied.
+ *     soft copy: make the two classes points to same real data.
+ *     hard copy: make two independent copies duplicating the data.
  *
  * Parameters:
- *     name: doc.
- *
+ *     klass: source class to be copied.
+ *     core_klass: class destionation of copy.
+ *     soft_copy: boolean flag: if !0 do a soft copy, 
+ *                do an hard one otherwise.
  * Return Value:
- *     doc
- *
+ *     0  successfull
+ *     -1 given (at least) a bad TCModuleClass reference
+ *     1  not enough memory to perform a full copy
  * Side effects:
- *     doc.
- *
+ *     none.
  * Preconditions:
- *     doc.
- *
+ *     none.
  * Postconditions:
- *     doc.
- */
-
-/*
- * soft copy can't fail, just hard copy can, since it needs
- * to get some more memory.
- *
- * Meaning should be obvious:
- * soft copy: make the two classes points to same real data.
- * hard copy: make two independent copies duplicating the data.
+ *     destination class is a copy of source class.
  */
 static int tc_module_class_copy(const TCModuleClass *klass,
                                 TCModuleClass *core_klass,
@@ -601,7 +635,6 @@ failed_dlopen:
     }
 
 
- /* XXX: rewrite using standard */
 static int tc_factory_unload_module(TCFactoryHandle factory, int id)
 {
     int ret = 0;
