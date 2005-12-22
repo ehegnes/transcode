@@ -1,3 +1,8 @@
+2005-12-22 Francesco Romani <fromani at gmail dot com>
+  * tools/tcmodinfo.c libtc/tcmodule.c libtc/tcmodule-core.h
+  Changed some data structure and function names to achieve
+  (hopefully) more clarity. Client code updated as well.
+
 2005-12-22 Andrew Church <achurch at achurch dot org>
   * src/counter.c
   Change some counter field names.

@@ -32,7 +32,7 @@
  * module operations and capabilities (given by module class, so shared
  * between all modules) and private data.
  */
-typedef struct tcmodule_ *TCModule;
+typedef struct tcmodule_ *TCModuleHandle;
 struct tcmodule_ {
     const TCModuleClass *klass;
     /* pointer to class data shared between all instances */
@@ -45,21 +45,21 @@ struct tcmodule_ {
  * interface helpers, using shortened notation                           *
  *************************************************************************/
 
-#define tc_module_configure(module, options) \
-    (module)->klass->configure(&((module)->instance), options)
-#define tc_module_encode(module, inframe, outframe) \
-    (module)->klass->encode(&((module)->instance), inframe, outframe)
-#define tc_module_decode(module, inframe, outframe) \
-    (module)->klass->decode(&((module)->instance), inframe, outframe)
-#define tc_module_filter(module, frame) \
-    (module)->klass->filter(&((module)->instance), frame)
-#define tc_module_multiplex(module, vframe, aframe) \
-    (module)->klass->multiplex(&((module)->instance), vframe, aframe)
-#define tc_module_demultiplex(module, vframe, aframe) \
-    (module)->klass->demultiplex(&((module)->instance), vframe, aframe)
+#define tc_module_configure(handle, options) \
+    (handle)->klass->configure(&((handle)->instance), options)
+#define tc_module_encode(handle, inframe, outframe) \
+    (handle)->klass->encode(&((handle)->instance), inframe, outframe)
+#define tc_module_decode(handle, inframe, outframe) \
+    (handle)->klass->decode(&((handle)->instance), inframe, outframe)
+#define tc_module_filter(handle, frame) \
+    (handle)->klass->filter(&((handle)->instance), frame)
+#define tc_module_multiplex(handle, vframe, aframe) \
+    (handle)->klass->multiplex(&((handle)->instance), vframe, aframe)
+#define tc_module_demultiplex(handle, vframe, aframe) \
+    (handle)->klass->demultiplex(&((handle)->instance), vframe, aframe)
 
-#define tc_module_get_info(module) \
-    (const TCModuleInfo*)((module)->klass->info)
+#define tc_module_get_info(handle) \
+    (const TCModuleInfo*)((handle)->klass->info)
 
 #define tc_module_match(self, other) \
     tc_module_info_match((self)->klass->info, (other)->klass->info)
@@ -67,14 +67,14 @@ struct tcmodule_ {
     tc_module_info_log((self)->klass->info, verbose)
 
 /* factory data type. */
-typedef struct tcmodulefactory_ *TCModuleFactory;
+typedef struct tcfactory_ *TCFactoryHandle;
 
 /*************************************************************************
  * factory methods                                                       *
  *************************************************************************/
 
 /*
- * tc_module_factory_init:
+ * tc_factory_init:
  *      initialize a module factory. This function will acquire all
  *      needed resources and set all things appropriately to make the
  *      factory ready for create module instances, loading plugins on
@@ -86,12 +86,13 @@ typedef struct tcmodulefactory_ *TCModuleFactory;
  *        transcode plugins to load if needed starting from this
  *        directory.
  *        Note that this must be a single directory.
- *    verbose: verbosiness level of factory. Control the quantity
+ *    verbose: 
+ *        verbosiness level of factory. Control the quantity
  *        of informative messates to print out.
  *        Should be one of TC_INFO, TC_DEBUG... value.
  *
  * Return Value:
- *     A valid TCModuleFactory handle if initialization was done
+ *     A valid TCFactoryHandle if initialization was done
  *     succesfully, NULL otherwise. In latter case, a informative
  *     message is sent through tc_log*().
  *
@@ -105,10 +106,10 @@ typedef struct tcmodulefactory_ *TCModuleFactory;
  * Postconditions:
  *     factory initialized and ready to create TCModules.
  */
-TCModuleFactory tc_module_factory_init(const char *modpath, int verbose);
+TCFactoryHandle tc_factory_init(const char *modpath, int verbose);
 
 /*
- * tc_module_factory_fini:
+ * tc_factory_fini:
  *     finalize a module factory. Shutdowns the factory completely,
  *     cleaning up everything and unloading plugins.
  *     PLEASE NOTE: this function _CAN_ fail, notably if a plugin
@@ -136,17 +137,17 @@ TCModuleFactory tc_module_factory_init(const char *modpath, int verbose);
  *     all resources acquired by factory are released; no modules are
  *     loaded or avalaible, nor module instances are still floating around.
  */
-int tc_module_factory_fini(TCModuleFactory factory);
+int tc_factory_fini(TCFactoryHandle factory);
 
 /*
- * tc_module_factory_create:
+ * tc_factory_create_module:
  *      using given factory, create a new module instance of the given type,
  *      belonging to given class, and initialize it with reasonnable
  *      defaults values.
  *      This function may load a plugin implicitely to fullfill the request,
  *      since plugins are loaded on demand of client code.
  *      The returned instance pointer must be released using
- *      tc_module_factory_destroy (see below).
+ *      tc_factory_destroy_module (see below).
  *      The returned instance is ready to use with above tc_module_* macros,
  *      or in any way you like.
  *
@@ -177,15 +178,14 @@ int tc_module_factory_fini(TCModuleFactory factory);
  *      if you want to load the "foobar" plugin, belonging to filter class,
  *      you should use a code like this:
  *
- *      TCModule my_module = tc_module_factory_create("filter", "foobar");
- *
+ *      TCModule my_module = tc_factory_create_module("filter", "foobar");
  */
-TCModule tc_module_factory_create(TCModuleFactory factory,
-                                  const char *modclass,
-                                  const char *modname);
+TCModuleHandle tc_factory_create_module(TCFactoryHandle factory,
+                                        const char *modclass,
+                                        const char *modname);
 
 /*
- * tc_module_factory_destroy:
+ * tc_factory_destroy_module:
  *      destroy a module instance using given factory, unloading corrispondent
  *      plugin from factory if needed.
  *      This function release the maximum amount of resources possible
@@ -216,7 +216,7 @@ TCModule tc_module_factory_create(TCModuleFactory factory,
  *      At time of writing, factory *CANNOT* detect when this condition
  *      is violated. So be careful.
  *
- *      given module instance was obtained using tc_module_factory_create,
+ *      given module instance was obtained using tc_factory_create_module,
  *      applying this function to a module instances obtained in a
  *      different way causes undefined behaviour, most likely a memory
  *      corruption.
@@ -224,12 +224,13 @@ TCModule tc_module_factory_create(TCModuleFactory factory,
  * Postconditions:
  *      resources belonging to instance are released (see above).
  */
-int tc_module_factory_destroy(TCModuleFactory factory, TCModule module);
+int tc_factory_destroy_module(TCFactoryHandle factory,
+                              TCModuleHandle module);
 
 #ifdef TCMODULE_DEBUG
 
 /*
- * tc_module_factory_get_plugin_count:
+ * tc_factory_get_plugin_count:
  *      get the number of loaded plugins in a given factory.
  *      Used mainly for debug purposes.
  *
@@ -250,10 +251,10 @@ int tc_module_factory_destroy(TCModuleFactory factory, TCModule module);
  * Postconditions:
  *      None
  */
-int tc_module_factory_get_plugin_count(const TCModuleFactory factory);
+int tc_factory_get_plugin_count(const TCFactoryHandle factory);
 
 /*
- * tc_module_factory_get_module_count:
+ * tc_factory_get_module_count:
  *      get the number of module created and still valid by a given
  *      factory. Used mainly for debug purposes.
  *
@@ -274,10 +275,10 @@ int tc_module_factory_get_plugin_count(const TCModuleFactory factory);
  * Postconditions:
  *      None
  */
-int tc_module_factory_get_instance_count(const TCModuleFactory factory);
+int tc_factory_get_instance_count(const TCFactoryHandle factory);
 
 /*
- * tc_module_factory_compare_modules:
+ * tc_factory_compare_modules:
  *      compare two module (through it's handler) supposed to be the same
  *      type (class + name). Used mainly for debug purposes.
  *
@@ -302,8 +303,8 @@ int tc_module_factory_get_instance_count(const TCModuleFactory factory);
  * Postconditions:
  *      None
  */
-int tc_module_factory_compare_modules(const TCModule amod,
-                                      const TCModule bmod);
+int tc_factory_compare_modules(const TCModuleHandle amod,
+                               const TCModuleHandle bmod);
 
 #endif /* TCMODULE_DEBUG */
 

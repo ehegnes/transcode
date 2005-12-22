@@ -38,13 +38,13 @@
 typedef const TCModuleClass* (*TCModuleEntry)(void);
 
 typedef enum {
-    TC_HANDLE_FREE = 0,     /* free to use */
-    TC_HANDLE_CREATED,      /* reserved, but not yet registered */
-    TC_HANDLE_DONE,         /* ok, all donw and ready to run */
+    TC_DESCRIPTOR_FREE = 0,     /* free to use */
+    TC_DESCRIPTOR_CREATED,      /* reserved, but not yet registered */
+    TC_DESCRIPTOR_DONE,         /* ok, all donw and ready to run */
 } TCHandleStatus;
 
-typedef struct tcmodulehandle_ TCModuleHandle;
-struct tcmodulehandle_ {
+typedef struct tcmoduledescriptor_ TCModuleDescriptor;
+struct tcmoduledescriptor_ {
     const char *type;       /* packed class + name using make_modtype below */
     void *so_handle;        /* used by dl*() stuff */
     TCHandleStatus status;
@@ -54,15 +54,15 @@ struct tcmodulehandle_ {
      * all instance pointers will refer to this. */
     TCModuleClass klass;
 
-    int refcount;           /* how many instances are floating around? */
+    int ref_count;           /* how many instances are floating around? */
 };
 
-struct tcmodulefactory_ {
+struct tcfactory_ {
     const char *mod_path;   /* base directory for plugin search */
     int verbose;
 
-    TCModuleHandle handlers[TC_FACTORY_MAX_HANDLERS];
-    int handler_count;
+    TCModuleDescriptor descriptors[TC_FACTORY_MAX_HANDLERS];
+    int descriptor_count;
 
     int instance_count;
 };
@@ -170,6 +170,7 @@ static const TCModuleClass dummy_class = {
     dummy_init,
     dummy_fini,
     dummy_configure,
+    
     dummy_encode,
     dummy_decode,
     dummy_filter,
@@ -223,15 +224,15 @@ static int is_known_modclass(const char *modclass)
 }
 
 /*
- * TCModuleHandleIter:
- *     generic iterator function on factory handlers.
+ * TCModuleDescriptorIter:
+ *     generic iterator function on factory descriptors.
  *     In some different contexts, a iterator can be applied on all module 
- *     handlers in a given factory. Specific iterator functions can do 
- *     arbitrary actions on handler data. 
+ *     descriptors in a given factory. Specific iterator functions can do 
+ *     arbitrary actions on descriptor data. 
  *     See below to get some usage examples.
  *
  * Parameters:
- *     handle: pointer to a TCModuleHandle.
+ *     desc: pointer to a TCModuleDescriptor.
  *     userdata: opaque pointer to function-specific data.
  * Return Value:
  *     0  -> keep on going
@@ -240,38 +241,38 @@ static int is_known_modclass(const char *modclass)
  * Side effects:
  *     Arbitrary, defined by specific function.
  * Preconditions:
- *     given factory (but isn't guaranteed that also handlers are) already
+ *     given factory (but isn't guaranteed that also descriptors are) already
  *     initialized and contains valid data.
  * Postconditions:
  *     none.
  */
-typedef int (*TCModuleHandleIter)(TCModuleHandle *handle, void *userdata);
+typedef int (*TCModuleDescriptorIter)(TCModuleDescriptor *desc, void *userdata);
 
 /*
- * tc_module_factory_foreach_handler:
- *     apply given iterator with given data to all internal handlers,
+ * tc_factory_foreach_descriptor:
+ *     apply given iterator with given data to all internal descriptors,
  *     *both used and unused*.
  *
  * Parameters:
  *     factory: factory instance to use
- *     iterator: iterator to apply at factory handlers
- *     userdata: opaque data to pass to iterator along with each handler
+ *     iterator: iterator to apply at factory descriptors
+ *     userdata: opaque data to pass to iterator along with each descriptor
  *     index: pointer to an integer. If not NULL, will be filled
- *            with index of last handler elaborated
+ *            with index of last descriptor elaborated
  * Return Value:
  *     return code of the last execution of iterator.
  * Side effects:
- *     None (see specific handler for this).
+ *     None (see specific descriptor for this).
  * Preconditions:
  *     None.
  * Postconditions:
  *     If return value is 0, given iteratr wass applied to *all*
- *     handlers in factory.
+ *     descriptors in factory.
  */
-static int tc_module_factory_foreach_handler(TCModuleFactory factory,
-                                             TCModuleHandleIter iterator,
-                                             void *userdata,
-                                             int *index)
+static int tc_factory_foreach_descriptor(TCFactoryHandle factory,
+                                         TCModuleDescriptorIter iterator,
+                                         void *userdata,
+                                         int *index)
 {
     int ret, i = 0;
 
@@ -280,7 +281,7 @@ static int tc_module_factory_foreach_handler(TCModuleFactory factory,
     }
 
     for (i = 0; i < TC_FACTORY_MAX_HANDLERS; i++) {
-        ret = iterator(&(factory->handlers[i]), userdata);
+        ret = iterator(&(factory->descriptors[i]), userdata);
         if (ret != 0) {
             break;
         }
@@ -293,18 +294,18 @@ static int tc_module_factory_foreach_handler(TCModuleFactory factory,
 }
 
 /*
- * handle_something: some iterator functions
+ * descriptor_something: some iterator functions
  */
 
 /*
- * handle_match_modtype:
- *     verify the match for a given handler and a given module type.
+ * descriptor_match_modtype:
+ *     verify the match for a given descriptor and a given module type.
  *
  * Parameters:
- *     handle: handler to verify
+ *     desc: descriptor to verify
  *     modtype_: module type to look for.
  * Return Value:
- *     1 if given handler has given module type,
+ *     1 if given descriptor has given module type,
  *     0 otherwise. 
  *     -1 if a given parameter is bogus.
  * Side effects:
@@ -314,16 +315,16 @@ static int tc_module_factory_foreach_handler(TCModuleFactory factory,
  * Postconditions:
  *     None.
  */
-static int handle_match_modtype(TCModuleHandle *handle,
-                                void *modtype_)
+static int descriptor_match_modtype(TCModuleDescriptor *desc,
+                                    void *modtype_)
 {
     char *modtype = modtype_;
-    if (!handle || !modtype) {
+    if (!desc || !modtype) {
         return -1;
     }
-    if (handle->status == TC_HANDLE_DONE
-      && handle->type != NULL
-      && (strcmp(handle->type, modtype) == 0)) {
+    if (desc->status == TC_DESCRIPTOR_DONE
+      && desc->type != NULL
+      && (strcmp(desc->type, modtype) == 0)) {
         /* found it! */
         return 1;
     }
@@ -331,14 +332,14 @@ static int handle_match_modtype(TCModuleHandle *handle,
 }
 
 /*
- * handle_is_free:
- *     verify the match for a given handler is an unitialized one.
+ * descriptor_is_free:
+ *     verify the match for a given descriptor is an unitialized one.
  *
  * Parameters:
- *     handle: handler to verify
+ *     desc: descriptor to verify
  *     unused: dummy parameter to achieve API conformancy.
  * Return Value:
- *     1 if given handler is a free one (uninitialized),
+ *     1 if given descriptor is a free one (uninitialized),
  *     0 otherwise. 
  *     -1 if a given parameter is bogus.
  * Side effects:
@@ -348,77 +349,76 @@ static int handle_match_modtype(TCModuleHandle *handle,
  * Postconditions:
  *     None.
  */
-static int handle_is_free(TCModuleHandle *handle, void *unused)
+static int descriptor_is_free(TCModuleDescriptor *desc, void *unused)
 {
-    if (!handle) {
+    if (!desc) {
         return -1;
     }
-    if (handle->status == TC_HANDLE_FREE) {
+    if (desc->status == TC_DESCRIPTOR_FREE) {
         return 1;
     }
     return 0;
 }
 
-static int handle_init(TCModuleHandle *handle, void *unused)
+static int descriptor_init(TCModuleDescriptor *desc, void *unused)
 {
-    if (!handle) {
+    if (!desc) {
         return -1;
     }
 
-    handle->status = TC_HANDLE_FREE;
-    memcpy(&(handle->info), &dummy_info, sizeof(TCModuleInfo));
-    handle->klass.info = &(handle->info);
-    handle->type = NULL;
-    handle->so_handle = NULL;
-    handle->refcount = 0;
+    desc->status = TC_DESCRIPTOR_FREE;
+    memcpy(&(desc->info), &dummy_info, sizeof(TCModuleInfo));
+    desc->klass.info = &(desc->info);
+    desc->type = NULL;
+    desc->so_handle = NULL;
+    desc->ref_count = 0;
 
     return 0;
 }
 
-static int handle_fini(TCModuleHandle *handle, void *unused)
+static int descriptor_fini(TCModuleDescriptor *desc, void *unused)
 {
-    if (!handle) {
+    if (!desc) {
         return -1;
     }
 
-    /* can't finalize an handler with some living instances still around */
-    if (handle->refcount > 0) {
+    /* can't finalize an descriptor with some living instances still around */
+    if (desc->ref_count > 0) {
         return 1;
     }
 
-    if (handle->status == TC_HANDLE_DONE) {
-        tc_module_info_free(&(handle->info));
-        if (handle->type != NULL) {
-            tc_free((void*)handle->type);  /* avoid const warning */
+    if (desc->status == TC_DESCRIPTOR_DONE) {
+        tc_module_info_free(&(desc->info));
+        if (desc->type != NULL) {
+            tc_free((void*)desc->type);  /* avoid const warning */
         }
-        if (handle->so_handle != NULL) {
-            dlclose(handle->so_handle);
+        if (desc->so_handle != NULL) {
+            dlclose(desc->so_handle);
+            desc->so_handle = NULL;
         }
-        handle->status = TC_HANDLE_FREE;
+        desc->status = TC_DESCRIPTOR_FREE;
     }
     return 0;
 }
 
 /* just a thin wrapper to adapt API */
-static int find_by_modtype(TCModuleFactory factory, const char *modtype)
+static int find_by_modtype(TCFactoryHandle factory, const char *modtype)
 {
     int ret, id;
-    ret = tc_module_factory_foreach_handler(factory,
-                                            handle_match_modtype,
-                                            (void*)modtype,
-                                            &id);
+    ret = tc_factory_foreach_descriptor(factory,
+                                        descriptor_match_modtype,
+                                        (void*)modtype, &id);
     /* ret >= 1 -> found something */
     return (ret >= 1) ?id : -1;
 }
 
 /* just a thin wrapper to adapt API */
-static int find_first_free_handle(TCModuleFactory factory)
+static int find_first_free_descriptor(TCFactoryHandle factory)
 {
     int ret, id;
-    ret = tc_module_factory_foreach_handler(factory,
-                                            handle_is_free,
-                                            NULL,
-                                            &id);
+    ret = tc_factory_foreach_descriptor(factory,
+                                        descriptor_is_free,
+                                        NULL, &id);
     /* ret >= 1 -> found something */
     return (ret >= 1) ?id : -1;
 }
@@ -513,7 +513,7 @@ static int tc_module_class_copy(const TCModuleClass *klass,
  *************************************************************************/
 
 
-static int tc_module_factory_load(TCModuleFactory factory,
+static int tc_factory_load_module(TCFactoryHandle factory,
                                   const char *modclass,
                                   const char *modname)
 {
@@ -521,8 +521,8 @@ static int tc_module_factory_load(TCModuleFactory factory,
     char full_modpath[PATH_MAX];
     char modtype[MOD_TYPE_MAX_LEN];
     TCModuleEntry modentry = NULL;
-    TCModuleHandle *modhandle = NULL;
-    const TCModuleClass *class_handle;
+    TCModuleDescriptor *desc = NULL;
+    const TCModuleClass *nclass;
 
     if (!modclass || !strlen(modclass)) {
         tc_log_error(__FILE__, "empty module class");
@@ -536,39 +536,39 @@ static int tc_module_factory_load(TCModuleFactory factory,
     tc_snprintf(full_modpath, PATH_MAX, "%s/%s_%s.so",
                 factory->mod_path, modclass, modname);
 
-    id = find_first_free_handle(factory);
+    id = find_first_free_descriptor(factory);
     if (id == -1) {
         tc_log_error(__FILE__, "already loaded the maximum number "
                                "of modules (%i)", TC_FACTORY_MAX_HANDLERS);
         return -1;
     }
-    modhandle = &(factory->handlers[id]);
-    modhandle->refcount = 0;
+    desc = &(factory->descriptors[id]);
+    desc->ref_count = 0;
 
-    modhandle->so_handle = dlopen(full_modpath, RTLD_GLOBAL | RTLD_NOW);
-    if (!modhandle->so_handle) {
+    desc->so_handle = dlopen(full_modpath, RTLD_GLOBAL | RTLD_NOW);
+    if (!desc->so_handle) {
         tc_log_error(__FILE__, "can't load module '%s'; reason: %s",
                                modtype, dlerror());
         goto failed_dlopen;
     }
-    modhandle->type = tc_strdup(modtype);
-    if (!modhandle->type) {
+    desc->type = tc_strdup(modtype);
+    if (!desc->type) {
         goto failed_strdup;
     }
-    modhandle->status = TC_HANDLE_CREATED;
+    desc->status = TC_DESCRIPTOR_CREATED;
 
     /* soft copy is enough here, since information will be overwritten */
-    tc_module_class_copy(&dummy_class, &(modhandle->klass), TC_TRUE);
+    tc_module_class_copy(&dummy_class, &(desc->klass), TC_TRUE);
 
-    modentry = dlsym(modhandle->so_handle, "tc_plugin_setup");
+    modentry = dlsym(desc->so_handle, "tc_plugin_setup");
     if (!modentry) {
         tc_log_error(__FILE__, "module '%s' doesn't have new style entry"
                                " point", modtype);
         goto failed_setup;
     }
-    class_handle = modentry();
+    nclass = modentry();
 
-    ret = tc_module_class_copy(class_handle, &(modhandle->klass), TC_FALSE);
+    ret = tc_module_class_copy(nclass, &(desc->klass), TC_FALSE);
 
     if (ret !=  0) {
         /* tc_module_register_class failed or just not ivoked! */
@@ -577,17 +577,17 @@ static int tc_module_factory_load(TCModuleFactory factory,
         goto failed_setup;
     }
 
-    modhandle->klass.id = id; /* enforce class/handle id */
-    modhandle->status = TC_HANDLE_DONE;
-    factory->handler_count++;
+    desc->klass.id = id; /* enforce class/descriptor id */
+    desc->status = TC_DESCRIPTOR_DONE;
+    factory->descriptor_count++;
 
     return 0;
 
 failed_setup:
-    modhandle->status = TC_HANDLE_FREE;
-    tc_free((void*)modhandle->type);  /* avoid const warning */
+    desc->status = TC_DESCRIPTOR_FREE;
+    tc_free((void*)desc->type);  /* avoid const warning */
 failed_strdup:
-    dlclose(modhandle->so_handle);
+    dlclose(desc->so_handle);
 failed_dlopen:
     return -1;
 }
@@ -602,26 +602,26 @@ failed_dlopen:
 
 
  /* XXX: rewrite using standard */
-static int tc_module_factory_unload(TCModuleFactory factory, int id)
+static int tc_factory_unload_module(TCFactoryHandle factory, int id)
 {
     int ret = 0;
-    TCModuleHandle *handle = NULL;
+    TCModuleDescriptor *desc = NULL;
 
-    CHECK_VALID_ID(id, "tc_module_factory_unload");
-    handle = &(factory->handlers[id]);
+    CHECK_VALID_ID(id, "tc_factory_unload_module");
+    desc = &(factory->descriptors[id]);
 
-    if (handle->refcount > 0) {
+    if (desc->ref_count > 0) {
         if (factory->verbose >= TC_DEBUG) {
             tc_log_error(__FILE__, "can't unload a module with active "
-                                   "refcount (id=%i, refcount=%i)",
-                                   handle->klass.id, handle->refcount);
+                                   "ref_count (id=%i, ref_count=%i)",
+                                   desc->klass.id, desc->ref_count);
         }
         return 1;
     }
 
-    ret = handle_fini(handle, NULL);
+    ret = descriptor_fini(desc, NULL);
     if (ret == 0) {
-        factory->handler_count--;
+        factory->descriptor_count--;
         return 0;
     }
     return ret;
@@ -631,14 +631,14 @@ static int tc_module_factory_unload(TCModuleFactory factory, int id)
  * implementation of exported functions                                  *
  *************************************************************************/
 
-TCModuleFactory tc_module_factory_init(const char *modpath, int verbose)
+TCFactoryHandle tc_factory_init(const char *modpath, int verbose)
 {
-    TCModuleFactory factory = NULL;
+    TCFactoryHandle factory = NULL;
     if (!modpath || !strlen(modpath)) {
         return NULL;
     }
 
-    factory = tc_zalloc(sizeof(struct tcmodulefactory_));
+    factory = tc_zalloc(sizeof(struct tcfactory_));
     if (!factory) {
         return NULL;
     }
@@ -646,25 +646,25 @@ TCModuleFactory tc_module_factory_init(const char *modpath, int verbose)
     factory->mod_path = modpath;
     factory->verbose = verbose;
 
-    factory->handler_count = 0;
+    factory->descriptor_count = 0;
     factory->instance_count = 0;
 
-    tc_module_factory_foreach_handler(factory, handle_init, NULL, NULL);
+    tc_factory_foreach_descriptor(factory, descriptor_init, NULL, NULL);
 
     return factory;
 }
 
-int tc_module_factory_fini(TCModuleFactory factory)
+int tc_factory_fini(TCFactoryHandle factory)
 {
     if (!factory) {
         return 1;
     }
 
-    tc_module_factory_foreach_handler(factory, handle_fini, NULL, NULL);
+    tc_factory_foreach_descriptor(factory, descriptor_fini, NULL, NULL);
 
-    if (factory->handler_count > 0) {
-        tc_log_warn(__FILE__, "left out %i module handlers",
-                              factory->handler_count);
+    if (factory->descriptor_count > 0) {
+        tc_log_warn(__FILE__, "left out %i module descriptors",
+                              factory->descriptor_count);
         return -1;
     }
 
@@ -672,13 +672,13 @@ int tc_module_factory_fini(TCModuleFactory factory)
     return 0;
 }
 
-TCModule tc_module_factory_create(TCModuleFactory factory,
-                                  const char *modclass,
-                                  const char *modname)
+TCModuleHandle tc_factory_create_module(TCFactoryHandle factory,
+                                        const char *modclass,
+                                        const char *modname)
 {
     char modtype[MOD_TYPE_MAX_LEN];
     int id = -1, ret;
-    TCModule module = NULL;
+    TCModuleHandle module = NULL;
 
     if (!factory) {
         return NULL;
@@ -696,21 +696,21 @@ TCModule tc_module_factory_create(TCModuleFactory factory,
     id = find_by_modtype(factory, modtype);
     if (id == -1) {
         /* module type not known */
-        id = tc_module_factory_load(factory, modclass, modname);
+        id = tc_factory_load_module(factory, modclass, modname);
         if (id == -1) {
             /* load failed, give up */
             return NULL;
         }
     }
     if (factory->verbose >= TC_DEBUG) {
-        tc_log_info(__FILE__, "module handler found at id (%i)", id);
+        tc_log_info(__FILE__, "module descriptor found at id (%i)", id);
     }
 
     module = tc_zalloc(sizeof(struct tcmodule_));
 
-    module->instance.type = factory->handlers[id].type;
+    module->instance.type = factory->descriptors[id].type;
     module->instance.id = factory->instance_count + 1;
-    module->klass = &(factory->handlers[id].klass);
+    module->klass = &(factory->descriptors[id].klass);
 
     ret = tc_module_init(module);
     if (ret != 0) {
@@ -720,21 +720,23 @@ TCModule tc_module_factory_create(TCModuleFactory factory,
         return NULL;
     }
 
-    factory->handlers[id].refcount++;
+    factory->descriptors[id].ref_count++;
     factory->instance_count++;
     if (factory->verbose >= TC_DEBUG) {
         tc_log_info(__FILE__, "module created: type='%s' instance id=(%i)",
                     module->instance.type, module->instance.id);
     }
     if (factory->verbose >= TC_STATS) {
-        tc_log_info(__FILE__, "handler refcount=(%i) instances so far=(%i)",
-                    factory->handlers[id].refcount, factory->instance_count);
+        tc_log_info(__FILE__, "descriptor ref_count=(%i) instances so far=(%i)",
+                    factory->descriptors[id].ref_count, 
+                    factory->instance_count);
     }
 
     return module;
 }
 
-int tc_module_factory_destroy(TCModuleFactory factory, TCModule module)
+int tc_factory_destroy_module(TCFactoryHandle factory, 
+                              TCModuleHandle module)
 {
     int ret = 0, id = -1;
 
@@ -747,7 +749,7 @@ int tc_module_factory_destroy(TCModuleFactory factory, TCModule module)
     }
     id = module->klass->id;
 
-    CHECK_VALID_ID(id, "tc_module_factory_destroy");
+    CHECK_VALID_ID(id, "tc_factory_destroy_module");
 
     ret = tc_module_fini(module);
     if (ret != 0) {
@@ -758,9 +760,9 @@ int tc_module_factory_destroy(TCModuleFactory factory, TCModule module)
     tc_free(module);
 
     factory->instance_count--;
-    factory->handlers[id].refcount--;
-    if (factory->handlers[id].refcount == 0) {
-        ret = tc_module_factory_unload(factory, id);
+    factory->descriptors[id].ref_count--;
+    if (factory->descriptors[id].ref_count == 0) {
+        ret = tc_factory_unload_module(factory, id);
     }
     return ret;
 }
@@ -769,17 +771,15 @@ int tc_module_factory_destroy(TCModuleFactory factory, TCModule module)
  * Debug helpers.                                                        *
  *************************************************************************/
 
-#ifdef TCMODULE_DEBUG
-
-int tc_module_factory_get_plugin_count(const TCModuleFactory factory)
+int tc_factory_get_plugin_count(const TCFactoryHandle factory)
 {
     if (!factory) {
         return -1;
     }
-    return factory->handler_count;
+    return factory->descriptor_count;
 }
 
-int tc_module_factory_get_instance_count(const TCModuleFactory factory)
+int tc_factory_get_instance_count(const TCFactoryHandle factory)
 {
     if (!factory) {
         return -1;
@@ -790,8 +790,8 @@ int tc_module_factory_get_instance_count(const TCModuleFactory factory)
 
 #include <assert.h>
 
-int tc_module_factory_compare_modules(const TCModule amod,
-                                      const TCModule bmod)
+int tc_factory_compare_modules(const TCModuleHandle amod,
+                               const TCModuleHandle bmod)
 {
     assert(amod != NULL && bmod != NULL);
 
@@ -814,8 +814,6 @@ int tc_module_factory_compare_modules(const TCModule amod,
     }
     return -1;
 }
-
-#endif  // TCMODULE_DEBUG
 
 /*************************************************************************/
 
@@ -840,7 +838,7 @@ int err;
 
 static vob_t *vob = NULL;
 
-static TCModuleFactory factory;
+static TCFactoryHandle factory;
 
 vob_t *tc_get_vob(void) { return vob; }
 
@@ -873,7 +871,7 @@ static void test_result_helper(const char *name, int ret, int expected)
 
 int test_bad_init(const char *modpath)
 {
-    factory = tc_module_factory_init("", 0);
+    factory = tc_factory_init("", 0);
     err = (factory == NULL) ?-1 :0;
 
     test_result_helper("bad_init::init", err, -1);
@@ -882,103 +880,103 @@ int test_bad_init(const char *modpath)
 
 int test_init_fini(const char *modpath)
 {
-    factory = tc_module_factory_init(modpath, 0);
+    factory = tc_factory_init(modpath, 0);
     err = (factory == NULL) ?-1 :0;
 
     test_result_helper("init_fini::init", err, 0);
-    test_result_helper("init_fini::fini", tc_module_factory_fini(factory), 0);
+    test_result_helper("init_fini::fini", tc_factory_fini(factory), 0);
     return 0;
 }
 
 int test_bad_create(const char *modpath)
 {
-    TCModule module = NULL;
-    factory = tc_module_factory_init(modpath, verbose);
+    TCModuleHandle module = NULL;
+    factory = tc_factory_init(modpath, verbose);
     err = (factory == NULL) ?-1 :0;
 
     test_result_helper("bad_create::init", err, 0);
-    module = tc_module_factory_create(factory, "inexistent", "inexistent");
+    module = tc_factory_create_module(factory, "inexistent", "inexistent");
     if (module != NULL) {
         tc_log_error(__FILE__, "loaded inexistent module?!?!");
     }
-    test_result_helper("bad_create::fini", tc_module_factory_fini(factory), 0);
+    test_result_helper("bad_create::fini", tc_factory_fini(factory), 0);
     return 0;
 }
 
 int test_create(const char *modpath)
 {
-    TCModule module = NULL;
-    factory = tc_module_factory_init(modpath, verbose);
+    TCModuleHandle module = NULL;
+    factory = tc_factory_init(modpath, verbose);
     err = (factory == NULL) ?-1 :0;
 
     test_result_helper("create::init", err, 0);
-    module = tc_module_factory_create(factory, "filter", "null");
+    module = tc_factory_create_module(factory, "filter", "null");
     if (module == NULL) {
         tc_log_error(__FILE__, "can't load filter_null");
     } else {
         test_result_helper("create::check",
-                            tc_module_factory_compare_modules(module,
+                            tc_factory_compare_modules(module,
                                                               module),
                             1);
         test_result_helper("create::instances",
-                           tc_module_factory_get_instance_count(factory),
+                           tc_factory_get_instance_count(factory),
                            1);
-        test_result_helper("create::handlers",
-                           tc_module_factory_get_plugin_count(factory),
+        test_result_helper("create::descriptors",
+                           tc_factory_get_plugin_count(factory),
                            1);
-        tc_module_factory_destroy(factory, module);
+        tc_factory_destroy_module(factory, module);
     }
-    test_result_helper("create::fini", tc_module_factory_fini(factory), 0);
+    test_result_helper("create::fini", tc_factory_fini(factory), 0);
     return 0;
 }
 
 int test_double_create(const char *modpath)
 {
-    TCModule module1 = NULL, module2 = NULL;
-    factory = tc_module_factory_init(modpath, verbose);
+    TCModuleHandle module1 = NULL, module2 = NULL;
+    factory = tc_factory_init(modpath, verbose);
     err = (factory == NULL) ?-1 :0;
 
     test_result_helper("double_create::init", err, 0);
-    module1 = tc_module_factory_create(factory, "filter", "null");
+    module1 = tc_factory_create_module(factory, "filter", "null");
     if (module1 == NULL) {
         tc_log_error(__FILE__, "can't load filter_null (1)");
     }
-    module2 = tc_module_factory_create(factory, "filter", "null");
+    module2 = tc_factory_create_module(factory, "filter", "null");
     if (module2 == NULL) {
         tc_log_error(__FILE__, "can't load filter_null (1)");
     }
 
     test_result_helper("double_create::check",
-                       tc_module_factory_compare_modules(module1, module2),
+                       tc_factory_compare_modules(module1, module2),
                        0);
     test_result_helper("double_create::instances",
-                       tc_module_factory_get_instance_count(factory),
+                       tc_factory_get_instance_count(factory),
                        2);
-    test_result_helper("double_create::handlers",
-                       tc_module_factory_get_plugin_count(factory),
+    test_result_helper("double_create::descriptors",
+                       tc_factory_get_plugin_count(factory),
                        1);
     if (module1) {
-        tc_module_factory_destroy(factory, module1);
+        tc_factory_destroy_module(factory, module1);
     }
     if (module2) {
-        tc_module_factory_destroy(factory, module2);
+        tc_factory_destroy_module(factory, module2);
     }
-    test_result_helper("double_create::fini", tc_module_factory_fini(factory), 0);
+    test_result_helper("double_create::fini", tc_factory_fini(factory), 0);
     return 0;
 }
 
 #define HOW_MUCH_STRESS         (512) // at least 32, 2 to let the things work
 int test_stress_create(const char *modpath)
 {
-    TCModule module[HOW_MUCH_STRESS];
+    TCModuleHandle module[HOW_MUCH_STRESS];
     int i, equality;
-    factory = tc_module_factory_init(modpath, verbose);
+    factory = tc_factory_init(modpath, verbose);
     err = (factory == NULL) ?-1 :0;
 
     test_result_helper("stress_create::init", err, 0);
 
     for (i = 0; i < HOW_MUCH_STRESS; i++) {
-        module[i] = tc_module_factory_create(factory, "filter", "null");
+        module[i] = tc_factory_create_module(factory, "filter", "null");
         if (module[i] == NULL) {
             tc_log_error(__FILE__, "can't load filter_null (%i)", i);
             break;
@@ -994,7 +992,7 @@ int test_stress_create(const char *modpath)
 
     // note that we MUST start from 1
     for (i = 1; i < HOW_MUCH_STRESS; i++) {
-        equality = tc_module_factory_compare_modules(module[i-1], module[i]);
+        equality = tc_factory_compare_modules(module[i-1], module[i]);
         if (equality != 0) {
             tc_log_error(__FILE__, "diversion! %i | %i", i-1, i);
             break;
@@ -1009,44 +1007,44 @@ int test_stress_create(const char *modpath)
     }
 
     test_result_helper("stress_create::instances",
-                       tc_module_factory_get_instance_count(factory),
+                       tc_factory_get_instance_count(factory),
                        HOW_MUCH_STRESS);
-    test_result_helper("stress_create::handlers",
-                       tc_module_factory_get_plugin_count(factory), 1);
+    test_result_helper("stress_create::descriptors",
+                       tc_factory_get_plugin_count(factory), 1);
 
 
     for (i = 0; i < HOW_MUCH_STRESS; i++) {
-        tc_module_factory_destroy(factory, module[i]);
+        tc_factory_destroy_module(factory, module[i]);
     }
 
     test_result_helper("stress_create::instances (postnuke)",
-                       tc_module_factory_get_instance_count(factory), 0);
-    test_result_helper("stress_create::handlers (postnuke)",
-                       tc_module_factory_get_plugin_count(factory), 0);
+                       tc_factory_get_instance_count(factory), 0);
+    test_result_helper("stress_create::descriptors (postnuke)",
+                       tc_factory_get_plugin_count(factory), 0);
 
 
-    test_result_helper("stress_create::fini", tc_module_factory_fini(factory), 0);
+    test_result_helper("stress_create::fini", tc_factory_fini(factory), 0);
 
     return 0;
 }
 
 int test_stress_load(const char *modpath)
 {
-    TCModule module;
-    int i, breakage = 0, instances = 0, handlers = 0;
-    factory = tc_module_factory_init(modpath, verbose);
+    TCModuleHandle module;
+    int i, breakage = 0, instances = 0, descriptors = 0;
+    factory = tc_factory_init(modpath, verbose);
     err = (factory == NULL) ?-1 :0;
 
     test_result_helper("stress_load::init", err, 0);
 
     for (i = 0; i < HOW_MUCH_STRESS; i++) {
-        module = tc_module_factory_create(factory, "filter", "null");
+        module = tc_factory_create_module(factory, "filter", "null");
         if (module == NULL) {
             tc_log_error(__FILE__, "can't load filter_null (%i)", i);
             break;
         }
 
-        instances = tc_module_factory_get_instance_count(factory);
+        instances = tc_factory_get_instance_count(factory);
         if(instances != 1) {
             tc_log_error(__FILE__, "wrong instance count: %i, expected %i\n",
                          instances, 1);
@@ -1054,17 +1052,17 @@ int test_stress_load(const char *modpath)
             break;
         }
 
-        handlers = tc_module_factory_get_plugin_count(factory);
-        if(handlers != 1) {
-            tc_log_error(__FILE__, "wrong handler count: %i, expected %i\n",
-                         handlers, 1);
+        descriptors = tc_factory_get_plugin_count(factory);
+        if(descriptors != 1) {
+            tc_log_error(__FILE__, "wrong descriptor count: %i, expected %i\n",
+                         descriptors, 1);
             breakage = 1;
             break;
         }
 
-        tc_module_factory_destroy(factory, module);
+        tc_factory_destroy_module(factory, module);
 
-        instances = tc_module_factory_get_instance_count(factory);
+        instances = tc_factory_get_instance_count(factory);
         if(instances != 0) {
             tc_log_error(__FILE__, "wrong instance count (postnuke): %i, expected %i\n",
                          instances, 0);
@@ -1072,17 +1070,17 @@ int test_stress_load(const char *modpath)
             break;
         }
 
-        handlers = tc_module_factory_get_plugin_count(factory);
-        if(handlers != 0) {
-            tc_log_error(__FILE__, "wrong handler count (postnuke): %i, expected %i\n",
-                         handlers, 0);
+        descriptors = tc_factory_get_plugin_count(factory);
+        if(descriptors != 0) {
+            tc_log_error(__FILE__, "wrong descriptor count (postnuke): %i, expected %i\n",
+                         descriptors, 0);
             breakage = 1;
             break;
         }
     }
 
     test_result_helper("stress_load::check", breakage, 0);
-    test_result_helper("stress_load::fini", tc_module_factory_fini(factory), 0);
+    test_result_helper("stress_load::fini", tc_factory_fini(factory), 0);
 
     return 0;
 }
