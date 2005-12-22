@@ -258,8 +258,8 @@ void counter_print(int encoding, int frame, int first, int last)
         /* Just use the frame ratio for completion percentage */
         done = (double)(encoded_frames + skipped_frames)
              / (double)(frames_to_encode + frames_to_skip);
-        print_counter_line(encoding, frame, first, last, fps, done, time,
-                           secleft, buf1, buf2, buf3);
+        print_counter_line(encoding, frame, 0, highest_frame, fps, done,
+                           time, secleft, buf1, buf2, buf3);
     }
 
     fflush(stdout);
