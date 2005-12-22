@@ -96,8 +96,8 @@ static void init_aa_table(TCVHandle handle, double aa_weight, double aa_bias);
  * currently 10 sets.)
  *
  * Parameters: None.
- * Return value: A handle to be passed to other tcvideo functions, or NULL
- *               on error.
+ * Return value: A handle to be passed to other tcvideo functions, or 0 on
+ *               error.
  * Preconditions: None.
  * Postconditions: None.
  */
