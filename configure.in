@@ -1270,6 +1270,12 @@ AC_SUBST(LIBTC_CFLAGS)
 AC_SUBST(LIBTC_LIBS)
 
 dnl
+dnl libtcaudio
+dnl
+LIBTCAUDIO_LIBS="\$(top_builddir)/libtcaudio/libtcaudio.la"
+AC_SUBST(LIBTCAUDIO_LIBS)
+
+dnl
 dnl libtcvideo
 dnl
 LIBTCVIDEO_LIBS="\$(top_builddir)/libtcvideo/libtcvideo.la"
@@ -1407,6 +1413,7 @@ AC_OUTPUT([
 	libioaux/Makefile
 	libsupport/Makefile
 	libtc/Makefile
+	libtcaudio/Makefile
 	libtcvideo/Makefile
 	libxio/Makefile
 	pvm3/Makefile
