@@ -114,7 +114,7 @@ static const char *null_configure(TCModuleInstance *self,
 }
 
 static int null_filter(TCModuleInstance *self, 
-                       frame_list_t *frame)
+                       vframe_list_t *frame)
 {
     int pre = TC_FALSE, vid = TC_FALSE;
 
@@ -265,10 +265,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 /*************************************************************************/
 
-static int null_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-static int null_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const int null_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const int null_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 
-static TCModuleInfo null_info = {
+static const TCModuleInfo null_info = {
     TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO|TC_MODULE_FEATURE_AUDIO,
     TC_MODULE_FLAG_RECONFIGURABLE,
     MOD_NAME,
@@ -279,18 +279,12 @@ static TCModuleInfo null_info = {
 };
 
 static const TCModuleClass null_class = {
-    0,
-        
-    &null_info,
-        
-    null_init,
-    null_fini,
-    null_configure,
-    NULL,
-    NULL,
-    null_filter,
-    NULL,
-    NULL
+    .info         = &null_info,
+
+    .init         = null_init,
+    .fini         = null_fini,
+    .configure    = null_configure,
+    .filter_video = null_filter,
 };
 
 extern const TCModuleClass *tc_plugin_setup(void)

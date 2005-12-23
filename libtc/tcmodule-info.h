@@ -42,19 +42,19 @@
  */
 typedef struct tcmoduleinfo_ TCModuleInfo;
 struct tcmoduleinfo_ {
-        uint32_t features; /* what this module can do? */
-        uint32_t flags; /* quirks */
+    uint32_t features; /* what this module can do? */
+    uint32_t flags; /* quirks */
 
-        const char *name;
-        const char *version;
-	const char *description;
+    const char *name;
+    const char *version;
+    const char *description;
 
-        /*
-         * the following two MUST point to an array of TC_CODEC_*
-         * terminated by a TC_CODEC_ERROR value
-         */
-        int *codecs_in;
-	int *codecs_out;
+    /*
+     * the following two MUST point to an array of TC_CODEC_*
+     * terminated by a TC_CODEC_ERROR value
+     */
+    const int *codecs_in;
+    const int *codecs_out;
 };
 
 /*
@@ -67,7 +67,7 @@ struct tcmoduleinfo_ {
  *         the first given module information structure;
  *         'head' output is supposed to fit in 'tail' input.
  *     tail:
- *         the second  given module information structure;
+ *         the second given module information structure;
  *         tail' input is supposed to be given by 'head' output.
  *
  * Return value:

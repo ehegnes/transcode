@@ -269,13 +269,13 @@ static int levels_fini(TCModuleInstance *self)
 }
 
 
-static int levels_filter(TCModuleInstance *self, 
-                         frame_list_t *frame)
+static int levels_filter(TCModuleInstance *self,
+                         vframe_list_t *frame)
 {
     vframe_list_t *vframe = (vframe_list_t*)frame;
     LevelsPrivateData *pd = NULL;
     
-    if (!self || ! frame) {
+    if (!self || !frame) {
        return -1;
     }
     pd = self->userdata;
@@ -332,11 +332,11 @@ int tc_filter(frame_list_t *vframe_, char *options)
 
 /*************************************************************************/
 
-static int levels_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
-static int levels_codecs_out[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
+static const int levels_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
+static const int levels_codecs_out[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
 
 /* new module support */
-static TCModuleInfo levels_info = {
+static const TCModuleInfo levels_info = {
     TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO,
     TC_MODULE_FLAG_RECONFIGURABLE,
     MOD_NAME,
@@ -346,18 +346,13 @@ static TCModuleInfo levels_info = {
     levels_codecs_out
 };
 
-const TCModuleClass levels_class = {
-    0,
-    &levels_info,
-        
-    levels_init,
-    levels_fini,
-    levels_configure,
-    NULL,
-    NULL,
-    levels_filter,
-    NULL,
-    NULL
+static const TCModuleClass levels_class = {
+    .info         = &levels_info,
+
+    .init         = levels_init,
+    .fini         = levels_fini,
+    .configure    = levels_configure,
+    .filter_video = levels_filter,
 };
     
 extern const TCModuleClass *tc_plugin_setup(void)

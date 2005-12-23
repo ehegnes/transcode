@@ -55,7 +55,7 @@ typedef struct tcmoduleclass_ TCModuleClass;
 struct tcmoduleclass_ {
     int id; /* opaque internal handle */
 
-    TCModuleInfo *info;
+    const TCModuleInfo *info;
 
     /* mandatory operations: */
     int (*init)(TCModuleInstance *self);

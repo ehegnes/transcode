@@ -571,11 +571,13 @@ static int tc_module_class_copy(const TCModuleClass *klass,
     }
 
     if (soft_copy == TC_TRUE) {
-        memcpy(klass->info, core_klass->info, sizeof(TCModuleInfo));
+        memcpy((TCModuleInfo *)klass->info, core_klass->info,
+               sizeof(TCModuleInfo));
         ret = 0;
     } else {
-        /* hard copy, create exact duplicate  */
-        ret = tc_module_info_copy(klass->info, core_klass->info);
+        /* hard copy, create exact duplicate */
+        ret = tc_module_info_copy(klass->info,
+                                  (TCModuleInfo *)core_klass->info);
     }
     return ret;
 }

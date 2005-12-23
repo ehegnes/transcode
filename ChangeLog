@@ -1,4 +1,10 @@
 2005-12-23 Andrew Church <achurch at achurch dot org>
+  * filter/filter_levels.c filter/filter_null.c libtc/tcmodule.c
+    libtc/tcmodule-data.h libtc/tcmodule-info.h libtc/tcmoduleinfo.c
+  Use const where feasible, and use C99 named fields in structure
+  initializers.  (also minor whitespace and warning cleanups)
+
+2005-12-23 Andrew Church <achurch at achurch dot org>
   * libtc/tcmodule.c
   Fix compilation warnings.
 

@@ -159,7 +159,7 @@ int tc_module_info_copy(const TCModuleInfo *src, TCModuleInfo *dst)
     if (!dst->codecs_in) {
         goto no_mem_codecs_in;
     }
-    memcpy(dst->codecs_in, src->codecs_in, i * sizeof(int));
+    memcpy((int *)dst->codecs_in, src->codecs_in, i * sizeof(int));
 
     for (i = 0; src->codecs_out[i] != TC_CODEC_ERROR; i++) {
         ; /* do nothing */
@@ -169,7 +169,7 @@ int tc_module_info_copy(const TCModuleInfo *src, TCModuleInfo *dst)
     if (!dst->codecs_out) {
         goto no_mem_codecs_out;
     }
-    memcpy(dst->codecs_out, src->codecs_out, i * sizeof(int));
+    memcpy((int *)dst->codecs_out, src->codecs_out, i * sizeof(int));
 
     return 0;
 
