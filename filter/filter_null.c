@@ -113,6 +113,11 @@ static const char *null_configure(TCModuleInstance *self,
     return "";
 }
 
+static int null_stop(TCModuleInstance *self)
+{
+    return 0;
+}
+
 static int null_filter(TCModuleInstance *self, 
                        vframe_list_t *frame)
 {
@@ -285,6 +290,8 @@ static const TCModuleClass null_class = {
     .init         = null_init,
     .fini         = null_fini,
     .configure    = null_configure,
+    .stop         = null_stop,
+
     .filter_video = null_filter,
 };
 

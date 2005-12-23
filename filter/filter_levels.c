@@ -268,6 +268,13 @@ static int levels_fini(TCModuleInstance *self)
     return 0;
 }
 
+static int levels_stop(TCModuleInstance *self)
+{
+    if (!self) {
+       return -1;
+    }
+    return 0;
+}
 
 static int levels_filter(TCModuleInstance *self,
                          vframe_list_t *frame)
@@ -352,6 +359,8 @@ static const TCModuleClass levels_class = {
     .init         = levels_init,
     .fini         = levels_fini,
     .configure    = levels_configure,
+    .stop         = levels_stop,
+
     .filter_video = levels_filter,
 };
     

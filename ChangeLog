@@ -1,4 +1,8 @@
 2005-12-23 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_levels.c filter/filter_null.c
+  implement NMS stop operation.
+
+2005-12-23 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule.c filter/filter_null.c filter/filter_levels.c
   more C99 initializers.
 
