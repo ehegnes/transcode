@@ -111,6 +111,12 @@ static const char *dummy_configure(TCModuleInstance *self,
     return "";
 }
 
+static int dummy_stop(TCModuleInstance *self)
+{
+    DUMMY_HEAVY_CHECK(self, "stopping");
+    return -1;
+}
+
 static int dummy_encode_video(TCModuleInstance *self,
                               vframe_list_t *inframe,
                               vframe_list_t *outframe)
@@ -195,6 +201,7 @@ static const TCModuleClass dummy_class = {
     dummy_init,
     dummy_fini,
     dummy_configure,
+    dummy_stop,
     
     dummy_encode_audio,
     dummy_encode_video,
@@ -507,7 +514,7 @@ static void make_modtype(char *buf, size_t bufsize,
  *
  * Parameters:
  *     klass: source class to be copied.
- *     core_klass: class destionation of copy.
+ *     nklass: class destionation of copy.
  *     soft_copy: boolean flag: if !0 do a soft copy, 
  *                do an hard one otherwise.
  * Return Value:
@@ -522,62 +529,64 @@ static void make_modtype(char *buf, size_t bufsize,
  *     destination class is a copy of source class.
  */
 static int tc_module_class_copy(const TCModuleClass *klass,
-                                TCModuleClass *core_klass,
+                                TCModuleClass *nklass,
                                 int soft_copy)
 {
     int ret;
 
-    if (!klass || !core_klass) {
+    if (!klass || !nklass) {
         tc_log_error(__FILE__, "bad module class reference for setup: %s%s",
                                 (!klass) ?"plugin class" :"",
-                                (!core_klass) ?"core class" :"");
+                                (!nklass) ?"core class" :"");
         return -1;
     }
 
-    if (!klass->init || !klass->fini || !klass->configure) {
+    if (!klass->init || !klass->fini
+     || !klass->configure || !klass->stop) {
         tc_log_error(__FILE__, "can't setup a module class without "
                                "one or more mandatory methods");
         return -1;
     }
 
     /* register only method really provided by given class */
-    core_klass->init = klass->init;
-    core_klass->fini = klass->fini;
-    core_klass->configure = klass->configure;
+    nklass->init = klass->init;
+    nklass->fini = klass->fini;
+    nklass->configure = klass->configure;
+    nklass->stop = klass->stop;
 
     if (klass->encode_audio != NULL) {
-        core_klass->encode_audio = klass->encode_audio;
+        nklass->encode_audio = klass->encode_audio;
     }
     if (klass->encode_video != NULL) {
-        core_klass->encode_video = klass->encode_video;
+        nklass->encode_video = klass->encode_video;
     }
     if (klass->decode_audio != NULL) {
-        core_klass->decode_audio = klass->decode_audio;
+        nklass->decode_audio = klass->decode_audio;
     }
     if (klass->decode_video != NULL) {
-        core_klass->decode_video = klass->decode_video;
+        nklass->decode_video = klass->decode_video;
     }
     if (klass->filter_audio != NULL) {
-        core_klass->filter_audio = klass->filter_audio;
+        nklass->filter_audio = klass->filter_audio;
     }
     if (klass->filter_video != NULL) {
-        core_klass->filter_video = klass->filter_video;
+        nklass->filter_video = klass->filter_video;
     }
     if (klass->multiplex != NULL) {
-        core_klass->multiplex = klass->multiplex;
+        nklass->multiplex = klass->multiplex;
     }
     if (klass->demultiplex != NULL) {
-        core_klass->demultiplex = klass->demultiplex;
+        nklass->demultiplex = klass->demultiplex;
     }
 
     if (soft_copy == TC_TRUE) {
-        memcpy((TCModuleInfo *)klass->info, core_klass->info,
+        memcpy((TCModuleInfo *)klass->info, nklass->info,
                sizeof(TCModuleInfo));
         ret = 0;
     } else {
         /* hard copy, create exact duplicate */
         ret = tc_module_info_copy(klass->info,
-                                  (TCModuleInfo *)core_klass->info);
+                                  (TCModuleInfo *)nklass->info);
     }
     return ret;
 }

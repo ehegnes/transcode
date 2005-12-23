@@ -61,6 +61,7 @@ struct tcmoduleclass_ {
     int (*init)(TCModuleInstance *self);
     int (*fini)(TCModuleInstance *self);
     const char* (*configure)(TCModuleInstance *self, const char *options);
+    int (*stop)(TCModuleInstance *self);
 
     /*
      * not-mandatory operations, a module doing something useful implements
@@ -77,9 +78,9 @@ struct tcmoduleclass_ {
     int (*filter_audio)(TCModuleInstance *self, aframe_list_t *frame);
     int (*filter_video)(TCModuleInstance *self, vframe_list_t *frame);
     int (*multiplex)(TCModuleInstance *self,
-                     vframe_list_t *frame, aframe_list_t *aframe);
+                     vframe_list_t *vframe, aframe_list_t *aframe);
     int (*demultiplex)(TCModuleInstance *self,
-                       vframe_list_t *frame, aframe_list_t *aframe);
+                       vframe_list_t *vframe, aframe_list_t *aframe);
 };
 
 /**************************************************************************
@@ -153,13 +154,37 @@ struct tcmoduleclass_ {
  *      Given module is ready to perform any supported operation.
  *
  * 
- * filter:
+ * stop:
+ *      reset a module and prepare for reconfiguration or finalization.
+ *      This means to flush buffers, close open files and so on,
+ *      but NOT release the reseource needed by a module to work.
+ *      Please note that this operation can do actions similar, but
+ *      not equal, to `fini'. Also note that `stop' can be invoked
+ *      zero or multiple times during the module lifetime, but
+ *      `fini' WILL be invkoed one and only one time.
+ * Parameters:
+ *      self: pointer to module instance to stop.
+ * Return Value:
+ *      0  succesfull.
+ *      -1 error occurred. A proper message should be sent to user using
+ *         tc_log*()
+ * Side effects:
+ *      None.
+ * Preconditions:
+ *      Given module was already initialized. Try to (re)stop
+ *      an unitialized module will cause an undefined behaviour.
+ *      Module doesn't need to be configured before to be stooped.
+ * Postconditions:
+ *      Given module is ready to be reconfigure safely.
+ *  
+ *       
+ * filter_{audio,video}:
  *      apply an in-place transformation to a given audio/video frame.
  *      Specific module loaded determines the action performend on
  *      given frame.
  * Parameters:
  *      self: pointer to module instance to use.
- *      frame: pointer to frame data to elaborate.
+ *      frame: pointer to {audio,video} frame data to elaborate.
  * Return Value:
  *      0  succesfull.
  *      -1 error occurred. A proper message should be sent to user using
@@ -171,6 +196,53 @@ struct tcmoduleclass_ {
  *      for filter will cause an undefined behaviour.
  * Postconditions:
  *      None
+ *
+ * 
+ *
+ * multiplex:
+ *      merge given encoded frames in output stream.
+ * Parameters:
+ *      self: pointer to module instance to use.
+ *      vframe: pointer to video frame to multiplex.
+ *              if NULL, don't multiplex video for this invokation.
+ *      aframe: pointer to audio frame to multiplex
+ *              if NULL, don't multiplex audio for this invokation.
+ * Return value:
+ *      -1 error occurred. A proper message should be sent to user using
+ *         tc_log*().
+ *      >0 number of bytes writed for multiplexed frame(s). Can be 
+ *         (and usually is) different from the plain sum of sizes of
+ *         encoded frames.
+ * Side effects:
+ *      None
+ * Preconditions:
+ *      module was already initialized. To use a uninitialized module
+ *      for multiplex will cause an undefined behaviour.
+ * Postconditions:
+ *      None
+ *
+ * demultiplex:
+ *      extract given encoded frames from input stream.
+ * Parameters:
+ *      self: pointer to module instance to use.
+ *      vframe: if not NULL, extract next video frame from input stream
+ *              and store it here.
+ *      aframe: if not NULL, extract next audio frame from input strema
+ *              and store it here.
+ * Return value:
+ *      -1 error occurred. A proper message should be sent to user using
+ *         tc_log*().
+ *      >0 number of bytes readed for demultiplexed frame(s). Can be 
+ *         (and usually is) different from the plain sum of sizes of
+ *         encoded frames.
+ * Side effects:
+ *      None
+ * Preconditions:
+ *      module was already initialized. To use a uninitialized module
+ *      for demultiplex will cause an undefined behaviour.
+ * Postconditions:
+ *      None
+ *
  */
 
 #endif /* TCMODULE_DATA_H */
