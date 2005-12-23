@@ -19,6 +19,7 @@ bin_PROGRAMS = transcode
 transcode_LDADD = \
 	$(DLDARWINLIB) \
 	$(LIBTC_LIBS) \
+	$(LIBTCAUDIO_LIBS) \
 	$(LIBTCVIDEO_LIBS) \
 	$(SUPPORT_LIBS) \
 	$(TCIOAUX_LIBS) \
