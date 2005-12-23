@@ -842,6 +842,8 @@ int tc_factory_destroy_module(TCFactoryHandle factory,
  * Debug helpers.                                                        *
  *************************************************************************/
 
+#ifdef TCMODULE_DEBUG
+
 int tc_factory_get_plugin_count(const TCFactoryHandle factory)
 {
     if (!factory) {
@@ -885,6 +887,8 @@ int tc_factory_compare_modules(const TCModuleHandle amod,
     }
     return -1;
 }
+
+#endif  // TCMODULE_DEBUG
 
 /*************************************************************************/
 

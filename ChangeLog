@@ -1,4 +1,8 @@
 2005-12-23 Andrew Church <achurch at achurch dot org>
+  * libtc/tcmodule.c
+  Fix compilation warnings.
+
+2005-12-23 Andrew Church <achurch at achurch dot org>
   * Changed: Makefile.am configure.in
   * Added: libtcaudio/*
   Add libtcaudio (counterpart to libtcvideo), containing various audio
