@@ -140,9 +140,9 @@ void counter_print(int encoding, int frame, int first, int last)
     static double old_time = 0;
 
     if (!tc_progress_meter
+     || !tc_progress_rate
      || !counter_active
-     || !print_counter_interval
-     || frame % print_counter_interval != 0
+     || frame % tc_progress_rate != 0
     ) {
         return;
     }
@@ -169,9 +169,9 @@ void counter_print(int encoding, int frame, int first, int last)
     timediff = now - old_time;
     old_time = now;
     if (old_first != first || old_last != last) {
-        /* In CR mode, start a new counter line for each range if we don't
-         * know the total number of frames to be encoded. */
-        if (print_counter_cr && old_first != -1 && frames_to_encode == 0)
+        /* In human-readable mode, start a new counter line for each range
+         * if we don't know the total number of frames to be encoded. */
+        if (tc_progress_meter == 1 && old_first != -1 && frames_to_encode == 0)
             printf("\n");
         start_time = now;
         old_first = first;
@@ -295,7 +295,7 @@ static void print_counter_line(int encoding, int frame, int first, int last,
                                int secleft, int decodebuf, int filterbuf,
                                int encodebuf)
 {
-    if (print_counter_cr == 2) {
+    if (tc_progress_meter == 2) {
         /* Raw data format */
         printf("encoding=%d frame=%d first=%d last=%d fps=%.3f done=%.6f"
                " timestamp=%.3f timeleft=%d decodebuf=%d filterbuf=%d"
@@ -305,13 +305,12 @@ static void print_counter_line(int encoding, int frame, int first, int last,
     } else if (last < 0 || done < 0 || secleft < 0) {
         int timeint = floor(timestamp);
         printf("%s frames [%d-%d], %6.2f fps, CFT: %d:%02d:%02d,"
-               "  (%2d|%2d|%2d)%s",
+               "  (%2d|%2d|%2d) \r",
                encoding ? "encoding" : "skipping",
                first, frame,
                fps,
                timeint/3600, (timeint/60) % 60, timeint % 60,
-               decodebuf, filterbuf, encodebuf,
-               print_counter_cr ? " \r" : "\n"
+               decodebuf, filterbuf, encodebuf
         );
     } else {
         char eta_buf[100];
@@ -322,14 +321,13 @@ static void print_counter_line(int encoding, int frame, int first, int last,
                      secleft/3600, (secleft/60) % 60, secleft % 60);
         }
         printf("%s frame [%d/%d], %6.2f fps, %5.1f%%, ETA: %s,"
-               " (%2d|%2d|%2d)%s",
+               " (%2d|%2d|%2d) \r",
                encoding ? "encoding" : "skipping",
                frame, last+1,
                fps,
                100*done,
                eta_buf,
-               decodebuf, filterbuf, encodebuf,
-               print_counter_cr ? " \r" : "\n"
+               decodebuf, filterbuf, encodebuf
         );
     }
 }

@@ -153,10 +153,10 @@ enum {
   DIR_MODE,
   FRAME_INTERVAL,
   ENCODE_FIELDS,
-  PRINT_STATUS,
   WRITE_PID,
   NICENESS,
-  PROGRESS_OFF,
+  PROGRESS_METER,
+  PROGRESS_RATE,
   DEBUG_MODE,
   ACCEL_MODE,
   TS_PID,
@@ -178,8 +178,6 @@ enum {
   MPLAYER_PROBE,
 };
 
-int print_counter_interval = 1;
-int print_counter_cr = 0;
 int color_level = 0;
 
 //-------------------------------------------------------------
@@ -193,6 +191,7 @@ int tc_decoder_delay     =  0;
 int tc_x_preview         =  0;
 int tc_y_preview         =  0;
 int tc_progress_meter    =  1;
+int tc_progress_rate     =  1;
 int tc_accel             = AC_ALL;    //acceleration code
 unsigned int tc_avi_limit = (unsigned int)-1;
 pid_t tc_probe_pid       = 0;
@@ -399,8 +398,8 @@ static void usage(int status)
   printf("\n");
 
   //internal flags
-  printf("--print_status N[,r] print status every N frames / use CR or NL [1,1]\n");
-  printf("--progress_off       disable progress meter status line [off]\n");
+  printf("--progress_meter N   select type of progress meter [1]\n");
+  printf("--progress_rate N    print progress every N frames [1]\n");
   printf("--color N            level of color in transcodes output [1]\n");
   printf("--write_pid file     write pid of signal thread to \"file\" [off]\n");
   printf("--nice N             set niceness to N [off]\n");
@@ -763,10 +762,10 @@ int main(int argc, char *argv[]) {
       {"dir_mode", required_argument, NULL, DIR_MODE},
       {"frame_interval", required_argument, NULL, FRAME_INTERVAL},
       {"encode_fields", required_argument, NULL, ENCODE_FIELDS},
-      {"print_status", required_argument, NULL, PRINT_STATUS},
+      {"progress_meter", required_argument, NULL, PROGRESS_METER},
+      {"progress_rate", required_argument, NULL, PROGRESS_RATE},
       {"write_pid", required_argument, NULL, WRITE_PID},
       {"nice", required_argument, NULL, NICENESS},
-      {"progress_off", no_argument, NULL, PROGRESS_OFF},
       {"debug_mode", no_argument, NULL, DEBUG_MODE},
       {"accel_mode", required_argument, NULL, ACCEL_MODE},
       {"avi_limit", required_argument, NULL, AVI_LIMIT},
@@ -794,16 +793,15 @@ int main(int argc, char *argv[]) {
 
     if(argc==1) short_usage(EXIT_FAILURE);
 
-    // if we're sending output to a terminal default to printing CR after every
-    // status update instead of LF.
+    // if we're sending output to a terminal default to no progress meter.
     if (isatty(fileno(stdout))) {
-      print_counter_cr = 1;
+      tc_progress_meter = 1;
     } else {
-      print_counter_cr = 0;
+      tc_progress_meter = 0;
     }
 
     // don't do colors if writing to a file
-    if (isatty(STDOUT_FILENO)==0 || isatty(STDERR_FILENO)==0) {
+    if (!isatty(STDOUT_FILENO) || !isatty(STDERR_FILENO)) {
       color_level = 0;
       RED    = "";
       GREEN  = "";
@@ -2264,9 +2262,15 @@ int main(int argc, char *argv[]) {
 
 	  break;
 
-	case PRINT_STATUS:
-	  if( ( n = sscanf( optarg, "%d,%d", &print_counter_interval, &print_counter_cr ) ) == 0 )
-	    tc_error( "invalid parameter for option --print_status" );
+	case PROGRESS_METER:
+	  if( ( n = sscanf( optarg, "%d", &tc_progress_meter ) ) == 0 )
+	    tc_error( "invalid parameter for option --progress_rate" );
+
+	  break;
+
+	case PROGRESS_RATE:
+	  if( ( n = sscanf( optarg, "%d", &tc_progress_rate ) ) == 0 )
+	    tc_error( "invalid parameter for option --progress_rate" );
 
 	  break;
 
@@ -2284,9 +2288,6 @@ int main(int argc, char *argv[]) {
 	    BLUE   = "";
 	  }
 
-	  break;
-	case PROGRESS_OFF:
-	  tc_progress_meter = TC_OFF;
 	  break;
 
 	case SOCKET_FILE:

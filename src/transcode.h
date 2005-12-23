@@ -626,8 +626,6 @@ extern int resize2;
 extern int decolor;
 extern int zoom;
 extern int dgamma;
-extern int print_counter_interval;
-extern int print_counter_cr;
 
 // core parameter
 extern int tc_buffer_delay_dec;
@@ -639,6 +637,7 @@ extern int tc_decoder_delay;
 extern int tc_x_preview;
 extern int tc_y_preview;
 extern int tc_progress_meter;
+extern int tc_progress_rate;
 extern pthread_t tc_pthread_main;
 extern int tc_accel;
 extern unsigned int tc_avi_limit;

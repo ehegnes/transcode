@@ -1,3 +1,14 @@
+2005-12-23 Andrew Church <achurch at achurch dot org>
+  * docs/man/transcode.1
+    src/counter.c src/transcode.c src/transcode.h
+  Replaced --print_status and --progress_off options with --progress_meter
+  and --progress_rate.  --progress_rate does the same thing as
+  --print_status (except that CR/LF can no longer be selected);
+  --progress_meter selects between no output (0, like --progress_off),
+  standard output (1), and machine-friendly "raw" output (2).
+  Also changed the default progress output to type 0 (none) when stdout
+  is not a terminal.
+
 2005-12-22 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule-data.h libtc/tcmodule.c
   specialize decode/filter/encode operations to handle

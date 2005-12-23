@@ -121,9 +121,9 @@ transcode \- LINUX video stream processing tool
 [ --a52_demux ]
 .br
 [ --a52_dolby_off ]
-[ --print_status N[,r] ]
+[ --progress_meter N ]
 .br
-[ --progress_off ]
+[ --progress_rate N ]
 [ --color N ]
 [ --write_pid file ]
 .br
@@ -2192,6 +2192,13 @@ it is Dolby Pro Logic - also called Dolby surround or 3:1 - downmix (if
 the option is not used).
 
 .TP
+.B \-\-color \fIN\fP
+level of color in transcodes output [1]
+.br
+Colorful output can be disabled by setting \fIN\fP to \fI0\fP. It will be
+automatically disabled if the output of transcode is a file or a pipe.
+
+.TP
 .B \-\-dir_mode \fIbase\fP
 process directory contents to base-%03d.avi [off]
 
@@ -2248,27 +2255,23 @@ negative value. \-10 sets a high priority; +10 a low priority.
 This might be useful for cluster mode.
 
 .TP
-.B \-\-progress_off
-disable progress meter status line [off]
+.B \-\-progress_meter \fIN\fP
+select type of progress meter [1]
+.br
+Selects the type of progress message printed by transcode on standard output:
+    0: no progress meter
+    1: standard progress meter
+    2: raw progress data
+Transcode defaults to type 1 if standard output is a terminal, type 0 (no
+progress meter) if standard output is a file or pipe.  Scripts that need
+progress data should use type 2, since the format of type 1 is subject to
+change without notice.
 
 .TP
-.B \-\-color \fIN\fP
-level of color in transcodes output [1]
+.B \-\-progress_rate \fIN\fP
+print progress every \fIN\fP frames [1]
 .br
-Colorful output can be disabled by setting \fIN\fP to \fI0\fP. It will be
-automatically disabled if the output of transcode is a file or a pipe.
-
-.TP
-.B \-\-print_status \fIN\fP[,\fIusecr\fP]
-print status every \fIN\fP frames / use CR or NL [1,1]
-.br
-The first parameter controls how frequently the status message is printed
-(every \fIN\fP frames), the second parameter (if provided) controls whether transcode
-ends the line with a CR ('\\r') or NL ('\\n') character.  Transcode defaults to
-ending with a CR if its output is going to a terminal, or a LF if its output is
-going to somewhere else (such as a logfile), so most people shouldn't have any
-need to specify the second parameter since it should do the right thing most of
-the time.
+Controls how frequently the status message is printed (every \fIN\fP frames).
 
 .TP
 .B \-\-socket \fIFILE\fP
