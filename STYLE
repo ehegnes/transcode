@@ -253,6 +253,22 @@ Coding style guidelines for transcode
           break;
       }
 
+* Structured type initializers should use C99-style named initializers, to
+  avoid bugs resulting from initialization of incorrect fields if the
+  structure definition is changed.  This is particularly important if the
+  structure definition is in a different source file, such as a header
+  file.  Example:
+      struct foo {
+          int bar;
+          double quux;
+          int have_quux;
+      };
+      ...
+      struct foo myfoo = {
+          .bar = 1,
+          .have_quux = 0,
+      };
+
 
 == Semantics ==
 
