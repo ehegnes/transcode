@@ -184,34 +184,34 @@ static int dummy_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 static int dummy_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 
 static TCModuleInfo dummy_info = {
-    TC_MODULE_FEATURE_NONE,
-    TC_MODULE_FLAG_NONE,
-    "dummy",
-    "internal fake module class",
-    "can't do anyhing",
-    dummy_codecs_in,
-    dummy_codecs_out
+    .features    = TC_MODULE_FEATURE_NONE,
+    .flags       = TC_MODULE_FLAG_NONE,
+    .name        = "dummy",
+    .version     = "internal fake module class",
+    .description = "can't do anyhing",
+    .codecs_in   = dummy_codecs_in,
+    .codecs_out  = dummy_codecs_out
 };
 
 static const TCModuleClass dummy_class = {
-    0,
+    .id           = 0,
 
-    &dummy_info,
+    .info         = &dummy_info,
 
-    dummy_init,
-    dummy_fini,
-    dummy_configure,
-    dummy_stop,
+    .init         = dummy_init,
+    .fini         = dummy_fini,
+    .configure    = dummy_configure,
+    .stop         = dummy_stop,
     
-    dummy_encode_audio,
-    dummy_encode_video,
-    dummy_decode_audio,
-    dummy_decode_video,
-    dummy_filter_audio,
-    dummy_filter_video,
+    .encode_audio = dummy_encode_audio,
+    .encode_video = dummy_encode_video,
+    .decode_audio = dummy_decode_audio,
+    .decode_video = dummy_decode_video,
+    .filter_audio = dummy_filter_audio,
+    .filter_video = dummy_filter_video,
     
-    dummy_multiplex,
-    dummy_demultiplex
+    .multiplex    = dummy_multiplex,
+    .demultiplex  = dummy_demultiplex
 };
 
 /*************************************************************************

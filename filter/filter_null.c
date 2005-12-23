@@ -269,13 +269,14 @@ static const int null_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 static const int null_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 
 static const TCModuleInfo null_info = {
-    TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO|TC_MODULE_FEATURE_AUDIO,
-    TC_MODULE_FLAG_RECONFIGURABLE,
-    MOD_NAME,
-    MOD_VERSION,
-    MOD_CAP,
-    null_codecs_in,
-    null_codecs_out
+    .features    = TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO
+                   |TC_MODULE_FEATURE_AUDIO,
+    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .name        = MOD_NAME,
+    .version     = MOD_VERSION,
+    .description = MOD_CAP,
+    .codecs_in   = null_codecs_in,
+    .codecs_out  = null_codecs_out
 };
 
 static const TCModuleClass null_class = {

@@ -337,13 +337,13 @@ static const int levels_codecs_out[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
 
 /* new module support */
 static const TCModuleInfo levels_info = {
-    TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO,
-    TC_MODULE_FLAG_RECONFIGURABLE,
-    MOD_NAME,
-    MOD_VERSION,
-    MOD_CAP,
-    levels_codecs_in,
-    levels_codecs_out
+    .features    = TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO,
+    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .name        = MOD_NAME,
+    .version     = MOD_VERSION,
+    .description = MOD_CAP,
+    .codecs_in   = levels_codecs_in,
+    .codecs_out  = levels_codecs_out
 };
 
 static const TCModuleClass levels_class = {

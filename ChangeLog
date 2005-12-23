@@ -1,4 +1,8 @@
 2005-12-23 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule.c filter/filter_null.c filter/filter_levels.c
+  more C99 initializers.
+
+2005-12-23 Francesco Romani <fromani at gmail dot com>
   * libntc/tcmodule-data.h libtc/tcmodule.c
   add `stop' operation for a NMS module. Useful to help core to
   rotate output and to flush encoding/decoding buffers.
