@@ -1,3 +1,5 @@
+/******* NOTICE: this module is disabled *******/
+
 /*
  *  export_pcm.c
  *
@@ -101,6 +103,14 @@ MOD_open
 {
 
   char fname[256];
+
+tc_log_error(MOD_NAME, "****************** NOTICE ******************");
+tc_log_error(MOD_NAME, "This module is disabled, probably because it");
+tc_log_error(MOD_NAME, "is considered obsolete or redundant.  Try");
+tc_log_error(MOD_NAME, "using a different module, such as ffmpeg.");
+tc_log_error(MOD_NAME, "If you still need this module, please");
+tc_log_error(MOD_NAME, "contact the transcode-users mailing list.");
+return TC_IMPORT_ERROR;
 
   if(param->flag == TC_AUDIO) {
 

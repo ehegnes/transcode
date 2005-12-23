@@ -1,3 +1,5 @@
+/******* NOTICE: this module is disabled *******/
+
 /*
  *  export_af6.cpp
  *
@@ -94,6 +96,14 @@ extern "C" {
   MOD_open
   {
     // prepare outputfile
+
+tc_log_error(MOD_NAME, "****************** NOTICE ******************");
+tc_log_error(MOD_NAME, "This module is disabled, probably because it");
+tc_log_error(MOD_NAME, "is considered obsolete or redundant.  Try");
+tc_log_error(MOD_NAME, "using a different module, such as ffmpeg.");
+tc_log_error(MOD_NAME, "If you still need this module, please");
+tc_log_error(MOD_NAME, "contact the transcode-users mailing list.");
+return TC_IMPORT_ERROR;
 
     if(vob->avifile_out==NULL)
       if(NULL == (vob->avifile_out = AVI_open_output_file(vob->video_out_file))) {

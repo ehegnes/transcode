@@ -1,3 +1,5 @@
+/******* NOTICE: this module is disabled *******/
+
 /*
  *  import_ffbin.c v 0.0.2
  *
@@ -57,6 +59,14 @@ static FILE *audiopipefd = NULL;
 MOD_open
 {
   long sret;
+
+tc_log_error(MOD_NAME, "****************** NOTICE ******************");
+tc_log_error(MOD_NAME, "This module is disabled, probably because it");
+tc_log_error(MOD_NAME, "is considered obsolete or redundant.  Try");
+tc_log_error(MOD_NAME, "using a different module, such as ffmpeg.");
+tc_log_error(MOD_NAME, "If you still need this module, please");
+tc_log_error(MOD_NAME, "contact the transcode-users mailing list.");
+return TC_IMPORT_ERROR;
 
   /* check for ffmpeg */
   if (tc_test_program("ffmpeg") != 0) return (TC_EXPORT_ERROR);

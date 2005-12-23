@@ -1,3 +1,5 @@
+/******* NOTICE: this module is disabled *******/
+
 /*
  *  filter_tc_video.c
  *
@@ -47,6 +49,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
   vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
   static char *video_buf[2] = {NULL, NULL};
+
+tc_log_error(MOD_NAME, "****************** NOTICE ******************");
+tc_log_error(MOD_NAME, "This module is disabled, probably because it");
+tc_log_error(MOD_NAME, "is considered obsolete or redundant.");
+tc_log_error(MOD_NAME, "If you still need this module, please");
+tc_log_error(MOD_NAME, "contact the transcode-users mailing list.");
+return -1;
 
   if (ptr->tag & TC_FILTER_GET_CONFIG) {
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYE", "1");

@@ -1,3 +1,5 @@
+/******* NOTICE: this module is disabled *******/
+
 /*
  *  export_divx4raw.c
  *
@@ -92,11 +94,13 @@ static int divx4_init(char *path) {
   char *error;
   int *quiet_encore;
 
-	tc_log_warn(MOD_NAME, "*** Warning: DivX is broken and support for it is ***");
-	tc_log_warn(MOD_NAME, "*** obsolete in transcode. Sooner or later it  ***");
-	tc_log_warn(MOD_NAME, "*** will be removed from transcode. Don't use ***");
-	tc_log_warn(MOD_NAME, "*** DivX. Use xvid or ffmpeg -F mpeg4 instead ***");
-	tc_log_warn(MOD_NAME, "*** for all your mpeg4 encodings. ***");
+tc_log_error(MOD_NAME, "****************** NOTICE ******************");
+tc_log_error(MOD_NAME, "This module is disabled, probably because it");
+tc_log_error(MOD_NAME, "is considered obsolete or redundant.  Try");
+tc_log_error(MOD_NAME, "using a different module, such as ffmpeg.");
+tc_log_error(MOD_NAME, "If you still need this module, please");
+tc_log_error(MOD_NAME, "contact the transcode-users mailing list.");
+return TC_IMPORT_ERROR;
 
   tc_snprintf(module, sizeof(module), "%s/%s", path, MODULE);
 

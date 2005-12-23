@@ -1,4 +1,20 @@
 2005-12-23 Andrew Church <achurch at achurch dot org>
+  * export/export_af6.cpp export/export_debugppm.c export/export_divx4.c
+    export/export_divx4raw.c export/export_divx5raw.c export/export_fame.c
+    export/export_mjpeg.c export/export_mp1e.c export/export_net.c
+    export/export_pcm.c export/export_pvn.c export/export_xvid2.c
+    export/export_xvid3.c filter/filter_cshift.c filter/filter_cut.c
+    filter/filter_dilyuvmmx.c filter/filter_nored.c filter/filter_tc_audio.c
+    filter/filter_tc_video.c filter/filter_test.c filter/filter_videocore.c
+    import/import_af6.c import/import_divx.c import/import_ffbin.c
+    import/import_fraps.c import/import_lav.c import/import_mpeg3.c
+    import/import_net.c import/import_nvrec.c import/import_pvn.c
+    import/import_rawlist.c import/import_sh.c import/import_vdrac3.c
+    import/import_vnc.c import/import_yuv.c
+  Disabled these modules, due to being obsolete, redundant, or otherwise
+  unused/useless.
+
+2005-12-23 Andrew Church <achurch at achurch dot org>
   * filter/filter_levels.c filter/filter_null.c libtc/tcmodule.c
     libtc/tcmodule-data.h libtc/tcmodule-info.h libtc/tcmoduleinfo.c
   Use const where feasible, and use C99 named fields in structure

@@ -1,3 +1,5 @@
+/******* NOTICE: this module is disabled *******/
+
 /*
  *  import_yuv.c  (C) Marek B³aszkowski Apr 2002
  *
@@ -57,6 +59,13 @@ static FILE *fd;
 
 MOD_open
 {
+
+tc_log_error(MOD_NAME, "****************** NOTICE ******************");
+tc_log_error(MOD_NAME, "This module is disabled, probably because it");
+tc_log_error(MOD_NAME, "is considered obsolete or redundant.");
+tc_log_error(MOD_NAME, "If you still need this module, please");
+tc_log_error(MOD_NAME, "contact the transcode-users mailing list.");
+return TC_IMPORT_ERROR;
 
     if(param->flag == TC_VIDEO) {
         if(verbose_flag & TC_DEBUG)

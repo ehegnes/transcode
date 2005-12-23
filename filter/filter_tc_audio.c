@@ -1,3 +1,5 @@
+/******* NOTICE: this module is disabled *******/
+
 /*
  *  filter_tc_audio.c
  *
@@ -47,6 +49,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
   double fch;
   int leap_bytes1, leap_bytes2;
 
+
+tc_log_error(MOD_NAME, "****************** NOTICE ******************");
+tc_log_error(MOD_NAME, "This module is disabled, probably because it");
+tc_log_error(MOD_NAME, "is considered obsolete or redundant.");
+tc_log_error(MOD_NAME, "If you still need this module, please");
+tc_log_error(MOD_NAME, "contact the transcode-users mailing list.");
+return -1;
 
   //----------------------------------
   //

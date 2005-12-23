@@ -1,3 +1,5 @@
+/******* NOTICE: this module is disabled *******/
+
 /*
  *  import_lav.c
  *
@@ -47,6 +49,14 @@ MOD_open
 {
   int i;
   long sret;
+
+tc_log_error(MOD_NAME, "****************** NOTICE ******************");
+tc_log_error(MOD_NAME, "This module is disabled, probably because it");
+tc_log_error(MOD_NAME, "is considered obsolete or redundant.  Try");
+tc_log_error(MOD_NAME, "using a different module, such as ffmpeg.");
+tc_log_error(MOD_NAME, "If you still need this module, please");
+tc_log_error(MOD_NAME, "contact the transcode-users mailing list.");
+return TC_IMPORT_ERROR;
 
   i = strlen(vob->video_in_file);
   if(vob->video_in_file[i-1] == '/')
