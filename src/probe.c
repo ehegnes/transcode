@@ -105,8 +105,7 @@ static char *get_audio_module(int f, int flag)
     break;
 
   case CODEC_PCM:
-    //this can only be AVI!
-    return(std_module[_avi_]);
+    return(std_module[_raw_]);
     break;
 
   case CODEC_VORBIS:

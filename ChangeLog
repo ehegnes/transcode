@@ -1,3 +1,7 @@
+2005-12-24 Andrew Church <achurch at achurch dot org>
+  * src/probe.c
+  Use import_raw instead of import_avi for PCM audio streams.
+
 2005-12-23 Francesco Romani <fromani at gmail dot com>
   * filter/filter_levels.c filter/filter_null.c
   implement NMS stop operation.
