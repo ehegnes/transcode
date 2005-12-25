@@ -78,7 +78,7 @@ MOD_open
 
     case CODEC_PCM:
 
-	if(vob->fixme_a_codec==CODEC_AC3) {
+	if(vob->a_codec_flag==CODEC_AC3) {
 
 	    sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			"tcextract -a %d -i \"%s\" -x ac3 -d %d |"
@@ -92,7 +92,7 @@ MOD_open
 	    if(verbose_flag) tc_log_info(MOD_NAME, "AC3->PCM");
 	}
 
-	if(vob->fixme_a_codec==CODEC_A52) {
+	if(vob->a_codec_flag==CODEC_A52) {
 
 	    sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 				"tcextract -a %d -i \"%s\" -x a52 -d %d |"

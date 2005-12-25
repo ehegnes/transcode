@@ -159,7 +159,7 @@ MOD_open
 
     case CODEC_PCM:
 
-      if(vob->fixme_a_codec==CODEC_AC3) {
+      if(vob->a_codec_flag==CODEC_AC3) {
 
 	sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			   "tccat -T %s -i \"%s\" -t dvd -d %d %s |"
@@ -178,7 +178,7 @@ MOD_open
           tc_log_info(MOD_NAME, "AC3->PCM");
       }
 
-      if(vob->fixme_a_codec==CODEC_A52) {
+      if(vob->a_codec_flag==CODEC_A52) {
 
 	sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			   "tccat -T %s -i \"%s\" -t dvd -d %d %s |"
@@ -196,7 +196,7 @@ MOD_open
           tc_log_info(MOD_NAME, "A52->PCM");
       }
 
-      if(vob->fixme_a_codec==CODEC_MP3) {
+      if(vob->a_codec_flag==CODEC_MP3) {
 
         sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			   "tccat -T %s -i \"%s\" -t dvd -d %d %s |"
@@ -214,7 +214,7 @@ MOD_open
           tc_log_info(MOD_NAME, "MP3->PCM");
       }
 
-      if(vob->fixme_a_codec==CODEC_MP2) {
+      if(vob->a_codec_flag==CODEC_MP2) {
 
 	sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			   "tccat -T %s -i \"%s\" -t dvd -d %d %s |"
@@ -232,7 +232,7 @@ MOD_open
           tc_log_info(MOD_NAME, "MP2->PCM");
       }
 
-      if(vob->fixme_a_codec==CODEC_PCM || vob->fixme_a_codec==CODEC_LPCM) {
+      if(vob->a_codec_flag==CODEC_PCM || vob->a_codec_flag==CODEC_LPCM) {
 
 	sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			   "tccat -T %s -i \"%s\" -t dvd -d %d %s |"
@@ -347,9 +347,9 @@ MOD_open
 
     off=0x80;
 
-    if(vob->fixme_a_codec==CODEC_PCM || vob->fixme_a_codec==CODEC_LPCM)
+    if(vob->a_codec_flag==CODEC_PCM || vob->a_codec_flag==CODEC_LPCM)
       off=0xA0;
-    if(vob->fixme_a_codec==CODEC_MP3 || vob->fixme_a_codec==CODEC_MP2)
+    if(vob->a_codec_flag==CODEC_MP3 || vob->a_codec_flag==CODEC_MP2)
       off=0xC0;
 
 

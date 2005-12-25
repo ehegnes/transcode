@@ -111,10 +111,9 @@ static int tc_socket_dump_vob(char *buf)
     P(pts_start, "%f");
     P(psu_offset, "%f");
     P(demuxer, "%d");
-    P(format_flag, "%ld");
-    P(codec_flag, "%ld");
+    P(v_format_flag, "%ld");
+    P(v_codec_flag, "%ld");
     P(quality, "%d");
-    P(af6_mode, "%d");
     P(a_stream_bitrate, "%d");
     P(a_chan, "%d");
     P(a_bits, "%d");
@@ -122,8 +121,9 @@ static int tc_socket_dump_vob(char *buf)
     P(a_padrate, "%d");
     P(im_a_size, "%d");
     P(ex_a_size, "%d");
+    P(a_format_flag, "%ld");
+    P(a_codec_flag, "%ld");
     P(im_a_codec, "%d");
-    P(fixme_a_codec, "%d");
     P(a_leap_frame, "%d");
     P(a_leap_bytes, "%d");
     P(a_vbr, "%d");

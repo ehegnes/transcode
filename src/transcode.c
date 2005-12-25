@@ -927,15 +927,17 @@ int main(int argc, char *argv[]) {
     vob->a_leap_frame     = TC_LEAP_FRAME;
     vob->a_leap_bytes     = 0;
     vob->demuxer          = -1;
-    vob->fixme_a_codec    = CODEC_AC3;    //FIXME
+    vob->a_codec_flag    = CODEC_AC3;    //FIXME
     vob->gamma            = 0.0;
     vob->lame_flush       = 0;
     vob->has_video        = 1;
     vob->has_audio        = 1;
     vob->has_audio_track  = 1;
     vob->lang_code        = 0;
-    vob->format_flag      = 0;
-    vob->codec_flag       = 0;
+    vob->v_format_flag    = 0;
+    vob->v_codec_flag     = 0;
+    vob->a_format_flag    = 0;
+    vob->a_codec_flag     = 0;
     vob->im_asr           = 0;
     vob->im_par           = 0;
     vob->im_par_width     = 0;
@@ -949,7 +951,6 @@ int main(int argc, char *argv[]) {
     vob->vmod_probed      = NULL;
     vob->amod_probed_xml  = NULL;
     vob->vmod_probed_xml  = NULL;
-    vob->af6_mode         = 0;
     vob->a_vbr            = 0;
     vob->pts_start        = 0.0f;
     vob->vob_offset       = 0;
@@ -1307,15 +1308,15 @@ int main(int argc, char *argv[]) {
 
       case 'f':
 
-	if(optarg[0]=='-') usage(EXIT_FAILURE);
+	if (optarg[0]=='-')
+	    usage(EXIT_FAILURE);
 
-	n = sscanf(optarg,"%lf,%d", &vob->fps, &vob->im_frc);
+	n = sscanf(optarg, "%lf,%d", &vob->fps, &vob->im_frc);
 
 	if (n == 2) {
 	    if (vob->im_frc < 0 || vob->im_frc > 15)
 		tc_error("invalid frame rate code for option -f");
 	    vob->fps = frc_table[vob->im_frc];
-	    preset_flag |= TC_PROBE_NO_FRC;
 	} else {
 	    if (n < 1 || vob->fps < MIN_FPS)
 		tc_error("invalid frame rate for option -f");
@@ -1328,9 +1329,9 @@ int main(int argc, char *argv[]) {
       case 'n':
 
 	if(optarg[0]=='-') usage(EXIT_FAILURE);
-	vob->fixme_a_codec = strtol(optarg, endptr, 16);
+	vob->a_codec_flag = strtol(optarg, endptr, 16);
 
-	if(vob->fixme_a_codec < 0) tc_error("invalid parameter for option -n");
+	if(vob->a_codec_flag < 0) tc_error("invalid parameter for option -n");
 
 	preset_flag |= TC_PROBE_NO_ACODEC;
 
@@ -1583,10 +1584,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	if(n>2) tc_error("invalid parameter for option -x");
-
-	//check for avifile special mode
-	if(strlen(im_vid_mod)!=0 && strcmp(im_vid_mod,"af6")==0 && no_ain_codec) vob->af6_mode=1;
-
 
 	if(strlen(im_aud_mod)!=0 && strchr(im_aud_mod,'=') && n==2) {
 	  char *t = strchr(optarg, ',');
@@ -2427,18 +2424,16 @@ int main(int argc, char *argv[]) {
 
     // this will determine most source parameter
     if(auto_probe) {
-
       // interface to "tcprobe"
-      probe_source(&preset_flag, vob, seek_range, video_in_file, audio_in_file);
-
+      int result = probe_source(video_in_file, audio_in_file, seek_range,
+				preset_flag, vob);
       if(verbose) {
-
 	printf("[%s] %s %s (%s%s%s)\n", PACKAGE, "auto-probing source",
 	    ((video_in_file==NULL)? audio_in_file:video_in_file),
-	    ((preset_flag == TC_PROBE_ERROR)?RED:GREEN),
-	    ((preset_flag == TC_PROBE_ERROR)?"failed":"ok"), GRAY);
+	    (result ? GREEN : RED), (result ? "ok" : "failed"), GRAY);
 
-	printf("[%s] V: %-16s | %s %s (V=%s|A=%s)\n", PACKAGE, "import format", codec2str(vob->codec_flag), mformat2str(vob->format_flag),
+	printf("[%s] V: %-16s | %s %s (V=%s|A=%s)\n", PACKAGE, "import format",
+	       codec2str(vob->v_codec_flag), mformat2str(vob->v_format_flag),
 	       ((no_vin_codec==0)?im_vid_mod:vob->vmod_probed),
 	       ((no_ain_codec==0)?im_aud_mod:vob->amod_probed));
       }
@@ -3713,17 +3708,17 @@ int main(int argc, char *argv[]) {
 
 #ifdef USE_LIBA52_DECODER
     //switch codec ids
-    if(vob->fixme_a_codec==CODEC_AC3) vob->fixme_a_codec=CODEC_A52;
-    else if(vob->fixme_a_codec==CODEC_A52) vob->fixme_a_codec=CODEC_AC3;
+    if(vob->a_codec_flag==CODEC_AC3) vob->a_codec_flag=CODEC_A52;
+    else if(vob->a_codec_flag==CODEC_A52) vob->a_codec_flag=CODEC_AC3;
 #endif
 
     if(no_ain_codec==1 && vob->has_audio==0 &&
-       vob->fixme_a_codec==CODEC_AC3) {
+       vob->a_codec_flag==CODEC_AC3) {
 
       if (vob->amod_probed==NULL || strcmp(vob->amod_probed,"null")==0) {
 
 	if(verbose & TC_DEBUG) printf("[%s] problems detecting audio format - using 'null' module\n", PACKAGE);
-	vob->fixme_a_codec=0;
+	vob->a_codec_flag=0;
       }
     }
 
@@ -3733,21 +3728,23 @@ int main(int argc, char *argv[]) {
 
       if(!vob->has_audio_track && vob->has_audio) {
 	tc_warn("requested audio track %d not found - using 'null' module", vob->a_track);
-	vob->fixme_a_codec=0;
+	vob->a_codec_flag=0;
       }
     }
 
     //audio import disabled
 
-    if(vob->fixme_a_codec==0) {
+    if(vob->a_codec_flag==0) {
       if(verbose & TC_INFO) printf("[%s] A: %-16s | disabled\n", PACKAGE, "import");
       im_aud_mod="null";
     } else {
       //audio format, if probed sucessfully
-      if(verbose & TC_INFO)
-	(vob->a_stream_bitrate) ?
-	  printf("[%s] A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps\n", PACKAGE, "import format", vob->fixme_a_codec, aformat2str(vob->fixme_a_codec), vob->a_rate, vob->a_bits, vob->a_chan, vob->a_stream_bitrate):
-	printf("[%s] A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d]\n", PACKAGE, "import format", vob->fixme_a_codec, aformat2str(vob->fixme_a_codec), vob->a_rate, vob->a_bits, vob->a_chan);
+      if(verbose & TC_INFO) {
+	if (vob->a_stream_bitrate)
+	  printf("[%s] A: %-16s | 0x%-5lx %-12s [%4d,%2d,%1d] %4d kbps\n", PACKAGE, "import format", vob->a_codec_flag, aformat2str(vob->a_codec_flag), vob->a_rate, vob->a_bits, vob->a_chan, vob->a_stream_bitrate);
+	else
+	  printf("[%s] A: %-16s | 0x%-5lx %-12s [%4d,%2d,%1d]\n", PACKAGE, "import format", vob->a_codec_flag, aformat2str(vob->a_codec_flag), vob->a_rate, vob->a_bits, vob->a_chan);
+      }
     }
 
     if(vob->im_a_codec==CODEC_PCM && vob->a_chan > 2 && !(vob->pass_flag & TC_AUDIO)) {
@@ -3760,7 +3757,7 @@ int main(int argc, char *argv[]) {
       vob->a_chan = 2;
     }
 
-    if(vob->ex_a_codec==0 || vob->fixme_a_codec==0 || ex_aud_mod == NULL || strcmp(ex_aud_mod, "null")==0) {
+    if(vob->ex_a_codec==0 || vob->a_codec_flag==0 || ex_aud_mod == NULL || strcmp(ex_aud_mod, "null")==0) {
       if(verbose & TC_INFO) printf("[%s] A: %-16s | disabled\n", PACKAGE, "export");
       ex_aud_mod="null";
     } else {

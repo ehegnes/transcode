@@ -75,8 +75,8 @@ MOD_open
 	}
 
 	// add more codecs: dv, mjpeg, ..
-	//fprintf(stderr, "CODEC_FLAG = |%lx|\n", vob->codec_flag);
-	switch (vob->codec_flag) {
+	//fprintf(stderr, "CODEC_FLAG = |%lx|\n", vob->v_codec_flag);
+	switch (vob->v_codec_flag) {
 
 	    case TC_CODEC_DIVX5:
 	    case TC_CODEC_DIVX4:
@@ -123,7 +123,7 @@ MOD_open
 
 	char *codec="";
 
-	switch (vob->fixme_a_codec) {
+	switch (vob->a_codec_flag) {
 
 	    case CODEC_MP3:
 	    case CODEC_MP2:
@@ -151,7 +151,7 @@ MOD_open
 	    return(TC_IMPORT_ERROR);
 	}
 
-	if (vob->fixme_a_codec == CODEC_PCM) {
+	if (vob->a_codec_flag == CODEC_PCM) {
 	    if(tc_snprintf(import_cmd_buf, MAX_BUF,
 			"tcextract -i \"%s\" -x %s -a %d -d %d",
 			vob->audio_in_file, codec, vob->a_track,

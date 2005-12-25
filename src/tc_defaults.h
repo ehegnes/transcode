@@ -197,25 +197,6 @@
 #define TC_FRAME_IS_P_FRAME    4096
 #define TC_FRAME_IS_B_FRAME    8192
 
-//overwritten by cmd line parameter
-#define TC_PROBE_ERROR         -1
-#define TC_PROBE_NO_FRAMESIZE   1
-#define TC_PROBE_NO_FPS         2
-#define TC_PROBE_NO_DEMUX       4
-#define TC_PROBE_NO_RATE        8
-#define TC_PROBE_NO_CHAN       16
-#define TC_PROBE_NO_BITS       32
-#define TC_PROBE_NO_SEEK       64
-#define TC_PROBE_NO_TRACK     128
-#define TC_PROBE_NO_BUFFER    256
-#define TC_PROBE_NO_FRC       512
-#define TC_PROBE_NO_ACODEC   1024
-#define TC_PROBE_NO_AVSHIFT  2048
-#define TC_PROBE_NO_AV_FINE  4096
-#define TC_PROBE_NO_IMASR    8192
-#define TC_PROBE_NO_BUILTIN 16384 // external probe (mplayer)
-
-
 #define TC_INFO_NO_DEMUX        1
 #define TC_INFO_MPEG_PS         2
 #define TC_INFO_MPEG_ES         4

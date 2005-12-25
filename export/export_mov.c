@@ -294,7 +294,7 @@ MOD_init
         case CODEC_RAW:
             /* set out output codec to input codec */
             if(qt_codec == NULL || strlen(qt_codec)==0) {
-                switch (vob->codec_flag) {
+                switch (vob->v_codec_flag) {
                     case TC_CODEC_MJPG:
                         quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"jpeg");
                         break;
@@ -335,7 +335,7 @@ MOD_init
 
                     default:
                         tc_log_warn(MOD_NAME, "codec '%lx' not supported for pass-through",
-					vob->codec_flag);
+					vob->v_codec_flag);
 			tc_log_warn(MOD_NAME, "        If you really know what you are doing you can force");
                         tc_log_warn(MOD_NAME, "        a codec via -F <vc>, '-F list' returns a list");
                         return(TC_EXPORT_ERROR);

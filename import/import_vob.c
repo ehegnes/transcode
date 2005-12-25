@@ -103,7 +103,7 @@ MOD_open
 
     case CODEC_PCM:
 
-      if(vob->fixme_a_codec==CODEC_AC3) {
+      if(vob->a_codec_flag==CODEC_AC3) {
 
 	if(tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x ac3 %s %s -d %d | tcextract -t vob -a %d -x ac3 -d %d | tcdecode -x ac3 -d %d -s %f,%f,%f -A %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose, vob->verbose, vob->ac3_gain[0], vob->ac3_gain[1], vob->ac3_gain[2], vob->a52_mode) < 0) {
 	  perror("command buffer overflow");
@@ -114,7 +114,7 @@ MOD_open
       }
 
 
-      if(vob->fixme_a_codec==CODEC_A52) {
+      if(vob->a_codec_flag==CODEC_A52) {
 
 	if(tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x ac3 %s %s -d %d | tcextract -t vob -a %d -x ac3 -d %d | tcdecode -x a52 -d %d -A %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose, vob->verbose, vob->a52_mode) < 0) {
 	  perror("command buffer overflow");
@@ -124,7 +124,7 @@ MOD_open
 	if(verbose_flag & TC_DEBUG) tc_log_info(MOD_NAME, "A52->PCM");
       }
 
-      if(vob->fixme_a_codec==CODEC_MP3) {
+      if(vob->a_codec_flag==CODEC_MP3) {
 
 	if(tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x mp3 %s %s -d %d | tcextract -t vob -a %d -x mp3 -d %d | tcdecode -x mp3 -d %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose, vob->verbose) < 0) {
 	  perror("command buffer overflow");
@@ -134,7 +134,7 @@ MOD_open
 	if(verbose_flag & TC_DEBUG) tc_log_info(MOD_NAME, "MP3->PCM");
       }
 
-      if(vob->fixme_a_codec==CODEC_MP2) {
+      if(vob->a_codec_flag==CODEC_MP2) {
 
 	if(tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x mp3 %s %s -d %d | tcextract -t vob -a %d -x mp2 -d %d | tcdecode -x mp2 -d %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose, vob->verbose) < 0) {
 	  perror("command buffer overflow");
@@ -144,7 +144,7 @@ MOD_open
 	if(verbose_flag & TC_DEBUG) tc_log_info(MOD_NAME, "MP2->PCM");
       }
 
-      if(vob->fixme_a_codec==CODEC_PCM || vob->fixme_a_codec==CODEC_LPCM) {
+      if(vob->a_codec_flag==CODEC_PCM || vob->a_codec_flag==CODEC_LPCM) {
 
 	if(tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x pcm %s %s -d %d | tcextract -t vob -a %d -x pcm -d %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose) < 0) {
 	  perror("command buffer overflow");
@@ -222,9 +222,9 @@ MOD_open
 
       off=0x80;
 
-      if(vob->fixme_a_codec==CODEC_PCM || vob->fixme_a_codec==CODEC_LPCM)
+      if(vob->a_codec_flag==CODEC_PCM || vob->a_codec_flag==CODEC_LPCM)
 	off=0xA0;
-      if(vob->fixme_a_codec==CODEC_MP3 || vob->fixme_a_codec==CODEC_MP2)
+      if(vob->a_codec_flag==CODEC_MP3 || vob->a_codec_flag==CODEC_MP2)
 	off=0xC0;
 
       switch(vob->im_v_codec) {

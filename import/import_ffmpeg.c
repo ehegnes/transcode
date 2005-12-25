@@ -223,7 +223,7 @@ MOD_open {
 
   if (param->flag == TC_VIDEO) {
 
-    format_flag = vob->format_flag;
+    format_flag = vob->v_format_flag;
 
     sret = tc_file_check(vob->video_in_file); /* is a directory? */
     if (sret == 1)
@@ -420,10 +420,10 @@ do_dv:
 	  break;
       }
 
-      codec = find_ffmpeg_codec_id (vob->codec_flag);
+      codec = find_ffmpeg_codec_id (vob->v_codec_flag);
       if (codec == NULL) {
-	tc_log_warn(MOD_NAME, "No codec is known the TAG '%lx'.",
-	    vob->codec_flag);
+	tc_log_warn(MOD_NAME, "No codec is known for the TAG '%lx'.",
+	    vob->v_codec_flag);
 	return TC_IMPORT_ERROR;
       }
 

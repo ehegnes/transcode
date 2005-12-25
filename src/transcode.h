@@ -151,8 +151,8 @@ typedef struct _vob_t {
 
   char *vmod_probed;
   char *amod_probed;
-  char *vmod_probed_xml;       // type of content of xml file
-  char *amod_probed_xml;       // type of content of xml file
+  char *vmod_probed_xml;        // type of content of xml file
+  char *amod_probed_xml;        // type of content of xml file
 
 
   int verbose;
@@ -204,20 +204,20 @@ typedef struct _vob_t {
 
   double pts_start;
 
-  double psu_offset;         // psu offset to pass to extsub
+  double psu_offset;        // psu offset to pass to extsub
 
   int demuxer;
 
-  long format_flag;          //NTSC=1,PAL=0
-  long codec_flag;           //MPEG version ...
+  long v_format_flag;       // video stream format
+  long v_codec_flag;        // video codec
+  long a_format_flag;       // audio stream format
+  long a_codec_flag;        // audio codec
 
   int quality;
 
-  int af6_mode;
-
   // audio stream parameter
 
-  int a_stream_bitrate;     //source stream bitrate
+  int a_stream_bitrate;     // source stream bitrate
 
   int a_chan;
   int a_bits;
@@ -229,7 +229,6 @@ typedef struct _vob_t {
   int ex_a_size;            // export total bytes per audio frame
 
   int im_a_codec;           // true frame buffer audio codec
-  int fixme_a_codec;        // true frame buffer audio codec
 
   int a_leap_frame;
   int a_leap_bytes;

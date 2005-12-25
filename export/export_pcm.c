@@ -73,7 +73,7 @@ MOD_init
     rtf.common.wBitsPerSample=vob->dm_bits;
     rtf.common.wBlockAlign=vob->dm_chan*vob->dm_bits/8;
 
-    if (!vob->fixme_a_codec ||
+    if (!vob->a_codec_flag ||
         !rtf.common.wChannels ||
 	!rtf.common.dwSamplesPerSec ||
 	!rtf.common.wBitsPerSample ||

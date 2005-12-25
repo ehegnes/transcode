@@ -111,7 +111,7 @@ MOD_open
 
     // open out file
     if(param->flag==TC_AUDIO && vob->out_flag) goto further;
-    if(param->flag==TC_VIDEO && vob->codec_flag == TC_CODEC_MPEG2 && (vob->pass_flag & TC_VIDEO)) goto further;
+    if(param->flag==TC_VIDEO && vob->v_codec_flag == TC_CODEC_MPEG2 && (vob->pass_flag & TC_VIDEO)) goto further;
     if(vob->avifile_out==NULL) {
       if(NULL == (vob->avifile_out = AVI_open_output_file(
 	      (param->flag==TC_VIDEO)?  vob->video_out_file: vob->audio_out_file))) {
@@ -225,12 +225,12 @@ further:
       case CODEC_RAW:
       case CODEC_RAW_YUV:
 
-	if (vob->codec_flag == TC_CODEC_MPEG2) {
+	if (vob->v_codec_flag == TC_CODEC_MPEG2) {
 
 	    if (vob->pass_flag & TC_VIDEO) {
 		mpeg_passthru = 1;
 		tc_log_info(MOD_NAME, "icodec (0x%08x) and codec_flag (0x%08lx) - passthru",
-		    vob->im_v_codec, vob->codec_flag);
+		    vob->im_v_codec, vob->v_codec_flag);
 
 		mpeg_f = fopen(vob->video_out_file, "w");
 		if (!mpeg_f) {
@@ -241,7 +241,7 @@ further:
 	    }
 	}
 	else
-	switch(vob->format_flag) {
+	switch(vob->v_format_flag) {
 
 	case TC_MAGIC_DV_PAL:
 	case TC_MAGIC_DV_NTSC:
@@ -313,7 +313,7 @@ further:
       default:
 
 	tc_log_info(MOD_NAME, "codec (0x%08x) and format (0x%08lx)not supported",
-		vob->im_v_codec, vob->format_flag);
+		vob->im_v_codec, vob->v_format_flag);
 	return(TC_EXPORT_ERROR);
 
 	break;
