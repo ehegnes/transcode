@@ -1,3 +1,7 @@
+2005-12-25 Francesco Romani <fromani at gmail dot com>
+  * import/extract_mp3.c
+  remove dead code, #if 0-ed from a long time.
+
 2005-12-25 Andrew Church <achurch at achurch dot org>
   * src/transcode.c
   Improved handling of -f option.
@@ -161,7 +165,7 @@
 
 2005-12-13 Francesco Romani <fromani at gmail dot com>
   * import/magic.h import/fileinfo.c src/tc_defaults.h
-  Start to setup infrastructure for mpl;ayer probe support.
+  Start to setup infrastructure for mplayer probe support.
 
 2005-12-13 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tcmodule-data.h libtc/tcmodule.c
