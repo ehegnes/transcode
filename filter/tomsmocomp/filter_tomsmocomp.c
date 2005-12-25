@@ -80,7 +80,7 @@ static void help_optstr (void) {
 	    "  3) TomsMoComp is for pure video source material, not for IVTC.\n");
 }
 
-void do_deinterlace (tomsmocomp_t *tmc) {
+static void do_deinterlace (tomsmocomp_t *tmc) {
     int i;
     TPicture pictHist[DS_HISTORY_SIZE], *pictHistPts[DS_HISTORY_SIZE];
 

@@ -32,36 +32,39 @@
 #include "tomsmocompmacros.h"
 
 #if defined(IS_SSE)
+#define SEDECL(x) Search_Effort_SSE_##x(void)
 #define SEFUNC(x) Search_Effort_SSE_##x()
 #elif defined(IS_3DNOW)
+#define SEDECL(x) Search_Effort_3DNOW_##x(void)
 #define SEFUNC(x) Search_Effort_3DNOW_##x()
 #else
+#define SEDECL(x) Search_Effort_MMX_##x(void)
 #define SEFUNC(x) Search_Effort_MMX_##x()
 #endif
 
-static int SEFUNC(0);
-static int SEFUNC(1);
-static int SEFUNC(3);
-static int SEFUNC(5);
-static int SEFUNC(9);
-static int SEFUNC(11);
-static int SEFUNC(13);
-static int SEFUNC(15);
-static int SEFUNC(19);
-static int SEFUNC(21);
-static int SEFUNC(Max);
+static int SEDECL(0);
+static int SEDECL(1);
+static int SEDECL(3);
+static int SEDECL(5);
+static int SEDECL(9);
+static int SEDECL(11);
+static int SEDECL(13);
+static int SEDECL(15);
+static int SEDECL(19);
+static int SEDECL(21);
+static int SEDECL(Max);
 
-static int SEFUNC(0_SB);
-static int SEFUNC(1_SB);
-static int SEFUNC(3_SB);
-static int SEFUNC(5_SB);
-static int SEFUNC(9_SB);
-static int SEFUNC(11_SB);
-static int SEFUNC(13_SB);
-static int SEFUNC(15_SB);
-static int SEFUNC(19_SB);
-static int SEFUNC(21_SB);
-static int SEFUNC(Max_SB);
+static int SEDECL(0_SB);
+static int SEDECL(1_SB);
+static int SEDECL(3_SB);
+static int SEDECL(5_SB);
+static int SEDECL(9_SB);
+static int SEDECL(11_SB);
+static int SEDECL(13_SB);
+static int SEDECL(15_SB);
+static int SEDECL(19_SB);
+static int SEDECL(21_SB);
+static int SEDECL(Max_SB);
 
 
 void FUNCT_NAME(TDeinterlaceInfo* pInfo, int SearchEffort, int UseStrangeBob)

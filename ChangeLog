@@ -1,4 +1,9 @@
 2005-12-25 Andrew Church <achurch at achurch dot org>
+  * filter/tomsmocomp/TomsMoCompAll.inc filter/tomsmocomp/filter_tomsmocomp.c
+    filter/tomsmocomp/tomsmocompfilter.h
+  Remove attribute_used, and fix some compilation warnings.
+
+2005-12-25 Andrew Church <achurch at achurch dot org>
   * export/export_mov.c export/export_pcm.c export/export_raw.c
     filter/divxkey/filter_divxkey.c import/import_ac3.c import/import_dvd.c
     import/import_ffmpeg.c import/import_mp3.c import/import_ogg.c

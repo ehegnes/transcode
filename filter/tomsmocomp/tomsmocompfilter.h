@@ -28,22 +28,20 @@
 #define false 0
 #define true  1
 
-#include "transcode.h" // for attribute_used
-
 /* Only accessed inside this module, but in several functions... */
 static MEMCPY_FUNC* pMyMemcpy;
 // these look unused but are not, sigh... EMS
-static attribute_used int  IsOdd;
-static attribute_used const unsigned char* pWeaveSrc;
-static attribute_used const unsigned char* pWeaveSrcP;
-static attribute_used unsigned char* pWeaveDest;
-static attribute_used const unsigned char* pCopySrc;
-static attribute_used const unsigned char* pCopySrcP;
-static attribute_used unsigned char* pCopyDest;
-static attribute_used int src_pitch;
-static attribute_used int dst_pitch;
-static attribute_used int rowsize;
-static attribute_used int FldHeight;
+static int  IsOdd;
+static const unsigned char* pWeaveSrc;
+static const unsigned char* pWeaveSrcP;
+static unsigned char* pWeaveDest;
+static const unsigned char* pCopySrc;
+static const unsigned char* pCopySrcP;
+static unsigned char* pCopyDest;
+static int src_pitch;
+static int dst_pitch;
+static int rowsize;
+static int FldHeight;
 
 static inline int Fieldcopy(void *dest, const void *src, size_t count,
 			    int rows, int dst_pitch, int src_pitch) {
