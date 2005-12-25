@@ -274,7 +274,7 @@ MOD_open
 			s_info_dummy.verbose=vob->verbose;	//init the video XML input file name
                         if (f_build_xml_tree(&s_info_dummy,&s_video,&s_probe_dummy1,&s_probe_dummy2,&s_tot_dummy1,&s_tot_dummy2) == -1)	//create the XML tree
                         {
-                                (int)f_manage_input_xml(NULL,0,&s_video);
+                                f_manage_input_xml(NULL,0,&s_video);
                                 tc_log_warn(MOD_NAME,"file %s has invalid format content.",
 						vob->video_in_file);
 				return(TC_IMPORT_ERROR);
@@ -472,7 +472,7 @@ MOD_open
 			s_info_dummy.verbose=vob->verbose;	//init the video XML input file name
                         if (f_build_xml_tree(&s_info_dummy,&s_audio,&s_probe_dummy1,&s_probe_dummy2,&s_tot_dummy1,&s_tot_dummy2) == -1)	//create the XML tree
 			{
-				(int)f_manage_input_xml(NULL,0,&s_audio);
+				f_manage_input_xml(NULL,0,&s_audio);
 				tc_log_warn(MOD_NAME,"file %s has invalid format content.", vob->audio_in_file);
 				return(TC_IMPORT_ERROR);
 			}

@@ -138,7 +138,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,ProbeInfo *p_first
 
 	if (ipipe->error==1)
 	{
-		(int)f_manage_input_xml(ipipe->name,0,p_audiovideo);
+		f_manage_input_xml(ipipe->name,0,p_audiovideo);
 		return(-1);
 	}
 	for (p_audio_video=p_audiovideo->p_next;p_audio_video!=NULL;p_audio_video=p_audio_video->p_next)
@@ -325,7 +325,7 @@ void probe_xml(info_t *ipipe)
 		return;
 	}
 
-	(int)f_manage_input_xml(NULL,0,&s_audiovideo);
+	f_manage_input_xml(NULL,0,&s_audiovideo);
 
 	if (s_first_element & 0x03)	//have video and audio tracks
 	{
