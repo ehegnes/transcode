@@ -4,7 +4,7 @@
 
 2005-12-25 Andrew Church <achurch at achurch dot org>
   * src/transcode.h
-  Remove unused macros: always_inline, attribute_used, Malloc, DD,
+  Remove unused macros: always_inline, attribute_used, Malloc, pow2, DD,
   tc_pthread_mutex_lock, tc_pthread_mutex_unlock, tc_pthread_mutex_trylock,
   tc_pthread_cond_wait.
 

@@ -572,8 +572,6 @@ void tc_pause_request(void);
 
 void tc_adjust_frame_buffer(int height, int width);
 
-#define pow2(b) (((b)==0) ? 1 : 1<<(b))
-
 extern int verbose;
 extern int pcmswap;
 extern int rescale;
