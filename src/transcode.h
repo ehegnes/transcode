@@ -81,26 +81,6 @@ typedef unsigned int uint32_t;
 #include "tc_defaults.h"
 #include "libtc/libtc.h"
 
-// Uglyness from libavcodec - common.h
-// Don't use these except when your code won't work without it,
-// and there is no alternative.
-
-#ifndef always_inline
-#if defined(__GNUC__) && (__GNUC__ > 3 || __GNUC__ == 3 && __GNUC_MINOR__ > 0)
-#    define always_inline __attribute__((always_inline)) inline
-#else
-#    define always_inline inline
-#endif
-#endif
-
-#ifndef attribute_used
-#if defined(__GNUC__) && (__GNUC__ > 3 || __GNUC__ == 3 && __GNUC_MINOR__ > 0)
-#    define attribute_used __attribute__((used))
-#else
-#    define attribute_used
-#endif
-#endif
-
 /* ----------------------------
  *
  * mpeg profiles for setting
@@ -600,14 +580,6 @@ void tc_pause_request(void);
 
 void tc_adjust_frame_buffer(int height, int width);
 
-#define Malloc(p,n,typ)  do if( !(p = (typ *) malloc ( sizeof(typ) * (n) )))\
-{\
-    perror(__FILE__); \
-    fprintf(stderr, "in line %d: \n", __LINE__);\
-    fflush(stderr);\
-    exit(1);\
-}while(0)
-
 #define pow2(b) (((b)==0) ? 1 : 1<<(b))
 
 extern int verbose;
@@ -681,14 +653,5 @@ extern pid_t tc_probe_pid;
 # define TC_MODE_PSU                4
 # define TC_MODE_DIRECTORY         16
 # define TC_MODE_DEBUG             32
-
-#define DD {printf("(%s) CHECK @ line (%d)\n", __FILE__, __LINE__); sleep(1);}
-
-#define tc_pthread_mutex_lock(S) {fprintf(stderr, "(%s@%d) (%ld) lock....\n", __FILE__, __LINE__, pthread_self()); pthread_mutex_lock(S);}
-#define tc_pthread_mutex_unlock(S) {fprintf(stderr, "(%s@%d)  (%ld) ...unlock\n", __FILE__, __LINE__, pthread_self()); pthread_mutex_unlock(S);}
-
-#define tc_pthread_cond_wait(A,B) {fprintf(stderr, "(%s@%d) (%ld) condwait\n", __FILE__, __LINE__, pthread_self()); pthread_cond_wait(A,B);}
-
-#define tc_pthread_mutex_trylock(S);{fprintf(stderr, "(%s@%d) (%ld) try lock\n", __FILE__, __LINE__, pthread_self()); pthread_mutex_trylock(S);}
 
 #endif
