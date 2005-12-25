@@ -1,4 +1,9 @@
 2005-12-25 Francesco Romani <fromani at gmail dot com>
+  * TODO
+  mark contents of TODO file as outdated. Perhaps we should
+  just remove or replace enterely this file.
+
+2005-12-25 Francesco Romani <fromani at gmail dot com>
   * docs/man/transcode.1
   remove references for dropped `--ext' option in manpage.
 
