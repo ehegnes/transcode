@@ -1,4 +1,10 @@
 2005-12-25 Andrew Church <achurch at achurch dot org>
+  * export/export_ppm.c export/export_pvn.c filter/filter_videocore.c
+    import/import_ffmpeg.c src/decoder.c src/socket.c src/transcode.c
+    src/transcode.h
+  Remove v_bpp field from vob_t since it always has the value BPP.
+
+2005-12-25 Andrew Church <achurch at achurch dot org>
   * src/transcode.h
   Edit to match style guidelines.
 

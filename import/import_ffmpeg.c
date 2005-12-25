@@ -117,7 +117,7 @@ static uint8_t            *yuv2rgb_buffer = NULL;
 static AVCodec            *lavc_dec_codec = NULL;
 static AVCodecContext     *lavc_dec_context = NULL;
 static int                 x_dim = 0, y_dim = 0;
-static int                 pix_fmt, frame_size = 0, bpp;
+static int                 pix_fmt, frame_size = 0;
 static uint8_t            *frame = NULL;
 static unsigned long       format_flag;
 static struct ffmpeg_codec *codec;
@@ -359,7 +359,6 @@ do_avi:
         break;
       case CODEC_RGB:
         frame_size = x_dim * y_dim * 3;
-        bpp = vob->v_bpp;
 
         if (yuv2rgb_buffer == NULL) yuv2rgb_buffer = tc_bufalloc(BUFFER_SIZE);
 

@@ -313,10 +313,10 @@ return -1;
 	  gamma_table_flag = 1;
       }
 
-      rgb_gamma(ptr->video_buf, ptr->v_width * ptr->v_height * ptr->v_bpp>>3);
+      rgb_gamma(ptr->video_buf, ptr->v_width * ptr->v_height * BPP>>3);
    }
    if (mfd->decolor) {
-      rgb_decolor(ptr->video_buf, ptr->v_width * ptr->v_height * ptr->v_bpp>>3);
+      rgb_decolor(ptr->video_buf, ptr->v_width * ptr->v_height * BPP>>3);
    }
    if (mfd->antialias) {
 

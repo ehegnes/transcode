@@ -70,7 +70,7 @@ MOD_init
 	width = vob->ex_v_width;
 	height = vob->ex_v_height;
 
-	row_bytes = vob->v_bpp/8 * vob->ex_v_width;
+	row_bytes = BPP/8 * vob->ex_v_width;
 
 	codec =  CODEC_YUV;
 
@@ -85,7 +85,7 @@ MOD_init
 	height = vob->ex_v_height;
 
 	/* bytes per scan line (aka row) */
-	row_bytes = vob->v_bpp/8 * vob->ex_v_width;
+	row_bytes = BPP/8 * vob->ex_v_width;
 
 	codec =  CODEC_YUV422;
 

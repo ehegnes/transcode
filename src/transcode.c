@@ -861,7 +861,6 @@ int main(int argc, char *argv[]) {
     vob->ex_v_width       = PAL_W;
     vob->ex_v_height      = PAL_H;
     vob->ex_v_size        = SIZE_RGB_FRAME;
-    vob->v_bpp            = BPP;
     vob->a_track          = 0;
     vob->v_track          = 0;
     vob->volume           = 0;
@@ -2802,7 +2801,7 @@ int main(int argc, char *argv[]) {
     vob->ex_v_width  = vob->im_v_width;
 
     // import bytes per frame (RGB 24bits)
-    vob->im_v_size   = vob->im_v_height * vob->im_v_width * vob->v_bpp/8;
+    vob->im_v_size   = vob->im_v_height * vob->im_v_width * BPP/8;
     // export bytes per frame (RGB 24bits)
     vob->ex_v_size   = vob->im_v_size;
 
@@ -3692,7 +3691,7 @@ int main(int argc, char *argv[]) {
       vob->im_v_size = (2*vob->im_v_height * vob->im_v_width);
       if(verbose & TC_INFO) printf("[%s] V: %-16s | YUV422 (4:2:2)\n", PACKAGE, "YCbCr");
     } else
-      vob->ex_v_size = vob->ex_v_height * vob->ex_v_width * vob->v_bpp>>3;
+      vob->ex_v_size = vob->ex_v_height * vob->ex_v_width * BPP/8;
 
     // -p
 

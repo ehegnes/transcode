@@ -588,7 +588,7 @@ void vimport_thread(vob_t *vob)
     // init frame buffer structure with import frame data
     ptr->v_height   = vob->im_v_height;
     ptr->v_width    = vob->im_v_width;
-    ptr->v_bpp      = vob->v_bpp;
+    ptr->v_bpp      = BPP;
 
     ptr->thread_id = (int) getpid();
 

@@ -232,8 +232,6 @@ typedef struct _vob_t {
     int im_v_width;             // Import picture width
     int im_v_size;              // Total number of bytes per frame
 
-    int v_bpp;                  // Defaults to BPP
-
     int im_asr;                 // Import aspect ratio code
     int im_par;                 // Import pixel aspect (code)
     int im_par_width;           // Import pixel aspect width

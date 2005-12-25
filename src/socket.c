@@ -140,7 +140,6 @@ static int tc_socket_dump_vob(char *buf)
     P(im_v_height, "%d");
     P(im_v_width, "%d");
     P(im_v_size, "%d");
-    P(v_bpp, "%d");
     P(im_asr, "%d");
     P(ex_asr, "%d");
     P(attributes, "%d");
