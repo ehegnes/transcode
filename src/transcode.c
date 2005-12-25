@@ -114,9 +114,6 @@ pid_t writepid = 0;
 pthread_mutex_t writepid_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t writepid_cond = PTHREAD_COND_INITIALIZER;
 
-char *video_ext = ".avi";
-char *audio_ext = ".mp3";
-
 //default
 int tc_encode_stream = 0;
 int tc_decode_stream = 0;
@@ -355,7 +352,7 @@ static void usage(int status)
   //range control
   printf(" -c f1-f2[,f3-f4]    encode only f1-f2[,f3-f4] (frames or HH:MM:SS) [all]\n");
   printf(" -t n,base           split output to base%s.avi with n frames [off]\n", "%03d");
-  printf("--dir_mode base      process directory contents to base-%s.avi [off]\n", "%03d");
+  printf("--dir_mode base      process directory contents to base%s.avi [off]\n", "%03d");
   printf("--frame_interval N   select only every Nth frame to be exported [1]\n");
   printf("\n");
 
@@ -410,7 +407,6 @@ static void usage(int status)
   printf("--socket file        socket file for run-time control [no file]\n");
   printf("--dv_yuy2_mode       libdv YUY2 mode (default is YV12) [off]\n");
   printf("--config_dir dir     Assume config files are in this dir [off]\n");
-  printf("--ext vid,aud        Use these file extensions [%s,%s]\n", video_ext, audio_ext);
   printf("--export_prof S      Export profile {vcd, svcd, xvcd,  dvd}[-pal|-ntsc|-secam]\n");
   printf("--mplayer_probe      use (external) mplayer for probing source [off]\n");
   printf("\n");
@@ -2325,31 +2321,9 @@ int main(int argc, char *argv[]) {
 	  break;
 
 	case EXTENSIONS:
-	  if(optarg[0]=='-') usage(EXIT_FAILURE);
-
-	  {
-	    char *c;
-
-	    c = strchr (optarg, ',');
-	    if (!c) { // no amod
-	      video_ext = optarg;
-	      probe_export_attributes |= TC_PROBE_NO_EXPORT_VEXT;
-	    } else if (c == optarg) { // only amod
-	      audio_ext = c+1;
-	      probe_export_attributes |= TC_PROBE_NO_EXPORT_AEXT;
-	    } else { // both
-	      *c = '\0';
-	      video_ext = optarg;
-	      audio_ext = c+1;
-	      probe_export_attributes |= TC_PROBE_NO_EXPORT_AEXT;
-	      probe_export_attributes |= TC_PROBE_NO_EXPORT_VEXT;
-	    }
-	    if ( !strcmp(video_ext, "none")) video_ext = "";
-	    if ( !strcmp(video_ext, "null")) video_ext = "";
-	    if ( !strcmp(audio_ext, "none")) audio_ext = "";
-	    if ( !strcmp(audio_ext, "null")) audio_ext = "";
-
-	  }
+          /* FIXME: disabled option */
+          tc_log_warn(PACKAGE, "The --ext option is obsolete; please specify the");
+	  tc_log_warn(PACKAGE, "extensions in the -o and -m filenames.");
 	  break;
 
 	case EXPORT_PROF:
@@ -2424,11 +2398,13 @@ int main(int argc, char *argv[]) {
 
       if(!strchr(video_out_file, '%') && !no_split) {
 	char *suffix = strrchr(video_out_file, '.');
-	if(suffix && 0 == strcmp(".avi", suffix)) {
+	if (suffix) {
 	  *suffix = '\0';
+	} else {
+	  suffix = "";
 	}
 	psubase = malloc(PATH_MAX);
-	tc_snprintf(psubase, PATH_MAX, "%s-psu%%02d%s", video_out_file, video_ext);
+	tc_snprintf(psubase, PATH_MAX, "%s-psu%%02d%s", video_out_file,suffix);
       } else {
 	psubase = video_out_file;
       }
@@ -4196,7 +4172,7 @@ int main(int argc, char *argv[]) {
 	  strlcpy(base, vob->video_out_file, TC_BUF_MIN);
 
 	// create new filename
-	tc_snprintf(buf, sizeof(buf), "%s%03d%s", base, ch1++, video_ext);
+	tc_snprintf(buf, sizeof(buf), "%s%03d.avi", base, ch1++);
 
 	// update vob structure
 	vob->video_out_file = buf;
@@ -4391,7 +4367,7 @@ int main(int argc, char *argv[]) {
       if(no_split) {
 
 	// create single output filename
-	tc_snprintf(buf, sizeof(buf), "%s%s", dirbase, video_ext);
+	tc_snprintf(buf, sizeof(buf), "%s.avi", dirbase);
 
 	// update vob structure
 	if(dir_audio) {
@@ -4399,7 +4375,7 @@ int main(int argc, char *argv[]) {
 	  switch(vob->ex_a_codec) {
 
 	  case CODEC_MP3:
-	    tc_snprintf(buf, sizeof(buf), "%s-%03d%s", dirbase, dir_fcnt, audio_ext);
+	    tc_snprintf(buf, sizeof(buf), "%s-%03d.mp3", dirbase, dir_fcnt);
 	    break;
 	  }
 
@@ -4427,7 +4403,7 @@ int main(int argc, char *argv[]) {
 
 	if(!no_split) {
 	  // create new filename
-	  tc_snprintf(buf, sizeof(buf), "%s-%03d%s", dirbase, dir_fcnt, video_ext);
+	  tc_snprintf(buf, sizeof(buf), "%s-%03d.avi", dirbase, dir_fcnt);
 
 	  // update vob structure
 	  if(dir_audio) {
@@ -4435,7 +4411,7 @@ int main(int argc, char *argv[]) {
 	    switch(vob->ex_a_codec) {
 
 	    case CODEC_MP3:
-	      tc_snprintf(buf, sizeof(buf), "%s-%03d%s", dirbase, dir_fcnt, audio_ext);
+	      tc_snprintf(buf, sizeof(buf), "%s-%03d.mp3", dirbase, dir_fcnt);
 	      break;
 	    }
 
@@ -4530,7 +4506,7 @@ int main(int argc, char *argv[]) {
       if(no_split) {
 
 	// create new filename
-	tc_snprintf(buf, sizeof(buf), "%s%s", chbase, video_ext);
+	tc_snprintf(buf, sizeof(buf), "%s.avi", chbase);
 
 	// update vob structure
 	vob->video_out_file = buf;
@@ -4557,7 +4533,7 @@ int main(int argc, char *argv[]) {
 
 	if(!no_split) {
 	  // create new filename
-	  tc_snprintf(buf, sizeof(buf), "%s-ch%02d%s", chbase, ch1, video_ext);
+	  tc_snprintf(buf, sizeof(buf), "%s-ch%02d.avi", chbase, ch1);
 
 	  // update vob structure
 	  vob->video_out_file = buf;

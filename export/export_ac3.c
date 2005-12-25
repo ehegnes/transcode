@@ -71,14 +71,6 @@ MOD_open
 
     if (param->flag == TC_AUDIO) {
 	char buf [PATH_MAX];
-        char out_fname [PATH_MAX];
-
-        strlcpy(out_fname, vob->audio_out_file, sizeof(out_fname));
-
-	if(probe_export_attributes & TC_PROBE_NO_EXPORT_AEXT)
-	    strlcat(out_fname, audio_ext, sizeof(out_fname));
-	else
-            strlcat(out_fname, ".ac3", sizeof(out_fname));
 
 	if (vob->mp3bitrate == 0) {
             tc_log_warn (MOD_NAME, "Please set the export audio bitrate");
@@ -99,7 +91,7 @@ MOD_open
                               vob->dm_chan,
                               vob->mp3frequency,
                               vob->mp3bitrate,
-                              out_fname,
+                              vob->audio_out_file,
                               vob->verbose > 1 ? "" : " >/dev/null 2>&1");
 
 	if (result < 0)

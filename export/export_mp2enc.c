@@ -49,8 +49,6 @@ static int 			capability_flag	= TC_CAP_PCM;
 static FILE* 			pFile 		= NULL;
 static struct wave_header 	rtf;
 
-static char *mpa=".mpa";
-
 /* ------------------------------------------------------------
  *
  * open outputfile
@@ -73,13 +71,6 @@ MOD_open
 	char *chan;
 	int def_srate, def_brate;
 	char *def_chan;
-
-	mpa = audio_ext;
-
-	//tibit: do not write to /dev/null.m1v
-	if (vob->audio_out_file && strlen(vob->audio_out_file)>=9 && !strncmp(vob->audio_out_file, "/dev/null", 9)) {
-	    mpa="";
-	}
 
         verb = (verbose & TC_DEBUG) ? 2:0;
 
@@ -139,7 +130,7 @@ MOD_open
 	    chan = def_chan;
 	  }
 
-	if(tc_snprintf(buf, PATH_MAX, "mp2enc -v %d -r %d -b %d %s -o \"%s%s\" %s", verb, srate, brate, chan, vob->audio_out_file, mpa, (vob->ex_a_string?vob->ex_a_string:"")) < 0) {
+	if(tc_snprintf(buf, PATH_MAX, "mp2enc -v %d -r %d -b %d %s -o \"%s\" %s", verb, srate, brate, chan, vob->audio_out_file, (vob->ex_a_string?vob->ex_a_string:"")) < 0) {
 	  perror("cmd buffer overflow");
 	  return(TC_EXPORT_ERROR);
 	}
@@ -196,9 +187,6 @@ MOD_init
         rtf.common.wBlockAlign       = vob->dm_chan*vob->dm_bits/8;
 
         strncpy(rtf.data.id, "data",4);
-
-	if ( !(probe_export_attributes & TC_PROBE_NO_EXPORT_AEXT))
-		audio_ext = mpa;
 
         tc_log_warn(MOD_NAME, "*** init-v *** !");
 

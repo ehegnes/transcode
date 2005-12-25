@@ -1,8 +1,16 @@
 2005-12-25 Andrew Church <achurch at achurch dot org>
+  * export/export_ac3.c export/export_ffmpeg.c export/export_mp2enc.c
+    export/export_mpeg2enc.c export/export_toolame.c src/probe_export.h
+    src/transcode.c
+  Removed the --ext command-line option, so that extensions are no longer
+  added to the -o and -m filenames (-t, -U, and --dir_mode now always use
+  .avi).
+
+2005-12-25 Andrew Church <achurch at achurch dot org>
   * filter/filter_modfps.c import/aux_pes.c import/tcscan.c src/probe.c
     src/probe.h src/transcode.c
   * Added: src/frc_table.h
-  Moved the frame rate code table into a common header.
+  Moved the frame rate code table into a common header (src/frc_table.h).
 
 2005-12-24 Andrew Church <achurch at achurch dot org>
   * src/probe.c

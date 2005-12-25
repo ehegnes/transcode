@@ -126,7 +126,7 @@ MOD_open
     /* toolame command line */
     /* ptr is a pointer into buf */
     tc_snprintf(ptr, sizeof(buf) - (ptr-buf),
-		"toolame -s %0.3f -b %d -m %c - \"%s.mp2\" 2>/dev/null %s",
+		"toolame -s %0.3f -b %d -m %c - \"%s\" 2>/dev/null %s",
 		(double)ofreq/1000.0, orate, chan, vob->audio_out_file,
 		(vob->ex_a_string?vob->ex_a_string:""));
 

@@ -29,8 +29,8 @@
 // if flag is set, use the extensions provided by the user.
 // otherwise use the ones the export modules suggests.
 
-#define TC_PROBE_NO_EXPORT_VEXT      (1<< 0) // --ext X,..
-#define TC_PROBE_NO_EXPORT_AEXT      (1<< 1) // --ext ..,X
+#define TC_PROBE_NO_EXPORT_VEXT      (1<< 0) // unused
+#define TC_PROBE_NO_EXPORT_AEXT      (1<< 1) // unused
 #define TC_PROBE_NO_EXPORT_VFMT      (1<< 2) // unused
 #define TC_PROBE_NO_EXPORT_AFMT      (1<< 3) // unused
 #define TC_PROBE_NO_EXPORT_VBITRATE  (1<< 4) // -w
@@ -52,9 +52,5 @@
 #define TC_PROBE_NO_EXPORT_GOP       (1<<20) // divx key frames
 
 extern unsigned int probe_export_attributes;
-
-extern char *audio_ext;
-extern char *video_ext;
-
 
 #endif

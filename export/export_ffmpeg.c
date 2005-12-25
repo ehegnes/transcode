@@ -1407,31 +1407,17 @@ MOD_open
 
   if (param->flag == TC_VIDEO) {
 
-    char * buf = 0;
-    const char * ext;
     // video
     if (is_mpegvideo) {
 
-        if(probe_export_attributes & TC_PROBE_NO_EXPORT_VEXT)
-            ext = video_ext;
-        else
-            ext = is_mpegvideo == 1 ? ".m1v" : ".m2v";
-
-        if ((buf = malloc(strlen (vob->video_out_file) + 1 + strlen(ext))) == NULL) {
-            fprintf(stderr, "Could not allocate memory for buf\n");
-            return(TC_EXPORT_ERROR);
-        }
-        tc_snprintf(buf, strlen(vob->video_out_file) + 1 + strlen(ext),
-	            "%s%s", vob->video_out_file, ext);
-        mpeg1fd = fopen(buf, "wb");
+        mpeg1fd = fopen(vob->video_out_file, "wb");
 
         if (!mpeg1fd)
         {
-            tc_log_warn(MOD_NAME, "Can not open file \"%s\" using /dev/null", buf);
+            tc_log_warn(MOD_NAME, "Cannot open file \"%s\", using /dev/null",
+                        vob->video_out_file);
             mpeg1fd = fopen("/dev/null", "wb");
         }
-
-        free (buf);
 
     } else {
       // pass extradata to AVI writer
