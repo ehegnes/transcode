@@ -915,8 +915,6 @@ int main(int argc, char *argv[]) {
     vob->im_a_codec       = CODEC_PCM; //PCM audio frames requested
     // vob->im_v_codec       = CODEC_RGB; //RGB video frames requested
     vob->im_v_codec       = CODEC_YUV;
-    vob->core_a_format    = CODEC_PCM; //PCM
-    vob->core_v_format    = CODEC_RGB; //RGB  // never used, EMS
     vob->mod_path         = MOD_PATH;
     vob->audiologfile     = NULL;
     vob->divxlogfile      = NULL;
@@ -926,7 +924,7 @@ int main(int argc, char *argv[]) {
     vob->a_leap_frame     = TC_LEAP_FRAME;
     vob->a_leap_bytes     = 0;
     vob->demuxer          = -1;
-    vob->a_codec_flag    = CODEC_AC3;    //FIXME
+    vob->a_codec_flag     = CODEC_AC3;
     vob->gamma            = 0.0;
     vob->lame_flush       = 0;
     vob->has_video        = 1;
@@ -988,9 +986,6 @@ int main(int argc, char *argv[]) {
     vob->encode_fields    = 0;
 
     vob->ttime            = NULL;
-    vob->ttime_current    = 0;
-
-    vob->accel            = ac_cpuinfo();
 
     vob->psu_offset       = 0.0f;
     vob->bitreservoir     = TC_TRUE;

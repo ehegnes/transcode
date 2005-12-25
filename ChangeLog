@@ -1,4 +1,9 @@
 2005-12-25 Andrew Church <achurch at achurch dot org>
+  * pvm3/export_pvm_slave.c src/socket.c src/transcode.c src/transcode.h
+  Remove unused fields from vob_t: core_a_format, core_v_format,
+  ttime_current, accel.
+
+2005-12-25 Andrew Church <achurch at achurch dot org>
   * export/export_ppm.c export/export_pvn.c filter/filter_videocore.c
     import/import_ffmpeg.c src/decoder.c src/socket.c src/transcode.c
     src/transcode.h

@@ -634,7 +634,6 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 			else
 			{
 				vob=f_vob_unpack("open",p_buffer,s_size);
-				vob->accel=tc_accel;		/*override the default*/
 				vob->ex_v_fcc=p_param1;		/*override the default*/
 				vob->ex_a_fcc=p_param2;		/*override the default*/
 				vob->ex_profile_name=p_param3;	/*override the default*/

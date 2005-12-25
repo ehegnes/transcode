@@ -251,16 +251,11 @@ typedef struct _vob_t {
 
     // Audio frame manipulation info
 
-    int core_a_format;          // Internal audio data format
-
     double volume;              // Audio amplitude rescale parameter
     double ac3_gain[3];         // Audio amplitude rescale parameter for ac3
-    int clip_count;             // Total number of bytes clipped after
-                                //    volume adjustment
+    int clip_count;             // # of bytes clipped after volume adjustment
 
     // Video frame manipulation info
-
-    int core_v_format;          // Internal video data format
 
     int ex_v_width;             // Export picture width
     int ex_v_height;            // Export picture height
@@ -367,7 +362,6 @@ typedef struct _vob_t {
     char *mod_path;
 
     struct fc_time *ttime;      // For framecode parsing (list of structs)
-    int ttime_current;          // Current time element, needed?
 
     unsigned int frame_interval; // Select every `frame_interval' frames only
 
@@ -378,8 +372,6 @@ typedef struct _vob_t {
     char *im_a_string;          // Extra options for import audio module
     char *ex_v_string;          // Extra options for export video module
     char *ex_a_string;          // Extra options for export audio module
-
-    int accel;
 
     int video_frames_delay;     // Delay audio by N frames (video is late)
     float m2v_requant;          // Requantize factor for mpeg2 video streams

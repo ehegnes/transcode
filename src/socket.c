@@ -146,13 +146,11 @@ static int tc_socket_dump_vob(char *buf)
     P(im_v_codec, "%d");
     P(encode_fields, "%d");
     P(dv_yuy2_mode, "%d");
-    P(core_a_format, "%d");
     P(volume, "%f");
     P(ac3_gain[0], "%f");
     P(ac3_gain[1], "%f");
     P(ac3_gain[2], "%f");
     P(clip_count, "%d");
-    P(core_v_format, "%d");
     P(ex_v_width, "%d");
     P(ex_v_height, "%d");
     P(ex_v_size, "%d");
@@ -227,7 +225,6 @@ static int tc_socket_dump_vob(char *buf)
     P(lame_flush, "%d");
     P(mod_path, "%s");
     P(ttime, "%p");
-    P(ttime_current, "%d");
     P(frame_interval, "%d");
     P(chanid, "%d");
     P(station_id, "%s");
@@ -235,7 +232,6 @@ static int tc_socket_dump_vob(char *buf)
     P(im_a_string, "%s");
     P(ex_v_string, "%s");
     P(ex_a_string, "%s");
-    P(accel, "%d");
     P(video_frames_delay, "%d");
     P(m2v_requant, "%f");
 
