@@ -34,6 +34,7 @@
 #include "filter.h"
 #include "probe.h"
 #include "split.h"
+#include "frc_table.h"
 #include "libtc/iodir.h"
 #include "libxio/xio.h"
 

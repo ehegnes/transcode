@@ -23,6 +23,7 @@
 
 #include "transcode.h"
 #include "probe.h"
+#include "frc_table.h"
 
 #define PMAX_BUF 1024
 char probe_cmd_buf[PMAX_BUF];

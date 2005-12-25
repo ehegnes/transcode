@@ -28,6 +28,7 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
 #undef TCF_DEBUG
 
 #include "transcode.h"
+#include "frc_table.h"
 
 #include "xio.h"
 #include "ioaux.h"
@@ -66,13 +67,6 @@ static void check (int v)
  * print a usage/version message
  *
  * ------------------------------------------------------------*/
-
-static double frc_table[16] = {0,
-			       NTSC_FILM, 24, 25, NTSC_VIDEO, 30, 50,
-			       (2*NTSC_VIDEO), 60,
-			       1, 5, 10, 12, 15,
-			       0, 0};
-
 
 void version(void)
 {

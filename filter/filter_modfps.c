@@ -56,6 +56,7 @@
 #include "transcode.h"
 #include "filter.h"
 #include "optstr.h"
+#include "frc_table.h"
 
 #include <math.h>
 
@@ -88,11 +89,6 @@ static int *framesOK, *framesScore;
 static int scanrange = 0;
 static int clonetype = 0;
 
-static double frc_table[16] = {0,
-			       NTSC_FILM, 24, 25, NTSC_VIDEO, 30, 50,
-			       (2*NTSC_VIDEO), 60,
-			       1, 5, 10, 12, 15,
-			       0, 0};
 static void help_optstr(void)
 {
     tc_log_info(MOD_NAME, "(%s) help", MOD_CAP);
