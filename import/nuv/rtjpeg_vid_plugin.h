@@ -39,7 +39,7 @@ extern struct rtfileheader rtjpeg_vid_fileheader;
 #endif
 
 
-int            rtjpeg_vid_open(char *tplorg);
+int            rtjpeg_vid_open(const char *tplorg);
 int            rtjpeg_vid_close(void);
 int            rtjpeg_vid_get_video_width(void);
 int            rtjpeg_vid_get_video_height(void);

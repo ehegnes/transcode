@@ -51,8 +51,8 @@ typedef struct _info_t {
 
     int fd_log;
 
-    char *name;         // Source name as supplied with -i option
-    char *nav_seek_file; // Seek/index file
+    const char *name;   // Source name as supplied with -i option
+    const char *nav_seek_file; // Seek/index file
 
     int probe;          // Flag for probe only mode
     int factor;         // Amount of file to probe, in MB
@@ -79,7 +79,7 @@ typedef struct {
     long codec;         // Specifies codec
     int verbose;        // Verbosity
     int quality;
-    char *name;         // Source name as supplied with -i option
+    const char *name;   // Source name as supplied with -i option
     int width;
     int height;
     int a52_mode;

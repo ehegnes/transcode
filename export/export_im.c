@@ -52,8 +52,8 @@ static uint8_t *tmp_buffer; //[SIZE_RGB_FRAME];
 static int codec, width, height;
 
 static int counter=0;
-static char *prefix="frame.";
-static char *type;
+static const char *prefix="frame.";
+static const char *type;
 
 static int interval=1;
 static unsigned int int_counter=0;

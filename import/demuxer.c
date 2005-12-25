@@ -81,7 +81,8 @@ void tcdemux_thread(info_t *ipipe)
     //for demux_mode=2
     int seq_picture_ctr=0, pack_picture_ctr=0, sequence_ctr=0, packet_ctr=0;
 
-    char buf[256], *logfile;
+    char buf[256];
+    const char *logfile;
 
     unsigned long i_pts, i_dts;
 

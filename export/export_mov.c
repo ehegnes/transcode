@@ -233,7 +233,7 @@ MOD_init
     qt_codec =  tc_strdup(vob->ex_v_fcc);
 
     /* open target file for writing */
-    if(NULL == (qtfile = quicktime_open(vob->video_out_file, 0, 1)) ){
+    if(NULL == (qtfile = quicktime_open((char *)vob->video_out_file, 0, 1)) ){
         tc_log_warn(MOD_NAME, "error opening qt file '%s'",
             vob->video_out_file);
         return(TC_EXPORT_ERROR);
@@ -530,7 +530,7 @@ MOD_init
 
   /* audio setup -------------------------------------------------- */
   if(param->flag == TC_AUDIO){
-    char *qt_codec;
+    const char *qt_codec;
     lqt_codec_info_t ** qt_codec_info = 0;
 
     /* no audio setup if we don't have any channels (size == 0 might be better?)*/

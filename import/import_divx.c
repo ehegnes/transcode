@@ -152,11 +152,8 @@ static int divx3_is_key(char *d)
 }
 
 
-static int divx_init(char *path) {
-#ifdef SYS_BSD
-    const
-#endif
-    char *error;
+static int divx_init(const char *path) {
+    const char *error;
     long sret;
 
     handle = NULL;

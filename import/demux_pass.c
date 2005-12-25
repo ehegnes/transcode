@@ -64,7 +64,7 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
     int flag_sync_reset   = 0;
     int flag_sync_active  = 0;
 
-    char *logfile;
+    const char *logfile;
 
     unsigned int packet_size=VOB_PACKET_SIZE;
 

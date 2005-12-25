@@ -135,7 +135,7 @@ MOD_open
 {
 
   int verb, prof=0;
-  char *p1, *p2, *p3, *p4;
+  const char *p1, *p2, *p3, *p4;
   char bitrate[25];
   //char dar_tag[20];
   y4m_ratio_t framerate;

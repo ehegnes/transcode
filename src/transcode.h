@@ -126,17 +126,17 @@ typedef struct _vob_t {
 
     // import info
 
-    char *vmod_probed;
-    char *amod_probed;
-    char *vmod_probed_xml;      // Modules for reading XML data
-    char *amod_probed_xml;
+    const char *vmod_probed;
+    const char *amod_probed;
+    const char *vmod_probed_xml; // Modules for reading XML data
+    const char *amod_probed_xml;
 
     int verbose;
 
-    char *video_in_file;        // Video source file
-    char *audio_in_file;        // Audio source file
+    const char *video_in_file;  // Video source file
+    const char *audio_in_file;  // Audio source file
 
-    char *nav_seek_file;        // Seek/index information
+    const char *nav_seek_file;  // Seek/index information
 
     int in_flag;
 
@@ -176,7 +176,7 @@ typedef struct _vob_t {
     int vob_psu_num1;
     int vob_psu_num2;
 
-    char *vob_info_file;
+    const char *vob_info_file;
 
     double pts_start;
 
@@ -308,8 +308,8 @@ typedef struct _vob_t {
 
     // Export info
 
-    char *video_out_file;
-    char *audio_out_file;
+    const char *video_out_file;
+    const char *audio_out_file;
 
     avi_t *avifile_in;
     avi_t *avifile_out;
@@ -325,7 +325,7 @@ typedef struct _vob_t {
     int divxcrispness;
     int divxmultipass;
     int video_max_bitrate;
-    char *divxlogfile;
+    const char *divxlogfile;
 
     int min_quantizer;
     int max_quantizer;
@@ -345,28 +345,28 @@ typedef struct _vob_t {
     int mp3mode;                // 0=joint-stereo, 1=full-stereo, 2=mono
 
     int bitreservoir;
-    char *lame_preset;
+    const char *lame_preset;
 
-    char *audiologfile;
+    const char *audiologfile;
 
     int ex_a_codec;             // Audio codec for export module
     int ex_v_codec;             // Video codec for export module
 
-    char *ex_v_fcc;             // Video fourcc string
-    char *ex_a_fcc;             // Audio fourcc string/identifier
-    char *ex_profile_name;      // User profile name
+    const char *ex_v_fcc;       // Video fourcc string
+    const char *ex_a_fcc;       // Audio fourcc string/identifier
+    const char *ex_profile_name; // User profile name
 
     int pass_flag;
     int lame_flush;
 
-    char *mod_path;
+    const char *mod_path;
 
     struct fc_time *ttime;      // For framecode parsing (list of structs)
 
     unsigned int frame_interval; // Select every `frame_interval' frames only
 
     int chanid;
-    char *station_id;
+    const char *station_id;
 
     char *im_v_string;          // Extra options for import video module
     char *im_a_string;          // Extra options for import audio module

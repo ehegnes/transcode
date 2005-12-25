@@ -100,7 +100,7 @@ return TC_IMPORT_ERROR;
 
 	char *yuv_str;
 	char *motion_str;
-	char *p1, *p2;
+	const char *p1, *p2;
 	char *mux_buf = "-X 2";
 
 	int clock, period, is_vcd = 0;

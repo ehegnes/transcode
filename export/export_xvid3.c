@@ -150,7 +150,7 @@ static vbr_control_t   vbr_state;
 #define Clamp(var, min, max) (Max(min,Min(var, max)))
 #define MakeBool(a) (((a))?1:0)
 
-static int xvid2_init(char *path);
+static int xvid2_init(const char *path);
 
 static int xvid_config(XVID_INIT_PARAM *einit,
 		       XVID_ENC_PARAM  *eparam,
@@ -616,12 +616,9 @@ MOD_stop
  * Utility functions
  ****************************************************************************/
 
-static int xvid2_init(char *path)
+static int xvid2_init(const char *path)
 {
-#ifdef SYS_BSD
-	const
-#endif
-		char *error;
+	const char *error;
 	char modules[4][TC_BUF_MAX];
 	char *module;
 	int i;

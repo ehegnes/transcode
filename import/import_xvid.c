@@ -66,11 +66,8 @@ static int x_dim, y_dim;
 #define XVID_SHARED_LIB_SUFX "so"
 #endif
 
-static int xvid2_init(char *path) {
-#ifdef SYS_BSD
-	const
-#endif
-		char *error;
+static int xvid2_init(const char *path) {
+	const char *error;
 	char modules[6][TC_BUF_MAX];
 	char *module;
 	int i;

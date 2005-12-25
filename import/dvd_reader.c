@@ -694,7 +694,7 @@ int dvd_probe(int title, ProbeInfo *info)
     return(0);
 }
 
-int dvd_verify(char *dvd_path)
+int dvd_verify(const char *dvd_path)
 {
     static dvd_reader_t *_dvd=NULL;
     ifo_handle_t *vmg_file=NULL;
@@ -715,7 +715,7 @@ int dvd_verify(char *dvd_path)
 }
 
 
-int dvd_init(char *dvd_path, int *titles, int verb)
+int dvd_init(const char *dvd_path, int *titles, int verb)
 {
 
     tt_srpt_t *tt_srpt;
@@ -1298,7 +1298,7 @@ int dvd_query(int arg_title, int *arg_chapter, int *arg_angle)
   return(-1);
 }
 
-int dvd_init(char *dvd_path, int *arg_title, int verb)
+int dvd_init(const char *dvd_path, int *arg_title, int verb)
 {
   fprintf(stderr, "(%s) no support for DVD reading configured - exit.\n", __FILE__);
 
@@ -1328,7 +1328,7 @@ int dvd_close(void)
 
 return(-1);
 }
-int dvd_verify(char *name)
+int dvd_verify(const char *name)
 {
 
   fprintf(stderr, "(%s) no support for DVD reading configured - exit.\n", __FILE__);

@@ -2759,11 +2759,11 @@ int main(int argc, char *argv[]) {
 
     //overwrite results of autoprobing if modules are provided
     if(no_vin_codec && vob->vmod_probed!=NULL) {
-        im_vid_mod=vob->vmod_probed_xml;                //need to load the correct module if the input file type is xml
+        im_vid_mod=(char *)vob->vmod_probed_xml;                //need to load the correct module if the input file type is xml
     }
 
     if(no_ain_codec && vob->amod_probed!=NULL) {
-        im_aud_mod=vob->amod_probed_xml;                //need to load the correct module if the input file type is xml
+        im_aud_mod=(char *)vob->amod_probed_xml;                //need to load the correct module if the input file type is xml
     }
 
     // make zero frame size default for no video

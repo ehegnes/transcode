@@ -92,7 +92,7 @@ MOD_open
 
     /* open movie for audio extraction */
     if(qt_audio==NULL) {
-      if(NULL == (qt_audio = quicktime_open(vob->audio_in_file,1,0))){
+      if(NULL == (qt_audio = quicktime_open((char *)vob->audio_in_file,1,0))){
 	       tc_log_warn(MOD_NAME, "can't open quicktime!");
 	       return(TC_IMPORT_ERROR);
       }
@@ -168,7 +168,7 @@ MOD_open
 
     /* open movie for video extraction */
     if(qt_video==NULL)
-      if(NULL == (qt_video = quicktime_open(vob->video_in_file,1,0))){
+      if(NULL == (qt_video = quicktime_open((char *)vob->video_in_file,1,0))){
 	       tc_log_warn(MOD_NAME,"can't open quicktime!");
 	       return(TC_IMPORT_ERROR);
       }

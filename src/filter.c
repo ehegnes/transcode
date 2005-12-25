@@ -121,11 +121,8 @@ static int filter_unquote_options(char *options)
     return 0;
 }
 
-static int load_plugin(char *path) {
-#ifdef SYS_BSD
-  const
-#endif
-  char *error;
+static int load_plugin(const char *path) {
+  const char *error;
 
   int n;
   char *c;

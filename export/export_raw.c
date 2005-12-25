@@ -102,8 +102,8 @@ MOD_open
 
     double fps;
 
-    char *codec;
-    char *dir_name = NULL;
+    const char *codec;
+    const char *dir_name = NULL;
     const char *to_open;
     const char *fcc = NULL;
 

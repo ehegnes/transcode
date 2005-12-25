@@ -24,6 +24,6 @@
 #ifndef _SPLIT_H
 #define _SPLIT_H
 
-int split_stream(vob_t *vob, char *file, int unit, int *fa, int *fb, int opt_flag);
+int split_stream(vob_t *vob, const char *file, int unit, int *fa, int *fb, int opt_flag);
 
 #endif

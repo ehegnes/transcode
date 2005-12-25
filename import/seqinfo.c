@@ -622,7 +622,7 @@ void seq_list(seq_list_t *ptr, int end_pts, int pictures, int packets, int flag)
 
 /* ------------------------------------------------------------------ */
 
-int seq_init(char *logfile, int _ext_sfd, double _fps, int _verbose)
+int seq_init(const char *logfile, int _ext_sfd, double _fps, int _verbose)
 {
 
   //need to open the file

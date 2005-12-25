@@ -77,7 +77,7 @@ seq_list_t *seq_retrieve(void);
 void seq_update(seq_list_t *ptr, int pts, int pictures, int packets, int flag, int hard_fps);
 void seq_list(seq_list_t *ptr, int end_pts, int pictures, int packets, int flag);
 void seq_close(void);
-int seq_init(char *logfile, int ext, double fps, int verb);
+int seq_init(const char *logfile, int ext, double fps, int verb);
 void seq_write(seq_list_t *ptr);
 void seq_list_frames(void);
 

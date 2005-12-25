@@ -1,4 +1,22 @@
 2005-12-25 Andrew Church <achurch at achurch dot org>
+  * export/export_debugppm.c export/export_divx4.c export/export_divx4raw.c
+    export/export_divx5.c export/export_divx5raw.c export/export_im.c
+    export/export_jpg.c export/export_mov.c export/export_mp1e.c
+    export/export_mpeg2enc.c export/export_ppm.c export/export_raw.c
+    export/export_xvid2.c export/export_xvid3.c export/export_xvid4.c
+    export/xvid4.h export/xvid_vbr.h import/decode_mov.c
+    import/demux_pass.c import/demuxer.c import/dvd_reader.c
+    import/dvd_reader.h import/import_divx.c import/import_mov.c
+    import/import_vnc.c import/import_xvid.c import/ioxml.c import/ioxml.h
+    import/probe_mov.c import/seqinfo.c import/seqinfo.h
+    import/tcxmlcheck.c import/nuv/rtjpeg_aud_plugin.c
+    import/nuv/rtjpeg_aud_plugin.h import/nuv/rtjpeg_vid_plugin.c
+    import/nuv/rtjpeg_vid_plugin.h import/v4l/audio.c import/v4l/audio.h
+    import/v4l/video.c import/v4l/video.h src/filter.c src/split.c
+    src/split.h src/tcinfo.h src/transcode.c src/transcode.h
+  Use const char * instead of char * where feasible.
+
+2005-12-25 Andrew Church <achurch at achurch dot org>
   * import/* src/probe.c src/probe.h src/tcinfo.h src/transcode.h
     Added: src/tcinfo.h
   Move the pcm_t and probe_info_t structure definitions from transcode.h to

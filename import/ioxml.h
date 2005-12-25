@@ -84,7 +84,7 @@ void f_free_tree(audiovideo_t *p_node);
 int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo);
 int f_complete_tree(audiovideo_t *p_audiovideo);
 void f_delete_unused_node(xmlNodePtr p_node);
-int f_manage_input_xml(char *p_name,int s_type,audiovideo_t *p_audiovideo);
+int f_manage_input_xml(const char *p_name,int s_type,audiovideo_t *p_audiovideo);
 audiovideo_limit_t f_det_time(char *p_options);
 
 #endif

@@ -19,7 +19,7 @@
  *  along with this program ; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- * $Id: xvid4.h,v 1.8 2004-10-17 22:03:12 jacob Exp $
+ * $Id: xvid4.h,v 1.9 2005-12-25 16:54:13 achurch Exp $
  *
  ****************************************************************************/
 
@@ -490,7 +490,7 @@ typedef struct
 typedef struct {
 	int version;
 
-	char * filename;
+	const char * filename;
 } xvid_plugin_2pass1_t;
 
 
@@ -501,7 +501,7 @@ typedef struct {
 	int version;
 
 	int bitrate;                  /* [in] bits per second */
-	char * filename;              /* [in] first pass stats filename */
+	const char * filename;        /* [in] first pass stats filename */
 
 	int keyframe_boost;           /* [in] keyframe boost percentage: [0..100] */
 	int curve_compression_high;   /* [in] percentage of compression performed on the high part of the curve (above average) */

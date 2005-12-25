@@ -50,7 +50,7 @@ return TC_IMPORT_ERROR;
 	    case 0:
 		{
 		    int n=0;
-		    char *a[16];
+		    const char *a[16];
 		    char *c = vob->im_v_string;
 
 		    setenv("VNCREC_MOVIE_FRAMERATE", fps, 1);
@@ -91,7 +91,7 @@ return TC_IMPORT_ERROR;
 			}
 		    }
 		    a[n++] = NULL;
-		    if (execvp (a[0], &a[0])<0) {
+		    if (execvp (a[0], (char **)&a[0])<0) {
 			perror ("execvp vncrec failed. Is vncrec in your $PATH?");
 			return (TC_IMPORT_ERROR);
 		    }

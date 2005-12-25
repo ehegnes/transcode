@@ -48,7 +48,7 @@ static char buf2[PATH_MAX];
 static int codec, width, height;
 
 static int counter=0;
-static char *prefix="frame.";
+static const char *prefix="frame.";
 static int jpeg_quality =0;
 #define JPEG_DEFAULT_QUALITY 85
 

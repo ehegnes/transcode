@@ -116,11 +116,8 @@ static char * prof2name(int n)
 
 #define MODULE "libdivxencore.so.0"
 
-static int divx5_init(char *path) {
-#ifdef SYS_BSD /* Just in case ProjectMayo will release FreeBSD library :-) */
-  const
-#endif
-  char *error;
+static int divx5_init(const char *path) {
+  const char *error;
   int *quiet_encore;
 
   tc_snprintf(module, sizeof(module), "%s/%s", path, MODULE);

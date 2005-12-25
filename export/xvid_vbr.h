@@ -74,7 +74,7 @@ typedef struct _vbr_control_t
 	 * For VBR_MODE_2PASS_1/2 - specifies from/to what file the vbr
 	 * controller has to write/read stats
 	 */
-	char *filename;
+	const char *filename;
 
 	/* For VBR_MODE_2PASS_2 - Target size */
 	int desired_bitrate;

@@ -48,7 +48,7 @@ static long unit_offset[MAX_UNITS];
 
 #define debug_return {return(-1);}
 
-static int split_stream_core(char *file, char *source)
+static int split_stream_core(const char *file, const char *source)
 {
 
     FILE *fd;
@@ -140,7 +140,7 @@ static long get_frame_index(int unit, long frame_inc)
 //----------------------------------------------
 
 
-int split_stream(vob_t *vob, char *file, int this_unit, int *fa, int *fb, int opt_flag)
+int split_stream(vob_t *vob, const char *file, int this_unit, int *fa, int *fb, int opt_flag)
 {
 
   int n, unit_ctr=-1, last_unit=-1;

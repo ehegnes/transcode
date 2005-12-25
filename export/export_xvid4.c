@@ -115,7 +115,7 @@ typedef struct _xvid_module_t
 	xvid_function_t plugin_lumimasking;
 } xvid_module_t;
 
-static int load_xvid(xvid_module_t *xvid, char *path);
+static int load_xvid(xvid_module_t *xvid, const char *path);
 static int unload_xvid(xvid_module_t *xvid);
 
 /*****************************************************************************
@@ -1193,13 +1193,9 @@ static void print_matrix(unsigned char *matrix)
  * Un/Loading XviD shared lib and symbols
  ****************************************************************************/
 
-static int load_xvid(xvid_module_t *xvid, char *path)
+static int load_xvid(xvid_module_t *xvid, const char *path)
 {
-#ifdef SYS_BSD
 	const char *error;
-#else
-	char *error;
-#endif
 	char soname[4][4096];
 	int i;
 

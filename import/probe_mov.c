@@ -42,7 +42,7 @@ void probe_mov(info_t *ipipe)
 
   /* open movie for video probe */
   if(qt_file==NULL)
-    if(NULL == (qt_file = quicktime_open(ipipe->name,1,0))){
+    if(NULL == (qt_file = quicktime_open((char *)ipipe->name,1,0))){
       fprintf(stderr,"error: can't open quicktime!\n");
       ipipe->error=1;
       return;

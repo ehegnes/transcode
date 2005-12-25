@@ -28,16 +28,14 @@ struct MOVIE_PARAMS {
   int bits;                   /* 8/16 */
   int rate;                   /* sample rate (11025 etc) */
 
-  char *adev;
+  const char *adev;
 
 };
 
 
-int audio_grab_init(char *dev, int rate, int bits, int chan, int verb);
+int audio_grab_init(const char *dev, int rate, int bits, int chan, int verb);
 void audio_grab_close(int do_audio);
 int audio_grab_frame(char *buffer, int bytes);
-
-time_t tc(char * buf);
 
 int   sound_open(struct MOVIE_PARAMS *params);
 int   sound_bufsize(void);

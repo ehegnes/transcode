@@ -561,7 +561,7 @@ int f_complete_tree(audiovideo_t *p_audiovideo)
 	return(0);
 
 }
-int f_manage_input_xml(char *p_name,int s_type,audiovideo_t *p_audiovideo)
+int f_manage_input_xml(const char *p_name,int s_type,audiovideo_t *p_audiovideo)
 {
         static xmlDocPtr p_doc;
         xmlNodePtr p_node;

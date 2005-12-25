@@ -54,7 +54,7 @@ void decode_mov(decode_t *decode)
 	short *p_mask1,*p_mask2;
 
 
-	if((p_qt_structure = quicktime_open(decode->name,1,0))== NULL)
+	if((p_qt_structure = quicktime_open((char * )decode->name,1,0))== NULL)
 	{
 		fprintf(stderr,"(%s) error: can't open quicktime!\n",__FILE__);
 		import_exit(1);

@@ -72,7 +72,7 @@ static struct region  regions[MAXREGIONS];
 
 /* ------------------------------------------------- */
 
-int rtjpeg_vid_open(char *tplorg)
+int rtjpeg_vid_open(const char *tplorg)
 {
   unsigned long int tbls[128];
   struct rtframeheader frameheader;

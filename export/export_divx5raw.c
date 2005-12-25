@@ -90,11 +90,8 @@ static char module[TC_BUF_MAX];
 
 #define MODULE "libdivxencore.so"
 
-static int divx5_init(char *path) {
-#ifdef SYS_BSD /* Just in case ProjectMayo will release FreeBSD library :-) */
-  const
-#endif
-  char *error;
+static int divx5_init(const char *path) {
+  const char *error;
   int *quiet_encore;
 
 tc_log_error(MOD_NAME, "****************** NOTICE ******************");

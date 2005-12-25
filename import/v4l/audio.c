@@ -56,7 +56,7 @@ extern int  debug;
 
 static int verb=0;
 
-int audio_grab_init(char *dev, int rate, int bits, int chan, int _verb)
+int audio_grab_init(const char *dev, int rate, int bits, int chan, int _verb)
 {
 
   struct MOVIE_PARAMS params;

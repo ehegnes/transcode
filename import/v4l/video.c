@@ -54,9 +54,9 @@ int do_audio = 0;
 #define cf_get_named_key(x,y,z) cf_get_named_section_value_of_key(x,y,z)
 
 int
-video_grab_init (char *device,  // device the video/audio comes from [/dev/video0, etc]
+video_grab_init (const char *device,  // device the video/audio comes from [/dev/video0, etc]
                  int chanid,    // channel on that device [composit, s-video, tuner, etc] (-1 == don't touch)
-                 char *station_id,      // if tuner, staion to tune ["11", "E3", "PBS", "ARD", etc]
+                 const char *station_id,      // if tuner, staion to tune ["11", "E3", "PBS", "ARD", etc]
                  int w,         // image width
                  int h,         // image height
                  int fmt,       // pixel format
