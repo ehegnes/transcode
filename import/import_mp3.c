@@ -84,9 +84,9 @@ MOD_open
 			"tcextract -a %d -i \"%s\" -x %s -d %d -f %s -C %d-%d |"
 			" tcdecode -x %s -d %d -z %d",
 			vob->a_track, vob->audio_in_file,
-			(vob->fixme_a_codec==0x50 ? "mp2" : "mp3"),
+			(vob->fixme_a_codec==CODEC_MP2 ? "mp2" : "mp3"),
 			vob->verbose, vob->nav_seek_file, offset, offset + 1,
-			(vob->fixme_a_codec==0x50 ? "mp2" : "mp3"),
+			(vob->fixme_a_codec==CODEC_MP2 ? "mp2" : "mp3"),
 			vob->verbose, vob->a_padrate);
           if (sret < 0)
 	    return(TC_IMPORT_ERROR);
@@ -97,9 +97,9 @@ MOD_open
 			"tccat -a -i %s | tcextract -a %d -x %s -d %d |"
 			" tcdecode -x %s -d %d -z %d",
 			vob->audio_in_file, vob->a_track,
-			(vob->fixme_a_codec==0x50 ? "mp2" : "mp3"),
+			(vob->fixme_a_codec==CODEC_MP2 ? "mp2" : "mp3"),
 			vob->verbose,
-			(vob->fixme_a_codec==0x50 ? "mp2" : "mp3"),
+			(vob->fixme_a_codec==CODEC_MP2 ? "mp2" : "mp3"),
 			vob->verbose,
 			vob->a_padrate);
 	    if (sret < 0)
@@ -110,9 +110,9 @@ MOD_open
 			"tcextract -a %d -i \"%s\" -x %s -d %d |"
 			" tcdecode -x %s -d %d -z %d",
 			vob->a_track, vob->audio_in_file,
-			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
+			(vob->fixme_a_codec==CODEC_MP2 ? "mp2" : "mp3"),
 			vob->verbose,
-			(vob->fixme_a_codec==0x50?"mp2":"mp3"),
+			(vob->fixme_a_codec==CODEC_MP2 ? "mp2" : "mp3"),
 			vob->verbose, vob->a_padrate);
 	    if (sret < 0)
 	      return(TC_IMPORT_ERROR);
