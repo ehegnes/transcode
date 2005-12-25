@@ -28,6 +28,7 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
 #undef TCF_DEBUG
 
 #include "transcode.h"
+#include "tcinfo.h"
 #include "frc_table.h"
 
 #include "xio.h"

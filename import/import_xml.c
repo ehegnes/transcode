@@ -26,6 +26,7 @@
 #define MOD_CODEC   "(video) * | (audio) *"
 
 #include "transcode.h"
+#include "tcinfo.h"
 #include "libtcvideo/tcvideo.h"
 
 static int verbose_flag = TC_QUIET;
@@ -260,7 +261,7 @@ static void f_mod_video_frame(transfer_t *param,audiovideo_t *p_temp,int s_codec
 MOD_open
 {
 	info_t	s_info_dummy;
-	probe_info_t s_probe_dummy1,s_probe_dummy2;
+	ProbeInfo s_probe_dummy1,s_probe_dummy2;
 	long s_tot_dummy1,s_tot_dummy2;
 	int s_frame_audio_size=0;
 

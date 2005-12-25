@@ -10,6 +10,7 @@
  */
 
 #include "transcode.h"
+#include "tcinfo.h"
 #include "libtc.h"
 #include "ioaux.h"
 #include "tc.h"
@@ -69,7 +70,7 @@ static int is_identify_line(const char *line)
     return 0;
 }    
 
-static void parse_identify_line(const char *line, probe_info_t *info)
+static void parse_identify_line(const char *line, ProbeInfo *info)
 {
     int do_audio = 0;
     

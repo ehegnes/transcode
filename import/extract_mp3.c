@@ -21,7 +21,9 @@
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
+
 #include "transcode.h"
+#include "tcinfo.h"
 
 #include "avilib.h"
 #include "ioaux.h"

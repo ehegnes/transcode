@@ -31,6 +31,7 @@
 //#define DDBUG
 
 #include "transcode.h"
+#include "tcinfo.h"
 
 #include <sys/mman.h>
 #include <limits.h>

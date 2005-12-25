@@ -65,6 +65,7 @@ extern "C" {
 #endif
 
 #include "transcode.h"
+#include "tcinfo.h"
 #include "magic.h"
 #include "aclib/imgconvert.h"
 

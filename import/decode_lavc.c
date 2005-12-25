@@ -24,6 +24,7 @@
  */
 
 #include "transcode.h"
+#include "tcinfo.h"
 
 #include "aclib/imgconvert.h"
 #include "ioaux.h"

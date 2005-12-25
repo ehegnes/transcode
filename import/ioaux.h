@@ -25,6 +25,7 @@
 #define _IOAUX_H
 
 #include "transcode.h"
+#include "tcinfo.h"
 #include "magic.h"
 
 

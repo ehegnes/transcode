@@ -65,9 +65,9 @@ my %VideoData;        # for saving raw output data to compare against
           \&test_import, "ffmpeg", \$VideoData{&CSP_YUV}, CSP_YUV);
 
 # Test various export modules by running their output through ffmpeg
-&add_test("-y af6", ["-x ffmpeg (raw)"],
-          "Test output using export_af6",
-          \&test_export_x_ffmpeg, "af6", CSP_YUV, "Uncompressed I420");
+#&add_test("-y af6", ["-x ffmpeg (raw)"],
+#          "Test output using export_af6",
+#          \&test_export_x_ffmpeg, "af6", CSP_YUV, "Uncompressed I420");
 &add_test("-y ffmpeg", ["-x ffmpeg (raw)"],
           "Test output using export_ffmpeg",
           \&test_export_x_ffmpeg, "ffmpeg", CSP_YUV, "mpeg4");

@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "tcinfo.h"
 
 #ifdef HAVE_LIBQUICKTIME
 #include <quicktime.h>

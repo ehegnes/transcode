@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "tcinfo.h"
 
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>

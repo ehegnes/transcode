@@ -21,15 +21,11 @@
  *
  */
 
-#include <inttypes.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <inttypes.h>
-
-#include "ioaux.h"
-
 #include "transcode.h"
+#include "tcinfo.h"
+
 #include "aclib/imgconvert.h"
+#include "ioaux.h"
 #include "tc.h"
 
 /*

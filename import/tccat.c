@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "tcinfo.h"
 
 #include "xio.h"
 #include "ioaux.h"

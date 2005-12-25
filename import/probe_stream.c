@@ -22,12 +22,13 @@
  */
 
 #include "transcode.h"
+#include "tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
 #include "aux_pes.h"
 
 
-static probe_info_t probe_info;
+static ProbeInfo probe_info;
 void probe_pvn(info_t *ipipe);
 
 /* ------------------------------------------------------------
@@ -45,7 +46,7 @@ void tcprobe_thread(info_t *ipipe)
     ipipe->probe = 1;
 
     //data structure will be completed by subroutines
-    memset((char*) &probe_info, 0, sizeof(probe_info_t));
+    memset((char*) &probe_info, 0, sizeof(ProbeInfo));
 
     /* ------------------------------------------------------------
      *

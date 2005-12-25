@@ -23,8 +23,10 @@
  */
 
 #include "transcode.h"
+#include "tcinfo.h"
 
 #include "ioaux.h"
+#include "magic.h"
 #include "tc.h"
 
 #ifdef HAVE_LAME
@@ -252,7 +254,7 @@ int lame_decode_fromfile(FILE * fd, short pcm_l[], short pcm_r[],
 
 static int verbose_flag;
 
-int buf_probe_mp3(unsigned char *_buf, int len, pcm_t *pcm)
+int buf_probe_mp3(unsigned char *_buf, int len, ProbeTrackInfo *pcm)
 {
 
   //  VBRTAGDATA pTagData;

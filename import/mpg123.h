@@ -36,13 +36,10 @@
 #include <lame.h>
 #endif
 
-#include "ioaux.h"
-#include "magic.h"
-
 int lame_decode_initfile(FILE * fd, mp3data_struct * mp3data, int format);
 int lame_decode_fromfile(FILE * fd, short pcm_l[], short pcm_r[], mp3data_struct * mp3data);
 
-int buf_probe_mp3(unsigned char *_buf, int len, pcm_t *pcm);
+int buf_probe_mp3(unsigned char *_buf, int len, ProbeTrackInfo *pcm);
 
 #endif  // HAVE_LAME
 

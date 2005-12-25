@@ -27,7 +27,7 @@
 #include "transcode.h"
 
 int dvd_init(char *dvd_path, int *arg_title, int verb);
-int dvd_probe(int title, probe_info_t *info);
+int dvd_probe(int title, ProbeInfo *info);
 int dvd_query(int arg_title, int *arg_chapter, int *arg_angle);
 int dvd_read(int arg_title, int arg_chapter, int arg_angle);
 int dvd_stream(int arg_title,int arg_chapid);

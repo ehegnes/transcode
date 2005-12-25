@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "probe.h"
 #include "frc_table.h"
 
 #include <math.h>
@@ -175,7 +176,7 @@ int stats_sequence(uint8_t * buffer, seq_info_t *seq_info)
 
 }
 
-int probe_sequence(uint8_t *buffer, probe_info_t *probe_info)
+int probe_sequence(uint8_t *buffer, ProbeInfo *probe_info)
 {
 
   int horizontal_size;
@@ -220,7 +221,7 @@ int probe_sequence(uint8_t *buffer, probe_info_t *probe_info)
 
 }
 
-int probe_extension(uint8_t *buffer, probe_info_t *probe_info)
+int probe_extension(uint8_t *buffer, ProbeInfo *probe_info)
 {
 
     int intra_dc_precision;

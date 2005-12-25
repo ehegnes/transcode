@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "tcinfo.h"
 
 #include <math.h>
 #include "xio.h"
@@ -363,7 +364,7 @@ int main(int argc, char *argv[])
     //-------------------------------------
 
     if(binary_dump) {
-      tc_pwrite(ipipe.fd_out, (uint8_t *) ipipe.probe_info, sizeof(probe_info_t));
+      tc_pwrite(ipipe.fd_out, (uint8_t *) ipipe.probe_info, sizeof(ProbeInfo));
       exit(0);
     }
 

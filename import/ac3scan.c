@@ -70,7 +70,7 @@ int ac3scan(FILE *fd, char *buffer, int size, int *ac_off, int *ac_bytes, int *p
 
 static int verbose_flag=TC_QUIET;
 
-int buf_probe_ac3(unsigned char *_buf, int len, pcm_t *pcm)
+int buf_probe_ac3(unsigned char *_buf, int len, ProbeTrackInfo *pcm)
 {
 
   int j=0, i=0, bitrate, fsize, nfchans;
@@ -137,7 +137,7 @@ void probe_ac3(info_t *ipipe)
 }
 
 #define inc(a) do { if (buf-_buf==len-(a)) return -1; else buf += (a); } while (0)
-int buf_probe_dts (unsigned char *_buf, int len, pcm_t *pcm)
+int buf_probe_dts (unsigned char *_buf, int len, ProbeTrackInfo *pcm)
 {
     int i=0;
     unsigned char *buf = _buf;

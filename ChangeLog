@@ -1,4 +1,11 @@
 2005-12-25 Andrew Church <achurch at achurch dot org>
+  * import/* src/probe.c src/probe.h src/tcinfo.h src/transcode.h
+    Added: src/tcinfo.h
+  Move the pcm_t and probe_info_t structure definitions from transcode.h to
+  probe.h (and rename to ProbeTrackInfo and ProbeInfo respectively); move
+  the info_t and decode_t structure definitions to the new file tcinfo.h.
+
+2005-12-25 Andrew Church <achurch at achurch dot org>
   * pvm3/export_pvm_slave.c src/socket.c src/transcode.c src/transcode.h
   Remove unused fields from vob_t: core_a_format, core_v_format,
   ttime_current, accel.

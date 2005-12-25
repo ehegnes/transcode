@@ -23,8 +23,8 @@
 
 static int do_probe(const char *file, const char *nav_seek_file, int title,
 		    int range, int mplayer_flag, int verbose_flag,
-		    probe_info_t *info_ret);
-static void probe_to_vob(probe_info_t *vinfo, probe_info_t *ainfo, int flags,
+		    ProbeInfo *info_ret);
+static void probe_to_vob(ProbeInfo *vinfo, ProbeInfo *ainfo, int flags,
                          vob_t *vob);
 static void select_modules(int flags, vob_t *vob);
 
@@ -52,7 +52,7 @@ static void select_modules(int flags, vob_t *vob);
 int probe_source(const char *vid_file, const char *aud_file, int range,
                  int flags, vob_t *vob)
 {
-    probe_info_t vinfo, ainfo;  // video and audio info structures
+    ProbeInfo vinfo, ainfo;  // video and audio info structures
 
     /* Probe the video file, if present */
     if (vid_file) {
@@ -234,7 +234,7 @@ const char *asr2str(int flag)
 
 static int do_probe(const char *file, const char *nav_seek_file, int title,
 		    int range, int mplayer_flag, int verbose_flag,
-		    probe_info_t *info_ret)
+		    ProbeInfo *info_ret)
 {
     char cmdbuf[PATH_MAX+1000];
     FILE *pipe;
@@ -285,7 +285,7 @@ static int do_probe(const char *file, const char *nav_seek_file, int title,
  * Preconditions: vob != NULL
  */
 
-static void probe_to_vob(probe_info_t *vinfo, probe_info_t *ainfo, int flags,
+static void probe_to_vob(ProbeInfo *vinfo, ProbeInfo *ainfo, int flags,
                          vob_t *vob)
 {
     int track;  // user-selected audio track, sanity-checked

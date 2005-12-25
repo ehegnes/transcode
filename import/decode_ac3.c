@@ -23,6 +23,7 @@
  */
 
 #include "transcode.h"
+#include "tcinfo.h"
 
 #include "ac3.h"
 #include "ioaux.h"

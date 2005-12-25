@@ -22,14 +22,15 @@
  */
 
 #include "transcode.h"
+#include "tcinfo.h"
 
 #ifndef _AC3SCAN_H
 #define _AC3SCAN_H
 
 int ac3scan(FILE *fd, char *buffer, int size, int *ac_off, int *ac_bytes, int *pseudo_size, int *real_size, int verbose);
 
-int buf_probe_ac3(unsigned char *_buf, int len, pcm_t *pcm);
-int buf_probe_dts(unsigned char *_buf, int len, pcm_t *pcm);
+int buf_probe_ac3(unsigned char *_buf, int len, ProbeTrackInfo *pcm);
+int buf_probe_dts(unsigned char *_buf, int len, ProbeTrackInfo *pcm);
 void probe_ac3(info_t *ipipe);
 void probe_dts(info_t *ipipe);
 

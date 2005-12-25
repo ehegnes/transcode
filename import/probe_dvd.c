@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "tcinfo.h"
 #include "ioaux.h"
 #include "dvd_reader.h"
 

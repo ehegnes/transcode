@@ -21,6 +21,8 @@
  *
  */
 
+#include "transcode.h"
+#include "tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
 
@@ -121,13 +123,13 @@ static void f_det_totale_audio_frame(audiovideo_t *p_audio_video)
 }
 
 
-int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_first_audio,probe_info_t *p_first_video,long *s_tot_frames_audio, long *s_tot_frames_video)
+int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,ProbeInfo *p_first_audio,ProbeInfo *p_first_video,long *s_tot_frames_audio, long *s_tot_frames_video)
 {
 	audiovideo_t	*p_audio_video;
 	char	s_probe_cmd_buf[MAX_BUF+1];
 	FILE	*p_fd;
-	probe_info_t	s_other_audio;
-	probe_info_t	s_other_video;
+	ProbeInfo	s_other_audio;
+	ProbeInfo	s_other_video;
 	int	s_first_element=0;
 	pid_t   tc_probe_pid;
 
@@ -172,7 +174,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
                                         break;
                                 }
 
-				if (fread(&s_other_video, sizeof(probe_info_t), 1, p_fd) !=1)
+				if (fread(&s_other_video, sizeof(ProbeInfo), 1, p_fd) !=1)
 				{
 	                		fprintf(stderr,"Cannot read pipe\n");
 					ipipe->error=1;
@@ -208,7 +210,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
 				if ((s_first_element & 0x02) == 0)
 				{
 					s_first_element|=0x02;
-					ac_memcpy(p_first_video,&s_other_video,sizeof(probe_info_t));
+					ac_memcpy(p_first_video,&s_other_video,sizeof(ProbeInfo));
 				}
 				f_det_totale_video_frame(p_audio_video);
 				if (p_audio_video->s_start_video > p_audio_video->s_end_video)
@@ -251,7 +253,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
                                         break;
                                 }
 
-				if (fread(&s_other_audio, sizeof(probe_info_t), 1, p_fd) !=1)
+				if (fread(&s_other_audio, sizeof(ProbeInfo), 1, p_fd) !=1)
 				{
 	                		fprintf(stderr,"Cannot read pipe\n");
 					ipipe->error=1;
@@ -283,7 +285,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
 				if ((s_first_element & 0x01) == 0)
 				{
 					s_first_element|=0x01;
-					ac_memcpy(p_first_audio,&s_other_audio,sizeof(probe_info_t));
+					ac_memcpy(p_first_audio,&s_other_audio,sizeof(ProbeInfo));
 				}
 				f_det_totale_audio_frame(p_audio_video);
 				if (p_audio_video->s_start_audio > p_audio_video->s_end_audio)
@@ -311,8 +313,8 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_fi
 void probe_xml(info_t *ipipe)
 {
 	audiovideo_t s_audiovideo;
-	probe_info_t	s_first_audio;
-	probe_info_t	s_first_video;
+	ProbeInfo	s_first_audio;
+	ProbeInfo	s_first_video;
 	long	s_tot_frames_audio,s_tot_frames_video;
 	int s_first_element;
 
@@ -327,19 +329,19 @@ void probe_xml(info_t *ipipe)
 
 	if (s_first_element & 0x03)	//have video and audio tracks
 	{
-		ac_memcpy(ipipe->probe_info,&s_first_video,sizeof(probe_info_t)); //setup the probe_info structure
+		ac_memcpy(ipipe->probe_info,&s_first_video,sizeof(ProbeInfo)); //setup the probe_info structure
 		ipipe->probe_info->frames=s_tot_frames_video;		//Force sum of selected frames
 		ipipe->probe_info->num_tracks=s_first_audio.num_tracks;
-		ac_memcpy(ipipe->probe_info->track,&(s_first_audio.track),TC_MAX_AUD_TRACKS*sizeof(pcm_t));
+		ac_memcpy(ipipe->probe_info->track,&(s_first_audio.track),TC_MAX_AUD_TRACKS*sizeof(ProbeTrackInfo));
 	}
 	else if (s_first_element & 0x02)     //have only video track
 	{
-		ac_memcpy(ipipe->probe_info,&s_first_video,sizeof(probe_info_t)); //setup the probe_info structure
+		ac_memcpy(ipipe->probe_info,&s_first_video,sizeof(ProbeInfo)); //setup the probe_info structure
 		ipipe->probe_info->frames=s_tot_frames_video;		//Force sum of selected frames
 	}
 	else if (s_first_element & 0x01)     //have only audio tracks
 	{
-		ac_memcpy(ipipe->probe_info,&s_first_audio,sizeof(probe_info_t)); //setup the probe_info structure
+		ac_memcpy(ipipe->probe_info,&s_first_audio,sizeof(ProbeInfo)); //setup the probe_info structure
 		ipipe->probe_info->frames=s_tot_frames_audio;		//Force sum of selected frames
 	}
 	s_first_element=0;

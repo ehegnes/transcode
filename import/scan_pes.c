@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "tcinfo.h"
 #include "ac3.h"
 #include "ioaux.h"
 #include "tc.h"
@@ -626,7 +627,7 @@ void probe_pes(info_t *ipipe)
 
 	      //reset all video/audio information at this point - start
 
-	      memset(ipipe->probe_info, 0, sizeof(probe_info_t));
+	      memset(ipipe->probe_info, 0, sizeof(ProbeInfo));
 	      for(n=0; n<256; ++n) stream[n]=0;
 	      for(n=0; n<TC_MAX_AUD_TRACKS; ++n) track[n]=attr[n]=0;
 	      show_seq_info=0;

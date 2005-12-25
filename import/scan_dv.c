@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "tcinfo.h"
 #include "tc.h"
 
 #ifdef HAVE_LIBDV

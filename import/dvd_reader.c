@@ -23,6 +23,7 @@
  */
 
 #include "transcode.h"
+#include "probe.h"
 
 #include <assert.h>
 
@@ -180,7 +181,7 @@ static void ifoPrint_time(dvd_time_t *time) {
   //  fprintf(stderr," @ %s fps", rate);
 }
 
-static void stats_video_attributes(video_attr_t *attr, probe_info_t *probe_info) {
+static void stats_video_attributes(video_attr_t *attr, ProbeInfo *probe_info) {
 
   /* The following test is shorter but not correct ISO C,
      memcmp(attr,my_friendly_zeros, sizeof(video_attr_t)) */
@@ -311,7 +312,7 @@ static void stats_video_attributes(video_attr_t *attr, probe_info_t *probe_info)
   printf("\n");
 }
 
-static void stats_audio_attributes(audio_attr_t *attr, int track, probe_info_t *probe_info) {
+static void stats_audio_attributes(audio_attr_t *attr, int track, ProbeInfo *probe_info) {
 
   if(attr->audio_format == 0
      && attr->multichannel_extension == 0
@@ -461,7 +462,7 @@ static void stats_audio_attributes(audio_attr_t *attr, int track, probe_info_t *
   printf("\n");
 }
 
-static void stats_subp_attributes(subp_attr_t *attr, int track, probe_info_t *probe_info) {
+static void stats_subp_attributes(subp_attr_t *attr, int track, ProbeInfo *probe_info) {
 
   if(attr->type == 0
      && attr->zero1 == 0
@@ -546,7 +547,7 @@ int dvd_query(int title, int *arg_chapter, int *arg_angle)
     return(0);
 }
 
-int dvd_probe(int title, probe_info_t *info)
+int dvd_probe(int title, ProbeInfo *info)
 {
 
   int             ttn, pgn, pgc_id, titleid, start_cell, end_cell, i, j;
@@ -1334,7 +1335,7 @@ int dvd_verify(char *name)
 
 return(-1);
 }
-int dvd_probe(int title, probe_info_t *info)
+int dvd_probe(int title, ProbeInfo *info)
 {
   fprintf(stderr, "(%s) no support for DVD reading configured - exit.\n", __FILE__);
 

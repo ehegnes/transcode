@@ -22,12 +22,13 @@
  */
 
 #include "transcode.h"
-#include "aclib/imgconvert.h"
+#include "tcinfo.h"
 
 #ifdef HAVE_LIBDV
 #include <libdv/dv.h>
 #endif
 
+#include "aclib/imgconvert.h"
 #include "ioaux.h"
 #include "tc.h"
 

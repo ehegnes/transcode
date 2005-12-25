@@ -23,6 +23,8 @@
  */
 
 #include "transcode.h"
+#include "tcinfo.h"
+
 #include "ioaux.h"
 #include "avilib.h"
 #include "tc.h"

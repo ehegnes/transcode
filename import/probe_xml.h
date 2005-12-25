@@ -24,4 +24,4 @@
 
 #include "ioxml.h"
 
-int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,probe_info_t *p_first_audio,probe_info_t *p_first_video,long *s_tot_frames_audio, long *s_tot_frames_video);
+int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,ProbeInfo *p_first_audio,ProbeInfo *p_first_video,long *s_tot_frames_audio, long *s_tot_frames_video);
