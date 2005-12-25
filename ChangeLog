@@ -1,4 +1,8 @@
 2005-12-25 Andrew Church <achurch at achurch dot org>
+  * src/transcode.c
+  Improved handling of -f option.
+
+2005-12-25 Andrew Church <achurch at achurch dot org>
   * export/export_ac3.c export/export_ffmpeg.c export/export_mp2enc.c
     export/export_mpeg2enc.c export/export_toolame.c src/probe_export.h
     src/transcode.c

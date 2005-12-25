@@ -1311,20 +1311,17 @@ int main(int argc, char *argv[]) {
 
 	n = sscanf(optarg,"%lf,%d", &vob->fps, &vob->im_frc);
 
-	if(n==2) vob->fps=MIN_FPS; //will be overwritten later
-
-	if(vob->fps < MIN_FPS || n < 0) tc_error("invalid frame rate for option -f");
+	if (n == 2) {
+	    if (vob->im_frc < 0 || vob->im_frc > 15)
+		tc_error("invalid frame rate code for option -f");
+	    vob->fps = frc_table[vob->im_frc];
+	    preset_flag |= TC_PROBE_NO_FRC;
+	} else {
+	    if (n < 1 || vob->fps < MIN_FPS)
+		tc_error("invalid frame rate for option -f");
+	}
 
 	preset_flag |= TC_PROBE_NO_FPS;
-	preset_flag |= TC_PROBE_NO_FRC;
-
-	if(n==2) {
-	  if(vob->im_frc < 0 || vob->im_frc > 15) tc_error("invalid frame rate code for option -f");
-
-	  vob->fps = frc_table[vob->im_frc];
-
-	  preset_flag |= TC_PROBE_NO_FRC;
-	}
 
 	break;
 
