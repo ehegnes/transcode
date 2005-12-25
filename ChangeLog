@@ -1,4 +1,8 @@
 2005-12-25 Francesco Romani <fromani at gmail dot com>
+  * docs/man/transcode.1
+  remove references for dropped `--ext' option in manpage.
+
+2005-12-25 Francesco Romani <fromani at gmail dot com>
   * import/extract_mp3.c
   remove dead code, #if 0-ed from a long time.
 
