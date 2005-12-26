@@ -464,13 +464,13 @@ int main(int argc, char *argv[])
 
   if (mod_type & TYPE_FI) {
     int ret = 0, out = 0;
-    TCFactoryHandle factory = NULL;
+    TCFactory factory = NULL;
 
     /* needed by filter modules */
     TCVHandle tcv_handle = tcv_init();
     
     /* first of all, try using new module system */
-    TCModuleHandle module = NULL;
+    TCModule module = NULL;
 
     factory = tc_new_module_factory(((newmodpath) ?newmodpath :modpath), verbose);
     module = tc_new_module(factory, "filter", filename);
